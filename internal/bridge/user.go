@@ -41,7 +41,7 @@ type User struct {
 	log          *logrus.Entry
 	panicHandler PanicHandler
 	listener     listener.Listener
-	apiClient    PMAPIProvider
+	clientMan    *pmapi.ClientManager
 	credStorer   CredentialsStorer
 
 	imapUpdatesChannel chan interface{}
@@ -67,7 +67,7 @@ func newUser(
 	userID string,
 	eventListener listener.Listener,
 	credStorer CredentialsStorer,
-	apiClient PMAPIProvider,
+	clientMan *pmapi.ClientManager,
 	storeCache *store.Cache,
 	storeDir string,
 ) (u *User, err error) {
@@ -84,7 +84,7 @@ func newUser(
 		panicHandler: panicHandler,
 		listener:     eventListener,
 		credStorer:   credStorer,
-		apiClient:    apiClient,
+		clientMan:    clientMan,
 		storeCache:   storeCache,
 		storePath:    getUserStorePath(storeDir, userID),
 		userID:       userID,
@@ -94,16 +94,16 @@ func newUser(
 	return
 }
 
+func (u *User) client() PMAPIProvider {
+	return u.clientMan.GetClient(u.userID)
+}
+
 // init initialises a bridge user. This includes reloading its credentials from the credentials store
 // (such as when logging out and back in, you need to reload the credentials because the new credentials will
 // have the apitoken and password), authorising the user against the api, loading the user store (creating a new one
 // if necessary), and setting the imap idle updates channel (used to send imap idle updates to the imap backend if
 // something in the store changed).
-func (u *User) init(idleUpdates chan interface{}, apiClient PMAPIProvider) (err error) {
-	// If this is an existing user, we still need a new api client to get a new refresh token.
-	// If it's a new user, doesn't matter really; this is basically a noop in this case.
-	u.apiClient = apiClient
-
+func (u *User) init(idleUpdates chan interface{}) (err error) {
 	u.unlockingKeyringLock.Lock()
 	u.wasKeyringUnlocked = false
 	u.unlockingKeyringLock.Unlock()
@@ -118,7 +118,7 @@ func (u *User) init(idleUpdates chan interface{}, apiClient PMAPIProvider) (err 
 
 	// Set up the auth channel on which auths from the api client are sent.
 	u.authChannel = make(chan *pmapi.Auth)
-	u.apiClient.SetAuths(u.authChannel)
+	u.client().SetAuths(u.authChannel)
 	u.hasAPIAuth = false
 	go func() {
 		defer u.panicHandler.HandlePanic()
@@ -147,7 +147,7 @@ func (u *User) init(idleUpdates chan interface{}, apiClient PMAPIProvider) (err 
 		}
 		u.store = nil
 	}
-	store, err := store.New(u.panicHandler, u, u.apiClient, u.listener, u.storePath, u.storeCache)
+	store, err := store.New(u.panicHandler, u, u.client(), u.listener, u.storePath, u.storeCache)
 	if err != nil {
 		return errors.Wrap(err, "failed to create store")
 	}
@@ -216,11 +216,11 @@ func (u *User) unlockIfNecessary() error {
 		return nil
 	}
 
-	if _, err := u.apiClient.Unlock(u.creds.MailboxPassword); err != nil {
+	if _, err := u.client().Unlock(u.creds.MailboxPassword); err != nil {
 		return errors.Wrap(err, "failed to unlock user")
 	}
 
-	if err := u.apiClient.UnlockAddresses([]byte(u.creds.MailboxPassword)); err != nil {
+	if err := u.client().UnlockAddresses([]byte(u.creds.MailboxPassword)); err != nil {
 		return errors.Wrap(err, "failed to unlock user addresses")
 	}
 
@@ -236,17 +236,17 @@ func (u *User) authorizeAndUnlock() (err error) {
 		return nil
 	}
 
-	auth, err := u.apiClient.AuthRefresh(u.creds.APIToken)
+	auth, err := u.client().AuthRefresh(u.creds.APIToken)
 	if err != nil {
 		return errors.Wrap(err, "failed to refresh API auth")
 	}
 	u.authChannel <- auth
 
-	if _, err = u.apiClient.Unlock(u.creds.MailboxPassword); err != nil {
+	if _, err = u.client().Unlock(u.creds.MailboxPassword); err != nil {
 		return errors.Wrap(err, "failed to unlock user")
 	}
 
-	if err = u.apiClient.UnlockAddresses([]byte(u.creds.MailboxPassword)); err != nil {
+	if err = u.client().UnlockAddresses([]byte(u.creds.MailboxPassword)); err != nil {
 		return errors.Wrap(err, "failed to unlock user addresses")
 	}
 
@@ -321,7 +321,7 @@ func getUserStorePath(storeDir string, userID string) (path string) {
 // Do not use! It's only for backward compatibility of old SMTP and IMAP implementations.
 // After proper refactor of SMTP and IMAP remove this method.
 func (u *User) GetTemporaryPMAPIClient() PMAPIProvider {
-	return u.apiClient
+	return u.client()
 }
 
 // ID returns the user's userID.
@@ -462,20 +462,20 @@ func (u *User) UpdateUser() error {
 		return errors.Wrap(err, "cannot update user")
 	}
 
-	_, err := u.apiClient.UpdateUser()
+	_, err := u.client().UpdateUser()
 	if err != nil {
 		return err
 	}
 
-	if _, err = u.apiClient.Unlock(u.creds.MailboxPassword); err != nil {
+	if _, err = u.client().Unlock(u.creds.MailboxPassword); err != nil {
 		return err
 	}
 
-	if err := u.apiClient.UnlockAddresses([]byte(u.creds.MailboxPassword)); err != nil {
+	if err := u.client().UnlockAddresses([]byte(u.creds.MailboxPassword)); err != nil {
 		return err
 	}
 
-	emails := u.apiClient.Addresses().ActiveEmails()
+	emails := u.client().Addresses().ActiveEmails()
 	if err := u.credStorer.UpdateEmails(u.userID, emails); err != nil {
 		return err
 	}
@@ -548,10 +548,10 @@ func (u *User) Logout() (err error) {
 	u.wasKeyringUnlocked = false
 	u.unlockingKeyringLock.Unlock()
 
-	if err = u.apiClient.Logout(); err != nil {
+	if err = u.client().Logout(); err != nil {
 		u.log.WithError(err).Warn("Could not log user out from API client")
 	}
-	u.apiClient.SetAuths(nil)
+	u.client().SetAuths(nil)
 
 	// Logout needs to stop auth channel so when user logs back in
 	// it can register again with new client.

@@ -57,6 +57,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/pkg/args"
 	"github.com/ProtonMail/proton-bridge/pkg/config"
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
+	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	"github.com/ProtonMail/proton-bridge/pkg/updates"
 	"github.com/allan-simon/go-singleinstance"
 	"github.com/getsentry/raven-go"
@@ -273,9 +274,8 @@ func run(context *cli.Context) (contextError error) { // nolint[funlen]
 		log.Error("Could not get credentials store: ", credentialsError)
 	}
 
-	pmapiClientFactory := pmapifactory.New(cfg, eventListener)
-
-	bridgeInstance := bridge.New(cfg, pref, panicHandler, eventListener, Version, pmapiClientFactory, credentialsStore)
+	clientman := pmapi.NewClientManager(pmapifactory.GetClientConfig(cfg, eventListener))
+	bridgeInstance := bridge.New(cfg, pref, panicHandler, eventListener, Version, clientman, credentialsStore)
 	imapBackend := imap.NewIMAPBackend(panicHandler, eventListener, cfg, bridgeInstance)
 	smtpBackend := smtp.NewSMTPBackend(panicHandler, eventListener, pref, bridgeInstance)
 

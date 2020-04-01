@@ -42,7 +42,7 @@ func TestTLSPinValid(t *testing.T) {
 	called, _ := newTestDialerWithPinning()
 
 	RootURL = liveAPI
-	client := NewClient(testLiveConfig, "pmapi"+t.Name())
+	client := newClient(NewClientManager(testLiveConfig), "pmapi"+t.Name())
 
 	_, err := client.AuthInfo("this.address.is.disabled")
 	Ok(t, err)
@@ -56,7 +56,7 @@ func TestTLSPinBackup(t *testing.T) {
 	p.report.KnownPins[0] = ""
 
 	RootURL = liveAPI
-	client := NewClient(testLiveConfig, "pmapi"+t.Name())
+	client := newClient(NewClientManager(testLiveConfig), "pmapi"+t.Name())
 
 	_, err := client.AuthInfo("this.address.is.disabled")
 	Ok(t, err)
@@ -71,13 +71,13 @@ func _TestTLSPinNoMatch(t *testing.T) { // nolint[unused]
 	}
 
 	RootURL = liveAPI
-	client := NewClient(testLiveConfig, "pmapi"+t.Name())
+	client := newClient(NewClientManager(testLiveConfig), "pmapi"+t.Name())
 
 	_, err := client.AuthInfo("this.address.is.disabled")
 	Ok(t, err)
 
 	// check that it will be called only once per session
-	client = NewClient(testLiveConfig, "pmapi"+t.Name())
+	client = newClient(NewClientManager(testLiveConfig), "pmapi"+t.Name())
 	_, err = client.AuthInfo("this.address.is.disabled")
 	Ok(t, err)
 
@@ -92,7 +92,7 @@ func _TestTLSPinInvalid(t *testing.T) { // nolint[unused]
 
 	called, _ := newTestDialerWithPinning()
 
-	client := NewClient(testLiveConfig, "pmapi"+t.Name())
+	client := newClient(NewClientManager(testLiveConfig), "pmapi"+t.Name())
 
 	RootURL = liveAPI
 	_, err := client.AuthInfo("this.address.is.disabled")

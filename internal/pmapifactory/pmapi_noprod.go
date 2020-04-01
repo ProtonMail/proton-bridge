@@ -26,8 +26,6 @@ import (
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 )
 
-func New(cfg bridge.Configer, _ listener.Listener) bridge.PMAPIProviderFactory {
-	return func(userID string) bridge.PMAPIProvider {
-		return pmapi.NewClient(cfg.GetAPIConfig(), userID)
-	}
+func GetClientConfig(config bridge.Configer, _ listener.Listener) *pmapi.ClientConfig {
+	return config.GetAPIConfig()
 }

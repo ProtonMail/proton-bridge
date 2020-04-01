@@ -64,9 +64,11 @@ func GetLogEntry(packageName string) *logrus.Entry {
 // HandlePanic reports the crash to sentry or local file when sentry fails.
 func HandlePanic(cfg *Config, output string) {
 	if !cfg.IsDevMode() {
-		c := pmapi.NewClient(cfg.GetAPIConfig(), "no-user-id")
-		err := c.ReportSentryCrash(fmt.Errorf(output))
-		if err != nil {
+		// TODO: Is it okay to just create a throwaway client like this?
+		c := pmapi.NewClientManager(cfg.GetAPIConfig()).GetClient("no-user-id")
+		defer func() { _ = c.Logout() }()
+
+		if err := c.ReportSentryCrash(fmt.Errorf(output)); err != nil {
 			log.Error("Sentry crash report failed: ", err)
 		}
 	}

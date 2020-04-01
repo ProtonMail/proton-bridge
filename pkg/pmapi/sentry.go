@@ -152,8 +152,8 @@ func (c *Client) ReportSentryCrash(reportErr error) (err error) {
 	}
 	tags := map[string]string{
 		"OS":        runtime.GOOS,
-		"Client":    c.config.ClientID,
-		"Version":   c.config.AppVersion,
+		"Client":    c.cm.GetConfig().ClientID,
+		"Version":   c.cm.GetConfig().AppVersion,
 		"UserAgent": CurrentUserAgent,
 		"UserID":    c.userID,
 	}

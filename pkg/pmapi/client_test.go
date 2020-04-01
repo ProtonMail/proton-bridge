@@ -37,8 +37,7 @@ var testClientConfig = &ClientConfig{
 }
 
 func newTestClient() *Client {
-	c := NewClient(testClientConfig, "tester")
-	c.tokenManager = NewTokenManager()
+	c := newClient(NewClientManager(testClientConfig), "tester")
 	return c
 }
 

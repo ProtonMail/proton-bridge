@@ -78,8 +78,6 @@ func newConfig(appName, version, revision, cacheVersion string, appDirs, appDirs
 				TLSHandshakeTimeout:   10 * time.Second,
 				ResponseHeaderTimeout: 10 * time.Second,
 			},
-			// TokenManager should not be required, but PMAPI still doesn't handle not-set cases everywhere.
-			TokenManager: pmapi.NewTokenManager(),
 		},
 	}
 }

@@ -43,7 +43,8 @@ type PanicHandler interface {
 	HandlePanic()
 }
 
-type PMAPIProviderFactory func(string) PMAPIProvider
+type Clientman interface {
+}
 
 type PMAPIProvider interface {
 	SetAuths(auths chan<- *pmapi.Auth)

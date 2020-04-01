@@ -353,8 +353,7 @@ func TestClient_DoUnauthorized(t *testing.T) {
 	c.uid = testUID
 	c.accessToken = testAccessTokenOld
 	c.expiresAt = aLongTimeAgo
-	c.tokenManager = NewTokenManager()
-	c.tokenManager.tokenMap[c.userID] = testUID + ":" + testRefreshToken
+	c.cm.tokens[c.userID] = testUID + ":" + testRefreshToken
 
 	req, err := NewRequest("GET", "/", nil)
 	Ok(t, err)

@@ -25,7 +25,7 @@ import (
 )
 
 func TestSentryCrashReport(t *testing.T) {
-	c := NewClient(testClientConfig, "bridgetest")
+	c := newClient(NewClientManager(testClientConfig), "bridgetest")
 	if err := c.ReportSentryCrash(errors.New("Testing crash report - api proxy; goroutines with threads, find origin")); err != nil {
 		t.Fatal("Expected no error while report, but have", err)
 	}

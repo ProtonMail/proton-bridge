@@ -307,11 +307,7 @@ func (c *Client) Auth(username, password string, info *AuthInfo) (auth *Auth, er
 	if c.auths != nil {
 		c.auths <- auth
 	}
-
-	if c.tokenManager != nil {
-		c.tokenManager.SetToken(c.userID, c.uid+":"+auth.RefreshToken)
-		c.log.Info("Set token from auth " + c.uid + ":" + auth.RefreshToken)
-	}
+	c.cm.SetToken(c.userID, c.uid+":"+auth.RefreshToken)
 
 	// Auth has to be fully unlocked to get key salt. During `Auth` it can happen
 	// only to accounts without 2FA. For 2FA accounts, it's done in `Auth2FA`.
@@ -407,14 +403,7 @@ func (c *Client) Unlock(password string) (kr *pmcrypto.KeyRing, err error) {
 func (c *Client) AuthRefresh(uidAndRefreshToken string) (auth *Auth, err error) {
 	// If we don't yet have a saved access token, save this one in case the refresh fails!
 	// That way we can try again later (see handleUnauthorizedStatus).
-	if c.tokenManager != nil {
-		currentAccessToken := c.tokenManager.GetToken(c.userID)
-		if currentAccessToken == "" {
-			c.log.WithField("token", uidAndRefreshToken).
-				Info("Currently have no access token, setting given one")
-			c.tokenManager.SetToken(c.userID, uidAndRefreshToken)
-		}
-	}
+	c.cm.SetTokenIfUnset(c.userID, uidAndRefreshToken)
 
 	split := strings.Split(uidAndRefreshToken, ":")
 	if len(split) != 2 {
@@ -456,11 +445,7 @@ func (c *Client) AuthRefresh(uidAndRefreshToken string) (auth *Auth, err error) 
 
 	c.uid = auth.UID()
 	c.accessToken = auth.accessToken
-
-	if c.tokenManager != nil {
-		c.tokenManager.SetToken(c.userID, c.uid+":"+res.RefreshToken)
-		c.log.Info("Set token from auth refresh " + c.uid + ":" + res.RefreshToken)
-	}
+	c.cm.SetToken(c.userID, c.uid+":"+res.RefreshToken)
 
 	c.expiresAt = time.Now().Add(time.Duration(auth.ExpiresIn) * time.Second)
 	return auth, err
@@ -497,9 +482,7 @@ func (c *Client) Logout() (err error) {
 	c.kr = nil
 	// c.addresses = nil
 	c.user = nil
-	if c.tokenManager != nil {
-		c.tokenManager.SetToken(c.userID, "")
-	}
+	c.cm.ClearToken(c.userID)
 	// }()
 
 	return err
