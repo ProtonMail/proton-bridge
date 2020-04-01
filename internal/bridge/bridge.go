@@ -97,7 +97,7 @@ func New(
 	// Allow DoH before starting bridge if the user has previously set this setting.
 	// This allows us to start even if protonmail is blocked.
 	if pref.GetBool(preferences.AllowProxyKey) {
-		AllowDoH()
+		b.AllowProxy()
 	}
 
 	go func() {
@@ -178,15 +178,16 @@ func (b *Bridge) watchBridgeOutdated() {
 	}
 }
 
+// watchUserAuths receives auths from the client manager and sends them to the appropriate user.
 func (b *Bridge) watchUserAuths() {
 	for auth := range b.clientManager.GetBridgeAuthChannel() {
-		user, ok := b.hasUser(auth.UserID)
+		logrus.WithField("token", auth.Auth.GenToken()).WithField("userID", auth.UserID).Info("Received auth from bridge auth channel")
 
-		if !ok {
-			continue
+		if user, ok := b.hasUser(auth.UserID); ok {
+			user.ReceiveAPIAuth(auth.Auth)
+		} else {
+			logrus.Info("User is not added to bridge yet")
 		}
-
-		user.ReceiveAPIAuth(auth.Auth)
 	}
 }
 
@@ -274,7 +275,7 @@ func (b *Bridge) FinishLogin(loginClient PMAPIProvider, auth *pmapi.Auth, mbPass
 	apiClient := b.clientManager.GetClient(apiUser.ID)
 	auth, err = apiClient.AuthRefresh(auth.GenToken())
 	if err != nil {
-		log.WithError(err).Error("Could refresh token in new client")
+		log.WithError(err).Error("Could not refresh token in new client")
 		return
 	}
 
@@ -298,6 +299,7 @@ func (b *Bridge) FinishLogin(loginClient PMAPIProvider, auth *pmapi.Auth, mbPass
 			log.WithField("user", apiUser.ID).WithError(err).Error("Could not create user")
 			return
 		}
+		b.users = append(b.users, user)
 	}
 
 	// Set up the user auth and store (which we do for both new and existing users).
@@ -307,7 +309,6 @@ func (b *Bridge) FinishLogin(loginClient PMAPIProvider, auth *pmapi.Auth, mbPass
 	}
 
 	if !hasUser {
-		b.users = append(b.users, user)
 		b.SendMetric(m.New(m.Setup, m.NewUser, m.NoLabel))
 	}
 
@@ -475,16 +476,16 @@ func (b *Bridge) GetIMAPUpdatesChannel() chan interface{} {
 	return b.idleUpdates
 }
 
-// AllowDoH instructs bridge to use DoH to access an API proxy if necessary.
+// AllowProxy instructs bridge to use DoH to access an API proxy if necessary.
 // It also needs to work before bridge is initialised (because we may need to use the proxy at startup).
-func AllowDoH() {
-	pmapi.GlobalAllowDoH()
+func (b *Bridge) AllowProxy() {
+	b.clientManager.AllowProxy()
 }
 
-// DisallowDoH instructs bridge to not use DoH to access an API proxy if necessary.
+// DisallowProxy instructs bridge to not use DoH to access an API proxy if necessary.
 // It also needs to work before bridge is initialised (because we may need to use the proxy at startup).
-func DisallowDoH() {
-	pmapi.GlobalDisallowDoH()
+func (b *Bridge) DisallowProxy() {
+	b.clientManager.DisallowProxy()
 }
 
 func (b *Bridge) updateCurrentUserAgent() {
@@ -493,7 +494,11 @@ func (b *Bridge) updateCurrentUserAgent() {
 
 // hasUser returns whether the bridge currently has a user with ID `id`.
 func (b *Bridge) hasUser(id string) (user *User, ok bool) {
+	logrus.WithField("id", id).Info("Checking whether bridge has given user")
+
 	for _, u := range b.users {
+		logrus.WithField("id", u.ID()).Info("Found potential user")
+
 		if u.ID() == id {
 			user, ok = u, true
 			return

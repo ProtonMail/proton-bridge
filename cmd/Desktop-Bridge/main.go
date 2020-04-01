@@ -274,8 +274,11 @@ func run(context *cli.Context) (contextError error) { // nolint[funlen]
 		log.Error("Could not get credentials store: ", credentialsError)
 	}
 
-	clientman := pmapi.NewClientManager(pmapifactory.GetClientConfig(cfg, eventListener))
-	bridgeInstance := bridge.New(cfg, pref, panicHandler, eventListener, Version, clientman, credentialsStore)
+	clientConfig := pmapifactory.GetClientConfig(cfg.GetAPIConfig())
+	cm := pmapi.NewClientManager(clientConfig)
+	pmapifactory.SetClientRoundTripper(cm, clientConfig, eventListener)
+
+	bridgeInstance := bridge.New(cfg, pref, panicHandler, eventListener, Version, cm, credentialsStore)
 	imapBackend := imap.NewIMAPBackend(panicHandler, eventListener, cfg, bridgeInstance)
 	smtpBackend := smtp.NewSMTPBackend(panicHandler, eventListener, pref, bridgeInstance)
 

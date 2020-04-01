@@ -23,7 +23,7 @@ import (
 )
 
 func newKeychain() (credentials.Helper, error) {
-	log.Debug("creating wincred")
+	log.Debug("Creating wincred")
 	return &wincred.Wincred{}, nil
 }
 

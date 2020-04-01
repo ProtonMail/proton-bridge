@@ -51,7 +51,7 @@ func TestClient_Do(t *testing.T) {
 	}))
 	defer s.Close()
 
-	req, err := NewRequest("GET", "/", nil)
+	req, err := c.NewRequest("GET", "/", nil)
 	if err != nil {
 		t.Fatal("Expected no error while creating request, got:", err)
 	}
@@ -163,8 +163,8 @@ func TestClient_FirstReadTimeout(t *testing.T) {
 	)
 	defer finish()
 
-	c.client.Transport = &slowTransport{
-		transport:      c.client.Transport,
+	c.hc.Transport = &slowTransport{
+		transport:      c.hc.Transport,
 		firstBodySleep: requestTimeout,
 	}
 

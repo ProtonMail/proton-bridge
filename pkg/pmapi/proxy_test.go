@@ -32,14 +32,14 @@ const (
 	TestGoogleProvider = "https://dns.google/dns-query"
 )
 
-func TestProxyManager_FindProxy(t *testing.T) {
+func TestProxyProvider_FindProxy(t *testing.T) {
 	blockAPI()
 	defer unblockAPI()
 
 	proxy := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
 	defer proxy.Close()
 
-	p := newProxyManager([]string{"not used"}, "not used")
+	p := newProxyProvider([]string{"not used"}, "not used")
 	p.dohLookup = func(q, p string) ([]string, error) { return []string{proxy.URL}, nil }
 
 	url, err := p.findProxy()
@@ -47,7 +47,7 @@ func TestProxyManager_FindProxy(t *testing.T) {
 	require.Equal(t, proxy.URL, url)
 }
 
-func TestProxyManager_FindProxy_ChooseReachableProxy(t *testing.T) {
+func TestProxyProvider_FindProxy_ChooseReachableProxy(t *testing.T) {
 	blockAPI()
 	defer unblockAPI()
 
@@ -58,7 +58,7 @@ func TestProxyManager_FindProxy_ChooseReachableProxy(t *testing.T) {
 	badProxy.Close()
 	defer goodProxy.Close()
 
-	p := newProxyManager([]string{"not used"}, "not used")
+	p := newProxyProvider([]string{"not used"}, "not used")
 	p.dohLookup = func(q, p string) ([]string, error) { return []string{badProxy.URL, goodProxy.URL}, nil }
 
 	url, err := p.findProxy()
@@ -66,7 +66,7 @@ func TestProxyManager_FindProxy_ChooseReachableProxy(t *testing.T) {
 	require.Equal(t, goodProxy.URL, url)
 }
 
-func TestProxyManager_FindProxy_FailIfNoneReachable(t *testing.T) {
+func TestProxyProvider_FindProxy_FailIfNoneReachable(t *testing.T) {
 	blockAPI()
 	defer unblockAPI()
 
@@ -77,21 +77,21 @@ func TestProxyManager_FindProxy_FailIfNoneReachable(t *testing.T) {
 	badProxy.Close()
 	anotherBadProxy.Close()
 
-	p := newProxyManager([]string{"not used"}, "not used")
+	p := newProxyProvider([]string{"not used"}, "not used")
 	p.dohLookup = func(q, p string) ([]string, error) { return []string{badProxy.URL, anotherBadProxy.URL}, nil }
 
 	_, err := p.findProxy()
 	require.Error(t, err)
 }
 
-func TestProxyManager_FindProxy_LookupTimeout(t *testing.T) {
+func TestProxyProvider_FindProxy_LookupTimeout(t *testing.T) {
 	blockAPI()
 	defer unblockAPI()
 
 	proxy := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
 	defer proxy.Close()
 
-	p := newProxyManager([]string{"not used"}, "not used")
+	p := newProxyProvider([]string{"not used"}, "not used")
 	p.lookupTimeout = time.Second
 	p.dohLookup = func(q, p string) ([]string, error) { time.Sleep(2 * time.Second); return nil, nil }
 
@@ -100,7 +100,7 @@ func TestProxyManager_FindProxy_LookupTimeout(t *testing.T) {
 	require.Error(t, err)
 }
 
-func TestProxyManager_FindProxy_FindTimeout(t *testing.T) {
+func TestProxyProvider_FindProxy_FindTimeout(t *testing.T) {
 	blockAPI()
 	defer unblockAPI()
 
@@ -109,7 +109,7 @@ func TestProxyManager_FindProxy_FindTimeout(t *testing.T) {
 	}))
 	defer slowProxy.Close()
 
-	p := newProxyManager([]string{"not used"}, "not used")
+	p := newProxyProvider([]string{"not used"}, "not used")
 	p.findTimeout = time.Second
 	p.dohLookup = func(q, p string) ([]string, error) { return []string{slowProxy.URL}, nil }
 
@@ -118,14 +118,14 @@ func TestProxyManager_FindProxy_FindTimeout(t *testing.T) {
 	require.Error(t, err)
 }
 
-func TestProxyManager_UseProxy(t *testing.T) {
+func TestProxyProvider_UseProxy(t *testing.T) {
 	blockAPI()
 	defer unblockAPI()
 
 	proxy := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
 	defer proxy.Close()
 
-	p := newProxyManager([]string{"not used"}, "not used")
+	p := newProxyProvider([]string{"not used"}, "not used")
 	p.dohLookup = func(q, p string) ([]string, error) { return []string{proxy.URL}, nil }
 
 	url, err := p.findProxy()
@@ -135,7 +135,7 @@ func TestProxyManager_UseProxy(t *testing.T) {
 	require.Equal(t, proxy.URL, GlobalGetRootURL())
 }
 
-func TestProxyManager_UseProxy_MultipleTimes(t *testing.T) {
+func TestProxyProvider_UseProxy_MultipleTimes(t *testing.T) {
 	blockAPI()
 	defer unblockAPI()
 
@@ -146,7 +146,7 @@ func TestProxyManager_UseProxy_MultipleTimes(t *testing.T) {
 	proxy3 := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
 	defer proxy3.Close()
 
-	p := newProxyManager([]string{"not used"}, "not used")
+	p := newProxyProvider([]string{"not used"}, "not used")
 
 	p.dohLookup = func(q, p string) ([]string, error) { return []string{proxy1.URL}, nil }
 	url, err := p.findProxy()
@@ -173,14 +173,14 @@ func TestProxyManager_UseProxy_MultipleTimes(t *testing.T) {
 	require.Equal(t, proxy3.URL, GlobalGetRootURL())
 }
 
-func TestProxyManager_UseProxy_RevertAfterTime(t *testing.T) {
+func TestProxyProvider_UseProxy_RevertAfterTime(t *testing.T) {
 	blockAPI()
 	defer unblockAPI()
 
 	proxy := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
 	defer proxy.Close()
 
-	p := newProxyManager([]string{"not used"}, "not used")
+	p := newProxyProvider([]string{"not used"}, "not used")
 	p.useDuration = time.Second
 	p.dohLookup = func(q, p string) ([]string, error) { return []string{proxy.URL}, nil }
 
@@ -195,14 +195,14 @@ func TestProxyManager_UseProxy_RevertAfterTime(t *testing.T) {
 	require.Equal(t, globalOriginalURL, GlobalGetRootURL())
 }
 
-func TestProxyManager_UseProxy_RevertIfProxyStopsWorkingAndOriginalAPIIsReachable(t *testing.T) {
+func TestProxyProvider_UseProxy_RevertIfProxyStopsWorkingAndOriginalAPIIsReachable(t *testing.T) {
 	// Don't block the API here because we want it to be working so the test can find it.
 	defer unblockAPI()
 
 	proxy := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
 	defer proxy.Close()
 
-	p := newProxyManager([]string{"not used"}, "not used")
+	p := newProxyProvider([]string{"not used"}, "not used")
 	p.dohLookup = func(q, p string) ([]string, error) { return []string{proxy.URL}, nil }
 
 	url, err := p.findProxy()
@@ -225,7 +225,7 @@ func TestProxyManager_UseProxy_RevertIfProxyStopsWorkingAndOriginalAPIIsReachabl
 	require.Equal(t, globalOriginalURL, GlobalGetRootURL())
 }
 
-func TestProxyManager_UseProxy_FindSecondAlternativeIfFirstFailsAndAPIIsStillBlocked(t *testing.T) {
+func TestProxyProvider_UseProxy_FindSecondAlternativeIfFirstFailsAndAPIIsStillBlocked(t *testing.T) {
 	blockAPI()
 	defer unblockAPI()
 
@@ -234,7 +234,7 @@ func TestProxyManager_UseProxy_FindSecondAlternativeIfFirstFailsAndAPIIsStillBlo
 	proxy2 := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
 	defer proxy2.Close()
 
-	p := newProxyManager([]string{"not used"}, "not used")
+	p := newProxyProvider([]string{"not used"}, "not used")
 	p.dohLookup = func(q, p string) ([]string, error) { return []string{proxy1.URL, proxy2.URL}, nil }
 
 	// Find a proxy.
@@ -256,32 +256,32 @@ func TestProxyManager_UseProxy_FindSecondAlternativeIfFirstFailsAndAPIIsStillBlo
 	require.Equal(t, proxy2.URL, GlobalGetRootURL())
 }
 
-func TestProxyManager_DoHLookup_Quad9(t *testing.T) {
-	p := newProxyManager([]string{TestQuad9Provider, TestGoogleProvider}, TestDoHQuery)
+func TestProxyProvider_DoHLookup_Quad9(t *testing.T) {
+	p := newProxyProvider([]string{TestQuad9Provider, TestGoogleProvider}, TestDoHQuery)
 
 	records, err := p.dohLookup(TestDoHQuery, TestQuad9Provider)
 	require.NoError(t, err)
 	require.NotEmpty(t, records)
 }
 
-func TestProxyManager_DoHLookup_Google(t *testing.T) {
-	p := newProxyManager([]string{TestQuad9Provider, TestGoogleProvider}, TestDoHQuery)
+func TestProxyProvider_DoHLookup_Google(t *testing.T) {
+	p := newProxyProvider([]string{TestQuad9Provider, TestGoogleProvider}, TestDoHQuery)
 
 	records, err := p.dohLookup(TestDoHQuery, TestGoogleProvider)
 	require.NoError(t, err)
 	require.NotEmpty(t, records)
 }
 
-func TestProxyManager_DoHLookup_FindProxy(t *testing.T) {
-	p := newProxyManager([]string{TestQuad9Provider, TestGoogleProvider}, TestDoHQuery)
+func TestProxyProvider_DoHLookup_FindProxy(t *testing.T) {
+	p := newProxyProvider([]string{TestQuad9Provider, TestGoogleProvider}, TestDoHQuery)
 
 	url, err := p.findProxy()
 	require.NoError(t, err)
 	require.NotEmpty(t, url)
 }
 
-func TestProxyManager_DoHLookup_FindProxyFirstProviderUnreachable(t *testing.T) {
-	p := newProxyManager([]string{"https://unreachable", TestGoogleProvider}, TestDoHQuery)
+func TestProxyProvider_DoHLookup_FindProxyFirstProviderUnreachable(t *testing.T) {
+	p := newProxyProvider([]string{"https://unreachable", TestGoogleProvider}, TestDoHQuery)
 
 	url, err := p.findProxy()
 	require.NoError(t, err)

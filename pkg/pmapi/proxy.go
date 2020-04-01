@@ -21,7 +21,6 @@ import (
 	"crypto/tls"
 	"encoding/base64"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/go-resty/resty/v2"
@@ -43,63 +42,8 @@ var dohProviders = []string{ //nolint[gochecknoglobals]
 	"https://dns.google/dns-query",
 }
 
-// globalAllowDoH controls whether or not to enable use of DoH/Proxy in pmapi.
-var globalAllowDoH = false // nolint[golint]
-
-// globalProxyMutex allows threadsafe modification of proxy state.
-var globalProxyMutex = sync.RWMutex{} // nolint[golint]
-
-// globalOriginalURL backs up the original API url so it can be restored later.
-var globalOriginalURL = RootURL // nolint[golint]
-
-// globalIsDoHAllowed returns whether or not to use DoH.
-func globalIsDoHAllowed() bool { // nolint[golint]
-	globalProxyMutex.RLock()
-	defer globalProxyMutex.RUnlock()
-
-	return globalAllowDoH
-}
-
-// GlobalAllowDoH enables DoH.
-func GlobalAllowDoH() { // nolint[golint]
-	globalProxyMutex.Lock()
-	defer globalProxyMutex.Unlock()
-
-	globalAllowDoH = true
-}
-
-// GlobalDisallowDoH disables DoH and sets the RootURL back to what it was.
-func GlobalDisallowDoH() { // nolint[golint]
-	globalProxyMutex.Lock()
-	defer globalProxyMutex.Unlock()
-
-	globalAllowDoH = false
-	RootURL = globalOriginalURL
-}
-
-// globalSetRootURL sets the global RootURL.
-func globalSetRootURL(url string) { // nolint[golint]
-	globalProxyMutex.Lock()
-	defer globalProxyMutex.Unlock()
-
-	RootURL = url
-}
-
-// GlobalGetRootURL returns the global RootURL.
-func GlobalGetRootURL() (url string) { // nolint[golint]
-	globalProxyMutex.RLock()
-	defer globalProxyMutex.RUnlock()
-
-	return RootURL
-}
-
-// isProxyEnabled returns whether or not we are currently using a proxy.
-func isProxyEnabled() bool { // nolint[golint]
-	return globalOriginalURL != GlobalGetRootURL()
-}
-
-// proxyManager manages known proxies.
-type proxyManager struct {
+// proxyProvider manages known proxies.
+type proxyProvider struct {
 	// dohLookup is used to look up the given query at the given DoH provider, returning the TXT records>
 	dohLookup func(query, provider string) (urls []string, err error)
 
@@ -113,10 +57,10 @@ type proxyManager struct {
 	lastLookup time.Time // The time at which we last attempted to find a proxy.
 }
 
-// newProxyManager creates a new proxyManager that queries the given DoH providers
+// newProxyProvider creates a new proxyProvider that queries the given DoH providers
 // to retrieve DNS records for the given query string.
-func newProxyManager(providers []string, query string) (p *proxyManager) { // nolint[unparam]
-	p = &proxyManager{
+func newProxyProvider(providers []string, query string) (p *proxyProvider) { // nolint[unparam]
+	p = &proxyProvider{
 		providers:     providers,
 		query:         query,
 		useDuration:   proxyRevertTime,
@@ -132,7 +76,7 @@ func newProxyManager(providers []string, query string) (p *proxyManager) { // no
 
 // findProxy returns a new proxy domain which is not equal to the current RootURL.
 // It returns an error if the process takes longer than ProxySearchTime.
-func (p *proxyManager) findProxy() (proxy string, err error) {
+func (p *proxyProvider) findProxy() (proxy string, err error) {
 	if time.Now().Before(p.lastLookup.Add(proxyLookupWait)) {
 		return "", errors.New("not looking for a proxy, too soon")
 	}
@@ -147,7 +91,7 @@ func (p *proxyManager) findProxy() (proxy string, err error) {
 		}
 
 		for _, proxy := range p.proxyCache {
-			if proxy != stripProtocol(GlobalGetRootURL()) && p.canReach(proxy) {
+			if p.canReach(proxy) {
 				proxyResult <- proxy
 				return
 			}
@@ -171,25 +115,8 @@ func (p *proxyManager) findProxy() (proxy string, err error) {
 	}
 }
 
-// useProxy sets the proxy server to use. It returns to the original RootURL after 24 hours.
-func (p *proxyManager) useProxy(proxy string) {
-	if !isProxyEnabled() {
-		p.disableProxyAfter(p.useDuration)
-	}
-
-	globalSetRootURL(https(proxy))
-}
-
-// disableProxyAfter disables the proxy after the given amount of time.
-func (p *proxyManager) disableProxyAfter(d time.Duration) {
-	go func() {
-		<-time.After(d)
-		globalSetRootURL(globalOriginalURL)
-	}()
-}
-
 // refreshProxyCache loads the latest proxies from the known providers.
-func (p *proxyManager) refreshProxyCache() error {
+func (p *proxyProvider) refreshProxyCache() error {
 	logrus.Info("Refreshing proxy cache")
 
 	for _, provider := range p.providers {
@@ -197,7 +124,7 @@ func (p *proxyManager) refreshProxyCache() error {
 			p.proxyCache = proxies
 
 			// We also want to allow bridge to switch back to the standard API at any time.
-			p.proxyCache = append(p.proxyCache, globalOriginalURL)
+			p.proxyCache = append(p.proxyCache, RootURL)
 
 			logrus.WithField("proxies", proxies).Info("Available proxies")
 
@@ -210,9 +137,13 @@ func (p *proxyManager) refreshProxyCache() error {
 
 // canReach returns whether we can reach the given url.
 // NOTE: we skip cert verification to stop it complaining that cert name doesn't match hostname.
-func (p *proxyManager) canReach(url string) bool {
+func (p *proxyProvider) canReach(url string) bool {
+	if !strings.HasPrefix(url, "https://") && !strings.HasPrefix(url, "http://") {
+		url = "https://" + url
+	}
+
 	pinger := resty.New().
-		SetHostURL(https(url)).
+		SetHostURL(url).
 		SetTimeout(p.lookupTimeout).
 		SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true}) // nolint[gosec]
 
@@ -227,7 +158,7 @@ func (p *proxyManager) canReach(url string) bool {
 // It looks up DNS TXT records for the given query URL using the given DoH provider.
 // It returns a list of all found TXT records.
 // If the whole process takes more than ProxyQueryTime then an error is returned.
-func (p *proxyManager) defaultDoHLookup(query, dohProvider string) (data []string, err error) {
+func (p *proxyProvider) defaultDoHLookup(query, dohProvider string) (data []string, err error) {
 	dataResult := make(chan []string)
 	errResult := make(chan error)
 	go func() {
@@ -281,24 +212,4 @@ func (p *proxyManager) defaultDoHLookup(query, dohProvider string) (data []strin
 		logrus.WithField("provider", dohProvider).WithError(err).Error("Failed to query DNS records")
 		return
 	}
-}
-
-func stripProtocol(url string) string {
-	if strings.HasPrefix(url, "https://") {
-		return strings.TrimPrefix(url, "https://")
-	}
-
-	if strings.HasPrefix(url, "http://") {
-		return strings.TrimPrefix(url, "http://")
-	}
-
-	return url
-}
-
-func https(url string) string {
-	if !strings.HasPrefix(url, "https://") && !strings.HasPrefix(url, "http://") {
-		url = "https://" + url
-	}
-
-	return url
 }

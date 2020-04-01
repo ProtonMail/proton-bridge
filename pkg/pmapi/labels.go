@@ -103,7 +103,7 @@ func (c *Client) ListContactGroups() (labels []*Label, err error) {
 
 // ListLabelType lists all labels created by the user.
 func (c *Client) ListLabelType(labelType int) (labels []*Label, err error) {
-	req, err := NewRequest("GET", fmt.Sprintf("/labels?%d", labelType), nil)
+	req, err := c.NewRequest("GET", fmt.Sprintf("/labels?%d", labelType), nil)
 	if err != nil {
 		return
 	}
@@ -129,7 +129,7 @@ type LabelRes struct {
 // CreateLabel creates a new label.
 func (c *Client) CreateLabel(label *Label) (created *Label, err error) {
 	labelReq := &LabelReq{label}
-	req, err := NewJSONRequest("POST", "/labels", labelReq)
+	req, err := c.NewJSONRequest("POST", "/labels", labelReq)
 	if err != nil {
 		return
 	}
@@ -146,7 +146,7 @@ func (c *Client) CreateLabel(label *Label) (created *Label, err error) {
 // UpdateLabel updates a label.
 func (c *Client) UpdateLabel(label *Label) (updated *Label, err error) {
 	labelReq := &LabelReq{label}
-	req, err := NewJSONRequest("PUT", "/labels/"+label.ID, labelReq)
+	req, err := c.NewJSONRequest("PUT", "/labels/"+label.ID, labelReq)
 	if err != nil {
 		return
 	}
@@ -162,7 +162,7 @@ func (c *Client) UpdateLabel(label *Label) (updated *Label, err error) {
 
 // DeleteLabel deletes a label.
 func (c *Client) DeleteLabel(id string) (err error) {
-	req, err := NewRequest("DELETE", "/labels/"+id, nil)
+	req, err := c.NewRequest("DELETE", "/labels/"+id, nil)
 	if err != nil {
 		return
 	}

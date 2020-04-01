@@ -26,8 +26,9 @@ import (
 )
 
 // NewRequest creates a new request.
-func NewRequest(method, path string, body io.Reader) (req *http.Request, err error) {
-	req, err = http.NewRequest(method, GlobalGetRootURL()+path, body)
+func (c *Client) NewRequest(method, path string, body io.Reader) (req *http.Request, err error) {
+	// TODO: Support other protocols (localhost needs http not https).
+	req, err = http.NewRequest(method, "https://"+c.cm.GetRootURL()+path, body)
 	if req != nil {
 		req.Header.Set("User-Agent", CurrentUserAgent)
 	}
@@ -35,13 +36,13 @@ func NewRequest(method, path string, body io.Reader) (req *http.Request, err err
 }
 
 // NewJSONRequest create a new JSON request.
-func NewJSONRequest(method, path string, body interface{}) (*http.Request, error) {
+func (c *Client) NewJSONRequest(method, path string, body interface{}) (*http.Request, error) {
 	b, err := json.Marshal(body)
 	if err != nil {
 		panic(err)
 	}
 
-	req, err := NewRequest(method, path, bytes.NewReader(b))
+	req, err := c.NewRequest(method, path, bytes.NewReader(b))
 	if err != nil {
 		return nil, err
 	}
@@ -70,7 +71,7 @@ func (w *MultipartWriter) Close() error {
 // that writing the request and sending it MUST be done in parallel. If the
 // request fails, subsequent writes to the multipart writer will fail with an
 // io.ErrClosedPipe error.
-func NewMultipartRequest(method, path string) (req *http.Request, w *MultipartWriter, err error) {
+func (c *Client) NewMultipartRequest(method, path string) (req *http.Request, w *MultipartWriter, err error) {
 	// The pipe will connect the multipart writer and the HTTP request body.
 	pr, pw := io.Pipe()
 
@@ -80,7 +81,7 @@ func NewMultipartRequest(method, path string) (req *http.Request, w *MultipartWr
 		pw,
 	}
 
-	req, err = NewRequest(method, path, pr)
+	req, err = c.NewRequest(method, path, pr)
 	if err != nil {
 		return
 	}

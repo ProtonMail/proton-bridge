@@ -52,6 +52,8 @@ type Bridger interface {
 	DeleteUser(userID string, clearCache bool) error
 	ReportBug(osType, osVersion, description, accountName, address, emailClient string) error
 	ClearData() error
+	AllowProxy()
+	DisallowProxy()
 }
 
 // BridgeUser is an interface of user needed by frontend.

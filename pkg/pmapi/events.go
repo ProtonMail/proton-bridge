@@ -179,7 +179,7 @@ func (c *Client) GetEvent(last string) (event *Event, err error) {
 func (c *Client) getEvent(last string, numberOfMergedEvents int) (event *Event, err error) {
 	var req *http.Request
 	if last == "" {
-		req, err = NewRequest("GET", "/events/latest", nil)
+		req, err = c.NewRequest("GET", "/events/latest", nil)
 		if err != nil {
 			return
 		}
@@ -191,7 +191,7 @@ func (c *Client) getEvent(last string, numberOfMergedEvents int) (event *Event, 
 
 		event, err = res.Event, res.Err()
 	} else {
-		req, err = NewRequest("GET", "/events/"+last, nil)
+		req, err = c.NewRequest("GET", "/events/"+last, nil)
 		if err != nil {
 			return
 		}

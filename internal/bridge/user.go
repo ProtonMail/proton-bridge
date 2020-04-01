@@ -107,6 +107,8 @@ func (u *User) init(idleUpdates chan interface{}) (err error) {
 	u.wasKeyringUnlocked = false
 	u.unlockingKeyringLock.Unlock()
 
+	u.log.Info("Initialising user")
+
 	// Reload the user's credentials (if they log out and back in we need the new
 	// version with the apitoken and mailbox password).
 	creds, err := u.credStorer.Get(u.userID)
@@ -242,27 +244,19 @@ func (u *User) authorizeAndUnlock() (err error) {
 }
 
 func (u *User) ReceiveAPIAuth(auth *pmapi.Auth) {
+	u.lock.Lock()
+	defer u.lock.Unlock()
+
 	if auth == nil {
 		if err := u.logout(); err != nil {
-			u.log.WithError(err).Error("Cannot logout user after receiving empty auth from API")
+			u.log.WithError(err).Error("Failed to logout user after receiving empty auth from API")
 		}
 		u.isAuthorized = false
 		return
 	}
 
-	u.updateAPIToken(auth.GenToken())
-}
-
-// updateAPIToken is helper for updating the token in keychain. It's not supposed to be
-// called directly from other parts of the code, only from `ReceiveAPIAuth`.
-func (u *User) updateAPIToken(newRefreshToken string) {
-	u.lock.Lock()
-	defer u.lock.Unlock()
-
-	u.log.WithField("token", newRefreshToken).Info("Saving token to credentials store")
-
-	if err := u.credStorer.UpdateToken(u.userID, newRefreshToken); err != nil {
-		u.log.WithError(err).Error("Cannot update refresh token in credentials store")
+	if err := u.credStorer.UpdateToken(u.userID, auth.GenToken()); err != nil {
+		u.log.WithError(err).Error("Failed to update refresh token in credentials store")
 		return
 	}
 

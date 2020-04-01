@@ -36,7 +36,7 @@ type osxkeychain struct {
 }
 
 func newKeychain() (credentials.Helper, error) {
-	log.Debug("creating osckeychain")
+	log.Debug("Creating osckeychain")
 	return &osxkeychain{}, nil
 }
 

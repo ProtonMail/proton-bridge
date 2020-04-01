@@ -28,7 +28,7 @@ func (c *Client) SendSimpleMetric(category, action, label string) (err error) {
 	v.Set("Action", action)
 	v.Set("Label", label)
 
-	req, err := NewRequest("GET", "/metrics?"+v.Encode(), nil)
+	req, err := c.NewRequest("GET", "/metrics?"+v.Encode(), nil)
 	if err != nil {
 		return
 	}

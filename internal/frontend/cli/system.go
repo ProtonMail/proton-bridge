@@ -22,7 +22,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/ProtonMail/proton-bridge/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/internal/preferences"
 	"github.com/ProtonMail/proton-bridge/pkg/connection"
 	"github.com/ProtonMail/proton-bridge/pkg/ports"
@@ -135,13 +134,13 @@ func (f *frontendCLI) toggleAllowProxy(c *ishell.Context) {
 		f.Println("Bridge is currently set to use alternative routing to connect to Proton if it is being blocked.")
 		if f.yesNoQuestion("Are you sure you want to stop bridge from doing this") {
 			f.preferences.SetBool(preferences.AllowProxyKey, false)
-			bridge.DisallowDoH()
+			f.bridge.DisallowProxy()
 		}
 	} else {
 		f.Println("Bridge is currently set to NOT use alternative routing to connect to Proton if it is being blocked.")
 		if f.yesNoQuestion("Are you sure you want to allow bridge to do this") {
 			f.preferences.SetBool(preferences.AllowProxyKey, true)
-			bridge.AllowDoH()
+			f.bridge.AllowProxy()
 		}
 	}
 }

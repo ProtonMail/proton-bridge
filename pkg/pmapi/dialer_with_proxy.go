@@ -112,49 +112,45 @@ type DialerWithPinning struct {
 	// It is used only if set.
 	ReportCertIssueLocal func()
 
-	// proxyManager manages API proxies.
-	proxyManager *proxyManager
+	// cm is used to find and switch to a proxy if necessary.
+	cm *ClientManager
 
 	// A logger for logging messages.
 	log logrus.FieldLogger
 }
 
-func NewDialerWithPinning(reportURI string, report TLSReport) *DialerWithPinning {
+// NewDialerWithPinning constructs a new dialer with pinned certs.
+func NewDialerWithPinning(cm *ClientManager, appVersion string) *DialerWithPinning {
+	reportURI := "https://reports.protonmail.ch/reports/tls"
+
+	report := TLSReport{
+		EffectiveExpirationDate:   time.Now().Add(365 * 24 * 60 * 60 * time.Second).Format(time.RFC3339),
+		IncludeSubdomains:         false,
+		ValidatedCertificateChain: []string{},
+		ServedCertificateChain:    []string{},
+		AppVersion:                appVersion,
+
+		// NOTE: the proxy pins are the same for all proxy servers, guaranteed by infra team ;)
+		KnownPins: []string{
+			`pin-sha256="drtmcR2kFkM8qJClsuWgUzxgBkePfRCkRpqUesyDmeE="`, // current
+			`pin-sha256="YRGlaY0jyJ4Jw2/4M8FIftwbDIQfh8Sdro96CeEel54="`, // hot
+			`pin-sha256="AfMENBVvOS8MnISprtvyPsjKlPooqh8nMB/pvCrpJpw="`, // cold
+			`pin-sha256="EU6TS9MO0L/GsDHvVc9D5fChYLNy5JdGYpJw0ccgetM="`, // proxy main
+			`pin-sha256="iKPIHPnDNqdkvOnTClQ8zQAIKG0XavaPkcEo0LBAABA="`, // proxy backup 1
+			`pin-sha256="MSlVrBCdL0hKyczvgYVSRNm88RicyY04Q2y5qrBt0xA="`, // proxy backup 2
+			`pin-sha256="C2UxW0T1Ckl9s+8cXfjXxlEqwAfPM4HiW2y3UdtBeCw="`, // proxy backup 3
+		},
+	}
+
 	log := logrus.WithField("pkg", "pmapi/tls-pinning")
 
-	proxyManager := newProxyManager(dohProviders, proxyQuery)
-
 	return &DialerWithPinning{
-		isReported:   false,
-		reportURI:    reportURI,
-		report:       report,
-		proxyManager: proxyManager,
-		log:          log,
+		cm:         cm,
+		isReported: false,
+		reportURI:  reportURI,
+		report:     report,
+		log:        log,
 	}
-}
-
-func NewPMAPIPinning(appVersion string) *DialerWithPinning {
-	return NewDialerWithPinning(
-		"https://reports.protonmail.ch/reports/tls",
-		TLSReport{
-			EffectiveExpirationDate:   time.Now().Add(365 * 24 * 60 * 60 * time.Second).Format(time.RFC3339),
-			IncludeSubdomains:         false,
-			ValidatedCertificateChain: []string{},
-			ServedCertificateChain:    []string{},
-			AppVersion:                appVersion,
-
-			// NOTE: the proxy pins are the same for all proxy servers, guaranteed by infra team ;)
-			KnownPins: []string{
-				`pin-sha256="drtmcR2kFkM8qJClsuWgUzxgBkePfRCkRpqUesyDmeE="`, // current
-				`pin-sha256="YRGlaY0jyJ4Jw2/4M8FIftwbDIQfh8Sdro96CeEel54="`, // hot
-				`pin-sha256="AfMENBVvOS8MnISprtvyPsjKlPooqh8nMB/pvCrpJpw="`, // cold
-				`pin-sha256="EU6TS9MO0L/GsDHvVc9D5fChYLNy5JdGYpJw0ccgetM="`, // proxy main
-				`pin-sha256="iKPIHPnDNqdkvOnTClQ8zQAIKG0XavaPkcEo0LBAABA="`, // proxy backup 1
-				`pin-sha256="MSlVrBCdL0hKyczvgYVSRNm88RicyY04Q2y5qrBt0xA="`, // proxy backup 2
-				`pin-sha256="C2UxW0T1Ckl9s+8cXfjXxlEqwAfPM4HiW2y3UdtBeCw="`, // proxy backup 3
-			},
-		},
-	)
 }
 
 func (p *DialerWithPinning) reportCertIssue(connState tls.ConnectionState) {
@@ -231,6 +227,7 @@ func marshalCert7468(certs []*x509.Certificate) (pemCerts []string) {
 	return pemCerts
 }
 
+// TransportWithPinning creates an http.Transport that checks fingerprints when dialing.
 func (p *DialerWithPinning) TransportWithPinning() *http.Transport {
 	return &http.Transport{
 		Proxy:                 http.ProxyFromEnvironment,
@@ -258,7 +255,7 @@ func (p *DialerWithPinning) TransportWithPinning() *http.Transport {
 //   p.ReportCertIssueLocal() and p.reportCertIssueRemote() if they are not nil.
 func (p *DialerWithPinning) dialAndCheckFingerprints(network, address string) (conn net.Conn, err error) {
 	// If DoH is enabled, we hardfail on fingerprint mismatches.
-	if globalIsDoHAllowed() && p.isReported {
+	if p.cm.IsProxyAllowed() && p.isReported {
 		return nil, ErrTLSMatch
 	}
 
@@ -283,6 +280,8 @@ func (p *DialerWithPinning) dialAndCheckFingerprints(network, address string) (c
 
 // dialWithProxyFallback tries to dial the given address but falls back to alternative proxies if need be.
 func (p *DialerWithPinning) dialWithProxyFallback(network, address string) (conn net.Conn, err error) {
+	p.log.Info("Dialing with proxy fallback")
+
 	var host, port string
 	if host, port, err = net.SplitHostPort(address); err != nil {
 		return
@@ -296,21 +295,18 @@ func (p *DialerWithPinning) dialWithProxyFallback(network, address string) (conn
 	// If DoH is not allowed, give up. Or, if we are dialing something other than the API
 	// (e.g. we dial protonmail.com/... to check for updates), there's also no point in
 	// continuing since a proxy won't help us reach that.
-	if !globalIsDoHAllowed() || host != stripProtocol(GlobalGetRootURL()) {
+	if !p.cm.IsProxyAllowed() || host != p.cm.GetRootURL() {
+		p.log.WithField("useProxy", p.cm.IsProxyAllowed()).Info("Dial failed but not switching to proxy")
 		return
 	}
 
-	// Find a new proxy.
+	// Switch to a proxy and retry the dial.
 	var proxy string
-	if proxy, err = p.proxyManager.findProxy(); err != nil {
+
+	if proxy, err = p.cm.SwitchToProxy(); err != nil {
 		return
 	}
 
-	// Switch to the proxy.
-	p.log.WithField("proxy", proxy).Debug("Switching to proxy")
-	p.proxyManager.useProxy(proxy)
-
-	// Retry dial with proxy.
 	return p.dial(network, net.JoinHostPort(proxy, port))
 }
 
@@ -329,7 +325,7 @@ func (p *DialerWithPinning) dial(network, address string) (conn net.Conn, err er
 
 	// If we are not dialing the standard API then we should skip cert verification checks.
 	var tlsConfig *tls.Config = nil
-	if address != stripProtocol(globalOriginalURL) {
+	if address != RootURL {
 		tlsConfig = &tls.Config{InsecureSkipVerify: true} // nolint[gosec]
 	}
 

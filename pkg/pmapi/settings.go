@@ -45,7 +45,7 @@ type UserSettings struct {
 
 // GetUserSettings gets general settings.
 func (c *Client) GetUserSettings() (settings UserSettings, err error) {
-	req, err := NewRequest("GET", "/settings", nil)
+	req, err := c.NewRequest("GET", "/settings", nil)
 
 	if err != nil {
 		return
@@ -99,7 +99,7 @@ type MailSettings struct {
 
 // GetMailSettings gets contact details specified by contact ID.
 func (c *Client) GetMailSettings() (settings MailSettings, err error) {
-	req, err := NewRequest("GET", "/settings/mail", nil)
+	req, err := c.NewRequest("GET", "/settings/mail", nil)
 
 	if err != nil {
 		return

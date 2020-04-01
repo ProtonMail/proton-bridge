@@ -468,7 +468,7 @@ type MessagesListRes struct {
 
 // ListMessages gets message metadata.
 func (c *Client) ListMessages(filter *MessagesFilter) (msgs []*Message, total int, err error) {
-	req, err := NewRequest("GET", "/messages", nil)
+	req, err := c.NewRequest("GET", "/messages", nil)
 	if err != nil {
 		return
 	}
@@ -500,7 +500,7 @@ func (c *Client) CountMessages(addressID string) (counts []*MessagesCount, err e
 	if addressID != "" {
 		reqURL += ("?AddressID=" + addressID)
 	}
-	req, err := NewRequest("GET", reqURL, nil)
+	req, err := c.NewRequest("GET", reqURL, nil)
 	if err != nil {
 		return
 	}
@@ -522,7 +522,7 @@ type MessageRes struct {
 
 // GetMessage retrieves a message.
 func (c *Client) GetMessage(id string) (msg *Message, err error) {
-	req, err := NewRequest("GET", "/messages/"+id, nil)
+	req, err := c.NewRequest("GET", "/messages/"+id, nil)
 	if err != nil {
 		return
 	}
@@ -599,7 +599,7 @@ func (c *Client) SendMessage(id string, sendReq *SendMessageReq) (sent, parent *
 		sendReq.Packages = []*MessagePackage{}
 	}
 
-	req, err := NewJSONRequest("POST", "/messages/"+id, sendReq)
+	req, err := c.NewJSONRequest("POST", "/messages/"+id, sendReq)
 	if err != nil {
 		return
 	}
@@ -629,7 +629,7 @@ type DraftReq struct {
 func (c *Client) CreateDraft(m *Message, parent string, action int) (created *Message, err error) {
 	createReq := &DraftReq{Message: m, ParentID: parent, Action: action, AttachmentKeyPackets: []string{}}
 
-	req, err := NewJSONRequest("POST", "/messages", createReq)
+	req, err := c.NewJSONRequest("POST", "/messages", createReq)
 	if err != nil {
 		return
 	}
@@ -688,7 +688,7 @@ func (c *Client) doMessagesAction(action string, ids []string) (err error) {
 // You should not call this directly unless you know what you are doing (it can overload the server).
 func (c *Client) doMessagesActionInner(action string, ids []string) (err error) {
 	actionReq := &MessagesActionReq{IDs: ids}
-	req, err := NewJSONRequest("PUT", "/messages/"+action, actionReq)
+	req, err := c.NewJSONRequest("PUT", "/messages/"+action, actionReq)
 	if err != nil {
 		return
 	}
@@ -740,7 +740,7 @@ func (c *Client) LabelMessages(ids []string, label string) (err error) {
 
 func (c *Client) labelMessages(ids []string, label string) (err error) {
 	labelReq := &LabelMessagesReq{LabelID: label, IDs: ids}
-	req, err := NewJSONRequest("PUT", "/messages/label", labelReq)
+	req, err := c.NewJSONRequest("PUT", "/messages/label", labelReq)
 	if err != nil {
 		return
 	}
@@ -770,7 +770,7 @@ func (c *Client) UnlabelMessages(ids []string, label string) (err error) {
 
 func (c *Client) unlabelMessages(ids []string, label string) (err error) {
 	labelReq := &LabelMessagesReq{LabelID: label, IDs: ids}
-	req, err := NewJSONRequest("PUT", "/messages/unlabel", labelReq)
+	req, err := c.NewJSONRequest("PUT", "/messages/unlabel", labelReq)
 	if err != nil {
 		return
 	}
@@ -793,7 +793,7 @@ func (c *Client) EmptyFolder(labelID, addressID string) (err error) {
 		reqURL += ("&AddressID=" + addressID)
 	}
 
-	req, err := NewRequest("DELETE", reqURL, nil)
+	req, err := c.NewRequest("DELETE", reqURL, nil)
 
 	if err != nil {
 		return

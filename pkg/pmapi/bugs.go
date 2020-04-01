@@ -139,9 +139,9 @@ func (c *Client) Report(rep ReportReq) (err error) {
 	var req *http.Request
 	var w *MultipartWriter
 	if len(rep.Attachments) > 0 {
-		req, w, err = NewMultipartRequest("POST", "/reports/bug")
+		req, w, err = c.NewMultipartRequest("POST", "/reports/bug")
 	} else {
-		req, err = NewJSONRequest("POST", "/reports/bug", rep)
+		req, err = c.NewJSONRequest("POST", "/reports/bug", rep)
 	}
 	if err != nil {
 		return
@@ -202,7 +202,7 @@ func (c *Client) ReportCrash(stacktrace string) (err error) {
 		OS:            runtime.GOOS,
 		Debug:         stacktrace,
 	}
-	req, err := NewJSONRequest("POST", "/reports/crash", crashReq)
+	req, err := c.NewJSONRequest("POST", "/reports/crash", crashReq)
 	if err != nil {
 		return
 	}

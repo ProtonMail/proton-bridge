@@ -332,7 +332,9 @@ func TestClient_Logout(t *testing.T) {
 	c.uid = testUID
 	c.accessToken = testAccessToken
 
-	Ok(t, c.Logout())
+	c.Logout()
+
+	// TODO: Check that the client is logged out and sensitive data is cleared eventually.
 }
 
 func TestClient_DoUnauthorized(t *testing.T) {
@@ -355,7 +357,7 @@ func TestClient_DoUnauthorized(t *testing.T) {
 	c.expiresAt = aLongTimeAgo
 	c.cm.tokens[c.userID] = testUID + ":" + testRefreshToken
 
-	req, err := NewRequest("GET", "/", nil)
+	req, err := c.NewRequest("GET", "/", nil)
 	Ok(t, err)
 
 	res, err := c.Do(req, true)

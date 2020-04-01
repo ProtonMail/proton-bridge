@@ -24,14 +24,14 @@ import (
 )
 
 func newKeychain() (credentials.Helper, error) {
-	log.Debug("creating pass")
+	log.Debug("Creating pass")
 	passHelper := &pass.Pass{}
 	passErr := checkPassIsUsable(passHelper)
 	if passErr == nil {
 		return passHelper, nil
 	}
 
-	log.Debug("creating secretservice")
+	log.Debug("Creating secretservice")
 	sserviceHelper := &secretservice.Secretservice{}
 	_, sserviceErr := sserviceHelper.List()
 	if sserviceErr == nil {

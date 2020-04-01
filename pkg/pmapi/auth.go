@@ -214,7 +214,7 @@ func (c *Client) AuthInfo(username string) (info *AuthInfo, err error) {
 		Username: username,
 	}
 
-	req, err := NewJSONRequest("POST", "/auth/info", infoReq)
+	req, err := c.NewJSONRequest("POST", "/auth/info", infoReq)
 	if err != nil {
 		return
 	}
@@ -257,7 +257,7 @@ func (c *Client) tryAuth(username, password string, info *AuthInfo, fallbackVers
 		SRPSession:      info.srpSession,
 	}
 
-	req, err := NewJSONRequest("POST", "/auth", authReq)
+	req, err := c.NewJSONRequest("POST", "/auth", authReq)
 	if err != nil {
 		return
 	}
@@ -335,7 +335,7 @@ func (c *Client) Auth2FA(twoFactorCode string, auth *Auth) (*Auth2FA, error) {
 		TwoFactorCode: twoFactorCode,
 	}
 
-	req, err := NewJSONRequest("POST", "/auth/2fa", auth2FAReq)
+	req, err := c.NewJSONRequest("POST", "/auth/2fa", auth2FAReq)
 	if err != nil {
 		return nil, err
 	}
@@ -430,7 +430,7 @@ func (c *Client) AuthRefresh(uidAndRefreshToken string) (auth *Auth, err error) 
 	// UID must be set for `x-pm-uid` header field, see backend-communication#11
 	c.uid = split[0]
 
-	req, err := NewJSONRequest("POST", "/auth/refresh", refreshReq)
+	req, err := c.NewJSONRequest("POST", "/auth/refresh", refreshReq)
 	if err != nil {
 		return
 	}
@@ -450,13 +450,14 @@ func (c *Client) AuthRefresh(uidAndRefreshToken string) (auth *Auth, err error) 
 	return auth, err
 }
 
+// Logout instructs the client manager to log out this client.
 func (c *Client) Logout() {
 	c.cm.LogoutClient(c.userID)
 }
 
 // logout logs the current user out.
 func (c *Client) logout() (err error) {
-	req, err := NewRequest("DELETE", "/auth", nil)
+	req, err := c.NewRequest("DELETE", "/auth", nil)
 	if err != nil {
 		return
 	}

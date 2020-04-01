@@ -36,7 +36,7 @@ func (c *Client) CountConversations(addressID string) (counts []*ConversationsCo
 	if addressID != "" {
 		reqURL += ("?AddressID=" + addressID)
 	}
-	req, err := NewRequest("GET", reqURL, nil)
+	req, err := c.NewRequest("GET", reqURL, nil)
 	if err != nil {
 		return
 	}

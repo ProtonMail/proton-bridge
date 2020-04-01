@@ -119,7 +119,7 @@ func (c *Client) GetContacts(page int, pageSize int) (contacts []*Contact, err e
 	if pageSize > 0 {
 		v.Set("PageSize", strconv.Itoa(pageSize))
 	}
-	req, err := NewRequest("GET", "/contacts?"+v.Encode(), nil)
+	req, err := c.NewRequest("GET", "/contacts?"+v.Encode(), nil)
 
 	if err != nil {
 		return
@@ -136,7 +136,7 @@ func (c *Client) GetContacts(page int, pageSize int) (contacts []*Contact, err e
 
 // GetContactByID gets contact details specified by contact ID.
 func (c *Client) GetContactByID(id string) (contactDetail Contact, err error) {
-	req, err := NewRequest("GET", "/contacts/"+id, nil)
+	req, err := c.NewRequest("GET", "/contacts/"+id, nil)
 
 	if err != nil {
 		return
@@ -164,7 +164,7 @@ func (c *Client) GetContactsForExport(page int, pageSize int) (contacts []Contac
 		v.Set("PageSize", strconv.Itoa(pageSize))
 	}
 
-	req, err := NewRequest("GET", "/contacts/export?"+v.Encode(), nil)
+	req, err := c.NewRequest("GET", "/contacts/export?"+v.Encode(), nil)
 
 	if err != nil {
 		return
@@ -198,7 +198,7 @@ func (c *Client) GetAllContactsEmails(page int, pageSize int) (contactsEmails []
 		v.Set("PageSize", strconv.Itoa(pageSize))
 	}
 
-	req, err := NewRequest("GET", "/contacts/emails?"+v.Encode(), nil)
+	req, err := c.NewRequest("GET", "/contacts/emails?"+v.Encode(), nil)
 	if err != nil {
 		return
 	}
@@ -221,7 +221,7 @@ func (c *Client) GetContactEmailByEmail(email string, page int, pageSize int) (c
 	}
 	v.Set("Email", email)
 
-	req, err := NewRequest("GET", "/contacts/emails?"+v.Encode(), nil)
+	req, err := c.NewRequest("GET", "/contacts/emails?"+v.Encode(), nil)
 	if err != nil {
 		return
 	}
@@ -276,7 +276,7 @@ func (c *Client) AddContacts(cards ContactsCards, overwrite int, groups int, lab
 		Labels:        labels,
 	}
 
-	req, err := NewJSONRequest("POST", "/contacts", reqBody)
+	req, err := c.NewJSONRequest("POST", "/contacts", reqBody)
 	if err != nil {
 		return
 	}
@@ -306,7 +306,7 @@ func (c *Client) UpdateContact(id string, cards []Card) (res *UpdateContactRespo
 	reqBody := UpdateContactReq{
 		Cards: cards,
 	}
-	req, err := NewJSONRequest("PUT", "/contacts/"+id, reqBody)
+	req, err := c.NewJSONRequest("PUT", "/contacts/"+id, reqBody)
 	if err != nil {
 		return
 	}
@@ -354,7 +354,7 @@ func (c *Client) modifyContactGroups(groupID string, modifyContactGroupsAction i
 		Action:          modifyContactGroupsAction,
 		ContactEmailIDs: contactEmailIDs,
 	}
-	req, err := NewJSONRequest("PUT", "/contacts/group", reqBody)
+	req, err := c.NewJSONRequest("PUT", "/contacts/group", reqBody)
 	if err != nil {
 		return
 	}
@@ -377,7 +377,7 @@ func (c *Client) DeleteContacts(ids []string) (err error) {
 		IDs: ids,
 	}
 
-	req, err := NewJSONRequest("PUT", "/contacts/delete", deleteReq)
+	req, err := c.NewJSONRequest("PUT", "/contacts/delete", deleteReq)
 	if err != nil {
 		return
 	}
@@ -402,7 +402,7 @@ func (c *Client) DeleteContacts(ids []string) (err error) {
 
 // DeleteAllContacts deletes all contacts.
 func (c *Client) DeleteAllContacts() (err error) {
-	req, err := NewRequest("DELETE", "/contacts", nil)
+	req, err := c.NewRequest("DELETE", "/contacts", nil)
 	if err != nil {
 		return
 	}

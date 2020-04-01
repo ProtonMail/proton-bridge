@@ -99,12 +99,12 @@ type ClientConfig struct {
 
 // Client to communicate with API.
 type Client struct {
-	cm     *ClientManager
-	client *http.Client
+	cm *ClientManager
+	hc *http.Client
 
 	uid           string
 	accessToken   string
-	userID        string // Twice here because Username is not unique.
+	userID        string
 	requestLocker sync.Locker
 	keyLocker     sync.Locker
 
@@ -120,7 +120,7 @@ type Client struct {
 func newClient(cm *ClientManager, userID string) *Client {
 	return &Client{
 		cm:            cm,
-		client:        getHTTPClient(cm.GetConfig()),
+		hc:            getHTTPClient(cm.GetConfig()),
 		userID:        userID,
 		requestLocker: &sync.Mutex{},
 		keyLocker:     &sync.Mutex{},
@@ -132,12 +132,10 @@ func newClient(cm *ClientManager, userID string) *Client {
 func getHTTPClient(cfg *ClientConfig) (hc *http.Client) {
 	hc = &http.Client{Timeout: cfg.Timeout}
 
-	if cfg.Transport == nil && defaultTransport == nil {
-		return
-	}
-
-	if defaultTransport != nil {
-		hc.Transport = defaultTransport
+	if cfg.Transport == nil {
+		if defaultTransport != nil {
+			hc.Transport = defaultTransport
+		}
 		return
 	}
 
@@ -205,7 +203,7 @@ func (c *Client) doBuffered(req *http.Request, bodyBuffer []byte, retryUnauthori
 	}
 
 	hasBody := len(bodyBuffer) > 0
-	if res, err = c.client.Do(req); err != nil {
+	if res, err = c.hc.Do(req); err != nil {
 		if res == nil {
 			c.log.WithError(err).Error("Cannot get response")
 			err = ErrAPINotReachable

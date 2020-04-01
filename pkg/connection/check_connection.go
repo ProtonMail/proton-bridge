@@ -39,7 +39,8 @@ var (
 // Two errors can be returned, ErrNoInternetConnection or ErrCanNotReachAPI.
 func CheckInternetConnection() error {
 	client := &http.Client{
-		Transport: pmapi.NewPMAPIPinning(pmapi.CurrentUserAgent).TransportWithPinning(),
+		// TODO: Set transport properly! (Need access to ClientManager somehow)
+		// Transport: pmapi.NewDialerWithPinning(pmapi.CurrentUserAgent).TransportWithPinning(),
 	}
 
 	// Do not cumulate timeouts, use goroutines.
@@ -51,7 +52,8 @@ func CheckInternetConnection() error {
 	go checkConnection(client, "http://protonstatus.com/vpn_status", retStatus)
 
 	// Check of API reachability also uses a fast endpoint.
-	go checkConnection(client, pmapi.GlobalGetRootURL()+"/tests/ping", retAPI)
+	// TODO: This should check active proxy, not the RootURL
+	go checkConnection(client, pmapi.RootURL+"/tests/ping", retAPI)
 
 	errStatus := <-retStatus
 	errAPI := <-retAPI

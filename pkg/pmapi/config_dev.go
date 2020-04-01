@@ -20,5 +20,5 @@
 package pmapi
 
 func init() {
-	RootURL = "https://dev.protonmail.com/api"
+	RootURL = "dev.protonmail.com/api"
 }

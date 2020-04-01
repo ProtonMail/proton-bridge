@@ -57,7 +57,7 @@ func (c *Client) PublicKeys(emails []string) (keys map[string]*pmcrypto.KeyRing,
 		email = url.QueryEscape(email)
 
 		var req *http.Request
-		if req, err = NewRequest("GET", "/keys?Email="+email, nil); err != nil {
+		if req, err = c.NewRequest("GET", "/keys?Email="+email, nil); err != nil {
 			return
 		}
 
@@ -90,7 +90,7 @@ func (c *Client) GetPublicKeysForEmail(email string) (keys []PublicKey, internal
 	email = url.QueryEscape(email)
 
 	var req *http.Request
-	if req, err = NewRequest("GET", "/keys?Email="+email, nil); err != nil {
+	if req, err = c.NewRequest("GET", "/keys?Email="+email, nil); err != nil {
 		return
 	}
 
@@ -123,7 +123,7 @@ type KeySaltRes struct {
 // GetKeySalts sends request to get list of key salts (n.b. locked route).
 func (c *Client) GetKeySalts() (keySalts []KeySalt, err error) {
 	var req *http.Request
-	if req, err = NewRequest("GET", "/keys/salts", nil); err != nil {
+	if req, err = c.NewRequest("GET", "/keys/salts", nil); err != nil {
 		return
 	}
 

@@ -161,7 +161,7 @@ func ConstructAddress(headerEmail string, addressEmail string) string {
 
 // GetAddresses requests all of current user addresses (without pagination).
 func (c *Client) GetAddresses() (addresses AddressList, err error) {
-	req, err := NewRequest("GET", "/addresses", nil)
+	req, err := c.NewRequest("GET", "/addresses", nil)
 	if err != nil {
 		return
 	}

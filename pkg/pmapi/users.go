@@ -93,7 +93,7 @@ func (u *User) KeyRing() *pmcrypto.KeyRing {
 
 // UpdateUser retrieves details about user and loads its addresses.
 func (c *Client) UpdateUser() (user *User, err error) {
-	req, err := NewRequest("GET", "/users", nil)
+	req, err := c.NewRequest("GET", "/users", nil)
 	if err != nil {
 		return
 	}

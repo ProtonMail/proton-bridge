@@ -21,11 +21,14 @@
 package pmapifactory
 
 import (
-	"github.com/ProtonMail/proton-bridge/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 )
 
-func GetClientConfig(config bridge.Configer, _ listener.Listener) *pmapi.ClientConfig {
-	return config.GetAPIConfig()
+func GetClientConfig(clientConfig *pmapi.ClientConfig) *pmapi.ClientConfig {
+	return clientConfig
+}
+
+func SetClientRoundTripper(_ *pmapi.ClientManager, _ *pmapi.ClientConfig, _ listener.Listener) {
+	// Use the default roundtripper; do nothing.
 }

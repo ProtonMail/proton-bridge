@@ -23,30 +23,29 @@ package pmapifactory
 import (
 	"time"
 
-	"github.com/ProtonMail/proton-bridge/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/internal/events"
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
+	"github.com/sirupsen/logrus"
 )
 
-func GetClientConfig(config bridge.Configer, listener listener.Listener) *pmapi.ClientConfig {
-	clientConfig := config.GetAPIConfig()
-
-	pin := pmapi.NewPMAPIPinning(clientConfig.AppVersion)
-	pin.ReportCertIssueLocal = func() {
-		listener.Emit(events.TLSCertIssue, "")
-	}
-
-	// This transport already has timeouts set governing the roundtrip:
-	// - IdleConnTimeout:       5 * time.Minute,
-	// - ExpectContinueTimeout: 500 * time.Millisecond,
-	// - ResponseHeaderTimeout: 30 * time.Second,
-	clientConfig.Transport = pin.TransportWithPinning()
-
+func GetClientConfig(clientConfig *pmapi.ClientConfig) *pmapi.ClientConfig {
 	// We set additional timeouts/thresholds for the request as a whole:
 	clientConfig.Timeout = 10 * time.Minute          // Overall request timeout (~25MB / 10 mins => ~40kB/s, should be reasonable).
 	clientConfig.FirstReadTimeout = 30 * time.Second // 30s to match 30s response header timeout.
 	clientConfig.MinSpeed = 1 << 13                  // Enforce minimum download speed of 8kB/s.
 
 	return clientConfig
+}
+
+func SetClientRoundTripper(cm *pmapi.ClientManager, cfg *pmapi.ClientConfig, listener listener.Listener) {
+	logrus.Info("Setting dialer with pinning")
+
+	pin := pmapi.NewDialerWithPinning(cm, cfg.AppVersion)
+
+	pin.ReportCertIssueLocal = func() {
+		listener.Emit(events.TLSCertIssue, "")
+	}
+
+	cm.SetClientRoundTripper(pin.TransportWithPinning())
 }
