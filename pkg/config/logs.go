@@ -66,7 +66,7 @@ func HandlePanic(cfg *Config, output string) {
 	if !cfg.IsDevMode() {
 		// TODO: Is it okay to just create a throwaway client like this?
 		c := pmapi.NewClientManager(cfg.GetAPIConfig()).GetClient("no-user-id")
-		defer func() { _ = c.Logout() }()
+		defer c.Logout()
 
 		if err := c.ReportSentryCrash(fmt.Errorf(output)); err != nil {
 			log.Error("Sentry crash report failed: ", err)

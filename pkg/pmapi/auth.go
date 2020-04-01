@@ -21,6 +21,7 @@ import (
 	"crypto/subtle"
 	"encoding/base64"
 	"errors"
+	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -122,6 +123,10 @@ func (s *Auth) UID() string {
 	return s.uid
 }
 
+func (s *Auth) GenToken() string {
+	return fmt.Sprintf("%v:%v", s.UID(), s.RefreshToken)
+}
+
 func (s *Auth) HasTwoFactor() bool {
 	if s.TwoFA == nil {
 		return false
@@ -191,9 +196,16 @@ type AuthRefreshReq struct {
 	State        string
 }
 
-// SetAuths sets auths channel.
-func (c *Client) SetAuths(auths chan<- *Auth) {
-	c.auths = auths
+func (c *Client) sendAuth(auth *Auth) {
+	c.cm.getClientAuthChannel() <- ClientAuth{
+		UserID: c.userID,
+		Auth:   auth,
+	}
+
+	if auth != nil {
+		c.uid = auth.UID()
+		c.accessToken = auth.accessToken
+	}
 }
 
 // AuthInfo gets authentication info for a user.
@@ -301,13 +313,7 @@ func (c *Client) Auth(username, password string, info *AuthInfo) (auth *Auth, er
 	}
 
 	auth = authRes.getAuth()
-	c.uid = auth.UID()
-	c.accessToken = auth.accessToken
-
-	if c.auths != nil {
-		c.auths <- auth
-	}
-	c.cm.SetToken(c.userID, c.uid+":"+auth.RefreshToken)
+	c.sendAuth(auth)
 
 	// Auth has to be fully unlocked to get key salt. During `Auth` it can happen
 	// only to accounts without 2FA. For 2FA accounts, it's done in `Auth2FA`.
@@ -403,7 +409,8 @@ func (c *Client) Unlock(password string) (kr *pmcrypto.KeyRing, err error) {
 func (c *Client) AuthRefresh(uidAndRefreshToken string) (auth *Auth, err error) {
 	// If we don't yet have a saved access token, save this one in case the refresh fails!
 	// That way we can try again later (see handleUnauthorizedStatus).
-	c.cm.SetTokenIfUnset(c.userID, uidAndRefreshToken)
+	// TODO:
+	// c.cm.SetTokenIfUnset(c.userID, uidAndRefreshToken)
 
 	split := strings.Split(uidAndRefreshToken, ":")
 	if len(split) != 2 {
@@ -437,22 +444,18 @@ func (c *Client) AuthRefresh(uidAndRefreshToken string) (auth *Auth, err error) 
 	}
 
 	auth = res.getAuth()
-	// UID should never change after auth, see backend-communication#11
-	auth.uid = c.uid
-	if c.auths != nil {
-		c.auths <- auth
-	}
-
-	c.uid = auth.UID()
-	c.accessToken = auth.accessToken
-	c.cm.SetToken(c.userID, c.uid+":"+res.RefreshToken)
-
+	c.sendAuth(auth)
 	c.expiresAt = time.Now().Add(time.Duration(auth.ExpiresIn) * time.Second)
+
 	return auth, err
 }
 
-// Logout logs the current user out.
-func (c *Client) Logout() (err error) {
+func (c *Client) Logout() {
+	c.cm.LogoutClient(c.userID)
+}
+
+// logout logs the current user out.
+func (c *Client) logout() (err error) {
 	req, err := NewRequest("DELETE", "/auth", nil)
 	if err != nil {
 		return
@@ -467,23 +470,13 @@ func (c *Client) Logout() (err error) {
 		return
 	}
 
-	// This can trigger a deadlock! We don't want to do it if the above requests failed (GODT-154).
-	// That's why it's not in the deferred statement above.
-	if c.auths != nil {
-		c.auths <- nil
-	}
+	return
+}
 
-	// This should ideally be deferred at the top of this method so that it is executed
-	// regardless of what happens, but we currently don't have a way to prevent ourselves
-	// from using a logged out client. So for now, it's down here, as it was in Charles release.
-	// defer func() {
+func (c *Client) clearSensitiveData() {
 	c.uid = ""
 	c.accessToken = ""
 	c.kr = nil
-	// c.addresses = nil
+	c.addresses = nil
 	c.user = nil
-	c.cm.ClearToken(c.userID)
-	// }()
-
-	return err
 }

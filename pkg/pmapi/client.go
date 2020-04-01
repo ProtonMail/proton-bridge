@@ -99,10 +99,8 @@ type ClientConfig struct {
 
 // Client to communicate with API.
 type Client struct {
-	auths chan<- *Auth // Channel that sends Auth responses back to the bridge.
-
-	client *http.Client
 	cm     *ClientManager
+	client *http.Client
 
 	uid           string
 	accessToken   string
@@ -121,38 +119,41 @@ type Client struct {
 // newClient creates a new API client.
 func newClient(cm *ClientManager, userID string) *Client {
 	return &Client{
-		log:           logrus.WithField("pkg", "pmapi").WithField("userID", userID),
-		client:        getHTTPClient(cm.GetConfig()),
 		cm:            cm,
+		client:        getHTTPClient(cm.GetConfig()),
 		userID:        userID,
 		requestLocker: &sync.Mutex{},
 		keyLocker:     &sync.Mutex{},
+		log:           logrus.WithField("pkg", "pmapi").WithField("userID", userID),
 	}
 }
 
 // getHTTPClient returns a http client configured by the given client config.
-func getHTTPClient(cfg *ClientConfig) *http.Client {
-	hc := &http.Client{
-		Timeout: cfg.Timeout,
+func getHTTPClient(cfg *ClientConfig) (hc *http.Client) {
+	hc = &http.Client{Timeout: cfg.Timeout}
+
+	if cfg.Transport == nil && defaultTransport == nil {
+		return
 	}
 
-	if cfg.Transport != nil {
-		cfgTransport, ok := cfg.Transport.(*http.Transport)
-		if ok {
-			// In future use Clone here.
-			// https://go-review.googlesource.com/c/go/+/174597/
-			transport := &http.Transport{}
-			*transport = *cfgTransport //nolint
-			if transport.Proxy == nil {
-				transport.Proxy = http.ProxyFromEnvironment
-			}
-			hc.Transport = transport
-		} else {
-			hc.Transport = cfg.Transport
-		}
-	} else if defaultTransport != nil {
+	if defaultTransport != nil {
 		hc.Transport = defaultTransport
+		return
 	}
+
+	// In future use Clone here.
+	// https://go-review.googlesource.com/c/go/+/174597/
+	if cfgTransport, ok := cfg.Transport.(*http.Transport); ok {
+		transport := &http.Transport{}
+		*transport = *cfgTransport //nolint
+		if transport.Proxy == nil {
+			transport.Proxy = http.ProxyFromEnvironment
+		}
+		hc.Transport = transport
+		return
+	}
+
+	hc.Transport = cfg.Transport
 
 	return hc
 }
@@ -400,30 +401,20 @@ func (c *Client) readAllMinSpeed(data io.Reader, cancelRequest context.CancelFun
 
 func (c *Client) refreshAccessToken() (err error) {
 	c.log.Debug("Refreshing token")
+
 	refreshToken := c.cm.GetToken(c.userID)
-	c.log.WithField("token", refreshToken).Info("Current refresh token")
+
 	if refreshToken == "" {
-		if c.auths != nil {
-			c.auths <- nil
-		}
-		c.cm.ClearToken(c.userID)
+		c.sendAuth(nil)
 		return ErrInvalidToken
 	}
 
-	auth, err := c.AuthRefresh(refreshToken)
-	if err != nil {
-		c.log.WithError(err).WithField("auths", c.auths).Debug("Token refreshing failed")
-		// The refresh failed, so we should log the user out.
-		// A nil value in the Auths channel will trigger this.
-		if c.auths != nil {
-			c.auths <- nil
-		}
-		c.cm.ClearToken(c.userID)
-		return
+	if _, err := c.AuthRefresh(refreshToken); err != nil {
+		c.sendAuth(nil)
+		return err
 	}
-	c.uid = auth.UID()
-	c.accessToken = auth.accessToken
-	return err
+
+	return
 }
 
 func (c *Client) handleStatusUnauthorized(req *http.Request, reqBodyBuffer []byte, res *http.Response, retry bool) (retryRes *http.Response, err error) {

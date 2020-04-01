@@ -43,14 +43,14 @@ var (
 
 // Bridge is a struct handling users.
 type Bridge struct {
-	config       Configer
-	pref         PreferenceProvider
-	panicHandler PanicHandler
-	events       listener.Listener
-	version      string
-	clientMan    *pmapi.ClientManager
-	credStorer   CredentialsStorer
-	storeCache   *store.Cache
+	config        Configer
+	pref          PreferenceProvider
+	panicHandler  PanicHandler
+	events        listener.Listener
+	version       string
+	clientManager *pmapi.ClientManager
+	credStorer    CredentialsStorer
+	storeCache    *store.Cache
 
 	// users is a list of accounts that have been added to bridge.
 	// They are stored sorted in the credentials store in the order
@@ -76,22 +76,22 @@ func New(
 	panicHandler PanicHandler,
 	eventListener listener.Listener,
 	version string,
-	clientMan *pmapi.ClientManager,
+	clientManager *pmapi.ClientManager,
 	credStorer CredentialsStorer,
 ) *Bridge {
 	log.Trace("Creating new bridge")
 
 	b := &Bridge{
-		config:       config,
-		pref:         pref,
-		panicHandler: panicHandler,
-		events:       eventListener,
-		version:      version,
-		clientMan:    clientMan,
-		credStorer:   credStorer,
-		storeCache:   store.NewCache(config.GetIMAPCachePath()),
-		idleUpdates:  make(chan interface{}),
-		lock:         sync.RWMutex{},
+		config:        config,
+		pref:          pref,
+		panicHandler:  panicHandler,
+		events:        eventListener,
+		version:       version,
+		clientManager: clientManager,
+		credStorer:    credStorer,
+		storeCache:    store.NewCache(config.GetIMAPCachePath()),
+		idleUpdates:   make(chan interface{}),
+		lock:          sync.RWMutex{},
 	}
 
 	// Allow DoH before starting bridge if the user has previously set this setting.
@@ -103,6 +103,11 @@ func New(
 	go func() {
 		defer panicHandler.HandlePanic()
 		b.watchBridgeOutdated()
+	}()
+
+	go func() {
+		defer panicHandler.HandlePanic()
+		b.watchUserAuths()
 	}()
 
 	if b.credStorer == nil {
@@ -148,7 +153,7 @@ func (b *Bridge) loadUsersFromCredentialsStore() (err error) {
 	for _, userID := range userIDs {
 		l := log.WithField("user", userID)
 
-		user, newUserErr := newUser(b.panicHandler, userID, b.events, b.credStorer, b.clientMan, b.storeCache, b.config.GetDBDir())
+		user, newUserErr := newUser(b.panicHandler, userID, b.events, b.credStorer, b.clientManager, b.storeCache, b.config.GetDBDir())
 		if newUserErr != nil {
 			l.WithField("user", userID).WithError(newUserErr).Warn("Could not load user, skipping")
 			continue
@@ -170,6 +175,18 @@ func (b *Bridge) watchBridgeOutdated() {
 	for range ch {
 		isApplicationOutdated = true
 		b.closeAllConnections()
+	}
+}
+
+func (b *Bridge) watchUserAuths() {
+	for auth := range b.clientManager.GetBridgeAuthChannel() {
+		user, ok := b.hasUser(auth.UserID)
+
+		if !ok {
+			continue
+		}
+
+		user.ReceiveAPIAuth(auth.Auth)
 	}
 }
 
@@ -195,9 +212,8 @@ func (b *Bridge) Login(username, password string) (loginClient PMAPIProvider, au
 
 	b.crashBandicoot(username)
 
-	// We need to use "login" client because we need userID to properly
-	// assign access tokens into token manager.
-	loginClient = b.clientMan.GetClient("login")
+	// We need to use "login" client because we need userID to properly assign access tokens into token manager.
+	loginClient = b.clientManager.GetClient("login")
 
 	authInfo, err := loginClient.AuthInfo(username)
 	if err != nil {
@@ -227,29 +243,22 @@ func (b *Bridge) FinishLogin(loginClient PMAPIProvider, auth *pmapi.Auth, mbPass
 	b.lock.Lock()
 	defer b.lock.Unlock()
 
+	defer loginClient.Logout()
+
 	mbPassword, err = pmapi.HashMailboxPassword(mbPassword, auth.KeySalt)
 	if err != nil {
 		log.WithError(err).Error("Could not hash mailbox password")
-		if logoutErr := loginClient.Logout(); logoutErr != nil {
-			log.WithError(logoutErr).Error("Clean login session after hash password failed.")
-		}
 		return
 	}
 
 	if _, err = loginClient.Unlock(mbPassword); err != nil {
 		log.WithError(err).Error("Could not decrypt keyring")
-		if logoutErr := loginClient.Logout(); logoutErr != nil {
-			log.WithError(logoutErr).Error("Clean login session after unlock failed.")
-		}
 		return
 	}
 
 	apiUser, err := loginClient.CurrentUser()
 	if err != nil {
 		log.WithError(err).Error("Could not get login API user")
-		if logoutErr := loginClient.Logout(); logoutErr != nil {
-			log.WithError(logoutErr).Error("Clean login session after get current user failed.")
-		}
 		return
 	}
 
@@ -259,20 +268,13 @@ func (b *Bridge) FinishLogin(loginClient PMAPIProvider, auth *pmapi.Auth, mbPass
 	if hasUser && user.IsConnected() {
 		err = errors.New("user is already logged in")
 		log.WithError(err).Warn("User is already logged in")
-		if logoutErr := loginClient.Logout(); logoutErr != nil {
-			log.WithError(logoutErr).Warn("Could not discard auth generated during second login")
-		}
 		return
 	}
 
-	apiToken := auth.UID() + ":" + auth.RefreshToken
-	apiClient := b.clientMan.GetClient(apiUser.ID)
-	auth, err = apiClient.AuthRefresh(apiToken)
+	apiClient := b.clientManager.GetClient(apiUser.ID)
+	auth, err = apiClient.AuthRefresh(auth.GenToken())
 	if err != nil {
 		log.WithError(err).Error("Could refresh token in new client")
-		if logoutErr := loginClient.Logout(); logoutErr != nil {
-			log.WithError(logoutErr).Warn("Could not discard auth generated after auth refresh")
-		}
 		return
 	}
 
@@ -280,22 +282,18 @@ func (b *Bridge) FinishLogin(loginClient PMAPIProvider, auth *pmapi.Auth, mbPass
 	apiUser, err = apiClient.CurrentUser()
 	if err != nil {
 		log.WithError(err).Error("Could not get current API user")
-		if logoutErr := loginClient.Logout(); logoutErr != nil {
-			log.WithError(logoutErr).Error("Clean login session after get current user failed.")
-		}
 		return
 	}
 
-	apiToken = auth.UID() + ":" + auth.RefreshToken
 	activeEmails := apiClient.Addresses().ActiveEmails()
-	if _, err = b.credStorer.Add(apiUser.ID, apiUser.Name, apiToken, mbPassword, activeEmails); err != nil {
+	if _, err = b.credStorer.Add(apiUser.ID, apiUser.Name, auth.GenToken(), mbPassword, activeEmails); err != nil {
 		log.WithError(err).Error("Could not add user to credentials store")
 		return
 	}
 
 	// If it's a new user, generate the user object.
 	if !hasUser {
-		user, err = newUser(b.panicHandler, apiUser.ID, b.events, b.credStorer, b.clientMan, b.storeCache, b.config.GetDBDir())
+		user, err = newUser(b.panicHandler, apiUser.ID, b.events, b.credStorer, b.clientManager, b.storeCache, b.config.GetDBDir())
 		if err != nil {
 			log.WithField("user", apiUser.ID).WithError(err).Error("Could not create user")
 			return
@@ -405,8 +403,8 @@ func (b *Bridge) DeleteUser(userID string, clearStore bool) error {
 
 // ReportBug reports a new bug from the user.
 func (b *Bridge) ReportBug(osType, osVersion, description, accountName, address, emailClient string) error {
-	c := b.clientMan.GetClient("bug_reporter")
-	defer func() { _ = c.Logout() }()
+	c := b.clientManager.GetClient("bug_reporter")
+	defer c.Logout()
 
 	title := "[Bridge] Bug"
 	if err := c.ReportBugWithEmailClient(
@@ -429,8 +427,8 @@ func (b *Bridge) ReportBug(osType, osVersion, description, accountName, address,
 
 // SendMetric sends a metric. We don't want to return any errors, only log them.
 func (b *Bridge) SendMetric(m m.Metric) {
-	c := b.clientMan.GetClient("metric_reporter")
-	defer func() { _ = c.Logout() }()
+	c := b.clientManager.GetClient("metric_reporter")
+	defer c.Logout()
 
 	cat, act, lab := m.Get()
 	if err := c.SendSimpleMetric(string(cat), string(act), string(lab)); err != nil {

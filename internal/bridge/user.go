@@ -53,9 +53,8 @@ type User struct {
 	userID string
 	creds  *credentials.Credentials
 
-	lock        sync.RWMutex
-	authChannel chan *pmapi.Auth
-	hasAPIAuth  bool
+	lock         sync.RWMutex
+	isAuthorized bool
 
 	unlockingKeyringLock sync.Mutex
 	wasKeyringUnlocked   bool
@@ -116,15 +115,6 @@ func (u *User) init(idleUpdates chan interface{}) (err error) {
 	}
 	u.creds = creds
 
-	// Set up the auth channel on which auths from the api client are sent.
-	u.authChannel = make(chan *pmapi.Auth)
-	u.client().SetAuths(u.authChannel)
-	u.hasAPIAuth = false
-	go func() {
-		defer u.panicHandler.HandlePanic()
-		u.watchAPIClientAuths()
-	}()
-
 	// Try to authorise the user if they aren't already authorised.
 	// Note: we still allow users to set up bridge if the internet is off.
 	if authErr := u.authorizeIfNecessary(false); authErr != nil {
@@ -169,7 +159,7 @@ func (u *User) SetIMAPIdleUpdateChannel() {
 
 // authorizeIfNecessary checks whether user is logged in and is connected to api auth channel.
 // If user is not already connected to the api auth channel (for example there was no internet during start),
-// it tries to connect it. See `connectToAuthChannel` for more info.
+// it tries to connect it.
 func (u *User) authorizeIfNecessary(emitEvent bool) (err error) {
 	// If user is connected and has an auth channel, then perfect, nothing to do here.
 	if u.creds.IsConnected() && u.HasAPIAuth() {
@@ -236,11 +226,9 @@ func (u *User) authorizeAndUnlock() (err error) {
 		return nil
 	}
 
-	auth, err := u.client().AuthRefresh(u.creds.APIToken)
-	if err != nil {
+	if _, err := u.client().AuthRefresh(u.creds.APIToken); err != nil {
 		return errors.Wrap(err, "failed to refresh API auth")
 	}
-	u.authChannel <- auth
 
 	if _, err = u.client().Unlock(u.creds.MailboxPassword); err != nil {
 		return errors.Wrap(err, "failed to unlock user")
@@ -253,32 +241,34 @@ func (u *User) authorizeAndUnlock() (err error) {
 	return nil
 }
 
-// See `connectToAPIClientAuthChannel` for more info.
-func (u *User) watchAPIClientAuths() {
-	for auth := range u.authChannel {
-		if auth != nil {
-			newRefreshToken := auth.UID() + ":" + auth.RefreshToken
-			u.updateAPIToken(newRefreshToken)
-			u.hasAPIAuth = true
-		} else if err := u.logout(); err != nil {
+func (u *User) ReceiveAPIAuth(auth *pmapi.Auth) {
+	if auth == nil {
+		if err := u.logout(); err != nil {
 			u.log.WithError(err).Error("Cannot logout user after receiving empty auth from API")
 		}
+		u.isAuthorized = false
+		return
 	}
+
+	u.updateAPIToken(auth.GenToken())
 }
 
 // updateAPIToken is helper for updating the token in keychain. It's not supposed to be
-// called directly from other parts of the code--only from `watchAPIClientAuths`.
+// called directly from other parts of the code, only from `ReceiveAPIAuth`.
 func (u *User) updateAPIToken(newRefreshToken string) {
 	u.lock.Lock()
 	defer u.lock.Unlock()
 
-	u.log.Info("Saving refresh token")
+	u.log.WithField("token", newRefreshToken).Info("Saving token to credentials store")
 
 	if err := u.credStorer.UpdateToken(u.userID, newRefreshToken); err != nil {
 		u.log.WithError(err).Error("Cannot update refresh token in credentials store")
-	} else {
-		u.refreshFromCredentials()
+		return
 	}
+
+	u.refreshFromCredentials()
+
+	u.isAuthorized = true
 }
 
 // clearStore removes the database.
@@ -548,18 +538,7 @@ func (u *User) Logout() (err error) {
 	u.wasKeyringUnlocked = false
 	u.unlockingKeyringLock.Unlock()
 
-	if err = u.client().Logout(); err != nil {
-		u.log.WithError(err).Warn("Could not log user out from API client")
-	}
-	u.client().SetAuths(nil)
-
-	// Logout needs to stop auth channel so when user logs back in
-	// it can register again with new client.
-	// Note: be careful to not close channel twice.
-	if u.authChannel != nil {
-		close(u.authChannel)
-		u.authChannel = nil
-	}
+	u.client().Logout()
 
 	if err = u.credStorer.Logout(u.userID); err != nil {
 		u.log.WithError(err).Warn("Could not log user out from credentials store")
@@ -617,5 +596,5 @@ func (u *User) GetStore() *store.Store {
 }
 
 func (u *User) HasAPIAuth() bool {
-	return u.hasAPIAuth
+	return u.isAuthorized
 }

@@ -47,7 +47,6 @@ type Clientman interface {
 }
 
 type PMAPIProvider interface {
-	SetAuths(auths chan<- *pmapi.Auth)
 	Auth(username, password string, info *pmapi.AuthInfo) (*pmapi.Auth, error)
 	AuthInfo(username string) (*pmapi.AuthInfo, error)
 	AuthRefresh(token string) (*pmapi.Auth, error)
@@ -56,7 +55,8 @@ type PMAPIProvider interface {
 	CurrentUser() (*pmapi.User, error)
 	UpdateUser() (*pmapi.User, error)
 	Addresses() pmapi.AddressList
-	Logout() error
+
+	Logout()
 
 	GetEvent(eventID string) (*pmapi.Event, error)
 
