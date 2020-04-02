@@ -44,7 +44,6 @@ func TestNewUserBridgeOutdated(t *testing.T) {
 	m.credentialsStore.EXPECT().Get("user").Return(testCredentials, nil).Times(2)
 	m.credentialsStore.EXPECT().Logout("user").Return(nil).AnyTimes()
 	m.pmapiClient.EXPECT().AuthRefresh("token").Return(nil, pmapi.ErrUpgradeApplication).AnyTimes()
-	m.pmapiClient.EXPECT().SetAuths(gomock.Any())
 	m.eventListener.EXPECT().Emit(events.UpgradeApplicationEvent, "").AnyTimes()
 	m.pmapiClient.EXPECT().ListLabels().Return(nil, pmapi.ErrUpgradeApplication)
 	m.pmapiClient.EXPECT().Addresses().Return(nil)
@@ -58,7 +57,6 @@ func TestNewUserNoInternetConnection(t *testing.T) {
 
 	m.credentialsStore.EXPECT().Get("user").Return(testCredentials, nil).Times(2)
 	m.pmapiClient.EXPECT().AuthRefresh("token").Return(nil, pmapi.ErrAPINotReachable).AnyTimes()
-	m.pmapiClient.EXPECT().SetAuths(gomock.Any())
 	m.eventListener.EXPECT().Emit(events.InternetOffEvent, "").AnyTimes()
 
 	m.pmapiClient.EXPECT().Addresses().Return(nil)
@@ -75,12 +73,10 @@ func TestNewUserAuthRefreshFails(t *testing.T) {
 	m.credentialsStore.EXPECT().Get("user").Return(testCredentials, nil).Times(2)
 	m.credentialsStore.EXPECT().Logout("user").Return(nil)
 	m.pmapiClient.EXPECT().AuthRefresh("token").Return(nil, errors.New("bad token")).AnyTimes()
-	m.pmapiClient.EXPECT().SetAuths(gomock.Any())
 
 	m.eventListener.EXPECT().Emit(events.LogoutEvent, "user")
 	m.eventListener.EXPECT().Emit(events.UserRefreshEvent, "user")
 	m.pmapiClient.EXPECT().Logout().Return(nil)
-	m.pmapiClient.EXPECT().SetAuths(nil)
 	m.credentialsStore.EXPECT().Logout("user").Return(nil)
 	m.credentialsStore.EXPECT().Get("user").Return(testCredentialsDisconnected, nil)
 	m.eventListener.EXPECT().Emit(events.CloseConnectionEvent, "user@pm.me")
@@ -96,7 +92,6 @@ func TestNewUserUnlockFails(t *testing.T) {
 	m.credentialsStore.EXPECT().UpdateToken("user", ":reftok").Return(nil)
 	m.credentialsStore.EXPECT().Logout("user").Return(nil)
 
-	m.pmapiClient.EXPECT().SetAuths(gomock.Any())
 	m.pmapiClient.EXPECT().AuthRefresh("token").Return(testAuthRefresh, nil)
 	m.credentialsStore.EXPECT().Get("user").Return(testCredentials, nil)
 	m.pmapiClient.EXPECT().Unlock("pass").Return(nil, errors.New("bad password"))
@@ -104,7 +99,6 @@ func TestNewUserUnlockFails(t *testing.T) {
 	m.eventListener.EXPECT().Emit(events.LogoutEvent, "user")
 	m.eventListener.EXPECT().Emit(events.UserRefreshEvent, "user")
 	m.pmapiClient.EXPECT().Logout().Return(nil)
-	m.pmapiClient.EXPECT().SetAuths(nil)
 	m.credentialsStore.EXPECT().Logout("user").Return(nil)
 	m.credentialsStore.EXPECT().Get("user").Return(testCredentialsDisconnected, nil)
 	m.eventListener.EXPECT().Emit(events.CloseConnectionEvent, "user@pm.me")
@@ -120,7 +114,6 @@ func TestNewUserUnlockAddressesFails(t *testing.T) {
 	m.credentialsStore.EXPECT().UpdateToken("user", ":reftok").Return(nil)
 	m.credentialsStore.EXPECT().Logout("user").Return(nil)
 
-	m.pmapiClient.EXPECT().SetAuths(gomock.Any())
 	m.pmapiClient.EXPECT().AuthRefresh("token").Return(testAuthRefresh, nil)
 	m.credentialsStore.EXPECT().Get("user").Return(testCredentials, nil)
 	m.pmapiClient.EXPECT().Unlock("pass").Return(nil, nil)
@@ -129,7 +122,6 @@ func TestNewUserUnlockAddressesFails(t *testing.T) {
 	m.eventListener.EXPECT().Emit(events.LogoutEvent, "user")
 	m.eventListener.EXPECT().Emit(events.UserRefreshEvent, "user")
 	m.pmapiClient.EXPECT().Logout().Return(nil)
-	m.pmapiClient.EXPECT().SetAuths(nil)
 	m.credentialsStore.EXPECT().Logout("user").Return(nil)
 	m.credentialsStore.EXPECT().Get("user").Return(testCredentialsDisconnected, nil)
 	m.eventListener.EXPECT().Emit(events.CloseConnectionEvent, "user@pm.me")
@@ -144,7 +136,6 @@ func TestNewUser(t *testing.T) {
 	m.credentialsStore.EXPECT().Get("user").Return(testCredentials, nil).Times(2)
 	m.credentialsStore.EXPECT().UpdateToken("user", ":reftok").Return(nil)
 
-	m.pmapiClient.EXPECT().SetAuths(gomock.Any())
 	m.pmapiClient.EXPECT().AuthRefresh("token").Return(testAuthRefresh, nil)
 	m.credentialsStore.EXPECT().Get("user").Return(testCredentials, nil)
 	m.pmapiClient.EXPECT().Unlock("pass").Return(nil, nil)

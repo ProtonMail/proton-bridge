@@ -174,13 +174,13 @@ func TestCheckBridgeLoginLoggedOut(t *testing.T) {
 	defer m.ctrl.Finish()
 
 	m.credentialsStore.EXPECT().Get("user").Return(testCredentialsDisconnected, nil)
-	user, _ := newUser(m.PanicHandler, "user", m.eventListener, m.credentialsStore, m.pmapiClient, m.storeCache, "/tmp")
+	m.clientManager.EXPECT().GetClient(gomock.Any()).Return(m.pmapiClient)
+	user, _ := newUser(m.PanicHandler, "user", m.eventListener, m.credentialsStore, m.clientManager, m.storeCache, "/tmp")
 	m.pmapiClient.EXPECT().ListLabels().Return(nil, errors.New("ErrUnauthorized"))
 	m.pmapiClient.EXPECT().Addresses().Return(nil)
-	m.pmapiClient.EXPECT().SetAuths(gomock.Any())
 
 	m.credentialsStore.EXPECT().Get("user").Return(testCredentialsDisconnected, nil)
-	_ = user.init(nil, m.pmapiClient)
+	_ = user.init(nil)
 
 	defer cleanUpUserData(user)
 

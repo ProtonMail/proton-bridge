@@ -217,7 +217,7 @@ func (store *Store) txGetOnAPICounts(tx *bolt.Tx) ([]*mailboxCounts, error) {
 
 // createOrUpdateOnAPICounts will change only on-API-counts.
 func (store *Store) createOrUpdateOnAPICounts(mailboxCountsOnAPI []*pmapi.MessagesCount) error {
-	store.log.WithField("apiCounts", mailboxCountsOnAPI).Debug("Updating API counts")
+	store.log.Debug("Updating API counts")
 
 	tx := func(tx *bolt.Tx) error {
 		countsBkt := tx.Bucket(countsBucket)

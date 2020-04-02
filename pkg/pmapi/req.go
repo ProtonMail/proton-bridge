@@ -28,7 +28,8 @@ import (
 // NewRequest creates a new request.
 func (c *Client) NewRequest(method, path string, body io.Reader) (req *http.Request, err error) {
 	// TODO: Support other protocols (localhost needs http not https).
-	req, err = http.NewRequest(method, "https://"+c.cm.GetRootURL()+path, body)
+	req, err = http.NewRequest(method, c.cm.GetRootURL()+path, body)
+
 	if req != nil {
 		req.Header.Set("User-Agent", CurrentUserAgent)
 	}

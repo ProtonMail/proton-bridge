@@ -121,7 +121,7 @@ func (c *Client) UpdateUser() (user *User, err error) {
 	return user, err
 }
 
-// CurrentUser return currently active user or user will be updated.
+// CurrentUser returns currently active user or user will be updated.
 func (c *Client) CurrentUser() (user *User, err error) {
 	if c.user != nil && len(c.addresses) != 0 {
 		user = c.user

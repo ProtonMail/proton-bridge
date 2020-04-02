@@ -19,12 +19,9 @@ package config
 
 import (
 	"io/ioutil"
-	"net"
-	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
-	"time"
 
 	"github.com/ProtonMail/go-appdir"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
@@ -73,11 +70,7 @@ func newConfig(appName, version, revision, cacheVersion string, appDirs, appDirs
 		apiConfig: &pmapi.ClientConfig{
 			AppVersion: strings.Title(appName) + "_" + version,
 			ClientID:   appName,
-			Transport: &http.Transport{
-				DialContext:           (&net.Dialer{Timeout: 3 * time.Second}).DialContext,
-				TLSHandshakeTimeout:   10 * time.Second,
-				ResponseHeaderTimeout: 10 * time.Second,
-			},
+			SentryDSN:  "https://bacfb56338a7471a9fede610046afdda:ab437b0d13f54602a0f5feb684e6d319@api.protonmail.ch/reports/sentry/8",
 		},
 	}
 }

@@ -39,7 +39,7 @@ func GetClientConfig(clientConfig *pmapi.ClientConfig) *pmapi.ClientConfig {
 }
 
 func SetClientRoundTripper(cm *pmapi.ClientManager, cfg *pmapi.ClientConfig, listener listener.Listener) {
-	logrus.Info("Setting dialer with pinning")
+	logrus.Info("Setting ClientManager to create clients with key pinning")
 
 	pin := pmapi.NewDialerWithPinning(cm, cfg.AppVersion)
 
@@ -47,5 +47,5 @@ func SetClientRoundTripper(cm *pmapi.ClientManager, cfg *pmapi.ClientConfig, lis
 		listener.Emit(events.TLSCertIssue, "")
 	}
 
-	cm.SetClientRoundTripper(pin.TransportWithPinning())
+	cm.SetRoundTripper(pin.TransportWithPinning())
 }

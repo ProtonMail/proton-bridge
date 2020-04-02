@@ -118,11 +118,18 @@ type Auth struct {
 	TwoFA        *TwoFactorInfo `json:"2FA,omitempty"`
 }
 
+// UID returns the session UID from the Auth.
+// Only Auths generated from the /auth route will have the UID.
+// Auths generated from /auth/refresh are not required to.
 func (s *Auth) UID() string {
 	return s.uid
 }
 
 func (s *Auth) GenToken() string {
+	if s == nil {
+		return ""
+	}
+
 	return fmt.Sprintf("%v:%v", s.UID(), s.RefreshToken)
 }
 
@@ -147,7 +154,9 @@ type AuthRes struct {
 
 	AccessToken string
 	TokenType   string
-	UID         string
+
+	// UID is the session UID. This is only present in an initial Auth (/auth), not in a refreshed Auth (/auth/refresh).
+	UID string
 
 	ServerProof string
 }
@@ -196,17 +205,20 @@ type AuthRefreshReq struct {
 }
 
 func (c *Client) sendAuth(auth *Auth) {
-	go func() {
-		c.log.Debug("Client is sending auth to ClientManager")
+	c.log.Debug("Client is sending auth to ClientManager")
 
+	if auth != nil {
+		// UID is only provided in the initial /auth, not during /auth/refresh
+		if auth.UID() != "" {
+			c.uid = auth.UID()
+		}
+		c.accessToken = auth.accessToken
+	}
+
+	go func() {
 		c.cm.getClientAuthChannel() <- ClientAuth{
 			UserID: c.userID,
 			Auth:   auth,
-		}
-
-		if auth != nil {
-			c.uid = auth.UID()
-			c.accessToken = auth.accessToken
 		}
 	}()
 }
@@ -446,6 +458,7 @@ func (c *Client) AuthRefresh(uidAndRefreshToken string) (auth *Auth, err error) 
 	}
 
 	auth = res.getAuth()
+
 	c.sendAuth(auth)
 
 	return auth, err
@@ -455,6 +468,8 @@ func (c *Client) AuthRefresh(uidAndRefreshToken string) (auth *Auth, err error) 
 func (c *Client) Logout() {
 	c.cm.LogoutClient(c.userID)
 }
+
+// TODO: Need a method like IsConnected() to be able to detect whether a client is logged in or not.
 
 // logout logs the current user out.
 func (c *Client) logout() (err error) {

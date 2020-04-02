@@ -125,6 +125,20 @@ func (s *Store) UpdateEmails(userID string, emails []string) error {
 	return s.saveCredentials(credentials)
 }
 
+func (s *Store) UpdatePassword(userID, password string) error {
+	storeLocker.Lock()
+	defer storeLocker.Unlock()
+
+	credentials, err := s.get(userID)
+	if err != nil {
+		return err
+	}
+
+	credentials.MailboxPassword = password
+
+	return s.saveCredentials(credentials)
+}
+
 func (s *Store) UpdateToken(userID, apiToken string) error {
 	storeLocker.Lock()
 	defer storeLocker.Unlock()

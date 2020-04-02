@@ -122,22 +122,26 @@ func TestProxyProvider_UseProxy(t *testing.T) {
 	blockAPI()
 	defer unblockAPI()
 
+	cm := NewClientManager(testClientConfig)
+
 	proxy := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
 	defer proxy.Close()
 
 	p := newProxyProvider([]string{"not used"}, "not used")
+	cm.proxyProvider = p
+
 	p.dohLookup = func(q, p string) ([]string, error) { return []string{proxy.URL}, nil }
-
-	url, err := p.findProxy()
+	url, err := cm.SwitchToProxy()
 	require.NoError(t, err)
-
-	p.useProxy(url)
-	require.Equal(t, proxy.URL, GlobalGetRootURL())
+	require.Equal(t, proxy.URL, url)
+	require.Equal(t, proxy.URL, cm.GetHost())
 }
 
 func TestProxyProvider_UseProxy_MultipleTimes(t *testing.T) {
 	blockAPI()
 	defer unblockAPI()
+
+	cm := NewClientManager(testClientConfig)
 
 	proxy1 := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
 	defer proxy1.Close()
@@ -147,87 +151,91 @@ func TestProxyProvider_UseProxy_MultipleTimes(t *testing.T) {
 	defer proxy3.Close()
 
 	p := newProxyProvider([]string{"not used"}, "not used")
+	cm.proxyProvider = p
 
 	p.dohLookup = func(q, p string) ([]string, error) { return []string{proxy1.URL}, nil }
-	url, err := p.findProxy()
+	url, err := cm.SwitchToProxy()
 	require.NoError(t, err)
-	p.useProxy(url)
-	require.Equal(t, proxy1.URL, GlobalGetRootURL())
+	require.Equal(t, proxy1.URL, url)
+	require.Equal(t, proxy1.URL, cm.GetHost())
 
 	// Have to wait so as to not get rejected.
 	time.Sleep(proxyLookupWait)
 
 	p.dohLookup = func(q, p string) ([]string, error) { return []string{proxy2.URL}, nil }
-	url, err = p.findProxy()
+	url, err = cm.SwitchToProxy()
 	require.NoError(t, err)
-	p.useProxy(url)
-	require.Equal(t, proxy2.URL, GlobalGetRootURL())
+	require.Equal(t, proxy2.URL, url)
+	require.Equal(t, proxy2.URL, cm.GetHost())
 
 	// Have to wait so as to not get rejected.
 	time.Sleep(proxyLookupWait)
 
 	p.dohLookup = func(q, p string) ([]string, error) { return []string{proxy3.URL}, nil }
-	url, err = p.findProxy()
+	url, err = cm.SwitchToProxy()
 	require.NoError(t, err)
-	p.useProxy(url)
-	require.Equal(t, proxy3.URL, GlobalGetRootURL())
+	require.Equal(t, proxy3.URL, url)
+	require.Equal(t, proxy3.URL, cm.GetHost())
 }
 
 func TestProxyProvider_UseProxy_RevertAfterTime(t *testing.T) {
 	blockAPI()
 	defer unblockAPI()
 
+	cm := NewClientManager(testClientConfig)
+
 	proxy := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
 	defer proxy.Close()
 
 	p := newProxyProvider([]string{"not used"}, "not used")
-	p.useDuration = time.Second
-	p.dohLookup = func(q, p string) ([]string, error) { return []string{proxy.URL}, nil }
+	cm.proxyProvider = p
+	cm.proxyUseDuration = time.Second
 
-	url, err := p.findProxy()
+	p.dohLookup = func(q, p string) ([]string, error) { return []string{proxy.URL}, nil }
+	url, err := cm.SwitchToProxy()
 	require.NoError(t, err)
 	require.Equal(t, proxy.URL, url)
-
-	p.useProxy(url)
-	require.Equal(t, proxy.URL, GlobalGetRootURL())
+	require.Equal(t, proxy.URL, cm.GetHost())
 
 	time.Sleep(2 * time.Second)
-	require.Equal(t, globalOriginalURL, GlobalGetRootURL())
+	require.Equal(t, RootURL, cm.GetHost())
 }
 
 func TestProxyProvider_UseProxy_RevertIfProxyStopsWorkingAndOriginalAPIIsReachable(t *testing.T) {
-	// Don't block the API here because we want it to be working so the test can find it.
+	blockAPI()
 	defer unblockAPI()
+
+	cm := NewClientManager(testClientConfig)
 
 	proxy := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
 	defer proxy.Close()
 
 	p := newProxyProvider([]string{"not used"}, "not used")
-	p.dohLookup = func(q, p string) ([]string, error) { return []string{proxy.URL}, nil }
+	cm.proxyProvider = p
 
-	url, err := p.findProxy()
+	p.dohLookup = func(q, p string) ([]string, error) { return []string{proxy.URL}, nil }
+	url, err := cm.SwitchToProxy()
 	require.NoError(t, err)
 	require.Equal(t, proxy.URL, url)
+	require.Equal(t, proxy.URL, cm.GetHost())
 
-	p.useProxy(url)
-	require.Equal(t, proxy.URL, GlobalGetRootURL())
-
-	// Simulate that the proxy stops working.
+	// Simulate that the proxy stops working and that the standard api is reachable again.
 	proxy.Close()
+	unblockAPI()
 	time.Sleep(proxyLookupWait)
 
 	// We should now find the original API URL if it is working again.
-	url, err = p.findProxy()
+	url, err = cm.SwitchToProxy()
 	require.NoError(t, err)
-	require.Equal(t, globalOriginalURL, url)
-
-	p.useProxy(url)
-	require.Equal(t, globalOriginalURL, GlobalGetRootURL())
+	require.Equal(t, RootURL, url)
+	require.Equal(t, RootURL, cm.GetHost())
 }
 
 func TestProxyProvider_UseProxy_FindSecondAlternativeIfFirstFailsAndAPIIsStillBlocked(t *testing.T) {
 	blockAPI()
 	defer unblockAPI()
+
+	cm := NewClientManager(testClientConfig)
 
 	proxy1 := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
 	defer proxy1.Close()
@@ -235,13 +243,14 @@ func TestProxyProvider_UseProxy_FindSecondAlternativeIfFirstFailsAndAPIIsStillBl
 	defer proxy2.Close()
 
 	p := newProxyProvider([]string{"not used"}, "not used")
-	p.dohLookup = func(q, p string) ([]string, error) { return []string{proxy1.URL, proxy2.URL}, nil }
+	cm.proxyProvider = p
 
 	// Find a proxy.
-	url, err := p.findProxy()
+	p.dohLookup = func(q, p string) ([]string, error) { return []string{proxy1.URL, proxy2.URL}, nil }
+	url, err := cm.SwitchToProxy()
 	require.NoError(t, err)
-	p.useProxy(url)
-	require.Equal(t, proxy1.URL, GlobalGetRootURL())
+	require.Equal(t, proxy1.URL, url)
+	require.Equal(t, proxy1.URL, cm.GetHost())
 
 	// Have to wait so as to not get rejected.
 	time.Sleep(proxyLookupWait)
@@ -250,10 +259,10 @@ func TestProxyProvider_UseProxy_FindSecondAlternativeIfFirstFailsAndAPIIsStillBl
 	proxy1.Close()
 
 	// Should switch to the second proxy because both the first proxy and the protonmail API are blocked.
-	url, err = p.findProxy()
+	url, err = cm.SwitchToProxy()
 	require.NoError(t, err)
-	p.useProxy(url)
-	require.Equal(t, proxy2.URL, GlobalGetRootURL())
+	require.Equal(t, proxy2.URL, url)
+	require.Equal(t, proxy2.URL, cm.GetHost())
 }
 
 func TestProxyProvider_DoHLookup_Quad9(t *testing.T) {
@@ -289,16 +298,14 @@ func TestProxyProvider_DoHLookup_FindProxyFirstProviderUnreachable(t *testing.T)
 }
 
 // testAPIURLBackup is used to hold the globalOriginalURL because we clear it for test purposes and need to restore it.
-var testAPIURLBackup = globalOriginalURL
+var testAPIURLBackup = RootURL
 
 // blockAPI prevents tests from reaching the standard API, forcing them to find a proxy.
 func blockAPI() {
-	globalSetRootURL("")
-	globalOriginalURL = ""
+	RootURL = ""
 }
 
 // unblockAPI allow tests to reach the standard API again.
 func unblockAPI() {
-	globalOriginalURL = testAPIURLBackup
-	globalSetRootURL(globalOriginalURL)
+	RootURL = testAPIURLBackup
 }

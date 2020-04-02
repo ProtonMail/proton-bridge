@@ -527,11 +527,11 @@ func (s *FrontendQt) toggleAllowProxy() {
 
 	if s.preferences.GetBool(preferences.AllowProxyKey) {
 		s.preferences.SetBool(preferences.AllowProxyKey, false)
-		bridge.DisallowDoH()
+		s.bridge.DisallowProxy()
 		s.Qml.SetIsProxyAllowed(false)
 	} else {
 		s.preferences.SetBool(preferences.AllowProxyKey, true)
-		bridge.AllowDoH()
+		s.bridge.AllowProxy()
 		s.Qml.SetIsProxyAllowed(true)
 	}
 }

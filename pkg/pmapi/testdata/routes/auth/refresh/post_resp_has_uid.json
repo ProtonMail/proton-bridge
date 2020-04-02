@@ -3,8 +3,8 @@
     "AccessToken": "de0423049b44243afeec7d9c1d99be7b46da1e8a",
     "ExpiresIn": 360000,
     "TokenType": "Bearer",
-    "Uid": "differentUID",
-    "UID": "differentUID",
+    "Uid": "729ad6012421d67ad26950dc898bebe3a6e3caa2",
+    "UID": "729ad6012421d67ad26950dc898bebe3a6e3caa2",
     "Scope": "full mail payments reset keys",
     "RefreshToken": "b894b4c4f20003f12d486900d8b88c7d68e67235"
 }

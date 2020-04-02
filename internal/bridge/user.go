@@ -41,7 +41,7 @@ type User struct {
 	log          *logrus.Entry
 	panicHandler PanicHandler
 	listener     listener.Listener
-	clientMan    *pmapi.ClientManager
+	clientMan    ClientManager
 	credStorer   CredentialsStorer
 
 	imapUpdatesChannel chan interface{}
@@ -66,7 +66,7 @@ func newUser(
 	userID string,
 	eventListener listener.Listener,
 	credStorer CredentialsStorer,
-	clientMan *pmapi.ClientManager,
+	clientMan ClientManager,
 	storeCache *store.Cache,
 	storeDir string,
 ) (u *User, err error) {
@@ -243,19 +243,8 @@ func (u *User) authorizeAndUnlock() (err error) {
 	return nil
 }
 
-func (u *User) AuthorizeWithAPIAuth(auth *pmapi.Auth) {
-	u.lock.Lock()
-	defer u.lock.Unlock()
-
+func (u *User) updateAuthToken(auth *pmapi.Auth) {
 	u.log.Debug("User received auth from bridge")
-
-	if auth == nil {
-		if err := u.logout(); err != nil {
-			u.log.WithError(err).Error("Failed to logout user after receiving empty auth from API")
-		}
-		u.isAuthorized = false
-		return
-	}
 
 	if err := u.credStorer.UpdateToken(u.userID, auth.GenToken()); err != nil {
 		u.log.WithError(err).Error("Failed to update refresh token in credentials store")
@@ -510,11 +499,16 @@ func (u *User) logout() error {
 	u.lock.Lock()
 	wasConnected := u.creds.IsConnected()
 	u.lock.Unlock()
+
 	err := u.Logout()
+
 	if wasConnected {
 		u.listener.Emit(events.LogoutEvent, u.userID)
 		u.listener.Emit(events.UserRefreshEvent, u.userID)
 	}
+
+	u.isAuthorized = false
+
 	return err
 }
 
@@ -534,6 +528,7 @@ func (u *User) Logout() (err error) {
 	u.wasKeyringUnlocked = false
 	u.unlockingKeyringLock.Unlock()
 
+	// TODO: Is this necessary or could it be done by ClientManager when a nil auth is received?
 	u.client().Logout()
 
 	if err = u.credStorer.Logout(u.userID); err != nil {
@@ -550,6 +545,7 @@ func (u *User) Logout() (err error) {
 	u.closeEventLoop()
 
 	u.closeAllConnections()
+
 	runtime.GC()
 
 	return err
@@ -557,7 +553,7 @@ func (u *User) Logout() (err error) {
 
 func (u *User) refreshFromCredentials() {
 	if credentials, err := u.credStorer.Get(u.userID); err != nil {
-		log.Error("Cannot update credentials: ", err)
+		log.WithError(err).Error("Cannot refresh user credentials")
 	} else {
 		u.creds = credentials
 	}

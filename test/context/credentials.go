@@ -81,6 +81,15 @@ func (c *fakeCredStore) UpdateEmails(userID string, emails []string) error {
 	return nil
 }
 
+func (c *fakeCredStore) UpdatePassword(userID, password string) error {
+	creds, err := c.Get(userID)
+	if err != nil {
+		return err
+	}
+	creds.MailboxPassword = password
+	return nil
+}
+
 func (c *fakeCredStore) UpdateToken(userID, apiToken string) error {
 	creds, err := c.Get(userID)
 	if err != nil {

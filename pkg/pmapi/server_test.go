@@ -22,6 +22,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -72,15 +73,24 @@ func Equals(tb testing.TB, exp, act interface{}) {
 // newTestServer is old function and should be replaced everywhere by newTestServerCallbacks.
 func newTestServer(h http.Handler) (*httptest.Server, *Client) {
 	s := httptest.NewServer(h)
-	RootURL = s.URL
 
-	return s, newTestClient()
+	serverURL, err := url.Parse(s.URL)
+	if err != nil {
+		panic(err)
+	}
+
+	cm := NewClientManager(testClientConfig)
+	cm.host = serverURL.Host
+	cm.scheme = serverURL.Scheme
+
+	return s, newTestClient(cm)
 }
 
 func newTestServerCallbacks(tb testing.TB, callbacks ...func(testing.TB, http.ResponseWriter, *http.Request) string) (func(), *Client) {
 	reqNum := 0
 	_, file, line, _ := runtime.Caller(1)
 	file = filepath.Base(file)
+
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		reqNum++
 		if reqNum > len(callbacks) {
@@ -95,7 +105,12 @@ func newTestServerCallbacks(tb testing.TB, callbacks ...func(testing.TB, http.Re
 			writeJSONResponsefromFile(tb, w, response, reqNum-1)
 		}
 	}))
-	RootURL = server.URL
+
+	serverURL, err := url.Parse(server.URL)
+	if err != nil {
+		panic(err)
+	}
+
 	finish := func() {
 		server.CloseClientConnections() // Closing without waiting for finishing requests.
 		if reqNum != len(callbacks) {
@@ -106,7 +121,12 @@ func newTestServerCallbacks(tb testing.TB, callbacks ...func(testing.TB, http.Re
 			tb.Error("server failed")
 		}
 	}
-	return finish, newTestClient()
+
+	cm := NewClientManager(testClientConfig)
+	cm.host = serverURL.Host
+	cm.scheme = serverURL.Scheme
+
+	return finish, newTestClient(cm)
 }
 
 func checkMethodAndPath(r *http.Request, method, path string) error {

@@ -43,7 +43,12 @@ type PanicHandler interface {
 	HandlePanic()
 }
 
-type Clientman interface {
+type ClientManager interface {
+	GetClient(userID string) *pmapi.Client
+	GetAnonymousClient() *pmapi.Client
+	GetBridgeAuthChannel() chan pmapi.ClientAuth
+	AllowProxy()
+	DisallowProxy()
 }
 
 type PMAPIProvider interface {
@@ -100,6 +105,7 @@ type CredentialsStorer interface {
 	Get(userID string) (*credentials.Credentials, error)
 	SwitchAddressMode(userID string) error
 	UpdateEmails(userID string, emails []string) error
+	UpdatePassword(userID, password string) error
 	UpdateToken(userID, apiToken string) error
 	Logout(userID string) error
 	Delete(userID string) error

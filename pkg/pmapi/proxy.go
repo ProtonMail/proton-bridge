@@ -72,8 +72,9 @@ func newProxyProvider(providers []string, query string) (p *proxyProvider) { // 
 	return
 }
 
-// findProxy returns a new proxy domain which is not equal to the current RootURL.
+// findProxy returns a new working proxy domain. This includes the standard API.
 // It returns an error if the process takes longer than ProxySearchTime.
+// TODO: Perhaps the name can be better -- we might also return the standard API.
 func (p *proxyProvider) findProxy() (proxy string, err error) {
 	if time.Now().Before(p.lastLookup.Add(proxyLookupWait)) {
 		return "", errors.New("not looking for a proxy, too soon")
@@ -86,6 +87,12 @@ func (p *proxyProvider) findProxy() (proxy string, err error) {
 	go func() {
 		if err = p.refreshProxyCache(); err != nil {
 			logrus.WithError(err).Warn("Failed to refresh proxy cache, cache may be out of date")
+		}
+
+		// We want to switch back to the RootURL if possible.
+		if p.canReach(RootURL) {
+			proxyResult <- RootURL
+			return
 		}
 
 		for _, proxy := range p.proxyCache {
@@ -114,15 +121,13 @@ func (p *proxyProvider) findProxy() (proxy string, err error) {
 }
 
 // refreshProxyCache loads the latest proxies from the known providers.
+// It includes the standard API.
 func (p *proxyProvider) refreshProxyCache() error {
 	logrus.Info("Refreshing proxy cache")
 
 	for _, provider := range p.providers {
 		if proxies, err := p.dohLookup(p.query, provider); err == nil {
 			p.proxyCache = proxies
-
-			// We also want to allow bridge to switch back to the standard API at any time.
-			p.proxyCache = append(p.proxyCache, RootURL)
 
 			logrus.WithField("proxies", proxies).Info("Available proxies")
 

@@ -19,7 +19,6 @@
 package bridge
 
 import (
-	"errors"
 	"strconv"
 	"strings"
 	"sync"
@@ -33,6 +32,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	"github.com/hashicorp/go-multierror"
+	"github.com/pkg/errors"
 	logrus "github.com/sirupsen/logrus"
 )
 
@@ -48,7 +48,7 @@ type Bridge struct {
 	panicHandler  PanicHandler
 	events        listener.Listener
 	version       string
-	clientManager *pmapi.ClientManager
+	clientManager ClientManager
 	credStorer    CredentialsStorer
 	storeCache    *store.Cache
 
@@ -76,7 +76,7 @@ func New(
 	panicHandler PanicHandler,
 	eventListener listener.Listener,
 	version string,
-	clientManager *pmapi.ClientManager,
+	clientManager ClientManager,
 	credStorer CredentialsStorer,
 ) *Bridge {
 	log.Trace("Creating new bridge")
@@ -107,7 +107,7 @@ func New(
 
 	go func() {
 		defer panicHandler.HandlePanic()
-		b.watchUserAuths()
+		b.watchAPIAuths()
 	}()
 
 	if b.credStorer == nil {
@@ -178,16 +178,21 @@ func (b *Bridge) watchBridgeOutdated() {
 	}
 }
 
-// watchUserAuths receives auths from the client manager and sends them to the appropriate user.
-func (b *Bridge) watchUserAuths() {
+// watchAPIAuths receives auths from the client manager and sends them to the appropriate user.
+func (b *Bridge) watchAPIAuths() {
 	for auth := range b.clientManager.GetBridgeAuthChannel() {
 		logrus.Debug("Bridge received auth from ClientManager")
 
-		if user, ok := b.hasUser(auth.UserID); ok {
-			logrus.Debug("Bridge is forwarding auth to user")
-			user.AuthorizeWithAPIAuth(auth.Auth)
-		} else {
+		user, ok := b.hasUser(auth.UserID)
+		if !ok {
 			logrus.Info("User is not added to bridge yet")
+			continue
+		}
+
+		if auth.Auth != nil {
+			user.updateAuthToken(auth.Auth)
+		} else {
+			user.logout()
 		}
 	}
 }
@@ -209,113 +214,140 @@ func (b *Bridge) closeAllConnections() {
 //  * In case user `auth.HasMailboxPassword()`, ask for it, otherwise use `password`
 //    and then finish the login procedure.
 //		user, err := bridge.FinishLogin(client, auth, mailboxPassword)
-func (b *Bridge) Login(username, password string) (loginClient PMAPIProvider, auth *pmapi.Auth, err error) {
-	log.WithField("username", username).Trace("Logging in to bridge")
-
+func (b *Bridge) Login(username, password string) (authClient PMAPIProvider, auth *pmapi.Auth, err error) {
 	b.crashBandicoot(username)
 
-	// We need to use "login" client because we need userID to properly assign access tokens into token manager.
-	loginClient = b.clientManager.GetClient("login")
+	// We need to use anonymous client because we don't yet have userID and so can't save auth tokens yet.
+	authClient = b.clientManager.GetAnonymousClient()
 
-	authInfo, err := loginClient.AuthInfo(username)
+	authInfo, err := authClient.AuthInfo(username)
 	if err != nil {
 		log.WithField("username", username).WithError(err).Error("Could not get auth info for user")
-		return nil, nil, err
+		return
 	}
 
-	if auth, err = loginClient.Auth(username, password, authInfo); err != nil {
+	if auth, err = authClient.Auth(username, password, authInfo); err != nil {
 		log.WithField("username", username).WithError(err).Error("Could not get auth for user")
-		return loginClient, auth, err
+		return
 	}
 
-	return loginClient, auth, nil
+	return
 }
 
 // FinishLogin finishes the login procedure and adds the user into the credentials store.
 // See `Login` for more details of the login flow.
-func (b *Bridge) FinishLogin(loginClient PMAPIProvider, auth *pmapi.Auth, mbPassword string) (user *User, err error) { //nolint[funlen]
-	log.Trace("Finishing bridge login")
-
+func (b *Bridge) FinishLogin(authClient PMAPIProvider, auth *pmapi.Auth, mbPassword string) (user *User, err error) { //nolint[funlen]
 	defer func() {
 		if err == pmapi.ErrUpgradeApplication {
 			b.events.Emit(events.UpgradeApplicationEvent, "")
 		}
 	}()
 
-	b.lock.Lock()
-	defer b.lock.Unlock()
+	apiUser, hashedPassword, err := getAPIUser(authClient, auth, mbPassword)
+	if err != nil {
+		log.WithError(err).Error("Failed to get API user")
+		return
+	}
 
-	defer loginClient.Logout()
+	if user, err = b.GetUser(apiUser.ID); err == nil {
+		if err = b.connectExistingUser(user, auth, hashedPassword); err != nil {
+			log.WithError(err).Error("Failed to connect existing user")
+			return
+		}
+	} else {
+		if err = b.addNewUser(apiUser, auth, hashedPassword); err != nil {
+			log.WithError(err).Error("Failed to add new user")
+			return
+		}
+	}
 
-	mbPassword, err = pmapi.HashMailboxPassword(mbPassword, auth.KeySalt)
+	b.events.Emit(events.UserRefreshEvent, apiUser.ID)
+
+	return b.GetUser(apiUser.ID)
+}
+
+// connectExistingUser connects an existing bridge user to the bridge.
+func (b *Bridge) connectExistingUser(user *User, auth *pmapi.Auth, hashedPassword string) (err error) {
+	if user.IsConnected() {
+		return errors.New("user is already connected")
+	}
+
+	// Update the user's password in the cred store in case they changed it.
+	if err = b.credStorer.UpdatePassword(user.ID(), hashedPassword); err != nil {
+		return errors.Wrap(err, "failed to update password of user in credentials store")
+	}
+
+	client := b.clientManager.GetClient(user.ID())
+
+	if auth, err = client.AuthRefresh(auth.GenToken()); err != nil {
+		return errors.Wrap(err, "failed to refresh auth token of new client")
+	}
+
+	if err = b.credStorer.UpdateToken(user.ID(), auth.GenToken()); err != nil {
+		return errors.Wrap(err, "failed to update token of user in credentials store")
+	}
+
+	if err = user.init(b.idleUpdates); err != nil {
+		return errors.Wrap(err, "failed to initialise user")
+	}
+
+	return
+}
+
+// addNewUser adds a new bridge user to the bridge.
+func (b *Bridge) addNewUser(user *pmapi.User, auth *pmapi.Auth, hashedPassword string) (err error) {
+	client := b.clientManager.GetClient(user.ID)
+
+	if auth, err = client.AuthRefresh(auth.GenToken()); err != nil {
+		return errors.Wrap(err, "failed to refresh token in new client")
+	}
+
+	if user, err = client.UpdateUser(); err != nil {
+		return errors.Wrap(err, "failed to update API user")
+	}
+
+	activeEmails := client.Addresses().ActiveEmails()
+
+	if _, err = b.credStorer.Add(user.ID, user.Name, auth.GenToken(), hashedPassword, activeEmails); err != nil {
+		return errors.Wrap(err, "failed to add user to credentials store")
+	}
+
+	bridgeUser, err := newUser(b.panicHandler, user.ID, b.events, b.credStorer, b.clientManager, b.storeCache, b.config.GetDBDir())
+	if err != nil {
+		return errors.Wrap(err, "failed to create user")
+	}
+
+	// The user needs to be part of the users list in order for it to receive an auth during initialisation.
+	// TODO: If adding the user fails, we don't want to leave it there.
+	b.users = append(b.users, bridgeUser)
+
+	if err = bridgeUser.init(b.idleUpdates); err != nil {
+		return errors.Wrap(err, "failed to initialise user")
+	}
+
+	b.SendMetric(m.New(m.Setup, m.NewUser, m.NoLabel))
+
+	return
+}
+
+func getAPIUser(client PMAPIProvider, auth *pmapi.Auth, mbPassword string) (user *pmapi.User, hashedPassword string, err error) {
+	hashedPassword, err = pmapi.HashMailboxPassword(mbPassword, auth.KeySalt)
 	if err != nil {
 		log.WithError(err).Error("Could not hash mailbox password")
 		return
 	}
 
-	if _, err = loginClient.Unlock(mbPassword); err != nil {
+	if _, err = client.Unlock(hashedPassword); err != nil {
 		log.WithError(err).Error("Could not decrypt keyring")
 		return
 	}
 
-	apiUser, err := loginClient.CurrentUser()
-	if err != nil {
-		log.WithError(err).Error("Could not get login API user")
+	if user, err = client.UpdateUser(); err != nil {
+		log.WithError(err).Error("Could not update API user")
 		return
 	}
 
-	user, hasUser := b.hasUser(apiUser.ID)
-
-	// If the user exists and is logged in, we don't want to do anything.
-	if hasUser && user.IsConnected() {
-		err = errors.New("user is already logged in")
-		log.WithError(err).Warn("User is already logged in")
-		return
-	}
-
-	apiClient := b.clientManager.GetClient(apiUser.ID)
-	auth, err = apiClient.AuthRefresh(auth.GenToken())
-	if err != nil {
-		log.WithError(err).Error("Could not refresh token in new client")
-		return
-	}
-
-	// We load the current user again because it should now have addresses loaded.
-	apiUser, err = apiClient.CurrentUser()
-	if err != nil {
-		log.WithError(err).Error("Could not get current API user")
-		return
-	}
-
-	activeEmails := apiClient.Addresses().ActiveEmails()
-	if _, err = b.credStorer.Add(apiUser.ID, apiUser.Name, auth.GenToken(), mbPassword, activeEmails); err != nil {
-		log.WithError(err).Error("Could not add user to credentials store")
-		return
-	}
-
-	// If it's a new user, generate the user object.
-	if !hasUser {
-		user, err = newUser(b.panicHandler, apiUser.ID, b.events, b.credStorer, b.clientManager, b.storeCache, b.config.GetDBDir())
-		if err != nil {
-			log.WithField("user", apiUser.ID).WithError(err).Error("Could not create user")
-			return
-		}
-		b.users = append(b.users, user)
-	}
-
-	// Set up the user auth and store (which we do for both new and existing users).
-	if err = user.init(b.idleUpdates); err != nil {
-		log.WithField("user", user.userID).WithError(err).Error("Could not initialise user")
-		return
-	}
-
-	if !hasUser {
-		b.SendMetric(m.New(m.Setup, m.NewUser, m.NoLabel))
-	}
-
-	b.events.Emit(events.UserRefreshEvent, apiUser.ID)
-
-	return user, err
+	return
 }
 
 // GetUsers returns all added users into keychain (even logged out users).
@@ -326,8 +358,7 @@ func (b *Bridge) GetUsers() []*User {
 	return b.users
 }
 
-// GetUser returns a user by `query` which is compared to users' ID, username
-// or any attached e-mail address.
+// GetUser returns a user by `query` which is compared to users' ID, username or any attached e-mail address.
 func (b *Bridge) GetUser(query string) (*User, error) {
 	b.crashBandicoot(query)
 

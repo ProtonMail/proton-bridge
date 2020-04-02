@@ -23,26 +23,27 @@ import (
 	"testing"
 )
 
-const liveAPI = "https://api.protonmail.ch"
+const liveAPI = "api.protonmail.ch"
 
 var testLiveConfig = &ClientConfig{
 	AppVersion: "Bridge_1.2.4-test",
 	ClientID:   "Bridge",
 }
 
-func newTestDialerWithPinning() (*int, *DialerWithPinning) {
+func setTestDialerWithPinning(cm *ClientManager) (*int, *DialerWithPinning) {
 	called := 0
-	p := NewPMAPIPinning(testLiveConfig.AppVersion)
+	p := NewDialerWithPinning(cm, testLiveConfig.AppVersion)
 	p.ReportCertIssueLocal = func() { called++ }
-	testLiveConfig.Transport = p.TransportWithPinning()
+	cm.SetRoundTripper(p.TransportWithPinning())
 	return &called, p
 }
 
 func TestTLSPinValid(t *testing.T) {
-	called, _ := newTestDialerWithPinning()
-
-	RootURL = liveAPI
-	client := newClient(NewClientManager(testLiveConfig), "pmapi"+t.Name())
+	cm := NewClientManager(testLiveConfig)
+	cm.host = liveAPI
+	RootScheme = "https"
+	called, _ := setTestDialerWithPinning(cm)
+	client := cm.GetClient("pmapi" + t.Name())
 
 	_, err := client.AuthInfo("this.address.is.disabled")
 	Ok(t, err)
@@ -51,12 +52,13 @@ func TestTLSPinValid(t *testing.T) {
 }
 
 func TestTLSPinBackup(t *testing.T) {
-	called, p := newTestDialerWithPinning()
+	cm := NewClientManager(testLiveConfig)
+	cm.host = liveAPI
+	called, p := setTestDialerWithPinning(cm)
 	p.report.KnownPins[1] = p.report.KnownPins[0]
 	p.report.KnownPins[0] = ""
 
-	RootURL = liveAPI
-	client := newClient(NewClientManager(testLiveConfig), "pmapi"+t.Name())
+	client := cm.GetClient("pmapi" + t.Name())
 
 	_, err := client.AuthInfo("this.address.is.disabled")
 	Ok(t, err)
@@ -65,19 +67,21 @@ func TestTLSPinBackup(t *testing.T) {
 }
 
 func _TestTLSPinNoMatch(t *testing.T) { // nolint[unused]
-	called, p := newTestDialerWithPinning()
+	cm := NewClientManager(testLiveConfig)
+	cm.host = liveAPI
+
+	called, p := setTestDialerWithPinning(cm)
 	for i := 0; i < len(p.report.KnownPins); i++ {
 		p.report.KnownPins[i] = "testing"
 	}
 
-	RootURL = liveAPI
-	client := newClient(NewClientManager(testLiveConfig), "pmapi"+t.Name())
+	client := cm.GetClient("pmapi" + t.Name())
 
 	_, err := client.AuthInfo("this.address.is.disabled")
 	Ok(t, err)
 
 	// check that it will be called only once per session
-	client = newClient(NewClientManager(testLiveConfig), "pmapi"+t.Name())
+	client = cm.GetClient("pmapi" + t.Name())
 	_, err = client.AuthInfo("this.address.is.disabled")
 	Ok(t, err)
 
@@ -85,20 +89,22 @@ func _TestTLSPinNoMatch(t *testing.T) { // nolint[unused]
 }
 
 func _TestTLSPinInvalid(t *testing.T) { // nolint[unused]
+	cm := NewClientManager(testLiveConfig)
+
 	ts := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		writeJSONResponsefromFile(t, w, "/auth/info/post_response.json", 0)
 	}))
 	defer ts.Close()
 
-	called, _ := newTestDialerWithPinning()
+	called, _ := setTestDialerWithPinning(cm)
 
-	client := newClient(NewClientManager(testLiveConfig), "pmapi"+t.Name())
+	client := cm.GetClient("pmapi" + t.Name())
 
-	RootURL = liveAPI
+	cm.host = liveAPI
 	_, err := client.AuthInfo("this.address.is.disabled")
 	Ok(t, err)
 
-	RootURL = ts.URL
+	cm.host = ts.URL
 	_, err = client.AuthInfo("this.address.is.disabled")
 	Assert(t, err != nil, "error is expected but have %v", err)
 
@@ -106,20 +112,23 @@ func _TestTLSPinInvalid(t *testing.T) { // nolint[unused]
 }
 
 func _TestTLSSignedCertWrongPublicKey(t *testing.T) { // nolint[unused]
-	_, dialer := newTestDialerWithPinning()
+	cm := NewClientManager(testLiveConfig)
+	_, dialer := setTestDialerWithPinning(cm)
 	_, err := dialer.dialAndCheckFingerprints("tcp", "rsa4096.badssl.com:443")
 	Assert(t, err != nil, "expected dial to fail because of wrong public key: ", err.Error())
 }
 
 func _TestTLSSignedCertTrustedPublicKey(t *testing.T) { // nolint[unused]
-	_, dialer := newTestDialerWithPinning()
+	cm := NewClientManager(testLiveConfig)
+	_, dialer := setTestDialerWithPinning(cm)
 	dialer.report.KnownPins = append(dialer.report.KnownPins, `pin-sha256="W8/42Z0ffufwnHIOSndT+eVzBJSC0E8uTIC8O6mEliQ="`)
 	_, err := dialer.dialAndCheckFingerprints("tcp", "rsa4096.badssl.com:443")
 	Assert(t, err == nil, "expected dial to succeed because public key is known and cert is signed by CA: ", err.Error())
 }
 
 func _TestTLSSelfSignedCertTrustedPublicKey(t *testing.T) { // nolint[unused]
-	_, dialer := newTestDialerWithPinning()
+	cm := NewClientManager(testLiveConfig)
+	_, dialer := setTestDialerWithPinning(cm)
 	dialer.report.KnownPins = append(dialer.report.KnownPins, `pin-sha256="9SLklscvzMYj8f+52lp5ze/hY0CFHyLSPQzSpYYIBm8="`)
 	_, err := dialer.dialAndCheckFingerprints("tcp", "self-signed.badssl.com:443")
 	Assert(t, err == nil, "expected dial to succeed because public key is known despite cert being self-signed: ", err.Error())

@@ -279,6 +279,7 @@ func TestClient_AuthRefresh(t *testing.T) {
 
 	exp := &Auth{}
 	*exp = *testAuth
+	exp.uid = "" // AuthRefresh will not return UID (only Auth returns the UID).
 	exp.accessToken = testAccessToken
 	exp.KeySalt = ""
 	exp.EventID = ""
@@ -329,12 +330,20 @@ func TestClient_Logout(t *testing.T) {
 		},
 	)
 	defer finish()
+
 	c.uid = testUID
 	c.accessToken = testAccessToken
 
 	c.Logout()
 
-	// TODO: Check that the client is logged out and sensitive data is cleared eventually.
+	r.Eventually(t, func() bool {
+		// TODO: Use a method like IsConnected() which returns whether the client was logged out or not.
+		return c.accessToken == "" &&
+			c.uid == "" &&
+			c.kr == nil &&
+			c.addresses == nil &&
+			c.user == nil
+	}, 10*time.Second, 10*time.Millisecond)
 }
 
 func TestClient_DoUnauthorized(t *testing.T) {
@@ -354,7 +363,6 @@ func TestClient_DoUnauthorized(t *testing.T) {
 
 	c.uid = testUID
 	c.accessToken = testAccessTokenOld
-	c.expiresAt = aLongTimeAgo
 	c.cm.tokens[c.userID] = testUID + ":" + testRefreshToken
 
 	req, err := c.NewRequest("GET", "/", nil)

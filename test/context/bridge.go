@@ -21,10 +21,8 @@ import (
 	"os"
 	"runtime"
 
-	"github.com/ProtonMail/proton-bridge/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/internal/preferences"
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
-	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 )
 
 // GetBridge returns bridge instance.
@@ -35,7 +33,10 @@ func (ctx *TestContext) GetBridge() *bridge.Bridge {
 // withBridgeInstance creates a bridge instance for use in the test.
 // Every TestContext has this by default and thus this doesn't need to be exported.
 func (ctx *TestContext) withBridgeInstance() {
-	ctx.bridge = newBridgeInstance(ctx.t, ctx.cfg, ctx.credStore, ctx.listener, ctx.clientManager)
+	pmapiFactory := func(userID string) bridge.PMAPIProvider {
+		return ctx.pmapiController.GetClient(userID)
+	}
+	ctx.bridge = newBridgeInstance(ctx.t, ctx.cfg, ctx.credStore, ctx.listener, pmapiFactory)
 	ctx.addCleanupChecked(ctx.bridge.ClearData, "Cleaning bridge data")
 }
 
@@ -60,7 +61,7 @@ func newBridgeInstance(
 	cfg *fakeConfig,
 	credStore bridge.CredentialsStorer,
 	eventListener listener.Listener,
-	clientManager *pmapi.ClientManager,
+	pmapiFactory bridge.PMAPIProviderFactory,
 ) *bridge.Bridge {
 	version := os.Getenv("VERSION")
 	bridge.UpdateCurrentUserAgent(version, runtime.GOOS, "", "")
@@ -68,7 +69,7 @@ func newBridgeInstance(
 	panicHandler := &panicHandler{t: t}
 	pref := preferences.New(cfg)
 
-	return bridge.New(cfg, pref, panicHandler, eventListener, version, clientManager, credStore)
+	return bridge.New(cfg, pref, panicHandler, eventListener, version, pmapiFactory, credStore)
 }
 
 // SetLastBridgeError sets the last error that occurred while executing a bridge action.

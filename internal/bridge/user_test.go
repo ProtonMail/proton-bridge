@@ -30,7 +30,6 @@ func testNewUser(m mocks) *User {
 	m.credentialsStore.EXPECT().Get("user").Return(testCredentials, nil).Times(2)
 	m.credentialsStore.EXPECT().UpdateToken("user", ":reftok").Return(nil)
 
-	m.pmapiClient.EXPECT().SetAuths(gomock.Any())
 	m.pmapiClient.EXPECT().AuthRefresh("token").Return(testAuthRefresh, nil)
 	m.credentialsStore.EXPECT().Get("user").Return(testCredentials, nil)
 	m.pmapiClient.EXPECT().Unlock("pass").Return(nil, nil)
@@ -57,14 +56,12 @@ func testNewUserForLogout(m mocks) *User {
 	m.credentialsStore.EXPECT().Get("user").Return(testCredentials, nil).Times(2)
 	m.credentialsStore.EXPECT().UpdateToken("user", ":reftok").Return(nil)
 
-	m.pmapiClient.EXPECT().SetAuths(gomock.Any())
 	m.pmapiClient.EXPECT().AuthRefresh("token").Return(testAuthRefresh, nil)
 	m.credentialsStore.EXPECT().Get("user").Return(testCredentials, nil)
 	m.pmapiClient.EXPECT().Unlock("pass").Return(nil, nil)
 	m.pmapiClient.EXPECT().UnlockAddresses([]byte("pass")).Return(nil)
 
 	// These may or may not be hit depending on how fast the log out happens.
-	m.pmapiClient.EXPECT().SetAuths(nil).AnyTimes()
 	m.pmapiClient.EXPECT().ListLabels().Return([]*pmapi.Label{}, nil).AnyTimes()
 	m.pmapiClient.EXPECT().Addresses().Return([]*pmapi.Address{testPMAPIAddress}).AnyTimes()
 	m.pmapiClient.EXPECT().CountMessages("").Return([]*pmapi.MessagesCount{}, nil)

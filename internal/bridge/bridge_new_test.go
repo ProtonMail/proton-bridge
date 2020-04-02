@@ -73,7 +73,6 @@ func TestNewBridgeWithConnectedUserWithBadToken(t *testing.T) {
 	m.eventListener.EXPECT().Emit(events.LogoutEvent, "user")
 	m.eventListener.EXPECT().Emit(events.UserRefreshEvent, "user")
 	m.pmapiClient.EXPECT().Logout().Return(nil)
-	m.pmapiClient.EXPECT().SetAuths(nil)
 	m.credentialsStore.EXPECT().Logout("user").Return(nil)
 	m.credentialsStore.EXPECT().Get("user").Return(testCredentialsDisconnected, nil)
 	m.eventListener.EXPECT().Emit(events.CloseConnectionEvent, "user@pm.me")

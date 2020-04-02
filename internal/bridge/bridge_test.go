@@ -129,6 +129,7 @@ type mocks struct {
 	PanicHandler     *bridgemocks.MockPanicHandler
 	prefProvider     *bridgemocks.MockPreferenceProvider
 	pmapiClient      *bridgemocks.MockPMAPIProvider
+	clientManager    *bridgemocks.MockClientManager
 	credentialsStore *bridgemocks.MockCredentialsStorer
 	eventListener    *MockListener
 
@@ -208,14 +209,10 @@ func testNewBridge(t *testing.T, m mocks) *Bridge {
 	m.prefProvider.EXPECT().GetBool(preferences.AllowProxyKey).Return(false).AnyTimes()
 	m.config.EXPECT().GetDBDir().Return("/tmp").AnyTimes()
 	m.config.EXPECT().GetIMAPCachePath().Return(cacheFile.Name()).AnyTimes()
-	m.pmapiClient.EXPECT().SetAuths(gomock.Any()).AnyTimes()
 	m.eventListener.EXPECT().Add(events.UpgradeApplicationEvent, gomock.Any())
-	pmapiClientFactory := func(userID string) PMAPIProvider {
-		log.WithField("userID", userID).Info("Creating new pmclient")
-		return m.pmapiClient
-	}
+	m.clientManager.EXPECT().GetClient(gomock.Any()).Return(m.pmapiClient)
 
-	bridge := New(m.config, m.prefProvider, m.PanicHandler, m.eventListener, "ver", pmapiClientFactory, m.credentialsStore)
+	bridge := New(m.config, m.prefProvider, m.PanicHandler, m.eventListener, "ver", m.clientManager, m.credentialsStore)
 
 	waitForEvents()
 

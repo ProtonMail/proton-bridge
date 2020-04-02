@@ -79,11 +79,6 @@ type ClientConfig struct {
 	// The sentry DSN.
 	SentryDSN string
 
-	// Transport specifies the mechanism by which individual HTTP requests are made.
-	// If nil, http.DefaultTransport is used.
-	// TODO: This could be removed entirely and set in the client manager via SetClientRoundTripper.
-	Transport http.RoundTripper
-
 	// Timeout specifies the timeout from request to getting response headers to our API.
 	// Passed to http.Client, empty means no timeout.
 	Timeout time.Duration
@@ -120,7 +115,7 @@ type Client struct {
 func newClient(cm *ClientManager, userID string) *Client {
 	return &Client{
 		cm:            cm,
-		hc:            getHTTPClient(cm.GetConfig()),
+		hc:            getHTTPClient(cm.GetConfig(), cm.GetRoundTripper()),
 		userID:        userID,
 		requestLocker: &sync.Mutex{},
 		keyLocker:     &sync.Mutex{},
@@ -128,32 +123,12 @@ func newClient(cm *ClientManager, userID string) *Client {
 	}
 }
 
-// getHTTPClient returns a http client configured by the given client config.
-func getHTTPClient(cfg *ClientConfig) (hc *http.Client) {
-	hc = &http.Client{Timeout: cfg.Timeout}
-
-	if cfg.Transport == nil {
-		if defaultTransport != nil {
-			hc.Transport = defaultTransport
-		}
-		return
+// getHTTPClient returns a http client configured by the given client config and using the given transport.
+func getHTTPClient(cfg *ClientConfig, rt http.RoundTripper) (hc *http.Client) {
+	return &http.Client{
+		Timeout:   cfg.Timeout,
+		Transport: rt,
 	}
-
-	// In future use Clone here.
-	// https://go-review.googlesource.com/c/go/+/174597/
-	if cfgTransport, ok := cfg.Transport.(*http.Transport); ok {
-		transport := &http.Transport{}
-		*transport = *cfgTransport //nolint
-		if transport.Proxy == nil {
-			transport.Proxy = http.ProxyFromEnvironment
-		}
-		hc.Transport = transport
-		return
-	}
-
-	hc.Transport = cfg.Transport
-
-	return hc
 }
 
 // Do makes an API request. It does not check for HTTP status code errors.
