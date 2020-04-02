@@ -109,13 +109,14 @@ func (c *Client) UpdateUser() (user *User, err error) {
 	}
 
 	c.user = user
-	c.log.Infoln("update user:", user.ID)
 	raven.SetUserContext(&raven.User{ID: user.ID})
 
 	var tmpList AddressList
 	if tmpList, err = c.GetAddresses(); err == nil {
 		c.addresses = tmpList
 	}
+
+	c.log.WithField("userID", user.ID).Info("Updated user")
 
 	return user, err
 }

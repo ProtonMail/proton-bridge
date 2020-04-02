@@ -243,9 +243,11 @@ func (u *User) authorizeAndUnlock() (err error) {
 	return nil
 }
 
-func (u *User) ReceiveAPIAuth(auth *pmapi.Auth) {
+func (u *User) AuthorizeWithAPIAuth(auth *pmapi.Auth) {
 	u.lock.Lock()
 	defer u.lock.Unlock()
+
+	u.log.Debug("User received auth from bridge")
 
 	if auth == nil {
 		if err := u.logout(); err != nil {

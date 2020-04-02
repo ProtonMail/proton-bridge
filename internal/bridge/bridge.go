@@ -181,10 +181,11 @@ func (b *Bridge) watchBridgeOutdated() {
 // watchUserAuths receives auths from the client manager and sends them to the appropriate user.
 func (b *Bridge) watchUserAuths() {
 	for auth := range b.clientManager.GetBridgeAuthChannel() {
-		logrus.WithField("token", auth.Auth.GenToken()).WithField("userID", auth.UserID).Info("Received auth from bridge auth channel")
+		logrus.Debug("Bridge received auth from ClientManager")
 
 		if user, ok := b.hasUser(auth.UserID); ok {
-			user.ReceiveAPIAuth(auth.Auth)
+			logrus.Debug("Bridge is forwarding auth to user")
+			user.AuthorizeWithAPIAuth(auth.Auth)
 		} else {
 			logrus.Info("User is not added to bridge yet")
 		}
@@ -494,11 +495,7 @@ func (b *Bridge) updateCurrentUserAgent() {
 
 // hasUser returns whether the bridge currently has a user with ID `id`.
 func (b *Bridge) hasUser(id string) (user *User, ok bool) {
-	logrus.WithField("id", id).Info("Checking whether bridge has given user")
-
 	for _, u := range b.users {
-		logrus.WithField("id", u.ID()).Info("Found potential user")
-
 		if u.ID() == id {
 			user, ok = u, true
 			return

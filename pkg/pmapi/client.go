@@ -81,6 +81,7 @@ type ClientConfig struct {
 
 	// Transport specifies the mechanism by which individual HTTP requests are made.
 	// If nil, http.DefaultTransport is used.
+	// TODO: This could be removed entirely and set in the client manager via SetClientRoundTripper.
 	Transport http.RoundTripper
 
 	// Timeout specifies the timeout from request to getting response headers to our API.
@@ -108,7 +109,6 @@ type Client struct {
 	requestLocker sync.Locker
 	keyLocker     sync.Locker
 
-	expiresAt time.Time
 	user      *User
 	addresses AddressList
 	kr        *pmcrypto.KeyRing

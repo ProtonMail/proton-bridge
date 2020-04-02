@@ -282,13 +282,15 @@ func (p *DialerWithPinning) dialAndCheckFingerprints(network, address string) (c
 func (p *DialerWithPinning) dialWithProxyFallback(network, address string) (conn net.Conn, err error) {
 	p.log.Info("Dialing with proxy fallback")
 
-	var host, port string
-	if host, port, err = net.SplitHostPort(address); err != nil {
+	// Try to dial, and if it succeeds, then just return.
+	if conn, err = p.dial(network, address); err == nil {
 		return
 	}
 
-	// Try to dial, and if it succeeds, then just return.
-	if conn, err = p.dial(network, address); err == nil {
+	p.log.WithField("address", address).WithError(err).Error("Dialing failed")
+
+	host, port, err := net.SplitHostPort(address)
+	if err != nil {
 		return
 	}
 
@@ -296,18 +298,21 @@ func (p *DialerWithPinning) dialWithProxyFallback(network, address string) (conn
 	// (e.g. we dial protonmail.com/... to check for updates), there's also no point in
 	// continuing since a proxy won't help us reach that.
 	if !p.cm.IsProxyAllowed() || host != p.cm.GetRootURL() {
-		p.log.WithField("useProxy", p.cm.IsProxyAllowed()).Info("Dial failed but not switching to proxy")
+		p.log.WithField("address", address).Debug("Aborting dial, cannot switch to a proxy")
 		return
 	}
 
 	// Switch to a proxy and retry the dial.
-	var proxy string
-
-	if proxy, err = p.cm.SwitchToProxy(); err != nil {
+	proxy, err := p.cm.SwitchToProxy()
+	if err != nil {
 		return
 	}
 
-	return p.dial(network, net.JoinHostPort(proxy, port))
+	proxyAddress := net.JoinHostPort(proxy, port)
+
+	p.log.WithField("address", proxyAddress).Debug("Trying dial again using a proxy")
+
+	return p.dial(network, proxyAddress)
 }
 
 // dial returns a connection to the given address using the given network.

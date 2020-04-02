@@ -21,6 +21,7 @@ package context
 import (
 	"github.com/ProtonMail/proton-bridge/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
+	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	"github.com/ProtonMail/proton-bridge/test/accounts"
 	"github.com/ProtonMail/proton-bridge/test/mocks"
 	"github.com/sirupsen/logrus"
@@ -57,6 +58,9 @@ type TestContext struct {
 	smtpClients       map[string]*mocks.SMTPClient
 	smtpLastResponses map[string]*mocks.SMTPResponse
 
+	// PMAPI related variables.
+	clientManager *pmapi.ClientManager
+
 	// These are the cleanup steps executed when Cleanup() is called.
 	cleanupSteps []*Cleaner
 
@@ -70,17 +74,20 @@ func New() *TestContext {
 
 	cfg := newFakeConfig()
 
+	cm := pmapi.NewClientManager(cfg.GetAPIConfig())
+
 	ctx := &TestContext{
 		t:                 &bddT{},
 		cfg:               cfg,
 		listener:          listener.New(),
-		pmapiController:   newPMAPIController(),
+		pmapiController:   newPMAPIController(cm),
 		testAccounts:      newTestAccounts(),
 		credStore:         newFakeCredStore(),
 		imapClients:       make(map[string]*mocks.IMAPClient),
 		imapLastResponses: make(map[string]*mocks.IMAPResponse),
 		smtpClients:       make(map[string]*mocks.SMTPClient),
 		smtpLastResponses: make(map[string]*mocks.SMTPResponse),
+		clientManager:     cm,
 		logger:            logrus.StandardLogger(),
 	}
 

@@ -18,9 +18,6 @@
 package liveapi
 
 import (
-	"fmt"
-	"os"
-
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	"github.com/cucumber/godog"
 	"github.com/pkg/errors"
@@ -31,11 +28,7 @@ func (cntrl *Controller) AddUser(user *pmapi.User, addresses *pmapi.AddressList,
 		return godog.ErrPending
 	}
 
-	client := pmapi.NewClient(&pmapi.ClientConfig{
-		AppVersion:   fmt.Sprintf("Bridge_%s", os.Getenv("VERSION")),
-		ClientID:     "bridge-cntrl",
-		TokenManager: pmapi.NewTokenManager(),
-	}, user.ID)
+	client := cntrl.GetClient(user.ID)
 
 	authInfo, err := client.AuthInfo(user.Name)
 	if err != nil {
@@ -62,5 +55,6 @@ func (cntrl *Controller) AddUser(user *pmapi.User, addresses *pmapi.AddressList,
 	}
 
 	cntrl.pmapiByUsername[user.Name] = client
+
 	return nil
 }

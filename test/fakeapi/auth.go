@@ -141,13 +141,12 @@ func (api *FakePMAPI) AuthRefresh(token string) (*pmapi.Auth, error) {
 	return auth, nil
 }
 
-func (api *FakePMAPI) Logout() error {
+func (api *FakePMAPI) Logout() {
 	if err := api.checkAndRecordCall(DELETE, "/auth", nil); err != nil {
-		return err
+		return
 	}
 	// Logout will also emit change to auth channel
 	api.sendAuth(nil)
 	api.controller.deleteSession(api.uid)
 	api.unsetUser()
-	return nil
 }

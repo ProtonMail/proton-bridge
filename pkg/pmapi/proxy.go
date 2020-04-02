@@ -51,7 +51,6 @@ type proxyProvider struct {
 	query      string   // The query string used to find proxies.
 	proxyCache []string // All known proxies, cached in case DoH providers are unreachable.
 
-	useDuration                time.Duration // How much time to use the proxy before returning to the original API.
 	findTimeout, lookupTimeout time.Duration // Timeouts for DNS query and proxy search.
 
 	lastLookup time.Time // The time at which we last attempted to find a proxy.
@@ -63,7 +62,6 @@ func newProxyProvider(providers []string, query string) (p *proxyProvider) { // 
 	p = &proxyProvider{
 		providers:     providers,
 		query:         query,
-		useDuration:   proxyRevertTime,
 		findTimeout:   proxySearchTimeout,
 		lookupTimeout: proxyQueryTimeout,
 	}
@@ -148,6 +146,7 @@ func (p *proxyProvider) canReach(url string) bool {
 		SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true}) // nolint[gosec]
 
 	if _, err := pinger.R().Get("/tests/ping"); err != nil {
+		logrus.WithField("proxy", url).WithError(err).Warn("Failed to ping proxy")
 		return false
 	}
 

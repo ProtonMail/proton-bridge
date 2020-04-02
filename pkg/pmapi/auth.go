@@ -24,7 +24,6 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
-	"time"
 
 	pmcrypto "github.com/ProtonMail/gopenpgp/crypto"
 	"github.com/ProtonMail/proton-bridge/pkg/srp"
@@ -197,15 +196,19 @@ type AuthRefreshReq struct {
 }
 
 func (c *Client) sendAuth(auth *Auth) {
-	c.cm.getClientAuthChannel() <- ClientAuth{
-		UserID: c.userID,
-		Auth:   auth,
-	}
+	go func() {
+		c.log.Debug("Client is sending auth to ClientManager")
 
-	if auth != nil {
-		c.uid = auth.UID()
-		c.accessToken = auth.accessToken
-	}
+		c.cm.getClientAuthChannel() <- ClientAuth{
+			UserID: c.userID,
+			Auth:   auth,
+		}
+
+		if auth != nil {
+			c.uid = auth.UID()
+			c.accessToken = auth.accessToken
+		}
+	}()
 }
 
 // AuthInfo gets authentication info for a user.
@@ -324,7 +327,6 @@ func (c *Client) Auth(username, password string, info *AuthInfo) (auth *Auth, er
 		}
 	}
 
-	c.expiresAt = time.Now().Add(time.Duration(auth.ExpiresIn) * time.Second)
 	return auth, err
 }
 
@@ -445,7 +447,6 @@ func (c *Client) AuthRefresh(uidAndRefreshToken string) (auth *Auth, err error) 
 
 	auth = res.getAuth()
 	c.sendAuth(auth)
-	c.expiresAt = time.Now().Add(time.Duration(auth.ExpiresIn) * time.Second)
 
 	return auth, err
 }
