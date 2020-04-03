@@ -369,8 +369,8 @@ func (bs *BodyStructure) IMAPBodyStructure(currentPart []int) (imapBS *imap.Body
 	mediaTypeSep = append(mediaTypeSep, "")
 
 	imapBS = &imap.BodyStructure{
-		MimeType:    mediaTypeSep[0],
-		MimeSubType: mediaTypeSep[1],
+		MIMEType:    mediaTypeSep[0],
+		MIMESubType: mediaTypeSep[1],
 		Params:      params,
 		Size:        uint32(info.bsize),
 		Lines:       uint32(info.lines),

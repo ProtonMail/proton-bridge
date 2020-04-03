@@ -141,7 +141,7 @@ func (ext *extension) Capabilities(c server.Conn) []string {
 }
 
 func (ext *extension) Command(name string) server.HandlerFactory {
-	if name == imap.Expunge {
+	if name == "EXPUNGE" {
 		return func() server.Handler {
 			return &UIDExpunge{}
 		}
@@ -165,7 +165,7 @@ func getStatusResponseCopy(uidValidity uint32, sourceSeq, targetSeq *OrderedSeq)
 	}
 
 	return &imap.StatusResp{
-		Type: imap.StatusOk,
+		Type: imap.StatusRespOk,
 		Info: info,
 	}
 }
@@ -187,7 +187,7 @@ func getStatusResponseAppend(uidValidity uint32, targetSeq *OrderedSeq) *imap.St
 	}
 
 	return &imap.StatusResp{
-		Type: imap.StatusOk,
+		Type: imap.StatusRespOk,
 		Info: info,
 	}
 }

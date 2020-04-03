@@ -110,7 +110,7 @@ func imapClientDoesNotReceiveUpdateForMessageWithin(clientID, messageUIDs string
 }
 
 func iterateOverSeqSet(seqSet string, callback func(string)) {
-	seq, err := imap.NewSeqSet(seqSet)
+	seq, err := imap.ParseSeqSet(seqSet)
 	if err != nil {
 		panic(err)
 	}

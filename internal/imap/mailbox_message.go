@@ -265,7 +265,7 @@ func (im *imapMailbox) importMessage(m *pmapi.Message, readers []io.Reader, kr *
 	return im.storeMailbox.ImportMessage(m, b.Bytes(), labels)
 }
 
-func (im *imapMailbox) getMessage(storeMessage storeMessageProvider, items []string) (msg *imap.Message, err error) {
+func (im *imapMailbox) getMessage(storeMessage storeMessageProvider, items []imap.FetchItem) (msg *imap.Message, err error) {
 	im.log.WithField("msgID", storeMessage.ID()).Trace("Getting message")
 
 	seqNum, err := storeMessage.SequenceNumber()
@@ -278,9 +278,9 @@ func (im *imapMailbox) getMessage(storeMessage storeMessageProvider, items []str
 	msg = imap.NewMessage(seqNum, items)
 	for _, item := range items {
 		switch item {
-		case imap.EnvelopeMsgAttr:
+		case imap.FetchEnvelope:
 			msg.Envelope = message.GetEnvelope(m)
-		case imap.BodyMsgAttr, imap.BodyStructureMsgAttr:
+		case imap.FetchBody, imap.FetchBodyStructure:
 			var structure *message.BodyStructure
 			if structure, _, err = im.getBodyStructure(storeMessage); err != nil {
 				return
@@ -288,11 +288,11 @@ func (im *imapMailbox) getMessage(storeMessage storeMessageProvider, items []str
 			if msg.BodyStructure, err = structure.IMAPBodyStructure([]int{}); err != nil {
 				return
 			}
-		case imap.FlagsMsgAttr:
+		case imap.FetchFlags:
 			msg.Flags = message.GetFlags(m)
-		case imap.InternalDateMsgAttr:
+		case imap.FetchInternalDate:
 			msg.InternalDate = time.Unix(m.Time, 0)
-		case imap.SizeMsgAttr:
+		case imap.FetchRFC822Size:
 			// Size attribute on the server counts encrypted data. The value is cleared
 			// on our part and we need to compute "real" size of decrypted data.
 			if m.Size <= 0 {
@@ -301,7 +301,7 @@ func (im *imapMailbox) getMessage(storeMessage storeMessageProvider, items []str
 				}
 			}
 			msg.Size = uint32(m.Size)
-		case imap.UidMsgAttr:
+		case imap.FetchUid:
 			msg.Uid, err = storeMessage.UID()
 			if err != nil {
 				return nil, err
@@ -310,7 +310,7 @@ func (im *imapMailbox) getMessage(storeMessage storeMessageProvider, items []str
 			s := item
 
 			var section *imap.BodySectionName
-			if section, err = imap.NewBodySectionName(s); err != nil {
+			if section, err = imap.ParseBodySectionName(s); err != nil {
 				err = nil // Ignore error
 				break
 			}
@@ -421,13 +421,13 @@ func (im *imapMailbox) getMessageBodySection(storeMessage storeMessageProvider, 
 			// The TEXT specifier refers to the content of the message (or section), omitting the [RFC-2822] header.
 			// Non-empty section with no specifier (imap.EntireSpecifier) refers to section content without header.
 			response, err = structure.GetSectionContent(bodyReader, section.Path)
-		case section.Specifier == imap.MimeSpecifier:
+		case section.Specifier == imap.MIMESpecifier:
 			// The MIME part specifier refers to the [MIME-IMB] header for this part.
 			fallthrough
 		case section.Specifier == imap.HeaderSpecifier:
 			header, err = structure.GetSectionHeader(section.Path)
 		default:
-			err = errors.New("Unknown specifier " + section.Specifier)
+			err = errors.New("Unknown specifier " + string(section.Specifier))
 		}
 	}
 

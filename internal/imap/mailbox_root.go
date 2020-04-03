@@ -71,29 +71,25 @@ func (m *imapRootMailbox) Info() (info *imap.MailboxInfo, err error) {
 	return
 }
 
-func (m *imapRootMailbox) Status(items []string) (status *imap.MailboxStatus, err error) {
-	status = &imap.MailboxStatus{}
+func (m *imapRootMailbox) Status(_ []imap.StatusItem) (*imap.MailboxStatus, error) {
+	status := &imap.MailboxStatus{}
 	if m.isFolder {
 		status.Name = store.UserFoldersMailboxName
 	} else {
 		status.Name = store.UserLabelsMailboxName
 	}
-	return
+	return status, nil
 }
 
-func (m *imapRootMailbox) Subscribe() error {
-	return errors.New("cannot subscribe to Labels or Folders mailboxes")
-}
-
-func (m *imapRootMailbox) Unsubscribe() error {
-	return errors.New("cannot unsubscribe from Labels or Folders mailboxes")
+func (m *imapRootMailbox) SetSubscribed(_ bool) error {
+	return errors.New("cannot subscribe or unsubsribe to Labels or Folders mailboxes")
 }
 
 func (m *imapRootMailbox) Check() error {
 	return nil
 }
 
-func (m *imapRootMailbox) ListMessages(uid bool, seqset *imap.SeqSet, items []string, ch chan<- *imap.Message) error {
+func (m *imapRootMailbox) ListMessages(uid bool, seqset *imap.SeqSet, items []imap.FetchItem, ch chan<- *imap.Message) error {
 	close(ch)
 	return nil
 }

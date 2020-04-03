@@ -45,8 +45,8 @@ func GetRelatedBoundary(m *pmapi.Message) string {
 
 func GetBodyStructure(m *pmapi.Message) (bs *imap.BodyStructure) { //nolint[funlen]
 	bs = &imap.BodyStructure{
-		MimeType:    "multipart",
-		MimeSubType: "mixed",
+		MIMEType:    "multipart",
+		MIMESubType: "mixed",
 		Params:      map[string]string{"boundary": GetBoundary(m)},
 	}
 	var inlineParts []*imap.BodyStructure
@@ -63,8 +63,8 @@ func GetBodyStructure(m *pmapi.Message) (bs *imap.BodyStructure) { //nolint[funl
 		}
 
 		part := &imap.BodyStructure{
-			MimeType:    typeParts[0],
-			MimeSubType: typeParts[1],
+			MIMEType:    typeParts[0],
+			MIMESubType: typeParts[1],
 			Params:      map[string]string{"name": att.Name},
 			Encoding:    "base64",
 		}
@@ -81,8 +81,8 @@ func GetBodyStructure(m *pmapi.Message) (bs *imap.BodyStructure) { //nolint[funl
 	if len(inlineParts) > 0 {
 		// Set to multipart-related for inline attachments.
 		relatedPart := &imap.BodyStructure{
-			MimeType:    "multipart",
-			MimeSubType: "related",
+			MIMEType:    "multipart",
+			MIMESubType: "related",
 			Params:      map[string]string{"boundary": GetRelatedBoundary(m)},
 		}
 
@@ -93,8 +93,8 @@ func GetBodyStructure(m *pmapi.Message) (bs *imap.BodyStructure) { //nolint[funl
 		}
 
 		relatedPart.Parts = append(relatedPart.Parts, &imap.BodyStructure{
-			MimeType:    "text",
-			MimeSubType: subType,
+			MIMEType:    "text",
+			MIMESubType: subType,
 			Params:      map[string]string{"charset": "utf-8"},
 			Encoding:    "quoted-printable",
 			Disposition: "inline",
@@ -109,8 +109,8 @@ func GetBodyStructure(m *pmapi.Message) (bs *imap.BodyStructure) { //nolint[funl
 		}
 
 		bs.Parts = append(bs.Parts, &imap.BodyStructure{
-			MimeType:    "text",
-			MimeSubType: subType,
+			MIMEType:    "text",
+			MIMESubType: subType,
 			Params:      map[string]string{"charset": "utf-8"},
 			Encoding:    "quoted-printable",
 			Disposition: "inline",
@@ -150,12 +150,12 @@ func GetMIMEBodyStructure(m *pmapi.Message, parsedMsg *enmime.Envelope) (bs *ima
 	typeParts := strings.SplitN(mediaType, "/", 2)
 
 	bs = &imap.BodyStructure{
-		MimeType: typeParts[0],
+		MIMEType: typeParts[0],
 		Params:   params,
 	}
 
 	if len(typeParts) > 1 {
-		bs.MimeSubType = typeParts[1]
+		bs.MIMESubType = typeParts[1]
 	}
 
 	bs.Parts = getChildrenParts(root)
@@ -173,14 +173,14 @@ func getChildrenParts(root *enmime.Part) (parts []*imap.BodyStructure) {
 		typeParts := strings.SplitN(mediaType, "/", 2)
 		childrenParts := getChildrenParts(child)
 		part := &imap.BodyStructure{
-			MimeType:    typeParts[0],
+			MIMEType:    typeParts[0],
 			Params:      params,
 			Encoding:    child.Charset,
 			Disposition: child.Disposition,
 			Parts:       childrenParts,
 		}
 		if len(typeParts) > 1 {
-			part.MimeSubType = typeParts[1]
+			part.MIMESubType = typeParts[1]
 		}
 		parts = append(parts, part)
 	}

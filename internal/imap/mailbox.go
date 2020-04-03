@@ -106,7 +106,7 @@ func (im *imapMailbox) getFlags() []string {
 //
 // It always returns the state of DB (which could be different to server status).
 // Additionally it checks that all stored numbers are same as in DB and polls events if needed.
-func (im *imapMailbox) Status(items []string) (*imap.MailboxStatus, error) {
+func (im *imapMailbox) Status(items []imap.StatusItem) (*imap.MailboxStatus, error) {
 	// Called from go-imap in goroutines - we need to handle panics for each function.
 	defer im.panicHandler.HandlePanic()
 
@@ -139,29 +139,19 @@ func (im *imapMailbox) Status(items []string) (*imap.MailboxStatus, error) {
 	return status, nil
 }
 
-// Subscribe adds the mailbox to the server's set of "active" or "subscribed" mailboxes.
-func (im *imapMailbox) Subscribe() error {
+// SetSubscribed adds or removes the mailbox to the server's set of "active"
+// or "subscribed" mailboxes.
+func (im *imapMailbox) SetSubscribed(subscribed bool) error {
 	// Called from go-imap in goroutines - we need to handle panics for each function.
 	defer im.panicHandler.HandlePanic()
 
 	label := im.storeMailbox.LabelID()
-	if !im.user.isSubscribed(label) {
+	if subscribed && !im.user.isSubscribed(label) {
 		im.user.removeFromCache(SubscriptionException, label)
 	}
-
-	return nil
-}
-
-// Unsubscribe removes the mailbox to the server's set of "active" or "subscribed" mailboxes.
-func (im *imapMailbox) Unsubscribe() error {
-	// Called from go-imap in goroutines - we need to handle panics for each function.
-	defer im.panicHandler.HandlePanic()
-
-	label := im.storeMailbox.LabelID()
-	if im.user.isSubscribed(label) {
+	if !subscribed && im.user.isSubscribed(label) {
 		im.user.addToCache(SubscriptionException, label)
 	}
-
 	return nil
 }
 

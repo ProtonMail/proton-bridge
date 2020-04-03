@@ -152,17 +152,17 @@ func (im *imapMailbox) SearchMessages(isUID bool, criteria *imap.SearchCriteria)
 	// Called from go-imap in goroutines - we need to handle panics for each function.
 	defer im.panicHandler.HandlePanic()
 
-	if criteria.Not != nil || criteria.Or[0] != nil {
+	if criteria.Not != nil || criteria.Or != nil {
 		return nil, errors.New("unsupported search query")
 	}
 
-	if criteria.Body != "" || criteria.Text != "" {
+	if criteria.Body != nil || criteria.Text != nil {
 		log.Warn("Body and Text criteria not applied.")
 	}
 
 	var apiIDs []string
-	if criteria.SeqSet != nil {
-		apiIDs, err = im.apiIDsFromSeqSet(false, criteria.SeqSet)
+	if criteria.SeqNum != nil {
+		apiIDs, err = im.apiIDsFromSeqSet(false, criteria.SeqNum)
 	} else {
 		apiIDs, err = im.storeMailbox.GetAPIIDsFromSequenceRange(1, 0)
 	}
@@ -193,7 +193,7 @@ func (im *imapMailbox) SearchMessages(isUID bool, criteria *imap.SearchCriteria)
 		m := storeMessage.Message()
 
 		// Filter addresses.
-		if criteria.From != "" && !addressMatch([]*mail.Address{m.Sender}, criteria.From) {
+		/*if criteria.From != "" && !addressMatch([]*mail.Address{m.Sender}, criteria.From) {
 			continue
 		}
 		if criteria.To != "" && !addressMatch(m.ToList, criteria.To) {
@@ -204,10 +204,10 @@ func (im *imapMailbox) SearchMessages(isUID bool, criteria *imap.SearchCriteria)
 		}
 		if criteria.Bcc != "" && !addressMatch(m.BCCList, criteria.Bcc) {
 			continue
-		}
+		}*/
 
 		// Filter strings.
-		if criteria.Subject != "" && !strings.Contains(strings.ToLower(m.Subject), strings.ToLower(criteria.Subject)) {
+		/*if criteria.Subject != "" && !strings.Contains(strings.ToLower(m.Subject), strings.ToLower(criteria.Subject)) {
 			continue
 		}
 		if criteria.Keyword != "" && !hasKeyword(m, criteria.Keyword) {
@@ -262,7 +262,7 @@ func (im *imapMailbox) SearchMessages(isUID bool, criteria *imap.SearchCriteria)
 		}
 		if criteria.New && !(!m.Has(pmapi.FlagOpened) && m.Unread == 1) {
 			continue
-		}
+		}*/
 
 		// Filter internal date.
 		if !criteria.Before.IsZero() {
@@ -275,13 +275,13 @@ func (im *imapMailbox) SearchMessages(isUID bool, criteria *imap.SearchCriteria)
 				continue
 			}
 		}
-		if !criteria.On.IsZero() {
+		/*if !criteria.On.IsZero() {
 			truncated := criteria.On.Truncate(24 * time.Hour)
 			if m.Time < truncated.Unix() || m.Time > truncated.Add(24*time.Hour).Unix() {
 				continue
 			}
-		}
-		if !(criteria.SentBefore.IsZero() && criteria.SentSince.IsZero() && criteria.SentOn.IsZero()) {
+		}*/
+		if !(criteria.SentBefore.IsZero() && criteria.SentSince.IsZero() /*&& criteria.SentOn.IsZero()*/) {
 			if t, err := m.Header.Date(); err == nil && !t.IsZero() {
 				// Filter header date.
 				if !criteria.SentBefore.IsZero() {
@@ -294,12 +294,12 @@ func (im *imapMailbox) SearchMessages(isUID bool, criteria *imap.SearchCriteria)
 						continue
 					}
 				}
-				if !criteria.SentOn.IsZero() {
+				/*if !criteria.SentOn.IsZero() {
 					truncated := criteria.SentOn.Truncate(24 * time.Hour)
 					if t.Unix() < truncated.Unix() || t.Unix() > truncated.Add(24*time.Hour).Unix() {
 						continue
 					}
-				}
+				}*/
 			}
 		}
 
@@ -337,7 +337,7 @@ func (im *imapMailbox) SearchMessages(isUID bool, criteria *imap.SearchCriteria)
 // 3501 section 6.4.5 for a list of items that can be requested.
 //
 // Messages must be sent to msgResponse. When the function returns, msgResponse must be closed.
-func (im *imapMailbox) ListMessages(isUID bool, seqSet *imap.SeqSet, items []string, msgResponse chan<- *imap.Message) (err error) { //nolint[funlen]
+func (im *imapMailbox) ListMessages(isUID bool, seqSet *imap.SeqSet, items []imap.FetchItem, msgResponse chan<- *imap.Message) (err error) { //nolint[funlen]
 	defer func() {
 		close(msgResponse)
 		if err != nil {

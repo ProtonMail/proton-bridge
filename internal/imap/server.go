@@ -21,6 +21,7 @@ import (
 	"crypto/tls"
 	"fmt"
 	"io"
+	"net"
 	"strings"
 	"time"
 
@@ -44,6 +45,8 @@ import (
 type imapServer struct {
 	server        *imapserver.Server
 	eventListener listener.Listener
+	debugClient   bool
+	debugServer   bool
 }
 
 // NewIMAPServer constructs a new IMAP server configured with the given options.
@@ -54,17 +57,6 @@ func NewIMAPServer(debugClient, debugServer bool, port int, tls *tls.Config, ima
 	s.AllowInsecureAuth = true
 	s.ErrorLog = newServerErrorLogger("server-imap")
 	s.AutoLogout = 30 * time.Minute
-
-	if debugClient || debugServer {
-		var localDebug, remoteDebug imap.WriterWithFields
-		if debugClient {
-			remoteDebug = &logWithFields{log: log.WithField("pkg", "imap/client"), fields: logrus.Fields{}}
-		}
-		if debugServer {
-			localDebug = &logWithFields{log: log.WithField("pkg", "imap/server"), fields: logrus.Fields{}}
-		}
-		s.Debug = imap.NewDebugWithFields(localDebug, remoteDebug)
-	}
 
 	serverID := imapid.ID{
 		imapid.FieldName:       "ProtonMail",
@@ -96,7 +88,7 @@ func NewIMAPServer(debugClient, debugServer bool, port int, tls *tls.Config, ima
 		})
 
 		return sasl.NewLoginServer(func(address, password string) error {
-			user, err := conn.Server().Backend.Login(address, password)
+			user, err := conn.Server().Backend.Login(nil, address, password)
 			if err != nil {
 				return err
 			}
@@ -122,6 +114,8 @@ func NewIMAPServer(debugClient, debugServer bool, port int, tls *tls.Config, ima
 	return &imapServer{
 		server:        s,
 		eventListener: eventListener,
+		debugClient:   debugClient,
+		debugServer:   debugServer,
 	}
 }
 
@@ -130,7 +124,17 @@ func (s *imapServer) ListenAndServe() {
 	go s.monitorDisconnectedUsers()
 
 	log.Info("IMAP server listening at ", s.server.Addr)
-	err := s.server.ListenAndServe()
+	l, err := net.Listen("tcp", s.server.Addr)
+	if err != nil {
+		s.eventListener.Emit(events.ErrorEvent, "IMAP failed: "+err.Error())
+		log.Error("IMAP failed: ", err)
+		return
+	}
+
+	err = s.server.Serve(&debugListener{
+		Listener: l,
+		server:   s,
+	})
 	if err != nil {
 		s.eventListener.Emit(events.ErrorEvent, "IMAP failed: "+err.Error())
 		log.Error("IMAP failed: ", err)
@@ -163,20 +167,38 @@ func (s *imapServer) monitorDisconnectedUsers() {
 	}
 }
 
-// logWithFields is used for debuging with additional field.
-type logWithFields struct {
-	log    *logrus.Entry
-	fields logrus.Fields
+// debugListener sets debug loggers on server containing fields with local
+// and remote addresses right after new connection is accepted.
+type debugListener struct {
+	net.Listener
+
+	server *imapServer
 }
 
-func (lf *logWithFields) Writer() io.Writer {
-	w := lf.log.WithFields(lf.fields).WriterLevel(logrus.DebugLevel)
-	lf.fields = logrus.Fields{}
-	return w
-}
+func (dl *debugListener) Accept() (net.Conn, error) {
+	conn, err := dl.Listener.Accept()
 
-func (lf *logWithFields) SetField(key, value string) {
-	lf.fields[key] = value
+	if err == nil && (dl.server.debugServer || dl.server.debugClient) {
+		debugLog := log
+		if addr := conn.LocalAddr(); addr != nil {
+			debugLog = debugLog.WithField("loc", addr.String())
+		}
+		if addr := conn.RemoteAddr(); addr != nil {
+			debugLog = debugLog.WithField("rem", addr.String())
+		}
+
+		var localDebug, remoteDebug io.Writer
+		if dl.server.debugServer {
+			localDebug = debugLog.WithField("pkg", "imap/server").WriterLevel(logrus.DebugLevel)
+		}
+		if dl.server.debugClient {
+			remoteDebug = debugLog.WithField("pkg", "imap/client").WriterLevel(logrus.DebugLevel)
+		}
+
+		dl.server.server.Debug = imap.NewDebugWriter(localDebug, remoteDebug)
+	}
+
+	return conn, err
 }
 
 // serverErrorLogger implements go-imap/logger interface.
@@ -188,17 +210,12 @@ func newServerErrorLogger(tag string) *serverErrorLogger {
 	return &serverErrorLogger{tag}
 }
 
-func (s *serverErrorLogger) CheckErrorForReport(serverErr string) {
-}
-
 func (s *serverErrorLogger) Printf(format string, args ...interface{}) {
 	err := fmt.Sprintf(format, args...)
-	s.CheckErrorForReport(err)
 	log.WithField("pkg", s.tag).Error(err)
 }
 
 func (s *serverErrorLogger) Println(args ...interface{}) {
 	err := fmt.Sprintln(args...)
-	s.CheckErrorForReport(err)
 	log.WithField("pkg", s.tag).Error(err)
 }

@@ -39,9 +39,9 @@ func (store *Store) SetIMAPUpdateChannel(updates chan interface{}) {
 
 func (store *Store) imapNotice(address, notice string) {
 	update := new(imapBackend.StatusUpdate)
-	update.Username = address
+	update.Update = imapBackend.NewUpdate(address, "")
 	update.StatusResp = &imap.StatusResp{
-		Type: imap.StatusOk,
+		Type: imap.StatusRespOk,
 		Code: imap.CodeAlert,
 		Info: notice,
 	}
@@ -57,9 +57,8 @@ func (store *Store) imapUpdateMessage(address, mailboxName string, uid, sequence
 		"flags":   message.GetFlags(msg),
 	}).Trace("IDLE update")
 	update := new(imapBackend.MessageUpdate)
-	update.Username = address
-	update.Mailbox = mailboxName
-	update.Message = imap.NewMessage(sequenceNumber, []string{imap.FlagsMsgAttr, imap.UidMsgAttr})
+	update.Update = imapBackend.NewUpdate(address, mailboxName)
+	update.Message = imap.NewMessage(sequenceNumber, []imap.FetchItem{imap.FetchFlags, imap.FetchUid})
 	update.Message.Flags = message.GetFlags(msg)
 	update.Message.Uid = uid
 	store.imapSendUpdate(update)
@@ -72,8 +71,7 @@ func (store *Store) imapDeleteMessage(address, mailboxName string, sequenceNumbe
 		"seqNum":  sequenceNumber,
 	}).Trace("IDLE delete")
 	update := new(imapBackend.ExpungeUpdate)
-	update.Username = address
-	update.Mailbox = mailboxName
+	update.Update = imapBackend.NewUpdate(address, mailboxName)
 	update.SeqNum = sequenceNumber
 	store.imapSendUpdate(update)
 }
@@ -86,9 +84,8 @@ func (store *Store) imapMailboxStatus(address, mailboxName string, total, unread
 		"unread":  unread,
 	}).Trace("IDLE status")
 	update := new(imapBackend.MailboxUpdate)
-	update.Username = address
-	update.Mailbox = mailboxName
-	update.MailboxStatus = imap.NewMailboxStatus(mailboxName, []string{imap.MailboxMessages, imap.MailboxUnseen})
+	update.Update = imapBackend.NewUpdate(address, mailboxName)
+	update.MailboxStatus = imap.NewMailboxStatus(mailboxName, []imap.StatusItem{imap.StatusMessages, imap.StatusUnseen})
 	update.MailboxStatus.Messages = uint32(total)
 	update.MailboxStatus.Unseen = uint32(unread)
 	store.imapSendUpdate(update)
