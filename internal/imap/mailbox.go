@@ -125,11 +125,12 @@ func (im *imapMailbox) Status(items []imap.StatusItem) (*imap.MailboxStatus, err
 		message.ThunderbirdNonJunkFlag,
 	}
 
-	dbTotal, dbUnread, err := im.storeMailbox.GetCounts()
-	l.Debugln("DB: total", dbTotal, "unread", dbUnread, "err", err)
+	dbTotal, dbUnread, dbUnreadSeqNum, err := im.storeMailbox.GetCounts()
+	l.Debugln("DB: total", dbTotal, "unread", dbUnread, "unreadSeqNum", dbUnreadSeqNum, "err", err)
 	if err == nil {
 		status.Messages = uint32(dbTotal)
 		status.Unseen = uint32(dbUnread)
+		status.UnseenSeqNum = uint32(dbUnreadSeqNum)
 	}
 
 	if status.UidNext, err = im.storeMailbox.GetNextUID(); err != nil {

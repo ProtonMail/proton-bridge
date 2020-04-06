@@ -28,15 +28,15 @@ import (
 )
 
 // GetCounts returns numbers of total and unread messages in this mailbox bucket.
-func (storeMailbox *Mailbox) GetCounts() (total, unread uint, err error) {
+func (storeMailbox *Mailbox) GetCounts() (total, unread, unseenSeqNum uint, err error) {
 	err = storeMailbox.db().View(func(tx *bolt.Tx) error {
-		total, unread, err = storeMailbox.txGetCounts(tx)
+		total, unread, unseenSeqNum, err = storeMailbox.txGetCounts(tx)
 		return err
 	})
 	return
 }
 
-func (storeMailbox *Mailbox) txGetCounts(tx *bolt.Tx) (total, unread uint, err error) {
+func (storeMailbox *Mailbox) txGetCounts(tx *bolt.Tx) (total, unread, unseenSeqNum uint, err error) {
 	// For total it would be enough to use `bolt.Bucket.Stats().KeyN` but
 	// we also need to retrieve the count of unread emails therefore we are
 	// looping all messages in this mailbox by `bolt.Cursor`
@@ -48,16 +48,19 @@ func (storeMailbox *Mailbox) txGetCounts(tx *bolt.Tx) (total, unread uint, err e
 		total++
 		rawMsg := metaBucket.Get(apiID)
 		if rawMsg == nil {
-			return 0, 0, ErrNoSuchAPIID
+			return 0, 0, 0, ErrNoSuchAPIID
 		}
 		// Do not unmarshal whole JSON to speed up the looping.
 		// Instead, we assume it will contain JSON int field `Unread`
 		// where `1` means true (i.e. message is unread)
 		if bytes.Contains(rawMsg, []byte(`"Unread":1`)) {
+			if unseenSeqNum == 0 {
+				unseenSeqNum = total
+			}
 			unread++
 		}
 	}
-	return total, unread, err
+	return total, unread, unseenSeqNum, err
 }
 
 type mailboxCounts struct {

@@ -81,7 +81,7 @@ func syncDraftsIfNecssary(tx *bolt.Tx, mb *Mailbox) { //nolint[funlen]
 
 	// If the drafts mailbox total is non-zero, it means it has already been used
 	// and there is no need to continue. Otherwise, we may need to do an initial sync.
-	total, _, err := mb.txGetCounts(tx)
+	total, _, _, err := mb.txGetCounts(tx)
 	if err != nil || total != 0 {
 		return
 	}

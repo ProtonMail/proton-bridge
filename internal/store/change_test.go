@@ -105,8 +105,8 @@ func checkMessageUpdate(username, mailbox string, seqNum, uid int) func(interfac
 	return func(update interface{}) bool {
 		switch u := update.(type) {
 		case *imapBackend.MessageUpdate:
-			return (u.Update.Username == username &&
-				u.Update.Mailbox == mailbox &&
+			return (u.Update.Username() == username &&
+				u.Update.Mailbox() == mailbox &&
 				u.Message.SeqNum == uint32(seqNum) &&
 				u.Message.Uid == uint32(uid))
 		default:
@@ -119,8 +119,8 @@ func checkMessageDelete(username, mailbox string, seqNum int) func(interface{}) 
 	return func(update interface{}) bool {
 		switch u := update.(type) {
 		case *imapBackend.ExpungeUpdate:
-			return (u.Update.Username == username &&
-				u.Update.Mailbox == mailbox &&
+			return (u.Update.Username() == username &&
+				u.Update.Mailbox() == mailbox &&
 				u.SeqNum == uint32(seqNum))
 		default:
 			return false

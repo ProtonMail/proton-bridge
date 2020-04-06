@@ -376,7 +376,7 @@ func (storeMailbox *Mailbox) txDeleteMessage(tx *bolt.Tx, apiID string) error {
 }
 
 func (storeMailbox *Mailbox) txMailboxStatusUpdate(tx *bolt.Tx) error {
-	total, unread, err := storeMailbox.txGetCounts(tx)
+	total, unread, unreadSeqNum, err := storeMailbox.txGetCounts(tx)
 	if err != nil {
 		return errors.Wrap(err, "cannot get counts for mailbox status update")
 	}
@@ -385,6 +385,7 @@ func (storeMailbox *Mailbox) txMailboxStatusUpdate(tx *bolt.Tx) error {
 		storeMailbox.labelName,
 		total,
 		unread,
+		unreadSeqNum,
 	)
 	return nil
 }

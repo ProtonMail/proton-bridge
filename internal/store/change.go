@@ -76,18 +76,20 @@ func (store *Store) imapDeleteMessage(address, mailboxName string, sequenceNumbe
 	store.imapSendUpdate(update)
 }
 
-func (store *Store) imapMailboxStatus(address, mailboxName string, total, unread uint) {
+func (store *Store) imapMailboxStatus(address, mailboxName string, total, unread, unreadSeqNum uint) {
 	store.log.WithFields(logrus.Fields{
-		"address": address,
-		"mailbox": mailboxName,
-		"total":   total,
-		"unread":  unread,
+		"address":      address,
+		"mailbox":      mailboxName,
+		"total":        total,
+		"unread":       unread,
+		"unreadSeqNum": unreadSeqNum,
 	}).Trace("IDLE status")
 	update := new(imapBackend.MailboxUpdate)
 	update.Update = imapBackend.NewUpdate(address, mailboxName)
 	update.MailboxStatus = imap.NewMailboxStatus(mailboxName, []imap.StatusItem{imap.StatusMessages, imap.StatusUnseen})
 	update.MailboxStatus.Messages = uint32(total)
 	update.MailboxStatus.Unseen = uint32(unread)
+	update.MailboxStatus.UnseenSeqNum = uint32(unreadSeqNum)
 	store.imapSendUpdate(update)
 }
 

@@ -68,7 +68,7 @@ type storeMailboxProvider interface {
 	GetAPIIDsFromSequenceRange(start, stop uint32) ([]string, error)
 	GetLatestAPIID() (string, error)
 	GetNextUID() (uint32, error)
-	GetCounts() (dbTotal, dbUnread uint, err error)
+	GetCounts() (dbTotal, dbUnread, dbUnreadSeqNum uint, err error)
 	GetUIDList(apiIDs []string) *uidplus.OrderedSeq
 	GetUIDByHeader(header *mail.Header) uint32
 	GetDelimiter() string

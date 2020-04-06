@@ -75,7 +75,7 @@ func (store *Store) isSynced(countsOnAPI []*pmapi.MessagesCount) (bool, error) {
 				)
 			}
 
-			mboxTot, mboxUnread, err := mbox.GetCounts()
+			mboxTot, mboxUnread, _, err := mbox.GetCounts()
 			if err != nil {
 				errW := errors.Wrap(err, "cannot count messages")
 				store.log.

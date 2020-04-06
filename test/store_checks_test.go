@@ -93,7 +93,7 @@ func mailboxForAddressOfUserHasNumberOfMessages(mailboxName, bddAddressID, bddUs
 	start := time.Now()
 	for {
 		afterLimit := time.Since(start) > ctx.EventLoopTimeout()
-		total, _, _ := mailbox.GetCounts()
+		total, _, _, _ := mailbox.GetCounts()
 		if total == uint(countOfMessages) {
 			break
 		}
