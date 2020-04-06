@@ -62,7 +62,7 @@ var errVerificationFailed = errors.New("signature verification failed")
 
 //================= Public utility functions ======================
 
-func (c *Client) EncryptAndSignCards(cards []Card) ([]Card, error) {
+func (c *client) EncryptAndSignCards(cards []Card) ([]Card, error) {
 	var err error
 	for i := range cards {
 		card := &cards[i]
@@ -85,7 +85,7 @@ func (c *Client) EncryptAndSignCards(cards []Card) ([]Card, error) {
 	return cards, nil
 }
 
-func (c *Client) DecryptAndVerifyCards(cards []Card) ([]Card, error) {
+func (c *client) DecryptAndVerifyCards(cards []Card) ([]Card, error) {
 	for i := range cards {
 		card := &cards[i]
 		if isEncryptedCardType(card.Type) {
@@ -113,7 +113,7 @@ type ContactsListRes struct {
 }
 
 // GetContacts gets all contacts.
-func (c *Client) GetContacts(page int, pageSize int) (contacts []*Contact, err error) {
+func (c *client) GetContacts(page int, pageSize int) (contacts []*Contact, err error) {
 	v := url.Values{}
 	v.Set("Page", strconv.Itoa(page))
 	if pageSize > 0 {
@@ -135,7 +135,7 @@ func (c *Client) GetContacts(page int, pageSize int) (contacts []*Contact, err e
 }
 
 // GetContactByID gets contact details specified by contact ID.
-func (c *Client) GetContactByID(id string) (contactDetail Contact, err error) {
+func (c *client) GetContactByID(id string) (contactDetail Contact, err error) {
 	req, err := c.NewRequest("GET", "/contacts/"+id, nil)
 
 	if err != nil {
@@ -157,7 +157,7 @@ func (c *Client) GetContactByID(id string) (contactDetail Contact, err error) {
 }
 
 // GetContactsForExport gets contacts in vCard format, signed and encrypted.
-func (c *Client) GetContactsForExport(page int, pageSize int) (contacts []Contact, err error) {
+func (c *client) GetContactsForExport(page int, pageSize int) (contacts []Contact, err error) {
 	v := url.Values{}
 	v.Set("Page", strconv.Itoa(page))
 	if pageSize > 0 {
@@ -191,7 +191,7 @@ type ContactsEmailsRes struct {
 }
 
 // GetAllContactsEmails gets all emails from all contacts.
-func (c *Client) GetAllContactsEmails(page int, pageSize int) (contactsEmails []ContactEmail, err error) {
+func (c *client) GetAllContactsEmails(page int, pageSize int) (contactsEmails []ContactEmail, err error) {
 	v := url.Values{}
 	v.Set("Page", strconv.Itoa(page))
 	if pageSize > 0 {
@@ -213,7 +213,7 @@ func (c *Client) GetAllContactsEmails(page int, pageSize int) (contactsEmails []
 }
 
 // GetContactEmailByEmail gets all emails from all contacts matching a specified email string.
-func (c *Client) GetContactEmailByEmail(email string, page int, pageSize int) (contactEmails []ContactEmail, err error) {
+func (c *client) GetContactEmailByEmail(email string, page int, pageSize int) (contactEmails []ContactEmail, err error) {
 	v := url.Values{}
 	v.Set("Page", strconv.Itoa(page))
 	if pageSize > 0 {
@@ -268,7 +268,7 @@ type AddContactsReq struct {
 }
 
 // AddContacts adds contacts specified by cards. Performs signing and encrypting based on card type.
-func (c *Client) AddContacts(cards ContactsCards, overwrite int, groups int, labels int) (res *AddContactsResponse, err error) {
+func (c *client) AddContacts(cards ContactsCards, overwrite int, groups int, labels int) (res *AddContactsResponse, err error) {
 	reqBody := AddContactsReq{
 		ContactsCards: cards,
 		Overwrite:     overwrite,
@@ -302,7 +302,7 @@ type UpdateContactReq struct {
 }
 
 // UpdateContact updates contact identified by contact ID. Modified contact is specified by cards.
-func (c *Client) UpdateContact(id string, cards []Card) (res *UpdateContactResponse, err error) {
+func (c *client) UpdateContact(id string, cards []Card) (res *UpdateContactResponse, err error) {
 	reqBody := UpdateContactReq{
 		Cards: cards,
 	}
@@ -329,11 +329,11 @@ type UpdateContactGroupsResponse struct {
 	Response SingleIDResponse
 }
 
-func (c *Client) AddContactGroups(groupID string, contactEmailIDs []string) (res *UpdateContactGroupsResponse, err error) {
+func (c *client) AddContactGroups(groupID string, contactEmailIDs []string) (res *UpdateContactGroupsResponse, err error) {
 	return c.modifyContactGroups(groupID, addContactGroupsAction, contactEmailIDs)
 }
 
-func (c *Client) RemoveContactGroups(groupID string, contactEmailIDs []string) (res *UpdateContactGroupsResponse, err error) {
+func (c *client) RemoveContactGroups(groupID string, contactEmailIDs []string) (res *UpdateContactGroupsResponse, err error) {
 	return c.modifyContactGroups(groupID, removeContactGroupsAction, contactEmailIDs)
 }
 
@@ -348,7 +348,7 @@ type ModifyContactGroupsReq struct {
 	ContactEmailIDs []string
 }
 
-func (c *Client) modifyContactGroups(groupID string, modifyContactGroupsAction int, contactEmailIDs []string) (res *UpdateContactGroupsResponse, err error) {
+func (c *client) modifyContactGroups(groupID string, modifyContactGroupsAction int, contactEmailIDs []string) (res *UpdateContactGroupsResponse, err error) {
 	reqBody := ModifyContactGroupsReq{
 		LabelID:         groupID,
 		Action:          modifyContactGroupsAction,
@@ -372,7 +372,7 @@ type DeleteReq struct {
 }
 
 // DeleteContacts deletes contacts specified by an array of contact IDs.
-func (c *Client) DeleteContacts(ids []string) (err error) {
+func (c *client) DeleteContacts(ids []string) (err error) {
 	deleteReq := DeleteReq{
 		IDs: ids,
 	}
@@ -401,7 +401,7 @@ func (c *Client) DeleteContacts(ids []string) (err error) {
 }
 
 // DeleteAllContacts deletes all contacts.
-func (c *Client) DeleteAllContacts() (err error) {
+func (c *client) DeleteAllContacts() (err error) {
 	req, err := c.NewRequest("DELETE", "/contacts", nil)
 	if err != nil {
 		return

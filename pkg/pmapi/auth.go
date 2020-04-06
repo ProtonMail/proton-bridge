@@ -204,7 +204,7 @@ type AuthRefreshReq struct {
 	State        string
 }
 
-func (c *Client) sendAuth(auth *Auth) {
+func (c *client) sendAuth(auth *Auth) {
 	c.log.Debug("Client is sending auth to ClientManager")
 
 	if auth != nil {
@@ -224,7 +224,7 @@ func (c *Client) sendAuth(auth *Auth) {
 }
 
 // AuthInfo gets authentication info for a user.
-func (c *Client) AuthInfo(username string) (info *AuthInfo, err error) {
+func (c *client) AuthInfo(username string) (info *AuthInfo, err error) {
 	infoReq := &AuthInfoReq{
 		Username: username,
 	}
@@ -259,7 +259,7 @@ func srpProofsFromInfo(info *AuthInfo, username, password string, fallbackVersio
 	return
 }
 
-func (c *Client) tryAuth(username, password string, info *AuthInfo, fallbackVersion int) (res *AuthRes, err error) {
+func (c *client) tryAuth(username, password string, info *AuthInfo, fallbackVersion int) (res *AuthRes, err error) {
 	proofs, err := srpProofsFromInfo(info, username, password, fallbackVersion)
 	if err != nil {
 		return
@@ -299,7 +299,7 @@ func (c *Client) tryAuth(username, password string, info *AuthInfo, fallbackVers
 	return res, err
 }
 
-func (c *Client) tryFullAuth(username, password string, fallbackVersion int) (info *AuthInfo, authRes *AuthRes, err error) {
+func (c *client) tryFullAuth(username, password string, fallbackVersion int) (info *AuthInfo, authRes *AuthRes, err error) {
 	info, err = c.AuthInfo(username)
 	if err != nil {
 		return
@@ -309,7 +309,7 @@ func (c *Client) tryFullAuth(username, password string, fallbackVersion int) (in
 }
 
 // Auth will authenticate a user.
-func (c *Client) Auth(username, password string, info *AuthInfo) (auth *Auth, err error) {
+func (c *client) Auth(username, password string, info *AuthInfo) (auth *Auth, err error) {
 	if info == nil {
 		if info, err = c.AuthInfo(username); err != nil {
 			return
@@ -344,7 +344,7 @@ func (c *Client) Auth(username, password string, info *AuthInfo) (auth *Auth, er
 
 // Auth2FA will authenticate a user into full scope.
 // `Auth` struct contains method `HasTwoFactor` deciding whether this has to be done.
-func (c *Client) Auth2FA(twoFactorCode string, auth *Auth) (*Auth2FA, error) {
+func (c *client) Auth2FA(twoFactorCode string, auth *Auth) (*Auth2FA, error) {
 	auth2FAReq := &Auth2FAReq{
 		TwoFactorCode: twoFactorCode,
 	}
@@ -377,7 +377,7 @@ func (c *Client) Auth2FA(twoFactorCode string, auth *Auth) (*Auth2FA, error) {
 	return auth2FARes.getAuth2FA(), nil
 }
 
-func (c *Client) setKeySaltToAuth(auth *Auth) error {
+func (c *client) setKeySaltToAuth(auth *Auth) error {
 	// KeySalt already set up, no need to do it again.
 	if auth.KeySalt != "" {
 		return nil
@@ -402,7 +402,7 @@ func (c *Client) setKeySaltToAuth(auth *Auth) error {
 
 // Unlock decrypts the key ring.
 // If the password is invalid, IsUnlockError(err) will return true.
-func (c *Client) Unlock(password string) (kr *pmcrypto.KeyRing, err error) {
+func (c *client) Unlock(password string) (kr *pmcrypto.KeyRing, err error) {
 	if _, err = c.CurrentUser(); err != nil {
 		return
 	}
@@ -420,7 +420,7 @@ func (c *Client) Unlock(password string) (kr *pmcrypto.KeyRing, err error) {
 }
 
 // AuthRefresh will refresh an expired access token.
-func (c *Client) AuthRefresh(uidAndRefreshToken string) (auth *Auth, err error) {
+func (c *client) AuthRefresh(uidAndRefreshToken string) (auth *Auth, err error) {
 	// If we don't yet have a saved access token, save this one in case the refresh fails!
 	// That way we can try again later (see handleUnauthorizedStatus).
 	// TODO:
@@ -465,14 +465,14 @@ func (c *Client) AuthRefresh(uidAndRefreshToken string) (auth *Auth, err error) 
 }
 
 // Logout instructs the client manager to log out this client.
-func (c *Client) Logout() {
+func (c *client) Logout() {
 	c.cm.LogoutClient(c.userID)
 }
 
 // TODO: Need a method like IsConnected() to be able to detect whether a client is logged in or not.
 
 // logout logs the current user out.
-func (c *Client) logout() (err error) {
+func (c *client) logout() (err error) {
 	req, err := c.NewRequest("DELETE", "/auth", nil)
 	if err != nil {
 		return
@@ -490,7 +490,7 @@ func (c *Client) logout() (err error) {
 	return
 }
 
-func (c *Client) clearSensitiveData() {
+func (c *client) clearSensitiveData() {
 	c.uid = ""
 	c.accessToken = ""
 	c.kr = nil

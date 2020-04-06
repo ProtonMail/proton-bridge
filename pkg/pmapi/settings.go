@@ -44,7 +44,7 @@ type UserSettings struct {
 }
 
 // GetUserSettings gets general settings.
-func (c *Client) GetUserSettings() (settings UserSettings, err error) {
+func (c *client) GetUserSettings() (settings UserSettings, err error) {
 	req, err := c.NewRequest("GET", "/settings", nil)
 
 	if err != nil {
@@ -98,7 +98,7 @@ type MailSettings struct {
 }
 
 // GetMailSettings gets contact details specified by contact ID.
-func (c *Client) GetMailSettings() (settings MailSettings, err error) {
+func (c *client) GetMailSettings() (settings MailSettings, err error) {
 	req, err := c.NewRequest("GET", "/settings/mail", nil)
 
 	if err != nil {

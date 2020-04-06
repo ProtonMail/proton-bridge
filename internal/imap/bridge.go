@@ -19,6 +19,7 @@ package imap
 
 import (
 	"github.com/ProtonMail/proton-bridge/internal/bridge"
+	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 )
 
 type configProvider interface {
@@ -43,7 +44,7 @@ type bridgeUser interface {
 	Logout() error
 	CloseConnection(address string)
 	GetStore() storeUserProvider
-	GetTemporaryPMAPIClient() bridge.PMAPIProvider
+	GetTemporaryPMAPIClient() pmapi.Client
 }
 
 type bridgeWrap struct {

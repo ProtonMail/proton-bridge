@@ -92,7 +92,7 @@ func (u *User) KeyRing() *pmcrypto.KeyRing {
 }
 
 // UpdateUser retrieves details about user and loads its addresses.
-func (c *Client) UpdateUser() (user *User, err error) {
+func (c *client) UpdateUser() (user *User, err error) {
 	req, err := c.NewRequest("GET", "/users", nil)
 	if err != nil {
 		return
@@ -122,7 +122,7 @@ func (c *Client) UpdateUser() (user *User, err error) {
 }
 
 // CurrentUser returns currently active user or user will be updated.
-func (c *Client) CurrentUser() (user *User, err error) {
+func (c *client) CurrentUser() (user *User, err error) {
 	if c.user != nil && len(c.addresses) != 0 {
 		user = c.user
 		return

@@ -22,7 +22,7 @@ import (
 )
 
 // SendSimpleMetric makes a simple GET request to send a simple metrics report.
-func (c *Client) SendSimpleMetric(category, action, label string) (err error) {
+func (c *client) SendSimpleMetric(category, action, label string) (err error) {
 	v := url.Values{}
 	v.Set("Category", category)
 	v.Set("Action", action)

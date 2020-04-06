@@ -18,7 +18,7 @@ type ClientManager struct {
 	config       *ClientConfig
 	roundTripper http.RoundTripper
 
-	clients       map[string]*Client
+	clients       map[string]*client
 	clientsLocker sync.Locker
 
 	tokens       map[string]string
@@ -58,7 +58,7 @@ func NewClientManager(config *ClientConfig) (cm *ClientManager) {
 		config:       config,
 		roundTripper: http.DefaultTransport,
 
-		clients:       make(map[string]*Client),
+		clients:       make(map[string]*client),
 		clientsLocker: &sync.Mutex{},
 
 		tokens:       make(map[string]string),
@@ -95,7 +95,7 @@ func (cm *ClientManager) GetRoundTripper() (rt http.RoundTripper) {
 
 // GetClient returns a client for the given userID.
 // If the client does not exist already, it is created.
-func (cm *ClientManager) GetClient(userID string) *Client {
+func (cm *ClientManager) GetClient(userID string) Client {
 	if client, ok := cm.clients[userID]; ok {
 		return client
 	}
@@ -106,7 +106,7 @@ func (cm *ClientManager) GetClient(userID string) *Client {
 }
 
 // GetAnonymousClient returns an anonymous client. It replaces any anonymous client that was already created.
-func (cm *ClientManager) GetAnonymousClient() *Client {
+func (cm *ClientManager) GetAnonymousClient() Client {
 	if client, ok := cm.clients[""]; ok {
 		client.Logout()
 	}

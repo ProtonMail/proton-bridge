@@ -30,6 +30,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/internal/preferences"
 	"github.com/ProtonMail/proton-bridge/internal/store"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
+	pmapimocks "github.com/ProtonMail/proton-bridge/pkg/pmapi/mocks"
 	gomock "github.com/golang/mock/gomock"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/require"
@@ -128,10 +129,11 @@ type mocks struct {
 	config           *bridgemocks.MockConfiger
 	PanicHandler     *bridgemocks.MockPanicHandler
 	prefProvider     *bridgemocks.MockPreferenceProvider
-	pmapiClient      *bridgemocks.MockPMAPIProvider
-	clientManager    *bridgemocks.MockClientManager
 	credentialsStore *bridgemocks.MockCredentialsStorer
 	eventListener    *MockListener
+
+	pmapiClient   *pmapimocks.MockClient
+	clientManager *pmapimocks.MockClientManager
 
 	storeCache *store.Cache
 }
@@ -148,10 +150,12 @@ func initMocks(t *testing.T) mocks {
 		ctrl:             mockCtrl,
 		config:           bridgemocks.NewMockConfiger(mockCtrl),
 		PanicHandler:     bridgemocks.NewMockPanicHandler(mockCtrl),
-		pmapiClient:      bridgemocks.NewMockPMAPIProvider(mockCtrl),
 		prefProvider:     bridgemocks.NewMockPreferenceProvider(mockCtrl),
 		credentialsStore: bridgemocks.NewMockCredentialsStorer(mockCtrl),
 		eventListener:    NewMockListener(mockCtrl),
+
+		pmapiClient:   pmapimocks.NewMockClient(mockCtrl),
+		clientManager: pmapimocks.NewMockClientManager(mockCtrl),
 
 		storeCache: store.NewCache(cacheFile.Name()),
 	}

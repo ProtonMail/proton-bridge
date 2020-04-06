@@ -48,7 +48,7 @@ type Bridge struct {
 	panicHandler  PanicHandler
 	events        listener.Listener
 	version       string
-	clientManager ClientManager
+	clientManager *pmapi.ClientManager
 	credStorer    CredentialsStorer
 	storeCache    *store.Cache
 
@@ -76,7 +76,7 @@ func New(
 	panicHandler PanicHandler,
 	eventListener listener.Listener,
 	version string,
-	clientManager ClientManager,
+	clientManager *pmapi.ClientManager,
 	credStorer CredentialsStorer,
 ) *Bridge {
 	log.Trace("Creating new bridge")
@@ -214,7 +214,7 @@ func (b *Bridge) closeAllConnections() {
 //  * In case user `auth.HasMailboxPassword()`, ask for it, otherwise use `password`
 //    and then finish the login procedure.
 //		user, err := bridge.FinishLogin(client, auth, mailboxPassword)
-func (b *Bridge) Login(username, password string) (authClient PMAPIProvider, auth *pmapi.Auth, err error) {
+func (b *Bridge) Login(username, password string) (authClient pmapi.Client, auth *pmapi.Auth, err error) {
 	b.crashBandicoot(username)
 
 	// We need to use anonymous client because we don't yet have userID and so can't save auth tokens yet.
@@ -236,7 +236,7 @@ func (b *Bridge) Login(username, password string) (authClient PMAPIProvider, aut
 
 // FinishLogin finishes the login procedure and adds the user into the credentials store.
 // See `Login` for more details of the login flow.
-func (b *Bridge) FinishLogin(authClient PMAPIProvider, auth *pmapi.Auth, mbPassword string) (user *User, err error) { //nolint[funlen]
+func (b *Bridge) FinishLogin(authClient pmapi.Client, auth *pmapi.Auth, mbPassword string) (user *User, err error) { //nolint[funlen]
 	defer func() {
 		if err == pmapi.ErrUpgradeApplication {
 			b.events.Emit(events.UpgradeApplicationEvent, "")
@@ -330,7 +330,7 @@ func (b *Bridge) addNewUser(user *pmapi.User, auth *pmapi.Auth, hashedPassword s
 	return
 }
 
-func getAPIUser(client PMAPIProvider, auth *pmapi.Auth, mbPassword string) (user *pmapi.User, hashedPassword string, err error) {
+func getAPIUser(client pmapi.Client, auth *pmapi.Auth, mbPassword string) (user *pmapi.User, hashedPassword string, err error) {
 	hashedPassword, err = pmapi.HashMailboxPassword(mbPassword, auth.KeySalt)
 	if err != nil {
 		log.WithError(err).Error("Could not hash mailbox password")

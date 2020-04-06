@@ -21,7 +21,7 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/ProtonMail/proton-bridge/internal/bridge"
+	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	imapquota "github.com/emersion/go-imap-quota"
 	goIMAPBackend "github.com/emersion/go-imap/backend"
 )
@@ -34,7 +34,7 @@ type imapUser struct {
 	panicHandler panicHandler
 	backend      *imapBackend
 	user         bridgeUser
-	client       bridge.PMAPIProvider
+	client       pmapi.Client
 
 	storeUser    storeUserProvider
 	storeAddress storeAddressProvider

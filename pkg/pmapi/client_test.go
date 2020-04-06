@@ -36,8 +36,8 @@ var testClientConfig = &ClientConfig{
 	MinSpeed:         256,
 }
 
-func newTestClient(cm *ClientManager) *Client {
-	return cm.GetClient("tester")
+func newTestClient(cm *ClientManager) *client {
+	return cm.GetClient("tester").(*client)
 }
 
 func TestClient_Do(t *testing.T) {

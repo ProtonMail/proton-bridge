@@ -20,7 +20,7 @@ package types
 
 import (
 	"github.com/ProtonMail/proton-bridge/internal/bridge"
-	pmapi "github.com/ProtonMail/proton-bridge/pkg/pmapi"
+	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	"github.com/ProtonMail/proton-bridge/pkg/updates"
 )
 
@@ -45,8 +45,8 @@ type NoEncConfirmator interface {
 type Bridger interface {
 	GetCurrentClient() string
 	SetCurrentOS(os string)
-	Login(username, password string) (bridge.PMAPIProvider, *pmapi.Auth, error)
-	FinishLogin(client bridge.PMAPIProvider, auth *pmapi.Auth, mailboxPassword string) (BridgeUser, error)
+	Login(username, password string) (pmapi.Client, *pmapi.Auth, error)
+	FinishLogin(client pmapi.Client, auth *pmapi.Auth, mailboxPassword string) (BridgeUser, error)
 	GetUsers() []BridgeUser
 	GetUser(query string) (BridgeUser, error)
 	DeleteUser(userID string, clearCache bool) error
@@ -80,7 +80,7 @@ func NewBridgeWrap(bridge *bridge.Bridge) *bridgeWrap { //nolint[golint]
 	return &bridgeWrap{Bridge: bridge}
 }
 
-func (b *bridgeWrap) FinishLogin(client bridge.PMAPIProvider, auth *pmapi.Auth, mailboxPassword string) (BridgeUser, error) {
+func (b *bridgeWrap) FinishLogin(client pmapi.Client, auth *pmapi.Auth, mailboxPassword string) (BridgeUser, error) {
 	return b.Bridge.FinishLogin(client, auth, mailboxPassword)
 }
 

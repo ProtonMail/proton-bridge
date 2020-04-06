@@ -71,7 +71,7 @@ func Equals(tb testing.TB, exp, act interface{}) {
 }
 
 // newTestServer is old function and should be replaced everywhere by newTestServerCallbacks.
-func newTestServer(h http.Handler) (*httptest.Server, *Client) {
+func newTestServer(h http.Handler) (*httptest.Server, *client) {
 	s := httptest.NewServer(h)
 
 	serverURL, err := url.Parse(s.URL)
@@ -86,7 +86,7 @@ func newTestServer(h http.Handler) (*httptest.Server, *Client) {
 	return s, newTestClient(cm)
 }
 
-func newTestServerCallbacks(tb testing.TB, callbacks ...func(testing.TB, http.ResponseWriter, *http.Request) string) (func(), *Client) {
+func newTestServerCallbacks(tb testing.TB, callbacks ...func(testing.TB, http.ResponseWriter, *http.Request) string) (func(), *client) {
 	reqNum := 0
 	_, file, line, _ := runtime.Caller(1)
 	file = filepath.Base(file)

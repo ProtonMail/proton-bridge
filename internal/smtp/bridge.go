@@ -19,6 +19,7 @@ package smtp
 
 import (
 	"github.com/ProtonMail/proton-bridge/internal/bridge"
+	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 )
 
 type bridger interface {
@@ -29,7 +30,7 @@ type bridgeUser interface {
 	CheckBridgeLogin(password string) error
 	IsCombinedAddressMode() bool
 	GetAddressID(address string) (string, error)
-	GetTemporaryPMAPIClient() bridge.PMAPIProvider
+	GetTemporaryPMAPIClient() pmapi.Client
 	GetStore() storeUserProvider
 }
 

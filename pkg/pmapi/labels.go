@@ -93,16 +93,16 @@ type LabelListRes struct {
 	Labels []*Label
 }
 
-func (c *Client) ListLabels() (labels []*Label, err error) {
+func (c *client) ListLabels() (labels []*Label, err error) {
 	return c.ListLabelType(LabelTypeMailbox)
 }
 
-func (c *Client) ListContactGroups() (labels []*Label, err error) {
+func (c *client) ListContactGroups() (labels []*Label, err error) {
 	return c.ListLabelType(LabelTypeContactGroup)
 }
 
 // ListLabelType lists all labels created by the user.
-func (c *Client) ListLabelType(labelType int) (labels []*Label, err error) {
+func (c *client) ListLabelType(labelType int) (labels []*Label, err error) {
 	req, err := c.NewRequest("GET", fmt.Sprintf("/labels?%d", labelType), nil)
 	if err != nil {
 		return
@@ -127,7 +127,7 @@ type LabelRes struct {
 }
 
 // CreateLabel creates a new label.
-func (c *Client) CreateLabel(label *Label) (created *Label, err error) {
+func (c *client) CreateLabel(label *Label) (created *Label, err error) {
 	labelReq := &LabelReq{label}
 	req, err := c.NewJSONRequest("POST", "/labels", labelReq)
 	if err != nil {
@@ -144,7 +144,7 @@ func (c *Client) CreateLabel(label *Label) (created *Label, err error) {
 }
 
 // UpdateLabel updates a label.
-func (c *Client) UpdateLabel(label *Label) (updated *Label, err error) {
+func (c *client) UpdateLabel(label *Label) (updated *Label, err error) {
 	labelReq := &LabelReq{label}
 	req, err := c.NewJSONRequest("PUT", "/labels/"+label.ID, labelReq)
 	if err != nil {
@@ -161,7 +161,7 @@ func (c *Client) UpdateLabel(label *Label) (updated *Label, err error) {
 }
 
 // DeleteLabel deletes a label.
-func (c *Client) DeleteLabel(id string) (err error) {
+func (c *client) DeleteLabel(id string) (err error) {
 	req, err := c.NewRequest("DELETE", "/labels/"+id, nil)
 	if err != nil {
 		return

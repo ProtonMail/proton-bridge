@@ -31,7 +31,7 @@ type ConversationsCountsRes struct {
 type Conversation struct{}
 
 // CountConversations counts conversations by label.
-func (c *Client) CountConversations(addressID string) (counts []*ConversationsCount, err error) {
+func (c *client) CountConversations(addressID string) (counts []*ConversationsCount, err error) {
 	reqURL := "/conversations/count"
 	if addressID != "" {
 		reqURL += ("?AddressID=" + addressID)

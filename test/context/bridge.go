@@ -23,6 +23,7 @@ import (
 
 	"github.com/ProtonMail/proton-bridge/internal/preferences"
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
+	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 )
 
 // GetBridge returns bridge instance.
@@ -33,7 +34,7 @@ func (ctx *TestContext) GetBridge() *bridge.Bridge {
 // withBridgeInstance creates a bridge instance for use in the test.
 // Every TestContext has this by default and thus this doesn't need to be exported.
 func (ctx *TestContext) withBridgeInstance() {
-	pmapiFactory := func(userID string) bridge.PMAPIProvider {
+	pmapiFactory := func(userID string) pmapi.Client {
 		return ctx.pmapiController.GetClient(userID)
 	}
 	ctx.bridge = newBridgeInstance(ctx.t, ctx.cfg, ctx.credStore, ctx.listener, pmapiFactory)

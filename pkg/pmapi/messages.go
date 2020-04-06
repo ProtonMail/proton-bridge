@@ -467,7 +467,7 @@ type MessagesListRes struct {
 }
 
 // ListMessages gets message metadata.
-func (c *Client) ListMessages(filter *MessagesFilter) (msgs []*Message, total int, err error) {
+func (c *client) ListMessages(filter *MessagesFilter) (msgs []*Message, total int, err error) {
 	req, err := c.NewRequest("GET", "/messages", nil)
 	if err != nil {
 		return
@@ -495,7 +495,7 @@ type MessagesCountsRes struct {
 }
 
 // CountMessages counts messages by label.
-func (c *Client) CountMessages(addressID string) (counts []*MessagesCount, err error) {
+func (c *client) CountMessages(addressID string) (counts []*MessagesCount, err error) {
 	reqURL := "/messages/count"
 	if addressID != "" {
 		reqURL += ("?AddressID=" + addressID)
@@ -521,7 +521,7 @@ type MessageRes struct {
 }
 
 // GetMessage retrieves a message.
-func (c *Client) GetMessage(id string) (msg *Message, err error) {
+func (c *client) GetMessage(id string) (msg *Message, err error) {
 	req, err := c.NewRequest("GET", "/messages/"+id, nil)
 	if err != nil {
 		return
@@ -589,7 +589,7 @@ type SendMessageRes struct {
 	Parent *Message
 }
 
-func (c *Client) SendMessage(id string, sendReq *SendMessageReq) (sent, parent *Message, err error) {
+func (c *client) SendMessage(id string, sendReq *SendMessageReq) (sent, parent *Message, err error) {
 	if id == "" {
 		err = errors.New("pmapi: cannot send message with an empty id")
 		return
@@ -626,7 +626,7 @@ type DraftReq struct {
 	AttachmentKeyPackets []string
 }
 
-func (c *Client) CreateDraft(m *Message, parent string, action int) (created *Message, err error) {
+func (c *client) CreateDraft(m *Message, parent string, action int) (created *Message, err error) {
 	createReq := &DraftReq{Message: m, ParentID: parent, Action: action, AttachmentKeyPackets: []string{}}
 
 	req, err := c.NewJSONRequest("POST", "/messages", createReq)
@@ -672,7 +672,7 @@ func (res MessagesActionRes) Err() error {
 
 // doMessagesAction performs paged requests to doMessagesActionInner.
 // This can eventually be done in parallel though.
-func (c *Client) doMessagesAction(action string, ids []string) (err error) {
+func (c *client) doMessagesAction(action string, ids []string) (err error) {
 	for len(ids) > messageIDPageSize {
 		var requestIDs []string
 		requestIDs, ids = ids[:messageIDPageSize], ids[messageIDPageSize:]
@@ -686,7 +686,7 @@ func (c *Client) doMessagesAction(action string, ids []string) (err error) {
 
 // doMessagesActionInner is the non-paged inner method of doMessagesAction.
 // You should not call this directly unless you know what you are doing (it can overload the server).
-func (c *Client) doMessagesActionInner(action string, ids []string) (err error) {
+func (c *client) doMessagesActionInner(action string, ids []string) (err error) {
 	actionReq := &MessagesActionReq{IDs: ids}
 	req, err := c.NewJSONRequest("PUT", "/messages/"+action, actionReq)
 	if err != nil {
@@ -703,19 +703,19 @@ func (c *Client) doMessagesActionInner(action string, ids []string) (err error) 
 	return
 }
 
-func (c *Client) MarkMessagesRead(ids []string) error {
+func (c *client) MarkMessagesRead(ids []string) error {
 	return c.doMessagesAction("read", ids)
 }
 
-func (c *Client) MarkMessagesUnread(ids []string) error {
+func (c *client) MarkMessagesUnread(ids []string) error {
 	return c.doMessagesAction("unread", ids)
 }
 
-func (c *Client) DeleteMessages(ids []string) error {
+func (c *client) DeleteMessages(ids []string) error {
 	return c.doMessagesAction("delete", ids)
 }
 
-func (c *Client) UndeleteMessages(ids []string) error {
+func (c *client) UndeleteMessages(ids []string) error {
 	return c.doMessagesAction("undelete", ids)
 }
 
@@ -726,7 +726,7 @@ type LabelMessagesReq struct {
 
 // LabelMessages labels the given message IDs with the given label.
 // The requests are performed paged; this can eventually be done in parallel.
-func (c *Client) LabelMessages(ids []string, label string) (err error) {
+func (c *client) LabelMessages(ids []string, label string) (err error) {
 	for len(ids) > messageIDPageSize {
 		var requestIDs []string
 		requestIDs, ids = ids[:messageIDPageSize], ids[messageIDPageSize:]
@@ -738,7 +738,7 @@ func (c *Client) LabelMessages(ids []string, label string) (err error) {
 	return c.labelMessages(ids, label)
 }
 
-func (c *Client) labelMessages(ids []string, label string) (err error) {
+func (c *client) labelMessages(ids []string, label string) (err error) {
 	labelReq := &LabelMessagesReq{LabelID: label, IDs: ids}
 	req, err := c.NewJSONRequest("PUT", "/messages/label", labelReq)
 	if err != nil {
@@ -756,7 +756,7 @@ func (c *Client) labelMessages(ids []string, label string) (err error) {
 
 // UnlabelMessages removes the given label from the given message IDs.
 // The requests are performed paged; this can eventually be done in parallel.
-func (c *Client) UnlabelMessages(ids []string, label string) (err error) {
+func (c *client) UnlabelMessages(ids []string, label string) (err error) {
 	for len(ids) > messageIDPageSize {
 		var requestIDs []string
 		requestIDs, ids = ids[:messageIDPageSize], ids[messageIDPageSize:]
@@ -768,7 +768,7 @@ func (c *Client) UnlabelMessages(ids []string, label string) (err error) {
 	return c.unlabelMessages(ids, label)
 }
 
-func (c *Client) unlabelMessages(ids []string, label string) (err error) {
+func (c *client) unlabelMessages(ids []string, label string) (err error) {
 	labelReq := &LabelMessagesReq{LabelID: label, IDs: ids}
 	req, err := c.NewJSONRequest("PUT", "/messages/unlabel", labelReq)
 	if err != nil {
@@ -784,7 +784,7 @@ func (c *Client) unlabelMessages(ids []string, label string) (err error) {
 	return
 }
 
-func (c *Client) EmptyFolder(labelID, addressID string) (err error) {
+func (c *client) EmptyFolder(labelID, addressID string) (err error) {
 	if labelID == "" {
 		return errors.New("pmapi: labelID parameter is empty string")
 	}

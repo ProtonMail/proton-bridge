@@ -93,8 +93,59 @@ type ClientConfig struct {
 	MinSpeed int64
 }
 
-// Client to communicate with API.
-type Client struct {
+// Client defines the interface of a PMAPI client.
+type Client interface {
+	Auth(username, password string, info *AuthInfo) (*Auth, error)
+	AuthInfo(username string) (*AuthInfo, error)
+	AuthRefresh(token string) (*Auth, error)
+	Unlock(mailboxPassword string) (kr *pmcrypto.KeyRing, err error)
+	UnlockAddresses(passphrase []byte) error
+	CurrentUser() (*User, error)
+	UpdateUser() (*User, error)
+	Addresses() AddressList
+
+	Logout()
+
+	GetEvent(eventID string) (*Event, error)
+
+	CountMessages(addressID string) ([]*MessagesCount, error)
+	ListMessages(filter *MessagesFilter) ([]*Message, int, error)
+	GetMessage(apiID string) (*Message, error)
+	Import([]*ImportMsgReq) ([]*ImportMsgRes, error)
+	DeleteMessages(apiIDs []string) error
+	LabelMessages(apiIDs []string, labelID string) error
+	UnlabelMessages(apiIDs []string, labelID string) error
+	MarkMessagesRead(apiIDs []string) error
+	MarkMessagesUnread(apiIDs []string) error
+
+	ListLabels() ([]*Label, error)
+	CreateLabel(label *Label) (*Label, error)
+	UpdateLabel(label *Label) (*Label, error)
+	DeleteLabel(labelID string) error
+	EmptyFolder(labelID string, addressID string) error
+
+	ReportBugWithEmailClient(os, osVersion, title, description, username, email, emailClient string) error
+	SendSimpleMetric(category, action, label string) error
+	ReportSentryCrash(reportErr error) (err error)
+
+	Auth2FA(twoFactorCode string, auth *Auth) (*Auth2FA, error)
+
+	GetMailSettings() (MailSettings, error)
+	GetContactEmailByEmail(string, int, int) ([]ContactEmail, error)
+	GetContactByID(string) (Contact, error)
+	DecryptAndVerifyCards([]Card) ([]Card, error)
+	GetPublicKeysForEmail(string) ([]PublicKey, bool, error)
+	SendMessage(string, *SendMessageReq) (sent, parent *Message, err error)
+	CreateDraft(m *Message, parent string, action int) (created *Message, err error)
+	CreateAttachment(att *Attachment, r io.Reader, sig io.Reader) (created *Attachment, err error)
+	DeleteAttachment(attID string) (err error)
+	KeyRingForAddressID(string) (kr *pmcrypto.KeyRing)
+
+	GetAttachment(id string) (att io.ReadCloser, err error)
+}
+
+// client is a client of the protonmail API. It implements the Client interface.
+type client struct {
 	cm *ClientManager
 	hc *http.Client
 
@@ -112,8 +163,8 @@ type Client struct {
 }
 
 // newClient creates a new API client.
-func newClient(cm *ClientManager, userID string) *Client {
-	return &Client{
+func newClient(cm *ClientManager, userID string) *client {
+	return &client{
 		cm:            cm,
 		hc:            getHTTPClient(cm.GetConfig(), cm.GetRoundTripper()),
 		userID:        userID,
@@ -132,7 +183,7 @@ func getHTTPClient(cfg *ClientConfig, rt http.RoundTripper) (hc *http.Client) {
 }
 
 // Do makes an API request. It does not check for HTTP status code errors.
-func (c *Client) Do(req *http.Request, retryUnauthorized bool) (res *http.Response, err error) {
+func (c *client) Do(req *http.Request, retryUnauthorized bool) (res *http.Response, err error) {
 	// Copy the request body in case we need to retry it.
 	var bodyBuffer []byte
 	if req.Body != nil {
@@ -151,7 +202,7 @@ func (c *Client) Do(req *http.Request, retryUnauthorized bool) (res *http.Respon
 }
 
 // If needed it retries using req and buffered body.
-func (c *Client) doBuffered(req *http.Request, bodyBuffer []byte, retryUnauthorized bool) (res *http.Response, err error) { // nolint[funlen]
+func (c *client) doBuffered(req *http.Request, bodyBuffer []byte, retryUnauthorized bool) (res *http.Response, err error) { // nolint[funlen]
 	isAuthReq := strings.Contains(req.URL.Path, "/auth")
 
 	req.Header.Set("x-pm-appversion", c.cm.GetConfig().AppVersion)
@@ -235,7 +286,7 @@ func (c *Client) doBuffered(req *http.Request, bodyBuffer []byte, retryUnauthori
 // If the API returns a non-2xx HTTP status code, the error returned will contain status
 // and response as plaintext. API errors must be checked by the caller.
 // It is performed buffered, in case we need to retry.
-func (c *Client) DoJSON(req *http.Request, data interface{}) error {
+func (c *client) DoJSON(req *http.Request, data interface{}) error {
 	// Copy the request body in case we need to retry it
 	var reqBodyBuffer []byte
 
@@ -253,7 +304,7 @@ func (c *Client) DoJSON(req *http.Request, data interface{}) error {
 }
 
 // doJSONBuffered performs a buffered json request (see DoJSON for more information).
-func (c *Client) doJSONBuffered(req *http.Request, reqBodyBuffer []byte, data interface{}) error { // nolint[funlen]
+func (c *client) doJSONBuffered(req *http.Request, reqBodyBuffer []byte, data interface{}) error { // nolint[funlen]
 	req.Header.Set("Accept", "application/vnd.protonmail.v1+json")
 
 	var cancelRequest context.CancelFunc
@@ -350,7 +401,7 @@ func (c *Client) doJSONBuffered(req *http.Request, reqBodyBuffer []byte, data in
 	return nil
 }
 
-func (c *Client) readAllMinSpeed(data io.Reader, cancelRequest context.CancelFunc) ([]byte, error) {
+func (c *client) readAllMinSpeed(data io.Reader, cancelRequest context.CancelFunc) ([]byte, error) {
 	firstReadTimeout := c.cm.GetConfig().FirstReadTimeout
 	if firstReadTimeout == 0 {
 		firstReadTimeout = 5 * time.Minute
@@ -372,7 +423,7 @@ func (c *Client) readAllMinSpeed(data io.Reader, cancelRequest context.CancelFun
 	return ioutil.ReadAll(&buffer)
 }
 
-func (c *Client) refreshAccessToken() (err error) {
+func (c *client) refreshAccessToken() (err error) {
 	c.log.Debug("Refreshing token")
 
 	refreshToken := c.cm.GetToken(c.userID)
@@ -390,7 +441,7 @@ func (c *Client) refreshAccessToken() (err error) {
 	return
 }
 
-func (c *Client) handleStatusUnauthorized(req *http.Request, reqBodyBuffer []byte, res *http.Response, retry bool) (retryRes *http.Response, err error) {
+func (c *client) handleStatusUnauthorized(req *http.Request, reqBodyBuffer []byte, res *http.Response, retry bool) (retryRes *http.Response, err error) {
 	c.log.Info("Handling unauthorized status")
 
 	// If this is not a retry, then it is the first time handling status unauthorized,

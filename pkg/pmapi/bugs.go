@@ -131,7 +131,7 @@ func writeMultipartReport(w *multipart.Writer, rep *ReportReq) error { // nolint
 }
 
 // Report sends request as json or multipart (if has attachment).
-func (c *Client) Report(rep ReportReq) (err error) {
+func (c *client) Report(rep ReportReq) (err error) {
 	rep.Client = c.cm.GetConfig().ClientID
 	rep.ClientVersion = c.cm.GetConfig().AppVersion
 	rep.ClientType = EmailClientType
@@ -174,12 +174,12 @@ func (c *Client) Report(rep ReportReq) (err error) {
 }
 
 // ReportBug is old. Use Report instead.
-func (c *Client) ReportBug(os, osVersion, title, description, username, email string) (err error) {
+func (c *client) ReportBug(os, osVersion, title, description, username, email string) (err error) {
 	return c.ReportBugWithEmailClient(os, osVersion, title, description, username, email, "")
 }
 
 // ReportBugWithEmailClient is old. Use Report instead.
-func (c *Client) ReportBugWithEmailClient(os, osVersion, title, description, username, email, emailClient string) (err error) {
+func (c *client) ReportBugWithEmailClient(os, osVersion, title, description, username, email, emailClient string) (err error) {
 	bugReq := ReportReq{
 		OS:          os,
 		OSVersion:   osVersion,
@@ -194,7 +194,7 @@ func (c *Client) ReportBugWithEmailClient(os, osVersion, title, description, use
 }
 
 // ReportCrash is old. Use sentry instead.
-func (c *Client) ReportCrash(stacktrace string) (err error) {
+func (c *client) ReportCrash(stacktrace string) (err error) {
 	crashReq := ReportReq{
 		Client:        c.cm.GetConfig().ClientID,
 		ClientVersion: c.cm.GetConfig().AppVersion,

@@ -186,7 +186,7 @@ func unlockKeyRingNoErrorWhenAlreadyUnlocked(kr *pmcrypto.KeyRing, passphrase []
 // ErrNoKeyringAvailable represents an error caused by a keyring being nil or having no entities.
 var ErrNoKeyringAvailable = errors.New("no keyring available")
 
-func (c *Client) encrypt(plain string, signer *pmcrypto.KeyRing) (armored string, err error) {
+func (c *client) encrypt(plain string, signer *pmcrypto.KeyRing) (armored string, err error) {
 	return encrypt(c.kr, plain, signer)
 }
 
@@ -203,7 +203,7 @@ func encrypt(encrypter *pmcrypto.KeyRing, plain string, signer *pmcrypto.KeyRing
 	return pgpMessage.GetArmored()
 }
 
-func (c *Client) decrypt(armored string) (plain string, err error) {
+func (c *client) decrypt(armored string) (plain string, err error) {
 	return decrypt(c.kr, armored)
 }
 
@@ -222,7 +222,7 @@ func decrypt(decrypter *pmcrypto.KeyRing, armored string) (plainBody string, err
 	return plainMessage.GetString(), nil
 }
 
-func (c *Client) sign(plain string) (armoredSignature string, err error) {
+func (c *client) sign(plain string) (armoredSignature string, err error) {
 	if c.kr == nil {
 		return "", ErrNoKeyringAvailable
 	}
@@ -234,7 +234,7 @@ func (c *Client) sign(plain string) (armoredSignature string, err error) {
 	return pgpSignature.GetArmored()
 }
 
-func (c *Client) verify(plain, amroredSignature string) (err error) {
+func (c *client) verify(plain, amroredSignature string) (err error) {
 	plainMessage := pmcrypto.NewPlainMessageFromString(plain)
 	pgpSignature, err := pmcrypto.NewPGPSignatureFromArmored(amroredSignature)
 	if err != nil {

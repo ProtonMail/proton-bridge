@@ -18,11 +18,8 @@
 package bridge
 
 import (
-	"io"
-
-	pmcrypto "github.com/ProtonMail/gopenpgp/crypto"
 	"github.com/ProtonMail/proton-bridge/internal/bridge/credentials"
-	pmapi "github.com/ProtonMail/proton-bridge/pkg/pmapi" // mockgen needs this to be given an explicit import name
+	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 )
 
 type Configer interface {
@@ -41,62 +38,6 @@ type PreferenceProvider interface {
 
 type PanicHandler interface {
 	HandlePanic()
-}
-
-type ClientManager interface {
-	GetClient(userID string) *pmapi.Client
-	GetAnonymousClient() *pmapi.Client
-	GetBridgeAuthChannel() chan pmapi.ClientAuth
-	AllowProxy()
-	DisallowProxy()
-}
-
-type PMAPIProvider interface {
-	Auth(username, password string, info *pmapi.AuthInfo) (*pmapi.Auth, error)
-	AuthInfo(username string) (*pmapi.AuthInfo, error)
-	AuthRefresh(token string) (*pmapi.Auth, error)
-	Unlock(mailboxPassword string) (kr *pmcrypto.KeyRing, err error)
-	UnlockAddresses(passphrase []byte) error
-	CurrentUser() (*pmapi.User, error)
-	UpdateUser() (*pmapi.User, error)
-	Addresses() pmapi.AddressList
-
-	Logout()
-
-	GetEvent(eventID string) (*pmapi.Event, error)
-
-	CountMessages(addressID string) ([]*pmapi.MessagesCount, error)
-	ListMessages(filter *pmapi.MessagesFilter) ([]*pmapi.Message, int, error)
-	GetMessage(apiID string) (*pmapi.Message, error)
-	Import([]*pmapi.ImportMsgReq) ([]*pmapi.ImportMsgRes, error)
-	DeleteMessages(apiIDs []string) error
-	LabelMessages(apiIDs []string, labelID string) error
-	UnlabelMessages(apiIDs []string, labelID string) error
-	MarkMessagesRead(apiIDs []string) error
-	MarkMessagesUnread(apiIDs []string) error
-
-	ListLabels() ([]*pmapi.Label, error)
-	CreateLabel(label *pmapi.Label) (*pmapi.Label, error)
-	UpdateLabel(label *pmapi.Label) (*pmapi.Label, error)
-	DeleteLabel(labelID string) error
-	EmptyFolder(labelID string, addressID string) error
-
-	ReportBugWithEmailClient(os, osVersion, title, description, username, email, emailClient string) error
-	SendSimpleMetric(category, action, label string) error
-
-	Auth2FA(twoFactorCode string, auth *pmapi.Auth) (*pmapi.Auth2FA, error)
-
-	GetMailSettings() (pmapi.MailSettings, error)
-	GetContactEmailByEmail(string, int, int) ([]pmapi.ContactEmail, error)
-	GetContactByID(string) (pmapi.Contact, error)
-	DecryptAndVerifyCards([]pmapi.Card) ([]pmapi.Card, error)
-	GetPublicKeysForEmail(string) ([]pmapi.PublicKey, bool, error)
-	SendMessage(string, *pmapi.SendMessageReq) (sent, parent *pmapi.Message, err error)
-	CreateDraft(m *pmapi.Message, parent string, action int) (created *pmapi.Message, err error)
-	CreateAttachment(att *pmapi.Attachment, r io.Reader, sig io.Reader) (created *pmapi.Attachment, err error)
-	KeyRingForAddressID(string) (kr *pmcrypto.KeyRing)
-
-	GetAttachment(id string) (att io.ReadCloser, err error)
 }
 
 type CredentialsStorer interface {

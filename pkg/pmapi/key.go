@@ -46,7 +46,7 @@ type PublicKey struct {
 }
 
 // PublicKeys returns the public keys of the given email addresses.
-func (c *Client) PublicKeys(emails []string) (keys map[string]*pmcrypto.KeyRing, err error) {
+func (c *client) PublicKeys(emails []string) (keys map[string]*pmcrypto.KeyRing, err error) {
 	if len(emails) == 0 {
 		err = fmt.Errorf("pmapi: cannot get public keys: no email address provided")
 		return
@@ -86,7 +86,7 @@ const (
 )
 
 // GetPublicKeysForEmail returns all sending public keys for the given email address.
-func (c *Client) GetPublicKeysForEmail(email string) (keys []PublicKey, internal bool, err error) {
+func (c *client) GetPublicKeysForEmail(email string) (keys []PublicKey, internal bool, err error) {
 	email = url.QueryEscape(email)
 
 	var req *http.Request
@@ -121,7 +121,7 @@ type KeySaltRes struct {
 }
 
 // GetKeySalts sends request to get list of key salts (n.b. locked route).
-func (c *Client) GetKeySalts() (keySalts []KeySalt, err error) {
+func (c *client) GetKeySalts() (keySalts []KeySalt, err error) {
 	var req *http.Request
 	if req, err = c.NewRequest("GET", "/keys/salts", nil); err != nil {
 		return

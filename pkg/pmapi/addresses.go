@@ -160,7 +160,7 @@ func ConstructAddress(headerEmail string, addressEmail string) string {
 }
 
 // GetAddresses requests all of current user addresses (without pagination).
-func (c *Client) GetAddresses() (addresses AddressList, err error) {
+func (c *client) GetAddresses() (addresses AddressList, err error) {
 	req, err := c.NewRequest("GET", "/addresses", nil)
 	if err != nil {
 		return
@@ -174,12 +174,12 @@ func (c *Client) GetAddresses() (addresses AddressList, err error) {
 	return res.Addresses, res.Err()
 }
 
-func (c *Client) Addresses() AddressList {
+func (c *client) Addresses() AddressList {
 	return c.addresses
 }
 
 // UnlockAddresses unlocks all keys for all addresses of current user.
-func (c *Client) UnlockAddresses(passphrase []byte) (err error) {
+func (c *client) UnlockAddresses(passphrase []byte) (err error) {
 	for _, a := range c.addresses {
 		if a.HasKeys == MissingKeys {
 			continue
@@ -195,7 +195,7 @@ func (c *Client) UnlockAddresses(passphrase []byte) (err error) {
 	return
 }
 
-func (c *Client) KeyRingForAddressID(addrID string) *pmcrypto.KeyRing {
+func (c *client) KeyRingForAddressID(addrID string) *pmcrypto.KeyRing {
 	addr := c.addresses.ByID(addrID)
 	if addr == nil {
 		addr = c.addresses.Main()

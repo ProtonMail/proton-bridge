@@ -178,7 +178,7 @@ func writeAttachment(w *multipart.Writer, att *Attachment, r io.Reader, sig io.R
 // CreateAttachment uploads an attachment. It must be already encrypted and contain a MessageID.
 //
 // The returned created attachment contains the new attachment ID and its size.
-func (c *Client) CreateAttachment(att *Attachment, r io.Reader, sig io.Reader) (created *Attachment, err error) {
+func (c *client) CreateAttachment(att *Attachment, r io.Reader, sig io.Reader) (created *Attachment, err error) {
 	req, w, err := c.NewMultipartRequest("POST", "/attachments")
 	if err != nil {
 		return
@@ -211,7 +211,7 @@ type UpdateAttachmentSignatureReq struct {
 	Signature string
 }
 
-func (c *Client) UpdateAttachmentSignature(attachmentID, signature string) (err error) {
+func (c *client) UpdateAttachmentSignature(attachmentID, signature string) (err error) {
 	updateReq := &UpdateAttachmentSignatureReq{signature}
 	req, err := c.NewJSONRequest("PUT", "/attachments/"+attachmentID+"/signature", updateReq)
 	if err != nil {
@@ -227,7 +227,7 @@ func (c *Client) UpdateAttachmentSignature(attachmentID, signature string) (err 
 }
 
 // DeleteAttachment removes an attachment. message is the message ID, att is the attachment ID.
-func (c *Client) DeleteAttachment(attID string) (err error) {
+func (c *client) DeleteAttachment(attID string) (err error) {
 	req, err := c.NewRequest("DELETE", "/attachments/"+attID, nil)
 	if err != nil {
 		return
@@ -243,7 +243,7 @@ func (c *Client) DeleteAttachment(attID string) (err error) {
 }
 
 // GetAttachment gets an attachment's content. The returned data is encrypted.
-func (c *Client) GetAttachment(id string) (att io.ReadCloser, err error) {
+func (c *client) GetAttachment(id string) (att io.ReadCloser, err error) {
 	if id == "" {
 		err = errors.New("pmapi: cannot get an attachment with an empty id")
 		return

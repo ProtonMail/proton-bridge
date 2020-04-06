@@ -117,7 +117,7 @@ type ImportMsgRes struct {
 }
 
 // Import imports messages to the user's account.
-func (c *Client) Import(reqs []*ImportMsgReq) (resps []*ImportMsgRes, err error) {
+func (c *client) Import(reqs []*ImportMsgReq) (resps []*ImportMsgRes, err error) {
 	importReq := &ImportReq{Messages: reqs}
 
 	req, w, err := c.NewMultipartRequest("POST", "/import")

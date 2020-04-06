@@ -146,7 +146,7 @@ func findPanicSender(s *SentryThreads, err error) string {
 }
 
 // ReportSentryCrash reports a sentry crash with stacktrace from all goroutines.
-func (c *Client) ReportSentryCrash(reportErr error) (err error) {
+func (c *client) ReportSentryCrash(reportErr error) (err error) {
 	if reportErr == nil {
 		return
 	}

@@ -172,11 +172,11 @@ type LatestEventRes struct {
 
 // GetEvent returns a summary of events that occurred since last. To get the latest event,
 // provide an empty last value. The latest event is always empty.
-func (c *Client) GetEvent(last string) (event *Event, err error) {
+func (c *client) GetEvent(last string) (event *Event, err error) {
 	return c.getEvent(last, 1)
 }
 
-func (c *Client) getEvent(last string, numberOfMergedEvents int) (event *Event, err error) {
+func (c *client) getEvent(last string, numberOfMergedEvents int) (event *Event, err error) {
 	var req *http.Request
 	if last == "" {
 		req, err = c.NewRequest("GET", "/events/latest", nil)

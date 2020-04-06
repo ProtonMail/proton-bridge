@@ -33,7 +33,6 @@ import (
 	"time"
 
 	pmcrypto "github.com/ProtonMail/gopenpgp/crypto"
-	"github.com/ProtonMail/proton-bridge/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/internal/events"
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
 	"github.com/ProtonMail/proton-bridge/pkg/message"
@@ -47,7 +46,7 @@ type smtpUser struct {
 	eventListener listener.Listener
 	backend       *smtpBackend
 	user          bridgeUser
-	client        bridge.PMAPIProvider
+	client        pmapi.Client
 	storeUser     storeUserProvider
 	addressID     string
 }

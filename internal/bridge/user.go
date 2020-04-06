@@ -30,7 +30,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	"github.com/pkg/errors"
-	logrus "github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 )
 
 // ErrLoggedOutUser is sent to IMAP and SMTP if user exists, password is OK but user is logged out from bridge.
@@ -38,11 +38,11 @@ var ErrLoggedOutUser = errors.New("bridge account is logged out, use bridge to l
 
 // User is a struct on top of API client and credentials store.
 type User struct {
-	log          *logrus.Entry
-	panicHandler PanicHandler
-	listener     listener.Listener
-	clientMan    ClientManager
-	credStorer   CredentialsStorer
+	log           *logrus.Entry
+	panicHandler  PanicHandler
+	listener      listener.Listener
+	clientManager *pmapi.ClientManager
+	credStorer    CredentialsStorer
 
 	imapUpdatesChannel chan interface{}
 
@@ -66,7 +66,7 @@ func newUser(
 	userID string,
 	eventListener listener.Listener,
 	credStorer CredentialsStorer,
-	clientMan ClientManager,
+	clientManager *pmapi.ClientManager,
 	storeCache *store.Cache,
 	storeDir string,
 ) (u *User, err error) {
@@ -79,22 +79,22 @@ func newUser(
 	}
 
 	u = &User{
-		log:          log,
-		panicHandler: panicHandler,
-		listener:     eventListener,
-		credStorer:   credStorer,
-		clientMan:    clientMan,
-		storeCache:   storeCache,
-		storePath:    getUserStorePath(storeDir, userID),
-		userID:       userID,
-		creds:        creds,
+		log:           log,
+		panicHandler:  panicHandler,
+		listener:      eventListener,
+		credStorer:    credStorer,
+		clientManager: clientManager,
+		storeCache:    storeCache,
+		storePath:     getUserStorePath(storeDir, userID),
+		userID:        userID,
+		creds:         creds,
 	}
 
 	return
 }
 
-func (u *User) client() PMAPIProvider {
-	return u.clientMan.GetClient(u.userID)
+func (u *User) client() pmapi.Client {
+	return u.clientManager.GetClient(u.userID)
 }
 
 // init initialises a bridge user. This includes reloading its credentials from the credentials store
@@ -295,7 +295,7 @@ func getUserStorePath(storeDir string, userID string) (path string) {
 // GetTemporaryPMAPIClient returns an authorised PMAPI client.
 // Do not use! It's only for backward compatibility of old SMTP and IMAP implementations.
 // After proper refactor of SMTP and IMAP remove this method.
-func (u *User) GetTemporaryPMAPIClient() PMAPIProvider {
+func (u *User) GetTemporaryPMAPIClient() pmapi.Client {
 	return u.client()
 }
 
