@@ -45,3 +45,11 @@ func (api *FakePMAPI) CreateAttachment(attachment *pmapi.Attachment, data io.Rea
 	attachment.KeyPackets = base64.StdEncoding.EncodeToString(bytes)
 	return attachment, nil
 }
+
+func (api *FakePMAPI) DeleteAttachment(attachmentID string) error {
+	if err := api.checkAndRecordCall(GET, "/attachments/"+attachmentID, nil); err != nil {
+		return err
+	}
+
+	return nil
+}

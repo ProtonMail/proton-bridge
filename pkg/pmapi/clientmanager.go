@@ -15,10 +15,17 @@ var defaultProxyUseDuration = 24 * time.Hour
 
 // ClientManager is a manager of clients.
 type ClientManager struct {
+	// newClient is used to create new Clients. By default this creates pmapi clients but it can be overridden to
+	// create other types of clients (e.g. for integration tests).
+	newClient func(userID string) Client
+
 	config       *ClientConfig
 	roundTripper http.RoundTripper
 
-	clients       map[string]*client
+	// TODO: These need to be Client (not *client) because we might need to create *FakePMAPI for integration tests.
+	// But that screws up other things like not being able to clear sensitive info during logout
+	// unless the client interface contains a method for that.
+	clients       map[string]Client
 	clientsLocker sync.Locker
 
 	tokens       map[string]string
@@ -38,11 +45,13 @@ type ClientManager struct {
 	proxyUseDuration time.Duration
 }
 
+// ClientAuth holds an API auth produced by a Client for a specific user.
 type ClientAuth struct {
 	UserID string
 	Auth   *Auth
 }
 
+// tokenExpiration manages the expiration of an access token.
 type tokenExpiration struct {
 	timer  *time.Timer
 	cancel chan (struct{})
@@ -58,7 +67,7 @@ func NewClientManager(config *ClientConfig) (cm *ClientManager) {
 		config:       config,
 		roundTripper: http.DefaultTransport,
 
-		clients:       make(map[string]*client),
+		clients:       make(map[string]Client),
 		clientsLocker: &sync.Mutex{},
 
 		tokens:       make(map[string]string),
@@ -78,9 +87,17 @@ func NewClientManager(config *ClientConfig) (cm *ClientManager) {
 		proxyUseDuration: defaultProxyUseDuration,
 	}
 
+	cm.newClient = func(userID string) Client {
+		return newClient(cm, userID)
+	}
+
 	go cm.forwardClientAuths()
 
 	return
+}
+
+func (cm *ClientManager) SetClientConstructor(f func(userID string) Client) {
+	cm.newClient = f
 }
 
 // SetRoundTripper sets the roundtripper used by clients created by this client manager.
@@ -100,7 +117,7 @@ func (cm *ClientManager) GetClient(userID string) Client {
 		return client
 	}
 
-	cm.clients[userID] = newClient(cm, userID)
+	cm.clients[userID] = cm.newClient(userID)
 
 	return cm.clients[userID]
 }
@@ -108,10 +125,10 @@ func (cm *ClientManager) GetClient(userID string) Client {
 // GetAnonymousClient returns an anonymous client. It replaces any anonymous client that was already created.
 func (cm *ClientManager) GetAnonymousClient() Client {
 	if client, ok := cm.clients[""]; ok {
-		client.Logout()
+		client.DeleteAuth()
 	}
 
-	cm.clients[""] = newClient(cm, "")
+	cm.clients[""] = cm.newClient("")
 
 	return cm.clients[""]
 }
@@ -127,10 +144,10 @@ func (cm *ClientManager) LogoutClient(userID string) {
 	delete(cm.clients, userID)
 
 	go func() {
-		if err := client.logout(); err != nil {
-			// TODO: Try again! This should loop until it succeeds (might fail the first time due to internet).
+		if err := client.DeleteAuth(); err != nil {
+			// TODO: Retry if the request failed.
 		}
-		client.clearSensitiveData()
+		client.ClearData()
 		cm.clearToken(userID)
 	}()
 

@@ -37,7 +37,7 @@ func (storeMailbox *Mailbox) GetMessage(apiID string) (*Message, error) {
 // FetchMessage fetches the message with the given `apiID`, stores it in the database, and returns a new store message
 // wrapping it.
 func (storeMailbox *Mailbox) FetchMessage(apiID string) (*Message, error) {
-	msg, err := storeMailbox.api().GetMessage(apiID)
+	msg, err := storeMailbox.client().GetMessage(apiID)
 	if err != nil {
 		return nil, err
 	}
@@ -62,7 +62,7 @@ func (storeMailbox *Mailbox) ImportMessage(msg *pmapi.Message, body []byte, labe
 		LabelIDs:  labelIDs,
 	}
 
-	res, err := storeMailbox.api().Import([]*pmapi.ImportMsgReq{importReqs})
+	res, err := storeMailbox.client().Import([]*pmapi.ImportMsgReq{importReqs})
 	if err == nil && len(res) > 0 {
 		msg.ID = res[0].MessageID
 	}
@@ -79,7 +79,7 @@ func (storeMailbox *Mailbox) LabelMessages(apiIDs []string) error {
 		"mailbox":  storeMailbox.Name,
 	}).Trace("Labeling messages")
 	defer storeMailbox.pollNow()
-	return storeMailbox.api().LabelMessages(apiIDs, storeMailbox.labelID)
+	return storeMailbox.client().LabelMessages(apiIDs, storeMailbox.labelID)
 }
 
 // UnlabelMessages removes the label by calling an API.
@@ -92,7 +92,7 @@ func (storeMailbox *Mailbox) UnlabelMessages(apiIDs []string) error {
 		"mailbox":  storeMailbox.Name,
 	}).Trace("Unlabeling messages")
 	defer storeMailbox.pollNow()
-	return storeMailbox.api().UnlabelMessages(apiIDs, storeMailbox.labelID)
+	return storeMailbox.client().UnlabelMessages(apiIDs, storeMailbox.labelID)
 }
 
 // MarkMessagesRead marks the message read by calling an API.
@@ -116,7 +116,7 @@ func (storeMailbox *Mailbox) MarkMessagesRead(apiIDs []string) error {
 			ids = append(ids, apiID)
 		}
 	}
-	return storeMailbox.api().MarkMessagesRead(ids)
+	return storeMailbox.client().MarkMessagesRead(ids)
 }
 
 // MarkMessagesUnread marks the message unread by calling an API.
@@ -128,7 +128,7 @@ func (storeMailbox *Mailbox) MarkMessagesUnread(apiIDs []string) error {
 		"mailbox":  storeMailbox.Name,
 	}).Trace("Marking messages as unread")
 	defer storeMailbox.pollNow()
-	return storeMailbox.api().MarkMessagesUnread(apiIDs)
+	return storeMailbox.client().MarkMessagesUnread(apiIDs)
 }
 
 // MarkMessagesStarred adds the Starred label by calling an API.
@@ -141,7 +141,7 @@ func (storeMailbox *Mailbox) MarkMessagesStarred(apiIDs []string) error {
 		"mailbox":  storeMailbox.Name,
 	}).Trace("Marking messages as starred")
 	defer storeMailbox.pollNow()
-	return storeMailbox.api().LabelMessages(apiIDs, pmapi.StarredLabel)
+	return storeMailbox.client().LabelMessages(apiIDs, pmapi.StarredLabel)
 }
 
 // MarkMessagesUnstarred removes the Starred label by calling an API.
@@ -154,7 +154,7 @@ func (storeMailbox *Mailbox) MarkMessagesUnstarred(apiIDs []string) error {
 		"mailbox":  storeMailbox.Name,
 	}).Trace("Marking messages as unstarred")
 	defer storeMailbox.pollNow()
-	return storeMailbox.api().UnlabelMessages(apiIDs, pmapi.StarredLabel)
+	return storeMailbox.client().UnlabelMessages(apiIDs, pmapi.StarredLabel)
 }
 
 // DeleteMessages deletes messages.
@@ -197,21 +197,21 @@ func (storeMailbox *Mailbox) DeleteMessages(apiIDs []string) error {
 			}
 		}
 		if len(messageIDsToUnlabel) > 0 {
-			if err := storeMailbox.api().UnlabelMessages(messageIDsToUnlabel, storeMailbox.labelID); err != nil {
+			if err := storeMailbox.client().UnlabelMessages(messageIDsToUnlabel, storeMailbox.labelID); err != nil {
 				log.WithError(err).Warning("Cannot unlabel before deleting")
 			}
 		}
 		if len(messageIDsToDelete) > 0 {
-			if err := storeMailbox.api().DeleteMessages(messageIDsToDelete); err != nil {
+			if err := storeMailbox.client().DeleteMessages(messageIDsToDelete); err != nil {
 				return err
 			}
 		}
 	case pmapi.DraftLabel:
-		if err := storeMailbox.api().DeleteMessages(apiIDs); err != nil {
+		if err := storeMailbox.client().DeleteMessages(apiIDs); err != nil {
 			return err
 		}
 	default:
-		if err := storeMailbox.api().UnlabelMessages(apiIDs, storeMailbox.labelID); err != nil {
+		if err := storeMailbox.client().UnlabelMessages(apiIDs, storeMailbox.labelID); err != nil {
 			return err
 		}
 	}

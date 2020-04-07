@@ -43,10 +43,10 @@ func testNewUser(m mocks) *User {
 	m.pmapiClient.EXPECT().ListMessages(gomock.Any()).Return([]*pmapi.Message{}, 0, nil)
 	m.pmapiClient.EXPECT().GetEvent(testPMAPIEvent.EventID).Return(testPMAPIEvent, nil).AnyTimes()
 
-	user, err := newUser(m.PanicHandler, "user", m.eventListener, m.credentialsStore, m.pmapiClient, m.storeCache, "/tmp")
+	user, err := newUser(m.PanicHandler, "user", m.eventListener, m.credentialsStore, m.clientManager, m.storeCache, "/tmp")
 	assert.NoError(m.t, err)
 
-	err = user.init(nil, m.pmapiClient)
+	err = user.init(nil)
 	assert.NoError(m.t, err)
 
 	return user
@@ -69,10 +69,10 @@ func testNewUserForLogout(m mocks) *User {
 	m.pmapiClient.EXPECT().ListMessages(gomock.Any()).Return([]*pmapi.Message{}, 0, nil).AnyTimes()
 	m.pmapiClient.EXPECT().GetEvent(testPMAPIEvent.EventID).Return(testPMAPIEvent, nil).AnyTimes()
 
-	user, err := newUser(m.PanicHandler, "user", m.eventListener, m.credentialsStore, m.pmapiClient, m.storeCache, "/tmp")
+	user, err := newUser(m.PanicHandler, "user", m.eventListener, m.credentialsStore, m.clientManager, m.storeCache, "/tmp")
 	assert.NoError(m.t, err)
 
-	err = user.init(nil, m.pmapiClient)
+	err = user.init(nil)
 	assert.NoError(m.t, err)
 
 	return user

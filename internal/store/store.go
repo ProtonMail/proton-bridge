@@ -89,10 +89,10 @@ var (
 
 // Store is local user storage, which handles the synchronization between IMAP and PM API.
 type Store struct {
-	panicHandler PanicHandler
-	eventLoop    *eventLoop
-	user         BridgeUser
-	api          PMAPIProvider
+	panicHandler  PanicHandler
+	eventLoop     *eventLoop
+	user          BridgeUser
+	clientManager ClientManager
 
 	log *logrus.Entry
 
@@ -111,13 +111,13 @@ type Store struct {
 func New(
 	panicHandler PanicHandler,
 	user BridgeUser,
-	api PMAPIProvider,
+	clientManager ClientManager,
 	events listener.Listener,
 	path string,
 	cache *Cache,
 ) (store *Store, err error) {
-	if user == nil || api == nil || events == nil || cache == nil {
-		return nil, fmt.Errorf("missing parameters - user: %v, api: %v, events: %v, cache: %v", user, api, events, cache)
+	if user == nil || clientManager == nil || events == nil || cache == nil {
+		return nil, fmt.Errorf("missing parameters - user: %v, api: %v, events: %v, cache: %v", user, clientManager, events, cache)
 	}
 
 	l := log.WithField("user", user.ID())
@@ -138,14 +138,14 @@ func New(
 	}
 
 	store = &Store{
-		panicHandler: panicHandler,
-		api:          api,
-		user:         user,
-		cache:        cache,
-		filePath:     path,
-		db:           bdb,
-		lock:         &sync.RWMutex{},
-		log:          l,
+		panicHandler:  panicHandler,
+		clientManager: clientManager,
+		user:          user,
+		cache:         cache,
+		filePath:      path,
+		db:            bdb,
+		lock:          &sync.RWMutex{},
+		log:           l,
 	}
 
 	if err = store.init(firstInit); err != nil {
@@ -158,7 +158,7 @@ func New(
 	}
 
 	if user.IsConnected() {
-		store.eventLoop = newEventLoop(cache, store, api, user, events)
+		store.eventLoop = newEventLoop(cache, store, user, events)
 		go func() {
 			defer store.panicHandler.HandlePanic()
 			store.eventLoop.start()
@@ -261,10 +261,14 @@ func (store *Store) init(firstInit bool) (err error) {
 	return err
 }
 
+func (store *Store) client() pmapi.Client {
+	return store.clientManager.GetClient(store.UserID())
+}
+
 // initCounts initialises the counts for each label. It tries to use the API first to fetch the labels but if
 // the API is unavailable for whatever reason it tries to fetch the labels locally.
 func (store *Store) initCounts() (labels []*pmapi.Label, err error) {
-	if labels, err = store.api.ListLabels(); err != nil {
+	if labels, err = store.client().ListLabels(); err != nil {
 		store.log.WithError(err).Warn("Could not list API labels. Trying with local labels.")
 		if labels, err = store.getLabelsFromLocalStorage(); err != nil {
 			store.log.WithError(err).Error("Cannot list local labels")

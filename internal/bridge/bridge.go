@@ -48,7 +48,7 @@ type Bridge struct {
 	panicHandler  PanicHandler
 	events        listener.Listener
 	version       string
-	clientManager *pmapi.ClientManager
+	clientManager ClientManager
 	credStorer    CredentialsStorer
 	storeCache    *store.Cache
 
@@ -76,7 +76,7 @@ func New(
 	panicHandler PanicHandler,
 	eventListener listener.Listener,
 	version string,
-	clientManager *pmapi.ClientManager,
+	clientManager ClientManager,
 	credStorer CredentialsStorer,
 ) *Bridge {
 	log.Trace("Creating new bridge")
@@ -185,7 +185,7 @@ func (b *Bridge) watchAPIAuths() {
 
 		user, ok := b.hasUser(auth.UserID)
 		if !ok {
-			logrus.Info("User is not added to bridge yet")
+			logrus.WithField("userID", auth.UserID).Info("User not available for auth update")
 			continue
 		}
 

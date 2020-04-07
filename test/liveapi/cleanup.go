@@ -24,7 +24,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func cleanup(client *pmapi.Client) error {
+func cleanup(client pmapi.Client) error {
 	if err := cleanSystemFolders(client); err != nil {
 		return errors.Wrap(err, "failed to clean system folders")
 	}
@@ -37,7 +37,7 @@ func cleanup(client *pmapi.Client) error {
 	return nil
 }
 
-func cleanSystemFolders(client *pmapi.Client) error {
+func cleanSystemFolders(client pmapi.Client) error {
 	for _, labelID := range []string{pmapi.InboxLabel, pmapi.SentLabel, pmapi.ArchiveLabel, pmapi.AllMailLabel, pmapi.DraftLabel} {
 		for {
 			messages, total, err := client.ListMessages(&pmapi.MessagesFilter{
@@ -69,7 +69,7 @@ func cleanSystemFolders(client *pmapi.Client) error {
 	return nil
 }
 
-func cleanCustomLables(client *pmapi.Client) error {
+func cleanCustomLables(client pmapi.Client) error {
 	labels, err := client.ListLabels()
 	if err != nil {
 		return errors.Wrap(err, "failed to list labels")
@@ -87,7 +87,7 @@ func cleanCustomLables(client *pmapi.Client) error {
 	return nil
 }
 
-func cleanTrash(client *pmapi.Client) error {
+func cleanTrash(client pmapi.Client) error {
 	for {
 		_, total, err := client.ListMessages(&pmapi.MessagesFilter{
 			PageSize: 1,
@@ -110,7 +110,7 @@ func cleanTrash(client *pmapi.Client) error {
 	return nil
 }
 
-func emptyFolder(client *pmapi.Client, labelID string) error {
+func emptyFolder(client pmapi.Client, labelID string) error {
 	err := client.EmptyFolder(labelID, "")
 	if err != nil {
 		return err

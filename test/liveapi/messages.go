@@ -31,10 +31,7 @@ import (
 )
 
 func (cntrl *Controller) AddUserMessage(username string, message *pmapi.Message) error {
-	client, ok := cntrl.pmapiByUsername[username]
-	if !ok {
-		return fmt.Errorf("user %s does not exist", username)
-	}
+	client := cntrl.clientManager.GetClient(username)
 
 	body, err := buildMessage(client, message)
 	if err != nil {
@@ -64,7 +61,7 @@ func (cntrl *Controller) AddUserMessage(username string, message *pmapi.Message)
 	return nil
 }
 
-func buildMessage(client *pmapi.Client, message *pmapi.Message) (*bytes.Buffer, error) {
+func buildMessage(client pmapi.Client, message *pmapi.Message) (*bytes.Buffer, error) {
 	if err := encryptMessage(client, message); err != nil {
 		return nil, errors.Wrap(err, "failed to encrypt message")
 	}
@@ -79,7 +76,7 @@ func buildMessage(client *pmapi.Client, message *pmapi.Message) (*bytes.Buffer, 
 	return body, nil
 }
 
-func encryptMessage(client *pmapi.Client, message *pmapi.Message) error {
+func encryptMessage(client pmapi.Client, message *pmapi.Message) error {
 	addresses, err := client.GetAddresses()
 	if err != nil {
 		return errors.Wrap(err, "failed to get address")

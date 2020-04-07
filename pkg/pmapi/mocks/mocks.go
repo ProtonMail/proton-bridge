@@ -256,6 +256,21 @@ func (mr *MockClientMockRecorder) EmptyFolder(arg0, arg1 interface{}) *gomock.Ca
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EmptyFolder", reflect.TypeOf((*MockClient)(nil).EmptyFolder), arg0, arg1)
 }
 
+// GetAddresses mocks base method
+func (m *MockClient) GetAddresses() (pmapi.AddressList, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAddresses")
+	ret0, _ := ret[0].(pmapi.AddressList)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetAddresses indicates an expected call of GetAddresses
+func (mr *MockClientMockRecorder) GetAddresses() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAddresses", reflect.TypeOf((*MockClient)(nil).GetAddresses))
+}
+
 // GetAttachment mocks base method
 func (m *MockClient) GetAttachment(arg0 string) (io.ReadCloser, error) {
 	m.ctrl.T.Helper()

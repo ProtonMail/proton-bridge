@@ -129,11 +129,11 @@ type mocks struct {
 	config           *bridgemocks.MockConfiger
 	PanicHandler     *bridgemocks.MockPanicHandler
 	prefProvider     *bridgemocks.MockPreferenceProvider
+	clientManager    *bridgemocks.MockClientManager
 	credentialsStore *bridgemocks.MockCredentialsStorer
 	eventListener    *MockListener
 
-	pmapiClient   *pmapimocks.MockClient
-	clientManager *pmapimocks.MockClientManager
+	pmapiClient *pmapimocks.MockClient
 
 	storeCache *store.Cache
 }
@@ -151,11 +151,11 @@ func initMocks(t *testing.T) mocks {
 		config:           bridgemocks.NewMockConfiger(mockCtrl),
 		PanicHandler:     bridgemocks.NewMockPanicHandler(mockCtrl),
 		prefProvider:     bridgemocks.NewMockPreferenceProvider(mockCtrl),
+		clientManager:    bridgemocks.NewMockClientManager(mockCtrl),
 		credentialsStore: bridgemocks.NewMockCredentialsStorer(mockCtrl),
 		eventListener:    NewMockListener(mockCtrl),
 
-		pmapiClient:   pmapimocks.NewMockClient(mockCtrl),
-		clientManager: pmapimocks.NewMockClientManager(mockCtrl),
+		pmapiClient: pmapimocks.NewMockClient(mockCtrl),
 
 		storeCache: store.NewCache(cacheFile.Name()),
 	}
@@ -214,7 +214,7 @@ func testNewBridge(t *testing.T, m mocks) *Bridge {
 	m.config.EXPECT().GetDBDir().Return("/tmp").AnyTimes()
 	m.config.EXPECT().GetIMAPCachePath().Return(cacheFile.Name()).AnyTimes()
 	m.eventListener.EXPECT().Add(events.UpgradeApplicationEvent, gomock.Any())
-	m.clientManager.EXPECT().GetClient(gomock.Any()).Return(m.pmapiClient)
+	m.clientManager.EXPECT().GetBridgeAuthChannel().Return(make(chan *pmapi.ClientAuth))
 
 	bridge := New(m.config, m.prefProvider, m.PanicHandler, m.eventListener, "ver", m.clientManager, m.credentialsStore)
 

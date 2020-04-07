@@ -258,8 +258,8 @@ func (storeMailbox *Mailbox) pollNow() {
 }
 
 // api is a proxy for the store's `PMAPIProvider`.
-func (storeMailbox *Mailbox) api() PMAPIProvider {
-	return storeMailbox.store.api
+func (storeMailbox *Mailbox) client() pmapi.Client {
+	return storeMailbox.store.client()
 }
 
 // update is a proxy for the store's db's `Update`.

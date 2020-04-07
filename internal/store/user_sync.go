@@ -34,7 +34,7 @@ const syncIDsToBeDeletedKey = "ids_to_be_deleted"
 
 // updateCountsFromServer will download and set the counts.
 func (store *Store) updateCountsFromServer() error {
-	counts, err := store.api.CountMessages("")
+	counts, err := store.client().CountMessages("")
 	if err != nil {
 		return errors.Wrap(err, "cannot update counts from server")
 	}
@@ -144,7 +144,8 @@ func (store *Store) triggerSync() {
 
 		store.log.WithField("isIncomplete", syncState.isIncomplete()).Info("Store sync started")
 
-		err := syncAllMail(store.panicHandler, store, store.api, syncState)
+		// TODO: Is it okay to pass in a client directly? What if it is logged out in the meantime?
+		err := syncAllMail(store.panicHandler, store, store.client(), syncState)
 		if err != nil {
 			log.WithError(err).Error("Store sync failed")
 			return

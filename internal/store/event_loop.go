@@ -42,13 +42,12 @@ type eventLoop struct {
 
 	log *logrus.Entry
 
-	store     *Store
-	apiClient PMAPIProvider
-	user      BridgeUser
-	events    listener.Listener
+	store  *Store
+	user   BridgeUser
+	events listener.Listener
 }
 
-func newEventLoop(cache *Cache, store *Store, api PMAPIProvider, user BridgeUser, events listener.Listener) *eventLoop {
+func newEventLoop(cache *Cache, store *Store, user BridgeUser, events listener.Listener) *eventLoop {
 	eventLog := log.WithField("userID", user.ID())
 	eventLog.Trace("Creating new event loop")
 
@@ -60,10 +59,9 @@ func newEventLoop(cache *Cache, store *Store, api PMAPIProvider, user BridgeUser
 
 		log: eventLog,
 
-		store:     store,
-		apiClient: api,
-		user:      user,
-		events:    events,
+		store:  store,
+		user:   user,
+		events: events,
 	}
 }
 
@@ -71,10 +69,14 @@ func (loop *eventLoop) IsRunning() bool {
 	return loop.isRunning
 }
 
+func (loop *eventLoop) client() pmapi.Client {
+	return loop.store.client()
+}
+
 func (loop *eventLoop) setFirstEventID() (err error) {
 	loop.log.Info("Setting first event ID")
 
-	event, err := loop.apiClient.GetEvent("")
+	event, err := loop.client().GetEvent("")
 	if err != nil {
 		loop.log.WithError(err).Error("Could not get latest event ID")
 		return
@@ -240,7 +242,7 @@ func (loop *eventLoop) processNextEvent() (more bool, err error) { // nolint[fun
 	loop.pollCounter++
 
 	var event *pmapi.Event
-	if event, err = loop.apiClient.GetEvent(loop.currentEventID); err != nil {
+	if event, err = loop.client().GetEvent(loop.currentEventID); err != nil {
 		return false, errors.Wrap(err, "failed to get event")
 	}
 
@@ -321,7 +323,7 @@ func (loop *eventLoop) processAddresses(log *logrus.Entry, addressEvents []*pmap
 	log.Debug("Processing address change event")
 
 	// Get old addresses for comparisons before updating user.
-	oldList := loop.apiClient.Addresses()
+	oldList := loop.client().Addresses()
 
 	if err = loop.user.UpdateUser(); err != nil {
 		if logoutErr := loop.user.Logout(); logoutErr != nil {
@@ -363,7 +365,7 @@ func (loop *eventLoop) processAddresses(log *logrus.Entry, addressEvents []*pmap
 		}
 	}
 
-	if err = loop.store.createOrUpdateAddressInfo(loop.apiClient.Addresses()); err != nil {
+	if err = loop.store.createOrUpdateAddressInfo(loop.client().Addresses()); err != nil {
 		return errors.Wrap(err, "failed to update address IDs in store")
 	}
 
@@ -430,7 +432,7 @@ func (loop *eventLoop) processMessages(eventLog *logrus.Entry, messages []*pmapi
 
 				msgLog.WithError(err).Warning("Message was not present in DB. Trying fetch...")
 
-				if msg, err = loop.apiClient.GetMessage(message.ID); err != nil {
+				if msg, err = loop.client().GetMessage(message.ID); err != nil {
 					if err == pmapi.ErrNoSuchAPIID {
 						msgLog.WithError(err).Warn("Skipping message update because message exists neither in local DB nor on API")
 						err = nil

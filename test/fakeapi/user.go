@@ -50,6 +50,10 @@ func (api *FakePMAPI) UpdateUser() (*pmapi.User, error) {
 	return api.user, nil
 }
 
+func (api *FakePMAPI) GetAddresses() (pmapi.AddressList, error) {
+	return *api.addresses, nil
+}
+
 func (api *FakePMAPI) Addresses() pmapi.AddressList {
 	return *api.addresses
 }

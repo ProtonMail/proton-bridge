@@ -61,7 +61,7 @@ func (store *Store) GetAddressInfo() (addrs []AddressInfo, err error) {
 	}
 
 	// Store does not have address info yet, need to build it first from API.
-	addressList := store.api.Addresses()
+	addressList := store.client().Addresses()
 	if addressList == nil {
 		err = errors.New("addresses unavailable")
 		store.log.WithError(err).Error("Could not get user addresses from API")

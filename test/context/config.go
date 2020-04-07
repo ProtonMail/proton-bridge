@@ -28,7 +28,6 @@ import (
 
 type fakeConfig struct {
 	dir string
-	tm  *pmapi.TokenManager
 }
 
 // newFakeConfig creates a temporary folder for files.
@@ -41,7 +40,6 @@ func newFakeConfig() *fakeConfig {
 
 	return &fakeConfig{
 		dir: dir,
-		tm:  pmapi.NewTokenManager(),
 	}
 }
 
@@ -53,8 +51,6 @@ func (c *fakeConfig) GetAPIConfig() *pmapi.ClientConfig {
 		AppVersion: "Bridge_" + os.Getenv("VERSION"),
 		ClientID:   "bridge",
 		SentryDSN:  "",
-		// TokenManager should not be required, but PMAPI still doesn't handle not-set cases everywhere.
-		TokenManager: c.tm,
 	}
 }
 func (c *fakeConfig) GetDBDir() string {

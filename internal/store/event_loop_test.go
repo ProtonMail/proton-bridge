@@ -39,21 +39,21 @@ func TestEventLoopProcessMoreEvents(t *testing.T) {
 		// Doesn't matter which IDs are used.
 		// This test is trying to see whether event loop will immediately process
 		// next event if there is `More` of them.
-		m.api.EXPECT().GetEvent("latestEventID").Return(&pmapi.Event{
+		m.client.EXPECT().GetEvent("latestEventID").Return(&pmapi.Event{
 			EventID: "event50",
 			More:    1,
 		}, nil),
-		m.api.EXPECT().GetEvent("event50").Return(&pmapi.Event{
+		m.client.EXPECT().GetEvent("event50").Return(&pmapi.Event{
 			EventID: "event70",
 			More:    0,
 		}, nil),
-		m.api.EXPECT().GetEvent("event70").Return(&pmapi.Event{
+		m.client.EXPECT().GetEvent("event70").Return(&pmapi.Event{
 			EventID: "event71",
 			More:    0,
 		}, nil),
 	)
 	m.newStoreNoEvents(true)
-	m.api.EXPECT().ListMessages(gomock.Any()).Return([]*pmapi.Message{}, 0, nil).AnyTimes()
+	m.client.EXPECT().ListMessages(gomock.Any()).Return([]*pmapi.Message{}, 0, nil).AnyTimes()
 
 	// Event loop runs in goroutine and will be stopped by deferred mock clearing.
 	go m.store.eventLoop.start()
@@ -78,12 +78,12 @@ func TestEventLoopUpdateMessageFromLoop(t *testing.T) {
 	newSubject := "new subject"
 
 	// First sync will add message with old subject to database.
-	m.api.EXPECT().GetMessage("msg1").Return(&pmapi.Message{
+	m.client.EXPECT().GetMessage("msg1").Return(&pmapi.Message{
 		ID:      "msg1",
 		Subject: subject,
 	}, nil)
 	// Event will update the subject.
-	m.api.EXPECT().GetEvent("latestEventID").Return(&pmapi.Event{
+	m.client.EXPECT().GetEvent("latestEventID").Return(&pmapi.Event{
 		EventID: "event1",
 		Messages: []*pmapi.EventMessage{{
 			EventItem: pmapi.EventItem{

@@ -56,6 +56,7 @@ func TestNewBridgeWithDisconnectedUser(t *testing.T) {
 	m.credentialsStore.EXPECT().Get("user").Return(testCredentialsDisconnected, nil).Times(2)
 	m.pmapiClient.EXPECT().ListLabels().Return(nil, errors.New("ErrUnauthorized"))
 	m.pmapiClient.EXPECT().Addresses().Return(nil)
+	m.clientManager.EXPECT().GetClient("user").Return(m.pmapiClient)
 
 	checkBridgeNew(t, m, []*credentials.Credentials{testCredentialsDisconnected})
 }
@@ -66,13 +67,14 @@ func TestNewBridgeWithConnectedUserWithBadToken(t *testing.T) {
 
 	m.credentialsStore.EXPECT().List().Return([]string{"user"}, nil)
 	m.credentialsStore.EXPECT().Get("user").Return(testCredentials, nil).Times(2)
+	m.clientManager.EXPECT().GetClient("user").Return(m.pmapiClient).MinTimes(1)
 
 	m.credentialsStore.EXPECT().Logout("user").Return(nil)
 	m.pmapiClient.EXPECT().AuthRefresh("token").Return(nil, errors.New("bad token"))
 
 	m.eventListener.EXPECT().Emit(events.LogoutEvent, "user")
 	m.eventListener.EXPECT().Emit(events.UserRefreshEvent, "user")
-	m.pmapiClient.EXPECT().Logout().Return(nil)
+	m.pmapiClient.EXPECT().Logout()
 	m.credentialsStore.EXPECT().Logout("user").Return(nil)
 	m.credentialsStore.EXPECT().Get("user").Return(testCredentialsDisconnected, nil)
 	m.eventListener.EXPECT().Emit(events.CloseConnectionEvent, "user@pm.me")
@@ -84,10 +86,14 @@ func TestNewBridgeWithConnectedUser(t *testing.T) {
 	m := initMocks(t)
 	defer m.ctrl.Finish()
 
+	m.credentialsStore.EXPECT().List().Return([]string{"user"}, nil)
+	m.credentialsStore.EXPECT().Get("user").Return(testCredentials, nil).Times(2)
+	m.credentialsStore.EXPECT().UpdateToken("user", ":reftok").Return(nil)
+
 	m.pmapiClient.EXPECT().AuthRefresh("token").Return(testAuthRefresh, nil)
-	m.credentialsStore.EXPECT().Get("user").Return(testCredentials, nil)
 	m.pmapiClient.EXPECT().Unlock(testCredentials.MailboxPassword).Return(nil, nil)
 	m.pmapiClient.EXPECT().UnlockAddresses([]byte(testCredentials.MailboxPassword)).Return(nil)
+	m.clientManager.EXPECT().GetClient("user").Return(m.pmapiClient).MinTimes(1)
 
 	// Set up mocks for store initialisation for the authorized user.
 	m.pmapiClient.EXPECT().ListLabels().Return([]*pmapi.Label{}, nil)
@@ -96,10 +102,6 @@ func TestNewBridgeWithConnectedUser(t *testing.T) {
 	m.pmapiClient.EXPECT().GetEvent("").Return(testPMAPIEvent, nil)
 	m.pmapiClient.EXPECT().ListMessages(gomock.Any()).Return([]*pmapi.Message{}, 0, nil).AnyTimes()
 	m.pmapiClient.EXPECT().GetEvent(testPMAPIEvent.EventID).Return(testPMAPIEvent, nil)
-
-	m.credentialsStore.EXPECT().List().Return([]string{"user"}, nil)
-	m.credentialsStore.EXPECT().Get("user").Return(testCredentials, nil).Times(2)
-	m.credentialsStore.EXPECT().UpdateToken("user", ":reftok").Return(nil)
 
 	checkBridgeNew(t, m, []*credentials.Credentials{testCredentials})
 }

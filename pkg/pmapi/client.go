@@ -98,20 +98,28 @@ type Client interface {
 	Auth(username, password string, info *AuthInfo) (*Auth, error)
 	AuthInfo(username string) (*AuthInfo, error)
 	AuthRefresh(token string) (*Auth, error)
-	Unlock(mailboxPassword string) (kr *pmcrypto.KeyRing, err error)
-	UnlockAddresses(passphrase []byte) error
+	Auth2FA(twoFactorCode string, auth *Auth) (*Auth2FA, error)
+	Logout()
+	DeleteAuth() error
+	ClearData()
+
 	CurrentUser() (*User, error)
 	UpdateUser() (*User, error)
+	Unlock(mailboxPassword string) (kr *pmcrypto.KeyRing, err error)
+	UnlockAddresses(passphrase []byte) error
+
+	GetAddresses() (addresses AddressList, err error)
 	Addresses() AddressList
 
-	Logout()
-
 	GetEvent(eventID string) (*Event, error)
+
+	SendMessage(string, *SendMessageReq) (sent, parent *Message, err error)
+	CreateDraft(m *Message, parent string, action int) (created *Message, err error)
+	Import([]*ImportMsgReq) ([]*ImportMsgRes, error)
 
 	CountMessages(addressID string) ([]*MessagesCount, error)
 	ListMessages(filter *MessagesFilter) ([]*Message, int, error)
 	GetMessage(apiID string) (*Message, error)
-	Import([]*ImportMsgReq) ([]*ImportMsgRes, error)
 	DeleteMessages(apiIDs []string) error
 	LabelMessages(apiIDs []string, labelID string) error
 	UnlabelMessages(apiIDs []string, labelID string) error
@@ -128,20 +136,17 @@ type Client interface {
 	SendSimpleMetric(category, action, label string) error
 	ReportSentryCrash(reportErr error) (err error)
 
-	Auth2FA(twoFactorCode string, auth *Auth) (*Auth2FA, error)
-
 	GetMailSettings() (MailSettings, error)
 	GetContactEmailByEmail(string, int, int) ([]ContactEmail, error)
 	GetContactByID(string) (Contact, error)
 	DecryptAndVerifyCards([]Card) ([]Card, error)
-	GetPublicKeysForEmail(string) ([]PublicKey, bool, error)
-	SendMessage(string, *SendMessageReq) (sent, parent *Message, err error)
-	CreateDraft(m *Message, parent string, action int) (created *Message, err error)
-	CreateAttachment(att *Attachment, r io.Reader, sig io.Reader) (created *Attachment, err error)
-	DeleteAttachment(attID string) (err error)
-	KeyRingForAddressID(string) (kr *pmcrypto.KeyRing)
 
 	GetAttachment(id string) (att io.ReadCloser, err error)
+	CreateAttachment(att *Attachment, r io.Reader, sig io.Reader) (created *Attachment, err error)
+	DeleteAttachment(attID string) (err error)
+
+	KeyRingForAddressID(string) (kr *pmcrypto.KeyRing)
+	GetPublicKeysForEmail(string) ([]PublicKey, bool, error)
 }
 
 // client is a client of the protonmail API. It implements the Client interface.

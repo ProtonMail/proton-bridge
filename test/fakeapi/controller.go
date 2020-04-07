@@ -44,8 +44,8 @@ type Controller struct {
 	log *logrus.Entry
 }
 
-func NewController() *Controller {
-	return &Controller{
+func NewController(cm *pmapi.ClientManager) (cntrl *Controller) {
+	cntrl = &Controller{
 		lock:               &sync.RWMutex{},
 		fakeAPIs:           []*FakePMAPI{},
 		calls:              []*fakeCall{},
@@ -62,10 +62,12 @@ func NewController() *Controller {
 
 		log: logrus.WithField("pkg", "fakeapi-controller"),
 	}
-}
 
-func (cntrl *Controller) GetClient(userID string) *FakePMAPI {
-	fakeAPI := New(cntrl)
-	cntrl.fakeAPIs = append(cntrl.fakeAPIs, fakeAPI)
-	return fakeAPI
+	cm.SetClientConstructor(func(userID string) pmapi.Client {
+		fakeAPI := New(cntrl)
+		cntrl.fakeAPIs = append(cntrl.fakeAPIs, fakeAPI)
+		return fakeAPI
+	})
+
+	return
 }

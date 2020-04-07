@@ -464,15 +464,13 @@ func (c *client) AuthRefresh(uidAndRefreshToken string) (auth *Auth, err error) 
 	return auth, err
 }
 
-// Logout instructs the client manager to log out this client.
+// TODO: Should this even be a client method? Or just a method on the client manager?
 func (c *client) Logout() {
 	c.cm.LogoutClient(c.userID)
 }
 
-// TODO: Need a method like IsConnected() to be able to detect whether a client is logged in or not.
-
-// logout logs the current user out.
-func (c *client) logout() (err error) {
+// DeleteAuth deletes the API session.
+func (c *client) DeleteAuth() (err error) {
 	req, err := c.NewRequest("DELETE", "/auth", nil)
 	if err != nil {
 		return
@@ -490,7 +488,10 @@ func (c *client) logout() (err error) {
 	return
 }
 
-func (c *client) clearSensitiveData() {
+// TODO: Need a method like IsConnected() to be able to detect whether a client is logged in or not.
+
+// ClearData clears sensitive data from the client.
+func (c *client) ClearData() {
 	c.uid = ""
 	c.accessToken = ""
 	c.kr = nil

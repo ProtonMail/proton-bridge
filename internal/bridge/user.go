@@ -41,7 +41,7 @@ type User struct {
 	log           *logrus.Entry
 	panicHandler  PanicHandler
 	listener      listener.Listener
-	clientManager *pmapi.ClientManager
+	clientManager ClientManager
 	credStorer    CredentialsStorer
 
 	imapUpdatesChannel chan interface{}
@@ -66,7 +66,7 @@ func newUser(
 	userID string,
 	eventListener listener.Listener,
 	credStorer CredentialsStorer,
-	clientManager *pmapi.ClientManager,
+	clientManager ClientManager,
 	storeCache *store.Cache,
 	storeDir string,
 ) (u *User, err error) {
@@ -139,7 +139,7 @@ func (u *User) init(idleUpdates chan interface{}) (err error) {
 		}
 		u.store = nil
 	}
-	store, err := store.New(u.panicHandler, u, u.client(), u.listener, u.storePath, u.storeCache)
+	store, err := store.New(u.panicHandler, u, u.clientManager, u.listener, u.storePath, u.storeCache)
 	if err != nil {
 		return errors.Wrap(err, "failed to create store")
 	}

@@ -28,7 +28,6 @@ import (
 // a specific mailbox with helper functions to get IMAP UID, sequence
 // numbers and similar.
 type Message struct {
-	api PMAPIProvider
 	msg *pmapi.Message
 
 	store        *Store
@@ -37,7 +36,6 @@ type Message struct {
 
 func newStoreMessage(storeMailbox *Mailbox, msg *pmapi.Message) *Message {
 	return &Message{
-		api:          storeMailbox.store.api,
 		msg:          msg,
 		store:        storeMailbox.store,
 		storeMailbox: storeMailbox,

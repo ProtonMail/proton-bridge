@@ -54,7 +54,7 @@ func (store *Store) CreateDraft(
 	message.Attachments = nil
 
 	draftAction := store.getDraftAction(message)
-	draft, err := store.api.CreateDraft(message, parentID, draftAction)
+	draft, err := store.client().CreateDraft(message, parentID, draftAction)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "failed to create draft")
 	}
@@ -105,7 +105,7 @@ func (store *Store) createAttachment(kr *pmcrypto.KeyRing, attachment *pmapi.Att
 		return nil, errors.Wrap(err, "failed to encrypt attachment")
 	}
 
-	createdAttachment, err := store.api.CreateAttachment(attachment, encReader, sigReader)
+	createdAttachment, err := store.client().CreateAttachment(attachment, encReader, sigReader)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create attachment")
 	}
@@ -116,7 +116,7 @@ func (store *Store) createAttachment(kr *pmcrypto.KeyRing, attachment *pmapi.Att
 // SendMessage sends the message.
 func (store *Store) SendMessage(messageID string, req *pmapi.SendMessageReq) error {
 	defer store.eventLoop.pollNow()
-	_, _, err := store.api.SendMessage(messageID, req)
+	_, _, err := store.client().SendMessage(messageID, req)
 	return err
 }
 

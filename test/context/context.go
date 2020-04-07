@@ -21,6 +21,7 @@ package context
 import (
 	"github.com/ProtonMail/proton-bridge/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
+	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	"github.com/ProtonMail/proton-bridge/test/accounts"
 	"github.com/ProtonMail/proton-bridge/test/mocks"
 	"github.com/sirupsen/logrus"
@@ -44,6 +45,7 @@ type TestContext struct {
 	bridge          *bridge.Bridge
 	bridgeLastError error
 	credStore       bridge.CredentialsStorer
+	clientManager   *pmapi.ClientManager
 
 	// IMAP related variables.
 	imapAddr          string
@@ -70,11 +72,14 @@ func New() *TestContext {
 
 	cfg := newFakeConfig()
 
+	cm := pmapi.NewClientManager(cfg.GetAPIConfig())
+
 	ctx := &TestContext{
 		t:                 &bddT{},
 		cfg:               cfg,
 		listener:          listener.New(),
-		pmapiController:   newPMAPIController(),
+		pmapiController:   newPMAPIController(cm),
+		clientManager:     cm,
 		testAccounts:      newTestAccounts(),
 		credStore:         newFakeCredStore(),
 		imapClients:       make(map[string]*mocks.IMAPClient),

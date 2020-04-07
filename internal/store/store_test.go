@@ -24,9 +24,9 @@ import (
 	"sync"
 	"testing"
 
-	bridgemocks "github.com/ProtonMail/proton-bridge/internal/bridge/mocks"
-	storeMocks "github.com/ProtonMail/proton-bridge/internal/store/mocks"
+	storemocks "github.com/ProtonMail/proton-bridge/internal/store/mocks"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
+	pmapimocks "github.com/ProtonMail/proton-bridge/pkg/pmapi/mocks"
 	"github.com/golang/mock/gomock"
 
 	"github.com/stretchr/testify/require"
@@ -43,12 +43,13 @@ const (
 type mocksForStore struct {
 	tb testing.TB
 
-	ctrl         *gomock.Controller
-	events       *storeMocks.MockListener
-	api          *bridgemocks.MockPMAPIProvider
-	user         *storeMocks.MockBridgeUser
-	panicHandler *storeMocks.MockPanicHandler
-	store        *Store
+	ctrl          *gomock.Controller
+	events        *storemocks.MockListener
+	user          *storemocks.MockBridgeUser
+	client        *pmapimocks.MockClient
+	clientManager *storemocks.MockClientManager
+	panicHandler  *storemocks.MockPanicHandler
+	store         *Store
 
 	tmpDir string
 	cache  *Cache
@@ -57,12 +58,13 @@ type mocksForStore struct {
 func initMocks(tb testing.TB) (*mocksForStore, func()) {
 	ctrl := gomock.NewController(tb)
 	mocks := &mocksForStore{
-		tb:           tb,
-		ctrl:         ctrl,
-		events:       storeMocks.NewMockListener(ctrl),
-		api:          bridgemocks.NewMockPMAPIProvider(ctrl),
-		user:         storeMocks.NewMockBridgeUser(ctrl),
-		panicHandler: storeMocks.NewMockPanicHandler(ctrl),
+		tb:            tb,
+		ctrl:          ctrl,
+		events:        storemocks.NewMockListener(ctrl),
+		user:          storemocks.NewMockBridgeUser(ctrl),
+		client:        pmapimocks.NewMockClient(ctrl),
+		clientManager: storemocks.NewMockClientManager(ctrl),
+		panicHandler:  storemocks.NewMockPanicHandler(ctrl),
 	}
 
 	// Called during clean-up.
@@ -92,13 +94,15 @@ func (mocks *mocksForStore) newStoreNoEvents(combinedMode bool) { //nolint[unpar
 	mocks.user.EXPECT().IsConnected().Return(true)
 	mocks.user.EXPECT().IsCombinedAddressMode().Return(combinedMode)
 
-	mocks.api.EXPECT().Addresses().Return(pmapi.AddressList{
+	mocks.clientManager.EXPECT().GetClient("userID").AnyTimes().Return(mocks.client)
+
+	mocks.client.EXPECT().Addresses().Return(pmapi.AddressList{
 		{ID: addrID1, Email: addr1, Type: pmapi.OriginalAddress, Receive: pmapi.CanReceive},
 		{ID: addrID2, Email: addr2, Type: pmapi.AliasAddress, Receive: pmapi.CanReceive},
 	})
-	mocks.api.EXPECT().ListLabels()
-	mocks.api.EXPECT().CountMessages("")
-	mocks.api.EXPECT().GetEvent(gomock.Any()).
+	mocks.client.EXPECT().ListLabels()
+	mocks.client.EXPECT().CountMessages("")
+	mocks.client.EXPECT().GetEvent(gomock.Any()).
 		Return(&pmapi.Event{
 			EventID: "latestEventID",
 		}, nil).AnyTimes()
@@ -106,7 +110,7 @@ func (mocks *mocksForStore) newStoreNoEvents(combinedMode bool) { //nolint[unpar
 	// We want to wait until first sync has finished.
 	firstSyncWaiter := sync.WaitGroup{}
 	firstSyncWaiter.Add(1)
-	mocks.api.EXPECT().
+	mocks.client.EXPECT().
 		ListMessages(gomock.Any()).
 		DoAndReturn(func(*pmapi.MessagesFilter) ([]*pmapi.Message, int, error) {
 			firstSyncWaiter.Done()
@@ -117,7 +121,7 @@ func (mocks *mocksForStore) newStoreNoEvents(combinedMode bool) { //nolint[unpar
 	mocks.store, err = New(
 		mocks.panicHandler,
 		mocks.user,
-		mocks.api,
+		mocks.clientManager,
 		mocks.events,
 		filepath.Join(mocks.tmpDir, "mailbox-test.db"),
 		mocks.cache,

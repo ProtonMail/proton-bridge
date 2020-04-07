@@ -20,14 +20,12 @@ package context
 import (
 	"os"
 
-	"github.com/ProtonMail/proton-bridge/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	"github.com/ProtonMail/proton-bridge/test/fakeapi"
 	"github.com/ProtonMail/proton-bridge/test/liveapi"
 )
 
 type PMAPIController interface {
-	GetClient(userID string) bridge.PMAPIProvider
 	TurnInternetConnectionOff()
 	TurnInternetConnectionOn()
 	AddUser(user *pmapi.User, addresses *pmapi.AddressList, password string, twoFAEnabled bool) error
@@ -40,19 +38,19 @@ type PMAPIController interface {
 	GetCalls(method, path string) [][]byte
 }
 
-func newPMAPIController() PMAPIController {
+func newPMAPIController(cm *pmapi.ClientManager) PMAPIController {
 	switch os.Getenv(EnvName) {
 	case EnvFake:
-		return newFakePMAPIController()
+		return newFakePMAPIController(cm)
 	case EnvLive:
-		return newLivePMAPIController()
+		return newLivePMAPIController(cm)
 	default:
 		panic("unknown env")
 	}
 }
 
-func newFakePMAPIController() PMAPIController {
-	return newFakePMAPIControllerWrap(fakeapi.NewController())
+func newFakePMAPIController(cm *pmapi.ClientManager) PMAPIController {
+	return newFakePMAPIControllerWrap(fakeapi.NewController(cm))
 }
 
 type fakePMAPIControllerWrap struct {
@@ -63,12 +61,8 @@ func newFakePMAPIControllerWrap(controller *fakeapi.Controller) PMAPIController 
 	return &fakePMAPIControllerWrap{Controller: controller}
 }
 
-func (s *fakePMAPIControllerWrap) GetClient(userID string) bridge.PMAPIProvider {
-	return s.Controller.GetClient(userID)
-}
-
-func newLivePMAPIController() PMAPIController {
-	return newLiveAPIControllerWrap(liveapi.NewController())
+func newLivePMAPIController(cm *pmapi.ClientManager) PMAPIController {
+	return newLiveAPIControllerWrap(liveapi.NewController(cm))
 }
 
 type liveAPIControllerWrap struct {
@@ -77,8 +71,4 @@ type liveAPIControllerWrap struct {
 
 func newLiveAPIControllerWrap(controller *liveapi.Controller) PMAPIController {
 	return &liveAPIControllerWrap{Controller: controller}
-}
-
-func (s *liveAPIControllerWrap) GetClient(userID string) bridge.PMAPIProvider {
-	return s.Controller.GetClient(userID)
 }

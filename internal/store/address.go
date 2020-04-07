@@ -109,5 +109,9 @@ func (storeAddress *Address) AddressID() string {
 
 // APIAddress returns the `pmapi.Address` struct.
 func (storeAddress *Address) APIAddress() *pmapi.Address {
-	return storeAddress.store.api.Addresses().ByEmail(storeAddress.address)
+	return storeAddress.client().Addresses().ByEmail(storeAddress.address)
+}
+
+func (storeAddress *Address) client() pmapi.Client {
+	return storeAddress.store.client()
 }

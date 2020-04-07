@@ -33,7 +33,7 @@ func TestNewUserNoCredentialsStore(t *testing.T) {
 
 	m.credentialsStore.EXPECT().Get("user").Return(nil, errors.New("fail"))
 
-	_, err := newUser(m.PanicHandler, "user", m.eventListener, m.credentialsStore, m.pmapiClient, m.storeCache, "/tmp")
+	_, err := newUser(m.PanicHandler, "user", m.eventListener, m.credentialsStore, m.clientManager, m.storeCache, "/tmp")
 	a.Error(t, err)
 }
 
@@ -153,10 +153,10 @@ func TestNewUser(t *testing.T) {
 }
 
 func checkNewUser(m mocks) {
-	user, _ := newUser(m.PanicHandler, "user", m.eventListener, m.credentialsStore, m.pmapiClient, m.storeCache, "/tmp")
+	user, _ := newUser(m.PanicHandler, "user", m.eventListener, m.credentialsStore, m.clientManager, m.storeCache, "/tmp")
 	defer cleanUpUserData(user)
 
-	_ = user.init(nil, m.pmapiClient)
+	_ = user.init(nil)
 
 	waitForEvents()
 
@@ -164,10 +164,10 @@ func checkNewUser(m mocks) {
 }
 
 func checkNewUserDisconnected(m mocks) {
-	user, _ := newUser(m.PanicHandler, "user", m.eventListener, m.credentialsStore, m.pmapiClient, m.storeCache, "/tmp")
+	user, _ := newUser(m.PanicHandler, "user", m.eventListener, m.credentialsStore, m.clientManager, m.storeCache, "/tmp")
 	defer cleanUpUserData(user)
 
-	_ = user.init(nil, m.pmapiClient)
+	_ = user.init(nil)
 
 	waitForEvents()
 

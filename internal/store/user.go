@@ -24,7 +24,7 @@ func (store *Store) UserID() string {
 
 // GetSpace returns used and total space in bytes.
 func (store *Store) GetSpace() (usedSpace, maxSpace uint, err error) {
-	apiUser, err := store.api.CurrentUser()
+	apiUser, err := store.client().CurrentUser()
 	if err != nil {
 		return 0, 0, err
 	}
@@ -33,7 +33,7 @@ func (store *Store) GetSpace() (usedSpace, maxSpace uint, err error) {
 
 // GetMaxUpload returns max size of attachment in bytes.
 func (store *Store) GetMaxUpload() (uint, error) {
-	apiUser, err := store.api.CurrentUser()
+	apiUser, err := store.client().CurrentUser()
 	if err != nil {
 		return 0, err
 	}

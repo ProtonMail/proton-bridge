@@ -51,3 +51,11 @@ type CredentialsStorer interface {
 	Logout(userID string) error
 	Delete(userID string) error
 }
+
+type ClientManager interface {
+	GetClient(userID string) pmapi.Client
+	GetAnonymousClient() pmapi.Client
+	AllowProxy()
+	DisallowProxy()
+	GetBridgeAuthChannel() chan pmapi.ClientAuth
+}

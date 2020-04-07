@@ -18,9 +18,7 @@
 package liveapi
 
 import (
-	"fmt"
 	"net/http"
-	"os"
 	"sync"
 
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
@@ -30,33 +28,27 @@ type Controller struct {
 	// Internal states.
 	lock                 *sync.RWMutex
 	calls                []*fakeCall
-	pmapiByUsername      map[string]*pmapi.Client
 	messageIDsByUsername map[string][]string
+	clientManager        *pmapi.ClientManager
 
 	// State controlled by test.
 	noInternetConnection bool
 }
 
-func NewController() *Controller {
-	return &Controller{
+func NewController(cm *pmapi.ClientManager) (cntrl *Controller) {
+	cntrl = &Controller{
 		lock:                 &sync.RWMutex{},
 		calls:                []*fakeCall{},
-		pmapiByUsername:      map[string]*pmapi.Client{},
 		messageIDsByUsername: map[string][]string{},
+		clientManager:        cm,
 
 		noInternetConnection: false,
 	}
-}
 
-func (cntrl *Controller) GetClient(userID string) *pmapi.Client {
-	cfg := &pmapi.ClientConfig{
-		AppVersion: fmt.Sprintf("Bridge_%s", os.Getenv("VERSION")),
-		ClientID:   "bridge-test",
-		Transport: &fakeTransport{
-			cntrl:     cntrl,
-			transport: http.DefaultTransport,
-		},
-		TokenManager: pmapi.NewTokenManager(),
-	}
-	return pmapi.NewClient(cfg, userID)
+	cm.SetRoundTripper(&fakeTransport{
+		cntrl:     cntrl,
+		transport: http.DefaultTransport,
+	})
+
+	return
 }

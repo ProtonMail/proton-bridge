@@ -39,7 +39,7 @@ func TestBridgeFinishLoginBadPassword(t *testing.T) {
 	// Set up mocks for FinishLogin.
 	err := errors.New("bad password")
 	m.pmapiClient.EXPECT().Unlock(testCredentials.MailboxPassword).Return(nil, err)
-	m.pmapiClient.EXPECT().Logout().Return(nil)
+	m.pmapiClient.EXPECT().Logout()
 
 	checkBridgeFinishLogin(t, m, testAuth, testCredentials.MailboxPassword, "", err)
 }
