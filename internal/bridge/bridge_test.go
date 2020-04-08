@@ -214,7 +214,7 @@ func testNewBridge(t *testing.T, m mocks) *Bridge {
 	m.config.EXPECT().GetDBDir().Return("/tmp").AnyTimes()
 	m.config.EXPECT().GetIMAPCachePath().Return(cacheFile.Name()).AnyTimes()
 	m.eventListener.EXPECT().Add(events.UpgradeApplicationEvent, gomock.Any())
-	m.clientManager.EXPECT().GetBridgeAuthChannel().Return(make(chan *pmapi.ClientAuth))
+	m.clientManager.EXPECT().GetAuthUpdateChannel().Return(make(chan *pmapi.ClientAuth))
 
 	bridge := New(m.config, m.prefProvider, m.PanicHandler, m.eventListener, "ver", m.clientManager, m.credentialsStore)
 

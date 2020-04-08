@@ -105,7 +105,7 @@ func (cm *ClientManager) SetRoundTripper(rt http.RoundTripper) {
 	cm.roundTripper = rt
 }
 
-// GetRoundTripper sets the roundtripper used by clients created by this client manager.
+// GetRoundTripper gets the roundtripper used by clients created by this client manager.
 func (cm *ClientManager) GetRoundTripper() (rt http.RoundTripper) {
 	return cm.roundTripper
 }
@@ -212,15 +212,14 @@ func (cm *ClientManager) IsProxyEnabled() bool {
 	return cm.host != RootURL
 }
 
-// SwitchToProxy returns a usable proxy server.
-// TODO: Perhaps the name could be better -- we aren't only switching to a proxy but also to the standard API.
-func (cm *ClientManager) SwitchToProxy() (proxy string, err error) {
+// switchToReachableServer switches to using a reachable server (either proxy or standard API).
+func (cm *ClientManager) switchToReachableServer() (proxy string, err error) {
 	cm.hostLocker.Lock()
 	defer cm.hostLocker.Unlock()
 
 	logrus.Info("Attempting to switch to a proxy")
 
-	if proxy, err = cm.proxyProvider.findProxy(); err != nil {
+	if proxy, err = cm.proxyProvider.findReachableServer(); err != nil {
 		err = errors.Wrap(err, "failed to find a usable proxy")
 		return
 	}
@@ -254,8 +253,8 @@ func (cm *ClientManager) GetToken(userID string) string {
 	return cm.tokens[userID]
 }
 
-// GetBridgeAuthChannel returns a channel on which client auths can be received.
-func (cm *ClientManager) GetBridgeAuthChannel() chan ClientAuth {
+// GetAuthUpdateChannel returns a channel on which client auths can be received.
+func (cm *ClientManager) GetAuthUpdateChannel() chan ClientAuth {
 	return cm.bridgeAuths
 }
 
@@ -346,6 +345,6 @@ func (cm *ClientManager) watchTokenExpiration(userID string) {
 		cm.clients[userID].AuthRefresh(cm.tokens[userID])
 
 	case <-expiration.cancel:
-		logrus.WithField("userID", userID).Info("Auth was refreshed before it expired")
+		logrus.WithField("userID", userID).Debug("Auth was refreshed before it expired")
 	}
 }

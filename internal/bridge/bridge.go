@@ -25,7 +25,7 @@ import (
 	"time"
 
 	"github.com/ProtonMail/proton-bridge/internal/events"
-	m "github.com/ProtonMail/proton-bridge/internal/metrics"
+	"github.com/ProtonMail/proton-bridge/internal/metrics"
 	"github.com/ProtonMail/proton-bridge/internal/preferences"
 	"github.com/ProtonMail/proton-bridge/internal/store"
 	"github.com/ProtonMail/proton-bridge/pkg/config"
@@ -117,7 +117,7 @@ func New(
 	}
 
 	if pref.GetBool(preferences.FirstStartKey) {
-		b.SendMetric(m.New(m.Setup, m.FirstStart, m.Label(version)))
+		b.SendMetric(metrics.New(metrics.Setup, metrics.FirstStart, metrics.Label(version)))
 	}
 
 	go b.heartbeat()
@@ -134,7 +134,7 @@ func (b *Bridge) heartbeat() {
 		}
 		nextTime := time.Unix(next, 0)
 		if time.Now().After(nextTime) {
-			b.SendMetric(m.New(m.Heartbeat, m.Daily, m.NoLabel))
+			b.SendMetric(metrics.New(metrics.Heartbeat, metrics.Daily, metrics.NoLabel))
 			nextTime = nextTime.Add(24 * time.Hour)
 			b.pref.Set(preferences.NextHeartbeatKey, strconv.FormatInt(nextTime.Unix(), 10))
 		}
@@ -180,7 +180,7 @@ func (b *Bridge) watchBridgeOutdated() {
 
 // watchAPIAuths receives auths from the client manager and sends them to the appropriate user.
 func (b *Bridge) watchAPIAuths() {
-	for auth := range b.clientManager.GetBridgeAuthChannel() {
+	for auth := range b.clientManager.GetAuthUpdateChannel() {
 		logrus.Debug("Bridge received auth from ClientManager")
 
 		user, ok := b.hasUser(auth.UserID)
@@ -296,6 +296,9 @@ func (b *Bridge) connectExistingUser(user *User, auth *pmapi.Auth, hashedPasswor
 
 // addNewUser adds a new bridge user to the bridge.
 func (b *Bridge) addNewUser(user *pmapi.User, auth *pmapi.Auth, hashedPassword string) (err error) {
+	b.lock.Lock()
+	defer b.lock.Unlock()
+
 	client := b.clientManager.GetClient(user.ID)
 
 	if auth, err = client.AuthRefresh(auth.GenToken()); err != nil {
@@ -325,7 +328,7 @@ func (b *Bridge) addNewUser(user *pmapi.User, auth *pmapi.Auth, hashedPassword s
 		return errors.Wrap(err, "failed to initialise user")
 	}
 
-	b.SendMetric(m.New(m.Setup, m.NewUser, m.NoLabel))
+	b.SendMetric(metrics.New(metrics.Setup, metrics.NewUser, metrics.NoLabel))
 
 	return
 }
@@ -459,7 +462,7 @@ func (b *Bridge) ReportBug(osType, osVersion, description, accountName, address,
 }
 
 // SendMetric sends a metric. We don't want to return any errors, only log them.
-func (b *Bridge) SendMetric(m m.Metric) {
+func (b *Bridge) SendMetric(m metrics.Metric) {
 	c := b.clientManager.GetClient("metric_reporter")
 	defer c.Logout()
 

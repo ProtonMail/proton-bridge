@@ -57,5 +57,5 @@ type ClientManager interface {
 	GetAnonymousClient() pmapi.Client
 	AllowProxy()
 	DisallowProxy()
-	GetBridgeAuthChannel() chan pmapi.ClientAuth
+	GetAuthUpdateChannel() chan pmapi.ClientAuth
 }

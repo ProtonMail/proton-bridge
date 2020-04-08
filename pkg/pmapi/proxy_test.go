@@ -42,7 +42,7 @@ func TestProxyProvider_FindProxy(t *testing.T) {
 	p := newProxyProvider([]string{"not used"}, "not used")
 	p.dohLookup = func(q, p string) ([]string, error) { return []string{proxy.URL}, nil }
 
-	url, err := p.findProxy()
+	url, err := p.findReachableServer()
 	require.NoError(t, err)
 	require.Equal(t, proxy.URL, url)
 }
@@ -61,7 +61,7 @@ func TestProxyProvider_FindProxy_ChooseReachableProxy(t *testing.T) {
 	p := newProxyProvider([]string{"not used"}, "not used")
 	p.dohLookup = func(q, p string) ([]string, error) { return []string{badProxy.URL, goodProxy.URL}, nil }
 
-	url, err := p.findProxy()
+	url, err := p.findReachableServer()
 	require.NoError(t, err)
 	require.Equal(t, goodProxy.URL, url)
 }
@@ -80,7 +80,7 @@ func TestProxyProvider_FindProxy_FailIfNoneReachable(t *testing.T) {
 	p := newProxyProvider([]string{"not used"}, "not used")
 	p.dohLookup = func(q, p string) ([]string, error) { return []string{badProxy.URL, anotherBadProxy.URL}, nil }
 
-	_, err := p.findProxy()
+	_, err := p.findReachableServer()
 	require.Error(t, err)
 }
 
@@ -95,8 +95,8 @@ func TestProxyProvider_FindProxy_LookupTimeout(t *testing.T) {
 	p.lookupTimeout = time.Second
 	p.dohLookup = func(q, p string) ([]string, error) { time.Sleep(2 * time.Second); return nil, nil }
 
-	// The findProxy should fail because lookup takes 2 seconds but we only allow 1 second.
-	_, err := p.findProxy()
+	// The findReachableServer should fail because lookup takes 2 seconds but we only allow 1 second.
+	_, err := p.findReachableServer()
 	require.Error(t, err)
 }
 
@@ -113,8 +113,8 @@ func TestProxyProvider_FindProxy_FindTimeout(t *testing.T) {
 	p.findTimeout = time.Second
 	p.dohLookup = func(q, p string) ([]string, error) { return []string{slowProxy.URL}, nil }
 
-	// The findProxy should fail because lookup takes 2 seconds but we only allow 1 second.
-	_, err := p.findProxy()
+	// The findReachableServer should fail because lookup takes 2 seconds but we only allow 1 second.
+	_, err := p.findReachableServer()
 	require.Error(t, err)
 }
 
@@ -131,7 +131,7 @@ func TestProxyProvider_UseProxy(t *testing.T) {
 	cm.proxyProvider = p
 
 	p.dohLookup = func(q, p string) ([]string, error) { return []string{proxy.URL}, nil }
-	url, err := cm.SwitchToProxy()
+	url, err := cm.switchToReachableServer()
 	require.NoError(t, err)
 	require.Equal(t, proxy.URL, url)
 	require.Equal(t, proxy.URL, cm.GetHost())
@@ -154,7 +154,7 @@ func TestProxyProvider_UseProxy_MultipleTimes(t *testing.T) {
 	cm.proxyProvider = p
 
 	p.dohLookup = func(q, p string) ([]string, error) { return []string{proxy1.URL}, nil }
-	url, err := cm.SwitchToProxy()
+	url, err := cm.switchToReachableServer()
 	require.NoError(t, err)
 	require.Equal(t, proxy1.URL, url)
 	require.Equal(t, proxy1.URL, cm.GetHost())
@@ -163,7 +163,7 @@ func TestProxyProvider_UseProxy_MultipleTimes(t *testing.T) {
 	time.Sleep(proxyLookupWait)
 
 	p.dohLookup = func(q, p string) ([]string, error) { return []string{proxy2.URL}, nil }
-	url, err = cm.SwitchToProxy()
+	url, err = cm.switchToReachableServer()
 	require.NoError(t, err)
 	require.Equal(t, proxy2.URL, url)
 	require.Equal(t, proxy2.URL, cm.GetHost())
@@ -172,7 +172,7 @@ func TestProxyProvider_UseProxy_MultipleTimes(t *testing.T) {
 	time.Sleep(proxyLookupWait)
 
 	p.dohLookup = func(q, p string) ([]string, error) { return []string{proxy3.URL}, nil }
-	url, err = cm.SwitchToProxy()
+	url, err = cm.switchToReachableServer()
 	require.NoError(t, err)
 	require.Equal(t, proxy3.URL, url)
 	require.Equal(t, proxy3.URL, cm.GetHost())
@@ -192,7 +192,7 @@ func TestProxyProvider_UseProxy_RevertAfterTime(t *testing.T) {
 	cm.proxyUseDuration = time.Second
 
 	p.dohLookup = func(q, p string) ([]string, error) { return []string{proxy.URL}, nil }
-	url, err := cm.SwitchToProxy()
+	url, err := cm.switchToReachableServer()
 	require.NoError(t, err)
 	require.Equal(t, proxy.URL, url)
 	require.Equal(t, proxy.URL, cm.GetHost())
@@ -214,7 +214,7 @@ func TestProxyProvider_UseProxy_RevertIfProxyStopsWorkingAndOriginalAPIIsReachab
 	cm.proxyProvider = p
 
 	p.dohLookup = func(q, p string) ([]string, error) { return []string{proxy.URL}, nil }
-	url, err := cm.SwitchToProxy()
+	url, err := cm.switchToReachableServer()
 	require.NoError(t, err)
 	require.Equal(t, proxy.URL, url)
 	require.Equal(t, proxy.URL, cm.GetHost())
@@ -225,7 +225,7 @@ func TestProxyProvider_UseProxy_RevertIfProxyStopsWorkingAndOriginalAPIIsReachab
 	time.Sleep(proxyLookupWait)
 
 	// We should now find the original API URL if it is working again.
-	url, err = cm.SwitchToProxy()
+	url, err = cm.switchToReachableServer()
 	require.NoError(t, err)
 	require.Equal(t, RootURL, url)
 	require.Equal(t, RootURL, cm.GetHost())
@@ -247,7 +247,7 @@ func TestProxyProvider_UseProxy_FindSecondAlternativeIfFirstFailsAndAPIIsStillBl
 
 	// Find a proxy.
 	p.dohLookup = func(q, p string) ([]string, error) { return []string{proxy1.URL, proxy2.URL}, nil }
-	url, err := cm.SwitchToProxy()
+	url, err := cm.switchToReachableServer()
 	require.NoError(t, err)
 	require.Equal(t, proxy1.URL, url)
 	require.Equal(t, proxy1.URL, cm.GetHost())
@@ -259,7 +259,7 @@ func TestProxyProvider_UseProxy_FindSecondAlternativeIfFirstFailsAndAPIIsStillBl
 	proxy1.Close()
 
 	// Should switch to the second proxy because both the first proxy and the protonmail API are blocked.
-	url, err = cm.SwitchToProxy()
+	url, err = cm.switchToReachableServer()
 	require.NoError(t, err)
 	require.Equal(t, proxy2.URL, url)
 	require.Equal(t, proxy2.URL, cm.GetHost())
@@ -284,7 +284,7 @@ func TestProxyProvider_DoHLookup_Google(t *testing.T) {
 func TestProxyProvider_DoHLookup_FindProxy(t *testing.T) {
 	p := newProxyProvider([]string{TestQuad9Provider, TestGoogleProvider}, TestDoHQuery)
 
-	url, err := p.findProxy()
+	url, err := p.findReachableServer()
 	require.NoError(t, err)
 	require.NotEmpty(t, url)
 }
@@ -292,7 +292,7 @@ func TestProxyProvider_DoHLookup_FindProxy(t *testing.T) {
 func TestProxyProvider_DoHLookup_FindProxyFirstProviderUnreachable(t *testing.T) {
 	p := newProxyProvider([]string{"https://unreachable", TestGoogleProvider}, TestDoHQuery)
 
-	url, err := p.findProxy()
+	url, err := p.findReachableServer()
 	require.NoError(t, err)
 	require.NotEmpty(t, url)
 }

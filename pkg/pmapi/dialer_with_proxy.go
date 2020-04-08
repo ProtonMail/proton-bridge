@@ -303,7 +303,7 @@ func (p *DialerWithPinning) dialWithProxyFallback(network, address string) (conn
 	}
 
 	// Switch to a proxy and retry the dial.
-	proxy, err := p.cm.SwitchToProxy()
+	proxy, err := p.cm.switchToReachableServer()
 	if err != nil {
 		return
 	}

@@ -72,10 +72,9 @@ func newProxyProvider(providers []string, query string) (p *proxyProvider) { // 
 	return
 }
 
-// findProxy returns a new working proxy domain. This includes the standard API.
+// findReachableServer returns a working API server (either proxy or standard API).
 // It returns an error if the process takes longer than ProxySearchTime.
-// TODO: Perhaps the name can be better -- we might also return the standard API.
-func (p *proxyProvider) findProxy() (proxy string, err error) {
+func (p *proxyProvider) findReachableServer() (proxy string, err error) {
 	if time.Now().Before(p.lastLookup.Add(proxyLookupWait)) {
 		return "", errors.New("not looking for a proxy, too soon")
 	}

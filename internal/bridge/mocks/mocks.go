@@ -264,18 +264,18 @@ func (mr *MockClientManagerMockRecorder) GetAnonymousClient() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAnonymousClient", reflect.TypeOf((*MockClientManager)(nil).GetAnonymousClient))
 }
 
-// GetBridgeAuthChannel mocks base method
-func (m *MockClientManager) GetBridgeAuthChannel() chan pmapi.ClientAuth {
+// GetAuthUpdateChannel mocks base method
+func (m *MockClientManager) GetAuthUpdateChannel() chan pmapi.ClientAuth {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetBridgeAuthChannel")
+	ret := m.ctrl.Call(m, "GetAuthUpdateChannel")
 	ret0, _ := ret[0].(chan pmapi.ClientAuth)
 	return ret0
 }
 
-// GetBridgeAuthChannel indicates an expected call of GetBridgeAuthChannel
-func (mr *MockClientManagerMockRecorder) GetBridgeAuthChannel() *gomock.Call {
+// GetAuthUpdateChannel indicates an expected call of GetBridgeAuthChannel
+func (mr *MockClientManagerMockRecorder) GetAuthUpdateChannel() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBridgeAuthChannel", reflect.TypeOf((*MockClientManager)(nil).GetBridgeAuthChannel))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAuthUpdateChannel", reflect.TypeOf((*MockClientManager)(nil).GetBridgeAuthChannel))
 }
 
 // GetClient mocks base method
