@@ -168,7 +168,7 @@ type client struct {
 func newClient(cm *ClientManager, userID string) *client {
 	return &client{
 		cm:            cm,
-		hc:            getHTTPClient(cm.GetConfig(), cm.GetRoundTripper()),
+		hc:            getHTTPClient(cm.config, cm.roundTripper),
 		userID:        userID,
 		requestLocker: &sync.Mutex{},
 		keyLocker:     &sync.Mutex{},
@@ -207,7 +207,7 @@ func (c *client) Do(req *http.Request, retryUnauthorized bool) (res *http.Respon
 func (c *client) doBuffered(req *http.Request, bodyBuffer []byte, retryUnauthorized bool) (res *http.Response, err error) { // nolint[funlen]
 	isAuthReq := strings.Contains(req.URL.Path, "/auth")
 
-	req.Header.Set("x-pm-appversion", c.cm.GetConfig().AppVersion)
+	req.Header.Set("x-pm-appversion", c.cm.config.AppVersion)
 	req.Header.Set("x-pm-apiversion", strconv.Itoa(Version))
 
 	if c.uid != "" {
@@ -310,7 +310,7 @@ func (c *client) doJSONBuffered(req *http.Request, reqBodyBuffer []byte, data in
 	req.Header.Set("Accept", "application/vnd.protonmail.v1+json")
 
 	var cancelRequest context.CancelFunc
-	if c.cm.GetConfig().MinSpeed > 0 {
+	if c.cm.config.MinSpeed > 0 {
 		var ctx context.Context
 		ctx, cancelRequest = context.WithCancel(req.Context())
 		defer func() {
@@ -326,7 +326,7 @@ func (c *client) doJSONBuffered(req *http.Request, reqBodyBuffer []byte, data in
 	defer res.Body.Close() //nolint[errcheck]
 
 	var resBody []byte
-	if c.cm.GetConfig().MinSpeed == 0 {
+	if c.cm.config.MinSpeed == 0 {
 		resBody, err = ioutil.ReadAll(res.Body)
 	} else {
 		resBody, err = c.readAllMinSpeed(res.Body, cancelRequest)
@@ -404,7 +404,7 @@ func (c *client) doJSONBuffered(req *http.Request, reqBodyBuffer []byte, data in
 }
 
 func (c *client) readAllMinSpeed(data io.Reader, cancelRequest context.CancelFunc) ([]byte, error) {
-	firstReadTimeout := c.cm.GetConfig().FirstReadTimeout
+	firstReadTimeout := c.cm.config.FirstReadTimeout
 	if firstReadTimeout == 0 {
 		firstReadTimeout = 5 * time.Minute
 	}
@@ -413,7 +413,7 @@ func (c *client) readAllMinSpeed(data io.Reader, cancelRequest context.CancelFun
 	})
 	var buffer bytes.Buffer
 	for {
-		_, err := io.CopyN(&buffer, data, c.cm.GetConfig().MinSpeed)
+		_, err := io.CopyN(&buffer, data, c.cm.config.MinSpeed)
 		timer.Stop()
 		timer.Reset(1 * time.Second)
 		if err == io.EOF {

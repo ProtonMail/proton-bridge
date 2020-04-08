@@ -100,11 +100,6 @@ func (cm *ClientManager) SetRoundTripper(rt http.RoundTripper) {
 	cm.roundTripper = rt
 }
 
-// GetRoundTripper gets the roundtripper used by clients created by this client manager.
-func (cm *ClientManager) GetRoundTripper() (rt http.RoundTripper) {
-	return cm.roundTripper
-}
-
 // GetClient returns a client for the given userID.
 // If the client does not exist already, it is created.
 func (cm *ClientManager) GetClient(userID string) Client {
@@ -239,11 +234,6 @@ func (cm *ClientManager) switchToReachableServer() (proxy string, err error) {
 	cm.host = proxy
 
 	return
-}
-
-// GetConfig returns the config used to configure clients.
-func (cm *ClientManager) GetConfig() *ClientConfig {
-	return cm.config
 }
 
 // GetToken returns the token for the given userID.

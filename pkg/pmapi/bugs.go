@@ -132,8 +132,8 @@ func writeMultipartReport(w *multipart.Writer, rep *ReportReq) error { // nolint
 
 // Report sends request as json or multipart (if has attachment).
 func (c *client) Report(rep ReportReq) (err error) {
-	rep.Client = c.cm.GetConfig().ClientID
-	rep.ClientVersion = c.cm.GetConfig().AppVersion
+	rep.Client = c.cm.config.ClientID
+	rep.ClientVersion = c.cm.config.AppVersion
 	rep.ClientType = EmailClientType
 
 	var req *http.Request
@@ -196,8 +196,8 @@ func (c *client) ReportBugWithEmailClient(os, osVersion, title, description, use
 // ReportCrash is old. Use sentry instead.
 func (c *client) ReportCrash(stacktrace string) (err error) {
 	crashReq := ReportReq{
-		Client:        c.cm.GetConfig().ClientID,
-		ClientVersion: c.cm.GetConfig().AppVersion,
+		Client:        c.cm.config.ClientID,
+		ClientVersion: c.cm.config.AppVersion,
 		ClientType:    EmailClientType,
 		OS:            runtime.GOOS,
 		Debug:         stacktrace,
