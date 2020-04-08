@@ -108,6 +108,9 @@ func (cm *ClientManager) GetRoundTripper() (rt http.RoundTripper) {
 // GetClient returns a client for the given userID.
 // If the client does not exist already, it is created.
 func (cm *ClientManager) GetClient(userID string) Client {
+	cm.clientsLocker.Lock()
+	defer cm.clientsLocker.Unlock()
+
 	if client, ok := cm.clients[userID]; ok {
 		return client
 	}
@@ -119,6 +122,9 @@ func (cm *ClientManager) GetClient(userID string) Client {
 
 // GetAnonymousClient returns an anonymous client. It replaces any anonymous client that was already created.
 func (cm *ClientManager) GetAnonymousClient() Client {
+	cm.clientsLocker.Lock()
+	defer cm.clientsLocker.Unlock()
+
 	if client, ok := cm.clients[""]; ok {
 		client.DeleteAuth()
 	}
