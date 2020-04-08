@@ -340,13 +340,8 @@ func getAPIUser(client pmapi.Client, auth *pmapi.Auth, mbPassword string) (user 
 		return
 	}
 
-	if _, err = client.Unlock(hashedPassword); err != nil {
-		log.WithError(err).Error("Could not decrypt keyring")
-		return
-	}
-
 	if user, err = client.UpdateUser(); err != nil {
-		log.WithError(err).Error("Could not update API user")
+		log.WithError(err).Error("Could not load API user")
 		return
 	}
 
@@ -439,7 +434,7 @@ func (b *Bridge) DeleteUser(userID string, clearStore bool) error {
 
 // ReportBug reports a new bug from the user.
 func (b *Bridge) ReportBug(osType, osVersion, description, accountName, address, emailClient string) error {
-	c := b.clientManager.GetClient("bug_reporter")
+	c := b.clientManager.GetAnonymousClient()
 	defer c.Logout()
 
 	title := "[Bridge] Bug"
@@ -463,7 +458,7 @@ func (b *Bridge) ReportBug(osType, osVersion, description, accountName, address,
 
 // SendMetric sends a metric. We don't want to return any errors, only log them.
 func (b *Bridge) SendMetric(m metrics.Metric) {
-	c := b.clientManager.GetClient("metric_reporter")
+	c := b.clientManager.GetAnonymousClient()
 	defer c.Logout()
 
 	cat, act, lab := m.Get()

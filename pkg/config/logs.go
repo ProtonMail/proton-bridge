@@ -65,7 +65,7 @@ func GetLogEntry(packageName string) *logrus.Entry {
 func HandlePanic(cfg *Config, output string) {
 	if !cfg.IsDevMode() {
 		// TODO: Is it okay to just create a throwaway client like this?
-		c := pmapi.NewClientManager(cfg.GetAPIConfig()).GetClient("no-user-id")
+		c := pmapi.NewClientManager(cfg.GetAPIConfig()).GetAnonymousClient()
 		defer c.Logout()
 
 		if err := c.ReportSentryCrash(fmt.Errorf(output)); err != nil {
