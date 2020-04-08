@@ -21,15 +21,14 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/ProtonMail/go-appdir"
-	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
+	"github.com/ProtonMail/proton-bridge/pkg/logs"
 	"github.com/hashicorp/go-multierror"
 )
 
 var (
-	log = GetLogEntry("config") //nolint[gochecknoglobals]
+	log = logs.GetLogEntry("config") //nolint[gochecknoglobals]
 )
 
 type appDirProvider interface {
@@ -45,7 +44,6 @@ type Config struct {
 	cacheVersion   string
 	appDirs        appDirProvider
 	appDirsVersion appDirProvider
-	apiConfig      *pmapi.ClientConfig
 }
 
 // New returns fully initialized config struct.
@@ -67,11 +65,6 @@ func newConfig(appName, version, revision, cacheVersion string, appDirs, appDirs
 		cacheVersion:   cacheVersion,
 		appDirs:        appDirs,
 		appDirsVersion: appDirsVersion,
-		apiConfig: &pmapi.ClientConfig{
-			AppVersion: strings.Title(appName) + "_" + version,
-			ClientID:   appName,
-			SentryDSN:  "https://bacfb56338a7471a9fede610046afdda:ab437b0d13f54602a0f5feb684e6d319@api.protonmail.ch/reports/sentry/8",
-		},
 	}
 }
 
@@ -227,11 +220,6 @@ func (c *Config) GetUpdateDir() string {
 // GetPreferencesPath returns path to preference file.
 func (c *Config) GetPreferencesPath() string {
 	return filepath.Join(c.appDirsVersion.UserCache(), "prefs.json")
-}
-
-// GetAPIConfig returns config for ProtonMail API.
-func (c *Config) GetAPIConfig() *pmapi.ClientConfig {
-	return c.apiConfig
 }
 
 // GetDefaultAPIPort returns default Bridge local API port.

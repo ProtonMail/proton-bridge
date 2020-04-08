@@ -54,13 +54,6 @@ var logFile *os.File //nolint[gochecknoglobals]
 var logFileRgx = regexp.MustCompile("^v.*\\.log$")           //nolint[gochecknoglobals]
 var logCrashRgx = regexp.MustCompile("^v.*_crash_.*\\.log$") //nolint[gochecknoglobals]
 
-// GetLogEntry returns logrus.Entry with PID and `packageName`.
-func GetLogEntry(packageName string) *logrus.Entry {
-	return logrus.WithFields(logrus.Fields{
-		"pkg": packageName,
-	})
-}
-
 // HandlePanic reports the crash to sentry or local file when sentry fails.
 func HandlePanic(cfg *Config, output string) {
 	if !cfg.IsDevMode() {

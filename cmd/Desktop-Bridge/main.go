@@ -51,12 +51,12 @@ import (
 	"github.com/ProtonMail/proton-bridge/internal/events"
 	"github.com/ProtonMail/proton-bridge/internal/frontend"
 	"github.com/ProtonMail/proton-bridge/internal/imap"
-	"github.com/ProtonMail/proton-bridge/internal/pmapifactory"
 	"github.com/ProtonMail/proton-bridge/internal/preferences"
 	"github.com/ProtonMail/proton-bridge/internal/smtp"
 	"github.com/ProtonMail/proton-bridge/pkg/args"
 	"github.com/ProtonMail/proton-bridge/pkg/config"
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
+	"github.com/ProtonMail/proton-bridge/pkg/logs"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	"github.com/ProtonMail/proton-bridge/pkg/updates"
 	"github.com/allan-simon/go-singleinstance"
@@ -87,7 +87,7 @@ var (
 	longVersion  = Version + " (" + Revision + ")" //nolint[gochecknoglobals]
 	buildVersion = longVersion + " " + BuildTime   //nolint[gochecknoglobals]
 
-	log = config.GetLogEntry("main") //nolint[gochecknoglobals]
+	log = logs.GetLogEntry("main") //nolint[gochecknoglobals]
 
 	// How many crashes in a row.
 	numberOfCrashes = 0 //nolint[gochecknoglobals]
@@ -274,9 +274,8 @@ func run(context *cli.Context) (contextError error) { // nolint[funlen]
 		log.Error("Could not get credentials store: ", credentialsError)
 	}
 
-	clientConfig := pmapifactory.GetClientConfig(cfg.GetAPIConfig())
-	cm := pmapi.NewClientManager(clientConfig)
-	pmapifactory.SetClientRoundTripper(cm, clientConfig, eventListener)
+	cm := pmapi.NewClientManager(cfg.GetAPIConfig())
+	cm.SetRoundTripper(cfg.GetRoundTripper(cm, eventListener))
 
 	bridgeInstance := bridge.New(cfg, pref, panicHandler, eventListener, Version, cm, credentialsStore)
 	imapBackend := imap.NewIMAPBackend(panicHandler, eventListener, cfg, bridgeInstance)

@@ -26,9 +26,10 @@ import (
 	"github.com/ProtonMail/proton-bridge/internal/frontend/types"
 	"github.com/ProtonMail/proton-bridge/pkg/config"
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
+	"github.com/ProtonMail/proton-bridge/pkg/logs"
 )
 
-var log = config.GetLogEntry("frontend-nogui") //nolint[gochecknoglobals]
+var log = logs.GetLogEntry("frontend-nogui") //nolint[gochecknoglobals]
 
 type FrontendHeadless struct{}
 

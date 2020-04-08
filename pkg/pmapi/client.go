@@ -76,9 +76,6 @@ type ClientConfig struct {
 	// The client ID.
 	ClientID string
 
-	// The sentry DSN.
-	SentryDSN string
-
 	// Timeout specifies the timeout from request to getting response headers to our API.
 	// Passed to http.Client, empty means no timeout.
 	Timeout time.Duration

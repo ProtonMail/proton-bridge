@@ -21,10 +21,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ProtonMail/proton-bridge/pkg/config"
+	"github.com/ProtonMail/proton-bridge/pkg/logs"
 )
 
-var log = config.GetLogEntry("bridgeUtils/listener") //nolint[gochecknoglobals]
+var log = logs.GetLogEntry("bridgeUtils/listener") //nolint[gochecknoglobals]
 
 // Listener has a list of channels watching for updates.
 type Listener interface {

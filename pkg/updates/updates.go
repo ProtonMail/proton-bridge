@@ -27,7 +27,7 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/ProtonMail/proton-bridge/pkg/config"
+	"github.com/ProtonMail/proton-bridge/pkg/logs"
 	"github.com/kardianos/osext"
 )
 
@@ -44,7 +44,7 @@ var (
 )
 
 var (
-	log = config.GetLogEntry("bridgeUtils/updates") //nolint[gochecknoglobals]
+	log = logs.GetLogEntry("bridgeUtils/updates") //nolint[gochecknoglobals]
 
 	installFileSuffix = map[string]string{ //nolint[gochecknoglobals]
 		"darwin":  ".dmg",

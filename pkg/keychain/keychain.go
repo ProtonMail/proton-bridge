@@ -23,7 +23,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/ProtonMail/proton-bridge/pkg/config"
+	"github.com/ProtonMail/proton-bridge/pkg/logs"
 	"github.com/docker/docker-credential-helpers/credentials"
 )
 
@@ -32,7 +32,7 @@ const (
 )
 
 var (
-	log = config.GetLogEntry("bridgeUtils/keychain") //nolint[gochecknoglobals]
+	log = logs.GetLogEntry("bridgeUtils/keychain") //nolint[gochecknoglobals]
 
 	ErrWrongKeychainURL    = errors.New("wrong keychain base URL")
 	ErrMacKeychainRebuild  = errors.New("keychain error -25293")

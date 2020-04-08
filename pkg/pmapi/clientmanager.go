@@ -6,7 +6,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/getsentry/raven-go"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )
@@ -59,10 +58,6 @@ type tokenExpiration struct {
 
 // NewClientManager creates a new ClientMan which manages clients configured with the given client config.
 func NewClientManager(config *ClientConfig) (cm *ClientManager) {
-	if err := raven.SetDSN(config.SentryDSN); err != nil {
-		logrus.WithError(err).Error("Could not set up sentry DSN")
-	}
-
 	cm = &ClientManager{
 		config:       config,
 		roundTripper: http.DefaultTransport,

@@ -22,7 +22,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/ProtonMail/proton-bridge/pkg/config"
+	"github.com/ProtonMail/proton-bridge/pkg/logs"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 )
 
@@ -30,7 +30,7 @@ import (
 var (
 	ErrNoInternetConnection = errors.New("no internet connection")
 	ErrCanNotReachAPI       = errors.New("can not reach PM API")
-	log                     = config.GetLogEntry("connection") //nolint[gochecknoglobals]
+	log                     = logs.GetLogEntry("connection") //nolint[gochecknoglobals]
 )
 
 // CheckInternetConnection does a check of API connection. It checks two of our endpoints in parallel.

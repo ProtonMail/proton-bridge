@@ -17,18 +17,27 @@
 
 // +build !pmapi_prod
 
-// Package pmapifactory creates pmapi client instances.
-package pmapifactory
+package config
 
 import (
+	"net/http"
+	"strings"
+
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 )
 
-func GetClientConfig(clientConfig *pmapi.ClientConfig) *pmapi.ClientConfig {
-	return clientConfig
+func (c *Config) GetAPIConfig() *pmapi.ClientConfig {
+	return &pmapi.ClientConfig{
+		AppVersion: strings.Title(c.appName) + "_" + c.version,
+		ClientID:   c.appName,
+	}
 }
 
 func SetClientRoundTripper(_ *pmapi.ClientManager, _ *pmapi.ClientConfig, _ listener.Listener) {
 	// Use the default roundtripper; do nothing.
+}
+
+func (c *Config) GetRoundTripper(_ *pmapi.ClientManager, _ listener.Listener) http.RoundTripper {
+	return http.DefaultTransport
 }

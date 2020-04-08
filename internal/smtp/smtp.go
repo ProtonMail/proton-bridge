@@ -18,8 +18,8 @@
 // Package smtp provides SMTP server of the Bridge.
 package smtp
 
-import "github.com/ProtonMail/proton-bridge/pkg/config"
+import "github.com/ProtonMail/proton-bridge/pkg/logs"
 
 var (
-	log = config.GetLogEntry("smtp") //nolint[gochecknoglobals]
+	log = logs.GetLogEntry("smtp") //nolint[gochecknoglobals]
 )

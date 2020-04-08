@@ -50,7 +50,6 @@ func (c *fakeConfig) GetAPIConfig() *pmapi.ClientConfig {
 	return &pmapi.ClientConfig{
 		AppVersion: "Bridge_" + os.Getenv("VERSION"),
 		ClientID:   "bridge",
-		SentryDSN:  "",
 	}
 }
 func (c *fakeConfig) GetDBDir() string {

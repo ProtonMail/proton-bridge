@@ -28,8 +28,8 @@ import (
 	"github.com/ProtonMail/proton-bridge/internal/metrics"
 	"github.com/ProtonMail/proton-bridge/internal/preferences"
 	"github.com/ProtonMail/proton-bridge/internal/store"
-	"github.com/ProtonMail/proton-bridge/pkg/config"
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
+	"github.com/ProtonMail/proton-bridge/pkg/logs"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
@@ -37,8 +37,8 @@ import (
 )
 
 var (
-	log                   = config.GetLogEntry("bridge") //nolint[gochecknoglobals]
-	isApplicationOutdated = false                        //nolint[gochecknoglobals]
+	log                   = logs.GetLogEntry("bridge") //nolint[gochecknoglobals]
+	isApplicationOutdated = false                      //nolint[gochecknoglobals]
 )
 
 // Bridge is a struct handling users.

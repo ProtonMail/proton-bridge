@@ -17,7 +17,7 @@
 
 package imap
 
-import "github.com/ProtonMail/proton-bridge/pkg/config"
+import "github.com/ProtonMail/proton-bridge/pkg/logs"
 
 const (
 	fetchMessagesWorkers    = 5 // In how many workers to fetch message (group list on IMAP).
@@ -31,5 +31,5 @@ const (
 )
 
 var (
-	log = config.GetLogEntry("imap") //nolint[gochecknoglobals]
+	log = logs.GetLogEntry("imap") //nolint[gochecknoglobals]
 )
