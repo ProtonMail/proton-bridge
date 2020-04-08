@@ -1,4 +1,4 @@
-image: gitlab.protontech.ch:4567/protonmail/desktop-bridge/ci
+image: gitlab.protontech.ch:4567/go/bridge/ci
 
 before_script:
   - eval $(ssh-agent -s)
@@ -39,8 +39,8 @@ build-ci-image:
   script:
   - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
   - docker info
-  - docker build -t gitlab.protontech.ch:4567/protonmail/desktop-bridge/ci:latest ci
-  - docker push gitlab.protontech.ch:4567/protonmail/desktop-bridge/ci:latest
+  - docker build -t gitlab.protontech.ch:4567/go/bridge/ci:latest ci
+  - docker push gitlab.protontech.ch:4567/go/bridge/ci:latest
 
 # Stage: CACHE
 
