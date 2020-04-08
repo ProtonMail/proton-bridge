@@ -134,7 +134,7 @@ func TestProxyProvider_UseProxy(t *testing.T) {
 	url, err := cm.switchToReachableServer()
 	require.NoError(t, err)
 	require.Equal(t, proxy.URL, url)
-	require.Equal(t, proxy.URL, cm.GetHost())
+	require.Equal(t, proxy.URL, cm.getHost())
 }
 
 func TestProxyProvider_UseProxy_MultipleTimes(t *testing.T) {
@@ -157,7 +157,7 @@ func TestProxyProvider_UseProxy_MultipleTimes(t *testing.T) {
 	url, err := cm.switchToReachableServer()
 	require.NoError(t, err)
 	require.Equal(t, proxy1.URL, url)
-	require.Equal(t, proxy1.URL, cm.GetHost())
+	require.Equal(t, proxy1.URL, cm.getHost())
 
 	// Have to wait so as to not get rejected.
 	time.Sleep(proxyLookupWait)
@@ -166,7 +166,7 @@ func TestProxyProvider_UseProxy_MultipleTimes(t *testing.T) {
 	url, err = cm.switchToReachableServer()
 	require.NoError(t, err)
 	require.Equal(t, proxy2.URL, url)
-	require.Equal(t, proxy2.URL, cm.GetHost())
+	require.Equal(t, proxy2.URL, cm.getHost())
 
 	// Have to wait so as to not get rejected.
 	time.Sleep(proxyLookupWait)
@@ -175,7 +175,7 @@ func TestProxyProvider_UseProxy_MultipleTimes(t *testing.T) {
 	url, err = cm.switchToReachableServer()
 	require.NoError(t, err)
 	require.Equal(t, proxy3.URL, url)
-	require.Equal(t, proxy3.URL, cm.GetHost())
+	require.Equal(t, proxy3.URL, cm.getHost())
 }
 
 func TestProxyProvider_UseProxy_RevertAfterTime(t *testing.T) {
@@ -195,10 +195,10 @@ func TestProxyProvider_UseProxy_RevertAfterTime(t *testing.T) {
 	url, err := cm.switchToReachableServer()
 	require.NoError(t, err)
 	require.Equal(t, proxy.URL, url)
-	require.Equal(t, proxy.URL, cm.GetHost())
+	require.Equal(t, proxy.URL, cm.getHost())
 
 	time.Sleep(2 * time.Second)
-	require.Equal(t, RootURL, cm.GetHost())
+	require.Equal(t, RootURL, cm.getHost())
 }
 
 func TestProxyProvider_UseProxy_RevertIfProxyStopsWorkingAndOriginalAPIIsReachable(t *testing.T) {
@@ -217,7 +217,7 @@ func TestProxyProvider_UseProxy_RevertIfProxyStopsWorkingAndOriginalAPIIsReachab
 	url, err := cm.switchToReachableServer()
 	require.NoError(t, err)
 	require.Equal(t, proxy.URL, url)
-	require.Equal(t, proxy.URL, cm.GetHost())
+	require.Equal(t, proxy.URL, cm.getHost())
 
 	// Simulate that the proxy stops working and that the standard api is reachable again.
 	proxy.Close()
@@ -228,7 +228,7 @@ func TestProxyProvider_UseProxy_RevertIfProxyStopsWorkingAndOriginalAPIIsReachab
 	url, err = cm.switchToReachableServer()
 	require.NoError(t, err)
 	require.Equal(t, RootURL, url)
-	require.Equal(t, RootURL, cm.GetHost())
+	require.Equal(t, RootURL, cm.getHost())
 }
 
 func TestProxyProvider_UseProxy_FindSecondAlternativeIfFirstFailsAndAPIIsStillBlocked(t *testing.T) {
@@ -250,7 +250,7 @@ func TestProxyProvider_UseProxy_FindSecondAlternativeIfFirstFailsAndAPIIsStillBl
 	url, err := cm.switchToReachableServer()
 	require.NoError(t, err)
 	require.Equal(t, proxy1.URL, url)
-	require.Equal(t, proxy1.URL, cm.GetHost())
+	require.Equal(t, proxy1.URL, cm.getHost())
 
 	// Have to wait so as to not get rejected.
 	time.Sleep(proxyLookupWait)
@@ -262,7 +262,7 @@ func TestProxyProvider_UseProxy_FindSecondAlternativeIfFirstFailsAndAPIIsStillBl
 	url, err = cm.switchToReachableServer()
 	require.NoError(t, err)
 	require.Equal(t, proxy2.URL, url)
-	require.Equal(t, proxy2.URL, cm.GetHost())
+	require.Equal(t, proxy2.URL, cm.getHost())
 }
 
 func TestProxyProvider_DoHLookup_Quad9(t *testing.T) {

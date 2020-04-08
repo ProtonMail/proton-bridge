@@ -297,7 +297,7 @@ func (p *DialerWithPinning) dialWithProxyFallback(network, address string) (conn
 	// If DoH is not allowed, give up. Or, if we are dialing something other than the API
 	// (e.g. we dial protonmail.com/... to check for updates), there's also no point in
 	// continuing since a proxy won't help us reach that.
-	if !p.cm.IsProxyAllowed() || host != p.cm.GetHost() {
+	if !p.cm.IsProxyAllowed() || host != p.cm.getHost() {
 		p.log.WithField("address", address).Debug("Aborting dial, cannot switch to a proxy")
 		return
 	}

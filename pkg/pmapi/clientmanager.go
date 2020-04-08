@@ -149,29 +149,29 @@ func (cm *ClientManager) LogoutClient(userID string) {
 	return
 }
 
-// GetHost returns the host to make requests to.
-// It does not include the protocol i.e. no "https://" (use GetScheme for that).
-func (cm *ClientManager) GetHost() string {
-	cm.hostLocker.Lock()
-	defer cm.hostLocker.Unlock()
-
-	return cm.host
-}
-
-// GetScheme returns the scheme with which to make requests to the host.
-func (cm *ClientManager) GetScheme() string {
-	cm.hostLocker.Lock()
-	defer cm.hostLocker.Unlock()
-
-	return cm.scheme
-}
-
 // GetRootURL returns the full root URL (scheme+host).
 func (cm *ClientManager) GetRootURL() string {
 	cm.hostLocker.Lock()
 	defer cm.hostLocker.Unlock()
 
 	return fmt.Sprintf("%v://%v", cm.scheme, cm.host)
+}
+
+// getHost returns the host to make requests to.
+// It does not include the protocol i.e. no "https://" (use getScheme for that).
+func (cm *ClientManager) getHost() string {
+	cm.hostLocker.Lock()
+	defer cm.hostLocker.Unlock()
+
+	return cm.host
+}
+
+// getScheme returns the scheme with which to make requests to the host.
+func (cm *ClientManager) getScheme() string {
+	cm.hostLocker.Lock()
+	defer cm.hostLocker.Unlock()
+
+	return cm.scheme
 }
 
 // IsProxyAllowed returns whether the user has allowed us to switch to a proxy if need be.
