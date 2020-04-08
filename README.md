@@ -2,7 +2,7 @@
 Copyright (c) 2020 Proton Technologies AG
 
 This repository holds the ProtonMail Bridge application.
-For a detailed build information see [BUILD](./BUILD.md).
+For a detailed build information see [BUILDS](./BUILDS.md).
 For licensing information see [COPYING](./COPYING.md).
 For contribution policy see [CONTRIBUTING](./CONTRIBUTING.md).
 
