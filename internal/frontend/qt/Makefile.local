@@ -1,0 +1,64 @@
+QMLfiles=$(shell find ../qml/ -name "*.qml") $(shell find ../qml/ -name "qmldir")
+FontAwesome=${CURDIR}/../share/fontawesome-webfont.ttf
+ImageDir=${CURDIR}/../share/icons
+Icons=$(shell find ${ImageDir} -name "*.png")
+
+all: qmlcheck moc.go rcc.cpp logo.ico
+
+deploy:
+	qtdeploy build desktop
+
+../qml/ProtonUI/fontawesome.ttf:
+	ln -sf ${FontAwesome} $@
+../qml/ProtonUI/images:
+	ln -sf ${ImageDir} $@
+
+translate.ts: ${QMLfiles}
+	lupdate -recursive qml/  -ts $@
+
+rcc.cpp: ${QMLfiles} ${Icons} resources.qrc
+	rm -f rcc.cpp rcc.qrc && qtrcc  -o .
+
+
+qmltest:
+	qmltestrunner -eventdelay 500 -import ./qml/
+qmlcheck :  ../qml/ProtonUI/fontawesome.ttf ../qml/ProtonUI/images
+	qmlscene -I ../qml/ -f ../qml/tst_Gui.qml --quit
+qmlpreview : ../qml/ProtonUI/fontawesome.ttf ../qml/ProtonUI/images
+	rm -f ../qml/*.qmlc ../qml/BridgeUI/*.qmlc
+	qmlscene -verbose -I ../qml/ -f ../qml/tst_Gui.qml
+	#qmlscene -qmljsdebugger=port:3768,block -verbose -I ../qml/ -f ../qml/tst_Gui.qml
+
+logo.ico: ../share/icons/logo.ico
+	cp $^ $@
+
+
+test: qmlcheck moc.go rcc.cpp
+	go test -v -tags=cli
+
+moc.go: ui.go accountModel.go
+	qtmoc
+
+distclean: clean
+	rm -rf rcc_cgo*.go
+
+clean:
+	rm -rf linux/
+	rm -rf darwin/
+	rm -rf windows/
+	rm -rf deploy/
+	rm -f logo.ico
+	rm -f moc.cpp
+	rm -f moc.go
+	rm -f moc.h
+	rm -f moc_cgo*.go
+	rm -f moc_moc.h
+	rm -f rcc.cpp
+	rm -f rcc.qrc
+	rm -f rcc_cgo*.go
+	rm -f ../rcc.cpp
+	rm -f ../rcc.qrc
+	rm -f ../rcc_cgo*.go
+	rm -rf ../qml/ProtonUI/images
+	rm -f ../qml/ProtonUI/fontawesome.ttf
+	find ../qml -name *.qmlc -exec rm {} \;

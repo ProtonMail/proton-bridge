@@ -1,0 +1,15 @@
+module BridgeUI
+AccountDelegate    1.0 AccountDelegate.qml
+Credits            1.0 Credits.qml
+DialogFirstStart   1.0 DialogFirstStart.qml
+DialogPortChange   1.0 DialogPortChange.qml
+DialogYesNo        1.0 DialogYesNo.qml
+DialogTLSCertInfo  1.0 DialogTLSCertInfo.qml
+HelpView           1.0 HelpView.qml
+InfoWindow         1.0 InfoWindow.qml
+MainWindow         1.0 MainWindow.qml
+ManualWindow       1.0 ManualWindow.qml
+OutgoingNoEncPopup 1.0 OutgoingNoEncPopup.qml
+SettingsView       1.0 SettingsView.qml
+StatusFooter       1.0 StatusFooter.qml
+VersionInfo        1.0 VersionInfo.qml

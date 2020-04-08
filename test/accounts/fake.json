@@ -1,0 +1,105 @@
+{
+    "users": {
+        "user": {
+            "ID": "1",
+            "Name": "user"
+        },
+        "user2fa": {
+            "ID": "2",
+            "Name": "user2fa"
+        },
+        "userAddressWithCapitalLetter": {
+            "ID": "3",
+            "Name": "userAddressWithCapitalLetter"
+        },
+        "userMoreAddresses": {
+            "ID": "4",
+            "Name": "userMoreAddresses"
+        },
+        "userDisabledPrimaryAddress": {
+            "ID": "5",
+            "Name": "userDisabledPrimaryAddress"
+        }
+    },
+    "addresses": {
+        "user": {
+            "userAddress": {
+                "ID": "userAddress",
+                "Email": "user@pm.me",
+                "Order": 1,
+                "Receive": 1
+            }
+        },
+        "user2fa": {
+            "user2faAddress": {
+                "ID": "user2faAddress",
+                "Email": "user@pm.me",
+                "Order": 1,
+                "Receive": 1
+            }
+        },
+        "userAddressWithCapitalLetter": {
+            "userAddressWithCapitalLetterAddress": {
+                "ID": "userAddressWithCapitalLetterAddress",
+                "Email": "uSeR@pm.me",
+                "Order": 1,
+                "Receive": 1
+            }
+        },
+        "userMoreAddresses": {
+            "primary": {
+                "ID": "primary",
+                "Email": "primaryaddress@pm.me",
+                "Order": 1,
+                "Receive": 1
+            },
+            "secondary": {
+                "ID": "secondary",
+                "Email": "secondaryaddress@pm.me",
+                "Order": 2,
+                "Receive": 1
+            },
+            "disabled": {
+                "ID": "disabled",
+                "Email": "disabledaddress@pm.me",
+                "Order": 3,
+                "Receive": 0
+            }
+        },
+        "userDisabledPrimaryAddress": {
+            "primary": {
+                "ID": "primary",
+                "Email": "user@pm.me",
+                "Order": 1,
+                "Receive": 0
+            },
+            "secondary": {
+                "ID": "secondary",
+                "Email": "user@pm.me",
+                "Order": 2,
+                "Receive": 1
+            }
+        }
+    },
+    "passwords": {
+        "user": "password",
+        "user2fa": "password",
+        "userAddressWithCapitalLetter": "password",
+        "userMoreAddresses": "password",
+        "userDisabledPrimaryAddress": "password"
+    },
+    "mailboxPasswords": {
+        "user": "password",
+        "user2fa": "password",
+        "userAddressWithCapitalLetter": "password",
+        "userMoreAddresses": "password",
+        "userDisabledPrimaryAddress": "password"
+    },
+    "twoFAs": {
+        "user": false,
+        "user2fa": true,
+        "userAddressWithCapitalLetter": false,
+        "userMoreAddresses": false,
+        "userDisabledPrimaryAddress": false
+    }
+}

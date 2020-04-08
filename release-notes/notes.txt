@@ -1,0 +1,8 @@
+NOTE: We recommend to reconfigure your email client after upgrading to ensure the best results with the new draft folder support
+
+• Faster and more resilient mail synchronization process, especially for large mailboxes
+• Added "Alternate Routing" feature to mitigate blocking of Proton Servers
+• Added synchronization of draft folder
+• Improved event handling when there are frequent changes
+• Security improvements for loading dependent libraries
+• Minor UI & API communication tweaks

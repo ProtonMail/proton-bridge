@@ -1,0 +1,8 @@
+{
+    "Code": 1000,
+    "AccessToken": "de0423049b44243afeec7d9c1d99be7b46da1e8a",
+    "ExpiresIn": 360000,
+    "TokenType": "Bearer",
+    "Scope": "full mail payments reset keys",
+    "RefreshToken": "b894b4c4f20003f12d486900d8b88c7d68e67235"
+}

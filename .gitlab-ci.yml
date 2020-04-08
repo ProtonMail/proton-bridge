@@ -1,0 +1,109 @@
+image: gitlab.protontech.ch:4567/protonmail/desktop-bridge/ci
+
+before_script:
+  - eval $(ssh-agent -s)
+  - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add - > /dev/null
+
+  - mkdir -p .cache/bin
+  - export PATH=$(pwd)/.cache/bin:$PATH
+  - export GOPATH="$CI_PROJECT_DIR/.cache"
+
+  - make install-dev-dependencies
+
+cache:
+  key: go-mod
+  paths:
+  - .cache
+  policy: pull
+
+stages:
+  - image
+  - cache
+  - test
+  - build
+
+# Stage: IMAGE
+
+build-ci-image:
+  stage: image
+  image: docker:stable
+  before_script: []
+  cache: {}
+  tags:
+  - heavy
+  only:
+    changes:
+    - ci/*
+  services:
+  - docker:dind
+  script:
+  - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  - docker info
+  - docker build -t gitlab.protontech.ch:4567/protonmail/desktop-bridge/ci:latest ci
+  - docker push gitlab.protontech.ch:4567/protonmail/desktop-bridge/ci:latest
+
+# Stage: CACHE
+
+# This will ensure latest dependency versions and updates the cache for
+# all other following jobs which only pull the cache.
+cache-push:
+  stage: cache
+  only:
+    - branches
+  script:
+  - echo ""
+  cache:
+    key: go-mod
+    paths:
+    - .cache
+
+# Stage: TEST
+
+lint:
+  stage: test
+  only:
+    - branches
+  script:
+    - make lint
+
+test:
+  stage: test
+  only:
+    - branches
+  script:
+    - apt-get -y install pass gnupg rng-tools
+    # First have enough of entropy (cat /proc/sys/kernel/random/entropy_avail).
+    - rngd -r /dev/urandom
+    # Generate GPG key without password for the password manager.
+    - gpg --batch --yes --passphrase '' --quick-generate-key 'tester@example.com'
+    # Use the last created GPG ID for the password manager.
+    - pass init `gpg --list-keys | grep "^   " | tail -1 | tr -d '[:space:]'`
+    # Then finally run the tests
+    - make test
+
+test-integration:
+  stage: test
+  only:
+    - branches
+  script:
+    - VERBOSITY=debug make -C test test
+
+dependency-updates:
+  stage: test
+  script:
+    - make updates
+
+# Stage: BUILD
+
+build-linux:
+  stage: build
+  # Test build every time (= we want to know build is possible).
+  only:
+    - branches
+  script:
+    - make build
+  artifacts:
+    name: "bridge-linux-$CI_COMMIT_REF_NAME-$CI_COMMIT_SHORT_SHA"
+    paths:
+      - bridge_*.tgz
+    expire_in: 2 week

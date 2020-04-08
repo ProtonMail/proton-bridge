@@ -1,0 +1,13 @@
+{
+    "Code": 1000,
+    "Modulus": "-----BEGIN PGP SIGNED MESSAGE-----\nHash: SHA256\n\nW2z5HBi8RvsfYzZTS7qBaUxxPhsfHJFZpu3Kd6s1JafNrCCH9rfvPLrfuqocxWPgWDH2R8neK7PkNvjxto9TStuY5z7jAzWRvFWN9cQhAKkdWgy0JY6ywVn22+HFpF4cYesHrqFIKUPDMSSIlWjBVmEJZ/MusD44ZT29xcPrOqeZvwtCffKtGAIjLYPZIEbZKnDM1Dm3q2K/xS5h+xdhjnndhsrkwm9U9oyA2wxzSXFL+pdfj2fOdRwuR5nW0J2NFrq3kJjkRmpO/Genq1UW+TEknIWAb6VzJJJA244K/H8cnSx2+nSNZO3bbo6Ys228ruV9A8m6DhxmS+bihN3ttQ==\n-----BEGIN PGP SIGNATURE-----\nVersion: ProtonMail\nComment: https://protonmail.com\n\nwl4EARYIABAFAlwB1j0JEDUFhcTpUY8mAAD8CgEAnsFnF4cF0uSHKkXa1GIa\nGO86yMV4zDZEZcDSJo0fgr8A/AlupGN9EdHlsrZLmTA1vhIx+rOgxdEff28N\nkvNM7qIK\n=q6vu\n-----END PGP SIGNATURE-----\n",
+    "ServerEphemeral": "5tfigcLKoM0DPWYB+EqYE7QlqsiT63iOVlO5ZX0lTMEILSsrRdVCYrN8L3zkinsAjUZ/cx5wIS7N05k66uZb+ZE3lFOJS2s1BkqLvCrGxYL0e3n5YAnzHYlvCCJKXw/sK57ntfF1OOoblBXX6dw5LjeeDglEep2/DaE0TjD8WUpq4Ls2HlQGn9wrC7dFO2lJXsMhRffxKghiOsdvCLXDmwXginzn/LFezA8KrDsWOBSEGntwpg3s1xFj5h8BqtRHvC0igmoscqgw+3GCMTJ0NZAQ/L+5aJ/0ccL0WBK208ltCNl+/X6Sz0kpyvOP4RqFJhC1auVDJ9AjZQYSYZ1NEQ==",
+    "Version": 4,
+    "Salt": "yKlc5/CvObfoiw==",
+    "SRPSession": "9b2946bbd9055f17c34940abdce0c3d3",
+    "TwoFactor": 0,
+    "2FA": {
+        "TOTP": 1,
+        "U2F": null
+    }
+}

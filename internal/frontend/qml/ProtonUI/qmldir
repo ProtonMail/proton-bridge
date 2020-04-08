@@ -1,0 +1,31 @@
+module ProtonUI
+singleton Style              1.0 Style.qml
+AccessibleButton             1.0 AccessibleButton.qml
+AccessibleText               1.0 AccessibleText.qml
+AccessibleSelectableText     1.0 AccessibleSelectableText.qml
+AccountView                  1.0 AccountView.qml
+AddAccountBar                1.0 AddAccountBar.qml
+BubbleNote                   1.0 BubbleNote.qml
+BugReportWindow              1.0 BugReportWindow.qml
+ButtonIconText               1.0 ButtonIconText.qml
+ButtonRounded                1.0 ButtonRounded.qml
+CheckBoxLabel                1.0 CheckBoxLabel.qml
+ClickIconText                1.0 ClickIconText.qml
+Dialog                       1.0 Dialog.qml
+DialogAddUser                1.0 DialogAddUser.qml
+DialogUpdate                 1.0 DialogUpdate.qml
+DialogConnectionTroubleshoot 1.0 DialogConnectionTroubleshoot.qml
+FileAndFolderSelect          1.0 FileAndFolderSelect.qml
+InfoToolTip                  1.0 InfoToolTip.qml
+InformationBar               1.0 InformationBar.qml
+InputBox                     1.0 InputBox.qml
+InputField                   1.0 InputField.qml
+InstanceExistsWindow         1.0 InstanceExistsWindow.qml
+LogoHeader                   1.0 LogoHeader.qml
+PopupMessage                 1.0 PopupMessage.qml
+TabButton                    1.0 TabButton.qml
+TabLabels                    1.0 TabLabels.qml
+TextLabel                    1.0 TextLabel.qml
+TextValue                    1.0 TextValue.qml
+TLSCertPinIssueBar           1.0 TLSCertPinIssueBar.qml
+WindowTitleBar               1.0 WindowTitleBar.qml
