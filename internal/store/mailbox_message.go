@@ -206,6 +206,10 @@ func (storeMailbox *Mailbox) DeleteMessages(apiIDs []string) error {
 				return err
 			}
 		}
+	case pmapi.DraftLabel:
+		if err := storeMailbox.api().DeleteMessages(apiIDs); err != nil {
+			return err
+		}
 	default:
 		if err := storeMailbox.api().UnlabelMessages(apiIDs, storeMailbox.labelID); err != nil {
 			return err
@@ -266,7 +270,7 @@ func (storeMailbox *Mailbox) txCreateOrUpdateMessages(tx *bolt.Tx, msgs []*pmapi
 
 		// Draft bodies can change and bodies are not re-fetched by IMAP clients.
 		// Every change has to be a new message; we need to delete the old one and always recreate it.
-		if storeMailbox.labelID == pmapi.DraftLabel {
+		if msg.Type == pmapi.MessageTypeDraft {
 			if err := storeMailbox.txDeleteMessage(tx, msg.ID); err != nil {
 				return errors.Wrap(err, "cannot delete old draft")
 			}
