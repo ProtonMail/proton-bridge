@@ -34,6 +34,7 @@ import (
 	imapidle "github.com/emersion/go-imap-idle"
 	imapquota "github.com/emersion/go-imap-quota"
 	imapspecialuse "github.com/emersion/go-imap-specialuse"
+	imapunselect "github.com/emersion/go-imap-unselect"
 	imapserver "github.com/emersion/go-imap/server"
 	"github.com/emersion/go-sasl"
 	"github.com/sirupsen/logrus"
@@ -100,6 +101,7 @@ func NewIMAPServer(debugClient, debugServer bool, port int, tls *tls.Config, ima
 		imapid.NewExtension(serverID),
 		imapquota.NewExtension(),
 		imapappendlimit.NewExtension(),
+		imapunselect.NewExtension(),
 		uidplus.NewExtension(),
 	)
 

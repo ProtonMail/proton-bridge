@@ -4,6 +4,8 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 ## Unpublished
 
+### Added
+* IMAP extension Unselect
 
 ### Changed
 * GODT-165 Optimization of RebuildMailboxes

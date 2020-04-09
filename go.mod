@@ -32,6 +32,7 @@ require (
 	github.com/emersion/go-imap-appendlimit v0.0.0-20160923165328-beeb382f2a42
 	github.com/emersion/go-imap-idle v0.0.0-20161227184850-e03ba1e0ed89
 	github.com/emersion/go-imap-specialuse v0.0.0-20161227184202-ba031ced6a62
+	github.com/emersion/go-imap-unselect v0.0.0-20161227183655-1e6dc73ac8fe
 	github.com/emersion/go-sasl v0.0.0-20191210011802-430746ea8b9b
 	github.com/emersion/go-textwrapper v0.0.0-20160606182133-d0e65e56babe
 	github.com/emersion/go-vcard v0.0.0-20190105225839-8856043f13c5 // indirect
