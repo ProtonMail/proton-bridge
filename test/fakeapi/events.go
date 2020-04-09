@@ -27,6 +27,9 @@ func (api *FakePMAPI) GetEvent(eventID string) (*pmapi.Event, error) {
 	}
 	// Request for empty ID returns the latest event.
 	if eventID == "" {
+		if len(api.events) == 0 {
+			return &pmapi.Event{EventID: ""}, nil
+		}
 		return api.events[len(api.events)-1], nil
 	}
 	// Otherwise it tries to find specific ID and return all next events merged into one.

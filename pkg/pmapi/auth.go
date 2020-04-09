@@ -205,19 +205,23 @@ type AuthRefreshReq struct {
 }
 
 func (c *client) sendAuth(auth *Auth) {
-	c.log.Debug("Client is sending auth to ClientManager")
+	if auth != nil {
+		c.log.WithField("auth", *auth).Debug("Client is sending auth to ClientManager")
+	} else {
+		c.log.Debug("Client is sending nil auth to ClientManager")
+	}
 
 	if auth != nil {
 		c.uid = auth.UID()
 		c.accessToken = auth.accessToken
 	}
 
-	go func() {
-		c.cm.GetClientAuthChannel() <- ClientAuth{
-			UserID: c.userID,
-			Auth:   auth,
-		}
-	}()
+	go func(auth ClientAuth) {
+		c.cm.GetClientAuthChannel() <- auth
+	}(ClientAuth{
+		UserID: c.userID,
+		Auth:   auth,
+	})
 }
 
 // AuthInfo gets authentication info for a user.

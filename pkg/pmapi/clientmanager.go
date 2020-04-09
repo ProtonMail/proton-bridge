@@ -42,6 +42,15 @@ type ClientManager struct {
 	allowProxy       bool
 	proxyProvider    *proxyProvider
 	proxyUseDuration time.Duration
+
+	idGen idGen
+}
+
+type idGen int
+
+func (i *idGen) next() int {
+	(*i)++
+	return int(*i)
 }
 
 // ClientAuth holds an API auth produced by a Client for a specific user.
@@ -117,16 +126,7 @@ func (cm *ClientManager) GetClient(userID string) Client {
 
 // GetAnonymousClient returns an anonymous client. It replaces any anonymous client that was already created.
 func (cm *ClientManager) GetAnonymousClient() Client {
-	cm.clientsLocker.Lock()
-	defer cm.clientsLocker.Unlock()
-
-	if client, ok := cm.clients[""]; ok {
-		client.DeleteAuth()
-	}
-
-	cm.clients[""] = cm.newClient("")
-
-	return cm.clients[""]
+	return cm.GetClient(fmt.Sprintf("anonymous-%v", cm.idGen.next()))
 }
 
 // LogoutClient logs out the client with the given userID and ensures its sensitive data is successfully cleared.
@@ -266,11 +266,6 @@ func (cm *ClientManager) forwardClientAuths() {
 
 // setToken sets the token for the given userID with the given expiration time.
 func (cm *ClientManager) setToken(userID, token string, expiration time.Duration) {
-	// We don't want to set tokens of anonymous clients.
-	if userID == "" {
-		return
-	}
-
 	cm.tokensLocker.Lock()
 	defer cm.tokensLocker.Unlock()
 
@@ -279,6 +274,8 @@ func (cm *ClientManager) setToken(userID, token string, expiration time.Duration
 	cm.tokens[userID] = token
 
 	cm.setTokenExpiration(userID, expiration)
+
+	go cm.watchTokenExpiration(userID)
 }
 
 // setTokenExpiration will ensure the token is refreshed if it expires.
@@ -296,8 +293,6 @@ func (cm *ClientManager) setTokenExpiration(userID string, expiration time.Durat
 		timer:  time.NewTimer(expiration),
 		cancel: make(chan struct{}),
 	}
-
-	go cm.watchTokenExpiration(userID)
 }
 
 func (cm *ClientManager) clearToken(userID string) {
@@ -311,6 +306,9 @@ func (cm *ClientManager) clearToken(userID string) {
 
 // handleClientAuth updates or clears client authorisation based on auths received.
 func (cm *ClientManager) handleClientAuth(ca ClientAuth) {
+	cm.clientsLocker.Lock()
+	defer cm.clientsLocker.Unlock()
+
 	// If we aren't managing this client, there's nothing to do.
 	if _, ok := cm.clients[ca.UserID]; !ok {
 		logrus.WithField("userID", ca.UserID).Info("Handling auth for unmanaged client")
@@ -328,7 +326,9 @@ func (cm *ClientManager) handleClientAuth(ca ClientAuth) {
 }
 
 func (cm *ClientManager) watchTokenExpiration(userID string) {
+	cm.expirationsLocker.Lock()
 	expiration := cm.expirations[userID]
+	cm.expirationsLocker.Unlock()
 
 	select {
 	case <-expiration.timer.C:

@@ -246,6 +246,10 @@ func (loop *eventLoop) processNextEvent() (more bool, err error) { // nolint[fun
 		return false, errors.Wrap(err, "failed to get event")
 	}
 
+	if event == nil {
+		return
+	}
+
 	l = l.WithField("newEventID", event.EventID)
 
 	if !loop.hasInternet {

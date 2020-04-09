@@ -19,6 +19,7 @@ package store
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
@@ -53,6 +54,12 @@ func (store *Store) TestGetStoreFilePath() string {
 
 // TestDumpDB will dump store database content.
 func (store *Store) TestDumpDB(tb assert.TestingT) {
+	if store == nil || store.db == nil {
+		fmt.Printf(">>>>>>>> NIL STORE / DB <<<<<\n\n")
+		assert.NoError(tb, errors.New("store or database is nil"))
+		return
+	}
+
 	dumpCounts := true
 	fmt.Printf(">>>>>>>> DUMP %s <<<<<\n\n", store.db.Path())
 

@@ -180,7 +180,9 @@ func hasAPIAuth(accountName string) error {
 	if err != nil {
 		return internalError(err, "getting user %s", account.Username())
 	}
-	a.True(ctx.GetTestingT(), bridgeUser.HasAPIAuth())
+	a.Eventually(ctx.GetTestingT(), func() bool {
+		return bridgeUser.HasAPIAuth()
+	}, 5*time.Second, 10*time.Millisecond)
 	return ctx.GetTestingError()
 }
 

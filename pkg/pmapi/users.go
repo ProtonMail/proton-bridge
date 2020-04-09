@@ -116,8 +116,6 @@ func (c *client) UpdateUser() (user *User, err error) {
 		c.addresses = tmpList
 	}
 
-	c.log.WithField("userID", user.ID).Info("Updated user")
-
 	return user, err
 }
 
