@@ -208,15 +208,12 @@ func (c *client) sendAuth(auth *Auth) {
 	c.log.Debug("Client is sending auth to ClientManager")
 
 	if auth != nil {
-		// UID is only provided in the initial /auth, not during /auth/refresh
-		if auth.UID() != "" {
-			c.uid = auth.UID()
-		}
+		c.uid = auth.UID()
 		c.accessToken = auth.accessToken
 	}
 
 	go func() {
-		c.cm.getClientAuthChannel() <- ClientAuth{
+		c.cm.GetClientAuthChannel() <- ClientAuth{
 			UserID: c.userID,
 			Auth:   auth,
 		}
@@ -458,6 +455,12 @@ func (c *client) AuthRefresh(uidAndRefreshToken string) (auth *Auth, err error) 
 	}
 
 	auth = res.getAuth()
+
+	// Responses from /auth/refresh are not guaranteed to return the UID if it has not changed.
+	// But we want to always return it.
+	if auth.uid == "" {
+		auth.uid = c.uid
+	}
 
 	c.sendAuth(auth)
 

@@ -29,7 +29,7 @@ test-stage:
 	TEST_ENV=live go test -tags=$(TAGS) -- $(FEATURES)
 
 test-debug:
-	TEST_ENV=fake dlv test -- $(FEATURES)
+	TEST_ENV=fake TEST_ACCOUNTS=accounts/fake.json dlv test -- $(FEATURES)
 
 test-live-debug:
 	TEST_ENV=live dlv test -- $(FEATURES)

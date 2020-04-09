@@ -32,6 +32,7 @@ type Controller struct {
 	labelIDGenerator   idGenerator
 	messageIDGenerator idGenerator
 	tokenGenerator     idGenerator
+	clientManager      *pmapi.ClientManager
 
 	// State controlled by test.
 	noInternetConnection bool
@@ -52,6 +53,7 @@ func NewController(cm *pmapi.ClientManager) *Controller {
 		labelIDGenerator:   100, // We cannot use system label IDs.
 		messageIDGenerator: 0,
 		tokenGenerator:     1000, // No specific reason; 1000 simply feels right.
+		clientManager:      cm,
 
 		noInternetConnection: false,
 		usersByUsername:      map[string]*fakeUser{},

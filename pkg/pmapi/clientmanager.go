@@ -249,8 +249,8 @@ func (cm *ClientManager) GetAuthUpdateChannel() chan ClientAuth {
 	return cm.bridgeAuths
 }
 
-// getClientAuthChannel returns a channel on which clients should send auths.
-func (cm *ClientManager) getClientAuthChannel() chan ClientAuth {
+// GetClientAuthChannel returns a channel on which clients should send auths.
+func (cm *ClientManager) GetClientAuthChannel() chan ClientAuth {
 	return cm.clientAuths
 }
 

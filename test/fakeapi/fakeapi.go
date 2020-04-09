@@ -103,14 +103,13 @@ func (api *FakePMAPI) checkInternetAndRecordCall(method method, path string, req
 	return nil
 }
 
-// TODO: This should be sent back to the ClientManager properly!
 func (api *FakePMAPI) sendAuth(auth *pmapi.Auth) {
-	if auth != nil {
-		auth.DANGEROUSLYSetUID(api.uid)
-	}
-	if api.auths != nil {
-		api.auths <- auth
-	}
+	go func() {
+		api.controller.clientManager.GetClientAuthChannel() <- pmapi.ClientAuth{
+			UserID: api.user.ID,
+			Auth:   auth,
+		}
+	}()
 }
 
 func (api *FakePMAPI) setUser(username string) error {
