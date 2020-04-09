@@ -35,8 +35,12 @@ var systemLabelNameToID = map[string]string{ //nolint[gochecknoglobals]
 	"Drafts":   pmapi.DraftLabel,
 }
 
-func (cntrl *Controller) AddUserLabel(username string, label *pmapi.Label) error {
-	client := cntrl.clientManager.GetClient(username)
+func (ctl *Controller) AddUserLabel(username string, label *pmapi.Label) error {
+	client, ok := ctl.pmapiByUsername[username]
+	if !ok {
+		return fmt.Errorf("user %s does not exist", username)
+	}
+
 	label.Exclusive = getLabelExclusive(label.Name)
 	label.Name = getLabelNameWithoutPrefix(label.Name)
 	label.Color = pmapi.LabelColors[0]
@@ -46,10 +50,10 @@ func (cntrl *Controller) AddUserLabel(username string, label *pmapi.Label) error
 	return nil
 }
 
-func (cntrl *Controller) GetLabelIDs(username string, labelNames []string) ([]string, error) {
+func (ctl *Controller) GetLabelIDs(username string, labelNames []string) ([]string, error) {
 	labelIDs := []string{}
 	for _, labelName := range labelNames {
-		labelID, err := cntrl.getLabelID(username, labelName)
+		labelID, err := ctl.getLabelID(username, labelName)
 		if err != nil {
 			return nil, err
 		}
@@ -58,12 +62,16 @@ func (cntrl *Controller) GetLabelIDs(username string, labelNames []string) ([]st
 	return labelIDs, nil
 }
 
-func (cntrl *Controller) getLabelID(username, labelName string) (string, error) {
+func (ctl *Controller) getLabelID(username, labelName string) (string, error) {
 	if labelID, ok := systemLabelNameToID[labelName]; ok {
 		return labelID, nil
 	}
 
-	client := cntrl.clientManager.GetClient(username)
+	client, ok := ctl.pmapiByUsername[username]
+	if !ok {
+		return "", fmt.Errorf("user %s does not exist", username)
+	}
+
 	labels, err := client.ListLabels()
 	if err != nil {
 		return "", errors.Wrap(err, "failed to list labels")

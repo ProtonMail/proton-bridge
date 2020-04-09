@@ -28,6 +28,7 @@ type Controller struct {
 	// Internal states.
 	lock                 *sync.RWMutex
 	calls                []*fakeCall
+	pmapiByUsername      map[string]pmapi.Client
 	messageIDsByUsername map[string][]string
 	clientManager        *pmapi.ClientManager
 
@@ -35,10 +36,11 @@ type Controller struct {
 	noInternetConnection bool
 }
 
-func NewController(cm *pmapi.ClientManager) (cntrl *Controller) {
-	cntrl = &Controller{
+func NewController(cm *pmapi.ClientManager) *Controller {
+	controller := &Controller{
 		lock:                 &sync.RWMutex{},
 		calls:                []*fakeCall{},
+		pmapiByUsername:      map[string]pmapi.Client{},
 		messageIDsByUsername: map[string][]string{},
 		clientManager:        cm,
 
@@ -46,9 +48,9 @@ func NewController(cm *pmapi.ClientManager) (cntrl *Controller) {
 	}
 
 	cm.SetRoundTripper(&fakeTransport{
-		cntrl:     cntrl,
+		ctl:       controller,
 		transport: http.DefaultTransport,
 	})
 
-	return
+	return controller
 }

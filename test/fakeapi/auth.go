@@ -142,7 +142,7 @@ func (api *FakePMAPI) AuthRefresh(token string) (*pmapi.Auth, error) {
 }
 
 func (api *FakePMAPI) Logout() {
-	_ = api.DeleteAuth()
+	api.DeleteAuth()
 	api.ClearData()
 }
 
@@ -150,14 +150,12 @@ func (api *FakePMAPI) DeleteAuth() error {
 	if err := api.checkAndRecordCall(DELETE, "/auth", nil); err != nil {
 		return err
 	}
-
 	// Logout will also emit change to auth channel
 	api.sendAuth(nil)
-
+	api.controller.deleteSession(api.uid)
 	return nil
 }
 
 func (api *FakePMAPI) ClearData() {
-	api.controller.deleteSession(api.uid)
 	api.unsetUser()
 }

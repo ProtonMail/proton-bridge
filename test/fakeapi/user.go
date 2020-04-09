@@ -51,6 +51,9 @@ func (api *FakePMAPI) UpdateUser() (*pmapi.User, error) {
 }
 
 func (api *FakePMAPI) GetAddresses() (pmapi.AddressList, error) {
+	if err := api.checkAndRecordCall(GET, "/addresses", nil); err != nil {
+		return nil, err
+	}
 	return *api.addresses, nil
 }
 

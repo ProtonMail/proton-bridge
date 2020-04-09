@@ -24,6 +24,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/internal/preferences"
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
+	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 )
 
 // GetBridge returns bridge instance.
@@ -59,7 +60,7 @@ func newBridgeInstance(
 	cfg *fakeConfig,
 	credStore bridge.CredentialsStorer,
 	eventListener listener.Listener,
-	clientManager bridge.ClientManager,
+	clientManager *pmapi.ClientManager,
 ) *bridge.Bridge {
 	version := os.Getenv("VERSION")
 	bridge.UpdateCurrentUserAgent(version, runtime.GOOS, "", "")

@@ -43,6 +43,6 @@ func (api *FakePMAPI) SendSimpleMetric(category, action, label string) error {
 	return api.checkInternetAndRecordCall(GET, "/metrics?"+v.Encode(), nil)
 }
 
-func (api *FakePMAPI) ReportSentryCrash(reportErr error) (err error) {
+func (api *FakePMAPI) ReportSentryCrash(err error) error {
 	return nil
 }

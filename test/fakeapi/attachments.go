@@ -46,10 +46,9 @@ func (api *FakePMAPI) CreateAttachment(attachment *pmapi.Attachment, data io.Rea
 	return attachment, nil
 }
 
-func (api *FakePMAPI) DeleteAttachment(attachmentID string) error {
-	if err := api.checkAndRecordCall(GET, "/attachments/"+attachmentID, nil); err != nil {
+func (api *FakePMAPI) DeleteAttachment(attID string) error {
+	if err := api.checkAndRecordCall(DELETE, "/attachments/"+attID, nil); err != nil {
 		return err
 	}
-
 	return nil
 }

@@ -29,9 +29,9 @@ type fakeSession struct {
 
 var errWrongNameOrPassword = errors.New("Incorrect login credentials. Please try again") //nolint[stylecheck]
 
-func (cntrl *Controller) createSessionIfAuthorized(username, password string) (*fakeSession, error) {
+func (ctl *Controller) createSessionIfAuthorized(username, password string) (*fakeSession, error) {
 	// get user
-	user, ok := cntrl.usersByUsername[username]
+	user, ok := ctl.usersByUsername[username]
 	if !ok || user.password != password {
 		return nil, errWrongNameOrPassword
 	}
@@ -39,19 +39,19 @@ func (cntrl *Controller) createSessionIfAuthorized(username, password string) (*
 	// create session
 	session := &fakeSession{
 		username:     username,
-		uid:          cntrl.tokenGenerator.next("uid"),
+		uid:          ctl.tokenGenerator.next("uid"),
 		hasFullScope: !user.has2FA,
 	}
-	cntrl.refreshTheTokensForSession(session)
+	ctl.refreshTheTokensForSession(session)
 
-	cntrl.sessionsByUID[session.uid] = session
+	ctl.sessionsByUID[session.uid] = session
 	return session, nil
 }
 
-func (cntrl *Controller) refreshTheTokensForSession(session *fakeSession) {
-	session.refreshToken = cntrl.tokenGenerator.next("refresh")
+func (ctl *Controller) refreshTheTokensForSession(session *fakeSession) {
+	session.refreshToken = ctl.tokenGenerator.next("refresh")
 }
 
-func (cntrl *Controller) deleteSession(uid string) {
-	delete(cntrl.sessionsByUID, uid)
+func (ctl *Controller) deleteSession(uid string) {
+	delete(ctl.sessionsByUID, uid)
 }

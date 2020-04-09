@@ -23,12 +23,12 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (cntrl *Controller) AddUser(user *pmapi.User, addresses *pmapi.AddressList, password string, twoFAEnabled bool) error {
+func (ctl *Controller) AddUser(user *pmapi.User, addresses *pmapi.AddressList, password string, twoFAEnabled bool) error {
 	if twoFAEnabled {
 		return godog.ErrPending
 	}
 
-	client := cntrl.clientManager.GetClient(user.ID)
+	client := ctl.clientManager.GetClient(user.ID)
 
 	authInfo, err := client.AuthInfo(user.Name)
 	if err != nil {
@@ -53,6 +53,8 @@ func (cntrl *Controller) AddUser(user *pmapi.User, addresses *pmapi.AddressList,
 	if err := cleanup(client); err != nil {
 		return errors.Wrap(err, "failed to clean user")
 	}
+
+	ctl.pmapiByUsername[user.Name] = client
 
 	return nil
 }

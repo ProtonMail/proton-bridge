@@ -39,9 +39,9 @@ type fakeCall struct {
 	request []byte
 }
 
-func (cntrl *Controller) recordCall(method method, path string, req interface{}) {
-	cntrl.lock.Lock()
-	defer cntrl.lock.Unlock()
+func (ctl *Controller) recordCall(method method, path string, req interface{}) {
+	ctl.lock.Lock()
+	defer ctl.lock.Unlock()
 
 	request := []byte{}
 	if req != nil {
@@ -51,16 +51,16 @@ func (cntrl *Controller) recordCall(method method, path string, req interface{})
 			panic(err)
 		}
 	}
-	cntrl.calls = append(cntrl.calls, &fakeCall{
+	ctl.calls = append(ctl.calls, &fakeCall{
 		method:  method,
 		path:    path,
 		request: request,
 	})
 }
 
-func (cntrl *Controller) PrintCalls() {
+func (ctl *Controller) PrintCalls() {
 	fmt.Println("API calls:")
-	for idx, call := range cntrl.calls {
+	for idx, call := range ctl.calls {
 		fmt.Printf("%02d: [%s] %s\n", idx+1, call.method, call.path)
 		if call.request != nil && string(call.request) != "null" {
 			fmt.Printf("\t%s\n", call.request)
@@ -68,8 +68,8 @@ func (cntrl *Controller) PrintCalls() {
 	}
 }
 
-func (cntrl *Controller) WasCalled(method, path string, expectedRequest []byte) bool {
-	for _, call := range cntrl.calls {
+func (ctl *Controller) WasCalled(method, path string, expectedRequest []byte) bool {
+	for _, call := range ctl.calls {
 		if string(call.method) != method && call.path != path {
 			continue
 		}
@@ -82,9 +82,9 @@ func (cntrl *Controller) WasCalled(method, path string, expectedRequest []byte) 
 	return false
 }
 
-func (cntrl *Controller) GetCalls(method, path string) [][]byte {
+func (ctl *Controller) GetCalls(method, path string) [][]byte {
 	requests := [][]byte{}
-	for _, call := range cntrl.calls {
+	for _, call := range ctl.calls {
 		if string(call.method) == method && call.path == path {
 			requests = append(requests, call.request)
 		}

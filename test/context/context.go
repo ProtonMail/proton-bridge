@@ -35,17 +35,20 @@ type server interface {
 // TestContext manages a bridge test (mocked API, bridge instance, IMAP/SMTP servers, setup steps).
 type TestContext struct {
 	// Base setup for the whole bridge (core & imap & smtp).
-	t               *bddT
-	cfg             *fakeConfig
-	listener        listener.Listener
-	pmapiController PMAPIController // pmapiController is used to create pmapi clients (either real or fake) and control server state.
-	testAccounts    *accounts.TestAccounts
+	t            *bddT
+	cfg          *fakeConfig
+	listener     listener.Listener
+	testAccounts *accounts.TestAccounts
+
+	// pmapiController is used to control real or fake pmapi clients.
+	// The clients are created by the clientManager.
+	pmapiController PMAPIController
+	clientManager   *pmapi.ClientManager
 
 	// Bridge core related variables.
 	bridge          *bridge.Bridge
 	bridgeLastError error
 	credStore       bridge.CredentialsStorer
-	clientManager   *pmapi.ClientManager
 
 	// IMAP related variables.
 	imapAddr          string

@@ -30,8 +30,11 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (cntrl *Controller) AddUserMessage(username string, message *pmapi.Message) error {
-	client := cntrl.clientManager.GetClient(username)
+func (ctl *Controller) AddUserMessage(username string, message *pmapi.Message) error {
+	client, ok := ctl.pmapiByUsername[username]
+	if !ok {
+		return fmt.Errorf("user %s does not exist", username)
+	}
 
 	body, err := buildMessage(client, message)
 	if err != nil {
@@ -55,7 +58,7 @@ func (cntrl *Controller) AddUserMessage(username string, message *pmapi.Message)
 		if result.Error != nil {
 			return errors.Wrap(result.Error, "failed to import message")
 		}
-		cntrl.messageIDsByUsername[username] = append(cntrl.messageIDsByUsername[username], result.MessageID)
+		ctl.messageIDsByUsername[username] = append(ctl.messageIDsByUsername[username], result.MessageID)
 	}
 
 	return nil
@@ -122,10 +125,10 @@ func buildMessageBody(message *pmapi.Message, body *bytes.Buffer) error {
 	return nil
 }
 
-func (cntrl *Controller) GetMessageID(username, messageIndex string) string {
+func (ctl *Controller) GetMessageID(username, messageIndex string) string {
 	idx, err := strconv.Atoi(messageIndex)
 	if err != nil {
 		panic(fmt.Sprintf("message index %s not found", messageIndex))
 	}
-	return cntrl.messageIDsByUsername[username][idx-1]
+	return ctl.messageIDsByUsername[username][idx-1]
 }

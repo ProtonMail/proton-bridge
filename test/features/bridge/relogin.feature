@@ -3,7 +3,7 @@ Feature: Re-login to bridge
     Given there is connected user "user"
     And there is database file for "user"
     When "user" logs in to bridge
-    Then bridge response is "failed to finish login: user is already logged in"
+    Then bridge response is "failed to finish login: user is already connected"
     And "user" is connected
     And "user" has running event loop
 
@@ -12,7 +12,7 @@ Feature: Re-login to bridge
     Given there is connected user "user"
     And there is no database file for "user"
     When "user" logs in to bridge
-    Then bridge response is "failed to finish login: user is already logged in"
+    Then bridge response is "failed to finish login: user is already connected"
     And "user" is connected
     And "user" has database file
     And "user" has running event loop

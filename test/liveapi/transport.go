@@ -24,21 +24,21 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (cntrl *Controller) TurnInternetConnectionOff() {
-	cntrl.noInternetConnection = true
+func (ctl *Controller) TurnInternetConnectionOff() {
+	ctl.noInternetConnection = true
 }
 
-func (cntrl *Controller) TurnInternetConnectionOn() {
-	cntrl.noInternetConnection = false
+func (ctl *Controller) TurnInternetConnectionOn() {
+	ctl.noInternetConnection = false
 }
 
 type fakeTransport struct {
-	cntrl     *Controller
+	ctl     *Controller
 	transport http.RoundTripper
 }
 
 func (t *fakeTransport) RoundTrip(req *http.Request) (*http.Response, error) {
-	if t.cntrl.noInternetConnection {
+	if t.ctl.noInternetConnection {
 		return nil, errors.New("no route to host")
 	}
 
@@ -53,7 +53,7 @@ func (t *fakeTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 			return nil, errors.Wrap(err, "failed to read body")
 		}
 	}
-	t.cntrl.recordCall(req.Method, req.URL.Path, body)
+	t.ctl.recordCall(req.Method, req.URL.Path, body)
 
 	return t.transport.RoundTrip(req)
 }
