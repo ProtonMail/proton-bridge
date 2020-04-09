@@ -71,7 +71,6 @@ func TestUserSwitchAddressMode(t *testing.T) {
 		m.credentialsStore.EXPECT().SwitchAddressMode("user").Return(nil),
 		m.credentialsStore.EXPECT().Get("user").Return(testCredentialsSplit, nil),
 	)
-	m.pmapiClient.EXPECT().ListMessages(gomock.Any()).Return([]*pmapi.Message{}, 0, nil)
 
 	assert.NoError(t, user.SwitchAddressMode())
 	assert.False(t, user.store.IsCombinedMode())

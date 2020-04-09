@@ -69,8 +69,7 @@ func (store *Store) RebuildMailboxes() (err error) {
 	}
 
 	log.WithField("user", store.UserID()).Trace("Rebuilding mailboxes")
-	store.triggerSync()
-	return nil
+	return store.initMailboxesBucket()
 }
 
 // createOrDeleteAddressesEvent creates address objects in the store for each necessary address
@@ -186,31 +185,48 @@ func (store *Store) truncateMailboxesBucket() (err error) {
 }
 
 // initMailboxesBucket recreates the mailboxes bucket from the metadata bucket.
-func (store *Store) initMailboxesBucket() error { //nolint[unused]
-	i := 0
-	tx := func(tx *bolt.Tx) error {
-		return tx.Bucket(metadataBucket).ForEach(func(k, v []byte) error {
+func (store *Store) initMailboxesBucket() error {
+	return store.db.Update(func(tx *bolt.Tx) error {
+		i := 0
+		msgs := []*pmapi.Message{}
+
+		err := tx.Bucket(metadataBucket).ForEach(func(k, v []byte) error {
 			msg := &pmapi.Message{}
 
 			if err := json.Unmarshal(v, msg); err != nil {
 				return err
 			}
+			msgs = append(msgs, msg)
 
-			for _, a := range store.addresses {
-				if err := a.txCreateOrUpdateMessages(tx, []*pmapi.Message{msg}); err != nil {
-					return err
-				}
-			}
-
+			// Calling txCreateOrUpdateMessages does some overhead by iterating
+			// all mailboxes, accessing buckets and so on. It's better to do in
+			// batches instead of one by one (seconds vs hours for huge accounts).
+			// Average size of metadata is 1k bytes, sometimes up to 2k bytes.
+			// 10k messages will take about 20 MB of memory.
 			i++
-			if i%100 == 0 {
-				store.log.WithField("i", i).
-					Trace("Init mboxes heartbeat")
+			if i%10000 == 0 {
+				store.log.WithField("i", i).Debug("Init mboxes heartbeat")
+
+				for _, a := range store.addresses {
+					if err := a.txCreateOrUpdateMessages(tx, msgs); err != nil {
+						return err
+					}
+				}
+				msgs = []*pmapi.Message{}
 			}
 
 			return nil
 		})
-	}
+		if err != nil {
+			return err
+		}
 
-	return store.db.Update(tx)
+		for _, a := range store.addresses {
+			if err := a.txCreateOrUpdateMessages(tx, msgs); err != nil {
+				return err
+			}
+		}
+
+		return nil
+	})
 }

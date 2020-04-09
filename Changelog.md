@@ -6,6 +6,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 
 ### Changed
+* GODT-165 Optimalization of RebuildMailboxes
 * Adding DSN Sentry as build time parameter
 
 ## [v1.2.6] Donghai - beta (2020-03-XXX)

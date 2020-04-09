@@ -115,7 +115,7 @@ func syncDraftsIfNecssary(mb *Mailbox) { //nolint[funlen]
 				}
 				for _, msgLabelID := range msg.LabelIDs {
 					if msgLabelID == pmapi.DraftLabel {
-						log.WithField("id", msg.ID).Debug("Drafts mailbox created: syncing draft locally")
+						log.WithField("id", msg.ID).Trace("Drafts mailbox created: syncing draft locally")
 						_ = mb.txCreateOrUpdateMessages(tx, []*pmapi.Message{msg})
 						break
 					}
