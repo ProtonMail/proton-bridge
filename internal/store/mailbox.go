@@ -41,10 +41,16 @@ type Mailbox struct {
 }
 
 func newMailbox(storeAddress *Address, labelID, labelPrefix, labelName, color string) (mb *Mailbox, err error) {
-	l := log.
-		WithField("addrID", storeAddress.addressID).
-		WithField("lblID", labelID)
-	mb = &Mailbox{
+	_ = storeAddress.store.db.Update(func(tx *bolt.Tx) error {
+		mb, err = txNewMailbox(tx, storeAddress, labelID, labelPrefix, labelName, color)
+		return err
+	})
+	return
+}
+
+func txNewMailbox(tx *bolt.Tx, storeAddress *Address, labelID, labelPrefix, labelName, color string) (*Mailbox, error) {
+	l := log.WithField("addrID", storeAddress.addressID).WithField("labelID", labelID)
+	mb := &Mailbox{
 		store:        storeAddress.store,
 		storeAddress: storeAddress,
 		labelID:      labelID,
@@ -54,18 +60,17 @@ func newMailbox(storeAddress *Address, labelID, labelPrefix, labelName, color st
 		log:          l,
 	}
 
-	if err = mb.store.db.Update(func(tx *bolt.Tx) error {
-		return initMailboxBucket(tx, mb.getBucketName())
-	}); err != nil {
+	err := initMailboxBucket(tx, mb.getBucketName())
+	if err != nil {
 		l.WithError(err).Error("Could not initialise mailbox buckets")
 	}
 
-	syncDraftsIfNecssary(mb)
+	syncDraftsIfNecssary(tx, mb)
 
-	return
+	return mb, err
 }
 
-func syncDraftsIfNecssary(mb *Mailbox) { //nolint[funlen]
+func syncDraftsIfNecssary(tx *bolt.Tx, mb *Mailbox) { //nolint[funlen]
 	// We didn't support drafts before v1.2.6 and therefore if we now created
 	// Drafts mailbox we need to check whether counts match (drafts are synced).
 	// If not, sync them from local metadata without need to do full resync,
@@ -76,12 +81,12 @@ func syncDraftsIfNecssary(mb *Mailbox) { //nolint[funlen]
 
 	// If the drafts mailbox total is non-zero, it means it has already been used
 	// and there is no need to continue. Otherwise, we may need to do an initial sync.
-	total, _, err := mb.GetCounts()
+	total, _, err := mb.txGetCounts(tx)
 	if err != nil || total != 0 {
 		return
 	}
 
-	counts, err := mb.store.getOnAPICounts()
+	counts, err := mb.store.txGetOnAPICounts(tx)
 	if err != nil {
 		return
 	}
@@ -107,21 +112,19 @@ func syncDraftsIfNecssary(mb *Mailbox) { //nolint[funlen]
 	}
 
 	if !foundCounts || doSync {
-		err := mb.store.db.Update(func(tx *bolt.Tx) error {
-			return tx.Bucket(metadataBucket).ForEach(func(k, v []byte) error {
-				msg := &pmapi.Message{}
-				if err := json.Unmarshal(v, msg); err != nil {
-					return err
+		err := tx.Bucket(metadataBucket).ForEach(func(k, v []byte) error {
+			msg := &pmapi.Message{}
+			if err := json.Unmarshal(v, msg); err != nil {
+				return err
+			}
+			for _, msgLabelID := range msg.LabelIDs {
+				if msgLabelID == pmapi.DraftLabel {
+					log.WithField("id", msg.ID).Trace("Drafts mailbox created: syncing draft locally")
+					_ = mb.txCreateOrUpdateMessages(tx, []*pmapi.Message{msg})
+					break
 				}
-				for _, msgLabelID := range msg.LabelIDs {
-					if msgLabelID == pmapi.DraftLabel {
-						log.WithField("id", msg.ID).Trace("Drafts mailbox created: syncing draft locally")
-						_ = mb.txCreateOrUpdateMessages(tx, []*pmapi.Message{msg})
-						break
-					}
-				}
-				return nil
-			})
+			}
+			return nil
 		})
 		log.WithError(err).Info("Drafts mailbox created: synced localy")
 	}

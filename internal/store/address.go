@@ -20,6 +20,7 @@ package store
 import (
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	"github.com/sirupsen/logrus"
+	bolt "go.etcd.io/bbolt"
 )
 
 // Address holds mailboxes for IMAP user (login address). In combined mode
@@ -63,20 +64,23 @@ func (storeAddress *Address) init(foldersAndLabels []*pmapi.Label) (err error) {
 
 	storeAddress.mailboxes = make(map[string]*Mailbox)
 
-	for _, label := range foldersAndLabels {
-		prefix := getLabelPrefix(label)
+	err = storeAddress.store.db.Update(func(tx *bolt.Tx) error {
+		for _, label := range foldersAndLabels {
+			prefix := getLabelPrefix(label)
 
-		var mailbox *Mailbox
-		if mailbox, err = newMailbox(storeAddress, label.ID, prefix, label.Name, label.Color); err != nil {
-			storeAddress.log.
-				WithError(err).
-				WithField("labelID", label.ID).
-				Error("Could not init mailbox for folder or label")
-			return
+			var mailbox *Mailbox
+			if mailbox, err = txNewMailbox(tx, storeAddress, label.ID, prefix, label.Name, label.Color); err != nil {
+				storeAddress.log.
+					WithError(err).
+					WithField("labelID", label.ID).
+					Error("Could not init mailbox for folder or label")
+				return err
+			}
+
+			storeAddress.mailboxes[label.ID] = mailbox
 		}
-
-		storeAddress.mailboxes[label.ID] = mailbox
-	}
+		return nil
+	})
 
 	return
 }

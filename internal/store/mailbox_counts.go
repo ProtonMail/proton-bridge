@@ -185,31 +185,34 @@ func (store *Store) getLabelsFromLocalStorage() ([]*pmapi.Label, error) {
 	return labels, nil
 }
 
-func (store *Store) getOnAPICounts() ([]*mailboxCounts, error) {
+func (store *Store) getOnAPICounts() (counts []*mailboxCounts, err error) {
+	err = store.db.View(func(tx *bolt.Tx) error {
+		counts, err = store.txGetOnAPICounts(tx)
+		return err
+	})
+	return
+}
+
+func (store *Store) txGetOnAPICounts(tx *bolt.Tx) ([]*mailboxCounts, error) {
 	counts := []*mailboxCounts{}
-	tx := func(tx *bolt.Tx) error {
-		c := tx.Bucket(countsBucket).Cursor()
-		for k, countsB := c.First(); k != nil; k, countsB = c.Next() {
-			l := store.log.WithField("key", string(k))
-			if countsB == nil {
-				err := errors.New("empty counts in DB")
-				l.WithError(err).Error("While getting local labels")
-				return err
-			}
-
-			mbCounts := &mailboxCounts{}
-			if err := json.Unmarshal(countsB, mbCounts); err != nil {
-				l.WithError(err).Error("While unmarshaling local labels")
-				return err
-			}
-
-			counts = append(counts, mbCounts)
+	c := tx.Bucket(countsBucket).Cursor()
+	for k, countsB := c.First(); k != nil; k, countsB = c.Next() {
+		l := store.log.WithField("key", string(k))
+		if countsB == nil {
+			err := errors.New("empty counts in DB")
+			l.WithError(err).Error("While getting local labels")
+			return nil, err
 		}
-		return nil
-	}
-	err := store.db.View(tx)
 
-	return counts, err
+		mbCounts := &mailboxCounts{}
+		if err := json.Unmarshal(countsB, mbCounts); err != nil {
+			l.WithError(err).Error("While unmarshaling local labels")
+			return nil, err
+		}
+
+		counts = append(counts, mbCounts)
+	}
+	return counts, nil
 }
 
 // createOrUpdateOnAPICounts will change only on-API-counts.
