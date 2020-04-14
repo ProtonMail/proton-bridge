@@ -29,7 +29,7 @@ ifeq "${GOOS}" "windows"
 endif
 ifeq "${GOOS}" "darwin"
     DARWINAPP_CONTENTS:=${DEPLOY_DIR}/darwin/${EXE}.app/Contents
-    EXE:=Contents/Macos/${EXE}
+    EXE:=${EXE}.app/Contents/MacOS/${EXE}
 endif
 EXE_TARGET:=${DEPLOY_DIR}/${GOOS}/${EXE}
 TGZ_TARGET:=bridge_${GOOS}_${REVISION}.tgz
