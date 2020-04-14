@@ -30,7 +30,7 @@ import (
 )
 
 const (
-	proxyRevertTime    = 24 * time.Hour
+	proxyUseDuration   = 24 * time.Hour
 	proxySearchTimeout = 30 * time.Second
 	proxyQueryTimeout  = 10 * time.Second
 	proxyLookupWait    = 5 * time.Second

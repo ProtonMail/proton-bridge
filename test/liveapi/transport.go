@@ -33,7 +33,7 @@ func (ctl *Controller) TurnInternetConnectionOn() {
 }
 
 type fakeTransport struct {
-	ctl     *Controller
+	ctl       *Controller
 	transport http.RoundTripper
 }
 

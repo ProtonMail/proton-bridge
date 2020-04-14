@@ -18,8 +18,10 @@
 package bridge
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
+	"runtime/debug"
 	"testing"
 	"time"
 
@@ -37,6 +39,9 @@ import (
 )
 
 func TestMain(m *testing.M) {
+	if os.Getenv("VERBOSITY") == "fatal" {
+		logrus.SetLevel(logrus.FatalLevel)
+	}
 	if os.Getenv("VERBOSITY") == "trace" {
 		logrus.SetLevel(logrus.TraceLevel)
 	}
@@ -138,8 +143,27 @@ type mocks struct {
 	storeCache *store.Cache
 }
 
+type fullStackReporter struct {
+	T testing.TB
+}
+
+func (fr *fullStackReporter) Errorf(format string, args ...interface{}) {
+	fmt.Printf("err: "+format+"\n", args...)
+	fr.T.Fail()
+}
+func (fr *fullStackReporter) Fatalf(format string, args ...interface{}) {
+	debug.PrintStack()
+	fmt.Printf("fail: "+format+"\n", args...)
+	fr.T.FailNow()
+}
+
 func initMocks(t *testing.T) mocks {
-	mockCtrl := gomock.NewController(t)
+	var mockCtrl *gomock.Controller
+	if os.Getenv("VERBOSITY") == "trace" {
+		mockCtrl = gomock.NewController(&fullStackReporter{t})
+	} else {
+		mockCtrl = gomock.NewController(t)
+	}
 
 	cacheFile, err := ioutil.TempFile("", "bridge-store-cache-*.db")
 	require.NoError(t, err, "could not get temporary file for store cache")
@@ -172,35 +196,38 @@ func initMocks(t *testing.T) mocks {
 }
 
 func testNewBridgeWithUsers(t *testing.T, m mocks) *Bridge {
-	// Init for user.
-	m.pmapiClient.EXPECT().AuthRefresh("token").Return(testAuthRefresh, nil)
-	m.pmapiClient.EXPECT().Unlock("pass").Return(nil, nil)
-	m.pmapiClient.EXPECT().UnlockAddresses([]byte("pass")).Return(nil)
-	m.pmapiClient.EXPECT().ListLabels().Return([]*pmapi.Label{}, nil)
-	m.pmapiClient.EXPECT().Addresses().Return([]*pmapi.Address{testPMAPIAddress})
-	m.pmapiClient.EXPECT().CountMessages("").Return([]*pmapi.MessagesCount{}, nil)
-	m.credentialsStore.EXPECT().Get("user").Return(testCredentials, nil).Times(2)
-	m.credentialsStore.EXPECT().UpdateToken("user", ":reftok").Return(nil)
-	m.credentialsStore.EXPECT().Get("user").Return(testCredentials, nil)
-	m.pmapiClient.EXPECT().GetEvent("").Return(testPMAPIEvent, nil)
-	m.pmapiClient.EXPECT().ListMessages(gomock.Any()).Return([]*pmapi.Message{}, 0, nil)
-	m.pmapiClient.EXPECT().GetEvent(testPMAPIEvent.EventID).Return(testPMAPIEvent, nil)
+	// Events are asynchronous
+	m.pmapiClient.EXPECT().GetEvent("").Return(testPMAPIEvent, nil).Times(2)
+	m.pmapiClient.EXPECT().GetEvent(testPMAPIEvent.EventID).Return(testPMAPIEvent, nil).Times(2)
+	m.pmapiClient.EXPECT().ListMessages(gomock.Any()).Return([]*pmapi.Message{}, 0, nil).Times(2)
 
-	// Init for users.
-	m.pmapiClient.EXPECT().AuthRefresh("token").Return(testAuthRefresh, nil)
-	m.pmapiClient.EXPECT().Unlock("pass").Return(nil, nil)
-	m.pmapiClient.EXPECT().UnlockAddresses([]byte("pass")).Return(nil)
-	m.pmapiClient.EXPECT().ListLabels().Return([]*pmapi.Label{}, nil)
-	m.pmapiClient.EXPECT().Addresses().Return(testPMAPIAddresses)
-	m.pmapiClient.EXPECT().CountMessages("").Return([]*pmapi.MessagesCount{}, nil)
-	m.credentialsStore.EXPECT().Get("users").Return(testCredentialsSplit, nil).Times(2)
-	m.credentialsStore.EXPECT().UpdateToken("users", ":reftok").Return(nil)
-	m.credentialsStore.EXPECT().Get("users").Return(testCredentialsSplit, nil)
-	m.pmapiClient.EXPECT().GetEvent("").Return(testPMAPIEvent, nil)
-	m.pmapiClient.EXPECT().ListMessages(gomock.Any()).Return([]*pmapi.Message{}, 0, nil)
-	m.pmapiClient.EXPECT().GetEvent(testPMAPIEvent.EventID).Return(testPMAPIEvent, nil)
+	gomock.InOrder(
+		m.credentialsStore.EXPECT().List().Return([]string{"user", "users"}, nil),
 
-	m.credentialsStore.EXPECT().List().Return([]string{"user", "users"}, nil)
+		// Init for user.
+		m.credentialsStore.EXPECT().Get("user").Return(testCredentials, nil),
+		m.credentialsStore.EXPECT().Get("user").Return(testCredentials, nil),
+		m.pmapiClient.EXPECT().AuthRefresh("token").Return(testAuthRefresh, nil),
+		// TODO m.credentialsStore.EXPECT().UpdateToken("user", ":reftok").Return(nil)
+		// TODO m.credentialsStore.EXPECT().Get("user").Return(testCredentials, nil)
+		m.pmapiClient.EXPECT().Unlock("pass").Return(nil, nil),
+		m.pmapiClient.EXPECT().UnlockAddresses([]byte("pass")).Return(nil),
+		m.pmapiClient.EXPECT().ListLabels().Return([]*pmapi.Label{}, nil),
+		m.pmapiClient.EXPECT().CountMessages("").Return([]*pmapi.MessagesCount{}, nil),
+		m.pmapiClient.EXPECT().Addresses().Return([]*pmapi.Address{testPMAPIAddress}),
+
+		// Init for users.
+		m.credentialsStore.EXPECT().Get("users").Return(testCredentialsSplit, nil),
+		m.credentialsStore.EXPECT().Get("users").Return(testCredentialsSplit, nil),
+		m.pmapiClient.EXPECT().AuthRefresh("token").Return(testAuthRefresh, nil),
+		// TODO m.credentialsStore.EXPECT().UpdateToken("users", ":reftok").Return(nil),
+		// TODO m.credentialsStore.EXPECT().Get("users").Return(testCredentialsSplit, nil),
+		m.pmapiClient.EXPECT().Unlock("pass").Return(nil, nil),
+		m.pmapiClient.EXPECT().UnlockAddresses([]byte("pass")).Return(nil),
+		m.pmapiClient.EXPECT().ListLabels().Return([]*pmapi.Label{}, nil),
+		m.pmapiClient.EXPECT().CountMessages("").Return([]*pmapi.MessagesCount{}, nil),
+		m.pmapiClient.EXPECT().Addresses().Return(testPMAPIAddresses),
+	)
 
 	return testNewBridge(t, m)
 }
@@ -214,7 +241,7 @@ func testNewBridge(t *testing.T, m mocks) *Bridge {
 	m.config.EXPECT().GetDBDir().Return("/tmp").AnyTimes()
 	m.config.EXPECT().GetIMAPCachePath().Return(cacheFile.Name()).AnyTimes()
 	m.eventListener.EXPECT().Add(events.UpgradeApplicationEvent, gomock.Any())
-	m.clientManager.EXPECT().GetAuthUpdateChannel().Return(make(chan *pmapi.ClientAuth))
+	m.clientManager.EXPECT().GetAuthUpdateChannel().Return(make(chan pmapi.ClientAuth))
 
 	bridge := New(m.config, m.prefProvider, m.PanicHandler, m.eventListener, "ver", m.clientManager, m.credentialsStore)
 
@@ -232,6 +259,9 @@ func cleanUpBridgeUserData(b *Bridge) {
 func TestClearData(t *testing.T) {
 	m := initMocks(t)
 	defer m.ctrl.Finish()
+
+	m.clientManager.EXPECT().GetClient("user").Return(m.pmapiClient).MinTimes(1)
+	m.clientManager.EXPECT().GetClient("users").Return(m.pmapiClient).MinTimes(1)
 
 	bridge := testNewBridgeWithUsers(t, m)
 	defer cleanUpBridgeUserData(bridge)
@@ -254,4 +284,15 @@ func TestClearData(t *testing.T) {
 	require.NoError(t, bridge.ClearData())
 
 	waitForEvents()
+}
+
+func mockEventLoopNoAction(m mocks) {
+	// Set up mocks for starting the store's event loop (in store.New).
+	// The event loop runs in another goroutine so this might happen at any time.
+	gomock.InOrder(
+		m.pmapiClient.EXPECT().GetEvent("").Return(testPMAPIEvent, nil),
+		m.pmapiClient.EXPECT().GetEvent(testPMAPIEvent.EventID).Return(testPMAPIEvent, nil),
+		// Set up mocks for performing the initial store sync.
+		m.pmapiClient.EXPECT().ListMessages(gomock.Any()).Return([]*pmapi.Message{}, 0, nil),
+	)
 }

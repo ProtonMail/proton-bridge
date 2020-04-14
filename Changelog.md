@@ -16,6 +16,11 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * Adding DSN Sentry as build time parameter
 * GODT-124 bump go-appdir from v1.0.0 to v1.1.0
 * CSB-72 Skip processing message update event if http statuscode is 422
+* Skip processing message update event if http statuscode is 422
+* GODT-204 `pmapi.TokenManager` replaced by `pmapi.ClientManager`
+    * `expiresAt` is no longer part of client
+    * TODO Please fill here all logic changes
+
 
 ### Fixed
 * Use correct binary name when finding location of addcert.scpt

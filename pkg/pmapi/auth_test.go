@@ -33,8 +33,6 @@ import (
 	r "github.com/stretchr/testify/require"
 )
 
-var aLongTimeAgo = time.Unix(233431200, 0)
-
 var testIdentity = &pmcrypto.Identity{
 	Name:  "UserID",
 	Email: "",
@@ -276,10 +274,11 @@ func TestClient_AuthRefresh(t *testing.T) {
 
 	auth, err := c.AuthRefresh(testUID + ":" + testRefreshToken)
 	Ok(t, err)
+	Equals(t, testUID, c.uid)
 
 	exp := &Auth{}
 	*exp = *testAuth
-	exp.uid = "" // AuthRefresh will not return UID (only Auth returns the UID).
+	exp.uid = testUID // AuthRefresh will not return UID (only Auth returns the UID) we should set testUID to be able to generate token, see `GetToken`
 	exp.accessToken = testAccessToken
 	exp.KeySalt = ""
 	exp.EventID = ""

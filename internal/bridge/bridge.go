@@ -181,18 +181,20 @@ func (b *Bridge) watchBridgeOutdated() {
 // watchAPIAuths receives auths from the client manager and sends them to the appropriate user.
 func (b *Bridge) watchAPIAuths() {
 	for auth := range b.clientManager.GetAuthUpdateChannel() {
-		logrus.Debug("Bridge received auth from ClientManager")
+		log.Debug("Bridge received auth from ClientManager")
 
 		user, ok := b.hasUser(auth.UserID)
 		if !ok {
-			logrus.WithField("userID", auth.UserID).Info("User not available for auth update")
+			log.WithField("userID", auth.UserID).Info("User not available for auth update")
 			continue
 		}
 
 		if auth.Auth != nil {
 			user.updateAuthToken(auth.Auth)
-		} else {
-			user.logout()
+		} else if err := user.logout(); err != nil {
+			log.WithError(err).
+				WithField("userID", auth.UserID).
+				Error("User logout failed while watching API auths")
 		}
 	}
 }
@@ -241,6 +243,14 @@ func (b *Bridge) FinishLogin(authClient pmapi.Client, auth *pmapi.Auth, mbPasswo
 		if err == pmapi.ErrUpgradeApplication {
 			b.events.Emit(events.UpgradeApplicationEvent, "")
 		}
+		if err != nil {
+			log.WithError(err).Debug("Login not finished; removing auth session")
+			if delAuthErr := authClient.DeleteAuth(); delAuthErr != nil {
+				log.WithError(delAuthErr).Error("Failed to clear login session after unlock")
+			}
+		}
+		// The anonymous client will be removed from list and authentication will not be deleted.
+		authClient.Logout()
 	}()
 
 	apiUser, hashedPassword, err := getAPIUser(authClient, auth, mbPassword)
@@ -249,7 +259,8 @@ func (b *Bridge) FinishLogin(authClient pmapi.Client, auth *pmapi.Auth, mbPasswo
 		return
 	}
 
-	if user, err = b.GetUser(apiUser.ID); err == nil {
+	var ok bool
+	if user, ok = b.hasUser(apiUser.ID); ok {
 		if err = b.connectExistingUser(user, auth, hashedPassword); err != nil {
 			log.WithError(err).Error("Failed to connect existing user")
 			return
@@ -305,7 +316,7 @@ func (b *Bridge) addNewUser(user *pmapi.User, auth *pmapi.Auth, hashedPassword s
 		return errors.Wrap(err, "failed to refresh token in new client")
 	}
 
-	if user, err = client.UpdateUser(); err != nil {
+	if user, err = client.CurrentUser(); err != nil {
 		return errors.Wrap(err, "failed to update API user")
 	}
 
@@ -330,7 +341,7 @@ func (b *Bridge) addNewUser(user *pmapi.User, auth *pmapi.Auth, hashedPassword s
 
 	b.SendMetric(metrics.New(metrics.Setup, metrics.NewUser, metrics.NoLabel))
 
-	return
+	return err
 }
 
 func getAPIUser(client pmapi.Client, auth *pmapi.Auth, mbPassword string) (user *pmapi.User, hashedPassword string, err error) {
@@ -340,7 +351,13 @@ func getAPIUser(client pmapi.Client, auth *pmapi.Auth, mbPassword string) (user 
 		return
 	}
 
-	if user, err = client.UpdateUser(); err != nil {
+	// We unlock the user's PGP key here to detect if the user's mailbox password is wrong.
+	if _, err = client.Unlock(hashedPassword); err != nil {
+		log.WithError(err).Error("Wrong mailbox password")
+		return
+	}
+
+	if user, err = client.CurrentUser(); err != nil {
 		log.WithError(err).Error("Could not load API user")
 		return
 	}

@@ -52,11 +52,16 @@ func TestNewBridgeWithDisconnectedUser(t *testing.T) {
 	m := initMocks(t)
 	defer m.ctrl.Finish()
 
-	m.credentialsStore.EXPECT().List().Return([]string{"user"}, nil)
-	m.credentialsStore.EXPECT().Get("user").Return(testCredentialsDisconnected, nil).Times(2)
-	m.pmapiClient.EXPECT().ListLabels().Return(nil, errors.New("ErrUnauthorized"))
-	m.pmapiClient.EXPECT().Addresses().Return(nil)
-	m.clientManager.EXPECT().GetClient("user").Return(m.pmapiClient)
+	// Basically every call client has get client manager.
+	m.clientManager.EXPECT().GetClient("user").Return(m.pmapiClient).MinTimes(1)
+
+	gomock.InOrder(
+		m.credentialsStore.EXPECT().List().Return([]string{"user"}, nil),
+		m.credentialsStore.EXPECT().Get("user").Return(testCredentialsDisconnected, nil),
+		m.credentialsStore.EXPECT().Get("user").Return(testCredentialsDisconnected, nil),
+		m.pmapiClient.EXPECT().ListLabels().Return(nil, errors.New("ErrUnauthorized")),
+		m.pmapiClient.EXPECT().Addresses().Return(nil),
+	)
 
 	checkBridgeNew(t, m, []*credentials.Credentials{testCredentialsDisconnected})
 }
@@ -65,9 +70,10 @@ func TestNewBridgeWithConnectedUserWithBadToken(t *testing.T) {
 	m := initMocks(t)
 	defer m.ctrl.Finish()
 
+	m.clientManager.EXPECT().GetClient("user").Return(m.pmapiClient).MinTimes(1)
+
 	m.credentialsStore.EXPECT().List().Return([]string{"user"}, nil)
 	m.credentialsStore.EXPECT().Get("user").Return(testCredentials, nil).Times(2)
-	m.clientManager.EXPECT().GetClient("user").Return(m.pmapiClient).MinTimes(1)
 
 	m.credentialsStore.EXPECT().Logout("user").Return(nil)
 	m.pmapiClient.EXPECT().AuthRefresh("token").Return(nil, errors.New("bad token"))
@@ -82,26 +88,33 @@ func TestNewBridgeWithConnectedUserWithBadToken(t *testing.T) {
 	checkBridgeNew(t, m, []*credentials.Credentials{testCredentialsDisconnected})
 }
 
+func mockConnectedUser(m mocks) {
+	gomock.InOrder(
+		m.credentialsStore.EXPECT().Get("user").Return(testCredentials, nil),
+
+		m.credentialsStore.EXPECT().Get("user").Return(testCredentials, nil),
+		m.pmapiClient.EXPECT().AuthRefresh("token").Return(testAuthRefresh, nil),
+		//TODO m.credentialsStore.EXPECT().UpdateToken("user", ":reftok").Return(nil),
+
+		m.pmapiClient.EXPECT().Unlock(testCredentials.MailboxPassword).Return(nil, nil),
+		m.pmapiClient.EXPECT().UnlockAddresses([]byte(testCredentials.MailboxPassword)).Return(nil),
+
+		// Set up mocks for store initialisation for the authorized user.
+		m.pmapiClient.EXPECT().ListLabels().Return([]*pmapi.Label{}, nil),
+		m.pmapiClient.EXPECT().CountMessages("").Return([]*pmapi.MessagesCount{}, nil),
+		m.pmapiClient.EXPECT().Addresses().Return([]*pmapi.Address{testPMAPIAddress}),
+	)
+}
+
 func TestNewBridgeWithConnectedUser(t *testing.T) {
 	m := initMocks(t)
 	defer m.ctrl.Finish()
 
-	m.credentialsStore.EXPECT().List().Return([]string{"user"}, nil)
-	m.credentialsStore.EXPECT().Get("user").Return(testCredentials, nil).Times(2)
-	m.credentialsStore.EXPECT().UpdateToken("user", ":reftok").Return(nil)
-
-	m.pmapiClient.EXPECT().AuthRefresh("token").Return(testAuthRefresh, nil)
-	m.pmapiClient.EXPECT().Unlock(testCredentials.MailboxPassword).Return(nil, nil)
-	m.pmapiClient.EXPECT().UnlockAddresses([]byte(testCredentials.MailboxPassword)).Return(nil)
 	m.clientManager.EXPECT().GetClient("user").Return(m.pmapiClient).MinTimes(1)
+	m.credentialsStore.EXPECT().List().Return([]string{"user"}, nil)
 
-	// Set up mocks for store initialisation for the authorized user.
-	m.pmapiClient.EXPECT().ListLabels().Return([]*pmapi.Label{}, nil)
-	m.pmapiClient.EXPECT().Addresses().Return([]*pmapi.Address{testPMAPIAddress})
-	m.pmapiClient.EXPECT().CountMessages("").Return([]*pmapi.MessagesCount{}, nil)
-	m.pmapiClient.EXPECT().GetEvent("").Return(testPMAPIEvent, nil)
-	m.pmapiClient.EXPECT().ListMessages(gomock.Any()).Return([]*pmapi.Message{}, 0, nil).AnyTimes()
-	m.pmapiClient.EXPECT().GetEvent(testPMAPIEvent.EventID).Return(testPMAPIEvent, nil)
+	mockConnectedUser(m)
+	mockEventLoopNoAction(m)
 
 	checkBridgeNew(t, m, []*credentials.Credentials{testCredentials})
 }
@@ -112,27 +125,22 @@ func TestNewBridgeWithUsers(t *testing.T) {
 	m := initMocks(t)
 	defer m.ctrl.Finish()
 
-	m.pmapiClient.EXPECT().AuthRefresh("token").Return(testAuthRefresh, nil)
-	m.pmapiClient.EXPECT().Unlock(testCredentials.MailboxPassword).Return(nil, nil)
-	m.pmapiClient.EXPECT().UnlockAddresses([]byte(testCredentials.MailboxPassword)).Return(nil)
+	m.clientManager.EXPECT().GetClient("user").Return(m.pmapiClient).MinTimes(1)
+	m.credentialsStore.EXPECT().List().Return([]string{"userDisconnected", "user"}, nil)
 
-	m.credentialsStore.EXPECT().List().Return([]string{"user", "user"}, nil)
-	m.credentialsStore.EXPECT().Get("user").Return(testCredentialsDisconnected, nil).Times(2)
-	m.credentialsStore.EXPECT().Get("user").Return(testCredentials, nil).Times(2)
-	m.credentialsStore.EXPECT().UpdateToken("user", ":reftok").Return(nil)
+	gomock.InOrder(
+		m.credentialsStore.EXPECT().Get("userDisconnected").Return(testCredentialsDisconnected, nil),
+		m.credentialsStore.EXPECT().Get("userDisconnected").Return(testCredentialsDisconnected, nil),
+		// Set up mocks for store initialisation for the unauth user.
+		m.clientManager.EXPECT().GetClient("userDisconnected").Return(m.pmapiClient),
+		m.pmapiClient.EXPECT().ListLabels().Return(nil, errors.New("ErrUnauthorized")),
+		m.clientManager.EXPECT().GetClient("userDisconnected").Return(m.pmapiClient),
+		m.pmapiClient.EXPECT().Addresses().Return(nil),
+	)
 
-	// Set up mocks for store initialisation for the unauth user.
-	m.pmapiClient.EXPECT().ListLabels().Return(nil, errors.New("ErrUnauthorized"))
-	m.pmapiClient.EXPECT().Addresses().Return(nil)
+	mockConnectedUser(m)
 
-	// Set up mocks for store initialisation for the authorized user.
-	m.credentialsStore.EXPECT().Get("user").Return(testCredentials, nil)
-	m.pmapiClient.EXPECT().ListLabels().Return([]*pmapi.Label{}, nil)
-	m.pmapiClient.EXPECT().Addresses().Return([]*pmapi.Address{testPMAPIAddress})
-	m.pmapiClient.EXPECT().CountMessages("").Return([]*pmapi.MessagesCount{}, nil)
-	m.pmapiClient.EXPECT().GetEvent("").Return(testPMAPIEvent, nil)
-	m.pmapiClient.EXPECT().ListMessages(gomock.Any()).Return([]*pmapi.Message{}, 0, nil).AnyTimes()
-	m.pmapiClient.EXPECT().GetEvent(testPMAPIEvent.EventID).Return(testPMAPIEvent, nil)
+	mockEventLoopNoAction(m)
 
 	checkBridgeNew(t, m, []*credentials.Credentials{testCredentialsDisconnected, testCredentials})
 }
@@ -141,9 +149,13 @@ func TestNewBridgeFirstStart(t *testing.T) {
 	m := initMocks(t)
 	defer m.ctrl.Finish()
 
-	m.prefProvider.EXPECT().GetBool(preferences.FirstStartKey).Return(true)
-	m.credentialsStore.EXPECT().List().Return([]string{}, nil)
-	m.pmapiClient.EXPECT().SendSimpleMetric(string(metrics.Setup), string(metrics.FirstStart), gomock.Any())
+	gomock.InOrder(
+		m.credentialsStore.EXPECT().List().Return([]string{}, nil),
+		m.prefProvider.EXPECT().GetBool(preferences.FirstStartKey).Return(true),
+		m.clientManager.EXPECT().GetAnonymousClient().Return(m.pmapiClient),
+		m.pmapiClient.EXPECT().SendSimpleMetric(string(metrics.Setup), string(metrics.FirstStart), gomock.Any()),
+		m.pmapiClient.EXPECT().Logout(),
+	)
 
 	testNewBridge(t, m)
 }

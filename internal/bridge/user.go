@@ -409,7 +409,7 @@ func (u *User) GetBridgePassword() string {
 }
 
 // CheckBridgeLogin checks whether the user is logged in and the bridge
-// password is correct.
+// IMAP/SMTP password is correct.
 func (u *User) CheckBridgeLogin(password string) error {
 	if isApplicationOutdated {
 		u.listener.Emit(events.UpgradeApplicationEvent, "")

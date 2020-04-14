@@ -5,11 +5,10 @@
 package mocks
 
 import (
-	reflect "reflect"
-
 	credentials "github.com/ProtonMail/proton-bridge/internal/bridge/credentials"
 	pmapi "github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	gomock "github.com/golang/mock/gomock"
+	reflect "reflect"
 )
 
 // MockConfiger is a mock of Configer interface
@@ -272,10 +271,10 @@ func (m *MockClientManager) GetAuthUpdateChannel() chan pmapi.ClientAuth {
 	return ret0
 }
 
-// GetAuthUpdateChannel indicates an expected call of GetBridgeAuthChannel
+// GetAuthUpdateChannel indicates an expected call of GetAuthUpdateChannel
 func (mr *MockClientManagerMockRecorder) GetAuthUpdateChannel() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAuthUpdateChannel", reflect.TypeOf((*MockClientManager)(nil).GetBridgeAuthChannel))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAuthUpdateChannel", reflect.TypeOf((*MockClientManager)(nil).GetAuthUpdateChannel))
 }
 
 // GetClient mocks base method

@@ -41,7 +41,7 @@ func setTestDialerWithPinning(cm *ClientManager) (*int, *DialerWithPinning) {
 func TestTLSPinValid(t *testing.T) {
 	cm := NewClientManager(testLiveConfig)
 	cm.host = liveAPI
-	RootScheme = "https"
+	rootScheme = "https"
 	called, _ := setTestDialerWithPinning(cm)
 	client := cm.GetClient("pmapi" + t.Name())
 

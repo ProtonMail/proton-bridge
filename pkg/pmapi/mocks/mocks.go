@@ -5,12 +5,11 @@
 package mocks
 
 import (
-	io "io"
-	reflect "reflect"
-
 	crypto "github.com/ProtonMail/gopenpgp/crypto"
 	pmapi "github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	gomock "github.com/golang/mock/gomock"
+	io "io"
+	reflect "reflect"
 )
 
 // MockClient is a mock of Client interface
@@ -108,6 +107,18 @@ func (m *MockClient) AuthRefresh(arg0 string) (*pmapi.Auth, error) {
 func (mr *MockClientMockRecorder) AuthRefresh(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AuthRefresh", reflect.TypeOf((*MockClient)(nil).AuthRefresh), arg0)
+}
+
+// ClearData mocks base method
+func (m *MockClient) ClearData() {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "ClearData")
+}
+
+// ClearData indicates an expected call of ClearData
+func (mr *MockClientMockRecorder) ClearData() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ClearData", reflect.TypeOf((*MockClient)(nil).ClearData))
 }
 
 // CountMessages mocks base method
@@ -212,6 +223,20 @@ func (m *MockClient) DeleteAttachment(arg0 string) error {
 func (mr *MockClientMockRecorder) DeleteAttachment(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteAttachment", reflect.TypeOf((*MockClient)(nil).DeleteAttachment), arg0)
+}
+
+// DeleteAuth mocks base method
+func (m *MockClient) DeleteAuth() error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteAuth")
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteAuth indicates an expected call of DeleteAuth
+func (mr *MockClientMockRecorder) DeleteAuth() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteAuth", reflect.TypeOf((*MockClient)(nil).DeleteAuth))
 }
 
 // DeleteLabel mocks base method

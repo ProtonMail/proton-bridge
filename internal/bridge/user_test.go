@@ -27,21 +27,15 @@ import (
 )
 
 func testNewUser(m mocks) *User {
-	m.credentialsStore.EXPECT().Get("user").Return(testCredentials, nil).Times(2)
-	m.credentialsStore.EXPECT().UpdateToken("user", ":reftok").Return(nil)
+	m.clientManager.EXPECT().GetClient("user").Return(m.pmapiClient).MinTimes(1)
 
-	m.pmapiClient.EXPECT().AuthRefresh("token").Return(testAuthRefresh, nil)
-	m.credentialsStore.EXPECT().Get("user").Return(testCredentials, nil)
-	m.pmapiClient.EXPECT().Unlock("pass").Return(nil, nil)
-	m.pmapiClient.EXPECT().UnlockAddresses([]byte("pass")).Return(nil)
+	mockConnectedUser(m)
 
-	// Expectations for initial sync (when loading existing user from credentials store).
-	m.pmapiClient.EXPECT().ListLabels().Return([]*pmapi.Label{}, nil)
-	m.pmapiClient.EXPECT().Addresses().Return([]*pmapi.Address{testPMAPIAddress})
-	m.pmapiClient.EXPECT().CountMessages("").Return([]*pmapi.MessagesCount{}, nil)
-	m.pmapiClient.EXPECT().GetEvent("").Return(testPMAPIEvent, nil).AnyTimes()
-	m.pmapiClient.EXPECT().ListMessages(gomock.Any()).Return([]*pmapi.Message{}, 0, nil)
-	m.pmapiClient.EXPECT().GetEvent(testPMAPIEvent.EventID).Return(testPMAPIEvent, nil).AnyTimes()
+	gomock.InOrder(
+		m.pmapiClient.EXPECT().GetEvent("").Return(testPMAPIEvent, nil).MaxTimes(1),
+		m.pmapiClient.EXPECT().GetEvent(testPMAPIEvent.EventID).Return(testPMAPIEvent, nil).MaxTimes(1),
+		m.pmapiClient.EXPECT().ListMessages(gomock.Any()).Return([]*pmapi.Message{}, 0, nil).MaxTimes(1),
+	)
 
 	user, err := newUser(m.PanicHandler, "user", m.eventListener, m.credentialsStore, m.clientManager, m.storeCache, "/tmp")
 	assert.NoError(m.t, err)
@@ -53,21 +47,15 @@ func testNewUser(m mocks) *User {
 }
 
 func testNewUserForLogout(m mocks) *User {
-	m.credentialsStore.EXPECT().Get("user").Return(testCredentials, nil).Times(2)
-	m.credentialsStore.EXPECT().UpdateToken("user", ":reftok").Return(nil)
+	m.clientManager.EXPECT().GetClient("user").Return(m.pmapiClient).MinTimes(1)
 
-	m.pmapiClient.EXPECT().AuthRefresh("token").Return(testAuthRefresh, nil)
-	m.credentialsStore.EXPECT().Get("user").Return(testCredentials, nil)
-	m.pmapiClient.EXPECT().Unlock("pass").Return(nil, nil)
-	m.pmapiClient.EXPECT().UnlockAddresses([]byte("pass")).Return(nil)
+	mockConnectedUser(m)
 
-	// These may or may not be hit depending on how fast the log out happens.
-	m.pmapiClient.EXPECT().ListLabels().Return([]*pmapi.Label{}, nil).AnyTimes()
-	m.pmapiClient.EXPECT().Addresses().Return([]*pmapi.Address{testPMAPIAddress}).AnyTimes()
-	m.pmapiClient.EXPECT().CountMessages("").Return([]*pmapi.MessagesCount{}, nil)
-	m.pmapiClient.EXPECT().GetEvent("").Return(testPMAPIEvent, nil).AnyTimes()
-	m.pmapiClient.EXPECT().ListMessages(gomock.Any()).Return([]*pmapi.Message{}, 0, nil).AnyTimes()
-	m.pmapiClient.EXPECT().GetEvent(testPMAPIEvent.EventID).Return(testPMAPIEvent, nil).AnyTimes()
+	gomock.InOrder(
+		m.pmapiClient.EXPECT().GetEvent("").Return(testPMAPIEvent, nil).MaxTimes(1),
+		m.pmapiClient.EXPECT().GetEvent(testPMAPIEvent.EventID).Return(testPMAPIEvent, nil).MaxTimes(1),
+		m.pmapiClient.EXPECT().ListMessages(gomock.Any()).Return([]*pmapi.Message{}, 0, nil).MaxTimes(1),
+	)
 
 	user, err := newUser(m.PanicHandler, "user", m.eventListener, m.credentialsStore, m.clientManager, m.storeCache, "/tmp")
 	assert.NoError(m.t, err)

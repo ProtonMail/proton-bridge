@@ -22,6 +22,7 @@ import (
 	"testing"
 
 	"github.com/ProtonMail/proton-bridge/internal/events"
+	gomock "github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -29,12 +30,18 @@ func TestGetNoUser(t *testing.T) {
 	m := initMocks(t)
 	defer m.ctrl.Finish()
 
+	m.clientManager.EXPECT().GetClient("user").Return(m.pmapiClient).MinTimes(1)
+	m.clientManager.EXPECT().GetClient("users").Return(m.pmapiClient).MinTimes(1)
+
 	checkBridgeGetUser(t, m, "nouser", -1, "user nouser not found")
 }
 
 func TestGetUserByID(t *testing.T) {
 	m := initMocks(t)
 	defer m.ctrl.Finish()
+
+	m.clientManager.EXPECT().GetClient("user").Return(m.pmapiClient).MinTimes(1)
+	m.clientManager.EXPECT().GetClient("users").Return(m.pmapiClient).MinTimes(1)
 
 	checkBridgeGetUser(t, m, "user", 0, "")
 	checkBridgeGetUser(t, m, "users", 1, "")
@@ -44,6 +51,9 @@ func TestGetUserByName(t *testing.T) {
 	m := initMocks(t)
 	defer m.ctrl.Finish()
 
+	m.clientManager.EXPECT().GetClient("user").Return(m.pmapiClient).MinTimes(1)
+	m.clientManager.EXPECT().GetClient("users").Return(m.pmapiClient).MinTimes(1)
+
 	checkBridgeGetUser(t, m, "username", 0, "")
 	checkBridgeGetUser(t, m, "usersname", 1, "")
 }
@@ -51,6 +61,9 @@ func TestGetUserByName(t *testing.T) {
 func TestGetUserByEmail(t *testing.T) {
 	m := initMocks(t)
 	defer m.ctrl.Finish()
+
+	m.clientManager.EXPECT().GetClient("user").Return(m.pmapiClient).MinTimes(1)
+	m.clientManager.EXPECT().GetClient("users").Return(m.pmapiClient).MinTimes(1)
 
 	checkBridgeGetUser(t, m, "user@pm.me", 0, "")
 	checkBridgeGetUser(t, m, "users@pm.me", 1, "")
@@ -62,14 +75,18 @@ func TestDeleteUser(t *testing.T) {
 	m := initMocks(t)
 	defer m.ctrl.Finish()
 
+	m.clientManager.EXPECT().GetClient("user").Return(m.pmapiClient).MinTimes(1)
+	m.clientManager.EXPECT().GetClient("users").Return(m.pmapiClient).MinTimes(1)
+
 	bridge := testNewBridgeWithUsers(t, m)
 	defer cleanUpBridgeUserData(bridge)
 
-	m.pmapiClient.EXPECT().Logout().Return(nil)
-
-	m.credentialsStore.EXPECT().Logout("user").Return(nil)
-	m.credentialsStore.EXPECT().Delete("user").Return(nil)
-	m.credentialsStore.EXPECT().Get("user").Return(testCredentials, nil)
+	gomock.InOrder(
+		m.pmapiClient.EXPECT().Logout().Return(),
+		m.credentialsStore.EXPECT().Logout("user").Return(nil),
+		m.credentialsStore.EXPECT().Get("user").Return(testCredentialsDisconnected, nil),
+		m.credentialsStore.EXPECT().Delete("user").Return(nil),
+	)
 
 	m.eventListener.EXPECT().Emit(events.CloseConnectionEvent, "user@pm.me")
 
@@ -83,14 +100,20 @@ func TestDeleteUserWithFailingLogout(t *testing.T) {
 	m := initMocks(t)
 	defer m.ctrl.Finish()
 
+	m.clientManager.EXPECT().GetClient("user").Return(m.pmapiClient).MinTimes(1)
+	m.clientManager.EXPECT().GetClient("users").Return(m.pmapiClient).MinTimes(1)
+
 	bridge := testNewBridgeWithUsers(t, m)
 	defer cleanUpBridgeUserData(bridge)
 
-	m.pmapiClient.EXPECT().Logout().Return(nil)
-
-	m.credentialsStore.EXPECT().Logout("user").Return(errors.New("logout failed"))
-	m.credentialsStore.EXPECT().Delete("user").Return(nil).Times(2)
-	m.credentialsStore.EXPECT().Get("user").Return(testCredentials, nil)
+	gomock.InOrder(
+		m.pmapiClient.EXPECT().Logout().Return(),
+		m.credentialsStore.EXPECT().Logout("user").Return(errors.New("logout failed")),
+		m.credentialsStore.EXPECT().Delete("user").Return(nil),
+		m.credentialsStore.EXPECT().Get("user").Return(nil, errors.New("no such user")),
+		m.credentialsStore.EXPECT().Delete("user").Return(nil),
+		//TODO m.credentialsStore.EXPECT().Delete("user").Return(errors.New("no such user")),
+	)
 
 	m.eventListener.EXPECT().Emit(events.CloseConnectionEvent, "user@pm.me")
 

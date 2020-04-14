@@ -148,7 +148,9 @@ func (api *FakePMAPI) AuthRefresh(token string) (*pmapi.Auth, error) {
 }
 
 func (api *FakePMAPI) Logout() {
-	api.DeleteAuth()
+	if err := api.DeleteAuth(); err != nil {
+		api.log.WithError(err).Error("delete auth failed during logout")
+	}
 	api.ClearData()
 }
 

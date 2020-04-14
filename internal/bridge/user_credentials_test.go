@@ -34,16 +34,24 @@ func TestUpdateUser(t *testing.T) {
 	user := testNewUser(m)
 	defer cleanUpUserData(user)
 
-	m.pmapiClient.EXPECT().Unlock("pass").Return(nil, nil)
-	m.pmapiClient.EXPECT().UnlockAddresses([]byte("pass")).Return(nil)
+	gomock.InOrder(
+		m.pmapiClient.EXPECT().AuthRefresh("token").Return(testAuthRefresh, nil),
+		m.pmapiClient.EXPECT().Unlock("pass").Return(nil, nil),
+		m.pmapiClient.EXPECT().UnlockAddresses([]byte("pass")).Return(nil),
 
-	m.pmapiClient.EXPECT().UpdateUser().Return(nil, nil)
-	m.pmapiClient.EXPECT().Unlock("pass").Return(nil, nil)
-	m.pmapiClient.EXPECT().UnlockAddresses([]byte(testCredentials.MailboxPassword)).Return(nil)
-	m.pmapiClient.EXPECT().Addresses().Return([]*pmapi.Address{testPMAPIAddress})
+		m.pmapiClient.EXPECT().UpdateUser().Return(nil, nil),
+		m.pmapiClient.EXPECT().Unlock("pass").Return(nil, nil),
+		m.pmapiClient.EXPECT().UnlockAddresses([]byte(testCredentials.MailboxPassword)).Return(nil),
+		m.pmapiClient.EXPECT().Addresses().Return([]*pmapi.Address{testPMAPIAddress}),
 
-	m.credentialsStore.EXPECT().UpdateEmails("user", []string{testPMAPIAddress.Email})
-	m.credentialsStore.EXPECT().Get("user").Return(testCredentials, nil)
+		m.credentialsStore.EXPECT().UpdateEmails("user", []string{testPMAPIAddress.Email}),
+		m.credentialsStore.EXPECT().Get("user").Return(testCredentials, nil),
+	)
+
+	gomock.InOrder(
+		m.pmapiClient.EXPECT().GetEvent(testPMAPIEvent.EventID).Return(testPMAPIEvent, nil).MaxTimes(1),
+		m.pmapiClient.EXPECT().ListMessages(gomock.Any()).Return([]*pmapi.Message{}, 0, nil).MaxTimes(1),
+	)
 
 	assert.NoError(t, user.UpdateUser())
 
@@ -105,9 +113,12 @@ func TestLogoutUser(t *testing.T) {
 	user := testNewUserForLogout(m)
 	defer cleanUpUserData(user)
 
-	m.pmapiClient.EXPECT().Logout().Return(nil)
-	m.credentialsStore.EXPECT().Logout("user").Return(nil)
-	m.credentialsStore.EXPECT().Get("user").Return(testCredentials, nil)
+	gomock.InOrder(
+		m.pmapiClient.EXPECT().Logout().Return(),
+		m.credentialsStore.EXPECT().Logout("user").Return(nil),
+		m.credentialsStore.EXPECT().Get("user").Return(testCredentialsDisconnected, nil),
+	)
+
 	m.eventListener.EXPECT().Emit(events.CloseConnectionEvent, "user@pm.me")
 
 	err := user.Logout()
@@ -124,10 +135,12 @@ func TestLogoutUserFailsLogout(t *testing.T) {
 	user := testNewUserForLogout(m)
 	defer cleanUpUserData(user)
 
-	m.pmapiClient.EXPECT().Logout().Return(nil)
-	m.credentialsStore.EXPECT().Logout("user").Return(errors.New("logout failed"))
-	m.credentialsStore.EXPECT().Delete("user").Return(nil)
-	m.credentialsStore.EXPECT().Get("user").Return(testCredentials, nil)
+	gomock.InOrder(
+		m.pmapiClient.EXPECT().Logout().Return(),
+		m.credentialsStore.EXPECT().Logout("user").Return(errors.New("logout failed")),
+		m.credentialsStore.EXPECT().Delete("user").Return(nil),
+		m.credentialsStore.EXPECT().Get("user").Return(testCredentialsDisconnected, nil),
+	)
 	m.eventListener.EXPECT().Emit(events.CloseConnectionEvent, "user@pm.me")
 
 	err := user.Logout()
@@ -135,15 +148,20 @@ func TestLogoutUserFailsLogout(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func TestCheckBridgeLogin(t *testing.T) {
+func TestCheckBridgeLoginOK(t *testing.T) {
 	m := initMocks(t)
 	defer m.ctrl.Finish()
 
 	user := testNewUser(m)
 	defer cleanUpUserData(user)
 
-	m.pmapiClient.EXPECT().Unlock("pass").Return(nil, nil)
-	m.pmapiClient.EXPECT().UnlockAddresses([]byte("pass")).Return(nil)
+	gomock.InOrder(
+		// TODO why u.HasAPIAuth() = false
+		// TODO why not :reftoken
+		m.pmapiClient.EXPECT().AuthRefresh("token").Return(testAuthRefresh, nil),
+		m.pmapiClient.EXPECT().Unlock("pass").Return(nil, nil),
+		m.pmapiClient.EXPECT().UnlockAddresses([]byte("pass")).Return(nil),
+	)
 
 	err := user.CheckBridgeLogin(testCredentials.BridgePassword)
 
@@ -162,11 +180,12 @@ func TestCheckBridgeLoginUpgradeApplication(t *testing.T) {
 	m.eventListener.EXPECT().Emit(events.UpgradeApplicationEvent, "")
 
 	isApplicationOutdated = true
+
 	err := user.CheckBridgeLogin("any-pass")
 	waitForEvents()
-	isApplicationOutdated = false
-
 	assert.Equal(t, pmapi.ErrUpgradeApplication, err)
+
+	isApplicationOutdated = false
 }
 
 func TestCheckBridgeLoginLoggedOut(t *testing.T) {
@@ -174,19 +193,29 @@ func TestCheckBridgeLoginLoggedOut(t *testing.T) {
 	defer m.ctrl.Finish()
 
 	m.credentialsStore.EXPECT().Get("user").Return(testCredentialsDisconnected, nil)
-	m.clientManager.EXPECT().GetClient(gomock.Any()).Return(m.pmapiClient)
-	user, _ := newUser(m.PanicHandler, "user", m.eventListener, m.credentialsStore, m.clientManager, m.storeCache, "/tmp")
-	m.pmapiClient.EXPECT().ListLabels().Return(nil, errors.New("ErrUnauthorized"))
-	m.pmapiClient.EXPECT().Addresses().Return(nil)
 
-	m.credentialsStore.EXPECT().Get("user").Return(testCredentialsDisconnected, nil)
-	_ = user.init(nil)
+	user, err := newUser(
+		m.PanicHandler, "user",
+		m.eventListener, m.credentialsStore,
+		m.clientManager, m.storeCache, "/tmp",
+	)
+	assert.NoError(t, err)
+
+	m.clientManager.EXPECT().GetClient(gomock.Any()).Return(m.pmapiClient).MinTimes(1)
+	gomock.InOrder(
+		m.credentialsStore.EXPECT().Get("user").Return(testCredentialsDisconnected, nil),
+		m.pmapiClient.EXPECT().ListLabels().Return(nil, errors.New("ErrUnauthorized")),
+		m.pmapiClient.EXPECT().Addresses().Return(nil),
+	)
+
+	err = user.init(nil)
+	assert.Error(t, err)
 
 	defer cleanUpUserData(user)
 
 	m.eventListener.EXPECT().Emit(events.LogoutEvent, "user")
 
-	err := user.CheckBridgeLogin(testCredentialsDisconnected.BridgePassword)
+	err = user.CheckBridgeLogin(testCredentialsDisconnected.BridgePassword)
 	waitForEvents()
 
 	assert.Equal(t, "bridge account is logged out, use bridge to login again", err.Error())
@@ -199,8 +228,13 @@ func TestCheckBridgeLoginBadPassword(t *testing.T) {
 	user := testNewUser(m)
 	defer cleanUpUserData(user)
 
-	m.pmapiClient.EXPECT().Unlock("pass").Return(nil, nil)
-	m.pmapiClient.EXPECT().UnlockAddresses([]byte("pass")).Return(nil)
+	gomock.InOrder(
+		// TODO why u.HasAPIAuth() = false
+		// TODO why not :reftoken
+		m.pmapiClient.EXPECT().AuthRefresh("token").Return(testAuthRefresh, nil),
+		m.pmapiClient.EXPECT().Unlock("pass").Return(nil, nil),
+		m.pmapiClient.EXPECT().UnlockAddresses([]byte("pass")).Return(nil),
+	)
 
 	err := user.CheckBridgeLogin("wrong!")
 	waitForEvents()
