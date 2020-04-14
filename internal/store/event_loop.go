@@ -394,7 +394,7 @@ func (loop *eventLoop) processLabels(eventLog *logrus.Entry, labels []*pmapi.Eve
 	return nil
 }
 
-func (loop *eventLoop) processMessages(eventLog *logrus.Entry, messages []*pmapi.EventMessage) (err error) {
+func (loop *eventLoop) processMessages(eventLog *logrus.Entry, messages []*pmapi.EventMessage) (err error) { // nolint[funlen]
 	eventLog.Debug("Processing message change event")
 
 	for _, message := range messages {
@@ -422,18 +422,23 @@ func (loop *eventLoop) processMessages(eventLog *logrus.Entry, messages []*pmapi
 			}
 
 			var msg *pmapi.Message
-			msg, err = loop.store.getMessageFromDB(message.ID)
-			if err == ErrNoSuchAPIID {
-				msgLog.WithError(err).Warning("Cannot get message from DB for updating. Trying fetch...")
-				msg, err = loop.store.fetchMessage(message.ID)
-				// If message does not exist anywhere, update event is probably old and off topic - skip it.
-				if err == ErrNoSuchAPIID {
-					msgLog.Warn("Skipping message update, because message does not exist nor in local DB or on API")
-					continue
+
+			if msg, err = loop.store.getMessageFromDB(message.ID); err != nil {
+				if err != ErrNoSuchAPIID {
+					return errors.Wrap(err, "failed to get message from DB for updating")
 				}
-			}
-			if err != nil {
-				return errors.Wrap(err, "failed to get message from DB for updating")
+
+				msgLog.WithError(err).Warning("Message was not present in DB. Trying fetch...")
+
+				if msg, err = loop.store.fetchMessage(message.ID); err != nil {
+					if err != pmapi.ErrAPINotReachable {
+						msgLog.WithError(err).Warn("Skipping message update because message exists neither in local DB nor on API")
+						err = nil
+						continue
+					}
+
+					return errors.Wrap(err, "failed to get message from API for updating")
+				}
 			}
 
 			updateMessage(msgLog, msg, message.Updated)

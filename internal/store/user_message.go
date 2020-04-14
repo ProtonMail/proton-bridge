@@ -147,12 +147,7 @@ func (store *Store) getMessageFromDB(apiID string) (msg *pmapi.Message, err erro
 // NOTE: Do not update the database here to prevent issues (extreme edge case).
 // The database will be updated by the event loop anyway.
 func (store *Store) fetchMessage(apiID string) (msg *pmapi.Message, err error) {
-	if msg, err = store.api.GetMessage(apiID); err != nil {
-		if err.Error() == "Message does not exist" {
-			return nil, ErrNoSuchAPIID
-		}
-	}
-	return
+	return store.api.GetMessage(apiID)
 }
 
 func (store *Store) txGetMessage(tx *bolt.Tx, apiID string) (*pmapi.Message, error) {
