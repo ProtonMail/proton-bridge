@@ -406,7 +406,7 @@ func (loop *eventLoop) processMessages(eventLog *logrus.Entry, messages []*pmapi
 
 			if message.Created == nil {
 				msgLog.Error("Got EventCreate with nil message")
-				break
+				return errors.Wrap(err, "no message to put into DB")
 			}
 
 			if err = loop.store.createOrUpdateMessageEvent(message.Created); err != nil {
