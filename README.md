@@ -7,25 +7,25 @@ For licensing information see [COPYING](./COPYING.md).
 For contribution policy see [CONTRIBUTING](./CONTRIBUTING.md).
 
 ## Description
-ProtonMail Desktop Bridge for e-mail clients.
+ProtonMail Bridge for e-mail clients.
 
-When launched, the servers will be started and a GUI will show up. From this GUI,
-the server can be started and stopped and configuration for e-mail clients can
-be generated.
+When launched, Bridge will initialize local IMAP/SMTP servers and render 
+its GUI.
 
-To configure an e-mail client, enter your ProtonMail credentials. Open your
-e-mail client and add a new account with the settings which are displayed.
-The client will be able to sync with your ProtonMail account only when the
-bridge is started, so enabling it on startup is recommended.
+To configure an e-mail client, firstly log in using your ProtonMail credentials. 
+Open your e-mail client and add a new account using the settings which are 
+located in the Bridge GUI. The client will only be able to sync with 
+your ProtonMail account when the Bridge is running, thus the option 
+to start Bridge on startup is enabled by default.
 
-When the main window is closed, the bridge will continue to run in the
+When the main window is closed, Bridge will continue to run in the
 background.
 
 More details [on the public website](https://protonmail.com/bridge).
 
 
 ## Keychain
-You need to have keychain in order to run the ProtonMail Bridge. On Mac or
+You need to have a keychain in order to run the ProtonMail Bridge. On Mac or
 Windows, Bridge uses native credential managers. On Linux, use
 [Gnome keyring](https://wiki.gnome.org/Projects/GnomeKeyring/)
 or
