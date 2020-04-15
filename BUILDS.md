@@ -35,5 +35,5 @@ In order to be able to run following commands please install the development dep
 
 * `make test` will run all unit tests
 * `make lint` will lint the whole project
-* `make -C ./tests test` will run the integration tests
+* `make -C ./test test` will run the integration tests
 * `make run` will build Bridge without a GUI and start it in CLI mode
