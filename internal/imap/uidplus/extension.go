@@ -42,7 +42,7 @@ const (
 	appendSucess = "APPEND successful"
 )
 
-var log = logrus.WithField("pkg", "impa/uidplus") //nolint[gochecknoglobals]
+var log = logrus.WithField("pkg", "imap/uidplus") //nolint[gochecknoglobals]
 
 // OrderedSeq to remember Seq in order they are added.
 // We didn't find any restriction in RFC that server must respond with ranges

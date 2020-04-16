@@ -8,6 +8,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * IMAP extension Unselect
 
 ### Changed
+* GODT-225 Do not send an EXISTS reposnse after EXPUNGE or when nothing changed (fixes rebuild of mailboxes in Outlook for Mac)
 * GODT-165 Optimization of RebuildMailboxes
 * Adding DSN Sentry as build time parameter
 

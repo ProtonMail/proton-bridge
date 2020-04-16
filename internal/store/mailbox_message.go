@@ -249,6 +249,8 @@ func (storeMailbox *Mailbox) txSkipAndRemoveFromMailbox(tx *bolt.Tx, msg *pmapi.
 
 // txCreateOrUpdateMessages will delete, create or update message from mailbox.
 func (storeMailbox *Mailbox) txCreateOrUpdateMessages(tx *bolt.Tx, msgs []*pmapi.Message) error { //nolint[funlen]
+	shouldSendMailboxUpdate := false
+
 	// Buckets are not initialized right away because it's a heavy operation.
 	// The best option is to get the same bucket only once and only when needed.
 	var apiBucket, imapBucket *bolt.Bucket
@@ -284,6 +286,7 @@ func (storeMailbox *Mailbox) txCreateOrUpdateMessages(tx *bolt.Tx, msgs []*pmapi
 						seqNum,
 						msg,
 					)
+					shouldSendMailboxUpdate = true
 				}
 				continue
 			}
@@ -317,9 +320,16 @@ func (storeMailbox *Mailbox) txCreateOrUpdateMessages(tx *bolt.Tx, msgs []*pmapi
 			seqNum,
 			msg,
 		)
+		shouldSendMailboxUpdate = true
 	}
 
-	return storeMailbox.txMailboxStatusUpdate(tx)
+	if shouldSendMailboxUpdate {
+		if err := storeMailbox.txMailboxStatusUpdate(tx); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 // txDeleteMessage deletes the message from the mailbox bucket.
@@ -353,9 +363,10 @@ func (storeMailbox *Mailbox) txDeleteMessage(tx *bolt.Tx, apiID string) error {
 			storeMailbox.labelName,
 			seqNum,
 		)
-		if err := storeMailbox.txMailboxStatusUpdate(tx); err != nil {
-			return err
-		}
+		// Outlook for Mac has problems with sending an EXISTS after deleting
+		// messages, mostly after moving message to other folder. It causes
+		// Outlook to rebuild the whole mailbox. [RFC-3501] says it's not
+		// necessary to send an EXISTS response with the new value.
 	}
 	return nil
 }
