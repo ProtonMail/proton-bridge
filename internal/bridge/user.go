@@ -528,7 +528,6 @@ func (u *User) Logout() (err error) {
 	u.wasKeyringUnlocked = false
 	u.unlockingKeyringLock.Unlock()
 
-	// TODO: Is this necessary or could it be done by ClientManager when a nil auth is received?
 	u.client().Logout()
 
 	if err = u.credStorer.Logout(u.userID); err != nil {

@@ -74,11 +74,8 @@ func (l *listener) Add(eventName string, channel chan<- string) {
 	if l.channels == nil {
 		l.channels = make(map[string][]chan<- string)
 	}
-	if _, ok := l.channels[eventName]; ok {
-		l.channels[eventName] = append(l.channels[eventName], channel)
-	} else {
-		l.channels[eventName] = []chan<- string{channel}
-	}
+
+	l.channels[eventName] = append(l.channels[eventName], channel)
 }
 
 // Remove removes an event listener.

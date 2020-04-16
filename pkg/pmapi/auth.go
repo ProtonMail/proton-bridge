@@ -470,7 +470,7 @@ func (c *client) AuthRefresh(uidAndRefreshToken string) (auth *Auth, err error) 
 	return auth, err
 }
 
-// TODO: Should this even be a client method? Or just a method on the client manager?
+// Logout instructs the client manager to log this client out.
 func (c *client) Logout() {
 	c.cm.LogoutClient(c.userID)
 }

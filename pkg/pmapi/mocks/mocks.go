@@ -5,11 +5,12 @@
 package mocks
 
 import (
+	io "io"
+	reflect "reflect"
+
 	crypto "github.com/ProtonMail/gopenpgp/crypto"
 	pmapi "github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	gomock "github.com/golang/mock/gomock"
-	io "io"
-	reflect "reflect"
 )
 
 // MockClient is a mock of Client interface
