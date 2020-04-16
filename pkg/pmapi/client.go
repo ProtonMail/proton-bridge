@@ -56,6 +56,8 @@ var (
 	ErrInvalidToken       = errors.New("refresh token invalid")
 	ErrAPINotReachable    = errors.New("cannot reach the server")
 	ErrUpgradeApplication = errors.New("application upgrade required")
+
+	ErrNoSuchMessage = errors.New("no such message")
 )
 
 type ErrUnauthorized struct {

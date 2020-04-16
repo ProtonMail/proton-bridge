@@ -17,6 +17,8 @@
 
 package pmapi
 
+import "net/http"
+
 // Common response codes.
 const (
 	CodeOk = 1000
