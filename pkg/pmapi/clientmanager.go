@@ -141,8 +141,8 @@ func (cm *ClientManager) LogoutClient(userID string) {
 
 	go func() {
 		if !strings.HasPrefix(userID, "anonymous-") {
-			if err := client.DeleteAuth(); err != nil {
-				// TODO: Retry if the request failed.
+			for client.DeleteAuth() == ErrAPINotReachable {
+				cm.log.Warn("Logging out client failed because API was not reachable, retrying...")
 			}
 		}
 		client.ClearData()
