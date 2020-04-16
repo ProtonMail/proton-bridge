@@ -65,6 +65,10 @@ github.com/emersion/go-imap-appendlimit v0.0.0-20160923165328-beeb382f2a42 h1:3T
 github.com/emersion/go-imap-appendlimit v0.0.0-20160923165328-beeb382f2a42/go.mod h1:ikgISoP7pRAolqsVP64yMteJa2FIpS6ju88eBT6K1yQ=
 github.com/emersion/go-imap-idle v0.0.0-20161227184850-e03ba1e0ed89 h1:AzbVhcrxgJO5MfSvzG5q4IfrYVm0Jw4AHNPz47+DiR0=
 github.com/emersion/go-imap-idle v0.0.0-20161227184850-e03ba1e0ed89/go.mod h1:o14zPKCmEH5WC1vU5SdPoZGgNvQx7zzKSnxPQlobo78=
+github.com/emersion/go-imap-move v0.0.0-20161227173100-88aef42b0f1d h1:STRZFC+5HZITdsSFkhFfyYRb+tkiTwhxFz3sRW1lYjk=
+github.com/emersion/go-imap-move v0.0.0-20161227173100-88aef42b0f1d/go.mod h1:QuMaZcKFDVI0yCrnAbPLfbwllz1wtOrZH8/vZ5yzp4w=
+github.com/emersion/go-imap-move v0.0.0-20190710073258-6e5a51a5b342 h1:5p1t3e1PomYgLWwEwhwEU5kVBwcyAcVrOpexv8AeZx0=
+github.com/emersion/go-imap-move v0.0.0-20190710073258-6e5a51a5b342/go.mod h1:QuMaZcKFDVI0yCrnAbPLfbwllz1wtOrZH8/vZ5yzp4w=
 github.com/emersion/go-imap-specialuse v0.0.0-20161227184202-ba031ced6a62 h1:4ZAfwfc8aDlj26kkEap1UDSwwDnJp9Ie8Uj1MSXAkPk=
 github.com/emersion/go-imap-specialuse v0.0.0-20161227184202-ba031ced6a62/go.mod h1:/nybxhI8kXom8Tw6BrHMl42usALvka6meORflnnYwe4=
 github.com/emersion/go-imap-unselect v0.0.0-20161227183655-1e6dc73ac8fe h1:2R2XpJkmbyy7PcSjnCPOnNfu+GuRzgWR9U2+j/d1O+0=

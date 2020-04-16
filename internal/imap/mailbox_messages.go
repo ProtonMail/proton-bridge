@@ -102,6 +102,21 @@ func (im *imapMailbox) CopyMessages(uid bool, seqSet *imap.SeqSet, targetLabel s
 	// Called from go-imap in goroutines - we need to handle panics for each function.
 	defer im.panicHandler.HandlePanic()
 
+	return im.labelMessages(uid, seqSet, targetLabel, false)
+}
+
+// MoveMessages adds dest's label and removes this mailbox' label from each message.
+//
+// This should not be used until MOVE extension has option to send UIDPLUS
+// responses.
+func (im *imapMailbox) MoveMessages(uid bool, seqSet *imap.SeqSet, targetLabel string) error {
+	// Called from go-imap in goroutines - we need to handle panics for each function.
+	defer im.panicHandler.HandlePanic()
+
+	return im.labelMessages(uid, seqSet, targetLabel, true)
+}
+
+func (im *imapMailbox) labelMessages(uid bool, seqSet *imap.SeqSet, targetLabel string, move bool) error {
 	messageIDs, err := im.apiIDsFromSeqSet(uid, seqSet)
 	if err != nil || len(messageIDs) == 0 {
 		return err
@@ -111,40 +126,24 @@ func (im *imapMailbox) CopyMessages(uid bool, seqSet *imap.SeqSet, targetLabel s
 	// messages can be removed from source during labeling (e.g. folder1 -> folder2).
 	sourceSeqSet := im.storeMailbox.GetUIDList(messageIDs)
 
-	targetStoreMBX, err := im.storeAddress.GetMailbox(targetLabel)
+	targetStoreMailbox, err := im.storeAddress.GetMailbox(targetLabel)
 	if err != nil {
 		return err
 	}
-	if err = targetStoreMBX.LabelMessages(messageIDs); err != nil {
-		return err
-	}
 
-	targetSeqSet := targetStoreMBX.GetUIDList(messageIDs)
-	return uidplus.CopyResponse(im.storeMailbox.UIDValidity(), sourceSeqSet, targetSeqSet)
-}
-
-// MoveMessages adds dest's label and removes this mailbox' label from each message.
-//
-// This should not be used until MOVE extension has option to send UIDPLUS
-// responses.
-func (im *imapMailbox) MoveMessages(uid bool, seqSet *imap.SeqSet, newLabel string) error {
-	// Called from go-imap in goroutines - we need to handle panics for each function.
-	defer im.panicHandler.HandlePanic()
-
-	messageIDs, err := im.apiIDsFromSeqSet(uid, seqSet)
-	if err != nil || len(messageIDs) == 0 {
-		return err
-	}
-	storeMailbox, err := im.storeAddress.GetMailbox(newLabel)
-	if err != nil {
-		return err
-	}
 	// Label messages first to not loss them. If message is only in trash and we unlabel
 	// it, it will be removed completely and we cannot label it back.
-	if err := storeMailbox.LabelMessages(messageIDs); err != nil {
+	if err := targetStoreMailbox.LabelMessages(messageIDs); err != nil {
 		return err
 	}
-	return im.storeMailbox.UnlabelMessages(messageIDs)
+	if move {
+		if err := im.storeMailbox.UnlabelMessages(messageIDs); err != nil {
+			return err
+		}
+	}
+
+	targetSeqSet := targetStoreMailbox.GetUIDList(messageIDs)
+	return uidplus.CopyResponse(targetStoreMailbox.UIDValidity(), sourceSeqSet, targetSeqSet)
 }
 
 // SearchMessages searches messages. The returned list must contain UIDs if

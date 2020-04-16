@@ -9,9 +9,8 @@ Feature: IMAP move messages
     And there is IMAP client logged in as "user"
     And there is IMAP client selected in "INBOX"
 
-  @ignore
   Scenario: Move message
-    When IMAP client moves messages "1" to "Folders/mbox"
+    When IMAP client moves messages "2" to "Folders/mbox"
     Then IMAP response is "OK"
     And mailbox "INBOX" for "user" has messages
       | from              | to         | subject |
@@ -20,7 +19,6 @@ Feature: IMAP move messages
       | from              | to         | subject |
       | john.doe@mail.com | user@pm.me | foo     |
 
-  @ignore
   Scenario: Move all messages
     When IMAP client moves messages "1:*" to "Folders/mbox"
     Then IMAP response is "OK"
@@ -30,20 +28,8 @@ Feature: IMAP move messages
       | john.doe@mail.com | user@pm.me | foo     |
       | jane.doe@mail.com | name@pm.me | bar     |
 
-  @ignore
-  Scenario: Move message to All Mail
-    When IMAP client moves messages "1" to "All Mail"
-    Then IMAP response is "OK"
-    And mailbox "INBOX" for "user" has messages
-      | from              | to         | subject |
-      | jane.doe@mail.com | name@pm.me | bar     |
-    And mailbox "All Mail" for "user" has messages
-      | from              | to         | subject |
-      | john.doe@mail.com | user@pm.me | foo     |
-
-  @ignore
   Scenario: Move message from All Mail is not possible
-    When IMAP client moves messages "1" to "Folders/mbox"
+    When IMAP client moves messages "2" to "Folders/mbox"
     Then IMAP response is "OK"
     And mailbox "All Mail" for "user" has messages
       | from              | to         | subject |

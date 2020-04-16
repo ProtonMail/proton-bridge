@@ -32,6 +32,7 @@ import (
 	"github.com/emersion/go-imap"
 	imapappendlimit "github.com/emersion/go-imap-appendlimit"
 	imapidle "github.com/emersion/go-imap-idle"
+	imapmove "github.com/emersion/go-imap-move"
 	imapquota "github.com/emersion/go-imap-quota"
 	imapspecialuse "github.com/emersion/go-imap-specialuse"
 	imapunselect "github.com/emersion/go-imap-unselect"
@@ -96,7 +97,7 @@ func NewIMAPServer(debugClient, debugServer bool, port int, tls *tls.Config, ima
 
 	s.Enable(
 		imapidle.NewExtension(),
-		//imapmove.NewExtension(), // extension is not fully implemented: if UIDPLUS exists it MUST return COPYUID and EXPUNGE continuous responses
+		imapmove.NewExtension(),
 		imapspecialuse.NewExtension(),
 		imapid.NewExtension(serverID),
 		imapquota.NewExtension(),

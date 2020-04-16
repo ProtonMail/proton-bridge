@@ -5,6 +5,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 ## Unpublished
 
 ### Added
+* IMAP extension MOVE with UIDPLUS support
 * IMAP extension Unselect
 * More logs about event loop activity
 
