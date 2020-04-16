@@ -238,6 +238,20 @@ func (mr *MockClientManagerMockRecorder) AllowProxy() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AllowProxy", reflect.TypeOf((*MockClientManager)(nil).AllowProxy))
 }
 
+// CheckConnection mocks base method
+func (m *MockClientManager) CheckConnection() error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CheckConnection")
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CheckConnection indicates an expected call of CheckConnection
+func (mr *MockClientManagerMockRecorder) CheckConnection() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckConnection", reflect.TypeOf((*MockClientManager)(nil).CheckConnection))
+}
+
 // DisallowProxy mocks base method
 func (m *MockClientManager) DisallowProxy() {
 	m.ctrl.T.Helper()

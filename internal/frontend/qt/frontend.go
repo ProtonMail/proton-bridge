@@ -49,7 +49,7 @@ import (
 
 	//"github.com/ProtonMail/proton-bridge/pkg/keychain"
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
-	pmapi "github.com/ProtonMail/proton-bridge/pkg/pmapi"
+	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	"github.com/ProtonMail/proton-bridge/pkg/updates"
 	"github.com/kardianos/osext"
 	"github.com/skratchdot/open-golang/open"
@@ -86,7 +86,7 @@ type FrontendQt struct {
 	programName string                     // Program name (shown in taskbar).
 	programVer  string                     // Program version (shown in help).
 
-	authClient bridge.PMAPIProvider
+	authClient pmapi.Client
 
 	auth *pmapi.Auth
 
@@ -569,7 +569,7 @@ func (s *FrontendQt) isSMTPSTARTTLS() bool {
 }
 
 func (s *FrontendQt) checkInternet() {
-	s.Qml.SetConnectionStatus(IsInternetAvailable())
+	s.Qml.SetConnectionStatus(s.bridge.CheckConnection() == nil)
 }
 
 func (s *FrontendQt) switchAddressModeUser(iAccount int) {

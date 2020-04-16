@@ -25,7 +25,6 @@ import (
 	"os/exec"
 	"time"
 
-	"github.com/ProtonMail/proton-bridge/pkg/connection"
 	"github.com/therecipe/qt/core"
 )
 
@@ -62,10 +61,6 @@ func Pause() {
 // PauseLong is used to diplay GUI tests.
 func PauseLong() {
 	time.Sleep(3 * time.Second)
-}
-
-func IsInternetAvailable() bool {
-	return connection.CheckInternetConnection() == nil
 }
 
 // FIXME: Not working in test...

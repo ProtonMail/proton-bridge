@@ -535,6 +535,12 @@ func (b *Bridge) DisallowProxy() {
 	b.clientManager.DisallowProxy()
 }
 
+// CheckConnection returns whether there is an internet connection.
+// This should use the connection manager when it is eventually implemented.
+func (b *Bridge) CheckConnection() error {
+	return b.clientManager.CheckConnection()
+}
+
 func (b *Bridge) updateCurrentUserAgent() {
 	UpdateCurrentUserAgent(b.version, b.userAgentOS, b.userAgentClientName, b.userAgentClientVersion)
 }

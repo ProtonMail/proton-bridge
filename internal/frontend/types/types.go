@@ -54,6 +54,7 @@ type Bridger interface {
 	ClearData() error
 	AllowProxy()
 	DisallowProxy()
+	CheckConnection() error
 }
 
 // BridgeUser is an interface of user needed by frontend.

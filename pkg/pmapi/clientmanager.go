@@ -255,6 +255,68 @@ func (cm *ClientManager) GetClientAuthChannel() chan ClientAuth {
 	return cm.clientAuths
 }
 
+// Errors for possible connection issues
+var (
+	ErrNoInternetConnection = errors.New("no internet connection")
+	ErrCanNotReachAPI       = errors.New("can not reach PM API")
+)
+
+// CheckConnection returns an error if there is no internet connection.
+// This should be moved to the ConnectionManager when it is implemented.
+func (cm *ClientManager) CheckConnection() error {
+	client := getHTTPClient(cm.config, cm.roundTripper)
+
+	// Do not cumulate timeouts, use goroutines.
+	retStatus := make(chan error)
+	retAPI := make(chan error)
+
+	// Check protonstatus.com without SSL for performance reasons. vpn_status endpoint is fast and
+	// returns only OK; this endpoint is not known by the public. We check the connection only.
+	go checkConnection(client, "http://protonstatus.com/vpn_status", retStatus)
+
+	// Check of API reachability also uses a fast endpoint.
+	go checkConnection(client, cm.GetRootURL()+"/tests/ping", retAPI)
+
+	errStatus := <-retStatus
+	errAPI := <-retAPI
+
+	switch {
+	case errStatus == nil && errAPI == nil:
+		return nil
+
+	case errStatus == nil && errAPI != nil:
+		cm.log.Error("ProtonStatus is reachable but API is not")
+		return ErrCanNotReachAPI
+
+	case errStatus != nil && errAPI == nil:
+		cm.log.Warn("API is reachable but protonstatus is not")
+		return nil
+
+	case errStatus != nil && errAPI != nil:
+		cm.log.Error("Both ProtonStatus and API are unreachable")
+		return ErrNoInternetConnection
+	}
+
+	return nil
+}
+
+func checkConnection(client *http.Client, url string, errorChannel chan error) {
+	resp, err := client.Get(url)
+	if err != nil {
+		errorChannel <- err
+		return
+	}
+
+	_ = resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		errorChannel <- fmt.Errorf("HTTP status code %d", resp.StatusCode)
+		return
+	}
+
+	errorChannel <- nil
+}
+
 // forwardClientAuths handles all incoming auths from clients before forwarding them on the bridge auth channel.
 func (cm *ClientManager) forwardClientAuths() {
 	for auth := range cm.clientAuths {
@@ -266,7 +328,7 @@ func (cm *ClientManager) forwardClientAuths() {
 }
 
 // SetTokenIfUnset sets the token for the given userID if it wasn't already set.
-// The token does not expire.
+// The set token does not expire.
 func (cm *ClientManager) SetTokenIfUnset(userID, token string) {
 	cm.tokensLocker.Lock()
 	defer cm.tokensLocker.Unlock()
@@ -352,6 +414,7 @@ func (cm *ClientManager) handleClientAuth(ca ClientAuth) {
 	cm.setToken(ca.UserID, ca.Auth.GenToken(), time.Duration(ca.Auth.ExpiresIn)*time.Second)
 }
 
+// watchTokenExpirations refreshes any tokens which are about to expire.
 func (cm *ClientManager) watchTokenExpirations() {
 	for userID := range cm.expiredTokens {
 		log := cm.log.WithField("userID", userID)

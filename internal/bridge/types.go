@@ -58,4 +58,5 @@ type ClientManager interface {
 	AllowProxy()
 	DisallowProxy()
 	GetAuthUpdateChannel() chan pmapi.ClientAuth
+	CheckConnection() error
 }

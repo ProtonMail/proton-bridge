@@ -23,7 +23,6 @@ import (
 	"strings"
 
 	"github.com/ProtonMail/proton-bridge/internal/preferences"
-	"github.com/ProtonMail/proton-bridge/pkg/connection"
 	"github.com/ProtonMail/proton-bridge/pkg/ports"
 	"github.com/abiosoft/ishell"
 )
@@ -41,7 +40,7 @@ func (f *frontendCLI) restart(c *ishell.Context) {
 }
 
 func (f *frontendCLI) checkInternetConnection(c *ishell.Context) {
-	if connection.CheckInternetConnection() == nil {
+	if f.bridge.CheckConnection() == nil {
 		f.Println("Internet connection is available.")
 	} else {
 		f.Println("Can not contact server please check you internet connection.")

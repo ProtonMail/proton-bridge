@@ -183,7 +183,9 @@ github.com/stretchr/testify v1.5.1 h1:nOGnQDM7FYENwehXlg/kFVnos3rEvtKTjRvOWSzb6H
 github.com/stretchr/testify v1.5.1/go.mod h1:5W2xD1RspED5o8YsWQXVCued0rvSQ+mT+I5cxcmMvtA=
 github.com/therecipe/qt v0.0.0-20200126204426-5074eb6d8c41 h1:yBVcrpbaQYJBdKT2pxTdlL4hBE/eM4UPcyj9YpyvSok=
 github.com/therecipe/qt v0.0.0-20200126204426-5074eb6d8c41/go.mod h1:SUUR2j3aE1z6/g76SdD6NwACEpvCxb3fvG82eKbD6us=
+github.com/therecipe/qt/internal/binding/files/docs/5.12.0 v0.0.0-20200126204426-5074eb6d8c41 h1:My9HYsfDI/fJPZGyilw6066buBiZ7pgKRRgAyvKK5lA=
 github.com/therecipe/qt/internal/binding/files/docs/5.12.0 v0.0.0-20200126204426-5074eb6d8c41/go.mod h1:7m8PDYDEtEVqfjoUQc2UrFqhG0CDmoVJjRlQxexndFc=
+github.com/therecipe/qt/internal/binding/files/docs/5.13.0 v0.0.0-20200126204426-5074eb6d8c41 h1:jTzKrQ6EIPvKw1B9/wwoKJLrXF+ManMsXoUzufxAdsg=
 github.com/therecipe/qt/internal/binding/files/docs/5.13.0 v0.0.0-20200126204426-5074eb6d8c41/go.mod h1:mH55Ek7AZcdns5KPp99O0bg+78el64YCYWHiQKrOdt4=
 github.com/twinj/uuid v1.0.0 h1:fzz7COZnDrXGTAOHGuUGYd6sG+JMq+AoE7+Jlu0przk=
 github.com/twinj/uuid v1.0.0/go.mod h1:mMgcE1RHFUFqe5AfiwlINXisXfDGro23fWdPUfOMjRY=
