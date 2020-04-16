@@ -94,7 +94,6 @@ func mockConnectedUser(m mocks) {
 
 		m.credentialsStore.EXPECT().Get("user").Return(testCredentials, nil),
 		m.pmapiClient.EXPECT().AuthRefresh("token").Return(testAuthRefresh, nil),
-		//TODO m.credentialsStore.EXPECT().UpdateToken("user", ":reftok").Return(nil),
 
 		m.pmapiClient.EXPECT().Unlock(testCredentials.MailboxPassword).Return(nil, nil),
 		m.pmapiClient.EXPECT().UnlockAddresses([]byte(testCredentials.MailboxPassword)).Return(nil),
@@ -104,6 +103,20 @@ func mockConnectedUser(m mocks) {
 		m.pmapiClient.EXPECT().CountMessages("").Return([]*pmapi.MessagesCount{}, nil),
 		m.pmapiClient.EXPECT().Addresses().Return([]*pmapi.Address{testPMAPIAddress}),
 	)
+}
+
+// mockAuthUpdate simulates bridge calling UpdateAuthToken on the given user.
+// This would normally be done by Bridge when it receives an auth from the ClientManager,
+// but as we don't have a full bridge instance here, we do this manually.
+func mockAuthUpdate(user *User, token string, m mocks) {
+	gomock.InOrder(
+		m.credentialsStore.EXPECT().UpdateToken("user", ":"+token).Return(nil),
+		m.credentialsStore.EXPECT().Get("user").Return(credentialsWithToken(token), nil),
+	)
+
+	user.updateAuthToken(refreshWithToken(token))
+
+	waitForEvents()
 }
 
 func TestNewBridgeWithConnectedUser(t *testing.T) {

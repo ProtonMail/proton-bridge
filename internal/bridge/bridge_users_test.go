@@ -112,7 +112,6 @@ func TestDeleteUserWithFailingLogout(t *testing.T) {
 		m.credentialsStore.EXPECT().Delete("user").Return(nil),
 		m.credentialsStore.EXPECT().Get("user").Return(nil, errors.New("no such user")),
 		m.credentialsStore.EXPECT().Delete("user").Return(nil),
-		//TODO m.credentialsStore.EXPECT().Delete("user").Return(errors.New("no such user")),
 	)
 
 	m.eventListener.EXPECT().Emit(events.CloseConnectionEvent, "user@pm.me")

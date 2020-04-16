@@ -35,7 +35,6 @@ func TestUpdateUser(t *testing.T) {
 	defer cleanUpUserData(user)
 
 	gomock.InOrder(
-		m.pmapiClient.EXPECT().AuthRefresh("token").Return(testAuthRefresh, nil),
 		m.pmapiClient.EXPECT().Unlock("pass").Return(nil, nil),
 		m.pmapiClient.EXPECT().UnlockAddresses([]byte("pass")).Return(nil),
 
@@ -156,9 +155,6 @@ func TestCheckBridgeLoginOK(t *testing.T) {
 	defer cleanUpUserData(user)
 
 	gomock.InOrder(
-		// TODO why u.HasAPIAuth() = false
-		// TODO why not :reftoken
-		m.pmapiClient.EXPECT().AuthRefresh("token").Return(testAuthRefresh, nil),
 		m.pmapiClient.EXPECT().Unlock("pass").Return(nil, nil),
 		m.pmapiClient.EXPECT().UnlockAddresses([]byte("pass")).Return(nil),
 	)
@@ -217,7 +213,6 @@ func TestCheckBridgeLoginLoggedOut(t *testing.T) {
 
 	err = user.CheckBridgeLogin(testCredentialsDisconnected.BridgePassword)
 	waitForEvents()
-
 	assert.Equal(t, "bridge account is logged out, use bridge to login again", err.Error())
 }
 
@@ -229,9 +224,6 @@ func TestCheckBridgeLoginBadPassword(t *testing.T) {
 	defer cleanUpUserData(user)
 
 	gomock.InOrder(
-		// TODO why u.HasAPIAuth() = false
-		// TODO why not :reftoken
-		m.pmapiClient.EXPECT().AuthRefresh("token").Return(testAuthRefresh, nil),
 		m.pmapiClient.EXPECT().Unlock("pass").Return(nil, nil),
 		m.pmapiClient.EXPECT().UnlockAddresses([]byte("pass")).Return(nil),
 	)

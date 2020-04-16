@@ -89,32 +89,27 @@ func TestBridgeFinishLoginNewUser(t *testing.T) {
 	m.clientManager.EXPECT().GetClient("user").Return(m.pmapiClient).MinTimes(1)
 
 	gomock.InOrder(
-		// Bridge finds no users in the keychain.
+		// bridge.New() finds no users in keychain.
 		m.credentialsStore.EXPECT().List().Return([]string{}, nil),
 
-		// Get user to be able to setup new client with proper userID.
+		// getAPIUser() loads user info from API (e.g. userID).
 		m.pmapiClient.EXPECT().Unlock(testCredentials.MailboxPassword).Return(nil, nil),
 		m.pmapiClient.EXPECT().CurrentUser().Return(testPMAPIUser, nil),
 
-		// bridge.Bridge.addNewUser(()
+		// addNewUser()
 		m.pmapiClient.EXPECT().AuthRefresh(":tok").Return(refreshWithToken("afterLogin"), nil),
 		m.pmapiClient.EXPECT().CurrentUser().Return(testPMAPIUser, nil),
 		m.pmapiClient.EXPECT().Addresses().Return([]*pmapi.Address{testPMAPIAddress}),
-
-		// bridge.newUser()
 		m.credentialsStore.EXPECT().Add("user", "username", ":afterLogin", testCredentials.MailboxPassword, []string{testPMAPIAddress.Email}),
-		m.credentialsStore.EXPECT().Get("user").Return(credentialsWithToken(":afterLogin"), nil).Times(2),
+		m.credentialsStore.EXPECT().Get("user").Return(credentialsWithToken(":afterLogin"), nil),
 
-		// bridge.User.init()
+		// user.init() in addNewUser
+		m.credentialsStore.EXPECT().Get("user").Return(credentialsWithToken(":afterLogin"), nil),
 		m.pmapiClient.EXPECT().AuthRefresh(":afterLogin").Return(refreshWithToken("afterCredentials"), nil),
-		//TODO m.credentialsStore.EXPECT().UpdateToken("user", ":afterCredentials").Return(nil),
-		//TODO m.credentialsStore.EXPECT().Get("user").Return(credentialsWithToken("afterCredentials"), nil),
-
-		// authorize if necessary
 		m.pmapiClient.EXPECT().Unlock(testCredentials.MailboxPassword).Return(nil, nil),
 		m.pmapiClient.EXPECT().UnlockAddresses([]byte(testCredentials.MailboxPassword)).Return(nil),
 
-		// Set up mocks for creating the user's store (in store.New).
+		// store.New() in user.init
 		m.pmapiClient.EXPECT().ListLabels().Return([]*pmapi.Label{}, nil),
 		m.pmapiClient.EXPECT().CountMessages("").Return([]*pmapi.MessagesCount{}, nil),
 		m.pmapiClient.EXPECT().Addresses().Return([]*pmapi.Address{testPMAPIAddress}),
@@ -126,13 +121,16 @@ func TestBridgeFinishLoginNewUser(t *testing.T) {
 
 		// Reload account list in GUI.
 		m.eventListener.EXPECT().Emit(events.UserRefreshEvent, "user"),
+
 		// defer logout anonymous
 		m.pmapiClient.EXPECT().Logout(),
 	)
 
 	mockEventLoopNoAction(m)
 
-	checkBridgeFinishLogin(t, m, testAuth, testCredentials.MailboxPassword, "user", nil)
+	user := checkBridgeFinishLogin(t, m, testAuth, testCredentials.MailboxPassword, "user", nil)
+
+	mockAuthUpdate(user, "afterCredentials", m)
 }
 
 func TestBridgeFinishLoginExistingDisconnectedUser(t *testing.T) {
@@ -146,54 +144,51 @@ func TestBridgeFinishLoginExistingDisconnectedUser(t *testing.T) {
 	m.clientManager.EXPECT().GetClient("user").Return(m.pmapiClient).MinTimes(1)
 
 	gomock.InOrder(
-		// Bridge finds one logged out user in the keychain.
+		// bridge.New() finds one existing user in keychain.
 		m.credentialsStore.EXPECT().List().Return([]string{"user"}, nil),
-		// New user
+
+		// newUser()
 		m.credentialsStore.EXPECT().Get("user").Return(&loggedOutCreds, nil),
-		// Init user
+
+		// user.init()
 		m.credentialsStore.EXPECT().Get("user").Return(&loggedOutCreds, nil),
+
+		// store.New() in user.init
 		m.pmapiClient.EXPECT().ListLabels().Return(nil, pmapi.ErrInvalidToken),
 		m.pmapiClient.EXPECT().Addresses().Return(nil),
 
-		// Get user to be able to setup new client with proper userID.
+		// getAPIUser() loads user info from API (e.g. userID).
 		m.pmapiClient.EXPECT().Unlock(testCredentials.MailboxPassword).Return(nil, nil),
 		m.pmapiClient.EXPECT().CurrentUser().Return(testPMAPIUser, nil),
 
-		// bridge.Bridge.connectExistingUser
+		// connectExistingUser()
 		m.credentialsStore.EXPECT().UpdatePassword("user", testCredentials.MailboxPassword).Return(nil),
 		m.pmapiClient.EXPECT().AuthRefresh(":tok").Return(refreshWithToken("afterLogin"), nil),
 		m.credentialsStore.EXPECT().UpdateToken("user", ":afterLogin").Return(nil),
 
-		// bridge.User.init()
+		// user.init() in connectExistingUser
 		m.credentialsStore.EXPECT().Get("user").Return(credentialsWithToken(":afterLogin"), nil),
 		m.pmapiClient.EXPECT().AuthRefresh(":afterLogin").Return(refreshWithToken("afterCredentials"), nil),
-
-		// authorize if necessary
 		m.pmapiClient.EXPECT().Unlock(testCredentials.MailboxPassword).Return(nil, nil),
 		m.pmapiClient.EXPECT().UnlockAddresses([]byte(testCredentials.MailboxPassword)).Return(nil),
 
-		/* TODO
-		// Set up mocks for authorising the new user (in user.init).
-		m.credentialsStore.EXPECT().Add("user", "username", ":afterLogin", testCredentials.MailboxPassword, []string{testPMAPIAddress.Email}),
-		m.credentialsStore.EXPECT().Get("user").Return(credentialsWithToken("afterCredentials"), nil),
-
-		m.credentialsStore.EXPECT().UpdateToken("user", ":afterCredentials").Return(nil),
-		*/
-
-		// Set up mocks for creating the user's store (in store.New).
+		// store.New() in user.init
 		m.pmapiClient.EXPECT().ListLabels().Return([]*pmapi.Label{}, nil),
 		m.pmapiClient.EXPECT().CountMessages("").Return([]*pmapi.MessagesCount{}, nil),
 		m.pmapiClient.EXPECT().Addresses().Return([]*pmapi.Address{testPMAPIAddress}),
 
 		// Reload account list in GUI.
 		m.eventListener.EXPECT().Emit(events.UserRefreshEvent, "user"),
+
 		// defer logout anonymous
 		m.pmapiClient.EXPECT().Logout(),
 	)
 
 	mockEventLoopNoAction(m)
 
-	checkBridgeFinishLogin(t, m, testAuth, testCredentials.MailboxPassword, "user", nil)
+	user := checkBridgeFinishLogin(t, m, testAuth, testCredentials.MailboxPassword, "user", nil)
+
+	mockAuthUpdate(user, "afterCredentials", m)
 }
 
 func TestBridgeFinishLoginConnectedUser(t *testing.T) {
@@ -221,7 +216,7 @@ func TestBridgeFinishLoginConnectedUser(t *testing.T) {
 	assert.Equal(t, "user is already connected", err.Error())
 }
 
-func checkBridgeFinishLogin(t *testing.T, m mocks, auth *pmapi.Auth, mailboxPassword string, expectedUserID string, expectedErr error) {
+func checkBridgeFinishLogin(t *testing.T, m mocks, auth *pmapi.Auth, mailboxPassword string, expectedUserID string, expectedErr error) *User {
 	bridge := testNewBridge(t, m)
 	defer cleanUpBridgeUserData(bridge)
 
@@ -239,4 +234,6 @@ func checkBridgeFinishLogin(t *testing.T, m mocks, auth *pmapi.Auth, mailboxPass
 		assert.Equal(t, (*User)(nil), user)
 		assert.Equal(t, 0, len(bridge.users))
 	}
+
+	return user
 }

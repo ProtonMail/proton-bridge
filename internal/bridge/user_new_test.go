@@ -21,6 +21,7 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/ProtonMail/proton-bridge/internal/bridge/credentials"
 	"github.com/ProtonMail/proton-bridge/internal/events"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	gomock "github.com/golang/mock/gomock"
@@ -52,7 +53,7 @@ func TestNewUserBridgeOutdated(t *testing.T) {
 		m.pmapiClient.EXPECT().Addresses().Return(nil),
 	)
 
-	checkNewUser(m)
+	checkNewUserHasCredentials(testCredentials, m)
 }
 
 func TestNewUserNoInternetConnection(t *testing.T) {
@@ -72,7 +73,7 @@ func TestNewUserNoInternetConnection(t *testing.T) {
 		m.pmapiClient.EXPECT().GetEvent("").Return(nil, pmapi.ErrAPINotReachable).AnyTimes(),
 	)
 
-	checkNewUser(m)
+	checkNewUserHasCredentials(testCredentials, m)
 }
 
 func TestNewUserAuthRefreshFails(t *testing.T) {
@@ -95,7 +96,7 @@ func TestNewUserAuthRefreshFails(t *testing.T) {
 		m.credentialsStore.EXPECT().Get("user").Return(testCredentialsDisconnected, nil),
 	)
 
-	checkNewUserDisconnected(m)
+	checkNewUserHasCredentials(testCredentialsDisconnected, m)
 }
 
 func TestNewUserUnlockFails(t *testing.T) {
@@ -111,7 +112,6 @@ func TestNewUserUnlockFails(t *testing.T) {
 	gomock.InOrder(
 		m.credentialsStore.EXPECT().Get("user").Return(testCredentials, nil),
 		m.credentialsStore.EXPECT().Get("user").Return(testCredentials, nil),
-		// TODO m.credentialsStore.EXPECT().UpdateToken("user", ":reftok").Return(nil),
 		m.pmapiClient.EXPECT().AuthRefresh("token").Return(testAuthRefresh, nil),
 
 		m.pmapiClient.EXPECT().Unlock("pass").Return(nil, errors.New("bad password")),
@@ -121,7 +121,7 @@ func TestNewUserUnlockFails(t *testing.T) {
 		m.credentialsStore.EXPECT().Get("user").Return(testCredentialsDisconnected, nil),
 	)
 
-	checkNewUserDisconnected(m)
+	checkNewUserHasCredentials(testCredentialsDisconnected, m)
 }
 
 func TestNewUserUnlockAddressesFails(t *testing.T) {
@@ -137,7 +137,6 @@ func TestNewUserUnlockAddressesFails(t *testing.T) {
 	gomock.InOrder(
 		m.credentialsStore.EXPECT().Get("user").Return(testCredentials, nil),
 		m.credentialsStore.EXPECT().Get("user").Return(testCredentials, nil),
-		// TODO m.credentialsStore.EXPECT().UpdateToken("user", ":reftok").Return(nil),
 		m.pmapiClient.EXPECT().AuthRefresh("token").Return(testAuthRefresh, nil),
 
 		m.pmapiClient.EXPECT().Unlock("pass").Return(nil, nil),
@@ -148,7 +147,7 @@ func TestNewUserUnlockAddressesFails(t *testing.T) {
 		m.credentialsStore.EXPECT().Get("user").Return(testCredentialsDisconnected, nil),
 	)
 
-	checkNewUserDisconnected(m)
+	checkNewUserHasCredentials(testCredentialsDisconnected, m)
 }
 
 func TestNewUser(t *testing.T) {
@@ -159,10 +158,10 @@ func TestNewUser(t *testing.T) {
 	mockConnectedUser(m)
 	mockEventLoopNoAction(m)
 
-	checkNewUser(m)
+	checkNewUserHasCredentials(testCredentials, m)
 }
 
-func checkNewUser(m mocks) {
+func checkNewUserHasCredentials(creds *credentials.Credentials, m mocks) {
 	user, _ := newUser(m.PanicHandler, "user", m.eventListener, m.credentialsStore, m.clientManager, m.storeCache, "/tmp")
 	defer cleanUpUserData(user)
 
@@ -170,18 +169,7 @@ func checkNewUser(m mocks) {
 
 	waitForEvents()
 
-	a.Equal(m.t, testCredentials, user.creds)
-}
-
-func checkNewUserDisconnected(m mocks) {
-	user, _ := newUser(m.PanicHandler, "user", m.eventListener, m.credentialsStore, m.clientManager, m.storeCache, "/tmp")
-	defer cleanUpUserData(user)
-
-	_ = user.init(nil)
-
-	waitForEvents()
-
-	a.Equal(m.t, testCredentialsDisconnected, user.creds)
+	a.Equal(m.t, creds, user.creds)
 }
 
 func _TestUserEventRefreshUpdatesAddresses(t *testing.T) { // nolint[funlen]

@@ -26,6 +26,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// testNewUser sets up a new, authorised user.
 func testNewUser(m mocks) *User {
 	m.clientManager.EXPECT().GetClient("user").Return(m.pmapiClient).MinTimes(1)
 
@@ -42,6 +43,8 @@ func testNewUser(m mocks) *User {
 
 	err = user.init(nil)
 	assert.NoError(m.t, err)
+
+	mockAuthUpdate(user, "reftok", m)
 
 	return user
 }

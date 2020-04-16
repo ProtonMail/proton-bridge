@@ -42,7 +42,7 @@ type messageLister interface {
 	ListMessages(*pmapi.MessagesFilter) ([]*pmapi.Message, int, error)
 }
 
-func syncAllMail(panicHandler PanicHandler, store storeSynchronizer, api messageLister, syncState *syncState) error {
+func syncAllMail(panicHandler PanicHandler, store storeSynchronizer, api func() messageLister, syncState *syncState) error {
 	labelID := pmapi.AllMailLabel
 
 	// When the full sync starts (i.e. is not already in progress), we need to load
@@ -53,7 +53,7 @@ func syncAllMail(panicHandler PanicHandler, store storeSynchronizer, api message
 			return errors.Wrap(err, "failed to load message IDs")
 		}
 
-		if err := findIDRanges(labelID, api, syncState); err != nil {
+		if err := findIDRanges(labelID, api(), syncState); err != nil {
 			return errors.Wrap(err, "failed to load IDs ranges")
 		}
 		syncState.save()
@@ -71,7 +71,7 @@ func syncAllMail(panicHandler PanicHandler, store storeSynchronizer, api message
 			defer panicHandler.HandlePanic()
 			defer wg.Done()
 
-			err := syncBatch(labelID, store, api, syncState, idRange, &shouldStop)
+			err := syncBatch(labelID, store, api(), syncState, idRange, &shouldStop)
 			if err != nil {
 				shouldStop = 1
 				resultError = errors.Wrap(err, "failed to sync group")

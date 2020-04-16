@@ -144,8 +144,7 @@ func (store *Store) triggerSync() {
 
 		store.log.WithField("isIncomplete", syncState.isIncomplete()).Info("Store sync started")
 
-		// TODO: Is it okay to pass in a client directly? What if it is logged out in the meantime?
-		err := syncAllMail(store.panicHandler, store, store.client(), syncState)
+		err := syncAllMail(store.panicHandler, store, func() messageLister { return store.client() }, syncState)
 		if err != nil {
 			log.WithError(err).Error("Store sync failed")
 			return

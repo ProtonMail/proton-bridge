@@ -208,8 +208,6 @@ func testNewBridgeWithUsers(t *testing.T, m mocks) *Bridge {
 		m.credentialsStore.EXPECT().Get("user").Return(testCredentials, nil),
 		m.credentialsStore.EXPECT().Get("user").Return(testCredentials, nil),
 		m.pmapiClient.EXPECT().AuthRefresh("token").Return(testAuthRefresh, nil),
-		// TODO m.credentialsStore.EXPECT().UpdateToken("user", ":reftok").Return(nil)
-		// TODO m.credentialsStore.EXPECT().Get("user").Return(testCredentials, nil)
 		m.pmapiClient.EXPECT().Unlock("pass").Return(nil, nil),
 		m.pmapiClient.EXPECT().UnlockAddresses([]byte("pass")).Return(nil),
 		m.pmapiClient.EXPECT().ListLabels().Return([]*pmapi.Label{}, nil),
@@ -220,8 +218,6 @@ func testNewBridgeWithUsers(t *testing.T, m mocks) *Bridge {
 		m.credentialsStore.EXPECT().Get("users").Return(testCredentialsSplit, nil),
 		m.credentialsStore.EXPECT().Get("users").Return(testCredentialsSplit, nil),
 		m.pmapiClient.EXPECT().AuthRefresh("token").Return(testAuthRefresh, nil),
-		// TODO m.credentialsStore.EXPECT().UpdateToken("users", ":reftok").Return(nil),
-		// TODO m.credentialsStore.EXPECT().Get("users").Return(testCredentialsSplit, nil),
 		m.pmapiClient.EXPECT().Unlock("pass").Return(nil, nil),
 		m.pmapiClient.EXPECT().UnlockAddresses([]byte("pass")).Return(nil),
 		m.pmapiClient.EXPECT().ListLabels().Return([]*pmapi.Label{}, nil),
@@ -229,7 +225,15 @@ func testNewBridgeWithUsers(t *testing.T, m mocks) *Bridge {
 		m.pmapiClient.EXPECT().Addresses().Return(testPMAPIAddresses),
 	)
 
-	return testNewBridge(t, m)
+	bridge := testNewBridge(t, m)
+
+	user, _ := bridge.GetUser("user")
+	mockAuthUpdate(user, "reftok", m)
+
+	users, _ := bridge.GetUser("user")
+	mockAuthUpdate(users, "reftok", m)
+
+	return bridge
 }
 
 func testNewBridge(t *testing.T, m mocks) *Bridge {
