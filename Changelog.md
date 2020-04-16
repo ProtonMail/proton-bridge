@@ -6,6 +6,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 ### Added
 * IMAP extension Unselect
+* More logs about event loop activity
 
 ### Changed
 * GODT-225 Do not send an EXISTS reposnse after EXPUNGE or when nothing changed (fixes rebuild of mailboxes in Outlook for Mac)

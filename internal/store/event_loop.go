@@ -38,6 +38,8 @@ type eventLoop struct {
 	isRunning      bool
 	hasInternet    bool
 
+	pollCounter int
+
 	log *logrus.Entry
 
 	store     *Store
@@ -70,7 +72,7 @@ func (loop *eventLoop) IsRunning() bool {
 }
 
 func (loop *eventLoop) setFirstEventID() (err error) {
-	loop.log.Trace("Setting first event ID")
+	loop.log.Info("Setting first event ID")
 
 	event, err := loop.apiClient.GetEvent("")
 	if err != nil {
@@ -104,7 +106,7 @@ func (loop *eventLoop) stop() {
 
 		select {
 		case <-loop.notifyStopCh:
-			loop.log.Info("Event loop was stopped")
+			loop.log.Warn("Event loop was stopped")
 		case <-time.After(1 * time.Second):
 			loop.log.Warn("Timed out waiting for event loop to stop")
 		}
@@ -127,7 +129,7 @@ func (loop *eventLoop) start() { // nolint[funlen]
 
 	loop.log.WithField("lastEventID", loop.currentEventID).Info("Subscribed to events")
 	defer func() {
-		loop.log.WithField("lastEventID", loop.currentEventID).Info("Subscription stopped")
+		loop.log.WithField("lastEventID", loop.currentEventID).Warn("Subscription stopped")
 	}()
 
 	t := time.NewTicker(pollInterval)
@@ -194,7 +196,9 @@ func (loop *eventLoop) isBeforeFirstStart() bool {
 // (disk). It will filter out in defer all errors except invalid token error.
 // Invalid error will be returned and stop the event loop.
 func (loop *eventLoop) processNextEvent() (more bool, err error) { // nolint[funlen]
-	l := loop.log.WithField("currentEventID", loop.currentEventID)
+	l := loop.log.
+		WithField("currentEventID", loop.currentEventID).
+		WithField("pollCounter", loop.pollCounter)
 
 	// We only want to consider invalid tokens as real errors because all other errors might fix themselves eventually
 	// (e.g. no internet, ulimit reached etc.)
@@ -222,12 +226,19 @@ func (loop *eventLoop) processNextEvent() (more bool, err error) { // nolint[fun
 
 		// All errors except Invalid Token (which is not possible to recover from) are ignored.
 		if err != nil && !errUnauthorized && errors.Cause(err) != pmapi.ErrInvalidToken {
-			l.WithError(err).Trace("Error skipped")
+			l.WithError(err).Error("Error skipped")
 			err = nil
 		}
 	}()
 
 	l.Trace("Polling next event")
+	// Log activity of event loop each 100. poll which means approx. 28
+	// lines per day
+	if loop.pollCounter%100 == 0 {
+		l.Info("Polling next event")
+	}
+	loop.pollCounter++
+
 	var event *pmapi.Event
 	if event, err = loop.apiClient.GetEvent(loop.currentEventID); err != nil {
 		return false, errors.Wrap(err, "failed to get event")
@@ -245,6 +256,7 @@ func (loop *eventLoop) processNextEvent() (more bool, err error) { // nolint[fun
 	}
 
 	if loop.currentEventID != event.EventID {
+		l.WithField("newID", event.EventID).Info("New event processed")
 		// In case new event ID cannot be saved to cache, we update it in event loop
 		// anyway and continue processing new events to prevent the loop from repeatedly
 		// processing the same event.
