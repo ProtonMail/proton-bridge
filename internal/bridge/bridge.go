@@ -332,10 +332,10 @@ func (b *Bridge) addNewUser(user *pmapi.User, auth *pmapi.Auth, hashedPassword s
 	}
 
 	// The user needs to be part of the users list in order for it to receive an auth during initialisation.
-	// TODO: If adding the user fails, we don't want to leave it there.
 	b.users = append(b.users, bridgeUser)
 
 	if err = bridgeUser.init(b.idleUpdates); err != nil {
+		b.users = b.users[:len(b.users)-1]
 		return errors.Wrap(err, "failed to initialise user")
 	}
 
