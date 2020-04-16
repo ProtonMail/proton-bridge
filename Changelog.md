@@ -6,6 +6,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 ### Added
 * IMAP extension MOVE with UIDPLUS support
+* IMAP mailbox info update when new mailbox is created
 * IMAP extension Unselect
 * More logs about event loop activity
 
