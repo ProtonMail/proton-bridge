@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
 
-package pmapi
+package sentry
 
 import (
 	"errors"
@@ -25,14 +25,17 @@ import (
 )
 
 func TestSentryCrashReport(t *testing.T) {
-	cm := NewClientManager(testClientConfig)
-	c := cm.GetClient("bridgetest")
-	if err := c.ReportSentryCrash(errors.New("Testing crash report - api proxy; goroutines with threads, find origin")); err != nil {
+	if err := ReportSentryCrash(
+		"clientID",
+		"appVersion",
+		"useragent",
+		errors.New("Testing crash report - api proxy; goroutines with threads, find origin"),
+	); err != nil {
 		t.Fatal("Expected no error while report, but have", err)
 	}
 }
 
-func (s *SentryThreads) TraceAllRoutinesTest() {
+func (s *Threads) TraceAllRoutinesTest() {
 	s.Values = []Thread{
 		{
 			ID:      0,

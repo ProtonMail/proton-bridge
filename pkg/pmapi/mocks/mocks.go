@@ -418,6 +418,20 @@ func (mr *MockClientMockRecorder) Import(arg0 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Import", reflect.TypeOf((*MockClient)(nil).Import), arg0)
 }
 
+// IsConnected mocks base method
+func (m *MockClient) IsConnected() bool {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "IsConnected")
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// IsConnected indicates an expected call of IsConnected
+func (mr *MockClientMockRecorder) IsConnected() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsConnected", reflect.TypeOf((*MockClient)(nil).IsConnected))
+}
+
 // KeyRingForAddressID mocks base method
 func (m *MockClient) KeyRingForAddressID(arg0 string) *crypto.KeyRing {
 	m.ctrl.T.Helper()
@@ -529,20 +543,6 @@ func (m *MockClient) ReportBugWithEmailClient(arg0, arg1, arg2, arg3, arg4, arg5
 func (mr *MockClientMockRecorder) ReportBugWithEmailClient(arg0, arg1, arg2, arg3, arg4, arg5, arg6 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReportBugWithEmailClient", reflect.TypeOf((*MockClient)(nil).ReportBugWithEmailClient), arg0, arg1, arg2, arg3, arg4, arg5, arg6)
-}
-
-// ReportSentryCrash mocks base method
-func (m *MockClient) ReportSentryCrash(arg0 error) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ReportSentryCrash", arg0)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// ReportSentryCrash indicates an expected call of ReportSentryCrash
-func (mr *MockClientMockRecorder) ReportSentryCrash(arg0 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReportSentryCrash", reflect.TypeOf((*MockClient)(nil).ReportSentryCrash), arg0)
 }
 
 // SendMessage mocks base method

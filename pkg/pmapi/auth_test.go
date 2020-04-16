@@ -336,12 +336,7 @@ func TestClient_Logout(t *testing.T) {
 	c.Logout()
 
 	r.Eventually(t, func() bool {
-		// TODO: Use a method like IsConnected() which returns whether the client was logged out or not.
-		return c.accessToken == "" &&
-			c.uid == "" &&
-			c.kr == nil &&
-			c.addresses == nil &&
-			c.user == nil
+		return c.IsConnected() == false && c.kr == nil && c.addresses == nil && c.user == nil
 	}, 10*time.Second, 10*time.Millisecond)
 }
 

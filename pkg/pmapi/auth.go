@@ -494,7 +494,10 @@ func (c *client) DeleteAuth() (err error) {
 	return
 }
 
-// TODO: Need a method like IsConnected() to be able to detect whether a client is logged in or not.
+// IsConnected returns whether the client is authorized to access the API.
+func (c *client) IsConnected() bool {
+	return c.uid != "" && c.accessToken != ""
+}
 
 // ClearData clears sensitive data from the client.
 func (c *client) ClearData() {

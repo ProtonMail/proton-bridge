@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
 
-package pmapi
+package sentry
 
 import (
 	"fmt"
@@ -26,19 +26,20 @@ import (
 	"strings"
 
 	"github.com/getsentry/raven-go"
+	log "github.com/sirupsen/logrus"
 )
 
 const fileParseError = "[file parse error]"
 
 var isGoroutine = regexp.MustCompile("^goroutine [[:digit:]]+.*") //nolint[gochecknoglobals]
 
-// SentryThreads implements standard sentry thread report.
-type SentryThreads struct {
+// Threads implements standard sentry thread report.
+type Threads struct {
 	Values []Thread `json:"values"`
 }
 
 // Class specifier.
-func (s *SentryThreads) Class() string { return "threads" }
+func (s *Threads) Class() string { return "threads" }
 
 // Thread wraps a single stacktrace.
 type Thread struct {
@@ -49,7 +50,7 @@ type Thread struct {
 }
 
 // TraceAllRoutines traces all goroutines and saves them to the current object.
-func (s *SentryThreads) TraceAllRoutines() {
+func (s *Threads) TraceAllRoutines() {
 	s.Values = []Thread{}
 	goroutines := &strings.Builder{}
 	_ = pprof.Lookup("goroutine").WriteTo(goroutines, 2)
@@ -109,7 +110,7 @@ func (s *SentryThreads) TraceAllRoutines() {
 	s.Values = append(s.Values, thread)
 }
 
-func findPanicSender(s *SentryThreads, err error) string {
+func findPanicSender(s *Threads, err error) string {
 	out := "error nil"
 	if err != nil {
 		out = err.Error()
@@ -146,28 +147,31 @@ func findPanicSender(s *SentryThreads, err error) string {
 }
 
 // ReportSentryCrash reports a sentry crash with stacktrace from all goroutines.
-func (c *client) ReportSentryCrash(reportErr error) (err error) {
+func ReportSentryCrash(clientID, appVersion, userAgent string, reportErr error) (err error) {
 	if reportErr == nil {
 		return
 	}
+
 	tags := map[string]string{
 		"OS":        runtime.GOOS,
-		"Client":    c.cm.config.ClientID,
-		"Version":   c.cm.config.AppVersion,
-		"UserAgent": CurrentUserAgent,
-		"UserID":    c.userID,
+		"Client":    clientID,
+		"Version":   appVersion,
+		"UserAgent": userAgent,
+		"UserID":    "",
 	}
 
-	threads := &SentryThreads{}
+	threads := &Threads{}
 	threads.TraceAllRoutines()
 	errorWithFile := findPanicSender(threads, reportErr)
 	packet := raven.NewPacket(errorWithFile, threads)
 
 	eventID, ch := raven.Capture(packet, tags)
+
 	if err = <-ch; err == nil {
-		c.log.Warn("Reported error with id: ", eventID)
+		log.WithField("errorID", eventID).Warn("Reported sentry error")
 	} else {
-		c.log.Errorf("Can not report `%s` due to `%s`", reportErr.Error(), err.Error())
+		log.WithField("error", reportErr).WithError(err).Error("Failed to report sentry error")
 	}
+
 	return err
 }

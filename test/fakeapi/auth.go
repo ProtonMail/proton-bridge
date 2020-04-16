@@ -154,6 +154,10 @@ func (api *FakePMAPI) Logout() {
 	api.ClearData()
 }
 
+func (api *FakePMAPI) IsConnected() bool {
+	return api.uid != "" && api.lastToken != ""
+}
+
 func (api *FakePMAPI) DeleteAuth() error {
 	if err := api.checkAndRecordCall(DELETE, "/auth", nil); err != nil {
 		return err

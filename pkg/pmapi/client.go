@@ -98,6 +98,7 @@ type Client interface {
 	Auth2FA(twoFactorCode string, auth *Auth) (*Auth2FA, error)
 	Logout()
 	DeleteAuth() error
+	IsConnected() bool
 	ClearData()
 
 	CurrentUser() (*User, error)
@@ -131,7 +132,6 @@ type Client interface {
 
 	ReportBugWithEmailClient(os, osVersion, title, description, username, email, emailClient string) error
 	SendSimpleMetric(category, action, label string) error
-	ReportSentryCrash(reportErr error) (err error)
 
 	GetMailSettings() (MailSettings, error)
 	GetContactEmailByEmail(string, int, int) ([]ContactEmail, error)

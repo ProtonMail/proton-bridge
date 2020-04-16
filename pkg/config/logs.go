@@ -19,6 +19,7 @@ package config
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -31,6 +32,7 @@ import (
 	"time"
 
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
+	"github.com/ProtonMail/proton-bridge/pkg/sentry"
 	"github.com/sirupsen/logrus"
 )
 
@@ -57,11 +59,10 @@ var logCrashRgx = regexp.MustCompile("^v.*_crash_.*\\.log$") //nolint[gochecknog
 // HandlePanic reports the crash to sentry or local file when sentry fails.
 func HandlePanic(cfg *Config, output string) {
 	if !cfg.IsDevMode() {
-		// TODO: Is it okay to just create a throwaway client like this?
-		c := pmapi.NewClientManager(cfg.GetAPIConfig()).GetAnonymousClient()
-		defer c.Logout()
-
-		if err := c.ReportSentryCrash(fmt.Errorf(output)); err != nil {
+		apiCfg := cfg.GetAPIConfig()
+		clientID := apiCfg.ClientID
+		appVersion := apiCfg.AppVersion
+		if err := sentry.ReportSentryCrash(clientID, appVersion, pmapi.CurrentUserAgent, errors.New(output)); err != nil {
 			log.Error("Sentry crash report failed: ", err)
 		}
 	}
