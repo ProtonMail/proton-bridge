@@ -17,6 +17,8 @@
 
 package pmapi
 
+import "net/http"
+
 // Common response codes.
 const (
 	CodeOk = 1000
@@ -35,6 +37,10 @@ type Res struct {
 
 // Err returns error if the response is an error. Otherwise, returns nil.
 func (res Res) Err() error {
+	if res.StatusCode == http.StatusUnprocessableEntity {
+		return ErrNoSuchAPIID
+	}
+
 	if res.ResError == nil {
 		return nil
 	}

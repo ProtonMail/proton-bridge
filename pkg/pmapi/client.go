@@ -57,7 +57,7 @@ var (
 	ErrAPINotReachable    = errors.New("cannot reach the server")
 	ErrUpgradeApplication = errors.New("application upgrade required")
 
-	ErrNoSuchMessage = errors.New("no such message")
+	ErrNoSuchAPIID = errors.New("no such API ID")
 )
 
 type ErrUnauthorized struct {

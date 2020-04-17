@@ -9,6 +9,8 @@ github.com/ProtonMail/docker-credential-helpers v1.0.0 h1:0DQXbZNvUszWgXUuP7TzvQ
 github.com/ProtonMail/docker-credential-helpers v1.0.0/go.mod h1:R1gQindzdYFcWJuuGXteYHDJzUCVtyU+EpEqp9aWcFs=
 github.com/ProtonMail/go-appdir v1.0.0 h1:PZXQ0HkveuEugga3LeDycxWtybrXQfKR0ThxURd6ojw=
 github.com/ProtonMail/go-appdir v1.0.0/go.mod h1:3d8Y9F5mbEUjrYbcJ3rcDxcWbqbttF+011nVZmdRdzc=
+github.com/ProtonMail/go-appdir v1.1.0 h1:9hdNDlU9kTqRKVNzmoqah8qqrj5QZyLByQdwQNlFWig=
+github.com/ProtonMail/go-appdir v1.1.0/go.mod h1:3d8Y9F5mbEUjrYbcJ3rcDxcWbqbttF+011nVZmdRdzc=
 github.com/ProtonMail/go-apple-mobileconfig v0.0.0-20160701194735-7ea9927a11f6 h1:YsSJ/mvZFYydQm/hRrt8R8UtgETixN2y3LK98f5LT60=
 github.com/ProtonMail/go-apple-mobileconfig v0.0.0-20160701194735-7ea9927a11f6/go.mod h1:EtDfBMIDWmVe4viZCuBTEfe3OIIo0ghbpOaAZVO+hVg=
 github.com/ProtonMail/go-autostart v0.0.0-20181114175602-c5272053443a h1:fXK2KsfnkBV9Nh+9SKzHchYjuE9s0vI20JG1mbtEAcc=
@@ -67,6 +69,8 @@ github.com/emersion/go-imap-idle v0.0.0-20161227184850-e03ba1e0ed89 h1:AzbVhcrxg
 github.com/emersion/go-imap-idle v0.0.0-20161227184850-e03ba1e0ed89/go.mod h1:o14zPKCmEH5WC1vU5SdPoZGgNvQx7zzKSnxPQlobo78=
 github.com/emersion/go-imap-move v0.0.0-20161227173100-88aef42b0f1d h1:STRZFC+5HZITdsSFkhFfyYRb+tkiTwhxFz3sRW1lYjk=
 github.com/emersion/go-imap-move v0.0.0-20161227173100-88aef42b0f1d/go.mod h1:QuMaZcKFDVI0yCrnAbPLfbwllz1wtOrZH8/vZ5yzp4w=
+github.com/emersion/go-imap-move v0.0.0-20161227183138-88aef42b0f1d h1:E/ezdheD3QUe47cM0LpAPuJ6Pk1x0EFDmjoysaZhtaw=
+github.com/emersion/go-imap-move v0.0.0-20161227183138-88aef42b0f1d/go.mod h1:QuMaZcKFDVI0yCrnAbPLfbwllz1wtOrZH8/vZ5yzp4w=
 github.com/emersion/go-imap-move v0.0.0-20190710073258-6e5a51a5b342 h1:5p1t3e1PomYgLWwEwhwEU5kVBwcyAcVrOpexv8AeZx0=
 github.com/emersion/go-imap-move v0.0.0-20190710073258-6e5a51a5b342/go.mod h1:QuMaZcKFDVI0yCrnAbPLfbwllz1wtOrZH8/vZ5yzp4w=
 github.com/emersion/go-imap-specialuse v0.0.0-20161227184202-ba031ced6a62 h1:4ZAfwfc8aDlj26kkEap1UDSwwDnJp9Ie8Uj1MSXAkPk=

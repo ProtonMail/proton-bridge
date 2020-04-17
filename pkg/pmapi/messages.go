@@ -532,14 +532,7 @@ func (c *Client) GetMessage(id string) (msg *Message, err error) {
 		return
 	}
 
-	if res.StatusCode == http.StatusUnprocessableEntity {
-		err = ErrNoSuchMessage
-		return
-	}
-
-	msg, err = res.Message, res.Err()
-
-	return
+	return res.Message, res.Err()
 }
 
 type SendMessageReq struct {
