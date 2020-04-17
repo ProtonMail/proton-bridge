@@ -4,7 +4,7 @@ GOOS:=$(shell go env GOOS)
 ## Build
 .PHONY: build check-has-go
 
-VERSION?=1.2.6-git
+VERSION?=1.2.7-git
 REVISION:=$(shell git rev-parse --short=10 HEAD)
 BUILD_TIME:=$(shell date +%FT%T%z)
 

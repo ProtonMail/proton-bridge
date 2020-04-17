@@ -1,2 +1,3 @@
-• Fixed rare case of sending the same message multiple times in Outlook
-• Fixed bug in macOS update process; available from next update
+• Fixed sync errors due to localization
+• Fixed draft deletion
+• Fixed re-appearing messages in Outlook
