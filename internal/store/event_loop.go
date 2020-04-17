@@ -417,7 +417,7 @@ func (loop *eventLoop) processMessages(eventLog *logrus.Entry, messages []*pmapi
 			msgLog.Debug("Processing EventUpdate(Flags) for message")
 
 			if message.Updated == nil {
-				msgLog.Warn("Got EventUpdate(Flags) with nil message")
+				msgLog.Error("Got EventUpdate(Flags) with nil message")
 				continue
 			}
 
