@@ -131,7 +131,7 @@ func (im *imapMailbox) labelMessages(uid bool, seqSet *imap.SeqSet, targetLabel 
 		return err
 	}
 
-	// Label messages first to not loss them. If message is only in trash and we unlabel
+	// Label messages first to not lose them. If message is only in trash and we unlabel
 	// it, it will be removed completely and we cannot label it back.
 	if err := targetStoreMailbox.LabelMessages(messageIDs); err != nil {
 		return err
