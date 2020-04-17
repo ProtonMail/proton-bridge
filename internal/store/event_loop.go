@@ -405,7 +405,7 @@ func (loop *eventLoop) processMessages(eventLog *logrus.Entry, messages []*pmapi
 			msgLog.Debug("Processing EventCreate for message")
 
 			if message.Created == nil {
-				msgLog.Warn("Got EventCreate with nil message")
+				msgLog.Error("Got EventCreate with nil message")
 				continue
 			}
 
