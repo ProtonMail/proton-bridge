@@ -11,6 +11,8 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+const maxLogoutRetries = 5
+
 // ClientManager is a manager of clients.
 type ClientManager struct {
 	// newClient is used to create new Clients. By default this creates pmapi clients but it can be overridden to
@@ -153,8 +155,17 @@ func (cm *ClientManager) LogoutClient(userID string) {
 			return
 		}
 
+		var retries int
+
 		for client.DeleteAuth() == ErrAPINotReachable {
-			cm.log.Warn("Logging out client failed because API was not reachable, retrying...")
+			retries++
+
+			if retries > maxLogoutRetries {
+				cm.log.Error("Failed to delete client auth (retried too many times)")
+				break
+			}
+
+			cm.log.Warn("Failed to delete client auth because API was not reachable, retrying...")
 		}
 	}()
 }
