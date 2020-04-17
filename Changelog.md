@@ -17,6 +17,9 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-124 bump go-appdir from v1.0.0 to v1.1.0
 * CSB-72 Skip processing message update event if http statuscode is 422
 
+### Fixed
+* Use correct binary name when finding location of addcert.scpt
+
 ## [v1.2.6] Donghai - beta (2020-03-31)
 
 ### Added

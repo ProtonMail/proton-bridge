@@ -29,11 +29,9 @@ import (
 	"net"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"runtime"
-	"strings"
 	"time"
-
-	"github.com/kardianos/osext"
 )
 
 type tlsConfiger interface {
@@ -74,10 +72,11 @@ func GetTLSConfig(cfg tlsConfiger) (tlsConfig *tls.Config, err error) {
 
 		if runtime.GOOS == "darwin" {
 			// If this fails, log the error but continue to load.
-			if p, err := osext.Executable(); err == nil {
-				p = strings.TrimSuffix(p, "MacOS/Desktop-Bridge") // This needs to match the executable name.
-				p += "Resources/addcert.scpt"
-				if err := exec.Command("/usr/bin/osascript", p).Run(); err != nil { // nolint[gosec]
+			if binaryPath, err := os.Executable(); err == nil {
+				macOSPath := filepath.Dir(binaryPath)
+				contentsPath := filepath.Dir(macOSPath)
+				resourcesPath := filepath.Join(contentsPath, "Resources", "addcert.scpt")
+				if err := exec.Command("/usr/bin/osascript", resourcesPath).Run(); err != nil { // nolint[gosec]
 					log.WithError(err).Error("Failed to add cert to system keychain")
 				}
 			}
