@@ -37,7 +37,7 @@ func (storeMailbox *Mailbox) GetMessage(apiID string) (*Message, error) {
 // FetchMessage fetches the message with the given `apiID`, stores it in the database, and returns a new store message
 // wrapping it.
 func (storeMailbox *Mailbox) FetchMessage(apiID string) (*Message, error) {
-	msg, err := storeMailbox.store.fetchMessage(apiID)
+	msg, err := storeMailbox.api().GetMessage(apiID)
 	if err != nil {
 		return nil, err
 	}

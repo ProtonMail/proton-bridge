@@ -142,14 +142,6 @@ func (store *Store) getMessageFromDB(apiID string) (msg *pmapi.Message, err erro
 	return
 }
 
-// fetchMessage returns pmapi struct of message by API ID. If the requested
-// message is not in the database, it will try to fetch it from the server.
-// NOTE: Do not update the database here to prevent issues (extreme edge case).
-// The database will be updated by the event loop anyway.
-func (store *Store) fetchMessage(apiID string) (msg *pmapi.Message, err error) {
-	return store.api.GetMessage(apiID)
-}
-
 func (store *Store) txGetMessage(tx *bolt.Tx, apiID string) (*pmapi.Message, error) {
 	b := tx.Bucket(metadataBucket)
 
