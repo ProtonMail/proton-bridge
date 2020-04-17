@@ -405,8 +405,8 @@ func (loop *eventLoop) processMessages(eventLog *logrus.Entry, messages []*pmapi
 			msgLog.Debug("Processing EventCreate for message")
 
 			if message.Created == nil {
-				msgLog.Error("Got EventCreate with nil message")
-				return errors.Wrap(err, "no message to put into DB")
+				msgLog.Warn("Got EventCreate with nil message")
+				continue
 			}
 
 			if err = loop.store.createOrUpdateMessageEvent(message.Created); err != nil {
@@ -417,8 +417,8 @@ func (loop *eventLoop) processMessages(eventLog *logrus.Entry, messages []*pmapi
 			msgLog.Debug("Processing EventUpdate(Flags) for message")
 
 			if message.Updated == nil {
-				msgLog.Errorf("Got EventUpdate(Flags) with nil message")
-				return errors.Wrap(err, "missing update information")
+				msgLog.Warn("Got EventUpdate(Flags) with nil message")
+				continue
 			}
 
 			var msg *pmapi.Message

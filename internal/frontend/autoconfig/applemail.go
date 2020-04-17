@@ -28,9 +28,9 @@ import (
 	"strings"
 	"time"
 
+	mobileconfig "github.com/ProtonMail/go-apple-mobileconfig"
 	"github.com/ProtonMail/proton-bridge/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/internal/frontend/types"
-	mobileconfig "github.com/ProtonMail/go-apple-mobileconfig"
 )
 
 func init() { //nolint[gochecknoinit]

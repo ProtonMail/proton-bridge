@@ -5,12 +5,13 @@
 package mocks
 
 import (
-	credentials "github.com/ProtonMail/proton-bridge/internal/bridge/credentials"
-	pmapi "github.com/ProtonMail/proton-bridge/pkg/pmapi"
-	crypto "github.com/ProtonMail/gopenpgp/crypto"
-	gomock "github.com/golang/mock/gomock"
 	io "io"
 	reflect "reflect"
+
+	crypto "github.com/ProtonMail/gopenpgp/crypto"
+	credentials "github.com/ProtonMail/proton-bridge/internal/bridge/credentials"
+	pmapi "github.com/ProtonMail/proton-bridge/pkg/pmapi"
+	gomock "github.com/golang/mock/gomock"
 )
 
 // MockConfiger is a mock of Configer interface

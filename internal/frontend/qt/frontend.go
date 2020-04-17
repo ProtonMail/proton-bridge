@@ -36,6 +36,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/ProtonMail/go-autostart"
 	"github.com/ProtonMail/proton-bridge/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/internal/events"
 	"github.com/ProtonMail/proton-bridge/internal/frontend/autoconfig"
@@ -44,7 +45,6 @@ import (
 	"github.com/ProtonMail/proton-bridge/pkg/config"
 	"github.com/ProtonMail/proton-bridge/pkg/ports"
 	"github.com/ProtonMail/proton-bridge/pkg/useragent"
-	"github.com/ProtonMail/go-autostart"
 
 	//"github.com/ProtonMail/proton-bridge/pkg/keychain"
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
