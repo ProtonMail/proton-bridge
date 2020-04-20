@@ -106,6 +106,8 @@ func NewClientManager(config *ClientConfig) (cm *ClientManager) {
 	return cm
 }
 
+// SetClientConstructor sets the method used to construct clients.
+// By default this is `pmapi.newClient` but can be overridden with this method.
 func (cm *ClientManager) SetClientConstructor(f func(userID string) Client) {
 	cm.newClient = f
 }
@@ -130,7 +132,7 @@ func (cm *ClientManager) GetClient(userID string) Client {
 	return cm.clients[userID]
 }
 
-// GetAnonymousClient returns an anonymous client. It replaces any anonymous client that was already created.
+// GetAnonymousClient returns an anonymous client.
 func (cm *ClientManager) GetAnonymousClient() Client {
 	return cm.GetClient(fmt.Sprintf("anonymous-%v", cm.idGen.next()))
 }

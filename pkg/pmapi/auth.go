@@ -125,6 +125,7 @@ func (s *Auth) UID() string {
 	return s.uid
 }
 
+// GenToken generates a string token containing the session UID and refresh token.
 func (s *Auth) GenToken() string {
 	if s == nil {
 		return ""

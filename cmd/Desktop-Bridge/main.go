@@ -275,6 +275,10 @@ func run(context *cli.Context) (contextError error) { // nolint[funlen]
 	}
 
 	cm := pmapi.NewClientManager(cfg.GetAPIConfig())
+
+	// Different build types have different roundtrippers (e.g. we want to enable
+	// TLS fingerprint checks in production builds). GetRoundTripper has a different
+	// implementation depending on whether build flag pmapi_prod is used or not.
 	cm.SetRoundTripper(cfg.GetRoundTripper(cm, eventListener))
 
 	bridgeInstance := bridge.New(cfg, pref, panicHandler, eventListener, Version, cm, credentialsStore)
