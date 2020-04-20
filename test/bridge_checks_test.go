@@ -75,7 +75,9 @@ func userIsDisconnected(bddUserID string) error {
 	if err != nil {
 		return internalError(err, "getting user %s", account.Username())
 	}
-	a.False(ctx.GetTestingT(), bridgeUser.IsConnected())
+	a.Eventually(ctx.GetTestingT(), func() bool {
+		return !bridgeUser.IsConnected()
+	}, 5*time.Second, 10*time.Millisecond)
 	return ctx.GetTestingError()
 }
 
@@ -89,7 +91,9 @@ func userIsConnected(bddUserID string) error {
 	if err != nil {
 		return internalError(err, "getting user %s", account.Username())
 	}
-	a.True(ctx.GetTestingT(), bridgeUser.IsConnected())
+	a.Eventually(ctx.GetTestingT(), func() bool {
+		return bridgeUser.IsConnected()
+	}, 5*time.Second, 10*time.Millisecond)
 	a.NotEmpty(t, bridgeUser.GetPrimaryAddress())
 	a.NotEmpty(t, bridgeUser.GetStoreAddresses())
 	return ctx.GetTestingError()
