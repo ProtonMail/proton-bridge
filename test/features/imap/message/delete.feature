@@ -4,8 +4,6 @@ Feature: IMAP delete messages
     And there is "user" with mailbox "Folders/mbox"
     And there is "user" with mailbox "Labels/label"
 
-  # https://gitlab.protontech.ch/ProtonMail/Slim-API/issues/1420
-  @ignore-live
   Scenario Outline: Delete message
     Given there are 10 messages in mailbox "<mailbox>" for "user"
     And there is IMAP client logged in as "user"
@@ -19,11 +17,8 @@ Feature: IMAP delete messages
       | INBOX        |
       | Folders/mbox |
       | Labels/label |
-      | Drafts       |
       | Trash        |
 
-  # https://gitlab.protontech.ch/ProtonMail/Slim-API/issues/1420
-  @ignore-live
   Scenario Outline: Delete all messages
     Given there are 10 messages in mailbox "<mailbox>" for "user"
     And there is IMAP client logged in as "user"
@@ -37,5 +32,4 @@ Feature: IMAP delete messages
       | INBOX        |
       | Folders/mbox |
       | Labels/label |
-      | Drafts       |
       | Trash        |

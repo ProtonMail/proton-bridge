@@ -38,7 +38,7 @@ func cleanup(client *pmapi.Client) error {
 }
 
 func cleanSystemFolders(client *pmapi.Client) error {
-	for _, labelID := range []string{pmapi.InboxLabel, pmapi.SentLabel, pmapi.ArchiveLabel} {
+	for _, labelID := range []string{pmapi.InboxLabel, pmapi.SentLabel, pmapi.ArchiveLabel, pmapi.AllMailLabel, pmapi.DraftLabel} {
 		for {
 			messages, total, err := client.ListMessages(&pmapi.MessagesFilter{
 				PageSize: 150,
