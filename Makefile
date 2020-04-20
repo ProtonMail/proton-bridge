@@ -55,6 +55,7 @@ ${DEPLOY_DIR}/darwin: ${EXE_TARGET}
 
 ${DEPLOY_DIR}/windows: ${EXE_TARGET}
 	cp ./internal/frontend/share/icons/logo.ico ${DEPLOY_DIR}/windows/
+	cp LICENSE ${DEPLOY_DIR}/windows/
 
 ${EXE_TARGET}: check-has-go gofiles ${ICO_FILES} update-vendor
 	rm -rf deploy ${GOOS} ${DEPLOY_DIR}
