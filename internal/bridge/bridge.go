@@ -65,6 +65,8 @@ type Bridge struct {
 
 	lock sync.RWMutex
 
+	cancel chan struct{}
+
 	userAgentClientName    string
 	userAgentClientVersion string
 	userAgentOS            string
@@ -92,6 +94,7 @@ func New(
 		storeCache:    store.NewCache(config.GetIMAPCachePath()),
 		idleUpdates:   make(chan interface{}),
 		lock:          sync.RWMutex{},
+		cancel:        make(chan struct{}),
 	}
 
 	// Allow DoH before starting bridge if the user has previously set this setting.
@@ -110,6 +113,8 @@ func New(
 		b.watchAPIAuths()
 	}()
 
+	go b.heartbeat()
+
 	if b.credStorer == nil {
 		log.Error("Bridge has no credentials store")
 	} else if err := b.loadUsersFromCredentialsStore(); err != nil {
@@ -120,23 +125,29 @@ func New(
 		b.SendMetric(metrics.New(metrics.Setup, metrics.FirstStart, metrics.Label(version)))
 	}
 
-	go b.heartbeat()
-
 	return b
 }
 
 // heartbeat sends a heartbeat signal once a day.
 func (b *Bridge) heartbeat() {
-	for range time.NewTicker(1 * time.Hour).C {
-		next, err := strconv.ParseInt(b.pref.Get(preferences.NextHeartbeatKey), 10, 64)
-		if err != nil {
-			continue
-		}
-		nextTime := time.Unix(next, 0)
-		if time.Now().After(nextTime) {
-			b.SendMetric(metrics.New(metrics.Heartbeat, metrics.Daily, metrics.NoLabel))
-			nextTime = nextTime.Add(24 * time.Hour)
-			b.pref.Set(preferences.NextHeartbeatKey, strconv.FormatInt(nextTime.Unix(), 10))
+	ticker := time.NewTicker(1 * time.Minute)
+
+	for {
+		select {
+		case <-ticker.C:
+			next, err := strconv.ParseInt(b.pref.Get(preferences.NextHeartbeatKey), 10, 64)
+			if err != nil {
+				continue
+			}
+			nextTime := time.Unix(next, 0)
+			if time.Now().After(nextTime) {
+				b.SendMetric(metrics.New(metrics.Heartbeat, metrics.Daily, metrics.NoLabel))
+				nextTime = nextTime.Add(24 * time.Hour)
+				b.pref.Set(preferences.NextHeartbeatKey, strconv.FormatInt(nextTime.Unix(), 10))
+			}
+
+		case <-b.cancel:
+			return
 		}
 	}
 }
@@ -171,30 +182,44 @@ func (b *Bridge) loadUsersFromCredentialsStore() (err error) {
 
 func (b *Bridge) watchBridgeOutdated() {
 	ch := make(chan string)
+
 	b.events.Add(events.UpgradeApplicationEvent, ch)
-	for range ch {
-		isApplicationOutdated = true
-		b.closeAllConnections()
+
+	for {
+		select {
+		case <-ch:
+			isApplicationOutdated = true
+			b.closeAllConnections()
+
+		case <-b.cancel:
+			return
+		}
 	}
 }
 
 // watchAPIAuths receives auths from the client manager and sends them to the appropriate user.
 func (b *Bridge) watchAPIAuths() {
-	for auth := range b.clientManager.GetAuthUpdateChannel() {
-		log.Debug("Bridge received auth from ClientManager")
+	for {
+		select {
+		case auth := <-b.clientManager.GetAuthUpdateChannel():
+			log.Debug("Bridge received auth from ClientManager")
 
-		user, ok := b.hasUser(auth.UserID)
-		if !ok {
-			log.WithField("userID", auth.UserID).Info("User not available for auth update")
-			continue
-		}
+			user, ok := b.hasUser(auth.UserID)
+			if !ok {
+				log.WithField("userID", auth.UserID).Info("User not available for auth update")
+				continue
+			}
 
-		if auth.Auth != nil {
-			user.updateAuthToken(auth.Auth)
-		} else if err := user.logout(); err != nil {
-			log.WithError(err).
-				WithField("userID", auth.UserID).
-				Error("User logout failed while watching API auths")
+			if auth.Auth != nil {
+				user.updateAuthToken(auth.Auth)
+			} else if err := user.logout(); err != nil {
+				log.WithError(err).
+					WithField("userID", auth.UserID).
+					Error("User logout failed while watching API auths")
+			}
+
+		case <-b.cancel:
+			return
 		}
 	}
 }
@@ -539,6 +564,11 @@ func (b *Bridge) DisallowProxy() {
 // This should use the connection manager when it is eventually implemented.
 func (b *Bridge) CheckConnection() error {
 	return b.clientManager.CheckConnection()
+}
+
+// StopWatchers stops all bridge goroutines.
+func (b *Bridge) StopWatchers() {
+	close(b.cancel)
 }
 
 func (b *Bridge) updateCurrentUserAgent() {

@@ -49,7 +49,10 @@ func (ctx *TestContext) RestartBridge() error {
 		_ = user.GetStore().Close()
 	}
 
+	ctx.bridge.StopWatchers()
+
 	ctx.withBridgeInstance()
+
 	return nil
 }
 

@@ -148,10 +148,7 @@ func (api *FakePMAPI) AuthRefresh(token string) (*pmapi.Auth, error) {
 }
 
 func (api *FakePMAPI) Logout() {
-	if err := api.DeleteAuth(); err != nil {
-		api.log.WithError(err).Error("delete auth failed during logout")
-	}
-	api.ClearData()
+	api.controller.clientManager.LogoutClient(api.userID)
 }
 
 func (api *FakePMAPI) IsConnected() bool {
@@ -162,8 +159,6 @@ func (api *FakePMAPI) DeleteAuth() error {
 	if err := api.checkAndRecordCall(DELETE, "/auth", nil); err != nil {
 		return err
 	}
-	// Logout will also emit change to auth channel
-	api.sendAuth(nil)
 	api.controller.deleteSession(api.uid)
 	return nil
 }

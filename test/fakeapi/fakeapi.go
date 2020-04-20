@@ -29,6 +29,7 @@ var errBadRequest = errors.New("NOT OK: 400 Bad Request")
 
 type FakePMAPI struct {
 	username         string
+	userID           string
 	controller       *Controller
 	eventIDGenerator idGenerator
 
@@ -45,16 +46,19 @@ type FakePMAPI struct {
 	log *logrus.Entry
 }
 
-func New(controller *Controller) *FakePMAPI {
+func New(controller *Controller, userID string) *FakePMAPI {
 	fakePMAPI := &FakePMAPI{
 		controller: controller,
 		log:        logrus.WithField("pkg", "fakeapi"),
+		userID:     userID,
 	}
+
 	fakePMAPI.addEvent(&pmapi.Event{
 		EventID: fakePMAPI.eventIDGenerator.last("event"),
 		Refresh: 0,
 		More:    0,
 	})
+
 	return fakePMAPI
 }
 

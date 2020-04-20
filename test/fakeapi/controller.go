@@ -66,7 +66,7 @@ func NewController(cm *pmapi.ClientManager) *Controller {
 	}
 
 	cm.SetClientConstructor(func(userID string) pmapi.Client {
-		fakeAPI := New(controller)
+		fakeAPI := New(controller, userID)
 		controller.fakeAPIs = append(controller.fakeAPIs, fakeAPI)
 		return fakeAPI
 	})
