@@ -21,3 +21,8 @@ package pmapi
 func (s *Auth) DANGEROUSLYSetUID(uid string) {
 	s.uid = uid
 }
+
+// GetClientAuthChannel returns a channel on which clients should send auths.
+func (cm *ClientManager) GetClientAuthChannel() chan ClientAuth {
+	return cm.clientAuths
+}

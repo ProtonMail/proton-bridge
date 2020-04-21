@@ -247,7 +247,7 @@ func (loop *eventLoop) processNextEvent() (more bool, err error) { // nolint[fun
 	}
 
 	if event == nil {
-		return
+		return false, errors.New("received empty event")
 	}
 
 	l = l.WithField("newEventID", event.EventID)

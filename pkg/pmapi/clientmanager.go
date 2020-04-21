@@ -32,8 +32,8 @@ type ClientManager struct {
 	expiredTokens     chan string
 	expirationsLocker sync.Locker
 
-	bridgeAuths chan ClientAuth
-	clientAuths chan ClientAuth
+	clientAuths    chan ClientAuth // auths received by clients from the API are received here and handled.
+	forwardedAuths chan ClientAuth // once auths are handled, they are forwarded on this channel.
 
 	host, scheme string
 	hostLocker   sync.RWMutex
@@ -82,12 +82,12 @@ func NewClientManager(config *ClientConfig) (cm *ClientManager) {
 		expiredTokens:     make(chan string),
 		expirationsLocker: &sync.Mutex{},
 
-		host:       RootURL,
+		host:       rootURL,
 		scheme:     rootScheme,
 		hostLocker: sync.RWMutex{},
 
-		bridgeAuths: make(chan ClientAuth),
-		clientAuths: make(chan ClientAuth),
+		forwardedAuths: make(chan ClientAuth),
+		clientAuths:    make(chan ClientAuth),
 
 		proxyProvider:    newProxyProvider(dohProviders, proxyQuery),
 		proxyUseDuration: proxyUseDuration,
@@ -211,7 +211,7 @@ func (cm *ClientManager) DisallowProxy() {
 	defer cm.hostLocker.Unlock()
 
 	cm.allowProxy = false
-	cm.host = RootURL
+	cm.host = rootURL
 }
 
 // IsProxyEnabled returns whether we are currently proxying requests.
@@ -219,7 +219,7 @@ func (cm *ClientManager) IsProxyEnabled() bool {
 	cm.hostLocker.RLock()
 	defer cm.hostLocker.RUnlock()
 
-	return cm.host != RootURL
+	return cm.host != rootURL
 }
 
 // switchToReachableServer switches to using a reachable server (either proxy or standard API).
@@ -236,12 +236,12 @@ func (cm *ClientManager) switchToReachableServer() (proxy string, err error) {
 
 	logrus.WithField("proxy", proxy).Info("Switching to a proxy")
 
-	// If the host is currently the RootURL, it's the first time we are enabling a proxy.
+	// If the host is currently the rootURL, it's the first time we are enabling a proxy.
 	// This means we want to disable it again in 24 hours.
-	if cm.host == RootURL {
+	if cm.host == rootURL {
 		go func() {
 			<-time.After(cm.proxyUseDuration)
-			cm.host = RootURL
+			cm.host = rootURL
 		}()
 	}
 
@@ -260,12 +260,7 @@ func (cm *ClientManager) GetToken(userID string) string {
 
 // GetAuthUpdateChannel returns a channel on which client auths can be received.
 func (cm *ClientManager) GetAuthUpdateChannel() chan ClientAuth {
-	return cm.bridgeAuths
-}
-
-// GetClientAuthChannel returns a channel on which clients should send auths.
-func (cm *ClientManager) GetClientAuthChannel() chan ClientAuth {
-	return cm.clientAuths
+	return cm.forwardedAuths
 }
 
 // Errors for possible connection issues
@@ -330,19 +325,19 @@ func checkConnection(client *http.Client, url string, errorChannel chan error) {
 	errorChannel <- nil
 }
 
-// forwardClientAuths handles all incoming auths from clients before forwarding them on the bridge auth channel.
+// forwardClientAuths handles all incoming auths from clients before forwarding them on the forwarded auths channel.
 func (cm *ClientManager) forwardClientAuths() {
 	for auth := range cm.clientAuths {
 		logrus.Debug("ClientManager received auth from client")
 		cm.handleClientAuth(auth)
-		logrus.Debug("ClientManager is forwarding auth to bridge")
-		cm.bridgeAuths <- auth
+		logrus.Debug("ClientManager is forwarding auth")
+		cm.forwardedAuths <- auth
 	}
 }
 
-// SetTokenIfUnset sets the token for the given userID if it wasn't already set.
+// setTokenIfUnset sets the token for the given userID if it wasn't already set.
 // The set token does not expire.
-func (cm *ClientManager) SetTokenIfUnset(userID, token string) {
+func (cm *ClientManager) setTokenIfUnset(userID, token string) {
 	cm.tokensLocker.Lock()
 	defer cm.tokensLocker.Unlock()
 

@@ -21,10 +21,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ProtonMail/proton-bridge/pkg/logs"
+	"github.com/sirupsen/logrus"
 )
 
-var log = logs.GetLogEntry("bridgeUtils/listener") //nolint[gochecknoglobals]
+var log = logrus.WithField("pkg", "bridgeUtils/listener") //nolint[gochecknoglobals]
 
 // Listener has a list of channels watching for updates.
 type Listener interface {

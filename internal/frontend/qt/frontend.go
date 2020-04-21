@@ -43,9 +43,9 @@ import (
 	"github.com/ProtonMail/proton-bridge/internal/frontend/types"
 	"github.com/ProtonMail/proton-bridge/internal/preferences"
 	"github.com/ProtonMail/proton-bridge/pkg/config"
-	"github.com/ProtonMail/proton-bridge/pkg/logs"
 	"github.com/ProtonMail/proton-bridge/pkg/ports"
 	"github.com/ProtonMail/proton-bridge/pkg/useragent"
+	"github.com/sirupsen/logrus"
 
 	//"github.com/ProtonMail/proton-bridge/pkg/keychain"
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
@@ -59,7 +59,7 @@ import (
 	"github.com/therecipe/qt/widgets"
 )
 
-var log = logs.GetLogEntry("frontend-qt")
+var log = logrus.WithField("pkg", "frontend-qt")
 var accountMutex = &sync.Mutex{}
 
 // API between Bridge and Qt.

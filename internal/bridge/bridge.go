@@ -29,7 +29,6 @@ import (
 	"github.com/ProtonMail/proton-bridge/internal/preferences"
 	"github.com/ProtonMail/proton-bridge/internal/store"
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
-	"github.com/ProtonMail/proton-bridge/pkg/logs"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
@@ -37,8 +36,8 @@ import (
 )
 
 var (
-	log                   = logs.GetLogEntry("bridge") //nolint[gochecknoglobals]
-	isApplicationOutdated = false                      //nolint[gochecknoglobals]
+	log                   = logrus.WithField("pkg", "bridge") //nolint[gochecknoglobals]
+	isApplicationOutdated = false                             //nolint[gochecknoglobals]
 )
 
 // Bridge is a struct handling users.
@@ -65,7 +64,8 @@ type Bridge struct {
 
 	lock sync.RWMutex
 
-	cancel chan struct{}
+	// stopAll can be closed to stop all goroutines from looping (watchBridgeOutdated, watchAPIAuths, heartbeat etc).
+	stopAll chan struct{}
 
 	userAgentClientName    string
 	userAgentClientVersion string
@@ -94,7 +94,7 @@ func New(
 		storeCache:    store.NewCache(config.GetIMAPCachePath()),
 		idleUpdates:   make(chan interface{}),
 		lock:          sync.RWMutex{},
-		cancel:        make(chan struct{}),
+		stopAll:       make(chan struct{}),
 	}
 
 	// Allow DoH before starting bridge if the user has previously set this setting.
@@ -146,7 +146,7 @@ func (b *Bridge) heartbeat() {
 				b.pref.Set(preferences.NextHeartbeatKey, strconv.FormatInt(nextTime.Unix(), 10))
 			}
 
-		case <-b.cancel:
+		case <-b.stopAll:
 			return
 		}
 	}
@@ -191,7 +191,7 @@ func (b *Bridge) watchBridgeOutdated() {
 			isApplicationOutdated = true
 			b.closeAllConnections()
 
-		case <-b.cancel:
+		case <-b.stopAll:
 			return
 		}
 	}
@@ -218,7 +218,7 @@ func (b *Bridge) watchAPIAuths() {
 					Error("User logout failed while watching API auths")
 			}
 
-		case <-b.cancel:
+		case <-b.stopAll:
 			return
 		}
 	}
@@ -568,7 +568,7 @@ func (b *Bridge) CheckConnection() error {
 
 // StopWatchers stops all bridge goroutines.
 func (b *Bridge) StopWatchers() {
-	close(b.cancel)
+	close(b.stopAll)
 }
 
 func (b *Bridge) updateCurrentUserAgent() {

@@ -35,8 +35,8 @@ func BridgeChecksFeatureContext(s *godog.Suite) {
 	s.Step(`^"([^"]*)" does not have loaded store$`, userDoesNotHaveLoadedStore)
 	s.Step(`^"([^"]*)" has running event loop$`, userHasRunningEventLoop)
 	s.Step(`^"([^"]*)" does not have running event loop$`, userDoesNotHaveRunningEventLoop)
-	s.Step(`^"([^"]*)" does not have API auth$`, doesNotHaveAPIAuth)
-	s.Step(`^"([^"]*)" has API auth$`, hasAPIAuth)
+	s.Step(`^"([^"]*)" does not have API auth$`, isNotAuthorized)
+	s.Step(`^"([^"]*)" has API auth$`, isAuthorized)
 }
 
 func bridgeResponseIs(expectedResponse string) error {
@@ -91,9 +91,7 @@ func userIsConnected(bddUserID string) error {
 	if err != nil {
 		return internalError(err, "getting user %s", account.Username())
 	}
-	a.Eventually(ctx.GetTestingT(), func() bool {
-		return bridgeUser.IsConnected()
-	}, 5*time.Second, 10*time.Millisecond)
+	a.Eventually(ctx.GetTestingT(), bridgeUser.IsConnected, 5*time.Second, 10*time.Millisecond)
 	a.NotEmpty(t, bridgeUser.GetPrimaryAddress())
 	a.NotEmpty(t, bridgeUser.GetStoreAddresses())
 	return ctx.GetTestingError()
@@ -175,7 +173,7 @@ func userDoesNotHaveRunningEventLoop(bddUserID string) error {
 	return ctx.GetTestingError()
 }
 
-func hasAPIAuth(accountName string) error {
+func isAuthorized(accountName string) error {
 	account := ctx.GetTestAccount(accountName)
 	if account == nil {
 		return godog.ErrPending
@@ -184,14 +182,11 @@ func hasAPIAuth(accountName string) error {
 	if err != nil {
 		return internalError(err, "getting user %s", account.Username())
 	}
-	a.Eventually(ctx.GetTestingT(),
-		bridgeUser.HasAPIAuth,
-		5*time.Second, 10*time.Millisecond,
-	)
+	a.Eventually(ctx.GetTestingT(), bridgeUser.IsAuthorized, 5*time.Second, 10*time.Millisecond)
 	return ctx.GetTestingError()
 }
 
-func doesNotHaveAPIAuth(accountName string) error {
+func isNotAuthorized(accountName string) error {
 	account := ctx.GetTestAccount(accountName)
 	if account == nil {
 		return godog.ErrPending
@@ -200,6 +195,6 @@ func doesNotHaveAPIAuth(accountName string) error {
 	if err != nil {
 		return internalError(err, "getting user %s", account.Username())
 	}
-	a.False(ctx.GetTestingT(), bridgeUser.HasAPIAuth())
+	a.Eventually(ctx.GetTestingT(), func() bool { return !bridgeUser.IsAuthorized() }, 5*time.Second, 10*time.Millisecond)
 	return ctx.GetTestingError()
 }

@@ -26,11 +26,11 @@ import (
 	"github.com/ProtonMail/proton-bridge/internal/frontend/types"
 	"github.com/ProtonMail/proton-bridge/pkg/config"
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
-	"github.com/ProtonMail/proton-bridge/pkg/logs"
+	"github.com/sirupsen/logrus"
 )
 
 var (
-	log = logs.GetLogEntry("frontend") // nolint[unused]
+	log = logrus.WithField("pkg", "frontend") // nolint[unused]
 )
 
 // Frontend is an interface to be implemented by each frontend type (cli, gui, html).

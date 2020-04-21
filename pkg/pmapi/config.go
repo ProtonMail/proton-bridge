@@ -22,13 +22,13 @@ import (
 	"runtime"
 )
 
-// RootURL is the API root URL.
+// rootURL is the API root URL.
 //
 // This can be changed using build flags: pmapi_local for "localhost/api", pmapi_dev or pmapi_prod.
 // Default is pmapi_prod.
 //
 // It must not contain the protocol! The protocol should be in rootScheme.
-var RootURL = "api.protonmail.ch" //nolint[gochecknoglobals]
+var rootURL = "api.protonmail.ch" //nolint[gochecknoglobals]
 var rootScheme = "https"          //nolint[gochecknoglobals]
 
 // CurrentUserAgent is the default User-Agent for go-pmapi lib. This can be changed to program

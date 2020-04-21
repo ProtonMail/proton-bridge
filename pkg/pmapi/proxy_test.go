@@ -198,7 +198,7 @@ func TestProxyProvider_UseProxy_RevertAfterTime(t *testing.T) {
 	require.Equal(t, proxy.URL, cm.getHost())
 
 	time.Sleep(2 * time.Second)
-	require.Equal(t, RootURL, cm.getHost())
+	require.Equal(t, rootURL, cm.getHost())
 }
 
 func TestProxyProvider_UseProxy_RevertIfProxyStopsWorkingAndOriginalAPIIsReachable(t *testing.T) {
@@ -227,8 +227,8 @@ func TestProxyProvider_UseProxy_RevertIfProxyStopsWorkingAndOriginalAPIIsReachab
 	// We should now find the original API URL if it is working again.
 	url, err = cm.switchToReachableServer()
 	require.NoError(t, err)
-	require.Equal(t, RootURL, url)
-	require.Equal(t, RootURL, cm.getHost())
+	require.Equal(t, rootURL, url)
+	require.Equal(t, rootURL, cm.getHost())
 }
 
 func TestProxyProvider_UseProxy_FindSecondAlternativeIfFirstFailsAndAPIIsStillBlocked(t *testing.T) {
@@ -298,14 +298,14 @@ func TestProxyProvider_DoHLookup_FindProxyFirstProviderUnreachable(t *testing.T)
 }
 
 // testAPIURLBackup is used to hold the globalOriginalURL because we clear it for test purposes and need to restore it.
-var testAPIURLBackup = RootURL
+var testAPIURLBackup = rootURL
 
 // blockAPI prevents tests from reaching the standard API, forcing them to find a proxy.
 func blockAPI() {
-	RootURL = ""
+	rootURL = ""
 }
 
 // unblockAPI allow tests to reach the standard API again.
 func unblockAPI() {
-	RootURL = testAPIURLBackup
+	rootURL = testAPIURLBackup
 }

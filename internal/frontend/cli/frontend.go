@@ -24,13 +24,13 @@ import (
 	"github.com/ProtonMail/proton-bridge/internal/preferences"
 	"github.com/ProtonMail/proton-bridge/pkg/config"
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
-	"github.com/ProtonMail/proton-bridge/pkg/logs"
 
 	"github.com/abiosoft/ishell"
+	"github.com/sirupsen/logrus"
 )
 
 var (
-	log = logs.GetLogEntry("frontend/cli") //nolint[gochecknoglobals]
+	log = logrus.WithField("pkg", "frontend/cli") //nolint[gochecknoglobals]
 )
 
 type frontendCLI struct {

@@ -27,14 +27,13 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/ProtonMail/proton-bridge/pkg/logs"
 	"github.com/sirupsen/logrus"
 )
 
 const sep = "\x00"
 
 var (
-	log = logs.GetLogEntry("bridge") //nolint[gochecknoglobals]
+	log = logrus.WithField("pkg", "bridge") //nolint[gochecknoglobals]
 
 	ErrWrongFormat = errors.New("backend/creds: malformed password")
 )

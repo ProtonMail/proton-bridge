@@ -218,7 +218,7 @@ func (c *client) sendAuth(auth *Auth) {
 	}
 
 	go func(auth ClientAuth) {
-		c.cm.GetClientAuthChannel() <- auth
+		c.cm.clientAuths <- auth
 	}(ClientAuth{
 		UserID: c.userID,
 		Auth:   auth,
@@ -425,7 +425,7 @@ func (c *client) Unlock(password string) (kr *pmcrypto.KeyRing, err error) {
 func (c *client) AuthRefresh(uidAndRefreshToken string) (auth *Auth, err error) {
 	// If we don't yet have a saved access token, save this one in case the refresh fails!
 	// That way we can try again later (see handleUnauthorizedStatus).
-	c.cm.SetTokenIfUnset(c.userID, uidAndRefreshToken)
+	c.cm.setTokenIfUnset(c.userID, uidAndRefreshToken)
 
 	split := strings.Split(uidAndRefreshToken, ":")
 	if len(split) != 2 {

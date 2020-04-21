@@ -88,9 +88,9 @@ func (p *proxyProvider) findReachableServer() (proxy string, err error) {
 			logrus.WithError(err).Warn("Failed to refresh proxy cache, cache may be out of date")
 		}
 
-		// We want to switch back to the RootURL if possible.
-		if p.canReach(RootURL) {
-			proxyResult <- RootURL
+		// We want to switch back to the rootURL if possible.
+		if p.canReach(rootURL) {
+			proxyResult <- rootURL
 			return
 		}
 

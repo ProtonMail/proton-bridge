@@ -23,8 +23,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/ProtonMail/proton-bridge/pkg/logs"
 	"github.com/docker/docker-credential-helpers/credentials"
+	"github.com/sirupsen/logrus"
 )
 
 const (
@@ -32,7 +32,7 @@ const (
 )
 
 var (
-	log = logs.GetLogEntry("bridgeUtils/keychain") //nolint[gochecknoglobals]
+	log = logrus.WithField("pkg", "bridgeUtils/keychain") //nolint[gochecknoglobals]
 
 	ErrWrongKeychainURL    = errors.New("wrong keychain base URL")
 	ErrMacKeychainRebuild  = errors.New("keychain error -25293")

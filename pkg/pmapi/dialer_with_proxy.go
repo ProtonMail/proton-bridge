@@ -330,7 +330,7 @@ func (p *DialerWithPinning) dial(network, address string) (conn net.Conn, err er
 
 	// If we are not dialing the standard API then we should skip cert verification checks.
 	var tlsConfig *tls.Config = nil
-	if address != RootURL {
+	if address != rootURL {
 		tlsConfig = &tls.Config{InsecureSkipVerify: true} // nolint[gosec]
 	}
 

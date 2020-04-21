@@ -65,7 +65,7 @@ func (api *FakePMAPI) Auth(username, password string, authInfo *pmapi.AuthInfo) 
 	auth := &pmapi.Auth{
 		TwoFA:        user.get2FAInfo(),
 		RefreshToken: session.refreshToken,
-		ExpiresIn:    86400,
+		ExpiresIn:    86400, // seconds
 	}
 	auth.DANGEROUSLYSetUID(session.uid)
 

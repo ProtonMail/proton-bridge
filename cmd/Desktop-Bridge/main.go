@@ -56,7 +56,6 @@ import (
 	"github.com/ProtonMail/proton-bridge/pkg/args"
 	"github.com/ProtonMail/proton-bridge/pkg/config"
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
-	"github.com/ProtonMail/proton-bridge/pkg/logs"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	"github.com/ProtonMail/proton-bridge/pkg/updates"
 	"github.com/allan-simon/go-singleinstance"
@@ -87,7 +86,7 @@ var (
 	longVersion  = Version + " (" + Revision + ")" //nolint[gochecknoglobals]
 	buildVersion = longVersion + " " + BuildTime   //nolint[gochecknoglobals]
 
-	log = logs.GetLogEntry("main") //nolint[gochecknoglobals]
+	log = logrus.WithField("pkg", "main") //nolint[gochecknoglobals]
 
 	// How many crashes in a row.
 	numberOfCrashes = 0 //nolint[gochecknoglobals]

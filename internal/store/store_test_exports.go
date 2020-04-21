@@ -19,7 +19,6 @@ package store
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
@@ -56,7 +55,7 @@ func (store *Store) TestGetStoreFilePath() string {
 func (store *Store) TestDumpDB(tb assert.TestingT) {
 	if store == nil || store.db == nil {
 		fmt.Printf(">>>>>>>> NIL STORE / DB <<<<<\n\n")
-		assert.NoError(tb, errors.New("store or database is nil"))
+		assert.Fail(tb, "store or database is nil")
 		return
 	}
 

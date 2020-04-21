@@ -164,7 +164,7 @@ func (u *User) SetIMAPIdleUpdateChannel() {
 // it tries to connect it.
 func (u *User) authorizeIfNecessary(emitEvent bool) (err error) {
 	// If user is connected and has an auth channel, then perfect, nothing to do here.
-	if u.creds.IsConnected() && u.HasAPIAuth() {
+	if u.creds.IsConnected() && u.isAuthorized {
 		// The keyring  unlock is triggered here to resolve state where apiClient
 		// is authenticated (we have auth token) but it was not possible to download
 		// and unlock the keys (internet not reachable).
@@ -584,8 +584,4 @@ func (u *User) CloseConnection(address string) {
 
 func (u *User) GetStore() *store.Store {
 	return u.store
-}
-
-func (u *User) HasAPIAuth() bool {
-	return u.isAuthorized
 }

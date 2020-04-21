@@ -27,7 +27,7 @@ import (
 func init() {
 	// Use port above 1000 which doesn't need root access to start anything on it.
 	// Now the port is rounded pi. :-)
-	RootURL = "127.0.0.1:3142/api"
+	rootURL = "127.0.0.1:3142/api"
 	rootScheme = "http"
 
 	// TLS certificate is self-signed

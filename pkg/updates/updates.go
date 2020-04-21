@@ -27,8 +27,8 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/ProtonMail/proton-bridge/pkg/logs"
 	"github.com/kardianos/osext"
+	"github.com/sirupsen/logrus"
 )
 
 const (
@@ -44,7 +44,7 @@ var (
 )
 
 var (
-	log = logs.GetLogEntry("bridgeUtils/updates") //nolint[gochecknoglobals]
+	log = logrus.WithField("pkg", "bridgeUtils/updates") //nolint[gochecknoglobals]
 
 	installFileSuffix = map[string]string{ //nolint[gochecknoglobals]
 		"darwin":  ".dmg",

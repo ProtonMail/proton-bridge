@@ -23,12 +23,12 @@ import (
 	"path/filepath"
 
 	"github.com/ProtonMail/go-appdir"
-	"github.com/ProtonMail/proton-bridge/pkg/logs"
 	"github.com/hashicorp/go-multierror"
+	"github.com/sirupsen/logrus"
 )
 
 var (
-	log = logs.GetLogEntry("config") //nolint[gochecknoglobals]
+	log = logrus.WithField("pkg", "config") //nolint[gochecknoglobals]
 )
 
 type appDirProvider interface {
