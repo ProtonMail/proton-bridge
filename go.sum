@@ -60,6 +60,7 @@ github.com/emersion/go-imap-appendlimit v0.0.0-20190308131241-25671c986a6a h1:bM
 github.com/emersion/go-imap-appendlimit v0.0.0-20190308131241-25671c986a6a/go.mod h1:ikgISoP7pRAolqsVP64yMteJa2FIpS6ju88eBT6K1yQ=
 github.com/emersion/go-imap-idle v0.0.0-20190519112320-2704abd7050e h1:L7bswVJZcf2YHofgom49oFRwVqmBj/qZqDy9/SJpZMY=
 github.com/emersion/go-imap-idle v0.0.0-20190519112320-2704abd7050e/go.mod h1:o14zPKCmEH5WC1vU5SdPoZGgNvQx7zzKSnxPQlobo78=
+github.com/emersion/go-imap-move v0.0.0-20190710073258-6e5a51a5b342/go.mod h1:QuMaZcKFDVI0yCrnAbPLfbwllz1wtOrZH8/vZ5yzp4w=
 github.com/emersion/go-imap-quota v0.0.0-20171113212021-e883a2bc54d6 h1:CQ9z5Gk5HBUI8+kM5XNZXUoAv8RF1GnXmYrN4OkDvZU=
 github.com/emersion/go-imap-quota v0.0.0-20171113212021-e883a2bc54d6/go.mod h1:iApyhIQBiU4XFyr+3kdJyyGqle82TbQyuP2o+OZHrV0=
 github.com/emersion/go-imap-quota v0.0.0-20200423100218-dcfd1b7d2b41 h1:z5lDGnSURauBEDdNLj3o0+HogVYKQCGeY3Anl/xyRfU=

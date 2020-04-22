@@ -170,20 +170,15 @@ func (im *imapMailbox) SearchMessages(isUID bool, criteria *imap.SearchCriteria)
 		return nil, err
 	}
 
-	var apiIDsFromUID []string
 	if criteria.Uid != nil {
-		if apiIDs, err := im.apiIDsFromSeqSet(true, criteria.Uid); err == nil {
-			apiIDsFromUID = append(apiIDsFromUID, apiIDs...)
+		apiIDsByUID, err := im.apiIDsFromSeqSet(true, criteria.Uid)
+		if err != nil {
+			return nil, err
 		}
+		apiIDs = arrayIntersection(apiIDs, apiIDsByUID)
 	}
 
-	// Apply filters.
 	for _, apiID := range apiIDs {
-		// Filter on UIDs.
-		if len(apiIDsFromUID) > 0 && !isStringInList(apiIDsFromUID, apiID) {
-			continue
-		}
-
 		// Get message.
 		storeMessage, err := im.storeMailbox.GetMessage(apiID)
 		if err != nil {
@@ -192,79 +187,7 @@ func (im *imapMailbox) SearchMessages(isUID bool, criteria *imap.SearchCriteria)
 		}
 		m := storeMessage.Message()
 
-		// Filter addresses.
-		/*if criteria.From != "" && !addressMatch([]*mail.Address{m.Sender}, criteria.From) {
-			continue
-		}
-		if criteria.To != "" && !addressMatch(m.ToList, criteria.To) {
-			continue
-		}
-		if criteria.Cc != "" && !addressMatch(m.CCList, criteria.Cc) {
-			continue
-		}
-		if criteria.Bcc != "" && !addressMatch(m.BCCList, criteria.Bcc) {
-			continue
-		}*/
-
-		// Filter strings.
-		/*if criteria.Subject != "" && !strings.Contains(strings.ToLower(m.Subject), strings.ToLower(criteria.Subject)) {
-			continue
-		}
-		if criteria.Keyword != "" && !hasKeyword(m, criteria.Keyword) {
-			continue
-		}
-		if criteria.Unkeyword != "" && hasKeyword(m, criteria.Unkeyword) {
-			continue
-		}
-		if criteria.Header[0] != "" {
-			h := message.GetHeader(m)
-			if val := h.Get(criteria.Header[0]); val == "" {
-				continue // Field is not in header.
-			} else if criteria.Header[1] != "" && !strings.Contains(strings.ToLower(val), strings.ToLower(criteria.Header[1])) {
-				continue // Field is in header, second criteria is non-zero and field value not matched (case insensitive).
-			}
-		}
-
-		// Filter flags.
-		if criteria.Flagged && !isStringInList(m.LabelIDs, pmapi.StarredLabel) {
-			continue
-		}
-		if criteria.Unflagged && isStringInList(m.LabelIDs, pmapi.StarredLabel) {
-			continue
-		}
-		if criteria.Seen && m.Unread == 1 {
-			continue
-		}
-		if criteria.Unseen && m.Unread == 0 {
-			continue
-		}
-		if criteria.Deleted {
-			continue
-		}
-		// if criteria.Undeleted { // All messages matches this criteria }
-		if criteria.Draft && (m.Has(pmapi.FlagSent) || m.Has(pmapi.FlagReceived)) {
-			continue
-		}
-		if criteria.Undraft && !(m.Has(pmapi.FlagSent) || m.Has(pmapi.FlagReceived)) {
-			continue
-		}
-		if criteria.Answered && !(m.Has(pmapi.FlagReplied) || m.Has(pmapi.FlagRepliedAll)) {
-			continue
-		}
-		if criteria.Unanswered && (m.Has(pmapi.FlagReplied) || m.Has(pmapi.FlagRepliedAll)) {
-			continue
-		}
-		if criteria.Recent && m.Has(pmapi.FlagOpened) { // opened means not recent
-			continue
-		}
-		if criteria.Old && !m.Has(pmapi.FlagOpened) {
-			continue
-		}
-		if criteria.New && !(!m.Has(pmapi.FlagOpened) && m.Unread == 1) {
-			continue
-		}*/
-
-		// Filter internal date.
+		// Filter by time.
 		if !criteria.Before.IsZero() {
 			if truncated := criteria.Before.Truncate(24 * time.Hour); m.Time > truncated.Unix() {
 				continue
@@ -275,15 +198,8 @@ func (im *imapMailbox) SearchMessages(isUID bool, criteria *imap.SearchCriteria)
 				continue
 			}
 		}
-		/*if !criteria.On.IsZero() {
-			truncated := criteria.On.Truncate(24 * time.Hour)
-			if m.Time < truncated.Unix() || m.Time > truncated.Add(24*time.Hour).Unix() {
-				continue
-			}
-		}*/
-		if !(criteria.SentBefore.IsZero() && criteria.SentSince.IsZero() /*&& criteria.SentOn.IsZero()*/) {
+		if !criteria.SentBefore.IsZero() || !criteria.SentSince.IsZero() {
 			if t, err := m.Header.Date(); err == nil && !t.IsZero() {
-				// Filter header date.
 				if !criteria.SentBefore.IsZero() {
 					if truncated := criteria.SentBefore.Truncate(24 * time.Hour); t.Unix() > truncated.Unix() {
 						continue
@@ -294,16 +210,81 @@ func (im *imapMailbox) SearchMessages(isUID bool, criteria *imap.SearchCriteria)
 						continue
 					}
 				}
-				/*if !criteria.SentOn.IsZero() {
-					truncated := criteria.SentOn.Truncate(24 * time.Hour)
-					if t.Unix() < truncated.Unix() || t.Unix() > truncated.Add(24*time.Hour).Unix() {
-						continue
-					}
-				}*/
 			}
 		}
 
-		// Filter size (only if size was already calculated).
+		// Filter by headers.
+		header := message.GetHeader(m)
+		headerMatch := true
+		for criteriaKey, criteriaValues := range criteria.Header {
+			for _, criteriaValue := range criteriaValues {
+				if criteriaValue == "" {
+					continue
+				}
+				switch criteriaKey {
+				case "From":
+					headerMatch = addressMatch([]*mail.Address{m.Sender}, criteriaValue)
+				case "To":
+					headerMatch = addressMatch(m.ToList, criteriaValue)
+				case "Cc":
+					headerMatch = addressMatch(m.CCList, criteriaValue)
+				case "Bcc":
+					headerMatch = addressMatch(m.BCCList, criteriaValue)
+				default:
+					if messageValue := header.Get(criteriaKey); messageValue == "" {
+						headerMatch = false // Field is not in header.
+					} else if !strings.Contains(strings.ToLower(messageValue), strings.ToLower(criteriaValue)) {
+						headerMatch = false // Field is in header but value not matched (case insensitive).
+					}
+				}
+				if !headerMatch {
+					break
+				}
+			}
+			if !headerMatch {
+				break
+			}
+		}
+		if !headerMatch {
+			continue
+		}
+
+		// Filter by flags.
+		messageFlagsMap := make(map[string]bool)
+		if isStringInList(m.LabelIDs, pmapi.StarredLabel) {
+			messageFlagsMap[imap.FlaggedFlag] = true
+		}
+		if m.Unread == 0 {
+			messageFlagsMap[imap.SeenFlag] = true
+		}
+		if m.Has(pmapi.FlagReplied) || m.Has(pmapi.FlagRepliedAll) {
+			messageFlagsMap[imap.AnsweredFlag] = true
+		}
+		if m.Has(pmapi.FlagSent) || m.Has(pmapi.FlagReceived) {
+			messageFlagsMap[imap.DraftFlag] = true
+		}
+		if !m.Has(pmapi.FlagOpened) {
+			messageFlagsMap[imap.RecentFlag] = true
+		}
+
+		flagMatch := true
+		for _, flag := range criteria.WithFlags {
+			if !messageFlagsMap[flag] {
+				flagMatch = false
+				break
+			}
+		}
+		for _, flag := range criteria.WithoutFlags {
+			if messageFlagsMap[flag] {
+				flagMatch = false
+				break
+			}
+		}
+		if !flagMatch {
+			continue
+		}
+
+		// Filter by size (only if size was already calculated).
 		if m.Size > 0 {
 			if criteria.Larger != 0 && m.Size <= int64(criteria.Larger) {
 				continue
@@ -452,13 +433,17 @@ func (im *imapMailbox) apiIDsFromSeqSet(uid bool, seqSet *imap.SeqSet) ([]string
 	return apiIDs, nil
 }
 
-func isAddressInList(addrs []*mail.Address, query string) bool { //nolint[deadcode]
-	for _, addr := range addrs {
-		if strings.Contains(addr.Address, query) || strings.Contains(addr.Name, query) {
-			return true
+func arrayIntersection(a, b []string) (c []string) {
+	m := make(map[string]bool)
+	for _, item := range a {
+		m[item] = true
+	}
+	for _, item := range b {
+		if _, ok := m[item]; ok {
+			c = append(c, item)
 		}
 	}
-	return false
+	return
 }
 
 func isStringInList(list []string, s string) bool {
@@ -473,15 +458,6 @@ func isStringInList(list []string, s string) bool {
 func addressMatch(addresses []*mail.Address, criteria string) bool {
 	for _, addr := range addresses {
 		if strings.Contains(strings.ToLower(addr.String()), strings.ToLower(criteria)) {
-			return true
-		}
-	}
-	return false
-}
-
-func hasKeyword(m *pmapi.Message, keyword string) bool {
-	for _, v := range message.GetHeader(m) {
-		if strings.Contains(strings.ToLower(strings.Join(v, " ")), strings.ToLower(keyword)) {
 			return true
 		}
 	}

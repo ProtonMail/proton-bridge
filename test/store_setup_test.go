@@ -97,6 +97,11 @@ func thereAreMessagesInMailboxesForAddressOfUser(mailboxNames, bddAddressID, bdd
 				message.ToList = []*mail.Address{{
 					Address: ctx.EnsureAddress(account.Username(), cell.Value),
 				}}
+			case "cc":
+				message.AddressID = ctx.EnsureAddressID(account.Username(), cell.Value)
+				message.CCList = []*mail.Address{{
+					Address: ctx.EnsureAddress(account.Username(), cell.Value),
+				}}
 			case "subject":
 				message.Subject = cell.Value
 			case "body":
