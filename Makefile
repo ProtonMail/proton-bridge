@@ -4,14 +4,14 @@ GOOS:=$(shell go env GOOS)
 ## Build
 .PHONY: build build-nogui check-has-go
 
-VERSION?=1.2.7-git
+BRIDGE_VERSION?=1.2.7-git
 REVISION:=$(shell git rev-parse --short=10 HEAD)
 BUILD_TIME:=$(shell date +%FT%T%z)
 
 BUILD_TAGS?=pmapi_prod
 BUILD_FLAGS:=-tags='${BUILD_TAGS}'
 BUILD_FLAGS_NOGUI:=-tags='${BUILD_TAGS} nogui'
-GO_LDFLAGS:=$(addprefix -X main.,Version=${VERSION} Revision=${REVISION} BuildTime=${BUILD_TIME})
+GO_LDFLAGS:=$(addprefix -X main.,Version=${BRIDGE_VERSION} Revision=${REVISION} BuildTime=${BUILD_TIME})
 ifneq "${BUILD_LDFLAGS}" ""
     GO_LDFLAGS+= ${BUILD_LDFLAGS}
 endif
