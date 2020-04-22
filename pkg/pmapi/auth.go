@@ -217,12 +217,7 @@ func (c *client) sendAuth(auth *Auth) {
 		c.accessToken = auth.accessToken
 	}
 
-	go func(auth ClientAuth) {
-		c.cm.clientAuths <- auth
-	}(ClientAuth{
-		UserID: c.userID,
-		Auth:   auth,
-	})
+	c.cm.HandleAuth(ClientAuth{UserID: c.userID, Auth: auth})
 }
 
 // AuthInfo gets authentication info for a user.

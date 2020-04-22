@@ -108,9 +108,7 @@ func (api *FakePMAPI) checkInternetAndRecordCall(method method, path string, req
 }
 
 func (api *FakePMAPI) sendAuth(auth *pmapi.Auth) {
-	go func(clientAuth pmapi.ClientAuth) {
-		api.controller.clientManager.GetClientAuthChannel() <- clientAuth
-	}(pmapi.ClientAuth{UserID: api.user.ID, Auth: auth})
+	api.controller.clientManager.HandleAuth(pmapi.ClientAuth{UserID: api.user.ID, Auth: auth})
 }
 
 func (api *FakePMAPI) setUser(username string) error {

@@ -32,8 +32,7 @@ type ClientManager struct {
 	expiredTokens     chan string
 	expirationsLocker sync.Locker
 
-	clientAuths    chan ClientAuth // auths received by clients from the API are received here and handled.
-	forwardedAuths chan ClientAuth // once auths are handled, they are forwarded on this channel.
+	authUpdates chan ClientAuth
 
 	host, scheme string
 	hostLocker   sync.RWMutex
@@ -86,8 +85,7 @@ func NewClientManager(config *ClientConfig) (cm *ClientManager) {
 		scheme:     rootScheme,
 		hostLocker: sync.RWMutex{},
 
-		forwardedAuths: make(chan ClientAuth),
-		clientAuths:    make(chan ClientAuth),
+		authUpdates: make(chan ClientAuth),
 
 		proxyProvider:    newProxyProvider(dohProviders, proxyQuery),
 		proxyUseDuration: proxyUseDuration,
@@ -98,8 +96,6 @@ func NewClientManager(config *ClientConfig) (cm *ClientManager) {
 	cm.newClient = func(userID string) Client {
 		return newClient(cm, userID)
 	}
-
-	go cm.forwardClientAuths()
 
 	go cm.watchTokenExpirations()
 
@@ -260,7 +256,7 @@ func (cm *ClientManager) GetToken(userID string) string {
 
 // GetAuthUpdateChannel returns a channel on which client auths can be received.
 func (cm *ClientManager) GetAuthUpdateChannel() chan ClientAuth {
-	return cm.forwardedAuths
+	return cm.authUpdates
 }
 
 // Errors for possible connection issues
@@ -323,16 +319,6 @@ func checkConnection(client *http.Client, url string, errorChannel chan error) {
 	}
 
 	errorChannel <- nil
-}
-
-// forwardClientAuths handles all incoming auths from clients before forwarding them on the forwarded auths channel.
-func (cm *ClientManager) forwardClientAuths() {
-	for auth := range cm.clientAuths {
-		logrus.Debug("ClientManager received auth from client")
-		cm.handleClientAuth(auth)
-		logrus.Debug("ClientManager is forwarding auth")
-		cm.forwardedAuths <- auth
-	}
 }
 
 // setTokenIfUnset sets the token for the given userID if it wasn't already set.
@@ -401,8 +387,8 @@ func (cm *ClientManager) clearToken(userID string) {
 	delete(cm.tokens, userID)
 }
 
-// handleClientAuth updates or clears client authorisation based on auths received.
-func (cm *ClientManager) handleClientAuth(ca ClientAuth) {
+// HandleAuth updates or clears client authorisation based on auths received and then forwards the auth onwards.
+func (cm *ClientManager) HandleAuth(ca ClientAuth) {
 	cm.clientsLocker.Lock()
 	defer cm.clientsLocker.Unlock()
 
@@ -420,6 +406,10 @@ func (cm *ClientManager) handleClientAuth(ca ClientAuth) {
 	}
 
 	cm.setToken(ca.UserID, ca.Auth.GenToken(), time.Duration(ca.Auth.ExpiresIn)*time.Second)
+
+	logrus.Debug("ClientManager is forwarding auth update...")
+	cm.authUpdates <- ca
+	logrus.Debug("Auth update was forwarded")
 }
 
 // watchTokenExpirations refreshes any tokens which are about to expire.
