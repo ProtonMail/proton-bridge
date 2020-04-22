@@ -6,6 +6,7 @@
 * For Windows it is recommended to use MinGW 64bit shell from [MSYS2](https://www.msys2.org/)
 * GCC (linux, windows) or Xcode (macOS)
 * Windres (windows)
+* libglvnd development files (linux)
 
 To enable the sending of crash reports using Sentry please set the
 `main.DSNSentry` value with the client key of your sentry project before build.
