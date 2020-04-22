@@ -29,6 +29,14 @@ make build
     * for `windows`, the binary will have the file extension `.exe` (e.g `bridge.exe`)
     * for `darwin`, the application will be created with name of the project directory (e.g `bridge.app`)
 
+## Build with custom Qt installation
+Please follow the setup instructions in [therecipe/qt wiki](https://github.com/therecipe/qt/wiki/Installation)
+Once you have successfully finished `qtsetup` you should be able compile Bridge using
+
+```bash
+make qtdeploy
+```
+
 ## Useful tests, lints and checks
 In order to be able to run following commands please install the development dependencies: 
 `make install-dev-dependencies`
