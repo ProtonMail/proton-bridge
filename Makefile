@@ -2,7 +2,7 @@ export GO111MODULE=on
 GOOS:=$(shell go env GOOS)
 
 ## Build
-.PHONY: build check-has-go
+.PHONY: build qtdeploy check-has-go
 
 VERSION?=1.2.6-git
 REVISION:=$(shell git rev-parse --short=10 HEAD)
@@ -57,6 +57,14 @@ ${DEPLOY_DIR}/windows: ${EXE_TARGET}
 	cp ./internal/frontend/share/icons/logo.ico ${DEPLOY_DIR}/windows/
 
 ${EXE_TARGET}: check-has-go gofiles ${ICO_FILES} update-vendor
+	rm -rf deploy ${GOOS} ${DEPLOY_DIR}
+	cp cmd/Desktop-Bridge/main.go .
+	qtdeploy ${BUILD_FLAGS} build desktop
+	mv deploy cmd/Desktop-Bridge
+	rm -rf ${GOOS} main.go
+
+qtdeploy: check-has-go gofiles ${ICO_FILES}
+	go mod vendor
 	rm -rf deploy ${GOOS} ${DEPLOY_DIR}
 	cp cmd/Desktop-Bridge/main.go .
 	qtdeploy ${BUILD_FLAGS} build desktop
