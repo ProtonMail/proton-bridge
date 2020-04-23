@@ -122,7 +122,7 @@ func TestProxyProvider_UseProxy(t *testing.T) {
 	blockAPI()
 	defer unblockAPI()
 
-	cm := NewClientManager(testClientConfig)
+	cm := newTestClientManager(testClientConfig)
 
 	proxy := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
 	defer proxy.Close()
@@ -141,7 +141,7 @@ func TestProxyProvider_UseProxy_MultipleTimes(t *testing.T) {
 	blockAPI()
 	defer unblockAPI()
 
-	cm := NewClientManager(testClientConfig)
+	cm := newTestClientManager(testClientConfig)
 
 	proxy1 := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
 	defer proxy1.Close()
@@ -182,7 +182,7 @@ func TestProxyProvider_UseProxy_RevertAfterTime(t *testing.T) {
 	blockAPI()
 	defer unblockAPI()
 
-	cm := NewClientManager(testClientConfig)
+	cm := newTestClientManager(testClientConfig)
 
 	proxy := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
 	defer proxy.Close()
@@ -205,7 +205,7 @@ func TestProxyProvider_UseProxy_RevertIfProxyStopsWorkingAndOriginalAPIIsReachab
 	blockAPI()
 	defer unblockAPI()
 
-	cm := NewClientManager(testClientConfig)
+	cm := newTestClientManager(testClientConfig)
 
 	proxy := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
 	defer proxy.Close()
@@ -235,7 +235,7 @@ func TestProxyProvider_UseProxy_FindSecondAlternativeIfFirstFailsAndAPIIsStillBl
 	blockAPI()
 	defer unblockAPI()
 
-	cm := NewClientManager(testClientConfig)
+	cm := newTestClientManager(testClientConfig)
 
 	proxy1 := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
 	defer proxy1.Close()

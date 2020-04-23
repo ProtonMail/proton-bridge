@@ -39,7 +39,7 @@ func setTestDialerWithPinning(cm *ClientManager) (*int, *DialerWithPinning) {
 }
 
 func TestTLSPinValid(t *testing.T) {
-	cm := NewClientManager(testLiveConfig)
+	cm := newTestClientManager(testLiveConfig)
 	cm.host = liveAPI
 	rootScheme = "https"
 	called, _ := setTestDialerWithPinning(cm)
@@ -52,7 +52,7 @@ func TestTLSPinValid(t *testing.T) {
 }
 
 func TestTLSPinBackup(t *testing.T) {
-	cm := NewClientManager(testLiveConfig)
+	cm := newTestClientManager(testLiveConfig)
 	cm.host = liveAPI
 	called, p := setTestDialerWithPinning(cm)
 	p.report.KnownPins[1] = p.report.KnownPins[0]
@@ -67,7 +67,7 @@ func TestTLSPinBackup(t *testing.T) {
 }
 
 func _TestTLSPinNoMatch(t *testing.T) { // nolint[unused]
-	cm := NewClientManager(testLiveConfig)
+	cm := newTestClientManager(testLiveConfig)
 	cm.host = liveAPI
 
 	called, p := setTestDialerWithPinning(cm)
@@ -89,7 +89,7 @@ func _TestTLSPinNoMatch(t *testing.T) { // nolint[unused]
 }
 
 func _TestTLSPinInvalid(t *testing.T) { // nolint[unused]
-	cm := NewClientManager(testLiveConfig)
+	cm := newTestClientManager(testLiveConfig)
 
 	ts := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		writeJSONResponsefromFile(t, w, "/auth/info/post_response.json", 0)
@@ -112,14 +112,14 @@ func _TestTLSPinInvalid(t *testing.T) { // nolint[unused]
 }
 
 func _TestTLSSignedCertWrongPublicKey(t *testing.T) { // nolint[unused]
-	cm := NewClientManager(testLiveConfig)
+	cm := newTestClientManager(testLiveConfig)
 	_, dialer := setTestDialerWithPinning(cm)
 	_, err := dialer.dialAndCheckFingerprints("tcp", "rsa4096.badssl.com:443")
 	Assert(t, err != nil, "expected dial to fail because of wrong public key: ", err.Error())
 }
 
 func _TestTLSSignedCertTrustedPublicKey(t *testing.T) { // nolint[unused]
-	cm := NewClientManager(testLiveConfig)
+	cm := newTestClientManager(testLiveConfig)
 	_, dialer := setTestDialerWithPinning(cm)
 	dialer.report.KnownPins = append(dialer.report.KnownPins, `pin-sha256="W8/42Z0ffufwnHIOSndT+eVzBJSC0E8uTIC8O6mEliQ="`)
 	_, err := dialer.dialAndCheckFingerprints("tcp", "rsa4096.badssl.com:443")
@@ -127,7 +127,7 @@ func _TestTLSSignedCertTrustedPublicKey(t *testing.T) { // nolint[unused]
 }
 
 func _TestTLSSelfSignedCertTrustedPublicKey(t *testing.T) { // nolint[unused]
-	cm := NewClientManager(testLiveConfig)
+	cm := newTestClientManager(testLiveConfig)
 	_, dialer := setTestDialerWithPinning(cm)
 	dialer.report.KnownPins = append(dialer.report.KnownPins, `pin-sha256="9SLklscvzMYj8f+52lp5ze/hY0CFHyLSPQzSpYYIBm8="`)
 	_, err := dialer.dialAndCheckFingerprints("tcp", "self-signed.badssl.com:443")

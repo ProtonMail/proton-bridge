@@ -654,7 +654,7 @@ var testCardsCleartext = []Card{
 }
 
 func TestClient_Encrypt(t *testing.T) {
-	c := newTestClient(NewClientManager(testClientConfig))
+	c := newTestClient(newTestClientManager(testClientConfig))
 	c.kr = testPrivateKeyRing
 
 	cardEncrypted, err := c.EncryptAndSignCards(testCardsCleartext)
@@ -668,7 +668,7 @@ func TestClient_Encrypt(t *testing.T) {
 }
 
 func TestClient_Decrypt(t *testing.T) {
-	c := newTestClient(NewClientManager(testClientConfig))
+	c := newTestClient(newTestClientManager(testClientConfig))
 	c.kr = testPrivateKeyRing
 
 	cardCleartext, err := c.DecryptAndVerifyCards(testCardsEncrypted)

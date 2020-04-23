@@ -79,7 +79,7 @@ func newTestServer(h http.Handler) (*httptest.Server, *client) {
 		panic(err)
 	}
 
-	cm := NewClientManager(testClientConfig)
+	cm := newTestClientManager(testClientConfig)
 	cm.host = serverURL.Host
 	cm.scheme = serverURL.Scheme
 
@@ -122,7 +122,7 @@ func newTestServerCallbacks(tb testing.TB, callbacks ...func(testing.TB, http.Re
 		}
 	}
 
-	cm := NewClientManager(testClientConfig)
+	cm := newTestClientManager(testClientConfig)
 	cm.host = serverURL.Host
 	cm.scheme = serverURL.Scheme
 
