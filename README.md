@@ -37,9 +37,9 @@ or
 - `BRIDGESTRICTMODE`: tells bridge to turn on `bbolt`'s "strict mode" which checks the database after every `Commit`. Set to `1` to enable.
 
 ### Dev build or run
+- `BRIDGE_VERSION`: set the bridge app version used during testing or building
 - `PROTONMAIL_ENV`: when set to `dev` it is not using Sentry to report crashes
-- `VERBOSITY`: set log level used during test time and by the makefile.
-- `VERSION`: set the bridge app version used during testing or building.
+- `VERBOSITY`: set log level used during test time and by the makefile
 
 ### Integration testing
 - `TEST_ENV`: set which env to use (fake or live)
