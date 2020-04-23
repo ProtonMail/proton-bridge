@@ -104,7 +104,32 @@ build-linux:
   script:
     - make build
   artifacts:
-    name: "bridge-linux-$CI_COMMIT_REF_NAME-$CI_COMMIT_SHORT_SHA"
+    name: "bridge-linux-$CI_COMMIT_SHORT_SHA"
+    paths:
+      - bridge_*.tgz
+    expire_in: 2 week
+
+build-darwin:
+  stage: build
+  before_script:
+    - eval $(ssh-agent -s)
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add - > /dev/null
+    - export PATH=/usr/local/bin:$PATH
+    - export PATH=/usr/local/opt/git/bin:$PATH
+    - export PATH=/usr/local/opt/make/libexec/gnubin:$PATH
+    - export PATH=/usr/local/opt/go@1.13/bin:$PATH
+    - export PATH=/usr/local/opt/gnu-sed/libexec/gnubin:$PATH
+    - export GOPATH=~/go
+    - export PATH=$GOPATH/bin:$PATH
+  cache: {}
+  tags:
+    - macOS-bridge
+  only:
+    - devel
+  script:
+    - make build
+  artifacts:
+    name: "bridge-darwin-$CI_COMMIT_SHORT_SHA"
     paths:
       - bridge_*.tgz
     expire_in: 2 week

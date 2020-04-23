@@ -55,6 +55,7 @@ ${DEPLOY_DIR}/darwin: ${EXE_TARGET}
 	rm -rf "${DARWINAPP_CONTENTS}/Frameworks/QtWebEngine.framework"
 	rm -rf "${DARWINAPP_CONTENTS}/Frameworks/QtWebView.framework"
 	rm -rf "${DARWINAPP_CONTENTS}/Frameworks/QtWebEngineCore.framework"
+	./utils/remove_non_relative_links_darwin.sh "${EXE_TARGET}"
 
 ${DEPLOY_DIR}/windows: ${EXE_TARGET}
 	cp ./internal/frontend/share/icons/logo.ico ${DEPLOY_DIR}/windows/
