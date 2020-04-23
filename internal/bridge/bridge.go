@@ -46,7 +46,6 @@ type Bridge struct {
 	pref          PreferenceProvider
 	panicHandler  PanicHandler
 	events        listener.Listener
-	version       string
 	clientManager ClientManager
 	credStorer    CredentialsStorer
 	storeCache    *store.Cache
@@ -77,7 +76,6 @@ func New(
 	pref PreferenceProvider,
 	panicHandler PanicHandler,
 	eventListener listener.Listener,
-	version string,
 	clientManager ClientManager,
 	credStorer CredentialsStorer,
 ) *Bridge {
@@ -88,7 +86,6 @@ func New(
 		pref:          pref,
 		panicHandler:  panicHandler,
 		events:        eventListener,
-		version:       version,
 		clientManager: clientManager,
 		credStorer:    credStorer,
 		storeCache:    store.NewCache(config.GetIMAPCachePath()),
@@ -122,7 +119,7 @@ func New(
 	}
 
 	if pref.GetBool(preferences.FirstStartKey) {
-		b.SendMetric(metrics.New(metrics.Setup, metrics.FirstStart, metrics.Label(version)))
+		b.SendMetric(metrics.New(metrics.Setup, metrics.FirstStart, metrics.Label(config.GetVersion())))
 	}
 
 	return b
@@ -572,7 +569,7 @@ func (b *Bridge) StopWatchers() {
 }
 
 func (b *Bridge) updateCurrentUserAgent() {
-	UpdateCurrentUserAgent(b.version, b.userAgentOS, b.userAgentClientName, b.userAgentClientVersion)
+	UpdateCurrentUserAgent(b.config.GetVersion(), b.userAgentOS, b.userAgentClientName, b.userAgentClientVersion)
 }
 
 // hasUser returns whether the bridge currently has a user with ID `id`.

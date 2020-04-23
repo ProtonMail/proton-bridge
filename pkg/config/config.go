@@ -172,6 +172,11 @@ func (c *Config) IsDevMode() bool {
 	return os.Getenv("PROTONMAIL_ENV") == "dev"
 }
 
+// GetVersion returns the version.
+func (c *Config) GetVersion() string {
+	return c.version
+}
+
 // GetLogDir returns folder for log files.
 func (c *Config) GetLogDir() string {
 	return c.appDirs.UserLogs()

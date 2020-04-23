@@ -55,6 +55,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/internal/smtp"
 	"github.com/ProtonMail/proton-bridge/pkg/args"
 	"github.com/ProtonMail/proton-bridge/pkg/config"
+	"github.com/ProtonMail/proton-bridge/pkg/constants"
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	"github.com/ProtonMail/proton-bridge/pkg/updates"
@@ -68,45 +69,29 @@ import (
 // Different number will drop old files and create new ones.
 const cacheVersion = "c11"
 
-// Following variables are set via ldflags during build.
 var (
-	// Version of the build.
-	Version = "" //nolint[gochecknoglobals]
-	// Revision is current hash of the build.
-	Revision = "" //nolint[gochecknoglobals]
-	// BuildTime stamp of the build.
-	BuildTime = "" //nolint[gochecknoglobals]
-	// AppShortName to make setup
-	AppShortName = "bridge" //nolint[gochecknoglobals]
-	// DSNSentry client keys to be able to report crashes to Sentry
-	DSNSentry = "" //nolint[gochecknoglobals]
-)
-
-var (
-	longVersion  = Version + " (" + Revision + ")" //nolint[gochecknoglobals]
-	buildVersion = longVersion + " " + BuildTime   //nolint[gochecknoglobals]
-
 	log = logrus.WithField("pkg", "main") //nolint[gochecknoglobals]
 
 	// How many crashes in a row.
 	numberOfCrashes = 0 //nolint[gochecknoglobals]
+
 	// After how many crashes bridge gives up starting.
 	maxAllowedCrashes = 10 //nolint[gochecknoglobals]
 )
 
 func main() {
-	if err := raven.SetDSN(DSNSentry); err != nil {
+	if err := raven.SetDSN(constants.DSNSentry); err != nil {
 		log.WithError(err).Errorln("Can not setup sentry DSN")
 	}
-	raven.SetRelease(Revision)
-	bridge.UpdateCurrentUserAgent(Version, runtime.GOOS, "", "")
+	raven.SetRelease(constants.Revision)
+	bridge.UpdateCurrentUserAgent(constants.Version, runtime.GOOS, "", "")
 
 	args.FilterProcessSerialNumberFromArgs()
 	filterRestartNumberFromArgs()
 
 	app := cli.NewApp()
 	app.Name = "Protonmail Bridge"
-	app.Version = buildVersion
+	app.Version = constants.BuildVersion
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
 			Name:  "log-level, l",
@@ -135,13 +120,13 @@ func main() {
 
 	// Always log the basic info about current bridge.
 	logrus.SetLevel(logrus.InfoLevel)
-	log.WithField("version", Version).
-		WithField("revision", Revision).
+	log.WithField("version", constants.Version).
+		WithField("revision", constants.Revision).
 		WithField("runtime", runtime.GOOS).
-		WithField("build", BuildTime).
+		WithField("build", constants.BuildTime).
 		WithField("args", os.Args).
 		WithField("appLong", app.Name).
-		WithField("appShort", AppShortName).
+		WithField("appShort", constants.AppShortName).
 		Info("Run app")
 	if err := app.Run(os.Args); err != nil {
 		log.Error("Program exited with error: ", err)
@@ -174,7 +159,7 @@ func (ph *panicHandler) HandlePanic() {
 // IMPORTANT: ***Read the comments before CHANGING the order ***
 func run(context *cli.Context) (contextError error) { // nolint[funlen]
 	// We need to have config instance to setup a logs, panic handler, etc ...
-	cfg := config.New(AppShortName, Version, Revision, cacheVersion)
+	cfg := config.New(constants.AppShortName, constants.Version, constants.Revision, cacheVersion)
 
 	// We want to know about any problem. Our PanicHandler calls sentry which is
 	// not dependent on anything else. If that fails, it tries to create crash
@@ -208,7 +193,16 @@ func run(context *cli.Context) (contextError error) { // nolint[funlen]
 
 	// It's safe to get version JSON file even when other instance is running.
 	// (thus we put it before check of presence of other Bridge instance).
-	updates := updates.New(AppShortName, Version, Revision, BuildTime, bridge.ReleaseNotes, bridge.ReleaseFixedBugs, cfg.GetUpdateDir())
+	updates := updates.New(
+		constants.AppShortName,
+		constants.Version,
+		constants.Revision,
+		constants.BuildTime,
+		bridge.ReleaseNotes,
+		bridge.ReleaseFixedBugs,
+		cfg.GetUpdateDir(),
+	)
+
 	if dir := context.GlobalString("version-json"); dir != "" {
 		generateVersionFiles(updates, dir)
 		return nil
@@ -280,7 +274,7 @@ func run(context *cli.Context) (contextError error) { // nolint[funlen]
 	// implementation depending on whether build flag pmapi_prod is used or not.
 	cm.SetRoundTripper(cfg.GetRoundTripper(cm, eventListener))
 
-	bridgeInstance := bridge.New(cfg, pref, panicHandler, eventListener, Version, cm, credentialsStore)
+	bridgeInstance := bridge.New(cfg, pref, panicHandler, eventListener, cm, credentialsStore)
 	imapBackend := imap.NewIMAPBackend(panicHandler, eventListener, cfg, bridgeInstance)
 	smtpBackend := smtp.NewSMTPBackend(panicHandler, eventListener, pref, bridgeInstance)
 
@@ -326,7 +320,7 @@ func run(context *cli.Context) (contextError error) { // nolint[funlen]
 	}
 
 	showWindowOnStart := !context.GlobalBool("no-window")
-	frontend := frontend.New(Version, buildVersion, frontendMode, showWindowOnStart, panicHandler, cfg, pref, eventListener, updates, bridgeInstance, smtpBackend)
+	frontend := frontend.New(constants.Version, constants.BuildVersion, frontendMode, showWindowOnStart, panicHandler, cfg, pref, eventListener, updates, bridgeInstance, smtpBackend)
 
 	// Last part is to start everything.
 	log.Debug("Starting frontend...")
@@ -346,7 +340,7 @@ func run(context *cli.Context) (contextError error) { // nolint[funlen]
 // It will happen only when c10/prefs.json exists and c11/prefs.json not.
 // No configuration changed between c10 and c11 versions.
 func migratePreferencesFromC10(cfg *config.Config) {
-	pref10Path := config.New(AppShortName, Version, Revision, "c10").GetPreferencesPath()
+	pref10Path := config.New(constants.AppShortName, constants.Version, constants.Revision, "c10").GetPreferencesPath()
 	if _, err := os.Stat(pref10Path); os.IsNotExist(err) {
 		log.WithField("path", pref10Path).Trace("Old preferences does not exist, migration skipped")
 		return

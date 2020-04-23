@@ -25,6 +25,7 @@ import (
 type Configer interface {
 	ClearData() error
 	GetDBDir() string
+	GetVersion() string
 	GetIMAPCachePath() string
 	GetAPIConfig() *pmapi.ClientConfig
 }

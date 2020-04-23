@@ -91,6 +91,20 @@ func (mr *MockConfigerMockRecorder) GetIMAPCachePath() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetIMAPCachePath", reflect.TypeOf((*MockConfiger)(nil).GetIMAPCachePath))
 }
 
+// GetVersion mocks base method
+func (m *MockConfiger) GetVersion() string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetVersion")
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// GetVersion indicates an expected call of GetVersion
+func (mr *MockConfigerMockRecorder) GetVersion() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetVersion", reflect.TypeOf((*MockConfiger)(nil).GetVersion))
+}
+
 // MockPreferenceProvider is a mock of PreferenceProvider interface
 type MockPreferenceProvider struct {
 	ctrl     *gomock.Controller

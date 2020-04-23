@@ -22,6 +22,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/ProtonMail/proton-bridge/pkg/constants"
 	"github.com/cucumber/godog"
 	"github.com/cucumber/godog/colors"
 )
@@ -33,6 +34,9 @@ var opt = godog.Options{ //nolint[gochecknoglobals]
 
 func init() { //nolint[gochecknoinits]
 	godog.BindFlags("godog.", flag.CommandLine, &opt)
+
+	// This would normally be done using ldflags but `godog` command doesn't support that.
+	constants.Version = os.Getenv("VERSION")
 }
 
 func TestMain(m *testing.M) {
@@ -46,5 +50,6 @@ func TestMain(m *testing.M) {
 	if st := m.Run(); st > status {
 		status = st
 	}
+
 	os.Exit(status)
 }

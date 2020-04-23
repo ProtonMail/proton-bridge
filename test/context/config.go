@@ -23,6 +23,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/ProtonMail/gopenpgp/constants"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 )
 
@@ -48,12 +49,15 @@ func (c *fakeConfig) ClearData() error {
 }
 func (c *fakeConfig) GetAPIConfig() *pmapi.ClientConfig {
 	return &pmapi.ClientConfig{
-		AppVersion: "Bridge_" + os.Getenv("VERSION"),
+		AppVersion: "Bridge_" + constants.Version,
 		ClientID:   "bridge",
 	}
 }
 func (c *fakeConfig) GetDBDir() string {
 	return c.dir
+}
+func (c *fakeConfig) GetVersion() string {
+	return constants.Version
 }
 func (c *fakeConfig) GetLogDir() string {
 	return c.dir

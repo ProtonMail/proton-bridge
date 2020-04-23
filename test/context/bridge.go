@@ -18,11 +18,11 @@
 package context
 
 import (
-	"os"
 	"runtime"
 
 	"github.com/ProtonMail/proton-bridge/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/internal/preferences"
+	"github.com/ProtonMail/proton-bridge/pkg/constants"
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
 )
 
@@ -64,13 +64,12 @@ func newBridgeInstance(
 	eventListener listener.Listener,
 	clientManager bridge.ClientManager,
 ) *bridge.Bridge {
-	version := os.Getenv("VERSION")
-	bridge.UpdateCurrentUserAgent(version, runtime.GOOS, "", "")
+	bridge.UpdateCurrentUserAgent(constants.Version, runtime.GOOS, "", "")
 
 	panicHandler := &panicHandler{t: t}
 	pref := preferences.New(cfg)
 
-	return bridge.New(cfg, pref, panicHandler, eventListener, version, clientManager, credStore)
+	return bridge.New(cfg, pref, panicHandler, eventListener, clientManager, credStore)
 }
 
 // SetLastBridgeError sets the last error that occurred while executing a bridge action.
