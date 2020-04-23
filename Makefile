@@ -11,7 +11,7 @@ BUILD_TIME:=$(shell date +%FT%T%z)
 BUILD_TAGS?=pmapi_prod
 BUILD_FLAGS:=-tags='${BUILD_TAGS}'
 BUILD_FLAGS_NOGUI:=-tags='${BUILD_TAGS} nogui'
-GO_LDFLAGS:=$(addprefix -X main.,Version=${BRIDGE_VERSION} Revision=${REVISION} BuildTime=${BUILD_TIME})
+GO_LDFLAGS:=$(addprefix -X github.com/ProtonMail/proton-bridge/pkg/constants.,Version=${BRIDGE_VERSION} Revision=${REVISION} BuildTime=${BUILD_TIME})
 ifneq "${BUILD_LDFLAGS}" ""
     GO_LDFLAGS+= ${BUILD_LDFLAGS}
 endif

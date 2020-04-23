@@ -1,7 +1,7 @@
 .PHONY: check-has-go install-godog test test-live test-debug test-live-debug
 
 export GO111MODULE=on
-export BRIDGE_VERSION:=dev-integrationtests
+export BRIDGE_VERSION:=1.2.7-integrationtests
 export VERBOSITY?=fatal
 export TEST_DATA=testdata
 
