@@ -30,19 +30,21 @@ var testLiveConfig = &ClientConfig{
 	ClientID:   "Bridge",
 }
 
-func setTestDialerWithPinning(cm *ClientManager) (*int, *DialerWithPinning) {
+func createAndSetPinningDialer(cm *ClientManager) (*int, *PinningTLSDialer) {
 	called := 0
-	p := NewDialerWithPinning(cm, testLiveConfig.AppVersion)
-	p.ReportCertIssueLocal = func() { called++ }
-	cm.SetRoundTripper(p.TransportWithPinning())
-	return &called, p
+
+	dialer := NewPinningTLSDialer(NewBasicTLSDialer(), testLiveConfig.AppVersion)
+	dialer.SetTLSIssueNotifier(func() { called++ })
+	cm.SetRoundTripper(CreateTransportWithDialer(dialer))
+
+	return &called, dialer
 }
 
 func TestTLSPinValid(t *testing.T) {
 	cm := newTestClientManager(testLiveConfig)
 	cm.host = liveAPI
 	rootScheme = "https"
-	called, _ := setTestDialerWithPinning(cm)
+	called, _ := createAndSetPinningDialer(cm)
 	client := cm.GetClient("pmapi" + t.Name())
 
 	_, err := client.AuthInfo("this.address.is.disabled")
@@ -54,9 +56,9 @@ func TestTLSPinValid(t *testing.T) {
 func TestTLSPinBackup(t *testing.T) {
 	cm := newTestClientManager(testLiveConfig)
 	cm.host = liveAPI
-	called, p := setTestDialerWithPinning(cm)
-	p.report.KnownPins[1] = p.report.KnownPins[0]
-	p.report.KnownPins[0] = ""
+	called, p := createAndSetPinningDialer(cm)
+	p.pinChecker.trustedPins[1] = p.pinChecker.trustedPins[0]
+	p.pinChecker.trustedPins[0] = ""
 
 	client := cm.GetClient("pmapi" + t.Name())
 
@@ -70,9 +72,9 @@ func _TestTLSPinNoMatch(t *testing.T) { // nolint[unused]
 	cm := newTestClientManager(testLiveConfig)
 	cm.host = liveAPI
 
-	called, p := setTestDialerWithPinning(cm)
-	for i := 0; i < len(p.report.KnownPins); i++ {
-		p.report.KnownPins[i] = "testing"
+	called, p := createAndSetPinningDialer(cm)
+	for i := 0; i < len(p.pinChecker.trustedPins); i++ {
+		p.pinChecker.trustedPins[i] = "testing"
 	}
 
 	client := cm.GetClient("pmapi" + t.Name())
@@ -96,7 +98,7 @@ func _TestTLSPinInvalid(t *testing.T) { // nolint[unused]
 	}))
 	defer ts.Close()
 
-	called, _ := setTestDialerWithPinning(cm)
+	called, _ := createAndSetPinningDialer(cm)
 
 	client := cm.GetClient("pmapi" + t.Name())
 
@@ -113,23 +115,23 @@ func _TestTLSPinInvalid(t *testing.T) { // nolint[unused]
 
 func _TestTLSSignedCertWrongPublicKey(t *testing.T) { // nolint[unused]
 	cm := newTestClientManager(testLiveConfig)
-	_, dialer := setTestDialerWithPinning(cm)
-	_, err := dialer.dialAndCheckFingerprints("tcp", "rsa4096.badssl.com:443")
+	_, dialer := createAndSetPinningDialer(cm)
+	_, err := dialer.DialTLS("tcp", "rsa4096.badssl.com:443")
 	Assert(t, err != nil, "expected dial to fail because of wrong public key: ", err.Error())
 }
 
 func _TestTLSSignedCertTrustedPublicKey(t *testing.T) { // nolint[unused]
 	cm := newTestClientManager(testLiveConfig)
-	_, dialer := setTestDialerWithPinning(cm)
-	dialer.report.KnownPins = append(dialer.report.KnownPins, `pin-sha256="W8/42Z0ffufwnHIOSndT+eVzBJSC0E8uTIC8O6mEliQ="`)
-	_, err := dialer.dialAndCheckFingerprints("tcp", "rsa4096.badssl.com:443")
+	_, dialer := createAndSetPinningDialer(cm)
+	dialer.pinChecker.trustedPins = append(dialer.pinChecker.trustedPins, `pin-sha256="W8/42Z0ffufwnHIOSndT+eVzBJSC0E8uTIC8O6mEliQ="`)
+	_, err := dialer.DialTLS("tcp", "rsa4096.badssl.com:443")
 	Assert(t, err == nil, "expected dial to succeed because public key is known and cert is signed by CA: ", err.Error())
 }
 
 func _TestTLSSelfSignedCertTrustedPublicKey(t *testing.T) { // nolint[unused]
 	cm := newTestClientManager(testLiveConfig)
-	_, dialer := setTestDialerWithPinning(cm)
-	dialer.report.KnownPins = append(dialer.report.KnownPins, `pin-sha256="9SLklscvzMYj8f+52lp5ze/hY0CFHyLSPQzSpYYIBm8="`)
-	_, err := dialer.dialAndCheckFingerprints("tcp", "self-signed.badssl.com:443")
+	_, dialer := createAndSetPinningDialer(cm)
+	dialer.pinChecker.trustedPins = append(dialer.pinChecker.trustedPins, `pin-sha256="9SLklscvzMYj8f+52lp5ze/hY0CFHyLSPQzSpYYIBm8="`)
+	_, err := dialer.DialTLS("tcp", "self-signed.badssl.com:443")
 	Assert(t, err == nil, "expected dial to succeed because public key is known despite cert being self-signed: ", err.Error())
 }

@@ -230,6 +230,14 @@ func (cm *ClientManager) switchToReachableServer() (proxy string, err error) {
 		return
 	}
 
+	// If the chosen proxy is the standard API, we want to use it but still show the troubleshooting screen.
+	if proxy == rootURL {
+		logrus.Info("The standard API is reachable again; connection drop was only intermittent")
+		err = ErrAPINotReachable
+		cm.host = proxy
+		return
+	}
+
 	logrus.WithField("proxy", proxy).Info("Switching to a proxy")
 
 	// If the host is currently the rootURL, it's the first time we are enabling a proxy.
@@ -243,7 +251,7 @@ func (cm *ClientManager) switchToReachableServer() (proxy string, err error) {
 
 	cm.host = proxy
 
-	return
+	return proxy, err
 }
 
 // GetToken returns the token for the given userID.

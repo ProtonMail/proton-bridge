@@ -40,11 +40,18 @@ func (c *Config) GetAPIConfig() *pmapi.ClientConfig {
 }
 
 func (c *Config) GetRoundTripper(cm *pmapi.ClientManager, listener listener.Listener) http.RoundTripper {
-	pin := pmapi.NewDialerWithPinning(cm, c.GetAPIConfig().AppVersion)
+	// We use a TLS dialer.
+	basicDialer := pmapi.NewBasicTLSDialer()
 
-	pin.ReportCertIssueLocal = func() {
-		listener.Emit(events.TLSCertIssue, "")
-	}
+	// We wrap the TLS dialer in a layer which enforces connections to trusted servers.
+	pinningDialer := pmapi.NewPinningTLSDialer(basicDialer, c.GetAPIConfig().AppVersion)
 
-	return pin.TransportWithPinning()
+	// We want any pin mismatches to be communicated back to bridge GUI and reported.
+	pinningDialer.SetTLSIssueNotifier(func() { listener.Emit(events.TLSCertIssue, "") })
+	pinningDialer.SetRemoteTLSIssueReporting(true)
+
+	// We wrap the pinning dialer in a layer which adds "alternative routing" feature.
+	proxyDialer := pmapi.NewProxyTLSDialer(pinningDialer, cm)
+
+	return pmapi.CreateTransportWithDialer(proxyDialer)
 }

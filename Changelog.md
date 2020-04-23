@@ -26,6 +26,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
   * `ClientManager` is the "one source of truth" for the host URL for all `Client`s 
   * Alternative Routing is enabled/disabled by `ClientManager`
   * Logging out of `Clients` is handled/retried asynchronously by `ClientManager`
+* GODT-265 Alternative Routing v2 (more resiliant to short term connection drops)
 
 
 ### Fixed

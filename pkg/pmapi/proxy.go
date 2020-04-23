@@ -18,7 +18,6 @@
 package pmapi
 
 import (
-	"crypto/tls"
 	"encoding/base64"
 	"strings"
 	"time"
@@ -85,7 +84,8 @@ func (p *proxyProvider) findReachableServer() (proxy string, err error) {
 	errResult := make(chan error)
 	go func() {
 		if err = p.refreshProxyCache(); err != nil {
-			logrus.WithError(err).Warn("Failed to refresh proxy cache, cache may be out of date")
+			errResult <- errors.Wrap(err, "failed to refresh proxy cache")
+			return
 		}
 
 		// We want to switch back to the rootURL if possible.
@@ -144,10 +144,12 @@ func (p *proxyProvider) canReach(url string) bool {
 		url = "https://" + url
 	}
 
+	pinningDialer := NewPinningTLSDialer(NewBasicTLSDialer(), "")
+
 	pinger := resty.New().
 		SetHostURL(url).
 		SetTimeout(p.lookupTimeout).
-		SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true}) // nolint[gosec]
+		SetTransport(CreateTransportWithDialer(pinningDialer))
 
 	if _, err := pinger.R().Get("/tests/ping"); err != nil {
 		logrus.WithField("proxy", url).WithError(err).Warn("Failed to ping proxy")
