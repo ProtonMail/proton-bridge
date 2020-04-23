@@ -36,7 +36,7 @@ func init() { //nolint[gochecknoinits]
 	godog.BindFlags("godog.", flag.CommandLine, &opt)
 
 	// This would normally be done using ldflags but `godog` command doesn't support that.
-	constants.Version = os.Getenv("VERSION")
+	constants.Version = os.Getenv("BRIDGE_VERSION")
 }
 
 func TestMain(m *testing.M) {

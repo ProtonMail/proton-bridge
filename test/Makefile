@@ -1,9 +1,9 @@
 .PHONY: check-has-go install-godog test test-live test-debug test-live-debug
 
 export GO111MODULE=on
+export BRIDGE_VERSION:=dev-integrationtests
 export VERBOSITY?=fatal
 export TEST_DATA=testdata
-export VERSION:=dev-integrationtests
 
 check-has-go:
 	@which go || (echo "Install Go-lang!" && exit 1)
