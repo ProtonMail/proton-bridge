@@ -12,6 +12,9 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 ### Changed
 * GODT-162 User Agent does not contain bridge version, only client in format `client name/client version (os)`
+* GODT-258 Update go-imap to v1
+  * Fix UNSEEN to return sequence number of first unseen message and not count of unseen messages
+  * INBOX name is never quoted
 * GODT-225 Do not send an EXISTS reposnse after EXPUNGE or when nothing changed (fixes rebuild of mailboxes in Outlook for Mac)
 * GODT-165 Optimization of RebuildMailboxes
 * GODT-282 Completely delete old draft instead moving to trash when user updates draft

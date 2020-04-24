@@ -1,6 +1,8 @@
 Feature: IMAP search messages
   Background:
     Given there is connected user "user"
+    # Messages are inserted in opposite way to keep increasing UID.
+    # Sequence numbers are then opposite than listed above.
     Given there are messages in mailbox "INBOX" for "user"
       | from               | to         | cc         | subject | read  | starred | body  |
       | john.doe@email.com | user@pm.me |            | foo     | false | false   | hello |

@@ -79,6 +79,7 @@ func (store *Store) imapDeleteMessage(address, mailboxName string, sequenceNumbe
 func (store *Store) imapMailboxCreated(address, mailboxName string) {
 	store.log.WithFields(logrus.Fields{
 		"address": address,
+		"mailbox": mailboxName,
 	}).Trace("IDLE mailbox info")
 	update := new(imapBackend.MailboxInfoUpdate)
 	update.Update = imapBackend.NewUpdate(address, "")

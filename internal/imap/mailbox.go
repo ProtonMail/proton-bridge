@@ -126,7 +126,12 @@ func (im *imapMailbox) Status(items []imap.StatusItem) (*imap.MailboxStatus, err
 	}
 
 	dbTotal, dbUnread, dbUnreadSeqNum, err := im.storeMailbox.GetCounts()
-	l.Debugln("DB: total", dbTotal, "unread", dbUnread, "unreadSeqNum", dbUnreadSeqNum, "err", err)
+	l.WithFields(logrus.Fields{
+		"total":        dbTotal,
+		"unread":       dbUnread,
+		"unreadSeqNum": dbUnreadSeqNum,
+		"err":          err,
+	}).Debug("DB counts")
 	if err == nil {
 		status.Messages = uint32(dbTotal)
 		status.Unseen = uint32(dbUnread)
