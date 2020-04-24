@@ -33,7 +33,7 @@ var testLiveConfig = &ClientConfig{
 func createAndSetPinningDialer(cm *ClientManager) (*int, *PinningTLSDialer) {
 	called := 0
 
-	dialer := NewPinningTLSDialer(NewBasicTLSDialer(), testLiveConfig.AppVersion)
+	dialer := NewPinningTLSDialer(NewBasicTLSDialer())
 	dialer.SetTLSIssueNotifier(func() { called++ })
 	cm.SetRoundTripper(CreateTransportWithDialer(dialer))
 

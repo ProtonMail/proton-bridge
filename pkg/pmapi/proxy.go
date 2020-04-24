@@ -144,7 +144,7 @@ func (p *proxyProvider) canReach(url string) bool {
 		url = "https://" + url
 	}
 
-	pinningDialer := NewPinningTLSDialer(NewBasicTLSDialer(), "")
+	pinningDialer := NewPinningTLSDialer(NewBasicTLSDialer())
 
 	pinger := resty.New().
 		SetHostURL(url).

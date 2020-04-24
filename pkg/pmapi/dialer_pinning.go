@@ -33,11 +33,11 @@ type PinningTLSDialer struct {
 	// pinChecker is used to check TLS keys of connections.
 	pinChecker PinChecker
 
-	// appVersion is supplied if there is a TLS mismatch.
-	appVersion string
-
 	// tlsIssueNotifier is used to notify something when there is a TLS issue.
 	tlsIssueNotifier func()
+
+	// appVersion is needed to report TLS mismatches.
+	appVersion string
 
 	// enableRemoteReporting instructs the dialer to report TLS mismatches.
 	enableRemoteReporting bool
@@ -49,11 +49,10 @@ type PinningTLSDialer struct {
 // NewPinningTLSDialer constructs a new dialer which only returns tcp connections to servers
 // which present known certificates.
 // If enabled, it reports any invalid certificates it finds.
-func NewPinningTLSDialer(dialer TLSDialer, appVersion string) *PinningTLSDialer {
+func NewPinningTLSDialer(dialer TLSDialer) *PinningTLSDialer {
 	return &PinningTLSDialer{
 		dialer:     dialer,
 		pinChecker: NewPinChecker(TrustedAPIPins),
-		appVersion: appVersion,
 		log:        logrus.WithField("pkg", "pmapi/tls-pinning"),
 	}
 }
@@ -62,8 +61,9 @@ func (p *PinningTLSDialer) SetTLSIssueNotifier(notifier func()) {
 	p.tlsIssueNotifier = notifier
 }
 
-func (p *PinningTLSDialer) SetRemoteTLSIssueReporting(enabled bool) {
-	p.enableRemoteReporting = enabled
+func (p *PinningTLSDialer) EnableRemoteTLSIssueReporting(appVersion string) {
+	p.enableRemoteReporting = true
+	p.appVersion = appVersion
 }
 
 // DialTLS dials the given network/address, returning an error if the certificates don't match the trusted pins.
