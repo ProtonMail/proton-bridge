@@ -26,6 +26,7 @@ import (
 
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
+	imapBackend "github.com/emersion/go-imap/backend"
 	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -101,7 +102,7 @@ type Store struct {
 	db          *bolt.DB
 	lock        *sync.RWMutex
 	addresses   map[string]*Address
-	imapUpdates chan interface{}
+	imapUpdates chan imapBackend.Update
 
 	isSyncRunning bool
 	addressMode   addressMode

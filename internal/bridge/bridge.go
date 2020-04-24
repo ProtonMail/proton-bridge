@@ -30,6 +30,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/internal/store"
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
+	imapBackend "github.com/emersion/go-imap/backend"
 	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
 	logrus "github.com/sirupsen/logrus"
@@ -59,7 +60,7 @@ type Bridge struct {
 	// idleUpdates is a channel which the imap backend listens to and which it uses
 	// to send idle updates to the mail client (eg thunderbird).
 	// The user stores should send idle updates on this channel.
-	idleUpdates chan interface{}
+	idleUpdates chan imapBackend.Update
 
 	lock sync.RWMutex
 
@@ -89,7 +90,7 @@ func New(
 		clientManager: clientManager,
 		credStorer:    credStorer,
 		storeCache:    store.NewCache(config.GetIMAPCachePath()),
-		idleUpdates:   make(chan interface{}),
+		idleUpdates:   make(chan imapBackend.Update),
 		lock:          sync.RWMutex{},
 		stopAll:       make(chan struct{}),
 	}
@@ -541,7 +542,7 @@ func (b *Bridge) updateUserAgent() {
 }
 
 // GetIMAPUpdatesChannel sets the channel on which idle events should be sent.
-func (b *Bridge) GetIMAPUpdatesChannel() chan interface{} {
+func (b *Bridge) GetIMAPUpdatesChannel() chan imapBackend.Update {
 	if b.idleUpdates == nil {
 		log.Warn("Bridge updates channel is nil")
 	}

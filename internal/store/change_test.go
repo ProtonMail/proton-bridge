@@ -29,7 +29,7 @@ func TestCreateOrUpdateMessageIMAPUpdates(t *testing.T) {
 	m, clear := initMocks(t)
 	defer clear()
 
-	updates := make(chan interface{})
+	updates := make(chan imapBackend.Update)
 
 	m.newStoreNoEvents(true)
 	m.store.SetIMAPUpdateChannel(updates)
@@ -49,7 +49,7 @@ func TestCreateOrUpdateMessageIMAPUpdatesBulkUpdate(t *testing.T) {
 	m, clear := initMocks(t)
 	defer clear()
 
-	updates := make(chan interface{})
+	updates := make(chan imapBackend.Update)
 
 	m.newStoreNoEvents(true)
 	m.store.SetIMAPUpdateChannel(updates)
@@ -75,7 +75,7 @@ func TestDeleteMessageIMAPUpdate(t *testing.T) {
 	insertMessage(t, m, "msg1", "Test message 1", addrID1, 0, []string{pmapi.AllMailLabel})
 	insertMessage(t, m, "msg2", "Test message 2", addrID1, 0, []string{pmapi.AllMailLabel})
 
-	updates := make(chan interface{})
+	updates := make(chan imapBackend.Update)
 	m.store.SetIMAPUpdateChannel(updates)
 	go checkIMAPUpdates(t, updates, []func(interface{}) bool{
 		checkMessageDelete(addr1, "All Mail", 2),
@@ -87,7 +87,7 @@ func TestDeleteMessageIMAPUpdate(t *testing.T) {
 	close(updates)
 }
 
-func checkIMAPUpdates(t *testing.T, updates chan interface{}, checkFunctions []func(interface{}) bool) {
+func checkIMAPUpdates(t *testing.T, updates chan imapBackend.Update, checkFunctions []func(interface{}) bool) {
 	idx := 0
 	for update := range updates {
 		if idx >= len(checkFunctions) {

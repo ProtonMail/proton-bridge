@@ -29,7 +29,7 @@ import (
 
 // SetIMAPUpdateChannel sets the channel on which imap update messages will be sent. This should be the channel
 // on which the imap backend listens for imap updates.
-func (store *Store) SetIMAPUpdateChannel(updates chan interface{}) {
+func (store *Store) SetIMAPUpdateChannel(updates chan imapBackend.Update) {
 	store.log.Debug("Listening for IMAP updates")
 
 	if store.imapUpdates = updates; store.imapUpdates == nil {
@@ -107,7 +107,7 @@ func (store *Store) imapMailboxStatus(address, mailboxName string, total, unread
 	store.imapSendUpdate(update)
 }
 
-func (store *Store) imapSendUpdate(update interface{}) {
+func (store *Store) imapSendUpdate(update imapBackend.Update) {
 	if store.imapUpdates == nil {
 		store.log.Trace("IMAP IDLE unavailable")
 		return

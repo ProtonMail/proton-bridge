@@ -38,7 +38,7 @@ type panicHandler interface {
 type imapBackend struct {
 	panicHandler  panicHandler
 	bridge        bridger
-	updates       chan interface{}
+	updates       chan goIMAPBackend.Update
 	eventListener listener.Listener
 
 	users       map[string]*imapUser
@@ -80,7 +80,7 @@ func newIMAPBackend(
 	return &imapBackend{
 		panicHandler:  panicHandler,
 		bridge:        bridge,
-		updates:       make(chan interface{}),
+		updates:       make(chan goIMAPBackend.Update),
 		eventListener: eventListener,
 
 		users:       map[string]*imapUser{},
@@ -180,7 +180,7 @@ func (ib *imapBackend) Login(_ *imap.ConnInfo, username, password string) (goIMA
 }
 
 // Updates returns a channel of updates for IMAP IDLE extension.
-func (ib *imapBackend) Updates() <-chan interface{} {
+func (ib *imapBackend) Updates() <-chan goIMAPBackend.Update {
 	// Called from go-imap in goroutines - we need to handle panics for each function.
 	defer ib.panicHandler.HandlePanic()
 
