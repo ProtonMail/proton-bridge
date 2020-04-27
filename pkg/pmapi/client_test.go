@@ -30,10 +30,10 @@ import (
 )
 
 var testClientConfig = &ClientConfig{
-	AppVersion:       "GoPMAPI_1.0.14",
-	ClientID:         "demoapp",
-	FirstReadTimeout: 500 * time.Millisecond,
-	MinSpeed:         256,
+	AppVersion:        "GoPMAPI_1.0.14",
+	ClientID:          "demoapp",
+	FirstReadTimeout:  500 * time.Millisecond,
+	MinBytesPerSecond: 256,
 }
 
 func newTestClient(cm *ClientManager) *client {
@@ -175,7 +175,7 @@ func TestClient_FirstReadTimeout(t *testing.T) {
 
 func TestClient_MinSpeedTimeout(t *testing.T) {
 	finish, c := newTestServerCallbacks(t,
-		routeSlow(2*time.Second),
+		routeSlow(4*time.Second), // 1 second longer than the minimum transfer speed poll time.
 	)
 	defer finish()
 

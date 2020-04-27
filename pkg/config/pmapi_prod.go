@@ -31,11 +31,11 @@ import (
 
 func (c *Config) GetAPIConfig() *pmapi.ClientConfig {
 	return &pmapi.ClientConfig{
-		AppVersion:       strings.Title(c.appName) + "_" + c.version,
-		ClientID:         c.appName,
-		Timeout:          10 * time.Minute, // Overall request timeout (~25MB / 10 mins => ~40kB/s, should be reasonable).
-		FirstReadTimeout: 30 * time.Second, // 30s to match 30s response header timeout.
-		MinSpeed:         1 << 10,          // Enforce minimum download speed of 1kB/s.
+		AppVersion:        strings.Title(c.appName) + "_" + c.version,
+		ClientID:          c.appName,
+		Timeout:           10 * time.Minute, // Overall request timeout (~25MB / 10 mins => ~40kB/s, should be reasonable).
+		FirstReadTimeout:  30 * time.Second, // 30s to match 30s response header timeout.
+		MinBytesPerSecond: 1 << 10,          // Enforce minimum download speed of 1kB/s.
 	}
 }
 

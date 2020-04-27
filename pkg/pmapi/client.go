@@ -87,13 +87,13 @@ type ClientConfig struct {
 	Timeout time.Duration
 
 	// FirstReadTimeout specifies the timeout from getting response to the first read of body response.
-	// This timeout is applied only when MinSpeed is used.
+	// This timeout is applied only when MinBytesPerSecond is used.
 	// Default is 5 minutes.
 	FirstReadTimeout time.Duration
 
-	// MinSpeed specifies minimum Bytes per second or the request will be canceled.
+	// MinBytesPerSecond specifies minimum Bytes per second or the request will be canceled.
 	// Zero means no limitation.
-	MinSpeed int64
+	MinBytesPerSecond int64
 }
 
 // Client defines the interface of a PMAPI client.
@@ -316,7 +316,7 @@ func (c *client) doJSONBuffered(req *http.Request, reqBodyBuffer []byte, data in
 	req.Header.Set("Accept", "application/vnd.protonmail.v1+json")
 
 	var cancelRequest context.CancelFunc
-	if c.cm.config.MinSpeed > 0 {
+	if c.cm.config.MinBytesPerSecond > 0 {
 		var ctx context.Context
 		ctx, cancelRequest = context.WithCancel(req.Context())
 		defer func() {
@@ -332,7 +332,7 @@ func (c *client) doJSONBuffered(req *http.Request, reqBodyBuffer []byte, data in
 	defer res.Body.Close() //nolint[errcheck]
 
 	var resBody []byte
-	if c.cm.config.MinSpeed == 0 {
+	if c.cm.config.MinBytesPerSecond == 0 {
 		resBody, err = ioutil.ReadAll(res.Body)
 	} else {
 		resBody, err = c.readAllMinSpeed(res.Body, cancelRequest)
@@ -417,17 +417,22 @@ func (c *client) readAllMinSpeed(data io.Reader, cancelRequest context.CancelFun
 	timer := time.AfterFunc(firstReadTimeout, func() {
 		cancelRequest()
 	})
+
+	// speedCheckSeconds controls how often we check the transfer speed.
+	const speedCheckSeconds = 3
+
 	var buffer bytes.Buffer
 	for {
-		_, err := io.CopyN(&buffer, data, c.cm.config.MinSpeed)
+		_, err := io.CopyN(&buffer, data, c.cm.config.MinBytesPerSecond*speedCheckSeconds)
 		timer.Stop()
-		timer.Reset(1 * time.Second)
+		timer.Reset(speedCheckSeconds * time.Second)
 		if err == io.EOF {
 			break
 		} else if err != nil {
 			return nil, err
 		}
 	}
+
 	return ioutil.ReadAll(&buffer)
 }
 
