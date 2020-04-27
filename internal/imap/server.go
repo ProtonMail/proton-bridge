@@ -76,8 +76,21 @@ func NewIMAPServer(debugClient, debugServer bool, port int, tls *tls.Config, ima
 		conn.Server().ForEachConn(func(candidate imapserver.Conn) {
 			if id, ok := candidate.(imapid.Conn); ok {
 				if conn.Context() == candidate.Context() {
-					imapBackend.setLastMailClient(id.ID())
-					return
+					// ID is not available right at the beginning of the connection.
+					// Clients send ID quickly after AUTH. We need to wait for it.
+					go func() {
+						start := time.Now()
+						for {
+							if id.ID() != nil {
+								imapBackend.setLastMailClient(id.ID())
+								break
+							}
+							if time.Since(start) > 10*time.Second {
+								break
+							}
+							time.Sleep(100 * time.Millisecond)
+						}
+					}()
 				}
 			}
 		})

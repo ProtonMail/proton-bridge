@@ -31,7 +31,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	"github.com/ProtonMail/proton-bridge/pkg/sentry"
 	"github.com/sirupsen/logrus"
 )
@@ -60,9 +59,7 @@ var logCrashRgx = regexp.MustCompile("^v.*_crash_.*\\.log$") //nolint[gochecknog
 func HandlePanic(cfg *Config, output string) {
 	if !cfg.IsDevMode() {
 		apiCfg := cfg.GetAPIConfig()
-		clientID := apiCfg.ClientID
-		appVersion := apiCfg.AppVersion
-		if err := sentry.ReportSentryCrash(clientID, appVersion, pmapi.CurrentUserAgent, errors.New(output)); err != nil {
+		if err := sentry.ReportSentryCrash(apiCfg.ClientID, apiCfg.AppVersion, apiCfg.UserAgent, errors.New(output)); err != nil {
 			log.Error("Sentry crash report failed: ", err)
 		}
 	}

@@ -79,6 +79,13 @@ type ClientConfig struct {
 	// The client application name and version.
 	AppVersion string
 
+	// The client application user agent in format `client name/client version (os)`, e.g.:
+	// (Intel Mac OS X 10_15_3)
+	// Mac OS X Mail/13.0 (3608.60.0.2.5) (Intel Mac OS X 10_15_3)
+	// Thunderbird/1.5.0 (Ubuntu 18.04.4 LTS)
+	// MSOffice 12 (Windows 10 (10.0))
+	UserAgent string
+
 	// The client ID.
 	ClientID string
 
@@ -213,6 +220,7 @@ func (c *client) Do(req *http.Request, retryUnauthorized bool) (res *http.Respon
 func (c *client) doBuffered(req *http.Request, bodyBuffer []byte, retryUnauthorized bool) (res *http.Response, err error) { // nolint[funlen]
 	isAuthReq := strings.Contains(req.URL.Path, "/auth")
 
+	req.Header.Set("User-Agent", c.cm.config.UserAgent)
 	req.Header.Set("x-pm-appversion", c.cm.config.AppVersion)
 	req.Header.Set("x-pm-apiversion", strconv.Itoa(Version))
 

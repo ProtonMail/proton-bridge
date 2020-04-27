@@ -48,7 +48,7 @@ func (c *Config) GetRoundTripper(cm *pmapi.ClientManager, listener listener.List
 
 	// We want any pin mismatches to be communicated back to bridge GUI and reported.
 	pinningDialer.SetTLSIssueNotifier(func() { listener.Emit(events.TLSCertIssue, "") })
-	pinningDialer.EnableRemoteTLSIssueReporting(c.GetAPIConfig().AppVersion)
+	pinningDialer.EnableRemoteTLSIssueReporting(c.GetAPIConfig().AppVersion, c.GetAPIConfig().UserAgent)
 
 	// We wrap the pinning dialer in a layer which adds "alternative routing" feature.
 	proxyDialer := pmapi.NewProxyTLSDialer(pinningDialer, cm)

@@ -15,37 +15,36 @@
 // You should have received a copy of the GNU General Public License
 // along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
 
-package bridge
+package pmapi
 
 import (
 	"runtime"
 	"testing"
 
-	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestUpdateCurrentUserAgentGOOS(t *testing.T) {
-	UpdateCurrentUserAgent("ver", "", "", "")
-	assert.Equal(t, "Bridge/ver ("+runtime.GOOS+"; unknown client)", pmapi.CurrentUserAgent)
+	userAgent := formatUserAgent("", "", "")
+	assert.Equal(t, " ("+runtime.GOOS+")", userAgent)
 }
 
 func TestUpdateCurrentUserAgentOS(t *testing.T) {
-	UpdateCurrentUserAgent("ver", "os", "", "")
-	assert.Equal(t, "Bridge/ver (os; unknown client)", pmapi.CurrentUserAgent)
+	userAgent := formatUserAgent("", "", "os")
+	assert.Equal(t, " (os)", userAgent)
 }
 
 func TestUpdateCurrentUserAgentClientVer(t *testing.T) {
-	UpdateCurrentUserAgent("ver", "os", "", "cver")
-	assert.Equal(t, "Bridge/ver (os; unknown client)", pmapi.CurrentUserAgent)
+	userAgent := formatUserAgent("", "ver", "os")
+	assert.Equal(t, " (os)", userAgent)
 }
 
 func TestUpdateCurrentUserAgentClientName(t *testing.T) {
-	UpdateCurrentUserAgent("ver", "os", "mail", "")
-	assert.Equal(t, "Bridge/ver (os; mail)", pmapi.CurrentUserAgent)
+	userAgent := formatUserAgent("mail", "", "os")
+	assert.Equal(t, "mail (os)", userAgent)
 }
 
 func TestUpdateCurrentUserAgentClientNameAndVersion(t *testing.T) {
-	UpdateCurrentUserAgent("ver", "os", "mail", "cver")
-	assert.Equal(t, "Bridge/ver (os; mail/cver)", pmapi.CurrentUserAgent)
+	userAgent := formatUserAgent("mail", "ver", "os")
+	assert.Equal(t, "mail/ver (os)", userAgent)
 }

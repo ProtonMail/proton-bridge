@@ -18,11 +18,8 @@
 package context
 
 import (
-	"runtime"
-
 	"github.com/ProtonMail/proton-bridge/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/internal/preferences"
-	"github.com/ProtonMail/proton-bridge/pkg/constants"
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
 )
 
@@ -64,11 +61,8 @@ func newBridgeInstance(
 	eventListener listener.Listener,
 	clientManager bridge.ClientManager,
 ) *bridge.Bridge {
-	bridge.UpdateCurrentUserAgent(constants.Version, runtime.GOOS, "", "")
-
 	panicHandler := &panicHandler{t: t}
 	pref := preferences.New(cfg)
-
 	return bridge.New(cfg, pref, panicHandler, eventListener, clientManager, credStore)
 }
 

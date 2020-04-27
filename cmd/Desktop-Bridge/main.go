@@ -84,7 +84,6 @@ func main() {
 		log.WithError(err).Errorln("Can not setup sentry DSN")
 	}
 	raven.SetRelease(constants.Revision)
-	bridge.UpdateCurrentUserAgent(constants.Version, runtime.GOOS, "", "")
 
 	args.FilterProcessSerialNumberFromArgs()
 	filterRestartNumberFromArgs()

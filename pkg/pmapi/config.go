@@ -19,7 +19,6 @@ package pmapi
 
 import (
 	"net/http"
-	"runtime"
 )
 
 // rootURL is the API root URL.
@@ -30,11 +29,6 @@ import (
 // It must not contain the protocol! The protocol should be in rootScheme.
 var rootURL = "api.protonmail.ch" //nolint[gochecknoglobals]
 var rootScheme = "https"          //nolint[gochecknoglobals]
-
-// CurrentUserAgent is the default User-Agent for go-pmapi lib. This can be changed to program
-// version and email client.
-// e.g. Bridge/1.0.4 (Windows) MicrosoftOutlook/16.0.9330.2087
-var CurrentUserAgent = "GoPMAPI/1.0.14 (" + runtime.GOOS + "; no client)" //nolint[gochecknoglobals]
 
 // The HTTP transport to use by default.
 var defaultTransport = &http.Transport{ //nolint[gochecknoglobals]

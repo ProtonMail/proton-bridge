@@ -46,7 +46,7 @@ func certFingerprint(cert *x509.Certificate) string {
 }
 
 // ReportCertIssue reports a TLS key mismatch.
-func (p *PinChecker) ReportCertIssue(host, port, datetime string, connState tls.ConnectionState, appVersion string) {
+func (p *PinChecker) ReportCertIssue(host, port, datetime string, connState tls.ConnectionState, appVersion, userAgent string) {
 	var certChain []string
 
 	if len(connState.VerifiedChains) > 0 {
@@ -57,7 +57,7 @@ func (p *PinChecker) ReportCertIssue(host, port, datetime string, connState tls.
 
 	report := NewTLSReport(host, port, connState.ServerName, certChain, p.trustedPins, appVersion)
 
-	go postCertIssueReport(report)
+	go postCertIssueReport(report, userAgent)
 }
 
 func marshalCert7468(certs []*x509.Certificate) (pemCerts []string) {

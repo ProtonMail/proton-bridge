@@ -5,11 +5,10 @@
 package mocks
 
 import (
-	reflect "reflect"
-
 	credentials "github.com/ProtonMail/proton-bridge/internal/bridge/credentials"
 	pmapi "github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	gomock "github.com/golang/mock/gomock"
+	reflect "reflect"
 )
 
 // MockConfiger is a mock of Configer interface
@@ -318,6 +317,18 @@ func (m *MockClientManager) GetClient(arg0 string) pmapi.Client {
 func (mr *MockClientManagerMockRecorder) GetClient(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetClient", reflect.TypeOf((*MockClientManager)(nil).GetClient), arg0)
+}
+
+// SetUserAgent mocks base method
+func (m *MockClientManager) SetUserAgent(arg0, arg1, arg2 string) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "SetUserAgent", arg0, arg1, arg2)
+}
+
+// SetUserAgent indicates an expected call of SetUserAgent
+func (mr *MockClientManagerMockRecorder) SetUserAgent(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetUserAgent", reflect.TypeOf((*MockClientManager)(nil).SetUserAgent), arg0, arg1, arg2)
 }
 
 // MockCredentialsStorer is a mock of CredentialsStorer interface

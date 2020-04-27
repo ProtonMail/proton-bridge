@@ -39,6 +39,9 @@ type PinningTLSDialer struct {
 	// appVersion is needed to report TLS mismatches.
 	appVersion string
 
+	// userAgent is needed to report TLS mismatches.
+	userAgent string
+
 	// enableRemoteReporting instructs the dialer to report TLS mismatches.
 	enableRemoteReporting bool
 
@@ -61,9 +64,10 @@ func (p *PinningTLSDialer) SetTLSIssueNotifier(notifier func()) {
 	p.tlsIssueNotifier = notifier
 }
 
-func (p *PinningTLSDialer) EnableRemoteTLSIssueReporting(appVersion string) {
+func (p *PinningTLSDialer) EnableRemoteTLSIssueReporting(appVersion, userAgent string) {
 	p.enableRemoteReporting = true
 	p.appVersion = appVersion
+	p.userAgent = userAgent
 }
 
 // DialTLS dials the given network/address, returning an error if the certificates don't match the trusted pins.
@@ -89,6 +93,7 @@ func (p *PinningTLSDialer) DialTLS(network, address string) (conn net.Conn, err 
 				time.Now().Format(time.RFC3339),
 				tlsConn.ConnectionState(),
 				p.appVersion,
+				p.userAgent,
 			)
 		}
 

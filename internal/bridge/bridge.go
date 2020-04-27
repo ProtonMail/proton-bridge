@@ -526,14 +526,18 @@ func (b *Bridge) GetCurrentClient() string {
 func (b *Bridge) SetCurrentClient(clientName, clientVersion string) {
 	b.userAgentClientName = clientName
 	b.userAgentClientVersion = clientVersion
-	b.updateCurrentUserAgent()
+	b.updateUserAgent()
 }
 
 // SetCurrentOS updates OS and sets the user agent on pmapi. By default we use
 // `runtime.GOOS`, but this can be overridden in case of better detection.
 func (b *Bridge) SetCurrentOS(os string) {
 	b.userAgentOS = os
-	b.updateCurrentUserAgent()
+	b.updateUserAgent()
+}
+
+func (b *Bridge) updateUserAgent() {
+	b.clientManager.SetUserAgent(b.userAgentClientName, b.userAgentClientVersion, b.userAgentOS)
 }
 
 // GetIMAPUpdatesChannel sets the channel on which idle events should be sent.
@@ -566,10 +570,6 @@ func (b *Bridge) CheckConnection() error {
 // StopWatchers stops all bridge goroutines.
 func (b *Bridge) StopWatchers() {
 	close(b.stopAll)
-}
-
-func (b *Bridge) updateCurrentUserAgent() {
-	UpdateCurrentUserAgent(b.config.GetVersion(), b.userAgentOS, b.userAgentClientName, b.userAgentClientVersion)
 }
 
 // hasUser returns whether the bridge currently has a user with ID `id`.

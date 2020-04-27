@@ -109,7 +109,7 @@ func NewTLSReport(host, port, server string, certChain, knownPins []string, appV
 }
 
 // postCertIssueReport posts the given TLS report to the standard TLS Report URI.
-func postCertIssueReport(report TLSReport) {
+func postCertIssueReport(report TLSReport, userAgent string) {
 	b, err := json.Marshal(report)
 	if err != nil {
 		logrus.WithError(err).Error("Failed to marshal TLS report")
@@ -123,7 +123,7 @@ func postCertIssueReport(report TLSReport) {
 	}
 
 	req.Header.Add("Content-Type", "application/json")
-	req.Header.Set("User-Agent", CurrentUserAgent)
+	req.Header.Set("User-Agent", userAgent)
 	req.Header.Set("x-pm-apiversion", strconv.Itoa(Version))
 	req.Header.Set("x-pm-appversion", report.AppVersion)
 

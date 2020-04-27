@@ -15,27 +15,23 @@
 // You should have received a copy of the GNU General Public License
 // along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
 
-package bridge
+package pmapi
 
 import (
 	"fmt"
 	"runtime"
-
-	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 )
 
-// UpdateCurrentUserAgent updates user agent on pmapi so each request has this
-// information in headers for statistic purposes.
-func UpdateCurrentUserAgent(bridgeVersion, os, clientName, clientVersion string) {
+func formatUserAgent(clientName, clientVersion, os string) string {
+	client := ""
+	if clientName != "" {
+		client = clientName
+		if clientVersion != "" {
+			client += "/" + clientVersion
+		}
+	}
 	if os == "" {
 		os = runtime.GOOS
 	}
-	mailClient := "unknown client"
-	if clientName != "" {
-		mailClient = clientName
-		if clientVersion != "" {
-			mailClient += "/" + clientVersion
-		}
-	}
-	pmapi.CurrentUserAgent = fmt.Sprintf("Bridge/%s (%s; %s)", bridgeVersion, os, mailClient)
+	return fmt.Sprintf("%s (%s)", client, os)
 }

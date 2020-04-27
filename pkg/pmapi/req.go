@@ -26,13 +26,8 @@ import (
 )
 
 // NewRequest creates a new request.
-func (c *client) NewRequest(method, path string, body io.Reader) (req *http.Request, err error) {
-	req, err = http.NewRequest(method, c.cm.GetRootURL()+path, body)
-
-	if req != nil {
-		req.Header.Set("User-Agent", CurrentUserAgent)
-	}
-	return
+func (c *client) NewRequest(method, path string, body io.Reader) (*http.Request, error) {
+	return http.NewRequest(method, c.cm.GetRootURL()+path, body)
 }
 
 // NewJSONRequest create a new JSON request.

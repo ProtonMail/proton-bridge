@@ -127,7 +127,9 @@ check-has-go:
 	@which go || (echo "Install Go-lang!" && exit 1)
 
 check-license:
-	find . -not -path "./vendor/*" -not -name "*mock*.go" -regextype posix-egrep -regex ".*\.go|.*\.qml" -exec grep -L "Copyright (c) 2020 Proton Technologies AG" {} \;
+	RESULT=`find . -not -path "./vendor/*" -not -name "*mock*.go" -regextype posix-egrep -regex ".*\.go|.*\.qml" -exec grep -L 'Copyright (c) 2020 Proton Technologies AG' {} \;` ;\
+	echo $${RESULT} ;\
+	[[ -z "$${RESULT}" ]]
 
 test: gofiles
 	@# Listing packages manually to not run Qt folder (which needs to run qtsetup first) and integration tests.
