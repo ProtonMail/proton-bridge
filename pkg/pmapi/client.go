@@ -56,9 +56,15 @@ var (
 	ErrInvalidToken       = errors.New("refresh token invalid")
 	ErrAPINotReachable    = errors.New("cannot reach the server")
 	ErrUpgradeApplication = errors.New("application upgrade required")
-
-	ErrNoSuchAPIID = errors.New("no such API ID")
 )
+
+type ErrUnprocessableEntity struct {
+	error
+}
+
+func (err *ErrUnprocessableEntity) Error() string {
+	return err.error.Error()
+}
 
 type ErrUnauthorized struct {
 	error

@@ -38,8 +38,8 @@ const Capability = "UIDPLUS"
 const (
 	copyuid      = "COPYUID"
 	appenduid    = "APPENDUID"
-	copySuccess  = "COPY successful"
-	appendSucess = "APPEND successful"
+	copySuccess  = "COPY completed"
+	appendSucess = "APPEND completed"
 )
 
 var log = logrus.WithField("pkg", "imap/uidplus") //nolint[gochecknoglobals]

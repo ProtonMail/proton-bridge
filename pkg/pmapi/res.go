@@ -17,7 +17,11 @@
 
 package pmapi
 
-import "net/http"
+import (
+	"net/http"
+
+	"github.com/pkg/errors"
+)
 
 // Common response codes.
 const (
@@ -38,7 +42,7 @@ type Res struct {
 // Err returns error if the response is an error. Otherwise, returns nil.
 func (res Res) Err() error {
 	if res.StatusCode == http.StatusUnprocessableEntity {
-		return ErrNoSuchAPIID
+		return &ErrUnprocessableEntity{errors.New(res.Error)}
 	}
 
 	if res.ResError == nil {

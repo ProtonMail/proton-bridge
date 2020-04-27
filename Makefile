@@ -2,7 +2,7 @@ export GO111MODULE=on
 GOOS:=$(shell go env GOOS)
 
 ## Build
-.PHONY: build check-has-go
+.PHONY: build build-nogui check-has-go
 
 VERSION?=1.2.7-git
 REVISION:=$(shell git rev-parse --short=10 HEAD)
@@ -35,6 +35,9 @@ EXE_TARGET:=${DEPLOY_DIR}/${GOOS}/${EXE}
 TGZ_TARGET:=bridge_${GOOS}_${REVISION}.tgz
 
 build: ${TGZ_TARGET}
+
+build-nogui:
+	go build ${BUILD_FLAGS_NOGUI} -o Desktop-Bridge cmd/Desktop-Bridge/main.go
 
 ${TGZ_TARGET}: ${DEPLOY_DIR}/${GOOS}
 	rm -f $@
