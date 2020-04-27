@@ -35,7 +35,7 @@ func (c *Config) GetAPIConfig() *pmapi.ClientConfig {
 		ClientID:         c.appName,
 		Timeout:          10 * time.Minute, // Overall request timeout (~25MB / 10 mins => ~40kB/s, should be reasonable).
 		FirstReadTimeout: 30 * time.Second, // 30s to match 30s response header timeout.
-		MinSpeed:         1 << 13,          // Enforce minimum download speed of 8kB/s.
+		MinSpeed:         1 << 10,          // Enforce minimum download speed of 1kB/s.
 	}
 }
 
