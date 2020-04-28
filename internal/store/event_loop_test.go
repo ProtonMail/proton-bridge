@@ -64,7 +64,7 @@ func TestEventLoopProcessMoreEvents(t *testing.T) {
 	}, time.Second, 10*time.Millisecond)
 
 	// For normal event we need to wait to next polling.
-	time.Sleep(pollInterval)
+	time.Sleep(pollInterval + pollIntervalSpread)
 	require.Eventually(t, func() bool {
 		return m.store.eventLoop.currentEventID == "event71"
 	}, time.Second, 10*time.Millisecond)

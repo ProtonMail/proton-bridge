@@ -10,6 +10,10 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * More logs about event loop activity
 
 ### Changed
+* GODT-313 Reduce number of synchronizations
+    * do not trigger sync by counts
+    * cooldown timer for sync retries
+    * poll interval randomization
 * GODT-225 Do not send an EXISTS reposnse after EXPUNGE or when nothing changed (fixes rebuild of mailboxes in Outlook for Mac)
 * GODT-165 Optimization of RebuildMailboxes
 * GODT-282 Completely delete old draft instead moving to trash when user updates draft

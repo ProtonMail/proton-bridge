@@ -104,6 +104,7 @@ type Store struct {
 	imapUpdates chan interface{}
 
 	isSyncRunning bool
+	syncCooldown  cooldown
 	addressMode   addressMode
 }
 
@@ -147,6 +148,9 @@ func New(
 		lock:         &sync.RWMutex{},
 		log:          l,
 	}
+
+	// Minimal increase is event pollInterval, doubles every failed retry up to 5 minutes.
+	store.syncCooldown.setExponentialWait(pollInterval, 2, 5*time.Minute)
 
 	if err = store.init(firstInit); err != nil {
 		l.WithError(err).Error("Could not initialise store, attempting to close")
