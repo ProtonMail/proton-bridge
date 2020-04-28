@@ -82,8 +82,8 @@ type ClientConfig struct {
 	// The client ID.
 	ClientID string
 
-	// Timeout specifies the timeout from request to getting response headers to our API.
-	// Passed to http.Client, empty means no timeout.
+	// Timeout is the timeout of the full request. It is passed to http.Client.
+	// If it is left unset, it means no timeout is applied.
 	Timeout time.Duration
 
 	// FirstReadTimeout specifies the timeout from getting response to the first read of body response.
