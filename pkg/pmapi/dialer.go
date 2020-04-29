@@ -42,7 +42,7 @@ func NewBasicTLSDialer() *BasicTLSDialer {
 
 // DialTLS returns a connection to the given address using the given network.
 func (b *BasicTLSDialer) DialTLS(network, address string) (conn net.Conn, err error) {
-	dialer := &net.Dialer{Timeout: 10 * time.Second}
+	dialer := &net.Dialer{Timeout: 30 * time.Second} // Alternative Routes spec says this should be a 30s timeout.
 
 	var tlsConfig *tls.Config = nil
 

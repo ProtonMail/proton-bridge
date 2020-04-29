@@ -30,8 +30,8 @@ import (
 
 const (
 	proxyUseDuration   = 24 * time.Hour
-	proxySearchTimeout = 30 * time.Second
-	proxyQueryTimeout  = 10 * time.Second
+	proxySearchTimeout = 20 * time.Second
+	proxyQueryTimeout  = 20 * time.Second
 	proxyLookupWait    = 5 * time.Second
 	proxyQuery         = "dMFYGSLTQOJXXI33ONVQWS3BOMNUA.protonpro.xyz"
 )
@@ -144,12 +144,12 @@ func (p *proxyProvider) canReach(url string) bool {
 		url = "https://" + url
 	}
 
-	pinningDialer := NewPinningTLSDialer(NewBasicTLSDialer())
+	dialer := NewPinningTLSDialer(NewBasicTLSDialer())
 
 	pinger := resty.New().
 		SetHostURL(url).
 		SetTimeout(p.lookupTimeout).
-		SetTransport(CreateTransportWithDialer(pinningDialer))
+		SetTransport(CreateTransportWithDialer(dialer))
 
 	if _, err := pinger.R().Get("/tests/ping"); err != nil {
 		logrus.WithField("proxy", url).WithError(err).Warn("Failed to ping proxy")

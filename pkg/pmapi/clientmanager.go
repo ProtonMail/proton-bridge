@@ -245,6 +245,10 @@ func (cm *ClientManager) switchToReachableServer() (proxy string, err error) {
 	if cm.host == rootURL {
 		go func() {
 			<-time.After(cm.proxyUseDuration)
+
+			cm.hostLocker.Lock()
+			defer cm.hostLocker.Unlock()
+
 			cm.host = rootURL
 		}()
 	}
