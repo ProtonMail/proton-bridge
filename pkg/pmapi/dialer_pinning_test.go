@@ -21,6 +21,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 const liveAPI = "api.protonmail.ch"
@@ -113,25 +115,25 @@ func _TestTLSPinInvalid(t *testing.T) { // nolint[unused]
 	Equals(t, 1, *called)
 }
 
-func _TestTLSSignedCertWrongPublicKey(t *testing.T) { // nolint[unused]
+func TestTLSSignedCertWrongPublicKey(t *testing.T) { // nolint[unused]
 	cm := newTestClientManager(testLiveConfig)
 	_, dialer := createAndSetPinningDialer(cm)
 	_, err := dialer.DialTLS("tcp", "rsa4096.badssl.com:443")
-	Assert(t, err != nil, "expected dial to fail because of wrong public key: ", err.Error())
+	assert.Error(t, err, "expected dial to fail because of wrong public key")
 }
 
-func _TestTLSSignedCertTrustedPublicKey(t *testing.T) { // nolint[unused]
+func TestTLSSignedCertTrustedPublicKey(t *testing.T) { // nolint[unused]
 	cm := newTestClientManager(testLiveConfig)
 	_, dialer := createAndSetPinningDialer(cm)
 	dialer.pinChecker.trustedPins = append(dialer.pinChecker.trustedPins, `pin-sha256="W8/42Z0ffufwnHIOSndT+eVzBJSC0E8uTIC8O6mEliQ="`)
 	_, err := dialer.DialTLS("tcp", "rsa4096.badssl.com:443")
-	Assert(t, err == nil, "expected dial to succeed because public key is known and cert is signed by CA: ", err.Error())
+	assert.NoError(t, err, "expected dial to succeed because public key is known and cert is signed by CA")
 }
 
-func _TestTLSSelfSignedCertTrustedPublicKey(t *testing.T) { // nolint[unused]
+func TestTLSSelfSignedCertTrustedPublicKey(t *testing.T) { // nolint[unused]
 	cm := newTestClientManager(testLiveConfig)
 	_, dialer := createAndSetPinningDialer(cm)
 	dialer.pinChecker.trustedPins = append(dialer.pinChecker.trustedPins, `pin-sha256="9SLklscvzMYj8f+52lp5ze/hY0CFHyLSPQzSpYYIBm8="`)
 	_, err := dialer.DialTLS("tcp", "self-signed.badssl.com:443")
-	Assert(t, err == nil, "expected dial to succeed because public key is known despite cert being self-signed: ", err.Error())
+	assert.NoError(t, err, "expected dial to succeed because public key is known despite cert being self-signed")
 }
