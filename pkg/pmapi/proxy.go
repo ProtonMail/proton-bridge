@@ -125,13 +125,17 @@ func (p *proxyProvider) refreshProxyCache() error {
 	logrus.Info("Refreshing proxy cache")
 
 	for _, provider := range p.providers {
-		if proxies, err := p.dohLookup(p.query, provider); err == nil {
+		proxies, err := p.dohLookup(p.query, provider)
+
+		if err == nil {
 			p.proxyCache = proxies
 
 			logrus.WithField("proxies", proxies).Info("Available proxies")
 
 			return nil
 		}
+
+		logrus.WithError(err).Warn("Lookup failed, trying another provider")
 	}
 
 	return errors.New("lookup failed with all DoH providers")
