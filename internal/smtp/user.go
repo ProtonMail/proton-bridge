@@ -382,7 +382,7 @@ func (su *smtpUser) handleReferencesHeader(m *pmapi.Message) (draftID, parentID 
 				}
 				metadata, _, _ := su.client.ListMessages(filter)
 				for _, m := range metadata {
-					if isDraft(m) {
+					if m.IsDraft() {
 						draftID = m.ID
 					} else {
 						parentID = m.ID
@@ -409,15 +409,6 @@ func (su *smtpUser) handleReferencesHeader(m *pmapi.Message) (draftID, parentID 
 	}
 
 	return draftID, parentID
-}
-
-func isDraft(m *pmapi.Message) bool {
-	for _, labelID := range m.LabelIDs {
-		if labelID == pmapi.DraftLabel {
-			return true
-		}
-	}
-	return false
 }
 
 func (su *smtpUser) handleSenderAndRecipients(m *pmapi.Message, addr *pmapi.Address, from string, to []string) (err error) {

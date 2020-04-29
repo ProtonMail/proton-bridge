@@ -30,6 +30,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 ### Fixed
 * Use correct binary name when finding location of addcert.scpt
+* Correctly detect if a message is a draft even if does not have DraftLabel
 
 ## [v1.2.6] Donghai - beta (2020-03-31)
 

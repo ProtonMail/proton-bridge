@@ -219,6 +219,13 @@ func (m *Message) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
+// IsDraft returns whether the message should be considered to be a draft.
+// A draft is complicated. It might have pmapi.DraftLabel but it might not.
+// The real API definition of IsDraft is that it is neither sent nor received -- we should use that here.
+func (m *Message) IsDraft() bool {
+	return (m.Flags & (FlagReceived | FlagSent)) == 0
+}
+
 func (m *Message) IsBodyEncrypted() bool {
 	trimmedBody := strings.TrimSpace(m.Body)
 	return strings.HasPrefix(trimmedBody, MessageHeader) &&
