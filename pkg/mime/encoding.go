@@ -30,6 +30,7 @@ import (
 	"encoding/base64"
 
 	"golang.org/x/text/encoding"
+	"golang.org/x/text/encoding/charmap"
 	"golang.org/x/text/encoding/htmlindex"
 	"golang.org/x/text/transform"
 )
@@ -197,16 +198,20 @@ func EncodeHeader(s string) string {
 }
 
 // DecodeCharset decodes the orginal using content type parameters.
-// When charset is missing it checks thaht the content is valid utf8.
+// When charset is missing it checks that the content is valid utf8.
+// If it isn't, it checks whether the content is valid latin1 (iso-8859-1), and if so,
+// reencodes it as utf-8.
 func DecodeCharset(original []byte, contentTypeParams map[string]string) ([]byte, error) {
 	var decoder *encoding.Decoder
 	var err error
+
 	if charset, ok := contentTypeParams["charset"]; ok {
 		decoder, err = selectDecoder(charset)
+	} else if utf8.Valid(original) {
+		return original, nil
+	} else if decoded, err = charmap.ISO8859_1.NewDecoder().Bytes(original); err == nil {
+		return decoded, nil
 	} else {
-		if utf8.Valid(original) {
-			return original, nil
-		}
 		err = fmt.Errorf("non-utf8 content without charset specification")
 	}
 

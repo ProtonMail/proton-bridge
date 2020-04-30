@@ -162,7 +162,12 @@ func (c *IMAPClient) Search(query string) *IMAPResponse {
 
 // Message
 
-func (c *IMAPClient) Append(mailboxName, subject, from, to, body string) *IMAPResponse {
+func (c *IMAPClient) Append(mailboxName, msg string) *IMAPResponse {
+	cmd := fmt.Sprintf("APPEND \"%s\" (\\Seen) \"25-Mar-2021 00:30:00 +0100\" {%d}\r\n%s", mailboxName, len(msg), msg)
+	return c.SendCommand(cmd)
+}
+
+func (c *IMAPClient) AppendBody(mailboxName, subject, from, to, body string) *IMAPResponse {
 	msg := fmt.Sprintf("Subject: %s\r\n", subject)
 	msg += fmt.Sprintf("From: %s\r\n", from)
 	msg += fmt.Sprintf("To: %s\r\n", to)

@@ -18,7 +18,11 @@
 package tests
 
 import (
+	"fmt"
+
 	"github.com/cucumber/godog"
+	"github.com/cucumber/godog/gherkin"
+	"golang.org/x/net/html/charset"
 )
 
 func IMAPActionsMessagesFeatureContext(s *godog.Suite) {
@@ -29,6 +33,8 @@ func IMAPActionsMessagesFeatureContext(s *godog.Suite) {
 	s.Step(`^IMAP client "([^"]*)" deletes messages "([^"]*)"$`, imapClientNamedDeletesMessages)
 	s.Step(`^IMAP client copies messages "([^"]*)" to "([^"]*)"$`, imapClientCopiesMessagesTo)
 	s.Step(`^IMAP client moves messages "([^"]*)" to "([^"]*)"$`, imapClientMovesMessagesTo)
+	s.Step(`^IMAP client imports message to "([^"]*)"$`, imapClientCreatesMessage)
+	s.Step(`^IMAP client imports message to "([^"]*)" with encoding "([^"]*)"$`, imapClientCreatesMessageWithEncoding)
 	s.Step(`^IMAP client creates message "([^"]*)" from "([^"]*)" to "([^"]*)" with body "([^"]*)" in "([^"]*)"$`, imapClientCreatesMessageFromToWithBody)
 	s.Step(`^IMAP client creates message "([^"]*)" from "([^"]*)" to address "([^"]*)" of "([^"]*)" with body "([^"]*)" in "([^"]*)"$`, imapClientCreatesMessageFromToAddressOfUserWithBody)
 	s.Step(`^IMAP client creates message "([^"]*)" from address "([^"]*)" of "([^"]*)" to "([^"]*)" with body "([^"]*)" in "([^"]*)"$`, imapClientCreatesMessageFromAddressOfUserToWithBody)
@@ -84,8 +90,33 @@ func imapClientMovesMessagesTo(messageRange, newMailboxName string) error {
 	return nil
 }
 
+func imapClientCreatesMessage(mailboxName string, message *gherkin.DocString) error {
+	return imapClientCreatesMessageWithEncoding(mailboxName, "utf8", message)
+}
+
+func imapClientCreatesMessageWithEncoding(mailboxName, encodingName string, message *gherkin.DocString) error {
+	encoding, _ := charset.Lookup(encodingName)
+
+	msg := message.Content
+	if encodingName != "utf8" {
+		if encoding == nil {
+			return fmt.Errorf("unsupported encoding %s", encodingName)
+		}
+
+		var err error
+		msg, err = encoding.NewEncoder().String(message.Content)
+		if err != nil {
+			return internalError(err, "encoding message content")
+		}
+	}
+
+	res := ctx.GetIMAPClient("imap").Append(mailboxName, msg)
+	ctx.SetIMAPLastResponse("imap", res)
+	return nil
+}
+
 func imapClientCreatesMessageFromToWithBody(subject, from, to, body, mailboxName string) error {
-	res := ctx.GetIMAPClient("imap").Append(mailboxName, subject, from, to, body)
+	res := ctx.GetIMAPClient("imap").AppendBody(mailboxName, subject, from, to, body)
 	ctx.SetIMAPLastResponse("imap", res)
 	return nil
 }
