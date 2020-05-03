@@ -5,6 +5,7 @@
 * Bash with basic build utils: make, gcc, sed, find, grep, ...
 * For Windows it is recommended to use MinGW 64bit shell from [MSYS2](https://www.msys2.org/)
 * GCC (linux, windows) or Xcode (macOS)
+* libsecret (Linux)
 * Windres (windows)
 
 To enable the sending of crash reports using Sentry please set the
