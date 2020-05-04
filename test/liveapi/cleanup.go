@@ -29,7 +29,7 @@ func cleanup(client pmapi.Client) error {
 		return errors.Wrap(err, "failed to clean system folders")
 	}
 	if err := cleanCustomLables(client); err != nil {
-		return errors.Wrap(err, "failed to clean cusotm labels")
+		return errors.Wrap(err, "failed to clean custom labels")
 	}
 	if err := cleanTrash(client); err != nil {
 		return errors.Wrap(err, "failed to clean trash")
