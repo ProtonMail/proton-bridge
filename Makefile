@@ -79,7 +79,6 @@ icon_windows.syso: ./internal/frontend/qt/icon_windows.syso
 
 ## Rules for therecipe/qt
 .PHONY: prepare-vendor update-vendor
-THERECIPE_QTVER:=$(shell grep "github.com/therecipe/qt " go.mod | sed -r 's;.* v[0-9\.]+-[0-9]+-([a-f0-9]*).*;\1;')
 THERECIPE_ENV:=github.com/therecipe/env_${GOOS}_amd64_513
 
 # vendor folder will be deleted by gomod hence we cache the big repo
