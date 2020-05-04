@@ -18,9 +18,9 @@
 ## along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
 
 
-##  remove non-relative or non-system path: in our case env therecipe
-
-
+## Make sure that mac exe will not contain broken library links
+# * remove absolute paths for Qt libs
+# * add relative part to app bundle Frameworks
 
 path_to_binary=$1
 
@@ -29,7 +29,7 @@ if [ -z ${path_to_binary} ]; then
     exit 2
 fi
 
-for remove_path_qt in $(otool -l "${path_to_binary}" | grep protonapple | awk '{print $2}');
+for remove_path_qt in $(otool -l "${path_to_binary}" | grep '/Users/' | awk '{print $2}');
 do
     if [ ! -z "${remove_path_qt}" ]; then
         printf "\e[0;32mRemove path to qt ${remove_path_qt} ...\033[0m\n\e[0;31m"

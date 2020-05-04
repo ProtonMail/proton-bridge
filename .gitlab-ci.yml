@@ -111,6 +111,8 @@ build-linux:
 
 build-darwin:
   stage: build
+  only:
+    - devel
   before_script:
     - eval $(ssh-agent -s)
     - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add - > /dev/null
@@ -124,8 +126,6 @@ build-darwin:
   cache: {}
   tags:
     - macOS-bridge
-  only:
-    - devel
   script:
     - make build
   artifacts:
