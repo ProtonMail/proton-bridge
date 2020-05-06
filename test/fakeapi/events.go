@@ -113,7 +113,7 @@ func (api *FakePMAPI) addEventAddress(action pmapi.EventAction, address *pmapi.A
 		Addresses: []*pmapi.EventAddress{{
 			EventItem: pmapi.EventItem{
 				ID:     address.ID,
-				Action: pmapi.EventUpdate,
+				Action: action,
 			},
 			Address: address,
 		}},

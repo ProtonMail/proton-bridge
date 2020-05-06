@@ -42,6 +42,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * Use correct binary name when finding location of addcert.scpt
 * GODT-267 Correctly detect if a message is a draft even if does not have DraftLabel
 * GODT-308 reduce minimum read speed threshold to avoid issues with flaky internet
+* GODT-321 Changing address ordering would cause all messages to disappear in combined mode
 
 ## [v1.2.6] Donghai - beta (2020-03-31)
 

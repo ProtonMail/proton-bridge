@@ -175,8 +175,6 @@ func (c *client) GetAddresses() (addresses AddressList, err error) {
 }
 
 func (c *client) ReorderAddresses(addressIDs []string) (err error) {
-	defer c.UpdateUser()
-
 	var reqBody struct {
 		AddressIDs []string
 	}
@@ -192,6 +190,8 @@ func (c *client) ReorderAddresses(addressIDs []string) (err error) {
 	if err = c.DoJSON(req, &addContactsRes); err != nil {
 		return
 	}
+
+	_, err = c.UpdateUser()
 
 	return
 }

@@ -142,9 +142,9 @@ func swapsAddressWithAddress(bddUserID, bddAddressID1, bddAddressID2 string) err
 
 	address1ID := account.GetAddressID(bddAddressID1)
 	address2ID := account.GetAddressID(bddAddressID2)
+	addressIDs := make([]string, len(*account.Addresses()))
 
 	var address1Index, address2Index int
-	var addressIDs []string
 	for i, v := range *account.Addresses() {
 		if v.ID == address1ID {
 			address1Index = i
@@ -152,13 +152,12 @@ func swapsAddressWithAddress(bddUserID, bddAddressID1, bddAddressID2 string) err
 		if v.ID == address2ID {
 			address2Index = i
 		}
-		addressIDs = append(addressIDs, v.ID)
+		addressIDs[i] = v.ID
 	}
 
 	addressIDs[address1Index], addressIDs[address2Index] = addressIDs[address2Index], addressIDs[address1Index]
 
 	ctx.ReorderAddresses(account.Username(), bddAddressID1, bddAddressID2)
-	ctx.GetPMAPIController().ReorderAddresses(account.User(), addressIDs)
 
-	return nil
+	return ctx.GetPMAPIController().ReorderAddresses(account.User(), addressIDs)
 }

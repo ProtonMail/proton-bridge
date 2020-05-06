@@ -55,7 +55,7 @@ func (a *TestAccounts) GetTestAccount(username string) *TestAccount {
 	return a.GetTestAccountWithAddress(username, "")
 }
 
-// GetTestAccount returns the test account with the given username configured to use the given bddAddressID.
+// GetTestAccountWithAddress returns the test account with the given username configured to use the given bddAddressID.
 func (a *TestAccounts) GetTestAccountWithAddress(username, bddAddressID string) *TestAccount {
 	// Do lookup by full address and convert to name in tests.
 	// Used by getting real data to ensure correct address or address ID.

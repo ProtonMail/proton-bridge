@@ -5,11 +5,12 @@
 package mocks
 
 import (
+	io "io"
+	reflect "reflect"
+
 	crypto "github.com/ProtonMail/gopenpgp/crypto"
 	pmapi "github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	gomock "github.com/golang/mock/gomock"
-	io "io"
-	reflect "reflect"
 )
 
 // MockClient is a mock of Client interface
@@ -528,6 +529,20 @@ func (m *MockClient) MarkMessagesUnread(arg0 []string) error {
 func (mr *MockClientMockRecorder) MarkMessagesUnread(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MarkMessagesUnread", reflect.TypeOf((*MockClient)(nil).MarkMessagesUnread), arg0)
+}
+
+// ReorderAddresses mocks base method
+func (m *MockClient) ReorderAddresses(arg0 []string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ReorderAddresses", arg0)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ReorderAddresses indicates an expected call of ReorderAddresses
+func (mr *MockClientMockRecorder) ReorderAddresses(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReorderAddresses", reflect.TypeOf((*MockClient)(nil).ReorderAddresses), arg0)
 }
 
 // ReportBugWithEmailClient mocks base method

@@ -46,6 +46,8 @@ func (store *Store) RebuildMailboxes() (err error) {
 
 	log.WithField("user", store.UserID()).Trace("Truncating mailboxes")
 
+	store.addresses = nil
+
 	if err = store.truncateMailboxesBucket(); err != nil {
 		log.WithError(err).Error("Could not truncate mailboxes bucket")
 		return
@@ -127,7 +129,12 @@ func (store *Store) createOrDeleteAddressesEvent() (err error) {
 		delete(store.addresses, addr.addressID)
 	}
 
-	return err
+	if err = store.truncateMailboxesBucket(); err != nil {
+		log.WithError(err).Error("Could not truncate mailboxes bucket")
+		return
+	}
+
+	return store.initMailboxesBucket()
 }
 
 // truncateAddressInfoBucket removes the address info bucket.
@@ -152,8 +159,6 @@ func (store *Store) truncateAddressInfoBucket() (err error) {
 // truncateMailboxesBucket removes the mailboxes bucket.
 func (store *Store) truncateMailboxesBucket() (err error) {
 	log.Trace("Truncating mailboxes bucket")
-
-	store.addresses = nil
 
 	tx := func(tx *bolt.Tx) (err error) {
 		mbs := tx.Bucket(mailboxesBucket)

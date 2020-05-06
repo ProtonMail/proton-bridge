@@ -47,9 +47,30 @@ Feature: Address mode
 
   Scenario: Make secondary address primary in combined mode
     Given there is "userMoreAddresses" in "combined" address mode
-    When "userMoreAddresses" swaps address "primary" with address "secondary"
-    And "userMoreAddresses" receives an address event
     Then mailbox "Folders/mbox" for address "primary" of "userMoreAddresses" has messages
       | from              | to          | subject |
       | john.doe@mail.com | [primary]   | foo     |
       | jane.doe@mail.com | [secondary] | bar     |
+    When "userMoreAddresses" swaps address "primary" with address "secondary"
+    And "userMoreAddresses" receives an address event
+    Then mailbox "Folders/mbox" for address "primary" of "userMoreAddresses" has messages
+      | from              | to          | subject |
+      | john.doe@mail.com | [secondary] | foo     |
+      | jane.doe@mail.com | [primary]   | bar     |
+
+  Scenario: Make secondary address primary in split mode
+    Given there is "userMoreAddresses" in "split" address mode
+    Then mailbox "Folders/mbox" for address "primary" of "userMoreAddresses" has messages
+      | from              | to        | subject |
+      | john.doe@mail.com | [primary] | foo     |
+    And mailbox "Folders/mbox" for address "secondary" of "userMoreAddresses" has messages
+      | from              | to          | subject |
+      | jane.doe@mail.com | [secondary] | bar     |
+    When "userMoreAddresses" swaps address "primary" with address "secondary"
+    And "userMoreAddresses" receives an address event
+    Then mailbox "Folders/mbox" for address "primary" of "userMoreAddresses" has messages
+      | from              | to        | subject |
+      | jane.doe@mail.com | [primary] | bar     |
+    And mailbox "Folders/mbox" for address "secondary" of "userMoreAddresses" has messages
+      | from              | to          | subject |
+      | john.doe@mail.com | [secondary] | foo     |
