@@ -18,6 +18,7 @@
 package fakeapi
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -42,6 +43,15 @@ func (ctl *Controller) TurnInternetConnectionOff() {
 func (ctl *Controller) TurnInternetConnectionOn() {
 	ctl.log.Warn("Turning ON internet")
 	ctl.noInternetConnection = false
+}
+
+func (ctl *Controller) ReorderAddresses(user *pmapi.User, addressIDs []string) error {
+	api := ctl.getFakeAPIForUser(user.ID)
+	if api == nil {
+		return errors.New("no such user")
+	}
+
+	return api.ReorderAddresses(addressIDs)
 }
 
 func (ctl *Controller) AddUser(user *pmapi.User, addresses *pmapi.AddressList, password string, twoFAEnabled bool) error {
@@ -128,6 +138,15 @@ func (ctl *Controller) AddUserMessage(username string, message *pmapi.Message) e
 	message.LabelIDs = append(message.LabelIDs, pmapi.AllMailLabel)
 	ctl.messagesByUsername[username] = append(ctl.messagesByUsername[username], message)
 	ctl.resetUsers()
+	return nil
+}
+
+func (ctl *Controller) getFakeAPIForUser(userID string) *FakePMAPI {
+	for _, fakeAPI := range ctl.fakeAPIs {
+		if fakeAPI.userID == userID {
+			return fakeAPI
+		}
+	}
 	return nil
 }
 

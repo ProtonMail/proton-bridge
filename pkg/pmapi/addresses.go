@@ -174,6 +174,29 @@ func (c *client) GetAddresses() (addresses AddressList, err error) {
 	return res.Addresses, res.Err()
 }
 
+func (c *client) ReorderAddresses(addressIDs []string) (err error) {
+	defer c.UpdateUser()
+
+	var reqBody struct {
+		AddressIDs []string
+	}
+
+	reqBody.AddressIDs = addressIDs
+
+	req, err := c.NewJSONRequest("PUT", "/addresses/order", reqBody)
+	if err != nil {
+		return
+	}
+
+	var addContactsRes AddContactsResponse
+	if err = c.DoJSON(req, &addContactsRes); err != nil {
+		return
+	}
+
+	return
+}
+
+// Addresses returns the addresses stored in the client object itself rather than fetching from the API.
 func (c *client) Addresses() AddressList {
 	return c.addresses
 }

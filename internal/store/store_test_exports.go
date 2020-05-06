@@ -46,6 +46,11 @@ func (store *Store) TestGetEventLoop() *eventLoop { //nolint[golint]
 	return store.eventLoop
 }
 
+// TestGetLastEvent returns last event processed by the store's event loop.
+func (store *Store) TestGetLastEvent() *pmapi.Event { //nolint[golint]
+	return store.eventLoop.currentEvent
+}
+
 // TestGetStoreFilePath returns the filepath of the store's database file.
 func (store *Store) TestGetStoreFilePath() string {
 	return store.filePath

@@ -8,6 +8,7 @@ require (
 	github.com/docker/docker-credential-helpers v0.0.0-00010101000000-000000000000
 	github.com/emersion/go-smtp v0.0.0-20180712174835-db5eec195e67
 	github.com/jameskeane/bcrypt v0.0.0-20170924085257-7509ea014998
+	golang.org/x/crypto v0.0.0-20191011191535-87dc89f01550
 )
 
 require (
@@ -61,7 +62,6 @@ require (
 	github.com/twinj/uuid v1.0.0 // indirect
 	github.com/urfave/cli v1.22.3
 	go.etcd.io/bbolt v1.3.3
-	golang.org/x/crypto v0.0.0-20191011191535-87dc89f01550
 	golang.org/x/net v0.0.0-20200301022130-244492dfa37a
 	golang.org/x/text v0.3.2
 	gopkg.in/stretchr/testify.v1 v1.2.2 // indirect

@@ -50,11 +50,17 @@ func (ctl *Controller) AddUser(user *pmapi.User, addresses *pmapi.AddressList, p
 		return errors.Wrap(err, "failed to unlock addresses")
 	}
 
-	if err := cleanup(client); err != nil {
+	if err := cleanup(client, addresses); err != nil {
 		return errors.Wrap(err, "failed to clean user")
 	}
 
 	ctl.pmapiByUsername[user.Name] = client
 
 	return nil
+}
+
+func (ctl *Controller) ReorderAddresses(user *pmapi.User, addressIDs []string) error {
+	client := ctl.clientManager.GetClient(user.ID)
+
+	return client.ReorderAddresses(addressIDs)
 }

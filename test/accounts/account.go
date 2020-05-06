@@ -146,6 +146,10 @@ func (a *TestAccount) AddressID() string {
 	return a.addressToBeUsed.ID
 }
 
+func (a *TestAccount) GetAddressID(addressTestID string) string {
+	return a.addressesByBDDAddressID[addressTestID].ID
+}
+
 // EnsureAddressID accepts address (simply the address) or bddAddressID used
 // in tests (in format [bddAddressID]) and returns always the real address ID.
 // If the address is not found, the ID of main address is returned.
@@ -161,6 +165,10 @@ func (a *TestAccount) EnsureAddressID(addressOrAddressTestID string) string {
 		}
 	}
 	return a.AddressID()
+}
+
+func (a *TestAccount) GetAddress(addressTestID string) string {
+	return a.addressesByBDDAddressID[addressTestID].Email
 }
 
 // EnsureAddress accepts address (simply the address) or bddAddressID used

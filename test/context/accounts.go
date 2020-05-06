@@ -36,8 +36,8 @@ func (ctx *TestContext) GetTestAccount(bddUserID string) *accounts.TestAccount {
 	return ctx.testAccounts.GetTestAccount(bddUserID)
 }
 
-func (ctx *TestContext) GetTestAccountWithAddress(bddUserID, addressID string) *accounts.TestAccount {
-	return ctx.testAccounts.GetTestAccountWithAddress(bddUserID, addressID)
+func (ctx *TestContext) GetTestAccountWithAddress(bddUserID, bddAddressID string) *accounts.TestAccount {
+	return ctx.testAccounts.GetTestAccountWithAddress(bddUserID, bddAddressID)
 }
 
 func (ctx *TestContext) EnsureAddressID(bddUserID, addressOrAddressTestID string) string {
@@ -54,4 +54,10 @@ func (ctx *TestContext) EnsureAddress(bddUserID, addressOrAddressTestID string) 
 		return addressOrAddressTestID
 	}
 	return account.EnsureAddress(addressOrAddressTestID)
+}
+
+func (ctx *TestContext) ReorderAddresses(userID, addressA, addressB string) {
+	addresses := ctx.testAccounts.Addresses[userID]
+
+	addresses[addressA], addresses[addressB] = addresses[addressB], addresses[addressA]
 }

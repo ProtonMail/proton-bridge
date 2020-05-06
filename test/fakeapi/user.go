@@ -57,6 +57,29 @@ func (api *FakePMAPI) GetAddresses() (pmapi.AddressList, error) {
 	return *api.addresses, nil
 }
 
+func (api *FakePMAPI) ReorderAddresses(addressIDs []string) error {
+	if err := api.checkAndRecordCall(PUT, "/addresses/order", nil); err != nil {
+		return err
+	}
+
+	for wantedIndex, addressID := range addressIDs {
+		var currentIndex int
+
+		for i, v := range *api.addresses {
+			if v.ID == addressID {
+				currentIndex = i
+				break
+			}
+		}
+
+		(*api.addresses)[wantedIndex], (*api.addresses)[currentIndex] = (*api.addresses)[currentIndex], (*api.addresses)[wantedIndex]
+		(*api.addresses)[wantedIndex].Order = wantedIndex + 1 // Starts counting from 1.
+		api.addEventAddress(pmapi.EventUpdate, (*api.addresses)[wantedIndex])
+	}
+
+	return nil
+}
+
 func (api *FakePMAPI) Addresses() pmapi.AddressList {
 	return *api.addresses
 }

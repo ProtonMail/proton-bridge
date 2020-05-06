@@ -18,11 +18,15 @@
 package tests
 
 import (
+	"time"
+
 	"github.com/cucumber/godog"
+	"github.com/stretchr/testify/assert"
 )
 
 func StoreActionsFeatureContext(s *godog.Suite) {
 	s.Step(`^the event loop of "([^"]*)" loops once$`, theEventLoopLoops)
+	s.Step(`^"([^"]*)" receives an address event$`, receivesAnAddressEvent)
 }
 
 func theEventLoopLoops(username string) error {
@@ -35,5 +39,21 @@ func theEventLoopLoops(username string) error {
 		return internalError(err, "getting store of user %s", username)
 	}
 	store.TestPollNow()
+	return nil
+}
+
+func receivesAnAddressEvent(username string) error {
+	acc := ctx.GetTestAccount(username)
+	if acc == nil {
+		return godog.ErrPending
+	}
+	store, err := ctx.GetStore(acc.Username())
+	if err != nil {
+		return internalError(err, "getting store of user %s", username)
+	}
+	assert.Eventually(ctx.GetTestingT(), func() bool {
+		store.TestPollNow()
+		return len(store.TestGetLastEvent().Addresses) > 0
+	}, 5*time.Second, time.Second)
 	return nil
 }

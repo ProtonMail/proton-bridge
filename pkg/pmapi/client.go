@@ -121,6 +121,7 @@ type Client interface {
 
 	GetAddresses() (addresses AddressList, err error)
 	Addresses() AddressList
+	ReorderAddresses(addressIDs []string) error
 
 	GetEvent(eventID string) (*Event, error)
 

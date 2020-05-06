@@ -34,6 +34,7 @@ const pollIntervalSpread = 5 * time.Second
 type eventLoop struct {
 	cache          *Cache
 	currentEventID string
+	currentEvent   *pmapi.Event
 	pollCh         chan chan struct{}
 	stopCh         chan struct{}
 	notifyStopCh   chan struct{}
@@ -136,12 +137,17 @@ func (loop *eventLoop) start() { // nolint[funlen]
 		loop.log.WithField("lastEventID", loop.currentEventID).Warn("Subscription stopped")
 	}()
 
-	t := time.NewTicker(pollInterval - pollIntervalSpread)
-	defer t.Stop()
-
 	loop.hasInternet = true
 
 	go loop.pollNow()
+
+	loop.loop()
+}
+
+// loop is the main body of the event loop.
+func (loop *eventLoop) loop() {
+	t := time.NewTicker(pollInterval - pollIntervalSpread)
+	defer t.Stop()
 
 	for {
 		var eventProcessedCh chan struct{}
@@ -250,6 +256,8 @@ func (loop *eventLoop) processNextEvent() (more bool, err error) { // nolint[fun
 	if event, err = loop.client().GetEvent(loop.currentEventID); err != nil {
 		return false, errors.Wrap(err, "failed to get event")
 	}
+
+	loop.currentEvent = event
 
 	if event == nil {
 		return false, errors.New("received empty event")

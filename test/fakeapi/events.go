@@ -40,20 +40,24 @@ func (api *FakePMAPI) GetEvent(eventID string) (*pmapi.Event, error) {
 			foundEvent = event
 			continue
 		}
+
 		if foundEvent != nil {
 			mergedEvent.EventID = event.EventID
 			mergedEvent.Refresh |= event.Refresh
 			mergedEvent.Messages = append(mergedEvent.Messages, event.Messages...)
 			mergedEvent.MessageCounts = append(mergedEvent.MessageCounts, event.MessageCounts...)
 			mergedEvent.Labels = append(mergedEvent.Labels, event.Labels...)
+			mergedEvent.Addresses = append(mergedEvent.Addresses, event.Addresses...)
 			mergedEvent.Notices = append(mergedEvent.Notices, event.Notices...)
 			mergedEvent.User = event.User
 		}
 	}
+
 	// If there isn't next event, return the same one.
 	if mergedEvent.EventID == "" {
 		return foundEvent, nil
 	}
+
 	return mergedEvent, nil
 }
 
@@ -100,6 +104,19 @@ func (api *FakePMAPI) addEventMessage(action pmapi.EventAction, message *pmapi.M
 			Updated: updated,
 		}},
 		MessageCounts: api.getAllCounts(),
+	})
+}
+
+func (api *FakePMAPI) addEventAddress(action pmapi.EventAction, address *pmapi.Address) {
+	api.addEvent(&pmapi.Event{
+		EventID: api.eventIDGenerator.next("event"),
+		Addresses: []*pmapi.EventAddress{{
+			EventItem: pmapi.EventItem{
+				ID:     address.ID,
+				Action: pmapi.EventUpdate,
+			},
+			Address: address,
+		}},
 	})
 }
 

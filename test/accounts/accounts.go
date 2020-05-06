@@ -55,7 +55,8 @@ func (a *TestAccounts) GetTestAccount(username string) *TestAccount {
 	return a.GetTestAccountWithAddress(username, "")
 }
 
-func (a *TestAccounts) GetTestAccountWithAddress(username, addressID string) *TestAccount {
+// GetTestAccount returns the test account with the given username configured to use the given bddAddressID.
+func (a *TestAccounts) GetTestAccountWithAddress(username, bddAddressID string) *TestAccount {
 	// Do lookup by full address and convert to name in tests.
 	// Used by getting real data to ensure correct address or address ID.
 	for key, user := range a.Users {
@@ -71,7 +72,7 @@ func (a *TestAccounts) GetTestAccountWithAddress(username, addressID string) *Te
 	return newTestAccount(
 		user,
 		a.Addresses[user.Name],
-		addressID,
+		bddAddressID,
 		a.Passwords[user.Name],
 		a.MailboxPasswords[user.Name],
 		a.TwoFAs[user.Name],

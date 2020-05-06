@@ -35,6 +35,7 @@ func BridgeActionsFeatureContext(s *godog.Suite) {
 	s.Step(`^the internet connection is lost$`, theInternetConnectionIsLost)
 	s.Step(`^the internet connection is restored$`, theInternetConnectionIsRestored)
 	s.Step(`^(\d+) seconds pass$`, secondsPass)
+	s.Step(`^"([^"]*)" swaps address "([^"]*)" with address "([^"]*)"$`, swapsAddressWithAddress)
 }
 
 func bridgeStarts() error {
@@ -130,5 +131,34 @@ func theInternetConnectionIsRestored() error {
 
 func secondsPass(seconds int) error {
 	time.Sleep(time.Duration(seconds) * time.Second)
+	return nil
+}
+
+func swapsAddressWithAddress(bddUserID, bddAddressID1, bddAddressID2 string) error {
+	account := ctx.GetTestAccount(bddUserID)
+	if account == nil {
+		return godog.ErrPending
+	}
+
+	address1ID := account.GetAddressID(bddAddressID1)
+	address2ID := account.GetAddressID(bddAddressID2)
+
+	var address1Index, address2Index int
+	var addressIDs []string
+	for i, v := range *account.Addresses() {
+		if v.ID == address1ID {
+			address1Index = i
+		}
+		if v.ID == address2ID {
+			address2Index = i
+		}
+		addressIDs = append(addressIDs, v.ID)
+	}
+
+	addressIDs[address1Index], addressIDs[address2Index] = addressIDs[address2Index], addressIDs[address1Index]
+
+	ctx.ReorderAddresses(account.Username(), bddAddressID1, bddAddressID2)
+	ctx.GetPMAPIController().ReorderAddresses(account.User(), addressIDs)
+
 	return nil
 }

@@ -24,7 +24,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func cleanup(client pmapi.Client) error {
+func cleanup(client pmapi.Client, addresses *pmapi.AddressList) error {
 	if err := cleanSystemFolders(client); err != nil {
 		return errors.Wrap(err, "failed to clean system folders")
 	}
@@ -32,6 +32,9 @@ func cleanup(client pmapi.Client) error {
 		return errors.Wrap(err, "failed to clean custom labels")
 	}
 	if err := cleanTrash(client); err != nil {
+		return errors.Wrap(err, "failed to clean trash")
+	}
+	if err := reorderAddresses(client, addresses); err != nil {
 		return errors.Wrap(err, "failed to clean trash")
 	}
 	return nil
@@ -129,4 +132,14 @@ func emptyFolder(client pmapi.Client, labelID string) error {
 		time.Sleep(1 * time.Second)
 	}
 	return nil
+}
+
+func reorderAddresses(client pmapi.Client, addresses *pmapi.AddressList) error {
+	addressIDs := []string{}
+
+	for _, address := range *addresses {
+		addressIDs = append(addressIDs, address.ID)
+	}
+
+	return client.ReorderAddresses(addressIDs)
 }
