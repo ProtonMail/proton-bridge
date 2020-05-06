@@ -118,7 +118,7 @@ func (loop *eventLoop) stop() {
 	}
 }
 
-func (loop *eventLoop) start() { // nolint[funlen]
+func (loop *eventLoop) start() {
 	if loop.isRunning {
 		return
 	}
