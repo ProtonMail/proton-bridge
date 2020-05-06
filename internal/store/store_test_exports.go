@@ -47,7 +47,7 @@ func (store *Store) TestGetEventLoop() *eventLoop { //nolint[golint]
 }
 
 // TestGetLastEvent returns last event processed by the store's event loop.
-func (store *Store) TestGetLastEvent() *pmapi.Event { //nolint[golint]
+func (store *Store) TestGetLastEvent() *pmapi.Event {
 	return store.eventLoop.currentEvent
 }
 
