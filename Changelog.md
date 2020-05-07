@@ -2,7 +2,7 @@
 
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
-## [v1.2.7] Emma - beta (2020-04-XXX)
+## [v1.2.7] Donghai-hotfix - beta (2020-05-07)
 
 ### Added
 * IMAP extension MOVE with UIDPLUS support
