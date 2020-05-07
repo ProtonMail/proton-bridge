@@ -103,7 +103,7 @@ func (u *Updates) CreateJSONAndSign(deployDir, goos string) error {
 		return err
 	}
 
-	if err = ioutil.WriteFile(versionFilePath, txt, 0644); err != nil { //nolint[gosec]
+	if err = ioutil.WriteFile(versionFilePath, txt, 0600); err != nil {
 		return err
 	}
 
