@@ -18,6 +18,7 @@
 package store
 
 import (
+	"math/rand"
 	"time"
 
 	bridgeEvents "github.com/ProtonMail/proton-bridge/internal/events"
@@ -28,6 +29,7 @@ import (
 )
 
 const pollInterval = 30 * time.Second
+const pollIntervalSpread = 5 * time.Second
 
 type eventLoop struct {
 	cache          *Cache
@@ -134,7 +136,7 @@ func (loop *eventLoop) start() { // nolint[funlen]
 		loop.log.WithField("lastEventID", loop.currentEventID).Warn("Subscription stopped")
 	}()
 
-	t := time.NewTicker(pollInterval)
+	t := time.NewTicker(pollInterval - pollIntervalSpread)
 	defer t.Stop()
 
 	loop.hasInternet = true
@@ -147,8 +149,11 @@ func (loop *eventLoop) start() { // nolint[funlen]
 		case <-loop.stopCh:
 			close(loop.notifyStopCh)
 			return
-		case eventProcessedCh = <-loop.pollCh:
 		case <-t.C:
+			// Randomise periodic calls within range pollInterval ± pollSpread to reduces potential load spikes on API.
+			time.Sleep(time.Duration(rand.Intn(2*int(pollIntervalSpread.Milliseconds()))) * time.Millisecond)
+		case eventProcessedCh = <-loop.pollCh:
+			// We don't want to wait here. Polling should happen instantly.
 		}
 
 		// Before we fetch the first event, check whether this is the first time we've
@@ -551,7 +556,7 @@ func (loop *eventLoop) processMessageCounts(l *logrus.Entry, messageCounts []*pm
 		return err
 	}
 	if !isSynced {
-		loop.store.triggerSync()
+		log.Error("The counts between DB and API are not matching")
 	}
 
 	return nil

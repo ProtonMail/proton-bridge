@@ -128,11 +128,19 @@ func (store *Store) triggerSync() {
 		store.log.Debug("Store sync triggered")
 
 		store.lock.Lock()
+
 		if store.isSyncRunning {
 			store.lock.Unlock()
 			store.log.Info("Store sync is already ongoing")
 			return
 		}
+
+		if store.syncCooldown.isTooSoon() {
+			store.lock.Unlock()
+			store.log.Info("Skipping sync: store tries to resync too often")
+			return
+		}
+
 		store.isSyncRunning = true
 		store.lock.Unlock()
 
@@ -147,9 +155,11 @@ func (store *Store) triggerSync() {
 		err := syncAllMail(store.panicHandler, store, func() messageLister { return store.client() }, syncState)
 		if err != nil {
 			log.WithError(err).Error("Store sync failed")
+			store.syncCooldown.increaseWaitTime()
 			return
 		}
 
+		store.syncCooldown.reset()
 		syncState.setFinishTime()
 	}()
 }

@@ -357,7 +357,7 @@ func migratePreferencesFromC10(cfg *config.Config) {
 		return
 	}
 
-	err = ioutil.WriteFile(pref11Path, data, 0644)
+	err = ioutil.WriteFile(pref11Path, data, 0644) //nolint[gosec]
 	if err != nil {
 		log.WithError(err).Error("Problem to migrate preferences")
 		return
