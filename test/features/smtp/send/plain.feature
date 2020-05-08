@@ -145,7 +145,7 @@ Feature: SMTP sending of plain messages
       }
       """
 
-  Scenario: Message without charset
+  Scenario: Message without charset is utf8
     When SMTP client sends message
       """
       From: Bridge Test <bridgetest@pm.test>
@@ -155,6 +155,46 @@ Feature: SMTP sending of plain messages
       Content-Type: text/plain;
 
       This is body of mail without charset. Please assume utf8
+
+      """
+    Then SMTP response is "OK"
+    And mailbox "Sent" for "user" has messages
+      | time | from          | to                     | subject                        |
+      | now  | [userAddress] | pm.bridge.qa@gmail.com | Plain text no charset external |
+    And message is sent with API call:
+      """
+      {
+        "Message": {
+          "Subject": "Plain text no charset external",
+          "Sender": {
+            "Name": "Bridge Test"
+          },
+          "ToList": [
+            {
+              "Address": "pm.bridge.qa@gmail.com",
+              "Name": "External Bridge"
+            }
+          ],
+          "CCList": [],
+          "BCCList": [],
+          "MIMEType": "text/plain"
+        }
+      }
+      """
+
+  Scenario: Message without charset is base64-encoded latin1
+    When SMTP client sends message
+      """
+      From: Bridge Test <bridgetest@pm.test>
+      To: External Bridge <pm.bridge.qa@gmail.com>
+      Subject: Plain text no charset external
+      Content-Disposition: inline
+      Content-Type: text/plain;
+      Content-Transfer-Encoding: base64
+
+      dGhpcyBpcyBpbiBsYXRpbjEgYW5kIHRoZXJlIGFyZSBsb3RzIG9mIGVzIHdpdGggYWNjZW50czog
+      6enp6enp6enp6enp6enp
+
 
       """
     Then SMTP response is "OK"

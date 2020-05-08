@@ -3,21 +3,6 @@ Feature: SMTP wrong messages
     Given there is connected user "user"
     And there is SMTP client logged in as "user"
 
-  Scenario: Message with no charset and bad character
-    When SMTP client sends message
-      """
-      From: Bridge Test <bridgetest@pm.test>
-      To: External Bridge <pm.bridge.qa@gmail.com>
-      Subject: Plain text, no charset, wrong base64 external
-      Content-Disposition: inline
-      Content-Type: text/plain;
-      Content-Transfer-Encoding: base64
-
-      sdfsdfsd
-
-      """
-    Then SMTP response is "SMTP error: 554 Error: transaction failed, blame it on the weather: non-utf8 content without charset specification"
-
   Scenario: Message with attachment and wrong boundaries
     When SMTP client sends message
       """

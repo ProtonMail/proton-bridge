@@ -9,7 +9,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * IMAP mailbox info update when new mailbox is created
 * IMAP extension Unselect
 * More logs about event loop activity
-* GODT-72 Try ISO-8859-1 encoding if charset is not specified and it isn't UTF-8
+* GODT-72 Use ISO-8859-1 encoding if charset is not specified and it isn't UTF-8
 
 ### Changed
 * GODT-162 User Agent does not contain bridge version, only client in format `client name/client version (os)`

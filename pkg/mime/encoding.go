@@ -18,7 +18,6 @@
 package pmmime
 
 import (
-	"bytes"
 	"fmt"
 	"io"
 	"mime"
@@ -29,10 +28,10 @@ import (
 
 	"encoding/base64"
 
+	"github.com/pkg/errors"
 	"golang.org/x/text/encoding"
 	"golang.org/x/text/encoding/charmap"
 	"golang.org/x/text/encoding/htmlindex"
-	"golang.org/x/text/transform"
 )
 
 var wordDec = &mime.WordDecoder{
@@ -161,7 +160,7 @@ func getEncoding(charset string) (enc encoding.Encoding, err error) {
 
 	enc, _ = htmlindex.Get(preparsed)
 	if enc == nil {
-		err = fmt.Errorf("can not get encodig for '%s' (or '%s')", charset, preparsed)
+		err = fmt.Errorf("can not get encoding for '%s' (or '%s')", charset, preparsed)
 	}
 	return
 }
@@ -202,41 +201,34 @@ func EncodeHeader(s string) string {
 // If it isn't, it checks whether the content is valid latin1 (iso-8859-1), and if so,
 // reencodes it as utf-8.
 func DecodeCharset(original []byte, contentTypeParams map[string]string) ([]byte, error) {
-	var decoder *encoding.Decoder
-	var err error
-
+	// If the charset is specified, use that.
 	if charset, ok := contentTypeParams["charset"]; ok {
-		decoder, err = selectDecoder(charset)
-	} else if utf8.Valid(original) {
+		decoder, err := selectDecoder(charset)
+		if err != nil {
+			return original, errors.Wrap(err, "unknown charset was specified")
+		}
+
+		return decoder.Bytes(original)
+	}
+
+	// The charset was not specified. First try utf8.
+	if utf8.Valid(original) {
 		return original, nil
-	} else if decoded, err = charmap.ISO8859_1.NewDecoder().Bytes(original); err == nil {
-		return decoded, nil
-	} else {
-		err = fmt.Errorf("non-utf8 content without charset specification")
 	}
 
+	// Fallback to latin1.
+	// In future this should fallback to whatever default encoding user specified.
+	decoded, err := charmap.ISO8859_1.NewDecoder().Bytes(original)
 	if err != nil {
-		return original, err
+		return original, errors.Wrap(err, "failed to decode as latin1")
 	}
 
-	utf8 := make([]byte, len(original))
-	nDst, nSrc, err := decoder.Transform(utf8, original, false)
-	for err == transform.ErrShortDst {
-		if nDst < 1 {
-			nDst = 1
-		}
-		if nSrc < 1 {
-			nSrc = 1
-		}
-		utf8 = make([]byte, (nDst/nSrc+1)*len(original))
-		nDst, nSrc, err = decoder.Transform(utf8, original, false)
+	// If the decoded string is not valid utf8, it wasn't latin1, so give up.
+	if !utf8.Valid(decoded) {
+		return original, errors.Wrap(err, "failed to decode as latin1")
 	}
-	if err != nil {
-		return original, err
-	}
-	utf8 = bytes.Trim(utf8, "\x00")
 
-	return utf8, nil
+	return decoded, nil
 }
 
 // DecodeContentEncoding wraps the reader with decoder based on content encoding.
