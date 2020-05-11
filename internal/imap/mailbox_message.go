@@ -151,7 +151,7 @@ func (im *imapMailbox) CreateMessage(flags []string, date time.Time, body imap.L
 		re := regexp.MustCompile(pmapi.InternalReferenceFormat)
 		match := re.FindStringSubmatch(lastReference)
 		if len(match) > 0 {
-			internalID = match[1]
+			internalID = match[0]
 		}
 	}
 
