@@ -147,7 +147,7 @@ const ConversationIDDomain = `protonmail.conversationid`
 // InternalIDDomain is used as a placeholder for reference/message ID headers to improve compatibility with various clients.
 const InternalIDDomain = `protonmail.internalid`
 
-// InternalReferenceFormat describes format of the message ID (as regex) used for parsing reference headers
+// InternalReferenceFormat describes format of the message ID (as regex) used for parsing reference headers.
 const InternalReferenceFormat = `(?U)<.*@` + InternalIDDomain + `>`
 
 // Message structure.
