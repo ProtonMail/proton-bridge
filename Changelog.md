@@ -435,7 +435,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * #671 include `name` param in attachment `Content-Type` (in addition to `Content-Disposition` param `filename`)
 * #671 do not include content headers for section requests e.g. `BODY.PEEK[2]`
 * version info checks for newer version (do not show dialog when older is online)
-* #592 new header `X-Pm-Conversation-Id` and also added to `References`
+* #592 new header `X-Pm-ConversationID-Id` and also added to `References`
 * #666 invoke `panic` while adding account `jakubqa+crash@protonmail.com`
 * #592 new header fields `X-Pm-Date` storing m.Time and `X-Pm-External-Id` storing m.ExternalID
 * #484 search criteria `Unkeyword` support
