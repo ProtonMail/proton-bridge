@@ -148,10 +148,10 @@ func (im *imapMailbox) CreateMessage(flags []string, date time.Time, body imap.L
 	if len(referenceList) > 0 {
 		lastReference := referenceList[len(referenceList)-1]
 		// In case we are using a mail client which corrupts headers, try "References" too.
-		re := regexp.MustCompile(`(?U)<.*@protonmail.internalid>`)
-		match := re.FindString(lastReference)
-		if match != "" {
-			internalID = match[1 : len(match)-len("@protonmail.internalid>")]
+		re := regexp.MustCompile(pmapi.InternalReferenceFormat)
+		match := re.FindStringSubmatch(lastReference)
+		if len(match) > 0 {
+			internalID = match[1]
 		}
 	}
 

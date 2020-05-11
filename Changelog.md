@@ -36,7 +36,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
   * Alternative Routing is enabled/disabled by `ClientManager`
   * Logging out of `Clients` is handled/retried asynchronously by `ClientManager`
 * GODT-265 Alternative Routing v2 (more resiliant to short term connection drops)
-
+* GODT-310 Alternative parsing of `References` header (old parsing probably malformed message IDs)
 
 ### Fixed
 * Use correct binary name when finding location of addcert.scpt

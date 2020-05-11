@@ -74,19 +74,19 @@ func GetHeader(msg *pmapi.Message) textproto.MIMEHeader { //nolint[funlen]
 	}
 	if msg.ID != "" {
 		if h.Get("Message-Id") == "" {
-			h.Set("Message-Id", "<"+msg.ID+"@protonmail.internalid>")
+			h.Set("Message-Id", "<"+msg.ID+"@"+pmapi.InternalIDDomain+">")
 		}
 		h.Set("X-Pm-Internal-Id", msg.ID)
 		// Forward References, and include the message ID here (to improve outlook support).
 		if references := h.Get("References"); !strings.Contains(references, msg.ID) {
-			references += " <" + msg.ID + "@protonmail.internalid>"
+			references += " <" + msg.ID + "@" + pmapi.InternalIDDomain + ">"
 			h.Set("References", references)
 		}
 	}
 	if msg.ConversationID != "" {
 		h.Set("X-Pm-ConversationID-Id", msg.ConversationID)
 		if references := h.Get("References"); !strings.Contains(references, msg.ConversationID) {
-			references += " <" + msg.ConversationID + "@protonmail.conversationid>"
+			references += " <" + msg.ConversationID + "@" + pmapi.ConversationIDDomain + ">"
 			h.Set("References", references)
 		}
 	}

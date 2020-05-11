@@ -370,12 +370,12 @@ func (su *smtpUser) handleReferencesHeader(m *pmapi.Message) (draftID, parentID 
 	references := m.Header.Get("References")
 	newReferences := []string{}
 	for _, reference := range strings.Fields(references) {
-		if !strings.Contains(reference, "@protonmail.internalid") {
+		if !strings.Contains(reference, "@"+pmapi.InternalIDDomain) {
 			newReferences = append(newReferences, reference)
 		} else { // internalid is the parentID.
-			idMatch := regexp.MustCompile(`(?U)<.*@protonmail.internalid>`).FindString(reference)
-			if idMatch != "" {
-				lastID := idMatch[1 : len(idMatch)-len("@protonmail.internalid>")]
+			idMatch := regexp.MustCompile(pmapi.InternalReferenceFormat).FindStringSubmatch(reference)
+			if len(idMatch) > 0 {
+				lastID := idMatch[1]
 				filter := &pmapi.MessagesFilter{ID: []string{lastID}}
 				if su.addressID != "" {
 					filter.AddressID = su.addressID

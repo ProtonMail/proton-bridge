@@ -141,6 +141,15 @@ const (
 // Due to API limitations, we shouldn't make requests with more than 100 message IDs at a time.
 const messageIDPageSize = 100
 
+// ConversationIDDomain is used as a placeholder for conversation reference headers to improve compatibility with various clients
+const ConversationIDDomain = `protonmail.conversationid`
+
+// InternalIDDomain is used as a placeholder for reference/message ID headers to improve compatibility with various clients
+const InternalIDDomain = `protonmail.internalid`
+
+// InternalReferenceFormat describes format of the message ID (as regex) used for parsing reference headers
+const InternalReferenceFormat = `(?U)<.*@` + InternalIDDomain + `>`
+
 // Message structure.
 type Message struct {
 	ID             string `json:",omitempty"`
