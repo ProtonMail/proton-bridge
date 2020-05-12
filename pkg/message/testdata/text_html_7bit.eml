@@ -1,0 +1,6 @@
+From: Sender <sender@pm.me>
+To: Receiver <receiver@pm.me>
+Content-Type: text/html
+Content-Transfer-Encoding: 7bit
+
+<html><body>This is body of <b>HTML mail</b> without attachment</body></html>

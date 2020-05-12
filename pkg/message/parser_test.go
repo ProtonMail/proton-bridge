@@ -18,8 +18,17 @@
 package message
 
 import (
+	"image/png"
+	"io"
+	"io/ioutil"
+	"math/rand"
 	"net/mail"
+	"os"
+	"path/filepath"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"golang.org/x/text/encoding/charmap"
 )
 
 func TestRFC822AddressFormat(t *testing.T) { //nolint[funlen]
@@ -104,4 +113,311 @@ func TestRFC822AddressFormat(t *testing.T) { //nolint[funlen]
 			}
 		}
 	}
+}
+
+func f(filename string) io.Reader {
+	f, err := os.Open(filepath.Join("testdata", filename))
+
+	if err != nil {
+		panic(err)
+	}
+
+	return f
+}
+
+func s(filename string) string {
+	b, err := ioutil.ReadAll(f(filename))
+
+	if err != nil {
+		panic(err)
+	}
+
+	return string(b)
+}
+
+func readerToString(r io.Reader) string {
+	b, err := ioutil.ReadAll(r)
+
+	if err != nil {
+		panic(err)
+	}
+
+	return string(b)
+}
+
+func TestParseMessageTextPlain(t *testing.T) {
+	m, mimeBody, plainContents, atts, err := Parse(f("text_plain.eml"), "", "")
+	assert.NoError(t, err)
+
+	assert.Equal(t, `"Sender" <sender@pm.me>`, m.Sender.String())
+	assert.Equal(t, `"Receiver" <receiver@pm.me>`, m.ToList[0].String())
+
+	assert.Equal(t, "body", m.Body)
+	assert.Equal(t, s("text_plain.b64"), mimeBody)
+	assert.Equal(t, "body", plainContents)
+
+	assert.Len(t, atts, 0)
+}
+
+func TestParseMessageTextPlainUTF8(t *testing.T) {
+	m, mimeBody, plainContents, atts, err := Parse(f("text_plain_utf8.eml"), "", "")
+	assert.NoError(t, err)
+
+	assert.Equal(t, `"Sender" <sender@pm.me>`, m.Sender.String())
+	assert.Equal(t, `"Receiver" <receiver@pm.me>`, m.ToList[0].String())
+
+	assert.Equal(t, "body", m.Body)
+	assert.Equal(t, s("text_plain_utf8.b64"), mimeBody)
+	assert.Equal(t, "body", plainContents)
+
+	assert.Len(t, atts, 0)
+}
+
+func TestParseMessageTextPlainLatin1(t *testing.T) {
+	m, mimeBody, plainContents, atts, err := Parse(f("text_plain_latin1.eml"), "", "")
+	assert.NoError(t, err)
+
+	assert.Equal(t, `"Sender" <sender@pm.me>`, m.Sender.String())
+	assert.Equal(t, `"Receiver" <receiver@pm.me>`, m.ToList[0].String())
+
+	assert.Equal(t, "ééééééé", m.Body)
+	assert.Equal(t, s("text_plain_latin1.b64"), mimeBody)
+	assert.Equal(t, "ééééééé", plainContents)
+
+	assert.Len(t, atts, 0)
+}
+
+func TestParseMessageTextPlainUnknownCharsetIsActuallyLatin1(t *testing.T) {
+	m, mimeBody, plainContents, atts, err := Parse(f("text_plain_unknown_latin1.eml"), "", "")
+	assert.NoError(t, err)
+
+	assert.Equal(t, `"Sender" <sender@pm.me>`, m.Sender.String())
+	assert.Equal(t, `"Receiver" <receiver@pm.me>`, m.ToList[0].String())
+
+	assert.Equal(t, "ééééééé", m.Body)
+	assert.Equal(t, s("text_plain_unknown_latin1.b64"), mimeBody)
+	assert.Equal(t, "ééééééé", plainContents)
+
+	assert.Len(t, atts, 0)
+}
+
+func TestParseMessageTextPlainUnknownCharsetIsActuallyLatin2(t *testing.T) {
+	m, mimeBody, plainContents, atts, err := Parse(f("text_plain_unknown_latin2.eml"), "", "")
+	assert.NoError(t, err)
+
+	assert.Equal(t, `"Sender" <sender@pm.me>`, m.Sender.String())
+	assert.Equal(t, `"Receiver" <receiver@pm.me>`, m.ToList[0].String())
+
+	// The file contains latin2-encoded text, but we will assume it is latin1
+	// and decode it as such. This will lead to corruption.
+	latin2, _ := charmap.ISO8859_2.NewEncoder().Bytes([]byte("řšřšřš"))
+	expect, _ := charmap.ISO8859_1.NewDecoder().Bytes(latin2)
+	assert.NotEqual(t, []byte("řšřšřš"), expect)
+
+	assert.Equal(t, string(expect), m.Body)
+	assert.Equal(t, s("text_plain_unknown_latin2.b64"), mimeBody)
+	assert.Equal(t, string(expect), plainContents)
+
+	assert.Len(t, atts, 0)
+}
+
+func TestParseMessageTextPlainAlready7Bit(t *testing.T) {
+	m, mimeBody, plainContents, atts, err := Parse(f("text_plain_7bit.eml"), "", "")
+	assert.NoError(t, err)
+
+	assert.Equal(t, `"Sender" <sender@pm.me>`, m.Sender.String())
+	assert.Equal(t, `"Receiver" <receiver@pm.me>`, m.ToList[0].String())
+
+	assert.Equal(t, "body", m.Body)
+	assert.Equal(t, s("text_plain_7bit.mime"), mimeBody)
+	assert.Equal(t, "body", plainContents)
+
+	assert.Len(t, atts, 0)
+}
+
+func TestParseMessageTextPlainWithOctetAttachment(t *testing.T) {
+	m, mimeBody, plainContents, atts, err := Parse(f("text_plain_octet_attachment.eml"), "", "")
+	assert.NoError(t, err)
+
+	assert.Equal(t, `"Sender" <sender@pm.me>`, m.Sender.String())
+	assert.Equal(t, `"Receiver" <receiver@pm.me>`, m.ToList[0].String())
+
+	assert.Equal(t, "body", m.Body)
+	assert.Equal(t, s("text_plain_octet_attachment.b64"), mimeBody)
+	assert.Equal(t, "body", plainContents)
+
+	assert.Len(t, atts, 1)
+	assert.Equal(t, readerToString(atts[0]), "if you are reading this, hi!")
+}
+
+func TestParseMessageTextPlainWithPlainAttachment(t *testing.T) {
+	m, mimeBody, plainContents, atts, err := Parse(f("text_plain_plain_attachment.eml"), "", "")
+	assert.NoError(t, err)
+
+	assert.Equal(t, `"Sender" <sender@pm.me>`, m.Sender.String())
+	assert.Equal(t, `"Receiver" <receiver@pm.me>`, m.ToList[0].String())
+
+	assert.Equal(t, "body", m.Body)
+	assert.Equal(t, s("text_plain_plain_attachment.b64"), mimeBody)
+	assert.Equal(t, "body", plainContents)
+
+	assert.Len(t, atts, 1)
+	assert.Equal(t, readerToString(atts[0]), "attachment")
+}
+
+func TestParseMessageTextPlainWithImageInline(t *testing.T) {
+	m, mimeBody, plainContents, atts, err := Parse(f("text_plain_image_inline.eml"), "", "")
+	assert.NoError(t, err)
+
+	assert.Equal(t, `"Sender" <sender@pm.me>`, m.Sender.String())
+	assert.Equal(t, `"Receiver" <receiver@pm.me>`, m.ToList[0].String())
+
+	assert.Equal(t, "body", m.Body)
+	assert.Equal(t, s("text_plain_image_inline.b64"), mimeBody)
+	assert.Equal(t, "body", plainContents)
+
+	// The inline image is an 8x8 mic-dropping gopher.
+	assert.Len(t, atts, 1)
+	img, err := png.DecodeConfig(atts[0])
+	assert.NoError(t, err)
+	assert.Equal(t, 8, img.Width)
+	assert.Equal(t, 8, img.Height)
+}
+
+func TestParseMessageWithMultipleTextParts(t *testing.T) {
+	m, mimeBody, plainContents, atts, err := Parse(f("multiple_text_parts.eml"), "", "")
+	assert.NoError(t, err)
+
+	assert.Equal(t, `"Sender" <sender@pm.me>`, m.Sender.String())
+	assert.Equal(t, `"Receiver" <receiver@pm.me>`, m.ToList[0].String())
+
+	assert.Equal(t, "body\nsome other part of the message", m.Body)
+	assert.Equal(t, s("multiple_text_parts.b64"), mimeBody)
+	assert.Equal(t, "body\nsome other part of the message", plainContents)
+
+	assert.Len(t, atts, 0)
+}
+
+func TestParseMessageTextHTML(t *testing.T) {
+	rand.Seed(0)
+
+	m, mimeBody, plainContents, atts, err := Parse(f("text_html.eml"), "", "")
+	assert.NoError(t, err)
+
+	assert.Equal(t, `"Sender" <sender@pm.me>`, m.Sender.String())
+	assert.Equal(t, `"Receiver" <receiver@pm.me>`, m.ToList[0].String())
+
+	assert.Equal(t, "<html><head></head><body>This is body of <b>HTML mail</b> without attachment</body></html>", m.Body)
+	assert.Equal(t, s("text_html.b64"), mimeBody)
+	assert.Equal(t, "This is body of *HTML mail* without attachment", plainContents)
+
+	assert.Len(t, atts, 0)
+}
+
+func TestParseMessageTextHTMLAlready7Bit(t *testing.T) {
+	rand.Seed(0)
+
+	m, mimeBody, plainContents, atts, err := Parse(f("text_html_7bit.eml"), "", "")
+	assert.NoError(t, err)
+
+	assert.Equal(t, `"Sender" <sender@pm.me>`, m.Sender.String())
+	assert.Equal(t, `"Receiver" <receiver@pm.me>`, m.ToList[0].String())
+
+	assert.Equal(t, "<html><head></head><body>This is body of <b>HTML mail</b> without attachment</body></html>", m.Body)
+	assert.Equal(t, s("text_html_7bit.mime"), mimeBody)
+	assert.Equal(t, "This is body of *HTML mail* without attachment", plainContents)
+
+	assert.Len(t, atts, 0)
+}
+
+func TestParseMessageTextHTMLWithOctetAttachment(t *testing.T) {
+	rand.Seed(0)
+
+	m, mimeBody, plainContents, atts, err := Parse(f("text_html_octet_attachment.eml"), "", "")
+	assert.NoError(t, err)
+
+	assert.Equal(t, `"Sender" <sender@pm.me>`, m.Sender.String())
+	assert.Equal(t, `"Receiver" <receiver@pm.me>`, m.ToList[0].String())
+
+	assert.Equal(t, "<html><head></head><body>This is body of <b>HTML mail</b> with attachment</body></html>", m.Body)
+	assert.Equal(t, s("text_html_octet_attachment.b64"), mimeBody)
+	assert.Equal(t, "This is body of *HTML mail* with attachment", plainContents)
+
+	assert.Len(t, atts, 1)
+	assert.Equal(t, readerToString(atts[0]), "if you are reading this, hi!")
+}
+
+// NOTE: Enable when bug is fixed.
+func _TestParseMessageTextHTMLWithPlainAttachment(t *testing.T) { // nolint[deadcode]
+	rand.Seed(0)
+
+	m, mimeBody, plainContents, atts, err := Parse(f("text_html_plain_attachment.eml"), "", "")
+	assert.NoError(t, err)
+
+	assert.Equal(t, `"Sender" <sender@pm.me>`, m.Sender.String())
+	assert.Equal(t, `"Receiver" <receiver@pm.me>`, m.ToList[0].String())
+
+	// BAD: plainContents should not be empty!
+	assert.Equal(t, "<html><head></head><body>This is body of <b>HTML mail</b> with attachment</body></html>", m.Body)
+	assert.Equal(t, s("text_html_plain_attachment.b64"), mimeBody)
+	assert.Equal(t, "This is body of *HTML mail* with attachment", plainContents)
+
+	assert.Len(t, atts, 1)
+	assert.Equal(t, readerToString(atts[0]), "attachment")
+}
+
+func TestParseMessageTextHTMLWithImageInline(t *testing.T) {
+	rand.Seed(0)
+
+	m, mimeBody, plainContents, atts, err := Parse(f("text_html_image_inline.eml"), "", "")
+	assert.NoError(t, err)
+
+	assert.Equal(t, `"Sender" <sender@pm.me>`, m.Sender.String())
+	assert.Equal(t, `"Receiver" <receiver@pm.me>`, m.ToList[0].String())
+
+	assert.Equal(t, "<html><head></head><body>This is body of <b>HTML mail</b> with attachment</body></html>", m.Body)
+	assert.Equal(t, s("text_html_image_inline.b64"), mimeBody)
+	assert.Equal(t, "This is body of *HTML mail* with attachment", plainContents)
+
+	// The inline image is an 8x8 mic-dropping gopher.
+	assert.Len(t, atts, 1)
+	img, err := png.DecodeConfig(atts[0])
+	assert.NoError(t, err)
+	assert.Equal(t, 8, img.Width)
+	assert.Equal(t, 8, img.Height)
+}
+
+// NOTE: Enable when bug is fixed.
+func _TestParseMessageWithAttachedPublicKey(t *testing.T) { // nolint[deadcode]
+	// BAD: Public Key is not attached unless Content-Type is specified (not required)!
+	m, mimeBody, plainContents, atts, err := Parse(f("text_plain.eml"), "publickey", "publickeyname")
+	assert.NoError(t, err)
+
+	assert.Equal(t, `"Sender" <sender@pm.me>`, m.Sender.String())
+	assert.Equal(t, `"Receiver" <receiver@pm.me>`, m.ToList[0].String())
+
+	assert.Equal(t, "body", m.Body)
+	assert.Equal(t, s("text_plain_pubkey.b64"), mimeBody)
+	assert.Equal(t, "body", plainContents)
+
+	// BAD: Public key not available as an attachment!
+	assert.Len(t, atts, 1)
+}
+
+// NOTE: Enable when bug is fixed.
+func _TestParseMessageTextHTMLWithEmbeddedForeignEncoding(t *testing.T) { // nolint[deadcode]
+	rand.Seed(0)
+
+	m, mimeBody, plainContents, atts, err := Parse(f("text_html_embedded_foreign_encoding.eml"), "", "")
+	assert.NoError(t, err)
+
+	assert.Equal(t, `"Sender" <sender@pm.me>`, m.Sender.String())
+	assert.Equal(t, `"Receiver" <receiver@pm.me>`, m.ToList[0].String())
+
+	// BAD: Bridge does not detect the charset specified in the <meta> tag of the html.
+	assert.Equal(t, `<html><head><meta charset="ISO-8859-2"></head><body>latin2 řšřš</body></html>`, m.Body)
+	assert.Equal(t, s("text_html_embedded_foreign_encoding.b64"), mimeBody)
+	assert.Equal(t, `latin2 řšřš`, plainContents)
+
+	assert.Len(t, atts, 0)
 }

@@ -19,15 +19,14 @@ package message
 
 import (
 	"bytes"
-	"crypto/rand"
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
 	"io"
 	"io/ioutil"
+	"math/rand"
 	"mime"
-	"mime/quotedprintable"
 	"net/mail"
 	"net/textproto"
 	"regexp"
@@ -186,7 +185,7 @@ func checkHeaders(headers []textproto.MIMEHeader) bool {
 
 // ============================== 7bit Filter ==========================
 // For every MIME part in the tree that has "8bit" or "binary" content
-// transfer encoding: transcode it to "quoted-printable".
+// transfer encoding: transcode it to "base64".
 
 type SevenBitFilter struct {
 	target pmmime.VisitAcceptor
@@ -216,18 +215,16 @@ func (sd SevenBitFilter) Accept(partReader io.Reader, header textproto.MIMEHeade
 		for k, v := range header {
 			filteredHeader[k] = v
 		}
-		filteredHeader.Set("Content-Transfer-Encoding", "quoted-printable")
-		//filteredHeader.Set("Content-Transfer-Encoding", "base64")
+		filteredHeader.Set("Content-Transfer-Encoding", "base64")
 
 		filteredBuffer := &bytes.Buffer{}
 		decodedSlice, _ := ioutil.ReadAll(decodedPart)
-		w := quotedprintable.NewWriter(filteredBuffer)
-		//w := base64.NewEncoder(base64.StdEncoding, filteredBuffer)
+		w := base64.NewEncoder(base64.StdEncoding, filteredBuffer)
 		if _, err := w.Write(decodedSlice); err != nil {
-			log.Errorf("cannot write quotedprintable from %q: %v", cte, err)
+			log.Errorf("cannot write base64 from %q: %v", cte, err)
 		}
 		if err := w.Close(); err != nil {
-			log.Errorf("cannot close quotedprintable from %q: %v", cte, err)
+			log.Errorf("cannot close base64 from %q: %v", cte, err)
 		}
 
 		_ = sd.target.Accept(filteredBuffer, filteredHeader, hasPlainSibling, true, isLast)
@@ -252,13 +249,15 @@ func NewHTMLOnlyConvertor(targetAccepter pmmime.VisitAcceptor) *HTMLOnlyConverto
 }
 
 func randomBoundary() string {
-	var buf [30]byte
-	_, err := io.ReadFull(rand.Reader, buf[:])
-	if err != nil {
+	buf := make([]byte, 30)
+
+	// We specifically use `math/rand` here to allow the generator to be seeded for test purposes.
+	// The random numbers need not be cryptographically secure; we are simply generating random part boundaries.
+	if _, err := rand.Read(buf); err != nil { // nolint[gosec]
 		panic(err)
 	}
 
-	return fmt.Sprintf("%x", buf[:])
+	return fmt.Sprintf("%x", buf)
 }
 
 func (hoc HTMLOnlyConvertor) Accept(partReader io.Reader, header textproto.MIMEHeader, hasPlainSiblings bool, isFirst, isLast bool) error {
@@ -364,6 +363,8 @@ func (pka *PublicKeyAttacher) Accept(partReader io.Reader, header textproto.MIME
 		}()
 	}
 	isRoot := (header.Get("From") != "")
+
+	// NOTE: This should also work for unspecified Content-Type (in which case us-ascii text/plain is assumed)!
 	mediaType, _, err := pmmime.ParseMediaType(header.Get("Content-Type"))
 	if isRoot && isFirst && err == nil && pka.attachedPublicKey != "" { //nolint[gocritic]
 		if strings.HasPrefix(mediaType, "multipart/mixed") {
@@ -447,6 +448,7 @@ func Parse(r io.Reader, attachedPublicKey, attachedPublicKeyName string) (m *pma
 	}
 
 	mimeBody = printAccepter.String()
+
 	plainContents = plainTextCollector.GetPlainText()
 
 	parts, headers, err := pmmime.GetAllChildParts(bytes.NewReader(mmBodyData), h)

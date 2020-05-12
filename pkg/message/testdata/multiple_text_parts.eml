@@ -1,0 +1,14 @@
+From: Sender <sender@pm.me>
+To: Receiver <receiver@pm.me>
+Content-Type: multipart/mixed; boundary=longrandomstring
+
+this part of the text should be ignored
+
+--longrandomstring
+
+body
+
+--longrandomstring
+
+some other part of the message
+--longrandomstring--

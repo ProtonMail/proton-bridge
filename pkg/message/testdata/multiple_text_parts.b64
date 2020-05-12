@@ -1,0 +1,16 @@
+Content-Type: multipart/mixed; boundary=longrandomstring
+From: Sender <sender@pm.me>
+To: Receiver <receiver@pm.me>
+
+
+This is a multi-part message in MIME format.
+--longrandomstring
+Content-Transfer-Encoding: base64
+
+Ym9keQo=
+--longrandomstring
+Content-Transfer-Encoding: base64
+
+c29tZSBvdGhlciBwYXJ0IG9mIHRoZSBtZXNzYWdl
+--longrandomstring--
+.
