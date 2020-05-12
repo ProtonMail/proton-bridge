@@ -56,6 +56,7 @@ var (
 	ErrInvalidToken       = errors.New("refresh token invalid")
 	ErrAPINotReachable    = errors.New("cannot reach the server")
 	ErrUpgradeApplication = errors.New("application upgrade required")
+	ErrConnectionSlow     = errors.New("request canceled because connection speed was too slow")
 )
 
 type ErrUnprocessableEntity struct {
@@ -345,6 +346,9 @@ func (c *client) doJSONBuffered(req *http.Request, reqBodyBuffer []byte, data in
 		resBody, err = ioutil.ReadAll(res.Body)
 	} else {
 		resBody, err = c.readAllMinSpeed(res.Body, cancelRequest)
+		if err == context.Canceled {
+			err = ErrConnectionSlow
+		}
 	}
 
 	// The server response may contain data which we want to have in memory
