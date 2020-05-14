@@ -67,4 +67,4 @@ Feature: IMAP create messages
     And there is IMAP client selected in "Sent"
     When IMAP client creates message "Meet the Twins" from address "primary" of "userMoreAddresses" to "chosen@one.com" with body "Hello, Mr. Anderson" in "Sent"
     Then IMAP response is "OK"
-    Then mailbox "Sent" for "userMoreAddresses" has 2 messages
+    And mailbox "Sent" for "userMoreAddresses" has 2 messages
