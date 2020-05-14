@@ -18,7 +18,6 @@ Feature: IMAP create messages
       | from      | to                 | subject | read |
       | [primary] | john.doe@email.com | foo     | true |
 
-  @ignore
   Scenario: Creates message sent from user's primary address
     Given there is IMAP client selected in "Sent"
     When IMAP client creates message "foo" from address "primary" of "userMoreAddresses" to "john.doe@email.com" with body "hello world" in "Sent"
@@ -29,7 +28,6 @@ Feature: IMAP create messages
       | [primary] | john.doe@email.com | foo     | true |
     And mailbox "INBOX" for "userMoreAddresses" has no messages
 
-  @ignore
   Scenario: Creates message sent from user's secondary address
     Given there is IMAP client selected in "Sent"
     When IMAP client creates message "foo" from address "secondary" of "userMoreAddresses" to "john.doe@email.com" with body "hello world" in "Sent"
@@ -57,3 +55,16 @@ Feature: IMAP create messages
       | from              | to                    | subject | read |
       | notuser@gmail.com | alsonotuser@gmail.com | foo     | true |
     And mailbox "INBOX" for "userMoreAddresses" has no messages
+
+  # Importing duplicate messages when messageID cannot be found in Sent already.
+  # 
+  # Previously, we discarded messages for which sender matches account address to
+  # avoid duplicates, but this led to discarding messages imported through mail client.
+  Scenario: Imports a similar (duplicate) message to sent
+    Given there are messages in mailbox "Sent" for "userMoreAddresses"
+      | from      | to             | subject        | body                |
+      | [primary] | chosen@one.com | Meet the Twins | Hello, Mr. Anderson |
+    And there is IMAP client selected in "Sent"
+    When IMAP client creates message "Meet the Twins" from address "primary" of "userMoreAddresses" to "chosen@one.com" with body "Hello, Mr. Anderson" in "Sent"
+    Then IMAP response is "OK"
+    Then mailbox "Sent" for "userMoreAddresses" has 2 messages

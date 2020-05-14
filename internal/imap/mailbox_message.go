@@ -126,10 +126,6 @@ func (im *imapMailbox) CreateMessage(flags []string, date time.Time, body imap.L
 
 			// We didn't find the message in the store, so we are currently sending it.
 			logEntry.WithField("time", date).Info("No matching UID, continuing APPEND to Sent")
-
-			// For now we don't import user's own messages to Sent because GetUIDByHeader is not smart enough.
-			// This will be fixed in GODT-143.
-			return nil
 		}
 
 		// This is an APPEND to the Sent folder, so we will set the sent flag
