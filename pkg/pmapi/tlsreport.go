@@ -30,9 +30,9 @@ var TrustedAPIPins = []string{ // nolint[gochecknoglobals]
 // TLSReportURI is the address where TLS reports should be sent.
 const TLSReportURI = "https://reports.protonmail.ch/reports/tls"
 
-// TLSReport is inspired by https://tools.ietf.org/html/rfc7469#section-3.
-// When a TLS key mismatch is detected, a TLSReport is posted to TLSReportURI.
-type TLSReport struct {
+// tlsReport is inspired by https://tools.ietf.org/html/rfc7469#section-3.
+// When a TLS key mismatch is detected, a tlsReport is posted to TLSReportURI.
+type tlsReport struct {
 	//  DateTime of observed pin validation in time.RFC3339 format.
 	DateTime string `json:"date-time"`
 
@@ -88,35 +88,37 @@ type TLSReport struct {
 	AppVersion string `json:"app-version"`
 }
 
-// NewTLSReport constructs a new TLSreport configured with the given app version and known pinned public keys.
-func NewTLSReport(host, port, server string, certChain, knownPins []string, appVersion string) (report TLSReport) {
+// newTLSReport constructs a new tlsReport configured with the given app version and known pinned public keys.
+// Temporal things (current date/time) are not set yet -- they are set when sendReport is called.
+func newTLSReport(host, port, server string, certChain, knownPins []string, appVersion string) (report tlsReport) {
 	// If we can't parse the port for whatever reason, it doesn't really matter; we should report anyway.
 	intPort, _ := strconv.Atoi(port)
 
-	report = TLSReport{
-		Hostname:                  host,
-		Port:                      intPort,
-		EffectiveExpirationDate:   time.Now().Add(365 * 24 * 60 * 60 * time.Second).Format(time.RFC3339),
-		IncludeSubdomains:         false,
-		NotedHostname:             server,
-		ValidatedCertificateChain: []string{},
-		ServedCertificateChain:    certChain,
-		KnownPins:                 knownPins,
-		AppVersion:                appVersion,
+	report = tlsReport{
+		Hostname:               host,
+		Port:                   intPort,
+		NotedHostname:          server,
+		ServedCertificateChain: certChain,
+		KnownPins:              knownPins,
+		AppVersion:             appVersion,
 	}
 
 	return
 }
 
-// postCertIssueReport posts the given TLS report to the standard TLS Report URI.
-func postCertIssueReport(report TLSReport, userAgent string) {
-	b, err := json.Marshal(report)
+// sendReport posts the given TLS report to the standard TLS Report URI.
+func (r tlsReport) sendReport(uri, userAgent string) {
+	now := time.Now()
+	r.DateTime = now.Format(time.RFC3339)
+	r.EffectiveExpirationDate = now.Add(365 * 24 * 60 * 60 * time.Second).Format(time.RFC3339)
+
+	b, err := json.Marshal(r)
 	if err != nil {
 		logrus.WithError(err).Error("Failed to marshal TLS report")
 		return
 	}
 
-	req, err := http.NewRequest("POST", TLSReportURI, bytes.NewReader(b))
+	req, err := http.NewRequest("POST", uri, bytes.NewReader(b))
 	if err != nil {
 		logrus.WithError(err).Error("Failed to create http request")
 		return
@@ -125,10 +127,10 @@ func postCertIssueReport(report TLSReport, userAgent string) {
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Set("User-Agent", userAgent)
 	req.Header.Set("x-pm-apiversion", strconv.Itoa(Version))
-	req.Header.Set("x-pm-appversion", report.AppVersion)
+	req.Header.Set("x-pm-appversion", r.AppVersion)
 
 	logrus.WithField("request", req).Warn("Reporting TLS mismatch")
-	res, err := (&http.Client{}).Do(req)
+	res, err := (&http.Client{Transport: CreateTransportWithDialer(NewBasicTLSDialer())}).Do(req)
 	if err != nil {
 		logrus.WithError(err).Error("Failed to report TLS mismatch")
 		return

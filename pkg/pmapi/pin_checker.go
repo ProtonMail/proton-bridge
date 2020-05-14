@@ -9,22 +9,30 @@ import (
 	"encoding/pem"
 	"fmt"
 	"net"
+	"time"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/sirupsen/logrus"
 )
 
-type PinChecker struct {
+type pinChecker struct {
 	trustedPins []string
+	sentReports []sentReport
 }
 
-func NewPinChecker(trustedPins []string) PinChecker {
-	return PinChecker{
+type sentReport struct {
+	r tlsReport
+	t time.Time
+}
+
+func newPinChecker(trustedPins []string) pinChecker {
+	return pinChecker{
 		trustedPins: trustedPins,
 	}
 }
 
-// CheckCertificate returns whether the connection presents a known TLS certificate.
-func (p *PinChecker) CheckCertificate(conn net.Conn) error {
+// checkCertificate returns whether the connection presents a known TLS certificate.
+func (p *pinChecker) checkCertificate(conn net.Conn) error {
 	connState := conn.(*tls.Conn).ConnectionState()
 
 	for _, peerCert := range connState.PeerCertificates {
@@ -45,8 +53,8 @@ func certFingerprint(cert *x509.Certificate) string {
 	return fmt.Sprintf(`pin-sha256=%q`, base64.StdEncoding.EncodeToString(hash[:]))
 }
 
-// ReportCertIssue reports a TLS key mismatch.
-func (p *PinChecker) ReportCertIssue(host, port, datetime string, connState tls.ConnectionState, appVersion, userAgent string) {
+// reportCertIssue reports a TLS key mismatch.
+func (p *pinChecker) reportCertIssue(remoteURI, host, port string, connState tls.ConnectionState, appVersion, userAgent string) {
 	var certChain []string
 
 	if len(connState.VerifiedChains) > 0 {
@@ -55,9 +63,38 @@ func (p *PinChecker) ReportCertIssue(host, port, datetime string, connState tls.
 		certChain = marshalCert7468(connState.PeerCertificates)
 	}
 
-	report := NewTLSReport(host, port, connState.ServerName, certChain, p.trustedPins, appVersion)
+	r := newTLSReport(host, port, connState.ServerName, certChain, p.trustedPins, appVersion)
 
-	go postCertIssueReport(report, userAgent)
+	if !p.hasRecentlySentReport(r) {
+		p.recordReport(r)
+		go r.sendReport(remoteURI, userAgent)
+	}
+}
+
+// hasRecentlySentReport returns whether the report was already sent within the last 24 hours.
+func (p *pinChecker) hasRecentlySentReport(report tlsReport) bool {
+	var validReports []sentReport
+
+	for _, r := range p.sentReports {
+		if time.Since(r.t) < 24*time.Hour {
+			validReports = append(validReports, r)
+		}
+	}
+
+	p.sentReports = validReports
+
+	for _, r := range p.sentReports {
+		if cmp.Equal(report, r.r) {
+			return true
+		}
+	}
+
+	return false
+}
+
+// recordReport records the given report and the current time so we can check whether we recently sent this report.
+func (p *pinChecker) recordReport(r tlsReport) {
+	p.sentReports = append(p.sentReports, sentReport{r: r, t: time.Now()})
 }
 
 func marshalCert7468(certs []*x509.Certificate) (pemCerts []string) {
@@ -67,7 +104,7 @@ func marshalCert7468(certs []*x509.Certificate) (pemCerts []string) {
 			Type:  "CERTIFICATE",
 			Bytes: cert.Raw,
 		}); err != nil {
-			logrus.WithField("pkg", "pmapi/tls-pinning").Errorf("encoding TLS cert: %v", err)
+			logrus.WithField("pkg", "pmapi/tls-pinning").WithError(err).Error("Failed to encode TLS certificate")
 		}
 		pemCerts = append(pemCerts, buffer.String())
 		buffer.Reset()

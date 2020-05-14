@@ -20,7 +20,6 @@ package pmapi
 import (
 	"crypto/tls"
 	"net"
-	"time"
 
 	"github.com/sirupsen/logrus"
 )
@@ -31,7 +30,7 @@ type PinningTLSDialer struct {
 	dialer TLSDialer
 
 	// pinChecker is used to check TLS keys of connections.
-	pinChecker PinChecker
+	pinChecker pinChecker
 
 	// tlsIssueNotifier is used to notify something when there is a TLS issue.
 	tlsIssueNotifier func()
@@ -55,7 +54,7 @@ type PinningTLSDialer struct {
 func NewPinningTLSDialer(dialer TLSDialer) *PinningTLSDialer {
 	return &PinningTLSDialer{
 		dialer:     dialer,
-		pinChecker: NewPinChecker(TrustedAPIPins),
+		pinChecker: newPinChecker(TrustedAPIPins),
 		log:        logrus.WithField("pkg", "pmapi/tls-pinning"),
 	}
 }
@@ -81,16 +80,16 @@ func (p *PinningTLSDialer) DialTLS(network, address string) (conn net.Conn, err 
 		return
 	}
 
-	if err = p.pinChecker.CheckCertificate(conn); err != nil {
+	if err = p.pinChecker.checkCertificate(conn); err != nil {
 		if p.tlsIssueNotifier != nil {
 			go p.tlsIssueNotifier()
 		}
 
 		if tlsConn, ok := conn.(*tls.Conn); ok && p.enableRemoteReporting {
-			p.pinChecker.ReportCertIssue(
+			p.pinChecker.reportCertIssue(
+				TLSReportURI,
 				host,
 				port,
-				time.Now().Format(time.RFC3339),
 				tlsConn.ConnectionState(),
 				p.appVersion,
 				p.userAgent,

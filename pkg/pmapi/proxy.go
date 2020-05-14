@@ -142,7 +142,6 @@ func (p *proxyProvider) refreshProxyCache() error {
 }
 
 // canReach returns whether we can reach the given url.
-// NOTE: we skip cert verification to stop it complaining that cert name doesn't match hostname.
 func (p *proxyProvider) canReach(url string) bool {
 	if !strings.HasPrefix(url, "https://") && !strings.HasPrefix(url, "http://") {
 		url = "https://" + url
