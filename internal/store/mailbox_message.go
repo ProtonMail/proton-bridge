@@ -24,6 +24,8 @@ import (
 	bolt "go.etcd.io/bbolt"
 )
 
+var errAllMailOpNotAllowed = errors.New("operation not supported for 'All Mail' folder")
+
 // GetMessage returns the `pmapi.Message` struct wrapped in `StoreMessage`
 // tied to this mailbox.
 func (storeMailbox *Mailbox) GetMessage(apiID string) (*Message, error) {
@@ -78,6 +80,9 @@ func (storeMailbox *Mailbox) LabelMessages(apiIDs []string) error {
 		"label":    storeMailbox.labelID,
 		"mailbox":  storeMailbox.Name,
 	}).Trace("Labeling messages")
+	if storeMailbox.labelID == pmapi.AllMailLabel {
+		return errAllMailOpNotAllowed
+	}
 	defer storeMailbox.pollNow()
 	return storeMailbox.client().LabelMessages(apiIDs, storeMailbox.labelID)
 }
@@ -91,6 +96,9 @@ func (storeMailbox *Mailbox) UnlabelMessages(apiIDs []string) error {
 		"label":    storeMailbox.labelID,
 		"mailbox":  storeMailbox.Name,
 	}).Trace("Unlabeling messages")
+	if storeMailbox.labelID == pmapi.AllMailLabel {
+		return errAllMailOpNotAllowed
+	}
 	defer storeMailbox.pollNow()
 	return storeMailbox.client().UnlabelMessages(apiIDs, storeMailbox.labelID)
 }
