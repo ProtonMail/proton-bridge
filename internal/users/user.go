@@ -359,14 +359,17 @@ func (u *User) GetAddressID(address string) (id string, err error) {
 	u.lock.RLock()
 	defer u.lock.RUnlock()
 
-	address = strings.ToLower(address)
-
-	if u.store == nil {
-		err = errors.New("store is not initialised")
-		return
+	if u.store != nil {
+		address = strings.ToLower(address)
+		return u.store.GetAddressID(address)
 	}
 
-	return u.store.GetAddressID(address)
+	addresses := u.client().Addresses()
+	pmapiAddress := addresses.ByEmail(address)
+	if pmapiAddress != nil {
+		return pmapiAddress.ID, nil
+	}
+	return "", errors.New("address not found")
 }
 
 // GetBridgePassword returns bridge password. This is not a password of the PM

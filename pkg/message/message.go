@@ -23,7 +23,10 @@ import (
 	"strings"
 
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
+	"github.com/sirupsen/logrus"
 )
+
+var log = logrus.WithField("pkg", "pkg/message") //nolint[gochecknoglobals]
 
 func GetBoundary(m *pmapi.Message) string {
 	// The boundary needs to be deterministic because messages are not supposed to

@@ -26,7 +26,7 @@ import (
 )
 
 func (f *frontendCLI) checkUpdates(c *ishell.Context) {
-	isUpToDate, latestVersionInfo, err := f.updates.CheckIsBridgeUpToDate()
+	isUpToDate, latestVersionInfo, err := f.updates.CheckIsUpToDate()
 	if err != nil {
 		f.printAndLogError("Cannot retrieve version info: ", err)
 		f.checkInternetConnection(c)
@@ -47,7 +47,7 @@ func (f *frontendCLI) printLocalReleaseNotes(c *ishell.Context) {
 }
 
 func (f *frontendCLI) printReleaseNotes(versionInfo updates.VersionInfo) {
-	f.Println(bold("ProtonMail Bridge "+versionInfo.Version), "\n")
+	f.Println(bold("ProtonMail Import/Export "+versionInfo.Version), "\n")
 	if versionInfo.ReleaseNotes != "" {
 		f.Println(bold("Release Notes"))
 		f.Println(versionInfo.ReleaseNotes)

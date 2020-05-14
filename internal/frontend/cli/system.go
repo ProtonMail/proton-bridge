@@ -43,7 +43,7 @@ func (f *frontendCLI) checkInternetConnection(c *ishell.Context) {
 	if f.bridge.CheckConnection() == nil {
 		f.Println("Internet connection is available.")
 	} else {
-		f.Println("Can not contact server please check you internet connection.")
+		f.Println("Can not contact the server, please check you internet connection.")
 	}
 }
 

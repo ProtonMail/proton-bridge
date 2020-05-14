@@ -228,6 +228,11 @@ func (c *Config) GetPreferencesPath() string {
 	return filepath.Join(c.appDirsVersion.UserCache(), "prefs.json")
 }
 
+// GetTransferDir returns folder for import/export rule and report files.
+func (c *Config) GetTransferDir() string {
+	return filepath.Join(c.appDirsVersion.UserCache())
+}
+
 // GetDefaultAPIPort returns default Bridge local API port.
 func (c *Config) GetDefaultAPIPort() int {
 	return 1042

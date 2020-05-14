@@ -347,6 +347,14 @@ func (cm *ClientManager) CheckConnection() error {
 	return nil
 }
 
+// CheckConnection returns an error if there is no internet connection.
+func CheckConnection() error {
+	client := &http.Client{Timeout: time.Second * 10}
+	retStatus := make(chan error)
+	checkConnection(client, "http://protonstatus.com/vpn_status", retStatus)
+	return <-retStatus
+}
+
 func checkConnection(client *http.Client, url string, errorChannel chan error) {
 	resp, err := client.Get(url)
 	if err != nil {

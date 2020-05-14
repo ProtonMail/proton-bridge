@@ -20,6 +20,8 @@ package types
 
 import (
 	"github.com/ProtonMail/proton-bridge/internal/bridge"
+	"github.com/ProtonMail/proton-bridge/internal/importexport"
+	"github.com/ProtonMail/proton-bridge/internal/transfer"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	"github.com/ProtonMail/proton-bridge/pkg/updates"
 )
@@ -31,7 +33,7 @@ type PanicHandler interface {
 
 // Updater is an interface for handling Bridge upgrades.
 type Updater interface {
-	CheckIsBridgeUpToDate() (isUpToDate bool, latestVersion updates.VersionInfo, err error)
+	CheckIsUpToDate() (isUpToDate bool, latestVersion updates.VersionInfo, err error)
 	GetDownloadLink() string
 	GetLocalVersion() updates.VersionInfo
 	StartUpgrade(currentStatus chan<- updates.Progress)
@@ -41,24 +43,19 @@ type NoEncConfirmator interface {
 	ConfirmNoEncryption(string, bool)
 }
 
-// Bridger is an interface of bridge needed by frontend.
-type Bridger interface {
-	GetCurrentClient() string
-	SetCurrentOS(os string)
+// UserManager is an interface of users needed by frontend.
+type UserManager interface {
 	Login(username, password string) (pmapi.Client, *pmapi.Auth, error)
-	FinishLogin(client pmapi.Client, auth *pmapi.Auth, mailboxPassword string) (BridgeUser, error)
-	GetUsers() []BridgeUser
-	GetUser(query string) (BridgeUser, error)
+	FinishLogin(client pmapi.Client, auth *pmapi.Auth, mailboxPassword string) (User, error)
+	GetUsers() []User
+	GetUser(query string) (User, error)
 	DeleteUser(userID string, clearCache bool) error
-	ReportBug(osType, osVersion, description, accountName, address, emailClient string) error
 	ClearData() error
-	AllowProxy()
-	DisallowProxy()
 	CheckConnection() error
 }
 
-// BridgeUser is an interface of user needed by frontend.
-type BridgeUser interface {
+// User is an interface of user needed by frontend.
+type User interface {
 	ID() string
 	Username() string
 	IsConnected() bool
@@ -68,6 +65,17 @@ type BridgeUser interface {
 	GetBridgePassword() string
 	SwitchAddressMode() error
 	Logout() error
+}
+
+// Bridger is an interface of bridge needed by frontend.
+type Bridger interface {
+	UserManager
+
+	GetCurrentClient() string
+	SetCurrentOS(os string)
+	ReportBug(osType, osVersion, description, accountName, address, emailClient string) error
+	AllowProxy()
+	DisallowProxy()
 }
 
 type bridgeWrap struct {
@@ -81,17 +89,55 @@ func NewBridgeWrap(bridge *bridge.Bridge) *bridgeWrap { //nolint[golint]
 	return &bridgeWrap{Bridge: bridge}
 }
 
-func (b *bridgeWrap) FinishLogin(client pmapi.Client, auth *pmapi.Auth, mailboxPassword string) (BridgeUser, error) {
+func (b *bridgeWrap) FinishLogin(client pmapi.Client, auth *pmapi.Auth, mailboxPassword string) (User, error) {
 	return b.Bridge.FinishLogin(client, auth, mailboxPassword)
 }
 
-func (b *bridgeWrap) GetUsers() (users []BridgeUser) {
+func (b *bridgeWrap) GetUsers() (users []User) {
 	for _, user := range b.Bridge.GetUsers() {
 		users = append(users, user)
 	}
 	return
 }
 
-func (b *bridgeWrap) GetUser(query string) (BridgeUser, error) {
+func (b *bridgeWrap) GetUser(query string) (User, error) {
 	return b.Bridge.GetUser(query)
+}
+
+// ImportExporter is an interface of import/export needed by frontend.
+type ImportExporter interface {
+	UserManager
+
+	GetLocalImporter(string, string) (*transfer.Transfer, error)
+	GetRemoteImporter(string, string, string, string, string) (*transfer.Transfer, error)
+	GetEMLExporter(string, string) (*transfer.Transfer, error)
+	GetMBOXExporter(string, string) (*transfer.Transfer, error)
+}
+
+type importExportWrap struct {
+	*importexport.ImportExport
+}
+
+// NewImportExportWrap wraps import/export struct into local importExportWrap
+// to implement local interface.
+// The problem is that Import/Export returns the importexport package's User
+// type. Every method which returns User therefore has to be overridden to
+// fulfill the interface.
+func NewImportExportWrap(ie *importexport.ImportExport) *importExportWrap { //nolint[golint]
+	return &importExportWrap{ImportExport: ie}
+}
+
+func (b *importExportWrap) FinishLogin(client pmapi.Client, auth *pmapi.Auth, mailboxPassword string) (User, error) {
+	return b.ImportExport.FinishLogin(client, auth, mailboxPassword)
+}
+
+func (b *importExportWrap) GetUsers() (users []User) {
+	for _, user := range b.ImportExport.GetUsers() {
+		users = append(users, user)
+	}
+	return
+}
+
+func (b *importExportWrap) GetUser(query string) (User, error) {
+	return b.ImportExport.GetUser(query)
 }

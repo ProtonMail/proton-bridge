@@ -147,11 +147,11 @@ func (ph *panicHandler) HandlePanic() {
 	config.HandlePanic(ph.cfg, fmt.Sprintf("Recover: %v", r))
 	frontend.HandlePanic()
 
-	*ph.err = cli.NewExitError("Panic and restart", 666)
+	*ph.err = cli.NewExitError("Panic and restart", 255)
 	numberOfCrashes++
 	log.Error("Restarting after panic")
 	restartApp()
-	os.Exit(666)
+	os.Exit(255)
 }
 
 // run initializes and starts everything in a precise order.

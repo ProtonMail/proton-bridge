@@ -63,7 +63,7 @@ func (f *frontendCLI) showAccountInfo(c *ishell.Context) {
 	}
 }
 
-func (f *frontendCLI) showAccountAddressInfo(user types.BridgeUser, address string) {
+func (f *frontendCLI) showAccountAddressInfo(user types.User, address string) {
 	smtpSecurity := "STARTTLS"
 	if f.preferences.GetBool(preferences.SMTPSSLKey) {
 		smtpSecurity = "SSL"

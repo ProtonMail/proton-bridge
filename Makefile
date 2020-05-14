@@ -156,11 +156,16 @@ test: gofiles
 		./internal/frontend/cli/... \
 		./internal/imap/... \
 		./internal/metrics/... \
+		./internal/importexport/... \
 		./internal/preferences/... \
 		./internal/smtp/... \
 		./internal/store/... \
+		./internal/transfer/... \
 		./internal/users/... \
 		./pkg/...
+
+test-ie:
+	go test ./internal/transfer/...
 
 bench:
 	go test -run '^$$' -bench=. -memprofile bench_mem.pprof -cpuprofile bench_cpu.pprof ./internal/store
@@ -172,6 +177,7 @@ coverage: test
 
 mocks:
 	mockgen --package mocks github.com/ProtonMail/proton-bridge/internal/users Configer,PanicHandler,ClientManager,CredentialsStorer,StoreMaker > internal/users/mocks/mocks.go
+	mockgen --package mocks github.com/ProtonMail/proton-bridge/internal/transfer PanicHandler,ClientManager > internal/transfer/mocks/mocks.go
 	mockgen --package mocks github.com/ProtonMail/proton-bridge/internal/store PanicHandler,ClientManager,BridgeUser > internal/store/mocks/mocks.go
 	mockgen --package mocks github.com/ProtonMail/proton-bridge/pkg/listener Listener > internal/store/mocks/utils_mocks.go
 	mockgen --package mocks github.com/ProtonMail/proton-bridge/pkg/pmapi Client > pkg/pmapi/mocks/mocks.go
@@ -195,11 +201,15 @@ doc:
 .PHONY: gofiles
 # Following files are for the whole app so it makes sense to have them in bridge package.
 # (Options like cmd or internal were considered and bridge package is the best place for them.)
-gofiles: ./internal/bridge/credits.go ./internal/bridge/release_notes.go
+gofiles: ./internal/bridge/credits.go ./internal/bridge/release_notes.go ./internal/importexport/credits.go ./internal/importexport/release_notes.go
 ./internal/bridge/credits.go: ./utils/credits.sh go.mod
-	cd ./utils/ && ./credits.sh
-./internal/bridge/release_notes.go: ./utils/release-notes.sh ./release-notes/notes.txt ./release-notes/bugs.txt
-	cd ./utils/ && ./release-notes.sh
+	cd ./utils/ && ./credits.sh bridge
+./internal/bridge/release_notes.go: ./utils/release-notes.sh ./release-notes/notes-bridge.txt ./release-notes/bugs-bridge.txt
+	cd ./utils/ && ./release-notes.sh bridge
+./internal/importexport/credits.go: ./utils/credits.sh go.mod
+	cd ./utils/ && ./credits.sh importexport
+./internal/importexport/release_notes.go: ./utils/release-notes.sh ./release-notes/notes-importexport.txt ./release-notes/bugs-importexport.txt
+	cd ./utils/ && ./release-notes.sh importexport
 
 
 ## Run and debug
@@ -218,6 +228,9 @@ run-nogui: clean-vendor gofiles
 	PROTONMAIL_ENV=dev go run ${BUILD_FLAGS_NOGUI} cmd/Desktop-Bridge/main.go ${RUN_FLAGS} | tee last.log
 run-nogui-cli: clean-vendor gofiles
 	PROTONMAIL_ENV=dev go run ${BUILD_FLAGS_NOGUI} cmd/Desktop-Bridge/main.go ${RUN_FLAGS} -c
+
+run-ie:
+	PROTONMAIL_ENV=dev go run ${BUILD_FLAGS_NOGUI} cmd/Import-Export/main.go ${RUN_FLAGS} -c
 
 run-debug:
 	PROTONMAIL_ENV=dev dlv debug --build-flags "${BUILD_FLAGS_NOGUI}" cmd/Desktop-Bridge/main.go -- ${RUN_FLAGS}

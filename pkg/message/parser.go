@@ -37,7 +37,6 @@ import (
 	pmmime "github.com/ProtonMail/proton-bridge/pkg/mime"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	"github.com/jaytaylor/html2text"
-	log "github.com/sirupsen/logrus"
 )
 
 func parseAttachment(filename string, mediaType string, h textproto.MIMEHeader) (att *pmapi.Attachment) {

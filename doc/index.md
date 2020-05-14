@@ -2,8 +2,13 @@
 
 Documentation pages in order to read for a novice:
 
-* [Development cycle](development.md)
+## Bridge
+
 * [Bridge code](bridge.md)
 * [Internal Bridge database](database.md)
 * [Communication between Bridge, Client and Server](communication.md)
 * [Encryption](encryption.md)
+
+## Import/Export
+
+* [Import/Export code](importexport.md)

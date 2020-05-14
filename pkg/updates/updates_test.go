@@ -71,14 +71,14 @@ func startServer() {
 
 func TestCheckBridgeIsUpToDate(t *testing.T) {
 	updates := newTestUpdates("1.1.6")
-	isUpToDate, _, err := updates.CheckIsBridgeUpToDate()
+	isUpToDate, _, err := updates.CheckIsUpToDate()
 	require.NoError(t, err)
 	require.True(t, isUpToDate, "Bridge should be up to date")
 }
 
 func TestCheckBridgeIsNotUpToDate(t *testing.T) {
 	updates := newTestUpdates("1.1.5")
-	isUpToDate, _, err := updates.CheckIsBridgeUpToDate()
+	isUpToDate, _, err := updates.CheckIsUpToDate()
 	require.NoError(t, err)
 	require.True(t, !isUpToDate, "Bridge should not be up to date")
 }

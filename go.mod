@@ -34,6 +34,7 @@ require (
 	github.com/emersion/go-imap-quota v0.0.0-20200423100218-dcfd1b7d2b41
 	github.com/emersion/go-imap-specialuse v0.0.0-20200722111535-598ff00e4075
 	github.com/emersion/go-imap-unselect v0.0.0-20171113212723-b985794e5f26
+	github.com/emersion/go-mbox v1.0.0
 	github.com/emersion/go-sasl v0.0.0-20200509203442-7bfe0ed36a21
 	github.com/emersion/go-textwrapper v0.0.0-20160606182133-d0e65e56babe
 	github.com/emersion/go-vcard v0.0.0-20190105225839-8856043f13c5 // indirect

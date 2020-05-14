@@ -55,7 +55,7 @@ func (f *frontendCLI) noAccountWrapper(callback func(*ishell.Context)) func(*ish
 	}
 }
 
-func (f *frontendCLI) askUserByIndexOrName(c *ishell.Context) types.BridgeUser {
+func (f *frontendCLI) askUserByIndexOrName(c *ishell.Context) types.User {
 	user := f.getUserByIndexOrName("")
 	if user != nil {
 		return user
@@ -76,7 +76,7 @@ func (f *frontendCLI) askUserByIndexOrName(c *ishell.Context) types.BridgeUser {
 	return user
 }
 
-func (f *frontendCLI) getUserByIndexOrName(arg string) types.BridgeUser {
+func (f *frontendCLI) getUserByIndexOrName(arg string) types.User {
 	users := f.bridge.GetUsers()
 	numberOfAccounts := len(users)
 	if numberOfAccounts == 0 {

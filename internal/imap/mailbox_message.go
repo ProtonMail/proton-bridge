@@ -19,17 +19,14 @@ package imap
 
 import (
 	"bytes"
-	"encoding/base64"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"mime/multipart"
 	"net/mail"
 	"net/textproto"
 	"regexp"
 	"sort"
 	"strings"
-	"text/template"
 	"time"
 
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
@@ -39,7 +36,6 @@ import (
 	"github.com/ProtonMail/proton-bridge/pkg/parallel"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	"github.com/emersion/go-imap"
-	"github.com/emersion/go-textwrapper"
 	"github.com/hashicorp/go-multierror"
 	enmime "github.com/jhillyerd/enmime"
 	"github.com/pkg/errors"
@@ -185,74 +181,8 @@ func (im *imapMailbox) CreateMessage(flags []string, date time.Time, body imap.L
 }
 
 func (im *imapMailbox) importMessage(m *pmapi.Message, readers []io.Reader, kr *crypto.KeyRing) (err error) { // nolint[funlen]
-	b := &bytes.Buffer{}
-
-	// Overwrite content for main header for import.
-	// Even if message has just simple body we should upload as multipart/mixed.
-	// Each part has encrypted body and header reflects the original header.
-	mainHeader := message.GetHeader(m)
-	mainHeader.Set("Content-Type", "multipart/mixed; boundary="+message.GetBoundary(m))
-	mainHeader.Del("Content-Disposition")
-	mainHeader.Del("Content-Transfer-Encoding")
-	if err = writeHeader(b, mainHeader); err != nil {
-		return
-	}
-	mw := multipart.NewWriter(b)
-	if err = mw.SetBoundary(message.GetBoundary(m)); err != nil {
-		return
-	}
-
-	// Write the body part.
-	bodyHeader := make(textproto.MIMEHeader)
-	bodyHeader.Set("Content-Type", m.MIMEType+"; charset=utf-8")
-	bodyHeader.Set("Content-Disposition", "inline")
-	bodyHeader.Set("Content-Transfer-Encoding", "7bit")
-
-	var p io.Writer
-	if p, err = mw.CreatePart(bodyHeader); err != nil {
-		return
-	}
-	// First, encrypt the message body.
-	if err = m.Encrypt(kr, kr); err != nil {
-		return err
-	}
-	if _, err := io.WriteString(p, m.Body); err != nil {
-		return err
-	}
-
-	// Write the attachments parts.
-	for i := 0; i < len(m.Attachments); i++ {
-		att := m.Attachments[i]
-		r := readers[i]
-		h := message.GetAttachmentHeader(att)
-		if p, err = mw.CreatePart(h); err != nil {
-			return
-		}
-		// Create line wrapper writer.
-		ww := textwrapper.NewRFC822(p)
-
-		// Create base64 writer.
-		bw := base64.NewEncoder(base64.StdEncoding, ww)
-
-		data, err := ioutil.ReadAll(r)
-		if err != nil {
-			return err
-		}
-
-		// Create encrypted writer.
-		pgpMessage, err := kr.Encrypt(crypto.NewPlainMessage(data), nil)
-		if err != nil {
-			return err
-		}
-		if _, err := bw.Write(pgpMessage.GetBinary()); err != nil {
-			return err
-		}
-		if err := bw.Close(); err != nil {
-			return err
-		}
-	}
-
-	if err := mw.Close(); err != nil {
+	body, err := message.BuildEncrypted(m, readers, kr)
+	if err != nil {
 		return err
 	}
 
@@ -263,7 +193,7 @@ func (im *imapMailbox) importMessage(m *pmapi.Message, readers []io.Reader, kr *
 		}
 	}
 
-	return im.storeMailbox.ImportMessage(m, b.Bytes(), labels)
+	return im.storeMailbox.ImportMessage(m, body, labels)
 }
 
 func (im *imapMailbox) getMessage(storeMessage storeMessageProvider, items []imap.FetchItem) (msg *imap.Message, err error) {
@@ -489,55 +419,6 @@ func (im *imapMailbox) fetchMessage(m *pmapi.Message) (err error) {
 	return
 }
 
-const customMessageTemplate = `
-<html>
-	<head></head>
-	<body style="font-family: Arial,'Helvetica Neue',Helvetica,sans-serif; font-size: 14px;">
-		<div style="color:#555; background-color:#cf9696; padding:20px; border-radius: 4px;">
-			<strong>Decryption error</strong><br/>
-			Decryption of this message's encrypted content failed.
-			<pre>{{.Error}}</pre>
-		</div>
-
-		{{if .AttachBody}}
-		<div style="color:#333; background-color:#f4f4f4;  border: 1px solid #acb0bf; border-radius: 2px; padding:1rem; margin:1rem 0; font-family:monospace; font-size: 1em;">
-			<pre>{{.Body}}</pre>
-		</div>
-		{{- end}}
-	</body>
-</html>
-`
-
-type customMessageData struct {
-	Error      string
-	AttachBody bool
-	Body       string
-}
-
-func (im *imapMailbox) makeCustomMessage(m *pmapi.Message, decodeError error, attachBody bool) (err error) {
-	t := template.Must(template.New("customMessage").Parse(customMessageTemplate))
-
-	b := new(bytes.Buffer)
-
-	if err = t.Execute(b, customMessageData{
-		Error:      decodeError.Error(),
-		AttachBody: attachBody,
-		Body:       m.Body,
-	}); err != nil {
-		return
-	}
-
-	m.MIMEType = pmapi.ContentTypeHTML
-	m.Body = b.String()
-
-	// NOTE: we need to set header in custom message header, so we check that is non-nil.
-	if m.Header == nil {
-		m.Header = make(mail.Header)
-	}
-
-	return
-}
-
 func (im *imapMailbox) writeMessageBody(w io.Writer, m *pmapi.Message) (err error) {
 	im.log.Trace("Writing message body")
 
@@ -555,7 +436,7 @@ func (im *imapMailbox) writeMessageBody(w io.Writer, m *pmapi.Message) (err erro
 
 	err = message.WriteBody(w, kr, m)
 	if err != nil {
-		if customMessageErr := im.makeCustomMessage(m, err, true); customMessageErr != nil {
+		if customMessageErr := message.CustomMessage(m, err, true); customMessageErr != nil {
 			im.log.WithError(customMessageErr).Warn("Failed to make custom message")
 		}
 		_, _ = io.WriteString(w, m.Body)
@@ -692,7 +573,7 @@ func (im *imapMailbox) buildMessage(m *pmapi.Message) (structure *message.BodySt
 
 	if errDecrypt != nil && errDecrypt != openpgperrors.ErrSignatureExpired {
 		errNoCache.add(errDecrypt)
-		if customMessageErr := im.makeCustomMessage(m, errDecrypt, true); customMessageErr != nil {
+		if customMessageErr := message.CustomMessage(m, errDecrypt, true); customMessageErr != nil {
 			im.log.WithError(customMessageErr).Warn("Failed to make custom message")
 		}
 	}
@@ -708,7 +589,7 @@ func (im *imapMailbox) buildMessage(m *pmapi.Message) (structure *message.BodySt
 		return nil, nil, err
 	} else if err != nil {
 		errNoCache.add(err)
-		if customMessageErr := im.makeCustomMessage(m, err, true); customMessageErr != nil {
+		if customMessageErr := message.CustomMessage(m, err, true); customMessageErr != nil {
 			im.log.WithError(customMessageErr).Warn("Failed to make custom message")
 		}
 		structure, msgBody, err = im.buildMessageInner(m, kr)

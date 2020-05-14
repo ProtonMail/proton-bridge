@@ -43,7 +43,7 @@ func (c *appleMail) Name() string {
 	return "Apple Mail"
 }
 
-func (c *appleMail) Configure(imapPort, smtpPort int, imapSSL, smtpSSL bool, user types.BridgeUser, addressIndex int) error { //nolint[funlen]
+func (c *appleMail) Configure(imapPort, smtpPort int, imapSSL, smtpSSL bool, user types.User, addressIndex int) error { //nolint[funlen]
 	var addresses string
 	var displayName string
 

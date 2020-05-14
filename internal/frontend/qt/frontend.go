@@ -410,7 +410,7 @@ func (s *FrontendQt) isNewVersionAvailable(showMessage bool) {
 	go func() {
 		defer s.panicHandler.HandlePanic()
 		defer s.Qml.ProcessFinished()
-		isUpToDate, latestVersionInfo, err := s.updates.CheckIsBridgeUpToDate()
+		isUpToDate, latestVersionInfo, err := s.updates.CheckIsUpToDate()
 		if err != nil {
 			log.Warn("Can not retrieve version info: ", err)
 			s.checkInternet()

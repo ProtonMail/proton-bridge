@@ -60,7 +60,7 @@ func New(
 	}
 
 	storeFactory := newStoreFactory(config, panicHandler, clientManager, eventListener)
-	u := users.New(config, panicHandler, eventListener, clientManager, credStorer, storeFactory)
+	u := users.New(config, panicHandler, eventListener, clientManager, credStorer, storeFactory, true)
 	b := &Bridge{
 		Users: u,
 

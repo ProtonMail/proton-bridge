@@ -120,7 +120,7 @@ func (u *Updates) CreateJSONAndSign(deployDir, goos string) error {
 	return nil
 }
 
-func (u *Updates) CheckIsBridgeUpToDate() (isUpToDate bool, latestVersion VersionInfo, err error) {
+func (u *Updates) CheckIsUpToDate() (isUpToDate bool, latestVersion VersionInfo, err error) {
 	localVersion := u.GetLocalVersion()
 	latestVersion, err = u.getLatestVersion()
 	if err != nil {
