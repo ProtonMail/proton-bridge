@@ -84,7 +84,7 @@ logo.ico: ./internal/frontend/share/icons/logo.ico
 icon.rc: ./internal/frontend/share/icon.rc
 	cp $^ .
 ./internal/frontend/qt/icon_windows.syso: ./internal/frontend/share/icon.rc  logo.ico 
-	windres --target=coff-x86-64 -o $@ $<
+	windres --target=pe-x86-64 -o $@ $<
 icon_windows.syso: ./internal/frontend/qt/icon_windows.syso
 	cp $^ .
 

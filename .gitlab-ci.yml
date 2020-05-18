@@ -134,6 +134,26 @@ build-darwin:
       - bridge_*.tgz
     expire_in: 2 week
 
+build-windows:
+  stage: build
+  services:
+  - docker:dind
+  only:
+    - devel
+  variables:
+    DOCKER_HOST: tcp://docker:2375
+  script:
+    - curl -fsSL https://get.docker.com -o get-docker.sh && sh get-docker.sh
+    - apt-get update && apt-get -y install binutils-mingw-w64
+    - ln -s /usr/bin/x86_64-w64-mingw32-windres /usr/bin/windres
+    - go mod download
+    - TARGET_OS=windows make build
+  artifacts:
+    name: "bridge-windows-$CI_COMMIT_SHORT_SHA"
+    paths:
+      - bridge_*.tgz
+    expire_in: 2 week
+
 mirror-repo:
   stage: mirror
   only:
