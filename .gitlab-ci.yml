@@ -143,6 +143,8 @@ build-windows:
   variables:
     DOCKER_HOST: tcp://docker:2375
   script:
+    # We need to install docker because qtdeploy builds for windows inside a docker container.
+    # Docker will connect to the dockerd daemon provided by the runner service docker:dind at tcp://docker:2375.
     - curl -fsSL https://get.docker.com -o get-docker.sh && sh get-docker.sh
     - apt-get update && apt-get -y install binutils-mingw-w64
     - ln -s /usr/bin/x86_64-w64-mingw32-windres /usr/bin/windres
@@ -151,7 +153,7 @@ build-windows:
   artifacts:
     name: "bridge-windows-$CI_COMMIT_SHORT_SHA"
     paths:
-      - bridge_*.tgz
+      - bridge_*.zip
     expire_in: 2 week
 
 mirror-repo:

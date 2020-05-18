@@ -37,8 +37,13 @@ ifeq "${TARGET_OS}" "darwin"
 endif
 EXE_TARGET:=${DEPLOY_DIR}/${TARGET_OS}/${EXE}
 TGZ_TARGET:=bridge_${TARGET_OS}_${REVISION}.tgz
+ZIP_TARGET:=bridge_${TARGET_OS}_${REVISION}.zip
 
+ifeq "${TARGET_OS}" "windows"
+build: ${ZIP_TARGET}
+else
 build: ${TGZ_TARGET}
+endif
 
 build-nogui:
 	go build ${BUILD_FLAGS_NOGUI} -o Desktop-Bridge cmd/Desktop-Bridge/main.go
@@ -46,6 +51,10 @@ build-nogui:
 ${TGZ_TARGET}: ${DEPLOY_DIR}/${TARGET_OS}
 	rm -f $@
 	cd ${DEPLOY_DIR} && tar czf ../../../$@ ${TARGET_OS}
+
+${ZIP_TARGET}: ${DEPLOY_DIR}/${TARGET_OS}
+	rm -f $@
+	cd ${DEPLOY_DIR} && zip -r ../../../$@ ${TARGET_OS}
 
 ${DEPLOY_DIR}/linux: ${EXE_TARGET}
 	cp -pf ./internal/frontend/share/icons/logo.svg ${DEPLOY_DIR}/linux/
