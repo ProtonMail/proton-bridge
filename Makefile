@@ -1,5 +1,9 @@
 export GO111MODULE=on
+
+# By default, the target OS is the same as the host OS,
+# but this can be overridden by setting TARGET_OS to "windows"/"darwin"/"linux".
 GOOS:=$(shell go env GOOS)
+TARGET_OS?=${GOOS}
 
 ## Build
 .PHONY: build build-nogui check-has-go
@@ -23,25 +27,25 @@ DEPLOY_DIR:=cmd/Desktop-Bridge/deploy
 ICO_FILES:=
 EXE:=$(shell basename ${CURDIR})
 
-ifeq "${GOOS}" "windows"
+ifeq "${TARGET_OS}" "windows"
     EXE+=.exe
     ICO_FILES:=logo.ico icon.rc icon_windows.syso
 endif
-ifeq "${GOOS}" "darwin"
+ifeq "${TARGET_OS}" "darwin"
     DARWINAPP_CONTENTS:=${DEPLOY_DIR}/darwin/${EXE}.app/Contents
     EXE:=${EXE}.app/Contents/MacOS/${EXE}
 endif
-EXE_TARGET:=${DEPLOY_DIR}/${GOOS}/${EXE}
-TGZ_TARGET:=bridge_${GOOS}_${REVISION}.tgz
+EXE_TARGET:=${DEPLOY_DIR}/${TARGET_OS}/${EXE}
+TGZ_TARGET:=bridge_${TARGET_OS}_${REVISION}.tgz
 
 build: ${TGZ_TARGET}
 
 build-nogui:
 	go build ${BUILD_FLAGS_NOGUI} -o Desktop-Bridge cmd/Desktop-Bridge/main.go
 
-${TGZ_TARGET}: ${DEPLOY_DIR}/${GOOS}
+${TGZ_TARGET}: ${DEPLOY_DIR}/${TARGET_OS}
 	rm -f $@
-	cd ${DEPLOY_DIR} && tar czf ../../../$@ ${GOOS}
+	cd ${DEPLOY_DIR} && tar czf ../../../$@ ${TARGET_OS}
 
 ${DEPLOY_DIR}/linux: ${EXE_TARGET}
 	cp -pf ./internal/frontend/share/icons/logo.svg ${DEPLOY_DIR}/linux/
@@ -61,36 +65,46 @@ ${DEPLOY_DIR}/windows: ${EXE_TARGET}
 	cp ./internal/frontend/share/icons/logo.ico ${DEPLOY_DIR}/windows/
 	cp LICENSE ${DEPLOY_DIR}/windows/
 
+QT_BUILD_TARGET:=build desktop
+ifneq "${GOOS}" "${TARGET_OS}"
+  ifeq "${TARGET_OS}" "windows"
+    QT_BUILD_TARGET:=-docker build windows_64_shared
+  endif
+endif
+
 ${EXE_TARGET}: check-has-go gofiles ${ICO_FILES} update-vendor
-	rm -rf deploy ${GOOS} ${DEPLOY_DIR}
+	rm -rf deploy ${TARGET_OS} ${DEPLOY_DIR}
 	cp cmd/Desktop-Bridge/main.go .
-	qtdeploy ${BUILD_FLAGS} build desktop
+	qtdeploy ${BUILD_FLAGS} ${QT_BUILD_TARGET}
 	mv deploy cmd/Desktop-Bridge
-	rm -rf ${GOOS} main.go
+	rm -rf ${TARGET_OS} main.go
 
 logo.ico: ./internal/frontend/share/icons/logo.ico
 	cp $^ .
 icon.rc: ./internal/frontend/share/icon.rc
 	cp $^ .
 ./internal/frontend/qt/icon_windows.syso: ./internal/frontend/share/icon.rc  logo.ico 
-	windres $< $@
+	windres --target=coff-x86-64 -o $@ $<
 icon_windows.syso: ./internal/frontend/qt/icon_windows.syso
 	cp $^ .
 
 
 ## Rules for therecipe/qt
 .PHONY: prepare-vendor update-vendor
-THERECIPE_ENV:=github.com/therecipe/env_${GOOS}_amd64_513
+THERECIPE_ENV:=github.com/therecipe/env_${TARGET_OS}_amd64_513
 
 # vendor folder will be deleted by gomod hence we cache the big repo
 # therecipe/env in order to download it only once
 vendor-cache/${THERECIPE_ENV}:
 	git clone https://${THERECIPE_ENV}.git vendor-cache/${THERECIPE_ENV}
 
+# The command used to make symlinks is different on windows.
+# So if the GOOS is windows and we aren't crossbuilding (in which case the host os would still be *nix)
+# we need to change the LINKCMD to something windowsy.
 LINKCMD:=ln -sf ${CURDIR}/vendor-cache/${THERECIPE_ENV} vendor/${THERECIPE_ENV}
 ifeq "${GOOS}" "windows"
-    WINDIR:=$(subst /c/,c:\\,${CURDIR})/vendor-cache/${THERECIPE_ENV}
-    LINKCMD:=cmd //c 'mklink $(subst /,\,vendor\${THERECIPE_ENV} ${WINDIR})'
+  WINDIR:=$(subst /c/,c:\\,${CURDIR})/vendor-cache/${THERECIPE_ENV}
+  LINKCMD:=cmd //c 'mklink $(subst /,\,vendor\${THERECIPE_ENV} ${WINDIR})'
 endif
 
 prepare-vendor:
@@ -213,3 +227,4 @@ clean: clean-frontend-qt
 	rm -rf vendor-cache
 	rm -rf cmd/Desktop-Bridge/deploy
 	rm -f build last.log mem.pprof
+	rm -rf logo.ico icon.rc icon_windows.syso internal/frontend/qt/icon_windows.syso
