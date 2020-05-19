@@ -40,10 +40,12 @@ TGZ_TARGET:=bridge_${TARGET_OS}_${REVISION}.tgz
 ZIP_TARGET:=bridge_${TARGET_OS}_${REVISION}.zip
 
 ifeq "${TARGET_OS}" "windows"
-build: ${ZIP_TARGET}
+BUILD_TARGET:=${ZIP_TARGET}
 else
-build: ${TGZ_TARGET}
+BUILD_TARGET:=${TGZ_TARGET}
 endif
+
+build: ${BUILD_TARGET}
 
 build-nogui:
 	go build ${BUILD_FLAGS_NOGUI} -o Desktop-Bridge cmd/Desktop-Bridge/main.go
