@@ -18,6 +18,7 @@
 package pmapi
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -116,7 +117,7 @@ func (l AddressList) Main() *Address {
 			return addr
 		}
 	}
-	return l[0] // Should not happen.
+	return nil
 }
 
 // ByEmail gets an address by email. Returns nil if no address is found.
@@ -218,10 +219,14 @@ func (c *client) UnlockAddresses(passphrase []byte) (err error) {
 	return
 }
 
-func (c *client) KeyRingForAddressID(addrID string) *pmcrypto.KeyRing {
-	addr := c.addresses.ByID(addrID)
-	if addr == nil {
-		addr = c.addresses.Main()
+func (c *client) KeyRingForAddressID(addrID string) (*pmcrypto.KeyRing, error) {
+	if addr := c.addresses.ByID(addrID); addr != nil {
+		return addr.KeyRing(), nil
 	}
-	return addr.KeyRing()
+
+	if addr := c.addresses.Main(); addr != nil {
+		return addr.KeyRing(), nil
+	}
+
+	return nil, errors.New("no such address ID")
 }

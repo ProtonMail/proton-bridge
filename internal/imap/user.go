@@ -34,12 +34,16 @@ type imapUser struct {
 	panicHandler panicHandler
 	backend      *imapBackend
 	user         bridgeUser
-	client       pmapi.Client
 
 	storeUser    storeUserProvider
 	storeAddress storeAddressProvider
 
 	currentAddressLowercase string
+}
+
+// This method should eventually no longer be necessary. Everything should go via store.
+func (iu *imapUser) client() pmapi.Client {
+	return iu.user.GetTemporaryPMAPIClient()
 }
 
 // newIMAPUser returns struct implementing go-imap/user interface.
@@ -62,13 +66,10 @@ func newIMAPUser(
 		return nil, err
 	}
 
-	client := user.GetTemporaryPMAPIClient()
-
 	return &imapUser{
 		panicHandler: panicHandler,
 		backend:      backend,
 		user:         user,
-		client:       client,
 
 		storeUser:    storeUser,
 		storeAddress: storeAddress,

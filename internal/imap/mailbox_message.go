@@ -548,7 +548,11 @@ func (im *imapMailbox) writeMessageBody(w io.Writer, m *pmapi.Message) (err erro
 		}
 	}
 
-	kr := im.user.client.KeyRingForAddressID(m.AddressID)
+	kr, err := im.user.client().KeyRingForAddressID(m.AddressID)
+	if err != nil {
+		return errors.Wrap(err, "failed to get keyring for address ID")
+	}
+
 	err = message.WriteBody(w, kr, m)
 	if err != nil {
 		if customMessageErr := im.makeCustomMessage(m, err, true); customMessageErr != nil {
@@ -574,13 +578,17 @@ func (im *imapMailbox) writeAndParseMIMEBody(m *pmapi.Message) (mime *enmime.Env
 
 func (im *imapMailbox) writeAttachmentBody(w io.Writer, m *pmapi.Message, att *pmapi.Attachment) (err error) {
 	// Retrieve encrypted attachment.
-	r, err := im.user.client.GetAttachment(att.ID)
+	r, err := im.user.client().GetAttachment(att.ID)
 	if err != nil {
 		return
 	}
 	defer r.Close() //nolint[errcheck]
 
-	kr := im.user.client.KeyRingForAddressID(m.AddressID)
+	kr, err := im.user.client().KeyRingForAddressID(m.AddressID)
+	if err != nil {
+		return errors.Wrap(err, "failed to get keyring for address ID")
+	}
+
 	if err = message.WriteAttachmentBody(w, kr, m, att, r); err != nil {
 		// Returning an error here makes certain mail clients behave badly,
 		// trying to retrieve the message again and again.
@@ -674,7 +682,12 @@ func (im *imapMailbox) buildMessage(m *pmapi.Message) (structure *message.BodySt
 		return
 	}
 
-	kr := im.user.client.KeyRingForAddressID(m.AddressID)
+	kr, err := im.user.client().KeyRingForAddressID(m.AddressID)
+	if err != nil {
+		err = errors.Wrap(err, "failed to get keyring for address ID")
+		return
+	}
+
 	errDecrypt := m.Decrypt(kr)
 
 	if errDecrypt != nil && errDecrypt != openpgperrors.ErrSignatureExpired {

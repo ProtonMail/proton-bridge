@@ -84,8 +84,8 @@ func (api *FakePMAPI) Addresses() pmapi.AddressList {
 	return *api.addresses
 }
 
-func (api *FakePMAPI) KeyRingForAddressID(addrID string) *pmcrypto.KeyRing {
+func (api *FakePMAPI) KeyRingForAddressID(addrID string) (*pmcrypto.KeyRing, error) {
 	return &pmcrypto.KeyRing{
 		FirstKeyID: "key",
-	}
+	}, nil
 }

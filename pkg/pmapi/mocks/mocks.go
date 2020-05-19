@@ -433,11 +433,12 @@ func (mr *MockClientMockRecorder) IsConnected() *gomock.Call {
 }
 
 // KeyRingForAddressID mocks base method
-func (m *MockClient) KeyRingForAddressID(arg0 string) *crypto.KeyRing {
+func (m *MockClient) KeyRingForAddressID(arg0 string) (*crypto.KeyRing, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "KeyRingForAddressID", arg0)
 	ret0, _ := ret[0].(*crypto.KeyRing)
-	return ret0
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // KeyRingForAddressID indicates an expected call of KeyRingForAddressID

@@ -46,7 +46,6 @@ type smtpUser struct {
 	eventListener listener.Listener
 	backend       *smtpBackend
 	user          bridgeUser
-	client        pmapi.Client
 	storeUser     storeUserProvider
 	addressID     string
 }
@@ -59,9 +58,6 @@ func newSMTPUser(
 	user bridgeUser,
 	addressID string,
 ) (goSMTPBackend.User, error) {
-	// Using client directly is deprecated. Code should be moved to store.
-	client := user.GetTemporaryPMAPIClient()
-
 	storeUser := user.GetStore()
 	if storeUser == nil {
 		return nil, errors.New("user database is not initialized")
@@ -72,10 +68,14 @@ func newSMTPUser(
 		eventListener: eventListener,
 		backend:       smtpBackend,
 		user:          user,
-		client:        client,
 		storeUser:     storeUser,
 		addressID:     addressID,
 	}, nil
+}
+
+// This method should eventually no longer be necessary. Everything should go via store.
+func (su *smtpUser) client() pmapi.Client {
+	return su.user.GetTemporaryPMAPIClient()
 }
 
 // Send sends an email from the given address to the given addresses with the given body.
@@ -83,12 +83,12 @@ func (su *smtpUser) Send(from string, to []string, messageReader io.Reader) (err
 	// Called from go-smtp in goroutines - we need to handle panics for each function.
 	defer su.panicHandler.HandlePanic()
 
-	mailSettings, err := su.client.GetMailSettings()
+	mailSettings, err := su.client().GetMailSettings()
 	if err != nil {
 		return err
 	}
 
-	var addr *pmapi.Address = su.client.Addresses().ByEmail(from)
+	var addr *pmapi.Address = su.client().Addresses().ByEmail(from)
 	if addr == nil {
 		err = errors.New("backend: invalid email address: not owned by user")
 		return
@@ -138,11 +138,11 @@ func (su *smtpUser) Send(from string, to []string, messageReader io.Reader) (err
 	// but it's better than sending the message many times. If the message was sent, we simply return
 	// nil to indicate it's OK.
 	sendRecorderMessageHash := su.backend.sendRecorder.getMessageHash(message)
-	isSending, wasSent := su.backend.sendRecorder.isSendingOrSent(su.client, sendRecorderMessageHash)
+	isSending, wasSent := su.backend.sendRecorder.isSendingOrSent(su.client(), sendRecorderMessageHash)
 	if isSending {
 		log.Debug("Message is in send queue, waiting")
 		time.Sleep(60 * time.Second)
-		isSending, wasSent = su.backend.sendRecorder.isSendingOrSent(su.client, sendRecorderMessageHash)
+		isSending, wasSent = su.backend.sendRecorder.isSendingOrSent(su.client(), sendRecorderMessageHash)
 	}
 	if isSending {
 		log.Debug("Message is still in send queue, returning error")
@@ -164,7 +164,7 @@ func (su *smtpUser) Send(from string, to []string, messageReader io.Reader) (err
 	// can lead to sending the wrong message. Also clients do not necessarily
 	// delete the old draft.
 	if draftID != "" {
-		if err := su.client.DeleteMessages([]string{draftID}); err != nil {
+		if err := su.client().DeleteMessages([]string{draftID}); err != nil {
 			log.WithError(err).WithField("draftID", draftID).Warn("Original draft cannot be deleted")
 		}
 	}
@@ -214,7 +214,7 @@ func (su *smtpUser) Send(from string, to []string, messageReader io.Reader) (err
 		}
 
 		// PMEL 1.
-		contactEmails, err := su.client.GetContactEmailByEmail(email, 0, 1000)
+		contactEmails, err := su.client().GetContactEmailByEmail(email, 0, 1000)
 		if err != nil {
 			return err
 		}
@@ -224,11 +224,11 @@ func (su *smtpUser) Send(from string, to []string, messageReader io.Reader) (err
 			if contactEmail.Defaults == 1 { // WARNING: in doc it says _ignore for now, future feature_
 				continue
 			}
-			contact, err := su.client.GetContactByID(contactEmail.ContactID)
+			contact, err := su.client().GetContactByID(contactEmail.ContactID)
 			if err != nil {
 				return err
 			}
-			decryptedCards, err := su.client.DecryptAndVerifyCards(contact.Cards)
+			decryptedCards, err := su.client().DecryptAndVerifyCards(contact.Cards)
 			if err != nil {
 				return err
 			}
@@ -248,7 +248,7 @@ func (su *smtpUser) Send(from string, to []string, messageReader io.Reader) (err
 		}
 
 		// PMEL 4.
-		apiRawKeyList, isInternal, err := su.client.GetPublicKeysForEmail(email)
+		apiRawKeyList, isInternal, err := su.client().GetPublicKeysForEmail(email)
 		if err != nil {
 			err = fmt.Errorf("backend: cannot get recipients' public keys: %v", err)
 			return err
@@ -336,7 +336,7 @@ func (su *smtpUser) Send(from string, to []string, messageReader io.Reader) (err
 			return errors.New("error decoding subject message " + message.Header.Get("Subject"))
 		}
 		if !su.continueSendingUnencryptedMail(subject) {
-			_ = su.client.DeleteMessages([]string{message.ID})
+			_ = su.client().DeleteMessages([]string{message.ID})
 			return errors.New("sending was canceled by user")
 		}
 	}
@@ -384,7 +384,7 @@ func (su *smtpUser) handleReferencesHeader(m *pmapi.Message) (draftID, parentID 
 				if su.addressID != "" {
 					filter.AddressID = su.addressID
 				}
-				metadata, _, _ := su.client.ListMessages(filter)
+				metadata, _, _ := su.client().ListMessages(filter)
 				for _, m := range metadata {
 					if m.IsDraft() {
 						draftID = m.ID
@@ -404,7 +404,7 @@ func (su *smtpUser) handleReferencesHeader(m *pmapi.Message) (draftID, parentID 
 		if su.addressID != "" {
 			filter.AddressID = su.addressID
 		}
-		metadata, _, _ := su.client.ListMessages(filter)
+		metadata, _, _ := su.client().ListMessages(filter)
 		// There can be two or messages with the same external ID and then we cannot
 		// be sure which message should be parent. Better to not choose any.
 		if len(metadata) == 1 {

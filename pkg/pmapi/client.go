@@ -157,7 +157,7 @@ type Client interface {
 	CreateAttachment(att *Attachment, r io.Reader, sig io.Reader) (created *Attachment, err error)
 	DeleteAttachment(attID string) (err error)
 
-	KeyRingForAddressID(string) (kr *pmcrypto.KeyRing)
+	KeyRingForAddressID(string) (kr *pmcrypto.KeyRing, err error)
 	GetPublicKeysForEmail(string) ([]PublicKey, bool, error)
 }
 
