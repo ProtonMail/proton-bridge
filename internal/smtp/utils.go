@@ -19,10 +19,22 @@ package smtp
 
 import (
 	"encoding/base64"
+	"regexp"
 
 	pmcrypto "github.com/ProtonMail/gopenpgp/crypto"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 )
+
+//nolint:gochecknoglobals // Used like a constant
+var mailFormat = regexp.MustCompile(`.+@.+\..+`)
+
+// looksLikeEmail validates whether the string resembles an email.
+//
+// Notice that it does this naively by simply checking for the existence
+// of a DOT and an AT sign.
+func looksLikeEmail(e string) bool {
+	return mailFormat.MatchString(e)
+}
 
 func createPackets(
 	pubkey *pmcrypto.KeyRing,

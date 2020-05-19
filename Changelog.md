@@ -3,6 +3,13 @@
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 ## Unreleased
+## unreleased
+
+### Changed
+* GODT-308 better user error message when request is canceled
+* GODT-312 validate recipient emails in send before asking for their public keys
+
+## [v1.2.7] Donghai-hotfix - beta (2020-05-07)
 
 ### Added
 * IMAP mailbox info update when new mailbox is created

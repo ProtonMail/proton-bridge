@@ -209,6 +209,10 @@ func (su *smtpUser) Send(from string, to []string, messageReader io.Reader) (err
 	containsUnencryptedRecipients := false
 
 	for _, email := range to {
+		if !looksLikeEmail(email) {
+			return errors.New(`"` + email + `" is not a valid recipient.`)
+		}
+
 		// PMEL 1.
 		contactEmails, err := su.client.GetContactEmailByEmail(email, 0, 1000)
 		if err != nil {
