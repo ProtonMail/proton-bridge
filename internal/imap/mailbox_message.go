@@ -29,6 +29,7 @@ import (
 	"regexp"
 	"sort"
 	"strings"
+	"text/template"
 	"time"
 
 	pmcrypto "github.com/ProtonMail/gopenpgp/crypto"
@@ -488,23 +489,43 @@ func (im *imapMailbox) fetchMessage(m *pmapi.Message) (err error) {
 	return
 }
 
+const customMessageTemplate = `
+<html>
+	<head></head>
+	<body style="font-family: Arial,'Helvetica Neue',Helvetica,sans-serif; font-size: 14px;">
+    <div style="color:#555; background-color:#cf9696; padding:20px; border-radius: 4px;">
+			<strong>Decryption error</strong><br/>
+			Decryption of this message's encrypted content failed.
+			<pre>{{.Error}}</pre>
+		</div>
+
+		{{if .AttachBody}}
+		<div style="color:#333; background-color:#f4f4f4;  border: 1px solid #acb0bf; border-radius: 2px; padding:1rem; margin:1rem 0; font-family:monospace; font-size: 1em;">
+			<pre>{{.Body}}</pre>
+		</div>
+		{{- end}}
+	</body>
+</html>
+`
+
+type customMessageData struct {
+	Error      string
+	AttachBody bool
+	Body       string
+}
+
 func (im *imapMailbox) customMessage(m *pmapi.Message, err error, attachBody bool) {
-	// Assuming quoted-printable.
-	origBody := strings.Replace(m.Body, "=", "=3D", -1)
-	m.Body = "Content-Type: text/html\r\n"
-	m.Body = "\n<html><head></head><body style=3D\"font-family: Arial,'Helvetica Neue',Helvetica,sans-serif; font-size: 14px; \">\n"
-	m.Body += "<div style=3D\"color:#555; background-color:#cf9696; padding:20px; border-radius: 4px;\" >\n<strong>Decryption error</strong><br/>Decryption of this message's encrypted content failed.<pre>\n"
-	m.Body += err.Error()
-	m.Body += "\n</pre></div>\n"
+	t := template.Must(template.New("customMessage").Parse(customMessageTemplate))
 
-	if attachBody {
-		m.Body += "<div style=3D\"color:#333; background-color:#f4f4f4;  border: 1px solid #acb0bf; border-radius: 2px; padding:1rem; margin:1rem 0; font-family:monospace; font-size: 1em;\" ><pre>\n"
-		m.Body += origBody
-		m.Body += "\n</pre></div>\n"
-	}
+	b := new(bytes.Buffer)
+	t.Execute(b, customMessageData{
+		Error:      err.Error(),
+		AttachBody: attachBody,
+		Body:       m.Body,
+	})
 
-	m.Body += "</body></html>"
-	m.MIMEType = "text/html"
+	m.MIMEType = pmapi.ContentTypeHTML
+	m.Body = b.String()
 
 	// NOTE: we need to set header in custom message header, so we check that is non-nil.
 	if m.Header == nil {
