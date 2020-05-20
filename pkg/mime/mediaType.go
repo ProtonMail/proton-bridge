@@ -87,19 +87,17 @@ func changeEncodingAndKeepLastParamDefinition(v string) (out string, err error) 
 		return
 	}
 
-	if continuation != nil {
-		for paramKey, contMap := range continuation {
-			value, err := mergeContinuations(paramKey, contMap)
-			if err == nil {
-				params[paramKey+"*"] = value
-				continue
-			}
+	for paramKey, contMap := range continuation {
+		value, err := mergeContinuations(paramKey, contMap)
+		if err == nil {
+			params[paramKey+"*"] = value
+			continue
+		}
 
-			// Fallback.
-			log.Errorln("Merge param", paramKey, ":", err)
-			for ck, cv := range contMap {
-				params[ck] = cv
-			}
+		// Fallback.
+		log.Errorln("Merge param", paramKey, ":", err)
+		for ck, cv := range contMap {
+			params[ck] = cv
 		}
 	}
 

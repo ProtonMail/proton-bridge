@@ -59,8 +59,6 @@ func TestDecodeHeader(t *testing.T) {
 	for _, val := range testData {
 		if decoded, err := DecodeHeader(val.raw); strings.Compare(val.expected, decoded) != 0 {
 			t.Errorf("Incorrect decoding of header %q expected %q but have %q; Error %v", val.raw, val.expected, decoded, err)
-		} else {
-			// fmt.Println("Header", val.raw, "successfully decoded", decoded, ". Error", err)
 		}
 	}
 }

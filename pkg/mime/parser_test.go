@@ -60,6 +60,9 @@ func androidParse(mimeBody string) (body, headers string, atts, attHeaders []str
 
 	h := textproto.MIMEHeader(mm.Header)
 	mmBodyData, err := ioutil.ReadAll(mm.Body)
+	if err != nil {
+		return
+	}
 
 	printAccepter := NewMIMEPrinter()
 	bodyCollector := NewBodyCollector(printAccepter)

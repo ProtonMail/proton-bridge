@@ -347,14 +347,6 @@ func (bs *BodyStructure) GetSectionHeader(sectionPath []int) (header textproto.M
 	return
 }
 
-func (bs *BodyStructure) Size() uint32 {
-	info, err := bs.getInfo([]int{})
-	if err != nil {
-		return uint32(0)
-	}
-	return uint32(info.size)
-}
-
 func (bs *BodyStructure) IMAPBodyStructure(currentPart []int) (imapBS *imap.BodyStructure, err error) {
 	var info *sectionInfo
 	if info, err = bs.getInfo(currentPart); err != nil {

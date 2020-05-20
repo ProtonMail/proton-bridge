@@ -18,7 +18,6 @@
 package pmmime
 
 import (
-	"bufio"
 	"bytes"
 	"io"
 	"io/ioutil"
@@ -104,50 +103,6 @@ func (mv *MimeVisitor) Accept(part io.Reader, h textproto.MIMEHeader, hasPlainSi
 // NewMIMEVisitor returns a new mime visitor initialised with an acceptor.
 func NewMimeVisitor(targetAccepter VisitAcceptor) *MimeVisitor {
 	return &MimeVisitor{targetAccepter}
-}
-
-func GetRawMimePart(rawdata io.Reader, boundary string) (io.Reader, io.Reader) {
-	b, _ := ioutil.ReadAll(rawdata)
-	tee := bytes.NewReader(b)
-
-	reader := bufio.NewReader(bytes.NewReader(b))
-	byteBoundary := []byte(boundary)
-	bodyBuffer := &bytes.Buffer{}
-	for {
-		line, _, err := reader.ReadLine()
-		if err != nil {
-			return tee, bytes.NewReader(bodyBuffer.Bytes())
-		}
-		if bytes.HasPrefix(line, byteBoundary) {
-			break
-		}
-	}
-	lineEndingLength := 0
-	for {
-		line, isPrefix, err := reader.ReadLine()
-		if err != nil {
-			return tee, bytes.NewReader(bodyBuffer.Bytes())
-		}
-		if bytes.HasPrefix(line, byteBoundary) {
-			break
-		}
-		lineEndingLength = 0
-		bodyBuffer.Write(line)
-		if !isPrefix {
-			reader.UnreadByte()
-			reader.UnreadByte()
-			token, _ := reader.ReadByte()
-			if token == '\r' {
-				lineEndingLength++
-				bodyBuffer.WriteByte(token)
-			}
-			lineEndingLength++
-			bodyBuffer.WriteByte(token)
-		}
-	}
-	ioutil.ReadAll(reader)
-	data := bodyBuffer.Bytes()
-	return tee, bytes.NewReader(data[0 : len(data)-lineEndingLength])
 }
 
 func GetAllChildParts(part io.Reader, h textproto.MIMEHeader) (parts []io.Reader, headers []textproto.MIMEHeader, err error) {
@@ -270,25 +225,6 @@ func parseAddressComment(raw string) string {
 		parsed = append(parsed, addr.String())
 	}
 	return strings.Join(parsed, ", ")
-}
-
-func checkHeaders(headers []textproto.MIMEHeader) bool {
-	foundAttachment := false
-
-	for i := 0; i < len(headers); i++ {
-		h := headers[i]
-
-		mediaType, _, _ := getContentType(h)
-
-		if !strings.HasPrefix(mediaType, "text/") {
-			foundAttachment = true
-		} else if foundAttachment {
-			// This means that there is a text part after the first attachment,
-			// so we will have to convert the body from plain->HTML.
-			return true
-		}
-	}
-	return false
 }
 
 func decodePart(partReader io.Reader, header textproto.MIMEHeader) (decodedPart io.Reader) {

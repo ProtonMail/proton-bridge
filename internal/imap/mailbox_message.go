@@ -493,7 +493,7 @@ const customMessageTemplate = `
 <html>
 	<head></head>
 	<body style="font-family: Arial,'Helvetica Neue',Helvetica,sans-serif; font-size: 14px;">
-    <div style="color:#555; background-color:#cf9696; padding:20px; border-radius: 4px;">
+		<div style="color:#555; background-color:#cf9696; padding:20px; border-radius: 4px;">
 			<strong>Decryption error</strong><br/>
 			Decryption of this message's encrypted content failed.
 			<pre>{{.Error}}</pre>
@@ -514,15 +514,18 @@ type customMessageData struct {
 	Body       string
 }
 
-func (im *imapMailbox) customMessage(m *pmapi.Message, err error, attachBody bool) {
+func (im *imapMailbox) makeCustomMessage(m *pmapi.Message, decodeError error, attachBody bool) (err error) {
 	t := template.Must(template.New("customMessage").Parse(customMessageTemplate))
 
 	b := new(bytes.Buffer)
-	t.Execute(b, customMessageData{
-		Error:      err.Error(),
+
+	if err = t.Execute(b, customMessageData{
+		Error:      decodeError.Error(),
 		AttachBody: attachBody,
 		Body:       m.Body,
-	})
+	}); err != nil {
+		return
+	}
 
 	m.MIMEType = pmapi.ContentTypeHTML
 	m.Body = b.String()
@@ -531,6 +534,8 @@ func (im *imapMailbox) customMessage(m *pmapi.Message, err error, attachBody boo
 	if m.Header == nil {
 		m.Header = make(mail.Header)
 	}
+
+	return
 }
 
 func (im *imapMailbox) writeMessageBody(w io.Writer, m *pmapi.Message) (err error) {
@@ -546,7 +551,9 @@ func (im *imapMailbox) writeMessageBody(w io.Writer, m *pmapi.Message) (err erro
 	kr := im.user.client.KeyRingForAddressID(m.AddressID)
 	err = message.WriteBody(w, kr, m)
 	if err != nil {
-		im.customMessage(m, err, true)
+		if customMessageErr := im.makeCustomMessage(m, err, true); customMessageErr != nil {
+			im.log.WithError(customMessageErr).Warn("Failed to make custom message")
+		}
 		_, _ = io.WriteString(w, m.Body)
 		err = nil
 	}
@@ -672,7 +679,9 @@ func (im *imapMailbox) buildMessage(m *pmapi.Message) (structure *message.BodySt
 
 	if errDecrypt != nil && errDecrypt != openpgperrors.ErrSignatureExpired {
 		errNoCache.add(errDecrypt)
-		im.customMessage(m, errDecrypt, true)
+		if customMessageErr := im.makeCustomMessage(m, errDecrypt, true); customMessageErr != nil {
+			im.log.WithError(customMessageErr).Warn("Failed to make custom message")
+		}
 	}
 
 	// Inner function can fail even when message is decrypted.
@@ -686,7 +695,9 @@ func (im *imapMailbox) buildMessage(m *pmapi.Message) (structure *message.BodySt
 		return nil, nil, err
 	} else if err != nil {
 		errNoCache.add(err)
-		im.customMessage(m, err, true)
+		if customMessageErr := im.makeCustomMessage(m, err, true); customMessageErr != nil {
+			im.log.WithError(customMessageErr).Warn("Failed to make custom message")
+		}
 		structure, msgBody, err = im.buildMessageInner(m, kr)
 		if err != nil {
 			return nil, nil, err
