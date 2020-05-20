@@ -290,7 +290,6 @@ func (storeMailbox *Mailbox) txCreateOrUpdateMessages(tx *bolt.Tx, msgs []*pmapi
 						seqNum,
 						msg,
 					)
-					shouldSendMailboxUpdate = true
 				}
 				continue
 			}

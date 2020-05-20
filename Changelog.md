@@ -2,7 +2,14 @@
 
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
-## [v1.2.7] Emma - beta (2020-04-XXX)
+## [v1.2.8] Donghai-fix-append  (2020-05-XXX)
+
+### Changed
+* GODT-396 reduce number of EXISTS calls
+* GODT-143 Allow appending to Sent folder when sender matches account address
+
+
+## [v1.2.7] Donghai-fix-sync - (beta 2020-05-07 live 2020-04-20)
 
 ### Added
 * IMAP extension MOVE with UIDPLUS support
@@ -23,7 +30,8 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 ### Fixed
 * Use correct binary name when finding location of addcert.scpt
-* GODT-143 Allow appending to Sent folder when sender matches account address
+
+
 
 ## [v1.2.6] Donghai - beta (2020-03-31)
 
