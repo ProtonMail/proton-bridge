@@ -1,3 +1,1 @@
-• Fixed sync errors due to localization
-• Fixed draft deletion
-• Fixed re-appearing messages in Outlook
+• Fixed ignored import to Sent folder
