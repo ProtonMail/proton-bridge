@@ -2,35 +2,18 @@
 
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
-## unreleased
-
-### Changed
-* GODT-308 better user error message when request is canceled
-
-## [v1.2.7] Donghai-hotfix - beta (2020-05-07)
+## Unreleased
 
 ### Added
-* IMAP extension MOVE with UIDPLUS support
 * IMAP mailbox info update when new mailbox is created
-* IMAP extension Unselect
-* More logs about event loop activity
 * GODT-72 Use ISO-8859-1 encoding if charset is not specified and it isn't UTF-8
 
 ### Changed
+* GODT-308 better user error message when request is canceled
 * GODT-162 User Agent does not contain bridge version, only client in format `client name/client version (os)`
 * GODT-258 Update go-imap to v1
   * Fix UNSEEN to return sequence number of first unseen message and not count of unseen messages
   * INBOX name is never quoted
-* GODT-313 Reduce number of synchronizations
-    * do not trigger sync by counts
-    * cooldown timer for sync retries
-    * poll interval randomization
-* GODT-225 Do not send an EXISTS reposnse after EXPUNGE or when nothing changed (fixes rebuild of mailboxes in Outlook for Mac)
-* GODT-165 Optimization of RebuildMailboxes
-* GODT-282 Completely delete old draft instead moving to trash when user updates draft
-* Adding DSN Sentry as build time parameter
-* GODT-124 bump go-appdir from v1.0.0 to v1.1.0
-* CSB-72 Skip processing message update event if http statuscode is 422
 * GODT-204 `ClientManager`
   * `Client` is now an interface; `client` is the concrete type
   * `Client`s are only created by `ClientManager`
@@ -45,11 +28,38 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-310 Alternative parsing of `References` header (old parsing probably malformed message IDs)
 * GODT-320 Only report the same TLS issue once every 24 hours
 
+### Removed
+* Dead code from `pkg/message`
+
 ### Fixed
-* Use correct binary name when finding location of addcert.scpt
 * GODT-267 Correctly detect if a message is a draft even if does not have DraftLabel
 * GODT-308 reduce minimum read speed threshold to avoid issues with flaky internet
 * GODT-321 Changing address ordering would cause all messages to disappear in combined mode
+* GODT-129 Fix custom message PGP by using template
+
+
+## [v1.2.7] Donghai-hotfix - beta (2020-05-07)
+
+### Added
+* IMAP extension MOVE with UIDPLUS support
+* IMAP extension Unselect
+* More logs about event loop activity
+
+### Changed
+* GODT-313 Reduce number of synchronizations
+    * do not trigger sync by counts
+    * cooldown timer for sync retries
+    * poll interval randomization
+* GODT-225 Do not send an EXISTS reposnse after EXPUNGE or when nothing changed (fixes rebuild of mailboxes in Outlook for Mac)
+* GODT-165 Optimization of RebuildMailboxes
+* GODT-282 Completely delete old draft instead moving to trash when user updates draft
+* Adding DSN Sentry as build time parameter
+* GODT-124 bump go-appdir from v1.0.0 to v1.1.0
+* CSB-72 Skip processing message update event if http statuscode is 422
+
+### Fixed
+* Use correct binary name when finding location of addcert.scpt
+
 
 ## [v1.2.6] Donghai - beta (2020-03-31)
 
