@@ -15,40 +15,40 @@
 // You should have received a copy of the GNU General Public License
 // along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
 
-package bridge
+package users
 
 import (
 	"errors"
 	"testing"
 
-	credentials "github.com/ProtonMail/proton-bridge/internal/bridge/credentials"
 	"github.com/ProtonMail/proton-bridge/internal/events"
 	"github.com/ProtonMail/proton-bridge/internal/metrics"
 	"github.com/ProtonMail/proton-bridge/internal/preferences"
+	"github.com/ProtonMail/proton-bridge/internal/users/credentials"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	gomock "github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestNewBridgeNoKeychain(t *testing.T) {
+func TestNewUsersNoKeychain(t *testing.T) {
 	m := initMocks(t)
 	defer m.ctrl.Finish()
 
 	m.credentialsStore.EXPECT().List().Return([]string{}, errors.New("no keychain"))
 
-	checkBridgeNew(t, m, []*credentials.Credentials{})
+	checkUsersNew(t, m, []*credentials.Credentials{})
 }
 
-func TestNewBridgeWithoutUsersInCredentialsStore(t *testing.T) {
+func TestNewUsersWithoutUsersInCredentialsStore(t *testing.T) {
 	m := initMocks(t)
 	defer m.ctrl.Finish()
 
 	m.credentialsStore.EXPECT().List().Return([]string{}, nil)
 
-	checkBridgeNew(t, m, []*credentials.Credentials{})
+	checkUsersNew(t, m, []*credentials.Credentials{})
 }
 
-func TestNewBridgeWithDisconnectedUser(t *testing.T) {
+func TestNewUsersWithDisconnectedUser(t *testing.T) {
 	m := initMocks(t)
 	defer m.ctrl.Finish()
 
@@ -63,10 +63,10 @@ func TestNewBridgeWithDisconnectedUser(t *testing.T) {
 		m.pmapiClient.EXPECT().Addresses().Return(nil),
 	)
 
-	checkBridgeNew(t, m, []*credentials.Credentials{testCredentialsDisconnected})
+	checkUsersNew(t, m, []*credentials.Credentials{testCredentialsDisconnected})
 }
 
-func TestNewBridgeWithConnectedUserWithBadToken(t *testing.T) {
+func TestNewUsersWithConnectedUserWithBadToken(t *testing.T) {
 	m := initMocks(t)
 	defer m.ctrl.Finish()
 
@@ -85,7 +85,7 @@ func TestNewBridgeWithConnectedUserWithBadToken(t *testing.T) {
 	m.credentialsStore.EXPECT().Get("user").Return(testCredentialsDisconnected, nil)
 	m.eventListener.EXPECT().Emit(events.CloseConnectionEvent, "user@pm.me")
 
-	checkBridgeNew(t, m, []*credentials.Credentials{testCredentialsDisconnected})
+	checkUsersNew(t, m, []*credentials.Credentials{testCredentialsDisconnected})
 }
 
 func mockConnectedUser(m mocks) {
@@ -105,9 +105,9 @@ func mockConnectedUser(m mocks) {
 	)
 }
 
-// mockAuthUpdate simulates bridge calling UpdateAuthToken on the given user.
-// This would normally be done by Bridge when it receives an auth from the ClientManager,
-// but as we don't have a full bridge instance here, we do this manually.
+// mockAuthUpdate simulates users calling UpdateAuthToken on the given user.
+// This would normally be done by users when it receives an auth from the ClientManager,
+// but as we don't have a full users instance here, we do this manually.
 func mockAuthUpdate(user *User, token string, m mocks) {
 	gomock.InOrder(
 		m.credentialsStore.EXPECT().UpdateToken("user", ":"+token).Return(nil),
@@ -119,7 +119,7 @@ func mockAuthUpdate(user *User, token string, m mocks) {
 	waitForEvents()
 }
 
-func TestNewBridgeWithConnectedUser(t *testing.T) {
+func TestNewUsersWithConnectedUser(t *testing.T) {
 	m := initMocks(t)
 	defer m.ctrl.Finish()
 
@@ -129,12 +129,12 @@ func TestNewBridgeWithConnectedUser(t *testing.T) {
 	mockConnectedUser(m)
 	mockEventLoopNoAction(m)
 
-	checkBridgeNew(t, m, []*credentials.Credentials{testCredentials})
+	checkUsersNew(t, m, []*credentials.Credentials{testCredentials})
 }
 
 // Tests two users with different states and checks also the order from
-// credentials store is kept also in array of Bridge users.
-func TestNewBridgeWithUsers(t *testing.T) {
+// credentials store is kept also in array of users.
+func TestNewUsersWithUsers(t *testing.T) {
 	m := initMocks(t)
 	defer m.ctrl.Finish()
 
@@ -155,10 +155,10 @@ func TestNewBridgeWithUsers(t *testing.T) {
 
 	mockEventLoopNoAction(m)
 
-	checkBridgeNew(t, m, []*credentials.Credentials{testCredentialsDisconnected, testCredentials})
+	checkUsersNew(t, m, []*credentials.Credentials{testCredentialsDisconnected, testCredentials})
 }
 
-func TestNewBridgeFirstStart(t *testing.T) {
+func TestNewUsersFirstStart(t *testing.T) {
 	m := initMocks(t)
 	defer m.ctrl.Finish()
 
@@ -170,17 +170,17 @@ func TestNewBridgeFirstStart(t *testing.T) {
 		m.pmapiClient.EXPECT().Logout(),
 	)
 
-	testNewBridge(t, m)
+	testNewUsers(t, m)
 }
 
-func checkBridgeNew(t *testing.T, m mocks, expectedCredentials []*credentials.Credentials) {
-	bridge := testNewBridge(t, m)
-	defer cleanUpBridgeUserData(bridge)
+func checkUsersNew(t *testing.T, m mocks, expectedCredentials []*credentials.Credentials) {
+	users := testNewUsers(t, m)
+	defer cleanUpUsersData(users)
 
-	assert.Equal(m.t, len(expectedCredentials), len(bridge.GetUsers()))
+	assert.Equal(m.t, len(expectedCredentials), len(users.GetUsers()))
 
 	credentials := []*credentials.Credentials{}
-	for _, user := range bridge.users {
+	for _, user := range users.users {
 		credentials = append(credentials, user.creds)
 	}
 

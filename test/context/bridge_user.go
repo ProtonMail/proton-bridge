@@ -23,8 +23,8 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/ProtonMail/proton-bridge/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/internal/store"
+	"github.com/ProtonMail/proton-bridge/internal/users"
 	"github.com/ProtonMail/proton-bridge/pkg/srp"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
@@ -56,7 +56,7 @@ func (ctx *TestContext) LoginUser(username, password, mailboxPassword string) (e
 }
 
 // GetUser retrieves the bridge user matching the given query string.
-func (ctx *TestContext) GetUser(username string) (*bridge.User, error) {
+func (ctx *TestContext) GetUser(username string) (*users.User, error) {
 	return ctx.bridge.GetUser(username)
 }
 

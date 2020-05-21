@@ -6,6 +6,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 ## unreleased
 
 ### Changed
+* GODT-386 renamed bridge to general users and keep bridge only for bridge stuff
 * GODT-308 better user error message when request is canceled
 * GODT-312 validate recipient emails in send before asking for their public keys
 

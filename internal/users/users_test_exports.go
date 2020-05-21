@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
 
-package bridge
+package users
 
 // IsAuthorized returns whether the user has received an Auth from the API yet.
 func (u *User) IsAuthorized() bool {

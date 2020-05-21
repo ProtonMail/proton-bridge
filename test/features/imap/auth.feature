@@ -12,7 +12,7 @@ Feature: IMAP auth
   Scenario: Authenticates with disconnected user
     Given there is disconnected user "user"
     When IMAP client authenticates "user"
-    Then IMAP response is "IMAP error: NO bridge account is logged out, use bridge to login again"
+    Then IMAP response is "IMAP error: NO account is logged out, use the app to login again"
 
   Scenario: Authenticates with connected user that was loaded without internet
     Given there is connected user "user"
@@ -31,13 +31,13 @@ Feature: IMAP auth
     Given there is connected user "user"
     When "user" logs out from bridge
     And IMAP client authenticates "user"
-    Then IMAP response is "IMAP error: NO bridge account is logged out, use bridge to login again"
+    Then IMAP response is "IMAP error: NO account is logged out, use the app to login again"
 
   Scenario: Authenticates user which was re-logged in
     Given there is connected user "user"
     When "user" logs out from bridge
     And IMAP client authenticates "user"
-    Then IMAP response is "IMAP error: NO bridge account is logged out, use bridge to login again"
+    Then IMAP response is "IMAP error: NO account is logged out, use the app to login again"
     When "user" logs in to bridge
     And IMAP client authenticates "user"
     Then IMAP response is "OK"

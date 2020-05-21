@@ -20,7 +20,7 @@ package context
 import (
 	"strings"
 
-	"github.com/ProtonMail/proton-bridge/internal/bridge/credentials"
+	"github.com/ProtonMail/proton-bridge/internal/users/credentials"
 )
 
 // bridgePassword is password to be used for IMAP or SMTP under tests.

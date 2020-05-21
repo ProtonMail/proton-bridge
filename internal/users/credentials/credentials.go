@@ -33,7 +33,7 @@ import (
 const sep = "\x00"
 
 var (
-	log = logrus.WithField("pkg", "bridge") //nolint[gochecknoglobals]
+	log = logrus.WithField("pkg", "credentials") //nolint[gochecknoglobals]
 
 	ErrWrongFormat = errors.New("backend/creds: malformed password")
 )

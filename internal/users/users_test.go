@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
 
-package bridge
+package users
 
 import (
 	"fmt"
@@ -25,12 +25,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ProtonMail/proton-bridge/internal/bridge/credentials"
-	bridgemocks "github.com/ProtonMail/proton-bridge/internal/bridge/mocks"
 	"github.com/ProtonMail/proton-bridge/internal/events"
 	"github.com/ProtonMail/proton-bridge/internal/metrics"
 	"github.com/ProtonMail/proton-bridge/internal/preferences"
 	"github.com/ProtonMail/proton-bridge/internal/store"
+	"github.com/ProtonMail/proton-bridge/internal/users/credentials"
+	usersmocks "github.com/ProtonMail/proton-bridge/internal/users/mocks"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	pmapimocks "github.com/ProtonMail/proton-bridge/pkg/pmapi/mocks"
 	gomock "github.com/golang/mock/gomock"
@@ -131,11 +131,11 @@ type mocks struct {
 	t *testing.T
 
 	ctrl             *gomock.Controller
-	config           *bridgemocks.MockConfiger
-	PanicHandler     *bridgemocks.MockPanicHandler
-	prefProvider     *bridgemocks.MockPreferenceProvider
-	clientManager    *bridgemocks.MockClientManager
-	credentialsStore *bridgemocks.MockCredentialsStorer
+	config           *usersmocks.MockConfiger
+	PanicHandler     *usersmocks.MockPanicHandler
+	prefProvider     *usersmocks.MockPreferenceProvider
+	clientManager    *usersmocks.MockClientManager
+	credentialsStore *usersmocks.MockCredentialsStorer
 	eventListener    *MockListener
 
 	pmapiClient *pmapimocks.MockClient
@@ -172,11 +172,11 @@ func initMocks(t *testing.T) mocks {
 		t: t,
 
 		ctrl:             mockCtrl,
-		config:           bridgemocks.NewMockConfiger(mockCtrl),
-		PanicHandler:     bridgemocks.NewMockPanicHandler(mockCtrl),
-		prefProvider:     bridgemocks.NewMockPreferenceProvider(mockCtrl),
-		clientManager:    bridgemocks.NewMockClientManager(mockCtrl),
-		credentialsStore: bridgemocks.NewMockCredentialsStorer(mockCtrl),
+		config:           usersmocks.NewMockConfiger(mockCtrl),
+		PanicHandler:     usersmocks.NewMockPanicHandler(mockCtrl),
+		prefProvider:     usersmocks.NewMockPreferenceProvider(mockCtrl),
+		clientManager:    usersmocks.NewMockClientManager(mockCtrl),
+		credentialsStore: usersmocks.NewMockCredentialsStorer(mockCtrl),
 		eventListener:    NewMockListener(mockCtrl),
 
 		pmapiClient: pmapimocks.NewMockClient(mockCtrl),
@@ -195,7 +195,7 @@ func initMocks(t *testing.T) mocks {
 	return m
 }
 
-func testNewBridgeWithUsers(t *testing.T, m mocks) *Bridge {
+func testNewUsersWithUsers(t *testing.T, m mocks) *Users {
 	// Events are asynchronous
 	m.pmapiClient.EXPECT().GetEvent("").Return(testPMAPIEvent, nil).Times(2)
 	m.pmapiClient.EXPECT().GetEvent(testPMAPIEvent.EventID).Return(testPMAPIEvent, nil).Times(2)
@@ -225,18 +225,18 @@ func testNewBridgeWithUsers(t *testing.T, m mocks) *Bridge {
 		m.pmapiClient.EXPECT().Addresses().Return(testPMAPIAddresses),
 	)
 
-	bridge := testNewBridge(t, m)
+	users := testNewUsers(t, m)
 
-	user, _ := bridge.GetUser("user")
+	user, _ := users.GetUser("user")
 	mockAuthUpdate(user, "reftok", m)
 
-	users, _ := bridge.GetUser("user")
-	mockAuthUpdate(users, "reftok", m)
+	user, _ = users.GetUser("user")
+	mockAuthUpdate(user, "reftok", m)
 
-	return bridge
+	return users
 }
 
-func testNewBridge(t *testing.T, m mocks) *Bridge {
+func testNewUsers(t *testing.T, m mocks) *Users {
 	cacheFile, err := ioutil.TempFile("", "bridge-store-cache-*.db")
 	require.NoError(t, err, "could not get temporary file for store cache")
 
@@ -248,14 +248,14 @@ func testNewBridge(t *testing.T, m mocks) *Bridge {
 	m.eventListener.EXPECT().Add(events.UpgradeApplicationEvent, gomock.Any())
 	m.clientManager.EXPECT().GetAuthUpdateChannel().Return(make(chan pmapi.ClientAuth))
 
-	bridge := New(m.config, m.prefProvider, m.PanicHandler, m.eventListener, m.clientManager, m.credentialsStore)
+	users := New(m.config, m.prefProvider, m.PanicHandler, m.eventListener, m.clientManager, m.credentialsStore)
 
 	waitForEvents()
 
-	return bridge
+	return users
 }
 
-func cleanUpBridgeUserData(b *Bridge) {
+func cleanUpUsersData(b *Users) {
 	for _, user := range b.users {
 		_ = user.clearStore()
 	}
@@ -268,8 +268,8 @@ func TestClearData(t *testing.T) {
 	m.clientManager.EXPECT().GetClient("user").Return(m.pmapiClient).MinTimes(1)
 	m.clientManager.EXPECT().GetClient("users").Return(m.pmapiClient).MinTimes(1)
 
-	bridge := testNewBridgeWithUsers(t, m)
-	defer cleanUpBridgeUserData(bridge)
+	users := testNewUsersWithUsers(t, m)
+	defer cleanUpUsersData(users)
 
 	m.eventListener.EXPECT().Emit(events.CloseConnectionEvent, "user@pm.me")
 	m.eventListener.EXPECT().Emit(events.CloseConnectionEvent, "users@pm.me")
@@ -286,7 +286,7 @@ func TestClearData(t *testing.T) {
 
 	m.config.EXPECT().ClearData().Return(nil)
 
-	require.NoError(t, bridge.ClearData())
+	require.NoError(t, users.ClearData())
 
 	waitForEvents()
 }

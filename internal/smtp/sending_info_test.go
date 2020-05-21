@@ -22,8 +22,8 @@ import (
 	"testing"
 
 	pmcrypto "github.com/ProtonMail/gopenpgp/crypto"
-	"github.com/ProtonMail/proton-bridge/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/internal/events"
+	"github.com/ProtonMail/proton-bridge/internal/users"
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	"github.com/golang/mock/gomock"
@@ -32,14 +32,14 @@ import (
 
 type mocks struct {
 	t             *testing.T
-	eventListener *bridge.MockListener
+	eventListener *users.MockListener
 }
 
 func initMocks(t *testing.T) mocks {
 	mockCtrl := gomock.NewController(t)
 	return mocks{
 		t:             t,
-		eventListener: bridge.NewMockListener(mockCtrl),
+		eventListener: users.NewMockListener(mockCtrl),
 	}
 }
 

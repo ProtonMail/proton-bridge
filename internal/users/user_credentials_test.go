@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
 
-package bridge
+package users
 
 import (
 	"testing"
@@ -213,7 +213,7 @@ func TestCheckBridgeLoginLoggedOut(t *testing.T) {
 
 	err = user.CheckBridgeLogin(testCredentialsDisconnected.BridgePassword)
 	waitForEvents()
-	assert.Equal(t, "bridge account is logged out, use bridge to login again", err.Error())
+	assert.Equal(t, ErrLoggedOutUser, err)
 }
 
 func TestCheckBridgeLoginBadPassword(t *testing.T) {

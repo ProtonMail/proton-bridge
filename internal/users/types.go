@@ -15,10 +15,10 @@
 // You should have received a copy of the GNU General Public License
 // along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
 
-package bridge
+package users
 
 import (
-	"github.com/ProtonMail/proton-bridge/internal/bridge/credentials"
+	"github.com/ProtonMail/proton-bridge/internal/users/credentials"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 )
 

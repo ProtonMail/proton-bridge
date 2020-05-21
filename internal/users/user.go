@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
 
-package bridge
+package users
 
 import (
 	"fmt"
@@ -24,9 +24,9 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/ProtonMail/proton-bridge/internal/bridge/credentials"
 	"github.com/ProtonMail/proton-bridge/internal/events"
 	"github.com/ProtonMail/proton-bridge/internal/store"
+	"github.com/ProtonMail/proton-bridge/internal/users/credentials"
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	imapBackend "github.com/emersion/go-imap/backend"
@@ -34,8 +34,8 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// ErrLoggedOutUser is sent to IMAP and SMTP if user exists, password is OK but user is logged out from bridge.
-var ErrLoggedOutUser = errors.New("bridge account is logged out, use bridge to login again")
+// ErrLoggedOutUser is sent to IMAP and SMTP if user exists, password is OK but user is logged out from the app.
+var ErrLoggedOutUser = errors.New("account is logged out, use the app to login again")
 
 // User is a struct on top of API client and credentials store.
 type User struct {
@@ -61,7 +61,7 @@ type User struct {
 	wasKeyringUnlocked   bool
 }
 
-// newUser creates a new bridge user.
+// newUser creates a new user.
 func newUser(
 	panicHandler PanicHandler,
 	userID string,
@@ -98,7 +98,7 @@ func (u *User) client() pmapi.Client {
 	return u.clientManager.GetClient(u.userID)
 }
 
-// init initialises a bridge user. This includes reloading its credentials from the credentials store
+// init initialises a user. This includes reloading its credentials from the credentials store
 // (such as when logging out and back in, you need to reload the credentials because the new credentials will
 // have the apitoken and password), authorising the user against the api, loading the user store (creating a new one
 // if necessary), and setting the imap idle updates channel (used to send imap idle updates to the imap backend if
@@ -119,7 +119,7 @@ func (u *User) init(idleUpdates chan imapBackend.Update) (err error) {
 	u.creds = creds
 
 	// Try to authorise the user if they aren't already authorised.
-	// Note: we still allow users to set up bridge if the internet is off.
+	// Note: we still allow users to set up accounts if the internet is off.
 	if authErr := u.authorizeIfNecessary(false); authErr != nil {
 		switch errors.Cause(authErr) {
 		case pmapi.ErrAPINotReachable, pmapi.ErrUpgradeApplication, ErrLoggedOutUser:
@@ -245,7 +245,7 @@ func (u *User) authorizeAndUnlock() (err error) {
 }
 
 func (u *User) updateAuthToken(auth *pmapi.Auth) {
-	u.log.Debug("User received auth from bridge")
+	u.log.Debug("User received auth")
 
 	if err := u.credStorer.UpdateToken(u.userID, auth.GenToken()); err != nil {
 		u.log.WithError(err).Error("Failed to update refresh token in credentials store")
@@ -495,7 +495,7 @@ func (u *User) SwitchAddressMode() (err error) {
 }
 
 // logout is the same as Logout, but for internal purposes (logged out from
-// the server) which emits LogoutEvent to notify other parts of the Bridge.
+// the server) which emits LogoutEvent to notify other parts of the app.
 func (u *User) logout() error {
 	u.lock.Lock()
 	wasConnected := u.creds.IsConnected()

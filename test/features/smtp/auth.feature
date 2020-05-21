@@ -19,7 +19,7 @@ Feature: SMTP auth
   Scenario: Authenticates with disconnected user
     Given there is disconnected user "user"
     When SMTP client authenticates "user"
-    Then SMTP response is "SMTP error: 454 bridge account is logged out, use bridge to login again"
+    Then SMTP response is "SMTP error: 454 account is logged out, use the app to login again"
 
   Scenario: Authenticates with no user
     When SMTP client authenticates with username "user@pm.me" and password "bridgepassword"

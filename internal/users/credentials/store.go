@@ -36,8 +36,8 @@ type Store struct {
 }
 
 // NewStore creates a new encrypted credentials store.
-func NewStore() (*Store, error) {
-	secrets, err := keychain.NewAccess("bridge")
+func NewStore(appName string) (*Store, error) {
+	secrets, err := keychain.NewAccess(appName)
 	return &Store{
 		secrets: secrets,
 	}, err

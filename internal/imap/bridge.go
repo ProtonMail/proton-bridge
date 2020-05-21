@@ -19,6 +19,7 @@ package imap
 
 import (
 	"github.com/ProtonMail/proton-bridge/internal/bridge"
+	"github.com/ProtonMail/proton-bridge/internal/users"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 )
 
@@ -67,10 +68,10 @@ func (b *bridgeWrap) GetUser(query string) (bridgeUser, error) {
 }
 
 type bridgeUserWrap struct {
-	*bridge.User
+	*users.User
 }
 
-func newBridgeUserWrap(bridgeUser *bridge.User) *bridgeUserWrap {
+func newBridgeUserWrap(bridgeUser *users.User) *bridgeUserWrap {
 	return &bridgeUserWrap{User: bridgeUser}
 }
 

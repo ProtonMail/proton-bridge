@@ -47,12 +47,12 @@ import (
 
 	"github.com/ProtonMail/proton-bridge/internal/api"
 	"github.com/ProtonMail/proton-bridge/internal/bridge"
-	"github.com/ProtonMail/proton-bridge/internal/bridge/credentials"
 	"github.com/ProtonMail/proton-bridge/internal/events"
 	"github.com/ProtonMail/proton-bridge/internal/frontend"
 	"github.com/ProtonMail/proton-bridge/internal/imap"
 	"github.com/ProtonMail/proton-bridge/internal/preferences"
 	"github.com/ProtonMail/proton-bridge/internal/smtp"
+	"github.com/ProtonMail/proton-bridge/internal/users/credentials"
 	"github.com/ProtonMail/proton-bridge/pkg/args"
 	"github.com/ProtonMail/proton-bridge/pkg/config"
 	"github.com/ProtonMail/proton-bridge/pkg/constants"
@@ -261,7 +261,7 @@ func run(context *cli.Context) (contextError error) { // nolint[funlen]
 	eventListener := listener.New()
 	events.SetupEvents(eventListener)
 
-	credentialsStore, credentialsError := credentials.NewStore()
+	credentialsStore, credentialsError := credentials.NewStore("bridge")
 	if credentialsError != nil {
 		log.Error("Could not get credentials store: ", credentialsError)
 	}

@@ -20,6 +20,7 @@ package context
 
 import (
 	"github.com/ProtonMail/proton-bridge/internal/bridge"
+	"github.com/ProtonMail/proton-bridge/internal/users"
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	"github.com/ProtonMail/proton-bridge/test/accounts"
@@ -48,7 +49,7 @@ type TestContext struct {
 	// Bridge core related variables.
 	bridge          *bridge.Bridge
 	bridgeLastError error
-	credStore       bridge.CredentialsStorer
+	credStore       users.CredentialsStorer
 
 	// IMAP related variables.
 	imapAddr          string

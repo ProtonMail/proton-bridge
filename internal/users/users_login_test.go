@@ -15,27 +15,27 @@
 // You should have received a copy of the GNU General Public License
 // along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
 
-package bridge
+package users
 
 import (
 	"errors"
 	"testing"
 
-	"github.com/ProtonMail/proton-bridge/internal/bridge/credentials"
 	"github.com/ProtonMail/proton-bridge/internal/events"
 	"github.com/ProtonMail/proton-bridge/internal/metrics"
+	"github.com/ProtonMail/proton-bridge/internal/users/credentials"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	gomock "github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestBridgeFinishLoginBadMailboxPassword(t *testing.T) {
+func TestUsersFinishLoginBadMailboxPassword(t *testing.T) {
 	m := initMocks(t)
 	defer m.ctrl.Finish()
 
 	err := errors.New("bad password")
 	gomock.InOrder(
-		// Init bridge with no user from keychain.
+		// Init users with no user from keychain.
 		m.credentialsStore.EXPECT().List().Return([]string{}, nil),
 
 		// Set up mocks for FinishLogin.
@@ -44,16 +44,16 @@ func TestBridgeFinishLoginBadMailboxPassword(t *testing.T) {
 		m.pmapiClient.EXPECT().Logout(),
 	)
 
-	checkBridgeFinishLogin(t, m, testAuth, testCredentials.MailboxPassword, "", err)
+	checkUsersFinishLogin(t, m, testAuth, testCredentials.MailboxPassword, "", err)
 }
 
-func TestBridgeFinishLoginUpgradeApplication(t *testing.T) {
+func TestUsersFinishLoginUpgradeApplication(t *testing.T) {
 	m := initMocks(t)
 	defer m.ctrl.Finish()
 
 	err := errors.New("Cannot logout when upgrade needed")
 	gomock.InOrder(
-		// Init bridge with no user from keychain.
+		// Init users with no user from keychain.
 		m.credentialsStore.EXPECT().List().Return([]string{}, nil),
 
 		// Set up mocks for FinishLogin.
@@ -64,7 +64,7 @@ func TestBridgeFinishLoginUpgradeApplication(t *testing.T) {
 		m.pmapiClient.EXPECT().Logout(),
 	)
 
-	checkBridgeFinishLogin(t, m, testAuth, testCredentials.MailboxPassword, "", pmapi.ErrUpgradeApplication)
+	checkUsersFinishLogin(t, m, testAuth, testCredentials.MailboxPassword, "", pmapi.ErrUpgradeApplication)
 }
 
 func refreshWithToken(token string) *pmapi.Auth {
@@ -81,7 +81,7 @@ func credentialsWithToken(token string) *credentials.Credentials {
 	return tmp
 }
 
-func TestBridgeFinishLoginNewUser(t *testing.T) {
+func TestUsersFinishLoginNewUser(t *testing.T) {
 	m := initMocks(t)
 	defer m.ctrl.Finish()
 
@@ -89,7 +89,7 @@ func TestBridgeFinishLoginNewUser(t *testing.T) {
 	m.clientManager.EXPECT().GetClient("user").Return(m.pmapiClient).MinTimes(1)
 
 	gomock.InOrder(
-		// bridge.New() finds no users in keychain.
+		// users.New() finds no users in keychain.
 		m.credentialsStore.EXPECT().List().Return([]string{}, nil),
 
 		// getAPIUser() loads user info from API (e.g. userID).
@@ -128,12 +128,12 @@ func TestBridgeFinishLoginNewUser(t *testing.T) {
 
 	mockEventLoopNoAction(m)
 
-	user := checkBridgeFinishLogin(t, m, testAuth, testCredentials.MailboxPassword, "user", nil)
+	user := checkUsersFinishLogin(t, m, testAuth, testCredentials.MailboxPassword, "user", nil)
 
 	mockAuthUpdate(user, "afterCredentials", m)
 }
 
-func TestBridgeFinishLoginExistingDisconnectedUser(t *testing.T) {
+func TestUsersFinishLoginExistingDisconnectedUser(t *testing.T) {
 	m := initMocks(t)
 	defer m.ctrl.Finish()
 
@@ -144,7 +144,7 @@ func TestBridgeFinishLoginExistingDisconnectedUser(t *testing.T) {
 	m.clientManager.EXPECT().GetClient("user").Return(m.pmapiClient).MinTimes(1)
 
 	gomock.InOrder(
-		// bridge.New() finds one existing user in keychain.
+		// users.New() finds one existing user in keychain.
 		m.credentialsStore.EXPECT().List().Return([]string{"user"}, nil),
 
 		// newUser()
@@ -186,12 +186,12 @@ func TestBridgeFinishLoginExistingDisconnectedUser(t *testing.T) {
 
 	mockEventLoopNoAction(m)
 
-	user := checkBridgeFinishLogin(t, m, testAuth, testCredentials.MailboxPassword, "user", nil)
+	user := checkUsersFinishLogin(t, m, testAuth, testCredentials.MailboxPassword, "user", nil)
 
 	mockAuthUpdate(user, "afterCredentials", m)
 }
 
-func TestBridgeFinishLoginConnectedUser(t *testing.T) {
+func TestUsersFinishLoginConnectedUser(t *testing.T) {
 	m := initMocks(t)
 	defer m.ctrl.Finish()
 
@@ -201,8 +201,8 @@ func TestBridgeFinishLoginConnectedUser(t *testing.T) {
 	mockConnectedUser(m)
 	mockEventLoopNoAction(m)
 
-	bridge := testNewBridge(t, m)
-	defer cleanUpBridgeUserData(bridge)
+	users := testNewUsers(t, m)
+	defer cleanUpUsersData(users)
 
 	// Then, try to log in again...
 	gomock.InOrder(
@@ -212,15 +212,15 @@ func TestBridgeFinishLoginConnectedUser(t *testing.T) {
 		m.pmapiClient.EXPECT().Logout(),
 	)
 
-	_, err := bridge.FinishLogin(m.pmapiClient, testAuth, testCredentials.MailboxPassword)
+	_, err := users.FinishLogin(m.pmapiClient, testAuth, testCredentials.MailboxPassword)
 	assert.Equal(t, "user is already connected", err.Error())
 }
 
-func checkBridgeFinishLogin(t *testing.T, m mocks, auth *pmapi.Auth, mailboxPassword string, expectedUserID string, expectedErr error) *User {
-	bridge := testNewBridge(t, m)
-	defer cleanUpBridgeUserData(bridge)
+func checkUsersFinishLogin(t *testing.T, m mocks, auth *pmapi.Auth, mailboxPassword string, expectedUserID string, expectedErr error) *User {
+	users := testNewUsers(t, m)
+	defer cleanUpUsersData(users)
 
-	user, err := bridge.FinishLogin(m.pmapiClient, auth, mailboxPassword)
+	user, err := users.FinishLogin(m.pmapiClient, auth, mailboxPassword)
 
 	waitForEvents()
 
@@ -228,11 +228,11 @@ func checkBridgeFinishLogin(t *testing.T, m mocks, auth *pmapi.Auth, mailboxPass
 
 	if expectedUserID != "" {
 		assert.Equal(t, expectedUserID, user.ID())
-		assert.Equal(t, 1, len(bridge.users))
-		assert.Equal(t, expectedUserID, bridge.users[0].ID())
+		assert.Equal(t, 1, len(users.users))
+		assert.Equal(t, expectedUserID, users.users[0].ID())
 	} else {
 		assert.Equal(t, (*User)(nil), user)
-		assert.Equal(t, 0, len(bridge.users))
+		assert.Equal(t, 0, len(users.users))
 	}
 
 	return user

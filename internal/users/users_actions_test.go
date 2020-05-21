@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
 
-package bridge
+package users
 
 import (
 	"errors"
@@ -33,7 +33,7 @@ func TestGetNoUser(t *testing.T) {
 	m.clientManager.EXPECT().GetClient("user").Return(m.pmapiClient).MinTimes(1)
 	m.clientManager.EXPECT().GetClient("users").Return(m.pmapiClient).MinTimes(1)
 
-	checkBridgeGetUser(t, m, "nouser", -1, "user nouser not found")
+	checkUsersGetUser(t, m, "nouser", -1, "user nouser not found")
 }
 
 func TestGetUserByID(t *testing.T) {
@@ -43,8 +43,8 @@ func TestGetUserByID(t *testing.T) {
 	m.clientManager.EXPECT().GetClient("user").Return(m.pmapiClient).MinTimes(1)
 	m.clientManager.EXPECT().GetClient("users").Return(m.pmapiClient).MinTimes(1)
 
-	checkBridgeGetUser(t, m, "user", 0, "")
-	checkBridgeGetUser(t, m, "users", 1, "")
+	checkUsersGetUser(t, m, "user", 0, "")
+	checkUsersGetUser(t, m, "users", 1, "")
 }
 
 func TestGetUserByName(t *testing.T) {
@@ -54,8 +54,8 @@ func TestGetUserByName(t *testing.T) {
 	m.clientManager.EXPECT().GetClient("user").Return(m.pmapiClient).MinTimes(1)
 	m.clientManager.EXPECT().GetClient("users").Return(m.pmapiClient).MinTimes(1)
 
-	checkBridgeGetUser(t, m, "username", 0, "")
-	checkBridgeGetUser(t, m, "usersname", 1, "")
+	checkUsersGetUser(t, m, "username", 0, "")
+	checkUsersGetUser(t, m, "usersname", 1, "")
 }
 
 func TestGetUserByEmail(t *testing.T) {
@@ -65,10 +65,10 @@ func TestGetUserByEmail(t *testing.T) {
 	m.clientManager.EXPECT().GetClient("user").Return(m.pmapiClient).MinTimes(1)
 	m.clientManager.EXPECT().GetClient("users").Return(m.pmapiClient).MinTimes(1)
 
-	checkBridgeGetUser(t, m, "user@pm.me", 0, "")
-	checkBridgeGetUser(t, m, "users@pm.me", 1, "")
-	checkBridgeGetUser(t, m, "anotheruser@pm.me", 1, "")
-	checkBridgeGetUser(t, m, "alsouser@pm.me", 1, "")
+	checkUsersGetUser(t, m, "user@pm.me", 0, "")
+	checkUsersGetUser(t, m, "users@pm.me", 1, "")
+	checkUsersGetUser(t, m, "anotheruser@pm.me", 1, "")
+	checkUsersGetUser(t, m, "alsouser@pm.me", 1, "")
 }
 
 func TestDeleteUser(t *testing.T) {
@@ -78,8 +78,8 @@ func TestDeleteUser(t *testing.T) {
 	m.clientManager.EXPECT().GetClient("user").Return(m.pmapiClient).MinTimes(1)
 	m.clientManager.EXPECT().GetClient("users").Return(m.pmapiClient).MinTimes(1)
 
-	bridge := testNewBridgeWithUsers(t, m)
-	defer cleanUpBridgeUserData(bridge)
+	users := testNewUsersWithUsers(t, m)
+	defer cleanUpUsersData(users)
 
 	gomock.InOrder(
 		m.pmapiClient.EXPECT().Logout().Return(),
@@ -90,9 +90,9 @@ func TestDeleteUser(t *testing.T) {
 
 	m.eventListener.EXPECT().Emit(events.CloseConnectionEvent, "user@pm.me")
 
-	err := bridge.DeleteUser("user", true)
+	err := users.DeleteUser("user", true)
 	assert.NoError(t, err)
-	assert.Equal(t, 1, len(bridge.users))
+	assert.Equal(t, 1, len(users.users))
 }
 
 // Even when logout fails, delete is done.
@@ -103,8 +103,8 @@ func TestDeleteUserWithFailingLogout(t *testing.T) {
 	m.clientManager.EXPECT().GetClient("user").Return(m.pmapiClient).MinTimes(1)
 	m.clientManager.EXPECT().GetClient("users").Return(m.pmapiClient).MinTimes(1)
 
-	bridge := testNewBridgeWithUsers(t, m)
-	defer cleanUpBridgeUserData(bridge)
+	users := testNewUsersWithUsers(t, m)
+	defer cleanUpUsersData(users)
 
 	gomock.InOrder(
 		m.pmapiClient.EXPECT().Logout().Return(),
@@ -116,16 +116,16 @@ func TestDeleteUserWithFailingLogout(t *testing.T) {
 
 	m.eventListener.EXPECT().Emit(events.CloseConnectionEvent, "user@pm.me")
 
-	err := bridge.DeleteUser("user", true)
+	err := users.DeleteUser("user", true)
 	assert.NoError(t, err)
-	assert.Equal(t, 1, len(bridge.users))
+	assert.Equal(t, 1, len(users.users))
 }
 
-func checkBridgeGetUser(t *testing.T, m mocks, query string, index int, expectedError string) {
-	bridge := testNewBridgeWithUsers(t, m)
-	defer cleanUpBridgeUserData(bridge)
+func checkUsersGetUser(t *testing.T, m mocks, query string, index int, expectedError string) {
+	users := testNewUsersWithUsers(t, m)
+	defer cleanUpUsersData(users)
 
-	user, err := bridge.GetUser(query)
+	user, err := users.GetUser(query)
 	waitForEvents()
 
 	if expectedError != "" {
@@ -136,7 +136,7 @@ func checkBridgeGetUser(t *testing.T, m mocks, query string, index int, expected
 
 	var expectedUser *User
 	if index >= 0 {
-		expectedUser = bridge.users[index]
+		expectedUser = users.users[index]
 	}
 
 	assert.Equal(m.t, expectedUser, user)

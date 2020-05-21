@@ -20,6 +20,7 @@ package context
 import (
 	"github.com/ProtonMail/proton-bridge/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/internal/preferences"
+	"github.com/ProtonMail/proton-bridge/internal/users"
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
 )
 
@@ -57,9 +58,9 @@ func (ctx *TestContext) RestartBridge() error {
 func newBridgeInstance(
 	t *bddT,
 	cfg *fakeConfig,
-	credStore bridge.CredentialsStorer,
+	credStore users.CredentialsStorer,
 	eventListener listener.Listener,
-	clientManager bridge.ClientManager,
+	clientManager users.ClientManager,
 ) *bridge.Bridge {
 	panicHandler := &panicHandler{t: t}
 	pref := preferences.New(cfg)
