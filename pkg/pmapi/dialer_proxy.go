@@ -25,6 +25,10 @@ func (d *ProxyTLSDialer) DialTLS(network, address string) (conn net.Conn, err er
 		return
 	}
 
+	if !d.cm.allowProxy {
+		return
+	}
+
 	var proxy string
 
 	if proxy, err = d.cm.switchToReachableServer(); err != nil {
