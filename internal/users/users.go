@@ -19,15 +19,11 @@
 package users
 
 import (
-	"strconv"
 	"strings"
 	"sync"
-	"time"
 
 	"github.com/ProtonMail/proton-bridge/internal/events"
 	"github.com/ProtonMail/proton-bridge/internal/metrics"
-	"github.com/ProtonMail/proton-bridge/internal/preferences"
-	"github.com/ProtonMail/proton-bridge/internal/store"
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	imapBackend "github.com/emersion/go-imap/backend"
@@ -44,12 +40,11 @@ var (
 // Users is a struct handling users.
 type Users struct {
 	config        Configer
-	pref          PreferenceProvider
 	panicHandler  PanicHandler
 	events        listener.Listener
 	clientManager ClientManager
 	credStorer    CredentialsStorer
-	storeCache    *store.Cache
+	storeFactory  StoreMaker
 
 	// users is a list of accounts that have been added to the app.
 	// They are stored sorted in the credentials store in the order
@@ -70,31 +65,24 @@ type Users struct {
 
 func New(
 	config Configer,
-	pref PreferenceProvider,
 	panicHandler PanicHandler,
 	eventListener listener.Listener,
 	clientManager ClientManager,
 	credStorer CredentialsStorer,
+	storeFactory StoreMaker,
 ) *Users {
 	log.Trace("Creating new users")
 
 	u := &Users{
 		config:        config,
-		pref:          pref,
 		panicHandler:  panicHandler,
 		events:        eventListener,
 		clientManager: clientManager,
 		credStorer:    credStorer,
-		storeCache:    store.NewCache(config.GetIMAPCachePath()),
+		storeFactory:  storeFactory,
 		idleUpdates:   make(chan imapBackend.Update),
 		lock:          sync.RWMutex{},
 		stopAll:       make(chan struct{}),
-	}
-
-	// Allow DoH before starting the app if the user has previously set this setting.
-	// This allows us to start even if protonmail is blocked.
-	if pref.GetBool(preferences.AllowProxyKey) {
-		u.AllowProxy()
 	}
 
 	go func() {
@@ -107,43 +95,13 @@ func New(
 		u.watchAPIAuths()
 	}()
 
-	go u.heartbeat()
-
 	if u.credStorer == nil {
 		log.Error("No credentials store is available")
 	} else if err := u.loadUsersFromCredentialsStore(); err != nil {
 		log.WithError(err).Error("Could not load all users from credentials store")
 	}
 
-	if pref.GetBool(preferences.FirstStartKey) {
-		u.SendMetric(metrics.New(metrics.Setup, metrics.FirstStart, metrics.Label(config.GetVersion())))
-	}
-
 	return u
-}
-
-// heartbeat sends a heartbeat signal once a day.
-func (u *Users) heartbeat() {
-	ticker := time.NewTicker(1 * time.Minute)
-
-	for {
-		select {
-		case <-ticker.C:
-			next, err := strconv.ParseInt(u.pref.Get(preferences.NextHeartbeatKey), 10, 64)
-			if err != nil {
-				continue
-			}
-			nextTime := time.Unix(next, 0)
-			if time.Now().After(nextTime) {
-				u.SendMetric(metrics.New(metrics.Heartbeat, metrics.Daily, metrics.NoLabel))
-				nextTime = nextTime.Add(24 * time.Hour)
-				u.pref.Set(preferences.NextHeartbeatKey, strconv.FormatInt(nextTime.Unix(), 10))
-			}
-
-		case <-u.stopAll:
-			return
-		}
-	}
 }
 
 func (u *Users) loadUsersFromCredentialsStore() (err error) {
@@ -158,7 +116,7 @@ func (u *Users) loadUsersFromCredentialsStore() (err error) {
 	for _, userID := range userIDs {
 		l := log.WithField("user", userID)
 
-		user, newUserErr := newUser(u.panicHandler, userID, u.events, u.credStorer, u.clientManager, u.storeCache, u.config.GetDBDir())
+		user, newUserErr := newUser(u.panicHandler, userID, u.events, u.credStorer, u.clientManager, u.storeFactory)
 		if newUserErr != nil {
 			l.WithField("user", userID).WithError(newUserErr).Warn("Could not load user, skipping")
 			continue
@@ -345,7 +303,7 @@ func (u *Users) addNewUser(apiUser *pmapi.User, auth *pmapi.Auth, hashedPassword
 		return errors.Wrap(err, "failed to add user to credentials store")
 	}
 
-	user, err := newUser(u.panicHandler, apiUser.ID, u.events, u.credStorer, u.clientManager, u.storeCache, u.config.GetDBDir())
+	user, err := newUser(u.panicHandler, apiUser.ID, u.events, u.credStorer, u.clientManager, u.storeFactory)
 	if err != nil {
 		return errors.Wrap(err, "failed to create user")
 	}

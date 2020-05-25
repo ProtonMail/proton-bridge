@@ -30,12 +30,17 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-const sep = "\x00"
+const (
+	sep = "\x00"
+
+	itemLengthBridge       = 9
+	itemLengthImportExport = 6 // Old format for Import/Export.
+)
 
 var (
 	log = logrus.WithField("pkg", "credentials") //nolint[gochecknoglobals]
 
-	ErrWrongFormat = errors.New("backend/creds: malformed password")
+	ErrWrongFormat = errors.New("malformed credentials")
 )
 
 type Credentials struct {
@@ -85,7 +90,7 @@ func (s *Credentials) Unmarshal(secret string) error {
 	}
 	items := strings.Split(string(b), sep)
 
-	if len(items) != 9 {
+	if len(items) != itemLengthBridge && len(items) != itemLengthImportExport {
 		return ErrWrongFormat
 	}
 
@@ -93,16 +98,26 @@ func (s *Credentials) Unmarshal(secret string) error {
 	s.Emails = items[1]
 	s.APIToken = items[2]
 	s.MailboxPassword = items[3]
-	s.BridgePassword = items[4]
-	s.Version = items[5]
-	if _, err = fmt.Sscan(items[6], &s.Timestamp); err != nil {
-		s.Timestamp = 0
-	}
-	if s.IsHidden = false; items[7] == "1" {
-		s.IsHidden = true
-	}
-	if s.IsCombinedAddressMode = false; items[8] == "1" {
-		s.IsCombinedAddressMode = true
+
+	switch len(items) {
+	case itemLengthBridge:
+		s.BridgePassword = items[4]
+		s.Version = items[5]
+		if _, err = fmt.Sscan(items[6], &s.Timestamp); err != nil {
+			s.Timestamp = 0
+		}
+		if s.IsHidden = false; items[7] == "1" {
+			s.IsHidden = true
+		}
+		if s.IsCombinedAddressMode = false; items[8] == "1" {
+			s.IsCombinedAddressMode = true
+		}
+
+	case itemLengthImportExport:
+		s.Version = items[4]
+		if _, err = fmt.Sscan(items[5], &s.Timestamp); err != nil {
+			s.Timestamp = 0
+		}
 	}
 	return nil
 }

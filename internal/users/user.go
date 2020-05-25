@@ -18,8 +18,6 @@
 package users
 
 import (
-	"fmt"
-	"path/filepath"
 	"runtime"
 	"strings"
 	"sync"
@@ -47,9 +45,8 @@ type User struct {
 
 	imapUpdatesChannel chan imapBackend.Update
 
-	store      *store.Store
-	storeCache *store.Cache
-	storePath  string
+	storeFactory StoreMaker
+	store        *store.Store
 
 	userID string
 	creds  *credentials.Credentials
@@ -68,8 +65,7 @@ func newUser(
 	eventListener listener.Listener,
 	credStorer CredentialsStorer,
 	clientManager ClientManager,
-	storeCache *store.Cache,
-	storeDir string,
+	storeFactory StoreMaker,
 ) (u *User, err error) {
 	log := log.WithField("user", userID)
 	log.Debug("Creating or loading user")
@@ -85,8 +81,7 @@ func newUser(
 		listener:      eventListener,
 		credStorer:    credStorer,
 		clientManager: clientManager,
-		storeCache:    storeCache,
-		storePath:     getUserStorePath(storeDir, userID),
+		storeFactory:  storeFactory,
 		userID:        userID,
 		creds:         creds,
 	}
@@ -140,7 +135,7 @@ func (u *User) init(idleUpdates chan imapBackend.Update) (err error) {
 		}
 		u.store = nil
 	}
-	store, err := store.New(u.panicHandler, u, u.clientManager, u.listener, u.storePath, u.storeCache)
+	store, err := u.storeFactory.New(u)
 	if err != nil {
 		return errors.Wrap(err, "failed to create store")
 	}
@@ -267,7 +262,7 @@ func (u *User) clearStore() error {
 		}
 	} else {
 		u.log.Warn("Store is not initialized: cleaning up store files manually")
-		if err := store.RemoveStore(u.storeCache, u.storePath, u.userID); err != nil {
+		if err := u.storeFactory.Remove(u.userID); err != nil {
 			return errors.Wrap(err, "failed to remove store manually")
 		}
 	}
@@ -285,12 +280,6 @@ func (u *User) closeStore() error {
 	}
 
 	return nil
-}
-
-// getUserStorePath returns the file path of the store database for the given userID.
-func getUserStorePath(storeDir string, userID string) (path string) {
-	fileName := fmt.Sprintf("mailbox-%v.db", userID)
-	return filepath.Join(storeDir, fileName)
 }
 
 // GetTemporaryPMAPIClient returns an authorised PMAPI client.

@@ -190,11 +190,7 @@ func TestCheckBridgeLoginLoggedOut(t *testing.T) {
 
 	m.credentialsStore.EXPECT().Get("user").Return(testCredentialsDisconnected, nil)
 
-	user, err := newUser(
-		m.PanicHandler, "user",
-		m.eventListener, m.credentialsStore,
-		m.clientManager, m.storeCache, "/tmp",
-	)
+	user, err := newUser(m.PanicHandler, "user", m.eventListener, m.credentialsStore, m.clientManager, m.storeMaker)
 	assert.NoError(t, err)
 
 	m.clientManager.EXPECT().GetClient(gomock.Any()).Return(m.pmapiClient).MinTimes(1)

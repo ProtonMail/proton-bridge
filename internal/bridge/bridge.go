@@ -19,6 +19,11 @@
 package bridge
 
 import (
+	"strconv"
+	"time"
+
+	"github.com/ProtonMail/proton-bridge/internal/metrics"
+	"github.com/ProtonMail/proton-bridge/internal/preferences"
 	"github.com/ProtonMail/proton-bridge/internal/users"
 
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
@@ -32,6 +37,7 @@ var (
 type Bridge struct {
 	*users.Users
 
+	pref          PreferenceProvider
 	clientManager users.ClientManager
 
 	userAgentClientName    string
@@ -40,18 +46,52 @@ type Bridge struct {
 }
 
 func New(
-	config users.Configer,
-	pref users.PreferenceProvider,
+	config Configer,
+	pref PreferenceProvider,
 	panicHandler users.PanicHandler,
 	eventListener listener.Listener,
 	clientManager users.ClientManager,
 	credStorer users.CredentialsStorer,
 ) *Bridge {
-	u := users.New(config, pref, panicHandler, eventListener, clientManager, credStorer)
-	return &Bridge{
+	storeFactory := newStoreFactory(config, panicHandler, clientManager, eventListener)
+	u := users.New(config, panicHandler, eventListener, clientManager, credStorer, storeFactory)
+	b := &Bridge{
 		Users: u,
 
+		pref:          pref,
 		clientManager: clientManager,
+	}
+
+	// Allow DoH before starting the app if the user has previously set this setting.
+	// This allows us to start even if protonmail is blocked.
+	if pref.GetBool(preferences.AllowProxyKey) {
+		b.AllowProxy()
+	}
+
+	if pref.GetBool(preferences.FirstStartKey) {
+		b.SendMetric(metrics.New(metrics.Setup, metrics.FirstStart, metrics.Label(config.GetVersion())))
+	}
+
+	go b.heartbeat()
+
+	return b
+}
+
+// heartbeat sends a heartbeat signal once a day.
+func (b *Bridge) heartbeat() {
+	ticker := time.NewTicker(1 * time.Minute)
+
+	for range ticker.C {
+		next, err := strconv.ParseInt(b.pref.Get(preferences.NextHeartbeatKey), 10, 64)
+		if err != nil {
+			continue
+		}
+		nextTime := time.Unix(next, 0)
+		if time.Now().After(nextTime) {
+			b.SendMetric(metrics.New(metrics.Heartbeat, metrics.Daily, metrics.NoLabel))
+			nextTime = nextTime.Add(24 * time.Hour)
+			b.pref.Set(preferences.NextHeartbeatKey, strconv.FormatInt(nextTime.Unix(), 10))
+		}
 	}
 }
 

@@ -26,8 +26,6 @@ import (
 	"time"
 
 	"github.com/ProtonMail/proton-bridge/internal/events"
-	"github.com/ProtonMail/proton-bridge/internal/metrics"
-	"github.com/ProtonMail/proton-bridge/internal/preferences"
 	"github.com/ProtonMail/proton-bridge/internal/store"
 	"github.com/ProtonMail/proton-bridge/internal/users/credentials"
 	usersmocks "github.com/ProtonMail/proton-bridge/internal/users/mocks"
@@ -133,9 +131,9 @@ type mocks struct {
 	ctrl             *gomock.Controller
 	config           *usersmocks.MockConfiger
 	PanicHandler     *usersmocks.MockPanicHandler
-	prefProvider     *usersmocks.MockPreferenceProvider
 	clientManager    *usersmocks.MockClientManager
 	credentialsStore *usersmocks.MockCredentialsStorer
+	storeMaker       *usersmocks.MockStoreMaker
 	eventListener    *MockListener
 
 	pmapiClient *pmapimocks.MockClient
@@ -174,9 +172,9 @@ func initMocks(t *testing.T) mocks {
 		ctrl:             mockCtrl,
 		config:           usersmocks.NewMockConfiger(mockCtrl),
 		PanicHandler:     usersmocks.NewMockPanicHandler(mockCtrl),
-		prefProvider:     usersmocks.NewMockPreferenceProvider(mockCtrl),
 		clientManager:    usersmocks.NewMockClientManager(mockCtrl),
 		credentialsStore: usersmocks.NewMockCredentialsStorer(mockCtrl),
+		storeMaker:       usersmocks.NewMockStoreMaker(mockCtrl),
 		eventListener:    NewMockListener(mockCtrl),
 
 		pmapiClient: pmapimocks.NewMockClient(mockCtrl),
@@ -184,13 +182,16 @@ func initMocks(t *testing.T) mocks {
 		storeCache: store.NewCache(cacheFile.Name()),
 	}
 
-	// Ignore heartbeat calls because they always happen.
-	m.pmapiClient.EXPECT().SendSimpleMetric(string(metrics.Heartbeat), gomock.Any(), gomock.Any()).AnyTimes()
-	m.prefProvider.EXPECT().Get(preferences.NextHeartbeatKey).AnyTimes()
-	m.prefProvider.EXPECT().Set(preferences.NextHeartbeatKey, gomock.Any()).AnyTimes()
-
 	// Called during clean-up.
 	m.PanicHandler.EXPECT().HandlePanic().AnyTimes()
+
+	// Set up store factory.
+	m.storeMaker.EXPECT().New(gomock.Any()).DoAndReturn(func(user store.BridgeUser) (*store.Store, error) {
+		dbFile, err := ioutil.TempFile("", "bridge-store-db-*.db")
+		require.NoError(t, err, "could not get temporary file for store db")
+		return store.New(m.PanicHandler, user, m.clientManager, m.eventListener, dbFile.Name(), m.storeCache)
+	}).AnyTimes()
+	m.storeMaker.EXPECT().Remove(gomock.Any()).AnyTimes()
 
 	return m
 }
@@ -236,19 +237,12 @@ func testNewUsersWithUsers(t *testing.T, m mocks) *Users {
 	return users
 }
 
-func testNewUsers(t *testing.T, m mocks) *Users {
-	cacheFile, err := ioutil.TempFile("", "bridge-store-cache-*.db")
-	require.NoError(t, err, "could not get temporary file for store cache")
-
-	m.prefProvider.EXPECT().GetBool(preferences.FirstStartKey).Return(false).AnyTimes()
-	m.prefProvider.EXPECT().GetBool(preferences.AllowProxyKey).Return(false).AnyTimes()
-	m.config.EXPECT().GetDBDir().Return("/tmp").AnyTimes()
-	m.config.EXPECT().GetIMAPCachePath().Return(cacheFile.Name()).AnyTimes()
+func testNewUsers(t *testing.T, m mocks) *Users { //nolint[unparam]
 	m.config.EXPECT().GetVersion().Return("ver").AnyTimes()
 	m.eventListener.EXPECT().Add(events.UpgradeApplicationEvent, gomock.Any())
 	m.clientManager.EXPECT().GetAuthUpdateChannel().Return(make(chan pmapi.ClientAuth))
 
-	users := New(m.config, m.prefProvider, m.PanicHandler, m.eventListener, m.clientManager, m.credentialsStore)
+	users := New(m.config, m.PanicHandler, m.eventListener, m.clientManager, m.credentialsStore, m.storeMaker)
 
 	waitForEvents()
 

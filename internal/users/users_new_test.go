@@ -22,8 +22,6 @@ import (
 	"testing"
 
 	"github.com/ProtonMail/proton-bridge/internal/events"
-	"github.com/ProtonMail/proton-bridge/internal/metrics"
-	"github.com/ProtonMail/proton-bridge/internal/preferences"
 	"github.com/ProtonMail/proton-bridge/internal/users/credentials"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	gomock "github.com/golang/mock/gomock"
@@ -162,13 +160,7 @@ func TestNewUsersFirstStart(t *testing.T) {
 	m := initMocks(t)
 	defer m.ctrl.Finish()
 
-	gomock.InOrder(
-		m.credentialsStore.EXPECT().List().Return([]string{}, nil),
-		m.prefProvider.EXPECT().GetBool(preferences.FirstStartKey).Return(true),
-		m.clientManager.EXPECT().GetAnonymousClient().Return(m.pmapiClient),
-		m.pmapiClient.EXPECT().SendSimpleMetric(string(metrics.Setup), string(metrics.FirstStart), gomock.Any()),
-		m.pmapiClient.EXPECT().Logout(),
-	)
+	m.credentialsStore.EXPECT().List().Return([]string{}, nil)
 
 	testNewUsers(t, m)
 }

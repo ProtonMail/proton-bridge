@@ -18,23 +18,15 @@
 package users
 
 import (
+	"github.com/ProtonMail/proton-bridge/internal/store"
 	"github.com/ProtonMail/proton-bridge/internal/users/credentials"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 )
 
 type Configer interface {
 	ClearData() error
-	GetDBDir() string
 	GetVersion() string
-	GetIMAPCachePath() string
 	GetAPIConfig() *pmapi.ClientConfig
-}
-
-type PreferenceProvider interface {
-	Get(key string) string
-	GetBool(key string) bool
-	GetInt(key string) int
-	Set(key string, value string)
 }
 
 type PanicHandler interface {
@@ -61,4 +53,9 @@ type ClientManager interface {
 	GetAuthUpdateChannel() chan pmapi.ClientAuth
 	CheckConnection() error
 	SetUserAgent(clientName, clientVersion, os string)
+}
+
+type StoreMaker interface {
+	New(user store.BridgeUser) (*store.Store, error)
+	Remove(userID string) error
 }
