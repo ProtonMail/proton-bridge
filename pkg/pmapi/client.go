@@ -21,7 +21,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -35,6 +34,7 @@ import (
 
 	pmcrypto "github.com/ProtonMail/gopenpgp/crypto"
 	"github.com/jaytaylor/html2text"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )
 
@@ -460,8 +460,10 @@ func (c *client) refreshAccessToken() (err error) {
 	}
 
 	if _, err := c.AuthRefresh(refreshToken); err != nil {
-		c.sendAuth(nil)
-		return err
+		if err != ErrAPINotReachable {
+			c.sendAuth(nil)
+		}
+		return errors.Wrap(err, "failed to refresh auth")
 	}
 
 	return

@@ -293,11 +293,8 @@ func (cm *ClientManager) GetAuthUpdateChannel() chan ClientAuth {
 	return cm.authUpdates
 }
 
-// Errors for possible connection issues
-var (
-	ErrNoInternetConnection = errors.New("no internet connection")
-	ErrCanNotReachAPI       = errors.New("can not reach PM API")
-)
+// ErrNoInternetConnection indicates that both protonstatus and the API are unreachable.
+var ErrNoInternetConnection = errors.New("no internet connection")
 
 // CheckConnection returns an error if there is no internet connection.
 // This should be moved to the ConnectionManager when it is implemented.
@@ -324,7 +321,7 @@ func (cm *ClientManager) CheckConnection() error {
 
 	case errStatus == nil && errAPI != nil:
 		cm.log.Error("ProtonStatus is reachable but API is not")
-		return ErrCanNotReachAPI
+		return ErrAPINotReachable
 
 	case errStatus != nil && errAPI == nil:
 		cm.log.Warn("API is reachable but protonstatus is not")

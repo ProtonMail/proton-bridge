@@ -11,6 +11,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 ### Fixed
 * GODT-356 Fix crash when removing account while mail client is fetching messages (regression from GODT-204)
+* GODT-390 Don't logout user if AuthRefresh fails because internet was off.
 
 
 ## [v1.2.7] Donghai-hotfix - beta (2020-05-07)
