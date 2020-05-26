@@ -6,6 +6,7 @@ For a detailed build information see [BUILDS](./BUILDS.md).
 For licensing information see [COPYING](./COPYING.md).
 For contribution policy see [CONTRIBUTING](./CONTRIBUTING.md).
 
+
 ## Description
 ProtonMail Bridge for e-mail clients.
 
@@ -31,6 +32,7 @@ Windows, Bridge uses native credential managers. On Linux, use
 or
 [pass](https://www.passwordstore.org/).
 
+
 ## Environment Variables
 
 ### Bridge application
@@ -48,5 +50,34 @@ or
 - `FEATURES`: set feature dir, file or scenario to test
 
 
+## Files
+### Database
+The database stores metadata necessary for presenting messages and mailboxes to an email client:
+- Linux: `~/.cache/protonmail/bridge/<cacheVersion>/mailbox-<userID>.db` (unless `XDG_CACHE_HOME` is set, in which case that is used as your `~`)
+- macOS: `~/Library/Caches/protonmail/bridge/<cacheVersion>/mailbox-<userID>.db`
+- Windows: `%LOCALAPPDATA%\protonmail\bridge\<cacheVersion>\mailbox-<userID>.db`
 
+### Preferences
+User preferences are stored in json at the following location:
+- Linux: `~/.cache/protonmail/bridge/<cacheVersion>/prefs.json` (unless `XDG_CACHE_HOME` is set, in which case that is used as your `~`)
+- macOS: `~/Library/Caches/protonmail/bridge/<cacheVersion>/prefs.json`
+- Windows: `%LOCALAPPDATA%\protonmail\bridge\<cacheVersion>\prefs.json`
+
+### IMAP Cache
+The currently subscribed mailboxes are held in a json file:
+- Linux: `~/.cache/protonmail/bridge/<cacheVersion>/user_info.json` (unless `XDG_CACHE_HOME` is set, in which case that is used as your `~`)
+- macOS: `~/Library/Caches/protonmail/bridge/<cacheVersion>/user_info.json`
+- Windows: `%LOCALAPPDATA%\protonmail\bridge\<cacheVersion>\user_info.json`
+
+### Lock file
+Bridge utilises an on-disk lock to ensure only one instance is run at once. The lock file is here: 
+- Linux: `~/.cache/protonmail/bridge/<cacheVersion>/bridge.lock` (unless `XDG_CACHE_HOME` is set, in which case that is used as your `~`)
+- macOS: `~/Library/Caches/protonmail/bridge/<cacheVersion>/bridge.lock`
+- Windows: `%LOCALAPPDATA%\protonmail\bridge\<cacheVersion>\bridge.lock`
+
+### TLS Certificate and Key
+When bridge first starts, it generates a unique TLS certificate and key file at the following locations:
+- Linux: `~/.config/protonmail/bridge/{cert,key}.pem` (unless `XDG_CONFIG_HOME` is set, in which case that is used as your `~/.config`)
+- macOS: `~/Library/ApplicationSupport/protonmail/bridge/{cert,key}.pem`
+- Windows: `%APPDATA%\protonmail\bridge\{cert,key}.pem`
 
