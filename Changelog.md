@@ -16,6 +16,8 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-390 Don't logout user if AuthRefresh fails because internet was off.
 * GODT-358 Bad timeouts with Alternative Routing
 
+* GODT-390 Don't logout user if AuthRefresh fails because internet was off
+* GODT-341 Fixed flaky unittest for Store synchronization cooldown
 
 ## [v1.2.7] Donghai-hotfix - beta (2020-05-07)
 

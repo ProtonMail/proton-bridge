@@ -117,17 +117,16 @@ func TestCooldownIncreaseAndReset(t *testing.T) {
 func TestCooldownNotSooner(t *testing.T) {
 	var testCooldown cooldown
 	waitTime := 100 * time.Millisecond
-	retries := int64(10)
-	retryWait := time.Duration(waitTime.Milliseconds()/retries) * time.Millisecond
 	testCooldown.setWaitTimes(waitTime)
 
-	// first time it should never be too soon
+	// First time it should never be too soon.
 	assert.False(t, testCooldown.isTooSoon())
-	// these retries should be too soon
-	for i := retries; i > 0; i-- {
-		assert.True(t, testCooldown.isTooSoon())
-		time.Sleep(retryWait)
-	}
-	// after given wait time it shouldn't be soon anymore
+
+	// Only half of given wait time should be too soon.
+	time.Sleep(waitTime / 2)
+	assert.True(t, testCooldown.isTooSoon())
+
+	// After given wait time it shouldn't be soon anymore.
+	time.Sleep(waitTime / 2)
 	assert.False(t, testCooldown.isTooSoon())
 }
