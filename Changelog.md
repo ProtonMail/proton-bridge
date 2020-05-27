@@ -15,6 +15,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-356 Fix crash when removing account while mail client is fetching messages (regression from GODT-204).
 * GODT-390 Don't logout user if AuthRefresh fails because internet was off.
 * GODT-358 Bad timeouts with Alternative Routing
+* GODT-363 Drafts are not deleted when already created on webapp.
 
 * GODT-390 Don't logout user if AuthRefresh fails because internet was off
 * GODT-341 Fixed flaky unittest for Store synchronization cooldown

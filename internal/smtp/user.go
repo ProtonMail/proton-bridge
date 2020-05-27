@@ -379,7 +379,7 @@ func (su *smtpUser) handleReferencesHeader(m *pmapi.Message) (draftID, parentID 
 		} else { // internalid is the parentID.
 			idMatch := regexp.MustCompile(pmapi.InternalReferenceFormat).FindStringSubmatch(reference)
 			if len(idMatch) > 0 {
-				lastID := idMatch[0]
+				lastID := strings.TrimSuffix(strings.Trim(idMatch[0], "<>"), "@protonmail.internalid")
 				filter := &pmapi.MessagesFilter{ID: []string{lastID}}
 				if su.addressID != "" {
 					filter.AddressID = su.addressID
