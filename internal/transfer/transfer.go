@@ -141,8 +141,8 @@ func (t *Transfer) CreateTargetMailbox(mailbox Mailbox) (Mailbox, error) {
 	return t.target.CreateMailbox(mailbox)
 }
 
-// ChangeTarget allows to change target. Ideally should not be used.
-// Useful for situration after user changes mind where to export files and similar.
+// ChangeTarget changes the target. It is safe to change target for export,
+// must not be changed for import. Do not set after you started transfer.
 func (t *Transfer) ChangeTarget(target TargetProvider) {
 	t.target = target
 }

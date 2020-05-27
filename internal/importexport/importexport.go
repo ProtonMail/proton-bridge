@@ -55,6 +55,30 @@ func New(
 	}
 }
 
+// ReportBug reports a new bug from the user.
+func (ie *ImportExport) ReportBug(osType, osVersion, description, accountName, address, emailClient string) error {
+	c := ie.clientManager.GetAnonymousClient()
+	defer c.Logout()
+
+	title := "[Import-Export] Bug"
+	if err := c.ReportBugWithEmailClient(
+		osType,
+		osVersion,
+		title,
+		description,
+		accountName,
+		address,
+		emailClient,
+	); err != nil {
+		log.Error("Reporting bug failed: ", err)
+		return err
+	}
+
+	log.Info("Bug successfully reported")
+
+	return nil
+}
+
 // GetLocalImporter returns transferrer from local EML or MBOX structure to ProtonMail account.
 func (ie *ImportExport) GetLocalImporter(address, path string) (*transfer.Transfer, error) {
 	source := transfer.NewLocalProvider(path)
@@ -111,3 +135,6 @@ func (ie *ImportExport) getPMAPIProvider(address string) (*transfer.PMAPIProvide
 
 	return transfer.NewPMAPIProvider(ie.clientManager, user.ID(), addressID)
 }
+
+// SetCurrentOS TODO
+func (ie *ImportExport) SetCurrentOS(os string) {}

@@ -1,0 +1,6 @@
+clean:
+	rm -f moc.cpp
+	rm -f moc.go
+	rm -f moc.h
+	rm -f moc_cgo*.go
+	rm -f moc_moc.h

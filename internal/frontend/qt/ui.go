@@ -64,7 +64,7 @@ type GoQMLInterface struct {
 	_ string `property:"genericErrSeeLogs"`
 
 	_ float32 `property:"progress"`
-	_ int     `property:"progressDescription"`
+	_ string  `property:"progressDescription"`
 
 	_ func(isAvailable bool)   `signal:"setConnectionStatus"`
 	_ func(updateState string) `signal:"setUpdateState"`

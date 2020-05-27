@@ -3,19 +3,20 @@ export GO111MODULE=on
 # By default, the target OS is the same as the host OS,
 # but this can be overridden by setting TARGET_OS to "windows"/"darwin"/"linux".
 GOOS:=$(shell go env GOOS)
+TARGET_CMD?=Desktop-Bridge
 TARGET_OS?=${GOOS}
 
 ## Build
-.PHONY: build build-nogui check-has-go
+.PHONY: build build-ie build-nogui build-ie-nogui check-has-go
 
-BRIDGE_VERSION?=$(shell git describe --abbrev=0 --tags)-git
+APP_VERSION?=$(shell git describe --abbrev=0 --tags)-git
 REVISION:=$(shell git rev-parse --short=10 HEAD)
 BUILD_TIME:=$(shell date +%FT%T%z)
 
 BUILD_TAGS?=pmapi_prod
 BUILD_FLAGS:=-tags='${BUILD_TAGS}'
 BUILD_FLAGS_NOGUI:=-tags='${BUILD_TAGS} nogui'
-GO_LDFLAGS:=$(addprefix -X github.com/ProtonMail/proton-bridge/pkg/constants.,Version=${BRIDGE_VERSION} Revision=${REVISION} BuildTime=${BUILD_TIME})
+GO_LDFLAGS:=$(addprefix -X github.com/ProtonMail/proton-bridge/pkg/constants.,Version=${APP_VERSION} Revision=${REVISION} BuildTime=${BUILD_TIME})
 ifneq "${BUILD_LDFLAGS}" ""
     GO_LDFLAGS+= ${BUILD_LDFLAGS}
 endif
@@ -23,7 +24,7 @@ GO_LDFLAGS:=-ldflags '${GO_LDFLAGS}'
 BUILD_FLAGS+= ${GO_LDFLAGS}
 BUILD_FLAGS_NOGUI+= ${GO_LDFLAGS}
 
-DEPLOY_DIR:=cmd/Desktop-Bridge/deploy
+DEPLOY_DIR:=cmd/${TARGET_CMD}/deploy
 ICO_FILES:=
 EXE:=$(shell basename ${CURDIR})
 
@@ -36,13 +37,22 @@ ifeq "${TARGET_OS}" "darwin"
     EXE:=${EXE}.app/Contents/MacOS/${EXE}
 endif
 EXE_TARGET:=${DEPLOY_DIR}/${TARGET_OS}/${EXE}
+
 TGZ_TARGET:=bridge_${TARGET_OS}_${REVISION}.tgz
+ifeq "${TARGET_CMD}" "Import-Export"
+    TGZ_TARGET:=ie_${TARGET_OS}_${REVISION}.tgz
+endif
 
 
 build: ${TGZ_TARGET}
+build-ie:
+	TARGET_CMD=Import-Export $(MAKE) build
 
 build-nogui:
-	go build ${BUILD_FLAGS_NOGUI} -o Desktop-Bridge cmd/Desktop-Bridge/main.go
+	go build ${BUILD_FLAGS_NOGUI} -o ${TARGET_CMD} cmd/${TARGET_CMD}/main.go
+
+build-ie-nogui:
+	TARGET_CMD=Import-Export $(MAKE) build-nogui
 
 ${TGZ_TARGET}: ${DEPLOY_DIR}/${TARGET_OS}
 	rm -f $@
@@ -74,9 +84,9 @@ endif
 
 ${EXE_TARGET}: check-has-go gofiles ${ICO_FILES} update-vendor
 	rm -rf deploy ${TARGET_OS} ${DEPLOY_DIR}
-	cp cmd/Desktop-Bridge/main.go .
+	cp cmd/${TARGET_CMD}/main.go .
 	qtdeploy ${BUILD_FLAGS} ${QT_BUILD_TARGET}
-	mv deploy cmd/Desktop-Bridge
+	mv deploy cmd/${TARGET_CMD}
 	rm -rf ${TARGET_OS} main.go
 
 logo.ico: ./internal/frontend/share/icons/logo.ico
@@ -213,7 +223,7 @@ gofiles: ./internal/bridge/credits.go ./internal/bridge/release_notes.go ./inter
 
 
 ## Run and debug
-.PHONY: run run-qt run-qt-cli run-nogui run-nogui-cli run-debug qmlpreview qt-fronted-clean clean
+.PHONY: run run-ie run-qt run-ie-qt run-qt-cli run-nogui run-ie-nogui run-nogui-cli run-debug run-qml-preview run-ie-qml-preview clean-fronted-qt clean-fronted-qt-ie clean-fronted-qt-common clean
 VERBOSITY?=debug-client
 RUN_FLAGS:=-m -l=${VERBOSITY}
 
@@ -225,27 +235,42 @@ run-qt-cli: ${EXE_TARGET}
 	PROTONMAIL_ENV=dev ./$< ${RUN_FLAGS} -c
 
 run-nogui: clean-vendor gofiles
-	PROTONMAIL_ENV=dev go run ${BUILD_FLAGS_NOGUI} cmd/Desktop-Bridge/main.go ${RUN_FLAGS} | tee last.log
+	PROTONMAIL_ENV=dev go run ${BUILD_FLAGS_NOGUI} cmd/${TARGET_CMD}/main.go ${RUN_FLAGS} | tee last.log
 run-nogui-cli: clean-vendor gofiles
-	PROTONMAIL_ENV=dev go run ${BUILD_FLAGS_NOGUI} cmd/Desktop-Bridge/main.go ${RUN_FLAGS} -c
-
-run-ie:
-	PROTONMAIL_ENV=dev go run ${BUILD_FLAGS_NOGUI} cmd/Import-Export/main.go ${RUN_FLAGS} -c
+	PROTONMAIL_ENV=dev go run ${BUILD_FLAGS_NOGUI} cmd/${TARGET_CMD}/main.go ${RUN_FLAGS} -c
 
 run-debug:
-	PROTONMAIL_ENV=dev dlv debug --build-flags "${BUILD_FLAGS_NOGUI}" cmd/Desktop-Bridge/main.go -- ${RUN_FLAGS}
+	PROTONMAIL_ENV=dev dlv debug --build-flags "${BUILD_FLAGS_NOGUI}" cmd/${TARGET_CMD}/main.go -- ${RUN_FLAGS}
 
 run-qml-preview:
-	make -C internal/frontend/qt -f Makefile.local qmlpreview
+	$(MAKE) -C internal/frontend/qt -f Makefile.local qmlpreview
+
+run-ie-qml-preview:
+	$(MAKE) -C internal/frontend/qt-ie -f Makefile.local qmlpreview
+
+run-ie:
+	TARGET_CMD=Import-Export $(MAKE) run
+run-ie-nogui:
+	TARGET_CMD=Import-Export $(MAKE) run-nogui
+run-ie-qt:
+	TARGET_CMD=Import-Export $(MAKE) run-qt
 
 clean-frontend-qt:
-	make -C internal/frontend/qt -f Makefile.local clean
+	$(MAKE) -C internal/frontend/qt -f Makefile.local clean
 
-clean-vendor: clean-frontend-qt
+clean-frontend-qt-ie:
+	$(MAKE) -C internal/frontend/qt-ie -f Makefile.local clean
+
+clean-frontend-qt-common:
+	$(MAKE) -C internal/frontend/qt-common -f Makefile.local clean
+
+
+clean-vendor: clean-frontend-qt clean-frontend-qt-ie clean-frontend-qt-common
 	rm -rf ./vendor
 
-clean: clean-frontend-qt
+clean: clean-vendor
 	rm -rf vendor-cache
 	rm -rf cmd/Desktop-Bridge/deploy
-	rm -f build last.log mem.pprof
+	rm -rf cmd/Import-Export/deploy
+	rm -f build last.log mem.pprof main.go
 	rm -rf logo.ico icon.rc icon_windows.syso internal/frontend/qt/icon_windows.syso

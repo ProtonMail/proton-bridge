@@ -112,6 +112,8 @@ type ImportExporter interface {
 	GetRemoteImporter(string, string, string, string, string) (*transfer.Transfer, error)
 	GetEMLExporter(string, string) (*transfer.Transfer, error)
 	GetMBOXExporter(string, string) (*transfer.Transfer, error)
+	SetCurrentOS(os string)
+	ReportBug(osType, osVersion, description, accountName, address, emailClient string) error
 }
 
 type importExportWrap struct {

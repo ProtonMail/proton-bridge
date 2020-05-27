@@ -327,6 +327,7 @@ Window {
 
     function show() {
         prefill()
+        description.focus=true
         root.visible=true
     }
 

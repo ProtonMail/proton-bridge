@@ -1,0 +1,60 @@
+QMLfiles=$(shell find ../qml/ -name "*.qml") $(shell find ../qml/ -name "qmldir")
+FontAwesome=${CURDIR}/../share/fontawesome-webfont.ttf
+ImageDir=${CURDIR}/../share/icons
+Icons=$(shell find ${ImageDir} -name "*.png")
+Icons+= share/images/folder_open.png share/images/envelope_open.png
+MocDependencies= ./ui.go ./account_model.go ./folder_structure.go ./folder_functions.go
+## EnumDependecies= ../backend/errors/errors.go ../backend/progress.go ../backend/source/enum.go ../frontend/enums.go
+
+all: ../qml/ImportExportUI/images moc.go ../qml/GuiIE.qml qmlcheck rcc.cpp
+
+## ./qml/GuiIE.qml: enums.sh ${EnumDependecies}
+## 	./enums.sh
+
+../qml/ProtonUI/fontawesome.ttf:
+	ln -sf ${FontAwesome} $@
+../qml/ProtonUI/images:
+	ln -sf ${ImageDir} $@
+../qml/ImportExportUI/images:
+	ln -sf ${ImageDir} $@
+
+translate.ts: ${QMLfiles}
+	lupdate -recursive qml/  -ts $@
+
+rcc.cpp: ${QMLfiles} ${Icons} resources.qrc
+	rm -f rcc.cpp rcc.qrc && qtrcc -o .
+
+
+qmltest:
+	qmltestrunner -eventdelay 500 -import ../qml/
+qmlcheck:  ../qml/ProtonUI/fontawesome.ttf ../qml/ImportExportUI/images ../qml/ProtonUI/images
+	qmlscene -verbose -I ../qml/ -f ../qml/tst_GuiIE.qml --quit
+qmlpreview: ../qml/ProtonUI/fontawesome.ttf ../qml/ImportExportUI/images ../qml/ProtonUI/images
+	rm -f ../qml/*.qmlc ../qml/ProtonUI/*.qmlc ../qml/ImportExportUI/*.qmlc
+	qmlscene -verbose -I ../qml/ -f ../qml/tst_GuiIE.qml 2>&1
+
+test: qmlcheck moc.go rcc.cpp
+	go test -v
+
+moc.go: ${MocDependencies}
+	qtmoc
+
+clean:
+	rm -rf linux/
+	rm -rf darwin/
+	rm -rf windows/
+	rm -rf deploy/
+	rm -f moc.cpp
+	rm -f moc.go
+	rm -f moc.h
+	rm -f moc_cgo*.go
+	rm -f moc_moc.h
+	rm -f rcc.cpp
+	rm -f rcc.qrc
+	rm -f rcc_cgo*.go
+	rm -f ../rcc.cpp
+	rm -f ../rcc.qrc
+	rm -f ../rcc_cgo*.go
+	rm -rf ../qml/ProtonUI/images
+	rm -f ../qml/ProtonUI/fontawesome.ttf
+	find ../qml -name *.qmlc -exec rm {} \;

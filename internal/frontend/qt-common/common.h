@@ -10,8 +10,9 @@
 extern "C" {
 #endif // C++
 
-void InstallMessageHandler();
-;
+    void InstallMessageHandler();
+    void RegisterTypes();
+    ;
 
 #ifdef __cplusplus
 }

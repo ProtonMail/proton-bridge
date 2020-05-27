@@ -40,6 +40,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/internal/events"
 	"github.com/ProtonMail/proton-bridge/internal/frontend/autoconfig"
+	"github.com/ProtonMail/proton-bridge/internal/frontend/qt-common"
 	"github.com/ProtonMail/proton-bridge/internal/frontend/types"
 	"github.com/ProtonMail/proton-bridge/internal/preferences"
 	"github.com/ProtonMail/proton-bridge/pkg/config"
@@ -151,7 +152,7 @@ func New(
 // InstanceExistAlert is a global warning window indicating an instance already exists.
 func (s *FrontendQt) InstanceExistAlert() {
 	log.Warn("Instance already exists")
-	s.QtSetupCoreAndControls()
+	qtcommon.QtSetupCoreAndControls(s.programName, s.programVer)
 	s.App = widgets.NewQApplication(len(os.Args), os.Args)
 	s.View = qml.NewQQmlApplicationEngine(s.App)
 	s.View.AddImportPath("qrc:///")
@@ -283,28 +284,13 @@ func (s *FrontendQt) InvMethod(method string) error {
 	return nil
 }
 
-// QtSetupCoreAndControls hanldes global setup of Qt.
-// Should be called once per program. Probably once per thread is fine.
-func (s *FrontendQt) QtSetupCoreAndControls() {
-	installMessageHandler()
-	// Core setup.
-	core.QCoreApplication_SetApplicationName(s.programName)
-	core.QCoreApplication_SetApplicationVersion(s.programVer)
-	// High DPI scaling for windows.
-	core.QCoreApplication_SetAttribute(core.Qt__AA_EnableHighDpiScaling, false)
-	// Software OpenGL: to avoid dedicated GPU.
-	core.QCoreApplication_SetAttribute(core.Qt__AA_UseSoftwareOpenGL, true)
-	// Basic style for QuickControls2 objects.
-	//quickcontrols2.QQuickStyle_SetStyle("material")
-}
-
 // qtExecute is the main function for starting the Qt application.
 //
 // It is better to have just one Qt application per program (at least per same
 // thread). This functions reads the main user interface defined in QML files.
 // The files are appended to library by Qt-QRC.
 func (s *FrontendQt) qtExecute(Procedure func(*FrontendQt) error) error {
-	s.QtSetupCoreAndControls()
+	qtcommon.QtSetupCoreAndControls(s.programName, s.programVer)
 	s.App = widgets.NewQApplication(len(os.Args), os.Args)
 	if runtime.GOOS == "linux" { // Fix default font.
 		s.App.SetFont(gui.NewQFont2(FcMatchSans(), 12, int(gui.QFont__Normal), false), "")
@@ -624,7 +610,7 @@ func (s *FrontendQt) StartUpdate() {
 		defer s.panicHandler.HandlePanic()
 		for current := range progress {
 			s.Qml.SetProgress(current.Processed)
-			s.Qml.SetProgressDescription(current.Description)
+			s.Qml.SetProgressDescription(strconv.Itoa(current.Description))
 			// Error happend
 			if current.Err != nil {
 				log.Error("update progress: ", current.Err)

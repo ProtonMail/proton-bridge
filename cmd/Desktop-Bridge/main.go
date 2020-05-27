@@ -145,7 +145,7 @@ func (ph *panicHandler) HandlePanic() {
 	}
 
 	config.HandlePanic(ph.cfg, fmt.Sprintf("Recover: %v", r))
-	frontend.HandlePanic()
+	frontend.HandlePanic("ProtonMail Bridge")
 
 	*ph.err = cli.NewExitError("Panic and restart", 255)
 	numberOfCrashes++

@@ -1,4 +1,4 @@
-# ProtonMail Bridge
+# ProtonMail Bridge and Import Export
 Copyright (c) 2020 Proton Technologies AG
 
 This repository holds the ProtonMail Bridge application.
@@ -7,7 +7,7 @@ For licensing information see [COPYING](./COPYING.md).
 For contribution policy see [CONTRIBUTING](./CONTRIBUTING.md).
 
 
-## Description
+## Description Bridge
 ProtonMail Bridge for e-mail clients.
 
 When launched, Bridge will initialize local IMAP/SMTP servers and render 
@@ -24,6 +24,8 @@ background.
 
 More details [on the public website](https://protonmail.com/bridge).
 
+## Description Import-Export
+TODO
 
 ## Keychain
 You need to have a keychain in order to run the ProtonMail Bridge. On Mac or
@@ -39,7 +41,7 @@ or
 - `BRIDGESTRICTMODE`: tells bridge to turn on `bbolt`'s "strict mode" which checks the database after every `Commit`. Set to `1` to enable.
 
 ### Dev build or run
-- `BRIDGE_VERSION`: set the bridge app version used during testing or building
+- `APP_VERSION`: set the bridge app version used during testing or building
 - `PROTONMAIL_ENV`: when set to `dev` it is not using Sentry to report crashes
 - `VERBOSITY`: set log level used during test time and by the makefile
 

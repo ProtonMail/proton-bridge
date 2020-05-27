@@ -24,6 +24,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/internal/frontend/cli"
 	cliie "github.com/ProtonMail/proton-bridge/internal/frontend/cli-ie"
 	"github.com/ProtonMail/proton-bridge/internal/frontend/qt"
+	qtie "github.com/ProtonMail/proton-bridge/internal/frontend/qt-ie"
 	"github.com/ProtonMail/proton-bridge/internal/frontend/types"
 	"github.com/ProtonMail/proton-bridge/internal/importexport"
 	"github.com/ProtonMail/proton-bridge/pkg/config"
@@ -42,12 +43,12 @@ type Frontend interface {
 }
 
 // HandlePanic handles panics which occur for users with GUI.
-func HandlePanic() {
+func HandlePanic(appName string) {
 	notify := notificator.New(notificator.Options{
 		DefaultIcon: "../frontend/ui/icon/icon.png",
-		AppName:     "ProtonMail Bridge",
+		AppName:     appName,
 	})
-	_ = notify.Push("Fatal Error", "The ProtonMail Bridge has encountered a fatal error. ", "/frontend/icon/icon.png", notificator.UR_CRITICAL)
+	_ = notify.Push("Fatal Error", "The "+appName+" has encountered a fatal error. ", "/frontend/icon/icon.png", notificator.UR_CRITICAL)
 }
 
 // New returns initialized frontend based on `frontendType`, which can be `cli` or `qt`.
@@ -118,7 +119,6 @@ func newImportExport(
 	case "cli":
 		return cliie.New(panicHandler, config, eventListener, updates, ie)
 	default:
-		return cliie.New(panicHandler, config, eventListener, updates, ie)
-		//return qt.New(panicHandler, config, eventListener, updates, ie)
+		return qtie.New(version, buildVersion, panicHandler, config, eventListener, updates, ie)
 	}
 }

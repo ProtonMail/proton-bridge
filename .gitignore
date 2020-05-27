@@ -18,23 +18,29 @@ coverage.html
 mem.pprof
 
 # Auto generated frontend
-frontend/qml/BridgeUI/*.qmlc
-frontend/qml/ProtonUI/*.qmlc
-frontend/qml/ProtonUI/fontawesome.ttf
-frontend/qml/ProtonUI/images
+internal/frontend/qml/BridgeUI/*.qmlc
+internal/frontend/qml/ImportExportUI/*.qmlc
+internal/frontend/qml/ProtonUI/*.qmlc
+internal/frontend/qml/ProtonUI/fontawesome.ttf
+internal/frontend/qml/ProtonUI/images
+internal/frontend/qml/ImportExportUI/images
 frontend/qml/*.qmlc
 
 # Build files
 bridge_darwin_*.tgz
 cmd/Desktop-Bridge/deploy
-internal/frontend/qt/moc.cpp
-internal/frontend/qt/moc.go
-internal/frontend/qt/moc.h
-internal/frontend/qt/moc_cgo_darwin_darwin_amd64.go
-internal/frontend/qt/moc_moc.h
-internal/frontend/qt/rcc.cpp
-internal/frontend/qt/rcc_cgo_darwin_darwin_amd64.go
+internal/frontend/qt*/moc.cpp
+internal/frontend/qt*/moc.go
+internal/frontend/qt*/moc.h
+internal/frontend/qt*/moc_cgo_*.go
+internal/frontend/qt*/moc_moc.h
+internal/frontend/qt*/rcc.cpp
+internal/frontend/qt*/rcc.qrc
+internal/frontend/qt*/rcc_cgo_*.go
+
 internal/frontend/rcc.cpp
 internal/frontend/rcc.qrc
-internal/frontend/rcc_cgo_darwin_darwin_amd64.go
+internal/frontend/rcc_cgo_*.go
 vendor-cache/
+
+/main.go

@@ -17,22 +17,24 @@
 
 // +build !nogui
 
-package qt
+package qtcommon
 
-//#include "logs.h"
-import "C"
-
-import (
-	"github.com/sirupsen/logrus"
+// Positions of notification bubble
+const (
+	TabAccount    = 0
+	TabSettings   = 1
+	TabHelp       = 2
+	TabQuit       = 4
+	TabUpdates    = 100
+	TabAddAccount = -1
 )
 
-func installMessageHandler() {
-	C.InstallMessageHandler()
+// Notifier show bubble notification at postion marked by int
+type Notifier interface {
+	NotifyBubble(int, string)
 }
 
-//export logMsgPacked
-func logMsgPacked(data *C.char, len C.int) {
-	log.WithFields(logrus.Fields{
-		"pkg": "frontend-qml",
-	}).Warnln(C.GoStringN(data, len))
+// SendNotification unifies notification in GUI
+func SendNotification(qml Notifier, tabIndex int, msg string) {
+	qml.NotifyBubble(tabIndex, msg)
 }

@@ -21,6 +21,8 @@ import (
 	"crypto/sha256"
 	"fmt"
 	"strings"
+
+	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 )
 
 // Mailbox is universal data holder of mailbox details for every provider.
@@ -34,6 +36,19 @@ type Mailbox struct {
 // Hash returns unique identifier to be used for matching.
 func (m Mailbox) Hash() string {
 	return fmt.Sprintf("%x", sha256.Sum256([]byte(m.Name)))
+}
+
+// LeastUsedColor is intended to return color for creating a new inbox or label
+func LeastUsedColor(mailboxes []Mailbox) string {
+	usedColors := []string{}
+
+	if mailboxes != nil {
+		for _, m := range mailboxes {
+			usedColors = append(usedColors, m.Color)
+		}
+	}
+
+	return pmapi.LeastUsedColor(usedColors)
 }
 
 // findMatchingMailboxes returns all matching mailboxes from `mailboxes`.

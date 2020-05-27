@@ -87,7 +87,7 @@ Item {
                 Text { // Status
                     anchors {
                         left           : parent.left
-                        leftMargin     : Style.accounts.leftMargin2
+                        leftMargin     : viewContent.width/2
                         verticalCenter : parent.verticalCenter
                     }
                     visible: root.numAccounts!=0
@@ -99,7 +99,7 @@ Item {
                 Text { // Actions
                     anchors {
                         left           : parent.left
-                        leftMargin     : Style.accounts.leftMargin3
+                        leftMargin     : 5.5*viewContent.width/8
                         verticalCenter : parent.verticalCenter
                     }
                     visible: root.numAccounts!=0

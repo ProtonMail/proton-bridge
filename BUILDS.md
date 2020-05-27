@@ -1,4 +1,4 @@
-# Building ProtonMail Bridge app
+# Building ProtonMail Bridge and Import-Export app
 
 ## Prerequisites
 * Go 1.13
@@ -19,6 +19,8 @@ Otherwise, the sending of crash reports will be disabled.
 export MSYSTEM=
 ```
 
+
+### Build Bridge
 * in project root run
 
 ```bash
@@ -26,9 +28,22 @@ make build
 ```
 
 * The result will be stored in `./cmd/Destop-Bridge/deploy/${GOOS}/`
-    * for `linux`, the binary will have the name of the project directory (e.g `bridge`)
-    * for `windows`, the binary will have the file extension `.exe` (e.g `bridge.exe`)
-    * for `darwin`, the application will be created with name of the project directory (e.g `bridge.app`)
+    * for `linux`, the binary will have the name of the project directory (e.g `proton-bridge`)
+    * for `windows`, the binary will have the file extension `.exe` (e.g `proton-bridge.exe`)
+    * for `darwin`, the application will be created with name of the project directory (e.g `proton-bridge.app`)
+
+### Build Import-Export
+* in project root run
+
+```bash
+make build-ie
+```
+
+* The result will be stored in `./cmd/Import-Export/deploy/${GOOS}/`
+    * for `linux`, the binary will have the name of the project directory (e.g `proton-bridge`)
+    * for `windows`, the binary will have the file extension `.exe` (e.g `proton-bridge.exe`)
+    * for `darwin`, the application will be created with name of the project directory (e.g `proton-bridge.app`)
+
 
 ## Useful tests, lints and checks
 In order to be able to run following commands please install the development dependencies: 

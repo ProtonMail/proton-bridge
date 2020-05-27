@@ -23,6 +23,49 @@ import (
 	r "github.com/stretchr/testify/require"
 )
 
+func TestLeastUsedColor(t *testing.T) {
+	var mailboxes []Mailbox
+	// Unset mailboxes, should use first available color
+	mailboxes = nil
+	r.Equal(t, "#7272a7", LeastUsedColor(mailboxes))
+
+	// No mailboxes at all, should use first available color
+	mailboxes = []Mailbox{}
+	r.Equal(t, "#7272a7", LeastUsedColor(mailboxes))
+
+	// All colors have same frequency, should use first available color
+	mailboxes = []Mailbox{
+		{Name: "Mbox1", Color: "#7272a7"},
+		{Name: "Mbox2", Color: "#cf5858"},
+		{Name: "Mbox3", Color: "#c26cc7"},
+		{Name: "Mbox4", Color: "#7569d1"},
+		{Name: "Mbox5", Color: "#69a9d1"},
+		{Name: "Mbox6", Color: "#5ec7b7"},
+		{Name: "Mbox7", Color: "#72bb75"},
+		{Name: "Mbox8", Color: "#c3d261"},
+		{Name: "Mbox9", Color: "#e6c04c"},
+		{Name: "Mbox10", Color: "#e6984c"},
+		{Name: "Mbox11", Color: "#8989ac"},
+		{Name: "Mbox12", Color: "#cf7e7e"},
+		{Name: "Mbox13", Color: "#c793ca"},
+		{Name: "Mbox14", Color: "#9b94d1"},
+		{Name: "Mbox15", Color: "#a8c4d5"},
+		{Name: "Mbox16", Color: "#97c9c1"},
+		{Name: "Mbox17", Color: "#9db99f"},
+		{Name: "Mbox18", Color: "#c6cd97"},
+		{Name: "Mbox19", Color: "#e7d292"},
+		{Name: "Mbox20", Color: "#dfb286"},
+	}
+	r.Equal(t, "#7272a7", LeastUsedColor(mailboxes))
+
+	// First three colors already used, but others wasn't. Should use first non-used one.
+	mailboxes = []Mailbox{
+		{Name: "Mbox1", Color: "#7272a7"},
+		{Name: "Mbox2", Color: "#cf5858"},
+		{Name: "Mbox3", Color: "#c26cc7"},
+	}
+	r.Equal(t, "#7569d1", LeastUsedColor(mailboxes))
+}
 func TestFindMatchingMailboxes(t *testing.T) {
 	mailboxes := []Mailbox{
 		{Name: "Inbox", IsExclusive: true},

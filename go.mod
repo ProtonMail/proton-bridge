@@ -62,6 +62,8 @@ require (
 	github.com/skratchdot/open-golang v0.0.0-20200116055534-eef842397966
 	github.com/stretchr/testify v1.6.1
 	github.com/therecipe/qt v0.0.0-20200701200531-7f61353ee73e
+	github.com/therecipe/qt/internal/binding/files/docs/5.12.0 v0.0.0-20200603231648-26cdb75b6f22 // indirect
+	github.com/therecipe/qt/internal/binding/files/docs/5.13.0 v0.0.0-20200603231648-26cdb75b6f22 // indirect
 	github.com/twinj/uuid v1.0.0 // indirect
 	github.com/urfave/cli v1.22.4
 	go.etcd.io/bbolt v1.3.5

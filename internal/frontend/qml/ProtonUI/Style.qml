@@ -221,6 +221,31 @@ QtObject {
         property real  leftMargin3        : 30 * px
     }
 
+    property QtObject importing : QtObject {
+        property color rowBackground : dialog.background
+        property color rowLine       : dialog.line
+    }
+
+    property QtObject dropDownLight: QtObject {
+        property color background : dialog.background
+        property color text       : dialog.text
+        property color inactive   : dialog.line
+        property color highlight  : dialog.textBlue
+        property color separator  : dialog.line
+        property color line       : dialog.line
+        property bool  labelBold  : true
+    }
+
+    property QtObject dropDownDark : QtObject {
+        property color background : dialog.text
+        property color text       : dialog.background
+        property color inactive   : dialog.line
+        property color highlight  : dialog.textBlue
+        property color separator  : dialog.line
+        property color line       : dialog.line
+        property bool  labelBold  : true
+    }
+
     property int okInfoBar         : 0
     property int warnInfoBar       : 1
     property int warnBubbleMessage : 2
