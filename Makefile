@@ -137,14 +137,15 @@ install-go-mod-outdated:
 
 
 ## Checks, mocks and docs
-.PHONY: check-has-go check-license test bench coverage mocks lint updates doc
+.PHONY: check-has-go add-license change-copyright-year test bench coverage mocks lint-license lint-golang lint updates doc
 check-has-go:
 	@which go || (echo "Install Go-lang!" && exit 1)
 
-check-license:
-	RESULT=`find . -not -path "./vendor/*" -not -name "*mock*.go" -regextype posix-egrep -regex ".*\.go|.*\.qml" -exec grep -L 'Copyright (c) 2020 Proton Technologies AG' {} \;` ;\
-	echo $${RESULT} ;\
-	[[ -z "$${RESULT}" ]]
+add-license:
+	./utils/missing_license.sh add
+
+change-copyright-year:
+	./utils/missing_license.sh change-year
 
 test: gofiles
 	@# Listing packages manually to not run Qt folder (which needs to run qtsetup first) and integration tests.
@@ -176,7 +177,12 @@ mocks:
 	mockgen --package mocks github.com/ProtonMail/proton-bridge/pkg/listener Listener > internal/store/mocks/utils_mocks.go
 	mockgen --package mocks github.com/ProtonMail/proton-bridge/pkg/pmapi Client > pkg/pmapi/mocks/mocks.go
 
-lint:
+lint: lint-golang lint-license
+
+lint-license:
+	./utils/missing_license.sh check
+
+lint-golang:
 	which golangci-lint || $(MAKE) install-linter
 	golangci-lint run ./...
 
