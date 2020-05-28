@@ -4,6 +4,9 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 ## Unreleased
 
+### Added
+* GODT-360 Detect charset embedded in html/xml.
+
 ### Changed
 * GODT-388 Support for both bridge and import/export credentials by package users.
 * GODT-387 Store factory to make store optional.

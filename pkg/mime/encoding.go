@@ -29,8 +29,9 @@ import (
 	"encoding/base64"
 
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
+	"golang.org/x/net/html/charset"
 	"golang.org/x/text/encoding"
-	"golang.org/x/text/encoding/charmap"
 	"golang.org/x/text/encoding/htmlindex"
 )
 
@@ -197,18 +198,26 @@ func EncodeHeader(s string) string {
 }
 
 // DecodeCharset decodes the orginal using content type parameters.
-// When charset is missing it checks that the content is valid utf8.
-// If it isn't, it checks whether the content is valid latin1 (iso-8859-1), and if so,
-// reencodes it as utf-8.
-func DecodeCharset(original []byte, contentTypeParams map[string]string) ([]byte, error) {
-	// If the charset is specified, use that.
-	if charset, ok := contentTypeParams["charset"]; ok {
-		decoder, err := selectDecoder(charset)
+// If the charset parameter is missing it checks that the content is valid utf8.
+// If it isn't, it checks if it's embedded in the html/xml.
+// If it isn't, it falls back to windows-1252.
+// It then reencodes it as utf-8.
+func DecodeCharset(original []byte, contentType string) ([]byte, error) {
+	// If the contentType itself is specified, use that.
+	if contentType != "" {
+		_, params, err := ParseMediaType(contentType)
 		if err != nil {
-			return original, errors.Wrap(err, "unknown charset was specified")
+			return nil, err
 		}
 
-		return decoder.Bytes(original)
+		if charset, ok := params["charset"]; ok {
+			decoder, err := selectDecoder(charset)
+			if err != nil {
+				return original, errors.Wrap(err, "unknown charset was specified")
+			}
+
+			return decoder.Bytes(original)
+		}
 	}
 
 	// The charset was not specified. First try utf8.
@@ -216,16 +225,22 @@ func DecodeCharset(original []byte, contentTypeParams map[string]string) ([]byte
 		return original, nil
 	}
 
-	// Fallback to latin1.
-	// In future this should fallback to whatever default encoding user specified.
-	decoded, err := charmap.ISO8859_1.NewDecoder().Bytes(original)
-	if err != nil {
-		return original, errors.Wrap(err, "failed to decode as latin1")
+	// encoding will be windows-1252 if it can't be determined properly.
+	encoding, name, certain := charset.DetermineEncoding(original, contentType)
+
+	if !certain {
+		logrus.WithField("encoding", name).Warn("Determined encoding but was not certain")
 	}
 
-	// If the decoded string is not valid utf8, it wasn't latin1, so give up.
+	// Reencode as UTF-8.
+	decoded, err := encoding.NewDecoder().Bytes(original)
+	if err != nil {
+		return original, errors.Wrap(err, "failed to decode as windows-1252")
+	}
+
+	// If the decoded string is not valid utf8, it wasn't windows-1252, so give up.
 	if !utf8.Valid(decoded) {
-		return original, errors.Wrap(err, "failed to decode as latin1")
+		return original, errors.Wrap(err, "failed to decode as windows-1252")
 	}
 
 	return decoded, nil

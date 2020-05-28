@@ -243,7 +243,7 @@ func getContentType(header textproto.MIMEHeader) (mediatype string, params map[s
 		contentType = "text/plain"
 	}
 
-	return mime.ParseMediaType(contentType)
+	return ParseMediaType(contentType)
 }
 
 // ===================== MIME Printer ===================================
@@ -322,14 +322,14 @@ func NewPlainTextCollector(targetAccepter VisitAcceptor) *PlainTextCollector {
 func (ptc *PlainTextCollector) Accept(partReader io.Reader, header textproto.MIMEHeader, hasPlainSibling bool, isFirst, isLast bool) (err error) {
 	if isFirst {
 		if IsLeaf(header) {
-			mediaType, params, _ := getContentType(header)
+			mediaType, _, _ := getContentType(header)
 			disp, _, _ := mime.ParseMediaType(header.Get("Content-Disposition"))
 			if mediaType == "text/plain" && disp != "attachment" {
 				partData, _ := ioutil.ReadAll(partReader)
 				decodedPart := decodePart(bytes.NewReader(partData), header)
 
 				if buffer, err := ioutil.ReadAll(decodedPart); err == nil {
-					buffer, err = DecodeCharset(buffer, params)
+					buffer, err = DecodeCharset(buffer, header.Get("Content-Type"))
 					if err != nil {
 						log.Warnln("Decode charset error:", err)
 						return err
@@ -377,13 +377,13 @@ func (bc *BodyCollector) Accept(partReader io.Reader, header textproto.MIMEHeade
 	// TODO: Collect html and plaintext - if there's html with plain sibling don't include plain/text.
 	if isFirst {
 		if IsLeaf(header) {
-			mediaType, params, _ := getContentType(header)
+			mediaType, _, _ := getContentType(header)
 			disp, _, _ := mime.ParseMediaType(header.Get("Content-Disposition"))
 			if disp != "attachment" {
 				partData, _ := ioutil.ReadAll(partReader)
 				decodedPart := decodePart(bytes.NewReader(partData), header)
 				if buffer, err := ioutil.ReadAll(decodedPart); err == nil {
-					buffer, err = DecodeCharset(buffer, params)
+					buffer, err = DecodeCharset(buffer, header.Get("Content-Type"))
 					if err != nil {
 						log.Warnln("Decode charset error:", err)
 						return err
@@ -444,14 +444,14 @@ func NewAttachmentsCollector(targetAccepter VisitAcceptor) *AttachmentsCollector
 func (ac *AttachmentsCollector) Accept(partReader io.Reader, header textproto.MIMEHeader, hasPlainSibling bool, isFirst, isLast bool) (err error) {
 	if isFirst {
 		if IsLeaf(header) {
-			mediaType, params, _ := getContentType(header)
+			mediaType, _, _ := getContentType(header)
 			disp, _, _ := mime.ParseMediaType(header.Get("Content-Disposition"))
 			if (mediaType != "text/html" && mediaType != "text/plain") || disp == "attachment" {
 				partData, _ := ioutil.ReadAll(partReader)
 				decodedPart := decodePart(bytes.NewReader(partData), header)
 
 				if buffer, err := ioutil.ReadAll(decodedPart); err == nil {
-					buffer, err = DecodeCharset(buffer, params)
+					buffer, err = DecodeCharset(buffer, header.Get("Content-Type"))
 					if err != nil {
 						log.Warnln("Decode charset error:", err)
 						return err

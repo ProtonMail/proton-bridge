@@ -27,7 +27,6 @@ require (
 	github.com/chzyer/logex v1.1.10 // indirect
 	github.com/chzyer/test v0.0.0-20180213035817-a1ea475d72b1 // indirect
 	github.com/cucumber/godog v0.8.1
-	github.com/danieljoos/wincred v1.0.2 // indirect
 	github.com/emersion/go-imap v0.0.0-20200415151653-89df427d2794
 	github.com/emersion/go-imap-appendlimit v0.0.0-20190308131241-25671c986a6a
 	github.com/emersion/go-imap-idle v0.0.0-20190519112320-2704abd7050e

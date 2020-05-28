@@ -174,7 +174,7 @@ func convertHexToUTF(charset, value string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	utf8, err := DecodeCharset(raw, map[string]string{"charset": charset})
+	utf8, err := DecodeCharset(raw, "text/plain; charset="+charset)
 	return "utf-8''" + percentHexEscape(utf8), err
 }
 

@@ -106,7 +106,7 @@ func combineParts(m *pmapi.Message, parts []io.Reader, headers []textproto.MIMEH
 			if b, err = ioutil.ReadAll(d); err != nil {
 				continue
 			}
-			b, err = pmmime.DecodeCharset(b, params)
+			b, err = pmmime.DecodeCharset(b, contentType)
 			if err != nil {
 				log.Warn("Decode charset error: ", err)
 				return false, err
