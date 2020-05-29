@@ -5,14 +5,13 @@ To: Receiver <receiver@pm.me>
 
 This is a multi-part message in MIME format.
 --longrandomstring
-Content-Transfer-Encoding: base64
-Content-Type: text/html
+Content-Transfer-Encoding: quoted-printable
 
-PGh0bWw+PGJvZHk+VGhpcyBpcyBib2R5IG9mIDxiPkhUTUwgbWFpbDwvYj4gd2l0aCBhdHRhY2htZW50PC9ib2R5PjwvaHRtbD4=
+body
 --longrandomstring
 Content-Disposition: attachment
-Content-Transfer-Encoding: base64
+Content-Transfer-Encoding: quoted-printable
 
-YXR0YWNobWVudA==
+attachment
 --longrandomstring--
 .

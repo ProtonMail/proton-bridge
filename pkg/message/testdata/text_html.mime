@@ -5,14 +5,15 @@ To: Receiver <receiver@pm.me>
 
 This is a multi-part message in MIME format.
 --0194fdc2fa2ffcc041d3ff12045b73c86e4ff95ff662a5eee82abdf44a2d
-Content-Transfer-Encoding: base64
+Content-Transfer-Encoding: quoted-printable
 Content-Type: text/html
 
-PGh0bWw+PGhlYWQ+PG1ldGEgY2hhcnNldD0iSVNPLTg4NTktMiI+PC9oZWFkPjxib2R5PmxhdGluMiD4ufi5PC9ib2R5PjwvaHRtbD4K
+<html><body>This is body of <b>HTML mail</b> without attachment</body></htm=
+l>
 --0194fdc2fa2ffcc041d3ff12045b73c86e4ff95ff662a5eee82abdf44a2d
-Content-Transfer-Encoding: base64
+Content-Transfer-Encoding: quoted-printable
 Content-Type: text/plain
 
-bGF0aW4yIO+/ve+/ve+/ve+/vQ==
+This is body of *HTML mail* without attachment
 --0194fdc2fa2ffcc041d3ff12045b73c86e4ff95ff662a5eee82abdf44a2d--
 .

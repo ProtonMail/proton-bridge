@@ -27,6 +27,7 @@ import (
 	"io/ioutil"
 	"math/rand"
 	"mime"
+	"mime/quotedprintable"
 	"net/mail"
 	"net/textproto"
 	"regexp"
@@ -185,7 +186,7 @@ func checkHeaders(headers []textproto.MIMEHeader) bool {
 
 // ============================== 7bit Filter ==========================
 // For every MIME part in the tree that has "8bit" or "binary" content
-// transfer encoding: transcode it to "base64".
+// transfer encoding: transcode it to "quoted-printable".
 
 type SevenBitFilter struct {
 	target pmmime.VisitAcceptor
@@ -215,16 +216,16 @@ func (sd SevenBitFilter) Accept(partReader io.Reader, header textproto.MIMEHeade
 		for k, v := range header {
 			filteredHeader[k] = v
 		}
-		filteredHeader.Set("Content-Transfer-Encoding", "base64")
+		filteredHeader.Set("Content-Transfer-Encoding", "quoted-printable")
 
 		filteredBuffer := &bytes.Buffer{}
 		decodedSlice, _ := ioutil.ReadAll(decodedPart)
-		w := base64.NewEncoder(base64.StdEncoding, filteredBuffer)
+		w := quotedprintable.NewWriter(filteredBuffer)
 		if _, err := w.Write(decodedSlice); err != nil {
-			log.Errorf("cannot write base64 from %q: %v", cte, err)
+			log.Errorf("cannot write quotedprintable from %q: %v", cte, err)
 		}
 		if err := w.Close(); err != nil {
-			log.Errorf("cannot close base64 from %q: %v", cte, err)
+			log.Errorf("cannot close quotedprintable from %q: %v", cte, err)
 		}
 
 		_ = sd.target.Accept(filteredBuffer, filteredHeader, hasPlainSibling, true, isLast)
