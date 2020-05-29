@@ -5,7 +5,7 @@ go 1.13
 // These dependencies are `replace`d below, so the version numbers should be ignored.
 // They are in a separate require block to highlight this.
 require (
-	github.com/docker/docker-credential-helpers v0.0.0-00010101000000-000000000000
+	github.com/docker/docker-credential-helpers v0.6.3
 	github.com/emersion/go-smtp v0.0.0-20180712174835-db5eec195e67
 	github.com/jameskeane/bcrypt v0.0.0-20170924085257-7509ea014998
 	golang.org/x/crypto v0.0.0-20191011191535-87dc89f01550
@@ -68,7 +68,7 @@ require (
 )
 
 replace (
-	github.com/docker/docker-credential-helpers => github.com/ProtonMail/docker-credential-helpers v1.0.0
+	github.com/docker/docker-credential-helpers => github.com/ProtonMail/docker-credential-helpers v1.1.0
 	github.com/emersion/go-smtp => github.com/ProtonMail/go-smtp v0.0.0-20181206232543-8261df20d309
 	github.com/jameskeane/bcrypt => github.com/ProtonMail/bcrypt v0.0.0-20170924085257-7509ea014998
 	golang.org/x/crypto => github.com/ProtonMail/crypto v0.0.0-20190604143603-d3d8a14a4d4f
