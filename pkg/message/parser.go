@@ -140,6 +140,9 @@ func combineParts(m *pmapi.Message, parts []io.Reader, headers []textproto.MIMEH
 			att := parseAttachment(filename, mediaType, h)
 
 			b := &bytes.Buffer{}
+			if d == nil {
+				continue
+			}
 			if _, err = io.Copy(b, d); err != nil {
 				continue
 			}
