@@ -19,6 +19,7 @@ package message
 
 import (
 	"bytes"
+	"errors"
 	escape "html"
 	"strings"
 
@@ -40,6 +41,10 @@ func stripHTML(input string) (stripped string, err error) {
 	reader := strings.NewReader(input)
 	doc, _ := html.Parse(reader)
 	body := cascadia.MustCompile("body").MatchFirst(doc)
+	if body == nil {
+		err = errors.New("failed to find necessary html element")
+		return
+	}
 	var buf1 bytes.Buffer
 	if err = html.Render(&buf1, body); err != nil {
 		stripped = input
