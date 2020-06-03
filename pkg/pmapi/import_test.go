@@ -22,11 +22,12 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"mime"
 	"mime/multipart"
 	"net/http"
 	"reflect"
 	"testing"
+
+	pmmime "github.com/ProtonMail/proton-bridge/pkg/mime"
 )
 
 var testImportReqs = []*ImportMsgReq{
@@ -56,7 +57,7 @@ func TestClient_Import(t *testing.T) { // nolint[funlen]
 	s, c := newTestServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		Ok(t, checkMethodAndPath(r, "POST", "/import"))
 
-		contentType, params, err := mime.ParseMediaType(r.Header.Get("Content-Type"))
+		contentType, params, err := pmmime.ParseMediaType(r.Header.Get("Content-Type"))
 		if err != nil {
 			t.Error("Expected no error while parsing request content type, got:", err)
 		}
@@ -72,7 +73,7 @@ func TestClient_Import(t *testing.T) { // nolint[funlen]
 			t.Error("Expected no error while reading first part of request body, got:", err)
 		}
 
-		contentDisp, params, err := mime.ParseMediaType(p.Header.Get("Content-Disposition"))
+		contentDisp, params, err := pmmime.ParseMediaType(p.Header.Get("Content-Disposition"))
 		if err != nil {
 			t.Error("Expected no error while parsing part content disposition, got:", err)
 		}
@@ -110,7 +111,7 @@ func TestClient_Import(t *testing.T) { // nolint[funlen]
 			t.Error("Expected no error while reading second part of request body, got:", err)
 		}
 
-		contentDisp, params, err = mime.ParseMediaType(p.Header.Get("Content-Disposition"))
+		contentDisp, params, err = pmmime.ParseMediaType(p.Header.Get("Content-Disposition"))
 		if err != nil {
 			t.Error("Expected no error while parsing part content disposition, got:", err)
 		}

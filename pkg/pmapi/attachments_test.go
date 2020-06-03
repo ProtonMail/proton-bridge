@@ -24,13 +24,14 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"mime"
 	"mime/multipart"
 	"net/http"
 	"net/textproto"
 	"reflect"
 	"strings"
 	"testing"
+
+	pmmime "github.com/ProtonMail/proton-bridge/pkg/mime"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -96,7 +97,7 @@ func TestClient_CreateAttachment(t *testing.T) {
 	s, c := newTestServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		Ok(t, checkMethodAndPath(r, "POST", "/attachments"))
 
-		contentType, params, err := mime.ParseMediaType(r.Header.Get("Content-Type"))
+		contentType, params, err := pmmime.ParseMediaType(r.Header.Get("Content-Type"))
 		if err != nil {
 			t.Error("Expected no error while parsing request content type, got:", err)
 		}

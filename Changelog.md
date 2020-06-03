@@ -24,6 +24,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-341 Fixed flaky unittest for Store synchronization cooldown
 * Crash when failing to match necessary html element
 * Crash in message.combineParts when copying nil slice
+* Handle double charset better by using local ParseMediaType instead of mime.ParseMediaType
 
 ## [v1.2.7] Donghai-hotfix - beta (2020-05-07)
 

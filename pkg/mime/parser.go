@@ -21,7 +21,6 @@ import (
 	"bytes"
 	"io"
 	"io/ioutil"
-	"mime"
 	"mime/multipart"
 	"net/http"
 	"net/mail"
@@ -323,7 +322,7 @@ func (ptc *PlainTextCollector) Accept(partReader io.Reader, header textproto.MIM
 	if isFirst {
 		if IsLeaf(header) {
 			mediaType, _, _ := getContentType(header)
-			disp, _, _ := mime.ParseMediaType(header.Get("Content-Disposition"))
+			disp, _, _ := ParseMediaType(header.Get("Content-Disposition"))
 			if mediaType == "text/plain" && disp != "attachment" {
 				partData, _ := ioutil.ReadAll(partReader)
 				decodedPart := decodePart(bytes.NewReader(partData), header)
@@ -378,7 +377,7 @@ func (bc *BodyCollector) Accept(partReader io.Reader, header textproto.MIMEHeade
 	if isFirst {
 		if IsLeaf(header) {
 			mediaType, _, _ := getContentType(header)
-			disp, _, _ := mime.ParseMediaType(header.Get("Content-Disposition"))
+			disp, _, _ := ParseMediaType(header.Get("Content-Disposition"))
 			if disp != "attachment" {
 				partData, _ := ioutil.ReadAll(partReader)
 				decodedPart := decodePart(bytes.NewReader(partData), header)
@@ -445,7 +444,7 @@ func (ac *AttachmentsCollector) Accept(partReader io.Reader, header textproto.MI
 	if isFirst {
 		if IsLeaf(header) {
 			mediaType, _, _ := getContentType(header)
-			disp, _, _ := mime.ParseMediaType(header.Get("Content-Disposition"))
+			disp, _, _ := ParseMediaType(header.Get("Content-Disposition"))
 			if (mediaType != "text/html" && mediaType != "text/plain") || disp == "attachment" {
 				partData, _ := ioutil.ReadAll(partReader)
 				decodedPart := decodePart(bytes.NewReader(partData), header)
