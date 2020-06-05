@@ -81,7 +81,7 @@ func (storeMailbox *Mailbox) LabelMessages(apiIDs []string) error {
 		"mailbox":  storeMailbox.Name,
 	}).Trace("Labeling messages")
 	if storeMailbox.labelID == pmapi.AllMailLabel {
-		return errAllMailOpNotAllowed
+		return ErrAllMailOpNotAllowed
 	}
 	defer storeMailbox.pollNow()
 	return storeMailbox.client().LabelMessages(apiIDs, storeMailbox.labelID)
