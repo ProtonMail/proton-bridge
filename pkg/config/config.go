@@ -110,6 +110,7 @@ func (c *Config) ClearOldData() error {
 		fileName := filepath.Base(filePath)
 		return (fileName != c.cacheVersion &&
 			!logFileRgx.MatchString(fileName) &&
+			filePath != c.GetLogDir() &&
 			filePath != c.GetTLSCertPath() &&
 			filePath != c.GetTLSKeyPath() &&
 			filePath != c.GetEventsPath() &&
