@@ -80,11 +80,10 @@ func buildMessage(client pmapi.Client, message *pmapi.Message) (*bytes.Buffer, e
 }
 
 func encryptMessage(client pmapi.Client, message *pmapi.Message) error {
-	addresses, err := client.GetAddresses()
+	kr, err := client.KeyRingForAddressID(message.AddressID)
 	if err != nil {
-		return errors.Wrap(err, "failed to get address")
+		return errors.Wrap(err, "failed to get keyring for address")
 	}
-	kr := addresses.ByID(message.AddressID).KeyRing()
 
 	if err = message.Encrypt(kr, nil); err != nil {
 		return errors.Wrap(err, "failed to encrypt message body")

@@ -21,6 +21,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	"github.com/sirupsen/logrus"
 )
@@ -33,12 +34,14 @@ type FakePMAPI struct {
 	controller       *Controller
 	eventIDGenerator idGenerator
 
-	auths     chan<- *pmapi.Auth
-	user      *pmapi.User
-	addresses *pmapi.AddressList
-	labels    []*pmapi.Label
-	messages  []*pmapi.Message
-	events    []*pmapi.Event
+	auths       chan<- *pmapi.Auth
+	user        *pmapi.User
+	userKeyRing *crypto.KeyRing
+	addresses   *pmapi.AddressList
+	addrKeyRing map[string]*crypto.KeyRing
+	labels      []*pmapi.Label
+	messages    []*pmapi.Message
+	events      []*pmapi.Event
 
 	// uid represents the API UID. It is the unique session ID.
 	uid, lastToken string
@@ -48,9 +51,10 @@ type FakePMAPI struct {
 
 func New(controller *Controller, userID string) *FakePMAPI {
 	fakePMAPI := &FakePMAPI{
-		controller: controller,
-		log:        logrus.WithField("pkg", "fakeapi"),
-		userID:     userID,
+		controller:  controller,
+		log:         logrus.WithField("pkg", "fakeapi"),
+		userID:      userID,
+		addrKeyRing: make(map[string]*crypto.KeyRing),
 	}
 
 	fakePMAPI.addEvent(&pmapi.Event{

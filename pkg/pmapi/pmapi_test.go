@@ -21,15 +21,15 @@ import (
 	"io/ioutil"
 	"strings"
 
-	pmcrypto "github.com/ProtonMail/gopenpgp/crypto"
+	"github.com/ProtonMail/gopenpgp/v2/crypto"
 )
 
 const testMailboxPassword = "apple"
 const testMailboxPasswordLegacy = "123"
 
 var (
-	testPrivateKeyRing *pmcrypto.KeyRing
-	testPublicKeyRing  *pmcrypto.KeyRing
+	testPrivateKeyRing *crypto.KeyRing
+	testPublicKeyRing  *crypto.KeyRing
 )
 
 func init() {
@@ -37,15 +37,27 @@ func init() {
 	testPublicKey := readTestFile("testPublicKey", false)
 
 	var err error
-	if testPrivateKeyRing, err = pmcrypto.ReadArmoredKeyRing(strings.NewReader(testPrivateKey)); err != nil {
+
+	privKey, err := crypto.NewKeyFromArmored(testPrivateKey)
+	if err != nil {
 		panic(err)
 	}
 
-	if testPublicKeyRing, err = pmcrypto.ReadArmoredKeyRing(strings.NewReader(testPublicKey)); err != nil {
+	privKeyUnlocked, err := privKey.Unlock([]byte(testMailboxPassword))
+	if err != nil {
 		panic(err)
 	}
 
-	if err := testPrivateKeyRing.Unlock([]byte(testMailboxPassword)); err != nil {
+	pubKey, err := crypto.NewKeyFromArmored(testPublicKey)
+	if err != nil {
+		panic(err)
+	}
+
+	if testPrivateKeyRing, err = crypto.NewKeyRing(privKeyUnlocked); err != nil {
+		panic(err)
+	}
+
+	if testPublicKeyRing, err = crypto.NewKeyRing(pubKey); err != nil {
 		panic(err)
 	}
 }

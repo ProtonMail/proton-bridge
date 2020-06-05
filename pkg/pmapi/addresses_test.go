@@ -52,12 +52,6 @@ func routeGetAddresses(tb testing.TB, w http.ResponseWriter, r *http.Request) st
 	return "addresses/get_response.json"
 }
 
-func routeGetSalts(tb testing.TB, w http.ResponseWriter, r *http.Request) string {
-	Ok(tb, checkMethodAndPath(r, "GET", "/keys/salts"))
-	Ok(tb, isAuthReq(r, testUID, testAccessToken))
-	return "keys/salts/get_response.json"
-}
-
 func TestAddressList(t *testing.T) {
 	input := "1"
 	addr := testAddressList.ByID(input)

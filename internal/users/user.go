@@ -53,9 +53,6 @@ type User struct {
 
 	lock         sync.RWMutex
 	isAuthorized bool
-
-	unlockingKeyringLock sync.Mutex
-	wasKeyringUnlocked   bool
 }
 
 // newUser creates a new user.
@@ -99,10 +96,6 @@ func (u *User) client() pmapi.Client {
 // if necessary), and setting the imap idle updates channel (used to send imap idle updates to the imap backend if
 // something in the store changed).
 func (u *User) init(idleUpdates chan imapBackend.Update) (err error) {
-	u.unlockingKeyringLock.Lock()
-	u.wasKeyringUnlocked = false
-	u.unlockingKeyringLock.Unlock()
-
 	u.log.Info("Initialising user")
 
 	// Reload the user's credentials (if they log out and back in we need the new
@@ -197,22 +190,14 @@ func (u *User) authorizeIfNecessary(emitEvent bool) (err error) {
 
 // unlockIfNecessary will not trigger keyring unlocking if it was already successfully unlocked.
 func (u *User) unlockIfNecessary() error {
-	u.unlockingKeyringLock.Lock()
-	defer u.unlockingKeyringLock.Unlock()
-
-	if u.wasKeyringUnlocked {
+	if u.client().IsUnlocked() {
 		return nil
 	}
 
-	if _, err := u.client().Unlock(u.creds.MailboxPassword); err != nil {
+	if err := u.client().Unlock([]byte(u.creds.MailboxPassword)); err != nil {
 		return errors.Wrap(err, "failed to unlock user")
 	}
 
-	if err := u.client().UnlockAddresses([]byte(u.creds.MailboxPassword)); err != nil {
-		return errors.Wrap(err, "failed to unlock user addresses")
-	}
-
-	u.wasKeyringUnlocked = true
 	return nil
 }
 
@@ -228,12 +213,8 @@ func (u *User) authorizeAndUnlock() (err error) {
 		return errors.Wrap(err, "failed to refresh API auth")
 	}
 
-	if _, err = u.client().Unlock(u.creds.MailboxPassword); err != nil {
+	if err := u.client().Unlock([]byte(u.creds.MailboxPassword)); err != nil {
 		return errors.Wrap(err, "failed to unlock user")
-	}
-
-	if err = u.client().UnlockAddresses([]byte(u.creds.MailboxPassword)); err != nil {
-		return errors.Wrap(err, "failed to unlock user addresses")
 	}
 
 	return nil
@@ -432,12 +413,8 @@ func (u *User) UpdateUser() error {
 		return err
 	}
 
-	if _, err = u.client().Unlock(u.creds.MailboxPassword); err != nil {
-		return err
-	}
-
-	if err := u.client().UnlockAddresses([]byte(u.creds.MailboxPassword)); err != nil {
-		return err
+	if err = u.client().Unlock([]byte(u.creds.MailboxPassword)); err != nil {
+		return errors.Wrap(err, "failed to unlock user")
 	}
 
 	emails := u.client().Addresses().ActiveEmails()
@@ -513,10 +490,6 @@ func (u *User) Logout() (err error) {
 	if !u.creds.IsConnected() {
 		return
 	}
-
-	u.unlockingKeyringLock.Lock()
-	u.wasKeyringUnlocked = false
-	u.unlockingKeyringLock.Unlock()
 
 	u.client().Logout()
 

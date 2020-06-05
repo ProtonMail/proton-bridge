@@ -8,7 +8,7 @@ import (
 	io "io"
 	reflect "reflect"
 
-	crypto "github.com/ProtonMail/gopenpgp/crypto"
+	crypto "github.com/ProtonMail/gopenpgp/v2/crypto"
 	pmapi "github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	gomock "github.com/golang/mock/gomock"
 )
@@ -108,6 +108,21 @@ func (m *MockClient) AuthRefresh(arg0 string) (*pmapi.Auth, error) {
 func (mr *MockClientMockRecorder) AuthRefresh(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AuthRefresh", reflect.TypeOf((*MockClient)(nil).AuthRefresh), arg0)
+}
+
+// AuthSalt mocks base method
+func (m *MockClient) AuthSalt() (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AuthSalt")
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// AuthSalt indicates an expected call of AuthSalt
+func (mr *MockClientMockRecorder) AuthSalt() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AuthSalt", reflect.TypeOf((*MockClient)(nil).AuthSalt))
 }
 
 // ClearData mocks base method
@@ -432,6 +447,20 @@ func (mr *MockClientMockRecorder) IsConnected() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsConnected", reflect.TypeOf((*MockClient)(nil).IsConnected))
 }
 
+// IsUnlocked mocks base method
+func (m *MockClient) IsUnlocked() bool {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "IsUnlocked")
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// IsUnlocked indicates an expected call of IsUnlocked
+func (mr *MockClientMockRecorder) IsUnlocked() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsUnlocked", reflect.TypeOf((*MockClient)(nil).IsUnlocked))
+}
+
 // KeyRingForAddressID mocks base method
 func (m *MockClient) KeyRingForAddressID(arg0 string) (*crypto.KeyRing, error) {
 	m.ctrl.T.Helper()
@@ -605,32 +634,17 @@ func (mr *MockClientMockRecorder) UnlabelMessages(arg0, arg1 interface{}) *gomoc
 }
 
 // Unlock mocks base method
-func (m *MockClient) Unlock(arg0 string) (*crypto.KeyRing, error) {
+func (m *MockClient) Unlock(arg0 []byte) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Unlock", arg0)
-	ret0, _ := ret[0].(*crypto.KeyRing)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
 // Unlock indicates an expected call of Unlock
 func (mr *MockClientMockRecorder) Unlock(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Unlock", reflect.TypeOf((*MockClient)(nil).Unlock), arg0)
-}
-
-// UnlockAddresses mocks base method
-func (m *MockClient) UnlockAddresses(arg0 []byte) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UnlockAddresses", arg0)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// UnlockAddresses indicates an expected call of UnlockAddresses
-func (mr *MockClientMockRecorder) UnlockAddresses(arg0 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UnlockAddresses", reflect.TypeOf((*MockClient)(nil).UnlockAddresses), arg0)
 }
 
 // UpdateLabel mocks base method

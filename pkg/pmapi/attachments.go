@@ -26,7 +26,7 @@ import (
 	"mime/multipart"
 	"net/textproto"
 
-	pmcrypto "github.com/ProtonMail/gopenpgp/crypto"
+	"github.com/ProtonMail/gopenpgp/v2/crypto"
 )
 
 type header textproto.MIMEHeader
@@ -114,7 +114,7 @@ func (a *Attachment) UnmarshalJSON(b []byte) error {
 }
 
 // Decrypt decrypts this attachment's data from r using the keys from kr.
-func (a *Attachment) Decrypt(r io.Reader, kr *pmcrypto.KeyRing) (decrypted io.Reader, err error) {
+func (a *Attachment) Decrypt(r io.Reader, kr *crypto.KeyRing) (decrypted io.Reader, err error) {
 	keyPackets, err := base64.StdEncoding.DecodeString(a.KeyPackets)
 	if err != nil {
 		return
@@ -123,11 +123,11 @@ func (a *Attachment) Decrypt(r io.Reader, kr *pmcrypto.KeyRing) (decrypted io.Re
 }
 
 // Encrypt encrypts an attachment.
-func (a *Attachment) Encrypt(kr *pmcrypto.KeyRing, att io.Reader) (encrypted io.Reader, err error) {
+func (a *Attachment) Encrypt(kr *crypto.KeyRing, att io.Reader) (encrypted io.Reader, err error) {
 	return encryptAttachment(kr, att, a.Name)
 }
 
-func (a *Attachment) DetachedSign(kr *pmcrypto.KeyRing, att io.Reader) (signed io.Reader, err error) {
+func (a *Attachment) DetachedSign(kr *crypto.KeyRing, att io.Reader) (signed io.Reader, err error) {
 	return signAttachment(kr, att)
 }
 

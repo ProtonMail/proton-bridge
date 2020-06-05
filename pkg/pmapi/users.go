@@ -18,8 +18,8 @@
 package pmapi
 
 import (
-	pmcrypto "github.com/ProtonMail/gopenpgp/crypto"
 	"github.com/getsentry/raven-go"
+	"github.com/pkg/errors"
 )
 
 // Role values.
@@ -68,15 +68,17 @@ type User struct {
 	Private    int
 	Subscribed int
 	Services   int
-	VPN        struct {
+	Deliquent  int
+
+	Keys PMKeys
+
+	VPN struct {
 		Status         int
 		ExpirationTime int
 		PlanName       string
 		MaxConnect     int
 		MaxTier        int
 	}
-	Deliquent int
-	Keys      PMKeys
 }
 
 // UserRes holds structure of JSON response.
@@ -86,9 +88,17 @@ type UserRes struct {
 	User *User
 }
 
-// KeyRing returns the (possibly unlocked) PMKeys KeyRing.
-func (u *User) KeyRing() *pmcrypto.KeyRing {
-	return u.Keys.KeyRing
+// unlockUser unlocks all the client's user keys using the given passphrase.
+func (c *client) unlockUser(passphrase []byte) (err error) {
+	if c.userKeyRing != nil {
+		return
+	}
+
+	if c.userKeyRing, err = c.user.Keys.UnlockAll(passphrase, nil); err != nil {
+		return errors.Wrap(err, "failed to unlock user keys")
+	}
+
+	return
 }
 
 // UpdateUser retrieves details about user and loads its addresses.

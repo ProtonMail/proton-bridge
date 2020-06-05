@@ -31,7 +31,7 @@ import (
 	"strconv"
 	"strings"
 
-	pmcrypto "github.com/ProtonMail/gopenpgp/crypto"
+	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"golang.org/x/crypto/openpgp/packet"
 )
 
@@ -250,7 +250,7 @@ func (m *Message) IsLegacyMessage() bool {
 		strings.Contains(m.Body, MessageTail)
 }
 
-func (m *Message) Decrypt(kr *pmcrypto.KeyRing) (err error) {
+func (m *Message) Decrypt(kr *crypto.KeyRing) (err error) {
 	if m.IsLegacyMessage() {
 		return m.DecryptLegacy(kr)
 	}
@@ -269,7 +269,7 @@ func (m *Message) Decrypt(kr *pmcrypto.KeyRing) (err error) {
 	return
 }
 
-func (m *Message) DecryptLegacy(kr *pmcrypto.KeyRing) (err error) {
+func (m *Message) DecryptLegacy(kr *crypto.KeyRing) (err error) {
 	randomKeyStart := strings.Index(m.Body, RandomKeyHeader) + len(RandomKeyHeader)
 	randomKeyEnd := strings.Index(m.Body, RandomKeyTail)
 	randomKey := m.Body[randomKeyStart:randomKeyEnd]
@@ -341,7 +341,7 @@ func decodeBase64UTF8(input string) (output []byte, err error) {
 	return
 }
 
-func (m *Message) Encrypt(encrypter, signer *pmcrypto.KeyRing) (err error) {
+func (m *Message) Encrypt(encrypter, signer *crypto.KeyRing) (err error) {
 	if m.IsBodyEncrypted() {
 		err = errors.New("pmapi: trying to encrypt an already encrypted message")
 		return

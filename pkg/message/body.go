@@ -23,13 +23,13 @@ import (
 	"io"
 	"mime/quotedprintable"
 
-	pmcrypto "github.com/ProtonMail/gopenpgp/crypto"
+	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	"github.com/emersion/go-textwrapper"
 	openpgperrors "golang.org/x/crypto/openpgp/errors"
 )
 
-func WriteBody(w io.Writer, kr *pmcrypto.KeyRing, m *pmapi.Message) error {
+func WriteBody(w io.Writer, kr *crypto.KeyRing, m *pmapi.Message) error {
 	// Decrypt body.
 	if err := m.Decrypt(kr); err != nil && err != openpgperrors.ErrSignatureExpired {
 		return err
@@ -46,7 +46,7 @@ func WriteBody(w io.Writer, kr *pmcrypto.KeyRing, m *pmapi.Message) error {
 	return err
 }
 
-func WriteAttachmentBody(w io.Writer, kr *pmcrypto.KeyRing, m *pmapi.Message, att *pmapi.Attachment, r io.Reader) (err error) {
+func WriteAttachmentBody(w io.Writer, kr *crypto.KeyRing, m *pmapi.Message, att *pmapi.Attachment, r io.Reader) (err error) {
 	// Decrypt it
 	var dr io.Reader
 	dr, err = att.Decrypt(r, kr)

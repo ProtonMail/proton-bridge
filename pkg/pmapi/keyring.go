@@ -20,183 +20,152 @@ package pmapi
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
-	"fmt"
 	"io"
 	"io/ioutil"
-	"sync"
 
-	pmcrypto "github.com/ProtonMail/gopenpgp/crypto"
+	"github.com/ProtonMail/gopenpgp/v2/crypto"
+	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 )
-
-// clearableKey is a region of memory intended to hold a private key and which can be securely
-// cleared by calling clear().
-type clearableKey []byte
-
-// UnmarshalJSON Removes quotation and unescapes CR, LF.
-func (pk *clearableKey) UnmarshalJSON(b []byte) (err error) {
-	b = bytes.Trim(b, "\"")
-	b = bytes.ReplaceAll(b, []byte("\\n"), []byte("\n"))
-	b = bytes.ReplaceAll(b, []byte("\\r"), []byte("\r"))
-	*pk = b
-	return
-}
-
-// clear irreversibly destroys the full range of `clearableKey` by filling it with zeros to ensure
-// nobody can see what was in there (e.g. while waiting for the garbage collector to clean it up).
-func (pk *clearableKey) clear() {
-	for b := range *pk {
-		(*pk)[b] = 0
-	}
-}
 
 type PMKey struct {
 	ID          string
 	Version     int
 	Flags       int
 	Fingerprint string
+	PrivateKey  *crypto.Key
 	Primary     int
 	Token       *string `json:",omitempty"`
 	Signature   *string `json:",omitempty"`
 }
 
-type PMKeys struct {
-	Keys    []PMKey
-	KeyRing *pmcrypto.KeyRing
-}
+func (key *PMKey) UnmarshalJSON(b []byte) (err error) {
+	type _PMKey PMKey
 
-func (k *PMKeys) UnmarshalJSON(b []byte) (err error) {
-	var rawKeys []struct {
-		PMKey
-		PrivateKey clearableKey
-	}
-	if err = json.Unmarshal(b, &rawKeys); err != nil {
+	rawKey := struct {
+		_PMKey
+		PrivateKey string
+	}{}
+
+	if err = json.Unmarshal(b, &rawKey); err != nil {
 		return
 	}
 
-	k.KeyRing = &pmcrypto.KeyRing{}
-	for _, rawKey := range rawKeys {
-		err = k.KeyRing.ReadFrom(bytes.NewReader(rawKey.PrivateKey), true)
-		rawKey.PrivateKey.clear()
-		if err != nil {
-			return
-		}
-		k.Keys = append(k.Keys, rawKey.PMKey)
+	*key = PMKey(rawKey._PMKey)
+
+	if key.PrivateKey, err = crypto.NewKeyFromArmored(rawKey.PrivateKey); err != nil {
+		return errors.Wrap(err, "failed to create crypto key from armored private key")
 	}
-	if len(k.Keys) > 0 {
-		k.KeyRing.FirstKeyID = k.Keys[0].ID
-	}
+
 	return
 }
 
-// unlockKeyRing tries to unlock them with the provided keyRing using the token
-// and if the token is not available it will use passphrase. It will not fail
-// if keyring contains at least one unlocked private key.
-func (k *PMKeys) unlockKeyRing(userKeyring *pmcrypto.KeyRing, passphrase []byte, locker sync.Locker) (err error) {
-	locker.Lock()
-	defer locker.Unlock()
+func (key PMKey) getPassphraseFromToken(kr *crypto.KeyRing) (passphrase []byte, err error) {
+	if kr == nil {
+		return nil, errors.New("no user key was provided")
+	}
 
-	if k == nil {
-		err = errors.New("keys is a nil object")
+	msg, err := crypto.NewPGPMessageFromArmored(*key.Token)
+	if err != nil {
 		return
 	}
 
-	for _, key := range k.Keys {
+	sig, err := crypto.NewPGPSignatureFromArmored(*key.Signature)
+	if err != nil {
+		return
+	}
+
+	token, err := kr.Decrypt(msg, nil, 0)
+	if err != nil {
+		return
+	}
+
+	if err = kr.VerifyDetached(token, sig, 0); err != nil {
+		return
+	}
+
+	return token.GetBinary(), nil
+}
+
+func (key PMKey) unlock(passphrase []byte) (unlockedKey *crypto.Key, err error) {
+	if unlockedKey, err = key.PrivateKey.Unlock(passphrase); err != nil {
+		return
+	}
+
+	ok, err := unlockedKey.Check()
+	if err != nil {
+		return
+	}
+	if !ok {
+		err = errors.New("private and public keys do not match")
+		return
+	}
+
+	return
+}
+
+type PMKeys []PMKey
+
+// UnlockAll goes through each key and unlocks it, returning a keyring containing all unlocked keys,
+// or an error if at least one could not be unlocked.
+// The passphrase is used to unlock the key unless the key's token and signature are both non-nil,
+// in which case the given userkey is used to deduce the passphrase.
+func (keys *PMKeys) UnlockAll(passphrase []byte, userKey *crypto.KeyRing) (kr *crypto.KeyRing, err error) {
+	if kr, err = crypto.NewKeyRing(nil); err != nil {
+		return
+	}
+
+	for _, key := range *keys {
+		var secret []byte
+
 		if key.Token == nil || key.Signature == nil {
-			if err = unlockKeyRingNoErrorWhenAlreadyUnlocked(k.KeyRing, passphrase); err != nil {
-				return
-			}
+			secret = passphrase
+		} else if secret, err = key.getPassphraseFromToken(userKey); err != nil {
+			return
+		}
+
+		var k *crypto.Key
+
+		if k, err = key.unlock(secret); err != nil {
+			logrus.WithError(err).Warn("Failed to unlock key")
 			continue
 		}
 
-		message, err := pmcrypto.NewPGPMessageFromArmored(*key.Token)
-		if err != nil {
-			return err
-		}
-
-		signature, err := pmcrypto.NewPGPSignatureFromArmored(*key.Signature)
-		if err != nil {
-			return err
-		}
-
-		if userKeyring == nil {
-			return errors.New("userkey required to decrypt tokens but wasn't provided")
-		}
-		token, err := userKeyring.Decrypt(message, nil, 0)
-		if err != nil {
-			return err
-		}
-
-		err = userKeyring.VerifyDetached(token, signature, 0)
-		if err != nil {
-			return err
-		}
-
-		err = unlockKeyRingNoErrorWhenAlreadyUnlocked(k.KeyRing, token.GetBinary())
-		if err != nil {
-			return fmt.Errorf("wrong token: %v", err)
+		if err = kr.AddKey(k); err != nil {
+			logrus.WithError(err).Warn("Failed to add key to keyring")
+			continue
 		}
 	}
 
-	return nil
-}
-
-type unlockError struct {
-	error
-}
-
-func (err *unlockError) Error() string {
-	return "Invalid mailbox password (" + err.error.Error() + ")"
-}
-
-// IsUnlockError checks whether the error is due to failure to unlock (which is represented by an unexported type).
-func IsUnlockError(err error) bool {
-	_, ok := err.(*unlockError)
-	return ok
-}
-
-func unlockKeyRingNoErrorWhenAlreadyUnlocked(kr *pmcrypto.KeyRing, passphrase []byte) (err error) {
-	if err = kr.Unlock(passphrase); err != nil {
-		// Do not fail if it has already unlocked keys.
-		hasUnlockedKey := false
-		for _, e := range kr.GetEntities() {
-			if e.PrivateKey != nil && !e.PrivateKey.Encrypted {
-				hasUnlockedKey = true
-				break
-			}
-			for _, se := range e.Subkeys {
-				if se.PrivateKey != nil && (!se.Sig.FlagsValid || se.Sig.FlagEncryptStorage || se.Sig.FlagEncryptCommunications) && !e.PrivateKey.Encrypted {
-					hasUnlockedKey = true
-					break
-				}
-			}
-			if hasUnlockedKey {
-				break
-			}
-		}
-		if !hasUnlockedKey {
-			err = &unlockError{err}
-			return
-		}
-		err = nil
+	if kr.CountEntities() == 0 {
+		err = errors.New("no keys could be unlocked")
+		return
 	}
-	return
+
+	return kr, err
 }
 
 // ErrNoKeyringAvailable represents an error caused by a keyring being nil or having no entities.
 var ErrNoKeyringAvailable = errors.New("no keyring available")
 
-func (c *client) encrypt(plain string, signer *pmcrypto.KeyRing) (armored string, err error) {
-	return encrypt(c.kr, plain, signer)
+func (c *client) encrypt(plain string, signer *crypto.KeyRing) (armored string, err error) {
+	return encrypt(c.userKeyRing, plain, signer)
 }
 
-func encrypt(encrypter *pmcrypto.KeyRing, plain string, signer *pmcrypto.KeyRing) (armored string, err error) {
-	if encrypter == nil || encrypter.FirstKey() == nil {
+func encrypt(encrypter *crypto.KeyRing, plain string, signer *crypto.KeyRing) (armored string, err error) {
+	if encrypter == nil {
 		return "", ErrNoKeyringAvailable
 	}
-	plainMessage := pmcrypto.NewPlainMessageFromString(plain)
+
+	firstKey, err := encrypter.FirstKey()
+	if err != nil {
+		return "", err
+	}
+
+	plainMessage := crypto.NewPlainMessageFromString(plain)
+
 	// We use only primary key to encrypt the message. Our keyring contains all keys (primary, old and deacivated ones).
-	pgpMessage, err := encrypter.FirstKey().Encrypt(plainMessage, signer)
+	pgpMessage, err := firstKey.Encrypt(plainMessage, signer)
 	if err != nil {
 		return
 	}
@@ -204,14 +173,14 @@ func encrypt(encrypter *pmcrypto.KeyRing, plain string, signer *pmcrypto.KeyRing
 }
 
 func (c *client) decrypt(armored string) (plain string, err error) {
-	return decrypt(c.kr, armored)
+	return decrypt(c.userKeyRing, armored)
 }
 
-func decrypt(decrypter *pmcrypto.KeyRing, armored string) (plainBody string, err error) {
+func decrypt(decrypter *crypto.KeyRing, armored string) (plainBody string, err error) {
 	if decrypter == nil {
 		return "", ErrNoKeyringAvailable
 	}
-	pgpMessage, err := pmcrypto.NewPGPMessageFromArmored(armored)
+	pgpMessage, err := crypto.NewPGPMessageFromArmored(armored)
 	if err != nil {
 		return
 	}
@@ -223,11 +192,11 @@ func decrypt(decrypter *pmcrypto.KeyRing, armored string) (plainBody string, err
 }
 
 func (c *client) sign(plain string) (armoredSignature string, err error) {
-	if c.kr == nil {
+	if c.userKeyRing == nil {
 		return "", ErrNoKeyringAvailable
 	}
-	plainMessage := pmcrypto.NewPlainMessageFromString(plain)
-	pgpSignature, err := c.kr.SignDetached(plainMessage)
+	plainMessage := crypto.NewPlainMessageFromString(plain)
+	pgpSignature, err := c.userKeyRing.SignDetached(plainMessage)
 	if err != nil {
 		return
 	}
@@ -235,34 +204,44 @@ func (c *client) sign(plain string) (armoredSignature string, err error) {
 }
 
 func (c *client) verify(plain, amroredSignature string) (err error) {
-	plainMessage := pmcrypto.NewPlainMessageFromString(plain)
-	pgpSignature, err := pmcrypto.NewPGPSignatureFromArmored(amroredSignature)
+	plainMessage := crypto.NewPlainMessageFromString(plain)
+	pgpSignature, err := crypto.NewPGPSignatureFromArmored(amroredSignature)
 	if err != nil {
 		return
 	}
 	verifyTime := int64(0) // By default it will use current timestamp.
-	return c.kr.VerifyDetached(plainMessage, pgpSignature, verifyTime)
+	return c.userKeyRing.VerifyDetached(plainMessage, pgpSignature, verifyTime)
 }
 
-func encryptAttachment(kr *pmcrypto.KeyRing, data io.Reader, filename string) (encrypted io.Reader, err error) {
-	if kr == nil || kr.FirstKey() == nil {
+func encryptAttachment(kr *crypto.KeyRing, data io.Reader, filename string) (encrypted io.Reader, err error) {
+	if kr == nil {
 		return nil, ErrNoKeyringAvailable
 	}
+
+	firstKey, err := kr.FirstKey()
+	if err != nil {
+		return nil, err
+	}
+
 	dataBytes, err := ioutil.ReadAll(data)
 	if err != nil {
 		return
 	}
-	plainMessage := pmcrypto.NewPlainMessage(dataBytes)
+
+	plainMessage := crypto.NewPlainMessage(dataBytes)
+
 	// We use only primary key to encrypt the message. Our keyring contains all keys (primary, old and deacivated ones).
-	pgpSplitMessage, err := kr.FirstKey().EncryptAttachment(plainMessage, filename)
+	pgpSplitMessage, err := firstKey.EncryptAttachment(plainMessage, filename)
 	if err != nil {
 		return
 	}
+
 	packets := append(pgpSplitMessage.KeyPacket, pgpSplitMessage.DataPacket...)
+
 	return bytes.NewReader(packets), nil
 }
 
-func decryptAttachment(kr *pmcrypto.KeyRing, keyPackets []byte, data io.Reader) (decrypted io.Reader, err error) {
+func decryptAttachment(kr *crypto.KeyRing, keyPackets []byte, data io.Reader) (decrypted io.Reader, err error) {
 	if kr == nil {
 		return nil, ErrNoKeyringAvailable
 	}
@@ -270,7 +249,7 @@ func decryptAttachment(kr *pmcrypto.KeyRing, keyPackets []byte, data io.Reader) 
 	if err != nil {
 		return
 	}
-	pgpSplitMessage := pmcrypto.NewPGPSplitMessage(keyPackets, dataBytes)
+	pgpSplitMessage := crypto.NewPGPSplitMessage(keyPackets, dataBytes)
 	plainMessage, err := kr.DecryptAttachment(pgpSplitMessage)
 	if err != nil {
 		return
@@ -278,7 +257,7 @@ func decryptAttachment(kr *pmcrypto.KeyRing, keyPackets []byte, data io.Reader) 
 	return plainMessage.NewReader(), nil
 }
 
-func signAttachment(encrypter *pmcrypto.KeyRing, data io.Reader) (signature io.Reader, err error) {
+func signAttachment(encrypter *crypto.KeyRing, data io.Reader) (signature io.Reader, err error) {
 	if encrypter == nil {
 		return nil, ErrNoKeyringAvailable
 	}
@@ -286,7 +265,7 @@ func signAttachment(encrypter *pmcrypto.KeyRing, data io.Reader) (signature io.R
 	if err != nil {
 		return
 	}
-	plainMessage := pmcrypto.NewPlainMessage(dataBytes)
+	plainMessage := crypto.NewPlainMessage(dataBytes)
 	sig, err := encrypter.SignDetached(plainMessage)
 	if err != nil {
 		return

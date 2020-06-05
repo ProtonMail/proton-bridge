@@ -32,7 +32,7 @@ import (
 	"sync"
 	"time"
 
-	pmcrypto "github.com/ProtonMail/gopenpgp/crypto"
+	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/jaytaylor/html2text"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -104,63 +104,6 @@ type ClientConfig struct {
 	MinBytesPerSecond int64
 }
 
-// Client defines the interface of a PMAPI client.
-type Client interface {
-	Auth(username, password string, info *AuthInfo) (*Auth, error)
-	AuthInfo(username string) (*AuthInfo, error)
-	AuthRefresh(token string) (*Auth, error)
-	Auth2FA(twoFactorCode string, auth *Auth) (*Auth2FA, error)
-	Logout()
-	DeleteAuth() error
-	IsConnected() bool
-	ClearData()
-
-	CurrentUser() (*User, error)
-	UpdateUser() (*User, error)
-	Unlock(mailboxPassword string) (kr *pmcrypto.KeyRing, err error)
-	UnlockAddresses(passphrase []byte) error
-
-	GetAddresses() (addresses AddressList, err error)
-	Addresses() AddressList
-	ReorderAddresses(addressIDs []string) error
-
-	GetEvent(eventID string) (*Event, error)
-
-	SendMessage(string, *SendMessageReq) (sent, parent *Message, err error)
-	CreateDraft(m *Message, parent string, action int) (created *Message, err error)
-	Import([]*ImportMsgReq) ([]*ImportMsgRes, error)
-
-	CountMessages(addressID string) ([]*MessagesCount, error)
-	ListMessages(filter *MessagesFilter) ([]*Message, int, error)
-	GetMessage(apiID string) (*Message, error)
-	DeleteMessages(apiIDs []string) error
-	LabelMessages(apiIDs []string, labelID string) error
-	UnlabelMessages(apiIDs []string, labelID string) error
-	MarkMessagesRead(apiIDs []string) error
-	MarkMessagesUnread(apiIDs []string) error
-
-	ListLabels() ([]*Label, error)
-	CreateLabel(label *Label) (*Label, error)
-	UpdateLabel(label *Label) (*Label, error)
-	DeleteLabel(labelID string) error
-	EmptyFolder(labelID string, addressID string) error
-
-	ReportBugWithEmailClient(os, osVersion, title, description, username, email, emailClient string) error
-	SendSimpleMetric(category, action, label string) error
-
-	GetMailSettings() (MailSettings, error)
-	GetContactEmailByEmail(string, int, int) ([]ContactEmail, error)
-	GetContactByID(string) (Contact, error)
-	DecryptAndVerifyCards([]Card) ([]Card, error)
-
-	GetAttachment(id string) (att io.ReadCloser, err error)
-	CreateAttachment(att *Attachment, r io.Reader, sig io.Reader) (created *Attachment, err error)
-	DeleteAttachment(attID string) (err error)
-
-	KeyRingForAddressID(string) (kr *pmcrypto.KeyRing, err error)
-	GetPublicKeysForEmail(string) ([]PublicKey, bool, error)
-}
-
 // client is a client of the protonmail API. It implements the Client interface.
 type client struct {
 	cm *ClientManager
@@ -170,11 +113,12 @@ type client struct {
 	accessToken   string
 	userID        string
 	requestLocker sync.Locker
-	keyLocker     sync.Locker
 
-	user      *User
-	addresses AddressList
-	kr        *pmcrypto.KeyRing
+	user        *User
+	addresses   AddressList
+	userKeyRing *crypto.KeyRing
+	addrKeyRing map[string]*crypto.KeyRing
+	keyRingLock sync.Locker
 
 	log *logrus.Entry
 }
@@ -186,7 +130,8 @@ func newClient(cm *ClientManager, userID string) *client {
 		hc:            getHTTPClient(cm.config, cm.roundTripper),
 		userID:        userID,
 		requestLocker: &sync.Mutex{},
-		keyLocker:     &sync.Mutex{},
+		keyRingLock:   &sync.Mutex{},
+		addrKeyRing:   make(map[string]*crypto.KeyRing),
 		log:           logrus.WithField("pkg", "pmapi").WithField("userID", userID),
 	}
 }
@@ -197,6 +142,39 @@ func getHTTPClient(cfg *ClientConfig, rt http.RoundTripper) (hc *http.Client) {
 		Timeout:   cfg.Timeout,
 		Transport: rt,
 	}
+}
+
+func (c *client) IsUnlocked() bool {
+	return c.userKeyRing != nil
+}
+
+// Unlock unlocks all the user and address keys using the given passphrase.
+func (c *client) Unlock(passphrase []byte) (err error) {
+	c.keyRingLock.Lock()
+	defer c.keyRingLock.Unlock()
+
+	// If the user already has a keyring, we already unlocked, so no need to try again.
+	if c.userKeyRing != nil {
+		return
+	}
+
+	if _, err = c.CurrentUser(); err != nil {
+		return
+	}
+
+	if c.user == nil || c.addresses == nil {
+		return errors.New("user data is not loaded")
+	}
+
+	if err = c.unlockUser(passphrase); err != nil {
+		return errors.Wrap(err, "failed to unlock user")
+	}
+
+	if err = c.unlockAddresses(passphrase); err != nil {
+		return errors.Wrap(err, "failed to unlock addresses")
+	}
+
+	return
 }
 
 // Do makes an API request. It does not check for HTTP status code errors.
@@ -258,7 +236,7 @@ func (c *client) doBuffered(req *http.Request, bodyBuffer []byte, retryUnauthori
 	resDate := res.Header.Get("Date")
 	if resDate != "" {
 		if serverTime, err := http.ParseTime(resDate); err == nil {
-			pmcrypto.GetGopenPGP().UpdateTime(serverTime.Unix())
+			crypto.UpdateTime(serverTime.Unix())
 		}
 	}
 

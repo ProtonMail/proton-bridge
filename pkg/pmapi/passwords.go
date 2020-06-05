@@ -24,12 +24,12 @@ import (
 	"github.com/jameskeane/bcrypt"
 )
 
-func HashMailboxPassword(password, keySalt string) (hashedPassword string, err error) {
-	if keySalt == "" {
+func HashMailboxPassword(password, salt string) (hashedPassword string, err error) {
+	if salt == "" {
 		hashedPassword = password
 		return
 	}
-	decodedSalt, err := base64.StdEncoding.DecodeString(keySalt)
+	decodedSalt, err := base64.StdEncoding.DecodeString(salt)
 	if err != nil {
 		return
 	}

@@ -147,6 +147,14 @@ func (api *FakePMAPI) AuthRefresh(token string) (*pmapi.Auth, error) {
 	return auth, nil
 }
 
+func (api *FakePMAPI) AuthSalt() (string, error) {
+	if err := api.checkInternetAndRecordCall(GET, "/keys/salts", nil); err != nil {
+		return "", err
+	}
+
+	return "", nil
+}
+
 func (api *FakePMAPI) Logout() {
 	api.controller.clientManager.LogoutClient(api.userID)
 }
@@ -164,5 +172,17 @@ func (api *FakePMAPI) DeleteAuth() error {
 }
 
 func (api *FakePMAPI) ClearData() {
+	if api.userKeyRing != nil {
+		api.userKeyRing.ClearPrivateParams()
+		api.userKeyRing = nil
+	}
+
+	for addrID, addr := range api.addrKeyRing {
+		if addr != nil {
+			addr.ClearPrivateParams()
+			delete(api.addrKeyRing, addrID)
+		}
+	}
+
 	api.unsetUser()
 }

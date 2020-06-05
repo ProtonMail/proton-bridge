@@ -18,15 +18,15 @@
 package smtp
 
 import (
-	"strings"
 	"testing"
 
-	pmcrypto "github.com/ProtonMail/gopenpgp/crypto"
+	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/ProtonMail/proton-bridge/internal/events"
 	"github.com/ProtonMail/proton-bridge/internal/users"
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	"github.com/golang/mock/gomock"
+	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -46,8 +46,8 @@ func initMocks(t *testing.T) mocks {
 type args struct {
 	eventListener     listener.Listener
 	contactMeta       *ContactMetadata
-	apiKeys           []*pmcrypto.KeyRing
-	contactKeys       []*pmcrypto.KeyRing
+	apiKeys           []*crypto.KeyRing
+	contactKeys       []*crypto.KeyRing
 	composeMode       string
 	settingsPgpScheme int
 	settingsSign      bool
@@ -68,18 +68,61 @@ func (tt *testData) runTest(t *testing.T) {
 			assert.Error(t, err)
 		} else {
 			assert.NoError(t, err)
-			assert.Equal(t, gotSendingInfo, tt.wantSendingInfo)
+
+			assert.Equal(t, gotSendingInfo.Encrypt, tt.wantSendingInfo.Encrypt)
+			assert.Equal(t, gotSendingInfo.Sign, tt.wantSendingInfo.Sign)
+			assert.Equal(t, gotSendingInfo.Scheme, tt.wantSendingInfo.Scheme)
+			assert.Equal(t, gotSendingInfo.MIMEType, tt.wantSendingInfo.MIMEType)
+			assert.True(t, keyRingsAreEqual(gotSendingInfo.PublicKey, tt.wantSendingInfo.PublicKey))
 		}
 	})
+}
+
+func keyRingFromKey(publicKey string) *crypto.KeyRing {
+	key, err := crypto.NewKeyFromArmored(publicKey)
+	if err != nil {
+		panic(err)
+	}
+
+	kr, err := crypto.NewKeyRing(key)
+	if err != nil {
+		panic(err)
+	}
+
+	return kr
+}
+
+func keyRingsAreEqual(a, b *crypto.KeyRing) bool {
+	if a == nil && b == nil {
+		return true
+	}
+
+	if a == nil && b != nil || a != nil && b == nil {
+		return false
+	}
+
+	aKeys, bKeys := a.GetKeys(), b.GetKeys()
+
+	if len(aKeys) != len(bKeys) {
+		return false
+	}
+
+	for i := range aKeys {
+		aFPs := aKeys[i].GetSHA256Fingerprints()
+		bFPs := bKeys[i].GetSHA256Fingerprints()
+
+		if !cmp.Equal(aFPs, bFPs) {
+			return false
+		}
+	}
+
+	return true
 }
 
 func TestGenerateSendingInfo_WithoutContact(t *testing.T) {
 	m := initMocks(t)
 
-	pubKey, err := pmcrypto.ReadArmoredKeyRing(strings.NewReader(testPublicKey))
-	if err != nil {
-		panic(err)
-	}
+	pubKey := keyRingFromKey(testPublicKey)
 
 	tests := []testData{
 		{
@@ -88,8 +131,8 @@ func TestGenerateSendingInfo_WithoutContact(t *testing.T) {
 				contactMeta:       nil,
 				isInternal:        true,
 				composeMode:       pmapi.ContentTypeHTML,
-				apiKeys:           []*pmcrypto.KeyRing{pubKey},
-				contactKeys:       []*pmcrypto.KeyRing{},
+				apiKeys:           []*crypto.KeyRing{pubKey},
+				contactKeys:       []*crypto.KeyRing{},
 				settingsSign:      true,
 				settingsPgpScheme: pmapi.PGPMIMEPackage,
 			},
@@ -107,8 +150,8 @@ func TestGenerateSendingInfo_WithoutContact(t *testing.T) {
 				contactMeta:       nil,
 				isInternal:        true,
 				composeMode:       pmapi.ContentTypeHTML,
-				apiKeys:           []*pmcrypto.KeyRing{pubKey},
-				contactKeys:       []*pmcrypto.KeyRing{},
+				apiKeys:           []*crypto.KeyRing{pubKey},
+				contactKeys:       []*crypto.KeyRing{},
 				settingsSign:      true,
 				settingsPgpScheme: pmapi.PGPInlinePackage,
 			},
@@ -126,8 +169,8 @@ func TestGenerateSendingInfo_WithoutContact(t *testing.T) {
 				contactMeta:       nil,
 				isInternal:        false,
 				composeMode:       pmapi.ContentTypeHTML,
-				apiKeys:           []*pmcrypto.KeyRing{},
-				contactKeys:       []*pmcrypto.KeyRing{},
+				apiKeys:           []*crypto.KeyRing{},
+				contactKeys:       []*crypto.KeyRing{},
 				settingsSign:      true,
 				settingsPgpScheme: pmapi.PGPMIMEPackage,
 			},
@@ -145,8 +188,8 @@ func TestGenerateSendingInfo_WithoutContact(t *testing.T) {
 				contactMeta:       nil,
 				isInternal:        false,
 				composeMode:       pmapi.ContentTypeHTML,
-				apiKeys:           []*pmcrypto.KeyRing{},
-				contactKeys:       []*pmcrypto.KeyRing{},
+				apiKeys:           []*crypto.KeyRing{},
+				contactKeys:       []*crypto.KeyRing{},
 				settingsSign:      true,
 				settingsPgpScheme: pmapi.PGPInlinePackage,
 			},
@@ -164,8 +207,8 @@ func TestGenerateSendingInfo_WithoutContact(t *testing.T) {
 				contactMeta:       nil,
 				isInternal:        false,
 				composeMode:       pmapi.ContentTypeHTML,
-				apiKeys:           []*pmcrypto.KeyRing{},
-				contactKeys:       []*pmcrypto.KeyRing{},
+				apiKeys:           []*crypto.KeyRing{},
+				contactKeys:       []*crypto.KeyRing{},
 				settingsSign:      false,
 				settingsPgpScheme: pmapi.PGPInlinePackage,
 			},
@@ -183,8 +226,8 @@ func TestGenerateSendingInfo_WithoutContact(t *testing.T) {
 				eventListener: m.eventListener,
 				contactMeta:   nil,
 				isInternal:    true,
-				apiKeys:       []*pmcrypto.KeyRing{},
-				contactKeys:   []*pmcrypto.KeyRing{pubKey},
+				apiKeys:       []*crypto.KeyRing{},
+				contactKeys:   []*crypto.KeyRing{pubKey},
 			},
 			wantSendingInfo: SendingInfo{},
 			wantErr:         true,
@@ -195,8 +238,8 @@ func TestGenerateSendingInfo_WithoutContact(t *testing.T) {
 				contactMeta:       nil,
 				isInternal:        false,
 				composeMode:       pmapi.ContentTypeHTML,
-				apiKeys:           []*pmcrypto.KeyRing{pubKey},
-				contactKeys:       []*pmcrypto.KeyRing{},
+				apiKeys:           []*crypto.KeyRing{pubKey},
+				contactKeys:       []*crypto.KeyRing{},
 				settingsSign:      true,
 				settingsPgpScheme: pmapi.PGPMIMEPackage,
 			},
@@ -217,20 +260,11 @@ func TestGenerateSendingInfo_WithoutContact(t *testing.T) {
 func TestGenerateSendingInfo_Contact_Internal(t *testing.T) {
 	m := initMocks(t)
 
-	pubKey, err := pmcrypto.ReadArmoredKeyRing(strings.NewReader(testPublicKey))
-	if err != nil {
-		panic(err)
-	}
+	pubKey := keyRingFromKey(testPublicKey)
 
-	preferredPubKey, err := pmcrypto.ReadArmoredKeyRing(strings.NewReader(testPublicKey))
-	if err != nil {
-		panic(err)
-	}
+	preferredPubKey := keyRingFromKey(testPublicKey)
 
-	differentPubKey, err := pmcrypto.ReadArmoredKeyRing(strings.NewReader(testDifferentPublicKey))
-	if err != nil {
-		panic(err)
-	}
+	differentPubKey := keyRingFromKey(testDifferentPublicKey)
 
 	m.eventListener.EXPECT().Emit(events.NoActiveKeyForRecipientEvent, "badkey@email.com")
 
@@ -241,8 +275,8 @@ func TestGenerateSendingInfo_Contact_Internal(t *testing.T) {
 				contactMeta:       &ContactMetadata{Encrypt: true, Scheme: "pgp-mime"},
 				isInternal:        true,
 				composeMode:       pmapi.ContentTypeHTML,
-				apiKeys:           []*pmcrypto.KeyRing{pubKey},
-				contactKeys:       []*pmcrypto.KeyRing{},
+				apiKeys:           []*crypto.KeyRing{pubKey},
+				contactKeys:       []*crypto.KeyRing{},
 				settingsSign:      true,
 				settingsPgpScheme: pmapi.PGPMIMEPackage,
 			},
@@ -260,8 +294,8 @@ func TestGenerateSendingInfo_Contact_Internal(t *testing.T) {
 				contactMeta:       &ContactMetadata{Encrypt: true, Scheme: "pgp-mime"},
 				isInternal:        true,
 				composeMode:       pmapi.ContentTypeHTML,
-				apiKeys:           []*pmcrypto.KeyRing{pubKey},
-				contactKeys:       []*pmcrypto.KeyRing{pubKey},
+				apiKeys:           []*crypto.KeyRing{pubKey},
+				contactKeys:       []*crypto.KeyRing{pubKey},
 				settingsSign:      true,
 				settingsPgpScheme: pmapi.PGPMIMEPackage,
 			},
@@ -279,8 +313,8 @@ func TestGenerateSendingInfo_Contact_Internal(t *testing.T) {
 				contactMeta:       &ContactMetadata{Encrypt: true, Scheme: "pgp-mime"},
 				isInternal:        true,
 				composeMode:       pmapi.ContentTypeHTML,
-				apiKeys:           []*pmcrypto.KeyRing{preferredPubKey},
-				contactKeys:       []*pmcrypto.KeyRing{pubKey},
+				apiKeys:           []*crypto.KeyRing{preferredPubKey},
+				contactKeys:       []*crypto.KeyRing{pubKey},
 				settingsSign:      true,
 				settingsPgpScheme: pmapi.PGPMIMEPackage,
 			},
@@ -299,8 +333,8 @@ func TestGenerateSendingInfo_Contact_Internal(t *testing.T) {
 				contactMeta:       &ContactMetadata{Email: "badkey@email.com", Encrypt: true, Scheme: "pgp-mime"},
 				isInternal:        true,
 				composeMode:       pmapi.ContentTypeHTML,
-				apiKeys:           []*pmcrypto.KeyRing{pubKey},
-				contactKeys:       []*pmcrypto.KeyRing{differentPubKey},
+				apiKeys:           []*crypto.KeyRing{pubKey},
+				contactKeys:       []*crypto.KeyRing{differentPubKey},
 				settingsSign:      true,
 				settingsPgpScheme: pmapi.PGPMIMEPackage,
 			},
@@ -313,8 +347,8 @@ func TestGenerateSendingInfo_Contact_Internal(t *testing.T) {
 				contactMeta:       &ContactMetadata{Encrypt: true, Scheme: "pgp-mime"},
 				isInternal:        false,
 				composeMode:       pmapi.ContentTypeHTML,
-				apiKeys:           []*pmcrypto.KeyRing{pubKey},
-				contactKeys:       []*pmcrypto.KeyRing{},
+				apiKeys:           []*crypto.KeyRing{pubKey},
+				contactKeys:       []*crypto.KeyRing{},
 				settingsSign:      true,
 				settingsPgpScheme: pmapi.PGPMIMEPackage,
 			},
@@ -332,8 +366,8 @@ func TestGenerateSendingInfo_Contact_Internal(t *testing.T) {
 				contactMeta:       &ContactMetadata{Encrypt: true, Scheme: "pgp-mime"},
 				isInternal:        false,
 				composeMode:       pmapi.ContentTypeHTML,
-				apiKeys:           []*pmcrypto.KeyRing{pubKey},
-				contactKeys:       []*pmcrypto.KeyRing{differentPubKey},
+				apiKeys:           []*crypto.KeyRing{pubKey},
+				contactKeys:       []*crypto.KeyRing{differentPubKey},
 				settingsSign:      true,
 				settingsPgpScheme: pmapi.PGPMIMEPackage,
 			},
@@ -352,15 +386,9 @@ func TestGenerateSendingInfo_Contact_Internal(t *testing.T) {
 }
 
 func TestGenerateSendingInfo_Contact_External(t *testing.T) {
-	pubKey, err := pmcrypto.ReadArmoredKeyRing(strings.NewReader(testPublicKey))
-	if err != nil {
-		panic(err)
-	}
+	pubKey := keyRingFromKey(testPublicKey)
 
-	expiredPubKey, err := pmcrypto.ReadArmoredKeyRing(strings.NewReader(testExpiredPublicKey))
-	if err != nil {
-		panic(err)
-	}
+	expiredPubKey := keyRingFromKey(testExpiredPublicKey)
 
 	tests := []testData{
 		{
@@ -369,8 +397,8 @@ func TestGenerateSendingInfo_Contact_External(t *testing.T) {
 				contactMeta:       &ContactMetadata{},
 				isInternal:        false,
 				composeMode:       pmapi.ContentTypeHTML,
-				apiKeys:           []*pmcrypto.KeyRing{},
-				contactKeys:       []*pmcrypto.KeyRing{},
+				apiKeys:           []*crypto.KeyRing{},
+				contactKeys:       []*crypto.KeyRing{},
 				settingsSign:      true,
 				settingsPgpScheme: pmapi.PGPMIMEPackage,
 			},
@@ -388,8 +416,8 @@ func TestGenerateSendingInfo_Contact_External(t *testing.T) {
 				contactMeta:       &ContactMetadata{},
 				isInternal:        false,
 				composeMode:       pmapi.ContentTypeHTML,
-				apiKeys:           []*pmcrypto.KeyRing{},
-				contactKeys:       []*pmcrypto.KeyRing{expiredPubKey},
+				apiKeys:           []*crypto.KeyRing{},
+				contactKeys:       []*crypto.KeyRing{expiredPubKey},
 				settingsSign:      true,
 				settingsPgpScheme: pmapi.PGPMIMEPackage,
 			},
@@ -407,8 +435,8 @@ func TestGenerateSendingInfo_Contact_External(t *testing.T) {
 				contactMeta:       &ContactMetadata{Encrypt: true, Scheme: "pgp-mime"},
 				isInternal:        false,
 				composeMode:       pmapi.ContentTypeHTML,
-				apiKeys:           []*pmcrypto.KeyRing{},
-				contactKeys:       []*pmcrypto.KeyRing{pubKey},
+				apiKeys:           []*crypto.KeyRing{},
+				contactKeys:       []*crypto.KeyRing{pubKey},
 				settingsSign:      true,
 				settingsPgpScheme: pmapi.PGPMIMEPackage,
 			},
@@ -426,8 +454,8 @@ func TestGenerateSendingInfo_Contact_External(t *testing.T) {
 				contactMeta:       &ContactMetadata{Encrypt: true, Scheme: "pgp-inline"},
 				isInternal:        false,
 				composeMode:       pmapi.ContentTypeHTML,
-				apiKeys:           []*pmcrypto.KeyRing{},
-				contactKeys:       []*pmcrypto.KeyRing{pubKey},
+				apiKeys:           []*crypto.KeyRing{},
+				contactKeys:       []*crypto.KeyRing{pubKey},
 				settingsSign:      true,
 				settingsPgpScheme: pmapi.PGPMIMEPackage,
 			},
@@ -445,8 +473,8 @@ func TestGenerateSendingInfo_Contact_External(t *testing.T) {
 				contactMeta:       &ContactMetadata{Encrypt: true},
 				isInternal:        false,
 				composeMode:       pmapi.ContentTypeHTML,
-				apiKeys:           []*pmcrypto.KeyRing{},
-				contactKeys:       []*pmcrypto.KeyRing{pubKey},
+				apiKeys:           []*crypto.KeyRing{},
+				contactKeys:       []*crypto.KeyRing{pubKey},
 				settingsSign:      true,
 				settingsPgpScheme: pmapi.PGPMIMEPackage,
 			},
@@ -464,8 +492,8 @@ func TestGenerateSendingInfo_Contact_External(t *testing.T) {
 				contactMeta:       &ContactMetadata{},
 				isInternal:        false,
 				composeMode:       pmapi.ContentTypeHTML,
-				apiKeys:           []*pmcrypto.KeyRing{},
-				contactKeys:       []*pmcrypto.KeyRing{},
+				apiKeys:           []*crypto.KeyRing{},
+				contactKeys:       []*crypto.KeyRing{},
 				settingsSign:      true,
 				settingsPgpScheme: pmapi.PGPInlinePackage,
 			},
@@ -483,8 +511,8 @@ func TestGenerateSendingInfo_Contact_External(t *testing.T) {
 				contactMeta:       &ContactMetadata{MIMEType: pmapi.ContentTypePlainText},
 				isInternal:        false,
 				composeMode:       pmapi.ContentTypeHTML,
-				apiKeys:           []*pmcrypto.KeyRing{},
-				contactKeys:       []*pmcrypto.KeyRing{},
+				apiKeys:           []*crypto.KeyRing{},
+				contactKeys:       []*crypto.KeyRing{},
 				settingsSign:      true,
 				settingsPgpScheme: pmapi.PGPInlinePackage,
 			},
@@ -502,8 +530,8 @@ func TestGenerateSendingInfo_Contact_External(t *testing.T) {
 				contactMeta:       &ContactMetadata{SignMissing: true},
 				isInternal:        false,
 				composeMode:       pmapi.ContentTypeHTML,
-				apiKeys:           []*pmcrypto.KeyRing{},
-				contactKeys:       []*pmcrypto.KeyRing{},
+				apiKeys:           []*crypto.KeyRing{},
+				contactKeys:       []*crypto.KeyRing{},
 				settingsSign:      true,
 				settingsPgpScheme: pmapi.PGPInlinePackage,
 			},

@@ -48,7 +48,7 @@ Feature: SMTP auth
   @ignore-live
   Scenario: Authenticates with disabled primary address
     Given there is connected user "userDisabledPrimaryAddress"
-    When SMTP client authenticates "userDisabledPrimaryAddress" with address "primary"
+    When SMTP client authenticates "userDisabledPrimaryAddress" with address "secondary"
     Then SMTP response is "OK"
 
   Scenario: Authenticates two users

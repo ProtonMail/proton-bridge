@@ -24,7 +24,7 @@ import (
 	"testing"
 	"time"
 
-	pmcrypto "github.com/ProtonMail/gopenpgp/crypto"
+	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/ProtonMail/proton-bridge/pkg/srp"
 
 	"github.com/sirupsen/logrus"
@@ -33,7 +33,7 @@ import (
 	r "github.com/stretchr/testify/require"
 )
 
-var testIdentity = &pmcrypto.Identity{
+var testIdentity = &crypto.Identity{
 	Name:  "UserID",
 	Email: "",
 }
@@ -131,22 +131,16 @@ func TestClient_Auth(t *testing.T) {
 
 			return "/auth/post_response.json"
 		},
-		routeGetUsers,
-		routeGetAddresses,
-		routeGetSalts,
 	)
 	defer finish()
 
 	auth, err := c.Auth(testUsername, testAPIPassword, testAuthInfo)
 	r.Nil(t, err)
 
-	r.True(t, c.user.KeyRing().FirstKeyID != "", "Parsing First key ID issue")
-
 	exp := &Auth{}
 	*exp = *testAuth
 	exp.accessToken = testAccessToken
 	exp.RefreshToken = testRefreshToken
-	exp.KeySalt = "abc"
 	a.Equal(t, exp, auth)
 }
 
@@ -161,9 +155,6 @@ func TestClient_Auth2FA(t *testing.T) {
 
 			return "/auth/2fa/post_response.json"
 		},
-		routeGetUsers,
-		routeGetAddresses,
-		routeGetSalts,
 	)
 	defer finish()
 
@@ -224,16 +215,16 @@ func TestClient_Unlock(t *testing.T) {
 	c.uid = testUID
 	c.accessToken = testAccessToken
 
-	_, err := c.Unlock("wrong")
-	a.True(t, IsUnlockError(err), "expected error, pasword is wrong")
+	err := c.Unlock([]byte("wrong"))
+	a.Error(t, err, "expected error, pasword is wrong")
 
-	_, err = c.Unlock(testMailboxPassword)
+	err = c.Unlock([]byte(testMailboxPassword))
 	a.Nil(t, err)
 	a.Equal(t, testUID, c.uid)
 	a.Equal(t, testAccessToken, c.accessToken)
 
 	// second try should not fail because there is an unlocked key already
-	_, err = c.Unlock("wrong")
+	err = c.Unlock([]byte("wrong"))
 	a.Nil(t, err)
 }
 
@@ -246,7 +237,7 @@ func TestClient_Unlock_EncPrivKey(t *testing.T) {
 	c.uid = testUID
 	c.accessToken = testAccessToken
 
-	_, err := c.Unlock(testMailboxPassword)
+	err := c.Unlock([]byte(testMailboxPassword))
 	Ok(t, err)
 	Equals(t, testUID, c.uid)
 	Equals(t, testAccessToken, c.accessToken)
@@ -280,7 +271,6 @@ func TestClient_AuthRefresh(t *testing.T) {
 	*exp = *testAuth
 	exp.uid = testUID // AuthRefresh will not return UID (only Auth returns the UID) we should set testUID to be able to generate token, see `GetToken`
 	exp.accessToken = testAccessToken
-	exp.KeySalt = ""
 	exp.EventID = ""
 	exp.ExpiresIn = 360000
 	exp.RefreshToken = testRefreshTokenNew
@@ -313,7 +303,6 @@ func TestClient_AuthRefresh_HasUID(t *testing.T) {
 	exp := &Auth{}
 	*exp = *testAuth
 	exp.accessToken = testAccessToken
-	exp.KeySalt = ""
 	exp.EventID = ""
 	exp.ExpiresIn = 360000
 	exp.RefreshToken = testRefreshTokenNew
@@ -336,7 +325,7 @@ func TestClient_Logout(t *testing.T) {
 	c.Logout()
 
 	r.Eventually(t, func() bool {
-		return c.IsConnected() == false && c.kr == nil && c.addresses == nil && c.user == nil
+		return c.IsConnected() == false && c.userKeyRing == nil && c.addresses == nil && c.user == nil
 	}, 10*time.Second, 10*time.Millisecond)
 }
 

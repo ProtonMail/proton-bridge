@@ -182,17 +182,8 @@ func (u *Users) closeAllConnections() {
 	}
 }
 
-// Login authenticates a user.
-// The login flow:
-//  * Authenticate user:
-//      client, auth, err := users.Authenticate(username, password)
-//
-//  * In case user `auth.HasTwoFactor()`, ask for it and fully authenticate the user.
-// 	    auth2FA, err := client.Auth2FA(twoFactorCode)
-//
-//  * In case user `auth.HasMailboxPassword()`, ask for it, otherwise use `password`
-//    and then finish the login procedure.
-//		user, err := users.FinishLogin(client, auth, mailboxPassword)
+// Login authenticates a user by username/password, returning an authorised client and an auth object.
+// The authorisation scope may not yet be full if the user has 2FA enabled.
 func (u *Users) Login(username, password string) (authClient pmapi.Client, auth *pmapi.Auth, err error) {
 	u.crashBandicoot(username)
 
@@ -214,7 +205,6 @@ func (u *Users) Login(username, password string) (authClient pmapi.Client, auth 
 }
 
 // FinishLogin finishes the login procedure and adds the user into the credentials store.
-// See `Login` for more details of the login flow.
 func (u *Users) FinishLogin(authClient pmapi.Client, auth *pmapi.Auth, mbPassword string) (user *User, err error) { //nolint[funlen]
 	defer func() {
 		if err == pmapi.ErrUpgradeApplication {
@@ -230,20 +220,22 @@ func (u *Users) FinishLogin(authClient pmapi.Client, auth *pmapi.Auth, mbPasswor
 		authClient.Logout()
 	}()
 
-	apiUser, hashedPassword, err := getAPIUser(authClient, auth, mbPassword)
+	apiUser, passphrase, err := getAPIUser(authClient, mbPassword)
 	if err != nil {
 		log.WithError(err).Error("Failed to get API user")
 		return
 	}
 
+	log.Info("Got API user")
+
 	var ok bool
 	if user, ok = u.hasUser(apiUser.ID); ok {
-		if err = u.connectExistingUser(user, auth, hashedPassword); err != nil {
+		if err = u.connectExistingUser(user, auth, passphrase); err != nil {
 			log.WithError(err).Error("Failed to connect existing user")
 			return
 		}
 	} else {
-		if err = u.addNewUser(apiUser, auth, hashedPassword); err != nil {
+		if err = u.addNewUser(apiUser, auth, passphrase); err != nil {
 			log.WithError(err).Error("Failed to add new user")
 			return
 		}
@@ -255,13 +247,15 @@ func (u *Users) FinishLogin(authClient pmapi.Client, auth *pmapi.Auth, mbPasswor
 }
 
 // connectExistingUser connects an existing user.
-func (u *Users) connectExistingUser(user *User, auth *pmapi.Auth, hashedPassword string) (err error) {
+func (u *Users) connectExistingUser(user *User, auth *pmapi.Auth, passphrase string) (err error) {
 	if user.IsConnected() {
 		return errors.New("user is already connected")
 	}
 
+	log.Info("Connecting existing user")
+
 	// Update the user's password in the cred store in case they changed it.
-	if err = u.credStorer.UpdatePassword(user.ID(), hashedPassword); err != nil {
+	if err = u.credStorer.UpdatePassword(user.ID(), passphrase); err != nil {
 		return errors.Wrap(err, "failed to update password of user in credentials store")
 	}
 
@@ -283,7 +277,7 @@ func (u *Users) connectExistingUser(user *User, auth *pmapi.Auth, hashedPassword
 }
 
 // addNewUser adds a new user.
-func (u *Users) addNewUser(apiUser *pmapi.User, auth *pmapi.Auth, hashedPassword string) (err error) {
+func (u *Users) addNewUser(apiUser *pmapi.User, auth *pmapi.Auth, passphrase string) (err error) {
 	u.lock.Lock()
 	defer u.lock.Unlock()
 
@@ -299,7 +293,7 @@ func (u *Users) addNewUser(apiUser *pmapi.User, auth *pmapi.Auth, hashedPassword
 
 	activeEmails := client.Addresses().ActiveEmails()
 
-	if _, err = u.credStorer.Add(apiUser.ID, apiUser.Name, auth.GenToken(), hashedPassword, activeEmails); err != nil {
+	if _, err = u.credStorer.Add(apiUser.ID, apiUser.Name, auth.GenToken(), passphrase, activeEmails); err != nil {
 		return errors.Wrap(err, "failed to add user to credentials store")
 	}
 
@@ -321,21 +315,27 @@ func (u *Users) addNewUser(apiUser *pmapi.User, auth *pmapi.Auth, hashedPassword
 	return err
 }
 
-func getAPIUser(client pmapi.Client, auth *pmapi.Auth, mbPassword string) (user *pmapi.User, hashedPassword string, err error) {
-	hashedPassword, err = pmapi.HashMailboxPassword(mbPassword, auth.KeySalt)
+func getAPIUser(client pmapi.Client, mbPassword string) (user *pmapi.User, passphrase string, err error) {
+	salt, err := client.AuthSalt()
+	if err != nil {
+		log.WithError(err).Error("Could not get salt")
+		return
+	}
+
+	passphrase, err = pmapi.HashMailboxPassword(mbPassword, salt)
 	if err != nil {
 		log.WithError(err).Error("Could not hash mailbox password")
 		return
 	}
 
 	// We unlock the user's PGP key here to detect if the user's mailbox password is wrong.
-	if _, err = client.Unlock(hashedPassword); err != nil {
+	if err = client.Unlock([]byte(passphrase)); err != nil {
 		log.WithError(err).Error("Wrong mailbox password")
 		return
 	}
 
 	if user, err = client.CurrentUser(); err != nil {
-		log.WithError(err).Error("Could not load API user")
+		log.WithError(err).Error("Could not load user data")
 		return
 	}
 

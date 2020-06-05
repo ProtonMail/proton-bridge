@@ -71,7 +71,7 @@ Feature: IMAP auth
   @ignore-live
   Scenario: Authenticates with disabled primary address
     Given there is connected user "userDisabledPrimaryAddress"
-    When IMAP client authenticates "userDisabledPrimaryAddress" with address "primary"
+    When IMAP client authenticates "userDisabledPrimaryAddress" with address "disabled"
     Then IMAP response is "OK"
 
   Scenario: Authenticates two users

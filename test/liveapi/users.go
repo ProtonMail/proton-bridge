@@ -34,20 +34,24 @@ func (ctl *Controller) AddUser(user *pmapi.User, addresses *pmapi.AddressList, p
 	if err != nil {
 		return errors.Wrap(err, "failed to get auth info")
 	}
-	auth, err := client.Auth(user.Name, password, authInfo)
+
+	_, err = client.Auth(user.Name, password, authInfo)
 	if err != nil {
 		return errors.Wrap(err, "failed to auth user")
 	}
 
-	mailboxPassword, err := pmapi.HashMailboxPassword(password, auth.KeySalt)
+	salt, err := client.AuthSalt()
+	if err != nil {
+		return errors.Wrap(err, "failed to get salt")
+	}
+
+	mailboxPassword, err := pmapi.HashMailboxPassword(password, salt)
 	if err != nil {
 		return errors.Wrap(err, "failed to hash mailbox password")
 	}
-	if _, err := client.Unlock(mailboxPassword); err != nil {
+
+	if err := client.Unlock([]byte(mailboxPassword)); err != nil {
 		return errors.Wrap(err, "failed to unlock user")
-	}
-	if err := client.UnlockAddresses([]byte(mailboxPassword)); err != nil {
-		return errors.Wrap(err, "failed to unlock addresses")
 	}
 
 	if err := cleanup(client, addresses); err != nil {

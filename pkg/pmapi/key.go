@@ -21,9 +21,8 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"strings"
 
-	pmcrypto "github.com/ProtonMail/gopenpgp/crypto"
+	"github.com/ProtonMail/gopenpgp/v2/crypto"
 )
 
 // Flags
@@ -46,12 +45,13 @@ type PublicKey struct {
 }
 
 // PublicKeys returns the public keys of the given email addresses.
-func (c *client) PublicKeys(emails []string) (keys map[string]*pmcrypto.KeyRing, err error) {
+func (c *client) PublicKeys(emails []string) (keys map[string]*crypto.Key, err error) {
 	if len(emails) == 0 {
 		err = fmt.Errorf("pmapi: cannot get public keys: no email address provided")
 		return
 	}
-	keys = map[string]*pmcrypto.KeyRing{}
+
+	keys = make(map[string]*crypto.Key)
 
 	for _, email := range emails {
 		email = url.QueryEscape(email)
@@ -66,13 +66,15 @@ func (c *client) PublicKeys(emails []string) (keys map[string]*pmcrypto.KeyRing,
 			return
 		}
 
-		for _, key := range res.Keys {
-			if key.Flags&UseToEncryptFlag == UseToEncryptFlag {
-				var kr *pmcrypto.KeyRing
-				if kr, err = pmcrypto.ReadArmoredKeyRing(strings.NewReader(key.PublicKey)); err != nil {
+		for _, rawKey := range res.Keys {
+			if rawKey.Flags&UseToEncryptFlag == UseToEncryptFlag {
+				var key *crypto.Key
+
+				if key, err = crypto.NewKeyFromArmored(rawKey.PublicKey); err != nil {
 					return
 				}
-				keys[email] = kr
+
+				keys[email] = key
 			}
 		}
 	}

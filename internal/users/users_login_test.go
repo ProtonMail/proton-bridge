@@ -39,7 +39,8 @@ func TestUsersFinishLoginBadMailboxPassword(t *testing.T) {
 		m.credentialsStore.EXPECT().List().Return([]string{}, nil),
 
 		// Set up mocks for FinishLogin.
-		m.pmapiClient.EXPECT().Unlock(testCredentials.MailboxPassword).Return(nil, err),
+		m.pmapiClient.EXPECT().AuthSalt().Return("", nil),
+		m.pmapiClient.EXPECT().Unlock([]byte(testCredentials.MailboxPassword)).Return(err),
 		m.pmapiClient.EXPECT().DeleteAuth(),
 		m.pmapiClient.EXPECT().Logout(),
 	)
@@ -57,7 +58,8 @@ func TestUsersFinishLoginUpgradeApplication(t *testing.T) {
 		m.credentialsStore.EXPECT().List().Return([]string{}, nil),
 
 		// Set up mocks for FinishLogin.
-		m.pmapiClient.EXPECT().Unlock(testCredentials.MailboxPassword).Return(nil, pmapi.ErrUpgradeApplication),
+		m.pmapiClient.EXPECT().AuthSalt().Return("", nil),
+		m.pmapiClient.EXPECT().Unlock([]byte(testCredentials.MailboxPassword)).Return(pmapi.ErrUpgradeApplication),
 
 		m.eventListener.EXPECT().Emit(events.UpgradeApplicationEvent, ""),
 		m.pmapiClient.EXPECT().DeleteAuth().Return(err),
@@ -70,7 +72,6 @@ func TestUsersFinishLoginUpgradeApplication(t *testing.T) {
 func refreshWithToken(token string) *pmapi.Auth {
 	return &pmapi.Auth{
 		RefreshToken: token,
-		KeySalt:      "", // No salting in tests.
 	}
 }
 
@@ -93,7 +94,8 @@ func TestUsersFinishLoginNewUser(t *testing.T) {
 		m.credentialsStore.EXPECT().List().Return([]string{}, nil),
 
 		// getAPIUser() loads user info from API (e.g. userID).
-		m.pmapiClient.EXPECT().Unlock(testCredentials.MailboxPassword).Return(nil, nil),
+		m.pmapiClient.EXPECT().AuthSalt().Return("", nil),
+		m.pmapiClient.EXPECT().Unlock([]byte(testCredentials.MailboxPassword)).Return(nil),
 		m.pmapiClient.EXPECT().CurrentUser().Return(testPMAPIUser, nil),
 
 		// addNewUser()
@@ -106,8 +108,7 @@ func TestUsersFinishLoginNewUser(t *testing.T) {
 		// user.init() in addNewUser
 		m.credentialsStore.EXPECT().Get("user").Return(credentialsWithToken(":afterLogin"), nil),
 		m.pmapiClient.EXPECT().AuthRefresh(":afterLogin").Return(refreshWithToken("afterCredentials"), nil),
-		m.pmapiClient.EXPECT().Unlock(testCredentials.MailboxPassword).Return(nil, nil),
-		m.pmapiClient.EXPECT().UnlockAddresses([]byte(testCredentials.MailboxPassword)).Return(nil),
+		m.pmapiClient.EXPECT().Unlock([]byte(testCredentials.MailboxPassword)).Return(nil),
 
 		// store.New() in user.init
 		m.pmapiClient.EXPECT().ListLabels().Return([]*pmapi.Label{}, nil),
@@ -158,7 +159,8 @@ func TestUsersFinishLoginExistingDisconnectedUser(t *testing.T) {
 		m.pmapiClient.EXPECT().Addresses().Return(nil),
 
 		// getAPIUser() loads user info from API (e.g. userID).
-		m.pmapiClient.EXPECT().Unlock(testCredentials.MailboxPassword).Return(nil, nil),
+		m.pmapiClient.EXPECT().AuthSalt().Return("", nil),
+		m.pmapiClient.EXPECT().Unlock([]byte(testCredentials.MailboxPassword)).Return(nil),
 		m.pmapiClient.EXPECT().CurrentUser().Return(testPMAPIUser, nil),
 
 		// connectExistingUser()
@@ -169,8 +171,7 @@ func TestUsersFinishLoginExistingDisconnectedUser(t *testing.T) {
 		// user.init() in connectExistingUser
 		m.credentialsStore.EXPECT().Get("user").Return(credentialsWithToken(":afterLogin"), nil),
 		m.pmapiClient.EXPECT().AuthRefresh(":afterLogin").Return(refreshWithToken("afterCredentials"), nil),
-		m.pmapiClient.EXPECT().Unlock(testCredentials.MailboxPassword).Return(nil, nil),
-		m.pmapiClient.EXPECT().UnlockAddresses([]byte(testCredentials.MailboxPassword)).Return(nil),
+		m.pmapiClient.EXPECT().Unlock([]byte(testCredentials.MailboxPassword)).Return(nil),
 
 		// store.New() in user.init
 		m.pmapiClient.EXPECT().ListLabels().Return([]*pmapi.Label{}, nil),
@@ -206,7 +207,8 @@ func TestUsersFinishLoginConnectedUser(t *testing.T) {
 
 	// Then, try to log in again...
 	gomock.InOrder(
-		m.pmapiClient.EXPECT().Unlock(testCredentials.MailboxPassword).Return(nil, nil),
+		m.pmapiClient.EXPECT().AuthSalt().Return("", nil),
+		m.pmapiClient.EXPECT().Unlock([]byte(testCredentials.MailboxPassword)).Return(nil),
 		m.pmapiClient.EXPECT().CurrentUser().Return(testPMAPIUser, nil),
 		m.pmapiClient.EXPECT().DeleteAuth(),
 		m.pmapiClient.EXPECT().Logout(),

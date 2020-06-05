@@ -49,11 +49,9 @@ func TestMain(m *testing.M) {
 var (
 	testAuth = &pmapi.Auth{ //nolint[gochecknoglobals]
 		RefreshToken: "tok",
-		KeySalt:      "", // No salting in tests.
 	}
 	testAuthRefresh = &pmapi.Auth{ //nolint[gochecknoglobals]
 		RefreshToken: "reftok",
-		KeySalt:      "", // No salting in tests.
 	}
 
 	testCredentials = &credentials.Credentials{ //nolint[gochecknoglobals]
@@ -209,8 +207,7 @@ func testNewUsersWithUsers(t *testing.T, m mocks) *Users {
 		m.credentialsStore.EXPECT().Get("user").Return(testCredentials, nil),
 		m.credentialsStore.EXPECT().Get("user").Return(testCredentials, nil),
 		m.pmapiClient.EXPECT().AuthRefresh("token").Return(testAuthRefresh, nil),
-		m.pmapiClient.EXPECT().Unlock("pass").Return(nil, nil),
-		m.pmapiClient.EXPECT().UnlockAddresses([]byte("pass")).Return(nil),
+		m.pmapiClient.EXPECT().Unlock([]byte("pass")).Return(nil),
 		m.pmapiClient.EXPECT().ListLabels().Return([]*pmapi.Label{}, nil),
 		m.pmapiClient.EXPECT().CountMessages("").Return([]*pmapi.MessagesCount{}, nil),
 		m.pmapiClient.EXPECT().Addresses().Return([]*pmapi.Address{testPMAPIAddress}),
@@ -219,8 +216,7 @@ func testNewUsersWithUsers(t *testing.T, m mocks) *Users {
 		m.credentialsStore.EXPECT().Get("users").Return(testCredentialsSplit, nil),
 		m.credentialsStore.EXPECT().Get("users").Return(testCredentialsSplit, nil),
 		m.pmapiClient.EXPECT().AuthRefresh("token").Return(testAuthRefresh, nil),
-		m.pmapiClient.EXPECT().Unlock("pass").Return(nil, nil),
-		m.pmapiClient.EXPECT().UnlockAddresses([]byte("pass")).Return(nil),
+		m.pmapiClient.EXPECT().Unlock([]byte("pass")).Return(nil),
 		m.pmapiClient.EXPECT().ListLabels().Return([]*pmapi.Label{}, nil),
 		m.pmapiClient.EXPECT().CountMessages("").Return([]*pmapi.MessagesCount{}, nil),
 		m.pmapiClient.EXPECT().Addresses().Return(testPMAPIAddresses),

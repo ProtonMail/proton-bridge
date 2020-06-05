@@ -20,7 +20,7 @@ package smtp
 import (
 	"errors"
 
-	pmcrypto "github.com/ProtonMail/gopenpgp/crypto"
+	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/ProtonMail/proton-bridge/internal/events"
 	"github.com/ProtonMail/proton-bridge/pkg/algo"
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
@@ -37,7 +37,7 @@ type SendingInfo struct {
 	Sign      bool
 	Scheme    int
 	MIMEType  string
-	PublicKey *pmcrypto.KeyRing
+	PublicKey *crypto.KeyRing
 }
 
 func generateSendingInfo(
@@ -46,10 +46,10 @@ func generateSendingInfo(
 	isInternal bool,
 	composeMode string,
 	apiKeys,
-	contactKeys []*pmcrypto.KeyRing,
+	contactKeys []*crypto.KeyRing,
 	settingsSign bool,
 	settingsPgpScheme int) (sendingInfo SendingInfo, err error) {
-	contactKeys, err = pmcrypto.FilterExpiredKeys(contactKeys)
+	contactKeys, err = crypto.FilterExpiredKeys(contactKeys)
 	if err != nil {
 		return
 	}
@@ -72,7 +72,7 @@ func generateInternalSendingInfo(
 	contactMeta *ContactMetadata,
 	composeMode string,
 	apiKeys,
-	contactKeys []*pmcrypto.KeyRing,
+	contactKeys []*crypto.KeyRing,
 	settingsSign bool, //nolint[unparam]
 	settingsPgpScheme int) (sendingInfo SendingInfo, err error) { //nolint[unparam]
 	// If sending internally, there should always be a public key; if not, there's an error.
@@ -125,7 +125,7 @@ func generateExternalSendingInfo(
 	contactMeta *ContactMetadata,
 	composeMode string,
 	apiKeys,
-	contactKeys []*pmcrypto.KeyRing,
+	contactKeys []*crypto.KeyRing,
 	settingsSign bool,
 	settingsPgpScheme int) (sendingInfo SendingInfo, err error) {
 	// The default settings, unless overridden by presence of a saved contact.
@@ -230,14 +230,27 @@ func schemeAndMIME(contact *ContactMetadata, settingsScheme int, settingsMIMETyp
 
 // checkContactKeysAgainstAPI keeps only those contact keys which are up to date and have
 // an ID that matches an API key's ID.
-func checkContactKeysAgainstAPI(contactKeys, apiKeys []*pmcrypto.KeyRing) (filteredKeys []*pmcrypto.KeyRing, err error) { //nolint[unparam]
+func checkContactKeysAgainstAPI(contactKeys, apiKeys []*crypto.KeyRing) (filteredKeys []*crypto.KeyRing, err error) { //nolint[unparam]
 	keyIDsAreEqual := func(a, b interface{}) bool {
-		aKey, bKey := a.(*pmcrypto.KeyRing), b.(*pmcrypto.KeyRing)
-		return aKey.GetEntities()[0].PrimaryKey.KeyId == bKey.GetEntities()[0].PrimaryKey.KeyId
+		aKey, bKey := a.(*crypto.KeyRing), b.(*crypto.KeyRing)
+
+		aFirst, getKeyErr := aKey.GetKey(0)
+		if getKeyErr != nil {
+			err = errors.New("missing primary key")
+			return false
+		}
+
+		bFirst, getKeyErr := bKey.GetKey(0)
+		if getKeyErr != nil {
+			err = errors.New("missing primary key")
+			return false
+		}
+
+		return aFirst.GetKeyID() == bFirst.GetKeyID()
 	}
 
 	for _, v := range algo.SetIntersection(contactKeys, apiKeys, keyIDsAreEqual) {
-		filteredKeys = append(filteredKeys, v.(*pmcrypto.KeyRing))
+		filteredKeys = append(filteredKeys, v.(*crypto.KeyRing))
 	}
 
 	return

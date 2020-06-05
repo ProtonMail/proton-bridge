@@ -29,9 +29,8 @@ import (
 )
 
 const (
-	testUserKey       = "user_key.json"
-	testAddressKey    = "address_key.json"
-	testKeyPassphrase = "testpassphrase"
+	testUserKey    = "user_key.json"
+	testAddressKey = "address_key.json"
 )
 
 type TestAccount struct {
@@ -78,14 +77,9 @@ func newTestAccount(
 }
 
 func (a *TestAccount) initKeys() {
-	if a.user.Keys.Keys != nil {
-		return
-	}
 	userKeys := loadPMKeys(readTestFile(testUserKey))
-	_ = userKeys.KeyRing.Unlock([]byte(testKeyPassphrase))
 
 	addressKeys := loadPMKeys(readTestFile(testAddressKey))
-	_ = addressKeys.KeyRing.Unlock([]byte(testKeyPassphrase))
 
 	a.user.Keys = *userKeys
 	for _, addressEmail := range a.Addresses().ActiveEmails() {

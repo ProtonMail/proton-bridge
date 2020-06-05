@@ -21,7 +21,7 @@ import (
 	"io"
 	"net/mail"
 
-	pmcrypto "github.com/ProtonMail/gopenpgp/crypto"
+	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/ProtonMail/proton-bridge/internal/imap/uidplus"
 	"github.com/ProtonMail/proton-bridge/internal/store"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
@@ -35,7 +35,7 @@ type storeUserProvider interface {
 	GetAddress(addressID string) (storeAddressProvider, error)
 
 	CreateDraft(
-		kr *pmcrypto.KeyRing,
+		kr *crypto.KeyRing,
 		message *pmapi.Message,
 		attachmentReaders []io.Reader,
 		attachedPublicKey,

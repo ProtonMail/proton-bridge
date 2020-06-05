@@ -114,33 +114,7 @@ func TestNewUserUnlockFails(t *testing.T) {
 		m.credentialsStore.EXPECT().Get("user").Return(testCredentials, nil),
 		m.pmapiClient.EXPECT().AuthRefresh("token").Return(testAuthRefresh, nil),
 
-		m.pmapiClient.EXPECT().Unlock("pass").Return(nil, errors.New("bad password")),
-		m.credentialsStore.EXPECT().Logout("user").Return(nil),
-		m.pmapiClient.EXPECT().Logout(),
-		m.credentialsStore.EXPECT().Logout("user").Return(nil),
-		m.credentialsStore.EXPECT().Get("user").Return(testCredentialsDisconnected, nil),
-	)
-
-	checkNewUserHasCredentials(testCredentialsDisconnected, m)
-}
-
-func TestNewUserUnlockAddressesFails(t *testing.T) {
-	m := initMocks(t)
-	defer m.ctrl.Finish()
-
-	m.clientManager.EXPECT().GetClient("user").Return(m.pmapiClient).MinTimes(1)
-
-	m.eventListener.EXPECT().Emit(events.LogoutEvent, "user")
-	m.eventListener.EXPECT().Emit(events.UserRefreshEvent, "user")
-	m.eventListener.EXPECT().Emit(events.CloseConnectionEvent, "user@pm.me")
-
-	gomock.InOrder(
-		m.credentialsStore.EXPECT().Get("user").Return(testCredentials, nil),
-		m.credentialsStore.EXPECT().Get("user").Return(testCredentials, nil),
-		m.pmapiClient.EXPECT().AuthRefresh("token").Return(testAuthRefresh, nil),
-
-		m.pmapiClient.EXPECT().Unlock("pass").Return(nil, nil),
-		m.pmapiClient.EXPECT().UnlockAddresses([]byte("pass")).Return(errors.New("bad password")),
+		m.pmapiClient.EXPECT().Unlock([]byte("pass")).Return(errors.New("bad password")),
 		m.credentialsStore.EXPECT().Logout("user").Return(nil),
 		m.pmapiClient.EXPECT().Logout(),
 		m.credentialsStore.EXPECT().Logout("user").Return(nil),

@@ -19,11 +19,9 @@ package pmapi
 
 import (
 	"encoding/json"
-	"strings"
-	"sync"
 	"testing"
 
-	pmcrypto "github.com/ProtonMail/gopenpgp/crypto"
+	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -38,11 +36,16 @@ func TestPMKeys_GetKeyRingAndUnlock(t *testing.T) {
 	addrKeysPrimaryHasToken := loadPMKeys(readTestFile("keyring_addressKeysPrimaryHasToken_JSON", false))
 	addrKeysSecondaryHasToken := loadPMKeys(readTestFile("keyring_addressKeysSecondaryHasToken_JSON", false))
 
-	userKey, err := pmcrypto.ReadArmoredKeyRing(strings.NewReader(readTestFile("keyring_userKey", false)))
+	key, err := crypto.NewKeyFromArmored(readTestFile("keyring_userKey", false))
+	if err != nil {
+		panic(err)
+	}
+
+	userKey, err := crypto.NewKeyRing(key)
 	assert.NoError(t, err, "Expected not to receive an error unlocking user key")
 
 	type args struct {
-		userKeyring *pmcrypto.KeyRing
+		userKeyring *crypto.KeyRing
 		passphrase  []byte
 	}
 	tests := []struct {
@@ -73,21 +76,26 @@ func TestPMKeys_GetKeyRingAndUnlock(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tempLocker := &sync.Mutex{}
-
-			err := tt.keys.unlockKeyRing(tt.args.userKeyring, tt.args.passphrase, tempLocker) // nolint[scopelint]
+			kr, err := tt.keys.UnlockAll(tt.args.passphrase, tt.args.userKeyring) // nolint[scopelint]
 			if !assert.NoError(t, err) {
 				return
 			}
 
 			// assert at least one key has been decrypted
 			atLeastOneDecrypted := false
-			for _, e := range tt.keys.KeyRing.GetEntities() { // nolint[scopelint]
-				if !e.PrivateKey.Encrypted {
+
+			for _, k := range kr.GetKeys() { // nolint[scopelint]
+				ok, err := k.IsUnlocked()
+				if err != nil {
+					panic(err)
+				}
+
+				if ok {
 					atLeastOneDecrypted = true
 					break
 				}
 			}
+
 			assert.True(t, atLeastOneDecrypted)
 		})
 	}

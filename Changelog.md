@@ -15,6 +15,9 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-308 Better user error message when request is canceled.
 * GODT-312 Validate recipient emails in send before asking for their public keys.
 * GODT-368 Bump docker-credential-helpers version.
+* GODT-280 Migrate to gopenpgp v2
+    * `Unlock()` call on pmapi-client unlocks both User keys and Address keys
+    * Salt is available via `AuthSalt()` method
 
 ### Fixed
 * GODT-356 Fix crash when removing account while mail client is fetching messages (regression from GODT-204).

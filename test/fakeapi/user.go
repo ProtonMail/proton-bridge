@@ -18,7 +18,7 @@
 package fakeapi
 
 import (
-	pmcrypto "github.com/ProtonMail/gopenpgp/crypto"
+	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 )
 
@@ -29,13 +29,37 @@ func (api *FakePMAPI) GetMailSettings() (pmapi.MailSettings, error) {
 	return pmapi.MailSettings{}, nil
 }
 
-func (api *FakePMAPI) Unlock(mailboxPassword string) (*pmcrypto.KeyRing, error) {
-	return &pmcrypto.KeyRing{
-		FirstKeyID: "key",
-	}, nil
+func (api *FakePMAPI) IsUnlocked() bool {
+	return api.userKeyRing != nil
 }
 
-func (api *FakePMAPI) UnlockAddresses(password []byte) error {
+func (api *FakePMAPI) Unlock(passphrase []byte) (err error) {
+	if api.userKeyRing != nil {
+		return
+	}
+
+	if api.userKeyRing, err = api.user.Keys.UnlockAll(passphrase, nil); err != nil {
+		return
+	}
+
+	for _, a := range *api.addresses {
+		if a.HasKeys == pmapi.MissingKeys {
+			continue
+		}
+
+		if api.addrKeyRing[a.ID] != nil {
+			continue
+		}
+
+		var kr *crypto.KeyRing
+
+		if kr, err = a.Keys.UnlockAll(passphrase, api.userKeyRing); err != nil {
+			return
+		}
+
+		api.addrKeyRing[a.ID] = kr
+	}
+
 	return nil
 }
 
@@ -47,6 +71,7 @@ func (api *FakePMAPI) UpdateUser() (*pmapi.User, error) {
 	if err := api.checkAndRecordCall(GET, "/users", nil); err != nil {
 		return nil, err
 	}
+
 	return api.user, nil
 }
 
@@ -84,8 +109,6 @@ func (api *FakePMAPI) Addresses() pmapi.AddressList {
 	return *api.addresses
 }
 
-func (api *FakePMAPI) KeyRingForAddressID(addrID string) (*pmcrypto.KeyRing, error) {
-	return &pmcrypto.KeyRing{
-		FirstKeyID: "key",
-	}, nil
+func (api *FakePMAPI) KeyRingForAddressID(addrID string) (*crypto.KeyRing, error) {
+	return api.addrKeyRing[addrID], nil
 }

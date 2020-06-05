@@ -35,12 +35,11 @@ func TestUpdateUser(t *testing.T) {
 	defer cleanUpUserData(user)
 
 	gomock.InOrder(
-		m.pmapiClient.EXPECT().Unlock("pass").Return(nil, nil),
-		m.pmapiClient.EXPECT().UnlockAddresses([]byte("pass")).Return(nil),
+		m.pmapiClient.EXPECT().IsUnlocked().Return(false),
+		m.pmapiClient.EXPECT().Unlock([]byte("pass")).Return(nil),
 
 		m.pmapiClient.EXPECT().UpdateUser().Return(nil, nil),
-		m.pmapiClient.EXPECT().Unlock("pass").Return(nil, nil),
-		m.pmapiClient.EXPECT().UnlockAddresses([]byte(testCredentials.MailboxPassword)).Return(nil),
+		m.pmapiClient.EXPECT().Unlock([]byte(testCredentials.MailboxPassword)).Return(nil),
 		m.pmapiClient.EXPECT().Addresses().Return([]*pmapi.Address{testPMAPIAddress}),
 
 		m.credentialsStore.EXPECT().UpdateEmails("user", []string{testPMAPIAddress.Email}),
@@ -155,14 +154,36 @@ func TestCheckBridgeLoginOK(t *testing.T) {
 	defer cleanUpUserData(user)
 
 	gomock.InOrder(
-		m.pmapiClient.EXPECT().Unlock("pass").Return(nil, nil),
-		m.pmapiClient.EXPECT().UnlockAddresses([]byte("pass")).Return(nil),
+		m.pmapiClient.EXPECT().IsUnlocked().Return(false),
+		m.pmapiClient.EXPECT().Unlock([]byte("pass")).Return(nil),
 	)
 
 	err := user.CheckBridgeLogin(testCredentials.BridgePassword)
 
 	waitForEvents()
 
+	assert.NoError(t, err)
+}
+
+func TestCheckBridgeLoginTwiceOK(t *testing.T) {
+	m := initMocks(t)
+	defer m.ctrl.Finish()
+
+	user := testNewUser(m)
+	defer cleanUpUserData(user)
+
+	gomock.InOrder(
+		m.pmapiClient.EXPECT().IsUnlocked().Return(false),
+		m.pmapiClient.EXPECT().Unlock([]byte("pass")).Return(nil),
+		m.pmapiClient.EXPECT().IsUnlocked().Return(true),
+	)
+
+	err := user.CheckBridgeLogin(testCredentials.BridgePassword)
+	waitForEvents()
+	assert.NoError(t, err)
+
+	err = user.CheckBridgeLogin(testCredentials.BridgePassword)
+	waitForEvents()
 	assert.NoError(t, err)
 }
 
@@ -220,8 +241,8 @@ func TestCheckBridgeLoginBadPassword(t *testing.T) {
 	defer cleanUpUserData(user)
 
 	gomock.InOrder(
-		m.pmapiClient.EXPECT().Unlock("pass").Return(nil, nil),
-		m.pmapiClient.EXPECT().UnlockAddresses([]byte("pass")).Return(nil),
+		m.pmapiClient.EXPECT().IsUnlocked().Return(false),
+		m.pmapiClient.EXPECT().Unlock([]byte("pass")).Return(nil),
 	)
 
 	err := user.CheckBridgeLogin("wrong!")

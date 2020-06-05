@@ -20,10 +20,9 @@ package pmapi
 import (
 	"fmt"
 	"net/http"
-	"strings"
 	"testing"
 
-	pmcrypto "github.com/ProtonMail/gopenpgp/crypto"
+	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -142,10 +141,15 @@ func TestMessage_Decrypt(t *testing.T) {
 
 func TestMessage_Decrypt_Legacy(t *testing.T) {
 	testPrivateKeyLegacy := readTestFile("testPrivateKeyLegacy", false)
-	testPrivateKeyRingLegacy, err := pmcrypto.ReadArmoredKeyRing(strings.NewReader(testPrivateKeyLegacy))
+
+	key, err := crypto.NewKeyFromArmored(testPrivateKeyLegacy)
 	Ok(t, err)
 
-	Ok(t, testPrivateKeyRingLegacy.Unlock([]byte(testMailboxPasswordLegacy)))
+	unlockedKey, err := key.Unlock([]byte(testMailboxPasswordLegacy))
+	Ok(t, err)
+
+	testPrivateKeyRingLegacy, err := crypto.NewKeyRing(unlockedKey)
+	Ok(t, err)
 
 	msg := &Message{Body: testMessageEncryptedLegacy}
 
@@ -163,7 +167,10 @@ func TestMessage_Decrypt_signed(t *testing.T) {
 }
 
 func TestMessage_Encrypt(t *testing.T) {
-	signer, err := pmcrypto.ReadArmoredKeyRing(strings.NewReader(testMessageSigner))
+	key, err := crypto.NewKeyFromArmored(testMessageSigner)
+	Ok(t, err)
+
+	signer, err := crypto.NewKeyRing(key)
 	Ok(t, err)
 
 	msg := &Message{Body: testMessageCleartext}
@@ -173,7 +180,7 @@ func TestMessage_Encrypt(t *testing.T) {
 	Ok(t, err)
 
 	Equals(t, testMessageCleartext, msg.Body)
-	Equals(t, testIdentity, signer.Identities()[0])
+	Equals(t, testIdentity, signer.GetIdentities()[0])
 }
 
 func routeLabelMessages(tb testing.TB, w http.ResponseWriter, r *http.Request) string {

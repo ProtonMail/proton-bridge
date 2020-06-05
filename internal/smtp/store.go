@@ -20,13 +20,13 @@ package smtp
 import (
 	"io"
 
-	pmcrypto "github.com/ProtonMail/gopenpgp/crypto"
+	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 )
 
 type storeUserProvider interface {
 	CreateDraft(
-		kr *pmcrypto.KeyRing,
+		kr *crypto.KeyRing,
 		message *pmapi.Message,
 		attachmentReaders []io.Reader,
 		attachedPublicKey,

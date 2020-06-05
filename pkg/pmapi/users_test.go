@@ -23,7 +23,7 @@ import (
 	"net/url"
 	"testing"
 
-	pmcrypto "github.com/ProtonMail/gopenpgp/crypto"
+	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	r "github.com/stretchr/testify/require"
@@ -72,9 +72,9 @@ func TestClient_CurrentUser(t *testing.T) {
 	r.Nil(t, err)
 
 	// Ignore KeyRings during the check because they have unexported fields and cannot be compared
-	r.True(t, cmp.Equal(user, testCurrentUser, cmpopts.IgnoreTypes(&pmcrypto.KeyRing{})))
+	r.True(t, cmp.Equal(user, testCurrentUser, cmpopts.IgnoreTypes(&crypto.Key{})))
 
-	r.Nil(t, c.UnlockAddresses([]byte(testMailboxPassword)))
+	r.Nil(t, c.Unlock([]byte(testMailboxPassword)))
 }
 
 func TestClient_PublicKeys(t *testing.T) {

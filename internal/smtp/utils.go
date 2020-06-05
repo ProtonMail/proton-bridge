@@ -21,7 +21,7 @@ import (
 	"encoding/base64"
 	"regexp"
 
-	pmcrypto "github.com/ProtonMail/gopenpgp/crypto"
+	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 )
 
@@ -37,9 +37,9 @@ func looksLikeEmail(e string) bool {
 }
 
 func createPackets(
-	pubkey *pmcrypto.KeyRing,
-	bodyKey *pmcrypto.SymmetricKey,
-	attkeys map[string]*pmcrypto.SymmetricKey,
+	pubkey *crypto.KeyRing,
+	bodyKey *crypto.SessionKey,
+	attkeys map[string]*crypto.SessionKey,
 ) (bodyPacket string, attachmentPackets map[string]string, err error) {
 	// Encrypt message body keys.
 	packetBytes, err := pubkey.EncryptSessionKey(bodyKey)
@@ -61,24 +61,33 @@ func createPackets(
 }
 
 func encryptSymmetric(
-	kr *pmcrypto.KeyRing,
+	kr *crypto.KeyRing,
 	textToEncrypt string,
 	canonicalizeText bool, // nolint[unparam]
-) (key *pmcrypto.SymmetricKey, symEncryptedData []byte, err error) {
+) (key *crypto.SessionKey, symEncryptedData []byte, err error) {
 	// We use only primary key to encrypt the message. Our keyring contains all keys (primary, old and deacivated ones).
-	pgpMessage, err := kr.FirstKey().Encrypt(pmcrypto.NewPlainMessageFromString(textToEncrypt), kr)
+	firstKey, err := kr.FirstKey()
 	if err != nil {
 		return
 	}
+
+	pgpMessage, err := firstKey.Encrypt(crypto.NewPlainMessageFromString(textToEncrypt), kr)
+	if err != nil {
+		return
+	}
+
 	pgpSplitMessage, err := pgpMessage.SeparateKeyAndData(len(textToEncrypt), 0)
 	if err != nil {
 		return
 	}
+
 	key, err = kr.DecryptSessionKey(pgpSplitMessage.GetBinaryKeyPacket())
 	if err != nil {
 		return
 	}
+
 	symEncryptedData = pgpSplitMessage.GetBinaryDataPacket()
+
 	return
 }
 
@@ -87,7 +96,7 @@ func buildPackage(
 	sharedScheme int,
 	mimeType string,
 	bodyData []byte,
-	bodyKey *pmcrypto.SymmetricKey,
+	bodyKey *crypto.SessionKey,
 	attKeys map[string]pmapi.AlgoKey,
 ) (pkg *pmapi.MessagePackage) {
 	if len(addressMap) == 0 {

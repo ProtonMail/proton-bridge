@@ -27,7 +27,8 @@
                 "ID": "userAddress",
                 "Email": "user@pm.me",
                 "Order": 1,
-                "Receive": 1
+                "Receive": 1,
+                "HasKeys": 1
             }
         },
         "user2fa": {
@@ -35,7 +36,8 @@
                 "ID": "user2faAddress",
                 "Email": "user@pm.me",
                 "Order": 1,
-                "Receive": 1
+                "Receive": 1,
+                "HasKeys": 1
             }
         },
         "userAddressWithCapitalLetter": {
@@ -43,7 +45,8 @@
                 "ID": "userAddressWithCapitalLetterAddress",
                 "Email": "uSeR@pm.me",
                 "Order": 1,
-                "Receive": 1
+                "Receive": 1,
+                "HasKeys": 1
             }
         },
         "userMoreAddresses": {
@@ -51,13 +54,15 @@
                 "ID": "primary",
                 "Email": "primaryaddress@pm.me",
                 "Order": 1,
-                "Receive": 1
+                "Receive": 1,
+                "HasKeys": 1
             },
             "secondary": {
                 "ID": "secondary",
                 "Email": "secondaryaddress@pm.me",
                 "Order": 2,
-                "Receive": 1
+                "Receive": 1,
+                "HasKeys": 1
             },
             "disabled": {
                 "ID": "disabled",
@@ -75,9 +80,10 @@
             },
             "secondary": {
                 "ID": "secondary",
-                "Email": "user@pm.me",
+                "Email": "secondaryaddress@pm.me",
                 "Order": 2,
-                "Receive": 1
+                "Receive": 1,
+                "HasKeys": 1
             }
         }
     },
@@ -89,11 +95,11 @@
         "userDisabledPrimaryAddress": "password"
     },
     "mailboxPasswords": {
-        "user": "password",
-        "user2fa": "password",
-        "userAddressWithCapitalLetter": "password",
-        "userMoreAddresses": "password",
-        "userDisabledPrimaryAddress": "password"
+        "user": "testpassphrase",
+        "user2fa": "testpassphrase",
+        "userAddressWithCapitalLetter": "testpassphrase",
+        "userMoreAddresses": "testpassphrase",
+        "userDisabledPrimaryAddress": "testpassphrase"
     },
     "twoFAs": {
         "user": false,

@@ -18,7 +18,7 @@ require (
 	github.com/ProtonMail/go-autostart v0.0.0-20181114175602-c5272053443a
 	github.com/ProtonMail/go-imap-id v0.0.0-20190926060100-f94a56b9ecde
 	github.com/ProtonMail/go-vcard v0.0.0-20180326232728-33aaa0a0c8a5
-	github.com/ProtonMail/gopenpgp v1.0.1-0.20190912180537-d398098113ed
+	github.com/ProtonMail/gopenpgp/v2 v2.0.1
 	github.com/abiosoft/ishell v2.0.0+incompatible
 	github.com/abiosoft/readline v0.0.0-20180607040430-155bce2042db // indirect
 	github.com/allan-simon/go-singleinstance v0.0.0-20160830203053-79edcfdc2dfc
@@ -70,5 +70,5 @@ replace (
 	github.com/docker/docker-credential-helpers => github.com/ProtonMail/docker-credential-helpers v1.1.0
 	github.com/emersion/go-smtp => github.com/ProtonMail/go-smtp v0.0.0-20181206232543-8261df20d309
 	github.com/jameskeane/bcrypt => github.com/ProtonMail/bcrypt v0.0.0-20170924085257-7509ea014998
-	golang.org/x/crypto => github.com/ProtonMail/crypto v0.0.0-20190604143603-d3d8a14a4d4f
+	golang.org/x/crypto => github.com/ProtonMail/crypto v0.0.0-20200416114516-1fa7f403fb9c
 )

@@ -19,10 +19,9 @@ package pmapi
 
 import (
 	"errors"
-	"fmt"
 	"strings"
 
-	pmcrypto "github.com/ProtonMail/gopenpgp/crypto"
+	"github.com/ProtonMail/gopenpgp/v2/crypto"
 )
 
 // Address statuses.
@@ -84,11 +83,6 @@ type AddressList []*Address
 type AddressesRes struct {
 	Res
 	Addresses AddressList
-}
-
-// KeyRing returns the (possibly unlocked) PMKeys KeyRing.
-func (a *Address) KeyRing() *pmcrypto.KeyRing {
-	return a.Keys.KeyRing
 }
 
 // ByID returns an address by id. Returns nil if no address is found.
@@ -202,31 +196,33 @@ func (c *client) Addresses() AddressList {
 	return c.addresses
 }
 
-// UnlockAddresses unlocks all keys for all addresses of current user.
-func (c *client) UnlockAddresses(passphrase []byte) (err error) {
+// unlockAddresses unlocks all keys for all addresses of current user.
+func (c *client) unlockAddresses(passphrase []byte) (err error) {
 	for _, a := range c.addresses {
 		if a.HasKeys == MissingKeys {
 			continue
 		}
 
-		// Unlock the address token using the UserKey, use the unlocked token to unlock the keyring.
-		if err = a.Keys.unlockKeyRing(c.kr, passphrase, c.keyLocker); err != nil {
-			err = fmt.Errorf("pmapi: cannot unlock private key of address %v: %v", a.Email, err)
+		if c.addrKeyRing[a.ID] != nil {
+			continue
+		}
+
+		var kr *crypto.KeyRing
+
+		if kr, err = a.Keys.UnlockAll(passphrase, c.userKeyRing); err != nil {
 			return
 		}
+
+		c.addrKeyRing[a.ID] = kr
 	}
 
 	return
 }
 
-func (c *client) KeyRingForAddressID(addrID string) (*pmcrypto.KeyRing, error) {
-	if addr := c.addresses.ByID(addrID); addr != nil {
-		return addr.KeyRing(), nil
+func (c *client) KeyRingForAddressID(addrID string) (*crypto.KeyRing, error) {
+	if kr, ok := c.addrKeyRing[addrID]; ok {
+		return kr, nil
 	}
 
-	if addr := c.addresses.Main(); addr != nil {
-		return addr.KeyRing(), nil
-	}
-
-	return nil, errors.New("no such address ID")
+	return nil, errors.New("no keyring available")
 }

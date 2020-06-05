@@ -32,7 +32,7 @@ import (
 	"text/template"
 	"time"
 
-	pmcrypto "github.com/ProtonMail/gopenpgp/crypto"
+	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/ProtonMail/proton-bridge/internal/imap/cache"
 	"github.com/ProtonMail/proton-bridge/internal/imap/uidplus"
 	"github.com/ProtonMail/proton-bridge/pkg/message"
@@ -82,7 +82,11 @@ func (im *imapMailbox) CreateMessage(flags []string, date time.Time, body imap.L
 		return errors.New("no available address for encryption")
 	}
 	m.AddressID = addr.ID
-	kr := addr.KeyRing()
+
+	kr, err := im.user.client().KeyRingForAddressID(addr.ID)
+	if err != nil {
+		return err
+	}
 
 	// Handle imported messages which have no "Sender" address.
 	// This sometimes occurs with outlook which reports errors as imported emails or for drafts.
@@ -184,7 +188,7 @@ func (im *imapMailbox) CreateMessage(flags []string, date time.Time, body imap.L
 	return uidplus.AppendResponse(im.storeMailbox.UIDValidity(), targetSeq)
 }
 
-func (im *imapMailbox) importMessage(m *pmapi.Message, readers []io.Reader, kr *pmcrypto.KeyRing) (err error) { // nolint[funlen]
+func (im *imapMailbox) importMessage(m *pmapi.Message, readers []io.Reader, kr *crypto.KeyRing) (err error) { // nolint[funlen]
 	b := &bytes.Buffer{}
 
 	// Overwrite content for main header for import.
@@ -240,7 +244,7 @@ func (im *imapMailbox) importMessage(m *pmapi.Message, readers []io.Reader, kr *
 		}
 
 		// Create encrypted writer.
-		pgpMessage, err := kr.Encrypt(pmcrypto.NewPlainMessage(data), nil)
+		pgpMessage, err := kr.Encrypt(crypto.NewPlainMessage(data), nil)
 		if err != nil {
 			return err
 		}
@@ -722,7 +726,7 @@ func (im *imapMailbox) buildMessage(m *pmapi.Message) (structure *message.BodySt
 	return structure, msgBody, err
 }
 
-func (im *imapMailbox) buildMessageInner(m *pmapi.Message, kr *pmcrypto.KeyRing) (structure *message.BodyStructure, msgBody []byte, err error) { // nolint[funlen]
+func (im *imapMailbox) buildMessageInner(m *pmapi.Message, kr *crypto.KeyRing) (structure *message.BodyStructure, msgBody []byte, err error) { // nolint[funlen]
 	multipartType, err := im.setMessageContentType(m)
 	if err != nil {
 		return

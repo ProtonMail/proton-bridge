@@ -26,7 +26,7 @@ import (
 	"net/textproto"
 	"strings"
 
-	pmcrypto "github.com/ProtonMail/gopenpgp/crypto"
+	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -37,7 +37,7 @@ import (
 // If `attachedPublicKey` is passed, it's added to attachments.
 // Both draft and attachments are encrypted with passed `kr` key.
 func (store *Store) CreateDraft(
-	kr *pmcrypto.KeyRing,
+	kr *crypto.KeyRing,
 	message *pmapi.Message,
 	attachmentReaders []io.Reader,
 	attachedPublicKey,
@@ -92,7 +92,7 @@ func (store *Store) getDraftAction(message *pmapi.Message) int {
 	return pmapi.DraftActionReply
 }
 
-func (store *Store) createAttachment(kr *pmcrypto.KeyRing, attachment *pmapi.Attachment, attachmentBody []byte) (*pmapi.Attachment, error) {
+func (store *Store) createAttachment(kr *crypto.KeyRing, attachment *pmapi.Attachment, attachmentBody []byte) (*pmapi.Attachment, error) {
 	r := bytes.NewReader(attachmentBody)
 	sigReader, err := attachment.DetachedSign(kr, r)
 	if err != nil {

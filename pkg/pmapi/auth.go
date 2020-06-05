@@ -25,7 +25,6 @@ import (
 	"net/http"
 	"strings"
 
-	pmcrypto "github.com/ProtonMail/gopenpgp/crypto"
 	"github.com/ProtonMail/proton-bridge/pkg/srp"
 )
 
@@ -112,7 +111,6 @@ type Auth struct {
 	Scope        string
 	uid          string // Read from AuthRes.
 	RefreshToken string
-	KeySalt      string
 	EventID      string
 	PasswordMode int
 	TwoFA        *TwoFactorInfo `json:"2FA,omitempty"`
@@ -143,10 +141,6 @@ func (s *Auth) HasTwoFactor() bool {
 
 func (s *Auth) HasMailboxPassword() bool {
 	return s.PasswordMode == 2
-}
-
-func (s *Auth) hasFullScope() bool {
-	return strings.Contains(s.Scope, "full")
 }
 
 type AuthRes struct {
@@ -327,15 +321,6 @@ func (c *client) Auth(username, password string, info *AuthInfo) (auth *Auth, er
 	auth = authRes.getAuth()
 	c.sendAuth(auth)
 
-	// Auth has to be fully unlocked to get key salt. During `Auth` it can happen
-	// only to accounts without 2FA. For 2FA accounts, it's done in `Auth2FA`.
-	if auth.hasFullScope() {
-		err = c.setKeySaltToAuth(auth)
-		if err != nil {
-			return nil, err
-		}
-	}
-
 	return auth, err
 }
 
@@ -367,53 +352,7 @@ func (c *client) Auth2FA(twoFactorCode string, auth *Auth) (*Auth2FA, error) {
 		}
 	}
 
-	if err := c.setKeySaltToAuth(auth); err != nil {
-		return nil, err
-	}
-
 	return auth2FARes.getAuth2FA(), nil
-}
-
-func (c *client) setKeySaltToAuth(auth *Auth) error {
-	// KeySalt already set up, no need to do it again.
-	if auth.KeySalt != "" {
-		return nil
-	}
-
-	user, err := c.CurrentUser()
-	if err != nil {
-		return err
-	}
-	salts, err := c.GetKeySalts()
-	if err != nil {
-		return err
-	}
-	for _, s := range salts {
-		if s.ID == user.KeyRing().FirstKeyID {
-			auth.KeySalt = s.KeySalt
-			break
-		}
-	}
-	return nil
-}
-
-// Unlock decrypts the key ring.
-// If the password is invalid, IsUnlockError(err) will return true.
-func (c *client) Unlock(password string) (kr *pmcrypto.KeyRing, err error) {
-	if _, err = c.CurrentUser(); err != nil {
-		return
-	}
-
-	c.keyLocker.Lock()
-	defer c.keyLocker.Unlock()
-
-	kr = c.user.KeyRing()
-	if err = unlockKeyRingNoErrorWhenAlreadyUnlocked(kr, []byte(password)); err != nil {
-		return
-	}
-
-	c.kr = kr
-	return kr, err
 }
 
 // AuthRefresh will refresh an expired access token.
@@ -466,6 +405,25 @@ func (c *client) AuthRefresh(uidAndRefreshToken string) (auth *Auth, err error) 
 	return auth, err
 }
 
+func (c *client) AuthSalt() (string, error) {
+	salts, err := c.GetKeySalts()
+	if err != nil {
+		return "", err
+	}
+
+	if _, err := c.CurrentUser(); err != nil {
+		return "", err
+	}
+
+	for _, s := range salts {
+		if s.ID == c.user.Keys[0].ID {
+			return s.KeySalt, nil
+		}
+	}
+
+	return "", errors.New("no matching salt found")
+}
+
 // Logout instructs the client manager to log this client out.
 func (c *client) Logout() {
 	c.cm.LogoutClient(c.userID)
@@ -499,7 +457,18 @@ func (c *client) IsConnected() bool {
 func (c *client) ClearData() {
 	c.uid = ""
 	c.accessToken = ""
-	c.kr = nil
 	c.addresses = nil
 	c.user = nil
+
+	if c.userKeyRing != nil {
+		c.userKeyRing.ClearPrivateParams()
+		c.userKeyRing = nil
+	}
+
+	for addrID, addr := range c.addrKeyRing {
+		if addr != nil {
+			addr.ClearPrivateParams()
+			delete(c.addrKeyRing, addrID)
+		}
+	}
 }

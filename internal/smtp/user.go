@@ -20,7 +20,6 @@
 package smtp
 
 import (
-	"bytes"
 	"encoding/base64"
 	"fmt"
 	"io"
@@ -32,7 +31,7 @@ import (
 	"strings"
 	"time"
 
-	pmcrypto "github.com/ProtonMail/gopenpgp/crypto"
+	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/ProtonMail/proton-bridge/internal/events"
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
 	"github.com/ProtonMail/proton-bridge/pkg/message"
@@ -93,16 +92,26 @@ func (su *smtpUser) Send(from string, to []string, messageReader io.Reader) (err
 		err = errors.New("backend: invalid email address: not owned by user")
 		return
 	}
-	kr := addr.KeyRing()
+
+	kr, err := su.client().KeyRingForAddressID(addr.ID)
+	if err != nil {
+		return
+	}
 
 	var attachedPublicKey string
 	var attachedPublicKeyName string
 	if mailSettings.AttachPublicKey > 0 {
-		attachedPublicKey, err = kr.GetArmoredPublicKey()
+		firstKey, err := kr.GetKey(0)
 		if err != nil {
 			return err
 		}
-		attachedPublicKeyName = "publickey - " + kr.Identities()[0].Name
+
+		attachedPublicKey, err = firstKey.GetArmoredPublicKey()
+		if err != nil {
+			return err
+		}
+
+		attachedPublicKeyName = "publickey - " + kr.GetIdentities()[0].Name
 	}
 
 	message, mimeBody, plainBody, attReaders, err := message.Parse(messageReader, attachedPublicKey, attachedPublicKeyName)
@@ -171,7 +180,7 @@ func (su *smtpUser) Send(from string, to []string, messageReader io.Reader) (err
 
 	atts = append(atts, message.Attachments...)
 	// Decrypt attachment keys, because we will need to re-encrypt them with the recipients' public keys.
-	attkeys := make(map[string]*pmcrypto.SymmetricKey)
+	attkeys := make(map[string]*crypto.SessionKey)
 	attkeysEncoded := make(map[string]pmapi.AlgoKey)
 
 	for _, att := range atts {
@@ -203,7 +212,7 @@ func (su *smtpUser) Send(from string, to []string, messageReader io.Reader) (err
 	// PMEL 3.
 	composeMode := message.MIMEType
 
-	var plainKey, htmlKey, mimeKey *pmcrypto.SymmetricKey
+	var plainKey, htmlKey, mimeKey *crypto.SessionKey
 	var plainData, htmlData, mimeData []byte
 
 	containsUnencryptedRecipients := false
@@ -219,7 +228,7 @@ func (su *smtpUser) Send(from string, to []string, messageReader io.Reader) (err
 			return err
 		}
 		var contactMeta *ContactMetadata
-		var contactKeys []*pmcrypto.KeyRing
+		var contactKeyRings []*crypto.KeyRing
 		for _, contactEmail := range contactEmails {
 			if contactEmail.Defaults == 1 { // WARNING: in doc it says _ignore for now, future feature_
 				continue
@@ -236,12 +245,19 @@ func (su *smtpUser) Send(from string, to []string, messageReader io.Reader) (err
 			if err != nil {
 				return err
 			}
+			contactKeyRing, err := crypto.NewKeyRing(nil)
+			if err != nil {
+				return err
+			}
 			for _, contactRawKey := range contactMeta.Keys {
-				contactKey, err := pmcrypto.ReadKeyRing(bytes.NewBufferString(contactRawKey))
+				contactKey, err := crypto.NewKeyFromArmored(contactRawKey)
 				if err != nil {
 					return err
 				}
-				contactKeys = append(contactKeys, contactKey)
+				if err := contactKeyRing.AddKey(contactKey); err != nil {
+					return err
+				}
+				contactKeyRings = append(contactKeyRings, contactKeyRing)
 			}
 
 			break // We take the first hit where Defaults == 0, see "How to find the right contact" of PMEL
@@ -254,16 +270,22 @@ func (su *smtpUser) Send(from string, to []string, messageReader io.Reader) (err
 			return err
 		}
 
-		var apiKeys []*pmcrypto.KeyRing
+		var apiKeyRings []*crypto.KeyRing
 		for _, apiRawKey := range apiRawKeyList {
-			var kr *pmcrypto.KeyRing
-			if kr, err = pmcrypto.ReadArmoredKeyRing(strings.NewReader(apiRawKey.PublicKey)); err != nil {
+			key, err := crypto.NewKeyFromArmored(apiRawKey.PublicKey)
+			if err != nil {
 				return err
 			}
-			apiKeys = append(apiKeys, kr)
+
+			kr, err := crypto.NewKeyRing(key)
+			if err != nil {
+				return err
+			}
+
+			apiKeyRings = append(apiKeyRings, kr)
 		}
 
-		sendingInfo, err := generateSendingInfo(su.eventListener, contactMeta, isInternal, composeMode, apiKeys, contactKeys, settingsSign, settingsPgpScheme)
+		sendingInfo, err := generateSendingInfo(su.eventListener, contactMeta, isInternal, composeMode, apiKeyRings, contactKeyRings, settingsSign, settingsPgpScheme)
 		if !sendingInfo.Encrypt {
 			containsUnencryptedRecipients = true
 		}
@@ -284,7 +306,7 @@ func (su *smtpUser) Send(from string, to []string, messageReader io.Reader) (err
 				}
 			}
 			if sendingInfo.Scheme == pmapi.PGPMIMEPackage {
-				mimeBodyPacket, _, err := createPackets(sendingInfo.PublicKey, mimeKey, map[string]*pmcrypto.SymmetricKey{})
+				mimeBodyPacket, _, err := createPackets(sendingInfo.PublicKey, mimeKey, map[string]*crypto.SessionKey{})
 				if err != nil {
 					return err
 				}

@@ -93,8 +93,7 @@ func mockConnectedUser(m mocks) {
 		m.credentialsStore.EXPECT().Get("user").Return(testCredentials, nil),
 		m.pmapiClient.EXPECT().AuthRefresh("token").Return(testAuthRefresh, nil),
 
-		m.pmapiClient.EXPECT().Unlock(testCredentials.MailboxPassword).Return(nil, nil),
-		m.pmapiClient.EXPECT().UnlockAddresses([]byte(testCredentials.MailboxPassword)).Return(nil),
+		m.pmapiClient.EXPECT().Unlock([]byte(testCredentials.MailboxPassword)).Return(nil),
 
 		// Set up mocks for store initialisation for the authorized user.
 		m.pmapiClient.EXPECT().ListLabels().Return([]*pmapi.Label{}, nil),
