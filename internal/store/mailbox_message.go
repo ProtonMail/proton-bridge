@@ -80,6 +80,11 @@ func (storeMailbox *Mailbox) LabelMessages(apiIDs []string) error {
 		"label":    storeMailbox.labelID,
 		"mailbox":  storeMailbox.Name,
 	}).Trace("Labeling messages")
+	// Edge case is want to untrash message by drag&drop to AllMail (to not
+	// have it in trash but to not delete message forever). IMAP move would
+	// work okay but some clients might use COPY&EXPUNGE or APPEND&EXPUNGE.
+	// In this case COPY or APPEND is noop because the message is already
+	// in All mail. The consequent EXPUNGE would delete message forever.
 	if storeMailbox.labelID == pmapi.AllMailLabel {
 		return ErrAllMailOpNotAllowed
 	}
@@ -97,7 +102,7 @@ func (storeMailbox *Mailbox) UnlabelMessages(apiIDs []string) error {
 		"mailbox":  storeMailbox.Name,
 	}).Trace("Unlabeling messages")
 	if storeMailbox.labelID == pmapi.AllMailLabel {
-		return errAllMailOpNotAllowed
+		return ErrAllMailOpNotAllowed
 	}
 	defer storeMailbox.pollNow()
 	return storeMailbox.client().UnlabelMessages(apiIDs, storeMailbox.labelID)
