@@ -24,7 +24,7 @@ import (
 	bolt "go.etcd.io/bbolt"
 )
 
-var errAllMailOpNotAllowed = errors.New("operation not supported for 'All Mail' folder")
+var ErrAllMailOpNotAllowed = errors.New("operation not allowed for 'All Mail' folder")
 
 // GetMessage returns the `pmapi.Message` struct wrapped in `StoreMessage`
 // tied to this mailbox.
