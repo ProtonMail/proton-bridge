@@ -21,11 +21,10 @@ import (
 	"testing"
 
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
-	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestThing(t *testing.T) {
+func TestKeyRingsAreEqualAfterFiltering(t *testing.T) {
 	// Load the key.
 	key, err := crypto.NewKeyFromArmored(testPublicKey)
 	if err != nil {
@@ -45,10 +44,10 @@ func TestThing(t *testing.T) {
 	}
 
 	// Filtering shouldn't make them unequal.
-	assert.True(t, isEqual(keyRing, validKeyRings[0]))
+	assert.True(t, isEqual(t, keyRing, validKeyRings[0]))
 }
 
-func isEqual(a, b *crypto.KeyRing) bool {
+func isEqual(t *testing.T, a, b *crypto.KeyRing) bool {
 	if a == nil && b == nil {
 		return true
 	}
@@ -67,7 +66,7 @@ func isEqual(a, b *crypto.KeyRing) bool {
 		aFPs := aKeys[i].GetSHA256Fingerprints()
 		bFPs := bKeys[i].GetSHA256Fingerprints()
 
-		if !cmp.Equal(aFPs, bFPs) {
+		if !assert.Equal(t, aFPs, bFPs) {
 			return false
 		}
 	}

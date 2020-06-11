@@ -205,7 +205,7 @@ func (u *Users) Login(username, password string) (authClient pmapi.Client, auth 
 }
 
 // FinishLogin finishes the login procedure and adds the user into the credentials store.
-func (u *Users) FinishLogin(authClient pmapi.Client, auth *pmapi.Auth, mbPassword string) (user *User, err error) { //nolint[funlen]
+func (u *Users) FinishLogin(authClient pmapi.Client, auth *pmapi.Auth, mbPassphrase string) (user *User, err error) { //nolint[funlen]
 	defer func() {
 		if err == pmapi.ErrUpgradeApplication {
 			u.events.Emit(events.UpgradeApplicationEvent, "")
@@ -220,7 +220,7 @@ func (u *Users) FinishLogin(authClient pmapi.Client, auth *pmapi.Auth, mbPasswor
 		authClient.Logout()
 	}()
 
-	apiUser, passphrase, err := getAPIUser(authClient, mbPassword)
+	apiUser, hashedPassphrase, err := getAPIUser(authClient, mbPassphrase)
 	if err != nil {
 		log.WithError(err).Error("Failed to get API user")
 		return
@@ -230,12 +230,12 @@ func (u *Users) FinishLogin(authClient pmapi.Client, auth *pmapi.Auth, mbPasswor
 
 	var ok bool
 	if user, ok = u.hasUser(apiUser.ID); ok {
-		if err = u.connectExistingUser(user, auth, passphrase); err != nil {
+		if err = u.connectExistingUser(user, auth, hashedPassphrase); err != nil {
 			log.WithError(err).Error("Failed to connect existing user")
 			return
 		}
 	} else {
-		if err = u.addNewUser(apiUser, auth, passphrase); err != nil {
+		if err = u.addNewUser(apiUser, auth, hashedPassphrase); err != nil {
 			log.WithError(err).Error("Failed to add new user")
 			return
 		}
@@ -247,7 +247,7 @@ func (u *Users) FinishLogin(authClient pmapi.Client, auth *pmapi.Auth, mbPasswor
 }
 
 // connectExistingUser connects an existing user.
-func (u *Users) connectExistingUser(user *User, auth *pmapi.Auth, passphrase string) (err error) {
+func (u *Users) connectExistingUser(user *User, auth *pmapi.Auth, hashedPassphrase string) (err error) {
 	if user.IsConnected() {
 		return errors.New("user is already connected")
 	}
@@ -255,7 +255,7 @@ func (u *Users) connectExistingUser(user *User, auth *pmapi.Auth, passphrase str
 	log.Info("Connecting existing user")
 
 	// Update the user's password in the cred store in case they changed it.
-	if err = u.credStorer.UpdatePassword(user.ID(), passphrase); err != nil {
+	if err = u.credStorer.UpdatePassword(user.ID(), hashedPassphrase); err != nil {
 		return errors.Wrap(err, "failed to update password of user in credentials store")
 	}
 
@@ -277,7 +277,7 @@ func (u *Users) connectExistingUser(user *User, auth *pmapi.Auth, passphrase str
 }
 
 // addNewUser adds a new user.
-func (u *Users) addNewUser(apiUser *pmapi.User, auth *pmapi.Auth, passphrase string) (err error) {
+func (u *Users) addNewUser(apiUser *pmapi.User, auth *pmapi.Auth, hashedPassphrase string) (err error) {
 	u.lock.Lock()
 	defer u.lock.Unlock()
 
@@ -293,7 +293,7 @@ func (u *Users) addNewUser(apiUser *pmapi.User, auth *pmapi.Auth, passphrase str
 
 	activeEmails := client.Addresses().ActiveEmails()
 
-	if _, err = u.credStorer.Add(apiUser.ID, apiUser.Name, auth.GenToken(), passphrase, activeEmails); err != nil {
+	if _, err = u.credStorer.Add(apiUser.ID, apiUser.Name, auth.GenToken(), hashedPassphrase, activeEmails); err != nil {
 		return errors.Wrap(err, "failed to add user to credentials store")
 	}
 
@@ -315,21 +315,21 @@ func (u *Users) addNewUser(apiUser *pmapi.User, auth *pmapi.Auth, passphrase str
 	return err
 }
 
-func getAPIUser(client pmapi.Client, mbPassword string) (user *pmapi.User, passphrase string, err error) {
+func getAPIUser(client pmapi.Client, mbPassphrase string) (user *pmapi.User, hashedPassphrase string, err error) {
 	salt, err := client.AuthSalt()
 	if err != nil {
 		log.WithError(err).Error("Could not get salt")
 		return
 	}
 
-	passphrase, err = pmapi.HashMailboxPassword(mbPassword, salt)
+	hashedPassphrase, err = pmapi.HashMailboxPassword(mbPassphrase, salt)
 	if err != nil {
 		log.WithError(err).Error("Could not hash mailbox password")
 		return
 	}
 
 	// We unlock the user's PGP key here to detect if the user's mailbox password is wrong.
-	if err = client.Unlock([]byte(passphrase)); err != nil {
+	if err = client.Unlock([]byte(hashedPassphrase)); err != nil {
 		log.WithError(err).Error("Wrong mailbox password")
 		return
 	}
