@@ -18,6 +18,8 @@
 package context
 
 import (
+	"time"
+
 	"github.com/ProtonMail/proton-bridge/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/internal/preferences"
 	"github.com/ProtonMail/proton-bridge/internal/users"
@@ -48,6 +50,7 @@ func (ctx *TestContext) RestartBridge() error {
 	}
 
 	ctx.bridge.StopWatchers()
+	time.Sleep(50 * time.Millisecond)
 
 	ctx.withBridgeInstance()
 
