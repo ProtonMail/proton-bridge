@@ -46,7 +46,7 @@ Feature: SMTP auth
     Then SMTP response is "SMTP error: 454 user .* not found"
 
   @ignore-live
-  Scenario: Authenticates with disabled primary address
+  Scenario: Authenticates with secondary address of account with disabled primary address
     Given there is connected user "userDisabledPrimaryAddress"
     When SMTP client authenticates "userDisabledPrimaryAddress" with address "secondary"
     Then SMTP response is "OK"

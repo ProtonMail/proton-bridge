@@ -69,7 +69,7 @@ Feature: IMAP auth
     Then IMAP response is "IMAP error: NO user .* not found"
 
   @ignore-live
-  Scenario: Authenticates with disabled primary address
+  Scenario: Authenticates with secondary address of account with disabled primary address
     Given there is connected user "userDisabledPrimaryAddress"
     When IMAP client authenticates "userDisabledPrimaryAddress" with address "secondary"
     Then IMAP response is "OK"
