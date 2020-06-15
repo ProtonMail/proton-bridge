@@ -18,7 +18,6 @@
 package credentials
 
 import (
-	"errors"
 	"fmt"
 	"sort"
 	"sync"
@@ -67,18 +66,9 @@ func (s *Store) Add(userID, userName, apiToken, mailboxPassword string, emails [
 
 	creds.SetEmailList(emails)
 
-	var has bool
-	if has, err = s.has(userID); err != nil {
-		log.WithField("userID", userID).WithError(err).Error("Could not check if user credentials already exist")
-		return
-	}
-
-	if has {
+	currentCredentials, err := s.get(userID)
+	if err == nil {
 		log.Info("Updating credentials of existing user")
-		currentCredentials, err := s.get(userID)
-		if err != nil {
-			return nil, err
-		}
 		creds.BridgePassword = currentCredentials.BridgePassword
 		creds.IsCombinedAddressMode = currentCredentials.IsCombinedAddressMode
 		creds.Timestamp = currentCredentials.Timestamp
@@ -239,38 +229,7 @@ func (s *Store) Get(userID string) (creds *Credentials, err error) {
 	storeLocker.RLock()
 	defer storeLocker.RUnlock()
 
-	var has bool
-	if has, err = s.has(userID); err != nil {
-		log.WithError(err).Error("Could not check for credentials")
-		return
-	}
-
-	if !has {
-		err = errors.New("no credentials found for given userID")
-		return
-	}
-
 	return s.get(userID)
-}
-
-func (s *Store) has(userID string) (has bool, err error) {
-	if err = s.checkKeychain(); err != nil {
-		return
-	}
-
-	var ids []string
-	if ids, err = s.secrets.List(); err != nil {
-		log.WithError(err).Error("Could not list credentials")
-		return
-	}
-
-	for _, id := range ids {
-		if id == userID {
-			has = true
-		}
-	}
-
-	return
 }
 
 func (s *Store) get(userID string) (creds *Credentials, err error) {
