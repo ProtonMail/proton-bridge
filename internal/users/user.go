@@ -413,8 +413,8 @@ func (u *User) UpdateUser() error {
 		return err
 	}
 
-	if err = u.client().Unlock([]byte(u.creds.MailboxPassword)); err != nil {
-		return errors.Wrap(err, "failed to unlock user")
+	if err = u.client().ReloadKeys([]byte(u.creds.MailboxPassword)); err != nil {
+		return errors.Wrap(err, "failed to reload keys")
 	}
 
 	emails := u.client().Addresses().ActiveEmails()

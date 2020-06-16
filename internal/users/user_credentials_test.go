@@ -39,7 +39,7 @@ func TestUpdateUser(t *testing.T) {
 		m.pmapiClient.EXPECT().Unlock([]byte("pass")).Return(nil),
 
 		m.pmapiClient.EXPECT().UpdateUser().Return(nil, nil),
-		m.pmapiClient.EXPECT().Unlock([]byte(testCredentials.MailboxPassword)).Return(nil),
+		m.pmapiClient.EXPECT().ReloadKeys([]byte(testCredentials.MailboxPassword)).Return(nil),
 		m.pmapiClient.EXPECT().Addresses().Return([]*pmapi.Address{testPMAPIAddress}),
 
 		m.credentialsStore.EXPECT().UpdateEmails("user", []string{testPMAPIAddress.Email}),

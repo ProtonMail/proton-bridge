@@ -148,33 +148,54 @@ func (c *client) IsUnlocked() bool {
 	return c.userKeyRing != nil
 }
 
-// Unlock unlocks all the user and address keys using the given passphrase.
+// Unlock unlocks all the user and address keys using the given passphrase, creating user and address keyrings.
+// If the keyrings are already present, they are not recreated.
 func (c *client) Unlock(passphrase []byte) (err error) {
 	c.keyRingLock.Lock()
 	defer c.keyRingLock.Unlock()
-
-	// If the user already has a keyring, we already unlocked, so no need to try again.
-	if c.userKeyRing != nil {
-		return
-	}
 
 	if _, err = c.CurrentUser(); err != nil {
 		return
 	}
 
-	if c.user == nil || c.addresses == nil {
-		return errors.New("user data is not loaded")
+	if c.userKeyRing == nil {
+		if err = c.unlockUser(passphrase); err != nil {
+			return errors.Wrap(err, "failed to unlock user")
+		}
 	}
 
-	if err = c.unlockUser(passphrase); err != nil {
-		return errors.Wrap(err, "failed to unlock user")
-	}
-
-	if err = c.unlockAddresses(passphrase); err != nil {
-		return errors.Wrap(err, "failed to unlock addresses")
+	for _, address := range c.addresses {
+		if c.addrKeyRing[address.ID] == nil {
+			if err = c.unlockAddress(passphrase, address); err != nil {
+				return errors.Wrap(err, "failed to unlock address")
+			}
+		}
 	}
 
 	return
+}
+
+func (c *client) ReloadKeys(passphrase []byte) (err error) {
+	c.keyRingLock.Lock()
+	defer c.keyRingLock.Unlock()
+
+	c.clearKeys()
+
+	return c.Unlock(passphrase)
+}
+
+func (c *client) clearKeys() {
+	if c.userKeyRing != nil {
+		c.userKeyRing.ClearPrivateParams()
+		c.userKeyRing = nil
+	}
+
+	for id, kr := range c.addrKeyRing {
+		if kr != nil {
+			kr.ClearPrivateParams()
+		}
+		delete(c.addrKeyRing, id)
+	}
 }
 
 // Do makes an API request. It does not check for HTTP status code errors.

@@ -63,6 +63,14 @@ func (api *FakePMAPI) Unlock(passphrase []byte) (err error) {
 	return nil
 }
 
+func (api *FakePMAPI) ReloadKeys(passphrase []byte) (err error) {
+	if _, err = api.UpdateUser(); err != nil {
+		return
+	}
+
+	return api.Unlock(passphrase)
+}
+
 func (api *FakePMAPI) CurrentUser() (*pmapi.User, error) {
 	return api.UpdateUser()
 }

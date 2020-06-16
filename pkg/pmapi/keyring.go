@@ -125,7 +125,7 @@ func (key PMKey) unlock(passphrase []byte) (unlockedKey *crypto.Key, err error) 
 type PMKeys []PMKey
 
 // UnlockAll goes through each key and unlocks it, returning a keyring containing all unlocked keys,
-// or an error if at least one could not be unlocked.
+// or an error if no keys could be unlocked.
 // The passphrase is used to unlock the key unless the key's token and signature are both non-nil,
 // in which case the given userkey is used to deduce the passphrase.
 func (keys *PMKeys) UnlockAll(passphrase []byte, userKey *crypto.KeyRing) (kr *crypto.KeyRing, err error) {

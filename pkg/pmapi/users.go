@@ -90,8 +90,8 @@ type UserRes struct {
 
 // unlockUser unlocks all the client's user keys using the given passphrase.
 func (c *client) unlockUser(passphrase []byte) (err error) {
-	if c.userKeyRing != nil {
-		return
+	if c.user == nil {
+		return errors.New("user data is not loaded")
 	}
 
 	if c.userKeyRing, err = c.user.Keys.UnlockAll(passphrase, nil); err != nil {

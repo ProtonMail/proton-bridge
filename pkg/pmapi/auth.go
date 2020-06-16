@@ -459,16 +459,5 @@ func (c *client) ClearData() {
 	c.accessToken = ""
 	c.addresses = nil
 	c.user = nil
-
-	if c.userKeyRing != nil {
-		c.userKeyRing.ClearPrivateParams()
-		c.userKeyRing = nil
-	}
-
-	for addrID, addr := range c.addrKeyRing {
-		if addr != nil {
-			addr.ClearPrivateParams()
-			delete(c.addrKeyRing, addrID)
-		}
-	}
+	c.clearKeys()
 }

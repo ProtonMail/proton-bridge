@@ -561,6 +561,20 @@ func (mr *MockClientMockRecorder) MarkMessagesUnread(arg0 interface{}) *gomock.C
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MarkMessagesUnread", reflect.TypeOf((*MockClient)(nil).MarkMessagesUnread), arg0)
 }
 
+// ReloadKeys mocks base method
+func (m *MockClient) ReloadKeys(arg0 []byte) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ReloadKeys", arg0)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ReloadKeys indicates an expected call of ReloadKeys
+func (mr *MockClientMockRecorder) ReloadKeys(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReloadKeys", reflect.TypeOf((*MockClient)(nil).ReloadKeys), arg0)
+}
+
 // ReorderAddresses mocks base method
 func (m *MockClient) ReorderAddresses(arg0 []string) error {
 	m.ctrl.T.Helper()

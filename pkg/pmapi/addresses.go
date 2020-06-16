@@ -197,24 +197,22 @@ func (c *client) Addresses() AddressList {
 }
 
 // unlockAddresses unlocks all keys for all addresses of current user.
-func (c *client) unlockAddresses(passphrase []byte) (err error) {
-	for _, a := range c.addresses {
-		if a.HasKeys == MissingKeys {
-			continue
-		}
-
-		if c.addrKeyRing[a.ID] != nil {
-			continue
-		}
-
-		var kr *crypto.KeyRing
-
-		if kr, err = a.Keys.UnlockAll(passphrase, c.userKeyRing); err != nil {
-			return
-		}
-
-		c.addrKeyRing[a.ID] = kr
+func (c *client) unlockAddress(passphrase []byte, address *Address) (err error) {
+	if address == nil {
+		return errors.New("address data is missing")
 	}
+
+	if address.HasKeys == MissingKeys {
+		return
+	}
+
+	var kr *crypto.KeyRing
+
+	if kr, err = address.Keys.UnlockAll(passphrase, c.userKeyRing); err != nil {
+		return
+	}
+
+	c.addrKeyRing[address.ID] = kr
 
 	return
 }

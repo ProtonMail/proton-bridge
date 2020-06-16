@@ -38,6 +38,7 @@ type Client interface {
 	CurrentUser() (*User, error)
 	UpdateUser() (*User, error)
 	Unlock(passphrase []byte) (err error)
+	ReloadKeys(passphrase []byte) (err error)
 	IsUnlocked() bool
 
 	GetAddresses() (addresses AddressList, err error)
