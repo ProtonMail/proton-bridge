@@ -39,13 +39,31 @@ type PMKey struct {
 	Signature   *string `json:",omitempty"`
 }
 
+type clearable []byte
+
+func (c *clearable) UnmarshalJSON(b []byte) error {
+	b = bytes.Trim(b, "\"")
+	b = bytes.ReplaceAll(b, []byte("\\n"), []byte("\n"))
+	b = bytes.ReplaceAll(b, []byte("\\r"), []byte("\r"))
+	*c = b
+	return nil
+}
+
+func (c *clearable) clear() {
+	for i := range *c {
+		(*c)[i] = 0
+	}
+}
+
 func (key *PMKey) UnmarshalJSON(b []byte) (err error) {
 	type _PMKey PMKey
 
 	rawKey := struct {
 		_PMKey
-		PrivateKey string
+		PrivateKey clearable
 	}{}
+
+	defer rawKey.PrivateKey.clear()
 
 	if err = json.Unmarshal(b, &rawKey); err != nil {
 		return
@@ -53,7 +71,7 @@ func (key *PMKey) UnmarshalJSON(b []byte) (err error) {
 
 	*key = PMKey(rawKey._PMKey)
 
-	if key.PrivateKey, err = crypto.NewKeyFromArmored(rawKey.PrivateKey); err != nil {
+	if key.PrivateKey, err = crypto.NewKeyFromArmoredReader(bytes.NewReader(rawKey.PrivateKey)); err != nil {
 		return errors.Wrap(err, "failed to create crypto key from armored private key")
 	}
 
