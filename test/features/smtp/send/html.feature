@@ -20,8 +20,8 @@ Feature: SMTP sending of HTML messages
       """
     Then SMTP response is "OK"
     And mailbox "Sent" for "user" has messages
-      | time | from          | to                     | subject            |
-      | now  | [userAddress] | pm.bridge.qa@gmail.com | HTML text external |
+      | from          | to                     | subject            |
+      | [userAddress] | pm.bridge.qa@gmail.com | HTML text external |
     And message is sent with API call:
       """
       {
@@ -95,8 +95,8 @@ Feature: SMTP sending of HTML messages
       """
     Then SMTP response is "OK"
     And mailbox "Sent" for "user" has messages
-      | time | from          | to                     | subject              |
-      | now  | [userAddress] | pm.bridge.qa@gmail.com | Html Inline External |
+      | from          | to                     | subject              |
+      | [userAddress] | pm.bridge.qa@gmail.com | Html Inline External |
     And message is sent with API call:
       """
       {
@@ -184,8 +184,8 @@ Feature: SMTP sending of HTML messages
       """
     Then SMTP response is "OK"
     And mailbox "Sent" for "user" has messages
-      | time | from          | to                        | subject                          |
-      | now  | [userAddress] | bridgetest@protonmail.com | Html Inline Alternative Internal |
+      | from          | to                        | subject                          |
+      | [userAddress] | bridgetest@protonmail.com | Html Inline Alternative Internal |
     And message is sent with API call:
       """
       {
@@ -273,8 +273,8 @@ Feature: SMTP sending of HTML messages
       """
     Then SMTP response is "OK"
     And mailbox "Sent" for "user" has messages
-      | time | from          | to                     | subject                          |
-      | now  | [userAddress] | pm.bridge.qa@gmail.com | Html Inline Alternative External |
+      | from          | to                     | subject                          |
+      | [userAddress] | pm.bridge.qa@gmail.com | Html Inline Alternative External |
     And message is sent with API call:
       """
       {

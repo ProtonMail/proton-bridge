@@ -14,8 +14,8 @@ Feature: SMTP sending of plain messages
       """
     Then SMTP response is "OK"
     And mailbox "Sent" for "user" has messages
-      | time | from          | to                        | subject |
-      | now  | [userAddress] | bridgetest@protonmail.com |         |
+      | from          | to                        | subject |
+      | [userAddress] | bridgetest@protonmail.com |         |
     And message is sent with API call:
       """
       {
@@ -48,8 +48,8 @@ Feature: SMTP sending of plain messages
       """
     Then SMTP response is "OK"
     And mailbox "Sent" for "user" has messages
-      | time | from          | to                     | subject |
-      | now  | [userAddress] | pm.bridge.qa@gmail.com |         |
+      | from          | to                     | subject |
+      | [userAddress] | pm.bridge.qa@gmail.com |         |
     And message is sent with API call:
       """
       {
@@ -85,8 +85,8 @@ Feature: SMTP sending of plain messages
       """
     Then SMTP response is "OK"
     And mailbox "Sent" for "user" has messages
-      | time | from          | to                        | subject             |
-      | now  | [userAddress] | bridgetest@protonmail.com | Plain text internal |
+      | from          | to                        | subject             |
+      | [userAddress] | bridgetest@protonmail.com | Plain text internal |
     And message is sent with API call:
       """
       {
@@ -122,8 +122,8 @@ Feature: SMTP sending of plain messages
       """
     Then SMTP response is "OK"
     And mailbox "Sent" for "user" has messages
-      | time | from          | to                     | subject             |
-      | now  | [userAddress] | pm.bridge.qa@gmail.com | Plain text external |
+      | from          | to                     | subject             |
+      | [userAddress] | pm.bridge.qa@gmail.com | Plain text external |
     And message is sent with API call:
       """
       {
@@ -159,8 +159,8 @@ Feature: SMTP sending of plain messages
       """
     Then SMTP response is "OK"
     And mailbox "Sent" for "user" has messages
-      | time | from          | to                     | subject                        |
-      | now  | [userAddress] | pm.bridge.qa@gmail.com | Plain text no charset external |
+      | from          | to                     | subject                        |
+      | [userAddress] | pm.bridge.qa@gmail.com | Plain text no charset external |
     And message is sent with API call:
       """
       {
@@ -199,8 +199,8 @@ Feature: SMTP sending of plain messages
       """
     Then SMTP response is "OK"
     And mailbox "Sent" for "user" has messages
-      | time | from          | to                     | subject                        |
-      | now  | [userAddress] | pm.bridge.qa@gmail.com | Plain text no charset external |
+      | from          | to                     | subject                        |
+      | [userAddress] | pm.bridge.qa@gmail.com | Plain text no charset external |
     And message is sent with API call:
       """
       {
@@ -234,8 +234,8 @@ Feature: SMTP sending of plain messages
       """
     Then SMTP response is "OK"
     And mailbox "Sent" for "user" has messages
-      | time | from          | to                     | subject                                 |
-      | now  | [userAddress] | pm.bridge.qa@gmail.com | Plain, no charset, no content, external |
+      | from          | to                     | subject                                 |
+      | [userAddress] | pm.bridge.qa@gmail.com | Plain, no charset, no content, external |
     And message is sent with API call:
       """
       {

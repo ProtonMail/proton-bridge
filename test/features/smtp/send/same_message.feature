@@ -25,8 +25,8 @@ Feature: SMTP sending the same message twice
       """
     Then SMTP response is "OK"
     And mailbox "Sent" for "user" has messages
-      | time | from          | to                        | subject |
-      | now  | [userAddress] | bridgetest@protonmail.com | Hello   |
+      | from          | to                        | subject |
+      | [userAddress] | bridgetest@protonmail.com | Hello   |
 
   Scenario: Slight change means different message and is sent twice
     When SMTP client sends message
@@ -40,6 +40,6 @@ Feature: SMTP sending the same message twice
       """
     Then SMTP response is "OK"
     And mailbox "Sent" for "user" has messages
-      | time | from          | to                        | subject |
-      | now  | [userAddress] | bridgetest@protonmail.com | Hello   |
-      | now  | [userAddress] | bridgetest@protonmail.com | Hello.  |
+      | from          | to                        | subject |
+      | [userAddress] | bridgetest@protonmail.com | Hello   |
+      | [userAddress] | bridgetest@protonmail.com | Hello.  |

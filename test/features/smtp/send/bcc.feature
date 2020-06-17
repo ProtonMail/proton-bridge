@@ -15,8 +15,8 @@ Feature: SMTP with bcc
       """
     Then SMTP response is "OK"
     And mailbox "Sent" for "user" has messages
-      | time | from          | to                        | subject |
-      | now  | [userAddress] | bridgetest@protonmail.com | hello   |
+      | from          | to                        | subject |
+      | [userAddress] | bridgetest@protonmail.com | hello   |
     And message is sent with API call:
       """
       {
@@ -50,8 +50,8 @@ Feature: SMTP with bcc
       """
     Then SMTP response is "OK"
     And mailbox "Sent" for "user" has messages
-      | time | from          | to | subject |
-      | now  | [userAddress] |    | hello   |
+      | from          | to | subject |
+      | [userAddress] |    | hello   |
     And message is sent with API call:
       """
       {

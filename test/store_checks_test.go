@@ -172,15 +172,6 @@ func messagesContainsMessageRow(account *accounts.TestAccount, allMessages []*pm
 		matches := true
 		for n, cell := range row.Cells {
 			switch head[n].Value {
-			case "time":
-				switch cell.Value {
-				case "now":
-					if (time.Now().Unix() - message.Time) > 5 {
-						matches = false
-					}
-				default:
-					return false, fmt.Errorf("unexpected time value: %s", cell.Value)
-				}
 			case "from":
 				address := ctx.EnsureAddress(account.Username(), cell.Value)
 				if !areAddressesSame(message.Sender.Address, address) {

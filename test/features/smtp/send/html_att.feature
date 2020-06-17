@@ -39,8 +39,8 @@ Feature: SMTP sending of HTML messages with attachments
       """
     Then SMTP response is "OK"
     And mailbox "Sent" for "user" has messages
-      | time | from          | to                        | subject                       |
-      | now  | [userAddress] | bridgetest@protonmail.com | HTML with attachment internal |
+      | from          | to                        | subject                       |
+      | [userAddress] | bridgetest@protonmail.com | HTML with attachment internal |
     And message is sent with API call:
       """
       {
@@ -98,8 +98,8 @@ Feature: SMTP sending of HTML messages with attachments
       """
     Then SMTP response is "OK"
     And mailbox "Sent" for "user" has messages
-      | time | from          | to                     | subject                           |
-      | now  | [userAddress] | pm.bridge.qa@gmail.com | HTML with attachment external PGP |
+      | from          | to                     | subject                           |
+      | [userAddress] | pm.bridge.qa@gmail.com | HTML with attachment external PGP |
     And message is sent with API call:
       """
       {
