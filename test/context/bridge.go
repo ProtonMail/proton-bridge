@@ -32,9 +32,10 @@ func (ctx *TestContext) GetBridge() *bridge.Bridge {
 }
 
 // withBridgeInstance creates a bridge instance for use in the test.
-// Every TestContext has this by default and thus this doesn't need to be exported.
+// TestContext has this by default once called with env variable TEST_APP=bridge.
 func (ctx *TestContext) withBridgeInstance() {
 	ctx.bridge = newBridgeInstance(ctx.t, ctx.cfg, ctx.credStore, ctx.listener, ctx.clientManager)
+	ctx.users = ctx.bridge.Users
 	ctx.addCleanupChecked(ctx.bridge.ClearData, "Cleaning bridge data")
 }
 
@@ -68,14 +69,4 @@ func newBridgeInstance(
 	panicHandler := &panicHandler{t: t}
 	pref := preferences.New(cfg)
 	return bridge.New(cfg, pref, panicHandler, eventListener, clientManager, credStore)
-}
-
-// SetLastBridgeError sets the last error that occurred while executing a bridge action.
-func (ctx *TestContext) SetLastBridgeError(err error) {
-	ctx.bridgeLastError = err
-}
-
-// GetLastBridgeError returns the last error that occurred while executing a bridge action.
-func (ctx *TestContext) GetLastBridgeError() error {
-	return ctx.bridgeLastError
 }

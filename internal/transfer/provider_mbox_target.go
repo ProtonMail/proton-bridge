@@ -45,7 +45,7 @@ func (p *MBOXProvider) TransferFrom(rules transferRules, progress *Progress, ch 
 	defer log.Info("Finished transfer from channel to MBOX")
 
 	for msg := range ch {
-		for progress.shouldStop() {
+		if progress.shouldStop() {
 			break
 		}
 

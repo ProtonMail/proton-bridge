@@ -317,9 +317,8 @@ func (cm *ClientManager) CheckConnection() error {
 	retStatus := make(chan error)
 	retAPI := make(chan error)
 
-	// Check protonstatus.com without SSL for performance reasons. vpn_status endpoint is fast and
-	// returns only OK; this endpoint is not known by the public. We check the connection only.
-	go checkConnection(client, "http://protonstatus.com/vpn_status", retStatus)
+	// vpn_status endpoint is fast and returns only OK. We check the connection only.
+	go checkConnection(client, "https://protonstatus.com/vpn_status", retStatus)
 
 	// Check of API reachability also uses a fast endpoint.
 	go checkConnection(client, cm.GetRootURL()+"/tests/ping", retAPI)
@@ -351,7 +350,7 @@ func (cm *ClientManager) CheckConnection() error {
 func CheckConnection() error {
 	client := &http.Client{Timeout: time.Second * 10}
 	retStatus := make(chan error)
-	checkConnection(client, "http://protonstatus.com/vpn_status", retStatus)
+	go checkConnection(client, "https://protonstatus.com/vpn_status", retStatus)
 	return <-retStatus
 }
 

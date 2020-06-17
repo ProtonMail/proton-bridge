@@ -18,19 +18,27 @@
 package tests
 
 import (
+	"os"
+
 	"github.com/ProtonMail/proton-bridge/test/context"
 	"github.com/cucumber/godog"
+)
+
+const (
+	timeFormat = "2006-01-02T15:04:05"
 )
 
 func FeatureContext(s *godog.Suite) {
 	s.BeforeScenario(beforeScenario)
 	s.AfterScenario(afterScenario)
 
+	APIActionsFeatureContext(s)
 	APIChecksFeatureContext(s)
+	APISetupFeatureContext(s)
 
 	BridgeActionsFeatureContext(s)
-	BridgeChecksFeatureContext(s)
-	BridgeSetupFeatureContext(s)
+
+	CommonChecksFeatureContext(s)
 
 	IMAPActionsAuthFeatureContext(s)
 	IMAPActionsMailboxFeatureContext(s)
@@ -45,18 +53,32 @@ func FeatureContext(s *godog.Suite) {
 	StoreActionsFeatureContext(s)
 	StoreChecksFeatureContext(s)
 	StoreSetupFeatureContext(s)
+
+	TransferActionsFeatureContext(s)
+	TransferChecksFeatureContext(s)
+	TransferSetupFeatureContext(s)
+
+	UsersActionsFeatureContext(s)
+	UsersSetupFeatureContext(s)
+	UsersChecksFeatureContext(s)
 }
 
 var ctx *context.TestContext //nolint[gochecknoglobals]
 
 func beforeScenario(scenario interface{}) {
-	ctx = context.New()
+	// bridge or ie. With godog 0.10.x and later it can be determined from
+	// scenario.Uri and its file location.
+	app := os.Getenv("TEST_APP")
+	ctx = context.New(app)
 }
 
 func afterScenario(scenario interface{}, err error) {
 	if err != nil {
-		for _, user := range ctx.GetBridge().GetUsers() {
-			user.GetStore().TestDumpDB(ctx.GetTestingT())
+		for _, user := range ctx.GetUsers().GetUsers() {
+			store := user.GetStore()
+			if store != nil {
+				store.TestDumpDB(ctx.GetTestingT())
+			}
 		}
 	}
 	ctx.Cleanup()

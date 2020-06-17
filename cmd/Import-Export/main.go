@@ -18,108 +18,40 @@
 package main
 
 import (
-	"fmt"
 	"os"
-	"os/exec"
-	"path/filepath"
-	"runtime"
 	"runtime/pprof"
-	"strconv"
-	"strings"
 
+	"github.com/ProtonMail/proton-bridge/internal/cmd"
 	"github.com/ProtonMail/proton-bridge/internal/events"
 	"github.com/ProtonMail/proton-bridge/internal/frontend"
 	"github.com/ProtonMail/proton-bridge/internal/importexport"
 	"github.com/ProtonMail/proton-bridge/internal/users/credentials"
-	"github.com/ProtonMail/proton-bridge/pkg/args"
 	"github.com/ProtonMail/proton-bridge/pkg/config"
 	"github.com/ProtonMail/proton-bridge/pkg/constants"
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	"github.com/ProtonMail/proton-bridge/pkg/updates"
-	"github.com/getsentry/raven-go"
+	"github.com/allan-simon/go-singleinstance"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
 )
 
+const (
+	appName     = "importExport"
+	appNameDash = "import-export"
+)
+
 var (
 	log = logrus.WithField("pkg", "main") //nolint[gochecknoglobals]
-
-	// How many crashes in a row.
-	numberOfCrashes = 0 //nolint[gochecknoglobals]
-
-	// After how many crashes import/export gives up starting.
-	maxAllowedCrashes = 10 //nolint[gochecknoglobals]
 )
 
 func main() {
-	constants.AppShortName = "importExport" //TODO
-
-	if err := raven.SetDSN(constants.DSNSentry); err != nil {
-		log.WithError(err).Errorln("Can not setup sentry DSN")
-	}
-	raven.SetRelease(constants.Revision)
-
-	args.FilterProcessSerialNumberFromArgs()
-	filterRestartNumberFromArgs()
-
-	app := cli.NewApp()
-	app.Name = "Protonmail Import/Export"
-	app.Version = constants.BuildVersion
-	app.Flags = []cli.Flag{
-		cli.StringFlag{
-			Name:  "log-level, l",
-			Usage: "Set the log level (one of panic, fatal, error, warn, info, debug, debug-client, debug-server)"},
-		cli.BoolFlag{
-			Name:  "cli, c",
-			Usage: "Use command line interface"},
-		cli.StringFlag{
-			Name:  "version-json, g",
-			Usage: "Generate json version file"},
-		cli.BoolFlag{
-			Name:  "mem-prof, m",
-			Usage: "Generate memory profile"},
-		cli.BoolFlag{
-			Name:  "cpu-prof, p",
-			Usage: "Generate CPU profile"},
-	}
-	app.Usage = "ProtonMail Import/Export"
-	app.Action = run
-
-	// Always log the basic info about current import/export.
-	logrus.SetLevel(logrus.InfoLevel)
-	log.WithField("version", constants.Version).
-		WithField("revision", constants.Revision).
-		WithField("runtime", runtime.GOOS).
-		WithField("build", constants.BuildTime).
-		WithField("args", os.Args).
-		WithField("appLong", app.Name).
-		WithField("appShort", constants.AppShortName).
-		Info("Run app")
-	if err := app.Run(os.Args); err != nil {
-		log.Error("Program exited with error: ", err)
-	}
-}
-
-type panicHandler struct {
-	cfg *config.Config
-	err *error // Pointer to error of cli action.
-}
-
-func (ph *panicHandler) HandlePanic() {
-	r := recover()
-	if r == nil {
-		return
-	}
-
-	config.HandlePanic(ph.cfg, fmt.Sprintf("Recover: %v", r))
-	frontend.HandlePanic("ProtonMail Import-Export")
-
-	*ph.err = cli.NewExitError("Panic and restart", 255)
-	numberOfCrashes++
-	log.Error("Restarting after panic")
-	restartApp()
-	os.Exit(255)
+	cmd.Main(
+		"ProtonMail Import/Export",
+		"ProtonMail Import/Export tool",
+		nil,
+		run,
+	)
 }
 
 // run initializes and starts everything in a precise order.
@@ -127,13 +59,17 @@ func (ph *panicHandler) HandlePanic() {
 // IMPORTANT: ***Read the comments before CHANGING the order ***
 func run(context *cli.Context) (contextError error) { // nolint[funlen]
 	// We need to have config instance to setup a logs, panic handler, etc ...
-	cfg := config.New(constants.AppShortName, constants.Version, constants.Revision, "")
+	cfg := config.New(appName, constants.Version, constants.Revision, "")
 
 	// We want to know about any problem. Our PanicHandler calls sentry which is
 	// not dependent on anything else. If that fails, it tries to create crash
 	// report which will not be possible if no folder can be created. That's the
 	// only problem we will not be notified about in any way.
-	panicHandler := &panicHandler{cfg, &contextError}
+	panicHandler := &cmd.PanicHandler{
+		AppName: "ProtonMail Import/Export",
+		Config:  cfg,
+		Err:     &contextError,
+	}
 	defer panicHandler.HandlePanic()
 
 	// First we need config and create necessary folder; it's dependency for everything.
@@ -154,20 +90,21 @@ func run(context *cli.Context) (contextError error) { // nolint[funlen]
 
 	// It's safe to get version JSON file even when other instance is running.
 	// (thus we put it before check of presence of other Import/Export instance).
-	updates := updates.New(
-		constants.AppShortName,
-		constants.Version,
-		constants.Revision,
-		constants.BuildTime,
-		importexport.ReleaseNotes,
-		importexport.ReleaseFixedBugs,
-		cfg.GetUpdateDir(),
-	)
+	updates := updates.NewImportExport(cfg.GetUpdateDir())
 
 	if dir := context.GlobalString("version-json"); dir != "" {
-		generateVersionFiles(updates, dir)
+		cmd.GenerateVersionFiles(updates, dir)
 		return nil
 	}
+
+	// Now we can try to proceed with starting the import/export. First we need to ensure
+	// this is the only instance. If not, we will end and focus the existing one.
+	lock, err := singleinstance.CreateLockFile(cfg.GetLockPath())
+	if err != nil {
+		log.Warn("Import/Export is already running")
+		return cli.NewExitError("Import/Export is already running.", 3)
+	}
+	defer lock.Close() //nolint[errcheck]
 
 	// In case user wants to do CPU or memory profiles...
 	if doCPUProfile := context.GlobalBool("cpu-prof"); doCPUProfile {
@@ -182,7 +119,7 @@ func run(context *cli.Context) (contextError error) { // nolint[funlen]
 	}
 
 	if doMemoryProfile := context.GlobalBool("mem-prof"); doMemoryProfile {
-		defer makeMemoryProfile()
+		defer cmd.MakeMemoryProfile()
 	}
 
 	// Now we initialize all Import/Export parts.
@@ -190,7 +127,7 @@ func run(context *cli.Context) (contextError error) { // nolint[funlen]
 	eventListener := listener.New()
 	events.SetupEvents(eventListener)
 
-	credentialsStore, credentialsError := credentials.NewStore("import-export")
+	credentialsStore, credentialsError := credentials.NewStore(appNameDash)
 	if credentialsError != nil {
 		log.Error("Could not get credentials store: ", credentialsError)
 	}
@@ -224,73 +161,8 @@ func run(context *cli.Context) (contextError error) { // nolint[funlen]
 	}
 
 	if frontend.IsAppRestarting() {
-		restartApp()
+		cmd.RestartApp()
 	}
 
 	return nil
-}
-
-// generateVersionFiles writes a JSON file with details about current build.
-// Those files are used for upgrading the app.
-func generateVersionFiles(updates *updates.Updates, dir string) {
-	log.Info("Generating version files")
-	for _, goos := range []string{"windows", "darwin", "linux"} {
-		log.Debug("Generating JSON for ", goos)
-		if err := updates.CreateJSONAndSign(dir, goos); err != nil {
-			log.Error(err)
-		}
-	}
-}
-
-func makeMemoryProfile() {
-	name := "./mem.pprof"
-	f, err := os.Create(name)
-	if err != nil {
-		log.Error("Could not create memory profile: ", err)
-	}
-	if abs, err := filepath.Abs(name); err == nil {
-		name = abs
-	}
-	log.Info("Writing memory profile to ", name)
-	runtime.GC() // get up-to-date statistics
-	if err := pprof.WriteHeapProfile(f); err != nil {
-		log.Error("Could not write memory profile: ", err)
-	}
-	_ = f.Close()
-}
-
-// filterRestartNumberFromArgs removes flag with a number how many restart we already did.
-// See restartApp how that number is used.
-func filterRestartNumberFromArgs() {
-	tmp := os.Args[:0]
-	for i, arg := range os.Args {
-		if !strings.HasPrefix(arg, "--restart_") {
-			tmp = append(tmp, arg)
-			continue
-		}
-		var err error
-		numberOfCrashes, err = strconv.Atoi(os.Args[i][10:])
-		if err != nil {
-			numberOfCrashes = maxAllowedCrashes
-		}
-	}
-	os.Args = tmp
-}
-
-// restartApp starts a new instance in background.
-func restartApp() {
-	if numberOfCrashes >= maxAllowedCrashes {
-		log.Error("Too many crashes")
-		return
-	}
-	if exeFile, err := os.Executable(); err == nil {
-		arguments := append(os.Args[1:], fmt.Sprintf("--restart_%d", numberOfCrashes))
-		cmd := exec.Command(exeFile, arguments...) //nolint[gosec]
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
-		cmd.Stdin = os.Stdin
-		if err := cmd.Start(); err != nil {
-			log.Error("Restart failed: ", err)
-		}
-	}
 }

@@ -56,6 +56,10 @@ type MessageStatus struct {
 	Time    time.Time
 }
 
+func (status *MessageStatus) String() string {
+	return fmt.Sprintf("%s (%s, %s, %s): %s", status.SourceID, status.Subject, status.From, status.Time, status.GetErrorMessage())
+}
+
 func (status *MessageStatus) setDetailsFromHeader(header mail.Header) {
 	dec := &mime.WordDecoder{}
 

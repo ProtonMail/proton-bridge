@@ -77,6 +77,9 @@ func (c *fakeConfig) GetLogPrefix() string {
 func (c *fakeConfig) GetPreferencesPath() string {
 	return filepath.Join(c.dir, "prefs.json")
 }
+func (c *fakeConfig) GetTransferDir() string {
+	return c.dir
+}
 func (c *fakeConfig) GetTLSCertPath() string {
 	return filepath.Join(c.dir, "cert.pem")
 }

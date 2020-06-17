@@ -20,7 +20,7 @@ package transfer
 import (
 	"sort"
 
-	"github.com/ProtonMail/gopenpgp/crypto"
+	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	"github.com/pkg/errors"
 )
@@ -31,6 +31,9 @@ type PMAPIProvider struct {
 	userID        string
 	addressID     string
 	keyRing       *crypto.KeyRing
+
+	importMsgReqMap  map[string]*pmapi.ImportMsgReq // Key is msg transfer ID.
+	importMsgReqSize int
 }
 
 // NewPMAPIProvider returns new PMAPIProvider.
@@ -45,6 +48,9 @@ func NewPMAPIProvider(clientManager ClientManager, userID, addressID string) (*P
 		userID:        userID,
 		addressID:     addressID,
 		keyRing:       keyRing,
+
+		importMsgReqMap:  map[string]*pmapi.ImportMsgReq{},
+		importMsgReqSize: 0,
 	}, nil
 }
 

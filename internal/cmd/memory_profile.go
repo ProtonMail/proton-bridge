@@ -15,21 +15,29 @@
 // You should have received a copy of the GNU General Public License
 // along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
 
-package args
+package cmd
 
 import (
 	"os"
-	"strings"
+	"path/filepath"
+	"runtime"
+	"runtime/pprof"
 )
 
-// FilterProcessSerialNumberFromArgs removes additional flag from MacOS. More info ProcessSerialNumber
-// http://mirror.informatimago.com/next/developer.apple.com/documentation/Carbon/Reference/Process_Manager/prmref_main/data_type_5.html#//apple_ref/doc/uid/TP30000208/C001951
-func FilterProcessSerialNumberFromArgs() {
-	tmp := os.Args[:0]
-	for _, arg := range os.Args {
-		if !strings.Contains(arg, "-psn_") {
-			tmp = append(tmp, arg)
-		}
+// MakeMemoryProfile generates memory pprof.
+func MakeMemoryProfile() {
+	name := "./mem.pprof"
+	f, err := os.Create(name)
+	if err != nil {
+		log.Error("Could not create memory profile: ", err)
 	}
-	os.Args = tmp
+	if abs, err := filepath.Abs(name); err == nil {
+		name = abs
+	}
+	log.Info("Writing memory profile to ", name)
+	runtime.GC() // get up-to-date statistics
+	if err := pprof.WriteHeapProfile(f); err != nil {
+		log.Error("Could not write memory profile: ", err)
+	}
+	_ = f.Close()
 }

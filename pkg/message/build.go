@@ -27,7 +27,7 @@ import (
 	"mime/quotedprintable"
 	"net/textproto"
 
-	"github.com/ProtonMail/gopenpgp/crypto"
+	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	"github.com/emersion/go-textwrapper"
 	openpgperrors "golang.org/x/crypto/openpgp/errors"

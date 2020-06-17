@@ -174,5 +174,11 @@ func TestStartUpgrade(t *testing.T) {
 }
 
 func newTestUpdates(version string) *Updates {
-	return New("bridge", version, "rev123", "42", "• new feature", "• fixed foo", testUpdateDir)
+	u := NewBridge(testUpdateDir)
+	u.version = version
+	u.revision = "rev123"
+	u.buildTime = "42"
+	u.releaseNotes = "• new feature"
+	u.releaseFixedBugs = "• fixed foo"
+	return u
 }

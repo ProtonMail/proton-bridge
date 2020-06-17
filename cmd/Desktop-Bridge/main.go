@@ -35,18 +35,13 @@ package main
 */
 
 import (
-	"fmt"
 	"io/ioutil"
 	"os"
-	"os/exec"
-	"path/filepath"
-	"runtime"
 	"runtime/pprof"
-	"strconv"
-	"strings"
 
 	"github.com/ProtonMail/proton-bridge/internal/api"
 	"github.com/ProtonMail/proton-bridge/internal/bridge"
+	"github.com/ProtonMail/proton-bridge/internal/cmd"
 	"github.com/ProtonMail/proton-bridge/internal/cookies"
 	"github.com/ProtonMail/proton-bridge/internal/events"
 	"github.com/ProtonMail/proton-bridge/internal/frontend"
@@ -54,104 +49,42 @@ import (
 	"github.com/ProtonMail/proton-bridge/internal/preferences"
 	"github.com/ProtonMail/proton-bridge/internal/smtp"
 	"github.com/ProtonMail/proton-bridge/internal/users/credentials"
-	"github.com/ProtonMail/proton-bridge/pkg/args"
 	"github.com/ProtonMail/proton-bridge/pkg/config"
 	"github.com/ProtonMail/proton-bridge/pkg/constants"
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	"github.com/ProtonMail/proton-bridge/pkg/updates"
 	"github.com/allan-simon/go-singleinstance"
-	"github.com/getsentry/raven-go"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
 )
 
-// cacheVersion is used for cache files such as lock, events, preferences, user_info, db files.
-// Different number will drop old files and create new ones.
-const cacheVersion = "c11"
+const (
+	// cacheVersion is used for cache files such as lock, events, preferences, user_info, db files.
+	// Different number will drop old files and create new ones.
+	cacheVersion = "c11"
+
+	appName = "bridge"
+)
 
 var (
 	log = logrus.WithField("pkg", "main") //nolint[gochecknoglobals]
-
-	// How many crashes in a row.
-	numberOfCrashes = 0 //nolint[gochecknoglobals]
-
-	// After how many crashes bridge gives up starting.
-	maxAllowedCrashes = 10 //nolint[gochecknoglobals]
 )
 
 func main() {
-	if err := raven.SetDSN(constants.DSNSentry); err != nil {
-		log.WithError(err).Errorln("Can not setup sentry DSN")
-	}
-	raven.SetRelease(constants.Revision)
-
-	args.FilterProcessSerialNumberFromArgs()
-	filterRestartNumberFromArgs()
-
-	app := cli.NewApp()
-	app.Name = "Protonmail Bridge"
-	app.Version = constants.BuildVersion
-	app.Flags = []cli.Flag{
-		cli.StringFlag{
-			Name:  "log-level, l",
-			Usage: "Set the log level (one of panic, fatal, error, warn, info, debug, debug-client, debug-server)"},
-		cli.BoolFlag{
-			Name:  "no-window",
-			Usage: "Don't show window after start"},
-		cli.BoolFlag{
-			Name:  "cli, c",
-			Usage: "Use command line interface"},
-		cli.BoolFlag{
-			Name:  "noninteractive",
-			Usage: "Start Bridge entirely noninteractively"},
-		cli.StringFlag{
-			Name:  "version-json, g",
-			Usage: "Generate json version file"},
-		cli.BoolFlag{
-			Name:  "mem-prof, m",
-			Usage: "Generate memory profile"},
-		cli.BoolFlag{
-			Name:  "cpu-prof, p",
-			Usage: "Generate CPU profile"},
-	}
-	app.Usage = "ProtonMail IMAP and SMTP Bridge"
-	app.Action = run
-
-	// Always log the basic info about current bridge.
-	logrus.SetLevel(logrus.InfoLevel)
-	log.WithField("version", constants.Version).
-		WithField("revision", constants.Revision).
-		WithField("runtime", runtime.GOOS).
-		WithField("build", constants.BuildTime).
-		WithField("args", os.Args).
-		WithField("appLong", app.Name).
-		WithField("appShort", constants.AppShortName).
-		Info("Run app")
-	if err := app.Run(os.Args); err != nil {
-		log.Error("Program exited with error: ", err)
-	}
-}
-
-type panicHandler struct {
-	cfg *config.Config
-	err *error // Pointer to error of cli action.
-}
-
-func (ph *panicHandler) HandlePanic() {
-	r := recover()
-	if r == nil {
-		return
-	}
-
-	config.HandlePanic(ph.cfg, fmt.Sprintf("Recover: %v", r))
-	frontend.HandlePanic("ProtonMail Bridge")
-
-	*ph.err = cli.NewExitError("Panic and restart", 255)
-	numberOfCrashes++
-	log.Error("Restarting after panic")
-	restartApp()
-	os.Exit(255)
+	cmd.Main(
+		"ProtonMail Bridge",
+		"ProtonMail IMAP and SMTP Bridge",
+		[]cli.Flag{
+			cli.BoolFlag{
+				Name:  "no-window",
+				Usage: "Don't show window after start"},
+			cli.BoolFlag{
+				Name:  "noninteractive",
+				Usage: "Start Bridge entirely noninteractively"},
+		},
+		run,
+	)
 }
 
 // run initializes and starts everything in a precise order.
@@ -159,13 +92,17 @@ func (ph *panicHandler) HandlePanic() {
 // IMPORTANT: ***Read the comments before CHANGING the order ***
 func run(context *cli.Context) (contextError error) { // nolint[funlen]
 	// We need to have config instance to setup a logs, panic handler, etc ...
-	cfg := config.New(constants.AppShortName, constants.Version, constants.Revision, cacheVersion)
+	cfg := config.New(appName, constants.Version, constants.Revision, cacheVersion)
 
 	// We want to know about any problem. Our PanicHandler calls sentry which is
 	// not dependent on anything else. If that fails, it tries to create crash
 	// report which will not be possible if no folder can be created. That's the
 	// only problem we will not be notified about in any way.
-	panicHandler := &panicHandler{cfg, &contextError}
+	panicHandler := &cmd.PanicHandler{
+		AppName: "ProtonMail Bridge",
+		Config:  cfg,
+		Err:     &contextError,
+	}
 	defer panicHandler.HandlePanic()
 
 	// First we need config and create necessary folder; it's dependency for everything.
@@ -177,13 +114,6 @@ func run(context *cli.Context) (contextError error) { // nolint[funlen]
 	logLevel := context.GlobalString("log-level")
 	debugClient, debugServer := config.SetupLog(cfg, logLevel)
 
-	// Should be called after logs are configured but before preferences are created.
-	migratePreferencesFromC10(cfg)
-
-	if err := cfg.ClearOldData(); err != nil {
-		log.Error("Cannot clear old data: ", err)
-	}
-
 	// Doesn't make sense to continue when Bridge was invoked with wrong arguments.
 	// We should tell that to the user before we do anything else.
 	if context.Args().First() != "" {
@@ -193,20 +123,15 @@ func run(context *cli.Context) (contextError error) { // nolint[funlen]
 
 	// It's safe to get version JSON file even when other instance is running.
 	// (thus we put it before check of presence of other Bridge instance).
-	updates := updates.New(
-		constants.AppShortName,
-		constants.Version,
-		constants.Revision,
-		constants.BuildTime,
-		bridge.ReleaseNotes,
-		bridge.ReleaseFixedBugs,
-		cfg.GetUpdateDir(),
-	)
+	updates := updates.NewBridge(cfg.GetUpdateDir())
 
 	if dir := context.GlobalString("version-json"); dir != "" {
-		generateVersionFiles(updates, dir)
+		cmd.GenerateVersionFiles(updates, dir)
 		return nil
 	}
+
+	// Should be called after logs are configured but before preferences are created.
+	migratePreferencesFromC10(cfg)
 
 	// ClearOldData before starting new bridge to do a proper setup.
 	//
@@ -234,7 +159,7 @@ func run(context *cli.Context) (contextError error) { // nolint[funlen]
 	if err != nil {
 		log.Warn("Bridge is already running")
 		if err := api.CheckOtherInstanceAndFocus(pref.GetInt(preferences.APIPortKey), tls); err != nil {
-			numberOfCrashes = maxAllowedCrashes
+			cmd.DisableRestart()
 			log.Error("Second instance: ", err)
 		}
 		return cli.NewExitError("Bridge is already running.", 3)
@@ -254,7 +179,7 @@ func run(context *cli.Context) (contextError error) { // nolint[funlen]
 	}
 
 	if doMemoryProfile := context.GlobalBool("mem-prof"); doMemoryProfile {
-		defer makeMemoryProfile()
+		defer cmd.MakeMemoryProfile()
 	}
 
 	// Now we initialize all Bridge parts.
@@ -262,7 +187,7 @@ func run(context *cli.Context) (contextError error) { // nolint[funlen]
 	eventListener := listener.New()
 	events.SetupEvents(eventListener)
 
-	credentialsStore, credentialsError := credentials.NewStore("bridge")
+	credentialsStore, credentialsError := credentials.NewStore(appName)
 	if credentialsError != nil {
 		log.Error("Could not get credentials store: ", credentialsError)
 	}
@@ -338,7 +263,7 @@ func run(context *cli.Context) (contextError error) { // nolint[funlen]
 	}
 
 	if frontend.IsAppRestarting() {
-		restartApp()
+		cmd.RestartApp()
 	}
 
 	return nil
@@ -348,7 +273,7 @@ func run(context *cli.Context) (contextError error) { // nolint[funlen]
 // It will happen only when c10/prefs.json exists and c11/prefs.json not.
 // No configuration changed between c10 and c11 versions.
 func migratePreferencesFromC10(cfg *config.Config) {
-	pref10Path := config.New(constants.AppShortName, constants.Version, constants.Revision, "c10").GetPreferencesPath()
+	pref10Path := config.New(appName, constants.Version, constants.Revision, "c10").GetPreferencesPath()
 	if _, err := os.Stat(pref10Path); os.IsNotExist(err) {
 		log.WithField("path", pref10Path).Trace("Old preferences does not exist, migration skipped")
 		return
@@ -373,69 +298,4 @@ func migratePreferencesFromC10(cfg *config.Config) {
 	}
 
 	log.Info("Preferences migrated")
-}
-
-// generateVersionFiles writes a JSON file with details about current build.
-// Those files are used for upgrading the app.
-func generateVersionFiles(updates *updates.Updates, dir string) {
-	log.Info("Generating version files")
-	for _, goos := range []string{"windows", "darwin", "linux"} {
-		log.Debug("Generating JSON for ", goos)
-		if err := updates.CreateJSONAndSign(dir, goos); err != nil {
-			log.Error(err)
-		}
-	}
-}
-
-func makeMemoryProfile() {
-	name := "./mem.pprof"
-	f, err := os.Create(name)
-	if err != nil {
-		log.Error("Could not create memory profile: ", err)
-	}
-	if abs, err := filepath.Abs(name); err == nil {
-		name = abs
-	}
-	log.Info("Writing memory profile to ", name)
-	runtime.GC() // get up-to-date statistics
-	if err := pprof.WriteHeapProfile(f); err != nil {
-		log.Error("Could not write memory profile: ", err)
-	}
-	_ = f.Close()
-}
-
-// filterRestartNumberFromArgs removes flag with a number how many restart we already did.
-// See restartApp how that number is used.
-func filterRestartNumberFromArgs() {
-	tmp := os.Args[:0]
-	for i, arg := range os.Args {
-		if !strings.HasPrefix(arg, "--restart_") {
-			tmp = append(tmp, arg)
-			continue
-		}
-		var err error
-		numberOfCrashes, err = strconv.Atoi(os.Args[i][10:])
-		if err != nil {
-			numberOfCrashes = maxAllowedCrashes
-		}
-	}
-	os.Args = tmp
-}
-
-// restartApp starts a new instance in background.
-func restartApp() {
-	if numberOfCrashes >= maxAllowedCrashes {
-		log.Error("Too many crashes")
-		return
-	}
-	if exeFile, err := os.Executable(); err == nil {
-		arguments := append(os.Args[1:], fmt.Sprintf("--restart_%d", numberOfCrashes))
-		cmd := exec.Command(exeFile, arguments...) //nolint[gosec]
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
-		cmd.Stdin = os.Stdin
-		if err := cmd.Start(); err != nil {
-			log.Error("Restart failed: ", err)
-		}
-	}
 }

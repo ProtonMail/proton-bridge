@@ -20,6 +20,7 @@ package fakeapi
 import (
 	"bytes"
 	"fmt"
+	"io/ioutil"
 	"net/mail"
 	"time"
 
@@ -67,7 +68,7 @@ func (api *FakePMAPI) ListMessages(filter *pmapi.MessagesFilter) ([]*pmapi.Messa
 
 	for idx := 0; idx < len(api.messages); idx++ {
 		var message *pmapi.Message
-		if !*filter.Desc {
+		if filter.Desc == nil || !*filter.Desc {
 			message = api.messages[idx]
 			if filter.BeginID == "" || message.ID == filter.BeginID {
 				skipByIDBegin = false
@@ -81,7 +82,7 @@ func (api *FakePMAPI) ListMessages(filter *pmapi.MessagesFilter) ([]*pmapi.Messa
 		if skipByIDBegin || skipByIDEnd {
 			continue
 		}
-		if !*filter.Desc {
+		if filter.Desc == nil || !*filter.Desc {
 			if message.ID == filter.EndID {
 				skipByIDEnd = true
 			}
@@ -189,34 +190,58 @@ func (api *FakePMAPI) SendMessage(messageID string, sendMessageRequest *pmapi.Se
 }
 
 func (api *FakePMAPI) Import(importMessageRequests []*pmapi.ImportMsgReq) ([]*pmapi.ImportMsgRes, error) {
+	if err := api.checkAndRecordCall(POST, "/import", importMessageRequests); err != nil {
+		return nil, err
+	}
 	msgRes := []*pmapi.ImportMsgRes{}
 	for _, msgReq := range importMessageRequests {
-		mailMessage, err := mail.ReadMessage(bytes.NewBuffer(msgReq.Body))
+		message, err := api.generateMessageFromImportRequest(msgReq)
 		if err != nil {
 			msgRes = append(msgRes, &pmapi.ImportMsgRes{
 				Error: err,
 			})
-		}
-		messageID := api.controller.messageIDGenerator.next("")
-		message := &pmapi.Message{
-			ID:        messageID,
-			AddressID: msgReq.AddressID,
-			Sender:    &mail.Address{Address: mailMessage.Header.Get("From")},
-			ToList:    []*mail.Address{{Address: mailMessage.Header.Get("To")}},
-			Subject:   mailMessage.Header.Get("Subject"),
-			Unread:    msgReq.Unread,
-			LabelIDs:  msgReq.LabelIDs,
-			Body:      string(msgReq.Body),
-			Flags:     msgReq.Flags,
-			Time:      msgReq.Time,
+			continue
 		}
 		msgRes = append(msgRes, &pmapi.ImportMsgRes{
 			Error:     nil,
-			MessageID: messageID,
+			MessageID: message.ID,
 		})
 		api.addMessage(message)
 	}
 	return msgRes, nil
+}
+
+func (api *FakePMAPI) generateMessageFromImportRequest(msgReq *pmapi.ImportMsgReq) (*pmapi.Message, error) {
+	mailMessage, err := mail.ReadMessage(bytes.NewBuffer(msgReq.Body))
+	if err != nil {
+		return nil, err
+	}
+	body, err := ioutil.ReadAll(mailMessage.Body)
+	if err != nil {
+		return nil, err
+	}
+	sender, err := mail.ParseAddress(mailMessage.Header.Get("From"))
+	if err != nil {
+		return nil, err
+	}
+	toList, err := mail.ParseAddressList(mailMessage.Header.Get("To"))
+	if err != nil {
+		return nil, err
+	}
+	messageID := api.controller.messageIDGenerator.next("")
+	return &pmapi.Message{
+		ID:        messageID,
+		AddressID: msgReq.AddressID,
+		Sender:    sender,
+		ToList:    toList,
+		Subject:   mailMessage.Header.Get("Subject"),
+		Unread:    msgReq.Unread,
+		LabelIDs:  append(msgReq.LabelIDs, pmapi.AllMailLabel),
+		Body:      string(body),
+		Header:    mailMessage.Header,
+		Flags:     msgReq.Flags,
+		Time:      msgReq.Time,
+	}, nil
 }
 
 func (api *FakePMAPI) addMessage(message *pmapi.Message) {

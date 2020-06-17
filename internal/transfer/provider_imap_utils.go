@@ -49,16 +49,11 @@ func (l *imapErrorLogger) Println(v ...interface{}) {
 	l.log.Errorln(v...)
 }
 
-type imapDebugLogger struct { //nolint[unused]
-	log *logrus.Entry
-}
-
-func (l *imapDebugLogger) Write(data []byte) (int, error) {
-	l.log.Trace(string(data))
-	return len(data), nil
-}
-
 func (p *IMAPProvider) ensureConnection(callback func() error) error {
+	return p.ensureConnectionAndSelection(callback, "")
+}
+
+func (p *IMAPProvider) ensureConnectionAndSelection(callback func() error, ensureSelectedIn string) error {
 	var callErr error
 	for i := 1; i <= imapRetries; i++ {
 		callErr = callback()
@@ -66,8 +61,8 @@ func (p *IMAPProvider) ensureConnection(callback func() error) error {
 			return nil
 		}
 
-		log.WithField("attempt", i).WithError(callErr).Warning("Call failed, trying reconnect")
-		err := p.tryReconnect()
+		log.WithField("attempt", i).WithError(callErr).Warning("IMAP call failed, trying reconnect")
+		err := p.tryReconnect(ensureSelectedIn)
 		if err != nil {
 			return err
 		}
@@ -75,7 +70,7 @@ func (p *IMAPProvider) ensureConnection(callback func() error) error {
 	return errors.Wrap(callErr, "too many retries")
 }
 
-func (p *IMAPProvider) tryReconnect() error {
+func (p *IMAPProvider) tryReconnect(ensureSelectedIn string) error {
 	start := time.Now()
 	var previousErr error
 	for {
@@ -84,6 +79,7 @@ func (p *IMAPProvider) tryReconnect() error {
 		}
 
 		err := pmapi.CheckConnection()
+		log.WithError(err).Debug("Connection check")
 		if err != nil {
 			time.Sleep(imapReconnectSleep)
 			previousErr = err
@@ -91,10 +87,20 @@ func (p *IMAPProvider) tryReconnect() error {
 		}
 
 		err = p.reauth()
+		log.WithError(err).Debug("Reauth")
 		if err != nil {
 			time.Sleep(imapReconnectSleep)
 			previousErr = err
 			continue
+		}
+
+		if ensureSelectedIn != "" {
+			_, err = p.client.Select(ensureSelectedIn, true)
+			log.WithError(err).Debug("Reselect")
+			if err != nil {
+				previousErr = err
+				continue
+			}
 		}
 
 		break
@@ -103,12 +109,25 @@ func (p *IMAPProvider) tryReconnect() error {
 }
 
 func (p *IMAPProvider) reauth() error {
-	if _, err := p.client.Capability(); err != nil {
-		state := p.client.State()
-		log.WithField("addr", p.addr).WithField("state", state).WithError(err).Debug("Reconnecting")
-		p.client = nil
+	var state imap.ConnState
+
+	// In some cases once go-imap fails, we cannot issue another command
+	// because it would dead-lock. Let's simply ignore it, we want to open
+	// new connection anyway.
+	ch := make(chan struct{})
+	go func() {
+		defer close(ch)
+		if _, err := p.client.Capability(); err != nil {
+			state = p.client.State()
+		}
+	}()
+	select {
+	case <-ch:
+	case <-time.After(30 * time.Second):
 	}
 
+	log.WithField("addr", p.addr).WithField("state", state).Debug("Reconnecting")
+	p.client = nil
 	return p.auth()
 }
 
@@ -121,15 +140,25 @@ func (p *IMAPProvider) auth() error { //nolint[funlen]
 		return errors.Wrap(err, "failed to dial server")
 	}
 
-	client, err := imapClient.DialTLS(p.addr, nil)
+	var client *imapClient.Client
+	var err error
+	host, _, _ := net.SplitHostPort(p.addr)
+	if host == "127.0.0.1" {
+		client, err = imapClient.Dial(p.addr)
+	} else {
+		client, err = imapClient.DialTLS(p.addr, nil)
+	}
 	if err != nil {
 		return errors.Wrap(err, "failed to connect to server")
 	}
+
 	client.ErrorLog = &imapErrorLogger{logrus.WithField("pkg", "imap-client")}
-	// Logrus have Writer helper but it fails for big messages because of
-	// bufio.MaxScanTokenSize limit.
-	// This spams a lot, uncomment once needed during development.
-	//client.SetDebug(&imapDebugLogger{logrus.WithField("pkg", "imap-client")})
+	// Logrus `WriterLevel` fails for big messages because of bufio.MaxScanTokenSize limit.
+	// Also, this spams a lot, uncomment once needed during development.
+	//client.SetDebug(imap.NewDebugWriter(
+	//	logrus.WithField("pkg", "imap/client").WriterLevel(logrus.TraceLevel),
+	//	logrus.WithField("pkg", "imap/server").WriterLevel(logrus.TraceLevel),
+	//))
 	p.client = client
 
 	log.Info("Connected")
@@ -205,16 +234,16 @@ func (p *IMAPProvider) selectIn(mailboxName string) (mailbox *imap.MailboxStatus
 	return
 }
 
-func (p *IMAPProvider) fetch(seqSet *imap.SeqSet, items []imap.FetchItem, processMessageCallback func(m *imap.Message)) error {
-	return p.fetchHelper(false, seqSet, items, processMessageCallback)
+func (p *IMAPProvider) fetch(ensureSelectedIn string, seqSet *imap.SeqSet, items []imap.FetchItem, processMessageCallback func(m *imap.Message)) error {
+	return p.fetchHelper(false, ensureSelectedIn, seqSet, items, processMessageCallback)
 }
 
-func (p *IMAPProvider) uidFetch(seqSet *imap.SeqSet, items []imap.FetchItem, processMessageCallback func(m *imap.Message)) error {
-	return p.fetchHelper(true, seqSet, items, processMessageCallback)
+func (p *IMAPProvider) uidFetch(ensureSelectedIn string, seqSet *imap.SeqSet, items []imap.FetchItem, processMessageCallback func(m *imap.Message)) error {
+	return p.fetchHelper(true, ensureSelectedIn, seqSet, items, processMessageCallback)
 }
 
-func (p *IMAPProvider) fetchHelper(uid bool, seqSet *imap.SeqSet, items []imap.FetchItem, processMessageCallback func(m *imap.Message)) error {
-	return p.ensureConnection(func() error {
+func (p *IMAPProvider) fetchHelper(uid bool, ensureSelectedIn string, seqSet *imap.SeqSet, items []imap.FetchItem, processMessageCallback func(m *imap.Message)) error {
+	return p.ensureConnectionAndSelection(func() error {
 		messagesCh := make(chan *imap.Message)
 		doneCh := make(chan error)
 
@@ -232,5 +261,5 @@ func (p *IMAPProvider) fetchHelper(uid bool, seqSet *imap.SeqSet, items []imap.F
 
 		err := <-doneCh
 		return err
-	})
+	}, ensureSelectedIn)
 }

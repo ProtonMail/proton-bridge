@@ -1,25 +1,38 @@
-.PHONY: check-has-go install-godog test test-live test-debug test-live-debug
+.PHONY: check-go check-godog install-godog test test-bridge test-ie test-live test-live-bridge test-live-ie test-stage test-debug test-live-debug bench
 
 export GO111MODULE=on
 export BRIDGE_VERSION:=1.3.0-integrationtests
 export VERBOSITY?=fatal
 export TEST_DATA=testdata
+export TEST_APP?=bridge
 
-check-has-go:
+# Tests do not run in parallel. This will overrule user settings.
+MAKEFLAGS=-j1
+
+check-go:
 	@which go || (echo "Install Go-lang!" && exit 1)
-
-install-godog: check-has-go
+check-godog:
+	@which godog || $(MAKE) install-godog
+install-godog: check-go
 	go get github.com/cucumber/godog/cmd/godog@v0.8.1
 
-test:
-	which godog || $(MAKE) install-godog
-	TEST_ENV=fake TEST_ACCOUNTS=accounts/fake.json godog --tags="~@ignore" $(FEATURES)
+test: test-bridge test-ie
+test-bridge: FEATURES ?= features/bridge
+test-bridge: check-godog
+	TEST_APP=bridge TEST_ENV=fake TEST_ACCOUNTS=accounts/fake.json godog --tags="~@ignore" $(FEATURES)
+test-ie: FEATURES ?= features/ie
+test-ie: check-godog
+	TEST_APP=ie TEST_ENV=fake TEST_ACCOUNTS=accounts/fake.json godog --tags="~@ignore" $(FEATURES)
 
 # Doesn't work in parallel!
 # Provide TEST_ACCOUNTS with your accounts.
-test-live:
-	which godog || $(MAKE) install-godog
-	TEST_ENV=live godog --tags="~@ignore && ~@ignore-live" $(FEATURES)
+test-live: test-live-bridge test-live-ie
+test-live-bridge: FEATURES ?= features/bridge
+test-live-bridge: check-godog
+	TEST_APP=bridge TEST_ENV=live godog --tags="~@ignore && ~@ignore-live" $(FEATURES)
+test-live-ie: FEATURES ?= features/ie
+test-live-ie: check-godog
+	TEST_APP=ie TEST_ENV=live godog --tags="~@ignore && ~@ignore-live" $(FEATURES)
 
 # Doesn't work in parallel!
 # Provide TEST_ACCOUNTS with your accounts.

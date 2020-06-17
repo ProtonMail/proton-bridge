@@ -178,17 +178,16 @@ func setupPMAPIClientExpectationForExport(m *mocks) {
 func setupPMAPIClientExpectationForImport(m *mocks) {
 	m.pmapiClient.EXPECT().KeyRingForAddressID(gomock.Any()).Return(m.keyring, nil).AnyTimes()
 	m.pmapiClient.EXPECT().Import(gomock.Any()).DoAndReturn(func(requests []*pmapi.ImportMsgReq) ([]*pmapi.ImportMsgRes, error) {
-		r.Equal(m.t, 1, len(requests))
-
-		request := requests[0]
-		for _, msgID := range []string{"msg1", "msg2"} {
-			if bytes.Contains(request.Body, []byte(msgID)) {
-				return []*pmapi.ImportMsgRes{{MessageID: msgID, Error: nil}}, nil
+		results := []*pmapi.ImportMsgRes{}
+		for _, request := range requests {
+			for _, msgID := range []string{"msg1", "msg2"} {
+				if bytes.Contains(request.Body, []byte(msgID)) {
+					results = append(results, &pmapi.ImportMsgRes{MessageID: msgID, Error: nil})
+				}
 			}
 		}
-		r.Fail(m.t, "No message found")
-		return nil, nil
-	}).Times(2)
+		return results, nil
+	}).AnyTimes()
 }
 
 func setupPMAPIClientExpectationForImportDraft(m *mocks) {

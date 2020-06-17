@@ -27,6 +27,9 @@ import (
 	"runtime"
 	"strings"
 
+	"github.com/ProtonMail/proton-bridge/internal/bridge"
+	"github.com/ProtonMail/proton-bridge/internal/importexport"
+	"github.com/ProtonMail/proton-bridge/pkg/constants"
 	"github.com/kardianos/osext"
 	"github.com/sirupsen/logrus"
 )
@@ -57,7 +60,6 @@ var (
 )
 
 type Updates struct {
-	appName               string
 	version               string
 	revision              string
 	buildTime             string
@@ -68,26 +70,44 @@ type Updates struct {
 	installerFileBaseName string       // File for initial install or manual reinstall. per goos [exe, dmg, sh].
 	versionFileBaseName   string       // Text file containing information about current file. per goos [_linux,_darwin,_windows].json (have .sig file).
 	updateFileBaseName    string       // File for automatic update. per goos [_linux,_darwin,_windows].tgz  (have .sig file).
-	macAppBundleName      string       // For update procedure.
+	linuxFileBaseName     string       // Prefix of linux package names.
+	macAppBundleName      string       // Name of Mac app file in the bundle for update procedure.
 	cachedNewerVersion    *VersionInfo // To have info about latest version even when the internet connection drops.
 }
 
-// New inits Updates struct.
-// `appName` should be in camelCase format for file names. For installer files is converted to CamelCase.
-func New(appName, version, revision, buildTime, releaseNotes, releaseFixedBugs, updateTempDir string) *Updates {
+// NewBridge inits Updates struct for bridge.
+func NewBridge(updateTempDir string) *Updates {
 	return &Updates{
-		appName:               appName,
-		version:               version,
-		revision:              revision,
-		buildTime:             buildTime,
-		releaseNotes:          releaseNotes,
-		releaseFixedBugs:      releaseFixedBugs,
+		version:               constants.Version,
+		revision:              constants.Revision,
+		buildTime:             constants.BuildTime,
+		releaseNotes:          bridge.ReleaseNotes,
+		releaseFixedBugs:      bridge.ReleaseFixedBugs,
 		updateTempDir:         updateTempDir,
-		landingPagePath:       appName + "/download",
-		installerFileBaseName: strings.Title(appName) + "-Installer",
+		landingPagePath:       "bridge/download",
+		installerFileBaseName: "Bridge-Installer",
 		versionFileBaseName:   "current_version",
-		updateFileBaseName:    appName + "_upgrade",
-		macAppBundleName:      "ProtonMail " + strings.Title(appName) + ".app", // For update procedure.
+		updateFileBaseName:    "bridge_upgrade",
+		linuxFileBaseName:     "protonmail-bridge",
+		macAppBundleName:      "ProtonMail Bridge.app",
+	}
+}
+
+// NewImportExport inits Updates struct for import/export.
+func NewImportExport(updateTempDir string) *Updates {
+	return &Updates{
+		version:               constants.Version,
+		revision:              constants.Revision,
+		buildTime:             constants.BuildTime,
+		releaseNotes:          importexport.ReleaseNotes,
+		releaseFixedBugs:      importexport.ReleaseFixedBugs,
+		updateTempDir:         updateTempDir,
+		landingPagePath:       "blog/import-export-beta/",
+		installerFileBaseName: "Import-Export-Installer",
+		versionFileBaseName:   "current_version_ie",
+		updateFileBaseName:    "ie_upgrade",
+		linuxFileBaseName:     "protonmail-import-export",
+		macAppBundleName:      "ProtonMail Import-Export.app",
 	}
 }
 
@@ -165,7 +185,7 @@ func (u *Updates) getLocalVersion(goos string) VersionInfo {
 	}
 
 	if goos == "linux" {
-		pkgName := "protonmail-" + u.appName
+		pkgName := u.linuxFileBaseName
 		pkgRel := "1"
 		pkgBase := strings.Join([]string{Host, DownloadPath, pkgName}, "/")
 

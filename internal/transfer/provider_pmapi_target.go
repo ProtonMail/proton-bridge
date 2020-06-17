@@ -28,6 +28,11 @@ import (
 	"github.com/pkg/errors"
 )
 
+const (
+	pmapiImportBatchMaxItems = 10
+	pmapiImportBatchMaxSize  = 25 * 1000 * 1000 // 25 MB
+)
+
 // DefaultMailboxes returns the default mailboxes for default rules if no other is found.
 func (p *PMAPIProvider) DefaultMailboxes(_ Mailbox) []Mailbox {
 	return []Mailbox{{
@@ -67,18 +72,19 @@ func (p *PMAPIProvider) TransferFrom(rules transferRules, progress *Progress, ch
 	defer log.Info("Finished transfer from channel to PMAPI")
 
 	for msg := range ch {
-		for progress.shouldStop() {
+		if progress.shouldStop() {
 			break
 		}
 
-		var importedID string
-		var err error
 		if p.isMessageDraft(msg) {
-			importedID, err = p.importDraft(msg, rules.globalMailbox)
+			p.transferDraft(rules, progress, msg)
 		} else {
-			importedID, err = p.importMessage(msg, rules.globalMailbox)
+			p.transferMessage(rules, progress, msg)
 		}
-		progress.messageImported(msg.ID, importedID, err)
+	}
+
+	if len(p.importMsgReqMap) > 0 {
+		p.importMessages(progress)
 	}
 }
 
@@ -89,6 +95,11 @@ func (p *PMAPIProvider) isMessageDraft(msg Message) bool {
 		}
 	}
 	return false
+}
+
+func (p *PMAPIProvider) transferDraft(rules transferRules, progress *Progress, msg Message) {
+	importedID, err := p.importDraft(msg, rules.globalMailbox)
+	progress.messageImported(msg.ID, importedID, err)
 }
 
 func (p *PMAPIProvider) importDraft(msg Message, globalMailbox *Mailbox) (string, error) {
@@ -138,15 +149,30 @@ func (p *PMAPIProvider) importDraft(msg Message, globalMailbox *Mailbox) (string
 	return draft.ID, nil
 }
 
-func (p *PMAPIProvider) importMessage(msg Message, globalMailbox *Mailbox) (string, error) {
+func (p *PMAPIProvider) transferMessage(rules transferRules, progress *Progress, msg Message) {
+	importMsgReq, err := p.generateImportMsgReq(msg, rules.globalMailbox)
+	if err != nil {
+		progress.messageImported(msg.ID, "", err)
+		return
+	}
+
+	importMsgReqSize := len(importMsgReq.Body)
+	if p.importMsgReqSize+importMsgReqSize > pmapiImportBatchMaxSize || len(p.importMsgReqMap) == pmapiImportBatchMaxItems {
+		p.importMessages(progress)
+	}
+	p.importMsgReqMap[msg.ID] = importMsgReq
+	p.importMsgReqSize += importMsgReqSize
+}
+
+func (p *PMAPIProvider) generateImportMsgReq(msg Message, globalMailbox *Mailbox) (*pmapi.ImportMsgReq, error) {
 	message, attachmentReaders, err := p.parseMessage(msg)
 	if err != nil {
-		return "", errors.Wrap(err, "failed to parse message")
+		return nil, errors.Wrap(err, "failed to parse message")
 	}
 
 	body, err := p.encryptMessage(message, attachmentReaders)
 	if err != nil {
-		return "", errors.Wrap(err, "failed to encrypt message")
+		return nil, errors.Wrap(err, "failed to encrypt message")
 	}
 
 	unread := 0
@@ -165,26 +191,14 @@ func (p *PMAPIProvider) importMessage(msg Message, globalMailbox *Mailbox) (stri
 		labelIDs = append(labelIDs, globalMailbox.ID)
 	}
 
-	importMsgReq := &pmapi.ImportMsgReq{
+	return &pmapi.ImportMsgReq{
 		AddressID: p.addressID,
 		Body:      body,
 		Unread:    unread,
 		Time:      message.Time,
 		Flags:     computeMessageFlags(labelIDs),
 		LabelIDs:  labelIDs,
-	}
-
-	results, err := p.importRequest([]*pmapi.ImportMsgReq{importMsgReq})
-	if err != nil {
-		return "", errors.Wrap(err, "failed to import messages")
-	}
-	if len(results) == 0 {
-		return "", errors.New("import ended with no result")
-	}
-	if results[0].Error != nil {
-		return "", errors.Wrap(results[0].Error, "failed to import message")
-	}
-	return results[0].MessageID, nil
+	}, nil
 }
 
 func (p *PMAPIProvider) parseMessage(msg Message) (*pmapi.Message, []io.Reader, error) {
@@ -217,4 +231,66 @@ func computeMessageFlags(labels []string) (flag int64) {
 	}
 
 	return flag
+}
+
+func (p *PMAPIProvider) importMessages(progress *Progress) {
+	if progress.shouldStop() {
+		return
+	}
+
+	importMsgIDs := []string{}
+	importMsgRequests := []*pmapi.ImportMsgReq{}
+	for msgID, req := range p.importMsgReqMap {
+		importMsgIDs = append(importMsgIDs, msgID)
+		importMsgRequests = append(importMsgRequests, req)
+	}
+
+	log.WithField("msgIDs", importMsgIDs).WithField("size", p.importMsgReqSize).Debug("Importing messages")
+	results, err := p.importRequest(importMsgRequests)
+
+	// In case the whole request failed, try to import every message one by one.
+	if err != nil || len(results) == 0 {
+		log.WithError(err).Warning("Importing messages failed, trying one by one")
+		for msgID, req := range p.importMsgReqMap {
+			importedID, err := p.importMessage(progress, req)
+			progress.messageImported(msgID, importedID, err)
+		}
+		return
+	}
+
+	// In case request passed but some messages failed, try to import the failed ones alone.
+	for index, result := range results {
+		msgID := importMsgIDs[index]
+		if result.Error != nil {
+			log.WithError(result.Error).WithField("msg", msgID).Warning("Importing message failed, trying alone")
+			req := importMsgRequests[index]
+			importedID, err := p.importMessage(progress, req)
+			progress.messageImported(msgID, importedID, err)
+		} else {
+			progress.messageImported(msgID, result.MessageID, nil)
+		}
+	}
+
+	p.importMsgReqMap = map[string]*pmapi.ImportMsgReq{}
+	p.importMsgReqSize = 0
+}
+
+func (p *PMAPIProvider) importMessage(progress *Progress, req *pmapi.ImportMsgReq) (importedID string, importedErr error) {
+	progress.callWrap(func() error {
+		results, err := p.importRequest([]*pmapi.ImportMsgReq{req})
+		if err != nil {
+			return errors.Wrap(err, "failed to import messages")
+		}
+		if len(results) == 0 {
+			importedErr = errors.New("import ended with no result")
+			return nil // This should not happen, only when there is bug which means we should skip this one.
+		}
+		if results[0].Error != nil {
+			importedErr = errors.Wrap(results[0].Error, "failed to import message")
+			return nil // Call passed but API refused this message, skip this one.
+		}
+		importedID = results[0].MessageID
+		return nil
+	})
+	return
 }

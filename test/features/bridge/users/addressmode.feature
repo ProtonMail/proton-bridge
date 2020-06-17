@@ -26,7 +26,7 @@ Feature: Address mode
   Scenario: Switch address mode from combined to split mode
     Given there is "userMoreAddresses" in "combined" address mode
     When "userMoreAddresses" changes the address mode
-    Then bridge response is "OK"
+    Then last response is "OK"
     And "userMoreAddresses" has address mode in "split" mode
     And mailbox "Folders/mbox" for address "primary" of "userMoreAddresses" has messages
       | from              | to        | subject |
@@ -38,7 +38,7 @@ Feature: Address mode
   Scenario: Switch address mode from split to combined mode
     Given there is "userMoreAddresses" in "split" address mode
     When "userMoreAddresses" changes the address mode
-    Then bridge response is "OK"
+    Then last response is "OK"
     And "userMoreAddresses" has address mode in "combined" mode
     And mailbox "Folders/mbox" for address "primary" of "userMoreAddresses" has messages
       | from              | to          | subject |

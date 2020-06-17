@@ -67,12 +67,12 @@ func CheckPathStatus(path string) int {
 			tmpFile += "tmp"
 			_, err = os.Lstat(tmpFile)
 		}
-		err = os.Mkdir(tmpFile, 0777)
+		err = os.Mkdir(tmpFile, 0750)
 		if err != nil {
 			stat |= PathWrongPermissions
 			return int(stat)
 		}
-		os.Remove(tmpFile)
+		_ = os.Remove(tmpFile)
 	} else {
 		stat |= PathNotADir
 	}

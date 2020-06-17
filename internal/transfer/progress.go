@@ -139,8 +139,10 @@ func (p *Progress) messageExported(messageID string, body []byte, err error) {
 
 	p.log.WithField("id", messageID).WithError(err).Debug("Message exported")
 	status := p.messageStatuses[messageID]
-	status.exported = true
 	status.exportErr = err
+	if err == nil {
+		status.exported = true
+	}
 
 	if len(body) > 0 {
 		status.bodyHash = fmt.Sprintf("%x", sha256.Sum256(body))
@@ -166,8 +168,10 @@ func (p *Progress) messageImported(messageID, importID string, err error) {
 
 	p.log.WithField("id", messageID).WithError(err).Debug("Message imported")
 	p.messageStatuses[messageID].targetID = importID
-	p.messageStatuses[messageID].imported = true
 	p.messageStatuses[messageID].importErr = err
+	if err == nil {
+		p.messageStatuses[messageID].imported = true
+	}
 
 	// Import is the last step, now we can log the result to the report file.
 	p.logMessage(messageID)

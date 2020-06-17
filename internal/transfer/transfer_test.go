@@ -18,11 +18,10 @@
 package transfer
 
 import (
-	"bytes"
 	"io/ioutil"
 	"testing"
 
-	"github.com/ProtonMail/gopenpgp/crypto"
+	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	transfermocks "github.com/ProtonMail/proton-bridge/internal/transfer/mocks"
 	pmapimocks "github.com/ProtonMail/proton-bridge/pkg/pmapi/mocks"
 	gomock "github.com/golang/mock/gomock"
@@ -62,11 +61,12 @@ func newTestKeyring() *crypto.KeyRing {
 	if err != nil {
 		panic(err)
 	}
-	userKey, err := crypto.ReadArmoredKeyRing(bytes.NewReader(data))
+	key, err := crypto.NewKeyFromArmored(string(data))
 	if err != nil {
 		panic(err)
 	}
-	if err := userKey.Unlock([]byte("testpassphrase")); err != nil {
+	userKey, err := crypto.NewKeyRing(key)
+	if err != nil {
 		panic(err)
 	}
 	return userKey

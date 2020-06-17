@@ -30,11 +30,16 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// GetUsers returns users instance.
+func (ctx *TestContext) GetUsers() *users.Users {
+	return ctx.users
+}
+
 // LoginUser logs in the user with the given username, password, and mailbox password.
 func (ctx *TestContext) LoginUser(username, password, mailboxPassword string) (err error) {
 	srp.RandReader = rand.New(rand.NewSource(42))
 
-	client, auth, err := ctx.bridge.Login(username, password)
+	client, auth, err := ctx.users.Login(username, password)
 	if err != nil {
 		return errors.Wrap(err, "failed to login")
 	}
@@ -45,7 +50,7 @@ func (ctx *TestContext) LoginUser(username, password, mailboxPassword string) (e
 		}
 	}
 
-	user, err := ctx.bridge.FinishLogin(client, auth, mailboxPassword)
+	user, err := ctx.users.FinishLogin(client, auth, mailboxPassword)
 	if err != nil {
 		return errors.Wrap(err, "failed to finish login")
 	}
@@ -57,7 +62,7 @@ func (ctx *TestContext) LoginUser(username, password, mailboxPassword string) (e
 
 // GetUser retrieves the bridge user matching the given query string.
 func (ctx *TestContext) GetUser(username string) (*users.User, error) {
-	return ctx.bridge.GetUser(username)
+	return ctx.users.GetUser(username)
 }
 
 // GetStore retrieves the store for given username.
@@ -100,6 +105,9 @@ func (ctx *TestContext) WaitForSync(username string) error {
 	if err != nil {
 		return err
 	}
+	if store == nil {
+		return nil
+	}
 	// First wait for ongoing sync to be done before starting and waiting for new one.
 	ctx.eventuallySyncIsFinished(store)
 	store.TestSync()
@@ -121,7 +129,7 @@ func (ctx *TestContext) EventuallySyncIsFinishedForUsername(username string) {
 
 // LogoutUser logs out the given user.
 func (ctx *TestContext) LogoutUser(query string) (err error) {
-	user, err := ctx.bridge.GetUser(query)
+	user, err := ctx.users.GetUser(query)
 	if err != nil {
 		return errors.Wrap(err, "failed to get user")
 	}
@@ -135,12 +143,12 @@ func (ctx *TestContext) LogoutUser(query string) (err error) {
 
 // DeleteUser deletes the given user.
 func (ctx *TestContext) DeleteUser(query string, deleteStore bool) (err error) {
-	user, err := ctx.bridge.GetUser(query)
+	user, err := ctx.users.GetUser(query)
 	if err != nil {
 		return errors.Wrap(err, "failed to get user")
 	}
 
-	if err = ctx.bridge.DeleteUser(user.ID(), deleteStore); err != nil {
+	if err = ctx.users.DeleteUser(user.ID(), deleteStore); err != nil {
 		err = errors.Wrap(err, "failed to delete user")
 	}
 

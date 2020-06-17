@@ -25,19 +25,13 @@ import (
 	a "github.com/stretchr/testify/assert"
 )
 
-func BridgeSetupFeatureContext(s *godog.Suite) {
-	s.Step(`^there is no internet connection$`, thereIsNoInternetConnection)
+func UsersSetupFeatureContext(s *godog.Suite) {
 	s.Step(`^there is user "([^"]*)"$`, thereIsUser)
 	s.Step(`^there is connected user "([^"]*)"$`, thereIsConnectedUser)
 	s.Step(`^there is disconnected user "([^"]*)"$`, thereIsDisconnectedUser)
 	s.Step(`^there is database file for "([^"]*)"$`, thereIsDatabaseFileForUser)
 	s.Step(`^there is no database file for "([^"]*)"$`, thereIsNoDatabaseFileForUser)
 	s.Step(`^there is "([^"]*)" in "([^"]*)" address mode$`, thereIsUserWithAddressMode)
-}
-
-func thereIsNoInternetConnection() error {
-	ctx.GetPMAPIController().TurnInternetConnectionOff()
-	return nil
 }
 
 func thereIsUser(bddUserID string) error {
@@ -87,7 +81,11 @@ func thereIsDisconnectedUser(bddUserID string) error {
 	// logout is also called and if we would do login at the same time, it
 	// wouldn't work. 100 ms after event loop is stopped should be enough.
 	a.Eventually(ctx.GetTestingT(), func() bool {
-		return !user.GetStore().TestGetEventLoop().IsRunning()
+		store := user.GetStore()
+		if store == nil {
+			return true
+		}
+		return !store.TestGetEventLoop().IsRunning()
 	}, 1*time.Second, 10*time.Millisecond)
 	time.Sleep(100 * time.Millisecond)
 	return ctx.GetTestingError()
@@ -120,20 +118,20 @@ func thereIsUserWithAddressMode(bddUserID, wantAddressMode string) error {
 	if account == nil {
 		return godog.ErrPending
 	}
-	bridgeUser, err := ctx.GetUser(account.Username())
+	user, err := ctx.GetUser(account.Username())
 	if err != nil {
 		return internalError(err, "getting user %s", account.Username())
 	}
 	addressMode := "split"
-	if bridgeUser.IsCombinedAddressMode() {
+	if user.IsCombinedAddressMode() {
 		addressMode = "combined"
 	}
 	if wantAddressMode != addressMode {
-		err := bridgeUser.SwitchAddressMode()
+		err := user.SwitchAddressMode()
 		if err != nil {
 			return internalError(err, "switching mode")
 		}
 	}
-	ctx.EventuallySyncIsFinishedForUsername(bridgeUser.Username())
+	ctx.EventuallySyncIsFinishedForUsername(user.Username())
 	return nil
 }

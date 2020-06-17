@@ -28,7 +28,7 @@ Feature: Sync bridge
   Scenario: Sync in combined mode
     And there is "userMoreAddresses" in "combined" address mode
     When bridge syncs "userMoreAddresses"
-    Then bridge response is "OK"
+    Then last response is "OK"
     And "userMoreAddresses" has the following messages
       | mailboxes    | messages |
       | INBOX        | 1101     |
@@ -43,7 +43,7 @@ Feature: Sync bridge
   Scenario: Sync in split mode
     And there is "userMoreAddresses" in "split" address mode
     When bridge syncs "userMoreAddresses"
-    Then bridge response is "OK"
+    Then last response is "OK"
     And "userMoreAddresses" has the following messages
       | address   | mailboxes    | messages |
       | primary   | INBOX        | 1001     |

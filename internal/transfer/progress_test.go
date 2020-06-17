@@ -73,8 +73,8 @@ func TestProgressAddingMessages(t *testing.T) {
 
 	failed, imported, exported, added, _ := progress.GetCounts()
 	a.Equal(t, uint(4), added)
-	a.Equal(t, uint(4), exported)
-	a.Equal(t, uint(3), imported)
+	a.Equal(t, uint(2), exported)
+	a.Equal(t, uint(2), imported)
 	a.Equal(t, uint(3), failed)
 
 	errorsMap := map[string]string{}

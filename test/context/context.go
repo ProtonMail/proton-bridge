@@ -20,6 +20,8 @@ package context
 
 import (
 	"github.com/ProtonMail/proton-bridge/internal/bridge"
+	"github.com/ProtonMail/proton-bridge/internal/importexport"
+	"github.com/ProtonMail/proton-bridge/internal/transfer"
 	"github.com/ProtonMail/proton-bridge/internal/users"
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
@@ -46,10 +48,12 @@ type TestContext struct {
 	pmapiController PMAPIController
 	clientManager   *pmapi.ClientManager
 
-	// Bridge core related variables.
-	bridge          *bridge.Bridge
-	bridgeLastError error
-	credStore       users.CredentialsStorer
+	// Core related variables.
+	bridge       *bridge.Bridge
+	importExport *importexport.ImportExport
+	users        *users.Users
+	credStore    users.CredentialsStorer
+	lastError    error
 
 	// IMAP related variables.
 	imapAddr          string
@@ -63,6 +67,12 @@ type TestContext struct {
 	smtpClients       map[string]*mocks.SMTPClient
 	smtpLastResponses map[string]*mocks.SMTPResponse
 
+	// Transfer related variables.
+	transferLocalRootForImport string
+	transferLocalRootForExport string
+	transferRemoteIMAPServer   *mocks.IMAPServer
+	transferProgress           *transfer.Progress
+
 	// These are the cleanup steps executed when Cleanup() is called.
 	cleanupSteps []*Cleaner
 
@@ -71,7 +81,7 @@ type TestContext struct {
 }
 
 // New returns a new test TestContext.
-func New() *TestContext {
+func New(app string) *TestContext {
 	setLogrusVerbosityFromEnv()
 
 	cfg := newFakeConfig()
@@ -96,8 +106,15 @@ func New() *TestContext {
 	// Ensure that the config is cleaned up after the test is over.
 	ctx.addCleanupChecked(cfg.ClearData, "Cleaning bridge config data")
 
-	// Create bridge instance under test.
-	ctx.withBridgeInstance()
+	// Create bridge or import/export instance under test.
+	switch app {
+	case "bridge":
+		ctx.withBridgeInstance()
+	case "ie":
+		ctx.withImportExportInstance()
+	default:
+		panic("unknown app: " + app)
+	}
 
 	return ctx
 }
@@ -124,4 +141,14 @@ func (ctx *TestContext) GetTestingT() *bddT { //nolint[golint]
 // GetTestingError returns error if test failed by using custom TestingT.
 func (ctx *TestContext) GetTestingError() error {
 	return ctx.t.getErrors()
+}
+
+// SetLastError sets the last error that occurred while executing an action.
+func (ctx *TestContext) SetLastError(err error) {
+	ctx.lastError = err
+}
+
+// GetLastError returns the last error that occurred while executing an action.
+func (ctx *TestContext) GetLastError() error {
+	return ctx.lastError
 }

@@ -24,8 +24,7 @@ import (
 	a "github.com/stretchr/testify/assert"
 )
 
-func BridgeChecksFeatureContext(s *godog.Suite) {
-	s.Step(`^bridge response is "([^"]*)"$`, bridgeResponseIs)
+func UsersChecksFeatureContext(s *godog.Suite) {
 	s.Step(`^"([^"]*)" has address mode in "([^"]*)" mode$`, userHasAddressModeInMode)
 	s.Step(`^"([^"]*)" is disconnected$`, userIsDisconnected)
 	s.Step(`^"([^"]*)" is connected$`, userIsConnected)
@@ -39,27 +38,17 @@ func BridgeChecksFeatureContext(s *godog.Suite) {
 	s.Step(`^"([^"]*)" has API auth$`, isAuthorized)
 }
 
-func bridgeResponseIs(expectedResponse string) error {
-	err := ctx.GetLastBridgeError()
-	if expectedResponse == "OK" {
-		a.NoError(ctx.GetTestingT(), err)
-	} else {
-		a.EqualError(ctx.GetTestingT(), err, expectedResponse)
-	}
-	return ctx.GetTestingError()
-}
-
 func userHasAddressModeInMode(bddUserID, wantAddressMode string) error {
 	account := ctx.GetTestAccount(bddUserID)
 	if account == nil {
 		return godog.ErrPending
 	}
-	bridgeUser, err := ctx.GetUser(account.Username())
+	user, err := ctx.GetUser(account.Username())
 	if err != nil {
 		return internalError(err, "getting user %s", account.Username())
 	}
 	addressMode := "split"
-	if bridgeUser.IsCombinedAddressMode() {
+	if user.IsCombinedAddressMode() {
 		addressMode = "combined"
 	}
 	a.Equal(ctx.GetTestingT(), wantAddressMode, addressMode)
@@ -71,12 +60,12 @@ func userIsDisconnected(bddUserID string) error {
 	if account == nil {
 		return godog.ErrPending
 	}
-	bridgeUser, err := ctx.GetUser(account.Username())
+	user, err := ctx.GetUser(account.Username())
 	if err != nil {
 		return internalError(err, "getting user %s", account.Username())
 	}
 	a.Eventually(ctx.GetTestingT(), func() bool {
-		return !bridgeUser.IsConnected()
+		return !user.IsConnected()
 	}, 5*time.Second, 10*time.Millisecond)
 	return ctx.GetTestingError()
 }
@@ -87,13 +76,13 @@ func userIsConnected(bddUserID string) error {
 		return godog.ErrPending
 	}
 	t := ctx.GetTestingT()
-	bridgeUser, err := ctx.GetUser(account.Username())
+	user, err := ctx.GetUser(account.Username())
 	if err != nil {
 		return internalError(err, "getting user %s", account.Username())
 	}
-	a.Eventually(ctx.GetTestingT(), bridgeUser.IsConnected, 5*time.Second, 10*time.Millisecond)
-	a.NotEmpty(t, bridgeUser.GetPrimaryAddress())
-	a.NotEmpty(t, bridgeUser.GetStoreAddresses())
+	a.Eventually(ctx.GetTestingT(), user.IsConnected, 5*time.Second, 10*time.Millisecond)
+	a.NotEmpty(t, user.GetPrimaryAddress())
+	a.NotEmpty(t, user.GetStoreAddresses())
 	return ctx.GetTestingError()
 }
 
@@ -122,11 +111,11 @@ func userHasLoadedStore(bddUserID string) error {
 	if account == nil {
 		return godog.ErrPending
 	}
-	bridgeUser, err := ctx.GetUser(account.Username())
+	user, err := ctx.GetUser(account.Username())
 	if err != nil {
 		return internalError(err, "getting user %s", account.Username())
 	}
-	a.NotNil(ctx.GetTestingT(), bridgeUser.GetStore())
+	a.NotNil(ctx.GetTestingT(), user.GetStore())
 	return ctx.GetTestingError()
 }
 
@@ -135,11 +124,11 @@ func userDoesNotHaveLoadedStore(bddUserID string) error {
 	if account == nil {
 		return godog.ErrPending
 	}
-	bridgeUser, err := ctx.GetUser(account.Username())
+	user, err := ctx.GetUser(account.Username())
 	if err != nil {
 		return internalError(err, "getting user %s", account.Username())
 	}
-	a.Nil(ctx.GetTestingT(), bridgeUser.GetStore())
+	a.Nil(ctx.GetTestingT(), user.GetStore())
 	return ctx.GetTestingError()
 }
 
@@ -173,28 +162,28 @@ func userDoesNotHaveRunningEventLoop(bddUserID string) error {
 	return ctx.GetTestingError()
 }
 
-func isAuthorized(accountName string) error {
-	account := ctx.GetTestAccount(accountName)
+func isAuthorized(bddUserID string) error {
+	account := ctx.GetTestAccount(bddUserID)
 	if account == nil {
 		return godog.ErrPending
 	}
-	bridgeUser, err := ctx.GetUser(account.Username())
+	user, err := ctx.GetUser(account.Username())
 	if err != nil {
 		return internalError(err, "getting user %s", account.Username())
 	}
-	a.Eventually(ctx.GetTestingT(), bridgeUser.IsAuthorized, 5*time.Second, 10*time.Millisecond)
+	a.Eventually(ctx.GetTestingT(), user.IsAuthorized, 5*time.Second, 10*time.Millisecond)
 	return ctx.GetTestingError()
 }
 
-func isNotAuthorized(accountName string) error {
-	account := ctx.GetTestAccount(accountName)
+func isNotAuthorized(bddUserID string) error {
+	account := ctx.GetTestAccount(bddUserID)
 	if account == nil {
 		return godog.ErrPending
 	}
-	bridgeUser, err := ctx.GetUser(account.Username())
+	user, err := ctx.GetUser(account.Username())
 	if err != nil {
 		return internalError(err, "getting user %s", account.Username())
 	}
-	a.Eventually(ctx.GetTestingT(), func() bool { return !bridgeUser.IsAuthorized() }, 5*time.Second, 10*time.Millisecond)
+	a.Eventually(ctx.GetTestingT(), func() bool { return !user.IsAuthorized() }, 5*time.Second, 10*time.Millisecond)
 	return ctx.GetTestingError()
 }

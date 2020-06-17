@@ -77,11 +77,22 @@ dependency-updates:
 
 build-linux:
   stage: build
-  # Test build every time (= we want to know build is possible).
   only:
     - branches
   script:
     - make build
+  artifacts:
+    name: "bridge-linux-$CI_COMMIT_SHORT_SHA"
+    paths:
+      - bridge_*.tgz
+    expire_in: 2 week
+
+build-ie-linux:
+  stage: build
+  only:
+    - branches
+  script:
+    - make build-ie
   artifacts:
     name: "bridge-linux-$CI_COMMIT_SHORT_SHA"
     paths:
@@ -114,6 +125,31 @@ build-darwin:
       - bridge_*.tgz
     expire_in: 2 week
 
+build-ie-darwin:
+  stage: build
+  only:
+    - branches
+  before_script:
+    - eval $(ssh-agent -s)
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add - > /dev/null
+    - export PATH=/usr/local/bin:$PATH
+    - export PATH=/usr/local/opt/git/bin:$PATH
+    - export PATH=/usr/local/opt/make/libexec/gnubin:$PATH
+    - export PATH=/usr/local/opt/go@1.13/bin:$PATH
+    - export PATH=/usr/local/opt/gnu-sed/libexec/gnubin:$PATH
+    - export GOPATH=~/go
+    - export PATH=$GOPATH/bin:$PATH
+  cache: {}
+  tags:
+    - macOS-bridge
+  script:
+    - make build-ie
+  artifacts:
+    name: "bridge-darwin-$CI_COMMIT_SHORT_SHA"
+    paths:
+      - bridge_*.tgz
+    expire_in: 2 week
+
 build-windows:
   stage: build
   services:
@@ -135,6 +171,30 @@ build-windows:
     paths:
       - bridge_*.tgz
     expire_in: 2 week
+
+build-ie-windows:
+  stage: build
+  services:
+  - docker:dind
+  only:
+    - branches
+  variables:
+    DOCKER_HOST: tcp://docker:2375
+  script:
+    # We need to install docker because qtdeploy builds for windows inside a docker container.
+    # Docker will connect to the dockerd daemon provided by the runner service docker:dind at tcp://docker:2375.
+    - curl -fsSL https://get.docker.com -o get-docker.sh && sh get-docker.sh
+    - apt-get update && apt-get -y install binutils-mingw-w64 tar gzip
+    - ln -s /usr/bin/x86_64-w64-mingw32-windres /usr/bin/windres
+    - go mod download
+    - TARGET_OS=windows make build-ie
+  artifacts:
+    name: "bridge-windows-$CI_COMMIT_SHORT_SHA"
+    paths:
+      - bridge_*.tgz
+    expire_in: 2 week
+
+# Stage: MIRROR
 
 mirror-repo:
   stage: mirror

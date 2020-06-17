@@ -29,9 +29,6 @@ var (
 	// BuildTime stamp of the build.
 	BuildTime = ""
 
-	// AppShortName to make setup.
-	AppShortName = "bridge"
-
 	// DSNSentry client keys to be able to report crashes to Sentry.
 	DSNSentry = ""
 

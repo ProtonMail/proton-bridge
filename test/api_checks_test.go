@@ -29,6 +29,8 @@ import (
 func APIChecksFeatureContext(s *godog.Suite) {
 	s.Step(`^API endpoint "([^"]*)" is called with:$`, apiIsCalledWith)
 	s.Step(`^message is sent with API call:$`, messageIsSentWithAPICall)
+	s.Step(`^API mailbox "([^"]*)" for "([^"]*)" has messages$`, apiMailboxForUserHasMessages)
+	s.Step(`^API mailbox "([^"]*)" for address "([^"]*)" of "([^"]*)" has messages$`, apiMailboxForAddressOfUserHasMessages)
 }
 
 func apiIsCalledWith(endpoint string, data *gherkin.DocString) error {
@@ -76,4 +78,42 @@ func checkAllRequiredFieldsForSendingMessage(request []byte) bool {
 		return false
 	}
 	return true
+}
+
+func apiMailboxForUserHasMessages(mailboxName, bddUserID string, messages *gherkin.DataTable) error {
+	return apiMailboxForAddressOfUserHasMessages(mailboxName, "", bddUserID, messages)
+}
+
+func apiMailboxForAddressOfUserHasMessages(mailboxName, bddAddressID, bddUserID string, messages *gherkin.DataTable) error {
+	account := ctx.GetTestAccountWithAddress(bddUserID, bddAddressID)
+	if account == nil {
+		return godog.ErrPending
+	}
+
+	labelIDs, err := ctx.GetPMAPIController().GetLabelIDs(account.Username(), []string{mailboxName})
+	if err != nil {
+		return internalError(err, "getting label %s for %s", mailboxName, account.Username())
+	}
+	labelID := labelIDs[0]
+
+	pmapiMessages, err := ctx.GetPMAPIController().GetMessages(account.Username(), labelID)
+	if err != nil {
+		return err
+	}
+
+	head := messages.Rows[0].Cells
+	for _, row := range messages.Rows[1:] {
+		found, err := messagesContainsMessageRow(account, pmapiMessages, head, row)
+		if err != nil {
+			return err
+		}
+		if !found {
+			rowMap := map[string]string{}
+			for idx, cell := range row.Cells {
+				rowMap[head[idx].Value] = cell.Value
+			}
+			return fmt.Errorf("message %v not found", rowMap)
+		}
+	}
+	return nil
 }

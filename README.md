@@ -47,6 +47,7 @@ or
 
 ### Integration testing
 - `TEST_ENV`: set which env to use (fake or live)
+- `TEST_APP`: set which app to test (bridge or ie)
 - `TEST_ACCOUNTS`: set JSON file with configured accounts
 - `TAGS`: set build tags for tests
 - `FEATURES`: set feature dir, file or scenario to test

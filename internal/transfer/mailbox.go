@@ -41,13 +41,9 @@ func (m Mailbox) Hash() string {
 // LeastUsedColor is intended to return color for creating a new inbox or label
 func LeastUsedColor(mailboxes []Mailbox) string {
 	usedColors := []string{}
-
-	if mailboxes != nil {
-		for _, m := range mailboxes {
-			usedColors = append(usedColors, m.Color)
-		}
+	for _, m := range mailboxes {
+		usedColors = append(usedColors, m.Color)
 	}
-
 	return pmapi.LeastUsedColor(usedColors)
 }
 

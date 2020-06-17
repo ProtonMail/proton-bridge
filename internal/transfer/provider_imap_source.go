@@ -68,7 +68,7 @@ func (p *IMAPProvider) loadMessageInfoMap(rules transferRules, progress *Progres
 			continue
 		}
 
-		messagesInfo := p.loadMessagesInfo(rule, progress, mailbox.UidValidity)
+		messagesInfo := p.loadMessagesInfo(rule, progress, mailbox.UidValidity, mailbox.Messages)
 		res[rule.SourceMailbox.Name] = messagesInfo
 		progress.updateCount(rule.SourceMailbox.Name, uint(len(messagesInfo)))
 	}
@@ -76,7 +76,7 @@ func (p *IMAPProvider) loadMessageInfoMap(rules transferRules, progress *Progres
 	return res
 }
 
-func (p *IMAPProvider) loadMessagesInfo(rule *Rule, progress *Progress, uidValidity uint32) map[string]imapMessageInfo {
+func (p *IMAPProvider) loadMessagesInfo(rule *Rule, progress *Progress, uidValidity, count uint32) map[string]imapMessageInfo {
 	messagesInfo := map[string]imapMessageInfo{}
 
 	pageStart := uint32(1)
@@ -84,6 +84,11 @@ func (p *IMAPProvider) loadMessagesInfo(rule *Rule, progress *Progress, uidValid
 	for {
 		if progress.shouldStop() {
 			break
+		}
+
+		// Some servers do not accept message sequence number higher than the total count.
+		if pageEnd > count {
+			pageEnd = count
 		}
 
 		seqSet := &imap.SeqSet{}
@@ -114,7 +119,7 @@ func (p *IMAPProvider) loadMessagesInfo(rule *Rule, progress *Progress, uidValid
 		}
 
 		progress.callWrap(func() error {
-			return p.fetch(seqSet, items, processMessageCallback)
+			return p.fetch(rule.SourceMailbox.Name, seqSet, items, processMessageCallback)
 		})
 
 		if pageMsgCount < imapPageSize {
@@ -145,7 +150,6 @@ func (p *IMAPProvider) transferTo(rule *Rule, messagesInfo map[string]imapMessag
 
 		if seqSetSize != 0 && (seqSetSize+messageInfo.size) > imapMaxFetchSize {
 			log.WithField("mailbox", rule.SourceMailbox.Name).WithField("seq", seqSet).WithField("size", seqSetSize).Debug("Fetching messages")
-
 			p.exportMessages(rule, progress, ch, seqSet, uidToID)
 
 			seqSet = &imap.SeqSet{}
@@ -156,6 +160,11 @@ func (p *IMAPProvider) transferTo(rule *Rule, messagesInfo map[string]imapMessag
 		seqSet.AddNum(messageInfo.uid)
 		seqSetSize += messageInfo.size
 		uidToID[messageInfo.uid] = messageInfo.id
+	}
+
+	if len(uidToID) != 0 {
+		log.WithField("mailbox", rule.SourceMailbox.Name).WithField("seq", seqSet).WithField("size", seqSetSize).Debug("Fetching messages")
+		p.exportMessages(rule, progress, ch, seqSet, uidToID)
 	}
 }
 
@@ -188,7 +197,7 @@ func (p *IMAPProvider) exportMessages(rule *Rule, progress *Progress, ch chan<- 
 	}
 
 	progress.callWrap(func() error {
-		return p.uidFetch(seqSet, items, processMessageCallback)
+		return p.uidFetch(rule.SourceMailbox.Name, seqSet, items, processMessageCallback)
 	})
 }
 

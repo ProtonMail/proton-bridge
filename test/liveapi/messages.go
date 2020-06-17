@@ -135,3 +135,31 @@ func (ctl *Controller) GetMessageID(username, messageIndex string) string {
 	}
 	return ctl.messageIDsByUsername[username][idx-1]
 }
+
+func (ctl *Controller) GetMessages(username, labelID string) ([]*pmapi.Message, error) {
+	client, ok := ctl.pmapiByUsername[username]
+	if !ok {
+		return nil, fmt.Errorf("user %s does not exist", username)
+	}
+
+	page := 0
+	messages := []*pmapi.Message{}
+
+	for {
+		// ListMessages returns empty result, not error, asking for page out of range.
+		pageMessages, _, err := client.ListMessages(&pmapi.MessagesFilter{
+			Page:     page,
+			PageSize: 150,
+			LabelID:  labelID,
+		})
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to list messages")
+		}
+		messages = append(messages, pageMessages...)
+		if len(pageMessages) < 150 {
+			break
+		}
+	}
+
+	return messages, nil
+}

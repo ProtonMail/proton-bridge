@@ -19,6 +19,7 @@ package transfer
 
 import (
 	"fmt"
+	"sync"
 
 	pkgMessage "github.com/ProtonMail/proton-bridge/pkg/message"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
@@ -32,11 +33,21 @@ func (p *PMAPIProvider) TransferTo(rules transferRules, progress *Progress, ch c
 	log.Info("Started transfer from PMAPI to channel")
 	defer log.Info("Finished transfer from PMAPI to channel")
 
-	go p.loadCounts(rules, progress)
+	// TransferTo cannot end sooner than loadCounts goroutine because
+	// loadCounts writes to channel in progress which would be closed.
+	// That can happen for really small accounts.
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		p.loadCounts(rules, progress)
+	}()
 
 	for rule := range rules.iterateActiveRules() {
 		p.transferTo(rule, progress, ch, rules.skipEncryptedMessages)
 	}
+
+	wg.Wait()
 }
 
 func (p *PMAPIProvider) loadCounts(rules transferRules, progress *Progress) {

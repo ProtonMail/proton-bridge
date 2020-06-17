@@ -29,16 +29,16 @@ Feature: IMAP auth
 
   Scenario: Authenticates with freshly logged-out user
     Given there is connected user "user"
-    When "user" logs out from bridge
+    When "user" logs out
     And IMAP client authenticates "user"
     Then IMAP response is "IMAP error: NO account is logged out, use the app to login again"
 
   Scenario: Authenticates user which was re-logged in
     Given there is connected user "user"
-    When "user" logs out from bridge
+    When "user" logs out
     And IMAP client authenticates "user"
     Then IMAP response is "IMAP error: NO account is logged out, use the app to login again"
-    When "user" logs in to bridge
+    When "user" logs in
     And IMAP client authenticates "user"
     Then IMAP response is "OK"
     When IMAP client selects "INBOX"

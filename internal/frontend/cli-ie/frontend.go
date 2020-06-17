@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
 
-// Package cli provides CLI interface of the Bridge.
+// Package cli provides CLI interface of the Import/Export.
 package cli
 
 import (
@@ -227,7 +227,11 @@ func (f *frontendCLI) Loop(credentialsError error) error {
 		return credentialsError
 	}
 
-	f.Print(`Welcome to ProtonMail Import/Export interactive shell`)
+	f.Print(`
+Welcome to ProtonMail Import/Export interactive shell
+
+WARNING: CLI is experimental feature and does not cover all functionality yet.
+	`)
 	f.Run()
 	return nil
 }

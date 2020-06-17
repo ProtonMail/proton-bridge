@@ -20,7 +20,7 @@ package cli
 import (
 	"strings"
 
-	"github.com/ProtonMail/proton-bridge/internal/bridge"
+	"github.com/ProtonMail/proton-bridge/internal/importexport"
 	"github.com/ProtonMail/proton-bridge/pkg/updates"
 	"github.com/abiosoft/ishell"
 )
@@ -47,7 +47,7 @@ func (f *frontendCLI) printLocalReleaseNotes(c *ishell.Context) {
 }
 
 func (f *frontendCLI) printReleaseNotes(versionInfo updates.VersionInfo) {
-	f.Println(bold("ProtonMail Bridge "+versionInfo.Version), "\n")
+	f.Println(bold("ProtonMail Import/Export "+versionInfo.Version), "\n")
 	if versionInfo.ReleaseNotes != "" {
 		f.Println(bold("Release Notes"))
 		f.Println(versionInfo.ReleaseNotes)
@@ -59,7 +59,7 @@ func (f *frontendCLI) printReleaseNotes(versionInfo updates.VersionInfo) {
 }
 
 func (f *frontendCLI) printCredits(c *ishell.Context) {
-	for _, pkg := range strings.Split(bridge.Credits, ";") {
+	for _, pkg := range strings.Split(importexport.Credits, ";") {
 		f.Println(pkg)
 	}
 }

@@ -39,7 +39,7 @@ func (p *PMAPIProvider) ensureConnection(callback func() error) error {
 			return nil
 		}
 
-		log.WithField("attempt", i).WithError(callErr).Warning("Call failed, trying reconnect")
+		log.WithField("attempt", i).WithError(callErr).Warning("API call failed, trying reconnect")
 		err := p.tryReconnect()
 		if err != nil {
 			return err
@@ -57,6 +57,7 @@ func (p *PMAPIProvider) tryReconnect() error {
 		}
 
 		err := p.clientManager.CheckConnection()
+		log.WithError(err).Debug("Connection check")
 		if err != nil {
 			time.Sleep(pmapiReconnectSleep)
 			previousErr = err

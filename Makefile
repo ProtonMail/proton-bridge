@@ -9,7 +9,12 @@ TARGET_OS?=${GOOS}
 ## Build
 .PHONY: build build-ie build-nogui build-ie-nogui check-has-go
 
-APP_VERSION?=$(shell git describe --abbrev=0 --tags)-git
+BRIDGE_APP_VERSION?=1.4.0-git
+IE_APP_VERSION?=1.0.0-git
+APP_VERSION=${BRIDGE_APP_VERSION}
+ifeq "${TARGET_CMD}" "Import-Export"
+	APP_VERSION=${IE_APP_VERSION}
+endif
 REVISION:=$(shell git rev-parse --short=10 HEAD)
 BUILD_TIME:=$(shell date +%FT%T%z)
 

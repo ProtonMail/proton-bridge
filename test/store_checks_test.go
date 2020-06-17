@@ -172,12 +172,12 @@ func messagesContainsMessageRow(account *accounts.TestAccount, allMessages []*pm
 		matches := true
 		for n, cell := range row.Cells {
 			switch head[n].Value {
-			case "from":
+			case "from": //nolint[goconst]
 				address := ctx.EnsureAddress(account.Username(), cell.Value)
 				if !areAddressesSame(message.Sender.Address, address) {
 					matches = false
 				}
-			case "to":
+			case "to": //nolint[goconst]
 				for _, address := range strings.Split(cell.Value, ",") {
 					address = ctx.EnsureAddress(account.Username(), address)
 					for _, to := range message.ToList {
@@ -197,7 +197,7 @@ func messagesContainsMessageRow(account *accounts.TestAccount, allMessages []*pm
 						}
 					}
 				}
-			case "subject":
+			case "subject": //nolint[goconst]
 				expectedSubject := cell.Value
 				if expectedSubject == "" {
 					expectedSubject = "(No Subject)"
@@ -205,7 +205,7 @@ func messagesContainsMessageRow(account *accounts.TestAccount, allMessages []*pm
 				if message.Subject != expectedSubject {
 					matches = false
 				}
-			case "body":
+			case "body": //nolint[goconst]
 				if message.Body != cell.Value {
 					matches = false
 				}
@@ -238,7 +238,7 @@ func areAddressesSame(first, second string) bool {
 	if err != nil {
 		return false
 	}
-	return firstAddress.String() == secondAddress.String()
+	return firstAddress.Address == secondAddress.Address
 }
 
 func messagesInMailboxForUserIsMarkedAsRead(messageIDs, mailboxName, bddUserID string) error {
