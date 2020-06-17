@@ -31,6 +31,8 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * Handle double charset better by using local ParseMediaType instead of mime.ParseMediaType
 * Don't remove log dir
 * GODT-422 Fix element not found (avoid listing credentials, prefer getting)
+* GODT-404 Don't keep connections to proxy servers alive if user disables DoH
+* Ensure DoH is used at startup to load users for the initial auth
 
 ## [v1.2.7] Donghai-hotfix - beta (2020-05-07)
 

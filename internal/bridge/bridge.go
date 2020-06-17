@@ -53,6 +53,12 @@ func New(
 	clientManager users.ClientManager,
 	credStorer users.CredentialsStorer,
 ) *Bridge {
+	// Allow DoH before starting the app if the user has previously set this setting.
+	// This allows us to start even if protonmail is blocked.
+	if pref.GetBool(preferences.AllowProxyKey) {
+		clientManager.AllowProxy()
+	}
+
 	storeFactory := newStoreFactory(config, panicHandler, clientManager, eventListener)
 	u := users.New(config, panicHandler, eventListener, clientManager, credStorer, storeFactory)
 	b := &Bridge{
@@ -60,12 +66,6 @@ func New(
 
 		pref:          pref,
 		clientManager: clientManager,
-	}
-
-	// Allow DoH before starting the app if the user has previously set this setting.
-	// This allows us to start even if protonmail is blocked.
-	if pref.GetBool(preferences.AllowProxyKey) {
-		b.AllowProxy()
 	}
 
 	if pref.GetBool(preferences.FirstStartKey) {

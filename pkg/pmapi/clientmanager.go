@@ -230,6 +230,10 @@ func (cm *ClientManager) DisallowProxy() {
 
 	cm.allowProxy = false
 	cm.host = rootURL
+
+	for _, client := range cm.clients {
+		client.CloseConnections()
+	}
 }
 
 // IsProxyEnabled returns whether we are currently proxying requests.

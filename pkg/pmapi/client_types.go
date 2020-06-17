@@ -33,6 +33,7 @@ type Client interface {
 	Logout()
 	DeleteAuth() error
 	IsConnected() bool
+	CloseConnections()
 	ClearData()
 
 	CurrentUser() (*User, error)

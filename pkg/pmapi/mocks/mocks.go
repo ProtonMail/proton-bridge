@@ -137,6 +137,18 @@ func (mr *MockClientMockRecorder) ClearData() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ClearData", reflect.TypeOf((*MockClient)(nil).ClearData))
 }
 
+// CloseConnections mocks base method
+func (m *MockClient) CloseConnections() {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "CloseConnections")
+}
+
+// CloseConnections indicates an expected call of CloseConnections
+func (mr *MockClientMockRecorder) CloseConnections() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CloseConnections", reflect.TypeOf((*MockClient)(nil).CloseConnections))
+}
+
 // CountMessages mocks base method
 func (m *MockClient) CountMessages(arg0 string) ([]*pmapi.MessagesCount, error) {
 	m.ctrl.T.Helper()

@@ -198,6 +198,10 @@ func (c *client) clearKeys() {
 	}
 }
 
+func (c *client) CloseConnections() {
+	c.hc.CloseIdleConnections()
+}
+
 // Do makes an API request. It does not check for HTTP status code errors.
 func (c *client) Do(req *http.Request, retryUnauthorized bool) (res *http.Response, err error) {
 	// Copy the request body in case we need to retry it.

@@ -66,6 +66,10 @@ func New(controller *Controller, userID string) *FakePMAPI {
 	return fakePMAPI
 }
 
+func (api *FakePMAPI) CloseConnections() {
+	// NOOP
+}
+
 func (api *FakePMAPI) checkAndRecordCall(method method, path string, request interface{}) error {
 	if err := api.checkInternetAndRecordCall(method, path, request); err != nil {
 		return err
