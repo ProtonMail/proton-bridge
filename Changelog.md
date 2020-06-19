@@ -2,12 +2,14 @@
 
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
-## [v1.2.8] Donghai-fix-append  (2020-05-XXX)
+## [v1.2.8] Donghai-fix-append  (2020-06-XXX)
 
 ### Changed
 * GODT-396 reduce number of EXISTS calls
 * GODT-143 Allow appending to Sent folder when sender matches account address
 
+### Fixed
+* Do not crash when `nil` message header is parsed, it fails instead.
 
 ## [v1.2.7] Donghai-fix-sync - (beta 2020-05-07 live 2020-04-20)
 

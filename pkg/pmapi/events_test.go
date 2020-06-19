@@ -20,6 +20,7 @@ package pmapi
 import (
 	"fmt"
 	"net/http"
+	"net/mail"
 	"regexp"
 	"strconv"
 	"strings"
@@ -113,6 +114,7 @@ var (
 				EventItem: EventItem{ID: "hdI7aIgUO1hFplCIcJHB0jShRVsAzS0AB75wGCaiNVeIHXLmaUnt4eJ8l7c7L6uk4g0ZdXhGWG5gfh6HHgAZnw==", Action: EventCreate},
 				Created: &Message{
 					ID:      "hdI7aIgUO1hFplCIcJHB0jShRVsAzS0AB75wGCaiNVeIHXLmaUnt4eJ8l7c7L6uk4g0ZdXhGWG5gfh6HHgAZnw==",
+					Header:  make(mail.Header),
 					Subject: "Hey there",
 				},
 			},
@@ -153,6 +155,7 @@ var (
 				EventItem: EventItem{ID: "msgID1", Action: EventCreate},
 				Created: &Message{
 					ID:      "id",
+					Header:  make(mail.Header),
 					Subject: "Hey there",
 				},
 			},
@@ -160,6 +163,7 @@ var (
 				EventItem: EventItem{ID: "msgID2", Action: EventCreate},
 				Created: &Message{
 					ID:      "id",
+					Header:  make(mail.Header),
 					Subject: "Hey there again",
 				},
 			},

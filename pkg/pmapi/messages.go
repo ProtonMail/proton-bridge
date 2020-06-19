@@ -24,6 +24,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"net/mail"
@@ -32,6 +33,7 @@ import (
 	"strings"
 
 	pmcrypto "github.com/ProtonMail/gopenpgp/crypto"
+	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/openpgp/packet"
 )
 
@@ -211,9 +213,13 @@ func (m *Message) UnmarshalJSON(b []byte) error {
 
 	if raw.Header != "" && raw.Header != "(No Header)" {
 		msg, err := mail.ReadMessage(strings.NewReader(raw.Header + "\r\n\r\n"))
-		if err == nil {
-			m.Header = msg.Header
+		if err != nil {
+			logrus.WithField("rawHeader", raw.Header).Trace("Failed to parse header")
+			return fmt.Errorf("failed to parse header of message %v: %v", m.ID, err.Error())
 		}
+		m.Header = msg.Header
+	} else {
+		m.Header = make(mail.Header)
 	}
 
 	return nil

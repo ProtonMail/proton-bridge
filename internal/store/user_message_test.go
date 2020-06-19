@@ -80,7 +80,7 @@ func TestCreateOrUpdateMessageMetadata(t *testing.T) {
 	a.Equal(t, []*pmapi.Attachment(nil), msg.Attachments)
 	a.Equal(t, int64(-1), msg.Size)
 	a.Equal(t, "", msg.MIMEType)
-	a.Equal(t, mail.Header(nil), msg.Header)
+	a.Equal(t, make(mail.Header), msg.Header)
 
 	// Change the calculated data.
 	wantSize := int64(42)
