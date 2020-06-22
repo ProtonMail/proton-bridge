@@ -154,6 +154,12 @@ func (c *client) Unlock(passphrase []byte) (err error) {
 	c.keyRingLock.Lock()
 	defer c.keyRingLock.Unlock()
 
+	return c.unlock(passphrase)
+}
+
+// unlock unlocks the user's keys but without locking the keyring lock first.
+// Should only be used internally by methods that first lock the lock.
+func (c *client) unlock(passphrase []byte) (err error) {
 	if _, err = c.CurrentUser(); err != nil {
 		return
 	}
@@ -181,7 +187,7 @@ func (c *client) ReloadKeys(passphrase []byte) (err error) {
 
 	c.clearKeys()
 
-	return c.Unlock(passphrase)
+	return c.unlock(passphrase)
 }
 
 func (c *client) clearKeys() {
