@@ -94,9 +94,9 @@ build-ie-linux:
   script:
     - make build-ie
   artifacts:
-    name: "bridge-linux-$CI_COMMIT_SHORT_SHA"
+    name: "ie-linux-$CI_COMMIT_SHORT_SHA"
     paths:
-      - bridge_*.tgz
+      - ie_*.tgz
     expire_in: 2 week
 
 build-darwin:
@@ -145,9 +145,9 @@ build-ie-darwin:
   script:
     - make build-ie
   artifacts:
-    name: "bridge-darwin-$CI_COMMIT_SHORT_SHA"
+    name: "ie-darwin-$CI_COMMIT_SHORT_SHA"
     paths:
-      - bridge_*.tgz
+      - ie_*.tgz
     expire_in: 2 week
 
 build-windows:
@@ -189,9 +189,9 @@ build-ie-windows:
     - go mod download
     - TARGET_OS=windows make build-ie
   artifacts:
-    name: "bridge-windows-$CI_COMMIT_SHORT_SHA"
+    name: "ie-windows-$CI_COMMIT_SHORT_SHA"
     paths:
-      - bridge_*.tgz
+      - ie_*.tgz
     expire_in: 2 week
 
 # Stage: MIRROR

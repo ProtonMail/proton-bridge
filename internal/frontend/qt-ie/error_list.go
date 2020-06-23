@@ -21,13 +21,9 @@ package qtie
 
 import (
 	qtcommon "github.com/ProtonMail/proton-bridge/internal/frontend/qt-common"
+	"github.com/ProtonMail/proton-bridge/internal/transfer"
 	"github.com/therecipe/qt/core"
 )
-
-// ErrorDetail stores information about email and error
-type ErrorDetail struct {
-	MailSubject, MailDate, MailFrom, InputFolder, ErrorMessage string
-}
 
 func init() {
 	ErrorListModel_QRegisterMetaType()
@@ -42,11 +38,12 @@ type ErrorListModel struct {
 	_ map[int]*core.QByteArray `property:"roles"`
 	_ int                      `property:"count"`
 
-	Details []*ErrorDetail
+	Progress *transfer.Progress
+	records  []*transfer.MessageStatus
 }
 
-func (s *ErrorListModel) init() {
-	s.SetRoles(map[int]*core.QByteArray{
+func (e *ErrorListModel) init() {
+	e.SetRoles(map[int]*core.QByteArray{
 		MailSubject:  qtcommon.NewQByteArrayFromString("mailSubject"),
 		MailDate:     qtcommon.NewQByteArrayFromString("mailDate"),
 		MailFrom:     qtcommon.NewQByteArrayFromString("mailFrom"),
@@ -54,76 +51,50 @@ func (s *ErrorListModel) init() {
 		ErrorMessage: qtcommon.NewQByteArrayFromString("errorMessage"),
 	})
 	// basic QAbstractListModel mehods
-	s.ConnectData(s.data)
-	s.ConnectRowCount(s.rowCount)
-	s.ConnectColumnCount(s.columnCount)
-	s.ConnectRoleNames(s.roleNames)
+	e.ConnectData(e.data)
+	e.ConnectRowCount(e.rowCount)
+	e.ConnectColumnCount(e.columnCount)
+	e.ConnectRoleNames(e.roleNames)
 }
 
-func (s *ErrorListModel) data(index *core.QModelIndex, role int) *core.QVariant {
+func (e *ErrorListModel) data(index *core.QModelIndex, role int) *core.QVariant {
 	if !index.IsValid() {
 		return core.NewQVariant()
 	}
 
-	if index.Row() >= len(s.Details) {
+	if index.Row() >= len(e.records) {
 		return core.NewQVariant()
 	}
 
-	var p = s.Details[index.Row()]
+	var r = e.records[index.Row()]
 
 	switch role {
 	case MailSubject:
-		return qtcommon.NewQVariantString(p.MailSubject)
+		return qtcommon.NewQVariantString(r.Subject)
 	case MailDate:
-		return qtcommon.NewQVariantString(p.MailDate)
+		return qtcommon.NewQVariantString(r.Time.String())
 	case MailFrom:
-		return qtcommon.NewQVariantString(p.MailFrom)
+		return qtcommon.NewQVariantString(r.From)
 	case InputFolder:
-		return qtcommon.NewQVariantString(p.InputFolder)
+		return qtcommon.NewQVariantString(r.SourceID)
 	case ErrorMessage:
-		return qtcommon.NewQVariantString(p.ErrorMessage)
+		return qtcommon.NewQVariantString(r.GetErrorMessage())
 	default:
 		return core.NewQVariant()
 	}
 }
 
-func (s *ErrorListModel) rowCount(parent *core.QModelIndex) int    { return len(s.Details) }
-func (s *ErrorListModel) columnCount(parent *core.QModelIndex) int { return 1 }
-func (s *ErrorListModel) roleNames() map[int]*core.QByteArray      { return s.Roles() }
+func (e *ErrorListModel) rowCount(parent *core.QModelIndex) int    { return len(e.records) }
+func (e *ErrorListModel) columnCount(parent *core.QModelIndex) int { return 1 }
+func (e *ErrorListModel) roleNames() map[int]*core.QByteArray      { return e.Roles() }
 
-// Add more errors to list
-func (s *ErrorListModel) Add(more []*ErrorDetail) {
-	s.BeginInsertRows(core.NewQModelIndex(), len(s.Details), len(s.Details))
-	s.Details = append(s.Details, more...)
-	s.SetCount(len(s.Details))
-	s.EndInsertRows()
-}
+func (e *ErrorListModel) load() {
+	if e.Progress == nil {
+		log.Error("Progress not connected")
+		return
+	}
 
-// Clear removes all items in model
-func (s *ErrorListModel) Clear() {
-	s.BeginRemoveRows(core.NewQModelIndex(), 0, len(s.Details))
-	s.Details = s.Details[0:0]
-	s.SetCount(len(s.Details))
-	s.EndRemoveRows()
-}
-
-func (s *ErrorListModel) load(importLogFileName string) {
-	/*
-		err := backend.LoopDetailsInFile(importLogFileName, func(d *backend.MessageDetails) {
-			if d.MessageID != "" { // imported ok
-				return
-			}
-			ed := &ErrorDetail{
-				MailSubject:  d.Subject,
-				MailDate:     d.Time,
-				MailFrom:     d.From,
-				InputFolder:  d.Folder,
-				ErrorMessage: d.Error,
-			}
-			s.Add([]*ErrorDetail{ed})
-		})
-		if err != nil {
-			log.Errorf("load import report from %q: %v", importLogFileName, err)
-		}
-	*/
+	e.BeginResetModel()
+	e.records = e.Progress.GetFailedMessages()
+	e.EndResetModel()
 }

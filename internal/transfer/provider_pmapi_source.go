@@ -86,14 +86,15 @@ func (p *PMAPIProvider) transferTo(rule *Rule, progress *Progress, ch chan<- Mes
 		progress.callWrap(func() error {
 			desc := false
 			pmapiMessages, count, err := p.listMessages(&pmapi.MessagesFilter{
-				LabelID:  rule.SourceMailbox.ID,
-				Begin:    rule.FromTime,
-				End:      rule.ToTime,
-				BeginID:  nextID,
-				PageSize: pmapiListPageSize,
-				Page:     0,
-				Sort:     "ID",
-				Desc:     &desc,
+				AddressID: p.addressID,
+				LabelID:   rule.SourceMailbox.ID,
+				Begin:     rule.FromTime,
+				End:       rule.ToTime,
+				BeginID:   nextID,
+				PageSize:  pmapiListPageSize,
+				Page:      0,
+				Sort:      "ID",
+				Desc:      &desc,
 			})
 			if err != nil {
 				return err

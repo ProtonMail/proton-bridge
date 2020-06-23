@@ -26,9 +26,9 @@ AccessibleButton {
 
     property bool   isSection  : false
     property bool   isSelected : false
-    property string title  : "N/A"
-    property string type   : ""
-    property color  color  : "black"
+    property string title      : "N/A"
+    property string type       : ""
+    property string folderIconColor  : Style.main.textBlue
 
     height    : Style.exporting.rowHeight
     padding   : 0.0
@@ -72,7 +72,7 @@ AccessibleButton {
                 left           : checkbox.left
                 leftMargin     : Style.dialog.fontSize + Style.exporting.leftMargin
             }
-            color : root.type==gui.enums.folderTypeSystem ? Style.main.textBlue : root.color
+            color : root.type=="" ? Style.main.textBlue : root.folderIconColor
             font {
                 family : Style.fontawesome.name
                 pointSize : Style.dialog.fontSize * Style.pt

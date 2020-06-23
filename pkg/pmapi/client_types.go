@@ -67,7 +67,7 @@ type Client interface {
 	DeleteLabel(labelID string) error
 	EmptyFolder(labelID string, addressID string) error
 
-	ReportBugWithEmailClient(os, osVersion, title, description, username, email, emailClient string) error
+	Report(report ReportReq) error
 	SendSimpleMetric(category, action, label string) error
 
 	GetMailSettings() (MailSettings, error)

@@ -86,6 +86,7 @@ func TestSetGlobalTimeLimit(t *testing.T) {
 	r.NoError(t, rules.setRule(mailboxB, []Mailbox{}, 0, 0))
 
 	rules.setGlobalTimeLimit(30, 40)
+	rules.propagateGlobalTime()
 
 	r.Equal(t, map[string]*Rule{
 		mailboxA.Hash(): {Active: true, SourceMailbox: mailboxA, TargetMailboxes: []Mailbox{}, FromTime: 10, ToTime: 20},
@@ -154,7 +155,6 @@ func TestSetDefaultRulesDeactivateMissing(t *testing.T) {
 
 	r.Equal(t, map[string]*Rule{
 		mailboxA.Hash(): {Active: true, SourceMailbox: mailboxA, TargetMailboxes: []Mailbox{mailboxB}, FromTime: 0, ToTime: 0},
-		mailboxB.Hash(): {Active: false, SourceMailbox: mailboxB, TargetMailboxes: []Mailbox{mailboxB}, FromTime: 0, ToTime: 0},
 	}, rules.rules)
 }
 
@@ -207,4 +207,41 @@ func generateTimeRule(from, to int64) Rule {
 		FromTime:        from,
 		ToTime:          to,
 	}
+}
+
+func TestOrderRules(t *testing.T) {
+	wantMailboxOrder := []Mailbox{
+		{Name: "Inbox", IsExclusive: true},
+		{Name: "Drafts", IsExclusive: true},
+		{Name: "Sent", IsExclusive: true},
+		{Name: "Starred", IsExclusive: true},
+		{Name: "Archive", IsExclusive: true},
+		{Name: "Spam", IsExclusive: true},
+		{Name: "All Mail", IsExclusive: true},
+		{Name: "Folder A", IsExclusive: true},
+		{Name: "Folder B", IsExclusive: true},
+		{Name: "Folder C", IsExclusive: true},
+		{Name: "Label A", IsExclusive: false},
+		{Name: "Label B", IsExclusive: false},
+		{Name: "Label C", IsExclusive: false},
+	}
+	wantMailboxNames := []string{}
+
+	rules := map[string]*Rule{}
+	for _, mailbox := range wantMailboxOrder {
+		wantMailboxNames = append(wantMailboxNames, mailbox.Name)
+		rules[mailbox.Hash()] = &Rule{
+			SourceMailbox: mailbox,
+		}
+	}
+	transferRules := transferRules{
+		rules: rules,
+	}
+
+	gotMailboxNames := []string{}
+	for _, rule := range transferRules.getRules() {
+		gotMailboxNames = append(gotMailboxNames, rule.SourceMailbox.Name)
+	}
+
+	r.Equal(t, wantMailboxNames, gotMailboxNames)
 }

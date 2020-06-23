@@ -92,7 +92,7 @@ Rectangle {
         clip           : true
         orientation    : ListView.Vertical
         boundsBehavior : Flickable.StopAtBounds
-        model          : structurePM
+        model          : transferRules
         cacheBuffer    : 10000
 
         anchors {
@@ -125,27 +125,25 @@ Rectangle {
         }
 
         delegate: FolderRowButton {
+            property variant modelData: model
             width      : root.width - 5*root.border.width
-            type       : folderType
-            color      : folderColor
-            title      : folderName
-            isSelected : isFolderSelected
+            type       : modelData.type
+            folderIconColor  : modelData.iconColor
+            title      : modelData.name
+            isSelected : modelData.isActive
             onClicked  : {
                 //console.log("Clicked", folderId, isSelected)
-                structurePM.setFolderSelection(folderId,!isSelected)
+                transferRules.setIsRuleActive(modelData.mboxID,!model.isActive)
             }
         }
 
-        section.property: "folderType"
+        section.property: "type"
         section.delegate: FolderRowButton {
             isSection  : true
             width      : root.width - 5*root.border.width
             title      : gui.folderTypeTitle(section)
-            isSelected : {
-                //console.log("section selected changed: ", section)
-                return section == gui.enums.folderTypeLabel ? structurePM.selectedLabels : structurePM.selectedFolders
-            }
-            onClicked  : structurePM.selectType(section,!isSelected)
+            isSelected : section == gui.enums.folderTypeLabel ? transferRules.isLabelGroupSelected : transferRules.isFolderGroupSelected
+            onClicked  : transferRules.setIsGroupActive(section,!isSelected)
         }
     }
 }

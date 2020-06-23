@@ -34,7 +34,7 @@ Item {
      property alias inputDateFrom : inputDateFrom
      property alias inputDateTo   : inputDateTo
 
-     function setRange() {common.setRange()}
+     function getRange() {common.getRange()}
      function applyRange() {common.applyRange()}
      */
 
@@ -43,11 +43,7 @@ Item {
         inputDateTo.setDate((new Date()).getTime())
     }
 
-    function setRange(){ // unix time in seconds
-        var folderFrom = dateRange.structure.getFrom(dateRange.sourceID)
-        if (folderFrom===undefined) folderFrom = 0
-        var folderTo = dateRange.structure.getTo(dateRange.sourceID)
-        if (folderTo===undefined) folderTo = 0
+    function setRangeFromTo(folderFrom, folderTo){ // unix time in seconds
         if ( folderFrom == 0 && folderTo ==0 ) {
             dateRange.allDates = true
         } else {
@@ -55,6 +51,15 @@ Item {
             inputDateFrom.setDate(folderFrom)
             inputDateTo.setDate(folderTo)
         }
+    }
+
+    function getRange(){ // unix time in seconds
+        //console.log(" ==== GET RANGE === ")
+        //console.trace()
+        var folderFrom = dateRange.structure.globalFromDate
+        var folderTo = dateRange.structure.globalToDate
+
+        root.setRangeFromTo(folderFrom, folderTo)
     }
 
     function applyRange(){ // unix time is seconds
@@ -67,15 +72,10 @@ Item {
         }
     }
 
-    Connections {
-        target: dateRange
-        onStructureChanged: setRange()
-    }
-
     Component.onCompleted: {
         inputDateFrom.updateRange(gui.netBday)
         inputDateTo.updateRange(new Date())
-        setRange()
+        //getRange()
     }
 }
 

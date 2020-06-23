@@ -327,6 +327,7 @@ Dialog {
                 iconText: Style.fa.refresh
                 textColor: Style.main.textBlue
                 onClicked: {
+                    go.resetSource()
                     root.decrementCurrentIndex()
                     timer.start()
                 }
@@ -408,20 +409,13 @@ Dialog {
                 spacing: Style.main.rightMargin
                 AccessibleText {
                     id: statusLabel
-                    text : qsTr("Importing from:")
+                    text : qsTr("Status:")
                     font.pointSize: Style.main.iconSize * Style.pt
                     color : Style.main.text
                 }
                 AccessibleText {
                     anchors.baseline: statusLabel.baseline
-                    text : {
-                        var sourceFolder = root.isFromFile ? root.inputPath : inputEmail.text 
-                        if (go.progressDescription != gui.enums.progressInit && go.progress!=0) {
-                            sourceFolder += "/"
-                            sourceFolder += go.progressDescription
-                        }
-                        return sourceFolder
-                    }
+                    text : go.progressDescription == "" ? qsTr("importing") : go.progressDescription
                     elide: Text.ElideMiddle
                     width: progressbarImport.width - parent.spacing - statusLabel.width
                     font.pointSize: Style.dialog.textSize * Style.pt
@@ -582,9 +576,9 @@ Dialog {
             spacing          : Style.dialog.heightSeparator
 
             Text {
-                text: Style.fa.check_circle + " " + qsTr("Import completed successfully")
+                text: go.progressDescription!="" ? qsTr("Import failed: %1").arg(go.progressDescription) : Style.fa.check_circle + " " + qsTr("Import completed successfully")
                 anchors.horizontalCenter: parent.horizontalCenter
-                color: Style.main.textGreen
+                color: go.progressDescription!="" ? Style.main.textRed : Style.main.textGreen
                 font.bold : true
                 font.family: Style.fontawesome.name
             }
@@ -605,11 +599,7 @@ Dialog {
                     text       : qsTr("View errors")
                     color_main : Style.dialog.textBlue
                     onClicked  : {
-                        if (go.importLogFileName=="") {
-                            console.log("onViewErrors: missing import log file name")
-                            return
-                        }
-                        go.loadImportReports(go.importLogFileName)
+                        go.loadImportReports()
                         reportList.show()
                     }
                 }
@@ -619,10 +609,6 @@ Dialog {
                     text       : qsTr("Report files")
                     color_main : Style.dialog.textBlue
                     onClicked  : {
-                        if (go.importLogFileName=="") {
-                            console.log("onReportError: missing import log file name")
-                            return
-                        }
                         root.ask_send_report()
                     }
                 }
@@ -755,7 +741,6 @@ Dialog {
     }
 
     function clear() {
-        go.resetSource()
         root.inputPath = ""
         clear_status()
         inputEmail.clear()
@@ -781,7 +766,7 @@ Dialog {
         onClickedYes   : {
             if (errorPopup.msgID == "ask_send_report") {
                 errorPopup.hide()
-                root.report_sent(go.sendImportReport(root.address,go.importLogFileName))
+                root.report_sent(go.sendImportReport(root.address))
                 return
             }
             root.cancel()
@@ -857,10 +842,13 @@ Dialog {
             }
             break
             case 3: // import insturctions
-            if (!structureExternal.hasTarget()) {
-                errorPopup.show(qsTr("Nothing selected for import."))
-                return false
-            }
+            /*
+             console.log(" ====== TODO ======== ")
+             if (!structureExternal.hasTarget()) {
+                 errorPopup.show(qsTr("Nothing selected for import."))
+                 return false
+             }
+             */
             break
             case 4: // import status
         }
@@ -880,7 +868,7 @@ Dialog {
             root.hide()
             break
             case DialogImport.Page.Progress:
-            go.cancelProcess(false)
+            go.cancelProcess()
             root.currentIndex=3
             root.clear_status()
             globalLabels.reset()
@@ -905,7 +893,7 @@ Dialog {
                         globalLabels.labelName,
                         globalLabels.labelColor,
                         true,
-                        structureExternal.getID(-1)
+                        "-1"
                     )
                     if (!isOK) return
                 }
@@ -919,7 +907,8 @@ Dialog {
 
                 case DialogImport.Page.LoadingStructure:
                 globalLabels.reset()
-                importInstructions.hasItems = (structureExternal.rowCount() > 0)
+                // TODO_: importInstructions.hasItems = (structureExternal.rowCount() > 0)
+                importInstructions.hasItems = true
                 case DialogImport.Page.ImapSource:
                 default:
                 incrementCurrentIndex()
@@ -1008,7 +997,7 @@ Dialog {
                 case DialogImport.Page.SelectSourceType:
                 case DialogImport.Page.ImapSource:
                 case DialogImport.Page.SourceToTarget:
-                globalDateRange.setRange()
+                globalDateRange.getRange()
                 break
                 case DialogImport.Page.LoadingStructure:
                 go.setupAndLoadForImport(

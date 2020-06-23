@@ -91,8 +91,6 @@ Dialog {
 
                 DateRange{
                     id: dateRangeInput
-                    structure: structurePM
-                    sourceID: structurePM.getID(-1)
                 }
 
                 OutputFormat {
@@ -142,7 +140,7 @@ Dialog {
                         id: buttonNext
                         fa_icon: Style.fa.check
                         text: qsTr("Export","todo")
-                        enabled: structurePM != 0
+                        enabled: transferRules != 0
                         color_main: Style.dialog.background
                         color_minor: enabled ? Style.dialog.textBlue : Style.main.textDisabled
                         isOpaque: true
@@ -168,13 +166,17 @@ Dialog {
             spacing: Style.main.rightMargin
             AccessibleText {
                 id: statusLabel
-                text : qsTr("Exporting to:")
+                text : qsTr("Status:")
                 font.pointSize: Style.main.iconSize * Style.pt
                 color : Style.main.text
             }
             AccessibleText {
                 anchors.baseline: statusLabel.baseline
-                text : go.progressDescription == gui.enums.progressInit ?  outputPathInput.path : go.progressDescription
+                text :  {
+                    if (progressbarExport.isFinished) return qsTr("finished")
+                    if (go.progressDescription == "") return qsTr("exporting")
+                    return go.progressDescription
+                }
                 elide: Text.ElideMiddle
                 width: progressbarExport.width - parent.spacing - statusLabel.width
                 font.pointSize: Style.dialog.textSize * Style.pt
@@ -310,15 +312,17 @@ Dialog {
     function check_inputs() {
         if (currentIndex == 1) {
             // at least one email to export
-            if (structurePM.rowCount() == 0){
+            if (transferRules.rowCount() == 0){
                 errorPopup.show(qsTr("No emails found to export. Please try another address.", "todo"))
                 return false
             }
             // at least one source selected
-            if (!structurePM.atLeastOneSelected) {
-                errorPopup.show(qsTr("Please select at least one item to export.", "todo"))
-                return false
-            }
+            /*
+             if (!transferRules.atLeastOneSelected) {
+                 errorPopup.show(qsTr("Please select at least one item to export.", "todo"))
+                 return false
+             }
+             */
             // check path
             var folderCheck = go.checkPathStatus(outputPathInput.path)
             switch (folderCheck) {
@@ -364,7 +368,6 @@ Dialog {
         errorPopup.buttonYes.visible = true
         errorPopup.buttonNo.visible = true
         errorPopup.buttonOkay.visible = false
-        errorPopup.checkbox.text = root.msgClearUnfished
         errorPopup.show ("Are you sure you want to cancel this export?")
     }
 
@@ -374,10 +377,7 @@ Dialog {
             case 0 :
             case 1 : root.hide(); break;
             case 2 : // progress bar 
-            go.cancelProcess (
-                errorPopup.checkbox.text == root.msgClearUnfished &&
-                errorPopup.checkbox.checked
-            );
+            go.cancelProcess();
             // no break
             default:
             root.clear_status()
@@ -395,7 +395,7 @@ Dialog {
             root.hide()
             break
             case 0: // loading structure
-            dateRangeInput.setRange()
+            dateRangeInput.getRange()
             //no break
             default:
             incrementCurrentIndex()
@@ -426,7 +426,7 @@ Dialog {
             switch (currentIndex) {
                 case 0:
                 go.loadStructureForExport(root.address)
-                sourceFoldersInput.hasItems = (structurePM.rowCount() > 0)
+                sourceFoldersInput.hasItems = (transferRules.rowCount() > 0)
                 break
                 case 2:
                 dateRangeInput.applyRange()

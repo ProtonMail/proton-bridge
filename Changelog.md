@@ -47,6 +47,8 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-554 Detect and notify about "bad certificate" IMAP TLS error.
 * IMAP mailbox info update when new mailbox is created.
 * GODT-72 Use ISO-8859-1 encoding if charset is not specified and it isn't UTF-8.
+* Structure for transfer rules in QML
+* GODT-360 Detect charset embedded in html/xml.
 
 ### Changed
 * GODT-360 Detect charset embedded in html/xml.

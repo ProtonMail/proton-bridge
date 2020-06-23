@@ -31,12 +31,14 @@ var log = logrus.WithField("pkg", "transfer") //nolint[gochecknoglobals]
 // Transfer is facade on top of import rules, progress manager and source
 // and target providers. This is the main object which should be used.
 type Transfer struct {
-	panicHandler PanicHandler
-	id           string
-	dir          string
-	rules        transferRules
-	source       SourceProvider
-	target       TargetProvider
+	panicHandler    PanicHandler
+	id              string
+	dir             string
+	rules           transferRules
+	source          SourceProvider
+	target          TargetProvider
+	sourceMboxCache []Mailbox
+	targetMboxCache []Mailbox
 }
 
 // New creates Transfer for specific source and target. Usage:
@@ -127,23 +129,33 @@ func (t *Transfer) GetRules() []*Rule {
 }
 
 // SourceMailboxes returns mailboxes available at source side.
-func (t *Transfer) SourceMailboxes() ([]Mailbox, error) {
-	return t.source.Mailboxes(false, true)
+func (t *Transfer) SourceMailboxes() (m []Mailbox, err error) {
+	if t.sourceMboxCache == nil {
+		t.sourceMboxCache, err = t.source.Mailboxes(false, true)
+	}
+	return t.sourceMboxCache, err
 }
 
 // TargetMailboxes returns mailboxes available at target side.
-func (t *Transfer) TargetMailboxes() ([]Mailbox, error) {
-	return t.target.Mailboxes(true, false)
+func (t *Transfer) TargetMailboxes() (m []Mailbox, err error) {
+	if t.targetMboxCache == nil {
+		t.targetMboxCache, err = t.target.Mailboxes(true, false)
+	}
+	return t.targetMboxCache, err
 }
 
 // CreateTargetMailbox creates mailbox in target provider.
 func (t *Transfer) CreateTargetMailbox(mailbox Mailbox) (Mailbox, error) {
+	t.targetMboxCache = nil
+
 	return t.target.CreateMailbox(mailbox)
 }
 
 // ChangeTarget changes the target. It is safe to change target for export,
 // must not be changed for import. Do not set after you started transfer.
 func (t *Transfer) ChangeTarget(target TargetProvider) {
+	t.targetMboxCache = nil
+
 	t.target = target
 }
 
@@ -151,6 +163,7 @@ func (t *Transfer) ChangeTarget(target TargetProvider) {
 func (t *Transfer) Start() *Progress {
 	log.Debug("Transfer started")
 	t.rules.save()
+	t.rules.propagateGlobalTime()
 
 	log := log.WithField("id", t.id)
 	reportFile := newFileReport(t.dir, t.id)

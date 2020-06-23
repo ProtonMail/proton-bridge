@@ -25,8 +25,8 @@ import ImportExportUI 1.0
 Row {
     id: dateRange
 
-    property var   structure : structureExternal
-    property string sourceID : structureExternal.getID ( -1 )
+    property var   structure : transferRules
+    property string sourceID : "-1"
 
     property alias allDates      : allDatesBox.checked
     property alias inputDateFrom : inputDateFrom
@@ -34,7 +34,7 @@ Row {
 
     property alias labelWidth: label.width
 
-    function setRange() {common.setRange()}
+    function getRange() {common.getRange()}
     function applyRange() {common.applyRange()}
 
     DateRangeFunctions {id:common}

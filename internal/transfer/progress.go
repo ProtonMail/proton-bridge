@@ -198,7 +198,7 @@ func (p *Progress) callWrap(callback func() error) {
 			break
 		}
 
-		p.Pause(err.Error())
+		p.Pause("paused due to " + err.Error())
 	}
 }
 
@@ -332,4 +332,12 @@ func (p *Progress) GenerateBugReport() []byte {
 		bugReport.writeMessageStatus(status)
 	}
 	return bugReport.getData()
+}
+
+func (p *Progress) FileReport() (path string) {
+	if r := p.fileReport; r != nil {
+		path = r.path
+	}
+
+	return
 }

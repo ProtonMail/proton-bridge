@@ -25,14 +25,15 @@ import ImportExportUI 1.0
 Column {
     id: dateRange
 
-    property var   structure : structureExternal
-    property string sourceID : structureExternal.getID ( -1 )
+    property var   structure : transferRules
+    property string sourceID : "-1"
 
     property alias allDates      : allDatesBox.checked
     property alias inputDateFrom : inputDateFrom
     property alias inputDateTo   : inputDateTo
 
-    function setRange() {common.setRange()}
+    function getRange() {common.getRange()}
+    function setRangeFromTo(from, to) {common.setRangeFromTo(from, to)}
     function applyRange() {common.applyRange()}
 
     property var dropDownStyle : Style.dropDownLight

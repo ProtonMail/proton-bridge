@@ -39,7 +39,7 @@ Rectangle {
     }
     property real iconWidth : nameWidth*0.3
 
-    property bool isSourceSelected: targetFolderID!=""
+    property bool isSourceSelected: isActive
     property string lastTargetFolder: "6" // Archive
     property string lastTargetLabels: "" // no flag by default
 
@@ -71,7 +71,7 @@ Rectangle {
 
         Text {
             id: folderIcon
-            text : gui.folderIcon(folderName, gui.enums.folderTypeFolder)
+            text : gui.folderIcon(name, gui.enums.folderTypeFolder)
             anchors.verticalCenter : parent.verticalCenter
             color: root.isSourceSelected ? Style.main.text : Style.main.textDisabled
             font {
@@ -81,7 +81,7 @@ Rectangle {
         }
 
         Text {
-            text : folderName
+            text : name
             width: nameWidth
             elide: Text.ElideRight
             anchors.verticalCenter : parent.verticalCenter
@@ -102,24 +102,27 @@ Rectangle {
 
         SelectFolderMenu {
             id: selectFolder
-            sourceID: folderId
-            selectedIDs: targetFolderID
+            sourceID: mboxID
+            targets: transferRules.targetFolders(mboxID)
             width: nameWidth
             anchors.verticalCenter : parent.verticalCenter
+            enabled: root.isSourceSelected
             onDoNotImport: root.toggleImport()
             onImportToFolder: root.importToFolder(newTargetID)
         }
 
         SelectLabelsMenu {
-            sourceID: folderId
-            selectedIDs: targetLabelIDs
+            sourceID: mboxID
+            targets: transferRules.targetLabels(mboxID)
             width: nameWidth
             anchors.verticalCenter : parent.verticalCenter
             enabled: root.isSourceSelected
+            onAddTargetLabel: { transferRules.addTargetID(sourceID, newTargetID) }
+            onRemoveTargetLabel: { transferRules.removeTargetID(sourceID, newTargetID) }
         }
 
         LabelIconList {
-            selectedIDs: targetLabelIDs
+            colorList: labelColors=="" ? [] : labelColors.split(";")
             width: iconWidth
             anchors.verticalCenter : parent.verticalCenter
             enabled: root.isSourceSelected
@@ -127,38 +130,23 @@ Rectangle {
 
         DateRangeMenu {
             id: dateRangeMenu
-            sourceID: folderId
+            sourceID: mboxID
+            sourceFromDate: fromDate
+            sourceToDate: toDate
 
             enabled: root.isSourceSelected
             anchors.verticalCenter : parent.verticalCenter
+
+            Component.onCompleted : dateRangeMenu.updateRange()
         }
     }
 
 
     function importToFolder(newTargetID) {
-        if (root.isSourceSelected) {
-            structureExternal.setTargetFolderID(folderId,newTargetID)
-        } else {
-            lastTargetFolder = newTargetID
-            toggleImport()
-        }
+        transferRules.addTargetID(mboxID,newTargetID)
     }
 
     function toggleImport() {
-        if (root.isSourceSelected) {
-            lastTargetFolder = targetFolderID
-            lastTargetLabels = targetLabelIDs
-            structureExternal.setTargetFolderID(folderId,"")
-            return Qt.Unchecked
-        } else {
-            structureExternal.setTargetFolderID(folderId,lastTargetFolder)
-            var labelsSplit = lastTargetLabels.split(";")
-            for (var labelIndex in labelsSplit) {
-                var labelID = labelsSplit[labelIndex]
-                structureExternal.addTargetLabelID(folderId,labelID)
-            }
-            return Qt.Checked
-        }
+        transferRules.setIsRuleActive(mboxID, !root.isSourceSelected)
     }
-
 }

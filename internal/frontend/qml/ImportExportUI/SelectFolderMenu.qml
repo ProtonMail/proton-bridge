@@ -26,19 +26,19 @@ ComboBox {
     //fixme rounded
     height: Style.main.fontSize*2 //fixme
     property string folderType: gui.enums.folderTypeFolder
-    property string selectedIDs
     property string sourceID
+    property var targets
     property bool isFolderType: root.folderType == gui.enums.folderTypeFolder
-    property bool hasTarget: root.selectedIDs != ""
     property bool below: true
 
     signal doNotImport()
     signal importToFolder(string newTargetID)
+    signal addTargetLabel(string newTargetID)
+    signal removeTargetLabel(string newTargetID)
 
     leftPadding: Style.dialog.spacing
 
     onDownChanged : {
-        if (root.down) view.model.updateFilter()
         root.below = popup.y>0
     }
 
@@ -58,30 +58,22 @@ ComboBox {
     }
 
     displayText: {
-        //console.trace()
-        //console.log("updatebox", view.currentIndex, root.hasTarget, root.selectedIDs, root.sourceID, root.folderType)
-        if (!root.hasTarget) {
-            if (root.isFolderType) return qsTr("Do not import")
-            return qsTr("No labels selected")
-        }
-        if (!root.isFolderType) return Style.fa.tags + " " + qsTr("Add/Remove labels")
+        console.log("Target Menu current", view.currentItem, view.currentIndex)
+        if (view.currentIndex >= 0) {
+            if (!root.isFolderType) return Style.fa.tags + " " + qsTr("Add/Remove labels")
 
-        // We know here that it has a target and this is folder dropdown so we must find the first folder
-        var selSplit = root.selectedIDs.split(";")
-        for (var selIndex in selSplit) {
-            var selectedID = selSplit[selIndex]
-            var selectedType = structurePM.getType(selectedID)
-            if (selectedType == gui.enums.folderTypeLabel) continue; // skip type::labele
-            var selectedName = structurePM.getName(selectedID)
-            if (selectedName == "") continue; // empty name seems like wrong ID
-            var icon = gui.folderIcon(selectedName, selectedType)
-            if (selectedType == gui.enums.folderTypeSystem) {
-                return icon + " " + selectedName
+            var tgtName = view.currentItem.folderName
+            var tgtIcon = view.currentItem.folderIcon
+            var tgtColor = view.currentItem.folderColor
+
+            if (tgtIcon != Style.fa.folder_open) {
+                return tgtIcon + " " + tgtName
             }
-            var iconColor = structurePM.getColor(selectedID)
-            return '<font color="'+iconColor+'">'+ icon + "</font> " + selectedName
+
+            return '<font color="'+tgtColor+'">'+ tgtIcon + "</font> " + tgtName
         }
-        return ""
+        if (root.isFolderType) return qsTr("No folder selected")
+        return qsTr("No labels selected")
     }
 
 
@@ -116,7 +108,7 @@ ComboBox {
         color: root.enabled && !root.down ? Style.main.textBlue : root.contentItem.color
     }
 
-    // Popup objects
+    // Popup row
     delegate: Rectangle {
         id: thisDelegate
 
@@ -127,22 +119,15 @@ ComboBox {
 
         color: isHovered ? root.popup.hoverColor : root.popup.backColor
 
-
-        property bool isSelected : {
-            var selected = root.selectedIDs.split(";")
-            for (var iSel in selected) {
-                var sel = selected[iSel]
-                if (folderId == sel){
-                    return true
-                }
-            }
-            return false
-        }
+        property bool isSelected : isActive
+        property string folderName: name
+        property string folderIcon: gui.folderIcon(name,type)
+        property string folderColor: (type == gui.enums.folderTypeLabel || type == gui.enums.folderTypeFolder) ? iconColor : root.popup.textColor
 
         Text {
             id: targetIcon
-            text: gui.folderIcon(folderName,folderType)
-            color : folderType != gui.enums.folderTypeSystem ? folderColor : root.popup.textColor
+            text: thisDelegate.folderIcon
+            color : thisDelegate.folderColor
             anchors {
                 verticalCenter: parent.verticalCenter
                 left: parent.left
@@ -157,6 +142,7 @@ ComboBox {
         Text {
             id: targetName
 
+
             anchors {
                 verticalCenter: parent.verticalCenter
                 left: targetIcon.right
@@ -165,7 +151,7 @@ ComboBox {
                 rightMargin: Style.dialog.spacing
             }
 
-            text: folderName
+            text: thisDelegate.folderName
             color : root.popup.textColor
             elide: Text.ElideRight
 
@@ -209,16 +195,15 @@ ComboBox {
             onClicked: {
                 //console.log(" click delegate")
                 if (root.isFolderType) { // don't update if selected
-                    if (!thisDelegate.isSelected) {
-                        root.importToFolder(folderId)
-                    }
                     root.popup.close()
-                }
-                if (root.folderType==gui.enums.folderTypeLabel) {
-                    if (thisDelegate.isSelected) {
-                        structureExternal.removeTargetLabelID(sourceID,folderId)
+                    if (!isActive) {
+                        root.importToFolder(mboxID)
+                    }
+                } else {
+                    if (isActive) {
+                        root.removeTargetLabel(mboxID)
                     } else  {
-                        structureExternal.addTargetLabelID(sourceID,folderId)
+                        root.addTargetLabel(mboxID)
                     }
                 }
             }
@@ -295,14 +280,10 @@ ComboBox {
 
                     clip         : true
                     anchors.fill : parent
+                    model        : root.targets
+                    delegate     : root.delegate
 
-                    section.property : "sectionName"
-                    section.delegate : Text{text: sectionName}
-
-                    model : FilterStructure {
-                        filterOnGroup : root.folderType
-                        delegate      : root.delegate
-                    }
+                    currentIndex: view.model.selectedIndex
                 }
             }
 
@@ -338,10 +319,7 @@ ComboBox {
 
                     onClicked  : {
                         //console.log("click", addButton.text)
-                        var newName = ""
-                        if ( typeof folderName !== 'undefined' && !structurePM.hasFolderWithName (folderName) ) {
-                            newName = folderName
-                        }
+                        var newName = name
                         winMain.popupFolderEdit.show(newName, "", "", root.folderType, sourceID)
                         root.popup.close()
                     }

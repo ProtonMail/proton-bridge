@@ -19,14 +19,19 @@
 
 package qtie
 
-import "github.com/ProtonMail/proton-bridge/internal/transfer"
+import (
+	"github.com/pkg/errors"
+
+	"github.com/ProtonMail/proton-bridge/internal/transfer"
+)
 
 // wrapper for QML
 func (f *FrontendQt) setupAndLoadForImport(isFromIMAP bool, sourcePath, sourceEmail, sourcePassword, sourceServer, sourcePort, targetAddress string) {
+	errCode := errUnknownError
 	var err error
 	defer func() {
 		if err != nil {
-			f.showError(err)
+			f.showError(errCode, err)
 			f.Qml.ImportStructuresLoadFinished(false)
 		} else {
 			f.Qml.ImportStructuresLoadFinished(true)
@@ -36,11 +41,23 @@ func (f *FrontendQt) setupAndLoadForImport(isFromIMAP bool, sourcePath, sourceEm
 	if isFromIMAP {
 		f.transfer, err = f.ie.GetRemoteImporter(targetAddress, sourceEmail, sourcePassword, sourceServer, sourcePort)
 		if err != nil {
+			switch {
+			case errors.Is(err, &transfer.ErrIMAPConnection{}):
+				errCode = errWrongServerPathOrPort
+			case errors.Is(err, &transfer.ErrIMAPAuth{}):
+				errCode = errWrongLoginOrPassword
+			case errors.Is(err, &transfer.ErrIMAPAuthMethod{}):
+				errCode = errWrongAuthMethod
+			default:
+				errCode = errRemoteSourceLoadFailed
+			}
 			return
 		}
 	} else {
 		f.transfer, err = f.ie.GetLocalImporter(targetAddress, sourcePath)
 		if err != nil {
+			// The only error can be problem to load PM user and address.
+			errCode = errPMLoadFailed
 			return
 		}
 	}
@@ -51,27 +68,7 @@ func (f *FrontendQt) setupAndLoadForImport(isFromIMAP bool, sourcePath, sourceEm
 }
 
 func (f *FrontendQt) loadStructuresForImport() error {
-	f.PMStructure.Clear()
-	targetMboxes, err := f.transfer.TargetMailboxes()
-	if err != nil {
-		return err
-	}
-	for _, mbox := range targetMboxes {
-		rule := &transfer.Rule{}
-		f.PMStructure.addEntry(newFolderInfo(mbox, rule))
-	}
-
-	f.ExternalStructure.Clear()
-	sourceMboxes, err := f.transfer.SourceMailboxes()
-	if err != nil {
-		return err
-	}
-	for _, mbox := range sourceMboxes {
-		rule := f.transfer.GetRule(mbox)
-		f.ExternalStructure.addEntry(newFolderInfo(mbox, rule))
-	}
-
-	f.ExternalStructure.transfer = f.transfer
+	f.TransferRules.setTransfer(f.transfer)
 
 	return nil
 }
@@ -82,8 +79,9 @@ func (f *FrontendQt) StartImport(email string) { // TODO email not needed
 	f.Qml.SetProgress(0.0)
 	f.Qml.SetTotal(1)
 	f.Qml.SetImportLogFileName("")
-	f.ErrorList.Clear()
 
 	progress := f.transfer.Start()
+
+	f.Qml.SetImportLogFileName(progress.FileReport())
 	f.setProgressManager(progress)
 }

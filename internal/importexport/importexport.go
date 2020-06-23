@@ -19,8 +19,11 @@
 package importexport
 
 import (
+	"bytes"
+
 	"github.com/ProtonMail/proton-bridge/internal/transfer"
 	"github.com/ProtonMail/proton-bridge/internal/users"
+	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
 	logrus "github.com/sirupsen/logrus"
@@ -61,20 +64,51 @@ func (ie *ImportExport) ReportBug(osType, osVersion, description, accountName, a
 	defer c.Logout()
 
 	title := "[Import-Export] Bug"
-	if err := c.ReportBugWithEmailClient(
-		osType,
-		osVersion,
-		title,
-		description,
-		accountName,
-		address,
-		emailClient,
-	); err != nil {
+	report := pmapi.ReportReq{
+		OS:          osType,
+		OSVersion:   osVersion,
+		Browser:     emailClient,
+		Title:       title,
+		Description: description,
+		Username:    accountName,
+		Email:       address,
+	}
+
+	if err := c.Report(report); err != nil {
 		log.Error("Reporting bug failed: ", err)
 		return err
 	}
 
 	log.Info("Bug successfully reported")
+
+	return nil
+}
+
+// ReportFile submits import report file
+func (ie *ImportExport) ReportFile(osType, osVersion, accountName, address string, logdata []byte) error {
+	c := ie.clientManager.GetAnonymousClient()
+	defer c.Logout()
+
+	title := "[Import-Export] report file"
+	description := "An import/export report from the user swam down the river."
+
+	report := pmapi.ReportReq{
+		OS:          osType,
+		OSVersion:   osVersion,
+		Description: description,
+		Title:       title,
+		Username:    accountName,
+		Email:       address,
+	}
+
+	report.AddAttachment("log", "report.log", bytes.NewReader(logdata))
+
+	if err := c.Report(report); err != nil {
+		log.Error("Sending report failed: ", err)
+		return err
+	}
+
+	log.Info("Report successfully sent")
 
 	return nil
 }
@@ -130,7 +164,7 @@ func (ie *ImportExport) getPMAPIProvider(address string) (*transfer.PMAPIProvide
 
 	addressID, err := user.GetAddressID(address)
 	if err != nil {
-		return nil, err
+		log.WithError(err).Info("Address does not exist, using all addresses")
 	}
 
 	return transfer.NewPMAPIProvider(ie.clientManager, user.ID(), addressID)

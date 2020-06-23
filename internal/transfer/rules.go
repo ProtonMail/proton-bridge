@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 	"time"
 
@@ -41,6 +42,11 @@ type transferRules struct {
 	// globalMailbox is applied to every message in the import phase.
 	// E.g., every message will be imported into this mailbox.
 	globalMailbox *Mailbox
+
+	// globalFromTime and globalToTime is applied to every rule right
+	// before the transfer (propagateGlobalTime has to be called).
+	globalFromTime int64
+	globalToTime   int64
 
 	// skipEncryptedMessages determines whether message which cannot
 	// be decrypted should be exported or skipped.
@@ -81,10 +87,18 @@ func (r *transferRules) setGlobalMailbox(mailbox *Mailbox) {
 }
 
 func (r *transferRules) setGlobalTimeLimit(fromTime, toTime int64) {
+	r.globalFromTime = fromTime
+	r.globalToTime = toTime
+}
+
+func (r *transferRules) propagateGlobalTime() {
+	if r.globalFromTime == 0 && r.globalToTime == 0 {
+		return
+	}
 	for _, rule := range r.rules {
 		if !rule.HasTimeLimit() {
-			rule.FromTime = fromTime
-			rule.ToTime = toTime
+			rule.FromTime = r.globalFromTime
+			rule.ToTime = r.globalToTime
 		}
 	}
 }
@@ -122,8 +136,9 @@ func (r *transferRules) setDefaultRules(sourceMailboxes []Mailbox, targetMailbox
 		}
 
 		targetMailboxes := sourceMailbox.findMatchingMailboxes(targetMailboxes)
-		if len(targetMailboxes) == 0 {
-			targetMailboxes = defaultCallback(sourceMailbox)
+
+		if !containsExclusive(targetMailboxes) {
+			targetMailboxes = append(targetMailboxes, defaultCallback(sourceMailbox)...)
 		}
 
 		active := true
@@ -147,10 +162,14 @@ func (r *transferRules) setDefaultRules(sourceMailboxes []Mailbox, targetMailbox
 		}
 	}
 
-	for _, rule := range r.rules {
-		if !rule.Active {
-			continue
-		}
+	// There is no point showing rule which has no action (i.e., source mailbox
+	// is not available).
+	// A good reason to keep all rules and only deactivate them would be for
+	// multiple imports from different sources with the same or similar enough
+	// mailbox setup to reuse configuration. That is very minor feature which
+	// can be implemented in more reasonable way by allowing users to save and
+	// load configurations.
+	for key, rule := range r.rules {
 		found := false
 		for _, sourceMailbox := range sourceMailboxes {
 			if sourceMailbox.Name == rule.SourceMailbox.Name {
@@ -158,7 +177,7 @@ func (r *transferRules) setDefaultRules(sourceMailboxes []Mailbox, targetMailbox
 			}
 		}
 		if !found {
-			rule.Active = false
+			delete(r.rules, key)
 		}
 	}
 
@@ -216,6 +235,7 @@ func (r *transferRules) getRules() []*Rule {
 	for _, rule := range r.rules {
 		rules = append(rules, rule)
 	}
+	sort.Sort(byRuleOrder(rules))
 	return rules
 }
 
@@ -287,4 +307,60 @@ func (r *Rule) TargetMailboxNames() (names []string) {
 		names = append(names, mailbox.Name)
 	}
 	return
+}
+
+// byRuleOrder implements sort.Interface. Sort order:
+//  * System folders first (as defined in getSystemMailboxes).
+//  * Custom folders by name.
+//  * Custom labels by name.
+type byRuleOrder []*Rule
+
+func (a byRuleOrder) Len() int {
+	return len(a)
+}
+
+func (a byRuleOrder) Swap(i, j int) {
+	a[i], a[j] = a[j], a[i]
+}
+
+func (a byRuleOrder) Less(i, j int) bool {
+	if a[i].SourceMailbox.IsExclusive && !a[j].SourceMailbox.IsExclusive {
+		return true
+	}
+	if !a[i].SourceMailbox.IsExclusive && a[j].SourceMailbox.IsExclusive {
+		return false
+	}
+
+	iSystemIndex := -1
+	jSystemIndex := -1
+	for index, systemFolders := range getSystemMailboxes(true) {
+		if a[i].SourceMailbox.Name == systemFolders.Name {
+			iSystemIndex = index
+		}
+		if a[j].SourceMailbox.Name == systemFolders.Name {
+			jSystemIndex = index
+		}
+	}
+	if iSystemIndex != -1 && jSystemIndex == -1 {
+		return true
+	}
+	if iSystemIndex == -1 && jSystemIndex != -1 {
+		return false
+	}
+	if iSystemIndex != -1 && jSystemIndex != -1 {
+		return iSystemIndex < jSystemIndex
+	}
+
+	return a[i].SourceMailbox.Name < a[j].SourceMailbox.Name
+}
+
+// containsExclusive returns true if there is at least one exclusive mailbox.
+func containsExclusive(mailboxes []Mailbox) bool {
+	for _, m := range mailboxes {
+		if m.IsExclusive {
+			return true
+		}
+	}
+
+	return false
 }

@@ -39,9 +39,13 @@ func (p *EMLProvider) ID() string {
 // Mailboxes returns all available folder names from root of EML files.
 // In case the same folder name is used more than once (for example root/a/foo
 // and root/b/foo), it's treated as the same folder.
-func (p *EMLProvider) Mailboxes(includeEmpty, includeAllMail bool) ([]Mailbox, error) {
+func (p *EMLProvider) Mailboxes(includeEmpty, includeAllMail bool) (mailboxes []Mailbox, err error) {
+	// Special case for exporting--we don't know the path before setup if finished.
+	if p.root == "" {
+		return
+	}
+
 	var folderNames []string
-	var err error
 	if includeEmpty {
 		folderNames, err = getFolderNames(p.root)
 	} else {
@@ -51,7 +55,6 @@ func (p *EMLProvider) Mailboxes(includeEmpty, includeAllMail bool) ([]Mailbox, e
 		return nil, err
 	}
 
-	mailboxes := []Mailbox{}
 	for _, folderName := range folderNames {
 		mailboxes = append(mailboxes, Mailbox{
 			ID:          "",

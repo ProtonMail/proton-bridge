@@ -71,7 +71,7 @@ type GoQMLInterface struct {
 	_ func()                 `signal:"openManual"`
 	_ func(showMessage bool) `signal:"runCheckVersion"`
 	_ func()                 `slot:"getLocalVersionInfo"`
-	_ func(fname string)     `slot:"loadImportReports"`
+	_ func()                 `slot:"loadImportReports"`
 
 	_ func() `slot:"quit"`
 	_ func() `slot:"loadAccounts"`
@@ -87,7 +87,7 @@ type GoQMLInterface struct {
 	_ func() string          `slot:"getBackendVersion"`
 
 	_ func(description, client, address string) bool                                       `slot:"sendBug"`
-	_ func(address, fname string) bool                                                     `slot:"sendImportReport"`
+	_ func(address string) bool                                                            `slot:"sendImportReport"`
 	_ func(address string)                                                                 `slot:"loadStructureForExport"`
 	_ func() string                                                                        `slot:"leastUsedColor"`
 	_ func(username string, name string, color string, isLabel bool, sourceID string) bool `slot:"createLabelOrFolder"`
@@ -104,13 +104,13 @@ type GoQMLInterface struct {
 	_ func(evType string, msg string)    `signal:"emitEvent"`
 	_ func(tabIndex int, message string) `signal:"notifyBubble"`
 
-	_ func()                     `signal:"bubbleClosed"`
-	_ func()                     `signal:"simpleErrorHappen"`
-	_ func()                     `signal:"askErrorHappen"`
-	_ func()                     `signal:"retryErrorHappen"`
-	_ func()                     `signal:"pauseProcess"`
-	_ func()                     `signal:"resumeProcess"`
-	_ func(clearUnfinished bool) `signal:"cancelProcess"`
+	_ func() `signal:"bubbleClosed"`
+	_ func() `signal:"simpleErrorHappen"`
+	_ func() `signal:"askErrorHappen"`
+	_ func() `signal:"retryErrorHappen"`
+	_ func() `signal:"pauseProcess"`
+	_ func() `signal:"resumeProcess"`
+	_ func() `signal:"cancelProcess"`
 
 	_ func(iAccount int, prefRem bool)      `slot:"deleteAccount"`
 	_ func(iAccount int)                    `slot:"logoutAccount"`

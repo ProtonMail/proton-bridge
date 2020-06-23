@@ -38,20 +38,24 @@ type PMAPIProvider struct {
 
 // NewPMAPIProvider returns new PMAPIProvider.
 func NewPMAPIProvider(clientManager ClientManager, userID, addressID string) (*PMAPIProvider, error) {
-	keyRing, err := clientManager.GetClient(userID).KeyRingForAddressID(addressID)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to get key ring")
-	}
-
-	return &PMAPIProvider{
+	provider := &PMAPIProvider{
 		clientManager: clientManager,
 		userID:        userID,
 		addressID:     addressID,
-		keyRing:       keyRing,
 
 		importMsgReqMap:  map[string]*pmapi.ImportMsgReq{},
 		importMsgReqSize: 0,
-	}, nil
+	}
+
+	if addressID != "" {
+		keyRing, err := clientManager.GetClient(userID).KeyRingForAddressID(addressID)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to get key ring")
+		}
+		provider.keyRing = keyRing
+	}
+
+	return provider, nil
 }
 
 func (p *PMAPIProvider) client() pmapi.Client {
@@ -86,7 +90,14 @@ func (p *PMAPIProvider) Mailboxes(includeEmpty, includeAllMail bool) ([]Mailbox,
 		}
 	}
 
-	mailboxes := getSystemMailboxes(includeAllMail)
+	mailboxes := []Mailbox{}
+	for _, mailbox := range getSystemMailboxes(includeAllMail) {
+		if !includeEmpty && emptyLabelsMap[mailbox.ID] {
+			continue
+		}
+
+		mailboxes = append(mailboxes, mailbox)
+	}
 	for _, label := range sortedLabels {
 		if !includeEmpty && emptyLabelsMap[label.ID] {
 			continue

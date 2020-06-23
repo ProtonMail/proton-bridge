@@ -21,6 +21,7 @@ package qtie
 
 import (
 	"github.com/ProtonMail/proton-bridge/internal/transfer"
+	"github.com/pkg/errors"
 )
 
 const (
@@ -29,10 +30,11 @@ const (
 )
 
 func (f *FrontendQt) LoadStructureForExport(addressOrID string) {
+	errCode := errUnknownError
 	var err error
 	defer func() {
 		if err != nil {
-			f.showError(err)
+			f.showError(errCode, errors.Wrap(err, "failed to load structure for "+addressOrID))
 			f.Qml.ExportStructureLoadFinished(false)
 		} else {
 			f.Qml.ExportStructureLoadFinished(true)
@@ -40,20 +42,12 @@ func (f *FrontendQt) LoadStructureForExport(addressOrID string) {
 	}()
 
 	if f.transfer, err = f.ie.GetEMLExporter(addressOrID, ""); err != nil {
+		// The only error can be problem to load PM user and address.
+		errCode = errPMLoadFailed
 		return
 	}
 
-	f.PMStructure.Clear()
-	sourceMailboxes, err := f.transfer.SourceMailboxes()
-	if err != nil {
-		return
-	}
-	for _, mbox := range sourceMailboxes {
-		rule := f.transfer.GetRule(mbox)
-		f.PMStructure.addEntry(newFolderInfo(mbox, rule))
-	}
-
-	f.PMStructure.transfer = f.transfer
+	f.TransferRules.setTransfer(f.transfer)
 }
 
 func (f *FrontendQt) StartExport(rootPath, login, fileType string, attachEncryptedBody bool) {

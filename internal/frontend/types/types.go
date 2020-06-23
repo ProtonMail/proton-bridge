@@ -114,6 +114,7 @@ type ImportExporter interface {
 	GetMBOXExporter(string, string) (*transfer.Transfer, error)
 	SetCurrentOS(os string)
 	ReportBug(osType, osVersion, description, accountName, address, emailClient string) error
+	ReportFile(osType, osVersion, accountName, address string, logdata []byte) error
 }
 
 type importExportWrap struct {

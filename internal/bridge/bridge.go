@@ -25,6 +25,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/internal/metrics"
 	"github.com/ProtonMail/proton-bridge/internal/preferences"
 	"github.com/ProtonMail/proton-bridge/internal/users"
+	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
 	logrus "github.com/sirupsen/logrus"
@@ -130,15 +131,17 @@ func (b *Bridge) ReportBug(osType, osVersion, description, accountName, address,
 	defer c.Logout()
 
 	title := "[Bridge] Bug"
-	if err := c.ReportBugWithEmailClient(
-		osType,
-		osVersion,
-		title,
-		description,
-		accountName,
-		address,
-		emailClient,
-	); err != nil {
+	report := pmapi.ReportReq{
+		OS:          osType,
+		OSVersion:   osVersion,
+		Browser:     emailClient,
+		Title:       title,
+		Description: description,
+		Username:    accountName,
+		Email:       address,
+	}
+
+	if err := c.Report(report); err != nil {
 		log.Error("Reporting bug failed: ", err)
 		return err
 	}

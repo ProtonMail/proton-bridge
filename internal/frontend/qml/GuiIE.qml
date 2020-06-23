@@ -38,7 +38,7 @@ Item {
     property var allMonths : getMonthList(1,12)
     property var allDays   : getDayList(1,31)
 
-    property var enums : JSON.parse('{"pathOK":1,"pathEmptyPath":2,"pathWrongPath":4,"pathNotADir":8,"pathWrongPermissions":16,"pathDirEmpty":32,"errUnknownError":0,"errEventAPILogout":1,"errUpdateAPI":2,"errUpdateJSON":3,"errUserAuth":4,"errQApplication":18,"errEmailExportFailed":6,"errEmailExportMissing":7,"errNothingToImport":8,"errEmailImportFailed":12,"errDraftImportFailed":13,"errDraftLabelFailed":14,"errEncryptMessageAttachment":15,"errEncryptMessage":16,"errNoInternetWhileImport":17,"errUnlockUser":5,"errSourceMessageNotSelected":19,"errCannotParseMail":5000,"errWrongLoginOrPassword":5001,"errWrongServerPathOrPort":5002,"errWrongAuthMethod":5003,"errIMAPFetchFailed":5004,"errLocalSourceLoadFailed":1000,"errPMLoadFailed":1001,"errRemoteSourceLoadFailed":1002,"errLoadAccountList":1005,"errExit":1006,"errRetry":1007,"errAsk":1008,"errImportFailed":1009,"errCreateLabelFailed":1010,"errCreateFolderFailed":1011,"errUpdateLabelFailed":1012,"errUpdateFolderFailed":1013,"errFillFolderName":1014,"errSelectFolderColor":1015,"errNoInternet":1016,"folderTypeSystem":"","folderTypeLabel":"label","folderTypeFolder":"folder","folderTypeExternal":"external","progressInit":"init","progressLooping":"looping","statusNoInternet":"noInternet","statusCheckingInternet":"internetCheck","statusNewVersionAvailable":"oldVersion","statusUpToDate":"upToDate","statusForceUpdate":"forceupdate"}')
+    property var enums : JSON.parse('{"pathOK":1,"pathEmptyPath":2,"pathWrongPath":4,"pathNotADir":8,"pathWrongPermissions":16,"pathDirEmpty":32,"errUnknownError":0,"errEventAPILogout":1,"errUpdateAPI":2,"errUpdateJSON":3,"errUserAuth":4,"errQApplication":18,"errEmailExportFailed":6,"errEmailExportMissing":7,"errNothingToImport":8,"errEmailImportFailed":12,"errDraftImportFailed":13,"errDraftLabelFailed":14,"errEncryptMessageAttachment":15,"errEncryptMessage":16,"errNoInternetWhileImport":17,"errUnlockUser":5,"errSourceMessageNotSelected":19,"errCannotParseMail":5000,"errWrongLoginOrPassword":5001,"errWrongServerPathOrPort":5002,"errWrongAuthMethod":5003,"errIMAPFetchFailed":5004,"errLocalSourceLoadFailed":1000,"errPMLoadFailed":1001,"errRemoteSourceLoadFailed":1002,"errLoadAccountList":1005,"errExit":1006,"errRetry":1007,"errAsk":1008,"errImportFailed":1009,"errCreateLabelFailed":1010,"errCreateFolderFailed":1011,"errUpdateLabelFailed":1012,"errUpdateFolderFailed":1013,"errFillFolderName":1014,"errSelectFolderColor":1015,"errNoInternet":1016,"folderTypeSystem":"system","folderTypeLabel":"label","folderTypeFolder":"folder","folderTypeExternal":"external","progressInit":"init","progressLooping":"looping","statusNoInternet":"noInternet","statusCheckingInternet":"internetCheck","statusNewVersionAvailable":"oldVersion","statusUpToDate":"upToDate","statusForceUpdate":"forceupdate"}')
 
     IEStyle{}
 
@@ -396,7 +396,7 @@ Item {
         onTriggered : go.runCheckVersion(false)
     }
 
-    property string  areYouSureYouWantToQuit : qsTr("Tool does not finished all the jobs. Do you really want to quit?")
+    property string  areYouSureYouWantToQuit : qsTr("There are incomplete processes - some items are not yet transferred. Do you really want to stop and quit?")
     // On start
     Component.onCompleted : {
         // set spell messages

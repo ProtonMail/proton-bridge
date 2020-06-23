@@ -33,6 +33,11 @@ type Mailbox struct {
 	IsExclusive bool
 }
 
+// IsSystemFolder returns true when ID corresponds to PM system folder.
+func (m Mailbox) IsSystemFolder() bool {
+	return pmapi.IsSystemLabel(m.ID)
+}
+
 // Hash returns unique identifier to be used for matching.
 func (m Mailbox) Hash() string {
 	return fmt.Sprintf("%x", sha256.Sum256([]byte(m.Name)))

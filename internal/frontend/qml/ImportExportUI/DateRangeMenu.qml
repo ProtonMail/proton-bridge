@@ -31,8 +31,10 @@ Rectangle {
     property real padding : Style.dialog.spacing
     property bool down    : popup.visible
 
-    property var  structure   : structureExternal
-    property string  sourceID : structureExternal.getID(-1)
+    property var  structure   : transferRules
+    property string  sourceID : ""
+    property int  sourceFromDate : 0
+    property int  sourceToDate : 0
 
     color: Style.transparent
 
@@ -145,7 +147,17 @@ Rectangle {
             }
         }
 
-        onAboutToShow : dateRangeInput.setRange()
+        onAboutToShow : updateRange()
         onAboutToHide : dateRangeInput.applyRange()
+    }
+
+    function updateRange() {
+        dateRangeInput.setRangeFromTo(root.sourceFromDate, root.sourceToDate)
+    }
+
+    Connections {
+        target:root
+        onSourceFromDateChanged: root.updateRange()
+        onSourceToDateChanged: root.updateRange()
     }
 }

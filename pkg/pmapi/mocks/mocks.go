@@ -5,12 +5,11 @@
 package mocks
 
 import (
-	io "io"
-	reflect "reflect"
-
 	crypto "github.com/ProtonMail/gopenpgp/v2/crypto"
 	pmapi "github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	gomock "github.com/golang/mock/gomock"
+	io "io"
+	reflect "reflect"
 )
 
 // MockClient is a mock of Client interface
@@ -601,18 +600,18 @@ func (mr *MockClientMockRecorder) ReorderAddresses(arg0 interface{}) *gomock.Cal
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReorderAddresses", reflect.TypeOf((*MockClient)(nil).ReorderAddresses), arg0)
 }
 
-// ReportBugWithEmailClient mocks base method
-func (m *MockClient) ReportBugWithEmailClient(arg0, arg1, arg2, arg3, arg4, arg5, arg6 string) error {
+// Report mocks base method
+func (m *MockClient) Report(arg0 pmapi.ReportReq) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ReportBugWithEmailClient", arg0, arg1, arg2, arg3, arg4, arg5, arg6)
+	ret := m.ctrl.Call(m, "Report", arg0)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// ReportBugWithEmailClient indicates an expected call of ReportBugWithEmailClient
-func (mr *MockClientMockRecorder) ReportBugWithEmailClient(arg0, arg1, arg2, arg3, arg4, arg5, arg6 interface{}) *gomock.Call {
+// Report indicates an expected call of Report
+func (mr *MockClientMockRecorder) Report(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReportBugWithEmailClient", reflect.TypeOf((*MockClient)(nil).ReportBugWithEmailClient), arg0, arg1, arg2, arg3, arg4, arg5, arg6)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Report", reflect.TypeOf((*MockClient)(nil).Report), arg0)
 }
 
 // SendMessage mocks base method

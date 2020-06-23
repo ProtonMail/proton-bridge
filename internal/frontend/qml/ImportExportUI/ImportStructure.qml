@@ -50,7 +50,6 @@ Rectangle {
             verticalAlignment: Text.AlignVCenter
             text: qsTr("No emails found for this source.","todo")
         }
-
     }
 
     anchors {
@@ -70,7 +69,7 @@ Rectangle {
         clip           : true
         orientation    : ListView.Vertical
         boundsBehavior : Flickable.StopAtBounds
-        model          : structureExternal
+        model          : transferRules
         cacheBuffer    : 10000
         delegate       : ImportDelegate {
             width: root.width

@@ -137,7 +137,7 @@ func (p *IMAPProvider) auth() error { //nolint[funlen]
 	log.Info("Connecting to server")
 
 	if _, err := net.DialTimeout("tcp", p.addr, imapDialTimeout); err != nil {
-		return errors.Wrap(err, "failed to dial server")
+		return ErrIMAPConnection{imapError{Err: err, Message: "failed to dial server"}}
 	}
 
 	var client *imapClient.Client
@@ -149,7 +149,7 @@ func (p *IMAPProvider) auth() error { //nolint[funlen]
 		client, err = imapClient.DialTLS(p.addr, nil)
 	}
 	if err != nil {
-		return errors.Wrap(err, "failed to connect to server")
+		return ErrIMAPConnection{imapError{Err: err, Message: "failed to connect to server"}}
 	}
 
 	client.ErrorLog = &imapErrorLogger{logrus.WithField("pkg", "imap-client")}
@@ -170,7 +170,7 @@ func (p *IMAPProvider) auth() error { //nolint[funlen]
 	capability, err := p.client.Capability()
 	log.WithField("capability", capability).WithError(err).Debug("Server capability")
 	if err != nil {
-		return errors.Wrap(err, "failed to get capabilities")
+		return ErrIMAPConnection{imapError{Err: err, Message: "failed to get capabilities"}}
 	}
 
 	// SASL AUTH PLAIN
@@ -178,7 +178,7 @@ func (p *IMAPProvider) auth() error { //nolint[funlen]
 		log.Debug("Trying plain auth")
 		authPlain := sasl.NewPlainClient("", p.username, p.password)
 		if err = p.client.Authenticate(authPlain); err != nil {
-			return errors.Wrap(err, "plain auth failed")
+			return ErrIMAPAuth{imapError{Err: err, Message: "plain auth failed"}}
 		}
 	}
 
@@ -186,12 +186,12 @@ func (p *IMAPProvider) auth() error { //nolint[funlen]
 	if ok, _ := p.client.Support("IMAP4rev1"); p.client.State() == imap.NotAuthenticatedState && ok {
 		log.Debug("Trying login")
 		if err = p.client.Login(p.username, p.password); err != nil {
-			return errors.Wrap(err, "login failed")
+			return ErrIMAPAuth{imapError{Err: err, Message: "login failed"}}
 		}
 	}
 
 	if p.client.State() == imap.NotAuthenticatedState {
-		return errors.New("unknown auth method")
+		return ErrIMAPAuthMethod{imapError{Err: err, Message: "unknown auth method"}}
 	}
 
 	log.Info("Logged in")
