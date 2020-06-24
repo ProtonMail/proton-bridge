@@ -8,7 +8,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-360 Detect charset embedded in html/xml.
 
 ### Changed
-* GODT-354 Do not label/unlabel messsages from `All Mail` folder
+* GODT-354 Do not label/unlabel messsages from `All Mail` folder.
 * GODT-388 Support for both bridge and import/export credentials by package users.
 * GODT-387 Store factory to make store optional.
 * GODT-386 Renamed bridge to general users and keep bridge only for bridge stuff.
@@ -19,6 +19,9 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
     * `Unlock()` call on pmapi-client unlocks both User keys and Address keys.
     * Salt is available via `AuthSalt()` method.
 * GODT-394 Don't check SMTP message send time in integration tests.
+* GODT-280 Migrate to gopenpgp v2.
+    * `Unlock()` call on pmapi-client unlocks both User keys and Address keys.
+    * Salt is available via `AuthSalt()` method.
 
 ### Fixed
 * GODT-356 Fix crash when removing account while mail client is fetching messages (regression from GODT-204).
@@ -35,6 +38,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-404 Don't keep connections to proxy servers alive if user disables DoH.
 * Ensure DoH is used at startup to load users for the initial auth.
 * Issue causing deadlock when reloading users keys due to double-locking of a mutex.
+* Correctly handle failure to unlock single key.
 
 ## [v1.2.7] Donghai-hotfix - beta (2020-05-07)
 

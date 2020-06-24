@@ -142,15 +142,14 @@ func (keys *PMKeys) UnlockAll(passphrase []byte, userKey *crypto.KeyRing) (kr *c
 			return
 		}
 
-		var k *crypto.Key
-
-		if k, err = key.unlock(secret); err != nil {
-			logrus.WithError(err).Warn("Failed to unlock key")
+		k, unlockErr := key.unlock(secret)
+		if unlockErr != nil {
+			logrus.WithError(unlockErr).WithField("fingerprint", key.Fingerprint).Warn("Failed to unlock key")
 			continue
 		}
 
-		if err = kr.AddKey(k); err != nil {
-			logrus.WithError(err).Warn("Failed to add key to keyring")
+		if addKeyErr := kr.AddKey(k); addKeyErr != nil {
+			logrus.WithError(addKeyErr).Warn("Failed to add key to keyring")
 			continue
 		}
 	}
