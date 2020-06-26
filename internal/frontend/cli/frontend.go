@@ -19,6 +19,8 @@
 package cli
 
 import (
+	"strings"
+
 	"github.com/ProtonMail/proton-bridge/internal/events"
 	"github.com/ProtonMail/proton-bridge/internal/frontend/types"
 	"github.com/ProtonMail/proton-bridge/internal/preferences"
@@ -192,6 +194,7 @@ func New( //nolint[funlen]
 
 func (f *frontendCLI) watchEvents() {
 	errorCh := f.getEventChannel(events.ErrorEvent)
+	outgoingNoEncCh := f.getEventChannel(events.OutgoingNoEncEvent)
 	internetOffCh := f.getEventChannel(events.InternetOffEvent)
 	internetOnCh := f.getEventChannel(events.InternetOnEvent)
 	addressChangedCh := f.getEventChannel(events.AddressChangedEvent)
@@ -202,6 +205,11 @@ func (f *frontendCLI) watchEvents() {
 		select {
 		case errorDetails := <-errorCh:
 			f.Println("Bridge failed:", errorDetails)
+		case idAndSubject := <-outgoingNoEncCh:
+			idAndSubjectSlice := strings.SplitN(idAndSubject, ":", 2)
+			messageID := idAndSubjectSlice[0]
+			subject := idAndSubjectSlice[1]
+			f.Printf("Sending msg-id=%q, subject=%q unencrypted...", messageID, subject)
 		case <-internetOffCh:
 			f.notifyInternetOff()
 		case <-internetOnCh:
