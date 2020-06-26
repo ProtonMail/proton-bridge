@@ -28,6 +28,17 @@ import (
 
 // TestSync triggers a sync of the store.
 func (store *Store) TestSync() {
+	store.lock.Lock()
+	defer store.lock.Unlock()
+
+	// Sync can happen any time. Sync assigns sequence numbers and UIDs
+	// in the order of fetching from the server. We expect in the test
+	// that sequence numbers and UIDs are assigned in the same order as
+	// written in scenario setup. With more than one sync that cannot
+	// be guaranteed so once test calls this function, first it has to
+	// delete previous any already synced sequence numbers and UIDs.
+	_ = store.truncateMailboxesBucket()
+
 	store.triggerSync()
 }
 
