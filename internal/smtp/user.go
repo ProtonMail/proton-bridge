@@ -21,7 +21,6 @@ package smtp
 
 import (
 	"encoding/base64"
-	"fmt"
 	"io"
 	"mime"
 	"net/mail"
@@ -74,6 +73,76 @@ func newSMTPUser(
 // This method should eventually no longer be necessary. Everything should go via store.
 func (su *smtpUser) client() pmapi.Client {
 	return su.user.GetTemporaryPMAPIClient()
+}
+
+// Send sends an email from the given address to the given addresses with the given body.
+func (su *smtpUser) getSendPreferences(recipient, messageMIMEType string) (preferences SendPreferences, err error) {
+	b := &sendPreferencesBuilder{}
+
+	// 1. contact vcard data
+	vCardData, err := su.getContactVCardData(recipient)
+	if err != nil {
+		return
+	}
+
+	// 2. api key data
+	apiKeys, isInternal, err := su.getAPIKeyData(recipient)
+	if err != nil {
+		return
+	}
+
+	// 1 + 2 -> 3. advanced PGP settings
+	if err = b.setPGPSettings(vCardData, apiKeys, isInternal); err != nil {
+		return
+	}
+
+	// 4. mail settings
+	mailSettings, err := su.client().GetMailSettings()
+	if err != nil {
+		return
+	}
+
+	// 3 + 4 -> 5. encryption preferences
+	b.setEncryptionPreferences(mailSettings)
+
+	// 6. composer preferences -- in our case, this comes from the MIME type of the message.
+
+	// 5 + 6 -> 7. send preferences
+	b.setMIMEPreferences(messageMIMEType)
+
+	return b.build(), nil
+}
+
+func (su *smtpUser) getContactVCardData(recipient string) (meta *ContactMetadata, err error) {
+	emails, err := su.client().GetContactEmailByEmail(recipient, 0, 1000)
+	if err != nil {
+		return
+	}
+
+	for _, email := range emails {
+		if email.Defaults == 1 {
+			// NOTE: Can we still ignore this?
+			continue
+		}
+
+		var contact pmapi.Contact
+		if contact, err = su.client().GetContactByID(email.ContactID); err != nil {
+			return
+		}
+
+		var cards []pmapi.Card
+		if cards, err = su.client().DecryptAndVerifyCards(contact.Cards); err != nil {
+			return
+		}
+
+		return GetContactMetadataFromVCards(cards, recipient)
+	}
+
+	return
+}
+
+func (su *smtpUser) getAPIKeyData(recipient string) (apiKeys []pmapi.PublicKey, isInternal bool, err error) {
+	return su.client().GetPublicKeysForEmail(recipient)
 }
 
 // Send sends an email from the given address to the given addresses with the given body.
@@ -204,13 +273,6 @@ func (su *smtpUser) Send(from string, to []string, messageReader io.Reader) (err
 	htmlAddressMap := make(map[string]*pmapi.MessageAddress)
 	mimeAddressMap := make(map[string]*pmapi.MessageAddress)
 
-	// PMEL 2.
-	settingsPgpScheme := mailSettings.PGPScheme
-	settingsSign := (mailSettings.Sign > 0)
-
-	// PMEL 3.
-	composeMode := message.MIMEType
-
 	var plainKey, htmlKey, mimeKey *crypto.SessionKey
 	var plainData, htmlData, mimeData []byte
 
@@ -221,131 +283,65 @@ func (su *smtpUser) Send(from string, to []string, messageReader io.Reader) (err
 			return errors.New(`"` + email + `" is not a valid recipient.`)
 		}
 
-		// PMEL 1.
-		contactEmails, err := su.client().GetContactEmailByEmail(email, 0, 1000)
+		sendPreferences, err := su.getSendPreferences(email, message.MIMEType)
 		if err != nil {
 			return err
-		}
-		var contactMeta *ContactMetadata
-		var contactKeyRings []*crypto.KeyRing
-		for _, contactEmail := range contactEmails {
-			if contactEmail.Defaults == 1 { // WARNING: in doc it says _ignore for now, future feature_
-				continue
-			}
-			contact, err := su.client().GetContactByID(contactEmail.ContactID)
-			if err != nil {
-				return err
-			}
-			decryptedCards, err := su.client().DecryptAndVerifyCards(contact.Cards)
-			if err != nil {
-				return err
-			}
-			contactMeta, err = GetContactMetadataFromVCards(decryptedCards, email)
-			if err != nil {
-				return err
-			}
-			contactKeyRing, err := crypto.NewKeyRing(nil)
-			if err != nil {
-				return err
-			}
-			for _, contactRawKey := range contactMeta.Keys {
-				contactKey, err := crypto.NewKey([]byte(contactRawKey))
-				if err != nil {
-					return err
-				}
-				if err := contactKeyRing.AddKey(contactKey); err != nil {
-					return err
-				}
-				contactKeyRings = append(contactKeyRings, contactKeyRing)
-			}
-
-			break // We take the first hit where Defaults == 0, see "How to find the right contact" of PMEL
-		}
-
-		// PMEL 4.
-		apiRawKeyList, isInternal, err := su.client().GetPublicKeysForEmail(email)
-		if err != nil {
-			err = fmt.Errorf("backend: cannot get recipients' public keys: %v", err)
-			return err
-		}
-
-		var apiKeyRings []*crypto.KeyRing
-		for _, apiRawKey := range apiRawKeyList {
-			key, err := crypto.NewKeyFromArmored(apiRawKey.PublicKey)
-			if err != nil {
-				return err
-			}
-
-			kr, err := crypto.NewKeyRing(key)
-			if err != nil {
-				return err
-			}
-
-			apiKeyRings = append(apiKeyRings, kr)
-		}
-
-		sendingInfo, err := generateSendingInfo(su.eventListener, contactMeta, isInternal, composeMode, apiKeyRings, contactKeyRings, settingsSign, settingsPgpScheme)
-		if !sendingInfo.Encrypt {
-			containsUnencryptedRecipients = true
-		}
-		if err != nil {
-			return errors.New("error sending to user " + email + ": " + err.Error())
 		}
 
 		var signature int
-		if sendingInfo.Sign {
+		if sendPreferences.Sign {
 			signature = pmapi.YesSignature
 		} else {
 			signature = pmapi.NoSignature
 		}
-		if sendingInfo.Scheme == pmapi.PGPMIMEPackage || sendingInfo.Scheme == pmapi.ClearMIMEPackage {
+		if sendPreferences.Scheme == pmapi.PGPMIMEPackage || sendPreferences.Scheme == pmapi.ClearMIMEPackage {
 			if mimeKey == nil {
 				if mimeKey, mimeData, err = encryptSymmetric(kr, mimeBody, true); err != nil {
 					return err
 				}
 			}
-			if sendingInfo.Scheme == pmapi.PGPMIMEPackage {
-				mimeBodyPacket, _, err := createPackets(sendingInfo.PublicKey, mimeKey, map[string]*crypto.SessionKey{})
+			if sendPreferences.Scheme == pmapi.PGPMIMEPackage {
+				mimeBodyPacket, _, err := createPackets(sendPreferences.PublicKey, mimeKey, map[string]*crypto.SessionKey{})
 				if err != nil {
 					return err
 				}
-				mimeAddressMap[email] = &pmapi.MessageAddress{Type: sendingInfo.Scheme, BodyKeyPacket: mimeBodyPacket, Signature: signature}
+				mimeAddressMap[email] = &pmapi.MessageAddress{Type: sendPreferences.Scheme, BodyKeyPacket: mimeBodyPacket, Signature: signature}
 			} else {
-				mimeAddressMap[email] = &pmapi.MessageAddress{Type: sendingInfo.Scheme, Signature: signature}
+				mimeAddressMap[email] = &pmapi.MessageAddress{Type: sendPreferences.Scheme, Signature: signature}
 			}
-			mimeSharedType |= sendingInfo.Scheme
+			mimeSharedType |= sendPreferences.Scheme
 		} else {
-			switch sendingInfo.MIMEType {
+			switch sendPreferences.MIMEType {
 			case pmapi.ContentTypePlainText:
 				if plainKey == nil {
 					if plainKey, plainData, err = encryptSymmetric(kr, plainBody, true); err != nil {
 						return err
 					}
 				}
-				newAddress := &pmapi.MessageAddress{Type: sendingInfo.Scheme, Signature: signature}
-				if sendingInfo.Encrypt && sendingInfo.PublicKey != nil {
-					newAddress.BodyKeyPacket, newAddress.AttachmentKeyPackets, err = createPackets(sendingInfo.PublicKey, plainKey, attkeys)
+				newAddress := &pmapi.MessageAddress{Type: sendPreferences.Scheme, Signature: signature}
+				if sendPreferences.Encrypt && sendPreferences.PublicKey != nil {
+					newAddress.BodyKeyPacket, newAddress.AttachmentKeyPackets, err = createPackets(sendPreferences.PublicKey, plainKey, attkeys)
 					if err != nil {
 						return err
 					}
 				}
 				plainAddressMap[email] = newAddress
-				plainSharedScheme |= sendingInfo.Scheme
+				plainSharedScheme |= sendPreferences.Scheme
 			case pmapi.ContentTypeHTML:
 				if htmlKey == nil {
 					if htmlKey, htmlData, err = encryptSymmetric(kr, clearBody, true); err != nil {
 						return err
 					}
 				}
-				newAddress := &pmapi.MessageAddress{Type: sendingInfo.Scheme, Signature: signature}
-				if sendingInfo.Encrypt && sendingInfo.PublicKey != nil {
-					newAddress.BodyKeyPacket, newAddress.AttachmentKeyPackets, err = createPackets(sendingInfo.PublicKey, htmlKey, attkeys)
+				newAddress := &pmapi.MessageAddress{Type: sendPreferences.Scheme, Signature: signature}
+				if sendPreferences.Encrypt && sendPreferences.PublicKey != nil {
+					newAddress.BodyKeyPacket, newAddress.AttachmentKeyPackets, err = createPackets(sendPreferences.PublicKey, htmlKey, attkeys)
 					if err != nil {
 						return err
 					}
 				}
 				htmlAddressMap[email] = newAddress
-				htmlSharedScheme |= sendingInfo.Scheme
+				htmlSharedScheme |= sendPreferences.Scheme
 			}
 		}
 	}

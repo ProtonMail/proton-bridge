@@ -97,6 +97,11 @@ type MailSettings struct {
 	// AutoResponder string
 }
 
+const (
+	ComposerModeNormal = 0
+	ComposerModePlain  = 1
+)
+
 // GetMailSettings gets contact details specified by contact ID.
 func (c *client) GetMailSettings() (settings MailSettings, err error) {
 	req, err := c.NewRequest("GET", "/settings/mail", nil)
