@@ -69,6 +69,7 @@ func changeEncodingAndKeepLastParamDefinition(v string) (out string, err error) 
 				charset, _, err := get2231Charset(value)
 				if err != nil {
 					log.Errorln("Filter params:", err)
+					v = rest
 					continue
 				}
 				if charset != "utf-8" && charset != "us-ascii" {

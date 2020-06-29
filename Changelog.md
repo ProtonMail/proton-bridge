@@ -40,6 +40,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * Issue causing deadlock when reloading users keys due to double-locking of a mutex.
 * Correctly handle failure to unlock single key.
 * GODT-479 Fix flaky integration tests.
+* GODT-484 Fix infinite loop when decoding invalid 2231 charset
 
 ## [v1.2.7] Donghai-hotfix - beta (2020-05-07)
 
