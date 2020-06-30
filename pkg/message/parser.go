@@ -34,6 +34,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/ProtonMail/proton-bridge/pkg/message/parser"
 	pmmime "github.com/ProtonMail/proton-bridge/pkg/mime"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	"github.com/jaytaylor/html2text"
@@ -411,6 +412,55 @@ func (pka *PublicKeyAttacher) Accept(partReader io.Reader, header textproto.MIME
 }
 
 // ======= Parser ==========
+
+func ParseGoMessage(r io.Reader) (m *pmapi.Message, mimeBody string, plainContents string, atts []io.Reader, err error) {
+	p, err := parser.New(r)
+	if err != nil {
+		return
+	}
+
+	walker := p.
+		NewWalker().
+		WithContentDispositionHandler("attachment", func(p *parser.Part, _ parser.PartHandler) (err error) {
+			atts = append(atts, bytes.NewReader(p.Body))
+			return
+		}).
+		WithContentTypeHandler("text/html", func(p *parser.Part) (err error) {
+			plain, err := html2text.FromString(string(p.Body))
+			if err != nil {
+				plain = string(p.Body)
+			}
+
+			plainContents += plain
+
+			return
+		})
+
+	if err = walker.Walk(); err != nil {
+		return
+	}
+
+	writer := p.
+		NewWriter().
+		WithCondition(func(p *parser.Part) (keep bool) {
+			// We don't write if the content disposition says it's an attachment.
+			if disp, _, err := p.Header.ContentDisposition(); err == nil && disp == "attachment" {
+				return false
+			}
+
+			return true
+		})
+
+	buf := new(bytes.Buffer)
+
+	if err = writer.Write(buf); err != nil {
+		return
+	}
+
+	mimeBody = buf.String()
+
+	return
+}
 
 func Parse(r io.Reader, attachedPublicKey, attachedPublicKeyName string) (m *pmapi.Message, mimeBody string, plainContents string, atts []io.Reader, err error) {
 	secondReader := new(bytes.Buffer)
