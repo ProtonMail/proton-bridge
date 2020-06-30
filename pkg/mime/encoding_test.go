@@ -107,10 +107,15 @@ func TestParseMediaType(t *testing.T) {
 			wantMediaType: "attachment",
 			wantParams:    map[string]string{"filename": "備a忘b錄.m4a", "title": "memorandum"},
 		},
-		"Bad2231EncodingKeepsJustTitle": {
+		"SingleLineBadEncoding": {
 			arg:           "attachment;\nfilename*=utf-8'%F0%9F%98%81%F0%9F%98%82.txt;\n title=smile",
 			wantMediaType: "attachment",
 			wantParams:    map[string]string{"title": "smile"},
+		},
+		"MultiLineBadEncoding": {
+			arg:           "attachment;\nfilename*0*=utf-8'%F0%9F%98%81;   title=smile;\nfilename*1*=%F0%9F%98%82;\nfilename*2=.txt",
+			wantMediaType: "attachment",
+			wantParams:    map[string]string{"filename": "😂.txt", "title": "smile"},
 		},
 	}
 	for name, testData := range testTable {
