@@ -9,7 +9,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-143 Allow appending to Sent folder when sender matches account address
 
 ### Fixed
-* Do not crash when `nil` message header is parsed, it fails instead.
+* GODT-502 Fixed crash when unable to parse a message header.
 
 ## [v1.2.7] Donghai-fix-sync - (beta 2020-05-07 live 2020-04-20)
 
