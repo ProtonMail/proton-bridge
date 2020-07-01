@@ -119,7 +119,7 @@ update-vendor: vendor-cache/${THERECIPE_ENV} prepare-vendor
 
 ## Dev dependencies
 .PHONY: install-devel-tools install-linter install-go-mod-outdated
-LINTVER:="v1.26.0"
+LINTVER:="v1.27.0"
 LINTSRC:="https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh"
 
 install-dev-dependencies: install-devel-tools install-linter install-go-mod-outdated
