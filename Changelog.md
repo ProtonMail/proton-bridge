@@ -5,50 +5,21 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 ## Unreleased
 
 ### Added
-* GODT-360 Detect charset embedded in html/xml.
-
-### Changed
-* GODT-354 Do not label/unlabel messsages from `All Mail` folder.
-* GODT-388 Support for both bridge and import/export credentials by package users.
-* GODT-387 Store factory to make store optional.
-* GODT-386 Renamed bridge to general users and keep bridge only for bridge stuff.
-* GODT-308 Better user error message when request is canceled.
-* GODT-312 Validate recipient emails in send before asking for their public keys.
-* GODT-368 Bump docker-credential-helpers version.
-* GODT-280 Migrate to gopenpgp v2:
-    * `Unlock()` call on pmapi-client unlocks both User keys and Address keys.
-    * Salt is available via `AuthSalt()` method.
-* GODT-394 Don't check SMTP message send time in integration tests.
-* GODT-280 Migrate to gopenpgp v2.
-    * `Unlock()` call on pmapi-client unlocks both User keys and Address keys.
-    * Salt is available via `AuthSalt()` method.
-
-### Fixed
-* GODT-356 Fix crash when removing account while mail client is fetching messages (regression from GODT-204).
-* GODT-390 Don't logout user if AuthRefresh fails because internet was off.
-* GODT-358 Bad timeouts with Alternative Routing.
-* GODT-363 Drafts are not deleted when already created on webapp.
-* GODT-390 Don't logout user if AuthRefresh fails because internet was off.
-* GODT-341 Fixed flaky unittest for Store synchronization cooldown.
-* Crash when failing to match necessary html element.
-* Crash in message.combineParts when copying nil slice.
-* Handle double charset better by using local ParseMediaType instead of mime.ParseMediaType.
-* Don't remove log dir.
-* GODT-422 Fix element not found (avoid listing credentials, prefer getting).
-* GODT-404 Don't keep connections to proxy servers alive if user disables DoH.
-* Ensure DoH is used at startup to load users for the initial auth.
-* Issue causing deadlock when reloading users keys due to double-locking of a mutex.
-* Correctly handle failure to unlock single key.
-* GODT-479 Fix flaky integration tests.
-* GODT-484 Fix infinite loop when decoding invalid 2231 charset
-
-## [v1.2.7] Donghai-hotfix - beta (2020-05-07)
-
-### Added
 * IMAP mailbox info update when new mailbox is created.
 * GODT-72 Use ISO-8859-1 encoding if charset is not specified and it isn't UTF-8.
 
 ### Changed
+* GODT-360 Detect charset embedded in html/xml.
+* GODT-354 Do not label/unlabel messsages from `All Mail` folder.
+* GODT-388 Support for both bridge and import/export credentials by package users.
+* GODT-387 Store factory to make store optional.
+* GODT-386 Renamed bridge to general users and keep bridge only for bridge stuff.
+* GODT-312 Validate recipient emails in send before asking for their public keys.
+* GODT-368 Bump docker-credential-helpers version.
+* GODT-394 Don't check SMTP message send time in integration tests.
+* GODT-280 Migrate to gopenpgp v2.
+    * `Unlock()` call on pmapi-client unlocks both User keys and Address keys.
+    * Salt is available via `AuthSalt()` method.
 * GODT-308 Better user error message when request is canceled.
 * GODT-162 User Agent does not contain bridge version, only client in format `client name/client version (os)`.
 * GODT-258 Update go-imap to v1.
@@ -72,13 +43,38 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * Dead code from `pkg/message`.
 
 ### Fixed
+* GODT-356 Fix crash when removing account while mail client is fetching messages (regression from GODT-204).
+* GODT-358 Bad timeouts with Alternative Routing.
+* GODT-363 Drafts are not deleted when already created on webapp.
+* GODT-390 Don't logout user if AuthRefresh fails because internet was off.
+* GODT-341 Fixed flaky unittest for Store synchronization cooldown.
+* Crash when failing to match necessary html element.
+* Crash in message.combineParts when copying nil slice.
+* Handle double charset better by using local ParseMediaType instead of mime.ParseMediaType.
+* Don't remove log dir.
+* GODT-422 Fix element not found (avoid listing credentials, prefer getting).
+* GODT-404 Don't keep connections to proxy servers alive if user disables DoH.
+* Ensure DoH is used at startup to load users for the initial auth.
+* Issue causing deadlock when reloading users keys due to double-locking of a mutex.
+* Correctly handle failure to unlock single key.
+* GODT-479 Fix flaky integration tests.
+* GODT-484 Fix infinite loop when decoding invalid 2231 charset
 * GODT-267 Correctly detect if a message is a draft even if does not have DraftLabel.
 * GODT-308 Reduce minimum read speed threshold to avoid issues with flaky internet.
 * GODT-321 Changing address ordering would cause all messages to disappear in combined mode.
 * GODT-129 Fix custom message PGP by using template.
 
 
-## [v1.2.7] Donghai-hotfix - beta (2020-05-07)
+## [v1.2.8] Donghai-fix-append  (beta 2020-06-XXX)
+
+### Changed
+* GODT-396 reduce number of EXISTS calls.
+* GODT-143 Allow appending to Sent folder when sender matches account address.
+
+### Fixed
+* GODT-502 Fixed crash when unable to parse a message header.
+
+## [v1.2.7] Donghai-fix-sync - (beta 2020-05-07 live 2020-04-20)
 
 ### Added
 * IMAP extension MOVE with UIDPLUS support.

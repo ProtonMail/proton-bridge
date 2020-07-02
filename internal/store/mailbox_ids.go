@@ -219,6 +219,11 @@ func (storeMailbox *Mailbox) GetUIDByHeader(header *mail.Header) (foundUID uint3
 	// in PM message. Message-Id in normal copy/move will be the PM internal ID.
 	messageID := header.Get("Message-Id")
 
+	// There is nothing to find, when no Message-Id given.
+	if messageID == "" {
+		return uint32(0)
+	}
+
 	// The most often situation is that message is APPENDed after it was sent so the
 	// Message-ID will be reflected by ExternalID in API message meta-data.
 	externalID := strings.Trim(messageID, "<> ") // remove '<>' to improve match

@@ -36,6 +36,14 @@ graph LR
 We want to test Bridge app from outside as much as possible. So we mock server (API),
 credentials store and call commands to IMAP or SMTP the same way as client would do.
 
+## Running tests
+
+In order to run Integration tests just go into the test folder `cd test`
+and run `make test`.
+
+You can also test only specific feature (or subset of features) by using `FEATURES` environment 
+variable: `FEATURES=features/imap/message/create.feature make test`.
+
 ## Example test
 
 BDD test in gherkin (cucumber) format (https://cucumber.io/docs/gherkin/reference/).
@@ -98,6 +106,10 @@ we can always be sure what each steps does or should do.
 
 In the code, we separate those parts in its own files to make sure
 it's clear how the function should be implemented.
+
+In the `Given` phase is also generally better to setup data (as `there are messages...`) 
+first, then users (`there is connected user...`) and then connections (`there is IMAP client...`). 
+This can prevent some hitches in internal implementation of integration tests.
 
 ## API faked by fakeapi or liveapi
 
