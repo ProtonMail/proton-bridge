@@ -182,7 +182,8 @@ func (su *smtpUser) Send(from string, to []string, messageReader io.Reader) (err
 		attachedPublicKeyName = "publickey - " + kr.GetIdentities()[0].Name
 	}
 
-	message, mimeBody, plainBody, attReaders, err := message.Parse(messageReader, attachedPublicKey, attachedPublicKeyName)
+	// TODO: Include public keys here!
+	message, mimeBody, plainBody, attReaders, err := message.Parse(messageReader)
 	if err != nil {
 		return
 	}

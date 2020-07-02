@@ -19,7 +19,6 @@ package message
 
 import (
 	"mime"
-	"net/mail"
 	"net/textproto"
 	"strings"
 	"time"
@@ -139,76 +138,4 @@ func GetAttachmentHeader(att *pmapi.Attachment) textproto.MIMEHeader {
 	}
 
 	return h
-}
-
-// ========= Header parsing and sanitizing functions =========
-
-func parseHeader(h mail.Header) (m *pmapi.Message, err error) { //nolint[unparam]
-	m = pmapi.NewMessage()
-
-	if subject, err := pmmime.DecodeHeader(h.Get("Subject")); err == nil {
-		m.Subject = subject
-	}
-	if addrs, err := sanitizeAddressList(h, "From"); err == nil && len(addrs) > 0 {
-		m.Sender = addrs[0]
-	}
-	if addrs, err := sanitizeAddressList(h, "Reply-To"); err == nil && len(addrs) > 0 {
-		m.ReplyTos = addrs
-	}
-	if addrs, err := sanitizeAddressList(h, "To"); err == nil {
-		m.ToList = addrs
-	}
-	if addrs, err := sanitizeAddressList(h, "Cc"); err == nil {
-		m.CCList = addrs
-	}
-	if addrs, err := sanitizeAddressList(h, "Bcc"); err == nil {
-		m.BCCList = addrs
-	}
-	m.Time = 0
-	if t, err := h.Date(); err == nil && !t.IsZero() {
-		m.Time = t.Unix()
-	}
-
-	m.Header = h
-	return
-}
-
-func sanitizeAddressList(h mail.Header, field string) (addrs []*mail.Address, err error) {
-	raw := h.Get(field)
-	if raw == "" {
-		err = mail.ErrHeaderNotPresent
-		return
-	}
-	var decoded string
-	decoded, err = pmmime.DecodeHeader(raw)
-	if err != nil {
-		return
-	}
-	addrs, err = mail.ParseAddressList(parseAddressComment(decoded))
-	if err == nil {
-		if addrs == nil {
-			addrs = []*mail.Address{}
-		}
-		return
-	}
-	// Probably missing encoding error -- try to at least parse addresses in brackets.
-	addrStr := h.Get(field)
-	first := strings.Index(addrStr, "<")
-	last := strings.LastIndex(addrStr, ">")
-	if first < 0 || last < 0 || first >= last {
-		return
-	}
-	var addrList []string
-	open := first
-	for open < last && 0 <= open {
-		addrStr = addrStr[open:]
-		close := strings.Index(addrStr, ">")
-		addrList = append(addrList, addrStr[:close+1])
-		addrStr = addrStr[close:]
-		open = strings.Index(addrStr, "<")
-		last = strings.LastIndex(addrStr, ">")
-	}
-	addrStr = strings.Join(addrList, ", ")
-	//
-	return mail.ParseAddressList(addrStr)
 }
