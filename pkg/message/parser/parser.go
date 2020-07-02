@@ -7,6 +7,13 @@ import (
 	"github.com/emersion/go-message"
 )
 
+// TODO: Set this to something that handles charsets.
+func init() { // nolint[gochecknoinits]
+	message.CharsetReader = func(string, io.Reader) (io.Reader, error) {
+		panic("not implemented")
+	}
+}
+
 type Parser struct {
 	stack []*Part
 	root  *Part

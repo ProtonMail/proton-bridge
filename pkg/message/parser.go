@@ -47,8 +47,16 @@ func Parse(r io.Reader, key, keyName string) (m *pmapi.Message, mime, plain stri
 		return
 	}
 
-	if m.Body, plain, err = collectBodyParts(p); err != nil {
+	var isHTML bool
+
+	if m.Body, plain, isHTML, err = collectBodyParts(p); err != nil {
 		return
+	}
+
+	if isHTML {
+		m.MIMEType = "text/html"
+	} else {
+		m.MIMEType = "text/plain"
 	}
 
 	if key != "" {
@@ -84,7 +92,7 @@ func collectAttachments(p *parser.Parser) (atts []*pmapi.Attachment, data []io.R
 	return
 }
 
-func collectBodyParts(p *parser.Parser) (body, plain string, err error) {
+func collectBodyParts(p *parser.Parser) (body, plain string, isHTML bool, err error) {
 	var parts, plainParts []string
 
 	w := p.
@@ -96,6 +104,7 @@ func collectBodyParts(p *parser.Parser) (body, plain string, err error) {
 		}).
 		WithContentTypeHandler("text/html", func(p *parser.Part) (err error) {
 			parts = append(parts, string(p.Body))
+			isHTML = true
 
 			text, err := html2text.FromString(string(p.Body))
 			if err != nil {
@@ -110,7 +119,7 @@ func collectBodyParts(p *parser.Parser) (body, plain string, err error) {
 		return
 	}
 
-	return strings.Join(parts, "\r\n"), strings.Join(plainParts, "\r\n"), nil
+	return strings.Join(parts, "\r\n"), strings.Join(plainParts, "\r\n"), isHTML, nil
 }
 
 func writeMIMEMessage(p *parser.Parser) (mime string, err error) {
