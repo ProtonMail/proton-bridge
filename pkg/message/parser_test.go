@@ -27,6 +27,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"golang.org/x/text/encoding/charmap"
 )
 
@@ -64,8 +65,8 @@ func TestParseMessageTextPlain(t *testing.T) {
 	f := f("text_plain.eml")
 	defer func() { _ = f.Close() }()
 
-	m, mimeBody, plainContents, atts, err := Parse(f)
-	assert.NoError(t, err)
+	m, mimeBody, plainContents, atts, err := Parse(f, "", "")
+	require.NoError(t, err)
 
 	assert.Equal(t, `"Sender" <sender@pm.me>`, m.Sender.String())
 	assert.Equal(t, `"Receiver" <receiver@pm.me>`, m.ToList[0].String())
@@ -81,8 +82,8 @@ func TestParseMessageTextPlainUTF8(t *testing.T) {
 	f := f("text_plain_utf8.eml")
 	defer func() { _ = f.Close() }()
 
-	m, mimeBody, plainContents, atts, err := Parse(f)
-	assert.NoError(t, err)
+	m, mimeBody, plainContents, atts, err := Parse(f, "", "")
+	require.NoError(t, err)
 
 	assert.Equal(t, `"Sender" <sender@pm.me>`, m.Sender.String())
 	assert.Equal(t, `"Receiver" <receiver@pm.me>`, m.ToList[0].String())
@@ -98,8 +99,8 @@ func TestParseMessageTextPlainLatin1(t *testing.T) {
 	f := f("text_plain_latin1.eml")
 	defer func() { _ = f.Close() }()
 
-	m, mimeBody, plainContents, atts, err := Parse(f)
-	assert.NoError(t, err)
+	m, mimeBody, plainContents, atts, err := Parse(f, "", "")
+	require.NoError(t, err)
 
 	assert.Equal(t, `"Sender" <sender@pm.me>`, m.Sender.String())
 	assert.Equal(t, `"Receiver" <receiver@pm.me>`, m.ToList[0].String())
@@ -115,8 +116,8 @@ func TestParseMessageTextPlainUnknownCharsetIsActuallyLatin1(t *testing.T) {
 	f := f("text_plain_unknown_latin1.eml")
 	defer func() { _ = f.Close() }()
 
-	m, mimeBody, plainContents, atts, err := Parse(f)
-	assert.NoError(t, err)
+	m, mimeBody, plainContents, atts, err := Parse(f, "", "")
+	require.NoError(t, err)
 
 	assert.Equal(t, `"Sender" <sender@pm.me>`, m.Sender.String())
 	assert.Equal(t, `"Receiver" <receiver@pm.me>`, m.ToList[0].String())
@@ -132,8 +133,8 @@ func TestParseMessageTextPlainUnknownCharsetIsActuallyLatin2(t *testing.T) {
 	f := f("text_plain_unknown_latin2.eml")
 	defer func() { _ = f.Close() }()
 
-	m, mimeBody, plainContents, atts, err := Parse(f)
-	assert.NoError(t, err)
+	m, mimeBody, plainContents, atts, err := Parse(f, "", "")
+	require.NoError(t, err)
 
 	assert.Equal(t, `"Sender" <sender@pm.me>`, m.Sender.String())
 	assert.Equal(t, `"Receiver" <receiver@pm.me>`, m.ToList[0].String())
@@ -155,8 +156,8 @@ func TestParseMessageTextPlainAlready7Bit(t *testing.T) {
 	f := f("text_plain_7bit.eml")
 	defer func() { _ = f.Close() }()
 
-	m, mimeBody, plainContents, atts, err := Parse(f)
-	assert.NoError(t, err)
+	m, mimeBody, plainContents, atts, err := Parse(f, "", "")
+	require.NoError(t, err)
 
 	assert.Equal(t, `"Sender" <sender@pm.me>`, m.Sender.String())
 	assert.Equal(t, `"Receiver" <receiver@pm.me>`, m.ToList[0].String())
@@ -172,8 +173,8 @@ func TestParseMessageTextPlainWithOctetAttachment(t *testing.T) {
 	f := f("text_plain_octet_attachment.eml")
 	defer func() { _ = f.Close() }()
 
-	m, mimeBody, plainContents, atts, err := Parse(f)
-	assert.NoError(t, err)
+	m, mimeBody, plainContents, atts, err := Parse(f, "", "")
+	require.NoError(t, err)
 
 	assert.Equal(t, `"Sender" <sender@pm.me>`, m.Sender.String())
 	assert.Equal(t, `"Receiver" <receiver@pm.me>`, m.ToList[0].String())
@@ -182,7 +183,7 @@ func TestParseMessageTextPlainWithOctetAttachment(t *testing.T) {
 	assert.Equal(t, s("text_plain_octet_attachment.mime"), mimeBody)
 	assert.Equal(t, "body", plainContents)
 
-	assert.Len(t, atts, 1)
+	require.Len(t, atts, 1)
 	assert.Equal(t, readerToString(atts[0]), "if you are reading this, hi!")
 }
 
@@ -191,7 +192,7 @@ func TestParseMessageTextPlainWithOctetAttachmentGoodFilename(t *testing.T) {
 	defer func() { _ = f.Close() }()
 
 	m, mimeBody, plainContents, atts, err := Parse(f, "", "")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	assert.Equal(t, `"Sender" <sender@pm.me>`, m.Sender.String())
 	assert.Equal(t, `"Receiver" <receiver@pm.me>`, m.ToList[0].String())
@@ -210,7 +211,7 @@ func TestParseMessageTextPlainWithOctetAttachmentBadFilename(t *testing.T) {
 	defer func() { _ = f.Close() }()
 
 	m, mimeBody, plainContents, atts, err := Parse(f, "", "")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	assert.Equal(t, `"Sender" <sender@pm.me>`, m.Sender.String())
 	assert.Equal(t, `"Receiver" <receiver@pm.me>`, m.ToList[0].String())
@@ -228,8 +229,8 @@ func TestParseMessageTextPlainWithPlainAttachment(t *testing.T) {
 	f := f("text_plain_plain_attachment.eml")
 	defer func() { _ = f.Close() }()
 
-	m, mimeBody, plainContents, atts, err := Parse(f)
-	assert.NoError(t, err)
+	m, mimeBody, plainContents, atts, err := Parse(f, "", "")
+	require.NoError(t, err)
 
 	assert.Equal(t, `"Sender" <sender@pm.me>`, m.Sender.String())
 	assert.Equal(t, `"Receiver" <receiver@pm.me>`, m.ToList[0].String())
@@ -238,7 +239,7 @@ func TestParseMessageTextPlainWithPlainAttachment(t *testing.T) {
 	assert.Equal(t, s("text_plain_plain_attachment.mime"), mimeBody)
 	assert.Equal(t, "body", plainContents)
 
-	assert.Len(t, atts, 1)
+	require.Len(t, atts, 1)
 	assert.Equal(t, readerToString(atts[0]), "attachment")
 }
 
@@ -246,8 +247,8 @@ func TestParseMessageTextPlainWithImageInline(t *testing.T) {
 	f := f("text_plain_image_inline.eml")
 	defer func() { _ = f.Close() }()
 
-	m, mimeBody, plainContents, atts, err := Parse(f)
-	assert.NoError(t, err)
+	m, mimeBody, plainContents, atts, err := Parse(f, "", "")
+	require.NoError(t, err)
 
 	assert.Equal(t, `"Sender" <sender@pm.me>`, m.Sender.String())
 	assert.Equal(t, `"Receiver" <receiver@pm.me>`, m.ToList[0].String())
@@ -257,9 +258,9 @@ func TestParseMessageTextPlainWithImageInline(t *testing.T) {
 	assert.Equal(t, "body", plainContents)
 
 	// The inline image is an 8x8 mic-dropping gopher.
-	assert.Len(t, atts, 1)
+	require.Len(t, atts, 1)
 	img, err := png.DecodeConfig(atts[0])
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, 8, img.Width)
 	assert.Equal(t, 8, img.Height)
 }
@@ -268,8 +269,8 @@ func TestParseMessageWithMultipleTextParts(t *testing.T) {
 	f := f("multiple_text_parts.eml")
 	defer func() { _ = f.Close() }()
 
-	m, mimeBody, plainContents, atts, err := Parse(f)
-	assert.NoError(t, err)
+	m, mimeBody, plainContents, atts, err := Parse(f, "", "")
+	require.NoError(t, err)
 
 	assert.Equal(t, `"Sender" <sender@pm.me>`, m.Sender.String())
 	assert.Equal(t, `"Receiver" <receiver@pm.me>`, m.ToList[0].String())
@@ -287,8 +288,8 @@ func TestParseMessageTextHTML(t *testing.T) {
 	f := f("text_html.eml")
 	defer func() { _ = f.Close() }()
 
-	m, mimeBody, plainContents, atts, err := Parse(f)
-	assert.NoError(t, err)
+	m, mimeBody, plainContents, atts, err := Parse(f, "", "")
+	require.NoError(t, err)
 
 	assert.Equal(t, `"Sender" <sender@pm.me>`, m.Sender.String())
 	assert.Equal(t, `"Receiver" <receiver@pm.me>`, m.ToList[0].String())
@@ -306,7 +307,7 @@ func TestParseMessageTextHTMLAlready7Bit(t *testing.T) {
 	f := f("text_html_7bit.eml")
 	defer func() { _ = f.Close() }()
 
-	m, mimeBody, plainContents, atts, err := Parse(f)
+	m, mimeBody, plainContents, atts, err := Parse(f, "", "")
 	assert.NoError(t, err)
 
 	assert.Equal(t, `"Sender" <sender@pm.me>`, m.Sender.String())
@@ -325,8 +326,8 @@ func TestParseMessageTextHTMLWithOctetAttachment(t *testing.T) {
 	f := f("text_html_octet_attachment.eml")
 	defer func() { _ = f.Close() }()
 
-	m, mimeBody, plainContents, atts, err := Parse(f)
-	assert.NoError(t, err)
+	m, mimeBody, plainContents, atts, err := Parse(f, "", "")
+	require.NoError(t, err)
 
 	assert.Equal(t, `"Sender" <sender@pm.me>`, m.Sender.String())
 	assert.Equal(t, `"Receiver" <receiver@pm.me>`, m.ToList[0].String())
@@ -335,19 +336,18 @@ func TestParseMessageTextHTMLWithOctetAttachment(t *testing.T) {
 	assert.Equal(t, s("text_html_octet_attachment.mime"), mimeBody)
 	assert.Equal(t, "This is body of *HTML mail* with attachment", plainContents)
 
-	assert.Len(t, atts, 1)
+	require.Len(t, atts, 1)
 	assert.Equal(t, readerToString(atts[0]), "if you are reading this, hi!")
 }
 
-// NOTE: Enable when bug is fixed.
-func _TestParseMessageTextHTMLWithPlainAttachment(t *testing.T) { // nolint[deadcode]
+func TestParseMessageTextHTMLWithPlainAttachment(t *testing.T) { // nolint[deadcode]
 	rand.Seed(0)
 
 	f := f("text_html_plain_attachment.eml")
 	defer func() { _ = f.Close() }()
 
-	m, mimeBody, plainContents, atts, err := Parse(f)
-	assert.NoError(t, err)
+	m, mimeBody, plainContents, atts, err := Parse(f, "", "")
+	require.NoError(t, err)
 
 	assert.Equal(t, `"Sender" <sender@pm.me>`, m.Sender.String())
 	assert.Equal(t, `"Receiver" <receiver@pm.me>`, m.ToList[0].String())
@@ -357,7 +357,7 @@ func _TestParseMessageTextHTMLWithPlainAttachment(t *testing.T) { // nolint[dead
 	assert.Equal(t, s("text_html_plain_attachment.mime"), mimeBody)
 	assert.Equal(t, "This is body of *HTML mail* with attachment", plainContents)
 
-	assert.Len(t, atts, 1)
+	require.Len(t, atts, 1)
 	assert.Equal(t, readerToString(atts[0]), "attachment")
 }
 
@@ -367,7 +367,7 @@ func TestParseMessageTextHTMLWithImageInline(t *testing.T) {
 	f := f("text_html_image_inline.eml")
 	defer func() { _ = f.Close() }()
 
-	m, mimeBody, plainContents, atts, err := Parse(f)
+	m, mimeBody, plainContents, atts, err := Parse(f, "", "")
 	assert.NoError(t, err)
 
 	assert.Equal(t, `"Sender" <sender@pm.me>`, m.Sender.String())
@@ -378,22 +378,20 @@ func TestParseMessageTextHTMLWithImageInline(t *testing.T) {
 	assert.Equal(t, "This is body of *HTML mail* with attachment", plainContents)
 
 	// The inline image is an 8x8 mic-dropping gopher.
-	assert.Len(t, atts, 1)
+	require.Len(t, atts, 1)
 	img, err := png.DecodeConfig(atts[0])
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, 8, img.Width)
 	assert.Equal(t, 8, img.Height)
 }
 
-// NOTE: Enable when bug is fixed.
-/*
-func _TestParseMessageWithAttachedPublicKey(t *testing.T) { // nolint[deadcode]
+func TestParseMessageWithAttachedPublicKey(t *testing.T) { // nolint[deadcode]
 	f := f("text_plain.eml")
 	defer func() { _ = f.Close() }()
 
 	// BAD: Public Key is not attached unless Content-Type is specified (not required)!
 	m, mimeBody, plainContents, atts, err := Parse(f, "publickey", "publickeyname")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	assert.Equal(t, `"Sender" <sender@pm.me>`, m.Sender.String())
 	assert.Equal(t, `"Receiver" <receiver@pm.me>`, m.ToList[0].String())
@@ -403,19 +401,17 @@ func _TestParseMessageWithAttachedPublicKey(t *testing.T) { // nolint[deadcode]
 	assert.Equal(t, "body", plainContents)
 
 	// BAD: Public key not available as an attachment!
-	assert.Len(t, atts, 1)
+	require.Len(t, atts, 1)
 }
-*/
 
-// NOTE: Enable when bug is fixed.
-func _TestParseMessageTextHTMLWithEmbeddedForeignEncoding(t *testing.T) { // nolint[deadcode]
+func TestParseMessageTextHTMLWithEmbeddedForeignEncoding(t *testing.T) { // nolint[deadcode]
 	rand.Seed(0)
 
 	f := f("text_html_embedded_foreign_encoding.eml")
 	defer func() { _ = f.Close() }()
 
-	m, mimeBody, plainContents, atts, err := Parse(f)
-	assert.NoError(t, err)
+	m, mimeBody, plainContents, atts, err := Parse(f, "", "")
+	require.NoError(t, err)
 
 	assert.Equal(t, `"Sender" <sender@pm.me>`, m.Sender.String())
 	assert.Equal(t, `"Receiver" <receiver@pm.me>`, m.ToList[0].String())

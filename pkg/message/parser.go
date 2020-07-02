@@ -19,6 +19,7 @@ package message
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"mime"
 	"net/mail"
@@ -30,7 +31,7 @@ import (
 	"github.com/jaytaylor/html2text"
 )
 
-func Parse(r io.Reader) (m *pmapi.Message, mimeBody, plainBody string, atts []io.Reader, err error) {
+func Parse(r io.Reader, key, keyName string) (m *pmapi.Message, mime, plain string, atts []io.Reader, err error) {
 	p, err := parser.New(r)
 	if err != nil {
 		return
@@ -38,7 +39,7 @@ func Parse(r io.Reader) (m *pmapi.Message, mimeBody, plainBody string, atts []io
 
 	m = pmapi.NewMessage()
 
-	if err = parseHeader(m, p.Header()); err != nil {
+	if err = parseHeader(m, p.Root().Header); err != nil {
 		return
 	}
 
@@ -46,14 +47,15 @@ func Parse(r io.Reader) (m *pmapi.Message, mimeBody, plainBody string, atts []io
 		return
 	}
 
-	parts, plainParts, err := collectBodyParts(p)
-	if err != nil {
+	if m.Body, plain, err = collectBodyParts(p); err != nil {
 		return
 	}
-	m.Body = strings.Join(parts, "\r\n")
-	plainBody = strings.Join(plainParts, "\r\n")
 
-	if mimeBody, err = writeMimeBody(p); err != nil {
+	if key != "" {
+		attachPublicKey(p.Root(), key, keyName)
+	}
+
+	if mime, err = writeMIMEMessage(p); err != nil {
 		return
 	}
 
@@ -82,7 +84,9 @@ func collectAttachments(p *parser.Parser) (atts []*pmapi.Attachment, data []io.R
 	return
 }
 
-func collectBodyParts(p *parser.Parser) (parts, plainParts []string, err error) {
+func collectBodyParts(p *parser.Parser) (body, plain string, err error) {
+	var parts, plainParts []string
+
 	w := p.
 		NewWalker().
 		WithContentTypeHandler("text/plain", func(p *parser.Part) (err error) {
@@ -106,10 +110,10 @@ func collectBodyParts(p *parser.Parser) (parts, plainParts []string, err error) 
 		return
 	}
 
-	return
+	return strings.Join(parts, "\r\n"), strings.Join(plainParts, "\r\n"), nil
 }
 
-func writeMimeBody(p *parser.Parser) (mimeBody string, err error) {
+func writeMIMEMessage(p *parser.Parser) (mime string, err error) {
 	writer := p.
 		NewWriter().
 		WithCondition(func(p *parser.Part) (keep bool) {
@@ -124,6 +128,21 @@ func writeMimeBody(p *parser.Parser) (mimeBody string, err error) {
 	}
 
 	return buf.String(), nil
+}
+
+func attachPublicKey(p *parser.Part, key, keyName string) {
+	h := message.Header{}
+
+	h.Set("Content-Type", fmt.Sprintf(`application/pgp-key; name="%v"`, keyName))
+	h.Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%v.asc.pgp"`, keyName))
+	h.Set("Content-Transfer-Encoding", "base64")
+
+	// TODO: Split body at col width 72.
+
+	p.AddChild(&parser.Part{
+		Header: h,
+		Body:   []byte(key),
+	})
 }
 
 func parseHeader(m *pmapi.Message, h message.Header) (err error) {

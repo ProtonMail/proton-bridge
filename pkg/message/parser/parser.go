@@ -1,7 +1,6 @@
 package parser
 
 import (
-	"errors"
 	"io"
 	"io/ioutil"
 
@@ -31,20 +30,17 @@ func (p *Parser) NewWriter() *Writer {
 	return newWriter(p.root)
 }
 
-func (p *Parser) Header() message.Header {
-	return p.root.Header
+func (p *Parser) Root() *Part {
+	return p.root
 }
 
 func (p *Parser) Part(number []int) (part *Part, err error) {
 	part = p.root
 
 	for _, n := range number {
-		if len(part.children) < n {
-			err = errors.New("no such part")
+		if part, err = part.Part(n); err != nil {
 			return
 		}
-
-		part = part.children[n-1]
 	}
 
 	return
