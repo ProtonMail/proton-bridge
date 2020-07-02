@@ -37,6 +37,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/pkg/message/parser"
 	pmmime "github.com/ProtonMail/proton-bridge/pkg/mime"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
+	"github.com/emersion/go-message"
 	"github.com/jaytaylor/html2text"
 )
 
@@ -412,13 +413,41 @@ func (pka *PublicKeyAttacher) Accept(partReader io.Reader, header textproto.MIME
 }
 
 // ======= Parser ==========
+func parseGoMessageHeader(h message.Header) (m *pmapi.Message, err error) {
+	m = pmapi.NewMessage()
+
+	m.Header = make(mail.Header)
+
+	fields := h.Fields()
+
+	for fields.Next() {
+		switch strings.ToLower(fields.Key()) {
+		case "subject":
+			if m.Subject, err = fields.Text(); err != nil {
+				return
+			}
+
+		// TODO: Set these thingies.
+		case "from":
+		case "to":
+		case "reply-to":
+		case "cc":
+		case "bcc":
+		case "date":
+		}
+	}
+
+	return
+}
 
 func ParseGoMessage(r io.Reader) (m *pmapi.Message, mimeBody string, plainContents string, atts []io.Reader, err error) {
+	// Parse the message.
 	p, err := parser.New(r)
 	if err != nil {
 		return
 	}
 
+	// Collect attachments, convert html to plaintext.
 	walker := p.
 		NewWalker().
 		WithContentDispositionHandler("attachment", func(p *parser.Part, _ parser.PartHandler) (err error) {
@@ -431,6 +460,7 @@ func ParseGoMessage(r io.Reader) (m *pmapi.Message, mimeBody string, plainConten
 				plain = string(p.Body)
 			}
 
+			// TODO: Do we need newline here?
 			plainContents += plain
 
 			return
@@ -440,10 +470,10 @@ func ParseGoMessage(r io.Reader) (m *pmapi.Message, mimeBody string, plainConten
 		return
 	}
 
+	// Write out a mime body that doesn't include attachments.
 	writer := p.
 		NewWriter().
 		WithCondition(func(p *parser.Part) (keep bool) {
-			// We don't write if the content disposition says it's an attachment.
 			if disp, _, err := p.Header.ContentDisposition(); err == nil && disp == "attachment" {
 				return false
 			}
@@ -458,6 +488,11 @@ func ParseGoMessage(r io.Reader) (m *pmapi.Message, mimeBody string, plainConten
 	}
 
 	mimeBody = buf.String()
+
+	// Parse the header to build a pmapi message.
+	if m, err = parseGoMessageHeader(p.Header()); err != nil {
+		return
+	}
 
 	return
 }

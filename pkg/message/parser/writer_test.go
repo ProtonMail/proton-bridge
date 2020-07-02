@@ -2,6 +2,7 @@ package parser
 
 import (
 	"bytes"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -15,7 +16,7 @@ func TestParserWrite(t *testing.T) {
 	buf := new(bytes.Buffer)
 
 	assert.NoError(t, w.Write(buf))
-	assert.Equal(t, s("text_html_octet_attachment.eml"), buf.String())
+	assert.Equal(t, s("text_html_octet_attachment.eml"), crlf(buf.String()))
 }
 
 func TestParserWriteNoAttachments(t *testing.T) {
@@ -35,5 +36,9 @@ func TestParserWriteNoAttachments(t *testing.T) {
 	buf := new(bytes.Buffer)
 
 	assert.NoError(t, w.Write(buf))
-	assert.Equal(t, s("text_html.eml"), buf.String())
+	assert.Equal(t, s("text_html.eml"), crlf(buf.String()))
+}
+
+func crlf(s string) string {
+	return strings.ReplaceAll(s, "\r\n", "\n")
 }

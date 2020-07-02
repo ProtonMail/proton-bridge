@@ -1,0 +1,91 @@
+Subject: Sample mail
+From: John Doe <jdoe@machine.example>
+To: Mary Smith <mary@example.net>
+Date: Fri, 21 Nov 1997 09:55:06 -0600
+Content-Type: multipart/mixed; boundary="0000MAIN"
+
+main summary
+
+--0000MAIN
+Content-Type: text/plain
+
+1. main message
+
+--0000MAIN
+Content-Type: application/octet-stream
+Content-Disposition: inline; filename="main_signature.sig"
+Content-Transfer-Encoding: base64
+
+aWYgeW91IGFyZSByZWFkaW5nIHRoaXMsIGhpIQ==
+
+--0000MAIN
+Subject: Inside mail 3
+From: Mary Smith <mary@example.net>
+To: John Doe <jdoe@machine.example>
+Date: Fri, 20 Nov 1997 09:55:06 -0600
+Content-Type: multipart/mixed; boundary="0003MSG"
+
+3. message summary
+
+--0003MSG
+Content-Type: text/plain
+
+3.1 message text
+
+--0003MSG
+Content-Type: application/octet-stream
+Content-Disposition: attachment; filename="msg_3_signature.sig"
+Content-Transfer-Encoding: base64
+
+aWYgeW91IGFyZSByZWFkaW5nIHRoaXMsIGhpIQ==
+
+--0003MSG--
+
+--0000MAIN
+Content-Type: multipart/mixed; boundary="0004ATTACH"
+
+4 attach summary
+
+--0004ATTACH
+Content-Type: image/gif
+Content-Disposition: attachment; filename="att4.1_gif.sig"
+Content-Transfer-Encoding: base64
+
+aWYgeW91IGFyZSByZWFkaW5nIHRoaXMsIGhpIQ==
+
+--0004ATTACH
+Subject: Inside mail 4.2
+From: Mary Smith <mary@example.net>
+To: John Doe <jdoe@machine.example>
+Date: Fri, 10 Nov 1997 09:55:06 -0600
+Content-Type: multipart/mixed; boundary="0042MSG"
+
+4.2 message summary
+
+--0042MSG
+Content-Type: text/plain
+
+4.2.1 message text
+
+--0042MSG
+Content-Type: multipart/alternative; boundary="0422ALTER"
+
+4.2.2 alternative summary
+
+--0422ALTER
+Content-Type: text/plain
+
+4.2.2.1 plain text
+
+--0422ALTER
+Content-Type: text/html
+
+<h1>4.2.2.2 html text</h1>
+
+--0422ALTER--
+
+--0042MSG--
+
+--0004ATTACH--
+
+--0000MAIN--
