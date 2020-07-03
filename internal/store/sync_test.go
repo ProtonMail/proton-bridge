@@ -20,6 +20,7 @@ package store
 import (
 	"sort"
 	"strconv"
+	"sync"
 	"testing"
 
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
@@ -79,16 +80,29 @@ func (m *mockLister) ListMessages(filter *pmapi.MessagesFilter) (msgs []*pmapi.M
 }
 
 type mockStoreSynchronizer struct {
+	locker                         sync.Locker
 	allMessageIDs                  []string
 	errCreateOrUpdateMessagesEvent error
 	createdMessageIDsByBatch       [][]string
 }
 
+func newSyncer() *mockStoreSynchronizer {
+	return &mockStoreSynchronizer{
+		locker: &sync.Mutex{},
+	}
+}
+
 func (m *mockStoreSynchronizer) getAllMessageIDs() ([]string, error) {
+	m.locker.Lock()
+	defer m.locker.Unlock()
+
 	return m.allMessageIDs, nil
 }
 
 func (m *mockStoreSynchronizer) createOrUpdateMessagesEvent(messages []*pmapi.Message) error {
+	m.locker.Lock()
+	defer m.locker.Unlock()
+
 	if m.errCreateOrUpdateMessagesEvent != nil {
 		return m.errCreateOrUpdateMessagesEvent
 	}
@@ -101,10 +115,15 @@ func (m *mockStoreSynchronizer) createOrUpdateMessagesEvent(messages []*pmapi.Me
 }
 
 func (m *mockStoreSynchronizer) deleteMessagesEvent([]string) error {
+	m.locker.Lock()
+	defer m.locker.Unlock()
+
 	return nil
 }
 
 func (m *mockStoreSynchronizer) saveSyncState(finishTime int64, idRanges []*syncIDRange, idsToBeDeleted []string) {
+	m.locker.Lock()
+	defer m.locker.Unlock()
 }
 
 func newTestSyncState(store storeSynchronizer, splitIDs ...string) *syncState {
@@ -173,9 +192,9 @@ func TestSyncAllMail(t *testing.T) { //nolint[funlen]
 	for _, tc := range tests {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
-			store := &mockStoreSynchronizer{
-				allMessageIDs: generateIDs(1, numberOfMessages+10),
-			}
+			store := newSyncer()
+			store.allMessageIDs = generateIDs(1, numberOfMessages+10)
+
 			syncState := newSyncState(store, 0, tc.idRanges, tc.idsToBeDeleted)
 
 			err := syncAllMail(m.panicHandler, store, func() messageLister { return api }, syncState)
@@ -217,9 +236,9 @@ func TestSyncAllMail_FailedListing(t *testing.T) {
 
 	numberOfMessages := 10000
 
-	store := &mockStoreSynchronizer{
-		allMessageIDs: generateIDs(1, numberOfMessages+10),
-	}
+	store := newSyncer()
+	store.allMessageIDs = generateIDs(1, numberOfMessages+10)
+
 	api := &mockLister{
 		err:        errors.New("error"),
 		messageIDs: generateIDs(1, numberOfMessages),
@@ -236,10 +255,10 @@ func TestSyncAllMail_FailedCreateOrUpdateMessage(t *testing.T) {
 
 	numberOfMessages := 10000
 
-	store := &mockStoreSynchronizer{
-		errCreateOrUpdateMessagesEvent: errors.New("error"),
-		allMessageIDs:                  generateIDs(1, numberOfMessages+10),
-	}
+	store := newSyncer()
+	store.errCreateOrUpdateMessagesEvent = errors.New("error")
+	store.allMessageIDs = generateIDs(1, numberOfMessages+10)
+
 	api := &mockLister{
 		messageIDs: generateIDs(1, numberOfMessages),
 	}
@@ -250,7 +269,7 @@ func TestSyncAllMail_FailedCreateOrUpdateMessage(t *testing.T) {
 }
 
 func TestFindIDRanges(t *testing.T) { //nolint[funlen]
-	store := &mockStoreSynchronizer{}
+	store := newSyncer()
 	syncState := newTestSyncState(store)
 
 	tests := []struct {
@@ -343,7 +362,7 @@ func TestFindIDRanges(t *testing.T) { //nolint[funlen]
 }
 
 func TestFindIDRanges_FailedListing(t *testing.T) {
-	store := &mockStoreSynchronizer{}
+	store := newSyncer()
 	api := &mockLister{
 		err: errors.New("error"),
 	}
@@ -466,7 +485,7 @@ func TestSyncBatch(t *testing.T) {
 	for _, tc := range tests {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
-			store := &mockStoreSynchronizer{}
+			store := newSyncer()
 			api := &mockLister{
 				messageIDs: generateIDs(1, 1000),
 			}
@@ -479,7 +498,7 @@ func TestSyncBatch(t *testing.T) {
 }
 
 func TestSyncBatch_FailedListing(t *testing.T) {
-	store := &mockStoreSynchronizer{}
+	store := newSyncer()
 	api := &mockLister{
 		err:        errors.New("error"),
 		messageIDs: generateIDs(1, 1000),
@@ -490,9 +509,8 @@ func TestSyncBatch_FailedListing(t *testing.T) {
 }
 
 func TestSyncBatch_FailedCreateOrUpdateMessage(t *testing.T) {
-	store := &mockStoreSynchronizer{
-		errCreateOrUpdateMessagesEvent: errors.New("error"),
-	}
+	store := newSyncer()
+	store.errCreateOrUpdateMessagesEvent = errors.New("error")
 	api := &mockLister{
 		messageIDs: generateIDs(1, 1000),
 	}

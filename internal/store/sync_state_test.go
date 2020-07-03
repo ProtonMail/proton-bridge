@@ -26,7 +26,7 @@ import (
 )
 
 func TestSyncState_IDRanges(t *testing.T) {
-	store := &mockStoreSynchronizer{}
+	store := newSyncer()
 	syncState := newSyncState(store, 0, []*syncIDRange{}, []string{})
 
 	syncState.initIDRanges()
@@ -43,7 +43,7 @@ func TestSyncState_IDRanges(t *testing.T) {
 }
 
 func TestSyncState_IDRangesLoaded(t *testing.T) {
-	store := &mockStoreSynchronizer{}
+	store := newSyncer()
 	syncState := newSyncState(store, 0, []*syncIDRange{
 		{StartID: "", StopID: "100"},
 		{StartID: "100", StopID: ""},
@@ -57,9 +57,9 @@ func TestSyncState_IDRangesLoaded(t *testing.T) {
 }
 
 func TestSyncState_IDsToBeDeleted(t *testing.T) {
-	store := &mockStoreSynchronizer{
-		allMessageIDs: generateIDs(1, 9),
-	}
+	store := newSyncer()
+	store.allMessageIDs = generateIDs(1, 9)
+
 	syncState := newSyncState(store, 0, []*syncIDRange{}, []string{})
 
 	require.Nil(t, syncState.loadMessageIDsToBeDeleted())
@@ -74,9 +74,9 @@ func TestSyncState_IDsToBeDeleted(t *testing.T) {
 }
 
 func TestSyncState_IDsToBeDeletedLoaded(t *testing.T) {
-	store := &mockStoreSynchronizer{
-		allMessageIDs: generateIDs(1, 9),
-	}
+	store := newSyncer()
+	store.allMessageIDs = generateIDs(1, 9)
+
 	syncState := newSyncState(store, 0, []*syncIDRange{}, generateIDs(4, 9))
 
 	idsToBeDeleted := syncState.getIDsToBeDeleted()
