@@ -241,6 +241,16 @@ func (m *Message) IsDraft() bool {
 	return (m.Flags & (FlagReceived | FlagSent)) == 0
 }
 
+// HasLabelID returns whether the message has the `labelID`.
+func (m *Message) HasLabelID(labelID string) bool {
+	for _, l := range m.LabelIDs {
+		if l == labelID {
+			return true
+		}
+	}
+	return false
+}
+
 func (m *Message) IsBodyEncrypted() bool {
 	trimmedBody := strings.TrimSpace(m.Body)
 	return strings.HasPrefix(trimmedBody, MessageHeader) &&

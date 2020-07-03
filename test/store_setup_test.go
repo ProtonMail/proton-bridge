@@ -81,11 +81,17 @@ func thereAreMessagesInMailboxesForAddressOfUser(mailboxNames, bddAddressID, bdd
 		if err != nil {
 			return internalError(err, "getting labels %s for %s", mailboxNames, account.Username())
 		}
+
 		message := &pmapi.Message{
 			MIMEType:  "text/plain",
 			LabelIDs:  labelIDs,
 			AddressID: account.AddressID(),
 		}
+
+		if message.HasLabelID(pmapi.SentLabel) {
+			message.Flags |= pmapi.FlagSent
+		}
+
 		for n, cell := range messages.Rows[i].Cells {
 			switch head[n].Value {
 			case "from":

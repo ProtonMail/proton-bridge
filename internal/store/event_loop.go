@@ -523,14 +523,7 @@ func updateMessage(msgLog *logrus.Entry, message *pmapi.Message, updates *pmapi.
 		message.LabelIDs = updates.LabelIDs
 	} else {
 		for _, added := range updates.LabelIDsAdded {
-			hasLabel := false
-			for _, l := range message.LabelIDs {
-				if added == l {
-					hasLabel = true
-					break
-				}
-			}
-			if !hasLabel {
+			if !message.HasLabelID(added) {
 				msgLog.WithField("added", added).Trace("Adding label to message")
 				message.LabelIDs = append(message.LabelIDs, added)
 			}
