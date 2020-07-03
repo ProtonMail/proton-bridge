@@ -271,6 +271,44 @@ func TestParseMessageTextPlainWithOctetAttachment(t *testing.T) {
 	assert.Equal(t, readerToString(atts[0]), "if you are reading this, hi!")
 }
 
+func TestParseMessageTextPlainWithOctetAttachmentGoodFilename(t *testing.T) {
+	f := f("text_plain_octet_attachment_good_2231_filename.eml")
+	defer func() { _ = f.Close() }()
+
+	m, mimeBody, plainContents, atts, err := Parse(f, "", "")
+	assert.NoError(t, err)
+
+	assert.Equal(t, `"Sender" <sender@pm.me>`, m.Sender.String())
+	assert.Equal(t, `"Receiver" <receiver@pm.me>`, m.ToList[0].String())
+
+	assert.Equal(t, "body", m.Body)
+	assert.Equal(t, s("text_plain_octet_attachment_good_2231_filename.mime"), mimeBody)
+	assert.Equal(t, "body", plainContents)
+
+	assert.Len(t, atts, 1)
+	assert.Equal(t, readerToString(atts[0]), "if you are reading this, hi!")
+	assert.Equal(t, "😁😂.txt", m.Attachments[0].Name)
+}
+
+func TestParseMessageTextPlainWithOctetAttachmentBadFilename(t *testing.T) {
+	f := f("text_plain_octet_attachment_bad_2231_filename.eml")
+	defer func() { _ = f.Close() }()
+
+	m, mimeBody, plainContents, atts, err := Parse(f, "", "")
+	assert.NoError(t, err)
+
+	assert.Equal(t, `"Sender" <sender@pm.me>`, m.Sender.String())
+	assert.Equal(t, `"Receiver" <receiver@pm.me>`, m.ToList[0].String())
+
+	assert.Equal(t, "body", m.Body)
+	assert.Equal(t, s("text_plain_octet_attachment_bad_2231_filename.mime"), mimeBody)
+	assert.Equal(t, "body", plainContents)
+
+	assert.Len(t, atts, 1)
+	assert.Equal(t, readerToString(atts[0]), "if you are reading this, hi!")
+	assert.Equal(t, "attachment.bin", m.Attachments[0].Name)
+}
+
 func TestParseMessageTextPlainWithPlainAttachment(t *testing.T) {
 	f := f("text_plain_plain_attachment.eml")
 	defer func() { _ = f.Close() }()
