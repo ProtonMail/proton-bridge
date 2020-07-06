@@ -26,6 +26,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const minEventReceiveTime = 100 * time.Millisecond
+
 func Example() {
 	eventListener := New()
 
@@ -137,7 +139,7 @@ func TestReEmit(t *testing.T) {
 			receivedEvents[res]++
 		case res := <-otherCH:
 			receivedEvents[res+":other"]++
-		case <-time.After(10 * time.Millisecond):
+		case <-time.After(minEventReceiveTime):
 			t.Fatalf("Channel not emitted %d times", i+1)
 		}
 	}
@@ -158,7 +160,7 @@ func checkChannelEmitted(t testing.TB, channel chan string, expectedData string)
 	select {
 	case res := <-channel:
 		require.Equal(t, expectedData, res)
-	case <-time.After(10 * time.Millisecond):
+	case <-time.After(minEventReceiveTime):
 		t.Fatalf("Channel not emitted with expected data: %s", expectedData)
 	}
 }
@@ -167,6 +169,6 @@ func checkChannelNotEmitted(t testing.TB, channel chan string) {
 	select {
 	case res := <-channel:
 		t.Fatalf("Channel emitted with a unexpected response: %s", res)
-	case <-time.After(10 * time.Millisecond):
+	case <-time.After(minEventReceiveTime):
 	}
 }
