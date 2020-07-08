@@ -39,6 +39,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-310 Alternative parsing of `References` header (old parsing probably malformed message IDs).
 * GODT-320 Only report the same TLS issue once every 24 hours.
 * GODT-468 Bump go-imap version to get fix for NIL client delimiter.
+* GODT-465 Bump go-imap version to get fix for SELECT function.
 
 ### Removed
 * Dead code from `pkg/message`.
