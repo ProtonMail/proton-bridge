@@ -24,6 +24,7 @@ import (
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/pem"
+	"errors"
 	"fmt"
 	"net"
 	"time"
@@ -50,7 +51,12 @@ func newPinChecker(trustedPins []string) pinChecker {
 
 // checkCertificate returns whether the connection presents a known TLS certificate.
 func (p *pinChecker) checkCertificate(conn net.Conn) error {
-	connState := conn.(*tls.Conn).ConnectionState()
+	tlsConn, ok := conn.(*tls.Conn)
+	if !ok {
+		return errors.New("connection is not a TLS connection")
+	}
+
+	connState := tlsConn.ConnectionState()
 
 	for _, peerCert := range connState.PeerCertificates {
 		fingerprint := certFingerprint(peerCert)
