@@ -114,7 +114,7 @@ build-linux:
 build-darwin:
   stage: build
   only:
-    - devel
+    - branches
   before_script:
     - eval $(ssh-agent -s)
     - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add - > /dev/null
@@ -141,7 +141,7 @@ build-windows:
   services:
   - docker:dind
   only:
-    - devel
+    - branches
   variables:
     DOCKER_HOST: tcp://docker:2375
   script:
