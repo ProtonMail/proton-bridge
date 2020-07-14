@@ -250,7 +250,7 @@ func (su *smtpUser) Send(from string, to []string, messageReader io.Reader) (err
 				return err
 			}
 			for _, contactRawKey := range contactMeta.Keys {
-				contactKey, err := crypto.NewKeyFromArmored(contactRawKey)
+				contactKey, err := crypto.NewKey([]byte(contactRawKey))
 				if err != nil {
 					return err
 				}

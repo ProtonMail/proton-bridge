@@ -65,6 +65,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-308 Reduce minimum read speed threshold to avoid issues with flaky internet.
 * GODT-321 Changing address ordering would cause all messages to disappear in combined mode.
 * GODT-129 Fix custom message PGP by using template.
+* GODT-280 Don't assume contact keys are stored armored.
 
 
 ## [v1.2.8] Donghai-fix-append  (beta 2020-06-XXX)
