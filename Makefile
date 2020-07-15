@@ -8,7 +8,7 @@ TARGET_OS?=${GOOS}
 ## Build
 .PHONY: build build-nogui check-has-go
 
-BRIDGE_VERSION?=1.2.7-git
+BRIDGE_VERSION?=1.3.0-git
 REVISION:=$(shell git rev-parse --short=10 HEAD)
 BUILD_TIME:=$(shell date +%FT%T%z)
 

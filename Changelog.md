@@ -2,7 +2,7 @@
 
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
-## Unreleased
+## [v1.3.0] Emma (beta 2020-07-XXX)
 
 ### Added
 * IMAP mailbox info update when new mailbox is created.
