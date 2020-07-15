@@ -60,7 +60,7 @@ require (
 	github.com/therecipe/qt v0.0.0-20200126204426-5074eb6d8c41
 	github.com/twinj/uuid v1.0.0 // indirect
 	github.com/urfave/cli v1.22.3
-	go.etcd.io/bbolt v1.3.3
+	go.etcd.io/bbolt v1.3.5
 	golang.org/x/net v0.0.0-20200301022130-244492dfa37a
 	golang.org/x/text v0.3.2
 	gopkg.in/stretchr/testify.v1 v1.2.2 // indirect

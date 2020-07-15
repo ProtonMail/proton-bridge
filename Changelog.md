@@ -40,6 +40,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-320 Only report the same TLS issue once every 24 hours.
 * GODT-468 Bump go-imap version to get fix for NIL client delimiter.
 * GODT-465 Bump go-imap version to get fix for SELECT function.
+* GODT-456 Bump bbolt version from 1.3.3 to 1.3.5 to get fixes for unsafe operations.
 
 ### Removed
 * Dead code from `pkg/message`.
