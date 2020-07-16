@@ -357,6 +357,9 @@ func (c *client) Auth2FA(twoFactorCode string, auth *Auth) (*Auth2FA, error) {
 
 // AuthRefresh will refresh an expired access token.
 func (c *client) AuthRefresh(uidAndRefreshToken string) (auth *Auth, err error) {
+	c.refreshLocker.Lock()
+	defer c.refreshLocker.Unlock()
+
 	// If we don't yet have a saved access token, save this one in case the refresh fails!
 	// That way we can try again later (see handleUnauthorizedStatus).
 	c.cm.setTokenIfUnset(c.userID, uidAndRefreshToken)

@@ -113,6 +113,7 @@ type client struct {
 	accessToken   string
 	userID        string
 	requestLocker sync.Locker
+	refreshLocker sync.Locker
 
 	user        *User
 	addresses   AddressList
@@ -130,6 +131,7 @@ func newClient(cm *ClientManager, userID string) *client {
 		hc:            getHTTPClient(cm.config, cm.roundTripper),
 		userID:        userID,
 		requestLocker: &sync.Mutex{},
+		refreshLocker: &sync.Mutex{},
 		keyRingLock:   &sync.Mutex{},
 		addrKeyRing:   make(map[string]*crypto.KeyRing),
 		log:           logrus.WithField("pkg", "pmapi").WithField("userID", userID),

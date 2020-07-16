@@ -67,6 +67,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-321 Changing address ordering would cause all messages to disappear in combined mode.
 * GODT-129 Fix custom message PGP by using template.
 * GODT-280 Don't assume contact keys are stored armored.
+* GODT-427 Fix race condition in auth refresh that could cause user to be logged out.
 
 
 ## [v1.2.8] Donghai-fix-append  (beta 2020-06-XXX)
