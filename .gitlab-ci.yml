@@ -13,7 +13,7 @@ before_script:
 cache:
   key: go-mod
   paths:
-  - .cache
+    - .cache
   policy: pull
 
 stages:
@@ -31,19 +31,19 @@ build-ci-image:
   before_script: []
   cache: {}
   tags:
-  - heavy
+    - heavy
   only:
     changes:
-    - ci/*
+      - ci/*
   services:
-  - docker:dind
+    - docker:dind
   variables:
     DOCKER_HOST: tcp://docker:2375
   script:
-  - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-  - docker info
-  - docker build -t gitlab.protontech.ch:4567/go/bridge/ci:latest ci
-  - docker push gitlab.protontech.ch:4567/go/bridge/ci:latest
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker info
+    - docker build -t gitlab.protontech.ch:4567/go/bridge/ci:latest ci
+    - docker push gitlab.protontech.ch:4567/go/bridge/ci:latest
 
 # Stage: CACHE
 
@@ -54,11 +54,11 @@ cache-push:
   only:
     - branches
   script:
-  - echo ""
+    - echo ""
   cache:
     key: go-mod
     paths:
-    - .cache
+      - .cache
 
 # Stage: TEST
 
@@ -140,7 +140,7 @@ build-darwin:
 build-windows:
   stage: build
   services:
-  - docker:dind
+    - docker:dind
   only:
     - branches
   variables:
