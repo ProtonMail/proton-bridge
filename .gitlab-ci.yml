@@ -125,9 +125,10 @@ build-darwin:
     - export PATH=/usr/local/opt/gnu-sed/libexec/gnubin:$PATH
     - export GOPATH=~/go
     - export PATH=$GOPATH/bin:$PATH
+    - export CGO_CPPFLAGS='-Wno-error -Wno-nullability-completeness -Wno-expansion-to-defined -Wno-builtin-requires-header'
   cache: {}
   tags:
-    - macOS-bridge
+    - macOS
   script:
     - make build
   artifacts:
