@@ -42,7 +42,8 @@ type Controller struct {
 	labelsByUsername     map[string][]*pmapi.Label
 	messagesByUsername   map[string][]*pmapi.Message
 
-	log *logrus.Entry
+	locker sync.Locker
+	log    *logrus.Entry
 }
 
 func NewController(cm *pmapi.ClientManager) *Controller {
@@ -62,7 +63,8 @@ func NewController(cm *pmapi.ClientManager) *Controller {
 		labelsByUsername:     map[string][]*pmapi.Label{},
 		messagesByUsername:   map[string][]*pmapi.Message{},
 
-		log: logrus.WithField("pkg", "fakeapi-controller"),
+		locker: &sync.Mutex{},
+		log:    logrus.WithField("pkg", "fakeapi-controller"),
 	}
 
 	cm.SetClientConstructor(func(userID string) pmapi.Client {

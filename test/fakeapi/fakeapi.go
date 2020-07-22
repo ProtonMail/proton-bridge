@@ -71,6 +71,9 @@ func (api *FakePMAPI) CloseConnections() {
 }
 
 func (api *FakePMAPI) checkAndRecordCall(method method, path string, request interface{}) error {
+	api.controller.locker.Lock()
+	defer api.controller.locker.Unlock()
+
 	if err := api.checkInternetAndRecordCall(method, path, request); err != nil {
 		return err
 	}
