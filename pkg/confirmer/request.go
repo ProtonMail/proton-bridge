@@ -24,6 +24,7 @@ import (
 	"github.com/google/uuid"
 )
 
+// Request provides a result when it becomes available.
 type Request struct {
 	uuid    string
 	value   chan bool
@@ -38,10 +39,12 @@ func newRequest(timeout time.Duration) *Request {
 	}
 }
 
+// ID returns the request's ID, used to set the request's value.
 func (r *Request) ID() string {
 	return r.uuid
 }
 
+// Result returns the result or an error if it is not available within the request timeout.
 func (r *Request) Result() (bool, error) {
 	select {
 	case res := <-r.value:

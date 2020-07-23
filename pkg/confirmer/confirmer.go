@@ -25,6 +25,8 @@ import (
 
 // NOTE: For now, Confirmer only supports bool values but it could easily be made generic.
 
+// Confirmer is used to ask for some value (e.g. a confirmation from a GUI element)
+// in a threadsafe manner and retrieve that value later.
 type Confirmer struct {
 	requests map[string]*Request
 	locker   sync.Locker
@@ -37,6 +39,7 @@ func New() *Confirmer {
 	}
 }
 
+// NewRequest creates a new request object that waits up to the given amount of time for the result.
 func (c *Confirmer) NewRequest(timeout time.Duration) *Request {
 	c.locker.Lock()
 	defer c.locker.Unlock()
@@ -48,11 +51,12 @@ func (c *Confirmer) NewRequest(timeout time.Duration) *Request {
 	return req
 }
 
-func (c *Confirmer) SetResponse(uuid string, value bool) error {
+// SetResult sets the result value of the request with the given ID.
+func (c *Confirmer) SetResult(id string, value bool) error {
 	c.locker.Lock()
 	defer c.locker.Unlock()
 
-	req, ok := c.requests[uuid]
+	req, ok := c.requests[id]
 	if !ok {
 		return errors.New("no such request")
 	}
