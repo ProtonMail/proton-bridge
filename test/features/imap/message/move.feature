@@ -2,6 +2,8 @@ Feature: IMAP move messages
   Background:
     Given there is connected user "user"
     And there is "user" with mailbox "Folders/mbox"
+    # Messages are inserted in opposite way to keep increasing ID.
+    # Sequence numbers are then opposite than listed above.
     And there are messages in mailbox "INBOX" for "user"
       | from              | to         | subject | body  |
       | john.doe@mail.com | user@pm.me | foo     | hello |

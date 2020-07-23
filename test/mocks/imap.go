@@ -207,6 +207,10 @@ func (c *IMAPClient) MarkAsUnstarred(ids string) *IMAPResponse {
 	return c.RemoveFlags(ids, "\\Flagged")
 }
 
+func (c *IMAPClient) SetFlags(ids, flags string) *IMAPResponse {
+	return c.changeFlags(ids, flags, "")
+}
+
 func (c *IMAPClient) AddFlags(ids, flags string) *IMAPResponse {
 	return c.changeFlags(ids, flags, "+")
 }

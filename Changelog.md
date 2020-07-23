@@ -2,6 +2,11 @@
 
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
+## Unreleased
+
+### Changed
+* GODT-409 Set flags have to replace all flags.
+
 ## [v1.3.x] Emma (beta 2020-07-XXX)
 
 ### Added

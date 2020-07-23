@@ -51,18 +51,73 @@ func (im *imapMailbox) UpdateMessagesFlags(uid bool, seqSet *imap.SeqSet, operat
 		return err
 	}
 
+	if operation == imap.SetFlags {
+		return im.setFlags(messageIDs, flags)
+	}
+	return im.addOrRemoveFlags(operation, messageIDs, flags)
+}
+
+func (im *imapMailbox) setFlags(messageIDs, flags []string) error {
+	seen := false
+	flagged := false
+	deleted := false
+	spam := false
+
+	for _, f := range flags {
+		switch f {
+		case imap.SeenFlag:
+			seen = true
+		case imap.FlaggedFlag:
+			flagged = true
+		case imap.DeletedFlag:
+			deleted = true
+		case message.AppleMailJunkFlag, message.ThunderbirdJunkFlag:
+			spam = true
+		}
+	}
+
+	if seen {
+		_ = im.storeMailbox.MarkMessagesRead(messageIDs)
+	} else {
+		_ = im.storeMailbox.MarkMessagesUnread(messageIDs)
+	}
+
+	if flagged {
+		_ = im.storeMailbox.MarkMessagesStarred(messageIDs)
+	} else {
+		_ = im.storeMailbox.MarkMessagesUnstarred(messageIDs)
+	}
+
+	if deleted {
+		_ = im.storeMailbox.DeleteMessages(messageIDs)
+	}
+
+	spamMailbox, err := im.storeAddress.GetMailbox("Spam")
+	if err != nil {
+		return err
+	}
+	if spam {
+		_ = spamMailbox.LabelMessages(messageIDs)
+	} else {
+		_ = spamMailbox.UnlabelMessages(messageIDs)
+	}
+
+	return nil
+}
+
+func (im *imapMailbox) addOrRemoveFlags(operation imap.FlagsOp, messageIDs, flags []string) error {
 	for _, f := range flags {
 		switch f {
 		case imap.SeenFlag:
 			switch operation {
-			case imap.SetFlags, imap.AddFlags:
+			case imap.AddFlags:
 				_ = im.storeMailbox.MarkMessagesRead(messageIDs)
 			case imap.RemoveFlags:
 				_ = im.storeMailbox.MarkMessagesUnread(messageIDs)
 			}
 		case imap.FlaggedFlag:
 			switch operation {
-			case imap.SetFlags, imap.AddFlags:
+			case imap.AddFlags:
 				_ = im.storeMailbox.MarkMessagesStarred(messageIDs)
 			case imap.RemoveFlags:
 				_ = im.storeMailbox.MarkMessagesUnstarred(messageIDs)
@@ -75,7 +130,7 @@ func (im *imapMailbox) UpdateMessagesFlags(uid bool, seqSet *imap.SeqSet, operat
 		case imap.AnsweredFlag, imap.DraftFlag, imap.RecentFlag:
 			// Not supported.
 		case message.AppleMailJunkFlag, message.ThunderbirdJunkFlag:
-			storeMailbox, err := im.storeAddress.GetMailbox(pmapi.SpamLabel)
+			storeMailbox, err := im.storeAddress.GetMailbox("Spam")
 			if err != nil {
 				return err
 			}
@@ -84,7 +139,7 @@ func (im *imapMailbox) UpdateMessagesFlags(uid bool, seqSet *imap.SeqSet, operat
 			switch operation {
 			// No label removal is necessary because Spam and Inbox are both exclusive labels so the backend
 			// will automatically take care of label removal.
-			case imap.SetFlags, imap.AddFlags:
+			case imap.AddFlags:
 				_ = storeMailbox.LabelMessages(messageIDs)
 			case imap.RemoveFlags:
 				_ = storeMailbox.UnlabelMessages(messageIDs)

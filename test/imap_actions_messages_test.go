@@ -38,6 +38,8 @@ func IMAPActionsMessagesFeatureContext(s *godog.Suite) {
 	s.Step(`^IMAP client creates message "([^"]*)" from "([^"]*)" to "([^"]*)" with body "([^"]*)" in "([^"]*)"$`, imapClientCreatesMessageFromToWithBody)
 	s.Step(`^IMAP client creates message "([^"]*)" from "([^"]*)" to address "([^"]*)" of "([^"]*)" with body "([^"]*)" in "([^"]*)"$`, imapClientCreatesMessageFromToAddressOfUserWithBody)
 	s.Step(`^IMAP client creates message "([^"]*)" from address "([^"]*)" of "([^"]*)" to "([^"]*)" with body "([^"]*)" in "([^"]*)"$`, imapClientCreatesMessageFromAddressOfUserToWithBody)
+	s.Step(`^IMAP client marks message "([^"]*)" with "([^"]*)"$`, imapClientMarksMessageWithFlags)
+	s.Step(`^IMAP client "([^"]*)" marks message "([^"]*)" with "([^"]*)"$`, imapClientNamedMarksMessageWithFlags)
 	s.Step(`^IMAP client marks message "([^"]*)" as read$`, imapClientMarksMessageAsRead)
 	s.Step(`^IMAP client "([^"]*)" marks message "([^"]*)" as read$`, imapClientNamedMarksMessageAsRead)
 	s.Step(`^IMAP client marks message "([^"]*)" as unread$`, imapClientMarksMessageAsUnread)
@@ -136,6 +138,16 @@ func imapClientCreatesMessageFromAddressOfUserToWithBody(subject, bddAddressID, 
 	}
 
 	return imapClientCreatesMessageFromToWithBody(subject, account.Address(), to, body, mailboxName)
+}
+
+func imapClientMarksMessageWithFlags(messageRange, flags string) error {
+	return imapClientNamedMarksMessageWithFlags("imap", messageRange, flags)
+}
+
+func imapClientNamedMarksMessageWithFlags(imapClient, messageRange, flags string) error {
+	res := ctx.GetIMAPClient(imapClient).SetFlags(messageRange, flags)
+	ctx.SetIMAPLastResponse(imapClient, res)
+	return nil
 }
 
 func imapClientMarksMessageAsRead(messageRange string) error {
