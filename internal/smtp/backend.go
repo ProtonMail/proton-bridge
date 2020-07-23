@@ -24,8 +24,10 @@ import (
 	"github.com/ProtonMail/proton-bridge/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/internal/preferences"
 	"github.com/ProtonMail/proton-bridge/pkg/config"
+	"github.com/ProtonMail/proton-bridge/pkg/confirmer"
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
 	goSMTPBackend "github.com/emersion/go-smtp"
+	"github.com/sirupsen/logrus"
 )
 
 type panicHandler interface {
@@ -33,12 +35,12 @@ type panicHandler interface {
 }
 
 type smtpBackend struct {
-	panicHandler            panicHandler
-	eventListener           listener.Listener
-	preferences             *config.Preferences
-	bridge                  bridger
-	shouldSendNoEncChannels map[string]chan bool
-	sendRecorder            *sendRecorder
+	panicHandler  panicHandler
+	eventListener listener.Listener
+	preferences   *config.Preferences
+	bridge        bridger
+	confirmer     *confirmer.Confirmer
+	sendRecorder  *sendRecorder
 }
 
 // NewSMTPBackend returns struct implementing go-smtp/backend interface.
@@ -58,12 +60,12 @@ func newSMTPBackend(
 	bridge bridger,
 ) *smtpBackend {
 	return &smtpBackend{
-		panicHandler:            panicHandler,
-		eventListener:           eventListener,
-		preferences:             preferences,
-		bridge:                  bridge,
-		shouldSendNoEncChannels: make(map[string]chan bool),
-		sendRecorder:            newSendRecorder(),
+		panicHandler:  panicHandler,
+		eventListener: eventListener,
+		preferences:   preferences,
+		bridge:        bridge,
+		confirmer:     confirmer.New(),
+		sendRecorder:  newSendRecorder(),
 	}
 }
 
@@ -103,7 +105,7 @@ func (sb *smtpBackend) shouldReportOutgoingNoEnc() bool {
 }
 
 func (sb *smtpBackend) ConfirmNoEncryption(messageID string, shouldSend bool) {
-	if ch, ok := sb.shouldSendNoEncChannels[messageID]; ok {
-		ch <- shouldSend
+	if err := sb.confirmer.SetResponse(messageID, shouldSend); err != nil {
+		logrus.WithError(err).Error("Failed to set confirmation value")
 	}
 }

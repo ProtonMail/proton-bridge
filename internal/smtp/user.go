@@ -23,11 +23,9 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io"
-	"math/rand"
 	"mime"
 	"net/mail"
 	"regexp"
-	"strconv"
 	"strings"
 	"time"
 
@@ -38,6 +36,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	goSMTPBackend "github.com/emersion/go-smtp"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 )
 
 type smtpUser struct {
@@ -497,27 +496,18 @@ func (su *smtpUser) continueSendingUnencryptedMail(subject string) bool {
 		return true
 	}
 
-	messageID := strconv.Itoa(rand.Int()) //nolint[gosec]
-	ch := make(chan bool)
-	su.backend.shouldSendNoEncChannels[messageID] = ch
-	su.eventListener.Emit(events.OutgoingNoEncEvent, messageID+":"+subject)
+	// GUI should always respond in 10 seconds, but let's have safety timeout
+	// in case GUI will not respond properly. If GUI didn't respond, we cannot
+	// be sure if user even saw the notice: better to not send the e-mail.
+	req := su.backend.confirmer.NewRequest(15 * time.Second)
 
-	log.Debug("Waiting for sendingUnencrypted confirmation for ", messageID)
+	su.eventListener.Emit(events.OutgoingNoEncEvent, req.ID()+":"+subject)
 
-	var res bool
-	select {
-	case res = <-ch:
-		// GUI should always respond in 10 seconds, but let's have safety timeout
-		// in case GUI will not respond properly. If GUI didn't respond, we cannot
-		// be sure if user even saw the notice: better to not send the e-mail.
-		log.Debug("Got sendingUnencrypted for ", messageID, ": ", res)
-	case <-time.After(15 * time.Second):
-		log.Debug("sendingUnencrypted timeout, not sending ", messageID)
-		res = false
+	res, err := req.Result()
+	if err != nil {
+		logrus.WithError(err).Error("Failed to determine whether to send unencrypted, assuming no")
+		return false
 	}
-
-	delete(su.backend.shouldSendNoEncChannels, messageID)
-	close(ch)
 
 	return res
 }
