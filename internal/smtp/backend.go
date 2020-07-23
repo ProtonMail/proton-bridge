@@ -105,7 +105,7 @@ func (sb *smtpBackend) shouldReportOutgoingNoEnc() bool {
 }
 
 func (sb *smtpBackend) ConfirmNoEncryption(messageID string, shouldSend bool) {
-	if err := sb.confirmer.SetResponse(messageID, shouldSend); err != nil {
+	if err := sb.confirmer.SetResult(messageID, shouldSend); err != nil {
 		logrus.WithError(err).Error("Failed to set confirmation value")
 	}
 }

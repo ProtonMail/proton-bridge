@@ -65,3 +65,20 @@ func TestConfirmerTimeout(t *testing.T) {
 	_, err := req.Result()
 	assert.Error(t, err)
 }
+
+func TestConfirmerMultipleRequestCalls(t *testing.T) {
+	c := New()
+
+	req := c.NewRequest(1 * time.Second)
+
+	go func() {
+		assert.NoError(t, c.SetResult(req.ID(), true))
+	}()
+
+	res, err := req.Result()
+	assert.NoError(t, err)
+	assert.True(t, res)
+
+	_, errAgain := req.Result()
+	assert.Error(t, errAgain)
+}

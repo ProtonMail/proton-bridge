@@ -61,9 +61,9 @@ func (c *Confirmer) SetResult(id string, value bool) error {
 		return errors.New("no such request")
 	}
 
-	req.value <- value
+	req.ch <- value
 
-	close(req.value)
+	close(req.ch)
 	delete(c.requests, id)
 
 	return nil

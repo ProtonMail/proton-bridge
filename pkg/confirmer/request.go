@@ -19,6 +19,7 @@ package confirmer
 
 import (
 	"errors"
+	"sync"
 	"time"
 
 	"github.com/google/uuid"
@@ -27,15 +28,19 @@ import (
 // Request provides a result when it becomes available.
 type Request struct {
 	uuid    string
-	value   chan bool
+	ch      chan bool
 	timeout time.Duration
+
+	expired bool
+	locker  sync.Locker
 }
 
 func newRequest(timeout time.Duration) *Request {
 	return &Request{
 		uuid:    uuid.New().String(),
-		value:   make(chan bool),
+		ch:      make(chan bool),
 		timeout: timeout,
+		locker:  &sync.Mutex{},
 	}
 }
 
@@ -46,11 +51,31 @@ func (r *Request) ID() string {
 
 // Result returns the result or an error if it is not available within the request timeout.
 func (r *Request) Result() (bool, error) {
+	if r.hasExpired() {
+		return false, errors.New("this result has expired")
+	}
+
+	defer r.done()
+
 	select {
-	case res := <-r.value:
+	case res := <-r.ch:
 		return res, nil
 
 	case <-time.After(r.timeout):
 		return false, errors.New("timed out waiting for result")
 	}
+}
+
+func (r *Request) hasExpired() bool {
+	r.locker.Lock()
+	defer r.locker.Unlock()
+
+	return r.expired
+}
+
+func (r *Request) done() {
+	r.locker.Lock()
+	defer r.locker.Unlock()
+
+	r.expired = true
 }
