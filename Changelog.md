@@ -40,6 +40,8 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-454 Fix send on closed channel when receiving unencrypted send confirmation from GUI.
 * GODT-597 Duplicate sending when draft creation takes too long
 
+### Changed
+* GODT-462 Pausing event loop while FETCHing to prevent EXPUNGE
 
 ## [v1.3.x] Emma (v1.3.2 beta 2020-08-04, v1.3.3 beta 2020-08-06, v1.3.3 live 2020-08-12)
 

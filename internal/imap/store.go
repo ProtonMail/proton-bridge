@@ -41,6 +41,8 @@ type storeUserProvider interface {
 		attachedPublicKey,
 		attachedPublicKeyName string,
 		parentID string) (*pmapi.Message, []*pmapi.Attachment, error)
+
+	PauseEventLoop(bool)
 }
 
 type storeAddressProvider interface {

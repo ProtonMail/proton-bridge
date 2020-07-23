@@ -38,7 +38,8 @@ type eventLoop struct {
 	pollCh         chan chan struct{}
 	stopCh         chan struct{}
 	notifyStopCh   chan struct{}
-	isRunning      bool
+	isRunning      bool // The whole event loop is running.
+	isTickerPaused bool // The periodic loop is paused (but the event loop itself is still running).
 	hasInternet    bool
 
 	pollCounter int
@@ -59,6 +60,7 @@ func newEventLoop(cache *Cache, store *Store, user BridgeUser, events listener.L
 		currentEventID: cache.getEventID(user.ID()),
 		pollCh:         make(chan chan struct{}),
 		isRunning:      false,
+		isTickerPaused: false,
 
 		log: eventLog,
 
@@ -66,10 +68,6 @@ func newEventLoop(cache *Cache, store *Store, user BridgeUser, events listener.L
 		user:   user,
 		events: events,
 	}
-}
-
-func (loop *eventLoop) IsRunning() bool {
-	return loop.isRunning
 }
 
 func (loop *eventLoop) client() pmapi.Client {
@@ -156,6 +154,10 @@ func (loop *eventLoop) loop() {
 			close(loop.notifyStopCh)
 			return
 		case <-t.C:
+			if loop.isTickerPaused {
+				loop.log.Trace("Event loop paused, skipping")
+				continue
+			}
 			// Randomise periodic calls within range pollInterval ± pollSpread to reduces potential load spikes on API.
 			time.Sleep(time.Duration(rand.Intn(2*int(pollIntervalSpread.Milliseconds()))) * time.Millisecond)
 		case eventProcessedCh = <-loop.pollCh:

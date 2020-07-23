@@ -26,6 +26,10 @@ import (
 	bolt "go.etcd.io/bbolt"
 )
 
+func (loop *eventLoop) IsRunning() bool {
+	return loop.isRunning
+}
+
 // TestSync triggers a sync of the store.
 func (store *Store) TestSync() {
 	store.lock.Lock()
