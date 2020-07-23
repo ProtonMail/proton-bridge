@@ -30,7 +30,7 @@ func TestConfirmerYes(t *testing.T) {
 	req := c.NewRequest(1 * time.Second)
 
 	go func() {
-		assert.NoError(t, c.SetResponse(req.ID(), true))
+		assert.NoError(t, c.SetResult(req.ID(), true))
 	}()
 
 	res, err := req.Result()
@@ -44,7 +44,7 @@ func TestConfirmerNo(t *testing.T) {
 	req := c.NewRequest(1 * time.Second)
 
 	go func() {
-		assert.NoError(t, c.SetResponse(req.ID(), false))
+		assert.NoError(t, c.SetResult(req.ID(), false))
 	}()
 
 	res, err := req.Result()
@@ -59,7 +59,7 @@ func TestConfirmerTimeout(t *testing.T) {
 
 	go func() {
 		time.Sleep(2 * time.Second)
-		assert.NoError(t, c.SetResponse(req.ID(), true))
+		assert.NoError(t, c.SetResult(req.ID(), true))
 	}()
 
 	_, err := req.Result()

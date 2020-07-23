@@ -63,5 +63,8 @@ func (c *Confirmer) SetResult(id string, value bool) error {
 
 	req.value <- value
 
+	close(req.value)
+	delete(c.requests, id)
+
 	return nil
 }
