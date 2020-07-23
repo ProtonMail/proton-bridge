@@ -43,6 +43,7 @@ require (
 	github.com/go-resty/resty/v2 v2.2.0
 	github.com/golang/mock v1.4.3
 	github.com/google/go-cmp v0.4.0
+	github.com/google/uuid v1.1.1
 	github.com/gopherjs/gopherjs v0.0.0-20190430165422-3e4dfb77656c // indirect
 	github.com/hashicorp/go-multierror v1.0.0
 	github.com/jaytaylor/html2text v0.0.0-20200220170450-61d9dc4d7195
