@@ -84,7 +84,7 @@ Window {
             anchors.horizontalCenter: parent.horizontalCenter
 
             ButtonRounded {
-                id: cancel
+                id: sendAnyway
                 onClicked : root.hide(true)
                 height: Style.main.fontSize*2
                 //width: Style.dialog.widthButton*1.3
@@ -93,7 +93,7 @@ Window {
             }
 
             ButtonRounded {
-                id: sendAnyway
+                id: cancel
                 onClicked : root.hide(false)
                 height: Style.main.fontSize*2
                 //width: Style.dialog.widthButton*1.3
