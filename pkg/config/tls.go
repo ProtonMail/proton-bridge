@@ -29,7 +29,6 @@ import (
 	"net"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"runtime"
 	"time"
 )
@@ -71,14 +70,16 @@ func GetTLSConfig(cfg tlsConfiger) (tlsConfig *tls.Config, err error) {
 		}
 
 		if runtime.GOOS == "darwin" {
-			// If this fails, log the error but continue to load.
-			if binaryPath, err := os.Executable(); err == nil {
-				macOSPath := filepath.Dir(binaryPath)
-				contentsPath := filepath.Dir(macOSPath)
-				resourcesPath := filepath.Join(contentsPath, "Resources", "addcert.scpt")
-				if err := exec.Command("/usr/bin/osascript", resourcesPath).Run(); err != nil { // nolint[gosec]
-					log.WithError(err).Error("Failed to add cert to system keychain")
-				}
+			if err := exec.Command( // nolint[gosec]
+				"execute-with-privileges",
+				"/usr/bin/security",
+				"add-trusted-cert",
+				"-r", "trustRoot",
+				"-p", "ssl",
+				"-k", "/Library/Keychains/System.keychain",
+				certPath,
+			).Run(); err != nil {
+				log.WithError(err).Error("Failed to add cert to system keychain")
 			}
 		}
 	}

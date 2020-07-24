@@ -55,7 +55,6 @@ ${DEPLOY_DIR}/linux: ${EXE_TARGET}
 
 ${DEPLOY_DIR}/darwin: ${EXE_TARGET}
 	cp ./internal/frontend/share/icons/Bridge.icns ${DARWINAPP_CONTENTS}/Resources/
-	cp -r "utils/addcert.scpt" ${DARWINAPP_CONTENTS}/Resources/
 	cp LICENSE ${DARWINAPP_CONTENTS}/Resources/
 	rm -rf "${DARWINAPP_CONTENTS}/Frameworks/QtWebEngine.framework"
 	rm -rf "${DARWINAPP_CONTENTS}/Frameworks/QtWebView.framework"
