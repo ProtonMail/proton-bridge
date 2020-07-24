@@ -66,7 +66,7 @@ func TestConfirmerTimeout(t *testing.T) {
 	assert.Error(t, err)
 }
 
-func TestConfirmerMultipleRequestCalls(t *testing.T) {
+func TestConfirmerMultipleResultCalls(t *testing.T) {
 	c := New()
 
 	req := c.NewRequest(1 * time.Second)
@@ -81,6 +81,25 @@ func TestConfirmerMultipleRequestCalls(t *testing.T) {
 
 	_, errAgain := req.Result()
 	assert.Error(t, errAgain)
+}
+
+func TestConfirmerMultipleSimultaneousResultCalls(t *testing.T) {
+	c := New()
+
+	req := c.NewRequest(1 * time.Second)
+
+	go func() {
+		time.Sleep(1 * time.Second)
+		assert.NoError(t, c.SetResult(req.ID(), true))
+	}()
+
+	// We just check that nothing panics. We can't know which Result() will get the result though.
+
+	go func() { _, _ = req.Result() }()
+	go func() { _, _ = req.Result() }()
+	go func() { _, _ = req.Result() }()
+
+	_, _ = req.Result()
 }
 
 func TestConfirmerMultipleSetResultCalls(t *testing.T) {

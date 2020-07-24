@@ -51,11 +51,14 @@ func (r *Request) ID() string {
 
 // Result returns the result or an error if it is not available within the request timeout.
 func (r *Request) Result() (bool, error) {
-	if r.hasExpired() {
+	r.locker.Lock()
+	defer r.locker.Unlock()
+
+	if r.expired {
 		return false, errors.New("this result has expired")
 	}
 
-	defer r.done()
+	defer func() { r.expired = true }()
 
 	select {
 	case res := <-r.ch:
@@ -64,18 +67,4 @@ func (r *Request) Result() (bool, error) {
 	case <-time.After(r.timeout):
 		return false, errors.New("timed out waiting for result")
 	}
-}
-
-func (r *Request) hasExpired() bool {
-	r.locker.Lock()
-	defer r.locker.Unlock()
-
-	return r.expired
-}
-
-func (r *Request) done() {
-	r.locker.Lock()
-	defer r.locker.Unlock()
-
-	r.expired = true
 }
