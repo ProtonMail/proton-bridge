@@ -76,7 +76,10 @@ func (su *smtpUser) client() pmapi.Client {
 }
 
 // Send sends an email from the given address to the given addresses with the given body.
-func (su *smtpUser) getSendPreferences(recipient, messageMIMEType string) (preferences SendPreferences, err error) {
+func (su *smtpUser) getSendPreferences(
+	recipient, messageMIMEType string,
+	mailSettings pmapi.MailSettings,
+) (preferences SendPreferences, err error) {
 	b := &sendPreferencesBuilder{}
 
 	// 1. contact vcard data
@@ -97,10 +100,7 @@ func (su *smtpUser) getSendPreferences(recipient, messageMIMEType string) (prefe
 	}
 
 	// 4. mail settings
-	mailSettings, err := su.client().GetMailSettings()
-	if err != nil {
-		return
-	}
+	// Passed in from su.client().GetMailSettings()
 
 	// 3 + 4 -> 5. encryption preferences
 	b.setEncryptionPreferences(mailSettings)
@@ -283,7 +283,7 @@ func (su *smtpUser) Send(from string, to []string, messageReader io.Reader) (err
 			return errors.New(`"` + email + `" is not a valid recipient.`)
 		}
 
-		sendPreferences, err := su.getSendPreferences(email, message.MIMEType)
+		sendPreferences, err := su.getSendPreferences(email, message.MIMEType, mailSettings)
 		if err != nil {
 			return err
 		}
