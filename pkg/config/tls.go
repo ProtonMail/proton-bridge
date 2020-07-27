@@ -75,6 +75,7 @@ func GetTLSConfig(cfg tlsConfiger) (tlsConfig *tls.Config, err error) {
 				"execute-with-privileges",
 				"/usr/bin/security",
 				"add-trusted-cert",
+				"-d",
 				"-r", "trustRoot",
 				"-p", "ssl",
 				"-k", "/Library/Keychains/System.keychain",
