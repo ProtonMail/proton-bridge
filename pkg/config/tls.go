@@ -71,6 +71,7 @@ func GetTLSConfig(cfg tlsConfiger) (tlsConfig *tls.Config, err error) {
 
 		if runtime.GOOS == "darwin" {
 			if err := exec.Command( // nolint[gosec]
+				"/usr/bin/security",
 				"execute-with-privileges",
 				"/usr/bin/security",
 				"add-trusted-cert",
