@@ -2,6 +2,20 @@
 
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
+## Unreleased
+
+### Added
+* GODT-582 Detect "bad certificate" TLS error.
+
+### Changed
+* GODT-409 Set flags have to replace all flags.
+* GODT-531 Better way to add trusted certificate in macOS.
+* Bumped golangci-lint to v1.29.0
+
+### Fixed
+* GODT-454 Fix send on closed channel when receiving unencrypted send confirmation from GUI.
+
+
 ## [v1.3.x] Emma (beta 2020-07-XXX)
 
 ### Added

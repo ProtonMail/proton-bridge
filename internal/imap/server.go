@@ -57,6 +57,7 @@ func NewIMAPServer(debugClient, debugServer bool, port int, tls *tls.Config, ima
 	s.AllowInsecureAuth = true
 	s.ErrorLog = newServerErrorLogger("server-imap")
 	s.AutoLogout = 30 * time.Minute
+	s.UpgradeError = imapBackend.upgradeError
 
 	serverID := imapid.ID{
 		imapid.FieldName:       "ProtonMail",
