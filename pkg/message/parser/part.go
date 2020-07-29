@@ -9,6 +9,7 @@ import (
 type Part struct {
 	Header   message.Header
 	Body     []byte
+	parent   *Part
 	children []*Part
 }
 
@@ -24,12 +25,34 @@ func (p *Part) Parts() (n int) {
 	return len(p.children)
 }
 
+func (p *Part) Parent() *Part {
+	return p.parent
+}
+
+func (p *Part) Siblings() []*Part {
+	if p.parent == nil {
+		return nil
+	}
+
+	siblings := []*Part{}
+
+	for _, sibling := range p.parent.children {
+		if sibling != p {
+			siblings = append(siblings, sibling)
+		}
+	}
+
+	return siblings
+}
+
 func (p *Part) AddChild(child *Part) {
 	p.children = append(p.children, child)
 }
 
 func (p *Part) visit(w *Walker) (err error) {
-	if err = p.handle(w); err != nil {
+	hdl := p.getHandler(w)
+
+	if err = hdl.handleEnter(w, p); err != nil {
 		return
 	}
 
@@ -39,45 +62,15 @@ func (p *Part) visit(w *Walker) (err error) {
 		}
 	}
 
-	return
+	return hdl.handleExit(w, p)
 }
 
-func (p *Part) getTypeHandler(w *Walker) (hdl PartHandler) {
-	t, _, err := p.Header.ContentType()
-	if err != nil {
-		return
+func (p *Part) getHandler(w *Walker) handler {
+	if dispHandler := w.getDispHandler(p); dispHandler != nil {
+		return dispHandler
 	}
 
-	return w.typeHandlers[t]
-}
-
-func (p *Part) getDispHandler(w *Walker) (hdl DispHandler) {
-	t, _, err := p.Header.ContentDisposition()
-	if err != nil {
-		return
-	}
-
-	return w.dispHandlers[t]
-}
-
-func (p *Part) handle(w *Walker) (err error) {
-	typeHandler := p.getTypeHandler(w)
-	dispHandler := p.getDispHandler(w)
-	defaultHandler := w.defaultHandler
-
-	switch {
-	case dispHandler != nil && typeHandler != nil:
-		return dispHandler(p, typeHandler)
-
-	case dispHandler != nil && typeHandler == nil:
-		return dispHandler(p, defaultHandler)
-
-	case dispHandler == nil && typeHandler != nil:
-		return typeHandler(p)
-
-	default:
-		return defaultHandler(p)
-	}
+	return w.getTypeHandler(p)
 }
 
 func (p *Part) write(writer *message.Writer, w *Writer) (err error) {

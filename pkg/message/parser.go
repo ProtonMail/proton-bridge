@@ -31,7 +31,7 @@ import (
 	"github.com/jaytaylor/html2text"
 )
 
-func Parse(r io.Reader, key, keyName string) (m *pmapi.Message, mime, plain string, atts []io.Reader, err error) {
+func Parse(r io.Reader, key, keyName string) (m *pmapi.Message, mimeMessage, plainBody string, attReaders []io.Reader, err error) {
 	p, err := parser.New(r)
 	if err != nil {
 		return
@@ -43,27 +43,29 @@ func Parse(r io.Reader, key, keyName string) (m *pmapi.Message, mime, plain stri
 		return
 	}
 
-	if m.Attachments, atts, err = collectAttachments(p); err != nil {
+	atts, attReaders, err := collectAttachments(p)
+	if err != nil {
 		return
 	}
+	m.Attachments = atts
 
-	var isHTML bool
-
-	if m.Body, plain, isHTML, err = collectBodyParts(p); err != nil {
+	richBody, plainBody, err := collectBodyParts(p)
+	if err != nil {
 		return
 	}
+	m.Body = richBody
 
-	if isHTML {
-		m.MIMEType = "text/html"
-	} else {
-		m.MIMEType = "text/plain"
+	mimeType, err := determineMIMEType(p)
+	if err != nil {
+		return
 	}
+	m.MIMEType = mimeType
 
 	if key != "" {
 		attachPublicKey(p.Root(), key, keyName)
 	}
 
-	if mime, err = writeMIMEMessage(p); err != nil {
+	if mimeMessage, err = writeMIMEMessage(p); err != nil {
 		return
 	}
 
@@ -71,9 +73,10 @@ func Parse(r io.Reader, key, keyName string) (m *pmapi.Message, mime, plain stri
 }
 
 func collectAttachments(p *parser.Parser) (atts []*pmapi.Attachment, data []io.Reader, err error) {
-	w := p.
-		NewWalker().
-		WithContentDispositionHandler("attachment", func(p *parser.Part, _ parser.PartHandler) (err error) {
+	w := p.NewWalker()
+
+	w.RegisterContentDispositionHandler("attachment").
+		OnEnter(func(p *parser.Part, _ parser.PartHandlerFunc) (err error) {
 			att, err := parseAttachment(p.Header)
 			if err != nil {
 				return
@@ -92,34 +95,80 @@ func collectAttachments(p *parser.Parser) (atts []*pmapi.Attachment, data []io.R
 	return
 }
 
-func collectBodyParts(p *parser.Parser) (body, plain string, isHTML bool, err error) {
-	var parts, plainParts []string
+// collectBodyParts returns a richtext body (used for normal sending)
+// and a plaintext body (used for sending to recipients that prefer plaintext).
+func collectBodyParts(p *parser.Parser) (richBody, plainBody string, err error) {
+	var richParts, plainParts []string
 
-	w := p.
-		NewWalker().
-		WithContentTypeHandler("text/plain", func(p *parser.Part) (err error) {
-			parts = append(parts, string(p.Body))
+	w := p.NewWalker()
+
+	w.RegisterContentTypeHandler("text/plain").
+		OnEnter(func(p *parser.Part) error {
 			plainParts = append(plainParts, string(p.Body))
-			return
-		}).
-		WithContentTypeHandler("text/html", func(p *parser.Part) (err error) {
-			parts = append(parts, string(p.Body))
-			isHTML = true
 
-			text, err := html2text.FromString(string(p.Body))
-			if err != nil {
-				text = string(p.Body)
+			if !isAlternative(p) {
+				richParts = append(richParts, string(p.Body))
 			}
-			plainParts = append(plainParts, text)
 
-			return
+			return nil
+		})
+
+	w.RegisterContentTypeHandler("text/html").
+		OnEnter(func(p *parser.Part) error {
+			richParts = append(richParts, string(p.Body))
+
+			if !isAlternative(p) {
+				plain, htmlErr := html2text.FromString(string(p.Body))
+				if htmlErr != nil {
+					plain = string(p.Body)
+				}
+				plainParts = append(plainParts, plain)
+			}
+
+			return nil
 		})
 
 	if err = w.Walk(); err != nil {
 		return
 	}
 
-	return strings.Join(parts, "\r\n"), strings.Join(plainParts, "\r\n"), isHTML, nil
+	return strings.Join(richParts, "\r\n"), strings.Join(plainParts, "\r\n"), nil
+}
+
+func isAlternative(p *parser.Part) bool {
+	parent := p.Parent()
+	if parent == nil {
+		return false
+	}
+
+	t, _, err := parent.Header.ContentType()
+	if err != nil {
+		return false
+	}
+
+	return t == "multipart/alternative"
+}
+
+func determineMIMEType(p *parser.Parser) (string, error) {
+	w := p.NewWalker()
+
+	var isHTML bool
+
+	w.RegisterContentTypeHandler("text/html").
+		OnEnter(func(p *parser.Part) (err error) {
+			isHTML = true
+			return
+		})
+
+	if err := w.Walk(); err != nil {
+		return "", err
+	}
+
+	if isHTML {
+		return "text/html", nil
+	}
+
+	return "text/plain", nil
 }
 
 func writeMIMEMessage(p *parser.Parser) (mime string, err error) {

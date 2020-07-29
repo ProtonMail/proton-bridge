@@ -13,12 +13,12 @@ func TestWalker(t *testing.T) {
 
 	walker := p.
 		NewWalker().
-		WithDefaultHandler(func(p *Part) (err error) {
+		WithDefaultHandler(NewPartHandler().OnEnter(func(p *Part) (err error) {
 			if p.Body != nil {
 				allBodies = append(allBodies, p.Body)
 			}
 			return
-		})
+		}))
 
 	assert.NoError(t, walker.Walk())
 	assert.ElementsMatch(t, [][]byte{
@@ -32,9 +32,11 @@ func TestWalkerTypeHandler(t *testing.T) {
 
 	html := [][]byte{}
 
-	walker := p.
-		NewWalker().
-		WithContentTypeHandler("text/html", func(p *Part) (err error) {
+	walker := p.NewWalker()
+
+	walker.
+		RegisterContentTypeHandler("text/html").
+		OnEnter(func(p *Part) (err error) {
 			html = append(html, p.Body)
 			return
 		})
@@ -50,9 +52,11 @@ func TestWalkerDispositionHandler(t *testing.T) {
 
 	attachments := [][]byte{}
 
-	walker := p.
-		NewWalker().
-		WithContentDispositionHandler("attachment", func(p *Part, hdl PartHandler) (err error) {
+	walker := p.NewWalker()
+
+	walker.
+		RegisterContentDispositionHandler("attachment").
+		OnEnter(func(p *Part, hdl PartHandlerFunc) (err error) {
 			attachments = append(attachments, p.Body)
 			return
 		})
@@ -61,4 +65,26 @@ func TestWalkerDispositionHandler(t *testing.T) {
 	assert.ElementsMatch(t, [][]byte{
 		[]byte("if you are reading this, hi!"),
 	}, attachments)
+}
+
+func TestWalkerDispositionAndTypeHandler(t *testing.T) {
+	p := newTestParser(t, "text_html_octet_attachment.eml")
+
+	walker := p.NewWalker()
+
+	var enter, exit int
+
+	walker.
+		RegisterContentTypeHandler("application/octet-stream").
+		OnEnter(func(p *Part) (err error) { enter++; return }).
+		OnExit(func(p *Part) (err error) { exit--; return })
+
+	walker.
+		RegisterContentDispositionHandler("attachment").
+		OnEnter(func(p *Part, hdl PartHandlerFunc) (err error) { _ = hdl(p); _ = hdl(p); return }).
+		OnExit(func(p *Part, hdl PartHandlerFunc) (err error) { _ = hdl(p); _ = hdl(p); return })
+
+	assert.NoError(t, walker.Walk())
+	assert.Equal(t, 2, enter)
+	assert.Equal(t, -2, exit)
 }
