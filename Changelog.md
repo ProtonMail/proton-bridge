@@ -9,6 +9,28 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-531 Better way to add trusted certificate in macOS.
 * Bumped golangci-lint to v1.29.0
 * GODT-549 Check log file size more often to prevent huge log files.
+* Bumped various dependencies:
+    * andybalholm/cascadia v1.1.0 -> v1.2.0
+    * emersion/go-imap-specialuse 20161227184202-ba031ced6a62 -> 20200722111535-598ff00e4075
+    * emersion/go-sasl 20191210011802-430746ea8b9b -> 20200509203442-7bfe0ed36a21
+    * github.com/go-resty/resty/v2 v2.2.0 -> v2.3.0
+    * github.com/golang/mock v1.4.3 -> v1.4.4
+    * github.com/google/go-cmp v0.4.0 -> v0.5.1
+    * github.com/hashicorp/go-multierror v1.0.0 -> v1.1.0
+    * github.com/jaytaylor/html2text 20200220170450-61d9dc4d7195 -> 20200412013138-3577fbdbcff7
+    * github.com/jhillyerd/enmime v0.8.0 -> v0.8.1
+    * github.com/keybase/go-keychain 20200218013740-86d4642e4ce2 -> 20200502122510-cda31fe0c86d
+    * github.com/logrusorgru/aurora 20200102142835-e9ef32dff381 -> v2.0.3+incompatible
+    * github.com/miekg/dns v1.1.29 -> v1.1.30
+    * github.com/nsf/jsondiff 20190712045011-8443391ee9b6 -> 20200515183724-f29ed568f4ce
+    * github.com/sirupsen/logrus v1.4.2 -> v1.6.0
+    * github.com/stretchr/testify v1.5.1 -> v1.6.1
+    * github.com/therecipe/qt 20200126204426-5074eb6d8c41 -> 20200701200531-7f61353ee73e
+    * github.com/urfave/cli v1.22.3 -> v1.22.4
+    * golang.org/x/net 20200301022130-244492dfa37a -> 20200707034311-ab3426394381
+    * golang.org/x/text v0.3.2 -> v0.3.3
+
+
 
 ### Fixed
 * GODT-454 Fix send on closed channel when receiving unencrypted send confirmation from GUI.
