@@ -63,7 +63,7 @@ func (p *Parser) parse(r io.Reader) (err error) {
 }
 
 func (p *Parser) enter() {
-	p.stack = append(p.stack, &Part{parent: p.top()})
+	p.stack = append(p.stack, &Part{})
 }
 
 func (p *Parser) exit() {

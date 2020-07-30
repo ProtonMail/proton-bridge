@@ -6,11 +6,12 @@ import (
 	"github.com/emersion/go-message"
 )
 
+type Parts []*Part
+
 type Part struct {
 	Header   message.Header
 	Body     []byte
-	parent   *Part
-	children []*Part
+	children Parts
 }
 
 func (p *Part) Part(n int) (part *Part, err error) {
@@ -21,56 +22,12 @@ func (p *Part) Part(n int) (part *Part, err error) {
 	return p.children[n-1], nil
 }
 
-func (p *Part) Parts() (n int) {
-	return len(p.children)
-}
-
-func (p *Part) Parent() *Part {
-	return p.parent
-}
-
-func (p *Part) Siblings() []*Part {
-	if p.parent == nil {
-		return nil
-	}
-
-	siblings := []*Part{}
-
-	for _, sibling := range p.parent.children {
-		if sibling != p {
-			siblings = append(siblings, sibling)
-		}
-	}
-
-	return siblings
+func (p *Part) Children() Parts {
+	return p.children
 }
 
 func (p *Part) AddChild(child *Part) {
 	p.children = append(p.children, child)
-}
-
-func (p *Part) visit(w *Walker) (err error) {
-	hdl := p.getHandler(w)
-
-	if err = hdl.handleEnter(w, p); err != nil {
-		return
-	}
-
-	for _, child := range p.children {
-		if err = child.visit(w); err != nil {
-			return
-		}
-	}
-
-	return hdl.handleExit(w, p)
-}
-
-func (p *Part) getHandler(w *Walker) handler {
-	if dispHandler := w.getDispHandler(p); dispHandler != nil {
-		return dispHandler
-	}
-
-	return w.getTypeHandler(p)
 }
 
 func (p *Part) write(writer *message.Writer, w *Writer) (err error) {

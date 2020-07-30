@@ -34,8 +34,7 @@ func TestWalkerTypeHandler(t *testing.T) {
 
 	walker := p.NewWalker()
 
-	walker.
-		RegisterContentTypeHandler("text/html").
+	walker.RegisterContentTypeHandler("text/html").
 		OnEnter(func(p *Part) (err error) {
 			html = append(html, p.Body)
 			return
@@ -54,8 +53,7 @@ func TestWalkerDispositionHandler(t *testing.T) {
 
 	walker := p.NewWalker()
 
-	walker.
-		RegisterContentDispositionHandler("attachment").
+	walker.RegisterContentDispositionHandler("attachment").
 		OnEnter(func(p *Part, hdl PartHandlerFunc) (err error) {
 			attachments = append(attachments, p.Body)
 			return
@@ -74,13 +72,11 @@ func TestWalkerDispositionAndTypeHandler(t *testing.T) {
 
 	var enter, exit int
 
-	walker.
-		RegisterContentTypeHandler("application/octet-stream").
+	walker.RegisterContentTypeHandler("application/octet-stream").
 		OnEnter(func(p *Part) (err error) { enter++; return }).
 		OnExit(func(p *Part) (err error) { exit--; return })
 
-	walker.
-		RegisterContentDispositionHandler("attachment").
+	walker.RegisterContentDispositionHandler("attachment").
 		OnEnter(func(p *Part, hdl PartHandlerFunc) (err error) { _ = hdl(p); _ = hdl(p); return }).
 		OnExit(func(p *Part, hdl PartHandlerFunc) (err error) { _ = hdl(p); _ = hdl(p); return })
 

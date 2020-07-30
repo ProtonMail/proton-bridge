@@ -19,6 +19,7 @@ package message
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"io"
 	"mime"
@@ -43,23 +44,17 @@ func Parse(r io.Reader, key, keyName string) (m *pmapi.Message, mimeMessage, pla
 		return
 	}
 
-	atts, attReaders, err := collectAttachments(p)
-	if err != nil {
+	if m.Attachments, attReaders, err = collectAttachments(p); err != nil {
 		return
 	}
-	m.Attachments = atts
 
-	richBody, plainBody, err := collectBodyParts(p)
-	if err != nil {
+	if m.Body, plainBody, err = buildBodies(p); err != nil {
 		return
 	}
-	m.Body = richBody
 
-	mimeType, err := determineMIMEType(p)
-	if err != nil {
+	if m.MIMEType, err = determineMIMEType(p); err != nil {
 		return
 	}
-	m.MIMEType = mimeType
 
 	if key != "" {
 		attachPublicKey(p.Root(), key, keyName)
@@ -95,58 +90,116 @@ func collectAttachments(p *parser.Parser) (atts []*pmapi.Attachment, data []io.R
 	return
 }
 
-// collectBodyParts returns a richtext body (used for normal sending)
-// and a plaintext body (used for sending to recipients that prefer plaintext).
-func collectBodyParts(p *parser.Parser) (richBody, plainBody string, err error) {
-	var richParts, plainParts []string
-
-	w := p.NewWalker()
-
-	w.RegisterContentTypeHandler("text/plain").
-		OnEnter(func(p *parser.Part) error {
-			plainParts = append(plainParts, string(p.Body))
-
-			if !isAlternative(p) {
-				richParts = append(richParts, string(p.Body))
-			}
-
-			return nil
-		})
-
-	w.RegisterContentTypeHandler("text/html").
-		OnEnter(func(p *parser.Part) error {
-			richParts = append(richParts, string(p.Body))
-
-			if !isAlternative(p) {
-				plain, htmlErr := html2text.FromString(string(p.Body))
-				if htmlErr != nil {
-					plain = string(p.Body)
-				}
-				plainParts = append(plainParts, plain)
-			}
-
-			return nil
-		})
-
-	if err = w.Walk(); err != nil {
+func buildBodies(p *parser.Parser) (richBody, plainBody string, err error) {
+	richParts, err := collectBodyParts(p, "text/html")
+	if err != nil {
 		return
 	}
 
-	return strings.Join(richParts, "\r\n"), strings.Join(plainParts, "\r\n"), nil
+	plainParts, err := collectBodyParts(p, "text/plain")
+	if err != nil {
+		return
+	}
+
+	if len(richParts) != len(plainParts) {
+		return "", "", errors.New("unequal number of rich and plain parts")
+	}
+
+	richBuilder, plainBuilder := strings.Builder{}, strings.Builder{}
+
+	for i := 0; i < len(richParts); i++ {
+		_, _ = richBuilder.Write(richParts[i].Body)
+		_, _ = plainBuilder.Write(getPlainBody(plainParts[i]))
+	}
+
+	return richBuilder.String(), plainBuilder.String(), nil
 }
 
-func isAlternative(p *parser.Part) bool {
-	parent := p.Parent()
-	if parent == nil {
-		return false
-	}
+// collectBodyParts collects all body parts in the parse tree, preferring
+// parts of the given content type if alternatives exist.
+func collectBodyParts(p *parser.Parser, preferredContentType string) (parser.Parts, error) {
+	v := parser.
+		NewVisitor(func(p *parser.Part, visit parser.Visit) (interface{}, error) {
+			childParts, err := collectChildParts(p, visit)
+			if err != nil {
+				return nil, err
+			}
 
-	t, _, err := parent.Header.ContentType()
+			return joinChildParts(childParts), nil
+		}).
+		RegisterRule("multipart/alternative", func(p *parser.Part, visit parser.Visit) (interface{}, error) {
+			childParts, err := collectChildParts(p, visit)
+			if err != nil {
+				return nil, err
+			}
+
+			return bestChoice(childParts, preferredContentType)
+		}).
+		RegisterRule("text/plain", func(p *parser.Part, visit parser.Visit) (interface{}, error) {
+			return parser.Parts{p}, nil
+		}).
+		RegisterRule("text/html", func(p *parser.Part, visit parser.Visit) (interface{}, error) {
+			return parser.Parts{p}, nil
+		})
+
+	res, err := v.Visit(p.Root())
 	if err != nil {
-		return false
+		return nil, err
 	}
 
-	return t == "multipart/alternative"
+	return res.(parser.Parts), nil
+}
+
+func collectChildParts(p *parser.Part, visit parser.Visit) ([]parser.Parts, error) {
+	childParts := []parser.Parts{}
+
+	for _, child := range p.Children() {
+		res, err := visit(child)
+		if err != nil {
+			return nil, err
+		}
+
+		childParts = append(childParts, res.(parser.Parts))
+	}
+
+	return childParts, nil
+}
+
+func joinChildParts(childParts []parser.Parts) parser.Parts {
+	res := parser.Parts{}
+
+	for _, parts := range childParts {
+		res = append(res, parts...)
+	}
+
+	return res
+}
+
+func bestChoice(childParts []parser.Parts, preferredContentType string) (parser.Parts, error) {
+	// If one of the parts has preferred content type, use that.
+	for i := len(childParts) - 1; i >= 0; i-- {
+		if allHaveContentType(childParts[i], preferredContentType) {
+			return childParts[i], nil
+		}
+	}
+
+	// Otherwise, choose the last one.
+	return childParts[len(childParts)-1], nil
+}
+
+func allHaveContentType(parts parser.Parts, contentType string) bool {
+	for _, part := range parts {
+		t, _, err := part.Header.ContentType()
+		if err != nil {
+			return false
+		}
+
+		if t != contentType {
+			return false
+		}
+	}
+
+	return true
 }
 
 func determineMIMEType(p *parser.Parser) (string, error) {
@@ -169,6 +222,29 @@ func determineMIMEType(p *parser.Parser) (string, error) {
 	}
 
 	return "text/plain", nil
+}
+
+func getPlainBody(part *parser.Part) []byte {
+	contentType, _, err := part.Header.ContentType()
+	if err != nil {
+		return part.Body
+	}
+
+	switch contentType {
+	case "text/plain":
+		return part.Body
+
+	case "text/html":
+		text, err := html2text.FromReader(bytes.NewReader(part.Body))
+		if err != nil {
+			return part.Body
+		}
+
+		return []byte(text)
+
+	default:
+		return part.Body
+	}
 }
 
 func writeMIMEMessage(p *parser.Parser) (mime string, err error) {
