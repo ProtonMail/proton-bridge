@@ -8,6 +8,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-409 Set flags have to replace all flags.
 * GODT-531 Better way to add trusted certificate in macOS.
 * Bumped golangci-lint to v1.29.0
+* GODT-549 Check log file size more often to prevent huge log files.
 
 ### Fixed
 * GODT-454 Fix send on closed channel when receiving unencrypted send confirmation from GUI.

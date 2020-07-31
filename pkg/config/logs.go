@@ -152,7 +152,11 @@ func getLogFilename(logPrefix string) string {
 func watchLogFileSize(logDir, logPrefix string) {
 	go func() {
 		for {
-			time.Sleep(60 * time.Second)
+			// Some rare bug can cause log file spamming a lot. Checking file
+			// size too often is not good, and at the same time postpone next
+			// check for too long is the same thing. 30 seconds seems as good
+			// compromise; average computer can generates ~500MB in 30 seconds.
+			time.Sleep(30 * time.Second)
 			checkLogFileSize(logDir, logPrefix)
 		}
 	}()
