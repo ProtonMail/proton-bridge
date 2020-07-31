@@ -120,7 +120,7 @@ func (ie *ImportExport) GetLocalImporter(address, path string) (*transfer.Transf
 	if err != nil {
 		return nil, err
 	}
-	return transfer.New(ie.panicHandler, ie.config.GetTransferDir(), source, target)
+	return transfer.New(ie.panicHandler, newImportMetricsManager(ie), ie.config.GetTransferDir(), source, target)
 }
 
 // GetRemoteImporter returns transferrer from remote IMAP to ProtonMail account.
@@ -133,7 +133,7 @@ func (ie *ImportExport) GetRemoteImporter(address, username, password, host, por
 	if err != nil {
 		return nil, err
 	}
-	return transfer.New(ie.panicHandler, ie.config.GetTransferDir(), source, target)
+	return transfer.New(ie.panicHandler, newImportMetricsManager(ie), ie.config.GetTransferDir(), source, target)
 }
 
 // GetEMLExporter returns transferrer from ProtonMail account to local EML structure.
@@ -143,7 +143,7 @@ func (ie *ImportExport) GetEMLExporter(address, path string) (*transfer.Transfer
 		return nil, err
 	}
 	target := transfer.NewEMLProvider(path)
-	return transfer.New(ie.panicHandler, ie.config.GetTransferDir(), source, target)
+	return transfer.New(ie.panicHandler, newExportMetricsManager(ie), ie.config.GetTransferDir(), source, target)
 }
 
 // GetMBOXExporter returns transferrer from ProtonMail account to local MBOX structure.
@@ -153,7 +153,7 @@ func (ie *ImportExport) GetMBOXExporter(address, path string) (*transfer.Transfe
 		return nil, err
 	}
 	target := transfer.NewMBOXProvider(path)
-	return transfer.New(ie.panicHandler, ie.config.GetTransferDir(), source, target)
+	return transfer.New(ie.panicHandler, newExportMetricsManager(ie), ie.config.GetTransferDir(), source, target)
 }
 
 func (ie *ImportExport) getPMAPIProvider(address string) (*transfer.PMAPIProvider, error) {

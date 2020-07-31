@@ -25,6 +25,14 @@ type PanicHandler interface {
 	HandlePanic()
 }
 
+type MetricsManager interface {
+	Load(int)
+	Start()
+	Complete()
+	Cancel()
+	Fail()
+}
+
 type ClientManager interface {
 	GetClient(userID string) pmapi.Client
 	CheckConnection() error

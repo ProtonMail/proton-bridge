@@ -32,6 +32,7 @@ var log = logrus.WithField("pkg", "transfer") //nolint[gochecknoglobals]
 // and target providers. This is the main object which should be used.
 type Transfer struct {
 	panicHandler    PanicHandler
+	metrics         MetricsManager
 	id              string
 	dir             string
 	rules           transferRules
@@ -46,11 +47,12 @@ type Transfer struct {
 //   source := transfer.NewEMLProvider(...)
 //   target := transfer.NewPMAPIProvider(...)
 //   transfer.New(source, target, ...)
-func New(panicHandler PanicHandler, transferDir string, source SourceProvider, target TargetProvider) (*Transfer, error) {
+func New(panicHandler PanicHandler, metrics MetricsManager, transferDir string, source SourceProvider, target TargetProvider) (*Transfer, error) {
 	transferID := fmt.Sprintf("%x", sha256.Sum256([]byte(source.ID()+"-"+target.ID())))
 	rules := loadRules(transferDir, transferID)
 	transfer := &Transfer{
 		panicHandler: panicHandler,
+		metrics:      metrics,
 		id:           transferID,
 		dir:          transferDir,
 		rules:        rules,
@@ -60,6 +62,7 @@ func New(panicHandler PanicHandler, transferDir string, source SourceProvider, t
 	if err := transfer.setDefaultRules(); err != nil {
 		return nil, err
 	}
+	metrics.Load(len(transfer.sourceMboxCache))
 	return transfer, nil
 }
 
@@ -165,6 +168,8 @@ func (t *Transfer) Start() *Progress {
 	t.rules.save()
 	t.rules.propagateGlobalTime()
 
+	t.metrics.Start()
+
 	log := log.WithField("id", t.id)
 	reportFile := newFileReport(t.dir, t.id)
 	progress := newProgress(log, reportFile)
@@ -184,6 +189,16 @@ func (t *Transfer) Start() *Progress {
 
 		t.target.TransferFrom(t.rules, &progress, ch)
 		progress.finish()
+
+		if progress.isStopped {
+			if progress.fatalError != nil {
+				t.metrics.Fail()
+			} else {
+				t.metrics.Cancel()
+			}
+		} else {
+			t.metrics.Complete()
+		}
 	}()
 
 	return &progress

@@ -67,4 +67,30 @@ const (
 	Daily = Action("daily")
 )
 
+// Metrics related to import/export (transfer) process.
+const (
+	// Import is used to group import metrics.
+	Import = Category("import")
+
+	// Export is used to group export metrics.
+	Export = Category("export")
+
+	// TransferLoad signifies that the transfer load source.
+	// It can be IMAP or local files for import, or PM for export.
+	// With this will be reported also label with number of source mailboxes.
+	TransferLoad = Action("load")
+
+	// TransferStart signifies started transfer.
+	TransferStart = Action("start")
+
+	// TransferComplete signifies completed transfer without crash.
+	TransferComplete = Action("complete")
+
+	// TransferCancel signifies cancelled transfer by an user.
+	TransferCancel = Action("cancel")
+
+	// TransferFail signifies stopped transfer because of an fatal error.
+	TransferFail = Action("fail")
+)
+
 const NoLabel = Label("")
