@@ -3,27 +3,29 @@ package parser
 import "regexp"
 
 type Visitor struct {
-	rules    []*rule
-	fallback Rule
+	root        *Part
+	rules       []*visitorRule
+	defaultRule VisitorRule
 }
 
-func NewVisitor(fallback Rule) *Visitor {
+func newVisitor(root *Part, defaultRule VisitorRule) *Visitor {
 	return &Visitor{
-		fallback: fallback,
+		root:        root,
+		defaultRule: defaultRule,
 	}
 }
 
 type Visit func(*Part) (interface{}, error)
 
-type Rule func(*Part, Visit) (interface{}, error)
+type VisitorRule func(*Part, Visit) (interface{}, error)
 
-type rule struct {
+type visitorRule struct {
 	re string
-	fn Rule
+	fn VisitorRule
 }
 
-func (v *Visitor) RegisterRule(contentTypeRegex string, fn Rule) *Visitor {
-	v.rules = append(v.rules, &rule{
+func (v *Visitor) RegisterRule(contentTypeRegex string, fn VisitorRule) *Visitor {
+	v.rules = append(v.rules, &visitorRule{
 		re: contentTypeRegex,
 		fn: fn,
 	})
@@ -31,20 +33,24 @@ func (v *Visitor) RegisterRule(contentTypeRegex string, fn Rule) *Visitor {
 	return v
 }
 
-func (v *Visitor) Visit(p *Part) (interface{}, error) {
+func (v *Visitor) Visit() (interface{}, error) {
+	return v.visit(v.root)
+}
+
+func (v *Visitor) visit(p *Part) (interface{}, error) {
 	t, _, err := p.Header.ContentType()
 	if err != nil {
 		return nil, err
 	}
 
 	if rule := v.getRuleForContentType(t); rule != nil {
-		return rule.fn(p, v.Visit)
+		return rule.fn(p, v.visit)
 	}
 
-	return v.fallback(p, v.Visit)
+	return v.defaultRule(p, v.visit)
 }
 
-func (v *Visitor) getRuleForContentType(contentType string) *rule {
+func (v *Visitor) getRuleForContentType(contentType string) *visitorRule {
 	for _, rule := range v.rules {
 		if regexp.MustCompile(rule.re).MatchString(contentType) {
 			return rule

@@ -68,19 +68,46 @@ func Parse(r io.Reader, key, keyName string) (m *pmapi.Message, mimeMessage, pla
 }
 
 func collectAttachments(p *parser.Parser) (atts []*pmapi.Attachment, data []io.Reader, err error) {
-	w := p.NewWalker()
-
-	w.RegisterContentDispositionHandler("attachment").
-		OnEnter(func(p *parser.Part, _ parser.PartHandlerFunc) (err error) {
+	w := p.NewWalker().
+		RegisterContentDispositionHandler("attachment", func(p *parser.Part) error {
 			att, err := parseAttachment(p.Header)
 			if err != nil {
-				return
+				return err
 			}
 
 			atts = append(atts, att)
 			data = append(data, bytes.NewReader(p.Body))
 
-			return
+			return nil
+		}).
+		RegisterContentTypeHandler("text/calendar", func(p *parser.Part) error {
+			att, err := parseAttachment(p.Header)
+			if err != nil {
+				return err
+			}
+
+			atts = append(atts, att)
+			data = append(data, bytes.NewReader(p.Body))
+
+			return nil
+		}).
+		RegisterContentTypeHandler("text/.*", func(p *parser.Part) error {
+			return nil
+		}).
+		RegisterDefaultHandler(func(p *parser.Part) error {
+			if len(p.Children()) > 0 {
+				return nil
+			}
+
+			att, err := parseAttachment(p.Header)
+			if err != nil {
+				return err
+			}
+
+			atts = append(atts, att)
+			data = append(data, bytes.NewReader(p.Body))
+
+			return nil
 		})
 
 	if err = w.Walk(); err != nil {
@@ -118,7 +145,7 @@ func buildBodies(p *parser.Parser) (richBody, plainBody string, err error) {
 // collectBodyParts collects all body parts in the parse tree, preferring
 // parts of the given content type if alternatives exist.
 func collectBodyParts(p *parser.Parser, preferredContentType string) (parser.Parts, error) {
-	v := parser.
+	v := p.
 		NewVisitor(func(p *parser.Part, visit parser.Visit) (interface{}, error) {
 			childParts, err := collectChildParts(p, visit)
 			if err != nil {
@@ -142,7 +169,7 @@ func collectBodyParts(p *parser.Parser, preferredContentType string) (parser.Par
 			return parser.Parts{p}, nil
 		})
 
-	res, err := v.Visit(p.Root())
+	res, err := v.Visit()
 	if err != nil {
 		return nil, err
 	}
@@ -203,12 +230,10 @@ func allHaveContentType(parts parser.Parts, contentType string) bool {
 }
 
 func determineMIMEType(p *parser.Parser) (string, error) {
-	w := p.NewWalker()
-
 	var isHTML bool
 
-	w.RegisterContentTypeHandler("text/html").
-		OnEnter(func(p *parser.Part) (err error) {
+	w := p.NewWalker().
+		RegisterContentTypeHandler("text/html", func(p *parser.Part) (err error) {
 			isHTML = true
 			return
 		})
@@ -348,6 +373,8 @@ func parseAttachment(h message.Header) (att *pmapi.Attachment, err error) {
 	} else {
 		att.Name = dispParams["filename"]
 	}
+
+	att.ContentID = strings.Trim(h.Get("Content-Id"), " <>")
 
 	// TODO: Set att.Header
 

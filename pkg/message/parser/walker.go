@@ -3,96 +3,64 @@ package parser
 type Walker struct {
 	root *Part
 
-	defaultHandler handler
-	typeHandlers   map[string]handler
-	dispHandlers   map[string]handler
-}
-
-type handler interface {
-	handleEnter(*Walker, *Part) error
-	handleExit(*Walker, *Part) error
+	handlers       []*handler
+	defaultHandler HandlerFunc
 }
 
 func newWalker(root *Part) *Walker {
 	return &Walker{
 		root:           root,
-		defaultHandler: NewPartHandler(),
-		typeHandlers:   make(map[string]handler),
-		dispHandlers:   make(map[string]handler),
+		defaultHandler: func(*Part) error { return nil },
 	}
 }
 
 func (w *Walker) Walk() (err error) {
-	return w.visitPart(w.root)
+	return w.walkOverPart(w.root)
 }
 
-func (w *Walker) visitPart(p *Part) (err error) {
-	hdl := w.getHandler(p)
-
-	if err = hdl.handleEnter(w, p); err != nil {
-		return
+func (w *Walker) walkOverPart(p *Part) error {
+	if err := w.getHandlerFunc(p)(p); err != nil {
+		return err
 	}
 
 	for _, child := range p.children {
-		if err = w.visitPart(child); err != nil {
-			return
+		if err := w.walkOverPart(child); err != nil {
+			return err
 		}
 	}
 
-	return hdl.handleExit(w, p)
+	return nil
 }
 
-func (w *Walker) WithDefaultHandler(handler handler) *Walker {
-	w.defaultHandler = handler
+func (w *Walker) RegisterDefaultHandler(fn HandlerFunc) *Walker {
+	w.defaultHandler = fn
 	return w
 }
-func (w *Walker) RegisterContentTypeHandler(contType string) *PartHandler {
-	hdl := NewPartHandler()
 
-	w.typeHandlers[contType] = hdl
+func (w *Walker) RegisterContentTypeHandler(typeRegExp string, fn HandlerFunc) *Walker {
+	w.handlers = append(w.handlers, &handler{
+		typeRegExp: typeRegExp,
+		fn:         fn,
+	})
 
-	return hdl
+	return w
 }
 
-func (w *Walker) RegisterContentDispositionHandler(contDisp string) *DispHandler {
-	hdl := NewDispHandler()
+func (w *Walker) RegisterContentDispositionHandler(dispRegExp string, fn HandlerFunc) *Walker {
+	w.handlers = append(w.handlers, &handler{
+		dispRegExp: dispRegExp,
+		fn:         fn,
+	})
 
-	w.dispHandlers[contDisp] = hdl
-
-	return hdl
+	return w
 }
 
-func (w *Walker) getHandler(p *Part) handler {
-	if dispHandler := w.getDispHandler(p); dispHandler != nil {
-		return dispHandler
+func (w *Walker) getHandlerFunc(p *Part) HandlerFunc {
+	for _, hdl := range w.handlers {
+		if hdl.matchPart(p) {
+			return hdl.fn
+		}
 	}
 
-	return w.getTypeHandler(p)
-}
-
-// getTypeHandler returns the appropriate PartHandler to handle the given part.
-// If no specialised handler exists, it returns the default handler.
-func (w *Walker) getTypeHandler(p *Part) handler {
-	t, _, err := p.Header.ContentType()
-	if err != nil {
-		return w.defaultHandler
-	}
-
-	hdl, ok := w.typeHandlers[t]
-	if !ok {
-		return w.defaultHandler
-	}
-
-	return hdl
-}
-
-// getDispHandler returns the appropriate DispHandler to handle the given part.
-// If no specialised handler exists, it returns nil.
-func (w *Walker) getDispHandler(p *Part) handler {
-	t, _, err := p.Header.ContentDisposition()
-	if err != nil {
-		return nil
-	}
-
-	return w.dispHandlers[t]
+	return w.defaultHandler
 }

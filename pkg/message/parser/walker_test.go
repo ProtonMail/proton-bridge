@@ -11,14 +11,13 @@ func TestWalker(t *testing.T) {
 
 	allBodies := [][]byte{}
 
-	walker := p.
-		NewWalker().
-		WithDefaultHandler(NewPartHandler().OnEnter(func(p *Part) (err error) {
+	walker := p.NewWalker().
+		RegisterDefaultHandler(func(p *Part) (err error) {
 			if p.Body != nil {
 				allBodies = append(allBodies, p.Body)
 			}
 			return
-		}))
+		})
 
 	assert.NoError(t, walker.Walk())
 	assert.ElementsMatch(t, [][]byte{
@@ -32,10 +31,8 @@ func TestWalkerTypeHandler(t *testing.T) {
 
 	html := [][]byte{}
 
-	walker := p.NewWalker()
-
-	walker.RegisterContentTypeHandler("text/html").
-		OnEnter(func(p *Part) (err error) {
+	walker := p.NewWalker().
+		RegisterContentTypeHandler("text/html", func(p *Part) (err error) {
 			html = append(html, p.Body)
 			return
 		})
@@ -51,10 +48,8 @@ func TestWalkerDispositionHandler(t *testing.T) {
 
 	attachments := [][]byte{}
 
-	walker := p.NewWalker()
-
-	walker.RegisterContentDispositionHandler("attachment").
-		OnEnter(func(p *Part, hdl PartHandlerFunc) (err error) {
+	walker := p.NewWalker().
+		RegisterContentDispositionHandler("attachment", func(p *Part) (err error) {
 			attachments = append(attachments, p.Body)
 			return
 		})
@@ -65,22 +60,22 @@ func TestWalkerDispositionHandler(t *testing.T) {
 	}, attachments)
 }
 
-func TestWalkerDispositionAndTypeHandler(t *testing.T) {
+func TestWalkerDispositionAndTypeHandler_TypeDefinedFirst(t *testing.T) {
 	p := newTestParser(t, "text_html_octet_attachment.eml")
 
-	walker := p.NewWalker()
+	var typeCalled, dispCalled bool
 
-	var enter, exit int
-
-	walker.RegisterContentTypeHandler("application/octet-stream").
-		OnEnter(func(p *Part) (err error) { enter++; return }).
-		OnExit(func(p *Part) (err error) { exit--; return })
-
-	walker.RegisterContentDispositionHandler("attachment").
-		OnEnter(func(p *Part, hdl PartHandlerFunc) (err error) { _ = hdl(p); _ = hdl(p); return }).
-		OnExit(func(p *Part, hdl PartHandlerFunc) (err error) { _ = hdl(p); _ = hdl(p); return })
+	walker := p.NewWalker().
+		RegisterContentTypeHandler("application/octet-stream", func(p *Part) (err error) {
+			typeCalled = true
+			return
+		}).
+		RegisterContentDispositionHandler("attachment", func(p *Part) (err error) {
+			dispCalled = true
+			return
+		})
 
 	assert.NoError(t, walker.Walk())
-	assert.Equal(t, 2, enter)
-	assert.Equal(t, -2, exit)
+	assert.True(t, typeCalled)
+	assert.False(t, dispCalled)
 }

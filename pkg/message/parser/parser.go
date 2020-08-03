@@ -33,6 +33,10 @@ func (p *Parser) NewWalker() *Walker {
 	return newWalker(p.root)
 }
 
+func (p *Parser) NewVisitor(defaultRule VisitorRule) *Visitor {
+	return newVisitor(p.root, defaultRule)
+}
+
 func (p *Parser) NewWriter() *Writer {
 	return newWriter(p.root)
 }
