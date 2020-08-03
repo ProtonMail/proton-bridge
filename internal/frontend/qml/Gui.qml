@@ -237,6 +237,14 @@ Item {
             winMain.tlsBarState="notOK"
         }
 
+        onShowIMAPCertTroubleshoot : {
+            go.notifyBubble(1, qsTr(
+                "Bridge was unable to establish a connection with your Email client. <br> <a href=\"https://protonmail.com/support/knowledge-base/bridge-ssl-connection-issue\">Learn more</a> <br>",
+                "notification message"
+            ))
+        }
+
+
     }
 
     Timer {

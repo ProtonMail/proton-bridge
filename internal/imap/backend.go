@@ -225,6 +225,6 @@ func (ib *imapBackend) upgradeError(err error) {
 	logrus.WithError(err).Error("IMAP connection couldn't be upgraded to TLS during STARTTLS")
 
 	if strings.Contains(err.Error(), "remote error: tls: bad certificate") {
-		logrus.Info("TODO: Show troubleshooting popup")
+		ib.eventListener.Emit(events.IMAPTLSBadCert, err.Error())
 	}
 }
