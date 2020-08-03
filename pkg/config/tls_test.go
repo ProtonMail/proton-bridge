@@ -43,7 +43,7 @@ func TestTLSKeyRenewal(t *testing.T) {
 	// Put old key there.
 	tlsTemplate.NotBefore = time.Now().Add(-365 * 24 * time.Hour)
 	tlsTemplate.NotAfter = time.Now()
-	cert, err := generateTLSConfig(certPath, keyPath)
+	cert, err := GenerateTLSConfig(certPath, keyPath)
 	require.Equal(t, err, ErrTLSCertExpireSoon)
 	require.Equal(t, len(cert.Certificates), 1)
 	time.Sleep(time.Second)

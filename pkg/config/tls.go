@@ -64,7 +64,7 @@ func GetTLSConfig(cfg tlsConfiger) (tlsConfig *tls.Config, err error) {
 	tlsConfig, err = loadTLSConfig(certPath, keyPath)
 	if err != nil {
 		log.WithError(err).Warn("Cannot load cert, generating a new one")
-		tlsConfig, err = generateTLSConfig(certPath, keyPath)
+		tlsConfig, err = GenerateTLSConfig(certPath, keyPath)
 		if err != nil {
 			return
 		}
@@ -126,8 +126,9 @@ func loadTLSConfig(certPath, keyPath string) (tlsConfig *tls.Config, err error) 
 	return
 }
 
+// GenerateTLSConfig generates certs and keys at the given filepaths and returns a TLS Config which holds them.
 // See https://golang.org/src/crypto/tls/generate_cert.go
-func generateTLSConfig(certPath, keyPath string) (tlsConfig *tls.Config, err error) {
+func GenerateTLSConfig(certPath, keyPath string) (tlsConfig *tls.Config, err error) {
 	priv, err := rsa.GenerateKey(rand.Reader, 2048)
 	if err != nil {
 		err = fmt.Errorf("failed to generate private key: %s", err)
