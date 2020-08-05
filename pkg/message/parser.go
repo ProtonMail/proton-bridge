@@ -315,6 +315,9 @@ func parseHeader(m *pmapi.Message, h message.Header) error {
 			return err
 		}
 
+		// TODO: Is this okay? Might need to append/split/something.
+		m.Header[fields.Key()] = []string{text}
+
 		switch strings.ToLower(fields.Key()) {
 		case "subject":
 			m.Subject = text
