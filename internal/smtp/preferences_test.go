@@ -56,7 +56,7 @@ func TestPreferencesBuilder(t *testing.T) {
 			wantEncrypt:   true,
 			wantSign:      true,
 			wantScheme:    pmapi.InternalPackage,
-			wantMIMEType:  "multipart/mixed",
+			wantMIMEType:  "text/html",
 			wantPublicKey: testPublicKey,
 		},
 
@@ -71,7 +71,7 @@ func TestPreferencesBuilder(t *testing.T) {
 			wantEncrypt:   true,
 			wantSign:      true,
 			wantScheme:    pmapi.InternalPackage,
-			wantMIMEType:  "multipart/mixed",
+			wantMIMEType:  "text/plain",
 			wantPublicKey: testPublicKey,
 		},
 
@@ -86,7 +86,7 @@ func TestPreferencesBuilder(t *testing.T) {
 			wantEncrypt:   true,
 			wantSign:      true,
 			wantScheme:    pmapi.InternalPackage,
-			wantMIMEType:  "multipart/mixed",
+			wantMIMEType:  "text/html",
 			wantPublicKey: testPublicKey,
 		},
 
@@ -102,7 +102,7 @@ func TestPreferencesBuilder(t *testing.T) {
 			wantEncrypt:   true,
 			wantSign:      true,
 			wantScheme:    pmapi.InternalPackage,
-			wantMIMEType:  "multipart/mixed",
+			wantMIMEType:  "text/html",
 			wantPublicKey: testPublicKey,
 		},
 
