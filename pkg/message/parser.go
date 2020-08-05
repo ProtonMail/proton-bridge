@@ -205,7 +205,7 @@ func joinChildParts(childParts []parser.Parts) parser.Parts {
 func bestChoice(childParts []parser.Parts, preferredContentType string) (parser.Parts, error) {
 	// If one of the parts has preferred content type, use that.
 	for i := len(childParts) - 1; i >= 0; i-- {
-		if allHaveContentType(childParts[i], preferredContentType) {
+		if allPartsHaveContentType(childParts[i], preferredContentType) {
 			return childParts[i], nil
 		}
 	}
@@ -214,7 +214,7 @@ func bestChoice(childParts []parser.Parts, preferredContentType string) (parser.
 	return childParts[len(childParts)-1], nil
 }
 
-func allHaveContentType(parts parser.Parts, contentType string) bool {
+func allPartsHaveContentType(parts parser.Parts, contentType string) bool {
 	for _, part := range parts {
 		t, _, err := part.Header.ContentType()
 		if err != nil {
@@ -272,23 +272,11 @@ func getPlainBody(part *parser.Part) []byte {
 	}
 }
 
-func writeMIMEMessage(p *parser.Parser) (mime string, err error) {
-	writer := p.
-		NewWriter().
-		WithCondition(func(p *parser.Part) (keep bool) {
-			disp, _, err := p.Header.ContentDisposition()
-			if err != nil {
-				return true
-			}
-
-			// TODO: Is it true that we don't want to write attachments? I thought this was for externals...
-			return disp != "attachment"
-		})
-
+func writeMIMEMessage(p *parser.Parser) (string, error) {
 	buf := new(bytes.Buffer)
 
-	if err = writer.Write(buf); err != nil {
-		return
+	if err := p.NewWriter().Write(buf); err != nil {
+		return "", err
 	}
 
 	return buf.String(), nil

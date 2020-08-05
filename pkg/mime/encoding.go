@@ -37,7 +37,7 @@ import (
 
 var wordDec = &mime.WordDecoder{
 	CharsetReader: func(charset string, input io.Reader) (io.Reader, error) {
-		dec, err := selectDecoder(charset)
+		dec, err := SelectDecoder(charset)
 		if err != nil {
 			return nil, err
 		}
@@ -166,7 +166,7 @@ func getEncoding(charset string) (enc encoding.Encoding, err error) {
 	return
 }
 
-func selectDecoder(charset string) (decoder *encoding.Decoder, err error) {
+func SelectDecoder(charset string) (decoder *encoding.Decoder, err error) {
 	var enc encoding.Encoding
 	lcharset := strings.Trim(strings.ToLower(charset), " \t\r\n")
 	switch lcharset {
@@ -211,7 +211,7 @@ func DecodeCharset(original []byte, contentType string) ([]byte, error) {
 		}
 
 		if charset, ok := params["charset"]; ok {
-			decoder, err := selectDecoder(charset)
+			decoder, err := SelectDecoder(charset)
 			if err != nil {
 				return original, errors.Wrap(err, "unknown charset was specified")
 			}

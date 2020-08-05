@@ -1,11 +1,11 @@
 package parser
 
 import (
-	"fmt"
 	"io"
 	"io/ioutil"
 
 	"github.com/emersion/go-message"
+	"github.com/sirupsen/logrus"
 )
 
 type Parser struct {
@@ -13,14 +13,19 @@ type Parser struct {
 	root  *Part
 }
 
-func New(r io.Reader) (p *Parser, err error) {
-	p = new(Parser)
+func New(r io.Reader) (*Parser, error) {
+	p := new(Parser)
 
-	if err = p.parse(r); err != nil {
-		return
+	entity, err := message.Read(r)
+	if err != nil && !message.IsUnknownCharset(err) {
+		return nil, err
 	}
 
-	return
+	if err := p.parseEntity(entity); err != nil {
+		return nil, err
+	}
+
+	return p, nil
 }
 
 func (p *Parser) NewWalker() *Walker {
@@ -51,32 +56,25 @@ func (p *Parser) Part(number []int) (part *Part, err error) {
 	return
 }
 
-func (p *Parser) parse(r io.Reader) error {
-	entity, err := message.Read(r)
-	if err != nil {
-		if !message.IsUnknownCharset(err) {
-			return err
-		} else {
-			fmt.Println(err)
-		}
-	}
-
-	return p.parseEntity(entity)
-}
-
-func (p *Parser) enter() {
+func (p *Parser) beginPart() {
 	p.stack = append(p.stack, &Part{})
 }
 
-func (p *Parser) exit() {
-	var built *Part
+func (p *Parser) endPart() {
+	var part *Part
 
-	p.stack, built = p.stack[:len(p.stack)-1], p.stack[len(p.stack)-1]
+	p.stack, part = p.stack[:len(p.stack)-1], p.stack[len(p.stack)-1]
 
 	if len(p.stack) > 0 {
-		p.top().children = append(p.top().children, built)
+		p.top().children = append(p.top().children, part)
 	} else {
-		p.root = built
+		p.root = part
+	}
+
+	if !part.isUTF8() {
+		if err := part.convertToUTF8(); err != nil {
+			logrus.WithError(err).Error("failed to convert part to utf-8")
+		}
 	}
 }
 
@@ -96,9 +94,9 @@ func (p *Parser) withBody(bytes []byte) {
 	p.top().Body = bytes
 }
 
-func (p *Parser) parseEntity(e *message.Entity) (err error) {
-	p.enter()
-	defer p.exit()
+func (p *Parser) parseEntity(e *message.Entity) error {
+	p.beginPart()
+	defer p.endPart()
 
 	p.withHeader(e.Header)
 
