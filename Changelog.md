@@ -29,8 +29,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
     * github.com/urfave/cli v1.22.3 -> v1.22.4
     * golang.org/x/net 20200301022130-244492dfa37a -> 20200707034311-ab3426394381
     * golang.org/x/text v0.3.2 -> v0.3.3
-
-
+* Set first-start to false in bridge, not in frontend.
 
 ### Fixed
 * GODT-454 Fix send on closed channel when receiving unencrypted send confirmation from GUI.

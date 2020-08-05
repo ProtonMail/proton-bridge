@@ -21,7 +21,6 @@ package cli
 import (
 	"github.com/ProtonMail/proton-bridge/internal/events"
 	"github.com/ProtonMail/proton-bridge/internal/frontend/types"
-	"github.com/ProtonMail/proton-bridge/internal/preferences"
 	"github.com/ProtonMail/proton-bridge/pkg/config"
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
 
@@ -240,8 +239,6 @@ func (f *frontendCLI) Loop(credentialsError error) error {
 		f.notifyCredentialsError()
 		return credentialsError
 	}
-
-	f.preferences.SetBool(preferences.FirstStartKey, false)
 
 	f.Print(`
             Welcome to ProtonMail Bridge interactive shell

@@ -70,6 +70,7 @@ func New(
 
 	if pref.GetBool(preferences.FirstStartKey) {
 		b.SendMetric(metrics.New(metrics.Setup, metrics.FirstStart, metrics.Label(config.GetVersion())))
+		pref.SetBool(preferences.FirstStartKey, false)
 	}
 
 	go b.heartbeat()

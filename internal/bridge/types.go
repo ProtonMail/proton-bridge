@@ -32,6 +32,7 @@ type StoreFactoryConfiger interface {
 type PreferenceProvider interface {
 	Get(key string) string
 	GetBool(key string) bool
+	SetBool(key string, val bool)
 	GetInt(key string) int
 	Set(key string, value string)
 }

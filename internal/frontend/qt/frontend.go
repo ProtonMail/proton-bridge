@@ -317,8 +317,6 @@ func (s *FrontendQt) qtExecute(Procedure func(*FrontendQt) error) error {
 
 	// Set first start flag.
 	s.Qml.SetIsFirstStart(s.preferences.GetBool(preferences.FirstStartKey))
-	// Don't repeat next start.
-	s.preferences.SetBool(preferences.FirstStartKey, false)
 
 	// Check if it is first start after update (fresh version).
 	lastVersion := s.preferences.Get(preferences.LastVersionKey)
