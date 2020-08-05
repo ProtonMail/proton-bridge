@@ -14,7 +14,7 @@ type Part struct {
 	children Parts
 }
 
-func (p *Part) Part(n int) (part *Part, err error) {
+func (p *Part) Child(n int) (part *Part, err error) {
 	if len(p.children) < n {
 		return nil, errors.New("no such part")
 	}

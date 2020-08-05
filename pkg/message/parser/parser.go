@@ -1,18 +1,12 @@
 package parser
 
 import (
+	"fmt"
 	"io"
 	"io/ioutil"
 
 	"github.com/emersion/go-message"
 )
-
-// TODO: Set this to something that handles charsets.
-func init() { // nolint[gochecknoinits]
-	message.CharsetReader = func(string, io.Reader) (io.Reader, error) {
-		panic("not implemented")
-	}
-}
 
 type Parser struct {
 	stack []*Part
@@ -49,7 +43,7 @@ func (p *Parser) Part(number []int) (part *Part, err error) {
 	part = p.root
 
 	for _, n := range number {
-		if part, err = part.Part(n); err != nil {
+		if part, err = part.Child(n); err != nil {
 			return
 		}
 	}
@@ -57,13 +51,17 @@ func (p *Parser) Part(number []int) (part *Part, err error) {
 	return
 }
 
-func (p *Parser) parse(r io.Reader) (err error) {
-	e, err := message.Read(r)
+func (p *Parser) parse(r io.Reader) error {
+	entity, err := message.Read(r)
 	if err != nil {
-		return
+		if !message.IsUnknownCharset(err) {
+			return err
+		} else {
+			fmt.Println(err)
+		}
 	}
 
-	return p.parseEntity(e)
+	return p.parseEntity(entity)
 }
 
 func (p *Parser) enter() {

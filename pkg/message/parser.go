@@ -277,7 +277,12 @@ func writeMIMEMessage(p *parser.Parser) (mime string, err error) {
 		NewWriter().
 		WithCondition(func(p *parser.Part) (keep bool) {
 			disp, _, err := p.Header.ContentDisposition()
-			return err != nil || disp != "attachment"
+			if err != nil {
+				return true
+			}
+
+			// TODO: Is it true that we don't want to write attachments? I thought this was for externals...
+			return disp != "attachment"
 		})
 
 	buf := new(bytes.Buffer)
