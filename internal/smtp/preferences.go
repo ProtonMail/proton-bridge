@@ -512,7 +512,7 @@ func (b *sendPreferencesBuilder) setMIMEPreferences(composerMIMEType string) {
 	// Otherwise we use the MIME type from the encryption preferences, unless
 	// the plain text option has been selecting in the composer, which should
 	// enforce 'text/plain' and override the encryption preference.
-	if b.shouldSign() {
+	if !b.isInternal() && b.shouldSign() {
 		switch b.getScheme() {
 		case pgpInline:
 			b.withMIMEType("text/plain")
