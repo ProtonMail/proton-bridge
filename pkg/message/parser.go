@@ -304,16 +304,15 @@ func attachPublicKey(p *parser.Part, key, keyName string) {
 	})
 }
 
-func parseHeader(m *pmapi.Message, h message.Header) (err error) {
+func parseHeader(m *pmapi.Message, h message.Header) error {
 	m.Header = make(mail.Header)
 
 	fields := h.Fields()
 
 	for fields.Next() {
-		var text string
-
-		if text, err = fields.Text(); err != nil {
-			return
+		text, err := fields.Text()
+		if err != nil {
+			return err
 		}
 
 		switch strings.ToLower(fields.Key()) {
@@ -321,36 +320,50 @@ func parseHeader(m *pmapi.Message, h message.Header) (err error) {
 			m.Subject = text
 
 		case "from":
-			if m.Sender, err = mail.ParseAddress(text); err != nil {
-				return
+			sender, err := mail.ParseAddress(text)
+			if err != nil {
+				return err
 			}
+			m.Sender = sender
 
 		case "to":
-			if m.ToList, err = mail.ParseAddressList(text); err != nil {
-				return
+			toList, err := mail.ParseAddressList(text)
+			if err != nil {
+				return err
 			}
+			m.ToList = toList
 
 		case "reply-to":
-			if m.ReplyTos, err = mail.ParseAddressList(text); err != nil {
-				return
+			replyTos, err := mail.ParseAddressList(text)
+			if err != nil {
+				return err
 			}
+			m.ReplyTos = replyTos
 
 		case "cc":
-			if m.CCList, err = mail.ParseAddressList(text); err != nil {
-				return
+			ccList, err := mail.ParseAddressList(text)
+			if err != nil {
+				return err
 			}
+			m.CCList = ccList
 
 		case "bcc":
-			if m.BCCList, err = mail.ParseAddressList(text); err != nil {
-				return
+			bccList, err := mail.ParseAddressList(text)
+			if err != nil {
+				return err
 			}
+			m.BCCList = bccList
 
 		case "date":
-			// TODO
+			date, err := mail.ParseDate(text)
+			if err != nil {
+				return err
+			}
+			m.Time = date.Unix()
 		}
 	}
 
-	return
+	return nil
 }
 
 func parseAttachment(h message.Header) (att *pmapi.Attachment, err error) {
