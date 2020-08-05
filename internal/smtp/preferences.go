@@ -401,7 +401,9 @@ func (b *sendPreferencesBuilder) setExternalPGPSettingsWithoutWKDKeys(
 	b.withEncrypt(vCardData.Encrypt)
 
 	// Sign must be enabled whenever encrypt is.
-	b.withSign(vCardData.Sign || vCardData.Encrypt)
+	if vCardData.Sign || vCardData.Encrypt {
+		b.withSign(true)
+	}
 
 	// If the contact has a specific Scheme preference, we set it (otherwise we
 	// leave it unset to allow it to be filled in with the default value later).
