@@ -30,6 +30,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/pkg/message/parser"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	"github.com/emersion/go-message"
+	"github.com/emersion/go-textwrapper"
 	"github.com/jaytaylor/html2text"
 )
 
@@ -290,11 +291,13 @@ func attachPublicKey(p *parser.Part, key, keyName string) {
 	h.Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%v.asc.pgp"`, keyName))
 	h.Set("Content-Transfer-Encoding", "base64")
 
-	// TODO: Split body at col width 72.
+	body := new(bytes.Buffer)
+
+	textwrapper.NewRFC822(body).Write([]byte(key))
 
 	p.AddChild(&parser.Part{
 		Header: h,
-		Body:   []byte(key),
+		Body:   body.Bytes(),
 	})
 }
 
