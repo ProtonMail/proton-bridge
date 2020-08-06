@@ -316,7 +316,8 @@ func (s *FrontendQt) qtExecute(Procedure func(*FrontendQt) error) error {
 	s.View.RootContext().SetContextProperty("go", s.Qml)
 
 	// Set first start flag.
-	s.Qml.SetIsFirstStart(s.preferences.GetBool(preferences.FirstStartKey))
+	s.Qml.SetIsFirstStart(s.preferences.GetBool(preferences.FirstStartGUIKey))
+	s.preferences.SetBool(preferences.FirstStartGUIKey, false)
 
 	// Check if it is first start after update (fresh version).
 	lastVersion := s.preferences.Get(preferences.LastVersionKey)

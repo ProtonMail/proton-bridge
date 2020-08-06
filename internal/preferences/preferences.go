@@ -29,6 +29,7 @@ import (
 // Keys of preferences in JSON file.
 const (
 	FirstStartKey          = "first_time_start"
+	FirstStartGUIKey       = "first_time_start_gui"
 	NextHeartbeatKey       = "next_heartbeat"
 	APIPortKey             = "user_port_api"
 	IMAPPortKey            = "user_port_imap"
@@ -47,9 +48,7 @@ type configProvider interface {
 	GetDefaultSMTPPort() int
 }
 
-var (
-	log = logrus.WithField("pkg", "store") //nolint[gochecknoglobals]
-)
+var log = logrus.WithField("pkg", "store") //nolint[gochecknoglobals]
 
 // New returns loaded preferences with Bridge defaults when values are not set yet.
 func New(cfg configProvider) (pref *config.Preferences) {
@@ -64,6 +63,7 @@ func New(cfg configProvider) (pref *config.Preferences) {
 
 func setDefaults(preferences *config.Preferences, cfg configProvider) {
 	preferences.SetDefault(FirstStartKey, "true")
+	preferences.SetDefault(FirstStartGUIKey, "true")
 	preferences.SetDefault(NextHeartbeatKey, strconv.FormatInt(time.Now().Unix(), 10))
 	preferences.SetDefault(APIPortKey, strconv.Itoa(cfg.GetDefaultAPIPort()))
 	preferences.SetDefault(IMAPPortKey, strconv.Itoa(cfg.GetDefaultIMAPPort()))
