@@ -189,6 +189,9 @@ func (su *smtpUser) Send(from string, to []string, messageReader io.Reader) (err
 		return
 	}
 
+	// HELP: Can we trust the mail client's 7bit filter?
+	// Might want to check here that it truly is 7bit clean.
+	// If it's not we need to use the message parser's writer ability (already has 7bit filter).
 	mimeBody := buf.String()
 
 	message, plainBody, attReaders, err := message.Parse(buf.Bytes(), attachedPublicKey, attachedPublicKeyName)
