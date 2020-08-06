@@ -21,12 +21,9 @@ import (
 	"fmt"
 	"io"
 	"mime"
-	"mime/quotedprintable"
 	"regexp"
 	"strings"
 	"unicode/utf8"
-
-	"encoding/base64"
 
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -244,19 +241,6 @@ func DecodeCharset(original []byte, contentType string) ([]byte, error) {
 	}
 
 	return decoded, nil
-}
-
-// DecodeContentEncoding wraps the reader with decoder based on content encoding.
-func DecodeContentEncoding(r io.Reader, contentEncoding string) (d io.Reader) {
-	switch strings.ToLower(contentEncoding) {
-	case "quoted-printable":
-		d = quotedprintable.NewReader(r)
-	case "base64":
-		d = base64.NewDecoder(base64.StdEncoding, r)
-	case "7bit", "8bit", "binary", "": // Nothing to do
-		d = r
-	}
-	return
 }
 
 // ParseMediaType from MIME doesn't support RFC2231 for non asci / utf8 encodings so we have to pre-parse it.

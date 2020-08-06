@@ -34,10 +34,20 @@ import (
 	"github.com/jaytaylor/html2text"
 )
 
-func Parse(r io.Reader, key, keyName string) (m *pmapi.Message, mimeMessage, plainBody string, attReaders []io.Reader, err error) {
-	p, err := parser.New(r)
+func Parse(b []byte, key, keyName string) (m *pmapi.Message, plainBody string, attReaders []io.Reader, err error) {
+	p, err := parser.New(b)
 	if err != nil {
 		return
+	}
+
+	if err = convertForeignEncodings(p); err != nil {
+		return
+	}
+
+	if key != "" {
+		if err = attachPublicKey(p.Root(), key, keyName); err != nil {
+			return
+		}
 	}
 
 	m = pmapi.NewMessage()
@@ -58,15 +68,14 @@ func Parse(r io.Reader, key, keyName string) (m *pmapi.Message, mimeMessage, pla
 		return
 	}
 
-	if key != "" {
-		attachPublicKey(p.Root(), key, keyName)
-	}
+	return m, plainBody, attReaders, nil
+}
 
-	if mimeMessage, err = writeMIMEMessage(p); err != nil {
-		return
-	}
-
-	return m, mimeMessage, plainBody, attReaders, nil
+func convertForeignEncodings(p *parser.Parser) error {
+	// HELP: Is it correct to only do this to text types?
+	return p.NewWalker().RegisterContentTypeHandler("text/.*", func(p *parser.Part) error {
+		return p.ConvertToUTF8()
+	}).Walk()
 }
 
 func collectAttachments(p *parser.Parser) ([]*pmapi.Attachment, []io.Reader, error) {
@@ -171,9 +180,27 @@ func collectBodyParts(p *parser.Parser, preferredContentType string) (parser.Par
 			return bestChoice(childParts, preferredContentType), nil
 		}).
 		RegisterRule("text/plain", func(p *parser.Part, visit parser.Visit) (interface{}, error) {
+			disp, _, err := p.Header.ContentDisposition()
+			if err != nil {
+				disp = ""
+			}
+
+			if disp == "attachment" {
+				return parser.Parts{}, nil
+			}
+
 			return parser.Parts{p}, nil
 		}).
 		RegisterRule("text/html", func(p *parser.Part, visit parser.Visit) (interface{}, error) {
+			disp, _, err := p.Header.ContentDisposition()
+			if err != nil {
+				disp = ""
+			}
+
+			if disp == "attachment" {
+				return parser.Parts{}, nil
+			}
+
 			return parser.Parts{p}, nil
 		})
 
@@ -280,17 +307,7 @@ func getPlainBody(part *parser.Part) []byte {
 	}
 }
 
-func writeMIMEMessage(p *parser.Parser) (string, error) {
-	buf := new(bytes.Buffer)
-
-	if err := p.NewWriter().Write(buf); err != nil {
-		return "", err
-	}
-
-	return buf.String(), nil
-}
-
-func attachPublicKey(p *parser.Part, key, keyName string) {
+func attachPublicKey(p *parser.Part, key, keyName string) error {
 	h := message.Header{}
 
 	h.Set("Content-Type", fmt.Sprintf(`application/pgp-key; name="%v"`, keyName))
@@ -299,20 +316,24 @@ func attachPublicKey(p *parser.Part, key, keyName string) {
 
 	body := new(bytes.Buffer)
 
-	textwrapper.NewRFC822(body).Write([]byte(key))
+	if _, err := textwrapper.NewRFC822(body).Write([]byte(key)); err != nil {
+		return err
+	}
 
 	p.AddChild(&parser.Part{
 		Header: h,
 		Body:   body.Bytes(),
 	})
+
+	return nil
 }
 
-func parseMessageHeader(m *pmapi.Message, h message.Header) error {
+// NOTE: We should use our own ParseAddressList here.
+func parseMessageHeader(m *pmapi.Message, h message.Header) error { // nolint[funlen]
 	mimeHeader, err := toMailHeader(h)
 	if err != nil {
 		return err
 	}
-
 	m.Header = mimeHeader
 
 	fields := h.Fields()
@@ -401,6 +422,10 @@ func parseAttachment(h message.Header) (*pmapi.Attachment, error) {
 		}
 	} else {
 		att.Name = dispParams["filename"]
+
+		if att.Name == "" {
+			att.Name = "attachment.bin"
+		}
 	}
 
 	att.ContentID = strings.Trim(h.Get("Content-Id"), " <>")

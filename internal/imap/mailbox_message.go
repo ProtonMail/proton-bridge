@@ -37,7 +37,6 @@ import (
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	"github.com/emersion/go-imap"
 	"github.com/hashicorp/go-multierror"
-	enmime "github.com/jhillyerd/enmime"
 	"github.com/pkg/errors"
 	openpgperrors "golang.org/x/crypto/openpgp/errors"
 )
@@ -68,7 +67,13 @@ func (im *imapMailbox) CreateMessage(flags []string, date time.Time, body imap.L
 	// Called from go-imap in goroutines - we need to handle panics for each function.
 	defer im.panicHandler.HandlePanic()
 
-	m, _, _, readers, err := message.Parse(body, "", "")
+	buf := new(bytes.Buffer)
+
+	if _, err := buf.ReadFrom(body); err != nil {
+		return err
+	}
+
+	m, _, readers, err := message.Parse(buf.Bytes(), "", "")
 	if err != nil {
 		return err
 	}
@@ -442,17 +447,6 @@ func (im *imapMailbox) writeMessageBody(w io.Writer, m *pmapi.Message) (err erro
 		_, _ = io.WriteString(w, m.Body)
 		err = nil
 	}
-
-	return
-}
-
-func (im *imapMailbox) writeAndParseMIMEBody(m *pmapi.Message) (mime *enmime.Envelope, err error) { //nolint[unused]
-	b := &bytes.Buffer{}
-	if err = im.writeMessageBody(b, m); err != nil {
-		return
-	}
-
-	mime, err = enmime.ReadEnvelope(b)
 
 	return
 }

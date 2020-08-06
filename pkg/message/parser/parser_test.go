@@ -1,47 +1,46 @@
+// Copyright (c) 2020 Proton Technologies AG
+//
+// This file is part of ProtonMail Bridge.
+//
+// ProtonMail Bridge is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// ProtonMail Bridge is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
+
 package parser
 
 import (
+	"bytes"
 	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func newTestParser(t *testing.T, msg string) *Parser {
 	r := f(msg)
 
-	p, err := New(r)
+	buf := new(bytes.Buffer)
+
+	if _, err := buf.ReadFrom(r); err != nil {
+		panic(err)
+	}
+
+	p, err := New(buf.Bytes())
 	require.NoError(t, err)
 
 	return p
-}
-
-func TestParserSpecifiedLatin1Charset(t *testing.T) {
-	p := newTestParser(t, "text_plain_latin1.eml")
-
-	checkBodies(t, p, "ééééééé")
-}
-
-func TestParserUnspecifiedLatin1Charset(t *testing.T) {
-	p := newTestParser(t, "text_plain_unknown_latin1.eml")
-
-	checkBodies(t, p, "ééééééé")
-}
-
-func TestParserSpecifiedLatin2Charset(t *testing.T) {
-	p := newTestParser(t, "text_plain_latin2.eml")
-
-	checkBodies(t, p, "řšřšřš")
-}
-
-func TestParserEmbeddedLatin2Charset(t *testing.T) {
-	p := newTestParser(t, "text_html_embedded_latin2_encoding.eml")
-
-	checkBodies(t, p, `<html><head><meta charset="ISO-8859-2"></head><body>latin2 řšřš</body></html>`)
 }
 
 func f(filename string) io.ReadCloser {
@@ -61,22 +60,4 @@ func s(filename string) string {
 	}
 
 	return string(b)
-}
-
-func checkBodies(t *testing.T, p *Parser, wantBodies ...string) {
-	var partBodies, expectedBodies [][]byte
-
-	require.NoError(t, p.NewWalker().RegisterDefaultHandler(func(p *Part) (err error) {
-		if p.Body != nil {
-			partBodies = append(partBodies, p.Body)
-		}
-
-		return
-	}).Walk())
-
-	for _, body := range wantBodies {
-		expectedBodies = append(expectedBodies, []byte(body))
-	}
-
-	assert.ElementsMatch(t, expectedBodies, partBodies)
 }

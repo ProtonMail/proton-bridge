@@ -28,7 +28,13 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+var enableDebug = false // nolint[global]
+
 func debug(msg string, v ...interface{}) {
+	if !enableDebug {
+		return
+	}
+
 	_, file, line, _ := runtime.Caller(1)
 	fmt.Printf("%s:%d: \033[2;33m"+msg+"\033[0;39m\n", append([]interface{}{filepath.Base(file), line}, v...)...)
 }

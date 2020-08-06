@@ -20,6 +20,7 @@
 package smtp
 
 import (
+	"bytes"
 	"encoding/base64"
 	"io"
 	"mime"
@@ -182,7 +183,15 @@ func (su *smtpUser) Send(from string, to []string, messageReader io.Reader) (err
 		attachedPublicKeyName = "publickey - " + kr.GetIdentities()[0].Name
 	}
 
-	message, mimeBody, plainBody, attReaders, err := message.Parse(messageReader, attachedPublicKey, attachedPublicKeyName)
+	buf := new(bytes.Buffer)
+
+	if _, err = buf.ReadFrom(messageReader); err != nil {
+		return
+	}
+
+	mimeBody := buf.String()
+
+	message, plainBody, attReaders, err := message.Parse(buf.Bytes(), attachedPublicKey, attachedPublicKeyName)
 	if err != nil {
 		return
 	}
