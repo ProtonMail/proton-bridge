@@ -66,10 +66,16 @@ func Parse(r io.Reader, key, keyName string) (m *pmapi.Message, mimeMessage, pla
 		return
 	}
 
-	return
+	return m, mimeMessage, plainBody, attReaders, nil
 }
 
-func collectAttachments(p *parser.Parser) (atts []*pmapi.Attachment, data []io.Reader, err error) {
+func collectAttachments(p *parser.Parser) ([]*pmapi.Attachment, []io.Reader, error) {
+	var (
+		atts []*pmapi.Attachment
+		data []io.Reader
+		err  error
+	)
+
 	w := p.NewWalker().
 		RegisterContentDispositionHandler("attachment", func(p *parser.Part) error {
 			att, err := parseAttachment(p.Header)
@@ -113,10 +119,10 @@ func collectAttachments(p *parser.Parser) (atts []*pmapi.Attachment, data []io.R
 		})
 
 	if err = w.Walk(); err != nil {
-		return
+		return nil, nil, err
 	}
 
-	return
+	return atts, data, nil
 }
 
 func buildBodies(p *parser.Parser) (richBody, plainBody string, err error) {
@@ -162,7 +168,7 @@ func collectBodyParts(p *parser.Parser, preferredContentType string) (parser.Par
 				return nil, err
 			}
 
-			return bestChoice(childParts, preferredContentType)
+			return bestChoice(childParts, preferredContentType), nil
 		}).
 		RegisterRule("text/plain", func(p *parser.Part, visit parser.Visit) (interface{}, error) {
 			return parser.Parts{p}, nil
@@ -204,16 +210,16 @@ func joinChildParts(childParts []parser.Parts) parser.Parts {
 	return res
 }
 
-func bestChoice(childParts []parser.Parts, preferredContentType string) (parser.Parts, error) {
+func bestChoice(childParts []parser.Parts, preferredContentType string) parser.Parts {
 	// If one of the parts has preferred content type, use that.
 	for i := len(childParts) - 1; i >= 0; i-- {
 		if allPartsHaveContentType(childParts[i], preferredContentType) {
-			return childParts[i], nil
+			return childParts[i]
 		}
 	}
 
 	// Otherwise, choose the last one.
-	return childParts[len(childParts)-1], nil
+	return childParts[len(childParts)-1]
 }
 
 func allPartsHaveContentType(parts parser.Parts, contentType string) bool {
@@ -368,25 +374,26 @@ func parseMessageHeader(m *pmapi.Message, h message.Header) error {
 	return nil
 }
 
-func parseAttachment(h message.Header) (att *pmapi.Attachment, err error) {
-	att = &pmapi.Attachment{}
+func parseAttachment(h message.Header) (*pmapi.Attachment, error) {
+	att := &pmapi.Attachment{}
 
 	mimeHeader, err := toMIMEHeader(h)
 	if err != nil {
 		return nil, err
 	}
-
 	att.Header = mimeHeader
 
-	if att.MIMEType, _, err = h.ContentType(); err != nil {
-		return
+	mimeType, _, err := h.ContentType()
+	if err != nil {
+		return nil, err
 	}
+	att.MIMEType = mimeType
 
-	if _, dispParams, dispErr := h.ContentDisposition(); dispErr != nil {
-		var ext []string
-
-		if ext, err = mime.ExtensionsByType(att.MIMEType); err != nil {
-			return
+	_, dispParams, dispErr := h.ContentDisposition()
+	if dispErr != nil {
+		ext, err := mime.ExtensionsByType(att.MIMEType)
+		if err != nil {
+			return nil, err
 		}
 
 		if len(ext) > 0 {
@@ -398,7 +405,7 @@ func parseAttachment(h message.Header) (att *pmapi.Attachment, err error) {
 
 	att.ContentID = strings.Trim(h.Get("Content-Id"), " <>")
 
-	return
+	return att, nil
 }
 
 func toMailHeader(h message.Header) (mail.Header, error) {

@@ -63,7 +63,7 @@ func (w *Writer) shouldFilter(p *Part) bool {
 	}
 
 	for _, b := range p.Body {
-		if uint8(b) > 1<<7 {
+		if b > 1<<7 {
 			return true
 		}
 	}
