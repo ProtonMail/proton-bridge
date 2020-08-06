@@ -38,4 +38,4 @@ Feature: SMTP wrong messages
 
 
       """
-    Then SMTP response is "SMTP error: 554 Error: transaction failed, blame it on the weather: multipart: NextPart: EOF"
+    Then SMTP response is "SMTP error: 554 Error: transaction failed, blame it on the weather: unexpected EOF"

@@ -75,7 +75,11 @@ func (p *Part) ConvertToUTF8() error {
 	}
 
 	// HELP: Is this okay? What about when the charset is embedded in structured text type eg html/xml?
+	if params == nil {
+		params = make(map[string]string)
+	}
 	params["charset"] = "utf-8"
+
 	p.Header.SetContentType(t, params)
 
 	return nil
