@@ -24,6 +24,7 @@ import (
 	"io"
 	"mime"
 	"net/mail"
+	"net/textproto"
 	"strings"
 
 	"github.com/ProtonMail/proton-bridge/pkg/message/parser"
@@ -40,7 +41,7 @@ func Parse(r io.Reader, key, keyName string) (m *pmapi.Message, mimeMessage, pla
 
 	m = pmapi.NewMessage()
 
-	if err = parseHeader(m, p.Root().Header); err != nil {
+	if err = parseMessageHeader(m, p.Root().Header); err != nil {
 		return
 	}
 
@@ -297,8 +298,13 @@ func attachPublicKey(p *parser.Part, key, keyName string) {
 	})
 }
 
-func parseHeader(m *pmapi.Message, h message.Header) error {
-	m.Header = make(mail.Header)
+func parseMessageHeader(m *pmapi.Message, h message.Header) error {
+	mimeHeader, err := toMailHeader(h)
+	if err != nil {
+		return err
+	}
+
+	m.Header = mimeHeader
 
 	fields := h.Fields()
 
@@ -307,9 +313,6 @@ func parseHeader(m *pmapi.Message, h message.Header) error {
 		if err != nil {
 			return err
 		}
-
-		// TODO: Is this okay? Might need to append/split/something.
-		m.Header[fields.Key()] = []string{text}
 
 		switch strings.ToLower(fields.Key()) {
 		case "subject":
@@ -365,6 +368,13 @@ func parseHeader(m *pmapi.Message, h message.Header) error {
 func parseAttachment(h message.Header) (att *pmapi.Attachment, err error) {
 	att = &pmapi.Attachment{}
 
+	mimeHeader, err := toMIMEHeader(h)
+	if err != nil {
+		return nil, err
+	}
+
+	att.Header = mimeHeader
+
 	if att.MIMEType, _, err = h.ContentType(); err != nil {
 		return
 	}
@@ -385,7 +395,39 @@ func parseAttachment(h message.Header) (att *pmapi.Attachment, err error) {
 
 	att.ContentID = strings.Trim(h.Get("Content-Id"), " <>")
 
-	// TODO: Set att.Header
-
 	return
+}
+
+func toMailHeader(h message.Header) (mail.Header, error) {
+	mimeHeader := make(mail.Header)
+
+	fields := h.Fields()
+
+	for fields.Next() {
+		text, err := fields.Text()
+		if err != nil {
+			return nil, err
+		}
+
+		mimeHeader[fields.Key()] = []string{text}
+	}
+
+	return mimeHeader, nil
+}
+
+func toMIMEHeader(h message.Header) (textproto.MIMEHeader, error) {
+	mimeHeader := make(textproto.MIMEHeader)
+
+	fields := h.Fields()
+
+	for fields.Next() {
+		text, err := fields.Text()
+		if err != nil {
+			return nil, err
+		}
+
+		mimeHeader[fields.Key()] = []string{text}
+	}
+
+	return mimeHeader, nil
 }

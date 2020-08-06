@@ -38,7 +38,6 @@ func (p *Part) isUTF8() bool {
 	return utf8.Valid(p.Body)
 }
 
-// TODO: Do we then need to set charset to utf-8? What if it's embedded in html?
 func (p *Part) convertToUTF8() error {
 	t, params, err := p.Header.ContentType()
 	if err != nil {
@@ -58,6 +57,7 @@ func (p *Part) convertToUTF8() error {
 		return err
 	}
 
+	// TODO: Is this okay? What about when the charset is embedded in structured text type eg html/xml?
 	params["charset"] = "utf-8"
 	p.Header.SetContentType(t, params)
 
