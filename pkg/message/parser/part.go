@@ -61,13 +61,11 @@ func (p *Part) ConvertToUTF8() error {
 		return err
 	}
 
-	var decoder *encoding.Decoder
+	decoder := selectDecoderFromParams(params)
 
-	if knownCharset, ok := params["charset"]; !ok {
+	if decoder == nil {
 		encoding, _, _ := charset.DetermineEncoding(p.Body, t)
 		decoder = encoding.NewDecoder()
-	} else if decoder, err = pmmime.SelectDecoder(knownCharset); err != nil {
-		return err
 	}
 
 	if p.Body, err = decoder.Bytes(p.Body); err != nil {
@@ -78,9 +76,24 @@ func (p *Part) ConvertToUTF8() error {
 	if params == nil {
 		params = make(map[string]string)
 	}
+
 	params["charset"] = "utf-8"
 
 	p.Header.SetContentType(t, params)
 
 	return nil
+}
+
+func selectDecoderFromParams(params map[string]string) *encoding.Decoder {
+	charset, ok := params["charset"]
+	if !ok {
+		return nil
+	}
+
+	decoder, err := pmmime.SelectDecoder(charset)
+	if err != nil {
+		return nil
+	}
+
+	return decoder
 }
