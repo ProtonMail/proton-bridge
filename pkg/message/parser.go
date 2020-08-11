@@ -250,6 +250,10 @@ func bestChoice(childParts []parser.Parts, preferredContentType string) parser.P
 }
 
 func allPartsHaveContentType(parts parser.Parts, contentType string) bool {
+	if len(parts) == 0 {
+		return false
+	}
+
 	for _, part := range parts {
 		t, _, err := part.Header.ContentType()
 		if err != nil {
