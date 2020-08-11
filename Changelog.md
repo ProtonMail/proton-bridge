@@ -70,6 +70,8 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
     * Structure for transfer rules in QML
 * GODT-213 Convert panics from message parser to error.
 
+* GODT-357 Use go-message to make a better message parser.
+
 ### Fixed
 * GODT-655 Fix date picker with automatic Windows DST
 * GODT-454 Fix send on closed channel when receiving unencrypted send confirmation from GUI.
