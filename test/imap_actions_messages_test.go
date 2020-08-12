@@ -26,11 +26,10 @@ import (
 )
 
 func IMAPActionsMessagesFeatureContext(s *godog.Suite) {
+	s.Step(`^IMAP client sends command "([^"]*)"$`, imapClientSendsCommand)
 	s.Step(`^IMAP client fetches "([^"]*)"$`, imapClientFetches)
 	s.Step(`^IMAP client fetches by UID "([^"]*)"$`, imapClientFetchesByUID)
 	s.Step(`^IMAP client searches for "([^"]*)"$`, imapClientSearchesFor)
-	s.Step(`^IMAP client deletes messages "([^"]*)"$`, imapClientDeletesMessages)
-	s.Step(`^IMAP client "([^"]*)" deletes messages "([^"]*)"$`, imapClientNamedDeletesMessages)
 	s.Step(`^IMAP client copies messages "([^"]*)" to "([^"]*)"$`, imapClientCopiesMessagesTo)
 	s.Step(`^IMAP client moves messages "([^"]*)" to "([^"]*)"$`, imapClientMovesMessagesTo)
 	s.Step(`^IMAP client imports message to "([^"]*)"$`, imapClientCreatesMessage)
@@ -48,8 +47,20 @@ func IMAPActionsMessagesFeatureContext(s *godog.Suite) {
 	s.Step(`^IMAP client "([^"]*)" marks message "([^"]*)" as starred$`, imapClientNamedMarksMessageAsStarred)
 	s.Step(`^IMAP client marks message "([^"]*)" as unstarred$`, imapClientMarksMessageAsUnstarred)
 	s.Step(`^IMAP client "([^"]*)" marks message "([^"]*)" as unstarred$`, imapClientNamedMarksMessageAsUnstarred)
+	s.Step(`^IMAP client marks message "([^"]*)" as deleted$`, imapClientMarksMessageAsDeleted)
+	s.Step(`^IMAP client "([^"]*)" marks message "([^"]*)" as deleted$`, imapClientNamedMarksMessageAsDeleted)
+	s.Step(`^IMAP client marks message "([^"]*)" as undeleted$`, imapClientMarksMessageAsUndeleted)
+	s.Step(`^IMAP client "([^"]*)" marks message "([^"]*)" as undeleted$`, imapClientNamedMarksMessageAsUndeleted)
 	s.Step(`^IMAP client starts IDLE-ing$`, imapClientStartsIDLEing)
 	s.Step(`^IMAP client "([^"]*)" starts IDLE-ing$`, imapClientNamedStartsIDLEing)
+	s.Step(`^IMAP client sends expunge$`, imapClientExpunge)
+	s.Step(`^IMAP client "([^"]*)" sends expunge$`, imapClientNamedExpunge)
+}
+
+func imapClientSendsCommand(command string) error {
+	res := ctx.GetIMAPClient("imap").SendCommand(command)
+	ctx.SetIMAPLastResponse("imap", res)
+	return nil
 }
 
 func imapClientFetches(fetchRange string) error {
@@ -67,16 +78,6 @@ func imapClientFetchesByUID(fetchRange string) error {
 func imapClientSearchesFor(query string) error {
 	res := ctx.GetIMAPClient("imap").Search(query)
 	ctx.SetIMAPLastResponse("imap", res)
-	return nil
-}
-
-func imapClientDeletesMessages(messageRange string) error {
-	return imapClientNamedDeletesMessages("imap", messageRange)
-}
-
-func imapClientNamedDeletesMessages(imapClient, messageRange string) error {
-	res := ctx.GetIMAPClient(imapClient).Delete(messageRange)
-	ctx.SetIMAPLastResponse(imapClient, res)
 	return nil
 }
 
@@ -190,12 +191,42 @@ func imapClientNamedMarksMessageAsUnstarred(imapClient, messageRange string) err
 	return nil
 }
 
+func imapClientMarksMessageAsDeleted(messageRange string) error {
+	return imapClientNamedMarksMessageAsDeleted("imap", messageRange)
+}
+
+func imapClientNamedMarksMessageAsDeleted(imapClient, messageRange string) error {
+	res := ctx.GetIMAPClient(imapClient).MarkAsDeleted(messageRange)
+	ctx.SetIMAPLastResponse(imapClient, res)
+	return nil
+}
+
+func imapClientMarksMessageAsUndeleted(messageRange string) error {
+	return imapClientNamedMarksMessageAsUndeleted("imap", messageRange)
+}
+
+func imapClientNamedMarksMessageAsUndeleted(imapClient, messageRange string) error {
+	res := ctx.GetIMAPClient(imapClient).MarkAsUndeleted(messageRange)
+	ctx.SetIMAPLastResponse(imapClient, res)
+	return nil
+}
+
 func imapClientStartsIDLEing() error {
 	return imapClientNamedStartsIDLEing("imap")
 }
 
 func imapClientNamedStartsIDLEing(imapClient string) error {
 	res := ctx.GetIMAPClient(imapClient).StartIDLE()
+	ctx.SetIMAPLastResponse(imapClient, res)
+	return nil
+}
+
+func imapClientExpunge() error {
+	return imapClientNamedExpunge("imap")
+}
+
+func imapClientNamedExpunge(imapClient string) error {
+	res := ctx.GetIMAPClient(imapClient).Expunge()
 	ctx.SetIMAPLastResponse(imapClient, res)
 	return nil
 }

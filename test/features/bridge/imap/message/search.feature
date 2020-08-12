@@ -4,10 +4,10 @@ Feature: IMAP search messages
     # Messages are inserted in opposite way to keep increasing ID.
     # Sequence numbers are then opposite than listed above.
     Given there are messages in mailbox "INBOX" for "user"
-      | from               | to         | cc         | subject | read  | starred | body  |
-      | john.doe@email.com | user@pm.me |            | foo     | false | false   | hello |
-      | jane.doe@email.com | user@pm.me | name@pm.me | bar     | true  | true    | world |
-      | jane.doe@email.com | name@pm.me |            | baz     | true  | false   | bye   |
+      | from               | to         | cc         | subject | read  | starred | deleted | body  |
+      | john.doe@email.com | user@pm.me |            | foo     | false | false   | false   | hello |
+      | jane.doe@email.com | user@pm.me | name@pm.me | bar     | true  | true    | false   | world |
+      | jane.doe@email.com | name@pm.me |            | baz     | true  | false   | true    | bye   |
     And there is IMAP client logged in as "user"
     And there is IMAP client selected in "INBOX"
 
@@ -68,6 +68,16 @@ Feature: IMAP search messages
 
   Scenario: Search unseen messages
     When IMAP client searches for "UNSEEN"
+    Then IMAP response is "OK"
+    And IMAP response contains "SEARCH 3[^0-9]*$"
+
+  Scenario: Search deleted messages
+    When IMAP client searches for "DELETED"
+    Then IMAP response is "OK"
+    And IMAP response contains "SEARCH 1 2[^0-9]*$"
+
+  Scenario: Search undeleted messages
+    When IMAP client searches for "UNDELETED"
     Then IMAP response is "OK"
     And IMAP response contains "SEARCH 3[^0-9]*$"
 

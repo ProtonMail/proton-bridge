@@ -49,3 +49,14 @@ Feature: IMAP fetch messages
     When IMAP client fetches by UID "11:*"
     Then IMAP response is "OK"
     And IMAP response has 1 message
+
+  Scenario: Fetch returns also messages that are marked as deleted
+    Given there are messages in mailbox "Folders/mbox" for "user"
+      | from              | to         | subject | body  | read  | starred | deleted |
+      | john.doe@mail.com | user@pm.me | foo     | hello | false | false   | false   |
+      | jane.doe@mail.com | name@pm.me | bar     | world | true  | true    | true    |
+    And there is IMAP client logged in as "user"
+    And there is IMAP client selected in "Folders/mbox"
+    When IMAP client fetches by UID "1:*"
+    Then IMAP response is "OK"
+    And IMAP response has 2 message

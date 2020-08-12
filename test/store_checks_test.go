@@ -42,6 +42,8 @@ func StoreChecksFeatureContext(s *godog.Suite) {
 	s.Step(`^message "([^"]*)" in "([^"]*)" for "([^"]*)" is marked as unread$`, messagesInMailboxForUserIsMarkedAsUnread)
 	s.Step(`^message "([^"]*)" in "([^"]*)" for "([^"]*)" is marked as starred$`, messagesInMailboxForUserIsMarkedAsStarred)
 	s.Step(`^message "([^"]*)" in "([^"]*)" for "([^"]*)" is marked as unstarred$`, messagesInMailboxForUserIsMarkedAsUnstarred)
+	s.Step(`^message "([^"]*)" in "([^"]*)" for "([^"]*)" is marked as deleted$`, messagesInMailboxForUserIsMarkedAsDeleted)
+	s.Step(`^message "([^"]*)" in "([^"]*)" for "([^"]*)" is marked as undeleted$`, messagesInMailboxForUserIsMarkedAsUndeleted)
 }
 
 func userHasMailbox(bddUserID, mailboxName string) error {
@@ -217,6 +219,9 @@ func messagesContainsMessageRow(account *accounts.TestAccount, allMessages []*pm
 				if message.Unread != unread {
 					matches = false
 				}
+			case "deleted":
+				// TODO
+				matches = false
 			default:
 				return false, fmt.Errorf("unexpected column name: %s", head[n].Value)
 			}
@@ -274,6 +279,20 @@ func messagesInMailboxForUserIsMarkedAsUnstarred(messageIDs, mailboxName, bddUse
 			return nil
 		}
 		return fmt.Errorf("message %s \"%s\" is expected to not be starred but is", message.ID, message.Subject)
+	})
+}
+
+func messagesInMailboxForUserIsMarkedAsDeleted(messageIDs, mailboxName, bddUserID string) error {
+	return checkMessages(bddUserID, mailboxName, messageIDs, func(message *pmapi.Message) error {
+		// TODO
+		return fmt.Errorf("TODO message %s \"%s\" is expected to be deleted but is not", message.ID, message.Subject)
+	})
+}
+
+func messagesInMailboxForUserIsMarkedAsUndeleted(messageIDs, mailboxName, bddUserID string) error {
+	return checkMessages(bddUserID, mailboxName, messageIDs, func(message *pmapi.Message) error {
+		// TODO
+		return fmt.Errorf("TODO message %s \"%s\" is expected to not be deleted but is", message.ID, message.Subject)
 	})
 }
 

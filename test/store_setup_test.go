@@ -80,12 +80,13 @@ func thereAreMessagesInMailboxesForAddressOfUser(mailboxNames, bddAddressID, bdd
 		return godog.ErrPending
 	}
 	head := messages.Rows[0].Cells
-	for i := 1; i < len(messages.Rows); i++ {
-		labelIDs, err := ctx.GetPMAPIController().GetLabelIDs(account.Username(), strings.Split(mailboxNames, ","))
-		if err != nil {
-			return internalError(err, "getting labels %s for %s", mailboxNames, account.Username())
-		}
 
+	labelIDs, err := ctx.GetPMAPIController().GetLabelIDs(account.Username(), strings.Split(mailboxNames, ","))
+	if err != nil {
+		return internalError(err, "getting labels %s for %s", mailboxNames, account.Username())
+	}
+
+	for _, row := range messages.Rows {
 		message := &pmapi.Message{
 			MIMEType:  "text/plain",
 			LabelIDs:  labelIDs,
@@ -96,7 +97,7 @@ func thereAreMessagesInMailboxesForAddressOfUser(mailboxNames, bddAddressID, bdd
 			message.Flags |= pmapi.FlagSent
 		}
 
-		for n, cell := range messages.Rows[i].Cells {
+		for n, cell := range row.Cells {
 			switch head[n].Value {
 			case "from":
 				message.Sender = &mail.Address{
@@ -132,6 +133,12 @@ func thereAreMessagesInMailboxesForAddressOfUser(mailboxNames, bddAddressID, bdd
 					return internalError(err, "parsing time")
 				}
 				message.Time = date.Unix()
+			case "deleted":
+				if cell.Value == "true" {
+					/* TODO
+					   Remember that this message should be marked as deleted
+					*/
+				}
 			default:
 				return fmt.Errorf("unexpected column name: %s", head[n].Value)
 			}
@@ -140,6 +147,11 @@ func thereAreMessagesInMailboxesForAddressOfUser(mailboxNames, bddAddressID, bdd
 			return internalError(err, "adding message")
 		}
 	}
+
+	/* TODO
+	storeMailbox.MarkMessageAsDeleted(msgID)
+	*/
+
 	return internalError(ctx.WaitForSync(account.Username()), "waiting for sync")
 }
 

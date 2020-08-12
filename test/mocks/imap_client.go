@@ -179,10 +179,6 @@ func (c *IMAPClient) AppendBody(mailboxName, subject, from, to, body string) *IM
 	return c.SendCommand(cmd)
 }
 
-func (c *IMAPClient) Delete(ids string) *IMAPResponse {
-	return c.AddFlags(ids, "\\Deleted")
-}
-
 func (c *IMAPClient) Copy(ids, newMailboxName string) *IMAPResponse {
 	return c.SendCommand(fmt.Sprintf("COPY %s \"%s\"", ids, newMailboxName))
 }
@@ -207,6 +203,14 @@ func (c *IMAPClient) MarkAsUnstarred(ids string) *IMAPResponse {
 	return c.RemoveFlags(ids, "\\Flagged")
 }
 
+func (c *IMAPClient) MarkAsDeleted(ids string) *IMAPResponse {
+	return c.AddFlags(ids, "\\Deleted")
+}
+
+func (c *IMAPClient) MarkAsUndeleted(ids string) *IMAPResponse {
+	return c.RemoveFlags(ids, "\\Deleted")
+}
+
 func (c *IMAPClient) SetFlags(ids, flags string) *IMAPResponse {
 	return c.changeFlags(ids, flags, "")
 }
@@ -221,6 +225,10 @@ func (c *IMAPClient) RemoveFlags(ids, flags string) *IMAPResponse {
 
 func (c *IMAPClient) changeFlags(ids, flags, op string) *IMAPResponse {
 	return c.SendCommand(fmt.Sprintf("STORE %s %sflags (%s)", ids, op, flags))
+}
+
+func (c *IMAPClient) Expunge() *IMAPResponse {
+	return c.SendCommand("EXPUNGE")
 }
 
 // IDLE
