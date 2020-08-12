@@ -47,6 +47,7 @@ import (
 
 	"github.com/ProtonMail/proton-bridge/internal/api"
 	"github.com/ProtonMail/proton-bridge/internal/bridge"
+	"github.com/ProtonMail/proton-bridge/internal/cookies"
 	"github.com/ProtonMail/proton-bridge/internal/events"
 	"github.com/ProtonMail/proton-bridge/internal/frontend"
 	"github.com/ProtonMail/proton-bridge/internal/imap"
@@ -56,7 +57,6 @@ import (
 	"github.com/ProtonMail/proton-bridge/pkg/args"
 	"github.com/ProtonMail/proton-bridge/pkg/config"
 	"github.com/ProtonMail/proton-bridge/pkg/constants"
-	"github.com/ProtonMail/proton-bridge/pkg/cookies"
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	"github.com/ProtonMail/proton-bridge/pkg/updates"
@@ -275,7 +275,7 @@ func run(context *cli.Context) (contextError error) { // nolint[funlen]
 	cm.SetRoundTripper(cfg.GetRoundTripper(cm, eventListener))
 
 	// Cookies must be persisted across restarts.
-	jar, err := cookies.New(cookies.NewPersister(pref))
+	jar, err := cookies.NewCookieJar(cookies.NewPersister(pref))
 	if err != nil {
 		logrus.WithError(err).Warn("Could not create cookie jar")
 	} else {

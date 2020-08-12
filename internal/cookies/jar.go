@@ -15,6 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
 
+// Package cookies implements a persistent cookie jar which satisfies the http.CookieJar interface.
 package cookies
 
 import (
@@ -26,13 +27,15 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// Jar implements http.CookieJar by wrapping the standard library's cookiejar.Jar.
+// The jar uses a Persister to load cookies at startup and save cookies when set.
 type Jar struct {
 	jar       *cookiejar.Jar
 	persister *Persister
 	locker    sync.Locker
 }
 
-func New(persister *Persister) (*Jar, error) {
+func NewCookieJar(persister *Persister) (*Jar, error) {
 	jar, err := cookiejar.New(nil)
 	if err != nil {
 		return nil, err

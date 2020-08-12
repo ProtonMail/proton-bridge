@@ -36,7 +36,7 @@ func TestJar(t *testing.T) {
 	ts := getTestServer(t, testCookies...)
 	defer ts.Close()
 
-	jar, err := New(NewPersister(make(testPersister)))
+	jar, err := NewCookieJar(NewPersister(make(testPersister)))
 	require.NoError(t, err)
 
 	client := &http.Client{Jar: jar}
