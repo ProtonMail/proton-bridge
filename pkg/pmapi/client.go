@@ -127,7 +127,7 @@ type client struct {
 func newClient(cm *ClientManager, userID string) *client {
 	return &client{
 		cm:            cm,
-		hc:            getHTTPClient(cm.config, cm.roundTripper),
+		hc:            getHTTPClient(cm.config, cm.roundTripper, cm.cookieJar),
 		userID:        userID,
 		requestLocker: &sync.Mutex{},
 		keyRingLock:   &sync.Mutex{},
@@ -137,10 +137,11 @@ func newClient(cm *ClientManager, userID string) *client {
 }
 
 // getHTTPClient returns a http client configured by the given client config and using the given transport.
-func getHTTPClient(cfg *ClientConfig, rt http.RoundTripper) (hc *http.Client) {
+func getHTTPClient(cfg *ClientConfig, rt http.RoundTripper, jar http.CookieJar) (hc *http.Client) {
 	return &http.Client{
-		Timeout:   cfg.Timeout,
 		Transport: rt,
+		Jar:       jar,
+		Timeout:   cfg.Timeout,
 	}
 }
 

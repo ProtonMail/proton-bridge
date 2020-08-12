@@ -41,6 +41,7 @@ type ClientManager struct {
 
 	clients       map[string]Client
 	clientsLocker sync.Locker
+	cookieJar     http.CookieJar
 
 	tokens       map[string]string
 	tokensLocker sync.Locker
@@ -126,6 +127,11 @@ func (cm *ClientManager) SetClientConstructor(f func(userID string) Client) {
 	cm.newClient = f
 }
 
+// SetCookieJar sets the cookie jar given to clients.
+func (cm *ClientManager) SetCookieJar(jar http.CookieJar) {
+	cm.cookieJar = jar
+}
+
 // SetRoundTripper sets the roundtripper used by clients created by this client manager.
 func (cm *ClientManager) SetRoundTripper(rt http.RoundTripper) {
 	cm.roundTripper = rt
@@ -145,9 +151,11 @@ func (cm *ClientManager) GetClient(userID string) Client {
 		return client
 	}
 
-	cm.clients[userID] = cm.newClient(userID)
+	client := cm.newClient(userID)
 
-	return cm.clients[userID]
+	cm.clients[userID] = client
+
+	return client
 }
 
 // GetAnonymousClient returns an anonymous client.
@@ -303,7 +311,7 @@ var ErrNoInternetConnection = errors.New("no internet connection")
 // CheckConnection returns an error if there is no internet connection.
 // This should be moved to the ConnectionManager when it is implemented.
 func (cm *ClientManager) CheckConnection() error {
-	client := getHTTPClient(cm.config, cm.roundTripper)
+	client := getHTTPClient(cm.config, cm.roundTripper, cm.cookieJar)
 
 	// Do not cumulate timeouts, use goroutines.
 	retStatus := make(chan error)

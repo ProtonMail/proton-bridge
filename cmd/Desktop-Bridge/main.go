@@ -56,6 +56,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/pkg/args"
 	"github.com/ProtonMail/proton-bridge/pkg/config"
 	"github.com/ProtonMail/proton-bridge/pkg/constants"
+	"github.com/ProtonMail/proton-bridge/pkg/cookies"
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	"github.com/ProtonMail/proton-bridge/pkg/updates"
@@ -272,6 +273,13 @@ func run(context *cli.Context) (contextError error) { // nolint[funlen]
 	// TLS fingerprint checks in production builds). GetRoundTripper has a different
 	// implementation depending on whether build flag pmapi_prod is used or not.
 	cm.SetRoundTripper(cfg.GetRoundTripper(cm, eventListener))
+
+	// Cookies must be persisted across restarts.
+	jar, err := cookies.New(cookies.NewPersister(pref))
+	if err != nil {
+		logrus.WithError(err).Fatal("Could not create cookie jar")
+	}
+	cm.SetCookieJar(jar)
 
 	bridgeInstance := bridge.New(cfg, pref, panicHandler, eventListener, cm, credentialsStore)
 	imapBackend := imap.NewIMAPBackend(panicHandler, eventListener, cfg, bridgeInstance)

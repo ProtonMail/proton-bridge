@@ -37,6 +37,7 @@ const (
 	SMTPSSLKey             = "user_ssl_smtp"
 	AllowProxyKey          = "allow_proxy"
 	AutostartKey           = "autostart"
+	CookiesKey             = "cookies"
 	ReportOutgoingNoEncKey = "report_outgoing_email_without_encryption"
 	LastVersionKey         = "last_used_version"
 )

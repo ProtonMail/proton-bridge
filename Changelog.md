@@ -4,6 +4,9 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 ## Unreleased
 
+### Added
+* GODT-633 Persistent anonymous API cookies for better load balancing and abuse detection. 
+
 ### Changed
 * GODT-409 Set flags have to replace all flags.
 * GODT-531 Better way to add trusted certificate in macOS.
