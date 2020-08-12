@@ -22,8 +22,8 @@ import (
 	"github.com/ProtonMail/proton-bridge/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/internal/importexport"
 	"github.com/ProtonMail/proton-bridge/internal/transfer"
+	"github.com/ProtonMail/proton-bridge/internal/updates"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
-	"github.com/ProtonMail/proton-bridge/pkg/updates"
 )
 
 // PanicHandler is an interface of a type that can be used to gracefully handle panics which occur.
@@ -104,7 +104,7 @@ func (b *bridgeWrap) GetUser(query string) (User, error) {
 	return b.Bridge.GetUser(query)
 }
 
-// ImportExporter is an interface of import/export needed by frontend.
+// ImportExporter is an interface of import-export needed by frontend.
 type ImportExporter interface {
 	UserManager
 
@@ -121,9 +121,9 @@ type importExportWrap struct {
 	*importexport.ImportExport
 }
 
-// NewImportExportWrap wraps import/export struct into local importExportWrap
+// NewImportExportWrap wraps import-export struct into local importExportWrap
 // to implement local interface.
-// The problem is that Import/Export returns the importexport package's User
+// The problem is that Import-Export returns the importexport package's User
 // type. Every method which returns User therefore has to be overridden to
 // fulfill the interface.
 func NewImportExportWrap(ie *importexport.ImportExport) *importExportWrap { //nolint[golint]

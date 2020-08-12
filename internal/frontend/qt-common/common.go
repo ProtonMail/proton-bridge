@@ -103,16 +103,6 @@ func PauseLong() {
 	time.Sleep(3 * time.Second)
 }
 
-func ParsePMAPIError(err error, code int) error {
-	/*
-		if err == pmapi.ErrAPINotReachable {
-			code = ErrNoInternet
-		}
-		return errors.NewFromError(code, err)
-	*/
-	return nil
-}
-
 // FIXME: Not working in test...
 func WaitForEnter() {
 	log.Print("Press 'Enter' to continue...")

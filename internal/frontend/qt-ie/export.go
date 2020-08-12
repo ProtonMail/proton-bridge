@@ -47,6 +47,18 @@ func (f *FrontendQt) LoadStructureForExport(addressOrID string) {
 		return
 	}
 
+	// Export has only one option to set time limits--by global time range.
+	// In case user changes file or because of some bug global time is saved
+	// to all rules, let's clear it, because there is no way to show it in
+	// GUI and user would be confused and see it does not work at all.
+	for _, rule := range f.transfer.GetRules() {
+		isActive := rule.Active
+		f.transfer.SetRule(rule.SourceMailbox, rule.TargetMailboxes, 0, 0)
+		if !isActive {
+			f.transfer.UnsetRule(rule.SourceMailbox)
+		}
+	}
+
 	f.TransferRules.setTransfer(f.transfer)
 }
 
@@ -65,55 +77,4 @@ func (f *FrontendQt) StartExport(rootPath, login, fileType string, attachEncrypt
 	f.transfer.SetSkipEncryptedMessages(!attachEncryptedBody)
 	progress := f.transfer.Start()
 	f.setProgressManager(progress)
-
-	/*
-		TODO
-		f.Qml.SetProgress(0.0)
-		f.Qml.SetProgressDescription(backend.ProgressInit)
-		f.Qml.SetTotal(0)
-
-		settings := backend.ExportSettings{
-			FilePath:            fpath,
-			Login:               login,
-			AttachEncryptedBody: attachEncryptedBody,
-			DateBegin:           0,
-			DateEnd:             0,
-			Labels:              make(map[string]string),
-		}
-
-		if fileType == "EML" {
-			settings.FileTypeID = backend.EMLFormat
-		} else if fileType == "MBOX" {
-			settings.FileTypeID = backend.MBOXFormat
-		} else {
-			log.Errorln("Wrong file format:", fileType)
-			return
-		}
-
-		username, _, err := backend.ExtractUsername(login)
-		if err != nil {
-			log.Error("qtfrontend: cannot retrieve username from alias: ", err)
-			return
-		}
-
-		settings.User, err = backend.ExtractCurrentUser(username)
-		if err != nil && !errors.IsCode(err, errors.ErrUnlockUser) {
-			return
-		}
-
-		for _, entity := range f.PMStructure.entities {
-			if entity.IsFolderSelected {
-				settings.Labels[entity.FolderName] = entity.FolderId
-			}
-		}
-
-		settings.DateBegin = f.PMStructure.GlobalOptions.FromDate
-		settings.DateEnd = f.PMStructure.GlobalOptions.ToDate
-
-		settings.PM = backend.NewProcessManager()
-		f.setHandlers(settings.PM)
-
-		log.Debugln("start export", settings.FilePath)
-		go backend.Export(f.panicHandler, settings)
-	*/
 }

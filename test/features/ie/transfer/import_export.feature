@@ -1,4 +1,4 @@
-Feature: Import/Export
+Feature: Import-Export app
   Background:
     Given there is connected user "user"
     And there is "user" with mailbox "Folders/Foo"

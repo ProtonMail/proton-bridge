@@ -106,7 +106,7 @@ func New(app string) *TestContext {
 	// Ensure that the config is cleaned up after the test is over.
 	ctx.addCleanupChecked(cfg.ClearData, "Cleaning bridge config data")
 
-	// Create bridge or import/export instance under test.
+	// Create bridge or import-export instance under test.
 	switch app {
 	case "bridge":
 		ctx.withBridgeInstance()

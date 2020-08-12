@@ -74,6 +74,8 @@ func (f *FrontendQt) loadStructuresForImport() error {
 }
 
 func (f *FrontendQt) StartImport(email string) { // TODO email not needed
+	log.Trace("Starting import")
+
 	f.Qml.SetProgressDescription("init") // TODO use const
 	f.Qml.SetProgressFails(0)
 	f.Qml.SetProgress(0.0)

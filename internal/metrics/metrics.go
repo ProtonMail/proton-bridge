@@ -67,7 +67,7 @@ const (
 	Daily = Action("daily")
 )
 
-// Metrics related to import/export (transfer) process.
+// Metrics related to import-export (transfer) process.
 const (
 	// Import is used to group import metrics.
 	Import = Category("import")

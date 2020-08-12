@@ -1,15 +1,15 @@
-# Import/Export
+# Import-Export
 
 ## Main blocks
 
-This is basic overview of the main import/export blocks.
+This is basic overview of the main import-export blocks.
 
 ```mermaid
 graph LR
     S[ProtonMail server]
     U[User]
 
-    subgraph "Import/Export app"
+    subgraph "Import-Export app"
         Users
         Frontend["Qt / CLI"]
         ImportExport
@@ -35,7 +35,7 @@ graph LR
 
 ## Code structure
 
-More detailed graph of main types used in Import/Export app and connection between them.
+More detailed graph of main types used in Import-Export app and connection between them.
 
 ```mermaid
 graph TD
@@ -44,9 +44,9 @@ graph TD
     MBOX[MBOX]
     IMAP[IMAP]
 
-    subgraph "Import/Export app"
-        subgraph PkgUsers
-            subgraph PkgCredentials
+    subgraph "Import-Export app"
+        subgraph "pkg users"
+            subgraph "pkg credentials"
                 CredStore[Store]
                 Creds[Credentials]
 
@@ -59,16 +59,16 @@ graph TD
             US --> U
         end
 
-        subgraph PkgFrontend
+        subgraph "pkg frontend"
             CLI
             Qt
         end
 
-        subgraph PkgImportExport
+        subgraph "pkg importExport"
             IE[ImportExport]
         end
 
-        subgraph PkgTransfer
+        subgraph "pkg transfer"
             Transfer
             Rules
             Progress

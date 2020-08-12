@@ -24,8 +24,16 @@ background.
 
 More details [on the public website](https://protonmail.com/bridge).
 
-## Description Import-Export
-TODO
+## Description Import-Export app
+ProtonMail Import-Export app for importing and exporting messages.
+
+To transfer messages, firstly log in using your ProtonMail credentials.
+For import, expand your account, and pick the address to which to import
+messages from IMAP server or local EML or MBOX files. For export, pick
+the whole account or only a specific address. Then, in both cases,
+configure transfer rules (match source and target mailboxes, set time
+range limits and so on) and hit start. Once the transfer is complete,
+check the results.
 
 ## Keychain
 You need to have a keychain in order to run the ProtonMail Bridge. On Mac or

@@ -93,7 +93,7 @@ func NewBridge(updateTempDir string) *Updates {
 	}
 }
 
-// NewImportExport inits Updates struct for import/export.
+// NewImportExport inits Updates struct for import-export.
 func NewImportExport(updateTempDir string) *Updates {
 	return &Updates{
 		version:               constants.Version,
@@ -102,7 +102,7 @@ func NewImportExport(updateTempDir string) *Updates {
 		releaseNotes:          importexport.ReleaseNotes,
 		releaseFixedBugs:      importexport.ReleaseFixedBugs,
 		updateTempDir:         updateTempDir,
-		landingPagePath:       "blog/import-export-beta/",
+		landingPagePath:       "import-export",
 		installerFileBaseName: "Import-Export-Installer",
 		versionFileBaseName:   "current_version_ie",
 		updateFileBaseName:    "ie_upgrade",

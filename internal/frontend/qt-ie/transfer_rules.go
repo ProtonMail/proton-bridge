@@ -44,6 +44,7 @@ type TransferRules struct {
 	_ func(sourceID string, targetID string)              `slot:"addTargetID,auto"`
 	_ func(sourceID string, targetID string)              `slot:"removeTargetID,auto"`
 
+	// globalFromDate and globalToDate is just default value for GUI, always zero.
 	_ int  `property:"globalFromDate"`
 	_ int  `property:"globalToDate"`
 	_ bool `property:"isLabelGroupSelected"`
@@ -90,21 +91,23 @@ func (t *TransferRules) roleNames() map[int]*core.QByteArray {
 }
 
 func (t *TransferRules) data(index *core.QModelIndex, role int) *core.QVariant {
-	i, valid := index.Row(), index.IsValid()
-
-	if !valid || i >= t.rowCount(index) {
-		log.WithField("row", i).Warning("Invalid index")
-		return core.NewQVariant()
-	}
+	i := index.Row()
+	allRules := t.transfer.GetRules()
 
 	log := log.WithField("row", i).WithField("role", role)
+	log.Trace("Transfer rules data")
+
+	if i >= len(allRules) {
+		log.Warning("Invalid index")
+		return core.NewQVariant()
+	}
 
 	if t.transfer == nil {
 		log.Warning("Requested transfer rules data before transfer is connected")
 		return qtcommon.NewQVariantString("")
 	}
 
-	rule := t.transfer.GetRules()[i]
+	rule := allRules[i]
 
 	switch role {
 	case MboxIsActive:
@@ -160,6 +163,9 @@ func (t *TransferRules) setTransfer(transfer *transfer.Transfer) {
 
 	t.transfer = transfer
 
+	t.targetFoldersCache = make(map[string]*MboxList)
+	t.targetLabelsCache = make(map[string]*MboxList)
+
 	t.updateGroupSelection()
 }
 
@@ -196,7 +202,9 @@ func (t *TransferRules) targetLabels(sourceID string) *MboxList {
 // Setters
 
 func (t *TransferRules) setIsGroupActive(groupName string, isActive bool) {
-	wantExclusive := (groupName == FolderTypeLabel)
+	log.WithField("group", groupName).WithField("active", isActive).Trace("Setting group as active/inactive")
+
+	wantExclusive := (groupName == FolderTypeFolder)
 	for _, rule := range t.transfer.GetRules() {
 		if rule.SourceMailbox.IsExclusive != wantExclusive {
 			continue
@@ -265,6 +273,7 @@ func (t *TransferRules) addTargetID(sourceID string, targetID string) {
 		newTargetMailboxes = append(newTargetMailboxes, *targetMailboxToAdd)
 	}
 	t.setRule(rule.SourceMailbox, newTargetMailboxes, rule.FromTime, rule.ToTime, []int{RuleTargetLabelColors})
+	t.updateTargetSelection(sourceID, targetMailboxToAdd.IsExclusive)
 }
 
 func (t *TransferRules) removeTargetID(sourceID string, targetID string) {
@@ -286,10 +295,14 @@ func (t *TransferRules) removeTargetID(sourceID string, targetID string) {
 		}
 	}
 	t.setRule(rule.SourceMailbox, newTargetMailboxes, rule.FromTime, rule.ToTime, []int{RuleTargetLabelColors})
+	t.updateTargetSelection(sourceID, targetMailboxToRemove.IsExclusive)
 }
 
 // Helpers
 
+// getRule returns rule for given source ID.
+// WARN: Always get new rule after change because previous pointer points to
+// outdated struct with old data.
 func (t *TransferRules) getRule(sourceID string) *transfer.Rule {
 	mailbox := t.getMailbox(t.transfer.SourceMailboxes, sourceID)
 	if mailbox == nil {
@@ -331,20 +344,19 @@ func (t *TransferRules) unsetRule(sourceMailbox transfer.Mailbox) {
 }
 
 func (t *TransferRules) ruleChanged(sourceMailbox transfer.Mailbox, changedRoles []int) {
-	for row, rule := range t.transfer.GetRules() {
+	allRules := t.transfer.GetRules()
+	for row, rule := range allRules {
 		if rule.SourceMailbox.Hash() != sourceMailbox.Hash() {
 			continue
 		}
 
-		t.targetFolders(sourceMailbox.Hash()).itemsChanged(rule)
-		t.targetLabels(sourceMailbox.Hash()).itemsChanged(rule)
-
 		index := t.Index(row, 0, core.NewQModelIndex())
-		if !index.IsValid() || row >= t.rowCount(index) {
+		if !index.IsValid() || row >= len(allRules) {
 			log.WithField("row", row).Warning("Invalid index")
 			return
 		}
 
+		log.WithField("row", row).Trace("Transfer rule changed")
 		t.DataChanged(index, index, changedRoles)
 		break
 	}
@@ -374,4 +386,17 @@ func (t *TransferRules) updateGroupSelection() {
 
 	t.SetIsLabelGroupSelected(areAllLabelsSelected)
 	t.SetIsFolderGroupSelected(areAllFoldersSelected)
+}
+
+func (t *TransferRules) updateTargetSelection(sourceID string, updateFolderSelect bool) {
+	rule := t.getRule(sourceID)
+	if rule == nil {
+		return
+	}
+
+	if updateFolderSelect {
+		t.targetFolders(rule.SourceMailbox.Hash()).itemsChanged(rule)
+	} else {
+		t.targetLabels(rule.SourceMailbox.Hash()).itemsChanged(rule)
+	}
 }

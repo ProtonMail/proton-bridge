@@ -25,6 +25,25 @@ import (
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 )
 
+var systemFolderMapping = map[string]string{ //nolint[gochecknoglobals]
+	"bin":       "Trash",
+	"junk":      "Spam",
+	"all":       "All Mail",
+	"sent mail": "Sent",
+	"draft":     "Drafts",
+	"important": "Starred",
+	// Add more translations.
+}
+
+// LeastUsedColor is intended to return color for creating a new inbox or label
+func LeastUsedColor(mailboxes []Mailbox) string {
+	usedColors := []string{}
+	for _, m := range mailboxes {
+		usedColors = append(usedColors, m.Color)
+	}
+	return pmapi.LeastUsedColor(usedColors)
+}
+
 // Mailbox is universal data holder of mailbox details for every provider.
 type Mailbox struct {
 	ID          string
@@ -43,28 +62,10 @@ func (m Mailbox) Hash() string {
 	return fmt.Sprintf("%x", sha256.Sum256([]byte(m.Name)))
 }
 
-// LeastUsedColor is intended to return color for creating a new inbox or label
-func LeastUsedColor(mailboxes []Mailbox) string {
-	usedColors := []string{}
-	for _, m := range mailboxes {
-		usedColors = append(usedColors, m.Color)
-	}
-	return pmapi.LeastUsedColor(usedColors)
-}
-
 // findMatchingMailboxes returns all matching mailboxes from `mailboxes`.
-// Only one exclusive mailbox is returned.
+// Only one exclusive mailbox is included.
 func (m Mailbox) findMatchingMailboxes(mailboxes []Mailbox) []Mailbox {
-	nameVariants := []string{}
-	if strings.Contains(m.Name, "/") || strings.Contains(m.Name, "|") {
-		for _, slashPart := range strings.Split(m.Name, "/") {
-			for _, part := range strings.Split(slashPart, "|") {
-				nameVariants = append(nameVariants, strings.ToLower(part))
-			}
-		}
-	}
-	nameVariants = append(nameVariants, strings.ToLower(m.Name))
-
+	nameVariants := m.nameVariants()
 	isExclusiveIncluded := false
 	matches := []Mailbox{}
 	for i := range nameVariants {
@@ -82,4 +83,28 @@ func (m Mailbox) findMatchingMailboxes(mailboxes []Mailbox) []Mailbox {
 		}
 	}
 	return matches
+}
+
+// nameVariants returns all possible variants of the mailbox name.
+// The best match (original name) is at the end of the slice.
+// Variants are all in lower case. Examples:
+//  * Foo/bar -> [foo, bar, foo/bar]
+//  * x/Bin -> [x, trash, bin, x/bin]
+//  * a|b/c -> [a, b, c, a|b/c]
+func (m Mailbox) nameVariants() (nameVariants []string) {
+	name := strings.ToLower(m.Name)
+	if strings.Contains(name, "/") || strings.Contains(name, "|") {
+		for _, slashPart := range strings.Split(name, "/") {
+			for _, part := range strings.Split(slashPart, "|") {
+				if mappedPart, ok := systemFolderMapping[part]; ok {
+					nameVariants = append(nameVariants, strings.ToLower(mappedPart))
+				}
+				nameVariants = append(nameVariants, part)
+			}
+		}
+	}
+	if mappedName, ok := systemFolderMapping[name]; ok {
+		nameVariants = append(nameVariants, strings.ToLower(mappedName))
+	}
+	return append(nameVariants, name)
 }

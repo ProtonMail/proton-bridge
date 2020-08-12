@@ -17,7 +17,7 @@
 
 package cmd
 
-import "github.com/ProtonMail/proton-bridge/pkg/updates"
+import "github.com/ProtonMail/proton-bridge/internal/updates"
 
 // GenerateVersionFiles writes a JSON file with details about current build.
 // Those files are used for upgrading the app.

@@ -458,7 +458,7 @@ Dialog {
                             if (progressbarImport.isFinished) return qsTr("Import finished","todo")
                             if (
                                 go.progressDescription == gui.enums.progressInit ||
-                                (go.progress == 0 && go.description=="")
+                                (go.progress == 0 && go.progressDescription=="")
                             ) return qsTr("Estimating the total number of messages","todo")
                             if (
                                 go.progressDescription == gui.enums.progressLooping

@@ -36,6 +36,10 @@ func (p *EMLProvider) TransferTo(rules transferRules, progress *Progress, ch cha
 		return
 	}
 
+	if len(filePathsPerFolder) == 0 {
+		return
+	}
+
 	// This list is not filtered by time but instead going throgh each file
 	// twice or keeping all in memory we will tell rough estimation which
 	// will be updated during processing each file.
@@ -46,6 +50,7 @@ func (p *EMLProvider) TransferTo(rules transferRules, progress *Progress, ch cha
 
 		progress.updateCount(folderName, uint(len(filePaths)))
 	}
+	progress.countsFinal()
 
 	for folderName, filePaths := range filePathsPerFolder {
 		// No error guaranteed by getFilePathsPerFolder.

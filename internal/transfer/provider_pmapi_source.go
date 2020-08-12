@@ -24,6 +24,7 @@ import (
 	pkgMessage "github.com/ProtonMail/proton-bridge/pkg/message"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 )
 
 const pmapiListPageSize = 150
@@ -59,10 +60,11 @@ func (p *PMAPIProvider) loadCounts(rules transferRules, progress *Progress) {
 		rule := rule
 		progress.callWrap(func() error {
 			_, total, err := p.listMessages(&pmapi.MessagesFilter{
-				LabelID: rule.SourceMailbox.ID,
-				Begin:   rule.FromTime,
-				End:     rule.ToTime,
-				Limit:   0,
+				AddressID: p.addressID,
+				LabelID:   rule.SourceMailbox.ID,
+				Begin:     rule.FromTime,
+				End:       rule.ToTime,
+				Limit:     0,
 			})
 			if err != nil {
 				log.WithError(err).Warning("Problem to load counts")
@@ -72,10 +74,11 @@ func (p *PMAPIProvider) loadCounts(rules transferRules, progress *Progress) {
 			return nil
 		})
 	}
+	progress.countsFinal()
 }
 
 func (p *PMAPIProvider) transferTo(rule *Rule, progress *Progress, ch chan<- Message, skipEncryptedMessages bool) {
-	nextID := ""
+	page := 0
 	for {
 		if progress.shouldStop() {
 			break
@@ -84,29 +87,32 @@ func (p *PMAPIProvider) transferTo(rule *Rule, progress *Progress, ch chan<- Mes
 		isLastPage := true
 
 		progress.callWrap(func() error {
+			// Would be better to filter by Begin and BeginID to be sure
+			// in case user deletes messages during the process, no message
+			// is skipped (paging is off then), but API does not support
+			// filtering by both mentioned fields at the same time.
 			desc := false
-			pmapiMessages, count, err := p.listMessages(&pmapi.MessagesFilter{
+			pmapiMessages, total, err := p.listMessages(&pmapi.MessagesFilter{
 				AddressID: p.addressID,
 				LabelID:   rule.SourceMailbox.ID,
 				Begin:     rule.FromTime,
 				End:       rule.ToTime,
-				BeginID:   nextID,
 				PageSize:  pmapiListPageSize,
-				Page:      0,
+				Page:      page,
 				Sort:      "ID",
 				Desc:      &desc,
 			})
 			if err != nil {
 				return err
 			}
-			log.WithField("label", rule.SourceMailbox.ID).WithField("next", nextID).WithField("count", count).Debug("Listing messages")
+			log.WithFields(logrus.Fields{
+				"label": rule.SourceMailbox.ID,
+				"page":  page,
+				"total": total,
+				"count": len(pmapiMessages),
+			}).Debug("Listing messages")
 
 			isLastPage = len(pmapiMessages) < pmapiListPageSize
-
-			// The first ID is the last one from the last page (= do not export twice the same one).
-			if nextID != "" {
-				pmapiMessages = pmapiMessages[1:]
-			}
 
 			for _, pmapiMessage := range pmapiMessages {
 				if progress.shouldStop() {
@@ -122,9 +128,7 @@ func (p *PMAPIProvider) transferTo(rule *Rule, progress *Progress, ch chan<- Mes
 				}
 			}
 
-			if !isLastPage {
-				nextID = pmapiMessages[len(pmapiMessages)-1].ID
-			}
+			page++
 
 			return nil
 		})

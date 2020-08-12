@@ -43,6 +43,8 @@ Rectangle {
     property string lastTargetFolder: "6" // Archive
     property string lastTargetLabels: "" // no flag by default
 
+    property string sourceID   : mboxID
+    property string sourceName : name
 
     Rectangle {
         id: line
@@ -71,7 +73,7 @@ Rectangle {
 
         Text {
             id: folderIcon
-            text : gui.folderIcon(name, gui.enums.folderTypeFolder)
+            text : gui.folderIcon(root.sourceName, gui.enums.folderTypeFolder)
             anchors.verticalCenter : parent.verticalCenter
             color: root.isSourceSelected ? Style.main.text : Style.main.textDisabled
             font {
@@ -81,7 +83,7 @@ Rectangle {
         }
 
         Text {
-            text : name
+            text : root.sourceName
             width: nameWidth
             elide: Text.ElideRight
             anchors.verticalCenter : parent.verticalCenter
@@ -102,8 +104,8 @@ Rectangle {
 
         SelectFolderMenu {
             id: selectFolder
-            sourceID: mboxID
-            targets: transferRules.targetFolders(mboxID)
+            sourceID: root.sourceID
+            targets: transferRules.targetFolders(root.sourceID)
             width: nameWidth
             anchors.verticalCenter : parent.verticalCenter
             enabled: root.isSourceSelected
@@ -112,8 +114,8 @@ Rectangle {
         }
 
         SelectLabelsMenu {
-            sourceID: mboxID
-            targets: transferRules.targetLabels(mboxID)
+            sourceID: root.sourceID
+            targets: transferRules.targetLabels(root.sourceID)
             width: nameWidth
             anchors.verticalCenter : parent.verticalCenter
             enabled: root.isSourceSelected
@@ -130,7 +132,7 @@ Rectangle {
 
         DateRangeMenu {
             id: dateRangeMenu
-            sourceID: mboxID
+            sourceID: root.sourceID
             sourceFromDate: fromDate
             sourceToDate: toDate
 
@@ -143,10 +145,10 @@ Rectangle {
 
 
     function importToFolder(newTargetID) {
-        transferRules.addTargetID(mboxID,newTargetID)
+        transferRules.addTargetID(root.sourceID,newTargetID)
     }
 
     function toggleImport() {
-        transferRules.setIsRuleActive(mboxID, !root.isSourceSelected)
+        transferRules.setIsRuleActive(root.sourceID, !root.isSourceSelected)
     }
 }

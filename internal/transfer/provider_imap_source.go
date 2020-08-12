@@ -72,6 +72,7 @@ func (p *IMAPProvider) loadMessageInfoMap(rules transferRules, progress *Progres
 		res[rule.SourceMailbox.Name] = messagesInfo
 		progress.updateCount(rule.SourceMailbox.Name, uint(len(messagesInfo)))
 	}
+	progress.countsFinal()
 
 	return res
 }
@@ -109,7 +110,9 @@ func (p *IMAPProvider) loadMessagesInfo(rule *Rule, progress *Progress, uidValid
 					return
 				}
 			}
-			id := fmt.Sprintf("%s_%d:%d", rule.SourceMailbox.Name, uidValidity, imapMessage.Uid)
+			id := getUniqueMessageID(rule.SourceMailbox.Name, uidValidity, imapMessage.Uid)
+			// We use ID as key to ensure we have every unique message only once.
+			// Some IMAP servers responded twice the same message...
 			messagesInfo[id] = imapMessageInfo{
 				id:   id,
 				uid:  imapMessage.Uid,
@@ -173,6 +176,10 @@ func (p *IMAPProvider) exportMessages(rule *Rule, progress *Progress, ch chan<- 
 	items := []imap.FetchItem{imap.FetchUid, imap.FetchFlags, section.FetchItem()}
 
 	processMessageCallback := func(imapMessage *imap.Message) {
+		if progress.shouldStop() {
+			return
+		}
+
 		id, ok := uidToID[imapMessage.Uid]
 
 		// Sometimes, server sends not requested messages.
@@ -216,4 +223,8 @@ func (p *IMAPProvider) exportMessage(rule *Rule, id string, imapMessage *imap.Me
 		Source:  rule.SourceMailbox,
 		Targets: rule.TargetMailboxes,
 	}
+}
+
+func getUniqueMessageID(mailboxName string, uidValidity, uid uint32) string {
+	return fmt.Sprintf("%s_%d:%d", mailboxName, uidValidity, uid)
 }

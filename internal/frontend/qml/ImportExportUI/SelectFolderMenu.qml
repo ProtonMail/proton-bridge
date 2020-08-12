@@ -58,7 +58,6 @@ ComboBox {
     }
 
     displayText: {
-        console.log("Target Menu current", view.currentItem, view.currentIndex)
         if (view.currentIndex >= 0) {
             if (!root.isFolderType) return Style.fa.tags + " " + qsTr("Add/Remove labels")
 

@@ -110,7 +110,7 @@ Rectangle {
                 left: parent.left
                 verticalCenter: parent.verticalCenter
                 leftMargin: {
-                    if (listview.currentIndex<0) return 0
+                    if (listview.currentItem === null) return 0
                     else return listview.currentItem.leftMargin1
                 }
             }

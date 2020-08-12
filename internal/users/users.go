@@ -299,12 +299,11 @@ func (u *Users) addNewUser(apiUser *pmapi.User, auth *pmapi.Auth, hashedPassphra
 		return errors.Wrap(err, "failed to update API user")
 	}
 
-	emails := []string{}
-	for _, address := range client.Addresses() {
-		if u.useOnlyActiveAddresses && address.Receive != pmapi.CanReceive {
-			continue
-		}
-		emails = append(emails, address.Email)
+	var emails []string //nolint[prealloc]
+	if u.useOnlyActiveAddresses {
+		emails = client.Addresses().ActiveEmails()
+	} else {
+		emails = client.Addresses().AllEmails()
 	}
 
 	if _, err = u.credStorer.Add(apiUser.ID, apiUser.Name, auth.GenToken(), hashedPassphrase, emails); err != nil {

@@ -55,8 +55,8 @@ func newMboxList(t *TransferRules, rule *transfer.Rule, containsFolders bool) *M
 	m.log = log.
 		WithField("rule", m.rule.SourceMailbox.Hash()).
 		WithField("folders", m.containsFolders)
+	m.updateSelectedIndex()
 	m.EndResetModel()
-	m.itemsChanged(rule)
 	return m
 }
 
@@ -71,11 +71,6 @@ func (m *MboxList) rowCount(index *core.QModelIndex) int {
 }
 
 func (m *MboxList) roleNames() map[int]*core.QByteArray {
-	m.log.
-		WithField("isActive", MboxIsActive).
-		WithField("id", MboxID).
-		WithField("color", MboxColor).
-		Debug("role names")
 	return map[int]*core.QByteArray{
 		MboxIsActive: qtcommon.NewQByteArrayFromString("isActive"),
 		MboxID:       qtcommon.NewQByteArrayFromString("mboxID"),
@@ -88,17 +83,17 @@ func (m *MboxList) roleNames() map[int]*core.QByteArray {
 func (m *MboxList) data(index *core.QModelIndex, role int) *core.QVariant {
 	allTargets := m.targetMailboxes()
 
-	i, valid := index.Row(), index.IsValid()
-	l := m.log.WithField("row", i).WithField("role", role)
-	l.Trace("called data()")
+	i := index.Row()
+	log := m.log.WithField("row", i).WithField("role", role)
+	log.Trace("Mbox data")
 
-	if !valid || i >= len(allTargets) {
-		l.WithField("row", i).Warning("Invalid index")
+	if i >= len(allTargets) {
+		log.Warning("Invalid index")
 		return core.NewQVariant()
 	}
 
 	if m.transfer == nil {
-		l.Warning("Requested mbox list data before transfer is connected")
+		log.Warning("Requested mbox list data before transfer is connected")
 		return qtcommon.NewQVariantString("")
 	}
 
@@ -131,7 +126,7 @@ func (m *MboxList) data(index *core.QModelIndex, role int) *core.QVariant {
 		return qtcommon.NewQVariantString(mbox.Color)
 
 	default:
-		l.Error("Requested mbox list data with unknown role")
+		log.Error("Requested mbox list data with unknown role")
 		return qtcommon.NewQVariantString("")
 	}
 }
@@ -161,11 +156,10 @@ func (m *MboxList) filter(mailboxes []transfer.Mailbox) (filtered []transfer.Mai
 func (m *MboxList) itemsChanged(rule *transfer.Rule) {
 	m.rule = rule
 	allTargets := m.targetMailboxes()
-	l := m.log.WithField("count", len(allTargets))
-	l.Trace("called itemChanged()")
-	defer func() {
-		l.WithField("selected", m.SelectedIndex()).Trace("index updated")
-	}()
+
+	m.log.WithField("count", len(allTargets)).Trace("Mbox items changed")
+
+	m.updateSelectedIndex()
 
 	// NOTE: Be careful with indices: If they are invalid the DataChanged
 	// signal will not be sent to QML e.g. `end == rowCount - 1`
@@ -175,7 +169,10 @@ func (m *MboxList) itemsChanged(rule *transfer.Rule) {
 		changedRoles := []int{MboxIsActive}
 		m.DataChanged(begin, end, changedRoles)
 	}
+}
 
+func (m *MboxList) updateSelectedIndex() {
+	allTargets := m.targetMailboxes()
 	for index, targetMailbox := range allTargets {
 		for _, selectedTarget := range m.rule.TargetMailboxes {
 			if targetMailbox.Hash() == selectedTarget.Hash() {

@@ -30,11 +30,12 @@ import (
 // Import and export update progress about processing messages and progress
 // informs user interface, vice versa action (such as pause or resume) from
 // user interface is passed down to import and export.
-type Progress struct {
+type Progress struct { //nolint[maligned]
 	log  *logrus.Entry
-	lock sync.RWMutex
+	lock sync.Locker
 
 	updateCh        chan struct{}
+	messageCounted  bool
 	messageCounts   map[string]uint
 	messageStatuses map[string]*MessageStatus
 	pauseReason     string
@@ -45,7 +46,8 @@ type Progress struct {
 
 func newProgress(log *logrus.Entry, fileReport *fileReport) Progress {
 	return Progress{
-		log: log,
+		log:  log,
+		lock: &sync.Mutex{},
 
 		updateCh:        make(chan struct{}),
 		messageCounts:   map[string]uint{},
@@ -57,11 +59,7 @@ func newProgress(log *logrus.Entry, fileReport *fileReport) Progress {
 // update is helper to notify listener for updates.
 func (p *Progress) update() {
 	if p.updateCh == nil {
-		// If the progress was ended by fatal instead finish, we ignore error.
-		if p.fatalError != nil {
-			return
-		}
-		panic("update should not be called after finish was called")
+		return
 	}
 
 	// In case no one listens for an update, do not block the progress.
@@ -71,17 +69,12 @@ func (p *Progress) update() {
 	}
 }
 
-// start should be called before anything starts.
-func (p *Progress) start() {
-	p.lock.Lock()
-	defer p.lock.Unlock()
-}
-
 // finish should be called as the last call once everything is done.
 func (p *Progress) finish() {
 	p.lock.Lock()
 	defer p.lock.Unlock()
 
+	log.Debug("Progress finished")
 	p.cleanUpdateCh()
 }
 
@@ -90,6 +83,7 @@ func (p *Progress) fatal(err error) {
 	p.lock.Lock()
 	defer p.lock.Unlock()
 
+	log.WithError(err).Error("Progress finished")
 	p.isStopped = true
 	p.fatalError = err
 	p.cleanUpdateCh()
@@ -97,21 +91,26 @@ func (p *Progress) fatal(err error) {
 
 func (p *Progress) cleanUpdateCh() {
 	if p.updateCh == nil {
-		// If the progress was ended by fatal instead finish, we ignore error.
-		if p.fatalError != nil {
-			return
-		}
-		panic("update should not be called after finish was called")
+		return
 	}
 
 	close(p.updateCh)
 	p.updateCh = nil
 }
 
+func (p *Progress) countsFinal() {
+	p.lock.Lock()
+	defer p.lock.Unlock()
+	defer p.update()
+
+	log.Info("Estimating count finished")
+	p.messageCounted = true
+}
+
 func (p *Progress) updateCount(mailbox string, count uint) {
 	p.lock.Lock()
-	defer p.update()
 	defer p.lock.Unlock()
+	defer p.update()
 
 	log.WithField("mailbox", mailbox).WithField("count", count).Debug("Mailbox count updated")
 	p.messageCounts[mailbox] = count
@@ -120,8 +119,8 @@ func (p *Progress) updateCount(mailbox string, count uint) {
 // addMessage should be called as soon as there is ID of the message.
 func (p *Progress) addMessage(messageID string, rule *Rule) {
 	p.lock.Lock()
-	defer p.update()
 	defer p.lock.Unlock()
+	defer p.update()
 
 	p.log.WithField("id", messageID).Trace("Message added")
 	p.messageStatuses[messageID] = &MessageStatus{
@@ -134,10 +133,15 @@ func (p *Progress) addMessage(messageID string, rule *Rule) {
 // messageExported should be called right before message is exported.
 func (p *Progress) messageExported(messageID string, body []byte, err error) {
 	p.lock.Lock()
-	defer p.update()
 	defer p.lock.Unlock()
+	defer p.update()
 
-	p.log.WithField("id", messageID).WithError(err).Debug("Message exported")
+	log := p.log.WithField("id", messageID)
+	if err != nil {
+		log = log.WithError(err)
+	}
+	log.Debug("Message exported")
+
 	status := p.messageStatuses[messageID]
 	status.exportErr = err
 	if err == nil {
@@ -148,7 +152,7 @@ func (p *Progress) messageExported(messageID string, body []byte, err error) {
 		status.bodyHash = fmt.Sprintf("%x", sha256.Sum256(body))
 
 		if header, err := getMessageHeader(body); err != nil {
-			p.log.WithField("id", messageID).WithError(err).Warning("Failed to parse headers for reporting")
+			log.WithError(err).Warning("Failed to parse headers for reporting")
 		} else {
 			status.setDetailsFromHeader(header)
 		}
@@ -163,10 +167,15 @@ func (p *Progress) messageExported(messageID string, body []byte, err error) {
 // messageImported should be called right after message is imported.
 func (p *Progress) messageImported(messageID, importID string, err error) {
 	p.lock.Lock()
-	defer p.update()
 	defer p.lock.Unlock()
+	defer p.update()
 
-	p.log.WithField("id", messageID).WithError(err).Debug("Message imported")
+	log := p.log.WithField("id", messageID)
+	if err != nil {
+		log = log.WithError(err)
+	}
+	log.Debug("Message imported")
+
 	p.messageStatuses[messageID].targetID = importID
 	p.messageStatuses[messageID].importErr = err
 	if err == nil {
@@ -187,6 +196,8 @@ func (p *Progress) logMessage(messageID string) {
 
 // callWrap calls the callback and in case of problem it pause the process.
 // Then it waits for user action to fix it and click on continue or abort.
+// Every function doing I/O should be wrapped by this function to provide
+// stopping and pausing functionality.
 func (p *Progress) callWrap(callback func() error) {
 	for {
 		if p.shouldStop() {
@@ -222,8 +233,8 @@ func (p *Progress) GetUpdateChannel() chan struct{} {
 // Pause pauses the progress.
 func (p *Progress) Pause(reason string) {
 	p.lock.Lock()
-	defer p.update()
 	defer p.lock.Unlock()
+	defer p.update()
 
 	p.log.Info("Progress paused")
 	p.pauseReason = reason
@@ -232,8 +243,8 @@ func (p *Progress) Pause(reason string) {
 // Resume resumes the progress.
 func (p *Progress) Resume() {
 	p.lock.Lock()
-	defer p.update()
 	defer p.lock.Unlock()
+	defer p.update()
 
 	p.log.Info("Progress resumed")
 	p.pauseReason = ""
@@ -258,8 +269,8 @@ func (p *Progress) PauseReason() string {
 // Stop stops the process.
 func (p *Progress) Stop() {
 	p.lock.Lock()
-	defer p.update()
 	defer p.lock.Unlock()
+	defer p.update()
 
 	p.log.Info("Progress stopped")
 	p.isStopped = true
@@ -304,6 +315,12 @@ func (p *Progress) GetCounts() (failed, imported, exported, added, total uint) {
 	p.lock.Lock()
 	defer p.lock.Unlock()
 
+	// Return counts only once total is estimated or the process already
+	// ended (for a case when it ended quickly to report it correctly).
+	if p.updateCh != nil && !p.messageCounted {
+		return
+	}
+
 	// Include lost messages in the process only when transfer is done.
 	includeMissing := p.updateCh == nil
 
@@ -334,10 +351,10 @@ func (p *Progress) GenerateBugReport() []byte {
 	return bugReport.getData()
 }
 
-func (p *Progress) FileReport() (path string) {
-	if r := p.fileReport; r != nil {
-		path = r.path
+// FileReport returns path to generated defailed file report.
+func (p *Progress) FileReport() string {
+	if p.fileReport == nil {
+		return ""
 	}
-
-	return
+	return p.fileReport.path
 }

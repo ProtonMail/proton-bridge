@@ -39,13 +39,13 @@ type Builder struct {
 	cl  pmapi.Client
 	msg *pmapi.Message
 
-	EncryptedToHTML bool
-	succDcrpt       bool
+	EncryptedToHTML       bool
+	successfullyDecrypted bool
 }
 
 // NewBuilder initiated with client and message meta info.
 func NewBuilder(client pmapi.Client, message *pmapi.Message) *Builder {
-	return &Builder{cl: client, msg: message, EncryptedToHTML: true, succDcrpt: false}
+	return &Builder{cl: client, msg: message, EncryptedToHTML: true, successfullyDecrypted: false}
 }
 
 // fetchMessage will update original PM message if successful
@@ -212,7 +212,7 @@ func (bld *Builder) BuildMessage() (structure *BodyStructure, message []byte, er
 }
 
 // SuccessfullyDecrypted is true when message was fetched and decrypted successfully
-func (bld *Builder) SuccessfullyDecrypted() bool { return bld.succDcrpt }
+func (bld *Builder) SuccessfullyDecrypted() bool { return bld.successfullyDecrypted }
 
 // WriteBody decrypts PM message and writes main body section. The external PGP
 // message is written as is (including attachments)
@@ -225,7 +225,7 @@ func (bld *Builder) WriteBody(w io.Writer) error {
 	if err := bld.msg.Decrypt(kr); err != nil && err != openpgperrors.ErrSignatureExpired {
 		return err
 	}
-	bld.succDcrpt = true
+	bld.successfullyDecrypted = true
 	if bld.msg.MIMEType != pmapi.ContentTypeMultipartMixed {
 		// transfer encoding
 		qp := quotedprintable.NewWriter(w)

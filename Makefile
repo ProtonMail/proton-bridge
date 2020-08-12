@@ -176,11 +176,9 @@ test: gofiles
 		./internal/smtp/... \
 		./internal/store/... \
 		./internal/transfer/... \
+		./internal/updates/... \
 		./internal/users/... \
 		./pkg/...
-
-test-ie:
-	go test ./internal/transfer/...
 
 bench:
 	go test -run '^$$' -bench=. -memprofile bench_mem.pprof -cpuprofile bench_cpu.pprof ./internal/store
@@ -228,7 +226,8 @@ gofiles: ./internal/bridge/credits.go ./internal/bridge/release_notes.go ./inter
 
 
 ## Run and debug
-.PHONY: run run-ie run-qt run-ie-qt run-qt-cli run-nogui run-ie-nogui run-nogui-cli run-debug run-qml-preview run-ie-qml-preview clean-fronted-qt clean-fronted-qt-ie clean-fronted-qt-common clean
+.PHONY: run run-qt run-qt-cli run-nogui run-nogui-cli run-debug run-qml-preview run-ie-qml-preview run-ie run-ie-qt run-ie-qt-cli run-ie-nogui run-ie-nogui-cli clean-vendor clean-frontend-qt clean-frontend-qt-ie clean-frontend-qt-common clean
+
 VERBOSITY?=debug-client
 RUN_FLAGS:=-m -l=${VERBOSITY}
 
@@ -249,26 +248,23 @@ run-debug:
 
 run-qml-preview:
 	$(MAKE) -C internal/frontend/qt -f Makefile.local qmlpreview
-
 run-ie-qml-preview:
 	$(MAKE) -C internal/frontend/qt-ie -f Makefile.local qmlpreview
 
 run-ie:
 	TARGET_CMD=Import-Export $(MAKE) run
-run-ie-nogui:
-	TARGET_CMD=Import-Export $(MAKE) run-nogui
 run-ie-qt:
 	TARGET_CMD=Import-Export $(MAKE) run-qt
+run-ie-nogui:
+	TARGET_CMD=Import-Export $(MAKE) run-nogui
+
 
 clean-frontend-qt:
 	$(MAKE) -C internal/frontend/qt -f Makefile.local clean
-
 clean-frontend-qt-ie:
 	$(MAKE) -C internal/frontend/qt-ie -f Makefile.local clean
-
 clean-frontend-qt-common:
 	$(MAKE) -C internal/frontend/qt-common -f Makefile.local clean
-
 
 clean-vendor: clean-frontend-qt clean-frontend-qt-ie clean-frontend-qt-common
 	rm -rf ./vendor

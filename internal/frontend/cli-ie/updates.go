@@ -15,13 +15,13 @@
 // You should have received a copy of the GNU General Public License
 // along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
 
-package cli
+package cliie
 
 import (
 	"strings"
 
 	"github.com/ProtonMail/proton-bridge/internal/importexport"
-	"github.com/ProtonMail/proton-bridge/pkg/updates"
+	"github.com/ProtonMail/proton-bridge/internal/updates"
 	"github.com/abiosoft/ishell"
 )
 
@@ -47,7 +47,7 @@ func (f *frontendCLI) printLocalReleaseNotes(c *ishell.Context) {
 }
 
 func (f *frontendCLI) printReleaseNotes(versionInfo updates.VersionInfo) {
-	f.Println(bold("ProtonMail Import/Export "+versionInfo.Version), "\n")
+	f.Println(bold("ProtonMail Import-Export "+versionInfo.Version), "\n")
 	if versionInfo.ReleaseNotes != "" {
 		f.Println(bold("Release Notes"))
 		f.Println(versionInfo.ReleaseNotes)

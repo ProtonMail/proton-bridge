@@ -71,6 +71,11 @@ func (p *PMAPIProvider) TransferFrom(rules transferRules, progress *Progress, ch
 	log.Info("Started transfer from channel to PMAPI")
 	defer log.Info("Finished transfer from channel to PMAPI")
 
+	// Cache has to be cleared before each transfer to not contain
+	// old stuff from previous cancelled run.
+	p.importMsgReqMap = map[string]*pmapi.ImportMsgReq{}
+	p.importMsgReqSize = 0
+
 	for msg := range ch {
 		if progress.shouldStop() {
 			break

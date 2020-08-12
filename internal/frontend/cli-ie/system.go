@@ -15,19 +15,15 @@
 // You should have received a copy of the GNU General Public License
 // along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
 
-package cli
+package cliie
 
 import (
 	"github.com/abiosoft/ishell"
 )
 
-var (
-	currentPort = "" //nolint[gochecknoglobals]
-)
-
 func (f *frontendCLI) restart(c *ishell.Context) {
-	if f.yesNoQuestion("Are you sure you want to restart the Import/Export") {
-		f.Println("Restarting Import/Export...")
+	if f.yesNoQuestion("Are you sure you want to restart the Import-Export") {
+		f.Println("Restarting the Import-Export app...")
 		f.appRestart = true
 		f.Stop()
 	}
@@ -37,7 +33,7 @@ func (f *frontendCLI) checkInternetConnection(c *ishell.Context) {
 	if f.ie.CheckConnection() == nil {
 		f.Println("Internet connection is available.")
 	} else {
-		f.Println("Can not contact the server, please check you internet connection.")
+		f.Println("Can not contact the server, please check your internet connection.")
 	}
 }
 
@@ -46,5 +42,5 @@ func (f *frontendCLI) printLogDir(c *ishell.Context) {
 }
 
 func (f *frontendCLI) printManual(c *ishell.Context) {
-	f.Println("More instructions about the Import/Export can be found at\n\n  https://protonmail.com/support/categories/import-export/")
+	f.Println("More instructions about the Import-Export app can be found at\n\n  https://protonmail.com/support/categories/import-export/")
 }

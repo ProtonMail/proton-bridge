@@ -229,8 +229,8 @@ func (r *transferRules) getRule(sourceMailbox Mailbox) *Rule {
 	return r.rules[h]
 }
 
-// getRules returns all set rules.
-func (r *transferRules) getRules() []*Rule {
+// getSortedRules returns all set rules in order by `byRuleOrder`.
+func (r *transferRules) getSortedRules() []*Rule {
 	rules := []*Rule{}
 	for _, rule := range r.rules {
 		rules = append(rules, rule)

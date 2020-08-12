@@ -40,6 +40,10 @@ func (p *MBOXProvider) TransferTo(rules transferRules, progress *Progress, ch ch
 		return
 	}
 
+	if len(filePathsPerFolder) == 0 {
+		return
+	}
+
 	for folderName, filePaths := range filePathsPerFolder {
 		// No error guaranteed by getFilePathsPerFolder.
 		rule, _ := rules.getRuleBySourceMailboxName(folderName)
@@ -50,6 +54,7 @@ func (p *MBOXProvider) TransferTo(rules transferRules, progress *Progress, ch ch
 			p.updateCount(rule, progress, filePath)
 		}
 	}
+	progress.countsFinal()
 
 	for folderName, filePaths := range filePathsPerFolder {
 		// No error guaranteed by getFilePathsPerFolder.

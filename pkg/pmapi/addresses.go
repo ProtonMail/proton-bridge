@@ -95,6 +95,15 @@ func (l AddressList) ByID(id string) *Address {
 	return nil
 }
 
+// AllEmails returns all emails.
+func (l AddressList) AllEmails() (addresses []string) {
+	for _, a := range l {
+		addresses = append(addresses, a.Email)
+	}
+	return
+}
+
+// ActiveEmails returns only active emails.
 func (l AddressList) ActiveEmails() (addresses []string) {
 	for _, a := range l {
 		if a.Receive == CanReceive {

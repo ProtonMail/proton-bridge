@@ -9,6 +9,6 @@ Documentation pages in order to read for a novice:
 * [Communication between Bridge, Client and Server](communication.md)
 * [Encryption](encryption.md)
 
-## Import/Export
+## Import-Export
 
-* [Import/Export code](importexport.md)
+* [Import-Export code](importexport.md)

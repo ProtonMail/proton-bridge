@@ -239,7 +239,7 @@ func TestOrderRules(t *testing.T) {
 	}
 
 	gotMailboxNames := []string{}
-	for _, rule := range transferRules.getRules() {
+	for _, rule := range transferRules.getSortedRules() {
 		gotMailboxNames = append(gotMailboxNames, rule.SourceMailbox.Name)
 	}
 

@@ -34,10 +34,11 @@ type Transfer struct {
 	panicHandler    PanicHandler
 	metrics         MetricsManager
 	id              string
-	dir             string
+	logDir          string
 	rules           transferRules
 	source          SourceProvider
 	target          TargetProvider
+	rulesCache      []*Rule
 	sourceMboxCache []Mailbox
 	targetMboxCache []Mailbox
 }
@@ -47,14 +48,14 @@ type Transfer struct {
 //   source := transfer.NewEMLProvider(...)
 //   target := transfer.NewPMAPIProvider(...)
 //   transfer.New(source, target, ...)
-func New(panicHandler PanicHandler, metrics MetricsManager, transferDir string, source SourceProvider, target TargetProvider) (*Transfer, error) {
+func New(panicHandler PanicHandler, metrics MetricsManager, logDir, rulesDir string, source SourceProvider, target TargetProvider) (*Transfer, error) {
 	transferID := fmt.Sprintf("%x", sha256.Sum256([]byte(source.ID()+"-"+target.ID())))
-	rules := loadRules(transferDir, transferID)
+	rules := loadRules(rulesDir, transferID)
 	transfer := &Transfer{
 		panicHandler: panicHandler,
 		metrics:      metrics,
 		id:           transferID,
-		dir:          transferDir,
+		logDir:       logDir,
 		rules:        rules,
 		source:       source,
 		target:       target,
@@ -108,16 +109,19 @@ func (t *Transfer) SetGlobalTimeLimit(fromTime, toTime int64) {
 
 // SetRule sets sourceMailbox for transfer.
 func (t *Transfer) SetRule(sourceMailbox Mailbox, targetMailboxes []Mailbox, fromTime, toTime int64) error {
+	t.rulesCache = nil
 	return t.rules.setRule(sourceMailbox, targetMailboxes, fromTime, toTime)
 }
 
 // UnsetRule unsets sourceMailbox from transfer.
 func (t *Transfer) UnsetRule(sourceMailbox Mailbox) {
+	t.rulesCache = nil
 	t.rules.unsetRule(sourceMailbox)
 }
 
 // ResetRules unsets all rules.
 func (t *Transfer) ResetRules() {
+	t.rulesCache = nil
 	t.rules.reset()
 }
 
@@ -128,7 +132,10 @@ func (t *Transfer) GetRule(sourceMailbox Mailbox) *Rule {
 
 // GetRules returns all set transfer rules.
 func (t *Transfer) GetRules() []*Rule {
-	return t.rules.getRules()
+	if t.rulesCache == nil {
+		t.rulesCache = t.rules.getSortedRules()
+	}
+	return t.rulesCache
 }
 
 // SourceMailboxes returns mailboxes available at source side.
@@ -171,7 +178,7 @@ func (t *Transfer) Start() *Progress {
 	t.metrics.Start()
 
 	log := log.WithField("id", t.id)
-	reportFile := newFileReport(t.dir, t.id)
+	reportFile := newFileReport(t.logDir, t.id)
 	progress := newProgress(log, reportFile)
 
 	ch := make(chan Message)
@@ -179,7 +186,6 @@ func (t *Transfer) Start() *Progress {
 	go func() {
 		defer t.panicHandler.HandlePanic()
 
-		progress.start()
 		t.source.TransferTo(t.rules, &progress, ch)
 		close(ch)
 	}()

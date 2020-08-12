@@ -99,7 +99,7 @@ Window {
         id: buttons
 
         ListElement { title : "Show window"        }
-        ListElement { title : "Logout cuthix"      }
+        ListElement { title : "Logout"      }
         ListElement { title : "Internet on"        }
         ListElement { title : "Internet off"       }
         ListElement { title : "Macos"              }
@@ -143,8 +143,8 @@ Window {
                     case "Show window" :
                     go.showWindow();
                     break;
-                    case "Logout cuthix" :
-                    go.checkLoggedOut("cuthix");
+                    case "Logout" :
+                    go.checkLoggedOut("ie");
                     break;
                     case "Internet on" :
                     go.setConnectionStatus(true);
@@ -223,10 +223,10 @@ Window {
 
         ListModel{
             id: accountsModel
-            ListElement{ account : "cuthix"                                           ; status : "connected";    isExpanded: false; isCombinedAddressMode: false; hostname : "127.0.0.1"; password : "ZI9tKp+ryaxmbpn2E12"; security : "StarTLS"; portSMTP : 1025; portIMAP : 1143; aliases : "cuto@pm.com;jaku@pm.com;DoYouKnowAboutAMovieCalledTheHorriblySlowMurderWithExtremelyInefficientWeapon@thatYouCanFindForExampleOnyoutube.com" }
-            ListElement{ account : "exteremelongnamewhichmustbeeladedinthemiddleoftheaddress@protonmail.com" ; status : "connected";    isExpanded: true;  isCombinedAddressMode: true;  hostname : "127.0.0.1"; password : "ZI9tKp+ryaxmbpn2E12"; security : "StarTLS"; portSMTP : 1025; portIMAP : 1143; aliases : "cuto@pm.com;jaku@pm.com;hu@hu.hu"                                                        }
-            ListElement{ account : "cuthix2@protonmail.com"                           ; status : "disconnected"; isExpanded: false; isCombinedAddressMode: false; hostname : "127.0.0.1"; password : "ZI9tKp+ryaxmbpn2E12"; security : "StarTLS"; portSMTP : 1025; portIMAP : 1143; aliases : "cuto@pm.com;jaku@pm.com;hu@hu.hu"                                                        }
-            ListElement{ account : "many@protonmail.com" ; status : "connected";    isExpanded: true;  isCombinedAddressMode: true;  hostname : "127.0.0.1"; password : "ZI9tKp+ryaxmbpn2E12"; security : "StarTLS"; portSMTP : 1025; portIMAP : 1143; aliases : "cuto@pm.com;jaku@pm.com;hu@hu.hu;cuto@pm.com;jaku@pm.com;hu@hu.hu;cuto@pm.com;jaku@pm.com;hu@hu.hu;cuto@pm.com;jaku@pm.com;hu@hu.hu;cuto@pm.com;jaku@pm.com;hu@hu.hu;cuto@pm.com;jaku@pm.com;hu@hu.hu;cuto@pm.com;jaku@pm.com;hu@hu.hu;cuto@pm.com;jaku@pm.com;hu@hu.hu;cuto@pm.com;jaku@pm.com;hu@hu.hu;cuto@pm.com;jaku@pm.com;hu@hu.hu;cuto@pm.com;jaku@pm.com;hu@hu.hu;cuto@pm.com;jaku@pm.com;hu@hu.hu;cuto@pm.com;jaku@pm.com;hu@hu.hu;cuto@pm.com;jaku@pm.com;hu@hu.hu;cuto@pm.com;jaku@pm.com;hu@hu.hu;"}
+            ListElement{ account : "ie"                                           ; status : "connected";    isExpanded: false; isCombinedAddressMode: false; hostname : "127.0.0.1"; password : "ZI9tKp+ryaxmbpn2E12"; security : "StarTLS"; portSMTP : 1025; portIMAP : 1143; aliases : "ie@pm.com;jaku@pm.com;DoYouKnowAboutAMovieCalledTheHorriblySlowMurderWithExtremelyInefficientWeapon@thatYouCanFindForExampleOnyoutube.com" }
+            ListElement{ account : "exteremelongnamewhichmustbeeladedinthemiddleoftheaddress@protonmail.com" ; status : "connected";    isExpanded: true;  isCombinedAddressMode: true;  hostname : "127.0.0.1"; password : "ZI9tKp+ryaxmbpn2E12"; security : "StarTLS"; portSMTP : 1025; portIMAP : 1143; aliases : "ie@pm.com;jaku@pm.com;hu@hu.hu"                                                        }
+            ListElement{ account : "ie2@protonmail.com"                           ; status : "disconnected"; isExpanded: false; isCombinedAddressMode: false; hostname : "127.0.0.1"; password : "ZI9tKp+ryaxmbpn2E12"; security : "StarTLS"; portSMTP : 1025; portIMAP : 1143; aliases : "ie@pm.com;jaku@pm.com;hu@hu.hu"                                                        }
+            ListElement{ account : "many@protonmail.com" ; status : "connected";    isExpanded: true;  isCombinedAddressMode: true;  hostname : "127.0.0.1"; password : "ZI9tKp+ryaxmbpn2E12"; security : "StarTLS"; portSMTP : 1025; portIMAP : 1143; aliases : "ie@pm.com;jaku@pm.com;hu@hu.hu;ie@pm.com;jaku@pm.com;hu@hu.hu;ie@pm.com;jaku@pm.com;hu@hu.hu;ie@pm.com;jaku@pm.com;hu@hu.hu;ie@pm.com;jaku@pm.com;hu@hu.hu;ie@pm.com;jaku@pm.com;hu@hu.hu;ie@pm.com;jaku@pm.com;hu@hu.hu;ie@pm.com;jaku@pm.com;hu@hu.hu;ie@pm.com;jaku@pm.com;hu@hu.hu;ie@pm.com;jaku@pm.com;hu@hu.hu;ie@pm.com;jaku@pm.com;hu@hu.hu;ie@pm.com;jaku@pm.com;hu@hu.hu;ie@pm.com;jaku@pm.com;hu@hu.hu;ie@pm.com;jaku@pm.com;hu@hu.hu;ie@pm.com;jaku@pm.com;hu@hu.hu;"}
         }
 
         ListModel{
@@ -830,9 +830,9 @@ Window {
         property string bugNotSent
         property string bugReportSent
 
-        property string programTitle : "ProtonMail Import/Export Tool"
+        property string programTitle : "ProtonMail Import-Export App"
         property string newversion : "q0.1.0"
-        property string landingPage : "https://jakub.cuth.sk/bridge"
+        property string landingPage : "https://landing.page"
         property string changelog  : "• Lorem ipsum dolor sit amet\n• consetetur sadipscing elitr,\n• sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat,\n• sed diam voluptua.\n• At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet."
         //property string changelog  : ""
         property string bugfixes   : "• lorem ipsum dolor sit amet;• consetetur sadipscing elitr;• sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat;• sed diam voluptua;• at vero eos et accusam et justo duo dolores et ea rebum;• stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet"

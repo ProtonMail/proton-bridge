@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
 
-package cli
+package cliie
 
 import (
 	"strings"
@@ -98,7 +98,7 @@ func (f *frontendCLI) notifyNeedUpgrade() {
 
 func (f *frontendCLI) notifyCredentialsError() {
 	// Print in 80-column width.
-	f.Println("ProtonMail Import/Export is not able to detect a supported password manager")
+	f.Println("ProtonMail Import-Export is not able to detect a supported password manager")
 	f.Println("(pass, gnome-keyring). Please install and set up a supported password manager")
 	f.Println("and restart the application.")
 }
@@ -109,7 +109,7 @@ func (f *frontendCLI) notifyCertIssue() {
 be insecure.
 
 Description:
-ProtonMail Import/Export was not able to establish a secure connection to Proton
+ProtonMail Import-Export was not able to establish a secure connection to Proton
 servers due to a TLS certificate error. This means your connection may
 potentially be insecure and susceptible to monitoring by third parties.
 

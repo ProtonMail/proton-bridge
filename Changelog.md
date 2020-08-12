@@ -35,6 +35,18 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * Set first-start to false in bridge, not in frontend.
 * GODT-400 Refactor sendingInfo.
 
+* GODT-380 Adding IE GUI to Bridge repo and building
+    * BR: extend functionality of PopupDialog
+    * BR: makefile APP_VERSION instead of BRIDGE_VERSION
+    * BR: use common logs function for Qt
+    * BR: change `go.progressDescription` to `string`
+    * IE: Rounded button has fa-icon
+    * IE: `Upgrade` → `Update`
+    * IE: Moving `AccountModel` to `qt-common`
+    * IE: Added `ReportBug` to `internal/importexport`
+    * IE: Added event watch in GUI
+    * IE: Removed `onLoginFinished`
+    * Structure for transfer rules in QML
 
 ### Fixed
 * GODT-454 Fix send on closed channel when receiving unencrypted send confirmation from GUI.
@@ -47,8 +59,6 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-554 Detect and notify about "bad certificate" IMAP TLS error.
 * IMAP mailbox info update when new mailbox is created.
 * GODT-72 Use ISO-8859-1 encoding if charset is not specified and it isn't UTF-8.
-* Structure for transfer rules in QML
-* GODT-360 Detect charset embedded in html/xml.
 
 ### Changed
 * GODT-360 Detect charset embedded in html/xml.
@@ -62,48 +72,6 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-280 Migrate to gopenpgp v2.
     * `Unlock()` call on pmapi-client unlocks both User keys and Address keys.
     * Salt is available via `AuthSalt()` method.
-* GODT-394 Don't check SMTP message send time in integration tests.
-* GODT-380 Adding IE GUI to Bridge repo
-* GODT-380 Adding IE GUI to Bridge repo and building
-    * BR: extend functionality of PopupDialog
-    * BR: makefile APP_VERSION instead of BRIDGE_VERSION
-    * BR: use common logs function for Qt
-    * BR: change `go.progressDescription` to `string`
-    * IE: Rounded button has fa-icon
-    * IE: `Upgrade` → `Update`
-    * IE: Moving `AccountModel` to `qt-common`
-    * IE: Added `ReportBug` to `internal/importexport`
-    * IE: Added event watch in GUI
-    * IE: Removed `onLoginFinished`
-* GODT-388 support for both bridge and import/export credentials by package users
-* GODT-387 store factory to make store optional
-* GODT-386 renamed bridge to general users and keep bridge only for bridge stuff
-* GODT-308 better user error message when request is canceled
-* GODT-312 validate recipient emails in send before asking for their public keys
-
-### Fixed
-* GODT-356 Fix crash when removing account while mail client is fetching messages (regression from GODT-204).
-* GODT-390 Don't logout user if AuthRefresh fails because internet was off.
-* GODT-358 Bad timeouts with Alternative Routing.
-* GODT-363 Drafts are not deleted when already created on webapp.
-* GODT-390 Don't logout user if AuthRefresh fails because internet was off.
-* GODT-341 Fixed flaky unittest for Store synchronization cooldown.
-* Crash when failing to match necessary html element.
-* Crash in message.combineParts when copying nil slice.
-* Handle double charset better by using local ParseMediaType instead of mime.ParseMediaType.
-* Don't remove log dir.
-* GODT-422 Fix element not found (avoid listing credentials, prefer getting).
-* GODT-404 Don't keep connections to proxy servers alive if user disables DoH.
-* Ensure DoH is used at startup to load users for the initial auth.
-* Issue causing deadlock when reloading users keys due to double-locking of a mutex.
-
-## [v1.2.7] Donghai-hotfix - beta (2020-05-07)
-
-### Added
-* IMAP mailbox info update when new mailbox is created.
-* GODT-72 Use ISO-8859-1 encoding if charset is not specified and it isn't UTF-8.
-
-### Changed
 * GODT-308 Better user error message when request is canceled.
 * GODT-162 User Agent does not contain bridge version, only client in format `client name/client version (os)`.
 * GODT-258 Update go-imap to v1.

@@ -23,19 +23,19 @@ import (
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
 )
 
-// GetImportExport returns import/export instance.
+// GetImportExport returns import-export instance.
 func (ctx *TestContext) GetImportExport() *importexport.ImportExport {
 	return ctx.importExport
 }
 
-// withImportExportInstance creates a import/export instance for use in the test.
+// withImportExportInstance creates a import-export instance for use in the test.
 // TestContext has this by default once called with env variable TEST_APP=ie.
 func (ctx *TestContext) withImportExportInstance() {
 	ctx.importExport = newImportExportInstance(ctx.t, ctx.cfg, ctx.credStore, ctx.listener, ctx.clientManager)
 	ctx.users = ctx.importExport.Users
 }
 
-// newImportExportInstance creates a new import/export instance configured to use the given config/credstore.
+// newImportExportInstance creates a new import-export instance configured to use the given config/credstore.
 func newImportExportInstance(
 	t *bddT,
 	cfg importexport.Configer,

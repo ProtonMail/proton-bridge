@@ -29,8 +29,6 @@ func TestProgressUpdateCount(t *testing.T) {
 	progress := newProgress(log, nil)
 	drainProgressUpdateChannel(&progress)
 
-	progress.start()
-
 	progress.updateCount("inbox", 10)
 	progress.updateCount("archive", 20)
 	progress.updateCount("inbox", 12)
@@ -47,8 +45,6 @@ func TestProgressUpdateCount(t *testing.T) {
 func TestProgressAddingMessages(t *testing.T) {
 	progress := newProgress(log, nil)
 	drainProgressUpdateChannel(&progress)
-
-	progress.start()
 
 	// msg1 has no problem.
 	progress.addMessage("msg1", nil)
@@ -92,18 +88,16 @@ func TestProgressFinish(t *testing.T) {
 	progress := newProgress(log, nil)
 	drainProgressUpdateChannel(&progress)
 
-	progress.start()
 	progress.finish()
 	r.Nil(t, progress.updateCh)
 
-	r.Panics(t, func() { progress.addMessage("msg", nil) })
+	r.NotPanics(t, func() { progress.addMessage("msg", nil) })
 }
 
 func TestProgressFatalError(t *testing.T) {
 	progress := newProgress(log, nil)
 	drainProgressUpdateChannel(&progress)
 
-	progress.start()
 	progress.fatal(errors.New("fatal error"))
 	r.Nil(t, progress.updateCh)
 

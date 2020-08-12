@@ -452,10 +452,9 @@ func (cm *ClientManager) HandleAuth(ca ClientAuth) {
 	if ca.Auth == nil {
 		cm.clearToken(ca.UserID)
 		go cm.LogoutClient(ca.UserID)
-		return
+	} else {
+		cm.setToken(ca.UserID, ca.Auth.GenToken(), time.Duration(ca.Auth.ExpiresIn)*time.Second)
 	}
-
-	cm.setToken(ca.UserID, ca.Auth.GenToken(), time.Duration(ca.Auth.ExpiresIn)*time.Second)
 
 	logrus.Debug("ClientManager is forwarding auth update...")
 	cm.authUpdates <- ca

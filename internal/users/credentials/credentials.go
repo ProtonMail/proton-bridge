@@ -34,7 +34,7 @@ const (
 	sep = "\x00"
 
 	itemLengthBridge       = 9
-	itemLengthImportExport = 6 // Old format for Import/Export.
+	itemLengthImportExport = 6 // Old format for Import-Export.
 )
 
 var (

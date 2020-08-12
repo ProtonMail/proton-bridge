@@ -59,10 +59,6 @@ func getTargetHashes(mboxes []transfer.Mailbox) (targetFolderID, targetLabelIDs 
 	return
 }
 
-func isSystemMailbox(mbox transfer.Mailbox) bool {
-	return pmapi.IsSystemLabel(mbox.ID)
-}
-
 func newFolderInfo(mbox transfer.Mailbox, rule *transfer.Rule) *FolderInfo {
 	targetFolderID, targetLabelIDs := getTargetHashes(rule.TargetMailboxes)
 
@@ -77,7 +73,7 @@ func newFolderInfo(mbox transfer.Mailbox, rule *transfer.Rule) *FolderInfo {
 	}
 
 	entry.FolderType = FolderTypeSystem
-	if !isSystemMailbox(mbox) {
+	if !pmapi.IsSystemLabel(mbox.ID) {
 		if mbox.IsExclusive {
 			entry.FolderType = FolderTypeFolder
 		} else {
@@ -112,16 +108,12 @@ func (s *FolderStructure) saveRule(info *FolderInfo) error {
 	return s.transfer.SetRule(sourceMbox, targetMboxes, info.FromDate, info.ToDate)
 }
 
-func (s *FolderInfo) updateTgtLblIDs(targetLabelsSet map[string]struct{}) {
+func (s *FolderInfo) updateTargetLabelIDs(targetLabelsSet map[string]struct{}) {
 	targets := []string{}
 	for key := range targetLabelsSet {
 		targets = append(targets, key)
 	}
 	s.TargetLabelIDs = strings.Join(targets, ";")
-}
-
-func (s *FolderInfo) clearTgtLblIDs() {
-	s.TargetLabelIDs = ""
 }
 
 func (s *FolderInfo) AddTargetLabel(targetID string) {
@@ -130,7 +122,7 @@ func (s *FolderInfo) AddTargetLabel(targetID string) {
 	}
 	targetLabelsSet := s.getSetOfLabels()
 	targetLabelsSet[targetID] = struct{}{}
-	s.updateTgtLblIDs(targetLabelsSet)
+	s.updateTargetLabelIDs(targetLabelsSet)
 }
 
 func (s *FolderInfo) RemoveTargetLabel(targetID string) {
@@ -139,7 +131,7 @@ func (s *FolderInfo) RemoveTargetLabel(targetID string) {
 	}
 	targetLabelsSet := s.getSetOfLabels()
 	delete(targetLabelsSet, targetID)
-	s.updateTgtLblIDs(targetLabelsSet)
+	s.updateTargetLabelIDs(targetLabelsSet)
 }
 
 func (s *FolderInfo) IsType(askType string) bool {
@@ -387,7 +379,7 @@ func (s *FolderStructure) setTargetFolderID(id, target string) {
 	s.changedEntityRole(i, i, TargetFolderID)
 	if target == "" { // do not import
 		before := info.TargetLabelIDs
-		info.clearTgtLblIDs()
+		info.TargetLabelIDs = ""
 		if err := s.saveRule(info); err != nil {
 			info.TargetLabelIDs = before
 			log.WithError(err).WithField("id", id).WithField("target", target).Error("Cannot set target")

@@ -66,6 +66,7 @@ func TestLeastUsedColor(t *testing.T) {
 	}
 	r.Equal(t, "#7569d1", LeastUsedColor(mailboxes))
 }
+
 func TestFindMatchingMailboxes(t *testing.T) {
 	mailboxes := []Mailbox{
 		{Name: "Inbox", IsExclusive: true},
@@ -75,6 +76,8 @@ func TestFindMatchingMailboxes(t *testing.T) {
 		{Name: "hello/world", IsExclusive: true},
 		{Name: "Hello", IsExclusive: false},
 		{Name: "WORLD", IsExclusive: true},
+		{Name: "Trash", IsExclusive: true},
+		{Name: "Drafts", IsExclusive: true},
 	}
 
 	tests := []struct {
@@ -88,6 +91,10 @@ func TestFindMatchingMailboxes(t *testing.T) {
 		{"hello/world", []string{"hello/world", "Hello"}},
 		{"hello|world", []string{"WORLD", "Hello"}},
 		{"nomailbox", []string{}},
+		{"bin", []string{"Trash"}},
+		{"root/bin", []string{"Trash"}},
+		{"draft", []string{"Drafts"}},
+		{"root/draft", []string{"Drafts"}},
 	}
 	for _, tc := range tests {
 		tc := tc

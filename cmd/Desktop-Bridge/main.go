@@ -48,12 +48,12 @@ import (
 	"github.com/ProtonMail/proton-bridge/internal/imap"
 	"github.com/ProtonMail/proton-bridge/internal/preferences"
 	"github.com/ProtonMail/proton-bridge/internal/smtp"
+	"github.com/ProtonMail/proton-bridge/internal/updates"
 	"github.com/ProtonMail/proton-bridge/internal/users/credentials"
 	"github.com/ProtonMail/proton-bridge/pkg/config"
 	"github.com/ProtonMail/proton-bridge/pkg/constants"
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
-	"github.com/ProtonMail/proton-bridge/pkg/updates"
 	"github.com/allan-simon/go-singleinstance"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
@@ -168,13 +168,7 @@ func run(context *cli.Context) (contextError error) { // nolint[funlen]
 
 	// In case user wants to do CPU or memory profiles...
 	if doCPUProfile := context.GlobalBool("cpu-prof"); doCPUProfile {
-		f, err := os.Create("cpu.pprof")
-		if err != nil {
-			log.Fatal("Could not create CPU profile: ", err)
-		}
-		if err := pprof.StartCPUProfile(f); err != nil {
-			log.Fatal("Could not start CPU profile: ", err)
-		}
+		cmd.StartCPUProfile()
 		defer pprof.StopCPUProfile()
 	}
 

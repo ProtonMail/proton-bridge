@@ -75,34 +75,33 @@ dependency-updates:
 
 # Stage: BUILD
 
-build-linux:
+.build-base:
   stage: build
   only:
     - branches
   script:
     - make build
   artifacts:
+    expire_in: 2 week
+
+build-linux:
+  extends: .build-base
+  artifacts:
     name: "bridge-linux-$CI_COMMIT_SHORT_SHA"
     paths:
       - bridge_*.tgz
-    expire_in: 2 week
 
 build-ie-linux:
-  stage: build
-  only:
-    - branches
+  extends: .build-base
   script:
     - make build-ie
   artifacts:
     name: "ie-linux-$CI_COMMIT_SHORT_SHA"
     paths:
       - ie_*.tgz
-    expire_in: 2 week
 
-build-darwin:
-  stage: build
-  only:
-    - branches
+.build-darwin-base:
+  extends: .build-base
   before_script:
     - eval $(ssh-agent -s)
     - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add - > /dev/null
@@ -117,47 +116,32 @@ build-darwin:
   cache: {}
   tags:
     - macOS
-  script:
-    - make build
+
+build-darwin:
+  extends: .build-darwin-base
   artifacts:
     name: "bridge-darwin-$CI_COMMIT_SHORT_SHA"
     paths:
       - bridge_*.tgz
-    expire_in: 2 week
 
 build-ie-darwin:
-  stage: build
-  only:
-    - branches
-  before_script:
-    - eval $(ssh-agent -s)
-    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add - > /dev/null
-    - export PATH=/usr/local/bin:$PATH
-    - export PATH=/usr/local/opt/git/bin:$PATH
-    - export PATH=/usr/local/opt/make/libexec/gnubin:$PATH
-    - export PATH=/usr/local/opt/go@1.13/bin:$PATH
-    - export PATH=/usr/local/opt/gnu-sed/libexec/gnubin:$PATH
-    - export GOPATH=~/go
-    - export PATH=$GOPATH/bin:$PATH
-  cache: {}
-  tags:
-    - macOS-bridge
+  extends: .build-darwin-base
   script:
     - make build-ie
   artifacts:
     name: "ie-darwin-$CI_COMMIT_SHORT_SHA"
     paths:
       - ie_*.tgz
-    expire_in: 2 week
 
-build-windows:
-  stage: build
+.build-windows-base:
+  extends: .build-base
   services:
     - docker:dind
-  only:
-    - branches
   variables:
     DOCKER_HOST: tcp://docker:2375
+
+build-windows:
+  extends: .build-windows-base
   script:
     # We need to install docker because qtdeploy builds for windows inside a docker container.
     # Docker will connect to the dockerd daemon provided by the runner service docker:dind at tcp://docker:2375.
@@ -170,16 +154,9 @@ build-windows:
     name: "bridge-windows-$CI_COMMIT_SHORT_SHA"
     paths:
       - bridge_*.tgz
-    expire_in: 2 week
 
 build-ie-windows:
-  stage: build
-  services:
-  - docker:dind
-  only:
-    - branches
-  variables:
-    DOCKER_HOST: tcp://docker:2375
+  extends: .build-windows-base
   script:
     # We need to install docker because qtdeploy builds for windows inside a docker container.
     # Docker will connect to the dockerd daemon provided by the runner service docker:dind at tcp://docker:2375.
@@ -192,7 +169,6 @@ build-ie-windows:
     name: "ie-windows-$CI_COMMIT_SHORT_SHA"
     paths:
       - ie_*.tgz
-    expire_in: 2 week
 
 # Stage: MIRROR
 

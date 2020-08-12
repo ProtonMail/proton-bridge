@@ -112,7 +112,7 @@ Window {
             rightMargin: innerWindowBorder
         }
         model: [
-            { "title" : qsTr("Import/Export" , "title of tab that shows account list"             ), "iconText": Style.fa.home      },
+            { "title" : qsTr("Import-Export" , "title of tab that shows account list"             ), "iconText": Style.fa.home      },
             { "title" : qsTr("Settings"      , "title of tab that allows user to change settings" ), "iconText": Style.fa.cogs      },
             { "title" : qsTr("Help"          , "title of tab that shows the help menu"            ), "iconText": Style.fa.life_ring }
         ]
@@ -381,8 +381,9 @@ Window {
 
         onClickedNo: popupMessage.hide()
         onClickedOkay: popupMessage.hide()
+        onClickedCancel: popupMessage.hide()
         onClickedYes: {
-            if (popupMessage.message == gui.areYouSureYouWantToQuit) Qt.quit()
+            if (popupMessage.text == gui.areYouSureYouWantToQuit) Qt.quit()
         }
     }
 
@@ -461,8 +462,9 @@ Window {
             (dialogExport.visible && dialogExport.currentIndex == 2 && go.progress!=1)
         ) {
             popupMessage.buttonOkay   .visible = false
-            popupMessage.buttonNo     .visible = true
-            popupMessage.buttonYes    .visible = true
+            popupMessage.buttonYes    .visible = false
+            popupMessage.buttonQuit   .visible = true
+            popupMessage.buttonCancel .visible = true
             popupMessage.show ( gui.areYouSureYouWantToQuit )
             return
         }

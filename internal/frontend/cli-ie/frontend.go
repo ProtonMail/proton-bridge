@@ -15,8 +15,8 @@
 // You should have received a copy of the GNU General Public License
 // along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
 
-// Package cli provides CLI interface of the Import/Export.
-package cli
+// Package cliie provides CLI interface of the Import-Export app.
+package cliie
 
 import (
 	"github.com/ProtonMail/proton-bridge/internal/events"
@@ -68,7 +68,7 @@ func New( //nolint[funlen]
 		Aliases: []string{"cl"},
 	}
 	clearCmd.AddCmd(&ishell.Cmd{Name: "accounts",
-		Help:    "remove all accounts from keychain. (aliases: k, keychain)",
+		Help:    "remove all accounts from keychain. (aliases: a, k, keychain)",
 		Aliases: []string{"a", "k", "keychain"},
 		Func:    fe.deleteAccounts,
 	})
@@ -77,7 +77,7 @@ func New( //nolint[funlen]
 	// Check commands.
 	checkCmd := &ishell.Cmd{Name: "check", Help: "check internet connection or new version."}
 	checkCmd.AddCmd(&ishell.Cmd{Name: "updates",
-		Help:    "check for Import/Export updates. (aliases: u, v, version)",
+		Help:    "check for Import-Export updates. (aliases: u, v, version)",
 		Aliases: []string{"u", "version", "v"},
 		Func:    fe.checkUpdates,
 	})
@@ -134,7 +134,7 @@ func New( //nolint[funlen]
 		Completer: fe.completeUsernames,
 	})
 
-	// Import/Export commands.
+	// Import-Export commands.
 	importCmd := &ishell.Cmd{Name: "import",
 		Help:    "import messages. (alias: imp)",
 		Aliases: []string{"imp"},
@@ -167,7 +167,7 @@ func New( //nolint[funlen]
 
 	// System commands.
 	fe.AddCmd(&ishell.Cmd{Name: "restart",
-		Help: "restart the import/export.",
+		Help: "restart the Import-Export app.",
 		Func: fe.restart,
 	})
 
@@ -190,7 +190,7 @@ func (f *frontendCLI) watchEvents() {
 	for {
 		select {
 		case errorDetails := <-errorCh:
-			f.Println("Import/Export failed:", errorDetails)
+			f.Println("Import-Export failed:", errorDetails)
 		case <-internetOffCh:
 			f.notifyInternetOff()
 		case <-internetOnCh:
@@ -228,9 +228,9 @@ func (f *frontendCLI) Loop(credentialsError error) error {
 	}
 
 	f.Print(`
-Welcome to ProtonMail Import/Export interactive shell
+Welcome to ProtonMail Import-Export interactive shell
 
-WARNING: CLI is experimental feature and does not cover all functionality yet.
+WARNING: The CLI is an experimental feature and does not yet cover all functionality.
 	`)
 	f.Run()
 	return nil

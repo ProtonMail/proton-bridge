@@ -22,7 +22,6 @@ package qtie
 import (
 	"runtime"
 
-	qtcommon "github.com/ProtonMail/proton-bridge/internal/frontend/qt-common"
 	"github.com/therecipe/qt/core"
 )
 
@@ -181,7 +180,7 @@ func (s *GoQMLInterface) SetFrontend(f *FrontendQt) {
 	s.ConnectStartExport(f.StartExport)
 	s.ConnectStartImport(f.StartImport)
 
-	s.ConnectCheckPathStatus(qtcommon.CheckPathStatus)
+	s.ConnectCheckPathStatus(CheckPathStatus)
 
 	s.ConnectStartUpdate(f.StartUpdate)
 

@@ -21,7 +21,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/internal/store"
 )
 
-// storeFactory implements dummy factory creating no store (not needed by Import/Export).
+// storeFactory implements dummy factory creating no store (not needed by Import-Export).
 type storeFactory struct{}
 
 // New does nothing.

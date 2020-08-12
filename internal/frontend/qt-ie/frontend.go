@@ -29,9 +29,9 @@ import (
 	qtcommon "github.com/ProtonMail/proton-bridge/internal/frontend/qt-common"
 	"github.com/ProtonMail/proton-bridge/internal/frontend/types"
 	"github.com/ProtonMail/proton-bridge/internal/transfer"
+	"github.com/ProtonMail/proton-bridge/internal/updates"
 	"github.com/ProtonMail/proton-bridge/pkg/config"
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
-	"github.com/ProtonMail/proton-bridge/pkg/updates"
 
 	"github.com/therecipe/qt/core"
 	"github.com/therecipe/qt/gui"
@@ -185,7 +185,7 @@ func (f *FrontendQt) qtSetupQmlAndStructures() {
 	f.View.Load(core.NewQUrl3("qrc:/uiie.qml", 0))
 
 	// TODO set the first start flag
-	log.Error("Get FirstStart: Not implemented")
+	//log.Error("Get FirstStart: Not implemented")
 	//if prefs.Get(prefs.FirstStart) == "true" {
 	if false {
 		f.Qml.SetIsFirstStart(true)
@@ -226,7 +226,6 @@ func (f *FrontendQt) QtExecute(Procedure func(*FrontendQt) error) error {
 		return err
 	}
 	log.Debug("Closing...")
-	log.Error("Set FirstStart: Not implemented")
 	//prefs.Set(prefs.FirstStart, "false")
 	return nil
 }
@@ -318,27 +317,31 @@ func (f *FrontendQt) setProgressManager(progress *transfer.Progress) {
 	f.Qml.ConnectCancelProcess(func() {
 		progress.Stop()
 	})
+	f.Qml.SetProgress(0)
 
 	go func() {
+		log.Trace("Start reading updates")
 		defer func() {
+			log.Trace("Finishing reading updates")
 			f.Qml.DisconnectPauseProcess()
 			f.Qml.DisconnectResumeProcess()
 			f.Qml.DisconnectCancelProcess()
 			f.Qml.SetProgress(1)
+			f.progress = nil
+			f.ErrorList.Progress = nil
 		}()
 
-		//TODO get log file (in old code it was here, but this is ugly place probably somewhere else)
 		updates := progress.GetUpdateChannel()
 		for range updates {
 			if progress.IsStopped() {
 				break
 			}
 			failed, imported, _, _, total := progress.GetCounts()
-			if total != 0 { // udate total
+			if total != 0 {
 				f.Qml.SetTotal(int(total))
 			}
 			f.Qml.SetProgressFails(int(failed))
-			f.Qml.SetProgressDescription(progress.PauseReason()) // TODO add description when changing folders?
+			f.Qml.SetProgressDescription(progress.PauseReason())
 			if total > 0 {
 				newProgress := float32(imported+failed) / float32(total)
 				if newProgress >= 0 && newProgress != f.Qml.Progress() {
@@ -436,7 +439,7 @@ func (f *FrontendQt) getLocalVersionInfo() {
 // LeastUsedColor is intended to return color for creating a new inbox or label.
 func (f *FrontendQt) leastUsedColor() string {
 	if f.transfer == nil {
-		log.Errorln("Getting least used color before transfer exist.")
+		log.Warnln("Getting least used color before transfer exist.")
 		return "#7272a7"
 	}
 

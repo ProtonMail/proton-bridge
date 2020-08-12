@@ -58,7 +58,7 @@ func (p *IMAPProvider) ID() string {
 // Mailboxes returns all available folder names from root of EML files.
 // In case the same folder name is used more than once (for example root/a/foo
 // and root/b/foo), it's treated as the same folder.
-func (p *IMAPProvider) Mailboxes(includEmpty, includeAllMail bool) ([]Mailbox, error) {
+func (p *IMAPProvider) Mailboxes(includeEmpty, includeAllMail bool) ([]Mailbox, error) {
 	mailboxesInfo, err := p.list()
 	if err != nil {
 		return nil, err
@@ -73,11 +73,11 @@ func (p *IMAPProvider) Mailboxes(includEmpty, includeAllMail bool) ([]Mailbox, e
 				break
 			}
 		}
-		if hasNoSelect || mailbox.Name == "[Gmail]" {
+		if hasNoSelect {
 			continue
 		}
 
-		if !includEmpty || true {
+		if !includeEmpty || true {
 			mailboxStatus, err := p.selectIn(mailbox.Name)
 			if err != nil {
 				return nil, err

@@ -25,6 +25,7 @@ Rectangle {
     color: Style.transparent
     property alias text         : message.text
     property alias checkbox     : checkbox
+    property alias buttonQuit   : buttonQuit
     property alias buttonOkay   : buttonOkay
     property alias buttonYes    : buttonYes
     property alias buttonNo     : buttonNo
@@ -89,13 +90,13 @@ Rectangle {
                 spacing: Style.dialog.spacing
                 anchors.horizontalCenter : parent.horizontalCenter
 
+                ButtonRounded { id : buttonQuit   ; text : qsTr ( "Stop & quit", ""          )  ; onClicked : root.clickedYes    (  )  ; visible : false ; isOpaque : true  ; color_main : Style.errorDialog.text ; color_minor : Style.dialog.textBlue ; }
                 ButtonRounded { id : buttonNo     ; text : qsTr ( "No"     , "Button No"     )  ; onClicked : root.clickedNo     (  )  ; visible : false ; isOpaque : false ; color_main : Style.errorDialog.text ; color_minor : Style.transparent     ; }
                 ButtonRounded { id : buttonYes    ; text : qsTr ( "Yes"    , "Button Yes"    )  ; onClicked : root.clickedYes    (  )  ; visible : false ; isOpaque : true  ; color_main : Style.errorDialog.text ; color_minor : Style.dialog.textBlue ; }
                 ButtonRounded { id : buttonRetry  ; text : qsTr ( "Retry"  , "Button Retry"  )  ; onClicked : root.clickedRetry  (  )  ; visible : false ; isOpaque : false ; color_main : Style.errorDialog.text ; color_minor : Style.transparent     ; }
                 ButtonRounded { id : buttonSkip   ; text : qsTr ( "Skip"   , "Button Skip"   )  ; onClicked : root.clickedSkip   (  )  ; visible : false ; isOpaque : false ; color_main : Style.errorDialog.text ; color_minor : Style.transparent     ; }
                 ButtonRounded { id : buttonCancel ; text : qsTr ( "Cancel" , "Button Cancel" )  ; onClicked : root.clickedCancel (  )  ; visible : false ; isOpaque : true  ; color_main : Style.errorDialog.text ; color_minor : Style.dialog.textBlue ; }
                 ButtonRounded { id : buttonOkay   ; text : qsTr ( "Okay"   , "Button Okay"   )  ; onClicked : root.clickedOkay   (  )  ; visible : true  ; isOpaque : true  ; color_main : Style.errorDialog.text ; color_minor : Style.dialog.textBlue ; }
-
             }
         }
     }

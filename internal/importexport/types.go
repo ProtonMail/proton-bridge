@@ -22,5 +22,6 @@ import "github.com/ProtonMail/proton-bridge/internal/users"
 type Configer interface {
 	users.Configer
 
+	GetLogDir() string
 	GetTransferDir() string
 }

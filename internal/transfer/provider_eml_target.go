@@ -21,7 +21,6 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/hashicorp/go-multierror"
 )
@@ -73,7 +72,7 @@ func (p *EMLProvider) createFolders(rules transferRules) error {
 
 func (p *EMLProvider) writeFile(msg Message) error {
 	fileName := filepath.Base(msg.ID)
-	if !strings.HasSuffix(fileName, ".eml") {
+	if filepath.Ext(fileName) != ".eml" {
 		fileName += ".eml"
 	}
 

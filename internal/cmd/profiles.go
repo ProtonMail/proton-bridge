@@ -24,12 +24,23 @@ import (
 	"runtime/pprof"
 )
 
+// StartCPUProfile starts CPU pprof.
+func StartCPUProfile() {
+	f, err := os.Create("./cpu.pprof")
+	if err != nil {
+		log.Fatal("Could not create CPU profile: ", err)
+	}
+	if err := pprof.StartCPUProfile(f); err != nil {
+		log.Fatal("Could not start CPU profile: ", err)
+	}
+}
+
 // MakeMemoryProfile generates memory pprof.
 func MakeMemoryProfile() {
 	name := "./mem.pprof"
 	f, err := os.Create(name)
 	if err != nil {
-		log.Error("Could not create memory profile: ", err)
+		log.Fatal("Could not create memory profile: ", err)
 	}
 	if abs, err := filepath.Abs(name); err == nil {
 		name = abs
@@ -37,7 +48,7 @@ func MakeMemoryProfile() {
 	log.Info("Writing memory profile to ", name)
 	runtime.GC() // get up-to-date statistics
 	if err := pprof.WriteHeapProfile(f); err != nil {
-		log.Error("Could not write memory profile: ", err)
+		log.Fatal("Could not write memory profile: ", err)
 	}
 	_ = f.Close()
 }

@@ -76,7 +76,7 @@ func New( //nolint[funlen]
 		Func:    fe.deleteCache,
 	})
 	clearCmd.AddCmd(&ishell.Cmd{Name: "accounts",
-		Help:    "remove all accounts from keychain. (aliases: k, keychain)",
+		Help:    "remove all accounts from keychain. (aliases: a, k, keychain)",
 		Aliases: []string{"a", "k", "keychain"},
 		Func:    fe.deleteAccounts,
 	})

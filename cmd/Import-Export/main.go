@@ -18,19 +18,18 @@
 package main
 
 import (
-	"os"
 	"runtime/pprof"
 
 	"github.com/ProtonMail/proton-bridge/internal/cmd"
 	"github.com/ProtonMail/proton-bridge/internal/events"
 	"github.com/ProtonMail/proton-bridge/internal/frontend"
 	"github.com/ProtonMail/proton-bridge/internal/importexport"
+	"github.com/ProtonMail/proton-bridge/internal/updates"
 	"github.com/ProtonMail/proton-bridge/internal/users/credentials"
 	"github.com/ProtonMail/proton-bridge/pkg/config"
 	"github.com/ProtonMail/proton-bridge/pkg/constants"
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
-	"github.com/ProtonMail/proton-bridge/pkg/updates"
 	"github.com/allan-simon/go-singleinstance"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
@@ -47,8 +46,8 @@ var (
 
 func main() {
 	cmd.Main(
-		"ProtonMail Import/Export",
-		"ProtonMail Import/Export tool",
+		"ProtonMail Import-Export",
+		"ProtonMail Import-Export app",
 		nil,
 		run,
 	)
@@ -66,7 +65,7 @@ func run(context *cli.Context) (contextError error) { // nolint[funlen]
 	// report which will not be possible if no folder can be created. That's the
 	// only problem we will not be notified about in any way.
 	panicHandler := &cmd.PanicHandler{
-		AppName: "ProtonMail Import/Export",
+		AppName: "ProtonMail Import-Export",
 		Config:  cfg,
 		Err:     &contextError,
 	}
@@ -81,7 +80,7 @@ func run(context *cli.Context) (contextError error) { // nolint[funlen]
 	logLevel := context.GlobalString("log-level")
 	_, _ = config.SetupLog(cfg, logLevel)
 
-	// Doesn't make sense to continue when Import/Export was invoked with wrong arguments.
+	// Doesn't make sense to continue when Import-Export was invoked with wrong arguments.
 	// We should tell that to the user before we do anything else.
 	if context.Args().First() != "" {
 		_ = cli.ShowAppHelp(context)
@@ -89,7 +88,7 @@ func run(context *cli.Context) (contextError error) { // nolint[funlen]
 	}
 
 	// It's safe to get version JSON file even when other instance is running.
-	// (thus we put it before check of presence of other Import/Export instance).
+	// (thus we put it before check of presence of other Import-Export instance).
 	updates := updates.NewImportExport(cfg.GetUpdateDir())
 
 	if dir := context.GlobalString("version-json"); dir != "" {
@@ -97,24 +96,18 @@ func run(context *cli.Context) (contextError error) { // nolint[funlen]
 		return nil
 	}
 
-	// Now we can try to proceed with starting the import/export. First we need to ensure
+	// Now we can try to proceed with starting the Import-Export. First we need to ensure
 	// this is the only instance. If not, we will end and focus the existing one.
 	lock, err := singleinstance.CreateLockFile(cfg.GetLockPath())
 	if err != nil {
-		log.Warn("Import/Export is already running")
-		return cli.NewExitError("Import/Export is already running.", 3)
+		log.Warn("Import-Export app is already running")
+		return cli.NewExitError("Import-Export app is already running.", 3)
 	}
 	defer lock.Close() //nolint[errcheck]
 
 	// In case user wants to do CPU or memory profiles...
 	if doCPUProfile := context.GlobalBool("cpu-prof"); doCPUProfile {
-		f, err := os.Create("cpu.pprof")
-		if err != nil {
-			log.Fatal("Could not create CPU profile: ", err)
-		}
-		if err := pprof.StartCPUProfile(f); err != nil {
-			log.Fatal("Could not start CPU profile: ", err)
-		}
+		cmd.StartCPUProfile()
 		defer pprof.StopCPUProfile()
 	}
 
@@ -122,8 +115,8 @@ func run(context *cli.Context) (contextError error) { // nolint[funlen]
 		defer cmd.MakeMemoryProfile()
 	}
 
-	// Now we initialize all Import/Export parts.
-	log.Debug("Initializing import/export...")
+	// Now we initialize all Import-Export parts.
+	log.Debug("Initializing import-export...")
 	eventListener := listener.New()
 	events.SetupEvents(eventListener)
 
@@ -141,7 +134,7 @@ func run(context *cli.Context) (contextError error) { // nolint[funlen]
 
 	importexportInstance := importexport.New(cfg, panicHandler, eventListener, cm, credentialsStore)
 
-	// Decide about frontend mode before initializing rest of import/export.
+	// Decide about frontend mode before initializing rest of import-export.
 	var frontendMode string
 	switch {
 	case context.GlobalBool("cli"):
