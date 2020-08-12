@@ -277,9 +277,10 @@ func run(context *cli.Context) (contextError error) { // nolint[funlen]
 	// Cookies must be persisted across restarts.
 	jar, err := cookies.New(cookies.NewPersister(pref))
 	if err != nil {
-		logrus.WithError(err).Fatal("Could not create cookie jar")
+		logrus.WithError(err).Warn("Could not create cookie jar")
+	} else {
+		cm.SetCookieJar(jar)
 	}
-	cm.SetCookieJar(jar)
 
 	bridgeInstance := bridge.New(cfg, pref, panicHandler, eventListener, cm, credentialsStore)
 	imapBackend := imap.NewIMAPBackend(panicHandler, eventListener, cfg, bridgeInstance)
