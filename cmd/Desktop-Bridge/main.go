@@ -275,7 +275,7 @@ func run(context *cli.Context) (contextError error) { // nolint[funlen]
 	cm.SetRoundTripper(cfg.GetRoundTripper(cm, eventListener))
 
 	// Cookies must be persisted across restarts.
-	jar, err := cookies.NewCookieJar(cookies.NewPersister(pref))
+	jar, err := cookies.NewCookieJar(pref)
 	if err != nil {
 		logrus.WithError(err).Warn("Could not create cookie jar")
 	} else {

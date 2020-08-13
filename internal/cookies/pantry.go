@@ -24,39 +24,30 @@ import (
 	"github.com/ProtonMail/proton-bridge/internal/preferences"
 )
 
-type Persister struct {
+type pantry struct {
 	prefs GetterSetter
 }
 
-type GetterSetter interface {
-	Get(string) string
-	Set(string, string)
-}
-
-func NewPersister(prefs GetterSetter) *Persister {
-	return &Persister{prefs: prefs}
-}
-
-func (p *Persister) Persist(url string, cookies []*http.Cookie) error {
+func (p *pantry) persistCookies(url string, cookies []*http.Cookie) error {
 	b, err := json.Marshal(cookies)
 	if err != nil {
 		return err
 	}
 
-	val, err := p.load()
+	val, err := p.loadFromJSON()
 	if err != nil {
 		return err
 	}
 
 	val[url] = string(b)
 
-	return p.save(val)
+	return p.saveToJSON(val)
 }
 
-func (p *Persister) Load() (map[string][]*http.Cookie, error) {
+func (p *pantry) loadCookies() (map[string][]*http.Cookie, error) {
 	res := make(map[string][]*http.Cookie)
 
-	val, err := p.load()
+	val, err := p.loadFromJSON()
 	if err != nil {
 		return nil, err
 	}
@@ -76,15 +67,11 @@ func (p *Persister) Load() (map[string][]*http.Cookie, error) {
 
 type dataStructure map[string]string
 
-func (p *Persister) load() (dataStructure, error) {
+func (p *pantry) loadFromJSON() (dataStructure, error) {
 	b := p.prefs.Get(preferences.CookiesKey)
 
 	if b == "" {
-		if err := p.save(make(dataStructure)); err != nil {
-			return nil, err
-		}
-
-		return p.load()
+		return make(dataStructure), nil
 	}
 
 	var val dataStructure
@@ -96,7 +83,7 @@ func (p *Persister) load() (dataStructure, error) {
 	return val, nil
 }
 
-func (p *Persister) save(val dataStructure) error {
+func (p *pantry) saveToJSON(val dataStructure) error {
 	b, err := json.Marshal(val)
 	if err != nil {
 		return err

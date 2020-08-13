@@ -30,18 +30,25 @@ import (
 // Jar implements http.CookieJar by wrapping the standard library's cookiejar.Jar.
 // The jar uses a Persister to load cookies at startup and save cookies when set.
 type Jar struct {
-	jar       *cookiejar.Jar
-	persister *Persister
-	locker    sync.Locker
+	jar    *cookiejar.Jar
+	pantry *pantry
+	locker sync.Locker
 }
 
-func NewCookieJar(persister *Persister) (*Jar, error) {
-	jar, err := cookiejar.New(nil)
+type GetterSetter interface {
+	Get(string) string
+	Set(string, string)
+}
+
+func NewCookieJar(getterSetter GetterSetter) (*Jar, error) {
+	pantry := &pantry{prefs: getterSetter}
+
+	cookies, err := pantry.loadCookies()
 	if err != nil {
 		return nil, err
 	}
 
-	cookies, err := persister.Load()
+	jar, err := cookiejar.New(nil)
 	if err != nil {
 		return nil, err
 	}
@@ -56,9 +63,9 @@ func NewCookieJar(persister *Persister) (*Jar, error) {
 	}
 
 	return &Jar{
-		jar:       jar,
-		persister: persister,
-		locker:    &sync.Mutex{},
+		jar:    jar,
+		pantry: pantry,
+		locker: &sync.Mutex{},
 	}, nil
 }
 
@@ -68,7 +75,7 @@ func (j *Jar) SetCookies(u *url.URL, cookies []*http.Cookie) {
 
 	j.jar.SetCookies(u, cookies)
 
-	if err := j.persister.Persist(u.String(), cookies); err != nil {
+	if err := j.pantry.persistCookies(u.String(), cookies); err != nil {
 		logrus.WithError(err).Warn("Failed to persist cookie")
 	}
 }

@@ -36,7 +36,7 @@ func TestJar(t *testing.T) {
 	ts := getTestServer(t, testCookies...)
 	defer ts.Close()
 
-	jar, err := NewCookieJar(NewPersister(make(testPersister)))
+	jar, err := NewCookieJar(make(testGetterSetter))
 	require.NoError(t, err)
 
 	client := &http.Client{Jar: jar}
@@ -86,12 +86,12 @@ func getTestServer(t *testing.T, wantCookies ...testCookie) *httptest.Server {
 	return httptest.NewServer(mux)
 }
 
-type testPersister map[string]string
+type testGetterSetter map[string]string
 
-func (p testPersister) Set(key, value string) {
+func (p testGetterSetter) Set(key, value string) {
 	p[key] = value
 }
 
-func (p testPersister) Get(key string) string {
+func (p testGetterSetter) Get(key string) string {
 	return p[key]
 }
