@@ -41,7 +41,7 @@ type GetterSetter interface {
 }
 
 func NewCookieJar(getterSetter GetterSetter) (*Jar, error) {
-	pantry := &pantry{prefs: getterSetter}
+	pantry := &pantry{gs: getterSetter}
 
 	cookies, err := pantry.loadCookies()
 	if err != nil {

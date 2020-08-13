@@ -25,7 +25,7 @@ import (
 )
 
 type pantry struct {
-	prefs GetterSetter
+	gs GetterSetter
 }
 
 func (p *pantry) persistCookies(url string, cookies []*http.Cookie) error {
@@ -68,7 +68,7 @@ func (p *pantry) loadCookies() (map[string][]*http.Cookie, error) {
 type dataStructure map[string]string
 
 func (p *pantry) loadFromJSON() (dataStructure, error) {
-	b := p.prefs.Get(preferences.CookiesKey)
+	b := p.gs.Get(preferences.CookiesKey)
 
 	if b == "" {
 		return make(dataStructure), nil
@@ -89,7 +89,7 @@ func (p *pantry) saveToJSON(val dataStructure) error {
 		return err
 	}
 
-	p.prefs.Set(preferences.CookiesKey, string(b))
+	p.gs.Set(preferences.CookiesKey, string(b))
 
 	return nil
 }
