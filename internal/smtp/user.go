@@ -364,6 +364,7 @@ func (su *smtpUser) Send(from string, to []string, messageReader io.Reader) (err
 	if plainPkg != nil {
 		req.Packages = append(req.Packages, plainPkg)
 	}
+
 	htmlPkg := buildPackage(htmlAddressMap, htmlSharedScheme, pmapi.ContentTypeHTML, htmlData, htmlKey, attkeysEncoded)
 	if htmlPkg != nil {
 		req.Packages = append(req.Packages, htmlPkg)

@@ -102,12 +102,14 @@ func buildPackage(
 	if len(addressMap) == 0 {
 		return nil
 	}
+
 	pkg = &pmapi.MessagePackage{
 		Body:      base64.StdEncoding.EncodeToString(bodyData),
 		Addresses: addressMap,
 		MIMEType:  mimeType,
 		Type:      sharedScheme,
 	}
+
 	if sharedScheme|pmapi.ClearPackage > 0 {
 		pkg.BodyKey.Key = bodyKey.GetBase64Key()
 		pkg.BodyKey.Algorithm = bodyKey.Algo

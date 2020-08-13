@@ -51,7 +51,7 @@ func TestPreferencesBuilder(t *testing.T) {
 			contactMeta:  &ContactMetadata{},
 			receivedKeys: []pmapi.PublicKey{{PublicKey: testPublicKey}},
 			isInternal:   true,
-			mailSettings: pmapi.MailSettings{PGPScheme: pmapi.PGPMIMEPackage},
+			mailSettings: pmapi.MailSettings{PGPScheme: pmapi.PGPMIMEPackage, ComposerMode: pmapi.ComposerModeNormal},
 
 			wantEncrypt:   true,
 			wantSign:      true,
@@ -66,7 +66,7 @@ func TestPreferencesBuilder(t *testing.T) {
 			contactMeta:  &ContactMetadata{MIMEType: "text/plain"},
 			receivedKeys: []pmapi.PublicKey{{PublicKey: testPublicKey}},
 			isInternal:   true,
-			mailSettings: pmapi.MailSettings{PGPScheme: pmapi.PGPMIMEPackage},
+			mailSettings: pmapi.MailSettings{PGPScheme: pmapi.PGPMIMEPackage, ComposerMode: pmapi.ComposerModeNormal},
 
 			wantEncrypt:   true,
 			wantSign:      true,
@@ -81,7 +81,7 @@ func TestPreferencesBuilder(t *testing.T) {
 			contactMeta:  &ContactMetadata{Keys: []string{testContactKey}},
 			receivedKeys: []pmapi.PublicKey{{PublicKey: testPublicKey}},
 			isInternal:   true,
-			mailSettings: pmapi.MailSettings{PGPScheme: pmapi.PGPMIMEPackage},
+			mailSettings: pmapi.MailSettings{PGPScheme: pmapi.PGPMIMEPackage, ComposerMode: pmapi.ComposerModeNormal},
 
 			wantEncrypt:   true,
 			wantSign:      true,
@@ -97,7 +97,7 @@ func TestPreferencesBuilder(t *testing.T) {
 			contactMeta:  &ContactMetadata{Keys: []string{testOtherContactKey}},
 			receivedKeys: []pmapi.PublicKey{{PublicKey: testPublicKey}},
 			isInternal:   true,
-			mailSettings: pmapi.MailSettings{PGPScheme: pmapi.PGPMIMEPackage},
+			mailSettings: pmapi.MailSettings{PGPScheme: pmapi.PGPMIMEPackage, ComposerMode: pmapi.ComposerModeNormal},
 
 			wantEncrypt:   true,
 			wantSign:      true,
@@ -112,7 +112,7 @@ func TestPreferencesBuilder(t *testing.T) {
 			contactMeta:  &ContactMetadata{},
 			receivedKeys: []pmapi.PublicKey{{PublicKey: testPublicKey}},
 			isInternal:   false,
-			mailSettings: pmapi.MailSettings{PGPScheme: pmapi.PGPMIMEPackage},
+			mailSettings: pmapi.MailSettings{PGPScheme: pmapi.PGPMIMEPackage, ComposerMode: pmapi.ComposerModeNormal},
 
 			wantEncrypt:   true,
 			wantSign:      true,
@@ -127,7 +127,7 @@ func TestPreferencesBuilder(t *testing.T) {
 			contactMeta:  &ContactMetadata{MIMEType: "text/plain"},
 			receivedKeys: []pmapi.PublicKey{{PublicKey: testPublicKey}},
 			isInternal:   false,
-			mailSettings: pmapi.MailSettings{PGPScheme: pmapi.PGPMIMEPackage},
+			mailSettings: pmapi.MailSettings{PGPScheme: pmapi.PGPMIMEPackage, ComposerMode: pmapi.ComposerModeNormal},
 
 			wantEncrypt:   true,
 			wantSign:      true,
@@ -142,7 +142,7 @@ func TestPreferencesBuilder(t *testing.T) {
 			contactMeta:  &ContactMetadata{},
 			receivedKeys: []pmapi.PublicKey{{PublicKey: testPublicKey}},
 			isInternal:   false,
-			mailSettings: pmapi.MailSettings{PGPScheme: pmapi.PGPInlinePackage},
+			mailSettings: pmapi.MailSettings{PGPScheme: pmapi.PGPInlinePackage, ComposerMode: pmapi.ComposerModeNormal},
 
 			wantEncrypt:   true,
 			wantSign:      true,
@@ -157,7 +157,7 @@ func TestPreferencesBuilder(t *testing.T) {
 			contactMeta:  &ContactMetadata{Scheme: pgpInline},
 			receivedKeys: []pmapi.PublicKey{{PublicKey: testPublicKey}},
 			isInternal:   false,
-			mailSettings: pmapi.MailSettings{PGPScheme: pmapi.PGPMIMEPackage},
+			mailSettings: pmapi.MailSettings{PGPScheme: pmapi.PGPMIMEPackage, ComposerMode: pmapi.ComposerModeNormal},
 
 			wantEncrypt:   true,
 			wantSign:      true,
@@ -172,7 +172,7 @@ func TestPreferencesBuilder(t *testing.T) {
 			contactMeta:  &ContactMetadata{Scheme: pgpMIME},
 			receivedKeys: []pmapi.PublicKey{{PublicKey: testPublicKey}},
 			isInternal:   false,
-			mailSettings: pmapi.MailSettings{PGPScheme: pmapi.PGPInlinePackage},
+			mailSettings: pmapi.MailSettings{PGPScheme: pmapi.PGPInlinePackage, ComposerMode: pmapi.ComposerModeNormal},
 
 			wantEncrypt:   true,
 			wantSign:      true,
@@ -187,7 +187,7 @@ func TestPreferencesBuilder(t *testing.T) {
 			contactMeta:  &ContactMetadata{Keys: []string{testContactKey}},
 			receivedKeys: []pmapi.PublicKey{{PublicKey: testPublicKey}},
 			isInternal:   false,
-			mailSettings: pmapi.MailSettings{PGPScheme: pmapi.PGPMIMEPackage},
+			mailSettings: pmapi.MailSettings{PGPScheme: pmapi.PGPMIMEPackage, ComposerMode: pmapi.ComposerModeNormal},
 
 			wantEncrypt:   true,
 			wantSign:      true,
@@ -203,7 +203,7 @@ func TestPreferencesBuilder(t *testing.T) {
 			contactMeta:  &ContactMetadata{Keys: []string{testOtherContactKey}},
 			receivedKeys: []pmapi.PublicKey{{PublicKey: testPublicKey}},
 			isInternal:   false,
-			mailSettings: pmapi.MailSettings{PGPScheme: pmapi.PGPMIMEPackage},
+			mailSettings: pmapi.MailSettings{PGPScheme: pmapi.PGPMIMEPackage, ComposerMode: pmapi.ComposerModeNormal},
 
 			wantEncrypt:   true,
 			wantSign:      true,
@@ -218,7 +218,7 @@ func TestPreferencesBuilder(t *testing.T) {
 			contactMeta:  &ContactMetadata{},
 			receivedKeys: []pmapi.PublicKey{},
 			isInternal:   false,
-			mailSettings: pmapi.MailSettings{PGPScheme: pmapi.PGPMIMEPackage},
+			mailSettings: pmapi.MailSettings{PGPScheme: pmapi.PGPMIMEPackage, ComposerMode: pmapi.ComposerModeNormal},
 
 			wantEncrypt:  false,
 			wantSign:     false,
@@ -232,7 +232,7 @@ func TestPreferencesBuilder(t *testing.T) {
 			contactMeta:  &ContactMetadata{MIMEType: "text/plain"},
 			receivedKeys: []pmapi.PublicKey{},
 			isInternal:   false,
-			mailSettings: pmapi.MailSettings{PGPScheme: pmapi.PGPMIMEPackage},
+			mailSettings: pmapi.MailSettings{PGPScheme: pmapi.PGPMIMEPackage, ComposerMode: pmapi.ComposerModeNormal},
 
 			wantEncrypt:  false,
 			wantSign:     false,
@@ -246,7 +246,7 @@ func TestPreferencesBuilder(t *testing.T) {
 			contactMeta:  &ContactMetadata{Sign: true},
 			receivedKeys: []pmapi.PublicKey{},
 			isInternal:   false,
-			mailSettings: pmapi.MailSettings{PGPScheme: pmapi.PGPMIMEPackage},
+			mailSettings: pmapi.MailSettings{PGPScheme: pmapi.PGPMIMEPackage, ComposerMode: pmapi.ComposerModeNormal},
 
 			wantEncrypt:  false,
 			wantSign:     true,
@@ -260,7 +260,7 @@ func TestPreferencesBuilder(t *testing.T) {
 			contactMeta:  &ContactMetadata{Keys: []string{testContactKey}},
 			receivedKeys: []pmapi.PublicKey{},
 			isInternal:   false,
-			mailSettings: pmapi.MailSettings{PGPScheme: pmapi.PGPMIMEPackage},
+			mailSettings: pmapi.MailSettings{PGPScheme: pmapi.PGPMIMEPackage, ComposerMode: pmapi.ComposerModeNormal},
 
 			wantEncrypt:   false,
 			wantSign:      false,
@@ -275,7 +275,7 @@ func TestPreferencesBuilder(t *testing.T) {
 			contactMeta:  &ContactMetadata{Keys: []string{testContactKey}, Encrypt: true, Sign: true},
 			receivedKeys: []pmapi.PublicKey{},
 			isInternal:   false,
-			mailSettings: pmapi.MailSettings{PGPScheme: pmapi.PGPMIMEPackage},
+			mailSettings: pmapi.MailSettings{PGPScheme: pmapi.PGPMIMEPackage, ComposerMode: pmapi.ComposerModeNormal},
 
 			wantEncrypt:   true,
 			wantSign:      true,
@@ -290,7 +290,7 @@ func TestPreferencesBuilder(t *testing.T) {
 			contactMeta:  &ContactMetadata{Keys: []string{testContactKey}, Encrypt: true, Sign: true, Scheme: pgpInline},
 			receivedKeys: []pmapi.PublicKey{},
 			isInternal:   false,
-			mailSettings: pmapi.MailSettings{PGPScheme: pmapi.PGPMIMEPackage},
+			mailSettings: pmapi.MailSettings{PGPScheme: pmapi.PGPMIMEPackage, ComposerMode: pmapi.ComposerModeNormal},
 
 			wantEncrypt:   true,
 			wantSign:      true,
@@ -305,7 +305,7 @@ func TestPreferencesBuilder(t *testing.T) {
 			contactMeta:  &ContactMetadata{Keys: []string{testContactKey}, Encrypt: true, Sign: true},
 			receivedKeys: []pmapi.PublicKey{},
 			isInternal:   false,
-			mailSettings: pmapi.MailSettings{PGPScheme: pmapi.PGPInlinePackage},
+			mailSettings: pmapi.MailSettings{PGPScheme: pmapi.PGPInlinePackage, ComposerMode: pmapi.ComposerModeNormal},
 
 			wantEncrypt:   true,
 			wantSign:      true,

@@ -98,8 +98,8 @@ type MailSettings struct {
 }
 
 const (
-	ComposerModeNormal = 0
-	ComposerModePlain  = 1
+	ComposerModePlain  = 0
+	ComposerModeNormal = 1
 )
 
 // GetMailSettings gets contact details specified by contact ID.
