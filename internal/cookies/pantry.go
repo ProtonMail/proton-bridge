@@ -24,6 +24,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/internal/preferences"
 )
 
+// pantry persists and loads cookies to some persistent storage location.
 type pantry struct {
 	gs GetterSetter
 }

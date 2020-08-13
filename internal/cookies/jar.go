@@ -28,7 +28,7 @@ import (
 )
 
 // Jar implements http.CookieJar by wrapping the standard library's cookiejar.Jar.
-// The jar uses a Persister to load cookies at startup and save cookies when set.
+// The jar uses a pantry to load cookies at startup and save cookies when set.
 type Jar struct {
 	jar    *cookiejar.Jar
 	pantry *pantry
