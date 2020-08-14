@@ -18,7 +18,6 @@
 package parser
 
 import (
-	"bytes"
 	"io"
 	"io/ioutil"
 	"os"
@@ -29,15 +28,7 @@ import (
 )
 
 func newTestParser(t *testing.T, msg string) *Parser {
-	r := f(msg)
-
-	buf := new(bytes.Buffer)
-
-	if _, err := buf.ReadFrom(r); err != nil {
-		panic(err)
-	}
-
-	p, err := New(buf.Bytes())
+	p, err := New(f(msg))
 	require.NoError(t, err)
 
 	return p

@@ -34,8 +34,8 @@ import (
 	"github.com/jaytaylor/html2text"
 )
 
-func Parse(b []byte, key, keyName string) (m *pmapi.Message, plainBody string, attReaders []io.Reader, err error) {
-	p, err := parser.New(b)
+func Parse(r io.Reader, key, keyName string) (m *pmapi.Message, mimeBody, plainBody string, attReaders []io.Reader, err error) {
+	p, err := parser.New(r)
 	if err != nil {
 		return
 	}
@@ -68,7 +68,13 @@ func Parse(b []byte, key, keyName string) (m *pmapi.Message, plainBody string, a
 		return
 	}
 
-	return m, plainBody, attReaders, nil
+	mimeBodyBuffer := new(bytes.Buffer)
+
+	if err = p.NewWriter().Write(mimeBodyBuffer); err != nil {
+		return
+	}
+
+	return m, mimeBodyBuffer.String(), plainBody, attReaders, nil
 }
 
 func convertForeignEncodings(p *parser.Parser) error {

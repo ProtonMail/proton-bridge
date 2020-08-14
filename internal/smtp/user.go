@@ -20,7 +20,6 @@
 package smtp
 
 import (
-	"bytes"
 	"encoding/base64"
 	"io"
 	"mime"
@@ -183,18 +182,7 @@ func (su *smtpUser) Send(from string, to []string, messageReader io.Reader) (err
 		attachedPublicKeyName = "publickey - " + kr.GetIdentities()[0].Name
 	}
 
-	buf := new(bytes.Buffer)
-
-	if _, err = buf.ReadFrom(messageReader); err != nil {
-		return
-	}
-
-	// HELP: Can we trust the mail client's 7bit filter?
-	// Might want to check here that it truly is 7bit clean.
-	// If it's not we need to use the message parser's writer ability (already has 7bit filter).
-	mimeBody := buf.String()
-
-	message, plainBody, attReaders, err := message.Parse(buf.Bytes(), attachedPublicKey, attachedPublicKeyName)
+	message, mimeBody, plainBody, attReaders, err := message.Parse(messageReader, attachedPublicKey, attachedPublicKeyName)
 	if err != nil {
 		return
 	}

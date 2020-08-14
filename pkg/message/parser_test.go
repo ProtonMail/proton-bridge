@@ -18,7 +18,6 @@
 package message
 
 import (
-	"bytes"
 	"image/png"
 	"io"
 	"io/ioutil"
@@ -34,7 +33,7 @@ import (
 func TestParseTextPlain(t *testing.T) {
 	f := f("text_plain.eml")
 
-	m, plainBody, attReaders, err := Parse(f, "", "")
+	m, _, plainBody, attReaders, err := Parse(f, "", "")
 	require.NoError(t, err)
 
 	assert.Equal(t, `"Sender" <sender@pm.me>`, m.Sender.String())
@@ -49,7 +48,7 @@ func TestParseTextPlain(t *testing.T) {
 func TestParseTextPlainUTF8(t *testing.T) {
 	f := f("text_plain_utf8.eml")
 
-	m, plainBody, attReaders, err := Parse(f, "", "")
+	m, _, plainBody, attReaders, err := Parse(f, "", "")
 	require.NoError(t, err)
 
 	assert.Equal(t, `"Sender" <sender@pm.me>`, m.Sender.String())
@@ -64,7 +63,7 @@ func TestParseTextPlainUTF8(t *testing.T) {
 func TestParseTextPlainLatin1(t *testing.T) {
 	f := f("text_plain_latin1.eml")
 
-	m, plainBody, attReaders, err := Parse(f, "", "")
+	m, _, plainBody, attReaders, err := Parse(f, "", "")
 	require.NoError(t, err)
 
 	assert.Equal(t, `"Sender" <sender@pm.me>`, m.Sender.String())
@@ -79,7 +78,7 @@ func TestParseTextPlainLatin1(t *testing.T) {
 func TestParseTextPlainUnknownCharsetIsActuallyLatin1(t *testing.T) {
 	f := f("text_plain_unknown_latin1.eml")
 
-	m, plainBody, attReaders, err := Parse(f, "", "")
+	m, _, plainBody, attReaders, err := Parse(f, "", "")
 	require.NoError(t, err)
 
 	assert.Equal(t, `"Sender" <sender@pm.me>`, m.Sender.String())
@@ -94,7 +93,7 @@ func TestParseTextPlainUnknownCharsetIsActuallyLatin1(t *testing.T) {
 func TestParseTextPlainUnknownCharsetIsActuallyLatin2(t *testing.T) {
 	f := f("text_plain_unknown_latin2.eml")
 
-	m, plainBody, attReaders, err := Parse(f, "", "")
+	m, _, plainBody, attReaders, err := Parse(f, "", "")
 	require.NoError(t, err)
 
 	assert.Equal(t, `"Sender" <sender@pm.me>`, m.Sender.String())
@@ -115,7 +114,7 @@ func TestParseTextPlainUnknownCharsetIsActuallyLatin2(t *testing.T) {
 func TestParseTextPlainAlready7Bit(t *testing.T) {
 	f := f("text_plain_7bit.eml")
 
-	m, plainBody, attReaders, err := Parse(f, "", "")
+	m, _, plainBody, attReaders, err := Parse(f, "", "")
 	require.NoError(t, err)
 
 	assert.Equal(t, `"Sender" <sender@pm.me>`, m.Sender.String())
@@ -130,7 +129,7 @@ func TestParseTextPlainAlready7Bit(t *testing.T) {
 func TestParseTextPlainWithOctetAttachment(t *testing.T) {
 	f := f("text_plain_octet_attachment.eml")
 
-	m, plainBody, attReaders, err := Parse(f, "", "")
+	m, _, plainBody, attReaders, err := Parse(f, "", "")
 	require.NoError(t, err)
 
 	assert.Equal(t, `"Sender" <sender@pm.me>`, m.Sender.String())
@@ -146,7 +145,7 @@ func TestParseTextPlainWithOctetAttachment(t *testing.T) {
 func TestParseTextPlainWithOctetAttachmentGoodFilename(t *testing.T) {
 	f := f("text_plain_octet_attachment_good_2231_filename.eml")
 
-	m, plainBody, attReaders, err := Parse(f, "", "")
+	m, _, plainBody, attReaders, err := Parse(f, "", "")
 	require.NoError(t, err)
 
 	assert.Equal(t, `"Sender" <sender@pm.me>`, m.Sender.String())
@@ -163,7 +162,7 @@ func TestParseTextPlainWithOctetAttachmentGoodFilename(t *testing.T) {
 func TestParseTextPlainWithOctetAttachmentBadFilename(t *testing.T) {
 	f := f("text_plain_octet_attachment_bad_2231_filename.eml")
 
-	m, plainBody, attReaders, err := Parse(f, "", "")
+	m, _, plainBody, attReaders, err := Parse(f, "", "")
 	require.NoError(t, err)
 
 	assert.Equal(t, `"Sender" <sender@pm.me>`, m.Sender.String())
@@ -180,7 +179,7 @@ func TestParseTextPlainWithOctetAttachmentBadFilename(t *testing.T) {
 func TestParseTextPlainWithPlainAttachment(t *testing.T) {
 	f := f("text_plain_plain_attachment.eml")
 
-	m, plainBody, attReaders, err := Parse(f, "", "")
+	m, _, plainBody, attReaders, err := Parse(f, "", "")
 	require.NoError(t, err)
 
 	assert.Equal(t, `"Sender" <sender@pm.me>`, m.Sender.String())
@@ -196,7 +195,7 @@ func TestParseTextPlainWithPlainAttachment(t *testing.T) {
 func TestParseTextPlainWithImageInline(t *testing.T) {
 	f := f("text_plain_image_inline.eml")
 
-	m, plainBody, attReaders, err := Parse(f, "", "")
+	m, _, plainBody, attReaders, err := Parse(f, "", "")
 	require.NoError(t, err)
 
 	assert.Equal(t, `"Sender" <sender@pm.me>`, m.Sender.String())
@@ -216,7 +215,7 @@ func TestParseTextPlainWithImageInline(t *testing.T) {
 func TestParseWithMultipleTextParts(t *testing.T) {
 	f := f("multiple_text_parts.eml")
 
-	m, plainBody, attReaders, err := Parse(f, "", "")
+	m, _, plainBody, attReaders, err := Parse(f, "", "")
 	require.NoError(t, err)
 
 	assert.Equal(t, `"Sender" <sender@pm.me>`, m.Sender.String())
@@ -231,7 +230,7 @@ func TestParseWithMultipleTextParts(t *testing.T) {
 func TestParseTextHTML(t *testing.T) {
 	f := f("text_html.eml")
 
-	m, plainBody, attReaders, err := Parse(f, "", "")
+	m, _, plainBody, attReaders, err := Parse(f, "", "")
 	require.NoError(t, err)
 
 	assert.Equal(t, `"Sender" <sender@pm.me>`, m.Sender.String())
@@ -246,7 +245,7 @@ func TestParseTextHTML(t *testing.T) {
 func TestParseTextHTMLAlready7Bit(t *testing.T) {
 	f := f("text_html_7bit.eml")
 
-	m, plainBody, attReaders, err := Parse(f, "", "")
+	m, _, plainBody, attReaders, err := Parse(f, "", "")
 	assert.NoError(t, err)
 
 	assert.Equal(t, `"Sender" <sender@pm.me>`, m.Sender.String())
@@ -261,7 +260,7 @@ func TestParseTextHTMLAlready7Bit(t *testing.T) {
 func TestParseTextHTMLWithOctetAttachment(t *testing.T) {
 	f := f("text_html_octet_attachment.eml")
 
-	m, plainBody, attReaders, err := Parse(f, "", "")
+	m, _, plainBody, attReaders, err := Parse(f, "", "")
 	require.NoError(t, err)
 
 	assert.Equal(t, `"Sender" <sender@pm.me>`, m.Sender.String())
@@ -277,7 +276,7 @@ func TestParseTextHTMLWithOctetAttachment(t *testing.T) {
 func TestParseTextHTMLWithPlainAttachment(t *testing.T) {
 	f := f("text_html_plain_attachment.eml")
 
-	m, plainBody, attReaders, err := Parse(f, "", "")
+	m, _, plainBody, attReaders, err := Parse(f, "", "")
 	require.NoError(t, err)
 
 	assert.Equal(t, `"Sender" <sender@pm.me>`, m.Sender.String())
@@ -294,7 +293,7 @@ func TestParseTextHTMLWithPlainAttachment(t *testing.T) {
 func TestParseTextHTMLWithImageInline(t *testing.T) {
 	f := f("text_html_image_inline.eml")
 
-	m, plainBody, attReaders, err := Parse(f, "", "")
+	m, _, plainBody, attReaders, err := Parse(f, "", "")
 	assert.NoError(t, err)
 
 	assert.Equal(t, `"Sender" <sender@pm.me>`, m.Sender.String())
@@ -315,7 +314,7 @@ func TestParseWithAttachedPublicKey(t *testing.T) {
 	f := f("text_plain.eml")
 
 	// BAD: Public Key is not attached unless Content-Type is specified (not required)!
-	m, plainBody, attReaders, err := Parse(f, "publickey", "publickeyname")
+	m, _, plainBody, attReaders, err := Parse(f, "publickey", "publickeyname")
 	require.NoError(t, err)
 
 	assert.Equal(t, `"Sender" <sender@pm.me>`, m.Sender.String())
@@ -331,7 +330,7 @@ func TestParseWithAttachedPublicKey(t *testing.T) {
 func TestParseTextHTMLWithEmbeddedForeignEncoding(t *testing.T) {
 	f := f("text_html_embedded_foreign_encoding.eml")
 
-	m, plainBody, attReaders, err := Parse(f, "", "")
+	m, _, plainBody, attReaders, err := Parse(f, "", "")
 	require.NoError(t, err)
 
 	assert.Equal(t, `"Sender" <sender@pm.me>`, m.Sender.String())
@@ -347,7 +346,7 @@ func TestParseTextHTMLWithEmbeddedForeignEncoding(t *testing.T) {
 func TestParseMultipartAlternative(t *testing.T) {
 	f := f("multipart_alternative.eml")
 
-	m, plainBody, _, err := Parse(f, "", "")
+	m, _, plainBody, _, err := Parse(f, "", "")
 	require.NoError(t, err)
 
 	assert.Equal(t, `"schizofrenic" <schizofrenic@pm.me>`, m.Sender.String())
@@ -369,7 +368,7 @@ func TestParseMultipartAlternative(t *testing.T) {
 func TestParseMultipartAlternativeNested(t *testing.T) {
 	f := f("multipart_alternative_nested.eml")
 
-	m, plainBody, _, err := Parse(f, "", "")
+	m, _, plainBody, _, err := Parse(f, "", "")
 	require.NoError(t, err)
 
 	assert.Equal(t, `"schizofrenic" <schizofrenic@pm.me>`, m.Sender.String())
@@ -388,17 +387,13 @@ func TestParseMultipartAlternativeNested(t *testing.T) {
 	assert.Equal(t, "*multipart 2.1*\n\n", plainBody)
 }
 
-func f(filename string) []byte {
+func f(filename string) io.Reader {
 	f, err := os.Open(filepath.Join("testdata", filename))
 	if err != nil {
 		panic(err)
 	}
 
-	buf := new(bytes.Buffer)
-
-	_, _ = buf.ReadFrom(f)
-
-	return buf.Bytes()
+	return f
 }
 
 func readerToString(r io.Reader) string {

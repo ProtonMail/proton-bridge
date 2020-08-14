@@ -67,13 +67,7 @@ func (im *imapMailbox) CreateMessage(flags []string, date time.Time, body imap.L
 	// Called from go-imap in goroutines - we need to handle panics for each function.
 	defer im.panicHandler.HandlePanic()
 
-	buf := new(bytes.Buffer)
-
-	if _, err := buf.ReadFrom(body); err != nil {
-		return err
-	}
-
-	m, _, readers, err := message.Parse(buf.Bytes(), "", "")
+	m, _, _, readers, err := message.Parse(body, "", "")
 	if err != nil {
 		return err
 	}

@@ -18,7 +18,6 @@
 package parser
 
 import (
-	"bytes"
 	"io"
 	"io/ioutil"
 
@@ -30,10 +29,10 @@ type Parser struct {
 	root  *Part
 }
 
-func New(b []byte) (*Parser, error) {
+func New(r io.Reader) (*Parser, error) {
 	p := new(Parser)
 
-	entity, err := message.Read(bytes.NewReader(b))
+	entity, err := message.Read(r)
 	if err != nil && !message.IsUnknownCharset(err) {
 		return nil, err
 	}
