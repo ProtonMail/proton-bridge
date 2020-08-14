@@ -45,6 +45,7 @@ func Parse(r io.Reader, key, keyName string) (m *pmapi.Message, mimeBody, plainB
 	}
 
 	if key != "" {
+		// TODO: This is currently broken!
 		if err = attachPublicKey(p.Root(), key, keyName); err != nil {
 			return
 		}

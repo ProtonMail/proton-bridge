@@ -97,3 +97,13 @@ func selectDecoderFromParams(params map[string]string) *encoding.Decoder {
 
 	return decoder
 }
+
+func (p *Part) is7BitClean() bool {
+	for _, b := range p.Body {
+		if b > 1<<7 {
+			return false
+		}
+	}
+
+	return true
+}
