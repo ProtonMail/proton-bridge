@@ -60,6 +60,7 @@ func GetFlags(m *pmapi.Message) (flags []string) {
 }
 
 func ParseFlags(m *pmapi.Message, flags []string) {
+	// Consider to use ComputeMessageFlagsByLabels to keep logic in one place.
 	if (m.Flags & pmapi.FlagSent) == 0 {
 		m.Flags |= pmapi.FlagReceived
 	}

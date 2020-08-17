@@ -839,3 +839,22 @@ func (c *client) EmptyFolder(labelID, addressID string) (err error) {
 	err = res.Err()
 	return
 }
+
+// ComputeMessageFlagsByLabels returns flags based on labels.
+func ComputeMessageFlagsByLabels(labels []string) (flag int64) {
+	for _, labelID := range labels {
+		switch labelID {
+		case SentLabel:
+			flag = (flag | FlagSent)
+		case ArchiveLabel, InboxLabel:
+			flag = (flag | FlagReceived)
+		}
+	}
+
+	// NOTE: if the labels are custom only
+	if flag == 0 {
+		flag = FlagReceived
+	}
+
+	return flag
+}

@@ -36,6 +36,10 @@ func (ctl *Controller) AddUserMessage(username string, message *pmapi.Message) e
 		return fmt.Errorf("user %s does not exist", username)
 	}
 
+	if message.Flags == 0 {
+		message.Flags = pmapi.ComputeMessageFlagsByLabels(message.LabelIDs)
+	}
+
 	body, err := buildMessage(client, message)
 	if err != nil {
 		return errors.Wrap(err, "failed to build message")
