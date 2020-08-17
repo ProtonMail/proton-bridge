@@ -365,7 +365,8 @@ func TestSendRecorder_getMessageHash(t *testing.T) {
 
 func TestSendRecorder_isSendingOrSent(t *testing.T) {
 	q := newSendRecorder()
-	q.addMessage("hash", "messageID")
+	q.addMessage("hash")
+	q.setMessageID("hash", "messageID")
 
 	testCases := []struct {
 		hash          string

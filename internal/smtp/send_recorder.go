@@ -69,14 +69,31 @@ func (q *sendRecorder) getMessageHash(message *pmapi.Message) string {
 	return fmt.Sprintf("%x", h.Sum(nil))
 }
 
-func (q *sendRecorder) addMessage(hash, messageID string) {
+func (q *sendRecorder) addMessage(hash string) {
 	q.lock.Lock()
 	defer q.lock.Unlock()
 
 	q.deleteExpiredKeys()
 	q.hashes[hash] = sendRecorderValue{
-		messageID: messageID,
-		time:      time.Now(),
+		time: time.Now(),
+	}
+}
+
+func (q *sendRecorder) removeMessage(hash string) {
+	q.lock.Lock()
+	defer q.lock.Unlock()
+
+	q.deleteExpiredKeys()
+	delete(q.hashes, hash)
+}
+
+func (q *sendRecorder) setMessageID(hash, messageID string) {
+	q.lock.Lock()
+	defer q.lock.Unlock()
+
+	if val, ok := q.hashes[hash]; ok {
+		val.messageID = messageID
+		q.hashes[hash] = val
 	}
 }
 
@@ -89,6 +106,12 @@ func (q *sendRecorder) isSendingOrSent(client messageGetter, hash string) (isSen
 	if !ok {
 		return
 	}
+
+	// If we have a value but don't yet have a messageID, we are in the process of uploading the draft.
+	if value.messageID == "" {
+		return true, false
+	}
+
 	message, err := client.GetMessage(value.messageID)
 	// Message could be deleted or there could be an internet issue or whatever,
 	// so let's assume the message was not sent.
@@ -107,7 +130,8 @@ func (q *sendRecorder) isSendingOrSent(client messageGetter, hash string) (isSen
 	if message.Type == pmapi.MessageTypeSent || message.Type == pmapi.MessageTypeInboxAndSent {
 		wasSent = true
 	}
-	return
+
+	return isSending, wasSent
 }
 
 func (q *sendRecorder) deleteExpiredKeys() {

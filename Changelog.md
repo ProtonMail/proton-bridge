@@ -4,8 +4,6 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 ## Unreleased
 
-## [v1.3.x] Emma (beta since 2020-08-05)
-
 ### Added
 * GODT-633 Persistent anonymous API cookies for better load balancing and abuse detection. 
 
@@ -40,9 +38,10 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 ### Fixed
 * GODT-454 Fix send on closed channel when receiving unencrypted send confirmation from GUI.
+* GODT-597 Duplicate sending when draft creation takes too long
 
 
-## [v1.3.x] Emma (beta 2020-07-XXX)
+## [v1.3.x] Emma (v1.3.2 beta 2020-08-04, v1.3.3 beta 2020-08-06, v1.3.3 live 2020-08-12)
 
 ### Added
 * GODT-554 Detect and notify about "bad certificate" IMAP TLS error.

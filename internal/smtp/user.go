@@ -230,11 +230,13 @@ func (su *smtpUser) Send(from string, to []string, messageReader io.Reader) (err
 		return nil
 	}
 
+	su.backend.sendRecorder.addMessage(sendRecorderMessageHash)
 	message, atts, err := su.storeUser.CreateDraft(kr, message, attReaders, attachedPublicKey, attachedPublicKeyName, parentID)
 	if err != nil {
+		su.backend.sendRecorder.removeMessage(sendRecorderMessageHash)
 		return
 	}
-	su.backend.sendRecorder.addMessage(sendRecorderMessageHash, message.ID)
+	su.backend.sendRecorder.setMessageID(sendRecorderMessageHash, message.ID)
 
 	// We always have to create a new draft even if there already is one,
 	// because clients don't necessarily save the draft before sending, which
