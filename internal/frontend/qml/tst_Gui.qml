@@ -110,7 +110,7 @@ Window {
         ListElement { title: "Internet off"   }
         ListElement { title: "NeedUpdate"     }
         ListElement { title: "UpToDate"       }
-        ListElement { title: "ForceUpdate"   }
+        ListElement { title: "ForceUpdate"    }
         ListElement { title: "Linux"          }
         ListElement { title: "Windows"        }
         ListElement { title: "Macos"          }
@@ -122,6 +122,7 @@ Window {
         ListElement { title: "Minimize this"  }
         ListElement { title: "SendAlertPopup" }
         ListElement { title: "TLSCertError"   }
+        ListElement { title: "IMAPCertError"  }
     }
 
     ListView {
@@ -207,6 +208,9 @@ Window {
                     break;
                     case "TLSCertError" :
                     go.showCertIssue()
+                    break;
+                    case "IMAPCertError" :
+                    go.showIMAPCertTroubleshoot()
                     break;
                     default :
                     console.log("Not implemented " + data)
@@ -310,6 +314,7 @@ Window {
         signal failedAutostartCode(string code)
 
         signal showCertIssue()
+        signal showIMAPCertTroubleshoot()
 
         signal updateFinished(bool hasError)
 

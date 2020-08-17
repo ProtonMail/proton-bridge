@@ -4,6 +4,8 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 ## Unreleased
 
+## [v1.3.x] Emma (beta since 2020-08-05)
+
 ### Added
 * GODT-633 Persistent anonymous API cookies for better load balancing and abuse detection. 
 
@@ -41,6 +43,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 ## [v1.3.x] Emma (beta 2020-07-XXX)
 
 ### Added
+* GODT-554 Detect and notify about "bad certificate" IMAP TLS error.
 * IMAP mailbox info update when new mailbox is created.
 * GODT-72 Use ISO-8859-1 encoding if charset is not specified and it isn't UTF-8.
 
@@ -103,6 +106,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-321 Changing address ordering would cause all messages to disappear in combined mode.
 * GODT-129 Fix custom message PGP by using template.
 * GODT-280 Don't assume contact keys are stored armored.
+* GODT-427 Fix race condition in auth refresh that could cause user to be logged out.
 
 
 ## [v1.2.8] Donghai-fix-append  (beta 2020-06-XXX)

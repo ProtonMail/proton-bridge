@@ -188,6 +188,7 @@ func (s *FrontendQt) watchEvents() {
 	updateApplicationCh := s.getEventChannel(events.UpgradeApplicationEvent)
 	newUserCh := s.getEventChannel(events.UserRefreshEvent)
 	certIssue := s.getEventChannel(events.TLSCertIssue)
+	imapCertIssue := s.getEventChannel(events.IMAPTLSBadCert)
 	for {
 		select {
 		case errorDetails := <-errorCh:
@@ -227,6 +228,8 @@ func (s *FrontendQt) watchEvents() {
 			s.Qml.LoadAccounts()
 		case <-certIssue:
 			s.Qml.ShowCertIssue()
+		case <-imapCertIssue:
+			s.Qml.ShowIMAPCertTroubleshoot()
 		}
 	}
 }

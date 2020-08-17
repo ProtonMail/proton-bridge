@@ -29,6 +29,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
 	"github.com/emersion/go-imap"
 	goIMAPBackend "github.com/emersion/go-imap/backend"
+	"github.com/sirupsen/logrus"
 )
 
 type panicHandler interface {
@@ -217,5 +218,13 @@ func (ib *imapBackend) monitorDisconnectedUsers() {
 		// delete the user to ensure future imap login attempts use the latest bridge user
 		// (bridge user might be removed-readded so we want to use the new bridge user object).
 		ib.deleteUser(address)
+	}
+}
+
+func (ib *imapBackend) upgradeError(err error) {
+	logrus.WithError(err).Error("IMAP connection couldn't be upgraded to TLS during STARTTLS")
+
+	if strings.Contains(err.Error(), "remote error: tls: bad certificate") {
+		ib.eventListener.Emit(events.IMAPTLSBadCert, err.Error())
 	}
 }

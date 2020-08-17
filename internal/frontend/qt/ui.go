@@ -135,6 +135,7 @@ type GoQMLInterface struct {
 	_ func(x, y float32)                      `slot:"saveOutgoingNoEncPopupCoord"`
 	_ func(recipient string)                  `signal:"showNoActiveKeyForRecipient"`
 	_ func()                                  `signal:"showCertIssue"`
+	_ func()                                  `signal:"ShowIMAPCertTroubleshoot"`
 
 	_ func()              `slot:"startUpdate"`
 	_ func(hasError bool) `signal:"updateFinished"`

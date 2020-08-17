@@ -1,1 +1,2 @@
-• Fixed ignored import to Sent folder
+• Fixed a slew of smaller bugs and some conditions which could cause the application to crash.
+• The full changelog can be found at https://github.com/ProtonMail/proton-bridge/blob/master/Changelog.md
