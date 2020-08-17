@@ -48,7 +48,20 @@ func (p *Part) Children() Parts {
 }
 
 func (p *Part) AddChild(child *Part) {
-	p.children = append(p.children, child)
+	if p.isMultipartMixed() {
+		p.children = append(p.children, child)
+	} else {
+		root := &Part{
+			Header:   getContentHeaders(p.Header),
+			Body:     p.Body,
+			children: p.children,
+		}
+
+		p.Body = nil
+		p.children = Parts{root, child}
+		stripContentHeaders(&p.Header)
+		p.Header.Set("Content-Type", "multipart/mixed")
+	}
 }
 
 func (p *Part) ConvertToUTF8() error {
@@ -106,4 +119,29 @@ func (p *Part) is7BitClean() bool {
 	}
 
 	return true
+}
+
+func (p *Part) isMultipartMixed() bool {
+	t, _, err := p.Header.ContentType()
+	if err != nil {
+		return false
+	}
+
+	return t == "multipart/mixed"
+}
+
+func getContentHeaders(header message.Header) message.Header {
+	var res message.Header
+
+	res.Set("Content-Type", header.Get("Content-Type"))
+	res.Set("Content-Disposition", header.Get("Content-Disposition"))
+	res.Set("Content-Transfer-Encoding", header.Get("Content-Transfer-Encoding"))
+
+	return res
+}
+
+func stripContentHeaders(header *message.Header) {
+	header.Del("Content-Type")
+	header.Del("Content-Disposition")
+	header.Del("Content-Transfer-Encoding")
 }

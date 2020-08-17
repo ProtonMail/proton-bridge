@@ -313,7 +313,6 @@ func TestParseTextHTMLWithImageInline(t *testing.T) {
 func TestParseWithAttachedPublicKey(t *testing.T) {
 	f := f("text_plain.eml")
 
-	// BAD: Public Key is not attached unless Content-Type is specified (not required)!
 	m, _, plainBody, attReaders, err := Parse(f, "publickey", "publickeyname")
 	require.NoError(t, err)
 
@@ -323,7 +322,6 @@ func TestParseWithAttachedPublicKey(t *testing.T) {
 	assert.Equal(t, "body", m.Body)
 	assert.Equal(t, "body", plainBody)
 
-	// HELP: Should public key be available as an attachment? In previous parser it wasn't...
 	require.Len(t, attReaders, 1)
 }
 
