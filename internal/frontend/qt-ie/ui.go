@@ -35,6 +35,7 @@ type GoQMLInterface struct {
 
 	_ string `property:"currentAddress"`
 	_ string `property:"goos"`
+	_ string `property:"credits"`
 	_ bool   `property:"isFirstStart"`
 	_ bool   `property:"isRestarting"`
 	_ bool   `property:"isConnectionOK"`

@@ -28,6 +28,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/internal/events"
 	qtcommon "github.com/ProtonMail/proton-bridge/internal/frontend/qt-common"
 	"github.com/ProtonMail/proton-bridge/internal/frontend/types"
+	"github.com/ProtonMail/proton-bridge/internal/importexport"
 	"github.com/ProtonMail/proton-bridge/internal/transfer"
 	"github.com/ProtonMail/proton-bridge/internal/updates"
 	"github.com/ProtonMail/proton-bridge/pkg/config"
@@ -93,10 +94,6 @@ func New(
 		updates:        updates,
 		ie:             ie,
 	}
-
-	// Nicer string for OS
-	currentOS := core.QSysInfo_PrettyProductName()
-	ie.SetCurrentOS(currentOS)
 
 	log.Debugf("New Qt frontend: %p", f)
 	return f
@@ -218,6 +215,10 @@ func (f *FrontendQt) QtExecute(Procedure func(*FrontendQt) error) error {
 	if err := Procedure(f); err != nil {
 		return err
 	}
+
+	// List of used packages
+	f.Qml.SetCredits(importexport.Credits)
+
 	// Loop
 	if ret := gui.QGuiApplication_Exec(); ret != 0 {
 		//err := errors.New(errors.ErrQApplication, "Event loop ended with return value: %v", string(ret))

@@ -169,6 +169,3 @@ func (ie *ImportExport) getPMAPIProvider(address string) (*transfer.PMAPIProvide
 
 	return transfer.NewPMAPIProvider(ie.clientManager, user.ID(), addressID)
 }
-
-// SetCurrentOS TODO
-func (ie *ImportExport) SetCurrentOS(os string) {}
