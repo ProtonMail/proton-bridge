@@ -37,13 +37,13 @@ type Visit func(*Part) (interface{}, error)
 type VisitorRule func(*Part, Visit) (interface{}, error)
 
 type visitorRule struct {
-	re string
+	re *regexp.Regexp
 	fn VisitorRule
 }
 
 func (v *Visitor) RegisterRule(contentTypeRegex string, fn VisitorRule) *Visitor {
 	v.rules = append(v.rules, &visitorRule{
-		re: contentTypeRegex,
+		re: regexp.MustCompile(contentTypeRegex),
 		fn: fn,
 	})
 
@@ -69,7 +69,7 @@ func (v *Visitor) visit(p *Part) (interface{}, error) {
 
 func (v *Visitor) getRuleForContentType(contentType string) *visitorRule {
 	for _, rule := range v.rules {
-		if regexp.MustCompile(rule.re).MatchString(contentType) {
+		if rule.re.MatchString(contentType) {
 			return rule
 		}
 	}

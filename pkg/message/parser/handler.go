@@ -22,7 +22,7 @@ import "regexp"
 type HandlerFunc func(*Part) error
 
 type handler struct {
-	typeRegExp, dispRegExp string
+	typeRegExp, dispRegExp *regexp.Regexp
 	fn                     HandlerFunc
 }
 
@@ -31,7 +31,7 @@ func (h *handler) matchPart(p *Part) bool {
 }
 
 func (h *handler) matchType(p *Part) bool {
-	if h.typeRegExp == "" {
+	if h.typeRegExp == nil {
 		return false
 	}
 
@@ -40,11 +40,11 @@ func (h *handler) matchType(p *Part) bool {
 		t = ""
 	}
 
-	return regexp.MustCompile(h.typeRegExp).MatchString(t)
+	return h.typeRegExp.MatchString(t)
 }
 
 func (h *handler) matchDisp(p *Part) bool {
-	if h.dispRegExp == "" {
+	if h.dispRegExp == nil {
 		return false
 	}
 
@@ -53,5 +53,5 @@ func (h *handler) matchDisp(p *Part) bool {
 		disp = ""
 	}
 
-	return regexp.MustCompile(h.dispRegExp).MatchString(disp)
+	return h.dispRegExp.MatchString(disp)
 }

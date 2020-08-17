@@ -17,6 +17,8 @@
 
 package parser
 
+import "regexp"
+
 type Walker struct {
 	root *Part
 
@@ -56,7 +58,7 @@ func (w *Walker) RegisterDefaultHandler(fn HandlerFunc) *Walker {
 
 func (w *Walker) RegisterContentTypeHandler(typeRegExp string, fn HandlerFunc) *Walker {
 	w.handlers = append(w.handlers, &handler{
-		typeRegExp: typeRegExp,
+		typeRegExp: regexp.MustCompile(typeRegExp),
 		fn:         fn,
 	})
 
@@ -65,7 +67,7 @@ func (w *Walker) RegisterContentTypeHandler(typeRegExp string, fn HandlerFunc) *
 
 func (w *Walker) RegisterContentDispositionHandler(dispRegExp string, fn HandlerFunc) *Walker {
 	w.handlers = append(w.handlers, &handler{
-		dispRegExp: dispRegExp,
+		dispRegExp: regexp.MustCompile(dispRegExp),
 		fn:         fn,
 	})
 
@@ -73,9 +75,9 @@ func (w *Walker) RegisterContentDispositionHandler(dispRegExp string, fn Handler
 }
 
 func (w *Walker) getHandlerFunc(p *Part) HandlerFunc {
-	for _, hdl := range w.handlers {
-		if hdl.matchPart(p) {
-			return hdl.fn
+	for _, handler := range w.handlers {
+		if handler.matchPart(p) {
+			return handler.fn
 		}
 	}
 
