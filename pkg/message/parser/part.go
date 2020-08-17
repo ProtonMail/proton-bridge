@@ -74,12 +74,7 @@ func (p *Part) ConvertToUTF8() error {
 		return err
 	}
 
-	decoder := selectDecoderFromParams(params)
-
-	if decoder == nil {
-		encoding, _, _ := charset.DetermineEncoding(p.Body, t)
-		decoder = encoding.NewDecoder()
-	}
+	decoder := selectSuitableDecoder(p, t, params)
 
 	if p.Body, err = decoder.Bytes(p.Body); err != nil {
 		return err
@@ -97,18 +92,16 @@ func (p *Part) ConvertToUTF8() error {
 	return nil
 }
 
-func selectDecoderFromParams(params map[string]string) *encoding.Decoder {
-	charset, ok := params["charset"]
-	if !ok {
-		return nil
+func selectSuitableDecoder(p *Part, t string, params map[string]string) *encoding.Decoder {
+	if charset, ok := params["charset"]; ok {
+		if decoder, err := pmmime.SelectDecoder(charset); err == nil {
+			return decoder
+		}
 	}
 
-	decoder, err := pmmime.SelectDecoder(charset)
-	if err != nil {
-		return nil
-	}
+	encoding, _, _ := charset.DetermineEncoding(p.Body, t)
 
-	return decoder
+	return encoding.NewDecoder()
 }
 
 func (p *Part) is7BitClean() bool {

@@ -28,13 +28,13 @@ import (
 )
 
 func newTestParser(t *testing.T, msg string) *Parser {
-	p, err := New(f(msg))
+	p, err := New(getFileReader(msg))
 	require.NoError(t, err)
 
 	return p
 }
 
-func f(filename string) io.ReadCloser {
+func getFileReader(filename string) io.ReadCloser {
 	f, err := os.Open(filepath.Join("testdata", filename))
 
 	if err != nil {
@@ -44,8 +44,8 @@ func f(filename string) io.ReadCloser {
 	return f
 }
 
-func s(filename string) string {
-	b, err := ioutil.ReadAll(f(filename))
+func getFileAsString(filename string) string {
+	b, err := ioutil.ReadAll(getFileReader(filename))
 	if err != nil {
 		panic(err)
 	}

@@ -33,7 +33,7 @@ func TestParserWrite(t *testing.T) {
 	buf := new(bytes.Buffer)
 
 	assert.NoError(t, w.Write(buf))
-	assert.Equal(t, s("text_html_octet_attachment.eml"), crlf(buf.String()))
+	assert.Equal(t, getFileAsString("text_html_octet_attachment.eml"), crlf(buf.String()))
 }
 
 func crlf(s string) string {
