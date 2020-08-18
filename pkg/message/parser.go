@@ -140,6 +140,13 @@ func collectAttachments(p *parser.Parser) ([]*pmapi.Attachment, []io.Reader, err
 	return atts, data, nil
 }
 
+// buildBodies collects all text/html and text/plain parts and returns two bodies,
+//  - a rich text body (in which html is allowed), and
+//  - a plaintext body (in which html is converted to plaintext).
+//
+// text/html parts are converted to plaintext in order to build the plaintext body,
+// unless there is already a plaintext part provided via multipart/alternative,
+// in which case the provided alternative is chosen.
 func buildBodies(p *parser.Parser) (richBody, plainBody string, err error) {
 	richParts, err := collectBodyParts(p, "text/html")
 	if err != nil {
@@ -294,6 +301,8 @@ func determineMIMEType(p *parser.Parser) (string, error) {
 	return "text/plain", nil
 }
 
+// getPlainBody returns the body of the given part, converting html to
+// plaintext where possible.
 func getPlainBody(part *parser.Part) []byte {
 	contentType, _, err := part.Header.ContentType()
 	if err != nil {
@@ -301,9 +310,6 @@ func getPlainBody(part *parser.Part) []byte {
 	}
 
 	switch contentType {
-	case "text/plain":
-		return part.Body
-
 	case "text/html":
 		text, err := html2text.FromReader(bytes.NewReader(part.Body))
 		if err != nil {
