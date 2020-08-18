@@ -19,6 +19,7 @@ package tests
 
 import (
 	"fmt"
+	"sync"
 
 	"github.com/cucumber/godog"
 	"github.com/cucumber/godog/gherkin"
@@ -32,6 +33,7 @@ func IMAPActionsMessagesFeatureContext(s *godog.Suite) {
 	s.Step(`^IMAP client searches for "([^"]*)"$`, imapClientSearchesFor)
 	s.Step(`^IMAP client copies messages "([^"]*)" to "([^"]*)"$`, imapClientCopiesMessagesTo)
 	s.Step(`^IMAP client moves messages "([^"]*)" to "([^"]*)"$`, imapClientMovesMessagesTo)
+	s.Step(`^IMAP client moves messages "([^"]*)" to "([^"]*)" like outlook$`, imapClientMovesMessagesToLikeOutlook)
 	s.Step(`^IMAP client imports message to "([^"]*)"$`, imapClientCreatesMessage)
 	s.Step(`^IMAP client imports message to "([^"]*)" with encoding "([^"]*)"$`, imapClientCreatesMessageWithEncoding)
 	s.Step(`^IMAP client creates message "([^"]*)" from "([^"]*)" to "([^"]*)" with body "([^"]*)" in "([^"]*)"$`, imapClientCreatesMessageFromToWithBody)
@@ -91,6 +93,47 @@ func imapClientMovesMessagesTo(messageRange, newMailboxName string) error {
 	res := ctx.GetIMAPClient("imap").Move(messageRange, newMailboxName)
 	ctx.SetIMAPLastResponse("imap", res)
 	return nil
+}
+
+func imapClientMovesMessagesToLikeOutlook(messageRange, newMailboxName, user string) error {
+	sourceClient := "imap"
+	fetchResp := ctx.GetIMAPClient(sourceClient).Fetch(messageRange, "body.peek[]")
+	fetchResp.AssertOK()
+	if err := ctx.GetTestingError(); err != nil {
+		return err
+	}
+
+	targetClient := "target"
+	if err := thereIsIMAPClientNamedLoggedInAs(targetClient, user); err != nil {
+		return err
+	}
+	if err := thereIsIMAPClientNamedSelectedIn(targetClient, newMailboxName); err != nil {
+		return err
+	}
+
+	movingLikeOutlook := sync.WaitGroup{}
+	movingLikeOutlook.Add(2)
+
+	go func() {
+		defer movingLikeOutlook.Done()
+		for _, msg := range fetchResp.Sections() {
+			res := ctx.GetIMAPClient(targetClient).Append(newMailboxName, msg)
+			res.AssertOK()
+		}
+	}()
+
+	go func() {
+		defer movingLikeOutlook.Done()
+		imapClientNamedMarksMessageAsDeleted(sourceClient, messageRange)
+		ctx.GetIMAPLastResponse(sourceClient).AssertOK()
+	}()
+
+	movingLikeOutlook.Wait()
+
+	imapClientExpunge()
+	ctx.GetIMAPLastResponse(sourceClient).AssertOK()
+
+	return ctx.GetTestingError()
 }
 
 func imapClientCreatesMessage(mailboxName string, message *gherkin.DocString) error {
