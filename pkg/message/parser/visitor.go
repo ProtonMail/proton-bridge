@@ -41,6 +41,9 @@ type visitorRule struct {
 	fn VisitorRule
 }
 
+// RegisterRule defines what to do when visiting a part whose content type
+// matches the given regular expression.
+// If a part matches multiple rules, the one registered first will be used.
 func (v *Visitor) RegisterRule(contentTypeRegex string, fn VisitorRule) *Visitor {
 	v.rules = append(v.rules, &visitorRule{
 		re: regexp.MustCompile(contentTypeRegex),

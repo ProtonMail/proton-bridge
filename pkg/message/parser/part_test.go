@@ -46,7 +46,7 @@ func TestPart(t *testing.T) {
 	}
 
 	for partNumber, wantContType := range wantParts {
-		part, err := p.Part(getPartNumber(partNumber))
+		part, err := p.Section(getSectionNumber(partNumber))
 		require.NoError(t, err)
 
 		contType, _, err := part.Header.ContentType()
@@ -55,7 +55,7 @@ func TestPart(t *testing.T) {
 	}
 }
 
-func getPartNumber(s string) (part []int) {
+func getSectionNumber(s string) (part []int) {
 	if s == "" {
 		return
 	}

@@ -51,11 +51,16 @@ func (w *Walker) walkOverPart(p *Part) error {
 	return nil
 }
 
+// RegisterDefaultHandler registers a handler that will be called on every part
+// that doesn't match a registered content type/disposition handler.
 func (w *Walker) RegisterDefaultHandler(fn HandlerFunc) *Walker {
 	w.defaultHandler = fn
 	return w
 }
 
+// RegisterContentTypeHandler registers a handler that will be called when a
+// part's content type matches the given regular expression.
+// If a part matches multiple handlers, the one registered first will be chosen.
 func (w *Walker) RegisterContentTypeHandler(typeRegExp string, fn HandlerFunc) *Walker {
 	w.handlers = append(w.handlers, &handler{
 		typeRegExp: regexp.MustCompile(typeRegExp),
@@ -65,6 +70,9 @@ func (w *Walker) RegisterContentTypeHandler(typeRegExp string, fn HandlerFunc) *
 	return w
 }
 
+// RegisterContentDispositionHandler registers a handler that will be called
+// when a part's content disposition matches the given regular expression.
+// If a part matches multiple handlers, the one registered first will be chosen.
 func (w *Walker) RegisterContentDispositionHandler(dispRegExp string, fn HandlerFunc) *Walker {
 	w.handlers = append(w.handlers, &handler{
 		dispRegExp: regexp.MustCompile(dispRegExp),

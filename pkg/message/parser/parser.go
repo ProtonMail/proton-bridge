@@ -60,10 +60,13 @@ func (p *Parser) Root() *Part {
 	return p.root
 }
 
-func (p *Parser) Part(number []int) (part *Part, err error) {
+// Section returns the message part referred to by the given section. A section
+// is zero or more integers. For example, section 1.2.3 will return the third
+// part of the second part of the first part of the message.
+func (p *Parser) Section(section []int) (part *Part, err error) {
 	part = p.root
 
-	for _, n := range number {
+	for _, n := range section {
 		if part, err = part.Child(n); err != nil {
 			return
 		}
