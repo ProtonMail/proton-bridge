@@ -76,6 +76,7 @@ Row {
         anchors.verticalCenter: parent.verticalCenter
         currentDate: new Date() // default now
         minDate: inputDateFrom.currentDate
+        isMaxDateToday: true
     }
 
     CheckBoxLabel {

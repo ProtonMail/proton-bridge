@@ -63,6 +63,7 @@ Column {
         metricsLabel: inputDateFrom.label
         currentDate: new Date() // now
         minDate: inputDateFrom.currentDate
+        isMaxDateToday: true
         dropDownStyle: dateRange.dropDownStyle
     }
 

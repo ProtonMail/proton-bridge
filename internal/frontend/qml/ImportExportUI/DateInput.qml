@@ -33,10 +33,11 @@ Rectangle {
     property var dropDownStyle   : Style.dropDownLight
 
     // dates
-    property date  currentDate : new Date()  // default now
-    property date  minDate     : new Date(0) // default epoch start
-    property date  maxDate     : new Date()  // default now
-    property int   unix        : Math.floor(currentDate.getTime()/1000)
+    property date  currentDate    : new Date()  // default now
+    property date  minDate        : new Date(0) // default epoch start
+    property date  maxDate        : new Date()  // default now
+    property bool  isMaxDateToday : false
+    property int   unix           : Math.floor(currentDate.getTime()/1000)
 
     onMinDateChanged: {
         if (isNaN(minDate.getTime()) || minDate.getTime() > maxDate.getTime()) {
@@ -103,6 +104,11 @@ Rectangle {
             onActivated: updateRange()
             anchors.verticalCenter: parent.verticalCenter
             dropDownStyle: root.dropDownStyle
+            onDownChanged: {
+                if (root.isMaxDateToday){
+                    root.maxDate = new Date()
+                }
+            }
         }
 
         Rectangle {
@@ -120,6 +126,11 @@ Rectangle {
             onActivated: updateRange()
             anchors.verticalCenter: parent.verticalCenter
             dropDownStyle: root.dropDownStyle
+            onDownChanged: {
+                if (root.isMaxDateToday){
+                    root.maxDate = new Date()
+                }
+            }
         }
 
         Rectangle {
@@ -136,6 +147,11 @@ Rectangle {
             onActivated: updateRange()
             anchors.verticalCenter: parent.verticalCenter
             dropDownStyle: root.dropDownStyle
+            onDownChanged: {
+                if (root.isMaxDateToday){
+                    root.maxDate = new Date()
+                }
+            }
         }
     }
 
@@ -240,4 +256,3 @@ Rectangle {
         ))
     }
 }
-
