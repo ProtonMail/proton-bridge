@@ -11,9 +11,17 @@ TARGET_OS?=${GOOS}
 
 BRIDGE_APP_VERSION?=1.4.0-git
 IE_APP_VERSION?=1.0.0-git
-APP_VERSION=${BRIDGE_APP_VERSION}
+APP_VERSION:=${BRIDGE_APP_VERSION}
+SRC_ICO:=logo.ico
+SRC_ICNS:=Bridge.icns
+SRC_SVG:=logo.svg
+TGT_ICNS:=Bridge.icns
 ifeq "${TARGET_CMD}" "Import-Export"
-	APP_VERSION=${IE_APP_VERSION}
+    APP_VERSION:=${IE_APP_VERSION}
+    SRC_ICO:=ie.ico
+    SRC_ICNS:=ie.icns
+    SRC_SVG:=ie.svg
+    TGT_ICNS:=ImportExport.icns
 endif
 REVISION:=$(shell git rev-parse --short=10 HEAD)
 BUILD_TIME:=$(shell date +%FT%T%z)
@@ -35,7 +43,7 @@ EXE:=$(shell basename ${CURDIR})
 
 ifeq "${TARGET_OS}" "windows"
     EXE:=${EXE}.exe
-    ICO_FILES:=logo.ico icon.rc icon_windows.syso
+    ICO_FILES:=${SRC_ICO} icon.rc icon_windows.syso
 endif
 ifeq "${TARGET_OS}" "darwin"
     DARWINAPP_CONTENTS:=${DEPLOY_DIR}/darwin/${EXE}.app/Contents
@@ -64,12 +72,12 @@ ${TGZ_TARGET}: ${DEPLOY_DIR}/${TARGET_OS}
 	cd ${DEPLOY_DIR} && tar czf ../../../$@ ${TARGET_OS}
 
 ${DEPLOY_DIR}/linux: ${EXE_TARGET}
-	cp -pf ./internal/frontend/share/icons/logo.svg ${DEPLOY_DIR}/linux/
+	cp -pf ./internal/frontend/share/icons/${SRC_SVG} ${DEPLOY_DIR}/linux/logo.svg
 	cp -pf ./LICENSE ${DEPLOY_DIR}/linux/
 	cp -pf ./Changelog.md ${DEPLOY_DIR}/linux/
 
 ${DEPLOY_DIR}/darwin: ${EXE_TARGET}
-	cp ./internal/frontend/share/icons/Bridge.icns ${DARWINAPP_CONTENTS}/Resources/
+	cp ./internal/frontend/share/icons/${SRC_ICNS} ${DARWINAPP_CONTENTS}/Resources/${TGT_ICNS}
 	cp LICENSE ${DARWINAPP_CONTENTS}/Resources/
 	rm -rf "${DARWINAPP_CONTENTS}/Frameworks/QtWebEngine.framework"
 	rm -rf "${DARWINAPP_CONTENTS}/Frameworks/QtWebView.framework"
@@ -77,7 +85,7 @@ ${DEPLOY_DIR}/darwin: ${EXE_TARGET}
 	./utils/remove_non_relative_links_darwin.sh "${EXE_TARGET}"
 
 ${DEPLOY_DIR}/windows: ${EXE_TARGET}
-	cp ./internal/frontend/share/icons/logo.ico ${DEPLOY_DIR}/windows/
+	cp ./internal/frontend/share/icons/${SRC_ICO} ${DEPLOY_DIR}/windows/logo.ico
 	cp LICENSE ${DEPLOY_DIR}/windows/
 
 QT_BUILD_TARGET:=build desktop
@@ -94,14 +102,12 @@ ${EXE_TARGET}: check-has-go gofiles ${ICO_FILES} update-vendor
 	mv deploy cmd/${TARGET_CMD}
 	rm -rf ${TARGET_OS} main.go
 
-logo.ico: ./internal/frontend/share/icons/logo.ico
-	cp $^ .
+logo.ico ie.ico: ./internal/frontend/share/icons/${SRC_ICO}
+	cp $^ $@
 icon.rc: ./internal/frontend/share/icon.rc
 	cp $^ .
-./internal/frontend/qt/icon_windows.syso: ./internal/frontend/share/icon.rc  logo.ico 
+icon_windows.syso: icon.rc logo.ico
 	windres --target=pe-x86-64 -o $@ $<
-icon_windows.syso: ./internal/frontend/qt/icon_windows.syso
-	cp $^ .
 
 
 ## Rules for therecipe/qt
