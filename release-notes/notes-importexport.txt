@@ -1,0 +1,3 @@
+• Complete code refactor in preparation of live release and open source of the Import-Export app
+• Increased number of supported mail providers by changing the way the folder structures are handled (NIL hierarchy delimiter)
+• Improved handling for unstable internet and pause & resume behavior
