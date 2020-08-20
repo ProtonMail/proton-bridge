@@ -119,7 +119,7 @@ Dialog {
 
                 FileAndFolderSelect {
                     id: outputPathInput
-                    title: qsTr("Select location of export:", "todo")
+                    title: qsTr("Select location of export", "todo")
                     width  : inputRow.columnWidth // stretch folder input
                 }
 
