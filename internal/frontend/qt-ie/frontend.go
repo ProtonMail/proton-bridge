@@ -329,7 +329,6 @@ func (f *FrontendQt) setProgressManager(progress *transfer.Progress) {
 			f.Qml.DisconnectCancelProcess()
 			f.Qml.SetProgress(1)
 			f.progress = nil
-			f.ErrorList.Progress = nil
 		}()
 
 		updates := progress.GetUpdateChannel()
