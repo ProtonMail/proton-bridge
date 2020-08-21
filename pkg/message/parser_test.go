@@ -322,7 +322,9 @@ func TestParseWithAttachedPublicKey(t *testing.T) {
 	assert.Equal(t, "body", m.Body)
 	assert.Equal(t, "body", plainBody)
 
-	require.Len(t, attReaders, 1)
+	// The pubkey should not be collected as an attachment.
+	// We upload the pubkey when creating the draft.
+	require.Len(t, attReaders, 0)
 }
 
 func TestParseTextHTMLWithEmbeddedForeignEncoding(t *testing.T) {

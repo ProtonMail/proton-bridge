@@ -44,12 +44,6 @@ func Parse(r io.Reader, key, keyName string) (m *pmapi.Message, mimeBody, plainB
 		return
 	}
 
-	if key != "" {
-		if err = attachPublicKey(p.Root(), key, keyName); err != nil {
-			return
-		}
-	}
-
 	m = pmapi.NewMessage()
 
 	if err = parseMessageHeader(m, p.Root().Header); err != nil {
@@ -66,6 +60,15 @@ func Parse(r io.Reader, key, keyName string) (m *pmapi.Message, mimeBody, plainB
 
 	if m.MIMEType, err = determineMIMEType(p); err != nil {
 		return
+	}
+
+	// We only attach the public key manually to the MIME body for
+	// signed/encrypted external recipients. It's not important for it to be
+	// collected as an attachment; that's already done when we upload the draft.
+	if key != "" {
+		if err = attachPublicKey(p.Root(), key, keyName); err != nil {
+			return
+		}
 	}
 
 	mimeBodyBuffer := new(bytes.Buffer)
