@@ -20,6 +20,7 @@ package cookies
 import (
 	"encoding/json"
 	"net/http"
+	"time"
 
 	"github.com/ProtonMail/proton-bridge/internal/preferences"
 )
@@ -30,6 +31,12 @@ type pantry struct {
 }
 
 func (p *pantry) persistCookies(url string, cookies []*http.Cookie) error {
+	for _, cookie := range cookies {
+		if cookie.MaxAge > 0 {
+			cookie.Expires = time.Now().Add(time.Duration(cookie.MaxAge) * time.Second)
+		}
+	}
+
 	b, err := json.Marshal(cookies)
 	if err != nil {
 		return err
