@@ -137,8 +137,9 @@ Item {
         }
 
         onNotifyError : {
-            var name = go.errorDescription.slice(0, go.errorDescription.indexOf("\n"))
-            var errorMessage = go.errorDescription.slice(go.errorDescription.indexOf("\n"))
+            var sep = go.errorDescription.indexOf("\n") < 0 ? go.errorDescription.length : go.errorDescription.indexOf("\n")
+            var name = go.errorDescription.slice(0, sep)
+            var errorMessage = go.errorDescription.slice(sep)
             switch (errCode) {
                 case gui.enums.errPMLoadFailed :
                 winMain.popupMessage.show ( qsTr ( "Loading ProtonMail folders and labels was not successful."  , "Error message" )  )

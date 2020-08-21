@@ -474,6 +474,7 @@ func (f *FrontendQt) createLabelOrFolder(email, name, color string, isLabel bool
 	m, err := f.transfer.CreateTargetMailbox(m)
 	if err != nil {
 		log.Errorln("Folder/Label creating:", err)
+		err = errors.New(name + "\n" + err.Error()) // GUI splits by \n.
 		if isLabel {
 			f.showError(errCreateLabelFailed, err)
 		} else {
