@@ -249,6 +249,14 @@ func (u *Users) FinishLogin(authClient pmapi.Client, auth *pmapi.Auth, mbPassphr
 		}
 	}
 
+	// Old credentials use username as key (user ID) which needs to be removed
+	// once user logs in again with proper ID fetched from API.
+	if _, ok := u.hasUser(apiUser.Name); ok {
+		if err := u.DeleteUser(apiUser.Name, true); err != nil {
+			log.WithError(err).Error("Failed to delete old user")
+		}
+	}
+
 	u.events.Emit(events.UserRefreshEvent, apiUser.ID)
 
 	return u.GetUser(apiUser.ID)
