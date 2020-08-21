@@ -65,7 +65,7 @@ func run(context *cli.Context) (contextError error) { // nolint[funlen]
 	// report which will not be possible if no folder can be created. That's the
 	// only problem we will not be notified about in any way.
 	panicHandler := &cmd.PanicHandler{
-		AppName: "ProtonMail Import-Export",
+		AppName: "ProtonMail Import-Export app",
 		Config:  cfg,
 		Err:     &contextError,
 	}

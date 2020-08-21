@@ -98,7 +98,7 @@ func (f *frontendCLI) notifyNeedUpgrade() {
 
 func (f *frontendCLI) notifyCredentialsError() {
 	// Print in 80-column width.
-	f.Println("ProtonMail Import-Export is not able to detect a supported password manager")
+	f.Println("ProtonMail Import-Export app is not able to detect a supported password manager")
 	f.Println("(pass, gnome-keyring). Please install and set up a supported password manager")
 	f.Println("and restart the application.")
 }

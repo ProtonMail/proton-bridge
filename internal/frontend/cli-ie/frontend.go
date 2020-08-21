@@ -228,7 +228,7 @@ func (f *frontendCLI) Loop(credentialsError error) error {
 	}
 
 	f.Print(`
-Welcome to ProtonMail Import-Export interactive shell
+Welcome to ProtonMail Import-Export app interactive shell
 
 WARNING: The CLI is an experimental feature and does not yet cover all functionality.
 	`)

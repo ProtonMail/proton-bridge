@@ -218,7 +218,7 @@ Dialog {
                 currentIndex : 0
                 title        : qsTr("Clear keychain", "title of page that displays during keychain clearing")
                 question     : qsTr("Are you sure you want to clear your keychain?", "displays during keychain clearing")
-                note         : qsTr("This will remove all accounts that you have added to the Import-Export tool.", "displays during keychain clearing")
+                note         : qsTr("This will remove all accounts that you have added to the Import-Export app.", "displays during keychain clearing")
                 answer       : qsTr("Clearing the keychain ...", "displays during keychain clearing")
             }
         },

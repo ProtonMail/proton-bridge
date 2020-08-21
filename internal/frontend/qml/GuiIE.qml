@@ -234,7 +234,7 @@ Item {
         }
 
         onNotifyLogout : {
-            go.notifyBubble(0, qsTr("Account %1 has been disconnected. Please log in to continue to use the Import-Export with this account.").arg(accname) )
+            go.notifyBubble(0, qsTr("Account %1 has been disconnected. Please log in to continue to use the Import-Export app with this account.").arg(accname) )
         }
 
         onNotifyAddressChanged : {

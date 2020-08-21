@@ -22,7 +22,7 @@ import (
 )
 
 func (f *frontendCLI) restart(c *ishell.Context) {
-	if f.yesNoQuestion("Are you sure you want to restart the Import-Export") {
+	if f.yesNoQuestion("Are you sure you want to restart the Import-Export app") {
 		f.Println("Restarting the Import-Export app...")
 		f.appRestart = true
 		f.Stop()

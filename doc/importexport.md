@@ -1,8 +1,8 @@
-# Import-Export
+# Import-Export app
 
 ## Main blocks
 
-This is basic overview of the main import-export blocks.
+This is basic overview of the main Import-Export blocks.
 
 ```mermaid
 graph LR

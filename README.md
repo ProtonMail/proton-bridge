@@ -1,4 +1,4 @@
-# ProtonMail Bridge and Import Export
+# ProtonMail Bridge and Import Export app
 Copyright (c) 2020 Proton Technologies AG
 
 This repository holds the ProtonMail Bridge application.

@@ -47,7 +47,7 @@ func (f *frontendCLI) printLocalReleaseNotes(c *ishell.Context) {
 }
 
 func (f *frontendCLI) printReleaseNotes(versionInfo updates.VersionInfo) {
-	f.Println(bold("ProtonMail Import-Export "+versionInfo.Version), "\n")
+	f.Println(bold("ProtonMail Import-Export app "+versionInfo.Version), "\n")
 	if versionInfo.ReleaseNotes != "" {
 		f.Println(bold("Release Notes"))
 		f.Println(versionInfo.ReleaseNotes)

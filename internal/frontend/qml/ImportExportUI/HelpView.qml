@@ -83,7 +83,7 @@ Item {
                     color: Style.main.textDisabled
                     horizontalAlignment: Qt.AlignHCenter
                     font.family : Style.fontawesome.name
-                    text: "ProtonMail Import-Export Version "+go.getBackendVersion()+"\n"+Style.fa.copyright + " 2020 Proton Technologies AG"
+                    text: "ProtonMail Import-Export app Version "+go.getBackendVersion()+"\n"+Style.fa.copyright + " 2020 Proton Technologies AG"
                 }
             }
 
