@@ -21,6 +21,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -28,9 +29,9 @@ import (
 
 func TestJarGetSet(t *testing.T) {
 	ts := getTestServer(t, []testCookie{
-		{"TestName1", "TestValue1"},
-		{"TestName2", "TestValue2"},
-		{"TestName3", "TestValue3"},
+		{"TestName1", "TestValue1", 3600},
+		{"TestName2", "TestValue2", 3600},
+		{"TestName3", "TestValue3", 3600},
 	})
 	defer ts.Close()
 
@@ -53,9 +54,9 @@ func TestJarGetSet(t *testing.T) {
 
 func TestJarLoad(t *testing.T) {
 	ts := getTestServer(t, []testCookie{
-		{"TestName1", "TestValue1"},
-		{"TestName2", "TestValue2"},
-		{"TestName3", "TestValue3"},
+		{"TestName1", "TestValue1", 3600},
+		{"TestName2", "TestValue2", 3600},
+		{"TestName3", "TestValue3", 3600},
 	})
 	defer ts.Close()
 
@@ -83,8 +84,41 @@ func TestJarLoad(t *testing.T) {
 	require.NoError(t, getRes.Body.Close())
 }
 
+func TestJarExpiry(t *testing.T) {
+	ts := getTestServer(t, []testCookie{
+		{"TestName1", "TestValue1", 3600},
+		{"TestName2", "TestValue2", 1},
+		{"TestName3", "TestValue3", 3600},
+	})
+	defer ts.Close()
+
+	// This will be our "persistent storage" from which the cookie jar should load cookies.
+	gs := make(testGetterSetter)
+
+	// This client saves cookies to persistent storage.
+	oldClient := getClientWithJar(t, gs)
+
+	// Hit a server that sets some cookies.
+	setRes, err := oldClient.Get(ts.URL + "/set")
+	if err != nil {
+		t.FailNow()
+	}
+	require.NoError(t, setRes.Body.Close())
+
+	// Wait until the second cookie expires.
+	time.Sleep(2 * time.Second)
+
+	// Load a client, which will clear out expired cookies.
+	_ = getClientWithJar(t, gs)
+
+	assert.Contains(t, gs["cookies"], "TestName1")
+	assert.NotContains(t, gs["cookies"], "TestName2")
+	assert.Contains(t, gs["cookies"], "TestName3")
+}
+
 type testCookie struct {
 	name, value string
+	maxAge      int
 }
 
 func getClientWithJar(t *testing.T, gs GetterSetter) *http.Client {
@@ -100,8 +134,9 @@ func getTestServer(t *testing.T, wantCookies []testCookie) *httptest.Server {
 	mux.HandleFunc("/set", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		for _, cookie := range wantCookies {
 			http.SetCookie(w, &http.Cookie{
-				Name:  cookie.name,
-				Value: cookie.value,
+				Name:   cookie.name,
+				Value:  cookie.value,
+				MaxAge: cookie.maxAge,
 			})
 		}
 

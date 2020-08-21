@@ -30,69 +30,56 @@ type pantry struct {
 	gs GetterSetter
 }
 
-func (p *pantry) persistCookies(url string, cookies []*http.Cookie) error {
+func (p *pantry) persistCookies(host string, cookies []*http.Cookie) error {
 	for _, cookie := range cookies {
 		if cookie.MaxAge > 0 {
 			cookie.Expires = time.Now().Add(time.Duration(cookie.MaxAge) * time.Second)
 		}
 	}
 
-	b, err := json.Marshal(cookies)
+	cookiesByHost, err := p.loadFromJSON()
 	if err != nil {
 		return err
 	}
 
-	val, err := p.loadFromJSON()
+	cookiesByHost[host] = cookies
+
+	return p.saveToJSON(cookiesByHost)
+}
+
+func (p *pantry) discardExpiredCookies() error {
+	cookiesByHost, err := p.loadFromJSON()
 	if err != nil {
 		return err
 	}
 
-	val[url] = string(b)
-
-	return p.saveToJSON(val)
-}
-
-func (p *pantry) loadCookies() (map[string][]*http.Cookie, error) {
-	res := make(map[string][]*http.Cookie)
-
-	val, err := p.loadFromJSON()
-	if err != nil {
-		return nil, err
+	for host, cookies := range cookiesByHost {
+		cookiesByHost[host] = discardExpiredCookies(cookies)
 	}
 
-	for url, rawCookies := range val {
-		var cookies []*http.Cookie
-
-		if err := json.Unmarshal([]byte(rawCookies), &cookies); err != nil {
-			return nil, err
-		}
-
-		res[url] = cookies
-	}
-
-	return res, nil
+	return p.saveToJSON(cookiesByHost)
 }
 
-type dataStructure map[string]string
+type cookiesByHost map[string][]*http.Cookie
 
-func (p *pantry) loadFromJSON() (dataStructure, error) {
+func (p *pantry) loadFromJSON() (cookiesByHost, error) {
 	b := p.gs.Get(preferences.CookiesKey)
 
 	if b == "" {
-		return make(dataStructure), nil
+		return make(cookiesByHost), nil
 	}
 
-	var val dataStructure
+	var cookies cookiesByHost
 
-	if err := json.Unmarshal([]byte(b), &val); err != nil {
+	if err := json.Unmarshal([]byte(b), &cookies); err != nil {
 		return nil, err
 	}
 
-	return val, nil
+	return cookies, nil
 }
 
-func (p *pantry) saveToJSON(val dataStructure) error {
-	b, err := json.Marshal(val)
+func (p *pantry) saveToJSON(cookies cookiesByHost) error {
+	b, err := json.Marshal(cookies)
 	if err != nil {
 		return err
 	}
@@ -100,4 +87,14 @@ func (p *pantry) saveToJSON(val dataStructure) error {
 	p.gs.Set(preferences.CookiesKey, string(b))
 
 	return nil
+}
+
+func discardExpiredCookies(cookies []*http.Cookie) (validCookies []*http.Cookie) {
+	for _, cookie := range cookies {
+		if cookie.Expires.After(time.Now()) {
+			validCookies = append(validCookies, cookie)
+		}
+	}
+
+	return
 }

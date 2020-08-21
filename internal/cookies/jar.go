@@ -40,10 +40,14 @@ type GetterSetter interface {
 	Set(string, string)
 }
 
-func NewCookieJar(getterSetter GetterSetter) (*Jar, error) {
-	pantry := &pantry{gs: getterSetter}
+func NewCookieJar(gs GetterSetter) (*Jar, error) {
+	pantry := &pantry{gs: gs}
 
-	cookies, err := pantry.loadCookies()
+	if err := pantry.discardExpiredCookies(); err != nil {
+		return nil, err
+	}
+
+	cookies, err := pantry.loadFromJSON()
 	if err != nil {
 		return nil, err
 	}
@@ -75,7 +79,7 @@ func (j *Jar) SetCookies(u *url.URL, cookies []*http.Cookie) {
 
 	j.jar.SetCookies(u, cookies)
 
-	if err := j.pantry.persistCookies(u.String(), cookies); err != nil {
+	if err := j.pantry.persistCookies(u.Scheme+"://"+u.Host, cookies); err != nil {
 		logrus.WithError(err).Warn("Failed to persist cookie")
 	}
 }
