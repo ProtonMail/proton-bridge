@@ -218,6 +218,7 @@ func (f *FrontendQt) QtExecute(Procedure func(*FrontendQt) error) error {
 
 	// List of used packages
 	f.Qml.SetCredits(importexport.Credits)
+	f.Qml.SetFullversion(f.buildVersion)
 
 	// Loop
 	if ret := gui.QGuiApplication_Exec(); ret != 0 {

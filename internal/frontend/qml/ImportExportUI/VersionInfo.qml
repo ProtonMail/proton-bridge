@@ -108,6 +108,16 @@ Item {
                         root.parent.hide()
                     }
                 }
+
+
+                AccessibleSelectableText {
+                    anchors.horizontalCenter: content.horizontalCenter
+                    font {
+                        pointSize : Style.main.fontSize * Style.pt
+                    }
+                    color: Style.main.textDisabled
+                    text: "\n Current: "+go.fullversion
+                }
             }
         }
     }

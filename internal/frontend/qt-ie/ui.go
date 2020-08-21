@@ -49,6 +49,7 @@ type GoQMLInterface struct {
 
 	_ string `property:"programTitle"`
 	_ string `property:"newversion"`
+	_ string `property:"fullversion"`
 	_ string `property:"downloadLink"`
 	_ string `property:"landingPage"`
 	_ string `property:"changelog"`
