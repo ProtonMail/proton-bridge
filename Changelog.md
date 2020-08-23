@@ -4,6 +4,8 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 ## Unreleased
 
+## [IE 0.2.x] Congo
+
 ### Added
 * GODT-633 Persistent anonymous API cookies for better load balancing and abuse detection. 
 
@@ -49,6 +51,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
     * Structure for transfer rules in QML
 
 ### Fixed
+* GODT-655 Fix date picker with automatic Windows DST
 * GODT-454 Fix send on closed channel when receiving unencrypted send confirmation from GUI.
 * GODT-597 Duplicate sending when draft creation takes too long
 

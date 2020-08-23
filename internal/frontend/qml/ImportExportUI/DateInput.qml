@@ -247,8 +247,14 @@ Rectangle {
             if (!isNaN(parseInt(dayInput.currentText))) {
                 day = Math.min(day, parseInt(dayInput.currentText))
             }
-            currentString = [ yearInput.currentText, monthInput.currentText, day].join("-")
-            currentUnix = Date.fromLocaleDateString( locale, currentString, "yyyy-MMM-d").getTime()
+            var month = gui.allMonths.indexOf(monthInput.currentText)
+            var year = parseInt(yearInput.currentText)
+            var pickedDate = new Date(year, month, day)
+            // Compensate automatic DST in windows
+            if (pickedDate.getDate() != day) {
+                pickedDate.setTime(pickedDate.getTime() + 60*60*1000) // add hour
+            }
+            currentUnix = pickedDate.getTime()
         }
         return new Date(Math.max(
             minDate.getTime(),
