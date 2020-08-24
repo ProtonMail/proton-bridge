@@ -19,7 +19,6 @@ package message
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"io"
 	"mime"
@@ -161,15 +160,14 @@ func buildBodies(p *parser.Parser) (richBody, plainBody string, err error) {
 		return
 	}
 
-	if len(richParts) != len(plainParts) {
-		return "", "", errors.New("unequal number of rich and plain parts")
-	}
-
 	richBuilder, plainBuilder := strings.Builder{}, strings.Builder{}
 
-	for i := 0; i < len(richParts); i++ {
-		_, _ = richBuilder.Write(richParts[i].Body)
-		_, _ = plainBuilder.Write(getPlainBody(plainParts[i]))
+	for _, richPart := range richParts {
+		_, _ = richBuilder.Write(richPart.Body)
+	}
+
+	for _, plainPart := range plainParts {
+		_, _ = plainBuilder.Write(getPlainBody(plainPart))
 	}
 
 	return richBuilder.String(), plainBuilder.String(), nil
