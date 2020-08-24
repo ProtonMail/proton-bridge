@@ -402,6 +402,10 @@ func (b *sendPreferencesBuilder) setExternalPGPSettingsWithoutWKDKeys(
 ) (err error) {
 	b.withEncrypt(vCardData.Encrypt)
 
+	if !vCardData.SignMissing && vCardData.Sign {
+		b.withSign()
+	}
+
 	// Sign must be enabled whenever encrypt is.
 	if vCardData.Sign || vCardData.Encrypt {
 		b.withSign()
