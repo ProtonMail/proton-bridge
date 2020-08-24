@@ -495,12 +495,7 @@ func (b *sendPreferencesBuilder) setEncryptionPreferences(mailSettings pmapi.Mai
 	if b.shouldSign() && b.getScheme() == pgpInline {
 		b.withMIMEType("text/plain")
 	} else {
-		switch mailSettings.ComposerMode {
-		case pmapi.ComposerModeNormal:
-			b.withMIMETypeDefault("text/html")
-		case pmapi.ComposerModePlain:
-			b.withMIMETypeDefault("text/plain")
-		}
+		b.withMIMETypeDefault(mailSettings.DraftMIMEType)
 	}
 }
 
