@@ -32,7 +32,7 @@ var (
 	testInput               = []interface{}{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
 	wantOutput              = []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
 	testProcessSleep        = 100 // ms
-	runParallelTimeOverhead = 100 // ms
+	runParallelTimeOverhead = 150 // ms
 )
 
 func TestParallel(t *testing.T) {

@@ -24,6 +24,7 @@ import (
 
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -102,10 +103,13 @@ func TestEventLoopUpdateMessageFromLoop(t *testing.T) {
 	// Event loop runs in goroutine and will be stopped by deferred mock clearing.
 	go m.store.eventLoop.start()
 
-	require.Eventually(t, func() bool {
-		msg, err := m.store.getMessageFromDB("msg1")
+	var err error
+	assert.Eventually(t, func() bool {
+		var msg *pmapi.Message
+		msg, err = m.store.getMessageFromDB("msg1")
 		return err == nil && msg.Subject == newSubject
 	}, time.Second, 10*time.Millisecond)
+	require.NoError(t, err)
 }
 
 func TestEventLoopUpdateMessage(t *testing.T) {
