@@ -243,7 +243,7 @@ func TestPreferencesBuilder(t *testing.T) {
 		{
 			name: "external with sign enabled",
 
-			contactMeta:  &ContactMetadata{Sign: true},
+			contactMeta:  &ContactMetadata{Sign: true, SignIsSet: true},
 			receivedKeys: []pmapi.PublicKey{},
 			isInternal:   false,
 			mailSettings: pmapi.MailSettings{PGPScheme: pmapi.PGPMIMEPackage, DraftMIMEType: "text/html"},
@@ -272,7 +272,7 @@ func TestPreferencesBuilder(t *testing.T) {
 		{
 			name: "external with pinned contact public key, encrypted and signed",
 
-			contactMeta:  &ContactMetadata{Keys: []string{testContactKey}, Encrypt: true, Sign: true},
+			contactMeta:  &ContactMetadata{Keys: []string{testContactKey}, Encrypt: true, Sign: true, SignIsSet: true},
 			receivedKeys: []pmapi.PublicKey{},
 			isInternal:   false,
 			mailSettings: pmapi.MailSettings{PGPScheme: pmapi.PGPMIMEPackage, DraftMIMEType: "text/html"},
@@ -287,7 +287,7 @@ func TestPreferencesBuilder(t *testing.T) {
 		{
 			name: "external with pinned contact public key, encrypted and signed using contact-specific pgp-inline",
 
-			contactMeta:  &ContactMetadata{Keys: []string{testContactKey}, Encrypt: true, Sign: true, Scheme: pgpInline},
+			contactMeta:  &ContactMetadata{Keys: []string{testContactKey}, Encrypt: true, Sign: true, Scheme: pgpInline, SignIsSet: true},
 			receivedKeys: []pmapi.PublicKey{},
 			isInternal:   false,
 			mailSettings: pmapi.MailSettings{PGPScheme: pmapi.PGPMIMEPackage, DraftMIMEType: "text/html"},
@@ -302,7 +302,7 @@ func TestPreferencesBuilder(t *testing.T) {
 		{
 			name: "external with pinned contact public key, encrypted and signed using global pgp-inline",
 
-			contactMeta:  &ContactMetadata{Keys: []string{testContactKey}, Encrypt: true, Sign: true},
+			contactMeta:  &ContactMetadata{Keys: []string{testContactKey}, Encrypt: true, Sign: true, SignIsSet: true},
 			receivedKeys: []pmapi.PublicKey{},
 			isInternal:   false,
 			mailSettings: pmapi.MailSettings{PGPScheme: pmapi.PGPInlinePackage, DraftMIMEType: "text/html"},

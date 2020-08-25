@@ -27,13 +27,13 @@ import (
 )
 
 type ContactMetadata struct {
-	Email       string
-	Keys        []string
-	Scheme      string
-	Sign        bool
-	SignMissing bool
-	Encrypt     bool
-	MIMEType    string
+	Email     string
+	Keys      []string
+	Scheme    string
+	Sign      bool
+	SignIsSet bool
+	Encrypt   bool
+	MIMEType  string
 }
 
 const (
@@ -72,22 +72,22 @@ func GetContactMetadataFromVCards(cards []pmapi.Card, email string) (contactMeta
 		// Warn: ParseBool treats 1, T, True, true as true and 0, F, Fale, false as false.
 		//       However PMEL declares 'true' is true, 'false' is false. every other string is true
 		encrypt, _ := strconv.ParseBool(parsedCard.GetValueByGroup(FieldPMEncrypt, group))
-		var sign, signMissing bool
+		var sign, signIsSet bool
 		if len(parsedCard[FieldPMSign]) == 0 {
-			signMissing = true
+			signIsSet = false
 		} else {
 			sign, _ = strconv.ParseBool(parsedCard.GetValueByGroup(FieldPMSign, group))
-			signMissing = false
+			signIsSet = true
 		}
 		mimeType := parsedCard.GetValueByGroup(FieldPMMIMEType, group)
 		return &ContactMetadata{
-			Email:       email,
-			Keys:        keys,
-			Scheme:      scheme,
-			Sign:        sign,
-			SignMissing: signMissing,
-			Encrypt:     encrypt,
-			MIMEType:    mimeType,
+			Email:     email,
+			Keys:      keys,
+			Scheme:    scheme,
+			Sign:      sign,
+			SignIsSet: signIsSet,
+			Encrypt:   encrypt,
+			MIMEType:  mimeType,
 		}, nil
 	}
 	return &ContactMetadata{}, nil
