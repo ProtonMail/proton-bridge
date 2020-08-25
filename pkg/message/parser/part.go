@@ -65,10 +65,6 @@ func (p *Part) AddChild(child *Part) {
 }
 
 func (p *Part) ConvertToUTF8() error {
-	if utf8.Valid(p.Body) {
-		return nil
-	}
-
 	t, params, err := p.Header.ContentType()
 	if err != nil {
 		return err
@@ -97,6 +93,10 @@ func selectSuitableDecoder(p *Part, t string, params map[string]string) *encodin
 		if decoder, err := pmmime.SelectDecoder(charset); err == nil {
 			return decoder
 		}
+	}
+
+	if utf8.Valid(p.Body) {
+		return encoding.Nop.NewDecoder()
 	}
 
 	encoding, _, _ := charset.DetermineEncoding(p.Body, t)
