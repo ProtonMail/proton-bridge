@@ -129,12 +129,29 @@ func (storeMailbox *Mailbox) getUID(apiID string) (uid uint32, err error) {
 }
 
 func (storeMailbox *Mailbox) txGetUID(tx *bolt.Tx, apiID string) (uint32, error) {
-	b := storeMailbox.txGetAPIIDsBucket(tx)
+	return storeMailbox.txGetUIDFromBucket(storeMailbox.txGetAPIIDsBucket(tx), apiID)
+}
+
+// txGetUIDFromBucket expects pointer to API bucket.
+func (storeMailbox *Mailbox) txGetUIDFromBucket(b *bolt.Bucket, apiID string) (uint32, error) {
 	v := b.Get([]byte(apiID))
 	if v == nil {
 		return 0, ErrNoSuchAPIID
 	}
 	return btoi(v), nil
+}
+
+// getUID returns IMAP UID in this mailbox for message ID.
+func (storeMailbox *Mailbox) getDeletedAPIIDs() (apiIDs []string, err error) {
+	err = storeMailbox.db().Update(func(tx *bolt.Tx) error {
+		b := storeMailbox.txGetDeletedIDsBucket(tx)
+		c := b.Cursor()
+		for k, _ := c.First(); k != nil; k, _ = c.Next() {
+			apiIDs = append(apiIDs, string(k))
+		}
+		return nil
+	})
+	return
 }
 
 // getSequenceNumber returns IMAP sequence number in the mailbox for the message with the given API ID `apiID`.

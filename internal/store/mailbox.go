@@ -238,6 +238,17 @@ func (storeMailbox *Mailbox) txGetAPIIDsBucket(tx *bolt.Tx) *bolt.Bucket {
 	return storeMailbox.txGetBucket(tx).Bucket(apiIDsBucket)
 }
 
+// txGetDeletedIDsBucket returns the bucket with messagesID marked as deleted
+func (storeMailbox *Mailbox) txGetDeletedIDsBucket(tx *bolt.Tx) *bolt.Bucket {
+	// There should be no error since it _...returns an error if the bucket
+	// name is blank, or if the bucket name is too long._
+	bucket, err := storeMailbox.txGetBucket(tx).CreateBucketIfNotExists(deletedIDsBucket)
+	if err != nil || bucket == nil {
+		storeMailbox.log.WithError(err).Error("Cannot create or get bucket with deleted IDs.")
+	}
+	return bucket
+}
+
 // txGetBucket returns the bucket of mailbox containing mapping buckets.
 func (storeMailbox *Mailbox) txGetBucket(tx *bolt.Tx) *bolt.Bucket {
 	return tx.Bucket(mailboxesBucket).Bucket(storeMailbox.getBucketName())

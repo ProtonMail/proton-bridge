@@ -57,23 +57,27 @@ Feature: IMAP update messages
     And message "1" in "Spam" for "user" is marked as unstarred
 
   Scenario: Mark message as deleted
-    When IMAP client marks message "2" as deleted
+    # Mark message as Starred so we can check that mark as Deleted is not
+    # tempering with Starred flag
+    When IMAP client marks message "1" as starred
+    Then IMAP response is "OK"
+    When IMAP client marks message "1" as deleted
     Then IMAP response is "OK"
     And message "2" in "INBOX" for "user" is marked as read
     And message "2" in "INBOX" for "user" is marked as starred
     And message "2" in "INBOX" for "user" is marked as deleted
 
   Scenario: Mark message as undeleted
-    When IMAP client marks message "2" as undeleted
+    When IMAP client marks message "1" as undeleted
     Then IMAP response is "OK"
     And message "2" in "INBOX" for "user" is marked as read
     And message "2" in "INBOX" for "user" is marked as starred
     And message "2" in "INBOX" for "user" is marked as undeleted
 
   Scenario: Mark message as deleted only
-    When IMAP client marks message "2" with "\Deleted"
+    When IMAP client marks message "1" with "\Deleted"
     Then IMAP response is "OK"
     And message "2" in "INBOX" for "user" is marked as unread
     And message "2" in "INBOX" for "user" is marked as unstarred
-    And message "2" in "INBOX" for "user" is marked as undeleted
+    And message "2" in "INBOX" for "user" is marked as deleted
 

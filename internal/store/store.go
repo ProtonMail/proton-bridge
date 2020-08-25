@@ -70,6 +70,8 @@ var (
 	//       * {imapUID} -> string messageID
 	//     * api_ids
 	//       * {messageID} -> uint32 imapUID
+	//     * deleted_ids (can be missing or have no keys)
+	//       * {messageID} -> true
 	metadataBucket    = []byte("metadata")          //nolint[gochecknoglobals]
 	countsBucket      = []byte("counts")            //nolint[gochecknoglobals]
 	addressInfoBucket = []byte("address_info")      //nolint[gochecknoglobals]
@@ -78,6 +80,7 @@ var (
 	mailboxesBucket   = []byte("mailboxes")         //nolint[gochecknoglobals]
 	imapIDsBucket     = []byte("imap_ids")          //nolint[gochecknoglobals]
 	apiIDsBucket      = []byte("api_ids")           //nolint[gochecknoglobals]
+	deletedIDsBucket  = []byte("deleted_ids")       //nolint[gochecknoglobals]
 	mboxVersionBucket = []byte("mailboxes_version") //nolint[gochecknoglobals]
 
 	// ErrNoSuchAPIID when mailbox does not have API ID.

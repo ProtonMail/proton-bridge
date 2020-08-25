@@ -25,9 +25,11 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 ### Added
 * GODT-633 Persistent anonymous API cookies for better load balancing and abuse detection. 
+* GODT-461 Add support for `\Deleted` flag.
 
 ### Changed
 * GODT-462 Pausing event loop while FETCHing to prevent EXPUNGE
+* Wait for unilateral response to be delivered
 * GODT-409 Set flags have to replace all flags.
 * GODT-531 Better way to add trusted certificate in macOS.
 * Bumped golangci-lint to v1.29.0

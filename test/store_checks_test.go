@@ -23,7 +23,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
+	"github.com/ProtonMail/proton-bridge/internal/store"
 	"github.com/ProtonMail/proton-bridge/test/accounts"
 	"github.com/cucumber/godog"
 	"github.com/cucumber/godog/gherkin"
@@ -128,13 +128,13 @@ func mailboxForAddressOfUserHasMessages(mailboxName, bddAddressID, bddUserID str
 	if err != nil {
 		return internalError(err, "getting API IDs from sequence range")
 	}
-	allMessages := []*pmapi.Message{}
+	allMessages := []*store.Message{}
 	for _, apiID := range apiIDs {
 		message, err := mailbox.GetMessage(apiID)
 		if err != nil {
 			return internalError(err, "getting message by ID")
 		}
-		allMessages = append(allMessages, message.Message())
+		allMessages = append(allMessages, message)
 	}
 
 	head := messages.Rows[0].Cells
@@ -168,9 +168,10 @@ func mailboxForAddressOfUserHasMessages(mailboxName, bddAddressID, bddUserID str
 	return nil
 }
 
-func messagesContainsMessageRow(account *accounts.TestAccount, allMessages []*pmapi.Message, head []*gherkin.TableCell, row *gherkin.TableRow) (bool, error) { //nolint[funlen]
+func messagesContainsMessageRow(account *accounts.TestAccount, allMessages []*store.Message, head []*gherkin.TableCell, row *gherkin.TableRow) (bool, error) { //nolint[funlen]
 	found := false
-	for _, message := range allMessages {
+	for _, storeMessage := range allMessages {
+		message := storeMessage.Message()
 		matches := true
 		for n, cell := range row.Cells {
 			switch head[n].Value {
@@ -220,8 +221,8 @@ func messagesContainsMessageRow(account *accounts.TestAccount, allMessages []*pm
 					matches = false
 				}
 			case "deleted":
-				// TODO
-				matches = false
+				expectedDeleted := cell.Value == "true"
+				matches = storeMessage.IsMarkedDeleted() == expectedDeleted
 			default:
 				return false, fmt.Errorf("unexpected column name: %s", head[n].Value)
 			}
@@ -247,56 +248,60 @@ func areAddressesSame(first, second string) bool {
 }
 
 func messagesInMailboxForUserIsMarkedAsRead(messageIDs, mailboxName, bddUserID string) error {
-	return checkMessages(bddUserID, mailboxName, messageIDs, func(message *pmapi.Message) error {
-		if message.Unread == 0 {
+	return checkMessages(bddUserID, mailboxName, messageIDs, func(message *store.Message) error {
+		if message.Message().Unread == 0 {
 			return nil
 		}
-		return fmt.Errorf("message %s \"%s\" is expected to be read but is not", message.ID, message.Subject)
+		return fmt.Errorf("message %s \"%s\" is expected to be read but is not", message.ID(), message.Message().Subject)
 	})
 }
 
 func messagesInMailboxForUserIsMarkedAsUnread(messageIDs, mailboxName, bddUserID string) error {
-	return checkMessages(bddUserID, mailboxName, messageIDs, func(message *pmapi.Message) error {
-		if message.Unread == 1 {
+	return checkMessages(bddUserID, mailboxName, messageIDs, func(message *store.Message) error {
+		if message.Message().Unread == 1 {
 			return nil
 		}
-		return fmt.Errorf("message %s \"%s\" is expected to not be read but is", message.ID, message.Subject)
+		return fmt.Errorf("message %s \"%s\" is expected to not be read but is", message.ID(), message.Message().Subject)
 	})
 }
 
 func messagesInMailboxForUserIsMarkedAsStarred(messageIDs, mailboxName, bddUserID string) error {
-	return checkMessages(bddUserID, mailboxName, messageIDs, func(message *pmapi.Message) error {
-		if hasItem(message.LabelIDs, "10") {
+	return checkMessages(bddUserID, mailboxName, messageIDs, func(message *store.Message) error {
+		if hasItem(message.Message().LabelIDs, "10") {
 			return nil
 		}
-		return fmt.Errorf("message %s \"%s\" is expected to be starred but is not", message.ID, message.Subject)
+		return fmt.Errorf("message %s \"%s\" is expected to be starred but is not", message.ID(), message.Message().Subject)
 	})
 }
 
 func messagesInMailboxForUserIsMarkedAsUnstarred(messageIDs, mailboxName, bddUserID string) error {
-	return checkMessages(bddUserID, mailboxName, messageIDs, func(message *pmapi.Message) error {
-		if !hasItem(message.LabelIDs, "10") {
+	return checkMessages(bddUserID, mailboxName, messageIDs, func(message *store.Message) error {
+		if !hasItem(message.Message().LabelIDs, "10") {
 			return nil
 		}
-		return fmt.Errorf("message %s \"%s\" is expected to not be starred but is", message.ID, message.Subject)
+		return fmt.Errorf("message %s \"%s\" is expected to not be starred but is", message.ID(), message.Message().Subject)
 	})
 }
 
 func messagesInMailboxForUserIsMarkedAsDeleted(messageIDs, mailboxName, bddUserID string) error {
-	return checkMessages(bddUserID, mailboxName, messageIDs, func(message *pmapi.Message) error {
-		// TODO
-		return fmt.Errorf("TODO message %s \"%s\" is expected to be deleted but is not", message.ID, message.Subject)
+	return checkMessages(bddUserID, mailboxName, messageIDs, func(message *store.Message) error {
+		if message.IsMarkedDeleted() {
+			return nil
+		}
+		return fmt.Errorf("message %s \"%s\" is expected to be deleted but is not", message.ID(), message.Message().Subject)
 	})
 }
 
 func messagesInMailboxForUserIsMarkedAsUndeleted(messageIDs, mailboxName, bddUserID string) error {
-	return checkMessages(bddUserID, mailboxName, messageIDs, func(message *pmapi.Message) error {
-		// TODO
-		return fmt.Errorf("TODO message %s \"%s\" is expected to not be deleted but is", message.ID, message.Subject)
+	return checkMessages(bddUserID, mailboxName, messageIDs, func(message *store.Message) error {
+		if !message.IsMarkedDeleted() {
+			return nil
+		}
+		return fmt.Errorf("message %s \"%s\" is expected to not be deleted but is", message.ID(), message.Message().Subject)
 	})
 }
 
-func checkMessages(bddUserID, mailboxName, messageIDs string, callback func(*pmapi.Message) error) error {
+func checkMessages(bddUserID, mailboxName, messageIDs string, callback func(*store.Message) error) error {
 	account := ctx.GetTestAccount(bddUserID)
 	if account == nil {
 		return godog.ErrPending
@@ -313,9 +318,9 @@ func checkMessages(bddUserID, mailboxName, messageIDs string, callback func(*pma
 	return nil
 }
 
-func getMessages(username, addressID, mailboxName, messageIDs string) ([]*pmapi.Message, error) {
-	msgs := []*pmapi.Message{}
-	var msg *pmapi.Message
+func getMessages(username, addressID, mailboxName, messageIDs string) ([]*store.Message, error) {
+	msgs := []*store.Message{}
+	var msg *store.Message
 	var err error
 	iterateOverSeqSet(messageIDs, func(messageID string) {
 		messageID = ctx.GetPMAPIController().GetMessageID(username, messageID)
@@ -327,16 +332,12 @@ func getMessages(username, addressID, mailboxName, messageIDs string) ([]*pmapi.
 	return msgs, err
 }
 
-func getMessage(username, addressID, mailboxName, messageID string) (*pmapi.Message, error) {
+func getMessage(username, addressID, mailboxName, messageID string) (*store.Message, error) {
 	mailbox, err := ctx.GetStoreMailbox(username, addressID, mailboxName)
 	if err != nil {
 		return nil, err
 	}
-	message, err := mailbox.GetMessage(messageID)
-	if err != nil {
-		return nil, err
-	}
-	return message.Message(), nil
+	return mailbox.GetMessage(messageID)
 }
 
 func hasItem(items []string, value string) bool {

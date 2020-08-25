@@ -62,6 +62,21 @@ func (message *Message) Message() *pmapi.Message {
 	return message.msg
 }
 
+// IsMarkedDeleted returns true if message is marked as deleted for specific
+// mailbox
+func (message *Message) IsMarkedDeleted() bool {
+	isMarkedAsDeleted := false
+	err := message.storeMailbox.db().Update(func(tx *bolt.Tx) error {
+		isMarkedAsDeleted = message.storeMailbox.txGetDeletedIDsBucket(tx).Get([]byte(message.msg.ID)) != nil
+		return nil
+	})
+	if err != nil {
+		message.storeMailbox.log.WithError(err).Error("Not able to retrieve deleted mark, assuming false.")
+		return false
+	}
+	return isMarkedAsDeleted
+}
+
 // SetSize updates the information about size of decrypted message which can be
 // used for IMAP. This should not trigger any IMAP update.
 // NOTE: The size from the server corresponds to pure body bytes. Hence it

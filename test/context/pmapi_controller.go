@@ -34,6 +34,7 @@ type PMAPIController interface {
 	AddUserMessage(username string, message *pmapi.Message) error
 	GetMessageID(username, messageIndex string) string
 	GetMessages(username, labelID string) ([]*pmapi.Message, error)
+	GetLastMessageID(username string) string
 	ReorderAddresses(user *pmapi.User, addressIDs []string) error
 	PrintCalls()
 	WasCalled(method, path string, expectedRequest []byte) bool

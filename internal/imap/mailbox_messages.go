@@ -97,7 +97,11 @@ func (im *imapMailbox) setFlags(messageIDs, flags []string) error {
 	}
 
 	if deleted {
-		if err := im.storeMailbox.DeleteMessages(messageIDs); err != nil {
+		if err := im.storeMailbox.MarkMessagesDeleted(messageIDs); err != nil {
+			return err
+		}
+	} else {
+		if err := im.storeMailbox.MarkMessagesUndeleted(messageIDs); err != nil {
 			return err
 		}
 	}
@@ -145,11 +149,15 @@ func (im *imapMailbox) addOrRemoveFlags(operation imap.FlagsOp, messageIDs, flag
 				}
 			}
 		case imap.DeletedFlag:
-			if operation == imap.RemoveFlags {
-				break // Nothing to do, no message has the \Deleted flag.
-			}
-			if err := im.storeMailbox.DeleteMessages(messageIDs); err != nil {
-				return err
+			switch operation {
+			case imap.AddFlags:
+				if err := im.storeMailbox.MarkMessagesDeleted(messageIDs); err != nil {
+					return err
+				}
+			case imap.RemoveFlags:
+				if err := im.storeMailbox.MarkMessagesUndeleted(messageIDs); err != nil {
+					return err
+				}
 			}
 		case imap.AnsweredFlag, imap.DraftFlag, imap.RecentFlag:
 			// Not supported.
@@ -348,6 +356,9 @@ func (im *imapMailbox) SearchMessages(isUID bool, criteria *imap.SearchCriteria)
 		}
 		if !m.Has(pmapi.FlagOpened) {
 			messageFlagsMap[imap.RecentFlag] = true
+		}
+		if storeMessage.IsMarkedDeleted() {
+			messageFlagsMap[imap.DeletedFlag] = true
 		}
 
 		flagMatch := true

@@ -11,7 +11,8 @@ Feature: IMAP remove messages from mailbox
     When IMAP client marks message "2" as deleted
     Then IMAP response is "OK"
     And mailbox "<mailbox>" for "user" has 10 messages
-    And message "2" in "INBOX" for "user" is marked as deleted
+    And message "9" in "<mailbox>" for "user" is marked as deleted
+    And IMAP response contains "\* 2 FETCH[ (]*FLAGS \([^)]*\\Deleted"
     When IMAP client sends expunge
     Then IMAP response is "OK"
     And IMAP response contains "* 2 EXPUNGE"
@@ -77,7 +78,7 @@ Feature: IMAP remove messages from mailbox
     When IMAP client marks message "2" as deleted
     Then IMAP response is "OK"
     And mailbox "INBOX" for "user" has 10 messages
-    And message "2" in "INBOX" for "user" is marked as deleted
+    And message "9" in "INBOX" for "user" is marked as deleted
     When IMAP client sends command "<leave>"
     Then IMAP response is "OK"
     And mailbox "INBOX" for "user" has <n> messages

@@ -277,7 +277,8 @@ func (api *FakePMAPI) deleteMessages(method method, path string, request interfa
 	newMessages := []*pmapi.Message{}
 	for _, message := range api.messages {
 		if shouldBeDeleted(message) {
-			if hasItem(message.LabelIDs, pmapi.TrashLabel) {
+			if hasItem(message.LabelIDs, pmapi.TrashLabel) ||
+				hasItem(message.LabelIDs, pmapi.SpamLabel) {
 				api.addEventMessage(pmapi.EventDelete, message)
 				continue
 			}

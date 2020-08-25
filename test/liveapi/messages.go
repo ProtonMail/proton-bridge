@@ -162,4 +162,8 @@ func (ctl *Controller) GetMessages(username, labelID string) ([]*pmapi.Message, 
 	}
 
 	return messages, nil
+
+func (ctl *Controller) GetLastMessageID(username string) string {
+	ids := ctl.messageIDsByUsername[username]
+	return ids[len(ids)-1]
 }

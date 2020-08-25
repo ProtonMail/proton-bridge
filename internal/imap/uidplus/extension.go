@@ -25,6 +25,7 @@
 package uidplus
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/emersion/go-imap"
@@ -120,11 +121,51 @@ func (os *OrderedSeq) String() string {
 // If not implemented it would cause harmless IMAP error.
 //
 // This overrides the standard EXPUNGE functionality.
-type UIDExpunge struct{}
+type UIDExpunge struct {
+	expunge *server.Expunge
+	seqset  *imap.SeqSet
+}
 
-func (e *UIDExpunge) Parse(fields []interface{}) error { log.Traceln("parse", fields); return nil }
-func (e *UIDExpunge) Handle(conn server.Conn) error    { log.Traceln("handle"); return nil }
-func (e *UIDExpunge) UidHandle(conn server.Conn) error { log.Traceln("uid handle"); return nil } //nolint[golint]
+func newUIDExpunge() *UIDExpunge {
+	return &UIDExpunge{expunge: &server.Expunge{}}
+}
+
+func (e *UIDExpunge) Parse(fields []interface{}) error {
+	if len(fields) < 1 { // asuming no UID
+		return e.expunge.Parse(fields)
+	}
+
+	var err error
+	if seqset, ok := fields[0].(string); !ok {
+		return errors.New("sequence set must be an atom")
+	} else if e.seqset, err = imap.ParseSeqSet(seqset); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (e *UIDExpunge) Handle(conn server.Conn) error {
+	log.Traceln("handle")
+	return e.expunge.Handle(conn)
+}
+func (e *UIDExpunge) UidHandle(conn server.Conn) error { //nolint[golint]
+	log.Traceln("uid handle")
+	// RFC4315#section-2.1
+	// The UID EXPUNGE command permanently removes all messages that both
+	// have the \Deleted flag set and have a UID that is included in the
+	// specified sequence set from the currently selected mailbox. If a
+	// message either does not have the \Deleted flag set or has a UID
+	// that is not included in the specified sequence set, it is not
+	// affected.
+	//
+	// NOTE missing implementation: It will probably need mailbox interface
+	// change: ExpungeUIDs(seqSet) not sure how to combine with original
+	// e.expunge.Handle().
+	//
+	// Current implementation deletes all marked as deleted.
+	return e.expunge.Handle(conn)
+}
 
 type extension struct{}
 
@@ -143,7 +184,7 @@ func (ext *extension) Capabilities(c server.Conn) []string {
 func (ext *extension) Command(name string) server.HandlerFactory {
 	if name == "EXPUNGE" {
 		return func() server.Handler {
-			return &UIDExpunge{}
+			return newUIDExpunge()
 		}
 	}
 

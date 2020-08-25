@@ -24,6 +24,8 @@ import (
 	bolt "go.etcd.io/bbolt"
 )
 
+// ErrAllMailOpNotAllowed is error user when user tries to do unsupported
+// operation on All Mail folder
 var ErrAllMailOpNotAllowed = errors.New("operation not allowed for 'All Mail' folder")
 
 // GetMessage returns the `pmapi.Message` struct wrapped in `StoreMessage`
@@ -96,11 +98,8 @@ func (storeMailbox *Mailbox) LabelMessages(apiIDs []string) error {
 // It has to be propagated to all the same messages in all mailboxes.
 // The propagation is processed by the event loop.
 func (storeMailbox *Mailbox) UnlabelMessages(apiIDs []string) error {
-	log.WithFields(logrus.Fields{
-		"messages": apiIDs,
-		"label":    storeMailbox.labelID,
-		"mailbox":  storeMailbox.Name,
-	}).Trace("Unlabeling messages")
+	storeMailbox.log.WithField("messages", apiIDs).
+		Trace("Unlabeling messages")
 	if storeMailbox.labelID == pmapi.AllMailLabel {
 		return ErrAllMailOpNotAllowed
 	}
@@ -173,54 +172,57 @@ func (storeMailbox *Mailbox) MarkMessagesUnstarred(apiIDs []string) error {
 	return storeMailbox.client().UnlabelMessages(apiIDs, pmapi.StarredLabel)
 }
 
-// DeleteMessages deletes messages.
-// If the mailbox is All Mail or All Sent, it does nothing.
-// If the mailbox is Trash or Spam and message is not in any other mailbox, messages is deleted.
-// In all other cases the message is only removed from the mailbox.
-func (storeMailbox *Mailbox) DeleteMessages(apiIDs []string) error {
+// MarkMessagesDeleted adds local flag \Deleted. This is not propagated to API
+// until RemoveDeleted is called
+func (storeMailbox *Mailbox) MarkMessagesDeleted(apiIDs []string) error {
 	log.WithFields(logrus.Fields{
 		"messages": apiIDs,
 		"label":    storeMailbox.labelID,
 		"mailbox":  storeMailbox.Name,
-	}).Trace("Deleting messages")
+	}).Trace("Marking messages as deleted")
+	return storeMailbox.store.db.Update(func(tx *bolt.Tx) error {
+		return storeMailbox.txMarkMessagesAsDeleted(tx, apiIDs, true)
+	})
+}
+
+// MarkMessagesUndeleted removes local flag \Deleted. This is not propagated to
+// API.
+func (storeMailbox *Mailbox) MarkMessagesUndeleted(apiIDs []string) error {
+	log.WithFields(logrus.Fields{
+		"messages": apiIDs,
+		"label":    storeMailbox.labelID,
+		"mailbox":  storeMailbox.Name,
+	}).Trace("Marking messages as undeleted")
+	return storeMailbox.store.db.Update(func(tx *bolt.Tx) error {
+		return storeMailbox.txMarkMessagesAsDeleted(tx, apiIDs, false)
+	})
+}
+
+// RemoveDeleted sends request to API to remove message from mailbox.
+// If the mailbox is All Mail or All Sent, it does nothing.
+// If the mailbox is Trash or Spam and message is not in any other mailbox, messages is deleted.
+// In all other cases the message is only removed from the mailbox.
+func (storeMailbox *Mailbox) RemoveDeleted() error {
+	storeMailbox.log.Trace("Deleting messages")
+
+	apiIDs, err := storeMailbox.getDeletedAPIIDs()
+	if err != nil {
+		return err
+	}
+
+	if len(apiIDs) == 0 {
+		storeMailbox.log.Debug("List to expunge is empty")
+		return nil
+	}
+
 	defer storeMailbox.pollNow()
 
 	switch storeMailbox.labelID {
 	case pmapi.AllMailLabel, pmapi.AllSentLabel:
 		break
 	case pmapi.TrashLabel, pmapi.SpamLabel:
-		messageIDsToDelete := []string{}
-		messageIDsToUnlabel := []string{}
-		for _, apiID := range apiIDs {
-			msg, err := storeMailbox.store.getMessageFromDB(apiID)
-			if err != nil {
-				return err
-			}
-
-			otherLabels := false
-			// If the message has any custom label, we don't want to delete it, only remove trash/spam label.
-			for _, label := range msg.LabelIDs {
-				if label != pmapi.SpamLabel && label != pmapi.TrashLabel && label != pmapi.AllMailLabel && label != pmapi.AllSentLabel && label != pmapi.DraftLabel && label != pmapi.AllDraftsLabel {
-					otherLabels = true
-					break
-				}
-			}
-
-			if otherLabels {
-				messageIDsToUnlabel = append(messageIDsToUnlabel, apiID)
-			} else {
-				messageIDsToDelete = append(messageIDsToDelete, apiID)
-			}
-		}
-		if len(messageIDsToUnlabel) > 0 {
-			if err := storeMailbox.client().UnlabelMessages(messageIDsToUnlabel, storeMailbox.labelID); err != nil {
-				log.WithError(err).Warning("Cannot unlabel before deleting")
-			}
-		}
-		if len(messageIDsToDelete) > 0 {
-			if err := storeMailbox.client().DeleteMessages(messageIDsToDelete); err != nil {
-				return err
-			}
+		if err := storeMailbox.deleteFromTrashOrSpam(apiIDs); err != nil {
+			return err
 		}
 	case pmapi.DraftLabel:
 		if err := storeMailbox.client().DeleteMessages(apiIDs); err != nil {
@@ -231,6 +233,50 @@ func (storeMailbox *Mailbox) DeleteMessages(apiIDs []string) error {
 			return err
 		}
 	}
+	return nil
+}
+
+// deleteFromTrashOrSpam will remove messages from API forever. If messages
+// still has some custom label the message will not be deleted. Instead it will
+// be removed from Trash or Spam.
+func (storeMailbox *Mailbox) deleteFromTrashOrSpam(apiIDs []string) error {
+	l := storeMailbox.log.WithField("messages", apiIDs)
+	l.Trace("Deleting messages from trash")
+
+	messageIDsToDelete := []string{}
+	messageIDsToUnlabel := []string{}
+	for _, apiID := range apiIDs {
+		msg, err := storeMailbox.store.getMessageFromDB(apiID)
+		if err != nil {
+			return err
+		}
+
+		otherLabels := false
+		// If the message has any custom label, we don't want to delete it, only remove trash/spam label.
+		for _, label := range msg.LabelIDs {
+			if label != pmapi.SpamLabel && label != pmapi.TrashLabel && label != pmapi.AllMailLabel && label != pmapi.AllSentLabel && label != pmapi.DraftLabel && label != pmapi.AllDraftsLabel {
+				otherLabels = true
+				break
+			}
+		}
+
+		if otherLabels {
+			messageIDsToUnlabel = append(messageIDsToUnlabel, apiID)
+		} else {
+			messageIDsToDelete = append(messageIDsToDelete, apiID)
+		}
+	}
+	if len(messageIDsToUnlabel) > 0 {
+		if err := storeMailbox.client().UnlabelMessages(messageIDsToUnlabel, storeMailbox.labelID); err != nil {
+			l.WithError(err).Warning("Cannot unlabel before deleting")
+		}
+	}
+	if len(messageIDsToDelete) > 0 {
+		if err := storeMailbox.client().DeleteMessages(messageIDsToDelete); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
@@ -273,7 +319,7 @@ func (storeMailbox *Mailbox) txCreateOrUpdateMessages(tx *bolt.Tx, msgs []*pmapi
 
 	// Buckets are not initialized right away because it's a heavy operation.
 	// The best option is to get the same bucket only once and only when needed.
-	var apiBucket, imapBucket *bolt.Bucket
+	var apiBucket, imapBucket, deletedBucket *bolt.Bucket
 	for _, msg := range msgs {
 		if storeMailbox.txSkipAndRemoveFromMailbox(tx, msg) {
 			continue
@@ -292,12 +338,15 @@ func (storeMailbox *Mailbox) txCreateOrUpdateMessages(tx *bolt.Tx, msgs []*pmapi
 			}
 		} else {
 			uidb := apiBucket.Get([]byte(msg.ID))
-
 			if uidb != nil {
 				if imapBucket == nil {
 					imapBucket = storeMailbox.txGetIMAPIDsBucket(tx)
 				}
 				seqNum, seqErr := storeMailbox.txGetSequenceNumberOfUID(imapBucket, uidb)
+				if deletedBucket == nil {
+					deletedBucket = storeMailbox.txGetDeletedIDsBucket(tx)
+				}
+				isMarkedAsDeleted := deletedBucket.Get([]byte(msg.ID)) != nil
 				if seqErr == nil {
 					storeMailbox.store.imapUpdateMessage(
 						storeMailbox.storeAddress.address,
@@ -305,6 +354,7 @@ func (storeMailbox *Mailbox) txCreateOrUpdateMessages(tx *bolt.Tx, msgs []*pmapi
 						btoi(uidb),
 						seqNum,
 						msg,
+						isMarkedAsDeleted,
 					)
 				}
 				continue
@@ -338,6 +388,7 @@ func (storeMailbox *Mailbox) txCreateOrUpdateMessages(tx *bolt.Tx, msgs []*pmapi
 			uid,
 			seqNum,
 			msg,
+			false, // new message is never marked as deleted
 		)
 		shouldSendMailboxUpdate = true
 	}
@@ -362,6 +413,7 @@ func (storeMailbox *Mailbox) txDeleteMessage(tx *bolt.Tx, apiID string) error {
 	}
 
 	imapBucket := storeMailbox.txGetIMAPIDsBucket(tx)
+	deletedBucket := storeMailbox.txGetDeletedIDsBucket(tx)
 
 	seqNum, seqNumErr := storeMailbox.txGetSequenceNumberOfUID(imapBucket, uidb)
 	if seqNumErr != nil {
@@ -374,6 +426,10 @@ func (storeMailbox *Mailbox) txDeleteMessage(tx *bolt.Tx, apiID string) error {
 
 	if err := apiBucket.Delete(apiIDb); err != nil {
 		return errors.Wrap(err, "cannot delete from API bucket")
+	}
+
+	if err := deletedBucket.Delete(apiIDb); err != nil {
+		return errors.Wrap(err, "cannot delete from mark-as-deleted bucket")
 	}
 
 	if seqNumErr == nil {
@@ -402,5 +458,52 @@ func (storeMailbox *Mailbox) txMailboxStatusUpdate(tx *bolt.Tx) error {
 		unread,
 		unreadSeqNum,
 	)
+	return nil
+}
+
+func (storeMailbox *Mailbox) txMarkMessagesAsDeleted(tx *bolt.Tx, apiIDs []string, markAsDeleted bool) error {
+	// Load all buckets before looping over apiIDs
+	metaBucket := tx.Bucket(metadataBucket)
+	apiBucket := storeMailbox.txGetAPIIDsBucket(tx)
+	uidBucket := storeMailbox.txGetIMAPIDsBucket(tx)
+	deletedBucket := storeMailbox.txGetDeletedIDsBucket(tx)
+	for _, apiID := range apiIDs {
+		if markAsDeleted {
+			if err := deletedBucket.Put([]byte(apiID), []byte{1}); err != nil {
+				return err
+			}
+		} else {
+			if err := deletedBucket.Delete([]byte(apiID)); err != nil {
+				return err
+			}
+		}
+
+		msg, err := storeMailbox.store.txGetMessageFromBucket(metaBucket, apiID)
+		if err != nil {
+			return err
+		}
+
+		uid, err := storeMailbox.txGetUIDFromBucket(apiBucket, apiID)
+		if err != nil {
+			return err
+		}
+
+		seqNum, err := storeMailbox.txGetSequenceNumberOfUID(uidBucket, itob(uid))
+		if err != nil {
+			return err
+		}
+
+		// In order to send flags in format
+		// S: * 2 FETCH (FLAGS (\Deleted \Seen))
+		storeMailbox.store.imapUpdateMessage(
+			storeMailbox.storeAddress.address,
+			storeMailbox.labelName,
+			uid,
+			seqNum,
+			msg,
+			markAsDeleted,
+		)
+	}
+
 	return nil
 }

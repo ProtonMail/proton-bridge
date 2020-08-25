@@ -173,9 +173,8 @@ func (im *imapMailbox) Check() error {
 
 // Expunge permanently removes all messages that have the \Deleted flag set
 // from the currently selected mailbox.
-// Our messages do not have \Deleted flag, nothing to do here.
 func (im *imapMailbox) Expunge() error {
-	return nil
+	return im.storeMailbox.RemoveDeleted()
 }
 
 func (im *imapMailbox) ListQuotas() ([]string, error) {

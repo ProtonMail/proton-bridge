@@ -83,8 +83,10 @@ type storeMailboxProvider interface {
 	MarkMessagesUnread(apiID []string) error
 	MarkMessagesStarred(apiID []string) error
 	MarkMessagesUnstarred(apiID []string) error
+	MarkMessagesDeleted(apiID []string) error
+	MarkMessagesUndeleted(apiID []string) error
 	ImportMessage(msg *pmapi.Message, body []byte, labelIDs []string) error
-	DeleteMessages(apiID []string) error
+	RemoveDeleted() error
 }
 
 type storeMessageProvider interface {
@@ -92,6 +94,7 @@ type storeMessageProvider interface {
 	UID() (uint32, error)
 	SequenceNumber() (uint32, error)
 	Message() *pmapi.Message
+	IsMarkedDeleted() bool
 
 	SetSize(int64) error
 	SetContentTypeAndHeader(string, mail.Header) error

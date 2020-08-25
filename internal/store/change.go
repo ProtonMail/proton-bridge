@@ -48,18 +48,26 @@ func (store *Store) imapNotice(address, notice string) {
 	store.imapSendUpdate(update)
 }
 
-func (store *Store) imapUpdateMessage(address, mailboxName string, uid, sequenceNumber uint32, msg *pmapi.Message) {
+func (store *Store) imapUpdateMessage(
+	address, mailboxName string,
+	uid, sequenceNumber uint32,
+	msg *pmapi.Message, hasDeletedFlag bool,
+) {
 	store.log.WithFields(logrus.Fields{
 		"address": address,
 		"mailbox": mailboxName,
 		"seqNum":  sequenceNumber,
 		"uid":     uid,
 		"flags":   message.GetFlags(msg),
+		"deleted": hasDeletedFlag,
 	}).Trace("IDLE update")
 	update := new(imapBackend.MessageUpdate)
 	update.Update = imapBackend.NewUpdate(address, mailboxName)
 	update.Message = imap.NewMessage(sequenceNumber, []imap.FetchItem{imap.FetchFlags, imap.FetchUid})
 	update.Message.Flags = message.GetFlags(msg)
+	if hasDeletedFlag {
+		update.Message.Flags = append(update.Message.Flags, imap.DeletedFlag)
+	}
 	update.Message.Uid = uid
 	store.imapSendUpdate(update)
 }
@@ -114,10 +122,13 @@ func (store *Store) imapSendUpdate(update imapBackend.Update) {
 		return
 	}
 
+	done := update.Done()
+	go func() { store.imapUpdates <- update }()
+
 	select {
+	case <-done:
 	case <-time.After(1 * time.Second):
 		store.log.Error("Could not send IMAP update (timeout)")
 		return
-	case store.imapUpdates <- update:
 	}
 }

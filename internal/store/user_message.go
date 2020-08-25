@@ -143,8 +143,10 @@ func (store *Store) getMessageFromDB(apiID string) (msg *pmapi.Message, err erro
 }
 
 func (store *Store) txGetMessage(tx *bolt.Tx, apiID string) (*pmapi.Message, error) {
-	b := tx.Bucket(metadataBucket)
+	return store.txGetMessageFromBucket(tx.Bucket(metadataBucket), apiID)
+}
 
+func (store *Store) txGetMessageFromBucket(b *bolt.Bucket, apiID string) (*pmapi.Message, error) {
 	msgb := b.Get([]byte(apiID))
 	if msgb == nil {
 		return nil, ErrNoSuchAPIID

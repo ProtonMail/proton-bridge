@@ -79,14 +79,16 @@ func thereAreMessagesInMailboxesForAddressOfUser(mailboxNames, bddAddressID, bdd
 	if account == nil {
 		return godog.ErrPending
 	}
-	head := messages.Rows[0].Cells
 
 	labelIDs, err := ctx.GetPMAPIController().GetLabelIDs(account.Username(), strings.Split(mailboxNames, ","))
 	if err != nil {
 		return internalError(err, "getting labels %s for %s", mailboxNames, account.Username())
 	}
 
-	for _, row := range messages.Rows {
+	var markMessageIDsDeleted []string
+
+	head := messages.Rows[0].Cells
+	for _, row := range messages.Rows[1:] {
 		message := &pmapi.Message{
 			MIMEType:  "text/plain",
 			LabelIDs:  labelIDs,
@@ -96,6 +98,8 @@ func thereAreMessagesInMailboxesForAddressOfUser(mailboxNames, bddAddressID, bdd
 		if message.HasLabelID(pmapi.SentLabel) {
 			message.Flags |= pmapi.FlagSent
 		}
+
+		hasDeletedFlag := false
 
 		for n, cell := range row.Cells {
 			switch head[n].Value {
@@ -134,11 +138,7 @@ func thereAreMessagesInMailboxesForAddressOfUser(mailboxNames, bddAddressID, bdd
 				}
 				message.Time = date.Unix()
 			case "deleted":
-				if cell.Value == "true" {
-					/* TODO
-					   Remember that this message should be marked as deleted
-					*/
-				}
+				hasDeletedFlag = cell.Value == "true"
 			default:
 				return fmt.Errorf("unexpected column name: %s", head[n].Value)
 			}
@@ -146,13 +146,28 @@ func thereAreMessagesInMailboxesForAddressOfUser(mailboxNames, bddAddressID, bdd
 		if err := ctx.GetPMAPIController().AddUserMessage(account.Username(), message); err != nil {
 			return internalError(err, "adding message")
 		}
+
+		if hasDeletedFlag {
+			lastMessageID := ctx.GetPMAPIController().GetLastMessageID(account.Username())
+			markMessageIDsDeleted = append(markMessageIDsDeleted, lastMessageID)
+		}
 	}
 
-	/* TODO
-	storeMailbox.MarkMessageAsDeleted(msgID)
-	*/
+	if err := internalError(ctx.WaitForSync(account.Username()), "waiting for sync"); err != nil {
+		return err
+	}
 
-	return internalError(ctx.WaitForSync(account.Username()), "waiting for sync")
+	for _, mailboxName := range strings.Split(mailboxNames, ",") {
+		storeMailbox, err := ctx.GetStoreMailbox(account.Username(), account.AddressID(), mailboxName)
+		if err != nil {
+			return err
+		}
+		if err := storeMailbox.MarkMessagesDeleted(markMessageIDsDeleted); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func thereAreSomeMessagesInMailboxesForUser(numberOfMessages int, mailboxNames, bddUserID string) error {
