@@ -31,33 +31,43 @@ import (
 	"github.com/emersion/go-message"
 	"github.com/emersion/go-textwrapper"
 	"github.com/jaytaylor/html2text"
+	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 )
 
 func Parse(r io.Reader, key, keyName string) (m *pmapi.Message, mimeBody, plainBody string, attReaders []io.Reader, err error) {
+	logrus.Debug("Parsing message")
+
 	p, err := parser.New(r)
 	if err != nil {
+		err = errors.Wrap(err, "failed to create new parser")
 		return
 	}
 
 	if err = convertForeignEncodings(p); err != nil {
+		err = errors.Wrap(err, "failed to convert foreign encodings")
 		return
 	}
 
 	m = pmapi.NewMessage()
 
 	if err = parseMessageHeader(m, p.Root().Header); err != nil {
+		err = errors.Wrap(err, "failed to parse message header")
 		return
 	}
 
 	if m.Attachments, attReaders, err = collectAttachments(p); err != nil {
+		err = errors.Wrap(err, "failed to collect attachments")
 		return
 	}
 
 	if m.Body, plainBody, err = buildBodies(p); err != nil {
+		err = errors.Wrap(err, "failed to build bodies")
 		return
 	}
 
 	if m.MIMEType, err = determineMIMEType(p); err != nil {
+		err = errors.Wrap(err, "failed to determine mime type")
 		return
 	}
 
@@ -66,6 +76,7 @@ func Parse(r io.Reader, key, keyName string) (m *pmapi.Message, mimeBody, plainB
 	// collected as an attachment; that's already done when we upload the draft.
 	if key != "" {
 		if err = attachPublicKey(p.Root(), key, keyName); err != nil {
+			err = errors.Wrap(err, "failed to attach public key")
 			return
 		}
 	}
@@ -73,6 +84,7 @@ func Parse(r io.Reader, key, keyName string) (m *pmapi.Message, mimeBody, plainB
 	mimeBodyBuffer := new(bytes.Buffer)
 
 	if err = p.NewWriter().Write(mimeBodyBuffer); err != nil {
+		err = errors.Wrap(err, "failed to write out mime message")
 		return
 	}
 
@@ -80,10 +92,19 @@ func Parse(r io.Reader, key, keyName string) (m *pmapi.Message, mimeBody, plainB
 }
 
 func convertForeignEncodings(p *parser.Parser) error {
+	logrus.Debug("Converting foreign encodings")
+
 	// HELP: Is it correct to only do this to text types?
-	return p.NewWalker().RegisterContentTypeHandler("text/.*", func(p *parser.Part) error {
-		return p.ConvertToUTF8()
-	}).Walk()
+	return p.NewWalker().
+		RegisterContentTypeHandler("text/.*", func(p *parser.Part) error {
+			return p.ConvertToUTF8()
+		}).
+		RegisterDefaultHandler(func(p *parser.Part) error {
+			t, _, _ := p.Header.ContentType()
+			logrus.WithField("type", t).Trace("Not converting part to utf-8")
+			return nil
+		}).
+		Walk()
 }
 
 func collectAttachments(p *parser.Parser) ([]*pmapi.Attachment, []io.Reader, error) {

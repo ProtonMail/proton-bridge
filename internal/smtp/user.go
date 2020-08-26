@@ -184,6 +184,7 @@ func (su *smtpUser) Send(from string, to []string, messageReader io.Reader) (err
 
 	message, mimeBody, plainBody, attReaders, err := message.Parse(messageReader, attachedPublicKey, attachedPublicKeyName)
 	if err != nil {
+		log.WithError(err).Error("Failed to parse message")
 		return
 	}
 	clearBody := message.Body
