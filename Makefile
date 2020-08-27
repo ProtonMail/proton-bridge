@@ -8,7 +8,8 @@ TARGET_OS?=${GOOS}
 ## Build
 .PHONY: build build-nogui check-has-go
 
-BRIDGE_VERSION?=$(shell git describe --abbrev=0 --tags)-git
+# Keep version hardcoded so app build works also without Git repository.
+BRIDGE_VERSION?=1.3.3-git
 REVISION:=$(shell git rev-parse --short=10 HEAD)
 BUILD_TIME:=$(shell date +%FT%T%z)
 
