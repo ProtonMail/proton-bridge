@@ -95,7 +95,7 @@ func TestAttachment_UnmarshalJSON(t *testing.T) {
 
 func TestClient_CreateAttachment(t *testing.T) {
 	s, c := newTestServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		Ok(t, checkMethodAndPath(r, "POST", "/attachments"))
+		Ok(t, checkMethodAndPath(r, "POST", "/mail/v4/attachments"))
 
 		contentType, params, err := pmmime.ParseMediaType(r.Header.Get("Content-Type"))
 		if err != nil {
@@ -153,7 +153,7 @@ func TestClient_CreateAttachment(t *testing.T) {
 
 func TestClient_DeleteAttachment(t *testing.T) {
 	s, c := newTestServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		Ok(t, checkMethodAndPath(r, "DELETE", "/attachments/"+testAttachment.ID))
+		Ok(t, checkMethodAndPath(r, "DELETE", "/mail/v4/attachments/"+testAttachment.ID))
 
 		b := &bytes.Buffer{}
 		if n, _ := b.ReadFrom(r.Body); n != 0 {
@@ -172,7 +172,7 @@ func TestClient_DeleteAttachment(t *testing.T) {
 
 func TestClient_GetAttachment(t *testing.T) {
 	s, c := newTestServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		Ok(t, checkMethodAndPath(r, "GET", "/attachments/"+testAttachment.ID))
+		Ok(t, checkMethodAndPath(r, "GET", "/mail/v4/attachments/"+testAttachment.ID))
 
 		fmt.Fprint(w, testAttachmentCleartext)
 	}))

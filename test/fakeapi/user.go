@@ -23,7 +23,7 @@ import (
 )
 
 func (api *FakePMAPI) GetMailSettings() (pmapi.MailSettings, error) {
-	if err := api.checkAndRecordCall(GET, "/settings/mail", nil); err != nil {
+	if err := api.checkAndRecordCall(GET, "/mail/v4/settings", nil); err != nil {
 		return pmapi.MailSettings{}, err
 	}
 	return pmapi.MailSettings{}, nil

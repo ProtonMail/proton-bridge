@@ -500,7 +500,7 @@ type MessagesListRes struct {
 
 // ListMessages gets message metadata.
 func (c *client) ListMessages(filter *MessagesFilter) (msgs []*Message, total int, err error) {
-	req, err := c.NewRequest("GET", "/messages", nil)
+	req, err := c.NewRequest("GET", "/mail/v4/messages", nil)
 	if err != nil {
 		return
 	}
@@ -528,7 +528,7 @@ type MessagesCountsRes struct {
 
 // CountMessages counts messages by label.
 func (c *client) CountMessages(addressID string) (counts []*MessagesCount, err error) {
-	reqURL := "/messages/count"
+	reqURL := "/mail/v4/messages/count"
 	if addressID != "" {
 		reqURL += ("?AddressID=" + addressID)
 	}
@@ -554,7 +554,7 @@ type MessageRes struct {
 
 // GetMessage retrieves a message.
 func (c *client) GetMessage(id string) (msg *Message, err error) {
-	req, err := c.NewRequest("GET", "/messages/"+id, nil)
+	req, err := c.NewRequest("GET", "/mail/v4/messages/"+id, nil)
 	if err != nil {
 		return
 	}
@@ -631,7 +631,7 @@ func (c *client) SendMessage(id string, sendReq *SendMessageReq) (sent, parent *
 		sendReq.Packages = []*MessagePackage{}
 	}
 
-	req, err := c.NewJSONRequest("POST", "/messages/"+id, sendReq)
+	req, err := c.NewJSONRequest("POST", "/mail/v4/messages/"+id, sendReq)
 	if err != nil {
 		return
 	}
@@ -661,7 +661,7 @@ type DraftReq struct {
 func (c *client) CreateDraft(m *Message, parent string, action int) (created *Message, err error) {
 	createReq := &DraftReq{Message: m, ParentID: parent, Action: action, AttachmentKeyPackets: []string{}}
 
-	req, err := c.NewJSONRequest("POST", "/messages", createReq)
+	req, err := c.NewJSONRequest("POST", "/mail/v4/messages", createReq)
 	if err != nil {
 		return
 	}
@@ -720,7 +720,7 @@ func (c *client) doMessagesAction(action string, ids []string) (err error) {
 // You should not call this directly unless you know what you are doing (it can overload the server).
 func (c *client) doMessagesActionInner(action string, ids []string) (err error) {
 	actionReq := &MessagesActionReq{IDs: ids}
-	req, err := c.NewJSONRequest("PUT", "/messages/"+action, actionReq)
+	req, err := c.NewJSONRequest("PUT", "/mail/v4/messages/"+action, actionReq)
 	if err != nil {
 		return
 	}
@@ -772,7 +772,7 @@ func (c *client) LabelMessages(ids []string, label string) (err error) {
 
 func (c *client) labelMessages(ids []string, label string) (err error) {
 	labelReq := &LabelMessagesReq{LabelID: label, IDs: ids}
-	req, err := c.NewJSONRequest("PUT", "/messages/label", labelReq)
+	req, err := c.NewJSONRequest("PUT", "/mail/v4/messages/label", labelReq)
 	if err != nil {
 		return
 	}
@@ -802,7 +802,7 @@ func (c *client) UnlabelMessages(ids []string, label string) (err error) {
 
 func (c *client) unlabelMessages(ids []string, label string) (err error) {
 	labelReq := &LabelMessagesReq{LabelID: label, IDs: ids}
-	req, err := c.NewJSONRequest("PUT", "/messages/unlabel", labelReq)
+	req, err := c.NewJSONRequest("PUT", "/mail/v4/messages/unlabel", labelReq)
 	if err != nil {
 		return
 	}
@@ -820,7 +820,7 @@ func (c *client) EmptyFolder(labelID, addressID string) (err error) {
 	if labelID == "" {
 		return errors.New("pmapi: labelID parameter is empty string")
 	}
-	reqURL := "/messages/empty?LabelID=" + labelID
+	reqURL := "/mail/v4/messages/empty?LabelID=" + labelID
 	if addressID != "" {
 		reqURL += ("&AddressID=" + addressID)
 	}

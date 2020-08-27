@@ -43,11 +43,11 @@ func apiIsCalledWith(endpoint string, data *gherkin.DocString) error {
 }
 
 func messageIsSentWithAPICall(data *gherkin.DocString) error {
-	endpoint := "POST /messages"
+	endpoint := "POST /mail/v4/messages"
 	if err := apiIsCalledWith(endpoint, data); err != nil {
 		return err
 	}
-	for _, request := range ctx.GetPMAPIController().GetCalls("POST", "/messages") {
+	for _, request := range ctx.GetPMAPIController().GetCalls("POST", "/mail/v4/messages") {
 		if !checkAllRequiredFieldsForSendingMessage(request) {
 			return fmt.Errorf("%s was not called with all required fields: %s", endpoint, request)
 		}

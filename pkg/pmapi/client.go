@@ -236,7 +236,6 @@ func (c *client) doBuffered(req *http.Request, bodyBuffer []byte, retryUnauthori
 
 	req.Header.Set("User-Agent", c.cm.config.UserAgent)
 	req.Header.Set("x-pm-appversion", c.cm.config.AppVersion)
-	req.Header.Set("x-pm-apiversion", strconv.Itoa(Version))
 
 	if c.uid != "" {
 		req.Header.Set("x-pm-uid", c.uid)

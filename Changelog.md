@@ -34,6 +34,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
     * golang.org/x/text v0.3.2 -> v0.3.3
 * Set first-start to false in bridge, not in frontend.
 * GODT-400 Refactor sendingInfo.
+* GODT-513 Update routes to API v4.
 
 
 ### Fixed

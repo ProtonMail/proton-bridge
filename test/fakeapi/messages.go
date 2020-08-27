@@ -30,7 +30,7 @@ import (
 var errWasNotUpdated = errors.New("message was not updated")
 
 func (api *FakePMAPI) GetMessage(apiID string) (*pmapi.Message, error) {
-	if err := api.checkAndRecordCall(GET, "/messages/"+apiID, nil); err != nil {
+	if err := api.checkAndRecordCall(GET, "/mail/v4/messages/"+apiID, nil); err != nil {
 		return nil, err
 	}
 	for _, message := range api.messages {
@@ -50,7 +50,7 @@ func (api *FakePMAPI) GetMessage(apiID string) (*pmapi.Message, error) {
 //  * Attachments
 //  * AutoWildcard
 func (api *FakePMAPI) ListMessages(filter *pmapi.MessagesFilter) ([]*pmapi.Message, int, error) {
-	if err := api.checkAndRecordCall(GET, "/messages", filter); err != nil {
+	if err := api.checkAndRecordCall(GET, "/mail/v4/messages", filter); err != nil {
 		return nil, 0, err
 	}
 	pageSize := filter.PageSize
@@ -151,7 +151,7 @@ func copyFilteredMessage(message *pmapi.Message) *pmapi.Message {
 }
 
 func (api *FakePMAPI) CreateDraft(message *pmapi.Message, parentID string, action int) (*pmapi.Message, error) {
-	if err := api.checkAndRecordCall(POST, "/messages", &pmapi.DraftReq{
+	if err := api.checkAndRecordCall(POST, "/mail/v4/messages", &pmapi.DraftReq{
 		Message:              message,
 		ParentID:             parentID,
 		Action:               action,
@@ -175,7 +175,7 @@ func (api *FakePMAPI) CreateDraft(message *pmapi.Message, parentID string, actio
 }
 
 func (api *FakePMAPI) SendMessage(messageID string, sendMessageRequest *pmapi.SendMessageReq) (sent, parent *pmapi.Message, err error) {
-	if err := api.checkAndRecordCall(POST, "/messages/"+messageID, sendMessageRequest); err != nil {
+	if err := api.checkAndRecordCall(POST, "/mail/v4/messages/"+messageID, sendMessageRequest); err != nil {
 		return nil, nil, err
 	}
 	message, err := api.GetMessage(messageID)
@@ -225,7 +225,7 @@ func (api *FakePMAPI) addMessage(message *pmapi.Message) {
 }
 
 func (api *FakePMAPI) DeleteMessages(apiIDs []string) error {
-	err := api.deleteMessages(PUT, "/messages/delete", &pmapi.MessagesActionReq{
+	err := api.deleteMessages(PUT, "/mail/v4/messages/delete", &pmapi.MessagesActionReq{
 		IDs: apiIDs,
 	}, func(message *pmapi.Message) bool {
 		return hasItem(apiIDs, message.ID)
@@ -242,7 +242,7 @@ func (api *FakePMAPI) DeleteMessages(apiIDs []string) error {
 }
 
 func (api *FakePMAPI) EmptyFolder(labelID string, addressID string) error {
-	err := api.deleteMessages(DELETE, "/messages/empty?LabelID="+labelID+"&AddressID="+addressID, nil, func(message *pmapi.Message) bool {
+	err := api.deleteMessages(DELETE, "/mail/v4/messages/empty?LabelID="+labelID+"&AddressID="+addressID, nil, func(message *pmapi.Message) bool {
 		return hasItem(message.LabelIDs, labelID) && message.AddressID == addressID
 	})
 	if err != nil {
@@ -277,7 +277,7 @@ func (api *FakePMAPI) deleteMessages(method method, path string, request interfa
 }
 
 func (api *FakePMAPI) LabelMessages(apiIDs []string, labelID string) error {
-	return api.updateMessages(PUT, "/messages/label", &pmapi.LabelMessagesReq{
+	return api.updateMessages(PUT, "/mail/v4/messages/label", &pmapi.LabelMessagesReq{
 		IDs:     apiIDs,
 		LabelID: labelID,
 	}, apiIDs, func(message *pmapi.Message) error {
@@ -303,7 +303,7 @@ func (api *FakePMAPI) LabelMessages(apiIDs []string, labelID string) error {
 }
 
 func (api *FakePMAPI) UnlabelMessages(apiIDs []string, labelID string) error {
-	return api.updateMessages(PUT, "/messages/unlabel", &pmapi.LabelMessagesReq{
+	return api.updateMessages(PUT, "/mail/v4/messages/unlabel", &pmapi.LabelMessagesReq{
 		IDs:     apiIDs,
 		LabelID: labelID,
 	}, apiIDs, func(message *pmapi.Message) error {
@@ -321,7 +321,7 @@ func (api *FakePMAPI) UnlabelMessages(apiIDs []string, labelID string) error {
 }
 
 func (api *FakePMAPI) MarkMessagesRead(apiIDs []string) error {
-	return api.updateMessages(PUT, "/messages/read", &pmapi.MessagesActionReq{
+	return api.updateMessages(PUT, "/mail/v4/messages/read", &pmapi.MessagesActionReq{
 		IDs: apiIDs,
 	}, apiIDs, func(message *pmapi.Message) error {
 		if message.Unread == 0 {
@@ -333,7 +333,7 @@ func (api *FakePMAPI) MarkMessagesRead(apiIDs []string) error {
 }
 
 func (api *FakePMAPI) MarkMessagesUnread(apiIDs []string) error {
-	err := api.updateMessages(PUT, "/messages/unread", &pmapi.MessagesActionReq{
+	err := api.updateMessages(PUT, "/mail/v4/messages/unread", &pmapi.MessagesActionReq{
 		IDs: apiIDs,
 	}, apiIDs, func(message *pmapi.Message) error {
 		if message.Unread == 1 {

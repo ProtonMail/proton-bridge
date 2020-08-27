@@ -143,7 +143,6 @@ func (r tlsReport) sendReport(uri, userAgent string) {
 
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Set("User-Agent", userAgent)
-	req.Header.Set("x-pm-apiversion", strconv.Itoa(Version))
 	req.Header.Set("x-pm-appversion", r.AppVersion)
 
 	logrus.WithField("request", req).Warn("Reporting TLS mismatch")

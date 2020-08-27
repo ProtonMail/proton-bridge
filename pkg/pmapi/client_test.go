@@ -74,9 +74,6 @@ func TestClient_Do(t *testing.T) {
 	if h.Get("x-pm-appversion") != testClientConfig.AppVersion {
 		t.Fatalf("Invalid app version header: expected %v, got %v", testClientConfig.AppVersion, h.Get("x-pm-appversion"))
 	}
-	if h.Get("x-pm-apiversion") != fmt.Sprintf("%v", Version) {
-		t.Fatalf("Invalid api version header: expected %v, got %v", Version, h.Get("x-pm-apiversion"))
-	}
 	if h.Get("x-pm-uid") != "" {
 		t.Fatalf("Expected no uid header when not authenticated, got %v", h.Get("x-pm-uid"))
 	}

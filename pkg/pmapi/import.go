@@ -120,7 +120,7 @@ type ImportMsgRes struct {
 func (c *client) Import(reqs []*ImportMsgReq) (resps []*ImportMsgRes, err error) {
 	importReq := &ImportReq{Messages: reqs}
 
-	req, w, err := c.NewMultipartRequest("POST", "/import")
+	req, w, err := c.NewMultipartRequest("POST", "/mail/v4/messages/import")
 	if err != nil {
 		return
 	}

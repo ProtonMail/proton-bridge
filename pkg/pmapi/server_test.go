@@ -134,9 +134,6 @@ func checkMethodAndPath(r *http.Request, method, path string) error {
 	if err := checkHeader(r.Header, "x-pm-appversion", "GoPMAPI_1.0.14"); err != nil {
 		result = multierror.Append(result, err)
 	}
-	if err := checkHeader(r.Header, "x-pm-apiversion", "3"); err != nil {
-		result = multierror.Append(result, err)
-	}
 	if r.Method != method {
 		err := fmt.Errorf("Invalid request method expected %v, got %v", method, r.Method)
 		result = multierror.Append(result, err)

@@ -55,7 +55,7 @@ var testImportRes = &ImportMsgRes{
 
 func TestClient_Import(t *testing.T) { // nolint[funlen]
 	s, c := newTestServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		Ok(t, checkMethodAndPath(r, "POST", "/import"))
+		Ok(t, checkMethodAndPath(r, "POST", "/mail/v4/messages/import"))
 
 		contentType, params, err := pmmime.ParseMediaType(r.Header.Get("Content-Type"))
 		if err != nil {

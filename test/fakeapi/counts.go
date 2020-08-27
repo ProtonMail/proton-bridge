@@ -20,7 +20,7 @@ package fakeapi
 import "github.com/ProtonMail/proton-bridge/pkg/pmapi"
 
 func (api *FakePMAPI) CountMessages(addressID string) ([]*pmapi.MessagesCount, error) {
-	if err := api.checkAndRecordCall(GET, "/messages/count?AddressID="+addressID, nil); err != nil {
+	if err := api.checkAndRecordCall(GET, "/mail/v4/messages/count?AddressID="+addressID, nil); err != nil {
 		return nil, err
 	}
 	return api.getCounts(addressID), nil

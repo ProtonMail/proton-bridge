@@ -27,7 +27,7 @@ import (
 )
 
 func (api *FakePMAPI) GetAttachment(attachmentID string) (io.ReadCloser, error) {
-	if err := api.checkAndRecordCall(GET, "/attachments/"+attachmentID, nil); err != nil {
+	if err := api.checkAndRecordCall(GET, "/mail/v4/attachments/"+attachmentID, nil); err != nil {
 		return nil, err
 	}
 	data := strings.NewReader("data")
@@ -35,7 +35,7 @@ func (api *FakePMAPI) GetAttachment(attachmentID string) (io.ReadCloser, error) 
 }
 
 func (api *FakePMAPI) CreateAttachment(attachment *pmapi.Attachment, data io.Reader, signature io.Reader) (*pmapi.Attachment, error) {
-	if err := api.checkAndRecordCall(POST, "/attachments", nil); err != nil {
+	if err := api.checkAndRecordCall(POST, "/mail/v4/attachments", nil); err != nil {
 		return nil, err
 	}
 	bytes, err := ioutil.ReadAll(data)
@@ -47,7 +47,7 @@ func (api *FakePMAPI) CreateAttachment(attachment *pmapi.Attachment, data io.Rea
 }
 
 func (api *FakePMAPI) DeleteAttachment(attID string) error {
-	if err := api.checkAndRecordCall(DELETE, "/attachments/"+attID, nil); err != nil {
+	if err := api.checkAndRecordCall(DELETE, "/mail/v4/attachments/"+attID, nil); err != nil {
 		return err
 	}
 	return nil

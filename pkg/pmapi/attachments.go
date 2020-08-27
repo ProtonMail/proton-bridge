@@ -179,7 +179,7 @@ func writeAttachment(w *multipart.Writer, att *Attachment, r io.Reader, sig io.R
 //
 // The returned created attachment contains the new attachment ID and its size.
 func (c *client) CreateAttachment(att *Attachment, r io.Reader, sig io.Reader) (created *Attachment, err error) {
-	req, w, err := c.NewMultipartRequest("POST", "/attachments")
+	req, w, err := c.NewMultipartRequest("POST", "/mail/v4/attachments")
 	if err != nil {
 		return
 	}
@@ -213,7 +213,7 @@ type UpdateAttachmentSignatureReq struct {
 
 func (c *client) UpdateAttachmentSignature(attachmentID, signature string) (err error) {
 	updateReq := &UpdateAttachmentSignatureReq{signature}
-	req, err := c.NewJSONRequest("PUT", "/attachments/"+attachmentID+"/signature", updateReq)
+	req, err := c.NewJSONRequest("PUT", "/mail/v4/attachments/"+attachmentID+"/signature", updateReq)
 	if err != nil {
 		return
 	}
@@ -228,7 +228,7 @@ func (c *client) UpdateAttachmentSignature(attachmentID, signature string) (err 
 
 // DeleteAttachment removes an attachment. message is the message ID, att is the attachment ID.
 func (c *client) DeleteAttachment(attID string) (err error) {
-	req, err := c.NewRequest("DELETE", "/attachments/"+attID, nil)
+	req, err := c.NewRequest("DELETE", "/mail/v4/attachments/"+attID, nil)
 	if err != nil {
 		return
 	}
@@ -249,7 +249,7 @@ func (c *client) GetAttachment(id string) (att io.ReadCloser, err error) {
 		return
 	}
 
-	req, err := c.NewRequest("GET", "/attachments/"+id, nil)
+	req, err := c.NewRequest("GET", "/mail/v4/attachments/"+id, nil)
 	if err != nil {
 		return
 	}

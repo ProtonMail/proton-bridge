@@ -32,7 +32,7 @@ type Conversation struct{}
 
 // CountConversations counts conversations by label.
 func (c *client) CountConversations(addressID string) (counts []*ConversationsCount, err error) {
-	reqURL := "/conversations/count"
+	reqURL := "/mail/v4/conversations/count"
 	if addressID != "" {
 		reqURL += ("?AddressID=" + addressID)
 	}

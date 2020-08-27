@@ -184,7 +184,7 @@ func TestMessage_Encrypt(t *testing.T) {
 }
 
 func routeLabelMessages(tb testing.TB, w http.ResponseWriter, r *http.Request) string {
-	Ok(tb, checkMethodAndPath(r, "PUT", "/messages/label"))
+	Ok(tb, checkMethodAndPath(r, "PUT", "/mail/v4/messages/label"))
 
 	return "messages/label/put_response.json"
 }
