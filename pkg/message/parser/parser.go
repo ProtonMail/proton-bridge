@@ -135,7 +135,7 @@ func (p *Parser) parseMultipart(r message.MultipartReader) (err error) {
 	for {
 		var child *message.Entity
 
-		if child, err = r.NextPart(); err != nil {
+		if child, err = r.NextPart(); err != nil && !message.IsUnknownCharset(err) {
 			return ignoreEOF(err)
 		}
 
