@@ -27,6 +27,7 @@ import (
 
 // PMAPIProvider implements import and export to/from ProtonMail server.
 type PMAPIProvider struct {
+	clientConfig  *pmapi.ClientConfig
 	clientManager ClientManager
 	userID        string
 	addressID     string
@@ -37,8 +38,9 @@ type PMAPIProvider struct {
 }
 
 // NewPMAPIProvider returns new PMAPIProvider.
-func NewPMAPIProvider(clientManager ClientManager, userID, addressID string) (*PMAPIProvider, error) {
+func NewPMAPIProvider(config *pmapi.ClientConfig, clientManager ClientManager, userID, addressID string) (*PMAPIProvider, error) {
 	provider := &PMAPIProvider{
+		clientConfig:  config,
 		clientManager: clientManager,
 		userID:        userID,
 		addressID:     addressID,

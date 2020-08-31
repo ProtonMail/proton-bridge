@@ -167,5 +167,5 @@ func (ie *ImportExport) getPMAPIProvider(address string) (*transfer.PMAPIProvide
 		log.WithError(err).Info("Address does not exist, using all addresses")
 	}
 
-	return transfer.NewPMAPIProvider(ie.clientManager, user.ID(), addressID)
+	return transfer.NewPMAPIProvider(ie.config.GetAPIConfig(), ie.clientManager, user.ID(), addressID)
 }

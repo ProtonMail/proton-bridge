@@ -25,6 +25,7 @@ import (
 
 	pkgMessage "github.com/ProtonMail/proton-bridge/pkg/message"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
+	"github.com/ProtonMail/proton-bridge/pkg/sentry"
 	"github.com/pkg/errors"
 )
 
@@ -211,7 +212,15 @@ func (p *PMAPIProvider) parseMessage(msg Message) (m *pmapi.Message, r []io.Read
 	// Instead of crashing we try to convert to regular error.
 	defer func() {
 		if r := recover(); r != nil {
-			err = fmt.Errorf("%v", r)
+			err = fmt.Errorf("panic while parse: %v", r)
+			if sentryErr := sentry.ReportSentryCrash(
+				p.clientConfig.ClientID,
+				p.clientConfig.AppVersion,
+				p.clientConfig.UserAgent,
+				err,
+			); sentryErr != nil {
+				log.Error("Sentry crash report failed: ", sentryErr)
+			}
 		}
 	}()
 	message, _, _, attachmentReaders, err := pkgMessage.Parse(bytes.NewBuffer(msg.Body), "", "")

@@ -33,7 +33,7 @@ func TestPMAPIProviderMailboxes(t *testing.T) {
 	defer m.ctrl.Finish()
 
 	setupPMAPIClientExpectationForExport(&m)
-	provider, err := NewPMAPIProvider(m.clientManager, "user", "addressID")
+	provider, err := NewPMAPIProvider(m.pmapiConfig, m.clientManager, "user", "addressID")
 	r.NoError(t, err)
 
 	tests := []struct {
@@ -78,7 +78,7 @@ func TestPMAPIProviderTransferTo(t *testing.T) {
 	defer m.ctrl.Finish()
 
 	setupPMAPIClientExpectationForExport(&m)
-	provider, err := NewPMAPIProvider(m.clientManager, "user", "addressID")
+	provider, err := NewPMAPIProvider(m.pmapiConfig, m.clientManager, "user", "addressID")
 	r.NoError(t, err)
 
 	rules, rulesClose := newTestRules(t)
@@ -96,7 +96,7 @@ func TestPMAPIProviderTransferFrom(t *testing.T) {
 	defer m.ctrl.Finish()
 
 	setupPMAPIClientExpectationForImport(&m)
-	provider, err := NewPMAPIProvider(m.clientManager, "user", "addressID")
+	provider, err := NewPMAPIProvider(m.pmapiConfig, m.clientManager, "user", "addressID")
 	r.NoError(t, err)
 
 	rules, rulesClose := newTestRules(t)
@@ -114,7 +114,7 @@ func TestPMAPIProviderTransferFromDraft(t *testing.T) {
 	defer m.ctrl.Finish()
 
 	setupPMAPIClientExpectationForImportDraft(&m)
-	provider, err := NewPMAPIProvider(m.clientManager, "user", "addressID")
+	provider, err := NewPMAPIProvider(m.pmapiConfig, m.clientManager, "user", "addressID")
 	r.NoError(t, err)
 
 	rules, rulesClose := newTestRules(t)
@@ -133,9 +133,9 @@ func TestPMAPIProviderTransferFromTo(t *testing.T) {
 	setupPMAPIClientExpectationForExport(&m)
 	setupPMAPIClientExpectationForImport(&m)
 
-	source, err := NewPMAPIProvider(m.clientManager, "user", "addressID")
+	source, err := NewPMAPIProvider(m.pmapiConfig, m.clientManager, "user", "addressID")
 	r.NoError(t, err)
-	target, err := NewPMAPIProvider(m.clientManager, "user", "addressID")
+	target, err := NewPMAPIProvider(m.pmapiConfig, m.clientManager, "user", "addressID")
 	r.NoError(t, err)
 
 	rules, rulesClose := newTestRules(t)
