@@ -185,7 +185,9 @@ func (f *frontendCLI) setTransferRules(t *transfer.Transfer) bool {
 
 func (f *frontendCLI) printTransferProgress(progress *transfer.Progress) {
 	failed, imported, exported, added, total := progress.GetCounts()
-	f.Println(fmt.Sprintf("Progress update: %d (%d / %d) / %d, failed: %d", imported, exported, added, total, failed))
+	if total != 0 {
+		f.Println(fmt.Sprintf("Progress update: %d (%d / %d) / %d, failed: %d", imported, exported, added, total, failed))
+	}
 
 	if progress.IsPaused() {
 		f.Printf("Transfer is paused bacause %s", progress.PauseReason())

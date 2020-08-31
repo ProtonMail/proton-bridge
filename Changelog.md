@@ -36,7 +36,6 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
     * golang.org/x/text v0.3.2 -> v0.3.3
 * Set first-start to false in bridge, not in frontend.
 * GODT-400 Refactor sendingInfo.
-
 * GODT-380 Adding IE GUI to Bridge repo and building
     * BR: extend functionality of PopupDialog
     * BR: makefile APP_VERSION instead of BRIDGE_VERSION
@@ -49,6 +48,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
     * IE: Added event watch in GUI
     * IE: Removed `onLoginFinished`
     * Structure for transfer rules in QML
+* GODT-213 Convert panics from message parser to error.
 
 ### Fixed
 * GODT-655 Fix date picker with automatic Windows DST

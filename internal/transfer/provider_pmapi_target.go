@@ -206,7 +206,14 @@ func (p *PMAPIProvider) generateImportMsgReq(msg Message, globalMailbox *Mailbox
 	}, nil
 }
 
-func (p *PMAPIProvider) parseMessage(msg Message) (*pmapi.Message, []io.Reader, error) {
+func (p *PMAPIProvider) parseMessage(msg Message) (m *pmapi.Message, r []io.Reader, err error) {
+	// Old message parser is panicking in some cases.
+	// Instead of crashing we try to convert to regular error.
+	defer func() {
+		if r := recover(); r != nil {
+			err = fmt.Errorf("%v", r)
+		}
+	}()
 	message, _, _, attachmentReaders, err := pkgMessage.Parse(bytes.NewBuffer(msg.Body), "", "")
 	return message, attachmentReaders, err
 }
