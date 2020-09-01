@@ -48,3 +48,8 @@ func TestUpdateCurrentUserAgentClientNameAndVersion(t *testing.T) {
 	userAgent := formatUserAgent("mail", "ver", "os")
 	assert.Equal(t, "mail/ver (os)", userAgent)
 }
+
+func TestRemoveBrackets(t *testing.T) {
+	userAgent := formatUserAgent("mail (submail)", "ver (subver)", "os (subos)")
+	assert.Equal(t, "mail-submail/ver-subver (os subos)", userAgent)
+}

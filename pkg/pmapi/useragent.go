@@ -20,18 +20,33 @@ package pmapi
 import (
 	"fmt"
 	"runtime"
+	"strings"
 )
+
+// removeBrackets handle unwanted brackets in client identification string and join with given joinBy parameter
+// Mac OS X Mail/13.0 (3601.0.4) -> Mac OS X Mail/13.0-3601.0.4 (joinBy = "-")
+func removeBrackets(s string, joinBy string) (r string) {
+	r = strings.ReplaceAll(s, " (", joinBy)
+	r = strings.ReplaceAll(r, "(", joinBy) // Should be faster than regex.
+	r = strings.ReplaceAll(r, ")", "")
+
+	return
+}
 
 func formatUserAgent(clientName, clientVersion, os string) string {
 	client := ""
 	if clientName != "" {
-		client = clientName
+		client = removeBrackets(clientName, "-")
 		if clientVersion != "" {
-			client += "/" + clientVersion
+			client += "/" + removeBrackets(clientVersion, "-")
 		}
 	}
+
 	if os == "" {
 		os = runtime.GOOS
 	}
+
+	os = removeBrackets(os, " ")
+
 	return fmt.Sprintf("%s (%s)", client, os)
 }
