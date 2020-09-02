@@ -3,6 +3,8 @@ Feature: IMAP copy messages
     Given there is connected user "user"
     And there is "user" with mailbox "Folders/mbox"
     And there is "user" with mailbox "Labels/label"
+    # Messages are inserted in opposite way to keep increasing ID.
+    # Sequence numbers are then opposite than listed above.
     And there are messages in mailbox "INBOX" for "user"
       | from              | to         | subject | body  | read  | deleted |
       | john.doe@mail.com | user@pm.me | foo     | hello | true  | false   |
@@ -18,8 +20,8 @@ Feature: IMAP copy messages
       | john.doe@mail.com | user@pm.me | foo     | hello | true  | false   |
       | jane.doe@mail.com | name@pm.me | bar     | world | false | true    |
     And mailbox "Labels/label" for "user" has messages
-      | from              | to         | subject | body  | read  | deleted |
-      | jane.doe@mail.com | name@pm.me | bar     | world | false | true    |
+      | from              | to         | subject | body  | read | deleted |
+      | john.doe@mail.com | user@pm.me | foo     | hello | true | false   |
 
   Scenario: Copy all messages to label
     When IMAP client copies messages "1:*" to "Labels/label"
@@ -38,10 +40,10 @@ Feature: IMAP copy messages
     Then IMAP response is "OK"
     And mailbox "INBOX" for "user" has messages
       | from              | to         | subject | body  | read  | deleted |
-      | john.doe@mail.com | user@pm.me | foo     | hello | true  | false   |
-    And mailbox "Folders/mbox" for "user" has messages
-      | from              | to         | subject | body  | read  | deleted |
       | jane.doe@mail.com | name@pm.me | bar     | world | false | true    |
+    And mailbox "Folders/mbox" for "user" has messages
+      | from              | to         | subject | body  | read | deleted |
+      | john.doe@mail.com | user@pm.me | foo     | hello | true | false   |
 
   Scenario: Copy all messages to folder does move
     When IMAP client copies messages "1:*" to "Folders/mbox"

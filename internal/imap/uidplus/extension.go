@@ -114,16 +114,10 @@ func (os *OrderedSeq) String() string {
 	return out
 }
 
-// UIDExpunge implements server.Handler but has no effect because Bridge is not
-// using EXPUNGE at all. The message is deleted right after it was flagged as
-// \Deleted Bridge should simply ignore this command with empty `OK` response.
-//
-// If not implemented it would cause harmless IMAP error.
-//
-// This overrides the standard EXPUNGE functionality.
+// UIDExpunge implements server.Handler but Bridge is not supporting
+// UID EXPUNGE with specific UIDs.
 type UIDExpunge struct {
 	expunge *server.Expunge
-	seqset  *imap.SeqSet
 }
 
 func newUIDExpunge() *UIDExpunge {
@@ -131,26 +125,10 @@ func newUIDExpunge() *UIDExpunge {
 }
 
 func (e *UIDExpunge) Parse(fields []interface{}) error {
-	if len(fields) < 1 { // asuming no UID
+	if len(fields) < 1 {
 		return e.expunge.Parse(fields)
 	}
 
-	var err error
-	if seqset, ok := fields[0].(string); !ok {
-		return errors.New("sequence set must be an atom")
-	} else if e.seqset, err = imap.ParseSeqSet(seqset); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (e *UIDExpunge) Handle(conn server.Conn) error {
-	log.Traceln("handle")
-	return e.expunge.Handle(conn)
-}
-func (e *UIDExpunge) UidHandle(conn server.Conn) error { //nolint[golint]
-	log.Traceln("uid handle")
 	// RFC4315#section-2.1
 	// The UID EXPUNGE command permanently removes all messages that both
 	// have the \Deleted flag set and have a UID that is included in the
@@ -159,11 +137,18 @@ func (e *UIDExpunge) UidHandle(conn server.Conn) error { //nolint[golint]
 	// that is not included in the specified sequence set, it is not
 	// affected.
 	//
-	// NOTE missing implementation: It will probably need mailbox interface
-	// change: ExpungeUIDs(seqSet) not sure how to combine with original
+	// Current implementation supports only deletion of all messages
+	// marked as deleted. It will probably need mailbox interface change:
+	// ExpungeUIDs(seqSet). Not sure how to combine with original
 	// e.expunge.Handle().
-	//
-	// Current implementation deletes all marked as deleted.
+	return errors.New("UID EXPUNGE with UIDs is not supported")
+}
+
+func (e *UIDExpunge) Handle(conn server.Conn) error {
+	return e.expunge.Handle(conn)
+}
+
+func (e *UIDExpunge) UidHandle(conn server.Conn) error { //nolint[golint]
 	return e.expunge.Handle(conn)
 }
 

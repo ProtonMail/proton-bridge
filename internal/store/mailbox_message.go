@@ -205,7 +205,7 @@ func (storeMailbox *Mailbox) MarkMessagesUndeleted(apiIDs []string) error {
 func (storeMailbox *Mailbox) RemoveDeleted() error {
 	storeMailbox.log.Trace("Deleting messages")
 
-	apiIDs, err := storeMailbox.getDeletedAPIIDs()
+	apiIDs, err := storeMailbox.GetDeletedAPIIDs()
 	if err != nil {
 		return err
 	}

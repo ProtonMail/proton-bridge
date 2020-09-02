@@ -15,7 +15,7 @@ Feature: IMAP remove messages from mailbox
     And IMAP response contains "\* 2 FETCH[ (]*FLAGS \([^)]*\\Deleted"
     When IMAP client sends expunge
     Then IMAP response is "OK"
-    And IMAP response contains "* 2 EXPUNGE"
+    And IMAP response contains "\* 2 EXPUNGE"
     And mailbox "<mailbox>" for "user" has 9 messages
 
     Examples:
@@ -34,11 +34,11 @@ Feature: IMAP remove messages from mailbox
     Then IMAP response is "OK"
     When IMAP client sends expunge
     Then IMAP response is "OK"
-    And IMAP response contains "* 1 EXPUNGE"
-    And IMAP response contains "* 2 EXPUNGE"
-    And IMAP response contains "* 3 EXPUNGE"
-    And IMAP response contains "* 4 EXPUNGE"
-    And IMAP response contains "* 5 EXPUNGE"
+    And IMAP response contains "\* 1 EXPUNGE"
+    And IMAP response contains "\* 2 EXPUNGE"
+    And IMAP response contains "\* 3 EXPUNGE"
+    And IMAP response contains "\* 4 EXPUNGE"
+    And IMAP response contains "\* 5 EXPUNGE"
     And mailbox "<mailbox>" for "user" has 0 messages
 
     Examples:
@@ -59,8 +59,8 @@ Feature: IMAP remove messages from mailbox
     Then IMAP response is "OK"
     When IMAP client sends expunge
     Then IMAP response is "OK"
-    And IMAP response contains "* 4 EXPUNGE"
-    And IMAP response contains "* 5 EXPUNGE"
+    And IMAP response contains "\* 4 EXPUNGE"
+    And IMAP response contains "\* 5 EXPUNGE"
     And mailbox "<mailbox>" for "user" has 3 messages
 
     Examples:

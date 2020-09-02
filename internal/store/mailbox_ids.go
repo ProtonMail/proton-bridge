@@ -141,8 +141,8 @@ func (storeMailbox *Mailbox) txGetUIDFromBucket(b *bolt.Bucket, apiID string) (u
 	return btoi(v), nil
 }
 
-// getUID returns IMAP UID in this mailbox for message ID.
-func (storeMailbox *Mailbox) getDeletedAPIIDs() (apiIDs []string, err error) {
+// GetDeletedAPIIDs returns API IDs in this mailbox for message ID.
+func (storeMailbox *Mailbox) GetDeletedAPIIDs() (apiIDs []string, err error) {
 	err = storeMailbox.db().Update(func(tx *bolt.Tx) error {
 		b := storeMailbox.txGetDeletedIDsBucket(tx)
 		c := b.Cursor()

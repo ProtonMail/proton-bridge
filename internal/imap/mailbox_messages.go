@@ -222,6 +222,20 @@ func (im *imapMailbox) labelMessages(uid bool, seqSet *imap.SeqSet, targetLabel 
 		return err
 	}
 
+	deletedIDs := []string{}
+	allDeletedIDs, err := im.storeMailbox.GetDeletedAPIIDs()
+	if err != nil {
+		log.WithError(err).Warn("Problem to get deleted API IDs")
+	} else {
+		for _, messageID := range messageIDs {
+			for _, deletedID := range allDeletedIDs {
+				if messageID == deletedID {
+					deletedIDs = append(deletedIDs, deletedID)
+				}
+			}
+		}
+	}
+
 	// Label messages first to not lose them. If message is only in trash and we unlabel
 	// it, it will be removed completely and we cannot label it back.
 	if err := targetStoreMailbox.LabelMessages(messageIDs); err != nil {
@@ -230,6 +244,13 @@ func (im *imapMailbox) labelMessages(uid bool, seqSet *imap.SeqSet, targetLabel 
 	if move {
 		if err := im.storeMailbox.UnlabelMessages(messageIDs); err != nil {
 			return err
+		}
+	}
+
+	// Preserve \Deleted flag at target location.
+	if len(deletedIDs) > 0 {
+		if err := targetStoreMailbox.MarkMessagesDeleted(deletedIDs); err != nil {
+			log.WithError(err).Warn("Problem to preserve deleted flag for copied messages")
 		}
 	}
 

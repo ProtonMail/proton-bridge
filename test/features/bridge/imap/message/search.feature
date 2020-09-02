@@ -74,12 +74,12 @@ Feature: IMAP search messages
   Scenario: Search deleted messages
     When IMAP client searches for "DELETED"
     Then IMAP response is "OK"
-    And IMAP response contains "SEARCH 1 2[^0-9]*$"
+    And IMAP response contains "SEARCH 1[^0-9]*$"
 
   Scenario: Search undeleted messages
     When IMAP client searches for "UNDELETED"
     Then IMAP response is "OK"
-    And IMAP response contains "SEARCH 3[^0-9]*$"
+    And IMAP response contains "SEARCH 2 3[^0-9]*$"
 
   Scenario: Search recent messages
     When IMAP client searches for "RECENT"
