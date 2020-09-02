@@ -75,6 +75,38 @@ func TestParseTextPlainLatin1(t *testing.T) {
 	assert.Len(t, attReaders, 0)
 }
 
+func TestParseTextPlainUTF8Subject(t *testing.T) {
+	f := getFileReader("text_plain_utf8_subject.eml")
+
+	m, _, plainBody, attReaders, err := Parse(f, "", "")
+	require.NoError(t, err)
+
+	assert.Equal(t, `"Sender" <sender@pm.me>`, m.Sender.String())
+	assert.Equal(t, `"Receiver" <receiver@pm.me>`, m.ToList[0].String())
+	assert.Equal(t, `汉字汉字汉`, m.Subject)
+
+	assert.Equal(t, "body", m.Body)
+	assert.Equal(t, "body", plainBody)
+
+	assert.Len(t, attReaders, 0)
+}
+
+func TestParseTextPlainLatin2Subject(t *testing.T) {
+	f := getFileReader("text_plain_latin2_subject.eml")
+
+	m, _, plainBody, attReaders, err := Parse(f, "", "")
+	require.NoError(t, err)
+
+	assert.Equal(t, `"Sender" <sender@pm.me>`, m.Sender.String())
+	assert.Equal(t, `"Receiver" <receiver@pm.me>`, m.ToList[0].String())
+	assert.Equal(t, `If you can read this you understand the example.`, m.Subject)
+
+	assert.Equal(t, "body", m.Body)
+	assert.Equal(t, "body", plainBody)
+
+	assert.Len(t, attReaders, 0)
+}
+
 func TestParseTextPlainUnknownCharsetIsActuallyLatin1(t *testing.T) {
 	f := getFileReader("text_plain_unknown_latin1.eml")
 
