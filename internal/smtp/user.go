@@ -21,6 +21,7 @@ package smtp
 
 import (
 	"encoding/base64"
+	"fmt"
 	"io"
 	"mime"
 	"net/mail"
@@ -179,7 +180,7 @@ func (su *smtpUser) Send(from string, to []string, messageReader io.Reader) (err
 			return err
 		}
 
-		attachedPublicKeyName = "publickey - " + kr.GetIdentities()[0].Name
+		attachedPublicKeyName = fmt.Sprintf("publickey - %v - %v", kr.GetIdentities()[0].Name, firstKey.GetFingerprint())
 	}
 
 	message, mimeBody, plainBody, attReaders, err := message.Parse(messageReader, attachedPublicKey, attachedPublicKeyName)

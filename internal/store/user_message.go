@@ -63,7 +63,7 @@ func (store *Store) CreateDraft(
 		attachmentReaders = append(attachmentReaders, strings.NewReader(attachedPublicKey))
 		publicKeyAttachment := &pmapi.Attachment{
 			Name:     attachedPublicKeyName + ".asc",
-			MIMEType: "application/pgp-key",
+			MIMEType: "application/pgp-keys",
 			Header:   textproto.MIMEHeader{},
 		}
 		attachments = append(attachments, publicKeyAttachment)

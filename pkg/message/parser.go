@@ -348,8 +348,8 @@ func getPlainBody(part *parser.Part) []byte {
 func attachPublicKey(p *parser.Part, key, keyName string) error {
 	h := message.Header{}
 
-	h.Set("Content-Type", fmt.Sprintf(`application/pgp-key; name="%v"`, keyName))
-	h.Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%v.asc.pgp"`, keyName))
+	h.Set("Content-Type", fmt.Sprintf(`application/pgp-keys; name="%v.asc"; filename="%v.asc"`, keyName, keyName))
+	h.Set("Content-Disposition", fmt.Sprintf(`attachment; name="%v.asc"; filename="%v.asc"`, keyName, keyName))
 	h.Set("Content-Transfer-Encoding", "base64")
 
 	body := new(bytes.Buffer)
