@@ -30,10 +30,10 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (ctl *Controller) AddUserMessage(username string, message *pmapi.Message) error {
+func (ctl *Controller) AddUserMessage(username string, message *pmapi.Message) (string, error) {
 	client, ok := ctl.pmapiByUsername[username]
 	if !ok {
-		return fmt.Errorf("user %s does not exist", username)
+		return "", fmt.Errorf("user %s does not exist", username)
 	}
 
 	if message.Flags == 0 {
@@ -42,7 +42,7 @@ func (ctl *Controller) AddUserMessage(username string, message *pmapi.Message) e
 
 	body, err := buildMessage(client, message)
 	if err != nil {
-		return errors.Wrap(err, "failed to build message")
+		return "", errors.Wrap(err, "failed to build message")
 	}
 
 	req := &pmapi.ImportMsgReq{
@@ -56,16 +56,15 @@ func (ctl *Controller) AddUserMessage(username string, message *pmapi.Message) e
 
 	results, err := client.Import([]*pmapi.ImportMsgReq{req})
 	if err != nil {
-		return errors.Wrap(err, "failed to make an import")
+		return "", errors.Wrap(err, "failed to make an import")
 	}
-	for _, result := range results {
-		if result.Error != nil {
-			return errors.Wrap(result.Error, "failed to import message")
-		}
-		ctl.messageIDsByUsername[username] = append(ctl.messageIDsByUsername[username], result.MessageID)
+	result := results[0]
+	if result.Error != nil {
+		return "", errors.Wrap(result.Error, "failed to import message")
 	}
+	ctl.messageIDsByUsername[username] = append(ctl.messageIDsByUsername[username], result.MessageID)
 
-	return nil
+	return result.MessageID, nil
 }
 
 func buildMessage(client pmapi.Client, message *pmapi.Message) (*bytes.Buffer, error) {
@@ -162,8 +161,3 @@ func (ctl *Controller) GetMessages(username, labelID string) ([]*pmapi.Message, 
 	}
 
 	return messages, nil
-
-func (ctl *Controller) GetLastMessageID(username string) string {
-	ids := ctl.messageIDsByUsername[username]
-	return ids[len(ids)-1]
-}

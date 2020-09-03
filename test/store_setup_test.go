@@ -143,12 +143,12 @@ func thereAreMessagesInMailboxesForAddressOfUser(mailboxNames, bddAddressID, bdd
 				return fmt.Errorf("unexpected column name: %s", head[n].Value)
 			}
 		}
-		if err := ctx.GetPMAPIController().AddUserMessage(account.Username(), message); err != nil {
+		lastMessageID, err := ctx.GetPMAPIController().AddUserMessage(account.Username(), message)
+		if err != nil {
 			return internalError(err, "adding message")
 		}
 
 		if hasDeletedFlag {
-			lastMessageID := ctx.GetPMAPIController().GetLastMessageID(account.Username())
 			markMessageIDsDeleted = append(markMessageIDsDeleted, lastMessageID)
 		}
 	}
@@ -221,7 +221,7 @@ func thereAreSomeMessagesInMailboxesForAddressOfUser(numberOfMessages int, mailb
 		if err != nil {
 			return internalError(err, "getting labels %s for %s", mailboxNames, account.Username())
 		}
-		err = ctx.GetPMAPIController().AddUserMessage(account.Username(), &pmapi.Message{
+		_, err = ctx.GetPMAPIController().AddUserMessage(account.Username(), &pmapi.Message{
 			MIMEType:  "text/plain",
 			LabelIDs:  labelIDs,
 			AddressID: account.AddressID(),

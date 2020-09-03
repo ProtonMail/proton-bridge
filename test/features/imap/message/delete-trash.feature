@@ -4,7 +4,7 @@ Feature: IMAP remove messages from Trash
     And there is "user" with mailbox "Folders/mbox"
     And there is "user" with mailbox "Labels/label"
 
-  Scenario Outline: Delete messages from Trash/Spam does not remove from All Mail
+  Scenario Outline: Message in Trash/Spam and some other label is not permanently deleted
     Given there are messages in mailbox "<mailbox>" for "user"
       | from              | to         | subject | body  |
       | john.doe@mail.com | user@pm.me | foo     | hello |
@@ -29,8 +29,7 @@ Feature: IMAP remove messages from Trash
       | Spam    |
       | Trash   |
 
-
-  Scenario Outline: Delete messages from Trash/Spamm removes from All Mail
+  Scenario Outline: Message in Trash/Spam only is permanently deleted
     Given there are messages in mailbox "<mailbox>" for "user"
       | from              | to         | subject | body  |
       | john.doe@mail.com | user@pm.me | foo     | hello |
