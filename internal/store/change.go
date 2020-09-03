@@ -129,6 +129,7 @@ func (store *Store) imapSendUpdate(update imapBackend.Update) {
 		select {
 		case store.imapUpdates <- update:
 		case <-time.After(1 * time.Second):
+			store.log.Warn("IMAP update could not be sent (timeout).")
 		}
 	}()
 
@@ -136,7 +137,7 @@ func (store *Store) imapSendUpdate(update imapBackend.Update) {
 	select {
 	case <-done:
 	case <-time.After(1 * time.Second):
-		store.log.Error("Could not send IMAP update (timeout)")
+		store.log.Warn("IMAP update could not be delivered (timeout).")
 		return
 	}
 }
