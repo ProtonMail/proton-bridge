@@ -37,7 +37,7 @@ import (
 
 const (
 	appName     = "importExport"
-	appNameDash = "import-export"
+	appNameDash = "import-export-app"
 )
 
 var (

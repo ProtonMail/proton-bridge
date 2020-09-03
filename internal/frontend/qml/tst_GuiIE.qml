@@ -830,7 +830,7 @@ Window {
         property string bugNotSent
         property string bugReportSent
 
-        property string programTitle : "ProtonMail Import-Export App"
+        property string programTitle : "ProtonMail Import-Export app"
         property string newversion : "q0.1.0"
         property string landingPage : "https://landing.page"
         property string changelog  : "• Lorem ipsum dolor sit amet\n• consetetur sadipscing elitr,\n• sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat,\n• sed diam voluptua.\n• At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet."

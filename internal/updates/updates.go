@@ -49,65 +49,62 @@ var (
 var (
 	log = logrus.WithField("pkg", "bridgeUtils/updates") //nolint[gochecknoglobals]
 
-	installFileSuffix = map[string]string{ //nolint[gochecknoglobals]
-		"darwin":  ".dmg",
-		"windows": ".exe",
-		"linux":   ".sh",
-	}
-
 	ErrDownloadFailed     = errors.New("error happened during download") //nolint[gochecknoglobals]
 	ErrUpdateVerifyFailed = errors.New("cannot verify signature")        //nolint[gochecknoglobals]
 )
 
 type Updates struct {
-	version               string
-	revision              string
-	buildTime             string
-	releaseNotes          string
-	releaseFixedBugs      string
-	updateTempDir         string
-	landingPagePath       string       // Based on Host/; default landing page for download.
-	installerFileBaseName string       // File for initial install or manual reinstall. per goos [exe, dmg, sh].
-	versionFileBaseName   string       // Text file containing information about current file. per goos [_linux,_darwin,_windows].json (have .sig file).
-	updateFileBaseName    string       // File for automatic update. per goos [_linux,_darwin,_windows].tgz  (have .sig file).
-	linuxFileBaseName     string       // Prefix of linux package names.
-	macAppBundleName      string       // Name of Mac app file in the bundle for update procedure.
-	cachedNewerVersion    *VersionInfo // To have info about latest version even when the internet connection drops.
+	version             string
+	revision            string
+	buildTime           string
+	releaseNotes        string
+	releaseFixedBugs    string
+	updateTempDir       string
+	landingPagePath     string       // Based on Host/; default landing page for download.
+	winInstallerFile    string       // File for initial install or manual reinstall for windows
+	macInstallerFile    string       // File for initial install or manual reinstall for mac
+	versionFileBaseName string       // Text file containing information about current file. per goos [_linux,_darwin,_windows].json (have .sig file).
+	updateFileBaseName  string       // File for automatic update. per goos [_linux,_darwin,_windows].tgz  (have .sig file).
+	linuxFileBaseName   string       // Prefix of linux package names.
+	macAppBundleName    string       // Name of Mac app file in the bundle for update procedure.
+	cachedNewerVersion  *VersionInfo // To have info about latest version even when the internet connection drops.
 }
 
 // NewBridge inits Updates struct for bridge.
 func NewBridge(updateTempDir string) *Updates {
 	return &Updates{
-		version:               constants.Version,
-		revision:              constants.Revision,
-		buildTime:             constants.BuildTime,
-		releaseNotes:          bridge.ReleaseNotes,
-		releaseFixedBugs:      bridge.ReleaseFixedBugs,
-		updateTempDir:         updateTempDir,
-		landingPagePath:       "bridge/download",
-		installerFileBaseName: "Bridge-Installer",
-		versionFileBaseName:   "current_version",
-		updateFileBaseName:    "bridge_upgrade",
-		linuxFileBaseName:     "protonmail-bridge",
-		macAppBundleName:      "ProtonMail Bridge.app",
+		version:             constants.Version,
+		revision:            constants.Revision,
+		buildTime:           constants.BuildTime,
+		releaseNotes:        bridge.ReleaseNotes,
+		releaseFixedBugs:    bridge.ReleaseFixedBugs,
+		updateTempDir:       updateTempDir,
+		landingPagePath:     "bridge/download",
+		macInstallerFile:    "Bridge-Installer.dmg",
+		winInstallerFile:    "Bridge-Installer.exe",
+		versionFileBaseName: "current_version",
+		updateFileBaseName:  "bridge_upgrade",
+		linuxFileBaseName:   "protonmail-bridge",
+		macAppBundleName:    "ProtonMail Bridge.app",
 	}
 }
 
 // NewImportExport inits Updates struct for import-export.
 func NewImportExport(updateTempDir string) *Updates {
 	return &Updates{
-		version:               constants.Version,
-		revision:              constants.Revision,
-		buildTime:             constants.BuildTime,
-		releaseNotes:          importexport.ReleaseNotes,
-		releaseFixedBugs:      importexport.ReleaseFixedBugs,
-		updateTempDir:         updateTempDir,
-		landingPagePath:       "import-export",
-		installerFileBaseName: "Import-Export-Installer",
-		versionFileBaseName:   "current_version_ie",
-		updateFileBaseName:    "ie_upgrade",
-		linuxFileBaseName:     "protonmail-import-export",
-		macAppBundleName:      "ProtonMail Import-Export.app",
+		version:             constants.Version,
+		revision:            constants.Revision,
+		buildTime:           constants.BuildTime,
+		releaseNotes:        importexport.ReleaseNotes,
+		releaseFixedBugs:    importexport.ReleaseFixedBugs,
+		updateTempDir:       updateTempDir,
+		landingPagePath:     "import-export",
+		winInstallerFile:    "ie/Import-Export-app-installer.exe",
+		macInstallerFile:    "ie/Import-Export-app.dmg",
+		versionFileBaseName: "current_version_ie",
+		updateFileBaseName:  "ie/ie_upgrade",
+		linuxFileBaseName:   "ie/protonmail-import-export-app",
+		macAppBundleName:    "Import-Export app.app",
 	}
 }
 
@@ -187,11 +184,15 @@ func (u *Updates) getLocalVersion(goos string) VersionInfo {
 	if goos == "linux" {
 		pkgName := u.linuxFileBaseName
 		pkgRel := "1"
-		pkgBase := strings.Join([]string{Host, DownloadPath, pkgName}, "/")
+		pkgBaseFile := strings.Join([]string{Host, DownloadPath, pkgName}, "/")
 
-		versionInfo.DebFile = pkgBase + "_" + u.version + "-" + pkgRel + "_amd64.deb"
-		versionInfo.RpmFile = pkgBase + "-" + u.version + "-" + pkgRel + ".x86_64.rpm"
-		versionInfo.PkgFile = strings.Join([]string{Host, DownloadPath, "PKGBUILD"}, "/")
+		pkgBasePath := DownloadPath + "/" + pkgName // add at least one dir
+		pkgBasePath = filepath.Dir(pkgBasePath)     // keep only last dir
+		pkgBasePath = Host + "/" + pkgBasePath      // add host in the end to not strip off double slash in URL
+
+		versionInfo.DebFile = pkgBaseFile + "_" + u.version + "-" + pkgRel + "_amd64.deb"
+		versionInfo.RpmFile = pkgBaseFile + "-" + u.version + "-" + pkgRel + ".x86_64.rpm"
+		versionInfo.PkgFile = strings.Join([]string{pkgBasePath, "PKGBUILD"}, "/")
 	}
 
 	return versionInfo
@@ -240,7 +241,14 @@ func (u *Updates) versionFileURL(goos string) string {
 }
 
 func (u *Updates) installerFileURL(goos string) string {
-	return strings.Join([]string{Host, DownloadPath, u.installerFileBaseName + installFileSuffix[goos]}, "/")
+	installerFile := "none"
+	switch goos {
+	case "darwin":
+		installerFile = u.macInstallerFile
+	case "windows":
+		installerFile = u.winInstallerFile
+	}
+	return strings.Join([]string{Host, DownloadPath, installerFile}, "/")
 }
 
 func (u *Updates) updateFileURL(goos string) string {
@@ -299,7 +307,8 @@ func (u *Updates) StartUpgrade(currentStatus chan<- Progress) { // nolint[funlen
 	status.UpdateDescription(InfoUpgrading)
 	switch runtime.GOOS {
 	case "windows": //nolint[goconst]
-		cmd := exec.Command("./" + u.installerFileBaseName) // nolint[gosec]
+		installerFile := strings.Split(u.winInstallerFile, "/")[1]
+		cmd := exec.Command("./" + installerFile) // nolint[gosec]
 		cmd.Dir = u.updateTempDir
 		status.Err = cmd.Start()
 	case "darwin":
