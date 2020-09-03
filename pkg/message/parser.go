@@ -30,7 +30,6 @@ import (
 	pmmime "github.com/ProtonMail/proton-bridge/pkg/mime"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	"github.com/emersion/go-message"
-	"github.com/emersion/go-textwrapper"
 	"github.com/jaytaylor/html2text"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -76,10 +75,7 @@ func Parse(r io.Reader, key, keyName string) (m *pmapi.Message, mimeBody, plainB
 	// signed/encrypted external recipients. It's not important for it to be
 	// collected as an attachment; that's already done when we upload the draft.
 	if key != "" {
-		if err = attachPublicKey(p.Root(), key, keyName); err != nil {
-			err = errors.Wrap(err, "failed to attach public key")
-			return
-		}
+		attachPublicKey(p.Root(), key, keyName)
 	}
 
 	mimeBodyBuffer := new(bytes.Buffer)
@@ -346,25 +342,17 @@ func getPlainBody(part *parser.Part) []byte {
 	}
 }
 
-func attachPublicKey(p *parser.Part, key, keyName string) error {
+func attachPublicKey(p *parser.Part, key, keyName string) {
 	h := message.Header{}
 
 	h.Set("Content-Type", fmt.Sprintf(`application/pgp-keys; name="%v.asc"; filename="%v.asc"`, keyName, keyName))
 	h.Set("Content-Disposition", fmt.Sprintf(`attachment; name="%v.asc"; filename="%v.asc"`, keyName, keyName))
 	h.Set("Content-Transfer-Encoding", "base64")
 
-	body := new(bytes.Buffer)
-
-	if _, err := textwrapper.NewRFC822(body).Write([]byte(key)); err != nil {
-		return err
-	}
-
 	p.AddChild(&parser.Part{
 		Header: h,
-		Body:   body.Bytes(),
+		Body:   []byte(key),
 	})
-
-	return nil
 }
 
 // NOTE: We should use our own ParseAddressList here.
