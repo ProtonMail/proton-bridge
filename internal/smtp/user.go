@@ -180,7 +180,7 @@ func (su *smtpUser) Send(from string, to []string, messageReader io.Reader) (err
 			return err
 		}
 
-		attachedPublicKeyName = fmt.Sprintf("publickey - %v - %v", kr.GetIdentities()[0].Name, firstKey.GetFingerprint())
+		attachedPublicKeyName = fmt.Sprintf("publickey - %v - %v", kr.GetIdentities()[0].Name, firstKey.GetFingerprint()[:8])
 	}
 
 	message, mimeBody, plainBody, attReaders, err := message.Parse(messageReader, attachedPublicKey, attachedPublicKeyName)
