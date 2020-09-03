@@ -77,19 +77,29 @@ func (im *imapMailbox) setFlags(messageIDs, flags []string) error {
 	}
 
 	if seen {
-		_ = im.storeMailbox.MarkMessagesRead(messageIDs)
+		if err := im.storeMailbox.MarkMessagesRead(messageIDs); err != nil {
+			return err
+		}
 	} else {
-		_ = im.storeMailbox.MarkMessagesUnread(messageIDs)
+		if err := im.storeMailbox.MarkMessagesUnread(messageIDs); err != nil {
+			return err
+		}
 	}
 
 	if flagged {
-		_ = im.storeMailbox.MarkMessagesStarred(messageIDs)
+		if err := im.storeMailbox.MarkMessagesStarred(messageIDs); err != nil {
+			return err
+		}
 	} else {
-		_ = im.storeMailbox.MarkMessagesUnstarred(messageIDs)
+		if err := im.storeMailbox.MarkMessagesUnstarred(messageIDs); err != nil {
+			return err
+		}
 	}
 
 	if deleted {
-		_ = im.storeMailbox.DeleteMessages(messageIDs)
+		if err := im.storeMailbox.DeleteMessages(messageIDs); err != nil {
+			return err
+		}
 	}
 
 	spamMailbox, err := im.storeAddress.GetMailbox("Spam")
@@ -97,9 +107,13 @@ func (im *imapMailbox) setFlags(messageIDs, flags []string) error {
 		return err
 	}
 	if spam {
-		_ = spamMailbox.LabelMessages(messageIDs)
+		if err := spamMailbox.LabelMessages(messageIDs); err != nil {
+			return err
+		}
 	} else {
-		_ = spamMailbox.UnlabelMessages(messageIDs)
+		if err := spamMailbox.UnlabelMessages(messageIDs); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -111,22 +125,32 @@ func (im *imapMailbox) addOrRemoveFlags(operation imap.FlagsOp, messageIDs, flag
 		case imap.SeenFlag:
 			switch operation {
 			case imap.AddFlags:
-				_ = im.storeMailbox.MarkMessagesRead(messageIDs)
+				if err := im.storeMailbox.MarkMessagesRead(messageIDs); err != nil {
+					return err
+				}
 			case imap.RemoveFlags:
-				_ = im.storeMailbox.MarkMessagesUnread(messageIDs)
+				if err := im.storeMailbox.MarkMessagesUnread(messageIDs); err != nil {
+					return err
+				}
 			}
 		case imap.FlaggedFlag:
 			switch operation {
 			case imap.AddFlags:
-				_ = im.storeMailbox.MarkMessagesStarred(messageIDs)
+				if err := im.storeMailbox.MarkMessagesStarred(messageIDs); err != nil {
+					return err
+				}
 			case imap.RemoveFlags:
-				_ = im.storeMailbox.MarkMessagesUnstarred(messageIDs)
+				if err := im.storeMailbox.MarkMessagesUnstarred(messageIDs); err != nil {
+					return err
+				}
 			}
 		case imap.DeletedFlag:
 			if operation == imap.RemoveFlags {
 				break // Nothing to do, no message has the \Deleted flag.
 			}
-			_ = im.storeMailbox.DeleteMessages(messageIDs)
+			if err := im.storeMailbox.DeleteMessages(messageIDs); err != nil {
+				return err
+			}
 		case imap.AnsweredFlag, imap.DraftFlag, imap.RecentFlag:
 			// Not supported.
 		case message.AppleMailJunkFlag, message.ThunderbirdJunkFlag:
@@ -140,9 +164,13 @@ func (im *imapMailbox) addOrRemoveFlags(operation imap.FlagsOp, messageIDs, flag
 			// No label removal is necessary because Spam and Inbox are both exclusive labels so the backend
 			// will automatically take care of label removal.
 			case imap.AddFlags:
-				_ = storeMailbox.LabelMessages(messageIDs)
+				if err := storeMailbox.LabelMessages(messageIDs); err != nil {
+					return err
+				}
 			case imap.RemoveFlags:
-				_ = storeMailbox.UnlabelMessages(messageIDs)
+				if err := storeMailbox.UnlabelMessages(messageIDs); err != nil {
+					return err
+				}
 			}
 		}
 	}

@@ -35,7 +35,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * Set first-start to false in bridge, not in frontend.
 * GODT-400 Refactor sendingInfo.
 * GODT-513 Update routes to API v4.
-
+* GODT-551 Do not ignore errors during message flagging.
 
 ### Fixed
 * GODT-454 Fix send on closed channel when receiving unencrypted send confirmation from GUI.

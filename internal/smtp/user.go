@@ -359,7 +359,9 @@ func (su *smtpUser) Send(from string, to []string, messageReader io.Reader) (err
 			return errors.New("error decoding subject message " + message.Header.Get("Subject"))
 		}
 		if !su.continueSendingUnencryptedMail(subject) {
-			_ = su.client().DeleteMessages([]string{message.ID})
+			if err := su.client().DeleteMessages([]string{message.ID}); err != nil {
+				log.WithError(err).Warn("Failed to delete canceled messages")
+			}
 			return errors.New("sending was canceled by user")
 		}
 	}

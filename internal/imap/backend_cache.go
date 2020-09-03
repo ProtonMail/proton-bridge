@@ -80,7 +80,7 @@ func (ib *imapBackend) removeFromCache(userID, label, toRemove string) {
 
 func (ib *imapBackend) getCacheList(userID, label string) (list string) {
 	if err := ib.loadIMAPCache(); err != nil {
-		log.Warn("Could not load cache: ", err)
+		log.WithError(err).Warn("Could not load cache")
 	}
 
 	ib.imapCacheLock.Lock()
@@ -97,7 +97,9 @@ func (ib *imapBackend) getCacheList(userID, label string) (list string) {
 
 	ib.imapCacheLock.Unlock()
 
-	_ = ib.saveIMAPCache()
+	if err := ib.saveIMAPCache(); err != nil {
+		log.WithError(err).Warn("Could not save cache")
+	}
 	return
 }
 

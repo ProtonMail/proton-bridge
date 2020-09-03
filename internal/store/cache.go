@@ -45,7 +45,9 @@ func (c *Cache) getEventID(userID string) string {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 
-	_ = c.loadCache()
+	if err := c.loadCache(); err != nil {
+		log.WithError(err).Warn("Problem to load store cache")
+	}
 
 	if c.cache == nil {
 		c.cache = map[string]map[string]string{}

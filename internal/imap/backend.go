@@ -164,7 +164,9 @@ func (ib *imapBackend) Login(_ *imap.ConnInfo, username, password string) (goIMA
 
 	if err := imapUser.user.CheckBridgeLogin(password); err != nil {
 		log.WithError(err).Error("Could not check bridge password")
-		_ = imapUser.Logout()
+		if err := imapUser.Logout(); err != nil {
+			log.WithError(err).Warn("Could not logout user after unsuccessful login check")
+		}
 		// Apple Mail sometimes generates a lot of requests very quickly.
 		// It's therefore good to have a timeout after a bad login so that we can slow
 		// those requests down a little bit.

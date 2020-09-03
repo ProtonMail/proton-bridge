@@ -41,7 +41,7 @@ type Mailbox struct {
 }
 
 func newMailbox(storeAddress *Address, labelID, labelPrefix, labelName, color string) (mb *Mailbox, err error) {
-	_ = storeAddress.store.db.Update(func(tx *bolt.Tx) error {
+	err = storeAddress.store.db.Update(func(tx *bolt.Tx) error {
 		mb, err = txNewMailbox(tx, storeAddress, labelID, labelPrefix, labelName, color)
 		return err
 	})

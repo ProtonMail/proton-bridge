@@ -218,7 +218,9 @@ func (store *Store) deleteMailboxEvent(labelID string) error {
 	store.lock.Lock()
 	defer store.lock.Unlock()
 
-	_ = store.removeMailboxCount(labelID)
+	if err := store.removeMailboxCount(labelID); err != nil {
+		log.WithError(err).Warn("Problem to remove mailbox counts while deleting mailbox")
+	}
 
 	for _, a := range store.addresses {
 		if err := a.deleteMailboxEvent(labelID); err != nil {

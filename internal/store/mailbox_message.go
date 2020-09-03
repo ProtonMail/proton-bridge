@@ -129,6 +129,9 @@ func (storeMailbox *Mailbox) MarkMessagesRead(apiIDs []string) error {
 			ids = append(ids, apiID)
 		}
 	}
+	if len(ids) == 0 {
+		return nil
+	}
 	return storeMailbox.client().MarkMessagesRead(ids)
 }
 
