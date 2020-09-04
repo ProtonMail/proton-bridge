@@ -63,6 +63,7 @@ type Updates struct {
 	landingPagePath     string       // Based on Host/; default landing page for download.
 	winInstallerFile    string       // File for initial install or manual reinstall for windows
 	macInstallerFile    string       // File for initial install or manual reinstall for mac
+	linInstallerFile    string       // File for initial install or manual reinstall for linux
 	versionFileBaseName string       // Text file containing information about current file. per goos [_linux,_darwin,_windows].json (have .sig file).
 	updateFileBaseName  string       // File for automatic update. per goos [_linux,_darwin,_windows].tgz  (have .sig file).
 	linuxFileBaseName   string       // Prefix of linux package names.
@@ -80,8 +81,9 @@ func NewBridge(updateTempDir string) *Updates {
 		releaseFixedBugs:    bridge.ReleaseFixedBugs,
 		updateTempDir:       updateTempDir,
 		landingPagePath:     "bridge/download",
-		macInstallerFile:    "Bridge-Installer.dmg",
 		winInstallerFile:    "Bridge-Installer.exe",
+		macInstallerFile:    "Bridge-Installer.dmg",
+		linInstallerFile:    "Bridge-Installer.sh",
 		versionFileBaseName: "current_version",
 		updateFileBaseName:  "bridge_upgrade",
 		linuxFileBaseName:   "protonmail-bridge",
@@ -101,6 +103,7 @@ func NewImportExport(updateTempDir string) *Updates {
 		landingPagePath:     "import-export",
 		winInstallerFile:    "ie/Import-Export-app-installer.exe",
 		macInstallerFile:    "ie/Import-Export-app.dmg",
+		linInstallerFile:    "ie/Import-Export-app-installer.sh",
 		versionFileBaseName: "current_version_ie",
 		updateFileBaseName:  "ie/ie_upgrade",
 		linuxFileBaseName:   "ie/protonmail-import-export-app",
@@ -241,11 +244,11 @@ func (u *Updates) versionFileURL(goos string) string {
 }
 
 func (u *Updates) installerFileURL(goos string) string {
-	installerFile := "none"
+	installerFile := u.linInstallerFile
 	switch goos {
-	case "darwin":
+	case "darwin": //nolint[goconst]
 		installerFile = u.macInstallerFile
-	case "windows":
+	case "windows": //nolint[goconst]
 		installerFile = u.winInstallerFile
 	}
 	return strings.Join([]string{Host, DownloadPath, installerFile}, "/")
@@ -311,7 +314,7 @@ func (u *Updates) StartUpgrade(currentStatus chan<- Progress) { // nolint[funlen
 		cmd := exec.Command("./" + installerFile) // nolint[gosec]
 		cmd.Dir = u.updateTempDir
 		status.Err = cmd.Start()
-	case "darwin":
+	case "darwin": //nolint[goconst]
 		// current path is better then appDir = filepath.Join("/Applications")
 		var exePath string
 		exePath, status.Err = osext.Executable()
