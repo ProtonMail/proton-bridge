@@ -18,12 +18,16 @@
 package parser
 
 import (
+	"bytes"
 	"errors"
+	"mime"
 	"unicode/utf8"
 
 	pmmime "github.com/ProtonMail/proton-bridge/pkg/mime"
+	"github.com/PuerkitoBio/goquery"
 	"github.com/emersion/go-message"
 	"github.com/sirupsen/logrus"
+	"golang.org/x/net/html"
 	"golang.org/x/net/html/charset"
 	"golang.org/x/text/encoding"
 )
@@ -79,14 +83,47 @@ func (p *Part) ConvertToUTF8() error {
 		return err
 	}
 
-	// HELP: Is this okay? What about when the charset is embedded in structured text type eg html/xml?
 	if params == nil {
 		params = make(map[string]string)
 	}
 
-	params["charset"] = "utf-8"
+	params["charset"] = "UTF-8"
 
 	p.Header.SetContentType(t, params)
+
+	return nil
+}
+
+func (p *Part) ConvertMetaCharset() error {
+	doc, err := html.Parse(bytes.NewReader(p.Body))
+	if err != nil {
+		return err
+	}
+
+	goquery.NewDocumentFromNode(doc).Find("meta").Each(func(n int, sel *goquery.Selection) {
+		if val, ok := sel.Attr("content"); ok {
+			t, params, err := mime.ParseMediaType(val)
+			if err != nil {
+				return
+			}
+
+			params["charset"] = "UTF-8"
+
+			sel.SetAttr("content", mime.FormatMediaType(t, params))
+		}
+
+		if _, ok := sel.Attr("charset"); ok {
+			sel.SetAttr("charset", "UTF-8")
+		}
+	})
+
+	buf := new(bytes.Buffer)
+
+	if err := html.Render(buf, doc); err != nil {
+		return err
+	}
+
+	p.Body = buf.Bytes()
 
 	return nil
 }

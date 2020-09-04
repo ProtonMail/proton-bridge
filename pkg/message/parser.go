@@ -93,6 +93,13 @@ func convertForeignEncodings(p *parser.Parser) error {
 
 	// HELP: Is it correct to only do this to text types?
 	return p.NewWalker().
+		RegisterContentTypeHandler("text/html", func(p *parser.Part) error {
+			if err := p.ConvertToUTF8(); err != nil {
+				return err
+			}
+
+			return p.ConvertMetaCharset()
+		}).
 		RegisterContentTypeHandler("text/.*", func(p *parser.Part) error {
 			return p.ConvertToUTF8()
 		}).

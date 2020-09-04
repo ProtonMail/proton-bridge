@@ -268,7 +268,7 @@ func TestParseTextHTML(t *testing.T) {
 	assert.Equal(t, `"Sender" <sender@pm.me>`, m.Sender.String())
 	assert.Equal(t, `"Receiver" <receiver@pm.me>`, m.ToList[0].String())
 
-	assert.Equal(t, "<html><body>This is body of <b>HTML mail</b> without attachment</body></html>", m.Body)
+	assert.Equal(t, "<html><head></head><body>This is body of <b>HTML mail</b> without attachment</body></html>", m.Body)
 	assert.Equal(t, "This is body of *HTML mail* without attachment", plainBody)
 
 	assert.Len(t, attReaders, 0)
@@ -283,7 +283,7 @@ func TestParseTextHTMLAlready7Bit(t *testing.T) {
 	assert.Equal(t, `"Sender" <sender@pm.me>`, m.Sender.String())
 	assert.Equal(t, `"Receiver" <receiver@pm.me>`, m.ToList[0].String())
 
-	assert.Equal(t, "<html><body>This is body of <b>HTML mail</b> without attachment</body></html>", m.Body)
+	assert.Equal(t, "<html><head></head><body>This is body of <b>HTML mail</b> without attachment</body></html>", m.Body)
 	assert.Equal(t, "This is body of *HTML mail* without attachment", plainBody)
 
 	assert.Len(t, attReaders, 0)
@@ -298,7 +298,7 @@ func TestParseTextHTMLWithOctetAttachment(t *testing.T) {
 	assert.Equal(t, `"Sender" <sender@pm.me>`, m.Sender.String())
 	assert.Equal(t, `"Receiver" <receiver@pm.me>`, m.ToList[0].String())
 
-	assert.Equal(t, "<html><body>This is body of <b>HTML mail</b> with attachment</body></html>", m.Body)
+	assert.Equal(t, "<html><head></head><body>This is body of <b>HTML mail</b> with attachment</body></html>", m.Body)
 	assert.Equal(t, "This is body of *HTML mail* with attachment", plainBody)
 
 	require.Len(t, attReaders, 1)
@@ -315,7 +315,7 @@ func TestParseTextHTMLWithPlainAttachment(t *testing.T) {
 	assert.Equal(t, `"Receiver" <receiver@pm.me>`, m.ToList[0].String())
 
 	// BAD: plainBody should not be empty!
-	assert.Equal(t, "<html><body>This is body of <b>HTML mail</b> with attachment</body></html>", m.Body)
+	assert.Equal(t, "<html><head></head><body>This is body of <b>HTML mail</b> with attachment</body></html>", m.Body)
 	assert.Equal(t, "This is body of *HTML mail* with attachment", plainBody)
 
 	require.Len(t, attReaders, 1)
@@ -331,7 +331,7 @@ func TestParseTextHTMLWithImageInline(t *testing.T) {
 	assert.Equal(t, `"Sender" <sender@pm.me>`, m.Sender.String())
 	assert.Equal(t, `"Receiver" <receiver@pm.me>`, m.ToList[0].String())
 
-	assert.Equal(t, "<html><body>This is body of <b>HTML mail</b> with attachment</body></html>", m.Body)
+	assert.Equal(t, "<html><head></head><body>This is body of <b>HTML mail</b> with attachment</body></html>", m.Body)
 	assert.Equal(t, "This is body of *HTML mail* with attachment", plainBody)
 
 	// The inline image is an 8x8 mic-dropping gopher.
@@ -368,8 +368,7 @@ func TestParseTextHTMLWithEmbeddedForeignEncoding(t *testing.T) {
 	assert.Equal(t, `"Sender" <sender@pm.me>`, m.Sender.String())
 	assert.Equal(t, `"Receiver" <receiver@pm.me>`, m.ToList[0].String())
 
-	// BAD: Bridge does not detect the charset specified in the <meta> tag of the html.
-	assert.Equal(t, `<html><head><meta charset="ISO-8859-2"></head><body>latin2 řšřš</body></html>`, m.Body)
+	assert.Equal(t, `<html><head><meta charset="UTF-8"/></head><body>latin2 řšřš</body></html>`, m.Body)
 	assert.Equal(t, `latin2 řšřš`, plainBody)
 
 	assert.Len(t, attReaders, 0)
@@ -384,15 +383,14 @@ func TestParseMultipartAlternative(t *testing.T) {
 	assert.Equal(t, `"schizofrenic" <schizofrenic@pm.me>`, m.Sender.String())
 	assert.Equal(t, `<pmbridgeietest@outlook.com>`, m.ToList[0].String())
 
-	assert.Equal(t, `<html>
-  <head>
-    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+	assert.Equal(t, `<html><head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
   </head>
   <body>
     <b>aoeuaoeu</b>
-  </body>
-</html>
-`, m.Body)
+  
+
+</body></html>`, m.Body)
 
 	assert.Equal(t, "*aoeuaoeu*\n\n", plainBody)
 }
@@ -406,15 +404,14 @@ func TestParseMultipartAlternativeNested(t *testing.T) {
 	assert.Equal(t, `"schizofrenic" <schizofrenic@pm.me>`, m.Sender.String())
 	assert.Equal(t, `<pmbridgeietest@outlook.com>`, m.ToList[0].String())
 
-	assert.Equal(t, `<html>
-  <head>
-    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+	assert.Equal(t, `<html><head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
   </head>
   <body>
     <b>multipart 2.2</b>
-  </body>
-</html>
-`, m.Body)
+  
+
+</body></html>`, m.Body)
 
 	assert.Equal(t, "*multipart 2.1*\n\n", plainBody)
 }

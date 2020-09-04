@@ -19,6 +19,7 @@ require (
 	github.com/ProtonMail/go-imap-id v0.0.0-20190926060100-f94a56b9ecde
 	github.com/ProtonMail/go-vcard v0.0.0-20180326232728-33aaa0a0c8a5
 	github.com/ProtonMail/gopenpgp/v2 v2.0.1
+	github.com/PuerkitoBio/goquery v1.5.1
 	github.com/abiosoft/ishell v2.0.0+incompatible
 	github.com/abiosoft/readline v0.0.0-20180607040430-155bce2042db // indirect
 	github.com/allan-simon/go-singleinstance v0.0.0-20160830203053-79edcfdc2dfc
