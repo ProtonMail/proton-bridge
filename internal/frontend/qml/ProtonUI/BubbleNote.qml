@@ -106,6 +106,7 @@ Rectangle {
             }
             MouseArea {
                 anchors.fill: mainText
+                cursorShape: mainText.hoveredLink ? Qt.PointingHandCursor : Qt.ArrowCursor
                 acceptedButtons: Qt.NoButton
             }
 

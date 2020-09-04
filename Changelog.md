@@ -40,6 +40,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 ### Fixed
 * GODT-454 Fix send on closed channel when receiving unencrypted send confirmation from GUI.
 * GODT-597 Duplicate sending when draft creation takes too long
+* GODT-634 Hover on links in popups.
 
 ### Changed
 * GODT-462 Pausing event loop while FETCHing to prevent EXPUNGE
