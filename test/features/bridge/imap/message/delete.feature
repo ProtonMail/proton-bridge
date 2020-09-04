@@ -93,3 +93,9 @@ Feature: IMAP remove messages from mailbox
       | LOGOUT        | 9  |
       | UNSELECT      | 10 |
 
+  Scenario: Not possible to delete from All Mail
+    Given there are 1 messages in mailbox "All Mail" for "user"
+    And there is IMAP client logged in as "user"
+    And there is IMAP client selected in "All Mail"
+    When IMAP client marks message "1" as deleted
+    Then IMAP response is "IMAP error: NO operation not allowed for 'All Mail' folder"

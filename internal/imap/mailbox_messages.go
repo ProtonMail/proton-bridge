@@ -57,7 +57,7 @@ func (im *imapMailbox) UpdateMessagesFlags(uid bool, seqSet *imap.SeqSet, operat
 	return im.addOrRemoveFlags(operation, messageIDs, flags)
 }
 
-func (im *imapMailbox) setFlags(messageIDs, flags []string) error {
+func (im *imapMailbox) setFlags(messageIDs, flags []string) error { //nolint
 	seen := false
 	flagged := false
 	deleted := false

@@ -180,6 +180,9 @@ func (storeMailbox *Mailbox) MarkMessagesDeleted(apiIDs []string) error {
 		"label":    storeMailbox.labelID,
 		"mailbox":  storeMailbox.Name,
 	}).Trace("Marking messages as deleted")
+	if storeMailbox.labelID == pmapi.AllMailLabel {
+		return ErrAllMailOpNotAllowed
+	}
 	return storeMailbox.store.db.Update(func(tx *bolt.Tx) error {
 		return storeMailbox.txMarkMessagesAsDeleted(tx, apiIDs, true)
 	})
@@ -193,6 +196,9 @@ func (storeMailbox *Mailbox) MarkMessagesUndeleted(apiIDs []string) error {
 		"label":    storeMailbox.labelID,
 		"mailbox":  storeMailbox.Name,
 	}).Trace("Marking messages as undeleted")
+	if storeMailbox.labelID == pmapi.AllMailLabel {
+		return ErrAllMailOpNotAllowed
+	}
 	return storeMailbox.store.db.Update(func(tx *bolt.Tx) error {
 		return storeMailbox.txMarkMessagesAsDeleted(tx, apiIDs, false)
 	})

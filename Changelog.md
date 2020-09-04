@@ -71,6 +71,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
     * IE: Removed `onLoginFinished`
     * Structure for transfer rules in QML
 * GODT-213 Convert panics from message parser to error.
+* GODT-585 Do not allow deleting messages from All Mail.
 
 ### Fixed
 * GODT-655 Fix date picker with automatic Windows DST
