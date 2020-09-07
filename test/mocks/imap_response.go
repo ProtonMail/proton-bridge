@@ -37,8 +37,6 @@ type IMAPResponse struct {
 	done     bool
 }
 
-func (ir *IMAPResponse) Sections() []string { return ir.sections }
-
 func (ir *IMAPResponse) sendCommand(reqTag string, reqIndex int, command string, debug *debug, conn io.Writer, response *bufio.Reader) {
 	defer func() { ir.done = true }()
 

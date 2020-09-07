@@ -19,6 +19,7 @@ package tests
 
 import (
 	"fmt"
+	"strconv"
 	"sync"
 
 	"github.com/cucumber/godog"
@@ -33,7 +34,7 @@ func IMAPActionsMessagesFeatureContext(s *godog.Suite) {
 	s.Step(`^IMAP client searches for "([^"]*)"$`, imapClientSearchesFor)
 	s.Step(`^IMAP client copies messages "([^"]*)" to "([^"]*)"$`, imapClientCopiesMessagesTo)
 	s.Step(`^IMAP client moves messages "([^"]*)" to "([^"]*)"$`, imapClientMovesMessagesTo)
-	s.Step(`^IMAP client moves messages "([^"]*)" to "([^"]*)" like outlook$`, imapClientMovesMessagesToLikeOutlook)
+	s.Step(`^IMAP clients "([^"]*)" and "([^"]*)" move message "([^"]*)" of "([^"]*)" from "([^"]*)" to "([^"]*)" by append and delete$`, imapClientsMoveMessageOfUserFromToByAppendAndDelete)
 	s.Step(`^IMAP client imports message to "([^"]*)"$`, imapClientCreatesMessage)
 	s.Step(`^IMAP client imports message to "([^"]*)" with encoding "([^"]*)"$`, imapClientCreatesMessageWithEncoding)
 	s.Step(`^IMAP client creates message "([^"]*)" from "([^"]*)" to "([^"]*)" with body "([^"]*)" in "([^"]*)"$`, imapClientCreatesMessageFromToWithBody)
@@ -95,45 +96,51 @@ func imapClientMovesMessagesTo(messageRange, newMailboxName string) error {
 	return nil
 }
 
-func imapClientMovesMessagesToLikeOutlook(messageRange, newMailboxName, user string) error {
-	sourceClient := "imap"
-	fetchResp := ctx.GetIMAPClient(sourceClient).Fetch(messageRange, "body.peek[]")
-	fetchResp.AssertOK()
-	if err := ctx.GetTestingError(); err != nil {
-		return err
+func imapClientsMoveMessageOfUserFromToByAppendAndDelete(sourceIMAPClient, targetIMAPClient, messageUID, bddUserID, sourceMailboxName, targetMailboxName string) error {
+	account := ctx.GetTestAccount(bddUserID)
+	if account == nil {
+		return godog.ErrPending
+	}
+	sourceMailbox, err := ctx.GetStoreMailbox(account.Username(), account.AddressID(), sourceMailboxName)
+	if err != nil {
+		return internalError(err, "getting store mailbox")
+	}
+	uid, err := strconv.ParseUint(messageUID, 10, 32)
+	if err != nil {
+		return internalError(err, "parsing message UID")
+	}
+	apiIDs, err := sourceMailbox.GetAPIIDsFromUIDRange(uint32(uid), uint32(uid))
+	if err != nil {
+		return internalError(err, "getting API IDs from sequence range")
+	}
+	message, err := sourceMailbox.GetMessage(apiIDs[0])
+	if err != nil {
+		return internalError(err, "getting message by ID")
 	}
 
-	targetClient := "target"
-	if err := thereIsIMAPClientNamedLoggedInAs(targetClient, user); err != nil {
-		return err
-	}
-	if err := thereIsIMAPClientNamedSelectedIn(targetClient, newMailboxName); err != nil {
-		return err
-	}
-
-	movingLikeOutlook := sync.WaitGroup{}
-	movingLikeOutlook.Add(2)
+	wg := sync.WaitGroup{}
+	wg.Add(2)
 
 	go func() {
-		defer movingLikeOutlook.Done()
-		for _, msg := range fetchResp.Sections() {
-			res := ctx.GetIMAPClient(targetClient).Append(newMailboxName, msg)
-			res.AssertOK()
-		}
+		defer wg.Done()
+		msg := message.Message()
+		_ = imapClientNamedCreatesMessageFromToWithBody(
+			targetIMAPClient,
+			msg.Subject,
+			msg.Sender.String(),
+			msg.ToList[0].String(),
+			msg.Body,
+			targetMailboxName,
+		)
 	}()
 
 	go func() {
-		defer movingLikeOutlook.Done()
-		imapClientNamedMarksMessageAsDeleted(sourceClient, messageRange)
-		ctx.GetIMAPLastResponse(sourceClient).AssertOK()
+		defer wg.Done()
+		_ = imapClientNamedMarksMessageAsDeleted(sourceIMAPClient, messageUID)
 	}()
 
-	movingLikeOutlook.Wait()
-
-	imapClientExpunge()
-	ctx.GetIMAPLastResponse(sourceClient).AssertOK()
-
-	return ctx.GetTestingError()
+	wg.Wait()
+	return nil
 }
 
 func imapClientCreatesMessage(mailboxName string, message *gherkin.DocString) error {
@@ -162,8 +169,12 @@ func imapClientCreatesMessageWithEncoding(mailboxName, encodingName string, mess
 }
 
 func imapClientCreatesMessageFromToWithBody(subject, from, to, body, mailboxName string) error {
-	res := ctx.GetIMAPClient("imap").AppendBody(mailboxName, subject, from, to, body)
-	ctx.SetIMAPLastResponse("imap", res)
+	return imapClientNamedCreatesMessageFromToWithBody("imap", subject, from, to, body, mailboxName)
+}
+
+func imapClientNamedCreatesMessageFromToWithBody(imapClient, subject, from, to, body, mailboxName string) error {
+	res := ctx.GetIMAPClient(imapClient).AppendBody(mailboxName, subject, from, to, body)
+	ctx.SetIMAPLastResponse(imapClient, res)
 	return nil
 }
 
