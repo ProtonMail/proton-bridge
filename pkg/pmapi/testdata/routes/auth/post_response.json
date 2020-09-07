@@ -3,7 +3,7 @@
     "AccessToken": "de0423049b44243afeec7d9c1d99be7b46da1e8a",
     "ExpiresIn": 86400,
     "TokenType": "Bearer",
-    "Scope": "full mail payments reset keys",
+    "Scopes": ["full", "mail", "payments", "reset", "keys"],
     "UID": "729ad6012421d67ad26950dc898bebe3a6e3caa2",
     "RefreshToken": "a49b98256745bb497bec20e9b55f5de16f01fb52",
     "EventID": "NcKPtU5eMNPMrDkIMbEJrgMtC9yQ7Xc5ZBT-tB3UtV1rZ324RWfCIdBI758q0UnsfywS8CkNenIQlWLIX_dUng==",

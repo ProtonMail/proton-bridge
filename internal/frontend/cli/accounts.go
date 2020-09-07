@@ -126,7 +126,7 @@ func (f *frontendCLI) loginAccount(c *ishell.Context) { // nolint[funlen]
 			return
 		}
 
-		_, err = client.Auth2FA(twoFactor, auth)
+		err = client.Auth2FA(twoFactor, auth)
 		if err != nil {
 			f.processAPIError(err)
 			return

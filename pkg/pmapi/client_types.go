@@ -28,7 +28,7 @@ type Client interface {
 	Auth(username, password string, info *AuthInfo) (*Auth, error)
 	AuthInfo(username string) (*AuthInfo, error)
 	AuthRefresh(token string) (*Auth, error)
-	Auth2FA(twoFactorCode string, auth *Auth) (*Auth2FA, error)
+	Auth2FA(twoFactorCode string, auth *Auth) error
 	AuthSalt() (salt string, err error)
 	Logout()
 	DeleteAuth() error

@@ -4,6 +4,8 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 ## Unreleased
 * GODT-511 User agent format changed.
+### Removed
+* GODT-519 Unused AUTH scope parsing methods
 
 ## [IE 0.2.x] Congo
 

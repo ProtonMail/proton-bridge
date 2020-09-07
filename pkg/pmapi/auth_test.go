@@ -64,14 +64,9 @@ var testAuth = &Auth{
 	EventID:      "NcKPtU5eMNPMrDkIMbEJrgMtC9yQ7Xc5ZBT-tB3UtV1rZ324RWfCIdBI758q0UnsfywS8CkNenIQlWLIX_dUng==",
 	ExpiresIn:    86400,
 	RefreshToken: "feb3159ac63fb05119bcf4480d939278aa746926",
-	Scope:        "full mail payments reset keys",
 
 	accessToken: testAccessToken,
 	uid:         testUID,
-}
-
-var testAuth2FA = &Auth2FA{
-	Scope: "full mail payments reset keys",
 }
 
 var testAuthRefreshReq = AuthRefreshReq{
@@ -160,10 +155,8 @@ func TestClient_Auth2FA(t *testing.T) {
 
 	c.uid = testUID
 	c.accessToken = testAccessToken
-	auth2FA, err := c.Auth2FA(testAuth2FAReq.TwoFactorCode, testAuth)
+	err := c.Auth2FA(testAuth2FAReq.TwoFactorCode, testAuth)
 	Ok(t, err)
-
-	Equals(t, testAuth2FA, auth2FA)
 }
 
 func TestClient_Auth2FA_Fail(t *testing.T) {
@@ -182,7 +175,7 @@ func TestClient_Auth2FA_Fail(t *testing.T) {
 
 	c.uid = testUID
 	c.accessToken = testAccessToken
-	_, err := c.Auth2FA(testAuth2FAReq.TwoFactorCode, testAuth)
+	err := c.Auth2FA(testAuth2FAReq.TwoFactorCode, testAuth)
 	Equals(t, ErrBad2FACode, err)
 }
 
@@ -202,7 +195,7 @@ func TestClient_Auth2FA_Retry(t *testing.T) {
 
 	c.uid = testUID
 	c.accessToken = testAccessToken
-	_, err := c.Auth2FA(testAuth2FAReq.TwoFactorCode, testAuth)
+	err := c.Auth2FA(testAuth2FAReq.TwoFactorCode, testAuth)
 	Equals(t, ErrBad2FACodeTryAgain, err)
 }
 

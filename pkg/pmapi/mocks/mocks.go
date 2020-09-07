@@ -65,12 +65,11 @@ func (mr *MockClientMockRecorder) Auth(arg0, arg1, arg2 interface{}) *gomock.Cal
 }
 
 // Auth2FA mocks base method
-func (m *MockClient) Auth2FA(arg0 string, arg1 *pmapi.Auth) (*pmapi.Auth2FA, error) {
+func (m *MockClient) Auth2FA(arg0 string, arg1 *pmapi.Auth) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Auth2FA", arg0, arg1)
-	ret0, _ := ret[0].(*pmapi.Auth2FA)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
 // Auth2FA indicates an expected call of Auth2FA

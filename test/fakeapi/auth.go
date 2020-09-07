@@ -74,27 +74,25 @@ func (api *FakePMAPI) Auth(username, password string, authInfo *pmapi.AuthInfo) 
 	return auth, nil
 }
 
-func (api *FakePMAPI) Auth2FA(twoFactorCode string, auth *pmapi.Auth) (*pmapi.Auth2FA, error) {
+func (api *FakePMAPI) Auth2FA(twoFactorCode string, auth *pmapi.Auth) error {
 	if err := api.checkInternetAndRecordCall(POST, "/auth/2fa", &pmapi.Auth2FAReq{
 		TwoFactorCode: twoFactorCode,
 	}); err != nil {
-		return nil, err
+		return err
 	}
 
 	if api.uid == "" {
-		return nil, pmapi.ErrInvalidToken
+		return pmapi.ErrInvalidToken
 	}
 
 	session, ok := api.controller.sessionsByUID[api.uid]
 	if !ok {
-		return nil, pmapi.ErrInvalidToken
+		return pmapi.ErrInvalidToken
 	}
 
 	session.hasFullScope = true
 
-	return &pmapi.Auth2FA{
-		Scope: "full",
-	}, nil
+	return nil
 }
 
 func (api *FakePMAPI) AuthRefresh(token string) (*pmapi.Auth, error) {

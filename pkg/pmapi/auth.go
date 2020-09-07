@@ -108,7 +108,6 @@ type AuthReq struct {
 type Auth struct {
 	accessToken  string // Read from AuthRes.
 	ExpiresIn    int
-	Scope        string
 	uid          string // Read from AuthRes.
 	RefreshToken string
 	EventID      string
@@ -174,20 +173,8 @@ type Auth2FAReq struct {
 	// U2F U2FRequest
 }
 
-type Auth2FA struct {
-	Scope string
-}
-
 type Auth2FARes struct {
 	Res
-
-	Scope string
-}
-
-func (res *Auth2FARes) getAuth2FA() *Auth2FA {
-	return &Auth2FA{
-		Scope: res.Scope,
-	}
 }
 
 type AuthRefreshReq struct {
@@ -326,33 +313,33 @@ func (c *client) Auth(username, password string, info *AuthInfo) (auth *Auth, er
 
 // Auth2FA will authenticate a user into full scope.
 // `Auth` struct contains method `HasTwoFactor` deciding whether this has to be done.
-func (c *client) Auth2FA(twoFactorCode string, auth *Auth) (*Auth2FA, error) {
+func (c *client) Auth2FA(twoFactorCode string, auth *Auth) error {
 	auth2FAReq := &Auth2FAReq{
 		TwoFactorCode: twoFactorCode,
 	}
 
 	req, err := c.NewJSONRequest("POST", "/auth/2fa", auth2FAReq)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	var auth2FARes Auth2FARes
 	if err := c.DoJSON(req, &auth2FARes); err != nil {
-		return nil, err
+		return err
 	}
 
 	if err := auth2FARes.Err(); err != nil {
 		switch auth2FARes.StatusCode {
 		case http.StatusUnauthorized:
-			return nil, ErrBad2FACode
+			return ErrBad2FACode
 		case http.StatusUnprocessableEntity:
-			return nil, ErrBad2FACodeTryAgain
+			return ErrBad2FACodeTryAgain
 		default:
-			return nil, err
+			return err
 		}
 	}
 
-	return auth2FARes.getAuth2FA(), nil
+	return nil
 }
 
 // AuthRefresh will refresh an expired access token.

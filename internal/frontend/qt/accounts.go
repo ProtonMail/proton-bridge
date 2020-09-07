@@ -164,7 +164,7 @@ func (s *FrontendQt) auth2FA(twoFacAuth string) int {
 	if s.auth == nil || s.authClient == nil {
 		err = fmt.Errorf("missing authentication in auth2FA %p %p", s.auth, s.authClient)
 	} else {
-		_, err = s.authClient.Auth2FA(twoFacAuth, s.auth)
+		err = s.authClient.Auth2FA(twoFacAuth, s.auth)
 	}
 
 	if s.showLoginError(err, "auth2FA") {

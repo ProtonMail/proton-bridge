@@ -1,4 +1,4 @@
 {
     "Code": 1000,
-    "Scope": "full mail payments reset keys"
+    "Scopes": ["full", "mail", "payments", "reset", "keys"]
 }

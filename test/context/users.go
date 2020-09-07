@@ -45,7 +45,7 @@ func (ctx *TestContext) LoginUser(username, password, mailboxPassword string) (e
 	}
 
 	if auth.HasTwoFactor() {
-		if _, err := client.Auth2FA("2fa code", auth); err != nil {
+		if err := client.Auth2FA("2fa code", auth); err != nil {
 			return errors.Wrap(err, "failed to login with 2FA")
 		}
 	}
