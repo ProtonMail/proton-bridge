@@ -23,7 +23,7 @@ import (
 	"strings"
 )
 
-// removeBrackets handle unwanted brackets in client identification string and join with given joinBy parameter
+// removeBrackets handle unwanted brackets in client identification string and join with given joinBy parameter.
 // Mac OS X Mail/13.0 (3601.0.4) -> Mac OS X Mail/13.0-3601.0.4 (joinBy = "-")
 func removeBrackets(s string, joinBy string) (r string) {
 	r = strings.ReplaceAll(s, " (", joinBy)
