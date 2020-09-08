@@ -27,7 +27,7 @@ import (
 )
 
 func benchTestContext() (*context.TestContext, *mocks.IMAPClient) {
-	ctx := context.New()
+	ctx := context.New("bridge")
 
 	username := "user"
 	account := ctx.GetTestAccount(username)

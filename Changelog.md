@@ -4,6 +4,8 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 ## Unreleased
 
+## [IE 0.2.x] Congo
+
 ### Added
 * GODT-633 Persistent anonymous API cookies for better load balancing and abuse detection. 
 
@@ -36,8 +38,22 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-400 Refactor sendingInfo.
 * GODT-513 Update routes to API v4.
 * GODT-551 Do not ignore errors during message flagging.
+* GODT-380 Adding IE GUI to Bridge repo and building
+    * BR: extend functionality of PopupDialog
+    * BR: makefile APP_VERSION instead of BRIDGE_VERSION
+    * BR: use common logs function for Qt
+    * BR: change `go.progressDescription` to `string`
+    * IE: Rounded button has fa-icon
+    * IE: `Upgrade` → `Update`
+    * IE: Moving `AccountModel` to `qt-common`
+    * IE: Added `ReportBug` to `internal/importexport`
+    * IE: Added event watch in GUI
+    * IE: Removed `onLoginFinished`
+    * Structure for transfer rules in QML
+* GODT-213 Convert panics from message parser to error.
 
 ### Fixed
+* GODT-655 Fix date picker with automatic Windows DST
 * GODT-454 Fix send on closed channel when receiving unencrypted send confirmation from GUI.
 * GODT-597 Duplicate sending when draft creation takes too long
 * GODT-634 Hover on links in popups.

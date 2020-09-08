@@ -123,12 +123,12 @@ Dialog {
                 wrapMode: Text.Wrap
                 text: {
                     switch (go.progressDescription) {
-                        case 1: return qsTr("Checking the current version.")
-                        case 2: return qsTr("Downloading the update files.")
-                        case 3: return qsTr("Verifying the update files.")
-                        case 4: return qsTr("Unpacking the update files.")
-                        case 5: return qsTr("Starting the update.")
-                        case 6: return qsTr("Quitting the application.")
+                        case "1": return qsTr("Checking the current version.")
+                        case "2": return qsTr("Downloading the update files.")
+                        case "3": return qsTr("Verifying the update files.")
+                        case "4": return qsTr("Unpacking the update files.")
+                        case "5": return qsTr("Starting the update.")
+                        case "6": return qsTr("Quitting the application.")
                         default: return ""
                     }
                 }
@@ -220,7 +220,7 @@ Dialog {
     function clear() {
         root.hasError = false
         go.progress = 0.0
-        go.progressDescription = 0
+        go.progressDescription = "0"
     }
 
     function finished(hasError) {

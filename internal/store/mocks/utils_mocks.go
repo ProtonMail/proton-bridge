@@ -5,10 +5,9 @@
 package mocks
 
 import (
+	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 	time "time"
-
-	gomock "github.com/golang/mock/gomock"
 )
 
 // MockListener is a mock of Listener interface

@@ -75,23 +75,33 @@ dependency-updates:
 
 # Stage: BUILD
 
-build-linux:
+.build-base:
   stage: build
-  # Test build every time (= we want to know build is possible).
   only:
     - branches
   script:
     - make build
   artifacts:
+    expire_in: 2 week
+
+build-linux:
+  extends: .build-base
+  artifacts:
     name: "bridge-linux-$CI_COMMIT_SHORT_SHA"
     paths:
       - bridge_*.tgz
-    expire_in: 2 week
 
-build-darwin:
-  stage: build
-  only:
-    - branches
+build-ie-linux:
+  extends: .build-base
+  script:
+    - make build-ie
+  artifacts:
+    name: "ie-linux-$CI_COMMIT_SHORT_SHA"
+    paths:
+      - ie_*.tgz
+
+.build-darwin-base:
+  extends: .build-base
   before_script:
     - eval $(ssh-agent -s)
     - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add - > /dev/null
@@ -106,22 +116,32 @@ build-darwin:
   cache: {}
   tags:
     - macOS
-  script:
-    - make build
+
+build-darwin:
+  extends: .build-darwin-base
   artifacts:
     name: "bridge-darwin-$CI_COMMIT_SHORT_SHA"
     paths:
       - bridge_*.tgz
-    expire_in: 2 week
 
-build-windows:
-  stage: build
+build-ie-darwin:
+  extends: .build-darwin-base
+  script:
+    - make build-ie
+  artifacts:
+    name: "ie-darwin-$CI_COMMIT_SHORT_SHA"
+    paths:
+      - ie_*.tgz
+
+.build-windows-base:
+  extends: .build-base
   services:
     - docker:dind
-  only:
-    - branches
   variables:
     DOCKER_HOST: tcp://docker:2375
+
+build-windows:
+  extends: .build-windows-base
   script:
     # We need to install docker because qtdeploy builds for windows inside a docker container.
     # Docker will connect to the dockerd daemon provided by the runner service docker:dind at tcp://docker:2375.
@@ -134,7 +154,23 @@ build-windows:
     name: "bridge-windows-$CI_COMMIT_SHORT_SHA"
     paths:
       - bridge_*.tgz
-    expire_in: 2 week
+
+build-ie-windows:
+  extends: .build-windows-base
+  script:
+    # We need to install docker because qtdeploy builds for windows inside a docker container.
+    # Docker will connect to the dockerd daemon provided by the runner service docker:dind at tcp://docker:2375.
+    - curl -fsSL https://get.docker.com -o get-docker.sh && sh get-docker.sh
+    - apt-get update && apt-get -y install binutils-mingw-w64 tar gzip
+    - ln -s /usr/bin/x86_64-w64-mingw32-windres /usr/bin/windres
+    - go mod download
+    - TARGET_OS=windows make build-ie
+  artifacts:
+    name: "ie-windows-$CI_COMMIT_SHORT_SHA"
+    paths:
+      - ie_*.tgz
+
+# Stage: MIRROR
 
 mirror-repo:
   stage: mirror

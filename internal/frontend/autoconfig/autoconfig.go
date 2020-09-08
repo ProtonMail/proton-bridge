@@ -23,7 +23,7 @@ import "github.com/ProtonMail/proton-bridge/internal/frontend/types"
 
 type AutoConfig interface {
 	Name() string
-	Configure(imapPort int, smtpPort int, imapSSl, smtpSSL bool, user types.BridgeUser, addressIndex int) error
+	Configure(imapPort int, smtpPort int, imapSSl, smtpSSL bool, user types.User, addressIndex int) error
 }
 
 var available []AutoConfig //nolint[gochecknoglobals]

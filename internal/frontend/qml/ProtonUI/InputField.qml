@@ -138,6 +138,11 @@ Column {
         }
     }
 
+    function clear() {
+        inputField.text = ""
+        rightIcon = ""
+    }
+
     function checkNonEmpty() {
         if (inputField.text == "") {
             rightIcon = Style.fa.exclamation_triangle
@@ -152,6 +157,17 @@ Column {
 
     function hidePasswordText() {
         if (root.isPassword) inputField.echoMode = TextInput.Password
+    }
+
+    function checkIsANumber(){
+        if (/^\d+$/.test(inputField.text)) {
+            rightIcon = Style.fa.check_circle
+            return true
+        }
+        rightIcon = Style.fa.exclamation_triangle
+        root.placeholderText = ""
+        inputField.focus = true
+        return false
     }
 
     function forceFocus() {

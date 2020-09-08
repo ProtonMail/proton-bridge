@@ -21,6 +21,12 @@ issues:
         - gochecknoinits
         - gosec
 
+linters-settings:
+  godox:
+    keywords:
+      - TODO
+      - FIXME
+
 linters:
   # setting disable-all will make only explicitly enabled linters run
   disable-all: true

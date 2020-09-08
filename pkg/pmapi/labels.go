@@ -175,3 +175,21 @@ func (c *client) DeleteLabel(id string) (err error) {
 	err = res.Err()
 	return
 }
+
+// LeastUsedColor is intended to return color for creating a new inbox or label
+func LeastUsedColor(colors []string) (color string) {
+	color = LabelColors[0]
+	frequency := map[string]int{}
+
+	for _, c := range colors {
+		frequency[c]++
+	}
+
+	for _, c := range LabelColors {
+		if frequency[color] > frequency[c] {
+			color = c
+		}
+	}
+
+	return
+}

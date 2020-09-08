@@ -238,7 +238,7 @@ func testNewUsers(t *testing.T, m mocks) *Users { //nolint[unparam]
 	m.eventListener.EXPECT().Add(events.UpgradeApplicationEvent, gomock.Any())
 	m.clientManager.EXPECT().GetAuthUpdateChannel().Return(make(chan pmapi.ClientAuth))
 
-	users := New(m.config, m.PanicHandler, m.eventListener, m.clientManager, m.credentialsStore, m.storeMaker)
+	users := New(m.config, m.PanicHandler, m.eventListener, m.clientManager, m.credentialsStore, m.storeMaker, true)
 
 	waitForEvents()
 

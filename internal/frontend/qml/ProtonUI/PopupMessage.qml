@@ -23,8 +23,25 @@ import ProtonUI 1.0
 Rectangle {
     id: root
     color: Style.transparent
-    property alias text: message.text
+    property alias text         : message.text
+    property alias checkbox     : checkbox
+    property alias buttonQuit   : buttonQuit
+    property alias buttonOkay   : buttonOkay
+    property alias buttonYes    : buttonYes
+    property alias buttonNo     : buttonNo
+    property alias buttonRetry  : buttonRetry
+    property alias buttonSkip   : buttonSkip
+    property alias buttonCancel : buttonCancel
+    property alias msgWidth     : backgroundInp.width
+    property string msgID       : ""
     visible: false
+
+    signal clickedOkay()
+    signal clickedYes()
+    signal clickedNo()
+    signal clickedRetry()
+    signal clickedSkip()
+    signal clickedCancel()
 
     MouseArea { // prevent action below
         anchors.fill: parent
@@ -58,13 +75,28 @@ Rectangle {
                 wrapMode: Text.Wrap
             }
 
-            ButtonRounded {
-                text        : qsTr("Okay", "todo")
-                isOpaque    : true
-                color_main  : Style.dialog.background
-                color_minor : Style.dialog.textBlue
-                onClicked   : root.hide()
+            CheckBoxLabel {
+                id: checkbox
+                text: ""
+                checked: false
+                visible: (text != "")
+                textColor : Style.errorDialog.text
+                checkedColor: Style.errorDialog.text
+                uncheckedColor: Style.errorDialog.text
                 anchors.horizontalCenter : parent.horizontalCenter
+            }
+
+            Row {
+                spacing: Style.dialog.spacing
+                anchors.horizontalCenter : parent.horizontalCenter
+
+                ButtonRounded { id : buttonQuit   ; text : qsTr ( "Stop & quit", ""          )  ; onClicked : root.clickedYes    (  )  ; visible : false ; isOpaque : true  ; color_main : Style.errorDialog.text ; color_minor : Style.dialog.textBlue ; }
+                ButtonRounded { id : buttonNo     ; text : qsTr ( "No"     , "Button No"     )  ; onClicked : root.clickedNo     (  )  ; visible : false ; isOpaque : false ; color_main : Style.errorDialog.text ; color_minor : Style.transparent     ; }
+                ButtonRounded { id : buttonYes    ; text : qsTr ( "Yes"    , "Button Yes"    )  ; onClicked : root.clickedYes    (  )  ; visible : false ; isOpaque : true  ; color_main : Style.errorDialog.text ; color_minor : Style.dialog.textBlue ; }
+                ButtonRounded { id : buttonRetry  ; text : qsTr ( "Retry"  , "Button Retry"  )  ; onClicked : root.clickedRetry  (  )  ; visible : false ; isOpaque : false ; color_main : Style.errorDialog.text ; color_minor : Style.transparent     ; }
+                ButtonRounded { id : buttonSkip   ; text : qsTr ( "Skip"   , "Button Skip"   )  ; onClicked : root.clickedSkip   (  )  ; visible : false ; isOpaque : false ; color_main : Style.errorDialog.text ; color_minor : Style.transparent     ; }
+                ButtonRounded { id : buttonCancel ; text : qsTr ( "Cancel" , "Button Cancel" )  ; onClicked : root.clickedCancel (  )  ; visible : false ; isOpaque : true  ; color_main : Style.errorDialog.text ; color_minor : Style.dialog.textBlue ; }
+                ButtonRounded { id : buttonOkay   ; text : qsTr ( "Okay"   , "Button Okay"   )  ; onClicked : root.clickedOkay   (  )  ; visible : true  ; isOpaque : true  ; color_main : Style.errorDialog.text ; color_minor : Style.dialog.textBlue ; }
             }
         }
     }
@@ -75,7 +107,16 @@ Rectangle {
     }
 
     function hide() {
-        root.state = "Okay"
         root.visible=false
+
+        root     .text = ""
+        checkbox .text = ""
+
+        buttonNo     .visible = false
+        buttonYes    .visible = false
+        buttonRetry  .visible = false
+        buttonSkip   .visible = false
+        buttonCancel .visible = false
+        buttonOkay   .visible = true
     }
 }

@@ -95,6 +95,11 @@ type ImportMsgReq struct {
 	LabelIDs []string
 }
 
+func (req ImportMsgReq) String() string {
+	data, _ := json.Marshal(req)
+	return string(data)
+}
+
 // ImportRes is a response to an import request.
 type ImportRes struct {
 	Res

@@ -23,7 +23,9 @@ import ProtonUI 1.0
 
 Rectangle {
     id: root
-    height: root.isDarwin ? Style.titleMacOS.height : Style.title.height
+    height: visible ? (
+        root.isDarwin ? Style.titleMacOS.height : Style.title.height
+    ) : 0
     color: "transparent"
     property bool isDarwin : (go.goos == "darwin")
     property QtObject window

@@ -21,12 +21,12 @@ import (
 	"strings"
 
 	"github.com/ProtonMail/proton-bridge/internal/bridge"
-	"github.com/ProtonMail/proton-bridge/pkg/updates"
+	"github.com/ProtonMail/proton-bridge/internal/updates"
 	"github.com/abiosoft/ishell"
 )
 
 func (f *frontendCLI) checkUpdates(c *ishell.Context) {
-	isUpToDate, latestVersionInfo, err := f.updates.CheckIsBridgeUpToDate()
+	isUpToDate, latestVersionInfo, err := f.updates.CheckIsUpToDate()
 	if err != nil {
 		f.printAndLogError("Cannot retrieve version info: ", err)
 		f.checkInternetConnection(c)

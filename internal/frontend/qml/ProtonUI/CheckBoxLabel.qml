@@ -30,10 +30,12 @@ CheckBox {
     property color uncheckedColor   : Style.main.textInactive
     property string checkedSymbol   : Style.fa.check_square_o
     property string uncheckedSymbol : Style.fa.square_o
+    property alias symbolPointSize  : symbol.font.pointSize
     background: Rectangle {
         color: Style.transparent
     }
     indicator: Text {
+        id: symbol
         text  : root.checked ? root.checkedSymbol : root.uncheckedSymbol
         color : root.checked ? root.checkedColor  : root.uncheckedColor
         font {

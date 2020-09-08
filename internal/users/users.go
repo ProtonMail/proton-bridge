@@ -52,8 +52,14 @@ type Users struct {
 	// People are used to that and so we preserve that ordering here.
 	users []*User
 
-	// idleUpdates is a channel which the imap backend listens to and which it uses
-	// to send idle updates to the mail client (eg thunderbird).
+	// useOnlyActiveAddresses determines whether credentials keeps only active
+	// addresses or all of them. Each usage has to be consisteng, e.g., once
+	// user is added, it saves address list to credentials and next time loads
+	// as is, without requesting server again.
+	useOnlyActiveAddresses bool
+
+	// idleUpdates is a channel which the imap backend listens to and which it
+	// uses to send idle updates to the mail client (eg thunderbird).
 	// The user stores should send idle updates on this channel.
 	idleUpdates chan imapBackend.Update
 
@@ -70,19 +76,21 @@ func New(
 	clientManager ClientManager,
 	credStorer CredentialsStorer,
 	storeFactory StoreMaker,
+	useOnlyActiveAddresses bool,
 ) *Users {
 	log.Trace("Creating new users")
 
 	u := &Users{
-		config:        config,
-		panicHandler:  panicHandler,
-		events:        eventListener,
-		clientManager: clientManager,
-		credStorer:    credStorer,
-		storeFactory:  storeFactory,
-		idleUpdates:   make(chan imapBackend.Update),
-		lock:          sync.RWMutex{},
-		stopAll:       make(chan struct{}),
+		config:                 config,
+		panicHandler:           panicHandler,
+		events:                 eventListener,
+		clientManager:          clientManager,
+		credStorer:             credStorer,
+		storeFactory:           storeFactory,
+		useOnlyActiveAddresses: useOnlyActiveAddresses,
+		idleUpdates:            make(chan imapBackend.Update),
+		lock:                   sync.RWMutex{},
+		stopAll:                make(chan struct{}),
 	}
 
 	go func() {
@@ -241,6 +249,14 @@ func (u *Users) FinishLogin(authClient pmapi.Client, auth *pmapi.Auth, mbPassphr
 		}
 	}
 
+	// Old credentials use username as key (user ID) which needs to be removed
+	// once user logs in again with proper ID fetched from API.
+	if _, ok := u.hasUser(apiUser.Name); ok {
+		if err := u.DeleteUser(apiUser.Name, true); err != nil {
+			log.WithError(err).Error("Failed to delete old user")
+		}
+	}
+
 	u.events.Emit(events.UserRefreshEvent, apiUser.ID)
 
 	return u.GetUser(apiUser.ID)
@@ -291,9 +307,14 @@ func (u *Users) addNewUser(apiUser *pmapi.User, auth *pmapi.Auth, hashedPassphra
 		return errors.Wrap(err, "failed to update API user")
 	}
 
-	activeEmails := client.Addresses().ActiveEmails()
+	var emails []string //nolint[prealloc]
+	if u.useOnlyActiveAddresses {
+		emails = client.Addresses().ActiveEmails()
+	} else {
+		emails = client.Addresses().AllEmails()
+	}
 
-	if _, err = u.credStorer.Add(apiUser.ID, apiUser.Name, auth.GenToken(), hashedPassphrase, activeEmails); err != nil {
+	if _, err = u.credStorer.Add(apiUser.ID, apiUser.Name, auth.GenToken(), hashedPassphrase, emails); err != nil {
 		return errors.Wrap(err, "failed to add user to credentials store")
 	}
 

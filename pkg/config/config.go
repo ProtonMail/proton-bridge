@@ -200,7 +200,7 @@ func (c *Config) GetTLSKeyPath() string {
 
 // GetDBDir returns folder for db files.
 func (c *Config) GetDBDir() string {
-	return filepath.Join(c.appDirsVersion.UserCache())
+	return c.appDirsVersion.UserCache()
 }
 
 // GetEventsPath returns path to events file containing the last processed event IDs.
@@ -226,6 +226,11 @@ func (c *Config) GetUpdateDir() string {
 // GetPreferencesPath returns path to preference file.
 func (c *Config) GetPreferencesPath() string {
 	return filepath.Join(c.appDirsVersion.UserCache(), "prefs.json")
+}
+
+// GetTransferDir returns folder for import-export rules files.
+func (c *Config) GetTransferDir() string {
+	return c.appDirsVersion.UserCache()
 }
 
 // GetDefaultAPIPort returns default Bridge local API port.

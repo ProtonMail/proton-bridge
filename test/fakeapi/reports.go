@@ -23,16 +23,8 @@ import (
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 )
 
-func (api *FakePMAPI) ReportBugWithEmailClient(os, osVersion, title, description, username, email, emailClient string) error {
-	return api.checkInternetAndRecordCall(POST, "/reports/bug", &pmapi.ReportReq{
-		OS:          os,
-		OSVersion:   osVersion,
-		Title:       title,
-		Description: description,
-		Username:    username,
-		Email:       email,
-		Browser:     emailClient,
-	})
+func (api *FakePMAPI) Report(report pmapi.ReportReq) error {
+	return api.checkInternetAndRecordCall(POST, "/reports/bug", report)
 }
 
 func (api *FakePMAPI) SendSimpleMetric(category, action, label string) error {

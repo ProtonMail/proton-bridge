@@ -60,7 +60,7 @@ Row {
 
     FileDialog {
         id: pathDialog
-        title: root.title + ":"
+        title: root.title
         folder: shortcuts.home
         onAccepted: sanitizePath(pathDialog.fileUrl.toString())
         selectFolder: true

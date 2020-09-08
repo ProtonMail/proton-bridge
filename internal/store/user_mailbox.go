@@ -110,22 +110,14 @@ func (store *Store) leastUsedColor() string {
 	store.lock.RLock()
 	defer store.lock.RUnlock()
 
-	usage := map[string]int{}
+	colors := []string{}
 	for _, a := range store.addresses {
 		for _, m := range a.mailboxes {
-			if m.color != "" {
-				usage[m.color]++
-			}
+			colors = append(colors, m.color)
 		}
 	}
 
-	leastUsed := pmapi.LabelColors[0]
-	for _, color := range pmapi.LabelColors {
-		if usage[leastUsed] > usage[color] {
-			leastUsed = color
-		}
-	}
-	return leastUsed
+	return pmapi.LeastUsedColor(colors)
 }
 
 // updateMailbox updates the mailbox via the API.

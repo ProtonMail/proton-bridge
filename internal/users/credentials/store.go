@@ -186,6 +186,13 @@ func (s *Store) List() (userIDs []string, err error) {
 			continue
 		}
 
+		// Old credentials using username as a key does not work with new code.
+		// We need to ask user to login again to get ID from API and migrate creds.
+		if creds.UserID == creds.Name && creds.APIToken != "" {
+			creds.Logout()
+			_ = s.saveCredentials(creds)
+		}
+
 		credentialList = append(credentialList, creds)
 	}
 

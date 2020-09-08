@@ -24,6 +24,8 @@ import (
 	"net/http"
 	"reflect"
 	"testing"
+
+	r "github.com/stretchr/testify/require"
 )
 
 const testLabelsBody = `{
@@ -183,4 +185,18 @@ func TestClient_DeleteLabel(t *testing.T) {
 	if err != nil {
 		t.Fatal("Expected no error while deleting label, got:", err)
 	}
+}
+
+func TestLeastUsedColor(t *testing.T) {
+	// No colors at all, should use first available color
+	colors := []string{}
+	r.Equal(t, "#7272a7", LeastUsedColor(colors))
+
+	// All colors have same frequency, should use first available color
+	colors = []string{"#7272a7", "#cf5858", "#c26cc7", "#7569d1", "#69a9d1", "#5ec7b7", "#72bb75", "#c3d261", "#e6c04c", "#e6984c", "#8989ac", "#cf7e7e", "#c793ca", "#9b94d1", "#a8c4d5", "#97c9c1", "#9db99f", "#c6cd97", "#e7d292", "#dfb286"}
+	r.Equal(t, "#7272a7", LeastUsedColor(colors))
+
+	// First three colors already used, but others wasn't. Should use first non-used one.
+	colors = []string{"#7272a7", "#cf5858", "#c26cc7"}
+	r.Equal(t, "#7569d1", LeastUsedColor(colors))
 }

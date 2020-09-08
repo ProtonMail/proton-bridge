@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 22.1.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<svg version="1.1" id="Ebene_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 viewBox="0 0 1024 1024" style="enable-background:new 0 0 1024 1024;" xml:space="preserve">
+<style type="text/css">
+	.st0{fill:#9397CD;}
+	.st1{fill:#262A33;}
+	.st2{fill:#FFFFFF;}
+</style>
+<g>
+	<circle class="st0" cx="512.2" cy="512.1" r="512"/>
+</g>
+<g>
+	<circle class="st1" cx="850" cy="850" r="174"/>
+</g>
+<g>
+	<rect x="797" y="774" class="st2" width="34" height="128"/>
+	<polygon class="st2" points="814,717 751.6,775 876.4,775 	"/>
+</g>
+<g>
+	<rect x="865" y="798" class="st2" width="34" height="128"/>
+	<polygon class="st2" points="882,983 944.4,925 819.6,925 	"/>
+</g>
+<g>
+	<path class="st2" d="M511,263c0,0-136.3-4.5-164.4,146.7v103c0,0,1.2,11,32.2,33.4c31,22.4,111.2,85.4,132.3,85.4
+		c21,0,101.3-63,132.3-85.4c31-22.4,32.2-33.4,32.2-33.4v-103C647.3,258.5,511,263,511,263z M604.3,465.9H511h-93.3v-56.1
+		c18.9-75.1,93.3-76.1,93.3-76.1s74.4,1,93.3,76.1V465.9z"/>
+	<path class="st2" d="M511,654.7c0,0-21.1-2.1-37.7-13.5C456.8,629.7,346.6,551,346.6,551v155.9c0,0,0.9,18.1,20.9,18.1
+		s143.5,0,143.5,0s123.5,0,143.5,0s20.9-18.1,20.9-18.1V551c0,0-110.2,78.8-126.8,90.2C532.1,652.7,511,654.7,511,654.7z"/>
+</g>
+</svg>

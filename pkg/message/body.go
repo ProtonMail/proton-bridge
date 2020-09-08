@@ -55,7 +55,7 @@ func WriteAttachmentBody(w io.Writer, kr *crypto.KeyRing, m *pmapi.Message, att 
 		dr = r
 		err = nil
 		att.Name += ".gpg"
-		att.MIMEType = "application/pgp-encrypted"
+		att.MIMEType = "application/pgp-encrypted" //nolint
 	} else if err != nil && err != openpgperrors.ErrSignatureExpired {
 		err = fmt.Errorf("cannot decrypt attachment: %v", err)
 		return

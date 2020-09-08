@@ -18,13 +18,13 @@
 package mocks
 
 import (
-	"bufio"
 	"fmt"
 	"io"
 	"regexp"
 	"strings"
 	"time"
 
+	"github.com/emersion/go-imap"
 	"github.com/pkg/errors"
 	a "github.com/stretchr/testify/assert"
 )
@@ -37,7 +37,7 @@ type IMAPResponse struct {
 	done     bool
 }
 
-func (ir *IMAPResponse) sendCommand(reqTag string, reqIndex int, command string, debug *debug, conn io.Writer, response *bufio.Reader) {
+func (ir *IMAPResponse) sendCommand(reqTag string, reqIndex int, command string, debug *debug, conn io.Writer, response imap.StringReader) {
 	defer func() { ir.done = true }()
 
 	tstart := time.Now()

@@ -1,0 +1,4 @@
+• Fixed rare cases where the application freezes when starting/stopping imports
+• Allowed current date to be included in the selected date range for both import and export
+• Improved manual update process
+• Limit space usage by on device application logs

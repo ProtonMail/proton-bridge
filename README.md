@@ -1,4 +1,4 @@
-# ProtonMail Bridge
+# ProtonMail Bridge and Import Export app
 Copyright (c) 2020 Proton Technologies AG
 
 This repository holds the ProtonMail Bridge application.
@@ -7,7 +7,7 @@ For licensing information see [COPYING](./COPYING.md).
 For contribution policy see [CONTRIBUTING](./CONTRIBUTING.md).
 
 
-## Description
+## Description Bridge
 ProtonMail Bridge for e-mail clients.
 
 When launched, Bridge will initialize local IMAP/SMTP servers and render 
@@ -24,6 +24,16 @@ background.
 
 More details [on the public website](https://protonmail.com/bridge).
 
+## Description Import-Export app
+ProtonMail Import-Export app for importing and exporting messages.
+
+To transfer messages, firstly log in using your ProtonMail credentials.
+For import, expand your account, and pick the address to which to import
+messages from IMAP server or local EML or MBOX files. For export, pick
+the whole account or only a specific address. Then, in both cases,
+configure transfer rules (match source and target mailboxes, set time
+range limits and so on) and hit start. Once the transfer is complete,
+check the results.
 
 ## Keychain
 You need to have a keychain in order to run the ProtonMail Bridge. On Mac or
@@ -39,12 +49,13 @@ or
 - `BRIDGESTRICTMODE`: tells bridge to turn on `bbolt`'s "strict mode" which checks the database after every `Commit`. Set to `1` to enable.
 
 ### Dev build or run
-- `BRIDGE_VERSION`: set the bridge app version used during testing or building
+- `APP_VERSION`: set the bridge app version used during testing or building
 - `PROTONMAIL_ENV`: when set to `dev` it is not using Sentry to report crashes
 - `VERBOSITY`: set log level used during test time and by the makefile
 
 ### Integration testing
 - `TEST_ENV`: set which env to use (fake or live)
+- `TEST_APP`: set which app to test (bridge or ie)
 - `TEST_ACCOUNTS`: set JSON file with configured accounts
 - `TAGS`: set build tags for tests
 - `FEATURES`: set feature dir, file or scenario to test

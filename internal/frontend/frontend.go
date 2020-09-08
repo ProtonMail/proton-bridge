@@ -22,8 +22,11 @@ import (
 	"github.com/0xAX/notificator"
 	"github.com/ProtonMail/proton-bridge/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/internal/frontend/cli"
+	cliie "github.com/ProtonMail/proton-bridge/internal/frontend/cli-ie"
 	"github.com/ProtonMail/proton-bridge/internal/frontend/qt"
+	qtie "github.com/ProtonMail/proton-bridge/internal/frontend/qt-ie"
 	"github.com/ProtonMail/proton-bridge/internal/frontend/types"
+	"github.com/ProtonMail/proton-bridge/internal/importexport"
 	"github.com/ProtonMail/proton-bridge/pkg/config"
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
 	"github.com/sirupsen/logrus"
@@ -40,12 +43,12 @@ type Frontend interface {
 }
 
 // HandlePanic handles panics which occur for users with GUI.
-func HandlePanic() {
+func HandlePanic(appName string) {
 	notify := notificator.New(notificator.Options{
 		DefaultIcon: "../frontend/ui/icon/icon.png",
-		AppName:     "ProtonMail Bridge",
+		AppName:     appName,
 	})
-	_ = notify.Push("Fatal Error", "The ProtonMail Bridge has encountered a fatal error. ", "/frontend/icon/icon.png", notificator.UR_CRITICAL)
+	_ = notify.Push("Fatal Error", "The "+appName+" has encountered a fatal error. ", "/frontend/icon/icon.png", notificator.UR_CRITICAL)
 }
 
 // New returns initialized frontend based on `frontendType`, which can be `cli` or `qt`.
@@ -84,5 +87,38 @@ func new(
 		return cli.New(panicHandler, config, preferences, eventListener, updates, bridge)
 	default:
 		return qt.New(version, buildVersion, showWindowOnStart, panicHandler, config, preferences, eventListener, updates, bridge, noEncConfirmator)
+	}
+}
+
+// NewImportExport returns initialized frontend based on `frontendType`, which can be `cli` or `qt`.
+func NewImportExport(
+	version,
+	buildVersion,
+	frontendType string,
+	panicHandler types.PanicHandler,
+	config *config.Config,
+	eventListener listener.Listener,
+	updates types.Updater,
+	ie *importexport.ImportExport,
+) Frontend {
+	ieWrap := types.NewImportExportWrap(ie)
+	return newImportExport(version, buildVersion, frontendType, panicHandler, config, eventListener, updates, ieWrap)
+}
+
+func newImportExport(
+	version,
+	buildVersion,
+	frontendType string,
+	panicHandler types.PanicHandler,
+	config *config.Config,
+	eventListener listener.Listener,
+	updates types.Updater,
+	ie types.ImportExporter,
+) Frontend {
+	switch frontendType {
+	case "cli":
+		return cliie.New(panicHandler, config, eventListener, updates, ie)
+	default:
+		return qtie.New(version, buildVersion, panicHandler, config, eventListener, updates, ie)
 	}
 }

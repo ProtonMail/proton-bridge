@@ -173,26 +173,6 @@ func (c *client) Report(rep ReportReq) (err error) {
 	return res.Err()
 }
 
-// ReportBug is old. Use Report instead.
-func (c *client) ReportBug(os, osVersion, title, description, username, email string) (err error) {
-	return c.ReportBugWithEmailClient(os, osVersion, title, description, username, email, "")
-}
-
-// ReportBugWithEmailClient is old. Use Report instead.
-func (c *client) ReportBugWithEmailClient(os, osVersion, title, description, username, email, emailClient string) (err error) {
-	bugReq := ReportReq{
-		OS:          os,
-		OSVersion:   osVersion,
-		Browser:     emailClient,
-		Title:       title,
-		Description: description,
-		Username:    username,
-		Email:       email,
-	}
-
-	return c.Report(bugReq)
-}
-
 // ReportCrash is old. Use sentry instead.
 func (c *client) ReportCrash(stacktrace string) (err error) {
 	crashReq := ReportReq{

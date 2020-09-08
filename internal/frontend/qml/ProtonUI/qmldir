@@ -23,6 +23,7 @@ InputField                   1.0 InputField.qml
 InstanceExistsWindow         1.0 InstanceExistsWindow.qml
 LogoHeader                   1.0 LogoHeader.qml
 PopupMessage                 1.0 PopupMessage.qml
+RoundedRectangle             1.0 RoundedRectangle.qml
 TabButton                    1.0 TabButton.qml
 TabLabels                    1.0 TabLabels.qml
 TextLabel                    1.0 TextLabel.qml

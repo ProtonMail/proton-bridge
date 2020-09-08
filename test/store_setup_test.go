@@ -22,6 +22,7 @@ import (
 	"net/mail"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	"github.com/cucumber/godog"
@@ -62,6 +63,9 @@ func thereIsUserWithMailbox(bddUserID, mailboxName string) error {
 	store, err := ctx.GetStore(account.Username())
 	if err != nil {
 		return internalError(err, "getting store of %s", account.Username())
+	}
+	if store == nil {
+		return nil
 	}
 	return internalError(store.RebuildMailboxes(), "rebuilding mailboxes")
 }
@@ -122,6 +126,12 @@ func thereAreMessagesInMailboxesForAddressOfUser(mailboxNames, bddAddressID, bdd
 				if cell.Value == "true" {
 					message.LabelIDs = append(message.LabelIDs, "10")
 				}
+			case "time": //nolint[goconst]
+				date, err := time.Parse(timeFormat, cell.Value)
+				if err != nil {
+					return internalError(err, "parsing time")
+				}
+				message.Time = date.Unix()
 			default:
 				return fmt.Errorf("unexpected column name: %s", head[n].Value)
 			}

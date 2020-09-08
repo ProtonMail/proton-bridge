@@ -34,12 +34,15 @@ require (
 	github.com/emersion/go-imap-quota v0.0.0-20200423100218-dcfd1b7d2b41
 	github.com/emersion/go-imap-specialuse v0.0.0-20200722111535-598ff00e4075
 	github.com/emersion/go-imap-unselect v0.0.0-20171113212723-b985794e5f26
+	github.com/emersion/go-mbox v1.0.0
+	github.com/emersion/go-message v0.11.1
 	github.com/emersion/go-sasl v0.0.0-20200509203442-7bfe0ed36a21
 	github.com/emersion/go-textwrapper v0.0.0-20160606182133-d0e65e56babe
 	github.com/emersion/go-vcard v0.0.0-20190105225839-8856043f13c5 // indirect
 	github.com/fatih/color v1.9.0
 	github.com/flynn-archive/go-shlex v0.0.0-20150515145356-3f9db97f8568 // indirect
 	github.com/getsentry/raven-go v0.2.0
+	github.com/go-delve/delve v1.4.1 // indirect
 	github.com/go-resty/resty/v2 v2.3.0
 	github.com/golang/mock v1.4.4
 	github.com/google/go-cmp v0.5.1
@@ -51,17 +54,15 @@ require (
 	github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0
 	github.com/keybase/go-keychain v0.0.0-20200502122510-cda31fe0c86d
 	github.com/logrusorgru/aurora v2.0.3+incompatible
-	github.com/mattn/go-runewidth v0.0.9 // indirect
 	github.com/miekg/dns v1.1.30
 	github.com/myesui/uuid v1.0.0 // indirect
 	github.com/nsf/jsondiff v0.0.0-20200515183724-f29ed568f4ce
-	github.com/olekukonko/tablewriter v0.0.4 // indirect
 	github.com/pkg/errors v0.9.1
+	github.com/psampaz/go-mod-outdated v0.6.0 // indirect
 	github.com/sirupsen/logrus v1.6.0
 	github.com/skratchdot/open-golang v0.0.0-20200116055534-eef842397966
 	github.com/stretchr/testify v1.6.1
 	github.com/therecipe/qt v0.0.0-20200701200531-7f61353ee73e
-	github.com/therecipe/qt/internal/binding/files/docs/5.13.0 v0.0.0-20200823155225-6367b9236a24 // indirect
 	github.com/twinj/uuid v1.0.0 // indirect
 	github.com/urfave/cli v1.22.4
 	go.etcd.io/bbolt v1.3.5

@@ -33,6 +33,7 @@ type PMAPIController interface {
 	GetLabelIDs(username string, labelNames []string) ([]string, error)
 	AddUserMessage(username string, message *pmapi.Message) error
 	GetMessageID(username, messageIndex string) string
+	GetMessages(username, labelID string) ([]*pmapi.Message, error)
 	ReorderAddresses(user *pmapi.User, addressIDs []string) error
 	PrintCalls()
 	WasCalled(method, path string, expectedRequest []byte) bool
