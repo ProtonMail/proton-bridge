@@ -103,7 +103,7 @@ func apiMailboxForAddressOfUserHasMessages(mailboxName, bddAddressID, bddUserID 
 
 	head := messages.Rows[0].Cells
 	for _, row := range messages.Rows[1:] {
-		found, err := messagesContainsMessageRow(account, pmapiMessages, head, row)
+		found, err := pmapiMessagesContainsMessageRow(account, pmapiMessages, head, row)
 		if err != nil {
 			return err
 		}

@@ -37,7 +37,7 @@ type IMAPResponse struct {
 	done     bool
 }
 
-func (ir *IMAPResponse) sendCommand(reqTag string, reqIndex int, command string, debug *debug, conn io.Writer, response *bufio.Reader) {
+func (ir *IMAPResponse) sendCommand(reqTag string, reqIndex int, command string, debug *debug, conn io.Writer, response *bufio.Reader) { //nolint[interfacer]
 	defer func() { ir.done = true }()
 
 	tstart := time.Now()

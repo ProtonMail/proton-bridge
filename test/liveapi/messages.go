@@ -161,3 +161,4 @@ func (ctl *Controller) GetMessages(username, labelID string) ([]*pmapi.Message, 
 	}
 
 	return messages, nil
+}

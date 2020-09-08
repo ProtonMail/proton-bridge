@@ -157,13 +157,15 @@ func thereAreMessagesInMailboxesForAddressOfUser(mailboxNames, bddAddressID, bdd
 		return err
 	}
 
-	for _, mailboxName := range strings.Split(mailboxNames, ",") {
-		storeMailbox, err := ctx.GetStoreMailbox(account.Username(), account.AddressID(), mailboxName)
-		if err != nil {
-			return err
-		}
-		if err := storeMailbox.MarkMessagesDeleted(markMessageIDsDeleted); err != nil {
-			return err
+	if len(markMessageIDsDeleted) > 0 {
+		for _, mailboxName := range strings.Split(mailboxNames, ",") {
+			storeMailbox, err := ctx.GetStoreMailbox(account.Username(), account.AddressID(), mailboxName)
+			if err != nil {
+				return err
+			}
+			if err := storeMailbox.MarkMessagesDeleted(markMessageIDsDeleted); err != nil {
+				return err
+			}
 		}
 	}
 

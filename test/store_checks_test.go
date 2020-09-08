@@ -24,6 +24,7 @@ import (
 	"time"
 
 	"github.com/ProtonMail/proton-bridge/internal/store"
+	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	"github.com/ProtonMail/proton-bridge/test/accounts"
 	"github.com/cucumber/godog"
 	"github.com/cucumber/godog/gherkin"
@@ -143,7 +144,7 @@ func mailboxForAddressOfUserHasMessages(mailboxName, bddAddressID, bddUserID str
 		afterLimit := time.Since(start) > ctx.EventLoopTimeout()
 		allFound := true
 		for _, row := range messages.Rows[1:] {
-			found, err := messagesContainsMessageRow(account, allMessages, head, row)
+			found, err := storeMessagesContainsMessageRow(account, allMessages, head, row)
 			if err != nil {
 				return err
 			}
@@ -168,10 +169,36 @@ func mailboxForAddressOfUserHasMessages(mailboxName, bddAddressID, bddUserID str
 	return nil
 }
 
-func messagesContainsMessageRow(account *accounts.TestAccount, allMessages []*store.Message, head []*gherkin.TableCell, row *gherkin.TableRow) (bool, error) { //nolint[funlen]
+func pmapiMessagesContainsMessageRow(account *accounts.TestAccount, pmapiMessages []*pmapi.Message, head []*gherkin.TableCell, row *gherkin.TableRow) (bool, error) {
+	messages := make([]interface{}, len(pmapiMessages))
+	for i := range pmapiMessages {
+		messages[i] = pmapiMessages[i]
+	}
+	return messagesContainsMessageRow(account, messages, head, row)
+}
+
+func storeMessagesContainsMessageRow(account *accounts.TestAccount, storeMessages []*store.Message, head []*gherkin.TableCell, row *gherkin.TableRow) (bool, error) {
+	messages := make([]interface{}, len(storeMessages))
+	for i := range storeMessages {
+		messages[i] = storeMessages[i]
+	}
+	return messagesContainsMessageRow(account, messages, head, row)
+}
+
+func messagesContainsMessageRow(account *accounts.TestAccount, allMessages []interface{}, head []*gherkin.TableCell, row *gherkin.TableRow) (bool, error) { //nolint[funlen]
 	found := false
-	for _, storeMessage := range allMessages {
-		message := storeMessage.Message()
+	for _, someMessage := range allMessages {
+		var message *pmapi.Message
+		var storeMessage *store.Message
+
+		switch v := someMessage.(type) {
+		case *pmapi.Message:
+			message = v
+		case *store.Message:
+			message = v.Message()
+			storeMessage = v
+		}
+
 		matches := true
 		for n, cell := range row.Cells {
 			switch head[n].Value {
@@ -221,6 +248,10 @@ func messagesContainsMessageRow(account *accounts.TestAccount, allMessages []*st
 					matches = false
 				}
 			case "deleted":
+				if storeMessage == nil {
+					return false, fmt.Errorf("deleted column not supported for pmapi message object")
+				}
+
 				expectedDeleted := cell.Value == "true"
 				matches = storeMessage.IsMarkedDeleted() == expectedDeleted
 			default:
