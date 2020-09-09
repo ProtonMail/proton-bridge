@@ -91,6 +91,17 @@ build-linux:
     paths:
       - bridge_*.tgz
 
+build-linux-qa:
+  extends: .build-base
+  only:
+    - web
+  script:
+    - BUILD_TAGS="build_qa pmapi_qa" make build
+  artifacts:
+    name: "bridge-linux-qa-$CI_COMMIT_SHORT_SHA"
+    paths:
+      - bridge_*.tgz
+
 build-ie-linux:
   extends: .build-base
   script:
@@ -124,6 +135,17 @@ build-darwin:
     paths:
       - bridge_*.tgz
 
+build-darwin-qa:
+  extends: .build-darwin-base
+  only:
+    - web
+  script:
+    - BUILD_TAGS="build_qa pmapi_qa" make build
+  artifacts:
+    name: "bridge-darwin-qa-$CI_COMMIT_SHORT_SHA"
+    paths:
+      - bridge_*.tgz
+
 build-ie-darwin:
   extends: .build-darwin-base
   script:
@@ -152,6 +174,23 @@ build-windows:
     - TARGET_OS=windows make build
   artifacts:
     name: "bridge-windows-$CI_COMMIT_SHORT_SHA"
+    paths:
+      - bridge_*.tgz
+
+build-windows-qa:
+  extends: .build-windows-base
+  only:
+    - web
+  script:
+    # We need to install docker because qtdeploy builds for windows inside a docker container.
+    # Docker will connect to the dockerd daemon provided by the runner service docker:dind at tcp://docker:2375.
+    - curl -fsSL https://get.docker.com -o get-docker.sh && sh get-docker.sh
+    - apt-get update && apt-get -y install binutils-mingw-w64 tar gzip
+    - ln -s /usr/bin/x86_64-w64-mingw32-windres /usr/bin/windres
+    - go mod download
+    - TARGET_OS=windows BUILD_TAGS="build_qa pmapi_qa" make build
+  artifacts:
+    name: "bridge-windows-qa-$CI_COMMIT_SHORT_SHA"
     paths:
       - bridge_*.tgz
 

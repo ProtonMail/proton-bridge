@@ -12,6 +12,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 ### Changed
 * GODT-511 User agent format changed.
 * Unsilent errors reading mbox files.
+* GODT-692 QA build with option to change API URL by ENV variable.
 
 ### Removed
 * GODT-519 Unused AUTH scope parsing methods.
