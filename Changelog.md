@@ -3,7 +3,13 @@
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 ## Unreleased
+
+### Added
+* GODT-682 Persistent anonymous API cookies for Import-Export.
+
+### Changed
 * GODT-511 User agent format changed.
+
 ### Removed
 * GODT-519 Unused AUTH scope parsing methods
 

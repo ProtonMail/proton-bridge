@@ -21,9 +21,11 @@ import (
 	"runtime/pprof"
 
 	"github.com/ProtonMail/proton-bridge/internal/cmd"
+	"github.com/ProtonMail/proton-bridge/internal/cookies"
 	"github.com/ProtonMail/proton-bridge/internal/events"
 	"github.com/ProtonMail/proton-bridge/internal/frontend"
 	"github.com/ProtonMail/proton-bridge/internal/importexport"
+	"github.com/ProtonMail/proton-bridge/internal/preferences"
 	"github.com/ProtonMail/proton-bridge/internal/updates"
 	"github.com/ProtonMail/proton-bridge/internal/users/credentials"
 	"github.com/ProtonMail/proton-bridge/pkg/config"
@@ -36,6 +38,10 @@ import (
 )
 
 const (
+	// cacheVersion is used for cache files such as lock, or preferences.
+	// Different number will drop old files and create new ones.
+	cacheVersion = "c11"
+
 	appName     = "importExport"
 	appNameDash = "import-export-app"
 )
@@ -58,7 +64,7 @@ func main() {
 // IMPORTANT: ***Read the comments before CHANGING the order ***
 func run(context *cli.Context) (contextError error) { // nolint[funlen]
 	// We need to have config instance to setup a logs, panic handler, etc ...
-	cfg := config.New(appName, constants.Version, constants.Revision, "")
+	cfg := config.New(appName, constants.Version, constants.Revision, cacheVersion)
 
 	// We want to know about any problem. Our PanicHandler calls sentry which is
 	// not dependent on anything else. If that fails, it tries to create crash
@@ -131,6 +137,16 @@ func run(context *cli.Context) (contextError error) { // nolint[funlen]
 	// TLS fingerprint checks in production builds). GetRoundTripper has a different
 	// implementation depending on whether build flag pmapi_prod is used or not.
 	cm.SetRoundTripper(cfg.GetRoundTripper(cm, eventListener))
+
+	pref := preferences.New(cfg)
+
+	// Cookies must be persisted across restarts.
+	jar, err := cookies.NewCookieJar(pref)
+	if err != nil {
+		logrus.WithError(err).Warn("Could not create cookie jar")
+	} else {
+		cm.SetCookieJar(jar)
+	}
 
 	importexportInstance := importexport.New(cfg, panicHandler, eventListener, cm, credentialsStore)
 

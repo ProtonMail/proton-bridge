@@ -266,6 +266,9 @@ func (c *client) doBuffered(req *http.Request, bodyBuffer []byte, retryUnauthori
 		return
 	}
 
+	// Cookies are returned only after request was sent.
+	c.log.Tracef("REQCOOKIES '%v'", req.Cookies())
+
 	resDate := res.Header.Get("Date")
 	if resDate != "" {
 		if serverTime, err := http.ParseTime(resDate); err == nil {
