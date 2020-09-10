@@ -22,12 +22,6 @@ import "github.com/sirupsen/logrus"
 const (
 	fetchMessagesWorkers    = 5 // In how many workers to fetch message (group list on IMAP).
 	fetchAttachmentsWorkers = 5 // In how many workers to fetch attachments (for one message).
-
-	clientAppleMail   = "Mac OS X Mail"             //nolint[deadcode]
-	clientThunderbird = "Thunderbird"               //nolint[deadcode]
-	clientOutlookMac  = "Microsoft Outlook for Mac" //nolint[deadcode]
-	clientOutlookWin  = "Microsoft Outlook"         //nolint[deadcode]
-	clientNone        = ""
 )
 
 var (

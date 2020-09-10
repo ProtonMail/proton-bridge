@@ -13,6 +13,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-511 User agent format changed.
 * Unsilent errors reading mbox files.
 * GODT-692 QA build with option to change API URL by ENV variable.
+* GODT-704 User agent detected by fake IMAP extension instead of AUTH callback (some clients use LOGIN instead of AUTH).
 
 ### Removed
 * GODT-519 Unused AUTH scope parsing methods.
