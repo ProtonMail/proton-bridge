@@ -11,7 +11,12 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-511 User agent format changed.
 
 ### Removed
-* GODT-519 Unused AUTH scope parsing methods
+* GODT-519 Unused AUTH scope parsing methods.
+
+### Fixed
+* GODT-698 Use correct package type for signed PGP/Inline messages.
+
+
 
 ## [IE 1.0.x] Congo (v1.0.0 live 2020-09-08)
 
@@ -19,6 +24,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-633 Persistent anonymous API cookies for better load balancing and abuse detection. 
 
 ### Changed
+* GODT-462 Pausing event loop while FETCHing to prevent EXPUNGE
 * GODT-409 Set flags have to replace all flags.
 * GODT-531 Better way to add trusted certificate in macOS.
 * Bumped golangci-lint to v1.29.0
@@ -67,8 +73,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-597 Duplicate sending when draft creation takes too long
 * GODT-634 Hover on links in popups.
 
-### Changed
-* GODT-462 Pausing event loop while FETCHing to prevent EXPUNGE
+
 
 ## [v1.3.x] Emma (v1.3.2 beta 2020-08-04, v1.3.3 beta 2020-08-06, v1.3.3 live 2020-08-12)
 
