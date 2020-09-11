@@ -18,7 +18,9 @@
 package transfer
 
 import (
+	"crypto/tls"
 	"net"
+	"strings"
 	"time"
 
 	imapID "github.com/ProtonMail/go-imap-id"
@@ -146,7 +148,19 @@ func (p *IMAPProvider) auth() error { //nolint[funlen]
 	if host == "127.0.0.1" {
 		client, err = imapClient.Dial(p.addr)
 	} else {
-		client, err = imapClient.DialTLS(p.addr, nil)
+		// IMAP.mail.yahoo.com have problem with golang TLS1.3
+		// implementation with weird behaviour i.e. Yahoo
+		// no error during dial or handshake but server logs out right
+		// after successful login leaving no time to perform any
+		// action. It was discovered that limiting to maximum TLS
+		// version 1.2 for yahoo servers is working solution.
+
+		var tlsConf *tls.Config
+		if strings.Contains(strings.ToLower(host), "yahoo") {
+			log.Warning("Yahoo server detected: limiting maximal TLS version to 1.2.")
+			tlsConf = &tls.Config{MaxVersion: tls.VersionTLS12}
+		}
+		client, err = imapClient.DialTLS(p.addr, tlsConf)
 	}
 	if err != nil {
 		return ErrIMAPConnection{imapError{Err: err, Message: "failed to connect to server"}}

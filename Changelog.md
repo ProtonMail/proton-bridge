@@ -26,6 +26,10 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 
 ## [IE 1.0.x] Congo (v1.0.0 live 2020-09-08)
+### Fixed
+* GODT-730 Limit maximal TLS version for Yahoo IMAP server
+
+## [IE 0.2.x] Congo
 
 ### Added
 * GODT-633 Persistent anonymous API cookies for better load balancing and abuse detection. 
