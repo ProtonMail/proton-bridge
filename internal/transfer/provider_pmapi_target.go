@@ -72,6 +72,9 @@ func (p *PMAPIProvider) TransferFrom(rules transferRules, progress *Progress, ch
 	log.Info("Started transfer from channel to PMAPI")
 	defer log.Info("Finished transfer from channel to PMAPI")
 
+	p.timeIt.clear()
+	defer p.timeIt.logResults()
+
 	// Cache has to be cleared before each transfer to not contain
 	// old stuff from previous cancelled run.
 	p.importMsgReqMap = map[string]*pmapi.ImportMsgReq{}
@@ -114,7 +117,10 @@ func (p *PMAPIProvider) importDraft(msg Message, globalMailbox *Mailbox) (string
 		return "", errors.Wrap(err, "failed to parse message")
 	}
 
-	if err := message.Encrypt(p.keyRing, nil); err != nil {
+	p.timeIt.start("encrypt", msg.ID)
+	err = message.Encrypt(p.keyRing, nil)
+	p.timeIt.stop("encrypt", msg.ID)
+	if err != nil {
 		return "", errors.Wrap(err, "failed to encrypt draft")
 	}
 
@@ -125,7 +131,7 @@ func (p *PMAPIProvider) importDraft(msg Message, globalMailbox *Mailbox) (string
 	attachments := message.Attachments
 	message.Attachments = nil
 
-	draft, err := p.createDraft(message, "", pmapi.DraftActionReply)
+	draft, err := p.createDraft(msg.ID, message, "", pmapi.DraftActionReply)
 	if err != nil {
 		return "", errors.Wrap(err, "failed to create draft")
 	}
@@ -140,13 +146,15 @@ func (p *PMAPIProvider) importDraft(msg Message, globalMailbox *Mailbox) (string
 			return "", errors.Wrap(err, "failed to sign attachment")
 		}
 
+		p.timeIt.start("encrypt", msg.ID)
 		r = bytes.NewReader(attachmentBody)
 		encReader, err := attachment.Encrypt(p.keyRing, r)
+		p.timeIt.stop("encrypt", msg.ID)
 		if err != nil {
 			return "", errors.Wrap(err, "failed to encrypt attachment")
 		}
 
-		_, err = p.createAttachment(attachment, encReader, sigReader)
+		_, err = p.createAttachment(msg.ID, attachment, encReader, sigReader)
 		if err != nil {
 			return "", errors.Wrap(err, "failed to create attachment")
 		}
@@ -176,7 +184,9 @@ func (p *PMAPIProvider) generateImportMsgReq(msg Message, globalMailbox *Mailbox
 		return nil, errors.Wrap(err, "failed to parse message")
 	}
 
+	p.timeIt.start("encrypt", msg.ID)
 	body, err := p.encryptMessage(message, attachmentReaders)
+	p.timeIt.stop("encrypt", msg.ID)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to encrypt message")
 	}
@@ -208,6 +218,9 @@ func (p *PMAPIProvider) generateImportMsgReq(msg Message, globalMailbox *Mailbox
 }
 
 func (p *PMAPIProvider) parseMessage(msg Message) (m *pmapi.Message, r []io.Reader, err error) {
+	p.timeIt.start("parse", msg.ID)
+	defer p.timeIt.stop("parse", msg.ID)
+
 	// Old message parser is panicking in some cases.
 	// Instead of crashing we try to convert to regular error.
 	defer func() {
@@ -265,15 +278,14 @@ func (p *PMAPIProvider) importMessages(progress *Progress) {
 		importMsgIDs = append(importMsgIDs, msgID)
 		importMsgRequests = append(importMsgRequests, req)
 	}
-
 	log.WithField("msgIDs", importMsgIDs).WithField("size", p.importMsgReqSize).Debug("Importing messages")
-	results, err := p.importRequest(importMsgRequests)
+	results, err := p.importRequest(importMsgIDs[0], importMsgRequests)
 
 	// In case the whole request failed, try to import every message one by one.
 	if err != nil || len(results) == 0 {
 		log.WithError(err).Warning("Importing messages failed, trying one by one")
 		for msgID, req := range p.importMsgReqMap {
-			importedID, err := p.importMessage(progress, req)
+			importedID, err := p.importMessage(msgID, progress, req)
 			progress.messageImported(msgID, importedID, err)
 		}
 		return
@@ -285,7 +297,7 @@ func (p *PMAPIProvider) importMessages(progress *Progress) {
 		if result.Error != nil {
 			log.WithError(result.Error).WithField("msg", msgID).Warning("Importing message failed, trying alone")
 			req := importMsgRequests[index]
-			importedID, err := p.importMessage(progress, req)
+			importedID, err := p.importMessage(msgID, progress, req)
 			progress.messageImported(msgID, importedID, err)
 		} else {
 			progress.messageImported(msgID, result.MessageID, nil)
@@ -296,9 +308,9 @@ func (p *PMAPIProvider) importMessages(progress *Progress) {
 	p.importMsgReqSize = 0
 }
 
-func (p *PMAPIProvider) importMessage(progress *Progress, req *pmapi.ImportMsgReq) (importedID string, importedErr error) {
+func (p *PMAPIProvider) importMessage(msgSourceID string, progress *Progress, req *pmapi.ImportMsgReq) (importedID string, importedErr error) {
 	progress.callWrap(func() error {
-		results, err := p.importRequest([]*pmapi.ImportMsgReq{req})
+		results, err := p.importRequest(msgSourceID, []*pmapi.ImportMsgReq{req})
 		if err != nil {
 			return errors.Wrap(err, "failed to import messages")
 		}

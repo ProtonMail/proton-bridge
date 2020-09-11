@@ -34,6 +34,9 @@ func (p *PMAPIProvider) TransferTo(rules transferRules, progress *Progress, ch c
 	log.Info("Started transfer from PMAPI to channel")
 	defer log.Info("Finished transfer from PMAPI to channel")
 
+	p.timeIt.clear()
+	defer p.timeIt.logResults()
+
 	// TransferTo cannot end sooner than loadCounts goroutine because
 	// loadCounts writes to channel in progress which would be closed.
 	// That can happen for really small accounts.
@@ -146,6 +149,9 @@ func (p *PMAPIProvider) exportMessage(rule *Rule, progress *Progress, pmapiMsgID
 		msg, err = p.getMessage(pmapiMsgID)
 		return err
 	})
+
+	p.timeIt.start("build", msgID)
+	defer p.timeIt.stop("build", msgID)
 
 	msgBuilder := pkgMessage.NewBuilder(p.client(), msg)
 	msgBuilder.EncryptedToHTML = false

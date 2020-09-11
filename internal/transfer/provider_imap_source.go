@@ -40,6 +40,9 @@ func (p *IMAPProvider) TransferTo(rules transferRules, progress *Progress, ch ch
 	log.Info("Started transfer from IMAP to channel")
 	defer log.Info("Finished transfer from IMAP to channel")
 
+	p.timeIt.clear()
+	defer p.timeIt.logResults()
+
 	imapMessageInfoMap := p.loadMessageInfoMap(rules, progress)
 
 	for rule := range rules.iterateActiveRules() {
@@ -78,6 +81,9 @@ func (p *IMAPProvider) loadMessageInfoMap(rules transferRules, progress *Progres
 }
 
 func (p *IMAPProvider) loadMessagesInfo(rule *Rule, progress *Progress, uidValidity, count uint32) map[string]imapMessageInfo {
+	p.timeIt.start("load", rule.SourceMailbox.Name)
+	defer p.timeIt.stop("load", rule.SourceMailbox.Name)
+
 	messagesInfo := map[string]imapMessageInfo{}
 
 	pageStart := uint32(1)
@@ -199,13 +205,18 @@ func (p *IMAPProvider) exportMessages(rule *Rule, progress *Progress, ch chan<- 
 		progress.messageExported(id, body, err)
 		if err == nil {
 			msg := p.exportMessage(rule, id, imapMessage, body)
+
+			p.timeIt.stop("fetch", rule.SourceMailbox.Name)
 			ch <- msg
+			p.timeIt.start("fetch", rule.SourceMailbox.Name)
 		}
 	}
 
+	p.timeIt.start("fetch", rule.SourceMailbox.Name)
 	progress.callWrap(func() error {
 		return p.uidFetch(rule.SourceMailbox.Name, seqSet, items, processMessageCallback)
 	})
+	p.timeIt.stop("fetch", rule.SourceMailbox.Name)
 }
 
 func (p *IMAPProvider) exportMessage(rule *Rule, id string, imapMessage *imap.Message, body []byte) Message {

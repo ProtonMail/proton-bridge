@@ -181,7 +181,10 @@ func (t *Transfer) Start() *Progress {
 	reportFile := newFileReport(t.logDir, t.id)
 	progress := newProgress(log, reportFile)
 
-	ch := make(chan Message)
+	// Small queue to prevent having idle source while target is blocked.
+	// E.g., when upload to PM is in progress, we can in meantime download
+	// the next batch from remote IMAP server.
+	ch := make(chan Message, 10)
 
 	go func() {
 		defer t.panicHandler.HandlePanic()

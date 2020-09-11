@@ -18,6 +18,7 @@
 package transfer
 
 import (
+	"fmt"
 	"io"
 	"time"
 
@@ -71,6 +72,10 @@ func (p *PMAPIProvider) tryReconnect() error {
 
 func (p *PMAPIProvider) listMessages(filter *pmapi.MessagesFilter) (messages []*pmapi.Message, count int, err error) {
 	err = p.ensureConnection(func() error {
+		key := fmt.Sprintf("%s_%d", filter.LabelID, filter.Page)
+		p.timeIt.start("listing", key)
+		defer p.timeIt.stop("listing", key)
+
 		messages, count, err = p.client().ListMessages(filter)
 		return err
 	})
@@ -79,30 +84,42 @@ func (p *PMAPIProvider) listMessages(filter *pmapi.MessagesFilter) (messages []*
 
 func (p *PMAPIProvider) getMessage(msgID string) (message *pmapi.Message, err error) {
 	err = p.ensureConnection(func() error {
+		p.timeIt.start("download", msgID)
+		defer p.timeIt.stop("download", msgID)
+
 		message, err = p.client().GetMessage(msgID)
 		return err
 	})
 	return
 }
 
-func (p *PMAPIProvider) importRequest(req []*pmapi.ImportMsgReq) (res []*pmapi.ImportMsgRes, err error) {
+func (p *PMAPIProvider) importRequest(msgSourceID string, req []*pmapi.ImportMsgReq) (res []*pmapi.ImportMsgRes, err error) {
 	err = p.ensureConnection(func() error {
+		p.timeIt.start("upload", msgSourceID)
+		defer p.timeIt.stop("upload", msgSourceID)
+
 		res, err = p.client().Import(req)
 		return err
 	})
 	return
 }
 
-func (p *PMAPIProvider) createDraft(message *pmapi.Message, parent string, action int) (draft *pmapi.Message, err error) {
+func (p *PMAPIProvider) createDraft(msgSourceID string, message *pmapi.Message, parent string, action int) (draft *pmapi.Message, err error) {
 	err = p.ensureConnection(func() error {
+		p.timeIt.start("upload", msgSourceID)
+		defer p.timeIt.stop("upload", msgSourceID)
+
 		draft, err = p.client().CreateDraft(message, parent, action)
 		return err
 	})
 	return
 }
 
-func (p *PMAPIProvider) createAttachment(att *pmapi.Attachment, r io.Reader, sig io.Reader) (created *pmapi.Attachment, err error) {
+func (p *PMAPIProvider) createAttachment(msgSourceID string, att *pmapi.Attachment, r io.Reader, sig io.Reader) (created *pmapi.Attachment, err error) {
 	err = p.ensureConnection(func() error {
+		p.timeIt.start("upload", msgSourceID)
+		defer p.timeIt.stop("upload", msgSourceID)
+
 		created, err = p.client().CreateAttachment(att, r, sig)
 		return err
 	})

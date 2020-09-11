@@ -62,11 +62,20 @@ func (p *Progress) update() {
 		return
 	}
 
-	// In case no one listens for an update, do not block the progress.
-	select {
-	case p.updateCh <- struct{}{}:
-	case <-time.After(100 * time.Millisecond):
-	}
+	// In case no one listens for an update, do not block the whole progress.
+	go func() {
+		defer func() {
+			// updateCh can be closed at the end of progress which is fine.
+			if r := recover(); r != nil {
+				log.WithField("r", r).Warn("Failed to send update")
+			}
+		}()
+
+		select {
+		case p.updateCh <- struct{}{}:
+		case <-time.After(5 * time.Millisecond):
+		}
+	}()
 }
 
 // finish should be called as the last call once everything is done.

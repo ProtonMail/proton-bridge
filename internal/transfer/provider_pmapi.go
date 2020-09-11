@@ -35,6 +35,8 @@ type PMAPIProvider struct {
 
 	importMsgReqMap  map[string]*pmapi.ImportMsgReq // Key is msg transfer ID.
 	importMsgReqSize int
+
+	timeIt *timeIt
 }
 
 // NewPMAPIProvider returns new PMAPIProvider.
@@ -47,6 +49,8 @@ func NewPMAPIProvider(config *pmapi.ClientConfig, clientManager ClientManager, u
 
 		importMsgReqMap:  map[string]*pmapi.ImportMsgReq{},
 		importMsgReqSize: 0,
+
+		timeIt: newTimeIt("pmapi"),
 	}
 
 	if addressID != "" {

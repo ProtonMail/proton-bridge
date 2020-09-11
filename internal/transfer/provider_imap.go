@@ -31,6 +31,8 @@ type IMAPProvider struct {
 	addr     string
 
 	client *imapClient.Client
+
+	timeIt *timeIt
 }
 
 // NewIMAPProvider returns new IMAPProvider.
@@ -39,6 +41,8 @@ func NewIMAPProvider(username, password, host, port string) (*IMAPProvider, erro
 		username: username,
 		password: password,
 		addr:     net.JoinHostPort(host, port),
+
+		timeIt: newTimeIt("imap"),
 	}
 
 	if err := p.auth(); err != nil {

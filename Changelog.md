@@ -7,6 +7,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 ### Added
 * GODT-682 Persistent anonymous API cookies for Import-Export.
 * GODT-357 Use go-message to make a better message parser.
+* GODT-720 Time measurement of progress for Import-Export.
 
 ### Changed
 * GODT-511 User agent format changed.
