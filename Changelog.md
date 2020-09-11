@@ -18,6 +18,9 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 
 
+### Fixed
+* Fix missing check for unencrypted recipients during sending.
+
 ## [IE 1.0.x] Congo (v1.0.0 live 2020-09-08)
 
 ### Added
