@@ -290,6 +290,9 @@ func (su *smtpUser) Send(from string, to []string, messageReader io.Reader) (err
 		}
 
 		sendPreferences, err := su.getSendPreferences(email, message.MIMEType, mailSettings)
+		if !sendPreferences.Encrypt {
+			containsUnencryptedRecipients = true
+		}
 		if err != nil {
 			return err
 		}
