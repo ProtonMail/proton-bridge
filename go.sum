@@ -3,8 +3,8 @@ github.com/0xAX/notificator v0.0.0-20191016112426-3962a5ea8da1/go.mod h1:NtXa9Ww
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/ProtonMail/bcrypt v0.0.0-20170924085257-7509ea014998 h1:YT2uVwQiRQZxCaaahwfcgTq2j3j66w00n/27gb/zubs=
 github.com/ProtonMail/bcrypt v0.0.0-20170924085257-7509ea014998/go.mod h1:HecWFHognK8GfRDGnFQbW/LiV7A3MX3gZVs45vk5h8I=
-github.com/ProtonMail/crypto v0.0.0-20200416114516-1fa7f403fb9c h1:DAvlgde2Stu18slmjwikiMPs/CKPV35wSvmJS34z0FU=
-github.com/ProtonMail/crypto v0.0.0-20200416114516-1fa7f403fb9c/go.mod h1:Pxr7w4gA2ikI4sWyYwEffm+oew1WAJHzG1SiDpQMkrI=
+github.com/ProtonMail/crypto v0.0.0-20200420072808-71bec3603bf3 h1:JW27/kGLQzeM1Fxg5YQhdkTEAU7HIAHMgSag35zVTnY=
+github.com/ProtonMail/crypto v0.0.0-20200420072808-71bec3603bf3/go.mod h1:Pxr7w4gA2ikI4sWyYwEffm+oew1WAJHzG1SiDpQMkrI=
 github.com/ProtonMail/docker-credential-helpers v1.1.0 h1:+kvUIpwWcbtP3WFv5sSvkFn/XLzSqPOB5AAthuk9xPk=
 github.com/ProtonMail/docker-credential-helpers v1.1.0/go.mod h1:mK0aBveCxhnQ756AmaTfXMZDeULvheYVhF/MWMErN5g=
 github.com/ProtonMail/go-appdir v1.1.0 h1:9hdNDlU9kTqRKVNzmoqah8qqrj5QZyLByQdwQNlFWig=
