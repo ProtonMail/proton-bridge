@@ -91,7 +91,6 @@ func Parse(r io.Reader, key, keyName string) (m *pmapi.Message, mimeBody, plainB
 func convertForeignEncodings(p *parser.Parser) error {
 	logrus.Debug("Converting foreign encodings")
 
-	// HELP: Is it correct to only do this to text types?
 	return p.NewWalker().
 		RegisterContentTypeHandler("text/html", func(p *parser.Part) error {
 			if err := p.ConvertToUTF8(); err != nil {
