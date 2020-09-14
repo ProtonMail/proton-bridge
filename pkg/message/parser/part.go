@@ -70,7 +70,7 @@ func (p *Part) AddChild(child *Part) {
 }
 
 func (p *Part) ConvertToUTF8() error {
-	logrus.Debug("Converting part to utf-8")
+	logrus.Trace("Converting part to utf-8")
 
 	t, params, err := p.Header.ContentType()
 	if err != nil {
@@ -130,24 +130,24 @@ func (p *Part) ConvertMetaCharset() error {
 
 func selectSuitableDecoder(p *Part, t string, params map[string]string) *encoding.Decoder {
 	if charset, ok := params["charset"]; ok {
-		logrus.WithField("charset", charset).Debug("The part has a specified charset")
+		logrus.WithField("charset", charset).Trace("The part has a specified charset")
 
 		if decoder, err := pmmime.SelectDecoder(charset); err == nil {
-			logrus.Debug("The charset is known; decoder has been selected")
+			logrus.Trace("The charset is known; decoder has been selected")
 			return decoder
 		}
 
-		logrus.Debug("The charset is unknown; no decoder could be selected")
+		logrus.Warn("The charset is unknown; no decoder could be selected")
 	}
 
 	if utf8.Valid(p.Body) {
-		logrus.Debug("The part is already valid utf-8, returning noop encoder")
+		logrus.Trace("The part is already valid utf-8, returning noop encoder")
 		return encoding.Nop.NewDecoder()
 	}
 
 	encoding, name, _ := charset.DetermineEncoding(p.Body, t)
 
-	logrus.WithField("name", name).Debug("Determined encoding by reading body")
+	logrus.WithField("name", name).Warn("Determined encoding by reading body")
 
 	return encoding.NewDecoder()
 }

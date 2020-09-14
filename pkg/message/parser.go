@@ -36,7 +36,7 @@ import (
 )
 
 func Parse(r io.Reader, key, keyName string) (m *pmapi.Message, mimeBody, plainBody string, attReaders []io.Reader, err error) {
-	logrus.Debug("Parsing message")
+	logrus.Trace("Parsing message")
 
 	p, err := parser.New(r)
 	if err != nil {
@@ -89,7 +89,7 @@ func Parse(r io.Reader, key, keyName string) (m *pmapi.Message, mimeBody, plainB
 }
 
 func convertForeignEncodings(p *parser.Parser) error {
-	logrus.Debug("Converting foreign encodings")
+	logrus.Trace("Converting foreign encodings")
 
 	return p.NewWalker().
 		RegisterContentTypeHandler("text/html", func(p *parser.Part) error {

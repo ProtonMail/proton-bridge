@@ -6,6 +6,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 ### Added
 * GODT-682 Persistent anonymous API cookies for Import-Export.
+* GODT-357 Use go-message to make a better message parser.
 
 ### Changed
 * GODT-511 User agent format changed.
@@ -67,8 +68,6 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
     * IE: Removed `onLoginFinished`
     * Structure for transfer rules in QML
 * GODT-213 Convert panics from message parser to error.
-
-* GODT-357 Use go-message to make a better message parser.
 
 ### Fixed
 * GODT-655 Fix date picker with automatic Windows DST
