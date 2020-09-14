@@ -434,3 +434,80 @@ func readerToString(r io.Reader) string {
 
 	return string(b)
 }
+
+func TestRFC822AddressFormat(t *testing.T) { //nolint[funlen]
+	tests := []struct {
+		address  string
+		expected []string
+	}{
+		{
+			" normal name  <username@server.com>",
+			[]string{
+				"\"normal name\" <username@server.com>",
+			},
+		},
+		{
+			" \"comma, name\"  <username@server.com>",
+			[]string{
+				"\"comma, name\" <username@server.com>",
+			},
+		},
+		{
+			" name  <username@server.com> (ignore comment)",
+			[]string{
+				"\"name\" <username@server.com>",
+			},
+		},
+		{
+			" name (ignore comment)  <username@server.com>,  (Comment as name) username2@server.com",
+			[]string{
+				"\"name\" <username@server.com>",
+				"<username2@server.com>",
+			},
+		},
+		{
+			" normal name  <username@server.com>, (comment)All.(around)address@(the)server.com",
+			[]string{
+				"\"normal name\" <username@server.com>",
+				"<All.address@server.com>",
+			},
+		},
+		{
+			" normal name  <username@server.com>, All.(\"comma, in comment\")address@(the)server.com",
+			[]string{
+				"\"normal name\" <username@server.com>",
+				"<All.address@server.com>",
+			},
+		},
+		{
+			" \"normal name\"  <username@server.com>, \"comma, name\" <address@server.com>",
+			[]string{
+				"\"normal name\" <username@server.com>",
+				"\"comma, name\" <address@server.com>",
+			},
+		},
+		{
+			" \"comma, one\"  <username@server.com>, \"comma, two\" <address@server.com>",
+			[]string{
+				"\"comma, one\" <username@server.com>",
+				"\"comma, two\" <address@server.com>",
+			},
+		},
+		{
+			" \"comma, name\"  <username@server.com>, another, name <address@server.com>",
+			[]string{
+				"\"comma, name\" <username@server.com>",
+				"\"another, name\" <address@server.com>",
+			},
+		},
+	}
+
+	for _, data := range tests {
+		result, err := parseAddressList(data.address)
+		assert.NoError(t, err)
+		assert.Len(t, result, len(data.expected))
+		for i, result := range result {
+			assert.Equal(t, data.expected[i], result.String())
+		}
+	}
+}

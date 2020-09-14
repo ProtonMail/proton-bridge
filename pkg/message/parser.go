@@ -375,35 +375,37 @@ func parseMessageHeader(m *pmapi.Message, h message.Header) error { // nolint[fu
 			m.Subject = val
 
 		case "from":
-			sender, err := mail.ParseAddress(val)
+			sender, err := parseAddressList(val)
 			if err != nil {
 				return err
 			}
-			m.Sender = sender
+			if len(sender) > 0 {
+				m.Sender = sender[0]
+			}
 
 		case "to":
-			toList, err := mail.ParseAddressList(val)
+			toList, err := parseAddressList(val)
 			if err != nil {
 				return err
 			}
 			m.ToList = toList
 
 		case "reply-to":
-			replyTos, err := mail.ParseAddressList(val)
+			replyTos, err := parseAddressList(val)
 			if err != nil {
 				return err
 			}
 			m.ReplyTos = replyTos
 
 		case "cc":
-			ccList, err := mail.ParseAddressList(val)
+			ccList, err := parseAddressList(val)
 			if err != nil {
 				return err
 			}
 			m.CCList = ccList
 
 		case "bcc":
-			bccList, err := mail.ParseAddressList(val)
+			bccList, err := parseAddressList(val)
 			if err != nil {
 				return err
 			}
