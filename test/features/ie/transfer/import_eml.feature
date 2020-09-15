@@ -49,7 +49,7 @@ Feature: Import from EML files
   Scenario: Import broken EML message
     Given there is EML file "Broken/broken.eml"
       """
-      Content-type: image/png
+      Content-type: multipart/mixed
       """
     When user "user" imports local files with rules
       | source | target |

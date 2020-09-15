@@ -53,7 +53,7 @@ Feature: Import from MBOX files
     Given there is MBOX file "Broken.mbox"
       """
       From bridgetest@pm.test Thu Feb 20 20:20:20 2020
-      Content-type: image/png
+      Content-type: multipart/mixed
       """
     When user "user" imports local files with rules
       | source | target |
