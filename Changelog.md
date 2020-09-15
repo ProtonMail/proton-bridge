@@ -15,11 +15,9 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 ### Fixed
 * GODT-698 Use correct package type for signed PGP/Inline messages.
-
-
-
-### Fixed
+* Generic bug report window title.
 * Fix missing check for unencrypted recipients during sending.
+
 
 ## [IE 1.0.x] Congo (v1.0.0 live 2020-09-08)
 

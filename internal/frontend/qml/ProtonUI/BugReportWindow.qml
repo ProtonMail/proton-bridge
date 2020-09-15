@@ -39,7 +39,7 @@ Window {
 
     color   : "transparent"
     flags   : Qt.Window | Qt.Dialog | Qt.FramelessWindowHint
-    title   : "ProtonMail Bridge - Bug report"
+    title   : "Bug report"
     visible : false
 
     WindowTitleBar {
