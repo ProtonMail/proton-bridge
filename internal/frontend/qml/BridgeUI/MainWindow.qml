@@ -354,7 +354,7 @@ Window {
                 } else {
                     return qsTr('A new version of Bridge is available.<br>
                     Check <a href="%1">release notes</a> to learn what is new in %2.<br>
-                    You can continue with the update or download and install new version manually from<br><br>
+                    You can continue with the update or download and install the new version manually from<br><br>
                     <a href="%3">%3</a>',
                     "Message for update in Win/Mac").arg("releaseNotes").arg(go.newversion).arg(go.landingPage)
                 }

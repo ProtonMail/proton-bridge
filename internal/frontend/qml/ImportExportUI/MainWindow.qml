@@ -274,15 +274,15 @@ Window {
                 }
             } else {
                 if (go.goos=="linux") {
-                    return qsTr('New version of %1 is available.<br>
+                    return qsTr('A new version of %1 is available.<br>
                     Check <a href="%2">release notes</a> to learn what is new in %3.<br>
-                    Use your package manager to update or download and install new version manually from<br><br>
+                    Use your package manager to update or download and install new the version manually from<br><br>
                     <a href="%4">%4</a>',
                     "Message for update in Linux").arg(go.programTitle).arg("releaseNotes").arg(go.newversion).arg(go.landingPage)
                 } else {
-                    return qsTr('New version of %1 is available.<br>
+                    return qsTr('A new version of %1 is available.<br>
                     Check <a href="%2">release notes</a> to learn what is new in %3.<br>
-                    You can continue with update or download and install new version manually from<br><br>
+                    You can continue with update or download and install new the version manually from<br><br>
                     <a href="%4">%4</a>',
                     "Message for update in Win/Mac").arg(go.programTitle).arg("releaseNotes").arg(go.newversion).arg(go.landingPage)
                 }
