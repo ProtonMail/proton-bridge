@@ -20,10 +20,9 @@ package fakeapi
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
-	"net/mail"
 	"time"
 
+	"github.com/ProtonMail/proton-bridge/pkg/message"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	"github.com/pkg/errors"
 )
@@ -212,33 +211,23 @@ func (api *FakePMAPI) Import(importMessageRequests []*pmapi.ImportMsgReq) ([]*pm
 }
 
 func (api *FakePMAPI) generateMessageFromImportRequest(msgReq *pmapi.ImportMsgReq) (*pmapi.Message, error) {
-	mailMessage, err := mail.ReadMessage(bytes.NewBuffer(msgReq.Body))
+	m, _, _, _, err := message.Parse(bytes.NewReader(msgReq.Body), "", "")
 	if err != nil {
 		return nil, err
 	}
-	body, err := ioutil.ReadAll(mailMessage.Body)
-	if err != nil {
-		return nil, err
-	}
-	sender, err := mail.ParseAddress(mailMessage.Header.Get("From"))
-	if err != nil {
-		return nil, err
-	}
-	toList, err := mail.ParseAddressList(mailMessage.Header.Get("To"))
-	if err != nil {
-		return nil, err
-	}
+
 	messageID := api.controller.messageIDGenerator.next("")
+
 	return &pmapi.Message{
 		ID:        messageID,
 		AddressID: msgReq.AddressID,
-		Sender:    sender,
-		ToList:    toList,
-		Subject:   mailMessage.Header.Get("Subject"),
+		Sender:    m.Sender,
+		ToList:    m.ToList,
+		Subject:   m.Subject,
 		Unread:    msgReq.Unread,
 		LabelIDs:  append(msgReq.LabelIDs, pmapi.AllMailLabel),
-		Body:      string(body),
-		Header:    mailMessage.Header,
+		Body:      m.Body,
+		Header:    m.Header,
 		Flags:     msgReq.Flags,
 		Time:      msgReq.Time,
 	}, nil

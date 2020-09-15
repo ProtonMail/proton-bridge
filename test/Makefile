@@ -47,6 +47,12 @@ test-debug:
 test-live-debug:
 	TEST_ENV=live dlv test -- $(FEATURES)
 
+test-ie-debug:
+	TEST_APP=ie TEST_ENV=fake TEST_ACCOUNTS=accounts/fake.json dlv test -- $(FEATURES)
+
+test-live-ie-debug:
+	TEST_APP=ie TEST_ENV=live dlv test -- $(FEATURES)
+
 # -run flag is not working anyway, but lets keep it there to note we really do not want to run tests.
 # To properly benchmark sync/fetch, we need everything empty. For that is better to start everything
 # again and safest way is to run only one loop per run.
