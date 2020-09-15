@@ -46,7 +46,6 @@ require (
 	github.com/golang/mock v1.4.4
 	github.com/google/go-cmp v0.5.1
 	github.com/google/uuid v1.1.1
-	github.com/go-delve/delve v1.4.1 // indirect
 	github.com/gopherjs/gopherjs v0.0.0-20190430165422-3e4dfb77656c // indirect
 	github.com/hashicorp/go-multierror v1.1.0
 	github.com/jaytaylor/html2text v0.0.0-20200412013138-3577fbdbcff7
@@ -60,13 +59,10 @@ require (
 	github.com/nsf/jsondiff v0.0.0-20200515183724-f29ed568f4ce
 	github.com/olekukonko/tablewriter v0.0.4 // indirect
 	github.com/pkg/errors v0.9.1
-	github.com/psampaz/go-mod-outdated v0.6.0 // indirect
 	github.com/sirupsen/logrus v1.6.0
 	github.com/skratchdot/open-golang v0.0.0-20200116055534-eef842397966
 	github.com/stretchr/testify v1.6.1
 	github.com/therecipe/qt v0.0.0-20200701200531-7f61353ee73e
-	github.com/therecipe/qt/internal/binding/files/docs/5.12.0 v0.0.0-20200603231648-26cdb75b6f22 // indirect
-	github.com/therecipe/qt/internal/binding/files/docs/5.13.0 v0.0.0-20200603231648-26cdb75b6f22 // indirect
 	github.com/twinj/uuid v1.0.0 // indirect
 	github.com/urfave/cli v1.22.4
 	go.etcd.io/bbolt v1.3.5
