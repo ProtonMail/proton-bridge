@@ -99,7 +99,10 @@ func (p *MBOXProvider) updateCount(rule *Rule, progress *Progress, filePath stri
 	count := 0
 	for {
 		_, err := mboxReader.NextMessage()
-		if err != nil {
+		if err == io.EOF {
+			break
+		} else if err != nil {
+			progress.fatal(err)
 			break
 		}
 		count++

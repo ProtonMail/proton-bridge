@@ -11,6 +11,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 ### Changed
 * GODT-511 User agent format changed.
+* Unsilent errors reading mbox files.
 
 ### Removed
 * GODT-519 Unused AUTH scope parsing methods.
