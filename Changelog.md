@@ -14,6 +14,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * Unsilent errors reading mbox files.
 * GODT-692 QA build with option to change API URL by ENV variable.
 * GODT-704 User agent detected by fake IMAP extension instead of AUTH callback (some clients use LOGIN instead of AUTH).
+* GODT-695 Parallel upload for ProtonMail target.
 
 ### Removed
 * GODT-519 Unused AUTH scope parsing methods.
