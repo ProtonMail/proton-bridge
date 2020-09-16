@@ -33,8 +33,8 @@ type PMAPIProvider struct {
 	addressID     string
 	keyRing       *crypto.KeyRing
 
-	importMsgReqMap  map[string]*pmapi.ImportMsgReq // Key is msg transfer ID.
-	importMsgReqSize int
+	nextImportRequests     map[string]*pmapi.ImportMsgReq // Key is msg transfer ID.
+	nextImportRequestsSize int
 
 	timeIt *timeIt
 }
@@ -47,8 +47,8 @@ func NewPMAPIProvider(config *pmapi.ClientConfig, clientManager ClientManager, u
 		userID:        userID,
 		addressID:     addressID,
 
-		importMsgReqMap:  map[string]*pmapi.ImportMsgReq{},
-		importMsgReqSize: 0,
+		nextImportRequests:     map[string]*pmapi.ImportMsgReq{},
+		nextImportRequestsSize: 0,
 
 		timeIt: newTimeIt("pmapi"),
 	}
