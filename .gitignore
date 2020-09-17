@@ -29,6 +29,7 @@ frontend/qml/*.qmlc
 # Build files
 bridge_darwin_*.tgz
 cmd/Desktop-Bridge/deploy
+cmd/Import-Export/deploy
 internal/frontend/qt*/moc.cpp
 internal/frontend/qt*/moc.go
 internal/frontend/qt*/moc.h
