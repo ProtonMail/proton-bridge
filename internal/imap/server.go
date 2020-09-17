@@ -28,7 +28,7 @@ import (
 	imapid "github.com/ProtonMail/go-imap-id"
 	"github.com/ProtonMail/proton-bridge/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/internal/events"
-	"github.com/ProtonMail/proton-bridge/internal/imap/currentclient"
+	"github.com/ProtonMail/proton-bridge/internal/imap/id"
 	"github.com/ProtonMail/proton-bridge/internal/imap/uidplus"
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
 	"github.com/emersion/go-imap"
@@ -61,7 +61,7 @@ func NewIMAPServer(debugClient, debugServer bool, port int, tls *tls.Config, ima
 	s.UpgradeError = imapBackend.upgradeError
 
 	serverID := imapid.ID{
-		imapid.FieldName:       "ProtonMail",
+		imapid.FieldName:       "ProtonMail Bridge",
 		imapid.FieldVendor:     "Proton Technologies AG",
 		imapid.FieldSupportURL: "https://protonmail.com/support",
 	}
@@ -84,11 +84,10 @@ func NewIMAPServer(debugClient, debugServer bool, port int, tls *tls.Config, ima
 		imapidle.NewExtension(),
 		imapmove.NewExtension(),
 		imapspecialuse.NewExtension(),
-		imapid.NewExtension(serverID),
+		id.NewExtension(serverID, imapBackend.bridge),
 		imapquota.NewExtension(),
 		imapappendlimit.NewExtension(),
 		imapunselect.NewExtension(),
-		currentclient.NewExtension(imapBackend.bridge),
 		uidplus.NewExtension(),
 	)
 
