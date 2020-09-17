@@ -23,35 +23,21 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGetMacVersion(t *testing.T) {
-	testData := map[string]struct{ major, minor, tiny int }{
-		"10.14.4":     {10, 14, 4},
-		"10.14.4\r\n": {10, 14, 4},
-		"10.14.0":     {10, 14, 0},
-		"10.14":       {10, 14, 0},
-		"10":          {10, 0, 0},
-	}
-
-	for arg, exp := range testData {
-		gotMajor, gotMinor, gotTiny := parseMacVersion(arg)
-		assert.Equal(t, exp.major, gotMajor, "arg %q", arg)
-		assert.Equal(t, exp.minor, gotMinor, "arg %q", arg)
-		assert.Equal(t, exp.tiny, gotTiny, "arg %q", arg)
-	}
-}
-
 func TestIsVersionCatalinaOrNewer(t *testing.T) {
-	testData := map[struct{ major, minor int }]bool{
-		{9, 0}:   false,
-		{9, 15}:  false,
-		{10, 13}: false,
-		{10, 14}: false,
-		{10, 15}: true,
-		{10, 16}: true,
+	testData := map[struct{ version string }]bool{
+		{""}:         false,
+		{"9.0.0"}:    false,
+		{"9.15.0"}:   false,
+		{"10.13.0"}:  false,
+		{"10.14.0"}:  false,
+		{"10.14.99"}: false,
+		{"10.15.0"}:  true,
+		{"10.16.0"}:  true,
+		{"11.0.0"}:   true,
 	}
 
 	for args, exp := range testData {
-		got := isVersionCatalinaOrNewer(args.major, args.minor)
-		assert.Equal(t, exp, got, "version %q.%q", args.major, args.minor)
+		got := isVersionCatalinaOrNewer(args.version)
+		assert.Equal(t, exp, got, "version %v", args.version)
 	}
 }

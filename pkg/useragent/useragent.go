@@ -18,40 +18,35 @@
 package useragent
 
 import (
-	"fmt"
 	"os/exec"
 	"runtime"
+
+	"github.com/Masterminds/semver/v3"
 )
 
-// IsCatalinaOrNewer checks that host is MacOS Catalina 10.14.xx or higher.
+// IsCatalinaOrNewer checks that host is MacOS Catalina 10.15.x or higher.
 func IsCatalinaOrNewer() bool {
 	if runtime.GOOS != "darwin" {
 		return false
 	}
-	major, minor, _ := getMacVersion()
-	return isVersionCatalinaOrNewer(major, minor)
+	return isVersionCatalinaOrNewer(getMacVersion())
 }
 
-func getMacVersion() (major, minor, tiny int) {
-	major, minor, tiny = 10, 0, 0
+func getMacVersion() string {
 	out, err := exec.Command("sw_vers", "-productVersion").Output()
 	if err != nil {
-		return
+		return ""
 	}
-	return parseMacVersion(string(out))
+
+	return string(out)
 }
 
-func parseMacVersion(version string) (major, minor, tiny int) {
-	_, _ = fmt.Sscanf(version, "%d.%d.%d", &major, &minor, &tiny)
-	return
-}
+func isVersionCatalinaOrNewer(version string) bool {
+	v, err := semver.StrictNewVersion(version)
+	if err != nil {
+		return false
+	}
 
-func isVersionCatalinaOrNewer(major, minor int) bool {
-	if major != 10 {
-		return false
-	}
-	if minor < 15 {
-		return false
-	}
-	return true
+	catalina := semver.MustParse("10.15.0")
+	return v.GreaterThan(catalina) || v.Equal(catalina)
 }

@@ -1,6 +1,9 @@
 github.com/0xAX/notificator v0.0.0-20191016112426-3962a5ea8da1 h1:j9HaafapDbPbGRDku6e/HRs6KBMcKHiWcm1/9Sbxnl4=
 github.com/0xAX/notificator v0.0.0-20191016112426-3962a5ea8da1/go.mod h1:NtXa9WwQsukMHZpjNakTTz0LArxvGYdPA9CjIcUSZ6s=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
+github.com/Masterminds/semver v1.5.0 h1:H65muMkzWKEuNDnfl9d70GUjFniHKHRbFPGBuZ3QEww=
+github.com/Masterminds/semver/v3 v3.1.0 h1:Y2lUDsFKVRSYGojLJ1yLxSXdMmMYTYls0rCvoqmMUQk=
+github.com/Masterminds/semver/v3 v3.1.0/go.mod h1:VPu/7SZ7ePZ3QOrcuXROw5FAcLl4a0cBrbBpGY/8hQs=
 github.com/ProtonMail/bcrypt v0.0.0-20170924085257-7509ea014998 h1:YT2uVwQiRQZxCaaahwfcgTq2j3j66w00n/27gb/zubs=
 github.com/ProtonMail/bcrypt v0.0.0-20170924085257-7509ea014998/go.mod h1:HecWFHognK8GfRDGnFQbW/LiV7A3MX3gZVs45vk5h8I=
 github.com/ProtonMail/crypto v0.0.0-20200416114516-1fa7f403fb9c h1:DAvlgde2Stu18slmjwikiMPs/CKPV35wSvmJS34z0FU=
