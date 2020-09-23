@@ -24,6 +24,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * Generic bug report window title.
 * Fix missing check for unencrypted recipients during sending.
 * Version checking for catalina.
+* GODT-703 Import-Export showed always at least one total message.
 
 
 ## [IE 1.0.x] Congo (v1.0.0 live 2020-09-08)

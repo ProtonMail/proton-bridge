@@ -338,9 +338,7 @@ func (f *FrontendQt) setProgressManager(progress *transfer.Progress) {
 				break
 			}
 			failed, imported, _, _, total := progress.GetCounts()
-			if total != 0 {
-				f.Qml.SetTotal(int(total))
-			}
+			f.Qml.SetTotal(int(total))
 			f.Qml.SetProgressFails(int(failed))
 			f.Qml.SetProgressDescription(progress.PauseReason())
 			if total > 0 {
