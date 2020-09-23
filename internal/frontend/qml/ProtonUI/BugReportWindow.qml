@@ -84,7 +84,7 @@ Window {
             height: content.height - (
                 (clientVersion.visible ?  clientVersion.height + Style.dialog.fontSize : 0) +
                 userAddress.height  + Style.dialog.fontSize +
-                securityNote.contentHeight + Style.dialog.fontSize +
+                securityNoteText.contentHeight + Style.dialog.fontSize +
                 cancelButton.height + Style.dialog.fontSize
             )
             clip: true
@@ -215,7 +215,7 @@ Window {
         }
 
         // Note
-        AccessibleText {
+        Row {
             id: securityNote
             anchors {
                 left: parent.left
@@ -223,14 +223,32 @@ Window {
                 top: userAddress.bottom
                 topMargin: Style.dialog.fontSize
             }
-            wrapMode: Text.Wrap
-            color: Style.dialog.text
-            font.pointSize : Style.dialog.fontSize * Style.pt
-            text:
-            "<span style='font-family: " + Style.fontawesome.name + "'>" + Style.fa.exclamation_triangle + "</span> " +
-            qsTr("Bug reports are not end-to-end encrypted!", "The first part of warning in bug report form") + " " +
-            qsTr("Please do not send any sensitive information.", "The second part of warning in bug report form") + " " +
-            qsTr("Contact us at security@protonmail.com for critical security issues.", "The third part of warning in bug report form")
+
+            Text {
+                id: securityNoteIcon
+                font {
+                    pointSize : Style.dialog.fontSize * Style.pt
+                    family    : Style.fontawesome.name
+                }
+                color: Style.dialog.text
+                text  : Style.fa.exclamation_triangle
+            }
+
+            AccessibleText {
+                id: securityNoteText
+                anchors {
+                    left: securityNoteIcon.right
+                    leftMargin: 5 * Style.pt
+                    right: parent.right
+                }
+                wrapMode: Text.Wrap
+                color: Style.dialog.text
+                font.pointSize : Style.dialog.fontSize * Style.pt
+                text:
+                qsTr("Bug reports are not end-to-end encrypted!", "The first part of warning in bug report form") + " " +
+                qsTr("Please do not send any sensitive information.", "The second part of warning in bug report form") + " " +
+                qsTr("Contact us at security@protonmail.com for critical security issues.", "The third part of warning in bug report form")
+            }
         }
 
         // buttons

@@ -483,18 +483,30 @@ Dialog {
                 }
             }
 
-            Text {
+            Row {
                 property int fails: go.progressFails
                 visible: fails > 0
-                color : Style.main.textRed
-                font.family: Style.fontawesome.name
-                font.pointSize: Style.main.fontSize * Style.pt
                 anchors.horizontalCenter: parent.horizontalCenter
-                text: Style.fa.exclamation_circle + " " + (
-                    fails == 1 ?
-                    qsTr("%1 message failed to be imported").arg(fails) :
-                    qsTr("%1 messages failed to be imported").arg(fails)
-                )
+
+                Text {
+                    color: Style.main.textRed
+                    font {
+                        pointSize : Style.dialog.fontSize * Style.pt
+                        family    : Style.fontawesome.name
+                    }
+                    text: Style.fa.exclamation_circle
+                }
+
+                Text {
+                    property int fails: go.progressFails
+                    color: Style.main.textRed
+                    font.pointSize: Style.main.fontSize * Style.pt
+                    text: " " + (
+                        fails == 1 ?
+                        qsTr("%1 message failed to be imported").arg(fails) :
+                        qsTr("%1 messages failed to be imported").arg(fails)
+                    )
+                }
             }
 
             Row { // buttons
@@ -575,12 +587,23 @@ Dialog {
             anchors.centerIn : finalReport
             spacing          : Style.dialog.heightSeparator
 
-            Text {
-                text: go.progressDescription!="" ? qsTr("Import failed: %1").arg(go.progressDescription) : Style.fa.check_circle + " " + qsTr("Import completed successfully")
+            Row {
                 anchors.horizontalCenter: parent.horizontalCenter
-                color: go.progressDescription!="" ? Style.main.textRed : Style.main.textGreen
-                font.bold : true
-                font.family: Style.fontawesome.name
+
+                Text {
+                    font {
+                        pointSize: Style.dialog.fontSize * Style.pt
+                        family: Style.fontawesome.name
+                    }
+                    color: Style.main.textGreen
+                    text: go.progressDescription!="" ? "" : Style.fa.check_circle
+                }
+
+                Text {
+                    text: go.progressDescription!="" ? qsTr("Import failed: %1").arg(go.progressDescription) : " " + qsTr("Import completed successfully")
+                    color: go.progressDescription!="" ? Style.main.textRed : Style.main.textGreen
+                    font.bold : true
+                }
             }
 
             Text {

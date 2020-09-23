@@ -44,6 +44,7 @@ Item {
                     text : qsTr("Clear")
                     color: Style.main.text
                     font {
+                        family : cacheKeychain.font.family // use default font, not font-awesome
                         pointSize : Style.settings.fontSize * Style.pt
                         underline : true
                     }

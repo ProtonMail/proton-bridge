@@ -74,7 +74,7 @@ Item {
                 )
                 width: wrapper.width
                 color : Style.transparent
-                Text {
+                AccessibleText {
                     id: aboutText
                     anchors {
                         bottom: parent.bottom
@@ -82,8 +82,8 @@ Item {
                     }
                     color: Style.main.textDisabled
                     horizontalAlignment: Qt.AlignHCenter
-                    font.family : Style.fontawesome.name
-                    text: "ProtonMail Import-Export app Version "+go.getBackendVersion()+"\n"+Style.fa.copyright + " 2020 Proton Technologies AG"
+                    font.pointSize :  Style.main.fontSize * Style.pt
+                    text: "ProtonMail Import-Export app Version "+go.getBackendVersion()+"\n© 2020 Proton Technologies AG"
                 }
             }
 

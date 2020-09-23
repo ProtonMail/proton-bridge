@@ -24,6 +24,8 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 ### Fixed
 * GODT-703 Import-Export showed always at least one total message.
 * GODT-738 Fix for mbox files with long lines.
+### Fixed
+* GODT-732 Do not mix font awesome icon with regular text to avoid issues on Fedora.
 
 ## [Bridge 1.4.0] Forth
 

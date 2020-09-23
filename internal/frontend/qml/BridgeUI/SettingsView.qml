@@ -48,6 +48,7 @@ Item {
                     text : qsTr("Clear", "clickable link next to clear cache button in settings")
                     color: Style.main.text
                     font {
+                        family : cacheClear.font.family // use default font, not font-awesome
                         pointSize : Style.settings.fontSize * Style.pt
                         underline : true
                     }
@@ -66,6 +67,7 @@ Item {
                     text : qsTr("Clear", "clickable link next to clear keychain button in settings")
                     color: Style.main.text
                     font {
+                        family : cacheKeychain.font.family // use default font, not font-awesome
                         pointSize : Style.settings.fontSize * Style.pt
                         underline : true
                     }
@@ -125,6 +127,7 @@ Item {
                     text : qsTr("Change", "clickable link next to change ports button in settings")
                     color: Style.main.text
                     font {
+                        family : changePort.font.family // use default font, not font-awesome
                         pointSize : Style.settings.fontSize * Style.pt
                         underline : true
                     }

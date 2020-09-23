@@ -42,34 +42,50 @@ ComboBox {
         root.below = popup.y>0
     }
 
-    contentItem : Text {
+    contentItem : Row {
         id: boxText
-        verticalAlignment: Text.AlignVCenter
-        font {
-            family: Style.fontawesome.name
-            pointSize : Style.dialog.fontSize * Style.pt
-            bold: root.down
-        }
-        elide: Text.ElideRight
-        textFormat: Text.StyledText
 
-        text : root.displayText
-        color: !root.enabled ? Style.main.textDisabled : ( root.down ? Style.main.background : Style.main.text )
+        Text {
+            anchors.verticalCenter: parent.verticalCenter
+            font {
+                pointSize: Style.dialog.fontSize * Style.pt
+                family: Style.fontawesome.name
+            }
+            text: {
+                if (view.currentIndex >= 0) {
+                    if (!root.isFolderType) {
+                        return Style.fa.tags + " "
+                    }
+                    var tgtIcon = view.currentItem.folderIcon
+                    var tgtColor = view.currentItem.folderColor
+                    if (tgtIcon != Style.fa.folder_open) {
+                        return tgtIcon + " "
+                    }
+                    return '<font color="'+tgtColor+'">'+ tgtIcon + "</font> "
+                }
+                return ""
+            }
+            color: !root.enabled ? Style.main.textDisabled : ( root.down ? Style.main.background : Style.main.text )
+        }
+
+        Text {
+            anchors.verticalCenter: parent.verticalCenter
+            font {
+                pointSize : Style.dialog.fontSize * Style.pt
+                bold: root.down
+            }
+            elide: Text.ElideRight
+            textFormat: Text.StyledText
+
+            text : root.displayText
+            color: !root.enabled ? Style.main.textDisabled : ( root.down ? Style.main.background : Style.main.text )
+        }
     }
 
     displayText: {
         if (view.currentIndex >= 0) {
-            if (!root.isFolderType) return Style.fa.tags + " " + qsTr("Add/Remove labels")
-
-            var tgtName = view.currentItem.folderName
-            var tgtIcon = view.currentItem.folderIcon
-            var tgtColor = view.currentItem.folderColor
-
-            if (tgtIcon != Style.fa.folder_open) {
-                return tgtIcon + " " + tgtName
-            }
-
-            return '<font color="'+tgtColor+'">'+ tgtIcon + "</font> " + tgtName
+            if (!root.isFolderType) return qsTr("Add/Remove labels")
+            return view.currentItem.folderName
         }
         if (root.isFolderType) return qsTr("No folder selected")
         return qsTr("No labels selected")
