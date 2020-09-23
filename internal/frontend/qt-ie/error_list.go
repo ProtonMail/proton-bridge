@@ -72,6 +72,9 @@ func (e *ErrorListModel) data(index *core.QModelIndex, role int) *core.QVariant 
 	case MailSubject:
 		return qtcommon.NewQVariantString(r.Subject)
 	case MailDate:
+		if r.Time.IsZero() {
+			return qtcommon.NewQVariantString("Unavailable")
+		}
 		return qtcommon.NewQVariantString(r.Time.String())
 	case MailFrom:
 		return qtcommon.NewQVariantString(r.From)

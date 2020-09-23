@@ -25,6 +25,8 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 ### Changed
 * Bump crypto version to v0.0.0-20200818122824-ed5d25e28db8
 * GODT-785 Clear separation of different message IDs in integration tests.
+### Changed
+* GODT-741 Import-Export shows "Unable to parse time" notice instead of zero time in error report window.
 
 * Bump crypto version to v0.0.0-20200818122824-ed5d25e28db8.
 * GODT-374 Allow to send calendar update multiple times.
