@@ -1,5 +1,5 @@
-***Note: If you were using the Import-Export app before, you need to uninstall the older version and log in again to the new version***
-
-• Complete code refactor in preparation of stable and open source release of the Import-Export app
-• Increased number of supported mail providers by changing the way the folder structures are handled (NIL hierarchy delimiter)
-• Improved handling for unstable internet and pause and resume behavior
+• Speed up import by implementing parallel processing (parallel fetch, encrypt and upload of messages)
+• Optimising the initial fetch of messages from external accounts
+• Better handling of attachments and non-standard formatting
+• Improved stability of the message parser
+• Added persistent anonymous API cookies

@@ -4,6 +4,12 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 ## Unreleased
 
+## [IE 1.1.x] Danube (v1.1.0 beta 2020-09-XX)
+
+### Fixed
+* GODT-703 Import-Export showed always at least one total message.
+* GODT-738 Fix for mbox files with long lines.
+
 ## [Bridge 1.4.x] Forth (v1.4.0 beta 2020-09-XX)
 
 ### Added
@@ -26,14 +32,10 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * Generic bug report window title.
 * Fix missing check for unencrypted recipients during sending.
 * Version checking for catalina.
-* GODT-703 Import-Export showed always at least one total message.
+* GODT-730 Limit maximal TLS version for Yahoo IMAP server.
 
 
 ## [IE 1.0.x] Congo (v1.0.0 live 2020-09-08)
-### Fixed
-* GODT-730 Limit maximal TLS version for Yahoo IMAP server
-
-## [IE 0.2.x] Congo
 
 ### Added
 * GODT-633 Persistent anonymous API cookies for better load balancing and abuse detection. 

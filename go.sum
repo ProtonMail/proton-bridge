@@ -28,6 +28,8 @@ github.com/ProtonMail/go-vcard v0.0.0-20180326232728-33aaa0a0c8a5 h1:Uga1DHFN4GU
 github.com/ProtonMail/go-vcard v0.0.0-20180326232728-33aaa0a0c8a5/go.mod h1:oeP9CMN+ajWp5jKp1kue5daJNwMMxLF+ujPaUIoJWlA=
 github.com/ProtonMail/gopenpgp/v2 v2.0.1 h1:x0uvDhry5WzoHeJO4J3dgMLhG4Z9PeBJ2O+sDOY0LcU=
 github.com/ProtonMail/gopenpgp/v2 v2.0.1/go.mod h1:wQQCJo7DURO6S9VwH+kSDEYs/B63yZnAEfGlOg8YNBY=
+github.com/ProtonMail/mbox v0.0.0-20200918064939-909a18c9af45 h1:GDh55hDI2sNiirDqEWV8b6EB729u78Qxu3nKF970n6g=
+github.com/ProtonMail/mbox v0.0.0-20200918064939-909a18c9af45/go.mod h1:Yp9IVuuOYLEuMv4yjgDHvhb5mHOcYH6x92Oas3QqEZI=
 github.com/PuerkitoBio/goquery v1.5.1 h1:PSPBGne8NIUWw+/7vFBV+kG2J/5MOjbzc7154OaKCSE=
 github.com/PuerkitoBio/goquery v1.5.1/go.mod h1:GsLWisAFVj4WgDibEWF4pvYnkVQBpKBKeU+7zCJoLcc=
 github.com/abiosoft/ishell v2.0.0+incompatible h1:zpwIuEHc37EzrsIYah3cpevrIc8Oma7oZPxr03tlmmw=
