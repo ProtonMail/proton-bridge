@@ -5,7 +5,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 ## Unreleased
 
 ### Fixed
-* GODT-752 Parsing message with empty CC.
+* GODT-752 Parsing message with empty addresses.
 * GODT-752 Parsing non-utf8 multipart/alternative message.
 * GODT-752 Parsing message with duplicate charset parameter.
 

@@ -152,7 +152,7 @@ func parseAddressComment(raw string) string {
 }
 
 func parseAddressList(val string) (addrs []*mail.Address, err error) {
-	if val == "" {
+	if val == "" || val == "<>" {
 		return
 	}
 
