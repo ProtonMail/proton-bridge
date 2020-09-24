@@ -4,18 +4,20 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 ## Unreleased
 
+## [IE 1.1.1] Danube (beta 2020-09-xx) [Bridge 1.4.1] Forth (beta 2020-09-xx)
+
 ### Fixed
 * GODT-752 Parsing message with empty addresses.
 * GODT-752 Parsing non-utf8 multipart/alternative message.
 * GODT-752 Parsing message with duplicate charset parameter.
 
-## [IE 1.1.x] Danube (v1.1.0 beta 2020-09-XX)
+## [IE 1.1.0] Danube
 
 ### Fixed
 * GODT-703 Import-Export showed always at least one total message.
 * GODT-738 Fix for mbox files with long lines.
 
-## [Bridge 1.4.x] Forth (v1.4.0 beta 2020-09-XX)
+## [Bridge 1.4.0] Forth
 
 ### Added
 * GODT-682 Persistent anonymous API cookies for Import-Export.

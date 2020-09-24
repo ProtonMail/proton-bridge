@@ -114,7 +114,7 @@ func (p *Part) ConvertMetaCharset() error {
 
 	goquery.NewDocumentFromNode(doc).Find("meta").Each(func(n int, sel *goquery.Selection) {
 		if val, ok := sel.Attr("content"); ok {
-			t, params, err := mime.ParseMediaType(val)
+			t, params, err := pmmime.ParseMediaType(val)
 			if err != nil {
 				return
 			}
