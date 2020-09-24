@@ -17,7 +17,9 @@
 
 package parser
 
-import "regexp"
+import (
+	"regexp"
+)
 
 type HandlerFunc func(*Part) error
 
@@ -35,7 +37,7 @@ func (h *handler) matchType(p *Part) bool {
 		return false
 	}
 
-	t, _, err := p.Header.ContentType()
+	t, _, err := p.ContentType()
 	if err != nil {
 		t = ""
 	}

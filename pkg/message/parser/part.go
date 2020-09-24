@@ -40,6 +40,18 @@ type Part struct {
 	children Parts
 }
 
+func (p *Part) ContentType() (string, map[string]string, error) {
+	t, params, err := p.Header.ContentType()
+	if err != nil {
+		// go-message's implementation of ContentType() doesn't handle duplicate parameters
+		// e.g. Content-Type: text/plain; charset=utf-8; charset=UTF-8
+		// so if it fails, we try again with pmmime's implementation, which does.
+		t, params, err = pmmime.ParseMediaType(p.Header.Get("Content-Type"))
+	}
+
+	return t, params, err
+}
+
 func (p *Part) Child(n int) (part *Part, err error) {
 	if len(p.children) < n {
 		return nil, errors.New("no such part")
@@ -72,7 +84,7 @@ func (p *Part) AddChild(child *Part) {
 func (p *Part) ConvertToUTF8() error {
 	logrus.Trace("Converting part to utf-8")
 
-	t, params, err := p.Header.ContentType()
+	t, params, err := p.ContentType()
 	if err != nil {
 		return err
 	}
@@ -163,7 +175,7 @@ func (p *Part) is7BitClean() bool {
 }
 
 func (p *Part) isMultipartMixed() bool {
-	t, _, err := p.Header.ContentType()
+	t, _, err := p.ContentType()
 	if err != nil {
 		return false
 	}

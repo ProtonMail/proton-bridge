@@ -103,7 +103,7 @@ func convertForeignEncodings(p *parser.Parser) error {
 			return p.ConvertToUTF8()
 		}).
 		RegisterDefaultHandler(func(p *parser.Part) error {
-			t, params, _ := p.Header.ContentType()
+			t, params, _ := p.ContentType()
 			// multipart/alternative, for example, can contain extra charset.
 			if params != nil && params["charset"] != "" {
 				return p.ConvertToUTF8()
@@ -297,7 +297,7 @@ func allPartsHaveContentType(parts parser.Parts, contentType string) bool {
 	}
 
 	for _, part := range parts {
-		t, _, err := part.Header.ContentType()
+		t, _, err := part.ContentType()
 		if err != nil {
 			return false
 		}
@@ -333,7 +333,7 @@ func determineMIMEType(p *parser.Parser) (string, error) {
 // getPlainBody returns the body of the given part, converting html to
 // plaintext where possible.
 func getPlainBody(part *parser.Part) []byte {
-	contentType, _, err := part.Header.ContentType()
+	contentType, _, err := part.ContentType()
 	if err != nil {
 		return part.Body
 	}

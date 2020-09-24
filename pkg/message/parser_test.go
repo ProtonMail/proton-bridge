@@ -259,6 +259,21 @@ func TestParseTextPlainWithImageInline(t *testing.T) {
 	assert.Equal(t, 8, img.Height)
 }
 
+func TestParseTextPlainWithDuplicateCharset(t *testing.T) {
+	f := getFileReader("text_plain_duplicate_charset.eml")
+
+	m, _, plainBody, attReaders, err := Parse(f, "", "")
+	require.NoError(t, err)
+
+	assert.Equal(t, `"Sender" <sender@pm.me>`, m.Sender.String())
+	assert.Equal(t, `"Receiver" <receiver@pm.me>`, m.ToList[0].String())
+
+	assert.Equal(t, "body", m.Body)
+	assert.Equal(t, "body", plainBody)
+
+	assert.Len(t, attReaders, 0)
+}
+
 func TestParseWithMultipleTextParts(t *testing.T) {
 	f := getFileReader("multiple_text_parts.eml")
 

@@ -4,7 +4,6 @@ Feature: IMAP import messages
     And there is IMAP client logged in as "user"
     And there is IMAP client selected in "INBOX"
 
-  @ignore
   Scenario: Import message with double charset in content type
     When IMAP client imports message to "INBOX"
       """

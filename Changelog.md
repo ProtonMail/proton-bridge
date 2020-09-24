@@ -7,6 +7,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 ### Fixed
 * GODT-752 Parsing message with empty CC.
 * GODT-752 Parsing non-utf8 multipart/alternative message.
+* GODT-752 Parsing message with duplicate charset parameter.
 
 ## [IE 1.1.x] Danube (v1.1.0 beta 2020-09-XX)
 

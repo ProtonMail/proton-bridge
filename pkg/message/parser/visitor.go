@@ -58,7 +58,7 @@ func (v *Visitor) Visit() (interface{}, error) {
 }
 
 func (v *Visitor) visit(p *Part) (interface{}, error) {
-	t, _, err := p.Header.ContentType()
+	t, _, err := p.ContentType()
 	if err != nil {
 		return nil, err
 	}

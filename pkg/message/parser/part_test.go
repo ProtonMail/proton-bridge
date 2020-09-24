@@ -49,7 +49,7 @@ func TestPart(t *testing.T) {
 		part, err := p.Section(getSectionNumber(partNumber))
 		require.NoError(t, err)
 
-		contType, _, err := part.Header.ContentType()
+		contType, _, err := part.ContentType()
 		require.NoError(t, err)
 		assert.Equal(t, wantContType, contType)
 	}
