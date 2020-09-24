@@ -4,6 +4,9 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 ## Unreleased
 
+### Fixed
+* GODT-752 Parsing message with empty CC.
+
 ## [IE 1.1.x] Danube (v1.1.0 beta 2020-09-XX)
 
 ### Fixed

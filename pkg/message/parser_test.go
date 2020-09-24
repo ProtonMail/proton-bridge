@@ -224,6 +224,21 @@ func TestParseTextPlainWithPlainAttachment(t *testing.T) {
 	assert.Equal(t, readerToString(attReaders[0]), "attachment")
 }
 
+func TestParseTextPlainEmptyCC(t *testing.T) {
+	f := getFileReader("text_plain_empty_cc.eml")
+
+	m, _, plainBody, attReaders, err := Parse(f, "", "")
+	require.NoError(t, err)
+
+	assert.Equal(t, `"Sender" <sender@pm.me>`, m.Sender.String())
+	assert.Equal(t, `"Receiver" <receiver@pm.me>`, m.ToList[0].String())
+
+	assert.Equal(t, "body", m.Body)
+	assert.Equal(t, "body", plainBody)
+
+	assert.Len(t, attReaders, 0)
+}
+
 func TestParseTextPlainWithImageInline(t *testing.T) {
 	f := getFileReader("text_plain_image_inline.eml")
 
