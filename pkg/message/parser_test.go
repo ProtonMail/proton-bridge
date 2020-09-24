@@ -431,6 +431,27 @@ func TestParseMultipartAlternativeNested(t *testing.T) {
 	assert.Equal(t, "*multipart 2.1*\n\n", plainBody)
 }
 
+func TestParseMultipartAlternativeLatin1(t *testing.T) {
+	f := getFileReader("multipart_alternative_latin1.eml")
+
+	m, _, plainBody, _, err := Parse(f, "", "")
+	require.NoError(t, err)
+
+	assert.Equal(t, `"schizofrenic" <schizofrenic@pm.me>`, m.Sender.String())
+	assert.Equal(t, `<pmbridgeietest@outlook.com>`, m.ToList[0].String())
+
+	assert.Equal(t, `<html><head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+  </head>
+  <body>
+    <b>aoeuaoeu</b>
+  
+
+</body></html>`, m.Body)
+
+	assert.Equal(t, "*aoeuaoeu*\n\n", plainBody)
+}
+
 func getFileReader(filename string) io.Reader {
 	f, err := os.Open(filepath.Join("testdata", filename))
 	if err != nil {
