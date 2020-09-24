@@ -102,11 +102,12 @@ func convertForeignEncodings(p *parser.Parser) error {
 		RegisterContentTypeHandler("text/.*", func(p *parser.Part) error {
 			return p.ConvertToUTF8()
 		}).
-		RegisterContentTypeHandler("multipart/alternative", func(p *parser.Part) error {
-			return p.ConvertToUTF8()
-		}).
 		RegisterDefaultHandler(func(p *parser.Part) error {
-			t, _, _ := p.Header.ContentType()
+			t, params, _ := p.Header.ContentType()
+			// multipart/alternative, for example, can contain extra charset.
+			if params != nil && params["charset"] != "" {
+				return p.ConvertToUTF8()
+			}
 			logrus.WithField("type", t).Trace("Not converting part to utf-8")
 			return nil
 		}).
