@@ -82,7 +82,9 @@ dependency-updates:
   script:
     - make build
   artifacts:
-    expire_in: 2 week
+    # Note: The latest artifacts for refs are locked against deletion, and kept regardless of the expiry time.
+    # Introduced in GitLab 13.0 behind a disabled feature flag, and made the default behavior in GitLab 13.4.
+    expire_in: 1 day
 
 build-linux:
   extends: .build-base
