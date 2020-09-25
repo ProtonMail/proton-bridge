@@ -1,13 +1,12 @@
 github.com/0xAX/notificator v0.0.0-20191016112426-3962a5ea8da1 h1:j9HaafapDbPbGRDku6e/HRs6KBMcKHiWcm1/9Sbxnl4=
 github.com/0xAX/notificator v0.0.0-20191016112426-3962a5ea8da1/go.mod h1:NtXa9WwQsukMHZpjNakTTz0LArxvGYdPA9CjIcUSZ6s=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
-github.com/Masterminds/semver v1.5.0 h1:H65muMkzWKEuNDnfl9d70GUjFniHKHRbFPGBuZ3QEww=
 github.com/Masterminds/semver/v3 v3.1.0 h1:Y2lUDsFKVRSYGojLJ1yLxSXdMmMYTYls0rCvoqmMUQk=
 github.com/Masterminds/semver/v3 v3.1.0/go.mod h1:VPu/7SZ7ePZ3QOrcuXROw5FAcLl4a0cBrbBpGY/8hQs=
 github.com/ProtonMail/bcrypt v0.0.0-20170924085257-7509ea014998 h1:YT2uVwQiRQZxCaaahwfcgTq2j3j66w00n/27gb/zubs=
 github.com/ProtonMail/bcrypt v0.0.0-20170924085257-7509ea014998/go.mod h1:HecWFHognK8GfRDGnFQbW/LiV7A3MX3gZVs45vk5h8I=
-github.com/ProtonMail/crypto v0.0.0-20200416114516-1fa7f403fb9c h1:DAvlgde2Stu18slmjwikiMPs/CKPV35wSvmJS34z0FU=
-github.com/ProtonMail/crypto v0.0.0-20200416114516-1fa7f403fb9c/go.mod h1:Pxr7w4gA2ikI4sWyYwEffm+oew1WAJHzG1SiDpQMkrI=
+github.com/ProtonMail/crypto v0.0.0-20200818122824-ed5d25e28db8 h1:u1j0xLTrCHpNS40B6m4Sv3IVUz5m9jt+AnTIopT3IgM=
+github.com/ProtonMail/crypto v0.0.0-20200818122824-ed5d25e28db8/go.mod h1:Pxr7w4gA2ikI4sWyYwEffm+oew1WAJHzG1SiDpQMkrI=
 github.com/ProtonMail/docker-credential-helpers v1.1.0 h1:+kvUIpwWcbtP3WFv5sSvkFn/XLzSqPOB5AAthuk9xPk=
 github.com/ProtonMail/docker-credential-helpers v1.1.0/go.mod h1:mK0aBveCxhnQ756AmaTfXMZDeULvheYVhF/MWMErN5g=
 github.com/ProtonMail/go-appdir v1.1.0 h1:9hdNDlU9kTqRKVNzmoqah8qqrj5QZyLByQdwQNlFWig=
@@ -68,8 +67,6 @@ github.com/emersion/go-imap-specialuse v0.0.0-20200722111535-598ff00e4075 h1:z8T
 github.com/emersion/go-imap-specialuse v0.0.0-20200722111535-598ff00e4075/go.mod h1:/nybxhI8kXom8Tw6BrHMl42usALvka6meORflnnYwe4=
 github.com/emersion/go-imap-unselect v0.0.0-20171113212723-b985794e5f26 h1:FiSb8+XBQQSkcX3ubr+1tAtlRJBYaFmRZqOAweZ9Wy8=
 github.com/emersion/go-imap-unselect v0.0.0-20171113212723-b985794e5f26/go.mod h1:+gnnZx3Mg3MnCzZrv0eZdp5puxXQUgGT/6N6L7ShKfM=
-github.com/emersion/go-mbox v1.0.0 h1:HN6aKbyqmgIfK9fS/gen+NRr2wXLSxZXWfdAIAnzQPc=
-github.com/emersion/go-mbox v1.0.0/go.mod h1:Yp9IVuuOYLEuMv4yjgDHvhb5mHOcYH6x92Oas3QqEZI=
 github.com/emersion/go-message v0.11.1/go.mod h1:C4jnca5HOTo4bGN9YdqNQM9sITuT3Y0K6bSUw9RklvY=
 github.com/emersion/go-message v0.12.1-0.20200903165315-e1abe21f389a h1:3C6qIGgPr1qAT0ikRD5NbyKpME/iHCDeXhpv/JJsFsE=
 github.com/emersion/go-message v0.12.1-0.20200903165315-e1abe21f389a/go.mod h1:kYIioST9GDHte9/BRWgi93rpqbDuFftMjKSMaXS8ABo=
@@ -101,8 +98,6 @@ github.com/hashicorp/errwrap v1.0.0 h1:hLrqtEDnRye3+sgx6z4qVLNuviH3MR5aQ0ykNJa/U
 github.com/hashicorp/errwrap v1.0.0/go.mod h1:YH+1FKiLXxHSkmPseP+kNlulaMuP3n2brvKWEqk/Jc4=
 github.com/hashicorp/go-multierror v1.1.0 h1:B9UzwGQJehnUY1yNrnwREHc3fGbC2xefo8g4TbElacI=
 github.com/hashicorp/go-multierror v1.1.0/go.mod h1:spPvp8C1qA32ftKqdAHm4hHTbPw+vmowP0z+KUhOZdA=
-github.com/jameshoulahan/go-imap v0.0.0-20200728140727-d57327f48843 h1:suxlO4AC4E4bjueAsL0m+qp8kmkxRWMGj+5bBU/KJ8g=
-github.com/jameshoulahan/go-imap v0.0.0-20200728140727-d57327f48843/go.mod h1:yKASt+C3ZiDAiCSssxg9caIckWF/JG7ZQTO7GAmvicU=
 github.com/jaytaylor/html2text v0.0.0-20200412013138-3577fbdbcff7 h1:g0fAGBisHaEQ0TRq1iBvemFRf+8AEWEmBESSiWB3Vsc=
 github.com/jaytaylor/html2text v0.0.0-20200412013138-3577fbdbcff7/go.mod h1:CVKlgaMiht+LXvHG173ujK6JUhZXKb2u/BQtjPDIvyk=
 github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0 h1:iQTw/8FWTuc7uiaSepXwyf3o52HaUYcV+Tu66S3F5GA=
