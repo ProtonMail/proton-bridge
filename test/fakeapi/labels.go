@@ -53,6 +53,9 @@ func (api *FakePMAPI) CreateLabel(label *pmapi.Label) (*pmapi.Label, error) {
 		prefix = "folder"
 	}
 	label.ID = api.controller.labelIDGenerator.next(prefix)
+	if label.Path == "" {
+		label.Path = label.Name
+	}
 	api.labels = append(api.labels, label)
 	api.addEventLabel(pmapi.EventCreate, label)
 	return label, nil
@@ -67,6 +70,9 @@ func (api *FakePMAPI) UpdateLabel(label *pmapi.Label) (*pmapi.Label, error) {
 			// Request doesn't have to include all properties and these have to stay the same.
 			label.Type = existingLabel.Type
 			label.Exclusive = existingLabel.Exclusive
+			if label.Path == "" {
+				label.Path = label.Name
+			}
 			api.labels[idx] = label
 			api.addEventLabel(pmapi.EventUpdate, label)
 			return label, nil

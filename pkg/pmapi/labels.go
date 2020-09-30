@@ -80,6 +80,7 @@ const (
 type Label struct {
 	ID        string
 	Name      string
+	Path      string
 	Color     string
 	Order     int `json:",omitempty"`
 	Display   int // Not used for now, leave it empty.
