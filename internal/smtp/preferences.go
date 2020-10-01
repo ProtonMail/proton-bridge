@@ -503,13 +503,6 @@ func (b *sendPreferencesBuilder) setEncryptionPreferences(mailSettings pmapi.Mai
 }
 
 func (b *sendPreferencesBuilder) setMIMEPreferences(composerMIMEType string) {
-	// If the sign flag (that we just determined above) is true we use the scheme
-	// in the encryption preferences, unless the plain text format has been
-	// selected in the composer, in which case we must enforce PGP/INLINE.
-	if !b.isInternal() && b.shouldSign() && composerMIMEType == "text/plain" {
-		b.withScheme(pgpInline)
-	}
-
 	// If the sign flag (that we just determined above) is true, then the MIME
 	// type is determined by the PGP scheme (also determined above): we should
 	// use 'text/plain' for a PGP/Inline scheme, and 'multipart/mixed' otherwise.
