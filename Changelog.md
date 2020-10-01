@@ -4,6 +4,9 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 ## Unreleased
 
+### Fixed
+* GODT-770 Better handling of extraneous end-of-mail indicator.
+
 ### Changed
 * Bump crypto version to v0.0.0-20200818122824-ed5d25e28db8
 
