@@ -66,7 +66,7 @@ func (message *Message) Message() *pmapi.Message {
 // mailbox
 func (message *Message) IsMarkedDeleted() bool {
 	isMarkedAsDeleted := false
-	err := message.storeMailbox.db().Update(func(tx *bolt.Tx) error {
+	err := message.storeMailbox.db().View(func(tx *bolt.Tx) error {
 		isMarkedAsDeleted = message.storeMailbox.txGetDeletedIDsBucket(tx).Get([]byte(message.msg.ID)) != nil
 		return nil
 	})

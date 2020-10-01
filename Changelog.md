@@ -8,6 +8,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 ### Changed
 * GODT-761 Use label.Path instead of Name to partially support subfolders for webapp beta release.
+* GODT-765 Improve speed of checking whether message is deleted.
 
 ## [IE 1.1.1] Danube (beta 2020-09-xx) [Bridge 1.4.1] Forth (beta 2020-09-xx)
 
