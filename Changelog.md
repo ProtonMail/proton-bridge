@@ -4,6 +4,11 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 ## Unreleased
 
+## [Bridge 1.4.3] Forth
+
+### Changed
+* Reverted sending IMAP updates to be not blocking again.
+
 ## [Bridge 1.4.2] Forth
 
 ### Changed
