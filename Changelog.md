@@ -2,7 +2,7 @@
 
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
-## Unreleased
+## [IE 1.1.2] Danube (beta 2020-09-xx)
 
 ### Fixed
 * GODT-770 Better handling of extraneous end-of-mail indicator.
