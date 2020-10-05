@@ -20,6 +20,7 @@ package smtp
 import (
 	"crypto/sha256"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -48,6 +49,15 @@ func newSendRecorder() *sendRecorder {
 }
 
 func (q *sendRecorder) getMessageHash(message *pmapi.Message) string {
+	// Outlook Calendar updates has only headers (no body) and thus have always
+	// the same hash. If the message is type of calendar, the "is sending"
+	// check to avoid potential duplicates is skipped. Duplicates should not
+	// be a problem in this case as calendar updates are small.
+	contentType := message.Header.Get("Content-Type")
+	if strings.HasPrefix(contentType, "text/calendar") {
+		return ""
+	}
+
 	h := sha256.New()
 	_, _ = h.Write([]byte(message.AddressID + message.Subject))
 	if message.Sender != nil {
@@ -100,6 +110,10 @@ func (q *sendRecorder) setMessageID(hash, messageID string) {
 func (q *sendRecorder) isSendingOrSent(client messageGetter, hash string) (isSending bool, wasSent bool) {
 	q.lock.Lock()
 	defer q.lock.Unlock()
+
+	if hash == "" {
+		return false, false
+	}
 
 	q.deleteExpiredKeys()
 	value, ok := q.hashes[hash]

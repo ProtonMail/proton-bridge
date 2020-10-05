@@ -11,6 +11,8 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * Bump crypto version to v0.0.0-20200818122824-ed5d25e28db8
 * GODT-785 Clear separation of different message IDs in integration tests.
 
+* Bump crypto version to v0.0.0-20200818122824-ed5d25e28db8.
+* GODT-374 Allow to send calendar update multiple times.
 
 ## [IE 1.1.1] Danube (beta 2020-09-xx) [Bridge 1.4.1] Forth (beta 2020-09-xx)
 

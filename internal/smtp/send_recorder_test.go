@@ -349,6 +349,32 @@ func TestSendRecorder_getMessageHash(t *testing.T) {
 			},
 			false,
 		},
+		{ // Different content type - calendar
+			&pmapi.Message{
+				Header: mail.Header{
+					"Content-Type": []string{"text/calendar"},
+				},
+				AddressID: "address123",
+				Subject:   "Subject #1",
+				Sender: &mail.Address{
+					Address: "from@pm.me",
+				},
+				ToList: []*mail.Address{
+					{Address: "to@pm.me"},
+				},
+				CCList:  []*mail.Address{},
+				BCCList: []*mail.Address{},
+				Body:    "body",
+				Attachments: []*pmapi.Attachment{
+					{
+						Name:     "att1",
+						MIMEType: "image/png",
+						Size:     12345,
+					},
+				},
+			},
+			false,
+		},
 	}
 	for i, tc := range testCases {
 		tc := tc // bind
@@ -382,12 +408,13 @@ func TestSendRecorder_isSendingOrSent(t *testing.T) {
 		{"hash", &pmapi.Message{Type: pmapi.MessageTypeDraft, Time: time.Now().Unix()}, nil, true, false},
 		{"hash", &pmapi.Message{Type: pmapi.MessageTypeSent}, nil, false, true},
 		{"hash", &pmapi.Message{Type: pmapi.MessageTypeInboxAndSent}, nil, false, true},
+		{"", &pmapi.Message{Type: pmapi.MessageTypeInboxAndSent}, nil, false, false},
 	}
 	for i, tc := range testCases {
 		tc := tc // bind
 		t.Run(fmt.Sprintf("%d / %v / %v / %v", i, tc.hash, tc.message, tc.err), func(t *testing.T) {
 			messageGetter := &testSendRecorderGetMessageMock{message: tc.message, err: tc.err}
-			isSending, wasSent := q.isSendingOrSent(messageGetter, "hash")
+			isSending, wasSent := q.isSendingOrSent(messageGetter, tc.hash)
 			assert.Equal(t, tc.wantIsSending, isSending, "isSending does not match")
 			assert.Equal(t, tc.wantWasSent, wasSent, "wasSent does not match")
 		})
