@@ -8,6 +8,8 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 ### Changed
 * Reverted sending IMAP updates to be not blocking again.
+### Fixed
+* GODT-783 Settings flags by FLAGS (not using +/-FLAGS) do not change spam state.
 
 ## [Bridge 1.4.2] Forth
 
