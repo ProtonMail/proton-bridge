@@ -374,10 +374,10 @@ func parseMessageHeader(m *pmapi.Message, h message.Header) error { // nolint[fu
 	}
 	m.Header = mimeHeader
 
-	if err := forEachDecodedHeaderField(h, func(key, val string) error {
+	if err := forEachHeaderField(h, func(key, val string) error {
 		switch strings.ToLower(key) {
 		case "subject":
-			m.Subject = val
+			m.Subject, err = pmmime.DecodeHeader(val)
 
 		case "from":
 			sender, err := parseAddressList(val)
@@ -468,6 +468,20 @@ func parseAttachment(h message.Header) (*pmapi.Attachment, error) {
 	att.ContentID = strings.Trim(h.Get("Content-Id"), " <>")
 
 	return att, nil
+}
+
+func forEachHeaderField(h message.Header, fn func(string, string) error) error {
+	fields := h.Fields()
+
+	for fields.Next() {
+		value := fields.Value()
+
+		if err := fn(fields.Key(), value); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func forEachDecodedHeaderField(h message.Header, fn func(string, string) error) error {

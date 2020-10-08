@@ -156,7 +156,10 @@ func parseAddressList(val string) (addrs []*mail.Address, err error) {
 		return
 	}
 
-	addrs, err = mail.ParseAddressList(parseAddressComment(val))
+	// TODO: reuse?
+	var addressParser = &mail.AddressParser{WordDecoder: pmmime.GetWordDecoder()}
+
+	addrs, err = addressParser.ParseList(parseAddressComment(val))
 	if err == nil {
 		if addrs == nil {
 			addrs = []*mail.Address{}
@@ -182,5 +185,5 @@ func parseAddressList(val string) (addrs []*mail.Address, err error) {
 	}
 	val = strings.Join(addrList, ", ")
 
-	return mail.ParseAddressList(val)
+	return addressParser.ParseList(val)
 }

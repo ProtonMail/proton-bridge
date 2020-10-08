@@ -45,6 +45,10 @@ var wordDec = &mime.WordDecoder{
 	},
 }
 
+func GetWordDecoder() *mime.WordDecoder {
+	return wordDec;
+}
+
 // Expects trimmed lowercase.
 func getEncoding(charset string) (enc encoding.Encoding, err error) {
 	preparsed := strings.Trim(strings.ToLower(charset), " \t\r\n")
