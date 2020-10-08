@@ -74,18 +74,19 @@ var (
 func buildDateLayouts() {
 	// Generate layouts based on RFC 5322, section 3.3.
 
-	dows := [...]string{"", "Mon, "}   // day-of-week
+	dows := [...]string{"Mon, ", ""}   // day-of-week
 	days := [...]string{"2", "02"}     // day = 1*2DIGIT
 	years := [...]string{"2006", "06"} // year = 4*DIGIT / 2*DIGIT
 	seconds := [...]string{":05", ""}  // second
 	// "-0700 (MST)" is not in RFC 5322, but is common.
-	zones := [...]string{"-0700", "MST"} // zone = (("+" / "-") 4DIGIT) / "GMT" / ...
+	// Note: This is acutally a comment, added more relaxed timezones.
+	zones := [...]string{"-0700", "MST", "", "GMT-0700"} // zone = (("+" / "-") 4DIGIT) / "GMT" / ...
 
 	for _, dow := range dows {
-		for _, day := range days {
-			for _, year := range years {
-				for _, second := range seconds {
-					for _, zone := range zones {
+		for _, second := range seconds {
+			for _, zone := range zones {
+				for _, year := range years {
+					for _, day := range days {
 						s := dow + day + " Jan " + year + " 15:04" + second + " " + zone
 						dateLayouts = append(dateLayouts, s)
 					}
@@ -112,7 +113,7 @@ func ParseDate(date string) (time.Time, error) {
 	if ind := strings.IndexAny(p.s, "+-"); ind != -1 && len(p.s) >= ind+5 {
 		date = p.s[:ind+5]
 		p.s = p.s[ind+5:]
-	} else if ind := strings.Index(p.s, "T"); ind != -1 && len(p.s) >= ind+1 {
+	} else if ind := strings.LastIndex(p.s, "T"); ind != -1 && len(p.s) >= ind+1 {
 		// The last letter T of the obsolete time zone is checked when no standard time zone is found.
 		// If T is misplaced, the date to parse is garbage.
 		date = p.s[:ind+1]
