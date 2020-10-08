@@ -126,16 +126,17 @@ func (p *Progress) updateCount(mailbox string, count uint) {
 }
 
 // addMessage should be called as soon as there is ID of the message.
-func (p *Progress) addMessage(messageID string, rule *Rule) {
+func (p *Progress) addMessage(messageID string, sourceNames, targetNames []string) {
 	p.lock.Lock()
 	defer p.lock.Unlock()
 	defer p.update()
 
 	p.log.WithField("id", messageID).Trace("Message added")
 	p.messageStatuses[messageID] = &MessageStatus{
-		eventTime: time.Now(),
-		rule:      rule,
-		SourceID:  messageID,
+		eventTime:   time.Now(),
+		sourceNames: sourceNames,
+		SourceID:    messageID,
+		targetNames: targetNames,
 	}
 }
 

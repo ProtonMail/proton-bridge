@@ -114,7 +114,7 @@ type messageReport struct {
 	SourceID        string
 	TargetID        string
 	BodyHash        string
-	SourceMailbox   string
+	SourceMailboxes []string
 	TargetMailboxes []string
 	Error           string
 
@@ -130,8 +130,8 @@ func newMessageReportFromMessageStatus(messageStatus *MessageStatus, includePriv
 		SourceID:        messageStatus.SourceID,
 		TargetID:        messageStatus.targetID,
 		BodyHash:        messageStatus.bodyHash,
-		SourceMailbox:   messageStatus.rule.SourceMailbox.Name,
-		TargetMailboxes: messageStatus.rule.TargetMailboxNames(),
+		SourceMailboxes: messageStatus.sourceNames,
+		TargetMailboxes: messageStatus.targetNames,
 		Error:           messageStatus.GetErrorMessage(),
 	}
 

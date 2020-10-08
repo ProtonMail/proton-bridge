@@ -123,7 +123,7 @@ func (p *PMAPIProvider) transferTo(rule *Rule, progress *Progress, ch chan<- Mes
 				}
 
 				msgID := fmt.Sprintf("%s_%s", rule.SourceMailbox.ID, pmapiMessage.ID)
-				progress.addMessage(msgID, rule)
+				progress.addMessage(msgID, []string{rule.SourceMailbox.Name}, rule.TargetMailboxNames())
 				msg, err := p.exportMessage(rule, progress, pmapiMessage.ID, msgID, skipEncryptedMessages)
 				progress.messageExported(msgID, msg.Body, err)
 				if err == nil {
@@ -177,7 +177,7 @@ func (p *PMAPIProvider) exportMessage(rule *Rule, progress *Progress, pmapiMsgID
 		ID:      msgID,
 		Unread:  unread,
 		Body:    body,
-		Source:  rule.SourceMailbox,
+		Sources: []Mailbox{rule.SourceMailbox},
 		Targets: rule.TargetMailboxes,
 	}, nil
 }

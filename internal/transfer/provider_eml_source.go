@@ -109,7 +109,7 @@ func (p *EMLProvider) exportMessages(rule *Rule, filePaths []string, progress *P
 		// addMessage is called after time check to not report message
 		// which should not be exported but any error from reading body
 		// or parsing time is reported as an error.
-		progress.addMessage(filePath, rule)
+		progress.addMessage(filePath, msg.sourceNames(), msg.targetNames())
 		progress.messageExported(filePath, msg.Body, err)
 		if err == nil {
 			ch <- msg
@@ -134,7 +134,7 @@ func (p *EMLProvider) exportMessage(rule *Rule, filePath string) (Message, error
 		ID:      filePath,
 		Unread:  false,
 		Body:    body,
-		Source:  rule.SourceMailbox,
+		Sources: []Mailbox{rule.SourceMailbox},
 		Targets: rule.TargetMailboxes,
 	}, nil
 }

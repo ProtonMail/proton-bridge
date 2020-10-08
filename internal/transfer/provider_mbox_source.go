@@ -34,7 +34,7 @@ func (p *MBOXProvider) TransferTo(rules transferRules, progress *Progress, ch ch
 	log.Info("Started transfer from MBOX to channel")
 	defer log.Info("Finished transfer from MBOX to channel")
 
-	filePathsPerFolder, err := p.getFilePathsPerFolder(rules)
+	filePathsPerFolder, err := p.getFilePathsPerFolder()
 	if err != nil {
 		progress.fatal(err)
 		return
@@ -45,31 +45,28 @@ func (p *MBOXProvider) TransferTo(rules transferRules, progress *Progress, ch ch
 	}
 
 	for folderName, filePaths := range filePathsPerFolder {
-		// No error guaranteed by getFilePathsPerFolder.
-		rule, _ := rules.getRuleBySourceMailboxName(folderName)
+		log.WithField("folder", folderName).Debug("Estimating folder counts")
 		for _, filePath := range filePaths {
 			if progress.shouldStop() {
 				break
 			}
-			p.updateCount(rule, progress, filePath)
+			p.updateCount(progress, filePath)
 		}
 	}
 	progress.countsFinal()
 
 	for folderName, filePaths := range filePathsPerFolder {
-		// No error guaranteed by getFilePathsPerFolder.
-		rule, _ := rules.getRuleBySourceMailboxName(folderName)
-		log.WithField("rule", rule).Debug("Processing rule")
+		log.WithField("folder", folderName).Debug("Processing folder")
 		for _, filePath := range filePaths {
 			if progress.shouldStop() {
 				break
 			}
-			p.transferTo(rule, progress, ch, filePath)
+			p.transferTo(rules, progress, ch, folderName, filePath)
 		}
 	}
 }
 
-func (p *MBOXProvider) getFilePathsPerFolder(rules transferRules) (map[string][]string, error) {
+func (p *MBOXProvider) getFilePathsPerFolder() (map[string][]string, error) {
 	filePaths, err := getFilePathsWithSuffix(p.root, ".mbox")
 	if err != nil {
 		return nil, err
@@ -79,18 +76,12 @@ func (p *MBOXProvider) getFilePathsPerFolder(rules transferRules) (map[string][]
 	for _, filePath := range filePaths {
 		fileName := filepath.Base(filePath)
 		folder := strings.TrimSuffix(fileName, ".mbox")
-		_, err := rules.getRuleBySourceMailboxName(folder)
-		if err != nil {
-			log.WithField("msg", filePath).Trace("Mailbox skipped due to folder name")
-			continue
-		}
-
 		filePathsMap[folder] = append(filePathsMap[folder], filePath)
 	}
 	return filePathsMap, nil
 }
 
-func (p *MBOXProvider) updateCount(rule *Rule, progress *Progress, filePath string) {
+func (p *MBOXProvider) updateCount(progress *Progress, filePath string) {
 	mboxReader := p.openMbox(progress, filePath)
 	if mboxReader == nil {
 		return
@@ -107,10 +98,10 @@ func (p *MBOXProvider) updateCount(rule *Rule, progress *Progress, filePath stri
 		}
 		count++
 	}
-	progress.updateCount(rule.SourceMailbox.Name, uint(count))
+	progress.updateCount(filePath, uint(count))
 }
 
-func (p *MBOXProvider) transferTo(rule *Rule, progress *Progress, ch chan<- Message, filePath string) {
+func (p *MBOXProvider) transferTo(rules transferRules, progress *Progress, ch chan<- Message, folderName, filePath string) {
 	mboxReader := p.openMbox(progress, filePath)
 	if mboxReader == nil {
 		return
@@ -134,48 +125,120 @@ func (p *MBOXProvider) transferTo(rule *Rule, progress *Progress, ch chan<- Mess
 			break
 		}
 
-		msg, err := p.exportMessage(rule, id, msgReader)
+		msg, err := p.exportMessage(rules, folderName, id, msgReader)
 
-		// Read and check time in body only if the rule specifies it
-		// to not waste energy.
-		if err == nil && rule.HasTimeLimit() {
-			msgTime, msgTimeErr := getMessageTime(msg.Body)
-			if msgTimeErr != nil {
-				err = msgTimeErr
-			} else if !rule.isTimeInRange(msgTime) {
-				log.WithField("msg", id).Debug("Message skipped due to time")
-				continue
-			}
+		if err == nil && len(msg.Targets) == 0 {
+			// Here should be called progress.messageSkipped(id) once we have
+			// this feature, and following progress.updateCount can be removed.
+			continue
 		}
 
-		// Counting only messages filtered by time to update count to correct total.
 		count++
 
 		// addMessage is called after time check to not report message
 		// which should not be exported but any error from reading body
 		// or parsing time is reported as an error.
-		progress.addMessage(id, rule)
+		progress.addMessage(id, msg.sourceNames(), msg.targetNames())
 		progress.messageExported(id, msg.Body, err)
 		if err == nil {
 			ch <- msg
 		}
 	}
-	progress.updateCount(rule.SourceMailbox.Name, uint(count))
+	progress.updateCount(filePath, uint(count))
 }
 
-func (p *MBOXProvider) exportMessage(rule *Rule, id string, msgReader io.Reader) (Message, error) {
+func (p *MBOXProvider) exportMessage(rules transferRules, folderName, id string, msgReader io.Reader) (Message, error) {
 	body, err := ioutil.ReadAll(msgReader)
 	if err != nil {
 		return Message{}, errors.Wrap(err, "failed to read message")
 	}
 
+	msgRules := p.getMessageRules(rules, folderName, id, body)
+	sources := p.getMessageSources(msgRules)
+	targets := p.getMessageTargets(msgRules, id, body)
 	return Message{
 		ID:      id,
 		Unread:  false,
 		Body:    body,
-		Source:  rule.SourceMailbox,
-		Targets: rule.TargetMailboxes,
+		Sources: sources,
+		Targets: targets,
 	}, nil
+}
+
+func (p *MBOXProvider) getMessageRules(rules transferRules, folderName, id string, body []byte) []*Rule {
+	msgRules := []*Rule{}
+
+	folderRule, err := rules.getRuleBySourceMailboxName(folderName)
+	if err != nil {
+		log.WithField("msg", id).WithField("source", folderName).Debug("Message skipped due to source")
+	} else {
+		msgRules = append(msgRules, folderRule)
+	}
+
+	gmailLabels, err := getGmailLabelsFromMessage(body)
+	if err != nil {
+		log.WithError(err).Error("Failed to get gmail labels, ")
+	} else {
+		for _, label := range gmailLabels {
+			rule, err := rules.getRuleBySourceMailboxName(label)
+			if err != nil {
+				log.WithField("msg", id).WithField("source", label).Debug("Message skipped due to source")
+				continue
+			}
+			msgRules = append(msgRules, rule)
+		}
+	}
+
+	return msgRules
+}
+
+func (p *MBOXProvider) getMessageSources(msgRules []*Rule) []Mailbox {
+	sources := []Mailbox{}
+	for _, rule := range msgRules {
+		sources = append(sources, rule.SourceMailbox)
+	}
+	return sources
+}
+
+func (p *MBOXProvider) getMessageTargets(msgRules []*Rule, id string, body []byte) []Mailbox {
+	targets := []Mailbox{}
+	haveExclusiveMailbox := false
+	for _, rule := range msgRules {
+		// Read and check time in body only if the rule specifies it
+		// to not waste energy.
+		if rule.HasTimeLimit() {
+			msgTime, err := getMessageTime(body)
+			if err != nil {
+				log.WithError(err).Error("Failed to parse time, time check skipped")
+			} else if !rule.isTimeInRange(msgTime) {
+				log.WithField("msg", id).WithField("source", rule.SourceMailbox.Name).Debug("Message skipped due to time")
+				continue
+			}
+		}
+		for _, newTarget := range rule.TargetMailboxes {
+			// msgRules is sorted. The first rule is based on the folder name,
+			// followed by the order from X-Gmail-Labels. The rule based on
+			// the folder name should have priority for exclusive target.
+			if newTarget.IsExclusive && haveExclusiveMailbox {
+				continue
+			}
+			found := false
+			for _, target := range targets {
+				if target.Hash() == newTarget.Hash() {
+					found = true
+					break
+				}
+			}
+			if found {
+				continue
+			}
+			if newTarget.IsExclusive {
+				haveExclusiveMailbox = true
+			}
+			targets = append(targets, newTarget)
+		}
+	}
+	return targets
 }
 
 func (p *MBOXProvider) openMbox(progress *Progress, mboxPath string) *mbox.Reader {

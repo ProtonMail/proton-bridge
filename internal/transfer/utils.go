@@ -160,4 +160,13 @@ func sanitizeFileName(fileName string) string {
 		}
 		return r
 	}, fileName)
+
+func appendIfNew(list []string, newItem string) []string {
+	for _, item := range list {
+		if item == newItem {
+			return list
+		}
+	}
+	return append(list, newItem)
 }
+

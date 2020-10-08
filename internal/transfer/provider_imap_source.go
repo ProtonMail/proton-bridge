@@ -124,7 +124,7 @@ func (p *IMAPProvider) loadMessagesInfo(rule *Rule, progress *Progress, uidValid
 				uid:  imapMessage.Uid,
 				size: imapMessage.Size,
 			}
-			progress.addMessage(id, rule)
+			progress.addMessage(id, []string{rule.SourceMailbox.Name}, rule.TargetMailboxNames())
 		}
 
 		progress.callWrap(func() error {
@@ -231,7 +231,7 @@ func (p *IMAPProvider) exportMessage(rule *Rule, id string, imapMessage *imap.Me
 		ID:      id,
 		Unread:  unread,
 		Body:    body,
-		Source:  rule.SourceMailbox,
+		Sources: []Mailbox{rule.SourceMailbox},
 		Targets: rule.TargetMailboxes,
 	}
 }

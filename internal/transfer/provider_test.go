@@ -43,7 +43,7 @@ hello
 `, subject))
 }
 
-func testTransferTo(t *testing.T, rules transferRules, provider SourceProvider, expectedMessageIDs []string) {
+func testTransferTo(t *testing.T, rules transferRules, provider SourceProvider, expectedMessageIDs []string) []Message {
 	progress := newProgress(log, nil)
 	drainProgressUpdateChannel(&progress)
 
@@ -53,13 +53,17 @@ func testTransferTo(t *testing.T, rules transferRules, provider SourceProvider, 
 		close(ch)
 	}()
 
+	msgs := []Message{}
 	gotMessageIDs := []string{}
 	for msg := range ch {
+		msgs = append(msgs, msg)
 		gotMessageIDs = append(gotMessageIDs, msg.ID)
 	}
 	r.ElementsMatch(t, expectedMessageIDs, gotMessageIDs)
 
 	r.Empty(t, progress.GetFailedMessages())
+
+	return msgs
 }
 
 func testTransferFrom(t *testing.T, rules transferRules, provider TargetProvider, messages []Message) {
@@ -69,7 +73,7 @@ func testTransferFrom(t *testing.T, rules transferRules, provider TargetProvider
 	ch := make(chan Message)
 	go func() {
 		for _, message := range messages {
-			progress.addMessage(message.ID, nil)
+			progress.addMessage(message.ID, []string{}, []string{})
 			progress.messageExported(message.ID, []byte(""), nil)
 			ch <- message
 		}

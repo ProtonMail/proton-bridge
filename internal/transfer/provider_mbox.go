@@ -49,11 +49,24 @@ func (p *MBOXProvider) Mailboxes(includeEmpty, includeAllMail bool) ([]Mailbox, 
 		return nil, err
 	}
 
-	mailboxes := []Mailbox{}
+	mailboxNames := []string{}
 	for _, filePath := range filePaths {
 		fileName := filepath.Base(filePath)
 		mailboxName := strings.TrimSuffix(fileName, ".mbox")
+		mailboxNames = appendIfNew(mailboxNames, mailboxName)
 
+		labels, err := getGmailLabelsFromMboxFile(filepath.Join(p.root, filePath))
+		if err != nil {
+			log.WithError(err).Error("Failed to get gmail labels from mbox file")
+			continue
+		}
+		for _, label := range labels {
+			mailboxNames = appendIfNew(mailboxNames, label)
+		}
+	}
+
+	mailboxes := []Mailbox{}
+	for _, mailboxName := range mailboxNames {
 		mailboxes = append(mailboxes, Mailbox{
 			ID:          "",
 			Name:        mailboxName,
@@ -61,6 +74,5 @@ func (p *MBOXProvider) Mailboxes(includeEmpty, includeAllMail bool) ([]Mailbox, 
 			IsExclusive: false,
 		})
 	}
-
 	return mailboxes, nil
 }

@@ -1,0 +1,16 @@
+From - Mon May  4 16:40:31 2020
+From: Bridge Test <bridgetest@pm.test>
+To: Bridge Test <bridgetest@protonmail.com>
+Subject: Test 1
+X-Gmail-Labels: Foo,Bar
+
+hello
+
+
+From - Mon May  4 16:40:31 2020
+From: Bridge Test <bridgetest@pm.test>
+To: Bridge Test <bridgetest@protonmail.com>
+Subject: Test 2
+X-Gmail-Labels: Foo
+
+hello

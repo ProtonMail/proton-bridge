@@ -29,17 +29,34 @@ type Message struct {
 	ID      string
 	Unread  bool
 	Body    []byte
-	Source  Mailbox
+	Sources []Mailbox
 	Targets []Mailbox
+}
+
+// sourceNames returns array of source mailbox names.
+func (msg Message) sourceNames() (names []string) {
+	for _, mailbox := range msg.Sources {
+		names = append(names, mailbox.Name)
+	}
+	return
+}
+
+// targetNames returns array of target mailbox names.
+func (msg Message) targetNames() (names []string) {
+	for _, mailbox := range msg.Targets {
+		names = append(names, mailbox.Name)
+	}
+	return
 }
 
 // MessageStatus holds status for message used by progress manager.
 type MessageStatus struct {
-	eventTime time.Time // Time of adding message to the process.
-	rule      *Rule     // Rule with source and target mailboxes.
-	SourceID  string    // Message ID at the source.
-	targetID  string    // Message ID at the target (if any).
-	bodyHash  string    // Hash of the message body.
+	eventTime   time.Time // Time of adding message to the process.
+	sourceNames []string  // Source mailbox names message is in.
+	SourceID    string    // Message ID at the source.
+	targetNames []string  // Target mailbox names message is in.
+	targetID    string    // Message ID at the target (if any).
+	bodyHash    string    // Hash of the message body.
 
 	exported  bool
 	imported  bool

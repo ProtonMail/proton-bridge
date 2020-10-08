@@ -48,21 +48,21 @@ func TestProgressAddingMessages(t *testing.T) {
 	drainProgressUpdateChannel(&progress)
 
 	// msg1 has no problem.
-	progress.addMessage("msg1", nil)
+	progress.addMessage("msg1", []string{}, []string{})
 	progress.messageExported("msg1", []byte(""), nil)
 	progress.messageImported("msg1", "", nil)
 
 	// msg2 has an import problem.
-	progress.addMessage("msg2", nil)
+	progress.addMessage("msg2", []string{}, []string{})
 	progress.messageExported("msg2", []byte(""), nil)
 	progress.messageImported("msg2", "", errors.New("failed import"))
 
 	// msg3 has an export problem.
-	progress.addMessage("msg3", nil)
+	progress.addMessage("msg3", []string{}, []string{})
 	progress.messageExported("msg3", []byte(""), errors.New("failed export"))
 
 	// msg4 has an export problem and import is also called.
-	progress.addMessage("msg4", nil)
+	progress.addMessage("msg4", []string{}, []string{})
 	progress.messageExported("msg4", []byte(""), errors.New("failed export"))
 	progress.messageImported("msg4", "", nil)
 
@@ -92,7 +92,7 @@ func TestProgressFinish(t *testing.T) {
 	progress.finish()
 	r.Nil(t, progress.updateCh)
 
-	r.NotPanics(t, func() { progress.addMessage("msg", nil) })
+	r.NotPanics(t, func() { progress.addMessage("msg", []string{}, []string{}) })
 }
 
 func TestProgressFatalError(t *testing.T) {
@@ -102,7 +102,7 @@ func TestProgressFatalError(t *testing.T) {
 	progress.fatal(errors.New("fatal error"))
 	r.Nil(t, progress.updateCh)
 
-	r.NotPanics(t, func() { progress.addMessage("msg", nil) })
+	r.NotPanics(t, func() { progress.addMessage("msg", []string{}, []string{}) })
 }
 
 func TestFailUnpauseAndStops(t *testing.T) {
