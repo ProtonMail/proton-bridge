@@ -29,6 +29,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/pkg/message/parser"
 	pmmime "github.com/ProtonMail/proton-bridge/pkg/mime"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
+	pmail "github.com/ProtonMail/proton-bridge/pkg/net/mail"
 	"github.com/emersion/go-message"
 	"github.com/jaytaylor/html2text"
 	"github.com/pkg/errors"
@@ -381,7 +382,7 @@ func parseMessageHeader(m *pmapi.Message, h message.Header) error { // nolint[fu
 		case "from":
 			sender, err := parseAddressList(val)
 			if err != nil {
-				return err
+				return errors.Wrap(err, "from")
 			}
 			if len(sender) > 0 {
 				m.Sender = sender[0]
@@ -390,35 +391,35 @@ func parseMessageHeader(m *pmapi.Message, h message.Header) error { // nolint[fu
 		case "to":
 			toList, err := parseAddressList(val)
 			if err != nil {
-				return err
+				return errors.Wrap(err, "to")
 			}
 			m.ToList = toList
 
 		case "reply-to":
 			replyTos, err := parseAddressList(val)
 			if err != nil {
-				return err
+				return errors.Wrap(err, "reply-to")
 			}
 			m.ReplyTos = replyTos
 
 		case "cc":
 			ccList, err := parseAddressList(val)
 			if err != nil {
-				return err
+				return errors.Wrap(err, "cc")
 			}
 			m.CCList = ccList
 
 		case "bcc":
 			bccList, err := parseAddressList(val)
 			if err != nil {
-				return err
+				return errors.Wrap(err, "bcc")
 			}
 			m.BCCList = bccList
 
 		case "date":
-			date, err := mail.ParseDate(val)
+			date, err := pmail.ParseDate(val)
 			if err != nil {
-				return err
+				return errors.Wrap(err, "date")
 			}
 			m.Time = date.Unix()
 		}
