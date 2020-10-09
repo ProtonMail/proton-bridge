@@ -18,10 +18,9 @@
 package store
 
 import (
-	"net/mail"
-
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	bolt "go.etcd.io/bbolt"
+	mail "github.com/ProtonMail/proton-bridge/pkg/net/mail"
 )
 
 // Message is wrapper around `pmapi.Message` with connection to

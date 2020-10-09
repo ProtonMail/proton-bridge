@@ -22,10 +22,10 @@ import (
 	"html/template"
 	"io"
 	"net/http"
-	"net/mail"
 	"net/textproto"
 
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
+	mail "github.com/ProtonMail/proton-bridge/pkg/net/mail"
 )
 
 func WriteHeader(w io.Writer, h textproto.MIMEHeader) (err error) {

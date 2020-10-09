@@ -27,7 +27,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"net/mail"
 	"net/url"
 	"strconv"
 	"strings"
@@ -35,6 +34,7 @@ import (
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/openpgp/packet"
+	mail "github.com/ProtonMail/proton-bridge/pkg/net/mail"
 )
 
 // Header types.

@@ -18,11 +18,11 @@
 package message
 
 import (
-	"net/mail"
 	"time"
 
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	"github.com/emersion/go-imap"
+	mail "github.com/ProtonMail/proton-bridge/pkg/net/mail"
 )
 
 func GetEnvelope(m *pmapi.Message) *imap.Envelope {

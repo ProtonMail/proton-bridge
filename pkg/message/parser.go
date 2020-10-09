@@ -22,18 +22,17 @@ import (
 	"fmt"
 	"io"
 	"mime"
-	"net/mail"
 	"net/textproto"
 	"strings"
 
 	"github.com/ProtonMail/proton-bridge/pkg/message/parser"
 	pmmime "github.com/ProtonMail/proton-bridge/pkg/mime"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
-	pmail "github.com/ProtonMail/proton-bridge/pkg/net/mail"
 	"github.com/emersion/go-message"
 	"github.com/jaytaylor/html2text"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+	mail "github.com/ProtonMail/proton-bridge/pkg/net/mail"
 )
 
 func Parse(r io.Reader, key, keyName string) (m *pmapi.Message, mimeBody, plainBody string, attReaders []io.Reader, err error) {
@@ -417,7 +416,7 @@ func parseMessageHeader(m *pmapi.Message, h message.Header) error { // nolint[fu
 			m.BCCList = bccList
 
 		case "date":
-			date, err := pmail.ParseDate(val)
+			date, err := mail.ParseDate(val)
 			if err != nil {
 				return errors.Wrap(err, "date")
 			}

@@ -22,7 +22,6 @@ import (
 	"encoding/json"
 	"io"
 	"io/ioutil"
-	"net/mail"
 	"net/textproto"
 	"strings"
 
@@ -31,6 +30,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	bolt "go.etcd.io/bbolt"
+	mail "github.com/ProtonMail/proton-bridge/pkg/net/mail"
 )
 
 // CreateDraft creates draft with attachments.

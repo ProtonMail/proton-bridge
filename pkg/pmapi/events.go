@@ -20,7 +20,8 @@ package pmapi
 import (
 	"encoding/json"
 	"net/http"
-	"net/mail"
+
+	mail "github.com/ProtonMail/proton-bridge/pkg/net/mail"
 )
 
 // Event represents changes since the last check.

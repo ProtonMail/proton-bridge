@@ -18,7 +18,6 @@
 package store
 
 import (
-	"net/mail"
 	"testing"
 	"time"
 
@@ -26,6 +25,7 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	mail "github.com/ProtonMail/proton-bridge/pkg/net/mail"
 )
 
 func TestEventLoopProcessMoreEvents(t *testing.T) {

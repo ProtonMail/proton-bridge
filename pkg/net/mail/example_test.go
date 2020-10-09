@@ -8,8 +8,9 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-	"net/mail"
 	"strings"
+
+	mail "github.com/ProtonMail/proton-bridge/pkg/net/mail"
 )
 
 func ExampleParseAddressList() {

@@ -20,7 +20,6 @@ package pmapi
 import (
 	"fmt"
 	"net/http"
-	"net/mail"
 	"regexp"
 	"strconv"
 	"strings"
@@ -28,6 +27,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	mail "github.com/ProtonMail/proton-bridge/pkg/net/mail"
 )
 
 func TestClient_GetEvent(t *testing.T) {

@@ -20,13 +20,13 @@ package store
 import (
 	"bytes"
 	"math"
-	"net/mail"
 	"regexp"
 	"strings"
 
 	"github.com/ProtonMail/proton-bridge/internal/imap/uidplus"
 	"github.com/pkg/errors"
 	bolt "go.etcd.io/bbolt"
+	mail "github.com/ProtonMail/proton-bridge/pkg/net/mail"
 )
 
 // GetAPIIDsFromUIDRange returns API IDs by IMAP UID range.
