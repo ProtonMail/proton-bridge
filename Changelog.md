@@ -4,18 +4,27 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 ## Unreleased
 
+## [Bridge 1.4.4] Forth
+
+### Fixed
+* GODT-798 Replace, don't add, transfer encoding when making body 7-bit clean.
+
+
 ## [Bridge 1.4.3] Forth
 
 ### Changed
 * Reverted sending IMAP updates to be not blocking again.
+
 ### Fixed
 * GODT-783 Settings flags by FLAGS (not using +/-FLAGS) do not change spam state.
+
 
 ## [Bridge 1.4.2] Forth
 
 ### Changed
 * GODT-761 Use label.Path instead of Name to partially support subfolders for webapp beta release.
 * GODT-765 Improve speed of checking whether message is deleted.
+
 
 ## [IE 1.1.1] Danube (beta 2020-09-xx) [Bridge 1.4.1] Forth (beta 2020-09-xx)
 
@@ -24,11 +33,13 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-752 Parsing non-utf8 multipart/alternative message.
 * GODT-752 Parsing message with duplicate charset parameter.
 
+
 ## [IE 1.1.0] Danube
 
 ### Fixed
 * GODT-703 Import-Export showed always at least one total message.
 * GODT-738 Fix for mbox files with long lines.
+
 
 ## [Bridge 1.4.0] Forth
 
