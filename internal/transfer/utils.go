@@ -21,13 +21,13 @@ import (
 	"bufio"
 	"bytes"
 	"io/ioutil"
-	"net/mail"
 	"net/textproto"
 	"path/filepath"
 	"sort"
 	"strings"
 
 	"github.com/pkg/errors"
+	mail "github.com/ProtonMail/proton-bridge/pkg/net/mail"
 )
 
 // getFolderNames collects all folder names under `root`.

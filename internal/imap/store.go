@@ -19,12 +19,12 @@ package imap
 
 import (
 	"io"
-	"net/mail"
 
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/ProtonMail/proton-bridge/internal/imap/uidplus"
 	"github.com/ProtonMail/proton-bridge/internal/store"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
+	mail "github.com/ProtonMail/proton-bridge/pkg/net/mail"
 )
 
 type storeUserProvider interface {

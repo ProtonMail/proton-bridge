@@ -22,7 +22,6 @@ import (
 	"fmt"
 	"io"
 	"mime/multipart"
-	"net/mail"
 	"net/textproto"
 	"regexp"
 	"sort"
@@ -39,6 +38,7 @@ import (
 	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
 	openpgperrors "golang.org/x/crypto/openpgp/errors"
+	mail "github.com/ProtonMail/proton-bridge/pkg/net/mail"
 )
 
 type doNotCacheError struct{ e error }

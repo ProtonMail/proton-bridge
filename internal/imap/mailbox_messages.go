@@ -20,7 +20,6 @@ package imap
 import (
 	"errors"
 	"fmt"
-	"net/mail"
 	"strings"
 	"sync"
 	"time"
@@ -31,6 +30,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	"github.com/emersion/go-imap"
 	"github.com/sirupsen/logrus"
+	mail "github.com/ProtonMail/proton-bridge/pkg/net/mail"
 )
 
 // UpdateMessagesFlags alters flags for the specified message(s).

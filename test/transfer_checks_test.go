@@ -21,7 +21,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"net/mail"
 	"os"
 	"path/filepath"
 	"sort"
@@ -34,6 +33,7 @@ import (
 	"github.com/emersion/go-message"
 	"github.com/pkg/errors"
 	a "github.com/stretchr/testify/assert"
+	mail "github.com/ProtonMail/proton-bridge/pkg/net/mail"
 )
 
 func TransferChecksFeatureContext(s *godog.Suite) {
