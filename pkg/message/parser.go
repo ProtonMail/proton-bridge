@@ -44,15 +44,15 @@ func Parse(r io.Reader, key, keyName string) (m *pmapi.Message, mimeBody, plainB
 		return
 	}
 
-	if err = convertForeignEncodings(p); err != nil {
-		err = errors.Wrap(err, "failed to convert foreign encodings")
+	m = pmapi.NewMessage()
+
+	if err = parseMessageHeader(p, m); err != nil {
+		err = errors.Wrap(err, "failed to parse message header")
 		return
 	}
 
-	m = pmapi.NewMessage()
-
-	if err = parseMessageHeader(m, p.Root().Header); err != nil {
-		err = errors.Wrap(err, "failed to parse message header")
+	if err = convertForeignEncodings(p); err != nil {
+		err = errors.Wrap(err, "failed to convert foreign encodings")
 		return
 	}
 
@@ -366,7 +366,9 @@ func attachPublicKey(p *parser.Part, key, keyName string) {
 }
 
 // NOTE: We should use our own ParseAddressList here.
-func parseMessageHeader(m *pmapi.Message, h message.Header) error { // nolint[funlen]
+func parseMessageHeader(p *parser.Parser, m *pmapi.Message) error { // nolint[funlen]
+	h := p.Root().Header;
+
 	mimeHeader, err := toMailHeader(h)
 	if err != nil {
 		return err
@@ -374,6 +376,7 @@ func parseMessageHeader(m *pmapi.Message, h message.Header) error { // nolint[fu
 	m.Header = mimeHeader
 
 	if err := forEachHeaderField(h, func(key, val string) error {
+		err, val = p.Root().ConvertHeaderToUTF8(val)
 		switch strings.ToLower(key) {
 		case "subject":
 			m.Subject, err = pmmime.DecodeHeader(val)
