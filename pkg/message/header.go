@@ -151,13 +151,12 @@ func parseAddressComment(raw string) string {
 	return reEmailComment.ReplaceAllString(raw, "")
 }
 
+var addressParser = &mail.AddressParser{WordDecoder: pmmime.GetWordDecoder()}
+
 func parseAddressList(val string) (addrs []*mail.Address, err error) {
 	if val == "" || val == "<>" {
 		return
 	}
-
-	// TODO: reuse?
-	var addressParser = &mail.AddressParser{WordDecoder: pmmime.GetWordDecoder()}
 
 	addrs, err = addressParser.ParseList(parseAddressComment(val))
 	if err == nil {
