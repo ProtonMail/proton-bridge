@@ -170,7 +170,7 @@ func (p *MBOXProvider) getMessageRules(rules transferRules, folderName, id strin
 
 	folderRule, err := rules.getRuleBySourceMailboxName(folderName)
 	if err != nil {
-		log.WithField("msg", id).WithField("source", folderName).Debug("Message skipped due to source")
+		log.WithField("msg", id).WithField("source", folderName).Debug("Message source doesn't have a rule")
 	} else {
 		msgRules = append(msgRules, folderRule)
 	}
@@ -182,7 +182,7 @@ func (p *MBOXProvider) getMessageRules(rules transferRules, folderName, id strin
 		for label := range gmailLabels {
 			rule, err := rules.getRuleBySourceMailboxName(label)
 			if err != nil {
-				log.WithField("msg", id).WithField("source", label).Debug("Message skipped due to source")
+				log.WithField("msg", id).WithField("source", label).Debug("Message source doesn't have a rule")
 				continue
 			}
 			msgRules = append(msgRules, rule)
