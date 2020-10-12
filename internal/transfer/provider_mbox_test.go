@@ -58,7 +58,7 @@ func TestMBOXProviderMailboxes(t *testing.T) {
 		t.Run(fmt.Sprintf("%v", tc.includeEmpty), func(t *testing.T) {
 			mailboxes, err := tc.provider.Mailboxes(tc.includeEmpty, false)
 			r.NoError(t, err)
-			r.Equal(t, tc.wantMailboxes, mailboxes)
+			r.ElementsMatch(t, tc.wantMailboxes, mailboxes)
 		})
 	}
 }

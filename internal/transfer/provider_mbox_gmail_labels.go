@@ -25,9 +25,11 @@ import (
 	"strings"
 )
 
+type stringSet map[string]bool
+
 const xGmailLabelsHeader = "X-Gmail-Labels"
 
-func getGmailLabelsFromMboxFile(filePath string) ([]string, error) {
+func getGmailLabelsFromMboxFile(filePath string) (stringSet, error) {
 	f, err := os.Open(filePath) //nolint[gosec]
 	if err != nil {
 		return nil, err
@@ -35,8 +37,8 @@ func getGmailLabelsFromMboxFile(filePath string) ([]string, error) {
 	return getGmailLabelsFromMboxReader(f)
 }
 
-func getGmailLabelsFromMboxReader(f io.Reader) ([]string, error) {
-	allLabels := []string{}
+func getGmailLabelsFromMboxReader(f io.Reader) (stringSet, error) {
+	allLabels := map[string]bool{}
 
 	r := bufio.NewReader(f)
 	for {
@@ -57,8 +59,8 @@ func getGmailLabelsFromMboxReader(f io.Reader) ([]string, error) {
 			continue
 		}
 		if bytes.HasPrefix(b, []byte(xGmailLabelsHeader)) {
-			for _, label := range getGmailLabelsFromValue(string(b)) {
-				allLabels = appendIfNew(allLabels, label)
+			for label := range getGmailLabelsFromValue(string(b)) {
+				allLabels[label] = true
 			}
 		}
 	}
@@ -66,7 +68,7 @@ func getGmailLabelsFromMboxReader(f io.Reader) ([]string, error) {
 	return allLabels, nil
 }
 
-func getGmailLabelsFromMessage(body []byte) ([]string, error) {
+func getGmailLabelsFromMessage(body []byte) (stringSet, error) {
 	header, err := getMessageHeader(body)
 	if err != nil {
 		return nil, err
@@ -75,15 +77,15 @@ func getGmailLabelsFromMessage(body []byte) ([]string, error) {
 	return getGmailLabelsFromValue(labels), nil
 }
 
-func getGmailLabelsFromValue(value string) []string {
+func getGmailLabelsFromValue(value string) stringSet {
 	value = strings.TrimPrefix(value, xGmailLabelsHeader+":")
-	labels := []string{}
+	labels := map[string]bool{}
 	for _, label := range strings.Split(value, ",") {
 		label = strings.TrimSpace(label)
 		if label == "" {
 			continue
 		}
-		labels = appendIfNew(labels, label)
+		labels[label] = true
 	}
 	return labels
 }

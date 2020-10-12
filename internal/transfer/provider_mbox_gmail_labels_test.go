@@ -59,38 +59,38 @@ hello
 	mboxReader := strings.NewReader(mboxFile)
 	labels, err := getGmailLabelsFromMboxReader(mboxReader)
 	r.NoError(t, err)
-	r.Equal(t, []string{"Foo", "Bar", "Baz"}, labels)
+	r.Equal(t, toSet("Foo", "Bar", "Baz"), labels)
 }
 
 func TestGetGmailLabelsFromMessage(t *testing.T) {
 	tests := []struct {
 		body       string
-		wantLabels []string
+		wantLabels stringSet
 	}{
 		{`Subject: One
 X-Gmail-Labels: Foo,Bar
 
 Hello
-`, []string{"Foo", "Bar"}},
+`, toSet("Foo", "Bar")},
 		{`Subject: Two
 X-Gmail-Labels: Foo , Bar ,
 
 Hello
-`, []string{"Foo", "Bar"}},
+`, toSet("Foo", "Bar")},
 		{`Subject: Three
 X-Gmail-Labels: ,
 
 Hello
-`, []string{}},
+`, toSet()},
 		{`Subject: Four
 X-Gmail-Labels:
 
 Hello
-`, []string{}},
+`, toSet()},
 		{`Subject: Five
 
 Hello
-`, []string{}},
+`, toSet()},
 	}
 	for _, tc := range tests {
 		tc := tc
@@ -105,15 +105,15 @@ Hello
 func TestGetGmailLabelsFromValue(t *testing.T) {
 	tests := []struct {
 		value      string
-		wantLabels []string
+		wantLabels stringSet
 	}{
-		{"Foo,Bar", []string{"Foo", "Bar"}},
-		{" Foo , Bar ", []string{"Foo", "Bar"}},
-		{" Foo , Bar , ", []string{"Foo", "Bar"}},
-		{" Foo Bar ", []string{"Foo Bar"}},
-		{" , ", []string{}},
-		{" ", []string{}},
-		{"", []string{}},
+		{"Foo,Bar", toSet("Foo", "Bar")},
+		{" Foo , Bar ", toSet("Foo", "Bar")},
+		{" Foo , Bar , ", toSet("Foo", "Bar")},
+		{" Foo Bar ", toSet("Foo Bar")},
+		{" , ", toSet()},
+		{" ", toSet()},
+		{"", toSet()},
 	}
 	for _, tc := range tests {
 		tc := tc
@@ -122,4 +122,12 @@ func TestGetGmailLabelsFromValue(t *testing.T) {
 			r.Equal(t, tc.wantLabels, labels)
 		})
 	}
+}
+
+func toSet(items ...string) stringSet {
+	set := map[string]bool{}
+	for _, item := range items {
+		set[item] = true
+	}
+	return set
 }

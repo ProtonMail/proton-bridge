@@ -179,7 +179,7 @@ func (p *MBOXProvider) getMessageRules(rules transferRules, folderName, id strin
 	if err != nil {
 		log.WithError(err).Error("Failed to get gmail labels, ")
 	} else {
-		for _, label := range gmailLabels {
+		for label := range gmailLabels {
 			rule, err := rules.getRuleBySourceMailboxName(label)
 			if err != nil {
 				log.WithField("msg", id).WithField("source", label).Debug("Message skipped due to source")
