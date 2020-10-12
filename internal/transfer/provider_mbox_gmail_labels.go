@@ -40,6 +40,8 @@ func getGmailLabelsFromMboxFile(filePath string) (stringSet, error) {
 func getGmailLabelsFromMboxReader(f io.Reader) (stringSet, error) {
 	allLabels := map[string]bool{}
 
+	// Scanner is not used as it does not support long lines and some mbox
+	// files contain very long lines even though that should not be happening.
 	r := bufio.NewReader(f)
 	for {
 		b, isPrefix, err := r.ReadLine()
@@ -49,14 +51,11 @@ func getGmailLabelsFromMboxReader(f io.Reader) (stringSet, error) {
 		if err != nil {
 			return nil, err
 		}
-		if isPrefix {
-			for !isPrefix {
-				_, isPrefix, err = r.ReadLine()
-				if err != nil {
-					break
-				}
+		for isPrefix {
+			_, isPrefix, err = r.ReadLine()
+			if err != nil {
+				break
 			}
-			continue
 		}
 		if bytes.HasPrefix(b, []byte(xGmailLabelsHeader)) {
 			for label := range getGmailLabelsFromValue(string(b)) {
