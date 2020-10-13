@@ -333,7 +333,8 @@ func (p *addrParser) parseAddress(handleGroup bool) ([]*Address, error) {
 	debug.Printf("parseAddress: %q", p.s)
 	p.skipSpace()
 	if p.empty() {
-		return nil, errors.New("mail: no address")
+		// non-compliant empty email address
+		return nil, nil
 	}
 
 	// address = mailbox / group
@@ -437,7 +438,8 @@ func (p *addrParser) consumeGroupList() ([]*Address, error) {
 	var group []*Address
 	// handle empty group.
 	p.skipSpace()
-	if p.consume(';') {
+	// non-compliant allow for missing semicolon
+	if p.consume(';') || p.empty() {
 		p.skipCFWS()
 		return group, nil
 	}
@@ -454,7 +456,8 @@ func (p *addrParser) consumeGroupList() ([]*Address, error) {
 		if !p.skipCFWS() {
 			return nil, errors.New("mail: misformatted parenthetical comment")
 		}
-		if p.consume(';') {
+		// non-compliant allow for missing semicolon
+		if p.consume(';') || p.empty() {
 			p.skipCFWS()
 			break
 		}
@@ -468,6 +471,11 @@ func (p *addrParser) consumeGroupList() ([]*Address, error) {
 // consumeAddrSpec parses a single RFC 5322 addr-spec at the start of p.
 func (p *addrParser) consumeAddrSpec() (spec string, err error) {
 	debug.Printf("consumeAddrSpec: %q", p.s)
+
+	// non-compliant allow empty addr-spec
+	if p.peek() == '>' {
+		return "", nil
+	}
 
 	orig := *p
 	defer func() {
@@ -514,6 +522,9 @@ func (p *addrParser) consumeAddrSpec() (spec string, err error) {
 	if err != nil {
 		return "", err
 	}
+
+	// as it is not completely done, add some leniency here
+	p.skipSpace()
 
 	return localPart + "@" + domain, nil
 }
@@ -669,7 +680,8 @@ Loop:
 			return "", errors.New("mail: double dot in atom")
 		}
 		if strings.HasSuffix(atom, ".") {
-			return "", errors.New("mail: trailing dot in atom")
+			//This seems to cause errors with domains ending with dot: example.com.
+			//return "", errors.New("mail: trailing dot in atom")
 		}
 	}
 	return atom, nil
