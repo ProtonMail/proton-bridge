@@ -514,6 +514,11 @@ func (p *addrParser) consumePhrase() (phrase string, err error) {
 		if p.peek() == '"' {
 			// quoted-string
 			word, err = p.consumeQuotedString()
+		} else if p.len() >= 2 && p.s[:2] == "=?" {
+			word, err = p.consumeEncodedWord()
+			if err == nil {
+				word, isEncoded, err =  p.decodeRFC2047Word(word)
+			}
 		} else {
 			// atom
 			// We actually parse dot-atom here to be more permissive
@@ -593,6 +598,18 @@ Loop:
 	}
 	p.s = p.s[i+1:]
 	return string(qsb), nil
+}
+
+// consumedEncodedWord parses an encoded-word at start of p
+// It is more relaxed then an RFC 2047 allows and just searches for string bounded by '=?' and '?='.
+func (p *addrParser) consumeEncodedWord() (comment string, err error) {
+	i := strings.Index(p.s[2:], "?=")
+	if i < 0 {
+		return "", fmt.Errorf("mail: unterminated encoded word: %q", p.s)
+	}
+	comment = p.s[:i+4]
+	p.s = p.s[i+4:]
+	return comment, nil
 }
 
 // consumeAtom parses an RFC 5322 atom at the start of p.
