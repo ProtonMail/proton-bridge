@@ -18,12 +18,12 @@
 package store
 
 import (
-	"net/mail"
 	"testing"
 
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	a "github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	mail "github.com/ProtonMail/proton-bridge/pkg/net/mail"
 )
 
 type wantID struct {

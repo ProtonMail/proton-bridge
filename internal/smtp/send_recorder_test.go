@@ -20,12 +20,12 @@ package smtp
 import (
 	"errors"
 	"fmt"
-	"net/mail"
 	"testing"
 	"time"
 
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	"github.com/stretchr/testify/assert"
+	mail "github.com/ProtonMail/proton-bridge/pkg/net/mail"
 )
 
 type testSendRecorderGetMessageMock struct {

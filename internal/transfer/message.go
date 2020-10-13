@@ -20,8 +20,9 @@ package transfer
 import (
 	"fmt"
 	"mime"
-	"net/mail"
 	"time"
+
+	mail "github.com/ProtonMail/proton-bridge/pkg/net/mail"
 )
 
 // Message is data holder passed between import and export.

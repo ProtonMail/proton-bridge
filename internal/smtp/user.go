@@ -24,7 +24,6 @@ import (
 	"fmt"
 	"io"
 	"mime"
-	"net/mail"
 	"regexp"
 	"strings"
 	"time"
@@ -37,6 +36,7 @@ import (
 	goSMTPBackend "github.com/emersion/go-smtp"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+	mail "github.com/ProtonMail/proton-bridge/pkg/net/mail"
 )
 
 type smtpUser struct {

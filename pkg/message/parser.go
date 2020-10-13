@@ -22,7 +22,6 @@ import (
 	"fmt"
 	"io"
 	"mime"
-	"net/mail"
 	"net/textproto"
 	"strings"
 
@@ -33,6 +32,7 @@ import (
 	"github.com/jaytaylor/html2text"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+	mail "github.com/ProtonMail/proton-bridge/pkg/net/mail"
 )
 
 func Parse(r io.Reader, key, keyName string) (m *pmapi.Message, mimeBody, plainBody string, attReaders []io.Reader, err error) {

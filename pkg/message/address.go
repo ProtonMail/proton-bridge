@@ -18,10 +18,10 @@
 package message
 
 import (
-	"net/mail"
 	"strings"
 
 	"github.com/emersion/go-imap"
+	mail "github.com/ProtonMail/proton-bridge/pkg/net/mail"
 )
 
 func getAddresses(addrs []*mail.Address) (imapAddrs []*imap.Address) {

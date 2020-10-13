@@ -19,7 +19,6 @@ package tests
 
 import (
 	"fmt"
-	"net/mail"
 	"strconv"
 	"strings"
 	"time"
@@ -27,6 +26,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	"github.com/cucumber/godog"
 	"github.com/cucumber/godog/gherkin"
+	mail "github.com/ProtonMail/proton-bridge/pkg/net/mail"
 )
 
 func StoreSetupFeatureContext(s *godog.Suite) {

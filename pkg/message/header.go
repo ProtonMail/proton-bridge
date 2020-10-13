@@ -19,7 +19,6 @@ package message
 
 import (
 	"mime"
-	"net/mail"
 	"net/textproto"
 	"regexp"
 	"strings"
@@ -27,6 +26,7 @@ import (
 
 	pmmime "github.com/ProtonMail/proton-bridge/pkg/mime"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
+	mail "github.com/ProtonMail/proton-bridge/pkg/net/mail"
 )
 
 // GetHeader builds the header for the message.

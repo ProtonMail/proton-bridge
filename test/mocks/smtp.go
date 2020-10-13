@@ -23,7 +23,6 @@ import (
 	"fmt"
 	"io"
 	"net"
-	"net/mail"
 	"os"
 	"strings"
 	"sync"
@@ -32,6 +31,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	mail "github.com/ProtonMail/proton-bridge/pkg/net/mail"
 )
 
 type SMTPClient struct {
