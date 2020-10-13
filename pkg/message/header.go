@@ -20,7 +20,6 @@ package message
 import (
 	"mime"
 	"net/textproto"
-	"regexp"
 	"strings"
 	"time"
 
@@ -143,20 +142,8 @@ func GetAttachmentHeader(att *pmapi.Attachment) textproto.MIMEHeader {
 }
 
 var addressParser = &mail.AddressParser{WordDecoder: pmmime.GetWordDecoder()}
-var reEmailComment = regexp.MustCompile("[(][^)]*[)]") // nolint[gochecknoglobals]
-
-// parseAddressComment removes the comments completely even though they should be allowed
-// http://tools.wordtothewise.com/rfc/822
-// NOTE: This should be supported in go>1.10 but it seems it's not ¯\_(ツ)_/¯
-func parseAddressComment(raw string) string {
-	return reEmailComment.ReplaceAllString(raw, "")
-}
 
 func parseAddressList(val string) (addrs []*mail.Address, err error) {
-	if val == "" || val == "<>" {
-		return
-	}
-
 	addrs, err = addressParser.ParseList(val)
 	if err == nil {
 		if addrs == nil {
