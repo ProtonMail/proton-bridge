@@ -142,6 +142,7 @@ func GetAttachmentHeader(att *pmapi.Attachment) textproto.MIMEHeader {
 	return h
 }
 
+var addressParser = &mail.AddressParser{WordDecoder: pmmime.GetWordDecoder()}
 var reEmailComment = regexp.MustCompile("[(][^)]*[)]") // nolint[gochecknoglobals]
 
 // parseAddressComment removes the comments completely even though they should be allowed
@@ -156,7 +157,7 @@ func parseAddressList(val string) (addrs []*mail.Address, err error) {
 		return
 	}
 
-	addrs, err = mail.ParseAddressList(parseAddressComment(val))
+	addrs, err = addressParser.ParseList(val)
 	if err == nil {
 		if addrs == nil {
 			addrs = []*mail.Address{}
@@ -182,5 +183,5 @@ func parseAddressList(val string) (addrs []*mail.Address, err error) {
 	}
 	val = strings.Join(addrList, ", ")
 
-	return mail.ParseAddressList(val)
+	return addressParser.ParseList(val)
 }

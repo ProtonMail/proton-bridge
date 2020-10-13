@@ -373,15 +373,15 @@ func parseMessageHeader(m *pmapi.Message, h message.Header) error { // nolint[fu
 	}
 	m.Header = mimeHeader
 
-	if err := forEachDecodedHeaderField(h, func(key, val string) error {
+	if err := forEachHeaderField(h, func(key, val string) error {
 		switch strings.ToLower(key) {
 		case "subject":
-			m.Subject = val
+			m.Subject, err = pmmime.DecodeHeader(val)
 
 		case "from":
 			sender, err := parseAddressList(val)
 			if err != nil {
-				return err
+				return errors.Wrap(err, "from")
 			}
 			if len(sender) > 0 {
 				m.Sender = sender[0]
@@ -390,35 +390,35 @@ func parseMessageHeader(m *pmapi.Message, h message.Header) error { // nolint[fu
 		case "to":
 			toList, err := parseAddressList(val)
 			if err != nil {
-				return err
+				return errors.Wrap(err, "to")
 			}
 			m.ToList = toList
 
 		case "reply-to":
 			replyTos, err := parseAddressList(val)
 			if err != nil {
-				return err
+				return errors.Wrap(err, "reply-to")
 			}
 			m.ReplyTos = replyTos
 
 		case "cc":
 			ccList, err := parseAddressList(val)
 			if err != nil {
-				return err
+				return errors.Wrap(err, "cc")
 			}
 			m.CCList = ccList
 
 		case "bcc":
 			bccList, err := parseAddressList(val)
 			if err != nil {
-				return err
+				return errors.Wrap(err, "bcc")
 			}
 			m.BCCList = bccList
 
 		case "date":
 			date, err := mail.ParseDate(val)
 			if err != nil {
-				return err
+				return errors.Wrap(err, "date")
 			}
 			m.Time = date.Unix()
 		}
@@ -469,6 +469,19 @@ func parseAttachment(h message.Header) (*pmapi.Attachment, error) {
 	return att, nil
 }
 
+func forEachHeaderField(h message.Header, fn func(string, string) error) error {
+	fields := h.Fields()
+
+	for fields.Next() {
+		value := fields.Value()
+
+		if err := fn(fields.Key(), value); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
 func forEachDecodedHeaderField(h message.Header, fn func(string, string) error) error {
 	fields := h.Fields()
 
