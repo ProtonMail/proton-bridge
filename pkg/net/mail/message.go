@@ -547,6 +547,7 @@ func (p *addrParser) consumePhrase() (phrase string, err error) {
 			// quoted-string
 			word, err = p.consumeQuotedString()
 		} else if p.len() >= 2 && p.s[:2] == "=?" {
+			// encoded-word
 			word, err = p.consumeEncodedWord()
 			if err == nil {
 				word, isEncoded, err =  p.decodeRFC2047Word(word)
@@ -633,15 +634,21 @@ Loop:
 }
 
 // consumedEncodedWord parses an encoded-word at start of p
-// It is more relaxed then an RFC 2047 allows and just searches for string bounded by '=?' and '?='.
-func (p *addrParser) consumeEncodedWord() (comment string, err error) {
+// It is more relaxed then an RFC 2047 allows and just searches for string bounded by '=?' and '?='
+// without any space between them.
+// Error here is not an error, but occurence of =? which is not a part of the encoded word.
+func (p *addrParser) consumeEncodedWord() (encodedWord string, err error) {
 	i := strings.Index(p.s[2:], "?=")
 	if i < 0 {
 		return "", fmt.Errorf("mail: unterminated encoded word: %q", p.s)
 	}
-	comment = p.s[:i+4]
+	j := strings.IndexAny(p.s[2:], "\t ")
+	if j < i {
+		return "", fmt.Errorf("mail: unterminated encoded word: %q", p.s)
+	}
+	encodedWord = p.s[:i+4]
 	p.s = p.s[i+4:]
-	return comment, nil
+	return encodedWord, nil
 }
 
 // consumeAtom parses an RFC 5322 atom at the start of p.
