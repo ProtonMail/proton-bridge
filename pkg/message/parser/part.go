@@ -81,6 +81,47 @@ func (p *Part) AddChild(child *Part) {
 	}
 }
 
+func (p *Part) ConvertHeaderToUTF8(header string) (error, string) {
+	logrus.Trace("Converting part to utf-8")
+
+	t, params, err := p.ContentType()
+	if err != nil {
+		return err, header
+	}
+
+	decoder := selectSuitableHeaderDecoder(p, t, params, header)
+
+	if header, err = decoder.String(header); err != nil {
+		return err, header
+	}
+
+	return nil, header
+}
+
+func selectSuitableHeaderDecoder(p *Part, t string, params map[string]string, header string) *encoding.Decoder {
+	if charset, ok := params["charset"]; ok {
+		logrus.WithField("charset", charset).Trace("The header has a specified charset")
+
+		if decoder, err := pmmime.SelectDecoder(charset); err == nil {
+			logrus.Trace("The charset is known; decoder has been selected")
+			return decoder
+		}
+
+		logrus.Warn("The charset is unknown; no decoder could be selected")
+	}
+
+	if utf8.ValidString(header) {
+		logrus.Trace("The header is already valid utf-8, returning noop encoder")
+		return encoding.Nop.NewDecoder()
+	}
+
+	encoding, name, _ := charset.DetermineEncoding([]byte(header), t)
+
+	logrus.WithField("name", name).Warn("Determined encoding by reading header")
+
+	return encoding.NewDecoder()
+}
+
 func (p *Part) ConvertToUTF8() error {
 	logrus.Trace("Converting part to utf-8")
 
