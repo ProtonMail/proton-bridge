@@ -354,6 +354,27 @@ func (p *addrParser) parseAddress(handleGroup bool) ([]*Address, error) {
 			}
 		}
 
+		// non-compliant: addr-spec angle-addr
+		if p.consume('<') {
+			if displayName == "" {
+				displayName = spec
+			} else {
+				displayName = spec + " " + displayName
+			}
+			spec, err = p.consumeAddrSpec()
+			if err != nil {
+				return nil, err
+			}
+			if !p.consume('>') {
+				return nil, errors.New("mail: unclosed angle-addr")
+			}
+			debug.Printf("parseAddress: spec=%q", spec)
+			return []*Address{{
+				Name:    displayName,
+				Address: spec,
+			}}, err
+		}
+
 		return []*Address{{
 			Name:    displayName,
 			Address: spec,
