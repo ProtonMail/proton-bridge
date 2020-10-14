@@ -25,7 +25,6 @@ import (
 	"io"
 	"mime"
 	"net/mail"
-	"regexp"
 	"strings"
 	"time"
 
@@ -408,9 +407,9 @@ func (su *smtpUser) handleReferencesHeader(m *pmapi.Message) (draftID, parentID 
 		if !strings.Contains(reference, "@"+pmapi.InternalIDDomain) {
 			newReferences = append(newReferences, reference)
 		} else { // internalid is the parentID.
-			idMatch := regexp.MustCompile(pmapi.InternalReferenceFormat).FindStringSubmatch(reference)
-			if len(idMatch) > 0 {
-				lastID := strings.TrimSuffix(strings.Trim(idMatch[0], "<>"), "@protonmail.internalid")
+			idMatch := pmapi.RxInternalReferenceFormat.FindStringSubmatch(reference)
+			if len(idMatch) == 2 {
+				lastID := idMatch[1]
 				filter := &pmapi.MessagesFilter{ID: []string{lastID}}
 				if su.addressID != "" {
 					filter.AddressID = su.addressID

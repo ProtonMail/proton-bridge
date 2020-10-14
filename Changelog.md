@@ -8,6 +8,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 ### Fixed
 * GODT-798 Replace, don't add, transfer encoding when making body 7-bit clean.
+* Move/Copy duplicate for emails with References in Outlook
 
 
 ## [Bridge 1.4.3] Forth
