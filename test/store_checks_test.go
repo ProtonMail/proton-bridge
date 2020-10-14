@@ -28,6 +28,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/test/accounts"
 	"github.com/cucumber/godog"
 	"github.com/cucumber/godog/gherkin"
+	"github.com/hashicorp/go-multierror"
 )
 
 func StoreChecksFeatureContext(s *godog.Suite) {
@@ -202,6 +203,14 @@ func messagesContainsMessageRow(account *accounts.TestAccount, allMessages []int
 		matches := true
 		for n, cell := range row.Cells {
 			switch head[n].Value {
+			case "id":
+				id, err := ctx.GetAPIMessageID(account.Username(), cell.Value)
+				if err != nil {
+					return false, fmt.Errorf("unknown BDD message ID: %s", cell.Value)
+				}
+				if message.ID != id {
+					matches = false
+				}
 			case "from": //nolint[goconst]
 				address := ctx.EnsureAddress(account.Username(), cell.Value)
 				if !areAddressesSame(message.Sender.Address, address) {
@@ -278,8 +287,8 @@ func areAddressesSame(first, second string) bool {
 	return firstAddress.Address == secondAddress.Address
 }
 
-func messagesInMailboxForUserIsMarkedAsRead(messageIDs, mailboxName, bddUserID string) error {
-	return checkMessages(bddUserID, mailboxName, messageIDs, func(message *store.Message) error {
+func messagesInMailboxForUserIsMarkedAsRead(bddMessageIDs, mailboxName, bddUserID string) error {
+	return checkMessages(bddUserID, mailboxName, bddMessageIDs, func(message *store.Message) error {
 		if message.Message().Unread == 0 {
 			return nil
 		}
@@ -287,8 +296,8 @@ func messagesInMailboxForUserIsMarkedAsRead(messageIDs, mailboxName, bddUserID s
 	})
 }
 
-func messagesInMailboxForUserIsMarkedAsUnread(messageIDs, mailboxName, bddUserID string) error {
-	return checkMessages(bddUserID, mailboxName, messageIDs, func(message *store.Message) error {
+func messagesInMailboxForUserIsMarkedAsUnread(bddMessageIDs, mailboxName, bddUserID string) error {
+	return checkMessages(bddUserID, mailboxName, bddMessageIDs, func(message *store.Message) error {
 		if message.Message().Unread == 1 {
 			return nil
 		}
@@ -296,8 +305,8 @@ func messagesInMailboxForUserIsMarkedAsUnread(messageIDs, mailboxName, bddUserID
 	})
 }
 
-func messagesInMailboxForUserIsMarkedAsStarred(messageIDs, mailboxName, bddUserID string) error {
-	return checkMessages(bddUserID, mailboxName, messageIDs, func(message *store.Message) error {
+func messagesInMailboxForUserIsMarkedAsStarred(bddMessageIDs, mailboxName, bddUserID string) error {
+	return checkMessages(bddUserID, mailboxName, bddMessageIDs, func(message *store.Message) error {
 		if hasItem(message.Message().LabelIDs, "10") {
 			return nil
 		}
@@ -305,8 +314,8 @@ func messagesInMailboxForUserIsMarkedAsStarred(messageIDs, mailboxName, bddUserI
 	})
 }
 
-func messagesInMailboxForUserIsMarkedAsUnstarred(messageIDs, mailboxName, bddUserID string) error {
-	return checkMessages(bddUserID, mailboxName, messageIDs, func(message *store.Message) error {
+func messagesInMailboxForUserIsMarkedAsUnstarred(bddMessageIDs, mailboxName, bddUserID string) error {
+	return checkMessages(bddUserID, mailboxName, bddMessageIDs, func(message *store.Message) error {
 		if !hasItem(message.Message().LabelIDs, "10") {
 			return nil
 		}
@@ -314,8 +323,8 @@ func messagesInMailboxForUserIsMarkedAsUnstarred(messageIDs, mailboxName, bddUse
 	})
 }
 
-func messagesInMailboxForUserIsMarkedAsDeleted(messageIDs, mailboxName, bddUserID string) error {
-	return checkMessages(bddUserID, mailboxName, messageIDs, func(message *store.Message) error {
+func messagesInMailboxForUserIsMarkedAsDeleted(bddMessageIDs, mailboxName, bddUserID string) error {
+	return checkMessages(bddUserID, mailboxName, bddMessageIDs, func(message *store.Message) error {
 		if message.IsMarkedDeleted() {
 			return nil
 		}
@@ -323,8 +332,8 @@ func messagesInMailboxForUserIsMarkedAsDeleted(messageIDs, mailboxName, bddUserI
 	})
 }
 
-func messagesInMailboxForUserIsMarkedAsUndeleted(messageIDs, mailboxName, bddUserID string) error {
-	return checkMessages(bddUserID, mailboxName, messageIDs, func(message *store.Message) error {
+func messagesInMailboxForUserIsMarkedAsUndeleted(bddMessageIDs, mailboxName, bddUserID string) error {
+	return checkMessages(bddUserID, mailboxName, bddMessageIDs, func(message *store.Message) error {
 		if !message.IsMarkedDeleted() {
 			return nil
 		}
@@ -332,14 +341,14 @@ func messagesInMailboxForUserIsMarkedAsUndeleted(messageIDs, mailboxName, bddUse
 	})
 }
 
-func checkMessages(bddUserID, mailboxName, messageIDs string, callback func(*store.Message) error) error {
+func checkMessages(bddUserID, mailboxName, bddMessageIDs string, callback func(*store.Message) error) error {
 	account := ctx.GetTestAccount(bddUserID)
 	if account == nil {
 		return godog.ErrPending
 	}
-	messages, err := getMessages(account.Username(), account.AddressID(), mailboxName, messageIDs)
+	messages, err := getMessages(account.Username(), account.AddressID(), mailboxName, bddMessageIDs)
 	if err != nil {
-		return internalError(err, "getting messages %s", messageIDs)
+		return internalError(err, "getting messages %s", bddMessageIDs)
 	}
 	for _, message := range messages {
 		if err := callback(message); err != nil {
@@ -349,18 +358,23 @@ func checkMessages(bddUserID, mailboxName, messageIDs string, callback func(*sto
 	return nil
 }
 
-func getMessages(username, addressID, mailboxName, messageIDs string) ([]*store.Message, error) {
+func getMessages(username, addressID, mailboxName, bddMessageIDs string) ([]*store.Message, error) {
 	msgs := []*store.Message{}
-	var msg *store.Message
-	var err error
-	iterateOverSeqSet(messageIDs, func(messageID string) {
-		messageID = ctx.GetPMAPIController().GetMessageID(username, messageID)
-		msg, err = getMessage(username, addressID, mailboxName, messageID)
-		if err == nil {
-			msgs = append(msgs, msg)
+	var allErrs *multierror.Error
+	iterateOverSeqSet(bddMessageIDs, func(bddMessageID string) {
+		messageID, err := ctx.GetAPIMessageID(username, bddMessageID)
+		if err != nil {
+			allErrs = multierror.Append(allErrs, err)
+			return
 		}
+		msg, err := getMessage(username, addressID, mailboxName, messageID)
+		if err != nil {
+			allErrs = multierror.Append(allErrs, err)
+			return
+		}
+		msgs = append(msgs, msg)
 	})
-	return msgs, err
+	return msgs, allErrs.ErrorOrNil()
 }
 
 func getMessage(username, addressID, mailboxName, messageID string) (*store.Message, error) {

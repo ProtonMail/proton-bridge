@@ -8,8 +8,8 @@ Feature: IMAP IDLE with two users
     And there is IMAP client "idling" logged in as "userMoreAddresses"
     And there is IMAP client "idling" selected in "INBOX"
     When IMAP client "idling" starts IDLE-ing
-    And IMAP client "active" marks message "1" as read
-    Then IMAP client "idling" does not receive update for message "1" within 5 seconds
+    And IMAP client "active" marks message seq "1" as read
+    Then IMAP client "idling" does not receive update for message seq "1" within 5 seconds
 
   Scenario: IDLE statements are not leaked to other alias
     Given there is connected user "userMoreAddresses"
@@ -24,5 +24,5 @@ Feature: IMAP IDLE with two users
     And there is IMAP client "idling" logged in as "userMoreAddresses" with address "secondary"
     And there is IMAP client "idling" selected in "INBOX"
     When IMAP client "idling" starts IDLE-ing
-    And IMAP client "active" marks message "1" as read
-    Then IMAP client "idling" does not receive update for message "1" within 5 seconds
+    And IMAP client "active" marks message seq "1" as read
+    Then IMAP client "idling" does not receive update for message seq "1" within 5 seconds

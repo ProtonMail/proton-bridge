@@ -6,14 +6,14 @@ Feature: IMAP remove messages from Trash
 
   Scenario Outline: Message in Trash/Spam and some other label is not permanently deleted
     Given there are messages in mailbox "<mailbox>" for "user"
-      | from              | to         | subject | body  |
-      | john.doe@mail.com | user@pm.me | foo     | hello |
-      | jane.doe@mail.com | name@pm.me | bar     | world |
+      | id | from              | to         | subject | body  |
+      | 1  | john.doe@mail.com | user@pm.me | foo     | hello |
+      | 2  | jane.doe@mail.com | name@pm.me | bar     | world |
     And there is IMAP client logged in as "user"
     And there is IMAP client selected in "<mailbox>"
-    When IMAP client copies messages "2" to "Labels/label"
+    When IMAP client copies message seq "2" to "Labels/label"
     Then IMAP response is "OK"
-    When IMAP client marks message "2" as deleted
+    When IMAP client marks message seq "2" as deleted
     Then IMAP response is "OK"
     And mailbox "<mailbox>" for "user" has 2 messages
     And mailbox "All Mail" for "user" has 2 messages
@@ -31,12 +31,12 @@ Feature: IMAP remove messages from Trash
 
   Scenario Outline: Message in Trash/Spam only is permanently deleted
     Given there are messages in mailbox "<mailbox>" for "user"
-      | from              | to         | subject | body  |
-      | john.doe@mail.com | user@pm.me | foo     | hello |
-      | jane.doe@mail.com | name@pm.me | bar     | world |
+      | id | from              | to         | subject | body  |
+      | 1  | john.doe@mail.com | user@pm.me | foo     | hello |
+      | 2  | jane.doe@mail.com | name@pm.me | bar     | world |
     And there is IMAP client logged in as "user"
     And there is IMAP client selected in "<mailbox>"
-    When IMAP client marks message "2" as deleted
+    When IMAP client marks message seq "2" as deleted
     Then IMAP response is "OK"
     And mailbox "<mailbox>" for "user" has 2 messages
     And mailbox "All Mail" for "user" has 2 messages

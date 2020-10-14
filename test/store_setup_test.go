@@ -87,8 +87,11 @@ func thereAreMessagesInMailboxesForAddressOfUser(mailboxNames, bddAddressID, bdd
 
 	var markMessageIDsDeleted []string
 
+	// Inserting in the opposite order becase sync is done from newest to oldest.
+	// The goal is to have simply predictable IMAP sequence numbers if possible.
 	head := messages.Rows[0].Cells
-	for _, row := range messages.Rows[1:] {
+	for i := len(messages.Rows) - 1; i > 0; i-- {
+		row := messages.Rows[i]
 		message := &pmapi.Message{
 			MIMEType:  "text/plain",
 			LabelIDs:  labelIDs,
@@ -99,10 +102,13 @@ func thereAreMessagesInMailboxesForAddressOfUser(mailboxNames, bddAddressID, bdd
 			message.Flags |= pmapi.FlagSent
 		}
 
+		bddMessageID := ""
 		hasDeletedFlag := false
 
 		for n, cell := range row.Cells {
 			switch head[n].Value {
+			case "id":
+				bddMessageID = cell.Value
 			case "from":
 				message.Sender = &mail.Address{
 					Address: ctx.EnsureAddress(account.Username(), cell.Value),
@@ -147,6 +153,7 @@ func thereAreMessagesInMailboxesForAddressOfUser(mailboxNames, bddAddressID, bdd
 		if err != nil {
 			return internalError(err, "adding message")
 		}
+		ctx.PairMessageID(account.Username(), bddMessageID, lastMessageID)
 
 		if hasDeletedFlag {
 			markMessageIDsDeleted = append(markMessageIDsDeleted, lastMessageID)
@@ -223,7 +230,7 @@ func thereAreSomeMessagesInMailboxesForAddressOfUser(numberOfMessages int, mailb
 		if err != nil {
 			return internalError(err, "getting labels %s for %s", mailboxNames, account.Username())
 		}
-		_, err = ctx.GetPMAPIController().AddUserMessage(account.Username(), &pmapi.Message{
+		lastMessageID, err := ctx.GetPMAPIController().AddUserMessage(account.Username(), &pmapi.Message{
 			MIMEType:  "text/plain",
 			LabelIDs:  labelIDs,
 			AddressID: account.AddressID(),
@@ -234,6 +241,11 @@ func thereAreSomeMessagesInMailboxesForAddressOfUser(numberOfMessages int, mailb
 		if err != nil {
 			return internalError(err, "adding message")
 		}
+
+		// Generating IDs in the opposite order becase sync is done from newest to oldest.
+		// The goal is to have simply predictable IMAP sequence numbers if possible.
+		bddMessageID := fmt.Sprintf("%d", numberOfMessages-i+1)
+		ctx.PairMessageID(account.Username(), bddMessageID, lastMessageID)
 	}
 	return internalError(ctx.WaitForSync(account.Username()), "waiting for sync")
 }

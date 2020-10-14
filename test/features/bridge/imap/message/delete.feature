@@ -8,10 +8,10 @@ Feature: IMAP remove messages from mailbox
     Given there are 10 messages in mailbox "<mailbox>" for "user"
     And there is IMAP client logged in as "user"
     And there is IMAP client selected in "<mailbox>"
-    When IMAP client marks message "2" as deleted
+    When IMAP client marks message seq "2" as deleted
     Then IMAP response is "OK"
     And mailbox "<mailbox>" for "user" has 10 messages
-    And message "9" in "<mailbox>" for "user" is marked as deleted
+    And message "2" in "<mailbox>" for "user" is marked as deleted
     And IMAP response contains "\* 2 FETCH[ (]*FLAGS \([^)]*\\Deleted"
     When IMAP client sends expunge
     Then IMAP response is "OK"
@@ -30,7 +30,7 @@ Feature: IMAP remove messages from mailbox
     Given there are 5 messages in mailbox "<mailbox>" for "user"
     And there is IMAP client logged in as "user"
     And there is IMAP client selected in "<mailbox>"
-    When IMAP client marks message "1:*" as deleted
+    When IMAP client marks message seq "1:*" as deleted
     Then IMAP response is "OK"
     When IMAP client sends expunge
     Then IMAP response is "OK"
@@ -53,9 +53,9 @@ Feature: IMAP remove messages from mailbox
     Given there are 5 messages in mailbox "<mailbox>" for "user"
     And there is IMAP client logged in as "user"
     And there is IMAP client selected in "<mailbox>"
-    When IMAP client marks message "1:*" as deleted
+    When IMAP client marks message seq "1:*" as deleted
     Then IMAP response is "OK"
-    When IMAP client marks message "1:3" as undeleted
+    When IMAP client marks message seq "1:3" as undeleted
     Then IMAP response is "OK"
     When IMAP client sends expunge
     Then IMAP response is "OK"
@@ -75,10 +75,10 @@ Feature: IMAP remove messages from mailbox
     Given there are 10 messages in mailbox "INBOX" for "user"
     And there is IMAP client logged in as "user"
     And there is IMAP client selected in "INBOX"
-    When IMAP client marks message "2" as deleted
+    When IMAP client marks message seq "2" as deleted
     Then IMAP response is "OK"
     And mailbox "INBOX" for "user" has 10 messages
-    And message "9" in "INBOX" for "user" is marked as deleted
+    And message "2" in "INBOX" for "user" is marked as deleted
     When IMAP client sends command "<leave>"
     Then IMAP response is "OK"
     And mailbox "INBOX" for "user" has <n> messages
@@ -97,5 +97,5 @@ Feature: IMAP remove messages from mailbox
     Given there are 1 messages in mailbox "INBOX" for "user"
     And there is IMAP client logged in as "user"
     And there is IMAP client selected in "All Mail"
-    When IMAP client marks message "1" as deleted
+    When IMAP client marks message seq "1" as deleted
     Then IMAP response is "IMAP error: NO operation not allowed for 'All Mail' folder"

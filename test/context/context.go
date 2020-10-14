@@ -73,6 +73,9 @@ type TestContext struct {
 	transferRemoteIMAPServer   *mocks.IMAPServer
 	transferProgress           *transfer.Progress
 
+	// Store releated variables.
+	bddMessageIDsToAPIIDs map[string]string
+
 	// These are the cleanup steps executed when Cleanup() is called.
 	cleanupSteps []*Cleaner
 
@@ -89,18 +92,19 @@ func New(app string) *TestContext {
 	cm := pmapi.NewClientManager(cfg.GetAPIConfig())
 
 	ctx := &TestContext{
-		t:                 &bddT{},
-		cfg:               cfg,
-		listener:          listener.New(),
-		pmapiController:   newPMAPIController(cm),
-		clientManager:     cm,
-		testAccounts:      newTestAccounts(),
-		credStore:         newFakeCredStore(),
-		imapClients:       make(map[string]*mocks.IMAPClient),
-		imapLastResponses: make(map[string]*mocks.IMAPResponse),
-		smtpClients:       make(map[string]*mocks.SMTPClient),
-		smtpLastResponses: make(map[string]*mocks.SMTPResponse),
-		logger:            logrus.StandardLogger(),
+		t:                     &bddT{},
+		cfg:                   cfg,
+		listener:              listener.New(),
+		pmapiController:       newPMAPIController(cm),
+		clientManager:         cm,
+		testAccounts:          newTestAccounts(),
+		credStore:             newFakeCredStore(),
+		imapClients:           make(map[string]*mocks.IMAPClient),
+		imapLastResponses:     make(map[string]*mocks.IMAPResponse),
+		smtpClients:           make(map[string]*mocks.SMTPClient),
+		smtpLastResponses:     make(map[string]*mocks.SMTPResponse),
+		bddMessageIDsToAPIIDs: make(map[string]string),
+		logger:                logrus.StandardLogger(),
 	}
 
 	// Ensure that the config is cleaned up after the test is over.

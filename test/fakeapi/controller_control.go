@@ -156,10 +156,6 @@ func (ctl *Controller) resetUsers() {
 	}
 }
 
-func (ctl *Controller) GetMessageID(username, messageIndex string) string {
-	return messageIndex
-}
-
 func (ctl *Controller) GetMessages(username, labelID string) ([]*pmapi.Message, error) {
 	messages := []*pmapi.Message{}
 	for _, fakeAPI := range ctl.fakeAPIs {

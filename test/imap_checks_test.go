@@ -32,11 +32,11 @@ func IMAPChecksFeatureContext(s *godog.Suite) {
 	s.Step(`^IMAP response to "([^"]*)" contains "([^"]*)"$`, imapResponseNamedContains)
 	s.Step(`^IMAP response has (\d+) message(?:s)?$`, imapResponseHasNumberOfMessages)
 	s.Step(`^IMAP response to "([^"]*)" has (\d+) message(?:s)?$`, imapResponseNamedHasNumberOfMessages)
-	s.Step(`^IMAP client receives update marking message "([^"]*)" as read within (\d+) seconds$`, imapClientReceivesUpdateMarkingMessagesAsReadWithin)
-	s.Step(`^IMAP client "([^"]*)" receives update marking message "([^"]*)" as read within (\d+) seconds$`, imapClientNamedReceivesUpdateMarkingMessagesAsReadWithin)
-	s.Step(`^IMAP client receives update marking message "([^"]*)" as unread within (\d+) seconds$`, imapClientReceivesUpdateMarkingMessagesAsUnreadWithin)
-	s.Step(`^IMAP client "([^"]*)" receives update marking message "([^"]*)" as unread within (\d+) seconds$`, imapClientNamedReceivesUpdateMarkingMessagesAsUnreadWithin)
-	s.Step(`^IMAP client "([^"]*)" does not receive update for message "([^"]*)" within (\d+) seconds$`, imapClientDoesNotReceiveUpdateForMessageWithin)
+	s.Step(`^IMAP client receives update marking message seq "([^"]*)" as read within (\d+) seconds$`, imapClientReceivesUpdateMarkingMessageSeqAsReadWithin)
+	s.Step(`^IMAP client "([^"]*)" receives update marking message seq "([^"]*)" as read within (\d+) seconds$`, imapClientNamedReceivesUpdateMarkingMessageSeqAsReadWithin)
+	s.Step(`^IMAP client receives update marking message seq "([^"]*)" as unread within (\d+) seconds$`, imapClientReceivesUpdateMarkingMessageSeqAsUnreadWithin)
+	s.Step(`^IMAP client "([^"]*)" receives update marking message seq "([^"]*)" as unread within (\d+) seconds$`, imapClientNamedReceivesUpdateMarkingMessageSeqAsUnreadWithin)
+	s.Step(`^IMAP client "([^"]*)" does not receive update for message seq "([^"]*)" within (\d+) seconds$`, imapClientDoesNotReceiveUpdateForMessageSeqWithin)
 }
 
 func imapResponseIs(expectedResponse string) error {
@@ -73,26 +73,26 @@ func imapResponseNamedHasNumberOfMessages(clientID string, expectedCount int) er
 	return ctx.GetTestingError()
 }
 
-func imapClientReceivesUpdateMarkingMessagesAsReadWithin(messageUIDs string, seconds int) error {
-	return imapClientNamedReceivesUpdateMarkingMessagesAsReadWithin("imap", messageUIDs, seconds)
+func imapClientReceivesUpdateMarkingMessageSeqAsReadWithin(messageSeq string, seconds int) error {
+	return imapClientNamedReceivesUpdateMarkingMessageSeqAsReadWithin("imap", messageSeq, seconds)
 }
 
-func imapClientNamedReceivesUpdateMarkingMessagesAsReadWithin(clientID, messageUIDs string, seconds int) error {
+func imapClientNamedReceivesUpdateMarkingMessageSeqAsReadWithin(clientID, messageSeq string, seconds int) error {
 	regexps := []string{}
-	iterateOverSeqSet(messageUIDs, func(messageUID string) {
+	iterateOverSeqSet(messageSeq, func(messageUID string) {
 		regexps = append(regexps, `FETCH \(FLAGS \(.*\\Seen.*\) UID `+messageUID)
 	})
 	ctx.GetIMAPLastResponse(clientID).WaitForSections(time.Duration(seconds)*time.Second, regexps...)
 	return ctx.GetTestingError()
 }
 
-func imapClientReceivesUpdateMarkingMessagesAsUnreadWithin(messageUIDs string, seconds int) error {
-	return imapClientNamedReceivesUpdateMarkingMessagesAsUnreadWithin("imap", messageUIDs, seconds)
+func imapClientReceivesUpdateMarkingMessageSeqAsUnreadWithin(messageSeq string, seconds int) error {
+	return imapClientNamedReceivesUpdateMarkingMessageSeqAsUnreadWithin("imap", messageSeq, seconds)
 }
 
-func imapClientNamedReceivesUpdateMarkingMessagesAsUnreadWithin(clientID, messageUIDs string, seconds int) error {
+func imapClientNamedReceivesUpdateMarkingMessageSeqAsUnreadWithin(clientID, messageSeq string, seconds int) error {
 	regexps := []string{}
-	iterateOverSeqSet(messageUIDs, func(messageUID string) {
+	iterateOverSeqSet(messageSeq, func(messageUID string) {
 		// Golang does not support negative look ahead. Following complex regexp checks \Seen is not there.
 		regexps = append(regexps, `FETCH \(FLAGS \(([^S]|S[^e]|Se[^e]|See[^n])*\) UID `+messageUID)
 	})
@@ -100,9 +100,9 @@ func imapClientNamedReceivesUpdateMarkingMessagesAsUnreadWithin(clientID, messag
 	return ctx.GetTestingError()
 }
 
-func imapClientDoesNotReceiveUpdateForMessageWithin(clientID, messageUIDs string, seconds int) error {
+func imapClientDoesNotReceiveUpdateForMessageSeqWithin(clientID, messageSeq string, seconds int) error {
 	regexps := []string{}
-	iterateOverSeqSet(messageUIDs, func(messageUID string) {
+	iterateOverSeqSet(messageSeq, func(messageUID string) {
 		regexps = append(regexps, `FETCH.*UID `+messageUID)
 	})
 	ctx.GetIMAPLastResponse(clientID).WaitForNotSections(time.Duration(seconds)*time.Second, regexps...)

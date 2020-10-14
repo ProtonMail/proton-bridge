@@ -34,7 +34,7 @@ Feature: IMAP create messages
     Then IMAP response is "OK"
     When the event loop of "userMoreAddresses" loops once
     Then mailbox "Sent" for "userMoreAddresses" has messages
-      | from      | to                 | subject | read |
+      | from        | to                 | subject | read |
       | [secondary] | john.doe@email.com | foo     | true |
     And mailbox "INBOX" for "userMoreAddresses" has no messages
 
@@ -57,7 +57,7 @@ Feature: IMAP create messages
     And mailbox "INBOX" for "userMoreAddresses" has no messages
 
   # Importing duplicate messages when messageID cannot be found in Sent already.
-  # 
+  #
   # Previously, we discarded messages for which sender matches account address to
   # avoid duplicates, but this led to discarding messages imported through mail client.
   Scenario: Imports a similar (duplicate) message to sent

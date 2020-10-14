@@ -12,9 +12,8 @@ Feature: IMAP get mailbox status
     When IMAP client gets status of "INBOX"
     Then IMAP response contains "INBOX"
 
-  Scenario: Mailbox status contains
+  Scenario: Mailbox status contains counts and UIDs
     When IMAP client gets status of "INBOX"
-    Then IMAP response contains "INBOX"
     And IMAP response contains "MESSAGES 2"
     And IMAP response contains "UNSEEN 1"
     And IMAP response contains "UIDNEXT 3"

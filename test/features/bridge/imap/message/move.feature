@@ -2,8 +2,6 @@ Feature: IMAP move messages
   Background:
     Given there is connected user "user"
     And there is "user" with mailbox "Folders/mbox"
-    # Messages are inserted in opposite way to keep increasing ID.
-    # Sequence numbers are then opposite than listed above.
     And there are messages in mailbox "INBOX" for "user"
       | from              | to         | subject | body  |
       | john.doe@mail.com | user@pm.me | foo     | hello |
@@ -12,7 +10,7 @@ Feature: IMAP move messages
     And there is IMAP client selected in "INBOX"
 
   Scenario: Move message
-    When IMAP client moves messages "2" to "Folders/mbox"
+    When IMAP client moves message seq "1" to "Folders/mbox"
     Then IMAP response is "OK"
     And mailbox "INBOX" for "user" has messages
       | from              | to         | subject |
@@ -22,7 +20,7 @@ Feature: IMAP move messages
       | john.doe@mail.com | user@pm.me | foo     |
 
   Scenario: Move all messages
-    When IMAP client moves messages "1:*" to "Folders/mbox"
+    When IMAP client moves message seq "1:*" to "Folders/mbox"
     Then IMAP response is "OK"
     And mailbox "INBOX" for "user" has 0 messages
     And mailbox "Folders/mbox" for "user" has messages
@@ -31,7 +29,7 @@ Feature: IMAP move messages
       | jane.doe@mail.com | name@pm.me | bar     |
 
   Scenario: Move message from All Mail is not possible
-    When IMAP client moves messages "2" to "Folders/mbox"
+    When IMAP client moves message seq "1" to "Folders/mbox"
     Then IMAP response is "OK"
     And mailbox "All Mail" for "user" has messages
       | from              | to         | subject |

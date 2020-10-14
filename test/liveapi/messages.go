@@ -23,7 +23,6 @@ import (
 	"io"
 	"mime/multipart"
 	"net/http"
-	"strconv"
 
 	messageUtils "github.com/ProtonMail/proton-bridge/pkg/message"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
@@ -125,14 +124,6 @@ func buildMessageBody(message *pmapi.Message, body *bytes.Buffer) error {
 	}
 	_ = mw.Close()
 	return nil
-}
-
-func (ctl *Controller) GetMessageID(username, messageIndex string) string {
-	idx, err := strconv.Atoi(messageIndex)
-	if err != nil {
-		panic(fmt.Sprintf("message index %s not found", messageIndex))
-	}
-	return ctl.messageIDsByUsername[username][idx-1]
 }
 
 func (ctl *Controller) GetMessages(username, labelID string) ([]*pmapi.Message, error) {

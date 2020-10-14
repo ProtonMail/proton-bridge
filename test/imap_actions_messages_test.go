@@ -32,28 +32,28 @@ func IMAPActionsMessagesFeatureContext(s *godog.Suite) {
 	s.Step(`^IMAP client fetches "([^"]*)"$`, imapClientFetches)
 	s.Step(`^IMAP client fetches by UID "([^"]*)"$`, imapClientFetchesByUID)
 	s.Step(`^IMAP client searches for "([^"]*)"$`, imapClientSearchesFor)
-	s.Step(`^IMAP client copies messages "([^"]*)" to "([^"]*)"$`, imapClientCopiesMessagesTo)
-	s.Step(`^IMAP client moves messages "([^"]*)" to "([^"]*)"$`, imapClientMovesMessagesTo)
-	s.Step(`^IMAP clients "([^"]*)" and "([^"]*)" move message "([^"]*)" of "([^"]*)" from "([^"]*)" to "([^"]*)" by append and delete$`, imapClientsMoveMessageOfUserFromToByAppendAndDelete)
+	s.Step(`^IMAP client copies message seq "([^"]*)" to "([^"]*)"$`, imapClientCopiesMessagesTo)
+	s.Step(`^IMAP client moves message seq "([^"]*)" to "([^"]*)"$`, imapClientMovesMessagesTo)
+	s.Step(`^IMAP clients "([^"]*)" and "([^"]*)" move message seq "([^"]*)" of "([^"]*)" from "([^"]*)" to "([^"]*)" by append and delete$`, imapClientsMoveMessageSeqOfUserFromToByAppendAndDelete)
 	s.Step(`^IMAP client imports message to "([^"]*)"$`, imapClientCreatesMessage)
 	s.Step(`^IMAP client imports message to "([^"]*)" with encoding "([^"]*)"$`, imapClientCreatesMessageWithEncoding)
 	s.Step(`^IMAP client creates message "([^"]*)" from "([^"]*)" to "([^"]*)" with body "([^"]*)" in "([^"]*)"$`, imapClientCreatesMessageFromToWithBody)
 	s.Step(`^IMAP client creates message "([^"]*)" from "([^"]*)" to address "([^"]*)" of "([^"]*)" with body "([^"]*)" in "([^"]*)"$`, imapClientCreatesMessageFromToAddressOfUserWithBody)
 	s.Step(`^IMAP client creates message "([^"]*)" from address "([^"]*)" of "([^"]*)" to "([^"]*)" with body "([^"]*)" in "([^"]*)"$`, imapClientCreatesMessageFromAddressOfUserToWithBody)
-	s.Step(`^IMAP client marks message "([^"]*)" with "([^"]*)"$`, imapClientMarksMessageWithFlags)
-	s.Step(`^IMAP client "([^"]*)" marks message "([^"]*)" with "([^"]*)"$`, imapClientNamedMarksMessageWithFlags)
-	s.Step(`^IMAP client marks message "([^"]*)" as read$`, imapClientMarksMessageAsRead)
-	s.Step(`^IMAP client "([^"]*)" marks message "([^"]*)" as read$`, imapClientNamedMarksMessageAsRead)
-	s.Step(`^IMAP client marks message "([^"]*)" as unread$`, imapClientMarksMessageAsUnread)
-	s.Step(`^IMAP client "([^"]*)" marks message "([^"]*)" as unread$`, imapClientNamedMarksMessageAsUnread)
-	s.Step(`^IMAP client marks message "([^"]*)" as starred$`, imapClientMarksMessageAsStarred)
-	s.Step(`^IMAP client "([^"]*)" marks message "([^"]*)" as starred$`, imapClientNamedMarksMessageAsStarred)
-	s.Step(`^IMAP client marks message "([^"]*)" as unstarred$`, imapClientMarksMessageAsUnstarred)
-	s.Step(`^IMAP client "([^"]*)" marks message "([^"]*)" as unstarred$`, imapClientNamedMarksMessageAsUnstarred)
-	s.Step(`^IMAP client marks message "([^"]*)" as deleted$`, imapClientMarksMessageAsDeleted)
-	s.Step(`^IMAP client "([^"]*)" marks message "([^"]*)" as deleted$`, imapClientNamedMarksMessageAsDeleted)
-	s.Step(`^IMAP client marks message "([^"]*)" as undeleted$`, imapClientMarksMessageAsUndeleted)
-	s.Step(`^IMAP client "([^"]*)" marks message "([^"]*)" as undeleted$`, imapClientNamedMarksMessageAsUndeleted)
+	s.Step(`^IMAP client marks message seq "([^"]*)" with "([^"]*)"$`, imapClientMarksMessageSeqWithFlags)
+	s.Step(`^IMAP client "([^"]*)" marks message seq "([^"]*)" with "([^"]*)"$`, imapClientNamedMarksMessageSeqWithFlags)
+	s.Step(`^IMAP client marks message seq "([^"]*)" as read$`, imapClientMarksMessageSeqAsRead)
+	s.Step(`^IMAP client "([^"]*)" marks message seq "([^"]*)" as read$`, imapClientNamedMarksMessageSeqAsRead)
+	s.Step(`^IMAP client marks message seq "([^"]*)" as unread$`, imapClientMarksMessageSeqAsUnread)
+	s.Step(`^IMAP client "([^"]*)" marks message seq "([^"]*)" as unread$`, imapClientNamedMarksMessageSeqAsUnread)
+	s.Step(`^IMAP client marks message seq "([^"]*)" as starred$`, imapClientMarksMessageSeqAsStarred)
+	s.Step(`^IMAP client "([^"]*)" marks message seq "([^"]*)" as starred$`, imapClientNamedMarksMessageSeqAsStarred)
+	s.Step(`^IMAP client marks message seq "([^"]*)" as unstarred$`, imapClientMarksMessageSeqAsUnstarred)
+	s.Step(`^IMAP client "([^"]*)" marks message seq "([^"]*)" as unstarred$`, imapClientNamedMarksMessageSeqAsUnstarred)
+	s.Step(`^IMAP client marks message seq "([^"]*)" as deleted$`, imapClientMarksMessageSeqAsDeleted)
+	s.Step(`^IMAP client "([^"]*)" marks message seq "([^"]*)" as deleted$`, imapClientNamedMarksMessageSeqAsDeleted)
+	s.Step(`^IMAP client marks message seq "([^"]*)" as undeleted$`, imapClientMarksMessageSeqAsUndeleted)
+	s.Step(`^IMAP client "([^"]*)" marks message seq "([^"]*)" as undeleted$`, imapClientNamedMarksMessageSeqAsUndeleted)
 	s.Step(`^IMAP client starts IDLE-ing$`, imapClientStartsIDLEing)
 	s.Step(`^IMAP client "([^"]*)" starts IDLE-ing$`, imapClientNamedStartsIDLEing)
 	s.Step(`^IMAP client sends expunge$`, imapClientExpunge)
@@ -84,19 +84,19 @@ func imapClientSearchesFor(query string) error {
 	return nil
 }
 
-func imapClientCopiesMessagesTo(messageRange, newMailboxName string) error {
-	res := ctx.GetIMAPClient("imap").Copy(messageRange, newMailboxName)
+func imapClientCopiesMessagesTo(messageSeq, newMailboxName string) error {
+	res := ctx.GetIMAPClient("imap").Copy(messageSeq, newMailboxName)
 	ctx.SetIMAPLastResponse("imap", res)
 	return nil
 }
 
-func imapClientMovesMessagesTo(messageRange, newMailboxName string) error {
-	res := ctx.GetIMAPClient("imap").Move(messageRange, newMailboxName)
+func imapClientMovesMessagesTo(messageSeq, newMailboxName string) error {
+	res := ctx.GetIMAPClient("imap").Move(messageSeq, newMailboxName)
 	ctx.SetIMAPLastResponse("imap", res)
 	return nil
 }
 
-func imapClientsMoveMessageOfUserFromToByAppendAndDelete(sourceIMAPClient, targetIMAPClient, messageUID, bddUserID, sourceMailboxName, targetMailboxName string) error {
+func imapClientsMoveMessageSeqOfUserFromToByAppendAndDelete(sourceIMAPClient, targetIMAPClient, messageSeq, bddUserID, sourceMailboxName, targetMailboxName string) error {
 	account := ctx.GetTestAccount(bddUserID)
 	if account == nil {
 		return godog.ErrPending
@@ -105,7 +105,7 @@ func imapClientsMoveMessageOfUserFromToByAppendAndDelete(sourceIMAPClient, targe
 	if err != nil {
 		return internalError(err, "getting store mailbox")
 	}
-	uid, err := strconv.ParseUint(messageUID, 10, 32)
+	uid, err := strconv.ParseUint(messageSeq, 10, 32)
 	if err != nil {
 		return internalError(err, "parsing message UID")
 	}
@@ -136,7 +136,7 @@ func imapClientsMoveMessageOfUserFromToByAppendAndDelete(sourceIMAPClient, targe
 
 	go func() {
 		defer wg.Done()
-		_ = imapClientNamedMarksMessageAsDeleted(sourceIMAPClient, messageUID)
+		_ = imapClientNamedMarksMessageSeqAsDeleted(sourceIMAPClient, messageSeq)
 	}()
 
 	wg.Wait()
@@ -195,72 +195,72 @@ func imapClientCreatesMessageFromAddressOfUserToWithBody(subject, bddAddressID, 
 	return imapClientCreatesMessageFromToWithBody(subject, account.Address(), to, body, mailboxName)
 }
 
-func imapClientMarksMessageWithFlags(messageRange, flags string) error {
-	return imapClientNamedMarksMessageWithFlags("imap", messageRange, flags)
+func imapClientMarksMessageSeqWithFlags(messageSeq, flags string) error {
+	return imapClientNamedMarksMessageSeqWithFlags("imap", messageSeq, flags)
 }
 
-func imapClientNamedMarksMessageWithFlags(imapClient, messageRange, flags string) error {
-	res := ctx.GetIMAPClient(imapClient).SetFlags(messageRange, flags)
+func imapClientNamedMarksMessageSeqWithFlags(imapClient, messageSeq, flags string) error {
+	res := ctx.GetIMAPClient(imapClient).SetFlags(messageSeq, flags)
 	ctx.SetIMAPLastResponse(imapClient, res)
 	return nil
 }
 
-func imapClientMarksMessageAsRead(messageRange string) error {
-	return imapClientNamedMarksMessageAsRead("imap", messageRange)
+func imapClientMarksMessageSeqAsRead(messageSeq string) error {
+	return imapClientNamedMarksMessageSeqAsRead("imap", messageSeq)
 }
 
-func imapClientNamedMarksMessageAsRead(imapClient, messageRange string) error {
-	res := ctx.GetIMAPClient(imapClient).MarkAsRead(messageRange)
+func imapClientNamedMarksMessageSeqAsRead(imapClient, messageSeq string) error {
+	res := ctx.GetIMAPClient(imapClient).MarkAsRead(messageSeq)
 	ctx.SetIMAPLastResponse(imapClient, res)
 	return nil
 }
 
-func imapClientMarksMessageAsUnread(messageRange string) error {
-	return imapClientNamedMarksMessageAsUnread("imap", messageRange)
+func imapClientMarksMessageSeqAsUnread(messageSeq string) error {
+	return imapClientNamedMarksMessageSeqAsUnread("imap", messageSeq)
 }
 
-func imapClientNamedMarksMessageAsUnread(imapClient, messageRange string) error {
-	res := ctx.GetIMAPClient(imapClient).MarkAsUnread(messageRange)
+func imapClientNamedMarksMessageSeqAsUnread(imapClient, messageSeq string) error {
+	res := ctx.GetIMAPClient(imapClient).MarkAsUnread(messageSeq)
 	ctx.SetIMAPLastResponse(imapClient, res)
 	return nil
 }
 
-func imapClientMarksMessageAsStarred(messageRange string) error {
-	return imapClientNamedMarksMessageAsStarred("imap", messageRange)
+func imapClientMarksMessageSeqAsStarred(messageSeq string) error {
+	return imapClientNamedMarksMessageSeqAsStarred("imap", messageSeq)
 }
 
-func imapClientNamedMarksMessageAsStarred(imapClient, messageRange string) error {
-	res := ctx.GetIMAPClient(imapClient).MarkAsStarred(messageRange)
+func imapClientNamedMarksMessageSeqAsStarred(imapClient, messageSeq string) error {
+	res := ctx.GetIMAPClient(imapClient).MarkAsStarred(messageSeq)
 	ctx.SetIMAPLastResponse(imapClient, res)
 	return nil
 }
 
-func imapClientMarksMessageAsUnstarred(messageRange string) error {
-	return imapClientNamedMarksMessageAsUnstarred("imap", messageRange)
+func imapClientMarksMessageSeqAsUnstarred(messageSeq string) error {
+	return imapClientNamedMarksMessageSeqAsUnstarred("imap", messageSeq)
 }
 
-func imapClientNamedMarksMessageAsUnstarred(imapClient, messageRange string) error {
-	res := ctx.GetIMAPClient(imapClient).MarkAsUnstarred(messageRange)
+func imapClientNamedMarksMessageSeqAsUnstarred(imapClient, messageSeq string) error {
+	res := ctx.GetIMAPClient(imapClient).MarkAsUnstarred(messageSeq)
 	ctx.SetIMAPLastResponse(imapClient, res)
 	return nil
 }
 
-func imapClientMarksMessageAsDeleted(messageRange string) error {
-	return imapClientNamedMarksMessageAsDeleted("imap", messageRange)
+func imapClientMarksMessageSeqAsDeleted(messageSeq string) error {
+	return imapClientNamedMarksMessageSeqAsDeleted("imap", messageSeq)
 }
 
-func imapClientNamedMarksMessageAsDeleted(imapClient, messageRange string) error {
-	res := ctx.GetIMAPClient(imapClient).MarkAsDeleted(messageRange)
+func imapClientNamedMarksMessageSeqAsDeleted(imapClient, messageSeq string) error {
+	res := ctx.GetIMAPClient(imapClient).MarkAsDeleted(messageSeq)
 	ctx.SetIMAPLastResponse(imapClient, res)
 	return nil
 }
 
-func imapClientMarksMessageAsUndeleted(messageRange string) error {
-	return imapClientNamedMarksMessageAsUndeleted("imap", messageRange)
+func imapClientMarksMessageSeqAsUndeleted(messageSeq string) error {
+	return imapClientNamedMarksMessageSeqAsUndeleted("imap", messageSeq)
 }
 
-func imapClientNamedMarksMessageAsUndeleted(imapClient, messageRange string) error {
-	res := ctx.GetIMAPClient(imapClient).MarkAsUndeleted(messageRange)
+func imapClientNamedMarksMessageSeqAsUndeleted(imapClient, messageSeq string) error {
+	res := ctx.GetIMAPClient(imapClient).MarkAsUndeleted(messageSeq)
 	ctx.SetIMAPLastResponse(imapClient, res)
 	return nil
 }
