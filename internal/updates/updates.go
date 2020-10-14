@@ -310,7 +310,9 @@ func (u *Updates) StartUpgrade(currentStatus chan<- Progress) { // nolint[funlen
 	status.UpdateDescription(InfoUpgrading)
 	switch runtime.GOOS {
 	case "windows": //nolint[goconst]
-		installerFile := strings.Split(u.winInstallerFile, "/")[1]
+		// Cannot use filepath.Base on windows it has different delimiter
+		split := strings.Split(u.winInstallerFile, "/")
+		installerFile := split[len(split)-1]
 		cmd := exec.Command("./" + installerFile) // nolint[gosec]
 		cmd.Dir = u.updateTempDir
 		status.Err = cmd.Start()
