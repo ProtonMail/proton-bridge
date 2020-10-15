@@ -114,6 +114,8 @@ func TestGetGmailLabelsFromValue(t *testing.T) {
 		{" , ", toSet()},
 		{" ", toSet()},
 		{"", toSet()},
+		{"=?UTF-8?Q?Archived,Category_personal,test_=F0=9F=98=80=F0=9F=99=83?=", toSet("Archived", "Category personal", "test 😀🙃")},
+		{"IMAP_NotJunk,Foo,Opened,bar,Unread", toSet("Foo", "bar")},
 	}
 	for _, tc := range tests {
 		tc := tc
