@@ -18,6 +18,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-779 Stop ongoing transfer calls sooner (re-check after import request is generated).
 * Fix measurement of uploading attachments during transfer.
 * GODT-827 Do not spam sentry with bad ID by integration test.
+* GODT-700 Fix UTF-7 incompatibility.
 
 ### Changed
 * Bump crypto version to v0.0.0-20200818122824-ed5d25e28db8
