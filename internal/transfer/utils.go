@@ -24,6 +24,7 @@ import (
 	"net/mail"
 	"net/textproto"
 	"path/filepath"
+	"runtime"
 	"sort"
 	"strings"
 
@@ -138,4 +139,25 @@ func getMessageHeader(body []byte) (mail.Header, error) {
 		return nil, errors.Wrap(err, "failed to read headers")
 	}
 	return mail.Header(header), nil
+}
+
+// sanitizeFileName replaces problematic special characters with underscore.
+func sanitizeFileName(fileName string) string {
+	if len(fileName) == 0 {
+		return fileName
+	}
+	if runtime.GOOS != "windows" && (fileName[0] == '-' || fileName[0] == '.') { //nolint[goconst]
+		fileName = "_" + fileName[1:]
+	}
+	return strings.Map(func(r rune) rune {
+		switch r {
+		case '\\', '/', ':', '*', '?', '"', '<', '>', '|':
+			return '_'
+		case '[', ']', '(', ')', '{', '}', '^', '#', '%', '&', '!', '@', '+', '=', '\'', '~':
+			if runtime.GOOS != "windows" {
+				return '_'
+			}
+		}
+		return r
+	}, fileName)
 }

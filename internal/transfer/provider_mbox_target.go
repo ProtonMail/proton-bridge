@@ -57,7 +57,7 @@ func (p *MBOXProvider) TransferFrom(rules transferRules, progress *Progress, ch 
 func (p *MBOXProvider) writeMessage(msg Message) error {
 	var multiErr error
 	for _, mailbox := range msg.Targets {
-		mboxName := filepath.Base(mailbox.Name)
+		mboxName := sanitizeFileName(mailbox.Name)
 		if !strings.HasSuffix(mboxName, ".mbox") {
 			mboxName += ".mbox"
 		}

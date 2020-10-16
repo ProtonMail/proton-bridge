@@ -8,6 +8,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-749 Don't force PGP/Inline when sending plaintext messages.
 * GODT-764 Fix deadlock in integration tests for Import-Export.
 * GODT-662 Do not resume paused transfer progress after dismissing cancel popup.
+* GODT-772 Sanitize mailbox names for exporting to follow OS restrictions.
 
 ### Changed
 * Bump crypto version to v0.0.0-20200818122824-ed5d25e28db8

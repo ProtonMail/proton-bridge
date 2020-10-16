@@ -21,6 +21,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	r "github.com/stretchr/testify/require"
@@ -187,4 +188,27 @@ Body
 	r.NoError(t, err)
 	r.Equal(t, header.Get("subject"), "Hello")
 	r.Equal(t, header.Get("from"), "user@example.com")
+}
+
+func TestSanitizeFileName(t *testing.T) {
+	tests := map[string]string{
+		"hello":            "hello",
+		"a\\b/c:*?d\"<>|e": "a_b_c___d____e",
+	}
+	if runtime.GOOS == "darwin" || runtime.GOOS == "linux" {
+		tests[".hello"] = "_hello"
+		tests["-hello"] = "_hello"
+	}
+	if runtime.GOOS == "windows" {
+		tests["[hello]&@=~~"] = "_hello______"
+	}
+
+	for path, wantPath := range tests {
+		path := path
+		wantPath := wantPath
+		t.Run(path, func(t *testing.T) {
+			gotPath := sanitizeFileName(path)
+			r.Equal(t, wantPath, gotPath)
+		})
+	}
 }

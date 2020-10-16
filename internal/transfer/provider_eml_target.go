@@ -61,7 +61,7 @@ func (p *EMLProvider) TransferFrom(rules transferRules, progress *Progress, ch <
 func (p *EMLProvider) createFolders(rules transferRules) error {
 	for rule := range rules.iterateActiveRules() {
 		for _, mailbox := range rule.TargetMailboxes {
-			path := filepath.Join(p.root, mailbox.Name)
+			path := filepath.Join(p.root, sanitizeFileName(mailbox.Name))
 			if err := os.MkdirAll(path, os.ModePerm); err != nil {
 				return err
 			}
@@ -71,7 +71,7 @@ func (p *EMLProvider) createFolders(rules transferRules) error {
 }
 
 func (p *EMLProvider) writeFile(msg Message) error {
-	fileName := filepath.Base(msg.ID)
+	fileName := sanitizeFileName(filepath.Base(msg.ID))
 	if filepath.Ext(fileName) != ".eml" {
 		fileName += ".eml"
 	}
