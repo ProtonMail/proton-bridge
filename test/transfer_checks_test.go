@@ -48,7 +48,10 @@ func TransferChecksFeatureContext(s *godog.Suite) {
 func progressFinishedWith(wantResponse string) error {
 	progress := ctx.GetTransferProgress()
 	// Wait till transport is finished.
-	for range progress.GetUpdateChannel() {
+	updateCh := progress.GetUpdateChannel()
+	if updateCh != nil {
+		for range updateCh {
+		}
 	}
 
 	err := progress.GetFatalError()
