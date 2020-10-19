@@ -450,7 +450,6 @@ Dialog {
             errorPopup.hide()
         }
         onClickedNo  : {
-            go.resumeProcess()
             errorPopup.hide()
         }
     }

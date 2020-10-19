@@ -796,11 +796,6 @@ Dialog {
             errorPopup.hide()
         }
         onClickedNo  : {
-            if (errorPopup.msgID == "ask_send_report") {
-                errorPopup.hide()
-                return
-            }
-            go.resumeProcess()
             errorPopup.hide()
         }
 
