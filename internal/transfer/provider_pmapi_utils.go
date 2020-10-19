@@ -72,7 +72,8 @@ func (p *PMAPIProvider) tryReconnect() error {
 
 func (p *PMAPIProvider) listMessages(filter *pmapi.MessagesFilter) (messages []*pmapi.Message, count int, err error) {
 	err = p.ensureConnection(func() error {
-		key := fmt.Sprintf("%s_%d", filter.LabelID, filter.Page)
+		// Sort is used in the key so the filter is different for estimating and real fetching.
+		key := fmt.Sprintf("%s_%s_%d", filter.LabelID, filter.Sort, filter.Page)
 		p.timeIt.start("listing", key)
 		defer p.timeIt.stop("listing", key)
 
