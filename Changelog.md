@@ -10,6 +10,10 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-662 Do not resume paused transfer progress after dismissing cancel popup.
 * GODT-772 Sanitize mailbox names for exporting to follow OS restrictions.
 * GODT-771 Show fatal errors after export is terminated.
+* GODT-779 Do not propagate updates when progress is stopped.
+* GODT-779 Unpause progress during fatal error to properly stop progress.
+* GODT-779 Stop ongoing transfer calls sooner (re-check after import request is generated).
+* Fix measurement of uploading attachments during transfer.
 
 ### Changed
 * Bump crypto version to v0.0.0-20200818122824-ed5d25e28db8

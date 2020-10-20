@@ -177,6 +177,10 @@ func (p *PMAPIProvider) transferMessage(rules transferRules, progress *Progress,
 		return
 	}
 
+	if progress.shouldStop() {
+		return
+	}
+
 	importMsgReqSize := len(importMsgReq.Body)
 	if p.nextImportRequestsSize+importMsgReqSize > pmapiImportBatchMaxSize || len(p.nextImportRequests) == pmapiImportBatchMaxItems {
 		preparedImportRequestsCh <- p.nextImportRequests

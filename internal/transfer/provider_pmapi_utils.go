@@ -118,8 +118,10 @@ func (p *PMAPIProvider) createDraft(msgSourceID string, message *pmapi.Message, 
 
 func (p *PMAPIProvider) createAttachment(msgSourceID string, att *pmapi.Attachment, r io.Reader, sig io.Reader) (created *pmapi.Attachment, err error) {
 	err = p.ensureConnection(func() error {
-		p.timeIt.start("upload", msgSourceID)
-		defer p.timeIt.stop("upload", msgSourceID)
+		// Use some attributes from attachment to have unique key for each call.
+		key := fmt.Sprintf("%s_%s_%d", msgSourceID, att.Name, att.Size)
+		p.timeIt.start("upload", key)
+		defer p.timeIt.stop("upload", key)
 
 		created, err = p.client().CreateAttachment(att, r, sig)
 		return err

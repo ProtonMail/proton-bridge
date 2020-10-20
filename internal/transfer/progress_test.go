@@ -19,6 +19,7 @@ package transfer
 
 import (
 	"testing"
+	"time"
 
 	"github.com/pkg/errors"
 	a "github.com/stretchr/testify/assert"
@@ -102,6 +103,28 @@ func TestProgressFatalError(t *testing.T) {
 	r.Nil(t, progress.updateCh)
 
 	r.NotPanics(t, func() { progress.addMessage("msg", nil) })
+}
+
+func TestFailUnpauseAndStops(t *testing.T) {
+	progress := newProgress(log, nil)
+	drainProgressUpdateChannel(&progress)
+
+	progress.Pause("pausing")
+	progress.fatal(errors.New("fatal error"))
+
+	r.Nil(t, progress.updateCh)
+	r.True(t, progress.isStopped)
+	r.False(t, progress.IsPaused())
+	r.Eventually(t, progress.shouldStop, 2*time.Millisecond, time.Millisecond)
+}
+
+func TestStopClosesUpdates(t *testing.T) {
+	progress := newProgress(log, nil)
+	ch := progress.updateCh
+
+	progress.Stop()
+	r.Nil(t, progress.updateCh)
+	r.PanicsWithError(t, "send on closed channel", func() { ch <- struct{}{} })
 }
 
 func drainProgressUpdateChannel(progress *Progress) {

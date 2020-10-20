@@ -93,7 +93,7 @@ func (p *Progress) fatal(err error) {
 	defer p.lock.Unlock()
 
 	log.WithError(err).Error("Progress finished")
-	p.isStopped = true
+	p.setStop()
 	p.fatalError = err
 	p.cleanUpdateCh()
 }
@@ -282,6 +282,15 @@ func (p *Progress) Stop() {
 	defer p.update()
 
 	p.log.Info("Progress stopped")
+	p.setStop()
+
+	// Once progress is stopped, some calls might be in progress. Results from
+	// those calls are irrelevant so we can close update channel sooner to not
+	// propagate any progress to user interface anymore.
+	p.cleanUpdateCh()
+}
+
+func (p *Progress) setStop() {
 	p.isStopped = true
 	p.pauseReason = "" // Clear pause to run paused code and stop it.
 }
