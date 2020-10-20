@@ -4,9 +4,12 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 ## Unreleased
 
+### Fixed
+* GODT-829 Remove `NoInferior` to display sub-folders in apple mail.
+
 ## [Bridge 1.4.4] Forth
 
-### Fixed
+### Fixed
 * GODT-798 Replace, don't add, transfer encoding when making body 7-bit clean.
 * Move/Copy duplicate for emails with References in Outlook
 * CSB-247 Cannot update from 1.4.0
@@ -17,7 +20,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 ### Changed
 * Reverted sending IMAP updates to be not blocking again.
 
-### Fixed
+### Fixed
 * GODT-783 Settings flags by FLAGS (not using +/-FLAGS) do not change spam state.
 
 
