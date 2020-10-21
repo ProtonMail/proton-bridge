@@ -23,12 +23,12 @@ import (
 	"fmt"
 	"io"
 	"net"
-	"net/mail"
 	"os"
 	"strings"
 	"sync"
 	"time"
 
+	"github.com/ProtonMail/proton-bridge/pkg/message/rfc5322"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -148,12 +148,12 @@ func (c *SMTPClient) SendMail(r io.Reader, bcc string) *SMTPResponse {
 
 		from = c.address
 		if from == "" && strings.HasPrefix(line, "From: ") {
-			if addr, err := mail.ParseAddress(line[6:]); err == nil {
-				from = addr.Address
+			if addrs, err := rfc5322.ParseAddressList(line[6:]); err == nil {
+				from = addrs[0].Address
 			}
 		}
 		if strings.HasPrefix(line, "To: ") || strings.HasPrefix(line, "CC: ") {
-			if addrs, err := mail.ParseAddressList(line[4:]); err == nil {
+			if addrs, err := rfc5322.ParseAddressList(line[4:]); err == nil {
 				for _, addr := range addrs {
 					tos = append(tos, addr.Address)
 				}

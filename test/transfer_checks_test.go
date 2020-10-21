@@ -21,13 +21,13 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"net/mail"
 	"os"
 	"path/filepath"
 	"sort"
 	"strings"
 	"time"
 
+	"github.com/ProtonMail/proton-bridge/pkg/message/rfc5322"
 	"github.com/cucumber/godog"
 	"github.com/cucumber/godog/gherkin"
 	"github.com/emersion/go-mbox"
@@ -243,7 +243,7 @@ func parseTime(input string) (time.Time, error) {
 }
 
 func parseAddresses(input string) ([]string, error) {
-	addresses, err := mail.ParseAddressList(input)
+	addresses, err := rfc5322.ParseAddressList(input)
 	if err != nil {
 		return nil, err
 	}
@@ -255,11 +255,11 @@ func parseAddresses(input string) ([]string, error) {
 }
 
 func parseAddress(input string) (string, error) {
-	address, err := mail.ParseAddress(input)
+	address, err := rfc5322.ParseAddressList(input)
 	if err != nil {
 		return "", err
 	}
-	return address.Address, nil
+	return address[0].Address, nil
 }
 
 // BySubject implements sort.Interface based on the subject field.

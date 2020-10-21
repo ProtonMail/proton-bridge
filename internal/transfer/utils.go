@@ -28,6 +28,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/ProtonMail/proton-bridge/pkg/message/rfc5322"
 	"github.com/pkg/errors"
 )
 
@@ -136,14 +137,21 @@ func getFilePathsWithSuffixInner(prefix, root, suffix string, includeDir bool) (
 
 // getMessageTime returns time of the message specified in the message header.
 func getMessageTime(body []byte) (int64, error) {
-	mailHeader, err := getMessageHeader(body)
+	hdr, err := getMessageHeader(body)
 	if err != nil {
 		return 0, err
 	}
-	if t, err := mailHeader.Date(); err == nil && !t.IsZero() {
-		return t.Unix(), nil
+
+	t, err := rfc5322.ParseDateTime(hdr.Get("Date"))
+	if err != nil {
+		return 0, err
 	}
-	return 0, nil
+
+	if t.IsZero() {
+		return 0, nil
+	}
+
+	return t.Unix(), nil
 }
 
 // getMessageHeader returns headers of the message body.

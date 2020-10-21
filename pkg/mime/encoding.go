@@ -32,7 +32,7 @@ import (
 	"golang.org/x/text/encoding/htmlindex"
 )
 
-var wordDec = &mime.WordDecoder{
+var WordDec = &mime.WordDecoder{
 	CharsetReader: func(charset string, input io.Reader) (io.Reader, error) {
 		dec, err := SelectDecoder(charset)
 		if err != nil {
@@ -180,7 +180,7 @@ func SelectDecoder(charset string) (decoder *encoding.Decoder, err error) {
 
 // DecodeHeader if needed. Returns error if raw contains non-utf8 characters.
 func DecodeHeader(raw string) (decoded string, err error) {
-	if decoded, err = wordDec.DecodeHeader(raw); err != nil {
+	if decoded, err = WordDec.DecodeHeader(raw); err != nil {
 		decoded = raw
 	}
 	if !utf8.ValidString(decoded) {

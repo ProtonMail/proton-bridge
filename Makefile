@@ -57,7 +57,6 @@ ifeq "${TARGET_CMD}" "Import-Export"
     TGZ_TARGET:=ie_${TARGET_OS}_${REVISION}.tgz
 endif
 
-
 build: ${TGZ_TARGET}
 build-ie:
 	TARGET_CMD=Import-Export $(MAKE) build
@@ -265,7 +264,6 @@ run-ie-qt:
 run-ie-nogui:
 	TARGET_CMD=Import-Export $(MAKE) run-nogui
 
-
 clean-frontend-qt:
 	$(MAKE) -C internal/frontend/qt -f Makefile.local clean
 clean-frontend-qt-ie:
@@ -282,3 +280,8 @@ clean: clean-vendor
 	rm -rf cmd/Import-Export/deploy
 	rm -f build last.log mem.pprof main.go
 	rm -rf logo.ico icon.rc icon_windows.syso internal/frontend/qt/icon_windows.syso
+
+.PHONY: generate
+generate:
+	go generate ./...
+	$(MAKE) add-license

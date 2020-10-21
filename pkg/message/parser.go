@@ -27,6 +27,7 @@ import (
 	"strings"
 
 	"github.com/ProtonMail/proton-bridge/pkg/message/parser"
+	"github.com/ProtonMail/proton-bridge/pkg/message/rfc5322"
 	pmmime "github.com/ProtonMail/proton-bridge/pkg/mime"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	"github.com/emersion/go-message"
@@ -365,7 +366,6 @@ func attachPublicKey(p *parser.Part, key, keyName string) {
 	})
 }
 
-// NOTE: We should use our own ParseAddressList here.
 func parseMessageHeader(m *pmapi.Message, h message.Header) error { // nolint[funlen]
 	mimeHeader, err := toMailHeader(h)
 	if err != nil {
@@ -373,59 +373,64 @@ func parseMessageHeader(m *pmapi.Message, h message.Header) error { // nolint[fu
 	}
 	m.Header = mimeHeader
 
-	if err := forEachDecodedHeaderField(h, func(key, val string) error {
-		switch strings.ToLower(key) {
+	fields := h.Fields()
+
+	for fields.Next() {
+		switch strings.ToLower(fields.Key()) {
 		case "subject":
-			m.Subject = val
+			s, err := fields.Text()
+			if err != nil {
+				if s, err = pmmime.DecodeHeader(fields.Value()); err != nil {
+					return errors.Wrap(err, "failed to parse subject")
+				}
+			}
+
+			m.Subject = s
 
 		case "from":
-			sender, err := parseAddressList(val)
+			sender, err := rfc5322.ParseAddressList(fields.Value())
 			if err != nil {
-				return err
+				return errors.Wrap(err, "failed to parse from")
 			}
 			if len(sender) > 0 {
 				m.Sender = sender[0]
 			}
 
 		case "to":
-			toList, err := parseAddressList(val)
+			toList, err := rfc5322.ParseAddressList(fields.Value())
 			if err != nil {
-				return err
+				return errors.Wrap(err, "failed to parse to")
 			}
 			m.ToList = toList
 
 		case "reply-to":
-			replyTos, err := parseAddressList(val)
+			replyTos, err := rfc5322.ParseAddressList(fields.Value())
 			if err != nil {
-				return err
+				return errors.Wrap(err, "failed to parse reply-to")
 			}
 			m.ReplyTos = replyTos
 
 		case "cc":
-			ccList, err := parseAddressList(val)
+			ccList, err := rfc5322.ParseAddressList(fields.Value())
 			if err != nil {
-				return err
+				return errors.Wrap(err, "failed to parse cc")
 			}
 			m.CCList = ccList
 
 		case "bcc":
-			bccList, err := parseAddressList(val)
+			bccList, err := rfc5322.ParseAddressList(fields.Value())
 			if err != nil {
-				return err
+				return errors.Wrap(err, "failed to parse bcc")
 			}
 			m.BCCList = bccList
 
 		case "date":
-			date, err := mail.ParseDate(val)
+			date, err := rfc5322.ParseDateTime(fields.Value())
 			if err != nil {
-				return err
+				return errors.Wrap(err, "failed to parse date")
 			}
 			m.Time = date.Unix()
 		}
-
-		return nil
-	}); err != nil {
-		return err
 	}
 
 	return nil
@@ -469,29 +474,6 @@ func parseAttachment(h message.Header) (*pmapi.Attachment, error) {
 	return att, nil
 }
 
-func forEachDecodedHeaderField(h message.Header, fn func(string, string) error) error {
-	fields := h.Fields()
-
-	for fields.Next() {
-		text, err := fields.Text()
-		if err != nil {
-			if !message.IsUnknownCharset(err) {
-				return err
-			}
-
-			if text, err = pmmime.DecodeHeader(fields.Value()); err != nil {
-				return err
-			}
-		}
-
-		if err := fn(fields.Key(), text); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
 func toMailHeader(h message.Header) (mail.Header, error) {
 	mimeHeader := make(mail.Header)
 
@@ -516,4 +498,27 @@ func toMIMEHeader(h message.Header) (textproto.MIMEHeader, error) {
 	}
 
 	return mimeHeader, nil
+}
+
+func forEachDecodedHeaderField(h message.Header, fn func(string, string) error) error {
+	fields := h.Fields()
+
+	for fields.Next() {
+		text, err := fields.Text()
+		if err != nil {
+			if !message.IsUnknownCharset(err) {
+				return err
+			}
+
+			if text, err = pmmime.DecodeHeader(fields.Value()); err != nil {
+				return err
+			}
+		}
+
+		if err := fn(fields.Key(), text); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

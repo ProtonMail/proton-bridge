@@ -19,11 +19,11 @@ package tests
 
 import (
 	"fmt"
-	"net/mail"
 	"strings"
 	"time"
 
 	"github.com/ProtonMail/proton-bridge/internal/store"
+	"github.com/ProtonMail/proton-bridge/pkg/message/rfc5322"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	"github.com/ProtonMail/proton-bridge/test/accounts"
 	"github.com/cucumber/godog"
@@ -276,15 +276,15 @@ func messagesContainsMessageRow(account *accounts.TestAccount, allMessages []int
 }
 
 func areAddressesSame(first, second string) bool {
-	firstAddress, err := mail.ParseAddress(first)
+	firstAddress, err := rfc5322.ParseAddressList(first)
 	if err != nil {
 		return false
 	}
-	secondAddress, err := mail.ParseAddress(second)
+	secondAddress, err := rfc5322.ParseAddressList(second)
 	if err != nil {
 		return false
 	}
-	return firstAddress.Address == secondAddress.Address
+	return firstAddress[0].Address == secondAddress[0].Address
 }
 
 func messagesInMailboxForUserIsMarkedAsRead(bddMessageIDs, mailboxName, bddUserID string) error {
