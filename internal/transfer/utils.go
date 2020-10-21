@@ -161,4 +161,3 @@ func sanitizeFileName(fileName string) string {
 		return r
 	}, fileName)
 }
-
