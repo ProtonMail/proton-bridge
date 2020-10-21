@@ -73,14 +73,14 @@ func (storeAddress *Address) createOrUpdateMailboxEvent(label *pmapi.Label) erro
 	prefix := getLabelPrefix(label)
 	mailbox, ok := storeAddress.mailboxes[label.ID]
 	if !ok {
-		mailbox, err := newMailbox(storeAddress, label.ID, prefix, label.Name, label.Color)
+		mailbox, err := newMailbox(storeAddress, label.ID, prefix, label.Path, label.Color)
 		if err != nil {
 			return err
 		}
 		storeAddress.mailboxes[label.ID] = mailbox
 		mailbox.store.imapMailboxCreated(storeAddress.address, mailbox.labelName)
 	} else {
-		mailbox.labelName = prefix + label.Name
+		mailbox.labelName = prefix + label.Path
 		mailbox.color = label.Color
 	}
 	return nil

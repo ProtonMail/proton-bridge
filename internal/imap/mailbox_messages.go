@@ -57,6 +57,10 @@ func (im *imapMailbox) UpdateMessagesFlags(uid bool, seqSet *imap.SeqSet, operat
 	return im.addOrRemoveFlags(operation, messageIDs, flags)
 }
 
+// setFlags is used for FLAGS command (not +FLAGS or -FLAGS), which means
+// to set flags passed as an argument and unset the rest. For example,
+// if message is not read, is flagged and is not deleted, call FLAGS \Seen
+// should flag message as read, unflagged and keep undeleted.
 func (im *imapMailbox) setFlags(messageIDs, flags []string) error { //nolint
 	seen := false
 	flagged := false
@@ -106,16 +110,17 @@ func (im *imapMailbox) setFlags(messageIDs, flags []string) error { //nolint
 		}
 	}
 
-	spamMailbox, err := im.storeAddress.GetMailbox("Spam")
-	if err != nil {
-		return err
-	}
+	// Spam should not be taken into action here as Outlook is using FLAGS
+	// without preserving junk flag. Probably it's because junk is not standard
+	// in the rfc3501 and thus Outlook expects calling FLAGS \Seen will not
+	// change the state of junk or other non-standard flags.
+	// Still, its safe to label as spam once any client sends the request.
 	if spam {
-		if err := spamMailbox.LabelMessages(messageIDs); err != nil {
+		spamMailbox, err := im.storeAddress.GetMailbox("Spam")
+		if err != nil {
 			return err
 		}
-	} else {
-		if err := spamMailbox.UnlabelMessages(messageIDs); err != nil {
+		if err := spamMailbox.LabelMessages(messageIDs); err != nil {
 			return err
 		}
 	}

@@ -69,7 +69,7 @@ func (storeAddress *Address) init(foldersAndLabels []*pmapi.Label) (err error) {
 			prefix := getLabelPrefix(label)
 
 			var mailbox *Mailbox
-			if mailbox, err = txNewMailbox(tx, storeAddress, label.ID, prefix, label.Name, label.Color); err != nil {
+			if mailbox, err = txNewMailbox(tx, storeAddress, label.ID, prefix, label.Path, label.Color); err != nil {
 				storeAddress.log.
 					WithError(err).
 					WithField("labelID", label.ID).

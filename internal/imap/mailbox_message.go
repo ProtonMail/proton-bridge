@@ -24,7 +24,6 @@ import (
 	"mime/multipart"
 	"net/mail"
 	"net/textproto"
-	"regexp"
 	"sort"
 	"strings"
 	"time"
@@ -141,18 +140,19 @@ func (im *imapMailbox) CreateMessage(flags []string, date time.Time, body imap.L
 	references := m.Header.Get("References")
 	referenceList := strings.Fields(references)
 
-	if len(referenceList) > 0 {
+	// In case there is a mail client which corrupts headers, try
+	// "References" too.
+	if internalID == "" && len(referenceList) > 0 {
 		lastReference := referenceList[len(referenceList)-1]
-		// In case we are using a mail client which corrupts headers, try "References" too.
-		re := regexp.MustCompile(pmapi.InternalReferenceFormat)
-		match := re.FindStringSubmatch(lastReference)
-		if len(match) > 0 {
-			internalID = match[0]
+		match := pmapi.RxInternalReferenceFormat.FindStringSubmatch(lastReference)
+		if len(match) == 2 {
+			internalID = match[1]
 		}
 	}
 
-	// Avoid appending a message which is already on the server. Apply the new
-	// label instead. This sometimes happens which Outlook (it uses APPEND instead of COPY).
+	// Avoid appending a message which is already on the server. Apply the
+	// new label instead. This always happens with Outlook (it uses APPEND
+	// instead of COPY).
 	if internalID != "" {
 		// Check to see if this belongs to a different address in split mode or another ProtonMail account.
 		msg, err := im.storeMailbox.GetMessage(internalID)
