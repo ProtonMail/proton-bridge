@@ -58,6 +58,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 ### Fixed
 * GODT-770 Better handling of extraneous end-of-mail indicator.
+* GODT-776 Fix crash when IMAP client connects while account is logging in.
 
 ### Changed
 * Bump crypto version to v0.0.0-20200818122824-ed5d25e28db8

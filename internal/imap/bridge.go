@@ -76,5 +76,9 @@ func newBridgeUserWrap(bridgeUser *users.User) *bridgeUserWrap {
 }
 
 func (u *bridgeUserWrap) GetStore() storeUserProvider {
-	return newStoreUserWrap(u.User.GetStore())
+	store := u.User.GetStore()
+	if store == nil {
+		return nil
+	}
+	return newStoreUserWrap(store)
 }
