@@ -13,7 +13,6 @@ Feature: SMTP sending of HTML messages
       Content-Transfer-Encoding: quoted-printable
       Content-Type: text/html; charset=utf-8
       In-Reply-To: <base64hashOfSomeMessage@protonmail.internalid>
-      References: <base64hashOfSomeConversation@protonmail.internalid> <base64hashOfSomeConversation@protonmail.conversationid>
 
       <html><body>This is body of <b>HTML mail</b> without attachment<body></html>
 
