@@ -2,18 +2,9 @@
 
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
-## [IE 1.1.2] Danube (beta 2020-09-xx)
-
-### Fixed
-* GODT-770 Better handling of extraneous end-of-mail indicator.
-
-### Changed
-* Bump crypto version to v0.0.0-20200818122824-ed5d25e28db8
-
-
 ## [Bridge 1.4.4] Forth
 
-### Fixed
+### Fixed
 * GODT-798 Replace, don't add, transfer encoding when making body 7-bit clean.
 * Move/Copy duplicate for emails with References in Outlook
 * CSB-247 Cannot update from 1.4.0
@@ -33,6 +24,15 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 ### Changed
 * GODT-761 Use label.Path instead of Name to partially support subfolders for webapp beta release.
 * GODT-765 Improve speed of checking whether message is deleted.
+
+
+## [IE 1.1.2] Danube (beta 2020-09-xx)
+
+### Fixed
+* GODT-770 Better handling of extraneous end-of-mail indicator.
+
+### Changed
+* Bump crypto version to v0.0.0-20200818122824-ed5d25e28db8
 
 
 ## [IE 1.1.1] Danube (beta 2020-09-xx) [Bridge 1.4.1] Forth (beta 2020-09-xx)
