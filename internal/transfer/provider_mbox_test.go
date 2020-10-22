@@ -52,6 +52,11 @@ func TestMBOXProviderMailboxes(t *testing.T) {
 			{Name: "Bar"},
 			{Name: "Inbox"},
 		}},
+		{newTestMBOXProvider("testdata/mbox-applemail"), true, []Mailbox{
+			{Name: "All Mail"},
+			{Name: "Foo"},
+			{Name: "Bar"},
+		}},
 	}
 	for _, tc := range tests {
 		tc := tc
@@ -85,6 +90,27 @@ func TestMBOXProviderTransferTo(t *testing.T) {
 		"All Mail.mbox:2": {"Archive", "Foo"},
 		"Foo.mbox:1":      {"Foo"},
 		"Inbox.mbox:1":    {"Inbox"},
+	}, got)
+}
+
+func TestMBOXProviderTransferToAppleMail(t *testing.T) {
+	provider := newTestMBOXProvider("testdata/mbox-applemail")
+
+	rules, rulesClose := newTestRules(t)
+	defer rulesClose()
+	setupMBOXRules(rules)
+
+	msgs := testTransferTo(t, rules, provider, []string{
+		"All Mail.mbox/mbox:1",
+		"All Mail.mbox/mbox:2",
+	})
+	got := map[string][]string{}
+	for _, msg := range msgs {
+		got[msg.ID] = msg.targetNames()
+	}
+	r.Equal(t, map[string][]string{
+		"All Mail.mbox/mbox:1": {"Archive", "Foo"}, // Bar is not in rules.
+		"All Mail.mbox/mbox:2": {"Archive", "Foo"},
 	}, got)
 }
 
@@ -168,7 +194,7 @@ func setupMBOXRules(rules transferRules) {
 }
 
 func checkMBOXFileStructure(t *testing.T, root string, expectedFiles []string) {
-	files, err := getFilePathsWithSuffix(root, ".mbox")
+	files, err := getAllPathsWithSuffix(root, ".mbox")
 	r.NoError(t, err)
 	r.Equal(t, expectedFiles, files)
 }

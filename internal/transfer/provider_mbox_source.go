@@ -67,7 +67,7 @@ func (p *MBOXProvider) TransferTo(rules transferRules, progress *Progress, ch ch
 }
 
 func (p *MBOXProvider) getFilePathsPerFolder() (map[string][]string, error) {
-	filePaths, err := getFilePathsWithSuffix(p.root, ".mbox")
+	filePaths, err := getAllPathsWithSuffix(p.root, ".mbox")
 	if err != nil {
 		return nil, err
 	}
@@ -75,6 +75,12 @@ func (p *MBOXProvider) getFilePathsPerFolder() (map[string][]string, error) {
 	filePathsMap := map[string][]string{}
 	for _, filePath := range filePaths {
 		fileName := filepath.Base(filePath)
+		filePath, err := p.handleAppleMailMBOXStructure(filePath)
+		// Skip unsupported MBOX structures. It was already filtered out in configuration step.
+		if err != nil {
+			continue
+		}
+
 		folder := strings.TrimSuffix(fileName, ".mbox")
 		filePathsMap[folder] = append(filePathsMap[folder], filePath)
 	}

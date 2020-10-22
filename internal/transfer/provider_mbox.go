@@ -18,8 +18,11 @@
 package transfer
 
 import (
+	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/pkg/errors"
 )
 
 // MBOXProvider implements import and export to/from MBOX structure.
@@ -44,7 +47,7 @@ func (p *MBOXProvider) ID() string {
 // In case the same folder name is used more than once (for example root/a/foo
 // and root/b/foo), it's treated as the same folder.
 func (p *MBOXProvider) Mailboxes(includeEmpty, includeAllMail bool) ([]Mailbox, error) {
-	filePaths, err := getFilePathsWithSuffix(p.root, "mbox")
+	filePaths, err := getAllPathsWithSuffix(p.root, ".mbox")
 	if err != nil {
 		return nil, err
 	}
@@ -52,6 +55,12 @@ func (p *MBOXProvider) Mailboxes(includeEmpty, includeAllMail bool) ([]Mailbox, 
 	mailboxNames := map[string]bool{}
 	for _, filePath := range filePaths {
 		fileName := filepath.Base(filePath)
+		filePath, err := p.handleAppleMailMBOXStructure(filePath)
+		if err != nil {
+			log.WithError(err).Warn("Failed to handle MBOX structure")
+			continue
+		}
+
 		mailboxName := strings.TrimSuffix(fileName, ".mbox")
 		mailboxNames[mailboxName] = true
 
@@ -75,4 +84,19 @@ func (p *MBOXProvider) Mailboxes(includeEmpty, includeAllMail bool) ([]Mailbox, 
 		})
 	}
 	return mailboxes, nil
+}
+
+// handleAppleMailMBOXStructure changes the path of mailbox directory to
+// the path of mbox file. Apple Mail MBOX exports has this structure:
+// `Folder.mbox` directory with `mbox` file inside.
+// Example: `Folder.mbox/mbox` (and this function converts `Folder.mbox`
+// to `Folder.mbox/mbox`).
+func (p *MBOXProvider) handleAppleMailMBOXStructure(filePath string) (string, error) {
+	if info, err := os.Stat(filepath.Join(p.root, filePath)); err == nil && info.IsDir() {
+		if _, err := os.Stat(filepath.Join(p.root, filePath, "mbox")); err != nil {
+			return "", errors.Wrap(err, "wrong mbox structure")
+		}
+		return filepath.Join(filePath, "mbox"), nil
+	}
+	return filePath, nil
 }

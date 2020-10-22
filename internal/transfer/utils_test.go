@@ -39,6 +39,7 @@ func TestGetFolderNames(t *testing.T) {
 			"",
 			[]string{
 				"bar",
+				"bar.mbox",
 				"baz",
 				filepath.Base(root),
 				"foo",
@@ -96,6 +97,13 @@ func TestGetFilePathsWithSuffix(t *testing.T) {
 			},
 		},
 		{
+			".mbox",
+			[]string{
+				"bar.mbox",
+				"foo.mbox",
+			},
+		},
+		{
 			".txt",
 			[]string{
 				"info.txt",
@@ -109,7 +117,7 @@ func TestGetFilePathsWithSuffix(t *testing.T) {
 	for _, tc := range tests {
 		tc := tc
 		t.Run(tc.suffix, func(t *testing.T) {
-			paths, err := getFilePathsWithSuffix(root, tc.suffix)
+			paths, err := getAllPathsWithSuffix(root, tc.suffix)
 			r.NoError(t, err)
 			r.Equal(t, tc.wantPaths, paths)
 		})
@@ -125,6 +133,7 @@ func createTestingFolderStructure(t *testing.T) (string, func()) {
 		"foo/baz",
 		"test/foo",
 		"qwerty",
+		"bar.mbox",
 	} {
 		err = os.MkdirAll(filepath.Join(root, path), os.ModePerm)
 		r.NoError(t, err)
@@ -142,6 +151,8 @@ func createTestingFolderStructure(t *testing.T) (string, func()) {
 		"test/foo/msg9.eml",
 		"msg10.eml",
 		"info.txt",
+		"foo.mbox",
+		"bar.mbox/mbox", // Apple Mail mbox export format.
 	} {
 		f, err := os.Create(filepath.Join(root, path))
 		r.NoError(t, err)

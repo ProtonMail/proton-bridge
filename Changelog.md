@@ -7,6 +7,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 ### Added
 * GODT-763 Detect Gmail labels from All Mail mbox export (using X-Gmail-Label header).
 * GODT-834 Info about tags in BUILDS.md and link to Import-Export page in README.md.
+* GODT-777 Support Apple Mail MBOX export format.
 
 ### Fixed
 * GODT-677 Windows IE: global import settings not fit in window.
