@@ -1,7 +1,7 @@
 # ProtonMail Bridge and Import Export app
 Copyright (c) 2020 Proton Technologies AG
 
-This repository holds the ProtonMail Bridge application.
+This repository holds the ProtonMail Bridge and the ProtonMail Import-Export applications.
 For a detailed build information see [BUILDS](./BUILDS.md).
 For licensing information see [COPYING](./COPYING.md).
 For contribution policy see [CONTRIBUTING](./CONTRIBUTING.md).
@@ -34,6 +34,8 @@ the whole account or only a specific address. Then, in both cases,
 configure transfer rules (match source and target mailboxes, set time
 range limits and so on) and hit start. Once the transfer is complete,
 check the results.
+
+More details [on the public website](https://protonmail.com/import-export).
 
 ## Keychain
 You need to have a keychain in order to run the ProtonMail Bridge. On Mac or

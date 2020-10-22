@@ -6,6 +6,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 ### Added
 * GODT-763 Detect Gmail labels from All Mail mbox export (using X-Gmail-Label header).
+* GODT-834 Info about tags in BUILDS.md and link to Import-Export page in README.md.
 
 ### Fixed
 * GODT-749 Don't force PGP/Inline when sending plaintext messages.
