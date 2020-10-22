@@ -46,7 +46,7 @@ make build-ie
 ### Tags
 Note that repository contains both Bridge and Import-Export apps and they are
 not released together. Therefore, each app has own tag prefix. Bridge tags
-starts with `br-` and Import-Export tags starts with `ie-`. Both tags continues
+starts with `br-` and Import-Export tags starts with `ie-`. Both tags continue
 with semantic versioning `MAJOR.MINOR.PATCH`. An example of full tag is
 `br-1.4.4` or `ie-1.1.2` (current versions in October 2020).
 
