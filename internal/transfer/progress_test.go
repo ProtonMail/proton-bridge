@@ -115,7 +115,7 @@ func TestFailUnpauseAndStops(t *testing.T) {
 	r.Nil(t, progress.updateCh)
 	r.True(t, progress.isStopped)
 	r.False(t, progress.IsPaused())
-	r.Eventually(t, progress.shouldStop, 2*time.Millisecond, time.Millisecond)
+	r.Eventually(t, progress.shouldStop, time.Second, 10*time.Millisecond)
 }
 
 func TestStopClosesUpdates(t *testing.T) {
