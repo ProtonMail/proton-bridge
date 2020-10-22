@@ -80,7 +80,10 @@ func (im *imapMailbox) Info() (*imap.MailboxInfo, error) {
 }
 
 func (im *imapMailbox) getFlags() []string {
-	flags := []string{imap.NoInferiorsAttr} // Subfolders are not yet supported by API.
+	flags := []string{}
+	if !im.storeMailbox.IsFolder() || im.storeMailbox.IsSystem() {
+		flags = append(flags, imap.NoInferiorsAttr) // Subfolders are not supported for System or Label
+	}
 	switch im.storeMailbox.LabelID() {
 	case pmapi.SentLabel:
 		flags = append(flags, specialuse.Sent)

@@ -2,6 +2,11 @@
 
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
+## Unreleased
+
+### Fixed
+* GODT-829 Remove `NoInferior` to display sub-folders in apple mail.
+
 ## [Bridge 1.4.4] Forth
 
 ### Fixed
@@ -15,7 +20,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 ### Changed
 * Reverted sending IMAP updates to be not blocking again.
 
-### Fixed
+### Fixed
 * GODT-783 Settings flags by FLAGS (not using +/-FLAGS) do not change spam state.
 
 
