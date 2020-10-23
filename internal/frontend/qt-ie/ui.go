@@ -53,8 +53,7 @@ type GoQMLInterface struct {
 	_ string `property:"fullversion"`
 	_ string `property:"downloadLink"`
 	_ string `property:"landingPage"`
-	_ string `property:"changelog"`
-	_ string `property:"bugfixes"`
+	_ string `property:"releaseNotesLink"`
 
 	// translations
 	_ string `property:"wrongCredentials"`
@@ -171,6 +170,8 @@ func (s *GoQMLInterface) SetFrontend(f *FrontendQt) {
 	s.SetProgramTitle(f.programName)
 
 	s.ConnectOpenLicenseFile(f.openLicenseFile)
+	s.SetReleaseNotesLink("https://protonmail.com/download/ie/release_notes.html")
+
 	s.ConnectGetLocalVersionInfo(f.getLocalVersionInfo)
 	s.ConnectIsNewVersionAvailable(f.isNewVersionAvailable)
 	s.ConnectGetBackendVersion(func() string {

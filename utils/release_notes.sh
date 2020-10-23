@@ -1,4 +1,4 @@
-// Copyright (c) 2021 Proton Technologies AG
+// Copyright (c) 2020 Proton Technologies AG
 //
 // This file is part of ProtonMail Bridge.
 //
@@ -15,21 +15,26 @@
 // You should have received a copy of the GNU General Public License
 // along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
 
-package cli
+#!/bin/bash
 
-import (
-	"strings"
+# Generate HTML release notes
+# hosted at https://protonmail.com/download/{ie,bridge}/release_notes.html
 
-	"github.com/ProtonMail/proton-bridge/internal/bridge"
-	"github.com/abiosoft/ishell"
-)
+# Load props
+APP_NAME=$1
+if [ "$APP_NAME" == "" ]; then 
+    APP_NAME="Bridge"
+fi
 
-func (f *frontendCLI) checkUpdates(c *ishell.Context) {
-	f.Println("Your version is up to date.")
-}
+APP_TYPE=$(echo "$APP_NAME"|tr [A-Z] [a-z])
+INFILE="release-notes/${APP_TYPE}.md"
+OUTFILE="release-notes/${APP_TYPE}.html"
 
-func (f *frontendCLI) printCredits(c *ishell.Context) {
-	for _, pkg := range strings.Split(bridge.Credits, ";") {
-		f.Println(pkg)
-	}
-}
+# Check dependencies
+if ! which -s pandoc; then 
+  echo "PANDOC NOT FOUND!\nPlease install pandoc in order to build release notes."
+  exit 1
+fi
+
+# Build release notes
+pandoc $INFILE -f markdown -t html -s -o $OUTFILE -c utils/release_notes.css --self-contained --section-divs --metadata title="Release notes - ProtonMail $APP_NAME"

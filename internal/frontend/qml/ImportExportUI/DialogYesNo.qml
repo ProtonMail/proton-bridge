@@ -314,7 +314,6 @@ Dialog {
         // hide all other dialogs
         winMain.dialogAddUser     .visible = false
         winMain.dialogCredits     .visible = false
-        //winMain.dialogVersionInfo .visible = false
         // dialogFirstStart should reappear again after closing global
         root.visible = true
     }

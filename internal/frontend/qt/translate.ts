@@ -653,17 +653,4 @@
         <translation type="unfinished"></translation>
     </message>
 </context>
-<context>
-    <name>VersionInfo</name>
-    <message>
-        <location filename="qml/BridgeUI/VersionInfo.qml" line="30"/>
-        <source>Release notes:</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="qml/BridgeUI/VersionInfo.qml" line="53"/>
-        <source>Fixed bugs:</source>
-        <translation type="unfinished"></translation>
-    </message>
-</context>
 </TS>

@@ -340,8 +340,6 @@ Dialog {
         winMain.dialogAddUser     .visible = false
         winMain.dialogChangePort  .visible = false
         winMain.dialogCredits     .visible = false
-        winMain.dialogVersionInfo .visible = false
-        // dialogFirstStart should reappear again after closing global
         root.visible = true
     }
 

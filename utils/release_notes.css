@@ -1,0 +1,174 @@
+/* CUSTOM CSS */
+html, body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", system-ui, "Ubuntu", "Droid Sans", sans-serif;
+    font-size: 14px;
+    padding: 0 26px;
+    line-height: 1.6 22px;
+    word-wrap: break-word;
+}
+
+body {
+    border: 1px dashed #aaa;
+    max-width: 1024px;
+    margin: auto;
+    margin-top: 2em;
+    margin-bottom: 2em;
+    padding-bottom: 1em;
+}
+
+h1 {
+    font-weight: 400;
+    color: #666;
+    font-size: 2em;
+    text-align: center;
+
+}
+
+h2 {
+    font-size: 2.6em;
+    font-weight: 400;
+    color: #666;
+    margin-bottom: 0;
+}
+
+h3 {
+    font-size: 1.6em;
+    font-weight: 400;
+    color: #222;
+    margin: 0;
+    padding: 0;
+}
+
+p {
+    padding: 1em 2em 0 2em;
+    margin: 0;
+}
+
+a {
+    color: rgb(0, 116, 224);
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+ul {
+    list-style-type: square;
+    list-style-position: inside;
+    margin: 0;
+    padding: 0 3em 1em 3em;
+}
+
+li {
+    padding-top: 1em;
+    color: #666;
+}
+
+section[id^="new"] h3::before {
+    content: "";
+    display: inline-block;
+    margin-right: 0.3em;
+    width: 1em;
+    height: 1em;
+    background-size: 1em;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1NzYgNTEyIj4KPHBhdGggZD0iTTUyOC4xIDE3MS41TDM4MiAxNTAuMiAzMTYuNyAxNy44Yy0xMS43LTIzLjYtNDUuNi0yMy45LTU3LjQgMEwxOTQgMTUwLjIgNDcuOSAxNzEuNWMtMjYuMiAzLjgtMzYuNyAzNi4xLTE3LjcgNTQuNmwxMDUuNyAxMDMtMjUgMTQ1LjVjLTQuNSAyNi4zIDIzLjIgNDYgNDYuNCAzMy43TDI4OCA0MzkuNmwxMzAuNyA2OC43YzIzLjIgMTIuMiA1MC45LTcuNCA0Ni40LTMzLjdsLTI1LTE0NS41IDEwNS43LTEwM2MxOS0xOC41IDguNS01MC44LTE3LjctNTQuNnpNMzg4LjYgMzEyLjNsMjMuNyAxMzguNEwyODggMzg1LjRsLTEyNC4zIDY1LjMgMjMuNy0xMzguNC0xMDAuNi05OCAxMzktMjAuMiA2Mi4yLTEyNiA2Mi4yIDEyNiAxMzkgMjAuMi0xMDAuNiA5OHoiIGZpbGw9IiMyMjIiLz4KPC9zdmc+Cg==")
+}
+
+section[id^="fixed"] h3::before {
+    content: "";
+    display: inline-block;
+    margin-right: 0.3em;
+    width: 1em;
+    height: 1em;
+    background-size: 1em;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzNjYuNTIzIDM2Ni41MjMiPg0KPHBhdGggZmlsbD0iIzIyMiIgZD0iTTM1OC4zNzksODQuNjQ5Yy0xLjY2Ni0zLjc2Ni01LjA3OC02LjQ2OS05LjEyNS03LjIyOGMtNC4wNTMtMC43NjItOC4yMTEsMC41MjMtMTEuMTI3LDMuNDI5bC00Ni4xNDgsNDUuOTY2LGMtNi45ODYsNi45ODctMTYuMjc5LDEwLjgzNS0yNi4xNjIsMTAuODM2Yy05Ljg4MSwwLTE5LjE3Mi0zLjg0OC0yNi4xNi0xMC44MzdjLTYuOTg4LTYuOTg4LTEwLjgzNy0xNi4yNzgtMTAuODM4LTI2LjE2MSxjMC05Ljg4MywzLjg1LTE5LjE3MywxMC44MjItMjYuMTQ4bDQ2LjEwNy00NS45NzRjMi45MjItMi45MTIsNC4yMTktNy4wNzksMy40NjUtMTEuMTM1Yy0wLjc1NC00LjA1Ni0zLjQ2MS03LjQ3OS03LjIzMi05LjE0NixjLTEyLjEyMS01LjM2Mi0yNS41OTQtOC4xOTctMzguOTY1LTguMTk4Yy0yNC44MzgsMC4wMDEtNDcuODgxLDkuMzYyLTY0Ljg3OSwyNi4zNjFMMTYyLjkzOSw0MS42MSxjLTI2LjM0OCwyNi4zNDgtMzQuMTQ2LDY1LjE3OS0yMC43Miw5OS4yMDdMMTcuMjgxLDI2NS43NTVDNi4xMzgsMjc2LjksMC4wMDEsMjkxLjcxNCwwLDMwNy40NzMsYy0wLjAwMSwxNS43NTksNi4xMzYsMzAuNTc0LDE3LjI3OSw0MS43MTljMTEuMTQ1LDExLjE0NCwyNS45NjEsMTcuMjc5LDQxLjcxOSwxNy4yNzljMTUuNzU5LTAuMDAxLDMwLjU3NC02LjEzNyw0MS43MTktMTcuMjc5LEwyMjUuNjY4LDIyNC4yNGMxMC43MTksNC4xOTEsMjIuMjM4LDYuMzc5LDMzLjc5Nyw2LjM3OWMyNC43MDUsMCw0Ny45My05LjYxOSw2NS4zOTYtMjcuMDg4bDE1LjE5NS0xNS4xOTQsQzM2Ni42NzgsMTYxLjcxNCwzNzQuMDM5LDEyMC4wNDYsMzU4LjM3OSw4NC42NDl6IE0yNTkuNDY1LDIwNS42MTljLTEwLjgwMS0wLjAwMi0yMS40NzctMi41NDEtMzEuMDAyLTcuNDgxLGMtNS4yOTUtMi43NDQtMTEuMzk2LTEuMDc5LTE1LjUxOCwzLjI5M0w4My4wMzgsMzMxLjUxMmMtNi40MjIsNi40MjMtMTQuOTYsOS45NTgtMjQuMDQxLDkuOTU4cy0xNy42MTktMy41MzYtMjQuMDQxLTkuOTU3LGMtNi40Mi02LjQyMi05Ljk1Ny0xNC45NTktOS45NTctMjQuMDRzMy41MzctMTcuNjE5LDkuOTU5LTI0LjA0MWwxMzAuMDYtMTI5LjkyNWM0LjQ4NS00LjI2Miw2LjA0MS0xMC4yMjYsMy4yOTQtMTUuNTIxLGMtMTMuNTk2LTI2LjIyMy04LjU5OC01Ny43OTUsMTIuMzA1LTc4LjY5OGwxNS4xOTctMTUuMTk2YzEyLjI3Ny0xMi4yNzgsMjkuMDQxLTE5LjA0LDQ3LjIwMS0xOS4wNCxjMy4zNzMsMCw2Ljc1MiwwLjI0MywxMC4wOTYsMC43MTlsLTMxLjEzNSwzMS4wNDVjLTExLjcxMSwxMS43MS0xOC4xNTgsMjcuMjc5LTE4LjE1OCw0My44MzksYzAuMDAyLDE2LjU2MSw2LjQ0OSwzMi4xMywxOC4xNiw0My44MzljMTEuNzA5LDExLjcxMSwyNy4yNzksMTguMTYsNDMuODQsMTguMTU5YzE2LjU2MS0wLjAwMiwzMi4xMjktNi40NSw0My44Mi0xOC4xNDEsbDMxLjIxNS0zMS4wOTNjMi45NjUsMjAuOTMxLTMuNjAyLDQyLjM2NC0xOC40NzUsNTcuMjM4bC0xNS4xOTUsMTUuMTk2QzI5NC40MzgsMTk4LjU5OCwyNzcuNDksMjA1LjYxOSwyNTkuNDY1LDIwNS42MTl6Ii8+DQo8cGF0aCBmaWxsPSIjMjIyIiBkPSJNNjEuODk0LDI4NS4wNzhjLTUuMjA5LDAtMTAuMTA2LDIuMDI3LTEzLjc4OSw1LjcxMWMtMy42ODIsMy42ODQtNS43MTEsOC41OC01LjcxMSwxMy43ODlzMi4wMjgsMTAuMTA0LDUuNzExLDEzLjc4OSxjMy42ODMsMy42ODMsOC41OCw1LjcxMSwxMy43ODksNS43MTFjNS4yMDktMC4wMDIsMTAuMTA1LTIuMDI4LDEzLjc4OS01LjcxM2MzLjY4NC0zLjY4Myw1LjcxMS04LjU4LDUuNzExLTEzLjc4NyxjMC01LjIwOS0yLjAyOC0xMC4xMDYtNS43MTEtMTMuNzg5QzcxLjk5OSwyODcuMTA0LDY3LjEwMywyODUuMDc4LDYxLjg5NCwyODUuMDc4eiIvPg0KPC9zdmc+DQo=")
+}
+
+.level2 {
+    border-top: 1px dashed #999;
+    padding-bottom: 2em;
+}
+
+.level2::after {
+    content: "";
+    clear: both;
+    display: table;
+  }
+
+.level2>h2 {
+    float: left;
+    width: 20%;
+    text-align: center;
+}
+
+.level2>ul {
+    float: left;
+    width: 20%;
+    text-align: center;
+    clear: both;
+    padding: 0;
+    list-style-type: none;
+}
+
+.level2>ul>li {
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    color: #444;
+    padding: 0.5em;
+    font-size: 0.8em;
+    font-family: 'Courier New', Courier, monospace;
+    margin-top: 0.5em;
+}
+
+.level3 {
+    float: right;
+    width: 70%;
+}
+
+.level3>h3 {
+    margin-top: 1em;
+}
+
+.level3:first-of-type>h3 {
+    margin-top: -1.5em;
+}
+
+
+@media only screen and (max-width: 600px) {
+    .level2>h2 {
+        float: none;
+        text-align: left;
+        width: 30%;
+        display: inline-block;
+
+    }
+
+    .level2>ul {
+        float: none;
+        display: inline-block;
+        width: 69%;
+        text-align: right;
+        margin: 0;
+    }
+
+    .level2>ul>li {
+        display: inline-block;
+    }
+
+    .level3 {
+        clear: both;
+        float: none;
+        width: auto;
+    }
+
+    .level3:first-of-type>h3 {
+        margin-top: 1em;
+
+    }
+
+}

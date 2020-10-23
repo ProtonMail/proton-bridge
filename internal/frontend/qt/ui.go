@@ -49,8 +49,7 @@ type GoQMLInterface struct {
 	_ string `property:"fullversion"`
 	_ string `property:"downloadLink"`
 	_ string `property:"landingPage"`
-	_ string `property:"changelog"`
-	_ string `property:"bugfixes"`
+	_ string `property:"releaseNotesLink"`
 
 	// Translations.
 	_ string `property:"wrongCredentials"`
@@ -180,6 +179,8 @@ func (s *GoQMLInterface) SetFrontend(f *FrontendQt) {
 
 	s.SetGoos(runtime.GOOS)
 	s.SetProgramTitle(f.programName)
+
+	s.SetReleaseNotesLink("https://protonmail.com/download/bridge/release_notes.html")
 
 	s.ConnectGetBackendVersion(func() string {
 		return f.programVer

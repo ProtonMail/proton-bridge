@@ -28,10 +28,6 @@ func (f *frontendCLI) checkUpdates(c *ishell.Context) {
 	f.Println("Your version is up to date.")
 }
 
-func (f *frontendCLI) printLocalReleaseNotes(c *ishell.Context) {
-	f.Println("TODO")
-}
-
 func (f *frontendCLI) printCredits(c *ishell.Context) {
 	for _, pkg := range strings.Split(importexport.Credits, ";") {
 		f.Println(pkg)

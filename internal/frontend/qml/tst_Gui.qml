@@ -274,9 +274,7 @@ Window {
         property string landingPage : "https://landing.page"
         //property string downloadLink: "https://landing.page/download/link"
         property string downloadLink: "https://protonmail.com/download/beta/protonmail-bridge-1.1.5-1.x86_64.rpm;https://www.protonmail.com/downloads/beta/Desktop-Bridge-link1.exe;https://www.protonmail.com/downloads/beta/Desktop-Bridge-link1.exe;https://www.protonmail.com/downloads/beta/Desktop-Bridge-link1.exe;"
-        //property string changelog  : "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet."
-        property string changelog  : "• Support of encryption to external PGP recipients using contacts created on beta.protonmail.com (see https://protonmail.com/blog/pgp-vulnerability-efail/ to understand the vulnerabilities that may be associated with sending to other PGP clients)\n• Notification that outgoing email will be delivered as non-encrypted.\n• NOTE: Due to a change of the keychain format, you will need to add your account(s) to the Bridge after installing this version"
-        property string bugfixes   : "• Support accounts with same user names\n• Support sending vCalendar event"
+        property string releaseNotesLink  : "https://protonmail.com/download/bridge/release_notes.html"
         property string credits    : "here;goes;list;;of;;used;packages;"
 
         property real progress: 0.3

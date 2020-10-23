@@ -62,13 +62,8 @@ Dialog {
 
                 onLinkActivated : {
                     console.log("clicked link:", link)
-                    if (link == "releaseNotes"){
-                        root.hide()
-                        winMain.dialogVersionInfo.show()
-                    } else {
-                        root.hide()
-                        Qt.openUrlExternally(link)
-                    }
+                    root.hide()
+                    Qt.openUrlExternally(link)
                 }
 
                 MouseArea {

@@ -130,8 +130,7 @@ Item {
                     MouseArea {
                         anchors.fill: parent
                         onClicked : {
-                            go.getLocalVersionInfo()
-                            winMain.dialogVersionInfo.show()
+                            Qt.openUrlExternally(go.releaseNotesLink)
                         }
                         cursorShape: Qt.PointingHandCursor
                     }

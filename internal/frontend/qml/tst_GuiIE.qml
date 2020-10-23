@@ -833,10 +833,7 @@ Window {
         property string programTitle : "ProtonMail Import-Export app"
         property string newversion : "q0.1.0"
         property string landingPage : "https://landing.page"
-        property string changelog  : "• Lorem ipsum dolor sit amet\n• consetetur sadipscing elitr,\n• sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat,\n• sed diam voluptua.\n• At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet."
-        //property string changelog  : ""
-        property string bugfixes   : "• lorem ipsum dolor sit amet;• consetetur sadipscing elitr;• sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat;• sed diam voluptua;• at vero eos et accusam et justo duo dolores et ea rebum;• stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet"
-        //property string bugfixes   : ""
+        property string releaseNotesLink  : "https://protonmail.com/download/ie/release_notes.html"
 
         property real progress: 0.0
         property int progressFails: 0

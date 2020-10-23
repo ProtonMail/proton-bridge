@@ -138,11 +138,7 @@ func New( //nolint[funlen]
 		Aliases: []string{"man"},
 		Func:    fe.printManual,
 	})
-	fe.AddCmd(&ishell.Cmd{Name: "release-notes",
-		Help:    "print release notes. (aliases: notes, fixed-bugs, bugs, ver, version)",
-		Aliases: []string{"notes", "fixed-bugs", "bugs", "ver", "version"},
-		Func:    fe.printLocalReleaseNotes,
-	})
+
 	fe.AddCmd(&ishell.Cmd{Name: "credits",
 		Help: "print used resources.",
 		Func: fe.printCredits,

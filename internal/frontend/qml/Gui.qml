@@ -306,10 +306,5 @@ Item {
             gui.winMain.showAndRise()
         }
         go.runCheckVersion(false)
-
-        if (go.isFreshVersion) {
-            go.getLocalVersionInfo()
-            gui.winMain.dialogVersionInfo.show()
-        }
     }
 }

@@ -138,8 +138,7 @@ Item {
                     fontSize      : Style.main.fontSize
                     textUnderline : true
                     onClicked     : {
-                        go.getLocalVersionInfo()
-                        winMain.dialogVersionInfo.show()
+                        Qt.openUrlExternally(go.releaseNotesLink)
                     }
                 }
             }

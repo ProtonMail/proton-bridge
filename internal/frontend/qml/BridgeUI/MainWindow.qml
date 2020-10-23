@@ -38,7 +38,6 @@ Window {
     property alias dialogUpdate                 : dialogUpdate
     property alias dialogFirstStart             : dialogFirstStart
     property alias dialogGlobal                 : dialogGlobal
-    property alias dialogVersionInfo            : dialogVersionInfo
     property alias dialogConnectionTroubleshoot : dialogConnectionTroubleshoot
     property alias bubbleNote                   : bubbleNote
     property alias addAccountTip                : addAccountTip
@@ -66,7 +65,6 @@ Window {
     !dialogUpdate      .visible &&
     !dialogFirstStart  .visible &&
     !dialogGlobal      .visible &&
-    !dialogVersionInfo .visible &&
     !bubbleNote        .visible
 
     Accessible.role: Accessible.Grouping
@@ -350,13 +348,13 @@ Window {
                     Check <a href="%1">release notes</a> to learn what is new in %2.<br>
                     Use your package manager to update or download and install the new version manually from<br><br>
                     %3',
-                    "Message for update in Linux").arg("releaseNotes").arg(go.newversion).arg(dialogUpdate.manualLinks)
+                    "Message for update in Linux").arg(go.releaseNotesLink).arg(go.newversion).arg(dialogUpdate.manualLinks)
                 } else {
                     return qsTr('A new version of Bridge is available.<br>
                     Check <a href="%1">release notes</a> to learn what is new in %2.<br>
                     You can continue with the update or download and install the new version manually from<br><br>
                     <a href="%3">%3</a>',
-                    "Message for update in Win/Mac").arg("releaseNotes").arg(go.newversion).arg(go.landingPage)
+                    "Message for update in Win/Mac").arg(go.releaseNotesLink).arg(go.newversion).arg(go.landingPage)
                 }
             }
         }
@@ -371,25 +369,6 @@ Window {
 
     DialogTLSCertInfo {
         id: dialogTlsCert
-    }
-
-    Dialog {
-        id: dialogVersionInfo
-        property bool checkVersionOnClose : false
-        title: qsTr("Information about", "title of release notes page") + " v" + go.newversion
-        VersionInfo { }
-        onShow : {
-            // Hide information bar with old version
-            if (infoBar.state=="oldVersion") {
-                infoBar.state="upToDate"
-                dialogVersionInfo.checkVersionOnClose = true
-            }
-        }
-        onHide : {
-            // Reload current version based on online status
-            if (dialogVersionInfo.checkVersionOnClose) go.runCheckVersion(false)
-            dialogVersionInfo.checkVersionOnClose = false
-        }
     }
 
     DialogYesNo {

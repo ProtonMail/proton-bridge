@@ -10,8 +10,8 @@ TARGET_OS?=${GOOS}
 .PHONY: build build-ie build-nogui build-ie-nogui build-launcher build-launcher-ie  versioner
 
 # Keep version hardcoded so app build works also without Git repository.
-BRIDGE_APP_VERSION?=1.5.5-git
-IE_APP_VERSION?=1.2.3-git
+BRIDGE_APP_VERSION?=1.5.5+git
+IE_APP_VERSION?=1.2.3+git
 APP_VERSION:=${BRIDGE_APP_VERSION}
 SRC_ICO:=logo.ico
 SRC_ICNS:=Bridge.icns
@@ -186,7 +186,7 @@ install-go-mod-outdated:
 
 
 ## Checks, mocks and docs
-.PHONY: check-has-go add-license change-copyright-year test bench coverage mocks lint-license lint-golang lint updates doc
+.PHONY: check-has-go add-license change-copyright-year test bench coverage mocks lint-license lint-golang lint updates doc release-notes
 check-has-go:
 	@which go || (echo "Install Go-lang!" && exit 1)
 
@@ -256,18 +256,22 @@ updates: install-go-mod-outdated
 doc:
 	godoc -http=:6060
 
+release-notes: release-notes/bridge.html release-notes/import-export.html
+
+release-notes/bridge.html:
+	./utils/release_notes.sh Bridge
+
+release-notes/import-export.html:
+	./utils/release_notes.sh Import-Export
+
 .PHONY: gofiles
 # Following files are for the whole app so it makes sense to have them in bridge package.
 # (Options like cmd or internal were considered and bridge package is the best place for them.)
-gofiles: ./internal/bridge/credits.go ./internal/bridge/release_notes.go ./internal/importexport/credits.go ./internal/importexport/release_notes.go
+gofiles: ./internal/bridge/credits.go ./internal/importexport/credits.go
 ./internal/bridge/credits.go: ./utils/credits.sh go.mod
 	cd ./utils/ && ./credits.sh bridge
-./internal/bridge/release_notes.go: ./utils/release-notes.sh ./release-notes/notes-bridge.txt ./release-notes/bugs-bridge.txt
-	cd ./utils/ && ./release-notes.sh bridge
 ./internal/importexport/credits.go: ./utils/credits.sh go.mod
 	cd ./utils/ && ./credits.sh importexport
-./internal/importexport/release_notes.go: ./utils/release-notes.sh ./release-notes/notes-importexport.txt ./release-notes/bugs-importexport.txt
-	cd ./utils/ && ./release-notes.sh importexport
 
 
 ## Run and debug
@@ -319,3 +323,10 @@ clean: clean-vendor
 	rm -rf cmd/Import-Export/deploy
 	rm -f build last.log mem.pprof main.go
 	rm -rf logo.ico icon.rc icon_windows.syso internal/frontend/qt/icon_windows.syso
+	rm -f release-notes/bridge.html
+	rm -f release-notes/import-export.html
+
+.PHONY: generate
+generate:
+	go generate ./...
+	$(MAKE) add-license

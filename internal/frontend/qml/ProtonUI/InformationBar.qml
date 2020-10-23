@@ -61,14 +61,14 @@ Rectangle {
             id: message
             font.pointSize: root.fontSize * Style.pt
         }
-
+	
         ClickIconText {
             anchors.verticalCenter : message.verticalCenter
             text      : "("+go.newversion+" " + qsTr("release notes", "display the release notes from the new version")+")"
-            visible   : root.state=="oldVersion" && ( go.changelog!="" || go.bugfixes!="")
+            visible   : root.state=="oldVersion"
             iconText  : ""
             onClicked : {
-                dialogVersionInfo.show()
+                Qt.openUrlExternally(go.releaseNotesLink)
             }
             fontSize : root.fontSize
         }
