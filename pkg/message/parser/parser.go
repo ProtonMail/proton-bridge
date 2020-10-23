@@ -32,7 +32,7 @@ type Parser struct {
 func New(r io.Reader) (*Parser, error) {
 	p := new(Parser)
 
-	entity, err := message.Read(r)
+	entity, err := message.Read(newEndOfMailTrimmer(r))
 	if err != nil && !message.IsUnknownCharset(err) {
 		return nil, err
 	}

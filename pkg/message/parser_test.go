@@ -467,6 +467,19 @@ func TestParseMultipartAlternativeLatin1(t *testing.T) {
 	assert.Equal(t, "*aoeuaoeu*\n\n", plainBody)
 }
 
+func TestParseWithTrailingEndOfMailIndicator(t *testing.T) {
+	f := getFileReader("text_html_trailing_end_of_mail.eml")
+
+	m, _, plainBody, _, err := Parse(f, "", "")
+	require.NoError(t, err)
+
+	assert.Equal(t, `"Sender" <sender@sender.com>`, m.Sender.String())
+	assert.Equal(t, `"Receiver" <receiver@receiver.com>`, m.ToList[0].String())
+
+	assert.Equal(t, "<!DOCTYPE html><html><head></head><body>boo!</body></html>", m.Body)
+	assert.Equal(t, "boo!", plainBody)
+}
+
 func getFileReader(filename string) io.Reader {
 	f, err := os.Open(filepath.Join("testdata", filename))
 	if err != nil {

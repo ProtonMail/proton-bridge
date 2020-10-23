@@ -125,6 +125,7 @@ func (mc *mailboxCounts) getPMLabel() *pmapi.Label {
 	return &pmapi.Label{
 		ID:        mc.LabelID,
 		Name:      mc.LabelName,
+		Path:      mc.LabelName,
 		Color:     mc.Color,
 		Order:     mc.Order,
 		Type:      pmapi.LabelTypeMailbox,
@@ -158,7 +159,7 @@ func (store *Store) createOrUpdateMailboxCountsBuckets(labels []*pmapi.Label) er
 			}
 
 			// Update mailbox info, but dont change on-API-counts.
-			mailbox.LabelName = label.Name
+			mailbox.LabelName = label.Path
 			mailbox.Color = label.Color
 			mailbox.Order = label.Order
 			mailbox.IsFolder = label.Exclusive == 1

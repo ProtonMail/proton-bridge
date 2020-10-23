@@ -29,6 +29,7 @@ import (
 	"net/http"
 	"net/mail"
 	"net/url"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -149,8 +150,9 @@ const ConversationIDDomain = `protonmail.conversationid`
 // InternalIDDomain is used as a placeholder for reference/message ID headers to improve compatibility with various clients.
 const InternalIDDomain = `protonmail.internalid`
 
-// InternalReferenceFormat describes format of the message ID (as regex) used for parsing reference headers.
-const InternalReferenceFormat = `(?U)<.*@` + InternalIDDomain + `>`
+// RxInternalReferenceFormat is compiled regexp which describes the match for
+// a message ID used in reference headers.
+var RxInternalReferenceFormat = regexp.MustCompile(`(?U)<(.+)@` + regexp.QuoteMeta(InternalIDDomain) + `>`) //nolint[gochecknoglobals]
 
 // Message structure.
 type Message struct {

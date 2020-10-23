@@ -122,22 +122,10 @@ func (store *Store) imapSendUpdate(update imapBackend.Update) {
 		return
 	}
 
-	done := update.Done()
-	go func() {
-		// This timeout is to not keep running many blocked goroutines.
-		// In case nothing listens to this channel, this thread should stop.
-		select {
-		case store.imapUpdates <- update:
-		case <-time.After(1 * time.Second):
-			store.log.Warn("IMAP update could not be sent (timeout).")
-		}
-	}()
-
-	// This timeout is to not block IMAP backend by wait for IMAP client.
 	select {
-	case <-done:
 	case <-time.After(1 * time.Second):
-		store.log.Warn("IMAP update could not be delivered (timeout).")
+		store.log.Warn("IMAP update could not be sent (timeout)")
 		return
+	case store.imapUpdates <- update:
 	}
 }

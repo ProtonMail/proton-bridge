@@ -22,6 +22,40 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-700 Fix UTF-7 incompatibility.
 * GODT-837 Fix flaky TestFailUnpauseAndStops.
 
+## [Bridge 1.4.5] Forth
+
+### Fixed
+* GODT-829 Remove `NoInferior` to display sub-folders in apple mail.
+
+## [Bridge 1.4.4] Forth
+
+### Fixed
+* GODT-798 Replace, don't add, transfer encoding when making body 7-bit clean.
+* Move/Copy duplicate for emails with References in Outlook
+* CSB-247 Cannot update from 1.4.0
+
+
+## [Bridge 1.4.3] Forth
+
+### Changed
+* Reverted sending IMAP updates to be not blocking again.
+
+### Fixed
+* GODT-783 Settings flags by FLAGS (not using +/-FLAGS) do not change spam state.
+
+
+## [Bridge 1.4.2] Forth
+
+### Changed
+* GODT-761 Use label.Path instead of Name to partially support subfolders for webapp beta release.
+* GODT-765 Improve speed of checking whether message is deleted.
+
+
+## [IE 1.1.2] Danube (beta 2020-09-xx)
+
+### Fixed
+* GODT-770 Better handling of extraneous end-of-mail indicator.
+
 ### Changed
 * Bump crypto version to v0.0.0-20200818122824-ed5d25e28db8
 * GODT-785 Clear separation of different message IDs in integration tests.
@@ -38,6 +72,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-752 Parsing non-utf8 multipart/alternative message.
 * GODT-752 Parsing message with duplicate charset parameter.
 
+
 ## [IE 1.1.0] Danube
 
 ### Fixed
@@ -45,6 +80,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-738 Fix for mbox files with long lines.
 ### Fixed
 * GODT-732 Do not mix font awesome icon with regular text to avoid issues on Fedora.
+
 
 ## [Bridge 1.4.0] Forth
 

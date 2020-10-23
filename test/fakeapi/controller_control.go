@@ -83,6 +83,9 @@ func (ctl *Controller) AddUserLabel(username string, label *pmapi.Label) error {
 	}
 	label.ID = ctl.labelIDGenerator.next(prefix)
 	label.Name = labelName
+	if label.Path == "" {
+		label.Path = label.Name
+	}
 	ctl.labelsByUsername[username] = append(ctl.labelsByUsername[username], label)
 	ctl.resetUsers()
 	return nil

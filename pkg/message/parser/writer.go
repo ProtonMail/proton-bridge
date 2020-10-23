@@ -35,7 +35,7 @@ func newWriter(root *Part) *Writer {
 
 func (w *Writer) Write(ww io.Writer) error {
 	if !w.root.is7BitClean() {
-		w.root.Header.Add("Content-Transfer-Encoding", "base64")
+		w.root.Header.Set("Content-Transfer-Encoding", "base64")
 	}
 
 	msgWriter, err := message.CreateWriter(ww, w.root.Header)
@@ -68,7 +68,7 @@ func (w *Writer) write(writer *message.Writer, p *Part) error {
 
 func (w *Writer) writeAsChild(writer *message.Writer, p *Part) error {
 	if !p.is7BitClean() {
-		p.Header.Add("Content-Transfer-Encoding", "base64")
+		p.Header.Set("Content-Transfer-Encoding", "base64")
 	}
 
 	childWriter, err := writer.CreatePart(p.Header)
