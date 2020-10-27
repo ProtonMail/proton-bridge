@@ -279,9 +279,8 @@ Dialog {
             titleTo        : root.address
         }
 
-        Rectangle {
+        Column {
             id: masterImportSettings
-            height: 150 // fixme
             anchors {
                 right  : parent.right
                 left   : parent.left
@@ -291,45 +290,47 @@ Dialog {
                 rightMargin  : Style.main.leftMargin
                 bottomMargin : Style.main.bottomMargin
             }
-            color: Style.dialog.background
 
-            Text {
-                id: labelMasterImportSettings
-                text: qsTr("Master import settings:")
+            spacing: Style.main.bottomMargin
 
-                font {
-                    bold: true
-                    family: Style.fontawesome.name
-                    pointSize: Style.main.fontSize * Style.pt
-                }
-                color: Style.main.text
+            Row {
+                spacing: masterImportSettings.width - labelMasterImportSettings.width - resetSourceButton.width
 
-                InfoToolTip {
-                    info: qsTr(
-                        "If master import date range is selected only emails within this range will be imported, unless it is specified differently in folder date range.",
-                        "Text in master import settings tooltip."
-                    )
-                    anchors {
-                        left: parent.right
-                        bottom: parent.bottom
-                        leftMargin : Style.dialog.leftMargin
+                Text {
+                    id: labelMasterImportSettings
+                    text: qsTr("Master import settings:")
+
+                    font {
+                        bold: true
+                        family: Style.fontawesome.name
+                        pointSize: Style.main.fontSize * Style.pt
+                    }
+                    color: Style.main.text
+
+                    InfoToolTip {
+                        anchors {
+                            left: parent.right
+                            bottom: parent.bottom
+                            leftMargin : Style.dialog.leftMargin
+                        }
+                        info: qsTr(
+                            "If master import date range is selected only emails within this range will be imported, unless it is specified differently in folder date range.",
+                            "Text in master import settings tooltip."
+                        )
                     }
                 }
-            }
 
-            // Reset all to default
-            ClickIconText {
-                anchors {
-                    right: parent.right
-                    bottom: labelMasterImportSettings.bottom
-                }
-                text:qsTr("Reset all settings to default")
-                iconText: Style.fa.refresh
-                textColor: Style.main.textBlue
-                onClicked: {
-                    go.resetSource()
-                    root.decrementCurrentIndex()
-                    timer.start()
+                // Reset all to default
+                ClickIconText {
+                    id: resetSourceButton
+                    text:qsTr("Reset all settings to default")
+                    iconText: Style.fa.refresh
+                    textColor: Style.main.textBlue
+                    onClicked: {
+                        go.resetSource()
+                        root.decrementCurrentIndex()
+                        timer.start()
+                    }
                 }
             }
 
@@ -348,49 +349,40 @@ Dialog {
 
             InlineDateRange {
                 id: globalDateRange
-                anchors {
-                    left      : parent.left
-                    top       : line.bottom
-                    topMargin : Style.dialog.topMargin
-                }
             }
 
             // Add global label (inline)
             InlineLabelSelect {
                 id: globalLabels
-                anchors {
-                    left      : parent.left
-                    top       : globalDateRange.bottom
-                    topMargin : Style.dialog.topMargin
-                }
-                //labelWidth : globalDateRange.labelWidth
+            }
+        }
+
+        // Buttons
+        Row {
+            spacing: Style.dialog.spacing
+            anchors {
+                right: parent.right
+                bottom: parent.bottom
+                rightMargin: Style.main.leftMargin
+                bottomMargin: Style.main.bottomMargin
             }
 
-            // Buttons
-            Row {
-                spacing: Style.dialog.spacing
-                anchors{
-                    bottom       : parent.bottom
-                    right        : parent.right
-                }
+            ButtonRounded {
+                id: buttonCancelThree
+                fa_icon    : Style.fa.times
+                text       : qsTr("Cancel", "todo")
+                color_main : Style.dialog.textBlue
+                onClicked  : root.cancel()
+            }
 
-                ButtonRounded {
-                    id: buttonCancelThree
-                    fa_icon    : Style.fa.times
-                    text       : qsTr("Cancel", "todo")
-                    color_main : Style.dialog.textBlue
-                    onClicked  : root.cancel()
-                }
-
-                ButtonRounded {
-                    id: buttonNextThree
-                    fa_icon     : Style.fa.check
-                    text        : qsTr("Import", "todo")
-                    color_main  : Style.dialog.background
-                    color_minor : Style.dialog.textBlue
-                    isOpaque    : true
-                    onClicked   : root.okay()
-                }
+            ButtonRounded {
+                id: buttonNextThree
+                fa_icon     : Style.fa.check
+                text        : qsTr("Import", "todo")
+                color_main  : Style.dialog.background
+                color_minor : Style.dialog.textBlue
+                isOpaque    : true
+                onClicked   : root.okay()
             }
         }
     }
