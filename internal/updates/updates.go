@@ -107,7 +107,7 @@ func NewImportExport(updateTempDir string) *Updates {
 		versionFileBaseName: "current_version_ie",
 		updateFileBaseName:  "ie/ie_upgrade",
 		linuxFileBaseName:   "ie/protonmail-import-export-app",
-		macAppBundleName:    "Import-Export app.app",
+		macAppBundleName:    "ProtonMail Import-Export app.app",
 	}
 }
 
@@ -328,10 +328,15 @@ func (u *Updates) StartUpgrade(currentStatus chan<- Progress) { // nolint[funlen
 		localPath = filepath.Dir(localPath) // .app
 
 		updatePath := filepath.Join(u.updateTempDir, u.macAppBundleName)
-		log.Warn("localPath ", localPath)
-		log.Warn("updatePath ", updatePath)
+		log.WithField("local", localPath).
+			WithField("update", updatePath).
+			Info("Syncing folders..")
 		status.Err = syncFolders(localPath, updatePath)
 		if status.Err != nil {
+			log.WithField("from", localPath).
+				WithField("to", updatePath).
+				WithError(status.Err).
+				Error("Sync failed.")
 			return
 		}
 		status.UpdateDescription(InfoRestartApp)

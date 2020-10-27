@@ -276,6 +276,10 @@ Item {
                 winMain.dialogExport.hide()
             }
         }
+
+        onUpdateFinished : {
+            winMain.dialogUpdate.finished(hasError)
+        }
     }
 
     function folderIcon(folderName, folderType) { // translations

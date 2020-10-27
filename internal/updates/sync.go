@@ -45,7 +45,7 @@ func syncFolders(localPath, updatePath string) (err error) {
 }
 
 func removeMissing(folderToCleanPath, itemsToKeepPath string) (err error) {
-	log.Debug("remove missing")
+	log.WithField("from", folderToCleanPath).Debug("Remove missing.")
 	// Create list of files.
 	existingRelPaths := map[string]bool{}
 	err = filepath.Walk(itemsToKeepPath, func(keepThis string, _ os.FileInfo, walkErr error) error {
@@ -56,7 +56,7 @@ func removeMissing(folderToCleanPath, itemsToKeepPath string) (err error) {
 		if walkErr != nil {
 			return walkErr
 		}
-		log.Debug("path to keep ", relPath)
+		log.WithField("path", relPath).Trace("Keep the path.")
 		existingRelPaths[relPath] = true
 		return nil
 	})
@@ -95,12 +95,18 @@ func removeMissing(folderToCleanPath, itemsToKeepPath string) (err error) {
 }
 
 func restoreFromBackup(backupDir, localPath string) {
-	log.Error("recovering from ", backupDir, " to ", localPath)
-	_ = copyRecursively(backupDir, localPath)
+	log.WithField("from", backupDir).
+		WithField("to", localPath).
+		Error("recovering")
+	if err := copyRecursively(backupDir, localPath); err != nil {
+		log.WithField("from", backupDir).
+			WithField("to", localPath).
+			Error("Not able to recover.")
+	}
 }
 
 func createBackup(srcFile, dstDir string) (err error) {
-	log.Debug("backup ", srcFile, " in ", dstDir)
+	log.WithField("from", srcFile).WithField("to", dstDir).Debug("Create backup")
 	if err = mkdirAllClear(dstDir); err != nil {
 		return
 	}
