@@ -9,7 +9,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-834 Info about tags in BUILDS.md and link to Import-Export page in README.md.
 
 ### Fixed
-* GODT-677 Windows IE: global import settings not fit in window
+* GODT-677 Windows IE: global import settings not fit in window.
 * GODT-749 Don't force PGP/Inline when sending plaintext messages.
 * GODT-764 Fix deadlock in integration tests for Import-Export.
 * GODT-662 Do not resume paused transfer progress after dismissing cancel popup.
