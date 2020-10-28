@@ -382,7 +382,7 @@ func TestProxyProvider_UseProxy_RevertIfProxyStopsWorkingAndOriginalAPIIsReachab
 	// The error should be ErrAPINotReachable because the connection dropped intermittently but
 	// the original API is now reachable (see Alternative-Routing-v2 spec for details).
 	url, err = cm.switchToReachableServer()
-	require.EqualError(t, err, ErrAPINotReachable.Error())
+	require.Error(t, err)
 	require.Equal(t, rootURL, url)
 	require.Equal(t, rootURL, cm.getHost())
 }

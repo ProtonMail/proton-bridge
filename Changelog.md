@@ -33,6 +33,11 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-827 Do not spam sentry with bad ID by integration test.
 * GODT-700 Fix UTF-7 incompatibility.
 * GODT-837 Fix flaky TestFailUnpauseAndStops.
+* GODT-782 Don't use TLS pinning when checking connectivity status.
+
+### Changed
+* TLS pins conform to official list.
+
 
 ## [Bridge 1.4.5] Forth
 
