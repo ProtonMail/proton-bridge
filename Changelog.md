@@ -11,6 +11,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 ### Fixed
 * GODT-677 Windows IE: global import settings not fit in window.
 * GODT-794 Congo fails to update to Danube
+* GODT-794 Congo fails to update to Danube.
 * GODT-749 Don't force PGP/Inline when sending plaintext messages.
 * GODT-764 Fix deadlock in integration tests for Import-Export.
 * GODT-662 Do not resume paused transfer progress after dismissing cancel popup.
