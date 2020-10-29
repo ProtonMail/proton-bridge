@@ -37,7 +37,7 @@ func (store *Store) SetIMAPUpdateChannel(updates chan imapBackend.Update) {
 	}
 }
 
-func (store *Store) imapNotice(address, notice string) {
+func (store *Store) imapNotice(address, notice string) *imapBackend.StatusUpdate {
 	update := new(imapBackend.StatusUpdate)
 	update.Update = imapBackend.NewUpdate(address, "")
 	update.StatusResp = &imap.StatusResp{
@@ -46,13 +46,14 @@ func (store *Store) imapNotice(address, notice string) {
 		Info: notice,
 	}
 	store.imapSendUpdate(update)
+	return update
 }
 
 func (store *Store) imapUpdateMessage(
 	address, mailboxName string,
 	uid, sequenceNumber uint32,
 	msg *pmapi.Message, hasDeletedFlag bool,
-) {
+) *imapBackend.MessageUpdate {
 	store.log.WithFields(logrus.Fields{
 		"address": address,
 		"mailbox": mailboxName,
@@ -70,9 +71,10 @@ func (store *Store) imapUpdateMessage(
 	}
 	update.Message.Uid = uid
 	store.imapSendUpdate(update)
+	return update
 }
 
-func (store *Store) imapDeleteMessage(address, mailboxName string, sequenceNumber uint32) {
+func (store *Store) imapDeleteMessage(address, mailboxName string, sequenceNumber uint32) *imapBackend.ExpungeUpdate {
 	store.log.WithFields(logrus.Fields{
 		"address": address,
 		"mailbox": mailboxName,
@@ -82,9 +84,10 @@ func (store *Store) imapDeleteMessage(address, mailboxName string, sequenceNumbe
 	update.Update = imapBackend.NewUpdate(address, mailboxName)
 	update.SeqNum = sequenceNumber
 	store.imapSendUpdate(update)
+	return update
 }
 
-func (store *Store) imapMailboxCreated(address, mailboxName string) {
+func (store *Store) imapMailboxCreated(address, mailboxName string) *imapBackend.MailboxInfoUpdate {
 	store.log.WithFields(logrus.Fields{
 		"address": address,
 		"mailbox": mailboxName,
@@ -97,9 +100,10 @@ func (store *Store) imapMailboxCreated(address, mailboxName string) {
 		Name:       mailboxName,
 	}
 	store.imapSendUpdate(update)
+	return update
 }
 
-func (store *Store) imapMailboxStatus(address, mailboxName string, total, unread, unreadSeqNum uint) {
+func (store *Store) imapMailboxStatus(address, mailboxName string, total, unread, unreadSeqNum uint) *imapBackend.MailboxUpdate {
 	store.log.WithFields(logrus.Fields{
 		"address":      address,
 		"mailbox":      mailboxName,
@@ -114,6 +118,7 @@ func (store *Store) imapMailboxStatus(address, mailboxName string, total, unread
 	update.MailboxStatus.Unseen = uint32(unread)
 	update.MailboxStatus.UnseenSeqNum = uint32(unreadSeqNum)
 	store.imapSendUpdate(update)
+	return update
 }
 
 func (store *Store) imapSendUpdate(update imapBackend.Update) {

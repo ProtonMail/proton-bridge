@@ -4,6 +4,9 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 ## Unreleased
 
+### Fixed
+* GODT-847 Waiting for unilateral update during deleting the message.
+
 ## [IE 1.2.0] Elbe
 
 ### Added

@@ -18,6 +18,8 @@
 package store
 
 import (
+	"time"
+
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -501,7 +503,7 @@ func (storeMailbox *Mailbox) txMarkMessagesAsDeleted(tx *bolt.Tx, apiIDs []strin
 
 		// In order to send flags in format
 		// S: * 2 FETCH (FLAGS (\Deleted \Seen))
-		storeMailbox.store.imapUpdateMessage(
+		update := storeMailbox.store.imapUpdateMessage(
 			storeMailbox.storeAddress.address,
 			storeMailbox.labelName,
 			uid,
@@ -509,6 +511,14 @@ func (storeMailbox *Mailbox) txMarkMessagesAsDeleted(tx *bolt.Tx, apiIDs []strin
 			msg,
 			markAsDeleted,
 		)
+
+		// txMarkMessagesAsDeleted is called only during processing request
+		// from IMAP call (i.e., not from event loop) and in such cases we
+		// have to wait to propagate update back before closing the response.
+		select {
+		case <-time.After(1 * time.Second):
+		case <-update.Done():
+		}
 	}
 
 	return nil

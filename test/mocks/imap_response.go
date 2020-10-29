@@ -155,7 +155,7 @@ func (ir *IMAPResponse) AssertSectionsInOrder(wantRegexps ...string) *IMAPRespon
 func (ir *IMAPResponse) AssertSections(wantRegexps ...string) *IMAPResponse {
 	ir.wait()
 	for _, wantRegexp := range wantRegexps {
-		a.NoError(ir.t, ir.hasSectionRegexp(wantRegexp), "regexp %v not found", wantRegexp)
+		a.NoError(ir.t, ir.hasSectionRegexp(wantRegexp), "regexp %v not found\nSections: %v", wantRegexp, ir.sections)
 	}
 	return ir
 }
