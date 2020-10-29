@@ -1,2 +1,3 @@
-• Import from mbox files with long lines
-• Improvements to import from Yahoo accounts
+• Linux font issues - Fedora specific
+• App response to the user pausing and canceling import or export
+• Handling errors during update

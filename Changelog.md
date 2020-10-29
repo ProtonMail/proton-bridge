@@ -4,6 +4,8 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 ## Unreleased
 
+## [IE 1.2.0] Elbe
+
 ### Added
 * GODT-763 Detect Gmail labels from All Mail mbox export (using X-Gmail-Label header).
 * GODT-834 Info about tags in BUILDS.md and link to Import-Export page in README.md.
@@ -12,7 +14,6 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 ### Fixed
 * GODT-677 Windows IE: global import settings not fit in window.
 * GODT-794 Congo fails to update to Danube
-* GODT-794 Congo fails to update to Danube.
 * GODT-749 Don't force PGP/Inline when sending plaintext messages.
 * GODT-764 Fix deadlock in integration tests for Import-Export.
 * GODT-662 Do not resume paused transfer progress after dismissing cancel popup.

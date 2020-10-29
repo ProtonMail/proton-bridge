@@ -1,5 +1,5 @@
-• Speed up import by implementing parallel processing (parallel fetch, encrypt and upload of messages)
-• Optimising the initial fetch of messages from external accounts
-• Better handling of attachments and non-standard formatting
-• Improved stability of the message parser
-• Added persistent anonymous API cookies
+• Improvements to the import from large mbox files with multiple labels
+• Not allow to run multiple instances of the app or transfers at the same time
+• Various enhancements of the import process related to parsing
+• Cosmetic GUI changes
+• Better error handling
