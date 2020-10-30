@@ -31,7 +31,7 @@ import (
 
 func (c *Config) GetAPIConfig() *pmapi.ClientConfig {
 	return &pmapi.ClientConfig{
-		AppVersion:        strings.Title(c.appName) + "_" + c.version,
+		AppVersion:        c.getAPIOS() + strings.Title(c.appName) + "_" + c.version,
 		ClientID:          c.appName,
 		Timeout:           25 * time.Minute, // Overall request timeout (~25MB / 25 mins => ~16kB/s, should be reasonable).
 		FirstReadTimeout:  30 * time.Second, // 30s to match 30s response header timeout.

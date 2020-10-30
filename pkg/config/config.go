@@ -21,6 +21,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"runtime"
 
 	"github.com/ProtonMail/go-appdir"
 	"github.com/hashicorp/go-multierror"
@@ -246,4 +247,18 @@ func (c *Config) GetDefaultIMAPPort() int {
 // GetDefaultSMTPPort returns default Bridge SMTP port.
 func (c *Config) GetDefaultSMTPPort() int {
 	return 1025
+}
+
+// getAPIOS returns actual operating system.
+func (c *Config) getAPIOS() string {
+	switch os := runtime.GOOS; os {
+	case "darwin": // nolint: goconst
+		return "macOS"
+	case "linux":
+		return "Linux"
+	case "windows":
+		return "Windows"
+	}
+
+	return "Linux"
 }

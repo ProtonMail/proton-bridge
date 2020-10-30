@@ -29,7 +29,7 @@ import (
 
 func (c *Config) GetAPIConfig() *pmapi.ClientConfig {
 	return &pmapi.ClientConfig{
-		AppVersion: strings.Title(c.appName) + "_" + c.version,
+		AppVersion: c.getAPIOS() + strings.Title(c.appName) + "_" + c.version,
 		ClientID:   c.appName,
 	}
 }
