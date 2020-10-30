@@ -349,6 +349,9 @@ func (f *FrontendQt) setProgressManager(progress *transfer.Progress) {
 				}
 			}
 		}
+		// Counts will add lost messages only once the progress is completeled.
+		failed, _, _, _, _ := progress.GetCounts()
+		f.Qml.SetProgressFails(int(failed))
 
 		if err := progress.GetFatalError(); err != nil {
 			f.Qml.SetProgressDescription(err.Error())
