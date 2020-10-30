@@ -40,17 +40,17 @@ import (
 	"github.com/ProtonMail/proton-bridge/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/internal/events"
 	"github.com/ProtonMail/proton-bridge/internal/frontend/autoconfig"
-	"github.com/ProtonMail/proton-bridge/internal/frontend/qt-common"
+	qtcommon "github.com/ProtonMail/proton-bridge/internal/frontend/qt-common"
 	"github.com/ProtonMail/proton-bridge/internal/frontend/types"
 	"github.com/ProtonMail/proton-bridge/internal/preferences"
 	"github.com/ProtonMail/proton-bridge/internal/updates"
 	"github.com/ProtonMail/proton-bridge/pkg/config"
-	"github.com/ProtonMail/proton-bridge/pkg/ports"
-	"github.com/ProtonMail/proton-bridge/pkg/useragent"
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
-	"github.com/sirupsen/logrus"
+	"github.com/ProtonMail/proton-bridge/pkg/ports"
+	"github.com/ProtonMail/proton-bridge/pkg/useragent"
 	"github.com/kardianos/osext"
+	"github.com/sirupsen/logrus"
 	"github.com/skratchdot/open-golang/open"
 	"github.com/therecipe/qt/core"
 	"github.com/therecipe/qt/gui"
@@ -187,7 +187,6 @@ func (s *FrontendQt) watchEvents() {
 	updateApplicationCh := s.getEventChannel(events.UpgradeApplicationEvent)
 	newUserCh := s.getEventChannel(events.UserRefreshEvent)
 	certIssue := s.getEventChannel(events.TLSCertIssue)
-	imapCertIssue := s.getEventChannel(events.IMAPTLSBadCert)
 	for {
 		select {
 		case errorDetails := <-errorCh:
@@ -227,8 +226,6 @@ func (s *FrontendQt) watchEvents() {
 			s.Qml.LoadAccounts()
 		case <-certIssue:
 			s.Qml.ShowCertIssue()
-		case <-imapCertIssue:
-			s.Qml.ShowIMAPCertTroubleshoot()
 		}
 	}
 }

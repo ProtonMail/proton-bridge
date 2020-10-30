@@ -75,7 +75,7 @@ require (
 
 replace (
 	github.com/docker/docker-credential-helpers => github.com/ProtonMail/docker-credential-helpers v1.1.0
-	github.com/emersion/go-imap => github.com/ProtonMail/go-imap v0.0.0-20201016095853-a7520cc904d3
+	github.com/emersion/go-imap => github.com/ProtonMail/go-imap v0.0.0-20201102134601-418cd74e9474
 	github.com/emersion/go-smtp => github.com/ProtonMail/go-smtp v0.0.0-20181206232543-8261df20d309
 	github.com/jameskeane/bcrypt => github.com/ProtonMail/bcrypt v0.0.0-20170924085257-7509ea014998
 	golang.org/x/crypto => github.com/ProtonMail/crypto v0.0.0-20200818122824-ed5d25e28db8

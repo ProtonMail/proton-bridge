@@ -40,7 +40,6 @@ const (
 	NoActiveKeyForRecipientEvent = "noActiveKeyForRecipient"
 	UpgradeApplicationEvent      = "upgradeApplication"
 	TLSCertIssue                 = "tlsCertPinningIssue"
-	IMAPTLSBadCert               = "imapTLSBadCert"
 
 	// LogoutEventTimeout is the minimum time to permit between logout events being sent.
 	LogoutEventTimeout = 3 * time.Minute

@@ -21,6 +21,7 @@ package qtcommon
 
 import (
 	"fmt"
+
 	"github.com/therecipe/qt/core"
 )
 

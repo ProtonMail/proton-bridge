@@ -19,6 +19,9 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-834 Info about tags in BUILDS.md and link to Import-Export page in README.md.
 * GODT-777 Support Apple Mail MBOX export format.
 
+### Removed
+* GODT-766 Remove GUI popup for IMAP TLS error.
+
 ### Fixed
 * GODT-677 Windows IE: global import settings not fit in window.
 * GODT-794 Congo fails to update to Danube
