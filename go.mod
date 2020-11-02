@@ -35,7 +35,7 @@ require (
 	github.com/emersion/go-imap-quota v0.0.0-20200423100218-dcfd1b7d2b41
 	github.com/emersion/go-imap-specialuse v0.0.0-20200722111535-598ff00e4075
 	github.com/emersion/go-imap-unselect v0.0.0-20171113212723-b985794e5f26
-	github.com/emersion/go-mbox v1.0.0
+	github.com/emersion/go-mbox v1.0.2
 	github.com/emersion/go-message v0.12.1-0.20200903165315-e1abe21f389a
 	github.com/emersion/go-sasl v0.0.0-20200509203442-7bfe0ed36a21
 	github.com/emersion/go-textwrapper v0.0.0-20160606182133-d0e65e56babe
@@ -75,7 +75,6 @@ require (
 replace (
 	github.com/docker/docker-credential-helpers => github.com/ProtonMail/docker-credential-helpers v1.1.0
 	github.com/emersion/go-imap => github.com/ProtonMail/go-imap v0.0.0-20201016095853-a7520cc904d3
-	github.com/emersion/go-mbox => github.com/ProtonMail/mbox v0.0.0-20200918064939-909a18c9af45
 	github.com/emersion/go-smtp => github.com/ProtonMail/go-smtp v0.0.0-20181206232543-8261df20d309
 	github.com/jameskeane/bcrypt => github.com/ProtonMail/bcrypt v0.0.0-20170924085257-7509ea014998
 	golang.org/x/crypto => github.com/ProtonMail/crypto v0.0.0-20200818122824-ed5d25e28db8
