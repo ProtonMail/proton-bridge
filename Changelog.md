@@ -10,6 +10,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 ### Fixed
 * GODT-847 Waiting for unilateral update during deleting the message.
 * GODT-849 Show in error counts in the end also lost messages.
+* GODT-835 Do not include conversation ID in references to show properly conversation threads in clients.
 
 ## [IE 1.2.0] Elbe
 

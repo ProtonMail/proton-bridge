@@ -84,10 +84,6 @@ func GetHeader(msg *pmapi.Message) textproto.MIMEHeader { //nolint[funlen]
 	}
 	if msg.ConversationID != "" {
 		h.Set("X-Pm-ConversationID-Id", msg.ConversationID)
-		if references := h.Get("References"); !strings.Contains(references, msg.ConversationID) {
-			references += " <" + msg.ConversationID + "@" + pmapi.ConversationIDDomain + ">"
-			h.Set("References", references)
-		}
 	}
 
 	return h
