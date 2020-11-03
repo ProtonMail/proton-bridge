@@ -15,6 +15,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-849 Show in error counts in the end also lost messages.
 * GODT-835 Do not include conversation ID in references to show properly conversation threads in clients.
 * GODT-799 Fix skipping unwanted folders importing from mbox files.
+* GODT-769 Close connection before deleting labels to prevent panics accessing deleted bucket.
 
 ## [IE 1.2.0] Elbe
 

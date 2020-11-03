@@ -186,7 +186,7 @@ func (u *Users) watchAPIAuths() {
 
 func (u *Users) closeAllConnections() {
 	for _, user := range u.users {
-		user.closeAllConnections()
+		user.CloseAllConnections()
 	}
 }
 

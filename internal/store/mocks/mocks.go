@@ -106,6 +106,18 @@ func (m *MockBridgeUser) EXPECT() *MockBridgeUserMockRecorder {
 	return m.recorder
 }
 
+// CloseAllConnections mocks base method
+func (m *MockBridgeUser) CloseAllConnections() {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "CloseAllConnections")
+}
+
+// CloseAllConnections indicates an expected call of CloseAllConnections
+func (mr *MockBridgeUserMockRecorder) CloseAllConnections() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CloseAllConnections", reflect.TypeOf((*MockBridgeUser)(nil).CloseAllConnections))
+}
+
 // CloseConnection mocks base method
 func (m *MockBridgeUser) CloseConnection(arg0 string) {
 	m.ctrl.T.Helper()

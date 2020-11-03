@@ -36,6 +36,7 @@ type BridgeUser interface {
 	GetPrimaryAddress() string
 	GetStoreAddresses() []string
 	UpdateUser() error
+	CloseAllConnections()
 	CloseConnection(string)
 	Logout() error
 }

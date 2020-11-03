@@ -437,7 +437,7 @@ func (u *User) SwitchAddressMode() (err error) {
 
 	u.lock.Lock()
 	defer u.lock.Unlock()
-	u.closeAllConnections()
+	u.CloseAllConnections()
 
 	if u.store == nil {
 		err = errors.New("store is not initialised")
@@ -509,7 +509,7 @@ func (u *User) Logout() (err error) {
 	// Do not close whole store, just event loop. Some information might be needed offline (e.g. addressID)
 	u.closeEventLoop()
 
-	u.closeAllConnections()
+	u.CloseAllConnections()
 
 	runtime.GC()
 
@@ -532,8 +532,8 @@ func (u *User) closeEventLoop() {
 	u.store.CloseEventLoop()
 }
 
-// closeAllConnections calls CloseConnection for all users addresses.
-func (u *User) closeAllConnections() {
+// CloseAllConnections calls CloseConnection for all users addresses.
+func (u *User) CloseAllConnections() {
 	for _, address := range u.creds.EmailList() {
 		u.CloseConnection(address)
 	}
