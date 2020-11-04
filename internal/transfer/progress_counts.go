@@ -26,3 +26,10 @@ type ProgressCounts struct {
 	Added,
 	Total uint
 }
+
+// Progress returns ratio between processed messages (fully imported, skipped
+// and failed ones) and total number of messages as percentage (0 - 1).
+func (c *ProgressCounts) Progress() float32 {
+	progressed := c.Imported + c.Skipped + c.Failed
+	return float32(progressed) / float32(c.Total)
+}

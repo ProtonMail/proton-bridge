@@ -344,7 +344,7 @@ func (f *FrontendQt) setProgressManager(progress *transfer.Progress) {
 			f.Qml.SetProgressFails(int(counts.Failed))
 			f.Qml.SetProgressDescription(progress.PauseReason())
 			if counts.Total > 0 {
-				newProgress := float32(counts.Imported+counts.Skipped+counts.Failed) / float32(counts.Total)
+				newProgress := counts.Progress()
 				if newProgress >= 0 && newProgress != f.Qml.Progress() {
 					f.Qml.SetProgress(newProgress)
 					f.Qml.ProgressChanged(newProgress)
