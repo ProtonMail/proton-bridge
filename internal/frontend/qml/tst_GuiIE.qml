@@ -840,6 +840,8 @@ Window {
 
         property real progress: 0.0
         property int progressFails: 0
+        property int progressImported: 0
+        property int progressSkipped: 0
         property string progressDescription: "nothing"
         property string progressInit: "init"
         property int total: 42
@@ -1011,6 +1013,8 @@ Window {
         property SequentialAnimation animateProgressBar : SequentialAnimation {
             id: apb
             property real speedup : 1.0;
+            PropertyAnimation{ target: go; properties: "progressSkipped"; to: 0; duration: 1; }
+            PropertyAnimation{ target: go; properties: "progressImported"; to: 0; duration: 1; }
             PropertyAnimation{ target: go; properties: "importLogFileName"; to: ""; duration: 1; }
             PropertyAnimation{ target: go; properties: "progressDescription"; to: go.progressInit; duration: 1; }
             PropertyAnimation{ duration: 2000/apb.speedup; }
@@ -1024,6 +1028,8 @@ Window {
             PropertyAnimation{ target: go; properties: "progress"; to: 0.01; duration: 1; }
             PropertyAnimation{ duration: 1000/apb.speedup; }
             PropertyAnimation{ target: go; properties: "progress"; to: 0.1; duration: 1; }
+            PropertyAnimation{ target: go; properties: "progressSkipped"; to: 12; duration: 1; }
+            PropertyAnimation{ target: go; properties: "progressImported"; to: 13.1; duration: 1; }
             PropertyAnimation{ duration: 1000/apb.speedup; }
             PropertyAnimation{ target: go; properties: "progress"; to: 0.3; duration: 1; }
             PropertyAnimation{ target: go; properties: "progressFails"; to: 1; duration: 1; }
