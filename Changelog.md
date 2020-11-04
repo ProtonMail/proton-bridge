@@ -4,6 +4,9 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 ## Unreleased
 
+### Added
+* GODT-799 Skipped messages do not change total counts but shows as separate number.
+
 ### Changed
 * Updated go-mbox dependency back to upstream.
 
@@ -11,6 +14,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-847 Waiting for unilateral update during deleting the message.
 * GODT-849 Show in error counts in the end also lost messages.
 * GODT-835 Do not include conversation ID in references to show properly conversation threads in clients.
+* GODT-799 Fix skipping unwanted folders importing from mbox files.
 
 ## [IE 1.2.0] Elbe
 

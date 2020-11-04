@@ -65,15 +65,15 @@ func progressFinishedWith(wantResponse string) error {
 
 func transferExportedNumberOfMessages(wantCount int) error {
 	progress := ctx.GetTransferProgress()
-	_, _, exported, _, _ := progress.GetCounts() //nolint[dogsled]
-	a.Equal(ctx.GetTestingT(), uint(wantCount), exported)
+	counts := progress.GetCounts()
+	a.Equal(ctx.GetTestingT(), uint(wantCount), counts.Exported)
 	return ctx.GetTestingError()
 }
 
 func transferImportedNumberOfMessages(wantCount int) error {
 	progress := ctx.GetTransferProgress()
-	_, imported, _, _, _ := progress.GetCounts() //nolint[dogsled]
-	a.Equal(ctx.GetTestingT(), uint(wantCount), imported)
+	counts := progress.GetCounts()
+	a.Equal(ctx.GetTestingT(), uint(wantCount), counts.Imported)
 	return ctx.GetTestingError()
 }
 

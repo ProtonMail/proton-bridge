@@ -58,6 +58,7 @@ type MessageStatus struct {
 	targetID    string    // Message ID at the target (if any).
 	bodyHash    string    // Hash of the message body.
 
+	skipped   bool
 	exported  bool
 	imported  bool
 	exportErr error
@@ -96,7 +97,7 @@ func (status *MessageStatus) setDetailsFromHeader(header mail.Header) {
 }
 
 func (status *MessageStatus) hasError(includeMissing bool) bool {
-	return status.exportErr != nil || status.importErr != nil || (includeMissing && !status.imported)
+	return status.exportErr != nil || status.importErr != nil || (includeMissing && !status.skipped && !status.imported)
 }
 
 // GetErrorMessage returns error message.
@@ -105,6 +106,9 @@ func (status *MessageStatus) GetErrorMessage() string {
 }
 
 func (status *MessageStatus) getErrorMessage(includeMissing bool) string {
+	if status.skipped {
+		return ""
+	}
 	if status.exportErr != nil {
 		return fmt.Sprintf("failed to export: %s", status.exportErr)
 	}

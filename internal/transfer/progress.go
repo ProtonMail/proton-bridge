@@ -140,6 +140,19 @@ func (p *Progress) addMessage(messageID string, sourceNames, targetNames []strin
 	}
 }
 
+// messageSkipped should be called once the message is skipped due to some
+// filter such as time or folder and so on.
+func (p *Progress) messageSkipped(messageID string) {
+	p.lock.Lock()
+	defer p.lock.Unlock()
+	defer p.update()
+
+	p.log.WithField("id", messageID).Debug("Message skipped")
+
+	p.messageStatuses[messageID].skipped = true
+	p.logMessage(messageID)
+}
+
 // messageExported should be called right before message is exported.
 func (p *Progress) messageExported(messageID string, body []byte, err error) {
 	p.lock.Lock()
@@ -330,35 +343,40 @@ func (p *Progress) GetFailedMessages() []*MessageStatus {
 }
 
 // GetCounts returns counts of exported and imported messages.
-func (p *Progress) GetCounts() (failed, imported, exported, added, total uint) {
+func (p *Progress) GetCounts() ProgressCounts {
 	p.lock.Lock()
 	defer p.lock.Unlock()
+
+	counts := ProgressCounts{}
 
 	// Return counts only once total is estimated or the process already
 	// ended (for a case when it ended quickly to report it correctly).
 	if p.updateCh != nil && !p.messageCounted {
-		return
+		return counts
 	}
 
 	// Include lost messages in the process only when transfer is done.
 	includeMissing := p.updateCh == nil
 
 	for _, mailboxCount := range p.messageCounts {
-		total += mailboxCount
+		counts.Total += mailboxCount
 	}
 	for _, status := range p.messageStatuses {
-		added++
+		counts.Added++
+		if status.skipped {
+			counts.Skipped++
+		}
 		if status.exported {
-			exported++
+			counts.Exported++
 		}
 		if status.imported {
-			imported++
+			counts.Imported++
 		}
 		if status.hasError(includeMissing) {
-			failed++
+			counts.Failed++
 		}
 	}
-	return
+	return counts
 }
 
 // GenerateBugReport generates similar file to import log except private information.

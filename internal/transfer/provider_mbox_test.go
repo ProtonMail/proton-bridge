@@ -155,6 +155,29 @@ func TestMBOXProviderTransferFromTo(t *testing.T) {
 	})
 }
 
+func TestMBOXProviderGetMessageRules(t *testing.T) {
+	provider := newTestMBOXProvider("")
+
+	body := []byte(`Subject: Test
+X-Gmail-Labels: foo,bar
+
+`)
+	rules := transferRules{
+		rules: map[string]*Rule{
+			"1": {Active: true, SourceMailbox: Mailbox{Name: "folder"}},
+			"2": {Active: false, SourceMailbox: Mailbox{Name: "foo"}},
+			"3": {Active: true, SourceMailbox: Mailbox{Name: "bar"}},
+			"4": {Active: false, SourceMailbox: Mailbox{Name: "baz"}},
+			"5": {Active: true, SourceMailbox: Mailbox{Name: "other"}},
+		},
+	}
+
+	gotRules := provider.getMessageRules(rules, "folder", "id", body)
+	r.Equal(t, 2, len(gotRules))
+	r.Equal(t, "folder", gotRules[0].SourceMailbox.Name)
+	r.Equal(t, "bar", gotRules[1].SourceMailbox.Name)
+}
+
 func TestMBOXProviderGetMessageTargetsReturnsOnlyOneFolder(t *testing.T) {
 	provider := newTestMBOXProvider("")
 

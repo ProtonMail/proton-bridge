@@ -77,6 +77,8 @@ func (f *FrontendQt) StartImport(email string) { // TODO email not needed
 	log.Trace("Starting import")
 
 	f.Qml.SetProgressDescription("init") // TODO use const
+	f.Qml.SetProgressImported(0)
+	f.Qml.SetProgressSkipped(0)
 	f.Qml.SetProgressFails(0)
 	f.Qml.SetProgress(0.0)
 	f.Qml.SetTotal(1)

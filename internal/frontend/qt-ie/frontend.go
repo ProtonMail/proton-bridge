@@ -337,12 +337,14 @@ func (f *FrontendQt) setProgressManager(progress *transfer.Progress) {
 			if progress.IsStopped() {
 				break
 			}
-			failed, imported, _, _, total := progress.GetCounts()
-			f.Qml.SetTotal(int(total))
-			f.Qml.SetProgressFails(int(failed))
+			counts := progress.GetCounts()
+			f.Qml.SetTotal(int(counts.Total))
+			f.Qml.SetProgressImported(int(counts.Imported))
+			f.Qml.SetProgressSkipped(int(counts.Skipped))
+			f.Qml.SetProgressFails(int(counts.Failed))
 			f.Qml.SetProgressDescription(progress.PauseReason())
-			if total > 0 {
-				newProgress := float32(imported+failed) / float32(total)
+			if counts.Total > 0 {
+				newProgress := float32(counts.Imported+counts.Skipped+counts.Failed) / float32(counts.Total)
 				if newProgress >= 0 && newProgress != f.Qml.Progress() {
 					f.Qml.SetProgress(newProgress)
 					f.Qml.ProgressChanged(newProgress)
@@ -350,8 +352,10 @@ func (f *FrontendQt) setProgressManager(progress *transfer.Progress) {
 			}
 		}
 		// Counts will add lost messages only once the progress is completeled.
-		failed, _, _, _, _ := progress.GetCounts()
-		f.Qml.SetProgressFails(int(failed))
+		counts := progress.GetCounts()
+		f.Qml.SetProgressImported(int(counts.Imported))
+		f.Qml.SetProgressSkipped(int(counts.Skipped))
+		f.Qml.SetProgressFails(int(counts.Failed))
 
 		if err := progress.GetFatalError(); err != nil {
 			f.Qml.SetProgressDescription(err.Error())

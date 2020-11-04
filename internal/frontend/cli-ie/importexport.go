@@ -184,9 +184,17 @@ func (f *frontendCLI) setTransferRules(t *transfer.Transfer) bool {
 }
 
 func (f *frontendCLI) printTransferProgress(progress *transfer.Progress) {
-	failed, imported, exported, added, total := progress.GetCounts()
-	if total != 0 {
-		f.Println(fmt.Sprintf("Progress update: %d (%d / %d) / %d, failed: %d", imported, exported, added, total, failed))
+	counts := progress.GetCounts()
+	if counts.Total != 0 {
+		f.Println(fmt.Sprintf(
+			"Progress update: %d (%d / %d) / %d, skipped: %d, failed: %d",
+			counts.Imported,
+			counts.Exported,
+			counts.Added,
+			counts.Total,
+			counts.Skipped,
+			counts.Failed,
+		))
 	}
 
 	if progress.IsPaused() {

@@ -599,7 +599,7 @@ Dialog {
             }
 
             Text {
-                text: qsTr("<b>Import summary:</b><br>Total number of emails: %1<br>Imported emails: %2<br>Errors: %3").arg(go.total).arg(finalReport.imported).arg(go.progressFails)
+                text: qsTr("<b>Import summary:</b><br>Total number of emails: %1<br>Imported emails: %2<br>Filtered out emails: %3<br>Errors: %4").arg(go.total).arg(go.progressImported).arg(go.progressSkipped).arg(go.progressFails)
                 anchors.horizontalCenter: parent.horizontalCenter
                 textFormat: Text.RichText
                 horizontalAlignment: Text.AlignHCenter

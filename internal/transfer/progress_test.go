@@ -39,8 +39,8 @@ func TestProgressUpdateCount(t *testing.T) {
 
 	progress.finish()
 
-	_, _, _, _, total := progress.GetCounts() //nolint[dogsled]
-	r.Equal(t, uint(42), total)
+	counts := progress.GetCounts()
+	r.Equal(t, uint(42), counts.Total)
 }
 
 func TestProgressAddingMessages(t *testing.T) {
@@ -66,13 +66,18 @@ func TestProgressAddingMessages(t *testing.T) {
 	progress.messageExported("msg4", []byte(""), errors.New("failed export"))
 	progress.messageImported("msg4", "", nil)
 
+	// msg5 is skipped.
+	progress.addMessage("msg5", []string{}, []string{})
+	progress.messageSkipped("msg5")
+
 	progress.finish()
 
-	failed, imported, exported, added, _ := progress.GetCounts()
-	a.Equal(t, uint(4), added)
-	a.Equal(t, uint(2), exported)
-	a.Equal(t, uint(2), imported)
-	a.Equal(t, uint(3), failed)
+	counts := progress.GetCounts()
+	a.Equal(t, uint(5), counts.Added)
+	a.Equal(t, uint(2), counts.Exported)
+	a.Equal(t, uint(2), counts.Imported)
+	a.Equal(t, uint(1), counts.Skipped)
+	a.Equal(t, uint(3), counts.Failed)
 
 	errorsMap := map[string]string{}
 	for _, status := range progress.GetFailedMessages() {

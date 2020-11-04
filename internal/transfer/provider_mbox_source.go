@@ -114,7 +114,6 @@ func (p *MBOXProvider) transferTo(rules transferRules, progress *Progress, ch ch
 	}
 
 	index := 0
-	count := 0
 	for {
 		if progress.shouldStop() {
 			break
@@ -133,24 +132,18 @@ func (p *MBOXProvider) transferTo(rules transferRules, progress *Progress, ch ch
 
 		msg, err := p.exportMessage(rules, folderName, id, msgReader)
 
+		progress.addMessage(id, msg.sourceNames(), msg.targetNames())
+
 		if err == nil && len(msg.Targets) == 0 {
-			// Here should be called progress.messageSkipped(id) once we have
-			// this feature, and following progress.updateCount can be removed.
+			progress.messageSkipped(id)
 			continue
 		}
 
-		count++
-
-		// addMessage is called after time check to not report message
-		// which should not be exported but any error from reading body
-		// or parsing time is reported as an error.
-		progress.addMessage(id, msg.sourceNames(), msg.targetNames())
 		progress.messageExported(id, msg.Body, err)
 		if err == nil {
 			ch <- msg
 		}
 	}
-	progress.updateCount(filePath, uint(count))
 }
 
 func (p *MBOXProvider) exportMessage(rules transferRules, folderName, id string, msgReader io.Reader) (Message, error) {
@@ -177,7 +170,7 @@ func (p *MBOXProvider) getMessageRules(rules transferRules, folderName, id strin
 	folderRule, err := rules.getRuleBySourceMailboxName(folderName)
 	if err != nil {
 		log.WithField("msg", id).WithField("source", folderName).Debug("Message source doesn't have a rule")
-	} else {
+	} else if folderRule.Active {
 		msgRules = append(msgRules, folderRule)
 	}
 
@@ -191,7 +184,9 @@ func (p *MBOXProvider) getMessageRules(rules transferRules, folderName, id strin
 				log.WithField("msg", id).WithField("source", label).Debug("Message source doesn't have a rule")
 				continue
 			}
-			msgRules = append(msgRules, rule)
+			if rule.Active {
+				msgRules = append(msgRules, rule)
+			}
 		}
 	}
 

@@ -82,14 +82,14 @@ func (p *EMLProvider) getFilePathsPerFolder(rules transferRules) (map[string][]s
 }
 
 func (p *EMLProvider) exportMessages(rule *Rule, filePaths []string, progress *Progress, ch chan<- Message) {
-	count := uint(len(filePaths))
-
 	for _, filePath := range filePaths {
 		if progress.shouldStop() {
 			break
 		}
 
 		msg, err := p.exportMessage(rule, filePath)
+
+		progress.addMessage(filePath, msg.sourceNames(), msg.targetNames())
 
 		// Read and check time in body only if the rule specifies it
 		// to not waste energy.
@@ -99,17 +99,11 @@ func (p *EMLProvider) exportMessages(rule *Rule, filePaths []string, progress *P
 				err = msgTimeErr
 			} else if !rule.isTimeInRange(msgTime) {
 				log.WithField("msg", filePath).Debug("Message skipped due to time")
-
-				count--
-				progress.updateCount(rule.SourceMailbox.Name, count)
+				progress.messageSkipped(filePath)
 				continue
 			}
 		}
 
-		// addMessage is called after time check to not report message
-		// which should not be exported but any error from reading body
-		// or parsing time is reported as an error.
-		progress.addMessage(filePath, msg.sourceNames(), msg.targetNames())
 		progress.messageExported(filePath, msg.Body, err)
 		if err == nil {
 			ch <- msg

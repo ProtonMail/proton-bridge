@@ -43,6 +43,8 @@ type GoQMLInterface struct {
 	_ string  `property:lastError`
 	_ float32 `property:progress`
 	_ string  `property:progressDescription`
+	_ int     `property:progressImported`
+	_ int     `property:progressSkipped`
 	_ int     `property:progressFails`
 	_ int     `property:total`
 	_ string  `property:importLogFileName`
