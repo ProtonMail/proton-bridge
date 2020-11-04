@@ -21,6 +21,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+	"sync/atomic"
 
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	"github.com/sirupsen/logrus"
@@ -39,7 +40,7 @@ type Mailbox struct {
 
 	log *logrus.Entry
 
-	isDeleting bool
+	isDeleting atomic.Value
 }
 
 func newMailbox(storeAddress *Address, labelID, labelPrefix, labelName, color string) (mb *Mailbox, err error) {
@@ -61,6 +62,7 @@ func txNewMailbox(tx *bolt.Tx, storeAddress *Address, labelID, labelPrefix, labe
 		color:        color,
 		log:          l,
 	}
+	mb.isDeleting.Store(false)
 
 	err := initMailboxBucket(tx, mb.getBucketName())
 	if err != nil {
@@ -217,7 +219,7 @@ func (storeMailbox *Mailbox) Rename(newName string) error {
 // Deletion has to be propagated to all the same mailboxes in all addresses.
 // The propagation is processed by the event loop.
 func (storeMailbox *Mailbox) Delete() error {
-	storeMailbox.isDeleting = true
+	storeMailbox.isDeleting.Store(true)
 	return storeMailbox.storeAddress.deleteMailbox(storeMailbox.labelID)
 }
 
@@ -229,7 +231,7 @@ func (storeMailbox *Mailbox) GetDelimiter() string {
 // deleteMailboxEvent deletes the mailbox bucket.
 // This is called from the event loop.
 func (storeMailbox *Mailbox) deleteMailboxEvent() error {
-	if !storeMailbox.isDeleting {
+	if !storeMailbox.isDeleting.Load().(bool) {
 		// Deleting label removes bucket. Any ongoing connection selected
 		// in such mailbox then might panic because of non-existing bucket.
 		// Closing connetions prevents that panic but if the connection
