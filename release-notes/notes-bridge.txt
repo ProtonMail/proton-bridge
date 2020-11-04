@@ -1,8 +1,4 @@
-• Bulletproofing against any potential data loss and/or duplication
-• Performance improvements for handling attachments and non-standard formatting
-• Better stability of the message parser
-• Additional foreign encoding support for outgoing messages
-• Complete refactor of the way messages are parsed to simplify code maintenance
-• Improved User-Agent detection
-• Added MacOS Big Sur compatibility
-• Added persistent anonymous API cookies
+• Ensured better message flow by refactoring both address and date parsing
+• Improved secure connectivity checks
+• Better deb packaging
+• More robust error handling
