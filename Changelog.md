@@ -16,6 +16,8 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 
 ## [Bridge 1.5.0] Golden Gate
+* GODT-701 Try load messages one-by-one if IMAP server errors with batch load and not interrupt the transfer
+
 ### Changed
 * Updated go-mbox dependency back to upstream.
 

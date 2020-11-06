@@ -24,10 +24,11 @@ import (
 	"time"
 
 	imapID "github.com/ProtonMail/go-imap-id"
+	"github.com/ProtonMail/proton-bridge/pkg/constants"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	"github.com/emersion/go-imap"
 	imapClient "github.com/emersion/go-imap/client"
-	sasl "github.com/emersion/go-sasl"
+	"github.com/emersion/go-sasl"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )
@@ -49,6 +50,43 @@ func (l *imapErrorLogger) Printf(f string, v ...interface{}) {
 
 func (l *imapErrorLogger) Println(v ...interface{}) {
 	l.log.Errorln(v...)
+}
+
+func imapClientDial(addr string) (IMAPClientProvider, error) {
+	if _, err := net.DialTimeout("tcp", addr, imapDialTimeout); err != nil {
+		return nil, errors.Wrap(err, "failed to dial server")
+	}
+
+	client, err := imapClientDialHelper(addr)
+	if err == nil {
+		client.ErrorLog = &imapErrorLogger{logrus.WithField("pkg", "imap-client")}
+		// Logrus `WriterLevel` fails for big messages because of bufio.MaxScanTokenSize limit.
+		// Also, this spams a lot, uncomment once needed during development.
+		//client.SetDebug(imap.NewDebugWriter(
+		//	logrus.WithField("pkg", "imap/client").WriterLevel(logrus.TraceLevel),
+		//	logrus.WithField("pkg", "imap/server").WriterLevel(logrus.TraceLevel),
+		//))
+	}
+	return client, err
+}
+
+func imapClientDialHelper(addr string) (*imapClient.Client, error) {
+	host, _, _ := net.SplitHostPort(addr)
+	if host == "127.0.0.1" {
+		return imapClient.Dial(addr)
+	}
+
+	// IMAP mail.yahoo.com has problem with golang TLS 1.3 implementation
+	// with weird behaviour, i.e., Yahoo does not return error during dial
+	// or handshake but server does logs out right after successful login
+	// leaving no time to perform any action.
+	// Limiting TLS to version 1.2 is working just fine.
+	var tlsConf *tls.Config
+	if strings.Contains(strings.ToLower(host), "yahoo") {
+		log.Warning("Yahoo server detected: limiting maximal TLS version to 1.2.")
+		tlsConf = &tls.Config{MaxVersion: tls.VersionTLS12}
+	}
+	return imapClient.DialTLS(addr, tlsConf)
 }
 
 func (p *IMAPProvider) ensureConnection(callback func() error) error {
@@ -138,41 +176,10 @@ func (p *IMAPProvider) auth() error { //nolint[funlen]
 
 	log.Info("Connecting to server")
 
-	if _, err := net.DialTimeout("tcp", p.addr, imapDialTimeout); err != nil {
-		return ErrIMAPConnection{imapError{Err: err, Message: "failed to dial server"}}
-	}
-
-	var client *imapClient.Client
-	var err error
-	host, _, _ := net.SplitHostPort(p.addr)
-	if host == "127.0.0.1" {
-		client, err = imapClient.Dial(p.addr)
-	} else {
-		// IMAP.mail.yahoo.com have problem with golang TLS1.3
-		// implementation with weird behaviour i.e. Yahoo
-		// no error during dial or handshake but server logs out right
-		// after successful login leaving no time to perform any
-		// action. It was discovered that limiting to maximum TLS
-		// version 1.2 for yahoo servers is working solution.
-
-		var tlsConf *tls.Config
-		if strings.Contains(strings.ToLower(host), "yahoo") {
-			log.Warning("Yahoo server detected: limiting maximal TLS version to 1.2.")
-			tlsConf = &tls.Config{MaxVersion: tls.VersionTLS12}
-		}
-		client, err = imapClient.DialTLS(p.addr, tlsConf)
-	}
+	client, err := p.clientDialer(p.addr)
 	if err != nil {
 		return ErrIMAPConnection{imapError{Err: err, Message: "failed to connect to server"}}
 	}
-
-	client.ErrorLog = &imapErrorLogger{logrus.WithField("pkg", "imap-client")}
-	// Logrus `WriterLevel` fails for big messages because of bufio.MaxScanTokenSize limit.
-	// Also, this spams a lot, uncomment once needed during development.
-	//client.SetDebug(imap.NewDebugWriter(
-	//	logrus.WithField("pkg", "imap/client").WriterLevel(logrus.TraceLevel),
-	//	logrus.WithField("pkg", "imap/server").WriterLevel(logrus.TraceLevel),
-	//))
 	p.client = client
 
 	log.Info("Connected")
@@ -210,13 +217,15 @@ func (p *IMAPProvider) auth() error { //nolint[funlen]
 
 	log.Info("Logged in")
 
-	idClient := imapID.NewClient(p.client)
-	if ok, err := idClient.SupportID(); err == nil && ok {
-		serverID, err := idClient.ID(imapID.ID{
-			imapID.FieldName:    "ImportExport",
-			imapID.FieldVersion: "beta",
-		})
-		log.WithField("ID", serverID).WithError(err).Debug("Server info")
+	if c, ok := p.client.(*imapClient.Client); ok {
+		idClient := imapID.NewClient(c)
+		if ok, err := idClient.SupportID(); err == nil && ok {
+			serverID, err := idClient.ID(imapID.ID{
+				imapID.FieldName:    "ImportExport",
+				imapID.FieldVersion: constants.Version,
+			})
+			log.WithField("ID", serverID).WithError(err).Debug("Server info")
+		}
 	}
 
 	return err
