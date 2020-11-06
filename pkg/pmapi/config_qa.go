@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
 
-// +build pmapi_env
+// +build pmapi_qa
 
 package pmapi
 
