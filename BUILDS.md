@@ -13,7 +13,16 @@ To enable the sending of crash reports using Sentry please set the
 Otherwise, the sending of crash reports will be disabled.
 
 ## Build
-* for Windows please unset the `MSYSTEM` variable
+In order to build Bridge or Import-Export app with Qt interface we are using
+[Qt Go Binding](https://github.com/therecipe/qt).  The dependencies and
+installation of this tool is part of `make build` target.  If you have issues
+with installation of therecipe/qt we recommend to follow [this
+wiki](https://github.com/therecipe/qt/wiki/Installation-on-Linux)
+
+Please note that `$(go env GOPATH)/bin` must be in your `PATH` to ensure
+binaries installed by `therecipe/qt` (such as `qtdeploy`) are found. Also,
+before you start build **on Windows**, please unset the `MSYSTEM` variable
+
 
 ```bash
 export MSYSTEM=
