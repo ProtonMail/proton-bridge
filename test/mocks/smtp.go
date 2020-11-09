@@ -28,7 +28,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ProtonMail/proton-bridge/pkg/message/rfc5322"
+	"github.com/ProtonMail/go-rfc5322"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

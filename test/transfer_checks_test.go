@@ -27,7 +27,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ProtonMail/proton-bridge/pkg/message/rfc5322"
+	"github.com/ProtonMail/go-rfc5322"
 	"github.com/cucumber/godog"
 	"github.com/cucumber/godog/gherkin"
 	"github.com/emersion/go-mbox"

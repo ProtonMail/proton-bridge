@@ -28,7 +28,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/ProtonMail/proton-bridge/pkg/message/rfc5322"
+	"github.com/ProtonMail/go-rfc5322"
 	"github.com/pkg/errors"
 )
 

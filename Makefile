@@ -280,8 +280,3 @@ clean: clean-vendor
 	rm -rf cmd/Import-Export/deploy
 	rm -f build last.log mem.pprof main.go
 	rm -rf logo.ico icon.rc icon_windows.syso internal/frontend/qt/icon_windows.syso
-
-.PHONY: generate
-generate:
-	go generate ./...
-	$(MAKE) add-license

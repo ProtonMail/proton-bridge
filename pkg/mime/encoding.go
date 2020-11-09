@@ -32,17 +32,19 @@ import (
 	"golang.org/x/text/encoding/htmlindex"
 )
 
+func CharsetReader(charset string, input io.Reader) (io.Reader, error) {
+	dec, err := SelectDecoder(charset)
+	if err != nil {
+		return nil, err
+	}
+	if dec == nil { // utf-8
+		return input, nil
+	}
+	return dec.Reader(input), nil
+}
+
 var WordDec = &mime.WordDecoder{
-	CharsetReader: func(charset string, input io.Reader) (io.Reader, error) {
-		dec, err := SelectDecoder(charset)
-		if err != nil {
-			return nil, err
-		}
-		if dec == nil { // utf-8
-			return input, nil
-		}
-		return dec.Reader(input), nil
-	},
+	CharsetReader: CharsetReader,
 }
 
 // Expects trimmed lowercase.

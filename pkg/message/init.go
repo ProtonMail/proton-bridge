@@ -15,35 +15,13 @@
 // You should have received a copy of the GNU General Public License
 // along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
 
-package rfc5322
+package message
 
 import (
-	"github.com/ProtonMail/proton-bridge/pkg/message/rfc5322/parser"
-	"github.com/sirupsen/logrus"
+	"github.com/ProtonMail/go-rfc5322"
+	pmmime "github.com/ProtonMail/proton-bridge/pkg/mime"
 )
 
-type quotedChar struct {
-	value string
-}
-
-func (w *walker) EnterQuotedChar(ctx *parser.QuotedCharContext) {
-	logrus.WithField("text", ctx.GetText()).Trace("Entering quotedChar")
-
-	w.enter(&quotedChar{
-		value: ctx.GetText(),
-	})
-}
-
-func (w *walker) ExitQuotedChar(ctx *parser.QuotedCharContext) {
-	logrus.WithField("text", ctx.GetText()).Trace("Exiting quotedChar")
-
-	type withQuotedChar interface {
-		withQuotedChar(*quotedChar)
-	}
-
-	res := w.exit().(*quotedChar)
-
-	if parent, ok := w.parent().(withQuotedChar); ok {
-		parent.withQuotedChar(res)
-	}
+func init() { // nolint[noinit]
+	rfc5322.CharsetReader = pmmime.CharsetReader
 }

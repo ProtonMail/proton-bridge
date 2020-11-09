@@ -26,8 +26,8 @@ import (
 	"net/textproto"
 	"strings"
 
+	"github.com/ProtonMail/go-rfc5322"
 	"github.com/ProtonMail/proton-bridge/pkg/message/parser"
-	"github.com/ProtonMail/proton-bridge/pkg/message/rfc5322"
 	pmmime "github.com/ProtonMail/proton-bridge/pkg/mime"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	"github.com/emersion/go-message"
