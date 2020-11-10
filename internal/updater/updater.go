@@ -20,7 +20,6 @@ package updater
 import (
 	"encoding/json"
 	"io"
-	"time"
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
@@ -29,17 +28,19 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-type clientProvider interface {
+var ErrManualUpdateRequired = errors.New("manual update is required")
+
+type ClientProvider interface {
 	GetAnonymousClient() pmapi.Client
 }
 
-type installer interface {
+type Installer interface {
 	InstallUpdate(*semver.Version, io.Reader) error
 }
 
 type Updater struct {
-	cm        clientProvider
-	installer installer
+	cm        ClientProvider
+	installer Installer
 	kr        *crypto.KeyRing
 
 	curVer        *semver.Version
@@ -51,8 +52,8 @@ type Updater struct {
 }
 
 func New(
-	cm clientProvider,
-	installer installer,
+	cm ClientProvider,
+	installer Installer,
 	kr *crypto.KeyRing,
 	curVer *semver.Version,
 	updateURLName, platform string,
@@ -70,56 +71,44 @@ func New(
 	}
 }
 
-func (u *Updater) Watch(
-	period time.Duration,
-	handleUpdate func(VersionInfo) error,
-	handleError func(error),
-) func() {
-	logrus.WithField("period", period).Info("Watching for updates")
-
-	ticker := time.NewTicker(period)
-
-	go func() {
-		for {
-			u.watch(handleUpdate, handleError)
-			<-ticker.C
-		}
-	}()
-
-	return ticker.Stop
-}
-
-func (u *Updater) watch(
-	handleUpdate func(VersionInfo) error,
-	handleError func(error),
-) {
+func (u *Updater) Check() (VersionInfo, error) {
 	logrus.Info("Checking for updates")
 
-	latest, err := u.fetchVersionInfo()
+	client := u.cm.GetAnonymousClient()
+	defer client.Logout()
+
+	r, err := client.DownloadAndVerify(
+		u.getVersionFileURL(),
+		u.getVersionFileURL()+".sig",
+		u.kr,
+	)
 	if err != nil {
-		handleError(errors.Wrap(err, "failed to fetch version info"))
-		return
+		return VersionInfo{}, err
 	}
 
-	if !latest.Version.GreaterThan(u.curVer) || u.rollout > latest.Rollout {
-		logrus.WithError(err).Debug("No need to update")
-		return
+	var versionMap VersionMap
+
+	if err := json.NewDecoder(r).Decode(&versionMap); err != nil {
+		return VersionInfo{}, err
 	}
 
-	if u.curVer.LessThan(latest.MinAuto) {
-		logrus.Debug("A manual update is required")
-		// NOTE: Need to notify user that they must update manually.
-		return
+	return versionMap[Channel], nil
+}
+
+func (u *Updater) IsUpdateApplicable(version VersionInfo) bool {
+	if !version.Version.GreaterThan(u.curVer) {
+		return false
 	}
 
-	logrus.
-		WithField("latest", latest.Version).
-		WithField("current", u.curVer).
-		Info("An update is available")
-
-	if err := handleUpdate(latest); err != nil {
-		handleError(errors.Wrap(err, "failed to handle update"))
+	if u.rollout > version.Rollout {
+		return false
 	}
+
+	return true
+}
+
+func (u *Updater) CanInstall(version VersionInfo) bool {
+	return !u.curVer.LessThan(version.MinAuto)
 }
 
 func (u *Updater) InstallUpdate(update VersionInfo) error {
@@ -142,26 +131,4 @@ func (u *Updater) InstallUpdate(update VersionInfo) error {
 
 		return nil
 	})
-}
-
-func (u *Updater) fetchVersionInfo() (VersionInfo, error) {
-	client := u.cm.GetAnonymousClient()
-	defer client.Logout()
-
-	r, err := client.DownloadAndVerify(
-		u.getVersionFileURL(),
-		u.getVersionFileURL()+".sig",
-		u.kr,
-	)
-	if err != nil {
-		return VersionInfo{}, err
-	}
-
-	var versionMap VersionMap
-
-	if err := json.NewDecoder(r).Decode(&versionMap); err != nil {
-		return VersionInfo{}, err
-	}
-
-	return versionMap[Channel], nil
 }

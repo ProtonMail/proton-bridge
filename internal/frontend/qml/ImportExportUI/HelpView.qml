@@ -55,9 +55,7 @@ Item {
                 rightIcon.text : Style.fa.chevron_circle_right
                 rightIcon.font.pointSize : Style.settings.toggleSize * Style.pt
                 onClicked: {
-                    dialogGlobal.state="checkUpdates"
-                    dialogGlobal.show()
-                    dialogGlobal.confirmed()
+                    go.checkForUpdates()
                 }
             }
 
@@ -130,7 +128,7 @@ Item {
                     MouseArea {
                         anchors.fill: parent
                         onClicked : {
-                            Qt.openUrlExternally(go.releaseNotesLink)
+                            Qt.openUrlExternally(go.updateReleaseNotesLink)
                         }
                         cursorShape: Qt.PointingHandCursor
                     }

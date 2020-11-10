@@ -95,6 +95,9 @@ type FrontendQt struct {
 	userIDAdded string
 
 	restarter types.Restarter
+
+	// saving most up-to-date update info to install it manually
+	updateInfo updater.VersionInfo
 }
 
 // New returns a new Qt frontend for the bridge.
@@ -173,9 +176,21 @@ func (s *FrontendQt) Loop() (err error) {
 	return err
 }
 
-func (s *FrontendQt) NotifyManualUpdate(update updater.VersionInfo) error {
-	// NOTE: Save the update somewhere so that it can be installed when user chooses "install now".
-	return nil
+func (s *FrontendQt) NotifyManualUpdate(update updater.VersionInfo, canInstall bool) {
+	s.Qml.SetUpdateVersion(update.Version.String())
+	s.Qml.SetUpdateLandingPage(update.Landing)
+	s.Qml.SetUpdateReleaseNotesLink("https://protonmail.com/download/bridge/release_notes.html")
+	s.Qml.SetUpdateCanInstall(canInstall)
+	s.updateInfo = update
+	s.Qml.NotifyManualUpdate()
+}
+
+func (s *FrontendQt) NotifySilentUpdateInstalled() {
+	s.Qml.NotifySilentUpdateRestartNeeded()
+}
+
+func (s *FrontendQt) NotifySilentUpdateError(err error) {
+	s.Qml.NotifySilentUpdateError()
 }
 
 func (s *FrontendQt) watchEvents() {
@@ -233,7 +248,7 @@ func (s *FrontendQt) watchEvents() {
 			s.Qml.NotifyLogout(user.Username())
 		case <-updateApplicationCh:
 			s.Qml.ProcessFinished()
-			s.Qml.NotifyUpdate()
+			s.Qml.NotifyForceUpdate()
 		case <-newUserCh:
 			s.Qml.LoadAccounts()
 		case <-certIssue:
@@ -343,6 +358,12 @@ func (s *FrontendQt) qtExecute(Procedure func(*FrontendQt) error) error {
 		s.Qml.SetIsAutoStart(false)
 	}
 
+	if s.settings.GetBool(settings.AutoUpdateKey) {
+		s.Qml.SetIsAutoUpdate(true)
+	} else {
+		s.Qml.SetIsAutoUpdate(false)
+	}
+
 	if s.settings.GetBool(settings.AllowProxyKey) {
 		s.Qml.SetIsProxyAllowed(true)
 	} else {
@@ -397,16 +418,30 @@ func (s *FrontendQt) openLogs() {
 	go open.Run(logsPath)
 }
 
-// Check version in separate goroutine to not block the GUI (avoid program not responding message).
-func (s *FrontendQt) isNewVersionAvailable(showMessage bool) {
+func (s *FrontendQt) checkForUpdates() {
 	go func() {
-		defer s.panicHandler.HandlePanic()
-		defer s.Qml.ProcessFinished()
-		s.Qml.SetConnectionStatus(true) // If we are here connection is ok.
-		s.Qml.SetUpdateState("upToDate")
-		if showMessage {
-			s.Qml.NotifyVersionIsTheLatest()
+		version, err := s.updater.Check()
+
+		if err != nil {
+			logrus.WithError(err).Error("An error occurred while checking updates manually")
+			s.Qml.NotifyManualUpdateError()
+			return
 		}
+
+		if !s.updater.IsUpdateApplicable(version) {
+			logrus.Debug("No need to update")
+			return
+		}
+
+		logrus.WithField("version", version.Version).Info("An update is available")
+
+		if !s.updater.CanInstall(version) {
+			logrus.Debug("A manual update is required")
+			s.NotifyManualUpdate(version, false)
+			return
+		}
+
+		s.NotifyManualUpdate(version, true)
 	}()
 }
 
@@ -498,6 +533,18 @@ func (s *FrontendQt) toggleAutoStart() {
 		s.Qml.SetIsAutoStart(true)
 	} else {
 		s.Qml.SetIsAutoStart(false)
+	}
+}
+
+func (s *FrontendQt) toggleAutoUpdate() {
+	defer s.Qml.ProcessFinished()
+
+	if s.settings.GetBool(settings.AutoUpdateKey) {
+		s.settings.SetBool(settings.AutoUpdateKey, false)
+		s.Qml.SetIsAutoUpdate(false)
+	} else {
+		s.settings.SetBool(settings.AutoUpdateKey, true)
+		s.Qml.SetIsAutoUpdate(true)
 	}
 }
 
@@ -594,6 +641,15 @@ func (s *FrontendQt) saveOutgoingNoEncPopupCoord(x, y float32) {
 	//prefs.SetFloat(prefs.OutgoingNoEncPopupCoordY, y)
 }
 
-func (s *FrontendQt) StartUpdate() {
-	// NOTE: Fix this.
+func (s *FrontendQt) startManualUpdate() {
+	go func() {
+		err := s.updater.InstallUpdate(s.updateInfo)
+
+		if err != nil {
+			logrus.WithError(err).Error("An error occurred while installing updates manually")
+			s.Qml.NotifyManualUpdateError()
+		}
+
+		s.Qml.NotifyManualUpdateRestartNeeded()
+	}()
 }

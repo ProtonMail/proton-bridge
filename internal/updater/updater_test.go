@@ -34,13 +34,13 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestWatch(t *testing.T) {
+func TestCheck(t *testing.T) {
 	c := gomock.NewController(t)
 	defer c.Finish()
 
 	client := mocks.NewMockClient(c)
 
-	updater := newTestUpdater(client, "1.4.0")
+	updater := newTestUpdater(client, "1.1.0")
 
 	versionMap := VersionMap{
 		"live": VersionInfo{
@@ -59,119 +59,19 @@ func TestWatch(t *testing.T) {
 
 	client.EXPECT().Logout()
 
-	updateCh := make(chan VersionInfo)
+	version, err := updater.Check()
 
-	defer updater.Watch(
-		time.Minute,
-		func(update VersionInfo) error {
-			updateCh <- update
-			return nil
-		},
-		func(err error) {
-			t.Fatal(err)
-		},
-	)()
-
-	assert.Equal(t, semver.MustParse("1.5.0"), (<-updateCh).Version)
+	assert.Equal(t, semver.MustParse("1.5.0"), version.Version)
+	assert.NoError(t, err)
 }
 
-func TestWatchIgnoresCurrentVersion(t *testing.T) {
+func TestCheckBadSignature(t *testing.T) {
 	c := gomock.NewController(t)
 	defer c.Finish()
 
 	client := mocks.NewMockClient(c)
 
-	updater := newTestUpdater(client, "1.5.0")
-
-	versionMap := VersionMap{
-		"live": VersionInfo{
-			Version: semver.MustParse("1.5.0"),
-			MinAuto: semver.MustParse("1.4.0"),
-			Package: "https://protonmail.com/download/bridge/update_1.5.0_linux.tgz",
-			Rollout: 1.0,
-		},
-	}
-
-	client.EXPECT().DownloadAndVerify(
-		updater.getVersionFileURL(),
-		updater.getVersionFileURL()+".sig",
-		gomock.Any(),
-	).Return(bytes.NewReader(mustMarshal(t, versionMap)), nil)
-
-	client.EXPECT().Logout()
-
-	updateCh := make(chan VersionInfo)
-
-	defer updater.Watch(
-		time.Minute,
-		func(update VersionInfo) error {
-			updateCh <- update
-			return nil
-		},
-		func(err error) {
-			t.Fatal(err)
-		},
-	)()
-
-	select {
-	case <-updateCh:
-		t.Fatal("We shouldn't update because we are already up to date")
-	case <-time.After(1500 * time.Millisecond):
-	}
-}
-
-func TestWatchIgnoresVerionsThatRequireManualUpdate(t *testing.T) {
-	c := gomock.NewController(t)
-	defer c.Finish()
-
-	client := mocks.NewMockClient(c)
-
-	updater := newTestUpdater(client, "1.4.0")
-
-	versionMap := VersionMap{
-		"live": VersionInfo{
-			Version: semver.MustParse("1.5.0"),
-			MinAuto: semver.MustParse("1.5.0"),
-			Package: "https://protonmail.com/download/bridge/update_1.5.0_linux.tgz",
-			Rollout: 1.0,
-		},
-	}
-
-	client.EXPECT().DownloadAndVerify(
-		updater.getVersionFileURL(),
-		updater.getVersionFileURL()+".sig",
-		gomock.Any(),
-	).Return(bytes.NewReader(mustMarshal(t, versionMap)), nil)
-
-	client.EXPECT().Logout()
-
-	updateCh := make(chan VersionInfo)
-
-	defer updater.Watch(
-		time.Minute,
-		func(update VersionInfo) error {
-			updateCh <- update
-			return nil
-		},
-		func(err error) {
-			t.Fatal(err)
-		},
-	)()
-
-	select {
-	case <-updateCh:
-		t.Fatal("We shouldn't update because this version requires a manual update")
-	case <-time.After(1500 * time.Millisecond):
-	}
-}
-
-func TestWatchBadSignature(t *testing.T) {
-	c := gomock.NewController(t)
-	defer c.Finish()
-
-	client := mocks.NewMockClient(c)
-
-	updater := newTestUpdater(client, "1.4.0")
+	updater := newTestUpdater(client, "1.2.0")
 
 	client.EXPECT().DownloadAndVerify(
 		updater.getVersionFileURL(),
@@ -181,21 +81,72 @@ func TestWatchBadSignature(t *testing.T) {
 
 	client.EXPECT().Logout()
 
-	updateCh := make(chan VersionInfo)
-	errorsCh := make(chan error)
+	_, err := updater.Check()
 
-	defer updater.Watch(
-		time.Minute,
-		func(update VersionInfo) error {
-			updateCh <- update
-			return nil
-		},
-		func(err error) {
-			errorsCh <- err
-		},
-	)()
+	assert.Error(t, err)
+}
 
-	assert.Error(t, <-errorsCh)
+func TestIsUpdateApplicable(t *testing.T) {
+	c := gomock.NewController(t)
+	defer c.Finish()
+
+	client := mocks.NewMockClient(c)
+
+	updater := newTestUpdater(client, "1.4.0")
+
+	versionOld := VersionInfo{
+		Version: semver.MustParse("1.3.0"),
+		MinAuto: semver.MustParse("1.3.0"),
+		Package: "https://protonmail.com/download/bridge/update_1.3.0_linux.tgz",
+		Rollout: 1.0,
+	}
+
+	assert.Equal(t, false, updater.IsUpdateApplicable(versionOld))
+
+	versionEqual := VersionInfo{
+		Version: semver.MustParse("1.4.0"),
+		MinAuto: semver.MustParse("1.3.0"),
+		Package: "https://protonmail.com/download/bridge/update_1.4.0_linux.tgz",
+		Rollout: 1.0,
+	}
+
+	assert.Equal(t, false, updater.IsUpdateApplicable(versionEqual))
+
+	versionNew := VersionInfo{
+		Version: semver.MustParse("1.5.0"),
+		MinAuto: semver.MustParse("1.3.0"),
+		Package: "https://protonmail.com/download/bridge/update_1.5.0_linux.tgz",
+		Rollout: 1.0,
+	}
+
+	assert.Equal(t, true, updater.IsUpdateApplicable(versionNew))
+}
+
+func TestCanInstall(t *testing.T) {
+	c := gomock.NewController(t)
+	defer c.Finish()
+
+	client := mocks.NewMockClient(c)
+
+	updater := newTestUpdater(client, "1.4.0")
+
+	versionManual := VersionInfo{
+		Version: semver.MustParse("1.5.0"),
+		MinAuto: semver.MustParse("1.5.0"),
+		Package: "https://protonmail.com/download/bridge/update_1.5.0_linux.tgz",
+		Rollout: 1.0,
+	}
+
+	assert.Equal(t, false, updater.CanInstall(versionManual))
+
+	versionAuto := VersionInfo{
+		Version: semver.MustParse("1.5.0"),
+		MinAuto: semver.MustParse("1.3.0"),
+		Package: "https://protonmail.com/download/bridge/update_1.5.0_linux.tgz",
+		Rollout: 1.0,
+	}
+
+	assert.Equal(t, true, updater.CanInstall(versionAuto))
 }
 
 func TestInstallUpdate(t *testing.T) {
@@ -221,7 +172,9 @@ func TestInstallUpdate(t *testing.T) {
 
 	client.EXPECT().Logout()
 
-	assert.NoError(t, updater.InstallUpdate(latestVersion))
+	err := updater.InstallUpdate(latestVersion)
+
+	assert.NoError(t, err)
 }
 
 func TestInstallUpdateBadSignature(t *testing.T) {
@@ -247,7 +200,9 @@ func TestInstallUpdateBadSignature(t *testing.T) {
 
 	client.EXPECT().Logout()
 
-	assert.Error(t, updater.InstallUpdate(latestVersion))
+	err := updater.InstallUpdate(latestVersion)
+
+	assert.Error(t, err)
 }
 
 func TestInstallUpdateAlreadyOngoing(t *testing.T) {

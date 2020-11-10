@@ -26,16 +26,16 @@ import (
 	"github.com/ProtonMail/proton-bridge/internal/versioner"
 )
 
-type Installer struct {
+type InstallerDefault struct {
 	versioner *versioner.Versioner
 }
 
-func NewInstaller(versioner *versioner.Versioner) *Installer {
-	return &Installer{
+func NewInstaller(versioner *versioner.Versioner) *InstallerDefault {
+	return &InstallerDefault{
 		versioner: versioner,
 	}
 }
 
-func (i *Installer) InstallUpdate(version *semver.Version, r io.Reader) error {
+func (i *InstallerDefault) InstallUpdate(version *semver.Version, r io.Reader) error {
 	return i.versioner.InstallNewVersion(version, r)
 }

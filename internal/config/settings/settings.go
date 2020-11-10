@@ -72,7 +72,7 @@ func (s *Settings) setDefaultValues() {
 	s.setDefault(NextHeartbeatKey, fmt.Sprintf("%v", time.Now().Unix()))
 	s.setDefault(AllowProxyKey, "true")
 	s.setDefault(AutostartKey, "true")
-	s.setDefault(AutoUpdateKey, "false")
+	s.setDefault(AutoUpdateKey, "true")
 	s.setDefault(ReportOutgoingNoEncKey, "false")
 	s.setDefault(LastVersionKey, "")
 	s.setDefault(RolloutKey, fmt.Sprintf("%v", rand.Float64()))

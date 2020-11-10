@@ -27,6 +27,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/internal/config/settings"
 	"github.com/ProtonMail/proton-bridge/internal/constants"
 	"github.com/ProtonMail/proton-bridge/internal/frontend"
+	"github.com/ProtonMail/proton-bridge/internal/frontend/types"
 	"github.com/ProtonMail/proton-bridge/internal/imap"
 	"github.com/ProtonMail/proton-bridge/internal/smtp"
 	"github.com/ProtonMail/proton-bridge/internal/updater"
@@ -119,19 +120,50 @@ func run(b *base.Base, c *cli.Context) error { // nolint[funlen]
 		b,
 	)
 
-	b.Updater.Watch(
-		time.Hour,
-		func(update updater.VersionInfo) error {
-			if !b.Settings.GetBool(settings.AutoUpdateKey) {
-				return f.NotifyManualUpdate(update)
-			}
+	// Watch for updates routine
+	go func() {
+		ticker := time.NewTicker(time.Hour)
 
-			return b.Updater.InstallUpdate(update)
-		},
-		func(err error) {
-			logrus.WithError(err).Error("An error occurred while watching for updates")
-		},
-	)
+		for {
+			checkAndHandleUpdate(b.Updater, f, b.Settings.GetBool(settings.AutoUpdateKey))
+			<-ticker.C
+		}
+	}()
 
 	return f.Loop()
+}
+
+func checkAndHandleUpdate(u types.Updater, f frontend.Frontend, autoUpdate bool) {
+	version, err := u.Check()
+	if err != nil {
+		logrus.WithError(err).Error("An error occurred while checking for updates")
+		f.NotifySilentUpdateError(err)
+		return
+	}
+
+	if !u.IsUpdateApplicable(version) {
+		logrus.Debug("No need to update")
+		return
+	}
+
+	logrus.WithField("version", version.Version).Info("An update is available")
+
+	if !autoUpdate {
+		f.NotifyManualUpdate(version, u.CanInstall(version))
+		return
+	}
+
+	if !u.CanInstall(version) {
+		logrus.Info("A manual update is required")
+		f.NotifySilentUpdateError(updater.ErrManualUpdateRequired)
+		return
+	}
+
+	if err := u.InstallUpdate(version); err != nil {
+		logrus.WithError(err).Error("An error occurred while silent installing updates")
+		f.NotifySilentUpdateError(err)
+		return
+	}
+
+	f.NotifySilentUpdateInstalled()
 }

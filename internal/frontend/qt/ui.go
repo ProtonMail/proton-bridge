@@ -34,6 +34,7 @@ type GoQMLInterface struct {
 	_ func() `constructor:"init"`
 
 	_ bool   `property:"isAutoStart"`
+	_ bool   `property:"isAutoUpdate"`
 	_ bool   `property:"isProxyAllowed"`
 	_ string `property:"currentAddress"`
 	_ string `property:"goos"`
@@ -45,11 +46,21 @@ type GoQMLInterface struct {
 	_ bool   `property:"isDefaultPort"`
 
 	_ string `property:"programTitle"`
-	_ string `property:"newversion"`
 	_ string `property:"fullversion"`
 	_ string `property:"downloadLink"`
-	_ string `property:"landingPage"`
-	_ string `property:"releaseNotesLink"`
+
+	_ string `property:"updateVersion"`
+	_ bool   `property:"updateCanInstall"`
+	_ string `property:"updateLandingPage"`
+	_ string `property:"updateReleaseNotesLink"`
+	_ func() `signal:"notifyManualUpdate"`
+	_ func() `signal:"notifyManualUpdateRestartNeeded"`
+	_ func() `signal:"notifyManualUpdateError"`
+	_ func() `signal:"notifyForceUpdate"`
+	_ func() `signal:"notifySilentUpdateRestartNeeded"`
+	_ func() `signal:"notifySilentUpdateError"`
+	_ func() `slot:"checkForUpdates"`
+	_ func() `slot:"startManualUpdate"`
 
 	// Translations.
 	_ string `property:"wrongCredentials"`
@@ -82,6 +93,7 @@ type GoQMLInterface struct {
 	_ func() `signal:"showQuit"`
 
 	_ func() `slot:"toggleAutoStart"`
+	_ func() `slot:"toggleAutoUpdate"`
 	_ func() `slot:"toggleAllowProxy"`
 	_ func() `slot:"loadAccounts"`
 	_ func() `slot:"openLogs"`
@@ -121,7 +133,6 @@ type GoQMLInterface struct {
 	_ func()                                `signal:"notifyVersionIsTheLatest"`
 	_ func()                                `signal:"notifyKeychainRebuild"`
 	_ func()                                `signal:"notifyHasNoKeychain"`
-	_ func()                                `signal:"notifyUpdate"`
 	_ func(accname string)                  `signal:"notifyLogout"`
 	_ func(accname string)                  `signal:"notifyAddressChanged"`
 	_ func(accname string)                  `signal:"notifyAddressChangedLogout"`
@@ -137,7 +148,6 @@ type GoQMLInterface struct {
 	_ func(recipient string)                  `signal:"showNoActiveKeyForRecipient"`
 	_ func()                                  `signal:"showCertIssue"`
 
-	_ func()              `slot:"startUpdate"`
 	_ func(hasError bool) `signal:"updateFinished"`
 }
 
@@ -147,15 +157,16 @@ func (s *GoQMLInterface) init() {}
 // SetFrontend connects all slots and signals from Go to QML.
 func (s *GoQMLInterface) SetFrontend(f *FrontendQt) {
 	s.ConnectToggleAutoStart(f.toggleAutoStart)
+	s.ConnectToggleAutoUpdate(f.toggleAutoUpdate)
 	s.ConnectToggleAllowProxy(f.toggleAllowProxy)
 	s.ConnectLoadAccounts(f.loadAccounts)
 	s.ConnectOpenLogs(f.openLogs)
 	s.ConnectClearCache(f.clearCache)
 	s.ConnectClearKeychain(f.clearKeychain)
-
 	s.ConnectOpenLicenseFile(f.openLicenseFile)
+	s.ConnectStartManualUpdate(f.startManualUpdate)
 	s.ConnectGetLocalVersionInfo(f.getLocalVersionInfo)
-	s.ConnectIsNewVersionAvailable(f.isNewVersionAvailable)
+	s.ConnectCheckForUpdates(f.checkForUpdates)
 	s.ConnectGetIMAPPort(f.getIMAPPort)
 	s.ConnectGetSMTPPort(f.getSMTPPort)
 	s.ConnectGetLastMailClient(f.getLastMailClient)
@@ -180,8 +191,6 @@ func (s *GoQMLInterface) SetFrontend(f *FrontendQt) {
 	s.SetGoos(runtime.GOOS)
 	s.SetProgramTitle(f.programName)
 
-	s.SetReleaseNotesLink("https://protonmail.com/download/bridge/release_notes.html")
-
 	s.ConnectGetBackendVersion(func() string {
 		return f.programVer
 	})
@@ -193,5 +202,4 @@ func (s *GoQMLInterface) SetFrontend(f *FrontendQt) {
 	s.ConnectToggleIsReportingOutgoingNoEnc(f.toggleIsReportingOutgoingNoEnc)
 	s.ConnectShouldSendAnswer(f.shouldSendAnswer)
 	s.ConnectSaveOutgoingNoEncPopupCoord(f.saveOutgoingNoEncPopupCoord)
-	s.ConnectStartUpdate(f.StartUpdate)
 }

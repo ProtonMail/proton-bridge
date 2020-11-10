@@ -226,7 +226,12 @@ WARNING: The CLI is an experimental feature and does not yet cover all functiona
 	return nil
 }
 
-func (f *frontendCLI) NotifyManualUpdate(update updater.VersionInfo) error {
+func (f *frontendCLI) NotifyManualUpdate(update updater.VersionInfo, canInstall bool) {
 	// NOTE: Save the update somewhere so that it can be installed when user chooses "install now".
-	return nil
+}
+
+func (f *frontendCLI) NotifySilentUpdateInstalled() {
+}
+
+func (f *frontendCLI) NotifySilentUpdateError(err error) {
 }

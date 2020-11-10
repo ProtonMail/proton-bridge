@@ -23,6 +23,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/ProtonMail/proton-bridge/internal/config/settings"
 	"github.com/ProtonMail/proton-bridge/internal/frontend/types"
 	"github.com/ProtonMail/proton-bridge/internal/locations"
 	"github.com/ProtonMail/proton-bridge/internal/updater"
@@ -42,15 +43,21 @@ func (s *FrontendHeadless) Loop() error {
 	return http.ListenAndServe(":8082", nil)
 }
 
-func (s *FrontendHeadless) NotifyManualUpdate(update updater.VersionInfo) error {
+func (s *FrontendHeadless) NotifyManualUpdate(update updater.VersionInfo, canInstall bool) {
 	// NOTE: Save the update somewhere so that it can be installed when user chooses "install now".
-	return nil
+}
+
+func (s *FrontendHeadless) NotifySilentUpdateInstalled() {
+}
+
+func (s *FrontendHeadless) NotifySilentUpdateError(err error) {
 }
 
 func New(
 	version, buildVersion string,
 	panicHandler types.PanicHandler,
 	locations *locations.Locations,
+	settings *settings.Settings,
 	eventListener listener.Listener,
 	updater types.Updater,
 	ie types.ImportExporter,

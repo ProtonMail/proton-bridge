@@ -30,13 +30,13 @@ import (
 	"github.com/pkg/errors"
 )
 
-type Installer struct{}
+type InstallerDarwin struct{}
 
-func NewInstaller(*versioner.Versioner) *Installer {
-	return &Installer{}
+func NewInstaller(*versioner.Versioner) *InstallerDarwin {
+	return &InstallerDarwin{}
 }
 
-func (i *Installer) InstallUpdate(_ *semver.Version, r io.Reader) error {
+func (i *InstallerDarwin) InstallUpdate(_ *semver.Version, r io.Reader) error {
 	gr, err := gzip.NewReader(r)
 	if err != nil {
 		return err

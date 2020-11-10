@@ -40,7 +40,9 @@ var (
 // Frontend is an interface to be implemented by each frontend type (cli, gui, html).
 type Frontend interface {
 	Loop() error
-	NotifyManualUpdate(update updater.VersionInfo) error
+	NotifyManualUpdate(update updater.VersionInfo, canInstall bool)
+	NotifySilentUpdateInstalled()
+	NotifySilentUpdateError(error)
 }
 
 // New returns initialized frontend based on `frontendType`, which can be `cli` or `qt`.
@@ -123,8 +125,8 @@ func NewImportExport(
 	buildVersion,
 	frontendType string,
 	panicHandler types.PanicHandler,
-
 	locations *locations.Locations,
+	settings *settings.Settings,
 	eventListener listener.Listener,
 	updater types.Updater,
 	ie *importexport.ImportExport,
@@ -137,6 +139,7 @@ func NewImportExport(
 		frontendType,
 		panicHandler,
 		locations,
+		settings,
 		eventListener,
 		updater,
 		ieWrap,
@@ -149,8 +152,8 @@ func newIEFrontend(
 	buildVersion,
 	frontendType string,
 	panicHandler types.PanicHandler,
-
 	locations *locations.Locations,
+	settings *settings.Settings,
 	eventListener listener.Listener,
 	updater types.Updater,
 	ie types.ImportExporter,
@@ -158,8 +161,25 @@ func newIEFrontend(
 ) Frontend {
 	switch frontendType {
 	case "cli":
-		return cliie.New(panicHandler, locations, eventListener, updater, ie, restarter)
+		return cliie.New(
+			panicHandler,
+			locations,
+			eventListener,
+			updater,
+			ie,
+			restarter,
+		)
 	default:
-		return qtie.New(version, buildVersion, panicHandler, locations, eventListener, updater, ie, restarter)
+		return qtie.New(
+			version,
+			buildVersion,
+			panicHandler,
+			locations,
+			settings,
+			eventListener,
+			updater,
+			ie,
+			restarter,
+		)
 	}
 }

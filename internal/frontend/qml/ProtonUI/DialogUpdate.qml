@@ -25,16 +25,17 @@ import ProtonUI 1.0
 Dialog {
     id: root
 
-    title: "Bridge update "+go.newversion
-
-    property alias introductionText : introduction.text
     property bool hasError : false
+    property bool forceUpdate : false
 
     signal cancel()
     signal okay()
 
+    title: forceUpdate ?
+        qsTr("Update %1 now", "title of force update dialog").arg(go.programTitle):
+        qsTr("Update to %1 %2", "title of normal update dialog").arg(go.programTitle).arg(go.updateVersion)
 
-    isDialogBusy: currentIndex==1
+    isDialogBusy: currentIndex==1 || forceUpdate
 
     Rectangle { // 0: Release notes and confirm
         width: parent.width
@@ -51,18 +52,45 @@ Dialog {
                 color: Style.dialog.text
                 linkColor: Style.dialog.textBlue
                 font {
-                    pointSize: 0.8 * Style.dialog.fontSize * Style.pt
+                    pointSize: Style.dialog.fontSize * Style.pt
                 }
                 width: 2*root.width/3
                 horizontalAlignment: Text.AlignHCenter
                 wrapMode: Text.Wrap
 
-                // customize message per application
-                text: ' <a href="%1">Release notes</a><br> New version %2<br> <br><br> <a href="%3">%3</a>'
+                text: {
+                    if (forceUpdate) {
+                        if (go.updateCanInstall) {
+                            return qsTr('You need to update this app to continue using it.<br>
+                                Update now or manually download the most recent version here:<br>
+                                <a href="%1">%1</a><br>
+                                <a href="https://protonmail.com/support/knowledge-base/update-required/">Learn why</a> you need to update',
+                                "Message for force-update").arg(go.updateLandingPage)
+                        } else {
+                            return qsTr('You need to update this app to continue using it.<br>
+                                Download the most recent version here:<br>
+                                <a href="%1">%1</a><br>
+                                <a href="https://protonmail.com/support/knowledge-base/update-required/">Learn why</a> you need to update',
+                                "Message for force-update").arg(go.updateLandingPage)
+                        }
+                    }
+
+                    if (go.updateCanInstall) {
+                        return qsTr('Update to the newest version or download it from:<br>
+                            <a href="%1">%1</a><br>
+                            <a href="%2">View release notes</a>',
+                            "Message for manual update").arg(go.updateLandingPage).arg(go.updateReleaseNotesLink)
+                    } else {
+                         return qsTr('Update to the newest version from:<br>
+                            <a href="%1">%1</a><br>
+                            <a href="%2">View release notes</a>',
+                            "Message for manual update").arg(go.updateLandingPage).arg(go.updateReleaseNotesLink)
+                    }
+                }
+                
 
                 onLinkActivated : {
                     console.log("clicked link:", link)
-                    root.hide()
                     Qt.openUrlExternally(link)
                 }
 
@@ -73,21 +101,30 @@ Dialog {
                 }
             }
 
+            CheckBoxLabel {
+                id: autoUpdate
+                anchors.horizontalCenter: parent.horizontalCenter
+                text: qsTr("Automatically update in the future", "Checkbox label for using autoupdates later on")
+                checked: go.isAutoUpdate
+                onToggled: go.toggleAutoUpdate()
+                visible: !root.forceUpdate
+            }
+
             Row {
                 anchors.horizontalCenter: parent.horizontalCenter
                 spacing: Style.dialog.spacing
 
                 ButtonRounded {
                     fa_icon: Style.fa.times
-                    text: (go.goos=="linux" ? qsTr("Okay") : qsTr("Cancel"))
+                    text: root.forceUpdate ? qsTr("Quit") : qsTr("Cancel")
                     color_main: Style.dialog.text
-                    onClicked: root.cancel()
+                    onClicked: root.forceUpdate ? Qt.quit() : root.cancel()
                 }
 
                 ButtonRounded {
                     fa_icon: Style.fa.check
                     text: qsTr("Update")
-                    visible: go.goos!="linux"
+                    visible: go.updateCanInstall
                     color_main: Style.dialog.text
                     color_minor: Style.main.textBlue
                     isOpaque: true
@@ -97,7 +134,7 @@ Dialog {
         }
     }
 
-    Rectangle { // 0: Check / download / unpack / prepare
+    Rectangle { // 1: Installing update
         id: updateStatus
         width: parent.width
         height: parent.height
@@ -116,35 +153,29 @@ Dialog {
                 width: 2*root.width/3
                 horizontalAlignment: Text.AlignHCenter
                 wrapMode: Text.Wrap
-                text: {
-                    switch (go.progressDescription) {
-                        case "1": return qsTr("Checking the current version.")
-                        case "2": return qsTr("Downloading the update files.")
-                        case "3": return qsTr("Verifying the update files.")
-                        case "4": return qsTr("Unpacking the update files.")
-                        case "5": return qsTr("Starting the update.")
-                        case "6": return qsTr("Quitting the application.")
-                        default: return ""
-                    }
-                }
+                text:  qsTr("Updating...") 
             }
 
             ProgressBar {
-                id: progressbar
-                implicitWidth  : 2*updateStatus.width/3
-                implicitHeight : Style.exporting.rowHeight
-                visible: go.progress!=0 // hack hide animation when clearing out progress bar
-                value: go.progress
-                property int current:  go.total * go.progress
-                property bool isFinished:  finishedPartBar.width == progressbar.width
+                id: updateProgressBar
+                width: 2*updateStatus.width/3
+                height: Style.exporting.rowHeight
+                //implicitWidth  : 2*updateStatus.width/3
+                //implicitHeight : Style.exporting.rowHeight
+                indeterminate: true
+                //value: 0.5
+                //property int current:  go.total * go.progress
+                //property bool isFinished:  finishedPartBar.width == progressbar.width
                 background: Rectangle {
                     radius         : Style.exporting.boxRadius
                     color          : Style.exporting.progressBackground
                 }
+
                 contentItem: Item {
+                    clip: true
                     Rectangle {
-                        id: finishedPartBar
-                        width  : parent.width * progressbar.visualPosition
+                        id: progressIndicator
+                        width  : updateProgressBar.indeterminate ? 50 : parent.width * updateProgressBar.visualPosition
                         height : parent.height
                         radius : Style.exporting.boxRadius
                         gradient  : Gradient {
@@ -155,6 +186,27 @@ Dialog {
 
                         Behavior on width {
                             NumberAnimation { duration:300;  easing.type: Easing.InOutQuad }
+                        }
+
+                        SequentialAnimation {
+                            running: updateProgressBar.visible && updateProgressBar.indeterminate
+                            loops: Animation.Infinite
+
+                            SmoothedAnimation { 
+                                target: progressIndicator
+                                property: "x"
+                                from: 0
+                                to: updateProgressBar.width - progressIndicator.width
+                                duration: 2000 
+                            }
+
+                            SmoothedAnimation { 
+                                target: progressIndicator
+                                property: "x"
+                                from: updateProgressBar.width - progressIndicator.width
+                                to: 0
+                                duration: 2000 
+                            }
                         }
                     }
                     Text {
@@ -170,7 +222,7 @@ Dialog {
         }
     }
 
-    Rectangle { // 1: Something went wrong / All ok, closing bridge
+    Rectangle { // 2: Something went wrong / All ok, closing bridge
         width: parent.width
         height: parent.height
         color: Style.transparent
@@ -188,8 +240,8 @@ Dialog {
                 width: 2*root.width/3
                 horizontalAlignment: Text.AlignHCenter
                 wrapMode: Text.Wrap
-                text: !root.hasError ?  qsTr('Application will quit now to finish the update.', "message after successful update") :
-                qsTr('<b>The update procedure was not successful!</b><br>Please follow the download link and update manually. <br><br><a href="%1">%1</a>').arg(go.downloadLink)
+                text: !root.hasError ?  qsTr('%1 will restart now to finish the update.', "message after successful update").arg(go.programTitle) :
+                qsTr('<b>The update procedure was not successful!</b><br>Please follow the download link and update manually. <br><br><a href="%1">%1</a>').arg(go.updateLandingPage)
 
                 onLinkActivated : {
                     console.log("clicked link:", link)
@@ -220,7 +272,7 @@ Dialog {
 
     function finished(hasError) {
         root.hasError = hasError
-        root.incrementCurrentIndex()
+        root.currentIndex = 2
     }
 
     onShow: {
@@ -234,9 +286,10 @@ Dialog {
     onOkay: {
         switch (root.currentIndex) {
             case 0:
-            go.startUpdate()
+                go.startManualUpdate()
+                root.currentIndex = 1
+                break
         }
-        root.incrementCurrentIndex()
     }
 
     onCancel: {

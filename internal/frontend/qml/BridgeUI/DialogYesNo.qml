@@ -368,7 +368,7 @@ Dialog {
             if ( state == "quit"             ) { Qt.quit                ()      }
             if ( state == "instance exists"  ) { Qt.quit                ()      }
             if ( state == "noKeychain"       ) { Qt.quit                ()      }
-            if ( state == "checkUpdates"     ) { go.runCheckVersion     (true)  }
+            if ( state == "checkUpdates"     ) { }
         }
     }
 

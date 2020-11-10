@@ -55,7 +55,7 @@ Window {
     minimumWidth  : Style.main.width
     minimumHeight : Style.main.height
 
-    property bool isOutdateVersion : root.updateState == "forceUpgrade"
+    property bool isOutdateVersion : root.updateState == "forceUpdate"
 
     property bool activeContent :
     !dialogAddUser     .visible &&
@@ -252,40 +252,7 @@ Window {
 
     DialogUpdate {
         id: dialogUpdate
-
-        title: root.isOutdateVersion ?
-        qsTr("%1 is outdated", "title of outdate dialog").arg(go.programTitle):
-        qsTr("%1 update to %2", "title of update dialog").arg(go.programTitle).arg(go.newversion)
-        introductionText: {
-            if (root.isOutdateVersion) {
-                if (go.goos=="linux") {
-                    return qsTr('You are using an outdated version of our software.<br>
-                    Please dowload and install the latest version to continue using %1.<br><br>
-                    <a href="%2">%2</a>',
-                    "Message for force-update in Linux").arg(go.programTitle).arg(go.landingPage)
-                } else {
-                    return qsTr('You are using an outdated version of our software.<br>
-                    Please dowload and install the latest version to continue using %1.<br><br>
-                    You can continue with update or download and install the new version manually from<br><br>
-                    <a href="%2">%2</a>',
-                    "Message for force-update in Win/Mac").arg(go.programTitle).arg(go.landingPage)
-                }
-            } else {
-                if (go.goos=="linux") {
-                    return qsTr('A new version of %1 is available.<br>
-                    Check <a href="%2">release notes</a> to learn what is new in %3.<br>
-                    Use your package manager to update or download and install new the version manually from<br><br>
-                    <a href="%4">%4</a>',
-                    "Message for update in Linux").arg(go.programTitle).arg(go.releaseNotesLink).arg(go.newversion).arg(go.landingPage)
-                } else {
-                    return qsTr('A new version of %1 is available.<br>
-                    Check <a href="%2">release notes</a> to learn what is new in %3.<br>
-                    You can continue with update or download and install new the version manually from<br><br>
-                    <a href="%4">%4</a>',
-                    "Message for update in Win/Mac").arg(go.programTitle).arg(go.releaseNotesLink).arg(go.newversion).arg(go.landingPage)
-                }
-            }
-        }
+        forceUpdate: root.isOutdateVersion
     }
 
 

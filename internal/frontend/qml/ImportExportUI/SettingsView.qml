@@ -75,6 +75,25 @@ Item {
                 onClicked: bugreportWin.show()
             }
 
+            ButtonIconText {
+                id: autoUpdates
+                text: qsTr("Keep the application up to date", "label for toggle that activates and disables the automatic updates")
+                leftIcon.text  : Style.fa.download
+                rightIcon {
+                    font.pointSize : Style.settings.toggleSize * Style.pt
+                    text  : go.isAutoUpdate!=false ? Style.fa.toggle_on  : Style.fa.toggle_off
+                    color : go.isAutoUpdate!=false ? Style.main.textBlue : Style.main.textDisabled
+                }
+                Accessible.description: (
+                    go.isAutoUpdate == false ?
+                    qsTr("Enable"  , "Click to enable the automatic update of Bridge") :
+                    qsTr("Disable" , "Click to disable the automatic update of Bridge")
+                ) + " " + text
+                onClicked: {
+                    go.toggleAutoUpdate()
+                }
+            }
+
             /*
 
              ButtonIconText {

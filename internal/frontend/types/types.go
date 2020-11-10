@@ -41,7 +41,10 @@ type NoEncConfirmator interface {
 }
 
 type Updater interface {
+	Check() (updater.VersionInfo, error)
 	InstallUpdate(updater.VersionInfo) error
+	IsUpdateApplicable(updater.VersionInfo) bool
+	CanInstall(updater.VersionInfo) bool
 }
 
 // UserManager is an interface of users needed by frontend.

@@ -341,7 +341,7 @@ Dialog {
             if ( state == "toggleAutoStart" ) { go.toggleAutoStart     ()      }
             if ( state == "quit"            ) { Qt.quit                ()      }
             if ( state == "instance exists" ) { Qt.quit                ()      }
-            if ( state == "checkUpdates"    ) { go.runCheckVersion     (true)  }
+            if ( state == "checkUpdates"    ) { }
         }
     }
 

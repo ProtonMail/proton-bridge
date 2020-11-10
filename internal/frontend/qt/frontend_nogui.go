@@ -43,9 +43,14 @@ func (s *FrontendHeadless) Loop() error {
 	return http.ListenAndServe(":8081", nil)
 }
 
-func (s *FrontendHeadless) NotifyManualUpdate(update updater.VersionInfo) error {
+func (s *FrontendHeadless) NotifyManualUpdate(update updater.VersionInfo, canInstall bool) {
 	// NOTE: Save the update somewhere so that it can be installed when user chooses "install now".
-	return nil
+}
+
+func (s *FrontendHeadless) NotifySilentUpdateInstalled() {
+}
+
+func (s *FrontendHeadless) NotifySilentUpdateError(err error) {
 }
 
 func (s *FrontendHeadless) InstanceExistAlert() {}

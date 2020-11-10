@@ -23,6 +23,7 @@ import (
 	"errors"
 	"os"
 
+	"github.com/ProtonMail/proton-bridge/internal/config/settings"
 	"github.com/ProtonMail/proton-bridge/internal/events"
 	qtcommon "github.com/ProtonMail/proton-bridge/internal/frontend/qt-common"
 	"github.com/ProtonMail/proton-bridge/internal/frontend/types"
@@ -50,6 +51,7 @@ var log = logrus.WithField("pkg", "frontend-qt-ie")
 type FrontendQt struct {
 	panicHandler  types.PanicHandler
 	locations     *locations.Locations
+	settings      *settings.Settings
 	eventListener listener.Listener
 	updater       types.Updater
 	ie            types.ImportExporter
@@ -71,14 +73,17 @@ type FrontendQt struct {
 	progress *transfer.Progress
 
 	restarter types.Restarter
+
+	// saving most up-to-date update info to install it manually
+	updateInfo updater.VersionInfo
 }
 
 // New is constructor for Import-Export Qt-Go interface
 func New(
 	version, buildVersion string,
 	panicHandler types.PanicHandler,
-
 	locations *locations.Locations,
+	settings *settings.Settings,
 	eventListener listener.Listener,
 	updater types.Updater,
 	ie types.ImportExporter,
@@ -87,6 +92,7 @@ func New(
 	f := &FrontendQt{
 		panicHandler:   panicHandler,
 		locations:      locations,
+		settings:       settings,
 		programName:    "ProtonMail Import-Export",
 		programVersion: "v" + version,
 		eventListener:  eventListener,
@@ -111,9 +117,21 @@ func (f *FrontendQt) Loop() (err error) {
 	return err
 }
 
-func (f *FrontendQt) NotifyManualUpdate(update updater.VersionInfo) error {
-	// NOTE: Save the update somewhere so that it can be installed when user chooses "install now".
-	return nil
+func (f *FrontendQt) NotifyManualUpdate(update updater.VersionInfo, canInstall bool) {
+	f.Qml.SetUpdateVersion(update.Version.String())
+	f.Qml.SetUpdateLandingPage(update.Landing)
+	f.Qml.SetUpdateReleaseNotesLink("https://protonmail.com/download/ie/release_notes.html")
+	f.Qml.SetUpdateCanInstall(canInstall)
+	f.updateInfo = update
+	f.Qml.NotifyManualUpdate()
+}
+
+func (f *FrontendQt) NotifySilentUpdateInstalled() {
+	f.Qml.NotifySilentUpdateRestartNeeded()
+}
+
+func (f *FrontendQt) NotifySilentUpdateError(err error) {
+	f.Qml.NotifySilentUpdateError()
 }
 
 func (f *FrontendQt) watchEvents() {
@@ -152,7 +170,7 @@ func (f *FrontendQt) watchEvents() {
 			f.Qml.NotifyLogout(user.Username())
 		case <-updateApplicationCh:
 			f.Qml.ProcessFinished()
-			f.Qml.NotifyUpdate()
+			f.Qml.NotifyForceUpdate()
 		case <-newUserCh:
 			f.Qml.LoadAccounts()
 		}
@@ -218,6 +236,12 @@ func (f *FrontendQt) QtExecute(Procedure func(*FrontendQt) error) error {
 	// List of used packages
 	f.Qml.SetCredits(importexport.Credits)
 	f.Qml.SetFullversion(f.buildVersion)
+
+	if f.settings.GetBool(settings.AutoUpdateKey) {
+		f.Qml.SetIsAutoUpdate(true)
+	} else {
+		f.Qml.SetIsAutoUpdate(false)
+	}
 
 	// Loop
 	if ret := gui.QGuiApplication_Exec(); ret != 0 {
@@ -299,6 +323,18 @@ func (f *FrontendQt) sendBug(description, emailClient, address string) bool {
 	return true
 }
 
+func (f *FrontendQt) toggleAutoUpdate() {
+	defer f.Qml.ProcessFinished()
+
+	if f.settings.GetBool(settings.AutoUpdateKey) {
+		f.settings.SetBool(settings.AutoUpdateKey, false)
+		f.Qml.SetIsAutoUpdate(false)
+	} else {
+		f.settings.SetBool(settings.AutoUpdateKey, true)
+		f.Qml.SetIsAutoUpdate(true)
+	}
+}
+
 // checkInternet is almost idetical to bridge
 func (f *FrontendQt) checkInternet() {
 	f.Qml.SetConnectionStatus(f.ie.CheckConnection() == nil)
@@ -369,21 +405,43 @@ func (f *FrontendQt) setProgressManager(progress *transfer.Progress) {
 	}()
 }
 
-func (f *FrontendQt) StartUpdate() {
-	// NOTE: Fix this.
+func (f *FrontendQt) startManualUpdate() {
+	go func() {
+		err := f.updater.InstallUpdate(f.updateInfo)
+
+		if err != nil {
+			logrus.WithError(err).Error("An error occurred while installing updates manually")
+			f.Qml.NotifyManualUpdateError()
+		}
+
+		f.Qml.NotifyManualUpdateRestartNeeded()
+	}()
 }
 
-// isNewVersionAvailable is identical to bridge
-// return 0 when local version is fine
-// return 1 when new version is available
-func (f *FrontendQt) isNewVersionAvailable(showMessage bool) {
+func (f *FrontendQt) checkForUpdates() {
 	go func() {
-		defer f.Qml.ProcessFinished()
-		f.Qml.SetConnectionStatus(true) // if we are here connection is ok
-		f.Qml.SetUpdateState(StatusUpToDate)
-		if showMessage {
-			f.Qml.NotifyVersionIsTheLatest()
+		version, err := f.updater.Check()
+
+		if err != nil {
+			logrus.WithError(err).Error("An error occurred while checking updates manually")
+			f.Qml.NotifyManualUpdateError()
+			return
 		}
+
+		if !f.updater.IsUpdateApplicable(version) {
+			logrus.Debug("No need to update")
+			return
+		}
+
+		logrus.WithField("version", version.Version).Info("An update is available")
+
+		if !f.updater.CanInstall(version) {
+			logrus.Debug("A manual update is required")
+			f.NotifyManualUpdate(version, false)
+			return
+		}
+
+		f.NotifyManualUpdate(version, true)
 	}()
 }
 
