@@ -21,7 +21,7 @@ Feature: SMTP sending with APPENDing to Sent
     And mailbox "Sent" for "user" has messages
       | externalid      | from          | to                        | subject                |
       | bridgemessage42 | [userAddress] | bridgetest@protonmail.com | Manual send and append |
-    And message is sent with API call:
+    And message is sent with API call
       """
       {
         "Message": {

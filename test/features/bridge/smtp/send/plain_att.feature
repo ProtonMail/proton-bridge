@@ -41,7 +41,7 @@ Feature: SMTP sending of plain messages with attachments
     And mailbox "Sent" for "user" has messages
       | from          | to                        | subject               |
       | [userAddress] | bridgetest@protonmail.com | Plain with attachment |
-    And message is sent with API call:
+    And message is sent with API call
       """
       {
         "Message": {
@@ -100,7 +100,7 @@ Feature: SMTP sending of plain messages with attachments
     And mailbox "Sent" for "user" has messages
       | from          | to                     | subject                        |
       | [userAddress] | pm.bridge.qa@gmail.com | Plain with attachment external |
-    And message is sent with API call:
+    And message is sent with API call
       """
       {
         "Message": {
@@ -160,7 +160,7 @@ Feature: SMTP sending of plain messages with attachments
     And mailbox "Sent" for "user" has messages
       | from          | to                     | cc                 | subject                                            |
       | [userAddress] | pm.bridge.qa@gmail.com | bridgeqa@seznam.cz | Plain with attachment external PGP and external CC |
-    And message is sent with API call:
+    And message is sent with API call
       """
       {
         "Message": {
