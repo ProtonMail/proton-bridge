@@ -20,9 +20,6 @@ issues:
         - gochecknoglobals
         - gochecknoinits
         - gosec
-    - path: pkg/message/rfc5322
-      linters:
-        - dupl
 
 linters-settings:
   godox:
