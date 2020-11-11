@@ -17,12 +17,14 @@ SRC_ICO:=logo.ico
 SRC_ICNS:=Bridge.icns
 SRC_SVG:=logo.svg
 TGT_ICNS:=Bridge.icns
+EXE_NAME:=proton-bridge
 ifeq "${TARGET_CMD}" "Import-Export"
     APP_VERSION:=${IE_APP_VERSION}
     SRC_ICO:=ie.ico
     SRC_ICNS:=ie.icns
     SRC_SVG:=ie.svg
     TGT_ICNS:=ImportExport.icns
+    EXE_NAME:=proton-ie
 endif
 REVISION:=$(shell git rev-parse --short=10 HEAD)
 BUILD_TIME:=$(shell date +%FT%T%z)
@@ -40,17 +42,22 @@ BUILD_FLAGS_NOGUI+= ${GO_LDFLAGS}
 
 DEPLOY_DIR:=cmd/${TARGET_CMD}/deploy
 ICO_FILES:=
-EXE:=$(shell basename ${CURDIR})
-
+DIRNAME:=$(shell basename ${CURDIR})
+EXE:=${EXE_NAME}
+EXE_QT:=${DIRNAME}
 ifeq "${TARGET_OS}" "windows"
     EXE:=${EXE}.exe
+    EXE_QT:=${EXE_QT}.exe
     ICO_FILES:=${SRC_ICO} icon.rc icon_windows.syso
 endif
 ifeq "${TARGET_OS}" "darwin"
     DARWINAPP_CONTENTS:=${DEPLOY_DIR}/darwin/${EXE}.app/Contents
-    EXE:=${EXE}.app/Contents/MacOS/${EXE}
+    EXE:=${EXE}.app
+    EXE_QT:=${EXE_QT}.app
+    EXE_BINARY_DARWIN:=/Contents/MacOS/${EXE_NAME}
 endif
 EXE_TARGET:=${DEPLOY_DIR}/${TARGET_OS}/${EXE}
+EXE_QT_TARGET:=${DEPLOY_DIR}/${TARGET_OS}/${EXE_QT}
 
 TGZ_TARGET:=bridge_${TARGET_OS}_${REVISION}.tgz
 ifeq "${TARGET_CMD}" "Import-Export"
@@ -77,12 +84,16 @@ ${DEPLOY_DIR}/linux: ${EXE_TARGET}
 	cp -pf ./Changelog.md ${DEPLOY_DIR}/linux/
 
 ${DEPLOY_DIR}/darwin: ${EXE_TARGET}
+	if [ "${DIRNAME}" != "${EXE_NAME}" ]; then \
+		mv ${EXE_TARGET}/Contents/MacOS/{${DIRNAME},${EXE_NAME}}; \
+		perl -i -pe"s/>${DIRNAME}/>${EXE_NAME}/g" ${EXE_TARGET}/Contents/Info.plist; \
+	fi
 	cp ./internal/frontend/share/icons/${SRC_ICNS} ${DARWINAPP_CONTENTS}/Resources/${TGT_ICNS}
 	cp LICENSE ${DARWINAPP_CONTENTS}/Resources/
 	rm -rf "${DARWINAPP_CONTENTS}/Frameworks/QtWebEngine.framework"
 	rm -rf "${DARWINAPP_CONTENTS}/Frameworks/QtWebView.framework"
 	rm -rf "${DARWINAPP_CONTENTS}/Frameworks/QtWebEngineCore.framework"
-	./utils/remove_non_relative_links_darwin.sh "${EXE_TARGET}"
+	./utils/remove_non_relative_links_darwin.sh "${EXE_TARGET}${EXE_BINARY_DARWIN}"
 
 ${DEPLOY_DIR}/windows: ${EXE_TARGET}
 	cp ./internal/frontend/share/icons/${SRC_ICO} ${DEPLOY_DIR}/windows/logo.ico
@@ -100,6 +111,7 @@ ${EXE_TARGET}: check-has-go gofiles ${ICO_FILES} update-vendor
 	cp cmd/${TARGET_CMD}/main.go .
 	qtdeploy ${BUILD_FLAGS} ${QT_BUILD_TARGET}
 	mv deploy cmd/${TARGET_CMD}
+	if [ "${EXE_QT_TARGET}" != "${EXE_TARGET}" ]; then mv ${EXE_QT_TARGET} ${EXE_TARGET}; fi
 	rm -rf ${TARGET_OS} main.go
 
 logo.ico ie.ico: ./internal/frontend/share/icons/${SRC_ICO}
