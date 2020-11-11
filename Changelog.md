@@ -4,9 +4,20 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 ## Unreleased
 
+## [IE 1.2.1] Elbe
+
 ### Added
 * GODT-799 Skipped messages do not change total counts but shows as separate number.
 
+## Fixed
+* GODT-799 Fix skipping unwanted folders importing from mbox files.
+* GODT-769 Close connection before deleting labels to prevent panics accessing deleted bucket.
+
+### Removed
+* GODT-766 Remove GUI popup for IMAP TLS error.
+
+
+## [Bridge 1.5.0] Golden Gate
 ### Changed
 * Updated go-mbox dependency back to upstream.
 
@@ -14,8 +25,8 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-847 Waiting for unilateral update during deleting the message.
 * GODT-849 Show in error counts in the end also lost messages.
 * GODT-835 Do not include conversation ID in references to show properly conversation threads in clients.
-* GODT-799 Fix skipping unwanted folders importing from mbox files.
-* GODT-769 Close connection before deleting labels to prevent panics accessing deleted bucket.
+* GODT-685 Improve deb packaging regarding dejavu font
+
 
 ## [IE 1.2.0] Elbe
 
@@ -23,9 +34,6 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-763 Detect Gmail labels from All Mail mbox export (using X-Gmail-Label header).
 * GODT-834 Info about tags in BUILDS.md and link to Import-Export page in README.md.
 * GODT-777 Support Apple Mail MBOX export format.
-
-### Removed
-* GODT-766 Remove GUI popup for IMAP TLS error.
 
 ### Fixed
 * GODT-677 Windows IE: global import settings not fit in window.
