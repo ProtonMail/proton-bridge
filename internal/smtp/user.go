@@ -187,7 +187,7 @@ func (su *smtpUser) Send(from string, to []string, messageReader io.Reader) (err
 		log.WithError(err).Error("Failed to parse message")
 		return
 	}
-	clearBody := message.Body
+	richBody := message.Body
 
 	externalID := message.Header.Get("Message-Id")
 	externalID = strings.Trim(externalID, "<>")
@@ -256,7 +256,6 @@ func (su *smtpUser) Send(from string, to []string, messageReader io.Reader) (err
 	atts = append(atts, message.Attachments...)
 	// Decrypt attachment keys, because we will need to re-encrypt them with the recipients' public keys.
 	attkeys := make(map[string]*crypto.SessionKey)
-	attkeysEncoded := make(map[string]pmapi.AlgoKey)
 
 	for _, att := range atts {
 		var keyPackets []byte
@@ -266,23 +265,9 @@ func (su *smtpUser) Send(from string, to []string, messageReader io.Reader) (err
 		if attkeys[att.ID], err = kr.DecryptSessionKey(keyPackets); err != nil {
 			return errors.Wrap(err, "decrypting attachment session key")
 		}
-		attkeysEncoded[att.ID] = pmapi.AlgoKey{
-			Key:       attkeys[att.ID].GetBase64Key(),
-			Algorithm: attkeys[att.ID].Algo,
-		}
 	}
 
-	plainSharedScheme := 0
-	htmlSharedScheme := 0
-	mimeSharedType := 0
-
-	plainAddressMap := make(map[string]*pmapi.MessageAddress)
-	htmlAddressMap := make(map[string]*pmapi.MessageAddress)
-	mimeAddressMap := make(map[string]*pmapi.MessageAddress)
-
-	var plainKey, htmlKey, mimeKey *crypto.SessionKey
-	var plainData, htmlData, mimeData []byte
-
+	req := pmapi.NewSendMessageReq(kr, mimeBody, plainBody, richBody, attkeys)
 	containsUnencryptedRecipients := false
 
 	for _, email := range to {
@@ -300,59 +285,13 @@ func (su *smtpUser) Send(from string, to []string, messageReader io.Reader) (err
 
 		var signature int
 		if sendPreferences.Sign {
-			signature = pmapi.YesSignature
+			signature = pmapi.SignatureDetached
 		} else {
-			signature = pmapi.NoSignature
+			signature = pmapi.SignatureNone
 		}
-		if sendPreferences.Scheme == pmapi.PGPMIMEPackage || sendPreferences.Scheme == pmapi.ClearMIMEPackage {
-			if mimeKey == nil {
-				if mimeKey, mimeData, err = encryptSymmetric(kr, mimeBody, true); err != nil {
-					return err
-				}
-			}
-			if sendPreferences.Scheme == pmapi.PGPMIMEPackage {
-				mimeBodyPacket, _, err := createPackets(sendPreferences.PublicKey, mimeKey, map[string]*crypto.SessionKey{})
-				if err != nil {
-					return err
-				}
-				mimeAddressMap[email] = &pmapi.MessageAddress{Type: sendPreferences.Scheme, BodyKeyPacket: mimeBodyPacket, Signature: signature}
-			} else {
-				mimeAddressMap[email] = &pmapi.MessageAddress{Type: sendPreferences.Scheme, Signature: signature}
-			}
-			mimeSharedType |= sendPreferences.Scheme
-		} else {
-			switch sendPreferences.MIMEType {
-			case pmapi.ContentTypePlainText:
-				if plainKey == nil {
-					if plainKey, plainData, err = encryptSymmetric(kr, plainBody, true); err != nil {
-						return err
-					}
-				}
-				newAddress := &pmapi.MessageAddress{Type: sendPreferences.Scheme, Signature: signature}
-				if sendPreferences.Encrypt && sendPreferences.PublicKey != nil {
-					newAddress.BodyKeyPacket, newAddress.AttachmentKeyPackets, err = createPackets(sendPreferences.PublicKey, plainKey, attkeys)
-					if err != nil {
-						return err
-					}
-				}
-				plainAddressMap[email] = newAddress
-				plainSharedScheme |= sendPreferences.Scheme
-			case pmapi.ContentTypeHTML:
-				if htmlKey == nil {
-					if htmlKey, htmlData, err = encryptSymmetric(kr, clearBody, true); err != nil {
-						return err
-					}
-				}
-				newAddress := &pmapi.MessageAddress{Type: sendPreferences.Scheme, Signature: signature}
-				if sendPreferences.Encrypt && sendPreferences.PublicKey != nil {
-					newAddress.BodyKeyPacket, newAddress.AttachmentKeyPackets, err = createPackets(sendPreferences.PublicKey, htmlKey, attkeys)
-					if err != nil {
-						return err
-					}
-				}
-				htmlAddressMap[email] = newAddress
-				htmlSharedScheme |= sendPreferences.Scheme
-			}
+
+		if err := req.AddRecipient(email, sendPreferences.Scheme, sendPreferences.PublicKey, signature, sendPreferences.MIMEType, sendPreferences.Encrypt); err != nil {
+			return errors.Wrap(err, "failed to add recipient")
 		}
 	}
 
@@ -370,31 +309,7 @@ func (su *smtpUser) Send(from string, to []string, messageReader io.Reader) (err
 		}
 	}
 
-	req := &pmapi.SendMessageReq{}
-
-	plainPkg := buildPackage(plainAddressMap, plainSharedScheme, pmapi.ContentTypePlainText, plainData, plainKey, attkeysEncoded)
-	if plainPkg != nil {
-		req.Packages = append(req.Packages, plainPkg)
-	}
-
-	htmlPkg := buildPackage(htmlAddressMap, htmlSharedScheme, pmapi.ContentTypeHTML, htmlData, htmlKey, attkeysEncoded)
-	if htmlPkg != nil {
-		req.Packages = append(req.Packages, htmlPkg)
-	}
-
-	if len(mimeAddressMap) > 0 {
-		pkg := &pmapi.MessagePackage{
-			Body:      base64.StdEncoding.EncodeToString(mimeData),
-			Addresses: mimeAddressMap,
-			MIMEType:  pmapi.ContentTypeMultipartMixed,
-			Type:      mimeSharedType,
-			BodyKey: pmapi.AlgoKey{
-				Key:       mimeKey.GetBase64Key(),
-				Algorithm: mimeKey.Algo,
-			},
-		}
-		req.Packages = append(req.Packages, pkg)
-	}
+	req.PreparePackages()
 
 	return su.storeUser.SendMessage(message.ID, req)
 }
