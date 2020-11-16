@@ -18,7 +18,7 @@
 package pmapi
 
 import (
-	"github.com/getsentry/raven-go"
+	"github.com/getsentry/sentry-go"
 	"github.com/pkg/errors"
 )
 
@@ -119,7 +119,11 @@ func (c *client) UpdateUser() (user *User, err error) {
 	}
 
 	c.user = user
-	raven.SetUserContext(&raven.User{ID: user.ID})
+	sentry.ConfigureScope(func(scope *sentry.Scope) {
+		scope.SetUser(sentry.User{
+			ID: user.ID,
+		})
+	})
 
 	var tmpList AddressList
 	if tmpList, err = c.GetAddresses(); err == nil {

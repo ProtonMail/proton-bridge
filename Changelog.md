@@ -1,6 +1,10 @@
 # ProtonMail Bridge and Import-Export app Changelog
 
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
+## Untaged
+### Changed
+* GODT-180 Updated Sentry client.
+
 
 ## [IE 1.2.1] Elbe
 
