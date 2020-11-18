@@ -161,15 +161,17 @@ func NewSendMessageReq(
 }
 
 var (
+	errUnknownContentType  = errors.New("unknown content type")
 	errMultipartInNonMIME  = errors.New("multipart mixed not allowed in this scheme")
 	errAttSignNotSupported = errors.New("attached signature not supported")
 	errEncryptMustSign     = errors.New("encrypted package must be signed")
 	errEONotSupported      = errors.New("encrypted outside is not supported")
 	errWrongSendScheme     = errors.New("wrong send scheme")
 	errInternalMustEncrypt = errors.New("internal package must be encrypted")
-	errInlinelMustEncrypt  = errors.New("PGP Inline package must be encrypted")
-	errMisingPubkey        = errors.New("cannot encrypt body key packet: missing pubkey")
-	errSignMustBeMultipart = errors.New("clear singed packet must be multipart")
+	errInlineMustEncrypt   = errors.New("PGP Inline package must be encrypted")
+	errInlineMustBePlain   = errors.New("PGP Inline package must be plain text")
+	errMissingPubkey       = errors.New("cannot encrypt body key packet: missing pubkey")
+	errSignMustBeMultipart = errors.New("clear signed html packet must be multipart")
 	errMIMEMustBeMultipart = errors.New("MIME packet must be multipart")
 )
 
@@ -196,8 +198,9 @@ func (req *SendMessageReq) AddRecipient(
 		return req.addNonMIMERecipient(email, sendScheme, pubkey, signature, contentType, doEncrypt)
 	case EncryptedOutsidePackage:
 		return errEONotSupported
+	default:
+		return errWrongSendScheme
 	}
-	return errWrongSendScheme
 }
 
 func (req *SendMessageReq) addNonMIMERecipient(
@@ -205,20 +208,25 @@ func (req *SendMessageReq) addNonMIMERecipient(
 	pubkey *crypto.KeyRing, signature int,
 	contentType string, doEncrypt bool,
 ) (err error) {
-	if sendScheme == ClearPackage && signature == SignatureDetached {
+	if sendScheme == ClearPackage &&
+		signature == SignatureDetached &&
+		contentType == ContentTypeHTML {
 		return errSignMustBeMultipart
 	}
 
 	var send *sendData
+
 	switch contentType {
 	case ContentTypePlainText:
 		send = &req.plain
-		send.contentType = contentType
-	case ContentTypeHTML:
+		send.contentType = ContentTypePlainText
+	case ContentTypeHTML, "":
 		send = &req.rich
-		send.contentType = contentType
+		send.contentType = ContentTypeHTML
 	case ContentTypeMultipartMixed:
 		return errMultipartInNonMIME
+	default:
+		return errUnknownContentType
 	}
 
 	if send.decryptedBodyKey == nil {
@@ -229,13 +237,16 @@ func (req *SendMessageReq) addNonMIMERecipient(
 	newAddress := &MessageAddress{Type: sendScheme, Signature: signature}
 
 	if sendScheme == PGPInlinePackage && !doEncrypt {
-		return errInlinelMustEncrypt
+		return errInlineMustEncrypt
+	}
+	if sendScheme == PGPInlinePackage && contentType == ContentTypeHTML {
+		return errInlineMustBePlain
 	}
 	if sendScheme == InternalPackage && !doEncrypt {
 		return errInternalMustEncrypt
 	}
 	if doEncrypt && pubkey == nil {
-		return errMisingPubkey
+		return errMissingPubkey
 	}
 
 	if doEncrypt {
@@ -254,7 +265,6 @@ func (req *SendMessageReq) addMIMERecipient(
 	email string, sendScheme int,
 	pubkey *crypto.KeyRing, signature int,
 ) (err error) {
-
 	req.mime.contentType = ContentTypeMultipartMixed
 	if req.mime.decryptedBodyKey == nil {
 		if req.mime.decryptedBodyKey, req.mime.ciphertext, err = encryptSymmDecryptKey(req.kr, req.mime.cleartext); err != nil {
@@ -264,7 +274,7 @@ func (req *SendMessageReq) addMIMERecipient(
 
 	if sendScheme == PGPMIMEPackage {
 		if pubkey == nil {
-			return errMisingPubkey
+			return errMissingPubkey
 		}
 		// Attachment keys are not needed because attachments are part
 		// of MIME body and therefore attachments are encrypted with

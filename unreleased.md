@@ -9,3 +9,8 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 ### Changed
 * GODT-651 Build creates proper binary names.
+## Added
+* GODT-878 Tests for send packet creation logic
+
+## Changed
+* GODT-878 Refactor and move the send packet creation login to `pmapi.SendMessageReq`

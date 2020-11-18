@@ -46,7 +46,7 @@ type testData struct {
 func (td *testData) prepareAndCheck(t *testing.T) {
 	r := require.New(t)
 
-	shouldBeEmpty := func(want string) require.ValueAssertionFunc {
+	matchPresence := func(want string) require.ValueAssertionFunc {
 		if len(want) == 0 {
 			return require.Empty
 		}
@@ -76,7 +76,7 @@ func (td *testData) prepareAndCheck(t *testing.T) {
 			r.True(ok, "pkg %d email %s", i, email)
 
 			r.Equal(wantAddress.Type, haveAddress.Type, "pkg %d email %s", i, email)
-			shouldBeEmpty(wantAddress.EncryptedBodyKeyPacket)(t, haveAddress.EncryptedBodyKeyPacket, "pkg %d email %s", i, email)
+			matchPresence(wantAddress.EncryptedBodyKeyPacket)(t, haveAddress.EncryptedBodyKeyPacket, "pkg %d email %s", i, email)
 			r.Equal(wantAddress.Signature, haveAddress.Signature, "pkg %d email %s", i, email)
 
 			if len(td.attKeys) == 0 {
@@ -90,7 +90,7 @@ func (td *testData) prepareAndCheck(t *testing.T) {
 				for attID, wantAttKey := range wantAddress.EncryptedAttachmentKeyPackets {
 					haveAttKey, ok := haveAddress.EncryptedAttachmentKeyPackets[attID]
 					r.True(ok, "pkg %d email %s att %s", i, email, attID)
-					shouldBeEmpty(wantAttKey)(t, haveAttKey, "pkg %d email %s att %s", i, email, attID)
+					matchPresence(wantAttKey)(t, haveAttKey, "pkg %d email %s att %s", i, email, attID)
 				}
 			}
 		}
@@ -98,13 +98,13 @@ func (td *testData) prepareAndCheck(t *testing.T) {
 		r.Equal(wantPackage.Type, havePackage.Type, "pkg %d", i)
 		r.Equal(wantPackage.MIMEType, havePackage.MIMEType, "pkg %d", i)
 
-		shouldBeEmpty(wantPackage.EncryptedBody)(t, havePackage.EncryptedBody, "pkg %d", i)
+		matchPresence(wantPackage.EncryptedBody)(t, havePackage.EncryptedBody, "pkg %d", i)
 
 		wantBodyKey := wantPackage.DecryptedBodyKey
 		haveBodyKey := havePackage.DecryptedBodyKey
 
-		shouldBeEmpty(wantBodyKey.Algorithm)(t, haveBodyKey.Algorithm, "pkg %d", i)
-		shouldBeEmpty(wantBodyKey.Key)(t, haveBodyKey.Key, "pkg %d", i)
+		matchPresence(wantBodyKey.Algorithm)(t, haveBodyKey.Algorithm, "pkg %d", i)
+		matchPresence(wantBodyKey.Key)(t, haveBodyKey.Key, "pkg %d", i)
 
 		if len(td.attKeys) == 0 {
 			r.Len(havePackage.DecryptedAttachmentKeys, 0)
@@ -117,8 +117,8 @@ func (td *testData) prepareAndCheck(t *testing.T) {
 			for attID, wantAttKey := range wantPackage.DecryptedAttachmentKeys {
 				haveAttKey, ok := havePackage.DecryptedAttachmentKeys[attID]
 				r.True(ok, "pkg %d att %s", i, attID)
-				shouldBeEmpty(wantAttKey.Key)(t, haveAttKey.Key, "pkg %d att %s", i, attID)
-				shouldBeEmpty(wantAttKey.Algorithm)(t, haveAttKey.Algorithm, "pkg %d att %s", i, attID)
+				matchPresence(wantAttKey.Key)(t, haveAttKey.Key, "pkg %d att %s", i, attID)
+				matchPresence(wantAttKey.Algorithm)(t, haveAttKey.Algorithm, "pkg %d att %s", i, attID)
 			}
 		}
 	}
@@ -134,8 +134,8 @@ func TestSendReq(t *testing.T) {
 	attAlgoKeys := map[string]AlgoKey{"attID": {"not-empty", "not-empty"}}
 
 	// NOTE naming
-	// Single: there should be one packet
-	// Multiple: there should be more than one packet
+	// Single: there should be one package
+	// Multiple: there should be more than one package
 	// Internal: there should be internal package
 	// Clear: there should be non-encrypted package
 	// Encrypted: there should be encrypted package
@@ -144,11 +144,18 @@ func TestSendReq(t *testing.T) {
 		"SingleInternalHTML": {
 			recipients: []recipient{
 				{"html@pm.me", InternalPackage, testPublicKeyRing, SignatureDetached, ContentTypeHTML, true, nil},
+				{"none@pm.me", InternalPackage, testPublicKeyRing, SignatureDetached, "", true, nil},
 			},
 			wantPackages: []*MessagePackage{
 				{
 					Addresses: map[string]*MessageAddress{
 						"html@pm.me": {
+							Type:                          InternalPackage,
+							Signature:                     SignatureDetached,
+							EncryptedBodyKeyPacket:        "not-empty",
+							EncryptedAttachmentKeyPackets: attKeyPackets,
+						},
+						"none@pm.me": {
 							Type:                          InternalPackage,
 							Signature:                     SignatureDetached,
 							EncryptedBodyKeyPacket:        "not-empty",
@@ -183,9 +190,10 @@ func TestSendReq(t *testing.T) {
 		},
 		"InternalNotAllowed": {
 			recipients: []recipient{
+				{"wrongtype@pm.me", InternalPackage, testPublicKeyRing, SignatureDetached, "application/rfc822", true, errUnknownContentType},
 				{"multipart@pm.me", InternalPackage, testPublicKeyRing, SignatureDetached, ContentTypeMultipartMixed, true, errMultipartInNonMIME},
 				{"noencrypt@pm.me", InternalPackage, testPublicKeyRing, SignatureDetached, ContentTypeHTML, false, errInternalMustEncrypt},
-				{"no-pubkey@pm.me", InternalPackage, nil, SignatureDetached, ContentTypeHTML, true, errMisingPubkey},
+				{"no-pubkey@pm.me", InternalPackage, nil, SignatureDetached, ContentTypeHTML, true, errMissingPubkey},
 				{"nosigning@pm.me", InternalPackage, testPublicKeyRing, SignatureNone, ContentTypeHTML, true, errEncryptMustSign},
 			},
 		},
@@ -194,7 +202,7 @@ func TestSendReq(t *testing.T) {
 				{"internal1@pm.me", InternalPackage, testPublicKeyRing, SignatureDetached, ContentTypePlainText, true, nil},
 				{"internal2@pm.me", InternalPackage, testPublicKeyRing, SignatureDetached, ContentTypeHTML, true, nil},
 				{"internal3@pm.me", InternalPackage, testPublicKeyRing, SignatureDetached, ContentTypePlainText, true, nil},
-				{"internal4@pm.me", InternalPackage, testPublicKeyRing, SignatureDetached, ContentTypeHTML, true, nil},
+				{"internal4@pm.me", InternalPackage, testPublicKeyRing, SignatureDetached, "", true, nil},
 			},
 			wantPackages: []*MessagePackage{
 				{
@@ -241,11 +249,16 @@ func TestSendReq(t *testing.T) {
 		"SingleClearHTML": {
 			recipients: []recipient{
 				{"html@email.com", ClearPackage, nil, SignatureNone, ContentTypeHTML, false, nil},
+				{"nothing@email.com", ClearPackage, nil, SignatureNone, "", false, nil},
 			},
 			wantPackages: []*MessagePackage{
 				{
 					Addresses: map[string]*MessageAddress{
 						"html@email.com": {
+							Type:      ClearPackage,
+							Signature: SignatureNone,
+						},
+						"nothing@email.com": {
 							Type:      ClearPackage,
 							Signature: SignatureNone,
 						},
@@ -261,6 +274,7 @@ func TestSendReq(t *testing.T) {
 		"SingleClearPlain": {
 			recipients: []recipient{
 				{"plain@email.com", ClearPackage, nil, SignatureNone, ContentTypePlainText, false, nil},
+				{"plain-sign@email.com", ClearPackage, nil, SignatureDetached, ContentTypePlainText, false, nil},
 			},
 			wantPackages: []*MessagePackage{
 				{
@@ -268,6 +282,10 @@ func TestSendReq(t *testing.T) {
 						"plain@email.com": {
 							Type:      ClearPackage,
 							Signature: SignatureNone,
+						},
+						"plain-sign@email.com": {
+							Type:      ClearPackage,
+							Signature: SignatureDetached,
 						},
 					},
 					Type:                    ClearPackage,
@@ -281,6 +299,7 @@ func TestSendReq(t *testing.T) {
 		"SingleClearMIME": {
 			recipients: []recipient{
 				{"mime@email.com", ClearMIMEPackage, nil, SignatureNone, ContentTypeMultipartMixed, false, nil},
+				{"mime-sign@email.com", ClearMIMEPackage, nil, SignatureDetached, ContentTypeMultipartMixed, false, nil},
 			},
 			wantPackages: []*MessagePackage{
 				{
@@ -289,22 +308,7 @@ func TestSendReq(t *testing.T) {
 							Type:      ClearMIMEPackage,
 							Signature: SignatureNone,
 						},
-					},
-					Type:             ClearMIMEPackage,
-					MIMEType:         ContentTypeMultipartMixed,
-					EncryptedBody:    "non-empty",
-					DecryptedBodyKey: AlgoKey{"non-empty", "non-empty"},
-				},
-			},
-		},
-		"SingleClearSign": {
-			recipients: []recipient{
-				{"signed@email.com", ClearMIMEPackage, nil, SignatureDetached, ContentTypeMultipartMixed, false, nil},
-			},
-			wantPackages: []*MessagePackage{
-				{
-					Addresses: map[string]*MessageAddress{
-						"signed@email.com": {
+						"mime-sign@email.com": {
 							Type:      ClearMIMEPackage,
 							Signature: SignatureDetached,
 						},
@@ -318,7 +322,6 @@ func TestSendReq(t *testing.T) {
 		},
 		"ClearNotAllowed": {
 			recipients: []recipient{
-				{"plain@email.com", ClearPackage, nil, SignatureDetached, ContentTypePlainText, false, errSignMustBeMultipart},
 				{"html-1@email.com", ClearPackage, nil, SignatureDetached, ContentTypeHTML, false, errSignMustBeMultipart},
 				{"plain@email.com", ClearMIMEPackage, nil, SignatureDetached, ContentTypePlainText, false, errMIMEMustBeMultipart},
 				{"html-@email.com", ClearMIMEPackage, nil, SignatureDetached, ContentTypeHTML, false, errMIMEMustBeMultipart},
@@ -333,7 +336,7 @@ func TestSendReq(t *testing.T) {
 			},
 			wantPackages: []*MessagePackage{
 				{
-					Addresses: map[string]*MessageAddress{ // TODO can this two be combined
+					Addresses: map[string]*MessageAddress{
 						"sign@email.com": {
 							Type:      ClearMIMEPackage,
 							Signature: SignatureDetached,
@@ -416,33 +419,14 @@ func TestSendReq(t *testing.T) {
 				},
 			},
 		},
-		"SingleEncryptedInlineHTML": {
-			recipients: []recipient{
-				{"inline-html@gpg.com", PGPInlinePackage, testPublicKeyRing, SignatureDetached, ContentTypeHTML, true, nil},
-			},
-			wantPackages: []*MessagePackage{
-				{
-					Addresses: map[string]*MessageAddress{
-						"inline-html@gpg.com": {
-							Type:                          PGPInlinePackage,
-							Signature:                     SignatureDetached,
-							EncryptedBodyKeyPacket:        "non-empty",
-							EncryptedAttachmentKeyPackets: attKeyPackets,
-						},
-					},
-					Type:          PGPInlinePackage,
-					MIMEType:      ContentTypeHTML,
-					EncryptedBody: "non-empty",
-				},
-			},
-		},
 		"EncryptedNotAllowed": {
 			recipients: []recipient{
+				{"inline-html@gpg.com", PGPInlinePackage, testPublicKeyRing, SignatureDetached, ContentTypeHTML, true, errInlineMustBePlain},
 				{"inline-mixed@gpg.com", PGPInlinePackage, testPublicKeyRing, SignatureDetached, ContentTypeMultipartMixed, true, errMultipartInNonMIME},
-				{"inline-clear@gpg.com", PGPInlinePackage, nil, SignatureDetached, ContentTypePlainText, false, errInlinelMustEncrypt},
+				{"inline-clear@gpg.com", PGPInlinePackage, nil, SignatureDetached, ContentTypePlainText, false, errInlineMustEncrypt},
 				{"mime-plain@gpg.com", PGPMIMEPackage, nil, SignatureDetached, ContentTypePlainText, true, errMIMEMustBeMultipart},
-				{"mime-html@gpg.com", PGPMIMEPackage, nil, SignatureDetached, ContentTypeHTML, true, errMIMEMustBeMultipart},
-				{"no-pubkey@gpg.com", PGPMIMEPackage, nil, SignatureDetached, ContentTypeMultipartMixed, true, errMisingPubkey},
+				{"mime-html@sgpg.com", PGPMIMEPackage, nil, SignatureDetached, ContentTypeHTML, true, errMIMEMustBeMultipart},
+				{"no-pubkey@gpg.com", PGPMIMEPackage, nil, SignatureDetached, ContentTypeMultipartMixed, true, errMissingPubkey},
 				{"not-signed@gpg.com", PGPMIMEPackage, testPublicKeyRing, SignatureNone, ContentTypeMultipartMixed, true, errEncryptMustSign},
 			},
 		},
@@ -450,7 +434,6 @@ func TestSendReq(t *testing.T) {
 			recipients: []recipient{
 				{"mime@gpg.com", PGPMIMEPackage, testPublicKeyRing, SignatureDetached, ContentTypeMultipartMixed, true, nil},
 				{"inline-plain@gpg.com", PGPInlinePackage, testPublicKeyRing, SignatureDetached, ContentTypePlainText, true, nil},
-				{"inline-html@gpg.com", PGPInlinePackage, testPublicKeyRing, SignatureDetached, ContentTypeHTML, true, nil},
 			},
 			wantPackages: []*MessagePackage{
 				{
@@ -478,49 +461,9 @@ func TestSendReq(t *testing.T) {
 					MIMEType:      ContentTypePlainText,
 					EncryptedBody: "non-empty",
 				},
-				{
-					Addresses: map[string]*MessageAddress{
-						"inline-html@gpg.com": {
-							Type:                          PGPInlinePackage,
-							Signature:                     SignatureDetached,
-							EncryptedBodyKeyPacket:        "non-empty",
-							EncryptedAttachmentKeyPackets: attKeyPackets,
-						},
-					},
-					Type:          PGPInlinePackage,
-					MIMEType:      ContentTypeHTML,
-					EncryptedBody: "non-empty",
-				},
 			},
 		},
 
-		"SingleInternalEncryptedHTML": {
-			recipients: []recipient{
-				{"inline-html@gpg.com", PGPInlinePackage, testPublicKeyRing, SignatureDetached, ContentTypeHTML, true, nil},
-				{"internal@pm.me", InternalPackage, testPublicKeyRing, SignatureDetached, ContentTypeHTML, true, nil},
-			},
-			wantPackages: []*MessagePackage{
-				{
-					Addresses: map[string]*MessageAddress{
-						"inline-html@gpg.com": {
-							Type:                          PGPInlinePackage,
-							Signature:                     SignatureDetached,
-							EncryptedBodyKeyPacket:        "non-empty",
-							EncryptedAttachmentKeyPackets: attKeyPackets,
-						},
-						"internal@pm.me": {
-							Type:                          InternalPackage,
-							Signature:                     SignatureDetached,
-							EncryptedBodyKeyPacket:        "non-empty",
-							EncryptedAttachmentKeyPackets: attKeyPackets,
-						},
-					},
-					Type:          PGPInlinePackage | InternalPackage,
-					MIMEType:      ContentTypeHTML,
-					EncryptedBody: "non-empty",
-				},
-			},
-		},
 		"SingleInternalEncryptedPlain": {
 			recipients: []recipient{
 				{"inline-plain@gpg.com", PGPInlinePackage, testPublicKeyRing, SignatureDetached, ContentTypePlainText, true, nil},
@@ -602,33 +545,6 @@ func TestSendReq(t *testing.T) {
 				},
 			},
 		},
-		"SingleClearEncryptedHTML": {
-			recipients: []recipient{
-				{"html@email.com", ClearPackage, nil, SignatureNone, ContentTypeHTML, false, nil},
-				{"inline-html@gpg.com", PGPInlinePackage, testPublicKeyRing, SignatureDetached, ContentTypeHTML, true, nil},
-			},
-			wantPackages: []*MessagePackage{
-				{
-					Addresses: map[string]*MessageAddress{
-						"inline-html@gpg.com": {
-							Type:                          PGPInlinePackage,
-							Signature:                     SignatureDetached,
-							EncryptedBodyKeyPacket:        "non-empty",
-							EncryptedAttachmentKeyPackets: attKeyPackets,
-						},
-						"html@email.com": {
-							Type:      ClearPackage,
-							Signature: SignatureNone,
-						},
-					},
-					Type:                    PGPInlinePackage | ClearPackage,
-					MIMEType:                ContentTypeHTML,
-					EncryptedBody:           "non-empty",
-					DecryptedBodyKey:        AlgoKey{"non-empty", "non-empty"},
-					DecryptedAttachmentKeys: attAlgoKeys,
-				},
-			},
-		},
 		"SingleClearEncryptedPlain": {
 			recipients: []recipient{
 				{"plain@email.com", ClearPackage, nil, SignatureNone, ContentTypePlainText, false, nil},
@@ -684,6 +600,7 @@ func TestSendReq(t *testing.T) {
 		"SingleClearEncryptedMIMENoSign": {
 			recipients: []recipient{
 				{"mime@email.com", ClearMIMEPackage, nil, SignatureNone, ContentTypeMultipartMixed, false, nil},
+				{"mime-signed@email.com", ClearMIMEPackage, nil, SignatureDetached, ContentTypeMultipartMixed, false, nil},
 				{"mime@gpg.com", PGPMIMEPackage, testPublicKeyRing, SignatureDetached, ContentTypeMultipartMixed, true, nil},
 			},
 			wantPackages: []*MessagePackage{
@@ -694,9 +611,13 @@ func TestSendReq(t *testing.T) {
 							Signature:              SignatureDetached,
 							EncryptedBodyKeyPacket: "non-empty",
 						},
-						"mime@email.com": { // can this be combined ?
+						"mime@email.com": {
 							Type:      ClearMIMEPackage,
 							Signature: SignatureNone,
+						},
+						"mime-signed@email.com": {
+							Type:      ClearMIMEPackage,
+							Signature: SignatureDetached,
 						},
 					},
 					Type:             ClearMIMEPackage | PGPMIMEPackage,
@@ -718,11 +639,10 @@ func TestSendReq(t *testing.T) {
 
 				{"html@pm.me", InternalPackage, testPublicKeyRing, SignatureDetached, ContentTypeHTML, true, nil},
 				{"html@email.com", ClearPackage, nil, SignatureNone, ContentTypeHTML, false, nil},
-				{"inline-html@gpg.com", PGPInlinePackage, testPublicKeyRing, SignatureDetached, ContentTypeHTML, true, nil},
 			},
 			wantPackages: []*MessagePackage{
 				{
-					Addresses: map[string]*MessageAddress{ // TODO can this three be combined
+					Addresses: map[string]*MessageAddress{
 						"mime@gpg.com": {
 							Type:                   PGPMIMEPackage,
 							Signature:              SignatureDetached,
@@ -779,14 +699,8 @@ func TestSendReq(t *testing.T) {
 							Type:      ClearPackage,
 							Signature: SignatureNone,
 						},
-						"inline-html@gpg.com": {
-							Type:                          PGPInlinePackage,
-							Signature:                     SignatureDetached,
-							EncryptedBodyKeyPacket:        "non-empty",
-							EncryptedAttachmentKeyPackets: attKeyPackets,
-						},
 					},
-					Type:                    InternalPackage | ClearPackage | PGPInlinePackage,
+					Type:                    InternalPackage | ClearPackage,
 					MIMEType:                ContentTypeHTML,
 					EncryptedBody:           "non-empty",
 					DecryptedBodyKey:        AlgoKey{"non-empty", "non-empty"},
