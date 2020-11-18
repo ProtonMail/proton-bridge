@@ -291,7 +291,7 @@ func signAttachment(encrypter *crypto.KeyRing, data io.Reader) (signature io.Rea
 	return bytes.NewReader(sig.GetBinary()), nil
 }
 
-func createPackets(
+func encryptAndEncodeSessionKeys(
 	pubkey *crypto.KeyRing,
 	bodyKey *crypto.SessionKey,
 	attkeys map[string]*crypto.SessionKey,
@@ -315,7 +315,7 @@ func createPackets(
 	return
 }
 
-func encryptSymmetric(
+func encryptSymmDecryptKey(
 	kr *crypto.KeyRing,
 	textToEncrypt string,
 ) (decryptedKey *crypto.SessionKey, symEncryptedData []byte, err error) {

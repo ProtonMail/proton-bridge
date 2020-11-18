@@ -24,13 +24,14 @@ import (
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 )
 
+// Draft actions
 const (
 	DraftActionReply    = 0
 	DraftActionReplyAll = 1
 	DraftActionForward  = 2
 )
 
-// Message package types.
+// Message send package types.
 const (
 	InternalPackage         = 1
 	EncryptedOutsidePackage = 2
@@ -40,13 +41,14 @@ const (
 	ClearMIMEPackage        = 32
 )
 
-// Signature types.
+// Send signature types.
 const (
 	SignatureNone            = 0
 	SignatureDetached        = 1
 	SignatureAttachedArmored = 2
 )
 
+// DraftReq defines paylod for creating drafts
 type DraftReq struct {
 	Message              *Message
 	ParentID             string `json:",omitempty"`
@@ -77,19 +79,19 @@ type AlgoKey struct {
 }
 
 type MessageAddress struct {
-	Type                 int
-	BodyKeyPacket        string // base64-encoded key packet.
-	Signature            int    // 0 = None, 1 = Detached, 2 = Attached/Armored
-	AttachmentKeyPackets map[string]string
+	Type                          int
+	EncryptedBodyKeyPacket        string `json:"BodyKeyPacket"` // base64-encoded key packet.
+	Signature                     int
+	EncryptedAttachmentKeyPackets map[string]string `json:"AttachmentKeyPackets"`
 }
 
 type MessagePackage struct {
-	Addresses      map[string]*MessageAddress
-	Type           int
-	MIMEType       string
-	Body           string             // base64-encoded encrypted data packet.
-	BodyKey        AlgoKey            // base64-encoded session key (only if cleartext recipients).
-	AttachmentKeys map[string]AlgoKey // Only include if cleartext & attachments.
+	Addresses               map[string]*MessageAddress
+	Type                    int
+	MIMEType                string
+	EncryptedBody           string             `json:"Body"`           // base64-encoded encrypted data packet.
+	DecryptedBodyKey        AlgoKey            `json:"BodyKey"`        // base64-encoded session key (only if cleartext recipients).
+	DecryptedAttachmentKeys map[string]AlgoKey `json:"AttachmentKeys"` // Only include if cleartext & attachments.
 }
 
 func newMessagePackage(
@@ -97,32 +99,32 @@ func newMessagePackage(
 	attKeys map[string]AlgoKey,
 ) (pkg *MessagePackage) {
 	pkg = &MessagePackage{
-		Body:      base64.StdEncoding.EncodeToString(send.data),
-		Addresses: send.addressMap,
-		MIMEType:  send.contentType,
-		Type:      send.sharedScheme,
+		EncryptedBody: base64.StdEncoding.EncodeToString(send.ciphertext),
+		Addresses:     send.addressMap,
+		MIMEType:      send.contentType,
+		Type:          send.sharedScheme,
 	}
 
 	if send.sharedScheme&ClearPackage == ClearPackage ||
 		send.sharedScheme&ClearMIMEPackage == ClearMIMEPackage {
-		pkg.BodyKey.Key = send.key.GetBase64Key()
-		pkg.BodyKey.Algorithm = send.key.Algo
+		pkg.DecryptedBodyKey.Key = send.decryptedBodyKey.GetBase64Key()
+		pkg.DecryptedBodyKey.Algorithm = send.decryptedBodyKey.Algo
 	}
 
 	if attKeys != nil && send.sharedScheme&ClearPackage == ClearPackage {
-		pkg.AttachmentKeys = attKeys
+		pkg.DecryptedAttachmentKeys = attKeys
 	}
 
 	return pkg
 }
 
 type sendData struct {
-	key          *crypto.SessionKey //body session key
-	addressMap   map[string]*MessageAddress
-	sharedScheme int
-	data         []byte // ciphertext
-	body         string // cleartext
-	contentType  string
+	decryptedBodyKey *crypto.SessionKey //body session key
+	addressMap       map[string]*MessageAddress
+	sharedScheme     int
+	ciphertext       []byte
+	cleartext        string
+	contentType      string
 }
 
 type SendMessageReq struct {
@@ -148,9 +150,9 @@ func NewSendMessageReq(
 	req.plain.addressMap = make(map[string]*MessageAddress)
 	req.rich.addressMap = make(map[string]*MessageAddress)
 
-	req.mime.body = mimeBody
-	req.plain.body = plainBody
-	req.rich.body = richBody
+	req.mime.cleartext = mimeBody
+	req.plain.cleartext = plainBody
+	req.rich.cleartext = richBody
 
 	req.attKeys = attKeys
 	req.kr = kr
@@ -219,8 +221,8 @@ func (req *SendMessageReq) addNonMIMERecipient(
 		return errMultipartInNonMIME
 	}
 
-	if send.key == nil {
-		if send.key, send.data, err = encryptSymmetric(req.kr, send.body); err != nil {
+	if send.decryptedBodyKey == nil {
+		if send.decryptedBodyKey, send.ciphertext, err = encryptSymmDecryptKey(req.kr, send.cleartext); err != nil {
 			return err
 		}
 	}
@@ -237,7 +239,7 @@ func (req *SendMessageReq) addNonMIMERecipient(
 	}
 
 	if doEncrypt {
-		newAddress.BodyKeyPacket, newAddress.AttachmentKeyPackets, err = createPackets(pubkey, send.key, req.attKeys)
+		newAddress.EncryptedBodyKeyPacket, newAddress.EncryptedAttachmentKeyPackets, err = encryptAndEncodeSessionKeys(pubkey, send.decryptedBodyKey, req.attKeys)
 		if err != nil {
 			return err
 		}
@@ -254,8 +256,8 @@ func (req *SendMessageReq) addMIMERecipient(
 ) (err error) {
 
 	req.mime.contentType = ContentTypeMultipartMixed
-	if req.mime.key == nil {
-		if req.mime.key, req.mime.data, err = encryptSymmetric(req.kr, req.mime.body); err != nil {
+	if req.mime.decryptedBodyKey == nil {
+		if req.mime.decryptedBodyKey, req.mime.ciphertext, err = encryptSymmDecryptKey(req.kr, req.mime.cleartext); err != nil {
 			return err
 		}
 	}
@@ -267,11 +269,11 @@ func (req *SendMessageReq) addMIMERecipient(
 		// Attachment keys are not needed because attachments are part
 		// of MIME body and therefore attachments are encrypted with
 		// body session key.
-		mimeBodyPacket, _, err := createPackets(pubkey, req.mime.key, map[string]*crypto.SessionKey{})
+		mimeBodyPacket, _, err := encryptAndEncodeSessionKeys(pubkey, req.mime.decryptedBodyKey, map[string]*crypto.SessionKey{})
 		if err != nil {
 			return err
 		}
-		req.mime.addressMap[email] = &MessageAddress{Type: sendScheme, BodyKeyPacket: mimeBodyPacket, Signature: signature}
+		req.mime.addressMap[email] = &MessageAddress{Type: sendScheme, EncryptedBodyKeyPacket: mimeBodyPacket, Signature: signature}
 	} else {
 		req.mime.addressMap[email] = &MessageAddress{Type: sendScheme, Signature: signature}
 	}
