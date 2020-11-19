@@ -40,6 +40,7 @@ func TransferChecksFeatureContext(s *godog.Suite) {
 	s.Step(`^progress result is "([^"]*)"$`, progressFinishedWith)
 	s.Step(`^transfer exported (\d+) messages$`, transferExportedNumberOfMessages)
 	s.Step(`^transfer imported (\d+) messages$`, transferImportedNumberOfMessages)
+	s.Step(`^transfer skipped (\d+) messages$`, transferSkippedNumberOfMessages)
 	s.Step(`^transfer failed for (\d+) messages$`, transferFailedForNumberOfMessages)
 	s.Step(`^transfer exported messages$`, transferExportedMessages)
 	s.Step(`^exported messages match the original ones$`, exportedMessagesMatchTheOriginalOnes)
@@ -74,6 +75,13 @@ func transferImportedNumberOfMessages(wantCount int) error {
 	progress := ctx.GetTransferProgress()
 	counts := progress.GetCounts()
 	a.Equal(ctx.GetTestingT(), uint(wantCount), counts.Imported)
+	return ctx.GetTestingError()
+}
+
+func transferSkippedNumberOfMessages(wantCount int) error {
+	progress := ctx.GetTransferProgress()
+	counts := progress.GetCounts()
+	a.Equal(ctx.GetTestingT(), uint(wantCount), counts.Skipped)
 	return ctx.GetTestingError()
 }
 

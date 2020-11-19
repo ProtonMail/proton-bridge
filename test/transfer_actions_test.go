@@ -143,6 +143,7 @@ func doTransfer(bddUserID, bddAddressID string, rules *gherkin.DataTable, getTra
 	if err := setRules(transferrer, rules); err != nil {
 		return internalError(err, "failed to set rules")
 	}
+	transferrer.SetSkipEncryptedMessages(ctx.GetTransferSkipEncryptedMessages())
 	progress := transferrer.Start()
 	ctx.SetTransferProgress(progress)
 	return nil

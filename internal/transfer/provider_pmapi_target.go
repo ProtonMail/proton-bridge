@@ -124,6 +124,12 @@ func (p *PMAPIProvider) importDraft(msg Message, globalMailbox *Mailbox) (string
 		return "", errors.Wrap(err, "failed to parse message")
 	}
 
+	// Trying to encrypt an encrypted draft will return an error;
+	// users are forbidden to import messages encrypted with foreign keys to drafts.
+	if message.IsEncrypted() {
+		return "", errors.New("refusing to import draft encrypted by foreign key")
+	}
+
 	p.timeIt.start("encrypt", msg.ID)
 	err = message.Encrypt(p.keyRing, nil)
 	p.timeIt.stop("encrypt", msg.ID)
@@ -171,13 +177,12 @@ func (p *PMAPIProvider) importDraft(msg Message, globalMailbox *Mailbox) (string
 }
 
 func (p *PMAPIProvider) transferMessage(rules transferRules, progress *Progress, msg Message, preparedImportRequestsCh chan map[string]*pmapi.ImportMsgReq) {
-	importMsgReq, err := p.generateImportMsgReq(msg, rules.globalMailbox)
+	importMsgReq, err := p.generateImportMsgReq(rules, progress, msg)
 	if err != nil {
 		progress.messageImported(msg.ID, "", err)
 		return
 	}
-
-	if progress.shouldStop() {
+	if importMsgReq == nil || progress.shouldStop() {
 		return
 	}
 
@@ -191,17 +196,26 @@ func (p *PMAPIProvider) transferMessage(rules transferRules, progress *Progress,
 	p.nextImportRequestsSize += importMsgReqSize
 }
 
-func (p *PMAPIProvider) generateImportMsgReq(msg Message, globalMailbox *Mailbox) (*pmapi.ImportMsgReq, error) {
+func (p *PMAPIProvider) generateImportMsgReq(rules transferRules, progress *Progress, msg Message) (*pmapi.ImportMsgReq, error) {
 	message, attachmentReaders, err := p.parseMessage(msg)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to parse message")
 	}
 
-	p.timeIt.start("encrypt", msg.ID)
-	body, err := p.encryptMessage(message, attachmentReaders)
-	p.timeIt.stop("encrypt", msg.ID)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to encrypt message")
+	var body []byte
+	if message.IsEncrypted() {
+		if rules.skipEncryptedMessages {
+			progress.messageSkipped(msg.ID)
+			return nil, nil
+		}
+		body = msg.Body
+	} else {
+		p.timeIt.start("encrypt", msg.ID)
+		body, err = p.encryptMessage(message, attachmentReaders)
+		p.timeIt.stop("encrypt", msg.ID)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to encrypt message")
+		}
 	}
 
 	unread := 0
@@ -216,8 +230,8 @@ func (p *PMAPIProvider) generateImportMsgReq(msg Message, globalMailbox *Mailbox
 			labelIDs = append(labelIDs, target.ID)
 		}
 	}
-	if globalMailbox != nil {
-		labelIDs = append(labelIDs, globalMailbox.ID)
+	if rules.globalMailbox != nil {
+		labelIDs = append(labelIDs, rules.globalMailbox.ID)
 	}
 
 	return &pmapi.ImportMsgReq{

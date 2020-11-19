@@ -49,7 +49,7 @@ type transferRules struct {
 	globalToTime   int64
 
 	// skipEncryptedMessages determines whether message which cannot
-	// be decrypted should be exported or skipped.
+	// be decrypted should be imported/exported or skipped.
 	skipEncryptedMessages bool
 }
 

@@ -73,7 +73,7 @@ func (f *FrontendQt) loadStructuresForImport() error {
 	return nil
 }
 
-func (f *FrontendQt) StartImport(email string) { // TODO email not needed
+func (f *FrontendQt) StartImport(email string, importEncrypted bool) { // TODO email not needed
 	log.Trace("Starting import")
 
 	f.Qml.SetProgressDescription("init") // TODO use const
@@ -84,6 +84,7 @@ func (f *FrontendQt) StartImport(email string) { // TODO email not needed
 	f.Qml.SetTotal(1)
 	f.Qml.SetImportLogFileName("")
 
+	f.transfer.SetSkipEncryptedMessages(!importEncrypted)
 	progress := f.transfer.Start()
 
 	f.Qml.SetImportLogFileName(progress.FileReport())

@@ -41,6 +41,7 @@ func TransferSetupFeatureContext(s *godog.Suite) {
 	s.Step(`^there are IMAP mailboxes$`, thereAreIMAPMailboxes)
 	s.Step(`^there are IMAP messages$`, thereAreIMAPMessages)
 	s.Step(`^there is IMAP message in mailbox "([^"]*)" with seq (\d+), uid (\d+), time "([^"]*)" and subject "([^"]*)"$`, thereIsIMAPMessage)
+	s.Step(`^there is skip encrypted messages set to "([^"]*)"$`, thereIsSkipEncryptedMessagesSetTo)
 }
 
 func thereAreEMLFiles(messages *gherkin.DataTable) error {
@@ -258,4 +259,16 @@ func createFile(fileName, body string) error {
 
 	_, err = f.WriteString(body)
 	return internalError(err, "failed to write to file")
+}
+
+func thereIsSkipEncryptedMessagesSetTo(value string) error {
+	switch value {
+	case "true":
+		ctx.SetTransferSkipEncryptedMessages(true)
+	case "false":
+		ctx.SetTransferSkipEncryptedMessages(false)
+	default:
+		return fmt.Errorf("expected either true or false, was %v", value)
+	}
+	return nil
 }

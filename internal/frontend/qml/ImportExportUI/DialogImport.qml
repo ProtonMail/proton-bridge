@@ -355,6 +355,25 @@ Dialog {
             InlineLabelSelect {
                 id: globalLabels
             }
+
+            Row {
+                spacing: Style.dialog.spacing
+                CheckBoxLabel {
+                    id: importEncrypted
+                    text: qsTr("Import encrypted emails as they are")
+                    anchors {
+                        bottom: parent.bottom
+                        bottomMargin: Style.dialog.fontSize/1.8
+                    }
+                }
+
+                InfoToolTip {
+                    anchors {
+                        verticalCenter: importEncrypted.verticalCenter
+                    }
+                    info: qsTr("When this option is enabled, encrypted emails will be imported as ciphertext. Otherwise, such messages will be skipped.", "todo")
+                }
+            }
         }
 
         // Buttons
@@ -1018,7 +1037,7 @@ Dialog {
                 )
                 break
                 case DialogImport.Page.Progress:
-                go.startImport(root.address)
+                go.startImport(root.address, importEncrypted.checked)
                 break
             }
         }

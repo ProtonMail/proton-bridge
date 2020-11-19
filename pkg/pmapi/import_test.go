@@ -127,7 +127,7 @@ func TestClient_Import(t *testing.T) { // nolint[funlen]
 			t.Error("Expected no error while reading second part body, got:", err)
 		}
 
-		if string(b) != string(testImportReqs[0].Body) {
+		if string(b) != string(testImportReqs[0].Body)+"\r\n" {
 			t.Errorf("Invalid message body: expected %v but got %v", string(testImportReqs[0].Body), string(b))
 		}
 

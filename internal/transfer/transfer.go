@@ -90,7 +90,7 @@ func (t *Transfer) setDefaultRules() error {
 }
 
 // SetSkipEncryptedMessages sets whether message which cannot be decrypted
-// should be exported or skipped.
+// should be imported/exported or skipped.
 func (t *Transfer) SetSkipEncryptedMessages(skip bool) {
 	t.rules.setSkipEncryptedMessages(skip)
 }

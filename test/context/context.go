@@ -68,10 +68,11 @@ type TestContext struct {
 	smtpLastResponses map[string]*mocks.SMTPResponse
 
 	// Transfer related variables.
-	transferLocalRootForImport string
-	transferLocalRootForExport string
-	transferRemoteIMAPServer   *mocks.IMAPServer
-	transferProgress           *transfer.Progress
+	transferLocalRootForImport    string
+	transferLocalRootForExport    string
+	transferRemoteIMAPServer      *mocks.IMAPServer
+	transferProgress              *transfer.Progress
+	transferSkipEncryptedMessages bool
 
 	// Store releated variables.
 	bddMessageIDsToAPIIDs map[string]string

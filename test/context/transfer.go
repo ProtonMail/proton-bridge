@@ -37,6 +37,16 @@ func (ctx *TestContext) GetTransferProgress() *transfer.Progress {
 	return ctx.transferProgress
 }
 
+// SetTransferSkipEncryptedMessages sets whether encrypted messages will be skipped.
+func (ctx *TestContext) SetTransferSkipEncryptedMessages(value bool) {
+	ctx.transferSkipEncryptedMessages = value
+}
+
+// GetTransferSkipEncryptedMessages gets whether encrypted messages will be skipped.
+func (ctx *TestContext) GetTransferSkipEncryptedMessages() bool {
+	return ctx.transferSkipEncryptedMessages
+}
+
 // GetTransferLocalRootForImport creates temporary root for importing
 // if it not exists yet, and returns its path.
 func (ctx *TestContext) GetTransferLocalRootForImport() string {

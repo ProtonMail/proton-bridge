@@ -253,6 +253,10 @@ func (m *Message) HasLabelID(labelID string) bool {
 	return false
 }
 
+func (m *Message) IsEncrypted() bool {
+	return strings.HasPrefix(m.Header.Get("Content-Type"), "multipart/encrypted") || m.IsBodyEncrypted()
+}
+
 func (m *Message) IsBodyEncrypted() bool {
 	trimmedBody := strings.TrimSpace(m.Body)
 	return strings.HasPrefix(trimmedBody, MessageHeader) &&

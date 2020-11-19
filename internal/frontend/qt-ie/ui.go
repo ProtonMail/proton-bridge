@@ -95,7 +95,7 @@ type GoQMLInterface struct {
 	_ func() string                                                                        `slot:"leastUsedColor"`
 	_ func(username string, name string, color string, isLabel bool, sourceID string) bool `slot:"createLabelOrFolder"`
 	_ func(fpath, address, fileType string, attachEncryptedBody bool)                      `slot:"startExport"`
-	_ func(email string)                                                                   `slot:"startImport"`
+	_ func(email string, importEncrypted bool)                                             `slot:"startImport"`
 	_ func()                                                                               `slot:"resetSource"`
 
 	_ func(isFromIMAP bool, sourcePath, sourceEmail, sourcePassword, sourceServe, sourcePort, targetAddress string) `slot:"setupAndLoadForImport"`
