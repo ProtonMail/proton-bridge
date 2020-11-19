@@ -36,11 +36,31 @@ type recipient struct {
 }
 
 type testData struct {
+	emails       []string
 	recipients   []recipient
 	wantPackages []*MessagePackage
 
+	allRecipients map[string]recipient
+	allAddresses  map[string]*MessageAddress
+
 	attKeys                       map[string]*crypto.SessionKey
 	mimeBody, plainBody, richBody string
+}
+
+func (td *testData) addRecipients() {
+	for _, email := range td.emails {
+		rcp := td.allRecipients[email]
+		rcp.email = email
+		td.recipients = append(td.recipients, rcpt)
+	}
+}
+
+func (td *testData) addAddresses() {
+	for i, wantPackage := range td.wantPackages {
+		for email := range wantPackage.Addresses {
+			td.wantPackages[i].Addresses[email] = td.allAddresses[email]
+		}
+	}
 }
 
 func (td *testData) prepareAndCheck(t *testing.T) {
@@ -132,6 +152,43 @@ func TestSendReq(t *testing.T) {
 	attKey := crypto.NewSessionKeyFromToken(token, "aes256")
 	attKeyPackets := map[string]string{"attID": "not-empty"}
 	attAlgoKeys := map[string]AlgoKey{"attID": {"not-empty", "not-empty"}}
+
+	allRecipients := map[string]recipient{
+		"none@pm.me": {"", InternalPackage, testPublicKeyRing, SignatureDetached, "", true, nil},
+		"html@pm.me": {"", InternalPackage, testPublicKeyRing, SignatureDetached, ContentTypeHTML, true, nil},
+	}
+
+	allAddresses := map[string]*MessageAddress{
+		"html@pm.me": {
+			Type:                          InternalPackage,
+			Signature:                     SignatureDetached,
+			EncryptedBodyKeyPacket:        "not-empty",
+			EncryptedAttachmentKeyPackets: attKeyPackets,
+		},
+		"none@pm.me": {
+			Type:                          InternalPackage,
+			Signature:                     SignatureDetached,
+			EncryptedBodyKeyPacket:        "not-empty",
+			EncryptedAttachmentKeyPackets: attKeyPackets,
+		},
+	}
+
+	newTests := map[string]testData{
+		"SingleInternalHTML": {
+			emails: []string{"none@pm.me", "html@pm.me"},
+			wantPackages: []*MessagePackage{
+				{
+					Addresses: map[string]*MessageAddress{
+						"none@pm.me": nil,
+						"html@pm.me": nil,
+					},
+					Type:          InternalPackage,
+					MIMEType:      ContentTypeHTML,
+					EncryptedBody: "non-empty",
+				},
+			},
+		},
+	}
 
 	// NOTE naming
 	// Single: there should be one package
@@ -710,10 +767,16 @@ func TestSendReq(t *testing.T) {
 		},
 	}
 
-	for name, test := range tests {
+	for name, test := range newTests {
 		test.mimeBody = "Mime body"
 		test.plainBody = "Plain body"
 		test.richBody = "HTML body"
+		test.allRecipients = allRecipients
+		test.allAddresses = allAddresses
+
+		test.addRecipients()
+		test.addAddresses()
+
 		t.Run("NoAtt"+name, test.prepareAndCheck)
 		test.attKeys = map[string]*crypto.SessionKey{"attID": attKey}
 		t.Run("Att"+name, test.prepareAndCheck)
