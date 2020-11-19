@@ -20,7 +20,7 @@ require (
 	github.com/ProtonMail/go-imap-id v0.0.0-20190926060100-f94a56b9ecde
 	github.com/ProtonMail/go-rfc5322 v0.5.0
 	github.com/ProtonMail/go-vcard v0.0.0-20180326232728-33aaa0a0c8a5
-	github.com/ProtonMail/gopenpgp/v2 v2.0.1
+	github.com/ProtonMail/gopenpgp/v2 v2.1.3
 	github.com/PuerkitoBio/goquery v1.5.1
 	github.com/abiosoft/ishell v2.0.0+incompatible
 	github.com/abiosoft/readline v0.0.0-20180607040430-155bce2042db // indirect
@@ -49,7 +49,6 @@ require (
 	github.com/gopherjs/gopherjs v0.0.0-20190430165422-3e4dfb77656c // indirect
 	github.com/hashicorp/go-multierror v1.1.0
 	github.com/jaytaylor/html2text v0.0.0-20200412013138-3577fbdbcff7
-	github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0 // indirect
 	github.com/keybase/go-keychain v0.0.0-20200502122510-cda31fe0c86d
 	github.com/logrusorgru/aurora v2.0.3+incompatible
 	github.com/mattn/go-runewidth v0.0.9 // indirect
@@ -63,8 +62,6 @@ require (
 	github.com/ssor/bom v0.0.0-20170718123548-6386211fdfcf // indirect
 	github.com/stretchr/testify v1.6.1
 	github.com/therecipe/qt v0.0.0-20200701200531-7f61353ee73e
-	github.com/therecipe/qt/internal/binding/files/docs/5.12.0 v0.0.0-20200904063919-c0c124a5770d // indirect
-	github.com/therecipe/qt/internal/binding/files/docs/5.13.0 v0.0.0-20200904063919-c0c124a5770d // indirect
 	github.com/twinj/uuid v1.0.0 // indirect
 	github.com/urfave/cli/v2 v2.2.0
 	go.etcd.io/bbolt v1.3.5
@@ -77,5 +74,5 @@ replace (
 	github.com/docker/docker-credential-helpers => github.com/ProtonMail/docker-credential-helpers v1.1.0
 	github.com/emersion/go-imap => github.com/ProtonMail/go-imap v0.0.0-20201228133358-4db68cea0cac
 	github.com/jameskeane/bcrypt => github.com/ProtonMail/bcrypt v0.0.0-20170924085257-7509ea014998
-	golang.org/x/crypto => github.com/ProtonMail/crypto v0.0.0-20200818122824-ed5d25e28db8
+	golang.org/x/crypto => github.com/ProtonMail/crypto v0.0.0-20201112115411-41db4ea0dd1c
 )
