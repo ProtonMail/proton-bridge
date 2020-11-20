@@ -56,6 +56,10 @@ func Main(appName, usage string, extraFlags []cli.Flag, run func(*cli.Context) e
 		Release: constants.Revision,
 	})
 
+	sentry.ConfigureScope(func(scope *sentry.Scope) {
+		scope.SetFingerprint([]string{"{{ default }}"})
+	})
+
 	if err != nil {
 		log.WithError(err).Errorln("Can not setup sentry DSN")
 	}
