@@ -31,21 +31,38 @@ const (
 	DraftActionForward  = 2
 )
 
-// Message send package types.
+// PackageFlag for send message package types
+type PackageFlag int
+
+func (p *PackageFlag) Has(flag PackageFlag) bool { return iHasFlag(int(*p), int(flag)) }
+func (p *PackageFlag) HasAtLeastOne(flag PackageFlag) bool {
+	return iHasAtLeastOneFlag(int(*p), int(flag))
+}
+func (p *PackageFlag) Is(flag PackageFlag) bool    { return iIsFlag(int(*p), int(flag)) }
+func (p *PackageFlag) HasNo(flag PackageFlag) bool { return iHasNoneOfFlag(int(*p), int(flag)) }
+
+// Send message package types.
 const (
-	InternalPackage         = 1
-	EncryptedOutsidePackage = 2
-	ClearPackage            = 4
-	PGPInlinePackage        = 8
-	PGPMIMEPackage          = 16
-	ClearMIMEPackage        = 32
+	InternalPackage         = PackageFlag(1)
+	EncryptedOutsidePackage = PackageFlag(2)
+	ClearPackage            = PackageFlag(4)
+	PGPInlinePackage        = PackageFlag(8)
+	PGPMIMEPackage          = PackageFlag(16)
+	ClearMIMEPackage        = PackageFlag(32)
 )
+
+// SignatureFlag for send signature types.
+type SignatureFlag int
+
+func (p *SignatureFlag) Is(flag SignatureFlag) bool    { return iIsFlag(int(*p), int(flag)) }
+func (p *SignatureFlag) Has(flag SignatureFlag) bool   { return iHasFlag(int(*p), int(flag)) }
+func (p *SignatureFlag) HasNo(flag SignatureFlag) bool { return iHasNoneOfFlag(int(*p), int(flag)) }
 
 // Send signature types.
 const (
-	SignatureNone            = 0
-	SignatureDetached        = 1
-	SignatureAttachedArmored = 2
+	SignatureNone            = SignatureFlag(0)
+	SignatureDetached        = SignatureFlag(1)
+	SignatureAttachedArmored = SignatureFlag(2)
 )
 
 // DraftReq defines paylod for creating drafts
@@ -79,15 +96,15 @@ type AlgoKey struct {
 }
 
 type MessageAddress struct {
-	Type                          int
+	Type                          PackageFlag
 	EncryptedBodyKeyPacket        string `json:"BodyKeyPacket"` // base64-encoded key packet.
-	Signature                     int
+	Signature                     SignatureFlag
 	EncryptedAttachmentKeyPackets map[string]string `json:"AttachmentKeyPackets"`
 }
 
 type MessagePackage struct {
 	Addresses               map[string]*MessageAddress
-	Type                    int
+	Type                    PackageFlag
 	MIMEType                string
 	EncryptedBody           string             `json:"Body"`           // base64-encoded encrypted data packet.
 	DecryptedBodyKey        AlgoKey            `json:"BodyKey"`        // base64-encoded session key (only if cleartext recipients).
@@ -105,13 +122,12 @@ func newMessagePackage(
 		Type:          send.sharedScheme,
 	}
 
-	if send.sharedScheme&ClearPackage == ClearPackage ||
-		send.sharedScheme&ClearMIMEPackage == ClearMIMEPackage {
+	if send.sharedScheme.HasAtLeastOne(ClearPackage | ClearMIMEPackage) {
 		pkg.DecryptedBodyKey.Key = send.decryptedBodyKey.GetBase64Key()
 		pkg.DecryptedBodyKey.Algorithm = send.decryptedBodyKey.Algo
 	}
 
-	if attKeys != nil && send.sharedScheme&ClearPackage == ClearPackage {
+	if len(attKeys) != 0 && send.sharedScheme.Has(ClearPackage) {
 		pkg.DecryptedAttachmentKeys = attKeys
 	}
 
@@ -121,7 +137,7 @@ func newMessagePackage(
 type sendData struct {
 	decryptedBodyKey *crypto.SessionKey //body session key
 	addressMap       map[string]*MessageAddress
-	sharedScheme     int
+	sharedScheme     PackageFlag
 	ciphertext       []byte
 	cleartext        string
 	contentType      string
@@ -161,30 +177,30 @@ func NewSendMessageReq(
 }
 
 var (
-	errUnknownContentType  = errors.New("unknown content type")
-	errMultipartInNonMIME  = errors.New("multipart mixed not allowed in this scheme")
-	errAttSignNotSupported = errors.New("attached signature not supported")
-	errEncryptMustSign     = errors.New("encrypted package must be signed")
-	errEONotSupported      = errors.New("encrypted outside is not supported")
-	errWrongSendScheme     = errors.New("wrong send scheme")
-	errInternalMustEncrypt = errors.New("internal package must be encrypted")
-	errInlineMustEncrypt   = errors.New("PGP Inline package must be encrypted")
-	errInlineMustBePlain   = errors.New("PGP Inline package must be plain text")
-	errMissingPubkey       = errors.New("cannot encrypt body key packet: missing pubkey")
-	errSignMustBeMultipart = errors.New("clear signed html packet must be multipart")
-	errMIMEMustBeMultipart = errors.New("MIME packet must be multipart")
+	errUnknownContentType           = errors.New("unknown content type")
+	errMultipartInNonMIME           = errors.New("multipart mixed not allowed in this scheme")
+	errAttSignNotSupported          = errors.New("attached signature not supported")
+	errEncryptMustSign              = errors.New("encrypted package must be signed")
+	errEncryptedOutsideNotSupported = errors.New("encrypted outside is not supported")
+	errWrongSendScheme              = errors.New("wrong send scheme")
+	errInternalMustEncrypt          = errors.New("internal package must be encrypted")
+	errInlineMustEncrypt            = errors.New("PGP Inline package must be encrypted")
+	errInlineMustBePlain            = errors.New("PGP Inline package must be plain text")
+	errMissingPubkey                = errors.New("cannot encrypt body key packet: missing pubkey")
+	errSignMustBeMultipart          = errors.New("clear signed html packet must be multipart")
+	errMIMEMustBeMultipart          = errors.New("MIME packet must be multipart")
 )
 
 func (req *SendMessageReq) AddRecipient(
-	email string, sendScheme int,
-	pubkey *crypto.KeyRing, signature int,
+	email string, sendScheme PackageFlag,
+	pubkey *crypto.KeyRing, signature SignatureFlag,
 	contentType string, doEncrypt bool,
 ) (err error) {
-	if signature == SignatureAttachedArmored {
+	if signature.Has(SignatureAttachedArmored) {
 		return errAttSignNotSupported
 	}
 
-	if doEncrypt && signature != SignatureDetached {
+	if doEncrypt && signature.HasNo(SignatureDetached) {
 		return errEncryptMustSign
 	}
 
@@ -197,19 +213,19 @@ func (req *SendMessageReq) AddRecipient(
 	case InternalPackage, ClearPackage, PGPInlinePackage:
 		return req.addNonMIMERecipient(email, sendScheme, pubkey, signature, contentType, doEncrypt)
 	case EncryptedOutsidePackage:
-		return errEONotSupported
+		return errEncryptedOutsideNotSupported
 	default:
 		return errWrongSendScheme
 	}
 }
 
 func (req *SendMessageReq) addNonMIMERecipient(
-	email string, sendScheme int,
-	pubkey *crypto.KeyRing, signature int,
+	email string, sendScheme PackageFlag,
+	pubkey *crypto.KeyRing, signature SignatureFlag,
 	contentType string, doEncrypt bool,
 ) (err error) {
-	if sendScheme == ClearPackage &&
-		signature == SignatureDetached &&
+	if sendScheme.Is(ClearPackage) &&
+		signature.Is(SignatureDetached) &&
 		contentType == ContentTypeHTML {
 		return errSignMustBeMultipart
 	}
@@ -236,13 +252,13 @@ func (req *SendMessageReq) addNonMIMERecipient(
 	}
 	newAddress := &MessageAddress{Type: sendScheme, Signature: signature}
 
-	if sendScheme == PGPInlinePackage && !doEncrypt {
+	if sendScheme.Is(PGPInlinePackage) && !doEncrypt {
 		return errInlineMustEncrypt
 	}
-	if sendScheme == PGPInlinePackage && contentType == ContentTypeHTML {
+	if sendScheme.Is(PGPInlinePackage) && contentType == ContentTypeHTML {
 		return errInlineMustBePlain
 	}
-	if sendScheme == InternalPackage && !doEncrypt {
+	if sendScheme.Is(InternalPackage) && !doEncrypt {
 		return errInternalMustEncrypt
 	}
 	if doEncrypt && pubkey == nil {
@@ -262,8 +278,8 @@ func (req *SendMessageReq) addNonMIMERecipient(
 }
 
 func (req *SendMessageReq) addMIMERecipient(
-	email string, sendScheme int,
-	pubkey *crypto.KeyRing, signature int,
+	email string, sendScheme PackageFlag,
+	pubkey *crypto.KeyRing, signature SignatureFlag,
 ) (err error) {
 	req.mime.contentType = ContentTypeMultipartMixed
 	if req.mime.decryptedBodyKey == nil {
@@ -272,7 +288,7 @@ func (req *SendMessageReq) addMIMERecipient(
 		}
 	}
 
-	if sendScheme == PGPMIMEPackage {
+	if sendScheme.Is(PGPMIMEPackage) {
 		if pubkey == nil {
 			return errMissingPubkey
 		}

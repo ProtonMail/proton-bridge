@@ -283,7 +283,7 @@ func (su *smtpUser) Send(from string, to []string, messageReader io.Reader) (err
 			return err
 		}
 
-		var signature int
+		var signature pmapi.SignatureFlag
 		if sendPreferences.Sign {
 			signature = pmapi.SignatureDetached
 		} else {

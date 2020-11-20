@@ -41,7 +41,7 @@ func TestPreferencesBuilder(t *testing.T) {
 
 		wantEncrypt   bool
 		wantSign      bool
-		wantScheme    int
+		wantScheme    pmapi.PackageFlag
 		wantMIMEType  string
 		wantPublicKey string
 	}{

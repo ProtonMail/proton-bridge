@@ -27,9 +27,9 @@ import (
 
 type recipient struct {
 	email       string
-	sendScheme  int
+	sendScheme  PackageFlag
 	pubkey      *crypto.KeyRing
-	signature   int
+	signature   SignatureFlag
 	contentType string
 	doEncrypt   bool
 	wantError   error
@@ -181,6 +181,7 @@ func TestSendReq(t *testing.T) {
 		"mime@gpg.com":  {"", PGPMIMEPackage, testPublicKeyRing, SignatureDetached, ContentTypeMultipartMixed, true, nil},
 		"plain@gpg.com": {"", PGPInlinePackage, testPublicKeyRing, SignatureDetached, ContentTypePlainText, true, nil},
 		// External Encryption bad
+		"eo@gpg.com":           {"", EncryptedOutsidePackage, testPublicKeyRing, SignatureDetached, ContentTypeHTML, true, errEncryptedOutsideNotSupported},
 		"inline-html@gpg.com":  {"", PGPInlinePackage, testPublicKeyRing, SignatureDetached, ContentTypeHTML, true, errInlineMustBePlain},
 		"inline-mixed@gpg.com": {"", PGPInlinePackage, testPublicKeyRing, SignatureDetached, ContentTypeMultipartMixed, true, errMultipartInNonMIME},
 		"inline-clear@gpg.com": {"", PGPInlinePackage, nil, SignatureDetached, ContentTypePlainText, false, errInlineMustEncrypt},
@@ -278,6 +279,7 @@ func TestSendReq(t *testing.T) {
 				"mime-plain@email.com",
 				"mime-html@email.com",
 
+				"eo@gpg.com",
 				"inline-html@gpg.com",
 				"inline-mixed@gpg.com",
 				"inline-clear@gpg.com",

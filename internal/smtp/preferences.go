@@ -45,7 +45,7 @@ type SendPreferences struct {
 	// internal emails (including the so-called encrypted-to-outside emails,
 	// which even though meant for external users, they don't really get out of
 	// our platform). If the email is sent unencrypted, no PGP scheme is needed.
-	Scheme int
+	Scheme pmapi.PackageFlag
 
 	// MIMEType is the MIME type to use for formatting the body of the email
 	// (before encryption/after decryption). The standard possibilities are the
