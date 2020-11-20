@@ -1,29 +1,29 @@
 Feature: SMTP auth
   Scenario: Ask EHLO
     Given there is connected user "user"
-    When SMTP client sends EHLO
+    When SMTP client sends "EHLO example.com"
     Then SMTP response is "OK"
 
   Scenario: Authenticates successfully and EHLO successfully
     Given there is connected user "user"
     When SMTP client authenticates "user"
     Then SMTP response is "OK"
-    When SMTP client sends EHLO
+    When SMTP client sends "EHLO example.com"
     Then SMTP response is "OK"
 
   Scenario: Authenticates with bad password
     Given there is connected user "user"
     When SMTP client authenticates "user" with bad password
-    Then SMTP response is "SMTP error: 454 backend/credentials: incorrect password"
+    Then SMTP response is "SMTP error: 454 4.7.0 backend/credentials: incorrect password"
 
   Scenario: Authenticates with disconnected user
     Given there is disconnected user "user"
     When SMTP client authenticates "user"
-    Then SMTP response is "SMTP error: 454 account is logged out, use the app to login again"
+    Then SMTP response is "SMTP error: 454 4.7.0 account is logged out, use the app to login again"
 
   Scenario: Authenticates with no user
     When SMTP client authenticates with username "user@pm.me" and password "bridgepassword"
-    Then SMTP response is "SMTP error: 454 user user@pm.me not found"
+    Then SMTP response is "SMTP error: 454 4.7.0 user user@pm.me not found"
 
   Scenario: Authenticates with capital letter
     Given there is connected user "userAddressWithCapitalLetter"
@@ -43,7 +43,7 @@ Feature: SMTP auth
   Scenario: Authenticates with more addresses - disabled address
     Given there is connected user "userMoreAddresses"
     When SMTP client authenticates "userMoreAddresses" with address "disabled"
-    Then SMTP response is "SMTP error: 454 user .* not found"
+    Then SMTP response is "SMTP error: 454 4.7.0 user .* not found"
 
   @ignore-live
   Scenario: Authenticates with secondary address of account with disabled primary address

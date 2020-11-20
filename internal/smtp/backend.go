@@ -27,6 +27,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/pkg/confirmer"
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
 	goSMTPBackend "github.com/emersion/go-smtp"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )
 
@@ -70,7 +71,7 @@ func newSMTPBackend(
 }
 
 // Login authenticates a user.
-func (sb *smtpBackend) Login(username, password string) (goSMTPBackend.User, error) {
+func (sb *smtpBackend) Login(_ *goSMTPBackend.ConnectionState, username, password string) (goSMTPBackend.Session, error) {
 	// Called from go-smtp in goroutines - we need to handle panics for each function.
 	defer sb.panicHandler.HandlePanic()
 	username = strings.ToLower(username)
@@ -97,7 +98,14 @@ func (sb *smtpBackend) Login(username, password string) (goSMTPBackend.User, err
 	if user.IsCombinedAddressMode() {
 		addressID = ""
 	}
-	return newSMTPUser(sb.panicHandler, sb.eventListener, sb, user, addressID)
+	return newSMTPUser(sb.panicHandler, sb.eventListener, sb, user, username, addressID)
+}
+
+func (sb *smtpBackend) AnonymousLogin(_ *goSMTPBackend.ConnectionState) (goSMTPBackend.Session, error) {
+	// Called from go-smtp in goroutines - we need to handle panics for each function.
+	defer sb.panicHandler.HandlePanic()
+
+	return nil, errors.New("anonymous login not supported")
 }
 
 func (sb *smtpBackend) shouldReportOutgoingNoEnc() bool {

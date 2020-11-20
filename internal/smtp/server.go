@@ -51,12 +51,12 @@ func NewSMTPServer(debug bool, port int, useSSL bool, tls *tls.Config, smtpBacke
 
 	s.EnableAuth(sasl.Login, func(conn *goSMTP.Conn) sasl.Server {
 		return sasl.NewLoginServer(func(address, password string) error {
-			user, err := conn.Server().Backend.Login(address, password)
+			user, err := conn.Server().Backend.Login(nil, address, password)
 			if err != nil {
 				return err
 			}
 
-			conn.SetUser(user)
+			conn.SetSession(user)
 			return nil
 		})
 	})
@@ -85,14 +85,16 @@ func (s *smtpServer) ListenAndServe() {
 		l.Error("SMTP failed: ", err)
 		return
 	}
-	defer s.server.Close()
+	defer s.server.Close() //nolint[errcheck]
 
 	l.Info("SMTP server stopped")
 }
 
 // Stops the server.
 func (s *smtpServer) Close() {
-	s.server.Close()
+	if err := s.server.Close(); err != nil {
+		log.WithError(err).Error("Failed to close the connection")
+	}
 }
 
 func (s *smtpServer) monitorDisconnectedUsers() {
@@ -102,9 +104,11 @@ func (s *smtpServer) monitorDisconnectedUsers() {
 	for address := range ch {
 		log.Info("Disconnecting all open SMTP connections for ", address)
 		disconnectUser := func(conn *goSMTP.Conn) {
-			connUser := conn.User()
+			connUser := conn.Session()
 			if connUser != nil {
-				_ = conn.Close()
+				if err := conn.Close(); err != nil {
+					log.WithError(err).Error("Failed to close the connection")
+				}
 			}
 		}
 		s.server.ForEachConn(disconnectUser)

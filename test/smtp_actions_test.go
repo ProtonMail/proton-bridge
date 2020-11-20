@@ -33,10 +33,10 @@ func SMTPActionsAuthFeatureContext(s *godog.Suite) {
 	s.Step(`^SMTP client authenticates with username "([^"]*)" and password "([^"]*)"$`, smtpClientAuthenticatesWithUsernameAndPassword)
 	s.Step(`^SMTP client logs out$`, smtpClientLogsOut)
 	s.Step(`^SMTP client sends message$`, smtpClientSendsMessage)
-	s.Step(`^SMTP client sends EHLO$`, smtpClientSendsEHLO)
 	s.Step(`^SMTP client "([^"]*)" sends message$`, smtpClientNamedSendsMessage)
 	s.Step(`^SMTP client sends message with bcc "([^"]*)"$`, smtpClientSendsMessageWithBCC)
 	s.Step(`^SMTP client "([^"]*)" sends message with bcc "([^"]*)"$`, smtpClientNamedSendsMessageWithBCC)
+	s.Step(`^SMTP client sends "([^"]*)"$`, smtpClientSendsCommand)
 }
 
 func smtpClientAuthenticates(bddUserID string) error {
@@ -93,12 +93,6 @@ func smtpClientSendsMessage(message *gherkin.DocString) error {
 	return smtpClientNamedSendsMessage("smtp", message)
 }
 
-func smtpClientSendsEHLO() error {
-	res := ctx.GetSMTPClient("smtp").SendCommands("EHLO ateist.test")
-	ctx.SetSMTPLastResponse("smtp", res)
-	return nil
-}
-
 func smtpClientNamedSendsMessage(clientID string, message *gherkin.DocString) error {
 	return smtpClientNamedSendsMessageWithBCC(clientID, "", message)
 }
@@ -110,5 +104,13 @@ func smtpClientSendsMessageWithBCC(bcc string, message *gherkin.DocString) error
 func smtpClientNamedSendsMessageWithBCC(clientID, bcc string, message *gherkin.DocString) error {
 	res := ctx.GetSMTPClient(clientID).SendMail(strings.NewReader(message.Content), bcc)
 	ctx.SetSMTPLastResponse(clientID, res)
+	return nil
+}
+
+func smtpClientSendsCommand(command string) error {
+	command = strings.ReplaceAll(command, "\\r", "\r")
+	command = strings.ReplaceAll(command, "\\n", "\n")
+	res := ctx.GetSMTPClient("smtp").SendCommands(command)
+	ctx.SetSMTPLastResponse("smtp", res)
 	return nil
 }

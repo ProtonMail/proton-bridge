@@ -38,4 +38,4 @@ Feature: SMTP wrong messages
 
 
       """
-    Then SMTP response is "SMTP error: 554 Error: transaction failed, blame it on the weather: failed to create new parser: unexpected EOF"
+    Then SMTP response is "SMTP error: 554 5.0.0 Error: transaction failed, blame it on the weather: failed to create new parser: unexpected EOF"

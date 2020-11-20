@@ -126,7 +126,9 @@ func (s *imapServer) ListenAndServe() {
 
 // Stops the server.
 func (s *imapServer) Close() {
-	_ = s.server.Close()
+	if err := s.server.Close(); err != nil {
+		log.WithError(err).Error("Failed to close the connection")
+	}
 }
 
 func (s *imapServer) monitorDisconnectedUsers() {
@@ -139,7 +141,9 @@ func (s *imapServer) monitorDisconnectedUsers() {
 		disconnectUser := func(conn imapserver.Conn) {
 			connUser := conn.Context().User
 			if connUser != nil && strings.EqualFold(connUser.Username(), address) {
-				_ = conn.Close()
+				if err := conn.Close(); err != nil {
+					log.WithError(err).Error("Failed to close the connection")
+				}
 			}
 		}
 		s.server.ForEachConn(disconnectUser)

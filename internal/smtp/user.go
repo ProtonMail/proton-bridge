@@ -44,7 +44,11 @@ type smtpUser struct {
 	backend       *smtpBackend
 	user          bridgeUser
 	storeUser     storeUserProvider
+	username      string
 	addressID     string
+
+	from string
+	to   []string
 }
 
 // newSMTPUser returns struct implementing go-smtp/session interface.
@@ -53,8 +57,9 @@ func newSMTPUser(
 	eventListener listener.Listener,
 	smtpBackend *smtpBackend,
 	user bridgeUser,
+	username string,
 	addressID string,
-) (goSMTPBackend.User, error) {
+) (goSMTPBackend.Session, error) {
 	storeUser := user.GetStore()
 	if storeUser == nil {
 		return nil, errors.New("user database is not initialized")
@@ -66,6 +71,7 @@ func newSMTPUser(
 		backend:       smtpBackend,
 		user:          user,
 		storeUser:     storeUser,
+		username:      username,
 		addressID:     addressID,
 	}, nil
 }
@@ -143,6 +149,55 @@ func (su *smtpUser) getContactVCardData(recipient string) (meta *ContactMetadata
 
 func (su *smtpUser) getAPIKeyData(recipient string) (apiKeys []pmapi.PublicKey, isInternal bool, err error) {
 	return su.client().GetPublicKeysForEmail(recipient)
+}
+
+// Discard currently processed message.
+func (su *smtpUser) Reset() {
+	log.Trace("Resetting the session")
+	su.from = ""
+	su.to = []string{}
+}
+
+// Set return path for currently processed message.
+func (su *smtpUser) Mail(from string, opts goSMTPBackend.MailOptions) error {
+	log.WithField("from", from).WithField("opts", opts).Trace("Setting mail from")
+
+	// REQUIRETLS and SMTPUTF8 have to be announced to be used by client.
+	// Bridge does not use those extensions so this should not happen.
+	if opts.RequireTLS {
+		return errors.New("REQUIRETLS extension is not supported")
+	}
+	if opts.UTF8 {
+		return errors.New("SMTPUTF8 extension is not supported")
+	}
+
+	if opts.Auth != nil && *opts.Auth != "" && *opts.Auth != su.username {
+		return errors.New("changing identity is not supported")
+	}
+
+	su.from = from
+	return nil
+}
+
+// Add recipient for currently processed message.
+func (su *smtpUser) Rcpt(to string) error {
+	log.WithField("to", to).Trace("Adding recipient")
+	if to != "" {
+		su.to = append(su.to, to)
+	}
+	return nil
+}
+
+// Set currently processed message contents and send it.
+func (su *smtpUser) Data(r io.Reader) error {
+	log.Trace("Sending the message")
+	if su.from == "" {
+		return errors.New("missing sender")
+	}
+	if len(su.to) == 0 {
+		return errors.New("missing recipient")
+	}
+	return su.Send(su.from, su.to, r)
 }
 
 // Send sends an email from the given address to the given addresses with the given body.
