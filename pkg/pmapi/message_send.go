@@ -184,11 +184,12 @@ var (
 	errEncryptedOutsideNotSupported = errors.New("encrypted outside is not supported")
 	errWrongSendScheme              = errors.New("wrong send scheme")
 	errInternalMustEncrypt          = errors.New("internal package must be encrypted")
-	errInlineMustEncrypt            = errors.New("PGP Inline package must be encrypted")
 	errInlineMustBePlain            = errors.New("PGP Inline package must be plain text")
 	errMissingPubkey                = errors.New("cannot encrypt body key packet: missing pubkey")
 	errSignMustBeMultipart          = errors.New("clear signed html packet must be multipart")
 	errMIMEMustBeMultipart          = errors.New("MIME packet must be multipart")
+	errClearMIMEMustSign            = errors.New("clear MIME must be signed")
+	errSignMustBePGPInline          = errors.New("clear sign must be PGP inline")
 )
 
 func (req *SendMessageReq) AddRecipient(
@@ -224,10 +225,13 @@ func (req *SendMessageReq) addNonMIMERecipient(
 	pubkey *crypto.KeyRing, signature SignatureFlag,
 	contentType string, doEncrypt bool,
 ) (err error) {
-	if sendScheme.Is(ClearPackage) &&
-		signature.Is(SignatureDetached) &&
-		contentType == ContentTypeHTML {
-		return errSignMustBeMultipart
+	if sendScheme.Is(ClearPackage) && signature.Is(SignatureDetached) {
+		if contentType == ContentTypeHTML {
+			return errSignMustBeMultipart
+		}
+		if contentType == ContentTypePlainText {
+			return errSignMustBePGPInline
+		}
 	}
 
 	var send *sendData
@@ -252,9 +256,6 @@ func (req *SendMessageReq) addNonMIMERecipient(
 	}
 	newAddress := &MessageAddress{Type: sendScheme, Signature: signature}
 
-	if sendScheme.Is(PGPInlinePackage) && !doEncrypt {
-		return errInlineMustEncrypt
-	}
 	if sendScheme.Is(PGPInlinePackage) && contentType == ContentTypeHTML {
 		return errInlineMustBePlain
 	}
@@ -286,6 +287,10 @@ func (req *SendMessageReq) addMIMERecipient(
 		if req.mime.decryptedBodyKey, req.mime.ciphertext, err = encryptSymmDecryptKey(req.kr, req.mime.cleartext); err != nil {
 			return err
 		}
+	}
+
+	if sendScheme.Is(ClearMIMEPackage) && signature.HasNo(SignatureDetached) {
+		return errClearMIMEMustSign
 	}
 
 	if sendScheme.Is(PGPMIMEPackage) {
