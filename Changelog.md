@@ -1,9 +1,23 @@
 # ProtonMail Bridge and Import-Export app Changelog
 
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
-## Untaged
+
+## [Bridge 1.5.1] Golden Gate
+
+### Added
+* GODT-701 Try load messages one-by-one if IMAP server errors with batch load
+  and not interrupt the transfer.
+* GODT-878 Tests for send packet creation logic.
+
 ### Changed
 * GODT-180 Updated Sentry client.
+* GODT-651 Build creates proper binary names.
+* GODT-878 Fix an issue where the random session key is inadvertently sent to
+  the Proton server. The data payload is always encrypted within TLS, but this
+  is still a potential privacy problem. Discovered by Proton's internal
+  security audit team.
+* GODT-878 Refactor and move the send packet creation logic to `pmapi.SendMessageReq`.
+* GODT-878 Encryption of session keys moved to pmapi.
 
 
 ## [IE 1.2.1] Elbe

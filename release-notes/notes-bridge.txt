@@ -1,4 +1,4 @@
-• Ensured better message flow by refactoring both address and date parsing
-• Improved secure connectivity checks
-• Better deb packaging
-• More robust error handling
+• Improved package creation logic
+• Refactor of sending functions to simplify code maintenance
+• Added tests for package creation
+• For more detailed summary of the changes see https://github.com/ProtonMail/proton-bridge/blob/master/Changelog.md
