@@ -41,7 +41,9 @@ type server interface {
 type TestContext struct {
 	// Base setup for the whole bridge (core & imap & smtp).
 	t            *bddT
-	cfg          *fakeConfig
+	cache        *fakeCache
+	locations    *fakeLocations
+	settings     *fakeSettings
 	listener     listener.Listener
 	testAccounts *accounts.TestAccounts
 
@@ -92,13 +94,13 @@ type TestContext struct {
 func New(app string) *TestContext {
 	setLogrusVerbosityFromEnv()
 
-	cfg := newFakeConfig()
-
-	cm := pmapi.NewClientManager(cfg.GetAPIConfig())
+	cm := pmapi.NewClientManager(pmapi.GetAPIConfig("TODO", "TODO"))
 
 	ctx := &TestContext{
 		t:                     &bddT{},
-		cfg:                   cfg,
+		cache:                 newFakeCache(),
+		locations:             newFakeLocations(),
+		settings:              newFakeSettings(),
 		listener:              listener.New(),
 		pmapiController:       newPMAPIController(cm),
 		clientManager:         cm,
@@ -115,7 +117,7 @@ func New(app string) *TestContext {
 	}
 
 	// Ensure that the config is cleaned up after the test is over.
-	ctx.addCleanupChecked(cfg.ClearData, "Cleaning bridge config data")
+	ctx.addCleanupChecked(ctx.locations.Clear, "Cleaning bridge config data")
 
 	// Create bridge or import-export instance under test.
 	switch app {
@@ -142,6 +144,11 @@ func (ctx *TestContext) Cleanup() *TestContext {
 // GetPMAPIController returns API controller, either fake or live.
 func (ctx *TestContext) GetPMAPIController() PMAPIController {
 	return ctx.pmapiController
+}
+
+// GetClientManager returns client manager being used for testing.
+func (ctx *TestContext) GetClientManager() *pmapi.ClientManager {
+	return ctx.clientManager
 }
 
 // GetTestingT returns testing.T compatible struct.

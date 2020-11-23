@@ -38,13 +38,13 @@ import (
 
 	"github.com/ProtonMail/go-autostart"
 	"github.com/ProtonMail/proton-bridge/internal/bridge"
+	"github.com/ProtonMail/proton-bridge/internal/config/settings"
 	"github.com/ProtonMail/proton-bridge/internal/events"
 	"github.com/ProtonMail/proton-bridge/internal/frontend/autoconfig"
 	qtcommon "github.com/ProtonMail/proton-bridge/internal/frontend/qt-common"
 	"github.com/ProtonMail/proton-bridge/internal/frontend/types"
-	"github.com/ProtonMail/proton-bridge/internal/preferences"
-	"github.com/ProtonMail/proton-bridge/internal/updates"
-	"github.com/ProtonMail/proton-bridge/pkg/config"
+	"github.com/ProtonMail/proton-bridge/internal/locations"
+	"github.com/ProtonMail/proton-bridge/internal/updater"
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	"github.com/ProtonMail/proton-bridge/pkg/ports"
@@ -70,10 +70,10 @@ type FrontendQt struct {
 	buildVersion      string
 	showWindowOnStart bool
 	panicHandler      types.PanicHandler
-	config            *config.Config
-	preferences       *config.Preferences
+	locations         *locations.Locations
+	settings          *settings.Settings
 	eventListener     listener.Listener
-	updates           types.Updater
+	updater           types.Updater
 	bridge            types.Bridger
 	noEncConfirmator  types.NoEncConfirmator
 
@@ -94,21 +94,22 @@ type FrontendQt struct {
 	// expand userID when added
 	userIDAdded string
 
-	notifyHasNoKeychain bool
+	restarter types.Restarter
 }
 
-// New returns a new Qt frontendend for the bridge.
+// New returns a new Qt frontend for the bridge.
 func New(
 	version,
 	buildVersion string,
 	showWindowOnStart bool,
 	panicHandler types.PanicHandler,
-	config *config.Config,
-	preferences *config.Preferences,
+	locations *locations.Locations,
+	settings *settings.Settings,
 	eventListener listener.Listener,
-	updates types.Updater,
+	updater types.Updater,
 	bridge types.Bridger,
 	noEncConfirmator types.NoEncConfirmator,
+	restarter types.Restarter,
 ) *FrontendQt {
 	prgName := "ProtonMail Bridge"
 	tmp := &FrontendQt{
@@ -116,10 +117,10 @@ func New(
 		buildVersion:      buildVersion,
 		showWindowOnStart: showWindowOnStart,
 		panicHandler:      panicHandler,
-		config:            config,
-		preferences:       preferences,
+		locations:         locations,
+		settings:          settings,
 		eventListener:     eventListener,
-		updates:           updates,
+		updater:           updater,
 		bridge:            bridge,
 		noEncConfirmator:  noEncConfirmator,
 
@@ -130,6 +131,8 @@ func New(
 			DisplayName: prgName,
 			Exec:        []string{"", "--no-window"},
 		},
+
+		restarter: restarter,
 	}
 
 	// Handle autostart if wanted.
@@ -161,10 +164,7 @@ func (s *FrontendQt) InstanceExistAlert() {
 // Loop function for Bridge interface.
 //
 // It runs QtExecute in main thread with no additional function.
-func (s *FrontendQt) Loop(credentialsError error) (err error) {
-	if credentialsError != nil {
-		s.notifyHasNoKeychain = true
-	}
+func (s *FrontendQt) Loop() (err error) {
 	go func() {
 		defer s.panicHandler.HandlePanic()
 		s.watchEvents()
@@ -173,8 +173,14 @@ func (s *FrontendQt) Loop(credentialsError error) (err error) {
 	return err
 }
 
+func (s *FrontendQt) NotifyManualUpdate(update updater.VersionInfo) error {
+	// NOTE: Save the update somewhere so that it can be installed when user chooses "install now".
+	return nil
+}
+
 func (s *FrontendQt) watchEvents() {
 	errorCh := s.getEventChannel(events.ErrorEvent)
+	credentialsErrorCh := s.getEventChannel(events.CredentialsErrorEvent)
 	outgoingNoEncCh := s.getEventChannel(events.OutgoingNoEncEvent)
 	noActiveKeyForRecipientCh := s.getEventChannel(events.NoActiveKeyForRecipientEvent)
 	internetOffCh := s.getEventChannel(events.InternetOffEvent)
@@ -193,6 +199,8 @@ func (s *FrontendQt) watchEvents() {
 			imapIssue := strings.Contains(errorDetails, "IMAP failed")
 			smtpIssue := strings.Contains(errorDetails, "SMTP failed")
 			s.Qml.NotifyPortIssue(imapIssue, smtpIssue)
+		case <-credentialsErrorCh:
+			s.Qml.NotifyHasNoKeychain()
 		case idAndSubject := <-outgoingNoEncCh:
 			idAndSubjectSlice := strings.SplitN(idAndSubject, ":", 2)
 			messageID := idAndSubjectSlice[0]
@@ -207,7 +215,7 @@ func (s *FrontendQt) watchEvents() {
 		case <-secondInstanceCh:
 			s.Qml.ShowWindow()
 		case <-restartBridgeCh:
-			s.Qml.SetIsRestarting(true)
+			s.restarter.SetToRestart()
 			// watchEvents is started in parallel with the Qt app.
 			// If the event comes too early, app might not be ready yet.
 			if s.App != nil {
@@ -267,10 +275,6 @@ func (s *FrontendQt) Start() (err error) {
 	return nil
 }
 
-func (s *FrontendQt) IsAppRestarting() bool {
-	return s.Qml.IsRestarting()
-}
-
 // InvMethod runs the function with name `method` defined in RootObject of the QML.
 // Used for tests.
 func (s *FrontendQt) InvMethod(method string) error {
@@ -304,13 +308,13 @@ func (s *FrontendQt) qtExecute(Procedure func(*FrontendQt) error) error {
 	s.View.RootContext().SetContextProperty("go", s.Qml)
 
 	// Set first start flag.
-	s.Qml.SetIsFirstStart(s.preferences.GetBool(preferences.FirstStartGUIKey))
-	s.preferences.SetBool(preferences.FirstStartGUIKey, false)
+	s.Qml.SetIsFirstStart(s.settings.GetBool(settings.FirstStartGUIKey))
+	s.settings.SetBool(settings.FirstStartGUIKey, false)
 
 	// Check if it is first start after update (fresh version).
-	lastVersion := s.preferences.Get(preferences.LastVersionKey)
+	lastVersion := s.settings.Get(settings.LastVersionKey)
 	s.Qml.SetIsFreshVersion(lastVersion != "" && s.version != lastVersion)
-	s.preferences.Set(preferences.LastVersionKey, s.version)
+	s.settings.Set(settings.LastVersionKey, s.version)
 
 	// Add AccountsModel.
 	s.Accounts = NewAccountsModel(nil)
@@ -339,27 +343,25 @@ func (s *FrontendQt) qtExecute(Procedure func(*FrontendQt) error) error {
 		s.Qml.SetIsAutoStart(false)
 	}
 
-	if s.preferences.GetBool(preferences.AllowProxyKey) {
+	if s.settings.GetBool(settings.AllowProxyKey) {
 		s.Qml.SetIsProxyAllowed(true)
 	} else {
 		s.Qml.SetIsProxyAllowed(false)
-	}
-
-	// Notify user about error during initialization.
-	if s.notifyHasNoKeychain {
-		s.Qml.NotifyHasNoKeychain()
 	}
 
 	s.eventListener.RetryEmit(events.TLSCertIssue)
 	s.eventListener.RetryEmit(events.ErrorEvent)
 
 	// Set reporting of outgoing email without encryption.
-	s.Qml.SetIsReportingOutgoingNoEnc(s.preferences.GetBool(preferences.ReportOutgoingNoEncKey))
+	s.Qml.SetIsReportingOutgoingNoEnc(s.settings.GetBool(settings.ReportOutgoingNoEncKey))
+
+	defaultIMAPPort, _ := strconv.Atoi(settings.DefaultIMAPPort)
+	defaultSMTPPort, _ := strconv.Atoi(settings.DefaultSMTPPort)
 
 	// IMAP/SMTP ports.
 	s.Qml.SetIsDefaultPort(
-		s.config.GetDefaultIMAPPort() == s.preferences.GetInt(preferences.IMAPPortKey) &&
-			s.config.GetDefaultSMTPPort() == s.preferences.GetInt(preferences.SMTPPortKey),
+		defaultIMAPPort == s.settings.GetInt(settings.IMAPPortKey) &&
+			defaultSMTPPort == s.settings.GetInt(settings.SMTPPortKey),
 	)
 
 	// Check QML is loaded properly.
@@ -387,7 +389,12 @@ func (s *FrontendQt) qtExecute(Procedure func(*FrontendQt) error) error {
 }
 
 func (s *FrontendQt) openLogs() {
-	go open.Run(s.config.GetLogDir())
+	logsPath, err := s.locations.ProvideLogsPath()
+	if err != nil {
+		return
+	}
+
+	go open.Run(logsPath)
 }
 
 // Check version in separate goroutine to not block the GUI (avoid program not responding message).
@@ -395,40 +402,20 @@ func (s *FrontendQt) isNewVersionAvailable(showMessage bool) {
 	go func() {
 		defer s.panicHandler.HandlePanic()
 		defer s.Qml.ProcessFinished()
-		isUpToDate, latestVersionInfo, err := s.updates.CheckIsUpToDate()
-		if err != nil {
-			log.Warn("Can not retrieve version info: ", err)
-			s.checkInternet()
-			return
-		}
 		s.Qml.SetConnectionStatus(true) // If we are here connection is ok.
-		if isUpToDate {
-			s.Qml.SetUpdateState("upToDate")
-			if showMessage {
-				s.Qml.NotifyVersionIsTheLatest()
-			}
-			return
+		s.Qml.SetUpdateState("upToDate")
+		if showMessage {
+			s.Qml.NotifyVersionIsTheLatest()
 		}
-		s.Qml.SetNewversion(latestVersionInfo.Version)
-		s.Qml.SetChangelog(latestVersionInfo.ReleaseNotes)
-		s.Qml.SetBugfixes(latestVersionInfo.ReleaseFixedBugs)
-		s.Qml.SetLandingPage(latestVersionInfo.LandingPage)
-		s.Qml.SetDownloadLink(latestVersionInfo.GetDownloadLink())
-		s.Qml.ShowWindow()
-		s.Qml.SetUpdateState("oldVersion")
 	}()
 }
 
 func (s *FrontendQt) openLicenseFile() {
-	go open.Run(s.config.GetLicenseFilePath())
+	go open.Run(s.locations.GetLicenseFilePath())
 }
 
 func (s *FrontendQt) getLocalVersionInfo() {
-	defer s.Qml.ProcessFinished()
-	localVersion := s.updates.GetLocalVersion()
-	s.Qml.SetNewversion(localVersion.Version)
-	s.Qml.SetChangelog(localVersion.ReleaseNotes)
-	s.Qml.SetBugfixes(localVersion.ReleaseFixedBugs)
+	// NOTE: Fix this.
 }
 
 func (s *FrontendQt) sendBug(description, client, address string) (isOK bool) {
@@ -465,16 +452,16 @@ func (s *FrontendQt) configureAppleMail(iAccount, iAddress int) {
 		return
 	}
 
-	imapPort := s.preferences.GetInt(preferences.IMAPPortKey)
+	imapPort := s.settings.GetInt(settings.IMAPPortKey)
 	imapSSL := false
-	smtpPort := s.preferences.GetInt(preferences.SMTPPortKey)
-	smtpSSL := s.preferences.GetBool(preferences.SMTPSSLKey)
+	smtpPort := s.settings.GetInt(settings.SMTPPortKey)
+	smtpSSL := s.settings.GetBool(settings.SMTPSSLKey)
 
 	// If configuring apple mail for Catalina or newer, users should use SSL.
 	doRestart := false
 	if !smtpSSL && useragent.IsCatalinaOrNewer() {
 		smtpSSL = true
-		s.preferences.SetBool(preferences.SMTPSSLKey, true)
+		s.settings.SetBool(settings.SMTPSSLKey, true)
 		log.Warn("Detected Catalina or newer with bad SMTP SSL settings, now using SSL, bridge needs to restart")
 		doRestart = true
 	}
@@ -489,7 +476,7 @@ func (s *FrontendQt) configureAppleMail(iAccount, iAddress int) {
 
 	if doRestart {
 		time.Sleep(2 * time.Second)
-		s.Qml.SetIsRestarting(true)
+		s.restarter.SetToRestart()
 		s.App.Quit()
 	}
 	return
@@ -517,23 +504,23 @@ func (s *FrontendQt) toggleAutoStart() {
 func (s *FrontendQt) toggleAllowProxy() {
 	defer s.Qml.ProcessFinished()
 
-	if s.preferences.GetBool(preferences.AllowProxyKey) {
-		s.preferences.SetBool(preferences.AllowProxyKey, false)
+	if s.settings.GetBool(settings.AllowProxyKey) {
+		s.settings.SetBool(settings.AllowProxyKey, false)
 		s.bridge.DisallowProxy()
 		s.Qml.SetIsProxyAllowed(false)
 	} else {
-		s.preferences.SetBool(preferences.AllowProxyKey, true)
+		s.settings.SetBool(settings.AllowProxyKey, true)
 		s.bridge.AllowProxy()
 		s.Qml.SetIsProxyAllowed(true)
 	}
 }
 
 func (s *FrontendQt) getIMAPPort() string {
-	return s.preferences.Get(preferences.IMAPPortKey)
+	return s.settings.Get(settings.IMAPPortKey)
 }
 
 func (s *FrontendQt) getSMTPPort() string {
-	return s.preferences.Get(preferences.SMTPPortKey)
+	return s.settings.Get(settings.SMTPPortKey)
 }
 
 // Return 0 -- port is free to use for server.
@@ -550,13 +537,13 @@ func (s *FrontendQt) isPortOpen(portStr string) int {
 }
 
 func (s *FrontendQt) setPortsAndSecurity(imapPort, smtpPort string, useSTARTTLSforSMTP bool) {
-	s.preferences.Set(preferences.IMAPPortKey, imapPort)
-	s.preferences.Set(preferences.SMTPPortKey, smtpPort)
-	s.preferences.SetBool(preferences.SMTPSSLKey, !useSTARTTLSforSMTP)
+	s.settings.Set(settings.IMAPPortKey, imapPort)
+	s.settings.Set(settings.SMTPPortKey, smtpPort)
+	s.settings.SetBool(settings.SMTPSSLKey, !useSTARTTLSforSMTP)
 }
 
 func (s *FrontendQt) isSMTPSTARTTLS() bool {
-	return !s.preferences.GetBool(preferences.SMTPSSLKey)
+	return !s.settings.GetBool(settings.SMTPSSLKey)
 }
 
 func (s *FrontendQt) checkInternet() {
@@ -594,7 +581,7 @@ func (s *FrontendQt) autostartError(err error) {
 
 func (s *FrontendQt) toggleIsReportingOutgoingNoEnc() {
 	shouldReport := !s.Qml.IsReportingOutgoingNoEnc()
-	s.preferences.SetBool(preferences.ReportOutgoingNoEncKey, shouldReport)
+	s.settings.SetBool(settings.ReportOutgoingNoEncKey, shouldReport)
 	s.Qml.SetIsReportingOutgoingNoEnc(shouldReport)
 }
 
@@ -608,30 +595,5 @@ func (s *FrontendQt) saveOutgoingNoEncPopupCoord(x, y float32) {
 }
 
 func (s *FrontendQt) StartUpdate() {
-	progress := make(chan updates.Progress)
-	go func() { // Update progress in QML.
-		defer s.panicHandler.HandlePanic()
-		for current := range progress {
-			s.Qml.SetProgress(current.Processed)
-			s.Qml.SetProgressDescription(strconv.Itoa(current.Description))
-			// Error happend
-			if current.Err != nil {
-				log.Error("update progress: ", current.Err)
-				s.Qml.UpdateFinished(true)
-				return
-			}
-			// Finished everything OK.
-			if current.Description >= updates.InfoQuitApp {
-				s.Qml.UpdateFinished(false)
-				time.Sleep(3 * time.Second) // Just notify.
-				s.Qml.SetIsRestarting(current.Description == updates.InfoRestartApp)
-				s.App.Quit()
-				return
-			}
-		}
-	}()
-	go func() {
-		defer s.panicHandler.HandlePanic()
-		s.updates.StartUpgrade(progress)
-	}()
+	// NOTE: Fix this.
 }

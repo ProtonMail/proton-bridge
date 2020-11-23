@@ -38,6 +38,15 @@ import (
 
 // Parse parses RAW message.
 func Parse(r io.Reader) (m *pmapi.Message, mimeBody, plainBody string, attReaders []io.Reader, err error) {
+	defer func() {
+		r := recover()
+		if r == nil {
+			return
+		}
+
+		err = fmt.Errorf("panic while parsing message: %v", r)
+	}()
+
 	p, err := parser.New(r)
 	if err != nil {
 		return nil, "", "", nil, errors.Wrap(err, "failed to create new parser")

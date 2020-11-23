@@ -21,7 +21,8 @@ package cliie
 import (
 	"github.com/ProtonMail/proton-bridge/internal/events"
 	"github.com/ProtonMail/proton-bridge/internal/frontend/types"
-	"github.com/ProtonMail/proton-bridge/pkg/config"
+	"github.com/ProtonMail/proton-bridge/internal/locations"
+	"github.com/ProtonMail/proton-bridge/internal/updater"
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
 
 	"github.com/abiosoft/ishell"
@@ -35,31 +36,33 @@ var (
 type frontendCLI struct {
 	*ishell.Shell
 
-	config        *config.Config
+	locations     *locations.Locations
 	eventListener listener.Listener
-	updates       types.Updater
+	updater       types.Updater
 	ie            types.ImportExporter
 
-	appRestart bool
+	restarter types.Restarter
 }
 
 // New returns a new CLI frontend configured with the given options.
 func New( //nolint[funlen]
 	panicHandler types.PanicHandler,
-	config *config.Config,
+
+	locations *locations.Locations,
 	eventListener listener.Listener,
-	updates types.Updater,
+	updater types.Updater,
 	ie types.ImportExporter,
+	restarter types.Restarter,
 ) *frontendCLI { //nolint[golint]
 	fe := &frontendCLI{
 		Shell: ishell.New(),
 
-		config:        config,
+		locations:     locations,
 		eventListener: eventListener,
-		updates:       updates,
+		updater:       updater,
 		ie:            ie,
 
-		appRestart: false,
+		restarter: restarter,
 	}
 
 	// Clear commands.
@@ -175,13 +178,12 @@ func New( //nolint[funlen]
 		defer panicHandler.HandlePanic()
 		fe.watchEvents()
 	}()
-	fe.eventListener.RetryEmit(events.TLSCertIssue)
-	fe.eventListener.RetryEmit(events.ErrorEvent)
 	return fe
 }
 
 func (f *frontendCLI) watchEvents() {
 	errorCh := f.getEventChannel(events.ErrorEvent)
+	credentialsErrorCh := f.getEventChannel(events.CredentialsErrorEvent)
 	internetOffCh := f.getEventChannel(events.InternetOffEvent)
 	internetOnCh := f.getEventChannel(events.InternetOnEvent)
 	addressChangedLogoutCh := f.getEventChannel(events.AddressChangedLogoutEvent)
@@ -191,6 +193,8 @@ func (f *frontendCLI) watchEvents() {
 		select {
 		case errorDetails := <-errorCh:
 			f.Println("Import-Export failed:", errorDetails)
+		case <-credentialsErrorCh:
+			f.notifyCredentialsError()
 		case <-internetOffCh:
 			f.notifyInternetOff()
 		case <-internetOnCh:
@@ -212,26 +216,22 @@ func (f *frontendCLI) watchEvents() {
 func (f *frontendCLI) getEventChannel(event string) <-chan string {
 	ch := make(chan string)
 	f.eventListener.Add(event, ch)
+	f.eventListener.RetryEmit(event)
 	return ch
 }
 
-// IsAppRestarting returns whether the app is currently set to restart.
-func (f *frontendCLI) IsAppRestarting() bool {
-	return f.appRestart
-}
-
 // Loop starts the frontend loop with an interactive shell.
-func (f *frontendCLI) Loop(credentialsError error) error {
-	if credentialsError != nil {
-		f.notifyCredentialsError()
-		return credentialsError
-	}
-
+func (f *frontendCLI) Loop() error {
 	f.Print(`
 Welcome to ProtonMail Import-Export app interactive shell
 
 WARNING: The CLI is an experimental feature and does not yet cover all functionality.
 	`)
 	f.Run()
+	return nil
+}
+
+func (f *frontendCLI) NotifyManualUpdate(update updater.VersionInfo) error {
+	// NOTE: Save the update somewhere so that it can be installed when user chooses "install now".
 	return nil
 }

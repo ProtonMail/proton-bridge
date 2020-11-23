@@ -23,8 +23,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 )
 
-type configProvider interface {
-	GetEventsPath() string
+type cacheProvider interface {
 	GetDBDir() string
 	GetIMAPCachePath() string
 }

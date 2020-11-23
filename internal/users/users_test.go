@@ -127,7 +127,7 @@ type mocks struct {
 	t *testing.T
 
 	ctrl             *gomock.Controller
-	config           *usersmocks.MockConfiger
+	locator          *usersmocks.MockLocator
 	PanicHandler     *usersmocks.MockPanicHandler
 	clientManager    *usersmocks.MockClientManager
 	credentialsStore *usersmocks.MockCredentialsStorer
@@ -168,7 +168,7 @@ func initMocks(t *testing.T) mocks {
 		t: t,
 
 		ctrl:             mockCtrl,
-		config:           usersmocks.NewMockConfiger(mockCtrl),
+		locator:          usersmocks.NewMockLocator(mockCtrl),
 		PanicHandler:     usersmocks.NewMockPanicHandler(mockCtrl),
 		clientManager:    usersmocks.NewMockClientManager(mockCtrl),
 		credentialsStore: usersmocks.NewMockCredentialsStorer(mockCtrl),
@@ -234,11 +234,10 @@ func testNewUsersWithUsers(t *testing.T, m mocks) *Users {
 }
 
 func testNewUsers(t *testing.T, m mocks) *Users { //nolint[unparam]
-	m.config.EXPECT().GetVersion().Return("ver").AnyTimes()
 	m.eventListener.EXPECT().Add(events.UpgradeApplicationEvent, gomock.Any())
 	m.clientManager.EXPECT().GetAuthUpdateChannel().Return(make(chan pmapi.ClientAuth))
 
-	users := New(m.config, m.PanicHandler, m.eventListener, m.clientManager, m.credentialsStore, m.storeMaker, true)
+	users := New(m.locator, m.PanicHandler, m.eventListener, m.clientManager, m.credentialsStore, m.storeMaker, true)
 
 	waitForEvents()
 
@@ -274,7 +273,7 @@ func TestClearData(t *testing.T) {
 	m.credentialsStore.EXPECT().Logout("users").Return(nil)
 	m.credentialsStore.EXPECT().Get("users").Return(testCredentialsSplit, nil)
 
-	m.config.EXPECT().ClearData().Return(nil)
+	m.locator.EXPECT().Clear()
 
 	require.NoError(t, users.ClearData())
 

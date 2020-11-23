@@ -21,41 +21,15 @@ import (
 	"strings"
 
 	"github.com/ProtonMail/proton-bridge/internal/importexport"
-	"github.com/ProtonMail/proton-bridge/internal/updates"
 	"github.com/abiosoft/ishell"
 )
 
 func (f *frontendCLI) checkUpdates(c *ishell.Context) {
-	isUpToDate, latestVersionInfo, err := f.updates.CheckIsUpToDate()
-	if err != nil {
-		f.printAndLogError("Cannot retrieve version info: ", err)
-		f.checkInternetConnection(c)
-		return
-	}
-	if isUpToDate {
-		f.Println("Your version is up to date.")
-	} else {
-		f.notifyNeedUpgrade()
-		f.Println("")
-		f.printReleaseNotes(latestVersionInfo)
-	}
+	f.Println("Your version is up to date.")
 }
 
 func (f *frontendCLI) printLocalReleaseNotes(c *ishell.Context) {
-	localVersion := f.updates.GetLocalVersion()
-	f.printReleaseNotes(localVersion)
-}
-
-func (f *frontendCLI) printReleaseNotes(versionInfo updates.VersionInfo) {
-	f.Println(bold("ProtonMail Import-Export app "+versionInfo.Version), "\n")
-	if versionInfo.ReleaseNotes != "" {
-		f.Println(bold("Release Notes"))
-		f.Println(versionInfo.ReleaseNotes)
-	}
-	if versionInfo.ReleaseFixedBugs != "" {
-		f.Println(bold("Fixed bugs"))
-		f.Println(versionInfo.ReleaseFixedBugs)
-	}
+	f.Println("TODO")
 }
 
 func (f *frontendCLI) printCredits(c *ishell.Context) {

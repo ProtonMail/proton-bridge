@@ -58,6 +58,8 @@ func IMAPActionsMessagesFeatureContext(s *godog.Suite) {
 	s.Step(`^IMAP client "([^"]*)" starts IDLE-ing$`, imapClientNamedStartsIDLEing)
 	s.Step(`^IMAP client sends expunge$`, imapClientExpunge)
 	s.Step(`^IMAP client "([^"]*)" sends expunge$`, imapClientNamedExpunge)
+	s.Step(`^IMAP client sends ID with argument:$`, imapClientSendsID)
+	s.Step(`^IMAP client "([^"]*)" sends ID with argument:$`, imapClientNamedSendsID)
 }
 
 func imapClientSendsCommand(command string) error {
@@ -281,6 +283,16 @@ func imapClientExpunge() error {
 
 func imapClientNamedExpunge(imapClient string) error {
 	res := ctx.GetIMAPClient(imapClient).Expunge()
+	ctx.SetIMAPLastResponse(imapClient, res)
+	return nil
+}
+
+func imapClientSendsID(data *gherkin.DocString) error {
+	return imapClientNamedSendsID("imap", data)
+}
+
+func imapClientNamedSendsID(imapClient string, data *gherkin.DocString) error {
+	res := ctx.GetIMAPClient(imapClient).ID(data.Content)
 	ctx.SetIMAPLastResponse(imapClient, res)
 	return nil
 }

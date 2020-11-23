@@ -24,7 +24,7 @@ import (
 func (f *frontendCLI) restart(c *ishell.Context) {
 	if f.yesNoQuestion("Are you sure you want to restart the Import-Export app") {
 		f.Println("Restarting the Import-Export app...")
-		f.appRestart = true
+		f.restarter.SetToRestart()
 		f.Stop()
 	}
 }
@@ -38,7 +38,11 @@ func (f *frontendCLI) checkInternetConnection(c *ishell.Context) {
 }
 
 func (f *frontendCLI) printLogDir(c *ishell.Context) {
-	f.Println("Log files are stored in\n\n ", f.config.GetLogDir())
+	if path, err := f.locations.ProvideLogsPath(); err != nil {
+		f.Println("Failed to determine location of log files")
+	} else {
+		f.Println("Log files are stored in\n\n ", path)
+	}
 }
 
 func (f *frontendCLI) printManual(c *ishell.Context) {

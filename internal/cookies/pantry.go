@@ -22,7 +22,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/ProtonMail/proton-bridge/internal/preferences"
+	"github.com/ProtonMail/proton-bridge/internal/config/settings"
 )
 
 // pantry persists and loads cookies to some persistent storage location.
@@ -63,7 +63,7 @@ func (p *pantry) discardExpiredCookies() error {
 type cookiesByHost map[string][]*http.Cookie
 
 func (p *pantry) loadFromJSON() (cookiesByHost, error) {
-	b := p.gs.Get(preferences.CookiesKey)
+	b := p.gs.Get(settings.CookiesKey)
 
 	if b == "" {
 		return make(cookiesByHost), nil
@@ -84,7 +84,7 @@ func (p *pantry) saveToJSON(cookies cookiesByHost) error {
 		return err
 	}
 
-	p.gs.Set(preferences.CookiesKey, string(b))
+	p.gs.Set(settings.CookiesKey, string(b))
 
 	return nil
 }

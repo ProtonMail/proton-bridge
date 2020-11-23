@@ -37,7 +37,6 @@ type GoQMLInterface struct {
 	_ string `property:"goos"`
 	_ string `property:"credits"`
 	_ bool   `property:"isFirstStart"`
-	_ bool   `property:"isRestarting"`
 	_ bool   `property:"isConnectionOK"`
 
 	_ string  `property:lastError`
@@ -68,6 +67,8 @@ type GoQMLInterface struct {
 	_ func(updateState string) `signal:"setUpdateState"`
 	_ func()                   `slot:"checkInternet"`
 
+	_ func() `slot:"setToRestart"`
+
 	_ func()                 `signal:"processFinished"`
 	_ func(okay bool)        `signal:"exportStructureLoadFinished"`
 	_ func(okay bool)        `signal:"importStructuresLoadFinished"`
@@ -76,6 +77,8 @@ type GoQMLInterface struct {
 	_ func()                 `slot:"openLicenseFile"`
 	_ func()                 `slot:"getLocalVersionInfo"`
 	_ func()                 `slot:"loadImportReports"`
+
+	_ func() `signal:"showWindow"`
 
 	_ func() `slot:"quit"`
 	_ func() `slot:"loadAccounts"`
@@ -165,7 +168,6 @@ func (s *GoQMLInterface) SetFrontend(f *FrontendQt) {
 	s.ConnectAddAccount(f.Accounts.AddAccount)
 
 	s.SetGoos(runtime.GOOS)
-	s.SetIsRestarting(false)
 	s.SetProgramTitle(f.programName)
 
 	s.ConnectOpenLicenseFile(f.openLicenseFile)
@@ -176,6 +178,8 @@ func (s *GoQMLInterface) SetFrontend(f *FrontendQt) {
 	})
 
 	s.ConnectCheckInternet(f.checkInternet)
+
+	s.ConnectSetToRestart(f.restarter.SetToRestart)
 
 	s.ConnectLoadStructureForExport(f.LoadStructureForExport)
 	s.ConnectSetupAndLoadForImport(f.setupAndLoadForImport)

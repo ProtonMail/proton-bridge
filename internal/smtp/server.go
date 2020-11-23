@@ -44,6 +44,13 @@ func NewSMTPServer(debug bool, port int, useSSL bool, tls *tls.Config, smtpBacke
 	s.AllowInsecureAuth = true
 
 	if debug {
+		fmt.Println("THE LOG WILL CONTAIN **DECRYPTED** MESSAGE DATA")
+		log.Warning("================================================")
+		log.Warning("THIS LOG WILL CONTAIN **DECRYPTED** MESSAGE DATA")
+		log.Warning("================================================")
+	}
+
+	if debug {
 		s.Debug = logrus.
 			WithField("pkg", "smtp/server").
 			WriterLevel(logrus.DebugLevel)

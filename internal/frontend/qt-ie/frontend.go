@@ -22,16 +22,14 @@ package qtie
 import (
 	"errors"
 	"os"
-	"strconv"
-	"time"
 
 	"github.com/ProtonMail/proton-bridge/internal/events"
 	qtcommon "github.com/ProtonMail/proton-bridge/internal/frontend/qt-common"
 	"github.com/ProtonMail/proton-bridge/internal/frontend/types"
 	"github.com/ProtonMail/proton-bridge/internal/importexport"
+	"github.com/ProtonMail/proton-bridge/internal/locations"
 	"github.com/ProtonMail/proton-bridge/internal/transfer"
-	"github.com/ProtonMail/proton-bridge/internal/updates"
-	"github.com/ProtonMail/proton-bridge/pkg/config"
+	"github.com/ProtonMail/proton-bridge/internal/updater"
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
 
 	"github.com/therecipe/qt/core"
@@ -51,9 +49,9 @@ var log = logrus.WithField("pkg", "frontend-qt-ie")
 // Qt and QML objects. QML signals and slots are connected via methods of GoQMLInterface.
 type FrontendQt struct {
 	panicHandler  types.PanicHandler
-	config        *config.Config
+	locations     *locations.Locations
 	eventListener listener.Listener
-	updates       types.Updater
+	updater       types.Updater
 	ie            types.ImportExporter
 
 	App      *widgets.QApplication      // Main Application pointer
@@ -72,44 +70,39 @@ type FrontendQt struct {
 	transfer *transfer.Transfer
 	progress *transfer.Progress
 
-	notifyHasNoKeychain bool
+	restarter types.Restarter
 }
 
 // New is constructor for Import-Export Qt-Go interface
 func New(
 	version, buildVersion string,
 	panicHandler types.PanicHandler,
-	config *config.Config,
+
+	locations *locations.Locations,
 	eventListener listener.Listener,
-	updates types.Updater,
+	updater types.Updater,
 	ie types.ImportExporter,
+	restarter types.Restarter,
 ) *FrontendQt {
 	f := &FrontendQt{
 		panicHandler:   panicHandler,
-		config:         config,
+		locations:      locations,
 		programName:    "ProtonMail Import-Export",
 		programVersion: "v" + version,
 		eventListener:  eventListener,
+		updater:        updater,
 		buildVersion:   buildVersion,
-		updates:        updates,
 		ie:             ie,
+		restarter:      restarter,
 	}
 
 	log.Debugf("New Qt frontend: %p", f)
 	return f
 }
 
-// IsAppRestarting for Import-Export is always false i.e never restarts
-func (f *FrontendQt) IsAppRestarting() bool {
-	return false
-}
-
 // Loop function for Import-Export interface. It runs QtExecute in main thread
 // with no additional function.
-func (f *FrontendQt) Loop(setupError error) (err error) {
-	if setupError != nil {
-		f.notifyHasNoKeychain = true
-	}
+func (f *FrontendQt) Loop() (err error) {
 	go func() {
 		defer f.panicHandler.HandlePanic()
 		f.watchEvents()
@@ -118,9 +111,16 @@ func (f *FrontendQt) Loop(setupError error) (err error) {
 	return err
 }
 
+func (f *FrontendQt) NotifyManualUpdate(update updater.VersionInfo) error {
+	// NOTE: Save the update somewhere so that it can be installed when user chooses "install now".
+	return nil
+}
+
 func (f *FrontendQt) watchEvents() {
+	credentialsErrorCh := qtcommon.MakeAndRegisterEvent(f.eventListener, events.CredentialsErrorEvent)
 	internetOffCh := qtcommon.MakeAndRegisterEvent(f.eventListener, events.InternetOffEvent)
 	internetOnCh := qtcommon.MakeAndRegisterEvent(f.eventListener, events.InternetOnEvent)
+	secondInstanceCh := qtcommon.MakeAndRegisterEvent(f.eventListener, events.SecondInstanceEvent)
 	restartBridgeCh := qtcommon.MakeAndRegisterEvent(f.eventListener, events.RestartBridgeEvent)
 	addressChangedCh := qtcommon.MakeAndRegisterEvent(f.eventListener, events.AddressChangedEvent)
 	addressChangedLogoutCh := qtcommon.MakeAndRegisterEvent(f.eventListener, events.AddressChangedLogoutEvent)
@@ -129,12 +129,16 @@ func (f *FrontendQt) watchEvents() {
 	newUserCh := qtcommon.MakeAndRegisterEvent(f.eventListener, events.UserRefreshEvent)
 	for {
 		select {
+		case <-credentialsErrorCh:
+			f.Qml.NotifyHasNoKeychain()
 		case <-internetOffCh:
 			f.Qml.SetConnectionStatus(false)
 		case <-internetOnCh:
 			f.Qml.SetConnectionStatus(true)
+		case <-secondInstanceCh:
+			f.Qml.ShowWindow()
 		case <-restartBridgeCh:
-			f.Qml.SetIsRestarting(true)
+			f.restarter.SetToRestart()
 			f.App.Quit()
 		case address := <-addressChangedCh:
 			f.Qml.NotifyAddressChanged(address)
@@ -165,7 +169,7 @@ func (f *FrontendQt) qtSetupQmlAndStructures() {
 	f.View.RootContext().SetContextProperty("go", f.Qml)
 
 	// Add AccountsModel
-	f.Accounts.SetupAccounts(f.Qml, f.ie)
+	f.Accounts.SetupAccounts(f.Qml, f.ie, f.restarter)
 	f.View.RootContext().SetContextProperty("accountsModel", f.Accounts.Model)
 
 	// Add TransferRules structure
@@ -188,11 +192,6 @@ func (f *FrontendQt) qtSetupQmlAndStructures() {
 		f.Qml.SetIsFirstStart(true)
 	} else {
 		f.Qml.SetIsFirstStart(false)
-	}
-
-	// Notify user about error during initialization.
-	if f.notifyHasNoKeychain {
-		f.Qml.NotifyHasNoKeychain()
 	}
 }
 
@@ -233,7 +232,12 @@ func (f *FrontendQt) QtExecute(Procedure func(*FrontendQt) error) error {
 }
 
 func (f *FrontendQt) openLogs() {
-	go open.Run(f.config.GetLogDir())
+	logsPath, err := f.locations.ProvideLogsPath()
+	if err != nil {
+		return
+	}
+
+	go open.Run(logsPath)
 }
 
 func (f *FrontendQt) openReport() {
@@ -241,7 +245,7 @@ func (f *FrontendQt) openReport() {
 }
 
 func (f *FrontendQt) openDownloadLink() {
-	go open.Run(f.updates.GetDownloadLink())
+	// NOTE: Fix this.
 }
 
 // sendImportReport sends an anonymized import or export report file to our customer support
@@ -365,34 +369,8 @@ func (f *FrontendQt) setProgressManager(progress *transfer.Progress) {
 	}()
 }
 
-// StartUpdate is identical to bridge
 func (f *FrontendQt) StartUpdate() {
-	progress := make(chan updates.Progress)
-	go func() { // Update progress in QML.
-		defer f.panicHandler.HandlePanic()
-		for current := range progress {
-			f.Qml.SetProgress(current.Processed)
-			f.Qml.SetProgressDescription(strconv.Itoa(current.Description))
-			// Error happend
-			if current.Err != nil {
-				log.Error("update progress: ", current.Err)
-				f.Qml.UpdateFinished(true)
-				return
-			}
-			// Finished everything OK.
-			if current.Description >= updates.InfoQuitApp {
-				f.Qml.UpdateFinished(false)
-				time.Sleep(3 * time.Second) // Just notify.
-				f.Qml.SetIsRestarting(current.Description == updates.InfoRestartApp)
-				f.App.Quit()
-				return
-			}
-		}
-	}()
-	go func() {
-		defer f.panicHandler.HandlePanic()
-		f.updates.StartUpgrade(progress)
-	}()
+	// NOTE: Fix this.
 }
 
 // isNewVersionAvailable is identical to bridge
@@ -401,26 +379,11 @@ func (f *FrontendQt) StartUpdate() {
 func (f *FrontendQt) isNewVersionAvailable(showMessage bool) {
 	go func() {
 		defer f.Qml.ProcessFinished()
-		isUpToDate, latestVersionInfo, err := f.updates.CheckIsUpToDate()
-		if err != nil {
-			log.Warnln("Cannot retrieve version info: ", err)
-			f.checkInternet()
-			return
-		}
 		f.Qml.SetConnectionStatus(true) // if we are here connection is ok
-		if isUpToDate {
-			f.Qml.SetUpdateState(StatusUpToDate)
-			if showMessage {
-				f.Qml.NotifyVersionIsTheLatest()
-			}
-			return
+		f.Qml.SetUpdateState(StatusUpToDate)
+		if showMessage {
+			f.Qml.NotifyVersionIsTheLatest()
 		}
-		f.Qml.SetNewversion(latestVersionInfo.Version)
-		f.Qml.SetChangelog(latestVersionInfo.ReleaseNotes)
-		f.Qml.SetBugfixes(latestVersionInfo.ReleaseFixedBugs)
-		f.Qml.SetLandingPage(latestVersionInfo.LandingPage)
-		f.Qml.SetDownloadLink(latestVersionInfo.GetDownloadLink())
-		f.Qml.SetUpdateState(StatusNewVersionAvailable)
 	}()
 }
 
@@ -434,16 +397,12 @@ func (f *FrontendQt) resetSource() {
 }
 
 func (f *FrontendQt) openLicenseFile() {
-	go open.Run(f.config.GetLicenseFilePath())
+	go open.Run(f.locations.GetLicenseFilePath())
 }
 
 // getLocalVersionInfo is identical to bridge.
 func (f *FrontendQt) getLocalVersionInfo() {
-	defer f.Qml.ProcessFinished()
-	localVersion := f.updates.GetLocalVersion()
-	f.Qml.SetNewversion(localVersion.Version)
-	f.Qml.SetChangelog(localVersion.ReleaseNotes)
-	f.Qml.SetBugfixes(localVersion.ReleaseFixedBugs)
+	// NOTE: Fix this.
 }
 
 // LeastUsedColor is intended to return color for creating a new inbox or label.

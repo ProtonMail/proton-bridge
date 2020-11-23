@@ -81,4 +81,6 @@ type Client interface {
 
 	KeyRingForAddressID(string) (kr *crypto.KeyRing, err error)
 	GetPublicKeysForEmail(string) ([]PublicKey, bool, error)
+
+	DownloadAndVerify(string, string, *crypto.KeyRing) (io.Reader, error)
 }

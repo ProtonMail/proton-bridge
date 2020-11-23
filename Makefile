@@ -7,7 +7,7 @@ TARGET_CMD?=Desktop-Bridge
 TARGET_OS?=${GOOS}
 
 ## Build
-.PHONY: build build-ie build-nogui build-ie-nogui check-has-go
+.PHONY: build build-ie build-nogui build-ie-nogui build-launcher build-launcher-ie  versioner
 
 # Keep version hardcoded so app build works also without Git repository.
 BRIDGE_APP_VERSION?=1.5.5-git
@@ -29,10 +29,9 @@ endif
 REVISION:=$(shell git rev-parse --short=10 HEAD)
 BUILD_TIME:=$(shell date +%FT%T%z)
 
-BUILD_TAGS?=pmapi_prod
 BUILD_FLAGS:=-tags='${BUILD_TAGS}'
 BUILD_FLAGS_NOGUI:=-tags='${BUILD_TAGS} nogui'
-GO_LDFLAGS:=$(addprefix -X github.com/ProtonMail/proton-bridge/pkg/constants.,Version=${APP_VERSION} Revision=${REVISION} BuildTime=${BUILD_TIME})
+GO_LDFLAGS:=$(addprefix -X github.com/ProtonMail/proton-bridge/internal/constants.,Version=${APP_VERSION} Revision=${REVISION} BuildTime=${BUILD_TIME})
 ifneq "${BUILD_LDFLAGS}" ""
     GO_LDFLAGS+= ${BUILD_LDFLAGS}
 endif
@@ -71,6 +70,7 @@ else
 endif
 
 build: ${TGZ_TARGET}
+
 build-ie:
 	TARGET_CMD=Import-Export $(MAKE) build
 
@@ -80,9 +80,18 @@ build-nogui:
 build-ie-nogui:
 	TARGET_CMD=Import-Export $(MAKE) build-nogui
 
+build-launcher:
+	go build -ldflags="-X 'main.ConfigName=bridge' -X 'main.ExeName=proton-bridge'" -o launcher-bridge cmd/launcher/main.go
+
+build-launcher-ie:
+	go build -ldflags="-X 'main.ConfigName=importExport' -X 'main.ExeName=Import-Export'" -o launcher-ie cmd/launcher/main.go
+
+versioner:
+	go build ${BUILD_FLAGS} ${GO_LDFLAGS} -o versioner cmd/versioner/main.go
+
 ${TGZ_TARGET}: ${DEPLOY_DIR}/${TARGET_OS}
 	rm -f $@
-	cd ${DEPLOY_DIR} && tar czf ../../../$@ ${TARGET_OS}
+	cd ${DEPLOY_DIR}/${TARGET_OS} && tar czf ../../../../$@ .
 
 ${DEPLOY_DIR}/linux: ${EXE_TARGET}
 	cp -pf ./internal/frontend/share/icons/${SRC_SVG} ${DEPLOY_DIR}/linux/logo.svg
@@ -192,18 +201,24 @@ test: gofiles
 	go test -coverprofile=/tmp/coverage.out -run=${TESTRUN} \
 		./internal/api/... \
 		./internal/bridge/... \
+		./internal/config/... \
+		./internal/constants/... \
+		./internal/cookies/... \
+		./internal/crash/... \
 		./internal/events/... \
 		./internal/frontend/autoconfig/... \
 		./internal/frontend/cli/... \
 		./internal/imap/... \
-		./internal/metrics/... \
 		./internal/importexport/... \
-		./internal/preferences/... \
+		./internal/locations/... \
+		./internal/logging/... \
+		./internal/metrics/... \
 		./internal/smtp/... \
 		./internal/store/... \
 		./internal/transfer/... \
-		./internal/updates/... \
+		./internal/updater/... \
 		./internal/users/... \
+		./internal/versioner/... \
 		./pkg/...
 
 bench:
@@ -215,7 +230,7 @@ coverage: test
 	go tool cover -html=/tmp/coverage.out -o=coverage.html
 
 mocks:
-	mockgen --package mocks github.com/ProtonMail/proton-bridge/internal/users Configer,PanicHandler,ClientManager,CredentialsStorer,StoreMaker > internal/users/mocks/mocks.go
+	mockgen --package mocks github.com/ProtonMail/proton-bridge/internal/users Locator,PanicHandler,ClientManager,CredentialsStorer,StoreMaker > internal/users/mocks/mocks.go
 	mockgen --package mocks github.com/ProtonMail/proton-bridge/internal/transfer PanicHandler,ClientManager,IMAPClientProvider > internal/transfer/mocks/mocks.go
 	mockgen --package mocks github.com/ProtonMail/proton-bridge/internal/store PanicHandler,ClientManager,BridgeUser,ChangeNotifier > internal/store/mocks/mocks.go
 	mockgen --package mocks github.com/ProtonMail/proton-bridge/pkg/listener Listener > internal/store/mocks/utils_mocks.go
@@ -258,7 +273,7 @@ gofiles: ./internal/bridge/credits.go ./internal/bridge/release_notes.go ./inter
 ## Run and debug
 .PHONY: run run-qt run-qt-cli run-nogui run-nogui-cli run-debug run-qml-preview run-ie-qml-preview run-ie run-ie-qt run-ie-qt-cli run-ie-nogui run-ie-nogui-cli clean-vendor clean-frontend-qt clean-frontend-qt-ie clean-frontend-qt-common clean
 
-VERBOSITY?=debug-client
+VERBOSITY?=debug
 RUN_FLAGS:=-m -l=${VERBOSITY}
 
 run: run-nogui-cli

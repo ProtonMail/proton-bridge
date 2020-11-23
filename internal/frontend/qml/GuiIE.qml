@@ -69,20 +69,9 @@ Item {
     Connections {
         target: go
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        onShowWindow : {
+            winMain.showAndRise()
+        }
 
         onProcessFinished :  {
             winMain.dialogAddUser.hide()

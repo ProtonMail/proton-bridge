@@ -38,7 +38,7 @@ var (
 
 // Users is a struct handling users.
 type Users struct {
-	config        Configer
+	locations     Locator
 	panicHandler  PanicHandler
 	events        listener.Listener
 	clientManager ClientManager
@@ -64,7 +64,7 @@ type Users struct {
 }
 
 func New(
-	config Configer,
+	locations Locator,
 	panicHandler PanicHandler,
 	eventListener listener.Listener,
 	clientManager ClientManager,
@@ -75,7 +75,7 @@ func New(
 	log.Trace("Creating new users")
 
 	u := &Users{
-		config:                 config,
+		locations:              locations,
 		panicHandler:           panicHandler,
 		events:                 eventListener,
 		clientManager:          clientManager,
@@ -387,7 +387,8 @@ func (u *Users) GetUser(query string) (*User, error) {
 
 // ClearData closes all connections (to release db files and so on) and clears all data.
 func (u *Users) ClearData() error {
-	var result *multierror.Error
+	var result error
+
 	for _, user := range u.users {
 		if err := user.Logout(); err != nil {
 			result = multierror.Append(result, err)
@@ -396,10 +397,12 @@ func (u *Users) ClearData() error {
 			result = multierror.Append(result, err)
 		}
 	}
-	if err := u.config.ClearData(); err != nil {
+
+	if err := u.locations.Clear(); err != nil {
 		result = multierror.Append(result, err)
 	}
-	return result.ErrorOrNil()
+
+	return result
 }
 
 // DeleteUser deletes user completely; it logs user out from the API, stops any

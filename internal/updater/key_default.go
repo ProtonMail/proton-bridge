@@ -1,0 +1,75 @@
+// Copyright (c) 2020 Proton Technologies AG
+//
+// This file is part of ProtonMail Bridge.
+//
+// ProtonMail Bridge is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// ProtonMail Bridge is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
+
+// +build !pmapi_qa
+
+package updater
+
+// DefaultPublicKey is the public key used to sign builds.
+const DefaultPublicKey = `-----BEGIN PGP PUBLIC KEY BLOCK-----
+
+xsFNBFo9OeEBEAC+fPrLcUBY+YUc5YiMrYJQ6ogrJWMGC00h9fAv3PsrHkBz0z7c
+QFDyNdNatokFDtZDX115M0vzDwk5NkcjmO7CWbf6nCZcwYqOSrBoH8wNT9uTS/6p
+R3AHk1r3C/36QG3iWx6Wg4ycRkXWYToT3/yh5waE5BbLi/9TSBAdfJzTyxt4IpZG
+3OTMnOwuz6eNRWVHkA48CJydWS6M8z+jIsBwFq4nOIChvLjIF42PuAT1VaiCYSmy
+4sU1YxxWof5z9HY0XghRpd7aUIgzAIsXUbaEXh/3iCZDUMN5LwkyAn+r5j3SMNzk
+2htF8V7qWE8ldYNVrpeEwyor0x1wMzpbb/C4Y8wXe8rP01d0ApiHVRETzsQk2esf
+XuSrBCtpyLc6ET1lluiL2sVUUelAPueUQlOyYXfL2X958i0TgBCi6QRPXxbPjCPs
+d1UzLPCSUNUO+/7fslZCax26d1r1kbHzJLAN1Jer6rxoEDaEiVSCUTnHgykCq5rO
+C3PScGEdOaIi4H5c6YFZrLmdz409YmJEWLKIPV/u5DpI+YGmAfAevrjkMBgQBOmZ
+D8Gp19LnRtmqjVh2rVdr8yc5nAjoNOZwanMwD5vCWPUVELWXubNFBv8hqZMxHZqW
+GrB8x8hkdgiNmuyqsxzBmOEJHWLlvbFhvHhIedT8paU/spL/qJmWp3EB4QARAQAB
+zUxQcm90b24gVGVjaG5vbG9naWVzIEFHIChQcm90b25NYWlsIEJyaWRnZSBkZXZl
+bG9wZXJzKSA8YnJpZGdlQHByb3Rvbm1haWwuY2g+wsGUBBMBCAA+AhsDBQsJCAcC
+BhUICQoLAgQWAgMBAh4BAheAFiEE1R5k0+Y+3D7veGTO4sddaOYjSwcFAlv377wF
+CQO83tsACgkQ4sddaOYjSwfhng//WNhZqr0StuN4KbYdQG+FY+aLijLhiVI3i4j6
+wUis+7UWFNMUGePsBUrF7zOrzo4Vp16FSRhhpveIbDMVJg4yGlzwN+jZr9FBvF8z
+kbOqjajkTF3rOyqSQCpZVgeamRt6c4gGQTOwfwxB4K5mVg4rv65ISIKjLUtCZ27g
+pD6eJs25LhyZQnI65JHpHDkVar7oQ2nbWv0tn2wrrUKBE9hRM5Jn1xGaHYkrYxPe
+HNDHrqxJUDbPfJhca54M99bs9Qum3KkT1WWU5/0trA0V8eUZa93zydLNynJJcqbq
+KUYBvOnpzL/0l3hdffmolpUXWFrlFPlOLVQlK4Kc6oQqS2KWBySQHg9klTto1p9c
+pNZE3sO5+UfleyXW0dN6DcU/xiwoYKJ/+x4JZYtvqH/kP7gve2oznEsLMw6k2QZo
+O1GihEpoXpOezs46+ER/YGx4ZF2ne2bmYnzoOOZBbGXwsMZTNaa9QJHbc1bz9jjj
+IFBc1zmrdi0nsbjlvLugEYIbSb/WP0wKwG66zTatslRIQ2unlUJNnWb0E4VLgz9y
+q57QpvxS7D312dZV0NnAwhyDI+54XAivXTQb0fAGfcgbtKdKpJb1dcAMb9WOBnpr
+BK7XLsWbJj5v5nB3AuWer7NhUyJB/ogWQtqRUY1bAcI4cB1zFwYq/PL0sbfAHDxx
+ZEF6XhjOwU0EWj054QEQALdPQOlRT1omHljxnN64jFuDXXSIb6zqaBvUwdYoDpV2
+dfRmzGklsCVA7WHXBmDWbUe9avgO3OO7ANw6/JzzYjP+jwImpJg7cSqTqW8A1U6T
+YfGXVUV3a/obIEttl7bI9BsUNgmLsBYIwHov+gl/ajKQdALYHCmq3Bj6o7BBeWPp
+Vpk9dzjcsLVbmNszNGP1Ik5dKE0jZUi6h+YoVuJE9o/+T+jxoqFRpXNsZqWOEKmC
+HDz6TTs1iTp+CoZ/5g0eKph6XJ+TuNoqF9491IYEFn9oxzsoIBkewTY/fJWmXf++
+cnpBODrZLF/GoRFc7MW9Kael9vmQ0J7mjM2bFs308lH0rRrfmdlLAU5iKgPv0akx
+nnnUqvCcoekFMURDtP3z09KZXuOMnt834utd7WLe+LZD6dxs+rPhyDiW80E8Bdlz
+1Jo+c2g6toIN+uD7/f5gwaZaXhJB0oO7fWSVVo+HJprWBnmf9frgKq1OcS0BNvA+
+4Aip2hhFqWJAbUQXCyMaeU2WTWIzy0FQ6SEFFy/RM8O5O1HHsDYjtIic9QJ/PqSD
+0qN7LMlkjR8AdWvAxm95i5GpxDZODldsOneeummvsn3I1jCoULTik7iJVdRuY1V3
+vfsYAkefGN/n2ga3MvatCJipwoCGsMgUXGTdokXOqKBgMBuBLCkxj2wlol2R9p8R
+ABEBAAHCwXwEGAEIACYCGwwWIQTVHmTT5j7cPu94ZM7ix11o5iNLBwUCW/fygQUJ
+A7zhoAAKCRDix11o5iNLB7eTD/4x8I7I7MQV63Z8hDShJixSi49bfXeykzlrZyrA
+bqNr7JrIKzgX5F1HTU0JF3m+VGkhlpMIlTF/jLq9f1vzmRuiPvux/jItXYbnHFhh
+lFekwZkXx4nS5iwjpMDt6C1ERftv+Z5yHK91mZsr6eNcfA6VeIdKBQenltZvDVsq
+HSVEsDhhsKJ473tauwuPXks7cqq8tsSgVzHzRO+CV6HV1b3Muiy5ZA73RC1oIGYT
+l5zIk1M0h2FIyCfffTBEhZ/dAMErzwcogTA+EAq+OlypTiw2SXZDRx5sQ8T+018k
+d3zuJZ4PhzJDpzQ627zhy+1M4HPYOHM/nipOkoGl9D8qrFb/DEcoQ6B4FKVRWugJ
+7ZdtBpnrzh9eVmH9Z1LyKvhSHMSF6iklvIxlCGXas5j71kRg/Yc/aH/St9tV0ZIP
+1XhwEAY+ul1LCP2YgunCJEJwiG+MZBEZTU5V0gfjdNa/nqNGPOTbLy5oGPV6yWT3
+b3mx3wudw+aI8MXXPzMBCAn57S7/xuQ4fODx62NOeme/BOnjASbeE3mZ5/3qBbnu
+YIgVTYNp5frIG3wK8W1r6NY2vYQ0iBIzOCIxnNDjYqsGlpAytX+SM+YY7J9n1dZa
+UsUfX5Qs+D9VIr/j3jurObPehn9fahCOC2YXicKgSbmQyBLysbFyLT5AMpn5aes0
+qdwhrw==
+=mu62
+-----END PGP PUBLIC KEY BLOCK-----`

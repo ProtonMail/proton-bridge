@@ -22,8 +22,9 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/ProtonMail/proton-bridge/internal/config/settings"
+	"github.com/ProtonMail/proton-bridge/internal/constants"
 	"github.com/ProtonMail/proton-bridge/internal/metrics"
-	"github.com/ProtonMail/proton-bridge/internal/preferences"
 	"github.com/ProtonMail/proton-bridge/internal/users"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 
@@ -38,7 +39,7 @@ var (
 type Bridge struct {
 	*users.Users
 
-	pref          PreferenceProvider
+	settings      SettingsProvider
 	clientManager users.ClientManager
 
 	userAgentClientName    string
@@ -47,8 +48,9 @@ type Bridge struct {
 }
 
 func New(
-	config Configer,
-	pref PreferenceProvider,
+	locations Locator,
+	cache Cacher,
+	s SettingsProvider,
 	panicHandler users.PanicHandler,
 	eventListener listener.Listener,
 	clientManager users.ClientManager,
@@ -56,22 +58,22 @@ func New(
 ) *Bridge {
 	// Allow DoH before starting the app if the user has previously set this setting.
 	// This allows us to start even if protonmail is blocked.
-	if pref.GetBool(preferences.AllowProxyKey) {
+	if s.GetBool(settings.AllowProxyKey) {
 		clientManager.AllowProxy()
 	}
 
-	storeFactory := newStoreFactory(config, panicHandler, clientManager, eventListener)
-	u := users.New(config, panicHandler, eventListener, clientManager, credStorer, storeFactory, true)
+	storeFactory := newStoreFactory(cache, panicHandler, clientManager, eventListener)
+	u := users.New(locations, panicHandler, eventListener, clientManager, credStorer, storeFactory, true)
 	b := &Bridge{
 		Users: u,
 
-		pref:          pref,
+		settings:      s,
 		clientManager: clientManager,
 	}
 
-	if pref.GetBool(preferences.FirstStartKey) {
-		b.SendMetric(metrics.New(metrics.Setup, metrics.FirstStart, metrics.Label(config.GetVersion())))
-		pref.SetBool(preferences.FirstStartKey, false)
+	if s.GetBool(settings.FirstStartKey) {
+		b.SendMetric(metrics.New(metrics.Setup, metrics.FirstStart, metrics.Label(constants.Version)))
+		s.SetBool(settings.FirstStartKey, false)
 	}
 
 	go b.heartbeat()
@@ -84,7 +86,7 @@ func (b *Bridge) heartbeat() {
 	ticker := time.NewTicker(1 * time.Minute)
 
 	for range ticker.C {
-		next, err := strconv.ParseInt(b.pref.Get(preferences.NextHeartbeatKey), 10, 64)
+		next, err := strconv.ParseInt(b.settings.Get(settings.NextHeartbeatKey), 10, 64)
 		if err != nil {
 			continue
 		}
@@ -92,7 +94,7 @@ func (b *Bridge) heartbeat() {
 		if time.Now().After(nextTime) {
 			b.SendMetric(metrics.New(metrics.Heartbeat, metrics.Daily, metrics.NoLabel))
 			nextTime = nextTime.Add(24 * time.Hour)
-			b.pref.Set(preferences.NextHeartbeatKey, strconv.FormatInt(nextTime.Unix(), 10))
+			b.settings.Set(settings.NextHeartbeatKey, strconv.FormatInt(nextTime.Unix(), 10))
 		}
 	}
 }

@@ -41,7 +41,6 @@ type GoQMLInterface struct {
 	_ bool   `property:"isShownOnStart"`
 	_ bool   `property:"isFirstStart"`
 	_ bool   `property:"isFreshVersion"`
-	_ bool   `property:"isRestarting"`
 	_ bool   `property:"isConnectionOK"`
 	_ bool   `property:"isDefaultPort"`
 
@@ -69,6 +68,8 @@ type GoQMLInterface struct {
 	_ func(isAvailable bool)   `signal:"setConnectionStatus"`
 	_ func(updateState string) `signal:"setUpdateState"`
 	_ func()                   `slot:"checkInternet"`
+
+	_ func() `slot:"setToRestart"`
 
 	_ func(systX, systY, systW, systH int) `signal:"toggleMainWin"`
 
@@ -178,7 +179,6 @@ func (s *GoQMLInterface) SetFrontend(f *FrontendQt) {
 	s.ConnectSwitchAddressMode(f.switchAddressModeUser)
 
 	s.SetGoos(runtime.GOOS)
-	s.SetIsRestarting(false)
 	s.SetProgramTitle(f.programName)
 
 	s.ConnectGetBackendVersion(func() string {
@@ -186,6 +186,8 @@ func (s *GoQMLInterface) SetFrontend(f *FrontendQt) {
 	})
 
 	s.ConnectCheckInternet(f.checkInternet)
+
+	s.ConnectSetToRestart(f.restarter.SetToRestart)
 
 	s.ConnectToggleIsReportingOutgoingNoEnc(f.toggleIsReportingOutgoingNoEnc)
 	s.ConnectShouldSendAnswer(f.shouldSendAnswer)

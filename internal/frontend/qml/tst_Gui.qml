@@ -566,7 +566,6 @@ Window {
             return 0
         }
 
-        property bool isRestarting: false
         function setPortsAndSecurity(portIMAP, portSMTP, secSMTP) {
             console.log("Test: ports changed", portIMAP, portSMTP, secSMTP)
         }

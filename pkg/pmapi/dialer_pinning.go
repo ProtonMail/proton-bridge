@@ -30,19 +30,12 @@ type PinningTLSDialer struct {
 	dialer TLSDialer
 
 	// pinChecker is used to check TLS keys of connections.
-	pinChecker pinChecker
+	pinChecker *pinChecker
 
 	// tlsIssueNotifier is used to notify something when there is a TLS issue.
 	tlsIssueNotifier func()
 
-	// appVersion is needed to report TLS mismatches.
-	appVersion string
-
-	// userAgent is needed to report TLS mismatches.
-	userAgent string
-
-	// enableRemoteReporting instructs the dialer to report TLS mismatches.
-	enableRemoteReporting bool
+	reporter *tlsReporter
 
 	// A logger for logging messages.
 	log logrus.FieldLogger
@@ -63,41 +56,38 @@ func (p *PinningTLSDialer) SetTLSIssueNotifier(notifier func()) {
 	p.tlsIssueNotifier = notifier
 }
 
-func (p *PinningTLSDialer) EnableRemoteTLSIssueReporting(appVersion, userAgent string) {
-	p.enableRemoteReporting = true
-	p.appVersion = appVersion
-	p.userAgent = userAgent
+func (p *PinningTLSDialer) EnableRemoteTLSIssueReporting(cm *ClientManager) {
+	p.reporter = newTLSReporter(p.pinChecker, cm)
 }
 
 // DialTLS dials the given network/address, returning an error if the certificates don't match the trusted pins.
-func (p *PinningTLSDialer) DialTLS(network, address string) (conn net.Conn, err error) {
-	if conn, err = p.dialer.DialTLS(network, address); err != nil {
-		return
+func (p *PinningTLSDialer) DialTLS(network, address string) (net.Conn, error) {
+	conn, err := p.dialer.DialTLS(network, address)
+	if err != nil {
+		return nil, err
 	}
 
 	host, port, err := net.SplitHostPort(address)
 	if err != nil {
-		return
+		return nil, err
 	}
 
-	if err = p.pinChecker.checkCertificate(conn); err != nil {
+	if err := p.pinChecker.checkCertificate(conn); err != nil {
 		if p.tlsIssueNotifier != nil {
 			go p.tlsIssueNotifier()
 		}
 
-		if tlsConn, ok := conn.(*tls.Conn); ok && p.enableRemoteReporting {
-			p.pinChecker.reportCertIssue(
+		if tlsConn, ok := conn.(*tls.Conn); ok && p.reporter != nil {
+			p.reporter.reportCertIssue(
 				TLSReportURI,
 				host,
 				port,
 				tlsConn.ConnectionState(),
-				p.appVersion,
-				p.userAgent,
 			)
 		}
 
-		return
+		return nil, err
 	}
 
-	return
+	return conn, nil
 }

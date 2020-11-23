@@ -55,11 +55,11 @@ type imapBackend struct {
 func NewIMAPBackend(
 	panicHandler panicHandler,
 	eventListener listener.Listener,
-	cfg configProvider,
+	cache cacheProvider,
 	bridge *bridge.Bridge,
 ) *imapBackend { //nolint[golint]
 	bridgeWrap := newBridgeWrap(bridge)
-	backend := newIMAPBackend(panicHandler, cfg, bridgeWrap, eventListener)
+	backend := newIMAPBackend(panicHandler, cache, bridgeWrap, eventListener)
 
 	go backend.monitorDisconnectedUsers()
 
@@ -68,7 +68,7 @@ func NewIMAPBackend(
 
 func newIMAPBackend(
 	panicHandler panicHandler,
-	cfg configProvider,
+	cache cacheProvider,
 	bridge bridger,
 	eventListener listener.Listener,
 ) *imapBackend {
@@ -81,7 +81,7 @@ func newIMAPBackend(
 		users:       map[string]*imapUser{},
 		usersLocker: &sync.Mutex{},
 
-		imapCachePath: cfg.GetIMAPCachePath(),
+		imapCachePath: cache.GetIMAPCachePath(),
 		imapCacheLock: &sync.RWMutex{},
 
 		updatesBlocking:       map[string]bool{},

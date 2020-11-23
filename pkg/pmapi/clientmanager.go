@@ -137,8 +137,16 @@ func (cm *ClientManager) SetRoundTripper(rt http.RoundTripper) {
 	cm.roundTripper = rt
 }
 
+func (cm *ClientManager) GetClientConfig() *ClientConfig {
+	return cm.config
+}
+
 func (cm *ClientManager) SetUserAgent(clientName, clientVersion, os string) {
 	cm.config.UserAgent = formatUserAgent(clientName, clientVersion, os)
+}
+
+func (cm *ClientManager) GetUserAgent() string {
+	return cm.config.UserAgent
 }
 
 // GetClient returns a client for the given userID.
@@ -366,7 +374,7 @@ func (cm *ClientManager) clearToken(userID string) {
 	cm.tokensLocker.Lock()
 	defer cm.tokensLocker.Unlock()
 
-	logrus.WithField("userID", userID).Info("Clearing token")
+	logrus.WithField("userID", userID).Debug("Clearing token")
 
 	delete(cm.tokens, userID)
 }

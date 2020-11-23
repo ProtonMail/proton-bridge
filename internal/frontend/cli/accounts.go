@@ -21,8 +21,8 @@ import (
 	"strings"
 
 	"github.com/ProtonMail/proton-bridge/internal/bridge"
+	"github.com/ProtonMail/proton-bridge/internal/config/settings"
 	"github.com/ProtonMail/proton-bridge/internal/frontend/types"
-	"github.com/ProtonMail/proton-bridge/internal/preferences"
 	"github.com/abiosoft/ishell"
 )
 
@@ -65,13 +65,13 @@ func (f *frontendCLI) showAccountInfo(c *ishell.Context) {
 
 func (f *frontendCLI) showAccountAddressInfo(user types.User, address string) {
 	smtpSecurity := "STARTTLS"
-	if f.preferences.GetBool(preferences.SMTPSSLKey) {
+	if f.settings.GetBool(settings.SMTPSSLKey) {
 		smtpSecurity = "SSL"
 	}
 	f.Println(bold("Configuration for " + address))
 	f.Printf("IMAP Settings\nAddress:   %s\nIMAP port: %d\nUsername:  %s\nPassword:  %s\nSecurity:  %s\n",
 		bridge.Host,
-		f.preferences.GetInt(preferences.IMAPPortKey),
+		f.settings.GetInt(settings.IMAPPortKey),
 		address,
 		user.GetBridgePassword(),
 		"STARTTLS",
@@ -79,7 +79,7 @@ func (f *frontendCLI) showAccountAddressInfo(user types.User, address string) {
 	f.Println("")
 	f.Printf("SMTP Settings\nAddress:   %s\nSMTP port: %d\nUsername:  %s\nPassword:  %s\nSecurity:  %s\n",
 		bridge.Host,
-		f.preferences.GetInt(preferences.SMTPPortKey),
+		f.settings.GetInt(settings.SMTPPortKey),
 		address,
 		user.GetBridgePassword(),
 		smtpSecurity,

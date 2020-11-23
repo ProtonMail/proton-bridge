@@ -226,7 +226,7 @@ Dialog {
         target: timer
         onTriggered: {
             go.setPortsAndSecurity(imapPort.text, smtpPort.text, securitySMTPSTARTTLS.checked)
-            go.isRestarting = true
+            go.setToRestart()
             Qt.quit()
         }
     }
