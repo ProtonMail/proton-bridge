@@ -2,6 +2,12 @@
 
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
+## [Bridge 1.5.2] Golden Gate
+
+### Changed
+* GODT-883 Use `ClearPacket` for `text/plain` with signature
+
+
 ## [Bridge 1.5.1] Golden Gate
 
 ### Added

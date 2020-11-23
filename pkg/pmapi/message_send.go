@@ -186,10 +186,10 @@ var (
 	errInternalMustEncrypt          = errors.New("internal package must be encrypted")
 	errInlineMustBePlain            = errors.New("PGP Inline package must be plain text")
 	errMissingPubkey                = errors.New("cannot encrypt body key packet: missing pubkey")
-	errSignMustBeMultipart          = errors.New("clear signed html packet must be multipart")
+	errClearSignMustNotBeHTML       = errors.New("clear signed packet must be multipart or plain")
 	errMIMEMustBeMultipart          = errors.New("MIME packet must be multipart")
 	errClearMIMEMustSign            = errors.New("clear MIME must be signed")
-	errSignMustBePGPInline          = errors.New("clear sign must be PGP inline")
+	errClearSignMustNotBePGPInline  = errors.New("clear sign must not be PGP inline")
 )
 
 func (req *SendMessageReq) AddRecipient(
@@ -212,6 +212,9 @@ func (req *SendMessageReq) AddRecipient(
 		}
 		return req.addMIMERecipient(email, sendScheme, pubkey, signature)
 	case InternalPackage, ClearPackage, PGPInlinePackage:
+		if contentType == ContentTypeMultipartMixed {
+			return errMultipartInNonMIME
+		}
 		return req.addNonMIMERecipient(email, sendScheme, pubkey, signature, contentType, doEncrypt)
 	case EncryptedOutsidePackage:
 		return errEncryptedOutsideNotSupported
@@ -225,12 +228,12 @@ func (req *SendMessageReq) addNonMIMERecipient(
 	pubkey *crypto.KeyRing, signature SignatureFlag,
 	contentType string, doEncrypt bool,
 ) (err error) {
-	if sendScheme.Is(ClearPackage) && signature.Is(SignatureDetached) {
-		if contentType == ContentTypeHTML {
-			return errSignMustBeMultipart
+	if signature.Is(SignatureDetached) && !doEncrypt {
+		if sendScheme.Is(PGPInlinePackage) {
+			return errClearSignMustNotBePGPInline
 		}
-		if contentType == ContentTypePlainText {
-			return errSignMustBePGPInline
+		if sendScheme.Is(ClearPackage) && contentType == ContentTypeHTML {
+			return errClearSignMustNotBeHTML
 		}
 	}
 
@@ -282,15 +285,15 @@ func (req *SendMessageReq) addMIMERecipient(
 	email string, sendScheme PackageFlag,
 	pubkey *crypto.KeyRing, signature SignatureFlag,
 ) (err error) {
+	if sendScheme.Is(ClearMIMEPackage) && signature.HasNo(SignatureDetached) {
+		return errClearMIMEMustSign
+	}
+
 	req.mime.contentType = ContentTypeMultipartMixed
 	if req.mime.decryptedBodyKey == nil {
 		if req.mime.decryptedBodyKey, req.mime.ciphertext, err = encryptSymmDecryptKey(req.kr, req.mime.cleartext); err != nil {
 			return err
 		}
-	}
-
-	if sendScheme.Is(ClearMIMEPackage) && signature.HasNo(SignatureDetached) {
-		return errClearMIMEMustSign
 	}
 
 	if sendScheme.Is(PGPMIMEPackage) {
