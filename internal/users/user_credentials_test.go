@@ -221,7 +221,7 @@ func TestCheckBridgeLoginLoggedOut(t *testing.T) {
 		m.pmapiClient.EXPECT().Addresses().Return(nil),
 	)
 
-	err = user.init(nil)
+	err = user.init()
 	assert.Error(t, err)
 
 	defer cleanUpUserData(user)

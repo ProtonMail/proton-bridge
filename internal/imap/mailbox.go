@@ -177,6 +177,9 @@ func (im *imapMailbox) Check() error {
 // Expunge permanently removes all messages that have the \Deleted flag set
 // from the currently selected mailbox.
 func (im *imapMailbox) Expunge() error {
+	im.user.backend.setUpdatesBeBlocking(im.user.currentAddressLowercase, im.name, operationDeleteMessage)
+	defer im.user.backend.unsetUpdatesBeBlocking(im.user.currentAddressLowercase, im.name, operationDeleteMessage)
+
 	return im.storeMailbox.RemoveDeleted()
 }
 

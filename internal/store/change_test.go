@@ -21,52 +21,43 @@ import (
 	"testing"
 
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
-	imapBackend "github.com/emersion/go-imap/backend"
+	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
 )
 
-func TestCreateOrUpdateMessageIMAPUpdates(t *testing.T) {
+func TestNotifyChangeCreateOrUpdateMessage(t *testing.T) {
 	m, clear := initMocks(t)
 	defer clear()
 
-	updates := make(chan imapBackend.Update)
+	m.changeNotifier.EXPECT().MailboxStatus(addr1, "All Mail", uint32(1), uint32(0), uint32(0))
+	m.changeNotifier.EXPECT().MailboxStatus(addr1, "All Mail", uint32(2), uint32(0), uint32(0))
+	m.changeNotifier.EXPECT().UpdateMessage(addr1, "All Mail", uint32(1), uint32(1), gomock.Any(), false)
+	m.changeNotifier.EXPECT().UpdateMessage(addr1, "All Mail", uint32(2), uint32(2), gomock.Any(), false)
 
 	m.newStoreNoEvents(true)
-	m.store.SetIMAPUpdateChannel(updates)
-
-	go checkIMAPUpdates(t, updates, []func(interface{}) bool{
-		checkMessageUpdate(addr1, "All Mail", 1, 1),
-		checkMessageUpdate(addr1, "All Mail", 2, 2),
-	})
+	m.store.SetChangeNotifier(m.changeNotifier)
 
 	insertMessage(t, m, "msg1", "Test message 1", addrID1, 0, []string{pmapi.AllMailLabel})
 	insertMessage(t, m, "msg2", "Test message 2", addrID1, 0, []string{pmapi.AllMailLabel})
-
-	close(updates)
 }
 
-func TestCreateOrUpdateMessageIMAPUpdatesBulkUpdate(t *testing.T) {
+func TestNotifyChangeCreateOrUpdateMessages(t *testing.T) {
 	m, clear := initMocks(t)
 	defer clear()
 
-	updates := make(chan imapBackend.Update)
+	m.changeNotifier.EXPECT().MailboxStatus(addr1, "All Mail", uint32(2), uint32(0), uint32(0))
+	m.changeNotifier.EXPECT().UpdateMessage(addr1, "All Mail", uint32(1), uint32(1), gomock.Any(), false)
+	m.changeNotifier.EXPECT().UpdateMessage(addr1, "All Mail", uint32(2), uint32(2), gomock.Any(), false)
 
 	m.newStoreNoEvents(true)
-	m.store.SetIMAPUpdateChannel(updates)
-
-	go checkIMAPUpdates(t, updates, []func(interface{}) bool{
-		checkMessageUpdate(addr1, "All Mail", 1, 1),
-		checkMessageUpdate(addr1, "All Mail", 2, 2),
-	})
+	m.store.SetChangeNotifier(m.changeNotifier)
 
 	msg1 := getTestMessage("msg1", "Test message 1", addrID1, 0, []string{pmapi.AllMailLabel})
 	msg2 := getTestMessage("msg2", "Test message 2", addrID1, 0, []string{pmapi.AllMailLabel})
 	require.Nil(t, m.store.createOrUpdateMessagesEvent([]*pmapi.Message{msg1, msg2}))
-
-	close(updates)
 }
 
-func TestDeleteMessageIMAPUpdate(t *testing.T) {
+func TestNotifyChangeDeleteMessage(t *testing.T) {
 	m, clear := initMocks(t)
 	defer clear()
 
@@ -75,55 +66,10 @@ func TestDeleteMessageIMAPUpdate(t *testing.T) {
 	insertMessage(t, m, "msg1", "Test message 1", addrID1, 0, []string{pmapi.AllMailLabel})
 	insertMessage(t, m, "msg2", "Test message 2", addrID1, 0, []string{pmapi.AllMailLabel})
 
-	updates := make(chan imapBackend.Update)
-	m.store.SetIMAPUpdateChannel(updates)
-	go checkIMAPUpdates(t, updates, []func(interface{}) bool{
-		checkMessageDelete(addr1, "All Mail", 2),
-		checkMessageDelete(addr1, "All Mail", 1),
-	})
+	m.changeNotifier.EXPECT().DeleteMessage(addr1, "All Mail", uint32(2))
+	m.changeNotifier.EXPECT().DeleteMessage(addr1, "All Mail", uint32(1))
 
+	m.store.SetChangeNotifier(m.changeNotifier)
 	require.Nil(t, m.store.deleteMessageEvent("msg2"))
 	require.Nil(t, m.store.deleteMessageEvent("msg1"))
-	close(updates)
-}
-
-func checkIMAPUpdates(t *testing.T, updates chan imapBackend.Update, checkFunctions []func(interface{}) bool) {
-	idx := 0
-	for update := range updates {
-		if idx >= len(checkFunctions) {
-			continue
-		}
-		if !checkFunctions[idx](update) {
-			continue
-		}
-		idx++
-	}
-	require.True(t, idx == len(checkFunctions), "Less updates than expected: %+v of %+v", idx, len(checkFunctions))
-}
-
-func checkMessageUpdate(username, mailbox string, seqNum, uid int) func(interface{}) bool { //nolint[unparam]
-	return func(update interface{}) bool {
-		switch u := update.(type) {
-		case *imapBackend.MessageUpdate:
-			return (u.Update.Username() == username &&
-				u.Update.Mailbox() == mailbox &&
-				u.Message.SeqNum == uint32(seqNum) &&
-				u.Message.Uid == uint32(uid))
-		default:
-			return false
-		}
-	}
-}
-
-func checkMessageDelete(username, mailbox string, seqNum int) func(interface{}) bool { //nolint[unparam]
-	return func(update interface{}) bool {
-		switch u := update.(type) {
-		case *imapBackend.ExpungeUpdate:
-			return (u.Update.Username() == username &&
-				u.Update.Mailbox() == mailbox &&
-				u.SeqNum == uint32(seqNum))
-		default:
-			return false
-		}
-	}
 }

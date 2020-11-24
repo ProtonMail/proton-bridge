@@ -44,13 +44,14 @@ const (
 type mocksForStore struct {
 	tb testing.TB
 
-	ctrl          *gomock.Controller
-	events        *storemocks.MockListener
-	user          *storemocks.MockBridgeUser
-	client        *pmapimocks.MockClient
-	clientManager *storemocks.MockClientManager
-	panicHandler  *storemocks.MockPanicHandler
-	store         *Store
+	ctrl           *gomock.Controller
+	events         *storemocks.MockListener
+	user           *storemocks.MockBridgeUser
+	client         *pmapimocks.MockClient
+	clientManager  *storemocks.MockClientManager
+	panicHandler   *storemocks.MockPanicHandler
+	changeNotifier *storemocks.MockChangeNotifier
+	store          *Store
 
 	tmpDir string
 	cache  *Cache
@@ -59,13 +60,14 @@ type mocksForStore struct {
 func initMocks(tb testing.TB) (*mocksForStore, func()) {
 	ctrl := gomock.NewController(tb)
 	mocks := &mocksForStore{
-		tb:            tb,
-		ctrl:          ctrl,
-		events:        storemocks.NewMockListener(ctrl),
-		user:          storemocks.NewMockBridgeUser(ctrl),
-		client:        pmapimocks.NewMockClient(ctrl),
-		clientManager: storemocks.NewMockClientManager(ctrl),
-		panicHandler:  storemocks.NewMockPanicHandler(ctrl),
+		tb:             tb,
+		ctrl:           ctrl,
+		events:         storemocks.NewMockListener(ctrl),
+		user:           storemocks.NewMockBridgeUser(ctrl),
+		client:         pmapimocks.NewMockClient(ctrl),
+		clientManager:  storemocks.NewMockClientManager(ctrl),
+		panicHandler:   storemocks.NewMockPanicHandler(ctrl),
+		changeNotifier: storemocks.NewMockChangeNotifier(ctrl),
 	}
 
 	// Called during clean-up.

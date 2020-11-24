@@ -27,7 +27,6 @@ import (
 	"github.com/ProtonMail/proton-bridge/internal/users/credentials"
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
-	imapBackend "github.com/emersion/go-imap/backend"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )
@@ -42,8 +41,6 @@ type User struct {
 	listener      listener.Listener
 	clientManager ClientManager
 	credStorer    CredentialsStorer
-
-	imapUpdatesChannel chan imapBackend.Update
 
 	storeFactory StoreMaker
 	store        *store.Store
@@ -95,7 +92,7 @@ func (u *User) client() pmapi.Client {
 // have the apitoken and password), authorising the user against the api, loading the user store (creating a new one
 // if necessary), and setting the imap idle updates channel (used to send imap idle updates to the imap backend if
 // something in the store changed).
-func (u *User) init(idleUpdates chan imapBackend.Update) (err error) {
+func (u *User) init() (err error) {
 	u.log.Info("Initialising user")
 
 	// Reload the user's credentials (if they log out and back in we need the new
@@ -134,18 +131,7 @@ func (u *User) init(idleUpdates chan imapBackend.Update) (err error) {
 	}
 	u.store = store
 
-	// Save the imap updates channel here so it can be set later when imap connects.
-	u.imapUpdatesChannel = idleUpdates
-
 	return err
-}
-
-func (u *User) SetIMAPIdleUpdateChannel() {
-	if u.store == nil {
-		return
-	}
-
-	u.store.SetIMAPUpdateChannel(u.imapUpdatesChannel)
 }
 
 // authorizeIfNecessary checks whether user is logged in and is connected to api auth channel.
@@ -539,7 +525,7 @@ func (u *User) CloseAllConnections() {
 	}
 
 	if u.store != nil {
-		u.store.SetIMAPUpdateChannel(nil)
+		u.store.SetChangeNotifier(nil)
 	}
 }
 

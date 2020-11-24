@@ -18,119 +18,56 @@
 package store
 
 import (
-	"time"
-
-	"github.com/ProtonMail/proton-bridge/pkg/message"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
-	imap "github.com/emersion/go-imap"
-	imapBackend "github.com/emersion/go-imap/backend"
-	"github.com/sirupsen/logrus"
 )
 
-// SetIMAPUpdateChannel sets the channel on which imap update messages will be sent. This should be the channel
-// on which the imap backend listens for imap updates.
-func (store *Store) SetIMAPUpdateChannel(updates chan imapBackend.Update) {
-	store.log.Debug("Listening for IMAP updates")
-
-	if store.imapUpdates = updates; store.imapUpdates == nil {
-		store.log.Error("The IMAP Updates channel is nil")
-	}
+type ChangeNotifier interface {
+	Notice(address, notice string)
+	UpdateMessage(
+		address, mailboxName string,
+		uid, sequenceNumber uint32,
+		msg *pmapi.Message, hasDeletedFlag bool)
+	DeleteMessage(address, mailboxName string, sequenceNumber uint32)
+	MailboxCreated(address, mailboxName string)
+	MailboxStatus(address, mailboxName string, total, unread, unreadSeqNum uint32)
 }
 
-func (store *Store) imapNotice(address, notice string) *imapBackend.StatusUpdate {
-	update := new(imapBackend.StatusUpdate)
-	update.Update = imapBackend.NewUpdate(address, "")
-	update.StatusResp = &imap.StatusResp{
-		Type: imap.StatusRespOk,
-		Code: imap.CodeAlert,
-		Info: notice,
-	}
-	store.imapSendUpdate(update)
-	return update
+// SetChangeNotifier sets notifier to be called once mailbox or message changes.
+func (store *Store) SetChangeNotifier(notifier ChangeNotifier) {
+	store.notifier = notifier
 }
 
-func (store *Store) imapUpdateMessage(
-	address, mailboxName string,
-	uid, sequenceNumber uint32,
-	msg *pmapi.Message, hasDeletedFlag bool,
-) *imapBackend.MessageUpdate {
-	store.log.WithFields(logrus.Fields{
-		"address": address,
-		"mailbox": mailboxName,
-		"seqNum":  sequenceNumber,
-		"uid":     uid,
-		"flags":   message.GetFlags(msg),
-		"deleted": hasDeletedFlag,
-	}).Trace("IDLE update")
-	update := new(imapBackend.MessageUpdate)
-	update.Update = imapBackend.NewUpdate(address, mailboxName)
-	update.Message = imap.NewMessage(sequenceNumber, []imap.FetchItem{imap.FetchFlags, imap.FetchUid})
-	update.Message.Flags = message.GetFlags(msg)
-	if hasDeletedFlag {
-		update.Message.Flags = append(update.Message.Flags, imap.DeletedFlag)
-	}
-	update.Message.Uid = uid
-	store.imapSendUpdate(update)
-	return update
-}
-
-func (store *Store) imapDeleteMessage(address, mailboxName string, sequenceNumber uint32) *imapBackend.ExpungeUpdate {
-	store.log.WithFields(logrus.Fields{
-		"address": address,
-		"mailbox": mailboxName,
-		"seqNum":  sequenceNumber,
-	}).Trace("IDLE delete")
-	update := new(imapBackend.ExpungeUpdate)
-	update.Update = imapBackend.NewUpdate(address, mailboxName)
-	update.SeqNum = sequenceNumber
-	store.imapSendUpdate(update)
-	return update
-}
-
-func (store *Store) imapMailboxCreated(address, mailboxName string) *imapBackend.MailboxInfoUpdate {
-	store.log.WithFields(logrus.Fields{
-		"address": address,
-		"mailbox": mailboxName,
-	}).Trace("IDLE mailbox info")
-	update := new(imapBackend.MailboxInfoUpdate)
-	update.Update = imapBackend.NewUpdate(address, "")
-	update.MailboxInfo = &imap.MailboxInfo{
-		Attributes: []string{imap.NoInferiorsAttr},
-		Delimiter:  PathDelimiter,
-		Name:       mailboxName,
-	}
-	store.imapSendUpdate(update)
-	return update
-}
-
-func (store *Store) imapMailboxStatus(address, mailboxName string, total, unread, unreadSeqNum uint) *imapBackend.MailboxUpdate {
-	store.log.WithFields(logrus.Fields{
-		"address":      address,
-		"mailbox":      mailboxName,
-		"total":        total,
-		"unread":       unread,
-		"unreadSeqNum": unreadSeqNum,
-	}).Trace("IDLE status")
-	update := new(imapBackend.MailboxUpdate)
-	update.Update = imapBackend.NewUpdate(address, mailboxName)
-	update.MailboxStatus = imap.NewMailboxStatus(mailboxName, []imap.StatusItem{imap.StatusMessages, imap.StatusUnseen})
-	update.MailboxStatus.Messages = uint32(total)
-	update.MailboxStatus.Unseen = uint32(unread)
-	update.MailboxStatus.UnseenSeqNum = uint32(unreadSeqNum)
-	store.imapSendUpdate(update)
-	return update
-}
-
-func (store *Store) imapSendUpdate(update imapBackend.Update) {
-	if store.imapUpdates == nil {
-		store.log.Trace("IMAP IDLE unavailable")
+func (store *Store) notifyNotice(address, notice string) {
+	if store.notifier == nil {
 		return
 	}
+	store.notifier.Notice(address, notice)
+}
 
-	select {
-	case <-time.After(1 * time.Second):
-		store.log.Warn("IMAP update could not be sent (timeout)")
+func (store *Store) notifyUpdateMessage(address, mailboxName string, uid, sequenceNumber uint32, msg *pmapi.Message, hasDeletedFlag bool) {
+	if store.notifier == nil {
 		return
-	case store.imapUpdates <- update:
 	}
+	store.notifier.UpdateMessage(address, mailboxName, uid, sequenceNumber, msg, hasDeletedFlag)
+}
+
+func (store *Store) notifyDeleteMessage(address, mailboxName string, sequenceNumber uint32) {
+	if store.notifier == nil {
+		return
+	}
+	store.notifier.DeleteMessage(address, mailboxName, sequenceNumber)
+}
+
+func (store *Store) notifyMailboxCreated(address, mailboxName string) {
+	if store.notifier == nil {
+		return
+	}
+	store.notifier.MailboxCreated(address, mailboxName)
+}
+
+func (store *Store) notifyMailboxStatus(address, mailboxName string, total, unread, unreadSeqNum uint) {
+	if store.notifier == nil {
+		return
+	}
+	store.notifier.MailboxStatus(address, mailboxName, uint32(total), uint32(unread), uint32(unreadSeqNum))
 }

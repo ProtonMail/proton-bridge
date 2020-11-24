@@ -43,6 +43,8 @@ type storeUserProvider interface {
 		parentID string) (*pmapi.Message, []*pmapi.Attachment, error)
 
 	PauseEventLoop(bool)
+
+	SetChangeNotifier(store.ChangeNotifier)
 }
 
 type storeAddressProvider interface {

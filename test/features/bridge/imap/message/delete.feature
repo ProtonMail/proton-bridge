@@ -4,7 +4,6 @@ Feature: IMAP remove messages from mailbox
     And there is "user" with mailbox "Folders/mbox"
     And there is "user" with mailbox "Labels/label"
 
-  @ignore
   Scenario Outline: Mark message as deleted and EXPUNGE
     Given there are 10 messages in mailbox "<mailbox>" for "user"
     And there is IMAP client logged in as "user"
@@ -27,7 +26,6 @@ Feature: IMAP remove messages from mailbox
       | Spam         |
       | Trash        |
 
-  @ignore
   Scenario Outline: Mark all messages as deleted and EXPUNGE
     Given there are 5 messages in mailbox "<mailbox>" for "user"
     And there is IMAP client logged in as "user"
@@ -51,7 +49,6 @@ Feature: IMAP remove messages from mailbox
       | Spam         |
       | Trash        |
 
-  @ignore
   Scenario Outline: Mark messages as undeleted and EXPUNGE
     Given there are 5 messages in mailbox "<mailbox>" for "user"
     And there is IMAP client logged in as "user"
@@ -74,7 +71,6 @@ Feature: IMAP remove messages from mailbox
       | Spam         |
       | Trash        |
 
-  @ignore
   Scenario Outline: Mark message as deleted and leave mailbox
     Given there are 10 messages in mailbox "INBOX" for "user"
     And there is IMAP client logged in as "user"
@@ -97,7 +93,6 @@ Feature: IMAP remove messages from mailbox
       | LOGOUT        | 9  |
       | UNSELECT      | 10 |
 
-  @ignore
   Scenario: Not possible to delete from All Mail
     Given there are 1 messages in mailbox "INBOX" for "user"
     And there is IMAP client logged in as "user"

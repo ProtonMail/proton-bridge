@@ -34,7 +34,7 @@ func testNewUser(m mocks) *User {
 	user, err := newUser(m.PanicHandler, "user", m.eventListener, m.credentialsStore, m.clientManager, m.storeMaker)
 	assert.NoError(m.t, err)
 
-	err = user.init(nil)
+	err = user.init()
 	assert.NoError(m.t, err)
 
 	mockAuthUpdate(user, "reftok", m)
@@ -51,7 +51,7 @@ func testNewUserForLogout(m mocks) *User {
 	user, err := newUser(m.PanicHandler, "user", m.eventListener, m.credentialsStore, m.clientManager, m.storeMaker)
 	assert.NoError(m.t, err)
 
-	err = user.init(nil)
+	err = user.init()
 	assert.NoError(m.t, err)
 
 	return user

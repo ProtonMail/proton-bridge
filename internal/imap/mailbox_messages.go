@@ -46,6 +46,9 @@ func (im *imapMailbox) UpdateMessagesFlags(uid bool, seqSet *imap.SeqSet, operat
 	// Called from go-imap in goroutines - we need to handle panics for each function.
 	defer im.panicHandler.HandlePanic()
 
+	im.user.backend.setUpdatesBeBlocking(im.user.currentAddressLowercase, im.name, operationUpdateMessage)
+	defer im.user.backend.unsetUpdatesBeBlocking(im.user.currentAddressLowercase, im.name, operationUpdateMessage)
+
 	messageIDs, err := im.apiIDsFromSeqSet(uid, seqSet)
 	if err != nil || len(messageIDs) == 0 {
 		return err

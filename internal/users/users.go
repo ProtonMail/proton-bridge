@@ -26,7 +26,6 @@ import (
 	"github.com/ProtonMail/proton-bridge/internal/metrics"
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
-	imapBackend "github.com/emersion/go-imap/backend"
 	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
 	logrus "github.com/sirupsen/logrus"
@@ -58,11 +57,6 @@ type Users struct {
 	// as is, without requesting server again.
 	useOnlyActiveAddresses bool
 
-	// idleUpdates is a channel which the imap backend listens to and which it
-	// uses to send idle updates to the mail client (eg thunderbird).
-	// The user stores should send idle updates on this channel.
-	idleUpdates chan imapBackend.Update
-
 	lock sync.RWMutex
 
 	// stopAll can be closed to stop all goroutines from looping (watchAppOutdated, watchAPIAuths, heartbeat etc).
@@ -88,7 +82,6 @@ func New(
 		credStorer:             credStorer,
 		storeFactory:           storeFactory,
 		useOnlyActiveAddresses: useOnlyActiveAddresses,
-		idleUpdates:            make(chan imapBackend.Update),
 		lock:                   sync.RWMutex{},
 		stopAll:                make(chan struct{}),
 	}
@@ -132,7 +125,7 @@ func (u *Users) loadUsersFromCredentialsStore() (err error) {
 
 		u.users = append(u.users, user)
 
-		if initUserErr := user.init(u.idleUpdates); initUserErr != nil {
+		if initUserErr := user.init(); initUserErr != nil {
 			l.WithField("user", userID).WithError(initUserErr).Warn("Could not initialise user")
 		}
 	}
@@ -285,7 +278,7 @@ func (u *Users) connectExistingUser(user *User, auth *pmapi.Auth, hashedPassphra
 		return errors.Wrap(err, "failed to update token of user in credentials store")
 	}
 
-	if err = user.init(u.idleUpdates); err != nil {
+	if err = user.init(); err != nil {
 		return errors.Wrap(err, "failed to initialise user")
 	}
 
@@ -326,7 +319,7 @@ func (u *Users) addNewUser(apiUser *pmapi.User, auth *pmapi.Auth, hashedPassphra
 	// The user needs to be part of the users list in order for it to receive an auth during initialisation.
 	u.users = append(u.users, user)
 
-	if err = user.init(u.idleUpdates); err != nil {
+	if err = user.init(); err != nil {
 		u.users = u.users[:len(u.users)-1]
 		return errors.Wrap(err, "failed to initialise user")
 	}
@@ -462,15 +455,6 @@ func (u *Users) SendMetric(m metrics.Metric) {
 		"act": act,
 		"lab": lab,
 	}).Debug("Metric successfully sent")
-}
-
-// GetIMAPUpdatesChannel sets the channel on which idle events should be sent.
-func (u *Users) GetIMAPUpdatesChannel() chan imapBackend.Update {
-	if u.idleUpdates == nil {
-		log.Warn("IMAP updates channel is nil")
-	}
-
-	return u.idleUpdates
 }
 
 // AllowProxy instructs the app to use DoH to access an API proxy if necessary.

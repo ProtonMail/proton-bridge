@@ -18,8 +18,6 @@
 package store
 
 import (
-	"time"
-
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -356,7 +354,7 @@ func (storeMailbox *Mailbox) txCreateOrUpdateMessages(tx *bolt.Tx, msgs []*pmapi
 				}
 				isMarkedAsDeleted := deletedBucket.Get([]byte(msg.ID)) != nil
 				if seqErr == nil {
-					storeMailbox.store.imapUpdateMessage(
+					storeMailbox.store.notifyUpdateMessage(
 						storeMailbox.storeAddress.address,
 						storeMailbox.labelName,
 						btoi(uidb),
@@ -390,7 +388,7 @@ func (storeMailbox *Mailbox) txCreateOrUpdateMessages(tx *bolt.Tx, msgs []*pmapi
 		if err != nil {
 			return errors.Wrap(err, "cannot get sequence number from UID")
 		}
-		storeMailbox.store.imapUpdateMessage(
+		storeMailbox.store.notifyUpdateMessage(
 			storeMailbox.storeAddress.address,
 			storeMailbox.labelName,
 			uid,
@@ -441,7 +439,7 @@ func (storeMailbox *Mailbox) txDeleteMessage(tx *bolt.Tx, apiID string) error {
 	}
 
 	if seqNumErr == nil {
-		storeMailbox.store.imapDeleteMessage(
+		storeMailbox.store.notifyDeleteMessage(
 			storeMailbox.storeAddress.address,
 			storeMailbox.labelName,
 			seqNum,
@@ -459,7 +457,7 @@ func (storeMailbox *Mailbox) txMailboxStatusUpdate(tx *bolt.Tx) error {
 	if err != nil {
 		return errors.Wrap(err, "cannot get counts for mailbox status update")
 	}
-	storeMailbox.store.imapMailboxStatus(
+	storeMailbox.store.notifyMailboxStatus(
 		storeMailbox.storeAddress.address,
 		storeMailbox.labelName,
 		total,
@@ -503,7 +501,7 @@ func (storeMailbox *Mailbox) txMarkMessagesAsDeleted(tx *bolt.Tx, apiIDs []strin
 
 		// In order to send flags in format
 		// S: * 2 FETCH (FLAGS (\Deleted \Seen))
-		update := storeMailbox.store.imapUpdateMessage(
+		storeMailbox.store.notifyUpdateMessage(
 			storeMailbox.storeAddress.address,
 			storeMailbox.labelName,
 			uid,
@@ -511,14 +509,6 @@ func (storeMailbox *Mailbox) txMarkMessagesAsDeleted(tx *bolt.Tx, apiIDs []strin
 			msg,
 			markAsDeleted,
 		)
-
-		// txMarkMessagesAsDeleted is called only during processing request
-		// from IMAP call (i.e., not from event loop) and in such cases we
-		// have to wait to propagate update back before closing the response.
-		select {
-		case <-time.After(1 * time.Second):
-		case <-update.Done():
-		}
 	}
 
 	return nil

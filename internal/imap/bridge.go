@@ -40,7 +40,6 @@ type bridgeUser interface {
 	IsCombinedAddressMode() bool
 	GetAddressID(address string) (string, error)
 	GetPrimaryAddress() string
-	SetIMAPIdleUpdateChannel()
 	UpdateUser() error
 	Logout() error
 	CloseConnection(address string)

@@ -571,7 +571,7 @@ func (loop *eventLoop) processNotices(l *logrus.Entry, notices []string) {
 	for _, notice := range notices {
 		l.Infof("Notice: %q", notice)
 		for _, address := range loop.user.GetStoreAddresses() {
-			loop.store.imapNotice(address, notice)
+			loop.store.notifyNotice(address, notice)
 		}
 	}
 }

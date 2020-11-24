@@ -26,7 +26,6 @@ import (
 
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
-	imapBackend "github.com/emersion/go-imap/backend"
 	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -100,12 +99,12 @@ type Store struct {
 
 	log *logrus.Entry
 
-	cache       *Cache
-	filePath    string
-	db          *bolt.DB
-	lock        *sync.RWMutex
-	addresses   map[string]*Address
-	imapUpdates chan imapBackend.Update
+	cache     *Cache
+	filePath  string
+	db        *bolt.DB
+	lock      *sync.RWMutex
+	addresses map[string]*Address
+	notifier  ChangeNotifier
 
 	isSyncRunning bool
 	syncCooldown  cooldown

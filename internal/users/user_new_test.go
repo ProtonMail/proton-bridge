@@ -139,7 +139,7 @@ func checkNewUserHasCredentials(creds *credentials.Credentials, m mocks) {
 	user, _ := newUser(m.PanicHandler, "user", m.eventListener, m.credentialsStore, m.clientManager, m.storeMaker)
 	defer cleanUpUserData(user)
 
-	_ = user.init(nil)
+	_ = user.init()
 
 	waitForEvents()
 

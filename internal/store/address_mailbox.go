@@ -78,7 +78,7 @@ func (storeAddress *Address) createOrUpdateMailboxEvent(label *pmapi.Label) erro
 			return err
 		}
 		storeAddress.mailboxes[label.ID] = mailbox
-		mailbox.store.imapMailboxCreated(storeAddress.address, mailbox.labelName)
+		mailbox.store.notifyMailboxCreated(storeAddress.address, mailbox.labelName)
 	} else {
 		mailbox.labelName = prefix + label.Path
 		mailbox.color = label.Color

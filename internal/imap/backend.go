@@ -46,6 +46,9 @@ type imapBackend struct {
 	imapCache     map[string]map[string]string
 	imapCachePath string
 	imapCacheLock *sync.RWMutex
+
+	updatesBlocking       map[string]bool
+	updatesBlockingLocker sync.Locker
 }
 
 // NewIMAPBackend returns struct implementing go-imap/backend interface.
@@ -57,10 +60,6 @@ func NewIMAPBackend(
 ) *imapBackend { //nolint[golint]
 	bridgeWrap := newBridgeWrap(bridge)
 	backend := newIMAPBackend(panicHandler, cfg, bridgeWrap, eventListener)
-
-	// We want idle updates coming from bridge's updates channel (which in turn come
-	// from the bridge users' stores) to be sent to the imap backend's update channel.
-	backend.updates = bridge.GetIMAPUpdatesChannel()
 
 	go backend.monitorDisconnectedUsers()
 
@@ -84,6 +83,9 @@ func newIMAPBackend(
 
 		imapCachePath: cfg.GetIMAPCachePath(),
 		imapCacheLock: &sync.RWMutex{},
+
+		updatesBlocking:       map[string]bool{},
+		updatesBlockingLocker: &sync.Mutex{},
 	}
 }
 
@@ -169,7 +171,9 @@ func (ib *imapBackend) Login(_ *imap.ConnInfo, username, password string) (goIMA
 	// The update channel should be nil until we try to login to IMAP for the first time
 	// so that it doesn't make bridge slow for users who are only using bridge for SMTP
 	// (otherwise the store will be locked for 1 sec per email during synchronization).
-	imapUser.user.SetIMAPIdleUpdateChannel()
+	if store := imapUser.user.GetStore(); store != nil {
+		store.SetChangeNotifier(ib)
+	}
 
 	return imapUser, nil
 }
