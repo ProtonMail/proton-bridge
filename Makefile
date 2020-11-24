@@ -213,10 +213,13 @@ mocks:
 	mockgen --package mocks github.com/ProtonMail/proton-bridge/pkg/listener Listener > internal/store/mocks/utils_mocks.go
 	mockgen --package mocks github.com/ProtonMail/proton-bridge/pkg/pmapi Client > pkg/pmapi/mocks/mocks.go
 
-lint: lint-golang lint-license
+lint: lint-golang lint-license lint-changelog
 
 lint-license:
 	./utils/missing_license.sh check
+
+lint-changelog:
+	./utils/changelog_linter.sh
 
 lint-golang:
 	which golangci-lint || $(MAKE) install-linter

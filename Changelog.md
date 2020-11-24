@@ -5,7 +5,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 ## [Bridge 1.5.2] Golden Gate
 
 ### Changed
-* GODT-883 Use `ClearPacket` for `text/plain` with signature
+* GODT-883 Use `ClearPacket` for `text/plain` with signature.
 
 
 ## [Bridge 1.5.1] Golden Gate
@@ -31,7 +31,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 ### Added
 * GODT-799 Skipped messages do not change total counts but shows as separate number.
 
-## Fixed
+### Fixed
 * GODT-799 Fix skipping unwanted folders importing from mbox files.
 * GODT-769 Close connection before deleting labels to prevent panics accessing deleted bucket.
 
@@ -48,7 +48,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-847 Waiting for unilateral update during deleting the message.
 * GODT-849 Show in error counts in the end also lost messages.
 * GODT-835 Do not include conversation ID in references to show properly conversation threads in clients.
-* GODT-685 Improve deb packaging regarding dejavu font
+* GODT-685 Improve deb packaging regarding dejavu font.
 
 
 ## [IE 1.2.0] Elbe
@@ -60,7 +60,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 ### Fixed
 * GODT-677 Windows IE: global import settings not fit in window.
-* GODT-794 Congo fails to update to Danube
+* GODT-794 Congo fails to update to Danube.
 * GODT-749 Don't force PGP/Inline when sending plaintext messages.
 * GODT-764 Fix deadlock in integration tests for Import-Export.
 * GODT-662 Do not resume paused transfer progress after dismissing cancel popup.
@@ -88,8 +88,8 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 ### Fixed
 * GODT-798 Replace, don't add, transfer encoding when making body 7-bit clean.
-* Move/Copy duplicate for emails with References in Outlook
-* CSB-247 Cannot update from 1.4.0
+* Move/Copy duplicate for emails with References in Outlook.
+* CSB-247 Cannot update from 1.4.0.
 
 
 ## [Bridge 1.4.3] Forth
@@ -115,7 +115,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-776 Fix crash when IMAP client connects while account is logging in.
 
 ### Changed
-* Bump crypto version to v0.0.0-20200818122824-ed5d25e28db8
+* Bump crypto version to v0.0.0-20200818122824-ed5d25e28db8.
 * GODT-785 Clear separation of different message IDs in integration tests.
 ### Changed
 * GODT-741 Import-Export shows "Unable to parse time" notice instead of zero time in error report window.
@@ -172,60 +172,60 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-461 Add support for `\Deleted` flag.
 
 ### Changed
-* GODT-462 Pausing event loop while FETCHing to prevent EXPUNGE
-* Wait for unilateral response to be delivered
+* GODT-462 Pausing event loop while FETCHing to prevent EXPUNGE.
+* Wait for unilateral response to be delivered.
 * GODT-409 Set flags have to replace all flags.
 * GODT-531 Better way to add trusted certificate in macOS.
-* Bumped golangci-lint to v1.29.0
+* Bumped golangci-lint to v1.29.0.
 * GODT-549 Check log file size more often to prevent huge log files.
 * Bumped various dependencies:
-    * andybalholm/cascadia v1.1.0 -> v1.2.0
-    * emersion/go-imap-specialuse 20161227184202-ba031ced6a62 -> 20200722111535-598ff00e4075
-    * emersion/go-sasl 20191210011802-430746ea8b9b -> 20200509203442-7bfe0ed36a21
-    * github.com/go-resty/resty/v2 v2.2.0 -> v2.3.0
-    * github.com/golang/mock v1.4.3 -> v1.4.4
-    * github.com/google/go-cmp v0.4.0 -> v0.5.1
-    * github.com/hashicorp/go-multierror v1.0.0 -> v1.1.0
-    * github.com/jaytaylor/html2text 20200220170450-61d9dc4d7195 -> 20200412013138-3577fbdbcff7
-    * github.com/jhillyerd/enmime v0.8.0 -> v0.8.1
-    * github.com/keybase/go-keychain 20200218013740-86d4642e4ce2 -> 20200502122510-cda31fe0c86d
-    * github.com/logrusorgru/aurora 20200102142835-e9ef32dff381 -> v2.0.3+incompatible
-    * github.com/miekg/dns v1.1.29 -> v1.1.30
-    * github.com/nsf/jsondiff 20190712045011-8443391ee9b6 -> 20200515183724-f29ed568f4ce
-    * github.com/sirupsen/logrus v1.4.2 -> v1.6.0
-    * github.com/stretchr/testify v1.5.1 -> v1.6.1
-    * github.com/therecipe/qt 20200126204426-5074eb6d8c41 -> 20200701200531-7f61353ee73e
-    * github.com/urfave/cli v1.22.3 -> v1.22.4
-    * golang.org/x/net 20200301022130-244492dfa37a -> 20200707034311-ab3426394381
-    * golang.org/x/text v0.3.2 -> v0.3.3
+    * Updated andybalholm/cascadia v1.1.0 -> v1.2.0.
+    * Updated emersion/go-imap-specialuse 20161227184202-ba031ced6a62 -> 20200722111535-598ff00e4075.
+    * Updated emersion/go-sasl 20191210011802-430746ea8b9b -> 20200509203442-7bfe0ed36a21.
+    * Updated github.com/go-resty/resty/v2 v2.2.0 -> v2.3.0.
+    * Updated github.com/golang/mock v1.4.3 -> v1.4.4.
+    * Updated github.com/google/go-cmp v0.4.0 -> v0.5.1.
+    * Updated github.com/hashicorp/go-multierror v1.0.0 -> v1.1.0.
+    * Updated github.com/jaytaylor/html2text 20200220170450-61d9dc4d7195 -> 20200412013138-3577fbdbcff7.
+    * Updated github.com/jhillyerd/enmime v0.8.0 -> v0.8.1.
+    * Updated github.com/keybase/go-keychain 20200218013740-86d4642e4ce2 -> 20200502122510-cda31fe0c86d.
+    * Updated github.com/logrusorgru/aurora 20200102142835-e9ef32dff381 -> v2.0.3+incompatible.
+    * Updated github.com/miekg/dns v1.1.29 -> v1.1.30.
+    * Updated github.com/nsf/jsondiff 20190712045011-8443391ee9b6 -> 20200515183724-f29ed568f4ce.
+    * Updated github.com/sirupsen/logrus v1.4.2 -> v1.6.0.
+    * Updated github.com/stretchr/testify v1.5.1 -> v1.6.1.
+    * Updated github.com/therecipe/qt 20200126204426-5074eb6d8c41 -> 20200701200531-7f61353ee73e.
+    * Updated github.com/urfave/cli v1.22.3 -> v1.22.4.
+    * Updated golang.org/x/net 20200301022130-244492dfa37a -> 20200707034311-ab3426394381.
+    * Updated golang.org/x/text v0.3.2 -> v0.3.3.
 * Set first-start to false in bridge, not in frontend.
 * GODT-400 Refactor sendingInfo.
 * GODT-513 Update routes to API v4.
 * GODT-551 Do not ignore errors during message flagging.
-* GODT-380 Adding IE GUI to Bridge repo and building
-    * BR: extend functionality of PopupDialog
-    * BR: makefile APP_VERSION instead of BRIDGE_VERSION
-    * BR: use common logs function for Qt
-    * BR: change `go.progressDescription` to `string`
-    * IE: Rounded button has fa-icon
-    * IE: `Upgrade` → `Update`
-    * IE: Moving `AccountModel` to `qt-common`
-    * IE: Added `ReportBug` to `internal/importexport`
-    * IE: Added event watch in GUI
-    * IE: Removed `onLoginFinished`
-    * Structure for transfer rules in QML
+* GODT-380 Adding IE GUI to Bridge repo and building.
+    * BR: extend functionality of PopupDialog.
+    * BR: makefile APP_VERSION instead of BRIDGE_VERSION.
+    * BR: use common logs function for Qt.
+    * BR: change `go.progressDescription` to `string`.
+    * IE: Rounded button has fa-icon.
+    * IE: `Upgrade` → `Update`.
+    * IE: Moving `AccountModel` to `qt-common`.
+    * IE: Added `ReportBug` to `internal/importexport`.
+    * IE: Added event watch in GUI.
+    * IE: Removed `onLoginFinished`.
+    * Structure for transfer rules in QML.
 * GODT-213 Convert panics from message parser to error.
 * GODT-585 Do not allow deleting messages from All Mail.
 
 ### Fixed
-* GODT-655 Fix date picker with automatic Windows DST
+* GODT-655 Fix date picker with automatic Windows DST.
 * GODT-454 Fix send on closed channel when receiving unencrypted send confirmation from GUI.
-* GODT-597 Duplicate sending when draft creation takes too long
+* GODT-597 Duplicate sending when draft creation takes too long.
 * GODT-634 Hover on links in popups.
 
 
 
-## [v1.3.x] Emma (v1.3.2 beta 2020-08-04, v1.3.3 beta 2020-08-06, v1.3.3 live 2020-08-12)
+## [Bridge 1.3.x] Emma (v1.3.2 beta 2020-08-04, v1.3.3 beta 2020-08-06, v1.3.3 live 2020-08-12)
 
 ### Added
 * GODT-554 Detect and notify about "bad certificate" IMAP TLS error.
@@ -285,7 +285,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * Issue causing deadlock when reloading users keys due to double-locking of a mutex.
 * Correctly handle failure to unlock single key.
 * GODT-479 Fix flaky integration tests.
-* GODT-484 Fix infinite loop when decoding invalid 2231 charset
+* GODT-484 Fix infinite loop when decoding invalid 2231 charset.
 * GODT-267 Correctly detect if a message is a draft even if does not have DraftLabel.
 * GODT-308 Reduce minimum read speed threshold to avoid issues with flaky internet.
 * GODT-321 Changing address ordering would cause all messages to disappear in combined mode.
@@ -294,7 +294,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-427 Fix race condition in auth refresh that could cause user to be logged out.
 
 
-## [v1.2.8] Donghai-fix-append  (beta 2020-06-XXX)
+## [Bridge 1.2.8] Donghai-fix-append  (beta 2020-06-XXX)
 
 ### Changed
 * GODT-396 reduce number of EXISTS calls.
@@ -303,7 +303,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 ### Fixed
 * GODT-502 Fixed crash when unable to parse a message header.
 
-## [v1.2.7] Donghai-fix-sync - (beta 2020-05-07 live 2020-04-20)
+## [Bridge 1.2.7] Donghai-fix-sync - (beta 2020-05-07 live 2020-04-20)
 
 ### Added
 * IMAP extension MOVE with UIDPLUS support.
@@ -326,7 +326,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * Use correct binary name when finding location of addcert.scpt.
 
 
-## [v1.2.6] Donghai - beta (2020-03-31)
+## [Bridge 1.2.6] Donghai - beta (2020-03-31)
 
 ### Added
 * GODT-145 Support drafts.
@@ -381,13 +381,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * UserIDs were not checked when importing to Sent folder (affects copying from account1/sent to account2/sent).
 
 
-## [v1.2.5] Charles - live (2020-03-11) beta (from 2020-02-10)
-
-### Hotfix
-* CSB-40 panic in credential store.
-* Keyring unlocking locker.
-* No panic on failed html parse.
-* Too many open files.
+## [Bridge 1.2.5] Charles - live (2020-03-11) beta (from 2020-02-10)
 
 ### Added
 * GODT-112 Migration of preferences from c10 to c11.
@@ -432,13 +426,13 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
     * Separated IMAP to store and IMAP.
     * Store is responsible for everything about db and calls to pmapi, including event loop, sync, address mode.
     * IMAP is responsible only for IMAP interfaces.
-    * Event loop is only one per ProtonMail account (instead of one per alias)
-    * It also means only one database per account (instead of one per address)
-    * Changing address mode is not destroying database, only buckets with IDs mapping (keeping metadata for account)
+    * Event loop is only one per ProtonMail account (instead of one per alias).
+    * It also means only one database per account (instead of one per address).
+    * Changing address mode is not destroying database, only buckets with IDs mapping (keeping metadata for account).
     * Before first sync we set event ID so we will not miss changes happening during sync.
     * Thanks to previous point we are not starting new sync when we finish first one because of unprocessed events.
-    * Sync is not blocking event loop (user can get new messages even during sync)
-    * Sync is not blocking reading operations (user can list mailboxes even before first sync is done)
+    * Sync is not blocking event loop (user can get new messages even during sync).
+    * Sync is not blocking reading operations (user can list mailboxes even before first sync is done).
     * Sync is not blocking writing operations such as mark messages read/unread and so on.
     * Most operations have to be passed to API and only event loop is writing them to the database.
     * Avoid relying on counts API endpoint; use event counts as much as possible.
@@ -448,8 +442,8 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
     * Synchronisation will create a label if not yet present.
     * Labels and Folders (including system folders) are stored in DB together with their counts for offline read-out.
     * AddressIDs for all user addresses are stored in DB.
-    * IMAP updates channel is set when an IMAP client connects (and IMAP updates are dropped until then)
-    * DB keeps track of address mode (split/combined)
+    * IMAP updates channel is set when an IMAP client connects (and IMAP updates are dropped until then).
+    * DB keeps track of address mode (split/combined).
 * Event loop starts as soon as user is initialised (i.e. logged in), not just when imap is connected.
 * Use pmapi v1.0.13.
 * Logout user if initialisation fails.
@@ -457,6 +451,10 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * Use godog v0.8.0 under new name 'cucumber' (instead of DATA-DOG).
 
 ### Fixed
+* CSB-40 panic in credential store.
+* Keyring unlocking locker.
+* No panic on failed html parse.
+* Too many open files.
 * #1057 Logging in to an already logged in user would display unrelated error "invalid mailbox password".
 * #1056 Changing mailbox password sometimes didn't log out user.
 * #1066 Split address mode can not work when credentials store is cleared.
@@ -472,7 +470,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-103 User keys were not unlocked later if they were not unlocked during startup.
 
 
-## [v1.2.4] Brooklyn beta (2019-12-16)
+## [Bridge 1.2.4] Brooklyn beta (2019-12-16)
 
 ### Added
 * #976: fix slow authentication.
@@ -487,7 +485,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * Fixed an issue where entering an in-use port multiple times via the CLI would make bridge use it.
 * Update therecipe/qt and Qt to 5.13.
 
-## [v1.2.3] Akashi - live (2019-11-05) beta (2019-10-22)
+## [Bridge 1.2.3] Akashi - live (2019-11-05) beta (2019-10-22)
 
 ### Added
 * #963 report first-start metric with bridge version.
@@ -517,17 +515,17 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * Code made compatible with name changes in go-pmapi.
 
 
-## [v1.2.2] - beta and live 2019-09-06
+## [Bridge 1.2.2] - beta and live 2019-09-06
 
 ### Changed
 * User compare case insensitive.
 
-## [v1.2.1] - beta and live 2019-09-05
+## [Bridge 1.2.1] - beta and live 2019-09-05
 
 ### Changed
 * #924 fix start of bridge without internet connection.
 
-## [v1.2.0] - beta 2019-08-22
+## [Bridge 1.2.0] - beta 2019-08-22
 
 ### Added
 * #903 added http.Client timeout to not hang out forever.
@@ -627,7 +625,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * Handle logout in event loop.
 
 
-## [v1.1.6] - 2019-07-09 (beta 2019-07-01)
+## [Bridge 1.1.6] - 2019-07-09 (beta 2019-07-01)
 
 ### Added
 * #841 assume text/plain during sending e-mails when missing content type.
@@ -659,7 +657,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * Lint corrections.
 
 
-## [v1.1.5] - 2019-05-23 (beta 2019-05-23, 2019-05-16)
+## [Bridge 1.1.5] - 2019-05-23 (beta 2019-05-23, 2019-05-16)
 
 ### Changed
 * Fix custom message format.
@@ -673,7 +671,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * Only one crash from second instance.
 * During event `MessageID` in log as field.
 
-## [v1.1.4 live] - 2019-04-10 (beta 2019-04-05, 2019-03-27)
+## [Bridge 1.1.4 live] - 2019-04-10 (beta 2019-04-05, 2019-03-27)
 
 ### Added
 * Address with port to IMAP debug.
@@ -694,7 +692,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 ### Removed
 * #750 Synchronization after 450 messages.
 
-## [v1.1.3] - 2019-03-04
+## [Bridge 1.1.3] - 2019-03-04
 
 ### Added
 * Sentry crash reporting in main.
@@ -706,13 +704,13 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * #720 sync every 3 pages.
 * #512 extending list of charsets go-pm-mime!4.
 
-## [v1.1.2] - beta only 2019-02-21
+## [Bridge 1.1.2] - beta only 2019-02-21
 
 ### Changed
 * #512 fail on unknown charset.
 * #729 #733 visitor for MIME parsing.
 
-## [v1.1.1] - 2019-02-11
+## [Bridge 1.1.1] - 2019-02-11
 ### Added
 * #671 include `name` param in attachment `Content-Type` (in addition to `Content-Disposition` param `filename`).
 * #671 do not include content headers for section requests e.g. `BODY.PEEK[2]`.
@@ -765,7 +763,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * SMTP stays authenticated after sent message.
 * Reduce memory, processor and number of API calls.
 
-## [v1.1.0] - 2018-10-22
+## [Bridge 1.1.0] - 2018-10-22
 
 ### Removed
 * `go-pmapi.Config.ClientSecret`.
@@ -841,11 +839,11 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * Additional synchronization of mail database.
 
 
-## [v1.0.6 silent] - 2018-08-23
+## [Bridge 1.0.6 silent] - 2018-08-23
 ### Added
 * New svg icon in linux package.
 
-## [v1.0.6] - 2018-08-09
+## [Bridge 1.0.6] - 2018-08-09
 
 ### Added
 * `backend.GetUserSettings()`.
@@ -874,7 +872,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * Frequent Thunderbird timeout.
 * SMTP requests not case-sensitive.
 
-## [v1.0.5] - 2018-07-12
+## [Bridge 1.0.5] - 2018-07-12
 
 ### Added
 * UpdateCurrentAgent from lastMailClient.
@@ -906,7 +904,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * Fixed 7bit MIME issue while sending.
 
 
-## [v1.0.4] - 2018-05-15
+## [Bridge 1.0.4] - 2018-05-15
 
 ### Changed
 * Version files available at both download and static.
@@ -927,11 +925,11 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * Notification that outgoing email will be delivered as non-encrypted.
 * NOTE: Due to a change of the keychain format, you will need to add your account(s) to the Bridge after installing this version.
 
-### Bugs fixed
+### Fixed bugs
 * Support accounts with same user names.
 * Support sending vCalendar event.
 
-## [v1.0.3] - 2018-03-26
+## [Bridge 1.0.3] - 2018-03-26
 * All from silent updates plus following.
 
 ### Changed
@@ -966,7 +964,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * Remove firewall error message.
 
 
-## [v1.0.2] - 2018-03-12
+## [Bridge 1.0.2] - 2018-03-12
 * All from silent updates plus following.
 
 ### Added
@@ -988,7 +986,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 
 
-## [v1.0.1-4 (linux only)] Silent deploy - 2018-02-28
+## [Bridge 1.0.1-4 (linux only)] Silent deploy - 2018-02-28
 
 ### Changed
 * More similar look of window title bar to Windows 10 style.
@@ -1012,14 +1010,14 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 
 
-## [v1.0.1] Silent deploy - 2017-12-30
+## [Bridge 1.0.1] Silent deploy - 2017-12-30
 
 ### Changed
 * Fixed bug with parsing address list (CC became BCC).
 
 
 
-## [v1.0.1] - 2017-12-20
+## [Bridge 1.0.1] - 2017-12-20
 
 ### Added
 * When current log file is more than 10MB open new one, checked every 15min.
@@ -1051,7 +1049,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 
 
-## [v1.0.0] - 2017-12-06
+## [Bridge 1.0.0] - 2017-12-06
 
 ### Added
 * Encoding support of message body, title items, attachment name, for all standard charsets.
