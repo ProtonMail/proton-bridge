@@ -255,6 +255,20 @@ func TestPreferencesBuilder(t *testing.T) {
 		},
 
 		{
+			name: "external with contact sign enabled and plain text",
+
+			contactMeta:  &ContactMetadata{MIMEType: "text/plain", Scheme: pgpInline, Sign: true, SignIsSet: true},
+			receivedKeys: []pmapi.PublicKey{},
+			isInternal:   false,
+			mailSettings: pmapi.MailSettings{PGPScheme: pmapi.PGPMIMEPackage, DraftMIMEType: "text/html"},
+
+			wantEncrypt:  false,
+			wantSign:     true,
+			wantScheme:   pmapi.ClearPackage,
+			wantMIMEType: "text/plain",
+		},
+
+		{
 			name: "external with sign enabled, sending plaintext, should still send as ClearMIME",
 
 			contactMeta:  &ContactMetadata{Sign: true, SignIsSet: true},

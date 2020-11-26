@@ -191,8 +191,12 @@ func (b *sendPreferencesBuilder) build() (p SendPreferences) {
 			p.Scheme = pmapi.PGPMIMEPackage
 		}
 
-	case b.shouldSign() && !b.shouldEncrypt() && b.getScheme() == pgpMIME:
-		p.Scheme = pmapi.ClearMIMEPackage
+	case b.shouldSign() && !b.shouldEncrypt():
+		if b.getScheme() == pgpInline {
+			p.Scheme = pmapi.ClearPackage
+		} else {
+			p.Scheme = pmapi.ClearMIMEPackage
+		}
 
 	default:
 		p.Scheme = pmapi.ClearPackage

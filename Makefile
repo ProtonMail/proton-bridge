@@ -10,7 +10,7 @@ TARGET_OS?=${GOOS}
 .PHONY: build build-ie build-nogui build-ie-nogui check-has-go
 
 # Keep version hardcoded so app build works also without Git repository.
-BRIDGE_APP_VERSION?=1.5.1-git
+BRIDGE_APP_VERSION?=1.5.2-git
 IE_APP_VERSION?=1.2.1-git
 APP_VERSION:=${BRIDGE_APP_VERSION}
 SRC_ICO:=logo.ico
@@ -69,7 +69,7 @@ build-ie:
 	TARGET_CMD=Import-Export $(MAKE) build
 
 build-nogui:
-	go build ${BUILD_FLAGS_NOGUI} -o ${TARGET_CMD} cmd/${TARGET_CMD}/main.go
+	go build ${BUILD_FLAGS_NOGUI} -o ${EXE_NAME} cmd/${TARGET_CMD}/main.go
 
 build-ie-nogui:
 	TARGET_CMD=Import-Export $(MAKE) build-nogui
