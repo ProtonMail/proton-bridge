@@ -23,7 +23,6 @@ import (
 
 	"github.com/ProtonMail/proton-bridge/internal/events"
 	"github.com/ProtonMail/proton-bridge/internal/users/credentials"
-	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	gomock "github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 )
@@ -84,36 +83,6 @@ func TestNewUsersWithConnectedUserWithBadToken(t *testing.T) {
 	m.eventListener.EXPECT().Emit(events.CloseConnectionEvent, "user@pm.me")
 
 	checkUsersNew(t, m, []*credentials.Credentials{testCredentialsDisconnected})
-}
-
-func mockConnectedUser(m mocks) {
-	gomock.InOrder(
-		m.credentialsStore.EXPECT().Get("user").Return(testCredentials, nil),
-
-		m.credentialsStore.EXPECT().Get("user").Return(testCredentials, nil),
-		m.pmapiClient.EXPECT().AuthRefresh("token").Return(testAuthRefresh, nil),
-
-		m.pmapiClient.EXPECT().Unlock([]byte(testCredentials.MailboxPassword)).Return(nil),
-
-		// Set up mocks for store initialisation for the authorized user.
-		m.pmapiClient.EXPECT().ListLabels().Return([]*pmapi.Label{}, nil),
-		m.pmapiClient.EXPECT().CountMessages("").Return([]*pmapi.MessagesCount{}, nil),
-		m.pmapiClient.EXPECT().Addresses().Return([]*pmapi.Address{testPMAPIAddress}),
-	)
-}
-
-// mockAuthUpdate simulates users calling UpdateAuthToken on the given user.
-// This would normally be done by users when it receives an auth from the ClientManager,
-// but as we don't have a full users instance here, we do this manually.
-func mockAuthUpdate(user *User, token string, m mocks) {
-	gomock.InOrder(
-		m.credentialsStore.EXPECT().UpdateToken("user", ":"+token).Return(nil),
-		m.credentialsStore.EXPECT().Get("user").Return(credentialsWithToken(token), nil),
-	)
-
-	user.updateAuthToken(refreshWithToken(token))
-
-	waitForEvents()
 }
 
 func TestNewUsersWithConnectedUser(t *testing.T) {

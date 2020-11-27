@@ -43,7 +43,7 @@ func startServer() {
 		_, _ = w.Write([]byte("OK"))
 	})
 	http.HandleFunc("/timeout", func(w http.ResponseWriter, r *http.Request) {
-		time.Sleep(10 * time.Second)
+		time.Sleep(testRequestTimeout + time.Second) // Add extra second to be sure it will timeout.
 		w.WriteHeader(http.StatusOK)
 		_, _ = w.Write([]byte("OK"))
 	})

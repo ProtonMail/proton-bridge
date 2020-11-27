@@ -45,6 +45,8 @@ lint:
     - branches
   script:
     - make lint
+  tags:
+    - medium
 
 test:
   stage: test
@@ -60,6 +62,8 @@ test:
     - pass init `gpg --list-keys | grep "^   " | tail -1 | tr -d '[:space:]'`
     # Then finally run the tests
     - make test
+  tags:
+    - medium
 
 test-integration:
   stage: test

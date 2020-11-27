@@ -15,3 +15,4 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 ### Fixed
 * GODT-135 Support parameters in SMTP `FROM MAIL` command, such as `BODY=7BIT`, or empty value `FROM MAIL:<>` used by some clients.
+* GODT-338 GODT-781 GODT-857 GODT-866 Flaky tests.

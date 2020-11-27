@@ -24,7 +24,6 @@ import (
 
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	"github.com/golang/mock/gomock"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -54,10 +53,10 @@ func TestEventLoopProcessMoreEvents(t *testing.T) {
 		}, nil),
 	)
 	m.newStoreNoEvents(true)
-	m.client.EXPECT().ListMessages(gomock.Any()).Return([]*pmapi.Message{}, 0, nil).AnyTimes()
 
-	// Event loop runs in goroutine and will be stopped by deferred mock clearing.
-	go m.store.eventLoop.start()
+	// Event loop runs in goroutine started during store creation (newStoreNoEvents).
+	// Force to run the next event.
+	m.store.eventLoop.pollNow()
 
 	// More events are processed right away.
 	require.Eventually(t, func() bool {
@@ -78,38 +77,42 @@ func TestEventLoopUpdateMessageFromLoop(t *testing.T) {
 	subject := "old subject"
 	newSubject := "new subject"
 
-	// First sync will add message with old subject to database.
-	m.client.EXPECT().GetMessage("msg1").Return(&pmapi.Message{
+	m.newStoreNoEvents(true, &pmapi.Message{
 		ID:      "msg1",
 		Subject: subject,
-	}, nil)
-	// Event will update the subject.
-	m.client.EXPECT().GetEvent("latestEventID").Return(&pmapi.Event{
-		EventID: "event1",
-		Messages: []*pmapi.EventMessage{{
-			EventItem: pmapi.EventItem{
-				ID:     "msg1",
-				Action: pmapi.EventUpdate,
-			},
-			Updated: &pmapi.EventMessageUpdated{
-				ID:      "msg1",
-				Subject: &newSubject,
-			},
-		}},
-	}, nil)
+	})
 
-	m.newStoreNoEvents(true)
+	eventReceived := make(chan struct{})
+	m.client.EXPECT().GetEvent("latestEventID").DoAndReturn(func(eventID string) (*pmapi.Event, error) {
+		defer close(eventReceived)
+		return &pmapi.Event{
+			EventID: "event1",
+			Messages: []*pmapi.EventMessage{{
+				EventItem: pmapi.EventItem{
+					ID:     "msg1",
+					Action: pmapi.EventUpdate,
+				},
+				Updated: &pmapi.EventMessageUpdated{
+					ID:      "msg1",
+					Subject: &newSubject,
+				},
+			}},
+		}, nil
+	})
 
-	// Event loop runs in goroutine and will be stopped by deferred mock clearing.
-	go m.store.eventLoop.start()
+	// Event loop runs in goroutine started during store creation (newStoreNoEvents).
+	// Force to run the next event.
+	m.store.eventLoop.pollNow()
 
-	var err error
-	assert.Eventually(t, func() bool {
-		var msg *pmapi.Message
-		msg, err = m.store.getMessageFromDB("msg1")
-		return err == nil && msg.Subject == newSubject
-	}, time.Second, 10*time.Millisecond)
+	select {
+	case <-eventReceived:
+	case <-time.After(5 * time.Second):
+		require.Fail(t, "latestEventID was not processed")
+	}
+
+	msg, err := m.store.getMessageFromDB("msg1")
 	require.NoError(t, err)
+	require.Equal(t, newSubject, msg.Subject)
 }
 
 func TestEventLoopUpdateMessage(t *testing.T) {

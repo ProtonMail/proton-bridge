@@ -18,7 +18,6 @@
 package cache
 
 import (
-	"bytes"
 	"fmt"
 	"testing"
 	"time"
@@ -59,34 +58,34 @@ func TestClearOld(t *testing.T) {
 }
 
 func TestClearBig(t *testing.T) {
-	msg := []byte("Test message")
+	r := require.New(t)
+	wantMessage := []byte("Test message")
 
-	nSize := 3
-	cacheSizeLimit = nSize*len(msg) + 1
-	cacheTimeLimit = int64(nSize * nSize * 2) // be sure the message will survive
+	wantCacheSize := 3
+	nTestMessages := wantCacheSize * wantCacheSize
+	cacheSizeLimit = wantCacheSize*len(wantMessage) + 1
+	cacheTimeLimit = int64(1 << 20) // be sure the message will survive
 
-	// It should have more than nSize items.
-	for i := 0; i < nSize*nSize; i++ {
+	// It should never have more than nSize items.
+	for i := 0; i < nTestMessages; i++ {
 		time.Sleep(1 * time.Millisecond)
-		SaveMail(fmt.Sprintf("%s%d", testUID, i), msg, bs)
-		if len(mailCache) > nSize {
-			t.Error("Number of items in cache should not be more than", nSize)
-		}
+		SaveMail(fmt.Sprintf("%s%d", testUID, i), wantMessage, bs)
+		r.LessOrEqual(len(mailCache), wantCacheSize, "cache too big when %d", i)
 	}
 
 	// Check that the oldest are deleted first.
-	for i := 0; i < nSize*nSize; i++ {
+	for i := 0; i < nTestMessages; i++ {
 		iUID := fmt.Sprintf("%s%d", testUID, i)
 		reader, _ := LoadMail(iUID)
-		if i < nSize*(nSize-1) && reader.Len() != 0 {
-			mail := mailCache[iUID]
-			t.Error("LoadMail should return empty but have:", mail.data, iUID, mail.key.Timestamp)
-		}
-		stored := make([]byte, len(msg))
-		_, _ = reader.Read(stored)
+		mail := mailCache[iUID]
 
-		if i >= nSize*(nSize-1) && !bytes.Equal(stored, msg) {
-			t.Error("LoadMail returned wrong message:", stored, iUID)
+		if i < (nTestMessages - wantCacheSize) {
+			r.Zero(reader.Len(), "LoadMail should return empty, but have %s for %s time %d ", string(mail.data), iUID, mail.key.Timestamp)
+		} else {
+			stored := make([]byte, len(wantMessage))
+			_, err := reader.Read(stored)
+			r.NoError(err)
+			r.Equal(wantMessage, stored, "LoadMail returned wrong message: %s for %s time %d", stored, iUID, mail.key.Timestamp)
 		}
 	}
 }

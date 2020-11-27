@@ -284,10 +284,37 @@ func TestClearData(t *testing.T) {
 func mockEventLoopNoAction(m mocks) {
 	// Set up mocks for starting the store's event loop (in store.New).
 	// The event loop runs in another goroutine so this might happen at any time.
+	m.pmapiClient.EXPECT().GetEvent("").Return(testPMAPIEvent, nil).AnyTimes()
+	m.pmapiClient.EXPECT().GetEvent(testPMAPIEvent.EventID).Return(testPMAPIEvent, nil).AnyTimes()
+	m.pmapiClient.EXPECT().ListMessages(gomock.Any()).Return([]*pmapi.Message{}, 0, nil).AnyTimes()
+}
+
+func mockConnectedUser(m mocks) {
 	gomock.InOrder(
-		m.pmapiClient.EXPECT().GetEvent("").Return(testPMAPIEvent, nil),
-		m.pmapiClient.EXPECT().GetEvent(testPMAPIEvent.EventID).Return(testPMAPIEvent, nil),
-		// Set up mocks for performing the initial store sync.
-		m.pmapiClient.EXPECT().ListMessages(gomock.Any()).Return([]*pmapi.Message{}, 0, nil),
+		m.credentialsStore.EXPECT().Get("user").Return(testCredentials, nil),
+
+		m.credentialsStore.EXPECT().Get("user").Return(testCredentials, nil),
+		m.pmapiClient.EXPECT().AuthRefresh("token").Return(testAuthRefresh, nil),
+
+		m.pmapiClient.EXPECT().Unlock([]byte(testCredentials.MailboxPassword)).Return(nil),
+
+		// Set up mocks for store initialisation for the authorized user.
+		m.pmapiClient.EXPECT().ListLabels().Return([]*pmapi.Label{}, nil),
+		m.pmapiClient.EXPECT().CountMessages("").Return([]*pmapi.MessagesCount{}, nil),
+		m.pmapiClient.EXPECT().Addresses().Return([]*pmapi.Address{testPMAPIAddress}),
 	)
+}
+
+// mockAuthUpdate simulates users calling UpdateAuthToken on the given user.
+// This would normally be done by users when it receives an auth from the ClientManager,
+// but as we don't have a full users instance here, we do this manually.
+func mockAuthUpdate(user *User, token string, m mocks) {
+	gomock.InOrder(
+		m.credentialsStore.EXPECT().UpdateToken("user", ":"+token).Return(nil),
+		m.credentialsStore.EXPECT().Get("user").Return(credentialsWithToken(token), nil),
+	)
+
+	user.updateAuthToken(refreshWithToken(token))
+
+	waitForEvents()
 }
