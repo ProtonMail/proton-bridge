@@ -31,11 +31,12 @@ import (
 type mocks struct {
 	t *testing.T
 
-	ctrl          *gomock.Controller
-	panicHandler  *transfermocks.MockPanicHandler
-	clientManager *transfermocks.MockClientManager
-	pmapiClient   *pmapimocks.MockClient
-	pmapiConfig   *pmapi.ClientConfig
+	ctrl               *gomock.Controller
+	panicHandler       *transfermocks.MockPanicHandler
+	clientManager      *transfermocks.MockClientManager
+	imapClientProvider *transfermocks.MockIMAPClientProvider
+	pmapiClient        *pmapimocks.MockClient
+	pmapiConfig        *pmapi.ClientConfig
 
 	keyring *crypto.KeyRing
 }
@@ -46,12 +47,13 @@ func initMocks(t *testing.T) mocks {
 	m := mocks{
 		t: t,
 
-		ctrl:          mockCtrl,
-		panicHandler:  transfermocks.NewMockPanicHandler(mockCtrl),
-		clientManager: transfermocks.NewMockClientManager(mockCtrl),
-		pmapiClient:   pmapimocks.NewMockClient(mockCtrl),
-		pmapiConfig:   &pmapi.ClientConfig{},
-		keyring:       newTestKeyring(),
+		ctrl:               mockCtrl,
+		panicHandler:       transfermocks.NewMockPanicHandler(mockCtrl),
+		clientManager:      transfermocks.NewMockClientManager(mockCtrl),
+		imapClientProvider: transfermocks.NewMockIMAPClientProvider(mockCtrl),
+		pmapiClient:        pmapimocks.NewMockClient(mockCtrl),
+		pmapiConfig:        &pmapi.ClientConfig{},
+		keyring:            newTestKeyring(),
 	}
 
 	m.clientManager.EXPECT().GetClient("user").Return(m.pmapiClient).AnyTimes()

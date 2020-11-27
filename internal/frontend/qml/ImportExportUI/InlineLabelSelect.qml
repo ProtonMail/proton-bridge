@@ -45,7 +45,7 @@ Row {
     }
 
     InfoToolTip {
-        info: qsTr( "When master import lablel is selected then all imported email will have this label.", "Tooltip text for master import label")
+        info: qsTr( "When master import label is selected then all imported emails will have this label.", "Tooltip text for master import label")
         anchors.verticalCenter: parent.verticalCenter
     }
 

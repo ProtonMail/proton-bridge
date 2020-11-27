@@ -28,7 +28,7 @@ import (
 
 func APIChecksFeatureContext(s *godog.Suite) {
 	s.Step(`^API endpoint "([^"]*)" is called with:$`, apiIsCalledWith)
-	s.Step(`^message is sent with API call:$`, messageIsSentWithAPICall)
+	s.Step(`^message is sent with API call$`, messageIsSentWithAPICall)
 	s.Step(`^API mailbox "([^"]*)" for "([^"]*)" has messages$`, apiMailboxForUserHasMessages)
 	s.Step(`^API mailbox "([^"]*)" for address "([^"]*)" of "([^"]*)" has messages$`, apiMailboxForAddressOfUserHasMessages)
 }

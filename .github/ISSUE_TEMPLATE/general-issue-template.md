@@ -27,6 +27,9 @@ Issue tracker is ONLY used for reporting bugs with technical details. "It doesn'
 3.
 4.
 
+## Version Information
+<!--- Which version of the app(s) were you using when you experienced this issue? -->
+
 ## Context (Environment)
 <!--- How has this issue affected you? What are you trying to accomplish? -->
 <!--- Providing context helps us come up with a solution that is most useful in the real world -->

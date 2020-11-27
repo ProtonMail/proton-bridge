@@ -41,7 +41,7 @@ func TestPreferencesBuilder(t *testing.T) {
 
 		wantEncrypt   bool
 		wantSign      bool
-		wantScheme    int
+		wantScheme    pmapi.PackageFlag
 		wantMIMEType  string
 		wantPublicKey string
 	}{
@@ -252,6 +252,20 @@ func TestPreferencesBuilder(t *testing.T) {
 			wantSign:     true,
 			wantScheme:   pmapi.ClearMIMEPackage,
 			wantMIMEType: "multipart/mixed",
+		},
+
+		{
+			name: "external with contact sign enabled and plain text",
+
+			contactMeta:  &ContactMetadata{MIMEType: "text/plain", Scheme: pgpInline, Sign: true, SignIsSet: true},
+			receivedKeys: []pmapi.PublicKey{},
+			isInternal:   false,
+			mailSettings: pmapi.MailSettings{PGPScheme: pmapi.PGPMIMEPackage, DraftMIMEType: "text/html"},
+
+			wantEncrypt:  false,
+			wantSign:     true,
+			wantScheme:   pmapi.ClearPackage,
+			wantMIMEType: "text/plain",
 		},
 
 		{

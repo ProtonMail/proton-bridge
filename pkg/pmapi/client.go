@@ -254,7 +254,7 @@ func (c *client) doBuffered(req *http.Request, bodyBuffer []byte, retryUnauthori
 			head += "\n"
 		}
 		c.log.Tracef("REQHEAD \n%s", head)
-		c.log.Tracef("REQBODY '%s'", string(bodyBuffer))
+		c.log.Tracef("REQBODY '%s'", printBytes(bodyBuffer))
 	}
 
 	hasBody := len(bodyBuffer) > 0

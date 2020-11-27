@@ -15,19 +15,29 @@
 // You should have received a copy of the GNU General Public License
 // along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
 
-package smtp
+package pmapi
 
-import (
-	"regexp"
-)
+import "unicode/utf8"
 
-//nolint:gochecknoglobals // Used like a constant
-var mailFormat = regexp.MustCompile(`.+@.+\..+`)
+func printBytes(body []byte) string {
+	if utf8.Valid(body) {
+		return string(body)
+	}
+	enc := []rune{}
+	for _, b := range body {
+		switch {
+		case b == 9:
+			enc = append(enc, rune('⟼'))
+		case b == 13:
+			enc = append(enc, rune('↵'))
+		case b < 32, b == 127:
+			enc = append(enc, '◡')
+		case b > 31 && b < 127, b == 10:
+			enc = append(enc, rune(b))
+		default:
+			enc = append(enc, 9728+rune(b))
+		}
+	}
 
-// looksLikeEmail validates whether the string resembles an email.
-//
-// Notice that it does this naively by simply checking for the existence
-// of a DOT and an AT sign.
-func looksLikeEmail(e string) bool {
-	return mailFormat.MatchString(e)
+	return string(enc)
 }

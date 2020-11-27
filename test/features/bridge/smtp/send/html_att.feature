@@ -41,7 +41,7 @@ Feature: SMTP sending of HTML messages with attachments
     And mailbox "Sent" for "user" has messages
       | from          | to                        | subject                       |
       | [userAddress] | bridgetest@protonmail.com | HTML with attachment internal |
-    And message is sent with API call:
+    And message is sent with API call
       """
       {
         "Message": {
@@ -100,7 +100,7 @@ Feature: SMTP sending of HTML messages with attachments
     And mailbox "Sent" for "user" has messages
       | from          | to                     | subject                           |
       | [userAddress] | pm.bridge.qa@gmail.com | HTML with attachment external PGP |
-    And message is sent with API call:
+    And message is sent with API call
       """
       {
         "Message": {

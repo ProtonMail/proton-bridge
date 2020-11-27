@@ -21,8 +21,22 @@ import (
 	"net"
 	"strings"
 
-	imapClient "github.com/emersion/go-imap/client"
+	"github.com/emersion/go-imap"
+	"github.com/emersion/go-sasl"
 )
+
+type IMAPClientProvider interface {
+	Capability() (map[string]bool, error)
+	Support(cap string) (bool, error)
+	State() imap.ConnState
+	SupportAuth(mech string) (bool, error)
+	Authenticate(auth sasl.Client) error
+	Login(username, password string) error
+	List(ref, name string, ch chan *imap.MailboxInfo) error
+	Select(name string, readOnly bool) (*imap.MailboxStatus, error)
+	Fetch(seqset *imap.SeqSet, items []imap.FetchItem, ch chan *imap.Message) error
+	UidFetch(seqset *imap.SeqSet, items []imap.FetchItem, ch chan *imap.Message) error
+}
 
 // IMAPProvider implements export from IMAP server.
 type IMAPProvider struct {
@@ -30,19 +44,26 @@ type IMAPProvider struct {
 	password string
 	addr     string
 
-	client *imapClient.Client
+	clientDialer func(addr string) (IMAPClientProvider, error)
+	client       IMAPClientProvider
 
 	timeIt *timeIt
 }
 
 // NewIMAPProvider returns new IMAPProvider.
 func NewIMAPProvider(username, password, host, port string) (*IMAPProvider, error) {
+	return newIMAPProvider(imapClientDial, username, password, host, port)
+}
+
+func newIMAPProvider(clientDialer func(string) (IMAPClientProvider, error), username, password, host, port string) (*IMAPProvider, error) {
 	p := &IMAPProvider{
 		username: username,
 		password: password,
 		addr:     net.JoinHostPort(host, port),
 
 		timeIt: newTimeIt("imap"),
+
+		clientDialer: clientDialer,
 	}
 
 	if err := p.auth(); err != nil {

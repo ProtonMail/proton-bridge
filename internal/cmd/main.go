@@ -22,7 +22,7 @@ import (
 	"runtime"
 
 	"github.com/ProtonMail/proton-bridge/pkg/constants"
-	"github.com/getsentry/raven-go"
+	"github.com/getsentry/sentry-go"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
 )
@@ -51,10 +51,18 @@ var (
 
 // Main sets up Sentry, filters out unwanted args, creates app and runs it.
 func Main(appName, usage string, extraFlags []cli.Flag, run func(*cli.Context) error) {
-	if err := raven.SetDSN(constants.DSNSentry); err != nil {
+	err := sentry.Init(sentry.ClientOptions{
+		Dsn:     constants.DSNSentry,
+		Release: constants.Revision,
+	})
+
+	sentry.ConfigureScope(func(scope *sentry.Scope) {
+		scope.SetFingerprint([]string{"{{ default }}"})
+	})
+
+	if err != nil {
 		log.WithError(err).Errorln("Can not setup sentry DSN")
 	}
-	raven.SetRelease(constants.Revision)
 
 	filterProcessSerialNumberFromArgs()
 	filterRestartNumberFromArgs()

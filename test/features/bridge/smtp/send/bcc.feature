@@ -17,7 +17,7 @@ Feature: SMTP with bcc
     And mailbox "Sent" for "user" has messages
       | from          | to                        | subject |
       | [userAddress] | bridgetest@protonmail.com | hello   |
-    And message is sent with API call:
+    And message is sent with API call
       """
       {
         "Message": {
@@ -52,7 +52,7 @@ Feature: SMTP with bcc
     And mailbox "Sent" for "user" has messages
       | from          | to | subject |
       | [userAddress] |    | hello   |
-    And message is sent with API call:
+    And message is sent with API call
       """
       {
         "Message": {

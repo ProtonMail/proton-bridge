@@ -211,6 +211,10 @@ func messagesContainsMessageRow(account *accounts.TestAccount, allMessages []int
 				if message.ID != id {
 					matches = false
 				}
+			case "externalid":
+				if message.ExternalID != cell.Value {
+					matches = false
+				}
 			case "from": //nolint[goconst]
 				address := ctx.EnsureAddress(account.Username(), cell.Value)
 				if !areAddressesSame(message.Sender.Address, address) {

@@ -85,7 +85,7 @@ type MailSettings struct {
 	RightToLeft        int
 	AttachPublicKey    int
 	Sign               int
-	PGPScheme          int
+	PGPScheme          PackageFlag
 	PromptPin          int
 	Autocrypt          int
 	NumMessagePerPage  int

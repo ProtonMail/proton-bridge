@@ -15,19 +15,9 @@
 // You should have received a copy of the GNU General Public License
 // along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
 
-package smtp
+package pmapi
 
-import (
-	"regexp"
-)
-
-//nolint:gochecknoglobals // Used like a constant
-var mailFormat = regexp.MustCompile(`.+@.+\..+`)
-
-// looksLikeEmail validates whether the string resembles an email.
-//
-// Notice that it does this naively by simply checking for the existence
-// of a DOT and an AT sign.
-func looksLikeEmail(e string) bool {
-	return mailFormat.MatchString(e)
-}
+func iHasFlag(i, flag int) bool           { return i&flag == flag }
+func iHasAtLeastOneFlag(i, flag int) bool { return i&flag > 0 }
+func iIsFlag(i, flag int) bool            { return i == flag }
+func iHasNoneOfFlag(i, flag int) bool     { return !iHasAtLeastOneFlag(i, flag) }

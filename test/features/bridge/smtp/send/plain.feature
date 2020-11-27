@@ -16,7 +16,7 @@ Feature: SMTP sending of plain messages
     And mailbox "Sent" for "user" has messages
       | from          | to                        | subject |
       | [userAddress] | bridgetest@protonmail.com |         |
-    And message is sent with API call:
+    And message is sent with API call
       """
       {
         "Message": {
@@ -50,7 +50,7 @@ Feature: SMTP sending of plain messages
     And mailbox "Sent" for "user" has messages
       | from          | to                     | subject |
       | [userAddress] | pm.bridge.qa@gmail.com |         |
-    And message is sent with API call:
+    And message is sent with API call
       """
       {
         "Message": {
@@ -87,7 +87,7 @@ Feature: SMTP sending of plain messages
     And mailbox "Sent" for "user" has messages
       | from          | to                        | subject             |
       | [userAddress] | bridgetest@protonmail.com | Plain text internal |
-    And message is sent with API call:
+    And message is sent with API call
       """
       {
         "Message": {
@@ -124,7 +124,7 @@ Feature: SMTP sending of plain messages
     And mailbox "Sent" for "user" has messages
       | from          | to                     | subject             |
       | [userAddress] | pm.bridge.qa@gmail.com | Plain text external |
-    And message is sent with API call:
+    And message is sent with API call
       """
       {
         "Message": {
@@ -161,7 +161,7 @@ Feature: SMTP sending of plain messages
     And mailbox "Sent" for "user" has messages
       | from          | to                     | subject                        |
       | [userAddress] | pm.bridge.qa@gmail.com | Plain text no charset external |
-    And message is sent with API call:
+    And message is sent with API call
       """
       {
         "Message": {
@@ -201,7 +201,7 @@ Feature: SMTP sending of plain messages
     And mailbox "Sent" for "user" has messages
       | from          | to                     | subject                        |
       | [userAddress] | pm.bridge.qa@gmail.com | Plain text no charset external |
-    And message is sent with API call:
+    And message is sent with API call
       """
       {
         "Message": {
@@ -236,7 +236,7 @@ Feature: SMTP sending of plain messages
     And mailbox "Sent" for "user" has messages
       | from          | to                     | subject                                 |
       | [userAddress] | pm.bridge.qa@gmail.com | Plain, no charset, no content, external |
-    And message is sent with API call:
+    And message is sent with API call
       """
       {
         "Message": {

@@ -21,7 +21,7 @@ Feature: SMTP sending of HTML messages
     And mailbox "Sent" for "user" has messages
       | from          | to                     | subject            |
       | [userAddress] | pm.bridge.qa@gmail.com | HTML text external |
-    And message is sent with API call:
+    And message is sent with API call
       """
       {
         "Message": {
@@ -96,7 +96,7 @@ Feature: SMTP sending of HTML messages
     And mailbox "Sent" for "user" has messages
       | from          | to                     | subject              |
       | [userAddress] | pm.bridge.qa@gmail.com | Html Inline External |
-    And message is sent with API call:
+    And message is sent with API call
       """
       {
         "Message": {
@@ -185,7 +185,7 @@ Feature: SMTP sending of HTML messages
     And mailbox "Sent" for "user" has messages
       | from          | to                        | subject                          |
       | [userAddress] | bridgetest@protonmail.com | Html Inline Alternative Internal |
-    And message is sent with API call:
+    And message is sent with API call
       """
       {
         "Message": {
@@ -274,7 +274,7 @@ Feature: SMTP sending of HTML messages
     And mailbox "Sent" for "user" has messages
       | from          | to                     | subject                          |
       | [userAddress] | pm.bridge.qa@gmail.com | Html Inline Alternative External |
-    And message is sent with API call:
+    And message is sent with API call
       """
       {
         "Message": {

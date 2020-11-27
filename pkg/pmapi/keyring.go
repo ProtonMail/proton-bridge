@@ -19,6 +19,7 @@ package pmapi
 
 import (
 	"bytes"
+	"encoding/base64"
 	"encoding/json"
 	"io"
 	"io/ioutil"
@@ -288,4 +289,58 @@ func signAttachment(encrypter *crypto.KeyRing, data io.Reader) (signature io.Rea
 		return
 	}
 	return bytes.NewReader(sig.GetBinary()), nil
+}
+
+func encryptAndEncodeSessionKeys(
+	pubkey *crypto.KeyRing,
+	bodyKey *crypto.SessionKey,
+	attkeys map[string]*crypto.SessionKey,
+) (bodyPacket string, attachmentPackets map[string]string, err error) {
+	// Encrypt message body keys.
+	packetBytes, err := pubkey.EncryptSessionKey(bodyKey)
+	if err != nil {
+		return
+	}
+	bodyPacket = base64.StdEncoding.EncodeToString(packetBytes)
+
+	// Encrypt attachment keys.
+	attachmentPackets = make(map[string]string)
+	for id, attkey := range attkeys {
+		var packets []byte
+		if packets, err = pubkey.EncryptSessionKey(attkey); err != nil {
+			return
+		}
+		attachmentPackets[id] = base64.StdEncoding.EncodeToString(packets)
+	}
+	return
+}
+
+func encryptSymmDecryptKey(
+	kr *crypto.KeyRing,
+	textToEncrypt string,
+) (decryptedKey *crypto.SessionKey, symEncryptedData []byte, err error) {
+	// We use only primary key to encrypt the message. Our keyring contains all keys (primary, old and deacivated ones).
+	firstKey, err := kr.FirstKey()
+	if err != nil {
+		return
+	}
+
+	pgpMessage, err := firstKey.Encrypt(crypto.NewPlainMessageFromString(textToEncrypt), kr)
+	if err != nil {
+		return
+	}
+
+	pgpSplitMessage, err := pgpMessage.SeparateKeyAndData(len(textToEncrypt), 0)
+	if err != nil {
+		return
+	}
+
+	decryptedKey, err = kr.DecryptSessionKey(pgpSplitMessage.GetBinaryKeyPacket())
+	if err != nil {
+		return
+	}
+
+	symEncryptedData = pgpSplitMessage.GetBinaryDataPacket()
+
+	return
 }
