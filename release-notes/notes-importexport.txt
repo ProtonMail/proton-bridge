@@ -1,3 +1,6 @@
-• Further improvements to address and date parsing
+• Improvements to the import from large mbox files with multiple labels
+• Not allow to run multiple instances of the app or transfers at the same time
 • Better handling and displaying of skipped messages
-• Improved error reporting
+• Various enhancements of the import process related to parsing
+• Cosmetic GUI changes
+• Better error handling

@@ -26,7 +26,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-878 Encryption of session keys moved to pmapi.
 
 
-## [IE 1.2.1] Elbe
+## [IE 1.2.1, 1.2.2] Elbe
 
 ### Added
 * GODT-799 Skipped messages do not change total counts but shows as separate number.

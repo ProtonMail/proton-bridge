@@ -1,0 +1,3 @@
+• Linux font issues - Fedora specific
+• App response to the user pausing and canceling import or export
+• Upgrade errors
