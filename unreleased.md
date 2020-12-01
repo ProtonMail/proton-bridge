@@ -7,6 +7,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 ### Added
 
 ### Changed
+* GODT-893 Bump go-rfc5322 dependency to v0.2.1 to properly detect syntax errors during parsing.
 
 ### Removed
 * GODT-651 Build creates proper binary names.

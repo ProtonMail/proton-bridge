@@ -25,10 +25,8 @@ github.com/ProtonMail/go-imap-id v0.0.0-20190926060100-f94a56b9ecde h1:5koQozTDE
 github.com/ProtonMail/go-imap-id v0.0.0-20190926060100-f94a56b9ecde/go.mod h1:795VPXcRUIQ9JyMNHP4el582VokQfippgjkQP3Gk0r0=
 github.com/ProtonMail/go-mime v0.0.0-20190923161245-9b5a4261663a h1:W6RrgN/sTxg1msqzFFb+G80MFmpjMw61IU+slm+wln4=
 github.com/ProtonMail/go-mime v0.0.0-20190923161245-9b5a4261663a/go.mod h1:NYt+V3/4rEeDuaev/zw1zCq8uqVEuPHzDPo3OZrlGJ4=
-github.com/ProtonMail/go-rfc5322 v0.2.0 h1:tndoDGFtiCvESta9KLUeMksojz8qf76PefnkoQ+fqeg=
-github.com/ProtonMail/go-rfc5322 v0.2.0/go.mod h1:mzZWlMWnQJuYLL7JpzuPF5+FimV2lZ9f0jeq24kJjpU=
-github.com/ProtonMail/go-smtp v0.0.0-20181206232543-8261df20d309 h1:2pzfKjhBjSnw3BgmfTYRFQr1rFGxhfhUY0KKkg+RYxE=
-github.com/ProtonMail/go-smtp v0.0.0-20181206232543-8261df20d309/go.mod h1:6UoBvDAMA/cTBwS3Y7tGpKnY5RH1F1uYHschT6eqAkI=
+github.com/ProtonMail/go-rfc5322 v0.2.1 h1:J2PHusboDAYUfE+uBfoJnKZPbnVmzK1zXw6dQrgV8yE=
+github.com/ProtonMail/go-rfc5322 v0.2.1/go.mod h1:mzZWlMWnQJuYLL7JpzuPF5+FimV2lZ9f0jeq24kJjpU=
 github.com/ProtonMail/go-vcard v0.0.0-20180326232728-33aaa0a0c8a5 h1:Uga1DHFN4GUxuDQr0F71tpi8I9HqPIlZodZAI1lR6VQ=
 github.com/ProtonMail/go-vcard v0.0.0-20180326232728-33aaa0a0c8a5/go.mod h1:oeP9CMN+ajWp5jKp1kue5daJNwMMxLF+ujPaUIoJWlA=
 github.com/ProtonMail/gopenpgp/v2 v2.0.1 h1:x0uvDhry5WzoHeJO4J3dgMLhG4Z9PeBJ2O+sDOY0LcU=
@@ -312,6 +310,7 @@ golang.org/x/net v0.0.0-20200707034311-ab3426394381/go.mod h1:/O7V0waA8r7cgGh81R
 golang.org/x/sync v0.0.0-20180314180146-1d60e4601c6f/go.mod h1:RxMgew5VJxzue5/jJTE5uejpjVlOe/izrB70Jof72aM=
 golang.org/x/sync v0.0.0-20190423024810-112230192c58 h1:8gQV6CLnAEikrhgkHFbMAEhagSSnXWGV915qUMm9mrU=
 golang.org/x/sync v0.0.0-20190423024810-112230192c58/go.mod h1:RxMgew5VJxzue5/jJTE5uejpjVlOe/izrB70Jof72aM=
+golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e h1:vcxGaoTs7kV8m5Np9uUNQin4BrLOthgV7252N8V+FwY=
 golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e/go.mod h1:RxMgew5VJxzue5/jJTE5uejpjVlOe/izrB70Jof72aM=
 golang.org/x/sys v0.0.0-20180905080454-ebe1bf3edb33/go.mod h1:STP8DvDyc/dI5b8T5hshtkjS+E42TnysNCUPdjciGhY=
 golang.org/x/sys v0.0.0-20180909124046-d0be0721c37e/go.mod h1:STP8DvDyc/dI5b8T5hshtkjS+E42TnysNCUPdjciGhY=
