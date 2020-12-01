@@ -22,6 +22,7 @@ import (
 	"runtime"
 
 	"github.com/ProtonMail/proton-bridge/pkg/constants"
+	pkgSentry "github.com/ProtonMail/proton-bridge/pkg/sentry"
 	"github.com/getsentry/sentry-go"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
@@ -52,8 +53,9 @@ var (
 // Main sets up Sentry, filters out unwanted args, creates app and runs it.
 func Main(appName, usage string, extraFlags []cli.Flag, run func(*cli.Context) error) {
 	err := sentry.Init(sentry.ClientOptions{
-		Dsn:     constants.DSNSentry,
-		Release: constants.Revision,
+		Dsn:        constants.DSNSentry,
+		Release:    constants.Revision,
+		BeforeSend: pkgSentry.EnhanceSentryEvent,
 	})
 
 	sentry.ConfigureScope(func(scope *sentry.Scope) {

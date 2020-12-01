@@ -19,11 +19,17 @@ package sentry
 
 import (
 	"errors"
+	"regexp"
 	"runtime"
+	"strings"
 	"time"
 
 	"github.com/getsentry/sentry-go"
 	log "github.com/sirupsen/logrus"
+)
+
+var (
+	isPanicHandlerRegexp = regexp.MustCompile(`^ReportSentryCrash|^(\(\*PanicHandler\)\.)?HandlePanic`) //nolint[gochecknoglobals]
 )
 
 // ReportSentryCrash reports a sentry crash.
@@ -40,16 +46,44 @@ func ReportSentryCrash(clientID, appVersion, userAgent string, reportErr error) 
 		"UserID":    "",
 	}
 
+	var reportID string
 	sentry.WithScope(func(scope *sentry.Scope) {
 		scope.SetTags(tags)
-		sentry.CaptureException(reportErr)
+		eventID := sentry.CaptureException(reportErr)
+		if eventID != nil {
+			reportID = string(*eventID)
+		}
 	})
 
 	if !sentry.Flush(time.Second * 10) {
-		log.WithField("error", reportErr).Error("failed to report sentry error")
+		log.WithField("error", reportErr).Error("Failed to report sentry error")
 		return errors.New("failed to report sentry error")
 	}
 
-	log.WithField("error", reportErr).Warn("reported sentry error")
+	log.WithField("error", reportErr).WithField("id", reportID).Warn("Sentry error reported")
 	return
+}
+
+// EnhanceSentryEvent swaps type with value and removes panic handlers from the stacktrace.
+func EnhanceSentryEvent(event *sentry.Event, hint *sentry.EventHint) *sentry.Event {
+	for idx, exception := range event.Exception {
+		exception.Type, exception.Value = exception.Value, exception.Type
+		if exception.Stacktrace != nil {
+			exception.Stacktrace.Frames = filterOutPanicHandlers(exception.Stacktrace.Frames)
+		}
+		event.Exception[idx] = exception
+	}
+	return event
+}
+
+func filterOutPanicHandlers(frames []sentry.Frame) []sentry.Frame {
+	idx := 0
+	for _, frame := range frames {
+		if strings.HasPrefix(frame.Module, "github.com/ProtonMail/proton-bridge") &&
+			isPanicHandlerRegexp.MatchString(frame.Function) {
+			break
+		}
+		idx++
+	}
+	return frames[:idx]
 }
