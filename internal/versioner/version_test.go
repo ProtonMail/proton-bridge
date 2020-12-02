@@ -26,6 +26,7 @@ import (
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
+	"github.com/ProtonMail/proton-bridge/pkg/sum"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -39,12 +40,12 @@ func TestVerifyFiles(t *testing.T) {
 		path:    tempDir,
 	}
 
-	kr := createSignedFiles(t,
-		filepath.Join(tempDir, "f1.txt"),
-		filepath.Join(tempDir, "f2.png"),
-		filepath.Join(tempDir, "f3.dat"),
-		filepath.Join(tempDir, "sub", "f4.tar"),
-		filepath.Join(tempDir, "sub", "f5.tgz"),
+	kr := createSignedFiles(t, tempDir,
+		"f1.txt",
+		"f2.png",
+		"f3.dat",
+		filepath.Join("sub", "f4.tar"),
+		filepath.Join("sub", "f5.tgz"),
 	)
 
 	assert.NoError(t, version.VerifyFiles(kr))
@@ -59,12 +60,12 @@ func TestVerifyWithBadFile(t *testing.T) {
 		path:    tempDir,
 	}
 
-	kr := createSignedFiles(t,
-		filepath.Join(tempDir, "f1.txt"),
-		filepath.Join(tempDir, "f2.png"),
-		filepath.Join(tempDir, "f3.bad"),
-		filepath.Join(tempDir, "sub", "f4.tar"),
-		filepath.Join(tempDir, "sub", "f5.tgz"),
+	kr := createSignedFiles(t, tempDir,
+		"f1.txt",
+		"f2.png",
+		"f3.bad",
+		filepath.Join("sub", "f4.tar"),
+		filepath.Join("sub", "f5.tgz"),
 	)
 
 	badKeyRing := makeKeyRing(t)
@@ -82,12 +83,12 @@ func TestVerifyWithBadSubFile(t *testing.T) {
 		path:    tempDir,
 	}
 
-	kr := createSignedFiles(t,
-		filepath.Join(tempDir, "f1.txt"),
-		filepath.Join(tempDir, "f2.png"),
-		filepath.Join(tempDir, "f3.dat"),
-		filepath.Join(tempDir, "sub", "f4.tar"),
-		filepath.Join(tempDir, "sub", "f5.bad"),
+	kr := createSignedFiles(t, tempDir,
+		"f1.txt",
+		"f2.png",
+		"f3.dat",
+		filepath.Join("sub", "f4.tar"),
+		filepath.Join("sub", "f5.bad"),
 	)
 
 	badKeyRing := makeKeyRing(t)
@@ -96,14 +97,23 @@ func TestVerifyWithBadSubFile(t *testing.T) {
 	assert.Error(t, version.VerifyFiles(kr))
 }
 
-func createSignedFiles(t *testing.T, paths ...string) *crypto.KeyRing {
+func createSignedFiles(t *testing.T, root string, paths ...string) *crypto.KeyRing {
 	kr := makeKeyRing(t)
 
 	for _, path := range paths {
-		require.NoError(t, os.MkdirAll(filepath.Dir(path), 0700))
-		makeFile(t, path)
-		signFile(t, path, kr)
+		makeFile(t, filepath.Join(root, path))
 	}
+
+	sum, err := sum.RecursiveSum(root, "")
+	require.NoError(t, err)
+
+	sumFile, err := os.Create(filepath.Join(root, sumFile))
+	require.NoError(t, err)
+
+	_, err = sumFile.Write(sum)
+	require.NoError(t, err)
+
+	signFile(t, sumFile.Name(), kr)
 
 	return kr
 }
@@ -119,6 +129,8 @@ func makeKeyRing(t *testing.T) *crypto.KeyRing {
 }
 
 func makeFile(t *testing.T, path string) {
+	require.NoError(t, os.MkdirAll(filepath.Dir(path), 0700))
+
 	f, err := os.Create(path)
 	require.NoError(t, err)
 

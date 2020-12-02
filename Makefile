@@ -7,7 +7,7 @@ TARGET_CMD?=Desktop-Bridge
 TARGET_OS?=${GOOS}
 
 ## Build
-.PHONY: build build-ie build-nogui build-ie-nogui build-launcher build-launcher-ie  versioner
+.PHONY: build build-ie build-nogui build-ie-nogui build-launcher build-launcher-ie  versioner hasher
 
 # Keep version hardcoded so app build works also without Git repository.
 BRIDGE_APP_VERSION?=1.5.5+git
@@ -87,7 +87,10 @@ build-launcher-ie:
 	go build -ldflags="-X 'main.ConfigName=importExport' -X 'main.ExeName=Import-Export'" -o launcher-ie cmd/launcher/main.go
 
 versioner:
-	go build ${BUILD_FLAGS} ${GO_LDFLAGS} -o versioner cmd/versioner/main.go
+	go build ${BUILD_FLAGS} ${GO_LDFLAGS} -o versioner utils/versioner/main.go
+
+hasher:
+	go build -o hasher utils/hasher/main.go
 
 ${TGZ_TARGET}: ${DEPLOY_DIR}/${TARGET_OS}
 	rm -f $@

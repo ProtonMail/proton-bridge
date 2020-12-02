@@ -50,26 +50,6 @@ func TestListVersions(t *testing.T) {
 	assert.Equal(t, filepath.Join(updates, "2.3.4-beta"), versions[3].path)
 }
 
-func TestRemoveOldVersions(t *testing.T) {
-	updates, err := ioutil.TempDir("", "updates")
-	require.NoError(t, err)
-
-	v := newTestVersioner(t, "myCoolApp", updates, "2.3.4-beta", "2.3.4", "2.3.5", "2.4.0")
-
-	allVersions, err := v.ListVersions()
-	require.NoError(t, err)
-	require.Len(t, allVersions, 4)
-
-	assert.NoError(t, v.RemoveOldVersions())
-
-	cleanedVersions, err := v.ListVersions()
-	assert.NoError(t, err)
-	assert.Len(t, cleanedVersions, 1)
-
-	assert.Equal(t, semver.MustParse("2.4.0"), cleanedVersions[0].version)
-	assert.Equal(t, filepath.Join(updates, "2.4.0"), cleanedVersions[0].path)
-}
-
 func newTestVersioner(t *testing.T, exeName, updates string, versions ...string) *Versioner {
 	for _, version := range versions {
 		makeDummyVersionDirectory(t, exeName, updates, version)

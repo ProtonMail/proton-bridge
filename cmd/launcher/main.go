@@ -149,7 +149,12 @@ func getPathToExecutable(name string, versioner *versioner.Versioner, kr *crypto
 		vlog := logrus.WithField("version", version)
 
 		if err := version.VerifyFiles(kr); err != nil {
-			vlog.WithError(err).Error("Failed to verify files")
+			vlog.WithError(err).Error("Files failed verification and will be removed")
+
+			if err := version.Remove(); err != nil {
+				vlog.WithError(err).Error("Failed to remove files")
+			}
+
 			continue
 		}
 

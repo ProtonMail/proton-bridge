@@ -31,6 +31,7 @@ frontend/qml/*.qmlc
 /bridge_*_*.tgz
 /ie_*_*.tgz
 /versioner
+/hasher
 cmd/Desktop-Bridge/deploy
 cmd/Import-Export/deploy
 internal/frontend/qt*/moc.cpp

@@ -1,0 +1,62 @@
+// Copyright (c) 2020 Proton Technologies AG
+//
+// This file is part of ProtonMail Bridge.
+//
+// ProtonMail Bridge is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// ProtonMail Bridge is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
+
+package main
+
+import (
+	"os"
+
+	"github.com/ProtonMail/proton-bridge/pkg/sum"
+	"github.com/sirupsen/logrus"
+	"github.com/urfave/cli/v2"
+)
+
+func main() {
+	if err := createApp().Run(os.Args); err != nil {
+		logrus.Fatal(err)
+	}
+}
+
+func createApp() *cli.App { // nolint[funlen]
+	app := cli.NewApp()
+
+	app.Name = "hasher"
+	app.Usage = "Generate the recursive hash of a directory"
+	app.Action = computeSum
+	app.Flags = []cli.Flag{
+		&cli.StringFlag{
+			Name:     "root",
+			Usage:    "The root directory from which to begin recursive hashing",
+			Required: true,
+		},
+	}
+
+	return app
+}
+
+func computeSum(c *cli.Context) error {
+	b, err := sum.RecursiveSum(c.String("root"), "")
+	if err != nil {
+		return err
+	}
+
+	if _, err := c.App.Writer.Write(b); err != nil {
+		return err
+	}
+
+	return nil
+}

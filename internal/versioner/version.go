@@ -18,13 +18,18 @@
 package versioner
 
 import (
+	"bytes"
+	"errors"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
+	"github.com/ProtonMail/proton-bridge/pkg/sum"
 )
+
+const sumFile = ".sum"
 
 type Version struct {
 	version *semver.Version
@@ -47,31 +52,34 @@ func (v Versions) Swap(i, j int) {
 
 // VerifyFiles verifies all files in the version directory.
 func (v *Version) VerifyFiles(kr *crypto.KeyRing) error {
-	return filepath.Walk(v.path, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
+	fileBytes, err := ioutil.ReadFile(filepath.Join(v.path, sumFile)) // nolint[gosec]
+	if err != nil {
+		return err
+	}
 
-		if filepath.Ext(path) == ".sig" || info.IsDir() {
-			return nil
-		}
+	sigBytes, err := ioutil.ReadFile(filepath.Join(v.path, sumFile+".sig")) // nolint[gosec]
+	if err != nil {
+		return err
+	}
 
-		fileBytes, err := ioutil.ReadFile(path) // nolint[gosec]
-		if err != nil {
-			return err
-		}
+	if err := kr.VerifyDetached(
+		crypto.NewPlainMessage(fileBytes),
+		crypto.NewPGPSignature(sigBytes),
+		crypto.GetUnixTime(),
+	); err != nil {
+		return err
+	}
 
-		sigBytes, err := ioutil.ReadFile(path + ".sig") // nolint[gosec]
-		if err != nil {
-			return err
-		}
+	sum, err := sum.RecursiveSum(v.path, sumFile)
+	if err != nil {
+		return err
+	}
 
-		return kr.VerifyDetached(
-			crypto.NewPlainMessage(fileBytes),
-			crypto.NewPGPSignature(sigBytes),
-			crypto.GetUnixTime(),
-		)
-	})
+	if !bytes.Equal(sum, fileBytes) {
+		return errors.New("sum mismatch")
+	}
+
+	return nil
 }
 
 // GetExecutable returns the full path to the executable of the given version.
@@ -84,4 +92,9 @@ func (v *Version) GetExecutable(name string) (string, error) {
 	}
 
 	return exe, nil
+}
+
+// Remove removes this version directory.
+func (v *Version) Remove() error {
+	return os.RemoveAll(v.path)
 }
