@@ -19,9 +19,7 @@ package sentry
 
 import (
 	"errors"
-	"regexp"
 	"runtime"
-	"strings"
 	"time"
 
 	"github.com/getsentry/sentry-go"
@@ -29,13 +27,14 @@ import (
 )
 
 var (
-	isPanicHandlerRegexp = regexp.MustCompile(`^ReportSentryCrash|^(\(\*PanicHandler\)\.)?HandlePanic`) //nolint[gochecknoglobals]
+	skippedFunctions = []string{} //nolint[gochecknoglobals]
 )
 
 // ReportSentryCrash reports a sentry crash.
-func ReportSentryCrash(clientID, appVersion, userAgent string, reportErr error) (err error) {
+func ReportSentryCrash(clientID, appVersion, userAgent string, reportErr error) error {
+	SkipDuringUnwind()
 	if reportErr == nil {
-		return
+		return nil
 	}
 
 	tags := map[string]string{
@@ -48,6 +47,7 @@ func ReportSentryCrash(clientID, appVersion, userAgent string, reportErr error) 
 
 	var reportID string
 	sentry.WithScope(func(scope *sentry.Scope) {
+		SkipDuringUnwind()
 		scope.SetTags(tags)
 		eventID := sentry.CaptureException(reportErr)
 		if eventID != nil {
@@ -61,7 +61,24 @@ func ReportSentryCrash(clientID, appVersion, userAgent string, reportErr error) 
 	}
 
 	log.WithField("error", reportErr).WithField("id", reportID).Warn("Sentry error reported")
-	return
+	return nil
+}
+
+// SkipDuringUnwind removes caller from the traceback.
+func SkipDuringUnwind() {
+	pcs := make([]uintptr, 2)
+	n := runtime.Callers(2, pcs)
+	if n == 0 {
+		return
+	}
+
+	frames := runtime.CallersFrames(pcs)
+	frame, _ := frames.Next()
+	if isFunctionFilteredOut(frame.Function) {
+		return
+	}
+
+	skippedFunctions = append(skippedFunctions, frame.Function)
 }
 
 // EnhanceSentryEvent swaps type with value and removes panic handlers from the stacktrace.
@@ -77,13 +94,22 @@ func EnhanceSentryEvent(event *sentry.Event, hint *sentry.EventHint) *sentry.Eve
 }
 
 func filterOutPanicHandlers(frames []sentry.Frame) []sentry.Frame {
-	idx := 0
+	newFrames := []sentry.Frame{}
 	for _, frame := range frames {
-		if strings.HasPrefix(frame.Module, "github.com/ProtonMail/proton-bridge") &&
-			isPanicHandlerRegexp.MatchString(frame.Function) {
-			break
+		// Sentry splits runtime.Frame.Function into Module and Function.
+		function := frame.Module + "." + frame.Function
+		if !isFunctionFilteredOut(function) {
+			newFrames = append(newFrames, frame)
 		}
-		idx++
 	}
-	return frames[:idx]
+	return newFrames
+}
+
+func isFunctionFilteredOut(function string) bool {
+	for _, skipFunction := range skippedFunctions {
+		if function == skipFunction {
+			return true
+		}
+	}
+	return false
 }

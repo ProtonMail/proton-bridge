@@ -57,6 +57,8 @@ var logCrashRgx = regexp.MustCompile("^v.*_crash_.*\\.log$") //nolint[gochecknog
 
 // HandlePanic reports the crash to sentry or local file when sentry fails.
 func HandlePanic(cfg *Config, output string) {
+	sentry.SkipDuringUnwind()
+
 	if !cfg.IsDevMode() {
 		apiCfg := cfg.GetAPIConfig()
 		if err := sentry.ReportSentryCrash(apiCfg.ClientID, apiCfg.AppVersion, apiCfg.UserAgent, errors.New(output)); err != nil {

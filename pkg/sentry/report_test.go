@@ -25,7 +25,30 @@ import (
 	"github.com/getsentry/sentry-go"
 )
 
+func TestSkipDuringUnwind(t *testing.T) {
+	// More calls in one function adds it only once.
+	SkipDuringUnwind()
+	SkipDuringUnwind()
+	func() {
+		SkipDuringUnwind()
+		SkipDuringUnwind()
+	}()
+
+	wantSkippedFunctions := []string{
+		"github.com/ProtonMail/proton-bridge/pkg/sentry.TestSkipDuringUnwind",
+		"github.com/ProtonMail/proton-bridge/pkg/sentry.TestSkipDuringUnwind.func1",
+	}
+	r.Equal(t, wantSkippedFunctions, skippedFunctions)
+}
+
 func TestFilterOutPanicHandlers(t *testing.T) {
+	skippedFunctions = []string{
+		"github.com/ProtonMail/proton-bridge/pkg/config.(*PanicHandler).HandlePanic",
+		"github.com/ProtonMail/proton-bridge/pkg/config.HandlePanic",
+		"github.com/ProtonMail/proton-bridge/pkg/sentry.ReportSentryCrash",
+		"github.com/ProtonMail/proton-bridge/pkg/sentry.ReportSentryCrash.func1",
+	}
+
 	frames := []sentry.Frame{
 		{Module: "github.com/ProtonMail/proton-bridge/internal/cmd", Function: "main"},
 		{Module: "github.com/urfave/cli", Function: "(*App).Run"},

@@ -26,6 +26,7 @@ import (
 
 	"github.com/ProtonMail/proton-bridge/internal/frontend"
 	"github.com/ProtonMail/proton-bridge/pkg/config"
+	"github.com/ProtonMail/proton-bridge/pkg/sentry"
 	"github.com/urfave/cli"
 )
 
@@ -92,6 +93,8 @@ type PanicHandler struct {
 
 // HandlePanic should be called in defer to ensure restart of app after error.
 func (ph *PanicHandler) HandlePanic() {
+	sentry.SkipDuringUnwind()
+
 	r := recover()
 	if r == nil {
 		return
