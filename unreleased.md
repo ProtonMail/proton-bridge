@@ -11,6 +11,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-893 Bump go-rfc5322 dependency to v0.2.1 to properly detect syntax errors during parsing.
 * GODT-892 Swap type and value from sentry exception and cut panic handlers from the traceback.
 * GODT-854 EXPUNGE and FETCH unilateral responses are returned before OK EXPUNGE or OK STORE, respectively.
+* #109 Renamed COPYING.md to not be read by [pkg-go-dev](https://pkg.go.dev/license-policy).
 
 ### Removed
 * GODT-651 Build creates proper binary names.

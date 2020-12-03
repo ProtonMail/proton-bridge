@@ -3,7 +3,7 @@ Copyright (c) 2020 Proton Technologies AG
 
 This repository holds the ProtonMail Bridge and the ProtonMail Import-Export applications.
 For a detailed build information see [BUILDS](./BUILDS.md).
-For licensing information see [COPYING](./COPYING.md).
+The license can be found in [LICENSE](./LICENSE) file, for more licensing information see [COPYING_NOTES](./COPYING_NOTES.md).
 For contribution policy see [CONTRIBUTING](./CONTRIBUTING.md).
 
 
