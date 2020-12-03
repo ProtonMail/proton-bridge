@@ -23,6 +23,7 @@ import (
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
+	"github.com/ProtonMail/proton-bridge/internal/config/settings"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -38,15 +39,21 @@ type Installer interface {
 	InstallUpdate(*semver.Version, io.Reader) error
 }
 
+type Settings interface {
+	Get(string) string
+	Set(string, string)
+	GetFloat64(string) float64
+}
+
 type Updater struct {
 	cm        ClientProvider
 	installer Installer
+	settings  Settings
 	kr        *crypto.KeyRing
 
 	curVer        *semver.Version
 	updateURLName string
 	platform      string
-	rollout       float64
 
 	locker *locker
 }
@@ -54,19 +61,25 @@ type Updater struct {
 func New(
 	cm ClientProvider,
 	installer Installer,
+	s Settings,
 	kr *crypto.KeyRing,
 	curVer *semver.Version,
 	updateURLName, platform string,
-	rollout float64,
 ) *Updater {
+	// If there's some unexpected value in the preferences, we force it back onto the live channel.
+	// This prevents users from screwing up silent updates by modifying their prefs.json file.
+	if channel := UpdateChannel(s.Get(settings.UpdateChannelKey)); !(channel == LiveChannel || channel == BetaChannel) {
+		s.Set(settings.UpdateChannelKey, string(LiveChannel))
+	}
+
 	return &Updater{
 		cm:            cm,
 		installer:     installer,
+		settings:      s,
 		kr:            kr,
 		curVer:        curVer,
 		updateURLName: updateURLName,
 		platform:      platform,
-		rollout:       rollout,
 		locker:        newLocker(),
 	}
 }
@@ -92,7 +105,12 @@ func (u *Updater) Check() (VersionInfo, error) {
 		return VersionInfo{}, err
 	}
 
-	return versionMap[Channel], nil
+	version, ok := versionMap[u.settings.Get(settings.UpdateChannelKey)]
+	if !ok {
+		return VersionInfo{}, errors.New("no updates available for this channel")
+	}
+
+	return version, nil
 }
 
 func (u *Updater) IsUpdateApplicable(version VersionInfo) bool {
@@ -100,7 +118,7 @@ func (u *Updater) IsUpdateApplicable(version VersionInfo) bool {
 		return false
 	}
 
-	if u.rollout > version.Rollout {
+	if u.settings.GetFloat64(settings.RolloutKey) > version.Rollout {
 		return false
 	}
 
@@ -108,6 +126,10 @@ func (u *Updater) IsUpdateApplicable(version VersionInfo) bool {
 }
 
 func (u *Updater) CanInstall(version VersionInfo) bool {
+	if version.MinAuto == nil {
+		return true
+	}
+
 	return !u.curVer.LessThan(version.MinAuto)
 }
 

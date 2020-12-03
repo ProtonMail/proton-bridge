@@ -43,6 +43,12 @@ func createApp() *cli.App { // nolint[funlen]
 			Usage:    "The root directory from which to begin recursive hashing",
 			Required: true,
 		},
+		&cli.StringFlag{
+			Name:     "output",
+			Aliases:  []string{"o"},
+			Usage:    "The file to save the sum in",
+			Required: true,
+		},
 	}
 
 	return app
@@ -54,9 +60,14 @@ func computeSum(c *cli.Context) error {
 		return err
 	}
 
-	if _, err := c.App.Writer.Write(b); err != nil {
+	f, err := os.Create(c.String("output"))
+	if err != nil {
 		return err
 	}
 
-	return nil
+	if _, err := f.Write(b); err != nil {
+		return err
+	}
+
+	return f.Close()
 }

@@ -180,11 +180,11 @@ func New( // nolint[funlen]
 	updater := updater.New(
 		cm,
 		installer,
+		settingsObj,
 		kr,
 		semver.MustParse(constants.Version),
 		updateURLName,
 		runtime.GOOS,
-		settingsObj.GetFloat64(settings.RolloutKey),
 	)
 
 	return &Base{

@@ -40,6 +40,7 @@ const (
 	CookiesKey             = "cookies"
 	ReportOutgoingNoEncKey = "report_outgoing_email_without_encryption"
 	LastVersionKey         = "last_used_version"
+	UpdateChannelKey       = "update_channel"
 	RolloutKey             = "rollout"
 )
 
@@ -75,6 +76,7 @@ func (s *Settings) setDefaultValues() {
 	s.setDefault(AutoUpdateKey, "true")
 	s.setDefault(ReportOutgoingNoEncKey, "false")
 	s.setDefault(LastVersionKey, "")
+	s.setDefault(UpdateChannelKey, "")
 	s.setDefault(RolloutKey, fmt.Sprintf("%v", rand.Float64()))
 
 	s.setDefault(APIPortKey, DefaultAPIPort)

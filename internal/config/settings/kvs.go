@@ -20,6 +20,7 @@ package settings
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"os"
 	"strconv"
 	"sync"
@@ -134,4 +135,8 @@ func (p *keyValueStore) SetBool(key string, value bool) {
 
 func (p *keyValueStore) SetInt(key string, value int) {
 	p.Set(key, strconv.Itoa(value))
+}
+
+func (p *keyValueStore) SetFloat64(key string, value float64) {
+	p.Set(key, fmt.Sprintf("%v", value))
 }

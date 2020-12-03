@@ -15,8 +15,15 @@
 // You should have received a copy of the GNU General Public License
 // along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
 
-// +build beta
-
 package updater
 
-const Channel = "beta"
+// UpdateChannel represents an update channel users can be subscribed to.
+type UpdateChannel string
+
+const (
+	// LiveChannel is the channel all users are subscribed to by default.
+	LiveChannel UpdateChannel = "live"
+
+	// BetaChannel is the channel users subscribe to when they enable "Early Access".
+	BetaChannel UpdateChannel = "beta"
+)

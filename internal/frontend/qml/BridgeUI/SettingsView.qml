@@ -117,6 +117,30 @@ Item {
             }
 
             ButtonIconText {
+                id: earlyAccess
+                text: qsTr("Early access", "label for toggle that enables and disables early access")
+                leftIcon.text  : Style.fa.star
+                rightIcon {
+                    font.pointSize : Style.settings.toggleSize * Style.pt
+                    text  : go.isEarlyAccess!=false ? Style.fa.toggle_on  : Style.fa.toggle_off
+                    color : go.isEarlyAccess!=false ? Style.main.textBlue : Style.main.textDisabled
+                }
+                Accessible.description: (
+                    go.isEarlyAccess == false ?
+                    qsTr("Enable"  , "Click to enable early access") :
+                    qsTr("Disable" , "Click to disable early access")
+                ) + " " + text
+                onClicked: {
+                    if (go.isEarlyAccess == true) {
+                      go.toggleEarlyAccess()
+                    } else {
+                      dialogGlobal.state="toggleEarlyAccess"
+                      dialogGlobal.show()
+                    }
+                }
+            }
+
+            ButtonIconText {
                 id: advancedSettings
                 property bool isAdvanced : !go.isDefaultPort
                 text: qsTr("Advanced settings", "button to open the advanced settings list in the settings page")
@@ -196,7 +220,6 @@ Item {
                     dialogGlobal.show()
                 }
             }
-
         }
     }
 }

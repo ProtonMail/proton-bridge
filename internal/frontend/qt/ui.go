@@ -35,6 +35,7 @@ type GoQMLInterface struct {
 
 	_ bool   `property:"isAutoStart"`
 	_ bool   `property:"isAutoUpdate"`
+	_ bool   `property:"isEarlyAccess"`
 	_ bool   `property:"isProxyAllowed"`
 	_ string `property:"currentAddress"`
 	_ string `property:"goos"`
@@ -94,6 +95,7 @@ type GoQMLInterface struct {
 
 	_ func() `slot:"toggleAutoStart"`
 	_ func() `slot:"toggleAutoUpdate"`
+	_ func() `slot:"toggleEarlyAccess"`
 	_ func() `slot:"toggleAllowProxy"`
 	_ func() `slot:"loadAccounts"`
 	_ func() `slot:"openLogs"`
@@ -157,6 +159,7 @@ func (s *GoQMLInterface) init() {}
 // SetFrontend connects all slots and signals from Go to QML.
 func (s *GoQMLInterface) SetFrontend(f *FrontendQt) {
 	s.ConnectToggleAutoStart(f.toggleAutoStart)
+	s.ConnectToggleEarlyAccess(f.toggleEarlyAccess)
 	s.ConnectToggleAutoUpdate(f.toggleAutoUpdate)
 	s.ConnectToggleAllowProxy(f.toggleAllowProxy)
 	s.ConnectLoadAccounts(f.loadAccounts)

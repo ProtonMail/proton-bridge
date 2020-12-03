@@ -370,6 +370,12 @@ func (s *FrontendQt) qtExecute(Procedure func(*FrontendQt) error) error {
 		s.Qml.SetIsProxyAllowed(false)
 	}
 
+	if updater.UpdateChannel(s.settings.Get(settings.UpdateChannelKey)) == updater.BetaChannel {
+		s.Qml.SetIsEarlyAccess(true)
+	} else {
+		s.Qml.SetIsEarlyAccess(false)
+	}
+
 	s.eventListener.RetryEmit(events.TLSCertIssue)
 	s.eventListener.RetryEmit(events.ErrorEvent)
 
@@ -545,6 +551,18 @@ func (s *FrontendQt) toggleAutoUpdate() {
 	} else {
 		s.settings.SetBool(settings.AutoUpdateKey, true)
 		s.Qml.SetIsAutoUpdate(true)
+	}
+}
+
+func (s *FrontendQt) toggleEarlyAccess() {
+	defer s.Qml.ProcessFinished()
+
+	if updater.UpdateChannel(s.settings.Get(settings.UpdateChannelKey)) == updater.BetaChannel {
+		s.settings.Set(settings.UpdateChannelKey, string(updater.LiveChannel))
+		s.Qml.SetIsEarlyAccess(false)
+	} else {
+		s.settings.Set(settings.UpdateChannelKey, string(updater.BetaChannel))
+		s.Qml.SetIsEarlyAccess(true)
 	}
 }
 

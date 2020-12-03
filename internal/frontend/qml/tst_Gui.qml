@@ -267,6 +267,7 @@ Window {
 
         property bool isAutoStart : true
         property bool isAutoUpdate : false
+        property bool isEarlyAccess : false
         property bool isProxyAllowed : false
         property bool isFirstStart : false
         property bool isFreshVersion : false
@@ -336,6 +337,7 @@ Window {
 
         signal processFinished()
         signal toggleAutoStart()
+        signal toggleEarlyAccess()
         signal toggleAutoUpdate()
         signal notifyBubble(int tabIndex, string message)
         signal silentBubble(int tabIndex, string message)
@@ -626,6 +628,12 @@ Window {
             workAndClose()
             isAutoUpdate = (isAutoUpdate!=false) ? false : true
             console.log (" Test: onToggleAutoUpdate "+isAutoUpdate)
+        }
+
+        onToggleEarlyAccess: {
+            workAndClose()
+            isEarlyAccess = (isEarlyAccess!=false) ? false : true
+            console.log (" Test: onToggleEarlyAccess "+isEarlyAccess)
         }
     }
 }

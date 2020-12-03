@@ -81,10 +81,10 @@ build-ie-nogui:
 	TARGET_CMD=Import-Export $(MAKE) build-nogui
 
 build-launcher:
-	go build -ldflags="-X 'main.ConfigName=bridge' -X 'main.ExeName=proton-bridge'" -o launcher-bridge cmd/launcher/main.go
+	go build -tags='${BUILD_TAGS}' -ldflags="-X 'main.ConfigName=bridge' -X 'main.ExeName=proton-bridge'" -o launcher-bridge cmd/launcher/main.go
 
 build-launcher-ie:
-	go build -ldflags="-X 'main.ConfigName=importExport' -X 'main.ExeName=Import-Export'" -o launcher-ie cmd/launcher/main.go
+	go build -tags='${BUILD_TAGS}' -ldflags="-X 'main.ConfigName=importExport' -X 'main.ExeName=Import-Export'" -o launcher-ie cmd/launcher/main.go
 
 versioner:
 	go build ${BUILD_FLAGS} ${GO_LDFLAGS} -o versioner utils/versioner/main.go

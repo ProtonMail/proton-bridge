@@ -22,11 +22,13 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+	"io/ioutil"
 	"sync"
 	"testing"
 	"time"
 
 	"github.com/Masterminds/semver/v3"
+	"github.com/ProtonMail/proton-bridge/internal/config/settings"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi/mocks"
 	"github.com/golang/mock/gomock"
@@ -40,7 +42,7 @@ func TestCheck(t *testing.T) {
 
 	client := mocks.NewMockClient(c)
 
-	updater := newTestUpdater(client, "1.1.0")
+	updater := newTestUpdater(client, "1.1.0", false)
 
 	versionMap := VersionMap{
 		"live": VersionInfo{
@@ -65,13 +67,50 @@ func TestCheck(t *testing.T) {
 	assert.NoError(t, err)
 }
 
+func TestCheckEarlyAccess(t *testing.T) {
+	c := gomock.NewController(t)
+	defer c.Finish()
+
+	client := mocks.NewMockClient(c)
+
+	updater := newTestUpdater(client, "1.1.0", true)
+
+	versionMap := VersionMap{
+		"live": VersionInfo{
+			Version: semver.MustParse("1.5.0"),
+			MinAuto: semver.MustParse("1.0.0"),
+			Package: "https://protonmail.com/download/bridge/update_1.5.0_linux.tgz",
+			Rollout: 1.0,
+		},
+		"beta": VersionInfo{
+			Version: semver.MustParse("1.6.0"),
+			MinAuto: semver.MustParse("1.0.0"),
+			Package: "https://protonmail.com/download/bridge/update_1.6.0_linux.tgz",
+			Rollout: 1.0,
+		},
+	}
+
+	client.EXPECT().DownloadAndVerify(
+		updater.getVersionFileURL(),
+		updater.getVersionFileURL()+".sig",
+		gomock.Any(),
+	).Return(bytes.NewReader(mustMarshal(t, versionMap)), nil)
+
+	client.EXPECT().Logout()
+
+	version, err := updater.Check()
+
+	assert.Equal(t, semver.MustParse("1.6.0"), version.Version)
+	assert.NoError(t, err)
+}
+
 func TestCheckBadSignature(t *testing.T) {
 	c := gomock.NewController(t)
 	defer c.Finish()
 
 	client := mocks.NewMockClient(c)
 
-	updater := newTestUpdater(client, "1.2.0")
+	updater := newTestUpdater(client, "1.2.0", false)
 
 	client.EXPECT().DownloadAndVerify(
 		updater.getVersionFileURL(),
@@ -92,7 +131,7 @@ func TestIsUpdateApplicable(t *testing.T) {
 
 	client := mocks.NewMockClient(c)
 
-	updater := newTestUpdater(client, "1.4.0")
+	updater := newTestUpdater(client, "1.4.0", false)
 
 	versionOld := VersionInfo{
 		Version: semver.MustParse("1.3.0"),
@@ -128,7 +167,7 @@ func TestCanInstall(t *testing.T) {
 
 	client := mocks.NewMockClient(c)
 
-	updater := newTestUpdater(client, "1.4.0")
+	updater := newTestUpdater(client, "1.4.0", false)
 
 	versionManual := VersionInfo{
 		Version: semver.MustParse("1.5.0"),
@@ -155,7 +194,7 @@ func TestInstallUpdate(t *testing.T) {
 
 	client := mocks.NewMockClient(c)
 
-	updater := newTestUpdater(client, "1.4.0")
+	updater := newTestUpdater(client, "1.4.0", false)
 
 	latestVersion := VersionInfo{
 		Version: semver.MustParse("1.5.0"),
@@ -183,7 +222,7 @@ func TestInstallUpdateBadSignature(t *testing.T) {
 
 	client := mocks.NewMockClient(c)
 
-	updater := newTestUpdater(client, "1.4.0")
+	updater := newTestUpdater(client, "1.4.0", false)
 
 	latestVersion := VersionInfo{
 		Version: semver.MustParse("1.5.0"),
@@ -211,7 +250,7 @@ func TestInstallUpdateAlreadyOngoing(t *testing.T) {
 
 	client := mocks.NewMockClient(c)
 
-	updater := newTestUpdater(client, "1.4.0")
+	updater := newTestUpdater(client, "1.4.0", false)
 
 	updater.installer = &fakeInstaller{delay: 2 * time.Second}
 
@@ -249,14 +288,14 @@ func TestInstallUpdateAlreadyOngoing(t *testing.T) {
 	wg.Wait()
 }
 
-func newTestUpdater(client *mocks.MockClient, curVer string) *Updater {
+func newTestUpdater(client *mocks.MockClient, curVer string, earlyAccess bool) *Updater {
 	return New(
 		&fakeClientProvider{client: client},
 		&fakeInstaller{},
+		newFakeSettings(0.5, earlyAccess),
 		nil,
 		semver.MustParse(curVer),
 		"bridge", "linux",
-		0.5,
 	)
 }
 
@@ -288,4 +327,32 @@ func mustMarshal(t *testing.T, v interface{}) []byte {
 	require.NoError(t, err)
 
 	return b
+}
+
+type fakeSettings struct {
+	*settings.Settings
+	dir string
+}
+
+// newFakeSettings creates a temporary folder for files.
+func newFakeSettings(rollout float64, earlyAccess bool) *fakeSettings {
+	dir, err := ioutil.TempDir("", "test-settings")
+	if err != nil {
+		panic(err)
+	}
+
+	s := &fakeSettings{
+		Settings: settings.New(dir),
+		dir:      dir,
+	}
+
+	s.SetFloat64(settings.RolloutKey, rollout)
+
+	if earlyAccess {
+		s.Set(settings.UpdateChannelKey, string(BetaChannel))
+	} else {
+		s.Set(settings.UpdateChannelKey, string(LiveChannel))
+	}
+
+	return s
 }

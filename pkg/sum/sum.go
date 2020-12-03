@@ -22,13 +22,15 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"strings"
 )
 
 // RecursiveSum computes the sha512 sum of all files in the root directory and descendents.
 // If a skipFile is provided (e.g. the path of a checksum file relative to rootDir), it (and its signature) is ignored.
-func RecursiveSum(rootDir, skipFile string) ([]byte, error) {
+func RecursiveSum(rootDir, skipFileName string) ([]byte, error) {
 	hash := sha512.New()
+
+	skipFile := filepath.Join(rootDir, skipFileName)
+	skipFileSig := skipFile + ".sig"
 
 	if err := filepath.Walk(rootDir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -40,11 +42,16 @@ func RecursiveSum(rootDir, skipFile string) ([]byte, error) {
 		}
 
 		// The hashfile itself isn't included in the hash.
-		if path == filepath.Join(rootDir, skipFile) || path == filepath.Join(rootDir, skipFile+".sig") {
+		if path == skipFile || path == skipFileSig {
 			return nil
 		}
 
-		if _, err := hash.Write([]byte(strings.TrimPrefix(path, rootDir))); err != nil {
+		rel, err := filepath.Rel(rootDir, path)
+		if err != nil {
+			return err
+		}
+
+		if _, err := hash.Write([]byte(rel)); err != nil {
 			return err
 		}
 
@@ -57,7 +64,7 @@ func RecursiveSum(rootDir, skipFile string) ([]byte, error) {
 			return err
 		}
 
-		return nil
+		return f.Close()
 	}); err != nil {
 		return nil, err
 	}
