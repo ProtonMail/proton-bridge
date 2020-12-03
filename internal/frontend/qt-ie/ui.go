@@ -73,6 +73,7 @@ type GoQMLInterface struct {
 	_ func(okay bool)        `signal:"importStructuresLoadFinished"`
 	_ func()                 `signal:"openManual"`
 	_ func(showMessage bool) `signal:"runCheckVersion"`
+	_ func()                 `slot:"openLicenseFile"`
 	_ func()                 `slot:"getLocalVersionInfo"`
 	_ func()                 `slot:"loadImportReports"`
 
@@ -167,6 +168,7 @@ func (s *GoQMLInterface) SetFrontend(f *FrontendQt) {
 	s.SetIsRestarting(false)
 	s.SetProgramTitle(f.programName)
 
+	s.ConnectOpenLicenseFile(f.openLicenseFile)
 	s.ConnectGetLocalVersionInfo(f.getLocalVersionInfo)
 	s.ConnectIsNewVersionAvailable(f.isNewVersionAvailable)
 	s.ConnectGetBackendVersion(func() string {

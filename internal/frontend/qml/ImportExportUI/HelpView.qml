@@ -106,6 +106,20 @@ Item {
                     }
                 }
 
+                Text {
+                    id: licenseFile
+                    text  : qsTr("License", "link to click on to open license file")
+                    color : Style.main.textDisabled
+                    font.pointSize: Style.main.fontSize * Style.pt
+                    font.underline: true
+                    MouseArea {
+                        anchors.fill: parent
+                        onClicked : {
+                        go.openLicenseFile()
+                        }
+                        cursorShape: Qt.PointingHandCursor
+                    }
+                }
 
                 Text {
                     id: releaseNotes

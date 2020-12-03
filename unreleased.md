@@ -6,6 +6,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 ### Added
 * GODT-906 Handle RFC2047-encoded content transfer encoding values.
+* GODT-270 Added license button in footer to open LICENSE file.
 
 ### Changed
 * GODT-893 Bump go-rfc5322 dependency to v0.2.1 to properly detect syntax errors during parsing.

@@ -189,6 +189,45 @@ func (c *Config) GetLogPrefix() string {
 	return "v" + c.version + "_" + c.revision
 }
 
+// GetLicenseFilePath returns path to liense file.
+func (c *Config) GetLicenseFilePath() string {
+	// User can install app to different location, or user can run it
+	// directly from the package without installation, or it could be
+	// automatically updated (app started from differenet location).
+	// For all those cases, first let's check LICENSE next to the binary.
+	path := filepath.Join(filepath.Dir(os.Args[0]), "LICENSE")
+	if _, err := os.Stat(path); err == nil {
+		return path
+	}
+
+	switch runtime.GOOS {
+	case "linux":
+		appName := c.appName
+		if c.appName == "importExport" {
+			appName = "import-export"
+		}
+		return "/usr/share/doc/protonmail/" + appName + "/LICENSE"
+	case "darwin": //nolint[goconst]
+		path := filepath.Join(filepath.Dir(os.Args[0]), "..", "Resources", "LICENSE")
+		if _, err := os.Stat(path); err == nil {
+			return path
+		}
+
+		appName := "ProtonMail Bridge.app"
+		if c.appName == "importExport" {
+			appName = "ProtonMail Import-Export.app"
+		}
+		return "/Applications/" + appName + "/Contents/Resources/LICENSE"
+	case "windows":
+		// This should not happen, Windows should be handled by relative
+		// location to the binary above. This is just fallback which may
+		// or may not work, depends where user installed the app and how
+		// user started the app.
+		return "C:\\Program Files\\Proton Technologies AG\\ProtonMail Bridge\\LICENSE"
+	}
+	return ""
+}
+
 // GetTLSCertPath returns path to certificate; used for TLS servers (IMAP, SMTP and API).
 func (c *Config) GetTLSCertPath() string {
 	return filepath.Join(c.appDirs.UserConfig(), "cert.pem")

@@ -102,7 +102,7 @@ Item {
             Row {
                 anchors.left : parent.left
 
-                Rectangle { height: Style.dialog.spacing; width: (wrapper.width- credits.width - release.width - sepaCreditsRelease.width)/2; color: "transparent"}
+                Rectangle { height: Style.dialog.spacing; width: (wrapper.width - credits.width - licenseFile.width - release.width - sepaCreditsRelease.width)/2; color: "transparent"}
 
                 ClickIconText {
                     id:credits
@@ -112,6 +112,20 @@ Item {
                     fontSize      : Style.main.fontSize
                     textUnderline : true
                     onClicked     : winMain.dialogCredits.show()
+                }
+
+                Rectangle {id: sepaLicenseFile ; height: Style.dialog.spacing; width: Style.main.dummy; color: "transparent"}
+
+                ClickIconText {
+                    id:licenseFile
+                    iconText      : ""
+                    text          : qsTr("License", "link to click on to view license file")
+                    textColor     : Style.main.textDisabled
+                    fontSize      : Style.main.fontSize
+                    textUnderline : true
+                    onClicked     : {
+                        go.openLicenseFile()
+                    }
                 }
 
                 Rectangle {id: sepaCreditsRelease ; height: Style.dialog.spacing; width: Style.main.dummy; color: "transparent"}

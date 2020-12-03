@@ -91,6 +91,7 @@ type GoQMLInterface struct {
 	_ func() `slot:"errorSystray"`
 	_ func() `slot:"normalSystray"`
 
+	_ func()                                                   `slot:"openLicenseFile"`
 	_ func()                                                   `slot:"getLocalVersionInfo"`
 	_ func(showMessage bool)                                   `slot:"isNewVersionAvailable"`
 	_ func() string                                            `slot:"getBackendVersion"`
@@ -152,6 +153,7 @@ func (s *GoQMLInterface) SetFrontend(f *FrontendQt) {
 	s.ConnectClearCache(f.clearCache)
 	s.ConnectClearKeychain(f.clearKeychain)
 
+	s.ConnectOpenLicenseFile(f.openLicenseFile)
 	s.ConnectGetLocalVersionInfo(f.getLocalVersionInfo)
 	s.ConnectIsNewVersionAvailable(f.isNewVersionAvailable)
 	s.ConnectGetIMAPPort(f.getIMAPPort)

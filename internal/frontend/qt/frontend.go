@@ -415,6 +415,10 @@ func (s *FrontendQt) isNewVersionAvailable(showMessage bool) {
 	}()
 }
 
+func (s *FrontendQt) openLicenseFile() {
+	go open.Run(s.config.GetLicenseFilePath())
+}
+
 func (s *FrontendQt) getLocalVersionInfo() {
 	defer s.Qml.ProcessFinished()
 	localVersion := s.updates.GetLocalVersion()

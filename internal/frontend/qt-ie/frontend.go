@@ -433,6 +433,10 @@ func (f *FrontendQt) resetSource() {
 	}
 }
 
+func (f *FrontendQt) openLicenseFile() {
+	go open.Run(f.config.GetLicenseFilePath())
+}
+
 // getLocalVersionInfo is identical to bridge.
 func (f *FrontendQt) getLocalVersionInfo() {
 	defer f.Qml.ProcessFinished()
