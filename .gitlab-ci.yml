@@ -1,4 +1,4 @@
-image: gitlab.protontech.ch:4567/go/bridge-internal
+image: gitlab.protontech.ch:4567/go/bridge-internal:test
 
 before_script:
   - eval $(ssh-agent -s)
