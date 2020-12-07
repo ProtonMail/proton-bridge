@@ -160,6 +160,16 @@ func (ir *IMAPResponse) AssertSections(wantRegexps ...string) *IMAPResponse {
 	return ir
 }
 
+// AssertNotSections is similar to AssertSections but is the opposite.
+// It means it just tries to find all "regexps" in the response.
+func (ir *IMAPResponse) AssertNotSections(unwantedRegexps ...string) *IMAPResponse {
+	ir.wait()
+	for _, unwantedRegexp := range unwantedRegexps {
+		a.Error(ir.t, ir.hasSectionRegexp(unwantedRegexp), "regexp %v found\nSections: %v", unwantedRegexp, ir.sections)
+	}
+	return ir
+}
+
 // WaitForSections is the same as AssertSections but waits for `timeout` before giving up.
 func (ir *IMAPResponse) WaitForSections(timeout time.Duration, wantRegexps ...string) {
 	a.Eventually(ir.t, func() bool {

@@ -32,6 +32,8 @@ func IMAPChecksFeatureContext(s *godog.Suite) {
 	s.Step(`^IMAP response to "([^"]*)" contains "([^"]*)"$`, imapResponseNamedContains)
 	s.Step(`^IMAP response has (\d+) message(?:s)?$`, imapResponseHasNumberOfMessages)
 	s.Step(`^IMAP response to "([^"]*)" has (\d+) message(?:s)?$`, imapResponseNamedHasNumberOfMessages)
+	s.Step(`^IMAP response does not contain "([^"]*)"$`, imapResponseDoesNotContain)
+	s.Step(`^IMAP response to "([^"]*)" does not contain "([^"]*)"$`, imapResponseNamedDoesNotContain)
 	s.Step(`^IMAP client receives update marking message seq "([^"]*)" as read within (\d+) seconds$`, imapClientReceivesUpdateMarkingMessageSeqAsReadWithin)
 	s.Step(`^IMAP client "([^"]*)" receives update marking message seq "([^"]*)" as read within (\d+) seconds$`, imapClientNamedReceivesUpdateMarkingMessageSeqAsReadWithin)
 	s.Step(`^IMAP client receives update marking message seq "([^"]*)" as unread within (\d+) seconds$`, imapClientReceivesUpdateMarkingMessageSeqAsUnreadWithin)
@@ -70,6 +72,16 @@ func imapResponseHasNumberOfMessages(expectedCount int) error {
 func imapResponseNamedHasNumberOfMessages(clientID string, expectedCount int) error {
 	res := ctx.GetIMAPLastResponse(clientID)
 	res.AssertSectionsCount(expectedCount)
+	return ctx.GetTestingError()
+}
+
+func imapResponseDoesNotContain(notExpectedResponse string) error {
+	return imapResponseNamedDoesNotContain("imap", notExpectedResponse)
+}
+
+func imapResponseNamedDoesNotContain(clientID, notExpectedResponse string) error {
+	res := ctx.GetIMAPLastResponse(clientID)
+	res.AssertNotSections(notExpectedResponse)
 	return ctx.GetTestingError()
 }
 

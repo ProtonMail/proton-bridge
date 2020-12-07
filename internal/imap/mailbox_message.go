@@ -40,6 +40,10 @@ import (
 	openpgperrors "golang.org/x/crypto/openpgp/errors"
 )
 
+var (
+	rfc822Birthday = time.Date(1982, 8, 13, 0, 0, 0, 0, time.UTC) //nolint[gochecknoglobals]
+)
+
 type doNotCacheError struct{ e error }
 
 func (dnc *doNotCacheError) Error() string { return dnc.e.Error() }
@@ -605,7 +609,7 @@ func (im *imapMailbox) buildMessageInner(m *pmapi.Message, kr *crypto.KeyRing) (
 	}
 
 	tmpBuf := &bytes.Buffer{}
-	mainHeader := message.GetHeader(m)
+	mainHeader := buildHeader(m)
 	if err = writeHeader(tmpBuf, mainHeader); err != nil {
 		return
 	}
@@ -702,4 +706,24 @@ func (im *imapMailbox) buildMessageInner(m *pmapi.Message, kr *crypto.KeyRing) (
 		}
 	}
 	return structure, msgBody, err
+}
+
+func buildHeader(msg *pmapi.Message) textproto.MIMEHeader {
+	header := message.GetHeader(msg)
+
+	msgTime := time.Unix(msg.Time, 0)
+
+	// Apple Mail crashes fetching messages with date older than 1970.
+	// There is no point having message older than RFC itself, it's not possible.
+	d, err := msg.Header.Date()
+	if err != nil || d.Before(rfc822Birthday) || msgTime.Before(rfc822Birthday) {
+		if err != nil || d.IsZero() {
+			header.Set("X-Original-Date", msgTime.Format(time.RFC1123Z))
+		} else {
+			header.Set("X-Original-Date", d.Format(time.RFC1123Z))
+		}
+		header.Set("Date", rfc822Birthday.Format(time.RFC1123Z))
+	}
+
+	return header
 }

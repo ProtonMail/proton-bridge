@@ -20,6 +20,7 @@ package tests
 import (
 	"fmt"
 	"net/mail"
+	"net/textproto"
 	"strconv"
 	"strings"
 	"time"
@@ -97,6 +98,7 @@ func thereAreMessagesInMailboxesForAddressOfUser(mailboxNames, bddAddressID, bdd
 			LabelIDs:  labelIDs,
 			AddressID: account.AddressID(),
 		}
+		header := make(textproto.MIMEHeader)
 
 		if message.HasLabelID(pmapi.SentLabel) {
 			message.Flags |= pmapi.FlagSent
@@ -143,12 +145,14 @@ func thereAreMessagesInMailboxesForAddressOfUser(mailboxNames, bddAddressID, bdd
 					return internalError(err, "parsing time")
 				}
 				message.Time = date.Unix()
+				header.Set("Date", date.Format(time.RFC1123Z))
 			case "deleted":
 				hasDeletedFlag = cell.Value == "true"
 			default:
 				return fmt.Errorf("unexpected column name: %s", head[n].Value)
 			}
 		}
+		message.Header = mail.Header(header)
 		lastMessageID, err := ctx.GetPMAPIController().AddUserMessage(account.Username(), message)
 		if err != nil {
 			return internalError(err, "adding message")

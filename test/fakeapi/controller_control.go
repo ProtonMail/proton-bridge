@@ -20,8 +20,10 @@ package fakeapi
 import (
 	"errors"
 	"fmt"
+	"net/mail"
 	"strings"
 
+	messageUtils "github.com/ProtonMail/proton-bridge/pkg/message"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 )
 
@@ -139,6 +141,7 @@ func (ctl *Controller) AddUserMessage(username string, message *pmapi.Message) (
 	}
 	message.ID = ctl.messageIDGenerator.next("")
 	message.LabelIDs = append(message.LabelIDs, pmapi.AllMailLabel)
+	message.Header = mail.Header(messageUtils.GetHeader(message))
 	ctl.messagesByUsername[username] = append(ctl.messagesByUsername[username], message)
 	ctl.resetUsers()
 	return message.ID, nil
