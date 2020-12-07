@@ -45,6 +45,11 @@ func Parse(r io.Reader, key, keyName string) (m *pmapi.Message, mimeBody, plainB
 		return
 	}
 
+	if err = convertEncodedTransferEncoding(p); err != nil {
+		err = errors.Wrap(err, "failed to convert encoded transfer encodings")
+		return
+	}
+
 	if err = convertForeignEncodings(p); err != nil {
 		err = errors.Wrap(err, "failed to convert foreign encodings")
 		return
@@ -89,6 +94,30 @@ func Parse(r io.Reader, key, keyName string) (m *pmapi.Message, mimeBody, plainB
 	return m, mimeBodyBuffer.String(), plainBody, attReaders, nil
 }
 
+// convertEncodedTransferEncoding decodes any RFC2047-encoded content transfer encodings.
+// Such content transfer encodings go against RFC but still exist in the wild anyway.
+func convertEncodedTransferEncoding(p *parser.Parser) error {
+	logrus.Trace("Converting encoded transfer encoding")
+
+	return p.NewWalker().
+		RegisterDefaultHandler(func(p *parser.Part) error {
+			encoding := p.Header.Get("Content-Transfer-Encoding")
+			if encoding == "" {
+				return nil
+			}
+
+			dec, err := pmmime.WordDec.DecodeHeader(encoding)
+			if err != nil {
+				return err
+			}
+
+			p.Header.Set("Content-Transfer-Encoding", dec)
+
+			return nil
+		}).
+		Walk()
+}
+
 func convertForeignEncodings(p *parser.Parser) error {
 	logrus.Trace("Converting foreign encodings")
 
@@ -104,12 +133,11 @@ func convertForeignEncodings(p *parser.Parser) error {
 			return p.ConvertToUTF8()
 		}).
 		RegisterDefaultHandler(func(p *parser.Part) error {
-			t, params, _ := p.ContentType()
 			// multipart/alternative, for example, can contain extra charset.
-			if params != nil && params["charset"] != "" {
+			if _, params, _ := p.ContentType(); params != nil && params["charset"] != "" {
 				return p.ConvertToUTF8()
 			}
-			logrus.WithField("type", t).Trace("Not converting part to utf-8")
+
 			return nil
 		}).
 		Walk()

@@ -22,6 +22,7 @@ import (
 	"io/ioutil"
 
 	"github.com/emersion/go-message"
+	"github.com/sirupsen/logrus"
 )
 
 type Parser struct {
@@ -33,8 +34,15 @@ func New(r io.Reader) (*Parser, error) {
 	p := new(Parser)
 
 	entity, err := message.Read(newEndOfMailTrimmer(r))
-	if err != nil && !message.IsUnknownCharset(err) {
-		return nil, err
+	if err != nil {
+		switch {
+		case message.IsUnknownCharset(err):
+			logrus.WithError(err).Warning("Message has an unknown charset")
+		case message.IsUnknownEncoding(err):
+			logrus.WithError(err).Warning("Message has an unknown encoding")
+		default:
+			return nil, err
+		}
 	}
 
 	if err := p.parseEntity(entity); err != nil {

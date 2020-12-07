@@ -480,6 +480,37 @@ func TestParseWithTrailingEndOfMailIndicator(t *testing.T) {
 	assert.Equal(t, "boo!", plainBody)
 }
 
+func TestParseEncodedContentType(t *testing.T) {
+	f := getFileReader("rfc2047-content-transfer-encoding.eml")
+
+	m, _, plainBody, _, err := Parse(f, "", "")
+	require.NoError(t, err)
+
+	assert.Equal(t, `"Sender" <sender@sender.com>`, m.Sender.String())
+	assert.Equal(t, `<user@somewhere.org>`, m.ToList[0].String())
+
+	assert.Equal(t, "bodybodybody\n", plainBody)
+}
+
+func TestParseNonEncodedContentType(t *testing.T) {
+	f := getFileReader("non-encoded-content-transfer-encoding.eml")
+
+	m, _, plainBody, _, err := Parse(f, "", "")
+	require.NoError(t, err)
+
+	assert.Equal(t, `"Sender" <sender@sender.com>`, m.Sender.String())
+	assert.Equal(t, `<user@somewhere.org>`, m.ToList[0].String())
+
+	assert.Equal(t, "bodybodybody\n", plainBody)
+}
+
+func TestParseEncodedContentTypeBad(t *testing.T) {
+	f := getFileReader("rfc2047-content-transfer-encoding-bad.eml")
+
+	_, _, _, _, err := Parse(f, "", "") // nolint[dogsled]
+	require.Error(t, err)
+}
+
 func getFileReader(filename string) io.Reader {
 	f, err := os.Open(filepath.Join("testdata", filename))
 	if err != nil {
