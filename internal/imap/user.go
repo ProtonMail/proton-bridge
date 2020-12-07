@@ -42,11 +42,9 @@ type imapUser struct {
 	currentAddressLowercase string
 
 	appendInProcess sync.WaitGroup
-}
 
-// This method should eventually no longer be necessary. Everything should go via store.
-func (iu *imapUser) client() pmapi.Client {
-	return iu.user.GetTemporaryPMAPIClient()
+	eventLoopPausingCounter int
+	eventLoopPausingLocker  sync.Locker
 }
 
 // newIMAPUser returns struct implementing go-imap/user interface.
@@ -78,7 +76,39 @@ func newIMAPUser(
 		storeAddress: storeAddress,
 
 		currentAddressLowercase: strings.ToLower(address),
+
+		eventLoopPausingLocker: &sync.Mutex{},
 	}, err
+}
+
+// This method should eventually no longer be necessary. Everything should go via store.
+func (iu *imapUser) client() pmapi.Client {
+	return iu.user.GetTemporaryPMAPIClient()
+}
+
+// pauseEventLoop pauses event loop and increases the number of mailboxes which
+// is performing action forbidding event loop to run (such as FETCH which needs
+// UIDs to be stable and thus EXPUNGE cannot be done during the request).
+func (iu *imapUser) pauseEventLoop() {
+	iu.eventLoopPausingLocker.Lock()
+	defer iu.eventLoopPausingLocker.Unlock()
+
+	iu.eventLoopPausingCounter++
+	iu.storeUser.PauseEventLoop(true)
+}
+
+// unpauseEventLoop unpauses event loop but only if no other request is not
+// performing action forbidding event loop to run (see pauseEventLoop).
+func (iu *imapUser) unpauseEventLoop() {
+	iu.eventLoopPausingLocker.Lock()
+	defer iu.eventLoopPausingLocker.Unlock()
+
+	if iu.eventLoopPausingCounter > 0 {
+		iu.eventLoopPausingCounter--
+	}
+	if iu.eventLoopPausingCounter == 0 {
+		iu.storeUser.PauseEventLoop(false)
+	}
 }
 
 func (iu *imapUser) isSubscribed(labelID string) bool {

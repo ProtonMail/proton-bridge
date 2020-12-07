@@ -454,8 +454,8 @@ func (im *imapMailbox) ListMessages(isUID bool, seqSet *imap.SeqSet, items []ima
 	// EXPUNGE cannot be sent during listing and can come only from
 	// the event loop, so we prevent any server side update to avoid
 	// the problem.
-	im.storeUser.PauseEventLoop(true)
-	defer im.storeUser.PauseEventLoop(false)
+	im.user.pauseEventLoop()
+	defer im.user.unpauseEventLoop()
 
 	var markAsReadIDs []string
 	markAsReadMutex := &sync.Mutex{}
