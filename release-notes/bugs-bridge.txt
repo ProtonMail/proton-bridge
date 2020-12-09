@@ -1,4 +1,3 @@
-• Bridge crashes related to labels handling
-• GUI popup related to TLS connection error
-• An issue where a random session key is included in the data payload
-• Error handling (including improved detection)
+• AppleMail crashes (timestamp related)
+• Encoding errors
+• Installation issues on linux

@@ -1,4 +1,3 @@
-• Improved package creation logic
-• Refactor of sending functions to simplify code maintenance
-• Added tests for package creation
-• For more detailed summary of the changes see https://github.com/ProtonMail/proton-bridge/blob/master/Changelog.md
+• Support read confirmations
+• Adding GPLv3 licence button to the GUI
+• Improved testing

@@ -10,7 +10,7 @@ TARGET_OS?=${GOOS}
 .PHONY: build build-ie build-nogui build-ie-nogui check-has-go
 
 # Keep version hardcoded so app build works also without Git repository.
-BRIDGE_APP_VERSION?=1.5.2-git
+BRIDGE_APP_VERSION?=1.5.3-git
 IE_APP_VERSION?=1.2.2-git
 APP_VERSION:=${BRIDGE_APP_VERSION}
 SRC_ICO:=logo.ico
