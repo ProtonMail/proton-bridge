@@ -21,3 +21,4 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 ### Changed
 * GODT-389 Prefer `From` header instead of `MAIL FROM` address.
+* GODT-898 Only set ContentID for inline attachments.
