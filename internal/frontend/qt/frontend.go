@@ -49,7 +49,6 @@ import (
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	"github.com/ProtonMail/proton-bridge/pkg/ports"
 	"github.com/ProtonMail/proton-bridge/pkg/useragent"
-	"github.com/kardianos/osext"
 	"github.com/sirupsen/logrus"
 	"github.com/skratchdot/open-golang/open"
 	"github.com/therecipe/qt/core"
@@ -68,6 +67,7 @@ var accountMutex = &sync.Mutex{}
 type FrontendQt struct {
 	version           string
 	buildVersion      string
+	programName       string
 	showWindowOnStart bool
 	panicHandler      types.PanicHandler
 	locations         *locations.Locations
@@ -77,19 +77,18 @@ type FrontendQt struct {
 	bridge            types.Bridger
 	noEncConfirmator  types.NoEncConfirmator
 
-	App         *widgets.QApplication      // Main Application pointer.
-	View        *qml.QQmlApplicationEngine // QML engine pointer.
-	MainWin     *core.QObject              // Pointer to main window inside QML.
-	Qml         *GoQMLInterface            // Object accessible from both Go and QML for methods and signals.
-	Accounts    *AccountsModel             // Providing data for  accounts ListView.
-	programName string                     // Program name (shown in taskbar).
-	programVer  string                     // Program version (shown in help).
+	App        *widgets.QApplication      // Main Application pointer.
+	View       *qml.QQmlApplicationEngine // QML engine pointer.
+	MainWin    *core.QObject              // Pointer to main window inside QML.
+	Qml        *GoQMLInterface            // Object accessible from both Go and QML for methods and signals.
+	Accounts   *AccountsModel             // Providing data for  accounts ListView.
+	programVer string                     // Program version (shown in help).
 
 	authClient pmapi.Client
 
 	auth *pmapi.Auth
 
-	AutostartEntry *autostart.App
+	autostart *autostart.App
 
 	// expand userID when added
 	userIDAdded string
@@ -103,7 +102,8 @@ type FrontendQt struct {
 // New returns a new Qt frontend for the bridge.
 func New(
 	version,
-	buildVersion string,
+	buildVersion,
+	programName string,
 	showWindowOnStart bool,
 	panicHandler types.PanicHandler,
 	locations *locations.Locations,
@@ -112,12 +112,13 @@ func New(
 	updater types.Updater,
 	bridge types.Bridger,
 	noEncConfirmator types.NoEncConfirmator,
+	autostart *autostart.App,
 	restarter types.Restarter,
 ) *FrontendQt {
-	prgName := "ProtonMail Bridge"
 	tmp := &FrontendQt{
 		version:           version,
 		buildVersion:      buildVersion,
+		programName:       programName,
 		showWindowOnStart: showWindowOnStart,
 		panicHandler:      panicHandler,
 		locations:         locations,
@@ -126,24 +127,9 @@ func New(
 		updater:           updater,
 		bridge:            bridge,
 		noEncConfirmator:  noEncConfirmator,
-
-		programName: prgName,
-		programVer:  "v" + version,
-		AutostartEntry: &autostart.App{
-			Name:        prgName,
-			DisplayName: prgName,
-			Exec:        []string{"", "--no-window"},
-		},
-
-		restarter: restarter,
-	}
-
-	// Handle autostart if wanted.
-	if p, err := osext.Executable(); err == nil {
-		tmp.AutostartEntry.Exec[0] = p
-		log.Info("Autostart ", p)
-	} else {
-		log.Error("Cannot get current executable path: ", err)
+		programVer:        "v" + version,
+		autostart:         autostart,
+		restarter:         restarter,
 	}
 
 	// Nicer string for OS.
@@ -344,15 +330,15 @@ func (s *FrontendQt) qtExecute(Procedure func(*FrontendQt) error) error {
 
 	// Autostart.
 	if s.Qml.IsFirstStart() {
-		if s.AutostartEntry.IsEnabled() {
-			if err := s.AutostartEntry.Disable(); err != nil {
+		if s.autostart.IsEnabled() {
+			if err := s.autostart.Disable(); err != nil {
 				log.Error("First disable ", err)
 				s.autostartError(err)
 			}
 		}
 		s.toggleAutoStart()
 	}
-	if s.AutostartEntry.IsEnabled() {
+	if s.autostart.IsEnabled() {
 		s.Qml.SetIsAutoStart(true)
 	} else {
 		s.Qml.SetIsAutoStart(false)
@@ -526,16 +512,16 @@ func (s *FrontendQt) configureAppleMail(iAccount, iAddress int) {
 func (s *FrontendQt) toggleAutoStart() {
 	defer s.Qml.ProcessFinished()
 	var err error
-	if s.AutostartEntry.IsEnabled() {
-		err = s.AutostartEntry.Disable()
+	if s.autostart.IsEnabled() {
+		err = s.autostart.Disable()
 	} else {
-		err = s.AutostartEntry.Enable()
+		err = s.autostart.Enable()
 	}
 	if err != nil {
 		log.Error("Enable autostart: ", err)
 		s.autostartError(err)
 	}
-	if s.AutostartEntry.IsEnabled() {
+	if s.autostart.IsEnabled() {
 		s.Qml.SetIsAutoStart(true)
 	} else {
 		s.Qml.SetIsAutoStart(false)

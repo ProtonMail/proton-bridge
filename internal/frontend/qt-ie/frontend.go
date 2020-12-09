@@ -62,7 +62,7 @@ type FrontendQt struct {
 	Qml      *GoQMLInterface            // Object accessible from both Go and QML for methods and signals
 	Accounts qtcommon.Accounts          // Providing data for accounts ListView
 
-	programName    string // Program name
+	programName    string // App name
 	programVersion string // Program version
 	buildVersion   string // Program build version
 
@@ -80,7 +80,7 @@ type FrontendQt struct {
 
 // New is constructor for Import-Export Qt-Go interface
 func New(
-	version, buildVersion string,
+	version, buildVersion, programName string,
 	panicHandler types.PanicHandler,
 	locations *locations.Locations,
 	settings *settings.Settings,
@@ -93,7 +93,7 @@ func New(
 		panicHandler:   panicHandler,
 		locations:      locations,
 		settings:       settings,
-		programName:    "ProtonMail Import-Export",
+		programName:    programName,
 		programVersion: "v" + version,
 		eventListener:  eventListener,
 		updater:        updater,

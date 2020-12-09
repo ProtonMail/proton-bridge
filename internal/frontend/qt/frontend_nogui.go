@@ -23,6 +23,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/ProtonMail/go-autostart"
 	"github.com/ProtonMail/proton-bridge/internal/config/settings"
 	"github.com/ProtonMail/proton-bridge/internal/frontend/types"
 	"github.com/ProtonMail/proton-bridge/internal/locations"
@@ -57,7 +58,7 @@ func (s *FrontendHeadless) InstanceExistAlert() {}
 
 func New(
 	version,
-	buildVersion string,
+	buildVersion, appName string,
 	showWindowOnStart bool,
 	panicHandler types.PanicHandler,
 	locations *locations.Locations,
@@ -66,6 +67,7 @@ func New(
 	updater types.Updater,
 	bridge types.Bridger,
 	noEncConfirmator types.NoEncConfirmator,
+	autostart *autostart.App,
 	restarter types.Restarter,
 ) *FrontendHeadless {
 	return &FrontendHeadless{}

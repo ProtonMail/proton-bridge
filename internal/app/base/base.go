@@ -36,6 +36,7 @@ import (
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/ProtonMail/go-appdir"
+	"github.com/ProtonMail/go-autostart"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/ProtonMail/proton-bridge/internal/api"
 	"github.com/ProtonMail/proton-bridge/internal/config/cache"
@@ -70,11 +71,12 @@ type Base struct {
 	Updater      *updater.Updater
 	Versioner    *versioner.Versioner
 	TLS          *tls.TLS
+	Autostart    *autostart.App
 
-	name  string
-	usage string
-
-	restart bool
+	Name    string // the app's name
+	usage   string // the app's usage description
+	command string // the command used to launch the app (either the exe path or the launcher path)
+	restart bool   // whether the app is currently set to restart
 }
 
 func New( // nolint[funlen]
@@ -156,8 +158,6 @@ func New( // nolint[funlen]
 
 	sentryReporter.SetUserAgentProvider(cm)
 
-	tls := tls.New(settingsPath)
-
 	key, err := crypto.NewKeyFromArmored(updater.DefaultPublicKey)
 	if err != nil {
 		return nil, err
@@ -174,9 +174,7 @@ func New( // nolint[funlen]
 	}
 
 	versioner := versioner.New(updatesDir)
-
 	installer := updater.NewInstaller(versioner)
-
 	updater := updater.New(
 		cm,
 		installer,
@@ -186,6 +184,19 @@ func New( // nolint[funlen]
 		updateURLName,
 		runtime.GOOS,
 	)
+
+	tls := tls.New(settingsPath)
+
+	exe, err := os.Executable()
+	if err != nil {
+		return nil, err
+	}
+
+	autostart := &autostart.App{
+		Name:        appName,
+		DisplayName: appName,
+		Exec:        []string{exe},
+	}
 
 	return &Base{
 		CrashHandler: crashHandler,
@@ -199,16 +210,21 @@ func New( // nolint[funlen]
 		Updater:      updater,
 		Versioner:    versioner,
 		TLS:          tls,
+		Autostart:    autostart,
 
-		name:  appName,
+		Name:  appName,
 		usage: appUsage,
+
+		// By default, the command is the app's executable.
+		// This can be changed at runtime by using the "--launcher" flag.
+		command: exe,
 	}, nil
 }
 
 func (b *Base) NewApp(action func(*Base, *cli.Context) error) *cli.App {
 	app := cli.NewApp()
 
-	app.Name = b.name
+	app.Name = b.Name
 	app.Usage = b.usage
 	app.Version = constants.Version
 	app.Action = b.run(action)
@@ -258,6 +274,12 @@ func (b *Base) run(appMainLoop func(*Base, *cli.Context) error) cli.ActionFunc {
 		defer b.CrashHandler.HandlePanic()
 		defer func() { _ = b.Lock.Close() }()
 
+		// If launcher was used to start the app, use that for restart/autostart.
+		if launcher := c.String("launcher"); launcher != "" {
+			b.Autostart.Exec = []string{launcher}
+			b.command = launcher
+		}
+
 		if doCPUProfile := c.Bool("cpu-prof"); doCPUProfile {
 			startCPUProfile()
 			defer pprof.StopCPUProfile()
@@ -270,7 +292,7 @@ func (b *Base) run(appMainLoop func(*Base, *cli.Context) error) cli.ActionFunc {
 		logging.SetLevel(c.String("log-level"))
 
 		logrus.
-			WithField("appName", b.name).
+			WithField("appName", b.Name).
 			WithField("version", constants.Version).
 			WithField("revision", constants.Revision).
 			WithField("build", constants.BuildTime).
@@ -287,7 +309,7 @@ func (b *Base) run(appMainLoop func(*Base, *cli.Context) error) cli.ActionFunc {
 				return nil
 			}
 
-			return restartApp(c.String("launcher"), true)
+			return b.restartApp(true)
 		})
 
 		if err := appMainLoop(b, c); err != nil {
@@ -295,7 +317,7 @@ func (b *Base) run(appMainLoop func(*Base, *cli.Context) error) cli.ActionFunc {
 		}
 
 		if b.restart {
-			return restartApp(c.String("launcher"), false)
+			return b.restartApp(false)
 		}
 
 		if err := b.Versioner.RemoveOldVersions(); err != nil {

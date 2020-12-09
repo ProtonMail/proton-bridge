@@ -54,7 +54,7 @@ func (s *FrontendHeadless) NotifySilentUpdateError(err error) {
 }
 
 func New(
-	version, buildVersion string,
+	version, buildVersion, appName string,
 	panicHandler types.PanicHandler,
 	locations *locations.Locations,
 	settings *settings.Settings,

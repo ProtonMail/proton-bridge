@@ -19,6 +19,7 @@
 package frontend
 
 import (
+	"github.com/ProtonMail/go-autostart"
 	"github.com/ProtonMail/proton-bridge/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/internal/config/settings"
 	"github.com/ProtonMail/proton-bridge/internal/frontend/cli"
@@ -49,6 +50,7 @@ type Frontend interface {
 func New(
 	version,
 	buildVersion,
+	programName,
 	frontendType string,
 	showWindowOnStart bool,
 	panicHandler types.PanicHandler,
@@ -58,12 +60,14 @@ func New(
 	updater types.Updater,
 	bridge *bridge.Bridge,
 	noEncConfirmator types.NoEncConfirmator,
+	autostart *autostart.App,
 	restarter types.Restarter,
 ) Frontend {
 	bridgeWrap := types.NewBridgeWrap(bridge)
 	return newBridgeFrontend(
 		version,
 		buildVersion,
+		programName,
 		frontendType,
 		showWindowOnStart,
 		panicHandler,
@@ -73,6 +77,7 @@ func New(
 		updater,
 		bridgeWrap,
 		noEncConfirmator,
+		autostart,
 		restarter,
 	)
 }
@@ -80,6 +85,7 @@ func New(
 func newBridgeFrontend(
 	version,
 	buildVersion,
+	programName,
 	frontendType string,
 	showWindowOnStart bool,
 	panicHandler types.PanicHandler,
@@ -89,6 +95,7 @@ func newBridgeFrontend(
 	updater types.Updater,
 	bridge types.Bridger,
 	noEncConfirmator types.NoEncConfirmator,
+	autostart *autostart.App,
 	restarter types.Restarter,
 ) Frontend {
 	switch frontendType {
@@ -106,6 +113,7 @@ func newBridgeFrontend(
 		return qt.New(
 			version,
 			buildVersion,
+			programName,
 			showWindowOnStart,
 			panicHandler,
 			locations,
@@ -114,6 +122,7 @@ func newBridgeFrontend(
 			updater,
 			bridge,
 			noEncConfirmator,
+			autostart,
 			restarter,
 		)
 	}
@@ -123,6 +132,7 @@ func newBridgeFrontend(
 func NewImportExport(
 	version,
 	buildVersion,
+	programName,
 	frontendType string,
 	panicHandler types.PanicHandler,
 	locations *locations.Locations,
@@ -136,6 +146,7 @@ func NewImportExport(
 	return newIEFrontend(
 		version,
 		buildVersion,
+		programName,
 		frontendType,
 		panicHandler,
 		locations,
@@ -150,6 +161,7 @@ func NewImportExport(
 func newIEFrontend(
 	version,
 	buildVersion,
+	programName,
 	frontendType string,
 	panicHandler types.PanicHandler,
 	locations *locations.Locations,
@@ -173,6 +185,7 @@ func newIEFrontend(
 		return qtie.New(
 			version,
 			buildVersion,
+			programName,
 			panicHandler,
 			locations,
 			settings,

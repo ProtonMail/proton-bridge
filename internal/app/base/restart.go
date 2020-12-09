@@ -28,16 +28,7 @@ import (
 // maxAllowedRestarts controls after how many crashes the app will give up restarting.
 const maxAllowedRestarts = 10
 
-func restartApp(path string, crash bool) error {
-	if path == "" {
-		exe, err := os.Executable()
-		if err != nil {
-			return err
-		}
-
-		path = exe
-	}
-
+func (b *Base) restartApp(crash bool) error {
 	var args []string
 
 	if crash {
@@ -47,11 +38,11 @@ func restartApp(path string, crash bool) error {
 	}
 
 	logrus.
-		WithField("path", path).
+		WithField("command", b.command).
 		WithField("args", args).
 		Warn("Restarting")
 
-	return exec.Command(path, args...).Start() // nolint[gosec]
+	return exec.Command(b.command, args...).Start() // nolint[gosec]
 }
 
 // incrementRestartFlag increments the value of the restart flag.

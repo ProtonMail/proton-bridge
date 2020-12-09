@@ -57,6 +57,7 @@ func run(b *base.Base, c *cli.Context) error {
 	f := frontend.NewImportExport(
 		constants.Version,
 		constants.BuildVersion,
+		b.Name,
 		frontendMode,
 		b.CrashHandler,
 		b.Locations,

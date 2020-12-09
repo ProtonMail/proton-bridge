@@ -105,9 +105,13 @@ func run(b *base.Base, c *cli.Context) error { // nolint[funlen]
 		return nil
 	}
 
+	// Bridge supports no-window option which we should use for autostart.
+	b.Autostart.Exec = append(b.Autostart.Exec, "--no-window")
+
 	f := frontend.New(
 		constants.Version,
 		constants.BuildVersion,
+		b.Name,
 		frontendMode,
 		!c.Bool("no-window"),
 		b.CrashHandler,
@@ -117,6 +121,7 @@ func run(b *base.Base, c *cli.Context) error { // nolint[funlen]
 		b.Updater,
 		bridge,
 		smtpBackend,
+		b.Autostart,
 		b,
 	)
 
