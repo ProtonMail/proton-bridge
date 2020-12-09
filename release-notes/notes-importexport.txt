@@ -1,6 +1,3 @@
-• Improvements to the import from large mbox files with multiple labels
-• Not allow to run multiple instances of the app or transfers at the same time
-• Better handling and displaying of skipped messages
-• Various enhancements of the import process related to parsing
+• Allow an import of already encrypted messages (as cypher text)
 • Cosmetic GUI changes
 • Better error handling

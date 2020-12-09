@@ -11,7 +11,7 @@ TARGET_OS?=${GOOS}
 
 # Keep version hardcoded so app build works also without Git repository.
 BRIDGE_APP_VERSION?=1.5.3-git
-IE_APP_VERSION?=1.2.2-git
+IE_APP_VERSION?=1.2.3-git
 APP_VERSION:=${BRIDGE_APP_VERSION}
 SRC_ICO:=logo.ico
 SRC_ICNS:=Bridge.icns
