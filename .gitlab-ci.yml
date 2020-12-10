@@ -72,7 +72,7 @@ test-integration:
   script:
     - VERBOSITY=debug make -C test test
   tags:
-    - medium
+    - large
 
 dependency-updates:
   stage: test
