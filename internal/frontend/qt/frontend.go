@@ -209,7 +209,7 @@ func (s *FrontendQt) watchEvents() {
 		case <-restartBridgeCh:
 			s.Qml.SetIsRestarting(true)
 			// watchEvents is started in parallel with the Qt app.
-			// If the event comes too early, app doesn't have to be ready yet.
+			// If the event comes too early, app might not be ready yet.
 			if s.App != nil {
 				s.App.Quit()
 			}
