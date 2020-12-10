@@ -206,7 +206,13 @@ func (c *Config) GetLicenseFilePath() string {
 		if c.appName == "importExport" {
 			appName = "import-export"
 		}
-		return "/usr/share/doc/protonmail/" + appName + "/LICENSE"
+		// Most Linux distributions.
+		path := "/usr/share/doc/protonmail/" + appName + "/LICENSE"
+		if _, err := os.Stat(path); err == nil {
+			return path
+		}
+		// Arch distributions.
+		return "/usr/share/licenses/protonmail-" + appName + "/LICENSE"
 	case "darwin": //nolint[goconst]
 		path := filepath.Join(filepath.Dir(os.Args[0]), "..", "Resources", "LICENSE")
 		if _, err := os.Stat(path); err == nil {
