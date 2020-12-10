@@ -16,3 +16,4 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 ### Changed
 * GODT-858 Bump go-rfc5322 dependency to v0.4.0 to handle some invalid RFC5322 groups.
+* GODT-923 Fix listener locking.

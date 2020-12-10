@@ -59,6 +59,9 @@ func New() Listener {
 // is emitted within last time duration (`limit`), event is dropped. Zero limit clears
 // the limit for the specific `eventName`.
 func (l *listener) SetLimit(eventName string, limit time.Duration) {
+	l.lock.Lock()
+	defer l.lock.Unlock()
+
 	if limit == 0 {
 		delete(l.limits, eventName)
 		return
@@ -95,13 +98,13 @@ func (l *listener) Remove(eventName string, channel chan<- string) {
 
 // Emit emits an event in parallel to all listeners (channels).
 func (l *listener) Emit(eventName string, data string) {
+	l.lock.Lock()
+	defer l.lock.Unlock()
+
 	l.emit(eventName, data, false)
 }
 
 func (l *listener) emit(eventName, data string, isReEmit bool) {
-	l.lock.RLock()
-	defer l.lock.RUnlock()
-
 	if !l.shouldEmit(eventName, data) {
 		log.Warn("Emit of ", eventName, " with data ", data, " skipped")
 		return
@@ -159,12 +162,18 @@ func (l *listener) clearLastEmits() {
 }
 
 func (l *listener) SetBuffer(eventName string) {
+	l.lock.Lock()
+	defer l.lock.Unlock()
+
 	if _, ok := l.buffered[eventName]; !ok {
 		l.buffered[eventName] = []string{}
 	}
 }
 
 func (l *listener) RetryEmit(eventName string) {
+	l.lock.Lock()
+	defer l.lock.Unlock()
+
 	if _, ok := l.channels[eventName]; !ok || len(l.channels[eventName]) == 0 {
 		return
 	}
