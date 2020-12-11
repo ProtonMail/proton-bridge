@@ -231,11 +231,15 @@ func (c *Config) getLicenseFilePath() string {
 		}
 		return "/Applications/" + appName + "/Contents/Resources/LICENSE"
 	case "windows":
+		path := filepath.Join(filepath.Dir(os.Args[0]), "LICENSE.txt")
+		if _, err := os.Stat(path); err == nil {
+			return path
+		}
 		// This should not happen, Windows should be handled by relative
 		// location to the binary above. This is just fallback which may
 		// or may not work, depends where user installed the app and how
 		// user started the app.
-		return filepath.FromSlash("C:/Program Files/Proton Technologies AG/ProtonMail Bridge/LICENSE")
+		return filepath.FromSlash("C:/Program Files/Proton Technologies AG/ProtonMail Bridge/LICENSE.txt")
 	}
 	return ""
 }
