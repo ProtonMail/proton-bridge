@@ -48,7 +48,7 @@ make build-nogui
 ```
 
 * Bridge without GUI will start by default without any interface (i.e., there is no way to add or remove client, get bridge password, etc)
-* Bridge always have option (with or without Qt) to use CLI by starting bridge with argument `-c`
+* Bridge always has the option (whether built with Qt or without) to use a CLI interface by starting it with the argument `-c`
 * NOTE: You still need to setup supported keychain on your system
 
 ### Build Import-Export
