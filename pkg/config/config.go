@@ -191,6 +191,12 @@ func (c *Config) GetLogPrefix() string {
 
 // GetLicenseFilePath returns path to liense file.
 func (c *Config) GetLicenseFilePath() string {
+	path := c.getLicenseFilePath()
+	log.WithField("path", path).Info("License file path")
+	return path
+}
+
+func (c *Config) getLicenseFilePath() string {
 	// User can install app to different location, or user can run it
 	// directly from the package without installation, or it could be
 	// automatically updated (app started from differenet location).
@@ -229,7 +235,7 @@ func (c *Config) GetLicenseFilePath() string {
 		// location to the binary above. This is just fallback which may
 		// or may not work, depends where user installed the app and how
 		// user started the app.
-		return "C:\\Program Files\\Proton Technologies AG\\ProtonMail Bridge\\LICENSE"
+		return filepath.FromSlash("C:/Program Files/Proton Technologies AG/ProtonMail Bridge/LICENSE")
 	}
 	return ""
 }
