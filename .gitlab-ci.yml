@@ -44,7 +44,7 @@ lint:
   only:
     - branches
   script:
-    - make lint
+    - env GOMAXPROCS=$(( ${CI_TAG_CPU} / 2 )) make lint
   tags:
     - medium
 

@@ -231,6 +231,7 @@ lint-changelog:
 
 lint-golang:
 	which golangci-lint || $(MAKE) install-linter
+	$(info linting with GOMAXPROCS=${GOMAXPROCS})
 	golangci-lint run ./...
 
 updates: install-go-mod-outdated
