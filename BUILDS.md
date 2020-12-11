@@ -41,7 +41,7 @@ make build
     * for `darwin`, the application will be created with name of the project directory (e.g `proton-bridge.app`)
 
 #### Build Bridge without GUI
-* If you need bridge build without Qt dependencies, you can build it by running
+* If you need to build bridge without Qt dependencies, you can do so by running
 
 ```bash
 make build-nogui
