@@ -231,6 +231,7 @@ func (storeMailbox *Mailbox) RemoveDeleted() error {
 			return err
 		}
 	case pmapi.DraftLabel:
+		storeMailbox.log.WithField("ids", apiIDs).Warn("Deleting drafts")
 		if err := storeMailbox.client().DeleteMessages(apiIDs); err != nil {
 			return err
 		}
@@ -278,6 +279,7 @@ func (storeMailbox *Mailbox) deleteFromTrashOrSpam(apiIDs []string) error {
 		}
 	}
 	if len(messageIDsToDelete) > 0 {
+		storeMailbox.log.WithField("ids", messageIDsToDelete).Warn("Deleting messages")
 		if err := storeMailbox.client().DeleteMessages(messageIDsToDelete); err != nil {
 			return err
 		}
