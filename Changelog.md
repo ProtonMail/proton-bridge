@@ -2,6 +2,14 @@
 
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
+## [Bridge 1.5.4] Golden Gate
+
+### Added
+* Log warning about permanently deleting messages.
+
+### Fixed
+* License path on Arch and Windows.
+
 ## [Bridge 1.5.3] Golden Gate [Import-Export 1.2.3] Elbe
 
 ### Added
