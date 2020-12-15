@@ -158,13 +158,6 @@ func (t *TLS) GetConfig() (tlsConfig *tls.Config, err error) {
 	tlsConfig.RootCAs = caCertPool
 	tlsConfig.ClientCAs = caCertPool
 
-	/* This is deprecated:
-	 * SA1019: tlsConfig.BuildNameToCertificate is deprecated:
-	 * NameToCertificate only allows associating a single certificate with a given name.
-	 * Leave that field nil to let the library select the first compatible chain from Certificates.
-	 */
-	tlsConfig.BuildNameToCertificate() // nolint[staticcheck]
-
 	return tlsConfig, err
 }
 

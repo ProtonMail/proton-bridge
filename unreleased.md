@@ -24,6 +24,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-912 Changed scroll bar behaviour in settings tab
 
 ### Removed
+* GODT-208 Remove deprecated use of BuildNameToCertificate.
 
 ### Changed
 * GODT-97 Don't log errors caused by SELECT "".
