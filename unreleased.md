@@ -6,7 +6,6 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 ### Added
 * GODT-906 Handle RFC2047-encoded content transfer encoding values.
-
 * GODT-875 Added GUI dialog on force update.
 * GODT-820 Added GUI notification on impossibility of update installation (both silent and manual).
 * GODT-870 Added GUI notification on error during silent update.

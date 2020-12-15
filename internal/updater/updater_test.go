@@ -46,10 +46,10 @@ func TestCheck(t *testing.T) {
 
 	versionMap := VersionMap{
 		"live": VersionInfo{
-			Version: semver.MustParse("1.5.0"),
-			MinAuto: semver.MustParse("1.4.0"),
-			Package: "https://protonmail.com/download/bridge/update_1.5.0_linux.tgz",
-			Rollout: 1.0,
+			Version:           semver.MustParse("1.5.0"),
+			MinAuto:           semver.MustParse("1.4.0"),
+			Package:           "https://protonmail.com/download/bridge/update_1.5.0_linux.tgz",
+			RolloutProportion: 1.0,
 		},
 	}
 
@@ -77,16 +77,16 @@ func TestCheckEarlyAccess(t *testing.T) {
 
 	versionMap := VersionMap{
 		"live": VersionInfo{
-			Version: semver.MustParse("1.5.0"),
-			MinAuto: semver.MustParse("1.0.0"),
-			Package: "https://protonmail.com/download/bridge/update_1.5.0_linux.tgz",
-			Rollout: 1.0,
+			Version:           semver.MustParse("1.5.0"),
+			MinAuto:           semver.MustParse("1.0.0"),
+			Package:           "https://protonmail.com/download/bridge/update_1.5.0_linux.tgz",
+			RolloutProportion: 1.0,
 		},
 		"beta": VersionInfo{
-			Version: semver.MustParse("1.6.0"),
-			MinAuto: semver.MustParse("1.0.0"),
-			Package: "https://protonmail.com/download/bridge/update_1.6.0_linux.tgz",
-			Rollout: 1.0,
+			Version:           semver.MustParse("1.6.0"),
+			MinAuto:           semver.MustParse("1.0.0"),
+			Package:           "https://protonmail.com/download/bridge/update_1.6.0_linux.tgz",
+			RolloutProportion: 1.0,
 		},
 	}
 
@@ -134,28 +134,28 @@ func TestIsUpdateApplicable(t *testing.T) {
 	updater := newTestUpdater(client, "1.4.0", false)
 
 	versionOld := VersionInfo{
-		Version: semver.MustParse("1.3.0"),
-		MinAuto: semver.MustParse("1.3.0"),
-		Package: "https://protonmail.com/download/bridge/update_1.3.0_linux.tgz",
-		Rollout: 1.0,
+		Version:           semver.MustParse("1.3.0"),
+		MinAuto:           semver.MustParse("1.3.0"),
+		Package:           "https://protonmail.com/download/bridge/update_1.3.0_linux.tgz",
+		RolloutProportion: 1.0,
 	}
 
 	assert.Equal(t, false, updater.IsUpdateApplicable(versionOld))
 
 	versionEqual := VersionInfo{
-		Version: semver.MustParse("1.4.0"),
-		MinAuto: semver.MustParse("1.3.0"),
-		Package: "https://protonmail.com/download/bridge/update_1.4.0_linux.tgz",
-		Rollout: 1.0,
+		Version:           semver.MustParse("1.4.0"),
+		MinAuto:           semver.MustParse("1.3.0"),
+		Package:           "https://protonmail.com/download/bridge/update_1.4.0_linux.tgz",
+		RolloutProportion: 1.0,
 	}
 
 	assert.Equal(t, false, updater.IsUpdateApplicable(versionEqual))
 
 	versionNew := VersionInfo{
-		Version: semver.MustParse("1.5.0"),
-		MinAuto: semver.MustParse("1.3.0"),
-		Package: "https://protonmail.com/download/bridge/update_1.5.0_linux.tgz",
-		Rollout: 1.0,
+		Version:           semver.MustParse("1.5.0"),
+		MinAuto:           semver.MustParse("1.3.0"),
+		Package:           "https://protonmail.com/download/bridge/update_1.5.0_linux.tgz",
+		RolloutProportion: 1.0,
 	}
 
 	assert.Equal(t, true, updater.IsUpdateApplicable(versionNew))
@@ -170,19 +170,19 @@ func TestCanInstall(t *testing.T) {
 	updater := newTestUpdater(client, "1.4.0", false)
 
 	versionManual := VersionInfo{
-		Version: semver.MustParse("1.5.0"),
-		MinAuto: semver.MustParse("1.5.0"),
-		Package: "https://protonmail.com/download/bridge/update_1.5.0_linux.tgz",
-		Rollout: 1.0,
+		Version:           semver.MustParse("1.5.0"),
+		MinAuto:           semver.MustParse("1.5.0"),
+		Package:           "https://protonmail.com/download/bridge/update_1.5.0_linux.tgz",
+		RolloutProportion: 1.0,
 	}
 
 	assert.Equal(t, false, updater.CanInstall(versionManual))
 
 	versionAuto := VersionInfo{
-		Version: semver.MustParse("1.5.0"),
-		MinAuto: semver.MustParse("1.3.0"),
-		Package: "https://protonmail.com/download/bridge/update_1.5.0_linux.tgz",
-		Rollout: 1.0,
+		Version:           semver.MustParse("1.5.0"),
+		MinAuto:           semver.MustParse("1.3.0"),
+		Package:           "https://protonmail.com/download/bridge/update_1.5.0_linux.tgz",
+		RolloutProportion: 1.0,
 	}
 
 	assert.Equal(t, true, updater.CanInstall(versionAuto))
@@ -197,10 +197,10 @@ func TestInstallUpdate(t *testing.T) {
 	updater := newTestUpdater(client, "1.4.0", false)
 
 	latestVersion := VersionInfo{
-		Version: semver.MustParse("1.5.0"),
-		MinAuto: semver.MustParse("1.4.0"),
-		Package: "https://protonmail.com/download/bridge/update_1.5.0_linux.tgz",
-		Rollout: 1.0,
+		Version:           semver.MustParse("1.5.0"),
+		MinAuto:           semver.MustParse("1.4.0"),
+		Package:           "https://protonmail.com/download/bridge/update_1.5.0_linux.tgz",
+		RolloutProportion: 1.0,
 	}
 
 	client.EXPECT().DownloadAndVerify(
@@ -225,10 +225,10 @@ func TestInstallUpdateBadSignature(t *testing.T) {
 	updater := newTestUpdater(client, "1.4.0", false)
 
 	latestVersion := VersionInfo{
-		Version: semver.MustParse("1.5.0"),
-		MinAuto: semver.MustParse("1.4.0"),
-		Package: "https://protonmail.com/download/bridge/update_1.5.0_linux.tgz",
-		Rollout: 1.0,
+		Version:           semver.MustParse("1.5.0"),
+		MinAuto:           semver.MustParse("1.4.0"),
+		Package:           "https://protonmail.com/download/bridge/update_1.5.0_linux.tgz",
+		RolloutProportion: 1.0,
 	}
 
 	client.EXPECT().DownloadAndVerify(
@@ -255,10 +255,10 @@ func TestInstallUpdateAlreadyOngoing(t *testing.T) {
 	updater.installer = &fakeInstaller{delay: 2 * time.Second}
 
 	latestVersion := VersionInfo{
-		Version: semver.MustParse("1.5.0"),
-		MinAuto: semver.MustParse("1.4.0"),
-		Package: "https://protonmail.com/download/bridge/update_1.5.0_linux.tgz",
-		Rollout: 1.0,
+		Version:           semver.MustParse("1.5.0"),
+		MinAuto:           semver.MustParse("1.4.0"),
+		Package:           "https://protonmail.com/download/bridge/update_1.5.0_linux.tgz",
+		RolloutProportion: 1.0,
 	}
 
 	client.EXPECT().DownloadAndVerify(

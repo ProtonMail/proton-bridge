@@ -38,11 +38,14 @@ type VersionInfo struct {
 	// Installers are the locations of installer files (for manual installation).
 	Installers []string
 
-	// Landing is the address of the app landing page on protonmail.com.
-	Landing string
+	// LandingPage is the address of the app landing page on protonmail.com.
+	LandingPage string
 
-	// Rollout is the current progress of the rollout of this release.
-	Rollout float64
+	// ReleaseNotesPage is the address of the page containing the release notes.
+	ReleaseNotesPage string
+
+	// RolloutProportion indicates the proportion (0,1] of users that should update to this version.
+	RolloutProportion float64
 }
 
 // VersionMap represents the structure of the version.json file.
@@ -56,8 +59,9 @@ type VersionInfo struct {
 //       "https://protonmail.com/.../something.rpm",
 //       "https://protonmail.com/.../PKGBUILD"
 //     ],
-//     "Landing "https://protonmail.com/bridge",
-//     "Rollout": 0.5
+//     "LandingPage": "https://protonmail.com/bridge",
+//     "ReleaseNotesPage": "https://protonmail.com/.../release_notes.html",
+//     "RolloutProportion": 0.5
 //   },
 //   "beta": {
 //     "Version": "2.4.0-beta",
@@ -67,8 +71,9 @@ type VersionInfo struct {
 //       "https://protonmail.com/.../something.rpm",
 //       "https://protonmail.com/.../PKGBUILD"
 //     ],
-//     "Landing "https://protonmail.com/bridge",
-//     "Rollout": 0.5
+//     "LandingPage": "https://protonmail.com/bridge",
+//     "ReleaseNotesPage": "https://protonmail.com/.../release_notes.html",
+//     "RolloutProportion": 0.5
 //   },
 //   "...": {
 //     ...

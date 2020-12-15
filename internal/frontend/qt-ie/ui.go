@@ -180,8 +180,6 @@ func (s *GoQMLInterface) SetFrontend(f *FrontendQt) {
 	s.SetProgramTitle(f.programName)
 
 	s.ConnectOpenLicenseFile(f.openLicenseFile)
-	s.SetUpdateReleaseNotesLink("https://protonmail.com/download/ie/release_notes.html")
-
 	s.ConnectGetLocalVersionInfo(f.getLocalVersionInfo)
 	s.ConnectCheckForUpdates(f.checkForUpdates)
 	s.ConnectGetBackendVersion(func() string {

@@ -88,8 +88,12 @@ func createApp() *cli.App { // nolint[funlen]
 				Usage: "An installer that can be used to manually install the app (can be specified multiple times)",
 			},
 			&cli.StringFlag{
-				Name:  "landing",
+				Name:  "landing-page",
 				Usage: "The landing page",
+			},
+			&cli.StringFlag{
+				Name:  "release-notes-page",
+				Usage: "The release notes page",
 			},
 			&cli.Float64Flag{
 				Name:  "rollout",
@@ -129,12 +133,16 @@ func update(c *cli.Context) error {
 		version.Installers = c.StringSlice("installer")
 	}
 
-	if c.IsSet("landing") {
-		version.Landing = c.String("landing")
+	if c.IsSet("landing-page") {
+		version.LandingPage = c.String("landing-page")
+	}
+
+	if c.IsSet("release-notes-page") {
+		version.ReleaseNotesPage = c.String("release-notes-page")
 	}
 
 	if c.IsSet("rollout") {
-		version.Rollout = c.Float64("rollout")
+		version.RolloutProportion = c.Float64("rollout")
 	}
 
 	if c.IsSet("commit") {

@@ -119,8 +119,8 @@ func (f *FrontendQt) Loop() (err error) {
 
 func (f *FrontendQt) NotifyManualUpdate(update updater.VersionInfo, canInstall bool) {
 	f.Qml.SetUpdateVersion(update.Version.String())
-	f.Qml.SetUpdateLandingPage(update.Landing)
-	f.Qml.SetUpdateReleaseNotesLink("https://protonmail.com/download/ie/release_notes.html")
+	f.Qml.SetUpdateLandingPage(update.LandingPage)
+	f.Qml.SetUpdateReleaseNotesLink(update.ReleaseNotesPage)
 	f.Qml.SetUpdateCanInstall(canInstall)
 	f.updateInfo = update
 	f.Qml.NotifyManualUpdate()

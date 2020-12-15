@@ -118,7 +118,7 @@ func (u *Updater) IsUpdateApplicable(version VersionInfo) bool {
 		return false
 	}
 
-	if u.settings.GetFloat64(settings.RolloutKey) > version.Rollout {
+	if u.settings.GetFloat64(settings.RolloutKey) > version.RolloutProportion {
 		return false
 	}
 

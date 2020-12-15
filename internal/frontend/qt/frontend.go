@@ -164,8 +164,8 @@ func (s *FrontendQt) Loop() (err error) {
 
 func (s *FrontendQt) NotifyManualUpdate(update updater.VersionInfo, canInstall bool) {
 	s.Qml.SetUpdateVersion(update.Version.String())
-	s.Qml.SetUpdateLandingPage(update.Landing)
-	s.Qml.SetUpdateReleaseNotesLink("https://protonmail.com/download/bridge/release_notes.html")
+	s.Qml.SetUpdateLandingPage(update.LandingPage)
+	s.Qml.SetUpdateReleaseNotesLink(update.ReleaseNotesPage)
 	s.Qml.SetUpdateCanInstall(canInstall)
 	s.updateInfo = update
 	s.Qml.NotifyManualUpdate()
