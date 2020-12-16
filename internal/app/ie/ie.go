@@ -54,6 +54,9 @@ func run(b *base.Base, c *cli.Context) error {
 		frontendMode = "qt"
 	}
 
+	// We want to remove old versions if the app exits successfully.
+	b.AddTeardownAction(b.Versioner.RemoveOldVersions)
+
 	f := frontend.NewImportExport(
 		constants.Version,
 		constants.BuildVersion,

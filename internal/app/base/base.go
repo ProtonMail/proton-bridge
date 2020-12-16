@@ -77,6 +77,8 @@ type Base struct {
 	usage   string // the app's usage description
 	command string // the command used to launch the app (either the exe path or the launcher path)
 	restart bool   // whether the app is currently set to restart
+
+	teardown []func() error // actions to perform when app is exiting
 }
 
 func New( // nolint[funlen]
@@ -269,6 +271,11 @@ func (b *Base) SetToRestart() {
 	b.restart = true
 }
 
+// AddTeardownAction adds an action to perform during app teardown.
+func (b *Base) AddTeardownAction(fn func() error) {
+	b.teardown = append(b.teardown, fn)
+}
+
 func (b *Base) run(appMainLoop func(*Base, *cli.Context) error) cli.ActionFunc { // nolint[funlen]
 	return func(c *cli.Context) error {
 		defer b.CrashHandler.HandlePanic()
@@ -316,14 +323,24 @@ func (b *Base) run(appMainLoop func(*Base, *cli.Context) error) cli.ActionFunc {
 			return err
 		}
 
+		if err := b.doTeardown(); err != nil {
+			return err
+		}
+
 		if b.restart {
 			return b.restartApp(false)
 		}
 
-		if err := b.Versioner.RemoveOldVersions(); err != nil {
-			return err
-		}
-
 		return nil
 	}
+}
+
+func (b *Base) doTeardown() error {
+	for _, action := range b.teardown {
+		if err := action(); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

@@ -108,6 +108,9 @@ func run(b *base.Base, c *cli.Context) error { // nolint[funlen]
 	// Bridge supports no-window option which we should use for autostart.
 	b.Autostart.Exec = append(b.Autostart.Exec, "--no-window")
 
+	// We want to remove old versions if the app exits successfully.
+	b.AddTeardownAction(b.Versioner.RemoveOldVersions)
+
 	f := frontend.New(
 		constants.Version,
 		constants.BuildVersion,
