@@ -40,6 +40,7 @@ func createApp() *cli.App { // nolint[funlen]
 	app.Flags = []cli.Flag{
 		&cli.StringFlag{
 			Name:     "root",
+			Aliases:  []string{"C"},
 			Usage:    "The root directory from which to begin recursive hashing",
 			Required: true,
 		},

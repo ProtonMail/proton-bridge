@@ -18,6 +18,7 @@ SRC_ICNS:=Bridge.icns
 SRC_SVG:=logo.svg
 TGT_ICNS:=Bridge.icns
 EXE_NAME:=proton-bridge
+CONFIGNAME:=bridge
 ifeq "${TARGET_CMD}" "Import-Export"
     APP_VERSION:=${IE_APP_VERSION}
     SRC_ICO:=ie.ico
@@ -25,19 +26,24 @@ ifeq "${TARGET_CMD}" "Import-Export"
     SRC_SVG:=ie.svg
     TGT_ICNS:=ImportExport.icns
     EXE_NAME:=proton-ie
+    CONFIGNAME:=importExport
 endif
 REVISION:=$(shell git rev-parse --short=10 HEAD)
 BUILD_TIME:=$(shell date +%FT%T%z)
 
 BUILD_FLAGS:=-tags='${BUILD_TAGS}'
+BUILD_FLAGS_LAUNCHER:=${BUILD_FLAGS}
 BUILD_FLAGS_NOGUI:=-tags='${BUILD_TAGS} nogui'
 GO_LDFLAGS:=$(addprefix -X github.com/ProtonMail/proton-bridge/internal/constants.,Version=${APP_VERSION} Revision=${REVISION} BuildTime=${BUILD_TIME})
 ifneq "${BUILD_LDFLAGS}" ""
-    GO_LDFLAGS+= ${BUILD_LDFLAGS}
+    GO_LDFLAGS+=${BUILD_LDFLAGS}
 endif
-GO_LDFLAGS:=-ldflags '${GO_LDFLAGS}'
-BUILD_FLAGS+= ${GO_LDFLAGS}
-BUILD_FLAGS_NOGUI+= ${GO_LDFLAGS}
+GO_LDFLAGS_LAUNCHER:=${GO_LDFLAGS}
+GO_LDFLAGS_LAUNCHER+=$(addprefix -X main.,ConfigName=${CONFIGNAME} ExeName=proton-${APP})
+
+BUILD_FLAGS+=-ldflags '${GO_LDFLAGS}'
+BUILD_FLAGS_NOGUI+=-ldflags '${GO_LDFLAGS}'
+BUILD_FLAGS_LAUNCHER+=-ldflags '${GO_LDFLAGS_LAUNCHER}'
 
 DEPLOY_DIR:=cmd/${TARGET_CMD}/deploy
 ICO_FILES:=
@@ -81,13 +87,13 @@ build-ie-nogui:
 	TARGET_CMD=Import-Export $(MAKE) build-nogui
 
 build-launcher:
-	go build -tags='${BUILD_TAGS}' -ldflags="-X 'main.ConfigName=bridge' -X 'main.ExeName=proton-bridge'" -o launcher-bridge cmd/launcher/main.go
+	go build ${BUILD_FLAGS_LAUNCHER} -o launcher-${APP} cmd/launcher/main.go
 
 build-launcher-ie:
-	go build -tags='${BUILD_TAGS}' -ldflags="-X 'main.ConfigName=importExport' -X 'main.ExeName=Import-Export'" -o launcher-ie cmd/launcher/main.go
+	TARGET_CMD=Import-Export $(MAKE) build-launcher
 
 versioner:
-	go build ${BUILD_FLAGS} ${GO_LDFLAGS} -o versioner utils/versioner/main.go
+	go build ${BUILD_FLAGS} -o versioner utils/versioner/main.go
 
 hasher:
 	go build -o hasher utils/hasher/main.go
