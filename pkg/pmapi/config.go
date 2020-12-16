@@ -18,6 +18,7 @@
 package pmapi
 
 import (
+	"runtime"
 	"strings"
 	"time"
 )
@@ -31,10 +32,24 @@ var rootScheme = "https" //nolint[gochecknoglobals]
 
 func GetAPIConfig(configName, appVersion string) *ClientConfig {
 	return &ClientConfig{
-		AppVersion:        strings.Title(configName) + "_" + appVersion,
+		AppVersion:        getAPIOS() + strings.Title(configName) + "_" + appVersion,
 		ClientID:          configName,
 		Timeout:           25 * time.Minute, // Overall request timeout (~25MB / 25 mins => ~16kB/s, should be reasonable).
 		FirstReadTimeout:  30 * time.Second, // 30s to match 30s response header timeout.
 		MinBytesPerSecond: 1 << 10,          // Enforce minimum download speed of 1kB/s.
 	}
+}
+
+// getAPIOS returns actual operating system.
+func getAPIOS() string {
+	switch os := runtime.GOOS; os {
+	case "darwin": // nolint: goconst
+		return "macOS"
+	case "linux":
+		return "Linux"
+	case "windows":
+		return "Windows"
+	}
+
+	return "Linux"
 }
