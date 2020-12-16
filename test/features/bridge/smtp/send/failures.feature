@@ -6,7 +6,7 @@ Feature: SMTP wrong messages
   Scenario: Message with attachment and wrong boundaries
     When SMTP client sends message
       """
-      From: Bridge Test <bridgetest@pm.test>
+      From: Bridge Test <[userAddress]>
       To: Internal Bridge <bridgetest@protonmail.com>
       Subject: With attachment (wrong boundaries)
       Content-Type: multipart/related; boundary=bc5bd30245232f31b6c976adcd59bb0069c9b13f986f9e40c2571bb80aa16606
@@ -39,3 +39,14 @@ Feature: SMTP wrong messages
 
       """
     Then SMTP response is "SMTP error: 554 5.0.0 Error: transaction failed, blame it on the weather: failed to create new parser: unexpected EOF"
+
+  Scenario: Invalid from
+    When SMTP client sends message
+      """
+      From: Bridge Test <bridgetest@pm.test>
+      To: Internal Bridge <bridgetest@protonmail.com>
+
+      hello
+
+      """
+    Then SMTP response is "SMTP error: 554 5.0.0 Error: transaction failed, blame it on the weather: backend: invalid email address: not owned by user"

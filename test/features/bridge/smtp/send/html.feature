@@ -6,7 +6,7 @@ Feature: SMTP sending of HTML messages
   Scenario: HTML message to external account
     When SMTP client sends message
       """
-      From: Bridge Test <bridgetest@pm.test>
+      From: Bridge Test <[userAddress]>
       To: External Bridge <pm.bridge.qa@gmail.com>
       Subject: HTML text external
       Content-Disposition: inline
@@ -45,7 +45,7 @@ Feature: SMTP sending of HTML messages
   Scenario: HTML message with inline image to external account
     When SMTP client sends message
       """
-      From: Bridge Test <bridgetest@pm.test>
+      From: Bridge Test <[userAddress]>
       To: External Bridge <pm.bridge.qa@gmail.com>
       Subject: Html Inline External
       Content-Disposition: inline
@@ -120,7 +120,7 @@ Feature: SMTP sending of HTML messages
   Scenario: HTML message with alternative inline to internal account
     When SMTP client sends message
       """
-      From: Bridge Test <bridgetest@pm.test>
+      From: Bridge Test <[userAddress]>
       To: Internal Bridge <bridgetest@protonmail.com>
       Subject: Html Inline Alternative Internal
       Content-Disposition: inline
@@ -209,7 +209,7 @@ Feature: SMTP sending of HTML messages
   Scenario: HTML message with alternative inline to external account
     When SMTP client sends message
       """
-      From: Bridge Test <bridgetest@pm.test>
+      From: Bridge Test <[userAddress]>
       To: External Bridge <pm.bridge.qa@gmail.com>
       Subject: Html Inline Alternative External
       Content-Disposition: inline

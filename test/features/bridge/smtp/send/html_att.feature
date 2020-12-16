@@ -6,7 +6,7 @@ Feature: SMTP sending of HTML messages with attachments
   Scenario: HTML message with attachment to internal account
     When SMTP client sends message
       """
-      From: Bridge Test <bridgetest@pm.test>
+      From: Bridge Test <[userAddress]>
       To: Internal Bridge <bridgetest@protonmail.com>
       Subject: HTML with attachment internal
       Content-Type: multipart/related; boundary=bc5bd30245232f31b6c976adcd59bb0069c9b13f986f9e40c2571bb80aa16606
@@ -65,7 +65,7 @@ Feature: SMTP sending of HTML messages with attachments
   Scenario: HTML message with attachment to external account
     When SMTP client sends message
       """
-      From: Bridge Test <bridgetest@pm.test>
+      From: Bridge Test <[userAddress]>
       To: External Bridge <pm.bridge.qa@gmail.com>
       Subject: HTML with attachment external PGP
       Content-Type: multipart/mixed; boundary=bc5bd30245232f31b6c976adcd59bb0069c9b13f986f9e40c2571bb80aa16606

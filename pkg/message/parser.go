@@ -36,14 +36,29 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func Parse(r io.Reader, key, keyName string) (m *pmapi.Message, mimeBody, plainBody string, attReaders []io.Reader, err error) {
-	logrus.Trace("Parsing message")
-
+// Parse parses RAW message.
+func Parse(r io.Reader) (m *pmapi.Message, mimeBody, plainBody string, attReaders []io.Reader, err error) {
 	p, err := parser.New(r)
 	if err != nil {
-		err = errors.Wrap(err, "failed to create new parser")
-		return
+		return nil, "", "", nil, errors.Wrap(err, "failed to create new parser")
 	}
+
+	m, plainBody, attReaders, err = ParserWithParser(p)
+	if err != nil {
+		return nil, "", "", nil, errors.Wrap(err, "failed to parse the message")
+	}
+
+	mimeBody, err = BuildMIMEBody(p)
+	if err != nil {
+		return nil, "", "", nil, errors.Wrap(err, "failed to build mime body")
+	}
+
+	return m, mimeBody, plainBody, attReaders, nil
+}
+
+// ParserWithParser parses message from Parser without building MIME body.
+func ParserWithParser(p *parser.Parser) (m *pmapi.Message, plainBody string, attReaders []io.Reader, err error) {
+	logrus.Trace("Parsing message")
 
 	if err = convertEncodedTransferEncoding(p); err != nil {
 		err = errors.Wrap(err, "failed to convert encoded transfer encodings")
@@ -77,13 +92,11 @@ func Parse(r io.Reader, key, keyName string) (m *pmapi.Message, mimeBody, plainB
 		return
 	}
 
-	// We only attach the public key manually to the MIME body for
-	// signed/encrypted external recipients. It's not important for it to be
-	// collected as an attachment; that's already done when we upload the draft.
-	if key != "" {
-		attachPublicKey(p.Root(), key, keyName)
-	}
+	return m, plainBody, attReaders, nil
+}
 
+// BuildMIMEBody builds mime body from the parser returned by NewParser.
+func BuildMIMEBody(p *parser.Parser) (mimeBody string, err error) {
 	mimeBodyBuffer := new(bytes.Buffer)
 
 	if err = p.NewWriter().Write(mimeBodyBuffer); err != nil {
@@ -91,7 +104,7 @@ func Parse(r io.Reader, key, keyName string) (m *pmapi.Message, mimeBody, plainB
 		return
 	}
 
-	return m, mimeBodyBuffer.String(), plainBody, attReaders, nil
+	return mimeBodyBuffer.String(), nil
 }
 
 // convertEncodedTransferEncoding decodes any RFC2047-encoded content transfer encodings.
@@ -381,14 +394,14 @@ func getPlainBody(part *parser.Part) []byte {
 	}
 }
 
-func attachPublicKey(p *parser.Part, key, keyName string) {
+func AttachPublicKey(p *parser.Parser, key, keyName string) {
 	h := message.Header{}
 
 	h.Set("Content-Type", fmt.Sprintf(`application/pgp-keys; name="%v.asc"; filename="%v.asc"`, keyName, keyName))
 	h.Set("Content-Disposition", fmt.Sprintf(`attachment; name="%v.asc"; filename="%v.asc"`, keyName, keyName))
 	h.Set("Content-Transfer-Encoding", "base64")
 
-	p.AddChild(&parser.Part{
+	p.Root().AddChild(&parser.Part{
 		Header: h,
 		Body:   []byte(key),
 	})

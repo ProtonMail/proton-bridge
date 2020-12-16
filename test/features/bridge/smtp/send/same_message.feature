@@ -4,7 +4,7 @@ Feature: SMTP sending the same message twice
     And there is SMTP client logged in as "user"
     When SMTP client sends message
       """
-      From: Bridge Test <bridgetest@pm.test>
+      From: Bridge Test <[userAddress]>
       To: Internal Bridge <bridgetest@protonmail.com>
       Subject: Hello
 
@@ -16,7 +16,7 @@ Feature: SMTP sending the same message twice
   Scenario: The exact same message is not sent twice
     When SMTP client sends message
       """
-      From: Bridge Test <bridgetest@pm.test>
+      From: Bridge Test <[userAddress]>
       To: Internal Bridge <bridgetest@protonmail.com>
       Subject: Hello
 
@@ -31,7 +31,7 @@ Feature: SMTP sending the same message twice
   Scenario: Slight change means different message and is sent twice
     When SMTP client sends message
       """
-      From: Bridge Test <bridgetest@pm.test>
+      From: Bridge Test <[userAddress]>
       To: Internal Bridge <bridgetest@protonmail.com>
       Subject: Hello.
 

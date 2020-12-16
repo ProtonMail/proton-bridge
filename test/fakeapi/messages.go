@@ -211,7 +211,7 @@ func (api *FakePMAPI) Import(importMessageRequests []*pmapi.ImportMsgReq) ([]*pm
 }
 
 func (api *FakePMAPI) generateMessageFromImportRequest(msgReq *pmapi.ImportMsgReq) (*pmapi.Message, error) {
-	m, _, _, _, err := message.Parse(bytes.NewReader(msgReq.Body), "", "") // nolint[dogsled]
+	m, _, _, _, err := message.Parse(bytes.NewReader(msgReq.Body)) // nolint[dogsled]
 	if err != nil {
 		return nil, err
 	}

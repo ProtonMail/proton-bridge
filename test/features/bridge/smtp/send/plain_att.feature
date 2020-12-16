@@ -6,7 +6,7 @@ Feature: SMTP sending of plain messages with attachments
   Scenario: Basic message with attachment to internal account
     When SMTP client sends message
       """
-      From: Bridge Test <bridgetest@pm.test>
+      From: Bridge Test <[userAddress]>
       To: Internal Bridge <bridgetest@protonmail.com>
       Subject: Plain with attachment
       Content-Type: multipart/related; boundary=bc5bd30245232f31b6c976adcd59bb0069c9b13f986f9e40c2571bb80aa16606
@@ -65,7 +65,7 @@ Feature: SMTP sending of plain messages with attachments
   Scenario: Plain message with attachment to external account
     When SMTP client sends message
       """
-      From: Bridge Test <bridgetest@pm.test>
+      From: Bridge Test <[userAddress]>
       To: External Bridge <pm.bridge.qa@gmail.com>
       Subject: Plain with attachment external
       Content-Type: multipart/related; boundary=bc5bd30245232f31b6c976adcd59bb0069c9b13f986f9e40c2571bb80aa16606
@@ -124,7 +124,7 @@ Feature: SMTP sending of plain messages with attachments
   Scenario: Plain message with attachment to two external accounts
     When SMTP client sends message
       """
-      From: Bridge Test <bridgetest@pm.test>
+      From: Bridge Test <[userAddress]>
       To: External Bridge 1 <pm.bridge.qa@gmail.com>
       CC: External Bridge 2 <bridgeqa@seznam.cz>
       Subject: Plain with attachment external PGP and external CC

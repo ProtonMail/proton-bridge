@@ -31,7 +31,8 @@ import (
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/ProtonMail/proton-bridge/internal/events"
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
-	"github.com/ProtonMail/proton-bridge/pkg/message"
+	pkgMessage "github.com/ProtonMail/proton-bridge/pkg/message"
+	"github.com/ProtonMail/proton-bridge/pkg/message/parser"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	goSMTPBackend "github.com/emersion/go-smtp"
 	"github.com/pkg/errors"
@@ -47,8 +48,8 @@ type smtpUser struct {
 	username      string
 	addressID     string
 
-	from string
-	to   []string
+	returnPath string
+	to         []string
 }
 
 // newSMTPUser returns struct implementing go-smtp/session interface.
@@ -154,13 +155,13 @@ func (su *smtpUser) getAPIKeyData(recipient string) (apiKeys []pmapi.PublicKey, 
 // Discard currently processed message.
 func (su *smtpUser) Reset() {
 	log.Trace("Resetting the session")
-	su.from = ""
+	su.returnPath = ""
 	su.to = []string{}
 }
 
 // Set return path for currently processed message.
-func (su *smtpUser) Mail(from string, opts goSMTPBackend.MailOptions) error {
-	log.WithField("from", from).WithField("opts", opts).Trace("Setting mail from")
+func (su *smtpUser) Mail(returnPath string, opts goSMTPBackend.MailOptions) error {
+	log.WithField("returnPath", returnPath).WithField("opts", opts).Trace("Setting mail from")
 
 	// REQUIRETLS and SMTPUTF8 have to be announced to be used by client.
 	// Bridge does not use those extensions so this should not happen.
@@ -175,7 +176,14 @@ func (su *smtpUser) Mail(from string, opts goSMTPBackend.MailOptions) error {
 		return errors.New("changing identity is not supported")
 	}
 
-	su.from = from
+	if returnPath != "" {
+		addr := su.client().Addresses().ByEmail(returnPath)
+		if addr == nil {
+			return errors.New("backend: invalid return path: not owned by user")
+		}
+	}
+
+	su.returnPath = returnPath
 	return nil
 }
 
@@ -191,17 +199,17 @@ func (su *smtpUser) Rcpt(to string) error {
 // Set currently processed message contents and send it.
 func (su *smtpUser) Data(r io.Reader) error {
 	log.Trace("Sending the message")
-	if su.from == "" {
-		return errors.New("missing sender")
+	if su.returnPath == "" {
+		return errors.New("missing return path")
 	}
 	if len(su.to) == 0 {
 		return errors.New("missing recipient")
 	}
-	return su.Send(su.from, su.to, r)
+	return su.Send(su.returnPath, su.to, r)
 }
 
 // Send sends an email from the given address to the given addresses with the given body.
-func (su *smtpUser) Send(from string, to []string, messageReader io.Reader) (err error) { //nolint[funlen]
+func (su *smtpUser) Send(returnPath string, to []string, messageReader io.Reader) (err error) { //nolint[funlen]
 	// Called from go-smtp in goroutines - we need to handle panics for each function.
 	defer su.panicHandler.HandlePanic()
 
@@ -210,7 +218,34 @@ func (su *smtpUser) Send(from string, to []string, messageReader io.Reader) (err
 		return err
 	}
 
-	var addr *pmapi.Address = su.client().Addresses().ByEmail(from)
+	returnPathAddr := su.client().Addresses().ByEmail(returnPath)
+	if returnPathAddr == nil {
+		err = errors.New("backend: invalid return path: not owned by user")
+		return
+	}
+
+	parser, err := parser.New(messageReader)
+	if err != nil {
+		err = errors.Wrap(err, "failed to create new parser")
+		return
+	}
+	message, plainBody, attReaders, err := pkgMessage.ParserWithParser(parser)
+	if err != nil {
+		log.WithError(err).Error("Failed to parse message")
+		return
+	}
+	richBody := message.Body
+
+	externalID := message.Header.Get("Message-Id")
+	externalID = strings.Trim(externalID, "<>")
+
+	draftID, parentID := su.handleReferencesHeader(message)
+
+	if err = su.handleSenderAndRecipients(message, returnPathAddr, returnPath, to); err != nil {
+		return err
+	}
+
+	addr := su.client().Addresses().ByEmail(message.Sender.Address)
 	if addr == nil {
 		err = errors.New("backend: invalid email address: not owned by user")
 		return
@@ -237,20 +272,14 @@ func (su *smtpUser) Send(from string, to []string, messageReader io.Reader) (err
 		attachedPublicKeyName = fmt.Sprintf("publickey - %v - %v", kr.GetIdentities()[0].Name, firstKey.GetFingerprint()[:8])
 	}
 
-	message, mimeBody, plainBody, attReaders, err := message.Parse(messageReader, attachedPublicKey, attachedPublicKeyName)
-	if err != nil {
-		log.WithError(err).Error("Failed to parse message")
-		return
+	if attachedPublicKey != "" {
+		pkgMessage.AttachPublicKey(parser, attachedPublicKey, attachedPublicKeyName)
 	}
-	richBody := message.Body
 
-	externalID := message.Header.Get("Message-Id")
-	externalID = strings.Trim(externalID, "<>")
-
-	draftID, parentID := su.handleReferencesHeader(message)
-
-	if err = su.handleSenderAndRecipients(message, addr, from, to); err != nil {
-		return err
+	mimeBody, err := pkgMessage.BuildMIMEBody(parser)
+	if err != nil {
+		log.WithError(err).Error("Failed to build message")
+		return
 	}
 
 	message.AddressID = addr.ID
@@ -415,14 +444,14 @@ func (su *smtpUser) handleReferencesHeader(m *pmapi.Message) (draftID, parentID 
 	return draftID, parentID
 }
 
-func (su *smtpUser) handleSenderAndRecipients(m *pmapi.Message, addr *pmapi.Address, from string, to []string) (err error) {
-	from = pmapi.ConstructAddress(from, addr.Email)
+func (su *smtpUser) handleSenderAndRecipients(m *pmapi.Message, returnPathAddr *pmapi.Address, returnPath string, to []string) (err error) {
+	returnPath = pmapi.ConstructAddress(returnPath, returnPathAddr.Email)
 
 	// Check sender.
 	if m.Sender == nil {
-		m.Sender = &mail.Address{Address: from}
-	} else {
-		m.Sender.Address = from
+		m.Sender = &mail.Address{Address: returnPath}
+	} else if m.Sender.Address == "" {
+		m.Sender.Address = returnPath
 	}
 
 	// Check recipients.

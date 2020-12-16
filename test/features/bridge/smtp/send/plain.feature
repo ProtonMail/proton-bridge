@@ -6,7 +6,7 @@ Feature: SMTP sending of plain messages
   Scenario: Only from and to headers to internal account
     When SMTP client sends message
       """
-      From: Bridge Test <bridgetest@pm.test>
+      From: Bridge Test <[userAddress]>
       To: Internal Bridge <bridgetest@protonmail.com>
 
       hello
@@ -40,7 +40,7 @@ Feature: SMTP sending of plain messages
   Scenario: Only from and to headers to external account
     When SMTP client sends message
       """
-      From: Bridge Test <bridgetest@pm.test>
+      From: Bridge Test <[userAddress]>
       To: External Bridge <pm.bridge.qa@gmail.com>
 
       hello
@@ -74,7 +74,7 @@ Feature: SMTP sending of plain messages
   Scenario: Basic message to internal account
     When SMTP client sends message
       """
-      From: Bridge Test <bridgetest@pm.test>
+      From: Bridge Test <[userAddress]>
       To: Internal Bridge <bridgetest@protonmail.com>
       Subject: Plain text internal
       Content-Disposition: inline
@@ -111,7 +111,7 @@ Feature: SMTP sending of plain messages
   Scenario: Basic message to external account
     When SMTP client sends message
       """
-      From: Bridge Test <bridgetest@pm.test>
+      From: Bridge Test <[userAddress]>
       To: External Bridge <pm.bridge.qa@gmail.com>
       Subject: Plain text external
       Content-Disposition: inline
@@ -148,7 +148,7 @@ Feature: SMTP sending of plain messages
   Scenario: Message without charset is utf8
     When SMTP client sends message
       """
-      From: Bridge Test <bridgetest@pm.test>
+      From: Bridge Test <[userAddress]>
       To: External Bridge <pm.bridge.qa@gmail.com>
       Subject: Plain text no charset external
       Content-Disposition: inline
@@ -185,7 +185,7 @@ Feature: SMTP sending of plain messages
   Scenario: Message without charset is base64-encoded latin1
     When SMTP client sends message
       """
-      From: Bridge Test <bridgetest@pm.test>
+      From: Bridge Test <[userAddress]>
       To: External Bridge <pm.bridge.qa@gmail.com>
       Subject: Plain text no charset external
       Content-Disposition: inline
@@ -225,7 +225,7 @@ Feature: SMTP sending of plain messages
   Scenario: Message without charset and content is detected as HTML
     When SMTP client sends message
       """
-      From: Bridge Test <bridgetest@pm.test>
+      From: Bridge Test <[userAddress]>
       To: External Bridge <pm.bridge.qa@gmail.com>
       Subject: Plain, no charset, no content, external
       Content-Disposition: inline

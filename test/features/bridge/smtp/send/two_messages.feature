@@ -4,7 +4,7 @@ Feature: SMTP sending two messages
     And there is SMTP client logged in as "user"
     When SMTP client sends message
       """
-      From: Bridge Test <bridgetest@pm.test>
+      From: Bridge Test <[userAddress]>
       To: Internal Bridge <bridgetest@protonmail.com>
 
       hello
@@ -13,7 +13,7 @@ Feature: SMTP sending two messages
     Then SMTP response is "OK"
     When SMTP client sends message
       """
-      From: Bridge Test <bridgetest@pm.test>
+      From: Bridge Test <[userAddress]>
       To: Internal Bridge <bridgetest@protonmail.com>
 
       world
@@ -28,7 +28,7 @@ Feature: SMTP sending two messages
     And there is SMTP client "smtp2" logged in as "userMoreAddresses" with address "secondary"
     When SMTP client "smtp1" sends message
       """
-      From: Bridge Test <bridgetest@pm.test>
+      From: Bridge Test <[userAddress]>
       To: Internal Bridge <bridgetest@protonmail.com>
 
       hello
@@ -37,7 +37,7 @@ Feature: SMTP sending two messages
     Then SMTP response to "smtp1" is "OK"
     When SMTP client "smtp2" sends message
       """
-      From: Bridge Test <bridgetest@pm.test>
+      From: Bridge Test <[userAddress]>
       To: Internal Bridge <bridgetest@protonmail.com>
 
       world
@@ -53,7 +53,7 @@ Feature: SMTP sending two messages
 
     When SMTP client "smtp1" sends message
       """
-      From: Bridge Test <bridgetest@pm.test>
+      From: Bridge Test <[userAddress]>
       To: Internal Bridge <bridgetest@protonmail.com>
 
       hello
@@ -62,7 +62,7 @@ Feature: SMTP sending two messages
     Then SMTP response to "smtp1" is "OK"
     When SMTP client "smtp2" sends message
       """
-      From: Bridge Test <bridgetest@pm.test>
+      From: Bridge Test <[userAddress]>
       To: Internal Bridge <bridgetest@protonmail.com>
 
       world

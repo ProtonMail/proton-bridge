@@ -74,6 +74,8 @@ func (c *SMTPClient) SendCommands(commands ...string) *SMTPResponse {
 	smtpResponse := &SMTPResponse{t: c.t}
 
 	for _, command := range commands {
+		command = strings.ReplaceAll(command, "[userAddress]", c.address)
+
 		tstart := time.Now()
 
 		c.debug.printReq(command)

@@ -7,7 +7,7 @@ Feature: SMTP with bcc
     When SMTP client sends message with bcc "bridgetest2@protonmail.com"
       """
       Subject: hello
-      From: Bridge Test <bridgetest@pm.test>
+      From: Bridge Test <[userAddress]>
       To: Internal Bridge <bridgetest@protonmail.com>
 
       hello
@@ -43,7 +43,7 @@ Feature: SMTP with bcc
     When SMTP client sends message with bcc "bridgetest@protonmail.com"
       """
       Subject: hello
-      From: Bridge Test <bridgetest@pm.test>
+      From: Bridge Test <[userAddress]>
 
       hello
 
