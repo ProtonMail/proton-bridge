@@ -57,6 +57,9 @@ func run(b *base.Base, c *cli.Context) error {
 	// We want to remove old versions if the app exits successfully.
 	b.AddTeardownAction(b.Versioner.RemoveOldVersions)
 
+	// We want cookies to be saved to disk so they are loaded the next time.
+	b.AddTeardownAction(b.CookieJar.PersistCookies)
+
 	f := frontend.NewImportExport(
 		constants.Version,
 		constants.BuildVersion,

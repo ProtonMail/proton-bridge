@@ -68,6 +68,7 @@ type Base struct {
 	Listener     listener.Listener
 	Creds        *credentials.Store
 	CM           *pmapi.ClientManager
+	CookieJar    *cookies.Jar
 	Updater      *updater.Updater
 	Versioner    *versioner.Versioner
 	TLS          *tls.TLS
@@ -209,6 +210,7 @@ func New( // nolint[funlen]
 		Listener:     listener,
 		Creds:        creds,
 		CM:           cm,
+		CookieJar:    jar,
 		Updater:      updater,
 		Versioner:    versioner,
 		TLS:          tls,

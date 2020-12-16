@@ -331,7 +331,6 @@ func mustMarshal(t *testing.T, v interface{}) []byte {
 
 type fakeSettings struct {
 	*settings.Settings
-	dir string
 }
 
 // newFakeSettings creates a temporary folder for files.
@@ -341,10 +340,7 @@ func newFakeSettings(rollout float64, earlyAccess bool) *fakeSettings {
 		panic(err)
 	}
 
-	s := &fakeSettings{
-		Settings: settings.New(dir),
-		dir:      dir,
-	}
+	s := &fakeSettings{Settings: settings.New(dir)}
 
 	s.SetFloat64(settings.RolloutKey, rollout)
 
