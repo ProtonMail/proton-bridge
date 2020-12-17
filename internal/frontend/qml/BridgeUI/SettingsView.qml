@@ -36,6 +36,24 @@ Item {
             color: Style.main.background
         }
 
+        // horizontall scrollbar sometimes showes up when vertical scrollbar coveres content
+        ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
+        ScrollBar.vertical.policy: ScrollBar.AsNeeded
+
+        // keeping vertical scrollbar allways visible when needed
+        Connections {
+            target: wrapper.ScrollBar.vertical
+            onSizeChanged: {
+                // ScrollBar.size == 0 at creating so no need to make it active
+                if (wrapper.ScrollBar.vertical.size < 1.0 && wrapper.ScrollBar.vertical.size > 0 && !wrapper.ScrollBar.vertical.active) {
+                    wrapper.ScrollBar.vertical.active = true
+                }
+            }
+            onActiveChanged: {
+                wrapper.ScrollBar.vertical.active = true
+            }
+        }
+
         // content
         Column {
             anchors.left : parent.left

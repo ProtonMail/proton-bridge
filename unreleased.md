@@ -20,6 +20,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-854 EXPUNGE and FETCH unilateral responses are returned before OK EXPUNGE or OK STORE, respectively.
 * GODT-806 Changed GUI dialog on manual update. Added autoupdates checkbox. Simplifyed installation process GUI.
 * Bump gopenpgp dependency to v2.1.3 for improved memory usage.
+* GODT-912 Changed scroll bar behaviour in settings tab
 
 ### Removed
 
