@@ -25,8 +25,8 @@ github.com/ProtonMail/go-imap-id v0.0.0-20190926060100-f94a56b9ecde h1:5koQozTDE
 github.com/ProtonMail/go-imap-id v0.0.0-20190926060100-f94a56b9ecde/go.mod h1:795VPXcRUIQ9JyMNHP4el582VokQfippgjkQP3Gk0r0=
 github.com/ProtonMail/go-mime v0.0.0-20190923161245-9b5a4261663a h1:W6RrgN/sTxg1msqzFFb+G80MFmpjMw61IU+slm+wln4=
 github.com/ProtonMail/go-mime v0.0.0-20190923161245-9b5a4261663a/go.mod h1:NYt+V3/4rEeDuaev/zw1zCq8uqVEuPHzDPo3OZrlGJ4=
-github.com/ProtonMail/go-rfc5322 v0.2.1 h1:J2PHusboDAYUfE+uBfoJnKZPbnVmzK1zXw6dQrgV8yE=
-github.com/ProtonMail/go-rfc5322 v0.2.1/go.mod h1:mzZWlMWnQJuYLL7JpzuPF5+FimV2lZ9f0jeq24kJjpU=
+github.com/ProtonMail/go-rfc5322 v0.4.0 h1:H6RJNNu+xdkG7A3xKU+dV9sP8/w2K4e7pz1R2FM8kd8=
+github.com/ProtonMail/go-rfc5322 v0.4.0/go.mod h1:mzZWlMWnQJuYLL7JpzuPF5+FimV2lZ9f0jeq24kJjpU=
 github.com/ProtonMail/go-vcard v0.0.0-20180326232728-33aaa0a0c8a5 h1:Uga1DHFN4GUxuDQr0F71tpi8I9HqPIlZodZAI1lR6VQ=
 github.com/ProtonMail/go-vcard v0.0.0-20180326232728-33aaa0a0c8a5/go.mod h1:oeP9CMN+ajWp5jKp1kue5daJNwMMxLF+ujPaUIoJWlA=
 github.com/ProtonMail/gopenpgp/v2 v2.0.1 h1:x0uvDhry5WzoHeJO4J3dgMLhG4Z9PeBJ2O+sDOY0LcU=

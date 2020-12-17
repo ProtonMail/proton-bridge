@@ -17,7 +17,7 @@ require (
 	github.com/ProtonMail/go-apple-mobileconfig v0.0.0-20160701194735-7ea9927a11f6
 	github.com/ProtonMail/go-autostart v0.0.0-20181114175602-c5272053443a
 	github.com/ProtonMail/go-imap-id v0.0.0-20190926060100-f94a56b9ecde
-	github.com/ProtonMail/go-rfc5322 v0.2.1
+	github.com/ProtonMail/go-rfc5322 v0.4.0
 	github.com/ProtonMail/go-vcard v0.0.0-20180326232728-33aaa0a0c8a5
 	github.com/ProtonMail/gopenpgp/v2 v2.0.1
 	github.com/PuerkitoBio/goquery v1.5.1
