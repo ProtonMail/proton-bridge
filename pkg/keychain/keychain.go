@@ -20,112 +20,114 @@ package keychain
 
 import (
 	"errors"
-	"strings"
+	"fmt"
+	"reflect"
 	"sync"
 
+	"github.com/ProtonMail/proton-bridge/internal/config/settings"
 	"github.com/docker/docker-credential-helpers/credentials"
-	"github.com/sirupsen/logrus"
 )
 
-const (
-	KeychainVersion = "k11" //nolint[golint]
-)
+// helper constructs a keychain helper.
+type helper func(string) (credentials.Helper, error)
+
+// Version is the keychain data version.
+const Version = "k11"
 
 var (
-	log = logrus.WithField("pkg", "bridgeUtils/keychain") //nolint[gochecknoglobals]
+	// ErrNoKeychain indicates that no suitable keychain implementation could be loaded.
+	ErrNoKeychain = errors.New("no keychain") // nolint[noglobals]
 
-	ErrWrongKeychainURL    = errors.New("wrong keychain base URL")
-	ErrMacKeychainRebuild  = errors.New("keychain error -25293")
-	ErrMacKeychainList     = errors.New("function `osxkeychain.List()` is not valid function for mac keychain. Use `Access.ListKeychain()` instead")
-	ErrNoKeychainInstalled = errors.New("no keychain management installed on this system")
-	accessLocker           = &sync.Mutex{} //nolint[gochecknoglobals]
+	// Helpers holds all discovered keychain helpers. It is populated in init().
+	Helpers map[string]helper // nolint[noglobals]
 )
 
-// NewAccess creates a new native keychain.
-func NewAccess(appName string) (*Access, error) {
-	newHelper, err := newKeychain()
+// NewKeychain creates a new native keychain.
+func NewKeychain(s *settings.Settings, keychainName string) (*Keychain, error) {
+	// There must be at least one keychain helper available.
+	if len(Helpers) < 1 {
+		return nil, ErrNoKeychain
+	}
+
+	// hostURL uniquely identifies the app's keychain items within the system keychain.
+	hostURL := fmt.Sprintf("protonmail/%v/users", keychainName)
+
+	// If the preferred keychain is unsupported, set a default one.
+	if _, ok := Helpers[s.Get(settings.PreferredKeychainKey)]; !ok {
+		s.Set(settings.PreferredKeychainKey, reflect.ValueOf(Helpers).MapKeys()[0].Interface().(string))
+	}
+
+	// Load the user's preferred keychain helper.
+	helper, err := Helpers[s.Get(settings.PreferredKeychainKey)](hostURL)
 	if err != nil {
 		return nil, err
 	}
-	return &Access{
-		helper:            newHelper,
-		KeychainURL:       "protonmail/" + appName + "/users",
-		KeychainOldURL:    "protonmail/users",
-		KeychainMacURL:    "ProtonMail" + strings.Title(appName) + "Service",
-		KeychainOldMacURL: "ProtonMailService",
-	}, nil
+
+	return newKeychain(helper, hostURL), nil
 }
 
-type Access struct {
+func newKeychain(helper credentials.Helper, url string) *Keychain {
+	return &Keychain{
+		helper: helper,
+		url:    url,
+		locker: &sync.Mutex{},
+	}
+}
+
+type Keychain struct {
 	helper credentials.Helper
-	KeychainURL,
-	KeychainOldURL,
-	KeychainMacURL,
-	KeychainOldMacURL string
+	url    string
+	locker sync.Locker
 }
 
-func (s *Access) List() (userIDs []string, err error) {
-	accessLocker.Lock()
-	defer accessLocker.Unlock()
+func (kc *Keychain) List() ([]string, error) {
+	kc.locker.Lock()
+	defer kc.locker.Unlock()
 
-	var userIDByURL map[string]string
-	userIDByURL, err = s.ListKeychain()
-
+	userIDsByURL, err := kc.helper.List()
 	if err != nil {
-		return
+		return nil, err
 	}
 
-	for itemURL, userID := range userIDByURL {
-		if itemURL == s.KeychainName(userID) {
-			userIDs = append(userIDs, userID)
+	var userIDs []string // nolint[prealloc]
+
+	for url, userID := range userIDsByURL {
+		if url != kc.secretURL(userID) {
+			continue
 		}
 
-		// Clean up old keychain name.
-		if itemURL == s.KeychainOldName(userID) {
-			_ = s.helper.Delete(s.KeychainOldName(userID))
-		}
+		userIDs = append(userIDs, userID)
 	}
 
-	return
+	return userIDs, nil
 }
 
-func (s *Access) Delete(userID string) (err error) {
-	accessLocker.Lock()
-	defer accessLocker.Unlock()
-	return s.helper.Delete(s.KeychainName(userID))
+func (kc *Keychain) Delete(userID string) (err error) {
+	kc.locker.Lock()
+	defer kc.locker.Unlock()
+
+	return kc.helper.Delete(kc.secretURL(userID))
 }
 
-func (s *Access) Get(userID string) (secret string, err error) {
-	accessLocker.Lock()
-	defer accessLocker.Unlock()
-	_, secret, err = s.helper.Get(s.KeychainName(userID))
-	return
+func (kc *Keychain) Get(userID string) (string, string, error) {
+	kc.locker.Lock()
+	defer kc.locker.Unlock()
+
+	return kc.helper.Get(kc.secretURL(userID))
 }
 
-func (s *Access) Put(userID, secret string) error {
-	accessLocker.Lock()
-	defer accessLocker.Unlock()
+func (kc *Keychain) Put(userID, secret string) error {
+	kc.locker.Lock()
+	defer kc.locker.Unlock()
 
-	// On macOS, adding a credential that already exists does not update it and returns an error.
-	// So let's remove it first.
-	_ = s.helper.Delete(s.KeychainName(userID))
-
-	cred := &credentials.Credentials{
-		ServerURL: s.KeychainName(userID),
+	return kc.helper.Add(&credentials.Credentials{
+		ServerURL: kc.secretURL(userID),
 		Username:  userID,
 		Secret:    secret,
-	}
-
-	return s.helper.Add(cred)
+	})
 }
 
-func splitServiceAndID(keychainName string) (serviceName string, userID string, err error) { //nolint[unused]
-	splitted := strings.FieldsFunc(keychainName, func(c rune) bool { return c == '/' })
-	n := len(splitted)
-	if n <= 1 {
-		return "", "", ErrWrongKeychainURL
-	}
-	userID = splitted[len(splitted)-1]
-	serviceName = strings.Join(splitted[:len(splitted)-1], "/")
-	return
+// secretURL returns the URL referring to a userID's secrets.
+func (kc *Keychain) secretURL(userID string) string {
+	return fmt.Sprintf("%v/%v", kc.url, userID)
 }

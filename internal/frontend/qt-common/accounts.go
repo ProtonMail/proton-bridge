@@ -137,7 +137,7 @@ func (a *Accounts) ClearKeychain() {
 	for _, user := range a.um.GetUsers() {
 		if err := a.um.DeleteUser(user.ID(), false); err != nil {
 			log.Error("While deleting user: ", err)
-			if err == keychain.ErrNoKeychainInstalled { // Probably not needed anymore.
+			if err == keychain.ErrNoKeychain { // Probably not needed anymore.
 				a.qml.NotifyHasNoKeychain()
 			}
 		}
@@ -249,7 +249,7 @@ func (a *Accounts) DeleteAccount(iAccount int, removePreferences bool) {
 	userID := a.Model.get(iAccount).UserID()
 	if err := a.um.DeleteUser(userID, removePreferences); err != nil {
 		log.Warn("deleteUser: cannot remove user: ", err)
-		if err == keychain.ErrNoKeychainInstalled {
+		if err == keychain.ErrNoKeychain {
 			a.qml.NotifyHasNoKeychain()
 			return
 		}

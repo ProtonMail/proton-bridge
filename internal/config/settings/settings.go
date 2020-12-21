@@ -42,6 +42,7 @@ const (
 	LastVersionKey         = "last_used_version"
 	UpdateChannelKey       = "update_channel"
 	RolloutKey             = "rollout"
+	PreferredKeychainKey   = "preferred_keychain"
 )
 
 type Settings struct {
@@ -78,6 +79,7 @@ func (s *Settings) setDefaultValues() {
 	s.setDefault(LastVersionKey, "")
 	s.setDefault(UpdateChannelKey, "")
 	s.setDefault(RolloutKey, fmt.Sprintf("%v", rand.Float64()))
+	s.setDefault(PreferredKeychainKey, "")
 
 	s.setDefault(APIPortKey, DefaultAPIPort)
 	s.setDefault(IMAPPortKey, DefaultIMAPPort)

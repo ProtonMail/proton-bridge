@@ -15,26 +15,34 @@
 // You should have received a copy of the GNU General Public License
 // along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
 
+// Package keychain implements a native secure password store for each platform.
 package keychain
 
 import (
 	"github.com/docker/docker-credential-helpers/credentials"
-	"github.com/docker/docker-credential-helpers/wincred"
 )
 
-func newKeychain() (credentials.Helper, error) {
-	log.Debug("Creating wincred")
-	return &wincred.Wincred{}, nil
+// NewMissingKeychain returns a new keychain that always returns an error.
+func NewMissingKeychain() *Keychain {
+	return newKeychain(&missingHelper{}, "")
 }
 
-func (s *Access) KeychainName(userID string) string {
-	return s.KeychainURL + "/" + userID
+// missingHelper is a helper which is used when no other helper is available.
+// It always returns ErrNoKeychain.
+type missingHelper struct{}
+
+func (h *missingHelper) Add(*credentials.Credentials) error {
+	return ErrNoKeychain
 }
 
-func (s *Access) KeychainOldName(userID string) string {
-	return s.KeychainOldURL + "/" + userID
+func (h *missingHelper) Delete(string) error {
+	return ErrNoKeychain
 }
 
-func (s *Access) ListKeychain() (map[string]string, error) {
-	return s.helper.List()
+func (h *missingHelper) Get(string) (string, string, error) {
+	return "", "", ErrNoKeychain
+}
+
+func (h *missingHelper) List() (map[string]string, error) {
+	return nil, ErrNoKeychain
 }

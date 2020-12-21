@@ -94,7 +94,7 @@ func (s *FrontendQt) clearKeychain() {
 	for _, user := range s.bridge.GetUsers() {
 		if err := s.bridge.DeleteUser(user.ID(), false); err != nil {
 			log.Error("While deleting user: ", err)
-			if err == keychain.ErrNoKeychainInstalled { // Probably not needed anymore.
+			if err == keychain.ErrNoKeychain { // Probably not needed anymore.
 				s.Qml.NotifyHasNoKeychain()
 			}
 		}
@@ -203,7 +203,7 @@ func (s *FrontendQt) deleteAccount(iAccount int, removePreferences bool) {
 	userID := s.Accounts.get(iAccount).UserID()
 	if err := s.bridge.DeleteUser(userID, removePreferences); err != nil {
 		log.Warn("deleteUser: cannot remove user: ", err)
-		if err == keychain.ErrNoKeychainInstalled {
+		if err == keychain.ErrNoKeychain {
 			s.Qml.NotifyHasNoKeychain()
 			return
 		}

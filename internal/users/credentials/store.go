@@ -31,15 +31,12 @@ var storeLocker = sync.RWMutex{} //nolint[gochecknoglobals]
 
 // Store is an encrypted credentials store.
 type Store struct {
-	secrets *keychain.Access
+	secrets *keychain.Keychain
 }
 
 // NewStore creates a new encrypted credentials store.
-func NewStore(appName string) (*Store, error) {
-	secrets, err := keychain.NewAccess(appName)
-	return &Store{
-		secrets: secrets,
-	}, err
+func NewStore(keychain *keychain.Keychain) *Store {
+	return &Store{secrets: keychain}
 }
 
 func (s *Store) Add(userID, userName, apiToken, mailboxPassword string, emails []string) (creds *Credentials, err error) {
@@ -51,10 +48,6 @@ func (s *Store) Add(userID, userName, apiToken, mailboxPassword string, emails [
 		"username": userName,
 		"emails":   emails,
 	}).Trace("Adding new credentials")
-
-	if err = s.checkKeychain(); err != nil {
-		return
-	}
 
 	creds = &Credentials{
 		UserID:          userID,
@@ -164,10 +157,6 @@ func (s *Store) List() (userIDs []string, err error) {
 
 	log.Trace("Listing credentials in credentials store")
 
-	if err = s.checkKeychain(); err != nil {
-		return
-	}
-
 	var allUserIDs []string
 	if allUserIDs, err = s.secrets.List(); err != nil {
 		log.WithError(err).Error("Could not list credentials")
@@ -242,11 +231,7 @@ func (s *Store) Get(userID string) (creds *Credentials, err error) {
 func (s *Store) get(userID string) (creds *Credentials, err error) {
 	log := log.WithField("user", userID)
 
-	if err = s.checkKeychain(); err != nil {
-		return
-	}
-
-	secret, err := s.secrets.Get(userID)
+	_, secret, err := s.secrets.Get(userID)
 	if err != nil {
 		log.WithError(err).Error("Could not get credentials from native keychain")
 		return
@@ -265,32 +250,15 @@ func (s *Store) get(userID string) (creds *Credentials, err error) {
 
 // saveCredentials encrypts and saves password to the keychain store.
 func (s *Store) saveCredentials(credentials *Credentials) (err error) {
-	if err = s.checkKeychain(); err != nil {
-		return
-	}
-
-	credentials.Version = keychain.KeychainVersion
+	credentials.Version = keychain.Version
 
 	return s.secrets.Put(credentials.UserID, credentials.Marshal())
-}
-
-func (s *Store) checkKeychain() (err error) {
-	if s.secrets == nil {
-		err = keychain.ErrNoKeychainInstalled
-		log.WithError(err).Error("Store is unusable")
-	}
-
-	return
 }
 
 // Delete removes credentials from the store.
 func (s *Store) Delete(userID string) (err error) {
 	storeLocker.Lock()
 	defer storeLocker.Unlock()
-
-	if err = s.checkKeychain(); err != nil {
-		return
-	}
 
 	return s.secrets.Delete(userID)
 }

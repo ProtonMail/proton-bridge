@@ -51,6 +51,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/internal/updater"
 	"github.com/ProtonMail/proton-bridge/internal/users/credentials"
 	"github.com/ProtonMail/proton-bridge/internal/versioner"
+	"github.com/ProtonMail/proton-bridge/pkg/keychain"
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	"github.com/ProtonMail/proton-bridge/pkg/sentry"
@@ -142,12 +143,12 @@ func New( // nolint[funlen]
 	listener := listener.New()
 	events.SetupEvents(listener)
 
-	// NOTE: If we can't load the credentials for whatever reason,
-	// do we really want to error out? Need to signal to frontend.
-	creds, err := credentials.NewStore(keychainName)
+	// If we can't load the keychain for whatever reason,
+	// we signal to frontend and supply a dummy keychain that always returns errors.
+	kc, err := keychain.NewKeychain(settingsObj, keychainName)
 	if err != nil {
-		logrus.WithError(err).Error("Could not get credentials store")
 		listener.Emit(events.CredentialsErrorEvent, err.Error())
+		kc = keychain.NewMissingKeychain()
 	}
 
 	jar, err := cookies.NewCookieJar(settingsObj)
@@ -158,7 +159,6 @@ func New( // nolint[funlen]
 	cm := pmapi.NewClientManager(pmapi.GetAPIConfig(configName, constants.Version))
 	cm.SetRoundTripper(pmapi.GetRoundTripper(cm, listener))
 	cm.SetCookieJar(jar)
-
 	sentryReporter.SetUserAgentProvider(cm)
 
 	key, err := crypto.NewKeyFromArmored(updater.DefaultPublicKey)
@@ -188,8 +188,6 @@ func New( // nolint[funlen]
 		runtime.GOOS,
 	)
 
-	tls := tls.New(settingsPath)
-
 	exe, err := os.Executable()
 	if err != nil {
 		return nil, err
@@ -208,12 +206,12 @@ func New( // nolint[funlen]
 		Lock:         lock,
 		Cache:        cache,
 		Listener:     listener,
-		Creds:        creds,
+		Creds:        credentials.NewStore(kc),
 		CM:           cm,
 		CookieJar:    jar,
 		Updater:      updater,
 		Versioner:    versioner,
-		TLS:          tls,
+		TLS:          tls.New(settingsPath),
 		Autostart:    autostart,
 
 		Name:  appName,
