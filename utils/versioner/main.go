@@ -166,14 +166,14 @@ func fetch(app, platform string) map[string]versionInfo {
 
 	res, err := resty.New().R().Get(url)
 	if err != nil {
-		println("fetch failed", err.Error())
+		logrus.WithError(err).Error("Fetch failed.")
 		return make(map[string]versionInfo)
 	}
 
 	var versionMap map[string]versionInfo
 
 	if err := json.Unmarshal(res.Body(), &versionMap); err != nil {
-		println("unmarshal failed", err.Error())
+		logrus.WithError(err).Error("Unmarshal failed.")
 		return make(map[string]versionInfo)
 	}
 
