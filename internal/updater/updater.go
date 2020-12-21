@@ -66,10 +66,10 @@ func New(
 	curVer *semver.Version,
 	updateURLName, platform string,
 ) *Updater {
-	// If there's some unexpected value in the preferences, we force it back onto the live channel.
+	// If there's some unexpected value in the preferences, we force it back onto the stable channel.
 	// This prevents users from screwing up silent updates by modifying their prefs.json file.
-	if channel := UpdateChannel(s.Get(settings.UpdateChannelKey)); !(channel == LiveChannel || channel == BetaChannel) {
-		s.Set(settings.UpdateChannelKey, string(LiveChannel))
+	if channel := UpdateChannel(s.Get(settings.UpdateChannelKey)); !(channel == StableChannel || channel == EarlyChannel) {
+		s.Set(settings.UpdateChannelKey, string(StableChannel))
 	}
 
 	return &Updater{

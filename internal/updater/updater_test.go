@@ -45,7 +45,7 @@ func TestCheck(t *testing.T) {
 	updater := newTestUpdater(client, "1.1.0", false)
 
 	versionMap := VersionMap{
-		"live": VersionInfo{
+		"stable": VersionInfo{
 			Version:           semver.MustParse("1.5.0"),
 			MinAuto:           semver.MustParse("1.4.0"),
 			Package:           "https://protonmail.com/download/bridge/update_1.5.0_linux.tgz",
@@ -76,13 +76,13 @@ func TestCheckEarlyAccess(t *testing.T) {
 	updater := newTestUpdater(client, "1.1.0", true)
 
 	versionMap := VersionMap{
-		"live": VersionInfo{
+		"stable": VersionInfo{
 			Version:           semver.MustParse("1.5.0"),
 			MinAuto:           semver.MustParse("1.0.0"),
 			Package:           "https://protonmail.com/download/bridge/update_1.5.0_linux.tgz",
 			RolloutProportion: 1.0,
 		},
-		"beta": VersionInfo{
+		"early": VersionInfo{
 			Version:           semver.MustParse("1.6.0"),
 			MinAuto:           semver.MustParse("1.0.0"),
 			Package:           "https://protonmail.com/download/bridge/update_1.6.0_linux.tgz",
@@ -345,9 +345,9 @@ func newFakeSettings(rollout float64, earlyAccess bool) *fakeSettings {
 	s.SetFloat64(settings.RolloutKey, rollout)
 
 	if earlyAccess {
-		s.Set(settings.UpdateChannelKey, string(BetaChannel))
+		s.Set(settings.UpdateChannelKey, string(EarlyChannel))
 	} else {
-		s.Set(settings.UpdateChannelKey, string(LiveChannel))
+		s.Set(settings.UpdateChannelKey, string(StableChannel))
 	}
 
 	return s

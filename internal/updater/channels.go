@@ -21,9 +21,9 @@ package updater
 type UpdateChannel string
 
 const (
-	// LiveChannel is the channel all users are subscribed to by default.
-	LiveChannel UpdateChannel = "live"
+	// StableChannel is the channel all users are subscribed to by default.
+	StableChannel UpdateChannel = "stable"
 
-	// BetaChannel is the channel users subscribe to when they enable "Early Access".
-	BetaChannel UpdateChannel = "beta"
+	// EarlyChannel is the channel users subscribe to when they enable "Early Access".
+	EarlyChannel UpdateChannel = "early"
 )

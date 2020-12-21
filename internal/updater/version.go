@@ -51,7 +51,7 @@ type VersionInfo struct {
 // VersionMap represents the structure of the version.json file.
 // It looks like this:
 // {
-//   "live": {
+//   "stable": {
 //     "Version": "2.3.4",
 //     "Package": "https://protonmail.com/.../bridge_2.3.4_linux.tgz",
 //     "Installers": [
@@ -63,9 +63,9 @@ type VersionInfo struct {
 //     "ReleaseNotesPage": "https://protonmail.com/.../release_notes.html",
 //     "RolloutProportion": 0.5
 //   },
-//   "beta": {
-//     "Version": "2.4.0-beta",
-//     "Package": "https://protonmail.com/.../bridge_2.4.0-beta_linux.tgz",
+//   "early": {
+//     "Version": "2.4.0-early",
+//     "Package": "https://protonmail.com/.../bridge_2.4.0-early_linux.tgz",
 //     "Installers": [
 //       "https://protonmail.com/.../something.deb",
 //       "https://protonmail.com/.../something.rpm",
