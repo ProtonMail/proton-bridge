@@ -156,7 +156,14 @@ func New( // nolint[funlen]
 		return nil, err
 	}
 
-	cm := pmapi.NewClientManager(pmapi.GetAPIConfig(configName, constants.Version))
+	apiConfig := pmapi.GetAPIConfig(configName, constants.Version)
+	apiConfig.NoConnectionHandler = func() {
+		eventListener.Emit(events.InternetOffEvent, "")
+	}
+	apiConfig.ConnectionHandler = func() {
+		eventListener.Emit(events.InternetOnEvent, "")
+	}
+	cm := pmapi.NewClientManager(apiConfig)
 	cm.SetRoundTripper(pmapi.GetRoundTripper(cm, listener))
 	cm.SetCookieJar(jar)
 	sentryReporter.SetUserAgentProvider(cm)

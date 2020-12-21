@@ -47,6 +47,8 @@ type imapServer struct {
 	eventListener listener.Listener
 	debugClient   bool
 	debugServer   bool
+
+	on bool
 }
 
 // NewIMAPServer constructs a new IMAP server configured with the given options.
@@ -106,6 +108,19 @@ func NewIMAPServer(debugClient, debugServer bool, port int, tls *tls.Config, ima
 // Starts the server.
 func (s *imapServer) ListenAndServe() {
 	go s.monitorDisconnectedUsers()
+	go s.monitorInternetConnection()
+
+	s.listenAndServe()
+}
+
+func (s *imapServer) listenAndServe() {
+	if s.on {
+		return
+	}
+	s.on = true
+	defer func() {
+		s.on = false
+	}()
 
 	log.Info("IMAP server listening at ", s.server.Addr)
 	l, err := net.Listen("tcp", s.server.Addr)
@@ -134,6 +149,24 @@ func (s *imapServer) Close() {
 	if err := s.server.Close(); err != nil {
 		log.WithError(err).Error("Failed to close the connection")
 	}
+}
+
+func (s *imapServer) monitorInternetConnection() {
+	on := make(chan string)
+	s.eventListener.Add(events.InternetOnEvent, on)
+	off := make(chan string)
+	s.eventListener.Add(events.InternetOffEvent, off)
+
+	go func() {
+		for range on {
+			s.listenAndServe()
+		}
+	}()
+	go func() {
+		for range off {
+			s.Close()
+		}
+	}()
 }
 
 func (s *imapServer) monitorDisconnectedUsers() {

@@ -102,6 +102,9 @@ type ClientConfig struct {
 	// MinBytesPerSecond specifies minimum Bytes per second or the request will be canceled.
 	// Zero means no limitation.
 	MinBytesPerSecond int64
+
+	NoConnectionHandler func()
+	ConnectionHandler   func()
 }
 
 // client is a client of the protonmail API. It implements the Client interface.
