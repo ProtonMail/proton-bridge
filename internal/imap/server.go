@@ -43,16 +43,15 @@ import (
 )
 
 type imapServer struct {
+	panicHandler  panicHandler
 	server        *imapserver.Server
 	eventListener listener.Listener
 	debugClient   bool
 	debugServer   bool
-
-	on bool
 }
 
 // NewIMAPServer constructs a new IMAP server configured with the given options.
-func NewIMAPServer(debugClient, debugServer bool, port int, tls *tls.Config, imapBackend *imapBackend, eventListener listener.Listener) *imapServer { //nolint[golint]
+func NewIMAPServer(panicHandler panicHandler, debugClient, debugServer bool, port int, tls *tls.Config, imapBackend *imapBackend, eventListener listener.Listener) *imapServer { //nolint[golint]
 	s := imapserver.New(imapBackend)
 	s.Addr = fmt.Sprintf("%v:%v", bridge.Host, port)
 	s.TLSConfig = tls
@@ -98,6 +97,7 @@ func NewIMAPServer(debugClient, debugServer bool, port int, tls *tls.Config, ima
 	)
 
 	return &imapServer{
+		panicHandler:  panicHandler,
 		server:        s,
 		eventListener: eventListener,
 		debugClient:   debugClient,
@@ -114,14 +114,6 @@ func (s *imapServer) ListenAndServe() {
 }
 
 func (s *imapServer) listenAndServe() {
-	if s.on {
-		return
-	}
-	s.on = true
-	defer func() {
-		s.on = false
-	}()
-
 	log.Info("IMAP server listening at ", s.server.Addr)
 	l, err := net.Listen("tcp", s.server.Addr)
 	if err != nil {
@@ -135,9 +127,18 @@ func (s *imapServer) listenAndServe() {
 		server:   s,
 	})
 	if err != nil {
-		s.eventListener.Emit(events.ErrorEvent, "IMAP failed: "+err.Error())
-		log.Error("IMAP failed: ", err)
-		return
+		failed := true
+		if netErr, ok := err.(*net.OpError); ok {
+			originalErr := netErr.Unwrap()
+			if originalErr != nil && originalErr.Error() == "use of closed network connection" {
+				failed = false
+			}
+		}
+		if failed {
+			s.eventListener.Emit(events.ErrorEvent, "IMAP failed: "+err.Error())
+			log.Error("IMAP failed: ", err)
+			return
+		}
 	}
 	defer s.server.Close() //nolint[errcheck]
 
@@ -146,6 +147,7 @@ func (s *imapServer) listenAndServe() {
 
 // Stops the server.
 func (s *imapServer) Close() {
+	log.Info("Closing IMAP server")
 	if err := s.server.Close(); err != nil {
 		log.WithError(err).Error("Failed to close the connection")
 	}
@@ -157,16 +159,30 @@ func (s *imapServer) monitorInternetConnection() {
 	off := make(chan string)
 	s.eventListener.Add(events.InternetOffEvent, off)
 
-	go func() {
-		for range on {
-			s.listenAndServe()
-		}
-	}()
-	go func() {
-		for range off {
+	isOn := true
+	for {
+		select {
+		case <-on:
+			if isOn {
+				continue
+			}
+			isOn = true
+			go func() {
+				defer s.panicHandler.HandlePanic()
+				s.listenAndServe()
+			}()
+		case <-off:
+			if !isOn {
+				continue
+			}
+			isOn = false
 			s.Close()
 		}
-	}()
+		// Give it some time to serve or close server before changing it again.
+		// E.g., if we get quickly off-on signal, starting or closing could
+		// fail because server is still running or not yet, respectively.
+		time.Sleep(10 * time.Second)
+	}
 }
 
 func (s *imapServer) monitorDisconnectedUsers() {

@@ -172,7 +172,6 @@ func (a *Accounts) showLoginError(err error, scope string) bool {
 	}
 	a.qml.SetConnectionStatus(true) // If we are here connection is ok.
 	if err == pmapi.ErrUpgradeApplication {
-		a.qml.EmitEvent(events.UpgradeApplicationEvent, "")
 		return true
 	}
 	a.qml.SetAddAccountWarning(err.Error(), -1)

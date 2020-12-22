@@ -263,6 +263,7 @@ func (im *imapMailbox) getMessage(storeMessage storeMessageProvider, items []ima
 			// Size attribute on the server counts encrypted data. The value is cleared
 			// on our part and we need to compute "real" size of decrypted data.
 			if m.Size <= 0 {
+				im.log.WithField("msgID", storeMessage.ID()).Trace("Size unknown - downloading body")
 				if _, _, err = im.getBodyStructure(storeMessage); err != nil {
 					return
 				}
@@ -308,14 +309,14 @@ func (im *imapMailbox) getBodyStructure(storeMessage storeMessageProvider) (
 	if bodyReader, structure = cache.LoadMail(id); bodyReader.Len() == 0 || structure == nil {
 		var body []byte
 		structure, body, err = im.buildMessage(m)
+		m.Size = int64(len(body))
+		if err := storeMessage.SetSize(m.Size); err != nil {
+			im.log.WithError(err).
+				WithField("newSize", m.Size).
+				WithField("msgID", m.ID).
+				Warn("Cannot update size while building")
+		}
 		if err == nil && structure != nil && len(body) > 0 {
-			m.Size = int64(len(body))
-			if err := storeMessage.SetSize(m.Size); err != nil {
-				im.log.WithError(err).
-					WithField("newSize", m.Size).
-					WithField("msgID", m.ID).
-					Warn("Cannot update size while building")
-			}
 			if err := storeMessage.SetContentTypeAndHeader(m.MIMEType, m.Header); err != nil {
 				im.log.WithError(err).
 					WithField("msgID", m.ID).

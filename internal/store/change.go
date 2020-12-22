@@ -30,6 +30,8 @@ type ChangeNotifier interface {
 	DeleteMessage(address, mailboxName string, sequenceNumber uint32)
 	MailboxCreated(address, mailboxName string)
 	MailboxStatus(address, mailboxName string, total, unread, unreadSeqNum uint32)
+
+	CanDelete(mailboxID string) (bool, func())
 }
 
 // SetChangeNotifier sets notifier to be called once mailbox or message changes.

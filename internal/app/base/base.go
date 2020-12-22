@@ -157,11 +157,14 @@ func New( // nolint[funlen]
 	}
 
 	apiConfig := pmapi.GetAPIConfig(configName, constants.Version)
-	apiConfig.NoConnectionHandler = func() {
+	apiConfig.ConnectionOffHandler = func() {
 		eventListener.Emit(events.InternetOffEvent, "")
 	}
-	apiConfig.ConnectionHandler = func() {
+	apiConfig.ConnectionOnHandler = func() {
 		eventListener.Emit(events.InternetOnEvent, "")
+	}
+	apiConfig.UpgradeApplicationHandler = func() {
+		eventListener.Emit(events.UpgradeApplicationEvent, "")
 	}
 	cm := pmapi.NewClientManager(apiConfig)
 	cm.SetRoundTripper(pmapi.GetRoundTripper(cm, listener))

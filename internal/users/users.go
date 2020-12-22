@@ -208,9 +208,6 @@ func (u *Users) Login(username, password string) (authClient pmapi.Client, auth 
 // FinishLogin finishes the login procedure and adds the user into the credentials store.
 func (u *Users) FinishLogin(authClient pmapi.Client, auth *pmapi.Auth, mbPassphrase string) (user *User, err error) { //nolint[funlen]
 	defer func() {
-		if err == pmapi.ErrUpgradeApplication {
-			u.events.Emit(events.UpgradeApplicationEvent, "")
-		}
 		if err != nil {
 			log.WithError(err).Debug("Login not finished; removing auth session")
 			if delAuthErr := authClient.DeleteAuth(); delAuthErr != nil {

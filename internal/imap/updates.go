@@ -19,6 +19,7 @@ package imap
 
 import (
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/ProtonMail/proton-bridge/internal/store"
@@ -36,32 +37,82 @@ const (
 	operationDeleteMessage operation = "expunge"
 )
 
-func (ib *imapBackend) setUpdatesBeBlocking(address, mailboxName string, op operation) {
-	ib.changeUpdatesBlocking(address, mailboxName, op, true)
+type imapUpdates struct {
+	lock            sync.Locker
+	blocking        map[string]bool
+	delayedExpunges map[string][]chan struct{}
+	ch              chan goIMAPBackend.Update
 }
 
-func (ib *imapBackend) unsetUpdatesBeBlocking(address, mailboxName string, op operation) {
-	ib.changeUpdatesBlocking(address, mailboxName, op, false)
-}
-
-func (ib *imapBackend) changeUpdatesBlocking(address, mailboxName string, op operation, block bool) {
-	ib.updatesBlockingLocker.Lock()
-	defer ib.updatesBlockingLocker.Unlock()
-
-	key := strings.ToLower(address + "_" + mailboxName + "_" + string(op))
-	if block {
-		ib.updatesBlocking[key] = true
-	} else {
-		delete(ib.updatesBlocking, key)
+func newIMAPUpdates() *imapUpdates {
+	return &imapUpdates{
+		lock:            &sync.Mutex{},
+		blocking:        map[string]bool{},
+		delayedExpunges: map[string][]chan struct{}{},
+		ch:              make(chan goIMAPBackend.Update),
 	}
 }
 
-func (ib *imapBackend) isBlocking(address, mailboxName string, op operation) bool {
-	key := strings.ToLower(address + "_" + mailboxName + "_" + string(op))
-	return ib.updatesBlocking[key]
+func (iu *imapUpdates) block(address, mailboxName string, op operation) {
+	iu.lock.Lock()
+	defer iu.lock.Unlock()
+
+	iu.blocking[getBlockingKey(address, mailboxName, op)] = true
 }
 
-func (ib *imapBackend) Notice(address, notice string) {
+func (iu *imapUpdates) unblock(address, mailboxName string, op operation) {
+	iu.lock.Lock()
+	defer iu.lock.Unlock()
+
+	delete(iu.blocking, getBlockingKey(address, mailboxName, op))
+}
+
+func (iu *imapUpdates) isBlocking(address, mailboxName string, op operation) bool {
+	iu.lock.Lock()
+	defer iu.lock.Unlock()
+
+	return iu.blocking[getBlockingKey(address, mailboxName, op)]
+}
+
+func getBlockingKey(address, mailboxName string, op operation) string {
+	return strings.ToLower(address + "_" + mailboxName + "_" + string(op))
+}
+
+func (iu *imapUpdates) forbidExpunge(mailboxID string) {
+	iu.lock.Lock()
+	defer iu.lock.Unlock()
+
+	iu.delayedExpunges[mailboxID] = []chan struct{}{}
+}
+
+func (iu *imapUpdates) allowExpunge(mailboxID string) {
+	iu.lock.Lock()
+	defer iu.lock.Unlock()
+
+	for _, ch := range iu.delayedExpunges[mailboxID] {
+		close(ch)
+	}
+	delete(iu.delayedExpunges, mailboxID)
+}
+
+func (iu *imapUpdates) CanDelete(mailboxID string) (bool, func()) {
+	iu.lock.Lock()
+	defer iu.lock.Unlock()
+
+	if iu.delayedExpunges[mailboxID] == nil {
+		return true, nil
+	}
+
+	ch := make(chan struct{})
+	iu.delayedExpunges[mailboxID] = append(iu.delayedExpunges[mailboxID], ch)
+	return false, func() {
+		log.WithField("mailbox", mailboxID).Debug("Expunge operations paused")
+		<-ch
+		log.WithField("mailbox", mailboxID).Debug("Expunge operations unpaused")
+	}
+}
+
+func (iu *imapUpdates) Notice(address, notice string) {
 	update := new(goIMAPBackend.StatusUpdate)
 	update.Update = goIMAPBackend.NewUpdate(address, "")
 	update.StatusResp = &imap.StatusResp{
@@ -69,10 +120,10 @@ func (ib *imapBackend) Notice(address, notice string) {
 		Code: imap.CodeAlert,
 		Info: notice,
 	}
-	ib.sendIMAPUpdate(update, false)
+	iu.sendIMAPUpdate(update, false)
 }
 
-func (ib *imapBackend) UpdateMessage(
+func (iu *imapUpdates) UpdateMessage(
 	address, mailboxName string,
 	uid, sequenceNumber uint32,
 	msg *pmapi.Message, hasDeletedFlag bool,
@@ -93,10 +144,10 @@ func (ib *imapBackend) UpdateMessage(
 		update.Message.Flags = append(update.Message.Flags, imap.DeletedFlag)
 	}
 	update.Message.Uid = uid
-	ib.sendIMAPUpdate(update, ib.isBlocking(address, mailboxName, operationUpdateMessage))
+	iu.sendIMAPUpdate(update, iu.isBlocking(address, mailboxName, operationUpdateMessage))
 }
 
-func (ib *imapBackend) DeleteMessage(address, mailboxName string, sequenceNumber uint32) {
+func (iu *imapUpdates) DeleteMessage(address, mailboxName string, sequenceNumber uint32) {
 	log.WithFields(logrus.Fields{
 		"address": address,
 		"mailbox": mailboxName,
@@ -105,10 +156,10 @@ func (ib *imapBackend) DeleteMessage(address, mailboxName string, sequenceNumber
 	update := new(goIMAPBackend.ExpungeUpdate)
 	update.Update = goIMAPBackend.NewUpdate(address, mailboxName)
 	update.SeqNum = sequenceNumber
-	ib.sendIMAPUpdate(update, ib.isBlocking(address, mailboxName, operationDeleteMessage))
+	iu.sendIMAPUpdate(update, iu.isBlocking(address, mailboxName, operationDeleteMessage))
 }
 
-func (ib *imapBackend) MailboxCreated(address, mailboxName string) {
+func (iu *imapUpdates) MailboxCreated(address, mailboxName string) {
 	log.WithFields(logrus.Fields{
 		"address": address,
 		"mailbox": mailboxName,
@@ -120,10 +171,10 @@ func (ib *imapBackend) MailboxCreated(address, mailboxName string) {
 		Delimiter:  store.PathDelimiter,
 		Name:       mailboxName,
 	}
-	ib.sendIMAPUpdate(update, false)
+	iu.sendIMAPUpdate(update, false)
 }
 
-func (ib *imapBackend) MailboxStatus(address, mailboxName string, total, unread, unreadSeqNum uint32) {
+func (iu *imapUpdates) MailboxStatus(address, mailboxName string, total, unread, unreadSeqNum uint32) {
 	log.WithFields(logrus.Fields{
 		"address":      address,
 		"mailbox":      mailboxName,
@@ -137,11 +188,11 @@ func (ib *imapBackend) MailboxStatus(address, mailboxName string, total, unread,
 	update.MailboxStatus.Messages = total
 	update.MailboxStatus.Unseen = unread
 	update.MailboxStatus.UnseenSeqNum = unreadSeqNum
-	ib.sendIMAPUpdate(update, false)
+	iu.sendIMAPUpdate(update, false)
 }
 
-func (ib *imapBackend) sendIMAPUpdate(update goIMAPBackend.Update, block bool) {
-	if ib.updates == nil {
+func (iu *imapUpdates) sendIMAPUpdate(update goIMAPBackend.Update, block bool) {
+	if iu.ch == nil {
 		log.Trace("IMAP IDLE unavailable")
 		return
 	}
@@ -152,7 +203,7 @@ func (ib *imapBackend) sendIMAPUpdate(update goIMAPBackend.Update, block bool) {
 		case <-time.After(1 * time.Second):
 			log.Warn("IMAP update could not be sent (timeout)")
 			return
-		case ib.updates <- update:
+		case iu.ch <- update:
 		}
 	}()
 

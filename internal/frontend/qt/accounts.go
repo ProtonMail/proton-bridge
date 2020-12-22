@@ -128,7 +128,6 @@ func (s *FrontendQt) showLoginError(err error, scope string) bool {
 	}
 	s.Qml.SetConnectionStatus(true) // If we are here connection is ok.
 	if err == pmapi.ErrUpgradeApplication {
-		s.eventListener.Emit(events.UpgradeApplicationEvent, "")
 		return true
 	}
 	s.Qml.SetAddAccountWarning(err.Error(), -1)

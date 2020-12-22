@@ -350,18 +350,6 @@ func (store *Store) addAddress(address, addressID string, labels []*pmapi.Label)
 	return
 }
 
-// PauseEventLoop sets whether the ticker is periodically polling or not.
-func (store *Store) PauseEventLoop(pause bool) {
-	store.lock.Lock()
-	defer store.lock.Unlock()
-
-	store.log.WithField("pause", pause).Info("Pausing event loop")
-
-	if store.eventLoop != nil {
-		store.eventLoop.isTickerPaused = pause
-	}
-}
-
 // Close stops the event loop and closes the database to free the file.
 func (store *Store) Close() error {
 	store.lock.Lock()

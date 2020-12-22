@@ -78,6 +78,7 @@ func run(b *base.Base, c *cli.Context) error { // nolint[funlen]
 		defer b.CrashHandler.HandlePanic()
 		imapPort := b.Settings.GetInt(settings.IMAPPortKey)
 		imap.NewIMAPServer(
+			b.CrashHandler,
 			c.String("log-imap") == "client" || c.String("log-imap") == "all",
 			c.String("log-imap") == "server" || c.String("log-imap") == "all",
 			imapPort, tlsConfig, imapBackend, b.Listener).ListenAndServe()

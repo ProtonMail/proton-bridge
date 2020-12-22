@@ -188,8 +188,8 @@ func (im *imapMailbox) Expunge() error {
 	// the desired mailbox.
 	im.user.waitForAppend()
 
-	im.user.backend.setUpdatesBeBlocking(im.user.currentAddressLowercase, im.name, operationDeleteMessage)
-	defer im.user.backend.unsetUpdatesBeBlocking(im.user.currentAddressLowercase, im.name, operationDeleteMessage)
+	im.user.backend.updates.block(im.user.currentAddressLowercase, im.name, operationDeleteMessage)
+	defer im.user.backend.updates.unblock(im.user.currentAddressLowercase, im.name, operationDeleteMessage)
 
 	return im.storeMailbox.RemoveDeleted(nil)
 }

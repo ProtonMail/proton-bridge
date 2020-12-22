@@ -152,12 +152,7 @@ func (u *User) authorizeIfNecessary(emitEvent bool) (err error) {
 		u.log.WithError(err).Error("Could not authorize and unlock user")
 
 		switch errors.Cause(err) {
-		case pmapi.ErrUpgradeApplication:
-			u.listener.Emit(events.UpgradeApplicationEvent, "")
-
-		case pmapi.ErrAPINotReachable:
-			u.listener.Emit(events.InternetOffEvent, "")
-
+		case pmapi.ErrUpgradeApplication, pmapi.ErrAPINotReachable:
 		default:
 			if errLogout := u.credStorer.Logout(u.userID); errLogout != nil {
 				u.log.WithField("err", errLogout).Error("Could not log user out from credentials store")

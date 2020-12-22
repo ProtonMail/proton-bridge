@@ -42,8 +42,6 @@ type storeUserProvider interface {
 		attachedPublicKeyName string,
 		parentID string) (*pmapi.Message, []*pmapi.Attachment, error)
 
-	PauseEventLoop(bool)
-
 	SetChangeNotifier(store.ChangeNotifier)
 }
 

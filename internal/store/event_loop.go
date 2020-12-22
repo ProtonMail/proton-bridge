@@ -39,8 +39,6 @@ type eventLoop struct {
 	stopCh         chan struct{}
 	notifyStopCh   chan struct{}
 	isRunning      bool // The whole event loop is running.
-	isTickerPaused bool // The periodic loop is paused (but the event loop itself is still running).
-	hasInternet    bool
 
 	pollCounter int
 
@@ -60,7 +58,6 @@ func newEventLoop(cache *Cache, store *Store, user BridgeUser, events listener.L
 		currentEventID: cache.getEventID(user.ID()),
 		pollCh:         make(chan chan struct{}),
 		isRunning:      false,
-		isTickerPaused: false,
 
 		log: eventLog,
 
@@ -135,8 +132,6 @@ func (loop *eventLoop) start() {
 		loop.log.WithField("lastEventID", loop.currentEventID).Warn("Subscription stopped")
 	}()
 
-	loop.hasInternet = true
-
 	go loop.pollNow()
 
 	loop.loop()
@@ -154,10 +149,6 @@ func (loop *eventLoop) loop() {
 			close(loop.notifyStopCh)
 			return
 		case <-t.C:
-			if loop.isTickerPaused {
-				loop.log.Trace("Event loop paused, skipping")
-				continue
-			}
 			// Randomise periodic calls within range pollInterval ± pollSpread to reduces potential load spikes on API.
 			time.Sleep(time.Duration(rand.Intn(2*int(pollIntervalSpread.Milliseconds()))) * time.Millisecond)
 		case eventProcessedCh = <-loop.pollCh:
@@ -220,8 +211,6 @@ func (loop *eventLoop) processNextEvent() (more bool, err error) { // nolint[fun
 	defer func() {
 		if errors.Cause(err) == pmapi.ErrAPINotReachable {
 			l.Warn("Internet unavailable")
-			loop.events.Emit(bridgeEvents.InternetOffEvent, "")
-			loop.hasInternet = false
 			err = nil
 		}
 
@@ -233,7 +222,6 @@ func (loop *eventLoop) processNextEvent() (more bool, err error) { // nolint[fun
 
 		if errors.Cause(err) == pmapi.ErrUpgradeApplication {
 			l.Warn("Need to upgrade application")
-			loop.events.Emit(bridgeEvents.UpgradeApplicationEvent, "")
 			err = nil
 		}
 
@@ -266,11 +254,6 @@ func (loop *eventLoop) processNextEvent() (more bool, err error) { // nolint[fun
 	}
 
 	l = l.WithField("newEventID", event.EventID)
-
-	if !loop.hasInternet {
-		loop.events.Emit(bridgeEvents.InternetOnEvent, "")
-		loop.hasInternet = true
-	}
 
 	if err = loop.processEvent(event); err != nil {
 		return false, errors.Wrap(err, "failed to process event")
@@ -464,6 +447,7 @@ func (loop *eventLoop) processMessages(eventLog *logrus.Entry, messages []*pmapi
 
 			updateMessage(msgLog, msg, message.Updated)
 
+			loop.removeLabelFromMessageWait(message.Updated.LabelIDsRemoved)
 			if err = loop.store.createOrUpdateMessageEvent(msg); err != nil {
 				return errors.Wrap(err, "failed to update message in DB")
 			}
@@ -471,6 +455,7 @@ func (loop *eventLoop) processMessages(eventLog *logrus.Entry, messages []*pmapi
 		case pmapi.EventDelete:
 			msgLog.Debug("Processing EventDelete for message")
 
+			loop.removeMessageWait(message.ID)
 			if err = loop.store.deleteMessageEvent(message.ID); err != nil {
 				return errors.Wrap(err, "failed to delete message from DB")
 			}
@@ -478,6 +463,40 @@ func (loop *eventLoop) processMessages(eventLog *logrus.Entry, messages []*pmapi
 	}
 
 	return err
+}
+
+// removeMessageWait waits for notifier to be ready to accept delete
+// operations for given message. It's no-op if message does not exist.
+func (loop *eventLoop) removeMessageWait(msgID string) {
+	msg, err := loop.store.getMessageFromDB(msgID)
+	if err != nil {
+		return
+	}
+	loop.removeLabelFromMessageWait(msg.LabelIDs)
+}
+
+// removeLabelFromMessageWait waits for notifier to be ready to accept
+// delete operations for given labels.
+func (loop *eventLoop) removeLabelFromMessageWait(labelIDs []string) {
+	if len(labelIDs) == 0 || loop.store.notifier == nil {
+		return
+	}
+
+	for {
+		wasWaiting := false
+		for _, labelID := range labelIDs {
+			canDelete, wait := loop.store.notifier.CanDelete(labelID)
+			if !canDelete {
+				wasWaiting = true
+				wait()
+			}
+		}
+		// If we had to wait for some label, we need to check again
+		// all labels in case something changed in the meantime.
+		if !wasWaiting {
+			return
+		}
+	}
 }
 
 func updateMessage(msgLog *logrus.Entry, message *pmapi.Message, updates *pmapi.EventMessageUpdated) { //nolint[funlen]
