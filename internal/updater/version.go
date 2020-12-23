@@ -64,8 +64,8 @@ type VersionInfo struct {
 //     "RolloutProportion": 0.5
 //   },
 //   "early": {
-//     "Version": "2.4.0-early",
-//     "Package": "https://protonmail.com/.../bridge_2.4.0-early_linux.tgz",
+//     "Version": "2.4.0",
+//     "Package": "https://protonmail.com/.../bridge_2.4.0_linux.tgz",
 //     "Installers": [
 //       "https://protonmail.com/.../something.deb",
 //       "https://protonmail.com/.../something.rpm",

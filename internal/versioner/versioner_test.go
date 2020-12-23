@@ -32,7 +32,7 @@ func TestListVersions(t *testing.T) {
 	updates, err := ioutil.TempDir("", "updates")
 	require.NoError(t, err)
 
-	v := newTestVersioner(t, "myCoolApp", updates, "2.3.4-early", "2.3.4", "2.3.5", "2.4.0")
+	v := newTestVersioner(t, "myCoolApp", updates, "2.3.4-beta", "2.3.4", "2.3.5", "2.4.0")
 
 	versions, err := v.ListVersions()
 	require.NoError(t, err)
@@ -46,8 +46,8 @@ func TestListVersions(t *testing.T) {
 	assert.Equal(t, semver.MustParse("2.3.4"), versions[2].version)
 	assert.Equal(t, filepath.Join(updates, "2.3.4"), versions[2].path)
 
-	assert.Equal(t, semver.MustParse("2.3.4-early"), versions[3].version)
-	assert.Equal(t, filepath.Join(updates, "2.3.4-early"), versions[3].path)
+	assert.Equal(t, semver.MustParse("2.3.4-beta"), versions[3].version)
+	assert.Equal(t, filepath.Join(updates, "2.3.4-beta"), versions[3].path)
 }
 
 func newTestVersioner(t *testing.T, exeName, updates string, versions ...string) *Versioner {

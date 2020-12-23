@@ -15,7 +15,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-874 Added manual triggers to Updater module.
 
 ### Changed
-* renames channels `beta->early`, `live->stable`
+* Rename channels `beta->early`, `live->stable`.
 * GODT-893 Bump go-rfc5322 dependency to v0.2.1 to properly detect syntax errors during parsing.
 * GODT-892 Swap type and value from sentry exception and cut panic handlers from the traceback.
 * GODT-854 EXPUNGE and FETCH unilateral responses are returned before OK EXPUNGE or OK STORE, respectively.

@@ -35,7 +35,7 @@ func TestRemoveOldVersions(t *testing.T) {
 	updates, err := ioutil.TempDir("", "updates")
 	require.NoError(t, err)
 
-	v := newTestVersioner(t, "myCoolApp", updates, "2.3.4-early", "2.3.4", "2.3.5", "2.4.0")
+	v := newTestVersioner(t, "myCoolApp", updates, "2.3.4-beta", "2.3.4", "2.3.5", "2.4.0")
 
 	allVersions, err := v.ListVersions()
 	require.NoError(t, err)
