@@ -41,7 +41,6 @@ ProtonMail Bridge includes the following 3rd party software:
 * [imap-appendlimit](https://github.com/emersion/go-imap-appendlimit)       | Available under [license](https://github.com/emersion/go-imap-appendlimit/blob/master/LICENSE)
 * [imap-idle](https://github.com/emersion/go-imap-idle)                     | Available under [license](https://github.com/emersion/go-imap-idle/blob/master/LICENSE)
 * [imap-quota](https://github.com/emersion/go-imap-quota)                   | Available under [license](https://github.com/emersion/go-imap-quota/blob/master/LICENSE)
-* [imap-specialuse](https://github.com/emersion/go-imap-specialuse)         | Available under [license](https://github.com/emersion/go-imap-specialuse/blob/master/LICENSE)
 * [sasl](https://github.com/emersion/go-sasl)                               | Available under [license](https://github.com/emersion/go-sasl/blob/master/LICENSE)
 * [smtp](https://github.com/emersion/go-smtp)                               | Available under [license](https://github.com/emersion/go-smtp/blob/master/LICENSE)
 * [textwrapper](https://github.com/emersion/go-textwrapper)                 | Available under [license](https://github.com/emersion/go-textwrapper/blob/master/LICENSE)

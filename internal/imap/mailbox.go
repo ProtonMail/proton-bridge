@@ -23,7 +23,6 @@ import (
 	"github.com/ProtonMail/proton-bridge/pkg/message"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	"github.com/emersion/go-imap"
-	specialuse "github.com/emersion/go-imap-specialuse"
 	"github.com/sirupsen/logrus"
 )
 
@@ -86,17 +85,17 @@ func (im *imapMailbox) getFlags() []string {
 	}
 	switch im.storeMailbox.LabelID() {
 	case pmapi.SentLabel:
-		flags = append(flags, specialuse.Sent)
+		flags = append(flags, imap.SentAttr)
 	case pmapi.TrashLabel:
-		flags = append(flags, specialuse.Trash)
+		flags = append(flags, imap.TrashAttr)
 	case pmapi.SpamLabel:
-		flags = append(flags, specialuse.Junk)
+		flags = append(flags, imap.JunkAttr)
 	case pmapi.ArchiveLabel:
-		flags = append(flags, specialuse.Archive)
+		flags = append(flags, imap.ArchiveAttr)
 	case pmapi.AllMailLabel:
-		flags = append(flags, specialuse.All)
+		flags = append(flags, imap.AllAttr)
 	case pmapi.DraftLabel:
-		flags = append(flags, specialuse.Drafts)
+		flags = append(flags, imap.DraftsAttr)
 	}
 
 	return flags

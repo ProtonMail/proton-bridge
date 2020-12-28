@@ -5,9 +5,10 @@
 package mocks
 
 import (
+	reflect "reflect"
+
 	pmapi "github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	gomock "github.com/golang/mock/gomock"
-	reflect "reflect"
 )
 
 // MockPanicHandler is a mock of PanicHandler interface
