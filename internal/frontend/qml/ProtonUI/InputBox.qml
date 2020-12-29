@@ -54,7 +54,6 @@ Column {
         color          : Style.dialog.text
         font {
             pointSize : Style.dialog.fontSize * Style.pt
-            family    : Style.fontawesome.name
         }
         background: Rectangle {
             color : Style.dialog.background

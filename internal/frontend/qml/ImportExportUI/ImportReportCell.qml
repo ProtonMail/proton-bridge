@@ -54,7 +54,6 @@ Rectangle {
         width : root.isHovered ? cellText.contentWidth   : root.width
         font {
             pointSize : Style.main.textSize * Style.pt
-            family    : Style.fontawesome.name
         }
     }
 

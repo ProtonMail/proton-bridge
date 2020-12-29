@@ -37,7 +37,6 @@ Row {
         text : qsTr("Add import label")
         font {
             bold: true
-            family: Style.fontawesome.name
             pointSize: Style.main.fontSize * Style.pt
         }
         color: Style.main.text
@@ -140,7 +139,6 @@ Row {
 
                 font {
                     pointSize: Style.main.fontSize * Style.pt
-                    family: Style.fontawesome.name
                 }
             }
 
