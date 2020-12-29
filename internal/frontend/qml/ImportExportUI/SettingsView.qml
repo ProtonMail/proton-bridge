@@ -20,17 +20,20 @@
 import QtQuick 2.8
 import ProtonUI 1.0
 import ImportExportUI 1.0
+import QtQuick.Controls 2.4
 
 Item {
     id: root
 
     // must have wrapper
-    Rectangle {
+    ScrollView {
         id: wrapper
         anchors.centerIn: parent
         width: parent.width
         height: parent.height
-        color: Style.main.background
+        background: Rectangle {
+            color: Style.main.background
+        }
 
         // horizontall scrollbar sometimes showes up when vertical scrollbar coveres content
         ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
