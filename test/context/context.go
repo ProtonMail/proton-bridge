@@ -19,6 +19,8 @@
 package context
 
 import (
+	"sync"
+
 	"github.com/ProtonMail/proton-bridge/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/internal/importexport"
 	"github.com/ProtonMail/proton-bridge/internal/transfer"
@@ -56,16 +58,18 @@ type TestContext struct {
 	lastError    error
 
 	// IMAP related variables.
-	imapAddr          string
-	imapServer        server
-	imapClients       map[string]*mocks.IMAPClient
-	imapLastResponses map[string]*mocks.IMAPResponse
+	imapAddr           string
+	imapServer         server
+	imapClients        map[string]*mocks.IMAPClient
+	imapLastResponses  map[string]*mocks.IMAPResponse
+	imapResponseLocker sync.Locker
 
 	// SMTP related variables.
-	smtpAddr          string
-	smtpServer        server
-	smtpClients       map[string]*mocks.SMTPClient
-	smtpLastResponses map[string]*mocks.SMTPResponse
+	smtpAddr           string
+	smtpServer         server
+	smtpClients        map[string]*mocks.SMTPClient
+	smtpLastResponses  map[string]*mocks.SMTPResponse
+	smtpResponseLocker sync.Locker
 
 	// Transfer related variables.
 	transferLocalRootForImport    string
@@ -102,8 +106,10 @@ func New(app string) *TestContext {
 		credStore:             newFakeCredStore(),
 		imapClients:           make(map[string]*mocks.IMAPClient),
 		imapLastResponses:     make(map[string]*mocks.IMAPResponse),
+		imapResponseLocker:    &sync.Mutex{},
 		smtpClients:           make(map[string]*mocks.SMTPClient),
 		smtpLastResponses:     make(map[string]*mocks.SMTPResponse),
+		smtpResponseLocker:    &sync.Mutex{},
 		bddMessageIDsToAPIIDs: make(map[string]string),
 		logger:                logrus.StandardLogger(),
 	}

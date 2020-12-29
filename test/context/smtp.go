@@ -72,10 +72,16 @@ func (ctx *TestContext) withSMTPServer() {
 
 // SetSMTPLastResponse sets the last SMTP response that was received.
 func (ctx *TestContext) SetSMTPLastResponse(handle string, resp *mocks.SMTPResponse) {
+	ctx.smtpResponseLocker.Lock()
+	defer ctx.smtpResponseLocker.Unlock()
+
 	ctx.smtpLastResponses[handle] = resp
 }
 
 // GetSMTPLastResponse returns the last IMAP response that was received.
 func (ctx *TestContext) GetSMTPLastResponse(handle string) *mocks.SMTPResponse {
+	ctx.smtpResponseLocker.Lock()
+	defer ctx.smtpResponseLocker.Unlock()
+
 	return ctx.smtpLastResponses[handle]
 }
