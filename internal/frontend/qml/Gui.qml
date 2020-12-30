@@ -164,7 +164,6 @@ Item {
 
         onNotifySilentUpdateRestartNeeded: {
             go.setUpdateState("updateRestart")
-            gui.openMainWindow(true)
         }
 
         onNotifySilentUpdateError: {
