@@ -34,6 +34,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * Bump gopenpgp dependency to v2.1.3 for improved memory usage.
 * GODT-912 Changed scroll bar behaviour in settings tab
 * GODT-149 Send heartbeat ASAP on each new calendar day.
+* GODT-792 GODT-908 Cache body structure in order to reduce network traffic.
 
 ### Removed
 * GODT-208 Remove deprecated use of BuildNameToCertificate.

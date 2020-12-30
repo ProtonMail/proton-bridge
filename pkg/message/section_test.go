@@ -18,7 +18,9 @@
 package message
 
 import (
+	"bytes"
 	"fmt"
+	"net/textproto"
 	"path/filepath"
 	"runtime"
 	"sort"
@@ -68,8 +70,8 @@ func TestParseBodyStructure(t *testing.T) {
 	debug("%10s: %-50s %5s %5s %5s %5s", "section", "type", "start", "size", "bsize", "lines")
 	for _, path := range paths {
 		sec := (*bs)[path]
-		contentType := sec.header.Get("Content-Type")
-		debug("%10s: %-50s %5d %5d %5d %5d", path, contentType, sec.start, sec.size, sec.bsize, sec.lines)
+		contentType := sec.Header.Get("Content-Type")
+		debug("%10s: %-50s %5d %5d %5d %5d", path, contentType, sec.Start, sec.Size, sec.BSize, sec.Lines)
 		require.Equal(t, expectedStructure[path], contentType)
 	}
 
@@ -88,7 +90,7 @@ func TestGetSection(t *testing.T) {
 		section, err := bs.GetSection(mailReader, try.path)
 		require.NoError(t, err)
 
-		debug("section %v: %d %d\n___\n%s\n‾‾‾\n", try.path, info.start, info.size, string(section))
+		debug("section %v: %d %d\n___\n%s\n‾‾‾\n", try.path, info.Start, info.Size, string(section))
 
 		require.True(t, string(section) == try.expectedSection, "not same as expected:\n___\n%s\n‾‾‾", try.expectedSection)
 	}
@@ -100,7 +102,7 @@ func TestGetSection(t *testing.T) {
 		section, err := bs.GetSectionContent(mailReader, try.path)
 		require.NoError(t, err)
 
-		debug("content %v: %d %d\n___\n%s\n‾‾‾\n", try.path, info.start+info.size-info.bsize, info.bsize, string(section))
+		debug("content %v: %d %d\n___\n%s\n‾‾‾\n", try.path, info.Start+info.Size-info.BSize, info.BSize, string(section))
 
 		require.True(t, string(section) == try.expectedBody, "not same as expected:\n___\n%s\n‾‾‾", try.expectedBody)
 	}
@@ -417,4 +419,38 @@ Content-Transfer-Encoding: base64
 
 `,
 	},
+}
+
+func TestBodyStructureSerialize(t *testing.T) {
+	r := require.New(t)
+	want := &BodyStructure{
+		"1": {
+			Header: textproto.MIMEHeader{
+				"Content": []string{"type"},
+			},
+			Start: 1,
+			Size:  2,
+			BSize: 3,
+			Lines: 4,
+		},
+		"1.1.1": {
+			Header: textproto.MIMEHeader{
+				"X-Pm-Key": []string{"id"},
+			},
+			Start:  11,
+			Size:   12,
+			BSize:  13,
+			Lines:  14,
+			reader: bytes.NewBuffer([]byte("this should not be serialized")),
+		},
+	}
+
+	raw, err := want.Serialize()
+	r.NoError(err)
+	have, err := DeserializeBodyStructure(raw)
+	r.NoError(err)
+
+	// Before compare remove reader (should not be serialized)
+	(*want)["1.1.1"].reader = nil
+	r.Equal(want, have)
 }

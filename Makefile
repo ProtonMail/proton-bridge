@@ -254,7 +254,8 @@ lint-license:
 	./utils/missing_license.sh check
 
 lint-changelog:
-	./utils/changelog_linter.sh
+	./utils/changelog_linter.sh Changelog.md
+	./utils/changelog_linter.sh unreleased.md
 
 lint-golang:
 	which golangci-lint || $(MAKE) install-linter

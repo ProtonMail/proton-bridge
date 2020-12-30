@@ -277,7 +277,7 @@ func (im *imapMailbox) SearchMessages(isUID bool, criteria *imap.SearchCriteria)
 	}
 
 	if criteria.Body != nil || criteria.Text != nil {
-		log.Warn("Body and Text criteria not applied.")
+		log.Warn("Body and Text criteria not applied")
 	}
 
 	var apiIDs []string

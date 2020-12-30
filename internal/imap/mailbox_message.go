@@ -240,7 +240,8 @@ func (im *imapMailbox) getMessage(storeMessage storeMessageProvider, items []ima
 			msg.Envelope = message.GetEnvelope(m)
 		case imap.FetchBody, imap.FetchBodyStructure:
 			var structure *message.BodyStructure
-			if structure, _, err = im.getBodyStructure(storeMessage); err != nil {
+			structure, err = im.getBodyStructure(storeMessage)
+			if err != nil {
 				return
 			}
 			if msg.BodyStructure, err = structure.IMAPBodyStructure([]int{}); err != nil {
@@ -264,7 +265,7 @@ func (im *imapMailbox) getMessage(storeMessage storeMessageProvider, items []ima
 			// on our part and we need to compute "real" size of decrypted data.
 			if m.Size <= 0 {
 				im.log.WithField("msgID", storeMessage.ID()).Trace("Size unknown - downloading body")
-				if _, _, err = im.getBodyStructure(storeMessage); err != nil {
+				if _, _, err = im.getBodyAndStructure(storeMessage); err != nil {
 					return
 				}
 			}
@@ -299,7 +300,24 @@ func (im *imapMailbox) getLiteralForSection(itemSection imap.FetchItem, msg *ima
 	return nil
 }
 
-func (im *imapMailbox) getBodyStructure(storeMessage storeMessageProvider) (
+func (im *imapMailbox) getBodyStructure(storeMessage storeMessageProvider) (bs *message.BodyStructure, err error) {
+	// Apple Mail requests body structure for all
+	// messages irregularly. We cache bodystructure in
+	// local database in order to not re-download all
+	// messages from server.
+	bs, err = storeMessage.GetBodyStructure()
+	if err != nil {
+		im.log.WithError(err).Debug("Fail to retrieve bodystructure from database")
+	}
+	if bs == nil {
+		if bs, _, err = im.getBodyAndStructure(storeMessage); err != nil {
+			return
+		}
+	}
+	return
+}
+
+func (im *imapMailbox) getBodyAndStructure(storeMessage storeMessageProvider) (
 	structure *message.BodyStructure,
 	bodyReader *bytes.Reader, err error,
 ) {
@@ -324,6 +342,11 @@ func (im *imapMailbox) getBodyStructure(storeMessage storeMessageProvider) (
 			}
 			// Drafts can change and we don't want to cache them.
 			if !isMessageInDraftFolder(m) {
+				if err := storeMessage.SetBodyStructure(structure); err != nil {
+					im.log.WithError(err).
+						WithField("msgID", m.ID).
+						Warn("Cannot update bodystructure while building")
+				}
 				cache.SaveMail(id, body, structure)
 			}
 			bodyReader = bytes.NewReader(body)
@@ -380,7 +403,7 @@ func (im *imapMailbox) getMessageBodySection(storeMessage storeMessageProvider, 
 		}
 	} else {
 		// The rest of cases need download and decrypt.
-		structure, bodyReader, err = im.getBodyStructure(storeMessage)
+		structure, bodyReader, err = im.getBodyAndStructure(storeMessage)
 		if err != nil {
 			return
 		}

@@ -214,7 +214,7 @@ func (iu *imapUpdates) sendIMAPUpdate(update goIMAPBackend.Update, block bool) {
 	select {
 	case <-done:
 	case <-time.After(1 * time.Second):
-		log.Warn("IMAP update could not be delivered (timeout).")
+		log.Warn("IMAP update could not be delivered (timeout)")
 		return
 	}
 }

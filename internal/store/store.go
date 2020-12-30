@@ -71,16 +71,17 @@ var (
 	//       * {messageID} -> uint32 imapUID
 	//     * deleted_ids (can be missing or have no keys)
 	//       * {messageID} -> true
-	metadataBucket    = []byte("metadata")          //nolint[gochecknoglobals]
-	countsBucket      = []byte("counts")            //nolint[gochecknoglobals]
-	addressInfoBucket = []byte("address_info")      //nolint[gochecknoglobals]
-	addressModeBucket = []byte("address_mode")      //nolint[gochecknoglobals]
-	syncStateBucket   = []byte("sync_state")        //nolint[gochecknoglobals]
-	mailboxesBucket   = []byte("mailboxes")         //nolint[gochecknoglobals]
-	imapIDsBucket     = []byte("imap_ids")          //nolint[gochecknoglobals]
-	apiIDsBucket      = []byte("api_ids")           //nolint[gochecknoglobals]
-	deletedIDsBucket  = []byte("deleted_ids")       //nolint[gochecknoglobals]
-	mboxVersionBucket = []byte("mailboxes_version") //nolint[gochecknoglobals]
+	metadataBucket      = []byte("metadata")          //nolint[gochecknoglobals]
+	bodystructureBucket = []byte("bodystructure")     //nolint[gochecknoglobals]
+	countsBucket        = []byte("counts")            //nolint[gochecknoglobals]
+	addressInfoBucket   = []byte("address_info")      //nolint[gochecknoglobals]
+	addressModeBucket   = []byte("address_mode")      //nolint[gochecknoglobals]
+	syncStateBucket     = []byte("sync_state")        //nolint[gochecknoglobals]
+	mailboxesBucket     = []byte("mailboxes")         //nolint[gochecknoglobals]
+	imapIDsBucket       = []byte("imap_ids")          //nolint[gochecknoglobals]
+	apiIDsBucket        = []byte("api_ids")           //nolint[gochecknoglobals]
+	deletedIDsBucket    = []byte("deleted_ids")       //nolint[gochecknoglobals]
+	mboxVersionBucket   = []byte("mailboxes_version") //nolint[gochecknoglobals]
 
 	// ErrNoSuchAPIID when mailbox does not have API ID.
 	ErrNoSuchAPIID = errors.New("no such api id") //nolint[gochecknoglobals]
@@ -190,6 +191,10 @@ func openBoltDatabase(filePath string) (db *bolt.DB, err error) {
 
 	tx := func(tx *bolt.Tx) (err error) {
 		if _, err = tx.CreateBucketIfNotExists(metadataBucket); err != nil {
+			return
+		}
+
+		if _, err = tx.CreateBucketIfNotExists(bodystructureBucket); err != nil {
 			return
 		}
 

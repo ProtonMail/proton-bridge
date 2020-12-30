@@ -64,6 +64,8 @@ require (
 	github.com/therecipe/qt v0.0.0-20200701200531-7f61353ee73e
 	github.com/twinj/uuid v1.0.0 // indirect
 	github.com/urfave/cli/v2 v2.2.0
+	github.com/urfave/cli v1.22.4
+	github.com/vmihailenco/msgpack/v5 v5.1.3
 	go.etcd.io/bbolt v1.3.5
 	golang.org/x/net v0.0.0-20200707034311-ab3426394381
 	golang.org/x/text v0.3.5-0.20201125200606-c27b9fd57aec
