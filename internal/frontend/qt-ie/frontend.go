@@ -412,9 +412,9 @@ func (f *FrontendQt) startManualUpdate() {
 		if err != nil {
 			logrus.WithError(err).Error("An error occurred while installing updates manually")
 			f.Qml.NotifyManualUpdateError()
+		} else {
+			f.Qml.NotifyManualUpdateRestartNeeded()
 		}
-
-		f.Qml.NotifyManualUpdateRestartNeeded()
 	}()
 }
 
