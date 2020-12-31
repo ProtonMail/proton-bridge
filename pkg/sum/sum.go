@@ -19,51 +19,63 @@ package sum
 
 import (
 	"crypto/sha512"
+	"encoding/base64"
 	"io"
 	"os"
 	"path/filepath"
+
+	"github.com/sirupsen/logrus"
 )
 
 // RecursiveSum computes the sha512 sum of all files in the root directory and descendents.
-// If a skipFile is provided (e.g. the path of a checksum file relative to rootDir), it (and its signature) is ignored.
+// If a skipFile is provided (e.g. the path of a checksum file relative to
+// rootDir), it (and its signature) is ignored.
 func RecursiveSum(rootDir, skipFileName string) ([]byte, error) {
 	hash := sha512.New()
-
+	// In windows filepath accepts both delimiters `\` and `/`. In order to
+	// to properly skip file we have to choose one native delimiter.
+	rootDir = filepath.FromSlash(rootDir)
 	skipFile := filepath.Join(rootDir, skipFileName)
 	skipFileSig := skipFile + ".sig"
 
 	if err := filepath.Walk(rootDir, func(path string, info os.FileInfo, err error) error {
+		log := logrus.
+			WithField("path", path).
+			WithField("sum", base64.StdEncoding.EncodeToString(hash.Sum([]byte{})))
+		log.Debug("Next file")
 		if err != nil {
+			log.WithError(err).Error("Walk failed")
 			return err
 		}
-
 		if info.IsDir() {
+			log.Debug("Skip dir")
 			return nil
 		}
 
 		// The hashfile itself isn't included in the hash.
 		if path == skipFile || path == skipFileSig {
+			log.Debug("Skip file")
 			return nil
 		}
 
 		rel, err := filepath.Rel(rootDir, path)
 		if err != nil {
+			log.WithError(err).Error("Failed to find relative path")
 			return err
 		}
-
 		if _, err := hash.Write([]byte(rel)); err != nil {
+			log.WithError(err).Error("Failed to write path")
 			return err
 		}
-
 		f, err := os.Open(path) // nolint[gosec]
 		if err != nil {
+			log.WithError(err).Error("Failed to open file")
 			return err
 		}
-
 		if _, err := io.Copy(hash, f); err != nil {
+			log.WithError(err).Error("Copy to hash failed")
 			return err
 		}
-
 		return f.Close()
 	}); err != nil {
 		return nil, err

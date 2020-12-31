@@ -26,6 +26,7 @@ import (
 )
 
 func main() {
+	logrus.SetLevel(logrus.DebugLevel)
 	if err := createApp().Run(os.Args); err != nil {
 		logrus.Fatal(err)
 	}
@@ -56,7 +57,7 @@ func createApp() *cli.App { // nolint[funlen]
 }
 
 func computeSum(c *cli.Context) error {
-	b, err := sum.RecursiveSum(c.String("root"), "")
+	b, err := sum.RecursiveSum(c.String("root"), c.String("output"))
 	if err != nil {
 		return err
 	}
