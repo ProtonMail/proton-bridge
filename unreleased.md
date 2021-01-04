@@ -32,9 +32,13 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-854 EXPUNGE and FETCH unilateral responses are returned before OK EXPUNGE or OK STORE, respectively.
 * GODT-806 Changed GUI dialog on manual update. Added autoupdates checkbox. Simplifyed installation process GUI.
 * Bump gopenpgp dependency to v2.1.3 for improved memory usage.
-* GODT-912 Changed scroll bar behaviour in settings tab
+* GODT-912 Changed scroll bar behaviour in settings tab.
 * GODT-149 Send heartbeat ASAP on each new calendar day.
 * GODT-792 GODT-908 Cache body structure in order to reduce network traffic.
+* GODT-792 Stop IMAP server while no internet connection.
+* GODT-792 Cache message size every time to reduce network traffic.
+* GODT-792 Cache body structure in order to reduce network traffic.
+* GODT-908 Do not unpause event loop if other mailbox is still fetching.
 
 ### Removed
 * GODT-208 Remove deprecated use of BuildNameToCertificate.
@@ -47,7 +51,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-898 Only set ContentID for inline attachments.
 * GODT-773 Replace `INTERNALDATE` older than birthday of RFC822 by birthday of RFC822 to not crash Apple Mail.
 * GODT-927 Avoid to call API with empty label name.
-* GODT-732 Fix usage of fontawesome
+* GODT-732 Fix usage of fontawesome.
 * GODT-915 Bump go-imap dependency and remove go-imap-specialuse dependency.
 * GODT-831 Cancel request of uploading attachment if reading/writing it fails.
 

@@ -27,7 +27,7 @@ import (
 	"strings"
 
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
-	backendMessage "github.com/ProtonMail/proton-bridge/pkg/message"
+	pkgMsg "github.com/ProtonMail/proton-bridge/pkg/message"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -171,7 +171,7 @@ func (store *Store) txPutMessage(metaBucket *bolt.Bucket, onlyMeta *pmapi.Messag
 	return nil
 }
 
-func (store *Store) txPutBodyStructure(bsBucket *bolt.Bucket, msgID string, bs *backendMessage.BodyStructure) error {
+func (store *Store) txPutBodyStructure(bsBucket *bolt.Bucket, msgID string, bs *pkgMsg.BodyStructure) error {
 	raw, err := bs.Serialize()
 	if err != nil {
 		return err
@@ -183,12 +183,12 @@ func (store *Store) txPutBodyStructure(bsBucket *bolt.Bucket, msgID string, bs *
 	return nil
 }
 
-func (store *Store) txGetBodyStructure(bsBucket *bolt.Bucket, msgID string) (*backendMessage.BodyStructure, error) {
+func (store *Store) txGetBodyStructure(bsBucket *bolt.Bucket, msgID string) (*pkgMsg.BodyStructure, error) {
 	raw := bsBucket.Get([]byte(msgID))
 	if len(raw) == 0 {
 		return nil, nil
 	}
-	return backendMessage.DeserializeBodyStructure(raw)
+	return pkgMsg.DeserializeBodyStructure(raw)
 }
 
 // createOrUpdateMessageEvent is helper to create only one message with

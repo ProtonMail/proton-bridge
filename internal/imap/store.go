@@ -24,7 +24,7 @@ import (
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/ProtonMail/proton-bridge/internal/imap/uidplus"
 	"github.com/ProtonMail/proton-bridge/internal/store"
-	backendMessage "github.com/ProtonMail/proton-bridge/pkg/message"
+	pkgMsg "github.com/ProtonMail/proton-bridge/pkg/message"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 )
 
@@ -100,8 +100,8 @@ type storeMessageProvider interface {
 
 	SetSize(int64) error
 	SetContentTypeAndHeader(string, mail.Header) error
-	SetBodyStructure(*backendMessage.BodyStructure) error
-	GetBodyStructure() (*backendMessage.BodyStructure, error)
+	SetBodyStructure(*pkgMsg.BodyStructure) error
+	GetBodyStructure() (*pkgMsg.BodyStructure, error)
 }
 
 type storeUserWrap struct {

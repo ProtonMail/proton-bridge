@@ -21,7 +21,7 @@ import (
 	"fmt"
 	"sync"
 
-	pkgMessage "github.com/ProtonMail/proton-bridge/pkg/message"
+	pkgMsg "github.com/ProtonMail/proton-bridge/pkg/message"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -153,7 +153,7 @@ func (p *PMAPIProvider) exportMessage(rule *Rule, progress *Progress, pmapiMsgID
 	p.timeIt.start("build", msgID)
 	defer p.timeIt.stop("build", msgID)
 
-	msgBuilder := pkgMessage.NewBuilder(p.client(), msg)
+	msgBuilder := pkgMsg.NewBuilder(p.client(), msg)
 	msgBuilder.EncryptedToHTML = false
 	_, body, err := msgBuilder.BuildMessage()
 	if err != nil {

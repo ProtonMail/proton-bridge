@@ -290,8 +290,10 @@ gofiles: ./internal/bridge/credits.go ./internal/importexport/credits.go
 ## Run and debug
 .PHONY: run run-qt run-qt-cli run-nogui run-nogui-cli run-debug run-qml-preview run-ie-qml-preview run-ie run-ie-qt run-ie-qt-cli run-ie-nogui run-ie-nogui-cli clean-vendor clean-frontend-qt clean-frontend-qt-ie clean-frontend-qt-common clean
 
-VERBOSITY?=debug
-RUN_FLAGS:=-m -l=${VERBOSITY}
+LOG?=debug
+LOG_IMAP?=client # client/server/all, or empty to turn it off
+LOG_SMTP?=--log-smtp # empty to turn it off
+RUN_FLAGS?=-m -l=${LOG} --log-imap=${LOG_IMAP} ${LOG_SMTP}
 
 run: run-nogui-cli
 

@@ -103,7 +103,7 @@ func (mocks *mocksForStore) newStoreNoEvents(combinedMode bool, msgs ...*pmapi.M
 		{ID: addrID1, Email: addr1, Type: pmapi.OriginalAddress, Receive: pmapi.CanReceive},
 		{ID: addrID2, Email: addr2, Type: pmapi.AliasAddress, Receive: pmapi.CanReceive},
 	})
-	mocks.client.EXPECT().ListLabels()
+	mocks.client.EXPECT().ListLabels().AnyTimes()
 	mocks.client.EXPECT().CountMessages("")
 
 	// Call to get latest event ID and then to process first event.

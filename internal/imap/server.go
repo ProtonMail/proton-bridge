@@ -23,6 +23,7 @@ import (
 	"io"
 	"net"
 	"strings"
+	"sync/atomic"
 	"time"
 
 	imapid "github.com/ProtonMail/go-imap-id"
@@ -31,6 +32,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/internal/imap/id"
 	"github.com/ProtonMail/proton-bridge/internal/imap/uidplus"
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
+	"github.com/ProtonMail/proton-bridge/pkg/ports"
 	"github.com/emersion/go-imap"
 	imapappendlimit "github.com/emersion/go-imap-appendlimit"
 	imapidle "github.com/emersion/go-imap-idle"
@@ -48,6 +50,8 @@ type imapServer struct {
 	eventListener listener.Listener
 	debugClient   bool
 	debugServer   bool
+	port          int
+	isRunning     atomic.Value
 }
 
 // NewIMAPServer constructs a new IMAP server configured with the given options.
@@ -96,13 +100,16 @@ func NewIMAPServer(panicHandler panicHandler, debugClient, debugServer bool, por
 		uidplus.NewExtension(),
 	)
 
-	return &imapServer{
+	server := &imapServer{
 		panicHandler:  panicHandler,
 		server:        s,
 		eventListener: eventListener,
 		debugClient:   debugClient,
 		debugServer:   debugServer,
+		port:          port,
 	}
+	server.isRunning.Store(false)
+	return server
 }
 
 // Starts the server.
@@ -114,6 +121,11 @@ func (s *imapServer) ListenAndServe() {
 }
 
 func (s *imapServer) listenAndServe() {
+	if s.isRunning.Load().(bool) {
+		return
+	}
+	s.isRunning.Store(true)
+
 	log.Info("IMAP server listening at ", s.server.Addr)
 	l, err := net.Listen("tcp", s.server.Addr)
 	if err != nil {
@@ -126,19 +138,13 @@ func (s *imapServer) listenAndServe() {
 		Listener: l,
 		server:   s,
 	})
-	if err != nil {
-		failed := true
-		if netErr, ok := err.(*net.OpError); ok {
-			originalErr := netErr.Unwrap()
-			if originalErr != nil && originalErr.Error() == "use of closed network connection" {
-				failed = false
-			}
-		}
-		if failed {
-			s.eventListener.Emit(events.ErrorEvent, "IMAP failed: "+err.Error())
-			log.Error("IMAP failed: ", err)
-			return
-		}
+	// Serve returns error every time, even after closing the server.
+	// User shouldn't be notified about error if server shouldn't be running,
+	// but it should in case it was not closed by `s.Close()`.
+	if err != nil && s.isRunning.Load().(bool) {
+		s.eventListener.Emit(events.ErrorEvent, "IMAP failed: "+err.Error())
+		log.Error("IMAP failed: ", err)
+		return
 	}
 	defer s.server.Close() //nolint[errcheck]
 
@@ -147,6 +153,11 @@ func (s *imapServer) listenAndServe() {
 
 // Stops the server.
 func (s *imapServer) Close() {
+	if !s.isRunning.Load().(bool) {
+		return
+	}
+	s.isRunning.Store(false)
+
 	log.Info("Closing IMAP server")
 	if err := s.server.Close(); err != nil {
 		log.WithError(err).Error("Failed to close the connection")
@@ -159,29 +170,32 @@ func (s *imapServer) monitorInternetConnection() {
 	off := make(chan string)
 	s.eventListener.Add(events.InternetOffEvent, off)
 
-	isOn := true
 	for {
+		var expectedIsPortFree bool
 		select {
 		case <-on:
-			if isOn {
-				continue
-			}
-			isOn = true
 			go func() {
 				defer s.panicHandler.HandlePanic()
 				s.listenAndServe()
 			}()
+			expectedIsPortFree = false
 		case <-off:
-			if !isOn {
-				continue
-			}
-			isOn = false
 			s.Close()
+			expectedIsPortFree = true
 		}
-		// Give it some time to serve or close server before changing it again.
-		// E.g., if we get quickly off-on signal, starting or closing could
-		// fail because server is still running or not yet, respectively.
-		time.Sleep(10 * time.Second)
+
+		start := time.Now()
+		for {
+			if ports.IsPortFree(s.port) == expectedIsPortFree {
+				break
+			}
+			// Safety stop if something went wrong.
+			if time.Since(start) > 15*time.Second {
+				log.WithField("expectedIsPortFree", expectedIsPortFree).Warn("Server start/stop check timeouted")
+				break
+			}
+			time.Sleep(100 * time.Millisecond)
+		}
 	}
 }
 

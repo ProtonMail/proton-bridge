@@ -51,6 +51,8 @@ var (
 	// Database structure:
 	// * metadata
 	//   * {messageID} -> message data (subject, from, to, time, headers, body size, ...)
+	// * bodystructure
+	//   * {messageID} -> message body structure
 	// * counts
 	//   * {mailboxID} -> mailboxCounts: totalOnAPI, unreadOnAPI, labelName, labelColor, labelIsExclusive
 	// * address_info

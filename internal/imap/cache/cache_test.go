@@ -22,11 +22,11 @@ import (
 	"testing"
 	"time"
 
-	bckMsg "github.com/ProtonMail/proton-bridge/pkg/message"
+	pkgMsg "github.com/ProtonMail/proton-bridge/pkg/message"
 	"github.com/stretchr/testify/require"
 )
 
-var bs = &bckMsg.BodyStructure{} //nolint[gochecknoglobals]
+var bs = &pkgMsg.BodyStructure{} //nolint[gochecknoglobals]
 const testUID = "testmsg"
 
 func TestSaveAndLoad(t *testing.T) {

@@ -328,11 +328,20 @@ func (im *imapMailbox) getBodyAndStructure(storeMessage storeMessageProvider) (
 		var body []byte
 		structure, body, err = im.buildMessage(m)
 		m.Size = int64(len(body))
+		// Save size and body structure even for messages unable to decrypt
+		// so the size or body structure doesn't have to be computed every time.
 		if err := storeMessage.SetSize(m.Size); err != nil {
 			im.log.WithError(err).
 				WithField("newSize", m.Size).
 				WithField("msgID", m.ID).
 				Warn("Cannot update size while building")
+		}
+		if structure != nil && !isMessageInDraftFolder(m) {
+			if err := storeMessage.SetBodyStructure(structure); err != nil {
+				im.log.WithError(err).
+					WithField("msgID", m.ID).
+					Warn("Cannot update bodystructure while building")
+			}
 		}
 		if err == nil && structure != nil && len(body) > 0 {
 			if err := storeMessage.SetContentTypeAndHeader(m.MIMEType, m.Header); err != nil {
@@ -342,11 +351,6 @@ func (im *imapMailbox) getBodyAndStructure(storeMessage storeMessageProvider) (
 			}
 			// Drafts can change and we don't want to cache them.
 			if !isMessageInDraftFolder(m) {
-				if err := storeMessage.SetBodyStructure(structure); err != nil {
-					im.log.WithError(err).
-						WithField("msgID", m.ID).
-						Warn("Cannot update bodystructure while building")
-				}
 				cache.SaveMail(id, body, structure)
 			}
 			bodyReader = bytes.NewReader(body)

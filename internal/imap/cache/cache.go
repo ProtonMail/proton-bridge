@@ -23,7 +23,7 @@ import (
 	"sync"
 	"time"
 
-	backendMessage "github.com/ProtonMail/proton-bridge/pkg/message"
+	pkgMsg "github.com/ProtonMail/proton-bridge/pkg/message"
 )
 
 type key struct {
@@ -41,7 +41,7 @@ func (s oldestFirst) Less(i, j int) bool { return s[i].Timestamp < s[j].Timestam
 type cachedMessage struct {
 	key
 	data      []byte
-	structure backendMessage.BodyStructure
+	structure pkgMsg.BodyStructure
 }
 
 //nolint[gochecknoglobals]
@@ -101,7 +101,7 @@ func BuildUnlock(messageID string) {
 	delete(buildLocks, messageID)
 }
 
-func LoadMail(mID string) (reader *bytes.Reader, structure *backendMessage.BodyStructure) {
+func LoadMail(mID string) (reader *bytes.Reader, structure *pkgMsg.BodyStructure) {
 	reader = &bytes.Reader{}
 	cacheMutex.Lock()
 	defer cacheMutex.Unlock()
@@ -115,7 +115,7 @@ func LoadMail(mID string) (reader *bytes.Reader, structure *backendMessage.BodyS
 	return
 }
 
-func SaveMail(mID string, msg []byte, structure *backendMessage.BodyStructure) {
+func SaveMail(mID string, msg []byte, structure *pkgMsg.BodyStructure) {
 	cacheMutex.Lock()
 	defer cacheMutex.Unlock()
 

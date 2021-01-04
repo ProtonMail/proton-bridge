@@ -132,7 +132,9 @@ func (cm *ClientManager) noConnection() {
 	}
 
 	cm.log.Warn("Connection lost")
-	cm.config.ConnectionOffHandler()
+	if cm.config.ConnectionOffHandler != nil {
+		cm.config.ConnectionOffHandler()
+	}
 	cm.connectionOff = true
 
 	go func() {
@@ -141,7 +143,9 @@ func (cm *ClientManager) noConnection() {
 
 			if err := cm.CheckConnection(); err == nil {
 				cm.log.Info("Connection re-established")
-				cm.config.ConnectionOnHandler()
+				if cm.config.ConnectionOnHandler != nil {
+					cm.config.ConnectionOnHandler()
+				}
 				cm.connectionOff = false
 				return
 			}
