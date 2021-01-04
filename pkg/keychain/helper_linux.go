@@ -31,7 +31,7 @@ const (
 )
 
 func init() { // nolint[noinit]
-	Helpers = make(map[string]helper)
+	Helpers = make(map[string]helperConstructor)
 
 	if _, err := exec.LookPath("pass"); err == nil {
 		Helpers[Pass] = newPassHelper

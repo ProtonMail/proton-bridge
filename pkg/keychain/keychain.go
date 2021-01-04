@@ -28,8 +28,8 @@ import (
 	"github.com/docker/docker-credential-helpers/credentials"
 )
 
-// helper constructs a keychain helper.
-type helper func(string) (credentials.Helper, error)
+// helperConstructor constructs a keychain helperConstructor.
+type helperConstructor func(string) (credentials.Helper, error)
 
 // Version is the keychain data version.
 const Version = "k11"
@@ -39,7 +39,7 @@ var (
 	ErrNoKeychain = errors.New("no keychain") // nolint[noglobals]
 
 	// Helpers holds all discovered keychain helpers. It is populated in init().
-	Helpers map[string]helper // nolint[noglobals]
+	Helpers map[string]helperConstructor // nolint[noglobals]
 )
 
 // NewKeychain creates a new native keychain.
@@ -109,6 +109,7 @@ func (kc *Keychain) Delete(userID string) (err error) {
 	return kc.helper.Delete(kc.secretURL(userID))
 }
 
+// Get returns the username and secret for the given userID.
 func (kc *Keychain) Get(userID string) (string, string, error) {
 	kc.locker.Lock()
 	defer kc.locker.Unlock()

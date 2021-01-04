@@ -25,7 +25,7 @@ import (
 const WindowsCredentials = "windows-credentials"
 
 func init() { // nolint[noinit]
-	Helpers = make(map[string]helper)
+	Helpers = make(map[string]helperConstructor)
 
 	// Windows always provides a keychain.
 	Helpers[WindowsCredentials] = newWinCredHelper

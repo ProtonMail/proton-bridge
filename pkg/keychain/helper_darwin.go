@@ -31,7 +31,7 @@ const (
 )
 
 func init() { // nolint[noinit]
-	Helpers = make(map[string]helper)
+	Helpers = make(map[string]helperConstructor)
 
 	// MacOS always provides a keychain.
 	Helpers[MacOSKeychain] = newMacOSHelper
