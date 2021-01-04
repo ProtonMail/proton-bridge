@@ -77,7 +77,7 @@ func (f *frontendCLI) showAccountAddressInfo(user types.User, address string) {
 		"STARTTLS",
 	)
 	f.Println("")
-	f.Printf("SMTP Settings\nAddress:   %s\nIMAP port: %d\nUsername:  %s\nPassword:  %s\nSecurity:  %s\n",
+	f.Printf("SMTP Settings\nAddress:   %s\nSMTP port: %d\nUsername:  %s\nPassword:  %s\nSecurity:  %s\n",
 		bridge.Host,
 		f.preferences.GetInt(preferences.SMTPPortKey),
 		address,
