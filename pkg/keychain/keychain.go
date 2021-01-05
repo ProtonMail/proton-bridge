@@ -21,7 +21,6 @@ package keychain
 import (
 	"errors"
 	"fmt"
-	"reflect"
 	"sync"
 
 	"github.com/ProtonMail/proton-bridge/internal/config/settings"
@@ -40,6 +39,9 @@ var (
 
 	// Helpers holds all discovered keychain helpers. It is populated in init().
 	Helpers map[string]helperConstructor // nolint[noglobals]
+
+	// defaultHelper is the default helper to use if the user hasn't yet set a preference.
+	defaultHelper string // nolint[noglobals]
 )
 
 // NewKeychain creates a new native keychain.
@@ -52,13 +54,20 @@ func NewKeychain(s *settings.Settings, keychainName string) (*Keychain, error) {
 	// hostURL uniquely identifies the app's keychain items within the system keychain.
 	hostURL := fmt.Sprintf("protonmail/%v/users", keychainName)
 
-	// If the preferred keychain is unsupported, set a default one.
+	// If the preferred keychain is unsupported, fallback to the default one.
+	// NOTE: Maybe we want to error out here and show something in the GUI instead?
 	if _, ok := Helpers[s.Get(settings.PreferredKeychainKey)]; !ok {
-		s.Set(settings.PreferredKeychainKey, reflect.ValueOf(Helpers).MapKeys()[0].Interface().(string))
+		s.Set(settings.PreferredKeychainKey, defaultHelper)
 	}
 
 	// Load the user's preferred keychain helper.
-	helper, err := Helpers[s.Get(settings.PreferredKeychainKey)](hostURL)
+	helperConstructor, ok := Helpers[s.Get(settings.PreferredKeychainKey)]
+	if !ok {
+		return nil, ErrNoKeychain
+	}
+
+	// Construct the keychain helper.
+	helper, err := helperConstructor(hostURL)
 	if err != nil {
 		return nil, err
 	}

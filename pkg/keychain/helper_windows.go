@@ -29,6 +29,9 @@ func init() { // nolint[noinit]
 
 	// Windows always provides a keychain.
 	Helpers[WindowsCredentials] = newWinCredHelper
+
+	// Use WindowsCredentials by default.
+	defaultHelper = WindowsCredentials
 }
 
 func newWinCredHelper(string) (credentials.Helper, error) {
