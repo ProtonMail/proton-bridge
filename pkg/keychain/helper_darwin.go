@@ -37,7 +37,7 @@ func init() { // nolint[noinit]
 	Helpers[MacOSKeychain] = newMacOSHelper
 
 	// Use MacOSKeychain by default.
-	defaultHelper = WindowsCredentials
+	defaultHelper = MacOSKeychain
 }
 
 func newMacOSHelper(url string) (credentials.Helper, error) {
