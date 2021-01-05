@@ -102,9 +102,18 @@ func (kc *Keychain) List() ([]string, error) {
 	return userIDs, nil
 }
 
-func (kc *Keychain) Delete(userID string) (err error) {
+func (kc *Keychain) Delete(userID string) error {
 	kc.locker.Lock()
 	defer kc.locker.Unlock()
+
+	userIDsByURL, err := kc.helper.List()
+	if err != nil {
+		return err
+	}
+
+	if _, ok := userIDsByURL[kc.secretURL(userID)]; !ok {
+		return nil
+	}
 
 	return kc.helper.Delete(kc.secretURL(userID))
 }
