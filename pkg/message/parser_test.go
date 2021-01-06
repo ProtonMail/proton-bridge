@@ -31,6 +31,36 @@ import (
 	"golang.org/x/text/encoding/charmap"
 )
 
+func TestParseLongHeaderLine(t *testing.T) {
+	f := getFileReader("long_header_line.eml")
+
+	m, _, plainBody, attReaders, err := Parse(f)
+	require.NoError(t, err)
+
+	assert.Equal(t, `"Sender" <sender@pm.me>`, m.Sender.String())
+	assert.Equal(t, `"Receiver" <receiver@pm.me>`, m.ToList[0].String())
+
+	assert.Equal(t, "body", m.Body)
+	assert.Equal(t, "body", plainBody)
+
+	assert.Len(t, attReaders, 0)
+}
+
+func TestParseLongHeaderLineMultiline(t *testing.T) {
+	f := getFileReader("long_header_line_multiline.eml")
+
+	m, _, plainBody, attReaders, err := Parse(f)
+	require.NoError(t, err)
+
+	assert.Equal(t, `"Sender" <sender@pm.me>`, m.Sender.String())
+	assert.Equal(t, `"Receiver" <receiver@pm.me>`, m.ToList[0].String())
+
+	assert.Equal(t, "body", m.Body)
+	assert.Equal(t, "body", plainBody)
+
+	assert.Len(t, attReaders, 0)
+}
+
 func TestParseTextPlain(t *testing.T) {
 	f := getFileReader("text_plain.eml")
 

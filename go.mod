@@ -35,10 +35,10 @@ require (
 	github.com/emersion/go-imap-specialuse v0.0.0-20200722111535-598ff00e4075
 	github.com/emersion/go-imap-unselect v0.0.0-20171113212723-b985794e5f26
 	github.com/emersion/go-mbox v1.0.2
-	github.com/emersion/go-message v0.12.1-0.20200903165315-e1abe21f389a
+	github.com/emersion/go-message v0.12.1-0.20201221184100-40c3f864532b
 	github.com/emersion/go-sasl v0.0.0-20200509203442-7bfe0ed36a21
 	github.com/emersion/go-smtp v0.14.0
-	github.com/emersion/go-textwrapper v0.0.0-20160606182133-d0e65e56babe
+	github.com/emersion/go-textwrapper v0.0.0-20200911093747-65d896831594
 	github.com/emersion/go-vcard v0.0.0-20190105225839-8856043f13c5 // indirect
 	github.com/fatih/color v1.9.0
 	github.com/flynn-archive/go-shlex v0.0.0-20150515145356-3f9db97f8568 // indirect
@@ -68,7 +68,7 @@ require (
 	github.com/urfave/cli v1.22.4
 	go.etcd.io/bbolt v1.3.5
 	golang.org/x/net v0.0.0-20200707034311-ab3426394381
-	golang.org/x/text v0.3.3
+	golang.org/x/text v0.3.5-0.20201125200606-c27b9fd57aec
 	gopkg.in/stretchr/testify.v1 v1.2.2 // indirect
 )
 

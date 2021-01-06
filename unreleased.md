@@ -14,7 +14,8 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-773 Replace old dates with birthday of RFC822 to not crash Apple Mail. Original is available under `X-Original-Date` header.
 * GODT-922 Fix panic during restarting the bridge.
 * GODT-945 Fix panic in integration tests caused by concurrent map writes.
-* GODT-732 Fix usage of fontawesome
+* GODT-732 Fix usage of fontawesome.
+* GODT-951 Properly parse message with long lines in header and long header split to multiple lines (upgrading to latest go-message).
 
 ### Changed
 * GODT-858 Bump go-rfc5322 dependency to v0.5.0 to handle some invalid RFC5322 groups and add support for semicolon delimiter in address-list.
