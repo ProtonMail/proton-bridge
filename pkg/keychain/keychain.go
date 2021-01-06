@@ -51,9 +51,6 @@ func NewKeychain(s *settings.Settings, keychainName string) (*Keychain, error) {
 		return nil, ErrNoKeychain
 	}
 
-	// hostURL uniquely identifies the app's keychain items within the system keychain.
-	hostURL := fmt.Sprintf("protonmail/%v/users", keychainName)
-
 	// If the preferred keychain is unsupported, fallback to the default one.
 	// NOTE: Maybe we want to error out here and show something in the GUI instead?
 	if _, ok := Helpers[s.Get(settings.PreferredKeychainKey)]; !ok {
@@ -67,12 +64,17 @@ func NewKeychain(s *settings.Settings, keychainName string) (*Keychain, error) {
 	}
 
 	// Construct the keychain helper.
-	helper, err := helperConstructor(hostURL)
+	helper, err := helperConstructor(hostURL(keychainName))
 	if err != nil {
 		return nil, err
 	}
 
-	return newKeychain(helper, hostURL), nil
+	return newKeychain(helper, hostURL(keychainName)), nil
+}
+
+// hostURL uniquely identifies the app's keychain items within the system keychain.
+func hostURL(keychainName string) string {
+	return fmt.Sprintf("protonmail/%v/users", keychainName)
 }
 
 func newKeychain(helper credentials.Helper, url string) *Keychain {
