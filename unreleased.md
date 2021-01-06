@@ -13,6 +13,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-945 Fix panic in integration tests caused by concurrent map writes.
 * GODT-732 Fix usage of fontawesome.
 * GODT-951 Properly parse message with long lines in header and long header split to multiple lines (upgrading to latest go-message).
+* GODT-894 Fix panic when sending while account is logging in.
 
 ### Changed
 * GODT-858 Bump go-rfc5322 dependency to v0.5.0 to handle some invalid RFC5322 groups and add support for semicolon delimiter in address-list.
