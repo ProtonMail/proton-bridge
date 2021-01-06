@@ -229,6 +229,12 @@ func (im *imapMailbox) getMessage(storeMessage storeMessageProvider, items []ima
 			}
 		case imap.FetchInternalDate:
 			msg.InternalDate = time.Unix(m.Time, 0)
+
+			// Apple Mail crashes fetching messages with date older than 1970.
+			// There is no point having message older than RFC itself, it's not possible.
+			if msg.InternalDate.Before(rfc822Birthday) {
+				msg.InternalDate = rfc822Birthday
+			}
 		case imap.FetchRFC822Size:
 			// Size attribute on the server counts encrypted data. The value is cleared
 			// on our part and we need to compute "real" size of decrypted data.

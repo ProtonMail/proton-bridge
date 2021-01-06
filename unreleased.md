@@ -9,9 +9,6 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 ### Removed
 
 ### Fixed
-* GODT-135 Support parameters in SMTP `FROM MAIL` command, such as `BODY=7BIT`, or empty value `FROM MAIL:<>` used by some clients.
-* GODT-338 GODT-781 GODT-857 GODT-866 Flaky tests.
-* GODT-773 Replace old dates with birthday of RFC822 to not crash Apple Mail. Original is available under `X-Original-Date` header.
 * GODT-922 Fix panic during restarting the bridge.
 * GODT-945 Fix panic in integration tests caused by concurrent map writes.
 * GODT-732 Fix usage of fontawesome.
@@ -24,3 +21,4 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 ### Changed
 * GODT-389 Prefer `From` header instead of `MAIL FROM` address.
 * GODT-898 Only set ContentID for inline attachments.
+* GODT-773 Replace `INTERNALDATE` older than birthday of RFC822 by birthday of RFC822 to not crash Apple Mail.
