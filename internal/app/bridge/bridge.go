@@ -89,22 +89,6 @@ func run(b *base.Base, c *cli.Context) error { // nolint[funlen]
 			smtpPort, useSSL, tls, smtpBackend, b.Listener).ListenAndServe()
 	}()
 
-	var frontendMode string
-
-	switch {
-	case c.Bool("cli"):
-		frontendMode = "cli"
-	case c.Bool("noninteractive"):
-		frontendMode = "noninteractive"
-	default:
-		frontendMode = "qt"
-	}
-
-	if frontendMode == "noninteractive" {
-		<-(make(chan struct{}))
-		return nil
-	}
-
 	// Bridge supports no-window option which we should use for autostart.
 	b.Autostart.Exec = append(b.Autostart.Exec, "--no-window")
 
@@ -113,6 +97,17 @@ func run(b *base.Base, c *cli.Context) error { // nolint[funlen]
 
 	// We want cookies to be saved to disk so they are loaded the next time.
 	b.AddTeardownAction(b.CookieJar.PersistCookies)
+
+	var frontendMode string
+
+	switch {
+	case c.Bool("cli"):
+		frontendMode = "cli"
+	case c.Bool("noninteractive"):
+		return <-(make(chan error)) // Block forever.
+	default:
+		frontendMode = "qt"
+	}
 
 	f := frontend.New(
 		constants.Version,
