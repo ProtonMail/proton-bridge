@@ -29,7 +29,7 @@ import (
 const (
 	FirstStartKey          = "first_time_start"
 	FirstStartGUIKey       = "first_time_start_gui"
-	NextHeartbeatKey       = "next_heartbeat"
+	LastHeartbeatKey       = "last_heartbeat"
 	APIPortKey             = "user_port_api"
 	IMAPPortKey            = "user_port_imap"
 	SMTPPortKey            = "user_port_smtp"
@@ -71,7 +71,7 @@ const (
 func (s *Settings) setDefaultValues() {
 	s.setDefault(FirstStartKey, "true")
 	s.setDefault(FirstStartGUIKey, "true")
-	s.setDefault(NextHeartbeatKey, fmt.Sprintf("%v", time.Now().Unix()))
+	s.setDefault(LastHeartbeatKey, fmt.Sprintf("%v", time.Now().YearDay()))
 	s.setDefault(AllowProxyKey, "true")
 	s.setDefault(AutostartKey, "true")
 	s.setDefault(AutoUpdateKey, "true")

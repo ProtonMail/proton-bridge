@@ -21,6 +21,7 @@ import (
 	"strconv"
 
 	"github.com/ProtonMail/proton-bridge/internal/metrics"
+	"github.com/sirupsen/logrus"
 )
 
 type metricsManager struct {
@@ -44,21 +45,31 @@ func newExportMetricsManager(ie *ImportExport) *metricsManager {
 
 func (m *metricsManager) Load(numberOfMailboxes int) {
 	label := strconv.Itoa(numberOfMailboxes)
-	m.ie.SendMetric(metrics.New(m.category, metrics.TransferLoad, metrics.Label(label)))
+	if err := m.ie.SendMetric(metrics.New(m.category, metrics.TransferLoad, metrics.Label(label))); err != nil {
+		logrus.WithError(err).Error("Failed to send metric")
+	}
 }
 
 func (m *metricsManager) Start() {
-	m.ie.SendMetric(metrics.New(m.category, metrics.TransferStart, metrics.NoLabel))
+	if err := m.ie.SendMetric(metrics.New(m.category, metrics.TransferStart, metrics.NoLabel)); err != nil {
+		logrus.WithError(err).Error("Failed to send metric")
+	}
 }
 
 func (m *metricsManager) Complete() {
-	m.ie.SendMetric(metrics.New(m.category, metrics.TransferComplete, metrics.NoLabel))
+	if err := m.ie.SendMetric(metrics.New(m.category, metrics.TransferComplete, metrics.NoLabel)); err != nil {
+		logrus.WithError(err).Error("Failed to send metric")
+	}
 }
 
 func (m *metricsManager) Cancel() {
-	m.ie.SendMetric(metrics.New(m.category, metrics.TransferCancel, metrics.NoLabel))
+	if err := m.ie.SendMetric(metrics.New(m.category, metrics.TransferCancel, metrics.NoLabel)); err != nil {
+		logrus.WithError(err).Error("Failed to send metric")
+	}
 }
 
 func (m *metricsManager) Fail() {
-	m.ie.SendMetric(metrics.New(m.category, metrics.TransferFail, metrics.NoLabel))
+	if err := m.ie.SendMetric(metrics.New(m.category, metrics.TransferFail, metrics.NoLabel)); err != nil {
+		logrus.WithError(err).Error("Failed to send metric")
+	}
 }

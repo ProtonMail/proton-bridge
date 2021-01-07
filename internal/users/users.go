@@ -324,7 +324,9 @@ func (u *Users) addNewUser(apiUser *pmapi.User, auth *pmapi.Auth, hashedPassphra
 		return errors.Wrap(err, "failed to initialise user")
 	}
 
-	u.SendMetric(metrics.New(metrics.Setup, metrics.NewUser, metrics.NoLabel))
+	if err := u.SendMetric(metrics.New(metrics.Setup, metrics.NewUser, metrics.NoLabel)); err != nil {
+		log.WithError(err).Error("Failed to send metric")
+	}
 
 	return err
 }
@@ -444,13 +446,13 @@ func (u *Users) DeleteUser(userID string, clearStore bool) error {
 }
 
 // SendMetric sends a metric. We don't want to return any errors, only log them.
-func (u *Users) SendMetric(m metrics.Metric) {
+func (u *Users) SendMetric(m metrics.Metric) error {
 	c := u.clientManager.GetAnonymousClient()
 	defer c.Logout()
 
 	cat, act, lab := m.Get()
 	if err := c.SendSimpleMetric(string(cat), string(act), string(lab)); err != nil {
-		log.Error("Sending metric failed: ", err)
+		return err
 	}
 
 	log.WithFields(logrus.Fields{
@@ -458,6 +460,8 @@ func (u *Users) SendMetric(m metrics.Metric) {
 		"act": act,
 		"lab": lab,
 	}).Debug("Metric successfully sent")
+
+	return nil
 }
 
 // AllowProxy instructs the app to use DoH to access an API proxy if necessary.

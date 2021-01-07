@@ -19,6 +19,7 @@
 package bridge
 
 import (
+	"fmt"
 	"strconv"
 	"time"
 
@@ -72,7 +73,10 @@ func New(
 	}
 
 	if s.GetBool(settings.FirstStartKey) {
-		b.SendMetric(metrics.New(metrics.Setup, metrics.FirstStart, metrics.Label(constants.Version)))
+		if err := b.SendMetric(metrics.New(metrics.Setup, metrics.FirstStart, metrics.Label(constants.Version))); err != nil {
+			logrus.WithError(err).Error("Failed to send metric")
+		}
+
 		s.SetBool(settings.FirstStartKey, false)
 	}
 
@@ -83,19 +87,25 @@ func New(
 
 // heartbeat sends a heartbeat signal once a day.
 func (b *Bridge) heartbeat() {
-	ticker := time.NewTicker(1 * time.Minute)
-
-	for range ticker.C {
-		next, err := strconv.ParseInt(b.settings.Get(settings.NextHeartbeatKey), 10, 64)
+	for range time.Tick(time.Minute) {
+		lastHeartbeatDay, err := strconv.ParseInt(b.settings.Get(settings.LastHeartbeatKey), 10, 64)
 		if err != nil {
 			continue
 		}
-		nextTime := time.Unix(next, 0)
-		if time.Now().After(nextTime) {
-			b.SendMetric(metrics.New(metrics.Heartbeat, metrics.Daily, metrics.NoLabel))
-			nextTime = nextTime.Add(24 * time.Hour)
-			b.settings.Set(settings.NextHeartbeatKey, strconv.FormatInt(nextTime.Unix(), 10))
+
+		// If we're still on the same day, don't send a heartbeat.
+		if time.Now().YearDay() == int(lastHeartbeatDay) {
+			continue
 		}
+
+		// We're on the next (or a different) day, so send a heartbeat.
+		if err := b.SendMetric(metrics.New(metrics.Heartbeat, metrics.Daily, metrics.NoLabel)); err != nil {
+			logrus.WithError(err).Error("Failed to send heartbeat")
+			continue
+		}
+
+		// Heartbeat was sent successfully so update the last heartbeat day.
+		b.settings.Set(settings.LastHeartbeatKey, fmt.Sprintf("%v", time.Now().YearDay()))
 	}
 }
 

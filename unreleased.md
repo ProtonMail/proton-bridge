@@ -22,6 +22,11 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-806 Changed GUI dialog on manual update. Added autoupdates checkbox. Simplifyed installation process GUI.
 * Bump gopenpgp dependency to v2.1.3 for improved memory usage.
 * GODT-912 Changed scroll bar behaviour in settings tab
+* GODT-858 Bump go-rfc5322 dependency to v0.5.0 to handle some invalid RFC5322 groups and add support for semicolon delimiter in address-list.
+* GODT-923 Fix listener locking.
+* GODT-389 Prefer `From` header instead of `MAIL FROM` address.
+* GODT-898 Only set ContentID for inline attachments.
+* GODT-149 Send heartbeat ASAP on each new calendar day.
 
 ### Removed
 * GODT-208 Remove deprecated use of BuildNameToCertificate.
@@ -31,3 +36,9 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 ### Fixed
 * GODT-979 Fix panic when trying to parse a multipart/alternative section that has no child sections.
+### Changed
+* GODT-389 Prefer `From` header instead of `MAIL FROM` address.
+* GODT-898 Only set ContentID for inline attachments.
+* GODT-773 Replace `INTERNALDATE` older than birthday of RFC822 by birthday of RFC822 to not crash Apple Mail.
+* GODT-927 Avoid to call API with empty label name.
+* GODT-732 Fix usage of fontawesome
