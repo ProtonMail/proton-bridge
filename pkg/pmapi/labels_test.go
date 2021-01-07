@@ -147,6 +147,16 @@ func TestClient_CreateLabel(t *testing.T) {
 	}
 }
 
+func TestClient_CreateEmptyLabel(t *testing.T) {
+	s, c := newTestServer(http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {
+		r.Fail(t, "API should not be called")
+	}))
+	defer s.Close()
+
+	_, err := c.CreateLabel(&Label{})
+	r.EqualError(t, err, "name is required")
+}
+
 func TestClient_UpdateLabel(t *testing.T) {
 	s, c := newTestServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		Ok(t, checkMethodAndPath(r, "PUT", "/labels/"+testLabelCreated.ID))
@@ -171,6 +181,16 @@ func TestClient_UpdateLabel(t *testing.T) {
 	if !reflect.DeepEqual(updated, testLabelCreated) {
 		t.Fatalf("Invalid updated label: expected %+v, got %+v", testLabelCreated, updated)
 	}
+}
+
+func TestClient_UpdateLabelToEmptyName(t *testing.T) {
+	s, c := newTestServer(http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {
+		r.Fail(t, "API should not be called")
+	}))
+	defer s.Close()
+
+	_, err := c.UpdateLabel(&Label{ID: "label"})
+	r.EqualError(t, err, "name is required")
 }
 
 func TestClient_DeleteLabel(t *testing.T) {

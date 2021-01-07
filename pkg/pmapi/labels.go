@@ -17,7 +17,10 @@
 
 package pmapi
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+)
 
 // System labels
 const (
@@ -129,6 +132,10 @@ type LabelRes struct {
 
 // CreateLabel creates a new label.
 func (c *client) CreateLabel(label *Label) (created *Label, err error) {
+	if label.Name == "" {
+		return nil, errors.New("name is required")
+	}
+
 	labelReq := &LabelReq{label}
 	req, err := c.NewJSONRequest("POST", "/labels", labelReq)
 	if err != nil {
@@ -146,6 +153,10 @@ func (c *client) CreateLabel(label *Label) (created *Label, err error) {
 
 // UpdateLabel updates a label.
 func (c *client) UpdateLabel(label *Label) (updated *Label, err error) {
+	if label.Name == "" {
+		return nil, errors.New("name is required")
+	}
+
 	labelReq := &LabelReq{label}
 	req, err := c.NewJSONRequest("PUT", "/labels/"+label.ID, labelReq)
 	if err != nil {
