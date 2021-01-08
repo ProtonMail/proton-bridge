@@ -49,7 +49,7 @@ func run(b *base.Base, c *cli.Context) error {
 	var frontendMode string
 
 	switch {
-	case c.Bool("cli"):
+	case c.Bool(base.FlagCLI):
 		frontendMode = "cli"
 	default:
 		frontendMode = "qt"

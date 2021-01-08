@@ -61,6 +61,20 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
+const (
+	flagCPUProfile      = "cpu-prof"
+	flagCPUProfileShort = "p"
+	flagMemProfile      = "mem-prof"
+	flagMemProfileShort = "m"
+	flagLogLevel        = "log-level"
+	flagLogLevelShort   = "l"
+	// FlagCLI indicate to start with command line interface
+	FlagCLI      = "cli"
+	flagCLIShort = "c"
+	flagRestart  = "restart"
+	flagLauncher = "launcher"
+)
+
 type Base struct {
 	CrashHandler *crash.Handler
 	Locations    *locations.Locations
@@ -252,32 +266,32 @@ func (b *Base) NewApp(action func(*Base, *cli.Context) error) *cli.App {
 	app.Action = b.run(action)
 	app.Flags = []cli.Flag{
 		&cli.BoolFlag{
-			Name:    "cpu-prof",
-			Aliases: []string{"p"},
+			Name:    flagCPUProfile,
+			Aliases: []string{flagCPUProfileShort},
 			Usage:   "Generate CPU profile",
 		},
 		&cli.BoolFlag{
-			Name:    "mem-prof",
-			Aliases: []string{"m"},
+			Name:    flagMemProfile,
+			Aliases: []string{flagMemProfileShort},
 			Usage:   "Generate memory profile",
 		},
 		&cli.StringFlag{
-			Name:    "log-level",
-			Aliases: []string{"l"},
+			Name:    flagLogLevel,
+			Aliases: []string{flagLogLevelShort},
 			Usage:   "Set the log level (one of panic, fatal, error, warn, info, debug)",
 		},
 		&cli.BoolFlag{
-			Name:    "cli",
-			Aliases: []string{"c"},
+			Name:    FlagCLI,
+			Aliases: []string{flagCLIShort},
 			Usage:   "Use command line interface",
 		},
 		&cli.StringFlag{
-			Name:   "restart",
+			Name:   flagRestart,
 			Usage:  "The number of times the application has already restarted",
 			Hidden: true,
 		},
 		&cli.StringFlag{
-			Name:   "launcher",
+			Name:   flagLauncher,
 			Usage:  "The launcher to use to restart the application",
 			Hidden: true,
 		},
@@ -302,21 +316,21 @@ func (b *Base) run(appMainLoop func(*Base, *cli.Context) error) cli.ActionFunc {
 		defer func() { _ = b.Lock.Close() }()
 
 		// If launcher was used to start the app, use that for restart/autostart.
-		if launcher := c.String("launcher"); launcher != "" {
+		if launcher := c.String(flagLauncher); launcher != "" {
 			b.Autostart.Exec = []string{launcher}
 			b.command = launcher
 		}
 
-		if doCPUProfile := c.Bool("cpu-prof"); doCPUProfile {
+		if c.Bool(flagCPUProfile) {
 			startCPUProfile()
 			defer pprof.StopCPUProfile()
 		}
 
-		if doMemoryProfile := c.Bool("mem-prof"); doMemoryProfile {
+		if c.Bool(flagMemProfile) {
 			defer makeMemoryProfile()
 		}
 
-		logging.SetLevel(c.String("log-level"))
+		logging.SetLevel(c.String(flagLogLevel))
 
 		logrus.
 			WithField("appName", b.Name).
@@ -328,7 +342,7 @@ func (b *Base) run(appMainLoop func(*Base, *cli.Context) error) cli.ActionFunc {
 			Info("Run app")
 
 		b.CrashHandler.AddRecoveryAction(func(interface{}) error {
-			if c.Int("restart") > maxAllowedRestarts {
+			if c.Int(flagRestart) > maxAllowedRestarts {
 				logrus.
 					WithField("restart", c.Int("restart")).
 					Warn("Not restarting, already restarted too many times")
