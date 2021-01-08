@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"net/mail"
 	"sync"
 
 	pkgMsg "github.com/ProtonMail/proton-bridge/pkg/message"
@@ -238,7 +239,7 @@ func (p *PMAPIProvider) generateImportMsgReq(rules transferRules, progress *Prog
 		Body:      body,
 		Unread:    unread,
 		Time:      message.Time,
-		Flags:     computeMessageFlags(labelIDs),
+		Flags:     computeMessageFlags(message.Header),
 		LabelIDs:  labelIDs,
 	}, nil
 }
@@ -257,24 +258,11 @@ func (p *PMAPIProvider) encryptMessage(msg *pmapi.Message, attachmentReaders []i
 	return pkgMsg.BuildEncrypted(msg, attachmentReaders, p.keyRing)
 }
 
-func computeMessageFlags(labels []string) (flag int64) {
-	for _, labelID := range labels {
-		switch labelID {
-		case pmapi.SentLabel:
-			flag = (flag | pmapi.FlagSent)
-		case pmapi.ArchiveLabel, pmapi.InboxLabel:
-			flag = (flag | pmapi.FlagReceived)
-		case pmapi.DraftLabel:
-			log.Error("Found draft target in non-draft import")
-		}
+func computeMessageFlags(header mail.Header) (flag int64) {
+	if header.Get("received") == "" {
+		return pmapi.FlagSent
 	}
-
-	// NOTE: if the labels are custom only
-	if flag == 0 {
-		flag = pmapi.FlagReceived
-	}
-
-	return flag
+	return pmapi.FlagReceived
 }
 
 func (p *PMAPIProvider) startImportWorkers(progress *Progress, preparedImportRequestsCh chan map[string]*pmapi.ImportMsgReq) *sync.WaitGroup {

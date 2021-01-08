@@ -24,6 +24,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
+	"github.com/ProtonMail/proton-bridge/test/accounts"
 	"github.com/cucumber/godog"
 	"github.com/cucumber/godog/gherkin"
 	"github.com/stretchr/testify/assert"
@@ -32,6 +34,8 @@ import (
 func APIChecksFeatureContext(s *godog.Suite) {
 	s.Step(`^API endpoint "([^"]*)" is called with:$`, apiIsCalledWith)
 	s.Step(`^message is sent with API call$`, messageIsSentWithAPICall)
+	s.Step(`^API mailbox "([^"]*)" for "([^"]*)" has (\d+) message(?:s)?$`, apiMailboxForUserHasNumberOfMessages)
+	s.Step(`^API mailbox "([^"]*)" for address "([^"]*)" of "([^"]*)" has (\d+) message(?:s)?$`, apiMailboxForAddressOfUserHasNumberOfMessages)
 	s.Step(`^API mailbox "([^"]*)" for "([^"]*)" has messages$`, apiMailboxForUserHasMessages)
 	s.Step(`^API mailbox "([^"]*)" for address "([^"]*)" of "([^"]*)" has messages$`, apiMailboxForAddressOfUserHasMessages)
 	s.Step(`^API client manager user-agent is "([^"]*)"$`, clientManagerUserAgent)
@@ -84,6 +88,35 @@ func checkAllRequiredFieldsForSendingMessage(request []byte) bool {
 	return true
 }
 
+func apiMailboxForUserHasNumberOfMessages(mailboxName, bddUserID string, countOfMessages int) error {
+	return apiMailboxForAddressOfUserHasNumberOfMessages(mailboxName, "", bddUserID, countOfMessages)
+}
+
+func apiMailboxForAddressOfUserHasNumberOfMessages(mailboxName, bddAddressID, bddUserID string, countOfMessages int) error {
+	account := ctx.GetTestAccountWithAddress(bddUserID, bddAddressID)
+	if account == nil {
+		return godog.ErrPending
+	}
+
+	start := time.Now()
+	for {
+		afterLimit := time.Since(start) > ctx.EventLoopTimeout()
+		pmapiMessages, err := getPMAPIMessages(account, mailboxName)
+		if err != nil {
+			return err
+		}
+		total := len(pmapiMessages)
+		if total == countOfMessages {
+			break
+		}
+		if afterLimit {
+			return fmt.Errorf("expected %v messages, but got %v", countOfMessages, total)
+		}
+		time.Sleep(100 * time.Millisecond)
+	}
+	return nil
+}
+
 func apiMailboxForUserHasMessages(mailboxName, bddUserID string, messages *gherkin.DataTable) error {
 	return apiMailboxForAddressOfUserHasMessages(mailboxName, "", bddUserID, messages)
 }
@@ -94,13 +127,7 @@ func apiMailboxForAddressOfUserHasMessages(mailboxName, bddAddressID, bddUserID 
 		return godog.ErrPending
 	}
 
-	labelIDs, err := ctx.GetPMAPIController().GetLabelIDs(account.Username(), []string{mailboxName})
-	if err != nil {
-		return internalError(err, "getting label %s for %s", mailboxName, account.Username())
-	}
-	labelID := labelIDs[0]
-
-	pmapiMessages, err := ctx.GetPMAPIController().GetMessages(account.Username(), labelID)
+	pmapiMessages, err := getPMAPIMessages(account, mailboxName)
 	if err != nil {
 		return err
 	}
@@ -120,6 +147,16 @@ func apiMailboxForAddressOfUserHasMessages(mailboxName, bddAddressID, bddUserID 
 		}
 	}
 	return nil
+}
+
+func getPMAPIMessages(account *accounts.TestAccount, mailboxName string) ([]*pmapi.Message, error) {
+	labelIDs, err := ctx.GetPMAPIController().GetLabelIDs(account.Username(), []string{mailboxName})
+	if err != nil {
+		return nil, internalError(err, "getting label %s for %s", mailboxName, account.Username())
+	}
+	labelID := labelIDs[0]
+
+	return ctx.GetPMAPIController().GetMessages(account.Username(), labelID)
 }
 
 func clientManagerUserAgent(expectedUserAgent string) error {

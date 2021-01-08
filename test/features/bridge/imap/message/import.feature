@@ -84,3 +84,31 @@ Feature: IMAP import messages
       """
     Then IMAP response is "OK"
 
+  Scenario: Import received message to Sent
+    When IMAP client imports message to "Sent"
+      """
+      From: Foo <foo@example.com>
+      To: Bridge Test <bridgetest@pm.test>
+      Subject: Hello
+      Received: by 2002:0:0:0:0:0:0:0 with SMTP id 0123456789abcdef; Wed, 30 Dec 2020 01:23:45 0000
+
+      Hello
+
+      """
+    Then IMAP response is "OK"
+    And API mailbox "Sent" for "user" has 0 message
+    And API mailbox "INBOX" for "user" has 1 message
+
+  Scenario: Import non-received message to Inbox
+    When IMAP client imports message to "INBOX"
+      """
+      From: Foo <foo@example.com>
+      To: Bridge Test <bridgetest@pm.test>
+      Subject: Hello
+
+      Hello
+
+      """
+    Then IMAP response is "OK"
+    And API mailbox "INBOX" for "user" has 0 message
+    And API mailbox "Sent" for "user" has 1 message

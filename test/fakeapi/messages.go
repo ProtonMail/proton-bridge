@@ -230,12 +230,33 @@ func (api *FakePMAPI) generateMessageFromImportRequest(msgReq *pmapi.ImportMsgRe
 		ToList:     m.ToList,
 		Subject:    m.Subject,
 		Unread:     msgReq.Unread,
-		LabelIDs:   append(msgReq.LabelIDs, pmapi.AllMailLabel),
+		LabelIDs:   api.generateLabelIDsFromImportRequest(msgReq),
 		Body:       m.Body,
 		Header:     m.Header,
 		Flags:      msgReq.Flags,
 		Time:       msgReq.Time,
 	}, nil
+}
+
+// generateLabelIDsFromImportRequest simulates API where Sent and INBOX is the same
+// mailbox but the message is shown in one or other based on the flags instead.
+func (api *FakePMAPI) generateLabelIDsFromImportRequest(msgReq *pmapi.ImportMsgReq) []string {
+	isInSentOrInbox := false
+	labelIDs := []string{pmapi.AllMailLabel}
+	for _, labelID := range msgReq.LabelIDs {
+		if labelID == pmapi.InboxLabel || labelID == pmapi.SentLabel {
+			isInSentOrInbox = true
+		} else {
+			labelIDs = append(labelIDs, labelID)
+		}
+	}
+	if isInSentOrInbox && (msgReq.Flags&pmapi.FlagSent) != 0 {
+		labelIDs = append(labelIDs, pmapi.SentLabel)
+	}
+	if isInSentOrInbox && (msgReq.Flags&pmapi.FlagReceived) != 0 {
+		labelIDs = append(labelIDs, pmapi.InboxLabel)
+	}
+	return labelIDs
 }
 
 func (api *FakePMAPI) findMessage(newMsg *pmapi.Message) *pmapi.Message {

@@ -16,6 +16,7 @@ Feature: Import from MBOX files
       Subject: hello
       From: Bridge Test <bridgetest@pm.test>
       To: Internal Bridge <test@protonmail.com>
+      Received: by 2002:0:0:0:0:0:0:0 with SMTP id 0123456789abcdef; Wed, 30 Dec 2020 01:23:45 0000
 
       hello
 

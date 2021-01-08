@@ -6,17 +6,19 @@ Feature: Import from EML files
       Subject: clear
       From: Bridge Test <bridgetest@pm.test>
       To: Internal Bridge <test@protonmail.com>
+      Received: by 2002:0:0:0:0:0:0:0 with SMTP id 0123456789abcdef; Wed, 30 Dec 2020 01:23:45 0000
 
-			secret
+      secret
       """
     And there is EML file "Inbox/encrypted.eml"
       """
       Subject: encrypted
       From: Bridge Test <bridgetest@pm.test>
       To: Internal Bridge <test@protonmail.com>
+      Received: by 2002:0:0:0:0:0:0:0 with SMTP id 0123456789abcdef; Wed, 30 Dec 2020 01:23:45 0000
 
       -----BEGIN PGP MESSAGE-----
-      
+
       hQEMA7hGUUsYs0fEAQgA10NwJSNTLm3vpxVtoYBaA9AjFI5H4hKuV3/f2NHbWb2s
       k5enK3tEIOYdFdrO+NLrV6weHq3Dgu4er3URTQ62tFwjSJyeXxmY0d9J+JdxibJg
       wqZubuSHYzQHpFqJgoUUWEVEsv0Ao8yQo8BE9iybCKoZf6KojROUuE748oxlxJnV
@@ -33,6 +35,7 @@ Feature: Import from EML files
       Subject: encrypted mime
       From: Bridge Test <bridgetest@pm.test>
       To: Internal Bridge <test@protonmail.com>
+      Received: by 2002:0:0:0:0:0:0:0 with SMTP id 0123456789abcdef; Wed, 30 Dec 2020 01:23:45 0000
       MIME-Version: 1.0
       Content-Type: multipart/encrypted; protocol="application/pgp-encrypted"; boundary="WLjzd46aUAiOcuNXjWTJItBZonI56MuAk"
 
@@ -110,13 +113,14 @@ Feature: Import from EML files
       Subject: signed
       From: Bridge Test <bridgetest@pm.test>
       To: Internal Bridge <test@protonmail.com>
+      Received: by 2002:0:0:0:0:0:0:0 with SMTP id 0123456789abcdef; Wed, 30 Dec 2020 01:23:45 0000
 
       -----BEGIN PGP SIGNED MESSAGE-----
       Hash: SHA256
-      
+
       secret
       -----BEGIN PGP SIGNATURE-----
-      
+
       iQEzBAEBCAAdFiEENaE2ZPemenI4pZah/SJcGo7SJWIFAl+cCAgACgkQ/SJcGo7S
       JWKsOQf/YakNXkMNjZIu8Hf1WflxtiDXVzTugOicC05k5W64oIqSHt0xNaFKE37k
       //3eDMWbHvqHKFVdg7qcLsVPeVBaW3bdZUiexGM24OiGgyEitufnHQLOtEDTound
@@ -132,9 +136,10 @@ Feature: Import from EML files
       Subject: encrypted and signed
       From: Bridge Test <bridgetest@pm.test>
       To: Internal Bridge <test@protonmail.com>
+      Received: by 2002:0:0:0:0:0:0:0 with SMTP id 0123456789abcdef; Wed, 30 Dec 2020 01:23:45 0000
 
       -----BEGIN PGP MESSAGE-----
-      
+
       hQEMA7hGUUsYs0fEAQf/dppHciWIf+o4l0gEfHeyHV/HVhG4es0aVQYrwFQlSWVx
       estMuyLBSMfrsQXLago7Q9ZNo/XnKszzprCXxxYH52hAg64oAsjKB3jgRmVizs8b
       8lj0BRf003wUluS/0msV9SiEZBGeL8jGq6Te9vaM8OHHhIVzVjGnRdTSC0jBE6cS
@@ -154,13 +159,13 @@ Feature: Import from EML files
       """
 
   Scenario: Import encrypted
-		Given there is skip encrypted messages set to "false"
+    Given there is skip encrypted messages set to "false"
     When user "user" imports local files
     Then progress result is "OK"
     And transfer failed for 0 messages
     And transfer exported 5 messages
     And transfer imported 5 messages
-		And transfer skipped 0 messages
+    And transfer skipped 0 messages
     And API mailbox "INBOX" for "user" has messages
       | from               | to                  | subject              |
       | bridgetest@pm.test | test@protonmail.com | clear                |
@@ -170,13 +175,13 @@ Feature: Import from EML files
       | bridgetest@pm.test | test@protonmail.com | encrypted and signed |
 
   Scenario: Skip encrypted
-		Given there is skip encrypted messages set to "true"
+    Given there is skip encrypted messages set to "true"
     When user "user" imports local files
     Then progress result is "OK"
     And transfer failed for 0 messages
     And transfer exported 5 messages
     And transfer imported 2 messages
-		And transfer skipped 3 messages
+    And transfer skipped 3 messages
     And API mailbox "INBOX" for "user" has messages
       | from               | to                  | subject |
       | bridgetest@pm.test | test@protonmail.com | clear   |

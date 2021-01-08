@@ -133,9 +133,6 @@ func (im *imapMailbox) CreateMessage(flags []string, date time.Time, body imap.L
 			// We didn't find the message in the store, so we are currently sending it.
 			logEntry.WithField("time", date).Info("No matching UID, continuing APPEND to Sent")
 		}
-
-		// This is an APPEND to the Sent folder, so we will set the sent flag
-		m.Flags |= pmapi.FlagSent
 	}
 
 	message.ParseFlags(m, flags)

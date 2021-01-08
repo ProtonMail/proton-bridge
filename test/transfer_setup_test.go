@@ -190,6 +190,7 @@ func thereIsIMAPMessage(mailboxName string, seqNum, uid int, dateValue, subject 
 func getBodyFromDataRow(head []*gherkin.TableCell, row *gherkin.TableRow) string {
 	body := "hello"
 	headers := textproto.MIMEHeader{}
+	headers.Set("Received", "by 2002:0:0:0:0:0:0:0 with SMTP id 0123456789abcdef; Wed, 30 Dec 2020 01:23:45 0000")
 	for n, cell := range row.Cells {
 		switch head[n].Value {
 		case "from":
