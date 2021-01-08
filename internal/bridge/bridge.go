@@ -124,6 +124,12 @@ func (b *Bridge) SetCurrentOS(os string) {
 }
 
 func (b *Bridge) updateUserAgent() {
+	logrus.
+		WithField("clientName", b.userAgentClientName).
+		WithField("clientVersion", b.userAgentClientVersion).
+		WithField("OS", b.userAgentOS).
+		Info("Updating user agent")
+
 	b.clientManager.SetUserAgent(b.userAgentClientName, b.userAgentClientVersion, b.userAgentOS)
 }
 
