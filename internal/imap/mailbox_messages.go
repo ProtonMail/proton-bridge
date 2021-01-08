@@ -249,7 +249,10 @@ func (im *imapMailbox) labelMessages(uid bool, seqSet *imap.SeqSet, targetLabel 
 	if err := targetStoreMailbox.LabelMessages(messageIDs); err != nil {
 		return err
 	}
-	if move {
+	// Folder cannot be unlabeled. Every message has to belong to exactly one folder.
+	// In case of labeling message to folder, the original one is implicitly unlabeled.
+	// Therefore, we have to unlabel explicitly only if the source mailbox is label.
+	if im.storeMailbox.IsLabel() && move {
 		if err := im.storeMailbox.UnlabelMessages(messageIDs); err != nil {
 			return err
 		}

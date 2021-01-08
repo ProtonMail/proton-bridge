@@ -62,6 +62,7 @@ type storeMailboxProvider interface {
 	Color() string
 	IsSystem() bool
 	IsFolder() bool
+	IsLabel() bool
 	UIDValidity() uint32
 
 	Rename(newName string) error
