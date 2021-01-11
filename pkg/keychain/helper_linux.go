@@ -41,12 +41,12 @@ func init() { // nolint[noinit]
 		Helpers[GnomeKeyring] = newGnomeKeyringHelper
 	}
 
-	// If GnomeKeyring is available, use it by default.
-	// Otherwise, if pass is available, use it by default.
-	if _, ok := Helpers[GnomeKeyring]; ok {
-		defaultHelper = GnomeKeyring
-	} else if _, ok := Helpers[Pass]; ok {
+	// If Pass is available, use it by default.
+	// Otherwise, if GnomeKeyring is available, use it by default.
+	if _, ok := Helpers[Pass]; ok {
 		defaultHelper = Pass
+	} else if _, ok := Helpers[GnomeKeyring]; ok {
+		defaultHelper = GnomeKeyring
 	}
 }
 
