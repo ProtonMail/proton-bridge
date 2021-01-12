@@ -329,6 +329,12 @@ func (su *smtpUser) Send(returnPath string, to []string, messageReader io.Reader
 	su.backend.sendRecorder.setMessageID(sendRecorderMessageHash, message.ID)
 	log.WithField("messageID", message.ID).Debug("Draft was created successfully")
 
+	if ok, err := su.isTotalSizeOkay(message, atts); err != nil {
+		return err
+	} else if !ok {
+		return errors.New("message is too large")
+	}
+
 	// We always have to create a new draft even if there already is one,
 	// because clients don't necessarily save the draft before sending, which
 	// can lead to sending the wrong message. Also clients do not necessarily
@@ -526,4 +532,19 @@ func (su *smtpUser) continueSendingUnencryptedMail(subject string) bool {
 func (su *smtpUser) Logout() error {
 	log.Debug("SMTP client logged out user ", su.addressID)
 	return nil
+}
+
+func (su *smtpUser) isTotalSizeOkay(message *pmapi.Message, attachments []*pmapi.Attachment) (bool, error) {
+	maxUpload, err := su.storeUser.GetMaxUpload()
+	if err != nil {
+		return false, err
+	}
+
+	var attSize int64
+
+	for _, att := range attachments {
+		attSize += att.Size
+	}
+
+	return message.Size+attSize <= maxUpload, nil
 }

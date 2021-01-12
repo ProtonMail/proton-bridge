@@ -31,11 +31,11 @@ func (store *Store) GetSpace() (usedSpace, maxSpace uint, err error) {
 	return uint(apiUser.UsedSpace), uint(apiUser.MaxSpace), nil
 }
 
-// GetMaxUpload returns max size of attachment in bytes.
-func (store *Store) GetMaxUpload() (uint, error) {
+// GetMaxUpload returns max size of message + all attachments in bytes.
+func (store *Store) GetMaxUpload() (int64, error) {
 	apiUser, err := store.client().CurrentUser()
 	if err != nil {
 		return 0, err
 	}
-	return uint(apiUser.MaxUpload), nil
+	return apiUser.MaxUpload, nil
 }

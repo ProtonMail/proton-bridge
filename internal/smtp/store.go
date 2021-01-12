@@ -33,4 +33,5 @@ type storeUserProvider interface {
 		attachedPublicKeyName string,
 		parentID string) (*pmapi.Message, []*pmapi.Attachment, error)
 	SendMessage(messageID string, req *pmapi.SendMessageReq) error
+	GetMaxUpload() (int64, error)
 }
