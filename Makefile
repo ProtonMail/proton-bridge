@@ -40,6 +40,9 @@ ifneq "${BUILD_LDFLAGS}" ""
 endif
 GO_LDFLAGS_LAUNCHER:=${GO_LDFLAGS}
 GO_LDFLAGS_LAUNCHER+=$(addprefix -X main.,ConfigName=${CONFIGNAME} ExeName=proton-${APP})
+ifeq "${TARGET_OS}" "windows"
+    GO_LDFLAGS_LAUNCHER+=-H=windowsgui
+endif
 
 BUILD_FLAGS+=-ldflags '${GO_LDFLAGS}'
 BUILD_FLAGS_NOGUI+=-ldflags '${GO_LDFLAGS}'
