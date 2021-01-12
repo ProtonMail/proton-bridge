@@ -18,6 +18,7 @@
 package pmapi
 
 import (
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
@@ -178,11 +179,15 @@ func writeAttachment(w *multipart.Writer, att *Attachment, r io.Reader, sig io.R
 // CreateAttachment uploads an attachment. It must be already encrypted and contain a MessageID.
 //
 // The returned created attachment contains the new attachment ID and its size.
-func (c *client) CreateAttachment(att *Attachment, r io.Reader, sig io.Reader) (created *Attachment, err error) {
+func (c *client) CreateAttachment(att *Attachment, r io.Reader, sig io.Reader) (*Attachment, error) {
 	req, w, err := c.NewMultipartRequest("POST", "/mail/v4/attachments")
 	if err != nil {
-		return
+		return nil, err
 	}
+
+	cx, cancel := context.WithCancel(req.Context())
+	req = req.WithContext(cx)
+	defer cancel()
 
 	// We will write the request as long as it is sent to the API.
 	var res CreateAttachmentRes
@@ -191,20 +196,20 @@ func (c *client) CreateAttachment(att *Attachment, r io.Reader, sig io.Reader) (
 		done <- c.DoJSON(req, &res)
 	})()
 
-	if err = writeAttachment(w.Writer, att, r, sig); err != nil {
-		return
+	if err := writeAttachment(w.Writer, att, r, sig); err != nil {
+		_ = w.Close()
+		return nil, err
 	}
 	_ = w.Close()
 
-	if err = <-done; err != nil {
-		return
+	if err := <-done; err != nil {
+		return nil, err
 	}
-	if err = res.Err(); err != nil {
-		return
+	if err := res.Err(); err != nil {
+		return nil, err
 	}
 
-	created = res.Attachment
-	return
+	return res.Attachment, nil
 }
 
 type UpdateAttachmentSignatureReq struct {

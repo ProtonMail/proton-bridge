@@ -15,6 +15,16 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-874 Added manual triggers to Updater module.
 * GODT-851 Added support of UID EXPUNGE.
 
+### Removed
+
+### Fixed
+* GODT-922 Fix panic during restarting the bridge.
+* GODT-945 Fix panic in integration tests caused by concurrent map writes.
+* GODT-732 Fix usage of fontawesome.
+* GODT-951 Properly parse message with long lines in header and long header split to multiple lines (upgrading to latest go-message).
+* GODT-894 Fix panic when sending while account is logging in.
+* GODT-831 Fix reporting bug from accounts with empty account name.
+
 ### Changed
 * GODT-97 Don't log errors caused by SELECT "".
 * Rename channels `beta->early`, `live->stable`.
@@ -31,3 +41,11 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 ### Fixed
 * GODT-946 Fix flaky tests notifying changes.
 * GODT-979 Fix panic when trying to parse a multipart/alternative section that has no child sections.
+### Changed
+* GODT-389 Prefer `From` header instead of `MAIL FROM` address.
+* GODT-898 Only set ContentID for inline attachments.
+* GODT-773 Replace `INTERNALDATE` older than birthday of RFC822 by birthday of RFC822 to not crash Apple Mail.
+* GODT-927 Avoid to call API with empty label name.
+* GODT-732 Fix usage of fontawesome
+* GODT-915 Bump go-imap dependency and remove go-imap-specialuse dependency.
+* GODT-831 Cancel request of uploading attachment if reading/writing it fails.

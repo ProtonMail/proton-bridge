@@ -311,6 +311,9 @@ func (f *FrontendQt) sendBug(description, emailClient, address string) bool {
 	if f.Accounts.Model.Count() > 0 {
 		accname = f.Accounts.Model.Get(0).Account()
 	}
+	if accname == "" {
+		accname = "Unknown account"
+	}
 
 	if err := f.ie.ReportBug(
 		core.QSysInfo_ProductType(),

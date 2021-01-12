@@ -466,6 +466,9 @@ func (s *FrontendQt) sendBug(description, client, address string) (isOK bool) {
 	if s.Accounts.Count() > 0 {
 		accname = s.Accounts.get(0).Account()
 	}
+	if accname == "" {
+		accname = "Unknown account"
+	}
 	if err := s.bridge.ReportBug(
 		core.QSysInfo_ProductType(),
 		core.QSysInfo_PrettyProductName(),
