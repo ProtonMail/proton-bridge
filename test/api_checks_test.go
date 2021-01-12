@@ -32,7 +32,10 @@ import (
 )
 
 func APIChecksFeatureContext(s *godog.Suite) {
-	s.Step(`^API endpoint "([^"]*)" is called with:$`, apiIsCalledWith)
+	s.Step(`^API endpoint "([^"]*)" is called$`, apiIsCalled)
+	s.Step(`^API endpoint "([^"]*)" is called with$`, apiIsCalledWith)
+	s.Step(`^API endpoint "([^"]*)" is not called$`, apiIsNotCalled)
+	s.Step(`^API endpoint "([^"]*)" is not called with$`, apiIsNotCalledWith)
 	s.Step(`^message is sent with API call$`, messageIsSentWithAPICall)
 	s.Step(`^API mailbox "([^"]*)" for "([^"]*)" has (\d+) message(?:s)?$`, apiMailboxForUserHasNumberOfMessages)
 	s.Step(`^API mailbox "([^"]*)" for address "([^"]*)" of "([^"]*)" has (\d+) message(?:s)?$`, apiMailboxForAddressOfUserHasNumberOfMessages)
@@ -41,15 +44,40 @@ func APIChecksFeatureContext(s *godog.Suite) {
 	s.Step(`^API client manager user-agent is "([^"]*)"$`, clientManagerUserAgent)
 }
 
+func apiIsCalled(endpoint string) error {
+	if !apiIsCalledWithHelper(endpoint, "") {
+		return fmt.Errorf("%s was not called", endpoint)
+	}
+	return nil
+}
+
 func apiIsCalledWith(endpoint string, data *gherkin.DocString) error {
+	if !apiIsCalledWithHelper(endpoint, data.Content) {
+		return fmt.Errorf("%s was not called with %s", endpoint, data.Content)
+	}
+	return nil
+}
+
+func apiIsNotCalled(endpoint string) error {
+	if apiIsCalledWithHelper(endpoint, "") {
+		return fmt.Errorf("%s was called", endpoint)
+	}
+	return nil
+}
+
+func apiIsNotCalledWith(endpoint string, data *gherkin.DocString) error {
+	if apiIsCalledWithHelper(endpoint, data.Content) {
+		return fmt.Errorf("%s was called with %s", endpoint, data.Content)
+	}
+	return nil
+}
+
+func apiIsCalledWithHelper(endpoint string, content string) bool {
 	split := strings.Split(endpoint, " ")
 	method := split[0]
 	path := split[1]
-	request := []byte(data.Content)
-	if !ctx.GetPMAPIController().WasCalled(method, path, request) {
-		return fmt.Errorf("%s was not called with %s", endpoint, request)
-	}
-	return nil
+	request := []byte(content)
+	return ctx.GetPMAPIController().WasCalled(method, path, request)
 }
 
 func messageIsSentWithAPICall(data *gherkin.DocString) error {

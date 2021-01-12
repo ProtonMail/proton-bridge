@@ -52,8 +52,11 @@ func (ctl *Controller) PrintCalls() {
 
 func (ctl *Controller) WasCalled(method, path string, expectedRequest []byte) bool {
 	for _, call := range ctl.calls {
-		if call.method != method && call.path != path {
+		if call.method != method || call.path != path {
 			continue
+		}
+		if string(expectedRequest) == "" {
+			return true
 		}
 		diff, _ := jsondiff.Compare(call.request, expectedRequest, &jsondiff.Options{})
 		isSuperset := diff == jsondiff.FullMatch || diff == jsondiff.SupersetMatch
