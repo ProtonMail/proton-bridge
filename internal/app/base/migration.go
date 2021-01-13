@@ -21,7 +21,6 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/ProtonMail/go-appdir"
 	"github.com/ProtonMail/proton-bridge/internal/constants"
 	"github.com/ProtonMail/proton-bridge/internal/locations"
 	"github.com/sirupsen/logrus"
@@ -35,10 +34,13 @@ import (
 // | prefs  | ~/.cache/protonmail/<app>/c11/prefs.json  | ~/.config/protonmail/<app>/prefs.json  |
 // | c11    | ~/.cache/protonmail/<app>/c11             | ~/.cache/protonmail/<app>/cache/c11    |
 func MigrateFiles(configName string) error {
-	appDirs := appdir.New(filepath.Join(constants.VendorName, configName))
-	locations := locations.New(appDirs, configName)
+	locationsProvider, err := locations.NewDefaultProvider(filepath.Join(constants.VendorName, configName))
+	if err != nil {
+		return err
+	}
 
-	userCacheDir := appDirs.UserCache()
+	locations := locations.New(locationsProvider, configName)
+	userCacheDir := locationsProvider.UserCache()
 	newSettingsDir, err := locations.ProvideSettingsPath()
 	if err != nil {
 		return err

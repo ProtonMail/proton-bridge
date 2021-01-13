@@ -16,6 +16,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-851 Added support of UID EXPUNGE.
 
 ### Removed
+* GODT-248 Remove dependency on go-appdir.
 
 ### Fixed
 * GODT-922 Fix panic during restarting the bridge.

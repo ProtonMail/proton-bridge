@@ -40,15 +40,11 @@ type Locations struct {
 	configName            string
 }
 
-type appDirsProvider interface {
-	UserConfig() string
-	UserCache() string
-}
-
-func New(appDirs appDirsProvider, configName string) *Locations {
+// New returns a new locations object.
+func New(provider Provider, configName string) *Locations {
 	return &Locations{
-		userConfig: appDirs.UserConfig(),
-		userCache:  appDirs.UserCache(),
+		userConfig: provider.UserConfig(),
+		userCache:  provider.UserCache(),
 		configName: configName,
 	}
 }

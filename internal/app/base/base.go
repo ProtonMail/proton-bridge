@@ -35,7 +35,6 @@ import (
 	"runtime/pprof"
 
 	"github.com/Masterminds/semver/v3"
-	"github.com/ProtonMail/go-appdir"
 	"github.com/ProtonMail/go-autostart"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/ProtonMail/proton-bridge/internal/api"
@@ -99,10 +98,12 @@ func New( // nolint[funlen]
 	)
 	defer crashHandler.HandlePanic()
 
-	locations := locations.New(
-		appdir.New(filepath.Join(constants.VendorName, configName)),
-		configName,
-	)
+	locationsProvider, err := locations.NewDefaultProvider(filepath.Join(constants.VendorName, configName))
+	if err != nil {
+		return nil, err
+	}
+
+	locations := locations.New(locationsProvider, configName)
 	if err := locations.Clean(); err != nil {
 		return nil, err
 	}

@@ -14,8 +14,6 @@ github.com/ProtonMail/crypto v0.0.0-20201112115411-41db4ea0dd1c h1:iaVbEOnskSGgc
 github.com/ProtonMail/crypto v0.0.0-20201112115411-41db4ea0dd1c/go.mod h1:Pxr7w4gA2ikI4sWyYwEffm+oew1WAJHzG1SiDpQMkrI=
 github.com/ProtonMail/docker-credential-helpers v1.1.0 h1:+kvUIpwWcbtP3WFv5sSvkFn/XLzSqPOB5AAthuk9xPk=
 github.com/ProtonMail/docker-credential-helpers v1.1.0/go.mod h1:mK0aBveCxhnQ756AmaTfXMZDeULvheYVhF/MWMErN5g=
-github.com/ProtonMail/go-appdir v1.1.0 h1:9hdNDlU9kTqRKVNzmoqah8qqrj5QZyLByQdwQNlFWig=
-github.com/ProtonMail/go-appdir v1.1.0/go.mod h1:3d8Y9F5mbEUjrYbcJ3rcDxcWbqbttF+011nVZmdRdzc=
 github.com/ProtonMail/go-apple-mobileconfig v0.0.0-20160701194735-7ea9927a11f6 h1:YsSJ/mvZFYydQm/hRrt8R8UtgETixN2y3LK98f5LT60=
 github.com/ProtonMail/go-apple-mobileconfig v0.0.0-20160701194735-7ea9927a11f6/go.mod h1:EtDfBMIDWmVe4viZCuBTEfe3OIIo0ghbpOaAZVO+hVg=
 github.com/ProtonMail/go-autostart v0.0.0-20181114175602-c5272053443a h1:fXK2KsfnkBV9Nh+9SKzHchYjuE9s0vI20JG1mbtEAcc=

@@ -23,7 +23,6 @@ import (
 	"path/filepath"
 	"runtime"
 
-	"github.com/ProtonMail/go-appdir"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/ProtonMail/proton-bridge/internal/constants"
 	"github.com/ProtonMail/proton-bridge/internal/crash"
@@ -49,10 +48,12 @@ func main() { // nolint[funlen]
 	crashHandler := crash.NewHandler(sentryReporter.Report)
 	defer crashHandler.HandlePanic()
 
-	locations := locations.New(
-		appdir.New(filepath.Join(constants.VendorName, ConfigName)),
-		ConfigName,
-	)
+	locationsProvider, err := locations.NewDefaultProvider(filepath.Join(constants.VendorName, ConfigName))
+	if err != nil {
+		logrus.WithError(err).Fatal("Failed to get locations provider")
+	}
+
+	locations := locations.New(locationsProvider, ConfigName)
 
 	logsPath, err := locations.ProvideLogsPath()
 	if err != nil {

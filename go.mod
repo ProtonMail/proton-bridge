@@ -14,7 +14,6 @@ require (
 require (
 	github.com/0xAX/notificator v0.0.0-20191016112426-3962a5ea8da1
 	github.com/Masterminds/semver/v3 v3.1.0
-	github.com/ProtonMail/go-appdir v1.1.0
 	github.com/ProtonMail/go-apple-mobileconfig v0.0.0-20160701194735-7ea9927a11f6
 	github.com/ProtonMail/go-autostart v0.0.0-20181114175602-c5272053443a
 	github.com/ProtonMail/go-imap-id v0.0.0-20190926060100-f94a56b9ecde
