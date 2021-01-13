@@ -329,8 +329,12 @@ func bestChoice(childParts []parser.Parts, preferredContentType string) parser.P
 		}
 	}
 
-	// Otherwise, choose the last one.
-	return childParts[len(childParts)-1]
+	// Otherwise, choose the last one, if it exists.
+	if len(childParts) > 0 {
+		return childParts[len(childParts)-1]
+	}
+
+	return parser.Parts{}
 }
 
 func allPartsHaveContentType(parts parser.Parts, contentType string) bool {
