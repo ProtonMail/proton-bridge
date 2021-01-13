@@ -186,8 +186,8 @@ func (c *client) CreateAttachment(att *Attachment, r io.Reader, sig io.Reader) (
 	}
 
 	cx, cancel := context.WithCancel(req.Context())
-	req = req.WithContext(cx)
 	defer cancel()
+	req = req.WithContext(cx)
 
 	// We will write the request as long as it is sent to the API.
 	var res CreateAttachmentRes
