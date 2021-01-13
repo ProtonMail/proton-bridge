@@ -1,3 +1,8 @@
-• AppleMail crashes (timestamp related)
-• Encoding errors
-• Installation issues on linux
+• Message corruption - rare cases of overly long headers
+• AppleMail crashes (related to timestamps)
+• Sending messages from aliases in combined inbox mode
+• Fedora font issues
+
+For more detailed summary of the changes see https://github.com/ProtonMail/proton-bridge/blob/master/Changelog.md
+
+

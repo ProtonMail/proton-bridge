@@ -1,3 +1,2 @@
-• Support read confirmations
-• Adding GPLv3 licence button to the GUI
-• Improved testing
+• Improvements to message parsing
+• Better error handling
