@@ -143,7 +143,6 @@ func checkAndHandleUpdate(u types.Updater, f frontend.Frontend, autoUpdate bool)
 	version, err := u.Check()
 	if err != nil {
 		logrus.WithError(err).Error("An error occurred while checking for updates")
-		f.NotifySilentUpdateError(err)
 		return
 	}
 
