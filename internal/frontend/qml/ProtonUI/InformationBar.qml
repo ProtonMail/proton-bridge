@@ -66,14 +66,15 @@ Rectangle {
         ClickIconText {
             id: linkText
             anchors.verticalCenter : message.verticalCenter
-            iconText  : ""
+            iconText  : " "
             fontSize : root.fontSize
+            textUnderline: true
         }
 
         ClickIconText {
             id: actionText
             anchors.verticalCenter : message.verticalCenter
-            iconText  : ""
+            iconText  : " "
             fontSize : root.fontSize
             textUnderline: true
         }
@@ -247,7 +248,7 @@ Rectangle {
             PropertyChanges {
                 target: linkText
                 visible: true
-                text: "(" + qsTr("view release notes", "display the release notes from the new version") + ")"
+                text: qsTr("Release Notes", "display the release notes from the new version")
                 onClicked: gui.openReleaseNotes()
             }
             PropertyChanges {
