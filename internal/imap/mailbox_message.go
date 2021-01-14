@@ -166,6 +166,13 @@ func (im *imapMailbox) CreateMessage(flags []string, date time.Time, body imap.L
 		if err == nil && (im.user.user.IsCombinedAddressMode() || (im.storeAddress.AddressID() == msg.Message().AddressID)) {
 			IDs := []string{internalID}
 
+			// See the comment bellow.
+			if msg.IsMarkedDeleted() {
+				if err := im.storeMailbox.MarkMessagesUndeleted(IDs); err != nil {
+					log.WithError(err).Error("Failed to undelete re-imported internal message")
+				}
+			}
+
 			err = im.storeMailbox.LabelMessages(IDs)
 			if err != nil {
 				return err
@@ -180,6 +187,20 @@ func (im *imapMailbox) CreateMessage(flags []string, date time.Time, body imap.L
 	if err := im.importMessage(m, readers, kr); err != nil {
 		im.log.Error("Import failed: ", err)
 		return err
+	}
+
+	// IMAP clients can move message to local folder (setting \Deleted flag)
+	// and then move it back (IMAP client does not remember the message,
+	// so instead removing the flag it imports duplicate message).
+	// Regular IMAP server would keep the message twice and later EXPUNGE would
+	// not delete the message (EXPUNGE would delete the original message and
+	// the new duplicate one would stay). API detects duplicates; therefore
+	// we need to remove \Deleted flag if IMAP client re-imports.
+	msg, err := im.storeMailbox.GetMessage(m.ID)
+	if err == nil && msg.IsMarkedDeleted() {
+		if err := im.storeMailbox.MarkMessagesUndeleted([]string{m.ID}); err != nil {
+			log.WithError(err).Error("Failed to undelete re-imported message")
+		}
 	}
 
 	targetSeq := im.storeMailbox.GetUIDList([]string{m.ID})

@@ -49,3 +49,6 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-732 Fix usage of fontawesome
 * GODT-915 Bump go-imap dependency and remove go-imap-specialuse dependency.
 * GODT-831 Cancel request of uploading attachment if reading/writing it fails.
+
+### Fixed
+* GODT-900 Remove \Deleted flag after re-importing the message (do not delete messages by moving to local folder and back).

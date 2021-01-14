@@ -216,24 +216,47 @@ func (api *FakePMAPI) generateMessageFromImportRequest(msgReq *pmapi.ImportMsgRe
 		return nil, err
 	}
 
-	messageID := api.controller.messageIDGenerator.next("")
+	existingMsg := api.findMessage(m)
+	if existingMsg != nil {
+		return existingMsg, nil
+	}
 
+	messageID := api.controller.messageIDGenerator.next("")
 	return &pmapi.Message{
-		ID:        messageID,
-		AddressID: msgReq.AddressID,
-		Sender:    m.Sender,
-		ToList:    m.ToList,
-		Subject:   m.Subject,
-		Unread:    msgReq.Unread,
-		LabelIDs:  append(msgReq.LabelIDs, pmapi.AllMailLabel),
-		Body:      m.Body,
-		Header:    m.Header,
-		Flags:     msgReq.Flags,
-		Time:      msgReq.Time,
+		ID:         messageID,
+		ExternalID: m.ExternalID,
+		AddressID:  msgReq.AddressID,
+		Sender:     m.Sender,
+		ToList:     m.ToList,
+		Subject:    m.Subject,
+		Unread:     msgReq.Unread,
+		LabelIDs:   append(msgReq.LabelIDs, pmapi.AllMailLabel),
+		Body:       m.Body,
+		Header:     m.Header,
+		Flags:      msgReq.Flags,
+		Time:       msgReq.Time,
 	}, nil
 }
 
+func (api *FakePMAPI) findMessage(newMsg *pmapi.Message) *pmapi.Message {
+	if newMsg.ExternalID == "" {
+		return nil
+	}
+	for _, msg := range api.messages {
+		// API surely has better algorithm, but this one is enough for us for now.
+		if !msg.IsDraft() &&
+			msg.Subject == newMsg.Subject &&
+			msg.ExternalID == newMsg.ExternalID {
+			return msg
+		}
+	}
+	return nil
+}
+
 func (api *FakePMAPI) addMessage(message *pmapi.Message) {
+	if api.findMessage(message) != nil {
+		return
+	}
 	api.messages = append(api.messages, message)
 	api.addEventMessage(pmapi.EventCreate, message)
 }

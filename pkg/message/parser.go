@@ -484,6 +484,9 @@ func parseMessageHeader(m *pmapi.Message, h message.Header) error { // nolint[fu
 				return errors.Wrap(err, "failed to parse date")
 			}
 			m.Time = date.Unix()
+
+		case "message-id":
+			m.ExternalID = fields.Value()
 		}
 	}
 

@@ -21,8 +21,10 @@ import (
 	"bufio"
 	"fmt"
 	"net"
+	"strings"
 	"sync"
 
+	"github.com/ProtonMail/proton-bridge/pkg/message"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -163,7 +165,7 @@ func (c *IMAPClient) Search(query string) *IMAPResponse {
 // Message
 
 func (c *IMAPClient) Append(mailboxName, msg string) *IMAPResponse {
-	cmd := fmt.Sprintf("APPEND \"%s\" (\\Seen) \"25-Mar-2021 00:30:00 +0100\" {%d}\r\n%s", mailboxName, len(msg), msg)
+	cmd := fmt.Sprintf("APPEND \"%s\" (\\Seen) \"%s\" {%d}\r\n%s", mailboxName, parseAppendDate(msg), len(msg), msg)
 	return c.SendCommand(cmd)
 }
 
@@ -175,8 +177,18 @@ func (c *IMAPClient) AppendBody(mailboxName, subject, from, to, body string) *IM
 	msg += body
 	msg += "\r\n"
 
-	cmd := fmt.Sprintf("APPEND \"%s\" (\\Seen) \"25-Mar-2021 00:30:00 +0100\" {%d}\r\n%s", mailboxName, len(msg), msg)
+	cmd := fmt.Sprintf("APPEND \"%s\" (\\Seen) \"%s\" {%d}\r\n%s", mailboxName, parseAppendDate(msg), len(msg), msg)
 	return c.SendCommand(cmd)
+}
+
+func parseAppendDate(msg string) string {
+	date := "25-Mar-2021 00:30:00 +0100"
+	if m, _, _, _, err := message.Parse(strings.NewReader(msg)); err == nil {
+		if t, err := m.Header.Date(); err == nil {
+			date = t.Format("02-Jan-2006 15:04:05 -0700")
+		}
+	}
+	return date
 }
 
 func (c *IMAPClient) Copy(ids, newMailboxName string) *IMAPResponse {
