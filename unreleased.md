@@ -31,6 +31,14 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 ### Removed
 * GODT-208 Remove deprecated use of BuildNameToCertificate.
 
+### Fixed
+* GODT-922 Fix panic during restarting the bridge.
+* GODT-945 Fix panic in integration tests caused by concurrent map writes.
+* GODT-732 Fix usage of fontawesome.
+* GODT-951 Properly parse message with long lines in header and long header split to multiple lines (upgrading to latest go-message).
+* GODT-894 Fix panic when sending while account is logging in.
+* GODT-946 Fix flaky tests notifying changes.
+
 ### Changed
 * GODT-97 Don't log errors caused by SELECT "".
 
