@@ -177,6 +177,17 @@ func (im *imapMailbox) Check() error {
 // Expunge permanently removes all messages that have the \Deleted flag set
 // from the currently selected mailbox.
 func (im *imapMailbox) Expunge() error {
+	// Wait for any APPENDS to finish in order to avoid data loss when
+	// Outlook sends commands too quickly STORE \Deleted, APPEND, EXPUNGE,
+	// APPEND FINISHED:
+	//
+	// Based on Outlook APPEND request we will not create new message but
+	// move the original to desired mailbox. If the message is currently
+	// in Trash or Spam and EXPUNGE happens before APPEND processing is
+	// finished the message is deleted from Proton instead of moved to
+	// the desired mailbox.
+	im.user.waitForAppend()
+
 	im.user.backend.setUpdatesBeBlocking(im.user.currentAddressLowercase, im.name, operationDeleteMessage)
 	defer im.user.backend.unsetUpdatesBeBlocking(im.user.currentAddressLowercase, im.name, operationDeleteMessage)
 

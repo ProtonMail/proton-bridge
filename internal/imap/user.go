@@ -20,6 +20,7 @@ package imap
 import (
 	"errors"
 	"strings"
+	"sync"
 
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	imapquota "github.com/emersion/go-imap-quota"
@@ -39,6 +40,8 @@ type imapUser struct {
 	storeAddress storeAddressProvider
 
 	currentAddressLowercase string
+
+	appendInProcess sync.WaitGroup
 }
 
 // This method should eventually no longer be necessary. Everything should go via store.
@@ -237,4 +240,16 @@ func (iu *imapUser) CreateMessageLimit() *uint32 {
 
 	upload := uint32(maxUpload)
 	return &upload
+}
+
+func (iu *imapUser) appendStarted() {
+	iu.appendInProcess.Add(1)
+}
+
+func (iu *imapUser) appendFinished() {
+	iu.appendInProcess.Done()
+}
+
+func (iu *imapUser) waitForAppend() {
+	iu.appendInProcess.Wait()
 }
