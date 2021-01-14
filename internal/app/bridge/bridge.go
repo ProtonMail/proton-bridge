@@ -31,6 +31,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/internal/imap"
 	"github.com/ProtonMail/proton-bridge/internal/smtp"
 	"github.com/ProtonMail/proton-bridge/internal/updater"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
 )
@@ -165,8 +166,13 @@ func checkAndHandleUpdate(u types.Updater, f frontend.Frontend, autoUpdate bool)
 	}
 
 	if err := u.InstallUpdate(version); err != nil {
-		logrus.WithError(err).Error("An error occurred while silent installing updates")
-		f.NotifySilentUpdateError(err)
+		if errors.Cause(err) == updater.ErrDownloadVerify {
+			logrus.WithError(err).Warning("Skipping update installation due to temporary error")
+		} else {
+			logrus.WithError(err).Error("The update couldn't be installed")
+			f.NotifySilentUpdateError(err)
+		}
+
 		return
 	}
 

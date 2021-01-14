@@ -142,11 +142,11 @@ func (u *Updater) InstallUpdate(update VersionInfo) error {
 
 		r, err := client.DownloadAndVerify(update.Package, update.Package+".sig", u.kr)
 		if err != nil {
-			return errors.Wrap(err, "failed to download and verify update package")
+			return errors.Wrap(ErrDownloadVerify, err.Error())
 		}
 
 		if err := u.installer.InstallUpdate(update.Version, r); err != nil {
-			return errors.Wrap(err, "failed to install update package")
+			return errors.Wrap(ErrInstall, err.Error())
 		}
 
 		u.curVer = update.Version
