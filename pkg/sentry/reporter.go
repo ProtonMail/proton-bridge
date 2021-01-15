@@ -67,8 +67,30 @@ func (r *Reporter) SetUserAgentProvider(uap userAgentProvider) {
 	r.uap = uap
 }
 
+func (r *Reporter) ReportException(i interface{}) error {
+	err := fmt.Errorf("recover: %v", i)
+
+	return r.scopedReport(func() {
+		if eventID := sentry.CaptureException(err); eventID != nil {
+			logrus.WithError(err).
+				WithField("reportID", *eventID).
+				Warn("Captured exception")
+		}
+	})
+}
+
+func (r *Reporter) ReportMessage(msg string) error {
+	return r.scopedReport(func() {
+		if eventID := sentry.CaptureMessage(msg); eventID != nil {
+			logrus.WithField("message", msg).
+				WithField("reportID", *eventID).
+				Warn("Captured message")
+		}
+	})
+}
+
 // Report reports a sentry crash with stacktrace from all goroutines.
-func (r *Reporter) Report(i interface{}) (err error) {
+func (r *Reporter) scopedReport(doReport func()) error {
 	SkipDuringUnwind()
 
 	if os.Getenv("PROTONMAIL_ENV") == "dev" {
@@ -83,8 +105,6 @@ func (r *Reporter) Report(i interface{}) (err error) {
 		userAgent = runtime.GOOS
 	}
 
-	reportErr := fmt.Errorf("recover: %v", i)
-
 	tags := map[string]string{
 		"OS":        runtime.GOOS,
 		"Client":    r.appName,
@@ -93,20 +113,15 @@ func (r *Reporter) Report(i interface{}) (err error) {
 		"UserID":    "",
 	}
 
-	var reportID string
 	sentry.WithScope(func(scope *sentry.Scope) {
 		SkipDuringUnwind()
 		scope.SetTags(tags)
-		if eventID := sentry.CaptureException(reportErr); eventID != nil {
-			reportID = string(*eventID)
-		}
+		doReport()
 	})
 
 	if !sentry.Flush(time.Second * 10) {
 		return errors.New("failed to report sentry error")
 	}
-
-	logrus.WithField("error", reportErr).WithField("id", reportID).Warn("Sentry error reported")
 
 	return nil
 }

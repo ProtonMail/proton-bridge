@@ -18,6 +18,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -43,9 +44,9 @@ var (
 )
 
 func main() { // nolint[funlen]
-	sentryReporter := sentry.NewReporter(appName, constants.Version)
+	reporter := sentry.NewReporter(appName, constants.Version)
 
-	crashHandler := crash.NewHandler(sentryReporter.Report)
+	crashHandler := crash.NewHandler(reporter.ReportException)
 	defer crashHandler.HandlePanic()
 
 	locationsProvider, err := locations.NewDefaultProvider(filepath.Join(constants.VendorName, ConfigName))
@@ -84,7 +85,7 @@ func main() { // nolint[funlen]
 
 	versioner := versioner.New(updatesPath)
 
-	exe, err := getPathToExecutable(ExeName, versioner, kr)
+	exe, err := getPathToExecutable(ExeName, versioner, kr, reporter)
 	if err != nil {
 		if exe, err = getFallbackExecutable(ExeName, versioner); err != nil {
 			logrus.WithError(err).Fatal("Failed to find any launchable executable")
@@ -140,7 +141,12 @@ func appendLauncherPath(path string, args []string) []string {
 	return res
 }
 
-func getPathToExecutable(name string, versioner *versioner.Versioner, kr *crypto.KeyRing) (string, error) {
+func getPathToExecutable(
+	name string,
+	versioner *versioner.Versioner,
+	kr *crypto.KeyRing,
+	reporter *sentry.Reporter,
+) (string, error) {
 	versions, err := versioner.ListVersions()
 	if err != nil {
 		return "", errors.Wrap(err, "failed to list available versions")
@@ -151,6 +157,10 @@ func getPathToExecutable(name string, versioner *versioner.Versioner, kr *crypto
 
 		if err := version.VerifyFiles(kr); err != nil {
 			vlog.WithError(err).Error("Files failed verification and will be removed")
+
+			if err := reporter.ReportMessage(fmt.Sprintf("version %v failed verification: %v", version, err)); err != nil {
+				vlog.WithError(err).Error("Failed to report corrupt update files")
+			}
 
 			if err := version.Remove(); err != nil {
 				vlog.WithError(err).Error("Failed to remove files")

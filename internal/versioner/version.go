@@ -19,7 +19,8 @@ package versioner
 
 import (
 	"bytes"
-	"errors"
+	"encoding/base64"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -50,6 +51,10 @@ func (v Versions) Swap(i, j int) {
 	v[i], v[j] = v[j], v[i]
 }
 
+func (v *Version) String() string {
+	return fmt.Sprintf("%v", v.version)
+}
+
 // VerifyFiles verifies all files in the version directory.
 func (v *Version) VerifyFiles(kr *crypto.KeyRing) error {
 	fileBytes, err := ioutil.ReadFile(filepath.Join(v.path, sumFile)) // nolint[gosec]
@@ -76,7 +81,11 @@ func (v *Version) VerifyFiles(kr *crypto.KeyRing) error {
 	}
 
 	if !bytes.Equal(sum, fileBytes) {
-		return errors.New("sum mismatch")
+		return fmt.Errorf(
+			"sum mismatch: %v should be %v",
+			base64.RawStdEncoding.EncodeToString(sum),
+			base64.RawStdEncoding.EncodeToString(fileBytes),
+		)
 	}
 
 	return nil

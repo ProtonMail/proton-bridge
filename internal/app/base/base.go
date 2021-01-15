@@ -93,7 +93,7 @@ func New( // nolint[funlen]
 	sentryReporter := sentry.NewReporter(appName, constants.Version)
 
 	crashHandler := crash.NewHandler(
-		sentryReporter.Report,
+		sentryReporter.ReportException,
 		crash.ShowErrorNotification(appName),
 	)
 	defer crashHandler.HandlePanic()
