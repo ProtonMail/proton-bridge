@@ -2,6 +2,12 @@
 
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
+## [Bridge 1.5.6] Golden Gate
+
+### Added
+* GODT-797 EXPUNGE waits for APPEND to prevent data loss when Outlook moves from Spam to Inbox
+
+
 ## [Bridge 1.5.5] Golden Gate
 
 ### Changed
