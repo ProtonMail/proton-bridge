@@ -118,12 +118,16 @@ func (f *FrontendQt) Loop() (err error) {
 }
 
 func (f *FrontendQt) NotifyManualUpdate(update updater.VersionInfo, canInstall bool) {
-	f.Qml.SetUpdateVersion(update.Version.String())
-	f.Qml.SetUpdateLandingPage(update.LandingPage)
-	f.Qml.SetUpdateReleaseNotesLink(update.ReleaseNotesPage)
+	f.SetVersion(update)
 	f.Qml.SetUpdateCanInstall(canInstall)
-	f.updateInfo = update
 	f.Qml.NotifyManualUpdate()
+}
+
+func (f *FrontendQt) SetVersion(version updater.VersionInfo) {
+	f.Qml.SetUpdateVersion(version.Version.String())
+	f.Qml.SetUpdateLandingPage(version.LandingPage)
+	f.Qml.SetUpdateReleaseNotesLink(version.ReleaseNotesPage)
+	f.updateInfo = version
 }
 
 func (f *FrontendQt) NotifySilentUpdateInstalled() {
@@ -427,6 +431,8 @@ func (f *FrontendQt) checkForUpdates() {
 			f.Qml.NotifyManualUpdateError()
 			return
 		}
+
+		f.SetVersion(version)
 
 		if !f.updater.IsUpdateApplicable(version) {
 			logrus.Debug("No need to update")

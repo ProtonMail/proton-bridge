@@ -257,8 +257,6 @@ func (f *frontendCLI) NotifyManualUpdate(update updater.VersionInfo, canInstall 
 	// NOTE: Save the update somewhere so that it can be installed when user chooses "install now".
 }
 
-func (f *frontendCLI) NotifySilentUpdateInstalled() {
-}
-
-func (f *frontendCLI) NotifySilentUpdateError(err error) {
-}
+func (f *frontendCLI) SetVersion(version updater.VersionInfo) {}
+func (f *frontendCLI) NotifySilentUpdateInstalled()           {}
+func (f *frontendCLI) NotifySilentUpdateError(err error)      {}

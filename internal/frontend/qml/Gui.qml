@@ -303,6 +303,13 @@ Item {
         winMain.bubbleNote.show()
     }
 
+    function openReleaseNotes(){
+        if go.updateReleaseNotesLink == "" {
+            go.checkForUpdates()
+        }
+        Qt.openUrlExternally(go.updateReleaseNotesLink)
+    }
+
     // On start
     Component.onCompleted : {
         // set  messages for translations

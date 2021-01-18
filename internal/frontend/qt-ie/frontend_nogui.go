@@ -47,6 +47,9 @@ func (s *FrontendHeadless) NotifyManualUpdate(update updater.VersionInfo, canIns
 	// NOTE: Save the update somewhere so that it can be installed when user chooses "install now".
 }
 
+func (s *FrontendHeadless) SetVersion(update updater.VersionInfo) {
+}
+
 func (s *FrontendHeadless) NotifySilentUpdateInstalled() {
 }
 

@@ -62,7 +62,7 @@ Rectangle {
             id: message
             font.pointSize: root.fontSize * Style.pt
         }
-	
+
         ClickIconText {
             id: linkText
             anchors.verticalCenter : message.verticalCenter
@@ -107,31 +107,31 @@ Rectangle {
     onStateChanged : {
         switch (root.state) {
             case "internetCheck":
-                break;
+            break;
             case "noInternet" :
-                gui.warningFlags |= Style.warnInfoBar
-                retryInternet.start()
-                secLeft=checkInterval[iTry]
-                break;
+            gui.warningFlags |= Style.warnInfoBar
+            retryInternet.start()
+            secLeft=checkInterval[iTry]
+            break;
             case "oldVersion":
-                gui.warningFlags |= Style.warnInfoBar
-                break;
+            gui.warningFlags |= Style.warnInfoBar
+            break;
             case "forceUpdate":
-                gui.warningFlags |= Style.errorInfoBar
-                break;
+            gui.warningFlags |= Style.errorInfoBar
+            break;
             case "upToDate":
-                gui.warningFlags &= ~Style.warnInfoBar
-                iTry = 0
-                secLeft=checkInterval[iTry]
-                break;
+            gui.warningFlags &= ~Style.warnInfoBar
+            iTry = 0
+            secLeft=checkInterval[iTry]
+            break;
             case "updateRestart":
-                gui.warningFlags |= Style.warnInfoBar
-                break;
+            gui.warningFlags |= Style.warnInfoBar
+            break;
             case "updateError":
-                gui.warningFlags |= Style.errorInfoBar
-                break;
+            gui.warningFlags |= Style.errorInfoBar
+            break;
             default :
-                break;
+            break;
         }
 
         if (root.state!="noInternet") {
@@ -248,9 +248,7 @@ Rectangle {
                 target: linkText
                 visible: true
                 text: "(" + qsTr("view release notes", "display the release notes from the new version") + ")"
-                onClicked: {
-                    Qt.openUrlExternally(go.updateReleaseNotesLink)
-                }
+                onClicked: gui.openReleaseNotes()
             }
             PropertyChanges {
                 target: actionText

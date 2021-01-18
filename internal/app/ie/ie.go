@@ -95,6 +95,9 @@ func checkAndHandleUpdate(u types.Updater, f frontend.Frontend, autoUpdate bool)
 		return
 	}
 
+	// Update links in UI
+	f.SetVersion(version)
+
 	if !u.IsUpdateApplicable(version) {
 		logrus.Debug("No need to update")
 		return

@@ -42,6 +42,7 @@ var (
 type Frontend interface {
 	Loop() error
 	NotifyManualUpdate(update updater.VersionInfo, canInstall bool)
+	SetVersion(update updater.VersionInfo)
 	NotifySilentUpdateInstalled()
 	NotifySilentUpdateError(error)
 }

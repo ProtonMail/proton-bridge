@@ -113,7 +113,7 @@ Item {
                     MouseArea {
                         anchors.fill: parent
                         onClicked : {
-                        go.openLicenseFile()
+                            go.openLicenseFile()
                         }
                         cursorShape: Qt.PointingHandCursor
                     }
@@ -127,9 +127,7 @@ Item {
                     font.underline: true
                     MouseArea {
                         anchors.fill: parent
-                        onClicked : {
-                            Qt.openUrlExternally(go.updateReleaseNotesLink)
-                        }
+                        onClicked : gui.openReleaseNotes()
                         cursorShape: Qt.PointingHandCursor
                     }
                 }

@@ -135,9 +135,7 @@ Item {
                     textColor     : Style.main.textDisabled
                     fontSize      : Style.main.fontSize
                     textUnderline : true
-                    onClicked     : {
-                        Qt.openUrlExternally(go.updateReleaseNotesLink)
-                    }
+                    onClicked : gui.openReleaseNotes()
                 }
             }
         }

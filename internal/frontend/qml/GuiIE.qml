@@ -405,6 +405,14 @@ Item {
      }
      */
 
+    function openReleaseNotes(){
+        if go.updateReleaseNotesLink == "" {
+            go.checkForUpdates()
+        }
+        Qt.openUrlExternally(go.updateReleaseNotesLink)
+    }
+
+
     property string  areYouSureYouWantToQuit : qsTr("There are incomplete processes - some items are not yet transferred. Do you really want to stop and quit?")
     // On start
     Component.onCompleted : {
