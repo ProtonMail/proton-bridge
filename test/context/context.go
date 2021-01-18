@@ -22,6 +22,7 @@ import (
 	"sync"
 
 	"github.com/ProtonMail/proton-bridge/internal/bridge"
+	"github.com/ProtonMail/proton-bridge/internal/constants"
 	"github.com/ProtonMail/proton-bridge/internal/importexport"
 	"github.com/ProtonMail/proton-bridge/internal/transfer"
 	"github.com/ProtonMail/proton-bridge/internal/users"
@@ -94,7 +95,11 @@ type TestContext struct {
 func New(app string) *TestContext {
 	setLogrusVerbosityFromEnv()
 
-	cm := pmapi.NewClientManager(pmapi.GetAPIConfig("TODO", "TODO"))
+	configName := app
+	if app == "ie" {
+		configName = "importExport"
+	}
+	cm := pmapi.NewClientManager(pmapi.GetAPIConfig(configName, constants.Version))
 
 	ctx := &TestContext{
 		t:                     &bddT{},

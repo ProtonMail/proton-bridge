@@ -93,7 +93,12 @@ func (f *frontendCLI) notifyLogout(address string) {
 }
 
 func (f *frontendCLI) notifyNeedUpgrade() {
-	f.Println("TODO")
+	version, err := f.updater.Check()
+	if err != nil {
+		log.WithError(err).Error("Failed to notify need upgrade")
+		return
+	}
+	f.Println("Please download and install the newest version of application from", version.LandingPage)
 }
 
 func (f *frontendCLI) notifyCredentialsError() { // nolint[unused]
