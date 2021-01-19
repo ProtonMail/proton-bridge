@@ -261,6 +261,9 @@ Item {
             winMain.tlsBarState="notOK"
         }
 
+        onOpenReleaseNotesExternally: {
+            Qt.openUrlExternally(go.updateReleaseNotesLink)
+        }
 
     }
 
@@ -304,11 +307,13 @@ Item {
     }
 
     function openReleaseNotes(){
-        if go.updateReleaseNotesLink == "" {
-            go.checkForUpdates()
+        if (go.updateReleaseNotesLink == "") {
+            go.checkAndOpenReleaseNotes()
+            return
         }
-        Qt.openUrlExternally(go.updateReleaseNotesLink)
+        go.openReleaseNotesExternally()
     }
+
 
     // On start
     Component.onCompleted : {

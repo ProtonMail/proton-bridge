@@ -414,33 +414,42 @@ func (s *FrontendQt) openLogs() {
 	go open.Run(logsPath)
 }
 
-func (s *FrontendQt) checkForUpdates() {
+func (s *FrontendQt) checkForUpdatesAndWait() {
+	version, err := s.updater.Check()
+
+	if err != nil {
+		logrus.WithError(err).Error("An error occurred while checking updates manually")
+		s.Qml.NotifyManualUpdateError()
+		return
+	}
+
+	s.SetVersion(version)
+
+	if !s.updater.IsUpdateApplicable(version) {
+		logrus.Debug("No need to update")
+		return
+	}
+
+	logrus.WithField("version", version.Version).Info("An update is available")
+
+	if !s.updater.CanInstall(version) {
+		logrus.Debug("A manual update is required")
+		s.NotifyManualUpdate(version, false)
+		return
+	}
+
+	s.NotifyManualUpdate(version, true)
+}
+
+func (s *FrontendQt) checkAndOpenReleaseNotes() {
 	go func() {
-		version, err := s.updater.Check()
-
-		if err != nil {
-			logrus.WithError(err).Error("An error occurred while checking updates manually")
-			s.Qml.NotifyManualUpdateError()
-			return
-		}
-
-		s.SetVersion(version)
-
-		if !s.updater.IsUpdateApplicable(version) {
-			logrus.Debug("No need to update")
-			return
-		}
-
-		logrus.WithField("version", version.Version).Info("An update is available")
-
-		if !s.updater.CanInstall(version) {
-			logrus.Debug("A manual update is required")
-			s.NotifyManualUpdate(version, false)
-			return
-		}
-
-		s.NotifyManualUpdate(version, true)
+		s.checkForUpdatesAndWait()
+		s.Qml.OpenReleaseNotesExternally()
 	}()
+}
+
+func (s *FrontendQt) checkForUpdates() {
+	go s.checkForUpdatesAndWait()
 }
 
 func (s *FrontendQt) openLicenseFile() {

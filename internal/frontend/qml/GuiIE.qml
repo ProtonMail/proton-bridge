@@ -292,6 +292,12 @@ Item {
         onUpdateFinished : {
             winMain.dialogUpdate.finished(hasError)
         }
+
+        onOpenReleaseNotesExternally: {
+            Qt.openUrlExternally(go.updateReleaseNotesLink)
+        }
+
+
     }
 
     function folderIcon(folderName, folderType) { // translations
@@ -406,10 +412,11 @@ Item {
      */
 
     function openReleaseNotes(){
-        if go.updateReleaseNotesLink == "" {
-            go.checkForUpdates()
+        if (go.updateReleaseNotesLink == "") {
+            go.checkAndOpenReleaseNotes()
+            return
         }
-        Qt.openUrlExternally(go.updateReleaseNotesLink)
+        go.openReleaseNotesExternally()
     }
 
 

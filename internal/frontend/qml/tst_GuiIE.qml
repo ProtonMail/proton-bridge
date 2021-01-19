@@ -167,28 +167,28 @@ Window {
                     go.goos = "linux";
                     break;
                     case "NotifyManualUpdate(CanInstall)" :
-                        go.notifyManualUpdate()
-                        go.updateCanInstall = true
-                        break;
+                    go.notifyManualUpdate()
+                    go.updateCanInstall = true
+                    break;
                     case "NotifyManualUpdate(CantInstall)" :
-                        go.notifyManualUpdate()
-                        go.updateCanInstall = false
-                        break;
+                    go.notifyManualUpdate()
+                    go.updateCanInstall = false
+                    break;
                     case "NotifyManualUpdateRestart":
-                        go.notifyManualUpdateRestartNeeded()
-                        break;
+                    go.notifyManualUpdateRestartNeeded()
+                    break;
                     case "NotifyManualUpdateError":
-                        go.notifyManualUpdateError()
-                        break;
+                    go.notifyManualUpdateError()
+                    break;
                     case "ForceUpdate" :
-                        go.notifyForceUpdate()
-                        break;
+                    go.notifyForceUpdate()
+                    break;
                     case "NotifySilentUpdateRestartNeeded" :
-                        go.notifySilentUpdateRestartNeeded()
-                        break;
+                    go.notifySilentUpdateRestartNeeded()
+                    break;
                     case "NotifySilentUpdateError" :
-                        go.notifySilentUpdateError()
-                        break;
+                    go.notifySilentUpdateError()
+                    break;
                     case "ImportStructure" :
                     testgui.winMain.dialogImport.address = "cuto@pm.com"
                     testgui.winMain.dialogImport.show()
@@ -855,7 +855,7 @@ Window {
         property string programTitle : "ProtonMail Import-Export app"
         property string fullversion : "QA.1.0 (d9f8sdf9) 2020-02-19T10:57:23+01:00"
         property string downloadLink: "https://protonmail.com/download/beta/protonmail-bridge-1.1.5-1.x86_64.rpm;https://www.protonmail.com/downloads/beta/Desktop-Bridge-link1.exe;https://www.protonmail.com/downloads/beta/Desktop-Bridge-link1.exe;https://www.protonmail.com/downloads/beta/Desktop-Bridge-link1.exe;"
-        
+
         property string updateVersion : "q0.1.0"
         property bool updateCanInstall: true
         property string updateLandingPage : "https://protonmail.com/import-export/download/"
@@ -871,6 +871,11 @@ Window {
         }
         function startManualUpdate() {
             console.log("startManualUpdate")
+        }
+        function checkAndOpenReleaseNotes() {
+            console.log("check for release notes")
+            go.updateReleaseNotesLink = "https://protonmail.com/download/import-export/release_notes.html"
+            go.openReleaseNotesExternally()
         }
 
         property real progress: 0.0
@@ -911,6 +916,8 @@ Window {
         signal setAddAccountWarning(string message)
         signal notifyUpdate()
         signal updateFinished(bool hasError)
+
+        signal openReleaseNotesExternally()
 
         signal notifyLogout(string accname)
 

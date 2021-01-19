@@ -61,6 +61,8 @@ type GoQMLInterface struct {
 	_ func() `signal:"notifySilentUpdateRestartNeeded"`
 	_ func() `signal:"notifySilentUpdateError"`
 	_ func() `slot:"checkForUpdates"`
+	_ func() `slot:"checkAndOpenReleaseNotes"`
+	_ func() `signal:"openReleaseNotesExternally"`
 	_ func() `slot:"startManualUpdate"`
 
 	// Translations.
