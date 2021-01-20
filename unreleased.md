@@ -13,6 +13,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-804 Added GUI notification on silent update installed (promt to restart).
 * GODT-275 Added option to disable autoupdates in settings (default autoupdate is enabled).
 * GODT-874 Added manual triggers to Updater module.
+* GODT-851 Added support of UID EXPUNGE.
 
 ### Changed
 * GODT-97 Don't log errors caused by SELECT "".

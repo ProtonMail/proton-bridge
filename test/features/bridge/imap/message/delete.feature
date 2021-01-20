@@ -99,3 +99,16 @@ Feature: IMAP remove messages from mailbox
     And there is IMAP client selected in "All Mail"
     When IMAP client marks message seq "1" as deleted
     Then IMAP response is "IMAP error: NO operation not allowed for 'All Mail' folder"
+
+  Scenario: Expunge specific message only
+    Given there are 5 messages in mailbox "INBOX" for "user"
+    And there is IMAP client logged in as "user"
+    And there is IMAP client selected in "INBOX"
+    When IMAP client marks message seq "1" as deleted
+    Then IMAP response is "OK"
+    When IMAP client marks message seq "2" as deleted
+    Then IMAP response is "OK"
+    When IMAP client sends command "UID EXPUNGE 1"
+    Then IMAP response is "OK"
+    And mailbox "INBOX" for "user" has 4 messages
+    And message "2" in "INBOX" for "user" is marked as deleted

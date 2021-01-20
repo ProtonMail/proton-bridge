@@ -116,40 +116,70 @@ func (os *OrderedSeq) String() string {
 
 // UIDExpunge implements server.Handler but Bridge is not supporting
 // UID EXPUNGE with specific UIDs.
+
+type UIDExpungeMailbox interface {
+	Expunge() error
+	UIDExpunge(*imap.SeqSet) error
+}
+
 type UIDExpunge struct {
-	expunge *server.Expunge
+	SeqSet *imap.SeqSet
 }
 
 func newUIDExpunge() *UIDExpunge {
-	return &UIDExpunge{expunge: &server.Expunge{}}
+	return &UIDExpunge{}
 }
 
 func (e *UIDExpunge) Parse(fields []interface{}) error {
-	if len(fields) < 1 {
-		return e.expunge.Parse(fields)
+	if len(fields) == 0 {
+		return nil // It could be regular EXPUNGE without arguments.
+	}
+	if len(fields) > 1 {
+		return errors.New("too many arguments")
 	}
 
-	// RFC4315#section-2.1
-	// The UID EXPUNGE command permanently removes all messages that both
-	// have the \Deleted flag set and have a UID that is included in the
-	// specified sequence set from the currently selected mailbox. If a
-	// message either does not have the \Deleted flag set or has a UID
-	// that is not included in the specified sequence set, it is not
-	// affected.
-	//
-	// Current implementation supports only deletion of all messages
-	// marked as deleted. It will probably need mailbox interface change:
-	// ExpungeUIDs(seqSet). Not sure how to combine with original
-	// e.expunge.Handle().
-	return errors.New("UID EXPUNGE with UIDs is not supported")
+	seqset, ok := fields[0].(string)
+	if !ok {
+		return errors.New("sequence set must be an atom")
+	}
+	var err error
+	e.SeqSet, err = imap.ParseSeqSet(seqset)
+	return err
 }
 
 func (e *UIDExpunge) Handle(conn server.Conn) error {
-	return e.expunge.Handle(conn)
+	mailbox, err := e.getMailbox(conn)
+	if err != nil {
+		return err
+	}
+	return mailbox.Expunge()
 }
 
 func (e *UIDExpunge) UidHandle(conn server.Conn) error { //nolint[golint]
-	return e.expunge.Handle(conn)
+	if e.SeqSet == nil {
+		return errors.New("missing sequence set")
+	}
+	mailbox, err := e.getMailbox(conn)
+	if err != nil {
+		return err
+	}
+	return mailbox.UIDExpunge(e.SeqSet)
+}
+
+func (e *UIDExpunge) getMailbox(conn server.Conn) (UIDExpungeMailbox, error) {
+	ctx := conn.Context()
+	if ctx.Mailbox == nil {
+		return nil, server.ErrNoMailboxSelected
+	}
+	if ctx.MailboxReadOnly {
+		return nil, server.ErrMailboxReadOnly
+	}
+
+	mailbox, ok := ctx.Mailbox.(UIDExpungeMailbox)
+	if !ok {
+		return nil, errors.New("UID EXPUNGE is not implemented")
+	}
+	return mailbox, nil
 }
 
 type extension struct{}
