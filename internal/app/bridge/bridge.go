@@ -19,12 +19,14 @@
 package bridge
 
 import (
+	"crypto/tls"
 	"time"
 
 	"github.com/ProtonMail/proton-bridge/internal/api"
 	"github.com/ProtonMail/proton-bridge/internal/app/base"
 	"github.com/ProtonMail/proton-bridge/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/internal/config/settings"
+	pkgTLS "github.com/ProtonMail/proton-bridge/internal/config/tls"
 	"github.com/ProtonMail/proton-bridge/internal/constants"
 	"github.com/ProtonMail/proton-bridge/internal/frontend"
 	"github.com/ProtonMail/proton-bridge/internal/frontend/types"
@@ -58,9 +60,9 @@ func New(base *base.Base) *cli.App {
 }
 
 func run(b *base.Base, c *cli.Context) error { // nolint[funlen]
-	tls, err := b.TLS.GetConfig()
+	tlsConfig, err := loadTLSConfig(b)
 	if err != nil {
-		logrus.WithError(err).Fatal("Failed to create TLS config")
+		logrus.WithError(err).Fatal("Failed to load TLS config")
 	}
 
 	bridge := bridge.New(b.Locations, b.Cache, b.Settings, b.CrashHandler, b.Listener, b.CM, b.Creds)
@@ -78,7 +80,7 @@ func run(b *base.Base, c *cli.Context) error { // nolint[funlen]
 		imap.NewIMAPServer(
 			c.String("log-imap") == "client" || c.String("log-imap") == "all",
 			c.String("log-imap") == "server" || c.String("log-imap") == "all",
-			imapPort, tls, imapBackend, b.Listener).ListenAndServe()
+			imapPort, tlsConfig, imapBackend, b.Listener).ListenAndServe()
 	}()
 
 	go func() {
@@ -87,7 +89,7 @@ func run(b *base.Base, c *cli.Context) error { // nolint[funlen]
 		useSSL := b.Settings.GetBool(settings.SMTPSSLKey)
 		smtp.NewSMTPServer(
 			c.Bool("log-smtp"),
-			smtpPort, useSSL, tls, smtpBackend, b.Listener).ListenAndServe()
+			smtpPort, useSSL, tlsConfig, smtpBackend, b.Listener).ListenAndServe()
 	}()
 
 	// Bridge supports no-window option which we should use for autostart.
@@ -138,6 +140,44 @@ func run(b *base.Base, c *cli.Context) error { // nolint[funlen]
 	}()
 
 	return f.Loop()
+}
+
+func loadTLSConfig(b *base.Base) (*tls.Config, error) {
+	if !b.TLS.HasCerts() {
+		if err := generateTLSCerts(b); err != nil {
+			return nil, err
+		}
+	}
+
+	tlsConfig, err := b.TLS.GetConfig()
+	if err == nil {
+		return tlsConfig, nil
+	}
+
+	logrus.WithError(err).Error("Failed to load TLS config, regenerating certificates")
+
+	if err := generateTLSCerts(b); err != nil {
+		return nil, err
+	}
+
+	return b.TLS.GetConfig()
+}
+
+func generateTLSCerts(b *base.Base) error {
+	template, err := pkgTLS.NewTLSTemplate()
+	if err != nil {
+		return errors.Wrap(err, "failed to generate TLS template")
+	}
+
+	if err := b.TLS.GenerateCerts(template); err != nil {
+		return errors.Wrap(err, "failed to generate TLS certs")
+	}
+
+	if err := b.TLS.InstallCerts(); err != nil {
+		return errors.Wrap(err, "failed to install TLS certs")
+	}
+
+	return nil
 }
 
 func checkAndHandleUpdate(u types.Updater, f frontend.Frontend, autoUpdate bool) {
