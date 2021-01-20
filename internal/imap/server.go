@@ -58,6 +58,13 @@ func NewIMAPServer(debugClient, debugServer bool, port int, tls *tls.Config, ima
 	s.ErrorLog = newServerErrorLogger("server-imap")
 	s.AutoLogout = 30 * time.Minute
 
+	if debugServer {
+		fmt.Println("THE LOG WILL CONTAIN **DECRYPTED** MESSAGE DATA")
+		log.Warning("================================================")
+		log.Warning("THIS LOG WILL CONTAIN **DECRYPTED** MESSAGE DATA")
+		log.Warning("================================================")
+	}
+
 	serverID := imapid.ID{
 		imapid.FieldName:       "ProtonMail Bridge",
 		imapid.FieldVendor:     "Proton Technologies AG",

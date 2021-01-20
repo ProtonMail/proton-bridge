@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
 
-// +build pmapi_qa
+// +build build_qa
 
 package pmapi
 
@@ -24,6 +24,8 @@ import (
 	"net/http"
 	"os"
 	"strings"
+
+	"github.com/ProtonMail/proton-bridge/pkg/listener"
 )
 
 func init() {
@@ -37,13 +39,13 @@ func init() {
 		rootURL = fullRootURL
 		rootScheme = "https"
 	}
+}
+
+func GetRoundTripper(_ *ClientManager, _ listener.Listener) http.RoundTripper {
+	transport := CreateTransportWithDialer(NewBasicTLSDialer())
 
 	// TLS certificate of testing environment might be self-signed.
-	defaultTransport = &http.Transport{
-		Proxy:           http.ProxyFromEnvironment,
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-	}
+	transport.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 
-	// This config disables TLS cert checking.
-	checkTLSCerts = false
+	return transport
 }

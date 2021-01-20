@@ -120,9 +120,7 @@ func (c *client) UpdateUser() (user *User, err error) {
 
 	c.user = user
 	sentry.ConfigureScope(func(scope *sentry.Scope) {
-		scope.SetUser(sentry.User{
-			ID: user.ID,
-		})
+		scope.SetUser(sentry.User{ID: user.ID})
 	})
 
 	var tmpList AddressList

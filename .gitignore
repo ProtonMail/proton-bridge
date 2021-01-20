@@ -27,7 +27,11 @@ internal/frontend/qml/ImportExportUI/images
 frontend/qml/*.qmlc
 
 # Build files
-bridge_darwin_*.tgz
+/launcher-*
+/bridge_*_*.tgz
+/ie_*_*.tgz
+/versioner
+/hasher
 cmd/Desktop-Bridge/deploy
 cmd/Import-Export/deploy
 internal/frontend/qt*/moc.cpp

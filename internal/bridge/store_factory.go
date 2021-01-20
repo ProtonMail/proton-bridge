@@ -28,7 +28,7 @@ import (
 )
 
 type storeFactory struct {
-	config        StoreFactoryConfiger
+	cache         Cacher
 	panicHandler  users.PanicHandler
 	clientManager users.ClientManager
 	eventListener listener.Listener
@@ -36,29 +36,29 @@ type storeFactory struct {
 }
 
 func newStoreFactory(
-	config StoreFactoryConfiger,
+	cache Cacher,
 	panicHandler users.PanicHandler,
 	clientManager users.ClientManager,
 	eventListener listener.Listener,
 ) *storeFactory {
 	return &storeFactory{
-		config:        config,
+		cache:         cache,
 		panicHandler:  panicHandler,
 		clientManager: clientManager,
 		eventListener: eventListener,
-		storeCache:    store.NewCache(config.GetIMAPCachePath()),
+		storeCache:    store.NewCache(cache.GetIMAPCachePath()),
 	}
 }
 
 // New creates new store for given user.
 func (f *storeFactory) New(user store.BridgeUser) (*store.Store, error) {
-	storePath := getUserStorePath(f.config.GetDBDir(), user.ID())
+	storePath := getUserStorePath(f.cache.GetDBDir(), user.ID())
 	return store.New(f.panicHandler, user, f.clientManager, f.eventListener, storePath, f.storeCache)
 }
 
 // Remove removes all store files for given user.
 func (f *storeFactory) Remove(userID string) error {
-	storePath := getUserStorePath(f.config.GetDBDir(), userID)
+	storePath := getUserStorePath(f.cache.GetDBDir(), userID)
 	return store.RemoveStore(f.storeCache, storePath, userID)
 }
 

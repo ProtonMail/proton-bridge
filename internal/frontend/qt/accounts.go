@@ -24,8 +24,8 @@ import (
 	"strings"
 
 	"github.com/ProtonMail/proton-bridge/internal/bridge"
+	"github.com/ProtonMail/proton-bridge/internal/config/settings"
 	"github.com/ProtonMail/proton-bridge/internal/events"
-	"github.com/ProtonMail/proton-bridge/internal/preferences"
 	"github.com/ProtonMail/proton-bridge/pkg/keychain"
 	pmapi "github.com/ProtonMail/proton-bridge/pkg/pmapi"
 )
@@ -63,8 +63,8 @@ func (s *FrontendQt) loadAccounts() {
 		acc_info.SetUserID(user.ID())
 		acc_info.SetHostname(bridge.Host)
 		acc_info.SetPassword(user.GetBridgePassword())
-		acc_info.SetPortIMAP(s.preferences.GetInt(preferences.IMAPPortKey))
-		acc_info.SetPortSMTP(s.preferences.GetInt(preferences.SMTPPortKey))
+		acc_info.SetPortIMAP(s.settings.GetInt(settings.IMAPPortKey))
+		acc_info.SetPortSMTP(s.settings.GetInt(settings.SMTPPortKey))
 
 		// Set aliases.
 		acc_info.SetAliases(strings.Join(user.GetAddresses(), ";"))
@@ -85,7 +85,7 @@ func (s *FrontendQt) clearCache() {
 	}
 	// Clearing data removes everything (db, preferences, ...)
 	// so everything has to be stopped and started again.
-	s.Qml.SetIsRestarting(true)
+	s.restarter.SetToRestart()
 	s.App.Quit()
 }
 
@@ -94,7 +94,7 @@ func (s *FrontendQt) clearKeychain() {
 	for _, user := range s.bridge.GetUsers() {
 		if err := s.bridge.DeleteUser(user.ID(), false); err != nil {
 			log.Error("While deleting user: ", err)
-			if err == keychain.ErrNoKeychainInstalled { // Probably not needed anymore.
+			if err == keychain.ErrNoKeychain { // Probably not needed anymore.
 				s.Qml.NotifyHasNoKeychain()
 			}
 		}
@@ -203,7 +203,7 @@ func (s *FrontendQt) deleteAccount(iAccount int, removePreferences bool) {
 	userID := s.Accounts.get(iAccount).UserID()
 	if err := s.bridge.DeleteUser(userID, removePreferences); err != nil {
 		log.Warn("deleteUser: cannot remove user: ", err)
-		if err == keychain.ErrNoKeychainInstalled {
+		if err == keychain.ErrNoKeychain {
 			s.Qml.NotifyHasNoKeychain()
 			return
 		}

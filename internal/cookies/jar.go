@@ -19,46 +19,41 @@
 package cookies
 
 import (
+	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
 	"sync"
+	"time"
 
-	"github.com/sirupsen/logrus"
+	"github.com/ProtonMail/proton-bridge/internal/config/settings"
 )
+
+type cookiesByHost map[string][]*http.Cookie
 
 // Jar implements http.CookieJar by wrapping the standard library's cookiejar.Jar.
 // The jar uses a pantry to load cookies at startup and save cookies when set.
 type Jar struct {
-	jar    *cookiejar.Jar
-	pantry *pantry
-	locker sync.Locker
+	jar      *cookiejar.Jar
+	settings *settings.Settings
+	cookies  cookiesByHost
+	locker   sync.Locker
 }
 
-type GetterSetter interface {
-	Get(string) string
-	Set(string, string)
-}
-
-func NewCookieJar(gs GetterSetter) (*Jar, error) {
-	pantry := &pantry{gs: gs}
-
-	if err := pantry.discardExpiredCookies(); err != nil {
-		return nil, err
-	}
-
-	cookies, err := pantry.loadFromJSON()
-	if err != nil {
-		return nil, err
-	}
-
+func NewCookieJar(s *settings.Settings) (*Jar, error) {
 	jar, err := cookiejar.New(nil)
 	if err != nil {
 		return nil, err
 	}
 
-	for rawURL, cookies := range cookies {
-		url, err := url.Parse(rawURL)
+	cookiesByHost, err := loadCookies(s)
+	if err != nil {
+		return nil, err
+	}
+
+	for host, cookies := range cookiesByHost {
+		url, err := url.Parse(host)
 		if err != nil {
 			continue
 		}
@@ -67,9 +62,10 @@ func NewCookieJar(gs GetterSetter) (*Jar, error) {
 	}
 
 	return &Jar{
-		jar:    jar,
-		pantry: pantry,
-		locker: &sync.Mutex{},
+		jar:      jar,
+		settings: s,
+		cookies:  cookiesByHost,
+		locker:   &sync.Mutex{},
 	}, nil
 }
 
@@ -79,9 +75,13 @@ func (j *Jar) SetCookies(u *url.URL, cookies []*http.Cookie) {
 
 	j.jar.SetCookies(u, cookies)
 
-	if err := j.pantry.persistCookies(u.Scheme+"://"+u.Host, cookies); err != nil {
-		logrus.WithError(err).Warn("Failed to persist cookie")
+	for _, cookie := range cookies {
+		if cookie.MaxAge > 0 {
+			cookie.Expires = time.Now().Add(time.Duration(cookie.MaxAge) * time.Second)
+		}
 	}
+
+	j.cookies[fmt.Sprintf("%v://%v", u.Scheme, u.Host)] = cookies
 }
 
 func (j *Jar) Cookies(u *url.URL) []*http.Cookie {
@@ -89,4 +89,55 @@ func (j *Jar) Cookies(u *url.URL) []*http.Cookie {
 	defer j.locker.Unlock()
 
 	return j.jar.Cookies(u)
+}
+
+// PersistCookies persists the cookies to disk.
+func (j *Jar) PersistCookies() error {
+	j.locker.Lock()
+	defer j.locker.Unlock()
+
+	rawCookies, err := json.Marshal(j.cookies)
+	if err != nil {
+		return err
+	}
+
+	j.settings.Set(settings.CookiesKey, string(rawCookies))
+
+	return nil
+}
+
+// loadCookies loads all non-expired cookies from disk.
+func loadCookies(s *settings.Settings) (cookiesByHost, error) {
+	rawCookies := s.Get(settings.CookiesKey)
+
+	if rawCookies == "" {
+		return make(cookiesByHost), nil
+	}
+
+	var cookiesByHost cookiesByHost
+
+	if err := json.Unmarshal([]byte(rawCookies), &cookiesByHost); err != nil {
+		return nil, err
+	}
+
+	for host, cookies := range cookiesByHost {
+		if validCookies := discardExpiredCookies(cookies); len(validCookies) > 0 {
+			cookiesByHost[host] = validCookies
+		}
+	}
+
+	return cookiesByHost, nil
+}
+
+// discardExpiredCookies returns all the given cookies which aren't expired.
+func discardExpiredCookies(cookies []*http.Cookie) []*http.Cookie {
+	var validCookies []*http.Cookie
+
+	for _, cookie := range cookies {
+		if cookie.Expires.After(time.Now()) {
+			validCookies = append(validCookies, cookie)
+		}
+	}
+
+	return validCookies
 }

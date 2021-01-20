@@ -20,17 +20,38 @@
 import QtQuick 2.8
 import ProtonUI 1.0
 import ImportExportUI 1.0
+import QtQuick.Controls 2.4
 
 Item {
     id: root
 
     // must have wrapper
-    Rectangle {
+    ScrollView {
         id: wrapper
         anchors.centerIn: parent
         width: parent.width
         height: parent.height
-        color: Style.main.background
+        background: Rectangle {
+            color: Style.main.background
+        }
+
+        // horizontall scrollbar sometimes showes up when vertical scrollbar coveres content
+        ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
+        ScrollBar.vertical.policy: ScrollBar.AsNeeded
+
+        // keeping vertical scrollbar allways visible when needed
+        Connections {
+            target: wrapper.ScrollBar.vertical
+            onSizeChanged: {
+                // ScrollBar.size == 0 at creating so no need to make it active
+                if (wrapper.ScrollBar.vertical.size < 1.0 && wrapper.ScrollBar.vertical.size > 0 && !wrapper.ScrollBar.vertical.active) {
+                    wrapper.ScrollBar.vertical.active = true
+                }
+            }
+            onActiveChanged: {
+                wrapper.ScrollBar.vertical.active = true
+            }
+        }
 
         // content
         Column {
@@ -73,6 +94,25 @@ Item {
                 rightIcon.text : Style.fa.chevron_circle_right
                 rightIcon.font.pointSize : Style.settings.toggleSize * Style.pt
                 onClicked: bugreportWin.show()
+            }
+
+            ButtonIconText {
+                id: autoUpdates
+                text: qsTr("Keep the application up to date", "label for toggle that activates and disables the automatic updates")
+                leftIcon.text  : Style.fa.download
+                rightIcon {
+                    font.pointSize : Style.settings.toggleSize * Style.pt
+                    text  : go.isAutoUpdate!=false ? Style.fa.toggle_on  : Style.fa.toggle_off
+                    color : go.isAutoUpdate!=false ? Style.main.textBlue : Style.main.textDisabled
+                }
+                Accessible.description: (
+                    go.isAutoUpdate == false ?
+                    qsTr("Enable"  , "Click to enable the automatic update of Bridge") :
+                    qsTr("Disable" , "Click to disable the automatic update of Bridge")
+                ) + " " + text
+                onClicked: {
+                    go.toggleAutoUpdate()
+                }
             }
 
             /*

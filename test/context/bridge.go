@@ -21,7 +21,6 @@ import (
 	"time"
 
 	"github.com/ProtonMail/proton-bridge/internal/bridge"
-	"github.com/ProtonMail/proton-bridge/internal/preferences"
 	"github.com/ProtonMail/proton-bridge/internal/users"
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
 )
@@ -34,7 +33,7 @@ func (ctx *TestContext) GetBridge() *bridge.Bridge {
 // withBridgeInstance creates a bridge instance for use in the test.
 // TestContext has this by default once called with env variable TEST_APP=bridge.
 func (ctx *TestContext) withBridgeInstance() {
-	ctx.bridge = newBridgeInstance(ctx.t, ctx.cfg, ctx.credStore, ctx.listener, ctx.clientManager)
+	ctx.bridge = newBridgeInstance(ctx.t, ctx.locations, ctx.cache, ctx.settings, ctx.credStore, ctx.listener, ctx.clientManager)
 	ctx.users = ctx.bridge.Users
 	ctx.addCleanupChecked(ctx.bridge.ClearData, "Cleaning bridge data")
 }
@@ -61,12 +60,13 @@ func (ctx *TestContext) RestartBridge() error {
 // newBridgeInstance creates a new bridge instance configured to use the given config/credstore.
 func newBridgeInstance(
 	t *bddT,
-	cfg *fakeConfig,
+	locations bridge.Locator,
+	cache bridge.Cacher,
+	settings *fakeSettings,
 	credStore users.CredentialsStorer,
 	eventListener listener.Listener,
 	clientManager users.ClientManager,
 ) *bridge.Bridge {
 	panicHandler := &panicHandler{t: t}
-	pref := preferences.New(cfg)
-	return bridge.New(cfg, pref, panicHandler, eventListener, clientManager, credStore)
+	return bridge.New(locations, cache, settings, panicHandler, eventListener, clientManager, credStore)
 }

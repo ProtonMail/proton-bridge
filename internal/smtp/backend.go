@@ -22,8 +22,7 @@ import (
 	"time"
 
 	"github.com/ProtonMail/proton-bridge/internal/bridge"
-	"github.com/ProtonMail/proton-bridge/internal/preferences"
-	"github.com/ProtonMail/proton-bridge/pkg/config"
+	"github.com/ProtonMail/proton-bridge/internal/config/settings"
 	"github.com/ProtonMail/proton-bridge/pkg/confirmer"
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
 	goSMTPBackend "github.com/emersion/go-smtp"
@@ -35,10 +34,14 @@ type panicHandler interface {
 	HandlePanic()
 }
 
+type settingsProvider interface {
+	GetBool(string) bool
+}
+
 type smtpBackend struct {
 	panicHandler  panicHandler
 	eventListener listener.Listener
-	preferences   *config.Preferences
+	settings      settingsProvider
 	bridge        bridger
 	confirmer     *confirmer.Confirmer
 	sendRecorder  *sendRecorder
@@ -48,22 +51,22 @@ type smtpBackend struct {
 func NewSMTPBackend(
 	panicHandler panicHandler,
 	eventListener listener.Listener,
-	preferences *config.Preferences,
+	settings settingsProvider,
 	bridge *bridge.Bridge,
 ) *smtpBackend { //nolint[golint]
-	return newSMTPBackend(panicHandler, eventListener, preferences, newBridgeWrap(bridge))
+	return newSMTPBackend(panicHandler, eventListener, settings, newBridgeWrap(bridge))
 }
 
 func newSMTPBackend(
 	panicHandler panicHandler,
 	eventListener listener.Listener,
-	preferences *config.Preferences,
+	settings settingsProvider,
 	bridge bridger,
 ) *smtpBackend {
 	return &smtpBackend{
 		panicHandler:  panicHandler,
 		eventListener: eventListener,
-		preferences:   preferences,
+		settings:      settings,
 		bridge:        bridge,
 		confirmer:     confirmer.New(),
 		sendRecorder:  newSendRecorder(),
@@ -109,7 +112,7 @@ func (sb *smtpBackend) AnonymousLogin(_ *goSMTPBackend.ConnectionState) (goSMTPB
 }
 
 func (sb *smtpBackend) shouldReportOutgoingNoEnc() bool {
-	return sb.preferences.GetBool(preferences.ReportOutgoingNoEncKey)
+	return sb.settings.GetBool(settings.ReportOutgoingNoEncKey)
 }
 
 func (sb *smtpBackend) ConfirmNoEncryption(messageID string, shouldSend bool) {

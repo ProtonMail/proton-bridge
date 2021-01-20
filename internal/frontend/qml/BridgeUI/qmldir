@@ -12,4 +12,3 @@ ManualWindow       1.0 ManualWindow.qml
 OutgoingNoEncPopup 1.0 OutgoingNoEncPopup.qml
 SettingsView       1.0 SettingsView.qml
 StatusFooter       1.0 StatusFooter.qml
-VersionInfo        1.0 VersionInfo.qml

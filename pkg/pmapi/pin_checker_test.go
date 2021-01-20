@@ -27,6 +27,14 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+type fakeClientConfigProvider struct {
+	version, useragent string
+}
+
+func (c *fakeClientConfigProvider) GetClientConfig() *ClientConfig {
+	return &ClientConfig{AppVersion: c.version, UserAgent: c.useragent}
+}
+
 func TestPinCheckerDoubleReport(t *testing.T) {
 	reportCounter := 0
 
@@ -34,11 +42,11 @@ func TestPinCheckerDoubleReport(t *testing.T) {
 		reportCounter++
 	}))
 
-	pc := newPinChecker(TrustedAPIPins)
+	r := newTLSReporter(newPinChecker(TrustedAPIPins), &fakeClientConfigProvider{version: "3", useragent: "useragent"})
 
 	// Report the same issue many times.
 	for i := 0; i < 10; i++ {
-		pc.reportCertIssue(reportServer.URL, "myhost", "443", tls.ConnectionState{}, "3", "useragent")
+		r.reportCertIssue(reportServer.URL, "myhost", "443", tls.ConnectionState{})
 	}
 
 	// We should only report once.
@@ -48,7 +56,7 @@ func TestPinCheckerDoubleReport(t *testing.T) {
 
 	// If we then report something else many times.
 	for i := 0; i < 10; i++ {
-		pc.reportCertIssue(reportServer.URL, "anotherhost", "443", tls.ConnectionState{}, "3", "useragent")
+		r.reportCertIssue(reportServer.URL, "anotherhost", "443", tls.ConnectionState{})
 	}
 
 	// We should get a second report.

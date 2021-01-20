@@ -22,7 +22,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/internal/importexport"
 	"github.com/ProtonMail/proton-bridge/internal/transfer"
-	"github.com/ProtonMail/proton-bridge/internal/updates"
+	"github.com/ProtonMail/proton-bridge/internal/updater"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 )
 
@@ -31,16 +31,20 @@ type PanicHandler interface {
 	HandlePanic()
 }
 
-// Updater is an interface for handling Bridge upgrades.
-type Updater interface {
-	CheckIsUpToDate() (isUpToDate bool, latestVersion updates.VersionInfo, err error)
-	GetDownloadLink() string
-	GetLocalVersion() updates.VersionInfo
-	StartUpgrade(currentStatus chan<- updates.Progress)
+// Restarter allows the app to set itself to restart next time it is closed.
+type Restarter interface {
+	SetToRestart()
 }
 
 type NoEncConfirmator interface {
 	ConfirmNoEncryption(string, bool)
+}
+
+type Updater interface {
+	Check() (updater.VersionInfo, error)
+	InstallUpdate(updater.VersionInfo) error
+	IsUpdateApplicable(updater.VersionInfo) bool
+	CanInstall(updater.VersionInfo) bool
 }
 
 // UserManager is an interface of users needed by frontend.

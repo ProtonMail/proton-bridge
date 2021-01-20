@@ -18,7 +18,6 @@
 package api
 
 import (
-	"crypto/tls"
 	"fmt"
 	"net/http"
 
@@ -37,12 +36,9 @@ func focusHandler(ctx handlerContext) error {
 
 // CheckOtherInstanceAndFocus is helper for new instances to check if there is
 // already a running instance and get it's focus.
-func CheckOtherInstanceAndFocus(port int, tls *tls.Config) error {
-	transport := &http.Transport{TLSClientConfig: tls}
-	client := &http.Client{Transport: transport}
-
+func CheckOtherInstanceAndFocus(port int) error {
 	addr := getAPIAddress(bridge.Host, port)
-	resp, err := client.Get("https://" + addr + "/focus")
+	resp, err := (&http.Client{}).Get("http://" + addr + "/focus")
 	if err != nil {
 		return err
 	}

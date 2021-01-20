@@ -106,7 +106,7 @@ build-linux-qa:
   only:
     - web
   script:
-    - BUILD_TAGS="build_qa pmapi_qa" make build
+    - BUILD_TAGS="build_qa" make build
   artifacts:
     name: "bridge-linux-qa-$CI_COMMIT_SHORT_SHA"
     paths:
@@ -150,7 +150,7 @@ build-darwin-qa:
   only:
     - web
   script:
-    - BUILD_TAGS="build_qa pmapi_qa" make build
+    - BUILD_TAGS="build_qa" make build
   artifacts:
     name: "bridge-darwin-qa-$CI_COMMIT_SHORT_SHA"
     paths:
@@ -198,7 +198,7 @@ build-windows-qa:
     - apt-get update && apt-get -y install binutils-mingw-w64 tar gzip
     - ln -s /usr/bin/x86_64-w64-mingw32-windres /usr/bin/windres
     - go mod download
-    - TARGET_OS=windows BUILD_TAGS="build_qa pmapi_qa" make build
+    - TARGET_OS=windows BUILD_TAGS="build_qa" make build
   artifacts:
     name: "bridge-windows-qa-$CI_COMMIT_SHORT_SHA"
     paths:

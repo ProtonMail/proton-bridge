@@ -21,6 +21,7 @@ import (
 	"encoding/base64"
 	"testing"
 
+	"github.com/docker/docker-credential-helpers/credentials"
 	"github.com/stretchr/testify/require"
 )
 
@@ -31,58 +32,23 @@ var testData = map[string]string{ //nolint[gochecknoglobals]
 	"user2": base64.StdEncoding.EncodeToString(append([]byte("data2"), suffix...)),
 }
 
-func TestSplitServiceAndID(t *testing.T) {
-	acc, err := NewAccess("bridge")
-	require.NoError(t, err)
-	expectedUserID := "user"
-
-	acc.KeychainURL = "Something/With/Several/Slashes/"
-	acc.KeychainMacURL = acc.KeychainURL
-	expectedServiceName := acc.KeychainURL
-	serviceName, userID, err := splitServiceAndID(acc.KeychainName(expectedUserID))
-	require.NoError(t, err)
-	require.Equal(t, expectedUserID, userID)
-	require.Equal(t, expectedServiceName, serviceName+"/")
-
-	acc.KeychainURL = "SomethingWithoutSlash"
-	acc.KeychainMacURL = acc.KeychainURL
-	expectedServiceName = acc.KeychainURL
-	serviceName, userID, err = splitServiceAndID(acc.KeychainName(expectedUserID))
-	require.NoError(t, err)
-	require.Equal(t, expectedUserID, userID)
-	require.Equal(t, expectedServiceName, serviceName)
-}
-
-func TestInsertReadRemove(t *testing.T) { // nolint[funlen]
-	if testing.Short() {
-		t.Skip("skipping test in short mode.")
-	}
-
-	access, err := NewAccess("bridge")
-	require.NoError(t, err)
-	access.KeychainURL = "protonmail/testchain/users"
-	access.KeychainMacURL = "ProtonMailTestChainService"
-
-	// Clear before test.
-	for id := range testData {
-		// Keychain can be empty.
-		_ = access.Delete(id)
-	}
+func TestInsertReadRemove(t *testing.T) {
+	keychain := newKeychain(newTestHelper(), hostURL("bridge"))
 
 	for id, secret := range testData {
-		expectedList, _ := access.List()
+		expectedList, _ := keychain.List()
 		// Add expected secrets.
 		expectedSecret := secret
-		require.NoError(t, access.Put(id, expectedSecret))
+		require.NoError(t, keychain.Put(id, expectedSecret))
 
 		// Check list.
-		actualList, err := access.List()
+		actualList, err := keychain.List()
 		require.NoError(t, err)
 		expectedList = append(expectedList, id)
 		require.ElementsMatch(t, expectedList, actualList)
 
 		// Get and check what was inserted.
-		actualSecret, err := access.Get(id)
+		_, actualSecret, err := keychain.Get(id)
 		require.NoError(t, err)
 		require.Equal(t, expectedSecret, actualSecret)
 
@@ -100,7 +66,7 @@ func TestInsertReadRemove(t *testing.T) { // nolint[funlen]
 				for {
 					_, more := <-jobs
 					if more {
-						require.NoError(t, access.Put(id, expectedSecret))
+						require.NoError(t, keychain.Put(id, expectedSecret))
 					} else {
 						done <- nil
 						return
@@ -118,22 +84,22 @@ func TestInsertReadRemove(t *testing.T) { // nolint[funlen]
 		}
 
 		// Check list.
-		actualList, err = access.List()
+		actualList, err = keychain.List()
 		require.NoError(t, err)
 		require.ElementsMatch(t, expectedList, actualList)
 
 		// Get and check what changed.
-		actualSecret, err = access.Get(id)
+		_, actualSecret, err = keychain.Get(id)
 		require.NoError(t, err)
 		require.Equal(t, expectedSecret, actualSecret)
 
 		if id != "user1" {
 			// Remove.
-			err = access.Delete(id)
+			err = keychain.Delete(id)
 			require.NoError(t, err)
 
 			// Check removed.
-			actualList, err = access.List()
+			actualList, err = keychain.List()
 			require.NoError(t, err)
 			expectedList = expectedList[:len(expectedList)-1]
 			require.ElementsMatch(t, expectedList, actualList)
@@ -141,12 +107,43 @@ func TestInsertReadRemove(t *testing.T) { // nolint[funlen]
 	}
 
 	// Clear first.
-	err = access.Delete("user1")
-	require.NoError(t, err)
+	require.NoError(t, keychain.Delete("user1"))
 
-	actualList, err := access.List()
+	actualList, err := keychain.List()
 	require.NoError(t, err)
 	for id := range testData {
 		require.NotContains(t, actualList, id)
 	}
+}
+
+type testHelper map[string]*credentials.Credentials
+
+func newTestHelper() testHelper {
+	return make(testHelper)
+}
+
+func (h testHelper) Add(creds *credentials.Credentials) error {
+	h[creds.ServerURL] = creds
+	return nil
+}
+
+func (h testHelper) Delete(url string) error {
+	delete(h, url)
+	return nil
+}
+
+func (h testHelper) Get(url string) (string, string, error) {
+	creds := h[url]
+
+	return creds.Username, creds.Secret, nil
+}
+
+func (h testHelper) List() (map[string]string, error) {
+	list := make(map[string]string)
+
+	for url, creds := range h {
+		list[url] = creds.Username
+	}
+
+	return list, nil
 }

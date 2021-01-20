@@ -231,7 +231,8 @@ func (c *IMAPClient) Expunge() *IMAPResponse {
 	return c.SendCommand("EXPUNGE")
 }
 
-// IDLE
+// Extennsions
+// Extennsions: IDLE
 
 func (c *IMAPClient) StartIDLE() *IMAPResponse {
 	c.idling = true
@@ -241,4 +242,10 @@ func (c *IMAPClient) StartIDLE() *IMAPResponse {
 func (c *IMAPClient) StopIDLE() {
 	c.idling = false
 	fmt.Fprintf(c.conn, "%s\r\n", "DONE")
+}
+
+// Extennsions: ID
+
+func (c *IMAPClient) ID(request string) *IMAPResponse {
+	return c.SendCommand(fmt.Sprintf("ID (%v)", request))
 }

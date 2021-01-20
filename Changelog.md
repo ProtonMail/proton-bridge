@@ -68,7 +68,6 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-878 Tests for send packet creation logic.
 
 ### Changed
-* GODT-180 Updated Sentry client.
 * GODT-651 Build creates proper binary names.
 * GODT-878 Fix an issue where the random session key is inadvertently sent to
   the Proton server. The data payload is always encrypted within TLS, but this
@@ -109,6 +108,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-763 Detect Gmail labels from All Mail mbox export (using X-Gmail-Label header).
 * GODT-834 Info about tags in BUILDS.md and link to Import-Export page in README.md.
 * GODT-777 Support Apple Mail MBOX export format.
+* GODT-731 Re-open Import-Export app from the second instance.
 
 ### Fixed
 * GODT-677 Windows IE: global import settings not fit in window.
@@ -165,6 +165,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 ### Fixed
 * GODT-770 Better handling of extraneous end-of-mail indicator.
 * GODT-776 Fix crash when IMAP client connects while account is logging in.
+* GODT-744 User agent not being sent to sentry.
 
 ### Changed
 * Bump crypto version to v0.0.0-20200818122824-ed5d25e28db8.
@@ -198,6 +199,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-682 Persistent anonymous API cookies for Import-Export.
 * GODT-357 Use go-message to make a better message parser.
 * GODT-720 Time measurement of progress for Import-Export.
+* GODT-693 Launcher.
 
 ### Changed
 * GODT-511 User agent format changed.

@@ -19,15 +19,17 @@
 package frontend
 
 import (
-	"github.com/0xAX/notificator"
+	"github.com/ProtonMail/go-autostart"
 	"github.com/ProtonMail/proton-bridge/internal/bridge"
+	"github.com/ProtonMail/proton-bridge/internal/config/settings"
 	"github.com/ProtonMail/proton-bridge/internal/frontend/cli"
 	cliie "github.com/ProtonMail/proton-bridge/internal/frontend/cli-ie"
 	"github.com/ProtonMail/proton-bridge/internal/frontend/qt"
 	qtie "github.com/ProtonMail/proton-bridge/internal/frontend/qt-ie"
 	"github.com/ProtonMail/proton-bridge/internal/frontend/types"
 	"github.com/ProtonMail/proton-bridge/internal/importexport"
-	"github.com/ProtonMail/proton-bridge/pkg/config"
+	"github.com/ProtonMail/proton-bridge/internal/locations"
+	"github.com/ProtonMail/proton-bridge/internal/updater"
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
 	"github.com/sirupsen/logrus"
 )
@@ -38,55 +40,91 @@ var (
 
 // Frontend is an interface to be implemented by each frontend type (cli, gui, html).
 type Frontend interface {
-	Loop(credentialsError error) error
-	IsAppRestarting() bool
-}
-
-// HandlePanic handles panics which occur for users with GUI.
-func HandlePanic(appName string) {
-	notify := notificator.New(notificator.Options{
-		DefaultIcon: "../frontend/ui/icon/icon.png",
-		AppName:     appName,
-	})
-	_ = notify.Push("Fatal Error", "The "+appName+" has encountered a fatal error. ", "/frontend/icon/icon.png", notificator.UR_CRITICAL)
+	Loop() error
+	NotifyManualUpdate(update updater.VersionInfo, canInstall bool)
+	NotifySilentUpdateInstalled()
+	NotifySilentUpdateError(error)
 }
 
 // New returns initialized frontend based on `frontendType`, which can be `cli` or `qt`.
 func New(
 	version,
 	buildVersion,
+	programName,
 	frontendType string,
 	showWindowOnStart bool,
 	panicHandler types.PanicHandler,
-	config *config.Config,
-	preferences *config.Preferences,
+	locations *locations.Locations,
+	settings *settings.Settings,
 	eventListener listener.Listener,
-	updates types.Updater,
+	updater types.Updater,
 	bridge *bridge.Bridge,
 	noEncConfirmator types.NoEncConfirmator,
+	autostart *autostart.App,
+	restarter types.Restarter,
 ) Frontend {
 	bridgeWrap := types.NewBridgeWrap(bridge)
-	return new(version, buildVersion, frontendType, showWindowOnStart, panicHandler, config, preferences, eventListener, updates, bridgeWrap, noEncConfirmator)
+	return newBridgeFrontend(
+		version,
+		buildVersion,
+		programName,
+		frontendType,
+		showWindowOnStart,
+		panicHandler,
+		locations,
+		settings,
+		eventListener,
+		updater,
+		bridgeWrap,
+		noEncConfirmator,
+		autostart,
+		restarter,
+	)
 }
 
-func new(
+func newBridgeFrontend(
 	version,
 	buildVersion,
+	programName,
 	frontendType string,
 	showWindowOnStart bool,
 	panicHandler types.PanicHandler,
-	config *config.Config,
-	preferences *config.Preferences,
+	locations *locations.Locations,
+	settings *settings.Settings,
 	eventListener listener.Listener,
-	updates types.Updater,
+	updater types.Updater,
 	bridge types.Bridger,
 	noEncConfirmator types.NoEncConfirmator,
+	autostart *autostart.App,
+	restarter types.Restarter,
 ) Frontend {
 	switch frontendType {
 	case "cli":
-		return cli.New(panicHandler, config, preferences, eventListener, updates, bridge)
+		return cli.New(
+			panicHandler,
+			locations,
+			settings,
+			eventListener,
+			updater,
+			bridge,
+			restarter,
+		)
 	default:
-		return qt.New(version, buildVersion, showWindowOnStart, panicHandler, config, preferences, eventListener, updates, bridge, noEncConfirmator)
+		return qt.New(
+			version,
+			buildVersion,
+			programName,
+			showWindowOnStart,
+			panicHandler,
+			locations,
+			settings,
+			eventListener,
+			updater,
+			bridge,
+			noEncConfirmator,
+			autostart,
+			restarter,
+		)
 	}
 }
 
@@ -94,31 +132,67 @@ func new(
 func NewImportExport(
 	version,
 	buildVersion,
+	programName,
 	frontendType string,
 	panicHandler types.PanicHandler,
-	config *config.Config,
+	locations *locations.Locations,
+	settings *settings.Settings,
 	eventListener listener.Listener,
-	updates types.Updater,
+	updater types.Updater,
 	ie *importexport.ImportExport,
+	restarter types.Restarter,
 ) Frontend {
 	ieWrap := types.NewImportExportWrap(ie)
-	return newImportExport(version, buildVersion, frontendType, panicHandler, config, eventListener, updates, ieWrap)
+	return newIEFrontend(
+		version,
+		buildVersion,
+		programName,
+		frontendType,
+		panicHandler,
+		locations,
+		settings,
+		eventListener,
+		updater,
+		ieWrap,
+		restarter,
+	)
 }
 
-func newImportExport(
+func newIEFrontend(
 	version,
 	buildVersion,
+	programName,
 	frontendType string,
 	panicHandler types.PanicHandler,
-	config *config.Config,
+	locations *locations.Locations,
+	settings *settings.Settings,
 	eventListener listener.Listener,
-	updates types.Updater,
+	updater types.Updater,
 	ie types.ImportExporter,
+	restarter types.Restarter,
 ) Frontend {
 	switch frontendType {
 	case "cli":
-		return cliie.New(panicHandler, config, eventListener, updates, ie)
+		return cliie.New(
+			panicHandler,
+			locations,
+			eventListener,
+			updater,
+			ie,
+			restarter,
+		)
 	default:
-		return qtie.New(version, buildVersion, panicHandler, config, eventListener, updates, ie)
+		return qtie.New(
+			version,
+			buildVersion,
+			programName,
+			panicHandler,
+			locations,
+			settings,
+			eventListener,
+			updater,
+			ie,
+			restarter,
+		)
 	}
 }

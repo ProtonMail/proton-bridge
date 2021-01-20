@@ -23,8 +23,11 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/ProtonMail/go-autostart"
+	"github.com/ProtonMail/proton-bridge/internal/config/settings"
 	"github.com/ProtonMail/proton-bridge/internal/frontend/types"
-	"github.com/ProtonMail/proton-bridge/pkg/config"
+	"github.com/ProtonMail/proton-bridge/internal/locations"
+	"github.com/ProtonMail/proton-bridge/internal/updater"
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
 	"github.com/sirupsen/logrus"
 )
@@ -33,7 +36,7 @@ var log = logrus.WithField("pkg", "frontend-nogui") //nolint[gochecknoglobals]
 
 type FrontendHeadless struct{}
 
-func (s *FrontendHeadless) Loop(credentialsError error) error {
+func (s *FrontendHeadless) Loop() error {
 	log.Info("Check status on localhost:8081")
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "Bridge is running")
@@ -41,20 +44,31 @@ func (s *FrontendHeadless) Loop(credentialsError error) error {
 	return http.ListenAndServe(":8081", nil)
 }
 
-func (s *FrontendHeadless) InstanceExistAlert()   {}
-func (s *FrontendHeadless) IsAppRestarting() bool { return false }
+func (s *FrontendHeadless) NotifyManualUpdate(update updater.VersionInfo, canInstall bool) {
+	// NOTE: Save the update somewhere so that it can be installed when user chooses "install now".
+}
+
+func (s *FrontendHeadless) NotifySilentUpdateInstalled() {
+}
+
+func (s *FrontendHeadless) NotifySilentUpdateError(err error) {
+}
+
+func (s *FrontendHeadless) InstanceExistAlert() {}
 
 func New(
 	version,
-	buildVersion string,
+	buildVersion, appName string,
 	showWindowOnStart bool,
 	panicHandler types.PanicHandler,
-	config *config.Config,
-	preferences *config.Preferences,
+	locations *locations.Locations,
+	settings *settings.Settings,
 	eventListener listener.Listener,
-	updates types.Updater,
+	updater types.Updater,
 	bridge types.Bridger,
 	noEncConfirmator types.NoEncConfirmator,
+	autostart *autostart.App,
+	restarter types.Restarter,
 ) *FrontendHeadless {
 	return &FrontendHeadless{}
 }

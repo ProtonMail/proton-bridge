@@ -22,9 +22,9 @@ import (
 	"time"
 
 	"github.com/ProtonMail/proton-bridge/internal/bridge"
-	"github.com/ProtonMail/proton-bridge/internal/preferences"
+	"github.com/ProtonMail/proton-bridge/internal/config/settings"
+	"github.com/ProtonMail/proton-bridge/internal/config/tls"
 	"github.com/ProtonMail/proton-bridge/internal/smtp"
-	"github.com/ProtonMail/proton-bridge/pkg/config"
 	"github.com/ProtonMail/proton-bridge/test/mocks"
 	"github.com/stretchr/testify/require"
 )
@@ -53,13 +53,13 @@ func (ctx *TestContext) withSMTPServer() {
 		return
 	}
 
+	settingsPath, _ := ctx.locations.ProvideSettingsPath()
 	ph := newPanicHandler(ctx.t)
-	pref := preferences.New(ctx.cfg)
-	tls, _ := config.GetTLSConfig(ctx.cfg)
-	port := pref.GetInt(preferences.SMTPPortKey)
-	useSSL := pref.GetBool(preferences.SMTPSSLKey)
+	tls, _ := tls.New(settingsPath).GetConfig()
+	port := ctx.settings.GetInt(settings.SMTPPortKey)
+	useSSL := ctx.settings.GetBool(settings.SMTPSSLKey)
 
-	backend := smtp.NewSMTPBackend(ph, ctx.listener, pref, ctx.bridge)
+	backend := smtp.NewSMTPBackend(ph, ctx.listener, ctx.settings, ctx.bridge)
 	server := smtp.NewSMTPServer(true, port, useSSL, tls, backend, ctx.listener)
 
 	go server.ListenAndServe()

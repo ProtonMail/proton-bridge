@@ -17,22 +17,18 @@
 
 package bridge
 
-import "github.com/ProtonMail/proton-bridge/internal/users"
-
-type Configer interface {
-	users.Configer
-	StoreFactoryConfiger
+type Locator interface {
+	Clear() error
 }
 
-type StoreFactoryConfiger interface {
-	GetDBDir() string
+type Cacher interface {
 	GetIMAPCachePath() string
+	GetDBDir() string
 }
 
-type PreferenceProvider interface {
+type SettingsProvider interface {
 	Get(key string) string
+	Set(key string, value string)
 	GetBool(key string) bool
 	SetBool(key string, val bool)
-	GetInt(key string) int
-	Set(key string, value string)
 }

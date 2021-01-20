@@ -74,9 +74,7 @@ Item {
                 rightIcon.text : Style.fa.chevron_circle_right
                 rightIcon.font.pointSize : Style.settings.toggleSize * Style.pt
                 onClicked: {
-                    dialogGlobal.state="checkUpdates"
-                    dialogGlobal.show()
-                    dialogGlobal.confirmed()
+                    go.checkForUpdates()
                 }
             }
 
@@ -138,8 +136,7 @@ Item {
                     fontSize      : Style.main.fontSize
                     textUnderline : true
                     onClicked     : {
-                        go.getLocalVersionInfo()
-                        winMain.dialogVersionInfo.show()
+                        Qt.openUrlExternally(go.updateReleaseNotesLink)
                     }
                 }
             }

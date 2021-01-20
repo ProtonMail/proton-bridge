@@ -23,8 +23,10 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/ProtonMail/proton-bridge/internal/config/settings"
 	"github.com/ProtonMail/proton-bridge/internal/frontend/types"
-	"github.com/ProtonMail/proton-bridge/pkg/config"
+	"github.com/ProtonMail/proton-bridge/internal/locations"
+	"github.com/ProtonMail/proton-bridge/internal/updater"
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
 	"github.com/sirupsen/logrus"
 )
@@ -33,23 +35,33 @@ var log = logrus.WithField("pkg", "frontend-nogui") //nolint[gochecknoglobals]
 
 type FrontendHeadless struct{}
 
-func (s *FrontendHeadless) Loop(credentialsError error) error {
-	log.Info("Check status on localhost:8081")
+func (s *FrontendHeadless) Loop() error {
+	log.Info("Check status on localhost:8082")
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "IE is running")
 	})
-	return http.ListenAndServe(":8081", nil)
+	return http.ListenAndServe(":8082", nil)
 }
 
-func (s *FrontendHeadless) IsAppRestarting() bool { return false }
+func (s *FrontendHeadless) NotifyManualUpdate(update updater.VersionInfo, canInstall bool) {
+	// NOTE: Save the update somewhere so that it can be installed when user chooses "install now".
+}
+
+func (s *FrontendHeadless) NotifySilentUpdateInstalled() {
+}
+
+func (s *FrontendHeadless) NotifySilentUpdateError(err error) {
+}
 
 func New(
-	version, buildVersion string,
+	version, buildVersion, appName string,
 	panicHandler types.PanicHandler,
-	config *config.Config,
+	locations *locations.Locations,
+	settings *settings.Settings,
 	eventListener listener.Listener,
-	updates types.Updater,
+	updater types.Updater,
 	ie types.ImportExporter,
+	restarter types.Restarter,
 ) *FrontendHeadless {
 	return &FrontendHeadless{}
 }

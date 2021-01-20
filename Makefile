@@ -7,17 +7,18 @@ TARGET_CMD?=Desktop-Bridge
 TARGET_OS?=${GOOS}
 
 ## Build
-.PHONY: build build-ie build-nogui build-ie-nogui check-has-go
+.PHONY: build build-ie build-nogui build-ie-nogui build-launcher build-launcher-ie  versioner hasher
 
 # Keep version hardcoded so app build works also without Git repository.
-BRIDGE_APP_VERSION?=1.5.6-git
-IE_APP_VERSION?=1.2.3-git
+BRIDGE_APP_VERSION?=1.5.6+git
+IE_APP_VERSION?=1.2.3+git
 APP_VERSION:=${BRIDGE_APP_VERSION}
 SRC_ICO:=logo.ico
 SRC_ICNS:=Bridge.icns
 SRC_SVG:=logo.svg
 TGT_ICNS:=Bridge.icns
 EXE_NAME:=proton-bridge
+CONFIGNAME:=bridge
 ifeq "${TARGET_CMD}" "Import-Export"
     APP_VERSION:=${IE_APP_VERSION}
     SRC_ICO:=ie.ico
@@ -25,20 +26,27 @@ ifeq "${TARGET_CMD}" "Import-Export"
     SRC_SVG:=ie.svg
     TGT_ICNS:=ImportExport.icns
     EXE_NAME:=proton-ie
+    CONFIGNAME:=importExport
 endif
 REVISION:=$(shell git rev-parse --short=10 HEAD)
 BUILD_TIME:=$(shell date +%FT%T%z)
 
-BUILD_TAGS?=pmapi_prod
 BUILD_FLAGS:=-tags='${BUILD_TAGS}'
+BUILD_FLAGS_LAUNCHER:=${BUILD_FLAGS}
 BUILD_FLAGS_NOGUI:=-tags='${BUILD_TAGS} nogui'
-GO_LDFLAGS:=$(addprefix -X github.com/ProtonMail/proton-bridge/pkg/constants.,Version=${APP_VERSION} Revision=${REVISION} BuildTime=${BUILD_TIME})
+GO_LDFLAGS:=$(addprefix -X github.com/ProtonMail/proton-bridge/internal/constants.,Version=${APP_VERSION} Revision=${REVISION} BuildTime=${BUILD_TIME})
 ifneq "${BUILD_LDFLAGS}" ""
-    GO_LDFLAGS+= ${BUILD_LDFLAGS}
+    GO_LDFLAGS+=${BUILD_LDFLAGS}
 endif
-GO_LDFLAGS:=-ldflags '${GO_LDFLAGS}'
-BUILD_FLAGS+= ${GO_LDFLAGS}
-BUILD_FLAGS_NOGUI+= ${GO_LDFLAGS}
+GO_LDFLAGS_LAUNCHER:=${GO_LDFLAGS}
+GO_LDFLAGS_LAUNCHER+=$(addprefix -X main.,ConfigName=${CONFIGNAME} ExeName=proton-${APP})
+ifeq "${TARGET_OS}" "windows"
+    GO_LDFLAGS_LAUNCHER+=-H=windowsgui
+endif
+
+BUILD_FLAGS+=-ldflags '${GO_LDFLAGS}'
+BUILD_FLAGS_NOGUI+=-ldflags '${GO_LDFLAGS}'
+BUILD_FLAGS_LAUNCHER+=-ldflags '${GO_LDFLAGS_LAUNCHER}'
 
 DEPLOY_DIR:=cmd/${TARGET_CMD}/deploy
 ICO_FILES:=
@@ -71,6 +79,7 @@ else
 endif
 
 build: ${TGZ_TARGET}
+
 build-ie:
 	TARGET_CMD=Import-Export $(MAKE) build
 
@@ -80,9 +89,21 @@ build-nogui:
 build-ie-nogui:
 	TARGET_CMD=Import-Export $(MAKE) build-nogui
 
+build-launcher:
+	go build ${BUILD_FLAGS_LAUNCHER} -o launcher-${APP} cmd/launcher/main.go
+
+build-launcher-ie:
+	TARGET_CMD=Import-Export $(MAKE) build-launcher
+
+versioner:
+	go build ${BUILD_FLAGS} -o versioner utils/versioner/main.go
+
+hasher:
+	go build -o hasher utils/hasher/main.go
+
 ${TGZ_TARGET}: ${DEPLOY_DIR}/${TARGET_OS}
 	rm -f $@
-	cd ${DEPLOY_DIR} && tar czf ../../../$@ ${TARGET_OS}
+	cd ${DEPLOY_DIR}/${TARGET_OS} && tar czf ../../../../$@ .
 
 ${DEPLOY_DIR}/linux: ${EXE_TARGET}
 	cp -pf ./internal/frontend/share/icons/${SRC_SVG} ${DEPLOY_DIR}/linux/logo.svg
@@ -177,7 +198,7 @@ install-go-mod-outdated:
 
 
 ## Checks, mocks and docs
-.PHONY: check-has-go add-license change-copyright-year test bench coverage mocks lint-license lint-golang lint updates doc
+.PHONY: check-has-go add-license change-copyright-year test bench coverage mocks lint-license lint-golang lint updates doc release-notes
 check-has-go:
 	@which go || (echo "Install Go-lang!" && exit 1)
 
@@ -192,18 +213,24 @@ test: gofiles
 	go test -coverprofile=/tmp/coverage.out -run=${TESTRUN} \
 		./internal/api/... \
 		./internal/bridge/... \
+		./internal/config/... \
+		./internal/constants/... \
+		./internal/cookies/... \
+		./internal/crash/... \
 		./internal/events/... \
 		./internal/frontend/autoconfig/... \
 		./internal/frontend/cli/... \
 		./internal/imap/... \
-		./internal/metrics/... \
 		./internal/importexport/... \
-		./internal/preferences/... \
+		./internal/locations/... \
+		./internal/logging/... \
+		./internal/metrics/... \
 		./internal/smtp/... \
 		./internal/store/... \
 		./internal/transfer/... \
-		./internal/updates/... \
+		./internal/updater/... \
 		./internal/users/... \
+		./internal/versioner/... \
 		./pkg/...
 
 bench:
@@ -215,7 +242,7 @@ coverage: test
 	go tool cover -html=/tmp/coverage.out -o=coverage.html
 
 mocks:
-	mockgen --package mocks github.com/ProtonMail/proton-bridge/internal/users Configer,PanicHandler,ClientManager,CredentialsStorer,StoreMaker > internal/users/mocks/mocks.go
+	mockgen --package mocks github.com/ProtonMail/proton-bridge/internal/users Locator,PanicHandler,ClientManager,CredentialsStorer,StoreMaker > internal/users/mocks/mocks.go
 	mockgen --package mocks github.com/ProtonMail/proton-bridge/internal/transfer PanicHandler,ClientManager,IMAPClientProvider > internal/transfer/mocks/mocks.go
 	mockgen --package mocks github.com/ProtonMail/proton-bridge/internal/store PanicHandler,ClientManager,BridgeUser,ChangeNotifier > internal/store/mocks/mocks.go
 	mockgen --package mocks github.com/ProtonMail/proton-bridge/pkg/listener Listener > internal/store/mocks/utils_mocks.go
@@ -241,24 +268,28 @@ updates: install-go-mod-outdated
 doc:
 	godoc -http=:6060
 
+release-notes: release-notes/bridge.html release-notes/import-export.html
+
+release-notes/bridge.html:
+	./utils/release_notes.sh Bridge
+
+release-notes/import-export.html:
+	./utils/release_notes.sh Import-Export
+
 .PHONY: gofiles
 # Following files are for the whole app so it makes sense to have them in bridge package.
 # (Options like cmd or internal were considered and bridge package is the best place for them.)
-gofiles: ./internal/bridge/credits.go ./internal/bridge/release_notes.go ./internal/importexport/credits.go ./internal/importexport/release_notes.go
+gofiles: ./internal/bridge/credits.go ./internal/importexport/credits.go
 ./internal/bridge/credits.go: ./utils/credits.sh go.mod
 	cd ./utils/ && ./credits.sh bridge
-./internal/bridge/release_notes.go: ./utils/release-notes.sh ./release-notes/notes-bridge.txt ./release-notes/bugs-bridge.txt
-	cd ./utils/ && ./release-notes.sh bridge
 ./internal/importexport/credits.go: ./utils/credits.sh go.mod
 	cd ./utils/ && ./credits.sh importexport
-./internal/importexport/release_notes.go: ./utils/release-notes.sh ./release-notes/notes-importexport.txt ./release-notes/bugs-importexport.txt
-	cd ./utils/ && ./release-notes.sh importexport
 
 
 ## Run and debug
 .PHONY: run run-qt run-qt-cli run-nogui run-nogui-cli run-debug run-qml-preview run-ie-qml-preview run-ie run-ie-qt run-ie-qt-cli run-ie-nogui run-ie-nogui-cli clean-vendor clean-frontend-qt clean-frontend-qt-ie clean-frontend-qt-common clean
 
-VERBOSITY?=debug-client
+VERBOSITY?=debug
 RUN_FLAGS:=-m -l=${VERBOSITY}
 
 run: run-nogui-cli
@@ -304,3 +335,10 @@ clean: clean-vendor
 	rm -rf cmd/Import-Export/deploy
 	rm -f build last.log mem.pprof main.go
 	rm -rf logo.ico icon.rc icon_windows.syso internal/frontend/qt/icon_windows.syso
+	rm -f release-notes/bridge.html
+	rm -f release-notes/import-export.html
+
+.PHONY: generate
+generate:
+	go generate ./...
+	$(MAKE) add-license

@@ -294,6 +294,21 @@ func (mr *MockClientMockRecorder) DeleteMessages(arg0 interface{}) *gomock.Call 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteMessages", reflect.TypeOf((*MockClient)(nil).DeleteMessages), arg0)
 }
 
+// DownloadAndVerify mocks base method
+func (m *MockClient) DownloadAndVerify(arg0, arg1 string, arg2 *crypto.KeyRing) (io.Reader, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DownloadAndVerify", arg0, arg1, arg2)
+	ret0, _ := ret[0].(io.Reader)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DownloadAndVerify indicates an expected call of DownloadAndVerify
+func (mr *MockClientMockRecorder) DownloadAndVerify(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DownloadAndVerify", reflect.TypeOf((*MockClient)(nil).DownloadAndVerify), arg0, arg1, arg2)
+}
+
 // EmptyFolder mocks base method
 func (m *MockClient) EmptyFolder(arg0, arg1 string) error {
 	m.ctrl.T.Helper()

@@ -18,11 +18,13 @@
 package cookies
 
 import (
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
 
+	"github.com/ProtonMail/proton-bridge/internal/config/settings"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -35,7 +37,7 @@ func TestJarGetSet(t *testing.T) {
 	})
 	defer ts.Close()
 
-	client := getClientWithJar(t, make(testGetterSetter))
+	client, _ := getClientWithJar(t, newFakeSettings())
 
 	// Hit a server that sets some cookies.
 	setRes, err := client.Get(ts.URL + "/set")
@@ -61,10 +63,10 @@ func TestJarLoad(t *testing.T) {
 	defer ts.Close()
 
 	// This will be our "persistent storage" from which the cookie jar should load cookies.
-	gs := make(testGetterSetter)
+	s := newFakeSettings()
 
 	// This client saves cookies to persistent storage.
-	oldClient := getClientWithJar(t, gs)
+	oldClient, jar := getClientWithJar(t, s)
 
 	// Hit a server that sets some cookies.
 	setRes, err := oldClient.Get(ts.URL + "/set")
@@ -73,8 +75,11 @@ func TestJarLoad(t *testing.T) {
 	}
 	require.NoError(t, setRes.Body.Close())
 
+	// Save the cookies.
+	require.NoError(t, jar.PersistCookies())
+
 	// This client loads cookies from persistent storage.
-	newClient := getClientWithJar(t, gs)
+	newClient, _ := getClientWithJar(t, s)
 
 	// Hit a server that checks the cookies are there.
 	getRes, err := newClient.Get(ts.URL + "/get")
@@ -93,10 +98,10 @@ func TestJarExpiry(t *testing.T) {
 	defer ts.Close()
 
 	// This will be our "persistent storage" from which the cookie jar should load cookies.
-	gs := make(testGetterSetter)
+	s := newFakeSettings()
 
 	// This client saves cookies to persistent storage.
-	oldClient := getClientWithJar(t, gs)
+	oldClient, jar1 := getClientWithJar(t, s)
 
 	// Hit a server that sets some cookies.
 	setRes, err := oldClient.Get(ts.URL + "/set")
@@ -105,15 +110,21 @@ func TestJarExpiry(t *testing.T) {
 	}
 	require.NoError(t, setRes.Body.Close())
 
+	// Save the cookies.
+	require.NoError(t, jar1.PersistCookies())
+
 	// Wait until the second cookie expires.
 	time.Sleep(2 * time.Second)
 
 	// Load a client, which will clear out expired cookies.
-	_ = getClientWithJar(t, gs)
+	_, jar2 := getClientWithJar(t, s)
 
-	assert.Contains(t, gs["cookies"], "TestName1")
-	assert.NotContains(t, gs["cookies"], "TestName2")
-	assert.Contains(t, gs["cookies"], "TestName3")
+	// Save the cookies (expired ones were cleared out).
+	require.NoError(t, jar2.PersistCookies())
+
+	assert.Contains(t, s.Get(settings.CookiesKey), "TestName1")
+	assert.NotContains(t, s.Get(settings.CookiesKey), "TestName2")
+	assert.Contains(t, s.Get(settings.CookiesKey), "TestName3")
 }
 
 type testCookie struct {
@@ -121,11 +132,11 @@ type testCookie struct {
 	maxAge      int
 }
 
-func getClientWithJar(t *testing.T, gs GetterSetter) *http.Client {
-	jar, err := NewCookieJar(gs)
+func getClientWithJar(t *testing.T, s *settings.Settings) (*http.Client, *Jar) {
+	jar, err := NewCookieJar(s)
 	require.NoError(t, err)
 
-	return &http.Client{Jar: jar}
+	return &http.Client{Jar: jar}, jar
 }
 
 func getTestServer(t *testing.T, wantCookies []testCookie) *httptest.Server {
@@ -157,12 +168,12 @@ func getTestServer(t *testing.T, wantCookies []testCookie) *httptest.Server {
 	return httptest.NewServer(mux)
 }
 
-type testGetterSetter map[string]string
+// newFakeSettings creates a temporary folder for files.
+func newFakeSettings() *settings.Settings {
+	dir, err := ioutil.TempDir("", "test-settings")
+	if err != nil {
+		panic(err)
+	}
 
-func (p testGetterSetter) Set(key, value string) {
-	p[key] = value
-}
-
-func (p testGetterSetter) Get(key string) string {
-	return p[key]
+	return settings.New(dir)
 }

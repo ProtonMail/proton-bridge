@@ -18,8 +18,8 @@
 package ports
 
 import (
+	"fmt"
 	"net"
-	"strconv"
 )
 
 const (
@@ -31,9 +31,12 @@ func IsPortFree(port int) bool {
 	if !(0 < port && port < maxPortNumber) {
 		return false
 	}
-	stringPort := ":" + strconv.Itoa(port)
-	isFree := !isOccupied(stringPort)
-	return isFree
+	// First, check localhost only.
+	if isOccupied(fmt.Sprintf("127.0.0.1:%d", port)) {
+		return false
+	}
+	// Second, check also ports opened to public.
+	return !isOccupied(fmt.Sprintf(":%d", port))
 }
 
 func isOccupied(port string) bool {

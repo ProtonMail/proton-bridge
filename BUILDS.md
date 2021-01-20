@@ -63,6 +63,11 @@ make build-ie
     * for `windows`, the binary will have the file extension `.exe` (e.g `proton-bridge.exe`)
     * for `darwin`, the application will be created with name of the project directory (e.g `proton-bridge.app`)
 
+### Launchers
+Launchers are only included in official distributions and provide the public
+key used to verify signed app binaries, allowing the automatic update feature.
+See README for more information.
+
 ### Tags
 Note that repository contains both Bridge and Import-Export apps and they are
 not released together. Therefore, each app has own tag prefix. Bridge tags

@@ -38,7 +38,7 @@ var (
 
 // Users is a struct handling users.
 type Users struct {
-	config        Configer
+	locations     Locator
 	panicHandler  PanicHandler
 	events        listener.Listener
 	clientManager ClientManager
@@ -64,7 +64,7 @@ type Users struct {
 }
 
 func New(
-	config Configer,
+	locations Locator,
 	panicHandler PanicHandler,
 	eventListener listener.Listener,
 	clientManager ClientManager,
@@ -75,7 +75,7 @@ func New(
 	log.Trace("Creating new users")
 
 	u := &Users{
-		config:                 config,
+		locations:              locations,
 		panicHandler:           panicHandler,
 		events:                 eventListener,
 		clientManager:          clientManager,
@@ -324,7 +324,9 @@ func (u *Users) addNewUser(apiUser *pmapi.User, auth *pmapi.Auth, hashedPassphra
 		return errors.Wrap(err, "failed to initialise user")
 	}
 
-	u.SendMetric(metrics.New(metrics.Setup, metrics.NewUser, metrics.NoLabel))
+	if err := u.SendMetric(metrics.New(metrics.Setup, metrics.NewUser, metrics.NoLabel)); err != nil {
+		log.WithError(err).Error("Failed to send metric")
+	}
 
 	return err
 }
@@ -387,7 +389,8 @@ func (u *Users) GetUser(query string) (*User, error) {
 
 // ClearData closes all connections (to release db files and so on) and clears all data.
 func (u *Users) ClearData() error {
-	var result *multierror.Error
+	var result error
+
 	for _, user := range u.users {
 		if err := user.Logout(); err != nil {
 			result = multierror.Append(result, err)
@@ -396,10 +399,12 @@ func (u *Users) ClearData() error {
 			result = multierror.Append(result, err)
 		}
 	}
-	if err := u.config.ClearData(); err != nil {
+
+	if err := u.locations.Clear(); err != nil {
 		result = multierror.Append(result, err)
 	}
-	return result.ErrorOrNil()
+
+	return result
 }
 
 // DeleteUser deletes user completely; it logs user out from the API, stops any
@@ -441,13 +446,13 @@ func (u *Users) DeleteUser(userID string, clearStore bool) error {
 }
 
 // SendMetric sends a metric. We don't want to return any errors, only log them.
-func (u *Users) SendMetric(m metrics.Metric) {
+func (u *Users) SendMetric(m metrics.Metric) error {
 	c := u.clientManager.GetAnonymousClient()
 	defer c.Logout()
 
 	cat, act, lab := m.Get()
 	if err := c.SendSimpleMetric(string(cat), string(act), string(lab)); err != nil {
-		log.Error("Sending metric failed: ", err)
+		return err
 	}
 
 	log.WithFields(logrus.Fields{
@@ -455,6 +460,8 @@ func (u *Users) SendMetric(m metrics.Metric) {
 		"act": act,
 		"lab": lab,
 	}).Debug("Metric successfully sent")
+
+	return nil
 }
 
 // AllowProxy instructs the app to use DoH to access an API proxy if necessary.

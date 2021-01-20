@@ -545,6 +545,20 @@ func TestParseEncodedContentTypeBad(t *testing.T) {
 	require.Error(t, err)
 }
 
+type panicReader struct{}
+
+func (panicReader) Read(p []byte) (int, error) {
+	panic("lol")
+}
+
+func TestParsePanic(t *testing.T) {
+	var err error
+	require.NotPanics(t, func() {
+		_, _, _, _, err = Parse(&panicReader{})
+	})
+	require.Error(t, err)
+}
+
 func getFileReader(filename string) io.Reader {
 	f, err := os.Open(filepath.Join("testdata", filename))
 	if err != nil {

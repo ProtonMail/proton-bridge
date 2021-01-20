@@ -108,9 +108,14 @@ Window {
         ListElement { title: "Logout bridge"  }
         ListElement { title: "Internet on"    }
         ListElement { title: "Internet off"   }
-        ListElement { title: "NeedUpdate"     }
         ListElement { title: "UpToDate"       }
-        ListElement { title: "ForceUpdate"    }
+        ListElement { title: "NotifyManualUpdate(CanInstall)" }
+        ListElement { title: "NotifyManualUpdate(CantInstall)" }
+        ListElement { title: "NotifyManualUpdateRestart" }
+        ListElement { title: "NotifyManualUpdateError" }
+        ListElement { title: "ForceUpdate" }
+        ListElement { title: "NotifySilentUpdateRestartNeeded" }
+        ListElement { title: "NotifySilentUpdateError" }
         ListElement { title: "Linux"          }
         ListElement { title: "Windows"        }
         ListElement { title: "Macos"          }
@@ -196,12 +201,29 @@ Window {
                     case "UpToDate" :
                     testroot.newVersion = false
                     break;
-                    case "NeedUpdate" :
-                    testroot.newVersion = true
-                    break;
+                    case "NotifyManualUpdate(CanInstall)" :
+                        go.notifyManualUpdate()
+                        go.updateCanInstall = true
+                        break;
+                    case "NotifyManualUpdate(CantInstall)" :
+                        go.notifyManualUpdate()
+                        go.updateCanInstall = false
+                        break;
+                    case "NotifyManualUpdateRestart":
+                        go.notifyManualUpdateRestartNeeded()
+                        break;
+                    case "NotifyManualUpdateError":
+                        go.notifyManualUpdateError()
+                        break;
                     case "ForceUpdate" :
-                    go.notifyUpdate()
-                    break;
+                        go.notifyForceUpdate()
+                        break;
+                    case "NotifySilentUpdateRestartNeeded" :
+                        go.notifySilentUpdateRestartNeeded()
+                        break;
+                    case "NotifySilentUpdateError" :
+                        go.notifySilentUpdateError()
+                        break;
                     case "SendAlertPopup" :
                     go.showOutgoingNoEncPopup("Alert sending unencrypted!")
                     break;
@@ -244,6 +266,8 @@ Window {
         id: go
 
         property bool isAutoStart : true
+        property bool isAutoUpdate : false
+        property bool isEarlyAccess : false
         property bool isProxyAllowed : false
         property bool isFirstStart : false
         property bool isFreshVersion : false
@@ -269,19 +293,35 @@ Window {
         property string genericErrSeeLogs
 
         property string programTitle : "ProtonMail Bridge"
-        property string newversion : "QA.1.0"
         property string fullversion : "QA.1.0 (d9f8sdf9) 2020-02-19T10:57:23+01:00"
-        property string landingPage : "https://landing.page"
-        //property string downloadLink: "https://landing.page/download/link"
         property string downloadLink: "https://protonmail.com/download/beta/protonmail-bridge-1.1.5-1.x86_64.rpm;https://www.protonmail.com/downloads/beta/Desktop-Bridge-link1.exe;https://www.protonmail.com/downloads/beta/Desktop-Bridge-link1.exe;https://www.protonmail.com/downloads/beta/Desktop-Bridge-link1.exe;"
-        //property string changelog  : "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet."
-        property string changelog  : "• Support of encryption to external PGP recipients using contacts created on beta.protonmail.com (see https://protonmail.com/blog/pgp-vulnerability-efail/ to understand the vulnerabilities that may be associated with sending to other PGP clients)\n• Notification that outgoing email will be delivered as non-encrypted.\n• NOTE: Due to a change of the keychain format, you will need to add your account(s) to the Bridge after installing this version"
-        property string bugfixes   : "• Support accounts with same user names\n• Support sending vCalendar event"
+        
+        property string updateVersion : "QA.1.0"
+        property bool updateCanInstall: true
+        property string updateLandingPage : "https://protonmail.com/bridge/download/"
+        property string updateReleaseNotesLink  : "https://protonmail.com/download/bridge/release_notes.html"
+        signal notifyManualUpdate()
+        signal notifyManualUpdateRestartNeeded()
+        signal notifyManualUpdateError()
+        signal notifyForceUpdate()
+        signal notifySilentUpdateRestartNeeded()
+        signal notifySilentUpdateError()
+        function checkForUpdates() {
+            console.log("checkForUpdates")
+        }
+        function startManualUpdate() {
+            console.log("startManualUpdate")
+        }
+
+
         property string credits    : "here;goes;list;;of;;used;packages;"
 
         property real progress: 0.3
         property int progressDescription: 2
 
+        function setToRestart() {
+            console.log("setting to restart")
+        }
 
         signal toggleMainWin(int systX, int systY, int systW, int systH)
 
@@ -297,12 +337,12 @@ Window {
 
         signal processFinished()
         signal toggleAutoStart()
+        signal toggleEarlyAccess()
+        signal toggleAutoUpdate()
         signal notifyBubble(int tabIndex, string message)
         signal silentBubble(int tabIndex, string message)
-        signal runCheckVersion(bool showMessage)
         signal setAddAccountWarning(string message)
-
-        signal notifyUpdate()
+          
         signal notifyFirewall()
         signal notifyLogout(string accname)
         signal notifyAddressChanged(string accname)
@@ -465,9 +505,6 @@ Window {
                 switch (timer.work) {
                     case "wait":
                     break
-                    case "startUpdate":
-                    go.animateProgressBar.start()
-                    go.updateFinished(true)
                     default:
                     go.processFinished()
                 }
@@ -475,11 +512,6 @@ Window {
         }
         function workAndClose() {
             timer.work="default"
-            timer.start()
-        }
-
-        function startUpdate() {
-            timer.work="startUpdate"
             timer.start()
         }
 
@@ -502,21 +534,7 @@ Window {
         }
 
         function getLocalVersionInfo(){
-            go.newversion = "QA.1.0"
-        }
-
-        function isNewVersionAvailable(showMessage){
-            if (testroot.newVersion)  {
-                go.newversion = "QA.2.0"
-                setUpdateState("oldVersion")
-            } else {
-                go.newversion = "QA.1.0"
-                setUpdateState("upToDate")
-                if(showMessage) {
-                    notifyVersionIsTheLatest()
-                }
-            }
-            workAndClose()
+            go.updateVersion = "QA.1.0"
         }
 
         function getBackendVersion() {
@@ -566,7 +584,6 @@ Window {
             return 0
         }
 
-        property bool isRestarting: false
         function setPortsAndSecurity(portIMAP, portSMTP, secSMTP) {
             console.log("Test: ports changed", portIMAP, portSMTP, secSMTP)
         }
@@ -605,6 +622,18 @@ Window {
             workAndClose()
             isAutoStart = (isAutoStart!=false) ? false : true
             console.log (" Test: toggleAutoStart "+isAutoStart)
+        }
+
+        onToggleAutoUpdate: {
+            workAndClose()
+            isAutoUpdate = (isAutoUpdate!=false) ? false : true
+            console.log (" Test: onToggleAutoUpdate "+isAutoUpdate)
+        }
+
+        onToggleEarlyAccess: {
+            workAndClose()
+            isEarlyAccess = (isEarlyAccess!=false) ? false : true
+            console.log (" Test: onToggleEarlyAccess "+isEarlyAccess)
         }
     }
 }

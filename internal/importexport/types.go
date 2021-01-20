@@ -17,11 +17,11 @@
 
 package importexport
 
-import "github.com/ProtonMail/proton-bridge/internal/users"
+type Locator interface {
+	ProvideLogsPath() (string, error)
+	Clear() error
+}
 
-type Configer interface {
-	users.Configer
-
-	GetLogDir() string
+type Cacher interface {
 	GetTransferDir() string
 }
