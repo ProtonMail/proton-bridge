@@ -19,21 +19,20 @@
 
 
 # Generate HTML release notes
-# hosted at https://protonmail.com/download/{ie,bridge}/release_notes.html
+# hosted at https://protonmail.com/download/{ie,bridge}/{stable,early}_releases.html
+INFILE=$1
+OUTFILE=${INFILE//.md/.html}
 
 # Load props
-APP_TYPE=$1
-if [ "$APP_TYPE" == "" ]; then
-    APP_TYPE="bridge"
+APP_NAME="Import-Export app"
+if [[ "$INFILE" =~ bridge ]]; then 
+    APP_NAME="Bridge"
 fi
 
-APP_NAME="Bridge"
-if [ "$APP_TYPE" == "ie" ]; then
-    APP_NAME="Import-Export app"
+CHANNEL=early
+if [[ "$INFILE" =~ stable ]]; then 
+    CHANNEL=stable
 fi
-
-INFILE="release-notes/${APP_TYPE}.md"
-OUTFILE="release-notes/${APP_TYPE}.html"
 
 # Check dependencies
 if ! which pandoc; then
@@ -42,4 +41,4 @@ if ! which pandoc; then
 fi
 
 # Build release notes
-pandoc $INFILE -f markdown -t html -s -o $OUTFILE -c utils/release_notes.css --self-contained --section-divs --metadata title="Release notes - ProtonMail $APP_NAME"
+pandoc $INFILE -f markdown -t html -s -o $OUTFILE -c utils/release_notes.css --self-contained --section-divs --metadata title="Release notes - ProtonMail $APP_NAME - $CHANNEL"

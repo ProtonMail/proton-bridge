@@ -269,13 +269,10 @@ updates: install-go-mod-outdated
 doc:
 	godoc -http=:6060
 
-release-notes: release-notes/bridge.html release-notes/ie.html
+release-notes: release-notes/bridge_stable.html release-notes/bridge_early.html release-notes/ie_stable.html release-notes/ie_early.html
 
-release-notes/bridge.html:
-	./utils/release_notes.sh bridge
-
-release-notes/ie.html:
-	./utils/release_notes.sh ie
+release-notes/%.html: release-notes/%.md
+	./utils/release_notes.sh $^
 
 .PHONY: gofiles
 # Following files are for the whole app so it makes sense to have them in bridge package.

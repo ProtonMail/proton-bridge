@@ -1,3 +1,59 @@
+## v1.5.6
+- 2021-01-21
+
+### New
+
+Improvements to message parsing
+
+Better error handling
+
+Ensured better message flow by refactoring both address and date parsing
+
+Improved secure connectivity checks
+
+Better deb packaging
+
+More robust error handling
+
+Improved package creation logic
+
+Refactor of sending functions to simplify code maintenance
+
+Added tests for package creation
+
+Support read confirmations
+
+Adding GPLv3 licence button to the GUI
+
+Improved testing
+
+### Fixed
+
+AppleMail crashes (related to timestamps)
+
+Sending messages from aliases in combined inbox mode
+
+Fedora font issues
+
+Ensured that conversations are properly threaded
+
+Fixed Linux font issues (Fedora)
+
+Better handling of Mime encrypted messages
+
+Bridge crashes related to labels handling
+
+GUI popup related to TLS connection error
+
+An issue where a random session key is included in the data payload
+
+Error handling (including improved detection)
+
+Encoding errors
+
+Installation issues on linux
+
+
 ## v1.4.5
 - 2020-10-22
 
@@ -26,6 +82,8 @@ Fixed rare mail loss when moving from Spam folder
 Limited log size
 
 Fixed Linux font issues (mouse hover)
+
+
 
 ## v1.3.3
 - 2020-08-12

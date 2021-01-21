@@ -5,6 +5,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 ## Unreleased
 
 ### Added
+* GODT-958 Release notes per eaach update channel.
 * GODT-906 Handle RFC2047-encoded content transfer encoding values.
 * GODT-875 Added GUI dialog on force update.
 * GODT-820 Added GUI notification on impossibility of update installation (both silent and manual).
