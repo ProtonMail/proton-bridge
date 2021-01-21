@@ -84,9 +84,9 @@ The database stores metadata necessary for presenting messages and mailboxes to 
 
 ### Preferences
 User preferences are stored in json at the following location:
-- Linux: `~/.cache/protonmail/bridge/<cacheVersion>/prefs.json` (unless `XDG_CACHE_HOME` is set, in which case that is used as your `~`)
-- macOS: `~/Library/Caches/protonmail/bridge/<cacheVersion>/prefs.json`
-- Windows: `%LOCALAPPDATA%\protonmail\bridge\<cacheVersion>\prefs.json`
+- Linux: `~/.config/protonmail/bridge/prefs.json`
+- macOS: `~/Library/ApplicationSupport/protonmail/bridge/prefs.json`
+- Windows: `%APPDATA%\protonmail\bridge\prefs.json`
 
 ### IMAP Cache
 The currently subscribed mailboxes are held in a json file:
