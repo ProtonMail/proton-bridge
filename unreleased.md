@@ -5,6 +5,8 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 ## Unreleased
 
 ### Added
+* GODT-928 Reject messages which are too large.
+* GODT-337 Desktop files.
 
 ### Removed
 

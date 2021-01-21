@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Version=1.1
+Name=ProtonMail Import-Export app
+GenericName=ProtonMail Import-Export app for Linux
+Comment=The Import-Export app helps you to migrate your emails from local files or remote IMAP servers to ProtonMail or simply export emails to local folder.
+Icon=protonmail-import-export-app
+Exec=protonmail-import-export-app
+Terminal=false
+Categories=Office;Email;Network
+StartupWMClass=protonmail-import-export-app

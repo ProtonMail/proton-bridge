@@ -109,6 +109,7 @@ ${DEPLOY_DIR}/linux: ${EXE_TARGET}
 	cp -pf ./internal/frontend/share/icons/${SRC_SVG} ${DEPLOY_DIR}/linux/logo.svg
 	cp -pf ./LICENSE ${DEPLOY_DIR}/linux/
 	cp -pf ./Changelog.md ${DEPLOY_DIR}/linux/
+	cp -pf ./dist/${EXE_NAME}.desktop ${DEPLOY_DIR}/linux/
 
 ${DEPLOY_DIR}/darwin: ${EXE_TARGET}
 	if [ "${DIRNAME}" != "${EXE_NAME}" ]; then \
