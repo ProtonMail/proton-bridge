@@ -2,6 +2,11 @@
 
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
+## [Bridge 1.5.7] Golden Gate
+
+### Fixed
+CSB-331 Fix sending error due to mixed case in sender address.
+
 ## [Bridge 1.5.6] Golden Gate
 
 ### Added

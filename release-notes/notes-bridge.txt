@@ -1,2 +1,0 @@
-• Improvements to message parsing
-• Better error handling
