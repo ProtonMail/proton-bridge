@@ -43,9 +43,7 @@ const Version = 3
 
 // API return codes.
 const (
-	ForceUpgradeBadAPIVersion = 5003
-	ForceUpgradeInvalidAPI    = 5004
-	ForceUpgradeBadAppVersion = 5005
+	ForceUpgradeBadAppVersion = 5003
 	APIOffline                = 7001
 	ImportMessageTooLong      = 36022
 	BansRequests              = 85131

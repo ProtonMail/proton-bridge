@@ -58,3 +58,4 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 ### Fixed
 * GODT-900 Remove \Deleted flag after re-importing the message (do not delete messages by moving to local folder and back).
 * GODT-908 Do not unpause event loop if other mailbox is still fetching.
+* Check deprecated status code first to better determine API error.
