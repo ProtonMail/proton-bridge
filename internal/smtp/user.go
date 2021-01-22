@@ -251,6 +251,8 @@ func (su *smtpUser) Send(returnPath string, to []string, messageReader io.Reader
 		return
 	}
 
+	message.Sender.Address = pmapi.ConstructAddress(message.Sender.Address, addr.Email)
+
 	kr, err := su.client().KeyRingForAddressID(addr.ID)
 	if err != nil {
 		return
