@@ -25,6 +25,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-951 Properly parse message with long lines in header and long header split to multiple lines (upgrading to latest go-message).
 * GODT-894 Fix panic when sending while account is logging in.
 * GODT-831 Fix reporting bug from accounts with empty account name.
+* GODT-991 Fix panic when stopping import progress during loading mailboxes info.
 
 ### Changed
 * GODT-97 Don't log errors caused by SELECT "".
