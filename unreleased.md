@@ -26,6 +26,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-894 Fix panic when sending while account is logging in.
 * GODT-831 Fix reporting bug from accounts with empty account name.
 * GODT-991 Fix panic when stopping import progress during loading mailboxes info.
+* GODT-895 Fix panic when modifying addresses during changing address mode.
 
 ### Changed
 * GODT-97 Don't log errors caused by SELECT "".
