@@ -509,6 +509,10 @@ func (s *FrontendQt) configureAppleMail(iAccount, iAddress int) {
 		s.settings.SetBool(settings.SMTPSSLKey, true)
 		log.Warn("Detected Catalina or newer with bad SMTP SSL settings, now using SSL, bridge needs to restart")
 		doRestart = true
+	} else if smtpSSL {
+		log.Debug("Bridge is already using SMTP SSL, no need to restart")
+	} else {
+		log.Debug("OS is pre-catalina (or not darwin at all), no need to change to SMTP SSL")
 	}
 
 	for _, autoConf := range autoconfig.Available() {
