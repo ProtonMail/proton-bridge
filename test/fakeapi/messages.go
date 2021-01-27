@@ -218,6 +218,11 @@ func (api *FakePMAPI) generateMessageFromImportRequest(msgReq *pmapi.ImportMsgRe
 
 	existingMsg := api.findMessage(m)
 	if existingMsg != nil {
+		for _, newLabelID := range api.generateLabelIDsFromImportRequest(msgReq) {
+			if !existingMsg.HasLabelID(newLabelID) {
+				existingMsg.LabelIDs = append(existingMsg.LabelIDs, newLabelID)
+			}
+		}
 		return existingMsg, nil
 	}
 

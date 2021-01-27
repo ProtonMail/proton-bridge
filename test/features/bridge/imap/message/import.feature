@@ -12,6 +12,7 @@ Feature: IMAP import messages
       Subject: Message with double charset in content type
       Content-Type: text/plain; charset=utf-8; charset=utf-8
       Content-Disposition: inline
+      Received: by 2002:0:0:0:0:0:0:0 with SMTP id 0123456789abcdef; Wed, 30 Dec 2020 01:23:45 0000
 
       Hello
 
@@ -26,6 +27,7 @@ Feature: IMAP import messages
       To: Internal Bridge <bridgetest@protonmail.com>
       Subject: Message with attachment name encoded by RFC 2047 without quoting
       Content-type: multipart/mixed; boundary="boundary"
+      Received: by 2002:0:0:0:0:0:0:0 with SMTP id 0123456789abcdef; Wed, 30 Dec 2020 01:23:45 0000
 
       --boundary
       Content-Type: text/plain
@@ -50,6 +52,7 @@ Feature: IMAP import messages
       To: Internal Bridge <bridgetest@protonmail.com>
       Subject: Message in latin1 without content type
       Content-Disposition: inline
+      Received: by 2002:0:0:0:0:0:0:0 with SMTP id 0123456789abcdef; Wed, 30 Dec 2020 01:23:45 0000
 
       Hello íááá
 
@@ -64,6 +67,7 @@ Feature: IMAP import messages
       Subject: Message in latin1 with content type
       Content-Disposition: inline
       Content-Type: text/plain; charset=latin1
+      Received: by 2002:0:0:0:0:0:0:0 with SMTP id 0123456789abcdef; Wed, 30 Dec 2020 01:23:45 0000
 
       Hello íááá
 
@@ -78,6 +82,7 @@ Feature: IMAP import messages
       Subject: Message in latin1 with wrong content type
       Content-Disposition: inline
       Content-Type: text/plain; charset=KOI8R
+      Received: by 2002:0:0:0:0:0:0:0 with SMTP id 0123456789abcdef; Wed, 30 Dec 2020 01:23:45 0000
 
       Hello íááá
 

@@ -19,6 +19,7 @@ Feature: IMAP move message out to and back from local folder
       Subject: foo
       Date: Mon, 02 Jan 2006 15:04:05 +0000
       Message-Id: <msgID>
+      Received: by 2002:0:0:0:0:0:0:0 with SMTP id 0123456789abcdef; Wed, 30 Dec 2020 01:23:45 0000
 
       hello
       """
@@ -32,6 +33,7 @@ Feature: IMAP move message out to and back from local folder
       Subject: foo
       Date: Mon, 02 Jan 2006 15:04:05 +0000
       Message-Id: <msgID>
+      Received: by 2002:0:0:0:0:0:0:0 with SMTP id 0123456789abcdef; Wed, 30 Dec 2020 01:23:45 0000
 
       hello
       """
@@ -52,6 +54,7 @@ Feature: IMAP move message out to and back from local folder
       To: <user@pm.me>
       Subject: foo
       Date: Mon, 02 Jan 2006 15:04:05 +0000
+      Received: by 2002:0:0:0:0:0:0:0 with SMTP id 0123456789abcdef; Wed, 30 Dec 2020 01:23:45 0000
 
       hello
       """
@@ -66,6 +69,7 @@ Feature: IMAP move message out to and back from local folder
       Subject: bar
       Date: Mon, 02 Jan 2006 15:04:05 +0000
       X-Pm-Internal-Id: 1
+      Received: by 2002:0:0:0:0:0:0:0 with SMTP id 0123456789abcdef; Wed, 30 Dec 2020 01:23:45 0000
 
       hello
       """
