@@ -82,22 +82,92 @@ func TestEventLoopUpdateMessageFromLoop(t *testing.T) {
 		Subject: subject,
 	})
 
+	testEvent(t, m, &pmapi.Event{
+		EventID: "event1",
+		Messages: []*pmapi.EventMessage{{
+			EventItem: pmapi.EventItem{
+				ID:     "msg1",
+				Action: pmapi.EventUpdate,
+			},
+			Updated: &pmapi.EventMessageUpdated{
+				ID:      "msg1",
+				Subject: &newSubject,
+			},
+		}},
+	})
+
+	msg, err := m.store.getMessageFromDB("msg1")
+	require.NoError(t, err)
+	require.Equal(t, newSubject, msg.Subject)
+}
+
+func TestEventLoopDeletionNotPaused(t *testing.T) {
+	m, clear := initMocks(t)
+	defer clear()
+
+	m.newStoreNoEvents(true, &pmapi.Message{
+		ID:       "msg1",
+		Subject:  "subject",
+		LabelIDs: []string{"label"},
+	})
+
+	m.changeNotifier.EXPECT().CanDelete("label").Return(true, func() {})
+	m.store.SetChangeNotifier(m.changeNotifier)
+
+	testEvent(t, m, &pmapi.Event{
+		EventID: "event1",
+		Messages: []*pmapi.EventMessage{{
+			EventItem: pmapi.EventItem{
+				ID:     "msg1",
+				Action: pmapi.EventDelete,
+			},
+		}},
+	})
+
+	_, err := m.store.getMessageFromDB("msg1")
+	require.Error(t, err)
+}
+
+func TestEventLoopDeletionPaused(t *testing.T) {
+	m, clear := initMocks(t)
+	defer clear()
+
+	m.newStoreNoEvents(true, &pmapi.Message{
+		ID:       "msg1",
+		Subject:  "subject",
+		LabelIDs: []string{"label"},
+	})
+
+	delay := 5 * time.Second
+
+	m.changeNotifier.EXPECT().CanDelete("label").Return(false, func() {
+		time.Sleep(delay)
+	})
+	m.changeNotifier.EXPECT().CanDelete("label").Return(true, func() {})
+	m.store.SetChangeNotifier(m.changeNotifier)
+
+	start := time.Now()
+
+	testEvent(t, m, &pmapi.Event{
+		EventID: "event1",
+		Messages: []*pmapi.EventMessage{{
+			EventItem: pmapi.EventItem{
+				ID:     "msg1",
+				Action: pmapi.EventDelete,
+			},
+		}},
+	})
+
+	_, err := m.store.getMessageFromDB("msg1")
+	require.Error(t, err)
+	require.True(t, time.Since(start) > delay)
+}
+
+func testEvent(t *testing.T, m *mocksForStore, event *pmapi.Event) {
 	eventReceived := make(chan struct{})
 	m.client.EXPECT().GetEvent("latestEventID").DoAndReturn(func(eventID string) (*pmapi.Event, error) {
 		defer close(eventReceived)
-		return &pmapi.Event{
-			EventID: "event1",
-			Messages: []*pmapi.EventMessage{{
-				EventItem: pmapi.EventItem{
-					ID:     "msg1",
-					Action: pmapi.EventUpdate,
-				},
-				Updated: &pmapi.EventMessageUpdated{
-					ID:      "msg1",
-					Subject: &newSubject,
-				},
-			}},
-		}, nil
+		return event, nil
 	})
 
 	// Event loop runs in goroutine started during store creation (newStoreNoEvents).
@@ -109,10 +179,6 @@ func TestEventLoopUpdateMessageFromLoop(t *testing.T) {
 	case <-time.After(5 * time.Second):
 		require.Fail(t, "latestEventID was not processed")
 	}
-
-	msg, err := m.store.getMessageFromDB("msg1")
-	require.NoError(t, err)
-	require.Equal(t, newSubject, msg.Subject)
 }
 
 func TestEventLoopUpdateMessage(t *testing.T) {

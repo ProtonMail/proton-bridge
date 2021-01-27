@@ -20,6 +20,7 @@ package store
 import (
 	"net/mail"
 
+	pkgMsg "github.com/ProtonMail/proton-bridge/pkg/message"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	bolt "go.etcd.io/bbolt"
 )
@@ -118,4 +119,32 @@ func (message *Message) SetContentTypeAndHeader(mimeType string, header mail.Hea
 		)
 	}
 	return message.store.db.Update(txUpdate)
+}
+
+// SetBodyStructure stores serialized body structure in database.
+func (message *Message) SetBodyStructure(bs *pkgMsg.BodyStructure) error {
+	txUpdate := func(tx *bolt.Tx) error {
+		return message.store.txPutBodyStructure(
+			tx.Bucket(bodystructureBucket),
+			message.ID(), bs,
+		)
+	}
+	return message.store.db.Update(txUpdate)
+}
+
+// GetBodyStructure deserializes body structure from database. If body structure
+// is not in database it returns nil error and nil body structure. If error
+// occurs it returns nil body structure.
+func (message *Message) GetBodyStructure() (bs *pkgMsg.BodyStructure, err error) {
+	txRead := func(tx *bolt.Tx) error {
+		bs, err = message.store.txGetBodyStructure(
+			tx.Bucket(bodystructureBucket),
+			message.ID(),
+		)
+		return err
+	}
+	if err = message.store.db.View(txRead); err != nil {
+		return nil, err
+	}
+	return bs, nil
 }

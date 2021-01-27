@@ -46,8 +46,12 @@ func (p *IMAPProvider) TransferTo(rules transferRules, progress *Progress, ch ch
 	imapMessageInfoMap := p.loadMessageInfoMap(rules, progress)
 
 	for rule := range rules.iterateActiveRules() {
-		log.WithField("rule", rule).Debug("Processing rule")
 		messagesInfo := imapMessageInfoMap[rule.SourceMailbox.Name]
+		if messagesInfo == nil {
+			log.WithField("rule", rule).Warn("Rule has no message info")
+			continue
+		}
+		log.WithField("rule", rule).Debug("Processing rule")
 		p.transferTo(rule, messagesInfo, progress, ch)
 	}
 }
@@ -67,6 +71,10 @@ func (p *IMAPProvider) loadMessageInfoMap(rules transferRules, progress *Progres
 			mailbox, err = p.selectIn(mailboxName)
 			return err
 		})
+		if mailbox == nil {
+			log.WithField("rule", rule.SourceMailbox.Name).Warn("Failed to select into mailbox")
+			continue
+		}
 		if mailbox.Messages == 0 {
 			continue
 		}

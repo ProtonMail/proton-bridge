@@ -44,11 +44,6 @@ type imapUser struct {
 	appendInProcess sync.WaitGroup
 }
 
-// This method should eventually no longer be necessary. Everything should go via store.
-func (iu *imapUser) client() pmapi.Client {
-	return iu.user.GetTemporaryPMAPIClient()
-}
-
 // newIMAPUser returns struct implementing go-imap/user interface.
 func newIMAPUser(
 	panicHandler panicHandler,
@@ -79,6 +74,11 @@ func newIMAPUser(
 
 		currentAddressLowercase: strings.ToLower(address),
 	}, err
+}
+
+// This method should eventually no longer be necessary. Everything should go via store.
+func (iu *imapUser) client() pmapi.Client {
+	return iu.user.GetTemporaryPMAPIClient()
 }
 
 func (iu *imapUser) isSubscribed(labelID string) bool {
@@ -139,7 +139,16 @@ func (iu *imapUser) GetMailbox(name string) (mb goIMAPBackend.Mailbox, err error
 
 	storeMailbox, err := iu.storeAddress.GetMailbox(name)
 	if err != nil {
-		log.WithField("name", name).WithError(err).Error("Could not get mailbox")
+		logMsg := log.WithField("name", name).WithError(err)
+
+		// GODT-97: some clients perform SELECT "" in order to unselect.
+		// We don't want to fill the logs with errors in this case.
+		if name != "" {
+			logMsg.Error("Could not get mailbox")
+		} else {
+			logMsg.Debug("Failed attempt to get mailbox with empty name")
+		}
+
 		return
 	}
 

@@ -35,7 +35,6 @@ import (
 
 type pinChecker struct {
 	trustedPins []string
-	sentReports []sentReport
 }
 
 type sentReport struct {
@@ -43,8 +42,8 @@ type sentReport struct {
 	t time.Time
 }
 
-func newPinChecker(trustedPins []string) pinChecker {
-	return pinChecker{
+func newPinChecker(trustedPins []string) *pinChecker {
+	return &pinChecker{
 		trustedPins: trustedPins,
 	}
 }
@@ -76,8 +75,25 @@ func certFingerprint(cert *x509.Certificate) string {
 	return fmt.Sprintf(`pin-sha256=%q`, base64.StdEncoding.EncodeToString(hash[:]))
 }
 
+type clientConfigProvider interface {
+	GetClientConfig() *ClientConfig
+}
+
+type tlsReporter struct {
+	cm          clientConfigProvider
+	p           *pinChecker
+	sentReports []sentReport
+}
+
+func newTLSReporter(p *pinChecker, cm clientConfigProvider) *tlsReporter {
+	return &tlsReporter{
+		cm: cm,
+		p:  p,
+	}
+}
+
 // reportCertIssue reports a TLS key mismatch.
-func (p *pinChecker) reportCertIssue(remoteURI, host, port string, connState tls.ConnectionState, appVersion, userAgent string) {
+func (r *tlsReporter) reportCertIssue(remoteURI, host, port string, connState tls.ConnectionState) {
 	var certChain []string
 
 	if len(connState.VerifiedChains) > 0 {
@@ -86,27 +102,29 @@ func (p *pinChecker) reportCertIssue(remoteURI, host, port string, connState tls
 		certChain = marshalCert7468(connState.PeerCertificates)
 	}
 
-	r := newTLSReport(host, port, connState.ServerName, certChain, p.trustedPins, appVersion)
+	cfg := r.cm.GetClientConfig()
 
-	if !p.hasRecentlySentReport(r) {
-		p.recordReport(r)
-		go r.sendReport(remoteURI, userAgent)
+	report := newTLSReport(host, port, connState.ServerName, certChain, r.p.trustedPins, cfg.AppVersion)
+
+	if !r.hasRecentlySentReport(report) {
+		r.recordReport(report)
+		go report.sendReport(remoteURI, cfg.UserAgent)
 	}
 }
 
 // hasRecentlySentReport returns whether the report was already sent within the last 24 hours.
-func (p *pinChecker) hasRecentlySentReport(report tlsReport) bool {
+func (r *tlsReporter) hasRecentlySentReport(report tlsReport) bool {
 	var validReports []sentReport
 
-	for _, r := range p.sentReports {
+	for _, r := range r.sentReports {
 		if time.Since(r.t) < 24*time.Hour {
 			validReports = append(validReports, r)
 		}
 	}
 
-	p.sentReports = validReports
+	r.sentReports = validReports
 
-	for _, r := range p.sentReports {
+	for _, r := range r.sentReports {
 		if cmp.Equal(report, r.r) {
 			return true
 		}
@@ -116,8 +134,8 @@ func (p *pinChecker) hasRecentlySentReport(report tlsReport) bool {
 }
 
 // recordReport records the given report and the current time so we can check whether we recently sent this report.
-func (p *pinChecker) recordReport(r tlsReport) {
-	p.sentReports = append(p.sentReports, sentReport{r: r, t: time.Now()})
+func (r *tlsReporter) recordReport(report tlsReport) {
+	r.sentReports = append(r.sentReports, sentReport{r: report, t: time.Now()})
 }
 
 func marshalCert7468(certs []*x509.Certificate) (pemCerts []string) {

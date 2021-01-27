@@ -208,12 +208,33 @@ func (storeMailbox *Mailbox) MarkMessagesUndeleted(apiIDs []string) error {
 // If the mailbox is All Mail or All Sent, it does nothing.
 // If the mailbox is Trash or Spam and message is not in any other mailbox, messages is deleted.
 // In all other cases the message is only removed from the mailbox.
-func (storeMailbox *Mailbox) RemoveDeleted() error {
+// If nil is passed, all messages with \Deleted flag are removed.
+// In other cases only messages with \Deleted flag and included in the passed list.
+func (storeMailbox *Mailbox) RemoveDeleted(apiIDs []string) error {
 	storeMailbox.log.Trace("Deleting messages")
 
-	apiIDs, err := storeMailbox.GetDeletedAPIIDs()
+	deletedAPIIDs, err := storeMailbox.GetDeletedAPIIDs()
 	if err != nil {
 		return err
+	}
+
+	if apiIDs == nil {
+		apiIDs = deletedAPIIDs
+	} else {
+		filteredAPIIDs := []string{}
+		for _, apiID := range apiIDs {
+			found := false
+			for _, deletedAPIID := range deletedAPIIDs {
+				if apiID == deletedAPIID {
+					found = true
+					break
+				}
+			}
+			if found {
+				filteredAPIIDs = append(filteredAPIIDs, apiID)
+			}
+		}
+		apiIDs = filteredAPIIDs
 	}
 
 	if len(apiIDs) == 0 {

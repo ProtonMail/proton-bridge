@@ -79,6 +79,9 @@ func (store *Store) RebuildMailboxes() (err error) {
 // It doesn't do anything to addresses that are rightfully there.
 // It should only be called from the event loop.
 func (store *Store) createOrDeleteAddressesEvent() (err error) {
+	store.lock.Lock()
+	defer store.lock.Unlock()
+
 	labels, err := store.initCounts()
 	if err != nil {
 		return errors.Wrap(err, "failed to initialise label counts")

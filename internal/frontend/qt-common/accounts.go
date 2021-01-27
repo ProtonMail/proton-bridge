@@ -25,10 +25,9 @@ import (
 	"sync"
 
 	"github.com/ProtonMail/proton-bridge/internal/bridge"
+	"github.com/ProtonMail/proton-bridge/internal/config/settings"
 	"github.com/ProtonMail/proton-bridge/internal/events"
 	"github.com/ProtonMail/proton-bridge/internal/frontend/types"
-	"github.com/ProtonMail/proton-bridge/internal/preferences"
-	"github.com/ProtonMail/proton-bridge/pkg/config"
 	"github.com/ProtonMail/proton-bridge/pkg/keychain"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 )
@@ -38,7 +37,6 @@ type QMLer interface {
 	ProcessFinished()
 	NotifyHasNoKeychain()
 	SetConnectionStatus(bool)
-	SetIsRestarting(bool)
 	SetAddAccountWarning(string, int)
 	NotifyBubble(int, string)
 	EmitEvent(string, string)
@@ -50,23 +48,25 @@ type QMLer interface {
 
 // Accounts holds functionality of users
 type Accounts struct {
-	Model *AccountsModel
-	qml   QMLer
-	um    types.UserManager
-	prefs *config.Preferences
+	Model    *AccountsModel
+	qml      QMLer
+	um       types.UserManager
+	settings *settings.Settings
 
 	authClient pmapi.Client
 	auth       *pmapi.Auth
 
 	LatestUserID string
 	accountMutex sync.Mutex
+	restarter    types.Restarter
 }
 
 // SetupAccounts will create Model and set QMLer and UserManager
-func (a *Accounts) SetupAccounts(qml QMLer, um types.UserManager) {
+func (a *Accounts) SetupAccounts(qml QMLer, um types.UserManager, restarter types.Restarter) {
 	a.Model = NewAccountsModel(nil)
 	a.qml = qml
 	a.um = um
+	a.restarter = restarter
 }
 
 // LoadAccounts refreshes the current account list in GUI
@@ -102,9 +102,9 @@ func (a *Accounts) LoadAccounts() {
 		accInfo.SetUserID(user.ID())
 		accInfo.SetHostname(bridge.Host)
 		accInfo.SetPassword(user.GetBridgePassword())
-		if a.prefs != nil {
-			accInfo.SetPortIMAP(a.prefs.GetInt(preferences.IMAPPortKey))
-			accInfo.SetPortSMTP(a.prefs.GetInt(preferences.SMTPPortKey))
+		if a.settings != nil {
+			accInfo.SetPortIMAP(a.settings.GetInt(settings.IMAPPortKey))
+			accInfo.SetPortSMTP(a.settings.GetInt(settings.SMTPPortKey))
 		}
 
 		// Set aliases.
@@ -127,7 +127,7 @@ func (a *Accounts) ClearCache() {
 	}
 	// Clearing data removes everything (db, preferences, ...)
 	// so everything has to be stopped and started again.
-	a.qml.SetIsRestarting(true)
+	a.restarter.SetToRestart()
 	a.qml.Quit()
 }
 
@@ -137,7 +137,7 @@ func (a *Accounts) ClearKeychain() {
 	for _, user := range a.um.GetUsers() {
 		if err := a.um.DeleteUser(user.ID(), false); err != nil {
 			log.Error("While deleting user: ", err)
-			if err == keychain.ErrNoKeychainInstalled { // Probably not needed anymore.
+			if err == keychain.ErrNoKeychain { // Probably not needed anymore.
 				a.qml.NotifyHasNoKeychain()
 			}
 		}
@@ -172,7 +172,6 @@ func (a *Accounts) showLoginError(err error, scope string) bool {
 	}
 	a.qml.SetConnectionStatus(true) // If we are here connection is ok.
 	if err == pmapi.ErrUpgradeApplication {
-		a.qml.EmitEvent(events.UpgradeApplicationEvent, "")
 		return true
 	}
 	a.qml.SetAddAccountWarning(err.Error(), -1)
@@ -249,7 +248,7 @@ func (a *Accounts) DeleteAccount(iAccount int, removePreferences bool) {
 	userID := a.Model.get(iAccount).UserID()
 	if err := a.um.DeleteUser(userID, removePreferences); err != nil {
 		log.Warn("deleteUser: cannot remove user: ", err)
-		if err == keychain.ErrNoKeychainInstalled {
+		if err == keychain.ErrNoKeychain {
 			a.qml.NotifyHasNoKeychain()
 			return
 		}

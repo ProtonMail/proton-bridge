@@ -17,7 +17,12 @@
 # You should have received a copy of the GNU General Public License
 # along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
 
-CHANGELOG_FILE="`dirname $0`/../Changelog.md"
+if [ $# -ne 1 ]; then
+    echo "First argument must be path to file"
+    exit 2
+fi
+
+CHANGELOG_FILE=$1
 
 ERROR_COUNT_FILE="`mktemp`"
 echo "0">$ERROR_COUNT_FILE

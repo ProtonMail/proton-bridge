@@ -1,6 +1,7 @@
 # Building ProtonMail Bridge and Import-Export app
 
 ## Prerequisites
+* 64-bit OS (the go-rfc5322 module cannot currently be compiled for 32-bit OSes)
 * Go 1.13
 * Bash with basic build utils: make, gcc, sed, find, grep, ...
 * For Windows it is recommended to use MinGW 64bit shell from [MSYS2](https://www.msys2.org/)
@@ -62,6 +63,11 @@ make build-ie
     * for `linux`, the binary will have the name of the project directory (e.g `proton-bridge`)
     * for `windows`, the binary will have the file extension `.exe` (e.g `proton-bridge.exe`)
     * for `darwin`, the application will be created with name of the project directory (e.g `proton-bridge.app`)
+
+### Launchers
+Launchers are only included in official distributions and provide the public
+key used to verify signed app binaries, allowing the automatic update feature.
+See README for more information.
 
 ### Tags
 Note that repository contains both Bridge and Import-Export apps and they are

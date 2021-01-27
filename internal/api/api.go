@@ -22,14 +22,12 @@
 package api
 
 import (
-	"crypto/tls"
 	"fmt"
 	"net/http"
 
 	"github.com/ProtonMail/proton-bridge/internal/bridge"
+	"github.com/ProtonMail/proton-bridge/internal/config/settings"
 	"github.com/ProtonMail/proton-bridge/internal/events"
-	"github.com/ProtonMail/proton-bridge/internal/preferences"
-	"github.com/ProtonMail/proton-bridge/pkg/config"
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
 	"github.com/ProtonMail/proton-bridge/pkg/ports"
 	"github.com/sirupsen/logrus"
@@ -41,21 +39,15 @@ var (
 
 type apiServer struct {
 	host          string
-	pref          *config.Preferences
-	tls           *tls.Config
-	certPath      string
-	keyPath       string
+	settings      *settings.Settings
 	eventListener listener.Listener
 }
 
 // NewAPIServer returns prepared API server struct.
-func NewAPIServer(pref *config.Preferences, tls *tls.Config, certPath, keyPath string, eventListener listener.Listener) *apiServer { //nolint[golint]
+func NewAPIServer(settings *settings.Settings, eventListener listener.Listener) *apiServer { //nolint[golint]
 	return &apiServer{
 		host:          bridge.Host,
-		pref:          pref,
-		tls:           tls,
-		certPath:      certPath,
-		keyPath:       keyPath,
+		settings:      settings,
 		eventListener: eventListener,
 	}
 }
@@ -67,14 +59,12 @@ func (api *apiServer) ListenAndServe() {
 
 	addr := api.getAddress()
 	server := &http.Server{
-		Addr:         addr,
-		Handler:      mux,
-		TLSConfig:    api.tls,
-		TLSNextProto: make(map[string]func(*http.Server, *tls.Conn, http.Handler)),
+		Addr:    addr,
+		Handler: mux,
 	}
 
 	log.Info("API listening at ", addr)
-	if err := server.ListenAndServeTLS(api.certPath, api.keyPath); err != nil {
+	if err := server.ListenAndServe(); err != nil {
 		api.eventListener.Emit(events.ErrorEvent, "API failed: "+err.Error())
 		log.Error("API failed: ", err)
 	}
@@ -82,10 +72,10 @@ func (api *apiServer) ListenAndServe() {
 }
 
 func (api *apiServer) getAddress() string {
-	port := api.pref.GetInt(preferences.APIPortKey)
+	port := api.settings.GetInt(settings.APIPortKey)
 	newPort := ports.FindFreePortFrom(port)
 	if newPort != port {
-		api.pref.SetInt(preferences.APIPortKey, newPort)
+		api.settings.SetInt(settings.APIPortKey, newPort)
 	}
 	return getAPIAddress(api.host, newPort)
 }

@@ -38,7 +38,6 @@ Window {
     property alias dialogUpdate                 : dialogUpdate
     property alias dialogFirstStart             : dialogFirstStart
     property alias dialogGlobal                 : dialogGlobal
-    property alias dialogVersionInfo            : dialogVersionInfo
     property alias dialogConnectionTroubleshoot : dialogConnectionTroubleshoot
     property alias bubbleNote                   : bubbleNote
     property alias addAccountTip                : addAccountTip
@@ -66,7 +65,6 @@ Window {
     !dialogUpdate      .visible &&
     !dialogFirstStart  .visible &&
     !dialogGlobal      .visible &&
-    !dialogVersionInfo .visible &&
     !bubbleNote        .visible
 
     Accessible.role: Accessible.Grouping
@@ -316,50 +314,7 @@ Window {
 
     DialogUpdate {
         id: dialogUpdate
-
-        property string manualLinks : {
-            var out = ""
-            var links = go.downloadLink.split("\n")
-            var l;
-            for (l in links) {
-                out += '<a href="%1">%1</a><br>'.arg(links[l])
-            }
-            return out
-        }
-
-        title: root.isOutdateVersion ?
-        qsTr("%1 is outdated", "title of outdate dialog").arg(go.programTitle):
-        qsTr("%1 update to %2", "title of update dialog").arg(go.programTitle).arg(go.newversion)
-        introductionText: {
-            if (root.isOutdateVersion) {
-                if (go.goos=="linux") {
-                    return qsTr('You are using an outdated version of our software.<br>
-                    Please download and install the latest version to continue using %1.<br><br>
-                    %2',
-                    "Message for force-update in Linux").arg(go.programTitle).arg(dialogUpdate.manualLinks)
-                } else {
-                    return qsTr('You are using an outdated version of our software.<br>
-                    Please download and install the latest version to continue using %1.<br><br>
-                    You can continue with the update or download and install the new version manually from<br><br>
-                    <a href="%2">%2</a>',
-                    "Message for force-update in Win/Mac").arg(go.programTitle).arg(go.landingPage)
-                }
-            } else {
-                if (go.goos=="linux") {
-                    return qsTr('A new version of Bridge is available.<br>
-                    Check <a href="%1">release notes</a> to learn what is new in %2.<br>
-                    Use your package manager to update or download and install the new version manually from<br><br>
-                    %3',
-                    "Message for update in Linux").arg("releaseNotes").arg(go.newversion).arg(dialogUpdate.manualLinks)
-                } else {
-                    return qsTr('A new version of Bridge is available.<br>
-                    Check <a href="%1">release notes</a> to learn what is new in %2.<br>
-                    You can continue with the update or download and install the new version manually from<br><br>
-                    <a href="%3">%3</a>',
-                    "Message for update in Win/Mac").arg("releaseNotes").arg(go.newversion).arg(go.landingPage)
-                }
-            }
-        }
+        forceUpdate: root.isOutdateVersion
     }
 
 
@@ -371,25 +326,6 @@ Window {
 
     DialogTLSCertInfo {
         id: dialogTlsCert
-    }
-
-    Dialog {
-        id: dialogVersionInfo
-        property bool checkVersionOnClose : false
-        title: qsTr("Information about", "title of release notes page") + " v" + go.newversion
-        VersionInfo { }
-        onShow : {
-            // Hide information bar with old version
-            if (infoBar.state=="oldVersion") {
-                infoBar.state="upToDate"
-                dialogVersionInfo.checkVersionOnClose = true
-            }
-        }
-        onHide : {
-            // Reload current version based on online status
-            if (dialogVersionInfo.checkVersionOnClose) go.runCheckVersion(false)
-            dialogVersionInfo.checkVersionOnClose = false
-        }
     }
 
     DialogYesNo {

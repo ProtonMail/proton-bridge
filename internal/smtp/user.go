@@ -31,7 +31,7 @@ import (
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/ProtonMail/proton-bridge/internal/events"
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
-	pkgMessage "github.com/ProtonMail/proton-bridge/pkg/message"
+	pkgMsg "github.com/ProtonMail/proton-bridge/pkg/message"
 	"github.com/ProtonMail/proton-bridge/pkg/message/parser"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	goSMTPBackend "github.com/emersion/go-smtp"
@@ -229,7 +229,7 @@ func (su *smtpUser) Send(returnPath string, to []string, messageReader io.Reader
 		err = errors.Wrap(err, "failed to create new parser")
 		return
 	}
-	message, plainBody, attReaders, err := pkgMessage.ParserWithParser(parser)
+	message, plainBody, attReaders, err := pkgMsg.ParserWithParser(parser)
 	if err != nil {
 		log.WithError(err).Error("Failed to parse message")
 		return
@@ -275,10 +275,10 @@ func (su *smtpUser) Send(returnPath string, to []string, messageReader io.Reader
 	}
 
 	if attachedPublicKey != "" {
-		pkgMessage.AttachPublicKey(parser, attachedPublicKey, attachedPublicKeyName)
+		pkgMsg.AttachPublicKey(parser, attachedPublicKey, attachedPublicKeyName)
 	}
 
-	mimeBody, err := pkgMessage.BuildMIMEBody(parser)
+	mimeBody, err := pkgMsg.BuildMIMEBody(parser)
 	if err != nil {
 		log.WithError(err).Error("Failed to build message")
 		return

@@ -38,6 +38,15 @@ import (
 
 // Parse parses RAW message.
 func Parse(r io.Reader) (m *pmapi.Message, mimeBody, plainBody string, attReaders []io.Reader, err error) {
+	defer func() {
+		r := recover()
+		if r == nil {
+			return
+		}
+
+		err = fmt.Errorf("panic while parsing message: %v", r)
+	}()
+
 	p, err := parser.New(r)
 	if err != nil {
 		return nil, "", "", nil, errors.Wrap(err, "failed to create new parser")
@@ -329,8 +338,12 @@ func bestChoice(childParts []parser.Parts, preferredContentType string) parser.P
 		}
 	}
 
-	// Otherwise, choose the last one.
-	return childParts[len(childParts)-1]
+	// Otherwise, choose the last one, if it exists.
+	if len(childParts) > 0 {
+		return childParts[len(childParts)-1]
+	}
+
+	return parser.Parts{}
 }
 
 func allPartsHaveContentType(parts parser.Parts, contentType string) bool {
@@ -471,6 +484,9 @@ func parseMessageHeader(m *pmapi.Message, h message.Header) error { // nolint[fu
 				return errors.Wrap(err, "failed to parse date")
 			}
 			m.Time = date.Unix()
+
+		case "message-id":
+			m.ExternalID = fields.Value()
 		}
 	}
 

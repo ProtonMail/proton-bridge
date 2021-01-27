@@ -36,6 +36,24 @@ Item {
             color: Style.main.background
         }
 
+        // horizontall scrollbar sometimes showes up when vertical scrollbar coveres content
+        ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
+        ScrollBar.vertical.policy: ScrollBar.AsNeeded
+
+        // keeping vertical scrollbar allways visible when needed
+        Connections {
+            target: wrapper.ScrollBar.vertical
+            onSizeChanged: {
+                // ScrollBar.size == 0 at creating so no need to make it active
+                if (wrapper.ScrollBar.vertical.size < 1.0 && wrapper.ScrollBar.vertical.size > 0 && !wrapper.ScrollBar.vertical.active) {
+                    wrapper.ScrollBar.vertical.active = true
+                }
+            }
+            onActiveChanged: {
+                wrapper.ScrollBar.vertical.active = true
+            }
+        }
+
         // content
         Column {
             anchors.left : parent.left
@@ -94,6 +112,49 @@ Item {
                 ) + " " + text
                 onClicked: {
                     go.toggleAutoStart()
+                }
+            }
+
+            ButtonIconText {
+                id: autoUpdates
+                text: qsTr("Keep the application up to date", "label for toggle that activates and disables the automatic updates")
+                leftIcon.text  : Style.fa.download
+                rightIcon {
+                    font.pointSize : Style.settings.toggleSize * Style.pt
+                    text  : go.isAutoUpdate!=false ? Style.fa.toggle_on  : Style.fa.toggle_off
+                    color : go.isAutoUpdate!=false ? Style.main.textBlue : Style.main.textDisabled
+                }
+                Accessible.description: (
+                    go.isAutoUpdate == false ?
+                    qsTr("Enable"  , "Click to enable the automatic update of Bridge") :
+                    qsTr("Disable" , "Click to disable the automatic update of Bridge")
+                ) + " " + text
+                onClicked: {
+                    go.toggleAutoUpdate()
+                }
+            }
+
+            ButtonIconText {
+                id: earlyAccess
+                text: qsTr("Early access", "label for toggle that enables and disables early access")
+                leftIcon.text  : Style.fa.star
+                rightIcon {
+                    font.pointSize : Style.settings.toggleSize * Style.pt
+                    text  : go.isEarlyAccess!=false ? Style.fa.toggle_on  : Style.fa.toggle_off
+                    color : go.isEarlyAccess!=false ? Style.main.textBlue : Style.main.textDisabled
+                }
+                Accessible.description: (
+                    go.isEarlyAccess == false ?
+                    qsTr("Enable"  , "Click to enable early access") :
+                    qsTr("Disable" , "Click to disable early access")
+                ) + " " + text
+                onClicked: {
+                    if (go.isEarlyAccess == true) {
+                      go.toggleEarlyAccess()
+                    } else {
+                      dialogGlobal.state="toggleEarlyAccess"
+                      dialogGlobal.show()
+                    }
                 }
             }
 
@@ -177,7 +238,6 @@ Item {
                     dialogGlobal.show()
                 }
             }
-
         }
     }
 }

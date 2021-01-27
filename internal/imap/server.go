@@ -23,6 +23,7 @@ import (
 	"io"
 	"net"
 	"strings"
+	"sync/atomic"
 	"time"
 
 	imapid "github.com/ProtonMail/go-imap-id"
@@ -31,6 +32,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/internal/imap/id"
 	"github.com/ProtonMail/proton-bridge/internal/imap/uidplus"
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
+	"github.com/ProtonMail/proton-bridge/pkg/ports"
 	"github.com/emersion/go-imap"
 	imapappendlimit "github.com/emersion/go-imap-appendlimit"
 	imapidle "github.com/emersion/go-imap-idle"
@@ -43,20 +45,30 @@ import (
 )
 
 type imapServer struct {
+	panicHandler  panicHandler
 	server        *imapserver.Server
 	eventListener listener.Listener
 	debugClient   bool
 	debugServer   bool
+	port          int
+	isRunning     atomic.Value
 }
 
 // NewIMAPServer constructs a new IMAP server configured with the given options.
-func NewIMAPServer(debugClient, debugServer bool, port int, tls *tls.Config, imapBackend *imapBackend, eventListener listener.Listener) *imapServer { //nolint[golint]
+func NewIMAPServer(panicHandler panicHandler, debugClient, debugServer bool, port int, tls *tls.Config, imapBackend *imapBackend, eventListener listener.Listener) *imapServer { //nolint[golint]
 	s := imapserver.New(imapBackend)
 	s.Addr = fmt.Sprintf("%v:%v", bridge.Host, port)
 	s.TLSConfig = tls
 	s.AllowInsecureAuth = true
 	s.ErrorLog = newServerErrorLogger("server-imap")
 	s.AutoLogout = 30 * time.Minute
+
+	if debugServer {
+		fmt.Println("THE LOG WILL CONTAIN **DECRYPTED** MESSAGE DATA")
+		log.Warning("================================================")
+		log.Warning("THIS LOG WILL CONTAIN **DECRYPTED** MESSAGE DATA")
+		log.Warning("================================================")
+	}
 
 	serverID := imapid.ID{
 		imapid.FieldName:       "ProtonMail Bridge",
@@ -88,17 +100,31 @@ func NewIMAPServer(debugClient, debugServer bool, port int, tls *tls.Config, ima
 		uidplus.NewExtension(),
 	)
 
-	return &imapServer{
+	server := &imapServer{
+		panicHandler:  panicHandler,
 		server:        s,
 		eventListener: eventListener,
 		debugClient:   debugClient,
 		debugServer:   debugServer,
+		port:          port,
 	}
+	server.isRunning.Store(false)
+	return server
 }
 
 // Starts the server.
 func (s *imapServer) ListenAndServe() {
 	go s.monitorDisconnectedUsers()
+	go s.monitorInternetConnection()
+
+	s.listenAndServe()
+}
+
+func (s *imapServer) listenAndServe() {
+	if s.isRunning.Load().(bool) {
+		return
+	}
+	s.isRunning.Store(true)
 
 	log.Info("IMAP server listening at ", s.server.Addr)
 	l, err := net.Listen("tcp", s.server.Addr)
@@ -112,7 +138,10 @@ func (s *imapServer) ListenAndServe() {
 		Listener: l,
 		server:   s,
 	})
-	if err != nil {
+	// Serve returns error every time, even after closing the server.
+	// User shouldn't be notified about error if server shouldn't be running,
+	// but it should in case it was not closed by `s.Close()`.
+	if err != nil && s.isRunning.Load().(bool) {
 		s.eventListener.Emit(events.ErrorEvent, "IMAP failed: "+err.Error())
 		log.Error("IMAP failed: ", err)
 		return
@@ -124,8 +153,49 @@ func (s *imapServer) ListenAndServe() {
 
 // Stops the server.
 func (s *imapServer) Close() {
+	if !s.isRunning.Load().(bool) {
+		return
+	}
+	s.isRunning.Store(false)
+
+	log.Info("Closing IMAP server")
 	if err := s.server.Close(); err != nil {
 		log.WithError(err).Error("Failed to close the connection")
+	}
+}
+
+func (s *imapServer) monitorInternetConnection() {
+	on := make(chan string)
+	s.eventListener.Add(events.InternetOnEvent, on)
+	off := make(chan string)
+	s.eventListener.Add(events.InternetOffEvent, off)
+
+	for {
+		var expectedIsPortFree bool
+		select {
+		case <-on:
+			go func() {
+				defer s.panicHandler.HandlePanic()
+				s.listenAndServe()
+			}()
+			expectedIsPortFree = false
+		case <-off:
+			s.Close()
+			expectedIsPortFree = true
+		}
+
+		start := time.Now()
+		for {
+			if ports.IsPortFree(s.port) == expectedIsPortFree {
+				break
+			}
+			// Safety stop if something went wrong.
+			if time.Since(start) > 15*time.Second {
+				log.WithField("expectedIsPortFree", expectedIsPortFree).Warn("Server start/stop check timeouted")
+				break
+			}
+			time.Sleep(100 * time.Millisecond)
+		}
 	}
 }
 

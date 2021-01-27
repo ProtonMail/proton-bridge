@@ -59,7 +59,6 @@ QtObject {
         property real fontSize           : 12  * px
         property real iconSize           : 15  * px
         property real leftMarginButton   : 9   * px
-        property real verCheckRepeatTime : 15*60*60*1000 // milliseconds
         property real topMargin          : fontSize
         property real bottomMargin       : fontSize
         property real border             : 1   * px

@@ -41,22 +41,20 @@ type Res struct {
 
 // Err returns error if the response is an error. Otherwise, returns nil.
 func (res Res) Err() error {
+	if res.Code == ForceUpgradeBadAppVersion {
+		return ErrUpgradeApplication
+	}
+
+	if res.Code == APIOffline {
+		return ErrAPINotReachable
+	}
+
 	if res.StatusCode == http.StatusUnprocessableEntity {
 		return &ErrUnprocessableEntity{errors.New(res.Error)}
 	}
 
 	if res.ResError == nil {
 		return nil
-	}
-
-	if res.Code == ForceUpgradeBadAPIVersion ||
-		res.Code == ForceUpgradeInvalidAPI ||
-		res.Code == ForceUpgradeBadAppVersion {
-		return ErrUpgradeApplication
-	}
-
-	if res.Code == APIOffline {
-		return ErrAPINotReachable
 	}
 
 	return &Error{

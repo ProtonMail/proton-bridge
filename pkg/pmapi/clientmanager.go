@@ -31,7 +31,7 @@ import (
 const maxLogoutRetries = 5
 
 // ClientManager is a manager of clients.
-type ClientManager struct {
+type ClientManager struct { //nolint[maligned]
 	// newClient is used to create new Clients. By default this creates pmapi clients but it can be overridden to
 	// create other types of clients (e.g. for integration tests).
 	newClient func(userID string) Client
@@ -60,6 +60,8 @@ type ClientManager struct {
 	proxyUseDuration time.Duration
 
 	idGen idGen
+
+	connectionOff bool
 
 	log *logrus.Entry
 }
@@ -108,6 +110,8 @@ func NewClientManager(config *ClientConfig) (cm *ClientManager) {
 		proxyProvider:    newProxyProvider(dohProviders, proxyQuery),
 		proxyUseDuration: proxyUseDuration,
 
+		connectionOff: false,
+
 		log: logrus.WithField("pkg", "pmapi-manager"),
 	}
 
@@ -119,6 +123,34 @@ func NewClientManager(config *ClientConfig) (cm *ClientManager) {
 	go cm.watchTokenExpirations()
 
 	return cm
+}
+
+func (cm *ClientManager) noConnection() {
+	cm.log.Trace("No connection available")
+	if cm.connectionOff {
+		return
+	}
+
+	cm.log.Warn("Connection lost")
+	if cm.config.ConnectionOffHandler != nil {
+		cm.config.ConnectionOffHandler()
+	}
+	cm.connectionOff = true
+
+	go func() {
+		for {
+			time.Sleep(30 * time.Second)
+
+			if err := cm.CheckConnection(); err == nil {
+				cm.log.Info("Connection re-established")
+				if cm.config.ConnectionOnHandler != nil {
+					cm.config.ConnectionOnHandler()
+				}
+				cm.connectionOff = false
+				return
+			}
+		}
+	}()
 }
 
 // SetClientConstructor sets the method used to construct clients.
@@ -137,8 +169,16 @@ func (cm *ClientManager) SetRoundTripper(rt http.RoundTripper) {
 	cm.roundTripper = rt
 }
 
+func (cm *ClientManager) GetClientConfig() *ClientConfig {
+	return cm.config
+}
+
 func (cm *ClientManager) SetUserAgent(clientName, clientVersion, os string) {
 	cm.config.UserAgent = formatUserAgent(clientName, clientVersion, os)
+}
+
+func (cm *ClientManager) GetUserAgent() string {
+	return cm.config.UserAgent
 }
 
 // GetClient returns a client for the given userID.
@@ -366,7 +406,7 @@ func (cm *ClientManager) clearToken(userID string) {
 	cm.tokensLocker.Lock()
 	defer cm.tokensLocker.Unlock()
 
-	logrus.WithField("userID", userID).Info("Clearing token")
+	logrus.WithField("userID", userID).Debug("Clearing token")
 
 	delete(cm.tokens, userID)
 }

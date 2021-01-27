@@ -359,16 +359,16 @@ func TestPreferencesBuilder(t *testing.T) {
 			assert.Equal(t, test.wantSign, prefs.Sign)
 			assert.Equal(t, test.wantScheme, prefs.Scheme)
 			assert.Equal(t, test.wantMIMEType, prefs.MIMEType)
-			assert.Equal(t, test.wantPublicKey, func() string {
-				if prefs.PublicKey == nil {
-					return ""
-				}
 
-				k, _ := prefs.PublicKey.GetKey(0)
-				s, _ := k.GetArmoredPublicKey()
+			if prefs.PublicKey != nil {
+				wantKey, err := crypto.NewKeyFromArmored(test.wantPublicKey)
+				require.NoError(t, err)
 
-				return s
-			}())
+				haveKey, err := prefs.PublicKey.GetKey(0)
+				require.NoError(t, err)
+
+				assert.Equal(t, wantKey.GetFingerprint(), haveKey.GetFingerprint())
+			}
 		})
 	}
 }

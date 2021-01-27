@@ -48,27 +48,6 @@ func TestUsersFinishLoginBadMailboxPassword(t *testing.T) {
 	checkUsersFinishLogin(t, m, testAuth, testCredentials.MailboxPassword, "", err)
 }
 
-func TestUsersFinishLoginUpgradeApplication(t *testing.T) {
-	m := initMocks(t)
-	defer m.ctrl.Finish()
-
-	err := errors.New("Cannot logout when upgrade needed")
-	gomock.InOrder(
-		// Init users with no user from keychain.
-		m.credentialsStore.EXPECT().List().Return([]string{}, nil),
-
-		// Set up mocks for FinishLogin.
-		m.pmapiClient.EXPECT().AuthSalt().Return("", nil),
-		m.pmapiClient.EXPECT().Unlock([]byte(testCredentials.MailboxPassword)).Return(pmapi.ErrUpgradeApplication),
-
-		m.eventListener.EXPECT().Emit(events.UpgradeApplicationEvent, ""),
-		m.pmapiClient.EXPECT().DeleteAuth().Return(err),
-		m.pmapiClient.EXPECT().Logout(),
-	)
-
-	checkUsersFinishLogin(t, m, testAuth, testCredentials.MailboxPassword, "", pmapi.ErrUpgradeApplication)
-}
-
 func refreshWithToken(token string) *pmapi.Auth {
 	return &pmapi.Auth{
 		RefreshToken: token,

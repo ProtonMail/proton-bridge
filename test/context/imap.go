@@ -22,9 +22,9 @@ import (
 	"time"
 
 	"github.com/ProtonMail/proton-bridge/internal/bridge"
+	"github.com/ProtonMail/proton-bridge/internal/config/settings"
+	"github.com/ProtonMail/proton-bridge/internal/config/tls"
 	"github.com/ProtonMail/proton-bridge/internal/imap"
-	"github.com/ProtonMail/proton-bridge/internal/preferences"
-	"github.com/ProtonMail/proton-bridge/pkg/config"
 	"github.com/ProtonMail/proton-bridge/test/mocks"
 	"github.com/stretchr/testify/require"
 )
@@ -53,13 +53,13 @@ func (ctx *TestContext) withIMAPServer() {
 		return
 	}
 
+	settingsPath, _ := ctx.locations.ProvideSettingsPath()
 	ph := newPanicHandler(ctx.t)
-	pref := preferences.New(ctx.cfg)
-	port := pref.GetInt(preferences.IMAPPortKey)
-	tls, _ := config.GetTLSConfig(ctx.cfg)
+	port := ctx.settings.GetInt(settings.IMAPPortKey)
+	tls, _ := tls.New(settingsPath).GetConfig()
 
-	backend := imap.NewIMAPBackend(ph, ctx.listener, ctx.cfg, ctx.bridge)
-	server := imap.NewIMAPServer(true, true, port, tls, backend, ctx.listener)
+	backend := imap.NewIMAPBackend(ph, ctx.listener, ctx.cache, ctx.bridge)
+	server := imap.NewIMAPServer(ph, true, true, port, tls, backend, ctx.listener)
 
 	go server.ListenAndServe()
 	require.NoError(ctx.t, waitForPort(port, 5*time.Second))

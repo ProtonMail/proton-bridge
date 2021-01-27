@@ -18,23 +18,38 @@
 package pmapi
 
 import (
-	"net/http"
+	"runtime"
+	"strings"
+	"time"
 )
 
 // rootURL is the API root URL.
-//
-// This can be changed using build flags: pmapi_local for "localhost/api", pmapi_dev or pmapi_prod.
-// Default is pmapi_prod.
-//
 // It must not contain the protocol! The protocol should be in rootScheme.
 var rootURL = "api.protonmail.ch" //nolint[gochecknoglobals]
-var rootScheme = "https"          //nolint[gochecknoglobals]
 
-// The HTTP transport to use by default.
-var defaultTransport = &http.Transport{ //nolint[gochecknoglobals]
-	Proxy: http.ProxyFromEnvironment,
+// rootScheme is the scheme to use for connections to the root URL.
+var rootScheme = "https" //nolint[gochecknoglobals]
+
+func GetAPIConfig(configName, appVersion string) *ClientConfig {
+	return &ClientConfig{
+		AppVersion:        getAPIOS() + strings.Title(configName) + "_" + appVersion,
+		ClientID:          configName,
+		Timeout:           25 * time.Minute, // Overall request timeout (~25MB / 25 mins => ~16kB/s, should be reasonable).
+		FirstReadTimeout:  30 * time.Second, // 30s to match 30s response header timeout.
+		MinBytesPerSecond: 1 << 10,          // Enforce minimum download speed of 1kB/s.
+	}
 }
 
-// checkTLSCerts controls whether TLS certs are checked against known fingerprints.
-// The default is for this to always be done.
-var checkTLSCerts = true //nolint[gochecknoglobals]
+// getAPIOS returns actual operating system.
+func getAPIOS() string {
+	switch os := runtime.GOOS; os {
+	case "darwin": // nolint: goconst
+		return "macOS"
+	case "linux":
+		return "Linux"
+	case "windows":
+		return "Windows"
+	}
+
+	return "Linux"
+}

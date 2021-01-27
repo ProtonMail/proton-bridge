@@ -27,6 +27,7 @@ import (
 	"strings"
 
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
+	pkgMsg "github.com/ProtonMail/proton-bridge/pkg/message"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -168,6 +169,26 @@ func (store *Store) txPutMessage(metaBucket *bolt.Bucket, onlyMeta *pmapi.Messag
 		return errors.Wrap(err, "cannot add to metadata bucket")
 	}
 	return nil
+}
+
+func (store *Store) txPutBodyStructure(bsBucket *bolt.Bucket, msgID string, bs *pkgMsg.BodyStructure) error {
+	raw, err := bs.Serialize()
+	if err != nil {
+		return err
+	}
+	err = bsBucket.Put([]byte(msgID), raw)
+	if err != nil {
+		return errors.Wrap(err, "cannot put bodystructure bucket")
+	}
+	return nil
+}
+
+func (store *Store) txGetBodyStructure(bsBucket *bolt.Bucket, msgID string) (*pkgMsg.BodyStructure, error) {
+	raw := bsBucket.Get([]byte(msgID))
+	if len(raw) == 0 {
+		return nil, nil
+	}
+	return pkgMsg.DeserializeBodyStructure(raw)
 }
 
 // createOrUpdateMessageEvent is helper to create only one message with

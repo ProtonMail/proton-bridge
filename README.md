@@ -37,6 +37,18 @@ check the results.
 
 More details [on the public website](https://protonmail.com/import-export).
 
+## Launchers
+Launchers are binaries used to run the ProtonMail Bridge or Import-Export apps.
+
+Official distributions of the ProtonMail Bridge and Import-Export apps contain
+both a launcher and the app itself. The launcher is installed in a protected
+area of the system (i.e. an area accessible only with admin privileges) and is
+used to run the app. The launcher ensures that nobody tampered with the app's
+files by verifying their signature using a hardcoded public key. App files are
+placed in regular userspace and are signed by Proton's private key. This
+feature enables the app to securely update itself automatically without asking
+the user for a password.
+
 ## Keychain
 You need to have a keychain in order to run the ProtonMail Bridge. On Mac or
 Windows, Bridge uses native credential managers. On Linux, use
@@ -72,9 +84,9 @@ The database stores metadata necessary for presenting messages and mailboxes to 
 
 ### Preferences
 User preferences are stored in json at the following location:
-- Linux: `~/.cache/protonmail/bridge/<cacheVersion>/prefs.json` (unless `XDG_CACHE_HOME` is set, in which case that is used as your `~`)
-- macOS: `~/Library/Caches/protonmail/bridge/<cacheVersion>/prefs.json`
-- Windows: `%LOCALAPPDATA%\protonmail\bridge\<cacheVersion>\prefs.json`
+- Linux: `~/.config/protonmail/bridge/prefs.json`
+- macOS: `~/Library/ApplicationSupport/protonmail/bridge/prefs.json`
+- Windows: `%APPDATA%\protonmail\bridge\prefs.json`
 
 ### IMAP Cache
 The currently subscribed mailboxes are held in a json file:

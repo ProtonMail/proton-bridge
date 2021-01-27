@@ -71,7 +71,6 @@
         <file alias="OutgoingNoEncPopup.qml" >./qml/BridgeUI/OutgoingNoEncPopup.qml</file>
         <file alias="SettingsView.qml"       >./qml/BridgeUI/SettingsView.qml</file>
         <file alias="StatusFooter.qml"       >./qml/BridgeUI/StatusFooter.qml</file>
-        <file alias="VersionInfo.qml"        >./qml/BridgeUI/VersionInfo.qml</file>
     </qresource>
     <qresource prefix="ImportExportUI">
         <file alias="qmldir"                   >./qml/ImportExportUI/qmldir</file>
@@ -104,7 +103,6 @@
         <file alias="SelectFolderMenu.qml"     >./qml/ImportExportUI/SelectFolderMenu.qml</file>
         <file alias="SelectLabelsMenu.qml"     >./qml/ImportExportUI/SelectLabelsMenu.qml</file>
         <file alias="SettingsView.qml"         >./qml/ImportExportUI/SettingsView.qml</file>
-        <file alias="VersionInfo.qml"          >./qml/ImportExportUI/VersionInfo.qml</file>
         <file alias="images/folder_open.png"   >./share/icons/folder_open.png</file>
         <file alias="images/envelope_open.png" >./share/icons/envelope_open.png</file>
     </qresource>

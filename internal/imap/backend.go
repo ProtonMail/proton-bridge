@@ -37,7 +37,7 @@ type panicHandler interface {
 type imapBackend struct {
 	panicHandler  panicHandler
 	bridge        bridger
-	updates       chan goIMAPBackend.Update
+	updates       *imapUpdates
 	eventListener listener.Listener
 
 	users       map[string]*imapUser
@@ -46,20 +46,17 @@ type imapBackend struct {
 	imapCache     map[string]map[string]string
 	imapCachePath string
 	imapCacheLock *sync.RWMutex
-
-	updatesBlocking       map[string]bool
-	updatesBlockingLocker sync.Locker
 }
 
 // NewIMAPBackend returns struct implementing go-imap/backend interface.
 func NewIMAPBackend(
 	panicHandler panicHandler,
 	eventListener listener.Listener,
-	cfg configProvider,
+	cache cacheProvider,
 	bridge *bridge.Bridge,
 ) *imapBackend { //nolint[golint]
 	bridgeWrap := newBridgeWrap(bridge)
-	backend := newIMAPBackend(panicHandler, cfg, bridgeWrap, eventListener)
+	backend := newIMAPBackend(panicHandler, cache, bridgeWrap, eventListener)
 
 	go backend.monitorDisconnectedUsers()
 
@@ -68,24 +65,21 @@ func NewIMAPBackend(
 
 func newIMAPBackend(
 	panicHandler panicHandler,
-	cfg configProvider,
+	cache cacheProvider,
 	bridge bridger,
 	eventListener listener.Listener,
 ) *imapBackend {
 	return &imapBackend{
 		panicHandler:  panicHandler,
 		bridge:        bridge,
-		updates:       make(chan goIMAPBackend.Update),
+		updates:       newIMAPUpdates(),
 		eventListener: eventListener,
 
 		users:       map[string]*imapUser{},
 		usersLocker: &sync.Mutex{},
 
-		imapCachePath: cfg.GetIMAPCachePath(),
+		imapCachePath: cache.GetIMAPCachePath(),
 		imapCacheLock: &sync.RWMutex{},
-
-		updatesBlocking:       map[string]bool{},
-		updatesBlockingLocker: &sync.Mutex{},
 	}
 }
 
@@ -172,7 +166,7 @@ func (ib *imapBackend) Login(_ *imap.ConnInfo, username, password string) (goIMA
 	// so that it doesn't make bridge slow for users who are only using bridge for SMTP
 	// (otherwise the store will be locked for 1 sec per email during synchronization).
 	if store := imapUser.user.GetStore(); store != nil {
-		store.SetChangeNotifier(ib)
+		store.SetChangeNotifier(ib.updates)
 	}
 
 	return imapUser, nil
@@ -183,7 +177,7 @@ func (ib *imapBackend) Updates() <-chan goIMAPBackend.Update {
 	// Called from go-imap in goroutines - we need to handle panics for each function.
 	defer ib.panicHandler.HandlePanic()
 
-	return ib.updates
+	return ib.updates.ch
 }
 
 func (ib *imapBackend) CreateMessageLimit() *uint32 {

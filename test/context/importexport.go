@@ -31,18 +31,19 @@ func (ctx *TestContext) GetImportExport() *importexport.ImportExport {
 // withImportExportInstance creates a import-export instance for use in the test.
 // TestContext has this by default once called with env variable TEST_APP=ie.
 func (ctx *TestContext) withImportExportInstance() {
-	ctx.importExport = newImportExportInstance(ctx.t, ctx.cfg, ctx.credStore, ctx.listener, ctx.clientManager)
+	ctx.importExport = newImportExportInstance(ctx.t, ctx.locations, ctx.cache, ctx.credStore, ctx.listener, ctx.clientManager)
 	ctx.users = ctx.importExport.Users
 }
 
 // newImportExportInstance creates a new import-export instance configured to use the given config/credstore.
 func newImportExportInstance(
 	t *bddT,
-	cfg importexport.Configer,
+	locations importexport.Locator,
+	cache importexport.Cacher,
 	credStore users.CredentialsStorer,
 	eventListener listener.Listener,
 	clientManager users.ClientManager,
 ) *importexport.ImportExport {
 	panicHandler := &panicHandler{t: t}
-	return importexport.New(cfg, panicHandler, eventListener, clientManager, credStore)
+	return importexport.New(locations, cache, panicHandler, eventListener, clientManager, credStore)
 }

@@ -24,9 +24,8 @@ import (
 	"io/ioutil"
 	"sync"
 
-	pkgMessage "github.com/ProtonMail/proton-bridge/pkg/message"
+	pkgMsg "github.com/ProtonMail/proton-bridge/pkg/message"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
-	"github.com/ProtonMail/proton-bridge/pkg/sentry"
 	"github.com/pkg/errors"
 )
 
@@ -247,23 +246,7 @@ func (p *PMAPIProvider) generateImportMsgReq(rules transferRules, progress *Prog
 func (p *PMAPIProvider) parseMessage(msg Message) (m *pmapi.Message, r []io.Reader, err error) {
 	p.timeIt.start("parse", msg.ID)
 	defer p.timeIt.stop("parse", msg.ID)
-
-	// Old message parser is panicking in some cases.
-	// Instead of crashing we try to convert to regular error.
-	defer func() {
-		if r := recover(); r != nil {
-			err = fmt.Errorf("panic while parse: %v", r)
-			if sentryErr := sentry.ReportSentryCrash(
-				p.clientConfig.ClientID,
-				p.clientConfig.AppVersion,
-				p.clientConfig.UserAgent,
-				err,
-			); sentryErr != nil {
-				log.Error("Sentry crash report failed: ", sentryErr)
-			}
-		}
-	}()
-	message, _, _, attachmentReaders, err := pkgMessage.Parse(bytes.NewBuffer(msg.Body))
+	message, _, _, attachmentReaders, err := pkgMsg.Parse(bytes.NewBuffer(msg.Body))
 	return message, attachmentReaders, err
 }
 
@@ -271,7 +254,7 @@ func (p *PMAPIProvider) encryptMessage(msg *pmapi.Message, attachmentReaders []i
 	if msg.MIMEType == pmapi.ContentTypeMultipartEncrypted {
 		return []byte(msg.Body), nil
 	}
-	return pkgMessage.BuildEncrypted(msg, attachmentReaders, p.keyRing)
+	return pkgMsg.BuildEncrypted(msg, attachmentReaders, p.keyRing)
 }
 
 func computeMessageFlags(labels []string) (flag int64) {

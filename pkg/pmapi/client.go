@@ -43,9 +43,7 @@ const Version = 3
 
 // API return codes.
 const (
-	ForceUpgradeBadAPIVersion = 5003
-	ForceUpgradeInvalidAPI    = 5004
-	ForceUpgradeBadAppVersion = 5005
+	ForceUpgradeBadAppVersion = 5003
 	APIOffline                = 7001
 	ImportMessageTooLong      = 36022
 	BansRequests              = 85131
@@ -102,6 +100,10 @@ type ClientConfig struct {
 	// MinBytesPerSecond specifies minimum Bytes per second or the request will be canceled.
 	// Zero means no limitation.
 	MinBytesPerSecond int64
+
+	ConnectionOnHandler       func()
+	ConnectionOffHandler      func()
+	UpgradeApplicationHandler func()
 }
 
 // client is a client of the protonmail API. It implements the Client interface.
@@ -262,6 +264,7 @@ func (c *client) doBuffered(req *http.Request, bodyBuffer []byte, retryUnauthori
 		if res == nil {
 			c.log.WithError(err).Error("Cannot get response")
 			err = ErrAPINotReachable
+			c.cm.noConnection()
 		}
 		return
 	}
@@ -401,6 +404,12 @@ func (c *client) doJSONBuffered(req *http.Request, reqBodyBuffer []byte, data in
 				req.Body = ioutil.NopCloser(bytes.NewReader(reqBodyBuffer))
 			}
 			return c.doJSONBuffered(req, reqBodyBuffer, data)
+		}
+		if errCode.Err() == ErrAPINotReachable {
+			c.cm.noConnection()
+		}
+		if errCode.Err() == ErrUpgradeApplication {
+			c.cm.config.UpgradeApplicationHandler()
 		}
 	}
 

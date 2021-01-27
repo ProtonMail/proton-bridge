@@ -74,9 +74,7 @@ Item {
                 rightIcon.text : Style.fa.chevron_circle_right
                 rightIcon.font.pointSize : Style.settings.toggleSize * Style.pt
                 onClicked: {
-                    dialogGlobal.state="checkUpdates"
-                    dialogGlobal.show()
-                    dialogGlobal.confirmed()
+                    go.checkForUpdates()
                 }
             }
 
@@ -137,10 +135,7 @@ Item {
                     textColor     : Style.main.textDisabled
                     fontSize      : Style.main.fontSize
                     textUnderline : true
-                    onClicked     : {
-                        go.getLocalVersionInfo()
-                        winMain.dialogVersionInfo.show()
-                    }
+                    onClicked : gui.openReleaseNotes()
                 }
             }
         }

@@ -188,10 +188,23 @@ func (im *imapMailbox) Expunge() error {
 	// the desired mailbox.
 	im.user.waitForAppend()
 
-	im.user.backend.setUpdatesBeBlocking(im.user.currentAddressLowercase, im.name, operationDeleteMessage)
-	defer im.user.backend.unsetUpdatesBeBlocking(im.user.currentAddressLowercase, im.name, operationDeleteMessage)
+	im.user.backend.updates.block(im.user.currentAddressLowercase, im.name, operationDeleteMessage)
+	defer im.user.backend.updates.unblock(im.user.currentAddressLowercase, im.name, operationDeleteMessage)
 
-	return im.storeMailbox.RemoveDeleted()
+	return im.storeMailbox.RemoveDeleted(nil)
+}
+
+// UIDExpunge permanently removes messages that have the \Deleted flag set
+// and UID passed from SeqSet from the currently selected mailbox.
+func (im *imapMailbox) UIDExpunge(seqSet *imap.SeqSet) error {
+	im.user.backend.updates.block(im.user.currentAddressLowercase, im.name, operationDeleteMessage)
+	defer im.user.backend.updates.unblock(im.user.currentAddressLowercase, im.name, operationDeleteMessage)
+
+	messageIDs, err := im.apiIDsFromSeqSet(true, seqSet)
+	if err != nil || len(messageIDs) == 0 {
+		return err
+	}
+	return im.storeMailbox.RemoveDeleted(messageIDs)
 }
 
 func (im *imapMailbox) ListQuotas() ([]string, error) {

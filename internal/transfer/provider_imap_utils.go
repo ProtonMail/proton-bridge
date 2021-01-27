@@ -24,7 +24,7 @@ import (
 	"time"
 
 	imapID "github.com/ProtonMail/go-imap-id"
-	"github.com/ProtonMail/proton-bridge/pkg/constants"
+	"github.com/ProtonMail/proton-bridge/internal/constants"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	"github.com/emersion/go-imap"
 	imapClient "github.com/emersion/go-imap/client"

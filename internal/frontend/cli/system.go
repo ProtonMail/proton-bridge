@@ -22,7 +22,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/ProtonMail/proton-bridge/internal/preferences"
+	"github.com/ProtonMail/proton-bridge/internal/config/settings"
 	"github.com/ProtonMail/proton-bridge/pkg/ports"
 	"github.com/abiosoft/ishell"
 )
@@ -34,7 +34,7 @@ var (
 func (f *frontendCLI) restart(c *ishell.Context) {
 	if f.yesNoQuestion("Are you sure you want to restart the Bridge") {
 		f.Println("Restarting Bridge...")
-		f.appRestart = true
+		f.restarter.SetToRestart()
 		f.Stop()
 	}
 }
@@ -48,7 +48,11 @@ func (f *frontendCLI) checkInternetConnection(c *ishell.Context) {
 }
 
 func (f *frontendCLI) printLogDir(c *ishell.Context) {
-	f.Println("Log files are stored in\n\n ", f.config.GetLogDir())
+	if path, err := f.locations.ProvideLogsPath(); err != nil {
+		f.Println("Failed to determine location of log files")
+	} else {
+		f.Println("Log files are stored in\n\n ", path)
+	}
 }
 
 func (f *frontendCLI) printManual(c *ishell.Context) {
@@ -69,7 +73,7 @@ func (f *frontendCLI) deleteCache(c *ishell.Context) {
 	f.Println("Cached cleared, restarting bridge")
 	// Clearing data removes everything (db, preferences, ...)
 	// so everything has to be stopped and started again.
-	f.appRestart = true
+	f.restarter.SetToRestart()
 	f.Stop()
 }
 
@@ -77,7 +81,7 @@ func (f *frontendCLI) changeSMTPSecurity(c *ishell.Context) {
 	f.ShowPrompt(false)
 	defer f.ShowPrompt(true)
 
-	isSSL := f.preferences.GetBool(preferences.SMTPSSLKey)
+	isSSL := f.settings.GetBool(settings.SMTPSSLKey)
 	newSecurity := "SSL"
 	if isSSL {
 		newSecurity = "STARTTLS"
@@ -86,9 +90,9 @@ func (f *frontendCLI) changeSMTPSecurity(c *ishell.Context) {
 	msg := fmt.Sprintf("Are you sure you want to change SMTP setting to %q and restart the Bridge", newSecurity)
 
 	if f.yesNoQuestion(msg) {
-		f.preferences.SetBool(preferences.SMTPSSLKey, !isSSL)
+		f.settings.SetBool(settings.SMTPSSLKey, !isSSL)
 		f.Println("Restarting Bridge...")
-		f.appRestart = true
+		f.restarter.SetToRestart()
 		f.Stop()
 	}
 }
@@ -97,14 +101,14 @@ func (f *frontendCLI) changePort(c *ishell.Context) {
 	f.ShowPrompt(false)
 	defer f.ShowPrompt(true)
 
-	currentPort = f.preferences.Get(preferences.IMAPPortKey)
+	currentPort = f.settings.Get(settings.IMAPPortKey)
 	newIMAPPort := f.readStringInAttempts("Set IMAP port (current "+currentPort+")", c.ReadLine, f.isPortFree)
 	if newIMAPPort == "" {
 		newIMAPPort = currentPort
 	}
 	imapPortChanged := newIMAPPort != currentPort
 
-	currentPort = f.preferences.Get(preferences.SMTPPortKey)
+	currentPort = f.settings.Get(settings.SMTPPortKey)
 	newSMTPPort := f.readStringInAttempts("Set SMTP port (current "+currentPort+")", c.ReadLine, f.isPortFree)
 	if newSMTPPort == "" {
 		newSMTPPort = currentPort
@@ -118,10 +122,10 @@ func (f *frontendCLI) changePort(c *ishell.Context) {
 
 	if imapPortChanged || smtpPortChanged {
 		f.Println("Saving values IMAP:", newIMAPPort, "SMTP:", newSMTPPort)
-		f.preferences.Set(preferences.IMAPPortKey, newIMAPPort)
-		f.preferences.Set(preferences.SMTPPortKey, newSMTPPort)
+		f.settings.Set(settings.IMAPPortKey, newIMAPPort)
+		f.settings.Set(settings.SMTPPortKey, newSMTPPort)
 		f.Println("Restarting Bridge...")
-		f.appRestart = true
+		f.restarter.SetToRestart()
 		f.Stop()
 	} else {
 		f.Println("Nothing changed")
@@ -129,16 +133,16 @@ func (f *frontendCLI) changePort(c *ishell.Context) {
 }
 
 func (f *frontendCLI) toggleAllowProxy(c *ishell.Context) {
-	if f.preferences.GetBool(preferences.AllowProxyKey) {
+	if f.settings.GetBool(settings.AllowProxyKey) {
 		f.Println("Bridge is currently set to use alternative routing to connect to Proton if it is being blocked.")
 		if f.yesNoQuestion("Are you sure you want to stop bridge from doing this") {
-			f.preferences.SetBool(preferences.AllowProxyKey, false)
+			f.settings.SetBool(settings.AllowProxyKey, false)
 			f.bridge.DisallowProxy()
 		}
 	} else {
 		f.Println("Bridge is currently set to NOT use alternative routing to connect to Proton if it is being blocked.")
 		if f.yesNoQuestion("Are you sure you want to allow bridge to do this") {
-			f.preferences.SetBool(preferences.AllowProxyKey, true)
+			f.settings.SetBool(settings.AllowProxyKey, true)
 			f.bridge.AllowProxy()
 		}
 	}

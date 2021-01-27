@@ -24,9 +24,12 @@ import (
 )
 
 type Configer interface {
-	ClearData() error
-	GetVersion() string
+	GetAppVersion() string
 	GetAPIConfig() *pmapi.ClientConfig
+}
+
+type Locator interface {
+	Clear() error
 }
 
 type PanicHandler interface {

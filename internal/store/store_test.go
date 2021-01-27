@@ -103,16 +103,20 @@ func (mocks *mocksForStore) newStoreNoEvents(combinedMode bool, msgs ...*pmapi.M
 		{ID: addrID1, Email: addr1, Type: pmapi.OriginalAddress, Receive: pmapi.CanReceive},
 		{ID: addrID2, Email: addr2, Type: pmapi.AliasAddress, Receive: pmapi.CanReceive},
 	})
-	mocks.client.EXPECT().ListLabels()
+	mocks.client.EXPECT().ListLabels().AnyTimes()
 	mocks.client.EXPECT().CountMessages("")
 
 	// Call to get latest event ID and then to process first event.
+	eventAfterSyncRequested := make(chan struct{})
 	mocks.client.EXPECT().GetEvent("").Return(&pmapi.Event{
 		EventID: "firstEventID",
 	}, nil)
-	mocks.client.EXPECT().GetEvent("firstEventID").Return(&pmapi.Event{
-		EventID: "latestEventID",
-	}, nil)
+	mocks.client.EXPECT().GetEvent("firstEventID").DoAndReturn(func(_ string) (*pmapi.Event, error) {
+		close(eventAfterSyncRequested)
+		return &pmapi.Event{
+			EventID: "latestEventID",
+		}, nil
+	})
 
 	mocks.client.EXPECT().ListMessages(gomock.Any()).Return(msgs, len(msgs), nil).AnyTimes()
 	for _, msg := range msgs {
@@ -131,6 +135,14 @@ func (mocks *mocksForStore) newStoreNoEvents(combinedMode bool, msgs ...*pmapi.M
 	require.NoError(mocks.tb, err)
 
 	// We want to wait until first sync has finished.
+	// Checking that event after sync was reuested is not the best way to
+	// do the check, because sync could take more time, but sync is going
+	// in background and if there is no message to wait for, we don't have
+	// anything better.
+	select {
+	case <-eventAfterSyncRequested:
+	case <-time.After(5 * time.Second):
+	}
 	require.Eventually(mocks.tb, func() bool {
 		for _, msg := range msgs {
 			_, err := mocks.store.getMessageFromDB(msg.ID)

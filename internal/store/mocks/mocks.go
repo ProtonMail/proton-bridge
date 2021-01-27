@@ -266,6 +266,21 @@ func (m *MockChangeNotifier) EXPECT() *MockChangeNotifierMockRecorder {
 	return m.recorder
 }
 
+// CanDelete mocks base method
+func (m *MockChangeNotifier) CanDelete(arg0 string) (bool, func()) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CanDelete", arg0)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(func())
+	return ret0, ret1
+}
+
+// CanDelete indicates an expected call of CanDelete
+func (mr *MockChangeNotifierMockRecorder) CanDelete(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CanDelete", reflect.TypeOf((*MockChangeNotifier)(nil).CanDelete), arg0)
+}
+
 // DeleteMessage mocks base method
 func (m *MockChangeNotifier) DeleteMessage(arg0, arg1 string, arg2 uint32) {
 	m.ctrl.T.Helper()

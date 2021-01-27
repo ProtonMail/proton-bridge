@@ -98,24 +98,29 @@ Window {
     ListModel {
         id: buttons
 
-        ListElement { title : "Show window"        }
-        ListElement { title : "Logout"      }
-        ListElement { title : "Internet on"        }
-        ListElement { title : "Internet off"       }
-        ListElement { title : "Macos"              }
-        ListElement { title : "Windows"            }
-        ListElement { title : "Linux"              }
-        ListElement { title : "New Version"        }
-        ListElement { title : "ForceUpgrade"       }
-        ListElement { title : "ImportStructure"    }
-        ListElement { title : "DraftImpFailed"     }
-        ListElement { title : "NoInterImp"         }
-        ListElement { title : "ReportImp"          }
-        ListElement { title : "NewFolder"          }
-        ListElement { title : "EditFolder"         }
-        ListElement { title : "EditLabel"          }
-        ListElement { title : "ExpProgErr"         }
-        ListElement { title : "ImpProgErr"         }
+        ListElement { title : "Show window"         }
+        ListElement { title : "Logout"              }
+        ListElement { title : "Internet on"         }
+        ListElement { title : "Internet off"        }
+        ListElement { title : "Macos"               }
+        ListElement { title : "Windows"             }
+        ListElement { title : "Linux"               }
+        ListElement { title: "NotifyManualUpdate(CanInstall)" }
+        ListElement { title: "NotifyManualUpdate(CantInstall)" }
+        ListElement { title: "NotifyManualUpdateRestart" }
+        ListElement { title: "NotifyManualUpdateError" }
+        ListElement { title: "ForceUpdate" }
+        ListElement { title: "NotifySilentUpdateRestartNeeded" }
+        ListElement { title: "NotifySilentUpdateError" }
+        ListElement { title : "ImportStructure"     }
+        ListElement { title : "DraftImpFailed"      }
+        ListElement { title : "NoInterImp"          }
+        ListElement { title : "ReportImp"           }
+        ListElement { title : "NewFolder"           }
+        ListElement { title : "EditFolder"          }
+        ListElement { title : "EditLabel"           }
+        ListElement { title : "ExpProgErr"          }
+        ListElement { title : "ImpProgErr"          }
     }
 
     ListView {
@@ -161,12 +166,28 @@ Window {
                     case "Linux" :
                     go.goos = "linux";
                     break;
-                    case "New Version" :
-                    testroot.newVersion = !testroot.newVersion
-                    systrText.text = testroot.newVersion ? "new version" : "uptodate"
-                    break
-                    case "ForceUpgrade" :
-                    go.notifyUpgrade()
+                    case "NotifyManualUpdate(CanInstall)" :
+                    go.notifyManualUpdate()
+                    go.updateCanInstall = true
+                    break;
+                    case "NotifyManualUpdate(CantInstall)" :
+                    go.notifyManualUpdate()
+                    go.updateCanInstall = false
+                    break;
+                    case "NotifyManualUpdateRestart":
+                    go.notifyManualUpdateRestartNeeded()
+                    break;
+                    case "NotifyManualUpdateError":
+                    go.notifyManualUpdateError()
+                    break;
+                    case "ForceUpdate" :
+                    go.notifyForceUpdate()
+                    break;
+                    case "NotifySilentUpdateRestartNeeded" :
+                    go.notifySilentUpdateRestartNeeded()
+                    break;
+                    case "NotifySilentUpdateError" :
+                    go.notifySilentUpdateError()
                     break;
                     case "ImportStructure" :
                     testgui.winMain.dialogImport.address = "cuto@pm.com"
@@ -815,6 +836,7 @@ Window {
         id: go
 
         property int isAutoStart : 1
+        property bool isAutoUpdate : false
         property bool isFirstStart : false
         property string currentAddress : "none"
         //property string goos : "windows"
@@ -831,12 +853,30 @@ Window {
         property string bugReportSent
 
         property string programTitle : "ProtonMail Import-Export app"
-        property string newversion : "q0.1.0"
-        property string landingPage : "https://landing.page"
-        property string changelog  : "• Lorem ipsum dolor sit amet\n• consetetur sadipscing elitr,\n• sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat,\n• sed diam voluptua.\n• At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet."
-        //property string changelog  : ""
-        property string bugfixes   : "• lorem ipsum dolor sit amet;• consetetur sadipscing elitr;• sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat;• sed diam voluptua;• at vero eos et accusam et justo duo dolores et ea rebum;• stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet"
-        //property string bugfixes   : ""
+        property string fullversion : "QA.1.0 (d9f8sdf9) 2020-02-19T10:57:23+01:00"
+        property string downloadLink: "https://protonmail.com/download/beta/protonmail-bridge-1.1.5-1.x86_64.rpm;https://www.protonmail.com/downloads/beta/Desktop-Bridge-link1.exe;https://www.protonmail.com/downloads/beta/Desktop-Bridge-link1.exe;https://www.protonmail.com/downloads/beta/Desktop-Bridge-link1.exe;"
+
+        property string updateVersion : "q0.1.0"
+        property bool updateCanInstall: true
+        property string updateLandingPage : "https://protonmail.com/import-export/download/"
+        property string updateReleaseNotesLink  : "https://protonmail.com/download/ie/release_notes.html"
+        signal notifyManualUpdate()
+        signal notifyManualUpdateRestartNeeded()
+        signal notifyManualUpdateError()
+        signal notifyForceUpdate()
+        signal notifySilentUpdateRestartNeeded()
+        signal notifySilentUpdateError()
+        function checkForUpdates() {
+            console.log("checkForUpdates")
+        }
+        function startManualUpdate() {
+            console.log("startManualUpdate")
+        }
+        function checkAndOpenReleaseNotes() {
+            console.log("check for release notes")
+            go.updateReleaseNotesLink = "https://protonmail.com/download/import-export/release_notes.html"
+            go.openReleaseNotesExternally()
+        }
 
         property real progress: 0.0
         property int progressFails: 0
@@ -849,13 +889,10 @@ Window {
 
         signal toggleMainWin(int systX, int systY, int systW, int systH)
 
-
-
         signal notifyHasNoKeychain()
         signal notifyKeychainRebuild()
         signal notifyAddressChangedLogout()
         signal notifyAddressChanged()
-        signal notifyUpdate()
 
         signal showWindow()
         signal showHelp()
@@ -874,16 +911,22 @@ Window {
 
         signal processFinished()
         signal toggleAutoStart()
+        signal toggleAutoUpdate()
         signal notifyBubble(int tabIndex, string message)
-        signal runCheckVersion(bool showMessage)
         signal setAddAccountWarning(string message)
-        signal notifyUpgrade()
+        signal notifyUpdate()
         signal updateFinished(bool hasError)
+
+        signal openReleaseNotesExternally()
 
         signal notifyLogout(string accname)
 
         signal notifyError(int errCode)
         property string errorDescription : ""
+
+        function setToRestart() {
+            console.log("setting to restart")
+        }
 
         function delay(duration) {
             var timeStart = new Date().getTime();
@@ -958,7 +1001,7 @@ Window {
             workAndClose("addAccount")
         }
 
-        property SequentialAnimation animateProgressBarUpgrade : SequentialAnimation {
+        property SequentialAnimation animateProgressBarUpdate : SequentialAnimation {
             // version
             PropertyAnimation{ target: go; properties: "progressDescription"; to: 1; duration: 1; }
             PropertyAnimation{ duration: 2000; }
@@ -1069,7 +1112,6 @@ Window {
             onTriggered : {
                 console.log("triggered "+timer.work)
                 switch (timer.work) {
-                    case "isNewVersionAvailable" :
                     case "clearCache" :
                     case "clearKeychain" :
                     case "logout" :
@@ -1096,8 +1138,8 @@ Window {
                     go.animateProgressBar.start()
                     break;
 
-                    case "startUpgrade":
-                    go.animateProgressBarUpgrade.start()
+                    case "startManualUpdate":
+                    go.animateProgressBarUpdate.start()
                     go.updateFinished(true)
 
                     default:
@@ -1108,17 +1150,9 @@ Window {
 
         function workAndClose(workDescription) {
             go.progress=0.0
-            timer.work = workDescription
+            timer.work = workDescription === undefined ? "" : workDescription
             timer.start()
         }
-
-        function startUpgrade() {
-            timer.work="startUpgrade"
-            timer.start()
-        }
-
-
-
 
         function checkPathStatus(path) {
             if ( path == ""                     ) return testgui.enums.pathEmptyPath
@@ -1221,20 +1255,6 @@ Window {
             workAndClose("switchAddressMode")
         }
 
-        function isNewVersionAvailable(showMessage){
-            if (testroot.newVersion)  {
-                setUpdateState("oldVersion")
-            } else {
-                setUpdateState("upToDate")
-                if(showMessage) {
-                    notifyVersionIsTheLatest()
-                }
-            }
-            workAndClose("isNewVersionAvailable")
-            //notifyBubble(2,go.versionCheckFailed)
-            return 0
-        }
-
         function getLocalVersionInfo(){}
 
         function getBackendVersion() {
@@ -1330,6 +1350,12 @@ Window {
         function sendImportReport(address, fname) {
             console.log("sending import report from ", address, " file ", fname)
             return !fname.includes("fail")
+        }
+
+        onToggleAutoUpdate: {
+            workAndClose()
+            isAutoUpdate = (isAutoUpdate!=false) ? false : true
+            console.log (" Test: onToggleAutoUpdate "+isAutoUpdate)
         }
     }
 }

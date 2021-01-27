@@ -46,8 +46,8 @@ func (im *imapMailbox) UpdateMessagesFlags(uid bool, seqSet *imap.SeqSet, operat
 	// Called from go-imap in goroutines - we need to handle panics for each function.
 	defer im.panicHandler.HandlePanic()
 
-	im.user.backend.setUpdatesBeBlocking(im.user.currentAddressLowercase, im.name, operationUpdateMessage)
-	defer im.user.backend.unsetUpdatesBeBlocking(im.user.currentAddressLowercase, im.name, operationUpdateMessage)
+	im.user.backend.updates.block(im.user.currentAddressLowercase, im.name, operationUpdateMessage)
+	defer im.user.backend.updates.unblock(im.user.currentAddressLowercase, im.name, operationUpdateMessage)
 
 	messageIDs, err := im.apiIDsFromSeqSet(uid, seqSet)
 	if err != nil || len(messageIDs) == 0 {
@@ -277,7 +277,7 @@ func (im *imapMailbox) SearchMessages(isUID bool, criteria *imap.SearchCriteria)
 	}
 
 	if criteria.Body != nil || criteria.Text != nil {
-		log.Warn("Body and Text criteria not applied.")
+		log.Warn("Body and Text criteria not applied")
 	}
 
 	var apiIDs []string
@@ -451,11 +451,13 @@ func (im *imapMailbox) ListMessages(isUID bool, seqSet *imap.SeqSet, items []ima
 		im.panicHandler.HandlePanic()
 	}()
 
-	// EXPUNGE cannot be sent during listing and can come only from
-	// the event loop, so we prevent any server side update to avoid
-	// the problem.
-	im.storeUser.PauseEventLoop(true)
-	defer im.storeUser.PauseEventLoop(false)
+	if !isUID {
+		// EXPUNGE cannot be sent during listing and can come only from
+		// the event loop, so we prevent any server side update to avoid
+		// the problem.
+		im.user.backend.updates.forbidExpunge(im.storeMailbox.LabelID())
+		defer im.user.backend.updates.allowExpunge(im.storeMailbox.LabelID())
+	}
 
 	var markAsReadIDs []string
 	markAsReadMutex := &sync.Mutex{}

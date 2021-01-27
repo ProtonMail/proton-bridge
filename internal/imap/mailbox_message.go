@@ -166,6 +166,13 @@ func (im *imapMailbox) CreateMessage(flags []string, date time.Time, body imap.L
 		if err == nil && (im.user.user.IsCombinedAddressMode() || (im.storeAddress.AddressID() == msg.Message().AddressID)) {
 			IDs := []string{internalID}
 
+			// See the comment bellow.
+			if msg.IsMarkedDeleted() {
+				if err := im.storeMailbox.MarkMessagesUndeleted(IDs); err != nil {
+					log.WithError(err).Error("Failed to undelete re-imported internal message")
+				}
+			}
+
 			err = im.storeMailbox.LabelMessages(IDs)
 			if err != nil {
 				return err
@@ -180,6 +187,20 @@ func (im *imapMailbox) CreateMessage(flags []string, date time.Time, body imap.L
 	if err := im.importMessage(m, readers, kr); err != nil {
 		im.log.Error("Import failed: ", err)
 		return err
+	}
+
+	// IMAP clients can move message to local folder (setting \Deleted flag)
+	// and then move it back (IMAP client does not remember the message,
+	// so instead removing the flag it imports duplicate message).
+	// Regular IMAP server would keep the message twice and later EXPUNGE would
+	// not delete the message (EXPUNGE would delete the original message and
+	// the new duplicate one would stay). API detects duplicates; therefore
+	// we need to remove \Deleted flag if IMAP client re-imports.
+	msg, err := im.storeMailbox.GetMessage(m.ID)
+	if err == nil && msg.IsMarkedDeleted() {
+		if err := im.storeMailbox.MarkMessagesUndeleted([]string{m.ID}); err != nil {
+			log.WithError(err).Error("Failed to undelete re-imported message")
+		}
 	}
 
 	targetSeq := im.storeMailbox.GetUIDList([]string{m.ID})
@@ -219,7 +240,8 @@ func (im *imapMailbox) getMessage(storeMessage storeMessageProvider, items []ima
 			msg.Envelope = message.GetEnvelope(m)
 		case imap.FetchBody, imap.FetchBodyStructure:
 			var structure *message.BodyStructure
-			if structure, _, err = im.getBodyStructure(storeMessage); err != nil {
+			structure, err = im.getBodyStructure(storeMessage)
+			if err != nil {
 				return
 			}
 			if msg.BodyStructure, err = structure.IMAPBodyStructure([]int{}); err != nil {
@@ -242,7 +264,8 @@ func (im *imapMailbox) getMessage(storeMessage storeMessageProvider, items []ima
 			// Size attribute on the server counts encrypted data. The value is cleared
 			// on our part and we need to compute "real" size of decrypted data.
 			if m.Size <= 0 {
-				if _, _, err = im.getBodyStructure(storeMessage); err != nil {
+				im.log.WithField("msgID", storeMessage.ID()).Trace("Size unknown - downloading body")
+				if _, _, err = im.getBodyAndStructure(storeMessage); err != nil {
 					return
 				}
 			}
@@ -277,7 +300,24 @@ func (im *imapMailbox) getLiteralForSection(itemSection imap.FetchItem, msg *ima
 	return nil
 }
 
-func (im *imapMailbox) getBodyStructure(storeMessage storeMessageProvider) (
+func (im *imapMailbox) getBodyStructure(storeMessage storeMessageProvider) (bs *message.BodyStructure, err error) {
+	// Apple Mail requests body structure for all
+	// messages irregularly. We cache bodystructure in
+	// local database in order to not re-download all
+	// messages from server.
+	bs, err = storeMessage.GetBodyStructure()
+	if err != nil {
+		im.log.WithError(err).Debug("Fail to retrieve bodystructure from database")
+	}
+	if bs == nil {
+		if bs, _, err = im.getBodyAndStructure(storeMessage); err != nil {
+			return
+		}
+	}
+	return
+}
+
+func (im *imapMailbox) getBodyAndStructure(storeMessage storeMessageProvider) (
 	structure *message.BodyStructure,
 	bodyReader *bytes.Reader, err error,
 ) {
@@ -287,14 +327,23 @@ func (im *imapMailbox) getBodyStructure(storeMessage storeMessageProvider) (
 	if bodyReader, structure = cache.LoadMail(id); bodyReader.Len() == 0 || structure == nil {
 		var body []byte
 		structure, body, err = im.buildMessage(m)
-		if err == nil && structure != nil && len(body) > 0 {
-			m.Size = int64(len(body))
-			if err := storeMessage.SetSize(m.Size); err != nil {
+		m.Size = int64(len(body))
+		// Save size and body structure even for messages unable to decrypt
+		// so the size or body structure doesn't have to be computed every time.
+		if err := storeMessage.SetSize(m.Size); err != nil {
+			im.log.WithError(err).
+				WithField("newSize", m.Size).
+				WithField("msgID", m.ID).
+				Warn("Cannot update size while building")
+		}
+		if structure != nil && !isMessageInDraftFolder(m) {
+			if err := storeMessage.SetBodyStructure(structure); err != nil {
 				im.log.WithError(err).
-					WithField("newSize", m.Size).
 					WithField("msgID", m.ID).
-					Warn("Cannot update size while building")
+					Warn("Cannot update bodystructure while building")
 			}
+		}
+		if err == nil && structure != nil && len(body) > 0 {
 			if err := storeMessage.SetContentTypeAndHeader(m.MIMEType, m.Header); err != nil {
 				im.log.WithError(err).
 					WithField("msgID", m.ID).
@@ -358,7 +407,7 @@ func (im *imapMailbox) getMessageBodySection(storeMessage storeMessageProvider, 
 		}
 	} else {
 		// The rest of cases need download and decrypt.
-		structure, bodyReader, err = im.getBodyStructure(storeMessage)
+		structure, bodyReader, err = im.getBodyAndStructure(storeMessage)
 		if err != nil {
 			return
 		}

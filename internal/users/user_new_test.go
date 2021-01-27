@@ -23,7 +23,6 @@ import (
 
 	"github.com/ProtonMail/proton-bridge/internal/events"
 	"github.com/ProtonMail/proton-bridge/internal/users/credentials"
-	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	gomock "github.com/golang/mock/gomock"
 	a "github.com/stretchr/testify/assert"
 )
@@ -36,44 +35,6 @@ func TestNewUserNoCredentialsStore(t *testing.T) {
 
 	_, err := newUser(m.PanicHandler, "user", m.eventListener, m.credentialsStore, m.clientManager, m.storeMaker)
 	a.Error(t, err)
-}
-
-func TestNewUserAppOutdated(t *testing.T) {
-	m := initMocks(t)
-	defer m.ctrl.Finish()
-
-	m.clientManager.EXPECT().GetClient("user").Return(m.pmapiClient).MinTimes(1)
-
-	gomock.InOrder(
-		m.credentialsStore.EXPECT().Get("user").Return(testCredentials, nil),
-		m.credentialsStore.EXPECT().Get("user").Return(testCredentials, nil),
-		m.pmapiClient.EXPECT().AuthRefresh("token").Return(nil, pmapi.ErrUpgradeApplication),
-		m.eventListener.EXPECT().Emit(events.UpgradeApplicationEvent, ""),
-		m.pmapiClient.EXPECT().ListLabels().Return(nil, pmapi.ErrUpgradeApplication),
-		m.pmapiClient.EXPECT().Addresses().Return(nil),
-	)
-
-	checkNewUserHasCredentials(testCredentials, m)
-}
-
-func TestNewUserNoInternetConnection(t *testing.T) {
-	m := initMocks(t)
-	defer m.ctrl.Finish()
-
-	m.clientManager.EXPECT().GetClient("user").Return(m.pmapiClient).MinTimes(1)
-
-	gomock.InOrder(
-		m.credentialsStore.EXPECT().Get("user").Return(testCredentials, nil),
-		m.credentialsStore.EXPECT().Get("user").Return(testCredentials, nil),
-		m.pmapiClient.EXPECT().AuthRefresh("token").Return(nil, pmapi.ErrAPINotReachable),
-		m.eventListener.EXPECT().Emit(events.InternetOffEvent, ""),
-
-		m.pmapiClient.EXPECT().ListLabels().Return(nil, pmapi.ErrAPINotReachable),
-		m.pmapiClient.EXPECT().Addresses().Return(nil),
-		m.pmapiClient.EXPECT().GetEvent("").Return(nil, pmapi.ErrAPINotReachable).AnyTimes(),
-	)
-
-	checkNewUserHasCredentials(testCredentials, m)
 }
 
 func TestNewUserAuthRefreshFails(t *testing.T) {

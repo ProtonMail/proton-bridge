@@ -51,6 +51,8 @@ var (
 	// Database structure:
 	// * metadata
 	//   * {messageID} -> message data (subject, from, to, time, headers, body size, ...)
+	// * bodystructure
+	//   * {messageID} -> message body structure
 	// * counts
 	//   * {mailboxID} -> mailboxCounts: totalOnAPI, unreadOnAPI, labelName, labelColor, labelIsExclusive
 	// * address_info
@@ -71,16 +73,17 @@ var (
 	//       * {messageID} -> uint32 imapUID
 	//     * deleted_ids (can be missing or have no keys)
 	//       * {messageID} -> true
-	metadataBucket    = []byte("metadata")          //nolint[gochecknoglobals]
-	countsBucket      = []byte("counts")            //nolint[gochecknoglobals]
-	addressInfoBucket = []byte("address_info")      //nolint[gochecknoglobals]
-	addressModeBucket = []byte("address_mode")      //nolint[gochecknoglobals]
-	syncStateBucket   = []byte("sync_state")        //nolint[gochecknoglobals]
-	mailboxesBucket   = []byte("mailboxes")         //nolint[gochecknoglobals]
-	imapIDsBucket     = []byte("imap_ids")          //nolint[gochecknoglobals]
-	apiIDsBucket      = []byte("api_ids")           //nolint[gochecknoglobals]
-	deletedIDsBucket  = []byte("deleted_ids")       //nolint[gochecknoglobals]
-	mboxVersionBucket = []byte("mailboxes_version") //nolint[gochecknoglobals]
+	metadataBucket      = []byte("metadata")          //nolint[gochecknoglobals]
+	bodystructureBucket = []byte("bodystructure")     //nolint[gochecknoglobals]
+	countsBucket        = []byte("counts")            //nolint[gochecknoglobals]
+	addressInfoBucket   = []byte("address_info")      //nolint[gochecknoglobals]
+	addressModeBucket   = []byte("address_mode")      //nolint[gochecknoglobals]
+	syncStateBucket     = []byte("sync_state")        //nolint[gochecknoglobals]
+	mailboxesBucket     = []byte("mailboxes")         //nolint[gochecknoglobals]
+	imapIDsBucket       = []byte("imap_ids")          //nolint[gochecknoglobals]
+	apiIDsBucket        = []byte("api_ids")           //nolint[gochecknoglobals]
+	deletedIDsBucket    = []byte("deleted_ids")       //nolint[gochecknoglobals]
+	mboxVersionBucket   = []byte("mailboxes_version") //nolint[gochecknoglobals]
 
 	// ErrNoSuchAPIID when mailbox does not have API ID.
 	ErrNoSuchAPIID = errors.New("no such api id") //nolint[gochecknoglobals]
@@ -190,6 +193,10 @@ func openBoltDatabase(filePath string) (db *bolt.DB, err error) {
 
 	tx := func(tx *bolt.Tx) (err error) {
 		if _, err = tx.CreateBucketIfNotExists(metadataBucket); err != nil {
+			return
+		}
+
+		if _, err = tx.CreateBucketIfNotExists(bodystructureBucket); err != nil {
 			return
 		}
 
@@ -348,18 +355,6 @@ func (store *Store) addAddress(address, addressID string, labels []*pmapi.Label)
 	store.addresses[addressID] = addr
 
 	return
-}
-
-// PauseEventLoop sets whether the ticker is periodically polling or not.
-func (store *Store) PauseEventLoop(pause bool) {
-	store.lock.Lock()
-	defer store.lock.Unlock()
-
-	store.log.WithField("pause", pause).Info("Pausing event loop")
-
-	if store.eventLoop != nil {
-		store.eventLoop.isTickerPaused = pause
-	}
 }
 
 // Close stops the event loop and closes the database to free the file.

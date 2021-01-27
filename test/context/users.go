@@ -96,7 +96,7 @@ func (ctx *TestContext) GetStoreMailbox(username, addressID, mailboxName string)
 func (ctx *TestContext) GetDatabaseFilePath(userID string) string {
 	// We cannot use store to get information because we need to check db file also when user is deleted from bridge.
 	fileName := fmt.Sprintf("mailbox-%v.db", userID)
-	return filepath.Join(ctx.cfg.GetDBDir(), fileName)
+	return filepath.Join(ctx.cache.GetDBDir(), fileName)
 }
 
 // WaitForSync waits for sync to be done.

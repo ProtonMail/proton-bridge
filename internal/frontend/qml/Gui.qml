@@ -54,13 +54,15 @@ Item {
     onWarningFlagsChanged : {
         if (gui.warningFlags==Style.okInfoBar) {
             go.normalSystray()
-        } else {
-            if ((gui.warningFlags & Style.errorInfoBar) == Style.errorInfoBar) {
-                go.errorSystray()
-            } else {
-                go.highlightSystray()
-            }
+            return
         }
+
+        if ((gui.warningFlags & Style.errorInfoBar) == Style.errorInfoBar) {
+            go.errorSystray()
+            return
+        }
+
+        go.highlightSystray()
     }
 
     // Signals from Go
@@ -112,14 +114,6 @@ Item {
             }
         }
 
-        onRunCheckVersion : {
-            gui.openMainWindow(false)
-            go.setUpdateState("upToDate")
-            winMain.dialogGlobal.state="checkUpdates"
-            winMain.dialogGlobal.show()
-            go.isNewVersionAvailable(showMessage)
-        }
-
         onSetUpdateState : {
             // once app is outdated prevent from state change
             if (winMain.updateState != "forceUpdate") {
@@ -134,13 +128,47 @@ Item {
             go.silentBubble(2,qsTr("You have the latest version!", "notification", -1))
         }
 
-        onNotifyUpdate : {
+        onNotifyManualUpdate: {
+            go.setUpdateState("oldVersion")
+        }
+
+        onNotifyManualUpdateRestartNeeded: {
+            if (!winMain.dialogUpdate.visible) {
+                gui.openMainWindow(true)
+                winMain.dialogUpdate.show()
+            }
+            go.setUpdateState("updateRestart")
+            winMain.dialogUpdate.finished(false)
+
+            // after manual update - just retart immidiatly
+            go.setToRestart()
+            Qt.quit()
+        }
+
+        onNotifyManualUpdateError: {
+            if (!winMain.dialogUpdate.visible) {
+                gui.openMainWindow(true)
+                winMain.dialogUpdate.show()
+            }
+            go.setUpdateState("updateError")
+            winMain.dialogUpdate.finished(true)
+        }
+
+        onNotifyForceUpdate : {
             go.setUpdateState("forceUpdate")
             if (!winMain.dialogUpdate.visible) {
                 gui.openMainWindow(true)
-                go.runCheckVersion(false)
                 winMain.dialogUpdate.show()
             }
+        }
+
+        onNotifySilentUpdateRestartNeeded: {
+            go.setUpdateState("updateRestart")
+        }
+
+        onNotifySilentUpdateError: {
+            go.setUpdateState("updateError")
+            gui.openMainWindow(true)
         }
 
         onNotifyLogout : {
@@ -229,23 +257,14 @@ Item {
             outgoingNoEncPopup.y = y
         }
 
-        onUpdateFinished : {
-            winMain.dialogUpdate.finished(hasError)
-        }
-
         onShowCertIssue : {
             winMain.tlsBarState="notOK"
         }
 
+        onOpenReleaseNotesExternally: {
+            Qt.openUrlExternally(go.updateReleaseNotesLink)
+        }
 
-    }
-
-    Timer {
-        id: checkVersionTimer
-        repeat : true
-        triggeredOnStart: false
-        interval : Style.main.verCheckRepeatTime
-        onTriggered : go.runCheckVersion(false)
     }
 
     function openMainWindow(showAndRise) {
@@ -287,6 +306,15 @@ Item {
         winMain.bubbleNote.show()
     }
 
+    function openReleaseNotes(){
+        if (go.updateReleaseNotesLink == "") {
+            go.checkAndOpenReleaseNotes()
+            return
+        }
+        go.openReleaseNotesExternally()
+    }
+
+
     // On start
     Component.onCompleted : {
         // set  messages for translations
@@ -301,15 +329,8 @@ Item {
 
         // start window
         gui.openMainWindow(false)
-        checkVersionTimer.start()
         if (go.isShownOnStart) {
             gui.winMain.showAndRise()
-        }
-        go.runCheckVersion(false)
-
-        if (go.isFreshVersion) {
-            go.getLocalVersionInfo()
-            gui.winMain.dialogVersionInfo.show()
         }
     }
 }

@@ -24,6 +24,7 @@ import (
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/ProtonMail/proton-bridge/internal/imap/uidplus"
 	"github.com/ProtonMail/proton-bridge/internal/store"
+	pkgMsg "github.com/ProtonMail/proton-bridge/pkg/message"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 )
 
@@ -41,8 +42,6 @@ type storeUserProvider interface {
 		attachedPublicKey,
 		attachedPublicKeyName string,
 		parentID string) (*pmapi.Message, []*pmapi.Attachment, error)
-
-	PauseEventLoop(bool)
 
 	SetChangeNotifier(store.ChangeNotifier)
 }
@@ -89,7 +88,7 @@ type storeMailboxProvider interface {
 	MarkMessagesDeleted(apiID []string) error
 	MarkMessagesUndeleted(apiID []string) error
 	ImportMessage(msg *pmapi.Message, body []byte, labelIDs []string) error
-	RemoveDeleted() error
+	RemoveDeleted(apiIDs []string) error
 }
 
 type storeMessageProvider interface {
@@ -101,6 +100,8 @@ type storeMessageProvider interface {
 
 	SetSize(int64) error
 	SetContentTypeAndHeader(string, mail.Header) error
+	SetBodyStructure(*pkgMsg.BodyStructure) error
+	GetBodyStructure() (*pkgMsg.BodyStructure, error)
 }
 
 type storeUserWrap struct {

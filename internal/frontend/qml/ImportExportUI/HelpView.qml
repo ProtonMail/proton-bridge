@@ -55,9 +55,7 @@ Item {
                 rightIcon.text : Style.fa.chevron_circle_right
                 rightIcon.font.pointSize : Style.settings.toggleSize * Style.pt
                 onClicked: {
-                    dialogGlobal.state="checkUpdates"
-                    dialogGlobal.show()
-                    dialogGlobal.confirmed()
+                    go.checkForUpdates()
                 }
             }
 
@@ -115,7 +113,7 @@ Item {
                     MouseArea {
                         anchors.fill: parent
                         onClicked : {
-                        go.openLicenseFile()
+                            go.openLicenseFile()
                         }
                         cursorShape: Qt.PointingHandCursor
                     }
@@ -129,10 +127,7 @@ Item {
                     font.underline: true
                     MouseArea {
                         anchors.fill: parent
-                        onClicked : {
-                            go.getLocalVersionInfo()
-                            winMain.dialogVersionInfo.show()
-                        }
+                        onClicked : gui.openReleaseNotes()
                         cursorShape: Qt.PointingHandCursor
                     }
                 }

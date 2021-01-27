@@ -20,10 +20,13 @@ package tests
 import (
 	"fmt"
 	"regexp"
+	"runtime"
 	"strings"
+	"time"
 
 	"github.com/cucumber/godog"
 	"github.com/cucumber/godog/gherkin"
+	"github.com/stretchr/testify/assert"
 )
 
 func APIChecksFeatureContext(s *godog.Suite) {
@@ -31,6 +34,7 @@ func APIChecksFeatureContext(s *godog.Suite) {
 	s.Step(`^message is sent with API call$`, messageIsSentWithAPICall)
 	s.Step(`^API mailbox "([^"]*)" for "([^"]*)" has messages$`, apiMailboxForUserHasMessages)
 	s.Step(`^API mailbox "([^"]*)" for address "([^"]*)" of "([^"]*)" has messages$`, apiMailboxForAddressOfUserHasMessages)
+	s.Step(`^API client manager user-agent is "([^"]*)"$`, clientManagerUserAgent)
 }
 
 func apiIsCalledWith(endpoint string, data *gherkin.DocString) error {
@@ -115,5 +119,16 @@ func apiMailboxForAddressOfUserHasMessages(mailboxName, bddAddressID, bddUserID 
 			return fmt.Errorf("message %v not found", rowMap)
 		}
 	}
+	return nil
+}
+
+func clientManagerUserAgent(expectedUserAgent string) error {
+	expectedUserAgent = strings.ReplaceAll(expectedUserAgent, "[GOOS]", runtime.GOOS)
+
+	assert.Eventually(ctx.GetTestingT(), func() bool {
+		userAgent := ctx.GetClientManager().GetUserAgent()
+		return userAgent == expectedUserAgent
+	}, 5*time.Second, time.Second)
+
 	return nil
 }
