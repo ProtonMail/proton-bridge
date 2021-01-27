@@ -20,9 +20,11 @@
 package smtp
 
 import (
+	"bytes"
 	"encoding/base64"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"mime"
 	"net/mail"
 	"strings"
@@ -319,6 +321,12 @@ func (su *smtpUser) Send(returnPath string, to []string, messageReader io.Reader
 		return nil
 	}
 
+	if ok, err := su.isTotalSizeOkay(message, attReaders); err != nil {
+		return err
+	} else if !ok {
+		return errors.New("message is too large")
+	}
+
 	su.backend.sendRecorder.addMessage(sendRecorderMessageHash)
 	message, atts, err := su.storeUser.CreateDraft(kr, message, attReaders, attachedPublicKey, attachedPublicKeyName, parentID)
 	if err != nil {
@@ -328,12 +336,6 @@ func (su *smtpUser) Send(returnPath string, to []string, messageReader io.Reader
 	}
 	su.backend.sendRecorder.setMessageID(sendRecorderMessageHash, message.ID)
 	log.WithField("messageID", message.ID).Debug("Draft was created successfully")
-
-	if ok, err := su.isTotalSizeOkay(message, atts); err != nil {
-		return err
-	} else if !ok {
-		return errors.New("message is too large")
-	}
 
 	// We always have to create a new draft even if there already is one,
 	// because clients don't necessarily save the draft before sending, which
@@ -534,7 +536,7 @@ func (su *smtpUser) Logout() error {
 	return nil
 }
 
-func (su *smtpUser) isTotalSizeOkay(message *pmapi.Message, attachments []*pmapi.Attachment) (bool, error) {
+func (su *smtpUser) isTotalSizeOkay(message *pmapi.Message, attReaders []io.Reader) (bool, error) {
 	maxUpload, err := su.storeUser.GetMaxUpload()
 	if err != nil {
 		return false, err
@@ -542,8 +544,14 @@ func (su *smtpUser) isTotalSizeOkay(message *pmapi.Message, attachments []*pmapi
 
 	var attSize int64
 
-	for _, att := range attachments {
-		attSize += att.Size
+	for i := range attReaders {
+		b, err := ioutil.ReadAll(attReaders[i])
+		if err != nil {
+			return false, err
+		}
+
+		attSize += int64(len(b))
+		attReaders[i] = bytes.NewBuffer(b)
 	}
 
 	return message.Size+attSize <= maxUpload, nil
