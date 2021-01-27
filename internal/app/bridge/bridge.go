@@ -65,7 +65,7 @@ func run(b *base.Base, c *cli.Context) error { // nolint[funlen]
 		logrus.WithError(err).Fatal("Failed to load TLS config")
 	}
 
-	bridge := bridge.New(b.Locations, b.Cache, b.Settings, b.CrashHandler, b.Listener, b.CM, b.Creds)
+	bridge := bridge.New(b.Locations, b.Cache, b.Settings, b.CrashHandler, b.Listener, b.CM, b.Creds, b.Updater, b.Versioner)
 	imapBackend := imap.NewIMAPBackend(b.CrashHandler, b.Listener, b.Cache, bridge)
 	smtpBackend := smtp.NewSMTPBackend(b.CrashHandler, b.Listener, b.Settings, bridge)
 

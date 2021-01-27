@@ -578,13 +578,21 @@ func (s *FrontendQt) toggleAutoUpdate() {
 func (s *FrontendQt) toggleEarlyAccess() {
 	defer s.Qml.ProcessFinished()
 
-	if updater.UpdateChannel(s.settings.Get(settings.UpdateChannelKey)) == updater.EarlyChannel {
-		s.settings.Set(settings.UpdateChannelKey, string(updater.StableChannel))
-		s.Qml.SetIsEarlyAccess(false)
+	channel := s.bridge.GetUpdateChannel()
+	if channel == updater.EarlyChannel {
+		channel = updater.StableChannel
 	} else {
-		s.settings.Set(settings.UpdateChannelKey, string(updater.EarlyChannel))
-		s.Qml.SetIsEarlyAccess(true)
+		channel = updater.EarlyChannel
 	}
+
+	err := s.bridge.SetUpdateChannel(channel)
+	s.Qml.SetIsEarlyAccess(channel == updater.EarlyChannel)
+	if err != nil {
+		s.Qml.NotifyManualUpdateError()
+		return
+	}
+	s.restarter.SetToRestart()
+	s.App.Quit()
 }
 
 func (s *FrontendQt) toggleAllowProxy() {

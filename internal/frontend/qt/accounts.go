@@ -26,6 +26,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/internal/config/settings"
 	"github.com/ProtonMail/proton-bridge/internal/events"
+	"github.com/ProtonMail/proton-bridge/internal/updater"
 	"github.com/ProtonMail/proton-bridge/pkg/keychain"
 	pmapi "github.com/ProtonMail/proton-bridge/pkg/pmapi"
 )
@@ -80,6 +81,15 @@ func (s *FrontendQt) loadAccounts() {
 
 func (s *FrontendQt) clearCache() {
 	defer s.Qml.ProcessFinished()
+
+	channel := s.bridge.GetUpdateChannel()
+	if channel == updater.EarlyChannel {
+		if err := s.bridge.SetUpdateChannel(updater.StableChannel); err != nil {
+			s.Qml.NotifyManualUpdateError()
+			return
+		}
+	}
+
 	if err := s.bridge.ClearData(); err != nil {
 		log.Error("While clearing cache: ", err)
 	}

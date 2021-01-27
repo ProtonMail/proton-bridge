@@ -125,6 +125,10 @@ func (u *Updater) IsUpdateApplicable(version VersionInfo) bool {
 	return true
 }
 
+func (u *Updater) IsDowngrade(version VersionInfo) bool {
+	return version.Version.LessThan(u.curVer)
+}
+
 func (u *Updater) CanInstall(version VersionInfo) bool {
 	if version.MinAuto == nil {
 		return true

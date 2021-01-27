@@ -55,6 +55,10 @@ func (v *Version) String() string {
 	return fmt.Sprintf("%v", v.version)
 }
 
+func (v *Version) Equal(version *semver.Version) bool {
+	return v.version.Equal(version)
+}
+
 // VerifyFiles verifies all files in the version directory.
 func (v *Version) VerifyFiles(kr *crypto.KeyRing) error {
 	fileBytes, err := ioutil.ReadFile(filepath.Join(v.path, sumFile)) // nolint[gosec]

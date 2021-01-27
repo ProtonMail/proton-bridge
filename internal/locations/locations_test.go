@@ -39,7 +39,7 @@ func (dirs *fakeAppDirs) UserCache() string {
 	return dirs.cacheDir
 }
 
-func TestClearRemovesEverythingExceptLockFile(t *testing.T) {
+func TestClearRemovesEverythingExceptLockAndUpdateFiles(t *testing.T) {
 	l := newTestLocations(t)
 
 	assert.NoError(t, l.Clear())
@@ -48,6 +48,18 @@ func TestClearRemovesEverythingExceptLockFile(t *testing.T) {
 	assert.NoDirExists(t, l.getSettingsPath())
 	assert.NoDirExists(t, l.getLogsPath())
 	assert.NoDirExists(t, l.getCachePath())
+	assert.DirExists(t, l.getUpdatesPath())
+}
+
+func TestClearUpdateFiles(t *testing.T) {
+	l := newTestLocations(t)
+
+	assert.NoError(t, l.ClearUpdates())
+
+	assert.FileExists(t, l.GetLockFile())
+	assert.DirExists(t, l.getSettingsPath())
+	assert.DirExists(t, l.getLogsPath())
+	assert.DirExists(t, l.getCachePath())
 	assert.NoDirExists(t, l.getUpdatesPath())
 }
 

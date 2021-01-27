@@ -1,6 +1,6 @@
 // Copyright (c) 2021 Proton Technologies AG
 //
-// This file is part of ProtonMail Bridge.
+// This file is part of ProtonMail Bridge.Bridge.
 //
 // ProtonMail Bridge is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,37 +15,19 @@
 // You should have received a copy of the GNU General Public License
 // along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
 
-package bridge
+package context
 
 import (
 	"github.com/Masterminds/semver/v3"
-
-	"github.com/ProtonMail/proton-bridge/internal/updater"
 )
 
-type Locator interface {
-	Clear() error
-	ClearUpdates() error
+type fakeVersioner struct{}
+
+// newFakeVersioner creates an empty versioner just to fulfill Bridge dependencies.
+func newFakeVersioner() *fakeVersioner {
+	return &fakeVersioner{}
 }
 
-type Cacher interface {
-	GetIMAPCachePath() string
-	GetDBDir() string
-}
-
-type SettingsProvider interface {
-	Get(key string) string
-	Set(key string, value string)
-	GetBool(key string) bool
-	SetBool(key string, val bool)
-}
-
-type Updater interface {
-	Check() (updater.VersionInfo, error)
-	IsDowngrade(updater.VersionInfo) bool
-	InstallUpdate(updater.VersionInfo) error
-}
-
-type Versioner interface {
-	RemoveOtherVersions(*semver.Version) error
+func (c *fakeVersioner) RemoveOtherVersions(_ *semver.Version) error {
+	return nil
 }

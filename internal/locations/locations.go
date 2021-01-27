@@ -165,12 +165,20 @@ func (l *Locations) getUpdatesPath() string {
 	return filepath.Join(l.userCache, "updates")
 }
 
-// Clear removes everything except the lock file.
+// Clear removes everything except the lock and update files.
 func (l *Locations) Clear() error {
 	return files.Remove(
 		l.getSettingsPath(),
 		l.getLogsPath(),
 		l.getCachePath(),
+	).Except(
+		l.getUpdatesPath(),
+	).Do()
+}
+
+// ClearUpdates removes update files.
+func (l *Locations) ClearUpdates() error {
+	return files.Remove(
 		l.getUpdatesPath(),
 	).Do()
 }

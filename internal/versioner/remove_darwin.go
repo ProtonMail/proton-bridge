@@ -17,8 +17,16 @@
 
 package versioner
 
+import "github.com/Masterminds/semver/v3"
+
 // RemoveOldVersions removes all but the latest app version.
 func (v *Versioner) RemoveOldVersions() error {
+	// darwin does not use the versioner; removal is a noop.
+	return nil
+}
+
+// RemoveOtherVersions removes all but the specific provided app version.
+func (v *Versioner) RemoveOtherVersions(versionToKeep *semver.Version) error {
 	// darwin does not use the versioner; removal is a noop.
 	return nil
 }

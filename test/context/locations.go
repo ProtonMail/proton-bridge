@@ -48,3 +48,7 @@ func (l *fakeLocations) ProvideSettingsPath() (string, error) {
 func (l *fakeLocations) Clear() error {
 	return os.RemoveAll(l.dir)
 }
+
+func (l *fakeLocations) ClearUpdates() error {
+	return nil
+}

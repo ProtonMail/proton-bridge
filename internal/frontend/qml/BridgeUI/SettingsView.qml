@@ -150,9 +150,10 @@ Item {
                 ) + " " + text
                 onClicked: {
                     if (go.isEarlyAccess == true) {
-                      go.toggleEarlyAccess()
+                      dialogGlobal.state="toggleEarlyAccessOff"
+                      dialogGlobal.show()
                     } else {
-                      dialogGlobal.state="toggleEarlyAccess"
+                      dialogGlobal.state="toggleEarlyAccessOn"
                       dialogGlobal.show()
                     }
                 }

@@ -294,7 +294,7 @@ Dialog {
             }
         },
         State {
-            name: "toggleEarlyAccess"
+            name: "toggleEarlyAccessOn"
             PropertyChanges {
                 target: root
                 currentIndex : 0
@@ -302,6 +302,17 @@ Dialog {
                 note         : ""
                 title        : qsTr("Enable early access")
                 answer       : qsTr("Enabling early access...")
+            }
+        },
+        State {
+            name: "toggleEarlyAccessOff"
+            PropertyChanges {
+                target: root
+                currentIndex : 0
+                question     : qsTr("Are you sure you want to leave early access? Please keep in mind this operation clears the cache and restarts Bridge.")
+                note         : qsTr("This will delete all of your stored preferences as well as cached email data for all accounts, temporarily slowing down the email download process significantly.")
+                title        : qsTr("Disable early access")
+                answer       : qsTr("Disabling early access...")
             }
         },
         State {
@@ -375,7 +386,8 @@ Dialog {
             if ( state == "logout"            ) { go.logoutAccount       (input) }
             if ( state == "toggleAutoStart"   ) { go.toggleAutoStart     ()      }
             if ( state == "toggleAllowProxy"  ) { go.toggleAllowProxy    ()      }
-            if ( state == "toggleEarlyAccess" ) { go.toggleEarlyAccess   ()      }
+            if ( state == "toggleEarlyAccessOn"  ) { go.toggleEarlyAccess   ()      }
+            if ( state == "toggleEarlyAccessOff" ) { go.toggleEarlyAccess   ()      }
             if ( state == "quit"              ) { Qt.quit                ()      }
             if ( state == "instance exists"   ) { Qt.quit                ()      }
             if ( state == "noKeychain"        ) { Qt.quit                ()      }

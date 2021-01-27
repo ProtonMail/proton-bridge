@@ -26,6 +26,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/internal/config/settings"
 	"github.com/ProtonMail/proton-bridge/internal/constants"
 	"github.com/ProtonMail/proton-bridge/internal/metrics"
+	"github.com/ProtonMail/proton-bridge/internal/updater"
 	"github.com/ProtonMail/proton-bridge/internal/users"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 
@@ -40,8 +41,11 @@ var (
 type Bridge struct {
 	*users.Users
 
+	locations     Locator
 	settings      SettingsProvider
 	clientManager users.ClientManager
+	updater       Updater
+	versioner     Versioner
 
 	userAgentClientName    string
 	userAgentClientVersion string
@@ -56,6 +60,8 @@ func New(
 	eventListener listener.Listener,
 	clientManager users.ClientManager,
 	credStorer users.CredentialsStorer,
+	updater Updater,
+	versioner Versioner,
 ) *Bridge {
 	// Allow DoH before starting the app if the user has previously set this setting.
 	// This allows us to start even if protonmail is blocked.
@@ -68,8 +74,11 @@ func New(
 	b := &Bridge{
 		Users: u,
 
+		locations:     locations,
 		settings:      s,
 		clientManager: clientManager,
+		updater:       updater,
+		versioner:     versioner,
 	}
 
 	if s.GetBool(settings.FirstStartKey) {
@@ -167,4 +176,37 @@ func (b *Bridge) ReportBug(osType, osVersion, description, accountName, address,
 	log.Info("Bug successfully reported")
 
 	return nil
+}
+
+// GetUpdateChannel returns currently set update channel.
+func (b *Bridge) GetUpdateChannel() updater.UpdateChannel {
+	return updater.UpdateChannel(b.settings.Get(settings.UpdateChannelKey))
+}
+
+// SetUpdateChannel switches update channel.
+// Downgrading to previous version (by switching from early to stable, for example)
+// requires clearing all data including update files due to possibility of
+// inconsistency between versions and absence of backwards migration scripts.
+func (b *Bridge) SetUpdateChannel(channel updater.UpdateChannel) error {
+	b.settings.Set(settings.UpdateChannelKey, string(channel))
+
+	version, err := b.updater.Check()
+	if err != nil {
+		return err
+	}
+
+	if b.updater.IsDowngrade(version) {
+		if err := b.Users.ClearData(); err != nil {
+			log.WithError(err).Error("Failed to clear data while downgrading channel")
+		}
+		if err := b.locations.ClearUpdates(); err != nil {
+			log.WithError(err).Error("Failed to clear updates while downgrading channel")
+		}
+	}
+
+	if err := b.updater.InstallUpdate(version); err != nil {
+		return err
+	}
+
+	return b.versioner.RemoveOtherVersions(version.Version)
 }

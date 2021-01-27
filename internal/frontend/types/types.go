@@ -80,6 +80,8 @@ type Bridger interface {
 	ReportBug(osType, osVersion, description, accountName, address, emailClient string) error
 	AllowProxy()
 	DisallowProxy()
+	GetUpdateChannel() updater.UpdateChannel
+	SetUpdateChannel(updater.UpdateChannel) error
 }
 
 type bridgeWrap struct {

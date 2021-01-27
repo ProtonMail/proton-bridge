@@ -68,5 +68,7 @@ func newBridgeInstance(
 	clientManager users.ClientManager,
 ) *bridge.Bridge {
 	panicHandler := &panicHandler{t: t}
-	return bridge.New(locations, cache, settings, panicHandler, eventListener, clientManager, credStore)
+	updater := newFakeUpdater()
+	versioner := newFakeVersioner()
+	return bridge.New(locations, cache, settings, panicHandler, eventListener, clientManager, credStore, updater, versioner)
 }

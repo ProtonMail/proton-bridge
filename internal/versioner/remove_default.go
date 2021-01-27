@@ -22,6 +22,7 @@ package versioner
 import (
 	"os"
 
+	"github.com/Masterminds/semver/v3"
 	"github.com/sirupsen/logrus"
 )
 
@@ -38,6 +39,25 @@ func (v *Versioner) RemoveOldVersions() error {
 	}
 
 	for _, version := range versions[1:] {
+		if err := os.RemoveAll(version.path); err != nil {
+			logrus.WithError(err).Error("Failed to remove old app version")
+		}
+	}
+
+	return nil
+}
+
+// RemoveOtherVersions removes all but the specific provided app version.
+func (v *Versioner) RemoveOtherVersions(versionToKeep *semver.Version) error {
+	versions, err := v.ListVersions()
+	if err != nil {
+		return err
+	}
+
+	for _, version := range versions {
+		if version.Equal(versionToKeep) {
+			continue
+		}
 		if err := os.RemoveAll(version.path); err != nil {
 			logrus.WithError(err).Error("Failed to remove old app version")
 		}
