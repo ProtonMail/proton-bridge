@@ -13,3 +13,4 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 ### Changed
 
 ### Fixed
+* GODT-999 Sending: do not send empty objects to API.

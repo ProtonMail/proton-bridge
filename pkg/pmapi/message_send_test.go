@@ -19,6 +19,7 @@ package pmapi
 
 import (
 	"encoding/base64"
+	"encoding/json"
 	"testing"
 
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
@@ -126,8 +127,13 @@ func (td *testData) prepareAndCheck(t *testing.T) {
 		wantBodyKey := wantPackage.DecryptedBodyKey
 		haveBodyKey := havePackage.DecryptedBodyKey
 
-		matchPresence(wantBodyKey.Algorithm)(t, haveBodyKey.Algorithm, "pkg %d", i)
-		matchPresence(wantBodyKey.Key)(t, haveBodyKey.Key, "pkg %d", i)
+		if wantBodyKey == nil {
+			r.Nil(haveBodyKey, "pkg %d: expected empty body key but got %v", i, haveBodyKey)
+		} else {
+			r.NotNil(haveBodyKey, "pkg %d: expected body key but got nil", i)
+			r.NotEmpty(haveBodyKey.Algorithm, "pkg %d", i)
+			r.NotEmpty(haveBodyKey.Key, "pkg %d", i)
+		}
 
 		if len(td.attKeys) == 0 {
 			r.Len(havePackage.DecryptedAttachmentKeys, 0)
@@ -145,6 +151,15 @@ func (td *testData) prepareAndCheck(t *testing.T) {
 			}
 		}
 	}
+
+	haveBytes, err := json.Marshal(have)
+	r.NoError(err)
+	haveString := string(haveBytes)
+	// Added `:` to avoid false-fail if the whole output results to empty object.
+	r.NotContains(haveString, ":\"\"", "found empty string: %s", haveString)
+	r.NotContains(haveString, ":[]", "found empty list: %s", haveString)
+	r.NotContains(haveString, ":{}", "found empty object: %s", haveString)
+	r.NotContains(haveString, ":null", "found null: %s", haveString)
 }
 
 func TestSendReq(t *testing.T) {
@@ -330,7 +345,7 @@ func TestSendReq(t *testing.T) {
 					Type:                    ClearPackage,
 					MIMEType:                ContentTypeHTML,
 					EncryptedBody:           "non-empty",
-					DecryptedBodyKey:        AlgoKey{"non-empty", "non-empty"},
+					DecryptedBodyKey:        &AlgoKey{"non-empty", "non-empty"},
 					DecryptedAttachmentKeys: attAlgoKeys,
 				},
 			},
@@ -346,7 +361,7 @@ func TestSendReq(t *testing.T) {
 					Type:                    ClearPackage,
 					MIMEType:                ContentTypePlainText,
 					EncryptedBody:           "non-empty",
-					DecryptedBodyKey:        AlgoKey{"non-empty", "non-empty"},
+					DecryptedBodyKey:        &AlgoKey{"non-empty", "non-empty"},
 					DecryptedAttachmentKeys: attAlgoKeys,
 				},
 			},
@@ -361,7 +376,7 @@ func TestSendReq(t *testing.T) {
 					Type:             ClearMIMEPackage,
 					MIMEType:         ContentTypeMultipartMixed,
 					EncryptedBody:    "non-empty",
-					DecryptedBodyKey: AlgoKey{"non-empty", "non-empty"},
+					DecryptedBodyKey: &AlgoKey{"non-empty", "non-empty"},
 				},
 			},
 		},
@@ -406,7 +421,7 @@ func TestSendReq(t *testing.T) {
 					Type:                    InternalPackage | ClearPackage,
 					MIMEType:                ContentTypePlainText,
 					EncryptedBody:           "non-empty",
-					DecryptedBodyKey:        AlgoKey{"non-empty", "non-empty"},
+					DecryptedBodyKey:        &AlgoKey{"non-empty", "non-empty"},
 					DecryptedAttachmentKeys: attAlgoKeys,
 				},
 			},
@@ -424,7 +439,7 @@ func TestSendReq(t *testing.T) {
 					Type:                    InternalPackage | ClearPackage,
 					MIMEType:                ContentTypeHTML,
 					EncryptedBody:           "non-empty",
-					DecryptedBodyKey:        AlgoKey{"non-empty", "non-empty"},
+					DecryptedBodyKey:        &AlgoKey{"non-empty", "non-empty"},
 					DecryptedAttachmentKeys: attAlgoKeys,
 				},
 			},
@@ -454,7 +469,7 @@ func TestSendReq(t *testing.T) {
 					Type:             ClearMIMEPackage | PGPMIMEPackage,
 					MIMEType:         ContentTypeMultipartMixed,
 					EncryptedBody:    "non-empty",
-					DecryptedBodyKey: AlgoKey{"non-empty", "non-empty"},
+					DecryptedBodyKey: &AlgoKey{"non-empty", "non-empty"},
 				},
 			},
 		},
@@ -496,7 +511,7 @@ func TestSendReq(t *testing.T) {
 					Type:             ClearMIMEPackage,
 					MIMEType:         ContentTypeMultipartMixed,
 					EncryptedBody:    "non-empty",
-					DecryptedBodyKey: AlgoKey{"non-empty", "non-empty"},
+					DecryptedBodyKey: &AlgoKey{"non-empty", "non-empty"},
 				},
 				{
 					Addresses: map[string]*MessageAddress{
@@ -506,7 +521,7 @@ func TestSendReq(t *testing.T) {
 					Type:                    ClearPackage,
 					MIMEType:                ContentTypePlainText,
 					EncryptedBody:           "non-empty",
-					DecryptedBodyKey:        AlgoKey{"non-empty", "non-empty"},
+					DecryptedBodyKey:        &AlgoKey{"non-empty", "non-empty"},
 					DecryptedAttachmentKeys: attAlgoKeys,
 				},
 				{
@@ -517,7 +532,7 @@ func TestSendReq(t *testing.T) {
 					Type:                    ClearPackage,
 					MIMEType:                ContentTypeHTML,
 					EncryptedBody:           "non-empty",
-					DecryptedBodyKey:        AlgoKey{"non-empty", "non-empty"},
+					DecryptedBodyKey:        &AlgoKey{"non-empty", "non-empty"},
 					DecryptedAttachmentKeys: attAlgoKeys,
 				},
 			},
@@ -568,7 +583,7 @@ func TestSendReq(t *testing.T) {
 					Type:             ClearMIMEPackage | PGPMIMEPackage,
 					MIMEType:         ContentTypeMultipartMixed,
 					EncryptedBody:    "non-empty",
-					DecryptedBodyKey: AlgoKey{"non-empty", "non-empty"},
+					DecryptedBodyKey: &AlgoKey{"non-empty", "non-empty"},
 				},
 				{
 					Addresses: map[string]*MessageAddress{
@@ -580,7 +595,7 @@ func TestSendReq(t *testing.T) {
 					Type:                    InternalPackage | ClearPackage | PGPInlinePackage,
 					MIMEType:                ContentTypePlainText,
 					EncryptedBody:           "non-empty",
-					DecryptedBodyKey:        AlgoKey{"non-empty", "non-empty"},
+					DecryptedBodyKey:        &AlgoKey{"non-empty", "non-empty"},
 					DecryptedAttachmentKeys: attAlgoKeys,
 				},
 				{
@@ -593,7 +608,7 @@ func TestSendReq(t *testing.T) {
 					Type:                    InternalPackage | ClearPackage,
 					MIMEType:                ContentTypeHTML,
 					EncryptedBody:           "non-empty",
-					DecryptedBodyKey:        AlgoKey{"non-empty", "non-empty"},
+					DecryptedBodyKey:        &AlgoKey{"non-empty", "non-empty"},
 					DecryptedAttachmentKeys: attAlgoKeys,
 				},
 			},

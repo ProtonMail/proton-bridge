@@ -97,18 +97,18 @@ type AlgoKey struct {
 
 type MessageAddress struct {
 	Type                          PackageFlag
-	EncryptedBodyKeyPacket        string `json:"BodyKeyPacket"` // base64-encoded key packet.
+	EncryptedBodyKeyPacket        string `json:"BodyKeyPacket,omitempty"` // base64-encoded key packet.
 	Signature                     SignatureFlag
-	EncryptedAttachmentKeyPackets map[string]string `json:"AttachmentKeyPackets"`
+	EncryptedAttachmentKeyPackets map[string]string `json:"AttachmentKeyPackets,omitempty"`
 }
 
 type MessagePackage struct {
 	Addresses               map[string]*MessageAddress
 	Type                    PackageFlag
 	MIMEType                string
-	EncryptedBody           string             `json:"Body"`           // base64-encoded encrypted data packet.
-	DecryptedBodyKey        AlgoKey            `json:"BodyKey"`        // base64-encoded session key (only if cleartext recipients).
-	DecryptedAttachmentKeys map[string]AlgoKey `json:"AttachmentKeys"` // Only include if cleartext & attachments.
+	EncryptedBody           string             `json:"Body"`                     // base64-encoded encrypted data packet.
+	DecryptedBodyKey        *AlgoKey           `json:"BodyKey,omitempty"`        // base64-encoded session key (only if cleartext recipients).
+	DecryptedAttachmentKeys map[string]AlgoKey `json:"AttachmentKeys,omitempty"` // Only include if cleartext & attachments.
 }
 
 func newMessagePackage(
@@ -123,8 +123,10 @@ func newMessagePackage(
 	}
 
 	if send.sharedScheme.HasAtLeastOne(ClearPackage | ClearMIMEPackage) {
-		pkg.DecryptedBodyKey.Key = send.decryptedBodyKey.GetBase64Key()
-		pkg.DecryptedBodyKey.Algorithm = send.decryptedBodyKey.Algo
+		pkg.DecryptedBodyKey = &AlgoKey{
+			Key:       send.decryptedBodyKey.GetBase64Key(),
+			Algorithm: send.decryptedBodyKey.Algo,
+		}
 	}
 
 	if len(attKeys) != 0 && send.sharedScheme.Has(ClearPackage) {
@@ -148,7 +150,7 @@ type SendMessageReq struct {
 	// AutoSaveContacts int `json:",omitempty"`
 
 	// Data for encrypted recipients.
-	Packages []*MessagePackage
+	Packages []*MessagePackage `json:",omitempty"`
 
 	mime, plain, rich sendData
 	attKeys           map[string]*crypto.SessionKey
