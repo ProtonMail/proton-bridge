@@ -25,13 +25,14 @@ import (
 	"runtime"
 
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
+	"github.com/ProtonMail/proton-bridge/internal/config/useragent"
 	"github.com/ProtonMail/proton-bridge/internal/constants"
 	"github.com/ProtonMail/proton-bridge/internal/crash"
 	"github.com/ProtonMail/proton-bridge/internal/locations"
 	"github.com/ProtonMail/proton-bridge/internal/logging"
+	"github.com/ProtonMail/proton-bridge/internal/sentry"
 	"github.com/ProtonMail/proton-bridge/internal/updater"
 	"github.com/ProtonMail/proton-bridge/internal/versioner"
-	"github.com/ProtonMail/proton-bridge/pkg/sentry"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )
@@ -44,7 +45,7 @@ var (
 )
 
 func main() { // nolint[funlen]
-	reporter := sentry.NewReporter(appName, constants.Version)
+	reporter := sentry.NewReporter(appName, constants.Version, useragent.New())
 
 	crashHandler := crash.NewHandler(reporter.ReportException)
 	defer crashHandler.HandlePanic()

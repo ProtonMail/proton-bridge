@@ -24,9 +24,9 @@ import (
 	"sync"
 	"time"
 
+	"github.com/ProtonMail/proton-bridge/internal/sentry"
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
-	"github.com/ProtonMail/proton-bridge/pkg/sentry"
 	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"

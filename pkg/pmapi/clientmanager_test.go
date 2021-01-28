@@ -17,8 +17,10 @@
 
 package pmapi
 
+import "github.com/ProtonMail/proton-bridge/internal/config/useragent"
+
 func newTestClientManager(cfg *ClientConfig) *ClientManager {
-	cm := NewClientManager(cfg)
+	cm := NewClientManager(cfg, useragent.New())
 
 	go func() {
 		for range cm.authUpdates {

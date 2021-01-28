@@ -15,38 +15,37 @@
 // You should have received a copy of the GNU General Public License
 // along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
 
-package pmapi
+package useragent
 
 import (
-	"fmt"
+	"os/exec"
 	"runtime"
 	"strings"
+
+	"github.com/Masterminds/semver/v3"
 )
 
-// removeBrackets handle unwanted brackets in client identification string and join with given joinBy parameter.
-// Mac OS X Mail/13.0 (3601.0.4) -> Mac OS X Mail/13.0-3601.0.4 (joinBy = "-")
-func removeBrackets(s string, joinBy string) (r string) {
-	r = strings.ReplaceAll(s, " (", joinBy)
-	r = strings.ReplaceAll(r, "(", joinBy) // Should be faster than regex.
-	r = strings.ReplaceAll(r, ")", "")
+// IsCatalinaOrNewer checks whether host is MacOS Catalina 10.15.x or higher.
+func IsCatalinaOrNewer() bool {
+	if runtime.GOOS != "darwin" {
+		return false
+	}
 
-	return
+	rawVersion, err := exec.Command("sw_vers", "-productVersion").Output()
+	if err != nil {
+		return false
+	}
+
+	return isVersionCatalinaOrNewer(strings.TrimSpace(string(rawVersion)))
 }
 
-func formatUserAgent(clientName, clientVersion, os string) string {
-	client := ""
-	if clientName != "" {
-		client = removeBrackets(clientName, "-")
-		if clientVersion != "" {
-			client += "/" + removeBrackets(clientVersion, "-")
-		}
+func isVersionCatalinaOrNewer(rawVersion string) bool {
+	semVersion, err := semver.NewVersion(rawVersion)
+	if err != nil {
+		return false
 	}
 
-	if os == "" {
-		os = runtime.GOOS
-	}
+	minVersion := semver.MustParse("10.15.0")
 
-	os = removeBrackets(os, " ")
-
-	return fmt.Sprintf("%s (%s)", client, os)
+	return semVersion.GreaterThan(minVersion) || semVersion.Equal(minVersion)
 }

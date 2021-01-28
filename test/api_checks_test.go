@@ -41,7 +41,7 @@ func APIChecksFeatureContext(s *godog.Suite) {
 	s.Step(`^API mailbox "([^"]*)" for address "([^"]*)" of "([^"]*)" has (\d+) message(?:s)?$`, apiMailboxForAddressOfUserHasNumberOfMessages)
 	s.Step(`^API mailbox "([^"]*)" for "([^"]*)" has messages$`, apiMailboxForUserHasMessages)
 	s.Step(`^API mailbox "([^"]*)" for address "([^"]*)" of "([^"]*)" has messages$`, apiMailboxForAddressOfUserHasMessages)
-	s.Step(`^API client manager user-agent is "([^"]*)"$`, clientManagerUserAgent)
+	s.Step(`^API user-agent is "([^"]*)"$`, userAgent)
 }
 
 func apiIsCalled(endpoint string) error {
@@ -187,12 +187,11 @@ func getPMAPIMessages(account *accounts.TestAccount, mailboxName string) ([]*pma
 	return ctx.GetPMAPIController().GetMessages(account.Username(), labelID)
 }
 
-func clientManagerUserAgent(expectedUserAgent string) error {
+func userAgent(expectedUserAgent string) error {
 	expectedUserAgent = strings.ReplaceAll(expectedUserAgent, "[GOOS]", runtime.GOOS)
 
 	assert.Eventually(ctx.GetTestingT(), func() bool {
-		userAgent := ctx.GetClientManager().GetUserAgent()
-		return userAgent == expectedUserAgent
+		return ctx.GetUserAgent() == expectedUserAgent
 	}, 5*time.Second, time.Second)
 
 	return nil

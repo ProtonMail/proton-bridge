@@ -18,36 +18,42 @@
 package useragent
 
 import (
-	"os/exec"
+	"fmt"
+	"regexp"
 	"runtime"
-	"strings"
-
-	"github.com/Masterminds/semver/v3"
 )
 
-// IsCatalinaOrNewer checks that host is MacOS Catalina 10.15.x or higher.
-func IsCatalinaOrNewer() bool {
-	if runtime.GOOS != "darwin" {
-		return false
-	}
-	return isVersionCatalinaOrNewer(getMacVersion())
+type UserAgent struct {
+	client, platform string
 }
 
-func getMacVersion() string {
-	out, err := exec.Command("sw_vers", "-productVersion").Output()
-	if err != nil {
-		return ""
+func New() *UserAgent {
+	return &UserAgent{
+		client:   "",
+		platform: runtime.GOOS,
 	}
-
-	return strings.TrimSpace(string(out))
 }
 
-func isVersionCatalinaOrNewer(version string) bool {
-	v, err := semver.NewVersion(version)
-	if err != nil {
-		return false
+func (ua *UserAgent) SetClient(name, version string) {
+	ua.client = fmt.Sprintf("%v/%v", name, regexp.MustCompile(`(.*) \((.*)\)`).ReplaceAllString(version, "$1-$2"))
+}
+
+func (ua *UserAgent) HasClient() bool {
+	return ua.client != ""
+}
+
+func (ua *UserAgent) SetPlatform(platform string) {
+	ua.platform = platform
+}
+
+func (ua *UserAgent) String() string {
+	var client string
+
+	if ua.client != "" {
+		client = ua.client
+	} else {
+		client = "NoClient/0.0.1"
 	}
 
-	catalina := semver.MustParse("10.15.0")
-	return v.GreaterThan(catalina) || v.Equal(catalina)
+	return fmt.Sprintf("%v (%v)", client, ua.platform)
 }

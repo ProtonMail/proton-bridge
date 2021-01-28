@@ -59,7 +59,7 @@ func (ctx *TestContext) withIMAPServer() {
 	tls, _ := tls.New(settingsPath).GetConfig()
 
 	backend := imap.NewIMAPBackend(ph, ctx.listener, ctx.cache, ctx.bridge)
-	server := imap.NewIMAPServer(ph, true, true, port, tls, backend, ctx.listener)
+	server := imap.NewIMAPServer(ph, true, true, port, tls, backend, ctx.userAgent, ctx.listener)
 
 	go server.ListenAndServe()
 	require.NoError(ctx.t, waitForPort(port, 5*time.Second))

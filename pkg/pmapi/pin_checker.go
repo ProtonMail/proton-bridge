@@ -75,17 +75,18 @@ func certFingerprint(cert *x509.Certificate) string {
 	return fmt.Sprintf(`pin-sha256=%q`, base64.StdEncoding.EncodeToString(hash[:]))
 }
 
-type clientConfigProvider interface {
-	GetClientConfig() *ClientConfig
+type clientInfoProvider interface {
+	GetAppVersion() string
+	GetUserAgent() string
 }
 
 type tlsReporter struct {
-	cm          clientConfigProvider
+	cm          clientInfoProvider
 	p           *pinChecker
 	sentReports []sentReport
 }
 
-func newTLSReporter(p *pinChecker, cm clientConfigProvider) *tlsReporter {
+func newTLSReporter(p *pinChecker, cm clientInfoProvider) *tlsReporter {
 	return &tlsReporter{
 		cm: cm,
 		p:  p,
@@ -102,13 +103,14 @@ func (r *tlsReporter) reportCertIssue(remoteURI, host, port string, connState tl
 		certChain = marshalCert7468(connState.PeerCertificates)
 	}
 
-	cfg := r.cm.GetClientConfig()
+	appVersion := r.cm.GetAppVersion()
+	userAgent := r.cm.GetUserAgent()
 
-	report := newTLSReport(host, port, connState.ServerName, certChain, r.p.trustedPins, cfg.AppVersion)
+	report := newTLSReport(host, port, connState.ServerName, certChain, r.p.trustedPins, appVersion)
 
 	if !r.hasRecentlySentReport(report) {
 		r.recordReport(report)
-		go report.sendReport(remoteURI, cfg.UserAgent)
+		go report.sendReport(remoteURI, userAgent)
 	}
 }
 

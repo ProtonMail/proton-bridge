@@ -39,6 +39,7 @@ import (
 	"github.com/ProtonMail/go-autostart"
 	"github.com/ProtonMail/proton-bridge/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/internal/config/settings"
+	"github.com/ProtonMail/proton-bridge/internal/config/useragent"
 	"github.com/ProtonMail/proton-bridge/internal/events"
 	"github.com/ProtonMail/proton-bridge/internal/frontend/autoconfig"
 	qtcommon "github.com/ProtonMail/proton-bridge/internal/frontend/qt-common"
@@ -49,7 +50,6 @@ import (
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	"github.com/ProtonMail/proton-bridge/pkg/ports"
-	"github.com/ProtonMail/proton-bridge/pkg/useragent"
 	"github.com/sirupsen/logrus"
 	"github.com/skratchdot/open-golang/open"
 	"github.com/therecipe/qt/core"
@@ -75,6 +75,7 @@ type FrontendQt struct {
 	settings          *settings.Settings
 	eventListener     listener.Listener
 	updater           types.Updater
+	userAgent         *useragent.UserAgent
 	bridge            types.Bridger
 	noEncConfirmator  types.NoEncConfirmator
 
@@ -114,12 +115,15 @@ func New(
 	settings *settings.Settings,
 	eventListener listener.Listener,
 	updater types.Updater,
+	userAgent *useragent.UserAgent,
 	bridge types.Bridger,
 	noEncConfirmator types.NoEncConfirmator,
 	autostart *autostart.App,
 	restarter types.Restarter,
 ) *FrontendQt {
-	tmp := &FrontendQt{
+	userAgent.SetPlatform(core.QSysInfo_PrettyProductName())
+
+	f := &FrontendQt{
 		version:           version,
 		buildVersion:      buildVersion,
 		programName:       programName,
@@ -129,6 +133,7 @@ func New(
 		settings:          settings,
 		eventListener:     eventListener,
 		updater:           updater,
+		userAgent:         userAgent,
 		bridge:            bridge,
 		noEncConfirmator:  noEncConfirmator,
 		programVer:        "v" + version,
@@ -138,13 +143,9 @@ func New(
 
 	// Initializing.Done is only called sync.Once. Please keep the increment
 	// set to 1
-	tmp.initializing.Add(1)
+	f.initializing.Add(1)
 
-	// Nicer string for OS.
-	currentOS := core.QSysInfo_PrettyProductName()
-	bridge.SetCurrentOS(currentOS)
-
-	return tmp
+	return f
 }
 
 // InstanceExistAlert is a global warning window indicating an instance already exists.
@@ -506,7 +507,7 @@ func (s *FrontendQt) sendBug(description, client, address string) (isOK bool) {
 }
 
 func (s *FrontendQt) getLastMailClient() string {
-	return s.bridge.GetCurrentClient()
+	return s.userAgent.String()
 }
 
 func (s *FrontendQt) configureAppleMail(iAccount, iAddress int) {

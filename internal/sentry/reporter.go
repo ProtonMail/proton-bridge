@@ -45,26 +45,19 @@ func init() { // nolint[noinit]
 	})
 }
 
-type userAgentProvider interface {
-	GetUserAgent() string
-}
-
 type Reporter struct {
 	appName    string
 	appVersion string
-	uap        userAgentProvider
+	userAgent  fmt.Stringer
 }
 
 // NewReporter creates new sentry reporter with appName and appVersion to report.
-func NewReporter(appName, appVersion string) *Reporter {
+func NewReporter(appName, appVersion string, userAgent fmt.Stringer) *Reporter {
 	return &Reporter{
 		appName:    appName,
 		appVersion: appVersion,
+		userAgent:  userAgent,
 	}
-}
-
-func (r *Reporter) SetUserAgentProvider(uap userAgentProvider) {
-	r.uap = uap
 }
 
 func (r *Reporter) ReportException(i interface{}) error {
@@ -97,19 +90,11 @@ func (r *Reporter) scopedReport(doReport func()) error {
 		return nil
 	}
 
-	// In case clientManager is not yet created we can get at least OS string.
-	var userAgent string
-	if r.uap != nil {
-		userAgent = r.uap.GetUserAgent()
-	} else {
-		userAgent = runtime.GOOS
-	}
-
 	tags := map[string]string{
 		"OS":        runtime.GOOS,
 		"Client":    r.appName,
 		"Version":   r.appVersion,
-		"UserAgent": userAgent,
+		"UserAgent": r.userAgent.String(),
 		"UserID":    "",
 	}
 

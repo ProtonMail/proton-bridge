@@ -26,12 +26,12 @@ import (
 	"time"
 
 	"github.com/ProtonMail/proton-bridge/internal/events"
+	"github.com/ProtonMail/proton-bridge/internal/sentry"
 	"github.com/ProtonMail/proton-bridge/internal/store"
 	"github.com/ProtonMail/proton-bridge/internal/users/credentials"
 	usersmocks "github.com/ProtonMail/proton-bridge/internal/users/mocks"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	pmapimocks "github.com/ProtonMail/proton-bridge/pkg/pmapi/mocks"
-	"github.com/ProtonMail/proton-bridge/pkg/sentry"
 	gomock "github.com/golang/mock/gomock"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/require"

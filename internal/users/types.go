@@ -55,7 +55,6 @@ type ClientManager interface {
 	DisallowProxy()
 	GetAuthUpdateChannel() chan pmapi.ClientAuth
 	CheckConnection() error
-	SetUserAgent(clientName, clientVersion, os string)
 }
 
 type StoreMaker interface {

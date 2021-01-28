@@ -22,6 +22,7 @@ import (
 	"github.com/ProtonMail/go-autostart"
 	"github.com/ProtonMail/proton-bridge/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/internal/config/settings"
+	"github.com/ProtonMail/proton-bridge/internal/config/useragent"
 	"github.com/ProtonMail/proton-bridge/internal/frontend/cli"
 	cliie "github.com/ProtonMail/proton-bridge/internal/frontend/cli-ie"
 	"github.com/ProtonMail/proton-bridge/internal/frontend/qt"
@@ -60,6 +61,7 @@ func New(
 	settings *settings.Settings,
 	eventListener listener.Listener,
 	updater types.Updater,
+	userAgent *useragent.UserAgent,
 	bridge *bridge.Bridge,
 	noEncConfirmator types.NoEncConfirmator,
 	autostart *autostart.App,
@@ -77,6 +79,7 @@ func New(
 		settings,
 		eventListener,
 		updater,
+		userAgent,
 		bridgeWrap,
 		noEncConfirmator,
 		autostart,
@@ -95,6 +98,7 @@ func newBridgeFrontend(
 	settings *settings.Settings,
 	eventListener listener.Listener,
 	updater types.Updater,
+	userAgent *useragent.UserAgent,
 	bridge types.Bridger,
 	noEncConfirmator types.NoEncConfirmator,
 	autostart *autostart.App,
@@ -122,6 +126,7 @@ func newBridgeFrontend(
 			settings,
 			eventListener,
 			updater,
+			userAgent,
 			bridge,
 			noEncConfirmator,
 			autostart,

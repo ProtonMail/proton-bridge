@@ -43,19 +43,20 @@ import (
 	"github.com/ProtonMail/proton-bridge/internal/config/cache"
 	"github.com/ProtonMail/proton-bridge/internal/config/settings"
 	"github.com/ProtonMail/proton-bridge/internal/config/tls"
+	"github.com/ProtonMail/proton-bridge/internal/config/useragent"
 	"github.com/ProtonMail/proton-bridge/internal/constants"
 	"github.com/ProtonMail/proton-bridge/internal/cookies"
 	"github.com/ProtonMail/proton-bridge/internal/crash"
 	"github.com/ProtonMail/proton-bridge/internal/events"
 	"github.com/ProtonMail/proton-bridge/internal/locations"
 	"github.com/ProtonMail/proton-bridge/internal/logging"
+	"github.com/ProtonMail/proton-bridge/internal/sentry"
 	"github.com/ProtonMail/proton-bridge/internal/updater"
 	"github.com/ProtonMail/proton-bridge/internal/users/credentials"
 	"github.com/ProtonMail/proton-bridge/internal/versioner"
 	"github.com/ProtonMail/proton-bridge/pkg/keychain"
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
-	"github.com/ProtonMail/proton-bridge/pkg/sentry"
 	"github.com/allan-simon/go-singleinstance"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
@@ -86,6 +87,7 @@ type Base struct {
 	Creds          *credentials.Store
 	CM             *pmapi.ClientManager
 	CookieJar      *cookies.Jar
+	UserAgent      *useragent.UserAgent
 	Updater        *updater.Updater
 	Versioner      *versioner.Versioner
 	TLS            *tls.TLS
@@ -107,7 +109,10 @@ func New( // nolint[funlen]
 	keychainName,
 	cacheVersion string,
 ) (*Base, error) {
-	sentryReporter := sentry.NewReporter(appName, constants.Version)
+	userAgent := useragent.New()
+
+	sentryReporter := sentry.NewReporter(appName, constants.Version, userAgent)
+
 	crashHandler := crash.NewHandler(
 		sentryReporter.ReportException,
 		crash.ShowErrorNotification(appName),
@@ -181,20 +186,9 @@ func New( // nolint[funlen]
 		return nil, err
 	}
 
-	apiConfig := pmapi.GetAPIConfig(configName, constants.Version)
-	apiConfig.ConnectionOffHandler = func() {
-		listener.Emit(events.InternetOffEvent, "")
-	}
-	apiConfig.ConnectionOnHandler = func() {
-		listener.Emit(events.InternetOnEvent, "")
-	}
-	apiConfig.UpgradeApplicationHandler = func() {
-		listener.Emit(events.UpgradeApplicationEvent, "")
-	}
-	cm := pmapi.NewClientManager(apiConfig)
+	cm := pmapi.NewClientManager(getAPIConfig(configName, listener), userAgent)
 	cm.SetRoundTripper(pmapi.GetRoundTripper(cm, listener))
 	cm.SetCookieJar(jar)
-	sentryReporter.SetUserAgentProvider(cm)
 
 	key, err := crypto.NewKeyFromArmored(updater.DefaultPublicKey)
 	if err != nil {
@@ -245,6 +239,7 @@ func New( // nolint[funlen]
 		Creds:          credentials.NewStore(kc),
 		CM:             cm,
 		CookieJar:      jar,
+		UserAgent:      userAgent,
 		Updater:        updater,
 		Versioner:      versioner,
 		TLS:            tls.New(settingsPath),
@@ -379,4 +374,14 @@ func (b *Base) doTeardown() error {
 	}
 
 	return nil
+}
+
+func getAPIConfig(configName string, listener listener.Listener) *pmapi.ClientConfig {
+	apiConfig := pmapi.GetAPIConfig(configName, constants.Version)
+
+	apiConfig.ConnectionOffHandler = func() { listener.Emit(events.InternetOffEvent, "") }
+	apiConfig.ConnectionOnHandler = func() { listener.Emit(events.InternetOnEvent, "") }
+	apiConfig.UpgradeApplicationHandler = func() { listener.Emit(events.UpgradeApplicationEvent, "") }
+
+	return apiConfig
 }

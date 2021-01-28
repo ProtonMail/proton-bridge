@@ -28,6 +28,7 @@ import (
 
 	imapid "github.com/ProtonMail/go-imap-id"
 	"github.com/ProtonMail/proton-bridge/internal/bridge"
+	"github.com/ProtonMail/proton-bridge/internal/config/useragent"
 	"github.com/ProtonMail/proton-bridge/internal/events"
 	"github.com/ProtonMail/proton-bridge/internal/imap/id"
 	"github.com/ProtonMail/proton-bridge/internal/imap/uidplus"
@@ -39,6 +40,7 @@ import (
 	imapmove "github.com/emersion/go-imap-move"
 	imapquota "github.com/emersion/go-imap-quota"
 	imapunselect "github.com/emersion/go-imap-unselect"
+	"github.com/emersion/go-imap/backend"
 	imapserver "github.com/emersion/go-imap/server"
 	"github.com/emersion/go-sasl"
 	"github.com/sirupsen/logrus"
@@ -47,6 +49,7 @@ import (
 type imapServer struct {
 	panicHandler  panicHandler
 	server        *imapserver.Server
+	userAgent     *useragent.UserAgent
 	eventListener listener.Listener
 	debugClient   bool
 	debugServer   bool
@@ -55,7 +58,7 @@ type imapServer struct {
 }
 
 // NewIMAPServer constructs a new IMAP server configured with the given options.
-func NewIMAPServer(panicHandler panicHandler, debugClient, debugServer bool, port int, tls *tls.Config, imapBackend *imapBackend, eventListener listener.Listener) *imapServer { //nolint[golint]
+func NewIMAPServer(panicHandler panicHandler, debugClient, debugServer bool, port int, tls *tls.Config, imapBackend backend.Backend, userAgent *useragent.UserAgent, eventListener listener.Listener) *imapServer { // nolint[golint]
 	s := imapserver.New(imapBackend)
 	s.Addr = fmt.Sprintf("%v:%v", bridge.Host, port)
 	s.TLSConfig = tls
@@ -93,7 +96,7 @@ func NewIMAPServer(panicHandler panicHandler, debugClient, debugServer bool, por
 	s.Enable(
 		imapidle.NewExtension(),
 		imapmove.NewExtension(),
-		id.NewExtension(serverID, imapBackend.bridge),
+		id.NewExtension(serverID, userAgent),
 		imapquota.NewExtension(),
 		imapappendlimit.NewExtension(),
 		imapunselect.NewExtension(),
@@ -103,6 +106,7 @@ func NewIMAPServer(panicHandler panicHandler, debugClient, debugServer bool, por
 	server := &imapServer{
 		panicHandler:  panicHandler,
 		server:        s,
+		userAgent:     userAgent,
 		eventListener: eventListener,
 		debugClient:   debugClient,
 		debugServer:   debugServer,
@@ -144,9 +148,10 @@ func (s *imapServer) listenAndServe(retries int) {
 		return
 	}
 
-	err = s.server.Serve(&debugListener{
-		Listener: l,
-		server:   s,
+	err = s.server.Serve(&connListener{
+		Listener:  l,
+		server:    s,
+		userAgent: s.userAgent,
 	})
 	// Serve returns error every time, even after closing the server.
 	// User shouldn't be notified about error if server shouldn't be running,
@@ -233,18 +238,19 @@ func (s *imapServer) monitorDisconnectedUsers() {
 	}
 }
 
-// debugListener sets debug loggers on server containing fields with local
+// connListener sets debug loggers on server containing fields with local
 // and remote addresses right after new connection is accepted.
-type debugListener struct {
+type connListener struct {
 	net.Listener
 
-	server *imapServer
+	server    *imapServer
+	userAgent *useragent.UserAgent
 }
 
-func (dl *debugListener) Accept() (net.Conn, error) {
-	conn, err := dl.Listener.Accept()
+func (l *connListener) Accept() (net.Conn, error) {
+	conn, err := l.Listener.Accept()
 
-	if err == nil && (dl.server.debugServer || dl.server.debugClient) {
+	if err == nil && (l.server.debugServer || l.server.debugClient) {
 		debugLog := log
 		if addr := conn.LocalAddr(); addr != nil {
 			debugLog = debugLog.WithField("loc", addr.String())
@@ -254,14 +260,18 @@ func (dl *debugListener) Accept() (net.Conn, error) {
 		}
 
 		var localDebug, remoteDebug io.Writer
-		if dl.server.debugServer {
+		if l.server.debugServer {
 			localDebug = debugLog.WithField("pkg", "imap/server").WriterLevel(logrus.DebugLevel)
 		}
-		if dl.server.debugClient {
+		if l.server.debugClient {
 			remoteDebug = debugLog.WithField("pkg", "imap/client").WriterLevel(logrus.DebugLevel)
 		}
 
-		dl.server.server.Debug = imap.NewDebugWriter(localDebug, remoteDebug)
+		l.server.server.Debug = imap.NewDebugWriter(localDebug, remoteDebug)
+	}
+
+	if !l.userAgent.HasClient() {
+		l.userAgent.SetClient("UnknownClient", "0.0.1")
 	}
 
 	return conn, err

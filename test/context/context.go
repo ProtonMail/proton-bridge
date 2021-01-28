@@ -22,6 +22,7 @@ import (
 	"sync"
 
 	"github.com/ProtonMail/proton-bridge/internal/bridge"
+	"github.com/ProtonMail/proton-bridge/internal/config/useragent"
 	"github.com/ProtonMail/proton-bridge/internal/constants"
 	"github.com/ProtonMail/proton-bridge/internal/importexport"
 	"github.com/ProtonMail/proton-bridge/internal/transfer"
@@ -46,6 +47,7 @@ type TestContext struct {
 	locations    *fakeLocations
 	settings     *fakeSettings
 	listener     listener.Listener
+	userAgent    *useragent.UserAgent
 	testAccounts *accounts.TestAccounts
 
 	// pmapiController is used to control real or fake pmapi clients.
@@ -95,11 +97,12 @@ type TestContext struct {
 func New(app string) *TestContext {
 	setLogrusVerbosityFromEnv()
 
-	configName := app
-	if app == "ie" {
-		configName = "importExport"
-	}
-	cm := pmapi.NewClientManager(pmapi.GetAPIConfig(configName, constants.Version))
+	userAgent := useragent.New()
+
+	cm := pmapi.NewClientManager(
+		pmapi.GetAPIConfig(getConfigName(app), constants.Version),
+		userAgent,
+	)
 
 	ctx := &TestContext{
 		t:                     &bddT{},
@@ -107,6 +110,7 @@ func New(app string) *TestContext {
 		locations:             newFakeLocations(),
 		settings:              newFakeSettings(),
 		listener:              listener.New(),
+		userAgent:             userAgent,
 		pmapiController:       newPMAPIController(cm),
 		clientManager:         cm,
 		testAccounts:          newTestAccounts(),
@@ -137,6 +141,14 @@ func New(app string) *TestContext {
 	return ctx
 }
 
+func getConfigName(app string) string {
+	if app == "ie" {
+		return "importExport"
+	}
+
+	return app
+}
+
 // Cleanup runs through all cleanup steps.
 // This can be a deferred call so that it is run even if the test steps failed the test.
 func (ctx *TestContext) Cleanup() *TestContext {
@@ -154,6 +166,11 @@ func (ctx *TestContext) GetPMAPIController() PMAPIController {
 // GetClientManager returns client manager being used for testing.
 func (ctx *TestContext) GetClientManager() *pmapi.ClientManager {
 	return ctx.clientManager
+}
+
+// GetUserAgent returns the current user agent.
+func (ctx *TestContext) GetUserAgent() string {
+	return ctx.userAgent.String()
 }
 
 // GetTestingT returns testing.T compatible struct.

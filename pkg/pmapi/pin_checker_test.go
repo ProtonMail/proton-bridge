@@ -27,12 +27,16 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-type fakeClientConfigProvider struct {
+type fakeClientInfoProvider struct {
 	version, useragent string
 }
 
-func (c *fakeClientConfigProvider) GetClientConfig() *ClientConfig {
-	return &ClientConfig{AppVersion: c.version, UserAgent: c.useragent}
+func (c *fakeClientInfoProvider) GetAppVersion() string {
+	return c.version
+}
+
+func (c *fakeClientInfoProvider) GetUserAgent() string {
+	return c.useragent
 }
 
 func TestPinCheckerDoubleReport(t *testing.T) {
@@ -42,7 +46,7 @@ func TestPinCheckerDoubleReport(t *testing.T) {
 		reportCounter++
 	}))
 
-	r := newTLSReporter(newPinChecker(TrustedAPIPins), &fakeClientConfigProvider{version: "3", useragent: "useragent"})
+	r := newTLSReporter(newPinChecker(TrustedAPIPins), &fakeClientInfoProvider{version: "3", useragent: "useragent"})
 
 	// Report the same issue many times.
 	for i := 0; i < 10; i++ {

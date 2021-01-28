@@ -19,7 +19,7 @@
 package crash
 
 import (
-	"github.com/ProtonMail/proton-bridge/pkg/sentry"
+	"github.com/ProtonMail/proton-bridge/internal/sentry"
 	"github.com/sirupsen/logrus"
 )
 

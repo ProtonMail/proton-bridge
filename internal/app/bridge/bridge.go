@@ -87,7 +87,7 @@ func run(b *base.Base, c *cli.Context) error { // nolint[funlen]
 			b.CrashHandler,
 			c.String(flagLogIMAP) == "client" || c.String(flagLogIMAP) == "all",
 			c.String(flagLogIMAP) == "server" || c.String(flagLogIMAP) == "all",
-			imapPort, tlsConfig, imapBackend, b.Listener).ListenAndServe()
+			imapPort, tlsConfig, imapBackend, b.UserAgent, b.Listener).ListenAndServe()
 	}()
 
 	go func() {
@@ -130,6 +130,7 @@ func run(b *base.Base, c *cli.Context) error { // nolint[funlen]
 		b.Settings,
 		b.Listener,
 		b.Updater,
+		b.UserAgent,
 		bridge,
 		smtpBackend,
 		b.Autostart,

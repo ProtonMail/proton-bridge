@@ -29,7 +29,6 @@ type cacheProvider interface {
 }
 
 type bridger interface {
-	SetCurrentClient(clientName, clientVersion string)
 	GetUser(query string) (bridgeUser, error)
 }
 

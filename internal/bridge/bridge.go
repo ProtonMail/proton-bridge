@@ -26,10 +26,10 @@ import (
 	"github.com/ProtonMail/proton-bridge/internal/config/settings"
 	"github.com/ProtonMail/proton-bridge/internal/constants"
 	"github.com/ProtonMail/proton-bridge/internal/metrics"
+	"github.com/ProtonMail/proton-bridge/internal/sentry"
 	"github.com/ProtonMail/proton-bridge/internal/updater"
 	"github.com/ProtonMail/proton-bridge/internal/users"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
-	"github.com/ProtonMail/proton-bridge/pkg/sentry"
 
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
 	logrus "github.com/sirupsen/logrus"
@@ -47,10 +47,6 @@ type Bridge struct {
 	clientManager users.ClientManager
 	updater       Updater
 	versioner     Versioner
-
-	userAgentClientName    string
-	userAgentClientVersion string
-	userAgentOS            string
 }
 
 func New(
@@ -118,40 +114,6 @@ func (b *Bridge) heartbeat() {
 		// Heartbeat was sent successfully so update the last heartbeat day.
 		b.settings.Set(settings.LastHeartbeatKey, fmt.Sprintf("%v", time.Now().YearDay()))
 	}
-}
-
-// GetCurrentClient returns currently connected client (e.g. Thunderbird).
-func (b *Bridge) GetCurrentClient() string {
-	res := b.userAgentClientName
-	if b.userAgentClientVersion != "" {
-		res = res + " " + b.userAgentClientVersion
-	}
-	return res
-}
-
-// SetCurrentClient updates client info (e.g. Thunderbird) and sets the user agent
-// on pmapi. By default no client is used, IMAP has to detect it on first login.
-func (b *Bridge) SetCurrentClient(clientName, clientVersion string) {
-	b.userAgentClientName = clientName
-	b.userAgentClientVersion = clientVersion
-	b.updateUserAgent()
-}
-
-// SetCurrentOS updates OS and sets the user agent on pmapi. By default we use
-// `runtime.GOOS`, but this can be overridden in case of better detection.
-func (b *Bridge) SetCurrentOS(os string) {
-	b.userAgentOS = os
-	b.updateUserAgent()
-}
-
-func (b *Bridge) updateUserAgent() {
-	logrus.
-		WithField("clientName", b.userAgentClientName).
-		WithField("clientVersion", b.userAgentClientVersion).
-		WithField("OS", b.userAgentOS).
-		Info("Updating user agent")
-
-	b.clientManager.SetUserAgent(b.userAgentClientName, b.userAgentClientVersion, b.userAgentOS)
 }
 
 // ReportBug reports a new bug from the user.

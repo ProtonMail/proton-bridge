@@ -24,6 +24,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/ProtonMail/proton-bridge/internal/config/useragent"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )
@@ -37,6 +38,7 @@ type ClientManager struct { //nolint[maligned]
 	newClient func(userID string) Client
 
 	config       *ClientConfig
+	userAgent    *useragent.UserAgent
 	roundTripper http.RoundTripper
 
 	clients       map[string]Client
@@ -86,9 +88,10 @@ type tokenExpiration struct {
 }
 
 // NewClientManager creates a new ClientMan which manages clients configured with the given client config.
-func NewClientManager(config *ClientConfig) (cm *ClientManager) {
+func NewClientManager(config *ClientConfig, userAgent *useragent.UserAgent) (cm *ClientManager) {
 	cm = &ClientManager{
 		config:       config,
+		userAgent:    userAgent,
 		roundTripper: http.DefaultTransport,
 
 		clients:       make(map[string]Client),
@@ -118,7 +121,6 @@ func NewClientManager(config *ClientConfig) (cm *ClientManager) {
 	cm.newClient = func(userID string) Client {
 		return newClient(cm, userID)
 	}
-	cm.SetUserAgent("", "", "") // Set default user agent.
 
 	go cm.watchTokenExpirations()
 
@@ -169,16 +171,12 @@ func (cm *ClientManager) SetRoundTripper(rt http.RoundTripper) {
 	cm.roundTripper = rt
 }
 
-func (cm *ClientManager) GetClientConfig() *ClientConfig {
-	return cm.config
-}
-
-func (cm *ClientManager) SetUserAgent(clientName, clientVersion, os string) {
-	cm.config.UserAgent = formatUserAgent(clientName, clientVersion, os)
+func (cm *ClientManager) GetAppVersion() string {
+	return cm.config.AppVersion
 }
 
 func (cm *ClientManager) GetUserAgent() string {
-	return cm.config.UserAgent
+	return cm.userAgent.String()
 }
 
 // GetClient returns a client for the given userID.

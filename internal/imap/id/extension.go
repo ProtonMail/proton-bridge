@@ -23,13 +23,13 @@ import (
 )
 
 type currentClientSetter interface {
-	SetCurrentClient(name, version string)
+	SetClient(name, version string)
 }
 
 // Extension for IMAP server
 type extension struct {
-	extID  imapserver.ConnExtension
-	setter currentClientSetter
+	extID        imapserver.ConnExtension
+	clientSetter currentClientSetter
 }
 
 func (ext *extension) Capabilities(conn imapserver.Conn) []string {
@@ -44,8 +44,8 @@ func (ext *extension) Command(name string) imapserver.HandlerFactory {
 	return func() imapserver.Handler {
 		if hdlrID, ok := newIDHandler().(*imapid.Handler); ok {
 			return &handler{
-				hdlrID: hdlrID,
-				setter: ext.setter,
+				hdlrID:       hdlrID,
+				clientSetter: ext.clientSetter,
 			}
 		}
 		return nil
@@ -57,8 +57,8 @@ func (ext *extension) NewConn(conn imapserver.Conn) imapserver.Conn {
 }
 
 type handler struct {
-	hdlrID *imapid.Handler
-	setter currentClientSetter
+	hdlrID       *imapid.Handler
+	clientSetter currentClientSetter
 }
 
 func (hdlr *handler) Parse(fields []interface{}) error {
@@ -69,21 +69,18 @@ func (hdlr *handler) Handle(conn imapserver.Conn) error {
 	err := hdlr.hdlrID.Handle(conn)
 	if err == nil {
 		id := hdlr.hdlrID.Command.ID
-		hdlr.setter.SetCurrentClient(
-			id[imapid.FieldName],
-			id[imapid.FieldVersion],
-		)
+		hdlr.clientSetter.SetClient(id[imapid.FieldName], id[imapid.FieldVersion])
 	}
 	return err
 }
 
 // NewExtension returns extension which is adding RFC2871 ID capability, with
 // direct interface to set information about email client to backend.
-func NewExtension(serverID imapid.ID, setter currentClientSetter) imapserver.Extension {
+func NewExtension(serverID imapid.ID, clientSetter currentClientSetter) imapserver.Extension {
 	if conExtID, ok := imapid.NewExtension(serverID).(imapserver.ConnExtension); ok {
 		return &extension{
-			extID:  conExtID,
-			setter: setter,
+			extID:        conExtID,
+			clientSetter: clientSetter,
 		}
 	}
 	return nil

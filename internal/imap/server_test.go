@@ -23,6 +23,7 @@ import (
 	"time"
 
 	"github.com/ProtonMail/proton-bridge/internal/bridge"
+	"github.com/ProtonMail/proton-bridge/internal/config/useragent"
 	"github.com/ProtonMail/proton-bridge/internal/events"
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
 	"github.com/ProtonMail/proton-bridge/pkg/ports"
@@ -48,6 +49,7 @@ func TestIMAPServerTurnOffAndOnAgain(t *testing.T) {
 		panicHandler:  panicHandler,
 		server:        server,
 		eventListener: eventListener,
+		userAgent:     useragent.New(),
 	}
 	s.isRunning.Store(false)
 
