@@ -528,7 +528,17 @@ func parseAttachment(h message.Header) (*pmapi.Attachment, error) {
 
 	// Only set ContentID if it should be inline;
 	// API infers content disposition based on whether ContentID is present.
-	if disp, _, err := h.ContentDisposition(); err == nil && disp == "inline" {
+	// If Content-Disposition is present, we base our decision on that.
+	// Otherwise, if Content-Disposition is missing but there is a ContentID, set it.
+	// (This is necessary because some clients don't set Content-Disposition at all,
+	// so we need to rely on other information to deduce if it's inline or attachment.)
+	if h.Has("Content-Disposition") {
+		if disp, _, err := h.ContentDisposition(); err != nil {
+			return nil, err
+		} else if disp == "inline" {
+			att.ContentID = strings.Trim(h.Get("Content-Id"), " <>")
+		}
+	} else if h.Has("Content-Id") {
 		att.ContentID = strings.Trim(h.Get("Content-Id"), " <>")
 	}
 
