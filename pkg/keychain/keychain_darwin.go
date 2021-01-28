@@ -15,13 +15,16 @@
 // You should have received a copy of the GNU General Public License
 // along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
 
-// +build !darwin
+// +build darwin
 
 package keychain
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 // hostURL uniquely identifies the app's keychain items within the system keychain.
 func hostURL(keychainName string) string {
-	return fmt.Sprintf("protonmail/%v/users", keychainName)
+	return fmt.Sprintf("ProtonMail%vService", strings.Title(keychainName))
 }

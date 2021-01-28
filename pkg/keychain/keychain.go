@@ -72,11 +72,6 @@ func NewKeychain(s *settings.Settings, keychainName string) (*Keychain, error) {
 	return newKeychain(helper, hostURL(keychainName)), nil
 }
 
-// hostURL uniquely identifies the app's keychain items within the system keychain.
-func hostURL(keychainName string) string {
-	return fmt.Sprintf("protonmail/%v/users", keychainName)
-}
-
 func newKeychain(helper credentials.Helper, url string) *Keychain {
 	return &Keychain{
 		helper: helper,

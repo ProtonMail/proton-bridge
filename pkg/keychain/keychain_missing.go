@@ -15,13 +15,33 @@
 // You should have received a copy of the GNU General Public License
 // along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
 
-// +build !darwin
-
 package keychain
 
-import "fmt"
+import (
+	"github.com/docker/docker-credential-helpers/credentials"
+)
 
-// hostURL uniquely identifies the app's keychain items within the system keychain.
-func hostURL(keychainName string) string {
-	return fmt.Sprintf("protonmail/%v/users", keychainName)
+// NewMissingKeychain returns a new keychain that always returns an error.
+func NewMissingKeychain() *Keychain {
+	return newKeychain(&missingHelper{}, "")
+}
+
+// missingHelper is a helper which is used when no other helper is available.
+// It always returns ErrNoKeychain.
+type missingHelper struct{}
+
+func (h *missingHelper) Add(*credentials.Credentials) error {
+	return ErrNoKeychain
+}
+
+func (h *missingHelper) Delete(string) error {
+	return ErrNoKeychain
+}
+
+func (h *missingHelper) Get(string) (string, string, error) {
+	return "", "", ErrNoKeychain
+}
+
+func (h *missingHelper) List() (map[string]string, error) {
+	return nil, ErrNoKeychain
 }
