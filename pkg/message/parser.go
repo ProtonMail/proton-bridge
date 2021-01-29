@@ -24,6 +24,7 @@ import (
 	"mime"
 	"net/mail"
 	"net/textproto"
+	"regexp"
 	"strings"
 
 	"github.com/ProtonMail/go-rfc5322"
@@ -486,7 +487,7 @@ func parseMessageHeader(m *pmapi.Message, h message.Header) error { // nolint[fu
 			m.Time = date.Unix()
 
 		case "message-id":
-			m.ExternalID = fields.Value()
+			m.ExternalID = regexp.MustCompile("<(.*)>").ReplaceAllString(fields.Value(), "$1")
 		}
 	}
 
