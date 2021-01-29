@@ -425,20 +425,20 @@ func (f *FrontendQt) startManualUpdate() {
 	}()
 }
 
-func (f *FrontendQt) checkForUpdatesAndWait() {
+func (f *FrontendQt) checkIsLatestVersionAndUpdate() bool {
 	version, err := f.updater.Check()
 
 	if err != nil {
 		logrus.WithError(err).Error("An error occurred while checking updates manually")
 		f.Qml.NotifyManualUpdateError()
-		return
+		return false
 	}
 
 	f.SetVersion(version)
 
 	if !f.updater.IsUpdateApplicable(version) {
 		logrus.Debug("No need to update")
-		return
+		return true
 	}
 
 	logrus.WithField("version", version.Version).Info("An update is available")
@@ -446,21 +446,26 @@ func (f *FrontendQt) checkForUpdatesAndWait() {
 	if !f.updater.CanInstall(version) {
 		logrus.Debug("A manual update is required")
 		f.NotifyManualUpdate(version, false)
-		return
+		return false
 	}
 
 	f.NotifyManualUpdate(version, true)
+	return false
 }
 
 func (s *FrontendQt) checkAndOpenReleaseNotes() {
 	go func() {
-		s.checkForUpdatesAndWait()
+		_ = s.checkIsLatestVersionAndUpdate()
 		s.Qml.OpenReleaseNotesExternally()
 	}()
 }
 
 func (s *FrontendQt) checkForUpdates() {
-	go s.checkForUpdatesAndWait()
+	go func() {
+		if s.checkIsLatestVersionAndUpdate() {
+			s.Qml.NotifyVersionIsTheLatest()
+		}
+	}()
 }
 
 func (f *FrontendQt) resetSource() {

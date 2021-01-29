@@ -868,6 +868,7 @@ Window {
         signal notifySilentUpdateError()
         function checkForUpdates() {
             console.log("checkForUpdates")
+            go.notifyVersionIsTheLatest()
         }
         function startManualUpdate() {
             console.log("startManualUpdate")
