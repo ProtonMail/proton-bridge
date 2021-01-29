@@ -32,7 +32,10 @@ Feature: IMAP remove messages from mailbox
     And there is IMAP client selected in "<mailbox>"
     When IMAP client marks message seq "1:*" as deleted
     Then IMAP response is "OK"
-    When IMAP client sends expunge
+    # Use UID version to not be sensitive about the order from API. Event loop
+    # could return it in different order and delete first message with seq 1,
+    # which would produce EXPUNGE sequence as 1 4 3 2 1, for example.
+    When IMAP client sends expunge by UID "1:5"
     Then IMAP response is "OK"
     And IMAP response contains "\* 1 EXPUNGE"
     And IMAP response contains "\* 2 EXPUNGE"

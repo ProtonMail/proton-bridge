@@ -58,6 +58,8 @@ func IMAPActionsMessagesFeatureContext(s *godog.Suite) {
 	s.Step(`^IMAP client "([^"]*)" starts IDLE-ing$`, imapClientNamedStartsIDLEing)
 	s.Step(`^IMAP client sends expunge$`, imapClientExpunge)
 	s.Step(`^IMAP client "([^"]*)" sends expunge$`, imapClientNamedExpunge)
+	s.Step(`^IMAP client sends expunge by UID "([^"]*)"$`, imapClientExpungeByUID)
+	s.Step(`^IMAP client "([^"]*)" sends expunge by UID "([^"]*)"$`, imapClientNamedExpungeByUID)
 	s.Step(`^IMAP client sends ID with argument:$`, imapClientSendsID)
 	s.Step(`^IMAP client "([^"]*)" sends ID with argument:$`, imapClientNamedSendsID)
 }
@@ -283,6 +285,16 @@ func imapClientExpunge() error {
 
 func imapClientNamedExpunge(imapClient string) error {
 	res := ctx.GetIMAPClient(imapClient).Expunge()
+	ctx.SetIMAPLastResponse(imapClient, res)
+	return nil
+}
+
+func imapClientExpungeByUID(uids string) error {
+	return imapClientNamedExpungeByUID("imap", uids)
+}
+
+func imapClientNamedExpungeByUID(imapClient, uids string) error {
+	res := ctx.GetIMAPClient(imapClient).ExpungeUID(uids)
 	ctx.SetIMAPLastResponse(imapClient, res)
 	return nil
 }
