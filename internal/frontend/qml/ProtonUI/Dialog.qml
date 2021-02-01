@@ -38,6 +38,14 @@ StackLayout {
         visible: root.visible
         z: -1
 
+        // Looks like StackLayout explicatly sets visible=false to all viasual children except selected.
+        // We want this background to be also visible.
+        onVisibleChanged: {
+            if (visible != parent.visible) {
+                visible = parent.visible
+            }
+        }
+
         AccessibleText {
             id: titleText
             anchors {
