@@ -28,9 +28,9 @@ import (
 	"strings"
 	"time"
 
-	mobileconfig "github.com/ProtonMail/go-apple-mobileconfig"
 	"github.com/ProtonMail/proton-bridge/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/internal/frontend/types"
+	"github.com/ProtonMail/proton-bridge/pkg/mobileconfig"
 )
 
 func init() { //nolint[gochecknoinit]
@@ -66,17 +66,17 @@ func (c *appleMail) Configure(imapPort, smtpPort int, imapSSL, smtpSSL bool, use
 		EmailAddress: addresses,
 		DisplayName:  displayName,
 		Identifier:   "protonmail " + displayName + timestamp,
-		Imap: &mobileconfig.Imap{
+		IMAP: &mobileconfig.IMAP{
 			Hostname: bridge.Host,
 			Port:     imapPort,
-			Tls:      imapSSL,
+			TLS:      imapSSL,
 			Username: displayName,
 			Password: user.GetBridgePassword(),
 		},
-		Smtp: &mobileconfig.Smtp{
+		SMTP: &mobileconfig.SMTP{
 			Hostname: bridge.Host,
 			Port:     smtpPort,
-			Tls:      smtpSSL,
+			TLS:      smtpSSL,
 			Username: displayName,
 		},
 	}
@@ -98,7 +98,7 @@ func (c *appleMail) Configure(imapPort, smtpPort int, imapSSL, smtpSSL bool, use
 		return err
 	}
 
-	if err := mc.WriteTo(f); err != nil {
+	if err := mc.WriteOut(f); err != nil {
 		_ = f.Close()
 		return err
 	}

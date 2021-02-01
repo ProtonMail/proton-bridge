@@ -14,7 +14,6 @@ require (
 require (
 	github.com/0xAX/notificator v0.0.0-20191016112426-3962a5ea8da1
 	github.com/Masterminds/semver/v3 v3.1.0
-	github.com/ProtonMail/go-apple-mobileconfig v0.0.0-20160701194735-7ea9927a11f6
 	github.com/ProtonMail/go-autostart v0.0.0-20181114175602-c5272053443a
 	github.com/ProtonMail/go-imap-id v0.0.0-20190926060100-f94a56b9ecde
 	github.com/ProtonMail/go-rfc5322 v0.5.0
@@ -52,7 +51,6 @@ require (
 	github.com/logrusorgru/aurora v2.0.3+incompatible
 	github.com/mattn/go-runewidth v0.0.9 // indirect
 	github.com/miekg/dns v1.1.30
-	github.com/myesui/uuid v1.0.0 // indirect
 	github.com/nsf/jsondiff v0.0.0-20200515183724-f29ed568f4ce
 	github.com/olekukonko/tablewriter v0.0.4 // indirect
 	github.com/pkg/errors v0.9.1
@@ -61,14 +59,11 @@ require (
 	github.com/ssor/bom v0.0.0-20170718123548-6386211fdfcf // indirect
 	github.com/stretchr/testify v1.6.1
 	github.com/therecipe/qt v0.0.0-20200701200531-7f61353ee73e
-	github.com/twinj/uuid v1.0.0 // indirect
 	github.com/urfave/cli/v2 v2.2.0
-	github.com/urfave/cli v1.22.4
 	github.com/vmihailenco/msgpack/v5 v5.1.3
 	go.etcd.io/bbolt v1.3.5
 	golang.org/x/net v0.0.0-20200707034311-ab3426394381
 	golang.org/x/text v0.3.5-0.20201125200606-c27b9fd57aec
-	gopkg.in/stretchr/testify.v1 v1.2.2 // indirect
 )
 
 replace (
