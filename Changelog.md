@@ -2,6 +2,11 @@
 
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
+## [Bridge 1.6.2] HZM
+
+### Fixed
+* GODT-1010 Strip angle brackets from external ID.
+
 ## [Bridge 1.6.1] HZM
 
 ### Added
