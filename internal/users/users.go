@@ -34,6 +34,9 @@ import (
 var (
 	log                   = logrus.WithField("pkg", "users") //nolint[gochecknoglobals]
 	isApplicationOutdated = false                            //nolint[gochecknoglobals]
+
+	// ErrWrongMailboxPassword is returned when login password is OK but not the mailbox one.
+	ErrWrongMailboxPassword = errors.New("wrong mailbox password")
 )
 
 // Users is a struct handling users.
@@ -332,27 +335,27 @@ func getAPIUser(client pmapi.Client, mbPassphrase string) (user *pmapi.User, has
 	salt, err := client.AuthSalt()
 	if err != nil {
 		log.WithError(err).Error("Could not get salt")
-		return
+		return nil, "", err
 	}
 
 	hashedPassphrase, err = pmapi.HashMailboxPassword(mbPassphrase, salt)
 	if err != nil {
 		log.WithError(err).Error("Could not hash mailbox password")
-		return
+		return nil, "", err
 	}
 
 	// We unlock the user's PGP key here to detect if the user's mailbox password is wrong.
 	if err = client.Unlock([]byte(hashedPassphrase)); err != nil {
 		log.WithError(err).Error("Wrong mailbox password")
-		return
+		return nil, "", ErrWrongMailboxPassword
 	}
 
 	if user, err = client.CurrentUser(); err != nil {
 		log.WithError(err).Error("Could not load user data")
-		return
+		return nil, "", err
 	}
 
-	return
+	return user, hashedPassphrase, nil
 }
 
 // GetUsers returns all added users into keychain (even logged out users).

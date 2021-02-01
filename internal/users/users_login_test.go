@@ -18,7 +18,6 @@
 package users
 
 import (
-	"errors"
 	"testing"
 
 	"github.com/ProtonMail/proton-bridge/internal/events"
@@ -26,6 +25,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/internal/users/credentials"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	gomock "github.com/golang/mock/gomock"
+	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -33,19 +33,18 @@ func TestUsersFinishLoginBadMailboxPassword(t *testing.T) {
 	m := initMocks(t)
 	defer m.ctrl.Finish()
 
-	err := errors.New("bad password")
 	gomock.InOrder(
 		// Init users with no user from keychain.
 		m.credentialsStore.EXPECT().List().Return([]string{}, nil),
 
 		// Set up mocks for FinishLogin.
 		m.pmapiClient.EXPECT().AuthSalt().Return("", nil),
-		m.pmapiClient.EXPECT().Unlock([]byte(testCredentials.MailboxPassword)).Return(err),
+		m.pmapiClient.EXPECT().Unlock([]byte(testCredentials.MailboxPassword)).Return(errors.New("no keys could be unlocked")),
 		m.pmapiClient.EXPECT().DeleteAuth(),
 		m.pmapiClient.EXPECT().Logout(),
 	)
 
-	checkUsersFinishLogin(t, m, testAuth, testCredentials.MailboxPassword, "", err)
+	checkUsersFinishLogin(t, m, testAuth, testCredentials.MailboxPassword, "", ErrWrongMailboxPassword)
 }
 
 func refreshWithToken(token string) *pmapi.Auth {
