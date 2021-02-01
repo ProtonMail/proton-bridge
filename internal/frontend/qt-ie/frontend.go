@@ -109,10 +109,6 @@ func New(
 // Loop function for Import-Export interface. It runs QtExecute in main thread
 // with no additional function.
 func (f *FrontendQt) Loop() (err error) {
-	go func() {
-		defer f.panicHandler.HandlePanic()
-		f.watchEvents()
-	}()
 	err = f.QtExecute(func(f *FrontendQt) error { return nil })
 	return err
 }
@@ -246,6 +242,11 @@ func (f *FrontendQt) QtExecute(Procedure func(*FrontendQt) error) error {
 	} else {
 		f.Qml.SetIsAutoUpdate(false)
 	}
+
+	go func() {
+		defer f.panicHandler.HandlePanic()
+		f.watchEvents()
+	}()
 
 	// Loop
 	if ret := gui.QGuiApplication_Exec(); ret != 0 {

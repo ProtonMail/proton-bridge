@@ -154,10 +154,6 @@ func (s *FrontendQt) InstanceExistAlert() {
 //
 // It runs QtExecute in main thread with no additional function.
 func (s *FrontendQt) Loop() (err error) {
-	go func() {
-		defer s.panicHandler.HandlePanic()
-		s.watchEvents()
-	}()
 	err = s.qtExecute(func(s *FrontendQt) error { return nil })
 	return err
 }
@@ -250,6 +246,7 @@ func (s *FrontendQt) watchEvents() {
 func (s *FrontendQt) getEventChannel(event string) <-chan string {
 	ch := make(chan string)
 	s.eventListener.Add(event, ch)
+	s.eventListener.RetryEmit(event)
 	return ch
 }
 
@@ -366,9 +363,6 @@ func (s *FrontendQt) qtExecute(Procedure func(*FrontendQt) error) error {
 		s.Qml.SetIsEarlyAccess(false)
 	}
 
-	s.eventListener.RetryEmit(events.TLSCertIssue)
-	s.eventListener.RetryEmit(events.ErrorEvent)
-
 	// Set reporting of outgoing email without encryption.
 	s.Qml.SetIsReportingOutgoingNoEnc(s.settings.GetBool(settings.ReportOutgoingNoEncKey))
 
@@ -394,6 +388,11 @@ func (s *FrontendQt) qtExecute(Procedure func(*FrontendQt) error) error {
 	if err := Procedure(s); err != nil {
 		return err
 	}
+
+	go func() {
+		defer s.panicHandler.HandlePanic()
+		s.watchEvents()
+	}()
 
 	// Loop
 	if ret := gui.QGuiApplication_Exec(); ret != 0 {

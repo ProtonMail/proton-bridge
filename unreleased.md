@@ -16,3 +16,4 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 ### Fixed
 * GODT-1011 Stable integration test deleting many messages using UID EXPUNGE.
 * GODT-1015 Use lenient version parser to properly parse version provided by Mac.
+* GODT-919 Notify about update right after the start.
