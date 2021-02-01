@@ -34,6 +34,7 @@ func TestIsVersionCatalinaOrNewer(t *testing.T) {
 		{"10.15.0"}:  true,
 		{"10.16.0"}:  true,
 		{"11.0.0"}:   true,
+		{"11.1"}:     true,
 	}
 
 	for args, exp := range testData {

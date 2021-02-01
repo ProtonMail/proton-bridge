@@ -20,6 +20,7 @@ package useragent
 import (
 	"os/exec"
 	"runtime"
+	"strings"
 
 	"github.com/Masterminds/semver/v3"
 )
@@ -38,11 +39,11 @@ func getMacVersion() string {
 		return ""
 	}
 
-	return string(out)
+	return strings.TrimSpace(string(out))
 }
 
 func isVersionCatalinaOrNewer(version string) bool {
-	v, err := semver.StrictNewVersion(version)
+	v, err := semver.NewVersion(version)
 	if err != nil {
 		return false
 	}
