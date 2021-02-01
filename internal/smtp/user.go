@@ -20,9 +20,11 @@
 package smtp
 
 import (
+	"bytes"
 	"encoding/base64"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"mime"
 	"net/mail"
 	"strings"
@@ -319,6 +321,12 @@ func (su *smtpUser) Send(returnPath string, to []string, messageReader io.Reader
 		return nil
 	}
 
+	if ok, err := su.isTotalSizeOkay(message, attReaders); err != nil {
+		return err
+	} else if !ok {
+		return errors.New("message is too large")
+	}
+
 	su.backend.sendRecorder.addMessage(sendRecorderMessageHash)
 	message, atts, err := su.storeUser.CreateDraft(kr, message, attReaders, attachedPublicKey, attachedPublicKeyName, parentID)
 	if err != nil {
@@ -526,4 +534,25 @@ func (su *smtpUser) continueSendingUnencryptedMail(subject string) bool {
 func (su *smtpUser) Logout() error {
 	log.Debug("SMTP client logged out user ", su.addressID)
 	return nil
+}
+
+func (su *smtpUser) isTotalSizeOkay(message *pmapi.Message, attReaders []io.Reader) (bool, error) {
+	maxUpload, err := su.storeUser.GetMaxUpload()
+	if err != nil {
+		return false, err
+	}
+
+	var attSize int64
+
+	for i := range attReaders {
+		b, err := ioutil.ReadAll(attReaders[i])
+		if err != nil {
+			return false, err
+		}
+
+		attSize += int64(len(b))
+		attReaders[i] = bytes.NewBuffer(b)
+	}
+
+	return message.Size+attSize <= maxUpload, nil
 }

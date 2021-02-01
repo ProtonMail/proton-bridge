@@ -31,7 +31,7 @@ import (
 type storeUserProvider interface {
 	UserID() string
 	GetSpace() (usedSpace, maxSpace uint, err error)
-	GetMaxUpload() (uint, error)
+	GetMaxUpload() (int64, error)
 
 	GetAddress(addressID string) (storeAddressProvider, error)
 

@@ -2,23 +2,28 @@
     "users": {
         "user": {
             "ID": "1",
-            "Name": "user"
+            "Name": "user",
+            "MaxUpload": 26214400
         },
         "user2fa": {
             "ID": "2",
-            "Name": "user2fa"
+            "Name": "user2fa",
+            "MaxUpload": 26214400
         },
         "userAddressWithCapitalLetter": {
             "ID": "3",
-            "Name": "userAddressWithCapitalLetter"
+            "Name": "userAddressWithCapitalLetter",
+            "MaxUpload": 26214400
         },
         "userMoreAddresses": {
             "ID": "4",
-            "Name": "userMoreAddresses"
+            "Name": "userMoreAddresses",
+            "MaxUpload": 26214400
         },
         "userDisabledPrimaryAddress": {
             "ID": "5",
-            "Name": "userDisabledPrimaryAddress"
+            "Name": "userDisabledPrimaryAddress",
+            "MaxUpload": 26214400
         }
     },
     "addresses": {
