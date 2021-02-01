@@ -2,7 +2,19 @@
 
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
-## [Bridge 1.6.0] HMZ
+## [Bridge 1.6.1] HZM
+
+### Added
+* GODT-1007 Notify user when version is the latest.
+
+### Fixed
+* GODT-787 GODT-978 Fix IE and Bridge importing to Sent not showing up in Inbox (setting up flags properly).
+* GODT-1006 Use correct macOS keychain name.
+* GODT-1009 Set ContentID if present and not explicitly attachment.
+* GODT-1008 Transparent welcome message.
+
+
+## [Bridge 1.6.0] HZM
 
 ### Added
 * GODT-705 Allow silent update in Bridge and Import-Export app.
