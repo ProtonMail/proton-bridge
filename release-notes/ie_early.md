@@ -1,12 +1,15 @@
 ## v1.3.0
-- 2021-01-28
+- 2021-02-02
 
 ### New
 
-In app silent updates
+- Introducing silent updates
+- Improvements to message parsing
+
 
 ### Fixed
 
-Performance
-
-
+- Setting up flags to avoid messages misplacement
+- Remove dependency on go-apple-mobileconfig
+- Change to how attachment size is processed to avoid potential errors
+- Linux font issues - Fedora specific
