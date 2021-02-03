@@ -2,6 +2,13 @@
 
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
+## [IE 1.3.0] Farg
+
+### Changed
+* GODT-1019 Remove dependency on go-apple-mobileconfig.
+* GODT-928 Reject messages which are too large.
+* GODT-999 Sending: do not send empty objects to API.
+
 ## [Bridge 1.6.2] HZM
 
 ### Fixed
