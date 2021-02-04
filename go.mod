@@ -6,7 +6,7 @@ go 1.13
 // They are in a separate require block to highlight this.
 require (
 	github.com/docker/docker-credential-helpers v0.6.3
-	github.com/emersion/go-imap v1.0.6-0.20200708083111-011063d6c9df
+	github.com/emersion/go-imap v1.0.6
 	github.com/jameskeane/bcrypt v0.0.0-20170924085257-7509ea014998
 	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
 )
@@ -29,7 +29,7 @@ require (
 	github.com/emersion/go-imap-appendlimit v0.0.0-20190308131241-25671c986a6a
 	github.com/emersion/go-imap-idle v0.0.0-20200601154248-f05f54664cc4
 	github.com/emersion/go-imap-move v0.0.0-20190710073258-6e5a51a5b342
-	github.com/emersion/go-imap-quota v0.0.0-20200423100218-dcfd1b7d2b41
+	github.com/emersion/go-imap-quota v0.0.0-20210203125329-619074823f3c
 	github.com/emersion/go-imap-unselect v0.0.0-20171113212723-b985794e5f26
 	github.com/emersion/go-mbox v1.0.2
 	github.com/emersion/go-message v0.12.1-0.20201221184100-40c3f864532b

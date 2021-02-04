@@ -218,8 +218,9 @@ func (iu *imapUser) GetQuota(name string) (*imapquota.Status, error) {
 
 	resources := make(map[string][2]uint32)
 	var list [2]uint32
-	list[0] = uint32(usedSpace / 1000)
-	list[1] = uint32(maxSpace / 1000)
+	// Quota is "in units of 1024 octets" (or KB) and PM returns bytes.
+	list[0] = uint32(usedSpace / 1024)
+	list[1] = uint32(maxSpace / 1024)
 	resources[imapquota.ResourceStorage] = list
 	status := &imapquota.Status{
 		Name:      "",

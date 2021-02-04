@@ -77,8 +77,8 @@ github.com/emersion/go-imap-idle v0.0.0-20200601154248-f05f54664cc4 h1:/JIALzmCd
 github.com/emersion/go-imap-idle v0.0.0-20200601154248-f05f54664cc4/go.mod h1:o14zPKCmEH5WC1vU5SdPoZGgNvQx7zzKSnxPQlobo78=
 github.com/emersion/go-imap-move v0.0.0-20190710073258-6e5a51a5b342 h1:5p1t3e1PomYgLWwEwhwEU5kVBwcyAcVrOpexv8AeZx0=
 github.com/emersion/go-imap-move v0.0.0-20190710073258-6e5a51a5b342/go.mod h1:QuMaZcKFDVI0yCrnAbPLfbwllz1wtOrZH8/vZ5yzp4w=
-github.com/emersion/go-imap-quota v0.0.0-20200423100218-dcfd1b7d2b41 h1:z5lDGnSURauBEDdNLj3o0+HogVYKQCGeY3Anl/xyRfU=
-github.com/emersion/go-imap-quota v0.0.0-20200423100218-dcfd1b7d2b41/go.mod h1:iApyhIQBiU4XFyr+3kdJyyGqle82TbQyuP2o+OZHrV0=
+github.com/emersion/go-imap-quota v0.0.0-20210203125329-619074823f3c h1:khcEdu1yFiZjBgi7gGnQiLhpSgghJ0YTnKD0l4EUqqc=
+github.com/emersion/go-imap-quota v0.0.0-20210203125329-619074823f3c/go.mod h1:iApyhIQBiU4XFyr+3kdJyyGqle82TbQyuP2o+OZHrV0=
 github.com/emersion/go-imap-unselect v0.0.0-20171113212723-b985794e5f26 h1:FiSb8+XBQQSkcX3ubr+1tAtlRJBYaFmRZqOAweZ9Wy8=
 github.com/emersion/go-imap-unselect v0.0.0-20171113212723-b985794e5f26/go.mod h1:+gnnZx3Mg3MnCzZrv0eZdp5puxXQUgGT/6N6L7ShKfM=
 github.com/emersion/go-mbox v1.0.2 h1:tE/rT+lEugK9y0myEymCCHnwlZN04hlXPrbKkxRBA5I=
