@@ -8,6 +8,9 @@ Feature: IMAP move messages
       | from              | to         | subject | body  |
       | john.doe@mail.com | user@pm.me | foo     | hello |
       | jane.doe@mail.com | name@pm.me | bar     | world |
+    And there are messages in mailbox "Sent" for "user"
+      | from              | to         | subject  | body  |
+      | john.doe@mail.com | user@pm.me | response | hello |
     And there are messages in mailbox "Labels/label2" for "user"
       | from              | to         | subject | body  |
       | john.doe@mail.com | user@pm.me | baz     | hello |
@@ -87,3 +90,13 @@ Feature: IMAP move messages
       | john.doe@mail.com | user@pm.me | baz     |
     And API endpoint "PUT /mail/v4/messages/label" is called
     And API endpoint "PUT /mail/v4/messages/unlabel" is not called
+
+  Scenario: Move message from Inbox to Sent is not possible
+    Given there is IMAP client selected in "INBOX"
+    When IMAP client moves message seq "1" to "Sent"
+    Then IMAP response is "move from Inbox to Sent is not allowed"
+
+  Scenario: Move message from Sent to Inbox is not possible
+    Given there is IMAP client selected in "Sent"
+    When IMAP client moves message seq "1" to "INBOX"
+    Then IMAP response is "move from Sent to Inbox is not allowed"

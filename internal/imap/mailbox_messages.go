@@ -215,7 +215,7 @@ func (im *imapMailbox) MoveMessages(uid bool, seqSet *imap.SeqSet, targetLabel s
 	return im.labelMessages(uid, seqSet, targetLabel, true)
 }
 
-func (im *imapMailbox) labelMessages(uid bool, seqSet *imap.SeqSet, targetLabel string, move bool) error {
+func (im *imapMailbox) labelMessages(uid bool, seqSet *imap.SeqSet, targetLabel string, move bool) error { //nolint[funlen]
 	messageIDs, err := im.apiIDsFromSeqSet(uid, seqSet)
 	if err != nil || len(messageIDs) == 0 {
 		return err
@@ -228,6 +228,25 @@ func (im *imapMailbox) labelMessages(uid bool, seqSet *imap.SeqSet, targetLabel 
 	targetStoreMailbox, err := im.storeAddress.GetMailbox(targetLabel)
 	if err != nil {
 		return err
+	}
+
+	// Moving or copying from Inbox to Sent or from Sent to Inbox is no-op.
+	// Inbox and Sent is the same mailbox and message is showen in one or
+	// the other based on message flags.
+	// COPY operation has to be forbidden otherwise move by COPY+EXPUNGE
+	// would lead to message found only in All Mail, because COPY is no-op
+	// and EXPUNGE is translated as unlabel from the source.
+	// MOVE operation could be allowed, just it will do no change. It's better
+	// to refuse it as well so client is kept in proper state and no sync
+	// is needed.
+	isInboxOrSent := func(labelID string) bool {
+		return labelID == pmapi.InboxLabel || labelID == pmapi.SentLabel
+	}
+	if isInboxOrSent(im.storeMailbox.LabelID()) && isInboxOrSent(targetStoreMailbox.LabelID()) {
+		if im.storeMailbox.LabelID() == pmapi.InboxLabel {
+			return errors.New("move from Inbox to Sent is not allowed")
+		}
+		return errors.New("move from Sent to Inbox is not allowed")
 	}
 
 	deletedIDs := []string{}
