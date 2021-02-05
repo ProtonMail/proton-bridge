@@ -27,3 +27,7 @@ const (
 	// EarlyChannel is the channel users subscribe to when they enable "Early Access".
 	EarlyChannel UpdateChannel = "early"
 )
+
+// DefaultUpdateChannel is the default update channel to subscribe to.
+// It is set to the stable channel by default, unless overridden at build time.
+var DefaultUpdateChannel = StableChannel // nolint[gochecknoglobals]
