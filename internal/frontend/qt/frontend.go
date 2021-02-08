@@ -97,6 +97,9 @@ type FrontendQt struct {
 
 	// saving most up-to-date update info to install it manually
 	updateInfo updater.VersionInfo
+
+	initializing       sync.WaitGroup
+	initializationDone sync.Once
 }
 
 // New returns a new Qt frontend for the bridge.
@@ -131,6 +134,10 @@ func New(
 		autostart:         autostart,
 		restarter:         restarter,
 	}
+
+	// Initializing.Done is only called sync.Once. Please keep the increment
+	// set to 1
+	tmp.initializing.Add(1)
 
 	// Nicer string for OS.
 	currentOS := core.QSysInfo_PrettyProductName()
@@ -180,6 +187,8 @@ func (s *FrontendQt) NotifySilentUpdateError(err error) {
 }
 
 func (s *FrontendQt) watchEvents() {
+	s.WaitUntilFrontendIsReady()
+
 	errorCh := s.getEventChannel(events.ErrorEvent)
 	credentialsErrorCh := s.getEventChannel(events.CredentialsErrorEvent)
 	outgoingNoEncCh := s.getEventChannel(events.OutgoingNoEncEvent)
@@ -682,4 +691,15 @@ func (s *FrontendQt) startManualUpdate() {
 			s.Qml.NotifyManualUpdateRestartNeeded()
 		}
 	}()
+}
+
+func (s *FrontendQt) WaitUntilFrontendIsReady() {
+	s.initializing.Wait()
+}
+
+// setGUIIsReady unlocks the WaitFrontendIsReady.
+func (s *FrontendQt) setGUIIsReady() {
+	s.initializationDone.Do(func() {
+		s.initializing.Done()
+	})
 }

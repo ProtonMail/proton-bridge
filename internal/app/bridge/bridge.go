@@ -188,6 +188,8 @@ func checkAndHandleUpdate(u types.Updater, f frontend.Frontend, autoUpdate bool)
 		return
 	}
 
+	f.WaitUntilFrontendIsReady()
+
 	// Update links in UI
 	f.SetVersion(version)
 

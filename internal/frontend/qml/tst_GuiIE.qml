@@ -918,6 +918,8 @@ Window {
         signal notifyUpdate()
         signal updateFinished(bool hasError)
 
+        signal guiIsReady()
+
         signal openReleaseNotesExternally()
 
         signal notifyLogout(string accname)

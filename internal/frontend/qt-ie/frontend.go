@@ -22,6 +22,7 @@ package qtie
 import (
 	"errors"
 	"os"
+	"sync"
 
 	"github.com/ProtonMail/proton-bridge/internal/config/settings"
 	"github.com/ProtonMail/proton-bridge/internal/events"
@@ -76,6 +77,9 @@ type FrontendQt struct {
 
 	// saving most up-to-date update info to install it manually
 	updateInfo updater.VersionInfo
+
+	initializing       sync.WaitGroup
+	initializationDone sync.Once
 }
 
 // New is constructor for Import-Export Qt-Go interface
@@ -101,6 +105,10 @@ func New(
 		ie:             ie,
 		restarter:      restarter,
 	}
+
+	// Initializing.Done is only called sync.Once. Please keep the increment
+	// set to 1
+	f.initializing.Add(1)
 
 	log.Debugf("New Qt frontend: %p", f)
 	return f
@@ -540,4 +548,15 @@ func (f *FrontendQt) createLabelOrFolder(email, name, color string, isLabel bool
 		f.TransferRules.addTargetID(sourceID, m.Hash())
 	}
 	return true
+}
+
+func (f *FrontendQt) WaitUntilFrontendIsReady() {
+	f.initializing.Wait()
+}
+
+// setGUIIsReady unlocks the WaitUntilFrontendIsReady.
+func (f *FrontendQt) setGUIIsReady() {
+	f.initializationDone.Do(func() {
+		f.initializing.Done()
+	})
 }

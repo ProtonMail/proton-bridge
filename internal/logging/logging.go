@@ -45,6 +45,14 @@ func Init(logsPath string) error {
 		FullTimestamp:   true,
 		TimestampFormat: time.StampMilli,
 	})
+	logrus.AddHook(&writer.Hook{
+		Writer: os.Stderr,
+		LogLevels: []logrus.Level{
+			logrus.PanicLevel,
+			logrus.FatalLevel,
+			logrus.ErrorLevel,
+		},
+	})
 
 	rotator, err := NewRotator(MaxLogSize, func() (io.WriteCloser, error) {
 		if err := clearLogs(logsPath, MaxLogs); err != nil {
@@ -58,16 +66,6 @@ func Init(logsPath string) error {
 	}
 
 	logrus.SetOutput(rotator)
-
-	logrus.AddHook(&writer.Hook{
-		Writer: os.Stderr,
-		LogLevels: []logrus.Level{
-			logrus.PanicLevel,
-			logrus.FatalLevel,
-			logrus.ErrorLevel,
-		},
-	})
-
 	return nil
 }
 
@@ -77,6 +75,9 @@ func SetLevel(level string) {
 	}
 
 	if logrus.GetLevel() == logrus.DebugLevel || logrus.GetLevel() == logrus.TraceLevel {
+		// The hook to print panic, fatal and error to stderr is always
+		// added. We want to avoid log duplicates by replacing all hooks
+		_ = logrus.StandardLogger().ReplaceHooks(logrus.LevelHooks{})
 		logrus.SetOutput(os.Stderr)
 	}
 }

@@ -327,6 +327,8 @@ Item {
         go.failedAutostart        = qsTr("Unable to configure automatic start."                           , "notification", -1)
         go.genericErrSeeLogs      = qsTr("An error happened during procedure. See logs for more details." , "notification", -1)
 
+        go.guiIsReady()
+
         // start window
         gui.openMainWindow(false)
         if (go.isShownOnStart) {

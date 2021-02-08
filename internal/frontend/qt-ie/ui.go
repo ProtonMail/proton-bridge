@@ -67,6 +67,7 @@ type GoQMLInterface struct {
 	_ func() `slot:"checkAndOpenReleaseNotes"`
 	_ func() `signal:"openReleaseNotesExternally"`
 	_ func() `slot:"startManualUpdate"`
+	_ func() `slot:"guiIsReady"`
 
 	// translations
 	_ string `property:"wrongCredentials"`
@@ -200,6 +201,8 @@ func (s *GoQMLInterface) SetFrontend(f *FrontendQt) {
 
 	s.ConnectStartExport(f.StartExport)
 	s.ConnectStartImport(f.StartImport)
+
+	s.ConnectGuiIsReady(f.setGUIIsReady)
 
 	s.ConnectCheckPathStatus(CheckPathStatus)
 

@@ -360,6 +360,7 @@ Window {
 
         signal updateFinished(bool hasError)
 
+        signal guiIsReady()
 
         signal  showOutgoingNoEncPopup(string subject)
         signal  setOutgoingNoEncPopupCoord(real x, real y)

@@ -45,6 +45,7 @@ type Frontend interface {
 	SetVersion(update updater.VersionInfo)
 	NotifySilentUpdateInstalled()
 	NotifySilentUpdateError(error)
+	WaitUntilFrontendIsReady()
 }
 
 // New returns initialized frontend based on `frontendType`, which can be `cli` or `qt`.

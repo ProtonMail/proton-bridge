@@ -26,14 +26,14 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// MigrateFiles migrates files from their old (pre-refactor) locations to their new locations.
+// migrateFiles migrates files from their old (pre-refactor) locations to their new locations.
 // We can remove this eventually.
 //
 // | entity |               old location                |            new location                |
 // |--------|-------------------------------------------|----------------------------------------|
 // | prefs  | ~/.cache/protonmail/<app>/c11/prefs.json  | ~/.config/protonmail/<app>/prefs.json  |
 // | c11    | ~/.cache/protonmail/<app>/c11             | ~/.cache/protonmail/<app>/cache/c11    |
-func MigrateFiles(configName string) error {
+func migrateFiles(configName string) error {
 	locationsProvider, err := locations.NewDefaultProvider(filepath.Join(constants.VendorName, configName))
 	if err != nil {
 		return err

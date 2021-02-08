@@ -25,7 +25,7 @@ import (
 	"github.com/therecipe/qt/core"
 )
 
-// Interface between go and qml.
+// GoQMLInterface between go and qml.
 //
 // Here we implement all the signals / methods.
 type GoQMLInterface struct {
@@ -64,6 +64,7 @@ type GoQMLInterface struct {
 	_ func() `slot:"checkAndOpenReleaseNotes"`
 	_ func() `signal:"openReleaseNotesExternally"`
 	_ func() `slot:"startManualUpdate"`
+	_ func() `slot:"guiIsReady"`
 
 	// Translations.
 	_ string `property:"wrongCredentials"`
@@ -170,6 +171,7 @@ func (s *GoQMLInterface) SetFrontend(f *FrontendQt) {
 	s.ConnectClearKeychain(f.clearKeychain)
 	s.ConnectOpenLicenseFile(f.openLicenseFile)
 	s.ConnectStartManualUpdate(f.startManualUpdate)
+	s.ConnectGuiIsReady(f.setGUIIsReady)
 	s.ConnectGetLocalVersionInfo(f.getLocalVersionInfo)
 	s.ConnectCheckForUpdates(f.checkForUpdates)
 	s.ConnectGetIMAPPort(f.getIMAPPort)

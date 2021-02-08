@@ -432,6 +432,9 @@ Item {
         go.bugNotSent             = qsTr("Unable to submit bug report."                                  , "notification", -1)
         go.bugReportSent          = qsTr("Bug report successfully sent."                                 , "notification", -1)
 
+
+        go.guiIsReady()
+
         gui.allMonths = getMonthList(1,12)
         gui.allMonthsChanged()
     }

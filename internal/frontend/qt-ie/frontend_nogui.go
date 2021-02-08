@@ -50,6 +50,9 @@ func (s *FrontendHeadless) NotifyManualUpdate(update updater.VersionInfo, canIns
 func (s *FrontendHeadless) SetVersion(update updater.VersionInfo) {
 }
 
+func (s *FrontendHeadless) WaitUntilFrontendIsReady() {
+}
+
 func (s *FrontendHeadless) NotifySilentUpdateInstalled() {
 }
 

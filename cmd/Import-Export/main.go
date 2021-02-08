@@ -18,9 +18,7 @@
 package main
 
 import (
-	"math/rand"
 	"os"
-	"time"
 
 	"github.com/ProtonMail/proton-bridge/internal/app/base"
 	"github.com/ProtonMail/proton-bridge/internal/app/ie"
@@ -37,14 +35,6 @@ const (
 )
 
 func main() {
-	rand.Seed(time.Now().UnixNano())
-
-	if err := base.MigrateFiles(configName); err != nil {
-		logrus.WithError(err).Warn("Old config files could not be migrated")
-	}
-
-	os.Args = base.StripProcessSerialNumber(os.Args)
-
 	base, err := base.New(
 		appName,
 		appUsage,

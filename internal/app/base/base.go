@@ -29,10 +29,12 @@
 package base
 
 import (
+	"math/rand"
 	"os"
 	"path/filepath"
 	"runtime"
 	"runtime/pprof"
+	"time"
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/ProtonMail/go-autostart"
@@ -91,12 +93,14 @@ func New( // nolint[funlen]
 	cacheVersion string,
 ) (*Base, error) {
 	sentryReporter := sentry.NewReporter(appName, constants.Version)
-
 	crashHandler := crash.NewHandler(
 		sentryReporter.ReportException,
 		crash.ShowErrorNotification(appName),
 	)
 	defer crashHandler.HandlePanic()
+
+	rand.Seed(time.Now().UnixNano())
+	os.Args = StripProcessSerialNumber(os.Args)
 
 	locationsProvider, err := locations.NewDefaultProvider(filepath.Join(constants.VendorName, configName))
 	if err != nil {
@@ -104,9 +108,6 @@ func New( // nolint[funlen]
 	}
 
 	locations := locations.New(locationsProvider, configName)
-	if err := locations.Clean(); err != nil {
-		return nil, err
-	}
 
 	logsPath, err := locations.ProvideLogsPath()
 	if err != nil {
@@ -116,6 +117,14 @@ func New( // nolint[funlen]
 		return nil, err
 	}
 	crashHandler.AddRecoveryAction(logging.DumpStackTrace(logsPath))
+
+	if err := migrateFiles(configName); err != nil {
+		logrus.WithError(err).Warn("Old config files could not be migrated")
+	}
+
+	if err := locations.Clean(); err != nil {
+		return nil, err
+	}
 
 	settingsPath, err := locations.ProvideSettingsPath()
 	if err != nil {
