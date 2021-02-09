@@ -172,7 +172,7 @@ func TestClient_FirstReadTimeout(t *testing.T) {
 
 func TestClient_MinSpeedTimeout(t *testing.T) {
 	finish, c := newTestServerCallbacks(t,
-		routeSlow(4*time.Second), // 1 second longer than the minimum transfer speed poll time.
+		routeSlow(31*time.Second), // 1 second longer than the minimum transfer speed poll time.
 	)
 	defer finish()
 

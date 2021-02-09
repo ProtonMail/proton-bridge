@@ -455,18 +455,22 @@ func (c *client) readAllMinSpeed(data io.Reader, cancelRequest context.CancelFun
 	})
 
 	// speedCheckSeconds controls how often we check the transfer speed.
-	const speedCheckSeconds = 3
+	// Note that connection can be unstable, on average very fast, but can be
+	// idle for few seconds; or that API can take its time before sending
+	// another data, e.g., API can send some data and take some time before
+	// processing and sending the rest of the response.
+	const speedCheckSeconds = 30
 
 	var buffer bytes.Buffer
 	for {
 		_, err := io.CopyN(&buffer, data, c.cm.config.MinBytesPerSecond*speedCheckSeconds)
 		timer.Stop()
-		timer.Reset(speedCheckSeconds * time.Second)
 		if err == io.EOF {
 			break
 		} else if err != nil {
 			return nil, err
 		}
+		timer.Reset(speedCheckSeconds * time.Second)
 	}
 
 	return ioutil.ReadAll(&buffer)
