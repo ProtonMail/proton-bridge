@@ -61,6 +61,7 @@
         <file alias="BubbleMenu.qml"         >./qml/BridgeUI/BubbleMenu.qml</file>
         <file alias="Credits.qml"            >./qml/BridgeUI/Credits.qml</file>
         <file alias="DialogFirstStart.qml"   >./qml/BridgeUI/DialogFirstStart.qml</file>
+        <file alias="DialogKeychainChange.qml"   >./qml/BridgeUI/DialogKeychainChange.qml</file>
         <file alias="DialogPortChange.qml"   >./qml/BridgeUI/DialogPortChange.qml</file>
         <file alias="DialogYesNo.qml"        >./qml/BridgeUI/DialogYesNo.qml</file>
         <file alias="DialogTLSCertInfo.qml"  >./qml/BridgeUI/DialogTLSCertInfo.qml</file>

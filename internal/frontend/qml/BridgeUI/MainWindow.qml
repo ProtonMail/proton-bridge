@@ -303,6 +303,10 @@ Window {
         id: dialogChangePort
     }
 
+    DialogKeychainChange {
+        id: dialogChangeKeychain
+    }
+
     DialogConnectionTroubleshoot {
         id: dialogConnectionTroubleshoot
     }

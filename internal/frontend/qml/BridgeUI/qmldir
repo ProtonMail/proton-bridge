@@ -2,6 +2,7 @@ module BridgeUI
 AccountDelegate    1.0 AccountDelegate.qml
 Credits            1.0 Credits.qml
 DialogFirstStart   1.0 DialogFirstStart.qml
+DialogKeychainChange 1.0 DialogKeychainChange.qml
 DialogPortChange   1.0 DialogPortChange.qml
 DialogYesNo        1.0 DialogYesNo.qml
 DialogTLSCertInfo  1.0 DialogTLSCertInfo.qml

@@ -111,6 +111,11 @@ StackLayout {
     Accessible.description: title
     Accessible.focusable: true
 
+    onVisibleChanged: {
+        if (background.visible != visible) {
+            background.visible = visible
+        }
+    }
 
     visible      : false
     anchors {

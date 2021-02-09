@@ -45,6 +45,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/internal/frontend/types"
 	"github.com/ProtonMail/proton-bridge/internal/locations"
 	"github.com/ProtonMail/proton-bridge/internal/updater"
+	"github.com/ProtonMail/proton-bridge/pkg/keychain"
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	"github.com/ProtonMail/proton-bridge/pkg/ports"
@@ -371,6 +372,14 @@ func (s *FrontendQt) qtExecute(Procedure func(*FrontendQt) error) error {
 	} else {
 		s.Qml.SetIsEarlyAccess(false)
 	}
+
+	availableKeychain := []string{}
+	for chain := range keychain.Helpers {
+		availableKeychain = append(availableKeychain, chain)
+	}
+	s.Qml.SetAvailableKeychain(availableKeychain)
+
+	s.Qml.SetSelectedKeychain(s.settings.Get(settings.PreferredKeychainKey))
 
 	// Set reporting of outgoing email without encryption.
 	s.Qml.SetIsReportingOutgoingNoEnc(s.settings.GetBool(settings.ReportOutgoingNoEncKey))
@@ -710,4 +719,17 @@ func (s *FrontendQt) setGUIIsReady() {
 	s.initializationDone.Do(func() {
 		s.initializing.Done()
 	})
+}
+
+func (s *FrontendQt) getKeychain() string {
+	return s.bridge.GetKeychainApp()
+}
+
+func (s *FrontendQt) setKeychain(keychain string) {
+	if keychain != s.bridge.GetKeychainApp() {
+		s.bridge.SetKeychainApp(keychain)
+
+		s.restarter.SetToRestart()
+		s.App.Quit()
+	}
 }

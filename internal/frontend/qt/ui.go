@@ -66,6 +66,9 @@ type GoQMLInterface struct {
 	_ func() `slot:"startManualUpdate"`
 	_ func() `slot:"guiIsReady"`
 
+	_ []string `property:"availableKeychain"`
+	_ string   `property:"selectedKeychain"`
+
 	// Translations.
 	_ string `property:"wrongCredentials"`
 	_ string `property:"wrongMailboxPassword"`
@@ -209,4 +212,7 @@ func (s *GoQMLInterface) SetFrontend(f *FrontendQt) {
 	s.ConnectToggleIsReportingOutgoingNoEnc(f.toggleIsReportingOutgoingNoEnc)
 	s.ConnectShouldSendAnswer(f.shouldSendAnswer)
 	s.ConnectSaveOutgoingNoEncPopupCoord(f.saveOutgoingNoEncPopupCoord)
+
+	s.ConnectSetSelectedKeychain(f.setKeychain)
+	s.ConnectSelectedKeychain(f.getKeychain)
 }

@@ -239,6 +239,25 @@ Item {
                     dialogGlobal.show()
                 }
             }
+
+            ButtonIconText {
+                id: changeKeychain
+                visible: advancedSettings.isAdvanced && (go.availableKeychain.length > 1)
+                text: qsTr("Change keychain", "button to open dialog with default keychain selection")
+                leftIcon.text  : Style.fa.key
+                rightIcon {
+                    text : qsTr("Change", "clickable link next to change keychain button in settings")
+                    color: Style.main.text
+                    font {
+                        family : changeKeychain.font.family // use default font, not font-awesome
+                        pointSize : Style.settings.fontSize * Style.pt
+                        underline : true
+                    }
+                }
+                onClicked: {
+                    dialogChangeKeychain.show()
+                }
+            }
         }
     }
 }

@@ -82,6 +82,8 @@ type Bridger interface {
 	DisallowProxy()
 	GetUpdateChannel() updater.UpdateChannel
 	SetUpdateChannel(updater.UpdateChannel) error
+	GetKeychainApp() string
+	SetKeychainApp(keychain string)
 }
 
 type bridgeWrap struct {

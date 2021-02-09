@@ -210,3 +210,13 @@ func (b *Bridge) SetUpdateChannel(channel updater.UpdateChannel) error {
 
 	return b.versioner.RemoveOtherVersions(version.Version)
 }
+
+// GetKeychainApp returns current keychain helper.
+func (b *Bridge) GetKeychainApp() string {
+	return b.settings.Get(settings.PreferredKeychainKey)
+}
+
+// SetKeychainApp sets current keychain helper.
+func (b *Bridge) SetKeychainApp(helper string) {
+	b.settings.Set(settings.PreferredKeychainKey, helper)
+}
