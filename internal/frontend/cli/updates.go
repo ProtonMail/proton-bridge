@@ -21,15 +21,85 @@ import (
 	"strings"
 
 	"github.com/ProtonMail/proton-bridge/internal/bridge"
+	"github.com/ProtonMail/proton-bridge/internal/config/settings"
+	"github.com/ProtonMail/proton-bridge/internal/updater"
 	"github.com/abiosoft/ishell"
 )
 
 func (f *frontendCLI) checkUpdates(c *ishell.Context) {
-	f.Println("Your version is up to date.")
+	version, err := f.updater.Check()
+	if err != nil {
+		f.Println("An error occurred while checking for updates.")
+		return
+	}
+
+	if f.updater.IsUpdateApplicable(version) {
+		f.Println("An update is available.")
+	} else {
+		f.Println("Your version is up to date.")
+	}
 }
 
 func (f *frontendCLI) printCredits(c *ishell.Context) {
 	for _, pkg := range strings.Split(bridge.Credits, ";") {
 		f.Println(pkg)
+	}
+}
+
+func (f *frontendCLI) enableAutoUpdates(c *ishell.Context) {
+	if f.settings.GetBool(settings.AutoUpdateKey) {
+		f.Println("Bridge is already set to automatically install updates.")
+		return
+	}
+
+	f.Println("Bridge is currently set to NOT automatically install updates.")
+
+	if f.yesNoQuestion("Are you sure you want to allow bridge to do this") {
+		f.settings.SetBool(settings.AutoUpdateKey, true)
+	}
+}
+
+func (f *frontendCLI) disableAutoUpdates(c *ishell.Context) {
+	if !f.settings.GetBool(settings.AutoUpdateKey) {
+		f.Println("Bridge is already set to NOT automatically install updates.")
+		return
+	}
+
+	f.Println("Bridge is currently set to automatically install updates.")
+
+	if f.yesNoQuestion("Are you sure you want to stop bridge from doing this") {
+		f.settings.SetBool(settings.AutoUpdateKey, false)
+	}
+}
+
+func (f *frontendCLI) selectEarlyChannel(c *ishell.Context) {
+	if f.bridge.GetUpdateChannel() == updater.EarlyChannel {
+		f.Println("Bridge is already on the early-access update channel.")
+		return
+	}
+
+	f.Println("Bridge is currently on the stable update channel.")
+
+	if f.yesNoQuestion("Are you sure you want to switch to the early-access update channel") {
+		if err := f.bridge.SetUpdateChannel(updater.EarlyChannel); err != nil {
+			f.Println("There was a problem switching update channel.")
+		}
+	}
+}
+
+func (f *frontendCLI) selectStableChannel(c *ishell.Context) {
+	if f.bridge.GetUpdateChannel() == updater.StableChannel {
+		f.Println("Bridge is already on the stable update channel.")
+		return
+	}
+
+	f.Println("Bridge is currently on the early-access update channel.")
+	f.Println("Switching to the stable channel may reset all data!")
+
+	if f.yesNoQuestion("Are you sure you want to switch to the stable update channel") {
+		if err := f.bridge.SetUpdateChannel(updater.StableChannel); err != nil {
+			f.Println("There was a problem switching update channel.")
+		}
+		f.restarter.SetToRestart()
 	}
 }

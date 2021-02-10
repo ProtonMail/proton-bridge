@@ -102,10 +102,6 @@ func New( //nolint[funlen]
 		Aliases: []string{"p"},
 		Func:    fe.changePort,
 	})
-	changeCmd.AddCmd(&ishell.Cmd{Name: "proxy",
-		Help: "allow or disallow bridge to securely connect to proton via a third party when it is being blocked",
-		Func: fe.toggleAllowProxy,
-	})
 	changeCmd.AddCmd(&ishell.Cmd{Name: "smtp-security",
 		Help:    "change port numbers of IMAP and SMTP servers.(alias: ssl, starttls)",
 		Aliases: []string{"ssl", "starttls"},
@@ -113,13 +109,56 @@ func New( //nolint[funlen]
 	})
 	fe.AddCmd(changeCmd)
 
+	// DoH commands.
+	dohCmd := &ishell.Cmd{Name: "proxy",
+		Help: "allow or disallow bridge to securely connect to proton via a third party when it is being blocked",
+	}
+	dohCmd.AddCmd(&ishell.Cmd{Name: "allow",
+		Help: "allow bridge to securely connect to proton via a third party when it is being blocked",
+		Func: fe.allowProxy,
+	})
+	dohCmd.AddCmd(&ishell.Cmd{Name: "disallow",
+		Help: "disallow bridge to securely connect to proton via a third party when it is being blocked",
+		Func: fe.disallowProxy,
+	})
+	fe.AddCmd(dohCmd)
+
+	// Updates commands.
+	updatesCmd := &ishell.Cmd{Name: "updates",
+		Help: "manage bridge updates",
+	}
+	updatesCmd.AddCmd(&ishell.Cmd{Name: "check",
+		Help: "check for Bridge updates",
+		Func: fe.checkUpdates,
+	})
+	autoUpdatesCmd := &ishell.Cmd{Name: "autoupdates",
+		Help: "manage bridge updates",
+	}
+	updatesCmd.AddCmd(autoUpdatesCmd)
+	autoUpdatesCmd.AddCmd(&ishell.Cmd{Name: "enable",
+		Help: "automatically keep bridge up to date",
+		Func: fe.enableAutoUpdates,
+	})
+	autoUpdatesCmd.AddCmd(&ishell.Cmd{Name: "disable",
+		Help: "require bridge to be manually updated",
+		Func: fe.disableAutoUpdates,
+	})
+	updatesChannelCmd := &ishell.Cmd{Name: "channel",
+		Help: "switch updates channel",
+	}
+	updatesCmd.AddCmd(updatesChannelCmd)
+	updatesChannelCmd.AddCmd(&ishell.Cmd{Name: "early",
+		Help: "switch to the early-access updates channel",
+		Func: fe.selectEarlyChannel,
+	})
+	updatesChannelCmd.AddCmd(&ishell.Cmd{Name: "stable",
+		Help: "switch to the stable updates channel",
+		Func: fe.selectStableChannel,
+	})
+	fe.AddCmd(updatesCmd)
+
 	// Check commands.
 	checkCmd := &ishell.Cmd{Name: "check", Help: "check internet connection or new version."}
-	checkCmd.AddCmd(&ishell.Cmd{Name: "updates",
-		Help:    "check for Bridge updates. (aliases: u, v, version)",
-		Aliases: []string{"u", "version", "v"},
-		Func:    fe.checkUpdates,
-	})
 	checkCmd.AddCmd(&ishell.Cmd{Name: "internet",
 		Help:    "check internet connection. (aliases: i, conn, connection)",
 		Aliases: []string{"i", "con", "connection"},
