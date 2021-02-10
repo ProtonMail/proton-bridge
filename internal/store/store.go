@@ -26,6 +26,7 @@ import (
 
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
+	"github.com/ProtonMail/proton-bridge/pkg/sentry"
 	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -95,10 +96,11 @@ var (
 
 // Store is local user storage, which handles the synchronization between IMAP and PM API.
 type Store struct {
-	panicHandler  PanicHandler
-	eventLoop     *eventLoop
-	user          BridgeUser
-	clientManager ClientManager
+	sentryReporter *sentry.Reporter
+	panicHandler   PanicHandler
+	eventLoop      *eventLoop
+	user           BridgeUser
+	clientManager  ClientManager
 
 	log *logrus.Entry
 
@@ -115,7 +117,8 @@ type Store struct {
 }
 
 // New creates or opens a store for the given `user`.
-func New(
+func New( // nolint[funlen]
+	sentryReporter *sentry.Reporter,
 	panicHandler PanicHandler,
 	user BridgeUser,
 	clientManager ClientManager,
@@ -145,14 +148,15 @@ func New(
 	}
 
 	store = &Store{
-		panicHandler:  panicHandler,
-		clientManager: clientManager,
-		user:          user,
-		cache:         cache,
-		filePath:      path,
-		db:            bdb,
-		lock:          &sync.RWMutex{},
-		log:           l,
+		sentryReporter: sentryReporter,
+		panicHandler:   panicHandler,
+		clientManager:  clientManager,
+		user:           user,
+		cache:          cache,
+		filePath:       path,
+		db:             bdb,
+		lock:           &sync.RWMutex{},
+		log:            l,
 	}
 
 	// Minimal increase is event pollInterval, doubles every failed retry up to 5 minutes.

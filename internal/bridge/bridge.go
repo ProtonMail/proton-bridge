@@ -29,6 +29,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/internal/updater"
 	"github.com/ProtonMail/proton-bridge/internal/users"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
+	"github.com/ProtonMail/proton-bridge/pkg/sentry"
 
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
 	logrus "github.com/sirupsen/logrus"
@@ -56,6 +57,7 @@ func New(
 	locations Locator,
 	cache Cacher,
 	s SettingsProvider,
+	sentryReporter *sentry.Reporter,
 	panicHandler users.PanicHandler,
 	eventListener listener.Listener,
 	clientManager users.ClientManager,
@@ -69,7 +71,7 @@ func New(
 		clientManager.AllowProxy()
 	}
 
-	storeFactory := newStoreFactory(cache, panicHandler, clientManager, eventListener)
+	storeFactory := newStoreFactory(cache, sentryReporter, panicHandler, clientManager, eventListener)
 	u := users.New(locations, panicHandler, eventListener, clientManager, credStorer, storeFactory, true)
 	b := &Bridge{
 		Users: u,

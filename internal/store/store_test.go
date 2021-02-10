@@ -125,6 +125,7 @@ func (mocks *mocksForStore) newStoreNoEvents(combinedMode bool, msgs ...*pmapi.M
 
 	var err error
 	mocks.store, err = New(
+		nil, // Sentry reporter is not used under unit tests.
 		mocks.panicHandler,
 		mocks.user,
 		mocks.clientManager,

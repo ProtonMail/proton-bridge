@@ -76,19 +76,20 @@ const (
 )
 
 type Base struct {
-	CrashHandler *crash.Handler
-	Locations    *locations.Locations
-	Settings     *settings.Settings
-	Lock         *os.File
-	Cache        *cache.Cache
-	Listener     listener.Listener
-	Creds        *credentials.Store
-	CM           *pmapi.ClientManager
-	CookieJar    *cookies.Jar
-	Updater      *updater.Updater
-	Versioner    *versioner.Versioner
-	TLS          *tls.TLS
-	Autostart    *autostart.App
+	SentryReporter *sentry.Reporter
+	CrashHandler   *crash.Handler
+	Locations      *locations.Locations
+	Settings       *settings.Settings
+	Lock           *os.File
+	Cache          *cache.Cache
+	Listener       listener.Listener
+	Creds          *credentials.Store
+	CM             *pmapi.ClientManager
+	CookieJar      *cookies.Jar
+	Updater        *updater.Updater
+	Versioner      *versioner.Versioner
+	TLS            *tls.TLS
+	Autostart      *autostart.App
 
 	Name    string // the app's name
 	usage   string // the app's usage description
@@ -234,19 +235,20 @@ func New( // nolint[funlen]
 	}
 
 	return &Base{
-		CrashHandler: crashHandler,
-		Locations:    locations,
-		Settings:     settingsObj,
-		Lock:         lock,
-		Cache:        cache,
-		Listener:     listener,
-		Creds:        credentials.NewStore(kc),
-		CM:           cm,
-		CookieJar:    jar,
-		Updater:      updater,
-		Versioner:    versioner,
-		TLS:          tls.New(settingsPath),
-		Autostart:    autostart,
+		SentryReporter: sentryReporter,
+		CrashHandler:   crashHandler,
+		Locations:      locations,
+		Settings:       settingsObj,
+		Lock:           lock,
+		Cache:          cache,
+		Listener:       listener,
+		Creds:          credentials.NewStore(kc),
+		CM:             cm,
+		CookieJar:      jar,
+		Updater:        updater,
+		Versioner:      versioner,
+		TLS:            tls.New(settingsPath),
+		Autostart:      autostart,
 
 		Name:  appName,
 		usage: appUsage,

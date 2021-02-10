@@ -54,6 +54,7 @@ require (
 	github.com/nsf/jsondiff v0.0.0-20200515183724-f29ed568f4ce
 	github.com/olekukonko/tablewriter v0.0.4 // indirect
 	github.com/pkg/errors v0.9.1
+	github.com/pkg/math v0.0.0-20141027224758-f2ed9e40e245
 	github.com/sirupsen/logrus v1.7.0
 	github.com/skratchdot/open-golang v0.0.0-20200116055534-eef842397966
 	github.com/ssor/bom v0.0.0-20170718123548-6386211fdfcf // indirect

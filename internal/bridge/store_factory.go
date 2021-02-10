@@ -23,37 +23,40 @@ import (
 
 	"github.com/ProtonMail/proton-bridge/internal/store"
 	"github.com/ProtonMail/proton-bridge/internal/users"
-
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
+	"github.com/ProtonMail/proton-bridge/pkg/sentry"
 )
 
 type storeFactory struct {
-	cache         Cacher
-	panicHandler  users.PanicHandler
-	clientManager users.ClientManager
-	eventListener listener.Listener
-	storeCache    *store.Cache
+	cache          Cacher
+	sentryReporter *sentry.Reporter
+	panicHandler   users.PanicHandler
+	clientManager  users.ClientManager
+	eventListener  listener.Listener
+	storeCache     *store.Cache
 }
 
 func newStoreFactory(
 	cache Cacher,
+	sentryReporter *sentry.Reporter,
 	panicHandler users.PanicHandler,
 	clientManager users.ClientManager,
 	eventListener listener.Listener,
 ) *storeFactory {
 	return &storeFactory{
-		cache:         cache,
-		panicHandler:  panicHandler,
-		clientManager: clientManager,
-		eventListener: eventListener,
-		storeCache:    store.NewCache(cache.GetIMAPCachePath()),
+		cache:          cache,
+		sentryReporter: sentryReporter,
+		panicHandler:   panicHandler,
+		clientManager:  clientManager,
+		eventListener:  eventListener,
+		storeCache:     store.NewCache(cache.GetIMAPCachePath()),
 	}
 }
 
 // New creates new store for given user.
 func (f *storeFactory) New(user store.BridgeUser) (*store.Store, error) {
 	storePath := getUserStorePath(f.cache.GetDBDir(), user.ID())
-	return store.New(f.panicHandler, user, f.clientManager, f.eventListener, storePath, f.storeCache)
+	return store.New(f.sentryReporter, f.panicHandler, user, f.clientManager, f.eventListener, storePath, f.storeCache)
 }
 
 // Remove removes all store files for given user.

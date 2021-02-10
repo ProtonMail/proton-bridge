@@ -28,8 +28,13 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-const pollInterval = 30 * time.Second
-const pollIntervalSpread = 5 * time.Second
+const (
+	pollInterval       = 30 * time.Second
+	pollIntervalSpread = 5 * time.Second
+
+	// errMaxSentry defines after how many errors in a row to report it to sentry.
+	errMaxSentry = 20
+)
 
 type eventLoop struct {
 	cache          *Cache
@@ -41,6 +46,7 @@ type eventLoop struct {
 	isRunning      bool // The whole event loop is running.
 
 	pollCounter int
+	errCounter  int
 
 	log *logrus.Entry
 
@@ -227,9 +233,18 @@ func (loop *eventLoop) processNextEvent() (more bool, err error) { // nolint[fun
 
 		_, errUnauthorized := errors.Cause(err).(*pmapi.ErrUnauthorized)
 
+		if err == nil {
+			loop.errCounter = 0
+		}
 		// All errors except Invalid Token (which is not possible to recover from) are ignored.
 		if err != nil && !errUnauthorized && errors.Cause(err) != pmapi.ErrInvalidToken {
-			l.WithError(err).Error("Error skipped")
+			l.WithError(err).WithField("errors", loop.errCounter).Error("Error skipped")
+			loop.errCounter++
+			if loop.errCounter == errMaxSentry {
+				if sentryErr := loop.store.sentryReporter.ReportMessage("Warning: event loop issues: " + err.Error() + ", " + loop.currentEventID); sentryErr != nil {
+					l.WithError(sentryErr).Error("Failed to report error to sentry")
+				}
+			}
 			err = nil
 		}
 	}()
@@ -282,6 +297,10 @@ func (loop *eventLoop) processEvent(event *pmapi.Event) (err error) {
 	if (event.Refresh & pmapi.EventRefreshMail) != 0 {
 		eventLog.Info("Processing refresh event")
 		loop.store.triggerSync()
+
+		if sentryErr := loop.store.sentryReporter.ReportMessage("Warning: refresh occurred, " + loop.currentEventID); sentryErr != nil {
+			loop.log.WithError(sentryErr).Error("Failed to report refresh to sentry")
+		}
 
 		return
 	}
