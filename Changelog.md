@@ -2,6 +2,25 @@
 
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
+## [Bridge 1.6.3] HZM
+
+### Added
+* GODT-337 Desktop files.
+
+### Changed
+* GODT-885 Do not explicitly unlabel folders during move to match behaviour of other clients.
+* GODT-616 Better user message about wrong mailbox password.
+* GODT-1021 Do not allow copy Inbox->Sent or Sent->Inbox
+* GODT-976 Exclude updates from clearing cache and clear cache, including updates, while switching early access off
+* GODT-1033 Retry starting IMAP server after connection was down
+
+### Fixed
+* GODT-1011 Stable integration test deleting many messages using UID EXPUNGE.
+* GODT-1015 Use lenient version parser to properly parse version provided by Mac.
+* GODT-919 Notify about update right after the start.
+* GODT-919 GODT-1022 Logs and signals
+
+
 ## [IE 1.3.0] Farg
 
 ### Changed
