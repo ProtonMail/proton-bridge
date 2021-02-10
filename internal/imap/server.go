@@ -117,10 +117,12 @@ func (s *imapServer) ListenAndServe() {
 	go s.monitorDisconnectedUsers()
 	go s.monitorInternetConnection()
 
-	s.listenAndServe()
+	// When starting the Bridge, we don't want to retry to notify user
+	// quickly about the issue. Very probably retry will not help anyway.
+	s.listenAndServe(0)
 }
 
-func (s *imapServer) listenAndServe() {
+func (s *imapServer) listenAndServe(retries int) {
 	if s.isRunning.Load().(bool) {
 		return
 	}
@@ -129,8 +131,16 @@ func (s *imapServer) listenAndServe() {
 	log.Info("IMAP server listening at ", s.server.Addr)
 	l, err := net.Listen("tcp", s.server.Addr)
 	if err != nil {
+		s.isRunning.Store(false)
+		if retries > 0 {
+			log.WithError(err).WithField("retries", retries).Warn("IMAP listener failed")
+			time.Sleep(15 * time.Second)
+			s.listenAndServe(retries - 1)
+			return
+		}
+
+		log.WithError(err).Error("IMAP listener failed")
 		s.eventListener.Emit(events.ErrorEvent, "IMAP failed: "+err.Error())
-		log.Error("IMAP failed: ", err)
 		return
 	}
 
@@ -142,8 +152,9 @@ func (s *imapServer) listenAndServe() {
 	// User shouldn't be notified about error if server shouldn't be running,
 	// but it should in case it was not closed by `s.Close()`.
 	if err != nil && s.isRunning.Load().(bool) {
+		s.isRunning.Store(false)
+		log.WithError(err).Error("IMAP server failed")
 		s.eventListener.Emit(events.ErrorEvent, "IMAP failed: "+err.Error())
-		log.Error("IMAP failed: ", err)
 		return
 	}
 	defer s.server.Close() //nolint[errcheck]
@@ -176,7 +187,11 @@ func (s *imapServer) monitorInternetConnection() {
 		case <-on:
 			go func() {
 				defer s.panicHandler.HandlePanic()
-				s.listenAndServe()
+				// We had issues on Mac that from time to time something
+				// blocked our port for a bit after we closed IMAP server
+				// due to connection issues.
+				// Restart always helped, so we do retry to not bother user.
+				s.listenAndServe(10)
 			}()
 			expectedIsPortFree = false
 		case <-off:
