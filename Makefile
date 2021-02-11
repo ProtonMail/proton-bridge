@@ -249,7 +249,7 @@ mocks:
 	mockgen --package mocks github.com/ProtonMail/proton-bridge/pkg/listener Listener > internal/store/mocks/utils_mocks.go
 	mockgen --package mocks github.com/ProtonMail/proton-bridge/pkg/pmapi Client > pkg/pmapi/mocks/mocks.go
 
-lint: lint-golang lint-license lint-changelog
+lint: gofiles lint-golang lint-license lint-changelog
 
 lint-license:
 	./utils/missing_license.sh check

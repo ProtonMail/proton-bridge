@@ -26,6 +26,9 @@ internal/frontend/qml/ProtonUI/images
 internal/frontend/qml/ImportExportUI/images
 frontend/qml/*.qmlc
 
+# Credits files (generated).
+internal/**/credits.go
+
 # Build files
 /launcher-*
 /bridge_*_*.tgz
