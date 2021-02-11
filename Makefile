@@ -180,7 +180,7 @@ update-qt-docs:
 	go get github.com/therecipe/qt/internal/binding/files/docs/$(QT_API)
 
 ## Dev dependencies
-.PHONY: install-devel-tools install-linter install-go-mod-outdated
+.PHONY: install-devel-tools install-linter install-go-mod-outdated install-git-hooks
 LINTVER:="v1.29.0"
 LINTSRC:="https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh"
 
@@ -197,6 +197,9 @@ install-linter: check-has-go
 install-go-mod-outdated:
 	which go-mod-outdated || go get -u github.com/psampaz/go-mod-outdated
 
+install-git-hooks:
+	cp utils/githooks/* .git/hooks/
+	chmod +x .git/hooks/*
 
 ## Checks, mocks and docs
 .PHONY: check-has-go add-license change-copyright-year test bench coverage mocks lint-license lint-golang lint updates doc release-notes
