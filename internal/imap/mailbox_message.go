@@ -70,9 +70,6 @@ func (im *imapMailbox) CreateMessage(flags []string, date time.Time, body imap.L
 	// Called from go-imap in goroutines - we need to handle panics for each function.
 	defer im.panicHandler.HandlePanic()
 
-	im.user.appendStarted()
-	defer im.user.appendFinished()
-
 	m, _, _, readers, err := message.Parse(body)
 	if err != nil {
 		return err
@@ -153,6 +150,9 @@ func (im *imapMailbox) CreateMessage(flags []string, date time.Time, body imap.L
 			internalID = match[1]
 		}
 	}
+
+	im.user.appendExpungeLock.Lock()
+	defer im.user.appendExpungeLock.Unlock()
 
 	// Avoid appending a message which is already on the server. Apply the
 	// new label instead. This always happens with Outlook (it uses APPEND

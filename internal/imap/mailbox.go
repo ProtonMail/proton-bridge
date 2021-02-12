@@ -177,16 +177,11 @@ func (im *imapMailbox) Check() error {
 // Expunge permanently removes all messages that have the \Deleted flag set
 // from the currently selected mailbox.
 func (im *imapMailbox) Expunge() error {
-	// Wait for any APPENDS to finish in order to avoid data loss when
-	// Outlook sends commands too quickly STORE \Deleted, APPEND, EXPUNGE,
-	// APPEND FINISHED:
-	//
-	// Based on Outlook APPEND request we will not create new message but
-	// move the original to desired mailbox. If the message is currently
-	// in Trash or Spam and EXPUNGE happens before APPEND processing is
-	// finished the message is deleted from Proton instead of moved to
-	// the desired mailbox.
-	im.user.waitForAppend()
+	// See comment of appendExpungeLock.
+	if im.storeMailbox.LabelID() == pmapi.TrashLabel || im.storeMailbox.LabelID() == pmapi.SpamLabel {
+		im.user.appendExpungeLock.Lock()
+		defer im.user.appendExpungeLock.Unlock()
+	}
 
 	im.user.backend.updates.block(im.user.currentAddressLowercase, im.name, operationDeleteMessage)
 	defer im.user.backend.updates.unblock(im.user.currentAddressLowercase, im.name, operationDeleteMessage)
@@ -197,6 +192,12 @@ func (im *imapMailbox) Expunge() error {
 // UIDExpunge permanently removes messages that have the \Deleted flag set
 // and UID passed from SeqSet from the currently selected mailbox.
 func (im *imapMailbox) UIDExpunge(seqSet *imap.SeqSet) error {
+	// See comment of appendExpungeLock.
+	if im.storeMailbox.LabelID() == pmapi.TrashLabel || im.storeMailbox.LabelID() == pmapi.SpamLabel {
+		im.user.appendExpungeLock.Lock()
+		defer im.user.appendExpungeLock.Unlock()
+	}
+
 	im.user.backend.updates.block(im.user.currentAddressLowercase, im.name, operationDeleteMessage)
 	defer im.user.backend.updates.unblock(im.user.currentAddressLowercase, im.name, operationDeleteMessage)
 

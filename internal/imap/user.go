@@ -41,7 +41,22 @@ type imapUser struct {
 
 	currentAddressLowercase string
 
-	appendInProcess sync.WaitGroup
+	// Some clients, for example Outlook, do MOVE by STORE \Deleted, APPEND,
+	// EXPUNGE where APPEN and EXPUNGE can go in parallel. Usual IMAP servers
+	// do not deduplicate messages and this it's not an issue, but for APPEND
+	// for PM means just assigning label. That would cause to assign label and
+	// then delete the message, or in other words cause data loss.
+	// go-imap does not call CreateMessage till it gets the whole message from
+	// IMAP client, therefore with big message, simple wait for APPEND before
+	// performing EXPUNGE is not enough. There has to be two-way lock. Only
+	// that way even if EXPUNGE is called few ms before APPEND and message
+	// is deleted, APPEND will not just assing label but creates the message
+	// again.
+	// The issue is only when moving message from folder which is causing
+	// real removal, so Trash and Spam. Those only need to use the lock to
+	// not cause huge slow down as EXPUNGE is implicitly called also after
+	// UNSELECT, CLOSE, or LOGOUT.
+	appendExpungeLock sync.Mutex
 }
 
 // newIMAPUser returns struct implementing go-imap/user interface.
@@ -250,16 +265,4 @@ func (iu *imapUser) CreateMessageLimit() *uint32 {
 
 	upload := uint32(maxUpload)
 	return &upload
-}
-
-func (iu *imapUser) appendStarted() {
-	iu.appendInProcess.Add(1)
-}
-
-func (iu *imapUser) appendFinished() {
-	iu.appendInProcess.Done()
-}
-
-func (iu *imapUser) waitForAppend() {
-	iu.appendInProcess.Wait()
 }
