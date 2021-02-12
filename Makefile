@@ -83,7 +83,7 @@ build: ${TGZ_TARGET}
 build-ie:
 	TARGET_CMD=Import-Export $(MAKE) build
 
-build-nogui:
+build-nogui: gofiles
 	go build ${BUILD_FLAGS_NOGUI} -o ${EXE_NAME} cmd/${TARGET_CMD}/main.go
 
 build-ie-nogui:
