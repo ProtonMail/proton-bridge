@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
 
-// +build !nogui
+// +build build_qt
 
 package qtie
 
