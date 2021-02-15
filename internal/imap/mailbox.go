@@ -19,6 +19,7 @@ package imap
 
 import (
 	"strings"
+	"time"
 
 	"github.com/ProtonMail/proton-bridge/pkg/message"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
@@ -54,6 +55,25 @@ func newIMAPMailbox(panicHandler panicHandler, user *imapUser, storeMailbox stor
 		storeAddress: user.storeAddress,
 		storeMailbox: storeMailbox,
 	}
+}
+
+// logCommand is helper to log commands requested by IMAP client with their
+// params, result, and duration, but without private data.
+// It's logged as INFO so it's logged for every user by default. This should
+// help devs to find out reasons why clients, mostly Apple Mail, does re-sync.
+// FETCH, APPEND, STORE, COPY, MOVE, and EXPUNGE should be using this helper.
+func (im *imapMailbox) logCommand(callback func() error, cmd string, params ...interface{}) error {
+	start := time.Now()
+	err := callback()
+	// Not using im.log to not include addressID which is not needed in this case.
+	log.WithFields(logrus.Fields{
+		"userID":   im.storeUser.UserID(),
+		"labelID":  im.storeMailbox.LabelID(),
+		"duration": time.Since(start),
+		"err":      err,
+		"params":   params,
+	}).Info(cmd)
+	return err
 }
 
 // Name returns this mailbox name.
@@ -183,6 +203,10 @@ func (im *imapMailbox) Expunge() error {
 		defer im.user.appendExpungeLock.Unlock()
 	}
 
+	return im.logCommand(im.expunge, "EXPUNGE")
+}
+
+func (im *imapMailbox) expunge() error {
 	im.user.backend.updates.block(im.user.currentAddressLowercase, im.name, operationDeleteMessage)
 	defer im.user.backend.updates.unblock(im.user.currentAddressLowercase, im.name, operationDeleteMessage)
 
@@ -192,6 +216,12 @@ func (im *imapMailbox) Expunge() error {
 // UIDExpunge permanently removes messages that have the \Deleted flag set
 // and UID passed from SeqSet from the currently selected mailbox.
 func (im *imapMailbox) UIDExpunge(seqSet *imap.SeqSet) error {
+	return im.logCommand(func() error {
+		return im.uidExpunge(seqSet)
+	}, "UID EXPUNGE", seqSet)
+}
+
+func (im *imapMailbox) uidExpunge(seqSet *imap.SeqSet) error {
 	// See comment of appendExpungeLock.
 	if im.storeMailbox.LabelID() == pmapi.TrashLabel || im.storeMailbox.LabelID() == pmapi.SpamLabel {
 		im.user.appendExpungeLock.Lock()

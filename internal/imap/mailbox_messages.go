@@ -38,6 +38,12 @@ import (
 // If the Backend implements Updater, it must notify the client immediately
 // via a message update.
 func (im *imapMailbox) UpdateMessagesFlags(uid bool, seqSet *imap.SeqSet, operation imap.FlagsOp, flags []string) error {
+	return im.logCommand(func() error {
+		return im.updateMessagesFlags(uid, seqSet, operation, flags)
+	}, "STORE", uid, seqSet, operation, flags)
+}
+
+func (im *imapMailbox) updateMessagesFlags(uid bool, seqSet *imap.SeqSet, operation imap.FlagsOp, flags []string) error {
 	log.WithFields(logrus.Fields{
 		"flags":     flags,
 		"operation": operation,
@@ -198,6 +204,12 @@ func (im *imapMailbox) addOrRemoveFlags(operation imap.FlagsOp, messageIDs, flag
 // destination mailbox. The flags and internal date of the message(s) SHOULD
 // be preserved, and the Recent flag SHOULD be set, in the copy.
 func (im *imapMailbox) CopyMessages(uid bool, seqSet *imap.SeqSet, targetLabel string) error {
+	return im.logCommand(func() error {
+		return im.copyMessages(uid, seqSet, targetLabel)
+	}, "COPY", uid, seqSet, targetLabel)
+}
+
+func (im *imapMailbox) copyMessages(uid bool, seqSet *imap.SeqSet, targetLabel string) error {
 	// Called from go-imap in goroutines - we need to handle panics for each function.
 	defer im.panicHandler.HandlePanic()
 
@@ -209,6 +221,12 @@ func (im *imapMailbox) CopyMessages(uid bool, seqSet *imap.SeqSet, targetLabel s
 // This should not be used until MOVE extension has option to send UIDPLUS
 // responses.
 func (im *imapMailbox) MoveMessages(uid bool, seqSet *imap.SeqSet, targetLabel string) error {
+	return im.logCommand(func() error {
+		return im.moveMessages(uid, seqSet, targetLabel)
+	}, "MOVE", uid, seqSet, targetLabel)
+}
+
+func (im *imapMailbox) moveMessages(uid bool, seqSet *imap.SeqSet, targetLabel string) error {
 	// Called from go-imap in goroutines - we need to handle panics for each function.
 	defer im.panicHandler.HandlePanic()
 
@@ -463,7 +481,13 @@ func (im *imapMailbox) SearchMessages(isUID bool, criteria *imap.SearchCriteria)
 // 3501 section 6.4.5 for a list of items that can be requested.
 //
 // Messages must be sent to msgResponse. When the function returns, msgResponse must be closed.
-func (im *imapMailbox) ListMessages(isUID bool, seqSet *imap.SeqSet, items []imap.FetchItem, msgResponse chan<- *imap.Message) (err error) { //nolint[funlen]
+func (im *imapMailbox) ListMessages(isUID bool, seqSet *imap.SeqSet, items []imap.FetchItem, msgResponse chan<- *imap.Message) error {
+	return im.logCommand(func() error {
+		return im.listMessages(isUID, seqSet, items, msgResponse)
+	}, "FETCH", isUID, seqSet, items)
+}
+
+func (im *imapMailbox) listMessages(isUID bool, seqSet *imap.SeqSet, items []imap.FetchItem, msgResponse chan<- *imap.Message) (err error) { //nolint[funlen]
 	defer func() {
 		close(msgResponse)
 		if err != nil {
