@@ -21,6 +21,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"strconv"
 	"sync"
@@ -73,13 +74,12 @@ func (p *keyValueStore) save() error {
 	p.lock.Lock()
 	defer p.lock.Unlock()
 
-	f, err := os.Create(p.path)
+	b, err := json.MarshalIndent(p.cache, "", "\t")
 	if err != nil {
 		return err
 	}
-	defer f.Close() //nolint[errcheck]
 
-	return json.NewEncoder(f).Encode(p.cache)
+	return ioutil.WriteFile(p.path, b, 0600)
 }
 
 func (p *keyValueStore) setDefault(key, value string) {

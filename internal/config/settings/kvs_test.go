@@ -72,20 +72,20 @@ func TestKeyValueStoreSetDefault(t *testing.T) {
 func TestKeyValueStoreSet(t *testing.T) {
 	pref := newTestEmptyKeyValueStore(t)
 	pref.Set("str", "value")
-	checkSavedKeyValueStore(t, "{\"str\":\"value\"}")
+	checkSavedKeyValueStore(t, "{\n\t\"str\": \"value\"\n}")
 }
 
 func TestKeyValueStoreSetInt(t *testing.T) {
 	pref := newTestEmptyKeyValueStore(t)
 	pref.SetInt("int", 42)
-	checkSavedKeyValueStore(t, "{\"int\":\"42\"}")
+	checkSavedKeyValueStore(t, "{\n\t\"int\": \"42\"\n}")
 }
 
 func TestKeyValueStoreSetBool(t *testing.T) {
 	pref := newTestEmptyKeyValueStore(t)
 	pref.SetBool("trueBool", true)
 	pref.SetBool("falseBool", false)
-	checkSavedKeyValueStore(t, "{\"falseBool\":\"false\",\"trueBool\":\"true\"}")
+	checkSavedKeyValueStore(t, "{\n\t\"falseBool\": \"false\",\n\t\"trueBool\": \"true\"\n}")
 }
 
 func newTestEmptyKeyValueStore(t *testing.T) *keyValueStore {
@@ -101,5 +101,5 @@ func newTestKeyValueStore(t *testing.T) *keyValueStore {
 func checkSavedKeyValueStore(t *testing.T, expected string) {
 	data, err := ioutil.ReadFile(testPrefFilePath)
 	require.NoError(t, err)
-	require.Equal(t, expected+"\n", string(data))
+	require.Equal(t, expected, string(data))
 }
