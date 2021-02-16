@@ -1,3 +1,21 @@
+## v1.6.3
+- 2021-02-16
+
+### New
+
+- Added desktop files and icon in Bridge repo
+- Better detection of MacOS version to improve automatic AppleMail configuration
+- Clearing cache after switching early access off
+
+### Fixed
+
+- Better poor connection handling - added retries for starting IMAP server after the connection was down
+- Excluding updates from 'clearing cache'
+- Not allowing copying from Inbox to Sent and vice versa
+- Improvements to moving messages (unlabelling folders)
+- Fixed the separation of release notes for 'early' and 'stable' channels
+
+
 ## v1.6.2
 - 2021-02-02
 
