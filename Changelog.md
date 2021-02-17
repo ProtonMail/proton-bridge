@@ -2,6 +2,33 @@
 
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
+## [Bridge 1.6.4] HZM
+
+### Added
+* Other: Autoupdates CLI commands.
+
+### Removed
+* Other: Remove credits.
+
+### Changed
+* GODT-980 Placeholder for user agent.
+* GODT-1036 Event loop Sentry reporting of failures and refresh.
+* GODT-957 Increase space to hide difference.
+* GODT-937 Add keychain switcher to frontend.
+* GODT-1008 Fix transparent dialog under certain conditions.
+* GODT-1034 More tolerant connection speed detection.
+* GODT-1018 Pre-push git hook to check lints.
+* Other: Make all command line flags as const strings.
+* GODT-1041 Log IMAP requests to debug Apple Mail re-sync issue.
+* Other: Pretty print prefs.json.
+
+### Fixed
+* Other: Fix nogui build.
+* GODT-317 Fix wrong total mailbox size in Apple Mail.
+* Other: Fixing changelog punctuation.
+* GODT-797 APPEND waits for EXPUNGE to prevent data loss when Outlook moves from Spam or Trash.
+
+
 ## [Bridge 1.6.3] HZM
 
 ### Added
