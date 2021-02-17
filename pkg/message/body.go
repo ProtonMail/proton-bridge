@@ -57,19 +57,23 @@ func WriteAttachmentBody(w io.Writer, kr *crypto.KeyRing, m *pmapi.Message, att 
 		att.Name += ".gpg"
 		att.MIMEType = "application/pgp-encrypted" //nolint
 	} else if err != nil && err != openpgperrors.ErrSignatureExpired {
-		err = fmt.Errorf("cannot decrypt attachment: %v", err)
-		return
+		return fmt.Errorf("cannot decrypt attachment: %v", err)
+	}
+
+	// Don't encode message/rfc822 attachments; they should be embedded and preserved.
+	if att.MIMEType == rfc822Message {
+		if n, err := io.Copy(w, dr); err != nil {
+			return fmt.Errorf("cannot write attached message: %v (wrote %v bytes)", err, n)
+		}
+		return nil
 	}
 
 	// Encode it.
 	ww := textwrapper.NewRFC822(w)
 	bw := base64.NewEncoder(base64.StdEncoding, ww)
 
-	var n int64
-	if n, err = io.Copy(bw, dr); err != nil {
-		err = fmt.Errorf("cannot write attachment: %v (wrote %v bytes)", err, n)
+	if n, err := io.Copy(bw, dr); err != nil {
+		return fmt.Errorf("cannot write attachment: %v (wrote %v bytes)", err, n)
 	}
-
-	_ = bw.Close()
-	return
+	return bw.Close()
 }

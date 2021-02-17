@@ -107,10 +107,15 @@ func GetRelatedHeader(m *pmapi.Message) textproto.MIMEHeader {
 	return h
 }
 
-func GetAttachmentHeader(att *pmapi.Attachment) textproto.MIMEHeader {
+func GetAttachmentHeader(att *pmapi.Attachment, buildForIMAP bool) textproto.MIMEHeader {
 	mediaType := att.MIMEType
 	if mediaType == "application/pgp-encrypted" {
 		mediaType = "application/octet-stream"
+	}
+
+	transferEncoding := "base64"
+	if mediaType == rfc822Message && buildForIMAP {
+		transferEncoding = "8bit"
 	}
 
 	encodedName := pmmime.EncodeHeader(att.Name)
@@ -121,7 +126,9 @@ func GetAttachmentHeader(att *pmapi.Attachment) textproto.MIMEHeader {
 
 	h := make(textproto.MIMEHeader)
 	h.Set("Content-Type", mime.FormatMediaType(mediaType, map[string]string{"name": encodedName}))
-	h.Set("Content-Transfer-Encoding", "base64")
+	if transferEncoding != "" {
+		h.Set("Content-Transfer-Encoding", transferEncoding)
+	}
 	h.Set("Content-Disposition", mime.FormatMediaType(disposition, map[string]string{"filename": encodedName}))
 
 	// Forward some original header lines.

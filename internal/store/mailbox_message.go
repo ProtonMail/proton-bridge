@@ -67,10 +67,14 @@ func (storeMailbox *Mailbox) ImportMessage(msg *pmapi.Message, body []byte, labe
 	}
 
 	res, err := storeMailbox.client().Import([]*pmapi.ImportMsgReq{importReqs})
-	if err == nil && len(res) > 0 {
-		msg.ID = res[0].MessageID
+	if err != nil {
+		return err
 	}
-	return err
+	if len(res) == 0 {
+		return errors.New("no import response")
+	}
+	msg.ID = res[0].MessageID
+	return res[0].Error
 }
 
 // LabelMessages adds the label by calling an API.

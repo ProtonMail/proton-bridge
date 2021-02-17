@@ -294,6 +294,7 @@ LOG?=debug
 LOG_IMAP?=client # client/server/all, or empty to turn it off
 LOG_SMTP?=--log-smtp # empty to turn it off
 RUN_FLAGS?=-m -l=${LOG} --log-imap=${LOG_IMAP} ${LOG_SMTP}
+RUN_FLAGS_IE?=-m -l=${LOG}
 
 run: run-nogui-cli
 
@@ -316,11 +317,11 @@ run-ie-qml-preview:
 	$(MAKE) -C internal/frontend/qt-ie -f Makefile.local qmlpreview
 
 run-ie:
-	TARGET_CMD=Import-Export $(MAKE) run
+	TARGET_CMD=Import-Export RUN_FLAGS="${RUN_FLAGS_IE}" $(MAKE) run
 run-ie-qt:
-	TARGET_CMD=Import-Export $(MAKE) run-qt
+	TARGET_CMD=Import-Export RUN_FLAGS="${RUN_FLAGS_IE}" $(MAKE) run-qt
 run-ie-nogui:
-	TARGET_CMD=Import-Export $(MAKE) run-nogui
+	TARGET_CMD=Import-Export RUN_FLAGS="${RUN_FLAGS_IE}" $(MAKE) run-nogui
 
 clean-frontend-qt:
 	$(MAKE) -C internal/frontend/qt -f Makefile.local clean

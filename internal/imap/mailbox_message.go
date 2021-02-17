@@ -564,7 +564,7 @@ func (im *imapMailbox) writeRelatedPart(p io.Writer, m *pmapi.Message, inlines [
 			return
 		}
 
-		h := message.GetAttachmentHeader(inline)
+		h := message.GetAttachmentHeader(inline, true)
 		if p, err = related.CreatePart(h); err != nil {
 			return
 		}
@@ -738,7 +738,7 @@ func (im *imapMailbox) buildMessageInner(m *pmapi.Message, kr *crypto.KeyRing) (
 			defer buf.Reset()
 			att := atts[idx]
 
-			attachmentHeader := message.GetAttachmentHeader(att)
+			attachmentHeader := message.GetAttachmentHeader(att, true)
 			if partWriter, err = mw.CreatePart(attachmentHeader); err != nil {
 				return err
 			}
