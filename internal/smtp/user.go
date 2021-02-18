@@ -215,6 +215,10 @@ func (su *smtpUser) Send(returnPath string, to []string, messageReader io.Reader
 	// Called from go-smtp in goroutines - we need to handle panics for each function.
 	defer su.panicHandler.HandlePanic()
 
+	b := new(bytes.Buffer)
+
+	messageReader = io.TeeReader(messageReader, b)
+
 	mailSettings, err := su.client().GetMailSettings()
 	if err != nil {
 		return err
@@ -404,6 +408,8 @@ func (su *smtpUser) Send(returnPath string, to []string, messageReader io.Reader
 	}
 
 	req.PreparePackages()
+
+	dumpMessageData(b.Bytes(), message.Subject)
 
 	return su.storeUser.SendMessage(message.ID, req)
 }
