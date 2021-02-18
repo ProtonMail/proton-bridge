@@ -19,10 +19,12 @@ package keychain
 
 import (
 	"os/exec"
+	"reflect"
 
 	"github.com/docker/docker-credential-helpers/credentials"
 	"github.com/docker/docker-credential-helpers/pass"
 	"github.com/docker/docker-credential-helpers/secretservice"
+	"github.com/sirupsen/logrus"
 )
 
 const (
@@ -43,9 +45,9 @@ func init() { // nolint[noinit]
 
 	// If Pass is available, use it by default.
 	// Otherwise, if GnomeKeyring is available, use it by default.
-	if _, ok := Helpers[Pass]; ok {
+	if _, ok := Helpers[Pass]; ok && isUsable(newPassHelper("")) {
 		defaultHelper = Pass
-	} else if _, ok := Helpers[GnomeKeyring]; ok {
+	} else if _, ok := Helpers[GnomeKeyring]; ok && isUsable(newGnomeKeyringHelper("")) {
 		defaultHelper = GnomeKeyring
 	}
 }
@@ -56,4 +58,37 @@ func newPassHelper(string) (credentials.Helper, error) {
 
 func newGnomeKeyringHelper(string) (credentials.Helper, error) {
 	return &secretservice.Secretservice{}, nil
+}
+
+// isUsable returns whether the credentials helper is usable.
+func isUsable(helper credentials.Helper, err error) bool {
+	l := logrus.WithField("helper", reflect.TypeOf(helper))
+
+	if err != nil {
+		l.WithError(err).Warn("Keychain helper couldn't be created")
+		return false
+	}
+
+	creds := &credentials.Credentials{
+		ServerURL: "bridge/check",
+		Username:  "check",
+		Secret:    "check",
+	}
+
+	if err := helper.Add(creds); err != nil {
+		l.WithError(err).Warn("Failed to add test credentials to keychain")
+		return false
+	}
+
+	if _, _, err := helper.Get(creds.ServerURL); err != nil {
+		l.WithError(err).Warn("Failed to get test credentials from keychain")
+		return false
+	}
+
+	if err := helper.Delete(creds.ServerURL); err != nil {
+		l.WithError(err).Warn("Failed to delete test credentials from keychain")
+		return false
+	}
+
+	return true
 }
