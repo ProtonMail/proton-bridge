@@ -2,6 +2,12 @@
 
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
+## [Bridge 1.6.5] HZM
+
+### Changed
+* GODT-1059 Check if keychain is usable on linux before using it by default.
+
+
 ## [Bridge 1.6.4] HZM
 
 ### Added
