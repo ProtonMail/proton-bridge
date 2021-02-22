@@ -18,6 +18,7 @@
 package smtp
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/mail"
@@ -33,7 +34,7 @@ type testSendRecorderGetMessageMock struct {
 	err     error
 }
 
-func (m *testSendRecorderGetMessageMock) GetMessage(messageID string) (*pmapi.Message, error) {
+func (m *testSendRecorderGetMessageMock) GetMessage(_ context.Context, messageID string) (*pmapi.Message, error) {
 	return m.message, m.err
 }
 

@@ -19,6 +19,7 @@ package pmapi
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -90,14 +91,16 @@ const testDeleteLabelBody = `{
 `
 
 func TestClient_ListLabels(t *testing.T) {
-	s, c := newTestServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		Ok(t, checkMethodAndPath(r, "GET", "/labels?1"))
+	s, c := newTestClient(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		Ok(t, checkMethodAndPath(r, "GET", "/v4/labels?Type=1"))
+
+		w.Header().Set("Content-Type", "application/json")
 
 		fmt.Fprint(w, testLabelsBody)
 	}))
 	defer s.Close()
 
-	labels, err := c.ListLabels()
+	labels, err := c.ListLabels(context.TODO())
 	if err != nil {
 		t.Fatal("Expected no error while listing labels, got:", err)
 	}
@@ -114,8 +117,8 @@ func TestClient_ListLabels(t *testing.T) {
 }
 
 func TestClient_CreateLabel(t *testing.T) {
-	s, c := newTestServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		Ok(t, checkMethodAndPath(r, "POST", "/labels"))
+	s, c := newTestClient(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		Ok(t, checkMethodAndPath(r, "POST", "/v4/labels"))
 
 		body := &bytes.Buffer{}
 		_, err := body.ReadFrom(r.Body)
@@ -133,11 +136,13 @@ func TestClient_CreateLabel(t *testing.T) {
 			t.Errorf("Invalid label request: expected %+v but got %+v", testLabelReq.Label, labelReq.Label)
 		}
 
+		w.Header().Set("Content-Type", "application/json")
+
 		fmt.Fprint(w, testCreateLabelBody)
 	}))
 	defer s.Close()
 
-	created, err := c.CreateLabel(testLabelReq.Label)
+	created, err := c.CreateLabel(context.TODO(), testLabelReq.Label)
 	if err != nil {
 		t.Fatal("Expected no error while creating label, got:", err)
 	}
@@ -148,18 +153,18 @@ func TestClient_CreateLabel(t *testing.T) {
 }
 
 func TestClient_CreateEmptyLabel(t *testing.T) {
-	s, c := newTestServer(http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {
+	s, c := newTestClient(http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {
 		r.Fail(t, "API should not be called")
 	}))
 	defer s.Close()
 
-	_, err := c.CreateLabel(&Label{})
+	_, err := c.CreateLabel(context.TODO(), &Label{})
 	r.EqualError(t, err, "name is required")
 }
 
 func TestClient_UpdateLabel(t *testing.T) {
-	s, c := newTestServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		Ok(t, checkMethodAndPath(r, "PUT", "/labels/"+testLabelCreated.ID))
+	s, c := newTestClient(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		Ok(t, checkMethodAndPath(r, "PUT", "/v4/labels/"+testLabelCreated.ID))
 
 		var labelReq LabelReq
 		if err := json.NewDecoder(r.Body).Decode(&labelReq); err != nil {
@@ -169,11 +174,13 @@ func TestClient_UpdateLabel(t *testing.T) {
 			t.Errorf("Invalid label request: expected %+v but got %+v", testLabelCreated, labelReq.Label)
 		}
 
+		w.Header().Set("Content-Type", "application/json")
+
 		fmt.Fprint(w, testCreateLabelBody)
 	}))
 	defer s.Close()
 
-	updated, err := c.UpdateLabel(testLabelCreated)
+	updated, err := c.UpdateLabel(context.TODO(), testLabelCreated)
 	if err != nil {
 		t.Fatal("Expected no error while updating label, got:", err)
 	}
@@ -184,24 +191,26 @@ func TestClient_UpdateLabel(t *testing.T) {
 }
 
 func TestClient_UpdateLabelToEmptyName(t *testing.T) {
-	s, c := newTestServer(http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {
+	s, c := newTestClient(http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {
 		r.Fail(t, "API should not be called")
 	}))
 	defer s.Close()
 
-	_, err := c.UpdateLabel(&Label{ID: "label"})
+	_, err := c.UpdateLabel(context.TODO(), &Label{ID: "label"})
 	r.EqualError(t, err, "name is required")
 }
 
 func TestClient_DeleteLabel(t *testing.T) {
-	s, c := newTestServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		Ok(t, checkMethodAndPath(r, "DELETE", "/labels/"+testLabelCreated.ID))
+	s, c := newTestClient(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		Ok(t, checkMethodAndPath(r, "DELETE", "/v4/labels/"+testLabelCreated.ID))
+
+		w.Header().Set("Content-Type", "application/json")
 
 		fmt.Fprint(w, testDeleteLabelBody)
 	}))
 	defer s.Close()
 
-	err := c.DeleteLabel(testLabelCreated.ID)
+	err := c.DeleteLabel(context.TODO(), testLabelCreated.ID)
 	if err != nil {
 		t.Fatal("Expected no error while deleting label, got:", err)
 	}

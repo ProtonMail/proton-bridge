@@ -51,7 +51,7 @@ func (c *fakeCredStore) List() (userIDs []string, err error) {
 	return keys, nil
 }
 
-func (c *fakeCredStore) Add(userID, userName, apiToken, mailboxPassword string, emails []string) (*credentials.Credentials, error) {
+func (c *fakeCredStore) Add(userID, userName, uid, ref, mailboxPassword string, emails []string) (*credentials.Credentials, error) {
 	bridgePassword := bridgePassword
 	if c, ok := c.credentials[userID]; ok {
 		bridgePassword = c.BridgePassword
@@ -60,7 +60,7 @@ func (c *fakeCredStore) Add(userID, userName, apiToken, mailboxPassword string, 
 		UserID:                userID,
 		Name:                  userName,
 		Emails:                strings.Join(emails, ";"),
-		APIToken:              apiToken,
+		APIToken:              uid + ":" + ref,
 		MailboxPassword:       mailboxPassword,
 		BridgePassword:        bridgePassword,
 		IsCombinedAddressMode: true, // otherwise by default starts in split mode
@@ -73,36 +73,38 @@ func (c *fakeCredStore) Get(userID string) (*credentials.Credentials, error) {
 	return c.credentials[userID], nil
 }
 
-func (c *fakeCredStore) SwitchAddressMode(userID string) error {
-	return nil
+func (c *fakeCredStore) SwitchAddressMode(userID string) (*credentials.Credentials, error) {
+	// FIXME(conman): Why is this empty?
+	return c.credentials[userID], nil
 }
 
-func (c *fakeCredStore) UpdateEmails(userID string, emails []string) error {
-	return nil
+func (c *fakeCredStore) UpdateEmails(userID string, emails []string) (*credentials.Credentials, error) {
+	// FIXME(conman): Why is this empty?
+	return c.credentials[userID], nil
 }
 
-func (c *fakeCredStore) UpdatePassword(userID, password string) error {
+func (c *fakeCredStore) UpdatePassword(userID, password string) (*credentials.Credentials, error) {
 	creds, err := c.Get(userID)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	creds.MailboxPassword = password
-	return nil
+	return creds, nil
 }
 
-func (c *fakeCredStore) UpdateToken(userID, apiToken string) error {
+func (c *fakeCredStore) UpdateToken(userID, uid, ref string) (*credentials.Credentials, error) {
 	creds, err := c.Get(userID)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	creds.APIToken = apiToken
-	return nil
+	creds.APIToken = uid + ":" + ref
+	return creds, nil
 }
 
-func (c *fakeCredStore) Logout(userID string) error {
+func (c *fakeCredStore) Logout(userID string) (*credentials.Credentials, error) {
 	c.credentials[userID].APIToken = ""
 	c.credentials[userID].MailboxPassword = ""
-	return nil
+	return c.credentials[userID], nil
 }
 
 func (c *fakeCredStore) Delete(userID string) error {

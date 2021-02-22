@@ -23,7 +23,7 @@
 //  - persistent settings
 //  - event listener
 //  - credentials store
-//  - pmapi ClientManager
+//  - pmapi Manager
 // In addition, the base initialises logging and reacts to command line arguments
 // which control the log verbosity and enable cpu/memory profiling.
 package base
@@ -85,7 +85,7 @@ type Base struct {
 	Cache          *cache.Cache
 	Listener       listener.Listener
 	Creds          *credentials.Store
-	CM             *pmapi.ClientManager
+	CM             pmapi.Manager
 	CookieJar      *cookies.Jar
 	UserAgent      *useragent.UserAgent
 	Updater        *updater.Updater
@@ -181,13 +181,26 @@ func New( // nolint[funlen]
 		kc = keychain.NewMissingKeychain()
 	}
 
+	// FIXME(conman): Customize config depending on build type (app version, host URL).
+	cm := pmapi.New(pmapi.DefaultConfig)
+
+	// FIXME(conman): Should this be a real object, not just created via callbacks?
+	cm.AddConnectionObserver(pmapi.NewConnectionObserver(
+		func() { listener.Emit(events.InternetOffEvent, "") },
+		func() { listener.Emit(events.InternetOnEvent, "") },
+	))
+
+	// FIXME(conman): Implement force upgrade observer.
+	// apiConfig.UpgradeApplicationHandler = func() { listener.Emit(events.UpgradeApplicationEvent, "") }
+
+	// FIXME(conman): Set up fancy round tripper with DoH/TLS checks etc.
+	// cm.SetRoundTripper(pmapi.GetRoundTripper(cm, listener))
+
 	jar, err := cookies.NewCookieJar(settingsObj)
 	if err != nil {
 		return nil, err
 	}
 
-	cm := pmapi.NewClientManager(getAPIConfig(configName, listener), userAgent)
-	cm.SetRoundTripper(pmapi.GetRoundTripper(cm, listener))
 	cm.SetCookieJar(jar)
 
 	key, err := crypto.NewKeyFromArmored(updater.DefaultPublicKey)
@@ -374,14 +387,4 @@ func (b *Base) doTeardown() error {
 	}
 
 	return nil
-}
-
-func getAPIConfig(configName string, listener listener.Listener) *pmapi.ClientConfig {
-	apiConfig := pmapi.GetAPIConfig(configName, constants.Version)
-
-	apiConfig.ConnectionOffHandler = func() { listener.Emit(events.InternetOffEvent, "") }
-	apiConfig.ConnectionOnHandler = func() { listener.Emit(events.InternetOnEvent, "") }
-	apiConfig.UpgradeApplicationHandler = func() { listener.Emit(events.UpgradeApplicationEvent, "") }
-
-	return apiConfig
 }

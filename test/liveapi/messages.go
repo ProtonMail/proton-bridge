@@ -18,6 +18,7 @@
 package liveapi
 
 import (
+	"context"
 	"fmt"
 
 	messageUtils "github.com/ProtonMail/proton-bridge/pkg/message"
@@ -50,15 +51,17 @@ func (ctl *Controller) AddUserMessage(username string, message *pmapi.Message) (
 	}
 
 	req := &pmapi.ImportMsgReq{
-		AddressID: message.AddressID,
-		Body:      body,
-		Unread:    message.Unread,
-		Time:      message.Time,
-		Flags:     message.Flags,
-		LabelIDs:  message.LabelIDs,
+		Metadata: &pmapi.ImportMetadata{
+			AddressID: message.AddressID,
+			Unread:    message.Unread,
+			Time:      message.Time,
+			Flags:     message.Flags,
+			LabelIDs:  message.LabelIDs,
+		},
+		Message: body,
 	}
 
-	results, err := client.Import([]*pmapi.ImportMsgReq{req})
+	results, err := client.Import(context.TODO(), pmapi.ImportMsgReqs{req})
 	if err != nil {
 		return "", errors.Wrap(err, "failed to make an import")
 	}
@@ -82,7 +85,7 @@ func (ctl *Controller) GetMessages(username, labelID string) ([]*pmapi.Message, 
 
 	for {
 		// ListMessages returns empty result, not error, asking for page out of range.
-		pageMessages, _, err := client.ListMessages(&pmapi.MessagesFilter{
+		pageMessages, _, err := client.ListMessages(context.TODO(), &pmapi.MessagesFilter{
 			Page:     page,
 			PageSize: 150,
 			LabelID:  labelID,

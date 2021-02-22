@@ -18,6 +18,7 @@
 package pmapi
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"testing"
@@ -197,15 +198,12 @@ func TestMessage_LabelMessages_NoPaging(t *testing.T) {
 	}
 
 	// There should be enough IDs to produce just one page so the endpoint should be called once.
-	finish, c := newTestServerCallbacks(t,
+	finish, c := newTestClientCallbacks(t,
 		routeLabelMessages,
 	)
 	defer finish()
 
-	c.uid = testUID
-	c.accessToken = testAccessToken
-
-	assert.NoError(t, c.LabelMessages(testIDs, "mylabel"))
+	assert.NoError(t, c.LabelMessages(context.TODO(), testIDs, "mylabel"))
 }
 
 func TestMessage_LabelMessages_Paging(t *testing.T) {
@@ -216,15 +214,12 @@ func TestMessage_LabelMessages_Paging(t *testing.T) {
 	}
 
 	// There should be enough IDs to produce three pages so the endpoint should be called three times.
-	finish, c := newTestServerCallbacks(t,
+	finish, c := newTestClientCallbacks(t,
 		routeLabelMessages,
 		routeLabelMessages,
 		routeLabelMessages,
 	)
 	defer finish()
 
-	c.uid = testUID
-	c.accessToken = testAccessToken
-
-	assert.NoError(t, c.LabelMessages(testIDs, "mylabel"))
+	assert.NoError(t, c.LabelMessages(context.TODO(), testIDs, "mylabel"))
 }

@@ -18,6 +18,7 @@
 package transfer
 
 import (
+	"context"
 	"sort"
 
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
@@ -34,25 +35,27 @@ const (
 
 // PMAPIProvider implements import and export to/from ProtonMail server.
 type PMAPIProvider struct {
-	clientManager ClientManager
-	userID        string
-	addressID     string
-	keyRing       *crypto.KeyRing
-	builder       *message.Builder
+	client    pmapi.Client
+	userID    string
+	addressID string
+	keyRing   *crypto.KeyRing
+	builder   *message.Builder
 
 	nextImportRequests     map[string]*pmapi.ImportMsgReq // Key is msg transfer ID.
 	nextImportRequestsSize int
 
 	timeIt *timeIt
+
+	connection bool
 }
 
 // NewPMAPIProvider returns new PMAPIProvider.
-func NewPMAPIProvider(clientManager ClientManager, userID, addressID string) (*PMAPIProvider, error) {
+func NewPMAPIProvider(client pmapi.Client, userID, addressID string) (*PMAPIProvider, error) {
 	provider := &PMAPIProvider{
-		clientManager: clientManager,
-		userID:        userID,
-		addressID:     addressID,
-		builder:       message.NewBuilder(fetchWorkers, attachWorkers, buildWorkers),
+		client:    client,
+		userID:    userID,
+		addressID: addressID,
+		builder:   message.NewBuilder(fetchWorkers, attachWorkers, buildWorkers),
 
 		nextImportRequests:     map[string]*pmapi.ImportMsgReq{},
 		nextImportRequestsSize: 0,
@@ -61,7 +64,7 @@ func NewPMAPIProvider(clientManager ClientManager, userID, addressID string) (*P
 	}
 
 	if addressID != "" {
-		keyRing, err := clientManager.GetClient(userID).KeyRingForAddressID(addressID)
+		keyRing, err := client.KeyRingForAddressID(addressID)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to get key ring")
 		}
@@ -69,10 +72,6 @@ func NewPMAPIProvider(clientManager ClientManager, userID, addressID string) (*P
 	}
 
 	return provider, nil
-}
-
-func (p *PMAPIProvider) client() pmapi.Client {
-	return p.clientManager.GetClient(p.userID)
 }
 
 // ID returns identifier of current setup of PMAPI provider.
@@ -83,7 +82,7 @@ func (p *PMAPIProvider) ID() string {
 
 // Mailboxes returns all available labels in ProtonMail account.
 func (p *PMAPIProvider) Mailboxes(includeEmpty, includeAllMail bool) ([]Mailbox, error) {
-	labels, err := p.client().ListLabels()
+	labels, err := p.client.ListLabels(context.Background())
 	if err != nil {
 		return nil, err
 	}
@@ -92,7 +91,7 @@ func (p *PMAPIProvider) Mailboxes(includeEmpty, includeAllMail bool) ([]Mailbox,
 
 	emptyLabelsMap := map[string]bool{}
 	if !includeEmpty {
-		messagesCounts, err := p.client().CountMessages(p.addressID)
+		messagesCounts, err := p.client.CountMessages(context.Background(), p.addressID)
 		if err != nil {
 			return nil, err
 		}
@@ -120,7 +119,7 @@ func (p *PMAPIProvider) Mailboxes(includeEmpty, includeAllMail bool) ([]Mailbox,
 			ID:          label.ID,
 			Name:        label.Name,
 			Color:       label.Color,
-			IsExclusive: label.Exclusive == 1,
+			IsExclusive: bool(label.Exclusive),
 		})
 	}
 	return mailboxes, nil
@@ -160,10 +159,10 @@ func (l byFoldersLabels) Swap(i, j int) {
 
 // Less sorts first folders, then labels, by user order.
 func (l byFoldersLabels) Less(i, j int) bool {
-	if l[i].Exclusive == 1 && l[j].Exclusive == 0 {
+	if l[i].Exclusive && !l[j].Exclusive {
 		return true
 	}
-	if l[i].Exclusive == 0 && l[j].Exclusive == 1 {
+	if !l[i].Exclusive && l[j].Exclusive {
 		return false
 	}
 	return l[i].Order < l[j].Order

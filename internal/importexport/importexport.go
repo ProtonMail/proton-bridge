@@ -20,6 +20,7 @@ package importexport
 
 import (
 	"bytes"
+	"context"
 
 	"github.com/ProtonMail/proton-bridge/internal/transfer"
 	"github.com/ProtonMail/proton-bridge/internal/users"
@@ -39,7 +40,7 @@ type ImportExport struct {
 	locations     Locator
 	cache         Cacher
 	panicHandler  users.PanicHandler
-	clientManager users.ClientManager
+	clientManager pmapi.Manager
 }
 
 func New(
@@ -47,7 +48,7 @@ func New(
 	cache Cacher,
 	panicHandler users.PanicHandler,
 	eventListener listener.Listener,
-	clientManager users.ClientManager,
+	clientManager pmapi.Manager,
 	credStorer users.CredentialsStorer,
 ) *ImportExport {
 	u := users.New(locations, panicHandler, eventListener, clientManager, credStorer, &storeFactory{}, false)
@@ -64,57 +65,31 @@ func New(
 
 // ReportBug reports a new bug from the user.
 func (ie *ImportExport) ReportBug(osType, osVersion, description, accountName, address, emailClient string) error {
-	c := ie.clientManager.GetAnonymousClient()
-	defer c.Logout()
-
-	title := "[Import-Export] Bug"
-	report := pmapi.ReportReq{
+	return ie.clientManager.ReportBug(context.TODO(), pmapi.ReportBugReq{
 		OS:          osType,
 		OSVersion:   osVersion,
 		Browser:     emailClient,
-		Title:       title,
+		Title:       "[Import-Export] Bug",
 		Description: description,
 		Username:    accountName,
 		Email:       address,
-	}
-
-	if err := c.Report(report); err != nil {
-		log.Error("Reporting bug failed: ", err)
-		return err
-	}
-
-	log.Info("Bug successfully reported")
-
-	return nil
+	})
 }
 
 // ReportFile submits import report file.
 func (ie *ImportExport) ReportFile(osType, osVersion, accountName, address string, logdata []byte) error {
-	c := ie.clientManager.GetAnonymousClient()
-	defer c.Logout()
-
-	title := "[Import-Export] report file"
-	description := "An Import-Export report from the user swam down the river."
-
-	report := pmapi.ReportReq{
+	report := pmapi.ReportBugReq{
 		OS:          osType,
 		OSVersion:   osVersion,
-		Description: description,
-		Title:       title,
+		Description: "An Import-Export report from the user swam down the river.",
+		Title:       "[Import-Export] report file",
 		Username:    accountName,
 		Email:       address,
 	}
 
 	report.AddAttachment("log", "report.log", bytes.NewReader(logdata))
 
-	if err := c.Report(report); err != nil {
-		log.Error("Sending report failed: ", err)
-		return err
-	}
-
-	log.Info("Report successfully sent")
-
-	return nil
+	return ie.clientManager.ReportBug(context.TODO(), report)
 }
 
 // GetLocalImporter returns transferrer from local EML or MBOX structure to ProtonMail account.
@@ -187,5 +162,5 @@ func (ie *ImportExport) getPMAPIProvider(username, address string) (*transfer.PM
 		log.WithError(err).Info("Address does not exist, using all addresses")
 	}
 
-	return transfer.NewPMAPIProvider(ie.clientManager, user.ID(), addressID)
+	return transfer.NewPMAPIProvider(user.GetClient(), user.ID(), addressID)
 }

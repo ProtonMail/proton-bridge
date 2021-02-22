@@ -18,6 +18,7 @@
 package pmapi
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -32,11 +33,13 @@ import (
 
 var testImportReqs = []*ImportMsgReq{
 	{
-		AddressID: "QMJs2dzTx7uqpH5PNgIzjULywU4gO9uMBhEMVFOAVJOoUml54gC0CCHtW9qYwzH-zYbZwMv3MFYncPjW1Usq7Q==",
-		Body:      []byte("Hello World!"),
-		Unread:    0,
-		Flags:     FlagReceived | FlagImported,
-		LabelIDs:  []string{ArchiveLabel},
+		Metadata: &ImportMetadata{
+			AddressID: "QMJs2dzTx7uqpH5PNgIzjULywU4gO9uMBhEMVFOAVJOoUml54gC0CCHtW9qYwzH-zYbZwMv3MFYncPjW1Usq7Q==",
+			Unread:    0,
+			Flags:     FlagReceived | FlagImported,
+			LabelIDs:  []string{ArchiveLabel},
+		},
+		Message: []byte("Hello World!"),
 	},
 }
 
@@ -54,7 +57,7 @@ var testImportRes = &ImportMsgRes{
 }
 
 func TestClient_Import(t *testing.T) { // nolint[funlen]
-	s, c := newTestServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	s, c := newTestClient(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		Ok(t, checkMethodAndPath(r, "POST", "/mail/v4/messages/import"))
 
 		contentType, params, err := pmmime.ParseMediaType(r.Header.Get("Content-Type"))
@@ -67,51 +70,13 @@ func TestClient_Import(t *testing.T) { // nolint[funlen]
 
 		mr := multipart.NewReader(r.Body, params["boundary"])
 
-		// First part is metadata.
+		// First part is message body.
 		p, err := mr.NextPart()
-		if err != nil {
-			t.Error("Expected no error while reading first part of request body, got:", err)
-		}
-
-		contentDisp, params, err := pmmime.ParseMediaType(p.Header.Get("Content-Disposition"))
-		if err != nil {
-			t.Error("Expected no error while parsing part content disposition, got:", err)
-		}
-		if contentDisp != "form-data" {
-			t.Errorf("Invalid part content disposition: expected %v but got %v", "form-data", contentType)
-		}
-		if params["name"] != "Metadata" {
-			t.Errorf("Invalid part name: expected %v but got %v", "Metadata", params["name"])
-		}
-
-		metadata := map[string]*ImportMsgReq{}
-		if err := json.NewDecoder(p).Decode(&metadata); err != nil {
-			t.Error("Expected no error while parsing metadata json, got:", err)
-		}
-
-		if len(metadata) != 1 {
-			t.Errorf("Expected metadata to contain exactly one item, got %v", metadata)
-		}
-
-		req := metadata["0"]
-		if metadata["0"] == nil {
-			t.Errorf("Expected metadata to contain one item indexed by 0, got %v", metadata)
-		}
-
-		// No Body in metadata.
-		expected := *testImportReqs[0]
-		expected.Body = nil
-		if !reflect.DeepEqual(&expected, req) {
-			t.Errorf("Invalid message metadata: expected %v, got %v", &expected, req)
-		}
-
-		// Second part is message body.
-		p, err = mr.NextPart()
 		if err != nil {
 			t.Error("Expected no error while reading second part of request body, got:", err)
 		}
 
-		contentDisp, params, err = pmmime.ParseMediaType(p.Header.Get("Content-Disposition"))
+		contentDisp, params, err := pmmime.ParseMediaType(p.Header.Get("Content-Disposition"))
 		if err != nil {
 			t.Error("Expected no error while parsing part content disposition, got:", err)
 		}
@@ -127,8 +92,44 @@ func TestClient_Import(t *testing.T) { // nolint[funlen]
 			t.Error("Expected no error while reading second part body, got:", err)
 		}
 
-		if string(b) != string(testImportReqs[0].Body)+"\r\n" {
-			t.Errorf("Invalid message body: expected %v but got %v", string(testImportReqs[0].Body), string(b))
+		if string(b) != string(testImportReqs[0].Message) {
+			t.Errorf("Invalid message body: expected %v but got %v", string(testImportReqs[0].Message), string(b))
+		}
+
+		// Second part is metadata.
+		p, err = mr.NextPart()
+		if err != nil {
+			t.Error("Expected no error while reading first part of request body, got:", err)
+		}
+
+		contentDisp, params, err = pmmime.ParseMediaType(p.Header.Get("Content-Disposition"))
+		if err != nil {
+			t.Error("Expected no error while parsing part content disposition, got:", err)
+		}
+		if contentDisp != "form-data" {
+			t.Errorf("Invalid part content disposition: expected %v but got %v", "form-data", contentType)
+		}
+		if params["name"] != "Metadata" {
+			t.Errorf("Invalid part name: expected %v but got %v", "Metadata", params["name"])
+		}
+
+		metadata := map[string]*ImportMetadata{}
+		if err := json.NewDecoder(p).Decode(&metadata); err != nil {
+			t.Error("Expected no error while parsing metadata json, got:", err)
+		}
+
+		if len(metadata) != 1 {
+			t.Errorf("Expected metadata to contain exactly one item, got %v", metadata)
+		}
+
+		req := metadata["0"]
+		if metadata["0"] == nil {
+			t.Errorf("Expected metadata to contain one item indexed by 0, got %v", metadata)
+		}
+
+		expected := *testImportReqs[0].Metadata
+		if !reflect.DeepEqual(&expected, req) {
+			t.Errorf("Invalid message metadata: expected %v, got %v", &expected, req)
 		}
 
 		// No more parts.
@@ -137,11 +138,13 @@ func TestClient_Import(t *testing.T) { // nolint[funlen]
 			t.Error("Expected no more parts but error was not EOF, got:", err)
 		}
 
+		w.Header().Set("Content-Type", "application/json")
+
 		fmt.Fprint(w, testImportBody)
 	}))
 	defer s.Close()
 
-	imported, err := c.Import(testImportReqs)
+	imported, err := c.Import(context.TODO(), testImportReqs)
 	if err != nil {
 		t.Fatal("Expected no error while importing, got:", err)
 	}

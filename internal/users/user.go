@@ -18,6 +18,7 @@
 package users
 
 import (
+	"context"
 	"runtime"
 	"strings"
 	"sync"
@@ -36,11 +37,11 @@ var ErrLoggedOutUser = errors.New("account is logged out, use the app to login a
 
 // User is a struct on top of API client and credentials store.
 type User struct {
-	log           *logrus.Entry
-	panicHandler  PanicHandler
-	listener      listener.Listener
-	clientManager ClientManager
-	credStorer    CredentialsStorer
+	log          *logrus.Entry
+	panicHandler PanicHandler
+	listener     listener.Listener
+	client       pmapi.Client
+	credStorer   CredentialsStorer
 
 	storeFactory StoreMaker
 	store        *store.Store
@@ -48,75 +49,76 @@ type User struct {
 	userID string
 	creds  *credentials.Credentials
 
-	lock         sync.RWMutex
-	isAuthorized bool
+	lock sync.RWMutex
+
+	useOnlyActiveAddresses bool
 }
 
 // newUser creates a new user.
+// The user is initially disconnected and must be connected by calling connect().
 func newUser(
 	panicHandler PanicHandler,
 	userID string,
 	eventListener listener.Listener,
 	credStorer CredentialsStorer,
-	clientManager ClientManager,
 	storeFactory StoreMaker,
-) (u *User, err error) {
+	useOnlyActiveAddresses bool,
+) (*User, *credentials.Credentials, error) {
 	log := log.WithField("user", userID)
+
 	log.Debug("Creating or loading user")
 
 	creds, err := credStorer.Get(userID)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to load user credentials")
+		return nil, nil, errors.Wrap(err, "failed to load user credentials")
 	}
 
-	u = &User{
-		log:           log,
-		panicHandler:  panicHandler,
-		listener:      eventListener,
-		credStorer:    credStorer,
-		clientManager: clientManager,
-		storeFactory:  storeFactory,
-		userID:        userID,
-		creds:         creds,
-	}
-
-	return
+	return &User{
+		log:                    log,
+		panicHandler:           panicHandler,
+		listener:               eventListener,
+		credStorer:             credStorer,
+		storeFactory:           storeFactory,
+		userID:                 userID,
+		creds:                  creds,
+		useOnlyActiveAddresses: useOnlyActiveAddresses,
+	}, creds, nil
 }
 
-func (u *User) client() pmapi.Client {
-	return u.clientManager.GetClient(u.userID)
-}
+// connect connects a user. This includes
+// - providing it with an authorised API client
+// - loading its credentials from the credentials store
+// - loading and unlocking its PGP keys
+// - loading its store
+func (u *User) connect(ctx context.Context, client pmapi.Client, creds *credentials.Credentials) error {
+	u.log.Info("Connecting user")
 
-// init initialises a user. This includes reloading its credentials from the credentials store
-// (such as when logging out and back in, you need to reload the credentials because the new credentials will
-// have the apitoken and password), authorising the user against the api, loading the user store (creating a new one
-// if necessary), and setting the imap idle updates channel (used to send imap idle updates to the imap backend if
-// something in the store changed).
-func (u *User) init() (err error) {
-	u.log.Info("Initialising user")
+	// Connected users have an API client.
+	u.client = client
 
-	// Reload the user's credentials (if they log out and back in we need the new
-	// version with the apitoken and mailbox password).
-	creds, err := u.credStorer.Get(u.userID)
-	if err != nil {
-		return errors.Wrap(err, "failed to load user credentials")
-	}
+	// FIXME(conman): How to remove this auth handler when user is disconnected?
+	u.client.AddAuthHandler(u.handleAuth)
+
+	// Save the latest credentials for the user.
 	u.creds = creds
 
-	// Try to authorise the user if they aren't already authorised.
-	// Note: we still allow users to set up accounts if the internet is off.
-	if authErr := u.authorizeIfNecessary(false); authErr != nil {
-		switch errors.Cause(authErr) {
-		case pmapi.ErrAPINotReachable, pmapi.ErrUpgradeApplication, ErrLoggedOutUser:
-			u.log.WithError(authErr).Warn("Could not authorize user")
-		default:
-			if logoutErr := u.logout(); logoutErr != nil {
-				u.log.WithError(logoutErr).Warn("Could not logout user")
-			}
-			return errors.Wrap(authErr, "failed to authorize user")
+	// Connected users have unlocked keys.
+	// FIXME(conman): clients should always be authorized! This is a workaround to avoid a major refactor :(
+	if u.creds.IsConnected() {
+		if err := u.client.Unlock(ctx, []byte(u.creds.MailboxPassword)); err != nil {
+			return err
 		}
 	}
 
+	// Connected users have a store.
+	if err := u.loadStore(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (u *User) loadStore() error {
 	// Logged-out user keeps store running to access offline data.
 	// Therefore it is necessary to close it before re-init.
 	if u.store != nil {
@@ -125,93 +127,28 @@ func (u *User) init() (err error) {
 		}
 		u.store = nil
 	}
+
 	store, err := u.storeFactory.New(u)
 	if err != nil {
 		return errors.Wrap(err, "failed to create store")
 	}
+
 	u.store = store
 
-	return err
-}
-
-// authorizeIfNecessary checks whether user is logged in and is connected to api auth channel.
-// If user is not already connected to the api auth channel (for example there was no internet during start),
-// it tries to connect it.
-func (u *User) authorizeIfNecessary(emitEvent bool) (err error) {
-	// If user is connected and has an auth channel, then perfect, nothing to do here.
-	if u.creds.IsConnected() && u.isAuthorized {
-		// The keyring  unlock is triggered here to resolve state where apiClient
-		// is authenticated (we have auth token) but it was not possible to download
-		// and unlock the keys (internet not reachable).
-		return u.unlockIfNecessary()
-	}
-
-	if !u.creds.IsConnected() {
-		err = ErrLoggedOutUser
-	} else if err = u.authorizeAndUnlock(); err != nil {
-		u.log.WithError(err).Error("Could not authorize and unlock user")
-
-		switch errors.Cause(err) {
-		case pmapi.ErrUpgradeApplication, pmapi.ErrAPINotReachable: // Ignore these errors.
-		default:
-			if errLogout := u.credStorer.Logout(u.userID); errLogout != nil {
-				u.log.WithField("err", errLogout).Error("Could not log user out from credentials store")
-			}
-		}
-	}
-
-	if emitEvent && err != nil &&
-		errors.Cause(err) != pmapi.ErrUpgradeApplication &&
-		errors.Cause(err) != pmapi.ErrAPINotReachable {
-		u.listener.Emit(events.LogoutEvent, u.userID)
-	}
-
-	return err
-}
-
-// unlockIfNecessary will not trigger keyring unlocking if it was already successfully unlocked.
-func (u *User) unlockIfNecessary() error {
-	if u.client().IsUnlocked() {
-		return nil
-	}
-
-	if err := u.client().Unlock([]byte(u.creds.MailboxPassword)); err != nil {
-		return errors.Wrap(err, "failed to unlock user")
-	}
-
 	return nil
 }
 
-// authorizeAndUnlock tries to authorize the user with the API using the the user's APIToken.
-// If that succeeds, it tries to unlock the user's keys and addresses.
-func (u *User) authorizeAndUnlock() (err error) {
-	if u.creds.APIToken == "" {
-		u.log.Warn("Could not connect to API auth channel, have no API token")
-		return nil
-	}
-
-	if _, err := u.client().AuthRefresh(u.creds.APIToken); err != nil {
-		return errors.Wrap(err, "failed to refresh API auth")
-	}
-
-	if err := u.client().Unlock([]byte(u.creds.MailboxPassword)); err != nil {
-		return errors.Wrap(err, "failed to unlock user")
-	}
-
-	return nil
-}
-
-func (u *User) updateAuthToken(auth *pmapi.Auth) {
+func (u *User) handleAuth(auth *pmapi.Auth) error {
 	u.log.Debug("User received auth")
 
-	if err := u.credStorer.UpdateToken(u.userID, auth.GenToken()); err != nil {
-		u.log.WithError(err).Error("Failed to update refresh token in credentials store")
-		return
+	creds, err := u.credStorer.UpdateToken(u.userID, auth.UID, auth.RefreshToken)
+	if err != nil {
+		return errors.Wrap(err, "failed to update refresh token in credentials store")
 	}
 
-	u.refreshFromCredentials()
+	u.creds = creds
 
-	u.isAuthorized = true
+	return nil
 }
 
 // clearStore removes the database.
@@ -248,7 +185,7 @@ func (u *User) closeStore() error {
 // Do not use! It's only for backward compatibility of old SMTP and IMAP implementations.
 // After proper refactor of SMTP and IMAP remove this method.
 func (u *User) GetTemporaryPMAPIClient() pmapi.Client {
-	return u.client()
+	return u.client
 }
 
 // ID returns the user's userID.
@@ -270,6 +207,10 @@ func (u *User) IsConnected() bool {
 	defer u.lock.RUnlock()
 
 	return u.creds.IsConnected()
+}
+
+func (u *User) GetClient() pmapi.Client {
+	return u.client
 }
 
 // IsCombinedAddressMode returns whether user is set in combined or split mode.
@@ -345,7 +286,7 @@ func (u *User) GetAddressID(address string) (id string, err error) {
 		return u.store.GetAddressID(address)
 	}
 
-	addresses := u.client().Addresses()
+	addresses := u.client.Addresses()
 	pmapiAddress := addresses.ByEmail(address)
 	if pmapiAddress != nil {
 		return pmapiAddress.ID, nil
@@ -366,18 +307,21 @@ func (u *User) GetBridgePassword() string {
 // CheckBridgeLogin checks whether the user is logged in and the bridge
 // IMAP/SMTP password is correct.
 func (u *User) CheckBridgeLogin(password string) error {
-	if isApplicationOutdated {
-		u.listener.Emit(events.UpgradeApplicationEvent, "")
-		return pmapi.ErrUpgradeApplication
-	}
+	// FIXME(conman): Handle force upgrade?
+
+	/*
+		if isApplicationOutdated {
+			u.listener.Emit(events.UpgradeApplicationEvent, "")
+			return pmapi.ErrUpgradeApplication
+		}
+	*/
 
 	u.lock.RLock()
 	defer u.lock.RUnlock()
 
-	// True here because users should be notified by popup of auth failure.
-	if err := u.authorizeIfNecessary(true); err != nil {
-		u.log.WithError(err).Error("Failed to authorize user")
-		return err
+	if !u.creds.IsConnected() {
+		u.listener.Emit(events.LogoutEvent, u.userID)
+		return ErrLoggedOutUser
 	}
 
 	return u.creds.CheckPassword(password)
@@ -388,60 +332,57 @@ func (u *User) UpdateUser() error {
 	u.lock.Lock()
 	defer u.lock.Unlock()
 
-	if err := u.authorizeIfNecessary(true); err != nil {
-		return errors.Wrap(err, "cannot update user")
-	}
-
-	_, err := u.client().UpdateUser()
+	_, err := u.client.UpdateUser(context.TODO())
 	if err != nil {
 		return err
 	}
 
-	if err = u.client().ReloadKeys([]byte(u.creds.MailboxPassword)); err != nil {
+	if err := u.client.ReloadKeys(context.TODO(), []byte(u.creds.MailboxPassword)); err != nil {
 		return errors.Wrap(err, "failed to reload keys")
 	}
 
-	emails := u.client().Addresses().ActiveEmails()
-	if err := u.credStorer.UpdateEmails(u.userID, emails); err != nil {
+	creds, err := u.credStorer.UpdateEmails(u.userID, u.client.Addresses().ActiveEmails())
+	if err != nil {
 		return err
 	}
 
-	u.refreshFromCredentials()
+	u.creds = creds
 
 	return nil
 }
 
 // SwitchAddressMode changes mode from combined to split and vice versa. The mode to switch to is determined by the
 // state of the user's credentials in the credentials store. See `IsCombinedAddressMode` for more details.
-func (u *User) SwitchAddressMode() (err error) {
+func (u *User) SwitchAddressMode() error {
 	u.log.Trace("Switching user address mode")
 
 	u.lock.Lock()
 	defer u.lock.Unlock()
+
 	u.CloseAllConnections()
 
 	if u.store == nil {
-		err = errors.New("store is not initialised")
-		return
+		return errors.New("store is not initialised")
 	}
 
 	newAddressModeState := !u.IsCombinedAddressMode()
 
-	if err = u.store.UseCombinedMode(newAddressModeState); err != nil {
-		u.log.WithError(err).Error("Could not switch store address mode")
-		return
+	if err := u.store.UseCombinedMode(newAddressModeState); err != nil {
+		return errors.Wrap(err, "could not switch store address mode")
 	}
 
-	if u.creds.IsCombinedAddressMode != newAddressModeState {
-		if err = u.credStorer.SwitchAddressMode(u.userID); err != nil {
-			u.log.WithError(err).Error("Could not switch credentials store address mode")
-			return
-		}
+	if u.creds.IsCombinedAddressMode == newAddressModeState {
+		return nil
 	}
 
-	u.refreshFromCredentials()
+	creds, err := u.credStorer.SwitchAddressMode(u.userID)
+	if err != nil {
+		return errors.Wrap(err, "could not switch credentials store address mode")
+	}
 
-	return err
+	u.creds = creds
+
+	return nil
 }
 
 // logout is the same as Logout, but for internal purposes (logged out from
@@ -458,34 +399,36 @@ func (u *User) logout() error {
 		u.listener.Emit(events.UserRefreshEvent, u.userID)
 	}
 
-	u.isAuthorized = false
-
 	return err
 }
 
 // Logout logs out the user from pmapi, the credentials store, the mail store, and tries to remove as much
 // sensitive data as possible.
-func (u *User) Logout() (err error) {
+func (u *User) Logout() error {
 	u.lock.Lock()
 	defer u.lock.Unlock()
 
 	u.log.Debug("Logging out user")
 
 	if !u.creds.IsConnected() {
-		return
+		return nil
 	}
 
-	u.client().Logout()
+	// FIXME(conman): Do we delete API client now? Who cleans up? What about registered handlers?
+	if err := u.client.AuthDelete(context.TODO()); err != nil {
+		u.log.WithError(err).Warn("Failed to delete auth")
+	}
 
-	if err = u.credStorer.Logout(u.userID); err != nil {
+	creds, err := u.credStorer.Logout(u.userID)
+	if err != nil {
 		u.log.WithError(err).Warn("Could not log user out from credentials store")
 
-		if err = u.credStorer.Delete(u.userID); err != nil {
+		if err := u.credStorer.Delete(u.userID); err != nil {
 			u.log.WithError(err).Error("Could not delete user from credentials store")
 		}
+	} else {
+		u.creds = creds
 	}
-
-	u.refreshFromCredentials()
 
 	// Do not close whole store, just event loop. Some information might be needed offline (e.g. addressID)
 	u.closeEventLoop()
@@ -494,15 +437,7 @@ func (u *User) Logout() (err error) {
 
 	runtime.GC()
 
-	return err
-}
-
-func (u *User) refreshFromCredentials() {
-	if credentials, err := u.credStorer.Get(u.userID); err != nil {
-		log.WithError(err).Error("Cannot refresh user credentials")
-	} else {
-		u.creds = credentials
-	}
+	return nil
 }
 
 func (u *User) closeEventLoop() {

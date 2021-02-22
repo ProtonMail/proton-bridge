@@ -26,6 +26,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/internal/sentry"
 	"github.com/ProtonMail/proton-bridge/internal/users"
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
+	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 )
 
 // GetBridge returns bridge instance.
@@ -52,7 +53,6 @@ func (ctx *TestContext) RestartBridge() error {
 		_ = user.GetStore().Close()
 	}
 
-	ctx.bridge.StopWatchers()
 	time.Sleep(50 * time.Millisecond)
 
 	ctx.withBridgeInstance()
@@ -68,7 +68,7 @@ func newBridgeInstance(
 	settings *fakeSettings,
 	credStore users.CredentialsStorer,
 	eventListener listener.Listener,
-	clientManager users.ClientManager,
+	clientManager pmapi.Manager,
 ) *bridge.Bridge {
 	sentryReporter := sentry.NewReporter("bridge", constants.Version, useragent.New())
 	panicHandler := &panicHandler{t: t}

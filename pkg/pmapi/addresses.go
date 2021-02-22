@@ -18,10 +18,12 @@
 package pmapi
 
 import (
+	"context"
 	"errors"
 	"strings"
 
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
+	"github.com/go-resty/resty/v2"
 )
 
 // Address statuses.
@@ -79,11 +81,6 @@ type Address struct {
 
 // AddressList is a list of addresses.
 type AddressList []*Address
-
-type AddressesRes struct {
-	Res
-	Addresses AddressList
-}
 
 // ByID returns an address by id. Returns nil if no address is found.
 func (l AddressList) ByID(id string) *Address {
@@ -164,40 +161,22 @@ func ConstructAddress(headerEmail string, addressEmail string) string {
 }
 
 // GetAddresses requests all of current user addresses (without pagination).
-func (c *client) GetAddresses() (addresses AddressList, err error) {
-	req, err := c.NewRequest("GET", "/addresses", nil)
-	if err != nil {
-		return
+func (c *client) GetAddresses(ctx context.Context) (addresses AddressList, err error) {
+	var res struct {
+		Addresses []*Address
 	}
 
-	var res AddressesRes
-	if err = c.DoJSON(req, &res); err != nil {
-		return
+	if _, err := c.do(ctx, func(r *resty.Request) (*resty.Response, error) {
+		return r.SetResult(&res).Get("/addresses")
+	}); err != nil {
+		return nil, err
 	}
 
-	return res.Addresses, res.Err()
+	return res.Addresses, nil
 }
 
-func (c *client) ReorderAddresses(addressIDs []string) (err error) {
-	var reqBody struct {
-		AddressIDs []string
-	}
-
-	reqBody.AddressIDs = addressIDs
-
-	req, err := c.NewJSONRequest("PUT", "/addresses/order", reqBody)
-	if err != nil {
-		return
-	}
-
-	var addContactsRes AddContactsResponse
-	if err = c.DoJSON(req, &addContactsRes); err != nil {
-		return
-	}
-
-	_, err = c.UpdateUser()
-
-	return
+func (c *client) ReorderAddresses(ctx context.Context, addressIDs []string) (err error) {
+	panic("TODO")
 }
 
 // Addresses returns the addresses stored in the client object itself rather than fetching from the API.

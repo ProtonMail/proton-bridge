@@ -127,12 +127,12 @@ func TestDeleteMessage(t *testing.T) {
 	checkMailboxMessageIDs(t, m, pmapi.AllMailLabel, []wantID{{"msg2", 2}})
 }
 
-func insertMessage(t *testing.T, m *mocksForStore, id, subject, sender string, unread int, labelIDs []string) { //nolint[unparam]
+func insertMessage(t *testing.T, m *mocksForStore, id, subject, sender string, unread pmapi.Boolean, labelIDs []string) { //nolint[unparam]
 	msg := getTestMessage(id, subject, sender, unread, labelIDs)
 	require.Nil(t, m.store.createOrUpdateMessageEvent(msg))
 }
 
-func getTestMessage(id, subject, sender string, unread int, labelIDs []string) *pmapi.Message {
+func getTestMessage(id, subject, sender string, unread pmapi.Boolean, labelIDs []string) *pmapi.Message {
 	address := &mail.Address{Address: sender}
 	return &pmapi.Message{
 		ID:       id,

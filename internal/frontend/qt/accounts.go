@@ -130,7 +130,7 @@ func (s *FrontendQt) showLoginError(err error, scope string) bool {
 		return false
 	}
 	log.Warnf("%s: %v", scope, err)
-	if err == pmapi.ErrAPINotReachable {
+	if err == pmapi.ErrNoConnection {
 		s.Qml.SetConnectionStatus(false)
 		s.SendNotification(TabAccount, s.Qml.CanNotReachAPI())
 		s.Qml.ProcessFinished()

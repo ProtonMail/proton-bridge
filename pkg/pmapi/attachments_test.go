@@ -19,6 +19,7 @@ package pmapi
 
 import (
 	"bytes"
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -94,7 +95,7 @@ func TestAttachment_UnmarshalJSON(t *testing.T) {
 }
 
 func TestClient_CreateAttachment(t *testing.T) {
-	s, c := newTestServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	s, c := newTestClient(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		Ok(t, checkMethodAndPath(r, "POST", "/mail/v4/attachments"))
 
 		contentType, params, err := pmmime.ParseMediaType(r.Header.Get("Content-Type"))
@@ -136,12 +137,14 @@ func TestClient_CreateAttachment(t *testing.T) {
 			t.Errorf("Invalid attachment packets: expected %v but got %v", testAttachment.KeyPackets, string(b))
 		}
 
+		w.Header().Set("Content-Type", "application/json")
+
 		fmt.Fprint(w, testCreateAttachmentBody)
 	}))
 	defer s.Close()
 
 	r := strings.NewReader(testAttachmentCleartext) // In reality, this thing is encrypted
-	created, err := c.CreateAttachment(testAttachment, r, strings.NewReader(""))
+	created, err := c.CreateAttachment(context.TODO(), testAttachment, r, strings.NewReader(""))
 	if err != nil {
 		t.Fatal("Expected no error while creating attachment, got:", err)
 	}
@@ -151,34 +154,17 @@ func TestClient_CreateAttachment(t *testing.T) {
 	}
 }
 
-func TestClient_DeleteAttachment(t *testing.T) {
-	s, c := newTestServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		Ok(t, checkMethodAndPath(r, "DELETE", "/mail/v4/attachments/"+testAttachment.ID))
-
-		b := &bytes.Buffer{}
-		if n, _ := b.ReadFrom(r.Body); n != 0 {
-			t.Fatal("expected no body but have: ", b.String())
-		}
-
-		fmt.Fprint(w, testDeleteAttachmentBody)
-	}))
-	defer s.Close()
-
-	err := c.DeleteAttachment(testAttachment.ID)
-	if err != nil {
-		t.Fatal("Expected no error while deleting attachment, got:", err)
-	}
-}
-
 func TestClient_GetAttachment(t *testing.T) {
-	s, c := newTestServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	s, c := newTestClient(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		Ok(t, checkMethodAndPath(r, "GET", "/mail/v4/attachments/"+testAttachment.ID))
+
+		w.Header().Set("Content-Type", "application/json")
 
 		fmt.Fprint(w, testAttachmentCleartext)
 	}))
 	defer s.Close()
 
-	r, err := c.GetAttachment(testAttachment.ID)
+	r, err := c.GetAttachment(context.TODO(), testAttachment.ID)
 	if err != nil {
 		t.Fatal("Expected no error while getting attachment, got:", err)
 	}

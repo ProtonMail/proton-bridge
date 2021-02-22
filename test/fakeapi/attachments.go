@@ -19,6 +19,7 @@ package fakeapi
 
 import (
 	"bytes"
+	"context"
 	"encoding/base64"
 	"fmt"
 	"io"
@@ -53,7 +54,7 @@ func newTestAttachment(iAtt int, msgID string) *pmapi.Attachment {
 	}
 }
 
-func (api *FakePMAPI) GetAttachment(attachmentID string) (io.ReadCloser, error) {
+func (api *FakePMAPI) GetAttachment(_ context.Context, attachmentID string) (io.ReadCloser, error) {
 	if err := api.checkAndRecordCall(GET, "/mail/v4/attachments/"+attachmentID, nil); err != nil {
 		return nil, err
 	}
@@ -65,7 +66,7 @@ func (api *FakePMAPI) GetAttachment(attachmentID string) (io.ReadCloser, error) 
 	return ioutil.NopCloser(r), nil
 }
 
-func (api *FakePMAPI) CreateAttachment(attachment *pmapi.Attachment, data io.Reader, signature io.Reader) (*pmapi.Attachment, error) {
+func (api *FakePMAPI) CreateAttachment(_ context.Context, attachment *pmapi.Attachment, data io.Reader, signature io.Reader) (*pmapi.Attachment, error) {
 	if err := api.checkAndRecordCall(POST, "/mail/v4/attachments", nil); err != nil {
 		return nil, err
 	}
@@ -75,8 +76,4 @@ func (api *FakePMAPI) CreateAttachment(attachment *pmapi.Attachment, data io.Rea
 	}
 	attachment.KeyPackets = base64.StdEncoding.EncodeToString(bytes)
 	return attachment, nil
-}
-
-func (api *FakePMAPI) DeleteAttachment(attID string) error {
-	return api.checkAndRecordCall(DELETE, "/mail/v4/attachments/"+attID, nil)
 }

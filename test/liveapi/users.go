@@ -18,6 +18,8 @@
 package liveapi
 
 import (
+	"context"
+
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	"github.com/cucumber/godog"
 	"github.com/pkg/errors"
@@ -28,19 +30,12 @@ func (ctl *Controller) AddUser(user *pmapi.User, addresses *pmapi.AddressList, p
 		return godog.ErrPending
 	}
 
-	client := ctl.clientManager.GetClient(user.ID)
-
-	authInfo, err := client.AuthInfo(user.Name)
+	client, _, err := ctl.clientManager.NewClientWithLogin(context.TODO(), user.Name, password)
 	if err != nil {
-		return errors.Wrap(err, "failed to get auth info")
+		return errors.Wrap(err, "failed to create new client")
 	}
 
-	_, err = client.Auth(user.Name, password, authInfo)
-	if err != nil {
-		return errors.Wrap(err, "failed to auth user")
-	}
-
-	salt, err := client.AuthSalt()
+	salt, err := client.AuthSalt(context.TODO())
 	if err != nil {
 		return errors.Wrap(err, "failed to get salt")
 	}
@@ -50,7 +45,7 @@ func (ctl *Controller) AddUser(user *pmapi.User, addresses *pmapi.AddressList, p
 		return errors.Wrap(err, "failed to hash mailbox password")
 	}
 
-	if err := client.Unlock([]byte(mailboxPassword)); err != nil {
+	if err := client.Unlock(context.TODO(), mailboxPassword); err != nil {
 		return errors.Wrap(err, "failed to unlock user")
 	}
 
@@ -64,7 +59,5 @@ func (ctl *Controller) AddUser(user *pmapi.User, addresses *pmapi.AddressList, p
 }
 
 func (ctl *Controller) ReorderAddresses(user *pmapi.User, addressIDs []string) error {
-	client := ctl.clientManager.GetClient(user.ID)
-
-	return client.ReorderAddresses(addressIDs)
+	return ctl.pmapiByUsername[user.Name].ReorderAddresses(context.TODO(), addressIDs)
 }

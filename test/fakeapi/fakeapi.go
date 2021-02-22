@@ -34,28 +34,64 @@ type FakePMAPI struct {
 	controller       *Controller
 	eventIDGenerator idGenerator
 
-	auths       chan<- *pmapi.Auth
-	user        *pmapi.User
-	userKeyRing *crypto.KeyRing
-	addresses   *pmapi.AddressList
-	addrKeyRing map[string]*crypto.KeyRing
-	labels      []*pmapi.Label
-	messages    []*pmapi.Message
-	events      []*pmapi.Event
+	authHandlers []pmapi.AuthHandler
+	user         *pmapi.User
+	userKeyRing  *crypto.KeyRing
+	addresses    *pmapi.AddressList
+	addrKeyRing  map[string]*crypto.KeyRing
+	labels       []*pmapi.Label
+	messages     []*pmapi.Message
+	events       []*pmapi.Event
 
 	// uid represents the API UID. It is the unique session ID.
-	uid, lastToken string
+	uid string
+	acc string // FIXME(conman): Check this is correct!
+	ref string // FIXME(conman): Check this is correct!
 
 	log *logrus.Entry
 }
 
-func New(controller *Controller, userID string) *FakePMAPI {
-	fakePMAPI := &FakePMAPI{
+func newFakePMAPI(controller *Controller, userID, uid, acc, ref string) *FakePMAPI {
+	return &FakePMAPI{
 		controller:  controller,
-		log:         logrus.WithField("pkg", "fakeapi"),
+		log:         logrus.WithField("pkg", "fakeapi").WithField("uid", uid),
+		uid:         uid,
+		acc:         acc, // FIXME(conman): This should be checked!
+		ref:         ref, // FIXME(conman): This should be checked!
 		userID:      userID,
 		addrKeyRing: make(map[string]*crypto.KeyRing),
 	}
+}
+
+func NewFakePMAPI(controller *Controller, username, userID, uid, acc, ref string) (*FakePMAPI, error) {
+	user, ok := controller.usersByUsername[username]
+	if !ok {
+		return nil, fmt.Errorf("user %s does not exist", username)
+	}
+
+	addresses, ok := controller.addressesByUsername[username]
+	if !ok {
+		addresses = &pmapi.AddressList{}
+	}
+
+	labels, ok := controller.labelsByUsername[username]
+	if !ok {
+		labels = []*pmapi.Label{}
+	}
+
+	messages, ok := controller.messagesByUsername[username]
+	if !ok {
+		messages = []*pmapi.Message{}
+	}
+
+	fakePMAPI := newFakePMAPI(controller, userID, uid, acc, ref)
+
+	fakePMAPI.log = fakePMAPI.log.WithField("username", username)
+	fakePMAPI.username = username
+	fakePMAPI.user = user.user
+	fakePMAPI.addresses = addresses
+	fakePMAPI.labels = labels
+	fakePMAPI.messages = messages
 
 	fakePMAPI.addEvent(&pmapi.Event{
 		EventID: fakePMAPI.eventIDGenerator.last("event"),
@@ -63,7 +99,7 @@ func New(controller *Controller, userID string) *FakePMAPI {
 		More:    0,
 	})
 
-	return fakePMAPI
+	return fakePMAPI, nil
 }
 
 func (api *FakePMAPI) CloseConnections() {
@@ -74,52 +110,22 @@ func (api *FakePMAPI) checkAndRecordCall(method method, path string, request int
 	api.controller.locker.Lock()
 	defer api.controller.locker.Unlock()
 
-	if err := api.checkInternetAndRecordCall(method, path, request); err != nil {
+	api.log.WithField(string(method), path).Trace("CALL")
+
+	if err := api.controller.recordCall(method, path, request); err != nil {
 		return err
 	}
 
-	// Try re-auth
-	if api.uid == "" && api.lastToken != "" {
-		api.log.WithField("lastToken", api.lastToken).Warn("Handling unauthorized status")
-		if _, err := api.AuthRefresh(api.lastToken); err != nil {
-			return err
-		}
+	// FIXME(conman): This needs to match conman behaviour. Should try auth refresh somehow.
+	if !api.controller.checkAccessToken(api.uid, api.acc) {
+		return pmapi.ErrUnauthorized
 	}
 
-	// Check client is authenticated. There is difference between
-	//    * invalid token
-	//    * and missing token
-	// but API treats it the same
-	if api.uid == "" {
-		return pmapi.ErrInvalidToken
-	}
-
-	// Any route (except Auth and AuthRefresh) can end with wrong
-	// token and it should be translated into logout
-	session, ok := api.controller.sessionsByUID[api.uid]
-	if !ok {
-		api.setUID("") // all consecutive requests will not send auth nil
-		api.sendAuth(nil)
-		return pmapi.ErrInvalidToken
-	} else if !session.hasFullScope {
-		// This is exact error string from the server (at least from documentation).
+	if path != "/auth/2fa" && !api.controller.checkScope(api.uid) {
 		return errors.New("Access token does not have sufficient scope") //nolint[stylecheck]
 	}
 
 	return nil
-}
-
-func (api *FakePMAPI) checkInternetAndRecordCall(method method, path string, request interface{}) error {
-	api.log.WithField(string(method), path).Trace("CALL")
-	api.controller.recordCall(method, path, request)
-	if api.controller.noInternetConnection {
-		return pmapi.ErrAPINotReachable
-	}
-	return nil
-}
-
-func (api *FakePMAPI) sendAuth(auth *pmapi.Auth) {
-	api.controller.clientManager.HandleAuth(pmapi.ClientAuth{UserID: api.userID, Auth: auth})
 }
 
 func (api *FakePMAPI) setUser(username string) error {
@@ -153,14 +159,9 @@ func (api *FakePMAPI) setUser(username string) error {
 	return nil
 }
 
-func (api *FakePMAPI) setUID(uid string) {
-	api.uid = uid
-	api.log = api.log.WithField("uid", api.uid)
-	api.log.Info("UID updated")
-}
-
 func (api *FakePMAPI) unsetUser() {
-	api.setUID("")
+	api.uid = ""
+	api.acc = "" // FIXME(conman): This should be checked!
 	api.user = nil
 	api.labels = nil
 	api.messages = nil

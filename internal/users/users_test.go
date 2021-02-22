@@ -48,18 +48,17 @@ func TestMain(m *testing.M) {
 }
 
 var (
-	testAuth = &pmapi.Auth{ //nolint[gochecknoglobals]
-		RefreshToken: "tok",
-	}
 	testAuthRefresh = &pmapi.Auth{ //nolint[gochecknoglobals]
-		RefreshToken: "reftok",
+		UID:          "uid",
+		AccessToken:  "acc",
+		RefreshToken: "ref",
 	}
 
 	testCredentials = &credentials.Credentials{ //nolint[gochecknoglobals]
 		UserID:                "user",
 		Name:                  "username",
 		Emails:                "user@pm.me",
-		APIToken:              "token",
+		APIToken:              "uid:acc",
 		MailboxPassword:       "pass",
 		BridgePassword:        "0123456789abcdef",
 		Version:               "v1",
@@ -67,11 +66,12 @@ var (
 		IsHidden:              false,
 		IsCombinedAddressMode: true,
 	}
+
 	testCredentialsSplit = &credentials.Credentials{ //nolint[gochecknoglobals]
 		UserID:                "users",
 		Name:                  "usersname",
 		Emails:                "users@pm.me;anotheruser@pm.me;alsouser@pm.me",
-		APIToken:              "token",
+		APIToken:              "uid:acc",
 		MailboxPassword:       "pass",
 		BridgePassword:        "0123456789abcdef",
 		Version:               "v1",
@@ -79,6 +79,7 @@ var (
 		IsHidden:              false,
 		IsCombinedAddressMode: false,
 	}
+
 	testCredentialsDisconnected = &credentials.Credentials{ //nolint[gochecknoglobals]
 		UserID:                "user",
 		Name:                  "username",
@@ -90,6 +91,19 @@ var (
 		Timestamp:             123456789,
 		IsHidden:              false,
 		IsCombinedAddressMode: true,
+	}
+
+	testCredentialsSplitDisconnected = &credentials.Credentials{ //nolint[gochecknoglobals]
+		UserID:                "users",
+		Name:                  "usersname",
+		Emails:                "users@pm.me;anotheruser@pm.me;alsouser@pm.me",
+		APIToken:              "",
+		MailboxPassword:       "",
+		BridgePassword:        "0123456789abcdef",
+		Version:               "v1",
+		Timestamp:             123456789,
+		IsHidden:              false,
+		IsCombinedAddressMode: false,
 	}
 
 	testPMAPIUser = &pmapi.User{ //nolint[gochecknoglobals]
@@ -130,12 +144,12 @@ type mocks struct {
 	ctrl             *gomock.Controller
 	locator          *usersmocks.MockLocator
 	PanicHandler     *usersmocks.MockPanicHandler
-	clientManager    *usersmocks.MockClientManager
 	credentialsStore *usersmocks.MockCredentialsStorer
 	storeMaker       *usersmocks.MockStoreMaker
 	eventListener    *MockListener
 
-	pmapiClient *pmapimocks.MockClient
+	clientManager *pmapimocks.MockManager
+	pmapiClient   *pmapimocks.MockClient
 
 	storeCache *store.Cache
 }
@@ -171,12 +185,12 @@ func initMocks(t *testing.T) mocks {
 		ctrl:             mockCtrl,
 		locator:          usersmocks.NewMockLocator(mockCtrl),
 		PanicHandler:     usersmocks.NewMockPanicHandler(mockCtrl),
-		clientManager:    usersmocks.NewMockClientManager(mockCtrl),
 		credentialsStore: usersmocks.NewMockCredentialsStorer(mockCtrl),
 		storeMaker:       usersmocks.NewMockStoreMaker(mockCtrl),
 		eventListener:    NewMockListener(mockCtrl),
 
-		pmapiClient: pmapimocks.NewMockClient(mockCtrl),
+		clientManager: pmapimocks.NewMockManager(mockCtrl),
+		pmapiClient:   pmapimocks.NewMockClient(mockCtrl),
 
 		storeCache: store.NewCache(cacheFile.Name()),
 	}
@@ -189,7 +203,7 @@ func initMocks(t *testing.T) mocks {
 		var sentryReporter *sentry.Reporter // Sentry reporter is not used under unit tests.
 		dbFile, err := ioutil.TempFile("", "bridge-store-db-*.db")
 		require.NoError(t, err, "could not get temporary file for store db")
-		return store.New(sentryReporter, m.PanicHandler, user, m.clientManager, m.eventListener, dbFile.Name(), m.storeCache)
+		return store.New(sentryReporter, m.PanicHandler, user, m.eventListener, dbFile.Name(), m.storeCache)
 	}).AnyTimes()
 	m.storeMaker.EXPECT().Remove(gomock.Any()).AnyTimes()
 
@@ -198,46 +212,42 @@ func initMocks(t *testing.T) mocks {
 
 func testNewUsersWithUsers(t *testing.T, m mocks) *Users {
 	// Events are asynchronous
-	m.pmapiClient.EXPECT().GetEvent("").Return(testPMAPIEvent, nil).Times(2)
-	m.pmapiClient.EXPECT().GetEvent(testPMAPIEvent.EventID).Return(testPMAPIEvent, nil).Times(2)
-	m.pmapiClient.EXPECT().ListMessages(gomock.Any()).Return([]*pmapi.Message{}, 0, nil).Times(2)
+	m.pmapiClient.EXPECT().GetEvent(gomock.Any(), "").Return(testPMAPIEvent, nil).Times(2)
+	m.pmapiClient.EXPECT().GetEvent(gomock.Any(), testPMAPIEvent.EventID).Return(testPMAPIEvent, nil).Times(2)
+	m.pmapiClient.EXPECT().ListMessages(gomock.Any(), gomock.Any()).Return([]*pmapi.Message{}, 0, nil).Times(2)
 
 	gomock.InOrder(
 		m.credentialsStore.EXPECT().List().Return([]string{"user", "users"}, nil),
 
 		// Init for user.
-		m.credentialsStore.EXPECT().Get("user").Return(testCredentials, nil),
-		m.credentialsStore.EXPECT().Get("user").Return(testCredentials, nil),
-		m.pmapiClient.EXPECT().AuthRefresh("token").Return(testAuthRefresh, nil),
-		m.pmapiClient.EXPECT().Unlock([]byte("pass")).Return(nil),
-		m.pmapiClient.EXPECT().ListLabels().Return([]*pmapi.Label{}, nil),
-		m.pmapiClient.EXPECT().CountMessages("").Return([]*pmapi.MessagesCount{}, nil),
+		m.credentialsStore.EXPECT().Get(testCredentials.UserID).Return(testCredentials, nil),
+		m.clientManager.EXPECT().NewClientWithRefresh(gomock.Any(), "uid", "acc").Return(m.pmapiClient, testAuthRefresh, nil),
+		m.pmapiClient.EXPECT().AddAuthHandler(gomock.Any()),
+		m.credentialsStore.EXPECT().UpdateToken(testCredentials.UserID, testAuthRefresh.UID, testAuthRefresh.RefreshToken).Return(testCredentials, nil),
+		m.credentialsStore.EXPECT().UpdatePassword(testCredentials.UserID, testCredentials.MailboxPassword).Return(testCredentials, nil),
+		m.pmapiClient.EXPECT().Unlock(gomock.Any(), []byte("pass")).Return(nil),
+		m.pmapiClient.EXPECT().ListLabels(gomock.Any()).Return([]*pmapi.Label{}, nil),
+		m.pmapiClient.EXPECT().CountMessages(gomock.Any(), "").Return([]*pmapi.MessagesCount{}, nil),
 		m.pmapiClient.EXPECT().Addresses().Return([]*pmapi.Address{testPMAPIAddress}),
 
 		// Init for users.
-		m.credentialsStore.EXPECT().Get("users").Return(testCredentialsSplit, nil),
-		m.credentialsStore.EXPECT().Get("users").Return(testCredentialsSplit, nil),
-		m.pmapiClient.EXPECT().AuthRefresh("token").Return(testAuthRefresh, nil),
-		m.pmapiClient.EXPECT().Unlock([]byte("pass")).Return(nil),
-		m.pmapiClient.EXPECT().ListLabels().Return([]*pmapi.Label{}, nil),
-		m.pmapiClient.EXPECT().CountMessages("").Return([]*pmapi.MessagesCount{}, nil),
+		m.credentialsStore.EXPECT().Get(testCredentialsSplit.UserID).Return(testCredentialsSplit, nil),
+		m.clientManager.EXPECT().NewClientWithRefresh(gomock.Any(), "uid", "acc").Return(m.pmapiClient, testAuthRefresh, nil),
+		m.pmapiClient.EXPECT().AddAuthHandler(gomock.Any()),
+		m.credentialsStore.EXPECT().UpdateToken(testCredentialsSplit.UserID, testAuthRefresh.UID, testAuthRefresh.RefreshToken).Return(testCredentialsSplit, nil),
+		m.credentialsStore.EXPECT().UpdatePassword(testCredentialsSplit.UserID, testCredentialsSplit.MailboxPassword).Return(testCredentialsSplit, nil),
+		m.pmapiClient.EXPECT().Unlock(gomock.Any(), []byte("pass")).Return(nil),
+		m.pmapiClient.EXPECT().ListLabels(gomock.Any()).Return([]*pmapi.Label{}, nil),
+		m.pmapiClient.EXPECT().CountMessages(gomock.Any(), "").Return([]*pmapi.MessagesCount{}, nil),
 		m.pmapiClient.EXPECT().Addresses().Return(testPMAPIAddresses),
 	)
 
-	users := testNewUsers(t, m)
-
-	user, _ := users.GetUser("user")
-	mockAuthUpdate(user, "reftok", m)
-
-	user, _ = users.GetUser("user")
-	mockAuthUpdate(user, "reftok", m)
-
-	return users
+	return testNewUsers(t, m)
 }
 
 func testNewUsers(t *testing.T, m mocks) *Users { //nolint[unparam]
-	m.eventListener.EXPECT().Add(events.UpgradeApplicationEvent, gomock.Any())
-	m.clientManager.EXPECT().GetAuthUpdateChannel().Return(make(chan pmapi.ClientAuth))
+	// FIXME(conman): How to handle force upgrade?
+	// m.eventListener.EXPECT().Add(events.UpgradeApplicationEvent, gomock.Any())
 
 	users := New(m.locator, m.PanicHandler, m.eventListener, m.clientManager, m.credentialsStore, m.storeMaker, true)
 
@@ -256,8 +266,8 @@ func TestClearData(t *testing.T) {
 	m := initMocks(t)
 	defer m.ctrl.Finish()
 
-	m.clientManager.EXPECT().GetClient("user").Return(m.pmapiClient).MinTimes(1)
-	m.clientManager.EXPECT().GetClient("users").Return(m.pmapiClient).MinTimes(1)
+	// m.clientManager.EXPECT().GetClient("user").Return(m.pmapiClient).MinTimes(1)
+	// m.clientManager.EXPECT().GetClient("users").Return(m.pmapiClient).MinTimes(1)
 
 	users := testNewUsersWithUsers(t, m)
 	defer cleanUpUsersData(users)
@@ -267,13 +277,11 @@ func TestClearData(t *testing.T) {
 	m.eventListener.EXPECT().Emit(events.CloseConnectionEvent, "anotheruser@pm.me")
 	m.eventListener.EXPECT().Emit(events.CloseConnectionEvent, "alsouser@pm.me")
 
-	m.pmapiClient.EXPECT().Logout()
-	m.credentialsStore.EXPECT().Logout("user").Return(nil)
-	m.credentialsStore.EXPECT().Get("user").Return(testCredentials, nil)
+	m.pmapiClient.EXPECT().AuthDelete(gomock.Any())
+	m.credentialsStore.EXPECT().Logout("user").Return(testCredentialsDisconnected, nil)
 
-	m.pmapiClient.EXPECT().Logout()
-	m.credentialsStore.EXPECT().Logout("users").Return(nil)
-	m.credentialsStore.EXPECT().Get("users").Return(testCredentialsSplit, nil)
+	m.pmapiClient.EXPECT().AuthDelete(gomock.Any())
+	m.credentialsStore.EXPECT().Logout("users").Return(testCredentialsSplitDisconnected, nil)
 
 	m.locator.EXPECT().Clear()
 
@@ -285,9 +293,9 @@ func TestClearData(t *testing.T) {
 func mockEventLoopNoAction(m mocks) {
 	// Set up mocks for starting the store's event loop (in store.New).
 	// The event loop runs in another goroutine so this might happen at any time.
-	m.pmapiClient.EXPECT().GetEvent("").Return(testPMAPIEvent, nil).AnyTimes()
-	m.pmapiClient.EXPECT().GetEvent(testPMAPIEvent.EventID).Return(testPMAPIEvent, nil).AnyTimes()
-	m.pmapiClient.EXPECT().ListMessages(gomock.Any()).Return([]*pmapi.Message{}, 0, nil).AnyTimes()
+	m.pmapiClient.EXPECT().GetEvent(gomock.Any(), "").Return(testPMAPIEvent, nil).AnyTimes()
+	m.pmapiClient.EXPECT().GetEvent(gomock.Any(), testPMAPIEvent.EventID).Return(testPMAPIEvent, nil).AnyTimes()
+	m.pmapiClient.EXPECT().ListMessages(gomock.Any(), gomock.Any()).Return([]*pmapi.Message{}, 0, nil).AnyTimes()
 }
 
 func mockConnectedUser(m mocks) {
@@ -295,27 +303,13 @@ func mockConnectedUser(m mocks) {
 		m.credentialsStore.EXPECT().Get("user").Return(testCredentials, nil),
 
 		m.credentialsStore.EXPECT().Get("user").Return(testCredentials, nil),
-		m.pmapiClient.EXPECT().AuthRefresh("token").Return(testAuthRefresh, nil),
+		// m.pmapiClient.EXPECT().AuthRefresh("uid:acc").Return(testAuthRefresh, nil),
 
-		m.pmapiClient.EXPECT().Unlock([]byte(testCredentials.MailboxPassword)).Return(nil),
+		m.pmapiClient.EXPECT().Unlock(gomock.Any(), []byte(testCredentials.MailboxPassword)).Return(nil),
 
 		// Set up mocks for store initialisation for the authorized user.
-		m.pmapiClient.EXPECT().ListLabels().Return([]*pmapi.Label{}, nil),
-		m.pmapiClient.EXPECT().CountMessages("").Return([]*pmapi.MessagesCount{}, nil),
+		m.pmapiClient.EXPECT().ListLabels(gomock.Any()).Return([]*pmapi.Label{}, nil),
+		m.pmapiClient.EXPECT().CountMessages(gomock.Any(), "").Return([]*pmapi.MessagesCount{}, nil),
 		m.pmapiClient.EXPECT().Addresses().Return([]*pmapi.Address{testPMAPIAddress}),
 	)
-}
-
-// mockAuthUpdate simulates users calling UpdateAuthToken on the given user.
-// This would normally be done by users when it receives an auth from the ClientManager,
-// but as we don't have a full users instance here, we do this manually.
-func mockAuthUpdate(user *User, token string, m mocks) {
-	gomock.InOrder(
-		m.credentialsStore.EXPECT().UpdateToken("user", ":"+token).Return(nil),
-		m.credentialsStore.EXPECT().Get("user").Return(credentialsWithToken(token), nil),
-	)
-
-	user.updateAuthToken(refreshWithToken(token))
-
-	waitForEvents()
 }

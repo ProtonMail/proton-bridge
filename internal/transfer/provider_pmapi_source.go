@@ -157,7 +157,7 @@ func (p *PMAPIProvider) exportMessage(rule *Rule, progress *Progress, pmapiMsgID
 
 	body, err := p.builder.NewJobWithOptions(
 		context.Background(),
-		p.client(),
+		p.client,
 		msg.ID,
 		message.JobOptions{IgnoreDecryptionErrors: !skipEncryptedMessages},
 	).GetResult()
@@ -169,14 +169,9 @@ func (p *PMAPIProvider) exportMessage(rule *Rule, progress *Progress, pmapiMsgID
 		return Message{Body: []byte(msg.Body)}, err
 	}
 
-	unread := false
-	if msg.Unread == 1 {
-		unread = true
-	}
-
 	return Message{
 		ID:      msgID,
-		Unread:  unread,
+		Unread:  bool(msg.Unread),
 		Body:    body,
 		Sources: []Mailbox{rule.SourceMailbox},
 		Targets: rule.TargetMailboxes,

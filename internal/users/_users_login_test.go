@@ -133,7 +133,7 @@ func TestUsersFinishLoginExistingDisconnectedUser(t *testing.T) {
 		m.credentialsStore.EXPECT().Get("user").Return(&loggedOutCreds, nil),
 
 		// store.New() in user.init
-		m.pmapiClient.EXPECT().ListLabels().Return(nil, pmapi.ErrInvalidToken),
+		m.pmapiClient.EXPECT().ListLabels().Return(nil, pmapi.ErrUnauthorized),
 		m.pmapiClient.EXPECT().Addresses().Return(nil),
 
 		// getAPIUser() loads user info from API (e.g. userID).

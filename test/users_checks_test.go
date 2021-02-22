@@ -34,8 +34,10 @@ func UsersChecksFeatureContext(s *godog.Suite) {
 	s.Step(`^"([^"]*)" does not have loaded store$`, userDoesNotHaveLoadedStore)
 	s.Step(`^"([^"]*)" has running event loop$`, userHasRunningEventLoop)
 	s.Step(`^"([^"]*)" does not have running event loop$`, userDoesNotHaveRunningEventLoop)
-	s.Step(`^"([^"]*)" does not have API auth$`, isNotAuthorized)
-	s.Step(`^"([^"]*)" has API auth$`, isAuthorized)
+
+	// FIXME(conman): Write tests for new "auth" system.
+	// s.Step(`^"([^"]*)" does not have API auth$`, isNotAuthorized)
+	// s.Step(`^"([^"]*)" has API auth$`, isAuthorized)
 }
 
 func userHasAddressModeInMode(bddUserID, wantAddressMode string) error {
@@ -162,6 +164,7 @@ func userDoesNotHaveRunningEventLoop(bddUserID string) error {
 	return ctx.GetTestingError()
 }
 
+/*
 func isAuthorized(bddUserID string) error {
 	account := ctx.GetTestAccount(bddUserID)
 	if account == nil {
@@ -187,3 +190,4 @@ func isNotAuthorized(bddUserID string) error {
 	a.Eventually(ctx.GetTestingT(), func() bool { return !user.IsAuthorized() }, 5*time.Second, 10*time.Millisecond)
 	return ctx.GetTestingError()
 }
+*/

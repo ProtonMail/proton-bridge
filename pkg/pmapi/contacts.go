@@ -18,9 +18,11 @@
 package pmapi
 
 import (
+	"context"
 	"errors"
-	"net/url"
 	"strconv"
+
+	"github.com/go-resty/resty/v2"
 )
 
 type Card struct {
@@ -105,321 +107,39 @@ func (c *client) DecryptAndVerifyCards(cards []Card) ([]Card, error) {
 	return cards, nil
 }
 
-// ====================== READ ===========================
-
-type ContactsListRes struct {
-	Res
-	Contacts []*Contact
-}
-
-// GetContacts gets all contacts.
-func (c *client) GetContacts(page int, pageSize int) (contacts []*Contact, err error) {
-	v := url.Values{}
-	v.Set("Page", strconv.Itoa(page))
-	if pageSize > 0 {
-		v.Set("PageSize", strconv.Itoa(pageSize))
-	}
-	req, err := c.NewRequest("GET", "/contacts?"+v.Encode(), nil)
-
-	if err != nil {
-		return
-	}
-
-	var res ContactsListRes
-	if err = c.DoJSON(req, &res); err != nil {
-		return
-	}
-
-	contacts, err = res.Contacts, res.Err()
-	return
-}
-
 // GetContactByID gets contact details specified by contact ID.
-func (c *client) GetContactByID(id string) (contactDetail Contact, err error) {
-	req, err := c.NewRequest("GET", "/contacts/"+id, nil)
-
-	if err != nil {
-		return
-	}
-
-	type ContactRes struct {
-		Res
+func (c *client) GetContactByID(ctx context.Context, contactID string) (contactDetail Contact, err error) {
+	var res struct {
 		Contact Contact
 	}
-	var res ContactRes
 
-	if err = c.DoJSON(req, &res); err != nil {
-		return
+	if _, err := c.do(ctx, func(r *resty.Request) (*resty.Response, error) {
+		return r.SetResult(&res).Get("/contacts/v4/" + contactID)
+	}); err != nil {
+		return Contact{}, err
 	}
 
-	contactDetail, err = res.Contact, res.Err()
-	return
-}
-
-// GetContactsForExport gets contacts in vCard format, signed and encrypted.
-func (c *client) GetContactsForExport(page int, pageSize int) (contacts []Contact, err error) {
-	v := url.Values{}
-	v.Set("Page", strconv.Itoa(page))
-	if pageSize > 0 {
-		v.Set("PageSize", strconv.Itoa(pageSize))
-	}
-
-	req, err := c.NewRequest("GET", "/contacts/export?"+v.Encode(), nil)
-
-	if err != nil {
-		return
-	}
-
-	type ContactsDetailsRes struct {
-		Res
-		Contacts []Contact
-	}
-	var res ContactsDetailsRes
-
-	if err = c.DoJSON(req, &res); err != nil {
-		return
-	}
-
-	contacts, err = res.Contacts, res.Err()
-	return
-}
-
-type ContactsEmailsRes struct {
-	Res
-	ContactEmails []ContactEmail
-	Total         int
-}
-
-// GetAllContactsEmails gets all emails from all contacts.
-func (c *client) GetAllContactsEmails(page int, pageSize int) (contactsEmails []ContactEmail, err error) {
-	v := url.Values{}
-	v.Set("Page", strconv.Itoa(page))
-	if pageSize > 0 {
-		v.Set("PageSize", strconv.Itoa(pageSize))
-	}
-
-	req, err := c.NewRequest("GET", "/contacts/emails?"+v.Encode(), nil)
-	if err != nil {
-		return
-	}
-
-	var res ContactsEmailsRes
-	if err = c.DoJSON(req, &res); err != nil {
-		return
-	}
-
-	contactsEmails, err = res.ContactEmails, res.Err()
-	return
+	return res.Contact, nil
 }
 
 // GetContactEmailByEmail gets all emails from all contacts matching a specified email string.
-func (c *client) GetContactEmailByEmail(email string, page int, pageSize int) (contactEmails []ContactEmail, err error) {
-	v := url.Values{}
-	v.Set("Page", strconv.Itoa(page))
-	if pageSize > 0 {
-		v.Set("PageSize", strconv.Itoa(pageSize))
-	}
-	v.Set("Email", email)
-
-	req, err := c.NewRequest("GET", "/contacts/emails?"+v.Encode(), nil)
-	if err != nil {
-		return
+func (c *client) GetContactEmailByEmail(ctx context.Context, email string, page int, pageSize int) (contactEmails []ContactEmail, err error) {
+	var res struct {
+		ContactEmails []ContactEmail
 	}
 
-	var res ContactsEmailsRes
-	if err = c.DoJSON(req, &res); err != nil {
-		return
+	if _, err := c.do(ctx, func(r *resty.Request) (*resty.Response, error) {
+		return r.SetQueryParams(map[string]string{
+			"Email":    email,
+			"Page":     strconv.Itoa(page),
+			"PageSize": strconv.Itoa(pageSize),
+		}).SetResult(&res).Get("/contacts/v4")
+	}); err != nil {
+		return nil, err
 	}
 
-	contactEmails, err = res.ContactEmails, res.Err()
-	return
+	return res.ContactEmails, nil
 }
-
-// ============================ CREATE ====================================
-
-type CardsList struct {
-	Cards []Card
-}
-
-type ContactsCards struct {
-	Contacts []CardsList
-}
-
-type SingleContactResponse struct {
-	Res
-	Contact Contact
-}
-
-type IndexedContactResponse struct {
-	Index    int
-	Response SingleContactResponse
-}
-
-type AddContactsResponse struct {
-	Res
-	Responses []IndexedContactResponse
-}
-
-type AddContactsReq struct {
-	ContactsCards
-	Overwrite int
-	Groups    int
-	Labels    int
-}
-
-// AddContacts adds contacts specified by cards. Performs signing and encrypting based on card type.
-func (c *client) AddContacts(cards ContactsCards, overwrite int, groups int, labels int) (res *AddContactsResponse, err error) {
-	reqBody := AddContactsReq{
-		ContactsCards: cards,
-		Overwrite:     overwrite,
-		Groups:        groups,
-		Labels:        labels,
-	}
-
-	req, err := c.NewJSONRequest("POST", "/contacts", reqBody)
-	if err != nil {
-		return
-	}
-
-	var addContactsRes AddContactsResponse
-	if err = c.DoJSON(req, &addContactsRes); err != nil {
-		return
-	}
-
-	res, err = &addContactsRes, addContactsRes.Err()
-	return
-}
-
-// ================================= UPDATE =======================================
-
-type UpdateContactResponse struct {
-	Res
-	Contact Contact
-}
-
-type UpdateContactReq struct {
-	Cards []Card
-}
-
-// UpdateContact updates contact identified by contact ID. Modified contact is specified by cards.
-func (c *client) UpdateContact(id string, cards []Card) (res *UpdateContactResponse, err error) {
-	reqBody := UpdateContactReq{
-		Cards: cards,
-	}
-	req, err := c.NewJSONRequest("PUT", "/contacts/"+id, reqBody)
-	if err != nil {
-		return
-	}
-	var updateContactRes UpdateContactResponse
-	if err = c.DoJSON(req, &updateContactRes); err != nil {
-		return
-	}
-
-	res, err = &updateContactRes, updateContactRes.Err()
-	return
-}
-
-type SingleIDResponse struct {
-	Res
-	ID string
-}
-
-type UpdateContactGroupsResponse struct {
-	Res
-	Response SingleIDResponse
-}
-
-func (c *client) AddContactGroups(groupID string, contactEmailIDs []string) (res *UpdateContactGroupsResponse, err error) {
-	return c.modifyContactGroups(groupID, addContactGroupsAction, contactEmailIDs)
-}
-
-func (c *client) RemoveContactGroups(groupID string, contactEmailIDs []string) (res *UpdateContactGroupsResponse, err error) {
-	return c.modifyContactGroups(groupID, removeContactGroupsAction, contactEmailIDs)
-}
-
-const (
-	removeContactGroupsAction = 0
-	addContactGroupsAction    = 1
-)
-
-type ModifyContactGroupsReq struct {
-	LabelID         string
-	Action          int
-	ContactEmailIDs []string
-}
-
-func (c *client) modifyContactGroups(groupID string, modifyContactGroupsAction int, contactEmailIDs []string) (res *UpdateContactGroupsResponse, err error) {
-	reqBody := ModifyContactGroupsReq{
-		LabelID:         groupID,
-		Action:          modifyContactGroupsAction,
-		ContactEmailIDs: contactEmailIDs,
-	}
-	req, err := c.NewJSONRequest("PUT", "/contacts/group", reqBody)
-	if err != nil {
-		return
-	}
-	if err = c.DoJSON(req, &res); err != nil {
-		return
-	}
-	err = res.Err()
-	return
-}
-
-// ================================= DELETE =======================================
-
-type DeleteReq struct {
-	IDs []string
-}
-
-// DeleteContacts deletes contacts specified by an array of contact IDs.
-func (c *client) DeleteContacts(ids []string) (err error) {
-	deleteReq := DeleteReq{
-		IDs: ids,
-	}
-
-	req, err := c.NewJSONRequest("PUT", "/contacts/delete", deleteReq)
-	if err != nil {
-		return
-	}
-
-	type DeleteContactsRes struct {
-		Res
-		Responses []struct {
-			ID       string
-			Response Res
-		}
-	}
-	var res DeleteContactsRes
-
-	if err = c.DoJSON(req, &res); err != nil {
-		return
-	}
-	if err = res.Err(); err != nil {
-		return
-	}
-	return
-}
-
-// DeleteAllContacts deletes all contacts.
-func (c *client) DeleteAllContacts() (err error) {
-	req, err := c.NewRequest("DELETE", "/contacts", nil)
-	if err != nil {
-		return
-	}
-
-	var res Res
-
-	if err = c.DoJSON(req, &res); err != nil {
-		return
-	}
-	if err = res.Err(); err != nil {
-		return
-	}
-
-	return
-}
-
-// ===================== Private utility methods =======================
 
 func isSignedCardType(cardType int) bool {
 	return (cardType & CardSigned) == CardSigned

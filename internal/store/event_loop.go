@@ -18,6 +18,7 @@
 package store
 
 import (
+	"context"
 	"math/rand"
 	"time"
 
@@ -80,7 +81,7 @@ func (loop *eventLoop) client() pmapi.Client {
 func (loop *eventLoop) setFirstEventID() (err error) {
 	loop.log.Info("Setting first event ID")
 
-	event, err := loop.client().GetEvent("")
+	event, err := loop.client().GetEvent(context.TODO(), "")
 	if err != nil {
 		loop.log.WithError(err).Error("Could not get latest event ID")
 		return
@@ -221,7 +222,8 @@ func (loop *eventLoop) processNextEvent() (more bool, err error) { // nolint[fun
 	// We only want to consider invalid tokens as real errors because all other errors might fix themselves eventually
 	// (e.g. no internet, ulimit reached etc.)
 	defer func() {
-		if errors.Cause(err) == pmapi.ErrAPINotReachable {
+		// FIXME(conman): How to handle errors of different types?
+		if errors.Is(err, pmapi.ErrNoConnection) {
 			l.Warn("Internet unavailable")
 			err = nil
 		}
@@ -232,18 +234,20 @@ func (loop *eventLoop) processNextEvent() (more bool, err error) { // nolint[fun
 			err = nil
 		}
 
-		if errors.Cause(err) == pmapi.ErrUpgradeApplication {
-			l.Warn("Need to upgrade application")
-			err = nil
-		}
-
-		_, errUnauthorized := errors.Cause(err).(*pmapi.ErrUnauthorized)
+		// FIXME(conman): Handle force upgrade.
+		/*
+			if errors.Cause(err) == pmapi.ErrUpgradeApplication {
+				l.Warn("Need to upgrade application")
+				err = nil
+			}
+		*/
 
 		if err == nil {
 			loop.errCounter = 0
 		}
-		// All errors except Invalid Token (which is not possible to recover from) are ignored.
-		if err != nil && !errUnauthorized && errors.Cause(err) != pmapi.ErrInvalidToken {
+
+		// All errors except ErrUnauthorized (which is not possible to recover from) are ignored.
+		if !errors.Is(err, pmapi.ErrUnauthorized) {
 			l.WithError(err).WithField("errors", loop.errCounter).Error("Error skipped")
 			loop.errCounter++
 			if loop.errCounter == errMaxSentry {
@@ -264,7 +268,7 @@ func (loop *eventLoop) processNextEvent() (more bool, err error) { // nolint[fun
 	loop.pollCounter++
 
 	var event *pmapi.Event
-	if event, err = loop.client().GetEvent(loop.currentEventID); err != nil {
+	if event, err = loop.client().GetEvent(context.TODO(), loop.currentEventID); err != nil {
 		return false, errors.Wrap(err, "failed to get event")
 	}
 
@@ -461,12 +465,16 @@ func (loop *eventLoop) processMessages(eventLog *logrus.Entry, messages []*pmapi
 
 				msgLog.WithError(err).Warning("Message was not present in DB. Trying fetch...")
 
-				if msg, err = loop.client().GetMessage(message.ID); err != nil {
-					if _, ok := err.(*pmapi.ErrUnprocessableEntity); ok {
-						msgLog.WithError(err).Warn("Skipping message update because message exists neither in local DB nor on API")
-						err = nil
-						continue
-					}
+				if msg, err = loop.client().GetMessage(context.TODO(), message.ID); err != nil {
+					// FIXME(conman): How to handle error of this particular type?
+
+					/*
+						if _, ok := err.(*pmapi.ErrUnprocessableEntity); ok {
+							msgLog.WithError(err).Warn("Skipping message update because message exists neither in local DB nor on API")
+							err = nil
+							continue
+						}
+					*/
 
 					return errors.Wrap(err, "failed to get message from API for updating")
 				}

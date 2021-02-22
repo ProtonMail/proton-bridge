@@ -1,20 +1,3 @@
-// Copyright (c) 2021 Proton Technologies AG
-//
-// This file is part of ProtonMail Bridge.
-//
-// ProtonMail Bridge is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// ProtonMail Bridge is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU General Public License
-// along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
-
 package pmapi
 
 import (
@@ -22,9 +5,7 @@ import (
 	"fmt"
 	"io"
 	"mime/multipart"
-	"net/http"
 	"net/textproto"
-	"runtime"
 	"strings"
 )
 
@@ -39,8 +20,8 @@ type reportAtt struct {
 	body           io.Reader
 }
 
-// ReportReq stores data for report.
-type ReportReq struct {
+// ReportBugReq stores data for report.
+type ReportBugReq struct {
 	OS                string      `json:",omitempty"`
 	OSVersion         string      `json:",omitempty"`
 	Browser           string      `json:",omitempty"`
@@ -62,11 +43,11 @@ type ReportReq struct {
 }
 
 // AddAttachment to report.
-func (rep *ReportReq) AddAttachment(name, filename string, r io.Reader) {
+func (rep *ReportBugReq) AddAttachment(name, filename string, r io.Reader) {
 	rep.Attachments = append(rep.Attachments, reportAtt{name: name, filename: filename, body: r})
 }
 
-func writeMultipartReport(w *multipart.Writer, rep *ReportReq) error { // nolint[funlen]
+func writeMultipartReport(w *multipart.Writer, rep *ReportBugReq) error { // nolint[funlen]
 	fieldData := map[string]string{
 		"OS":                rep.OS,
 		"OSVersion":         rep.OSVersion,
@@ -128,70 +109,4 @@ func writeMultipartReport(w *multipart.Writer, rep *ReportReq) error { // nolint
 	}
 
 	return nil
-}
-
-// Report sends request as json or multipart (if has attachment).
-func (c *client) Report(rep ReportReq) (err error) {
-	rep.Client = c.cm.config.ClientID
-	rep.ClientVersion = c.cm.config.AppVersion
-	rep.ClientType = EmailClientType
-
-	var req *http.Request
-	var w *MultipartWriter
-	if len(rep.Attachments) > 0 {
-		req, w, err = c.NewMultipartRequest("POST", "/reports/bug")
-	} else {
-		req, err = c.NewJSONRequest("POST", "/reports/bug", rep)
-	}
-	if err != nil {
-		return
-	}
-
-	var res Res
-	done := make(chan error, 1)
-	go func() {
-		done <- c.DoJSON(req, &res)
-	}()
-
-	if w != nil {
-		err = writeMultipartReport(w.Writer, &rep)
-		if err != nil {
-			c.log.Errorln("report write: ", err)
-			return
-		}
-		err = w.Close()
-		if err != nil {
-			c.log.Errorln("report close: ", err)
-			return
-		}
-	}
-
-	if err = <-done; err != nil {
-		return
-	}
-
-	return res.Err()
-}
-
-// ReportCrash is old. Use sentry instead.
-func (c *client) ReportCrash(stacktrace string) (err error) {
-	crashReq := ReportReq{
-		Client:        c.cm.config.ClientID,
-		ClientVersion: c.cm.config.AppVersion,
-		ClientType:    EmailClientType,
-		OS:            runtime.GOOS,
-		Debug:         stacktrace,
-	}
-	req, err := c.NewJSONRequest("POST", "/reports/crash", crashReq)
-	if err != nil {
-		return
-	}
-
-	var res Res
-	if err = c.DoJSON(req, &res); err != nil {
-		return
-	}
-
-	err = res.Err()
-	return
 }

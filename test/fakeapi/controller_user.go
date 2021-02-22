@@ -24,14 +24,3 @@ type fakeUser struct {
 	password string
 	has2FA   bool
 }
-
-func (fu *fakeUser) get2FAInfo() *pmapi.TwoFactorInfo {
-	twoFAEnabled := 0
-	if fu.has2FA {
-		twoFAEnabled = 1
-	}
-	return &pmapi.TwoFactorInfo{
-		Enabled: twoFAEnabled,
-		TOTP:    0,
-	}
-}

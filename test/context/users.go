@@ -18,6 +18,7 @@
 package context
 
 import (
+	"context"
 	"fmt"
 	"math/rand"
 	"path/filepath"
@@ -25,6 +26,7 @@ import (
 
 	"github.com/ProtonMail/proton-bridge/internal/store"
 	"github.com/ProtonMail/proton-bridge/internal/users"
+	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	"github.com/ProtonMail/proton-bridge/pkg/srp"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
@@ -36,7 +38,7 @@ func (ctx *TestContext) GetUsers() *users.Users {
 }
 
 // LoginUser logs in the user with the given username, password, and mailbox password.
-func (ctx *TestContext) LoginUser(username, password, mailboxPassword string) (err error) {
+func (ctx *TestContext) LoginUser(username, password, mailboxPassword string) error {
 	srp.RandReader = rand.New(rand.NewSource(42)) //nolint[gosec] It is OK to use weaker random number generator here
 
 	client, auth, err := ctx.users.Login(username, password)
@@ -44,8 +46,8 @@ func (ctx *TestContext) LoginUser(username, password, mailboxPassword string) (e
 		return errors.Wrap(err, "failed to login")
 	}
 
-	if auth.HasTwoFactor() {
-		if err := client.Auth2FA("2fa code", auth); err != nil {
+	if auth.TwoFA.Enabled == pmapi.TOTPEnabled {
+		if err := client.Auth2FA(context.TODO(), pmapi.Auth2FAReq{TwoFactorCode: "2fa code"}); err != nil {
 			return errors.Wrap(err, "failed to login with 2FA")
 		}
 	}
@@ -57,7 +59,7 @@ func (ctx *TestContext) LoginUser(username, password, mailboxPassword string) (e
 
 	ctx.addCleanupChecked(user.Logout, "Logging out user")
 
-	return
+	return nil
 }
 
 // GetUser retrieves the bridge user matching the given query string.

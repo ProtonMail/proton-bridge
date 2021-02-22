@@ -30,27 +30,29 @@ type Controller struct {
 	calls                []*fakeCall
 	pmapiByUsername      map[string]pmapi.Client
 	messageIDsByUsername map[string][]string
-	clientManager        *pmapi.ClientManager
+	clientManager        pmapi.Manager
 
 	// State controlled by test.
 	noInternetConnection bool
 }
 
-func NewController(cm *pmapi.ClientManager) *Controller {
+func NewController() (*Controller, pmapi.Manager) {
 	controller := &Controller{
 		lock:                 &sync.RWMutex{},
 		calls:                []*fakeCall{},
 		pmapiByUsername:      map[string]pmapi.Client{},
 		messageIDsByUsername: map[string][]string{},
-		clientManager:        cm,
 
 		noInternetConnection: false,
 	}
 
-	cm.SetRoundTripper(&fakeTransport{
+	// FIXME(conman): Set connect values here?
+	cm := pmapi.New(pmapi.DefaultConfig)
+
+	cm.SetTransport(&fakeTransport{
 		ctl:       controller,
 		transport: http.DefaultTransport,
 	})
 
-	return controller
+	return controller, cm
 }

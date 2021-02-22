@@ -18,6 +18,7 @@
 package store
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -133,7 +134,6 @@ type mocksForStore struct {
 	events         *storemocks.MockListener
 	user           *storemocks.MockBridgeUser
 	client         *pmapimocks.MockClient
-	clientManager  *storemocks.MockClientManager
 	panicHandler   *storemocks.MockPanicHandler
 	changeNotifier *storemocks.MockChangeNotifier
 	store          *Store
@@ -150,7 +150,6 @@ func initMocks(tb testing.TB) (*mocksForStore, func()) {
 		events:         storemocks.NewMockListener(ctrl),
 		user:           storemocks.NewMockBridgeUser(ctrl),
 		client:         pmapimocks.NewMockClient(ctrl),
-		clientManager:  storemocks.NewMockClientManager(ctrl),
 		panicHandler:   storemocks.NewMockPanicHandler(ctrl),
 		changeNotifier: storemocks.NewMockChangeNotifier(ctrl),
 	}
@@ -182,30 +181,30 @@ func (mocks *mocksForStore) newStoreNoEvents(combinedMode bool, msgs ...*pmapi.M
 	mocks.user.EXPECT().IsConnected().Return(true)
 	mocks.user.EXPECT().IsCombinedAddressMode().Return(combinedMode)
 
-	mocks.clientManager.EXPECT().GetClient("userID").AnyTimes().Return(mocks.client)
+	mocks.user.EXPECT().GetClient().AnyTimes().Return(mocks.client)
 
 	mocks.client.EXPECT().Addresses().Return(pmapi.AddressList{
 		{ID: addrID1, Email: addr1, Type: pmapi.OriginalAddress, Receive: pmapi.CanReceive},
 		{ID: addrID2, Email: addr2, Type: pmapi.AliasAddress, Receive: pmapi.CanReceive},
 	})
-	mocks.client.EXPECT().ListLabels().AnyTimes()
-	mocks.client.EXPECT().CountMessages("")
+	mocks.client.EXPECT().ListLabels(gomock.Any()).AnyTimes()
+	mocks.client.EXPECT().CountMessages(gomock.Any(), "")
 
 	// Call to get latest event ID and then to process first event.
 	eventAfterSyncRequested := make(chan struct{})
-	mocks.client.EXPECT().GetEvent("").Return(&pmapi.Event{
+	mocks.client.EXPECT().GetEvent(gomock.Any(), "").Return(&pmapi.Event{
 		EventID: "firstEventID",
 	}, nil)
-	mocks.client.EXPECT().GetEvent("firstEventID").DoAndReturn(func(_ string) (*pmapi.Event, error) {
+	mocks.client.EXPECT().GetEvent(gomock.Any(), "firstEventID").DoAndReturn(func(_ context.Context, _ string) (*pmapi.Event, error) {
 		close(eventAfterSyncRequested)
 		return &pmapi.Event{
 			EventID: "latestEventID",
 		}, nil
 	})
 
-	mocks.client.EXPECT().ListMessages(gomock.Any()).Return(msgs, len(msgs), nil).AnyTimes()
+	mocks.client.EXPECT().ListMessages(gomock.Any(), gomock.Any()).Return(msgs, len(msgs), nil).AnyTimes()
 	for _, msg := range msgs {
-		mocks.client.EXPECT().GetMessage(msg.ID).Return(msg, nil).AnyTimes()
+		mocks.client.EXPECT().GetMessage(gomock.Any(), msg.ID).Return(msg, nil).AnyTimes()
 	}
 
 	var err error
@@ -213,7 +212,6 @@ func (mocks *mocksForStore) newStoreNoEvents(combinedMode bool, msgs ...*pmapi.M
 		nil, // Sentry reporter is not used under unit tests.
 		mocks.panicHandler,
 		mocks.user,
-		mocks.clientManager,
 		mocks.events,
 		filepath.Join(mocks.tmpDir, "mailbox-test.db"),
 		mocks.cache,

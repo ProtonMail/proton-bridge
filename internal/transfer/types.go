@@ -17,10 +17,6 @@
 
 package transfer
 
-import (
-	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
-)
-
 type PanicHandler interface {
 	HandlePanic()
 }
@@ -31,9 +27,4 @@ type MetricsManager interface {
 	Complete()
 	Cancel()
 	Fail()
-}
-
-type ClientManager interface {
-	GetClient(userID string) pmapi.Client
-	CheckConnection() error
 }

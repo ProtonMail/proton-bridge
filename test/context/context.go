@@ -23,7 +23,6 @@ import (
 
 	"github.com/ProtonMail/proton-bridge/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/internal/config/useragent"
-	"github.com/ProtonMail/proton-bridge/internal/constants"
 	"github.com/ProtonMail/proton-bridge/internal/importexport"
 	"github.com/ProtonMail/proton-bridge/internal/transfer"
 	"github.com/ProtonMail/proton-bridge/internal/users"
@@ -53,7 +52,7 @@ type TestContext struct {
 	// pmapiController is used to control real or fake pmapi clients.
 	// The clients are created by the clientManager.
 	pmapiController PMAPIController
-	clientManager   *pmapi.ClientManager
+	clientManager   pmapi.Manager
 
 	// Core related variables.
 	bridge       *bridge.Bridge
@@ -99,10 +98,7 @@ func New(app string) *TestContext {
 
 	userAgent := useragent.New()
 
-	cm := pmapi.NewClientManager(
-		pmapi.GetAPIConfig(getConfigName(app), constants.Version),
-		userAgent,
-	)
+	pmapiController, clientManager := newPMAPIController()
 
 	ctx := &TestContext{
 		t:                     &bddT{},
@@ -111,8 +107,8 @@ func New(app string) *TestContext {
 		settings:              newFakeSettings(),
 		listener:              listener.New(),
 		userAgent:             userAgent,
-		pmapiController:       newPMAPIController(cm),
-		clientManager:         cm,
+		pmapiController:       pmapiController,
+		clientManager:         clientManager,
 		testAccounts:          newTestAccounts(),
 		credStore:             newFakeCredStore(),
 		imapClients:           make(map[string]*mocks.IMAPClient),
@@ -164,7 +160,7 @@ func (ctx *TestContext) GetPMAPIController() PMAPIController {
 }
 
 // GetClientManager returns client manager being used for testing.
-func (ctx *TestContext) GetClientManager() *pmapi.ClientManager {
+func (ctx *TestContext) GetClientManager() pmapi.Manager {
 	return ctx.clientManager
 }
 

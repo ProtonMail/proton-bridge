@@ -21,6 +21,7 @@ package smtp
 
 import (
 	"bytes"
+	"context"
 	"encoding/base64"
 	"fmt"
 	"io"
@@ -122,7 +123,7 @@ func (su *smtpUser) getSendPreferences(
 }
 
 func (su *smtpUser) getContactVCardData(recipient string) (meta *ContactMetadata, err error) {
-	emails, err := su.client().GetContactEmailByEmail(recipient, 0, 1000)
+	emails, err := su.client().GetContactEmailByEmail(context.TODO(), recipient, 0, 1000)
 	if err != nil {
 		return
 	}
@@ -134,7 +135,7 @@ func (su *smtpUser) getContactVCardData(recipient string) (meta *ContactMetadata
 		}
 
 		var contact pmapi.Contact
-		if contact, err = su.client().GetContactByID(email.ContactID); err != nil {
+		if contact, err = su.client().GetContactByID(context.TODO(), email.ContactID); err != nil {
 			return
 		}
 
@@ -150,7 +151,7 @@ func (su *smtpUser) getContactVCardData(recipient string) (meta *ContactMetadata
 }
 
 func (su *smtpUser) getAPIKeyData(recipient string) (apiKeys []pmapi.PublicKey, isInternal bool, err error) {
-	return su.client().GetPublicKeysForEmail(recipient)
+	return su.client().GetPublicKeysForEmail(context.TODO(), recipient)
 }
 
 // Discard currently processed message.
@@ -218,7 +219,7 @@ func (su *smtpUser) Send(returnPath string, to []string, messageReader io.Reader
 
 	messageReader = io.TeeReader(messageReader, b)
 
-	mailSettings, err := su.client().GetMailSettings()
+	mailSettings, err := su.client().GetMailSettings(context.TODO())
 	if err != nil {
 		return err
 	}
@@ -339,7 +340,7 @@ func (su *smtpUser) Send(returnPath string, to []string, messageReader io.Reader
 	// can lead to sending the wrong message. Also clients do not necessarily
 	// delete the old draft.
 	if draftID != "" {
-		if err := su.client().DeleteMessages([]string{draftID}); err != nil {
+		if err := su.client().DeleteMessages(context.TODO(), []string{draftID}); err != nil {
 			log.WithError(err).WithField("draftID", draftID).Warn("Original draft cannot be deleted")
 		}
 	}
@@ -393,7 +394,7 @@ func (su *smtpUser) Send(returnPath string, to []string, messageReader io.Reader
 			return errors.New("error decoding subject message " + message.Header.Get("Subject"))
 		}
 		if !su.continueSendingUnencryptedMail(subject) {
-			if err := su.client().DeleteMessages([]string{message.ID}); err != nil {
+			if err := su.client().DeleteMessages(context.TODO(), []string{message.ID}); err != nil {
 				log.WithError(err).Warn("Failed to delete canceled messages")
 			}
 			return errors.New("sending was canceled by user")
@@ -422,7 +423,7 @@ func (su *smtpUser) handleReferencesHeader(m *pmapi.Message) (draftID, parentID 
 				if su.addressID != "" {
 					filter.AddressID = su.addressID
 				}
-				metadata, _, _ := su.client().ListMessages(filter)
+				metadata, _, _ := su.client().ListMessages(context.TODO(), filter)
 				for _, m := range metadata {
 					if m.IsDraft() {
 						draftID = m.ID
@@ -442,7 +443,7 @@ func (su *smtpUser) handleReferencesHeader(m *pmapi.Message) (draftID, parentID 
 		if su.addressID != "" {
 			filter.AddressID = su.addressID
 		}
-		metadata, _, _ := su.client().ListMessages(filter)
+		metadata, _, _ := su.client().ListMessages(context.TODO(), filter)
 		// There can be two or messages with the same external ID and then we cannot
 		// be sure which message should be parent. Better to not choose any.
 		if len(metadata) == 1 {

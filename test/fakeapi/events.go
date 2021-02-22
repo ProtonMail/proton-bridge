@@ -18,10 +18,12 @@
 package fakeapi
 
 import (
+	"context"
+
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 )
 
-func (api *FakePMAPI) GetEvent(eventID string) (*pmapi.Event, error) {
+func (api *FakePMAPI) GetEvent(_ context.Context, eventID string) (*pmapi.Event, error) {
 	if err := api.checkAndRecordCall(GET, "/events/"+eventID, nil); err != nil {
 		return nil, err
 	}

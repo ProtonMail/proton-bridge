@@ -32,7 +32,7 @@ type Controller struct {
 	labelIDGenerator   idGenerator
 	messageIDGenerator idGenerator
 	tokenGenerator     idGenerator
-	clientManager      *pmapi.ClientManager
+	clientManager      pmapi.Manager
 
 	// State controlled by test.
 	noInternetConnection bool
@@ -46,7 +46,7 @@ type Controller struct {
 	log    *logrus.Entry
 }
 
-func NewController(cm *pmapi.ClientManager) *Controller {
+func NewController() (*Controller, pmapi.Manager) {
 	controller := &Controller{
 		lock:               &sync.RWMutex{},
 		fakeAPIs:           []*FakePMAPI{},
@@ -54,7 +54,6 @@ func NewController(cm *pmapi.ClientManager) *Controller {
 		labelIDGenerator:   100, // We cannot use system label IDs.
 		messageIDGenerator: 0,
 		tokenGenerator:     1000, // No specific reason; 1000 simply feels right.
-		clientManager:      cm,
 
 		noInternetConnection: false,
 		usersByUsername:      map[string]*fakeUser{},
@@ -67,11 +66,11 @@ func NewController(cm *pmapi.ClientManager) *Controller {
 		log:    logrus.WithField("pkg", "fakeapi-controller"),
 	}
 
-	cm.SetClientConstructor(func(userID string) pmapi.Client {
-		fakeAPI := New(controller, userID)
-		controller.fakeAPIs = append(controller.fakeAPIs, fakeAPI)
-		return fakeAPI
-	})
+	cm := &fakePMAPIManager{
+		controller: controller,
+	}
 
-	return controller
+	controller.clientManager = cm
+
+	return controller, cm
 }

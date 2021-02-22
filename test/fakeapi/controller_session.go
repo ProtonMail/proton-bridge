@@ -19,15 +19,35 @@ package fakeapi
 
 import (
 	"errors"
+
+	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 )
 
 type fakeSession struct {
-	username          string
-	uid, refreshToken string
-	hasFullScope      bool
+	username      string
+	uid, acc, ref string
+	hasFullScope  bool
 }
 
 var errWrongNameOrPassword = errors.New("Incorrect login credentials. Please try again") //nolint[stylecheck]
+
+func (ctl *Controller) checkAccessToken(uid, acc string) bool {
+	session, ok := ctl.sessionsByUID[uid]
+	if !ok {
+		return false
+	}
+
+	return session.uid == uid && session.acc == acc
+}
+
+func (ctl *Controller) checkScope(uid string) bool {
+	session, ok := ctl.sessionsByUID[uid]
+	if !ok {
+		return false
+	}
+
+	return session.hasFullScope
+}
 
 func (ctl *Controller) createSessionIfAuthorized(username, password string) (*fakeSession, error) {
 	// get user
@@ -40,16 +60,32 @@ func (ctl *Controller) createSessionIfAuthorized(username, password string) (*fa
 	session := &fakeSession{
 		username:     username,
 		uid:          ctl.tokenGenerator.next("uid"),
+		acc:          ctl.tokenGenerator.next("acc"),
+		ref:          ctl.tokenGenerator.next("ref"),
 		hasFullScope: !user.has2FA,
 	}
-	ctl.refreshTheTokensForSession(session)
 
 	ctl.sessionsByUID[session.uid] = session
+
 	return session, nil
 }
 
-func (ctl *Controller) refreshTheTokensForSession(session *fakeSession) {
-	session.refreshToken = ctl.tokenGenerator.next("refresh")
+func (ctl *Controller) refreshSessionIfAuthorized(uid, ref string) (*fakeSession, error) {
+	session, ok := ctl.sessionsByUID[uid]
+	if !ok {
+		return nil, pmapi.ErrUnauthorized
+	}
+
+	if ref != session.ref {
+		return nil, pmapi.ErrUnauthorized
+	}
+
+	session.ref = ctl.tokenGenerator.next("ref")
+	session.acc = ctl.tokenGenerator.next("acc")
+
+	ctl.sessionsByUID[session.uid] = session
+
+	return session, nil
 }
 
 func (ctl *Controller) deleteSession(uid string) {

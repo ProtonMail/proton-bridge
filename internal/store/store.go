@@ -19,6 +19,7 @@
 package store
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"sync"
@@ -106,7 +107,6 @@ type Store struct {
 	panicHandler   PanicHandler
 	eventLoop      *eventLoop
 	user           BridgeUser
-	clientManager  ClientManager
 
 	log *logrus.Entry
 
@@ -127,13 +127,12 @@ func New( // nolint[funlen]
 	sentryReporter *sentry.Reporter,
 	panicHandler PanicHandler,
 	user BridgeUser,
-	clientManager ClientManager,
 	events listener.Listener,
 	path string,
 	cache *Cache,
 ) (store *Store, err error) {
-	if user == nil || clientManager == nil || events == nil || cache == nil {
-		return nil, fmt.Errorf("missing parameters - user: %v, api: %v, events: %v, cache: %v", user, clientManager, events, cache)
+	if user == nil || events == nil || cache == nil {
+		return nil, fmt.Errorf("missing parameters - user: %v, events: %v, cache: %v", user, events, cache)
 	}
 
 	l := log.WithField("user", user.ID())
@@ -156,7 +155,6 @@ func New( // nolint[funlen]
 	store = &Store{
 		sentryReporter: sentryReporter,
 		panicHandler:   panicHandler,
-		clientManager:  clientManager,
 		user:           user,
 		cache:          cache,
 		filePath:       path,
@@ -274,13 +272,13 @@ func (store *Store) init(firstInit bool) (err error) {
 }
 
 func (store *Store) client() pmapi.Client {
-	return store.clientManager.GetClient(store.UserID())
+	return store.user.GetClient()
 }
 
 // initCounts initialises the counts for each label. It tries to use the API first to fetch the labels but if
 // the API is unavailable for whatever reason it tries to fetch the labels locally.
 func (store *Store) initCounts() (labels []*pmapi.Label, err error) {
-	if labels, err = store.client().ListLabels(); err != nil {
+	if labels, err = store.client().ListLabels(context.TODO()); err != nil {
 		store.log.WithError(err).Warn("Could not list API labels. Trying with local labels.")
 		if labels, err = store.getLabelsFromLocalStorage(); err != nil {
 			store.log.WithError(err).Error("Cannot list local labels")

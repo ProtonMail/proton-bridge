@@ -255,10 +255,14 @@ func messagesContainsMessageRow(account *accounts.TestAccount, allMessages []int
 					matches = false
 				}
 			case "read":
-				unread := 1
+				var unread pmapi.Boolean
+
 				if cell.Value == "true" { //nolint[goconst]
-					unread = 0
+					unread = pmapi.False
+				} else {
+					unread = pmapi.True
 				}
+
 				if message.Unread != unread {
 					matches = false
 				}

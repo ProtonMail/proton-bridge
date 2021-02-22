@@ -164,7 +164,7 @@ func (a *Accounts) showLoginError(err error, scope string) bool {
 		return false
 	}
 	log.Warnf("%s: %v", scope, err)
-	if err == pmapi.ErrAPINotReachable {
+	if err == pmapi.ErrNoConnection {
 		a.qml.SetConnectionStatus(false)
 		SendNotification(a.qml, TabAccount, a.qml.CanNotReachAPI())
 		a.qml.ProcessFinished()

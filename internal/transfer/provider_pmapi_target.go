@@ -19,6 +19,7 @@ package transfer
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -56,7 +57,7 @@ func (p *PMAPIProvider) CreateMailbox(mailbox Mailbox) (Mailbox, error) {
 		exclusive = 1
 	}
 
-	label, err := p.client().CreateLabel(&pmapi.Label{
+	label, err := p.client.CreateLabel(context.TODO(), &pmapi.Label{
 		Name:      mailbox.Name,
 		Color:     mailbox.Color,
 		Exclusive: exclusive,
@@ -194,7 +195,7 @@ func (p *PMAPIProvider) transferMessage(rules transferRules, progress *Progress,
 		return
 	}
 
-	importMsgReqSize := len(importMsgReq.Body)
+	importMsgReqSize := len(importMsgReq.Message)
 	if p.nextImportRequestsSize+importMsgReqSize > pmapiImportBatchMaxSize || len(p.nextImportRequests) == pmapiImportBatchMaxItems {
 		preparedImportRequestsCh <- p.nextImportRequests
 		p.nextImportRequests = map[string]*pmapi.ImportMsgReq{}
@@ -226,9 +227,12 @@ func (p *PMAPIProvider) generateImportMsgReq(rules transferRules, progress *Prog
 		}
 	}
 
-	unread := 0
+	var unread pmapi.Boolean
+
 	if msg.Unread {
-		unread = 1
+		unread = pmapi.True
+	} else {
+		unread = pmapi.False
 	}
 
 	labelIDs := []string{}
@@ -243,12 +247,14 @@ func (p *PMAPIProvider) generateImportMsgReq(rules transferRules, progress *Prog
 	}
 
 	return &pmapi.ImportMsgReq{
-		AddressID: p.addressID,
-		Body:      body,
-		Unread:    unread,
-		Time:      message.Time,
-		Flags:     computeMessageFlags(message.Header),
-		LabelIDs:  labelIDs,
+		Metadata: &pmapi.ImportMetadata{
+			AddressID: p.addressID,
+			Unread:    unread,
+			Time:      message.Time,
+			Flags:     computeMessageFlags(message.Header),
+			LabelIDs:  labelIDs,
+		},
+		Message: body,
 	}, nil
 }
 
@@ -293,7 +299,7 @@ func (p *PMAPIProvider) importMessages(progress *Progress, importRequests map[st
 	}
 
 	importMsgIDs := []string{}
-	importMsgRequests := []*pmapi.ImportMsgReq{}
+	importMsgRequests := pmapi.ImportMsgReqs{}
 	for msgID, req := range importRequests {
 		importMsgIDs = append(importMsgIDs, msgID)
 		importMsgRequests = append(importMsgRequests, req)
@@ -327,7 +333,7 @@ func (p *PMAPIProvider) importMessages(progress *Progress, importRequests map[st
 
 func (p *PMAPIProvider) importMessage(msgSourceID string, progress *Progress, req *pmapi.ImportMsgReq) (importedID string, importedErr error) {
 	progress.callWrap(func() error {
-		results, err := p.importRequest(msgSourceID, []*pmapi.ImportMsgReq{req})
+		results, err := p.importRequest(msgSourceID, pmapi.ImportMsgReqs{req})
 		if err != nil {
 			return errors.Wrap(err, "failed to import messages")
 		}

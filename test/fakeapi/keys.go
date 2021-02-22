@@ -17,7 +17,11 @@
 
 package fakeapi
 
-import "github.com/ProtonMail/proton-bridge/pkg/pmapi"
+import (
+	"context"
+
+	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
+)
 
 // publicKey is used from pmapi unit tests.
 // For now we need just some key, no need to have some specific one.
@@ -55,7 +59,7 @@ a+hqY4Jr/a7ui40S+7xYRHKL/7ZAS4/grWllhU3dbNrwSzrOKwrA/U0/9t73
 -----END PGP PUBLIC KEY BLOCK-----
 `
 
-func (api *FakePMAPI) GetPublicKeysForEmail(email string) (keys []pmapi.PublicKey, internal bool, err error) {
+func (api *FakePMAPI) GetPublicKeysForEmail(_ context.Context, email string) (keys []pmapi.PublicKey, internal bool, err error) {
 	if err := api.checkAndRecordCall(GET, "/keys?Email="+email, nil); err != nil {
 		return nil, false, err
 	}

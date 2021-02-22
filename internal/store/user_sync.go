@@ -18,6 +18,7 @@
 package store
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"strconv"
@@ -34,7 +35,7 @@ const syncIDsToBeDeletedKey = "ids_to_be_deleted"
 
 // updateCountsFromServer will download and set the counts.
 func (store *Store) updateCountsFromServer() error {
-	counts, err := store.client().CountMessages("")
+	counts, err := store.client().CountMessages(context.TODO(), "")
 	if err != nil {
 		return errors.Wrap(err, "cannot update counts from server")
 	}
@@ -152,7 +153,7 @@ func (store *Store) triggerSync() {
 
 		store.log.WithField("isIncomplete", syncState.isIncomplete()).Info("Store sync started")
 
-		err := syncAllMail(store.panicHandler, store, func() messageLister { return store.client() }, syncState)
+		err := syncAllMail(store.panicHandler, store, store.client(), syncState)
 		if err != nil {
 			log.WithError(err).Error("Store sync failed")
 			store.syncCooldown.increaseWaitTime()

@@ -19,29 +19,30 @@ package pmapi
 
 import (
 	"encoding/base64"
-	"errors"
 
 	"github.com/jameskeane/bcrypt"
+	"github.com/pkg/errors"
 )
 
-func HashMailboxPassword(password, salt string) (hashedPassword string, err error) {
+func HashMailboxPassword(password, salt string) ([]byte, error) {
 	if salt == "" {
-		hashedPassword = password
-		return
+		return []byte(password), nil
 	}
+
 	decodedSalt, err := base64.StdEncoding.DecodeString(salt)
 	if err != nil {
-		return
+		return nil, errors.Wrap(err, "failed to decode salt")
 	}
+
 	encodedSalt := base64.NewEncoding("./ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789").WithPadding(base64.NoPadding).EncodeToString(decodedSalt)
 	hashResult, err := bcrypt.Hash(password, "$2y$10$"+encodedSalt)
 	if err != nil {
-		return
+		return nil, errors.Wrap(err, "failed to bcrypt-hash password")
 	}
+
 	if len(hashResult) != 60 {
-		err = errors.New("pmapi: invalid mailbox password hash")
-		return
+		return nil, errors.New("pmapi: invalid mailbox password hash")
 	}
-	hashedPassword = hashResult[len(hashResult)-31:]
-	return
+
+	return []byte(hashResult[len(hashResult)-31:]), nil
 }

@@ -23,10 +23,6 @@ type PanicHandler interface {
 	HandlePanic()
 }
 
-type ClientManager interface {
-	GetClient(userID string) pmapi.Client
-}
-
 // BridgeUser is subset of bridge.User for use by the Store.
 type BridgeUser interface {
 	ID() string
@@ -35,6 +31,7 @@ type BridgeUser interface {
 	IsCombinedAddressMode() bool
 	GetPrimaryAddress() string
 	GetStoreAddresses() []string
+	GetClient() pmapi.Client
 	UpdateUser() error
 	CloseAllConnections()
 	CloseConnection(string)

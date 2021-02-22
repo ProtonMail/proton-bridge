@@ -25,7 +25,6 @@ import (
 
 	imapID "github.com/ProtonMail/go-imap-id"
 	"github.com/ProtonMail/proton-bridge/internal/constants"
-	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	"github.com/emersion/go-imap"
 	imapClient "github.com/emersion/go-imap/client"
 	"github.com/emersion/go-sasl"
@@ -118,15 +117,19 @@ func (p *IMAPProvider) tryReconnect(ensureSelectedIn string) error {
 			return previousErr
 		}
 
-		err := pmapi.CheckConnection()
-		log.WithError(err).Debug("Connection check")
-		if err != nil {
-			time.Sleep(imapReconnectSleep)
-			previousErr = err
-			continue
-		}
+		// FIXME(conman): This should register as connection observer.
 
-		err = p.reauth()
+		/*
+			err := pmapi.CheckConnection()
+			log.WithError(err).Debug("Connection check")
+			if err != nil {
+				time.Sleep(imapReconnectSleep)
+				previousErr = err
+				continue
+			}
+		*/
+
+		err := p.reauth()
 		log.WithError(err).Debug("Reauth")
 		if err != nil {
 			time.Sleep(imapReconnectSleep)

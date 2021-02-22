@@ -18,9 +18,8 @@
 package pmapi
 
 import (
-	"fmt"
+	"context"
 	"net/http"
-	"net/url"
 	"testing"
 
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
@@ -60,38 +59,17 @@ const testPublicKeysBody = `{
     ]}`
 
 func TestClient_CurrentUser(t *testing.T) {
-	finish, c := newTestServerCallbacks(t,
+	finish, c := newTestClientCallbacks(t,
 		routeGetUsers,
 		routeGetAddresses,
 	)
 	defer finish()
-	c.uid = testUID
-	c.accessToken = testAccessToken
 
-	user, err := c.CurrentUser()
+	user, err := c.CurrentUser(context.TODO())
 	r.Nil(t, err)
 
 	// Ignore KeyRings during the check because they have unexported fields and cannot be compared
 	r.True(t, cmp.Equal(user, testCurrentUser, cmpopts.IgnoreTypes(&crypto.Key{})))
 
-	r.Nil(t, c.Unlock([]byte(testMailboxPassword)))
-}
-
-func TestClient_PublicKeys(t *testing.T) {
-	email := "jason@protonmail.com"
-	escaped := url.QueryEscape(email)
-	s, c := newTestServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		Ok(t, checkMethodAndPath(r, "GET", "/keys?Email="+escaped))
-		fmt.Fprint(w, testPublicKeysBody)
-	}))
-	defer s.Close()
-
-	keys, err := c.PublicKeys([]string{email})
-	if err != nil {
-		t.Fatal("Expected no error while getting current user, got:", err)
-	}
-
-	if len(keys) != 1 || keys[escaped] == nil {
-		t.Fatalf("Expected only one key for %v, got %#v", email, keys)
-	}
+	r.Nil(t, c.Unlock(context.TODO(), []byte(testMailboxPassword)))
 }

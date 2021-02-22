@@ -22,7 +22,6 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
-	"net/url"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -30,6 +29,7 @@ import (
 	"runtime"
 	"strconv"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/go-multierror"
 )
@@ -70,23 +70,21 @@ func Equals(tb testing.TB, exp, act interface{}) {
 	}
 }
 
-// newTestServer is old function and should be replaced everywhere by newTestServerCallbacks.
-func newTestServer(h http.Handler) (*httptest.Server, *client) {
-	s := httptest.NewServer(h)
-
-	serverURL, err := url.Parse(s.URL)
-	if err != nil {
-		panic(err)
+func newTestConfig(url string) Config {
+	return Config{
+		HostURL:    url,
+		AppVersion: "GoPMAPI_1.0.14",
 	}
-
-	cm := newTestClientManager(testClientConfig)
-	cm.host = serverURL.Host
-	cm.scheme = serverURL.Scheme
-
-	return s, newTestClient(cm)
 }
 
-func newTestServerCallbacks(tb testing.TB, callbacks ...func(testing.TB, http.ResponseWriter, *http.Request) string) (func(), *client) {
+// newTestClient is old function and should be replaced everywhere by newTestServerCallbacks.
+func newTestClient(h http.Handler) (*httptest.Server, Client) {
+	s := httptest.NewServer(h)
+
+	return s, newManager(newTestConfig(s.URL)).NewClient(testUID, testAccessToken, testRefreshToken, time.Now().Add(time.Hour))
+}
+
+func newTestClientCallbacks(tb testing.TB, callbacks ...func(testing.TB, http.ResponseWriter, *http.Request) string) (func(), Client) {
 	reqNum := 0
 	_, file, line, _ := runtime.Caller(1)
 	file = filepath.Base(file)
@@ -106,11 +104,6 @@ func newTestServerCallbacks(tb testing.TB, callbacks ...func(testing.TB, http.Re
 		}
 	}))
 
-	serverURL, err := url.Parse(server.URL)
-	if err != nil {
-		panic(err)
-	}
-
 	finish := func() {
 		server.CloseClientConnections() // Closing without waiting for finishing requests.
 		if reqNum != len(callbacks) {
@@ -122,11 +115,7 @@ func newTestServerCallbacks(tb testing.TB, callbacks ...func(testing.TB, http.Re
 		}
 	}
 
-	cm := newTestClientManager(testClientConfig)
-	cm.host = serverURL.Host
-	cm.scheme = serverURL.Scheme
-
-	return finish, newTestClient(cm)
+	return finish, newManager(newTestConfig(server.URL)).NewClient(testUID, testAccessToken, testRefreshToken, time.Now().Add(time.Hour))
 }
 
 func checkMethodAndPath(r *http.Request, method, path string) error {

@@ -18,6 +18,7 @@
 package fakeapi
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"strings"
@@ -51,7 +52,7 @@ func (ctl *Controller) ReorderAddresses(user *pmapi.User, addressIDs []string) e
 		return errors.New("no such user")
 	}
 
-	return api.ReorderAddresses(addressIDs)
+	return api.ReorderAddresses(context.TODO(), addressIDs)
 }
 
 func (ctl *Controller) AddUser(user *pmapi.User, addresses *pmapi.AddressList, password string, twoFAEnabled bool) error {

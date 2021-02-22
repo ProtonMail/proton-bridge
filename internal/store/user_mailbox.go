@@ -18,6 +18,7 @@
 package store
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
@@ -55,7 +56,7 @@ func (store *Store) createMailbox(name string) error {
 		return nil
 	}
 
-	_, err := store.client().CreateLabel(&pmapi.Label{
+	_, err := store.client().CreateLabel(context.TODO(), &pmapi.Label{
 		Name:      name,
 		Color:     color,
 		Exclusive: exclusive,
@@ -125,7 +126,7 @@ func (store *Store) leastUsedColor() string {
 func (store *Store) updateMailbox(labelID, newName, color string) error {
 	defer store.eventLoop.pollNow()
 
-	_, err := store.client().UpdateLabel(&pmapi.Label{
+	_, err := store.client().UpdateLabel(context.TODO(), &pmapi.Label{
 		ID:    labelID,
 		Name:  newName,
 		Color: color,
@@ -142,15 +143,15 @@ func (store *Store) deleteMailbox(labelID, addressID string) error {
 		var err error
 		switch labelID {
 		case pmapi.SpamLabel:
-			err = store.client().EmptyFolder(pmapi.SpamLabel, addressID)
+			err = store.client().EmptyFolder(context.TODO(), pmapi.SpamLabel, addressID)
 		case pmapi.TrashLabel:
-			err = store.client().EmptyFolder(pmapi.TrashLabel, addressID)
+			err = store.client().EmptyFolder(context.TODO(), pmapi.TrashLabel, addressID)
 		default:
 			err = fmt.Errorf("cannot empty mailbox %v", labelID)
 		}
 		return err
 	}
-	return store.client().DeleteLabel(labelID)
+	return store.client().DeleteLabel(context.TODO(), labelID)
 }
 
 func (store *Store) createLabelsIfMissing(affectedLabelIDs map[string]bool) error {
@@ -165,7 +166,7 @@ func (store *Store) createLabelsIfMissing(affectedLabelIDs map[string]bool) erro
 		return nil
 	}
 
-	labels, err := store.client().ListLabels()
+	labels, err := store.client().ListLabels(context.TODO())
 	if err != nil {
 		return err
 	}

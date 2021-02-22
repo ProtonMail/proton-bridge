@@ -39,37 +39,15 @@ type PMAPIController interface {
 	GetCalls(method, path string) [][]byte
 }
 
-func newPMAPIController(cm *pmapi.ClientManager) PMAPIController {
+func newPMAPIController() (PMAPIController, pmapi.Manager) {
 	switch os.Getenv(EnvName) {
 	case EnvFake:
-		return newFakePMAPIController(cm)
+		return fakeapi.NewController()
+
 	case EnvLive:
-		return newLivePMAPIController(cm)
+		return liveapi.NewController()
+
 	default:
 		panic("unknown env")
 	}
-}
-
-func newFakePMAPIController(cm *pmapi.ClientManager) PMAPIController {
-	return newFakePMAPIControllerWrap(fakeapi.NewController(cm))
-}
-
-type fakePMAPIControllerWrap struct {
-	*fakeapi.Controller
-}
-
-func newFakePMAPIControllerWrap(controller *fakeapi.Controller) PMAPIController {
-	return &fakePMAPIControllerWrap{Controller: controller}
-}
-
-func newLivePMAPIController(cm *pmapi.ClientManager) PMAPIController {
-	return newLiveAPIControllerWrap(liveapi.NewController(cm))
-}
-
-type liveAPIControllerWrap struct {
-	*liveapi.Controller
-}
-
-func newLiveAPIControllerWrap(controller *liveapi.Controller) PMAPIController {
-	return &liveAPIControllerWrap{Controller: controller}
 }
