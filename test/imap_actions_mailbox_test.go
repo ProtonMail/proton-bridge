@@ -18,6 +18,8 @@
 package tests
 
 import (
+	"time"
+
 	"github.com/cucumber/godog"
 )
 
@@ -44,6 +46,16 @@ func imapClientRenamesMailboxTo(mailboxName, newMailboxName string) error {
 }
 
 func imapClientDeletesMailbox(mailboxName string) error {
+	if mailboxName == "Trash" {
+		// Delete of Trash mailbox calls empty label on API.
+		// Empty label means delete all messages in that label with time
+		// creation before time of execution. But creation time is in
+		// seconds, not miliseconds. That's why message created at the
+		// same second as emptying label is called is not deleted.
+		// Tests might be that fast and therefore we need to sleep for
+		// a second to make sure test doesn't produce fake failure.
+		time.Sleep(time.Second)
+	}
 	res := ctx.GetIMAPClient("imap").DeleteMailbox(mailboxName)
 	ctx.SetIMAPLastResponse("imap", res)
 	return nil
