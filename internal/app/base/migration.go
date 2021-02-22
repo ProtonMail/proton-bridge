@@ -29,10 +29,12 @@ import (
 // migrateFiles migrates files from their old (pre-refactor) locations to their new locations.
 // We can remove this eventually.
 //
-// | entity |               old location                |            new location                |
-// |--------|-------------------------------------------|----------------------------------------|
-// | prefs  | ~/.cache/protonmail/<app>/c11/prefs.json  | ~/.config/protonmail/<app>/prefs.json  |
-// | c11    | ~/.cache/protonmail/<app>/c11             | ~/.cache/protonmail/<app>/cache/c11    |
+// | entity    |               old location                |            new location                |
+// |-----------|-------------------------------------------|----------------------------------------|
+// | prefs     | ~/.cache/protonmail/<app>/c11/prefs.json  | ~/.config/protonmail/<app>/prefs.json  |
+// | c11 1.5.x | ~/.cache/protonmail/<app>/c11             | ~/.cache/protonmail/<app>/cache/c11    |
+// | c11 1.6.x | ~/.cache/protonmail/<app>/cache/c11       | ~/.config/protonmail/<app>/cache/c11   |
+// | updates   | ~/.cache/protonmail/<app>/updates         | ~/.config/protonmail/<app>/updates     |
 func migrateFiles(configName string) error {
 	locationsProvider, err := locations.NewDefaultProvider(filepath.Join(constants.VendorName, configName))
 	if err != nil {
@@ -41,43 +43,81 @@ func migrateFiles(configName string) error {
 
 	locations := locations.New(locationsProvider, configName)
 	userCacheDir := locationsProvider.UserCache()
+
+	if err := migratePrefsFrom15x(locations, userCacheDir); err != nil {
+		return err
+	}
+	if err := migrateCacheFromBoth15xAnd16x(locations, userCacheDir); err != nil {
+		return err
+	}
+	if err := migrateUpdatesFrom16x(locations); err != nil {
+		return err
+	}
+	return nil
+}
+
+func migratePrefsFrom15x(locations *locations.Locations, userCacheDir string) error {
 	newSettingsDir, err := locations.ProvideSettingsPath()
 	if err != nil {
 		return err
 	}
 
-	if err := moveIfExists(
+	return moveIfExists(
 		filepath.Join(userCacheDir, "c11", "prefs.json"),
 		filepath.Join(newSettingsDir, "prefs.json"),
-	); err != nil {
-		return err
-	}
+	)
+}
 
-	newCacheDir, err := locations.ProvideCachePath()
+func migrateCacheFromBoth15xAnd16x(locations *locations.Locations, userCacheDir string) error {
+	olderCacheDir := userCacheDir
+	newerCacheDir := locations.GetOldCachePath()
+	latestCacheDir, err := locations.ProvideCachePath()
 	if err != nil {
 		return err
 	}
 
+	// Migration for versions before 1.6.x.
 	if err := moveIfExists(
-		filepath.Join(userCacheDir, "c11"),
-		filepath.Join(newCacheDir, "c11"),
+		filepath.Join(olderCacheDir, "c11"),
+		filepath.Join(latestCacheDir, "c11"),
 	); err != nil {
 		return err
 	}
 
-	return nil
+	// Migration for versions 1.6.x.
+	return moveIfExists(
+		filepath.Join(newerCacheDir, "c11"),
+		filepath.Join(latestCacheDir, "c11"),
+	)
+}
+
+func migrateUpdatesFrom16x(locations *locations.Locations) error {
+	oldUpdatesPath := locations.GetOldUpdatesPath()
+	// Do not use ProvideUpdatesPath, that creates dir right away.
+	newUpdatesPath := locations.GetUpdatesPath()
+
+	return moveIfExists(oldUpdatesPath, newUpdatesPath)
 }
 
 func moveIfExists(source, destination string) error {
+	l := logrus.WithField("source", source).WithField("destination", destination)
+
 	if _, err := os.Stat(source); os.IsNotExist(err) {
-		logrus.WithField("source", source).WithField("destination", destination).Debug("No need to migrate file")
+		l.Debug("No need to migrate file, source doesn't exist")
 		return nil
 	}
 
 	if _, err := os.Stat(destination); !os.IsNotExist(err) {
-		logrus.WithField("source", source).WithField("destination", destination).Debug("No need to migrate file")
+		// Once migrated, files should not stay in source anymore. Therefore
+		// if some files are still in source location but target already exist,
+		// it's suspicious. Could happen by installing new version, then the
+		// old one because of some reason, and then the new one again.
+		// Good to see as warning because it could be a reason why Bridge is
+		// behaving weirdly, like wrong configuration, or db re-sync and so on.
+		l.Warn("No need to migrate file, target already exists")
 		return nil
 	}
 
+	l.Info("Migrating files")
 	return os.Rename(source, destination)
 }
