@@ -1,4 +1,4 @@
-// +build !nogui
+// +build build_qt
 
 #include "common.h"
 #include "_cgo_export.h"

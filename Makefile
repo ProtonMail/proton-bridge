@@ -33,7 +33,7 @@ BUILD_TIME:=$(shell date +%FT%T%z)
 
 BUILD_FLAGS:=-tags='${BUILD_TAGS}'
 BUILD_FLAGS_LAUNCHER:=${BUILD_FLAGS}
-BUILD_FLAGS_NOGUI:=-tags='${BUILD_TAGS} nogui'
+BUILD_FLAGS_GUI:=-tags='${BUILD_TAGS} build_qt'
 GO_LDFLAGS:=$(addprefix -X github.com/ProtonMail/proton-bridge/internal/constants.,Version=${APP_VERSION} Revision=${REVISION} BuildTime=${BUILD_TIME})
 ifneq "${BUILD_LDFLAGS}" ""
     GO_LDFLAGS+=${BUILD_LDFLAGS}
@@ -45,7 +45,7 @@ ifeq "${TARGET_OS}" "windows"
 endif
 
 BUILD_FLAGS+=-ldflags '${GO_LDFLAGS}'
-BUILD_FLAGS_NOGUI+=-ldflags '${GO_LDFLAGS}'
+BUILD_FLAGS_GUI+=-ldflags '${GO_LDFLAGS}'
 BUILD_FLAGS_LAUNCHER+=-ldflags '${GO_LDFLAGS_LAUNCHER}'
 
 DEPLOY_DIR:=cmd/${TARGET_CMD}/deploy
@@ -84,7 +84,7 @@ build-ie:
 	TARGET_CMD=Import-Export $(MAKE) build
 
 build-nogui: gofiles
-	go build ${BUILD_FLAGS_NOGUI} -o ${EXE_NAME} cmd/${TARGET_CMD}/main.go
+	go build ${BUILD_FLAGS} -o ${EXE_NAME} cmd/${TARGET_CMD}/main.go
 
 build-ie-nogui:
 	TARGET_CMD=Import-Export $(MAKE) build-nogui
@@ -137,7 +137,7 @@ endif
 ${EXE_TARGET}: check-has-go gofiles ${ICO_FILES} ${VENDOR_TARGET}
 	rm -rf deploy ${TARGET_OS} ${DEPLOY_DIR}
 	cp cmd/${TARGET_CMD}/main.go .
-	qtdeploy ${BUILD_FLAGS} ${QT_BUILD_TARGET}
+	qtdeploy ${BUILD_FLAGS_GUI} ${QT_BUILD_TARGET}
 	mv deploy cmd/${TARGET_CMD}
 	if [ "${EXE_QT_TARGET}" != "${EXE_TARGET}" ]; then mv ${EXE_QT_TARGET} ${EXE_TARGET}; fi
 	rm -rf ${TARGET_OS} main.go
@@ -303,12 +303,12 @@ run-qt-cli: ${EXE_TARGET}
 	PROTONMAIL_ENV=dev ./$< ${RUN_FLAGS} -c
 
 run-nogui: clean-vendor gofiles
-	PROTONMAIL_ENV=dev go run ${BUILD_FLAGS_NOGUI} cmd/${TARGET_CMD}/main.go ${RUN_FLAGS} | tee last.log
+	PROTONMAIL_ENV=dev go run ${BUILD_FLAGS} cmd/${TARGET_CMD}/main.go ${RUN_FLAGS} | tee last.log
 run-nogui-cli: clean-vendor gofiles
-	PROTONMAIL_ENV=dev go run ${BUILD_FLAGS_NOGUI} cmd/${TARGET_CMD}/main.go ${RUN_FLAGS} -c
+	PROTONMAIL_ENV=dev go run ${BUILD_FLAGS} cmd/${TARGET_CMD}/main.go ${RUN_FLAGS} -c
 
 run-debug:
-	PROTONMAIL_ENV=dev dlv debug --build-flags "${BUILD_FLAGS_NOGUI}" cmd/${TARGET_CMD}/main.go -- ${RUN_FLAGS}
+	PROTONMAIL_ENV=dev dlv debug --build-flags "${BUILD_FLAGS}" cmd/${TARGET_CMD}/main.go -- ${RUN_FLAGS}
 
 run-qml-preview:
 	$(MAKE) -C internal/frontend/qt -f Makefile.local qmlpreview
