@@ -340,27 +340,35 @@ func (s *FrontendQt) qtExecute(Procedure func(*FrontendQt) error) error {
 	s.Qml.SetCredits(bridge.Credits)
 	s.Qml.SetFullversion(s.buildVersion)
 
-	// Autostart.
-	if s.Qml.IsFirstStart() {
-		if s.autostart.IsEnabled() {
+	// Autostart: rewrite the current definition of autostart
+	//  - when it is the first time
+	//  - when starting after clear cache
+	//  - when there is already autostart file from past
+	//
+	//  This will make sure that autostart will use the latest path to
+	//  launcher or bridge.
+	isAutoStartEnabled := s.autostart.IsEnabled()
+	if s.Qml.IsFirstStart() || isAutoStartEnabled {
+		if isAutoStartEnabled {
 			if err := s.autostart.Disable(); err != nil {
-				log.Error("First disable ", err)
+				log.
+					WithField("first", s.Qml.IsFirstStart()).
+					WithField("wasEnabled", isAutoStartEnabled).
+					WithError(err).
+					Error("Disable on start failed.")
 				s.autostartError(err)
 			}
 		}
-		s.toggleAutoStart()
+		if err := s.autostart.Enable(); err != nil {
+			log.
+				WithField("first", s.Qml.IsFirstStart()).
+				WithField("wasEnabled", isAutoStartEnabled).
+				WithError(err).
+				Error("Enable on start failed.")
+			s.autostartError(err)
+		}
 	}
-	if s.autostart.IsEnabled() {
-		s.Qml.SetIsAutoStart(true)
-	} else {
-		s.Qml.SetIsAutoStart(false)
-	}
-
-	if s.settings.GetBool(settings.AutoUpdateKey) {
-		s.Qml.SetIsAutoUpdate(true)
-	} else {
-		s.Qml.SetIsAutoUpdate(false)
-	}
+	s.Qml.SetIsAutoStart(s.autostart.IsEnabled())
 
 	if s.settings.GetBool(settings.AllowProxyKey) {
 		s.Qml.SetIsProxyAllowed(true)
@@ -557,20 +565,22 @@ func (s *FrontendQt) configureAppleMail(iAccount, iAddress int) {
 func (s *FrontendQt) toggleAutoStart() {
 	defer s.Qml.ProcessFinished()
 	var err error
-	if s.autostart.IsEnabled() {
+	wasEnabled := s.autostart.IsEnabled()
+	if wasEnabled {
 		err = s.autostart.Disable()
 	} else {
 		err = s.autostart.Enable()
 	}
+	isEnabled := s.autostart.IsEnabled()
 	if err != nil {
-		log.Error("Enable autostart: ", err)
+		log.
+			WithField("wasEnabled", wasEnabled).
+			WithField("isEnabled", isEnabled).
+			WithError(err).
+			Error("Autostart change failed.")
 		s.autostartError(err)
 	}
-	if s.autostart.IsEnabled() {
-		s.Qml.SetIsAutoStart(true)
-	} else {
-		s.Qml.SetIsAutoStart(false)
-	}
+	s.Qml.SetIsAutoStart(isEnabled)
 }
 
 func (s *FrontendQt) toggleAutoUpdate() {
