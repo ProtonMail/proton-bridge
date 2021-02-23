@@ -79,7 +79,7 @@ type Bridger interface {
 	AllowProxy()
 	DisallowProxy()
 	GetUpdateChannel() updater.UpdateChannel
-	SetUpdateChannel(updater.UpdateChannel) error
+	SetUpdateChannel(updater.UpdateChannel) (needRestart bool, err error)
 	GetKeychainApp() string
 	SetKeychainApp(keychain string)
 }

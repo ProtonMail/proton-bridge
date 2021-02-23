@@ -605,14 +605,16 @@ func (s *FrontendQt) toggleEarlyAccess() {
 		channel = updater.EarlyChannel
 	}
 
-	err := s.bridge.SetUpdateChannel(channel)
+	needRestart, err := s.bridge.SetUpdateChannel(channel)
 	s.Qml.SetIsEarlyAccess(channel == updater.EarlyChannel)
 	if err != nil {
 		s.Qml.NotifyManualUpdateError()
 		return
 	}
-	s.restarter.SetToRestart()
-	s.App.Quit()
+	if needRestart {
+		s.restarter.SetToRestart()
+		s.App.Quit()
+	}
 }
 
 func (s *FrontendQt) toggleAllowProxy() {

@@ -84,7 +84,7 @@ func (s *FrontendQt) clearCache() {
 
 	channel := s.bridge.GetUpdateChannel()
 	if channel == updater.EarlyChannel {
-		if err := s.bridge.SetUpdateChannel(updater.StableChannel); err != nil {
+		if _, err := s.bridge.SetUpdateChannel(updater.StableChannel); err != nil {
 			s.Qml.NotifyManualUpdateError()
 			return
 		}

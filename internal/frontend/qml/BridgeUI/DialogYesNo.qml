@@ -229,7 +229,7 @@ Dialog {
                 currentIndex : 0
                 title        : qsTr("Clear cache", "title of page that displays during cache clearing")
                 question     : qsTr("Are you sure you want to clear your local cache?", "displays during cache clearing")
-                note         : qsTr("This will delete all of your stored preferences as well as cached email data for all accounts, temporarily slowing down the email download process significantly.", "displays during cache clearing")
+                note         : qsTr("This will delete all of your stored preferences as well as cached email data for all accounts, and requires you to reconfigure your client.", "displays during cache clearing")
                 answer       : qsTr("Clearing the cache ...", "displays during cache clearing")
             }
         },
@@ -310,7 +310,7 @@ Dialog {
                 target: root
                 currentIndex : 0
                 question     : qsTr("Are you sure you want to leave early access? Please keep in mind this operation clears the cache and restarts Bridge.")
-                note         : qsTr("This will delete all of your stored preferences as well as cached email data for all accounts, temporarily slowing down the email download process significantly.")
+                note         : qsTr("This will delete all of your stored preferences as well as cached email data for all accounts, and requires you to reconfigure your client.")
                 title        : qsTr("Disable early access")
                 answer       : qsTr("Disabling early access...")
             }

@@ -151,28 +151,33 @@ func (b *Bridge) GetUpdateChannel() updater.UpdateChannel {
 // Downgrading to previous version (by switching from early to stable, for example)
 // requires clearing all data including update files due to possibility of
 // inconsistency between versions and absence of backwards migration scripts.
-func (b *Bridge) SetUpdateChannel(channel updater.UpdateChannel) error {
+func (b *Bridge) SetUpdateChannel(channel updater.UpdateChannel) (needRestart bool, err error) {
 	b.settings.Set(settings.UpdateChannelKey, string(channel))
 
 	version, err := b.updater.Check()
 	if err != nil {
-		return err
+		return false, err
 	}
 
-	if b.updater.IsDowngrade(version) {
-		if err := b.Users.ClearData(); err != nil {
-			log.WithError(err).Error("Failed to clear data while downgrading channel")
-		}
-		if err := b.locations.ClearUpdates(); err != nil {
-			log.WithError(err).Error("Failed to clear updates while downgrading channel")
-		}
+	// We have to deal right away only with downgrade - that action needs to
+	// clear data and updates, and install bridge right away. But regular
+	// upgrade can be leaved out for periodic check.
+	if !b.updater.IsDowngrade(version) {
+		return false, nil
+	}
+
+	if err := b.Users.ClearData(); err != nil {
+		log.WithError(err).Error("Failed to clear data while downgrading channel")
+	}
+	if err := b.locations.ClearUpdates(); err != nil {
+		log.WithError(err).Error("Failed to clear updates while downgrading channel")
 	}
 
 	if err := b.updater.InstallUpdate(version); err != nil {
-		return err
+		return false, err
 	}
 
-	return b.versioner.RemoveOtherVersions(version.Version)
+	return true, b.versioner.RemoveOtherVersions(version.Version)
 }
 
 // GetKeychainApp returns current keychain helper.
