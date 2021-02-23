@@ -107,17 +107,21 @@ Item {
             gui.openMainWindow(false)
             if (go.isConnectionOK) {
                 if( winMain.updateState=="noInternet") {
-                    go.setUpdateState("upToDate")
+                    go.updateState = "upToDate"
                 }
             } else {
-                go.setUpdateState("noInternet")
+                go.updateState = "noInternet"
             }
         }
 
-        onSetUpdateState : {
+        onUpdateStateChanged : {
+            // if main window is closed - most probably it is destroyed (see closeMainWindow())
+            if (winMain == null) {
+                return
+            }
             // once app is outdated prevent from state change
             if (winMain.updateState != "forceUpdate") {
-                winMain.updateState = updateState
+                winMain.updateState = go.updateState
             }
         }
 
@@ -129,15 +133,14 @@ Item {
         }
 
         onNotifyManualUpdate: {
-            go.setUpdateState("oldVersion")
+            go.updateState = "oldVersion"
         }
 
         onNotifyManualUpdateRestartNeeded: {
             if (!winMain.dialogUpdate.visible) {
-                gui.openMainWindow(true)
                 winMain.dialogUpdate.show()
             }
-            go.setUpdateState("updateRestart")
+            go.updateState = "updateRestart"
             winMain.dialogUpdate.finished(false)
 
             // after manual update - just retart immidiatly
@@ -147,28 +150,25 @@ Item {
 
         onNotifyManualUpdateError: {
             if (!winMain.dialogUpdate.visible) {
-                gui.openMainWindow(true)
                 winMain.dialogUpdate.show()
             }
-            go.setUpdateState("updateError")
+            go.updateState = "updateError"
             winMain.dialogUpdate.finished(true)
         }
 
         onNotifyForceUpdate : {
-            go.setUpdateState("forceUpdate")
+            go.updateState = "forceUpdate"
             if (!winMain.dialogUpdate.visible) {
-                gui.openMainWindow(true)
                 winMain.dialogUpdate.show()
             }
         }
 
         onNotifySilentUpdateRestartNeeded: {
-            go.setUpdateState("updateRestart")
+            go.updateState = "updateRestart"
         }
 
         onNotifySilentUpdateError: {
-            go.setUpdateState("updateError")
-            gui.openMainWindow(true)
+            go.updateState = "updateError"
         }
 
         onNotifyLogout : {
@@ -287,9 +287,17 @@ Item {
         if (showAndRise) {
             gui.winMain.showAndRise()
         }
+
+        // restore update notification bar: trigger updateStateChanged
+        var tmp = go.updateState
+        go.updateState = ""
+        go.updateState = tmp
     }
 
     function closeMainWindow () {
+        // Historical reasons: once upon a time there was a report about high GPU
+        // usage on MacOS while bridge is closed. Legends say that destroying 
+        // MainWindow solved this.
         gui.winMain.hide()
         gui.winMain.destroy(5000)
         gui.winMain = null

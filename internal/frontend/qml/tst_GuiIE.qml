@@ -856,6 +856,7 @@ Window {
         property string fullversion : "QA.1.0 (d9f8sdf9) 2020-02-19T10:57:23+01:00"
         property string downloadLink: "https://protonmail.com/download/beta/protonmail-bridge-1.1.5-1.x86_64.rpm;https://www.protonmail.com/downloads/beta/Desktop-Bridge-link1.exe;https://www.protonmail.com/downloads/beta/Desktop-Bridge-link1.exe;https://www.protonmail.com/downloads/beta/Desktop-Bridge-link1.exe;"
 
+        property string updateState
         property string updateVersion : "q0.1.0"
         property bool updateCanInstall: true
         property string updateLandingPage : "https://protonmail.com/import-export/download/"
@@ -900,7 +901,6 @@ Window {
         signal showQuit()
 
         signal notifyVersionIsTheLatest()
-        signal setUpdateState(string updateState)
 
         signal showMainWin()
         signal hideMainWin()

@@ -50,6 +50,7 @@ type GoQMLInterface struct {
 	_ string `property:"fullversion"`
 	_ string `property:"downloadLink"`
 
+	_ string `property:"updateState"`
 	_ string `property:"updateVersion"`
 	_ bool   `property:"updateCanInstall"`
 	_ string `property:"updateLandingPage"`
@@ -82,9 +83,8 @@ type GoQMLInterface struct {
 	_ float32 `property:"progress"`
 	_ string  `property:"progressDescription"`
 
-	_ func(isAvailable bool)   `signal:"setConnectionStatus"`
-	_ func(updateState string) `signal:"setUpdateState"`
-	_ func()                   `slot:"checkInternet"`
+	_ func(isAvailable bool) `signal:"setConnectionStatus"`
+	_ func()                 `slot:"checkInternet"`
 
 	_ func() `slot:"setToRestart"`
 

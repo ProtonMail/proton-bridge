@@ -96,17 +96,17 @@ Item {
             go.isConnectionOK = isAvailable
             if (go.isConnectionOK) {
                 if( winMain.updateState==gui.enums.statusNoInternet) {
-                    go.setUpdateState(gui.enums.statusUpToDate)
+                    go.updateState = gui.enums.statusUpToDate
                 }
             } else {
-                go.setUpdateState(gui.enums.statusNoInternet)
+                go.updateState = gui.enums.statusNoInternet
             }
         }
 
-        onSetUpdateState : {
+        onUpdateStateChanged : {
             // once app is outdated prevent from state change
             if (winMain.updateState != "forceUpdate") {
-                winMain.updateState = updateState
+                winMain.updateState = go.updateState
             }
         }
 
@@ -207,14 +207,14 @@ Item {
         }
 
         onNotifyManualUpdate: {
-            go.setUpdateState("oldVersion")
+            go.updateState = "oldVersion"
         }
 
         onNotifyManualUpdateRestartNeeded: {
             if (!winMain.dialogUpdate.visible) {
                 winMain.dialogUpdate.show()
             }
-            go.setUpdateState("updateRestart")
+            go.updateState = "updateRestart"
             winMain.dialogUpdate.finished(false)
 
             // after manual update - just retart immidiatly
@@ -226,23 +226,23 @@ Item {
             if (!winMain.dialogUpdate.visible) {
                 winMain.dialogUpdate.show()
             }
-            go.setUpdateState("updateError")
+            go.updateState = "updateError"
             winMain.dialogUpdate.finished(true)
         }
 
         onNotifyForceUpdate : {
-            go.setUpdateState("forceUpdate")
+            go.updateState = "forceUpdate"
             if (!winMain.dialogUpdate.visible) {
                 winMain.dialogUpdate.show()
             }
         }
 
         onNotifySilentUpdateRestartNeeded: {
-            go.setUpdateState("updateRestart")
+            go.updateState = "updateRestart"
         }
 
         onNotifySilentUpdateError: {
-            go.setUpdateState("updateError")
+            go.updateState = "updateError"
         }
 
         onNotifyLogout : {
