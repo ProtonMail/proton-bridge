@@ -139,7 +139,7 @@ func run(b *base.Base, c *cli.Context) error { // nolint[funlen]
 
 	// Watch for updates routine
 	go func() {
-		ticker := time.NewTicker(time.Hour)
+		ticker := time.NewTicker(constants.UpdateCheckInterval)
 
 		for {
 			checkAndHandleUpdate(b.Updater, f, b.Settings.GetBool(settings.AutoUpdateKey))
