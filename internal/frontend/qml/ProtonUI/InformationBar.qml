@@ -108,31 +108,25 @@ Rectangle {
     onStateChanged : {
         switch (root.state) {
             case "internetCheck":
-            break;
+                break;
             case "noInternet" :
-            gui.warningFlags |= Style.warnInfoBar
-            retryInternet.start()
-            secLeft=checkInterval[iTry]
-            break;
+                retryInternet.start()
+                secLeft=checkInterval[iTry]
+                break;
             case "oldVersion":
-            gui.warningFlags |= Style.warnInfoBar
-            break;
+                break;
             case "forceUpdate":
-            gui.warningFlags |= Style.errorInfoBar
-            break;
+                break;
             case "upToDate":
-            gui.warningFlags &= ~Style.warnInfoBar
-            iTry = 0
-            secLeft=checkInterval[iTry]
-            break;
+                iTry = 0
+                secLeft=checkInterval[iTry]
+                break;
             case "updateRestart":
-            gui.warningFlags |= Style.warnInfoBar
-            break;
+                break;
             case "updateError":
-            gui.warningFlags |= Style.errorInfoBar
-            break;
+                break;
             default :
-            break;
+                break;
         }
 
         if (root.state!="noInternet") {
@@ -271,7 +265,7 @@ Rectangle {
                 target: closeSign
                 visible: true
                 onClicked: {
-                    root.state = "upToDate"
+                    go.updateState = "upToDate"
                 }
             }
         },

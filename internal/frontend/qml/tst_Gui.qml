@@ -24,7 +24,7 @@ import QtQuick.Window 2.2
 
 Window {
     id: testroot
-    width   : 150
+    width   : 250
     height  : 600
     flags   : Qt.Window | Qt.Dialog | Qt.FramelessWindowHint
     visible : true
@@ -60,7 +60,7 @@ Window {
         Text {
             id: systrText
             anchors {
-                right : test_systray.right
+                horizontalCenter: parent.horizontalCenter
                 verticalCenter: test_systray.verticalCenter
             }
             text: "unset"

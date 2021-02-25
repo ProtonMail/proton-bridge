@@ -30,7 +30,6 @@ Item {
     id: gui
     property alias winMain: winMain
     property bool isFirstWindow: true
-    property int warningFlags: 0
 
     property var locale    : Qt.locale("en_US")
     property date netBday  : new Date("1989-03-13T00:00:00")

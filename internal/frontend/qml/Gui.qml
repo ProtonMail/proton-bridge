@@ -115,6 +115,38 @@ Item {
         }
 
         onUpdateStateChanged : {
+            // Update tray icon if needed
+            switch (go.updateState) {
+                case "internetCheck":
+                    break;
+                case "noInternet" :
+                    gui.warningFlags |= Style.warnInfoBar
+                    break;
+                case "oldVersion":
+                    gui.warningFlags |= Style.warnInfoBar
+                    break;
+                case "forceUpdate":
+                    // Force update should presist once it happened and never be overwritten.
+                    // That means that tray icon should allways remain in error state.
+                    // But since we have only two sources of error icon in tray (force update 
+                    // + installation fail) and both are unrecoverable and we do not ever remove
+                    // error flag from gui.warningFlags - it is ok to rely on gui.warningFlags and
+                    // not on winMain.updateState (which presist forceUpdate)
+                    gui.warningFlags |= Style.errorInfoBar
+                    break;
+                case "upToDate":
+                    gui.warningFlags &= ~Style.warnInfoBar
+                    break;
+                case "updateRestart":
+                    gui.warningFlags |= Style.warnInfoBar
+                    break;
+                case "updateError":
+                    gui.warningFlags |= Style.errorInfoBar
+                    break;
+                default :
+                    break;
+            }
+
             // if main window is closed - most probably it is destroyed (see closeMainWindow())
             if (winMain == null) {
                 return
