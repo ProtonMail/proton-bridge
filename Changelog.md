@@ -2,6 +2,23 @@
 
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
+## [Bridge 1.6.6] HZM
+
+### Added
+* Other: QA build checks for update every 5 minutes.
+* Other: QA build adds debug message dump when sending.
+
+### Changed
+* GODT-1045 build without Qt by default.
+
+### Fixed
+* GODT-1029 Fix tray icon not updating under certain conditions.
+* GODT-1062 Fix lost notification bar when window is closed.
+* GODT-1058 Install version after chaning channel right away only in case of downgrade.
+* GODT-1073 Re-write autostart link on every start if turned on in preferences.
+* GODT-1055 Fix flaky empty trash test.
+
+
 ## [Bridge 1.6.5] HZM
 
 ### Changed
