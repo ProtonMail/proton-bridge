@@ -181,7 +181,7 @@ func (im *imapMailbox) createMessage(flags []string, date time.Time, body imap.L
 				return err
 			}
 
-			targetSeq := im.storeMailbox.GetUIDList([]string{m.ID})
+			targetSeq := im.storeMailbox.GetUIDList(IDs)
 			return uidplus.AppendResponse(im.storeMailbox.UIDValidity(), targetSeq)
 		}
 	}

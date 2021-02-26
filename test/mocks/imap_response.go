@@ -107,6 +107,13 @@ func (ir *IMAPResponse) AssertOK() *IMAPResponse {
 	return ir
 }
 
+func (ir *IMAPResponse) AssertResult(wantResult string) *IMAPResponse {
+	ir.wait()
+	a.NoError(ir.t, ir.err)
+	a.Regexp(ir.t, wantResult, ir.result, "Expected result %s but got %s", wantResult, ir.result)
+	return ir
+}
+
 func (ir *IMAPResponse) AssertError(wantErrMsg string) *IMAPResponse {
 	ir.wait()
 	if ir.err == nil {

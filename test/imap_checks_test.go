@@ -19,6 +19,7 @@ package tests
 
 import (
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/cucumber/godog"
@@ -47,9 +48,12 @@ func imapResponseIs(expectedResponse string) error {
 
 func imapResponseNamedIs(clientID, expectedResponse string) error {
 	res := ctx.GetIMAPLastResponse(clientID)
-	if expectedResponse == "OK" {
+	switch {
+	case expectedResponse == "OK":
 		res.AssertOK()
-	} else {
+	case strings.HasPrefix(expectedResponse, "OK"):
+		res.AssertResult(expectedResponse)
+	default:
 		res.AssertError(expectedResponse)
 	}
 	return ctx.GetTestingError()

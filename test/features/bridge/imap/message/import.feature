@@ -150,3 +150,31 @@ Feature: IMAP import messages
 
       """
     Then IMAP response is "OK"
+
+  # We cannot control internal IDs on live server.
+  @ignore-live
+  Scenario: Import existing message
+    When IMAP client imports message to "INBOX"
+      """
+      From: Foo <foo@example.com>
+      To: Bridge Test <bridgetest@pm.test>
+      Subject: Hello
+      Received: by 2002:0:0:0:0:0:0:0 with SMTP id 0123456789abcdef; Wed, 30 Dec 2020 01:23:45 0000
+      X-Pm-Internal-Id: 1
+
+      Hello
+
+      """
+    Then IMAP response is "OK \[APPENDUID \d 1\] APPEND completed"
+    When IMAP client imports message to "INBOX"
+      """
+      From: Foo <foo@example.com>
+      To: Bridge Test <bridgetest@pm.test>
+      Subject: Hello
+      Received: by 2002:0:0:0:0:0:0:0 with SMTP id 0123456789abcdef; Wed, 30 Dec 2020 01:23:45 0000
+      X-Pm-Internal-Id: 1
+
+      Hello
+
+      """
+    Then IMAP response is "OK \[APPENDUID \d 1\] APPEND completed"
