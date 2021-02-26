@@ -1,3 +1,13 @@
+## v1.6.6
+- 2021-02-26
+
+### Fixed
+
+- Fixed update notifications
+- Fixed GUI freeze while switching to early update channel
+- Fixed Bridge autostart
+- Improved signing of update packages
+
 ## v1.6.5
 - 2021-02-22
 
