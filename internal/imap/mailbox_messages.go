@@ -482,12 +482,13 @@ func (im *imapMailbox) SearchMessages(isUID bool, criteria *imap.SearchCriteria)
 //
 // Messages must be sent to msgResponse. When the function returns, msgResponse must be closed.
 func (im *imapMailbox) ListMessages(isUID bool, seqSet *imap.SeqSet, items []imap.FetchItem, msgResponse chan<- *imap.Message) error {
+	msgBuildCountHistogram := newMsgBuildCountHistogram()
 	return im.logCommand(func() error {
-		return im.listMessages(isUID, seqSet, items, msgResponse)
-	}, "FETCH", isUID, seqSet, items)
+		return im.listMessages(isUID, seqSet, items, msgResponse, msgBuildCountHistogram)
+	}, "FETCH", isUID, seqSet, items, msgBuildCountHistogram)
 }
 
-func (im *imapMailbox) listMessages(isUID bool, seqSet *imap.SeqSet, items []imap.FetchItem, msgResponse chan<- *imap.Message) (err error) { //nolint[funlen]
+func (im *imapMailbox) listMessages(isUID bool, seqSet *imap.SeqSet, items []imap.FetchItem, msgResponse chan<- *imap.Message, msgBuildCountHistogram *msgBuildCountHistogram) (err error) { //nolint[funlen]
 	defer func() {
 		close(msgResponse)
 		if err != nil {
@@ -544,7 +545,7 @@ func (im *imapMailbox) listMessages(isUID bool, seqSet *imap.SeqSet, items []ima
 			return nil, err
 		}
 
-		msg, err := im.getMessage(storeMessage, items)
+		msg, err := im.getMessage(storeMessage, items, msgBuildCountHistogram)
 		if err != nil {
 			err = fmt.Errorf("list message build: %v", err)
 			l.WithField("metaID", storeMessage.ID()).Error(err)

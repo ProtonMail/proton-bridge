@@ -191,6 +191,19 @@ func (store *Store) txGetBodyStructure(bsBucket *bolt.Bucket, msgID string) (*pk
 	return pkgMsg.DeserializeBodyStructure(raw)
 }
 
+func (store *Store) txIncreaseMsgBuildCount(b *bolt.Bucket, msgID string) (uint32, error) {
+	key := []byte(msgID)
+	count := uint32(0)
+
+	raw := b.Get(key)
+	if raw != nil {
+		count = btoi(raw)
+	}
+
+	count++
+	return count, b.Put(key, itob(count))
+}
+
 // createOrUpdateMessageEvent is helper to create only one message with
 // createOrUpdateMessagesEvent.
 func (store *Store) createOrUpdateMessageEvent(msg *pmapi.Message) error {

@@ -226,7 +226,7 @@ func (im *imapMailbox) importMessage(m *pmapi.Message, readers []io.Reader, kr *
 	return im.storeMailbox.ImportMessage(m, body, labels)
 }
 
-func (im *imapMailbox) getMessage(storeMessage storeMessageProvider, items []imap.FetchItem) (msg *imap.Message, err error) {
+func (im *imapMailbox) getMessage(storeMessage storeMessageProvider, items []imap.FetchItem, msgBuildCountHistogram *msgBuildCountHistogram) (msg *imap.Message, err error) { //nolint[funlen]
 	im.log.WithField("msgID", storeMessage.ID()).Trace("Getting message")
 
 	seqNum, err := storeMessage.SequenceNumber()
@@ -268,7 +268,12 @@ func (im *imapMailbox) getMessage(storeMessage storeMessageProvider, items []ima
 			// on our part and we need to compute "real" size of decrypted data.
 			if m.Size <= 0 {
 				im.log.WithField("msgID", storeMessage.ID()).Trace("Size unknown - downloading body")
-				if _, _, err = im.getBodyAndStructure(storeMessage); err != nil {
+				// We are sure the size is not a problem right now. Clients
+				// might not first check sizes of all messages so we couldn't
+				// be sure if seeing 1st or 2nd sync is all right or not.
+				// Therefore, it's better to exclude getting size from the
+				// counting and see build count as real message build.
+				if _, _, err = im.getBodyAndStructure(storeMessage, nil); err != nil {
 					return
 				}
 			}
@@ -279,7 +284,7 @@ func (im *imapMailbox) getMessage(storeMessage storeMessageProvider, items []ima
 				return nil, err
 			}
 		default:
-			if err = im.getLiteralForSection(item, msg, storeMessage); err != nil {
+			if err = im.getLiteralForSection(item, msg, storeMessage, msgBuildCountHistogram); err != nil {
 				return
 			}
 		}
@@ -288,14 +293,14 @@ func (im *imapMailbox) getMessage(storeMessage storeMessageProvider, items []ima
 	return msg, err
 }
 
-func (im *imapMailbox) getLiteralForSection(itemSection imap.FetchItem, msg *imap.Message, storeMessage storeMessageProvider) error {
+func (im *imapMailbox) getLiteralForSection(itemSection imap.FetchItem, msg *imap.Message, storeMessage storeMessageProvider, msgBuildCountHistogram *msgBuildCountHistogram) error {
 	section, err := imap.ParseBodySectionName(itemSection)
 	if err != nil { // Ignore error
 		return nil
 	}
 
 	var literal imap.Literal
-	if literal, err = im.getMessageBodySection(storeMessage, section); err != nil {
+	if literal, err = im.getMessageBodySection(storeMessage, section, msgBuildCountHistogram); err != nil {
 		return err
 	}
 
@@ -313,14 +318,19 @@ func (im *imapMailbox) getBodyStructure(storeMessage storeMessageProvider) (bs *
 		im.log.WithError(err).Debug("Fail to retrieve bodystructure from database")
 	}
 	if bs == nil {
-		if bs, _, err = im.getBodyAndStructure(storeMessage); err != nil {
+		// We are sure the body structure is not a problem right now.
+		// Clients might do first fetch body structure so we couldn't
+		// be sure if seeing 1st or 2nd sync is all right or not.
+		// Therefore, it's better to exclude first body structure fetch
+		// from the counting and see build count as real message build.
+		if bs, _, err = im.getBodyAndStructure(storeMessage, nil); err != nil {
 			return
 		}
 	}
 	return
 }
 
-func (im *imapMailbox) getBodyAndStructure(storeMessage storeMessageProvider) (
+func (im *imapMailbox) getBodyAndStructure(storeMessage storeMessageProvider, msgBuildCountHistogram *msgBuildCountHistogram) (
 	structure *message.BodyStructure,
 	bodyReader *bytes.Reader, err error,
 ) {
@@ -352,6 +362,15 @@ func (im *imapMailbox) getBodyAndStructure(storeMessage storeMessageProvider) (
 					WithField("msgID", m.ID).
 					Warn("Cannot update header while building")
 			}
+			if msgBuildCountHistogram != nil {
+				times, err := storeMessage.IncreaseBuildCount()
+				if err != nil {
+					im.log.WithError(err).
+						WithField("msgID", m.ID).
+						Warn("Cannot increase build count")
+				}
+				msgBuildCountHistogram.add(times)
+			}
 			// Drafts can change and we don't want to cache them.
 			if !isMessageInDraftFolder(m) {
 				cache.SaveMail(id, body, structure)
@@ -379,7 +398,7 @@ func isMessageInDraftFolder(m *pmapi.Message) bool {
 
 // This will download message (or read from cache) and pick up the section,
 // extract data (header,body, both) and trim the output if needed.
-func (im *imapMailbox) getMessageBodySection(storeMessage storeMessageProvider, section *imap.BodySectionName) (literal imap.Literal, err error) { // nolint[funlen]
+func (im *imapMailbox) getMessageBodySection(storeMessage storeMessageProvider, section *imap.BodySectionName, msgBuildCountHistogram *msgBuildCountHistogram) (literal imap.Literal, err error) { // nolint[funlen]
 	var (
 		structure  *message.BodyStructure
 		bodyReader *bytes.Reader
@@ -410,7 +429,7 @@ func (im *imapMailbox) getMessageBodySection(storeMessage storeMessageProvider, 
 		}
 	} else {
 		// The rest of cases need download and decrypt.
-		structure, bodyReader, err = im.getBodyAndStructure(storeMessage)
+		structure, bodyReader, err = im.getBodyAndStructure(storeMessage, msgBuildCountHistogram)
 		if err != nil {
 			return
 		}

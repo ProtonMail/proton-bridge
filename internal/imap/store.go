@@ -103,6 +103,7 @@ type storeMessageProvider interface {
 	SetContentTypeAndHeader(string, mail.Header) error
 	SetBodyStructure(*pkgMsg.BodyStructure) error
 	GetBodyStructure() (*pkgMsg.BodyStructure, error)
+	IncreaseBuildCount() (uint32, error)
 }
 
 type storeUserWrap struct {

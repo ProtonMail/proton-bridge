@@ -148,3 +148,17 @@ func (message *Message) GetBodyStructure() (bs *pkgMsg.BodyStructure, err error)
 	}
 	return bs, nil
 }
+
+func (message *Message) IncreaseBuildCount() (times uint32, err error) {
+	txUpdate := func(tx *bolt.Tx) error {
+		times, err = message.store.txIncreaseMsgBuildCount(
+			tx.Bucket(msgBuildCountBucket),
+			message.ID(),
+		)
+		return err
+	}
+	if err = message.store.db.Update(txUpdate); err != nil {
+		return 0, err
+	}
+	return times, nil
+}
