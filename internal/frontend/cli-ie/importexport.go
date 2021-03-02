@@ -38,7 +38,7 @@ func (f *frontendCLI) importLocalMessages(c *ishell.Context) {
 		return
 	}
 
-	t, err := f.ie.GetLocalImporter(user.GetPrimaryAddress(), path)
+	t, err := f.ie.GetLocalImporter(user.Username(), user.GetPrimaryAddress(), path)
 	f.transfer(t, err, false, true)
 }
 
@@ -68,7 +68,7 @@ func (f *frontendCLI) importRemoteMessages(c *ishell.Context) {
 		return
 	}
 
-	t, err := f.ie.GetRemoteImporter(user.GetPrimaryAddress(), username, password, host, port)
+	t, err := f.ie.GetRemoteImporter(user.Username(), user.GetPrimaryAddress(), username, password, host, port)
 	f.transfer(t, err, false, true)
 }
 
@@ -81,7 +81,7 @@ func (f *frontendCLI) exportMessagesToEML(c *ishell.Context) {
 		return
 	}
 
-	t, err := f.ie.GetEMLExporter(user.GetPrimaryAddress(), path)
+	t, err := f.ie.GetEMLExporter(user.Username(), user.GetPrimaryAddress(), path)
 	f.transfer(t, err, true, false)
 }
 
@@ -94,7 +94,7 @@ func (f *frontendCLI) exportMessagesToMBOX(c *ishell.Context) {
 		return
 	}
 
-	t, err := f.ie.GetMBOXExporter(user.GetPrimaryAddress(), path)
+	t, err := f.ie.GetMBOXExporter(user.Username(), user.GetPrimaryAddress(), path)
 	f.transfer(t, err, true, false)
 }
 

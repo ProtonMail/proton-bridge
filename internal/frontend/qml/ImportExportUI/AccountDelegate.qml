@@ -165,6 +165,7 @@ Column {
             textColor : Style.main.textBlue
             onClicked: {
                 dialogExport.currentIndex = 0
+                dialogExport.account = account
                 dialogExport.address = account
                 dialogExport.show()
             }
@@ -321,6 +322,7 @@ Column {
                         textBold: true
                         textColor: Style.main.textBlue
                         onClicked: {
+                            dialogExport.account = account
                             dialogExport.address = listalias[index]
                             dialogExport.show()
                         }
@@ -339,6 +341,7 @@ Column {
                         textBold: true
                         textColor: enabled ? Style.main.textBlue : Style.main.textDisabled
                         onClicked: {
+                            dialogImport.account = account
                             dialogImport.address = listalias[index]
                             dialogImport.show()
                         }

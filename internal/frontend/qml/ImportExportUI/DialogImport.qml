@@ -34,6 +34,7 @@ Dialog {
 
     isDialogBusy: currentIndex==3 || currentIndex==4
 
+    property string account
     property string address
     property string inputPath  : ""
     property bool   isFromFile : inputEmail.text == "" && root.inputPath != ""
@@ -1032,6 +1033,7 @@ Dialog {
                     root.isFromIMAP,
                     root.inputPath,
                     inputEmail.text, inputPassword.text, inputServer.text, inputPort.text,
+                    root.account,
                     root.address
                 )
                 break

@@ -35,6 +35,7 @@ Dialog {
 
     title : set_title()
 
+    property string account
     property string address
     property alias finish: finish
 
@@ -428,7 +429,7 @@ Dialog {
         onTriggered : {
             switch (currentIndex) {
                 case 0:
-                go.loadStructureForExport(root.address)
+                go.loadStructureForExport(root.account, root.address)
                 sourceFoldersInput.hasItems = (transferRules.rowCount() > 0)
                 break
                 case 2:
