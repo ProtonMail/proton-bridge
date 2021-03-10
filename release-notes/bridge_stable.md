@@ -2,14 +2,12 @@
 - 2021-03-04
 
 ### New
-
 - Allow to choose which keychain is used by Bridge on Linux
 - Added automatic update CLI commands
 - Improved performance during slow connection
 - Added IMAP requests to the logs for easier debugging 
 
 ### Fixed
-
 - Fixed update notifications
 - Fixed GUI freeze while switching to early update channel
 - Fixed Bridge autostart
@@ -23,13 +21,11 @@
 - 2021-02-16
 
 ### New
-
 - Added desktop files and icon in Bridge repo
 - Better detection of MacOS version to improve automatic AppleMail configuration
 - Clearing cache after switching early access off
 
 ### Fixed
-
 - Better poor connection handling - added retries for starting IMAP server after the connection was down
 - Excluding updates from 'clearing cache'
 - Not allowing copying from Inbox to Sent and vice versa
