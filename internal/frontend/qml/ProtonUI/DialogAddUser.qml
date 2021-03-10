@@ -70,7 +70,8 @@ Dialog {
             id: topSep
             color  : "transparent"
             width  : Style.main.dummy
-            height : root.height/2 - (dialogNameAndPassword.heightInputs)/2
+            // Hacky hack: +10 is to make title of Dialog bigger so longer error can fit just fine.
+            height : root.height/2 + 10 - (dialogNameAndPassword.heightInputs)/2
         }
 
         InputField {

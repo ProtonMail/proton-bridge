@@ -29,7 +29,7 @@ const (
 	TypeMBOX = "MBOX"
 )
 
-func (f *FrontendQt) LoadStructureForExport(addressOrID string) {
+func (f *FrontendQt) LoadStructureForExport(username, addressOrID string) {
 	errCode := errUnknownError
 	var err error
 	defer func() {
@@ -41,7 +41,7 @@ func (f *FrontendQt) LoadStructureForExport(addressOrID string) {
 		}
 	}()
 
-	if f.transfer, err = f.ie.GetEMLExporter(addressOrID, ""); err != nil {
+	if f.transfer, err = f.ie.GetEMLExporter(username, addressOrID, ""); err != nil {
 		// The only error can be problem to load PM user and address.
 		errCode = errPMLoadFailed
 		return

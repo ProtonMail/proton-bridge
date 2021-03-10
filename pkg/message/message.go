@@ -26,6 +26,10 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+const (
+	rfc822Message = "message/rfc822"
+)
+
 var log = logrus.WithField("pkg", "pkg/message") //nolint[gochecknoglobals]
 
 func GetBoundary(m *pmapi.Message) string {

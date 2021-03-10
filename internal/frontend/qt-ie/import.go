@@ -26,7 +26,7 @@ import (
 )
 
 // wrapper for QML
-func (f *FrontendQt) setupAndLoadForImport(isFromIMAP bool, sourcePath, sourceEmail, sourcePassword, sourceServer, sourcePort, targetAddress string) {
+func (f *FrontendQt) setupAndLoadForImport(isFromIMAP bool, sourcePath, sourceEmail, sourcePassword, sourceServer, sourcePort, targetUsername, targetAddress string) {
 	errCode := errUnknownError
 	var err error
 	defer func() {
@@ -39,7 +39,7 @@ func (f *FrontendQt) setupAndLoadForImport(isFromIMAP bool, sourcePath, sourceEm
 	}()
 
 	if isFromIMAP {
-		f.transfer, err = f.ie.GetRemoteImporter(targetAddress, sourceEmail, sourcePassword, sourceServer, sourcePort)
+		f.transfer, err = f.ie.GetRemoteImporter(targetUsername, targetAddress, sourceEmail, sourcePassword, sourceServer, sourcePort)
 		if err != nil {
 			switch {
 			case errors.Is(err, &transfer.ErrIMAPConnection{}):
@@ -54,7 +54,7 @@ func (f *FrontendQt) setupAndLoadForImport(isFromIMAP bool, sourcePath, sourceEm
 			return
 		}
 	} else {
-		f.transfer, err = f.ie.GetLocalImporter(targetAddress, sourcePath)
+		f.transfer, err = f.ie.GetLocalImporter(targetUsername, targetAddress, sourcePath)
 		if err != nil {
 			// The only error can be problem to load PM user and address.
 			errCode = errPMLoadFailed

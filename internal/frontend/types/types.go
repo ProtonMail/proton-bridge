@@ -114,10 +114,10 @@ func (b *bridgeWrap) GetUser(query string) (User, error) {
 type ImportExporter interface {
 	UserManager
 
-	GetLocalImporter(string, string) (*transfer.Transfer, error)
-	GetRemoteImporter(string, string, string, string, string) (*transfer.Transfer, error)
-	GetEMLExporter(string, string) (*transfer.Transfer, error)
-	GetMBOXExporter(string, string) (*transfer.Transfer, error)
+	GetLocalImporter(string, string, string) (*transfer.Transfer, error)
+	GetRemoteImporter(string, string, string, string, string, string) (*transfer.Transfer, error)
+	GetEMLExporter(string, string, string) (*transfer.Transfer, error)
+	GetMBOXExporter(string, string, string) (*transfer.Transfer, error)
 	ReportBug(osType, osVersion, description, accountName, address, emailClient string) error
 	ReportFile(osType, osVersion, accountName, address string, logdata []byte) error
 }

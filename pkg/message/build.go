@@ -124,7 +124,7 @@ func (bld *Builder) writeRelatedPart(p io.Writer, inlines []*pmapi.Attachment) e
 			return err
 		}
 
-		h := GetAttachmentHeader(inline)
+		h := GetAttachmentHeader(inline, false)
 		if p, err = related.CreatePart(h); err != nil {
 			return err
 		}
@@ -194,7 +194,7 @@ func (bld *Builder) BuildMessage() (structure *BodyStructure, message []byte, er
 				return nil, nil, err
 			}
 
-			attachmentHeader := GetAttachmentHeader(att)
+			attachmentHeader := GetAttachmentHeader(att, false)
 			if partWriter, err = mw.CreatePart(attachmentHeader); err != nil {
 				return nil, nil, err
 			}
@@ -311,16 +311,11 @@ func BuildEncrypted(m *pmapi.Message, readers []io.Reader, kr *crypto.KeyRing) (
 	for i := 0; i < len(m.Attachments); i++ {
 		att := m.Attachments[i]
 		r := readers[i]
-		h := GetAttachmentHeader(att)
+		h := GetAttachmentHeader(att, false)
 		p, err := mw.CreatePart(h)
 		if err != nil {
 			return nil, err
 		}
-		// Create line wrapper writer.
-		ww := textwrapper.NewRFC822(p)
-
-		// Create base64 writer.
-		bw := base64.NewEncoder(base64.StdEncoding, ww)
 
 		data, err := ioutil.ReadAll(r)
 		if err != nil {
@@ -332,6 +327,9 @@ func BuildEncrypted(m *pmapi.Message, readers []io.Reader, kr *crypto.KeyRing) (
 		if err != nil {
 			return nil, err
 		}
+
+		ww := textwrapper.NewRFC822(p)
+		bw := base64.NewEncoder(base64.StdEncoding, ww)
 		if _, err := bw.Write(pgpMessage.GetBinary()); err != nil {
 			return nil, err
 		}

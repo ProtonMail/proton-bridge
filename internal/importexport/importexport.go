@@ -118,9 +118,9 @@ func (ie *ImportExport) ReportFile(osType, osVersion, accountName, address strin
 }
 
 // GetLocalImporter returns transferrer from local EML or MBOX structure to ProtonMail account.
-func (ie *ImportExport) GetLocalImporter(address, path string) (*transfer.Transfer, error) {
+func (ie *ImportExport) GetLocalImporter(username, address, path string) (*transfer.Transfer, error) {
 	source := transfer.NewLocalProvider(path)
-	target, err := ie.getPMAPIProvider(address)
+	target, err := ie.getPMAPIProvider(username, address)
 	if err != nil {
 		return nil, err
 	}
@@ -132,12 +132,12 @@ func (ie *ImportExport) GetLocalImporter(address, path string) (*transfer.Transf
 }
 
 // GetRemoteImporter returns transferrer from remote IMAP to ProtonMail account.
-func (ie *ImportExport) GetRemoteImporter(address, username, password, host, port string) (*transfer.Transfer, error) {
-	source, err := transfer.NewIMAPProvider(username, password, host, port)
+func (ie *ImportExport) GetRemoteImporter(username, address, remoteUsername, remotePassword, host, port string) (*transfer.Transfer, error) {
+	source, err := transfer.NewIMAPProvider(remoteUsername, remotePassword, host, port)
 	if err != nil {
 		return nil, err
 	}
-	target, err := ie.getPMAPIProvider(address)
+	target, err := ie.getPMAPIProvider(username, address)
 	if err != nil {
 		return nil, err
 	}
@@ -149,8 +149,8 @@ func (ie *ImportExport) GetRemoteImporter(address, username, password, host, por
 }
 
 // GetEMLExporter returns transferrer from ProtonMail account to local EML structure.
-func (ie *ImportExport) GetEMLExporter(address, path string) (*transfer.Transfer, error) {
-	source, err := ie.getPMAPIProvider(address)
+func (ie *ImportExport) GetEMLExporter(username, address, path string) (*transfer.Transfer, error) {
+	source, err := ie.getPMAPIProvider(username, address)
 	if err != nil {
 		return nil, err
 	}
@@ -163,8 +163,8 @@ func (ie *ImportExport) GetEMLExporter(address, path string) (*transfer.Transfer
 }
 
 // GetMBOXExporter returns transferrer from ProtonMail account to local MBOX structure.
-func (ie *ImportExport) GetMBOXExporter(address, path string) (*transfer.Transfer, error) {
-	source, err := ie.getPMAPIProvider(address)
+func (ie *ImportExport) GetMBOXExporter(username, address, path string) (*transfer.Transfer, error) {
+	source, err := ie.getPMAPIProvider(username, address)
 	if err != nil {
 		return nil, err
 	}
@@ -176,8 +176,8 @@ func (ie *ImportExport) GetMBOXExporter(address, path string) (*transfer.Transfe
 	return transfer.New(ie.panicHandler, newExportMetricsManager(ie), logsPath, ie.cache.GetTransferDir(), source, target)
 }
 
-func (ie *ImportExport) getPMAPIProvider(address string) (*transfer.PMAPIProvider, error) {
-	user, err := ie.Users.GetUser(address)
+func (ie *ImportExport) getPMAPIProvider(username, address string) (*transfer.PMAPIProvider, error) {
+	user, err := ie.Users.GetUser(username)
 	if err != nil {
 		return nil, err
 	}

@@ -60,9 +60,9 @@ func userImportsLocalFilesToAddress(bddUserID, bddAddressID string) error {
 }
 
 func userImportsLocalFilesToAddressWithRules(bddUserID, bddAddressID string, rules *gherkin.DataTable) error {
-	return doTransfer(bddUserID, bddAddressID, rules, func(address string) (*transfer.Transfer, error) {
+	return doTransfer(bddUserID, bddAddressID, rules, func(username, address string) (*transfer.Transfer, error) {
 		path := ctx.GetTransferLocalRootForImport()
-		return ctx.GetImportExport().GetLocalImporter(address, path)
+		return ctx.GetImportExport().GetLocalImporter(username, address, path)
 	})
 }
 
@@ -81,9 +81,9 @@ func userImportsRemoteMessagesToAddress(bddUserID, bddAddressID string) error {
 }
 
 func userImportsRemoteMessagesToAddressWithRules(bddUserID, bddAddressID string, rules *gherkin.DataTable) error {
-	return doTransfer(bddUserID, bddAddressID, rules, func(address string) (*transfer.Transfer, error) {
+	return doTransfer(bddUserID, bddAddressID, rules, func(username, address string) (*transfer.Transfer, error) {
 		imapServer := ctx.GetTransferRemoteIMAPServer()
-		return ctx.GetImportExport().GetRemoteImporter(address, imapServer.Username, imapServer.Password, imapServer.Host, imapServer.Port)
+		return ctx.GetImportExport().GetRemoteImporter(username, address, imapServer.Username, imapServer.Password, imapServer.Host, imapServer.Port)
 	})
 }
 
@@ -102,9 +102,9 @@ func userExportsAddressToEMLFiles(bddUserID, bddAddressID string) error {
 }
 
 func userExportsAddressToEMLFilesWithRules(bddUserID, bddAddressID string, rules *gherkin.DataTable) error {
-	return doTransfer(bddUserID, bddAddressID, rules, func(address string) (*transfer.Transfer, error) {
+	return doTransfer(bddUserID, bddAddressID, rules, func(username, address string) (*transfer.Transfer, error) {
 		path := ctx.GetTransferLocalRootForExport()
-		return ctx.GetImportExport().GetEMLExporter(address, path)
+		return ctx.GetImportExport().GetEMLExporter(username, address, path)
 	})
 }
 
@@ -123,20 +123,20 @@ func userExportsAddressToMBOXFiles(bddUserID, bddAddressID string) error {
 }
 
 func userExportsAddressToMBOXFilesWithRules(bddUserID, bddAddressID string, rules *gherkin.DataTable) error {
-	return doTransfer(bddUserID, bddAddressID, rules, func(address string) (*transfer.Transfer, error) {
+	return doTransfer(bddUserID, bddAddressID, rules, func(username, address string) (*transfer.Transfer, error) {
 		path := ctx.GetTransferLocalRootForExport()
-		return ctx.GetImportExport().GetMBOXExporter(address, path)
+		return ctx.GetImportExport().GetMBOXExporter(username, address, path)
 	})
 }
 
 // Helpers.
 
-func doTransfer(bddUserID, bddAddressID string, rules *gherkin.DataTable, getTransferrer func(string) (*transfer.Transfer, error)) error {
+func doTransfer(bddUserID, bddAddressID string, rules *gherkin.DataTable, getTransferrer func(string, string) (*transfer.Transfer, error)) error {
 	account := ctx.GetTestAccountWithAddress(bddUserID, bddAddressID)
 	if account == nil {
 		return godog.ErrPending
 	}
-	transferrer, err := getTransferrer(account.Address())
+	transferrer, err := getTransferrer(account.Username(), account.Address())
 	if err != nil {
 		return internalError(err, "failed to init transfer")
 	}

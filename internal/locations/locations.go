@@ -32,8 +32,8 @@ import (
 // On linux:
 // - settings: ~/.config/protonmail/<app>
 // - logs: ~/.cache/protonmail/<app>/logs
-// - cache: ~/.cache/protonmail/<app>/cache
-// - updates: ~/.cache/protonmail/<app>/updates
+// - cache: ~/.config/protonmail/<app>/cache
+// - updates: ~/.config/protonmail/<app>/updates
 // - lockfile: ~/.cache/protonmail/<app>/<app>.lock
 type Locations struct {
 	userConfig, userCache string
@@ -129,7 +129,7 @@ func (l *Locations) ProvideLogsPath() (string, error) {
 	return l.getLogsPath(), nil
 }
 
-// ProvideCachePath returns a location for user cache dirs (e.g. ~/.cache/<company>/<app>/cache).
+// ProvideCachePath returns a location for user cache dirs (e.g. ~/.config/<company>/<app>/cache).
 // It creates it if it doesn't already exist.
 func (l *Locations) ProvideCachePath() (string, error) {
 	if err := os.MkdirAll(l.getCachePath(), 0700); err != nil {
@@ -137,6 +137,11 @@ func (l *Locations) ProvideCachePath() (string, error) {
 	}
 
 	return l.getCachePath(), nil
+}
+
+// GetOldCachePath returns a former location for user cache dirs used for migration scripts only.
+func (l *Locations) GetOldCachePath() string {
+	return filepath.Join(l.userCache, "cache")
 }
 
 // ProvideUpdatesPath returns a location for update files (e.g. ~/.cache/<company>/<app>/updates).
@@ -149,6 +154,16 @@ func (l *Locations) ProvideUpdatesPath() (string, error) {
 	return l.getUpdatesPath(), nil
 }
 
+// GetUpdatesPath returns a new location for update files used for migration scripts only.
+func (l *Locations) GetUpdatesPath() string {
+	return l.getUpdatesPath()
+}
+
+// GetOldUpdatesPath returns a former location for update files used for migration scripts only.
+func (l *Locations) GetOldUpdatesPath() string {
+	return filepath.Join(l.userCache, "updates")
+}
+
 func (l *Locations) getSettingsPath() string {
 	return l.userConfig
 }
@@ -158,11 +173,25 @@ func (l *Locations) getLogsPath() string {
 }
 
 func (l *Locations) getCachePath() string {
-	return filepath.Join(l.userCache, "cache")
+	// Bridge cache is not a typical cache which can be deleted with only
+	// downside that the app has to download everything again.
+	// Cache for bridge is database with IMAP UIDs and UIDVALIDITY, and also
+	// other IMAP setup. Deleting such data leads to either re-sync of client,
+	// or mix of headers and bodies. Both is caused because of need of re-sync
+	// between Bridge and API which will happen in different order than before.
+	// In the first case, UIDVALIDITY is also changed and causes the better
+	// outcome to "just" re-sync everything; in the later, UIDVALIDITY stays
+	// the same, causing the client to not re-sync but UIDs in the client does
+	// not match UIDs in Bridge.
+	// Because users might use tools to regularly clear caches, Bridge cache
+	// cannot be located in a standard cache folder.
+	return filepath.Join(l.userConfig, "cache")
 }
 
 func (l *Locations) getUpdatesPath() string {
-	return filepath.Join(l.userCache, "updates")
+	// Users might use tools to regularly clear caches, which would mean always
+	// removing updates, therefore Bridge updates have to be somewhere else.
+	return filepath.Join(l.userConfig, "updates")
 }
 
 // Clear removes everything except the lock and update files.

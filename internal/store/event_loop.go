@@ -268,8 +268,6 @@ func (loop *eventLoop) processNextEvent() (more bool, err error) { // nolint[fun
 		return false, errors.New("received empty event")
 	}
 
-	l = l.WithField("newEventID", event.EventID)
-
 	if err = loop.processEvent(event); err != nil {
 		return false, errors.Wrap(err, "failed to process event")
 	}

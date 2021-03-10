@@ -18,6 +18,7 @@
 // Dialog with adding new user
 
 import QtQuick 2.8
+import QtQuick.Controls 2.1
 import QtQuick.Layouts 1.3
 import ProtonUI 1.0
 
@@ -83,6 +84,9 @@ StackLayout {
             text : ""
             color: Style.main.textBlue
             visible: false
+            width: root.width
+            horizontalAlignment: Text.AlignHCenter
+            wrapMode: Text.WordWrap
         }
 
         // prevent any action below

@@ -45,7 +45,8 @@ func TestClearRemovesEverythingExceptLockAndUpdateFiles(t *testing.T) {
 	assert.NoError(t, l.Clear())
 
 	assert.FileExists(t, l.GetLockFile())
-	assert.NoDirExists(t, l.getSettingsPath())
+	assert.DirExists(t, l.getSettingsPath())
+	assert.NoFileExists(t, filepath.Join(l.getSettingsPath(), "prefs.json"))
 	assert.NoDirExists(t, l.getLogsPath())
 	assert.NoDirExists(t, l.getCachePath())
 	assert.DirExists(t, l.getUpdatesPath())
@@ -58,6 +59,7 @@ func TestClearUpdateFiles(t *testing.T) {
 
 	assert.FileExists(t, l.GetLockFile())
 	assert.DirExists(t, l.getSettingsPath())
+	assert.FileExists(t, filepath.Join(l.getSettingsPath(), "prefs.json"))
 	assert.DirExists(t, l.getLogsPath())
 	assert.DirExists(t, l.getCachePath())
 	assert.NoDirExists(t, l.getUpdatesPath())
@@ -75,6 +77,7 @@ func TestCleanLeavesStandardLocationsUntouched(t *testing.T) {
 
 	assert.FileExists(t, l.GetLockFile())
 	assert.DirExists(t, l.getSettingsPath())
+	assert.FileExists(t, filepath.Join(l.getSettingsPath(), "prefs.json"))
 	assert.DirExists(t, l.getLogsPath())
 	assert.FileExists(t, filepath.Join(l.getLogsPath(), "log1.txt"))
 	assert.FileExists(t, filepath.Join(l.getLogsPath(), "log2.txt"))
@@ -137,6 +140,9 @@ func newTestLocations(t *testing.T) *Locations {
 	settings, err := l.ProvideSettingsPath()
 	require.NoError(t, err)
 	require.DirExists(t, settings)
+
+	createFilesInDir(t, settings, "prefs.json")
+	require.FileExists(t, filepath.Join(settings, "prefs.json"))
 
 	logs, err := l.ProvideLogsPath()
 	require.NoError(t, err)

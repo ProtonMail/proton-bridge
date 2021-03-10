@@ -1,3 +1,24 @@
+## v1.6.6
+- 2021-03-04
+
+### New
+
+- Allow to choose which keychain is used by Bridge on Linux
+- Added automatic update CLI commands
+- Improved performance during slow connection
+- Added IMAP requests to the logs for easier debugging
+
+### Fixed
+
+- Fixed update notifications
+- Fixed GUI freeze while switching to early update channel
+- Fixed Bridge autostart
+- Improved signing of update packages
+- NoGUI bulid
+- Background of GUI welcome message
+- Incorrect total mailbox size displayed in Apple Mail
+
+
 ## v1.6.3
 - 2021-02-16
 
