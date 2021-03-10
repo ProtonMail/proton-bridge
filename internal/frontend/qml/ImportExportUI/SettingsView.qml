@@ -96,6 +96,8 @@ Item {
                 onClicked: bugreportWin.show()
             }
 
+            /*
+
             ButtonIconText {
                 id: autoUpdates
                 text: qsTr("Keep the application up to date", "label for toggle that activates and disables the automatic updates")
@@ -114,8 +116,6 @@ Item {
                     go.toggleAutoUpdate()
                 }
             }
-
-            /*
 
              ButtonIconText {
                  id: cacheClear

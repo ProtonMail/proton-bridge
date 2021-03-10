@@ -33,7 +33,7 @@ type GoQMLInterface struct {
 
 	_ func() `constructor:"init"`
 
-	_ bool   `property:"isAutoUpdate"`
+	//_ bool   `property:"isAutoUpdate"`
 	_ string `property:"currentAddress"`
 	_ string `property:"goos"`
 	_ string `property:"credits"`
@@ -62,8 +62,8 @@ type GoQMLInterface struct {
 	_ func() `signal:"notifyManualUpdateRestartNeeded"`
 	_ func() `signal:"notifyManualUpdateError"`
 	_ func() `signal:"notifyForceUpdate"`
-	_ func() `signal:"notifySilentUpdateRestartNeeded"`
-	_ func() `signal:"notifySilentUpdateError"`
+	//_ func() `signal:"notifySilentUpdateRestartNeeded"`
+	//_ func() `signal:"notifySilentUpdateError"`
 	_ func() `slot:"checkForUpdates"`
 	_ func() `slot:"checkAndOpenReleaseNotes"`
 	_ func() `signal:"openReleaseNotesExternally"`
@@ -93,7 +93,7 @@ type GoQMLInterface struct {
 
 	_ func() `signal:"showWindow"`
 
-	_ func() `slot:"toggleAutoUpdate"`
+	//_ func() `slot:"toggleAutoUpdate"`
 	_ func() `slot:"quit"`
 	_ func() `slot:"loadAccounts"`
 	_ func() `slot:"openLogs"`
@@ -162,7 +162,7 @@ func (s *GoQMLInterface) init() {}
 func (s *GoQMLInterface) SetFrontend(f *FrontendQt) {
 	s.ConnectQuit(f.App.Quit)
 
-	s.ConnectToggleAutoUpdate(f.toggleAutoUpdate)
+	//s.ConnectToggleAutoUpdate(f.toggleAutoUpdate)
 	s.ConnectLoadAccounts(f.Accounts.LoadAccounts)
 	s.ConnectOpenLogs(f.openLogs)
 	s.ConnectOpenDownloadLink(f.openDownloadLink)
@@ -207,4 +207,6 @@ func (s *GoQMLInterface) SetFrontend(f *FrontendQt) {
 	s.ConnectCheckPathStatus(CheckPathStatus)
 
 	s.ConnectEmitEvent(f.emitEvent)
+
+	s.ConnectStartManualUpdate(f.startManualUpdate)
 }

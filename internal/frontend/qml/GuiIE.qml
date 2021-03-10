@@ -215,7 +215,7 @@ Item {
             }
             go.updateState = "updateRestart"
             winMain.dialogUpdate.finished(false)
-
+        
             // after manual update - just retart immidiatly
             go.setToRestart()
             Qt.quit()
@@ -236,13 +236,13 @@ Item {
             }
         }
 
-        onNotifySilentUpdateRestartNeeded: {
-            go.updateState = "updateRestart"
-        }
-
-        onNotifySilentUpdateError: {
-            go.updateState = "updateError"
-        }
+        //onNotifySilentUpdateRestartNeeded: {
+        //    go.updateState = "updateRestart"
+        //}
+        //
+        //onNotifySilentUpdateError: {
+        //    go.updateState = "updateError"
+        //}
 
         onNotifyLogout : {
             go.notifyBubble(0, qsTr("Account %1 has been disconnected. Please log in to continue to use the Import-Export app with this account.").arg(accname) )

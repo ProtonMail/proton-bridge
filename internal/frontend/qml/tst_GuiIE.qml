@@ -23,13 +23,13 @@ import QtQuick.Window 2.2
 
 Window {
     id      : testroot
-    width   : 100
+    width   : 150
     height  : 600
     flags   : Qt.Window | Qt.Dialog | Qt.FramelessWindowHint
     visible : true
     title   : "GUI test Window"
     color   : "transparent"
-    x       : testgui.winMain.x - 120
+    x       : testgui.winMain.x - 170
     y       : testgui.winMain.y
 
     property bool newVersion : true
@@ -110,8 +110,8 @@ Window {
         ListElement { title: "NotifyManualUpdateRestart" }
         ListElement { title: "NotifyManualUpdateError" }
         ListElement { title: "ForceUpdate" }
-        ListElement { title: "NotifySilentUpdateRestartNeeded" }
-        ListElement { title: "NotifySilentUpdateError" }
+        //ListElement { title: "NotifySilentUpdateRestartNeeded" }
+        //ListElement { title: "NotifySilentUpdateError" }
         ListElement { title : "ImportStructure"     }
         ListElement { title : "DraftImpFailed"      }
         ListElement { title : "NoInterImp"          }
@@ -183,12 +183,12 @@ Window {
                     case "ForceUpdate" :
                     go.notifyForceUpdate()
                     break;
-                    case "NotifySilentUpdateRestartNeeded" :
-                    go.notifySilentUpdateRestartNeeded()
-                    break;
-                    case "NotifySilentUpdateError" :
-                    go.notifySilentUpdateError()
-                    break;
+                    //case "NotifySilentUpdateRestartNeeded" :
+                    //go.notifySilentUpdateRestartNeeded()
+                    //break;
+                    //case "NotifySilentUpdateError" :
+                    //go.notifySilentUpdateError()
+                    //break;
                     case "ImportStructure" :
                     testgui.winMain.dialogImport.address = "cuto@pm.com"
                     testgui.winMain.dialogImport.show()
@@ -836,7 +836,7 @@ Window {
         id: go
 
         property int isAutoStart : 1
-        property bool isAutoUpdate : false
+        //property bool isAutoUpdate : false
         property bool isFirstStart : false
         property string currentAddress : "none"
         //property string goos : "windows"
@@ -858,15 +858,15 @@ Window {
 
         property string updateState
         property string updateVersion : "q0.1.0"
-        property bool updateCanInstall: true
+        property bool updateCanInstall: false
         property string updateLandingPage : "https://protonmail.com/import-export/download/"
         property string updateReleaseNotesLink  : "https://protonmail.com/download/ie/release_notes.html"
         signal notifyManualUpdate()
         signal notifyManualUpdateRestartNeeded()
         signal notifyManualUpdateError()
         signal notifyForceUpdate()
-        signal notifySilentUpdateRestartNeeded()
-        signal notifySilentUpdateError()
+        //signal notifySilentUpdateRestartNeeded()
+        //signal notifySilentUpdateError()
         function checkForUpdates() {
             console.log("checkForUpdates")
             go.notifyVersionIsTheLatest()
@@ -1355,10 +1355,10 @@ Window {
             return !fname.includes("fail")
         }
 
-        onToggleAutoUpdate: {
-            workAndClose()
-            isAutoUpdate = (isAutoUpdate!=false) ? false : true
-            console.log (" Test: onToggleAutoUpdate "+isAutoUpdate)
-        }
+        //onToggleAutoUpdate: {
+        //    workAndClose()
+        //    isAutoUpdate = (isAutoUpdate!=false) ? false : true
+        //    console.log (" Test: onToggleAutoUpdate "+isAutoUpdate)
+        //}
     }
 }

@@ -135,11 +135,11 @@ func (f *FrontendQt) SetVersion(version updater.VersionInfo) {
 }
 
 func (f *FrontendQt) NotifySilentUpdateInstalled() {
-	f.Qml.NotifySilentUpdateRestartNeeded()
+	//f.Qml.NotifySilentUpdateRestartNeeded()
 }
 
 func (f *FrontendQt) NotifySilentUpdateError(err error) {
-	f.Qml.NotifySilentUpdateError()
+	//f.Qml.NotifySilentUpdateError()
 }
 
 func (f *FrontendQt) watchEvents() {
@@ -245,11 +245,11 @@ func (f *FrontendQt) QtExecute(Procedure func(*FrontendQt) error) error {
 	f.Qml.SetCredits(importexport.Credits)
 	f.Qml.SetFullversion(f.buildVersion)
 
-	if f.settings.GetBool(settings.AutoUpdateKey) {
-		f.Qml.SetIsAutoUpdate(true)
-	} else {
-		f.Qml.SetIsAutoUpdate(false)
-	}
+	//if f.settings.GetBool(settings.AutoUpdateKey) {
+	//	f.Qml.SetIsAutoUpdate(true)
+	//} else {
+	//	f.Qml.SetIsAutoUpdate(false)
+	//}
 
 	go func() {
 		defer f.panicHandler.HandlePanic()
@@ -339,17 +339,17 @@ func (f *FrontendQt) sendBug(description, emailClient, address string) bool {
 	return true
 }
 
-func (f *FrontendQt) toggleAutoUpdate() {
-	defer f.Qml.ProcessFinished()
-
-	if f.settings.GetBool(settings.AutoUpdateKey) {
-		f.settings.SetBool(settings.AutoUpdateKey, false)
-		f.Qml.SetIsAutoUpdate(false)
-	} else {
-		f.settings.SetBool(settings.AutoUpdateKey, true)
-		f.Qml.SetIsAutoUpdate(true)
-	}
-}
+//func (f *FrontendQt) toggleAutoUpdate() {
+//	defer f.Qml.ProcessFinished()
+//
+//	if f.settings.GetBool(settings.AutoUpdateKey) {
+//		f.settings.SetBool(settings.AutoUpdateKey, false)
+//		f.Qml.SetIsAutoUpdate(false)
+//	} else {
+//		f.settings.SetBool(settings.AutoUpdateKey, true)
+//		f.Qml.SetIsAutoUpdate(true)
+//	}
+//}
 
 // checkInternet is almost idetical to bridge
 func (f *FrontendQt) checkInternet() {

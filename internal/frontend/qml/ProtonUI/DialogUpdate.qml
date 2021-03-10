@@ -107,7 +107,7 @@ Dialog {
                 text: qsTr("Automatically update in the future", "Checkbox label for using autoupdates later on")
                 checked: go.isAutoUpdate
                 onToggled: go.toggleAutoUpdate()
-                visible: !root.forceUpdate
+                visible: !root.forceUpdate && (go.isAutoUpdate != undefined)
             }
 
             Row {
