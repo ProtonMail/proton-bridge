@@ -45,7 +45,7 @@ func (ctl *Controller) AddUserLabel(username string, label *pmapi.Label) error {
 	label.Exclusive = getLabelExclusive(label.Name)
 	label.Name = getLabelNameWithoutPrefix(label.Name)
 	label.Color = pmapi.LabelColors[0]
-	if _, err := client.CreateLabel(context.TODO(), label); err != nil {
+	if _, err := client.CreateLabel(context.Background(), label); err != nil {
 		return errors.Wrap(err, "failed to create label")
 	}
 	return nil
@@ -73,7 +73,7 @@ func (ctl *Controller) getLabelID(username, labelName string) (string, error) {
 		return "", fmt.Errorf("user %s does not exist", username)
 	}
 
-	labels, err := client.ListLabels(context.TODO())
+	labels, err := client.ListLabels(context.Background())
 	if err != nil {
 		return "", errors.Wrap(err, "failed to list labels")
 	}
@@ -98,9 +98,6 @@ func getLabelNameWithoutPrefix(name string) string {
 	return name
 }
 
-func getLabelExclusive(name string) int {
-	if strings.HasPrefix(name, "Folders/") {
-		return 1
-	}
-	return 0
+func getLabelExclusive(name string) pmapi.Boolean {
+	return pmapi.Boolean(strings.HasPrefix(name, "Folders/"))
 }

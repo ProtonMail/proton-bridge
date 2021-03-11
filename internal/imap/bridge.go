@@ -38,11 +38,10 @@ type bridgeUser interface {
 	IsCombinedAddressMode() bool
 	GetAddressID(address string) (string, error)
 	GetPrimaryAddress() string
-	UpdateUser() error
 	Logout() error
 	CloseConnection(address string)
 	GetStore() storeUserProvider
-	GetTemporaryPMAPIClient() pmapi.Client
+	GetClient() pmapi.Client
 }
 
 type bridgeWrap struct {

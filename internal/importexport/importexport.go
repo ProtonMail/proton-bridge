@@ -22,6 +22,7 @@ import (
 	"bytes"
 	"context"
 
+	"github.com/ProtonMail/proton-bridge/internal/events"
 	"github.com/ProtonMail/proton-bridge/internal/transfer"
 	"github.com/ProtonMail/proton-bridge/internal/users"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
@@ -40,6 +41,7 @@ type ImportExport struct {
 	locations     Locator
 	cache         Cacher
 	panicHandler  users.PanicHandler
+	eventListener listener.Listener
 	clientManager pmapi.Manager
 }
 
@@ -59,13 +61,14 @@ func New(
 		locations:     locations,
 		cache:         cache,
 		panicHandler:  panicHandler,
+		eventListener: eventListener,
 		clientManager: clientManager,
 	}
 }
 
 // ReportBug reports a new bug from the user.
 func (ie *ImportExport) ReportBug(osType, osVersion, description, accountName, address, emailClient string) error {
-	return ie.clientManager.ReportBug(context.TODO(), pmapi.ReportBugReq{
+	return ie.clientManager.ReportBug(context.Background(), pmapi.ReportBugReq{
 		OS:          osType,
 		OSVersion:   osVersion,
 		Browser:     emailClient,
@@ -89,7 +92,7 @@ func (ie *ImportExport) ReportFile(osType, osVersion, accountName, address strin
 
 	report.AddAttachment("log", "report.log", bytes.NewReader(logdata))
 
-	return ie.clientManager.ReportBug(context.TODO(), report)
+	return ie.clientManager.ReportBug(context.Background(), report)
 }
 
 // GetLocalImporter returns transferrer from local EML or MBOX structure to ProtonMail account.
@@ -162,5 +165,23 @@ func (ie *ImportExport) getPMAPIProvider(username, address string) (*transfer.PM
 		log.WithError(err).Info("Address does not exist, using all addresses")
 	}
 
-	return transfer.NewPMAPIProvider(user.GetClient(), user.ID(), addressID)
+	provider, err := transfer.NewPMAPIProvider(user.GetClient(), user.ID(), addressID)
+	if err != nil {
+		return nil, err
+	}
+
+	go func() {
+		internetOffCh := ie.eventListener.ProvideChannel(events.InternetOffEvent)
+		internetOnCh := ie.eventListener.ProvideChannel(events.InternetOnEvent)
+		for {
+			select {
+			case <-internetOffCh:
+				provider.SetConnectionDown()
+			case <-internetOnCh:
+				provider.SetConnectionUp()
+			}
+		}
+	}()
+
+	return provider, nil
 }

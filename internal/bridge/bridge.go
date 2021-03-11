@@ -65,8 +65,7 @@ func New(
 	// Allow DoH before starting the app if the user has previously set this setting.
 	// This allows us to start even if protonmail is blocked.
 	if s.GetBool(settings.AllowProxyKey) {
-		// FIXME(conman): Support enable/disable of DoH.
-		// clientManager.AllowProxy()
+		clientManager.AllowProxy()
 	}
 
 	storeFactory := newStoreFactory(cache, sentryReporter, panicHandler, eventListener)
@@ -120,7 +119,7 @@ func (b *Bridge) heartbeat() {
 
 // ReportBug reports a new bug from the user.
 func (b *Bridge) ReportBug(osType, osVersion, description, accountName, address, emailClient string) error {
-	return b.clientManager.ReportBug(context.TODO(), pmapi.ReportBugReq{
+	return b.clientManager.ReportBug(context.Background(), pmapi.ReportBugReq{
 		OS:          osType,
 		OSVersion:   osVersion,
 		Browser:     emailClient,

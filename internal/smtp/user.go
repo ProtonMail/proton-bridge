@@ -81,7 +81,7 @@ func newSMTPUser(
 
 // This method should eventually no longer be necessary. Everything should go via store.
 func (su *smtpUser) client() pmapi.Client {
-	return su.user.GetTemporaryPMAPIClient()
+	return su.user.GetClient()
 }
 
 // Send sends an email from the given address to the given addresses with the given body.

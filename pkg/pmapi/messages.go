@@ -518,7 +518,20 @@ func (c *client) ListMessages(ctx context.Context, filter *MessagesFilter) ([]*M
 
 // CountMessages counts messages by label.
 func (c *client) CountMessages(ctx context.Context, addressID string) (counts []*MessagesCount, err error) {
-	panic("TODO")
+	var res struct {
+		Counts []*MessagesCount
+	}
+
+	if _, err := c.do(ctx, func(r *resty.Request) (*resty.Response, error) {
+		if addressID != "" {
+			r = r.SetQueryParam("AddressID", addressID)
+		}
+		return r.SetResult(&res).Get("/mail/v4/messages/count")
+	}); err != nil {
+		return nil, err
+	}
+
+	return res.Counts, nil
 }
 
 // GetMessage retrieves a message.
@@ -640,6 +653,10 @@ func (c *client) UnlabelMessages(ctx context.Context, messageIDs []string, label
 }
 
 func (c *client) EmptyFolder(ctx context.Context, labelID, addressID string) error {
+	if labelID == "" {
+		return errors.New("labelID parameter is empty string")
+	}
+
 	if _, err := c.do(ctx, func(r *resty.Request) (*resty.Response, error) {
 		if addressID != "" {
 			r.SetQueryParam("AddressID", addressID)

@@ -1,3 +1,20 @@
+// Copyright (c) 2021 Proton Technologies AG
+//
+// This file is part of ProtonMail Bridge.
+//
+// ProtonMail Bridge is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// ProtonMail Bridge is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
+
 package pmapi
 
 import (
@@ -11,8 +28,6 @@ import (
 func (c *client) Unlock(ctx context.Context, passphrase []byte) (err error) {
 	c.keyRingLock.Lock()
 	defer c.keyRingLock.Unlock()
-
-	// FIXME(conman): Should this be done as part of NewClient somehow?
 
 	return c.unlock(ctx, passphrase)
 }
@@ -65,6 +80,15 @@ func (c *client) clearKeys() {
 }
 
 func (c *client) IsUnlocked() bool {
-	// FIXME(conman): Better way to check? we don't currently check address keys.
-	return c.userKeyRing != nil
+	if c.userKeyRing == nil {
+		return false
+	}
+
+	for _, address := range c.addresses {
+		if address.HasKeys != MissingKeys && c.addrKeyRing[address.ID] == nil {
+			return false
+		}
+	}
+
+	return true
 }

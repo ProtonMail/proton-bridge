@@ -129,11 +129,14 @@ func (c *client) GetContactEmailByEmail(ctx context.Context, email string, page 
 	}
 
 	if _, err := c.do(ctx, func(r *resty.Request) (*resty.Response, error) {
-		return r.SetQueryParams(map[string]string{
-			"Email":    email,
-			"Page":     strconv.Itoa(page),
-			"PageSize": strconv.Itoa(pageSize),
-		}).SetResult(&res).Get("/contacts/v4")
+		r = r.SetQueryParams(map[string]string{
+			"Email": email,
+			"Page":  strconv.Itoa(page),
+		})
+		if pageSize != 0 {
+			r.SetQueryParam("PageSize", strconv.Itoa(pageSize))
+		}
+		return r.SetResult(&res).Get("/contacts/v4")
 	}); err != nil {
 		return nil, err
 	}

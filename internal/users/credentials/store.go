@@ -233,7 +233,7 @@ func (s *Store) get(userID string) (creds *Credentials, err error) {
 
 	_, secret, err := s.secrets.Get(userID)
 	if err != nil {
-		log.WithError(err).Error("Could not get credentials from native keychain")
+		log.WithError(err).Warn("Could not get credentials from native keychain")
 		return
 	}
 

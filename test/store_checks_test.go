@@ -256,11 +256,10 @@ func messagesContainsMessageRow(account *accounts.TestAccount, allMessages []int
 				}
 			case "read":
 				var unread pmapi.Boolean
-
 				if cell.Value == "true" { //nolint[goconst]
-					unread = pmapi.False
+					unread = false
 				} else {
-					unread = pmapi.True
+					unread = true
 				}
 
 				if message.Unread != unread {
@@ -299,7 +298,7 @@ func areAddressesSame(first, second string) bool {
 
 func messagesInMailboxForUserIsMarkedAsRead(bddMessageIDs, mailboxName, bddUserID string) error {
 	return checkMessages(bddUserID, mailboxName, bddMessageIDs, func(message *store.Message) error {
-		if message.Message().Unread == 0 {
+		if !message.Message().Unread {
 			return nil
 		}
 		return fmt.Errorf("message %s \"%s\" is expected to be read but is not", message.ID(), message.Message().Subject)
@@ -308,7 +307,7 @@ func messagesInMailboxForUserIsMarkedAsRead(bddMessageIDs, mailboxName, bddUserI
 
 func messagesInMailboxForUserIsMarkedAsUnread(bddMessageIDs, mailboxName, bddUserID string) error {
 	return checkMessages(bddUserID, mailboxName, bddMessageIDs, func(message *store.Message) error {
-		if message.Message().Unread == 1 {
+		if message.Message().Unread {
 			return nil
 		}
 		return fmt.Errorf("message %s \"%s\" is expected to not be read but is", message.ID(), message.Message().Subject)

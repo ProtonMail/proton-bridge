@@ -5,11 +5,10 @@
 package mocks
 
 import (
-	reflect "reflect"
-
 	imap "github.com/emersion/go-imap"
 	sasl "github.com/emersion/go-sasl"
 	gomock "github.com/golang/mock/gomock"
+	reflect "reflect"
 )
 
 // MockPanicHandler is a mock of PanicHandler interface

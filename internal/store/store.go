@@ -101,6 +101,18 @@ var (
 	ErrNoSuchSeqNum = errors.New("no such sequence number") //nolint[gochecknoglobals]
 )
 
+// exposeContextForIMAP should be replaced once with context passed
+// as an argument from IMAP package and IMAP library should cancel
+// context when IMAP client cancels the request.
+func exposeContextForIMAP() context.Context {
+	return context.TODO()
+}
+
+// exposeContextForSMTP is the same as above but for SMTP.
+func exposeContextForSMTP() context.Context {
+	return context.TODO()
+}
+
 // Store is local user storage, which handles the synchronization between IMAP and PM API.
 type Store struct {
 	sentryReporter *sentry.Reporter
@@ -278,7 +290,7 @@ func (store *Store) client() pmapi.Client {
 // initCounts initialises the counts for each label. It tries to use the API first to fetch the labels but if
 // the API is unavailable for whatever reason it tries to fetch the labels locally.
 func (store *Store) initCounts() (labels []*pmapi.Label, err error) {
-	if labels, err = store.client().ListLabels(context.TODO()); err != nil {
+	if labels, err = store.client().ListLabels(context.Background()); err != nil {
 		store.log.WithError(err).Warn("Could not list API labels. Trying with local labels.")
 		if labels, err = store.getLabelsFromLocalStorage(); err != nil {
 			store.log.WithError(err).Error("Cannot list local labels")

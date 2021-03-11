@@ -153,10 +153,10 @@ func setupPMAPIRules(rules transferRules) {
 func setupPMAPIClientExpectationForExport(m *mocks) {
 	m.pmapiClient.EXPECT().KeyRingForAddressID(gomock.Any()).Return(m.keyring, nil).AnyTimes()
 	m.pmapiClient.EXPECT().ListLabels(gomock.Any()).Return([]*pmapi.Label{
-		{ID: "label1", Name: "Foo", Color: "blue", Exclusive: 0, Order: 2},
-		{ID: "label2", Name: "Bar", Color: "green", Exclusive: 0, Order: 1},
-		{ID: "folder1", Name: "One", Color: "red", Exclusive: 1, Order: 1},
-		{ID: "folder2", Name: "Two", Color: "orange", Exclusive: 1, Order: 2},
+		{ID: "label1", Name: "Foo", Color: "blue", Exclusive: false, Order: 2},
+		{ID: "label2", Name: "Bar", Color: "green", Exclusive: false, Order: 1},
+		{ID: "folder1", Name: "One", Color: "red", Exclusive: true, Order: 1},
+		{ID: "folder2", Name: "Two", Color: "orange", Exclusive: true, Order: 2},
 	}, nil).AnyTimes()
 	m.pmapiClient.EXPECT().CountMessages(gomock.Any(), gomock.Any()).Return([]*pmapi.MessagesCount{
 		{LabelID: "label1", Total: 10},

@@ -97,7 +97,7 @@ func fetchWorker(fetchReqCh <-chan fetchReq, fetchResCh chan<- fetchRes, attachW
 }
 
 func fetchMessage(req fetchReq, attachWorkers int) (*pmapi.Message, [][]byte, error) {
-	msg, err := req.api.GetMessage(req.messageID)
+	msg, err := req.api.GetMessage(req.ctx, req.messageID)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -109,7 +109,7 @@ func fetchMessage(req fetchReq, attachWorkers int) (*pmapi.Message, [][]byte, er
 	}
 
 	process := func(value interface{}) (interface{}, error) {
-		rc, err := req.api.GetAttachment(value.(string))
+		rc, err := req.api.GetAttachment(req.ctx, value.(string))
 		if err != nil {
 			return nil, err
 		}

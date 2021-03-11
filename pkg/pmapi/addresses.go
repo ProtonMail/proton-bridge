@@ -32,12 +32,6 @@ const (
 	EnabledAddress
 )
 
-// Address receive values.
-const (
-	CannotReceive = iota
-	CanReceive
-)
-
 // Address HasKeys values.
 const (
 	MissingKeys = iota
@@ -66,7 +60,7 @@ type Address struct {
 	DomainID    string
 	Email       string
 	Send        int
-	Receive     int
+	Receive     Boolean
 	Status      int
 	Order       int `json:",omitempty"`
 	Type        int
@@ -103,7 +97,7 @@ func (l AddressList) AllEmails() (addresses []string) {
 // ActiveEmails returns only active emails.
 func (l AddressList) ActiveEmails() (addresses []string) {
 	for _, a := range l {
-		if a.Receive == CanReceive {
+		if a.Receive {
 			addresses = append(addresses, a.Email)
 		}
 	}
@@ -175,8 +169,19 @@ func (c *client) GetAddresses(ctx context.Context) (addresses AddressList, err e
 	return res.Addresses, nil
 }
 
-func (c *client) ReorderAddresses(ctx context.Context, addressIDs []string) (err error) {
-	panic("TODO")
+func (c *client) ReorderAddresses(ctx context.Context, addressIDs []string) error {
+	if _, err := c.do(ctx, func(r *resty.Request) (*resty.Response, error) {
+		return r.SetBody(&struct {
+			AddressIDs []string
+		}{
+			AddressIDs: addressIDs,
+		}).Put("/addresses/order")
+	}); err != nil {
+		return err
+	}
+
+	_, err := c.UpdateUser(ctx)
+	return err
 }
 
 // Addresses returns the addresses stored in the client object itself rather than fetching from the API.
@@ -185,24 +190,22 @@ func (c *client) Addresses() AddressList {
 }
 
 // unlockAddresses unlocks all keys for all addresses of current user.
-func (c *client) unlockAddress(passphrase []byte, address *Address) (err error) {
+func (c *client) unlockAddress(passphrase []byte, address *Address) error {
 	if address == nil {
 		return errors.New("address data is missing")
 	}
 
 	if address.HasKeys == MissingKeys {
-		return
+		return nil
 	}
 
-	var kr *crypto.KeyRing
-
-	if kr, err = address.Keys.UnlockAll(passphrase, c.userKeyRing); err != nil {
-		return
+	kr, err := address.Keys.UnlockAll(passphrase, c.userKeyRing)
+	if err != nil {
+		return err
 	}
 
 	c.addrKeyRing[address.ID] = kr
-
-	return
+	return nil
 }
 
 func (c *client) KeyRingForAddressID(addrID string) (*crypto.KeyRing, error) {

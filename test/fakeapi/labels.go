@@ -27,7 +27,7 @@ import (
 func (api *FakePMAPI) isLabelFolder(labelID string) bool {
 	for _, label := range api.labels {
 		if label.ID == labelID {
-			return label.Exclusive == 1
+			return bool(label.Exclusive)
 		}
 	}
 	return labelID == pmapi.InboxLabel || labelID == pmapi.ArchiveLabel || labelID == pmapi.SentLabel
@@ -50,7 +50,7 @@ func (api *FakePMAPI) CreateLabel(_ context.Context, label *pmapi.Label) (*pmapi
 		}
 	}
 	prefix := "label"
-	if label.Exclusive == 1 {
+	if label.Exclusive {
 		prefix = "folder"
 	}
 	label.ID = api.controller.labelIDGenerator.next(prefix)

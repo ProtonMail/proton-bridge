@@ -48,9 +48,11 @@ func (t *fakeTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to get body")
 		}
-		body, err = ioutil.ReadAll(bodyReader)
-		if err != nil {
-			return nil, errors.Wrap(err, "failed to read body")
+		if bodyReader != nil {
+			body, err = ioutil.ReadAll(bodyReader)
+			if err != nil {
+				return nil, errors.Wrap(err, "failed to read body")
+			}
 		}
 	}
 	t.ctl.recordCall(req.Method, req.URL.Path, body)

@@ -34,7 +34,7 @@ type FakePMAPI struct {
 	controller       *Controller
 	eventIDGenerator idGenerator
 
-	authHandlers []pmapi.AuthHandler
+	authHandlers []pmapi.AuthRefreshHandler
 	user         *pmapi.User
 	userKeyRing  *crypto.KeyRing
 	addresses    *pmapi.AddressList
@@ -45,25 +45,13 @@ type FakePMAPI struct {
 
 	// uid represents the API UID. It is the unique session ID.
 	uid string
-	acc string // FIXME(conman): Check this is correct!
-	ref string // FIXME(conman): Check this is correct!
+	acc string
+	ref string
 
 	log *logrus.Entry
 }
 
-func newFakePMAPI(controller *Controller, userID, uid, acc, ref string) *FakePMAPI {
-	return &FakePMAPI{
-		controller:  controller,
-		log:         logrus.WithField("pkg", "fakeapi").WithField("uid", uid),
-		uid:         uid,
-		acc:         acc, // FIXME(conman): This should be checked!
-		ref:         ref, // FIXME(conman): This should be checked!
-		userID:      userID,
-		addrKeyRing: make(map[string]*crypto.KeyRing),
-	}
-}
-
-func NewFakePMAPI(controller *Controller, username, userID, uid, acc, ref string) (*FakePMAPI, error) {
+func newFakePMAPI(controller *Controller, username, userID, uid, acc, ref string) (*FakePMAPI, error) {
 	user, ok := controller.usersByUsername[username]
 	if !ok {
 		return nil, fmt.Errorf("user %s does not exist", username)
@@ -84,19 +72,28 @@ func NewFakePMAPI(controller *Controller, username, userID, uid, acc, ref string
 		messages = []*pmapi.Message{}
 	}
 
-	fakePMAPI := newFakePMAPI(controller, userID, uid, acc, ref)
+	fakePMAPI := &FakePMAPI{
+		username:   username,
+		userID:     userID,
+		controller: controller,
 
-	fakePMAPI.log = fakePMAPI.log.WithField("username", username)
-	fakePMAPI.username = username
-	fakePMAPI.user = user.user
-	fakePMAPI.addresses = addresses
-	fakePMAPI.labels = labels
-	fakePMAPI.messages = messages
+		user:      user.user,
+		addresses: addresses,
+		labels:    labels,
+		messages:  messages,
+
+		uid:         uid,
+		acc:         acc,
+		ref:         ref,
+		addrKeyRing: make(map[string]*crypto.KeyRing),
+
+		log: logrus.WithField("pkg", "fakeapi").WithField("uid", uid).WithField("username", username),
+	}
 
 	fakePMAPI.addEvent(&pmapi.Event{
 		EventID: fakePMAPI.eventIDGenerator.last("event"),
 		Refresh: 0,
-		More:    0,
+		More:    false,
 	})
 
 	return fakePMAPI, nil
@@ -112,19 +109,35 @@ func (api *FakePMAPI) checkAndRecordCall(method method, path string, request int
 
 	api.log.WithField(string(method), path).Trace("CALL")
 
-	if err := api.controller.recordCall(method, path, request); err != nil {
+	if err := api.controller.checkAndRecordCall(method, path, request); err != nil {
 		return err
 	}
 
-	// FIXME(conman): This needs to match conman behaviour. Should try auth refresh somehow.
 	if !api.controller.checkAccessToken(api.uid, api.acc) {
-		return pmapi.ErrUnauthorized
+		if err := api.authRefresh(); err != nil {
+			return err
+		}
 	}
 
 	if path != "/auth/2fa" && !api.controller.checkScope(api.uid) {
 		return errors.New("Access token does not have sufficient scope") //nolint[stylecheck]
 	}
 
+	return nil
+}
+
+func (api *FakePMAPI) authRefresh() error {
+	if err := api.controller.checkAndRecordCall(POST, "/auth/refresh", []string{api.uid, api.ref}); err != nil {
+		return err
+	}
+
+	session, err := api.controller.refreshSessionIfAuthorized(api.uid, api.ref)
+	if err != nil {
+		return err
+	}
+
+	api.ref = session.ref
+	api.acc = session.acc
 	return nil
 }
 
@@ -157,13 +170,4 @@ func (api *FakePMAPI) setUser(username string) error {
 	api.messages = messages
 
 	return nil
-}
-
-func (api *FakePMAPI) unsetUser() {
-	api.uid = ""
-	api.acc = "" // FIXME(conman): This should be checked!
-	api.user = nil
-	api.labels = nil
-	api.messages = nil
-	api.events = nil
 }

@@ -24,7 +24,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	r "github.com/stretchr/testify/require"
 )
 
 var (
@@ -106,19 +106,16 @@ var testGetContactByID = Contact{
 }
 
 func TestContact_GetContactById(t *testing.T) {
-	s, c := newTestClient(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		Ok(t, checkMethodAndPath(r, "GET", "/contacts/v4/s_SN9y1q0jczjYCH4zhvfOdHv1QNovKhnJ9bpDcTE0u7WCr2Z-NV9uubHXvOuRozW-HRVam6bQupVYRMC3BCqg=="))
+	s, c := newTestClient(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		r.NoError(t, checkMethodAndPath(req, "GET", "/contacts/v4/s_SN9y1q0jczjYCH4zhvfOdHv1QNovKhnJ9bpDcTE0u7WCr2Z-NV9uubHXvOuRozW-HRVam6bQupVYRMC3BCqg=="))
 
 		w.Header().Set("Content-Type", "application/json")
-
 		fmt.Fprint(w, testGetContactByIDResponseBody)
 	}))
 	defer s.Close()
 
-	contact, err := c.GetContactByID(context.TODO(), "s_SN9y1q0jczjYCH4zhvfOdHv1QNovKhnJ9bpDcTE0u7WCr2Z-NV9uubHXvOuRozW-HRVam6bQupVYRMC3BCqg==")
-	if err != nil {
-		t.Fatal("Expected no error while getting contacts, got:", err)
-	}
+	contact, err := c.GetContactByID(context.Background(), "s_SN9y1q0jczjYCH4zhvfOdHv1QNovKhnJ9bpDcTE0u7WCr2Z-NV9uubHXvOuRozW-HRVam6bQupVYRMC3BCqg==")
+	r.NoError(t, err)
 
 	if !reflect.DeepEqual(contact, testGetContactByID) {
 		t.Fatalf("Invalid got contact: expected %+v, got %+v", testGetContactByID, contact)
@@ -160,24 +157,24 @@ var testCardsCleartext = []Card{
 }
 
 func TestClient_Encrypt(t *testing.T) {
-	c := newClient(newManager(DefaultConfig), "")
+	c := newClient(newManager(Config{}), "")
 	c.userKeyRing = testPrivateKeyRing
 
 	cardEncrypted, err := c.EncryptAndSignCards(testCardsCleartext)
-	assert.Nil(t, err)
+	r.Nil(t, err)
 
 	// Result is always different, so the best way is to test it by decrypting again.
 	// Another test for decrypting will help us to be sure it's working.
 	cardCleartext, err := c.DecryptAndVerifyCards(cardEncrypted)
-	assert.Nil(t, err)
-	assert.Equal(t, testCardsCleartext[0].Data, cardCleartext[0].Data)
+	r.Nil(t, err)
+	r.Equal(t, testCardsCleartext[0].Data, cardCleartext[0].Data)
 }
 
 func TestClient_Decrypt(t *testing.T) {
-	c := newClient(newManager(DefaultConfig), "")
+	c := newClient(newManager(Config{}), "")
 	c.userKeyRing = testPrivateKeyRing
 
 	cardCleartext, err := c.DecryptAndVerifyCards(testCardsEncrypted)
-	assert.Nil(t, err)
-	assert.Equal(t, testCardsCleartext[0].Data, cardCleartext[0].Data)
+	r.Nil(t, err)
+	r.Equal(t, testCardsCleartext[0].Data, cardCleartext[0].Data)
 }

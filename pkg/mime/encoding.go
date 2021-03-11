@@ -191,7 +191,7 @@ func DecodeHeader(raw string) (decoded string, err error) {
 	return
 }
 
-// EncodeHeader using quoted printable and utf8
+// EncodeHeader using quoted printable and utf8.
 func EncodeHeader(s string) string {
 	return mime.QEncoding.Encode("utf-8", s)
 }

@@ -35,7 +35,7 @@ const syncIDsToBeDeletedKey = "ids_to_be_deleted"
 
 // updateCountsFromServer will download and set the counts.
 func (store *Store) updateCountsFromServer() error {
-	counts, err := store.client().CountMessages(context.TODO(), "")
+	counts, err := store.client().CountMessages(context.Background(), "")
 	if err != nil {
 		return errors.Wrap(err, "cannot update counts from server")
 	}

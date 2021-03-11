@@ -37,9 +37,8 @@ type ImportMsgReq struct {
 type ImportMsgReqs []*ImportMsgReq
 
 func (reqs ImportMsgReqs) buildMultipartFormData() ([]*resty.MultipartField, error) {
-	var fields []*resty.MultipartField
-
-	metadata := make(map[string]*ImportMetadata)
+	metadata := make(map[string]*ImportMetadata, len(reqs))
+	fields := make([]*resty.MultipartField, 0, len(reqs))
 
 	for i, req := range reqs {
 		name := strconv.Itoa(i)
@@ -68,7 +67,6 @@ func (reqs ImportMsgReqs) buildMultipartFormData() ([]*resty.MultipartField, err
 	return fields, nil
 }
 
-// TODO: Add other metadata.
 type ImportMetadata struct {
 	AddressID    string
 	Unread       Boolean  // 0: read, 1: unread.
@@ -114,7 +112,7 @@ func (c *client) Import(ctx context.Context, reqs ImportMsgReqs) ([]*ImportMsgRe
 		return nil, err
 	}
 
-	var resps []*ImportMsgRes
+	resps := make([]*ImportMsgRes, 0, len(res.Responses))
 
 	for _, resp := range res.Responses {
 		var err error

@@ -21,7 +21,6 @@ import (
 	"context"
 	"strings"
 
-	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	"github.com/abiosoft/ishell"
 )
 
@@ -75,13 +74,13 @@ func (f *frontendCLI) loginAccount(c *ishell.Context) { // nolint[funlen]
 		return
 	}
 
-	if auth.TwoFA.Enabled == pmapi.TOTPEnabled {
+	if auth.HasTwoFactor() {
 		twoFactor := f.readStringInAttempts("Two factor code", c.ReadLine, isNotEmpty)
 		if twoFactor == "" {
 			return
 		}
 
-		err = client.Auth2FA(context.TODO(), pmapi.Auth2FAReq{TwoFactorCode: twoFactor})
+		err = client.Auth2FA(context.Background(), twoFactor)
 		if err != nil {
 			f.processAPIError(err)
 			return
@@ -89,7 +88,7 @@ func (f *frontendCLI) loginAccount(c *ishell.Context) { // nolint[funlen]
 	}
 
 	mailboxPassword := password
-	if auth.PasswordMode == pmapi.TwoPasswordMode {
+	if auth.HasMailboxPassword() {
 		mailboxPassword = f.readStringInAttempts("Mailbox password", c.ReadPassword, isNotEmpty)
 	}
 	if mailboxPassword == "" {

@@ -40,7 +40,7 @@ type fakeCall struct {
 	request []byte
 }
 
-func (ctl *Controller) recordCall(method method, path string, req interface{}) error {
+func (ctl *Controller) checkAndRecordCall(method method, path string, req interface{}) error {
 	ctl.lock.Lock()
 	defer ctl.lock.Unlock()
 
@@ -50,7 +50,7 @@ func (ctl *Controller) recordCall(method method, path string, req interface{}) e
 		var err error
 
 		if request, err = json.Marshal(req); err != nil {
-			return err
+			panic(err)
 		}
 	}
 

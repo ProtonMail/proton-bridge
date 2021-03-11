@@ -43,13 +43,12 @@ func (api *FakePMAPI) getCounts(addressID string) []*pmapi.MessagesCount {
 		for _, labelID := range message.LabelIDs {
 			if counts, ok := allCounts[labelID]; ok {
 				counts.Total++
-				if message.Unread == 1 {
+				if message.Unread {
 					counts.Unread++
 				}
 			} else {
 				var unread int
-
-				if message.Unread == pmapi.True {
+				if message.Unread {
 					unread = 1
 				}
 

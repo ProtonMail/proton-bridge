@@ -25,15 +25,14 @@ import (
 
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/go-resty/resty/v2"
-	"github.com/pkg/errors"
 )
 
 // client is a client of the protonmail API. It implements the Client interface.
 type client struct {
-	req requester
+	manager clientManager
 
 	uid, acc, ref string
-	authHandlers  []AuthHandler
+	authHandlers  []AuthRefreshHandler
 	authLocker    sync.RWMutex
 
 	user        *User
@@ -45,9 +44,9 @@ type client struct {
 	exp time.Time
 }
 
-func newClient(req requester, uid string) *client {
+func newClient(manager clientManager, uid string) *client {
 	return &client{
-		req:         req,
+		manager:     manager,
 		uid:         uid,
 		addrKeyRing: make(map[string]*crypto.KeyRing),
 		keyRingLock: &sync.RWMutex{},
@@ -63,7 +62,7 @@ func (c *client) withAuth(acc, ref string, exp time.Time) *client {
 }
 
 func (c *client) r(ctx context.Context) (*resty.Request, error) {
-	r := c.req.r(ctx)
+	r := c.manager.r(ctx)
 
 	if c.uid != "" {
 		r.SetHeader("x-pm-uid", c.uid)
@@ -91,30 +90,23 @@ func (c *client) do(ctx context.Context, fn func(*resty.Request) (*resty.Respons
 		return nil, err
 	}
 
-	res, err := wrapRestyError(fn(r))
+	res, err := wrapNoConnection(fn(r))
 	if err != nil {
 		if res.StatusCode() != http.StatusUnauthorized {
-			return nil, err
+			// Return also response so caller has more options to decide what to do.
+			return res, err
 		}
 
-		if err := c.authRefresh(ctx); err != nil {
-			return nil, err
+		if !isAuthRefreshDisabled(ctx) {
+			if err := c.authRefresh(ctx); err != nil {
+				return nil, err
+			}
+
+			return wrapNoConnection(fn(r))
 		}
 
-		return wrapRestyError(fn(r))
+		return res, err
 	}
 
 	return res, nil
-}
-
-func wrapRestyError(res *resty.Response, err error) (*resty.Response, error) {
-	if err, ok := err.(*resty.ResponseError); ok {
-		return res, err
-	}
-
-	if res.RawResponse != nil {
-		return res, err
-	}
-
-	return res, errors.Wrap(ErrNoConnection, err.Error())
 }

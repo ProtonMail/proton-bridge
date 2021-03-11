@@ -44,7 +44,7 @@ func cleanup(client pmapi.Client, addresses *pmapi.AddressList) error {
 func cleanSystemFolders(client pmapi.Client) error {
 	for _, labelID := range []string{pmapi.InboxLabel, pmapi.SentLabel, pmapi.ArchiveLabel, pmapi.AllMailLabel, pmapi.DraftLabel} {
 		for {
-			messages, total, err := client.ListMessages(context.TODO(), &pmapi.MessagesFilter{
+			messages, total, err := client.ListMessages(context.Background(), &pmapi.MessagesFilter{
 				PageSize: 150,
 				LabelID:  labelID,
 			})
@@ -61,7 +61,7 @@ func cleanSystemFolders(client pmapi.Client) error {
 				messageIDs = append(messageIDs, message.ID)
 			}
 
-			if err := client.DeleteMessages(context.TODO(), messageIDs); err != nil {
+			if err := client.DeleteMessages(context.Background(), messageIDs); err != nil {
 				return errors.Wrap(err, "failed to delete messages")
 			}
 
@@ -74,7 +74,7 @@ func cleanSystemFolders(client pmapi.Client) error {
 }
 
 func cleanCustomLables(client pmapi.Client) error {
-	labels, err := client.ListLabels(context.TODO())
+	labels, err := client.ListLabels(context.Background())
 	if err != nil {
 		return errors.Wrap(err, "failed to list labels")
 	}
@@ -83,7 +83,7 @@ func cleanCustomLables(client pmapi.Client) error {
 		if err := emptyFolder(client, label.ID); err != nil {
 			return errors.Wrap(err, "failed to empty label")
 		}
-		if err := client.DeleteLabel(context.TODO(), label.ID); err != nil {
+		if err := client.DeleteLabel(context.Background(), label.ID); err != nil {
 			return errors.Wrap(err, "failed to delete label")
 		}
 	}
@@ -93,7 +93,7 @@ func cleanCustomLables(client pmapi.Client) error {
 
 func cleanTrash(client pmapi.Client) error {
 	for {
-		_, total, err := client.ListMessages(context.TODO(), &pmapi.MessagesFilter{
+		_, total, err := client.ListMessages(context.Background(), &pmapi.MessagesFilter{
 			PageSize: 1,
 			LabelID:  pmapi.TrashLabel,
 		})
@@ -115,12 +115,12 @@ func cleanTrash(client pmapi.Client) error {
 }
 
 func emptyFolder(client pmapi.Client, labelID string) error {
-	err := client.EmptyFolder(context.TODO(), labelID, "")
+	err := client.EmptyFolder(context.Background(), labelID, "")
 	if err != nil {
 		return err
 	}
 	for {
-		_, total, err := client.ListMessages(context.TODO(), &pmapi.MessagesFilter{
+		_, total, err := client.ListMessages(context.Background(), &pmapi.MessagesFilter{
 			PageSize: 1,
 			LabelID:  labelID,
 		})
@@ -142,5 +142,5 @@ func reorderAddresses(client pmapi.Client, addresses *pmapi.AddressList) error {
 		addressIDs = append(addressIDs, address.ID)
 	}
 
-	return client.ReorderAddresses(context.TODO(), addressIDs)
+	return client.ReorderAddresses(context.Background(), addressIDs)
 }

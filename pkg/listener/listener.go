@@ -29,6 +29,7 @@ var log = logrus.WithField("pkg", "bridgeUtils/listener") //nolint[gochecknoglob
 // Listener has a list of channels watching for updates.
 type Listener interface {
 	SetLimit(eventName string, limit time.Duration)
+	ProvideChannel(eventName string) <-chan string
 	Add(eventName string, channel chan<- string)
 	Remove(eventName string, channel chan<- string)
 	Emit(eventName string, data string)
@@ -67,6 +68,15 @@ func (l *listener) SetLimit(eventName string, limit time.Duration) {
 		return
 	}
 	l.limits[eventName] = limit
+}
+
+// ProvideChannel creates new channel, adds it to listener and sends to it
+// bufferent events.
+func (l *listener) ProvideChannel(eventName string) <-chan string {
+	ch := make(chan string)
+	l.Add(eventName, ch)
+	l.RetryEmit(eventName)
+	return ch
 }
 
 // Add adds an event listener.

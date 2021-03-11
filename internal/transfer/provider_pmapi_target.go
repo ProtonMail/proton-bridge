@@ -52,15 +52,10 @@ func (p *PMAPIProvider) CreateMailbox(mailbox Mailbox) (Mailbox, error) {
 		return Mailbox{}, errors.New("mailbox is already created")
 	}
 
-	exclusive := 0
-	if mailbox.IsExclusive {
-		exclusive = 1
-	}
-
-	label, err := p.client.CreateLabel(context.TODO(), &pmapi.Label{
+	label, err := p.client.CreateLabel(context.Background(), &pmapi.Label{
 		Name:      mailbox.Name,
 		Color:     mailbox.Color,
-		Exclusive: exclusive,
+		Exclusive: pmapi.Boolean(mailbox.IsExclusive),
 		Type:      pmapi.LabelTypeMailbox,
 	})
 	if err != nil {
@@ -126,7 +121,7 @@ func (p *PMAPIProvider) importDraft(msg Message, globalMailbox *Mailbox) (string
 	}
 
 	if message.Sender == nil {
-		mainAddress := p.client().Addresses().Main()
+		mainAddress := p.client.Addresses().Main()
 		message.Sender = &mail.Address{
 			Name:    mainAddress.DisplayName,
 			Address: mainAddress.Email,
@@ -227,14 +222,6 @@ func (p *PMAPIProvider) generateImportMsgReq(rules transferRules, progress *Prog
 		}
 	}
 
-	var unread pmapi.Boolean
-
-	if msg.Unread {
-		unread = pmapi.True
-	} else {
-		unread = pmapi.False
-	}
-
 	labelIDs := []string{}
 	for _, target := range msg.Targets {
 		// Frontend should not set All Mail to Rules, but to be sure...
@@ -249,7 +236,7 @@ func (p *PMAPIProvider) generateImportMsgReq(rules transferRules, progress *Prog
 	return &pmapi.ImportMsgReq{
 		Metadata: &pmapi.ImportMetadata{
 			AddressID: p.addressID,
-			Unread:    unread,
+			Unread:    pmapi.Boolean(msg.Unread),
 			Time:      message.Time,
 			Flags:     computeMessageFlags(message.Header),
 			LabelIDs:  labelIDs,

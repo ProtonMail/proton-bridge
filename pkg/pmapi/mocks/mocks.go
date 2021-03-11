@@ -13,8 +13,8 @@ import (
 
 	crypto "github.com/ProtonMail/gopenpgp/v2/crypto"
 	pmapi "github.com/ProtonMail/proton-bridge/pkg/pmapi"
-	resty "github.com/go-resty/resty/v2"
 	gomock "github.com/golang/mock/gomock"
+	logrus "github.com/sirupsen/logrus"
 )
 
 // MockClient is a mock of Client interface
@@ -40,16 +40,16 @@ func (m *MockClient) EXPECT() *MockClientMockRecorder {
 	return m.recorder
 }
 
-// AddAuthHandler mocks base method
-func (m *MockClient) AddAuthHandler(arg0 pmapi.AuthHandler) {
+// AddAuthRefreshHandler mocks base method
+func (m *MockClient) AddAuthRefreshHandler(arg0 pmapi.AuthRefreshHandler) {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "AddAuthHandler", arg0)
+	m.ctrl.Call(m, "AddAuthRefreshHandler", arg0)
 }
 
-// AddAuthHandler indicates an expected call of AddAuthHandler
-func (mr *MockClientMockRecorder) AddAuthHandler(arg0 interface{}) *gomock.Call {
+// AddAuthRefreshHandler indicates an expected call of AddAuthRefreshHandler
+func (mr *MockClientMockRecorder) AddAuthRefreshHandler(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddAuthHandler", reflect.TypeOf((*MockClient)(nil).AddAuthHandler), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddAuthRefreshHandler", reflect.TypeOf((*MockClient)(nil).AddAuthRefreshHandler), arg0)
 }
 
 // Addresses mocks base method
@@ -67,7 +67,7 @@ func (mr *MockClientMockRecorder) Addresses() *gomock.Call {
 }
 
 // Auth2FA mocks base method
-func (m *MockClient) Auth2FA(arg0 context.Context, arg1 pmapi.Auth2FAReq) error {
+func (m *MockClient) Auth2FA(arg0 context.Context, arg1 string) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Auth2FA", arg0, arg1)
 	ret0, _ := ret[0].(error)
@@ -616,6 +616,30 @@ func (mr *MockManagerMockRecorder) AddConnectionObserver(arg0 interface{}) *gomo
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddConnectionObserver", reflect.TypeOf((*MockManager)(nil).AddConnectionObserver), arg0)
 }
 
+// AllowProxy mocks base method
+func (m *MockManager) AllowProxy() {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "AllowProxy")
+}
+
+// AllowProxy indicates an expected call of AllowProxy
+func (mr *MockManagerMockRecorder) AllowProxy() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AllowProxy", reflect.TypeOf((*MockManager)(nil).AllowProxy))
+}
+
+// DisallowProxy mocks base method
+func (m *MockManager) DisallowProxy() {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "DisallowProxy")
+}
+
+// DisallowProxy indicates an expected call of DisallowProxy
+func (mr *MockManagerMockRecorder) DisallowProxy() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DisallowProxy", reflect.TypeOf((*MockManager)(nil).DisallowProxy))
+}
+
 // DownloadAndVerify mocks base method
 func (m *MockManager) DownloadAndVerify(arg0 *crypto.KeyRing, arg1, arg2 string) ([]byte, error) {
 	m.ctrl.T.Helper()
@@ -662,11 +686,11 @@ func (mr *MockManagerMockRecorder) NewClientWithLogin(arg0, arg1, arg2 interface
 }
 
 // NewClientWithRefresh mocks base method
-func (m *MockManager) NewClientWithRefresh(arg0 context.Context, arg1, arg2 string) (pmapi.Client, *pmapi.Auth, error) {
+func (m *MockManager) NewClientWithRefresh(arg0 context.Context, arg1, arg2 string) (pmapi.Client, *pmapi.AuthRefresh, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "NewClientWithRefresh", arg0, arg1, arg2)
 	ret0, _ := ret[0].(pmapi.Client)
-	ret1, _ := ret[1].(*pmapi.Auth)
+	ret1, _ := ret[1].(*pmapi.AuthRefresh)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2
 }
@@ -717,16 +741,16 @@ func (mr *MockManagerMockRecorder) SetCookieJar(arg0 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetCookieJar", reflect.TypeOf((*MockManager)(nil).SetCookieJar), arg0)
 }
 
-// SetLogger mocks base method
-func (m *MockManager) SetLogger(arg0 resty.Logger) {
+// SetLogging mocks base method
+func (m *MockManager) SetLogging(arg0 *logrus.Entry, arg1 bool) {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "SetLogger", arg0)
+	m.ctrl.Call(m, "SetLogging", arg0, arg1)
 }
 
-// SetLogger indicates an expected call of SetLogger
-func (mr *MockManagerMockRecorder) SetLogger(arg0 interface{}) *gomock.Call {
+// SetLogging indicates an expected call of SetLogging
+func (mr *MockManagerMockRecorder) SetLogging(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetLogger", reflect.TypeOf((*MockManager)(nil).SetLogger), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetLogging", reflect.TypeOf((*MockManager)(nil).SetLogging), arg0, arg1)
 }
 
 // SetRetryCount mocks base method

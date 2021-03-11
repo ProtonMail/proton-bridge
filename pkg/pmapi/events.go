@@ -32,7 +32,7 @@ type Event struct {
 	// If set to one, all cached data must be fetched again.
 	Refresh int
 	// If set to one, fetch more events.
-	More int
+	More Boolean
 	// Changes applied to messages.
 	Messages []*EventMessage
 	// Counts of messages per labels.
@@ -167,26 +167,32 @@ type EventAddress struct {
 
 // GetEvent returns a summary of events that occurred since last. To get the latest event,
 // provide an empty last value. The latest event is always empty.
-func (c *client) GetEvent(ctx context.Context, eventID string) (event *Event, err error) {
+func (c *client) GetEvent(ctx context.Context, eventID string) (*Event, error) {
+	return c.getEvent(ctx, eventID, 1)
+}
+
+func (c *client) getEvent(ctx context.Context, eventID string, numberOfMergedEvents int) (*Event, error) {
 	if eventID == "" {
 		eventID = "latest"
 	}
 
-	var res struct {
-		*Event
-
-		More int
-	}
+	var event *Event
 
 	if _, err := c.do(ctx, func(r *resty.Request) (*resty.Response, error) {
-		return r.SetResult(&res).Get("/events/" + eventID)
+		return r.SetResult(&event).Get("/events/" + eventID)
 	}); err != nil {
 		return nil, err
 	}
 
-	// FIXME(conman): use mergeEvents() function.
+	if event.More && numberOfMergedEvents < maxNumberOfMergedEvents {
+		nextEvent, err := c.getEvent(ctx, event.EventID, numberOfMergedEvents+1)
+		if err != nil {
+			return nil, err
+		}
+		event = mergeEvents(event, nextEvent)
+	}
 
-	return res.Event, nil
+	return event, nil
 }
 
 // mergeEvents combines an old events and a new events object.

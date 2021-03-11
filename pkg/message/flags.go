@@ -31,7 +31,7 @@ const (
 
 // GetFlags returns imap flags from pmapi message attributes.
 func GetFlags(m *pmapi.Message) (flags []string) {
-	if m.Unread == 0 {
+	if !m.Unread {
 		flags = append(flags, imap.SeenFlag)
 	}
 	if !m.Has(pmapi.FlagSent) && !m.Has(pmapi.FlagReceived) {
@@ -68,11 +68,11 @@ func ParseFlags(m *pmapi.Message, flags []string) {
 		m.Flags = pmapi.FlagReceived
 	}
 
-	m.Unread = 1
+	m.Unread = true
 	for _, f := range flags {
 		switch f {
 		case imap.SeenFlag:
-			m.Unread = 0
+			m.Unread = false
 		case imap.DraftFlag:
 			m.Flags &= ^pmapi.FlagSent
 			m.Flags &= ^pmapi.FlagReceived

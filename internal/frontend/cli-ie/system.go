@@ -29,14 +29,6 @@ func (f *frontendCLI) restart(c *ishell.Context) {
 	}
 }
 
-func (f *frontendCLI) checkInternetConnection(c *ishell.Context) {
-	if f.ie.CheckConnection() == nil {
-		f.Println("Internet connection is available.")
-	} else {
-		f.Println("Can not contact the server, please check your internet connection.")
-	}
-}
-
 func (f *frontendCLI) printLogDir(c *ishell.Context) {
 	if path, err := f.locations.ProvideLogsPath(); err != nil {
 		f.Println("Failed to determine location of log files")

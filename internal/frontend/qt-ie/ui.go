@@ -77,8 +77,7 @@ type GoQMLInterface struct {
 	_ string `property:"credentialsNotRemoved"`
 	_ string `property:"versionCheckFailed"`
 	//
-	_ func(isAvailable bool) `signal:"setConnectionStatus"`
-	_ func()                 `slot:"checkInternet"`
+	_ func(isAvailable bool)   `signal:"setConnectionStatus"`
 
 	_ func() `slot:"setToRestart"`
 
@@ -188,8 +187,6 @@ func (s *GoQMLInterface) SetFrontend(f *FrontendQt) {
 	s.ConnectGetBackendVersion(func() string {
 		return f.programVersion
 	})
-
-	s.ConnectCheckInternet(f.checkInternet)
 
 	s.ConnectSetToRestart(f.restarter.SetToRestart)
 

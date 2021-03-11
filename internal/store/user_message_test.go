@@ -24,6 +24,7 @@ import (
 	"testing"
 
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
+	"github.com/golang/mock/gomock"
 	a "github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -34,10 +35,10 @@ func TestGetAllMessageIDs(t *testing.T) {
 
 	m.newStoreNoEvents(true)
 
-	insertMessage(t, m, "msg1", "Test message 1", addrID1, 0, []string{pmapi.AllMailLabel, pmapi.InboxLabel})
-	insertMessage(t, m, "msg2", "Test message 2", addrID1, 0, []string{pmapi.AllMailLabel, pmapi.ArchiveLabel})
-	insertMessage(t, m, "msg3", "Test message 3", addrID1, 0, []string{pmapi.AllMailLabel, pmapi.InboxLabel})
-	insertMessage(t, m, "msg4", "Test message 4", addrID1, 0, []string{})
+	insertMessage(t, m, "msg1", "Test message 1", addrID1, false, []string{pmapi.AllMailLabel, pmapi.InboxLabel})
+	insertMessage(t, m, "msg2", "Test message 2", addrID1, false, []string{pmapi.AllMailLabel, pmapi.ArchiveLabel})
+	insertMessage(t, m, "msg3", "Test message 3", addrID1, false, []string{pmapi.AllMailLabel, pmapi.InboxLabel})
+	insertMessage(t, m, "msg4", "Test message 4", addrID1, false, []string{})
 
 	checkAllMessageIDs(t, m, []string{"msg1", "msg2", "msg3", "msg4"})
 }
@@ -47,7 +48,7 @@ func TestGetMessageFromDB(t *testing.T) {
 	defer clear()
 
 	m.newStoreNoEvents(true)
-	insertMessage(t, m, "msg1", "Test message 1", addrID1, 0, []string{pmapi.AllMailLabel})
+	insertMessage(t, m, "msg1", "Test message 1", addrID1, false, []string{pmapi.AllMailLabel})
 
 	tests := []struct{ msgID, wantErr string }{
 		{"msg1", ""},
@@ -72,7 +73,7 @@ func TestCreateOrUpdateMessageMetadata(t *testing.T) {
 	defer clear()
 
 	m.newStoreNoEvents(true)
-	insertMessage(t, m, "msg1", "Test message 1", addrID1, 0, []string{pmapi.AllMailLabel})
+	insertMessage(t, m, "msg1", "Test message 1", addrID1, false, []string{pmapi.AllMailLabel})
 
 	msg, err := m.store.getMessageFromDB("msg1")
 	require.Nil(t, err)
@@ -104,7 +105,7 @@ func TestCreateOrUpdateMessageMetadata(t *testing.T) {
 	a.Equal(t, wantHeader, msg.Header)
 
 	// Check calculated data are not overridden by reinsert.
-	insertMessage(t, m, "msg1", "Test message 1", addrID1, 0, []string{pmapi.AllMailLabel})
+	insertMessage(t, m, "msg1", "Test message 1", addrID1, false, []string{pmapi.AllMailLabel})
 
 	msg, err = m.store.getMessageFromDB("msg1")
 	require.Nil(t, err)
@@ -118,8 +119,8 @@ func TestDeleteMessage(t *testing.T) {
 	defer clear()
 
 	m.newStoreNoEvents(true)
-	insertMessage(t, m, "msg1", "Test message 1", addrID1, 0, []string{pmapi.AllMailLabel})
-	insertMessage(t, m, "msg2", "Test message 2", addrID1, 0, []string{pmapi.AllMailLabel})
+	insertMessage(t, m, "msg1", "Test message 1", addrID1, false, []string{pmapi.AllMailLabel})
+	insertMessage(t, m, "msg2", "Test message 2", addrID1, false, []string{pmapi.AllMailLabel})
 
 	require.Nil(t, m.store.deleteMessageEvent("msg1"))
 
@@ -127,17 +128,17 @@ func TestDeleteMessage(t *testing.T) {
 	checkMailboxMessageIDs(t, m, pmapi.AllMailLabel, []wantID{{"msg2", 2}})
 }
 
-func insertMessage(t *testing.T, m *mocksForStore, id, subject, sender string, unread pmapi.Boolean, labelIDs []string) { //nolint[unparam]
+func insertMessage(t *testing.T, m *mocksForStore, id, subject, sender string, unread bool, labelIDs []string) { //nolint[unparam]
 	msg := getTestMessage(id, subject, sender, unread, labelIDs)
 	require.Nil(t, m.store.createOrUpdateMessageEvent(msg))
 }
 
-func getTestMessage(id, subject, sender string, unread pmapi.Boolean, labelIDs []string) *pmapi.Message {
+func getTestMessage(id, subject, sender string, unread bool, labelIDs []string) *pmapi.Message {
 	address := &mail.Address{Address: sender}
 	return &pmapi.Message{
 		ID:       id,
 		Subject:  subject,
-		Unread:   unread,
+		Unread:   pmapi.Boolean(unread),
 		Sender:   address,
 		ToList:   []*mail.Address{address},
 		LabelIDs: labelIDs,
@@ -162,7 +163,7 @@ func TestCreateDraftCheckMessageSize(t *testing.T) {
 	defer clear()
 
 	m.newStoreNoEvents(false)
-	m.client.EXPECT().CurrentUser().Return(&pmapi.User{
+	m.client.EXPECT().CurrentUser(gomock.Any()).Return(&pmapi.User{
 		MaxUpload: 100, // Decrypted message 5 chars, encrypted 500+.
 	}, nil)
 
@@ -181,7 +182,7 @@ func TestCreateDraftCheckMessageWithAttachmentSize(t *testing.T) {
 	defer clear()
 
 	m.newStoreNoEvents(false)
-	m.client.EXPECT().CurrentUser().Return(&pmapi.User{
+	m.client.EXPECT().CurrentUser(gomock.Any()).Return(&pmapi.User{
 		MaxUpload: 800, // Decrypted message 5 chars + 5 chars of attachment, encrypted 500+ + 300+.
 	}, nil)
 

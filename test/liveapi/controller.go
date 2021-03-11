@@ -21,6 +21,7 @@ import (
 	"net/http"
 	"sync"
 
+	"github.com/ProtonMail/proton-bridge/internal/constants"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 )
 
@@ -36,18 +37,17 @@ type Controller struct {
 	noInternetConnection bool
 }
 
-func NewController() (*Controller, pmapi.Manager) {
+func NewController(app string) (*Controller, pmapi.Manager) {
+	cm := pmapi.New(pmapi.NewConfig(getAppVersionName(app), constants.Version))
 	controller := &Controller{
 		lock:                 &sync.RWMutex{},
 		calls:                []*fakeCall{},
 		pmapiByUsername:      map[string]pmapi.Client{},
 		messageIDsByUsername: map[string][]string{},
+		clientManager:        cm,
 
 		noInternetConnection: false,
 	}
-
-	// FIXME(conman): Set connect values here?
-	cm := pmapi.New(pmapi.DefaultConfig)
 
 	cm.SetTransport(&fakeTransport{
 		ctl:       controller,
@@ -55,4 +55,11 @@ func NewController() (*Controller, pmapi.Manager) {
 	})
 
 	return controller, cm
+}
+
+func getAppVersionName(app string) string {
+	if app == "ie" {
+		return "importExport"
+	}
+	return app
 }

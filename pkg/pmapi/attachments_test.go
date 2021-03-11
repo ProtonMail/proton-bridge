@@ -28,13 +28,13 @@ import (
 	"mime/multipart"
 	"net/http"
 	"net/textproto"
-	"reflect"
 	"strings"
 	"testing"
 
 	pmmime "github.com/ProtonMail/proton-bridge/pkg/mime"
 
-	"github.com/stretchr/testify/assert"
+	a "github.com/stretchr/testify/assert"
+	r "github.com/stretchr/testify/require"
 )
 
 var testAttachment = &Attachment{
@@ -77,65 +77,40 @@ const testCreateAttachmentBody = `{
     "Attachment": {"ID": "y6uKIlc2HdoHPAwPSrvf7dXoZNMYvBgxshYUN67cY5DJjL2O8NYewuvGHcYvCfd8LpEoAI_GdymO0Jr0mHlsEw=="}
 }`
 
-const testDeleteAttachmentBody = `{
-    "Code": 1000
-}`
-
 func TestAttachment_UnmarshalJSON(t *testing.T) {
 	att := new(Attachment)
-	if err := json.Unmarshal([]byte(testAttachmentJSON), att); err != nil {
-		t.Fatal("Expected no error while unmarshaling JSON, got:", err)
-	}
+	err := json.Unmarshal([]byte(testAttachmentJSON), att)
+	r.NoError(t, err)
 
 	att.MessageID = testAttachment.MessageID // This isn't in the JSON object
 
-	if !reflect.DeepEqual(testAttachment, att) {
-		t.Errorf("Invalid attachment: expected %+v but got %+v", testAttachment, att)
-	}
+	r.Equal(t, testAttachment, att)
 }
 
 func TestClient_CreateAttachment(t *testing.T) {
-	s, c := newTestClient(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		Ok(t, checkMethodAndPath(r, "POST", "/mail/v4/attachments"))
+	s, c := newTestClient(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		r.NoError(t, checkMethodAndPath(req, "POST", "/mail/v4/attachments"))
 
-		contentType, params, err := pmmime.ParseMediaType(r.Header.Get("Content-Type"))
-		if err != nil {
-			t.Error("Expected no error while parsing request content type, got:", err)
-		}
-		if contentType != "multipart/form-data" {
-			t.Errorf("Invalid request content type: expected %v but got %v", "multipart/form-data", contentType)
-		}
+		contentType, params, err := pmmime.ParseMediaType(req.Header.Get("Content-Type"))
+		r.NoError(t, err)
+		r.Equal(t, "multipart/form-data", contentType)
 
-		mr := multipart.NewReader(r.Body, params["boundary"])
+		mr := multipart.NewReader(req.Body, params["boundary"])
 		form, err := mr.ReadForm(10 * 1024)
-		if err != nil {
-			t.Error("Expected no error while parsing request form, got:", err)
-		}
-		defer Ok(t, form.RemoveAll())
+		r.NoError(t, err)
+		defer r.NoError(t, form.RemoveAll())
 
-		if form.Value["Filename"][0] != testAttachment.Name {
-			t.Errorf("Invalid attachment filename: expected %v but got %v", testAttachment.Name, form.Value["Filename"][0])
-		}
-		if form.Value["MessageID"][0] != testAttachment.MessageID {
-			t.Errorf("Invalid attachment message id: expected %v but got %v", testAttachment.MessageID, form.Value["MessageID"][0])
-		}
-		if form.Value["MIMEType"][0] != testAttachment.MIMEType {
-			t.Errorf("Invalid attachment message id: expected %v but got %v", testAttachment.MIMEType, form.Value["MIMEType"][0])
-		}
+		r.Equal(t, testAttachment.Name, form.Value["Filename"][0])
+		r.Equal(t, testAttachment.MessageID, form.Value["MessageID"][0])
+		r.Equal(t, testAttachment.MIMEType, form.Value["MIMEType"][0])
 
 		dataFile, err := form.File["DataPacket"][0].Open()
-		if err != nil {
-			t.Error("Expected no error while opening packets file, got:", err)
-		}
-		defer Ok(t, dataFile.Close())
+		r.NoError(t, err)
+		defer r.NoError(t, dataFile.Close())
 
 		b, err := ioutil.ReadAll(dataFile)
-		if err != nil {
-			t.Error("Expected no error while reading packets file, got:", err)
-		}
-		if string(b) != testAttachmentCleartext {
-			t.Errorf("Invalid attachment packets: expected %v but got %v", testAttachment.KeyPackets, string(b))
-		}
+		r.NoError(t, err)
+		r.Equal(t, testAttachmentCleartext, string(b))
 
 		w.Header().Set("Content-Type", "application/json")
 
@@ -143,50 +118,39 @@ func TestClient_CreateAttachment(t *testing.T) {
 	}))
 	defer s.Close()
 
-	r := strings.NewReader(testAttachmentCleartext) // In reality, this thing is encrypted
-	created, err := c.CreateAttachment(context.TODO(), testAttachment, r, strings.NewReader(""))
-	if err != nil {
-		t.Fatal("Expected no error while creating attachment, got:", err)
-	}
+	reader := strings.NewReader(testAttachmentCleartext) // In reality, this thing is encrypted
+	created, err := c.CreateAttachment(context.Background(), testAttachment, reader, strings.NewReader(""))
+	r.NoError(t, err)
 
-	if created.ID != testAttachment.ID {
-		t.Errorf("Invalid attachment id: expected %v but got %v", testAttachment.ID, created.ID)
-	}
+	r.Equal(t, testAttachment.ID, created.ID)
 }
 
 func TestClient_GetAttachment(t *testing.T) {
-	s, c := newTestClient(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		Ok(t, checkMethodAndPath(r, "GET", "/mail/v4/attachments/"+testAttachment.ID))
+	s, c := newTestClient(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		r.NoError(t, checkMethodAndPath(req, "GET", "/mail/v4/attachments/"+testAttachment.ID))
 
 		w.Header().Set("Content-Type", "application/json")
-
 		fmt.Fprint(w, testAttachmentCleartext)
 	}))
 	defer s.Close()
 
-	r, err := c.GetAttachment(context.TODO(), testAttachment.ID)
-	if err != nil {
-		t.Fatal("Expected no error while getting attachment, got:", err)
-	}
-	defer r.Close() //nolint[errcheck]
+	att, err := c.GetAttachment(context.Background(), testAttachment.ID)
+	r.NoError(t, err)
+	defer att.Close() //nolint[errcheck]
 
 	// In reality, r contains encrypted data
-	b, err := ioutil.ReadAll(r)
-	if err != nil {
-		t.Fatal("Expected no error while reading attachment, got:", err)
-	}
+	b, err := ioutil.ReadAll(att)
+	r.NoError(t, err)
 
-	if string(b) != testAttachmentCleartext {
-		t.Errorf("Invalid attachment data: expected %q but got %q", testAttachmentCleartext, string(b))
-	}
+	r.Equal(t, testAttachmentCleartext, string(b))
 }
 
 func TestAttachment_Encrypt(t *testing.T) {
 	data := bytes.NewBufferString(testAttachmentCleartext)
 	r, err := testAttachment.Encrypt(testPublicKeyRing, data)
-	assert.Nil(t, err)
+	a.Nil(t, err)
 	b, err := ioutil.ReadAll(r)
-	assert.Nil(t, err)
+	a.Nil(t, err)
 
 	// Result is always different, so the best way is to test it by decrypting again.
 	// Another test for decrypting will help us to be sure it's working.
@@ -202,8 +166,8 @@ func TestAttachment_Decrypt(t *testing.T) {
 
 func decryptAndCheck(t *testing.T, data io.Reader) {
 	r, err := testAttachment.Decrypt(data, testPrivateKeyRing)
-	assert.Nil(t, err)
+	a.Nil(t, err)
 	b, err := ioutil.ReadAll(r)
-	assert.Nil(t, err)
-	assert.Equal(t, testAttachmentCleartext, string(b))
+	a.Nil(t, err)
+	a.Equal(t, testAttachmentCleartext, string(b))
 }

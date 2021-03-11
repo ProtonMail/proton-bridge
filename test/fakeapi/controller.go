@@ -32,7 +32,7 @@ type Controller struct {
 	labelIDGenerator   idGenerator
 	messageIDGenerator idGenerator
 	tokenGenerator     idGenerator
-	clientManager      pmapi.Manager
+	clientManager      *fakePMAPIManager
 
 	// State controlled by test.
 	noInternetConnection bool

@@ -27,13 +27,12 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
+	r "github.com/stretchr/testify/require"
 )
 
 func TestClient_GetEvent(t *testing.T) {
-	s, c := newTestClient(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		assert.NoError(t, checkMethodAndPath(r, "GET", "/events/latest"))
+	s, c := newTestClient(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		r.NoError(t, checkMethodAndPath(req, "GET", "/events/latest"))
 
 		w.Header().Set("Content-Type", "application/json")
 
@@ -41,14 +40,14 @@ func TestClient_GetEvent(t *testing.T) {
 	}))
 	defer s.Close()
 
-	event, err := c.GetEvent(context.TODO(), "")
-	require.NoError(t, err)
-	require.Equal(t, testEvent, event)
+	event, err := c.GetEvent(context.Background(), "")
+	r.NoError(t, err)
+	r.Equal(t, testEvent, event)
 }
 
 func TestClient_GetEvent_withID(t *testing.T) {
-	s, c := newTestClient(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		assert.NoError(t, checkMethodAndPath(r, "GET", "/events/"+testEvent.EventID))
+	s, c := newTestClient(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		r.NoError(t, checkMethodAndPath(req, "GET", "/events/"+testEvent.EventID))
 
 		w.Header().Set("Content-Type", "application/json")
 
@@ -56,23 +55,22 @@ func TestClient_GetEvent_withID(t *testing.T) {
 	}))
 	defer s.Close()
 
-	event, err := c.GetEvent(context.TODO(), testEvent.EventID)
-	require.NoError(t, err)
-	require.Equal(t, testEvent, event)
+	event, err := c.GetEvent(context.Background(), testEvent.EventID)
+	r.NoError(t, err)
+	r.Equal(t, testEvent, event)
 }
 
 // We first call GetEvent with id of eventID1, which returns More=1 so we fetch with id eventID2.
-// FIXME(conman): Merging is currently not supported. Implement it and then enable this test again!
-func _TestClient_GetEvent_mergeEvents(t *testing.T) {
-	s, c := newTestClient(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+func TestClient_GetEvent_mergeEvents(t *testing.T) {
+	s, c := newTestClient(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 
-		switch r.URL.RequestURI() {
+		switch req.URL.RequestURI() {
 		case "/events/eventID1":
-			assert.NoError(t, checkMethodAndPath(r, "GET", "/events/eventID1"))
+			r.NoError(t, checkMethodAndPath(req, "GET", "/events/eventID1"))
 			fmt.Fprint(w, testEventBodyMore1)
 		case "/events/eventID2":
-			assert.NoError(t, checkMethodAndPath(r, "GET", "/events/eventID2"))
+			r.NoError(t, checkMethodAndPath(req, "GET", "/events/eventID2"))
 			fmt.Fprint(w, testEventBodyMore2)
 		default:
 			t.Fail()
@@ -80,28 +78,25 @@ func _TestClient_GetEvent_mergeEvents(t *testing.T) {
 	}))
 	defer s.Close()
 
-	event, err := c.GetEvent(context.TODO(), "eventID1")
-	require.NoError(t, err)
-	require.Equal(t, testEventMerged, event)
+	event, err := c.GetEvent(context.Background(), "eventID1")
+	r.NoError(t, err)
+	r.Equal(t, testEventMerged, event)
 }
 
-// FIXME(conman): Merging is currently not supported. Implement it and then enable this test again!
-func _TestClient_GetEvent_mergeMaxNumberOfEvents(t *testing.T) {
+func TestClient_GetEvent_mergeMaxNumberOfEvents(t *testing.T) {
 	numberOfCalls := 0
 
-	s, c := newTestClient(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	s, c := newTestClient(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		numberOfCalls++
 
 		re := regexp.MustCompile(`/eventID([0-9]+)`)
-		eventIDString := re.FindStringSubmatch(r.URL.RequestURI())[1]
+		eventIDString := re.FindStringSubmatch(req.URL.RequestURI())[1]
 		eventID, err := strconv.Atoi(eventIDString)
-		require.NoError(t, err)
+		r.NoError(t, err)
 
 		if numberOfCalls > maxNumberOfMergedEvents*2 {
-			require.Fail(t, "Too many calls!")
+			r.Fail(t, "Too many calls!")
 		}
-
-		fmt.Println("")
 
 		body := strings.ReplaceAll(testEventBodyMore1, "eventID2", "eventID"+strconv.Itoa(eventID+1))
 		w.Header().Set("Content-Type", "application/json")
@@ -110,14 +105,14 @@ func _TestClient_GetEvent_mergeMaxNumberOfEvents(t *testing.T) {
 	}))
 	defer s.Close()
 
-	event, err := c.GetEvent(context.TODO(), "eventID1")
-	require.NoError(t, err)
-	require.Equal(t, maxNumberOfMergedEvents, numberOfCalls)
-	require.Equal(t, 1, event.More)
+	event, err := c.GetEvent(context.Background(), "eventID1")
+	r.NoError(t, err)
+	r.Equal(t, maxNumberOfMergedEvents, numberOfCalls)
+	r.True(t, bool(event.More))
 }
 
 var (
-	testEventMessageUpdateUnread = False
+	testEventMessageUpdateUnread = Boolean(false)
 
 	testEvent = &Event{
 		EventID: "eventID1",

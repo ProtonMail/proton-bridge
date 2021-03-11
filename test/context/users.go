@@ -26,7 +26,6 @@ import (
 
 	"github.com/ProtonMail/proton-bridge/internal/store"
 	"github.com/ProtonMail/proton-bridge/internal/users"
-	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	"github.com/ProtonMail/proton-bridge/pkg/srp"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
@@ -46,8 +45,8 @@ func (ctx *TestContext) LoginUser(username, password, mailboxPassword string) er
 		return errors.Wrap(err, "failed to login")
 	}
 
-	if auth.TwoFA.Enabled == pmapi.TOTPEnabled {
-		if err := client.Auth2FA(context.TODO(), pmapi.Auth2FAReq{TwoFactorCode: "2fa code"}); err != nil {
+	if auth.HasTwoFactor() {
+		if err := client.Auth2FA(context.Background(), "2fa code"); err != nil {
 			return errors.Wrap(err, "failed to login with 2FA")
 		}
 	}

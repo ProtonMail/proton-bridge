@@ -23,8 +23,8 @@ import (
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 )
 
-func (api *FakePMAPI) Auth2FA(_ context.Context, req pmapi.Auth2FAReq) error {
-	if err := api.checkAndRecordCall(POST, "/auth/2fa", req); err != nil {
+func (api *FakePMAPI) Auth2FA(_ context.Context, twoFactorCode string) error {
+	if err := api.checkAndRecordCall(POST, "/auth/2fa", twoFactorCode); err != nil {
 		return err
 	}
 
@@ -50,7 +50,7 @@ func (api *FakePMAPI) AuthSalt(_ context.Context) (string, error) {
 	return "", nil
 }
 
-func (api *FakePMAPI) AddAuthHandler(handler pmapi.AuthHandler) {
+func (api *FakePMAPI) AddAuthRefreshHandler(handler pmapi.AuthRefreshHandler) {
 	api.authHandlers = append(api.authHandlers, handler)
 }
 

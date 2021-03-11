@@ -89,29 +89,25 @@ func newUser(
 // - providing it with an authorised API client
 // - loading its credentials from the credentials store
 // - loading and unlocking its PGP keys
-// - loading its store
-func (u *User) connect(ctx context.Context, client pmapi.Client, creds *credentials.Credentials) error {
+// - loading its store.
+func (u *User) connect(client pmapi.Client, creds *credentials.Credentials) error {
 	u.log.Info("Connecting user")
 
 	// Connected users have an API client.
 	u.client = client
 
-	// FIXME(conman): How to remove this auth handler when user is disconnected?
-	u.client.AddAuthHandler(u.handleAuth)
+	u.client.AddAuthRefreshHandler(u.handleAuthRefresh)
 
 	// Save the latest credentials for the user.
 	u.creds = creds
 
 	// Connected users have unlocked keys.
-	// FIXME(conman): clients should always be authorized! This is a workaround to avoid a major refactor :(
-	if u.creds.IsConnected() {
-		if err := u.client.Unlock(ctx, []byte(u.creds.MailboxPassword)); err != nil {
-			return err
-		}
+	if err := u.unlockIfNecessary(); err != nil {
+		return err
 	}
 
 	// Connected users have a store.
-	if err := u.loadStore(); err != nil {
+	if err := u.loadStore(); err != nil { //nolint[revive] easier to read
 		return err
 	}
 
@@ -138,17 +134,25 @@ func (u *User) loadStore() error {
 	return nil
 }
 
-func (u *User) handleAuth(auth *pmapi.Auth) error {
-	u.log.Debug("User received auth")
+func (u *User) handleAuthRefresh(auth *pmapi.AuthRefresh) {
+	u.log.Debug("User received auth refresh update")
+
+	if auth == nil {
+		if err := u.logout(); err != nil {
+			log.WithError(err).
+				WithField("userID", u.userID).
+				Error("User logout failed while watching API auths")
+		}
+		return
+	}
 
 	creds, err := u.credStorer.UpdateToken(u.userID, auth.UID, auth.RefreshToken)
 	if err != nil {
-		return errors.Wrap(err, "failed to update refresh token in credentials store")
+		u.log.WithError(err).Error("Failed to update refresh token in credentials store")
+		return
 	}
 
 	u.creds = creds
-
-	return nil
 }
 
 // clearStore removes the database.
@@ -181,13 +185,6 @@ func (u *User) closeStore() error {
 	return nil
 }
 
-// GetTemporaryPMAPIClient returns an authorised PMAPI client.
-// Do not use! It's only for backward compatibility of old SMTP and IMAP implementations.
-// After proper refactor of SMTP and IMAP remove this method.
-func (u *User) GetTemporaryPMAPIClient() pmapi.Client {
-	return u.client
-}
-
 // ID returns the user's userID.
 func (u *User) ID() string {
 	return u.userID
@@ -210,7 +207,41 @@ func (u *User) IsConnected() bool {
 }
 
 func (u *User) GetClient() pmapi.Client {
+	if err := u.unlockIfNecessary(); err != nil {
+		u.log.WithError(err).Error("Failed to unlock user")
+	}
 	return u.client
+}
+
+// unlockIfNecessary will not trigger keyring unlocking if it was already successfully unlocked.
+func (u *User) unlockIfNecessary() error {
+	if !u.creds.IsConnected() {
+		return nil
+	}
+
+	if u.client.IsUnlocked() {
+		return nil
+	}
+
+	// unlockIfNecessary is called with every access to underlying pmapi
+	// client. Unlock should only finish unlocking when connection is back up.
+	// That means it should try it fast enough and not retry if connection
+	// is still down.
+	err := u.client.Unlock(pmapi.ContextWithoutRetry(context.Background()), []byte(u.creds.MailboxPassword))
+	if err == nil {
+		return nil
+	}
+
+	switch errors.Cause(err) {
+	case pmapi.ErrNoConnection, pmapi.ErrUpgradeApplication:
+		u.log.WithError(err).Warn("Could not unlock user")
+		return nil
+	}
+
+	if logoutErr := u.logout(); logoutErr != nil {
+		u.log.WithError(logoutErr).Warn("Could not logout user")
+	}
+	return errors.Wrap(err, "failed to unlock user")
 }
 
 // IsCombinedAddressMode returns whether user is set in combined or split mode.
@@ -307,14 +338,10 @@ func (u *User) GetBridgePassword() string {
 // CheckBridgeLogin checks whether the user is logged in and the bridge
 // IMAP/SMTP password is correct.
 func (u *User) CheckBridgeLogin(password string) error {
-	// FIXME(conman): Handle force upgrade?
-
-	/*
-		if isApplicationOutdated {
-			u.listener.Emit(events.UpgradeApplicationEvent, "")
-			return pmapi.ErrUpgradeApplication
-		}
-	*/
+	if isApplicationOutdated {
+		u.listener.Emit(events.UpgradeApplicationEvent, "")
+		return pmapi.ErrUpgradeApplication
+	}
 
 	u.lock.RLock()
 	defer u.lock.RUnlock()
@@ -328,16 +355,16 @@ func (u *User) CheckBridgeLogin(password string) error {
 }
 
 // UpdateUser updates user details from API and saves to the credentials.
-func (u *User) UpdateUser() error {
+func (u *User) UpdateUser(ctx context.Context) error {
 	u.lock.Lock()
 	defer u.lock.Unlock()
 
-	_, err := u.client.UpdateUser(context.TODO())
+	_, err := u.client.UpdateUser(ctx)
 	if err != nil {
 		return err
 	}
 
-	if err := u.client.ReloadKeys(context.TODO(), []byte(u.creds.MailboxPassword)); err != nil {
+	if err := u.client.ReloadKeys(ctx, []byte(u.creds.MailboxPassword)); err != nil {
 		return errors.Wrap(err, "failed to reload keys")
 	}
 
@@ -414,8 +441,7 @@ func (u *User) Logout() error {
 		return nil
 	}
 
-	// FIXME(conman): Do we delete API client now? Who cleans up? What about registered handlers?
-	if err := u.client.AuthDelete(context.TODO()); err != nil {
+	if err := u.client.AuthDelete(context.Background()); err != nil {
 		u.log.WithError(err).Warn("Failed to delete auth")
 	}
 

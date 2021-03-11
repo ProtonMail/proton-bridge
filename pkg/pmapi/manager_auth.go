@@ -1,3 +1,20 @@
+// Copyright (c) 2021 Proton Technologies AG
+//
+// This file is part of ProtonMail Bridge.
+//
+// ProtonMail Bridge is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// ProtonMail Bridge is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
+
 package pmapi
 
 import (
@@ -9,10 +26,14 @@ import (
 )
 
 func (m *manager) NewClient(uid, acc, ref string, exp time.Time) Client {
+	log.Trace("New client")
+
 	return newClient(m, uid).withAuth(acc, ref, exp)
 }
 
-func (m *manager) NewClientWithRefresh(ctx context.Context, uid, ref string) (Client, *Auth, error) {
+func (m *manager) NewClientWithRefresh(ctx context.Context, uid, ref string) (Client, *AuthRefresh, error) {
+	log.Trace("New client with refresh")
+
 	c := newClient(m, uid)
 
 	auth, err := m.authRefresh(ctx, uid, ref)
@@ -24,6 +45,8 @@ func (m *manager) NewClientWithRefresh(ctx context.Context, uid, ref string) (Cl
 }
 
 func (m *manager) NewClientWithLogin(ctx context.Context, username, password string) (Client, *Auth, error) {
+	log.Trace("New client with login")
+
 	info, err := m.getAuthInfo(ctx, GetAuthInfoReq{Username: username})
 	if err != nil {
 		return nil, nil, err
@@ -52,24 +75,13 @@ func (m *manager) NewClientWithLogin(ctx context.Context, username, password str
 	return newClient(m, auth.UID).withAuth(auth.AccessToken, auth.RefreshToken, expiresIn(auth.ExpiresIn)), auth, nil
 }
 
-func (m *manager) getAuthModulus(ctx context.Context) (AuthModulus, error) {
-	var res struct {
-		AuthModulus
-	}
-
-	if _, err := m.r(ctx).SetResult(&res).Get("/auth/modulus"); err != nil {
-		return AuthModulus{}, err
-	}
-
-	return res.AuthModulus, nil
-}
-
 func (m *manager) getAuthInfo(ctx context.Context, req GetAuthInfoReq) (*AuthInfo, error) {
 	var res struct {
 		*AuthInfo
 	}
 
-	if _, err := m.r(ctx).SetBody(req).SetResult(&res).Post("/auth/info"); err != nil {
+	_, err := wrapNoConnection(m.r(ctx).SetBody(req).SetResult(&res).Post("/auth/info"))
+	if err != nil {
 		return nil, err
 	}
 
@@ -81,15 +93,16 @@ func (m *manager) auth(ctx context.Context, req AuthReq) (*Auth, error) {
 		*Auth
 	}
 
-	if _, err := m.r(ctx).SetBody(req).SetResult(&res).Post("/auth"); err != nil {
+	_, err := wrapNoConnection(m.r(ctx).SetBody(req).SetResult(&res).Post("/auth"))
+	if err != nil {
 		return nil, err
 	}
 
 	return res.Auth, nil
 }
 
-func (m *manager) authRefresh(ctx context.Context, uid, ref string) (*Auth, error) {
-	var req = AuthRefreshReq{
+func (m *manager) authRefresh(ctx context.Context, uid, ref string) (*AuthRefresh, error) {
+	var req = authRefreshReq{
 		UID:          uid,
 		RefreshToken: ref,
 		ResponseType: "token",
@@ -99,14 +112,15 @@ func (m *manager) authRefresh(ctx context.Context, uid, ref string) (*Auth, erro
 	}
 
 	var res struct {
-		*Auth
+		*AuthRefresh
 	}
 
-	if _, err := m.r(ctx).SetBody(req).SetResult(&res).Post("/auth/refresh"); err != nil {
+	_, err := wrapNoConnection(m.r(ctx).SetBody(req).SetResult(&res).Post("/auth/refresh"))
+	if err != nil {
 		return nil, err
 	}
 
-	return res.Auth, nil
+	return res.AuthRefresh, nil
 }
 
 func expiresIn(seconds int64) time.Time {

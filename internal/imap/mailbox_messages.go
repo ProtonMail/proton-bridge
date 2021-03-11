@@ -422,7 +422,7 @@ func (im *imapMailbox) SearchMessages(isUID bool, criteria *imap.SearchCriteria)
 		if isStringInList(m.LabelIDs, pmapi.StarredLabel) {
 			messageFlagsMap[imap.FlaggedFlag] = true
 		}
-		if m.Unread == 0 {
+		if !m.Unread {
 			messageFlagsMap[imap.SeenFlag] = true
 		}
 		if m.Has(pmapi.FlagReplied) || m.Has(pmapi.FlagRepliedAll) {
@@ -560,7 +560,7 @@ func (im *imapMailbox) listMessages(isUID bool, seqSet *imap.SeqSet, items []ima
 			return nil, err
 		}
 
-		if storeMessage.Message().Unread == 1 {
+		if storeMessage.Message().Unread {
 			for section := range msg.Body {
 				// Peek means get messages without marking them as read.
 				// If client does not only ask for peek, we have to mark them as read.

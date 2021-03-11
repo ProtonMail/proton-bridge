@@ -65,7 +65,6 @@ func (c *fakeCredStore) Add(userID, userName, uid, ref, mailboxPassword string, 
 		BridgePassword:        bridgePassword,
 		IsCombinedAddressMode: true, // otherwise by default starts in split mode
 	}
-
 	return c.Get(userID)
 }
 
@@ -74,12 +73,10 @@ func (c *fakeCredStore) Get(userID string) (*credentials.Credentials, error) {
 }
 
 func (c *fakeCredStore) SwitchAddressMode(userID string) (*credentials.Credentials, error) {
-	// FIXME(conman): Why is this empty?
 	return c.credentials[userID], nil
 }
 
 func (c *fakeCredStore) UpdateEmails(userID string, emails []string) (*credentials.Credentials, error) {
-	// FIXME(conman): Why is this empty?
 	return c.credentials[userID], nil
 }
 

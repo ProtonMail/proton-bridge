@@ -89,24 +89,42 @@ func New(
 		lock:                   sync.RWMutex{},
 	}
 
-	// FIXME(conman): Handle force upgrade events.
-	/*
-		go func() {
-			defer panicHandler.HandlePanic()
-			u.watchAppOutdated()
-		}()
-	*/
+	go func() {
+		defer panicHandler.HandlePanic()
+		u.watchEvents()
+	}()
 
 	if u.credStorer == nil {
 		log.Error("No credentials store is available")
-	} else if err := u.loadUsersFromCredentialsStore(context.TODO()); err != nil {
+	} else if err := u.loadUsersFromCredentialsStore(); err != nil {
 		log.WithError(err).Error("Could not load all users from credentials store")
 	}
 
 	return u
 }
 
-func (u *Users) loadUsersFromCredentialsStore(ctx context.Context) error {
+func (u *Users) watchEvents() {
+	upgradeCh := u.events.ProvideChannel(events.UpgradeApplicationEvent)
+	internetOnCh := u.events.ProvideChannel(events.InternetOnEvent)
+
+	for {
+		select {
+		case <-upgradeCh:
+			isApplicationOutdated = true
+			u.closeAllConnections()
+		case <-internetOnCh:
+			for _, user := range u.users {
+				if user.store == nil {
+					if err := user.loadStore(); err != nil {
+						log.WithError(err).Error("Failed to load store after reconnecting")
+					}
+				}
+			}
+		}
+	}
+}
+
+func (u *Users) loadUsersFromCredentialsStore() error {
 	u.lock.Lock()
 	defer u.lock.Unlock()
 
@@ -116,33 +134,31 @@ func (u *Users) loadUsersFromCredentialsStore(ctx context.Context) error {
 	}
 
 	for _, userID := range userIDs {
+		l := log.WithField("user", userID)
 		user, creds, err := newUser(u.panicHandler, userID, u.events, u.credStorer, u.storeFactory, u.useOnlyActiveAddresses)
 		if err != nil {
-			logrus.WithError(err).Warn("Could not create user, skipping")
+			l.WithError(err).Warn("Could not create user, skipping")
 			continue
 		}
 
 		u.users = append(u.users, user)
 
 		if creds.IsConnected() {
-			if err := u.loadConnectedUser(ctx, user, creds); err != nil {
-				logrus.WithError(err).Warn("Could not load connected user")
+			// If there is no connection, we don't want to retry. Load should
+			// happen fast enough to not block GUI. When connection is back up,
+			// watchEvents and unlockIfNecessary will finish user init later.
+			if err := u.loadConnectedUser(pmapi.ContextWithoutRetry(context.Background()), user, creds); err != nil {
+				l.WithError(err).Warn("Could not load connected user")
 			}
 		} else {
-			logrus.Warn("User is disconnected and must be connected manually")
-
-			if err := u.loadDisconnectedUser(ctx, user, creds); err != nil {
-				logrus.WithError(err).Warn("Could not load disconnected user")
+			l.Warn("User is disconnected and must be connected manually")
+			if err := user.connect(u.clientManager.NewClient("", "", "", time.Time{}), creds); err != nil {
+				l.WithError(err).Warn("Could not load disconnected user")
 			}
 		}
 	}
 
 	return err
-}
-
-func (u *Users) loadDisconnectedUser(ctx context.Context, user *User, creds *credentials.Credentials) error {
-	// FIXME(conman): We shouldn't be creating unauthorized clients... this is hacky, just to avoid huge refactor!
-	return user.connect(ctx, u.clientManager.NewClient("", "", "", time.Time{}), creds)
 }
 
 func (u *Users) loadConnectedUser(ctx context.Context, user *User, creds *credentials.Credentials) error {
@@ -153,38 +169,27 @@ func (u *Users) loadConnectedUser(ctx context.Context, user *User, creds *creden
 
 	client, auth, err := u.clientManager.NewClientWithRefresh(ctx, uid, ref)
 	if err != nil {
-		// FIXME(conman): This is a problem... if we weren't able to create a new client due to internet,
-		// we need to be able to retry later, but I deleted all the hacky "retry auth if necessary" stuff...
-		return user.connect(ctx, u.clientManager.NewClient(uid, "", ref, time.Time{}), creds)
+		// When client cannot be refreshed right away due to no connection,
+		// we create client which will refresh automatically when possible.
+		connectErr := user.connect(u.clientManager.NewClient(uid, "", ref, time.Time{}), creds)
+
+		switch errors.Cause(err) {
+		case pmapi.ErrNoConnection, pmapi.ErrUpgradeApplication:
+			return connectErr
+		}
+
+		if logoutErr := user.logout(); logoutErr != nil {
+			logrus.WithError(logoutErr).Warn("Could not logout user")
+		}
+		return errors.Wrap(err, "could not refresh token")
 	}
 
 	// Update the user's credentials with the latest auth used to connect this user.
-	if creds, err = u.credStorer.UpdateToken(auth.UserID, auth.UID, auth.RefreshToken); err != nil {
+	if creds, err = u.credStorer.UpdateToken(creds.UserID, auth.UID, auth.RefreshToken); err != nil {
 		return errors.Wrap(err, "could not create get user's refresh token")
 	}
 
-	return user.connect(ctx, client, creds)
-}
-
-func (u *Users) watchAppOutdated() {
-	// FIXME(conman): handle force upgrade events.
-
-	/*
-		ch := make(chan string)
-
-		u.events.Add(events.UpgradeApplicationEvent, ch)
-
-		for {
-			select {
-			case <-ch:
-				isApplicationOutdated = true
-				u.closeAllConnections()
-
-			case <-u.stopAll:
-				return
-			}
-		}
-	*/
+	return user.connect(client, creds)
 }
 
 func (u *Users) closeAllConnections() {
@@ -198,19 +203,19 @@ func (u *Users) closeAllConnections() {
 func (u *Users) Login(username, password string) (authClient pmapi.Client, auth *pmapi.Auth, err error) {
 	u.crashBandicoot(username)
 
-	return u.clientManager.NewClientWithLogin(context.TODO(), username, password)
+	return u.clientManager.NewClientWithLogin(context.Background(), username, password)
 }
 
 // FinishLogin finishes the login procedure and adds the user into the credentials store.
 func (u *Users) FinishLogin(client pmapi.Client, auth *pmapi.Auth, password string) (user *User, err error) { //nolint[funlen]
-	apiUser, passphrase, err := getAPIUser(context.TODO(), client, password)
+	apiUser, passphrase, err := getAPIUser(context.Background(), client, password)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to get API user")
+		return nil, err
 	}
 
 	if user, ok := u.hasUser(apiUser.ID); ok {
 		if user.IsConnected() {
-			if err := client.AuthDelete(context.TODO()); err != nil {
+			if err := client.AuthDelete(context.Background()); err != nil {
 				logrus.WithError(err).Warn("Failed to delete new auth session")
 			}
 
@@ -228,14 +233,16 @@ func (u *Users) FinishLogin(client pmapi.Client, auth *pmapi.Auth, password stri
 			return nil, errors.Wrap(err, "failed to update password of user in credentials store")
 		}
 
-		if err := user.connect(context.TODO(), client, creds); err != nil {
+		if err := user.connect(client, creds); err != nil {
 			return nil, errors.Wrap(err, "failed to reconnect existing user")
 		}
+
+		u.events.Emit(events.UserRefreshEvent, apiUser.ID)
 
 		return user, nil
 	}
 
-	if err := u.addNewUser(context.TODO(), client, apiUser, auth, passphrase); err != nil {
+	if err := u.addNewUser(client, apiUser, auth, passphrase); err != nil {
 		return nil, errors.Wrap(err, "failed to add new user")
 	}
 
@@ -245,7 +252,7 @@ func (u *Users) FinishLogin(client pmapi.Client, auth *pmapi.Auth, password stri
 }
 
 // addNewUser adds a new user.
-func (u *Users) addNewUser(ctx context.Context, client pmapi.Client, apiUser *pmapi.User, auth *pmapi.Auth, passphrase []byte) error {
+func (u *Users) addNewUser(client pmapi.Client, apiUser *pmapi.User, auth *pmapi.Auth, passphrase []byte) error {
 	u.lock.Lock()
 	defer u.lock.Unlock()
 
@@ -266,7 +273,7 @@ func (u *Users) addNewUser(ctx context.Context, client pmapi.Client, apiUser *pm
 		return errors.Wrap(err, "failed to create new user")
 	}
 
-	if err := user.connect(ctx, client, creds); err != nil {
+	if err := user.connect(client, creds); err != nil {
 		return errors.Wrap(err, "failed to connect new user")
 	}
 
@@ -292,7 +299,7 @@ func getAPIUser(ctx context.Context, client pmapi.Client, password string) (*pma
 
 	// We unlock the user's PGP key here to detect if the user's mailbox password is wrong.
 	if err := client.Unlock(ctx, passphrase); err != nil {
-		return nil, nil, errors.Wrap(err, "failed to unlock client")
+		return nil, nil, ErrWrongMailboxPassword
 	}
 
 	user, err := client.CurrentUser(ctx)
@@ -414,22 +421,13 @@ func (u *Users) SendMetric(m metrics.Metric) error {
 // AllowProxy instructs the app to use DoH to access an API proxy if necessary.
 // It also needs to work before the app is initialised (because we may need to use the proxy at startup).
 func (u *Users) AllowProxy() {
-	// FIXME(conman): Support DoH.
-	// u.apiManager.AllowProxy()
+	u.clientManager.AllowProxy()
 }
 
 // DisallowProxy instructs the app to not use DoH to access an API proxy if necessary.
 // It also needs to work before the app is initialised (because we may need to use the proxy at startup).
 func (u *Users) DisallowProxy() {
-	// FIXME(conman): Support DoH.
-	// u.apiManager.DisallowProxy()
-}
-
-// CheckConnection returns whether there is an internet connection.
-// This should use the connection manager when it is eventually implemented.
-func (u *Users) CheckConnection() error {
-	// FIXME(conman): Other parts of bridge that rely on this method should register as a connection observer.
-	panic("TODO: register as a connection observer to get this information")
+	u.clientManager.DisallowProxy()
 }
 
 // hasUser returns whether the struct currently has a user with ID `id`.

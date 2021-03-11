@@ -19,7 +19,6 @@ package pmapi
 
 import (
 	"context"
-	"net/url"
 
 	"github.com/go-resty/resty/v2"
 )
@@ -44,8 +43,6 @@ const (
 
 // GetPublicKeysForEmail returns all sending public keys for the given email address.
 func (c *client) GetPublicKeysForEmail(ctx context.Context, email string) (keys []PublicKey, internal bool, err error) {
-	email = url.QueryEscape(email)
-
 	var res struct {
 		Keys          []PublicKey
 		RecipientType RecipientType

@@ -132,15 +132,7 @@ func isMessageMatchingFilter(filter *pmapi.MessagesFilter, message *pmapi.Messag
 		return false
 	}
 	if filter.Unread != nil {
-		var wantUnread pmapi.Boolean
-
-		if *filter.Unread {
-			wantUnread = pmapi.True
-		} else {
-			wantUnread = pmapi.False
-		}
-
-		if message.Unread != wantUnread {
+		if bool(message.Unread) != *filter.Unread {
 			return false
 		}
 	}
@@ -393,10 +385,10 @@ func (api *FakePMAPI) MarkMessagesRead(_ context.Context, apiIDs []string) error
 	return api.updateMessages(PUT, "/mail/v4/messages/read", &pmapi.MessagesActionReq{
 		IDs: apiIDs,
 	}, apiIDs, func(message *pmapi.Message) error {
-		if message.Unread == 0 {
+		if !message.Unread {
 			return errWasNotUpdated
 		}
-		message.Unread = 0
+		message.Unread = false
 		return nil
 	})
 }
@@ -405,10 +397,10 @@ func (api *FakePMAPI) MarkMessagesUnread(_ context.Context, apiIDs []string) err
 	err := api.updateMessages(PUT, "/mail/v4/messages/unread", &pmapi.MessagesActionReq{
 		IDs: apiIDs,
 	}, apiIDs, func(message *pmapi.Message) error {
-		if message.Unread == 1 {
+		if message.Unread {
 			return errWasNotUpdated
 		}
-		message.Unread = 1
+		message.Unread = true
 		return nil
 	})
 	if err != nil {

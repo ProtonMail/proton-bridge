@@ -116,6 +116,12 @@ func (api *FakePMAPI) ReorderAddresses(_ context.Context, addressIDs []string) e
 }
 
 func (api *FakePMAPI) Addresses() pmapi.AddressList {
+	if api.controller.noInternetConnection {
+		return nil
+	}
+	if api.addresses == nil {
+		return pmapi.AddressList{}
+	}
 	return *api.addresses
 }
 

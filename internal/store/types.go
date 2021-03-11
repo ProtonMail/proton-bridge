@@ -17,7 +17,11 @@
 
 package store
 
-import "github.com/ProtonMail/proton-bridge/pkg/pmapi"
+import (
+	"context"
+
+	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
+)
 
 type PanicHandler interface {
 	HandlePanic()
@@ -32,7 +36,7 @@ type BridgeUser interface {
 	GetPrimaryAddress() string
 	GetStoreAddresses() []string
 	GetClient() pmapi.Client
-	UpdateUser() error
+	UpdateUser(context.Context) error
 	CloseAllConnections()
 	CloseConnection(string)
 	Logout() error

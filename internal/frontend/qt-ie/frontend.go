@@ -143,16 +143,16 @@ func (f *FrontendQt) NotifySilentUpdateError(err error) {
 }
 
 func (f *FrontendQt) watchEvents() {
-	credentialsErrorCh := qtcommon.MakeAndRegisterEvent(f.eventListener, events.CredentialsErrorEvent)
-	internetOffCh := qtcommon.MakeAndRegisterEvent(f.eventListener, events.InternetOffEvent)
-	internetOnCh := qtcommon.MakeAndRegisterEvent(f.eventListener, events.InternetOnEvent)
-	secondInstanceCh := qtcommon.MakeAndRegisterEvent(f.eventListener, events.SecondInstanceEvent)
-	restartBridgeCh := qtcommon.MakeAndRegisterEvent(f.eventListener, events.RestartBridgeEvent)
-	addressChangedCh := qtcommon.MakeAndRegisterEvent(f.eventListener, events.AddressChangedEvent)
-	addressChangedLogoutCh := qtcommon.MakeAndRegisterEvent(f.eventListener, events.AddressChangedLogoutEvent)
-	logoutCh := qtcommon.MakeAndRegisterEvent(f.eventListener, events.LogoutEvent)
-	updateApplicationCh := qtcommon.MakeAndRegisterEvent(f.eventListener, events.UpgradeApplicationEvent)
-	newUserCh := qtcommon.MakeAndRegisterEvent(f.eventListener, events.UserRefreshEvent)
+	credentialsErrorCh := f.eventListener.ProvideChannel(events.CredentialsErrorEvent)
+	internetOffCh := f.eventListener.ProvideChannel(events.InternetOffEvent)
+	internetOnCh := f.eventListener.ProvideChannel(events.InternetOnEvent)
+	secondInstanceCh := f.eventListener.ProvideChannel(events.SecondInstanceEvent)
+	restartBridgeCh := f.eventListener.ProvideChannel(events.RestartBridgeEvent)
+	addressChangedCh := f.eventListener.ProvideChannel(events.AddressChangedEvent)
+	addressChangedLogoutCh := f.eventListener.ProvideChannel(events.AddressChangedLogoutEvent)
+	logoutCh := f.eventListener.ProvideChannel(events.LogoutEvent)
+	updateApplicationCh := f.eventListener.ProvideChannel(events.UpgradeApplicationEvent)
+	newUserCh := f.eventListener.ProvideChannel(events.UserRefreshEvent)
 	for {
 		select {
 		case <-credentialsErrorCh:
@@ -350,11 +350,6 @@ func (f *FrontendQt) sendBug(description, emailClient, address string) bool {
 //		f.Qml.SetIsAutoUpdate(true)
 //	}
 //}
-
-// checkInternet is almost idetical to bridge
-func (f *FrontendQt) checkInternet() {
-	f.Qml.SetConnectionStatus(f.ie.CheckConnection() == nil)
-}
 
 func (f *FrontendQt) showError(code int, err error) {
 	f.Qml.SetErrorDescription(err.Error())

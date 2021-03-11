@@ -20,6 +20,7 @@ package cliie
 import (
 	"strings"
 
+	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	"github.com/fatih/color"
 )
 
@@ -70,13 +71,10 @@ func (f *frontendCLI) printAndLogError(args ...interface{}) {
 func (f *frontendCLI) processAPIError(err error) {
 	log.Warn("API error: ", err)
 	switch err {
-	// FIXME(conman): How to handle various API errors?
-	/*
-		case pmapi.ErrNoConnection:
-			f.notifyInternetOff()
-		case pmapi.ErrUpgradeApplication:
-			f.notifyNeedUpgrade()
-	*/
+	case pmapi.ErrNoConnection:
+		f.notifyInternetOff()
+	case pmapi.ErrUpgradeApplication:
+		f.notifyNeedUpgrade()
 	default:
 		f.Println("Server error:", err.Error())
 	}

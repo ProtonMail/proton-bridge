@@ -184,8 +184,8 @@ func (mocks *mocksForStore) newStoreNoEvents(combinedMode bool, msgs ...*pmapi.M
 	mocks.user.EXPECT().GetClient().AnyTimes().Return(mocks.client)
 
 	mocks.client.EXPECT().Addresses().Return(pmapi.AddressList{
-		{ID: addrID1, Email: addr1, Type: pmapi.OriginalAddress, Receive: pmapi.CanReceive},
-		{ID: addrID2, Email: addr2, Type: pmapi.AliasAddress, Receive: pmapi.CanReceive},
+		{ID: addrID1, Email: addr1, Type: pmapi.OriginalAddress, Receive: true},
+		{ID: addrID2, Email: addr2, Type: pmapi.AliasAddress, Receive: true},
 	})
 	mocks.client.EXPECT().ListLabels(gomock.Any()).AnyTimes()
 	mocks.client.EXPECT().CountMessages(gomock.Any(), "")

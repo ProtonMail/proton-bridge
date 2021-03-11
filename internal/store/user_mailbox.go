@@ -18,7 +18,6 @@
 package store
 
 import (
-	"context"
 	"fmt"
 	"strings"
 
@@ -39,14 +38,14 @@ func (store *Store) createMailbox(name string) error {
 
 	color := store.leastUsedColor()
 
-	var exclusive int
+	var exclusive bool
 	switch {
 	case strings.HasPrefix(name, UserLabelsPrefix):
 		name = strings.TrimPrefix(name, UserLabelsPrefix)
-		exclusive = 0
+		exclusive = false
 	case strings.HasPrefix(name, UserFoldersPrefix):
 		name = strings.TrimPrefix(name, UserFoldersPrefix)
-		exclusive = 1
+		exclusive = true
 	default:
 		// Ideally we would throw an error here, but then Outlook for
 		// macOS keeps trying to make an IMAP Drafts folder and popping
@@ -56,10 +55,10 @@ func (store *Store) createMailbox(name string) error {
 		return nil
 	}
 
-	_, err := store.client().CreateLabel(context.TODO(), &pmapi.Label{
+	_, err := store.client().CreateLabel(exposeContextForIMAP(), &pmapi.Label{
 		Name:      name,
 		Color:     color,
-		Exclusive: exclusive,
+		Exclusive: pmapi.Boolean(exclusive),
 		Type:      pmapi.LabelTypeMailbox,
 	})
 	return err
@@ -126,7 +125,7 @@ func (store *Store) leastUsedColor() string {
 func (store *Store) updateMailbox(labelID, newName, color string) error {
 	defer store.eventLoop.pollNow()
 
-	_, err := store.client().UpdateLabel(context.TODO(), &pmapi.Label{
+	_, err := store.client().UpdateLabel(exposeContextForIMAP(), &pmapi.Label{
 		ID:    labelID,
 		Name:  newName,
 		Color: color,
@@ -143,15 +142,15 @@ func (store *Store) deleteMailbox(labelID, addressID string) error {
 		var err error
 		switch labelID {
 		case pmapi.SpamLabel:
-			err = store.client().EmptyFolder(context.TODO(), pmapi.SpamLabel, addressID)
+			err = store.client().EmptyFolder(exposeContextForIMAP(), pmapi.SpamLabel, addressID)
 		case pmapi.TrashLabel:
-			err = store.client().EmptyFolder(context.TODO(), pmapi.TrashLabel, addressID)
+			err = store.client().EmptyFolder(exposeContextForIMAP(), pmapi.TrashLabel, addressID)
 		default:
 			err = fmt.Errorf("cannot empty mailbox %v", labelID)
 		}
 		return err
 	}
-	return store.client().DeleteLabel(context.TODO(), labelID)
+	return store.client().DeleteLabel(exposeContextForIMAP(), labelID)
 }
 
 func (store *Store) createLabelsIfMissing(affectedLabelIDs map[string]bool) error {
@@ -166,7 +165,7 @@ func (store *Store) createLabelsIfMissing(affectedLabelIDs map[string]bool) erro
 		return nil
 	}
 
-	labels, err := store.client().ListLabels(context.TODO())
+	labels, err := store.client().ListLabels(exposeContextForIMAP())
 	if err != nil {
 		return err
 	}

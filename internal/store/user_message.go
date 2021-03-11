@@ -19,7 +19,6 @@ package store
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"io"
 	"io/ioutil"
@@ -58,7 +57,7 @@ func (store *Store) CreateDraft(
 	}
 
 	draftAction := store.getDraftAction(message)
-	draft, err := store.client().CreateDraft(context.TODO(), message, parentID, draftAction)
+	draft, err := store.client().CreateDraft(exposeContextForSMTP(), message, parentID, draftAction)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "failed to create draft")
 	}
@@ -70,7 +69,7 @@ func (store *Store) CreateDraft(
 	for _, att := range attachments {
 		att.attachment.MessageID = draft.ID
 
-		createdAttachment, err := store.client().CreateAttachment(context.TODO(), att.attachment, att.encReader, att.sigReader)
+		createdAttachment, err := store.client().CreateAttachment(exposeContextForSMTP(), att.attachment, att.encReader, att.sigReader)
 		if err != nil {
 			return nil, nil, errors.Wrap(err, "failed to create attachment")
 		}
@@ -184,7 +183,7 @@ func (store *Store) getDraftAction(message *pmapi.Message) int {
 // SendMessage sends the message.
 func (store *Store) SendMessage(messageID string, req *pmapi.SendMessageReq) error {
 	defer store.eventLoop.pollNow()
-	_, _, err := store.client().SendMessage(context.TODO(), messageID, req)
+	_, _, err := store.client().SendMessage(exposeContextForSMTP(), messageID, req)
 	return err
 }
 

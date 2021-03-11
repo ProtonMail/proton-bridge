@@ -148,7 +148,7 @@ func getSplitIDAndCount(labelID string, api messageLister, page int) (string, in
 		Limit:    1,
 	}
 	// If the page does not exist, an empty page instead of an error is returned.
-	messages, total, err := api.ListMessages(context.TODO(), filter)
+	messages, total, err := api.ListMessages(context.Background(), filter)
 	if err != nil {
 		return "", 0, errors.Wrap(err, "failed to list messages")
 	}
@@ -190,7 +190,7 @@ func syncBatch( //nolint[funlen]
 
 		log.WithField("begin", filter.BeginID).WithField("end", filter.EndID).Debug("Fetching page")
 
-		messages, _, err := api.ListMessages(context.TODO(), filter)
+		messages, _, err := api.ListMessages(context.Background(), filter)
 		if err != nil {
 			return errors.Wrap(err, "failed to list messages")
 		}

@@ -181,20 +181,17 @@ func New( // nolint[funlen]
 		kc = keychain.NewMissingKeychain()
 	}
 
-	// FIXME(conman): Customize config depending on build type (app version, host URL).
-	cm := pmapi.New(pmapi.DefaultConfig)
+	cfg := pmapi.NewConfig(configName, constants.Version)
+	cfg.GetUserAgent = userAgent.String
+	cfg.UpgradeApplicationHandler = func() { listener.Emit(events.UpgradeApplicationEvent, "") }
+	cfg.TLSIssueHandler = func() { listener.Emit(events.TLSCertIssue, "") }
 
-	// FIXME(conman): Should this be a real object, not just created via callbacks?
+	cm := pmapi.New(cfg)
+
 	cm.AddConnectionObserver(pmapi.NewConnectionObserver(
 		func() { listener.Emit(events.InternetOffEvent, "") },
 		func() { listener.Emit(events.InternetOnEvent, "") },
 	))
-
-	// FIXME(conman): Implement force upgrade observer.
-	// apiConfig.UpgradeApplicationHandler = func() { listener.Emit(events.UpgradeApplicationEvent, "") }
-
-	// FIXME(conman): Set up fancy round tripper with DoH/TLS checks etc.
-	// cm.SetRoundTripper(pmapi.GetRoundTripper(cm, listener))
 
 	jar, err := cookies.NewCookieJar(settingsObj)
 	if err != nil {
@@ -341,6 +338,7 @@ func (b *Base) run(appMainLoop func(*Base, *cli.Context) error) cli.ActionFunc {
 		}
 
 		logging.SetLevel(c.String(flagLogLevel))
+		b.CM.SetLogging(logrus.WithField("pkg", "pmapi"), logrus.GetLevel() == logrus.TraceLevel)
 
 		logrus.
 			WithField("appName", b.Name).

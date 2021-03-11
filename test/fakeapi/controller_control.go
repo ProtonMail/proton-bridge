@@ -39,11 +39,17 @@ var systemLabelNameToID = map[string]string{ //nolint[gochecknoglobals]
 func (ctl *Controller) TurnInternetConnectionOff() {
 	ctl.log.Warn("Turning OFF internet")
 	ctl.noInternetConnection = true
+	for _, observer := range ctl.clientManager.connectionObservers {
+		observer.OnDown()
+	}
 }
 
 func (ctl *Controller) TurnInternetConnectionOn() {
 	ctl.log.Warn("Turning ON internet")
 	ctl.noInternetConnection = false
+	for _, observer := range ctl.clientManager.connectionObservers {
+		observer.OnUp()
+	}
 }
 
 func (ctl *Controller) ReorderAddresses(user *pmapi.User, addressIDs []string) error {
@@ -52,7 +58,7 @@ func (ctl *Controller) ReorderAddresses(user *pmapi.User, addressIDs []string) e
 		return errors.New("no such user")
 	}
 
-	return api.ReorderAddresses(context.TODO(), addressIDs)
+	return api.ReorderAddresses(context.Background(), addressIDs)
 }
 
 func (ctl *Controller) AddUser(user *pmapi.User, addresses *pmapi.AddressList, password string, twoFAEnabled bool) error {
@@ -79,7 +85,7 @@ func (ctl *Controller) AddUserLabel(username string, label *pmapi.Label) error {
 
 	label.Exclusive = getLabelExclusive(label.Name)
 	prefix := "label"
-	if label.Exclusive == 1 {
+	if label.Exclusive {
 		prefix = "folder"
 	}
 	label.ID = ctl.labelIDGenerator.next(prefix)
@@ -127,11 +133,8 @@ func getLabelNameWithoutPrefix(name string) string {
 	return name
 }
 
-func getLabelExclusive(name string) int {
-	if strings.HasPrefix(name, "Folders/") {
-		return 1
-	}
-	return 0
+func getLabelExclusive(name string) pmapi.Boolean {
+	return pmapi.Boolean(strings.HasPrefix(name, "Folders/"))
 }
 
 func (ctl *Controller) AddUserMessage(username string, message *pmapi.Message) (string, error) {

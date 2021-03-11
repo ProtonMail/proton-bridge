@@ -5,10 +5,10 @@
 package mocks
 
 import (
-	reflect "reflect"
-
+	context "context"
 	pmapi "github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	gomock "github.com/golang/mock/gomock"
+	reflect "reflect"
 )
 
 // MockPanicHandler is a mock of PanicHandler interface
@@ -207,17 +207,17 @@ func (mr *MockBridgeUserMockRecorder) Logout() *gomock.Call {
 }
 
 // UpdateUser mocks base method
-func (m *MockBridgeUser) UpdateUser() error {
+func (m *MockBridgeUser) UpdateUser(arg0 context.Context) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateUser")
+	ret := m.ctrl.Call(m, "UpdateUser", arg0)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // UpdateUser indicates an expected call of UpdateUser
-func (mr *MockBridgeUserMockRecorder) UpdateUser() *gomock.Call {
+func (mr *MockBridgeUserMockRecorder) UpdateUser(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUser", reflect.TypeOf((*MockBridgeUser)(nil).UpdateUser))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUser", reflect.TypeOf((*MockBridgeUser)(nil).UpdateUser), arg0)
 }
 
 // MockChangeNotifier is a mock of ChangeNotifier interface

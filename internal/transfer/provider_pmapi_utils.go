@@ -30,8 +30,16 @@ import (
 const (
 	pmapiRetries          = 10
 	pmapiReconnectTimeout = 30 * time.Minute
-	pmapiReconnectSleep   = time.Minute
+	pmapiReconnectSleep   = 10 * time.Second
 )
+
+func (p *PMAPIProvider) SetConnectionUp() {
+	p.connection = true
+}
+
+func (p *PMAPIProvider) SetConnectionDown() {
+	p.connection = false
+}
 
 func (p *PMAPIProvider) ensureConnection(callback func() error) error {
 	var callErr error
@@ -58,18 +66,10 @@ func (p *PMAPIProvider) tryReconnect() error {
 			return previousErr
 		}
 
-		// FIXME(conman): This should register as a connection observer somehow...
-		// Maybe the entire "provider" could register as an observer and pause if it is notified of dropped connection?
-
-		/*
-			err := p.clientManager.CheckConnection()
-			log.WithError(err).Debug("Connection check")
-			if err != nil {
-				time.Sleep(pmapiReconnectSleep)
-				previousErr = err
-				continue
-			}
-		*/
+		if !p.connection {
+			time.Sleep(pmapiReconnectSleep)
+			continue
+		}
 
 		break
 	}
@@ -83,7 +83,7 @@ func (p *PMAPIProvider) listMessages(filter *pmapi.MessagesFilter) (messages []*
 		p.timeIt.start("listing", key)
 		defer p.timeIt.stop("listing", key)
 
-		messages, count, err = p.client.ListMessages(context.TODO(), filter)
+		messages, count, err = p.client.ListMessages(context.Background(), filter)
 		return err
 	})
 	return
@@ -94,7 +94,7 @@ func (p *PMAPIProvider) getMessage(msgID string) (message *pmapi.Message, err er
 		p.timeIt.start("download", msgID)
 		defer p.timeIt.stop("download", msgID)
 
-		message, err = p.client.GetMessage(context.TODO(), msgID)
+		message, err = p.client.GetMessage(context.Background(), msgID)
 		return err
 	})
 	return
@@ -105,7 +105,7 @@ func (p *PMAPIProvider) importRequest(msgSourceID string, req pmapi.ImportMsgReq
 		p.timeIt.start("upload", msgSourceID)
 		defer p.timeIt.stop("upload", msgSourceID)
 
-		res, err = p.client.Import(context.TODO(), req)
+		res, err = p.client.Import(context.Background(), req)
 		return err
 	})
 	return
@@ -116,7 +116,7 @@ func (p *PMAPIProvider) createDraft(msgSourceID string, message *pmapi.Message, 
 		p.timeIt.start("upload", msgSourceID)
 		defer p.timeIt.stop("upload", msgSourceID)
 
-		draft, err = p.client.CreateDraft(context.TODO(), message, parent, action)
+		draft, err = p.client.CreateDraft(context.Background(), message, parent, action)
 		return err
 	})
 	return
@@ -129,7 +129,7 @@ func (p *PMAPIProvider) createAttachment(msgSourceID string, att *pmapi.Attachme
 		p.timeIt.start("upload", key)
 		defer p.timeIt.stop("upload", key)
 
-		created, err = p.client.CreateAttachment(context.TODO(), att, r, sig)
+		created, err = p.client.CreateAttachment(context.Background(), att, r, sig)
 		return err
 	})
 	return

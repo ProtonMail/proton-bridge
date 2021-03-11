@@ -27,10 +27,10 @@ import (
 
 // Client defines the interface of a PMAPI client.
 type Client interface {
-	Auth2FA(context.Context, Auth2FAReq) error
+	Auth2FA(context.Context, string) error
 	AuthSalt(ctx context.Context) (string, error)
 	AuthDelete(context.Context) error
-	AddAuthHandler(AuthHandler)
+	AddAuthRefreshHandler(AuthRefreshHandler)
 
 	CurrentUser(ctx context.Context) (*User, error)
 	UpdateUser(ctx context.Context) (*User, error)
@@ -75,9 +75,9 @@ type Client interface {
 	GetPublicKeysForEmail(context.Context, string) ([]PublicKey, bool, error)
 }
 
-type AuthHandler func(*Auth) error
+type AuthRefreshHandler func(*AuthRefresh)
 
-type requester interface {
+type clientManager interface {
 	r(context.Context) *resty.Request
-	authRefresh(context.Context, string, string) (*Auth, error)
+	authRefresh(context.Context, string, string) (*AuthRefresh, error)
 }

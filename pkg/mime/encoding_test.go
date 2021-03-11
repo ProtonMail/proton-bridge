@@ -19,7 +19,6 @@ package pmmime
 
 import (
 	"bytes"
-	//"fmt"
 	"strings"
 	"testing"
 

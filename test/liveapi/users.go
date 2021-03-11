@@ -30,12 +30,12 @@ func (ctl *Controller) AddUser(user *pmapi.User, addresses *pmapi.AddressList, p
 		return godog.ErrPending
 	}
 
-	client, _, err := ctl.clientManager.NewClientWithLogin(context.TODO(), user.Name, password)
+	client, _, err := ctl.clientManager.NewClientWithLogin(context.Background(), user.Name, password)
 	if err != nil {
 		return errors.Wrap(err, "failed to create new client")
 	}
 
-	salt, err := client.AuthSalt(context.TODO())
+	salt, err := client.AuthSalt(context.Background())
 	if err != nil {
 		return errors.Wrap(err, "failed to get salt")
 	}
@@ -45,7 +45,7 @@ func (ctl *Controller) AddUser(user *pmapi.User, addresses *pmapi.AddressList, p
 		return errors.Wrap(err, "failed to hash mailbox password")
 	}
 
-	if err := client.Unlock(context.TODO(), mailboxPassword); err != nil {
+	if err := client.Unlock(context.Background(), mailboxPassword); err != nil {
 		return errors.Wrap(err, "failed to unlock user")
 	}
 
@@ -59,5 +59,5 @@ func (ctl *Controller) AddUser(user *pmapi.User, addresses *pmapi.AddressList, p
 }
 
 func (ctl *Controller) ReorderAddresses(user *pmapi.User, addressIDs []string) error {
-	return ctl.pmapiByUsername[user.Name].ReorderAddresses(context.TODO(), addressIDs)
+	return ctl.pmapiByUsername[user.Name].ReorderAddresses(context.Background(), addressIDs)
 }

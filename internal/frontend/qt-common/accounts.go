@@ -20,6 +20,7 @@
 package qtcommon
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"sync"
@@ -207,7 +208,7 @@ func (a *Accounts) Auth2FA(twoFacAuth string) int {
 	if a.auth == nil || a.authClient == nil {
 		err = fmt.Errorf("missing authentication in auth2FA %p %p", a.auth, a.authClient)
 	} else {
-		err = a.authClient.Auth2FA(twoFacAuth, a.auth)
+		err = a.authClient.Auth2FA(context.Background(), twoFacAuth)
 	}
 
 	if a.showLoginError(err, "auth2FA") {

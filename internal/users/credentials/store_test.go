@@ -26,8 +26,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
+	r "github.com/stretchr/testify/require"
 )
 
 const testSep = "\n"
@@ -249,26 +248,26 @@ func TestMarshalFormats(t *testing.T) {
 	log.Infof("secretFmt %#v %d\n", secretFmt, len(secretFmt))
 
 	output := testCredentials{APIToken: "refresh"}
-	require.NoError(t, output.UnmarshalStrings(secretStrings))
+	r.NoError(t, output.UnmarshalStrings(secretStrings))
 	log.Infof("strings out %#v \n", output)
-	require.True(t, input.IsSame(&output), "strings out not same")
+	r.True(t, input.IsSame(&output), "strings out not same")
 
 	output = testCredentials{APIToken: "refresh"}
-	require.NoError(t, output.UnmarshalGob(secretGob))
+	r.NoError(t, output.UnmarshalGob(secretGob))
 	log.Infof("gob out %#v\n \n", output)
-	assert.Equal(t, input, output)
+	r.Equal(t, input, output)
 
 	output = testCredentials{APIToken: "refresh"}
-	require.NoError(t, output.FromJSON(secretJSON))
+	r.NoError(t, output.FromJSON(secretJSON))
 	log.Infof("json out %#v \n", output)
-	require.True(t, input.IsSame(&output), "json out not same")
+	r.True(t, input.IsSame(&output), "json out not same")
 
 	/*
 		// Simple Fscanf not working!
 		output = testCredentials{APIToken: "refresh"}
-			require.NoError(t, output.UnmarshalFmt(secretFmt))
+			r.NoError(t, output.UnmarshalFmt(secretFmt))
 			log.Infof("fmt out %#v \n", output)
-			require.True(t, input.IsSame(&output), "fmt out not same")
+			r.True(t, input.IsSame(&output), "fmt out not same")
 	*/
 }
 
@@ -291,7 +290,7 @@ func TestMarshal(t *testing.T) {
 	log.Infof("secret %#v %d\n", secret, len(secret))
 
 	output := Credentials{APIToken: "refresh"}
-	require.NoError(t, output.Unmarshal(secret))
+	r.NoError(t, output.Unmarshal(secret))
 	log.Infof("output %#v\n", output)
-	assert.Equal(t, input, output)
+	r.Equal(t, input, output)
 }

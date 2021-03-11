@@ -75,42 +75,35 @@ var LabelColors = []string{ //nolint[gochecknoglobals]
 	"#dfb286",
 }
 
-type LabelAction int
-
-const (
-	RemoveLabel LabelAction = iota
-	AddLabel
-)
-
 // Label for message.
-type Label struct {
+type Label struct { //nolint[maligned]
 	ID        string
 	Name      string
 	Path      string
 	Color     string
 	Order     int `json:",omitempty"`
 	Display   int // Not used for now, leave it empty.
-	Exclusive int
+	Exclusive Boolean
 	Type      int
-	Notify    int
+	Notify    Boolean
 }
 
 func (c *client) ListLabels(ctx context.Context) (labels []*Label, err error) {
-	return c.ListLabelType(ctx, LabelTypeMailbox)
+	return c.listLabelType(ctx, LabelTypeMailbox)
 }
 
 func (c *client) ListContactGroups(ctx context.Context) (labels []*Label, err error) {
-	return c.ListLabelType(ctx, LabelTypeContactGroup)
+	return c.listLabelType(ctx, LabelTypeContactGroup)
 }
 
-// ListLabelType lists all labels created by the user.
-func (c *client) ListLabelType(ctx context.Context, labelType int) (labels []*Label, err error) {
+// listLabelType lists all labels created by the user.
+func (c *client) listLabelType(ctx context.Context, labelType int) (labels []*Label, err error) {
 	var res struct {
 		Labels []*Label
 	}
 
 	if _, err := c.do(ctx, func(r *resty.Request) (*resty.Response, error) {
-		return r.SetQueryParam("Type", strconv.Itoa(labelType)).SetResult(&res).Get("/v4/labels")
+		return r.SetQueryParam("Type", strconv.Itoa(labelType)).SetResult(&res).Get("/labels")
 	}); err != nil {
 		return nil, err
 	}
@@ -135,7 +128,7 @@ func (c *client) CreateLabel(ctx context.Context, label *Label) (created *Label,
 	if _, err := c.do(ctx, func(r *resty.Request) (*resty.Response, error) {
 		return r.SetBody(&LabelReq{
 			Label: label,
-		}).SetResult(&res).Post("/v4/labels")
+		}).SetResult(&res).Post("/labels")
 	}); err != nil {
 		return nil, err
 	}
@@ -156,7 +149,7 @@ func (c *client) UpdateLabel(ctx context.Context, label *Label) (updated *Label,
 	if _, err := c.do(ctx, func(r *resty.Request) (*resty.Response, error) {
 		return r.SetBody(&LabelReq{
 			Label: label,
-		}).SetResult(&res).Put("/v4/labels/" + label.ID)
+		}).SetResult(&res).Put("/labels/" + label.ID)
 	}); err != nil {
 		return nil, err
 	}
@@ -167,7 +160,7 @@ func (c *client) UpdateLabel(ctx context.Context, label *Label) (updated *Label,
 // DeleteLabel deletes a label.
 func (c *client) DeleteLabel(ctx context.Context, labelID string) error {
 	if _, err := c.do(ctx, func(r *resty.Request) (*resty.Response, error) {
-		return r.Delete("/v4/labels/" + labelID)
+		return r.Delete("/labels/" + labelID)
 	}); err != nil {
 		return err
 	}

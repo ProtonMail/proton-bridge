@@ -23,7 +23,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"mime/multipart"
 	"net/textproto"
 
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
@@ -136,44 +135,6 @@ func (a *Attachment) Encrypt(kr *crypto.KeyRing, att io.Reader) (encrypted io.Re
 
 func (a *Attachment) DetachedSign(kr *crypto.KeyRing, att io.Reader) (signed io.Reader, err error) {
 	return signAttachment(kr, att)
-}
-
-func writeAttachment(w *multipart.Writer, att *Attachment, r io.Reader, sig io.Reader) (err error) {
-	// Create metadata fields.
-	if err = w.WriteField("Filename", att.Name); err != nil {
-		return
-	}
-	if err = w.WriteField("MessageID", att.MessageID); err != nil {
-		return
-	}
-	if err = w.WriteField("MIMEType", att.MIMEType); err != nil {
-		return
-	}
-
-	if err = w.WriteField("ContentID", att.ContentID); err != nil {
-		return
-	}
-
-	// And send attachment data.
-	ff, err := w.CreateFormFile("DataPacket", "DataPacket.pgp")
-	if err != nil {
-		return
-	}
-	if _, err = io.Copy(ff, r); err != nil {
-		return
-	}
-
-	// And send attachment data.
-	sigff, err := w.CreateFormFile("Signature", "Signature.pgp")
-	if err != nil {
-		return
-	}
-
-	if _, err = io.Copy(sigff, sig); err != nil {
-		return
-	}
-
-	return err
 }
 
 // CreateAttachment uploads an attachment. It must be already encrypted and contain a MessageID.

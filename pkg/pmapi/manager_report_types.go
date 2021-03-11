@@ -1,12 +1,25 @@
+// Copyright (c) 2021 Proton Technologies AG
+//
+// This file is part of ProtonMail Bridge.
+//
+// ProtonMail Bridge is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// ProtonMail Bridge is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
+
 package pmapi
 
 import (
-	"archive/zip"
 	"fmt"
 	"io"
-	"mime/multipart"
-	"net/textproto"
-	"strings"
 )
 
 // ClientType is required by API.
@@ -47,8 +60,8 @@ func (rep *ReportBugReq) AddAttachment(name, filename string, r io.Reader) {
 	rep.Attachments = append(rep.Attachments, reportAtt{name: name, filename: filename, body: r})
 }
 
-func writeMultipartReport(w *multipart.Writer, rep *ReportBugReq) error { // nolint[funlen]
-	fieldData := map[string]string{
+func (rep *ReportBugReq) GetMultipartFormData() map[string]string {
+	return map[string]string{
 		"OS":                rep.OS,
 		"OSVersion":         rep.OSVersion,
 		"Browser":           rep.Browser,
@@ -58,7 +71,7 @@ func writeMultipartReport(w *multipart.Writer, rep *ReportBugReq) error { // nol
 		"DisplayMode":       rep.DisplayMode,
 		"Client":            rep.Client,
 		"ClientVersion":     rep.ClientVersion,
-		"ClientType":        "1",
+		"ClientType":        fmt.Sprintf("%d", rep.ClientType),
 		"Title":             rep.Title,
 		"Description":       rep.Description,
 		"Username":          rep.Username,
@@ -67,46 +80,4 @@ func writeMultipartReport(w *multipart.Writer, rep *ReportBugReq) error { // nol
 		"ISP":               rep.ISP,
 		"Debug":             rep.Debug,
 	}
-
-	for field, data := range fieldData {
-		if data == "" {
-			continue
-		}
-		if err := w.WriteField(field, data); err != nil {
-			return err
-		}
-	}
-
-	quoteEscaper := strings.NewReplacer("\\", "\\\\", `"`, "\\\"")
-
-	for _, att := range rep.Attachments {
-		h := make(textproto.MIMEHeader)
-		h.Set("Content-Disposition",
-			fmt.Sprintf(`form-data; name="%s"; filename="%s"`,
-				quoteEscaper.Replace(att.name), quoteEscaper.Replace(att.filename+".zip")))
-		h.Set("Content-Type", "application/octet-stream")
-		// h.Set("Content-Transfer-Encoding", "base64")
-		attWr, err := w.CreatePart(h)
-		if err != nil {
-			return err
-		}
-
-		zipArch := zip.NewWriter(attWr)
-		zipWr, err := zipArch.Create(att.filename)
-		// b64 := base64.NewEncoder(base64.StdEncoding, zipWr)
-		if err != nil {
-			return err
-		}
-		_, err = io.Copy(zipWr, att.body)
-		if err != nil {
-			return err
-		}
-		err = zipArch.Close()
-		// err = b64.Close()
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
 }

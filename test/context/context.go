@@ -96,17 +96,16 @@ type TestContext struct {
 func New(app string) *TestContext {
 	setLogrusVerbosityFromEnv()
 
-	userAgent := useragent.New()
-
-	pmapiController, clientManager := newPMAPIController()
+	listener := listener.New()
+	pmapiController, clientManager := newPMAPIController(app, listener)
 
 	ctx := &TestContext{
 		t:                     &bddT{},
 		cache:                 newFakeCache(),
 		locations:             newFakeLocations(),
 		settings:              newFakeSettings(),
-		listener:              listener.New(),
-		userAgent:             userAgent,
+		listener:              listener,
+		userAgent:             useragent.New(),
 		pmapiController:       pmapiController,
 		clientManager:         clientManager,
 		testAccounts:          newTestAccounts(),
@@ -135,14 +134,6 @@ func New(app string) *TestContext {
 	}
 
 	return ctx
-}
-
-func getConfigName(app string) string {
-	if app == "ie" {
-		return "importExport"
-	}
-
-	return app
 }
 
 // Cleanup runs through all cleanup steps.

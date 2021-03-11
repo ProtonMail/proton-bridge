@@ -28,6 +28,7 @@ import (
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/ProtonMail/proton-bridge/internal/config/settings"
+	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi/mocks"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
@@ -274,7 +275,7 @@ func TestInstallUpdateAlreadyOngoing(t *testing.T) {
 	wg.Wait()
 }
 
-func newTestUpdater(manager *mocks.MockManager, curVer string, earlyAccess bool) *Updater {
+func newTestUpdater(manager pmapi.Manager, curVer string, earlyAccess bool) *Updater {
 	return New(
 		manager,
 		&fakeInstaller{},

@@ -61,7 +61,7 @@ func (ctl *Controller) AddUserMessage(username string, message *pmapi.Message) (
 		Message: body,
 	}
 
-	results, err := client.Import(context.TODO(), pmapi.ImportMsgReqs{req})
+	results, err := client.Import(context.Background(), pmapi.ImportMsgReqs{req})
 	if err != nil {
 		return "", errors.Wrap(err, "failed to make an import")
 	}
@@ -85,7 +85,7 @@ func (ctl *Controller) GetMessages(username, labelID string) ([]*pmapi.Message, 
 
 	for {
 		// ListMessages returns empty result, not error, asking for page out of range.
-		pageMessages, _, err := client.ListMessages(context.TODO(), &pmapi.MessagesFilter{
+		pageMessages, _, err := client.ListMessages(context.Background(), &pmapi.MessagesFilter{
 			Page:     page,
 			PageSize: 150,
 			LabelID:  labelID,

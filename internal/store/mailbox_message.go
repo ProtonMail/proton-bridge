@@ -18,8 +18,6 @@
 package store
 
 import (
-	"context"
-
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -43,7 +41,7 @@ func (storeMailbox *Mailbox) GetMessage(apiID string) (*Message, error) {
 // FetchMessage fetches the message with the given `apiID`, stores it in the database, and returns a new store message
 // wrapping it.
 func (storeMailbox *Mailbox) FetchMessage(apiID string) (*Message, error) {
-	msg, err := storeMailbox.client().GetMessage(context.TODO(), apiID)
+	msg, err := storeMailbox.client().GetMessage(exposeContextForIMAP(), apiID)
 	if err != nil {
 		return nil, err
 	}
@@ -70,7 +68,7 @@ func (storeMailbox *Mailbox) ImportMessage(msg *pmapi.Message, body []byte, labe
 		Message: body,
 	}
 
-	res, err := storeMailbox.client().Import(context.TODO(), pmapi.ImportMsgReqs{importReqs})
+	res, err := storeMailbox.client().Import(exposeContextForIMAP(), pmapi.ImportMsgReqs{importReqs})
 	if err != nil {
 		return err
 	}
@@ -99,7 +97,7 @@ func (storeMailbox *Mailbox) LabelMessages(apiIDs []string) error {
 		return ErrAllMailOpNotAllowed
 	}
 	defer storeMailbox.pollNow()
-	return storeMailbox.client().LabelMessages(context.TODO(), apiIDs, storeMailbox.labelID)
+	return storeMailbox.client().LabelMessages(exposeContextForIMAP(), apiIDs, storeMailbox.labelID)
 }
 
 // UnlabelMessages removes the label by calling an API.
@@ -112,7 +110,7 @@ func (storeMailbox *Mailbox) UnlabelMessages(apiIDs []string) error {
 		return ErrAllMailOpNotAllowed
 	}
 	defer storeMailbox.pollNow()
-	return storeMailbox.client().UnlabelMessages(context.TODO(), apiIDs, storeMailbox.labelID)
+	return storeMailbox.client().UnlabelMessages(exposeContextForIMAP(), apiIDs, storeMailbox.labelID)
 }
 
 // MarkMessagesRead marks the message read by calling an API.
@@ -132,14 +130,14 @@ func (storeMailbox *Mailbox) MarkMessagesRead(apiIDs []string) error {
 	// Therefore we do not issue API update if the message is already read.
 	ids := []string{}
 	for _, apiID := range apiIDs {
-		if message, _ := storeMailbox.store.getMessageFromDB(apiID); message == nil || message.Unread == 1 {
+		if message, _ := storeMailbox.store.getMessageFromDB(apiID); message == nil || message.Unread {
 			ids = append(ids, apiID)
 		}
 	}
 	if len(ids) == 0 {
 		return nil
 	}
-	return storeMailbox.client().MarkMessagesRead(context.TODO(), ids)
+	return storeMailbox.client().MarkMessagesRead(exposeContextForIMAP(), ids)
 }
 
 // MarkMessagesUnread marks the message unread by calling an API.
@@ -151,7 +149,7 @@ func (storeMailbox *Mailbox) MarkMessagesUnread(apiIDs []string) error {
 		"mailbox":  storeMailbox.Name,
 	}).Trace("Marking messages as unread")
 	defer storeMailbox.pollNow()
-	return storeMailbox.client().MarkMessagesUnread(context.TODO(), apiIDs)
+	return storeMailbox.client().MarkMessagesUnread(exposeContextForIMAP(), apiIDs)
 }
 
 // MarkMessagesStarred adds the Starred label by calling an API.
@@ -164,7 +162,7 @@ func (storeMailbox *Mailbox) MarkMessagesStarred(apiIDs []string) error {
 		"mailbox":  storeMailbox.Name,
 	}).Trace("Marking messages as starred")
 	defer storeMailbox.pollNow()
-	return storeMailbox.client().LabelMessages(context.TODO(), apiIDs, pmapi.StarredLabel)
+	return storeMailbox.client().LabelMessages(exposeContextForIMAP(), apiIDs, pmapi.StarredLabel)
 }
 
 // MarkMessagesUnstarred removes the Starred label by calling an API.
@@ -177,7 +175,7 @@ func (storeMailbox *Mailbox) MarkMessagesUnstarred(apiIDs []string) error {
 		"mailbox":  storeMailbox.Name,
 	}).Trace("Marking messages as unstarred")
 	defer storeMailbox.pollNow()
-	return storeMailbox.client().UnlabelMessages(context.TODO(), apiIDs, pmapi.StarredLabel)
+	return storeMailbox.client().UnlabelMessages(exposeContextForIMAP(), apiIDs, pmapi.StarredLabel)
 }
 
 // MarkMessagesDeleted adds local flag \Deleted. This is not propagated to API
@@ -261,11 +259,11 @@ func (storeMailbox *Mailbox) RemoveDeleted(apiIDs []string) error {
 		}
 	case pmapi.DraftLabel:
 		storeMailbox.log.WithField("ids", apiIDs).Warn("Deleting drafts")
-		if err := storeMailbox.client().DeleteMessages(context.TODO(), apiIDs); err != nil {
+		if err := storeMailbox.client().DeleteMessages(exposeContextForIMAP(), apiIDs); err != nil {
 			return err
 		}
 	default:
-		if err := storeMailbox.client().UnlabelMessages(context.TODO(), apiIDs, storeMailbox.labelID); err != nil {
+		if err := storeMailbox.client().UnlabelMessages(exposeContextForIMAP(), apiIDs, storeMailbox.labelID); err != nil {
 			return err
 		}
 	}
@@ -303,13 +301,13 @@ func (storeMailbox *Mailbox) deleteFromTrashOrSpam(apiIDs []string) error {
 		}
 	}
 	if len(messageIDsToUnlabel) > 0 {
-		if err := storeMailbox.client().UnlabelMessages(context.TODO(), messageIDsToUnlabel, storeMailbox.labelID); err != nil {
+		if err := storeMailbox.client().UnlabelMessages(exposeContextForIMAP(), messageIDsToUnlabel, storeMailbox.labelID); err != nil {
 			l.WithError(err).Warning("Cannot unlabel before deleting")
 		}
 	}
 	if len(messageIDsToDelete) > 0 {
 		storeMailbox.log.WithField("ids", messageIDsToDelete).Warn("Deleting messages")
-		if err := storeMailbox.client().DeleteMessages(context.TODO(), messageIDsToDelete); err != nil {
+		if err := storeMailbox.client().DeleteMessages(exposeContextForIMAP(), messageIDsToDelete); err != nil {
 			return err
 		}
 	}

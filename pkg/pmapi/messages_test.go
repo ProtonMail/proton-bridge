@@ -24,7 +24,8 @@ import (
 	"testing"
 
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
-	"github.com/stretchr/testify/assert"
+	a "github.com/stretchr/testify/assert"
+	r "github.com/stretchr/testify/require"
 )
 
 const testMessageCleartext = `<div>jeej saas<br></div><div><br></div><div class="protonmail_signature_block"><div>Sent from <a href="https://protonmail.ch">ProtonMail</a>, encrypted email based in Switzerland.<br></div><div><br></div></div>`
@@ -127,66 +128,65 @@ ClW54lp9eeOfYTsdTSbn9VaSO0E6m2/Q4Tk=
 
 func TestMessage_IsBodyEncrypted(t *testing.T) {
 	msg := &Message{Body: testMessageEncrypted}
-	Assert(t, msg.IsBodyEncrypted(), "the body should be encrypted")
+	r.True(t, msg.IsBodyEncrypted(), "the body should be encrypted")
 
 	msg.Body = testMessageCleartext
-	Assert(t, !msg.IsBodyEncrypted(), "the body should not be encrypted")
+	r.True(t, !msg.IsBodyEncrypted(), "the body should not be encrypted")
 }
 
 func TestMessage_Decrypt(t *testing.T) {
 	msg := &Message{Body: testMessageEncrypted}
 	dec, err := msg.Decrypt(testPrivateKeyRing)
-	Ok(t, err)
-	Equals(t, testMessageCleartext, string(dec))
+	r.NoError(t, err)
+	r.Equal(t, testMessageCleartext, string(dec))
 }
 
 func TestMessage_Decrypt_Legacy(t *testing.T) {
 	testPrivateKeyLegacy := readTestFile("testPrivateKeyLegacy", false)
 
 	key, err := crypto.NewKeyFromArmored(testPrivateKeyLegacy)
-	Ok(t, err)
+	r.NoError(t, err)
 
 	unlockedKey, err := key.Unlock([]byte(testMailboxPasswordLegacy))
-	Ok(t, err)
+	r.NoError(t, err)
 
 	testPrivateKeyRingLegacy, err := crypto.NewKeyRing(unlockedKey)
-	Ok(t, err)
+	r.NoError(t, err)
 
 	msg := &Message{Body: testMessageEncryptedLegacy}
 
 	dec, err := msg.Decrypt(testPrivateKeyRingLegacy)
-	Ok(t, err)
+	r.NoError(t, err)
 
-	Equals(t, testMessageCleartextLegacy, string(dec))
+	r.Equal(t, testMessageCleartextLegacy, string(dec))
 }
 
 func TestMessage_Decrypt_signed(t *testing.T) {
 	msg := &Message{Body: testMessageSigned}
 	dec, err := msg.Decrypt(testPrivateKeyRing)
-	Ok(t, err)
-	Equals(t, testMessageCleartext, string(dec))
+	r.NoError(t, err)
+	r.Equal(t, testMessageCleartext, string(dec))
 }
 
 func TestMessage_Encrypt(t *testing.T) {
 	key, err := crypto.NewKeyFromArmored(testMessageSigner)
-	Ok(t, err)
+	r.NoError(t, err)
 
 	signer, err := crypto.NewKeyRing(key)
-	Ok(t, err)
+	r.NoError(t, err)
 
 	msg := &Message{Body: testMessageCleartext}
-	Ok(t, msg.Encrypt(testPrivateKeyRing, testPrivateKeyRing))
+	r.NoError(t, msg.Encrypt(testPrivateKeyRing, testPrivateKeyRing))
 
 	dec, err := msg.Decrypt(testPrivateKeyRing)
-	Ok(t, err)
+	r.NoError(t, err)
 
-	Equals(t, testMessageCleartext, string(dec))
-	Equals(t, testIdentity, signer.GetIdentities()[0])
+	r.Equal(t, testMessageCleartext, string(dec))
+	r.Equal(t, testIdentity, signer.GetIdentities()[0])
 }
 
-func routeLabelMessages(tb testing.TB, w http.ResponseWriter, r *http.Request) string {
-	Ok(tb, checkMethodAndPath(r, "PUT", "/mail/v4/messages/label"))
-
+func routeLabelMessages(tb testing.TB, w http.ResponseWriter, req *http.Request) string {
+	r.NoError(tb, checkMethodAndPath(req, "PUT", "/mail/v4/messages/label"))
 	return "messages/label/put_response.json"
 }
 
@@ -203,7 +203,7 @@ func TestMessage_LabelMessages_NoPaging(t *testing.T) {
 	)
 	defer finish()
 
-	assert.NoError(t, c.LabelMessages(context.TODO(), testIDs, "mylabel"))
+	a.NoError(t, c.LabelMessages(context.Background(), testIDs, "mylabel"))
 }
 
 func TestMessage_LabelMessages_Paging(t *testing.T) {
@@ -221,5 +221,5 @@ func TestMessage_LabelMessages_Paging(t *testing.T) {
 	)
 	defer finish()
 
-	assert.NoError(t, c.LabelMessages(context.TODO(), testIDs, "mylabel"))
+	a.NoError(t, c.LabelMessages(context.Background(), testIDs, "mylabel"))
 }

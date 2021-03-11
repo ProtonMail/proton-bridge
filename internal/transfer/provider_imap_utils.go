@@ -19,7 +19,9 @@ package transfer
 
 import (
 	"crypto/tls"
+	"fmt"
 	"net"
+	"net/http"
 	"strings"
 	"time"
 
@@ -37,6 +39,8 @@ const (
 	imapRetries          = 10
 	imapReconnectTimeout = 30 * time.Minute
 	imapReconnectSleep   = time.Minute
+
+	protonStatusURL = "http://protonstatus.com/vpn_status"
 )
 
 type imapErrorLogger struct {
@@ -117,19 +121,15 @@ func (p *IMAPProvider) tryReconnect(ensureSelectedIn string) error {
 			return previousErr
 		}
 
-		// FIXME(conman): This should register as connection observer.
+		err := checkConnection()
+		log.WithError(err).Debug("Connection check")
+		if err != nil {
+			time.Sleep(imapReconnectSleep)
+			previousErr = err
+			continue
+		}
 
-		/*
-			err := pmapi.CheckConnection()
-			log.WithError(err).Debug("Connection check")
-			if err != nil {
-				time.Sleep(imapReconnectSleep)
-				previousErr = err
-				continue
-			}
-		*/
-
-		err := p.reauth()
+		err = p.reauth()
 		log.WithError(err).Debug("Reauth")
 		if err != nil {
 			time.Sleep(imapReconnectSleep)
@@ -288,4 +288,24 @@ func (p *IMAPProvider) fetchHelper(uid bool, ensureSelectedIn string, seqSet *im
 		err := <-doneCh
 		return err
 	}, ensureSelectedIn)
+}
+
+// checkConnection returns an error if there is no internet connection.
+// Note we don't want to use client manager because it only reports connection
+// issues with API; we are only interested here whether we can reach
+// third-party IMAP servers.
+func checkConnection() error {
+	client := &http.Client{Timeout: time.Second * 10}
+
+	resp, err := client.Get(protonStatusURL)
+	if err != nil {
+		return err
+	}
+
+	_ = resp.Body.Close()
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("HTTP status code %d", resp.StatusCode)
+	}
+
+	return nil
 }
