@@ -263,7 +263,7 @@ func (store *Store) init(firstInit bool) (err error) {
 		}
 	}
 
-	store.log.WithField("mode", store.addressMode).Debug("Initialising store")
+	store.log.WithField("mode", store.addressMode).Info("Initialising store")
 
 	labels, err := store.initCounts()
 	if err != nil {
