@@ -19,9 +19,9 @@ package imap
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io"
-	"mime/multipart"
 	"net/mail"
 	"net/textproto"
 	"sort"
@@ -32,12 +32,10 @@ import (
 	"github.com/ProtonMail/proton-bridge/internal/imap/cache"
 	"github.com/ProtonMail/proton-bridge/internal/imap/uidplus"
 	"github.com/ProtonMail/proton-bridge/pkg/message"
-	"github.com/ProtonMail/proton-bridge/pkg/parallel"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	"github.com/emersion/go-imap"
 	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
-	openpgperrors "golang.org/x/crypto/openpgp/errors"
 )
 
 var (
@@ -512,91 +510,6 @@ func (im *imapMailbox) fetchMessage(m *pmapi.Message) (err error) {
 	return
 }
 
-func (im *imapMailbox) writeMessageBody(w io.Writer, m *pmapi.Message) (err error) {
-	im.log.Trace("Writing message body")
-
-	if m.Body == "" {
-		im.log.Trace("While writing message body, noticed message body is null, need to fetch")
-		if err = im.fetchMessage(m); err != nil {
-			return
-		}
-	}
-
-	kr, err := im.user.client().KeyRingForAddressID(m.AddressID)
-	if err != nil {
-		return errors.Wrap(err, "failed to get keyring for address ID")
-	}
-
-	err = message.WriteBody(w, kr, m)
-	if err != nil {
-		if customMessageErr := message.CustomMessage(m, err, true); customMessageErr != nil {
-			im.log.WithError(customMessageErr).Warn("Failed to make custom message")
-		}
-		_, _ = io.WriteString(w, m.Body)
-		err = nil
-	}
-
-	return
-}
-
-func (im *imapMailbox) writeAttachmentBody(w io.Writer, m *pmapi.Message, att *pmapi.Attachment) (err error) {
-	// Retrieve encrypted attachment.
-	r, err := im.user.client().GetAttachment(att.ID)
-	if err != nil {
-		return
-	}
-	defer r.Close() //nolint[errcheck]
-
-	kr, err := im.user.client().KeyRingForAddressID(m.AddressID)
-	if err != nil {
-		return errors.Wrap(err, "failed to get keyring for address ID")
-	}
-
-	if err = message.WriteAttachmentBody(w, kr, m, att, r); err != nil {
-		// Returning an error here makes certain mail clients behave badly,
-		// trying to retrieve the message again and again.
-		im.log.Warn("Cannot write attachment body: ", err)
-		err = nil
-	}
-	return
-}
-
-func (im *imapMailbox) writeRelatedPart(p io.Writer, m *pmapi.Message, inlines []*pmapi.Attachment) (err error) {
-	related := multipart.NewWriter(p)
-
-	_ = related.SetBoundary(message.GetRelatedBoundary(m))
-
-	buf := &bytes.Buffer{}
-	if err = im.writeMessageBody(buf, m); err != nil {
-		return
-	}
-
-	// Write the body part.
-	h := message.GetBodyHeader(m)
-
-	if p, err = related.CreatePart(h); err != nil {
-		return
-	}
-
-	_, _ = buf.WriteTo(p)
-
-	for _, inline := range inlines {
-		buf = &bytes.Buffer{}
-		if err = im.writeAttachmentBody(buf, m, inline); err != nil {
-			return
-		}
-
-		h := message.GetAttachmentHeader(inline, true)
-		if p, err = related.CreatePart(h); err != nil {
-			return
-		}
-		_, _ = buf.WriteTo(p)
-	}
-
-	_ = related.Close()
-	return nil
-}
-
 const (
 	noMultipart      = iota // only body
 	simpleMultipart         // body + attachment or inline
@@ -634,179 +547,28 @@ func (im *imapMailbox) setMessageContentType(m *pmapi.Message) (multipartType in
 }
 
 // buildMessage from PM to IMAP.
-func (im *imapMailbox) buildMessage(m *pmapi.Message) (structure *message.BodyStructure, msgBody []byte, err error) {
-	im.log.Trace("Building message")
-
-	var errNoCache doNotCacheError
-
-	// If fetch or decryption fails we need to change the MIMEType (in customMessage).
-	err = im.fetchMessage(m)
+func (im *imapMailbox) buildMessage(m *pmapi.Message) (*message.BodyStructure, []byte, error) {
+	body, err := im.builder.NewJobWithOptions(
+		context.Background(),
+		im.user.client(),
+		m.ID,
+		message.JobOptions{
+			IgnoreDecryptionErrors: true, // Whether to ignore decryption errors and create a "custom message" instead.
+			SanitizeDate:           true, // Whether to replace all dates before 1970 with RFC822's birthdate.
+			AddInternalID:          true, // Whether to include MessageID as X-Pm-Internal-Id.
+			AddExternalID:          true, // Whether to include ExternalID as X-Pm-External-Id.
+			AddMessageDate:         true, // Whether to include message time as X-Pm-Date.
+			AddMessageIDReference:  true, // Whether to include the MessageID in References.
+		},
+	).GetResult()
 	if err != nil {
-		return
-	}
-
-	kr, err := im.user.client().KeyRingForAddressID(m.AddressID)
-	if err != nil {
-		err = errors.Wrap(err, "failed to get keyring for address ID")
-		return
-	}
-
-	errDecrypt := m.Decrypt(kr)
-
-	if errDecrypt != nil && errDecrypt != openpgperrors.ErrSignatureExpired {
-		errNoCache.add(errDecrypt)
-		if customMessageErr := message.CustomMessage(m, errDecrypt, true); customMessageErr != nil {
-			im.log.WithError(customMessageErr).Warn("Failed to make custom message")
-		}
-	}
-
-	// Inner function can fail even when message is decrypted.
-	// #1048 For example we have problem with double-encrypted messages
-	// which seems as still encrypted and we try them to decrypt again
-	// and that fails. For any building error is better to return custom
-	// message than error because it will not be fixed and users would
-	// get error message all the time and could not see some messages.
-	structure, msgBody, err = im.buildMessageInner(m, kr)
-	if err == pmapi.ErrAPINotReachable || err == pmapi.ErrInvalidToken || err == pmapi.ErrUpgradeApplication {
 		return nil, nil, err
-	} else if err != nil {
-		errNoCache.add(err)
-		if customMessageErr := message.CustomMessage(m, err, true); customMessageErr != nil {
-			im.log.WithError(customMessageErr).Warn("Failed to make custom message")
-		}
-		structure, msgBody, err = im.buildMessageInner(m, kr)
-		if err != nil {
-			return nil, nil, err
-		}
 	}
 
-	err = errNoCache.errorOrNil()
-
-	return structure, msgBody, err
-}
-
-func (im *imapMailbox) buildMessageInner(m *pmapi.Message, kr *crypto.KeyRing) (structure *message.BodyStructure, msgBody []byte, err error) { // nolint[funlen]
-	multipartType, err := im.setMessageContentType(m)
+	structure, err := message.NewBodyStructure(bytes.NewReader(body))
 	if err != nil {
-		return
+		return nil, nil, err
 	}
 
-	tmpBuf := &bytes.Buffer{}
-	mainHeader := buildHeader(m)
-	if err = writeHeader(tmpBuf, mainHeader); err != nil {
-		return
-	}
-	_, _ = io.WriteString(tmpBuf, "\r\n")
-
-	switch multipartType {
-	case noMultipart:
-		err = message.WriteBody(tmpBuf, kr, m)
-		if err != nil {
-			return
-		}
-	case complexMultipart:
-		_, _ = io.WriteString(tmpBuf, "\r\n--"+message.GetBoundary(m)+"\r\n")
-		err = message.WriteBody(tmpBuf, kr, m)
-		if err != nil {
-			return
-		}
-		_, _ = io.WriteString(tmpBuf, "\r\n--"+message.GetBoundary(m)+"--\r\n")
-	case simpleMultipart:
-		atts, inlines := message.SeparateInlineAttachments(m)
-		mw := multipart.NewWriter(tmpBuf)
-		_ = mw.SetBoundary(message.GetBoundary(m))
-
-		var partWriter io.Writer
-
-		if len(inlines) > 0 {
-			relatedHeader := message.GetRelatedHeader(m)
-			if partWriter, err = mw.CreatePart(relatedHeader); err != nil {
-				return
-			}
-			_ = im.writeRelatedPart(partWriter, m, inlines)
-		} else {
-			buf := &bytes.Buffer{}
-			if err = im.writeMessageBody(buf, m); err != nil {
-				return
-			}
-
-			// Write the body part.
-			bodyHeader := message.GetBodyHeader(m)
-			if partWriter, err = mw.CreatePart(bodyHeader); err != nil {
-				return
-			}
-
-			_, _ = buf.WriteTo(partWriter)
-		}
-
-		// Write the attachments parts.
-		input := make([]interface{}, len(atts))
-		for i, att := range atts {
-			input[i] = att
-		}
-
-		processCallback := func(value interface{}) (interface{}, error) {
-			att := value.(*pmapi.Attachment) //nolint[forcetypeassert] we want to panic here
-
-			buf := &bytes.Buffer{}
-			if err = im.writeAttachmentBody(buf, m, att); err != nil {
-				return nil, err
-			}
-			return buf, nil
-		}
-
-		collectCallback := func(idx int, value interface{}) error {
-			buf := value.(*bytes.Buffer) //nolint[forcetypeassert] we want to panic here
-			defer buf.Reset()
-			att := atts[idx]
-
-			attachmentHeader := message.GetAttachmentHeader(att, true)
-			if partWriter, err = mw.CreatePart(attachmentHeader); err != nil {
-				return err
-			}
-
-			_, _ = buf.WriteTo(partWriter)
-			return nil
-		}
-
-		err = parallel.RunParallel(fetchAttachmentsWorkers, input, processCallback, collectCallback)
-		if err != nil {
-			return
-		}
-
-		_ = mw.Close()
-	default:
-		fmt.Fprintf(tmpBuf, "\r\n\r\nUknown multipart type: %d\r\n\r\n", multipartType)
-	}
-
-	// We need to copy buffer before building body structure.
-	msgBody = tmpBuf.Bytes()
-	structure, err = message.NewBodyStructure(tmpBuf)
-	if err != nil {
-		// NOTE: We need to set structure if it fails and is empty.
-		if structure == nil {
-			structure = &message.BodyStructure{}
-		}
-	}
-	return structure, msgBody, err
-}
-
-func buildHeader(msg *pmapi.Message) textproto.MIMEHeader {
-	header := message.GetHeader(msg)
-
-	msgTime := time.Unix(msg.Time, 0)
-
-	// Apple Mail crashes fetching messages with date older than 1970.
-	// There is no point having message older than RFC itself, it's not possible.
-	d, err := msg.Header.Date()
-	if err != nil || d.Before(rfc822Birthday) || msgTime.Before(rfc822Birthday) {
-		if err != nil || d.IsZero() {
-			header.Set("X-Original-Date", msgTime.Format(time.RFC1123Z))
-		} else {
-			header.Set("X-Original-Date", d.Format(time.RFC1123Z))
-		}
-		header.Set("Date", rfc822Birthday.Format(time.RFC1123Z))
-	}
-
-	return header
+	return structure, body, nil
 }

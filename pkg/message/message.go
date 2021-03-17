@@ -46,7 +46,7 @@ func GetRelatedBoundary(m *pmapi.Message) string {
 
 func SeparateInlineAttachments(m *pmapi.Message) (atts, inlines []*pmapi.Attachment) {
 	for _, att := range m.Attachments {
-		if strings.Contains(att.Header.Get("Content-Disposition"), "inline") {
+		if strings.Contains(att.Header.Get("Content-Disposition"), pmapi.DispositionInline) {
 			inlines = append(inlines, att)
 		} else {
 			atts = append(atts, att)

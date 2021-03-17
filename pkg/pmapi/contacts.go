@@ -93,7 +93,7 @@ func (c *client) DecryptAndVerifyCards(cards []Card) ([]Card, error) {
 			if err != nil {
 				return nil, err
 			}
-			card.Data = signedCard
+			card.Data = string(signedCard)
 		}
 		if isSignedCardType(card.Type) {
 			err := c.verify(card.Data, card.Signature)

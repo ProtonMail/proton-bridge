@@ -575,7 +575,7 @@ func (im *imapMailbox) listMessages(isUID bool, seqSet *imap.SeqSet, items []ima
 		return nil
 	}
 
-	err = parallel.RunParallel(fetchMessagesWorkers, input, processCallback, collectCallback)
+	err = parallel.RunParallel(fetchWorkers, input, processCallback, collectCallback)
 	if err != nil {
 		return err
 	}

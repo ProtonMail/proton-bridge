@@ -44,13 +44,3 @@ func getAddresses(addrs []*mail.Address) (imapAddrs []*imap.Address) {
 
 	return
 }
-
-func formatAddressList(addrs []*mail.Address) (s string) {
-	for i, addr := range addrs {
-		if i > 0 {
-			s += ", "
-		}
-		s += addr.String()
-	}
-	return
-}

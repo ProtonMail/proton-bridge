@@ -65,16 +65,22 @@ func (h *header) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
+const (
+	DispositionInline     = "inline"
+	DispositionAttachment = "attachment"
+)
+
 // Attachment represents a message attachment.
 type Attachment struct {
-	ID         string `json:",omitempty"`
-	MessageID  string `json:",omitempty"` // msg v3 ???
-	Name       string `json:",omitempty"`
-	Size       int64  `json:",omitempty"`
-	MIMEType   string `json:",omitempty"`
-	ContentID  string `json:",omitempty"`
-	KeyPackets string `json:",omitempty"`
-	Signature  string `json:",omitempty"`
+	ID          string `json:",omitempty"`
+	MessageID   string `json:",omitempty"` // msg v3 ???
+	Name        string `json:",omitempty"`
+	Size        int64  `json:",omitempty"`
+	MIMEType    string `json:",omitempty"`
+	ContentID   string `json:",omitempty"`
+	Disposition string
+	KeyPackets  string `json:",omitempty"`
+	Signature   string `json:",omitempty"`
 
 	Header textproto.MIMEHeader `json:"-"`
 }

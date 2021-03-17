@@ -134,9 +134,9 @@ func TestMessage_IsBodyEncrypted(t *testing.T) {
 
 func TestMessage_Decrypt(t *testing.T) {
 	msg := &Message{Body: testMessageEncrypted}
-	err := msg.Decrypt(testPrivateKeyRing)
+	dec, err := msg.Decrypt(testPrivateKeyRing)
 	Ok(t, err)
-	Equals(t, testMessageCleartext, msg.Body)
+	Equals(t, testMessageCleartext, string(dec))
 }
 
 func TestMessage_Decrypt_Legacy(t *testing.T) {
@@ -153,17 +153,17 @@ func TestMessage_Decrypt_Legacy(t *testing.T) {
 
 	msg := &Message{Body: testMessageEncryptedLegacy}
 
-	err = msg.Decrypt(testPrivateKeyRingLegacy)
+	dec, err := msg.Decrypt(testPrivateKeyRingLegacy)
 	Ok(t, err)
 
-	Equals(t, testMessageCleartextLegacy, msg.Body)
+	Equals(t, testMessageCleartextLegacy, string(dec))
 }
 
 func TestMessage_Decrypt_signed(t *testing.T) {
 	msg := &Message{Body: testMessageSigned}
-	err := msg.Decrypt(testPrivateKeyRing)
+	dec, err := msg.Decrypt(testPrivateKeyRing)
 	Ok(t, err)
-	Equals(t, testMessageCleartext, msg.Body)
+	Equals(t, testMessageCleartext, string(dec))
 }
 
 func TestMessage_Encrypt(t *testing.T) {
@@ -176,10 +176,10 @@ func TestMessage_Encrypt(t *testing.T) {
 	msg := &Message{Body: testMessageCleartext}
 	Ok(t, msg.Encrypt(testPrivateKeyRing, testPrivateKeyRing))
 
-	err = msg.Decrypt(testPrivateKeyRing)
+	dec, err := msg.Decrypt(testPrivateKeyRing)
 	Ok(t, err)
 
-	Equals(t, testMessageCleartext, msg.Body)
+	Equals(t, testMessageCleartext, string(dec))
 	Equals(t, testIdentity, signer.GetIdentities()[0])
 }
 

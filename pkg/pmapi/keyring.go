@@ -190,13 +190,13 @@ func encrypt(encrypter *crypto.KeyRing, plain string, signer *crypto.KeyRing) (a
 	return pgpMessage.GetArmored()
 }
 
-func (c *client) decrypt(armored string) (plain string, err error) {
+func (c *client) decrypt(armored string) (plain []byte, err error) {
 	return decrypt(c.userKeyRing, armored)
 }
 
-func decrypt(decrypter *crypto.KeyRing, armored string) (plainBody string, err error) {
+func decrypt(decrypter *crypto.KeyRing, armored string) (plainBody []byte, err error) {
 	if decrypter == nil {
-		return "", ErrNoKeyringAvailable
+		return nil, ErrNoKeyringAvailable
 	}
 	pgpMessage, err := crypto.NewPGPMessageFromArmored(armored)
 	if err != nil {
@@ -206,7 +206,7 @@ func decrypt(decrypter *crypto.KeyRing, armored string) (plainBody string, err e
 	if err != nil {
 		return
 	}
-	return plainMessage.GetString(), nil
+	return plainMessage.GetBinary(), nil
 }
 
 func (c *client) sign(plain string) (armoredSignature string, err error) {

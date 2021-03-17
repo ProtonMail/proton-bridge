@@ -1,0 +1,58 @@
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="YxKjBoCQD3a9PdAWo8ztsilFlSghrT8M5"
+
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--YxKjBoCQD3a9PdAWo8ztsilFlSghrT8M5
+Content-Type: multipart/mixed; boundary="6GLjuOzexqUw1CoA6CFjmA6r51g9FOPK7";
+ protected-headers="v1"
+Subject: html body no pubkey
+From: "pm.bridge.qa" <pm.bridge.qa@gmail.com>
+To: schizofrenic@pm.me
+Message-ID: <5e22f83a-c4f0-d61a-55c8-8230854dc052@gmail.com>
+
+--6GLjuOzexqUw1CoA6CFjmA6r51g9FOPK7
+Content-Type: text/html; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: quoted-printable
+
+<html>
+  <head>
+
+    <meta http-equiv=3D"content-type" content=3D"text/html; charset=3DUTF=
+-8">
+  </head>
+  <body>
+    Behold another <font color=3D"#ee24cc">HTML</font><br>
+    <ul>
+      <li><b>I only know 25 letters of the alphabet.</b> <b>I don't
+          know y.</b></li>
+      <li><b>What did one wall say to the other?</b><i> I'll meet you at
+          the corner.</i></li>
+      <li><b>What did the zero say to the eight?</b> <i>Damn, that belt
+          looks good on you.</i><br>
+      </li>
+    </ul>
+  </body>
+</html>
+
+
+--6GLjuOzexqUw1CoA6CFjmA6r51g9FOPK7--
+
+--YxKjBoCQD3a9PdAWo8ztsilFlSghrT8M5
+Content-Type: application/pgp-signature; name="OpenPGP_signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="OpenPGP_signature"
+
+-----BEGIN PGP SIGNATURE-----
+
+wsB5BAABCAAjFiEEXOYJeXAvKFvzKPmxFhwIdYIjWfcFAmBa+RsFAwAAAAAACgkQFhwIdYIjWfcK
+aQf/a9w4OwdyFerAW5Y45SdjAOA7WKUbm0gnrifbM2zk03bMEsdgfJQawC1p0hVyUCeqFYNJ9JQ4
+JF5/+7iWEe6oRFp3nW3LbBNr8wu3iN/dp5AWjTqnzx9VXLcvEryV/FJXwMUngO6z0eNVlxjdDFH/
+ucomItcmXFmfDx68ghLkumyWwX4SDfd/W70Wqi1f35wLBjfVIeFik4AS0bmpGFfMt1MKHrgirn2S
++9sKPBiTQ+EFGK9V1wFrrDFleLDDE6oTMl75OUmY1Rr0y9q9jmws3cciEFYT3hTV9LNSwV9hMhZZ
+IEKAzLTy6nYnVltYkFC1ggwAVouq4o6Bcw/5bUt2fA==
+=lk/3
+-----END PGP SIGNATURE-----
+
+--YxKjBoCQD3a9PdAWo8ztsilFlSghrT8M5--

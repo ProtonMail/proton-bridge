@@ -1,0 +1,116 @@
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="pavrbLYh8Q4RWBboYnVxY3mNBBzan1Zz4"
+
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--pavrbLYh8Q4RWBboYnVxY3mNBBzan1Zz4
+Content-Type: multipart/mixed; boundary="avFoFILZo8SdHM1Pc1OUviN4UKQh16HyR";
+ protected-headers="v1"
+Subject: simple html body
+From: "pm.bridge.qa" <pm.bridge.qa@gmail.com>
+To: schizofrenic@pm.me
+Message-ID: <d9c99685-4e1c-8f95-8b68-c6b0fcfd62ef@gmail.com>
+
+--avFoFILZo8SdHM1Pc1OUviN4UKQh16HyR
+Content-Type: multipart/mixed;
+ boundary="------------9EAE2E1A715ACB9849E5C4E3"
+Content-Language: en-US
+
+This is a multi-part message in MIME format.
+--------------9EAE2E1A715ACB9849E5C4E3
+Content-Type: text/html; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+
+<html>
+  <head>
+
+    <meta http-equiv=3D"content-type" content=3D"text/html; charset=3DUTF=
+-8">
+  </head>
+  <body>
+    And this is HTML<br>
+    <ul>
+      <li><b>Do I enjoy making courthouse puns?</b> Guilty.=E2=80=94 <i>@=
+baddadjokes</i></li>
+      <li><b>Can February March?</b> No, but April May. =E2=80=94<i>@Bear=
+dedMOGuy</i></li>
+    </ul>
+  </body>
+</html>
+
+--------------9EAE2E1A715ACB9849E5C4E3
+Content-Type: application/pgp-keys;
+ name="OpenPGP_0x161C0875822359F7.asc"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: attachment;
+ filename="OpenPGP_0x161C0875822359F7.asc"
+
+-----BEGIN PGP PUBLIC KEY BLOCK-----
+
+xsBNBFxlUPwBCACx954Ey4SD88f8DSKFw9BaZNXrNwYxNYSgqaqOGHQ0WllF3mstEhTfuxxCZ=
+pDh
+I5IhWCXUNxanzsFkn88mRDwFRVl2sf2aAG4/P/p1381oh2kd0UElMRQaQGzoCadQMaQOL9WYT=
+f4S
+PWSCzjrPyKgjq5FbqjbF/ndu376na9L+tnsEXyL6RrI6aZhjWG73xlqxS65dzTIYzsyM/P97x=
+Snd
+NvlvWtGvLlpFkzxfAEGpVzfOYVYFKoc8rGmUDwrDWYfk5JczRDDogJnY+BNMZf9pjSqk6rTyB=
+OfN
+H5fpU8r7A5Q7l+HVakvMUQ9DzDWJtg2ru1Y8hexnJOF68avO4+a1ABEBAAHNKEJyaWRnZSBLe=
+XUt
+RWh5aiA8cG0uYnJpZGdlLnFhQGdtYWlsLmNvbT7CwJQEEwEIAD4CGwMFCwkIBwIGFQoJCAsCB=
+BYC
+AwECHgECF4AWIQRc5gl5cC8oW/Mo+bEWHAh1giNZ9wUCYC32ygUJB4sMzgAKCRAWHAh1giNZ9=
+/K8
+B/4qs84Ii/zKH+q+C8vwO4jUJkOM73qD0pgB7zBs651zWbpgopyol1YUKNpFaHlx/Qch7RDI7=
+Vcz
+1+60/KZJSJR19/N2EDVbCUdh8ueioUp9X/218YWV2TRJNxTnljd4FAn7smZnXuP1TsLjQ6sKO=
+V0U
+u6JoiG6LZFXqDgxYpA++58Rkl6xaY6R71VkmVQlbEKtubX9AjHydq97Y+Jvn11XzWZaKhv4L7=
+6Pa
+4tMKXvvrKh1oywMmh6mZJo+5ZA/ABTkr45cwlTPYqGTS9+uvOHt+PH/oYwwJB4ls2cIAUldSj=
+TVQ
+IsseYz3LlbcCfKJiiCFxeHOQXA5J6zNLKOT58TsczsBNBFxlUPwBCADh2HsX23yVnJt9fxFz3=
+D07
+kCBNvu4HQfps6h1rgNxGhE32VmpESHebvIB5xjL6xKbIqqRa3x/7KDVBNJvca0gUsqEt5kzYF=
+88F
+yf2NBcejpIbcP7BS/g+C6KOowYj+Et26T6GdwFXExUcl80JvoX8yHQOfvJpdiBRbjyB8UqfCa=
+knm
+3c7dNuXmhflz/w3aBj32q9ZyGqA1NpHCpLyVAlvSNQ/pat/rGUCPZ9duw4KhUUqEmatQPVFPk=
+utT
+ouEZQbMK+i+chOH3AsKCuNDfvCDwirnsSqIJmAgl1lC4de+bsWYCMqN9ei99hOCRUyhZ3g3sr=
+8RB
+owVAdcvjZxeIDKALABEBAAHCwHwEGAEIACYCGwwWIQRc5gl5cC8oW/Mo+bEWHAh1giNZ9wUCY=
+C32
+lAUJB4sMmAAKCRAWHAh1giNZ9+Y2B/9rTKZaKviae+ummXNumXcrKvbkAAvfuLpKUn53FlQLm=
+L6H
+jB++lJnPWvVSzdZxdv8FiPP3d632XHKUrkQRQM/9byRDXDommi7Qttx7YCkhd4JLVYqJqpnAQ=
+xI5
+RMkXiZNWyr1lz8JOM1XvDk1M7sJwPMWews8VOIE03E1nt7AsQGnvHtadgEnQaufrYNX3hFA8S=
+osO
+HSnedcys6yrzCSIGCqCD9VHbnMtS4DOv0XJGh2hwc8omzH0KZA517dyKBorJRwadcVauGXDKx=
+Etv
+Im4rl94PR/3An1Mj6HeeVVpLqDQ5Jb9J90BahWeQ53FzRa4EQzYCw0nLnxcsT1ZEEP5u
+=3Dv/1p
+-----END PGP PUBLIC KEY BLOCK-----
+
+--------------9EAE2E1A715ACB9849E5C4E3--
+
+--avFoFILZo8SdHM1Pc1OUviN4UKQh16HyR--
+
+--pavrbLYh8Q4RWBboYnVxY3mNBBzan1Zz4
+Content-Type: application/pgp-signature; name="OpenPGP_signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="OpenPGP_signature"
+
+-----BEGIN PGP SIGNATURE-----
+
+wsB5BAABCAAjFiEEXOYJeXAvKFvzKPmxFhwIdYIjWfcFAmBa9hAFAwAAAAAACgkQFhwIdYIjWffL
+1AgApF18AVOPEm9y5R+d0NQmxqhSwAtvaqCwqQpG3mArIYK3Y0zrDkPQZZl/3emW8LWht7ZyYCAb
+NZo7HoYxjLy3yxAOPUl/Pc0nJpEqk/wAZT58yOnzv8DU5Q9o+444FfTMJpcrcH/M5cXYyqRtVhas
+k5wu5u2DEgSO3Kj/5l7lThb+CUgRC6wSiOuUkqGEWLiAguCdd88XDkLMbwrDnOu3PbhcA8o1msns
+PfkBdq3mFjp4M8M4ha+D2MxmV6tBv1E7snWf/spBVb9fHIa7zI4ZS6shpzGHCnJarO0Jco0Qh3IZ
+ZVfwhtJeFsmdqSm6DLvCmQWAYk2fDOZDMVKqe9IbUA==
+=pkS0
+-----END PGP SIGNATURE-----
+
+--pavrbLYh8Q4RWBboYnVxY3mNBBzan1Zz4--

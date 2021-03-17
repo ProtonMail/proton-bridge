@@ -272,26 +272,26 @@ func (m *Message) IsLegacyMessage() bool {
 		strings.Contains(m.Body, MessageTail)
 }
 
-func (m *Message) Decrypt(kr *crypto.KeyRing) (err error) {
+func (m *Message) Decrypt(kr *crypto.KeyRing) ([]byte, error) {
 	if m.IsLegacyMessage() {
-		return m.DecryptLegacy(kr)
+		return m.decryptLegacy(kr)
 	}
 
 	if !m.IsBodyEncrypted() {
-		return
+		return []byte(m.Body), nil
 	}
 
 	armored := strings.TrimSpace(m.Body)
+
 	body, err := decrypt(kr, armored)
 	if err != nil {
-		return
+		return nil, err
 	}
 
-	m.Body = body
-	return
+	return body, nil
 }
 
-func (m *Message) DecryptLegacy(kr *crypto.KeyRing) (err error) {
+func (m *Message) decryptLegacy(kr *crypto.KeyRing) (dec []byte, err error) {
 	randomKeyStart := strings.Index(m.Body, RandomKeyHeader) + len(RandomKeyHeader)
 	randomKeyEnd := strings.Index(m.Body, RandomKeyTail)
 	randomKey := m.Body[randomKeyStart:randomKeyEnd]
@@ -300,7 +300,7 @@ func (m *Message) DecryptLegacy(kr *crypto.KeyRing) (err error) {
 	if err != nil {
 		return
 	}
-	bytesKey, err := decodeBase64UTF8(signedKey)
+	bytesKey, err := decodeBase64UTF8(string(signedKey))
 	if err != nil {
 		return
 	}
@@ -345,8 +345,7 @@ func (m *Message) DecryptLegacy(kr *crypto.KeyRing) (err error) {
 		return
 	}
 
-	m.Body = string(bytesPlaintext)
-	return err
+	return bytesPlaintext, nil
 }
 
 func decodeBase64UTF8(input string) (output []byte, err error) {

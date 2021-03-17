@@ -18,12 +18,13 @@
 package transfer
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"sync"
 
-	pkgMsg "github.com/ProtonMail/proton-bridge/pkg/message"
+	"github.com/ProtonMail/proton-bridge/pkg/message"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
-	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )
 
@@ -144,6 +145,7 @@ func (p *PMAPIProvider) transferTo(rule *Rule, progress *Progress, ch chan<- Mes
 
 func (p *PMAPIProvider) exportMessage(rule *Rule, progress *Progress, pmapiMsgID, msgID string, skipEncryptedMessages bool) (Message, error) {
 	var msg *pmapi.Message
+
 	progress.callWrap(func() error {
 		var err error
 		msg, err = p.getMessage(pmapiMsgID)
@@ -153,19 +155,18 @@ func (p *PMAPIProvider) exportMessage(rule *Rule, progress *Progress, pmapiMsgID
 	p.timeIt.start("build", msgID)
 	defer p.timeIt.stop("build", msgID)
 
-	msgBuilder := pkgMsg.NewBuilder(p.client(), msg)
-	msgBuilder.EncryptedToHTML = false
-	_, body, err := msgBuilder.BuildMessage()
+	body, err := p.builder.NewJobWithOptions(
+		context.Background(),
+		p.client(),
+		msg.ID,
+		message.JobOptions{IgnoreDecryptionErrors: !skipEncryptedMessages},
+	).GetResult()
 	if err != nil {
-		return Message{
-			Body: body, // Keep body to show details about the message to user.
-		}, errors.Wrap(err, "failed to build message")
-	}
+		if errors.Is(err, message.ErrDecryptionFailed) && skipEncryptedMessages {
+			err = errors.New("skipping encrypted message")
+		}
 
-	if !msgBuilder.SuccessfullyDecrypted() && skipEncryptedMessages {
-		return Message{
-			Body: body, // Keep body to show details about the message to user.
-		}, errors.New("skipping encrypted message")
+		return Message{Body: []byte(msg.Body)}, err
 	}
 
 	unread := false

@@ -26,8 +26,15 @@ import (
 	"github.com/ProtonMail/proton-bridge/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/internal/events"
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
+	"github.com/ProtonMail/proton-bridge/pkg/message"
 	"github.com/emersion/go-imap"
 	goIMAPBackend "github.com/emersion/go-imap/backend"
+)
+
+const (
+	fetchWorkers  = 20 // In how many workers to fetch message (group list on IMAP).
+	attachWorkers = 5  // In how many workers to fetch attachments (for one message).
+	buildWorkers  = 20 // In how many workers to build messages.
 )
 
 type panicHandler interface {
@@ -42,6 +49,8 @@ type imapBackend struct {
 
 	users       map[string]*imapUser
 	usersLocker sync.Locker
+
+	builder *message.Builder
 
 	imapCache     map[string]map[string]string
 	imapCachePath string
@@ -77,6 +86,8 @@ func newIMAPBackend(
 
 		users:       map[string]*imapUser{},
 		usersLocker: &sync.Mutex{},
+
+		builder: message.NewBuilder(fetchWorkers, attachWorkers, buildWorkers),
 
 		imapCachePath: cache.GetIMAPCachePath(),
 		imapCacheLock: &sync.RWMutex{},

@@ -42,16 +42,16 @@ func GetHeader(msg *pmapi.Message) textproto.MIMEHeader { //nolint[funlen]
 		h.Set("From", pmmime.EncodeHeader(msg.Sender.String()))
 	}
 	if len(msg.ReplyTos) > 0 {
-		h.Set("Reply-To", pmmime.EncodeHeader(formatAddressList(msg.ReplyTos)))
+		h.Set("Reply-To", pmmime.EncodeHeader(toAddressList(msg.ReplyTos)))
 	}
 	if len(msg.ToList) > 0 {
-		h.Set("To", pmmime.EncodeHeader(formatAddressList(msg.ToList)))
+		h.Set("To", pmmime.EncodeHeader(toAddressList(msg.ToList)))
 	}
 	if len(msg.CCList) > 0 {
-		h.Set("Cc", pmmime.EncodeHeader(formatAddressList(msg.CCList)))
+		h.Set("Cc", pmmime.EncodeHeader(toAddressList(msg.CCList)))
 	}
 	if len(msg.BCCList) > 0 {
-		h.Set("Bcc", pmmime.EncodeHeader(formatAddressList(msg.BCCList)))
+		h.Set("Bcc", pmmime.EncodeHeader(toAddressList(msg.BCCList)))
 	}
 
 	// Add or rewrite date related fields.
@@ -91,7 +91,7 @@ func GetHeader(msg *pmapi.Message) textproto.MIMEHeader { //nolint[funlen]
 
 func SetBodyContentFields(h *textproto.MIMEHeader, m *pmapi.Message) {
 	h.Set("Content-Type", m.MIMEType+"; charset=utf-8")
-	h.Set("Content-Disposition", "inline")
+	h.Set("Content-Disposition", pmapi.DispositionInline)
 	h.Set("Content-Transfer-Encoding", "quoted-printable")
 }
 
@@ -120,8 +120,8 @@ func GetAttachmentHeader(att *pmapi.Attachment, buildForIMAP bool) textproto.MIM
 
 	encodedName := pmmime.EncodeHeader(att.Name)
 	disposition := "attachment" //nolint[goconst]
-	if strings.Contains(att.Header.Get("Content-Disposition"), "inline") {
-		disposition = "inline"
+	if strings.Contains(att.Header.Get("Content-Disposition"), pmapi.DispositionInline) {
+		disposition = pmapi.DispositionInline
 	}
 
 	h := make(textproto.MIMEHeader)

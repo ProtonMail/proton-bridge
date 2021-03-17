@@ -21,8 +21,15 @@ import (
 	"sort"
 
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
+	"github.com/ProtonMail/proton-bridge/pkg/message"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	"github.com/pkg/errors"
+)
+
+const (
+	fetchWorkers  = 20 // In how many workers to fetch message (group list on IMAP).
+	attachWorkers = 5  // In how many workers to fetch attachments (for one message).
+	buildWorkers  = 20 // In how many workers to build messages.
 )
 
 // PMAPIProvider implements import and export to/from ProtonMail server.
@@ -31,6 +38,7 @@ type PMAPIProvider struct {
 	userID        string
 	addressID     string
 	keyRing       *crypto.KeyRing
+	builder       *message.Builder
 
 	nextImportRequests     map[string]*pmapi.ImportMsgReq // Key is msg transfer ID.
 	nextImportRequestsSize int
@@ -44,6 +52,7 @@ func NewPMAPIProvider(clientManager ClientManager, userID, addressID string) (*P
 		clientManager: clientManager,
 		userID:        userID,
 		addressID:     addressID,
+		builder:       message.NewBuilder(fetchWorkers, attachWorkers, buildWorkers),
 
 		nextImportRequests:     map[string]*pmapi.ImportMsgReq{},
 		nextImportRequestsSize: 0,

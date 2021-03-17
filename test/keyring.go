@@ -15,8 +15,21 @@
 // You should have received a copy of the GNU General Public License
 // along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
 
-package imap
+package tests
 
-import "github.com/sirupsen/logrus"
+import (
+	"testing"
 
-var log = logrus.WithField("pkg", "imap") //nolint[gochecknoglobals]
+	"github.com/ProtonMail/gopenpgp/v2/crypto"
+	"github.com/stretchr/testify/require"
+)
+
+func MakeKeyRing(t *testing.T) *crypto.KeyRing {
+	key, err := crypto.GenerateKey("name", "email", "rsa", 2048)
+	require.NoError(t, err)
+
+	kr, err := crypto.NewKeyRing(key)
+	require.NoError(t, err)
+
+	return kr
+}

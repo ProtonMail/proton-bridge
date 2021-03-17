@@ -27,6 +27,7 @@ import (
 	"github.com/Masterminds/semver/v3"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/ProtonMail/proton-bridge/pkg/sum"
+	tests "github.com/ProtonMail/proton-bridge/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -68,7 +69,7 @@ func TestVerifyWithBadFile(t *testing.T) {
 		filepath.Join("sub", "f5.tgz"),
 	)
 
-	badKeyRing := makeKeyRing(t)
+	badKeyRing := tests.MakeKeyRing(t)
 	signFile(t, filepath.Join(tempDir, "f3.bad"), badKeyRing)
 
 	assert.Error(t, version.VerifyFiles(kr))
@@ -91,14 +92,14 @@ func TestVerifyWithBadSubFile(t *testing.T) {
 		filepath.Join("sub", "f5.bad"),
 	)
 
-	badKeyRing := makeKeyRing(t)
+	badKeyRing := tests.MakeKeyRing(t)
 	signFile(t, filepath.Join(tempDir, "sub", "f5.bad"), badKeyRing)
 
 	assert.Error(t, version.VerifyFiles(kr))
 }
 
 func createSignedFiles(t *testing.T, root string, paths ...string) *crypto.KeyRing {
-	kr := makeKeyRing(t)
+	kr := tests.MakeKeyRing(t)
 
 	for _, path := range paths {
 		makeFile(t, filepath.Join(root, path))
@@ -114,16 +115,6 @@ func createSignedFiles(t *testing.T, root string, paths ...string) *crypto.KeyRi
 	require.NoError(t, err)
 
 	signFile(t, sumFile.Name(), kr)
-
-	return kr
-}
-
-func makeKeyRing(t *testing.T) *crypto.KeyRing {
-	key, err := crypto.GenerateKey("name", "email", "rsa", 2048)
-	require.NoError(t, err)
-
-	kr, err := crypto.NewKeyRing(key)
-	require.NoError(t, err)
 
 	return kr
 }

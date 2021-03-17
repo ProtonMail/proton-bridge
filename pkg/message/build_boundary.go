@@ -15,18 +15,29 @@
 // You should have received a copy of the GNU General Public License
 // along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
 
-package imap
+package message
 
 import (
-	"io"
-	"net/http"
-	"net/textproto"
+	"crypto/sha256"
+	"encoding/hex"
 )
 
-func writeHeader(w io.Writer, h textproto.MIMEHeader) (err error) {
-	if err = http.Header(h).Write(w); err != nil {
-		return
+type boundary struct {
+	val string
+}
+
+func newBoundary(seed string) *boundary {
+	return &boundary{val: seed}
+}
+
+func (bw *boundary) gen() string {
+	hash := sha256.New()
+
+	if _, err := hash.Write([]byte(bw.val)); err != nil {
+		panic(err)
 	}
-	_, err = io.WriteString(w, "\r\n")
-	return
+
+	bw.val = hex.EncodeToString(hash.Sum(nil))
+
+	return bw.val
 }

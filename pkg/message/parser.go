@@ -536,7 +536,7 @@ func parseAttachment(h message.Header) (*pmapi.Attachment, error) {
 	if h.Has("Content-Disposition") {
 		if disp, _, err := h.ContentDisposition(); err != nil {
 			return nil, err
-		} else if disp == "inline" {
+		} else if disp == pmapi.DispositionInline {
 			att.ContentID = strings.Trim(h.Get("Content-Id"), " <>")
 		}
 	} else if h.Has("Content-Id") {

@@ -1,0 +1,43 @@
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="M2HYr2fNKsmidMKeWqsSlKJaGCe2l1guZ"
+
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--M2HYr2fNKsmidMKeWqsSlKJaGCe2l1guZ
+Content-Type: multipart/mixed; boundary="ijQgYCMAVOgOyTMqn30h68dd5lQKbMzCn";
+ protected-headers="v1"
+Subject: plain body no pubkey
+From: "pm.bridge.qa" <pm.bridge.qa@gmail.com>
+To: schizofrenic@pm.me
+Message-ID: <7414d726-2f14-54bf-3abe-75805aa6cc7f@gmail.com>
+
+--ijQgYCMAVOgOyTMqn30h68dd5lQKbMzCn
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: quoted-printable
+Content-Language: en-US
+
+Why do seagulls fly over the ocean?
+
+Because if they flew over the bay, we'd call them bagels.
+
+
+
+--ijQgYCMAVOgOyTMqn30h68dd5lQKbMzCn--
+
+--M2HYr2fNKsmidMKeWqsSlKJaGCe2l1guZ
+Content-Type: application/pgp-signature; name="OpenPGP_signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="OpenPGP_signature"
+
+-----BEGIN PGP SIGNATURE-----
+
+wsB5BAABCAAjFiEEXOYJeXAvKFvzKPmxFhwIdYIjWfcFAmBa+F4FAwAAAAAACgkQFhwIdYIjWfew
+6wf/Ts05KX3py8C2L3FPKkdNf+Ci1hd5aE7ARM8Zp5l0cFuuf6M3+Lud94VKYonoayNu5XfSGoyA
+OO1HtpW+8hf5A+KSnyh8jp2dA/aLnU1RPZsfEN2cmgamMd6NyTL5cpYuAfxcSmWT79xeCcxPcjor
+GtrVAojN1tkP2bynYzNI09uygWXzfzgB5f25povN2pAj7DFMAqRKf9bt3nZxO1wIh/aKHoEyjU3w
+tO2AEKnn7dUnPS37wKomZr/LI1ZbNSLBJ+Gaan4w5c92gfEixttEuHXq2GwkJzJq6SInrxmyZQdl
+dGR/kiAy9wFwQlErhyjI5lTtd12y3XNTyhaO5cS0bQ==
+=Th/B
+-----END PGP SIGNATURE-----
+
+--M2HYr2fNKsmidMKeWqsSlKJaGCe2l1guZ--
