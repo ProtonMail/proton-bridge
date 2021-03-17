@@ -35,6 +35,16 @@ Feature: Import to sent
       | foo@example.com | bridgetest@pm.test | one     |
       | bar@example.com | bridgetest@pm.test | two     |
 
+  # Messages imported to label only are added automatically to Archive folder.
+  # Then it depends on the order: if the message is first imported to Sent
+  # folder and later to that label with importing to Archive, message will not
+  # be in Sent but Archive. The order is semi-random for the big messages,
+  # e.g., it will do alphabetical order of mailboxes, but for under ten small
+  # messages the order is random every time (because we are importing in
+  # batches of up to ten messages and iterating through map we use to collect
+  # messages is random). So we cannot for this test ensure the same output
+  # every time.
+  @ignore-live
   Scenario: Import to sent and custom label
     And there is EML file "Label/one.eml"
       """
