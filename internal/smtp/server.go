@@ -42,6 +42,7 @@ func NewSMTPServer(debug bool, port int, useSSL bool, tls *tls.Config, smtpBacke
 	s.TLSConfig = tls
 	s.Domain = bridge.Host
 	s.AllowInsecureAuth = true
+	s.MaxLineLength = 2 << 16
 
 	if debug {
 		fmt.Println("THE LOG WILL CONTAIN **DECRYPTED** MESSAGE DATA")
