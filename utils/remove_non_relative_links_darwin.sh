@@ -17,10 +17,13 @@
 # You should have received a copy of the GNU General Public License
 # along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
 
-
-## Make sure that mac exe will not contain broken library links
-# * remove absolute paths for Qt libs
-# * add relative part to app bundle Frameworks
+# The Qt libs are dynamically loaded with rules like: `@rpath/QtGui.framework/Versions/5/QtGui`
+# @rpath instructs the dynamic linker to search a list of paths in order to locate the framework
+# The rules can be listed using `otool -l "${path_to_binary}"`
+# The building process of therecipe/qt or qmake leaves the rules with additinal unwanted paths
+#   + absolute path to build directory
+#   + dummy replacement `/break_the_rpath`
+# We need to manually remove those and add the path relative to exectuable: `@executable_path/../Frameworks`
 
 path_to_binary=$1
 
@@ -29,11 +32,11 @@ if [ -z ${path_to_binary} ]; then
     exit 2
 fi
 
-for remove_path_qt in $(otool -l "${path_to_binary}" | grep '/Users/' | awk '{print $2}');
+for path_to_remove in $(otool -l "${path_to_binary}" | egrep '/Users/|break_the_rpath' | awk '{print $2}');
 do
-    if [ ! -z "${remove_path_qt}" ]; then
-        printf "\e[0;32mRemove path to qt ${remove_path_qt} ...\033[0m\n\e[0;31m"
-        install_name_tool -delete_rpath "${remove_path_qt}" "${path_to_binary}" || exit 1
+    if [ ! -z "${path_to_remove}" ]; then
+        printf "\e[0;32mRemove path to qt '${path_to_remove}' ...\033[0m\n\e[0;31m"
+        install_name_tool -delete_rpath "${path_to_remove}" "${path_to_binary}" || exit 1
     fi
 done
 rpath_rule=$(otool -l "${path_to_binary}" | grep executable_path | awk '{print $2}')
