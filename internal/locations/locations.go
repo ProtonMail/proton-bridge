@@ -189,6 +189,14 @@ func (l *Locations) getCachePath() string {
 }
 
 func (l *Locations) getUpdatesPath() string {
+	// In order to properly update Bridge 1.6.X and higher we need to
+	// change the launcher first. Since this is not part of automatic
+	// updates the migration must wait until manual update. Until that
+	// we need to keep old path.
+	if l.configName == "bridge" {
+		return l.GetOldUpdatesPath()
+	}
+
 	// Users might use tools to regularly clear caches, which would mean always
 	// removing updates, therefore Bridge updates have to be somewhere else.
 	return filepath.Join(l.userConfig, "updates")

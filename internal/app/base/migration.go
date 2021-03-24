@@ -50,7 +50,7 @@ func migrateFiles(configName string) error {
 	if err := migrateCacheFromBoth15xAnd16x(locations, userCacheDir); err != nil {
 		return err
 	}
-	if err := migrateUpdatesFrom16x(locations); err != nil {
+	if err := migrateUpdatesFrom16x(configName, locations); err != nil {
 		return err
 	}
 	return nil
@@ -91,7 +91,15 @@ func migrateCacheFromBoth15xAnd16x(locations *locations.Locations, userCacheDir 
 	)
 }
 
-func migrateUpdatesFrom16x(locations *locations.Locations) error {
+func migrateUpdatesFrom16x(configName string, locations *locations.Locations) error {
+	// In order to properly update Bridge 1.6.X and higher we need to
+	// change the launcher first. Since this is not part of automatic
+	// updates the migration must wait until manual update. Until that
+	// we need to keep old path.
+	if configName == "bridge" {
+		return nil
+	}
+
 	oldUpdatesPath := locations.GetOldUpdatesPath()
 	// Do not use ProvideUpdatesPath, that creates dir right away.
 	newUpdatesPath := locations.GetUpdatesPath()
