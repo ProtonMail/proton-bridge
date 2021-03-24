@@ -2,6 +2,18 @@
 
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
+## [IE 1.3.1] Farg
+
+### Changed
+* GODT-1047 No silent updates for Import-Export app.
+* GODT-247 Cache and update files moved from user's cache to config.
+
+### Fixed
+* Other: include latest go.mod/go.sum changes.
+* GODT-803 Fix import to wrong target address.
+* GODT-948 Embedded messages.
+* GODT-1043 Fix showing long login error in GUI dialog.
+
 ## [Bridge 1.6.6] HZM
 
 ### Added
