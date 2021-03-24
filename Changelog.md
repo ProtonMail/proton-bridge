@@ -2,6 +2,40 @@
 
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
+## [Bridge 1.6.7] HZM
+
+### Added
+* GODT-1111 Add correct metadata to Windows executables.
+* GODT-1112 Add application to Windows Firewall exclusion list on install.
+* GODT-1077 Track how many times message is built to help understand re-syncs.
+
+### Changed
+* GODT-247 Revise all storage locations (cache, config, local etc).
+
+### Fixed
+* GODT-948 Parser does not handle embedding of Content-Type: message/rfc822.
+* GODT-1079 Correct 9001 error handling on login.
+
+### Security
+* GODT-1105 Dylib Hijacking security fix.
+
+
+## [IE 1.3.2] Farg
+
+### Added
+* GODT-1111 Add correct metadata to Windows executables.
+* GODT-1112 Add application to Windows Firewall exclusion list on install.
+
+### Changed
+* GODT-247 Revise all storage locations (cache, config, local etc).
+
+### Fixed
+* GODT-1079 Correct 9001 error handling on login.
+
+### Security
+* GODT-1105 Dylib Hijacking security fix.
+
+
 ## [IE 1.3.1] Farg
 
 ### Changed
@@ -13,6 +47,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-803 Fix import to wrong target address.
 * GODT-948 Embedded messages.
 * GODT-1043 Fix showing long login error in GUI dialog.
+
 
 ## [Bridge 1.6.6] HZM
 

@@ -10,8 +10,8 @@ TARGET_OS?=${GOOS}
 .PHONY: build build-ie build-nogui build-ie-nogui build-launcher build-launcher-ie  versioner hasher
 
 # Keep version hardcoded so app build works also without Git repository.
-BRIDGE_APP_VERSION?=1.6.6+git
-IE_APP_VERSION?=1.3.1+git
+BRIDGE_APP_VERSION?=1.6.7+git
+IE_APP_VERSION?=1.3.2+git
 APP_VERSION:=${BRIDGE_APP_VERSION}
 SRC_ICO:=logo.ico
 SRC_ICNS:=Bridge.icns
