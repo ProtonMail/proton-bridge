@@ -136,7 +136,6 @@ func New( // nolint[funlen]
 	if err := logging.Init(logsPath); err != nil {
 		return nil, err
 	}
-	logging.SetLevel("debug") // Proper level is set later in run.
 	crashHandler.AddRecoveryAction(logging.DumpStackTrace(logsPath))
 
 	if err := migrateFiles(configName); err != nil {

@@ -87,9 +87,10 @@ func run(b *base.Base, c *cli.Context) error {
 }
 
 func checkAndHandleUpdate(u types.Updater, f frontend.Frontend, autoUpdate bool) { //nolint[unparam]
+	log := logrus.WithField("pkg", "app/ie")
 	version, err := u.Check()
 	if err != nil {
-		logrus.WithError(err).Error("An error occurred while checking for updates")
+		log.WithError(err).Error("An error occurred while checking for updates")
 		return
 	}
 
@@ -99,11 +100,11 @@ func checkAndHandleUpdate(u types.Updater, f frontend.Frontend, autoUpdate bool)
 	f.SetVersion(version)
 
 	if !u.IsUpdateApplicable(version) {
-		logrus.Debug("No need to update")
+		log.Info("No need to update")
 		return
 	}
 
-	logrus.WithField("version", version.Version).Info("An update is available")
+	log.WithField("version", version.Version).Info("An update is available")
 
 	f.NotifyManualUpdate(version, u.CanInstall(version))
 }

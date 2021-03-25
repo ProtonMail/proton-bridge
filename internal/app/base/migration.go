@@ -111,7 +111,7 @@ func moveIfExists(source, destination string) error {
 	l := logrus.WithField("source", source).WithField("destination", destination)
 
 	if _, err := os.Stat(source); os.IsNotExist(err) {
-		l.Debug("No need to migrate file, source doesn't exist")
+		l.Info("No need to migrate file, source doesn't exist")
 		return nil
 	}
 

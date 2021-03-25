@@ -69,6 +69,10 @@ func Init(logsPath string) error {
 	return nil
 }
 
+// SetLevel will change the level of logging and in case of Debug or Trace
+// level it will also prevent from writing to file. Setting level to Info or
+// higher will not set writing to file again if it was previously cancelled by
+// Debug or Trace.
 func SetLevel(level string) {
 	if lvl, err := logrus.ParseLevel(level); err == nil {
 		logrus.SetLevel(lvl)
