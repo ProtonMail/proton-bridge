@@ -41,6 +41,8 @@ func newBuildJob(messageID string) *BuildJob {
 	}
 }
 
+// GetResult returns the build result or any error which occurred during building.
+// If the result is not ready yet, it blocks.
 func (job *BuildJob) GetResult() ([]byte, error) {
 	<-job.done
 	return job.literal, job.err

@@ -43,6 +43,11 @@ func newBuildResFailure(messageID string, err error) buildRes {
 	}
 }
 
+// startBuildWorkers starts the given number of build workers.
+// These workers decrypt and build messages into RFC822 literals.
+// Two channels are returned:
+//  - buildReqCh: used to send work items to the worker pool
+//  - buildResCh: used to receive work results from the worker pool
 func startBuildWorkers(buildWorkers int) (chan fetchRes, chan buildRes) {
 	buildReqCh := make(chan fetchRes)
 	buildResCh := make(chan buildRes)

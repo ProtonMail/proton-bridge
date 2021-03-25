@@ -45,6 +45,17 @@ type Fetcher interface {
 	KeyRingForAddressID(string) (*crypto.KeyRing, error)
 }
 
+// NewBuilder creates a new builder which manages the given number of fetch/attach/build workers.
+//  - fetchWorkers: the number of workers which fetch messages from API
+//  - attachWorkers: the number of workers which fetch attachments from API.
+//  - buildWorkers: the number of workers which decrypt/build RFC822 message literals.
+//
+// NOTE: Each fetch worker spawns a unique set of attachment workers!
+// There can therefore be up to fetchWorkers*attachWorkers simultaneous API connections.
+//
+// The returned builder is ready to handle jobs -- see (*Builder).NewJob for more information.
+//
+// Call (*Builder).Done to shut down the builder and stop all workers.
 func NewBuilder(fetchWorkers, attachWorkers, buildWorkers int) *Builder {
 	b := newBuilder()
 
@@ -98,10 +109,13 @@ func newBuilder() *Builder {
 	}
 }
 
+// NewJob tells the builder to begin building the message with the given ID.
+// The result (or any error which occurred during building) can be retrieved from the returned job when available.
 func (b *Builder) NewJob(ctx context.Context, api Fetcher, messageID string) *BuildJob {
 	return b.NewJobWithOptions(ctx, api, messageID, JobOptions{})
 }
 
+// NewJobWithOptions creates a new job with custom options. See NewJob for more information.
 func (b *Builder) NewJobWithOptions(ctx context.Context, api Fetcher, messageID string, opts JobOptions) *BuildJob {
 	b.locker.Lock()
 	defer b.locker.Unlock()
@@ -117,6 +131,7 @@ func (b *Builder) NewJobWithOptions(ctx context.Context, api Fetcher, messageID 
 	return b.jobs[messageID]
 }
 
+// Done shuts down the builder and stops all workers.
 func (b *Builder) Done() {
 	b.locker.Lock()
 	defer b.locker.Unlock()

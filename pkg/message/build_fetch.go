@@ -56,6 +56,12 @@ func newFetchResFailure(req fetchReq, err error) fetchRes {
 	}
 }
 
+// startFetchWorkers starts the given number of fetch workers.
+// These workers download message and attachment data from API.
+// Each fetch worker will use up to the given number of attachment workers to download attachments.
+// Two channels are returned:
+//  - fetchReqCh: used to send work items to the worker pool
+//  - fetchResCh: used to receive work results from the worker pool
 func startFetchWorkers(fetchWorkers, attachWorkers int) (chan fetchReq, chan fetchRes) {
 	fetchReqCh := make(chan fetchReq)
 	fetchResCh := make(chan fetchRes)

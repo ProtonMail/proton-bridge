@@ -27,6 +27,7 @@ import (
 	"github.com/emersion/go-message"
 )
 
+// writeCustomTextPart writes an armored-PGP text part for a message body that couldn't be decrypted.
 func writeCustomTextPart(
 	w *message.Writer,
 	msg *pmapi.Message,
@@ -61,6 +62,7 @@ func writeCustomTextPart(
 	return nil
 }
 
+// writeCustomTextPart writes an armored-PGP data part for an attachment that couldn't be decrypted.
 func writeCustomAttachmentPart(
 	w *message.Writer,
 	att *pmapi.Attachment,

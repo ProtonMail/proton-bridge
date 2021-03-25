@@ -32,6 +32,7 @@ import (
 )
 
 const (
+	// NOTE: Each fetch worker has its own set of attach workers so there can up to 20*5=100 API requests at once.
 	fetchWorkers  = 20 // In how many workers to fetch message (group list on IMAP).
 	attachWorkers = 5  // In how many workers to fetch attachments (for one message).
 	buildWorkers  = 20 // In how many workers to build messages.
