@@ -1,0 +1,212 @@
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="Rrmlds5vN3IeeCVjbnepHmuVgyROSBjsS"
+
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--Rrmlds5vN3IeeCVjbnepHmuVgyROSBjsS
+Content-Type: multipart/mixed; boundary="avFkF0LAPYPXcFHcnsgGmACbGIPeVDdYc";
+ protected-headers="v1"
+Subject: Fwd: HTML with attachment external PGP
+From: "pm.bridge.qa" <pm.bridge.qa@gmail.com>
+To: schizofrenic@pm.me
+Message-ID: <7c04869b-c470-116f-b8e5-8b4fd5e1195d@gmail.com>
+References: <LCxIUvb0rqBufdwR4JNxMg4ZDMI8x7pRG0vEHGHYwA@cp7-web-042.plabs.ch>
+In-Reply-To: <LCxIUvb0rqBufdwR4JNxMg4ZDMI8x7pRG0vEHGHYwA@cp7-web-042.plabs.ch>
+
+--avFkF0LAPYPXcFHcnsgGmACbGIPeVDdYc
+Content-Type: multipart/mixed;
+ boundary="------------2F19EE9A8A1A6F779F5D14AF"
+Content-Language: en-US
+
+This is a multi-part message in MIME format.
+--------------2F19EE9A8A1A6F779F5D14AF
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: quoted-printable
+
+
+
+--------------2F19EE9A8A1A6F779F5D14AF
+Content-Type: application/pgp-keys;
+ name="OpenPGP_0x161C0875822359F7.asc"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: attachment;
+ filename="OpenPGP_0x161C0875822359F7.asc"
+
+-----BEGIN PGP PUBLIC KEY BLOCK-----
+
+xsBNBFxlUPwBCACx954Ey4SD88f8DSKFw9BaZNXrNwYxNYSgqaqOGHQ0WllF3mstEhTfuxxCZ=
+pDh
+I5IhWCXUNxanzsFkn88mRDwFRVl2sf2aAG4/P/p1381oh2kd0UElMRQaQGzoCadQMaQOL9WYT=
+f4S
+PWSCzjrPyKgjq5FbqjbF/ndu376na9L+tnsEXyL6RrI6aZhjWG73xlqxS65dzTIYzsyM/P97x=
+Snd
+NvlvWtGvLlpFkzxfAEGpVzfOYVYFKoc8rGmUDwrDWYfk5JczRDDogJnY+BNMZf9pjSqk6rTyB=
+OfN
+H5fpU8r7A5Q7l+HVakvMUQ9DzDWJtg2ru1Y8hexnJOF68avO4+a1ABEBAAHNKEJyaWRnZSBLe=
+XUt
+RWh5aiA8cG0uYnJpZGdlLnFhQGdtYWlsLmNvbT7CwJQEEwEIAD4CGwMFCwkIBwIGFQoJCAsCB=
+BYC
+AwECHgECF4AWIQRc5gl5cC8oW/Mo+bEWHAh1giNZ9wUCYC32ygUJB4sMzgAKCRAWHAh1giNZ9=
+/K8
+B/4qs84Ii/zKH+q+C8vwO4jUJkOM73qD0pgB7zBs651zWbpgopyol1YUKNpFaHlx/Qch7RDI7=
+Vcz
+1+60/KZJSJR19/N2EDVbCUdh8ueioUp9X/218YWV2TRJNxTnljd4FAn7smZnXuP1TsLjQ6sKO=
+V0U
+u6JoiG6LZFXqDgxYpA++58Rkl6xaY6R71VkmVQlbEKtubX9AjHydq97Y+Jvn11XzWZaKhv4L7=
+6Pa
+4tMKXvvrKh1oywMmh6mZJo+5ZA/ABTkr45cwlTPYqGTS9+uvOHt+PH/oYwwJB4ls2cIAUldSj=
+TVQ
+IsseYz3LlbcCfKJiiCFxeHOQXA5J6zNLKOT58TsczsBNBFxlUPwBCADh2HsX23yVnJt9fxFz3=
+D07
+kCBNvu4HQfps6h1rgNxGhE32VmpESHebvIB5xjL6xKbIqqRa3x/7KDVBNJvca0gUsqEt5kzYF=
+88F
+yf2NBcejpIbcP7BS/g+C6KOowYj+Et26T6GdwFXExUcl80JvoX8yHQOfvJpdiBRbjyB8UqfCa=
+knm
+3c7dNuXmhflz/w3aBj32q9ZyGqA1NpHCpLyVAlvSNQ/pat/rGUCPZ9duw4KhUUqEmatQPVFPk=
+utT
+ouEZQbMK+i+chOH3AsKCuNDfvCDwirnsSqIJmAgl1lC4de+bsWYCMqN9ei99hOCRUyhZ3g3sr=
+8RB
+owVAdcvjZxeIDKALABEBAAHCwHwEGAEIACYCGwwWIQRc5gl5cC8oW/Mo+bEWHAh1giNZ9wUCY=
+C32
+lAUJB4sMmAAKCRAWHAh1giNZ9+Y2B/9rTKZaKviae+ummXNumXcrKvbkAAvfuLpKUn53FlQLm=
+L6H
+jB++lJnPWvVSzdZxdv8FiPP3d632XHKUrkQRQM/9byRDXDommi7Qttx7YCkhd4JLVYqJqpnAQ=
+xI5
+RMkXiZNWyr1lz8JOM1XvDk1M7sJwPMWews8VOIE03E1nt7AsQGnvHtadgEnQaufrYNX3hFA8S=
+osO
+HSnedcys6yrzCSIGCqCD9VHbnMtS4DOv0XJGh2hwc8omzH0KZA517dyKBorJRwadcVauGXDKx=
+Etv
+Im4rl94PR/3An1Mj6HeeVVpLqDQ5Jb9J90BahWeQ53FzRa4EQzYCw0nLnxcsT1ZEEP5u
+=3Dv/1p
+-----END PGP PUBLIC KEY BLOCK-----
+
+--------------2F19EE9A8A1A6F779F5D14AF
+Content-Type: message/rfc822;
+ name="HTML with attachment external PGP.eml"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="HTML with attachment external PGP.eml"
+
+Delivered-To: pm.bridge.qa@gmail.com
+Received: by 2002:a17:906:a051:0:0:0:0 with SMTP id bg17csp66709ejb;
+        Wed, 24 Mar 2021 22:03:32 -0700 (PDT)
+X-Google-Smtp-Source: ABdhPJxllBuHnnJzKWy77R291tZbVFVk0iahkLm1TQsluEYTvyAXdOWB/zp1y10e60UlGGZYH3YF
+X-Received: by 2002:a05:6000:118c:: with SMTP id g12mr6758087wrx.353.1616648612550;
+        Wed, 24 Mar 2021 22:03:32 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1616648612; cv=none;
+        d=google.com; s=arc-20160816;
+        b=Jf4vmKEoeJQ3rIDMbI2twiDkfn50ejNnqIbs2nkaFruITcw6XhvhbcfV9HLC80Yt8E
+         tfN7TV9qoBneSWzfSJ+Sqw31hBKKtKpMhuqZT9GPzBN5gdMJKj5ISAQ8Lgm9zvR3Zbjn
+         N0nOzCu/oT1amMMm+48hpKj8VL2tydjvNG+g/a5lk1Aw7JdqIKV6t1XhsyyYaa1O+NFC
+         rQThdalcQj2NjoZWba1mjZSzI7B7hJdZg5d+jado2TPMQXe2kz2wGmr3+/JcKvPJjrSA
+         S+jzhpjcd7ZnctkzTfpsdlBJAGKoDBnSvQc3eMJ/AgRHFc+5ks5nRDt/1DowSjQ7i7rp
+         4a+g==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20160816;
+        h=mime-version:message-id:subject:reply-to:from:to:dkim-signature
+         :date;
+        bh=vmJ0JT+IfeO4idMYP7zPvldBkdONjKTXWTp7ly/B9qk=;
+        b=f8VY+ajsE/XNYrqD666FM0WCtNEQtUyU/Zh3pFCI9sFrMnAui4Qp9Gs1fe/8HLxt2v
+         /C4l4eHELvPBv4vX0KtUvOlRZYPZbLZCNdtTcFtiuZEKUHWx370p7yyMWcmSMdlUbq4J
+         NrKMPGfaYiZe5Rt3MyD5RKm4RJpqvep34VCHMYtoFQP/0Po4/1JMDw0Fy6SXUJ54rBRw
+         bmzqNNBkonda3YghhK3WNrxTxzZ8I7KW9YdpENNS9ewJLeVtFQKdiLZwz5EpMZxOxG0I
+         LW0jRtDlmZnqRe7bvTAo51IuLf9okHRI8PRiK0UHl+4Vr5Igq4mub7Ee8pC/Nz3Yj29G
+         KODw==
+ARC-Authentication-Results: i=1; mx.google.com;
+       dkim=pass header.i=@protonmail.com header.s=protonmail header.b=EX07e46H;
+       spf=pass (google.com: domain of bridge-test-user@protonmail.com designates 185.70.40.22 as permitted sender) smtp.mailfrom=bridge-test-user@protonmail.com;
+       dmarc=pass (p=QUARANTINE sp=QUARANTINE dis=NONE) header.from=protonmail.com
+Return-Path: <bridge-test-user@protonmail.com>
+Received: from mail2.protonmail.ch (mail2.protonmail.ch. [185.70.40.22])
+        by mx.google.com with ESMTPS id g6si2999785wrr.110.2021.03.24.22.03.32
+        for <pm.bridge.qa@gmail.com>
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 24 Mar 2021 22:03:32 -0700 (PDT)
+Received-SPF: pass (google.com: domain of bridge-test-user@protonmail.com designates 185.70.40.22 as permitted sender) client-ip=185.70.40.22;
+Authentication-Results: mx.google.com;
+       dkim=pass header.i=@protonmail.com header.s=protonmail header.b=EX07e46H;
+       spf=pass (google.com: domain of bridge-test-user@protonmail.com designates 185.70.40.22 as permitted sender) smtp.mailfrom=bridge-test-user@protonmail.com;
+       dmarc=pass (p=QUARANTINE sp=QUARANTINE dis=NONE) header.from=protonmail.com
+Date: Thu, 25 Mar 2021 05:03:27 +0000
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=protonmail.com;
+	s=protonmail; t=1616648611;
+	bh=vmJ0JT+IfeO4idMYP7zPvldBkdONjKTXWTp7ly/B9qk=;
+	h=Date:To:From:Reply-To:Subject:From;
+	b=EX07e46H5/HmotAWZ69I4qa5jCVRao/p3KEM3eQn/AQ8s+cLMaR5b2ozdHrPCsTw5
+	 i5b1DLUHZHBf+6Ven47WJfKNwLUfkAGD2P0aI/dAk/h/h0Bg4Ni85pv+uPpRHLNQKv
+	 T3VnDP9MSwl6IUJu5zoM2EC70MLoiHS07lxhM2pw=
+To: External Bridge <pm.bridge.qa@gmail.com>
+From: Bridge Test <bridge-test-user@protonmail.com>
+Reply-To: Bridge Test <bridge-test-user@protonmail.com>
+Subject: HTML with attachment external PGP
+Message-ID: <LCxIUvb0rqBufdwR4JNxMg4ZDMI8x7pRG0vEHGHYwA@cp7-web-042.plabs.ch>
+MIME-Version: 1.0
+Content-Type: multipart/mixed;
+ boundary="b1_LCxIUvb0rqBufdwR4JNxMg4ZDMI8x7pRG0vEHGHYwA"
+X-Spam-Status: No, score=-1.2 required=10.0 tests=ALL_TRUSTED,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,DKIM_VALID_EF,FREEMAIL_FROM,HTML_MESSAGE
+	shortcircuit=no autolearn=disabled version=3.4.4
+X-Spam-Checker-Version: SpamAssassin 3.4.4 (2020-01-24) on
+	mailout.protonmail.ch
+
+This is a multi-part message in MIME format.
+
+--b1_LCxIUvb0rqBufdwR4JNxMg4ZDMI8x7pRG0vEHGHYwA
+Content-Type: multipart/alternative;
+ boundary="b2_LCxIUvb0rqBufdwR4JNxMg4ZDMI8x7pRG0vEHGHYwA"
+
+--b2_LCxIUvb0rqBufdwR4JNxMg4ZDMI8x7pRG0vEHGHYwA
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: base64
+
+VGhpcyBpcyBib2R5IG9mIEhUTUwgbWFpbCB3aXRoIGF0dGFjaG1lbnQ=
+
+--b2_LCxIUvb0rqBufdwR4JNxMg4ZDMI8x7pRG0vEHGHYwA
+Content-Type: text/html; charset=utf-8
+Content-Transfer-Encoding: base64
+
+PGh0bWw+PGhlYWQ+PC9oZWFkPjxib2R5PlRoaXMgaXMgYm9keSBvZiA8Yj5IVE1MIG1haWw8L2I+
+IHdpdGggYXR0YWNobWVudA0KPC9ib2R5PjwvaHRtbD4=
+
+
+--b2_LCxIUvb0rqBufdwR4JNxMg4ZDMI8x7pRG0vEHGHYwA--
+
+--b1_LCxIUvb0rqBufdwR4JNxMg4ZDMI8x7pRG0vEHGHYwA
+Content-Type: image/png; name=outline-light-instagram-48.png
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename=outline-light-instagram-48.png
+
+iVBORw0KGgoAAAANSUhEUgAAADAAAAAwBAMAAAClLOS0AAAALVBMVEUAAAD/////////////////
+//////////////////////////////////////+hSKubAAAADnRSTlMAgO8QQM+/IJ9gj1AwcIQd
+OXUAAAGdSURBVDjLXJC9SgNBFIVPXDURTYhgIQghINgowyLYCAYtRFAIgtYhpAjYhC0srCRW6YIg
+WNpoHVSsg/gEii+Qnfxq4DyDc3cyMfrBwl2+O+fOHTi8p7LS5RUf/9gpMKL7iT9sK47Q95ggpkzv
+1cvRcsGYNMYsmP+zKN27NR2vcDyTNVdfkOuuniNPMWafvIbljt+YoMEvW8y7lt+ARwhvrgPjhA0I
+BTng7S1GLPlypBvtIBPidY4YBDJFdtnkscQ5JGaGqxC9i7jSDwcwnB8qHWBaQjw1ABI8wYgtVoG6
+9pFkH8iZIiJeulFt4JLvJq8I5N2GMWYbHWDWzM3JZTMdeSWla0kW86FcuI0mfStiNKQ/AhEeh8h0
+YUTffFwrMTT5oSwdojIQ0UKcocgAKRH1HiqhFQmmJa5qRaYHNbRiSsOgslY0NdixItUTUWlZkedP
+HXVyAgAIA1F0wP5btQZPIyTwvAqa/Fl4oacuP+e4XHAjSYpkQkxSiMX+T7FPoZJToSStzED70HCy
+KE3NGCg4jJrC6Ti7AFwZLhnW0gMbzFZc0RmmeAAAAABJRU5ErkJggg==
+
+--b1_LCxIUvb0rqBufdwR4JNxMg4ZDMI8x7pRG0vEHGHYwA--
+
+
+--------------2F19EE9A8A1A6F779F5D14AF--
+
+--avFkF0LAPYPXcFHcnsgGmACbGIPeVDdYc--
+
+--Rrmlds5vN3IeeCVjbnepHmuVgyROSBjsS
+Content-Type: application/pgp-signature; name="OpenPGP_signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="OpenPGP_signature"
+
+-----BEGIN PGP SIGNATURE-----
+
+wsB5BAABCAAjFiEEXOYJeXAvKFvzKPmxFhwIdYIjWfcFAmBciIAFAwAAAAAACgkQFhwIdYIjWfcN
+ZQf+NzAoEJRTSW5JFNgSGkwLsH89wAbw3wEt4PYuZaa+35xBuU8Sojm1oLOyuPkIasQf98Iu5P1o
+8cokViEa6wm+ZZpcFMi6T2/3+UNlSm81Epm7GrFyjAFTWrdTPLb4k4x47sz77RoTp/UEwm/7fVI5
+gMYhQyIYaocXHmDk61UshWE9q/Po6qjHBnnWS8YBnhUS9lK8uimpfRO9UQ9bIUjIYDGDPAtBoYnb
+X9V4SjBvbbdNrgoVaDxPw6HYCb3RhzRXunr5Icdnjfbc2H40/FayVi/p7GzFh+8zv/TzRxMkHo72
+DBsONaC7r8bxQ9BwJvpmWufqL7ZXHfVXQ6z+M43e1Q==
+=Stx+
+-----END PGP SIGNATURE-----
+
+--Rrmlds5vN3IeeCVjbnepHmuVgyROSBjsS--
