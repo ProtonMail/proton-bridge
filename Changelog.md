@@ -2,6 +2,18 @@
 
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
+## [Bridge 1.6.8] HZM
+
+### Fixed
+* GODT-1120 Use Info level in internal/app logs.
+
+
+## [IE 1.3.3] Farg
+
+### Fixed
+* GODT-1120 Use Info level in internal/app logs.
+
+
 ## [Bridge 1.6.7] HZM
 
 ### Added
