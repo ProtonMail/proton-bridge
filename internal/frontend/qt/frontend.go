@@ -370,24 +370,15 @@ func (s *FrontendQt) qtExecute(Procedure func(*FrontendQt) error) error {
 	}
 	s.Qml.SetIsAutoStart(s.autostart.IsEnabled())
 
-	if s.settings.GetBool(settings.AllowProxyKey) {
-		s.Qml.SetIsProxyAllowed(true)
-	} else {
-		s.Qml.SetIsProxyAllowed(false)
-	}
-
-	if updater.UpdateChannel(s.settings.Get(settings.UpdateChannelKey)) == updater.EarlyChannel {
-		s.Qml.SetIsEarlyAccess(true)
-	} else {
-		s.Qml.SetIsEarlyAccess(false)
-	}
+	s.Qml.SetIsAutoUpdate(s.settings.GetBool(settings.AutoUpdateKey))
+	s.Qml.SetIsProxyAllowed(s.settings.GetBool(settings.AllowProxyKey))
+	s.Qml.SetIsEarlyAccess(updater.UpdateChannel(s.settings.Get(settings.UpdateChannelKey)) == updater.EarlyChannel)
 
 	availableKeychain := []string{}
 	for chain := range keychain.Helpers {
 		availableKeychain = append(availableKeychain, chain)
 	}
 	s.Qml.SetAvailableKeychain(availableKeychain)
-
 	s.Qml.SetSelectedKeychain(s.settings.Get(settings.PreferredKeychainKey))
 
 	// Set reporting of outgoing email without encryption.
