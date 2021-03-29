@@ -2,6 +2,12 @@
 
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
+## [Bridge 1.6.9] HZM
+
+### Fixed
+* GODT-1121 'Keep the application up to date' switches off after restarting Bridge.
+
+
 ## [Bridge 1.6.8] HZM
 
 ### Fixed
