@@ -81,7 +81,8 @@ func writeCustomTextPart(
 
 	var hdr message.Header
 
-	hdr.SetContentType(msg.MIMEType, nil)
+	// Even if it is HTML, we don't care... we abuse pgp/inline here.
+	hdr.SetContentType("text/plain", nil)
 
 	part, err := w.CreatePart(hdr)
 	if err != nil {
@@ -95,7 +96,7 @@ func writeCustomTextPart(
 	return nil
 }
 
-// writeCustomTextPart writes an armored-PGP data part for an attachment that couldn't be decrypted.
+// writeCustomAttachmentPart writes an armored-PGP data part for an attachment that couldn't be decrypted.
 func writeCustomAttachmentPart(
 	w *message.Writer,
 	att *pmapi.Attachment,
