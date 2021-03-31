@@ -3,6 +3,7 @@
 
 ### New
 
+- Revise storage locations for the config files, preferences and cache
 - Log improvements for easier debugging (sync issues)
 - Added relevant metadata to Windows builds
 

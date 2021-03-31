@@ -1,3 +1,20 @@
+## v1.6.9
+- 2021-04-01
+
+### New
+
+- Revise storage locations for the config files, preferences and cache
+- Log improvements for easier debugging (sync issues)
+- Added relevant metadata to Windows builds
+
+### Fixed
+
+- Fixed the way Bridge interacts with Windows Firewall and Defender
+- Fixed potential security vulnerability related to rpath
+- Improved parsing of embedded messages
+- GUI bug fixes
+
+
 ## v1.6.6
 - 2021-03-04
 
