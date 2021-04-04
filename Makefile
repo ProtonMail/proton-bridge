@@ -145,7 +145,7 @@ endif
 ${EXE_TARGET}: check-has-go gofiles ${RESOURCE_FILE} ${VENDOR_TARGET}
 	rm -rf deploy ${TARGET_OS} ${DEPLOY_DIR}
 	cp cmd/${TARGET_CMD}/main.go .
-	qtdeploy ${BUILD_FLAGS_GUI} ${QT_BUILD_TARGET}
+	$(shell go env GOPATH)/bin/qtdeploy ${BUILD_FLAGS_GUI} ${QT_BUILD_TARGET}
 	mv deploy cmd/${TARGET_CMD}
 	if [ "${EXE_QT_TARGET}" != "${EXE_TARGET}" ]; then mv ${EXE_QT_TARGET} ${EXE_TARGET}; fi
 	rm -rf ${TARGET_OS} main.go
