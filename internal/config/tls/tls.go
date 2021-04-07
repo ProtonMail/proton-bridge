@@ -154,5 +154,6 @@ func (t *TLS) GetConfig() (*tls.Config, error) {
 		ClientAuth:   tls.VerifyClientCertIfGiven,
 		RootCAs:      caCertPool,
 		ClientCAs:    caCertPool,
+		MinVersion:   tls.VersionTLS13, // gosec G402
 	}, nil
 }

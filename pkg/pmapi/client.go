@@ -293,7 +293,7 @@ func (c *client) doBuffered(req *http.Request, bodyBuffer []byte, retryUnauthori
 			retryAfter = headerAfter
 		}
 		// To avoid spikes when all clients retry at the same time, we add some random wait.
-		retryAfter += rand.Intn(10)
+		retryAfter += rand.Intn(10) //nolint[gosec] It is OK to use weak random number generator here
 
 		if hasBody {
 			r := bytes.NewReader(bodyBuffer)

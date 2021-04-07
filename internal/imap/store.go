@@ -123,7 +123,7 @@ func (s *storeUserWrap) GetAddress(addressID string) (storeAddressProvider, erro
 	if err != nil {
 		return nil, err
 	}
-	return newStoreAddressWrap(address), nil
+	return newStoreAddressWrap(address), nil //nolint[typecheck] missing methods are inherited
 }
 
 type storeAddressWrap struct {
@@ -137,7 +137,7 @@ func newStoreAddressWrap(address *store.Address) *storeAddressWrap {
 func (s *storeAddressWrap) ListMailboxes() []storeMailboxProvider {
 	mailboxes := []storeMailboxProvider{}
 	for _, mailbox := range s.Address.ListMailboxes() {
-		mailboxes = append(mailboxes, newStoreMailboxWrap(mailbox))
+		mailboxes = append(mailboxes, newStoreMailboxWrap(mailbox)) //nolint[typecheck] missing methods are inherited
 	}
 	return mailboxes
 }
@@ -147,7 +147,7 @@ func (s *storeAddressWrap) GetMailbox(name string) (storeMailboxProvider, error)
 	if err != nil {
 		return nil, err
 	}
-	return newStoreMailboxWrap(mailbox), nil
+	return newStoreMailboxWrap(mailbox), nil //nolint[typecheck] missing methods are inherited
 }
 
 type storeMailboxWrap struct {

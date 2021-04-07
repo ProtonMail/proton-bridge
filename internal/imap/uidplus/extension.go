@@ -228,7 +228,7 @@ func getStatusResponseCopy(uidValidity uint32, sourceSeq, targetSeq *OrderedSeq)
 
 // CopyResponse prepares OK response with extended UID information about copied message.
 func CopyResponse(uidValidity uint32, sourceSeq, targetSeq *OrderedSeq) error {
-	return server.ErrStatusResp(getStatusResponseCopy(uidValidity, sourceSeq, targetSeq))
+	return imap.ErrStatusResp{getStatusResponseCopy(uidValidity, sourceSeq, targetSeq)}
 }
 
 func getStatusResponseAppend(uidValidity uint32, targetSeq *OrderedSeq) *imap.StatusResp {
@@ -250,5 +250,5 @@ func getStatusResponseAppend(uidValidity uint32, targetSeq *OrderedSeq) *imap.St
 
 // AppendResponse prepares OK response with extended UID information about appended message.
 func AppendResponse(uidValidity uint32, targetSeq *OrderedSeq) error {
-	return server.ErrStatusResp(getStatusResponseAppend(uidValidity, targetSeq))
+	return imap.ErrStatusResp{getStatusResponseAppend(uidValidity, targetSeq)}
 }

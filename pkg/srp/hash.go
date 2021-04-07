@@ -70,9 +70,9 @@ func HashPassword(authVersion int, password, userName string, salt, modulus []by
 // CleanUserName returns the input string in lower-case without characters `_`,
 // `.` and `-`.
 func CleanUserName(userName string) string {
-	userName = strings.Replace(userName, "-", "", -1)
-	userName = strings.Replace(userName, ".", "", -1)
-	userName = strings.Replace(userName, "_", "", -1)
+	userName = strings.ReplaceAll(userName, "-", "")
+	userName = strings.ReplaceAll(userName, ".", "")
+	userName = strings.ReplaceAll(userName, "_", "")
 	return strings.ToLower(userName)
 }
 

@@ -104,7 +104,7 @@ func writeMultipartReport(w *multipart.Writer, rep *ReportReq) error { // nolint
 			fmt.Sprintf(`form-data; name="%s"; filename="%s"`,
 				quoteEscaper.Replace(att.name), quoteEscaper.Replace(att.filename+".zip")))
 		h.Set("Content-Type", "application/octet-stream")
-		//h.Set("Content-Transfere-Encoding", "base64")
+		// h.Set("Content-Transfer-Encoding", "base64")
 		attWr, err := w.CreatePart(h)
 		if err != nil {
 			return err
@@ -112,7 +112,7 @@ func writeMultipartReport(w *multipart.Writer, rep *ReportReq) error { // nolint
 
 		zipArch := zip.NewWriter(attWr)
 		zipWr, err := zipArch.Create(att.filename)
-		//b64 := base64.NewEncoder(base64.StdEncoding, zipWr)
+		// b64 := base64.NewEncoder(base64.StdEncoding, zipWr)
 		if err != nil {
 			return err
 		}
@@ -121,7 +121,7 @@ func writeMultipartReport(w *multipart.Writer, rep *ReportReq) error { // nolint
 			return err
 		}
 		err = zipArch.Close()
-		//err = b64.Close()
+		// err = b64.Close()
 		if err != nil {
 			return err
 		}

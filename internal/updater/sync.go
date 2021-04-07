@@ -125,7 +125,7 @@ func mkdirAllClear(path string) error {
 
 // checksum assumes the file is a regular file and that it exists.
 func checksum(path string) (hash string) {
-	file, err := os.Open(path) //nolint[gosec]
+	file, err := os.Open(filepath.Clean(path))
 	if err != nil {
 		return
 	}
@@ -224,7 +224,7 @@ func copyRecursively(srcDir, dstDir string) error { // nolint[funlen]
 		}
 
 		// Create/overwrite regular file.
-		srcReader, err := os.Open(srcPath) //nolint[gosec]
+		srcReader, err := os.Open(filepath.Clean(srcPath))
 		if err != nil {
 			return err
 		}
@@ -244,7 +244,7 @@ func copyToTmpFileRename(srcReader io.Reader, dstPath string, dstMode os.FileMod
 
 func copyToFileTruncate(srcReader io.Reader, dstPath string, dstMode os.FileMode) error {
 	logrus.Debug("Copy and truncate ", dstPath)
-	dstWriter, err := os.OpenFile(dstPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, dstMode)
+	dstWriter, err := os.OpenFile(filepath.Clean(dstPath), os.O_WRONLY|os.O_CREATE|os.O_TRUNC, dstMode) //nolint[gosec] Cannot guess the safe part of path
 	if err != nil {
 		return err
 	}

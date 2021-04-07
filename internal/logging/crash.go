@@ -34,7 +34,7 @@ func DumpStackTrace(logsPath string) crash.RecoveryAction {
 	return func(r interface{}) error {
 		file := filepath.Join(logsPath, getStackTraceName(constants.Version, constants.Revision))
 
-		f, err := os.OpenFile(file, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0600)
+		f, err := os.OpenFile(filepath.Clean(file), os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0600)
 		if err != nil {
 			return err
 		}

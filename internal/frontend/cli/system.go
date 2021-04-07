@@ -161,7 +161,7 @@ func (f *frontendCLI) disallowProxy(c *ishell.Context) {
 }
 
 func (f *frontendCLI) isPortFree(port string) bool {
-	port = strings.Replace(port, ":", "", -1)
+	port = strings.ReplaceAll(port, ":", "")
 	if port == "" || port == currentPort {
 		return true
 	}

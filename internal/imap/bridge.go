@@ -61,7 +61,7 @@ func (b *bridgeWrap) GetUser(query string) (bridgeUser, error) {
 	if err != nil {
 		return nil, err
 	}
-	return newBridgeUserWrap(user), nil
+	return newBridgeUserWrap(user), nil //nolint[typecheck] missing methods are inherited
 }
 
 type bridgeUserWrap struct {
@@ -77,5 +77,5 @@ func (u *bridgeUserWrap) GetStore() storeUserProvider {
 	if store == nil {
 		return nil
 	}
-	return newStoreUserWrap(store)
+	return newStoreUserWrap(store) //nolint[typecheck] missing methods are inherited
 }

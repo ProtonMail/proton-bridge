@@ -78,7 +78,7 @@ func (s *Settings) setDefaultValues() {
 	s.setDefault(ReportOutgoingNoEncKey, "false")
 	s.setDefault(LastVersionKey, "")
 	s.setDefault(UpdateChannelKey, "")
-	s.setDefault(RolloutKey, fmt.Sprintf("%v", rand.Float64()))
+	s.setDefault(RolloutKey, fmt.Sprintf("%v", rand.Float64())) //nolint[gosec] G404 It is OK to use weak random number generator here
 	s.setDefault(PreferredKeychainKey, "")
 
 	s.setDefault(APIPortKey, DefaultAPIPort)

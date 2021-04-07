@@ -43,8 +43,8 @@ func newFakeSettings() *fakeSettings {
 	}
 
 	// We should use nonstandard ports to not conflict with bridge.
-	s.SetInt(settings.IMAPPortKey, 21100+rand.Intn(100))
-	s.SetInt(settings.SMTPPortKey, 21200+rand.Intn(100))
+	s.SetInt(settings.IMAPPortKey, 21100+rand.Intn(100)) //noling[gosec] G404 It is OK to use weak random number generator here
+	s.SetInt(settings.SMTPPortKey, 21200+rand.Intn(100)) //noling[gosec] G404 It is OK to use weak random number generator here
 
 	return s
 }

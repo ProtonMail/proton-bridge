@@ -62,10 +62,10 @@ func imapClientDial(addr string) (IMAPClientProvider, error) {
 		client.ErrorLog = &imapErrorLogger{logrus.WithField("pkg", "imap-client")}
 		// Logrus `WriterLevel` fails for big messages because of bufio.MaxScanTokenSize limit.
 		// Also, this spams a lot, uncomment once needed during development.
-		//client.SetDebug(imap.NewDebugWriter(
+		// client.SetDebug(imap.NewDebugWriter(
 		//	logrus.WithField("pkg", "imap/client").WriterLevel(logrus.TraceLevel),
 		//	logrus.WithField("pkg", "imap/server").WriterLevel(logrus.TraceLevel),
-		//))
+		// ))
 	}
 	return client, err
 }
@@ -84,7 +84,7 @@ func imapClientDialHelper(addr string) (*imapClient.Client, error) {
 	var tlsConf *tls.Config
 	if strings.Contains(strings.ToLower(host), "yahoo") {
 		log.Warning("Yahoo server detected: limiting maximal TLS version to 1.2.")
-		tlsConf = &tls.Config{MaxVersion: tls.VersionTLS12}
+		tlsConf = &tls.Config{MaxVersion: tls.VersionTLS12} //nolint[gosec] G402
 	}
 	return imapClient.DialTLS(addr, tlsConf)
 }

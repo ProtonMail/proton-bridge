@@ -137,7 +137,7 @@ func newMessagePackage(
 }
 
 type sendData struct {
-	decryptedBodyKey *crypto.SessionKey //body session key
+	decryptedBodyKey *crypto.SessionKey // body session key
 	addressMap       map[string]*MessageAddress
 	sharedScheme     PackageFlag
 	ciphertext       []byte

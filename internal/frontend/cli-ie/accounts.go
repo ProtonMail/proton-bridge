@@ -25,7 +25,7 @@ import (
 
 func (f *frontendCLI) listAccounts(c *ishell.Context) {
 	spacing := "%-2d: %-20s (%-15s, %-15s)\n"
-	f.Printf(bold(strings.Replace(spacing, "d", "s", -1)), "#", "account", "status", "address mode")
+	f.Printf(bold(strings.ReplaceAll(spacing, "d", "s")), "#", "account", "status", "address mode")
 	for idx, user := range f.ie.GetUsers() {
 		connected := "disconnected"
 		if user.IsConnected() {

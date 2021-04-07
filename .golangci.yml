@@ -1,3 +1,4 @@
+---
 run:
   timeout: 10m
   build-tags:
@@ -8,9 +9,11 @@ run:
 issues:
   exclude-use-default: false
   exclude:
-     - Using the variable on range scope `tt` in function literal
-     - should have comment (\([^)]+\) )?or be unexported # For now we are missing a lot of comments.
-     - at least one file in a package should have a package comment # For now we are missing a lot of comments.
+    - Using the variable on range scope `tt` in function literal
+    # For now we are missing a lot of comments.
+    - should have comment (\([^)]+\) )?or be unexported
+    # For now we are missing a lot of comments.
+    - at least one file in a package should have a package comment
 
   exclude-rules:
     - path: _test\.go
@@ -30,7 +33,7 @@ linters-settings:
 linters:
   # setting disable-all will make only explicitly enabled linters run
   disable-all: true
-  
+
   enable:
     - deadcode          # Finds unused code [fast: true, auto-fix: false]
     - errcheck          # Errcheck is a program for checking for unchecked errors in go programs. These unchecked errors can be critical bugs in some cases [fast: true, auto-fix: false]
@@ -49,7 +52,7 @@ linters:
     - funlen            # Tool for detection of long functions [fast: true, auto-fix: false]
     - gochecknoglobals  # Checks that no globals are present in Go code [fast: true, auto-fix: false]
     - gochecknoinits    # Checks that no init functions are present in Go code [fast: true, auto-fix: false]
-    #- gocognit          # Computes and checks the cognitive complexity of functions [fast: true, auto-fix: false]
+    # - gocognit          # Computes and checks the cognitive complexity of functions [fast: true, auto-fix: false]
     - goconst           # Finds repeated strings that could be replaced by a constant [fast: true, auto-fix: false]
     - gocritic          # The most opinionated Go source code linter [fast: true, auto-fix: false]
     - gocyclo           # Computes and checks the cyclomatic complexity of functions [fast: true, auto-fix: false]
@@ -58,15 +61,53 @@ linters:
     - goimports         # Goimports does everything that gofmt does. Additionally it checks unused imports [fast: true, auto-fix: true]
     - golint            # Golint differs from gofmt. Gofmt reformats Go source code, whereas golint prints out style mistakes [fast: true, auto-fix: false]
     - gosec             # Inspects source code for security problems [fast: true, auto-fix: false]
-    - interfacer        # Linter that suggests narrower interface types [fast: true, auto-fix: false]
-    - maligned          # Tool to detect Go structs that would take less memory if their fields were sorted [fast: true, auto-fix: false]
     - misspell          # Finds commonly misspelled English words in comments [fast: true, auto-fix: true]
     - nakedret          # Finds naked returns in functions greater than a specified function length [fast: true, auto-fix: false]
     - prealloc          # Finds slice declarations that could potentially be preallocated [fast: true, auto-fix: false]
-    - scopelint         # Scopelint checks for unpinned variables in go programs [fast: true, auto-fix: false]
     - stylecheck        # Stylecheck is a replacement for golint [fast: true, auto-fix: false]
     - unconvert         # Remove unnecessary type conversions [fast: true, auto-fix: false]
     - unparam           # Reports unused function parameters [fast: true, auto-fix: false]
     - whitespace        # Tool for detection of leading and trailing whitespace [fast: true, auto-fix: true]
-    #- wsl               # Whitespace Linter - Forces you to use empty lines! [fast: true, auto-fix: false]
-    #- lll               # Reports long lines [fast: true, auto-fix: false]
+    # - wsl               # Whitespace Linter - Forces you to use empty lines! [fast: true, auto-fix: false]
+    # - lll               # Reports long lines [fast: true, auto-fix: false]
+    # Newly added linters (not processed yet)
+    # - asciicheck        # Simple linter to check that your code does not contain non-ASCII identifiers [fast: true, auto-fix: false]
+    # - cyclop            # checks function and package cyclomatic complexity [fast: false, auto-fix: false]
+    # - durationcheck     # check for two durations multiplied together [fast: false, auto-fix: false]
+    # - errorlint         # go-errorlint is a source code linter for Go software that can be used to find code that will cause problems with the error wrapping scheme introduced in Go 1.13. [fast: false, auto-fix: false]
+    # - exhaustive        # check exhaustiveness of enum switch statements [fast: false, auto-fix: false]
+    # - exhaustivestruct  # Checks if all struct's fields are initialized [fast: false, auto-fix: false]
+    # - exportloopref     # checks for pointers to enclosing loop variables [fast: false, auto-fix: false]
+    # - forbidigo         # Forbids identifiers [fast: true, auto-fix: false]
+    # - forcetypeassert   # finds forced type assertions [fast: true, auto-fix: false]
+    # - gci               # Gci control golang package import order and make it always deterministic. [fast: true, auto-fix: true]
+    # - gocognit          # Computes and checks the cognitive complexity of functions [fast: true, auto-fix: false]
+    # - godot             # Check if comments end in a period [fast: true, auto-fix: true]
+    # - goerr113          # Golang linter to check the errors handling expressions [fast: false, auto-fix: false]
+    # - gofumpt           # Gofumpt checks whether code was gofumpt-ed. [fast: true, auto-fix: true]
+    # - goheader          # Checks is file header matches to pattern [fast: true, auto-fix: false]
+    # - gomnd             # An analyzer to detect magic numbers. [fast: true, auto-fix: false]
+    # - gomoddirectives   # Manage the use of 'replace', 'retract', and 'excludes' directives in go.mod. [fast: true, auto-fix: false]
+    # - gomodguard        # Allow and block list linter for direct Go module dependencies. This is different from depguard where there are different block types for example version constraints and module recommendations. [fast: true, auto-fix: false]
+    # - goprintffuncname  # Checks that printf-like functions are named with `f` at the end [fast: true, auto-fix: false]
+    # - ifshort           # Checks that your code uses short syntax for if-statements whenever possible [fast: true, auto-fix: false]
+    # - importas          # Enforces consistent import aliases [fast: false, auto-fix: false]
+    # - lll               # Reports long lines [fast: true, auto-fix: false]
+    # - makezero          # Finds slice declarations with non-zero initial length [fast: false, auto-fix: false]
+    # - nestif            # Reports deeply nested if statements [fast: true, auto-fix: false]
+    # - nilerr            # Finds the code that returns nil even if it checks that the error is not nil. [fast: false, auto-fix: false]
+    # - nlreturn          # nlreturn checks for a new line before return and branch statements to increase code clarity [fast: true, auto-fix: false]
+    # - noctx             # noctx finds sending http request without context.Context [fast: false, auto-fix: false]
+    # - nolintlint        # Reports ill-formed or insufficient nolint directives [fast: true, auto-fix: false]
+    # - paralleltest      # paralleltest detects missing usage of t.Parallel() method in your Go test [fast: true, auto-fix: false]
+    # - predeclared       # find code that shadows one of Go's predeclared identifiers [fast: true, auto-fix: false]
+    # - revive            # Fast, configurable, extensible, flexible, and beautiful linter for Go. Drop-in replacement of golint. [fast: false, auto-fix: false]
+    # - rowserrcheck      # checks whether Err of rows is checked successfully [fast: false, auto-fix: false]
+    # - sqlclosecheck     # Checks that sql.Rows and sql.Stmt are closed. [fast: false, auto-fix: false]
+    # - testpackage       # linter that makes you use a separate _test package [fast: true, auto-fix: false]
+    # - thelper           # thelper detects golang test helpers without t.Helper() call and checks the consistency of test helpers [fast: false, auto-fix: false]
+    # - tparallel         # tparallel detects inappropriate usage of t.Parallel() method in your Go test codes [fast: false, auto-fix: false]
+    # - wastedassign      # wastedassign finds wasted assignment statements. [fast: false, auto-fix: false]
+    # - wrapcheck         # Checks that errors returned from external packages are wrapped [fast: false, auto-fix: false]
+    # - wsl               # Whitespace Linter - Forces you to use empty lines! [fast: true, auto-fix: false]
+

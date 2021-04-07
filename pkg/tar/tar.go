@@ -19,6 +19,7 @@ package tar
 
 import (
 	"archive/tar"
+	"errors"
 	"io"
 	"os"
 	"path/filepath"
@@ -27,6 +28,31 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// maxFileSize limit tre single file size after decopression is not larger than 1GB
+const maxFileSize = int64(1 * 1024 * 1024 * 1024) // 1 GB
+
+// ErrFileTooLarge returned when decompressed file is too large
+var ErrFileTooLarge = errors.New("trying to decompress file larger than 1GB")
+
+type limitReader struct {
+	r io.Reader
+	n int64
+}
+
+// Read returns error if limit was exceeded. Inspired by io.LimitReader.Read
+func (lr *limitReader) Read(p []byte) (n int, err error) {
+	if lr.n <= 0 {
+		return 0, ErrFileTooLarge
+	}
+	if int64(len(p)) > lr.n {
+		p = p[0:lr.n]
+	}
+	n, err = lr.r.Read(p)
+	lr.n -= int64(n)
+	return
+}
+
+// UntarToDir decopmress and unarchive the files into directory
 func UntarToDir(r io.Reader, dir string) error {
 	tr := tar.NewReader(r)
 
@@ -42,7 +68,7 @@ func UntarToDir(r io.Reader, dir string) error {
 			continue
 		}
 
-		target := filepath.Join(dir, header.Name)
+		target := filepath.Join(dir, filepath.Clean(header.Name)) // gosec G305
 
 		switch {
 		case header.Typeflag == tar.TypeSymlink:
@@ -60,7 +86,8 @@ func UntarToDir(r io.Reader, dir string) error {
 			if err != nil {
 				return err
 			}
-			if _, err := io.Copy(f, tr); err != nil { // nolint[gosec]
+			lr := &limitReader{r: tr, n: maxFileSize} // gosec G110
+			if _, err := io.Copy(f, lr); err != nil {
 				return err
 			}
 			if runtime.GOOS != "windows" {

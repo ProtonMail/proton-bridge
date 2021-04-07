@@ -63,7 +63,7 @@ func (p *MBOXProvider) writeMessage(msg Message) error {
 		}
 
 		mboxPath := filepath.Join(p.root, mboxName)
-		mboxFile, err := os.OpenFile(mboxPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)
+		mboxFile, err := os.OpenFile(filepath.Clean(mboxPath), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)
 		if err != nil {
 			multiErr = multierror.Append(multiErr, err)
 			continue
