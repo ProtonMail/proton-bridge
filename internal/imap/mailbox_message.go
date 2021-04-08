@@ -410,12 +410,13 @@ func isMessageInDraftFolder(m *pmapi.Message) bool {
 
 // This will download message (or read from cache) and pick up the section,
 // extract data (header,body, both) and trim the output if needed.
-func (im *imapMailbox) getMessageBodySection(
+func (im *imapMailbox) getMessageBodySection( //nolint[funlen]
 	storeMessage storeMessageProvider,
 	section *imap.BodySectionName,
 	msgBuildCountHistogram *msgBuildCountHistogram,
 ) (imap.Literal, error) {
 	var header textproto.MIMEHeader
+	var extraNewlineAfterHeader bool
 	var response []byte
 
 	im.log.WithField("msgID", storeMessage.ID()).Trace("Getting message body")
@@ -449,6 +450,9 @@ func (im *imapMailbox) getMessageBodySection(
 		case section.Specifier == imap.MIMESpecifier: // The MIME part specifier refers to the [MIME-IMB] header for this part.
 			fallthrough
 		case section.Specifier == imap.HeaderSpecifier:
+			if content, err := structure.GetSectionContent(bodyReader, section.Path); err == nil && content != nil {
+				extraNewlineAfterHeader = true
+			}
 			header, err = structure.GetSectionHeader(section.Path)
 		default:
 			err = errors.New("Unknown specifier " + string(section.Specifier))
@@ -461,6 +465,11 @@ func (im *imapMailbox) getMessageBodySection(
 
 	if header != nil {
 		response = filteredHeaderAsBytes(header, section)
+		// The blank line is included in all header fetches,
+		// except in the case of a message which has no body.
+		if extraNewlineAfterHeader {
+			response = append(response, []byte("\r\n")...)
+		}
 	}
 
 	// Trim any output if requested.
