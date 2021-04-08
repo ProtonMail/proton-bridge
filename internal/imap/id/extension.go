@@ -26,7 +26,7 @@ type currentClientSetter interface {
 	SetClient(name, version string)
 }
 
-// Extension for IMAP server
+// Extension for IMAP server.
 type extension struct {
 	extID        imapserver.ConnExtension
 	clientSetter currentClientSetter

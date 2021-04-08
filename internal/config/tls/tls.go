@@ -122,11 +122,7 @@ func (t *TLS) GenerateCerts(template *x509.Certificate) error {
 	}
 	defer keyOut.Close() // nolint[errcheck]
 
-	if err := pem.Encode(keyOut, &pem.Block{Type: "RSA PRIVATE KEY", Bytes: x509.MarshalPKCS1PrivateKey(priv)}); err != nil {
-		return err
-	}
-
-	return nil
+	return pem.Encode(keyOut, &pem.Block{Type: "RSA PRIVATE KEY", Bytes: x509.MarshalPKCS1PrivateKey(priv)})
 }
 
 // GetConfig tries to load TLS config or generate new one which is then returned.

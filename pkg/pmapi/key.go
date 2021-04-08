@@ -25,7 +25,7 @@ import (
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 )
 
-// Flags
+// Key flags.
 const (
 	UseToVerifyFlag = 1 << iota
 	UseToEncryptFlag

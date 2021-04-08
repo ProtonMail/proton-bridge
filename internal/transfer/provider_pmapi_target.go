@@ -329,10 +329,10 @@ func (p *PMAPIProvider) importMessage(msgSourceID string, progress *Progress, re
 		}
 		if results[0].Error != nil {
 			importedErr = errors.Wrap(results[0].Error, "failed to import message")
-			return nil // Call passed but API refused this message, skip this one.
+			return nil //nolint[nilerr] Call passed but API refused this message, skip this one.
 		}
 		importedID = results[0].MessageID
 		return nil
 	})
-	return
+	return importedID, importedErr
 }

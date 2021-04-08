@@ -141,7 +141,7 @@ func (im *imapMailbox) addOrRemoveFlags(operation imap.FlagsOp, messageIDs, flag
 	for _, f := range flags {
 		switch f {
 		case imap.SeenFlag:
-			switch operation {
+			switch operation { //nolint[exhaustive] imap.SetFlags is processed by im.setFlags
 			case imap.AddFlags:
 				if err := im.storeMailbox.MarkMessagesRead(messageIDs); err != nil {
 					return err
@@ -152,7 +152,7 @@ func (im *imapMailbox) addOrRemoveFlags(operation imap.FlagsOp, messageIDs, flag
 				}
 			}
 		case imap.FlaggedFlag:
-			switch operation {
+			switch operation { //nolint[exhaustive] imap.SetFlag is processed by im.setFlags
 			case imap.AddFlags:
 				if err := im.storeMailbox.MarkMessagesStarred(messageIDs); err != nil {
 					return err
@@ -163,7 +163,7 @@ func (im *imapMailbox) addOrRemoveFlags(operation imap.FlagsOp, messageIDs, flag
 				}
 			}
 		case imap.DeletedFlag:
-			switch operation {
+			switch operation { //nolint[exhaustive] imap.SetFlag is processed by im.setFlags
 			case imap.AddFlags:
 				if err := im.storeMailbox.MarkMessagesDeleted(messageIDs); err != nil {
 					return err
@@ -182,7 +182,7 @@ func (im *imapMailbox) addOrRemoveFlags(operation imap.FlagsOp, messageIDs, flag
 			}
 
 			// Handle custom junk flags for Apple Mail and Thunderbird.
-			switch operation {
+			switch operation { //nolint[exhaustive] imap.SetFlag is processed by im.setFlags
 			// No label removal is necessary because Spam and Inbox are both exclusive labels so the backend
 			// will automatically take care of label removal.
 			case imap.AddFlags:
@@ -536,7 +536,7 @@ func (im *imapMailbox) listMessages(isUID bool, seqSet *imap.SeqSet, items []ima
 	}
 
 	processCallback := func(value interface{}) (interface{}, error) {
-		apiID := value.(string)
+		apiID := value.(string) //nolint[forcetypeassert] we want to panic here
 
 		storeMessage, err := im.storeMailbox.GetMessage(apiID)
 		if err != nil {
@@ -570,7 +570,7 @@ func (im *imapMailbox) listMessages(isUID bool, seqSet *imap.SeqSet, items []ima
 	}
 
 	collectCallback := func(idx int, value interface{}) error {
-		msg := value.(*imap.Message)
+		msg := value.(*imap.Message) //nolint[forcetypeassert] we want to panic here
 		msgResponse <- msg
 		return nil
 	}

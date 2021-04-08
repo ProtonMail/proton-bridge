@@ -19,7 +19,7 @@ package algo
 
 import "reflect"
 
-// SetIntersection complexity: O(n^2), could be better but this is simple enough
+// SetIntersection complexity: O(n^2), could be better but this is simple enough.
 func SetIntersection(a, b interface{}, eq func(a, b interface{}) bool) []interface{} {
 	set := make([]interface{}, 0)
 	av := reflect.ValueOf(a)

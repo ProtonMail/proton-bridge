@@ -67,7 +67,7 @@ func (s *testCredentials) MarshalGob() string {
 	if err := enc.Encode(s); err != nil {
 		return ""
 	}
-	fmt.Printf("MarshalGob: %#v\n", buf.String())
+	log.Infof("MarshalGob: %#v\n", buf.String())
 	return base64.StdEncoding.EncodeToString(buf.Bytes())
 }
 
@@ -88,13 +88,13 @@ func (s *testCredentials) UnmarshalGob(secret string) error {
 	s.Clear()
 	b, err := base64.StdEncoding.DecodeString(secret)
 	if err != nil {
-		fmt.Println("decode base64", b)
+		log.Infoln("decode base64", b)
 		return err
 	}
 	buf := bytes.NewBuffer(b)
 	dec := gob.NewDecoder(buf)
 	if err = dec.Decode(s); err != nil {
-		fmt.Println("decode gob", b, buf.Bytes())
+		log.Info("decode gob", b, buf.Bytes())
 		return err
 	}
 	return nil
@@ -102,7 +102,7 @@ func (s *testCredentials) UnmarshalGob(secret string) error {
 
 func (s *testCredentials) ToJSON() string {
 	if b, err := json.Marshal(s); err == nil {
-		fmt.Printf("MarshalJSON: %#v\n", string(b))
+		log.Infof("MarshalJSON: %#v\n", string(b))
 		return base64.StdEncoding.EncodeToString(b)
 	}
 	return ""
@@ -134,7 +134,7 @@ func (s *testCredentials) MarshalFmt() string {
 		s.IsHidden,
 		s.IsCombinedAddressMode,
 	)
-	fmt.Printf("MarshalFmt: %#v\n", buf.String())
+	log.Infof("MarshalFmt: %#v\n", buf.String())
 	return base64.StdEncoding.EncodeToString(buf.Bytes())
 }
 
@@ -144,7 +144,7 @@ func (s *testCredentials) UnmarshalFmt(secret string) error {
 		return err
 	}
 	buf := bytes.NewBuffer(b)
-	fmt.Println("decode fmt", b, buf.Bytes())
+	log.Infoln("decode fmt", b, buf.Bytes())
 	_, err = fmt.Fscanf(
 		buf, secretFormat,
 		&s.UserID,
@@ -190,7 +190,7 @@ func (s *testCredentials) MarshalStrings() string { // this is the most space ef
 
 	str := strings.Join(items, sep)
 
-	fmt.Printf("MarshalJoin: %#v\n", str)
+	log.Infof("MarshalJoin: %#v\n", str)
 	return base64.StdEncoding.EncodeToString([]byte(str))
 }
 
@@ -237,37 +237,37 @@ func (s *testCredentials) IsSame(rhs *testCredentials) bool {
 
 func TestMarshalFormats(t *testing.T) {
 	input := testCredentials{UserID: "007", Emails: "ja@pm.me;jakub@cu.th", Timestamp: 152469263742, IsHidden: true}
-	fmt.Printf("input %#v\n", input)
+	log.Infof("input %#v\n", input)
 
 	secretStrings := input.MarshalStrings()
-	fmt.Printf("secretStrings %#v %d\n", secretStrings, len(secretStrings))
+	log.Infof("secretStrings %#v %d\n", secretStrings, len(secretStrings))
 	secretGob := input.MarshalGob()
-	fmt.Printf("secretGob %#v %d\n", secretGob, len(secretGob))
+	log.Infof("secretGob %#v %d\n", secretGob, len(secretGob))
 	secretJSON := input.ToJSON()
-	fmt.Printf("secretJSON %#v %d\n", secretJSON, len(secretJSON))
+	log.Infof("secretJSON %#v %d\n", secretJSON, len(secretJSON))
 	secretFmt := input.MarshalFmt()
-	fmt.Printf("secretFmt %#v %d\n", secretFmt, len(secretFmt))
+	log.Infof("secretFmt %#v %d\n", secretFmt, len(secretFmt))
 
 	output := testCredentials{APIToken: "refresh"}
 	require.NoError(t, output.UnmarshalStrings(secretStrings))
-	fmt.Printf("strings out %#v \n", output)
+	log.Infof("strings out %#v \n", output)
 	require.True(t, input.IsSame(&output), "strings out not same")
 
 	output = testCredentials{APIToken: "refresh"}
 	require.NoError(t, output.UnmarshalGob(secretGob))
-	fmt.Printf("gob out %#v\n \n", output)
+	log.Infof("gob out %#v\n \n", output)
 	assert.Equal(t, input, output)
 
 	output = testCredentials{APIToken: "refresh"}
 	require.NoError(t, output.FromJSON(secretJSON))
-	fmt.Printf("json out %#v \n", output)
+	log.Infof("json out %#v \n", output)
 	require.True(t, input.IsSame(&output), "json out not same")
 
 	/*
 		// Simple Fscanf not working!
 		output = testCredentials{APIToken: "refresh"}
 			require.NoError(t, output.UnmarshalFmt(secretFmt))
-			fmt.Printf("fmt out %#v \n", output)
+			log.Infof("fmt out %#v \n", output)
 			require.True(t, input.IsSame(&output), "fmt out not same")
 	*/
 }
@@ -285,13 +285,13 @@ func TestMarshal(t *testing.T) {
 		IsHidden:              true,
 		IsCombinedAddressMode: false,
 	}
-	fmt.Printf("input %#v\n", input)
+	log.Infof("input %#v\n", input)
 
 	secret := input.Marshal()
-	fmt.Printf("secret %#v %d\n", secret, len(secret))
+	log.Infof("secret %#v %d\n", secret, len(secret))
 
 	output := Credentials{APIToken: "refresh"}
 	require.NoError(t, output.Unmarshal(secret))
-	fmt.Printf("output %#v\n", output)
+	log.Infof("output %#v\n", output)
 	assert.Equal(t, input, output)
 }

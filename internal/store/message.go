@@ -64,7 +64,7 @@ func (message *Message) Message() *pmapi.Message {
 }
 
 // IsMarkedDeleted returns true if message is marked as deleted for specific
-// mailbox
+// mailbox.
 func (message *Message) IsMarkedDeleted() bool {
 	isMarkedAsDeleted := false
 	err := message.storeMailbox.db().View(func(tx *bolt.Tx) error {

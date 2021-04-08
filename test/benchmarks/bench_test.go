@@ -132,8 +132,8 @@ func BenchmarkIMAPAppleMail(b *testing.B) {
 					`)])`,
 				`UID FETCH ` + newUID + ` (BODYSTRUCTURE BODY.PEEK[HEADER])`,
 				// if email has attachment it is splitted to several fetches
-				//`UID FETCH 133 (BODY.PEEK[3]<0.5877469> BODY.PEEK[1] BODY.PEEK[2])`,
-				//`UID FETCH 133 BODY.PEEK[3]<5877469.2925661>`,
+				//   `UID FETCH 133 (BODY.PEEK[3]<0.5877469> BODY.PEEK[1] BODY.PEEK[2])`,
+				//   `UID FETCH 133 BODY.PEEK[3]<5877469.2925661>`,
 				// here I will just use section download, which is used by AppleMail
 				`UID FETCH ` + newUID + ` BODY.PEEK[1]`,
 				// here I will just use partial download, which is used by AppleMail

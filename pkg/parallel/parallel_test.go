@@ -89,7 +89,7 @@ func TestParallelErrorInProcess(t *testing.T) {
 				return value, nil
 			}
 			collect := func(idx int, value interface{}) error {
-				lastCollected = value.(int)
+				lastCollected = value.(int) //nolint[forcetypeassert]
 				return nil
 			}
 

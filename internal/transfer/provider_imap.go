@@ -27,7 +27,7 @@ import (
 
 type IMAPClientProvider interface {
 	Capability() (map[string]bool, error)
-	Support(cap string) (bool, error)
+	Support(capability string) (bool, error)
 	State() imap.ConnState
 	SupportAuth(mech string) (bool, error)
 	Authenticate(auth sasl.Client) error

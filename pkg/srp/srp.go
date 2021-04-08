@@ -37,7 +37,7 @@ var (
 
 // Store random reader in a variable to be able to overwrite it in tests
 
-// Amored pubkey for modulus verification
+// Amored pubkey for modulus verification.
 const modulusPubkey = `-----BEGIN PGP PUBLIC KEY BLOCK-----
 
 xjMEXAHLgxYJKwYBBAHaRw8BAQdAFurWXXwjTemqjD7CXjXVyKf0of7n9Ctm
@@ -73,12 +73,12 @@ func ReadClearSignedMessage(signedMessage string) (string, error) {
 	return string(modulusBlock.Bytes), nil
 }
 
-// SrpProofs object
+// SrpProofs object.
 type SrpProofs struct { //nolint[golint]
 	ClientProof, ClientEphemeral, ExpectedServerProof []byte
 }
 
-// SrpAuth stores byte data for the calculation of SRP proofs
+// SrpAuth stores byte data for the calculation of SRP proofs.
 type SrpAuth struct { //nolint[golint]
 	Modulus, ServerEphemeral, HashedPassword []byte
 }
@@ -213,7 +213,7 @@ func (s *SrpAuth) GenerateSrpProofs(length int) (res *SrpProofs, err error) { //
 	return &SrpProofs{ClientEphemeral: fromInt(clientEphemeral), ClientProof: clientProof, ExpectedServerProof: serverProof}, nil
 }
 
-// GenerateVerifier verifier for update pwds and create accounts
+// GenerateVerifier verifier for update pwds and create accounts.
 func (s *SrpAuth) GenerateVerifier(length int) ([]byte, error) {
 	return nil, errors.New("pm-srp: the client doesn't need SRP GenerateVerifier")
 }

@@ -156,6 +156,7 @@ func (loop *eventLoop) loop() {
 			return
 		case <-t.C:
 			// Randomise periodic calls within range pollInterval ± pollSpread to reduces potential load spikes on API.
+			//nolint[gosec] It is OK to use weaker random number generator here
 			time.Sleep(time.Duration(rand.Intn(2*int(pollIntervalSpread.Milliseconds()))) * time.Millisecond)
 		case eventProcessedCh = <-loop.pollCh:
 			// We don't want to wait here. Polling should happen instantly.
@@ -381,6 +382,8 @@ func (loop *eventLoop) processAddresses(log *logrus.Entry, addressEvents []*pmap
 			log.WithField("email", email).Debug("Address was deleted")
 			loop.user.CloseConnection(email)
 			loop.events.Emit(bridgeEvents.AddressChangedLogoutEvent, email)
+		case pmapi.EventUpdateFlags:
+			log.Error("EventUpdateFlags for address event is uknown operation")
 		}
 	}
 
@@ -409,6 +412,8 @@ func (loop *eventLoop) processLabels(eventLog *logrus.Entry, labels []*pmapi.Eve
 			if err := loop.store.deleteMailboxEvent(eventLabel.ID); err != nil {
 				return errors.Wrap(err, "failed to delete label")
 			}
+		case pmapi.EventUpdateFlags:
+			log.Error("EventUpdateFlags for label event is uknown operation")
 		}
 	}
 

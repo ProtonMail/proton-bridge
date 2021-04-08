@@ -90,10 +90,7 @@ func (store *Store) TestDumpDB(tb assert.TestingT) {
 				return err
 			}
 		}
-		if err := txMails(tx); err != nil {
-			return err
-		}
-		return nil
+		return txMails(tx)
 	}
 
 	assert.NoError(tb, store.db.View(txDump))

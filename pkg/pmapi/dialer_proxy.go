@@ -39,7 +39,7 @@ func NewProxyTLSDialer(dialer TLSDialer, cm *ClientManager) *ProxyTLSDialer {
 // DialTLS dials the given network/address. If it fails, it retries using a proxy.
 func (d *ProxyTLSDialer) DialTLS(network, address string) (conn net.Conn, err error) {
 	if conn, err = d.dialer.DialTLS(network, address); err == nil {
-		return
+		return conn, nil
 	}
 
 	if !d.cm.allowProxy {

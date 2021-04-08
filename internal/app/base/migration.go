@@ -34,7 +34,7 @@ import (
 // | prefs     | ~/.cache/protonmail/<app>/c11/prefs.json  | ~/.config/protonmail/<app>/prefs.json  |
 // | c11 1.5.x | ~/.cache/protonmail/<app>/c11             | ~/.cache/protonmail/<app>/cache/c11    |
 // | c11 1.6.x | ~/.cache/protonmail/<app>/cache/c11       | ~/.config/protonmail/<app>/cache/c11   |
-// | updates   | ~/.cache/protonmail/<app>/updates         | ~/.config/protonmail/<app>/updates     |
+// | updates   | ~/.cache/protonmail/<app>/updates         | ~/.config/protonmail/<app>/updates     |.
 func migrateFiles(configName string) error {
 	locationsProvider, err := locations.NewDefaultProvider(filepath.Join(constants.VendorName, configName))
 	if err != nil {
@@ -50,7 +50,7 @@ func migrateFiles(configName string) error {
 	if err := migrateCacheFromBoth15xAnd16x(locations, userCacheDir); err != nil {
 		return err
 	}
-	if err := migrateUpdatesFrom16x(configName, locations); err != nil {
+	if err := migrateUpdatesFrom16x(configName, locations); err != nil { //nolint[revive] It is more clear to structure this way
 		return err
 	}
 	return nil

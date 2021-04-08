@@ -34,7 +34,7 @@ import (
 // - logs: ~/.cache/protonmail/<app>/logs
 // - cache: ~/.config/protonmail/<app>/cache
 // - updates: ~/.config/protonmail/<app>/updates
-// - lockfile: ~/.cache/protonmail/<app>/<app>.lock
+// - lockfile: ~/.cache/protonmail/<app>/<app>.lock .
 type Locations struct {
 	userConfig, userCache string
 	configName            string

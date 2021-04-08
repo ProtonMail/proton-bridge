@@ -38,7 +38,7 @@ type SectionInfo struct {
 	reader                    io.Reader
 }
 
-// Read and count
+// Read and count.
 func (si *SectionInfo) Read(p []byte) (n int, err error) {
 	n, err = si.reader.Read(p)
 	si.Size += n
@@ -237,11 +237,11 @@ func (bs *BodyStructure) parseAllChildSections(r io.Reader, currentPath []int, s
 	}
 
 	// Clear all buffers.
-	bodyReader = nil
+	bodyReader = nil //nolint[wastedassign] just to be sure we clear garbage collector
 	bodyInfo.reader = nil
 	tp.R = nil
-	tp = nil
-	bufInfo = nil // nolint
+	tp = nil      //nolint[wastedassign] just to be sure we clear garbage collector
+	bufInfo = nil //nolint[ineffassign] just to be sure we clear garbage collector
 	info.reader = nil
 
 	// Store boundaries.
@@ -303,6 +303,11 @@ func stringPathFromInts(ints []int) (ret string) {
 		ret += strconv.Itoa(n)
 	}
 	return
+}
+
+func (bs *BodyStructure) hasInfo(sectionPath []int) bool {
+	_, err := bs.getInfo(sectionPath)
+	return err == nil
 }
 
 func (bs *BodyStructure) getInfo(sectionPath []int) (sectionInfo *SectionInfo, err error) {
@@ -404,7 +409,7 @@ func (bs *BodyStructure) IMAPBodyStructure(currentPart []int) (imapBS *imap.Body
 
 	nextPart := append(currentPart, 1)
 	for {
-		if _, err := bs.getInfo(nextPart); err != nil {
+		if !bs.hasInfo(nextPart) {
 			break
 		}
 		var subStruct *imap.BodyStructure

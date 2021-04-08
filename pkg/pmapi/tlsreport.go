@@ -33,7 +33,7 @@ import (
 var ErrTLSMismatch = errors.New("no TLS fingerprint match found")
 
 // TrustedAPIPins contains trusted public keys of the protonmail API and proxies.
-// NOTE: the proxy pins are the same for all proxy servers, guaranteed by infra team ;)
+// NOTE: the proxy pins are the same for all proxy servers, guaranteed by infra team ;).
 var TrustedAPIPins = []string{ // nolint[gochecknoglobals]
 	// api.protonmail.ch
 	`pin-sha256="drtmcR2kFkM8qJClsuWgUzxgBkePfRCkRpqUesyDmeE="`, // current

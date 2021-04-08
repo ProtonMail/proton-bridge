@@ -107,6 +107,8 @@ func (em *EventMessage) UnmarshalJSON(b []byte) (err error) {
 	case EventUpdate, EventUpdateFlags:
 		em.Updated = &EventMessageUpdated{ID: raw.ID}
 		return json.Unmarshal(raw.Message, em.Updated)
+	case EventDelete:
+		return nil
 	}
 	return nil
 }
@@ -121,6 +123,7 @@ func (em *EventMessage) MarshalJSON() ([]byte, error) {
 		raw.Message, err = json.Marshal(em.Created)
 	case EventUpdate, EventUpdateFlags:
 		raw.Message, err = json.Marshal(em.Updated)
+	case EventDelete:
 	}
 	if err != nil {
 		return nil, err

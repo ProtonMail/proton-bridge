@@ -25,7 +25,7 @@ import (
 )
 
 // ErrAllMailOpNotAllowed is error user when user tries to do unsupported
-// operation on All Mail folder
+// operation on All Mail folder.
 var ErrAllMailOpNotAllowed = errors.New("operation not allowed for 'All Mail' folder")
 
 // GetMessage returns the `pmapi.Message` struct wrapped in `StoreMessage`
@@ -177,7 +177,7 @@ func (storeMailbox *Mailbox) MarkMessagesUnstarred(apiIDs []string) error {
 }
 
 // MarkMessagesDeleted adds local flag \Deleted. This is not propagated to API
-// until RemoveDeleted is called
+// until RemoveDeleted is called.
 func (storeMailbox *Mailbox) MarkMessagesDeleted(apiIDs []string) error {
 	log.WithFields(logrus.Fields{
 		"messages": apiIDs,

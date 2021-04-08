@@ -88,7 +88,7 @@ func (ie *ImportExport) ReportBug(osType, osVersion, description, accountName, a
 	return nil
 }
 
-// ReportFile submits import report file
+// ReportFile submits import report file.
 func (ie *ImportExport) ReportFile(osType, osVersion, accountName, address string, logdata []byte) error {
 	c := ie.clientManager.GetAnonymousClient()
 	defer c.Logout()

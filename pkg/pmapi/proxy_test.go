@@ -52,7 +52,7 @@ func getTrustedServerWithHandler(handler http.HandlerFunc) *httptest.Server {
 	return proxy
 }
 
-// server.crt
+// server.crt data.
 const servercrt = `
 -----BEGIN CERTIFICATE-----
 MIIE5TCCA82gAwIBAgIJAKsmhcMFGfGcMA0GCSqGSIb3DQEBCwUAMIGsMQswCQYD

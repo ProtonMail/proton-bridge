@@ -29,12 +29,12 @@ import (
 	"github.com/jameskeane/bcrypt"
 )
 
-// BCryptHash function bcrypt algorithm to hash password with salt
+// BCryptHash function bcrypt algorithm to hash password with salt.
 func BCryptHash(password string, salt string) (string, error) {
 	return bcrypt.Hash(password, salt)
 }
 
-// ExpandHash extends the byte data for SRP flow
+// ExpandHash extends the byte data for SRP flow.
 func ExpandHash(data []byte) []byte {
 	part0 := sha512.Sum512(append(data, 0))
 	part1 := sha512.Sum512(append(data, 1))
@@ -51,7 +51,7 @@ func ExpandHash(data []byte) []byte {
 // HashPassword returns the hash of password argument. Based on version number
 // following arguments are used in addition to password:
 // * 0, 1, 2: userName and modulus
-// * 3, 4: salt and modulus
+// * 3, 4: salt and modulus.
 func HashPassword(authVersion int, password, userName string, salt, modulus []byte) ([]byte, error) {
 	switch authVersion {
 	case 4, 3:

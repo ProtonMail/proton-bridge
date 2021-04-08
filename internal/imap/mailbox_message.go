@@ -227,7 +227,8 @@ func (im *imapMailbox) importMessage(m *pmapi.Message, readers []io.Reader, kr *
 }
 
 func (im *imapMailbox) getMessage(storeMessage storeMessageProvider, items []imap.FetchItem, msgBuildCountHistogram *msgBuildCountHistogram) (msg *imap.Message, err error) { //nolint[funlen]
-	im.log.WithField("msgID", storeMessage.ID()).Trace("Getting message")
+	msglog := im.log.WithField("msgID", storeMessage.ID())
+	msglog.Trace("Getting message")
 
 	seqNum, err := storeMessage.SequenceNumber()
 	if err != nil {
@@ -267,7 +268,7 @@ func (im *imapMailbox) getMessage(storeMessage storeMessageProvider, items []ima
 			// Size attribute on the server counts encrypted data. The value is cleared
 			// on our part and we need to compute "real" size of decrypted data.
 			if m.Size <= 0 {
-				im.log.WithField("msgID", storeMessage.ID()).Trace("Size unknown - downloading body")
+				msglog.Debug("Size unknown - downloading body")
 				// We are sure the size is not a problem right now. Clients
 				// might not first check sizes of all messages so we couldn't
 				// be sure if seeing 1st or 2nd sync is all right or not.
@@ -283,6 +284,8 @@ func (im *imapMailbox) getMessage(storeMessage storeMessageProvider, items []ima
 			if err != nil {
 				return nil, err
 			}
+		case imap.FetchAll, imap.FetchFast, imap.FetchFull, imap.FetchRFC822, imap.FetchRFC822Header, imap.FetchRFC822Text:
+			fallthrough // this is list of defined items by go-imap, but items can be also sections generated from requests
 		default:
 			if err = im.getLiteralForSection(item, msg, storeMessage, msgBuildCountHistogram); err != nil {
 				return
@@ -295,8 +298,8 @@ func (im *imapMailbox) getMessage(storeMessage storeMessageProvider, items []ima
 
 func (im *imapMailbox) getLiteralForSection(itemSection imap.FetchItem, msg *imap.Message, storeMessage storeMessageProvider, msgBuildCountHistogram *msgBuildCountHistogram) error {
 	section, err := imap.ParseBodySectionName(itemSection)
-	if err != nil { // Ignore error
-		return nil
+	if err != nil {
+		return nil //nolint[nilerr] ignore error
 	}
 
 	var literal imap.Literal
@@ -743,7 +746,7 @@ func (im *imapMailbox) buildMessageInner(m *pmapi.Message, kr *crypto.KeyRing) (
 		}
 
 		processCallback := func(value interface{}) (interface{}, error) {
-			att := value.(*pmapi.Attachment)
+			att := value.(*pmapi.Attachment) //nolint[forcetypeassert] we want to panic here
 
 			buf := &bytes.Buffer{}
 			if err = im.writeAttachmentBody(buf, m, att); err != nil {
@@ -753,7 +756,7 @@ func (im *imapMailbox) buildMessageInner(m *pmapi.Message, kr *crypto.KeyRing) (
 		}
 
 		collectCallback := func(idx int, value interface{}) error {
-			buf := value.(*bytes.Buffer)
+			buf := value.(*bytes.Buffer) //nolint[forcetypeassert] we want to panic here
 			defer buf.Reset()
 			att := atts[idx]
 

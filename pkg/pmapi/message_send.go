@@ -24,14 +24,14 @@ import (
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 )
 
-// Draft actions
+// Draft actions.
 const (
 	DraftActionReply    = 0
 	DraftActionReplyAll = 1
 	DraftActionForward  = 2
 )
 
-// PackageFlag for send message package types
+// PackageFlag for send message package types.
 type PackageFlag int
 
 func (p *PackageFlag) Has(flag PackageFlag) bool { return iHasFlag(int(*p), int(flag)) }
@@ -65,7 +65,7 @@ const (
 	SignatureAttachedArmored = SignatureFlag(2)
 )
 
-// DraftReq defines paylod for creating drafts
+// DraftReq defines paylod for creating drafts.
 type DraftReq struct {
 	Message              *Message
 	ParentID             string `json:",omitempty"`

@@ -32,7 +32,7 @@ import (
 // - 100 messages were downloaded first time
 // - 100 messages were downloaded second time
 // - 99 messages were downloaded 10th times
-// - 1 messages were downloaded 100th times
+// - 1 messages were downloaded 100th times.
 type msgBuildCountHistogram struct {
 	// Key represents how many times message was build.
 	// Value stores how many messages are build X times based on the key.

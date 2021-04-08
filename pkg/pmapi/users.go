@@ -29,7 +29,7 @@ const (
 	PaidAdminRole
 )
 
-// User status
+// User status.
 const (
 	DeletedUser  = 0
 	DisabledUser = 1

@@ -172,11 +172,11 @@ func checkHeader(h http.Header, field, exp string) error {
 	return nil
 }
 
-func isAuthReq(r *http.Request, uid, token string) error { // nolint[unparam]
+func isAuthReq(r *http.Request, uid, token string) error { //nolint[unparam] always retrieves testUID
 	if err := checkHeader(r.Header, "x-pm-uid", uid); err != nil {
 		return err
 	}
-	if err := checkHeader(r.Header, "authorization", "Bearer "+token); err != nil {
+	if err := checkHeader(r.Header, "authorization", "Bearer "+token); err != nil { //nolint[revive] can return the error right away but this is easier to read
 		return err
 	}
 	return nil

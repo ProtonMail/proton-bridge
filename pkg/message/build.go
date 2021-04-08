@@ -48,7 +48,7 @@ func NewBuilder(client pmapi.Client, message *pmapi.Message) *Builder {
 	return &Builder{cl: client, msg: message, EncryptedToHTML: true, successfullyDecrypted: false}
 }
 
-// fetchMessage will update original PM message if successful
+// fetchMessage will update original PM message if successful.
 func (bld *Builder) fetchMessage() (err error) {
 	if bld.msg.Body != "" {
 		return nil
@@ -211,11 +211,11 @@ func (bld *Builder) BuildMessage() (structure *BodyStructure, message []byte, er
 	return structure, message, err
 }
 
-// SuccessfullyDecrypted is true when message was fetched and decrypted successfully
+// SuccessfullyDecrypted is true when message was fetched and decrypted successfully.
 func (bld *Builder) SuccessfullyDecrypted() bool { return bld.successfullyDecrypted }
 
 // WriteBody decrypts PM message and writes main body section. The external PGP
-// message is written as is (including attachments)
+// message is written as is (including attachments).
 func (bld *Builder) WriteBody(w io.Writer) error {
 	kr, err := bld.cl.KeyRingForAddressID(bld.msg.AddressID)
 	if err != nil {
@@ -238,7 +238,7 @@ func (bld *Builder) WriteBody(w io.Writer) error {
 	return err
 }
 
-// WriteAttachmentBody decrypts and writes the attachments
+// WriteAttachmentBody decrypts and writes the attachments.
 func (bld *Builder) WriteAttachmentBody(w io.Writer, att *pmapi.Attachment, attReader io.Reader) (err error) {
 	kr, err := bld.cl.KeyRingForAddressID(bld.msg.AddressID)
 	if err != nil {
@@ -248,9 +248,8 @@ func (bld *Builder) WriteAttachmentBody(w io.Writer, att *pmapi.Attachment, attR
 	var dr io.Reader
 	dr, err = att.Decrypt(attReader, kr)
 	if err == openpgperrors.ErrKeyIncorrect {
-		// Do not fail if attachment is encrypted with a different key
+		err = nil //nolint[wastedasign] Do not fail if attachment is encrypted with a different key
 		dr = attReader
-		err = nil
 		att.Name += ".gpg"
 		att.MIMEType = "application/pgp-encrypted"
 	} else if err != nil && err != openpgperrors.ErrSignatureExpired {

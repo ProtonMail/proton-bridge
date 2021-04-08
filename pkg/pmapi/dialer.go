@@ -61,7 +61,7 @@ func NewBasicTLSDialer() *BasicTLSDialer {
 func (b *BasicTLSDialer) DialTLS(network, address string) (conn net.Conn, err error) {
 	dialer := &net.Dialer{Timeout: 30 * time.Second} // Alternative Routes spec says this should be a 30s timeout.
 
-	var tlsConfig *tls.Config = nil
+	var tlsConfig *tls.Config
 
 	// If we are not dialing the standard API then we should skip cert verification checks.
 	if address != rootURL {

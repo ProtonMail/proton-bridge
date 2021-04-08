@@ -69,7 +69,7 @@ const (
 	flagMemProfileShort = "m"
 	flagLogLevel        = "log-level"
 	flagLogLevelShort   = "l"
-	// FlagCLI indicate to start with command line interface
+	// FlagCLI indicate to start with command line interface.
 	FlagCLI      = "cli"
 	flagCLIShort = "c"
 	flagRestart  = "restart"

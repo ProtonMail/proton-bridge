@@ -28,10 +28,10 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// maxFileSize limit tre single file size after decopression is not larger than 1GB
+// maxFileSize limit tre single file size after decopression is not larger than 1GB.
 const maxFileSize = int64(1 * 1024 * 1024 * 1024) // 1 GB
 
-// ErrFileTooLarge returned when decompressed file is too large
+// ErrFileTooLarge returned when decompressed file is too large.
 var ErrFileTooLarge = errors.New("trying to decompress file larger than 1GB")
 
 type limitReader struct {
@@ -40,6 +40,7 @@ type limitReader struct {
 }
 
 // Read returns error if limit was exceeded. Inspired by io.LimitReader.Read
+// implementation.
 func (lr *limitReader) Read(p []byte) (n int, err error) {
 	if lr.n <= 0 {
 		return 0, ErrFileTooLarge
@@ -52,7 +53,7 @@ func (lr *limitReader) Read(p []byte) (n int, err error) {
 	return
 }
 
-// UntarToDir decopmress and unarchive the files into directory
+// UntarToDir decopmress and unarchive the files into directory.
 func UntarToDir(r io.Reader, dir string) error {
 	tr := tar.NewReader(r)
 

@@ -254,7 +254,7 @@ func (storeMailbox *Mailbox) txGetAPIIDsBucket(tx *bolt.Tx) *bolt.Bucket {
 	return storeMailbox.txGetBucket(tx).Bucket(apiIDsBucket)
 }
 
-// txGetDeletedIDsBucket returns the bucket with messagesID marked as deleted
+// txGetDeletedIDsBucket returns the bucket with messagesID marked as deleted.
 func (storeMailbox *Mailbox) txGetDeletedIDsBucket(tx *bolt.Tx) *bolt.Bucket {
 	return storeMailbox.txGetBucket(tx).Bucket(deletedIDsBucket)
 }

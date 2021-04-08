@@ -34,15 +34,15 @@ import (
 )
 
 const (
-	// PathDelimiter for IMAP
+	// PathDelimiter for IMAP.
 	PathDelimiter = "/"
-	// UserLabelsMailboxName for IMAP
+	// UserLabelsMailboxName for IMAP.
 	UserLabelsMailboxName = "Labels"
-	// UserLabelsPrefix contains name with delimiter for IMAP
+	// UserLabelsPrefix contains name with delimiter for IMAP.
 	UserLabelsPrefix = UserLabelsMailboxName + PathDelimiter
-	// UserFoldersMailboxName for IMAP
+	// UserFoldersMailboxName for IMAP.
 	UserFoldersMailboxName = "Folders"
-	// UserFoldersPrefix contains name with delimiter for IMAP
+	// UserFoldersPrefix contains name with delimiter for IMAP.
 	UserFoldersPrefix = UserFoldersMailboxName + PathDelimiter
 )
 

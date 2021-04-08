@@ -22,7 +22,7 @@ import (
 	"fmt"
 )
 
-// System labels
+// System labels.
 const (
 	InboxLabel     = "0"
 	AllDraftsLabel = "1"
@@ -188,7 +188,7 @@ func (c *client) DeleteLabel(id string) (err error) {
 	return
 }
 
-// LeastUsedColor is intended to return color for creating a new inbox or label
+// LeastUsedColor is intended to return color for creating a new inbox or label.
 func LeastUsedColor(colors []string) (color string) {
 	color = LabelColors[0]
 	frequency := map[string]int{}

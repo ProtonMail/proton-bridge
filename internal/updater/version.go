@@ -78,7 +78,7 @@ type VersionInfo struct {
 //   "...": {
 //     ...
 //   }
-// }
+// }.
 type VersionMap map[string]VersionInfo
 
 // getVersionFileURL returns the URL of the version file.

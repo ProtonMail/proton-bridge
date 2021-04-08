@@ -37,7 +37,7 @@ func (ctx *TestContext) GetUsers() *users.Users {
 
 // LoginUser logs in the user with the given username, password, and mailbox password.
 func (ctx *TestContext) LoginUser(username, password, mailboxPassword string) (err error) {
-	srp.RandReader = rand.New(rand.NewSource(42))
+	srp.RandReader = rand.New(rand.NewSource(42)) //nolint[gosec] It is OK to use weaker random number generator here
 
 	client, auth, err := ctx.users.Login(username, password)
 	if err != nil {
@@ -120,7 +120,7 @@ func (ctx *TestContext) eventuallySyncIsFinished(store *store.Store) {
 }
 
 // EventuallySyncIsFinishedForUsername will wait until sync is finished or
-// deadline is reached see eventuallySyncIsFinished for timing
+// deadline is reached see eventuallySyncIsFinished for timing.
 func (ctx *TestContext) EventuallySyncIsFinishedForUsername(username string) {
 	store, err := ctx.GetStore(username)
 	assert.Nil(ctx.t, err)

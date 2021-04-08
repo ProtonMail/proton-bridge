@@ -173,7 +173,7 @@ func (b *sendPreferencesBuilder) withPublicKey(v *crypto.KeyRing) {
 //								| 16 (PGP/MIME),
 //     mimeType: 'text/html' | 'text/plain' | 'multipart/mixed',
 //     publicKey: OpenPGPKey | undefined/null
-// }
+// }.
 func (b *sendPreferencesBuilder) build() (p SendPreferences) {
 	p.Encrypt = b.shouldEncrypt()
 	p.Sign = b.shouldSign()
@@ -492,6 +492,8 @@ func (b *sendPreferencesBuilder) setEncryptionPreferences(mailSettings pmapi.Mai
 		b.withSchemeDefault(pgpInline)
 	case pmapi.PGPMIMEPackage:
 		b.withSchemeDefault(pgpMIME)
+	case pmapi.ClearMIMEPackage, pmapi.ClearPackage, pmapi.EncryptedOutsidePackage, pmapi.InternalPackage:
+		// nothing to set
 	}
 
 	// Its value is constrained by the sign flag and the PGP scheme:

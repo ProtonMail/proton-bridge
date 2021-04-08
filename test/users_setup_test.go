@@ -108,7 +108,7 @@ func thereIsNoDatabaseFileForUser(bddUserID string) error {
 	}
 	filePath := ctx.GetDatabaseFilePath(account.UserID())
 	if _, err := os.Stat(filePath); err != nil {
-		return nil
+		return nil //nolint[nilerr] Error means the file is not there or not accessible so test passed
 	}
 	return internalError(os.Remove(filePath), "removing database file of %s", account.Username())
 }

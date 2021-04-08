@@ -289,7 +289,7 @@ func clearNonMetadata(onlyMeta *pmapi.Message) {
 // If there is stored message in metaBucket the size, header and MIMEType are
 // not changed if already set. To change these:
 // * size must be updated by Message.SetSize
-// * contentType and header must be updated by Message.SetContentTypeAndHeader
+// * contentType and header must be updated by Message.SetContentTypeAndHeader.
 func txUpdateMetadaFromDB(metaBucket *bolt.Bucket, onlyMeta *pmapi.Message, log *logrus.Entry) {
 	// Size attribute on the server is counting encrypted data. We need to compute
 	// "real" size of decrypted data. Negative values will be processed during fetch.

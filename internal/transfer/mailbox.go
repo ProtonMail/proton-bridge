@@ -35,7 +35,7 @@ var systemFolderMapping = map[string]string{ //nolint[gochecknoglobals]
 	// Add more translations.
 }
 
-// LeastUsedColor is intended to return color for creating a new inbox or label
+// LeastUsedColor is intended to return color for creating a new inbox or label.
 func LeastUsedColor(mailboxes []Mailbox) string {
 	usedColors := []string{}
 	for _, m := range mailboxes {

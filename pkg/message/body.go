@@ -51,9 +51,8 @@ func WriteAttachmentBody(w io.Writer, kr *crypto.KeyRing, m *pmapi.Message, att 
 	var dr io.Reader
 	dr, err = att.Decrypt(r, kr)
 	if err == openpgperrors.ErrKeyIncorrect {
-		// Do not fail if attachment is encrypted with a different key.
+		err = nil //nolint[wastedassing] Do not fail if attachment is encrypted with a different key.
 		dr = r
-		err = nil
 		att.Name += ".gpg"
 		att.MIMEType = "application/pgp-encrypted" //nolint
 	} else if err != nil && err != openpgperrors.ErrSignatureExpired {

@@ -85,7 +85,7 @@ func testTransferFrom(t *testing.T, rules transferRules, provider TargetProvider
 		progress.finish()
 	}()
 
-	maxWait := time.Duration(len(messages)) * 2 * time.Second
+	maxWait := time.Duration(len(messages)*2) * time.Second
 	a.Eventually(t, func() bool {
 		return progress.updateCh == nil
 	}, maxWait, 10*time.Millisecond, "Waiting for imported messages timed out")
