@@ -27,9 +27,9 @@ import (
 	"github.com/emersion/go-message"
 )
 
-// writeCustomTextPart writes an armored-PGP text part for a message body that couldn't be decrypted.
-// The following is an example of such a message.
-/*
+/* writeCustomTextPart writes an armored-PGP text part for a message body that couldn't be decrypted.
+The following is an example of such a message:
+
 Mime-Version: 1.0
 Content-Type: multipart/mixed;
  boundary=d8a04ef2e12150946d27f84fc82b9e70a5e314f91a0f2190e38c7aad623466da
@@ -60,6 +60,8 @@ La1Cc6aFtMPUShzNc3Wp3dVLM09WygEUsYZFmA==
 =00ma
 -----END PGP MESSAGE-----
 --d8a04ef2e12150946d27f84fc82b9e70a5e314f91a0f2190e38c7aad623466da--
+
+.
 */
 func writeCustomTextPart(
 	w *message.Writer,

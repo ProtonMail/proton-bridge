@@ -129,7 +129,7 @@ func fetchMessage(req fetchReq, attachWorkers int) (*pmapi.Message, [][]byte, er
 	attData := make([][]byte, len(msg.Attachments))
 
 	collect := func(idx int, value interface{}) error {
-		attData[idx] = value.([]byte)
+		attData[idx] = value.([]byte) //nolint[forcetypeassert] we wan't to panic here
 		return nil
 	}
 
