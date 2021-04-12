@@ -5,10 +5,12 @@ Feature: Login for the first time
     Then last response is "OK"
     And "user" is connected
 
+  @ignore-live
   Scenario: Login with bad username
     When "user" logs in with bad password
     Then last response is "failed to login: Incorrect login credentials. Please try again"
 
+  @ignore-live
   Scenario: Login with bad password
     Given there is user "user"
     When "user" logs in with bad password
