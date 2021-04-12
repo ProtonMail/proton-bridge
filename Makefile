@@ -165,6 +165,7 @@ THERECIPE_ENV:=github.com/therecipe/env_${TARGET_OS}_amd64_513
 # therecipe/env in order to download it only once
 vendor-cache/${THERECIPE_ENV}:
 	git clone https://${THERECIPE_ENV}.git vendor-cache/${THERECIPE_ENV}
+	if [ "${TARGET_OS}" == "darwin" ]; then cp -f "./utils/QTBUG-88600/libqcocoa.dylib" "./vendor-cache/${THERECIPE_ENV}/5.13.0/clang_64/plugins/platforms/"; fi;
 
 # The command used to make symlinks is different on windows.
 # So if the GOOS is windows and we aren't crossbuilding (in which case the host os would still be *nix)
