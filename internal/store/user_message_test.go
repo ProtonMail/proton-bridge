@@ -18,7 +18,9 @@
 package store
 
 import (
+	"io"
 	"net/mail"
+	"strings"
 	"testing"
 
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
@@ -153,4 +155,48 @@ func checkAllMessageIDs(t *testing.T, m *mocksForStore, wantIDs []string) {
 	allIds, allErr := m.store.getAllMessageIDs()
 	require.Nil(t, allErr)
 	require.Equal(t, wantIDs, allIds)
+}
+
+func TestCreateDraftCheckMessageSize(t *testing.T) {
+	m, clear := initMocks(t)
+	defer clear()
+
+	m.newStoreNoEvents(false)
+	m.client.EXPECT().CurrentUser().Return(&pmapi.User{
+		MaxUpload: 100, // Decrypted message 5 chars, encrypted 500+.
+	}, nil)
+
+	// Even small body is bloated to at least about 500 chars of basic pgp message.
+	message := &pmapi.Message{
+		Body: strings.Repeat("a", 5),
+	}
+	attachmentReaders := []io.Reader{}
+	_, _, err := m.store.CreateDraft(testPrivateKeyRing, message, attachmentReaders, "", "", "")
+
+	require.EqualError(t, err, "message is too large")
+}
+
+func TestCreateDraftCheckMessageWithAttachmentSize(t *testing.T) {
+	m, clear := initMocks(t)
+	defer clear()
+
+	m.newStoreNoEvents(false)
+	m.client.EXPECT().CurrentUser().Return(&pmapi.User{
+		MaxUpload: 800, // Decrypted message 5 chars + 5 chars of attachment, encrypted 500+ + 300+.
+	}, nil)
+
+	// Even small body is bloated to at least about 500 chars of basic pgp message.
+	message := &pmapi.Message{
+		Body: strings.Repeat("a", 5),
+		Attachments: []*pmapi.Attachment{
+			{Name: "name"},
+		},
+	}
+	// Even small attachment is bloated to about 300 chars of encrypted text.
+	attachmentReaders := []io.Reader{
+		strings.NewReader(strings.Repeat("b", 5)),
+	}
+	_, _, err := m.store.CreateDraft(testPrivateKeyRing, message, attachmentReaders, "", "", "")
+
+	require.EqualError(t, err, "message is too large")
 }

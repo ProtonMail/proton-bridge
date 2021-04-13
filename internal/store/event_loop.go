@@ -99,6 +99,11 @@ func (loop *eventLoop) setFirstEventID() (err error) {
 // pollNow starts polling events right away and waits till the events are
 // processed so we are sure updates are propagated to the database.
 func (loop *eventLoop) pollNow() {
+	// When event loop is not running, it would cause infinite wait.
+	if !loop.isRunning {
+		return
+	}
+
 	eventProcessedCh := make(chan struct{})
 	loop.pollCh <- eventProcessedCh
 	<-eventProcessedCh

@@ -44,15 +44,17 @@ func (store *Store) CreateDraft(
 	attachedPublicKey,
 	attachedPublicKeyName string,
 	parentID string) (*pmapi.Message, []*pmapi.Attachment, error) {
-	defer store.eventLoop.pollNow()
+	attachments := store.prepareDraftAttachments(message, attachmentReaders, attachedPublicKey, attachedPublicKeyName)
 
-	// Since this is a draft, we don't need to sign it.
-	if err := message.Encrypt(kr, nil); err != nil {
+	if err := encryptDraft(kr, message, attachments); err != nil {
 		return nil, nil, errors.Wrap(err, "failed to encrypt draft")
 	}
 
-	attachments := message.Attachments
-	message.Attachments = nil
+	if ok, err := store.checkDraftTotalSize(message, attachments); err != nil {
+		return nil, nil, err
+	} else if !ok {
+		return nil, nil, errors.New("message is too large")
+	}
 
 	draftAction := store.getDraftAction(message)
 	draft, err := store.client().CreateDraft(message, parentID, draftAction)
@@ -60,29 +62,114 @@ func (store *Store) CreateDraft(
 		return nil, nil, errors.Wrap(err, "failed to create draft")
 	}
 
+	// Do poll only when call to API succeeded.
+	defer store.eventLoop.pollNow()
+
+	createdAttachments := []*pmapi.Attachment{}
+	for _, att := range attachments {
+		att.attachment.MessageID = draft.ID
+
+		createdAttachment, err := store.client().CreateAttachment(att.attachment, att.encReader, att.sigReader)
+		if err != nil {
+			return nil, nil, errors.Wrap(err, "failed to create attachment")
+		}
+		createdAttachments = append(createdAttachments, createdAttachment)
+	}
+
+	return draft, createdAttachments, nil
+}
+
+type draftAttachment struct {
+	attachment *pmapi.Attachment
+	reader     io.Reader
+	sigReader  io.Reader
+	encReader  io.Reader
+}
+
+func (store *Store) prepareDraftAttachments(
+	message *pmapi.Message,
+	attachmentReaders []io.Reader,
+	attachedPublicKey,
+	attachedPublicKeyName string) []*draftAttachment {
+	attachments := []*draftAttachment{}
+	for idx, attachment := range message.Attachments {
+		attachments = append(attachments, &draftAttachment{
+			attachment: attachment,
+			reader:     attachmentReaders[idx],
+		})
+	}
+
+	message.Attachments = nil
+
 	if attachedPublicKey != "" {
-		attachmentReaders = append(attachmentReaders, strings.NewReader(attachedPublicKey))
 		publicKeyAttachment := &pmapi.Attachment{
 			Name:     attachedPublicKeyName + ".asc",
 			MIMEType: "application/pgp-keys",
 			Header:   textproto.MIMEHeader{},
 		}
-		attachments = append(attachments, publicKeyAttachment)
+		attachments = append(attachments, &draftAttachment{
+			attachment: publicKeyAttachment,
+			reader:     strings.NewReader(attachedPublicKey),
+		})
 	}
 
-	for idx, attachment := range attachments {
-		attachment.MessageID = draft.ID
-		attachmentBody, _ := ioutil.ReadAll(attachmentReaders[idx])
+	return attachments
+}
 
-		createdAttachment, err := store.createAttachment(kr, attachment, attachmentBody)
+func encryptDraft(kr *crypto.KeyRing, message *pmapi.Message, attachments []*draftAttachment) error {
+	// Since this is a draft, we don't need to sign it.
+	if err := message.Encrypt(kr, nil); err != nil {
+		return errors.Wrap(err, "failed to encrypt message")
+	}
+
+	for _, att := range attachments {
+		attachment := att.attachment
+		attachmentBody, err := ioutil.ReadAll(att.reader)
 		if err != nil {
-			return nil, nil, errors.Wrap(err, "failed to create attachment for draft")
+			return errors.Wrap(err, "failed to read attachment")
 		}
 
-		attachments[idx] = createdAttachment
+		r := bytes.NewReader(attachmentBody)
+		sigReader, err := attachment.DetachedSign(kr, r)
+		if err != nil {
+			return errors.Wrap(err, "failed to sign attachment")
+		}
+		att.sigReader = sigReader
+
+		r = bytes.NewReader(attachmentBody)
+		encReader, err := attachment.Encrypt(kr, r)
+		if err != nil {
+			return errors.Wrap(err, "failed to encrypt attachment")
+		}
+		att.encReader = encReader
+
+		att.reader = nil
+	}
+	return nil
+}
+
+func (store *Store) checkDraftTotalSize(message *pmapi.Message, attachments []*draftAttachment) (bool, error) {
+	maxUpload, err := store.GetMaxUpload()
+	if err != nil {
+		return false, err
 	}
 
-	return draft, attachments, nil
+	msgSize := message.Size
+	if msgSize == 0 {
+		msgSize = int64(len(message.Body))
+	}
+
+	var attSize int64
+	for _, att := range attachments {
+		b, err := ioutil.ReadAll(att.encReader)
+		if err != nil {
+			return false, err
+		}
+		attSize += int64(len(b))
+		att.encReader = bytes.NewBuffer(b)
+	}
+
+	return msgSize+attSize <= maxUpload, nil
 }
 
 func (store *Store) getDraftAction(message *pmapi.Message) int {
@@ -91,27 +178,6 @@ func (store *Store) getDraftAction(message *pmapi.Message) int {
 		return pmapi.DraftActionForward
 	}
 	return pmapi.DraftActionReply
-}
-
-func (store *Store) createAttachment(kr *crypto.KeyRing, attachment *pmapi.Attachment, attachmentBody []byte) (*pmapi.Attachment, error) {
-	r := bytes.NewReader(attachmentBody)
-	sigReader, err := attachment.DetachedSign(kr, r)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to sign attachment")
-	}
-
-	r = bytes.NewReader(attachmentBody)
-	encReader, err := attachment.Encrypt(kr, r)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to encrypt attachment")
-	}
-
-	createdAttachment, err := store.client().CreateAttachment(attachment, encReader, sigReader)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to create attachment")
-	}
-
-	return createdAttachment, nil
 }
 
 // SendMessage sends the message.
