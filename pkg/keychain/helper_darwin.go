@@ -86,11 +86,8 @@ func (h *macOSHelper) Delete(secretURL string) error {
 	}
 
 	query := newQuery(hostURL, userID)
-	if err := keychain.DeleteItem(query); err != nil {
-		return err
-	}
 
-	return nil
+	return keychain.DeleteItem(query)
 }
 
 func (h *macOSHelper) Get(secretURL string) (string, string, error) {

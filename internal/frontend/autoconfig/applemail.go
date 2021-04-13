@@ -93,7 +93,7 @@ func (c *appleMail) Configure(imapPort, smtpPort int, imapSSL, smtpSSL bool, use
 	})()
 
 	// Make sure the file is only readable for the current user.
-	f, err := os.OpenFile(filepath.Join(dir, "protonmail.mobileconfig"), os.O_RDWR|os.O_CREATE, 0600)
+	f, err := os.OpenFile(filepath.Clean(filepath.Join(dir, "protonmail.mobileconfig")), os.O_RDWR|os.O_CREATE, 0600)
 	if err != nil {
 		return err
 	}

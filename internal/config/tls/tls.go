@@ -144,12 +144,12 @@ func (t *TLS) GetConfig() (*tls.Config, error) {
 	caCertPool := x509.NewCertPool()
 	caCertPool.AddCert(c.Leaf)
 
+	// nolint[gosec]: We need to support older TLS versions for AppleMail and Outlook.
 	return &tls.Config{
 		Certificates: []tls.Certificate{c},
 		ServerName:   "127.0.0.1",
 		ClientAuth:   tls.VerifyClientCertIfGiven,
 		RootCAs:      caCertPool,
 		ClientCAs:    caCertPool,
-		MinVersion:   tls.VersionTLS13, // gosec G402
 	}, nil
 }
