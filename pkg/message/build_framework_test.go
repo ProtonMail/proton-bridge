@@ -93,8 +93,9 @@ func addTestAttachment(
 		Name:     name,
 		MIMEType: mimeType,
 		Header: map[string][]string{
-			"Content-Type":        {mimeType},
-			"Content-Disposition": {disposition},
+			"Content-Type":              {mimeType},
+			"Content-Disposition":       {disposition},
+			"Content-Transfer-Encoding": {"base64"},
 		},
 		Disposition: disposition,
 		KeyPackets:  base64.StdEncoding.EncodeToString(enc.GetBinaryKeyPacket()),
