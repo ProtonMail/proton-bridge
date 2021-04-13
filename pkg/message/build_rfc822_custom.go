@@ -48,8 +48,7 @@ func writeCustomTextPart(
 
 	var hdr message.Header
 
-	// Even if it is HTML, we don't care... we abuse pgp/inline here.
-	hdr.SetContentType("text/plain", nil)
+	hdr.SetContentType(msg.MIMEType, nil)
 
 	part, err := w.CreatePart(hdr)
 	if err != nil {

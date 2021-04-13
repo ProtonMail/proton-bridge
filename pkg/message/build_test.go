@@ -1001,9 +1001,8 @@ func TestBuildCustomMessageHTML(t *testing.T) {
 	section(t, res).
 		expectContentType(is(`multipart/mixed`))
 
-	// Even if it is HTML, we don't care... we abuse pgp/inline here.
 	section(t, res, 1).
-		expectContentType(is(`text/plain`)).
+		expectContentType(is(`text/html`)).
 		expectBody(contains(`This message could not be decrypted`)).
 		expectBody(decryptsTo(foreignKR, `<html><body>body</body></html>`)).
 		expectTransferEncoding(isMissing())
@@ -1076,9 +1075,8 @@ func TestBuildCustomMessageHTMLWithAttachment(t *testing.T) {
 	section(t, res).
 		expectContentType(is(`multipart/mixed`))
 
-	// Even if it is HTML, we don't care... we abuse pgp/inline here.
 	section(t, res, 1).
-		expectContentType(is(`text/plain`)).
+		expectContentType(is(`text/html`)).
 		expectBody(contains(`This message could not be decrypted`)).
 		expectBody(decryptsTo(foreignKR, `<html><body>body</body></html>`)).
 		expectTransferEncoding(isMissing())
@@ -1120,9 +1118,8 @@ func TestBuildCustomMessageOnlyBodyIsUndecryptable(t *testing.T) {
 	section(t, res).
 		expectContentType(is(`multipart/mixed`))
 
-	// Even if it is HTML, we don't care... we abuse pgp/inline here.
 	section(t, res, 1).
-		expectContentType(is(`text/plain`)).
+		expectContentType(is(`text/html`)).
 		expectBody(contains(`This message could not be decrypted`)).
 		expectBody(decryptsTo(foreignKR, `<html><body>body</body></html>`)).
 		expectTransferEncoding(isMissing())
