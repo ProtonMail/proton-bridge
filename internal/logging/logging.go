@@ -42,6 +42,7 @@ const (
 
 func Init(logsPath string) error {
 	logrus.SetFormatter(&logrus.TextFormatter{
+		ForceColors:     true,
 		FullTimestamp:   true,
 		TimestampFormat: time.StampMilli,
 	})
