@@ -23,6 +23,7 @@ import (
 	"sync"
 
 	"github.com/ProtonMail/proton-bridge/internal/events"
+	imapcache "github.com/ProtonMail/proton-bridge/internal/imap/cache"
 	"github.com/ProtonMail/proton-bridge/internal/metrics"
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
@@ -403,6 +404,10 @@ func (u *Users) ClearData() error {
 	if err := u.locations.Clear(); err != nil {
 		result = multierror.Append(result, err)
 	}
+
+	// Need to clear imap cache otherwise fetch response will be remembered
+	// from previous test
+	imapcache.Clear()
 
 	return result
 }

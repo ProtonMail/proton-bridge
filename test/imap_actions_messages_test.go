@@ -30,6 +30,8 @@ import (
 func IMAPActionsMessagesFeatureContext(s *godog.Suite) {
 	s.Step(`^IMAP client sends command "([^"]*)"$`, imapClientSendsCommand)
 	s.Step(`^IMAP client fetches "([^"]*)"$`, imapClientFetches)
+	s.Step(`^IMAP client fetches header(?:s)? of "([^"]*)"$`, imapClientFetchesHeader)
+	s.Step(`^IMAP client fetches body "([^"]*)"$`, imapClientFetchesBody)
 	s.Step(`^IMAP client fetches by UID "([^"]*)"$`, imapClientFetchesByUID)
 	s.Step(`^IMAP client searches for "([^"]*)"$`, imapClientSearchesFor)
 	s.Step(`^IMAP client copies message seq "([^"]*)" to "([^"]*)"$`, imapClientCopiesMessagesTo)
@@ -72,6 +74,18 @@ func imapClientSendsCommand(command string) error {
 
 func imapClientFetches(fetchRange string) error {
 	res := ctx.GetIMAPClient("imap").Fetch(fetchRange, "UID")
+	ctx.SetIMAPLastResponse("imap", res)
+	return nil
+}
+
+func imapClientFetchesHeader(fetchRange string) error {
+	res := ctx.GetIMAPClient("imap").Fetch(fetchRange, "BODY.PEEK[HEADER]")
+	ctx.SetIMAPLastResponse("imap", res)
+	return nil
+}
+
+func imapClientFetchesBody(fetchRange string) error {
+	res := ctx.GetIMAPClient("imap").Fetch(fetchRange, "BODY.PEEK[]")
 	ctx.SetIMAPLastResponse("imap", res)
 	return nil
 }

@@ -94,7 +94,7 @@ func thereAreMessagesInMailboxesForAddressOfUser(mailboxNames, bddAddressID, bdd
 	for i := len(messages.Rows) - 1; i > 0; i-- {
 		row := messages.Rows[i]
 		message := &pmapi.Message{
-			MIMEType:  "text/plain",
+			MIMEType:  pmapi.ContentTypePlainText,
 			LabelIDs:  labelIDs,
 			AddressID: account.AddressID(),
 		}
@@ -108,48 +108,16 @@ func thereAreMessagesInMailboxesForAddressOfUser(mailboxNames, bddAddressID, bdd
 		hasDeletedFlag := false
 
 		for n, cell := range row.Cells {
-			switch head[n].Value {
-			case "id":
+			column := head[n].Value
+			if column == "id" {
 				bddMessageID = cell.Value
-			case "from":
-				message.Sender = &mail.Address{
-					Address: ctx.EnsureAddress(account.Username(), cell.Value),
-				}
-			case "to":
-				message.AddressID = ctx.EnsureAddressID(account.Username(), cell.Value)
-				message.ToList = []*mail.Address{{
-					Address: ctx.EnsureAddress(account.Username(), cell.Value),
-				}}
-			case "cc":
-				message.AddressID = ctx.EnsureAddressID(account.Username(), cell.Value)
-				message.CCList = []*mail.Address{{
-					Address: ctx.EnsureAddress(account.Username(), cell.Value),
-				}}
-			case "subject":
-				message.Subject = cell.Value
-			case "body":
-				message.Body = cell.Value
-			case "read":
-				unread := 1
-				if cell.Value == "true" {
-					unread = 0
-				}
-				message.Unread = unread
-			case "starred":
-				if cell.Value == "true" {
-					message.LabelIDs = append(message.LabelIDs, "10")
-				}
-			case "time": //nolint[goconst]
-				date, err := time.Parse(timeFormat, cell.Value)
-				if err != nil {
-					return internalError(err, "parsing time")
-				}
-				message.Time = date.Unix()
-				header.Set("Date", date.Format(time.RFC1123Z))
-			case "deleted":
+			}
+			if column == "deleted" {
 				hasDeletedFlag = cell.Value == "true"
-			default:
-				return fmt.Errorf("unexpected column name: %s", head[n].Value)
+			}
+			err := processMessageTableCell(column, cell.Value, account.Username(), message, header)
+			if err != nil {
+				return err
 			}
 		}
 		message.Header = mail.Header(header)
@@ -178,6 +146,64 @@ func thereAreMessagesInMailboxesForAddressOfUser(mailboxNames, bddAddressID, bdd
 				return err
 			}
 		}
+	}
+
+	return nil
+}
+
+func processMessageTableCell(column, cellValue, username string, message *pmapi.Message, header textproto.MIMEHeader) error {
+	switch column {
+	case "deleted", "id": // it is processed in the main function
+	case "from":
+		message.Sender = &mail.Address{
+			Address: ctx.EnsureAddress(username, cellValue),
+		}
+	case "to":
+		message.AddressID = ctx.EnsureAddressID(username, cellValue)
+		message.ToList = []*mail.Address{{
+			Address: ctx.EnsureAddress(username, cellValue),
+		}}
+	case "cc":
+		message.AddressID = ctx.EnsureAddressID(username, cellValue)
+		message.CCList = []*mail.Address{{
+			Address: ctx.EnsureAddress(username, cellValue),
+		}}
+	case "subject":
+		message.Subject = cellValue
+	case "body":
+		message.Body = cellValue
+	case "read":
+		unread := 1
+		if cellValue == "true" {
+			unread = 0
+		}
+		message.Unread = unread
+	case "starred":
+		if cellValue == "true" {
+			message.LabelIDs = append(message.LabelIDs, "10")
+		}
+	case "time": //nolint[goconst] It is more easy to read like this
+		date, err := time.Parse(timeFormat, cellValue)
+		if err != nil {
+			return internalError(err, "parsing time")
+		}
+		message.Time = date.Unix()
+		header.Set("Date", date.Format(time.RFC1123Z))
+	case "n attachments":
+		numAttachments, err := strconv.Atoi(cellValue)
+		if err != nil {
+			return internalError(err, "parsing n attachments")
+		}
+		message.NumAttachments = numAttachments
+	case "content type":
+		switch cellValue {
+		case "html":
+			message.MIMEType = pmapi.ContentTypeHTML
+		case "plain":
+			message.MIMEType = pmapi.ContentTypePlainText
+		}
+	default:
+		return fmt.Errorf("unexpected column name: %s", column)
 	}
 
 	return nil

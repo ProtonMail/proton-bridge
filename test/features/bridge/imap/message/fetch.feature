@@ -63,8 +63,8 @@ Feature: IMAP fetch messages
 
   Scenario: Fetch of very old message sent from the moon succeeds with modified date
     Given there are messages in mailbox "Folders/mbox" for "user"
-      | from              | to         | subject | time                |
-      | john.doe@mail.com | user@pm.me | foo     | 1969-07-20T00:00:00 |
+      | from              | to         | subject        | time                |
+      | john.doe@mail.com | user@pm.me | Very old email | 1969-07-20T00:00:00 |
     And there is IMAP client logged in as "user"
     And there is IMAP client selected in "Folders/mbox"
     When IMAP client sends command "FETCH 1:* rfc822"

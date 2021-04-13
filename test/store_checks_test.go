@@ -46,6 +46,8 @@ func StoreChecksFeatureContext(s *godog.Suite) {
 	s.Step(`^message "([^"]*)" in "([^"]*)" for "([^"]*)" is marked as unstarred$`, messagesInMailboxForUserIsMarkedAsUnstarred)
 	s.Step(`^message "([^"]*)" in "([^"]*)" for "([^"]*)" is marked as deleted$`, messagesInMailboxForUserIsMarkedAsDeleted)
 	s.Step(`^message "([^"]*)" in "([^"]*)" for "([^"]*)" is marked as undeleted$`, messagesInMailboxForUserIsMarkedAsUndeleted)
+	s.Step(`^header is not cached for message "([^"]*)" in "([^"]*)" for "([^"]*)"$`, messageHeaderIsNotCached)
+	s.Step(`^header is cached for message "([^"]*)" in "([^"]*)" for "([^"]*)"$`, messageHeaderIsCached)
 }
 
 func userHasMailbox(bddUserID, mailboxName string) error {
@@ -260,7 +262,7 @@ func messagesContainsMessageRow(account *accounts.TestAccount, allMessages []int
 				if message.Unread != unread {
 					matches = false
 				}
-			case "deleted":
+			case "deleted": //nolint[goconst]
 				if storeMessage == nil {
 					return false, fmt.Errorf("deleted column not supported for pmapi message object")
 				}
@@ -342,6 +344,24 @@ func messagesInMailboxForUserIsMarkedAsUndeleted(bddMessageIDs, mailboxName, bdd
 			return nil
 		}
 		return fmt.Errorf("message %s \"%s\" is expected to not be deleted but is", message.ID(), message.Message().Subject)
+	})
+}
+
+func messageHeaderIsNotCached(bddMessageIDs, mailboxName, bddUserID string) error {
+	return checkMessages(bddUserID, mailboxName, bddMessageIDs, func(message *store.Message) error {
+		if !message.IsFullHeaderCached() {
+			return nil
+		}
+		return fmt.Errorf("message %s \"%s\" is expected to not have cached header but has one", message.ID(), message.Message().Subject)
+	})
+}
+
+func messageHeaderIsCached(bddMessageIDs, mailboxName, bddUserID string) error {
+	return checkMessages(bddUserID, mailboxName, bddMessageIDs, func(message *store.Message) error {
+		if message.IsFullHeaderCached() {
+			return nil
+		}
+		return fmt.Errorf("message %s \"%s\" is expected to have cached header but it doesn't have", message.ID(), message.Message().Subject)
 	})
 }
 

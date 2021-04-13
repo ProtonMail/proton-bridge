@@ -187,6 +187,12 @@ func writeAttachmentPart(
 			return errors.Wrap(ErrDecryptionFailed, err.Error())
 		}
 
+		log.
+			WithField("attID", att.ID).
+			WithField("msgID", att.MessageID).
+			WithError(err).
+			Warn("Attachment decryption failed")
+
 		return writeCustomAttachmentPart(w, att, msg, err)
 	}
 
@@ -309,25 +315,13 @@ func getMessageHeader(msg *pmapi.Message, opts JobOptions) message.Header { // n
 		hdr.Set("Bcc", toAddressList(msg.BCCList))
 	}
 
-	// Set Message-Id from ExternalID or ID if it's not already set.
-	if hdr.Get("Message-Id") == "" {
-		if msg.ExternalID != "" {
-			hdr.Set("Message-Id", "<"+msg.ExternalID+">")
-		} else {
-			hdr.Set("Message-Id", "<"+msg.ID+"@"+pmapi.InternalIDDomain+">")
-		}
-	}
+	setMessageIDIfNeeded(msg, &hdr)
 
 	// Sanitize the date; it needs to have a valid unix timestamp.
 	if opts.SanitizeDate {
 		if date, err := rfc5322.ParseDateTime(hdr.Get("Date")); err != nil || date.Before(time.Unix(0, 0)) {
-			if msgTime := time.Unix(msg.Time, 0); msgTime.After(time.Unix(0, 0)) {
-				hdr.Set("Date", msgTime.In(time.UTC).Format(time.RFC1123Z))
-			} else {
-				// No message should realistically be older than RFC822 itself.
-				hdr.Set("Date", time.Date(1982, 8, 13, 0, 0, 0, 0, time.UTC).Format(time.RFC1123Z))
-			}
-
+			msgDate := sanitizeMessageDate(msg.Time)
+			hdr.Set("Date", msgDate.In(time.UTC).Format(time.RFC1123Z))
 			// We clobbered the date so we save it under X-Original-Date.
 			hdr.Set("X-Original-Date", date.In(time.UTC).Format(time.RFC1123Z))
 		}
@@ -359,6 +353,28 @@ func getMessageHeader(msg *pmapi.Message, opts JobOptions) message.Header { // n
 	}
 
 	return hdr
+}
+
+// sanitizeMessageDate will return time from msgTime timestamp. If timestamp is
+// not after epoch the RFC822 publish day will be used. No message should
+// realistically be older than RFC822 itself.
+func sanitizeMessageDate(msgTime int64) time.Time {
+	if msgTime := time.Unix(msgTime, 0); msgTime.After(time.Unix(0, 0)) {
+		return msgTime
+	}
+	return time.Date(1982, 8, 13, 0, 0, 0, 0, time.UTC)
+}
+
+// setMessageIDIfNeeded sets Message-Id from ExternalID or ID if it's not
+// already set.
+func setMessageIDIfNeeded(msg *pmapi.Message, hdr *message.Header) {
+	if hdr.Get("Message-Id") == "" {
+		if msg.ExternalID != "" {
+			hdr.Set("Message-Id", "<"+msg.ExternalID+">")
+		} else {
+			hdr.Set("Message-Id", "<"+msg.ID+"@"+pmapi.InternalIDDomain+">")
+		}
+	}
 }
 
 func getTextPartHeader(hdr message.Header, body []byte, mimeType string) message.Header {

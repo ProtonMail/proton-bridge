@@ -30,6 +30,10 @@ import (
 )
 
 func (ctl *Controller) AddUserMessage(username string, message *pmapi.Message) (string, error) {
+	if message.NumAttachments != 0 {
+		return "", errors.New("add user messages with attachments is not implemented for live")
+	}
+
 	client, ok := ctl.pmapiByUsername[username]
 	if !ok {
 		return "", fmt.Errorf("user %s does not exist", username)

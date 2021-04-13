@@ -337,30 +337,40 @@ func (bs *BodyStructure) GetSectionContent(wholeMail io.ReadSeeker, sectionPath 
 	if err != nil {
 		return
 	}
-	if _, err = wholeMail.Seek(int64(info.Start+info.Size-info.BSize), io.SeekStart); err != nil {
-		return
-	}
-	section = make([]byte, info.BSize)
-	_, err = wholeMail.Read(section)
-	return
+	return goToOffsetAndReadNBytes(wholeMail, info.Start+info.Size-info.BSize, info.BSize)
+}
 
-	/* This is slow:
-	sectionBuf, err := bs.GetSection(wholeMail, sectionPath)
+// GetMailHeader returns the main header of mail.
+func (bs *BodyStructure) GetMailHeader() (header textproto.MIMEHeader, err error) {
+	return bs.GetSectionHeader([]int{})
+}
+
+// GetMailHeaderBytes returns the bytes with main mail header.
+// Warning: It can contain extra lines or multipart comment.
+func (bs *BodyStructure) GetMailHeaderBytes(wholeMail io.ReadSeeker) (header []byte, err error) {
+	info, err := bs.getInfo([]int{})
 	if err != nil {
 		return
 	}
-
-	tp := textproto.NewReader(bufio.NewReader(buf))
-	if _, err = tp.ReadMIMEHeader(); err != nil {
-		return err
-	}
-
-	sectionBuf = &bytes.Buffer{}
-	_, err = io.Copy(sectionBuf, tp.R)
-	return
-	*/
+	headerLength := info.Size - info.BSize
+	return goToOffsetAndReadNBytes(wholeMail, 0, headerLength)
 }
 
+func goToOffsetAndReadNBytes(wholeMail io.ReadSeeker, offset, length int) ([]byte, error) {
+	if length < 1 {
+		return nil, errors.New("requested non positive length")
+	}
+	if offset > 0 {
+		if _, err := wholeMail.Seek(int64(offset), io.SeekStart); err != nil {
+			return nil, err
+		}
+	}
+	out := make([]byte, length)
+	_, err := wholeMail.Read(out)
+	return out, err
+}
+
+// GetSectionHeader returns the mime header of specified section.
 func (bs *BodyStructure) GetSectionHeader(sectionPath []int) (header textproto.MIMEHeader, err error) {
 	info, err := bs.getInfo(sectionPath)
 	if err != nil {

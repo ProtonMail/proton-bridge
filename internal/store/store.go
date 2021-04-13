@@ -51,7 +51,9 @@ var (
 
 	// Database structure:
 	// * metadata
-	//   * {messageID} -> message data (subject, from, to, time, headers, body size, ...)
+	//   * {messageID} -> message data (subject, from, to, time, body size, ...)
+	// * headers
+	//   * {messageID} -> header bytes
 	// * bodystructure
 	//   * {messageID} -> message body structure
 	// * msgbuildcount
@@ -77,6 +79,7 @@ var (
 	//     * deleted_ids (can be missing or have no keys)
 	//       * {messageID} -> true
 	metadataBucket      = []byte("metadata")          //nolint[gochecknoglobals]
+	headersBucket       = []byte("headers")           //nolint[gochecknoglobals]
 	bodystructureBucket = []byte("bodystructure")     //nolint[gochecknoglobals]
 	msgBuildCountBucket = []byte("msgbuildcount")     //nolint[gochecknoglobals]
 	countsBucket        = []byte("counts")            //nolint[gochecknoglobals]
@@ -199,40 +202,24 @@ func openBoltDatabase(filePath string) (db *bolt.DB, err error) {
 	}
 
 	tx := func(tx *bolt.Tx) (err error) {
-		if _, err = tx.CreateBucketIfNotExists(metadataBucket); err != nil {
-			return
+		buckets := [][]byte{
+			metadataBucket,
+			headersBucket,
+			bodystructureBucket,
+			msgBuildCountBucket,
+			countsBucket,
+			addressInfoBucket,
+			addressModeBucket,
+			syncStateBucket,
+			mailboxesBucket,
+			mboxVersionBucket,
 		}
 
-		if _, err = tx.CreateBucketIfNotExists(bodystructureBucket); err != nil {
-			return
-		}
-
-		if _, err = tx.CreateBucketIfNotExists(msgBuildCountBucket); err != nil {
-			return
-		}
-
-		if _, err = tx.CreateBucketIfNotExists(countsBucket); err != nil {
-			return
-		}
-
-		if _, err = tx.CreateBucketIfNotExists(addressInfoBucket); err != nil {
-			return
-		}
-
-		if _, err = tx.CreateBucketIfNotExists(addressModeBucket); err != nil {
-			return
-		}
-
-		if _, err = tx.CreateBucketIfNotExists(syncStateBucket); err != nil {
-			return
-		}
-
-		if _, err = tx.CreateBucketIfNotExists(mailboxesBucket); err != nil {
-			return
-		}
-
-		if _, err = tx.CreateBucketIfNotExists(mboxVersionBucket); err != nil {
-			return
+		for _, bucket := range buckets {
+			if _, err = tx.CreateBucketIfNotExists(bucket); err != nil {
+				err = errors.Wrap(err, string(bucket))
+				return
+			}
 		}
 
 		return

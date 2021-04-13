@@ -18,8 +18,6 @@
 package message
 
 import (
-	"crypto/sha512"
-	"fmt"
 	"strings"
 
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
@@ -35,7 +33,7 @@ var log = logrus.WithField("pkg", "pkg/message") //nolint[gochecknoglobals]
 func GetBoundary(m *pmapi.Message) string {
 	// The boundary needs to be deterministic because messages are not supposed to
 	// change.
-	return fmt.Sprintf("%x", sha512.Sum512_256([]byte(m.ID)))
+	return newBoundary(m.ID).gen()
 }
 
 func SeparateInlineAttachments(m *pmapi.Message) (atts, inlines []*pmapi.Attachment) {

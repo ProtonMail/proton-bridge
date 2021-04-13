@@ -18,7 +18,10 @@
 package store
 
 import (
+	"bufio"
+	"bytes"
 	"net/mail"
+	"net/textproto"
 
 	pkgMsg "github.com/ProtonMail/proton-bridge/pkg/message"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
@@ -103,6 +106,8 @@ func (message *Message) SetSize(size int64) error {
 // header of decrypted message. This should not trigger any IMAP update.
 // NOTE: Content type depends on details of decrypted message which we want to
 // cache.
+//
+// Deprecated: Use SetHeader instead.
 func (message *Message) SetContentTypeAndHeader(mimeType string, header mail.Header) error {
 	message.msg.MIMEType = mimeType
 	message.msg.Header = header
@@ -119,6 +124,45 @@ func (message *Message) SetContentTypeAndHeader(mimeType string, header mail.Hea
 		)
 	}
 	return message.store.db.Update(txUpdate)
+}
+
+// SetHeader checks header can be parsed and if yes it stores header bytes in
+// database.
+func (message *Message) SetHeader(header []byte) error {
+	_, err := textproto.NewReader(bufio.NewReader(bytes.NewReader(header))).ReadMIMEHeader()
+	if err != nil {
+		return err
+	}
+	return message.store.db.Update(func(tx *bolt.Tx) error {
+		return tx.Bucket(headersBucket).Put([]byte(message.ID()), header)
+	})
+}
+
+// IsFullHeaderCached will check that valid full header is stored in DB.
+func (message *Message) IsFullHeaderCached() bool {
+	header, err := message.getRawHeader()
+	return err == nil && header != nil
+}
+
+func (message *Message) getRawHeader() (raw []byte, err error) {
+	err = message.store.db.View(func(tx *bolt.Tx) error {
+		raw = tx.Bucket(headersBucket).Get([]byte(message.ID()))
+		return nil
+	})
+	return
+}
+
+// GetHeader will return cached header from DB.
+func (message *Message) GetHeader() textproto.MIMEHeader {
+	raw, err := message.getRawHeader()
+	if err != nil && raw == nil {
+		return textproto.MIMEHeader(message.msg.Header)
+	}
+	header, err := textproto.NewReader(bufio.NewReader(bytes.NewReader(raw))).ReadMIMEHeader()
+	if err != nil {
+		return textproto.MIMEHeader(message.msg.Header)
+	}
+	return header
 }
 
 // SetBodyStructure stores serialized body structure in database.

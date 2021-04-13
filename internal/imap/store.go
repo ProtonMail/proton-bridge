@@ -20,6 +20,7 @@ package imap
 import (
 	"io"
 	"net/mail"
+	"net/textproto"
 
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/ProtonMail/proton-bridge/internal/imap/uidplus"
@@ -100,7 +101,9 @@ type storeMessageProvider interface {
 	IsMarkedDeleted() bool
 
 	SetSize(int64) error
-	SetContentTypeAndHeader(string, mail.Header) error
+	SetHeader([]byte) error
+	GetHeader() textproto.MIMEHeader
+	IsFullHeaderCached() bool
 	SetBodyStructure(*pkgMsg.BodyStructure) error
 	GetBodyStructure() (*pkgMsg.BodyStructure, error)
 	IncreaseBuildCount() (uint32, error)

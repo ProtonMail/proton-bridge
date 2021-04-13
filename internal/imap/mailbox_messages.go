@@ -358,23 +358,29 @@ func (im *imapMailbox) SearchMessages(isUID bool, criteria *imap.SearchCriteria)
 				continue
 			}
 		}
+
+		// In order to speed up search it is not needed to check
+		// if IsFullHeaderCached.
+		header := storeMessage.GetHeader()
+
 		if !criteria.SentBefore.IsZero() || !criteria.SentSince.IsZero() {
-			if t, err := m.Header.Date(); err == nil && !t.IsZero() {
-				if !criteria.SentBefore.IsZero() {
-					if truncated := criteria.SentBefore.Truncate(24 * time.Hour); t.Unix() > truncated.Unix() {
-						continue
-					}
+			t, err := mail.Header(header).Date()
+			if err != nil || t.IsZero() {
+				t = time.Unix(m.Time, 0)
+			}
+			if !criteria.SentBefore.IsZero() {
+				if truncated := criteria.SentBefore.Truncate(24 * time.Hour); t.Unix() > truncated.Unix() {
+					continue
 				}
-				if !criteria.SentSince.IsZero() {
-					if truncated := criteria.SentSince.Truncate(24 * time.Hour); t.Unix() < truncated.Unix() {
-						continue
-					}
+			}
+			if !criteria.SentSince.IsZero() {
+				if truncated := criteria.SentSince.Truncate(24 * time.Hour); t.Unix() < truncated.Unix() {
+					continue
 				}
 			}
 		}
 
 		// Filter by headers.
-		header := message.GetHeader(m)
 		headerMatch := true
 		for criteriaKey, criteriaValues := range criteria.Header {
 			for _, criteriaValue := range criteriaValues {
@@ -382,6 +388,8 @@ func (im *imapMailbox) SearchMessages(isUID bool, criteria *imap.SearchCriteria)
 					continue
 				}
 				switch criteriaKey {
+				case "Subject":
+					headerMatch = strings.Contains(strings.ToLower(m.Subject), strings.ToLower(criteriaValue))
 				case "From":
 					headerMatch = addressMatch([]*mail.Address{m.Sender}, criteriaValue)
 				case "To":

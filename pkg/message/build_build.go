@@ -73,9 +73,14 @@ func buildWorker(buildReqCh <-chan fetchRes, buildResCh chan<- buildRes, wg *syn
 	defer wg.Done()
 
 	for req := range buildReqCh {
+		l := log.
+			WithField("addrID", req.msg.AddressID).
+			WithField("msgID", req.msg.ID)
 		if kr, err := req.api.KeyRingForAddressID(req.msg.AddressID); err != nil {
+			l.WithError(err).Warn("Cannot find keyring for address")
 			buildResCh <- newBuildResFailure(req.msg.ID, errors.Wrap(ErrNoSuchKeyRing, err.Error()))
 		} else if literal, err := buildRFC822(kr, req.msg, req.atts, req.opts); err != nil {
+			l.WithError(err).Warn("Build failed")
 			buildResCh <- newBuildResFailure(req.msg.ID, err)
 		} else {
 			buildResCh <- newBuildResSuccess(req.msg.ID, literal)

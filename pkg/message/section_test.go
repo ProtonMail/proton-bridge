@@ -108,6 +108,24 @@ func TestGetSection(t *testing.T) {
 	}
 }
 
+func TestGetMainHeaderBytes(t *testing.T) {
+	wantHeader := []byte(`Subject: Sample mail
+From: John Doe <jdoe@machine.example>
+To: Mary Smith <mary@example.net>
+Date: Fri, 21 Nov 1997 09:55:06 -0600
+Content-Type: multipart/mixed; boundary="0000MAIN"
+
+`)
+
+	structReader := strings.NewReader(sampleMail)
+	bs, err := NewBodyStructure(structReader)
+	require.NoError(t, err)
+
+	haveHeader, err := bs.GetMailHeaderBytes(strings.NewReader(sampleMail))
+	require.NoError(t, err)
+	require.Equal(t, wantHeader, haveHeader)
+}
+
 /* Structure example:
 HEADER     ([RFC-2822] header of the message)
 TEXT       ([RFC-2822] text body of the message) MULTIPART/MIXED

@@ -142,6 +142,11 @@ func (ctl *Controller) AddUserMessage(username string, message *pmapi.Message) (
 	message.ID = ctl.messageIDGenerator.next("")
 	message.LabelIDs = append(message.LabelIDs, pmapi.AllMailLabel)
 	message.Header = mail.Header(messageUtils.GetHeader(message))
+
+	for iAtt := 0; iAtt < message.NumAttachments; iAtt++ {
+		message.Attachments = append(message.Attachments, newTestAttachment(iAtt, message.ID))
+	}
+
 	ctl.messagesByUsername[username] = append(ctl.messagesByUsername[username], message)
 	ctl.resetUsers()
 	return message.ID, nil
