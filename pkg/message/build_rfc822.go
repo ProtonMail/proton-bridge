@@ -146,6 +146,12 @@ func writeTextPart(
 			return errors.Wrap(ErrDecryptionFailed, err.Error())
 		}
 
+		/*
+			if len(msg.Attachments) > 0 {
+				return writeCustomTextPartAsAttachment(w, msg, err)
+			}
+		*/
+
 		return writeCustomTextPart(w, msg, err)
 	}
 

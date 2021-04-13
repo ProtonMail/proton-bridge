@@ -1042,7 +1042,7 @@ func TestBuildCustomMessagePlainWithAttachment(t *testing.T) {
 		expectTransferEncoding(isMissing())
 
 	section(t, res, 2).
-		expectContentType(is(`application/pgp-encrypted`)).
+		expectContentType(is(`application/octet-stream`)).
 		expectBody(contains(`This attachment could not be decrypted`)).
 		expectBody(decryptsTo(foreignKR, `attachment`)).
 		expectContentTypeParam(`name`, is(`file.png.pgp`)).
@@ -1084,7 +1084,7 @@ func TestBuildCustomMessageHTMLWithAttachment(t *testing.T) {
 		expectTransferEncoding(isMissing())
 
 	section(t, res, 2).
-		expectContentType(is(`application/pgp-encrypted`)).
+		expectContentType(is(`application/octet-stream`)).
 		expectBody(contains(`This attachment could not be decrypted`)).
 		expectBody(decryptsTo(foreignKR, `attachment`)).
 		expectContentTypeParam(`name`, is(`file.png.pgp`)).
@@ -1168,7 +1168,7 @@ func TestBuildCustomMessageOnlyAttachmentIsUndecryptable(t *testing.T) {
 		expectTransferEncoding(is(`quoted-printable`))
 
 	section(t, res, 2).
-		expectContentType(is(`application/pgp-encrypted`)).
+		expectContentType(is(`application/octet-stream`)).
 		expectBody(contains(`This attachment could not be decrypted`)).
 		expectBody(decryptsTo(foreignKR, `attachment`)).
 		expectContentTypeParam(`name`, is(`file.png.pgp`)).
