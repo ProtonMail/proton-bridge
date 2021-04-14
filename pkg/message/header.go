@@ -101,12 +101,6 @@ func GetBodyHeader(m *pmapi.Message) textproto.MIMEHeader {
 	return h
 }
 
-func GetRelatedHeader(m *pmapi.Message) textproto.MIMEHeader {
-	h := make(textproto.MIMEHeader)
-	h.Set("Content-Type", "multipart/related; boundary="+GetRelatedBoundary(m))
-	return h
-}
-
 func GetAttachmentHeader(att *pmapi.Attachment, buildForIMAP bool) textproto.MIMEHeader {
 	mediaType := att.MIMEType
 	if mediaType == "application/pgp-encrypted" {

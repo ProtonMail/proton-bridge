@@ -38,12 +38,6 @@ func GetBoundary(m *pmapi.Message) string {
 	return fmt.Sprintf("%x", sha512.Sum512_256([]byte(m.ID)))
 }
 
-func GetRelatedBoundary(m *pmapi.Message) string {
-	// The boundary needs to be deterministic because messages are not supposed to
-	// change.
-	return fmt.Sprintf("%x", sha512.Sum512_256([]byte(m.ID+m.ID)))
-}
-
 func SeparateInlineAttachments(m *pmapi.Message) (atts, inlines []*pmapi.Attachment) {
 	for _, att := range m.Attachments {
 		if strings.Contains(att.Header.Get("Content-Disposition"), pmapi.DispositionInline) {
