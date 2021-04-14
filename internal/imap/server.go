@@ -132,24 +132,25 @@ func (s *imapServer) listenAndServe(retries int) {
 	}
 	s.isRunning.Store(true)
 
-	log.Info("IMAP server listening at ", s.server.Addr)
-	l, err := net.Listen("tcp", s.server.Addr)
+	l := log.WithField("address", s.server.Addr)
+	l.Info("IMAP server is starting")
+	listener, err := net.Listen("tcp", s.server.Addr)
 	if err != nil {
 		s.isRunning.Store(false)
 		if retries > 0 {
-			log.WithError(err).WithField("retries", retries).Warn("IMAP listener failed")
+			l.WithError(err).WithField("retries", retries).Warn("IMAP listener failed")
 			time.Sleep(15 * time.Second)
 			s.listenAndServe(retries - 1)
 			return
 		}
 
-		log.WithError(err).Error("IMAP listener failed")
+		l.WithError(err).Error("IMAP listener failed")
 		s.eventListener.Emit(events.ErrorEvent, "IMAP failed: "+err.Error())
 		return
 	}
 
 	err = s.server.Serve(&connListener{
-		Listener:  l,
+		Listener:  listener,
 		server:    s,
 		userAgent: s.userAgent,
 	})
@@ -158,13 +159,13 @@ func (s *imapServer) listenAndServe(retries int) {
 	// but it should in case it was not closed by `s.Close()`.
 	if err != nil && s.isRunning.Load().(bool) {
 		s.isRunning.Store(false)
-		log.WithError(err).Error("IMAP server failed")
+		l.WithError(err).Error("IMAP server failed")
 		s.eventListener.Emit(events.ErrorEvent, "IMAP failed: "+err.Error())
 		return
 	}
 	defer s.server.Close() //nolint[errcheck]
 
-	log.Info("IMAP server stopped")
+	l.Info("IMAP server stopped")
 }
 
 // Stops the server.

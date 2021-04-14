@@ -20,23 +20,30 @@ package smtp
 import (
 	"crypto/tls"
 	"fmt"
+	"net"
+	"sync/atomic"
+	"time"
 
 	"github.com/ProtonMail/proton-bridge/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/internal/events"
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
+	"github.com/ProtonMail/proton-bridge/pkg/ports"
 	"github.com/emersion/go-sasl"
 	goSMTP "github.com/emersion/go-smtp"
 	"github.com/sirupsen/logrus"
 )
 
 type smtpServer struct {
+	panicHandler  panicHandler
 	server        *goSMTP.Server
 	eventListener listener.Listener
 	useSSL        bool
+	port          int
+	isRunning     atomic.Value
 }
 
 // NewSMTPServer returns an SMTP server configured with the given options.
-func NewSMTPServer(debug bool, port int, useSSL bool, tls *tls.Config, smtpBackend goSMTP.Backend, eventListener listener.Listener) *smtpServer { //nolint[golint]
+func NewSMTPServer(panicHandler panicHandler, debug bool, port int, useSSL bool, tls *tls.Config, smtpBackend goSMTP.Backend, eventListener listener.Listener) *smtpServer { //nolint[golint]
 	s := goSMTP.NewServer(smtpBackend)
 	s.Addr = fmt.Sprintf("%v:%v", bridge.Host, port)
 	s.TLSConfig = tls
@@ -69,28 +76,64 @@ func NewSMTPServer(debug bool, port int, useSSL bool, tls *tls.Config, smtpBacke
 		})
 	})
 
-	return &smtpServer{
+	server := &smtpServer{
+		panicHandler:  panicHandler,
 		server:        s,
 		eventListener: eventListener,
 		useSSL:        useSSL,
+		port:          port,
 	}
+	server.isRunning.Store(false)
+	return server
 }
 
 // Starts the server.
 func (s *smtpServer) ListenAndServe() {
 	go s.monitorDisconnectedUsers()
-	l := log.WithField("useSSL", s.useSSL).WithField("address", s.server.Addr)
+	go s.monitorInternetConnection()
 
+	// When starting the Bridge, we don't want to retry to notify user
+	// quickly about the issue. Very probably retry will not help anyway.
+	s.listenAndServe(0)
+}
+
+func (s *smtpServer) listenAndServe(retries int) {
+	if s.isRunning.Load().(bool) {
+		return
+	}
+	s.isRunning.Store(true)
+
+	l := log.WithField("useSSL", s.useSSL).WithField("address", s.server.Addr)
 	l.Info("SMTP server is starting")
+	var listener net.Listener
 	var err error
 	if s.useSSL {
-		err = s.server.ListenAndServeTLS()
+		listener, err = tls.Listen("tcp", s.server.Addr, s.server.TLSConfig)
 	} else {
-		err = s.server.ListenAndServe()
+		listener, err = net.Listen("tcp", s.server.Addr)
 	}
 	if err != nil {
+		s.isRunning.Store(false)
+		if retries > 0 {
+			l.WithError(err).WithField("retries", retries).Warn("SMTP listener failed")
+			time.Sleep(15 * time.Second)
+			s.listenAndServe(retries - 1)
+			return
+		}
+
+		l.WithError(err).Error("SMTP listener failed")
 		s.eventListener.Emit(events.ErrorEvent, "SMTP failed: "+err.Error())
-		l.Error("SMTP failed: ", err)
+		return
+	}
+
+	err = s.server.Serve(listener)
+	// Serve returns error every time, even after closing the server.
+	// User shouldn't be notified about error if server shouldn't be running,
+	// but it should in case it was not closed by `s.Close()`.
+	if err != nil && s.isRunning.Load().(bool) {
+		s.isRunning.Store(false)
+		l.WithError(err).Error("SMTP server failed")
+		s.eventListener.Emit(events.ErrorEvent, "SMTP failed: "+err.Error())
 		return
 	}
 	defer s.server.Close() //nolint[errcheck]
@@ -100,8 +143,52 @@ func (s *smtpServer) ListenAndServe() {
 
 // Stops the server.
 func (s *smtpServer) Close() {
+	if !s.isRunning.Load().(bool) {
+		return
+	}
+	s.isRunning.Store(false)
+
 	if err := s.server.Close(); err != nil {
 		log.WithError(err).Error("Failed to close the connection")
+	}
+}
+
+func (s *smtpServer) monitorInternetConnection() {
+	on := make(chan string)
+	s.eventListener.Add(events.InternetOnEvent, on)
+	off := make(chan string)
+	s.eventListener.Add(events.InternetOffEvent, off)
+
+	for {
+		var expectedIsPortFree bool
+		select {
+		case <-on:
+			go func() {
+				defer s.panicHandler.HandlePanic()
+				// We had issues on Mac that from time to time something
+				// blocked our port for a bit after we closed IMAP server
+				// due to connection issues.
+				// Restart always helped, so we do retry to not bother user.
+				s.listenAndServe(10)
+			}()
+			expectedIsPortFree = false
+		case <-off:
+			s.Close()
+			expectedIsPortFree = true
+		}
+
+		start := time.Now()
+		for {
+			if ports.IsPortFree(s.port) == expectedIsPortFree {
+				break
+			}
+			// Safety stop if something went wrong.
+			if time.Since(start) > 15*time.Second {
+				log.WithField("expectedIsPortFree", expectedIsPortFree).Warn("Server start/stop check timeouted")
+				break
+			}
+			time.Sleep(100 * time.Millisecond)
+		}
 	}
 }
 
