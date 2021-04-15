@@ -2,6 +2,24 @@
 
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
+## [Bridge 1.7.0] Iron
+
+### Added
+* GODT-213 New message builder:
+    * Preserve Content-Type for undecryptable message body.
+    * Use application/octet-stream for encrypted parts.
+    * Force no transfer encoding for embedded message/rfc822 parts.
+    * Remove dead code GetRelatedHeader/GetRelatedBoundary.
+    * Correctly expect text/plain in custom message text parts.
+    * Force text/plain for custom message text part.
+    * Complex external encrypted tests (multipart/alternative, message/rfc822 attachment).
+
+### Fixed
+* GODT-1136 DB Cache header from builder and test.
+* GODT-1113 Fix tray icon size on macOS Big Sur.
+* GODT-947 Force colors in logs.
+
+
 ## [Bridge 1.6.9] HZM
 
 ### Fixed
