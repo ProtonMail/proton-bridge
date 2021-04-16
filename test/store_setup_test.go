@@ -115,7 +115,7 @@ func thereAreMessagesInMailboxesForAddressOfUser(mailboxNames, bddAddressID, bdd
 			if column == "deleted" {
 				hasDeletedFlag = cell.Value == "true"
 			}
-			err := processMessageTableCell(column, cell.Value, account.Username(), message, header)
+			err := processMessageTableCell(column, cell.Value, account.Username(), message, &header)
 			if err != nil {
 				return err
 			}
@@ -151,7 +151,7 @@ func thereAreMessagesInMailboxesForAddressOfUser(mailboxNames, bddAddressID, bdd
 	return nil
 }
 
-func processMessageTableCell(column, cellValue, username string, message *pmapi.Message, header textproto.MIMEHeader) error {
+func processMessageTableCell(column, cellValue, username string, message *pmapi.Message, header *textproto.MIMEHeader) error {
 	switch column {
 	case "deleted", "id": // it is processed in the main function
 	case "from":
@@ -187,8 +187,13 @@ func processMessageTableCell(column, cellValue, username string, message *pmapi.
 		if err != nil {
 			return internalError(err, "parsing time")
 		}
-		message.Time = date.Unix()
 		header.Set("Date", date.Format(time.RFC1123Z))
+		// API will sanitize the date to not have negative timestamp
+		if date.After(time.Unix(0, 0)) {
+			message.Time = date.Unix()
+		} else {
+			message.Time = 0
+		}
 	case "n attachments":
 		numAttachments, err := strconv.Atoi(cellValue)
 		if err != nil {

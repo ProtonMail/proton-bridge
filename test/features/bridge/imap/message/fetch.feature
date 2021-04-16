@@ -69,8 +69,9 @@ Feature: IMAP fetch messages
     And there is IMAP client selected in "Folders/mbox"
     When IMAP client sends command "FETCH 1:* rfc822"
     Then IMAP response is "OK"
-    And IMAP response contains "Date: Fri, 13 Aug 1982"
-    And IMAP response contains "X-Original-Date: Sun, 20 Jul 1969"
+    And IMAP response contains "\nDate: Fri, 13 Aug 1982"
+    And IMAP response contains "\nX-Pm-Date: Thu, 01 Jan 1970"
+    And IMAP response contains "\nX-Original-Date: Sun, 20 Jul 1969"
     # We had bug to incorectly set empty date, so let's make sure
     # there is no reference anywhere in the response.
-    And IMAP response does not contain "Date: Thu, 01 Jan 1970"
+    And IMAP response does not contain "\nDate: Thu, 01 Jan 1970"
