@@ -1,0 +1,14 @@
+From: Sender <sender@pm.me>
+To: Receiver <receiver@pm.me>
+Content-Type: multipart/mixed; boundary=longrandomstring
+
+--longrandomstring
+
+body
+--longrandomstring
+Content-Type: application/octet-stream; name="attachment-contenttype.txt"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="attachment-disposition.txt"
+
+aWYgeW91IGFyZSByZWFkaW5nIHRoaXMsIGhpIQ==
+--longrandomstring--

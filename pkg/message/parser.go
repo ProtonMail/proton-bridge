@@ -503,12 +503,15 @@ func parseAttachment(h message.Header) (*pmapi.Attachment, error) {
 	}
 	att.Header = mimeHeader
 
-	mimeType, _, err := h.ContentType()
+	mimeType, mimeTypeParams, err := h.ContentType()
 	if err != nil {
 		return nil, err
 	}
 	att.MIMEType = mimeType
 
+	// Prefer attachment name from filename param in content disposition.
+	// If not available, try to get it from name param in content type.
+	// Otherwise fallback to attachment.bin.
 	_, dispParams, dispErr := h.ContentDisposition()
 	if dispErr != nil {
 		ext, err := mime.ExtensionsByType(att.MIMEType)
@@ -521,10 +524,12 @@ func parseAttachment(h message.Header) (*pmapi.Attachment, error) {
 		}
 	} else {
 		att.Name = dispParams["filename"]
-
-		if att.Name == "" {
-			att.Name = "attachment.bin"
-		}
+	}
+	if att.Name == "" {
+		att.Name = mimeTypeParams["name"]
+	}
+	if att.Name == "" {
+		att.Name = "attachment.bin"
 	}
 
 	// Only set ContentID if it should be inline;

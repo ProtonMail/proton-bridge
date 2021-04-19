@@ -239,6 +239,24 @@ func TestParseTextPlainWithOctetAttachmentBadFilename(t *testing.T) {
 	assert.Equal(t, "attachment.bin", m.Attachments[0].Name)
 }
 
+func TestParseTextPlainWithOctetAttachmentNameInContentType(t *testing.T) {
+	f := getFileReader("text_plain_octet_attachment_name_in_contenttype.eml")
+
+	m, _, _, _, err := Parse(f) //nolint[dogsled]
+	require.NoError(t, err)
+
+	assert.Equal(t, "attachment-contenttype.txt", m.Attachments[0].Name)
+}
+
+func TestParseTextPlainWithOctetAttachmentNameConflict(t *testing.T) {
+	f := getFileReader("text_plain_octet_attachment_name_conflict.eml")
+
+	m, _, _, _, err := Parse(f) //nolint[dogsled]
+	require.NoError(t, err)
+
+	assert.Equal(t, "attachment-disposition.txt", m.Attachments[0].Name)
+}
+
 func TestParseTextPlainWithPlainAttachment(t *testing.T) {
 	f := getFileReader("text_plain_plain_attachment.eml")
 
