@@ -9,7 +9,6 @@
 
 ### Fixed
 
-- Ensured returning of newlines when returning headers (including a fix for sending from emClient)
 - Removed html-wrappig of non-decriptable messages - to facilitate decryption outside Bridge and/or allow to store such messages as they are
 - Tray icon issues with multiple displays on MacOS
 
