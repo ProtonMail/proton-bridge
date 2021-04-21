@@ -118,10 +118,18 @@ func (p *PMAPIProvider) transferDraft(rules transferRules, progress *Progress, m
 	progress.messageImported(msg.ID, importedID, err)
 }
 
-func (p *PMAPIProvider) importDraft(msg Message, globalMailbox *Mailbox) (string, error) {
+func (p *PMAPIProvider) importDraft(msg Message, globalMailbox *Mailbox) (string, error) { //nolint[funlen]
 	message, attachmentReaders, err := p.parseMessage(msg)
 	if err != nil {
 		return "", errors.Wrap(err, "failed to parse message")
+	}
+
+	if message.Sender == nil {
+		mainAddress := p.client().Addresses().Main()
+		message.Sender = &mail.Address{
+			Name:    mainAddress.DisplayName,
+			Address: mainAddress.Email,
+		}
 	}
 
 	// Trying to encrypt an encrypted draft will return an error;
