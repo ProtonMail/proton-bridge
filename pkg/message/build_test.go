@@ -1023,6 +1023,8 @@ func TestBuildCustomMessageEncrypted(t *testing.T) {
 	foreignKR := tests.MakeKeyRing(t)
 	msg := newTestMessage(t, foreignKR, "messageID", "addressID", "multipart/mixed", body, time.Date(2020, time.January, 1, 0, 0, 0, 0, time.UTC))
 
+	msg.Subject = "this is a subject to make sure we preserve subject"
+
 	// Tell the job to ignore decryption errors; a custom message will be returned instead of an error.
 	res, err := b.NewJobWithOptions(
 		context.Background(),
@@ -1033,6 +1035,7 @@ func TestBuildCustomMessageEncrypted(t *testing.T) {
 	require.NoError(t, err)
 
 	section(t, res).
+		expectHeader(`Subject`, is(msg.Subject)).
 		expectContentType(is(`multipart/encrypted`)).
 		expectContentTypeParam(`protocol`, is(`application/pgp-encrypted`))
 

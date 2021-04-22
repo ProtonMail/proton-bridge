@@ -219,7 +219,7 @@ func buildExternallyEncryptedRFC822(kr *crypto.KeyRing, msg *pmapi.Message, opts
 			return nil, errors.Wrap(ErrDecryptionFailed, err.Error())
 		}
 
-		return buildPGPMIMERFC822(msg)
+		return buildPGPMIMERFC822(msg, opts)
 	}
 
 	hdr := getMessageHeader(msg, opts)
@@ -254,8 +254,8 @@ func buildExternallyEncryptedRFC822(kr *crypto.KeyRing, msg *pmapi.Message, opts
 	return buf.Bytes(), nil
 }
 
-func buildPGPMIMERFC822(msg *pmapi.Message) ([]byte, error) {
-	var hdr message.Header
+func buildPGPMIMERFC822(msg *pmapi.Message, opts JobOptions) ([]byte, error) {
+	hdr := getMessageHeader(msg, opts)
 
 	hdr.SetContentType("multipart/encrypted", map[string]string{
 		"boundary": newBoundary(msg.ID).gen(),
