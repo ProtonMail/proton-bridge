@@ -1008,6 +1008,48 @@ func TestBuildCustomMessageHTML(t *testing.T) {
 		expectTransferEncoding(isMissing())
 }
 
+func TestBuildCustomMessageEncrypted(t *testing.T) {
+	m := gomock.NewController(t)
+	defer m.Finish()
+
+	b := NewBuilder(1, 1, 1)
+	defer b.Done()
+
+	kr := tests.MakeKeyRing(t)
+
+	body := readerToString(getFileReader("pgp-mime-body-plaintext.eml"))
+
+	// Use a different keyring for encrypting the message; it won't be decryptable.
+	foreignKR := tests.MakeKeyRing(t)
+	msg := newTestMessage(t, foreignKR, "messageID", "addressID", "multipart/mixed", body, time.Date(2020, time.January, 1, 0, 0, 0, 0, time.UTC))
+
+	// Tell the job to ignore decryption errors; a custom message will be returned instead of an error.
+	res, err := b.NewJobWithOptions(
+		context.Background(),
+		newTestFetcher(m, kr, msg),
+		msg.ID,
+		JobOptions{IgnoreDecryptionErrors: true},
+	).GetResult()
+	require.NoError(t, err)
+
+	section(t, res).
+		expectContentType(is(`multipart/encrypted`)).
+		expectContentTypeParam(`protocol`, is(`application/pgp-encrypted`))
+
+	section(t, res, 1).
+		expectContentType(is(`application/pgp-encrypted`)).
+		expectHeader(`Content-Description`, is(`PGP/MIME version identification`)).
+		expectBody(is(`Version: 1`))
+
+	section(t, res, 2).
+		expectContentType(is(`application/octet-stream`)).
+		expectContentTypeParam(`name`, is(`encrypted.asc`)).
+		expectContentDisposition(is(`inline`)).
+		expectContentDispositionParam(`filename`, is(`encrypted.asc`)).
+		expectHeader(`Content-Description`, is(`OpenPGP encrypted message`)).
+		expectBody(decryptsTo(foreignKR, body))
+}
+
 func TestBuildCustomMessagePlainWithAttachment(t *testing.T) {
 	m := gomock.NewController(t)
 	defer m.Finish()

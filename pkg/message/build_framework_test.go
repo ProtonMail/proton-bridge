@@ -291,7 +291,7 @@ func (matcher decryptsToMatcher) match(t *testing.T, have string) {
 	dec, err := matcher.kr.Decrypt(haveMsg, nil, crypto.GetUnixTime())
 	require.NoError(t, err)
 
-	assert.Equal(t, matcher.want, dec.GetString())
+	assert.Equal(t, matcher.want, string(dec.GetBinary()))
 }
 
 func decryptsTo(kr *crypto.KeyRing, want string) decryptsToMatcher {

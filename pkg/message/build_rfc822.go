@@ -40,7 +40,7 @@ func buildRFC822(kr *crypto.KeyRing, msg *pmapi.Message, attData [][]byte, opts 
 		return buildMultipartRFC822(kr, msg, attData, opts)
 
 	case msg.MIMEType == "multipart/mixed":
-		return buildEncryptedRFC822(kr, msg, opts)
+		return buildExternallyEncryptedRFC822(kr, msg, opts)
 
 	default:
 		return buildSimpleRFC822(kr, msg, opts)
@@ -146,25 +146,10 @@ func writeTextPart(
 			return errors.Wrap(ErrDecryptionFailed, err.Error())
 		}
 
-		/*
-			if len(msg.Attachments) > 0 {
-				return writeCustomTextPartAsAttachment(w, msg, err)
-			}
-		*/
-
 		return writeCustomTextPart(w, msg, err)
 	}
 
-	part, err := w.CreatePart(getTextPartHeader(message.Header{}, dec, msg.MIMEType))
-	if err != nil {
-		return err
-	}
-
-	if _, err := part.Write(dec); err != nil {
-		return err
-	}
-
-	return part.Close()
+	return writePart(w, getTextPartHeader(message.Header{}, dec, msg.MIMEType), dec)
 }
 
 func writeAttachmentPart(
@@ -196,16 +181,7 @@ func writeAttachmentPart(
 		return writeCustomAttachmentPart(w, att, msg, err)
 	}
 
-	part, err := w.CreatePart(getAttachmentPartHeader(att))
-	if err != nil {
-		return err
-	}
-
-	if _, err := part.Write(dec.GetBinary()); err != nil {
-		return err
-	}
-
-	return part.Close()
+	return writePart(w, getAttachmentPartHeader(att), dec.GetBinary())
 }
 
 func writeRelatedParts(
@@ -221,25 +197,31 @@ func writeRelatedParts(
 
 	hdr.SetContentType("multipart/related", map[string]string{"boundary": boundary.gen()})
 
-	rel, err := w.CreatePart(hdr)
-	if err != nil {
-		return err
-	}
-
-	if err := writeTextPart(rel, kr, msg, opts); err != nil {
-		return err
-	}
-
-	for i, att := range atts {
-		if err := writeAttachmentPart(rel, kr, att, attData[i], opts); err != nil {
+	return createPart(w, hdr, func(rel *message.Writer) error {
+		if err := writeTextPart(rel, kr, msg, opts); err != nil {
 			return err
 		}
-	}
 
-	return rel.Close()
+		for i, att := range atts {
+			if err := writeAttachmentPart(rel, kr, att, attData[i], opts); err != nil {
+				return err
+			}
+		}
+
+		return nil
+	})
 }
 
-func buildEncryptedRFC822(kr *crypto.KeyRing, msg *pmapi.Message, opts JobOptions) ([]byte, error) {
+func buildExternallyEncryptedRFC822(kr *crypto.KeyRing, msg *pmapi.Message, opts JobOptions) ([]byte, error) {
+	dec, err := msg.Decrypt(kr)
+	if err != nil {
+		if !opts.IgnoreDecryptionErrors {
+			return nil, errors.Wrap(ErrDecryptionFailed, err.Error())
+		}
+
+		return buildPGPMIMERFC822(msg)
+	}
+
 	hdr := getMessageHeader(msg, opts)
 
 	hdr.SetContentType("multipart/mixed", map[string]string{"boundary": newBoundary(msg.ID).gen()})
@@ -251,17 +233,7 @@ func buildEncryptedRFC822(kr *crypto.KeyRing, msg *pmapi.Message, opts JobOption
 		return nil, err
 	}
 
-	dec, err := msg.Decrypt(kr)
-	if err != nil {
-		return nil, errors.Wrap(ErrDecryptionFailed, err.Error())
-	}
-
 	ent, err := message.Read(bytes.NewReader(dec))
-	if err != nil {
-		return nil, err
-	}
-
-	part, err := w.CreatePart(ent.Header)
 	if err != nil {
 		return nil, err
 	}
@@ -271,11 +243,48 @@ func buildEncryptedRFC822(kr *crypto.KeyRing, msg *pmapi.Message, opts JobOption
 		return nil, err
 	}
 
-	if _, err := part.Write(body); err != nil {
+	if err := writePart(w, ent.Header, body); err != nil {
 		return nil, err
 	}
 
-	if err := part.Close(); err != nil {
+	if err := w.Close(); err != nil {
+		return nil, err
+	}
+
+	return buf.Bytes(), nil
+}
+
+func buildPGPMIMERFC822(msg *pmapi.Message) ([]byte, error) {
+	var hdr message.Header
+
+	hdr.SetContentType("multipart/encrypted", map[string]string{
+		"boundary": newBoundary(msg.ID).gen(),
+		"protocol": "application/pgp-encrypted",
+	})
+
+	buf := new(bytes.Buffer)
+
+	w, err := message.CreateWriter(buf, hdr)
+	if err != nil {
+		return nil, err
+	}
+
+	var encHdr message.Header
+
+	encHdr.SetContentType("application/pgp-encrypted", nil)
+	encHdr.Set("Content-Description", "PGP/MIME version identification")
+
+	if err := writePart(w, encHdr, []byte("Version: 1")); err != nil {
+		return nil, err
+	}
+
+	var dataHdr message.Header
+
+	dataHdr.SetContentType("application/octet-stream", map[string]string{"name": "encrypted.asc"})
+	dataHdr.SetContentDisposition("inline", map[string]string{"filename": "encrypted.asc"})
+	dataHdr.Set("Content-Description", "OpenPGP encrypted message")
+
+	if err := writePart(w, dataHdr, []byte(msg.Body)); err != nil {
 		return nil, err
 	}
 
@@ -431,4 +440,27 @@ func toAddressList(addrs []*mail.Address) string {
 	}
 
 	return strings.Join(res, ", ")
+}
+
+func createPart(w *message.Writer, hdr message.Header, fn func(*message.Writer) error) error {
+	part, err := w.CreatePart(hdr)
+	if err != nil {
+		return err
+	}
+
+	if err := fn(part); err != nil {
+		return err
+	}
+
+	return part.Close()
+}
+
+func writePart(w *message.Writer, hdr message.Header, body []byte) error {
+	return createPart(w, hdr, func(part *message.Writer) error {
+		if _, err := part.Write(body); err != nil {
+			return errors.Wrap(err, "failed to write part body")
+		}
+
+		return nil
+	})
 }
