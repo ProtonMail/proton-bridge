@@ -25,8 +25,20 @@ import (
 	"github.com/Masterminds/semver/v3"
 )
 
-// IsCatalinaOrNewer checks whether host is MacOS Catalina 10.15.x or higher.
+// IsCatalinaOrNewer checks whether the host is MacOS Catalina 10.15.x or higher.
 func IsCatalinaOrNewer() bool {
+	return isThisDarwinNewerOrEqual(getMinCatalina())
+}
+
+// IsBigSurOrNewer checks whether the host is MacOS BigSur 10.16.x or higher.
+func IsBigSurOrNewer() bool {
+	return isThisDarwinNewerOrEqual(getMinBigSur())
+}
+
+func getMinCatalina() *semver.Version { return semver.MustParse("10.15.0") }
+func getMinBigSur() *semver.Version   { return semver.MustParse("10.16.0") }
+
+func isThisDarwinNewerOrEqual(minVersion *semver.Version) bool {
 	if runtime.GOOS != "darwin" {
 		return false
 	}
@@ -36,16 +48,14 @@ func IsCatalinaOrNewer() bool {
 		return false
 	}
 
-	return isVersionCatalinaOrNewer(strings.TrimSpace(string(rawVersion)))
+	return isVersionEqualOrNewer(minVersion, strings.TrimSpace(string(rawVersion)))
 }
 
-func isVersionCatalinaOrNewer(rawVersion string) bool {
+// isVersionEqualOrNewer is separated to be able to run test on other than darwin.
+func isVersionEqualOrNewer(minVersion *semver.Version, rawVersion string) bool {
 	semVersion, err := semver.NewVersion(rawVersion)
 	if err != nil {
 		return false
 	}
-
-	minVersion := semver.MustParse("10.15.0")
-
 	return semVersion.GreaterThan(minVersion) || semVersion.Equal(minVersion)
 }
