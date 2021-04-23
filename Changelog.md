@@ -2,17 +2,25 @@
 
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
+## [Bridge 1.7.1] Iron
+
+### Fixed
+* GODT-1081 Properly return newlines when returning headers.
+* GODT-1150 Externally encrypted messages with missing private key would not be built with custom message.
+* GODT-1141 Attachment is named as attachment.bin in some cases.
+
+
 ## [Bridge 1.7.0] Iron
 
 ### Added
 * GODT-213 New message builder:
-    * Preserve Content-Type for undecryptable message body.
-    * Use application/octet-stream for encrypted parts.
-    * Force no transfer encoding for embedded message/rfc822 parts.
-    * Remove dead code GetRelatedHeader/GetRelatedBoundary.
-    * Correctly expect text/plain in custom message text parts.
-    * Force text/plain for custom message text part.
-    * Complex external encrypted tests (multipart/alternative, message/rfc822 attachment).
+* Preserve Content-Type for undecryptable message body.
+* Use application/octet-stream for encrypted parts.
+* Force no transfer encoding for embedded message/rfc822 parts.
+* Remove dead code GetRelatedHeader/GetRelatedBoundary.
+* Correctly expect text/plain in custom message text parts.
+* Force text/plain for custom message text part.
+* Complex external encrypted tests (multipart/alternative, message/rfc822 attachment).
 
 ### Fixed
 * GODT-1136 DB Cache header from builder and test.
