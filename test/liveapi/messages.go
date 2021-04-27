@@ -18,11 +18,7 @@
 package liveapi
 
 import (
-	"bytes"
 	"fmt"
-	"io"
-	"mime/multipart"
-	"net/http"
 
 	messageUtils "github.com/ProtonMail/proton-bridge/pkg/message"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
@@ -43,14 +39,19 @@ func (ctl *Controller) AddUserMessage(username string, message *pmapi.Message) (
 		message.Flags = pmapi.ComputeMessageFlagsByLabels(message.LabelIDs)
 	}
 
-	body, err := buildMessage(client, message)
+	kr, err := client.KeyRingForAddressID(message.AddressID)
+	if err != nil {
+		return "", errors.Wrap(err, "failed to get keyring while adding user message")
+	}
+
+	body, err := messageUtils.BuildEncrypted(message, nil, kr)
 	if err != nil {
 		return "", errors.Wrap(err, "failed to build message")
 	}
 
 	req := &pmapi.ImportMsgReq{
 		AddressID: message.AddressID,
-		Body:      body.Bytes(),
+		Body:      body,
 		Unread:    message.Unread,
 		Time:      message.Time,
 		Flags:     message.Flags,
@@ -68,66 +69,6 @@ func (ctl *Controller) AddUserMessage(username string, message *pmapi.Message) (
 	ctl.messageIDsByUsername[username] = append(ctl.messageIDsByUsername[username], result.MessageID)
 
 	return result.MessageID, nil
-}
-
-func buildMessage(client pmapi.Client, message *pmapi.Message) (*bytes.Buffer, error) {
-	if err := encryptMessage(client, message); err != nil {
-		return nil, errors.Wrap(err, "failed to encrypt message")
-	}
-
-	body := &bytes.Buffer{}
-	if err := buildMessageHeader(message, body); err != nil {
-		return nil, errors.Wrap(err, "failed to build message header")
-	}
-	if err := buildMessageBody(message, body); err != nil {
-		return nil, errors.Wrap(err, "failed to build message body")
-	}
-	return body, nil
-}
-
-func encryptMessage(client pmapi.Client, message *pmapi.Message) error {
-	kr, err := client.KeyRingForAddressID(message.AddressID)
-	if err != nil {
-		return errors.Wrap(err, "failed to get keyring for address")
-	}
-
-	if err = message.Encrypt(kr, nil); err != nil {
-		return errors.Wrap(err, "failed to encrypt message body")
-	}
-	return nil
-}
-
-func buildMessageHeader(message *pmapi.Message, body *bytes.Buffer) error {
-	header := messageUtils.GetHeader(message)
-	header.Set("Content-Type", "multipart/mixed; boundary="+messageUtils.GetBoundary(message))
-	header.Del("Content-Disposition")
-	header.Del("Content-Transfer-Encoding")
-
-	if err := http.Header(header).Write(body); err != nil {
-		return errors.Wrap(err, "failed to write header")
-	}
-	_, _ = body.WriteString("\r\n")
-	return nil
-}
-
-func buildMessageBody(message *pmapi.Message, body *bytes.Buffer) error {
-	mw := multipart.NewWriter(body)
-	if err := mw.SetBoundary(messageUtils.GetBoundary(message)); err != nil {
-		return errors.Wrap(err, "failed to set boundary")
-	}
-
-	bodyHeader := messageUtils.GetBodyHeader(message)
-	bodyHeader.Set("Content-Transfer-Encoding", "7bit")
-
-	part, err := mw.CreatePart(bodyHeader)
-	if err != nil {
-		return errors.Wrap(err, "failed to create message body part")
-	}
-	if _, err := io.WriteString(part, message.Body); err != nil {
-		return errors.Wrap(err, "failed to write message body")
-	}
-	_ = mw.Close()
-	return nil
 }
 
 func (ctl *Controller) GetMessages(username, labelID string) ([]*pmapi.Message, error) {
