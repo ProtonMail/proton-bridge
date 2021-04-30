@@ -56,7 +56,7 @@ func checkMailboxMessageIDs(t *testing.T, m *mocksForStore, mailboxLabel string,
 	storeAddress := m.store.addresses[addrID1]
 	storeMailbox := storeAddress.mailboxes[mailboxLabel]
 
-	ids, err := storeMailbox.GetAPIIDsFromSequenceRange(0, uint32(len(wantIDs)))
+	ids, err := storeMailbox.GetAPIIDsFromSequenceRange(1, uint32(len(wantIDs)))
 	require.Nil(t, err)
 
 	idx := 0

@@ -526,18 +526,6 @@ func (im *imapMailbox) listMessages(isUID bool, seqSet *imap.SeqSet, items []ima
 		return err
 	}
 
-	// From RFC: UID range of 559:* always includes the UID of the last message
-	// in the mailbox, even if 559 is higher than any assigned UID value.
-	// See: https://tools.ietf.org/html/rfc3501#page-61
-	if isUID && seqSet.Dynamic() && len(apiIDs) == 0 {
-		l.Debug("Requesting empty UID dynamic fetch, adding latest message")
-		apiID, err := im.storeMailbox.GetLatestAPIID()
-		if err != nil {
-			return nil
-		}
-		apiIDs = []string{apiID}
-	}
-
 	input := make([]interface{}, len(apiIDs))
 	for i, apiID := range apiIDs {
 		input[i] = apiID

@@ -128,7 +128,7 @@ func mailboxForAddressOfUserHasMessages(mailboxName, bddAddressID, bddUserID str
 	if err != nil {
 		return internalError(err, "getting store mailbox")
 	}
-	apiIDs, err := mailbox.GetAPIIDsFromSequenceRange(0, 1000)
+	apiIDs, err := mailbox.GetAPIIDsFromSequenceRange(1, 1000)
 	if err != nil {
 		return internalError(err, "getting API IDs from sequence range")
 	}
