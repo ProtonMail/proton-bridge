@@ -5,10 +5,11 @@
 package mocks
 
 import (
+	reflect "reflect"
+
 	store "github.com/ProtonMail/proton-bridge/internal/store"
 	credentials "github.com/ProtonMail/proton-bridge/internal/users/credentials"
 	gomock "github.com/golang/mock/gomock"
-	reflect "reflect"
 )
 
 // MockLocator is a mock of Locator interface

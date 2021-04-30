@@ -83,7 +83,7 @@ type GoQMLInterface struct {
 	_ float32 `property:"progress"`
 	_ string  `property:"progressDescription"`
 
-	_ func(isAvailable bool)   `signal:"setConnectionStatus"`
+	_ func(isAvailable bool) `signal:"setConnectionStatus"`
 
 	_ func() `slot:"setToRestart"`
 

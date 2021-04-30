@@ -77,7 +77,7 @@ type GoQMLInterface struct {
 	_ string `property:"credentialsNotRemoved"`
 	_ string `property:"versionCheckFailed"`
 	//
-	_ func(isAvailable bool)   `signal:"setConnectionStatus"`
+	_ func(isAvailable bool) `signal:"setConnectionStatus"`
 
 	_ func() `slot:"setToRestart"`
 

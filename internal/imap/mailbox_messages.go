@@ -18,7 +18,6 @@
 package imap
 
 import (
-	"errors"
 	"fmt"
 	"net/mail"
 	"strings"
@@ -30,6 +29,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/pkg/parallel"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	"github.com/emersion/go-imap"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )
 
@@ -359,9 +359,8 @@ func (im *imapMailbox) SearchMessages(isUID bool, criteria *imap.SearchCriteria)
 			}
 		}
 
-		// In order to speed up search it is not needed to check
-		// if IsFullHeaderCached.
-		header := storeMessage.GetHeader()
+		// In order to speed up search it is not needed to check if IsFullHeaderCached.
+		header := storeMessage.GetMIMEHeader()
 
 		if !criteria.SentBefore.IsZero() || !criteria.SentSince.IsZero() {
 			t, err := mail.Header(header).Date()

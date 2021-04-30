@@ -20,9 +20,6 @@ package imap
 import (
 	"bytes"
 	"context"
-	"fmt"
-	"net/textproto"
-	"sort"
 
 	"github.com/ProtonMail/proton-bridge/internal/imap/cache"
 	"github.com/ProtonMail/proton-bridge/pkg/message"
@@ -53,7 +50,7 @@ func (im *imapMailbox) getMessage(
 		case imap.FetchEnvelope:
 			// No need to check IsFullHeaderCached here. API header
 			// contain enough information to build the envelope.
-			msg.Envelope = message.GetEnvelope(m, storeMessage.GetHeader())
+			msg.Envelope = message.GetEnvelope(m, storeMessage.GetMIMEHeader())
 		case imap.FetchBody, imap.FetchBodyStructure:
 			structure, err := im.getBodyStructure(storeMessage)
 			if err != nil {
@@ -238,30 +235,31 @@ func isMessageInDraftFolder(m *pmapi.Message) bool {
 
 // This will download message (or read from cache) and pick up the section,
 // extract data (header,body, both) and trim the output if needed.
-func (im *imapMailbox) getMessageBodySection( //nolint[funlen]
+//
+// In order to speed up (avoid download and decryptions) we
+// cache the header. If a mail header was requested and DB
+// contains full header (it means it was already built once)
+// the DB header can be used without downloading and decrypting.
+// Otherwise header is incomplete and clients would have issues
+// e.g. AppleMail expects `text/plain` in HTML mails.
+//
+// For all other cases it is necessary to download and decrypt the message
+// and drop the header which was obtained from cache. The header will
+// will be stored in DB once successfully built. Check `getBodyAndStructure`.
+func (im *imapMailbox) getMessageBodySection(
 	storeMessage storeMessageProvider,
 	section *imap.BodySectionName,
 	msgBuildCountHistogram *msgBuildCountHistogram,
 ) (imap.Literal, error) {
-	var header textproto.MIMEHeader
-	var extraNewlineAfterHeader bool
+	var header []byte
 	var response []byte
 
 	im.log.WithField("msgID", storeMessage.ID()).Trace("Getting message body")
 
 	isMainHeaderRequested := len(section.Path) == 0 && section.Specifier == imap.HeaderSpecifier
 	if isMainHeaderRequested && storeMessage.IsFullHeaderCached() {
-		// In order to speed up (avoid download and decryptions) we
-		// cache the header. If a mail header was requested and DB
-		// contains full header (it means it was already built once)
-		// the DB header can be used without downloading and decrypting.
-		// Otherwise header is incomplete and clients would have issues
-		// e.g. AppleMail expects `text/plain` in HTML mails.
 		header = storeMessage.GetHeader()
 	} else {
-		// For all other cases it is necessary to download and decrypt the message
-		// and drop the header which was obtained from cache. The header will
-		// will be stored in DB once successfully built. Check `getBodyAndStructure`.
 		structure, bodyReader, err := im.getBodyAndStructure(storeMessage, msgBuildCountHistogram)
 		if err != nil {
 			return nil, err
@@ -278,10 +276,7 @@ func (im *imapMailbox) getMessageBodySection( //nolint[funlen]
 		case section.Specifier == imap.MIMESpecifier: // The MIME part specifier refers to the [MIME-IMB] header for this part.
 			fallthrough
 		case section.Specifier == imap.HeaderSpecifier:
-			if content, err := structure.GetSectionContent(bodyReader, section.Path); err == nil && content != nil {
-				extraNewlineAfterHeader = true
-			}
-			header, err = structure.GetSectionHeader(section.Path)
+			header, err = structure.GetSectionHeaderBytes(bodyReader, section.Path)
 		default:
 			err = errors.New("Unknown specifier " + string(section.Specifier))
 		}
@@ -292,52 +287,11 @@ func (im *imapMailbox) getMessageBodySection( //nolint[funlen]
 	}
 
 	if header != nil {
-		response = filteredHeaderAsBytes(header, section)
-		// The blank line is included in all header fetches,
-		// except in the case of a message which has no body.
-		if extraNewlineAfterHeader {
-			response = append(response, []byte("\r\n")...)
-		}
+		response = filterHeader(header, section)
 	}
 
 	// Trim any output if requested.
 	return bytes.NewBuffer(section.ExtractPartial(response)), nil
-}
-
-// filteredHeaderAsBytes filters the header fields by section fields and it
-// returns the filtered fields as bytes.
-// Options are: all fields, only selected fields, all fields except selected.
-func filteredHeaderAsBytes(header textproto.MIMEHeader, section *imap.BodySectionName) []byte {
-	// remove fields
-	if len(section.Fields) != 0 && section.NotFields {
-		for _, field := range section.Fields {
-			header.Del(field)
-		}
-	}
-
-	fields := make([]string, 0, len(header))
-	if len(section.Fields) == 0 || section.NotFields { // add all and sort
-		for f := range header {
-			fields = append(fields, f)
-		}
-		sort.Strings(fields)
-	} else { // add only requested (in requested order)
-		for _, f := range section.Fields {
-			fields = append(fields, textproto.CanonicalMIMEHeaderKey(f))
-		}
-	}
-
-	headerBuf := &bytes.Buffer{}
-	for _, canonical := range fields {
-		if values, ok := header[canonical]; !ok {
-			continue
-		} else {
-			for _, val := range values {
-				fmt.Fprintf(headerBuf, "%s: %s\r\n", canonical, val)
-			}
-		}
-	}
-	return headerBuf.Bytes()
 }
 
 // buildMessage from PM to IMAP.

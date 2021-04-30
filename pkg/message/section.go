@@ -247,12 +247,7 @@ func (bs *BodyStructure) GetMailHeader() (header textproto.MIMEHeader, err error
 // GetMailHeaderBytes returns the bytes with main mail header.
 // Warning: It can contain extra lines or multipart comment.
 func (bs *BodyStructure) GetMailHeaderBytes(wholeMail io.ReadSeeker) (header []byte, err error) {
-	info, err := bs.getInfo([]int{})
-	if err != nil {
-		return
-	}
-	headerLength := info.Size - info.BSize
-	return goToOffsetAndReadNBytes(wholeMail, 0, headerLength)
+	return bs.GetSectionHeaderBytes(wholeMail, []int{})
 }
 
 func goToOffsetAndReadNBytes(wholeMail io.ReadSeeker, offset, length int) ([]byte, error) {
@@ -277,6 +272,15 @@ func (bs *BodyStructure) GetSectionHeader(sectionPath []int) (header textproto.M
 	}
 	header = info.Header
 	return
+}
+
+func (bs *BodyStructure) GetSectionHeaderBytes(wholeMail io.ReadSeeker, sectionPath []int) (header []byte, err error) {
+	info, err := bs.getInfo(sectionPath)
+	if err != nil {
+		return
+	}
+	headerLength := info.Size - info.BSize
+	return goToOffsetAndReadNBytes(wholeMail, info.Start, headerLength)
 }
 
 // IMAPBodyStructure will prepare imap bodystructure recurently for given part.
