@@ -2,7 +2,8 @@ export GO111MODULE=on
 
 # By default, the target OS is the same as the host OS,
 # but this can be overridden by setting TARGET_OS to "windows"/"darwin"/"linux".
-GOOS:=$(shell go env GOOS)
+#GOOS:=$(shell go env GOOS)
+GOOS:=linux
 TARGET_CMD?=Desktop-Bridge
 TARGET_OS?=${GOOS}
 
@@ -118,6 +119,12 @@ ${DEPLOY_DIR}/linux: ${EXE_TARGET}
 	cp -pf ./LICENSE ${DEPLOY_DIR}/linux/
 	cp -pf ./Changelog.md ${DEPLOY_DIR}/linux/
 	cp -pf ./dist/${EXE_NAME}.desktop ${DEPLOY_DIR}/linux/
+
+${DEPLOY_DIR}/freebsd: ${EXE_TARGET}
+	cp -pf ./internal/frontend/share/icons/${SRC_SVG} ${DEPLOY_DIR}/freebsd/logo.svg
+	cp -pf ./LICENSE ${DEPLOY_DIR}/freebsd/
+	cp -pf ./Changelog.md ${DEPLOY_DIR}/freebsd/
+	cp -pf ./dist/${EXE_NAME}.desktop ${DEPLOY_DIR}/freebsd/
 
 ${DEPLOY_DIR}/darwin: ${EXE_TARGET}
 	if [ "${DIRNAME}" != "${EXE_NAME}" ]; then \
