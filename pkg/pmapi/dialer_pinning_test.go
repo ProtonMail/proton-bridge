@@ -31,7 +31,7 @@ import (
 func TestTLSPinValid(t *testing.T) {
 	called, _, cm := createClientWithPinningDialer(getRootURL())
 
-	_, _, _ = cm.NewClientWithLogin(context.Background(), "username", "pass") //nolint
+	_, _ = cm.getAuthInfo(context.Background(), GetAuthInfoReq{Username: "username"})
 	checkTLSIssueHandler(t, 0, called)
 }
 
@@ -41,7 +41,7 @@ func TestTLSPinBackup(t *testing.T) {
 	dialer.pinChecker.trustedPins[1] = dialer.pinChecker.trustedPins[0]
 	dialer.pinChecker.trustedPins[0] = ""
 
-	_, _, _ = cm.NewClientWithLogin(context.Background(), "username", "pass") //nolint
+	_, _ = cm.getAuthInfo(context.Background(), GetAuthInfoReq{Username: "username"})
 	checkTLSIssueHandler(t, 0, called)
 }
 
@@ -53,7 +53,7 @@ func TestTLSPinInvalid(t *testing.T) {
 
 	called, _, cm := createClientWithPinningDialer(ts.URL)
 
-	_, _, _ = cm.NewClientWithLogin(context.Background(), "username", "pass") //nolint
+	_, _ = cm.getAuthInfo(context.Background(), GetAuthInfoReq{Username: "username"})
 	checkTLSIssueHandler(t, 1, called)
 }
 
@@ -67,8 +67,8 @@ func TestTLSPinNoMatch(t *testing.T) {
 		dialer.pinChecker.trustedPins[i] = "testing"
 	}
 
-	_, _, _ = cm.NewClientWithLogin(context.Background(), "username", "pass") //nolint
-	_, _, _ = cm.NewClientWithLogin(context.Background(), "username", "pass") //nolint
+	_, _ = cm.getAuthInfo(context.Background(), GetAuthInfoReq{Username: "username"})
+	_, _ = cm.getAuthInfo(context.Background(), GetAuthInfoReq{Username: "username"})
 
 	// Check that it will be reported only once per session, but notified every time.
 	r.Equal(t, 1, len(dialer.reporter.sentReports))
