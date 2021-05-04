@@ -88,7 +88,9 @@ func (l *listener) Add(eventName string, channel chan<- string) {
 		l.channels = make(map[string][]chan<- string)
 	}
 
+	log := log.WithField("name", eventName).WithField("i", len(l.channels[eventName]))
 	l.channels[eventName] = append(l.channels[eventName], channel)
+	log.Debug("Added event listner")
 }
 
 // Remove removes an event listener.
@@ -123,8 +125,10 @@ func (l *listener) emit(eventName, data string, isReEmit bool) {
 	if _, ok := l.channels[eventName]; ok {
 		for i, handler := range l.channels[eventName] {
 			go func(handler chan<- string, i int) {
+				log := log.WithField("name", eventName).WithField("i", i).WithField("data", data)
+				log.Debug("Send event")
 				handler <- data
-				log.Debugf("emitted %s data %s -> %d", eventName, data, i)
+				log.Debug("Event sent")
 			}(handler, i)
 		}
 	} else if !isReEmit {

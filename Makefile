@@ -253,6 +253,9 @@ bench:
 coverage: test
 	go tool cover -html=/tmp/coverage.out -o=coverage.html
 
+integration-test-bridge:
+	${MAKE} -C test test-bridge
+
 mocks:
 	mockgen --package mocks github.com/ProtonMail/proton-bridge/internal/users Locator,PanicHandler,CredentialsStorer,StoreMaker > internal/users/mocks/mocks.go
 	mockgen --package mocks github.com/ProtonMail/proton-bridge/pkg/listener Listener > internal/users/mocks/listener_mocks.go

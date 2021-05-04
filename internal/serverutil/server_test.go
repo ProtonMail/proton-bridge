@@ -15,38 +15,21 @@
 // You should have received a copy of the GNU General Public License
 // along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
 
-package imap
+package serverutil
 
 import (
-	"fmt"
 	"testing"
 
-	"github.com/ProtonMail/proton-bridge/internal/bridge"
-	"github.com/ProtonMail/proton-bridge/internal/config/useragent"
 	"github.com/ProtonMail/proton-bridge/internal/serverutil/mocks"
-	imapserver "github.com/emersion/go-imap/server"
-
 	"github.com/stretchr/testify/require"
 )
 
-func TestIMAPServerTurnOffAndOnAgain(t *testing.T) {
+func TestServerTurnOffAndOnAgain(t *testing.T) {
 	r := require.New(t)
-	ts := mocks.NewTestServer(12345)
+	s := mocks.NewTestServer(12321)
 
-	server := imapserver.New(nil)
-	server.Addr = fmt.Sprintf("%v:%v", bridge.Host, ts.WantPort)
+	r.True(s.IsPortFree())
 
-	s := &imapServer{
-		panicHandler:  ts.PanicHandler,
-		server:        server,
-		port:          ts.WantPort,
-		eventListener: ts.EventListener,
-		userAgent:     useragent.New(),
-	}
-	s.isRunning.Store(false)
-
-	r.True(ts.IsPortFree())
-
-	go s.ListenAndServe()
-	ts.RunServerTests(r)
+	go ListenAndServe(s, s.EventListener)
+	s.RunServerTests(r)
 }

@@ -43,6 +43,9 @@ type IMAPClient struct {
 func NewIMAPClient(t TestingT, tag string, imapAddr string) *IMAPClient {
 	conn, err := net.Dial("tcp", imapAddr)
 	require.NoError(t, err)
+	if err != nil {
+		return &IMAPClient{}
+	}
 	response := bufio.NewReader(conn)
 
 	// Read first response to opening connection.

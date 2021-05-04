@@ -26,31 +26,28 @@ import (
 
 	"github.com/ProtonMail/proton-bridge/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/internal/events"
+	"github.com/ProtonMail/proton-bridge/internal/serverutil"
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
-	"github.com/ProtonMail/proton-bridge/pkg/ports"
 	"github.com/emersion/go-sasl"
 	goSMTP "github.com/emersion/go-smtp"
 	"github.com/sirupsen/logrus"
 )
 
-type smtpServer struct {
+// Server is Bridge SMTP server implementation.
+type Server struct {
 	panicHandler  panicHandler
+	backend       goSMTP.Backend
 	server        *goSMTP.Server
 	eventListener listener.Listener
+	debug         bool
 	useSSL        bool
 	port          int
+	tls           *tls.Config
 	isRunning     atomic.Value
 }
 
 // NewSMTPServer returns an SMTP server configured with the given options.
-func NewSMTPServer(panicHandler panicHandler, debug bool, port int, useSSL bool, tls *tls.Config, smtpBackend goSMTP.Backend, eventListener listener.Listener) *smtpServer { //nolint[golint]
-	s := goSMTP.NewServer(smtpBackend)
-	s.Addr = fmt.Sprintf("%v:%v", bridge.Host, port)
-	s.TLSConfig = tls
-	s.Domain = bridge.Host
-	s.AllowInsecureAuth = true
-	s.MaxLineLength = 2 << 16
-
+func NewSMTPServer(panicHandler panicHandler, debug bool, port int, useSSL bool, tls *tls.Config, smtpBackend goSMTP.Backend, eventListener listener.Listener) *Server {
 	if debug {
 		fmt.Println("THE LOG WILL CONTAIN **DECRYPTED** MESSAGE DATA")
 		log.Warning("================================================")
@@ -58,13 +55,38 @@ func NewSMTPServer(panicHandler panicHandler, debug bool, port int, useSSL bool,
 		log.Warning("================================================")
 	}
 
+	server := &Server{
+		panicHandler:  panicHandler,
+		backend:       smtpBackend,
+		eventListener: eventListener,
+		debug:         debug,
+		useSSL:        useSSL,
+		port:          port,
+		tls:           tls,
+	}
+	server.isRunning.Store(false)
+	return server
+}
+
+func (s *Server) HandlePanic()    { s.panicHandler.HandlePanic() }
+func (s *Server) IsRunning() bool { return s.isRunning.Load().(bool) }
+func (s *Server) Port() int       { return s.port }
+
+func newGoSMTPServer(debug bool, smtpBackend goSMTP.Backend, port int, tls *tls.Config) *goSMTP.Server {
+	newSMTP := goSMTP.NewServer(smtpBackend)
+	newSMTP.Addr = fmt.Sprintf("%v:%v", bridge.Host, port)
+	newSMTP.TLSConfig = tls
+	newSMTP.Domain = bridge.Host
+	newSMTP.AllowInsecureAuth = true
+	newSMTP.MaxLineLength = 1 << 16
+
 	if debug {
-		s.Debug = logrus.
+		newSMTP.Debug = logrus.
 			WithField("pkg", "smtp/server").
 			WriterLevel(logrus.DebugLevel)
 	}
 
-	s.EnableAuth(sasl.Login, func(conn *goSMTP.Conn) sasl.Server {
+	newSMTP.EnableAuth(sasl.Login, func(conn *goSMTP.Conn) sasl.Server {
 		return sasl.NewLoginServer(func(address, password string) error {
 			user, err := conn.Server().Backend.Login(nil, address, password)
 			if err != nil {
@@ -75,36 +97,26 @@ func NewSMTPServer(panicHandler panicHandler, debug bool, port int, useSSL bool,
 			return nil
 		})
 	})
-
-	server := &smtpServer{
-		panicHandler:  panicHandler,
-		server:        s,
-		eventListener: eventListener,
-		useSSL:        useSSL,
-		port:          port,
-	}
-	server.isRunning.Store(false)
-	return server
+	return newSMTP
 }
 
-// Starts the server.
-func (s *smtpServer) ListenAndServe() {
-	go s.monitorDisconnectedUsers()
-	go s.monitorInternetConnection()
-
-	// When starting the Bridge, we don't want to retry to notify user
-	// quickly about the issue. Very probably retry will not help anyway.
-	s.listenAndServe(0)
+// ListenAndServe starts the server and keeps it on based on internet
+// availability.
+func (s *Server) ListenAndServe() {
+	serverutil.ListenAndServe(s, s.eventListener)
 }
 
-func (s *smtpServer) listenAndServe(retries int) {
-	if s.isRunning.Load().(bool) {
+func (s *Server) ListenRetryAndServe(retries int, retryAfter time.Duration) {
+	if s.IsRunning() {
 		return
 	}
 	s.isRunning.Store(true)
 
+	s.server = newGoSMTPServer(s.debug, s.backend, s.port, s.tls)
+
 	l := log.WithField("useSSL", s.useSSL).WithField("address", s.server.Addr)
 	l.Info("SMTP server is starting")
+
 	var listener net.Listener
 	var err error
 	if s.useSSL {
@@ -112,12 +124,13 @@ func (s *smtpServer) listenAndServe(retries int) {
 	} else {
 		listener, err = net.Listen("tcp", s.server.Addr)
 	}
+	l.WithError(err).Debug("Listener for SMTP created")
 	if err != nil {
 		s.isRunning.Store(false)
 		if retries > 0 {
 			l.WithError(err).WithField("retries", retries).Warn("SMTP listener failed")
-			time.Sleep(15 * time.Second)
-			s.listenAndServe(retries - 1)
+			time.Sleep(retryAfter)
+			s.ListenRetryAndServe(retries-1, retryAfter)
 			return
 		}
 
@@ -127,85 +140,49 @@ func (s *smtpServer) listenAndServe(retries int) {
 	}
 
 	err = s.server.Serve(listener)
+	l.WithError(err).Debug("GoSMTP not serving")
 	// Serve returns error every time, even after closing the server.
 	// User shouldn't be notified about error if server shouldn't be running,
 	// but it should in case it was not closed by `s.Close()`.
-	if err != nil && s.isRunning.Load().(bool) {
+	if err != nil && s.IsRunning() {
 		s.isRunning.Store(false)
 		l.WithError(err).Error("SMTP server failed")
 		s.eventListener.Emit(events.ErrorEvent, "SMTP failed: "+err.Error())
 		return
 	}
-	defer s.server.Close() //nolint[errcheck]
+	defer func() {
+		// Go SMTP server instance can be closed only once. Otherwise
+		// it returns an error. The error is not export therefore we
+		// will check the string value.
+		err := s.server.Close()
+		if err == nil || err.Error() != "smtp: server already closed" {
+			l.WithError(err).Warn("Server was not closed")
+		}
+	}()
 
-	l.Info("SMTP server stopped")
+	l.Info("SMTP server closed")
 }
 
-// Stops the server.
-func (s *smtpServer) Close() {
-	if !s.isRunning.Load().(bool) {
+// Close stops the server.
+func (s *Server) Close() {
+	if !s.IsRunning() {
 		return
 	}
 	s.isRunning.Store(false)
 
 	if err := s.server.Close(); err != nil {
-		log.WithError(err).Error("Failed to close the connection")
+		log.WithError(err).Error("Cannot close the server")
 	}
 }
 
-func (s *smtpServer) monitorInternetConnection() {
-	on := make(chan string)
-	s.eventListener.Add(events.InternetOnEvent, on)
-	off := make(chan string)
-	s.eventListener.Add(events.InternetOffEvent, off)
-
-	for {
-		var expectedIsPortFree bool
-		select {
-		case <-on:
-			go func() {
-				defer s.panicHandler.HandlePanic()
-				// We had issues on Mac that from time to time something
-				// blocked our port for a bit after we closed IMAP server
-				// due to connection issues.
-				// Restart always helped, so we do retry to not bother user.
-				s.listenAndServe(10)
-			}()
-			expectedIsPortFree = false
-		case <-off:
-			s.Close()
-			expectedIsPortFree = true
-		}
-
-		start := time.Now()
-		for {
-			if ports.IsPortFree(s.port) == expectedIsPortFree {
-				break
-			}
-			// Safety stop if something went wrong.
-			if time.Since(start) > 15*time.Second {
-				log.WithField("expectedIsPortFree", expectedIsPortFree).Warn("Server start/stop check timeouted")
-				break
-			}
-			time.Sleep(100 * time.Millisecond)
-		}
-	}
-}
-
-func (s *smtpServer) monitorDisconnectedUsers() {
-	ch := make(chan string)
-	s.eventListener.Add(events.CloseConnectionEvent, ch)
-
-	for address := range ch {
-		log.Info("Disconnecting all open SMTP connections for ", address)
-		disconnectUser := func(conn *goSMTP.Conn) {
-			connUser := conn.Session()
-			if connUser != nil {
-				if err := conn.Close(); err != nil {
-					log.WithError(err).Error("Failed to close the connection")
-				}
+func (s *Server) DisconnectUser(address string) {
+	log.Info("Disconnecting all open SMTP connections for ", address)
+	s.server.ForEachConn(func(conn *goSMTP.Conn) {
+		connUser := conn.Session()
+		if connUser != nil {
+			if err := conn.Close(); err != nil {
+				log.WithError(err).Error("Failed to close the connection")
 			}
 		}
-		s.server.ForEachConn(disconnectUser)
-	}
+	})
 }

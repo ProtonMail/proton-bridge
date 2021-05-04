@@ -18,48 +18,26 @@
 package smtp
 
 import (
-	"fmt"
 	"testing"
-	"time"
 
-	"github.com/ProtonMail/proton-bridge/internal/bridge"
-	"github.com/ProtonMail/proton-bridge/internal/events"
-	"github.com/ProtonMail/proton-bridge/pkg/listener"
-	"github.com/ProtonMail/proton-bridge/pkg/ports"
-	goSMTP "github.com/emersion/go-smtp"
+	"github.com/ProtonMail/proton-bridge/internal/serverutil/mocks"
 
 	"github.com/stretchr/testify/require"
 )
 
-type testPanicHandler struct{}
-
-func (ph *testPanicHandler) HandlePanic() {}
-
 func TestSMTPServerTurnOffAndOnAgain(t *testing.T) {
-	panicHandler := &testPanicHandler{}
+	r := require.New(t)
+	ts := mocks.NewTestServer(12342)
 
-	eventListener := listener.New()
-
-	port := ports.FindFreePortFrom(12345)
-	server := goSMTP.NewServer(nil)
-	server.Addr = fmt.Sprintf("%v:%v", bridge.Host, port)
-
-	s := &smtpServer{
-		panicHandler:  panicHandler,
-		server:        server,
-		eventListener: eventListener,
+	s := &Server{
+		panicHandler:  ts.PanicHandler,
+		port:          ts.WantPort,
+		eventListener: ts.EventListener,
 	}
 	s.isRunning.Store(false)
 
+	r.True(ts.IsPortFree())
+
 	go s.ListenAndServe()
-	time.Sleep(5 * time.Second)
-	require.False(t, ports.IsPortFree(port))
-
-	eventListener.Emit(events.InternetOffEvent, "")
-	time.Sleep(10 * time.Second)
-	require.True(t, ports.IsPortFree(port))
-
-	eventListener.Emit(events.InternetOnEvent, "")
-	time.Sleep(10 * time.Second)
-	require.False(t, ports.IsPortFree(port))
+	ts.RunServerTests(r)
 }
