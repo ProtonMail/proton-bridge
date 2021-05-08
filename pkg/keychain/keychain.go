@@ -14,6 +14,7 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
+//"github.com/ProtonMail/proton-bridge/internal/pass"
 
 // Package keychain implements a native secure password store for each platform.
 package keychain
@@ -21,10 +22,19 @@ package keychain
 import (
 	"errors"
 	"fmt"
+	"os/exec"
+	"runtime"
 	"sync"
 
 	"github.com/ProtonMail/proton-bridge/internal/config/settings"
 	"github.com/docker/docker-credential-helpers/credentials"
+
+	// complete hack here. I copied the helper_linux.go file into
+	// ./pass (a dir I created) as pass.go
+	// I could not get it to use the proper credentials pass as
+	// I think it is doing something to not allow it because
+	// it does not recognize freebsd.
+	"github.com/ProtonMail/proton-bridge/pass"
 )
 
 // helperConstructor constructs a keychain helperConstructor.
@@ -44,8 +54,26 @@ var (
 	defaultHelper string // nolint[noglobals]
 )
 
+// Added to support FreeBSD -- pulled from the helper-linux.go file
+func newPassHelper(string) (credentials.Helper, error) {
+	return &pass.Pass{}, nil
+}
+
 // NewKeychain creates a new native keychain.
 func NewKeychain(s *settings.Settings, keychainName string) (*Keychain, error) {
+
+	// Special configuration added for FreeBSD
+	if runtime.GOOS == "freebsd" {
+		// define this here since it isn't used by default
+		Helpers = make(map[string]helperConstructor)
+
+		// Look to see if the `pass` app is even available
+		if _, err := exec.LookPath("pass"); err == nil {
+			Helpers["pass-app"] = newPassHelper
+		}
+
+	}
+
 	// There must be at least one keychain helper available.
 	if len(Helpers) < 1 {
 		return nil, ErrNoKeychain
