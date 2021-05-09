@@ -55,7 +55,7 @@ var (
 )
 
 // Added to support FreeBSD -- pulled from the helper-linux.go file
-func newPassHelper(string) (credentials.Helper, error) {
+func freeBSDnewPassHelper(string) (credentials.Helper, error) {
 	return &pass.Pass{}, nil
 }
 
@@ -69,7 +69,7 @@ func NewKeychain(s *settings.Settings, keychainName string) (*Keychain, error) {
 
 		// Look to see if the `pass` app is even available
 		if _, err := exec.LookPath("pass"); err == nil {
-			Helpers["pass-app"] = newPassHelper
+			Helpers["pass-app"] = freeBSDnewPassHelper
 		}
 
 	}
