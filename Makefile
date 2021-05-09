@@ -2,8 +2,7 @@ export GO111MODULE=on
 
 # By default, the target OS is the same as the host OS,
 # but this can be overridden by setting TARGET_OS to "windows"/"darwin"/"linux".
-#GOOS:=$(shell go env GOOS)
-GOOS:=linux
+GOOS:=$(shell go env GOOS)
 TARGET_CMD?=Desktop-Bridge
 TARGET_OS?=${GOOS}
 
