@@ -1,3 +1,17 @@
+## v1.8.0
+- 2021-05-10
+
+### New
+
+- Implemented connection manager to improve performance during weak connection, better handling of connection loss and other connectivity issues
+- Prompt profile installation during Apple Mail auto-configuration on MacOS Big Sur
+
+### Fixed
+
+- Bugs with building of message bodies/headers
+- Incorrect naming format of some of the attachments 
+
+
 ## v1.7.1
 - 2021-04-27
 
