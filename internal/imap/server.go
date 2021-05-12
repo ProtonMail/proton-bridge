@@ -31,12 +31,12 @@ import (
 	"github.com/ProtonMail/proton-bridge/internal/config/useragent"
 	"github.com/ProtonMail/proton-bridge/internal/events"
 	"github.com/ProtonMail/proton-bridge/internal/imap/id"
+	"github.com/ProtonMail/proton-bridge/internal/imap/idle"
 	"github.com/ProtonMail/proton-bridge/internal/imap/uidplus"
 	"github.com/ProtonMail/proton-bridge/internal/serverutil"
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
 	"github.com/emersion/go-imap"
 	imapappendlimit "github.com/emersion/go-imap-appendlimit"
-	imapidle "github.com/emersion/go-imap-idle"
 	imapmove "github.com/emersion/go-imap-move"
 	imapquota "github.com/emersion/go-imap-quota"
 	imapunselect "github.com/emersion/go-imap-unselect"
@@ -94,7 +94,7 @@ func NewIMAPServer(panicHandler panicHandler, debugClient, debugServer bool, por
 	})
 
 	s.Enable(
-		imapidle.NewExtension(),
+		idle.NewExtension(),
 		imapmove.NewExtension(),
 		id.NewExtension(serverID, userAgent),
 		imapquota.NewExtension(),

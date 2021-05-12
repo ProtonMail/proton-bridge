@@ -355,6 +355,10 @@ func (storeMailbox *Mailbox) txCreateOrUpdateMessages(tx *bolt.Tx, msgs []*pmapi
 	// Buckets are not initialized right away because it's a heavy operation.
 	// The best option is to get the same bucket only once and only when needed.
 	var apiBucket, imapBucket, deletedBucket *bolt.Bucket
+
+	// Collect updates to send them later, after possibly sending the status/EXISTS update.
+	updates := make([]func(), 0, len(msgs))
+
 	for _, msg := range msgs {
 		if storeMailbox.txSkipAndRemoveFromMailbox(tx, msg) {
 			continue
@@ -417,14 +421,18 @@ func (storeMailbox *Mailbox) txCreateOrUpdateMessages(tx *bolt.Tx, msgs []*pmapi
 		if err != nil {
 			return errors.Wrap(err, "cannot get sequence number from UID")
 		}
-		storeMailbox.store.notifyUpdateMessage(
-			storeMailbox.storeAddress.address,
-			storeMailbox.labelName,
-			uid,
-			seqNum,
-			msg,
-			false, // new message is never marked as deleted
-		)
+
+		updates = append(updates, func() {
+			storeMailbox.store.notifyUpdateMessage(
+				storeMailbox.storeAddress.address,
+				storeMailbox.labelName,
+				uid,
+				seqNum,
+				msg,
+				false, // new message is never marked as deleted
+			)
+		})
+
 		shouldSendMailboxUpdate = true
 	}
 
@@ -432,6 +440,10 @@ func (storeMailbox *Mailbox) txCreateOrUpdateMessages(tx *bolt.Tx, msgs []*pmapi
 		if err := storeMailbox.txMailboxStatusUpdate(tx); err != nil {
 			return err
 		}
+	}
+
+	for _, update := range updates {
+		update()
 	}
 
 	return nil

@@ -27,7 +27,6 @@ require (
 	github.com/chzyer/test v0.0.0-20180213035817-a1ea475d72b1 // indirect
 	github.com/cucumber/godog v0.8.1
 	github.com/emersion/go-imap-appendlimit v0.0.0-20190308131241-25671c986a6a
-	github.com/emersion/go-imap-idle v0.0.0-20200601154248-f05f54664cc4
 	github.com/emersion/go-imap-move v0.0.0-20190710073258-6e5a51a5b342
 	github.com/emersion/go-imap-quota v0.0.0-20210203125329-619074823f3c
 	github.com/emersion/go-imap-unselect v0.0.0-20171113212723-b985794e5f26
@@ -59,8 +58,6 @@ require (
 	github.com/ssor/bom v0.0.0-20170718123548-6386211fdfcf // indirect
 	github.com/stretchr/testify v1.6.1
 	github.com/therecipe/qt v0.0.0-20200701200531-7f61353ee73e
-	github.com/therecipe/qt/internal/binding/files/docs/5.12.0 v0.0.0-20200904063919-c0c124a5770d // indirect
-	github.com/therecipe/qt/internal/binding/files/docs/5.13.0 v0.0.0-20200904063919-c0c124a5770d // indirect
 	github.com/urfave/cli/v2 v2.2.0
 	github.com/vmihailenco/msgpack/v5 v5.1.3
 	go.etcd.io/bbolt v1.3.5
