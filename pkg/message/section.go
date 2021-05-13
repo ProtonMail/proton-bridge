@@ -212,6 +212,13 @@ func (bs *BodyStructure) hasInfo(sectionPath []int) bool {
 	return err == nil
 }
 
+func (bs *BodyStructure) getInfoCheckSection(sectionPath []int) (sectionInfo *SectionInfo, err error) {
+	if len(*bs) == 1 && len(sectionPath) == 1 && sectionPath[0] == 1 {
+		sectionPath = []int{}
+	}
+	return bs.getInfo(sectionPath)
+}
+
 func (bs *BodyStructure) getInfo(sectionPath []int) (sectionInfo *SectionInfo, err error) {
 	path := stringPathFromInts(sectionPath)
 	sectionInfo, ok := (*bs)[path]
@@ -223,7 +230,7 @@ func (bs *BodyStructure) getInfo(sectionPath []int) (sectionInfo *SectionInfo, e
 
 // GetSection returns bytes of section including MIME header.
 func (bs *BodyStructure) GetSection(wholeMail io.ReadSeeker, sectionPath []int) (section []byte, err error) {
-	info, err := bs.getInfo(sectionPath)
+	info, err := bs.getInfoCheckSection(sectionPath)
 	if err != nil {
 		return
 	}
@@ -232,7 +239,7 @@ func (bs *BodyStructure) GetSection(wholeMail io.ReadSeeker, sectionPath []int) 
 
 // GetSectionContent returns bytes of section content (excluding MIME header).
 func (bs *BodyStructure) GetSectionContent(wholeMail io.ReadSeeker, sectionPath []int) (section []byte, err error) {
-	info, err := bs.getInfo(sectionPath)
+	info, err := bs.getInfoCheckSection(sectionPath)
 	if err != nil {
 		return
 	}
@@ -251,8 +258,11 @@ func (bs *BodyStructure) GetMailHeaderBytes(wholeMail io.ReadSeeker) (header []b
 }
 
 func goToOffsetAndReadNBytes(wholeMail io.ReadSeeker, offset, length int) ([]byte, error) {
-	if length < 1 {
-		return nil, errors.New("requested non positive length")
+	if length == 0 {
+		return []byte{}, nil
+	}
+	if length < 0 {
+		return nil, errors.New("requested negative length")
 	}
 	if offset > 0 {
 		if _, err := wholeMail.Seek(int64(offset), io.SeekStart); err != nil {
@@ -266,7 +276,7 @@ func goToOffsetAndReadNBytes(wholeMail io.ReadSeeker, offset, length int) ([]byt
 
 // GetSectionHeader returns the mime header of specified section.
 func (bs *BodyStructure) GetSectionHeader(sectionPath []int) (header textproto.MIMEHeader, err error) {
-	info, err := bs.getInfo(sectionPath)
+	info, err := bs.getInfoCheckSection(sectionPath)
 	if err != nil {
 		return
 	}
@@ -275,7 +285,7 @@ func (bs *BodyStructure) GetSectionHeader(sectionPath []int) (header textproto.M
 }
 
 func (bs *BodyStructure) GetSectionHeaderBytes(wholeMail io.ReadSeeker, sectionPath []int) (header []byte, err error) {
-	info, err := bs.getInfo(sectionPath)
+	info, err := bs.getInfoCheckSection(sectionPath)
 	if err != nil {
 		return
 	}

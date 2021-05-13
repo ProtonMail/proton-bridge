@@ -82,6 +82,14 @@ func TestGetSection(t *testing.T) {
 	structReader := strings.NewReader(sampleMail)
 	bs, err := NewBodyStructure(structReader)
 	require.NoError(t, err)
+
+	// Bad paths
+	wantPaths := [][]int{{0}, {-1}, {3, 2, 3}}
+	for _, wantPath := range wantPaths {
+		_, err = bs.getInfo(wantPath)
+		require.Error(t, err, "path %v", wantPath)
+	}
+
 	// Whole section.
 	for _, try := range testPaths {
 		mailReader := strings.NewReader(sampleMail)
@@ -105,6 +113,60 @@ func TestGetSection(t *testing.T) {
 		debug("content %v: %d %d\n___\n%s\n‾‾‾\n", try.path, info.Start+info.Size-info.BSize, info.BSize, string(section))
 
 		require.True(t, string(section) == try.expectedBody, "not same as expected:\n___\n%s\n‾‾‾", try.expectedBody)
+	}
+}
+
+func TestGetSecionNoMIMEParts(t *testing.T) {
+	wantBody := "This is just a simple mail with no multipart structure.\n"
+	wantHeader := `Subject: Sample mail
+From: John Doe <jdoe@machine.example>
+To: Mary Smith <mary@example.net>
+Date: Fri, 21 Nov 1997 09:55:06 -0600
+Content-Type: plain/text
+
+`
+	wantMail := wantHeader + wantBody
+
+	r := require.New(t)
+	bs, err := NewBodyStructure(strings.NewReader(wantMail))
+	r.NoError(err)
+
+	// Bad parts
+	wantPaths := [][]int{{0}, {2}, {1, 2, 3}}
+	for _, wantPath := range wantPaths {
+		_, err = bs.getInfoCheckSection(wantPath)
+		r.Error(err, "path %v: %d %d\n__\n%s\n", wantPath)
+	}
+
+	debug := func(wantPath []int, info *SectionInfo, section []byte) string {
+		if info == nil {
+			info = &SectionInfo{}
+		}
+		return fmt.Sprintf("path %v %q: %d %d\n___\n%s\n‾‾‾\n",
+			wantPath, stringPathFromInts(wantPath), info.Start, info.Size,
+			string(section),
+		)
+	}
+
+	// Ok Parts
+	wantPaths = [][]int{{}, {1}}
+	for _, p := range wantPaths {
+		wantPath := append([]int{}, p...)
+
+		info, err := bs.getInfoCheckSection(wantPath)
+		r.NoError(err, debug(wantPath, info, []byte{}))
+
+		section, err := bs.GetSection(strings.NewReader(wantMail), wantPath)
+		r.NoError(err, debug(wantPath, info, section))
+		r.Equal(wantMail, string(section), debug(wantPath, info, section))
+
+		haveBody, err := bs.GetSectionContent(strings.NewReader(wantMail), wantPath)
+		r.NoError(err, debug(wantPath, info, haveBody))
+		r.Equal(wantBody, string(haveBody), debug(wantPath, info, haveBody))
+
+		haveHeader, err := bs.GetSectionHeaderBytes(strings.NewReader(wantMail), wantPath)
+		r.NoError(err, debug(wantPath, info, haveHeader))
+		r.Equal(wantHeader, string(haveHeader), debug(wantPath, info, haveHeader))
 	}
 }
 
