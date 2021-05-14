@@ -37,7 +37,7 @@ func TestUsersFinishLoginBadMailboxPassword(t *testing.T) {
 
 	// Set up mocks for FinishLogin.
 	m.pmapiClient.EXPECT().AuthSalt(gomock.Any()).Return("", nil)
-	m.pmapiClient.EXPECT().Unlock(gomock.Any(), []byte(testCredentials.MailboxPassword)).Return(errors.New("no keys could be unlocked"))
+	m.pmapiClient.EXPECT().Unlock(gomock.Any(), testCredentials.MailboxPassword).Return(errors.New("no keys could be unlocked"))
 
 	checkUsersFinishLogin(t, m, testAuthRefresh, testCredentials.MailboxPassword, "", ErrWrongMailboxPassword)
 }
@@ -69,7 +69,7 @@ func TestUsersFinishLoginExistingDisconnectedUser(t *testing.T) {
 	// Mock process of FinishLogin of already added user.
 	gomock.InOrder(
 		m.pmapiClient.EXPECT().AuthSalt(gomock.Any()).Return("", nil),
-		m.pmapiClient.EXPECT().Unlock(gomock.Any(), []byte(testCredentials.MailboxPassword)).Return(nil),
+		m.pmapiClient.EXPECT().Unlock(gomock.Any(), testCredentials.MailboxPassword).Return(nil),
 		m.pmapiClient.EXPECT().CurrentUser(gomock.Any()).Return(testPMAPIUserDisconnected, nil),
 		m.credentialsStore.EXPECT().UpdateToken(testCredentialsDisconnected.UserID, testAuthRefresh.UID, testAuthRefresh.RefreshToken).Return(testCredentials, nil),
 		m.credentialsStore.EXPECT().UpdatePassword(testCredentialsDisconnected.UserID, testCredentials.MailboxPassword).Return(testCredentials, nil),
@@ -101,7 +101,7 @@ func TestUsersFinishLoginConnectedUser(t *testing.T) {
 	// Mock process of FinishLogin of already connected user.
 	gomock.InOrder(
 		m.pmapiClient.EXPECT().AuthSalt(gomock.Any()).Return("", nil),
-		m.pmapiClient.EXPECT().Unlock(gomock.Any(), []byte(testCredentials.MailboxPassword)).Return(nil),
+		m.pmapiClient.EXPECT().Unlock(gomock.Any(), testCredentials.MailboxPassword).Return(nil),
 		m.pmapiClient.EXPECT().CurrentUser(gomock.Any()).Return(testPMAPIUser, nil),
 		m.pmapiClient.EXPECT().AuthDelete(gomock.Any()).Return(nil),
 	)
@@ -113,7 +113,7 @@ func TestUsersFinishLoginConnectedUser(t *testing.T) {
 	r.EqualError(t, err, "user is already connected")
 }
 
-func checkUsersFinishLogin(t *testing.T, m mocks, auth *pmapi.Auth, mailboxPassword string, expectedUserID string, expectedErr error) {
+func checkUsersFinishLogin(t *testing.T, m mocks, auth *pmapi.Auth, mailboxPassword []byte, expectedUserID string, expectedErr error) {
 	users := testNewUsers(t, m)
 	defer cleanUpUsersData(users)
 

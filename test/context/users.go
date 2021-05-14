@@ -24,9 +24,9 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/ProtonMail/go-srp"
 	"github.com/ProtonMail/proton-bridge/internal/store"
 	"github.com/ProtonMail/proton-bridge/internal/users"
-	"github.com/ProtonMail/proton-bridge/pkg/srp"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 )
@@ -37,7 +37,7 @@ func (ctx *TestContext) GetUsers() *users.Users {
 }
 
 // LoginUser logs in the user with the given username, password, and mailbox password.
-func (ctx *TestContext) LoginUser(username, password, mailboxPassword string) error {
+func (ctx *TestContext) LoginUser(username string, password, mailboxPassword []byte) error {
 	srp.RandReader = rand.New(rand.NewSource(42)) //nolint[gosec] It is OK to use weaker random number generator here
 
 	client, auth, err := ctx.users.Login(username, password)

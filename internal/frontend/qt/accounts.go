@@ -152,7 +152,7 @@ func (s *FrontendQt) showLoginError(err error, scope string) bool {
 //  2: when has no 2FA but have MBOX
 func (s *FrontendQt) login(login, password string) int {
 	var err error
-	s.authClient, s.auth, err = s.bridge.Login(login, password)
+	s.authClient, s.auth, err = s.bridge.Login(login, []byte(password))
 	if s.showLoginError(err, "login") {
 		return -1
 	}
@@ -195,7 +195,7 @@ func (s *FrontendQt) addAccount(mailboxPassword string) int {
 		return -1
 	}
 
-	user, err := s.bridge.FinishLogin(s.authClient, s.auth, mailboxPassword)
+	user, err := s.bridge.FinishLogin(s.authClient, s.auth, []byte(mailboxPassword))
 	if err != nil {
 		log.WithError(err).Error("Login was unsuccessful")
 		s.Qml.SetAddAccountWarning("Failure: "+err.Error(), -2)

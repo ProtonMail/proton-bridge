@@ -115,7 +115,7 @@ func (f *frontendCLI) loginAccount(c *ishell.Context) { // nolint[funlen]
 	}
 
 	f.Println("Authenticating ... ")
-	client, auth, err := f.bridge.Login(loginName, password)
+	client, auth, err := f.bridge.Login(loginName, []byte(password))
 	if err != nil {
 		f.processAPIError(err)
 		return
@@ -143,7 +143,7 @@ func (f *frontendCLI) loginAccount(c *ishell.Context) { // nolint[funlen]
 	}
 
 	f.Println("Adding account ...")
-	user, err := f.bridge.FinishLogin(client, auth, mailboxPassword)
+	user, err := f.bridge.FinishLogin(client, auth, []byte(mailboxPassword))
 	if err != nil {
 		log.WithField("username", loginName).WithError(err).Error("Login was unsuccessful")
 		f.Println("Adding account was unsuccessful:", err)

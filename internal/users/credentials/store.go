@@ -39,7 +39,7 @@ func NewStore(keychain *keychain.Keychain) *Store {
 	return &Store{secrets: keychain}
 }
 
-func (s *Store) Add(userID, userName, uid, ref, mailboxPassword string, emails []string) (*Credentials, error) {
+func (s *Store) Add(userID, userName, uid, ref string, mailboxPassword []byte, emails []string) (*Credentials, error) {
 	storeLocker.Lock()
 	defer storeLocker.Unlock()
 
@@ -108,7 +108,7 @@ func (s *Store) UpdateEmails(userID string, emails []string) (*Credentials, erro
 	return credentials, s.saveCredentials(credentials)
 }
 
-func (s *Store) UpdatePassword(userID, password string) (*Credentials, error) {
+func (s *Store) UpdatePassword(userID string, password []byte) (*Credentials, error) {
 	storeLocker.Lock()
 	defer storeLocker.Unlock()
 

@@ -22,7 +22,7 @@ import (
 	"encoding/base64"
 	"time"
 
-	"github.com/ProtonMail/proton-bridge/pkg/srp"
+	"github.com/ProtonMail/go-srp"
 )
 
 func (m *manager) NewClient(uid, acc, ref string, exp time.Time) Client {
@@ -44,7 +44,7 @@ func (m *manager) NewClientWithRefresh(ctx context.Context, uid, ref string) (Cl
 	return c.withAuth(auth.AccessToken, auth.RefreshToken, expiresIn(auth.ExpiresIn)), auth, nil
 }
 
-func (m *manager) NewClientWithLogin(ctx context.Context, username, password string) (Client, *Auth, error) {
+func (m *manager) NewClientWithLogin(ctx context.Context, username string, password []byte) (Client, *Auth, error) {
 	log.Trace("New client with login")
 
 	info, err := m.getAuthInfo(ctx, GetAuthInfoReq{Username: username})
@@ -52,12 +52,12 @@ func (m *manager) NewClientWithLogin(ctx context.Context, username, password str
 		return nil, nil, err
 	}
 
-	srpAuth, err := srp.NewSrpAuth(info.Version, username, password, info.Salt, info.Modulus, info.ServerEphemeral)
+	srpAuth, err := srp.NewAuth(info.Version, username, password, info.Salt, info.Modulus, info.ServerEphemeral)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	proofs, err := srpAuth.GenerateSrpProofs(2048)
+	proofs, err := srpAuth.GenerateProofs(2048)
 	if err != nil {
 		return nil, nil, err
 	}

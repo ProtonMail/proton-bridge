@@ -51,7 +51,7 @@ func (c *fakeCredStore) List() (userIDs []string, err error) {
 	return keys, nil
 }
 
-func (c *fakeCredStore) Add(userID, userName, uid, ref, mailboxPassword string, emails []string) (*credentials.Credentials, error) {
+func (c *fakeCredStore) Add(userID, userName, uid, ref string, mailboxPassword []byte, emails []string) (*credentials.Credentials, error) {
 	bridgePassword := bridgePassword
 	if c, ok := c.credentials[userID]; ok {
 		bridgePassword = c.BridgePassword
@@ -80,7 +80,7 @@ func (c *fakeCredStore) UpdateEmails(userID string, emails []string) (*credentia
 	return c.credentials[userID], nil
 }
 
-func (c *fakeCredStore) UpdatePassword(userID, password string) (*credentials.Credentials, error) {
+func (c *fakeCredStore) UpdatePassword(userID string, password []byte) (*credentials.Credentials, error) {
 	creds, err := c.Get(userID)
 	if err != nil {
 		return nil, err
@@ -100,7 +100,7 @@ func (c *fakeCredStore) UpdateToken(userID, uid, ref string) (*credentials.Crede
 
 func (c *fakeCredStore) Logout(userID string) (*credentials.Credentials, error) {
 	c.credentials[userID].APIToken = ""
-	c.credentials[userID].MailboxPassword = ""
+	c.credentials[userID].MailboxPassword = []byte{}
 	return c.credentials[userID], nil
 }
 

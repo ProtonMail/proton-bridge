@@ -277,7 +277,7 @@ func TestMarshal(t *testing.T) {
 		Name:                  "007",
 		Emails:                "ja@pm.me;aj@cus.tom",
 		APIToken:              "sdfdsfsdfsdfsdf",
-		MailboxPassword:       "cdcdcdcd",
+		MailboxPassword:       []byte("cdcdcdcd"),
 		BridgePassword:        "wew123",
 		Version:               "k11",
 		Timestamp:             152469263742,

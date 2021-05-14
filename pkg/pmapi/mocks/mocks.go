@@ -670,7 +670,7 @@ func (mr *MockManagerMockRecorder) NewClient(arg0, arg1, arg2, arg3 interface{})
 }
 
 // NewClientWithLogin mocks base method
-func (m *MockManager) NewClientWithLogin(arg0 context.Context, arg1, arg2 string) (pmapi.Client, *pmapi.Auth, error) {
+func (m *MockManager) NewClientWithLogin(arg0 context.Context, arg1 string, arg2 []byte) (pmapi.Client, *pmapi.Auth, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "NewClientWithLogin", arg0, arg1, arg2)
 	ret0, _ := ret[0].(pmapi.Client)
