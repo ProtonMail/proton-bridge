@@ -89,7 +89,7 @@ type storeMailboxProvider interface {
 	MarkMessagesUnstarred(apiID []string) error
 	MarkMessagesDeleted(apiID []string) error
 	MarkMessagesUndeleted(apiID []string) error
-	ImportMessage(msg *pmapi.Message, body []byte, labelIDs []string) error
+	ImportMessage(enc []byte, seen bool, labelIDs []string, flags, time int64) (string, error)
 	RemoveDeleted(apiIDs []string) error
 }
 
