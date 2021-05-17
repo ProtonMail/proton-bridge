@@ -1,3 +1,11 @@
+## v1.3.3
+- 2021-05-17
+
+### Fixed
+- Fixed potential security vulnerability related to rpath
+- Improved parsing of embedded messages
+
+
 ## v1.3.1
 - 2021-03-11
 
