@@ -19,7 +19,6 @@ package liveapi
 
 import (
 	"context"
-	"fmt"
 
 	messageUtils "github.com/ProtonMail/proton-bridge/pkg/message"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
@@ -31,9 +30,9 @@ func (ctl *Controller) AddUserMessage(username string, message *pmapi.Message) (
 		return "", errors.New("add user messages with attachments is not implemented for live")
 	}
 
-	client, ok := ctl.pmapiByUsername[username]
-	if !ok {
-		return "", fmt.Errorf("user %s does not exist", username)
+	client, err := getPersistentClient(username)
+	if err != nil {
+		return "", err
 	}
 
 	if message.Flags == 0 {
@@ -75,9 +74,9 @@ func (ctl *Controller) AddUserMessage(username string, message *pmapi.Message) (
 }
 
 func (ctl *Controller) GetMessages(username, labelID string) ([]*pmapi.Message, error) {
-	client, ok := ctl.pmapiByUsername[username]
-	if !ok {
-		return nil, fmt.Errorf("user %s does not exist", username)
+	client, err := getPersistentClient(username)
+	if err != nil {
+		return nil, err
 	}
 
 	page := 0

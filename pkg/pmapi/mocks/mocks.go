@@ -301,6 +301,20 @@ func (mr *MockClientMockRecorder) GetContactEmailByEmail(arg0, arg1, arg2, arg3 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetContactEmailByEmail", reflect.TypeOf((*MockClient)(nil).GetContactEmailByEmail), arg0, arg1, arg2, arg3)
 }
 
+// GetCurrentAuth mocks base method
+func (m *MockClient) GetCurrentAuth() *pmapi.Auth {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetCurrentAuth")
+	ret0, _ := ret[0].(*pmapi.Auth)
+	return ret0
+}
+
+// GetCurrentAuth indicates an expected call of GetCurrentAuth
+func (mr *MockClientMockRecorder) GetCurrentAuth() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCurrentAuth", reflect.TypeOf((*MockClient)(nil).GetCurrentAuth))
+}
+
 // GetEvent mocks base method
 func (m *MockClient) GetEvent(arg0 context.Context, arg1 string) (*pmapi.Event, error) {
 	m.ctrl.T.Helper()

@@ -1,6 +1,6 @@
 Feature: Re-login
   Scenario: Re-login with connected user and database file
-    Given there is connected user "user"
+    Given there is user "user" which just logged in
     And there is database file for "user"
     When "user" logs in
     Then last response is "failed to finish login: user is already connected"
@@ -9,7 +9,7 @@ Feature: Re-login
 
   @ignore
   Scenario: Re-login with connected user and no database file
-    Given there is connected user "user"
+    Given there is user "user" which just logged in
     And there is no database file for "user"
     When "user" logs in
     Then last response is "failed to finish login: user is already connected"

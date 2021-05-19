@@ -94,8 +94,6 @@ type TestContext struct {
 
 // New returns a new test TestContext.
 func New(app string) *TestContext {
-	setLogrusVerbosityFromEnv()
-
 	listener := listener.New()
 	pmapiController, clientManager := newPMAPIController(app, listener)
 

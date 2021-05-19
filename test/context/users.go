@@ -27,6 +27,7 @@ import (
 	"github.com/ProtonMail/go-srp"
 	"github.com/ProtonMail/proton-bridge/internal/store"
 	"github.com/ProtonMail/proton-bridge/internal/users"
+	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 )
@@ -52,6 +53,18 @@ func (ctx *TestContext) LoginUser(username string, password, mailboxPassword []b
 	}
 
 	user, err := ctx.users.FinishLogin(client, auth, mailboxPassword)
+	if err != nil {
+		return errors.Wrap(err, "failed to finish login")
+	}
+
+	ctx.addCleanupChecked(user.Logout, "Logging out user")
+
+	return nil
+}
+
+// FinishLogin prevents authentication if not necessary.
+func (ctx *TestContext) FinishLogin(client pmapi.Client, mailboxPassword string) error {
+	user, err := ctx.users.FinishLogin(client, client.GetCurrentAuth(), mailboxPassword)
 	if err != nil {
 		return errors.Wrap(err, "failed to finish login")
 	}

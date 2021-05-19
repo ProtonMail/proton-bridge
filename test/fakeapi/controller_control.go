@@ -22,8 +22,10 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
+	"github.com/ProtonMail/proton-bridge/test/accounts"
 )
 
 var systemLabelNameToID = map[string]string{ //nolint[gochecknoglobals]
@@ -61,13 +63,15 @@ func (ctl *Controller) ReorderAddresses(user *pmapi.User, addressIDs []string) e
 	return api.ReorderAddresses(context.Background(), addressIDs)
 }
 
-func (ctl *Controller) AddUser(user *pmapi.User, addresses *pmapi.AddressList, password []byte, twoFAEnabled bool) error {
-	ctl.usersByUsername[user.Name] = &fakeUser{
-		user:     user,
-		password: password,
-		has2FA:   twoFAEnabled,
+func (ctl *Controller) AddUser(account *accounts.TestAccount) error {
+	ctl.usersByUsername[account.User().Name] = &fakeUser{
+		user:     account.User(),
+		password: account.Password(),
+		has2FA:   account.IsTwoFAEnabled(),
 	}
-	ctl.addressesByUsername[user.Name] = addresses
+	ctl.addressesByUsername[account.User().Name] = account.Addresses()
+	ctl.createSession(account.User().Name, true)
+
 	return nil
 }
 
@@ -180,4 +184,16 @@ func (ctl *Controller) GetMessages(username, labelID string) ([]*pmapi.Message, 
 		}
 	}
 	return messages, nil
+}
+
+func (ctl *Controller) GetAuthClient(username string) pmapi.Client {
+	for uid, session := range ctl.sessionsByUID {
+		if session.username == username {
+			return ctl.clientManager.NewClient(uid, session.acc, session.ref, time.Now())
+		}
+	}
+
+	ctl.log.WithField("username", username).Fatal("Cannot get authenticated client.")
+
+	return nil
 }

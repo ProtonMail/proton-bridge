@@ -63,3 +63,13 @@ func (api *FakePMAPI) AuthDelete(_ context.Context) error {
 
 	return nil
 }
+
+func (api *FakePMAPI) GetCurrentAuth() *pmapi.Auth {
+	return &pmapi.Auth{
+		UserID: api.userID,
+		AuthRefresh: pmapi.AuthRefresh{
+			UID:          api.uid,
+			RefreshToken: api.ref,
+		},
+	}
+}

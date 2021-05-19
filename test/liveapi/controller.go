@@ -21,45 +21,36 @@ import (
 	"net/http"
 	"sync"
 
-	"github.com/ProtonMail/proton-bridge/internal/constants"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
+	"github.com/sirupsen/logrus"
 )
 
+// Controller implements PMAPIController interface for specified endpoint.
 type Controller struct {
+	log *logrus.Entry
 	// Internal states.
 	lock                 *sync.RWMutex
 	calls                []*fakeCall
-	pmapiByUsername      map[string]pmapi.Client
 	messageIDsByUsername map[string][]string
-	clientManager        pmapi.Manager
 
 	// State controlled by test.
 	noInternetConnection bool
 }
 
-func NewController(app string) (*Controller, pmapi.Manager) {
-	cm := pmapi.New(pmapi.NewConfig(getAppVersionName(app), constants.Version))
+func NewController(_ string) (*Controller, pmapi.Manager) {
 	controller := &Controller{
+		log:                  logrus.WithField("pkg", "live-controller"),
 		lock:                 &sync.RWMutex{},
 		calls:                []*fakeCall{},
-		pmapiByUsername:      map[string]pmapi.Client{},
 		messageIDsByUsername: map[string][]string{},
-		clientManager:        cm,
 
 		noInternetConnection: false,
 	}
 
-	cm.SetTransport(&fakeTransport{
+	persistentClients.manager.SetTransport(&fakeTransport{
 		ctl:       controller,
 		transport: http.DefaultTransport,
 	})
 
-	return controller, cm
-}
-
-func getAppVersionName(app string) string {
-	if app == "ie" {
-		return "importExport"
-	}
-	return app
+	return controller, persistentClients.manager
 }
