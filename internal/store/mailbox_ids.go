@@ -38,6 +38,11 @@ func (storeMailbox *Mailbox) GetAPIIDsFromUIDRange(start, stop uint32) (apiIDs [
 		b := storeMailbox.txGetIMAPIDsBucket(tx)
 		c := b.Cursor()
 
+		// GODT-1153 If the mailbox is empty we should reply BAD to client.
+		if uid, _ := c.Last(); uid == nil {
+			return nil
+		}
+
 		// If the start range is a wildcard, the range can only refer to the last message in the mailbox.
 		if start == 0 {
 			_, apiID := c.Last()
@@ -73,6 +78,11 @@ func (storeMailbox *Mailbox) GetAPIIDsFromSequenceRange(start, stop uint32) (api
 	err = storeMailbox.db().View(func(tx *bolt.Tx) error {
 		b := storeMailbox.txGetIMAPIDsBucket(tx)
 		c := b.Cursor()
+
+		// GODT-1153 If the mailbox is empty we should reply BAD to client.
+		if uid, _ := c.Last(); uid == nil {
+			return nil
+		}
 
 		// If the start range is a wildcard, the range can only refer to the last message in the mailbox.
 		if start == 0 {
@@ -318,5 +328,10 @@ func (storeMailbox *Mailbox) GetUIDByHeader(header *mail.Header) (foundUID uint3
 
 func (storeMailbox *Mailbox) txGetFinalUID(b *bolt.Bucket) uint32 {
 	uid, _ := b.Cursor().Last()
+
+	if uid == nil {
+		panic(errors.New("cannot get final UID of empty mailbox"))
+	}
+
 	return btoi(uid)
 }
