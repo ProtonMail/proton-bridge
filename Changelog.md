@@ -2,6 +2,12 @@
 
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
+## [Bridge 1.8.1] James
+
+### Fixed
+* GODT-1165: Handle UID FETCH with sequence range of empty mailbox.
+
+
 ## [Bridge 1.8.0] James
 
 ### Added
