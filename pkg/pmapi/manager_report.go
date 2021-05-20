@@ -27,17 +27,23 @@ func (m *manager) ReportBug(ctx context.Context, rep ReportBugReq) error {
 		rep.ClientType = EmailClientType
 	}
 
-	r := m.r(ctx)
-	if len(rep.Attachments) == 0 {
-		r = r.SetBody(rep)
-	} else {
-		r = r.SetMultipartFormData(rep.GetMultipartFormData())
-		for _, att := range rep.Attachments {
-			r = r.SetMultipartField(att.name, att.filename, "application/octet-stream", att.body)
-		}
+	if rep.Client == "" {
+		rep.Client = m.cfg.GetUserAgent()
 	}
+
+	if rep.ClientVersion == "" {
+		rep.ClientVersion = m.cfg.AppVersion
+	}
+
+	r := m.r(ctx).SetMultipartFormData(rep.GetMultipartFormData())
+
+	for _, att := range rep.Attachments {
+		r = r.SetMultipartField(att.name, att.filename, "application/octet-stream", att.body)
+	}
+
 	if _, err := wrapNoConnection(r.Post("/reports/bug")); err != nil {
 		return err
 	}
+
 	return nil
 }

@@ -19,7 +19,6 @@ package pmapi
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -83,24 +82,5 @@ func TestClient_BugReportWithAttachment(t *testing.T) {
 	rep.AddAttachment("log", "last.log", strings.NewReader(testAttachmentJSON))
 
 	err := cm.ReportBug(context.Background(), rep)
-	r.NoError(t, err)
-}
-
-func TestClient_BugReport(t *testing.T) {
-	s := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-		r.NoError(t, checkMethodAndPath(req, "POST", "/reports/bug"))
-
-		var bugsReportReq ReportBugReq
-		r.NoError(t, json.NewDecoder(req.Body).Decode(&bugsReportReq))
-		r.Equal(t, testBugReportReq, bugsReportReq)
-
-		w.Header().Set("Content-Type", "application/json")
-		fmt.Fprint(w, testBugsBody)
-	}))
-	defer s.Close()
-
-	cm := newManager(newTestConfig(s.URL))
-
-	err := cm.ReportBug(context.Background(), testBugReportReq)
 	r.NoError(t, err)
 }
