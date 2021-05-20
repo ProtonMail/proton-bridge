@@ -1,9 +1,18 @@
+## v1.8.2
+- 2021-05-21
+
+### Fixed
+
+- Hotfix for error during bug reporting
+
+
 ## v1.8.1
 - 2021-05-19
 
 ### Fixed
 
 - Hotfix for crash when listing empty folder
+
 
 ## v1.8.0
 - 2021-05-10
