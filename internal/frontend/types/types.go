@@ -20,8 +20,6 @@ package types
 
 import (
 	"github.com/ProtonMail/proton-bridge/internal/bridge"
-	"github.com/ProtonMail/proton-bridge/internal/importexport"
-	"github.com/ProtonMail/proton-bridge/internal/transfer"
 	"github.com/ProtonMail/proton-bridge/internal/updater"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 )
@@ -107,44 +105,4 @@ func (b *bridgeWrap) GetUsers() (users []User) {
 
 func (b *bridgeWrap) GetUser(query string) (User, error) {
 	return b.Bridge.GetUser(query)
-}
-
-// ImportExporter is an interface of import-export needed by frontend.
-type ImportExporter interface {
-	UserManager
-
-	GetLocalImporter(string, string, string) (*transfer.Transfer, error)
-	GetRemoteImporter(string, string, string, string, string, string) (*transfer.Transfer, error)
-	GetEMLExporter(string, string, string) (*transfer.Transfer, error)
-	GetMBOXExporter(string, string, string) (*transfer.Transfer, error)
-	ReportBug(osType, osVersion, description, accountName, address, emailClient string) error
-	ReportFile(osType, osVersion, accountName, address string, logdata []byte) error
-}
-
-type importExportWrap struct {
-	*importexport.ImportExport
-}
-
-// NewImportExportWrap wraps import-export struct into local importExportWrap
-// to implement local interface.
-// The problem is that Import-Export returns the importexport package's User
-// type. Every method which returns User therefore has to be overridden to
-// fulfill the interface.
-func NewImportExportWrap(ie *importexport.ImportExport) *importExportWrap { //nolint[golint]
-	return &importExportWrap{ImportExport: ie}
-}
-
-func (b *importExportWrap) FinishLogin(client pmapi.Client, auth *pmapi.Auth, mailboxPassword []byte) (User, error) {
-	return b.ImportExport.FinishLogin(client, auth, mailboxPassword)
-}
-
-func (b *importExportWrap) GetUsers() (users []User) {
-	for _, user := range b.ImportExport.GetUsers() {
-		users = append(users, user)
-	}
-	return
-}
-
-func (b *importExportWrap) GetUser(query string) (User, error) {
-	return b.ImportExport.GetUser(query)
 }

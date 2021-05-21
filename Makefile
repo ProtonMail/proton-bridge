@@ -230,7 +230,6 @@ test: gofiles
 		./internal/cookies/... \
 		./internal/crash/... \
 		./internal/events/... \
-		./internal/frontend/autoconfig/... \
 		./internal/frontend/cli/... \
 		./internal/imap/... \
 		./internal/importexport/... \

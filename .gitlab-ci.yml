@@ -81,10 +81,25 @@ dependency-updates:
 
 # Stage: BUILD
 
+build-qml:
+  tags:
+    - small
+  only:
+    - branches
+  stage: build
+  artifacts:
+    name: "bridge-qml-$CI_COMMIT_SHORT_SHA"
+    expire_in: 1 day
+    paths:
+      - bridge_qml.tgz
+  script:
+    - cd internal/frontend/qml
+    - tar -cvzf ../../../bridge_qml.tgz ./*
+
 .build-base:
   stage: build
   only:
-    - branches
+    - manual
   before_script:
     - mkdir -p .cache/bin
     - export PATH=$(pwd)/.cache/bin:$PATH
@@ -117,26 +132,6 @@ build-linux-qa:
     name: "bridge-linux-qa-$CI_COMMIT_SHORT_SHA"
     paths:
       - bridge_*.tgz
-
-build-ie-linux:
-  extends: .build-base
-  script:
-    - make build-ie
-  artifacts:
-    name: "ie-linux-$CI_COMMIT_SHORT_SHA"
-    paths:
-      - ie_*.tgz
-
-build-ie-linux-qa:
-  extends: .build-base
-  only:
-    - web
-  script:
-    - BUILD_TAGS="build_qa" make build-ie
-  artifacts:
-    name: "ie-linux-qa-$CI_COMMIT_SHORT_SHA"
-    paths:
-      - ie_*.tgz
 
 .build-darwin-base:
   extends: .build-base
