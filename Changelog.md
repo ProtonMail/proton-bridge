@@ -2,6 +2,12 @@
 
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
+## [Bridge 1.8.2] James
+
+### Fixed
+* GODT-1175: Bug reporting.
+
+
 ## [Bridge 1.8.1] James
 
 ### Fixed
