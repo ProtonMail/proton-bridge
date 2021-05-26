@@ -24,14 +24,19 @@ import (
 )
 
 func TestHeaderLines(t *testing.T) {
-	const header = "To: somebody\r\nFrom: somebody else\r\nSubject: this is\r\n\ta multiline field\r\n\r\n"
-
-	assert.Equal(t, [][]byte{
+	want := [][]byte{
 		[]byte("To: somebody\r\n"),
 		[]byte("From: somebody else\r\n"),
-		[]byte("Subject: this is\r\n\ta multiline field\r\n"),
+		[]byte("Subject: RE: this is\r\n\ta multiline field: with colon\r\n\tor: many: more: colons\r\n"),
+		[]byte("X-Special: \r\n\tNothing on the first line\r\n\tbut has something on the other lines\r\n"),
 		[]byte("\r\n"),
-	}, HeaderLines([]byte(header)))
+	}
+	var header []byte
+	for _, line := range want {
+		header = append(header, line...)
+	}
+
+	assert.Equal(t, want, HeaderLines(header))
 }
 
 func TestHeaderLinesMultilineFilename(t *testing.T) {

@@ -35,11 +35,15 @@ func HeaderLines(header []byte) [][]byte {
 	)
 
 	forEachLine(bufio.NewReader(bytes.NewReader(header)), func(line []byte) {
+		l := bytes.SplitN(line, []byte(`: `), 2)
+		isLineContinuation := quote%2 != 0 || // no quotes opened
+			len(l) != 2 || // it doesn't have colon
+			(len(l) == 2 && !bytes.Equal(bytes.TrimSpace(l[0]), l[0])) // has white space in front of header field
 		switch {
 		case len(bytes.TrimSpace(line)) == 0:
 			lines = append(lines, line)
 
-		case quote%2 != 0, len(bytes.SplitN(line, []byte(`: `), 2)) != 2:
+		case isLineContinuation:
 			if len(lines) > 0 {
 				lines[len(lines)-1] = append(lines[len(lines)-1], line...)
 			} else {
