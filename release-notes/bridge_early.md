@@ -1,3 +1,17 @@
+## v1.8.3
+- 2021-05-31
+
+### New
+
+- Improved moving messages from other accounts to ProtonMail - implemented new parser for processing such messages
+- Performance improvements
+
+### Fixed
+
+- Sync issue with Microsoft Outlook (changed the order of processing requests)
+- Fetching the bodies of non-multipart messages
+
+
 ## v1.8.2
 - 2021-05-21
 
