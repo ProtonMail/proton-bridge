@@ -1,15 +1,27 @@
-## v1.8.3
-- 2021-05-31
+## v1.8.5
+- 2021-06-11
 
 ### New
 
-- Improved moving messages from other accounts to ProtonMail - implemented new parser for processing such messages
-- Performance improvements
+- Updated golang Secure Remote Password Protocol
+- Updated crypto-libraries to gopenpgp/v2 v2.1.9
+- Implemented new message parser (for imports from external accounts)
 
 ### Fixed
 
-- Sync issue with Microsoft Outlook (changed the order of processing requests)
-- Fetching the bodies of non-multipart messages
+- Bridge not to strip PGP signatures of incoming clear text messages
+- Import of messages with malformed MIME header
+- Improved parsing of message headers
+- Fetching bodies of non-multipart messages
+- Sync and performance improvements
+
+
+## v1.8.3
+- 2021-05-27
+
+### Fixed
+
+- A bug with sending encrypted emails to external contacts 
 
 
 ## v1.8.2
