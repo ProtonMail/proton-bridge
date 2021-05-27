@@ -136,7 +136,7 @@ func (c *client) GetContactEmailByEmail(ctx context.Context, email string, page 
 		if pageSize != 0 {
 			r.SetQueryParam("PageSize", strconv.Itoa(pageSize))
 		}
-		return r.SetResult(&res).Get("/contacts/v4")
+		return r.SetResult(&res).Get("/contacts/v4/emails")
 	}); err != nil {
 		return nil, err
 	}
