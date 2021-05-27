@@ -1,3 +1,11 @@
+## v1.8.3
+- 2021-05-27
+
+### Fixed
+
+- A bug with sending encrypted emails to external contacts 
+
+
 ## v1.8.2
 - 2021-05-21
 
