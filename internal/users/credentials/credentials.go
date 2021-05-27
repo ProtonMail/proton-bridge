@@ -143,6 +143,11 @@ func (s *Credentials) CheckPassword(password string) error {
 
 func (s *Credentials) Logout() {
 	s.APIToken = ""
+
+	for i := range s.MailboxPassword {
+		s.MailboxPassword[i] = 0
+	}
+
 	s.MailboxPassword = []byte{}
 }
 
