@@ -21,6 +21,6 @@ import "github.com/ProtonMail/proton-bridge/pkg/pmapi"
 
 type fakeUser struct {
 	user     *pmapi.User
-	password string
+	password []byte
 	has2FA   bool
 }

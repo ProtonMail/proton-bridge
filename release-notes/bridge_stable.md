@@ -1,3 +1,37 @@
+## v1.8.2
+- 2021-05-21
+
+### Fixed
+
+- Hotfix for error during bug reporting
+
+
+## v1.8.1
+- 2021-05-19
+
+### Fixed
+
+- Hotfix for crash when listing empty folder
+
+
+## v1.8.0
+- 2021-05-17
+
+### New
+- Refactor of message builder to achieve greater RFC compliance
+- Implemented connection manager to improve performance during weak connection, better handling of connection loss and other connectivity issues
+- Increased the number of message fetchers to allow more parallel requests - performance improvement
+- Log changes for easier debugging (update-related)
+- Prompt profile installation during Apple Mail auto-configuration on MacOS Big Sur
+
+### Fixed
+
+- Bugs with building of message bodies/headers
+- Incorrect naming format of some of the attachments 
+- Removed html-wrappig of non-decriptable messages - to facilitate decryption outside Bridge and/or allow to store such messages as they are
+- Tray icon issues with multiple displays on MacOS
+
+
 ## v1.6.9
 - 2021-04-01
 

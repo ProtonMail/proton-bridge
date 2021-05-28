@@ -25,7 +25,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (ctl *Controller) AddUser(user *pmapi.User, addresses *pmapi.AddressList, password string, twoFAEnabled bool) error {
+func (ctl *Controller) AddUser(user *pmapi.User, addresses *pmapi.AddressList, password []byte, twoFAEnabled bool) error {
 	if twoFAEnabled {
 		return godog.ErrPending
 	}

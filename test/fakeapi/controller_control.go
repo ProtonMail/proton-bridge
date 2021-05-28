@@ -61,7 +61,7 @@ func (ctl *Controller) ReorderAddresses(user *pmapi.User, addressIDs []string) e
 	return api.ReorderAddresses(context.Background(), addressIDs)
 }
 
-func (ctl *Controller) AddUser(user *pmapi.User, addresses *pmapi.AddressList, password string, twoFAEnabled bool) error {
+func (ctl *Controller) AddUser(user *pmapi.User, addresses *pmapi.AddressList, password []byte, twoFAEnabled bool) error {
 	ctl.usersByUsername[user.Name] = &fakeUser{
 		user:     user,
 		password: password,

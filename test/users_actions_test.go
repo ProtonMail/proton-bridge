@@ -45,7 +45,7 @@ func userLogsInWithBadPassword(bddUserID string) error {
 	if account == nil {
 		return godog.ErrPending
 	}
-	ctx.SetLastError(ctx.LoginUser(account.Username(), "you shall not pass!", "123"))
+	ctx.SetLastError(ctx.LoginUser(account.Username(), []byte("you shall not pass!"), []byte("123")))
 	return nil
 }
 

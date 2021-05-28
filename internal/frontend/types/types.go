@@ -49,8 +49,8 @@ type Updater interface {
 
 // UserManager is an interface of users needed by frontend.
 type UserManager interface {
-	Login(username, password string) (pmapi.Client, *pmapi.Auth, error)
-	FinishLogin(client pmapi.Client, auth *pmapi.Auth, mailboxPassword string) (User, error)
+	Login(username string, password []byte) (pmapi.Client, *pmapi.Auth, error)
+	FinishLogin(client pmapi.Client, auth *pmapi.Auth, mailboxPassword []byte) (User, error)
 	GetUsers() []User
 	GetUser(query string) (User, error)
 	DeleteUser(userID string, clearCache bool) error
@@ -94,7 +94,7 @@ func NewBridgeWrap(bridge *bridge.Bridge) *bridgeWrap { //nolint[golint]
 	return &bridgeWrap{Bridge: bridge}
 }
 
-func (b *bridgeWrap) FinishLogin(client pmapi.Client, auth *pmapi.Auth, mailboxPassword string) (User, error) {
+func (b *bridgeWrap) FinishLogin(client pmapi.Client, auth *pmapi.Auth, mailboxPassword []byte) (User, error) {
 	return b.Bridge.FinishLogin(client, auth, mailboxPassword)
 }
 
@@ -134,7 +134,7 @@ func NewImportExportWrap(ie *importexport.ImportExport) *importExportWrap { //no
 	return &importExportWrap{ImportExport: ie}
 }
 
-func (b *importExportWrap) FinishLogin(client pmapi.Client, auth *pmapi.Auth, mailboxPassword string) (User, error) {
+func (b *importExportWrap) FinishLogin(client pmapi.Client, auth *pmapi.Auth, mailboxPassword []byte) (User, error) {
 	return b.ImportExport.FinishLogin(client, auth, mailboxPassword)
 }
 

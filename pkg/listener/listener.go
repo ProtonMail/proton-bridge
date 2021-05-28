@@ -90,7 +90,7 @@ func (l *listener) Add(eventName string, channel chan<- string) {
 
 	log := log.WithField("name", eventName).WithField("i", len(l.channels[eventName]))
 	l.channels[eventName] = append(l.channels[eventName], channel)
-	log.Debug("Added event listner")
+	log.Debug("Added event listener")
 }
 
 // Remove removes an event listener.

@@ -30,7 +30,7 @@ import (
 type PMAPIController interface {
 	TurnInternetConnectionOff()
 	TurnInternetConnectionOn()
-	AddUser(user *pmapi.User, addresses *pmapi.AddressList, password string, twoFAEnabled bool) error
+	AddUser(user *pmapi.User, addresses *pmapi.AddressList, password []byte, twoFAEnabled bool) error
 	AddUserLabel(username string, label *pmapi.Label) error
 	GetLabelIDs(username string, labelNames []string) ([]string, error)
 	AddUserMessage(username string, message *pmapi.Message) (string, error)

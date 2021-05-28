@@ -188,10 +188,10 @@ func (iu *imapUpdates) MailboxStatus(address, mailboxName string, total, unread,
 	update.MailboxStatus.Messages = total
 	update.MailboxStatus.Unseen = unread
 	update.MailboxStatus.UnseenSeqNum = unreadSeqNum
-	iu.sendIMAPUpdate(update, false)
+	iu.sendIMAPUpdate(update, true)
 }
 
-func (iu *imapUpdates) sendIMAPUpdate(update goIMAPBackend.Update, block bool) {
+func (iu *imapUpdates) sendIMAPUpdate(update goIMAPBackend.Update, isBlocking bool) {
 	if iu.ch == nil {
 		log.Trace("IMAP IDLE unavailable")
 		return
@@ -207,7 +207,7 @@ func (iu *imapUpdates) sendIMAPUpdate(update goIMAPBackend.Update, block bool) {
 		}
 	}()
 
-	if !block {
+	if !isBlocking {
 		return
 	}
 

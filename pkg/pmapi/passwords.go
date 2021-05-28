@@ -20,13 +20,14 @@ package pmapi
 import (
 	"encoding/base64"
 
-	"github.com/jameskeane/bcrypt"
+	"github.com/ProtonMail/go-srp"
 	"github.com/pkg/errors"
 )
 
-func HashMailboxPassword(password, salt string) ([]byte, error) {
+// HashMailboxPassword expectects 128bit long salt encoded by standard base64.
+func HashMailboxPassword(password []byte, salt string) ([]byte, error) {
 	if salt == "" {
-		return []byte(password), nil
+		return password, nil
 	}
 
 	decodedSalt, err := base64.StdEncoding.DecodeString(salt)
@@ -34,15 +35,10 @@ func HashMailboxPassword(password, salt string) ([]byte, error) {
 		return nil, errors.Wrap(err, "failed to decode salt")
 	}
 
-	encodedSalt := base64.NewEncoding("./ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789").WithPadding(base64.NoPadding).EncodeToString(decodedSalt)
-	hashResult, err := bcrypt.Hash(password, "$2y$10$"+encodedSalt)
+	hash, err := srp.MailboxPassword(password, decodedSalt)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to bcrypt-hash password")
+		return nil, errors.Wrap(err, "failed to hash password")
 	}
 
-	if len(hashResult) != 60 {
-		return nil, errors.New("pmapi: invalid mailbox password hash")
-	}
-
-	return []byte(hashResult[len(hashResult)-31:]), nil
+	return hash[len(hash)-31:], nil
 }

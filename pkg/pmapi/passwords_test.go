@@ -18,29 +18,27 @@
 package pmapi
 
 import (
-	"context"
-	"net/http"
-	"time"
+	"testing"
 
-	"github.com/ProtonMail/gopenpgp/v2/crypto"
-	"github.com/sirupsen/logrus"
+	"github.com/stretchr/testify/require"
 )
 
-type Manager interface {
-	NewClient(string, string, string, time.Time) Client
-	NewClientWithRefresh(context.Context, string, string) (Client, *AuthRefresh, error)
-	NewClientWithLogin(context.Context, string, []byte) (Client, *Auth, error)
+func TestMailboxPassword(t *testing.T) {
+	// wantHash was generated with passprase and salt defined below. It
+	// should not change when changing implementation of the function.
+	wantHash := []byte("B5nwpsJQSTJ16ldr64Vdq6oeCCn32Fi")
 
-	DownloadAndVerify(kr *crypto.KeyRing, url, sig string) ([]byte, error)
-	ReportBug(context.Context, ReportBugReq) error
-	SendSimpleMetric(context.Context, string, string, string) error
+	// Valid salt is 128bit long (16bytes)
+	// $echo aaaabbbbccccdddd | base64
+	salt := "YWFhYWJiYmJjY2NjZGRkZAo="
 
-	SetLogging(logger *logrus.Entry, verbose bool)
-	SetTransport(http.RoundTripper)
-	SetCookieJar(http.CookieJar)
-	SetRetryCount(int)
-	AddConnectionObserver(ConnectionObserver)
+	passphrase := []byte("random")
 
-	AllowProxy()
-	DisallowProxy()
+	r := require.New(t)
+	_, err := HashMailboxPassword(passphrase, "badsalt")
+	r.Error(err)
+
+	haveHash, err := HashMailboxPassword(passphrase, salt)
+	r.NoError(err)
+	r.Equal(wantHash, haveHash)
 }

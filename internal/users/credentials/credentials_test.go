@@ -32,7 +32,7 @@ var wantCredentials = Credentials{
 	Name:                  "name",
 	Emails:                "email1;email2",
 	APIToken:              "token",
-	MailboxPassword:       "mailbox pass",
+	MailboxPassword:       []byte("mailbox pass"),
 	BridgePassword:        "bridge pass",
 	Version:               "k11",
 	Timestamp:             time.Now().Unix(),
@@ -52,7 +52,7 @@ func TestUnmarshallImportExport(t *testing.T) {
 		wantCredentials.Name,
 		wantCredentials.Emails,
 		wantCredentials.APIToken,
-		wantCredentials.MailboxPassword,
+		string(wantCredentials.MailboxPassword),
 		"k11",
 		fmt.Sprint(wantCredentials.Timestamp),
 	}

@@ -47,8 +47,8 @@ type Credentials struct {
 	UserID, // Do not marshal; used as a key.
 	Name,
 	Emails,
-	APIToken,
-	MailboxPassword,
+	APIToken string
+	MailboxPassword []byte
 	BridgePassword,
 	Version string
 	Timestamp int64
@@ -58,15 +58,15 @@ type Credentials struct {
 
 func (s *Credentials) Marshal() string {
 	items := []string{
-		s.Name,            // 0
-		s.Emails,          // 1
-		s.APIToken,        // 2
-		s.MailboxPassword, // 3
-		s.BridgePassword,  // 4
-		s.Version,         // 5
-		"",                // 6
-		"",                // 7
-		"",                // 8
+		s.Name,                    // 0
+		s.Emails,                  // 1
+		s.APIToken,                // 2
+		string(s.MailboxPassword), // 3
+		s.BridgePassword,          // 4
+		s.Version,                 // 5
+		"",                        // 6
+		"",                        // 7
+		"",                        // 8
 	}
 
 	items[6] = fmt.Sprint(s.Timestamp)
@@ -97,7 +97,7 @@ func (s *Credentials) Unmarshal(secret string) error {
 	s.Name = items[0]
 	s.Emails = items[1]
 	s.APIToken = items[2]
-	s.MailboxPassword = items[3]
+	s.MailboxPassword = []byte(items[3])
 
 	switch len(items) {
 	case itemLengthBridge:
@@ -143,11 +143,16 @@ func (s *Credentials) CheckPassword(password string) error {
 
 func (s *Credentials) Logout() {
 	s.APIToken = ""
-	s.MailboxPassword = ""
+
+	for i := range s.MailboxPassword {
+		s.MailboxPassword[i] = 0
+	}
+
+	s.MailboxPassword = []byte{}
 }
 
 func (s *Credentials) IsConnected() bool {
-	return s.APIToken != "" && s.MailboxPassword != ""
+	return s.APIToken != "" && len(s.MailboxPassword) != 0
 }
 
 func (s *Credentials) SplitAPIToken() (string, string, error) {

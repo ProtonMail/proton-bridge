@@ -200,14 +200,14 @@ func (u *Users) closeAllConnections() {
 
 // Login authenticates a user by username/password, returning an authorised client and an auth object.
 // The authorisation scope may not yet be full if the user has 2FA enabled.
-func (u *Users) Login(username, password string) (authClient pmapi.Client, auth *pmapi.Auth, err error) {
+func (u *Users) Login(username string, password []byte) (authClient pmapi.Client, auth *pmapi.Auth, err error) {
 	u.crashBandicoot(username)
 
 	return u.clientManager.NewClientWithLogin(context.Background(), username, password)
 }
 
 // FinishLogin finishes the login procedure and adds the user into the credentials store.
-func (u *Users) FinishLogin(client pmapi.Client, auth *pmapi.Auth, password string) (user *User, err error) { //nolint[funlen]
+func (u *Users) FinishLogin(client pmapi.Client, auth *pmapi.Auth, password []byte) (user *User, err error) { //nolint[funlen]
 	apiUser, passphrase, err := getAPIUser(context.Background(), client, password)
 	if err != nil {
 		return nil, err
@@ -228,7 +228,7 @@ func (u *Users) FinishLogin(client pmapi.Client, auth *pmapi.Auth, password stri
 		}
 
 		// Update the password in case the user changed it.
-		creds, err := u.credStorer.UpdatePassword(apiUser.ID, string(passphrase))
+		creds, err := u.credStorer.UpdatePassword(apiUser.ID, passphrase)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to update password of user in credentials store")
 		}
@@ -264,7 +264,7 @@ func (u *Users) addNewUser(client pmapi.Client, apiUser *pmapi.User, auth *pmapi
 		emails = client.Addresses().AllEmails()
 	}
 
-	if _, err := u.credStorer.Add(apiUser.ID, apiUser.Name, auth.UID, auth.RefreshToken, string(passphrase), emails); err != nil {
+	if _, err := u.credStorer.Add(apiUser.ID, apiUser.Name, auth.UID, auth.RefreshToken, passphrase, emails); err != nil {
 		return errors.Wrap(err, "failed to add user credentials to credentials store")
 	}
 
@@ -286,7 +286,7 @@ func (u *Users) addNewUser(client pmapi.Client, apiUser *pmapi.User, auth *pmapi
 	return nil
 }
 
-func getAPIUser(ctx context.Context, client pmapi.Client, password string) (*pmapi.User, []byte, error) {
+func getAPIUser(ctx context.Context, client pmapi.Client, password []byte) (*pmapi.User, []byte, error) {
 	salt, err := client.AuthSalt(ctx)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "failed to get salt")

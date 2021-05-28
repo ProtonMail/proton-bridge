@@ -177,12 +177,12 @@ func (a *TestAccount) EnsureAddress(addressOrAddressTestID string) string {
 	return addressOrAddressTestID
 }
 
-func (a *TestAccount) Password() string {
-	return a.password
+func (a *TestAccount) Password() []byte {
+	return []byte(a.password)
 }
 
-func (a *TestAccount) MailboxPassword() string {
-	return a.mailboxPassword
+func (a *TestAccount) MailboxPassword() []byte {
+	return []byte(a.mailboxPassword)
 }
 
 func (a *TestAccount) IsTwoFAEnabled() bool {

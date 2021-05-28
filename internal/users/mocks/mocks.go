@@ -108,7 +108,7 @@ func (m *MockCredentialsStorer) EXPECT() *MockCredentialsStorerMockRecorder {
 }
 
 // Add mocks base method
-func (m *MockCredentialsStorer) Add(arg0, arg1, arg2, arg3, arg4 string, arg5 []string) (*credentials.Credentials, error) {
+func (m *MockCredentialsStorer) Add(arg0, arg1, arg2, arg3 string, arg4 []byte, arg5 []string) (*credentials.Credentials, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Add", arg0, arg1, arg2, arg3, arg4, arg5)
 	ret0, _ := ret[0].(*credentials.Credentials)
@@ -212,7 +212,7 @@ func (mr *MockCredentialsStorerMockRecorder) UpdateEmails(arg0, arg1 interface{}
 }
 
 // UpdatePassword mocks base method
-func (m *MockCredentialsStorer) UpdatePassword(arg0, arg1 string) (*credentials.Credentials, error) {
+func (m *MockCredentialsStorer) UpdatePassword(arg0 string, arg1 []byte) (*credentials.Credentials, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdatePassword", arg0, arg1)
 	ret0, _ := ret[0].(*credentials.Credentials)

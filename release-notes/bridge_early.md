@@ -1,3 +1,47 @@
+## v1.8.3
+- 2021-05-31
+
+### New
+
+- Improved moving messages from other accounts to ProtonMail - implemented new parser for processing such messages
+- Performance improvements
+
+### Fixed
+
+- Sync issue with Microsoft Outlook (changed the order of processing requests)
+- Fetching the bodies of non-multipart messages
+
+
+## v1.8.2
+- 2021-05-21
+
+### Fixed
+
+- Hotfix for error during bug reporting
+
+
+## v1.8.1
+- 2021-05-19
+
+### Fixed
+
+- Hotfix for crash when listing empty folder
+
+
+## v1.8.0
+- 2021-05-10
+
+### New
+
+- Implemented connection manager to improve performance during weak connection, better handling of connection loss and other connectivity issues
+- Prompt profile installation during Apple Mail auto-configuration on MacOS Big Sur
+
+### Fixed
+
+- Bugs with building of message bodies/headers
+- Incorrect naming format of some of the attachments 
+
+
 ## v1.7.1
 - 2021-04-27
 

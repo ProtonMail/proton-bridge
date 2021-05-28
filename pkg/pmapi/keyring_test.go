@@ -22,7 +22,7 @@ import (
 	"testing"
 
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func loadPMKeys(jsonKeys string) (keys *PMKeys) {
@@ -31,6 +31,7 @@ func loadPMKeys(jsonKeys string) (keys *PMKeys) {
 }
 
 func TestPMKeys_GetKeyRingAndUnlock(t *testing.T) {
+	r := require.New(t)
 	addrKeysWithTokens := loadPMKeys(readTestFile("keyring_addressKeysWithTokens_JSON", false))
 	addrKeysWithoutTokens := loadPMKeys(readTestFile("keyring_addressKeysWithoutTokens_JSON", false))
 	addrKeysPrimaryHasToken := loadPMKeys(readTestFile("keyring_addressKeysPrimaryHasToken_JSON", false))
@@ -42,7 +43,7 @@ func TestPMKeys_GetKeyRingAndUnlock(t *testing.T) {
 	}
 
 	userKey, err := crypto.NewKeyRing(key)
-	assert.NoError(t, err, "Expected not to receive an error unlocking user key")
+	r.NoError(err, "Expected not to receive an error unlocking user key")
 
 	type args struct {
 		userKeyring *crypto.KeyRing
@@ -77,9 +78,7 @@ func TestPMKeys_GetKeyRingAndUnlock(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			kr, err := tt.keys.UnlockAll(tt.args.passphrase, tt.args.userKeyring) // nolint[scopelint]
-			if !assert.NoError(t, err) {
-				return
-			}
+			r.NoError(err)
 
 			// assert at least one key has been decrypted
 			atLeastOneDecrypted := false
@@ -96,7 +95,21 @@ func TestPMKeys_GetKeyRingAndUnlock(t *testing.T) {
 				}
 			}
 
-			assert.True(t, atLeastOneDecrypted)
+			r.True(atLeastOneDecrypted)
 		})
 	}
+}
+
+func TestGopenpgpEncryptAttachment(t *testing.T) {
+	r := require.New(t)
+
+	wantMessage := crypto.NewPlainMessage([]byte(testAttachmentCleartext))
+
+	pgpSplitMessage, err := testPublicKeyRing.EncryptAttachment(wantMessage, "")
+	r.NoError(err)
+
+	haveMessage, err := testPrivateKeyRing.DecryptAttachment(pgpSplitMessage)
+	r.NoError(err)
+
+	r.Equal(wantMessage.Data, haveMessage.Data)
 }

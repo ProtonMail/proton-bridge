@@ -18,6 +18,7 @@
 package fakeapi
 
 import (
+	"bytes"
 	"errors"
 
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
@@ -49,10 +50,10 @@ func (ctl *Controller) checkScope(uid string) bool {
 	return session.hasFullScope
 }
 
-func (ctl *Controller) createSessionIfAuthorized(username, password string) (*fakeSession, error) {
+func (ctl *Controller) createSessionIfAuthorized(username string, password []byte) (*fakeSession, error) {
 	// get user
 	user, ok := ctl.usersByUsername[username]
-	if !ok || user.password != password {
+	if !ok || !bytes.Equal(user.password, password) {
 		return nil, errWrongNameOrPassword
 	}
 

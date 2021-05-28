@@ -94,7 +94,7 @@ func (m *fakePMAPIManager) NewClientWithRefresh(_ context.Context, uid, ref stri
 	return client, auth, nil
 }
 
-func (m *fakePMAPIManager) NewClientWithLogin(_ context.Context, username string, password string) (pmapi.Client, *pmapi.Auth, error) {
+func (m *fakePMAPIManager) NewClientWithLogin(_ context.Context, username string, password []byte) (pmapi.Client, *pmapi.Auth, error) {
 	if err := m.controller.checkAndRecordCall(POST, "/auth/info", &pmapi.GetAuthInfoReq{Username: username}); err != nil {
 		return nil, nil, err
 	}

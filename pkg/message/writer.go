@@ -15,32 +15,34 @@
 // You should have received a copy of the GNU General Public License
 // along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
 
-package pmapi
+package message
 
 import (
-	"context"
-	"net/http"
-	"time"
-
-	"github.com/ProtonMail/gopenpgp/v2/crypto"
-	"github.com/sirupsen/logrus"
+	"fmt"
+	"io"
 )
 
-type Manager interface {
-	NewClient(string, string, string, time.Time) Client
-	NewClientWithRefresh(context.Context, string, string) (Client, *AuthRefresh, error)
-	NewClientWithLogin(context.Context, string, []byte) (Client, *Auth, error)
+type partWriter struct {
+	w        io.Writer
+	boundary string
+}
 
-	DownloadAndVerify(kr *crypto.KeyRing, url, sig string) ([]byte, error)
-	ReportBug(context.Context, ReportBugReq) error
-	SendSimpleMetric(context.Context, string, string, string) error
+func newPartWriter(w io.Writer, boundary string) *partWriter {
+	return &partWriter{w: w, boundary: boundary}
+}
 
-	SetLogging(logger *logrus.Entry, verbose bool)
-	SetTransport(http.RoundTripper)
-	SetCookieJar(http.CookieJar)
-	SetRetryCount(int)
-	AddConnectionObserver(ConnectionObserver)
+func (w *partWriter) createPart(fn func(io.Writer) error) error {
+	if _, err := fmt.Fprintf(w.w, "\r\n--%v\r\n", w.boundary); err != nil {
+		return err
+	}
 
-	AllowProxy()
-	DisallowProxy()
+	return fn(w.w)
+}
+
+func (w *partWriter) done() error {
+	if _, err := fmt.Fprintf(w.w, "\r\n--%v--\r\n", w.boundary); err != nil {
+		return err
+	}
+
+	return nil
 }

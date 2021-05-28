@@ -72,7 +72,7 @@ func redirectInternetEventsToOneChannel(l listener.Listener) (isInternetOn chan 
 const (
 	recheckPortAfter    = 50 * time.Millisecond
 	stopPortChecksAfter = 15 * time.Second
-	retryListnerAfter   = 5 * time.Second
+	retryListenerAfter  = 5 * time.Second
 )
 
 func monitorInternetConnection(s Server, l listener.Listener) {
@@ -89,7 +89,7 @@ func monitorInternetConnection(s Server, l listener.Listener) {
 				// blocked our port for a bit after we closed IMAP server
 				// due to connection issues.
 				// Restart always helped, so we do retry to not bother user.
-				s.ListenRetryAndServe(10, retryListnerAfter)
+				s.ListenRetryAndServe(10, retryListenerAfter)
 			}()
 			expectedIsPortFree = false
 		} else {
