@@ -17,34 +17,40 @@
 
 import QtQuick 2.13
 import QtQuick.Window 2.13
-import QtQuick.Layouts 1.12
-import QtQuick.Controls 2.12
-
-import Proton 4.0
+import QtQuick.Controls 2.13
 
 Window {
-    //currentStyle: Proton.Style.prominentStyle
+    id: testroot
+    width   : 250
+    height  : 600
+    flags   : Qt.Window | Qt.Dialog | Qt.FramelessWindowHint
+    visible : true
+    title   : "GUI test Window"
+    color   : "#10101010"
 
-    //Button {
-        //
-        //}
-
-        visible: true
-        color: ProtonStyle.currentStyle.background_norm
-        //StackLayout {
-            //    SignIn {
-            //
-            //    }
-            //}
-
-            Button {
-                id: testButton1
-                text: "Test button"
-            }
-
-            Button {
-                anchors.top: testButton1.bottom
-                secondary: true
-                text: "Test button"
+    Column {
+        anchors.horizontalCenter: parent.horizontalCenter
+        spacing : 5
+        Button {
+            text: "Show window"
+            onClicked: {
+                bridge._mainWindow.visible = true
             }
         }
+        Button {
+            text: "Hide window"
+            onClicked: {
+                bridge._mainWindow.visible = false
+            }
+        }
+    }
+
+    Component.onCompleted : {
+        testroot.x= 10
+        testroot.y= 100
+        bridge._mainWindow.visible = true
+    }
+
+
+    Bridge {id:bridge}
+}

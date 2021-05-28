@@ -1,0 +1,6 @@
+module QQtQuick.Controls.Proton
+depends QtQuick.Controls 2.12
+
+singleton ProtonStyle 4.0 Style.qml
+Button 4.0 Button.qml
+

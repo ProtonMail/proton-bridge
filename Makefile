@@ -291,7 +291,9 @@ run-debug:
 	PROTONMAIL_ENV=dev dlv debug --build-flags "${BUILD_FLAGS}" cmd/${TARGET_CMD}/main.go -- ${RUN_FLAGS}
 
 run-qml-preview:
-	$(MAKE) -C internal/frontend/qt -f Makefile.local qmlpreview
+	find internal/frontend/qml/ -iname '*qmlc' | xargs rm -f
+	cd internal/frontend/qml/ && qmlscene -verbose -I . -f Bridge_test.qml
+	
 
 clean-frontend-qt:
 	# TODO: $(MAKE) -C internal/frontend/qt -f Makefile.local clean
