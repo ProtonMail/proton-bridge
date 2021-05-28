@@ -63,7 +63,7 @@ func (ctx *TestContext) LoginUser(username string, password, mailboxPassword []b
 }
 
 // FinishLogin prevents authentication if not necessary.
-func (ctx *TestContext) FinishLogin(client pmapi.Client, mailboxPassword string) error {
+func (ctx *TestContext) FinishLogin(client pmapi.Client, mailboxPassword []byte) error {
 	user, err := ctx.users.FinishLogin(client, client.GetCurrentAuth(), mailboxPassword)
 	if err != nil {
 		return errors.Wrap(err, "failed to finish login")

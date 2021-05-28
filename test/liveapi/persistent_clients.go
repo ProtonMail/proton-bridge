@@ -23,9 +23,9 @@ import (
 	"math/rand"
 	"os"
 
+	"github.com/ProtonMail/go-srp"
 	"github.com/ProtonMail/proton-bridge/internal/constants"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
-	"github.com/ProtonMail/proton-bridge/pkg/srp"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )
