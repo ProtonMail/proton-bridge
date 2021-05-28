@@ -40,7 +40,7 @@ func buildRFC822(kr *crypto.KeyRing, msg *pmapi.Message, attData [][]byte, opts 
 		return buildMultipartRFC822(kr, msg, attData, opts)
 
 	case msg.MIMEType == "multipart/mixed":
-		return buildExternallyEncryptedRFC822(kr, msg, opts)
+		return buildPGPRFC822(kr, msg, opts)
 
 	default:
 		return buildSimpleRFC822(kr, msg, opts)
@@ -212,49 +212,31 @@ func writeRelatedParts(
 	})
 }
 
-func buildExternallyEncryptedRFC822(kr *crypto.KeyRing, msg *pmapi.Message, opts JobOptions) ([]byte, error) {
+func buildPGPRFC822(kr *crypto.KeyRing, msg *pmapi.Message, opts JobOptions) ([]byte, error) {
 	dec, err := msg.Decrypt(kr)
 	if err != nil {
 		if !opts.IgnoreDecryptionErrors {
 			return nil, errors.Wrap(ErrDecryptionFailed, err.Error())
 		}
 
-		return buildPGPMIMERFC822(msg, opts)
+		return buildPGPMIMEFallbackRFC822(msg, opts)
 	}
 
 	hdr := getMessageHeader(msg, opts)
 
-	hdr.SetContentType("multipart/mixed", map[string]string{"boundary": newBoundary(msg.ID).gen()})
-
-	buf := new(bytes.Buffer)
-
-	w, err := message.CreateWriter(buf, hdr)
+	sigs, err := msg.ExtractSignatures(kr)
 	if err != nil {
 		return nil, err
 	}
 
-	ent, err := message.Read(bytes.NewReader(dec))
-	if err != nil {
-		return nil, err
+	if len(sigs) > 0 {
+		return writeMultipartSignedRFC822(hdr, dec, sigs[0])
 	}
 
-	body, err := ioutil.ReadAll(ent.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := writePart(w, ent.Header, body); err != nil {
-		return nil, err
-	}
-
-	if err := w.Close(); err != nil {
-		return nil, err
-	}
-
-	return buf.Bytes(), nil
+	return writeMultipartEncryptedRFC822(hdr, dec)
 }
 
-func buildPGPMIMERFC822(msg *pmapi.Message, opts JobOptions) ([]byte, error) {
+func buildPGPMIMEFallbackRFC822(msg *pmapi.Message, opts JobOptions) ([]byte, error) {
 	hdr := getMessageHeader(msg, opts)
 
 	hdr.SetContentType("multipart/encrypted", map[string]string{
@@ -285,6 +267,108 @@ func buildPGPMIMERFC822(msg *pmapi.Message, opts JobOptions) ([]byte, error) {
 	dataHdr.Set("Content-Description", "OpenPGP encrypted message")
 
 	if err := writePart(w, dataHdr, []byte(msg.Body)); err != nil {
+		return nil, err
+	}
+
+	if err := w.Close(); err != nil {
+		return nil, err
+	}
+
+	return buf.Bytes(), nil
+}
+
+func writeMultipartSignedRFC822(header message.Header, body []byte, sig pmapi.Signature) ([]byte, error) {
+	buf := new(bytes.Buffer)
+
+	header.SetContentType("multipart/signed", map[string]string{
+		"micalg":   sig.Hash,
+		"protocol": "application/pgp-signature",
+	})
+
+	w, err := message.CreateWriter(buf, header)
+	if err != nil {
+		return nil, err
+	}
+
+	ent, err := message.Read(bytes.NewReader(body))
+	if err != nil {
+		return nil, err
+	}
+
+	bodyPart, err := w.CreatePart(ent.Header)
+	if err != nil {
+		return nil, err
+	}
+
+	bodyData, err := ioutil.ReadAll(ent.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	if _, err := bodyPart.Write(bodyData); err != nil {
+		return nil, err
+	}
+
+	if err := bodyPart.Close(); err != nil {
+		return nil, err
+	}
+
+	var sigHeader message.Header
+
+	sigHeader.SetContentType("application/pgp-signature", map[string]string{"name": "OpenPGP_signature.asc"})
+	sigHeader.SetContentDisposition("attachment", map[string]string{"filename": "OpenPGP_signature"})
+	sigHeader.Set("Content-Description", "OpenPGP digital signature")
+
+	sigPart, err := w.CreatePart(sigHeader)
+	if err != nil {
+		return nil, err
+	}
+
+	sigData, err := crypto.NewPGPSignature(sig.Data).GetArmored()
+	if err != nil {
+		return nil, err
+	}
+
+	if _, err := sigPart.Write([]byte(sigData)); err != nil {
+		return nil, err
+	}
+
+	if err := sigPart.Close(); err != nil {
+		return nil, err
+	}
+
+	if err := w.Close(); err != nil {
+		return nil, err
+	}
+
+	return buf.Bytes(), nil
+}
+
+func writeMultipartEncryptedRFC822(header message.Header, body []byte) ([]byte, error) {
+	buf := new(bytes.Buffer)
+
+	ent, err := message.Read(bytes.NewReader(body))
+	if err != nil {
+		return nil, err
+	}
+
+	entFields := ent.Header.Fields()
+
+	for entFields.Next() {
+		header.Set(entFields.Key(), entFields.Value())
+	}
+
+	w, err := message.CreateWriter(buf, header)
+	if err != nil {
+		return nil, err
+	}
+
+	bodyData, err := ioutil.ReadAll(ent.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	if _, err := w.Write(bodyData); err != nil {
 		return nil, err
 	}
 
