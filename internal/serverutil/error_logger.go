@@ -18,24 +18,22 @@
 package serverutil
 
 import (
-	"crypto/tls"
-	"io"
-	"net"
+	"github.com/sirupsen/logrus"
 )
 
-// Server can handle disconnected users.
-type Server interface {
-	Protocol() Protocol
-	UseSSL() bool
-	Address() string
-	TLSConfig() *tls.Config
+// ServerErrorLogger implements go-imap/logger interface.
+type ServerErrorLogger struct {
+	l *logrus.Entry
+}
 
-	DebugServer() bool
-	DebugClient() bool
-	SetLoggers(localDebug, remoteDebug io.Writer)
+func NewServerErrorLogger(protocol Protocol) *ServerErrorLogger {
+	return &ServerErrorLogger{l: logrus.WithField("protocol", protocol)}
+}
 
-	HandlePanic()
-	DisconnectUser(string)
-	Serve(net.Listener) error
-	StopServe() error
+func (s *ServerErrorLogger) Printf(format string, args ...interface{}) {
+	s.l.Errorf(format, args...)
+}
+
+func (s *ServerErrorLogger) Println(args ...interface{}) {
+	s.l.Errorln(args...)
 }

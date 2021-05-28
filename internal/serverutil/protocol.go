@@ -17,25 +17,10 @@
 
 package serverutil
 
-import (
-	"crypto/tls"
-	"io"
-	"net"
+type Protocol string
+
+const (
+	HTTP = Protocol("HTTP")
+	IMAP = Protocol("IMAP")
+	SMTP = Protocol("SMTP")
 )
-
-// Server can handle disconnected users.
-type Server interface {
-	Protocol() Protocol
-	UseSSL() bool
-	Address() string
-	TLSConfig() *tls.Config
-
-	DebugServer() bool
-	DebugClient() bool
-	SetLoggers(localDebug, remoteDebug io.Writer)
-
-	HandlePanic()
-	DisconnectUser(string)
-	Serve(net.Listener) error
-	StopServe() error
-}
