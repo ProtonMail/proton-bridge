@@ -18,7 +18,6 @@
 package updater
 
 import (
-	"bytes"
 	"encoding/json"
 	"errors"
 	"io"
@@ -40,9 +39,9 @@ func TestCheck(t *testing.T) {
 	c := gomock.NewController(t)
 	defer c.Finish()
 
-	client := mocks.NewMockClient(c)
+	cm := mocks.NewMockManager(c)
 
-	updater := newTestUpdater(client, "1.1.0", false)
+	updater := newTestUpdater(cm, "1.1.0", false)
 
 	versionMap := VersionMap{
 		"stable": VersionInfo{
@@ -53,13 +52,11 @@ func TestCheck(t *testing.T) {
 		},
 	}
 
-	client.EXPECT().DownloadAndVerify(
+	cm.EXPECT().DownloadAndVerify(
+		gomock.Any(),
 		updater.getVersionFileURL(),
 		updater.getVersionFileURL()+".sig",
-		gomock.Any(),
-	).Return(bytes.NewReader(mustMarshal(t, versionMap)), nil)
-
-	client.EXPECT().Logout()
+	).Return(mustMarshal(t, versionMap), nil)
 
 	version, err := updater.Check()
 
@@ -71,9 +68,9 @@ func TestCheckEarlyAccess(t *testing.T) {
 	c := gomock.NewController(t)
 	defer c.Finish()
 
-	client := mocks.NewMockClient(c)
+	cm := mocks.NewMockManager(c)
 
-	updater := newTestUpdater(client, "1.1.0", true)
+	updater := newTestUpdater(cm, "1.1.0", true)
 
 	versionMap := VersionMap{
 		"stable": VersionInfo{
@@ -90,13 +87,11 @@ func TestCheckEarlyAccess(t *testing.T) {
 		},
 	}
 
-	client.EXPECT().DownloadAndVerify(
+	cm.EXPECT().DownloadAndVerify(
+		gomock.Any(),
 		updater.getVersionFileURL(),
 		updater.getVersionFileURL()+".sig",
-		gomock.Any(),
-	).Return(bytes.NewReader(mustMarshal(t, versionMap)), nil)
-
-	client.EXPECT().Logout()
+	).Return(mustMarshal(t, versionMap), nil)
 
 	version, err := updater.Check()
 
@@ -108,17 +103,15 @@ func TestCheckBadSignature(t *testing.T) {
 	c := gomock.NewController(t)
 	defer c.Finish()
 
-	client := mocks.NewMockClient(c)
+	cm := mocks.NewMockManager(c)
 
-	updater := newTestUpdater(client, "1.2.0", false)
+	updater := newTestUpdater(cm, "1.2.0", false)
 
-	client.EXPECT().DownloadAndVerify(
+	cm.EXPECT().DownloadAndVerify(
+		gomock.Any(),
 		updater.getVersionFileURL(),
 		updater.getVersionFileURL()+".sig",
-		gomock.Any(),
 	).Return(nil, errors.New("bad signature"))
-
-	client.EXPECT().Logout()
 
 	_, err := updater.Check()
 
@@ -129,9 +122,9 @@ func TestIsUpdateApplicable(t *testing.T) {
 	c := gomock.NewController(t)
 	defer c.Finish()
 
-	client := mocks.NewMockClient(c)
+	cm := mocks.NewMockManager(c)
 
-	updater := newTestUpdater(client, "1.4.0", false)
+	updater := newTestUpdater(cm, "1.4.0", false)
 
 	versionOld := VersionInfo{
 		Version:           semver.MustParse("1.3.0"),
@@ -165,9 +158,9 @@ func TestCanInstall(t *testing.T) {
 	c := gomock.NewController(t)
 	defer c.Finish()
 
-	client := mocks.NewMockClient(c)
+	cm := mocks.NewMockManager(c)
 
-	updater := newTestUpdater(client, "1.4.0", false)
+	updater := newTestUpdater(cm, "1.4.0", false)
 
 	versionManual := VersionInfo{
 		Version:           semver.MustParse("1.5.0"),
@@ -192,9 +185,9 @@ func TestInstallUpdate(t *testing.T) {
 	c := gomock.NewController(t)
 	defer c.Finish()
 
-	client := mocks.NewMockClient(c)
+	cm := mocks.NewMockManager(c)
 
-	updater := newTestUpdater(client, "1.4.0", false)
+	updater := newTestUpdater(cm, "1.4.0", false)
 
 	latestVersion := VersionInfo{
 		Version:           semver.MustParse("1.5.0"),
@@ -203,13 +196,11 @@ func TestInstallUpdate(t *testing.T) {
 		RolloutProportion: 1.0,
 	}
 
-	client.EXPECT().DownloadAndVerify(
+	cm.EXPECT().DownloadAndVerify(
+		gomock.Any(),
 		latestVersion.Package,
 		latestVersion.Package+".sig",
-		gomock.Any(),
-	).Return(bytes.NewReader([]byte("tgz_data_here")), nil)
-
-	client.EXPECT().Logout()
+	).Return([]byte("tgz_data_here"), nil)
 
 	err := updater.InstallUpdate(latestVersion)
 
@@ -220,9 +211,9 @@ func TestInstallUpdateBadSignature(t *testing.T) {
 	c := gomock.NewController(t)
 	defer c.Finish()
 
-	client := mocks.NewMockClient(c)
+	cm := mocks.NewMockManager(c)
 
-	updater := newTestUpdater(client, "1.4.0", false)
+	updater := newTestUpdater(cm, "1.4.0", false)
 
 	latestVersion := VersionInfo{
 		Version:           semver.MustParse("1.5.0"),
@@ -231,13 +222,11 @@ func TestInstallUpdateBadSignature(t *testing.T) {
 		RolloutProportion: 1.0,
 	}
 
-	client.EXPECT().DownloadAndVerify(
+	cm.EXPECT().DownloadAndVerify(
+		gomock.Any(),
 		latestVersion.Package,
 		latestVersion.Package+".sig",
-		gomock.Any(),
 	).Return(nil, errors.New("bad signature"))
-
-	client.EXPECT().Logout()
 
 	err := updater.InstallUpdate(latestVersion)
 
@@ -248,9 +237,9 @@ func TestInstallUpdateAlreadyOngoing(t *testing.T) {
 	c := gomock.NewController(t)
 	defer c.Finish()
 
-	client := mocks.NewMockClient(c)
+	cm := mocks.NewMockManager(c)
 
-	updater := newTestUpdater(client, "1.4.0", false)
+	updater := newTestUpdater(cm, "1.4.0", false)
 
 	updater.installer = &fakeInstaller{delay: 2 * time.Second}
 
@@ -261,13 +250,11 @@ func TestInstallUpdateAlreadyOngoing(t *testing.T) {
 		RolloutProportion: 1.0,
 	}
 
-	client.EXPECT().DownloadAndVerify(
+	cm.EXPECT().DownloadAndVerify(
+		gomock.Any(),
 		latestVersion.Package,
 		latestVersion.Package+".sig",
-		gomock.Any(),
-	).Return(bytes.NewReader([]byte("tgz_data_here")), nil)
-
-	client.EXPECT().Logout()
+	).Return([]byte("tgz_data_here"), nil)
 
 	wg := &sync.WaitGroup{}
 
@@ -288,23 +275,15 @@ func TestInstallUpdateAlreadyOngoing(t *testing.T) {
 	wg.Wait()
 }
 
-func newTestUpdater(client *mocks.MockClient, curVer string, earlyAccess bool) *Updater {
+func newTestUpdater(manager pmapi.Manager, curVer string, earlyAccess bool) *Updater {
 	return New(
-		&fakeClientProvider{client: client},
+		manager,
 		&fakeInstaller{},
 		newFakeSettings(0.5, earlyAccess),
 		nil,
 		semver.MustParse(curVer),
 		"bridge", "linux",
 	)
-}
-
-type fakeClientProvider struct {
-	client *mocks.MockClient
-}
-
-func (p *fakeClientProvider) GetAnonymousClient() pmapi.Client {
-	return p.client
 }
 
 type fakeInstaller struct {

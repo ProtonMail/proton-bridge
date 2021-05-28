@@ -18,6 +18,7 @@
 package store
 
 import (
+	"context"
 	"math"
 	"sync"
 
@@ -39,10 +40,10 @@ type storeSynchronizer interface {
 }
 
 type messageLister interface {
-	ListMessages(*pmapi.MessagesFilter) ([]*pmapi.Message, int, error)
+	ListMessages(context.Context, *pmapi.MessagesFilter) ([]*pmapi.Message, int, error)
 }
 
-func syncAllMail(panicHandler PanicHandler, store storeSynchronizer, api func() messageLister, syncState *syncState) error {
+func syncAllMail(panicHandler PanicHandler, store storeSynchronizer, api messageLister, syncState *syncState) error {
 	labelID := pmapi.AllMailLabel
 
 	// When the full sync starts (i.e. is not already in progress), we need to load
@@ -53,7 +54,7 @@ func syncAllMail(panicHandler PanicHandler, store storeSynchronizer, api func() 
 			return errors.Wrap(err, "failed to load message IDs")
 		}
 
-		if err := findIDRanges(labelID, api(), syncState); err != nil {
+		if err := findIDRanges(labelID, api, syncState); err != nil {
 			return errors.Wrap(err, "failed to load IDs ranges")
 		}
 		syncState.save()
@@ -71,7 +72,7 @@ func syncAllMail(panicHandler PanicHandler, store storeSynchronizer, api func() 
 			defer panicHandler.HandlePanic()
 			defer wg.Done()
 
-			err := syncBatch(labelID, store, api(), syncState, idRange, &shouldStop)
+			err := syncBatch(labelID, store, api, syncState, idRange, &shouldStop)
 			if err != nil {
 				shouldStop = 1
 				resultError = errors.Wrap(err, "failed to sync group")
@@ -147,7 +148,7 @@ func getSplitIDAndCount(labelID string, api messageLister, page int) (string, in
 		Limit:    1,
 	}
 	// If the page does not exist, an empty page instead of an error is returned.
-	messages, total, err := api.ListMessages(filter)
+	messages, total, err := api.ListMessages(context.Background(), filter)
 	if err != nil {
 		return "", 0, errors.Wrap(err, "failed to list messages")
 	}
@@ -189,7 +190,7 @@ func syncBatch( //nolint[funlen]
 
 		log.WithField("begin", filter.BeginID).WithField("end", filter.EndID).Debug("Fetching page")
 
-		messages, _, err := api.ListMessages(filter)
+		messages, _, err := api.ListMessages(context.Background(), filter)
 		if err != nil {
 			return errors.Wrap(err, "failed to list messages")
 		}

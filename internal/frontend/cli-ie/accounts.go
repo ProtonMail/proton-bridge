@@ -18,6 +18,7 @@
 package cliie
 
 import (
+	"context"
 	"strings"
 
 	"github.com/abiosoft/ishell"
@@ -79,7 +80,7 @@ func (f *frontendCLI) loginAccount(c *ishell.Context) { // nolint[funlen]
 			return
 		}
 
-		err = client.Auth2FA(twoFactor, auth)
+		err = client.Auth2FA(context.Background(), twoFactor)
 		if err != nil {
 			f.processAPIError(err)
 			return

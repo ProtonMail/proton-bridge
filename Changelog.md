@@ -2,6 +2,38 @@
 
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
+## [Bridge 1.8.3] James
+
+### Fixed
+* GODT-1182: Use correct contact route.
+
+
+## [Bridge 1.8.2] James
+
+### Fixed
+* GODT-1175: Bug reporting.
+
+
+## [Bridge 1.8.1] James
+
+### Fixed
+* GODT-1165: Handle UID FETCH with sequence range of empty mailbox.
+
+
+## [Bridge 1.8.0] James
+
+### Added
+* GODT-1056 Check encrypted size of the message before upload.
+* GODT-1143 Turn off SMTP server while no connection.
+* GODT-1089 Explicitly open system preferences window on BigSur.
+
+### Fixed
+* GODT-1159 SMTP server not restarting after restored internet.
+* GODT-1146 Refactor handling of fetching BODY[HEADER] (and similar) regarding trailing newline.
+* GODT-1152 Correctly resolve wildcard sequence/UID set.
+* Other: Avoid API jail.
+
+
 ## [Bridge 1.7.1] Iron
 
 ### Fixed

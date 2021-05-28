@@ -38,7 +38,27 @@ func TestIsVersionCatalinaOrNewer(t *testing.T) {
 	}
 
 	for args, exp := range testData {
-		got := isVersionCatalinaOrNewer(args.version)
+		got := isVersionEqualOrNewer(getMinCatalina(), args.version)
+		assert.Equal(t, exp, got, "version %v", args.version)
+	}
+}
+
+func TestIsVersionBigSurOrNewer(t *testing.T) {
+	testData := map[struct{ version string }]bool{
+		{""}:         false,
+		{"9.0.0"}:    false,
+		{"9.15.0"}:   false,
+		{"10.13.0"}:  false,
+		{"10.14.0"}:  false,
+		{"10.14.99"}: false,
+		{"10.15.0"}:  false,
+		{"10.16.0"}:  true,
+		{"11.0.0"}:   true,
+		{"11.1"}:     true,
+	}
+
+	for args, exp := range testData {
+		got := isVersionEqualOrNewer(getMinBigSur(), args.version)
 		assert.Equal(t, exp, got, "version %v", args.version)
 	}
 }

@@ -147,7 +147,7 @@ func (store *Store) createOrUpdateAddressInfo(addressList pmapi.AddressList) (er
 // filterAddresses filters out inactive addresses and ensures the original address is listed first.
 func filterAddresses(addressList pmapi.AddressList) (filteredList pmapi.AddressList) {
 	for _, address := range addressList {
-		if address.Receive != pmapi.CanReceive {
+		if !address.Receive {
 			continue
 		}
 

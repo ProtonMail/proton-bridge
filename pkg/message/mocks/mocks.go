@@ -5,6 +5,7 @@
 package mocks
 
 import (
+	context "context"
 	io "io"
 	reflect "reflect"
 
@@ -37,33 +38,33 @@ func (m *MockFetcher) EXPECT() *MockFetcherMockRecorder {
 }
 
 // GetAttachment mocks base method
-func (m *MockFetcher) GetAttachment(arg0 string) (io.ReadCloser, error) {
+func (m *MockFetcher) GetAttachment(arg0 context.Context, arg1 string) (io.ReadCloser, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetAttachment", arg0)
+	ret := m.ctrl.Call(m, "GetAttachment", arg0, arg1)
 	ret0, _ := ret[0].(io.ReadCloser)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetAttachment indicates an expected call of GetAttachment
-func (mr *MockFetcherMockRecorder) GetAttachment(arg0 interface{}) *gomock.Call {
+func (mr *MockFetcherMockRecorder) GetAttachment(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAttachment", reflect.TypeOf((*MockFetcher)(nil).GetAttachment), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAttachment", reflect.TypeOf((*MockFetcher)(nil).GetAttachment), arg0, arg1)
 }
 
 // GetMessage mocks base method
-func (m *MockFetcher) GetMessage(arg0 string) (*pmapi.Message, error) {
+func (m *MockFetcher) GetMessage(arg0 context.Context, arg1 string) (*pmapi.Message, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetMessage", arg0)
+	ret := m.ctrl.Call(m, "GetMessage", arg0, arg1)
 	ret0, _ := ret[0].(*pmapi.Message)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetMessage indicates an expected call of GetMessage
-func (mr *MockFetcherMockRecorder) GetMessage(arg0 interface{}) *gomock.Call {
+func (mr *MockFetcherMockRecorder) GetMessage(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMessage", reflect.TypeOf((*MockFetcher)(nil).GetMessage), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMessage", reflect.TypeOf((*MockFetcher)(nil).GetMessage), arg0, arg1)
 }
 
 // KeyRingForAddressID mocks base method

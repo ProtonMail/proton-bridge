@@ -18,6 +18,7 @@
 package store
 
 import (
+	"context"
 	"net/mail"
 	"testing"
 	"time"
@@ -39,17 +40,17 @@ func TestEventLoopProcessMoreEvents(t *testing.T) {
 		// Doesn't matter which IDs are used.
 		// This test is trying to see whether event loop will immediately process
 		// next event if there is `More` of them.
-		m.client.EXPECT().GetEvent("latestEventID").Return(&pmapi.Event{
+		m.client.EXPECT().GetEvent(gomock.Any(), "latestEventID").Return(&pmapi.Event{
 			EventID: "event50",
-			More:    1,
+			More:    true,
 		}, nil),
-		m.client.EXPECT().GetEvent("event50").Return(&pmapi.Event{
+		m.client.EXPECT().GetEvent(gomock.Any(), "event50").Return(&pmapi.Event{
 			EventID: "event70",
-			More:    0,
+			More:    false,
 		}, nil),
-		m.client.EXPECT().GetEvent("event70").Return(&pmapi.Event{
+		m.client.EXPECT().GetEvent(gomock.Any(), "event70").Return(&pmapi.Event{
 			EventID: "event71",
-			More:    0,
+			More:    false,
 		}, nil),
 	)
 	m.newStoreNoEvents(true)
@@ -165,7 +166,7 @@ func TestEventLoopDeletionPaused(t *testing.T) {
 
 func testEvent(t *testing.T, m *mocksForStore, event *pmapi.Event) {
 	eventReceived := make(chan struct{})
-	m.client.EXPECT().GetEvent("latestEventID").DoAndReturn(func(eventID string) (*pmapi.Event, error) {
+	m.client.EXPECT().GetEvent(gomock.Any(), "latestEventID").DoAndReturn(func(_ context.Context, eventID string) (*pmapi.Event, error) {
 		defer close(eventReceived)
 		return event, nil
 	})
@@ -187,7 +188,7 @@ func TestEventLoopUpdateMessage(t *testing.T) {
 	msg := &pmapi.Message{
 		ID:       "msg1",
 		Subject:  "old",
-		Unread:   0,
+		Unread:   false,
 		Flags:    10,
 		Sender:   address1,
 		ToList:   []*mail.Address{address2},
@@ -199,7 +200,7 @@ func TestEventLoopUpdateMessage(t *testing.T) {
 	newMsg := &pmapi.Message{
 		ID:       "msg1",
 		Subject:  "new",
-		Unread:   1,
+		Unread:   true,
 		Flags:    11,
 		Sender:   address2,
 		ToList:   []*mail.Address{address1},

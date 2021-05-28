@@ -37,6 +37,7 @@ func SMTPActionsAuthFeatureContext(s *godog.Suite) {
 	s.Step(`^SMTP client sends message with bcc "([^"]*)"$`, smtpClientSendsMessageWithBCC)
 	s.Step(`^SMTP client "([^"]*)" sends message with bcc "([^"]*)"$`, smtpClientNamedSendsMessageWithBCC)
 	s.Step(`^SMTP client sends "([^"]*)"$`, smtpClientSendsCommand)
+	s.Step(`^SMTP client "([^"]*)" sends "([^"]*)"$`, smtpClientNamedSendsCommand)
 }
 
 func smtpClientAuthenticates(bddUserID string) error {
@@ -108,9 +109,12 @@ func smtpClientNamedSendsMessageWithBCC(clientID, bcc string, message *gherkin.D
 }
 
 func smtpClientSendsCommand(command string) error {
+	return smtpClientNamedSendsCommand("smtp", command)
+}
+func smtpClientNamedSendsCommand(clientName, command string) error {
 	command = strings.ReplaceAll(command, "\\r", "\r")
 	command = strings.ReplaceAll(command, "\\n", "\n")
-	res := ctx.GetSMTPClient("smtp").SendCommands(command)
-	ctx.SetSMTPLastResponse("smtp", res)
+	res := ctx.GetSMTPClient(clientName).SendCommands(command)
+	ctx.SetSMTPLastResponse(clientName, res)
 	return nil
 }

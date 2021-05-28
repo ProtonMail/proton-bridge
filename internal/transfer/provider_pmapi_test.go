@@ -19,6 +19,7 @@ package transfer
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"testing"
 	"time"
@@ -33,7 +34,7 @@ func TestPMAPIProviderMailboxes(t *testing.T) {
 	defer m.ctrl.Finish()
 
 	setupPMAPIClientExpectationForExport(&m)
-	provider, err := NewPMAPIProvider(m.clientManager, "user", "addressID")
+	provider, err := NewPMAPIProvider(m.pmapiClient, "user", "addressID")
 	r.NoError(t, err)
 
 	tests := []struct {
@@ -78,7 +79,7 @@ func TestPMAPIProviderTransferTo(t *testing.T) {
 	defer m.ctrl.Finish()
 
 	setupPMAPIClientExpectationForExport(&m)
-	provider, err := NewPMAPIProvider(m.clientManager, "user", "addressID")
+	provider, err := NewPMAPIProvider(m.pmapiClient, "user", "addressID")
 	r.NoError(t, err)
 
 	rules, rulesClose := newTestRules(t)
@@ -96,7 +97,7 @@ func TestPMAPIProviderTransferFrom(t *testing.T) {
 	defer m.ctrl.Finish()
 
 	setupPMAPIClientExpectationForImport(&m)
-	provider, err := NewPMAPIProvider(m.clientManager, "user", "addressID")
+	provider, err := NewPMAPIProvider(m.pmapiClient, "user", "addressID")
 	r.NoError(t, err)
 
 	rules, rulesClose := newTestRules(t)
@@ -114,7 +115,7 @@ func TestPMAPIProviderTransferFromDraft(t *testing.T) {
 	defer m.ctrl.Finish()
 
 	setupPMAPIClientExpectationForImportDraft(&m)
-	provider, err := NewPMAPIProvider(m.clientManager, "user", "addressID")
+	provider, err := NewPMAPIProvider(m.pmapiClient, "user", "addressID")
 	r.NoError(t, err)
 
 	rules, rulesClose := newTestRules(t)
@@ -133,9 +134,9 @@ func TestPMAPIProviderTransferFromTo(t *testing.T) {
 	setupPMAPIClientExpectationForExport(&m)
 	setupPMAPIClientExpectationForImport(&m)
 
-	source, err := NewPMAPIProvider(m.clientManager, "user", "addressID")
+	source, err := NewPMAPIProvider(m.pmapiClient, "user", "addressID")
 	r.NoError(t, err)
-	target, err := NewPMAPIProvider(m.clientManager, "user", "addressID")
+	target, err := NewPMAPIProvider(m.pmapiClient, "user", "addressID")
 	r.NoError(t, err)
 
 	rules, rulesClose := newTestRules(t)
@@ -151,22 +152,22 @@ func setupPMAPIRules(rules transferRules) {
 
 func setupPMAPIClientExpectationForExport(m *mocks) {
 	m.pmapiClient.EXPECT().KeyRingForAddressID(gomock.Any()).Return(m.keyring, nil).AnyTimes()
-	m.pmapiClient.EXPECT().ListLabels().Return([]*pmapi.Label{
-		{ID: "label1", Name: "Foo", Color: "blue", Exclusive: 0, Order: 2},
-		{ID: "label2", Name: "Bar", Color: "green", Exclusive: 0, Order: 1},
-		{ID: "folder1", Name: "One", Color: "red", Exclusive: 1, Order: 1},
-		{ID: "folder2", Name: "Two", Color: "orange", Exclusive: 1, Order: 2},
+	m.pmapiClient.EXPECT().ListLabels(gomock.Any()).Return([]*pmapi.Label{
+		{ID: "label1", Name: "Foo", Color: "blue", Exclusive: false, Order: 2},
+		{ID: "label2", Name: "Bar", Color: "green", Exclusive: false, Order: 1},
+		{ID: "folder1", Name: "One", Color: "red", Exclusive: true, Order: 1},
+		{ID: "folder2", Name: "Two", Color: "orange", Exclusive: true, Order: 2},
 	}, nil).AnyTimes()
-	m.pmapiClient.EXPECT().CountMessages(gomock.Any()).Return([]*pmapi.MessagesCount{
+	m.pmapiClient.EXPECT().CountMessages(gomock.Any(), gomock.Any()).Return([]*pmapi.MessagesCount{
 		{LabelID: "label1", Total: 10},
 		{LabelID: "label2", Total: 0},
 		{LabelID: "folder1", Total: 20},
 	}, nil).AnyTimes()
-	m.pmapiClient.EXPECT().ListMessages(gomock.Any()).Return([]*pmapi.Message{
+	m.pmapiClient.EXPECT().ListMessages(gomock.Any(), gomock.Any()).Return([]*pmapi.Message{
 		{ID: "msg1"},
 		{ID: "msg2"},
 	}, 2, nil).AnyTimes()
-	m.pmapiClient.EXPECT().GetMessage(gomock.Any()).DoAndReturn(func(msgID string) (*pmapi.Message, error) {
+	m.pmapiClient.EXPECT().GetMessage(gomock.Any(), gomock.Any()).DoAndReturn(func(_ context.Context, msgID string) (*pmapi.Message, error) {
 		return &pmapi.Message{
 			ID:       msgID,
 			Body:     string(getTestMsgBody(msgID)),
@@ -177,11 +178,11 @@ func setupPMAPIClientExpectationForExport(m *mocks) {
 
 func setupPMAPIClientExpectationForImport(m *mocks) {
 	m.pmapiClient.EXPECT().KeyRingForAddressID(gomock.Any()).Return(m.keyring, nil).AnyTimes()
-	m.pmapiClient.EXPECT().Import(gomock.Any()).DoAndReturn(func(requests []*pmapi.ImportMsgReq) ([]*pmapi.ImportMsgRes, error) {
+	m.pmapiClient.EXPECT().Import(gomock.Any(), gomock.Any()).DoAndReturn(func(_ context.Context, requests pmapi.ImportMsgReqs) ([]*pmapi.ImportMsgRes, error) {
 		results := []*pmapi.ImportMsgRes{}
 		for _, request := range requests {
 			for _, msgID := range []string{"msg1", "msg2"} {
-				if bytes.Contains(request.Body, []byte(msgID)) {
+				if bytes.Contains(request.Message, []byte(msgID)) {
 					results = append(results, &pmapi.ImportMsgRes{MessageID: msgID, Error: nil})
 				}
 			}
@@ -192,7 +193,7 @@ func setupPMAPIClientExpectationForImport(m *mocks) {
 
 func setupPMAPIClientExpectationForImportDraft(m *mocks) {
 	m.pmapiClient.EXPECT().KeyRingForAddressID(gomock.Any()).Return(m.keyring, nil).AnyTimes()
-	m.pmapiClient.EXPECT().CreateDraft(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(func(msg *pmapi.Message, parentID string, action int) (*pmapi.Message, error) {
+	m.pmapiClient.EXPECT().CreateDraft(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(func(_ context.Context, msg *pmapi.Message, parentID string, action int) (*pmapi.Message, error) {
 		r.Equal(m.t, msg.Subject, "draft1")
 		msg.ID = "draft1"
 		return msg, nil

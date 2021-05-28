@@ -90,7 +90,7 @@ func getLabelPrefix(l *pmapi.Label) string {
 	switch {
 	case pmapi.IsSystemLabel(l.ID):
 		return ""
-	case l.Exclusive == 1:
+	case bool(l.Exclusive):
 		return UserFoldersPrefix
 	default:
 		return UserLabelsPrefix

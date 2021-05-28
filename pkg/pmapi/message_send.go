@@ -18,10 +18,12 @@
 package pmapi
 
 import (
+	"context"
 	"encoding/base64"
 	"errors"
 
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
+	"github.com/go-resty/resty/v2"
 )
 
 // Draft actions.
@@ -73,21 +75,23 @@ type DraftReq struct {
 	AttachmentKeyPackets []string
 }
 
-func (c *client) CreateDraft(m *Message, parent string, action int) (created *Message, err error) {
-	createReq := &DraftReq{Message: m, ParentID: parent, Action: action, AttachmentKeyPackets: []string{}}
-
-	req, err := c.NewJSONRequest("POST", "/mail/v4/messages", createReq)
-	if err != nil {
-		return
+func (c *client) CreateDraft(ctx context.Context, m *Message, parent string, action int) (created *Message, err error) {
+	var res struct {
+		Message *Message
 	}
 
-	var res MessageRes
-	if err = c.DoJSON(req, &res); err != nil {
-		return
+	if _, err := c.do(ctx, func(r *resty.Request) (*resty.Response, error) {
+		return r.SetBody(&DraftReq{
+			Message:              m,
+			ParentID:             parent,
+			Action:               action,
+			AttachmentKeyPackets: []string{},
+		}).SetResult(&res).Post("/mail/v4/messages")
+	}); err != nil {
+		return nil, err
 	}
 
-	created, err = res.Message, res.Err()
-	return
+	return res.Message, nil
 }
 
 type AlgoKey struct {
@@ -335,35 +339,25 @@ func (req *SendMessageReq) PreparePackages() {
 	}
 }
 
-type SendMessageRes struct {
-	Res
-
-	Sent *Message
-
-	// Parent is only present if the sent message has a parent (reply/reply all/forward).
-	Parent *Message
-}
-
-func (c *client) SendMessage(id string, sendReq *SendMessageReq) (sent, parent *Message, err error) {
-	if id == "" {
-		err = errors.New("pmapi: cannot send message with an empty id")
-		return
+func (c *client) SendMessage(ctx context.Context, draftID string, req *SendMessageReq) (*Message, *Message, error) {
+	if draftID == "" {
+		return nil, nil, errors.New("pmapi: cannot send message with an empty draftID")
 	}
 
-	if sendReq.Packages == nil {
-		sendReq.Packages = []*MessagePackage{}
+	if req.Packages == nil {
+		req.Packages = []*MessagePackage{}
 	}
 
-	req, err := c.NewJSONRequest("POST", "/mail/v4/messages/"+id, sendReq)
-	if err != nil {
-		return
+	var res struct {
+		Sent   *Message
+		Parent *Message
 	}
 
-	var res SendMessageRes
-	if err = c.DoJSON(req, &res); err != nil {
-		return
+	if _, err := c.do(ctx, func(r *resty.Request) (*resty.Response, error) {
+		return r.SetBody(req).SetResult(&res).Post("/mail/v4/messages/" + draftID)
+	}); err != nil {
+		return nil, nil, err
 	}
 
-	sent, parent, err = res.Sent, res.Parent, res.Err()
-	return
+	return res.Sent, res.Parent, nil
 }

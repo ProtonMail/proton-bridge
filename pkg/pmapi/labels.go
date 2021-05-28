@@ -18,8 +18,11 @@
 package pmapi
 
 import (
+	"context"
 	"errors"
-	"fmt"
+	"strconv"
+
+	"github.com/go-resty/resty/v2"
 )
 
 // System labels.
@@ -72,120 +75,97 @@ var LabelColors = []string{ //nolint[gochecknoglobals]
 	"#dfb286",
 }
 
-type LabelAction int
-
-const (
-	RemoveLabel LabelAction = iota
-	AddLabel
-)
-
 // Label for message.
-type Label struct {
+type Label struct { //nolint[maligned]
 	ID        string
 	Name      string
 	Path      string
 	Color     string
 	Order     int `json:",omitempty"`
 	Display   int // Not used for now, leave it empty.
-	Exclusive int
+	Exclusive Boolean
 	Type      int
-	Notify    int
+	Notify    Boolean
 }
 
-type LabelListRes struct {
-	Res
-	Labels []*Label
+func (c *client) ListLabels(ctx context.Context) (labels []*Label, err error) {
+	return c.listLabelType(ctx, LabelTypeMailbox)
 }
 
-func (c *client) ListLabels() (labels []*Label, err error) {
-	return c.ListLabelType(LabelTypeMailbox)
+func (c *client) ListContactGroups(ctx context.Context) (labels []*Label, err error) {
+	return c.listLabelType(ctx, LabelTypeContactGroup)
 }
 
-func (c *client) ListContactGroups() (labels []*Label, err error) {
-	return c.ListLabelType(LabelTypeContactGroup)
-}
-
-// ListLabelType lists all labels created by the user.
-func (c *client) ListLabelType(labelType int) (labels []*Label, err error) {
-	req, err := c.NewRequest("GET", fmt.Sprintf("/labels?%d", labelType), nil)
-	if err != nil {
-		return
+// listLabelType lists all labels created by the user.
+func (c *client) listLabelType(ctx context.Context, labelType int) (labels []*Label, err error) {
+	var res struct {
+		Labels []*Label
 	}
 
-	var res LabelListRes
-	if err = c.DoJSON(req, &res); err != nil {
-		return
+	if _, err := c.do(ctx, func(r *resty.Request) (*resty.Response, error) {
+		return r.SetQueryParam("Type", strconv.Itoa(labelType)).SetResult(&res).Get("/labels")
+	}); err != nil {
+		return nil, err
 	}
 
-	labels, err = res.Labels, res.Err()
-	return
+	return res.Labels, nil
 }
 
 type LabelReq struct {
 	*Label
 }
 
-type LabelRes struct {
-	Res
-	Label *Label
-}
-
 // CreateLabel creates a new label.
-func (c *client) CreateLabel(label *Label) (created *Label, err error) {
+func (c *client) CreateLabel(ctx context.Context, label *Label) (created *Label, err error) {
 	if label.Name == "" {
 		return nil, errors.New("name is required")
 	}
 
-	labelReq := &LabelReq{label}
-	req, err := c.NewJSONRequest("POST", "/labels", labelReq)
-	if err != nil {
-		return
+	var res struct {
+		Label *Label
 	}
 
-	var res LabelRes
-	if err = c.DoJSON(req, &res); err != nil {
-		return
+	if _, err := c.do(ctx, func(r *resty.Request) (*resty.Response, error) {
+		return r.SetBody(&LabelReq{
+			Label: label,
+		}).SetResult(&res).Post("/labels")
+	}); err != nil {
+		return nil, err
 	}
 
-	created, err = res.Label, res.Err()
-	return
+	return res.Label, nil
 }
 
 // UpdateLabel updates a label.
-func (c *client) UpdateLabel(label *Label) (updated *Label, err error) {
+func (c *client) UpdateLabel(ctx context.Context, label *Label) (updated *Label, err error) {
 	if label.Name == "" {
 		return nil, errors.New("name is required")
 	}
 
-	labelReq := &LabelReq{label}
-	req, err := c.NewJSONRequest("PUT", "/labels/"+label.ID, labelReq)
-	if err != nil {
-		return
+	var res struct {
+		Label *Label
 	}
 
-	var res LabelRes
-	if err = c.DoJSON(req, &res); err != nil {
-		return
+	if _, err := c.do(ctx, func(r *resty.Request) (*resty.Response, error) {
+		return r.SetBody(&LabelReq{
+			Label: label,
+		}).SetResult(&res).Put("/labels/" + label.ID)
+	}); err != nil {
+		return nil, err
 	}
 
-	updated, err = res.Label, res.Err()
-	return
+	return res.Label, nil
 }
 
 // DeleteLabel deletes a label.
-func (c *client) DeleteLabel(id string) (err error) {
-	req, err := c.NewRequest("DELETE", "/labels/"+id, nil)
-	if err != nil {
-		return
+func (c *client) DeleteLabel(ctx context.Context, labelID string) error {
+	if _, err := c.do(ctx, func(r *resty.Request) (*resty.Response, error) {
+		return r.Delete("/labels/" + labelID)
+	}); err != nil {
+		return err
 	}
 
-	var res Res
-	if err = c.DoJSON(req, &res); err != nil {
-		return
-	}
-
-	err = res.Err()
-	return
+	return nil
 }
 
 // LeastUsedColor is intended to return color for creating a new inbox or label.

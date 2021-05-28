@@ -18,6 +18,7 @@
 package updater
 
 import (
+	"bytes"
 	"encoding/json"
 	"io"
 
@@ -31,10 +32,6 @@ import (
 
 var ErrManualUpdateRequired = errors.New("manual update is required")
 
-type ClientProvider interface {
-	GetAnonymousClient() pmapi.Client
-}
-
 type Installer interface {
 	InstallUpdate(*semver.Version, io.Reader) error
 }
@@ -46,7 +43,7 @@ type Settings interface {
 }
 
 type Updater struct {
-	cm        ClientProvider
+	cm        pmapi.Manager
 	installer Installer
 	settings  Settings
 	kr        *crypto.KeyRing
@@ -59,7 +56,7 @@ type Updater struct {
 }
 
 func New(
-	cm ClientProvider,
+	cm pmapi.Manager,
 	installer Installer,
 	s Settings,
 	kr *crypto.KeyRing,
@@ -87,13 +84,10 @@ func New(
 func (u *Updater) Check() (VersionInfo, error) {
 	logrus.Info("Checking for updates")
 
-	client := u.cm.GetAnonymousClient()
-	defer client.Logout()
-
-	r, err := client.DownloadAndVerify(
+	b, err := u.cm.DownloadAndVerify(
+		u.kr,
 		u.getVersionFileURL(),
 		u.getVersionFileURL()+".sig",
-		u.kr,
 	)
 	if err != nil {
 		return VersionInfo{}, err
@@ -101,7 +95,7 @@ func (u *Updater) Check() (VersionInfo, error) {
 
 	var versionMap VersionMap
 
-	if err := json.NewDecoder(r).Decode(&versionMap); err != nil {
+	if err := json.Unmarshal(b, &versionMap); err != nil {
 		return VersionInfo{}, err
 	}
 
@@ -141,15 +135,12 @@ func (u *Updater) InstallUpdate(update VersionInfo) error {
 	return u.locker.doOnce(func() error {
 		logrus.WithField("package", update.Package).Info("Installing update package")
 
-		client := u.cm.GetAnonymousClient()
-		defer client.Logout()
-
-		r, err := client.DownloadAndVerify(update.Package, update.Package+".sig", u.kr)
+		b, err := u.cm.DownloadAndVerify(u.kr, update.Package, update.Package+".sig")
 		if err != nil {
 			return errors.Wrap(ErrDownloadVerify, err.Error())
 		}
 
-		if err := u.installer.InstallUpdate(update.Version, r); err != nil {
+		if err := u.installer.InstallUpdate(update.Version, bytes.NewReader(b)); err != nil {
 			return errors.Wrap(ErrInstall, err.Error())
 		}
 

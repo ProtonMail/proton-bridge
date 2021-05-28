@@ -18,6 +18,7 @@
 package store
 
 import (
+	"context"
 	"sort"
 	"strconv"
 	"sync"
@@ -34,7 +35,7 @@ type mockLister struct {
 	messageIDs []string
 }
 
-func (m *mockLister) ListMessages(filter *pmapi.MessagesFilter) (msgs []*pmapi.Message, total int, err error) {
+func (m *mockLister) ListMessages(_ context.Context, filter *pmapi.MessagesFilter) (msgs []*pmapi.Message, total int, err error) {
 	if m.err != nil {
 		return nil, 0, m.err
 	}
@@ -197,7 +198,7 @@ func TestSyncAllMail(t *testing.T) { //nolint[funlen]
 
 			syncState := newSyncState(store, 0, tc.idRanges, tc.idsToBeDeleted)
 
-			err := syncAllMail(m.panicHandler, store, func() messageLister { return api }, syncState)
+			err := syncAllMail(m.panicHandler, store, api, syncState)
 			require.Nil(t, err)
 
 			// Check all messages were created or updated.
@@ -245,7 +246,7 @@ func TestSyncAllMail_FailedListing(t *testing.T) {
 	}
 	syncState := newTestSyncState(store)
 
-	err := syncAllMail(m.panicHandler, store, func() messageLister { return api }, syncState)
+	err := syncAllMail(m.panicHandler, store, api, syncState)
 	require.EqualError(t, err, "failed to sync group: failed to list messages: error")
 }
 
@@ -264,7 +265,7 @@ func TestSyncAllMail_FailedCreateOrUpdateMessage(t *testing.T) {
 	}
 	syncState := newTestSyncState(store)
 
-	err := syncAllMail(m.panicHandler, store, func() messageLister { return api }, syncState)
+	err := syncAllMail(m.panicHandler, store, api, syncState)
 	require.EqualError(t, err, "failed to sync group: failed to create or update messages: error")
 }
 

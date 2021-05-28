@@ -19,6 +19,7 @@ package transfer
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -51,15 +52,10 @@ func (p *PMAPIProvider) CreateMailbox(mailbox Mailbox) (Mailbox, error) {
 		return Mailbox{}, errors.New("mailbox is already created")
 	}
 
-	exclusive := 0
-	if mailbox.IsExclusive {
-		exclusive = 1
-	}
-
-	label, err := p.client().CreateLabel(&pmapi.Label{
+	label, err := p.client.CreateLabel(context.Background(), &pmapi.Label{
 		Name:      mailbox.Name,
 		Color:     mailbox.Color,
-		Exclusive: exclusive,
+		Exclusive: pmapi.Boolean(mailbox.IsExclusive),
 		Type:      pmapi.LabelTypeMailbox,
 	})
 	if err != nil {
@@ -118,10 +114,18 @@ func (p *PMAPIProvider) transferDraft(rules transferRules, progress *Progress, m
 	progress.messageImported(msg.ID, importedID, err)
 }
 
-func (p *PMAPIProvider) importDraft(msg Message, globalMailbox *Mailbox) (string, error) {
+func (p *PMAPIProvider) importDraft(msg Message, globalMailbox *Mailbox) (string, error) { //nolint[funlen]
 	message, attachmentReaders, err := p.parseMessage(msg)
 	if err != nil {
 		return "", errors.Wrap(err, "failed to parse message")
+	}
+
+	if message.Sender == nil {
+		mainAddress := p.client.Addresses().Main()
+		message.Sender = &mail.Address{
+			Name:    mainAddress.DisplayName,
+			Address: mainAddress.Email,
+		}
 	}
 
 	// Trying to encrypt an encrypted draft will return an error;
@@ -186,7 +190,7 @@ func (p *PMAPIProvider) transferMessage(rules transferRules, progress *Progress,
 		return
 	}
 
-	importMsgReqSize := len(importMsgReq.Body)
+	importMsgReqSize := len(importMsgReq.Message)
 	if p.nextImportRequestsSize+importMsgReqSize > pmapiImportBatchMaxSize || len(p.nextImportRequests) == pmapiImportBatchMaxItems {
 		preparedImportRequestsCh <- p.nextImportRequests
 		p.nextImportRequests = map[string]*pmapi.ImportMsgReq{}
@@ -218,11 +222,6 @@ func (p *PMAPIProvider) generateImportMsgReq(rules transferRules, progress *Prog
 		}
 	}
 
-	unread := 0
-	if msg.Unread {
-		unread = 1
-	}
-
 	labelIDs := []string{}
 	for _, target := range msg.Targets {
 		// Frontend should not set All Mail to Rules, but to be sure...
@@ -235,12 +234,14 @@ func (p *PMAPIProvider) generateImportMsgReq(rules transferRules, progress *Prog
 	}
 
 	return &pmapi.ImportMsgReq{
-		AddressID: p.addressID,
-		Body:      body,
-		Unread:    unread,
-		Time:      message.Time,
-		Flags:     computeMessageFlags(message.Header),
-		LabelIDs:  labelIDs,
+		Metadata: &pmapi.ImportMetadata{
+			AddressID: p.addressID,
+			Unread:    pmapi.Boolean(msg.Unread),
+			Time:      message.Time,
+			Flags:     computeMessageFlags(message.Header),
+			LabelIDs:  labelIDs,
+		},
+		Message: body,
 	}, nil
 }
 
@@ -285,7 +286,7 @@ func (p *PMAPIProvider) importMessages(progress *Progress, importRequests map[st
 	}
 
 	importMsgIDs := []string{}
-	importMsgRequests := []*pmapi.ImportMsgReq{}
+	importMsgRequests := pmapi.ImportMsgReqs{}
 	for msgID, req := range importRequests {
 		importMsgIDs = append(importMsgIDs, msgID)
 		importMsgRequests = append(importMsgRequests, req)
@@ -319,7 +320,7 @@ func (p *PMAPIProvider) importMessages(progress *Progress, importRequests map[st
 
 func (p *PMAPIProvider) importMessage(msgSourceID string, progress *Progress, req *pmapi.ImportMsgReq) (importedID string, importedErr error) {
 	progress.callWrap(func() error {
-		results, err := p.importRequest(msgSourceID, []*pmapi.ImportMsgReq{req})
+		results, err := p.importRequest(msgSourceID, pmapi.ImportMsgReqs{req})
 		if err != nil {
 			return errors.Wrap(err, "failed to import messages")
 		}

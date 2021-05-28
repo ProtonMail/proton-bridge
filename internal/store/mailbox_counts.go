@@ -129,15 +129,8 @@ func (mc *mailboxCounts) getPMLabel() *pmapi.Label {
 		Color:     mc.Color,
 		Order:     mc.Order,
 		Type:      pmapi.LabelTypeMailbox,
-		Exclusive: mc.isExclusive(),
+		Exclusive: pmapi.Boolean(mc.IsFolder),
 	}
-}
-
-func (mc *mailboxCounts) isExclusive() int {
-	if mc.IsFolder {
-		return 1
-	}
-	return 0
 }
 
 // createOrUpdateMailboxCountsBuckets will not change the on-API-counts.
@@ -162,7 +155,7 @@ func (store *Store) createOrUpdateMailboxCountsBuckets(labels []*pmapi.Label) er
 			mailbox.LabelName = label.Path
 			mailbox.Color = label.Color
 			mailbox.Order = label.Order
-			mailbox.IsFolder = label.Exclusive == 1
+			mailbox.IsFolder = bool(label.Exclusive)
 
 			// Write.
 			if err = mailbox.txWriteToBucket(countsBkt); err != nil {

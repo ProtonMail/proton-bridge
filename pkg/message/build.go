@@ -40,8 +40,8 @@ type Builder struct {
 }
 
 type Fetcher interface {
-	GetMessage(string) (*pmapi.Message, error)
-	GetAttachment(string) (io.ReadCloser, error)
+	GetMessage(context.Context, string) (*pmapi.Message, error)
+	GetAttachment(context.Context, string) (io.ReadCloser, error)
 	KeyRingForAddressID(string) (*crypto.KeyRing, error)
 }
 

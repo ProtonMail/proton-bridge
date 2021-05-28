@@ -75,7 +75,7 @@ func TestMailboxNames(t *testing.T) {
 		newLabel(100, "labelID1", "Label1"),
 		newLabel(1000, "folderID1", "Folder1"),
 	}
-	foldersAndLabels[1].Exclusive = 1
+	foldersAndLabels[1].Exclusive = true
 
 	for _, counts := range getSystemFolders() {
 		foldersAndLabels = append(foldersAndLabels, counts.getPMLabel())

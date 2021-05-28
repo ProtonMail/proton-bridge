@@ -39,7 +39,7 @@ func NewStore(keychain *keychain.Keychain) *Store {
 	return &Store{secrets: keychain}
 }
 
-func (s *Store) Add(userID, userName, apiToken, mailboxPassword string, emails []string) (creds *Credentials, err error) {
+func (s *Store) Add(userID, userName, uid, ref, mailboxPassword string, emails []string) (*Credentials, error) {
 	storeLocker.Lock()
 	defer storeLocker.Unlock()
 
@@ -49,10 +49,10 @@ func (s *Store) Add(userID, userName, apiToken, mailboxPassword string, emails [
 		"emails":   emails,
 	}).Trace("Adding new credentials")
 
-	creds = &Credentials{
+	creds := &Credentials{
 		UserID:          userID,
 		Name:            userName,
-		APIToken:        apiToken,
+		APIToken:        uid + ":" + ref,
 		MailboxPassword: mailboxPassword,
 		IsHidden:        false,
 	}
@@ -72,82 +72,82 @@ func (s *Store) Add(userID, userName, apiToken, mailboxPassword string, emails [
 		creds.Timestamp = time.Now().Unix()
 	}
 
-	if err = s.saveCredentials(creds); err != nil {
-		return
+	if err := s.saveCredentials(creds); err != nil {
+		return nil, err
 	}
 
-	return creds, err
+	return creds, nil
 }
 
-func (s *Store) SwitchAddressMode(userID string) error {
+func (s *Store) SwitchAddressMode(userID string) (*Credentials, error) {
 	storeLocker.Lock()
 	defer storeLocker.Unlock()
 
 	credentials, err := s.get(userID)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	credentials.IsCombinedAddressMode = !credentials.IsCombinedAddressMode
 	credentials.BridgePassword = generatePassword()
 
-	return s.saveCredentials(credentials)
+	return credentials, s.saveCredentials(credentials)
 }
 
-func (s *Store) UpdateEmails(userID string, emails []string) error {
+func (s *Store) UpdateEmails(userID string, emails []string) (*Credentials, error) {
 	storeLocker.Lock()
 	defer storeLocker.Unlock()
 
 	credentials, err := s.get(userID)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	credentials.SetEmailList(emails)
 
-	return s.saveCredentials(credentials)
+	return credentials, s.saveCredentials(credentials)
 }
 
-func (s *Store) UpdatePassword(userID, password string) error {
+func (s *Store) UpdatePassword(userID, password string) (*Credentials, error) {
 	storeLocker.Lock()
 	defer storeLocker.Unlock()
 
 	credentials, err := s.get(userID)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	credentials.MailboxPassword = password
 
-	return s.saveCredentials(credentials)
+	return credentials, s.saveCredentials(credentials)
 }
 
-func (s *Store) UpdateToken(userID, apiToken string) error {
+func (s *Store) UpdateToken(userID, uid, ref string) (*Credentials, error) {
 	storeLocker.Lock()
 	defer storeLocker.Unlock()
 
 	credentials, err := s.get(userID)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	credentials.APIToken = apiToken
+	credentials.APIToken = uid + ":" + ref
 
-	return s.saveCredentials(credentials)
+	return credentials, s.saveCredentials(credentials)
 }
 
-func (s *Store) Logout(userID string) error {
+func (s *Store) Logout(userID string) (*Credentials, error) {
 	storeLocker.Lock()
 	defer storeLocker.Unlock()
 
 	credentials, err := s.get(userID)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	credentials.Logout()
 
-	return s.saveCredentials(credentials)
+	return credentials, s.saveCredentials(credentials)
 }
 
 // List returns a list of usernames that have credentials stored.
@@ -233,7 +233,7 @@ func (s *Store) get(userID string) (creds *Credentials, err error) {
 
 	_, secret, err := s.secrets.Get(userID)
 	if err != nil {
-		log.WithError(err).Error("Could not get credentials from native keychain")
+		log.WithError(err).Warn("Could not get credentials from native keychain")
 		return
 	}
 
@@ -249,7 +249,7 @@ func (s *Store) get(userID string) (creds *Credentials, err error) {
 }
 
 // saveCredentials encrypts and saves password to the keychain store.
-func (s *Store) saveCredentials(credentials *Credentials) (err error) {
+func (s *Store) saveCredentials(credentials *Credentials) error {
 	credentials.Version = keychain.Version
 
 	return s.secrets.Put(credentials.UserID, credentials.Marshal())

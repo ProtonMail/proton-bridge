@@ -17,9 +17,13 @@
 
 package fakeapi
 
-import "github.com/ProtonMail/proton-bridge/pkg/pmapi"
+import (
+	"context"
 
-func (api *FakePMAPI) CountMessages(addressID string) ([]*pmapi.MessagesCount, error) {
+	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
+)
+
+func (api *FakePMAPI) CountMessages(_ context.Context, addressID string) ([]*pmapi.MessagesCount, error) {
 	if err := api.checkAndRecordCall(GET, "/mail/v4/messages/count?AddressID="+addressID, nil); err != nil {
 		return nil, err
 	}
@@ -39,14 +43,19 @@ func (api *FakePMAPI) getCounts(addressID string) []*pmapi.MessagesCount {
 		for _, labelID := range message.LabelIDs {
 			if counts, ok := allCounts[labelID]; ok {
 				counts.Total++
-				if message.Unread == 1 {
+				if message.Unread {
 					counts.Unread++
 				}
 			} else {
+				var unread int
+				if message.Unread {
+					unread = 1
+				}
+
 				allCounts[labelID] = &pmapi.MessagesCount{
 					LabelID: labelID,
 					Total:   1,
-					Unread:  message.Unread,
+					Unread:  unread,
 				}
 			}
 		}

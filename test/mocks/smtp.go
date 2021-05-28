@@ -30,6 +30,7 @@ import (
 
 	"github.com/ProtonMail/go-rfc5322"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -46,6 +47,12 @@ type SMTPClient struct {
 func NewSMTPClient(t TestingT, tag, smtpAddr string) *SMTPClient {
 	conn, err := net.Dial("tcp", smtpAddr)
 	require.NoError(t, err)
+	if err != nil {
+		return &SMTPClient{}
+	}
+	logrus.WithField("addr", conn.LocalAddr().String()).
+		WithField("tag", tag).
+		Debug("SMTP Dialed")
 	response := bufio.NewReader(conn)
 
 	// Read first response to opening connection.
@@ -85,6 +92,7 @@ func (c *SMTPClient) SendCommands(commands ...string) *SMTPResponse {
 		message, err := c.response.ReadString('\n')
 		if err != nil {
 			smtpResponse.err = fmt.Errorf("read response failed: %v", err)
+			c.debug.printErr(smtpResponse.err.Error() + "\n")
 			return smtpResponse
 		}
 

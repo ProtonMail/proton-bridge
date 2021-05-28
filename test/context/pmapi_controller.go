@@ -20,6 +20,8 @@ package context
 import (
 	"os"
 
+	"github.com/ProtonMail/proton-bridge/internal/events"
+	"github.com/ProtonMail/proton-bridge/pkg/listener"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	"github.com/ProtonMail/proton-bridge/test/fakeapi"
 	"github.com/ProtonMail/proton-bridge/test/liveapi"
@@ -39,37 +41,26 @@ type PMAPIController interface {
 	GetCalls(method, path string) [][]byte
 }
 
-func newPMAPIController(cm *pmapi.ClientManager) PMAPIController {
+func newPMAPIController(app string, listener listener.Listener) (PMAPIController, pmapi.Manager) {
 	switch os.Getenv(EnvName) {
 	case EnvFake:
-		return newFakePMAPIController(cm)
+		cntl, cm := fakeapi.NewController()
+		addConnectionObserver(cm, listener)
+		return cntl, cm
+
 	case EnvLive:
-		return newLivePMAPIController(cm)
+		cntl, cm := liveapi.NewController(app)
+		addConnectionObserver(cm, listener)
+		return cntl, cm
+
 	default:
 		panic("unknown env")
 	}
 }
 
-func newFakePMAPIController(cm *pmapi.ClientManager) PMAPIController {
-	return newFakePMAPIControllerWrap(fakeapi.NewController(cm))
-}
-
-type fakePMAPIControllerWrap struct {
-	*fakeapi.Controller
-}
-
-func newFakePMAPIControllerWrap(controller *fakeapi.Controller) PMAPIController {
-	return &fakePMAPIControllerWrap{Controller: controller}
-}
-
-func newLivePMAPIController(cm *pmapi.ClientManager) PMAPIController {
-	return newLiveAPIControllerWrap(liveapi.NewController(cm))
-}
-
-type liveAPIControllerWrap struct {
-	*liveapi.Controller
-}
-
-func newLiveAPIControllerWrap(controller *liveapi.Controller) PMAPIController {
-	return &liveAPIControllerWrap{Controller: controller}
+func addConnectionObserver(cm pmapi.Manager, listener listener.Listener) {
+	cm.AddConnectionObserver(pmapi.NewConnectionObserver(
+		func() { listener.Emit(events.InternetOffEvent, "") },
+		func() { listener.Emit(events.InternetOnEvent, "") },
+	))
 }

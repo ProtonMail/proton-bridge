@@ -34,7 +34,7 @@ func (sr *SMTPResponse) AssertOK() *SMTPResponse {
 
 func (sr *SMTPResponse) AssertError(wantErrMsg string) *SMTPResponse {
 	if sr.err == nil {
-		a.Fail(sr.t, "Expected error %s", wantErrMsg)
+		a.Fail(sr.t, "Error is nil", "Expected to have %q", wantErrMsg)
 	} else {
 		a.Regexp(sr.t, wantErrMsg, sr.err.Error(), "Expected error %s but got %s", wantErrMsg, sr.err)
 	}

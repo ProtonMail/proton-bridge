@@ -21,13 +21,12 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
-	"mime/multipart"
 	"net/textproto"
 
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
+	"github.com/go-resty/resty/v2"
 )
 
 type header textproto.MIMEHeader
@@ -138,138 +137,40 @@ func (a *Attachment) DetachedSign(kr *crypto.KeyRing, att io.Reader) (signed io.
 	return signAttachment(kr, att)
 }
 
-type CreateAttachmentRes struct {
-	Res
-
-	Attachment *Attachment
-}
-
-func writeAttachment(w *multipart.Writer, att *Attachment, r io.Reader, sig io.Reader) (err error) {
-	// Create metadata fields.
-	if err = w.WriteField("Filename", att.Name); err != nil {
-		return
-	}
-	if err = w.WriteField("MessageID", att.MessageID); err != nil {
-		return
-	}
-	if err = w.WriteField("MIMEType", att.MIMEType); err != nil {
-		return
-	}
-
-	if err = w.WriteField("ContentID", att.ContentID); err != nil {
-		return
-	}
-
-	// And send attachment data.
-	ff, err := w.CreateFormFile("DataPacket", "DataPacket.pgp")
-	if err != nil {
-		return
-	}
-	if _, err = io.Copy(ff, r); err != nil {
-		return
-	}
-
-	// And send attachment data.
-	sigff, err := w.CreateFormFile("Signature", "Signature.pgp")
-	if err != nil {
-		return
-	}
-
-	if _, err = io.Copy(sigff, sig); err != nil {
-		return
-	}
-
-	return err
-}
-
 // CreateAttachment uploads an attachment. It must be already encrypted and contain a MessageID.
 //
 // The returned created attachment contains the new attachment ID and its size.
-func (c *client) CreateAttachment(att *Attachment, r io.Reader, sig io.Reader) (*Attachment, error) {
-	req, w, err := c.NewMultipartRequest("POST", "/mail/v4/attachments")
-	if err != nil {
-		return nil, err
+func (c *client) CreateAttachment(ctx context.Context, att *Attachment, attData io.Reader, sigData io.Reader) (*Attachment, error) {
+	var res struct {
+		Attachment *Attachment
 	}
 
-	cx, cancel := context.WithCancel(req.Context())
-	defer cancel()
-	req = req.WithContext(cx)
-
-	// We will write the request as long as it is sent to the API.
-	var res CreateAttachmentRes
-	done := make(chan error, 1)
-	go (func() {
-		done <- c.DoJSON(req, &res)
-	})()
-
-	if err := writeAttachment(w.Writer, att, r, sig); err != nil {
-		_ = w.Close()
-		return nil, err
-	}
-	_ = w.Close()
-
-	if err := <-done; err != nil {
-		return nil, err
-	}
-	if err := res.Err(); err != nil {
+	if _, err := c.do(ctx, func(r *resty.Request) (*resty.Response, error) {
+		return r.SetResult(&res).
+			SetMultipartFormData(map[string]string{
+				"Filename":  att.Name,
+				"MessageID": att.MessageID,
+				"MIMEType":  att.MIMEType,
+				"ContentID": att.ContentID,
+			}).
+			SetMultipartField("DataPacket", "DataPacket.pgp", "application/octet-stream", attData).
+			SetMultipartField("Signature", "Signature.pgp", "application/octet-stream", sigData).
+			Post("/mail/v4/attachments")
+	}); err != nil {
 		return nil, err
 	}
 
 	return res.Attachment, nil
 }
 
-type UpdateAttachmentSignatureReq struct {
-	Signature string
-}
-
-func (c *client) UpdateAttachmentSignature(attachmentID, signature string) (err error) {
-	updateReq := &UpdateAttachmentSignatureReq{signature}
-	req, err := c.NewJSONRequest("PUT", "/mail/v4/attachments/"+attachmentID+"/signature", updateReq)
-	if err != nil {
-		return
-	}
-
-	var res Res
-	if err = c.DoJSON(req, &res); err != nil {
-		return
-	}
-
-	return
-}
-
-// DeleteAttachment removes an attachment. message is the message ID, att is the attachment ID.
-func (c *client) DeleteAttachment(attID string) (err error) {
-	req, err := c.NewRequest("DELETE", "/mail/v4/attachments/"+attID, nil)
-	if err != nil {
-		return
-	}
-
-	var res Res
-	if err = c.DoJSON(req, &res); err != nil {
-		return
-	}
-
-	err = res.Err()
-	return
-}
-
 // GetAttachment gets an attachment's content. The returned data is encrypted.
-func (c *client) GetAttachment(id string) (att io.ReadCloser, err error) {
-	if id == "" {
-		err = errors.New("pmapi: cannot get an attachment with an empty id")
-		return
-	}
-
-	req, err := c.NewRequest("GET", "/mail/v4/attachments/"+id, nil)
+func (c *client) GetAttachment(ctx context.Context, attachmentID string) (att io.ReadCloser, err error) {
+	res, err := c.do(ctx, func(r *resty.Request) (*resty.Response, error) {
+		return r.SetDoNotParseResponse(true).Get("/mail/v4/attachments/" + attachmentID)
+	})
 	if err != nil {
-		return
+		return nil, err
 	}
 
-	res, err := c.Do(req, true)
-	if err != nil {
-		return
-	}
-
-	att = res.Body
-	return
+	return res.RawBody(), nil
 }

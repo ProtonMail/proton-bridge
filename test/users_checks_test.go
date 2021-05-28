@@ -34,8 +34,6 @@ func UsersChecksFeatureContext(s *godog.Suite) {
 	s.Step(`^"([^"]*)" does not have loaded store$`, userDoesNotHaveLoadedStore)
 	s.Step(`^"([^"]*)" has running event loop$`, userHasRunningEventLoop)
 	s.Step(`^"([^"]*)" does not have running event loop$`, userDoesNotHaveRunningEventLoop)
-	s.Step(`^"([^"]*)" does not have API auth$`, isNotAuthorized)
-	s.Step(`^"([^"]*)" has API auth$`, isAuthorized)
 }
 
 func userHasAddressModeInMode(bddUserID, wantAddressMode string) error {
@@ -156,34 +154,11 @@ func userDoesNotHaveRunningEventLoop(bddUserID string) error {
 	if err != nil {
 		return internalError(err, "getting store of %s", account.Username())
 	}
+	if store == nil {
+		return nil
+	}
 	a.Eventually(ctx.GetTestingT(), func() bool {
 		return store.TestGetEventLoop() == nil || !store.TestGetEventLoop().IsRunning()
 	}, 5*time.Second, 10*time.Millisecond)
-	return ctx.GetTestingError()
-}
-
-func isAuthorized(bddUserID string) error {
-	account := ctx.GetTestAccount(bddUserID)
-	if account == nil {
-		return godog.ErrPending
-	}
-	user, err := ctx.GetUser(account.Username())
-	if err != nil {
-		return internalError(err, "getting user %s", account.Username())
-	}
-	a.Eventually(ctx.GetTestingT(), user.IsAuthorized, 5*time.Second, 10*time.Millisecond)
-	return ctx.GetTestingError()
-}
-
-func isNotAuthorized(bddUserID string) error {
-	account := ctx.GetTestAccount(bddUserID)
-	if account == nil {
-		return godog.ErrPending
-	}
-	user, err := ctx.GetUser(account.Username())
-	if err != nil {
-		return internalError(err, "getting user %s", account.Username())
-	}
-	a.Eventually(ctx.GetTestingT(), func() bool { return !user.IsAuthorized() }, 5*time.Second, 10*time.Millisecond)
 	return ctx.GetTestingError()
 }

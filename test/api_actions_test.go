@@ -26,7 +26,7 @@ import (
 func APIActionsFeatureContext(s *godog.Suite) {
 	s.Step(`^the internet connection is lost$`, theInternetConnectionIsLost)
 	s.Step(`^the internet connection is restored$`, theInternetConnectionIsRestored)
-	s.Step(`^(\d+) seconds pass$`, secondsPass)
+	s.Step(`^(\d+) second[s]? pass$`, secondsPass)
 }
 
 func theInternetConnectionIsLost() error {

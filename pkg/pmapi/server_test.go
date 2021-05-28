@@ -22,16 +22,16 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
-	"net/url"
 	"os"
 	"path/filepath"
-	"reflect"
 	"regexp"
 	"runtime"
 	"strconv"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/go-multierror"
+	r "github.com/stretchr/testify/require"
 )
 
 var (
@@ -40,53 +40,21 @@ var (
 	reHTTPCode = regexp.MustCompile(`(HTTP|get|post|put|delete)_(\d{3}).*.json`)
 )
 
-// Assert fails the test if the condition is false.
-func Assert(tb testing.TB, condition bool, msg string, v ...interface{}) {
-	if !condition {
-		_, file, line, _ := runtime.Caller(1)
-		vv := []interface{}{filepath.Base(file), line, colRed}
-		vv = append(vv, v...)
-		vv = append(vv, colNon)
-		fmt.Printf("%s:%d: %s"+msg+"%s\n\n", vv...)
-		tb.FailNow()
+func newTestConfig(url string) Config {
+	return Config{
+		HostURL:    url,
+		AppVersion: "GoPMAPI_1.0.14",
 	}
 }
 
-// Ok fails the test if an err is not nil.
-func Ok(tb testing.TB, err error) {
-	if err != nil {
-		_, file, line, _ := runtime.Caller(1)
-		fmt.Printf("%s:%d: %sunexpected error: %s%s\n\n", filepath.Base(file), line, colRed, err.Error(), colNon)
-		tb.FailNow()
-	}
-}
-
-// Equals fails the test if exp is not equal to act.
-func Equals(tb testing.TB, exp, act interface{}) {
-	if !reflect.DeepEqual(exp, act) {
-		_, file, line, _ := runtime.Caller(1)
-		fmt.Printf("%s:%d:\n\n%s\texp: %#v\n\n\tgot: %#v%s\n\n", filepath.Base(file), line, colRed, exp, act, colNon)
-		tb.FailNow()
-	}
-}
-
-// newTestServer is old function and should be replaced everywhere by newTestServerCallbacks.
-func newTestServer(h http.Handler) (*httptest.Server, *client) {
+// newTestClient is old function and should be replaced everywhere by newTestClientCallbacks.
+func newTestClient(h http.Handler) (*httptest.Server, Client) {
 	s := httptest.NewServer(h)
 
-	serverURL, err := url.Parse(s.URL)
-	if err != nil {
-		panic(err)
-	}
-
-	cm := newTestClientManager(testClientConfig)
-	cm.host = serverURL.Host
-	cm.scheme = serverURL.Scheme
-
-	return s, newTestClient(cm)
+	return s, newManager(newTestConfig(s.URL)).NewClient(testUID, testAccessToken, testRefreshToken, time.Now().Add(time.Hour))
 }
 
-func newTestServerCallbacks(tb testing.TB, callbacks ...func(testing.TB, http.ResponseWriter, *http.Request) string) (func(), *client) {
+func newTestClientCallbacks(tb testing.TB, callbacks ...func(testing.TB, http.ResponseWriter, *http.Request) string) (func(), Client) {
 	reqNum := 0
 	_, file, line, _ := runtime.Caller(1)
 	file = filepath.Base(file)
@@ -95,7 +63,7 @@ func newTestServerCallbacks(tb testing.TB, callbacks ...func(testing.TB, http.Re
 		reqNum++
 		if reqNum > len(callbacks) {
 			fmt.Printf(
-				"%s:%d: %sServer was requeted %d times which is more requests than expected %d%s\n\n",
+				"%s:%d: %sServer was requested %d times which is more requests than expected %d times%s\n\n",
 				file, line, colRed, reqNum, len(callbacks), colNon,
 			)
 			tb.FailNow()
@@ -105,11 +73,6 @@ func newTestServerCallbacks(tb testing.TB, callbacks ...func(testing.TB, http.Re
 			writeJSONResponsefromFile(tb, w, response, reqNum-1)
 		}
 	}))
-
-	serverURL, err := url.Parse(server.URL)
-	if err != nil {
-		panic(err)
-	}
 
 	finish := func() {
 		server.CloseClientConnections() // Closing without waiting for finishing requests.
@@ -122,11 +85,7 @@ func newTestServerCallbacks(tb testing.TB, callbacks ...func(testing.TB, http.Re
 		}
 	}
 
-	cm := newTestClientManager(testClientConfig)
-	cm.host = serverURL.Host
-	cm.scheme = serverURL.Scheme
-
-	return finish, newTestClient(cm)
+	return finish, newManager(newTestConfig(server.URL)).NewClient(testUID, testAccessToken, testRefreshToken, time.Now().Add(time.Hour))
 }
 
 func checkMethodAndPath(r *http.Request, method, path string) error {
@@ -145,22 +104,18 @@ func checkMethodAndPath(r *http.Request, method, path string) error {
 	return result.ErrorOrNil()
 }
 
-func httpResponse(code int) string {
-	return fmt.Sprintf("HTTP_%d.json", code)
-}
-
 func writeJSONResponsefromFile(tb testing.TB, w http.ResponseWriter, response string, reqNum int) {
 	if match := reHTTPCode.FindAllSubmatch([]byte(response), -1); len(match) != 0 {
 		httpCode, err := strconv.Atoi(string(match[0][len(match[0])-1]))
-		Ok(tb, err)
+		r.NoError(tb, err)
 		w.WriteHeader(httpCode)
 	}
 	f, err := os.Open("./testdata/routes/" + response)
-	Ok(tb, err)
+	r.NoError(tb, err)
 	w.Header().Set("content-type", "application/json;charset=utf-8")
 	w.Header().Set("x-test-pmapi-response", fmt.Sprintf("%s:%d", tb.Name(), reqNum))
 	_, err = io.Copy(w, f)
-	Ok(tb, err)
+	r.NoError(tb, err)
 }
 
 func checkHeader(h http.Header, field, exp string) error {

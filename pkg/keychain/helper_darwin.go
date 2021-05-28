@@ -105,6 +105,10 @@ func (h *macOSHelper) Get(secretURL string) (string, string, error) {
 		return "", "", err
 	}
 
+	if len(results) == 0 {
+		return "", "", errors.New("no result")
+	}
+
 	if len(results) != 1 {
 		return "", "", errors.New("ambiguous results")
 	}

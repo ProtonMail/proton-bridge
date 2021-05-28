@@ -43,10 +43,10 @@ func newTestFetcher(
 ) Fetcher {
 	f := mocks.NewMockFetcher(m)
 
-	f.EXPECT().GetMessage(msg.ID).Return(msg, nil)
+	f.EXPECT().GetMessage(gomock.Any(), msg.ID).Return(msg, nil)
 
 	for i, att := range msg.Attachments {
-		f.EXPECT().GetAttachment(att.ID).Return(newTestReadCloser(attData[i]), nil)
+		f.EXPECT().GetAttachment(gomock.Any(), att.ID).Return(newTestReadCloser(attData[i]), nil)
 	}
 
 	f.EXPECT().KeyRingForAddressID(msg.AddressID).Return(kr, nil)

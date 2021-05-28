@@ -17,51 +17,11 @@
 
 package pmapi
 
-type UserSettings struct {
-	PasswordMode int
-	Email        struct {
-		Value  string
-		Status int
-		Notify int
-		Reset  int
-	}
-	Phone struct {
-		Value  string
-		Status int
-		Notify int
-		Reset  int
-	}
-	News        int
-	Locale      string
-	LogAuth     string
-	InvoiceText string
-	TOTP        int
-	U2FKeys     []struct {
-		Label       string
-		KeyHandle   string
-		Compromised int
-	}
-}
+import (
+	"context"
 
-// GetUserSettings gets general settings.
-func (c *client) GetUserSettings() (settings UserSettings, err error) {
-	req, err := c.NewRequest("GET", "/settings", nil)
-
-	if err != nil {
-		return
-	}
-
-	var res struct {
-		Res
-		UserSettings UserSettings
-	}
-
-	if err = c.DoJSON(req, &res); err != nil {
-		return
-	}
-
-	return res.UserSettings, res.Err()
-}
+	"github.com/go-resty/resty/v2"
+)
 
 type MailSettings struct {
 	DisplayName        string
@@ -98,21 +58,16 @@ type MailSettings struct {
 }
 
 // GetMailSettings gets contact details specified by contact ID.
-func (c *client) GetMailSettings() (settings MailSettings, err error) {
-	req, err := c.NewRequest("GET", "/mail/v4/settings", nil)
-
-	if err != nil {
-		return
-	}
-
+func (c *client) GetMailSettings(ctx context.Context) (settings MailSettings, err error) {
 	var res struct {
-		Res
 		MailSettings MailSettings
 	}
 
-	if err = c.DoJSON(req, &res); err != nil {
-		return
+	if _, err := c.do(ctx, func(r *resty.Request) (*resty.Response, error) {
+		return r.SetResult(&res).Get("/mail/v4/settings")
+	}); err != nil {
+		return MailSettings{}, err
 	}
 
-	return res.MailSettings, res.Err()
+	return res.MailSettings, nil
 }

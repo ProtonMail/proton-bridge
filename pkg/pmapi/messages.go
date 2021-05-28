@@ -19,6 +19,7 @@ package pmapi
 
 import (
 	"bytes"
+	"context"
 	"crypto/aes"
 	"crypto/cipher"
 	"encoding/base64"
@@ -34,6 +35,7 @@ import (
 	"strings"
 
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
+	"github.com/go-resty/resty/v2"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/openpgp/packet"
 )
@@ -160,7 +162,7 @@ type Message struct {
 	Order          int64  `json:",omitempty"`
 	ConversationID string `json:",omitempty"` // only filter
 	Subject        string
-	Unread         int
+	Unread         Boolean
 	Type           int
 	Flags          int64
 	Sender         *mail.Address
@@ -496,156 +498,115 @@ func (filter *MessagesFilter) urlValues() url.Values { // nolint[funlen]
 	return v
 }
 
-type MessagesListRes struct {
-	Res
-
-	Total    int
-	Messages []*Message
-}
-
 // ListMessages gets message metadata.
-func (c *client) ListMessages(filter *MessagesFilter) (msgs []*Message, total int, err error) {
-	req, err := c.NewRequest("GET", "/mail/v4/messages", nil)
-	if err != nil {
-		return
+func (c *client) ListMessages(ctx context.Context, filter *MessagesFilter) ([]*Message, int, error) {
+	var res struct {
+		Messages []*Message
+		Total    int
 	}
 
-	req.URL.RawQuery = filter.urlValues().Encode()
-	var res MessagesListRes
-	if err = c.DoJSON(req, &res); err != nil {
-		// If the URI was too long and we searched with IDs, we will try again without the API IDs.
-		if strings.Contains(err.Error(), "api returned: 414") && len(filter.ID) > 0 {
-			filter.ID = []string{}
-			return c.ListMessages(filter)
-		}
-		return
+	if _, err := c.do(ctx, func(r *resty.Request) (*resty.Response, error) {
+		return r.SetQueryParamsFromValues(filter.urlValues()).
+			SetResult(&res).
+			Get("/mail/v4/messages")
+	}); err != nil {
+		return nil, 0, err
 	}
 
-	msgs, total, err = res.Messages, res.Total, res.Err()
-	return
-}
-
-type MessagesCountsRes struct {
-	Res
-
-	Counts []*MessagesCount
+	return res.Messages, res.Total, nil
 }
 
 // CountMessages counts messages by label.
-func (c *client) CountMessages(addressID string) (counts []*MessagesCount, err error) {
-	reqURL := "/mail/v4/messages/count"
-	if addressID != "" {
-		reqURL += ("?AddressID=" + addressID)
-	}
-	req, err := c.NewRequest("GET", reqURL, nil)
-	if err != nil {
-		return
+func (c *client) CountMessages(ctx context.Context, addressID string) (counts []*MessagesCount, err error) {
+	var res struct {
+		Counts []*MessagesCount
 	}
 
-	var res MessagesCountsRes
-	if err = c.DoJSON(req, &res); err != nil {
-		return
+	if _, err := c.do(ctx, func(r *resty.Request) (*resty.Response, error) {
+		if addressID != "" {
+			r = r.SetQueryParam("AddressID", addressID)
+		}
+		return r.SetResult(&res).Get("/mail/v4/messages/count")
+	}); err != nil {
+		return nil, err
 	}
 
-	counts, err = res.Counts, res.Err()
-	return
-}
-
-type MessageRes struct {
-	Res
-
-	Message *Message
+	return res.Counts, nil
 }
 
 // GetMessage retrieves a message.
-func (c *client) GetMessage(id string) (msg *Message, err error) {
-	req, err := c.NewRequest("GET", "/mail/v4/messages/"+id, nil)
-	if err != nil {
-		return
+func (c *client) GetMessage(ctx context.Context, messageID string) (msg *Message, err error) {
+	var res struct {
+		Message *Message
 	}
 
-	var res MessageRes
-	if err = c.DoJSON(req, &res); err != nil {
-		return
+	if _, err := c.do(ctx, func(r *resty.Request) (*resty.Response, error) {
+		return r.SetResult(&res).Get("/mail/v4/messages/" + messageID)
+	}); err != nil {
+		return nil, err
 	}
 
-	return res.Message, res.Err()
+	return res.Message, nil
 }
 
 type MessagesActionReq struct {
 	IDs []string
 }
 
-type MessagesActionRes struct {
-	Res
+func (c *client) MarkMessagesRead(ctx context.Context, messageIDs []string) error {
+	return doPaged(messageIDs, defaultPageSize, func(messageIDs []string) (err error) {
+		req := MessagesActionReq{IDs: messageIDs}
 
-	Responses []struct {
-		ID       string
-		Response Res
-	}
-}
-
-func (res MessagesActionRes) Err() error {
-	if err := res.Res.Err(); err != nil {
-		return err
-	}
-
-	for _, msgRes := range res.Responses {
-		if err := msgRes.Response.Err(); err != nil {
+		if _, err := c.do(ctx, func(r *resty.Request) (*resty.Response, error) {
+			return r.SetBody(req).Put("/mail/v4/messages/read")
+		}); err != nil {
 			return err
 		}
-	}
 
-	return nil
+		return nil
+	})
 }
 
-// doMessagesAction performs paged requests to doMessagesActionInner.
-// This can eventually be done in parallel though.
-func (c *client) doMessagesAction(action string, ids []string) (err error) {
-	for len(ids) > messageIDPageSize {
-		var requestIDs []string
-		requestIDs, ids = ids[:messageIDPageSize], ids[messageIDPageSize:]
-		if err = c.doMessagesActionInner(action, requestIDs); err != nil {
-			return
+func (c *client) MarkMessagesUnread(ctx context.Context, messageIDs []string) error {
+	return doPaged(messageIDs, defaultPageSize, func(messageIDs []string) (err error) {
+		req := MessagesActionReq{IDs: messageIDs}
+
+		if _, err := c.do(ctx, func(r *resty.Request) (*resty.Response, error) {
+			return r.SetBody(req).Put("/mail/v4/messages/unread")
+		}); err != nil {
+			return err
 		}
-	}
 
-	return c.doMessagesActionInner(action, ids)
+		return nil
+	})
 }
 
-// doMessagesActionInner is the non-paged inner method of doMessagesAction.
-// You should not call this directly unless you know what you are doing (it can overload the server).
-func (c *client) doMessagesActionInner(action string, ids []string) (err error) {
-	actionReq := &MessagesActionReq{IDs: ids}
-	req, err := c.NewJSONRequest("PUT", "/mail/v4/messages/"+action, actionReq)
-	if err != nil {
-		return
-	}
+func (c *client) DeleteMessages(ctx context.Context, messageIDs []string) error {
+	return doPaged(messageIDs, defaultPageSize, func(messageIDs []string) (err error) {
+		req := MessagesActionReq{IDs: messageIDs}
 
-	var res MessagesActionRes
-	if err = c.DoJSON(req, &res); err != nil {
-		return
-	}
+		if _, err := c.do(ctx, func(r *resty.Request) (*resty.Response, error) {
+			return r.SetBody(req).Put("/mail/v4/messages/delete")
+		}); err != nil {
+			return err
+		}
 
-	err = res.Err()
-
-	return
+		return nil
+	})
 }
 
-func (c *client) MarkMessagesRead(ids []string) error {
-	return c.doMessagesAction("read", ids)
-}
+func (c *client) UndeleteMessages(ctx context.Context, messageIDs []string) error {
+	return doPaged(messageIDs, defaultPageSize, func(messageIDs []string) (err error) {
+		req := MessagesActionReq{IDs: messageIDs}
 
-func (c *client) MarkMessagesUnread(ids []string) error {
-	return c.doMessagesAction("unread", ids)
-}
+		if _, err := c.do(ctx, func(r *resty.Request) (*resty.Response, error) {
+			return r.SetBody(req).Put("/mail/v4/messages/undelete")
+		}); err != nil {
+			return err
+		}
 
-func (c *client) DeleteMessages(ids []string) error {
-	return c.doMessagesAction("delete", ids)
-}
-
-func (c *client) UndeleteMessages(ids []string) error {
-	return c.doMessagesAction("undelete", ids)
+		return nil
+	})
 }
 
 type LabelMessagesReq struct {
@@ -655,86 +616,58 @@ type LabelMessagesReq struct {
 
 // LabelMessages labels the given message IDs with the given label.
 // The requests are performed paged; this can eventually be done in parallel.
-func (c *client) LabelMessages(ids []string, label string) (err error) {
-	for len(ids) > messageIDPageSize {
-		var requestIDs []string
-		requestIDs, ids = ids[:messageIDPageSize], ids[messageIDPageSize:]
-		if err = c.labelMessages(requestIDs, label); err != nil {
-			return
+func (c *client) LabelMessages(ctx context.Context, messageIDs []string, labelID string) error {
+	return doPaged(messageIDs, defaultPageSize, func(messageIDs []string) (err error) {
+		req := LabelMessagesReq{
+			LabelID: labelID,
+			IDs:     messageIDs,
 		}
-	}
 
-	return c.labelMessages(ids, label)
-}
+		if _, err := c.do(ctx, func(r *resty.Request) (*resty.Response, error) {
+			return r.SetBody(req).Put("/mail/v4/messages/label")
+		}); err != nil {
+			return err
+		}
 
-func (c *client) labelMessages(ids []string, label string) (err error) {
-	labelReq := &LabelMessagesReq{LabelID: label, IDs: ids}
-	req, err := c.NewJSONRequest("PUT", "/mail/v4/messages/label", labelReq)
-	if err != nil {
-		return
-	}
-
-	var res MessagesActionRes
-	if err = c.DoJSON(req, &res); err != nil {
-		return
-	}
-
-	err = res.Err()
-	return
+		return nil
+	})
 }
 
 // UnlabelMessages removes the given label from the given message IDs.
 // The requests are performed paged; this can eventually be done in parallel.
-func (c *client) UnlabelMessages(ids []string, label string) (err error) {
-	for len(ids) > messageIDPageSize {
-		var requestIDs []string
-		requestIDs, ids = ids[:messageIDPageSize], ids[messageIDPageSize:]
-		if err = c.unlabelMessages(requestIDs, label); err != nil {
-			return
+func (c *client) UnlabelMessages(ctx context.Context, messageIDs []string, labelID string) error {
+	return doPaged(messageIDs, defaultPageSize, func(messageIDs []string) (err error) {
+		req := LabelMessagesReq{
+			LabelID: labelID,
+			IDs:     messageIDs,
 		}
-	}
 
-	return c.unlabelMessages(ids, label)
+		if _, err := c.do(ctx, func(r *resty.Request) (*resty.Response, error) {
+			return r.SetBody(req).Put("/mail/v4/messages/unlabel")
+		}); err != nil {
+			return err
+		}
+
+		return nil
+	})
 }
 
-func (c *client) unlabelMessages(ids []string, label string) (err error) {
-	labelReq := &LabelMessagesReq{LabelID: label, IDs: ids}
-	req, err := c.NewJSONRequest("PUT", "/mail/v4/messages/unlabel", labelReq)
-	if err != nil {
-		return
-	}
-
-	var res MessagesActionRes
-	if err = c.DoJSON(req, &res); err != nil {
-		return
-	}
-
-	err = res.Err()
-	return
-}
-
-func (c *client) EmptyFolder(labelID, addressID string) (err error) {
+func (c *client) EmptyFolder(ctx context.Context, labelID, addressID string) error {
 	if labelID == "" {
-		return errors.New("pmapi: labelID parameter is empty string")
-	}
-	reqURL := "/mail/v4/messages/empty?LabelID=" + labelID
-	if addressID != "" {
-		reqURL += ("&AddressID=" + addressID)
+		return errors.New("labelID parameter is empty string")
 	}
 
-	req, err := c.NewRequest("DELETE", reqURL, nil)
+	if _, err := c.do(ctx, func(r *resty.Request) (*resty.Response, error) {
+		if addressID != "" {
+			r.SetQueryParam("AddressID", addressID)
+		}
 
-	if err != nil {
-		return
+		return r.SetQueryParam("LabelID", labelID).Delete("/mail/v4/messages/empty")
+	}); err != nil {
+		return err
 	}
 
-	var res Res
-	if err = c.DoJSON(req, &res); err != nil {
-		return
-	}
-
-	err = res.Err()
-	return
+	return nil
 }
 
 // ComputeMessageFlagsByLabels returns flags based on labels.

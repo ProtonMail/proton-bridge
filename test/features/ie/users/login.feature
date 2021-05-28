@@ -19,7 +19,7 @@ Feature: Login for the first time
   Scenario: Login without internet connection
     Given there is no internet connection
     When "user" logs in
-    Then last response is "failed to login: cannot reach the server"
+    Then last response is "failed to login: no internet connection"
 
   @ignore-live
   Scenario: Login user with 2FA

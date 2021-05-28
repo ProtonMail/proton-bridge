@@ -857,14 +857,12 @@ Dialog {
                 inputPort     . checkIsANumber()
                 //emailProvider . currentIndex!=0
             )) isOK = false
-            go.checkInternet()
             if (winMain.updateState == gui.enums.statusNoInternet) { // todo: use main error dialog for this
                 errorPopup.show(qsTr("Please check your internet connection."))
                 return false
             }
             break
             case 2: // loading structure
-            go.checkInternet()
             if (winMain.updateState == gui.enums.statusNoInternet) {
                 errorPopup.show(qsTr("Please check your internet connection."))
                 return false
@@ -949,7 +947,6 @@ Dialog {
     onShow : {
         root.clear()
         if (winMain.updateState==gui.enums.statusNoInternet) {
-            go.checkInternet()
             if (winMain.updateState==gui.enums.statusNoInternet) {
                 winMain.popupMessage.show(go.canNotReachAPI)
                 root.hide()

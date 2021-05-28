@@ -21,10 +21,10 @@ package smtp
 
 import (
 	"bytes"
+	"context"
 	"encoding/base64"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"mime"
 	"net/mail"
 	"strings"
@@ -81,7 +81,7 @@ func newSMTPUser(
 
 // This method should eventually no longer be necessary. Everything should go via store.
 func (su *smtpUser) client() pmapi.Client {
-	return su.user.GetTemporaryPMAPIClient()
+	return su.user.GetClient()
 }
 
 // Send sends an email from the given address to the given addresses with the given body.
@@ -123,7 +123,7 @@ func (su *smtpUser) getSendPreferences(
 }
 
 func (su *smtpUser) getContactVCardData(recipient string) (meta *ContactMetadata, err error) {
-	emails, err := su.client().GetContactEmailByEmail(recipient, 0, 1000)
+	emails, err := su.client().GetContactEmailByEmail(context.TODO(), recipient, 0, 1000)
 	if err != nil {
 		return
 	}
@@ -135,7 +135,7 @@ func (su *smtpUser) getContactVCardData(recipient string) (meta *ContactMetadata
 		}
 
 		var contact pmapi.Contact
-		if contact, err = su.client().GetContactByID(email.ContactID); err != nil {
+		if contact, err = su.client().GetContactByID(context.TODO(), email.ContactID); err != nil {
 			return
 		}
 
@@ -151,7 +151,7 @@ func (su *smtpUser) getContactVCardData(recipient string) (meta *ContactMetadata
 }
 
 func (su *smtpUser) getAPIKeyData(recipient string) (apiKeys []pmapi.PublicKey, isInternal bool, err error) {
-	return su.client().GetPublicKeysForEmail(recipient)
+	return su.client().GetPublicKeysForEmail(context.TODO(), recipient)
 }
 
 // Discard currently processed message.
@@ -219,7 +219,7 @@ func (su *smtpUser) Send(returnPath string, to []string, messageReader io.Reader
 
 	messageReader = io.TeeReader(messageReader, b)
 
-	mailSettings, err := su.client().GetMailSettings()
+	mailSettings, err := su.client().GetMailSettings(context.TODO())
 	if err != nil {
 		return err
 	}
@@ -325,12 +325,6 @@ func (su *smtpUser) Send(returnPath string, to []string, messageReader io.Reader
 		return nil
 	}
 
-	if ok, err := su.isTotalSizeOkay(message, attReaders); err != nil {
-		return err
-	} else if !ok {
-		return errors.New("message is too large")
-	}
-
 	su.backend.sendRecorder.addMessage(sendRecorderMessageHash)
 	message, atts, err := su.storeUser.CreateDraft(kr, message, attReaders, attachedPublicKey, attachedPublicKeyName, parentID)
 	if err != nil {
@@ -346,7 +340,7 @@ func (su *smtpUser) Send(returnPath string, to []string, messageReader io.Reader
 	// can lead to sending the wrong message. Also clients do not necessarily
 	// delete the old draft.
 	if draftID != "" {
-		if err := su.client().DeleteMessages([]string{draftID}); err != nil {
+		if err := su.client().DeleteMessages(context.TODO(), []string{draftID}); err != nil {
 			log.WithError(err).WithField("draftID", draftID).Warn("Original draft cannot be deleted")
 		}
 	}
@@ -400,7 +394,7 @@ func (su *smtpUser) Send(returnPath string, to []string, messageReader io.Reader
 			return errors.New("error decoding subject message " + message.Header.Get("Subject"))
 		}
 		if !su.continueSendingUnencryptedMail(subject) {
-			if err := su.client().DeleteMessages([]string{message.ID}); err != nil {
+			if err := su.client().DeleteMessages(context.TODO(), []string{message.ID}); err != nil {
 				log.WithError(err).Warn("Failed to delete canceled messages")
 			}
 			return errors.New("sending was canceled by user")
@@ -429,7 +423,7 @@ func (su *smtpUser) handleReferencesHeader(m *pmapi.Message) (draftID, parentID 
 				if su.addressID != "" {
 					filter.AddressID = su.addressID
 				}
-				metadata, _, _ := su.client().ListMessages(filter)
+				metadata, _, _ := su.client().ListMessages(context.TODO(), filter)
 				for _, m := range metadata {
 					if m.IsDraft() {
 						draftID = m.ID
@@ -449,7 +443,7 @@ func (su *smtpUser) handleReferencesHeader(m *pmapi.Message) (draftID, parentID 
 		if su.addressID != "" {
 			filter.AddressID = su.addressID
 		}
-		metadata, _, _ := su.client().ListMessages(filter)
+		metadata, _, _ := su.client().ListMessages(context.TODO(), filter)
 		// There can be two or messages with the same external ID and then we cannot
 		// be sure which message should be parent. Better to not choose any.
 		if len(metadata) == 1 {
@@ -540,25 +534,4 @@ func (su *smtpUser) continueSendingUnencryptedMail(subject string) bool {
 func (su *smtpUser) Logout() error {
 	log.Debug("SMTP client logged out user ", su.addressID)
 	return nil
-}
-
-func (su *smtpUser) isTotalSizeOkay(message *pmapi.Message, attReaders []io.Reader) (bool, error) {
-	maxUpload, err := su.storeUser.GetMaxUpload()
-	if err != nil {
-		return false, err
-	}
-
-	var attSize int64
-
-	for i := range attReaders {
-		b, err := ioutil.ReadAll(attReaders[i])
-		if err != nil {
-			return false, err
-		}
-
-		attSize += int64(len(b))
-		attReaders[i] = bytes.NewBuffer(b)
-	}
-
-	return message.Size+attSize <= maxUpload, nil
 }

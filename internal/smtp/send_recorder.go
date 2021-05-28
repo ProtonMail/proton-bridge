@@ -18,6 +18,7 @@
 package smtp
 
 import (
+	"context"
 	"crypto/sha256"
 	"fmt"
 	"strings"
@@ -28,7 +29,7 @@ import (
 )
 
 type messageGetter interface {
-	GetMessage(string) (*pmapi.Message, error)
+	GetMessage(context.Context, string) (*pmapi.Message, error)
 }
 
 type sendRecorderValue struct {
@@ -126,7 +127,7 @@ func (q *sendRecorder) isSendingOrSent(client messageGetter, hash string) (isSen
 		return true, false
 	}
 
-	message, err := client.GetMessage(value.messageID)
+	message, err := client.GetMessage(context.TODO(), value.messageID)
 	// Message could be deleted or there could be an internet issue or whatever,
 	// so let's assume the message was not sent.
 	if err != nil {

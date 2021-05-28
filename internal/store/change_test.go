@@ -37,8 +37,8 @@ func TestNotifyChangeCreateOrUpdateMessage(t *testing.T) {
 	m.newStoreNoEvents(true)
 	m.store.SetChangeNotifier(m.changeNotifier)
 
-	insertMessage(t, m, "msg1", "Test message 1", addrID1, 0, []string{pmapi.AllMailLabel})
-	insertMessage(t, m, "msg2", "Test message 2", addrID1, 0, []string{pmapi.AllMailLabel})
+	insertMessage(t, m, "msg1", "Test message 1", addrID1, false, []string{pmapi.AllMailLabel})
+	insertMessage(t, m, "msg2", "Test message 2", addrID1, false, []string{pmapi.AllMailLabel})
 }
 
 func TestNotifyChangeCreateOrUpdateMessages(t *testing.T) {
@@ -52,8 +52,8 @@ func TestNotifyChangeCreateOrUpdateMessages(t *testing.T) {
 	m.newStoreNoEvents(true)
 	m.store.SetChangeNotifier(m.changeNotifier)
 
-	msg1 := getTestMessage("msg1", "Test message 1", addrID1, 0, []string{pmapi.AllMailLabel})
-	msg2 := getTestMessage("msg2", "Test message 2", addrID1, 0, []string{pmapi.AllMailLabel})
+	msg1 := getTestMessage("msg1", "Test message 1", addrID1, false, []string{pmapi.AllMailLabel})
+	msg2 := getTestMessage("msg2", "Test message 2", addrID1, false, []string{pmapi.AllMailLabel})
 	require.Nil(t, m.store.createOrUpdateMessagesEvent([]*pmapi.Message{msg1, msg2}))
 }
 
@@ -63,8 +63,8 @@ func TestNotifyChangeDeleteMessage(t *testing.T) {
 
 	m.newStoreNoEvents(true)
 
-	insertMessage(t, m, "msg1", "Test message 1", addrID1, 0, []string{pmapi.AllMailLabel})
-	insertMessage(t, m, "msg2", "Test message 2", addrID1, 0, []string{pmapi.AllMailLabel})
+	insertMessage(t, m, "msg1", "Test message 1", addrID1, false, []string{pmapi.AllMailLabel})
+	insertMessage(t, m, "msg2", "Test message 2", addrID1, false, []string{pmapi.AllMailLabel})
 
 	m.changeNotifier.EXPECT().DeleteMessage(addr1, "All Mail", uint32(2))
 	m.changeNotifier.EXPECT().DeleteMessage(addr1, "All Mail", uint32(1))

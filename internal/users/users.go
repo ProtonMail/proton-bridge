@@ -19,12 +19,15 @@
 package users
 
 import (
+	"context"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/ProtonMail/proton-bridge/internal/events"
 	imapcache "github.com/ProtonMail/proton-bridge/internal/imap/cache"
 	"github.com/ProtonMail/proton-bridge/internal/metrics"
+	"github.com/ProtonMail/proton-bridge/internal/users/credentials"
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	"github.com/hashicorp/go-multierror"
@@ -45,7 +48,7 @@ type Users struct {
 	locations     Locator
 	panicHandler  PanicHandler
 	events        listener.Listener
-	clientManager ClientManager
+	clientManager pmapi.Manager
 	credStorer    CredentialsStorer
 	storeFactory  StoreMaker
 
@@ -62,16 +65,13 @@ type Users struct {
 	useOnlyActiveAddresses bool
 
 	lock sync.RWMutex
-
-	// stopAll can be closed to stop all goroutines from looping (watchAppOutdated, watchAPIAuths, heartbeat etc).
-	stopAll chan struct{}
 }
 
 func New(
 	locations Locator,
 	panicHandler PanicHandler,
 	eventListener listener.Listener,
-	clientManager ClientManager,
+	clientManager pmapi.Manager,
 	credStorer CredentialsStorer,
 	storeFactory StoreMaker,
 	useOnlyActiveAddresses bool,
@@ -87,17 +87,11 @@ func New(
 		storeFactory:           storeFactory,
 		useOnlyActiveAddresses: useOnlyActiveAddresses,
 		lock:                   sync.RWMutex{},
-		stopAll:                make(chan struct{}),
 	}
 
 	go func() {
 		defer panicHandler.HandlePanic()
-		u.watchAppOutdated()
-	}()
-
-	go func() {
-		defer panicHandler.HandlePanic()
-		u.watchAPIAuths()
+		u.watchEvents()
 	}()
 
 	if u.credStorer == nil {
@@ -109,76 +103,93 @@ func New(
 	return u
 }
 
-func (u *Users) loadUsersFromCredentialsStore() (err error) {
+func (u *Users) watchEvents() {
+	upgradeCh := u.events.ProvideChannel(events.UpgradeApplicationEvent)
+	internetOnCh := u.events.ProvideChannel(events.InternetOnEvent)
+
+	for {
+		select {
+		case <-upgradeCh:
+			isApplicationOutdated = true
+			u.closeAllConnections()
+		case <-internetOnCh:
+			for _, user := range u.users {
+				if user.store == nil {
+					if err := user.loadStore(); err != nil {
+						log.WithError(err).Error("Failed to load store after reconnecting")
+					}
+				}
+			}
+		}
+	}
+}
+
+func (u *Users) loadUsersFromCredentialsStore() error {
 	u.lock.Lock()
 	defer u.lock.Unlock()
 
 	userIDs, err := u.credStorer.List()
 	if err != nil {
-		return
+		return err
 	}
 
 	for _, userID := range userIDs {
 		l := log.WithField("user", userID)
-
-		user, newUserErr := newUser(u.panicHandler, userID, u.events, u.credStorer, u.clientManager, u.storeFactory)
-		if newUserErr != nil {
-			l.WithField("user", userID).WithError(newUserErr).Warn("Could not load user, skipping")
+		user, creds, err := newUser(u.panicHandler, userID, u.events, u.credStorer, u.storeFactory, u.useOnlyActiveAddresses)
+		if err != nil {
+			l.WithError(err).Warn("Could not create user, skipping")
 			continue
 		}
 
 		u.users = append(u.users, user)
 
-		if initUserErr := user.init(); initUserErr != nil {
-			l.WithField("user", userID).WithError(initUserErr).Warn("Could not initialise user")
+		if creds.IsConnected() {
+			// If there is no connection, we don't want to retry. Load should
+			// happen fast enough to not block GUI. When connection is back up,
+			// watchEvents and unlockIfNecessary will finish user init later.
+			if err := u.loadConnectedUser(pmapi.ContextWithoutRetry(context.Background()), user, creds); err != nil {
+				l.WithError(err).Warn("Could not load connected user")
+			}
+		} else {
+			l.Warn("User is disconnected and must be connected manually")
+			if err := user.connect(u.clientManager.NewClient("", "", "", time.Time{}), creds); err != nil {
+				l.WithError(err).Warn("Could not load disconnected user")
+			}
 		}
 	}
 
 	return err
 }
 
-func (u *Users) watchAppOutdated() {
-	ch := make(chan string)
-
-	u.events.Add(events.UpgradeApplicationEvent, ch)
-
-	for {
-		select {
-		case <-ch:
-			isApplicationOutdated = true
-			u.closeAllConnections()
-
-		case <-u.stopAll:
-			return
-		}
+func (u *Users) loadConnectedUser(ctx context.Context, user *User, creds *credentials.Credentials) error {
+	uid, ref, err := creds.SplitAPIToken()
+	if err != nil {
+		return errors.Wrap(err, "could not get user's refresh token")
 	}
-}
 
-// watchAPIAuths receives auths from the client manager and sends them to the appropriate user.
-func (u *Users) watchAPIAuths() {
-	for {
-		select {
-		case auth := <-u.clientManager.GetAuthUpdateChannel():
-			log.Debug("Users received auth from ClientManager")
+	client, auth, err := u.clientManager.NewClientWithRefresh(ctx, uid, ref)
+	if err != nil {
+		// When client cannot be refreshed right away due to no connection,
+		// we create client which will refresh automatically when possible.
+		connectErr := user.connect(u.clientManager.NewClient(uid, "", ref, time.Time{}), creds)
 
-			user, ok := u.hasUser(auth.UserID)
-			if !ok {
-				log.WithField("userID", auth.UserID).Info("User not available for auth update")
-				continue
-			}
-
-			if auth.Auth != nil {
-				user.updateAuthToken(auth.Auth)
-			} else if err := user.logout(); err != nil {
-				log.WithError(err).
-					WithField("userID", auth.UserID).
-					Error("User logout failed while watching API auths")
-			}
-
-		case <-u.stopAll:
-			return
+		switch errors.Cause(err) {
+		case pmapi.ErrNoConnection, pmapi.ErrUpgradeApplication:
+			return connectErr
 		}
+
+		if logoutErr := user.logout(); logoutErr != nil {
+			logrus.WithError(logoutErr).Warn("Could not logout user")
+		}
+		return errors.Wrap(err, "could not refresh token")
 	}
+
+	// Update the user's credentials with the latest auth used to connect this user.
+	if creds, err = u.credStorer.UpdateToken(creds.UserID, auth.UID, auth.RefreshToken); err != nil {
+		return errors.Wrap(err, "could not create get user's refresh token")
+	}
+
+	return user.connect(client, creds)
 }
 
 func (u *Users) closeAllConnections() {
@@ -192,63 +203,47 @@ func (u *Users) closeAllConnections() {
 func (u *Users) Login(username, password string) (authClient pmapi.Client, auth *pmapi.Auth, err error) {
 	u.crashBandicoot(username)
 
-	// We need to use anonymous client because we don't yet have userID and so can't save auth tokens yet.
-	authClient = u.clientManager.GetAnonymousClient()
-
-	authInfo, err := authClient.AuthInfo(username)
-	if err != nil {
-		log.WithField("username", username).WithError(err).Error("Could not get auth info for user")
-		return
-	}
-
-	if auth, err = authClient.Auth(username, password, authInfo); err != nil {
-		log.WithField("username", username).WithError(err).Error("Could not get auth for user")
-		return
-	}
-
-	return
+	return u.clientManager.NewClientWithLogin(context.Background(), username, password)
 }
 
 // FinishLogin finishes the login procedure and adds the user into the credentials store.
-func (u *Users) FinishLogin(authClient pmapi.Client, auth *pmapi.Auth, mbPassphrase string) (user *User, err error) { //nolint[funlen]
-	defer func() {
-		if err != nil {
-			log.WithError(err).Debug("Login not finished; removing auth session")
-			if delAuthErr := authClient.DeleteAuth(); delAuthErr != nil {
-				log.WithError(delAuthErr).Error("Failed to clear login session after unlock")
-			}
-		}
-		// The anonymous client will be removed from list and authentication will not be deleted.
-		authClient.Logout()
-	}()
-
-	apiUser, hashedPassphrase, err := getAPIUser(authClient, mbPassphrase)
+func (u *Users) FinishLogin(client pmapi.Client, auth *pmapi.Auth, password string) (user *User, err error) { //nolint[funlen]
+	apiUser, passphrase, err := getAPIUser(context.Background(), client, password)
 	if err != nil {
-		log.WithError(err).Error("Failed to get API user")
-		return
+		return nil, err
 	}
 
-	log.Info("Got API user")
+	if user, ok := u.hasUser(apiUser.ID); ok {
+		if user.IsConnected() {
+			if err := client.AuthDelete(context.Background()); err != nil {
+				logrus.WithError(err).Warn("Failed to delete new auth session")
+			}
 
-	var ok bool
-	if user, ok = u.hasUser(apiUser.ID); ok {
-		if err = u.connectExistingUser(user, auth, hashedPassphrase); err != nil {
-			log.WithError(err).Error("Failed to connect existing user")
-			return
+			return nil, errors.New("user is already connected")
 		}
-	} else {
-		if err = u.addNewUser(apiUser, auth, hashedPassphrase); err != nil {
-			log.WithError(err).Error("Failed to add new user")
-			return
+
+		// Update the user's credentials with the latest auth used to connect this user.
+		if _, err := u.credStorer.UpdateToken(auth.UserID, auth.UID, auth.RefreshToken); err != nil {
+			return nil, errors.Wrap(err, "failed to load user credentials")
 		}
+
+		// Update the password in case the user changed it.
+		creds, err := u.credStorer.UpdatePassword(apiUser.ID, string(passphrase))
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to update password of user in credentials store")
+		}
+
+		if err := user.connect(client, creds); err != nil {
+			return nil, errors.Wrap(err, "failed to reconnect existing user")
+		}
+
+		u.events.Emit(events.UserRefreshEvent, apiUser.ID)
+
+		return user, nil
 	}
 
-	// Old credentials use username as key (user ID) which needs to be removed
-	// once user logs in again with proper ID fetched from API.
-	if _, ok := u.hasUser(apiUser.Name); ok {
-		if err := u.DeleteUser(apiUser.Name, true); err != nil {
-			log.WithError(err).Error("Failed to delete old user")
-		}
+	if err := u.addNewUser(client, apiUser, auth, passphrase); err != nil {
+		return nil, errors.Wrap(err, "failed to add new user")
 	}
 
 	u.events.Emit(events.UserRefreshEvent, apiUser.ID)
@@ -256,107 +251,63 @@ func (u *Users) FinishLogin(authClient pmapi.Client, auth *pmapi.Auth, mbPassphr
 	return u.GetUser(apiUser.ID)
 }
 
-// connectExistingUser connects an existing user.
-func (u *Users) connectExistingUser(user *User, auth *pmapi.Auth, hashedPassphrase string) (err error) {
-	if user.IsConnected() {
-		return errors.New("user is already connected")
-	}
-
-	log.Info("Connecting existing user")
-
-	// Update the user's password in the cred store in case they changed it.
-	if err = u.credStorer.UpdatePassword(user.ID(), hashedPassphrase); err != nil {
-		return errors.Wrap(err, "failed to update password of user in credentials store")
-	}
-
-	client := u.clientManager.GetClient(user.ID())
-
-	if auth, err = client.AuthRefresh(auth.GenToken()); err != nil {
-		return errors.Wrap(err, "failed to refresh auth token of new client")
-	}
-
-	if err = u.credStorer.UpdateToken(user.ID(), auth.GenToken()); err != nil {
-		return errors.Wrap(err, "failed to update token of user in credentials store")
-	}
-
-	if err = user.init(); err != nil {
-		return errors.Wrap(err, "failed to initialise user")
-	}
-
-	return
-}
-
 // addNewUser adds a new user.
-func (u *Users) addNewUser(apiUser *pmapi.User, auth *pmapi.Auth, hashedPassphrase string) (err error) {
+func (u *Users) addNewUser(client pmapi.Client, apiUser *pmapi.User, auth *pmapi.Auth, passphrase []byte) error {
 	u.lock.Lock()
 	defer u.lock.Unlock()
 
-	client := u.clientManager.GetClient(apiUser.ID)
+	var emails []string
 
-	if auth, err = client.AuthRefresh(auth.GenToken()); err != nil {
-		return errors.Wrap(err, "failed to refresh token in new client")
-	}
-
-	if apiUser, err = client.CurrentUser(); err != nil {
-		return errors.Wrap(err, "failed to update API user")
-	}
-
-	var emails []string //nolint[prealloc]
 	if u.useOnlyActiveAddresses {
 		emails = client.Addresses().ActiveEmails()
 	} else {
 		emails = client.Addresses().AllEmails()
 	}
 
-	if _, err = u.credStorer.Add(apiUser.ID, apiUser.Name, auth.GenToken(), hashedPassphrase, emails); err != nil {
-		return errors.Wrap(err, "failed to add user to credentials store")
+	if _, err := u.credStorer.Add(apiUser.ID, apiUser.Name, auth.UID, auth.RefreshToken, string(passphrase), emails); err != nil {
+		return errors.Wrap(err, "failed to add user credentials to credentials store")
 	}
 
-	user, err := newUser(u.panicHandler, apiUser.ID, u.events, u.credStorer, u.clientManager, u.storeFactory)
+	user, creds, err := newUser(u.panicHandler, apiUser.ID, u.events, u.credStorer, u.storeFactory, u.useOnlyActiveAddresses)
 	if err != nil {
-		return errors.Wrap(err, "failed to create user")
+		return errors.Wrap(err, "failed to create new user")
 	}
 
-	// The user needs to be part of the users list in order for it to receive an auth during initialisation.
-	u.users = append(u.users, user)
-
-	if err = user.init(); err != nil {
-		u.users = u.users[:len(u.users)-1]
-		return errors.Wrap(err, "failed to initialise user")
+	if err := user.connect(client, creds); err != nil {
+		return errors.Wrap(err, "failed to connect new user")
 	}
 
 	if err := u.SendMetric(metrics.New(metrics.Setup, metrics.NewUser, metrics.NoLabel)); err != nil {
 		log.WithError(err).Error("Failed to send metric")
 	}
 
-	return err
+	u.users = append(u.users, user)
+
+	return nil
 }
 
-func getAPIUser(client pmapi.Client, mbPassphrase string) (user *pmapi.User, hashedPassphrase string, err error) {
-	salt, err := client.AuthSalt()
+func getAPIUser(ctx context.Context, client pmapi.Client, password string) (*pmapi.User, []byte, error) {
+	salt, err := client.AuthSalt(ctx)
 	if err != nil {
-		log.WithError(err).Error("Could not get salt")
-		return nil, "", err
+		return nil, nil, errors.Wrap(err, "failed to get salt")
 	}
 
-	hashedPassphrase, err = pmapi.HashMailboxPassword(mbPassphrase, salt)
+	passphrase, err := pmapi.HashMailboxPassword(password, salt)
 	if err != nil {
-		log.WithError(err).Error("Could not hash mailbox password")
-		return nil, "", err
+		return nil, nil, errors.Wrap(err, "failed to hash password")
 	}
 
 	// We unlock the user's PGP key here to detect if the user's mailbox password is wrong.
-	if err = client.Unlock([]byte(hashedPassphrase)); err != nil {
-		log.WithError(err).Error("Wrong mailbox password")
-		return nil, "", ErrWrongMailboxPassword
+	if err := client.Unlock(ctx, passphrase); err != nil {
+		return nil, nil, ErrWrongMailboxPassword
 	}
 
-	if user, err = client.CurrentUser(); err != nil {
-		log.WithError(err).Error("Could not load user data")
-		return nil, "", err
+	user, err := client.CurrentUser(ctx)
+	if err != nil {
+		return nil, nil, errors.Wrap(err, "failed to load user data")
 	}
 
-	return user, hashedPassphrase, nil
+	return user, passphrase, nil
 }
 
 // GetUsers returns all added users into keychain (even logged out users).
@@ -452,11 +403,9 @@ func (u *Users) DeleteUser(userID string, clearStore bool) error {
 
 // SendMetric sends a metric. We don't want to return any errors, only log them.
 func (u *Users) SendMetric(m metrics.Metric) error {
-	c := u.clientManager.GetAnonymousClient()
-	defer c.Logout()
-
 	cat, act, lab := m.Get()
-	if err := c.SendSimpleMetric(string(cat), string(act), string(lab)); err != nil {
+
+	if err := u.clientManager.SendSimpleMetric(context.Background(), string(cat), string(act), string(lab)); err != nil {
 		return err
 	}
 
@@ -479,17 +428,6 @@ func (u *Users) AllowProxy() {
 // It also needs to work before the app is initialised (because we may need to use the proxy at startup).
 func (u *Users) DisallowProxy() {
 	u.clientManager.DisallowProxy()
-}
-
-// CheckConnection returns whether there is an internet connection.
-// This should use the connection manager when it is eventually implemented.
-func (u *Users) CheckConnection() error {
-	return u.clientManager.CheckConnection()
-}
-
-// StopWatchers stops all goroutines.
-func (u *Users) StopWatchers() {
-	close(u.stopAll)
 }
 
 // hasUser returns whether the struct currently has a user with ID `id`.

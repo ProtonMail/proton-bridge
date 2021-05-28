@@ -40,7 +40,7 @@ require (
 	github.com/fatih/color v1.9.0
 	github.com/flynn-archive/go-shlex v0.0.0-20150515145356-3f9db97f8568 // indirect
 	github.com/getsentry/sentry-go v0.8.0
-	github.com/go-resty/resty/v2 v2.3.0
+	github.com/go-resty/resty/v2 v2.6.0
 	github.com/golang/mock v1.4.4
 	github.com/google/go-cmp v0.5.1
 	github.com/google/uuid v1.1.1
@@ -50,7 +50,7 @@ require (
 	github.com/keybase/go-keychain v0.0.0-20200502122510-cda31fe0c86d
 	github.com/logrusorgru/aurora v2.0.3+incompatible
 	github.com/mattn/go-runewidth v0.0.9 // indirect
-	github.com/miekg/dns v1.1.30
+	github.com/miekg/dns v1.1.41
 	github.com/nsf/jsondiff v0.0.0-20200515183724-f29ed568f4ce
 	github.com/olekukonko/tablewriter v0.0.4 // indirect
 	github.com/pkg/errors v0.9.1
@@ -59,10 +59,12 @@ require (
 	github.com/ssor/bom v0.0.0-20170718123548-6386211fdfcf // indirect
 	github.com/stretchr/testify v1.6.1
 	github.com/therecipe/qt v0.0.0-20200701200531-7f61353ee73e
+	github.com/therecipe/qt/internal/binding/files/docs/5.12.0 v0.0.0-20200904063919-c0c124a5770d // indirect
+	github.com/therecipe/qt/internal/binding/files/docs/5.13.0 v0.0.0-20200904063919-c0c124a5770d // indirect
 	github.com/urfave/cli/v2 v2.2.0
 	github.com/vmihailenco/msgpack/v5 v5.1.3
 	go.etcd.io/bbolt v1.3.5
-	golang.org/x/net v0.0.0-20200707034311-ab3426394381
+	golang.org/x/net v0.0.0-20210405180319-a5a99cb37ef4
 	golang.org/x/text v0.3.5-0.20201125200606-c27b9fd57aec
 )
 

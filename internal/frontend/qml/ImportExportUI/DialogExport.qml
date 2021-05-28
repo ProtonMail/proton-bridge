@@ -409,7 +409,6 @@ Dialog {
 
     onShow: {
         if (winMain.updateState==gui.enums.statusNoInternet) {
-            go.checkInternet()
             if (winMain.updateState==gui.enums.statusNoInternet) {
                 go.notifyError(gui.enums.errNoInternet)
                 root.hide()

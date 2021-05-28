@@ -1230,7 +1230,7 @@ func TestBuildFetchMessageFail(t *testing.T) {
 
 	// Pretend the message cannot be fetched.
 	f := mocks.NewMockFetcher(m)
-	f.EXPECT().GetMessage(msg.ID).Return(nil, errors.New("oops"))
+	f.EXPECT().GetMessage(gomock.Any(), msg.ID).Return(nil, errors.New("oops"))
 
 	// The job should fail, returning an error and a nil result.
 	res, err := b.NewJob(context.Background(), f, msg.ID).GetResult()
@@ -1251,8 +1251,8 @@ func TestBuildFetchAttachmentFail(t *testing.T) {
 
 	// Pretend the attachment cannot be fetched.
 	f := mocks.NewMockFetcher(m)
-	f.EXPECT().GetMessage(msg.ID).Return(msg, nil)
-	f.EXPECT().GetAttachment(msg.Attachments[0].ID).Return(nil, errors.New("oops"))
+	f.EXPECT().GetMessage(gomock.Any(), msg.ID).Return(msg, nil)
+	f.EXPECT().GetAttachment(gomock.Any(), msg.Attachments[0].ID).Return(nil, errors.New("oops"))
 
 	// The job should fail, returning an error and a nil result.
 	res, err := b.NewJob(context.Background(), f, msg.ID).GetResult()
@@ -1272,7 +1272,7 @@ func TestBuildNoSuchKeyRing(t *testing.T) {
 
 	// Pretend there is no available keyring.
 	f := mocks.NewMockFetcher(m)
-	f.EXPECT().GetMessage(msg.ID).Return(msg, nil)
+	f.EXPECT().GetMessage(gomock.Any(), msg.ID).Return(msg, nil)
 	f.EXPECT().KeyRingForAddressID(msg.AddressID).Return(nil, errors.New("oops"))
 
 	res, err := b.NewJob(context.Background(), f, msg.ID).GetResult()

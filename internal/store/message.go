@@ -25,6 +25,7 @@ import (
 
 	pkgMsg "github.com/ProtonMail/proton-bridge/pkg/message"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
+	"github.com/pkg/errors"
 	bolt "go.etcd.io/bbolt"
 )
 
@@ -153,15 +154,27 @@ func (message *Message) getRawHeader() (raw []byte, err error) {
 }
 
 // GetHeader will return cached header from DB.
-func (message *Message) GetHeader() textproto.MIMEHeader {
+func (message *Message) GetHeader() []byte {
 	raw, err := message.getRawHeader()
-	if err != nil && raw == nil {
-		return textproto.MIMEHeader(message.msg.Header)
+	if err != nil {
+		panic(errors.Wrap(err, "failed to get raw message header"))
 	}
+
+	return raw
+}
+
+// GetMIMEHeader will return cached header from DB, parsed as a textproto.MIMEHeader.
+func (message *Message) GetMIMEHeader() textproto.MIMEHeader {
+	raw, err := message.getRawHeader()
+	if err != nil {
+		panic(errors.Wrap(err, "failed to get raw message header"))
+	}
+
 	header, err := textproto.NewReader(bufio.NewReader(bytes.NewReader(raw))).ReadMIMEHeader()
 	if err != nil {
 		return textproto.MIMEHeader(message.msg.Header)
 	}
+
 	return header
 }
 

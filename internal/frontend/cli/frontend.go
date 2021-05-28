@@ -157,15 +157,6 @@ func New( //nolint[funlen]
 	})
 	fe.AddCmd(updatesCmd)
 
-	// Check commands.
-	checkCmd := &ishell.Cmd{Name: "check", Help: "check internet connection or new version."}
-	checkCmd.AddCmd(&ishell.Cmd{Name: "internet",
-		Help:    "check internet connection. (aliases: i, conn, connection)",
-		Aliases: []string{"i", "con", "connection"},
-		Func:    fe.checkInternetConnection,
-	})
-	fe.AddCmd(checkCmd)
-
 	// Print info commands.
 	fe.AddCmd(&ishell.Cmd{Name: "log-dir",
 		Help:    "print path to directory with logs. (aliases: log, logs)",
@@ -228,14 +219,14 @@ func New( //nolint[funlen]
 }
 
 func (f *frontendCLI) watchEvents() {
-	errorCh := f.getEventChannel(events.ErrorEvent)
-	credentialsErrorCh := f.getEventChannel(events.CredentialsErrorEvent)
-	internetOffCh := f.getEventChannel(events.InternetOffEvent)
-	internetOnCh := f.getEventChannel(events.InternetOnEvent)
-	addressChangedCh := f.getEventChannel(events.AddressChangedEvent)
-	addressChangedLogoutCh := f.getEventChannel(events.AddressChangedLogoutEvent)
-	logoutCh := f.getEventChannel(events.LogoutEvent)
-	certIssue := f.getEventChannel(events.TLSCertIssue)
+	errorCh := f.eventListener.ProvideChannel(events.ErrorEvent)
+	credentialsErrorCh := f.eventListener.ProvideChannel(events.CredentialsErrorEvent)
+	internetOffCh := f.eventListener.ProvideChannel(events.InternetOffEvent)
+	internetOnCh := f.eventListener.ProvideChannel(events.InternetOnEvent)
+	addressChangedCh := f.eventListener.ProvideChannel(events.AddressChangedEvent)
+	addressChangedLogoutCh := f.eventListener.ProvideChannel(events.AddressChangedLogoutEvent)
+	logoutCh := f.eventListener.ProvideChannel(events.LogoutEvent)
+	certIssue := f.eventListener.ProvideChannel(events.TLSCertIssue)
 	for {
 		select {
 		case errorDetails := <-errorCh:
@@ -260,13 +251,6 @@ func (f *frontendCLI) watchEvents() {
 			f.notifyCertIssue()
 		}
 	}
-}
-
-func (f *frontendCLI) getEventChannel(event string) <-chan string {
-	ch := make(chan string)
-	f.eventListener.Add(event, ch)
-	f.eventListener.RetryEmit(event)
-	return ch
 }
 
 // Loop starts the frontend loop with an interactive shell.

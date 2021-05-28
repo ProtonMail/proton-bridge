@@ -20,6 +20,8 @@ package pmapi
 import (
 	"net/http"
 	"testing"
+
+	r "github.com/stretchr/testify/require"
 )
 
 var testAddressList = AddressList{
@@ -46,39 +48,29 @@ var testAddressList = AddressList{
 	},
 }
 
-func routeGetAddresses(tb testing.TB, w http.ResponseWriter, r *http.Request) string {
-	Ok(tb, checkMethodAndPath(r, "GET", "/addresses"))
-	Ok(tb, isAuthReq(r, testUID, testAccessToken))
+func routeGetAddresses(tb testing.TB, w http.ResponseWriter, req *http.Request) string {
+	r.NoError(tb, checkMethodAndPath(req, "GET", "/addresses"))
+	r.NoError(tb, isAuthReq(req, testUID, testAccessToken))
 	return "addresses/get_response.json"
 }
 
 func TestAddressList(t *testing.T) {
 	input := "1"
 	addr := testAddressList.ByID(input)
-	if addr != testAddressList[0] {
-		t.Errorf("ById(%s) expected:\n%v\n but have:\n%v\n", input, testAddressList[0], addr)
-	}
+	r.Equal(t, testAddressList[0], addr)
 
 	input = "42"
 	addr = testAddressList.ByID(input)
-	if addr != nil {
-		t.Errorf("ById expected nil for %s but have : %v\n", input, addr)
-	}
+	r.Nil(t, addr)
 
 	input = "root@protonmail.com"
 	addr = testAddressList.ByEmail(input)
-	if addr != testAddressList[2] {
-		t.Errorf("ByEmail(%s) expected:\n%v\n but have:\n%v\n", input, testAddressList[2], addr)
-	}
+	r.Equal(t, testAddressList[2], addr)
 
 	input = "idontexist@protonmail.com"
 	addr = testAddressList.ByEmail(input)
-	if addr != nil {
-		t.Errorf("ByEmail expected nil for %s but have : %v\n", input, addr)
-	}
+	r.Nil(t, addr)
 
 	addr = testAddressList.Main()
-	if addr != testAddressList[1] {
-		t.Errorf("Main() expected:\n%v\n but have:\n%v\n", testAddressList[1], addr)
-	}
+	r.Equal(t, testAddressList[1], addr)
 }

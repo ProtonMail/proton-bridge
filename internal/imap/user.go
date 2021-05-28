@@ -93,7 +93,7 @@ func newIMAPUser(
 
 // This method should eventually no longer be necessary. Everything should go via store.
 func (iu *imapUser) client() pmapi.Client {
-	return iu.user.GetTemporaryPMAPIClient()
+	return iu.user.GetClient()
 }
 
 func (iu *imapUser) isSubscribed(labelID string) bool {

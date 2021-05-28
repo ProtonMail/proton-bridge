@@ -30,6 +30,7 @@ func IMAPActionsMailboxFeatureContext(s *godog.Suite) {
 	s.Step(`^IMAP client lists mailboxes$`, imapClientListsMailboxes)
 	s.Step(`^IMAP client selects "([^"]*)"$`, imapClientSelects)
 	s.Step(`^IMAP client gets info of "([^"]*)"$`, imapClientGetsInfoOf)
+	s.Step(`^IMAP client "([^"]*)" gets info of "([^"]*)"$`, imapClientNamedGetsInfoOf)
 	s.Step(`^IMAP client gets status of "([^"]*)"$`, imapClientGetsStatusOf)
 }
 
@@ -74,8 +75,12 @@ func imapClientSelects(mailboxName string) error {
 }
 
 func imapClientGetsInfoOf(mailboxName string) error {
-	res := ctx.GetIMAPClient("imap").GetMailboxInfo(mailboxName)
-	ctx.SetIMAPLastResponse("imap", res)
+	return imapClientNamedGetsInfoOf("imap", mailboxName)
+}
+
+func imapClientNamedGetsInfoOf(clientName, mailboxName string) error {
+	res := ctx.GetIMAPClient(clientName).GetMailboxInfo(mailboxName)
+	ctx.SetIMAPLastResponse(clientName, res)
 	return nil
 }
 

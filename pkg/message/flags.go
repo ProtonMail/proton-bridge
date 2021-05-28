@@ -22,15 +22,16 @@ import (
 	"github.com/emersion/go-imap"
 )
 
-//nolint[gochecknoglobals]
-var (
-	AppleMailJunkFlag      = imap.CanonicalFlag("$Junk")
-	ThunderbirdJunkFlag    = imap.CanonicalFlag("Junk")
-	ThunderbirdNonJunkFlag = imap.CanonicalFlag("NonJunk")
+// Various client specific flags.
+const (
+	AppleMailJunkFlag      = "$Junk"
+	ThunderbirdJunkFlag    = "Junk"
+	ThunderbirdNonJunkFlag = "NonJunk"
 )
 
+// GetFlags returns imap flags from pmapi message attributes.
 func GetFlags(m *pmapi.Message) (flags []string) {
-	if m.Unread == 0 {
+	if !m.Unread {
 		flags = append(flags, imap.SeenFlag)
 	}
 	if !m.Has(pmapi.FlagSent) && !m.Has(pmapi.FlagReceived) {
@@ -59,6 +60,7 @@ func GetFlags(m *pmapi.Message) (flags []string) {
 	return
 }
 
+// ParseFlags sets attributes to pmapi messages based on imap flags.
 func ParseFlags(m *pmapi.Message, flags []string) {
 	if m.Header.Get("received") == "" {
 		m.Flags = pmapi.FlagSent
@@ -66,11 +68,11 @@ func ParseFlags(m *pmapi.Message, flags []string) {
 		m.Flags = pmapi.FlagReceived
 	}
 
-	m.Unread = 1
+	m.Unread = true
 	for _, f := range flags {
 		switch f {
 		case imap.SeenFlag:
-			m.Unread = 0
+			m.Unread = false
 		case imap.DraftFlag:
 			m.Flags &= ^pmapi.FlagSent
 			m.Flags &= ^pmapi.FlagReceived

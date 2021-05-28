@@ -95,6 +95,7 @@ func run(b *base.Base, c *cli.Context) error { // nolint[funlen]
 		smtpPort := b.Settings.GetInt(settings.SMTPPortKey)
 		useSSL := b.Settings.GetBool(settings.SMTPSSLKey)
 		smtp.NewSMTPServer(
+			b.CrashHandler,
 			c.Bool(flagLogSMTP),
 			smtpPort, useSSL, tlsConfig, smtpBackend, b.Listener).ListenAndServe()
 	}()

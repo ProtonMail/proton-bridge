@@ -21,6 +21,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/internal/importexport"
 	"github.com/ProtonMail/proton-bridge/internal/users"
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
+	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 )
 
 // GetImportExport returns import-export instance.
@@ -42,7 +43,7 @@ func newImportExportInstance(
 	cache importexport.Cacher,
 	credStore users.CredentialsStorer,
 	eventListener listener.Listener,
-	clientManager users.ClientManager,
+	clientManager pmapi.Manager,
 ) *importexport.ImportExport {
 	panicHandler := &panicHandler{t: t}
 	return importexport.New(locations, cache, panicHandler, eventListener, clientManager, credStore)

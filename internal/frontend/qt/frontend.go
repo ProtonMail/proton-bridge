@@ -191,20 +191,20 @@ func (s *FrontendQt) NotifySilentUpdateError(err error) {
 func (s *FrontendQt) watchEvents() {
 	s.WaitUntilFrontendIsReady()
 
-	errorCh := s.getEventChannel(events.ErrorEvent)
-	credentialsErrorCh := s.getEventChannel(events.CredentialsErrorEvent)
-	outgoingNoEncCh := s.getEventChannel(events.OutgoingNoEncEvent)
-	noActiveKeyForRecipientCh := s.getEventChannel(events.NoActiveKeyForRecipientEvent)
-	internetOffCh := s.getEventChannel(events.InternetOffEvent)
-	internetOnCh := s.getEventChannel(events.InternetOnEvent)
-	secondInstanceCh := s.getEventChannel(events.SecondInstanceEvent)
-	restartBridgeCh := s.getEventChannel(events.RestartBridgeEvent)
-	addressChangedCh := s.getEventChannel(events.AddressChangedEvent)
-	addressChangedLogoutCh := s.getEventChannel(events.AddressChangedLogoutEvent)
-	logoutCh := s.getEventChannel(events.LogoutEvent)
-	updateApplicationCh := s.getEventChannel(events.UpgradeApplicationEvent)
-	newUserCh := s.getEventChannel(events.UserRefreshEvent)
-	certIssue := s.getEventChannel(events.TLSCertIssue)
+	errorCh := s.eventListener.ProvideChannel(events.ErrorEvent)
+	credentialsErrorCh := s.eventListener.ProvideChannel(events.CredentialsErrorEvent)
+	outgoingNoEncCh := s.eventListener.ProvideChannel(events.OutgoingNoEncEvent)
+	noActiveKeyForRecipientCh := s.eventListener.ProvideChannel(events.NoActiveKeyForRecipientEvent)
+	internetOffCh := s.eventListener.ProvideChannel(events.InternetOffEvent)
+	internetOnCh := s.eventListener.ProvideChannel(events.InternetOnEvent)
+	secondInstanceCh := s.eventListener.ProvideChannel(events.SecondInstanceEvent)
+	restartBridgeCh := s.eventListener.ProvideChannel(events.RestartBridgeEvent)
+	addressChangedCh := s.eventListener.ProvideChannel(events.AddressChangedEvent)
+	addressChangedLogoutCh := s.eventListener.ProvideChannel(events.AddressChangedLogoutEvent)
+	logoutCh := s.eventListener.ProvideChannel(events.LogoutEvent)
+	updateApplicationCh := s.eventListener.ProvideChannel(events.UpgradeApplicationEvent)
+	newUserCh := s.eventListener.ProvideChannel(events.UserRefreshEvent)
+	certIssue := s.eventListener.ProvideChannel(events.TLSCertIssue)
 	for {
 		select {
 		case errorDetails := <-errorCh:
@@ -252,13 +252,6 @@ func (s *FrontendQt) watchEvents() {
 			s.Qml.ShowCertIssue()
 		}
 	}
-}
-
-func (s *FrontendQt) getEventChannel(event string) <-chan string {
-	ch := make(chan string)
-	s.eventListener.Add(event, ch)
-	s.eventListener.RetryEmit(event)
-	return ch
 }
 
 // Loop function for tests.
@@ -651,10 +644,6 @@ func (s *FrontendQt) setPortsAndSecurity(imapPort, smtpPort string, useSTARTTLSf
 
 func (s *FrontendQt) isSMTPSTARTTLS() bool {
 	return !s.settings.GetBool(settings.SMTPSSLKey)
-}
-
-func (s *FrontendQt) checkInternet() {
-	s.Qml.SetConnectionStatus(s.bridge.CheckConnection() == nil)
 }
 
 func (s *FrontendQt) switchAddressModeUser(iAccount int) {

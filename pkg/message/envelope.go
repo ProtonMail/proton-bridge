@@ -32,7 +32,7 @@ func GetEnvelope(msg *pmapi.Message, header textproto.MIMEHeader) *imap.Envelope
 	setMessageIDIfNeeded(msg, &hdr)
 
 	return &imap.Envelope{
-		Date:      sanitizeMessageDate(msg.Time),
+		Date:      SanitizeMessageDate(msg.Time),
 		Subject:   msg.Subject,
 		From:      getAddresses([]*mail.Address{msg.Sender}),
 		Sender:    getAddresses([]*mail.Address{msg.Sender}),

@@ -25,32 +25,11 @@ import ProtonUI 1.0
 Rectangle {
     id: root
     property var iTry: 0
-    property var secLeft: 0
     property var second: 1000 // convert millisecond to second
-    property var checkInterval: [ 5, 10, 30, 60, 120, 300, 600 ] // seconds
     property bool isVisible: true
     property var fontSize : 1.2 * Style.main.fontSize
     color : "black"
     state: "upToDate"
-
-    Timer {
-        id: retryInternet
-        interval: second
-        triggeredOnStart: false
-        repeat: true
-        onTriggered : {
-            secLeft--
-            if (secLeft <= 0) {
-                retryInternet.stop()
-                go.checkInternet()
-                if (iTry < checkInterval.length-1) {
-                    iTry++
-                }
-                secLeft=checkInterval[iTry]
-                retryInternet.start()
-            }
-        }
-    }
 
     Row {
         id: messageRow
@@ -110,16 +89,12 @@ Rectangle {
             case "internetCheck":
                 break;
             case "noInternet" :
-                retryInternet.start()
-                secLeft=checkInterval[iTry]
                 break;
             case "oldVersion":
                 break;
             case "forceUpdate":
                 break;
             case "upToDate":
-                iTry = 0
-                secLeft=checkInterval[iTry]
                 break;
             case "updateRestart":
                 break;
@@ -127,24 +102,6 @@ Rectangle {
                 break;
             default :
                 break;
-        }
-
-        if (root.state!="noInternet") {
-            retryInternet.stop()
-        }
-    }
-
-    function timeToRetry() {
-        if (secLeft==1){
-            return qsTr("a second", "time to wait till internet connection is retried")
-        } else if (secLeft<60){
-            return secLeft + " " + qsTr("seconds", "time to wait till internet connection is retried")
-        } else {
-            var leading = ""+secLeft%60
-            if (leading.length < 2) {
-                leading = "0" + leading
-            }
-            return Math.floor(secLeft/60) + ":" + leading
         }
     }
 
@@ -194,23 +151,15 @@ Rectangle {
             PropertyChanges {
                 target: message
                 color: Style.main.line
-                text: qsTr("Cannot contact server. Retrying in ", "displayed when the app is disconnected from the internet or server has problems")+timeToRetry()+"."
+                text: qsTr("Cannot contact server. Please wait...", "displayed when the app is disconnected from the internet or server has problems")
             }
             PropertyChanges {
                 target: linkText
                 visible: false
             }
             PropertyChanges {
-                target: actionText
-                visible: true
-                text: qsTr("Retry now", "click to try to connect to the internet when the app is disconnected from the internet")
-                onClicked: {
-                    go.checkInternet()
-                }
-            }
-            PropertyChanges {
                 target: separatorText
-                visible: true
+                visible: false
                 text: "|"
             }
             PropertyChanges {

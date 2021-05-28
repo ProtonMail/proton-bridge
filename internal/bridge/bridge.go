@@ -19,6 +19,7 @@
 package bridge
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 	"time"
@@ -44,7 +45,7 @@ type Bridge struct {
 
 	locations     Locator
 	settings      SettingsProvider
-	clientManager users.ClientManager
+	clientManager pmapi.Manager
 	updater       Updater
 	versioner     Versioner
 }
@@ -56,7 +57,7 @@ func New(
 	sentryReporter *sentry.Reporter,
 	panicHandler users.PanicHandler,
 	eventListener listener.Listener,
-	clientManager users.ClientManager,
+	clientManager pmapi.Manager,
 	credStorer users.CredentialsStorer,
 	updater Updater,
 	versioner Versioner,
@@ -67,7 +68,7 @@ func New(
 		clientManager.AllowProxy()
 	}
 
-	storeFactory := newStoreFactory(cache, sentryReporter, panicHandler, clientManager, eventListener)
+	storeFactory := newStoreFactory(cache, sentryReporter, panicHandler, eventListener)
 	u := users.New(locations, panicHandler, eventListener, clientManager, credStorer, storeFactory, true)
 	b := &Bridge{
 		Users: u,
@@ -118,28 +119,15 @@ func (b *Bridge) heartbeat() {
 
 // ReportBug reports a new bug from the user.
 func (b *Bridge) ReportBug(osType, osVersion, description, accountName, address, emailClient string) error {
-	c := b.clientManager.GetAnonymousClient()
-	defer c.Logout()
-
-	title := "[Bridge] Bug"
-	report := pmapi.ReportReq{
+	return b.clientManager.ReportBug(context.Background(), pmapi.ReportBugReq{
 		OS:          osType,
 		OSVersion:   osVersion,
 		Browser:     emailClient,
-		Title:       title,
+		Title:       "[Bridge] Bug",
 		Description: description,
 		Username:    accountName,
 		Email:       address,
-	}
-
-	if err := c.Report(report); err != nil {
-		log.Error("Reporting bug failed: ", err)
-		return err
-	}
-
-	log.Info("Bug successfully reported")
-
-	return nil
+	})
 }
 
 // GetUpdateChannel returns currently set update channel.

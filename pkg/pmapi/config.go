@@ -20,24 +20,42 @@ package pmapi
 import (
 	"runtime"
 	"strings"
-	"time"
 )
 
-// rootURL is the API root URL.
-// It must not contain the protocol! The protocol should be in rootScheme.
-var rootURL = "api.protonmail.ch" //nolint[gochecknoglobals]
+type Config struct {
+	// HostURL is the base URL of API.
+	HostURL string
 
-// rootScheme is the scheme to use for connections to the root URL.
-var rootScheme = "https" //nolint[gochecknoglobals]
+	// AppVersion sets version to headers of each request.
+	AppVersion string
 
-func GetAPIConfig(configName, appVersion string) *ClientConfig {
-	return &ClientConfig{
-		AppVersion:        getAPIOS() + strings.Title(configName) + "_" + appVersion,
-		ClientID:          configName,
-		Timeout:           25 * time.Minute, // Overall request timeout (~25MB / 25 mins => ~16kB/s, should be reasonable).
-		FirstReadTimeout:  30 * time.Second, // 30s to match 30s response header timeout.
-		MinBytesPerSecond: 1 << 10,          // Enforce minimum download speed of 1kB/s.
+	// UserAgent sets user agent to headers of each request.
+	// Used only if GetUserAgent is not set.
+	UserAgent string
+
+	// GetUserAgent is dynamic version of UserAgent.
+	// Overrides UserAgent.
+	GetUserAgent func() string
+
+	// UpgradeApplicationHandler is used to notify when there is a force upgrade.
+	UpgradeApplicationHandler func()
+
+	// TLSIssueHandler is used to notify when there is a TLS issue.
+	TLSIssueHandler func()
+}
+
+func NewConfig(appVersionName, appVersion string) Config {
+	return Config{
+		HostURL:    getRootURL(),
+		AppVersion: getAPIOS() + strings.Title(appVersionName) + "_" + appVersion,
 	}
+}
+
+func (c *Config) getUserAgent() string {
+	if c.GetUserAgent == nil {
+		return c.UserAgent
+	}
+	return c.GetUserAgent()
 }
 
 // getAPIOS returns actual operating system.
@@ -50,6 +68,5 @@ func getAPIOS() string {
 	case "windows":
 		return "Windows"
 	}
-
 	return "Linux"
 }

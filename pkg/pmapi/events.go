@@ -18,9 +18,11 @@
 package pmapi
 
 import (
+	"context"
 	"encoding/json"
-	"net/http"
 	"net/mail"
+
+	"github.com/go-resty/resty/v2"
 )
 
 // Event represents changes since the last check.
@@ -30,7 +32,7 @@ type Event struct {
 	// If set to one, all cached data must be fetched again.
 	Refresh int
 	// If set to one, fetch more events.
-	More int
+	More Boolean
 	// Changes applied to messages.
 	Messages []*EventMessage
 	// Counts of messages per labels.
@@ -137,7 +139,7 @@ type EventMessageUpdated struct {
 	ID string
 
 	Subject *string
-	Unread  *int
+	Unread  *Boolean
 	Flags   *int64
 	Sender  *mail.Address
 	ToList  *[]*mail.Address
@@ -163,62 +165,34 @@ type EventAddress struct {
 	Address *Address
 }
 
-type EventRes struct {
-	Res
-	*Event
-}
-
-type LatestEventRes struct {
-	Res
-	*Event
-}
-
 // GetEvent returns a summary of events that occurred since last. To get the latest event,
 // provide an empty last value. The latest event is always empty.
-func (c *client) GetEvent(last string) (event *Event, err error) {
-	return c.getEvent(last, 1)
+func (c *client) GetEvent(ctx context.Context, eventID string) (*Event, error) {
+	return c.getEvent(ctx, eventID, 1)
 }
 
-func (c *client) getEvent(last string, numberOfMergedEvents int) (event *Event, err error) {
-	var req *http.Request
-	if last == "" {
-		req, err = c.NewRequest("GET", "/events/latest", nil)
-		if err != nil {
-			return
-		}
-
-		var res LatestEventRes
-		if err = c.DoJSON(req, &res); err != nil {
-			return
-		}
-
-		event, err = res.Event, res.Err()
-	} else {
-		req, err = c.NewRequest("GET", "/events/"+last, nil)
-		if err != nil {
-			return
-		}
-
-		var res EventRes
-		if err = c.DoJSON(req, &res); err != nil {
-			return
-		}
-
-		event, err = res.Event, res.Err()
-		if err != nil {
-			return
-		}
-
-		if event.More == 1 && numberOfMergedEvents < maxNumberOfMergedEvents {
-			var moreEvents *Event
-			if moreEvents, err = c.getEvent(event.EventID, numberOfMergedEvents+1); err != nil {
-				return
-			}
-			event = mergeEvents(event, moreEvents)
-		}
+func (c *client) getEvent(ctx context.Context, eventID string, numberOfMergedEvents int) (*Event, error) {
+	if eventID == "" {
+		eventID = "latest"
 	}
 
-	return event, err
+	var event *Event
+
+	if _, err := c.do(ctx, func(r *resty.Request) (*resty.Response, error) {
+		return r.SetResult(&event).Get("/events/" + eventID)
+	}); err != nil {
+		return nil, err
+	}
+
+	if event.More && numberOfMergedEvents < maxNumberOfMergedEvents {
+		nextEvent, err := c.getEvent(ctx, event.EventID, numberOfMergedEvents+1)
+		if err != nil {
+			return nil, err
+		}
+		event = mergeEvents(event, nextEvent)
+	}
+
+	return event, nil
 }
 
 // mergeEvents combines an old events and a new events object.

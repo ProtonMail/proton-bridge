@@ -21,6 +21,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	"github.com/nsf/jsondiff"
 )
 
@@ -39,23 +40,31 @@ type fakeCall struct {
 	request []byte
 }
 
-func (ctl *Controller) recordCall(method method, path string, req interface{}) {
+func (ctl *Controller) checkAndRecordCall(method method, path string, req interface{}) error {
 	ctl.lock.Lock()
 	defer ctl.lock.Unlock()
 
-	request := []byte{}
+	var request []byte
+
 	if req != nil {
 		var err error
-		request, err = json.Marshal(req)
-		if err != nil {
+
+		if request, err = json.Marshal(req); err != nil {
 			panic(err)
 		}
 	}
+
 	ctl.calls = append(ctl.calls, &fakeCall{
 		method:  method,
 		path:    path,
 		request: request,
 	})
+
+	if ctl.noInternetConnection {
+		return pmapi.ErrNoConnection
+	}
+
+	return nil
 }
 
 func (ctl *Controller) PrintCalls() {

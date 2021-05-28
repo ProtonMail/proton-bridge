@@ -18,6 +18,7 @@
 package fakeapi
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
@@ -26,20 +27,20 @@ import (
 func (api *FakePMAPI) isLabelFolder(labelID string) bool {
 	for _, label := range api.labels {
 		if label.ID == labelID {
-			return label.Exclusive == 1
+			return bool(label.Exclusive)
 		}
 	}
 	return labelID == pmapi.InboxLabel || labelID == pmapi.ArchiveLabel || labelID == pmapi.SentLabel
 }
 
-func (api *FakePMAPI) ListLabels() ([]*pmapi.Label, error) {
+func (api *FakePMAPI) ListLabels(context.Context) ([]*pmapi.Label, error) {
 	if err := api.checkAndRecordCall(GET, "/labels/1", nil); err != nil {
 		return nil, err
 	}
 	return api.labels, nil
 }
 
-func (api *FakePMAPI) CreateLabel(label *pmapi.Label) (*pmapi.Label, error) {
+func (api *FakePMAPI) CreateLabel(_ context.Context, label *pmapi.Label) (*pmapi.Label, error) {
 	if err := api.checkAndRecordCall(POST, "/labels", &pmapi.LabelReq{Label: label}); err != nil {
 		return nil, err
 	}
@@ -49,7 +50,7 @@ func (api *FakePMAPI) CreateLabel(label *pmapi.Label) (*pmapi.Label, error) {
 		}
 	}
 	prefix := "label"
-	if label.Exclusive == 1 {
+	if label.Exclusive {
 		prefix = "folder"
 	}
 	label.ID = api.controller.labelIDGenerator.next(prefix)
@@ -61,7 +62,7 @@ func (api *FakePMAPI) CreateLabel(label *pmapi.Label) (*pmapi.Label, error) {
 	return label, nil
 }
 
-func (api *FakePMAPI) UpdateLabel(label *pmapi.Label) (*pmapi.Label, error) {
+func (api *FakePMAPI) UpdateLabel(_ context.Context, label *pmapi.Label) (*pmapi.Label, error) {
 	if err := api.checkAndRecordCall(PUT, "/labels", &pmapi.LabelReq{Label: label}); err != nil {
 		return nil, err
 	}
@@ -81,7 +82,7 @@ func (api *FakePMAPI) UpdateLabel(label *pmapi.Label) (*pmapi.Label, error) {
 	return nil, fmt.Errorf("label %s does not exist", label.ID)
 }
 
-func (api *FakePMAPI) DeleteLabel(labelID string) error {
+func (api *FakePMAPI) DeleteLabel(_ context.Context, labelID string) error {
 	if err := api.checkAndRecordCall(DELETE, "/labels/"+labelID, nil); err != nil {
 		return err
 	}
