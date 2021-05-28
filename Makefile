@@ -7,29 +7,16 @@ TARGET_CMD?=Desktop-Bridge
 TARGET_OS?=${GOOS}
 
 ## Build
-.PHONY: build build-ie build-nogui build-ie-nogui build-launcher build-launcher-ie  versioner hasher
+.PHONY: build build-nogui build-launcher versioner hasher
 
 # Keep version hardcoded so app build works also without Git repository.
 BRIDGE_APP_VERSION?=1.8.12+git
-IE_APP_VERSION?=1.3.3+git
 APP_VERSION:=${BRIDGE_APP_VERSION}
 SRC_ICO:=logo.ico
 SRC_ICNS:=Bridge.icns
 SRC_SVG:=logo.svg
-TGT_ICNS:=Bridge.icns
 EXE_NAME:=proton-bridge
 CONFIGNAME:=bridge
-WINDRES_DEFINE:=BUILD_BRIDGE
-ifeq "${TARGET_CMD}" "Import-Export"
-    APP_VERSION:=${IE_APP_VERSION}
-    SRC_ICO:=ie.ico
-    SRC_ICNS:=ie.icns
-    SRC_SVG:=ie.svg
-    TGT_ICNS:=ImportExport.icns
-    EXE_NAME:=proton-ie
-    CONFIGNAME:=importExport
-	WINDRES_DEFINE:=BUILD_IE
-endif
 REVISION:=$(shell git rev-parse --short=10 HEAD)
 BUILD_TIME:=$(shell date +%FT%T%z)
 
@@ -41,7 +28,6 @@ ifneq "${BUILD_LDFLAGS}" ""
     GO_LDFLAGS+=${BUILD_LDFLAGS}
 endif
 GO_LDFLAGS_LAUNCHER:=${GO_LDFLAGS}
-GO_LDFLAGS_LAUNCHER+=$(addprefix -X main.,ConfigName=${CONFIGNAME} ExeName=proton-${APP})
 ifeq "${TARGET_OS}" "windows"
     GO_LDFLAGS_LAUNCHER+=-H=windowsgui
 endif
@@ -70,9 +56,6 @@ EXE_TARGET:=${DEPLOY_DIR}/${TARGET_OS}/${EXE}
 EXE_QT_TARGET:=${DEPLOY_DIR}/${TARGET_OS}/${EXE_QT}
 
 TGZ_TARGET:=bridge_${TARGET_OS}_${REVISION}.tgz
-ifeq "${TARGET_CMD}" "Import-Export"
-    TGZ_TARGET:=ie_${TARGET_OS}_${REVISION}.tgz
-endif
 
 ifdef QT_API
     VENDOR_TARGET:=prepare-vendor update-qt-docs
@@ -82,14 +65,8 @@ endif
 
 build: ${TGZ_TARGET}
 
-build-ie:
-	TARGET_CMD=Import-Export $(MAKE) build
-
 build-nogui: gofiles
 	go build ${BUILD_FLAGS} -o ${EXE_NAME} cmd/${TARGET_CMD}/main.go
-
-build-ie-nogui:
-	TARGET_CMD=Import-Export $(MAKE) build-nogui
 
 ifeq "${GOOS}" "windows"
   	PRERESOURCECMD:=cp ./resource.syso ./cmd/launcher/resource.syso
@@ -99,9 +76,6 @@ build-launcher: ${RESOURCE_FILE}
 	${PRERESOURCECMD}
 	go build ${BUILD_FLAGS_LAUNCHER} -o launcher-${EXE} ./cmd/launcher/
 	${POSTRESOURCECMD}
-
-build-launcher-ie:
-	TARGET_CMD=Import-Export $(MAKE) build-launcher
 
 versioner:
 	go build ${BUILD_FLAGS} -o versioner utils/versioner/main.go
@@ -124,7 +98,7 @@ ${DEPLOY_DIR}/darwin: ${EXE_TARGET}
 		mv ${EXE_TARGET}/Contents/MacOS/{${DIRNAME},${EXE_NAME}}; \
 		perl -i -pe"s/>${DIRNAME}/>${EXE_NAME}/g" ${EXE_TARGET}/Contents/Info.plist; \
 	fi
-	cp ./internal/frontend/share/icons/${SRC_ICNS} ${DARWINAPP_CONTENTS}/Resources/${TGT_ICNS}
+	cp ./internal/frontend/share/icons/${SRC_ICNS} ${DARWINAPP_CONTENTS}/Resources/${SRC_ICNS}
 	cp LICENSE ${DARWINAPP_CONTENTS}/Resources/
 	rm -rf "${DARWINAPP_CONTENTS}/Frameworks/QtWebEngine.framework"
 	rm -rf "${DARWINAPP_CONTENTS}/Frameworks/QtWebView.framework"
@@ -155,7 +129,7 @@ WINDRES_YEAR:=$(shell date +%Y)
 APP_VERSION_COMMA:=$(shell echo "${APP_VERSION}" | sed -e 's/[^0-9,.]*//g' -e 's/\./,/g')
 resource.syso: ./internal/frontend/share/info.rc ./internal/frontend/share/icons/${SRC_ICO} .FORCE
 	rm -f ./*.syso
-	windres --target=pe-x86-64 -I ./internal/frontend/share/icons/ -D ${WINDRES_DEFINE} -D ICO_FILE=${SRC_ICO} -D EXE_NAME="${EXE_NAME}" -D FILE_VERSION="${APP_VERSION}" -D ORIGINAL_FILE_NAME="${EXE}" -D PRODUCT_VERSION="${APP_VERSION}" -D FILE_VERSION_COMMA=${APP_VERSION_COMMA} -D YEAR=${WINDRES_YEAR} -o $@ $<
+	windres --target=pe-x86-64 -I ./internal/frontend/share/icons/ -D ICO_FILE=${SRC_ICO} -D EXE_NAME="${EXE_NAME}" -D FILE_VERSION="${APP_VERSION}" -D ORIGINAL_FILE_NAME="${EXE}" -D PRODUCT_VERSION="${APP_VERSION}" -D FILE_VERSION_COMMA=${APP_VERSION_COMMA} -D YEAR=${WINDRES_YEAR} -o $@ $<
 
 ## Rules for therecipe/qt
 .PHONY: prepare-vendor update-vendor update-qt-docs
@@ -232,13 +206,11 @@ test: gofiles
 		./internal/events/... \
 		./internal/frontend/cli/... \
 		./internal/imap/... \
-		./internal/importexport/... \
 		./internal/locations/... \
 		./internal/logging/... \
 		./internal/metrics/... \
 		./internal/smtp/... \
 		./internal/store/... \
-		./internal/transfer/... \
 		./internal/updater/... \
 		./internal/users/... \
 		./internal/versioner/... \
@@ -258,7 +230,6 @@ integration-test-bridge:
 mocks:
 	mockgen --package mocks github.com/ProtonMail/proton-bridge/internal/users Locator,PanicHandler,CredentialsStorer,StoreMaker > internal/users/mocks/mocks.go
 	mockgen --package mocks github.com/ProtonMail/proton-bridge/pkg/listener Listener > internal/users/mocks/listener_mocks.go
-	mockgen --package mocks github.com/ProtonMail/proton-bridge/internal/transfer PanicHandler,IMAPClientProvider > internal/transfer/mocks/mocks.go
 	mockgen --package mocks github.com/ProtonMail/proton-bridge/internal/store PanicHandler,BridgeUser,ChangeNotifier > internal/store/mocks/mocks.go
 	mockgen --package mocks github.com/ProtonMail/proton-bridge/pkg/listener Listener > internal/store/mocks/utils_mocks.go
 	mockgen --package mocks github.com/ProtonMail/proton-bridge/pkg/pmapi Client,Manager > pkg/pmapi/mocks/mocks.go
@@ -284,7 +255,7 @@ updates: install-go-mod-outdated
 doc:
 	godoc -http=:6060
 
-release-notes: release-notes/bridge_stable.html release-notes/bridge_early.html release-notes/ie_stable.html release-notes/ie_early.html
+release-notes: release-notes/bridge_stable.html release-notes/bridge_early.html
 
 release-notes/%.html: release-notes/%.md
 	./utils/release_notes.sh $^
@@ -292,21 +263,17 @@ release-notes/%.html: release-notes/%.md
 .PHONY: gofiles
 # Following files are for the whole app so it makes sense to have them in bridge package.
 # (Options like cmd or internal were considered and bridge package is the best place for them.)
-gofiles: ./internal/bridge/credits.go ./internal/importexport/credits.go
+gofiles: ./internal/bridge/credits.go
 ./internal/bridge/credits.go: ./utils/credits.sh go.mod
 	cd ./utils/ && ./credits.sh bridge
-./internal/importexport/credits.go: ./utils/credits.sh go.mod
-	cd ./utils/ && ./credits.sh importexport
-
 
 ## Run and debug
-.PHONY: run run-qt run-qt-cli run-nogui run-nogui-cli run-debug run-qml-preview run-ie-qml-preview run-ie run-ie-qt run-ie-qt-cli run-ie-nogui run-ie-nogui-cli clean-vendor clean-frontend-qt clean-frontend-qt-ie clean-frontend-qt-common clean
+.PHONY: run run-qt run-qt-cli run-nogui run-nogui-cli run-debug run-qml-preview clean-vendor clean-frontend-qt clean-frontend-qt-common clean
 
 LOG?=debug
 LOG_IMAP?=client # client/server/all, or empty to turn it off
 LOG_SMTP?=--log-smtp # empty to turn it off
 RUN_FLAGS?=-m -l=${LOG} --log-imap=${LOG_IMAP} ${LOG_SMTP}
-RUN_FLAGS_IE?=-m -l=${LOG}
 
 run: run-nogui-cli
 
@@ -325,24 +292,13 @@ run-debug:
 
 run-qml-preview:
 	$(MAKE) -C internal/frontend/qt -f Makefile.local qmlpreview
-run-ie-qml-preview:
-	$(MAKE) -C internal/frontend/qt-ie -f Makefile.local qmlpreview
-
-run-ie:
-	TARGET_CMD=Import-Export RUN_FLAGS="${RUN_FLAGS_IE}" $(MAKE) run
-run-ie-qt:
-	TARGET_CMD=Import-Export RUN_FLAGS="${RUN_FLAGS_IE}" $(MAKE) run-qt
-run-ie-nogui:
-	TARGET_CMD=Import-Export RUN_FLAGS="${RUN_FLAGS_IE}" $(MAKE) run-nogui
 
 clean-frontend-qt:
-	$(MAKE) -C internal/frontend/qt -f Makefile.local clean
-clean-frontend-qt-ie:
-	$(MAKE) -C internal/frontend/qt-ie -f Makefile.local clean
+	# TODO: $(MAKE) -C internal/frontend/qt -f Makefile.local clean
 clean-frontend-qt-common:
-	$(MAKE) -C internal/frontend/qt-common -f Makefile.local clean
+	# TODO: $(MAKE) -C internal/frontend/qt-common -f Makefile.local clean
 
-clean-vendor: clean-frontend-qt clean-frontend-qt-ie clean-frontend-qt-common
+clean-vendor: clean-frontend-qt clean-frontend-qt-common
 	rm -rf ./vendor
 
 clean: clean-vendor

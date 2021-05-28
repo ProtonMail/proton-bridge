@@ -223,7 +223,7 @@ func testNewUsers(t *testing.T, m mocks) *Users { //nolint[unparam]
 	m.eventListener.EXPECT().ProvideChannel(events.UpgradeApplicationEvent)
 	m.eventListener.EXPECT().ProvideChannel(events.InternetOnEvent)
 
-	users := New(m.locator, m.PanicHandler, m.eventListener, m.clientManager, m.credentialsStore, m.storeMaker, true)
+	users := New(m.locator, m.PanicHandler, m.eventListener, m.clientManager, m.credentialsStore, m.storeMaker)
 
 	waitForEvents()
 

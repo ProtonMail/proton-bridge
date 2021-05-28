@@ -68,8 +68,15 @@ func New(
 		clientManager.AllowProxy()
 	}
 
-	storeFactory := newStoreFactory(cache, sentryReporter, panicHandler, eventListener)
-	u := users.New(locations, panicHandler, eventListener, clientManager, credStorer, storeFactory, true)
+	u := users.New(
+		locations,
+		panicHandler,
+		eventListener,
+		clientManager,
+		credStorer,
+		newStoreFactory(cache, sentryReporter, panicHandler, eventListener),
+	)
+
 	b := &Bridge{
 		Users: u,
 

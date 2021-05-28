@@ -168,26 +168,6 @@ build-darwin-qa:
     paths:
       - bridge_*.tgz
 
-build-ie-darwin:
-  extends: .build-darwin-base
-  script:
-    - make build-ie
-  artifacts:
-    name: "ie-darwin-$CI_COMMIT_SHORT_SHA"
-    paths:
-      - ie_*.tgz
-
-build-ie-darwin-qa:
-  extends: .build-darwin-base
-  only:
-    - web
-  script:
-    - BUILD_TAGS="build_qa" make build-ie
-  artifacts:
-    name: "ie-darwin-qa-$CI_COMMIT_SHORT_SHA"
-    paths:
-      - ie_*.tgz
-
 # Stage: MIRROR
 
 mirror-repo:

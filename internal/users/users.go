@@ -58,12 +58,6 @@ type Users struct {
 	// People are used to that and so we preserve that ordering here.
 	users []*User
 
-	// useOnlyActiveAddresses determines whether credentials keeps only active
-	// addresses or all of them. Each usage has to be consisteng, e.g., once
-	// user is added, it saves address list to credentials and next time loads
-	// as is, without requesting server again.
-	useOnlyActiveAddresses bool
-
 	lock sync.RWMutex
 }
 
@@ -74,19 +68,17 @@ func New(
 	clientManager pmapi.Manager,
 	credStorer CredentialsStorer,
 	storeFactory StoreMaker,
-	useOnlyActiveAddresses bool,
 ) *Users {
 	log.Trace("Creating new users")
 
 	u := &Users{
-		locations:              locations,
-		panicHandler:           panicHandler,
-		events:                 eventListener,
-		clientManager:          clientManager,
-		credStorer:             credStorer,
-		storeFactory:           storeFactory,
-		useOnlyActiveAddresses: useOnlyActiveAddresses,
-		lock:                   sync.RWMutex{},
+		locations:     locations,
+		panicHandler:  panicHandler,
+		events:        eventListener,
+		clientManager: clientManager,
+		credStorer:    credStorer,
+		storeFactory:  storeFactory,
+		lock:          sync.RWMutex{},
 	}
 
 	go func() {
@@ -135,7 +127,7 @@ func (u *Users) loadUsersFromCredentialsStore() error {
 
 	for _, userID := range userIDs {
 		l := log.WithField("user", userID)
-		user, creds, err := newUser(u.panicHandler, userID, u.events, u.credStorer, u.storeFactory, u.useOnlyActiveAddresses)
+		user, creds, err := newUser(u.panicHandler, userID, u.events, u.credStorer, u.storeFactory)
 		if err != nil {
 			l.WithError(err).Warn("Could not create user, skipping")
 			continue
@@ -256,19 +248,11 @@ func (u *Users) addNewUser(client pmapi.Client, apiUser *pmapi.User, auth *pmapi
 	u.lock.Lock()
 	defer u.lock.Unlock()
 
-	var emails []string
-
-	if u.useOnlyActiveAddresses {
-		emails = client.Addresses().ActiveEmails()
-	} else {
-		emails = client.Addresses().AllEmails()
-	}
-
-	if _, err := u.credStorer.Add(apiUser.ID, apiUser.Name, auth.UID, auth.RefreshToken, passphrase, emails); err != nil {
+	if _, err := u.credStorer.Add(apiUser.ID, apiUser.Name, auth.UID, auth.RefreshToken, passphrase, client.Addresses().ActiveEmails()); err != nil {
 		return errors.Wrap(err, "failed to add user credentials to credentials store")
 	}
 
-	user, creds, err := newUser(u.panicHandler, apiUser.ID, u.events, u.credStorer, u.storeFactory, u.useOnlyActiveAddresses)
+	user, creds, err := newUser(u.panicHandler, apiUser.ID, u.events, u.credStorer, u.storeFactory)
 	if err != nil {
 		return errors.Wrap(err, "failed to create new user")
 	}

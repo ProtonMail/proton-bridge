@@ -23,12 +23,6 @@
 INFILE=$1
 OUTFILE=${INFILE//.md/.html}
 
-# Load props
-APP_NAME="Import-Export app"
-if [[ "$INFILE" =~ bridge ]]; then 
-    APP_NAME="Bridge"
-fi
-
 CHANNEL=early
 if [[ "$INFILE" =~ stable ]]; then 
     CHANNEL=stable
@@ -36,9 +30,9 @@ fi
 
 # Check dependencies
 if ! which pandoc; then
-  echo "PANDOC NOT FOUND!\nPlease install pandoc in order to build release notes."
+  printf "PANDOC NOT FOUND!\nPlease install pandoc in order to build release notes."
   exit 1
 fi
 
 # Build release notes
-pandoc $INFILE -f markdown -t html -s -o $OUTFILE -c utils/release_notes.css --self-contained --section-divs --metadata title="Release notes - ProtonMail $APP_NAME - $CHANNEL"
+pandoc "$INFILE" -f markdown -t html -s -o "$OUTFILE" -c utils/release_notes.css --self-contained --section-divs --metadata title="Release notes - ProtonMail Bridge - $CHANNEL"

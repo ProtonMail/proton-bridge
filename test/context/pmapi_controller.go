@@ -46,7 +46,7 @@ type PMAPIController interface {
 	UnlockEvents()
 }
 
-func newPMAPIController(app string, listener listener.Listener) (PMAPIController, pmapi.Manager) {
+func newPMAPIController(listener listener.Listener) (PMAPIController, pmapi.Manager) {
 	switch os.Getenv(EnvName) {
 	case EnvFake:
 		cntl, cm := fakeapi.NewController()
@@ -54,7 +54,7 @@ func newPMAPIController(app string, listener listener.Listener) (PMAPIController
 		return cntl, cm
 
 	case EnvLive:
-		cntl, cm := liveapi.NewController(app)
+		cntl, cm := liveapi.NewController()
 		addConnectionObserver(cm, listener)
 		return cntl, cm
 

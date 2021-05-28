@@ -19,7 +19,6 @@ package tests
 
 import (
 	"context"
-	"os"
 
 	testContext "github.com/ProtonMail/proton-bridge/test/context"
 	"github.com/cucumber/godog"
@@ -60,10 +59,6 @@ func ScenarioInitializer(s *godog.ScenarioContext) {
 	StoreChecksFeatureContext(s)
 	StoreSetupFeatureContext(s)
 
-	TransferActionsFeatureContext(s)
-	TransferChecksFeatureContext(s)
-	TransferSetupFeatureContext(s)
-
 	UsersActionsFeatureContext(s)
 	UsersSetupFeatureContext(s)
 	UsersChecksFeatureContext(s)
@@ -72,9 +67,7 @@ func ScenarioInitializer(s *godog.ScenarioContext) {
 var ctx *testContext.TestContext //nolint[gochecknoglobals]
 
 func beforeScenario(scenarioCtx context.Context, _ *godog.Scenario) (context.Context, error) {
-	// NOTE(GODT-219) It would be possible to optimised the usage of godog with our context.
-	app := os.Getenv("TEST_APP")
-	ctx = testContext.New(app)
+	ctx = testContext.New()
 	return scenarioCtx, nil
 }
 

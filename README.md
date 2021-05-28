@@ -37,6 +37,8 @@ check the results.
 
 More details [on the public website](https://protonmail.com/import-export).
 
+The Import-Export app is developed in separate branch `master-ie`.
+
 ## Launchers
 Launchers are binaries used to run the ProtonMail Bridge or Import-Export apps.
 
@@ -69,7 +71,6 @@ or
 
 ### Integration testing
 - `TEST_ENV`: set which env to use (fake or live)
-- `TEST_APP`: set which app to test (bridge or ie)
 - `TEST_ACCOUNTS`: set JSON file with configured accounts
 - `TAGS`: set build tags for tests
 - `FEATURES`: set feature dir, file or scenario to test

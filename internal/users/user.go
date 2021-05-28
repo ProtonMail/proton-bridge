@@ -50,8 +50,6 @@ type User struct {
 	creds  *credentials.Credentials
 
 	lock sync.RWMutex
-
-	useOnlyActiveAddresses bool
 }
 
 // newUser creates a new user.
@@ -62,7 +60,6 @@ func newUser(
 	eventListener listener.Listener,
 	credStorer CredentialsStorer,
 	storeFactory StoreMaker,
-	useOnlyActiveAddresses bool,
 ) (*User, *credentials.Credentials, error) {
 	log := log.WithField("user", userID)
 
@@ -74,14 +71,13 @@ func newUser(
 	}
 
 	return &User{
-		log:                    log,
-		panicHandler:           panicHandler,
-		listener:               eventListener,
-		credStorer:             credStorer,
-		storeFactory:           storeFactory,
-		userID:                 userID,
-		creds:                  creds,
-		useOnlyActiveAddresses: useOnlyActiveAddresses,
+		log:          log,
+		panicHandler: panicHandler,
+		listener:     eventListener,
+		credStorer:   credStorer,
+		storeFactory: storeFactory,
+		userID:       userID,
+		creds:        creds,
 	}, creds, nil
 }
 

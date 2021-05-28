@@ -38,7 +38,7 @@ type Controller struct {
 	noInternetConnection bool
 }
 
-func NewController(_ string) (*Controller, pmapi.Manager) {
+func NewController() (*Controller, pmapi.Manager) {
 	controller := &Controller{
 		log:                  logrus.WithField("pkg", "live-controller"),
 		lock:                 &sync.RWMutex{},

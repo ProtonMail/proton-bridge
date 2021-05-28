@@ -23,8 +23,6 @@ import (
 
 	"github.com/ProtonMail/proton-bridge/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/internal/config/useragent"
-	"github.com/ProtonMail/proton-bridge/internal/importexport"
-	"github.com/ProtonMail/proton-bridge/internal/transfer"
 	"github.com/ProtonMail/proton-bridge/internal/users"
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
@@ -55,11 +53,10 @@ type TestContext struct {
 	clientManager   pmapi.Manager
 
 	// Core related variables.
-	bridge       *bridge.Bridge
-	importExport *importexport.ImportExport
-	users        *users.Users
-	credStore    users.CredentialsStorer
-	lastError    error
+	bridge    *bridge.Bridge
+	users     *users.Users
+	credStore users.CredentialsStorer
+	lastError error
 
 	// IMAP related variables.
 	imapAddr           string
@@ -75,13 +72,6 @@ type TestContext struct {
 	smtpLastResponses  map[string]*mocks.SMTPResponse
 	smtpResponseLocker sync.Locker
 
-	// Transfer related variables.
-	transferLocalRootForImport    string
-	transferLocalRootForExport    string
-	transferRemoteIMAPServer      *mocks.IMAPServer
-	transferProgress              *transfer.Progress
-	transferSkipEncryptedMessages bool
-
 	// Store releated variables.
 	bddMessageIDsToAPIIDs map[string]string
 
@@ -93,9 +83,11 @@ type TestContext struct {
 }
 
 // New returns a new test TestContext.
-func New(app string) *TestContext {
+func New() *TestContext {
+	setLogrusVerbosityFromEnv()
+
 	listener := listener.New()
-	pmapiController, clientManager := newPMAPIController(app, listener)
+	pmapiController, clientManager := newPMAPIController(listener)
 
 	ctx := &TestContext{
 		t:                     &bddT{},
@@ -121,15 +113,8 @@ func New(app string) *TestContext {
 	// Ensure that the config is cleaned up after the test is over.
 	ctx.addCleanupChecked(ctx.locations.Clear, "Cleaning bridge config data")
 
-	// Create bridge or import-export instance under test.
-	switch app {
-	case "bridge":
-		ctx.withBridgeInstance()
-	case "ie":
-		ctx.withImportExportInstance()
-	default:
-		panic("unknown app: " + app)
-	}
+	// Create bridge instance under test.
+	ctx.withBridgeInstance()
 
 	return ctx
 }

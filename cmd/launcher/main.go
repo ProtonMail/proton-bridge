@@ -38,11 +38,10 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-const appName = "ProtonMail Launcher"
-
-var (
-	ConfigName = "" // nolint[gochecknoglobals]
-	ExeName    = "" // nolint[gochecknoglobals]
+const (
+	appName    = "ProtonMail Launcher"
+	configName = "bridge"
+	exeName    = "proton-bridge"
 )
 
 func main() { // nolint[funlen]
@@ -51,12 +50,12 @@ func main() { // nolint[funlen]
 	crashHandler := crash.NewHandler(reporter.ReportException)
 	defer crashHandler.HandlePanic()
 
-	locationsProvider, err := locations.NewDefaultProvider(filepath.Join(constants.VendorName, ConfigName))
+	locationsProvider, err := locations.NewDefaultProvider(filepath.Join(constants.VendorName, configName))
 	if err != nil {
 		logrus.WithError(err).Fatal("Failed to get locations provider")
 	}
 
-	locations := locations.New(locationsProvider, ConfigName)
+	locations := locations.New(locationsProvider, configName)
 
 	logsPath, err := locations.ProvideLogsPath()
 	if err != nil {
@@ -87,9 +86,9 @@ func main() { // nolint[funlen]
 
 	versioner := versioner.New(updatesPath)
 
-	exe, err := getPathToUpdatedExecutable(ExeName, versioner, kr, reporter)
+	exe, err := getPathToUpdatedExecutable(exeName, versioner, kr, reporter)
 	if err != nil {
-		if exe, err = getFallbackExecutable(ExeName, versioner); err != nil {
+		if exe, err = getFallbackExecutable(exeName, versioner); err != nil {
 			logrus.WithError(err).Fatal("Failed to find any launchable executable")
 		}
 	}

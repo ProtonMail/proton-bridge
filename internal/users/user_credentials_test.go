@@ -172,7 +172,7 @@ func TestCheckBridgeLoginLoggedOut(t *testing.T) {
 		m.eventListener.EXPECT().Emit(events.LogoutEvent, "user"),
 	)
 
-	user, _, err := newUser(m.PanicHandler, "user", m.eventListener, m.credentialsStore, m.storeMaker, false)
+	user, _, err := newUser(m.PanicHandler, "user", m.eventListener, m.credentialsStore, m.storeMaker)
 	r.NoError(t, err)
 
 	err = user.connect(m.pmapiClient, testCredentialsDisconnected)
