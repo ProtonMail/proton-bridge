@@ -20,6 +20,7 @@ package message
 import (
 	"bytes"
 	"fmt"
+	"io/ioutil"
 	"net/textproto"
 	"path/filepath"
 	"runtime"
@@ -70,9 +71,41 @@ func TestParseBodyStructure(t *testing.T) {
 	debug("%10s: %-50s %5s %5s %5s %5s", "section", "type", "start", "size", "bsize", "lines")
 	for _, path := range paths {
 		sec := (*bs)[path]
-		contentType := sec.Header.Get("Content-Type")
+		contentType := (*bs)[path].Header.Get("Content-Type")
 		debug("%10s: %-50s %5d %5d %5d %5d", path, contentType, sec.Start, sec.Size, sec.BSize, sec.Lines)
 		require.Equal(t, expectedStructure[path], contentType)
+	}
+
+	require.True(t, len(*bs) == len(expectedStructure), "Wrong number of sections expected %d but have %d", len(expectedStructure), len(*bs))
+}
+
+func TestParseBodyStructurePGP(t *testing.T) {
+	expectedStructure := map[string]string{
+		"":        "multipart/signed; micalg=pgp-sha256; protocol=\"application/pgp-signature\"; boundary=\"MHEDFShwcX18dyE3X7RXujo5fjpgdjHNM\"",
+		"1":       "multipart/mixed; boundary=\"FBBl2LNv76z8UkvHhSkT9vLwVwxqV8378\"; protected-headers=\"v1\"",
+		"1.1":     "multipart/mixed; boundary=\"------------F97C8ED4878E94675762AE43\"",
+		"1.1.1":   "multipart/alternative; boundary=\"------------041318B15DD3FA540FED32C6\"",
+		"1.1.1.1": "text/plain; charset=utf-8; format=flowed",
+		"1.1.1.2": "text/html; charset=utf-8",
+		"1.1.2":   "application/pdf; name=\"minimal.pdf\"",
+		"1.1.3":   "application/pgp-keys; name=\"OpenPGP_0x161C0875822359F7.asc\"",
+		"2":       "application/pgp-signature; name=\"OpenPGP_signature.asc\"",
+	}
+
+	b, err := ioutil.ReadFile("testdata/enc-body-structure.eml")
+	require.NoError(t, err)
+
+	bs, err := NewBodyStructure(bytes.NewReader(b))
+	require.NoError(t, err)
+
+	paths := []string{}
+	for path := range *bs {
+		paths = append(paths, path)
+	}
+	sort.Strings(paths)
+
+	for _, path := range paths {
+		require.Equal(t, expectedStructure[path], (*bs)[path].Header.Get("Content-Type"))
 	}
 
 	require.True(t, len(*bs) == len(expectedStructure), "Wrong number of sections expected %d but have %d", len(expectedStructure), len(*bs))
