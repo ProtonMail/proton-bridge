@@ -133,7 +133,7 @@ func section(t *testing.T, b []byte, section ...int) *testSection {
 	bs, err := NewBodyStructure(bytes.NewReader(b))
 	require.NoError(t, err)
 
-	raw, err := bs.GetSection(bytes.NewReader(b), append([]int{}, section...))
+	raw, err := bs.GetSection(bytes.NewReader(b), section)
 	require.NoError(t, err)
 
 	return &testSection{

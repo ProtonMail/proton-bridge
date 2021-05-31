@@ -209,7 +209,7 @@ func TestBuildSignedHTMLEncryptedMessage(t *testing.T) {
 		expectContentDispositionParam(`filename`, is(`OpenPGP_signature`))
 }
 
-func _TestBuildSignedPlainEncryptedMessageWithPubKey(t *testing.T) {
+func TestBuildSignedPlainEncryptedMessageWithPubKey(t *testing.T) {
 	m := gomock.NewController(t)
 	defer m.Finish()
 
@@ -225,43 +225,40 @@ func _TestBuildSignedPlainEncryptedMessageWithPubKey(t *testing.T) {
 	require.NoError(t, err)
 
 	section(t, res).
-		expectContentType(is(`multipart/mixed`)).
-		expectDate(is(`Wed, 01 Jan 2020 00:00:00 +0000`))
-
-	section(t, res, 1).
+		expectDate(is(`Wed, 01 Jan 2020 00:00:00 +0000`)).
 		expectContentType(is(`multipart/signed`)).
 		expectContentTypeParam(`micalg`, is(`pgp-sha256`)).
 		expectContentTypeParam(`protocol`, is(`application/pgp-signature`))
 
-	section(t, res, 1, 1).
+	section(t, res, 1).
 		expectContentType(is(`multipart/mixed`)).
 		expectContentTypeParam(`protected-headers`, is(`v1`)).
 		expectHeader(`Subject`, is(`simple plaintext body`)).
 		expectHeader(`From`, is(`"pm.bridge.qa" <pm.bridge.qa@gmail.com>`)).
 		expectHeader(`To`, is(`schizofrenic@pm.me`)).
-		expectSection(verifiesAgainst(section(t, res, 1, 1, 1, 2).pubKey(), section(t, res, 1, 2).signature()))
+		expectSection(verifiesAgainst(section(t, res, 1, 1, 2).pubKey(), section(t, res, 2).signature()))
 
-	section(t, res, 1, 1, 1).
+	section(t, res, 1, 1).
 		expectContentType(is(`multipart/mixed`))
 
-	section(t, res, 1, 1, 1, 1).
+	section(t, res, 1, 1, 1).
 		expectContentType(is(`text/plain`)).
 		expectBody(contains(`Why don't crabs give to charity? Because they're shellfish.`))
 
-	section(t, res, 1, 1, 1, 2).
+	section(t, res, 1, 1, 2).
 		expectContentType(is(`application/pgp-keys`)).
 		expectContentTypeParam(`name`, is(`OpenPGP_0x161C0875822359F7.asc`)).
 		expectContentDisposition(is(`attachment`)).
 		expectContentDispositionParam(`filename`, is(`OpenPGP_0x161C0875822359F7.asc`))
 
-	section(t, res, 1, 2).
+	section(t, res, 2).
 		expectContentType(is(`application/pgp-signature`)).
 		expectContentTypeParam(`name`, is(`OpenPGP_signature.asc`)).
 		expectContentDisposition(is(`attachment`)).
 		expectContentDispositionParam(`filename`, is(`OpenPGP_signature`))
 }
 
-func _TestBuildSignedHTMLEncryptedMessageWithPubKey(t *testing.T) {
+func TestBuildSignedHTMLEncryptedMessageWithPubKey(t *testing.T) {
 	m := gomock.NewController(t)
 	defer m.Finish()
 
@@ -277,44 +274,41 @@ func _TestBuildSignedHTMLEncryptedMessageWithPubKey(t *testing.T) {
 	require.NoError(t, err)
 
 	section(t, res).
-		expectContentType(is(`multipart/mixed`)).
-		expectDate(is(`Wed, 01 Jan 2020 00:00:00 +0000`))
-
-	section(t, res, 1).
+		expectDate(is(`Wed, 01 Jan 2020 00:00:00 +0000`)).
 		expectContentType(is(`multipart/signed`)).
 		expectContentTypeParam(`micalg`, is(`pgp-sha256`)).
 		expectContentTypeParam(`protocol`, is(`application/pgp-signature`))
 
-	section(t, res, 1, 1).
+	section(t, res, 1).
 		expectContentType(is(`multipart/mixed`)).
 		expectContentTypeParam(`protected-headers`, is(`v1`)).
 		expectHeader(`Subject`, is(`simple html body`)).
 		expectHeader(`From`, is(`"pm.bridge.qa" <pm.bridge.qa@gmail.com>`)).
 		expectHeader(`To`, is(`schizofrenic@pm.me`)).
-		expectSection(verifiesAgainst(section(t, res, 1, 1, 1, 2).pubKey(), section(t, res, 1, 2).signature()))
+		expectSection(verifiesAgainst(section(t, res, 1, 1, 2).pubKey(), section(t, res, 2).signature()))
 
-	section(t, res, 1, 1, 1).
+	section(t, res, 1, 1).
 		expectContentType(is(`multipart/mixed`))
 
-	section(t, res, 1, 1, 1, 1).
+	section(t, res, 1, 1, 1).
 		expectContentType(is(`text/html`)).
 		expectBody(contains(`Do I enjoy making courthouse puns`)).
 		expectBody(contains(`Can February March`))
 
-	section(t, res, 1, 1, 1, 2).
+	section(t, res, 1, 1, 2).
 		expectContentType(is(`application/pgp-keys`)).
 		expectContentTypeParam(`name`, is(`OpenPGP_0x161C0875822359F7.asc`)).
 		expectContentDisposition(is(`attachment`)).
 		expectContentDispositionParam(`filename`, is(`OpenPGP_0x161C0875822359F7.asc`))
 
-	section(t, res, 1, 2).
+	section(t, res, 2).
 		expectContentType(is(`application/pgp-signature`)).
 		expectContentTypeParam(`name`, is(`OpenPGP_signature.asc`)).
 		expectContentDisposition(is(`attachment`)).
 		expectContentDispositionParam(`filename`, is(`OpenPGP_signature`))
 }
 
-func _TestBuildSignedMultipartAlternativeEncryptedMessageWithPubKey(t *testing.T) {
+func TestBuildSignedMultipartAlternativeEncryptedMessageWithPubKey(t *testing.T) {
 	m := gomock.NewController(t)
 	defer m.Finish()
 
@@ -330,60 +324,57 @@ func _TestBuildSignedMultipartAlternativeEncryptedMessageWithPubKey(t *testing.T
 	require.NoError(t, err)
 
 	section(t, res).
-		expectContentType(is(`multipart/mixed`)).
-		expectDate(is(`Wed, 01 Jan 2020 00:00:00 +0000`))
-
-	section(t, res, 1).
+		expectDate(is(`Wed, 01 Jan 2020 00:00:00 +0000`)).
 		expectContentType(is(`multipart/signed`)).
 		expectContentTypeParam(`micalg`, is(`pgp-sha256`)).
 		expectContentTypeParam(`protocol`, is(`application/pgp-signature`))
 
-	section(t, res, 1, 1).
+	section(t, res, 1).
 		expectContentType(is(`multipart/mixed`)).
 		expectContentTypeParam(`protected-headers`, is(`v1`)).
 		expectHeader(`Subject`, is(`Alternative`)).
 		expectHeader(`From`, is(`"pm.bridge.qa" <pm.bridge.qa@gmail.com>`)).
 		expectHeader(`To`, is(`schizofrenic@pm.me`)).
-		expectSection(verifiesAgainst(section(t, res, 1, 1, 1, 3).pubKey(), section(t, res, 1, 2).signature()))
+		expectSection(verifiesAgainst(section(t, res, 1, 1, 3).pubKey(), section(t, res, 2).signature()))
 
-	section(t, res, 1, 1, 1).
+	section(t, res, 1, 1).
 		expectContentType(is(`multipart/mixed`))
 
-	section(t, res, 1, 1, 1, 1).
+	section(t, res, 1, 1, 1).
 		expectContentType(is(`multipart/alternative`))
 
-	section(t, res, 1, 1, 1, 1, 1).
+	section(t, res, 1, 1, 1, 1).
 		expectContentType(is(`text/plain`)).
 		expectBody(contains(`This Rich formated text`)).
 		expectBody(contains(`What kind of shoes do ninjas wear`)).
 		expectBody(contains(`How does a penguin build its house`))
 
-	section(t, res, 1, 1, 1, 1, 2).
+	section(t, res, 1, 1, 1, 2).
 		expectContentType(is(`text/html`)).
 		expectBody(contains(`This <font color="#ee24cc">Rich</font> formated text`)).
 		expectBody(contains(`What kind of shoes do ninjas wear`)).
 		expectBody(contains(`How does a penguin build its house`))
 
-	section(t, res, 1, 1, 1, 2).
+	section(t, res, 1, 1, 2).
 		expectContentType(is(`application/pdf`)).
 		expectTransferEncoding(is(`base64`)).
 		expectContentTypeParam(`name`, is(`minimal.pdf`)).
 		expectContentDispositionParam(`filename`, is(`minimal.pdf`))
 
-	section(t, res, 1, 1, 1, 3).
+	section(t, res, 1, 1, 3).
 		expectContentType(is(`application/pgp-keys`)).
 		expectContentTypeParam(`name`, is(`OpenPGP_0x161C0875822359F7.asc`)).
 		expectContentDisposition(is(`attachment`)).
 		expectContentDispositionParam(`filename`, is(`OpenPGP_0x161C0875822359F7.asc`))
 
-	section(t, res, 1, 2).
+	section(t, res, 2).
 		expectContentType(is(`application/pgp-signature`)).
 		expectContentTypeParam(`name`, is(`OpenPGP_signature.asc`)).
 		expectContentDisposition(is(`attachment`)).
 		expectContentDispositionParam(`filename`, is(`OpenPGP_signature`))
 }
 
-func _TestBuildSignedEmbeddedMessageRFC822EncryptedMessageWithPubKey(t *testing.T) {
+func TestBuildSignedEmbeddedMessageRFC822EncryptedMessageWithPubKey(t *testing.T) {
 	m := gomock.NewController(t)
 	defer m.Finish()
 
@@ -399,41 +390,38 @@ func _TestBuildSignedEmbeddedMessageRFC822EncryptedMessageWithPubKey(t *testing.
 	require.NoError(t, err)
 
 	section(t, res).
-		expectContentType(is(`multipart/mixed`)).
-		expectDate(is(`Wed, 01 Jan 2020 00:00:00 +0000`))
-
-	section(t, res, 1).
+		expectDate(is(`Wed, 01 Jan 2020 00:00:00 +0000`)).
 		expectContentType(is(`multipart/signed`)).
 		expectContentTypeParam(`micalg`, is(`pgp-sha256`)).
 		expectContentTypeParam(`protocol`, is(`application/pgp-signature`))
 
-	section(t, res, 1, 1).
+	section(t, res, 1).
 		expectContentType(is(`multipart/mixed`)).
 		expectContentTypeParam(`protected-headers`, is(`v1`)).
 		expectHeader(`Subject`, is(`Fwd: HTML with attachment external PGP`)).
 		expectHeader(`From`, is(`"pm.bridge.qa" <pm.bridge.qa@gmail.com>`)).
 		expectHeader(`To`, is(`schizofrenic@pm.me`)).
-		expectSection(verifiesAgainst(section(t, res, 1, 1, 1, 2).pubKey(), section(t, res, 1, 2).signature()))
+		expectSection(verifiesAgainst(section(t, res, 1, 1, 2).pubKey(), section(t, res, 2).signature()))
 
-	section(t, res, 1, 1, 1).
+	section(t, res, 1, 1).
 		expectContentType(is(`multipart/mixed`))
 
-	section(t, res, 1, 1, 1, 1).
+	section(t, res, 1, 1, 1).
 		expectContentType(is(`text/plain`))
 
-	section(t, res, 1, 1, 1, 2).
+	section(t, res, 1, 1, 2).
 		expectContentType(is(`application/pgp-keys`)).
 		expectContentTypeParam(`name`, is(`OpenPGP_0x161C0875822359F7.asc`)).
 		expectContentDisposition(is(`attachment`)).
 		expectContentDispositionParam(`filename`, is(`OpenPGP_0x161C0875822359F7.asc`))
 
-	section(t, res, 1, 1, 1, 3).
+	section(t, res, 1, 1, 3).
 		expectContentType(is(`message/rfc822`)).
 		expectContentTypeParam(`name`, is(`HTML with attachment external PGP.eml`)).
 		expectContentDisposition(is(`attachment`)).
 		expectContentDispositionParam(`filename`, is(`HTML with attachment external PGP.eml`))
 
-	section(t, res, 1, 2).
+	section(t, res, 2).
 		expectContentType(is(`application/pgp-signature`)).
 		expectContentTypeParam(`name`, is(`OpenPGP_signature.asc`)).
 		expectContentDisposition(is(`attachment`)).
