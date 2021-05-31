@@ -71,6 +71,29 @@ var testGetContactByIDResponseBody = `{
     }
 }`
 
+var testGetContactEmailByEmailResponseBody = `{
+  "Code": 1000,
+  "ContactEmails": [
+    {
+      "ID": "aefew4323jFv0BhSMw==",
+      "Name": "ProtonMail Features",
+      "Email": "features@protonmail.black",
+      "Type": [
+        "work"
+      ],
+      "Defaults": 1,
+      "Order": 1,
+      "ContactID": "a29olIjFv0rnXxBhSMw==",
+      "LabelIDs": [
+        "I6hgx3Ol-d3HYa3E394T_ACXDmTaBub14w=="
+      ],
+      "CanonicalEmail": "features@protonmail.black",
+      "LastUsedTime": 1612546350
+    }
+  ],
+  "Total": 2
+}`
+
 var testGetContactByID = Contact{
 	ID:         "s_SN9y1q0jczjYCH4zhvfOdHv1QNovKhnJ9bpDcTE0u7WCr2Z-NV9uubHXvOuRozW-HRVam6bQupVYRMC3BCqg==",
 	Name:       "Alice",
@@ -105,6 +128,19 @@ var testGetContactByID = Contact{
 	LabelIDs: []string{},
 }
 
+var testGetContactEmailByEmail = []ContactEmail{
+	{
+		ID:        "aefew4323jFv0BhSMw==",
+		Name:      "ProtonMail Features",
+		Email:     "features@protonmail.black",
+		Type:      []string{"work"},
+		Defaults:  1,
+		Order:     1,
+		ContactID: "a29olIjFv0rnXxBhSMw==",
+		LabelIDs:  []string{"I6hgx3Ol-d3HYa3E394T_ACXDmTaBub14w=="},
+	},
+}
+
 func TestContact_GetContactById(t *testing.T) {
 	s, c := newTestClient(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		r.NoError(t, checkMethodAndPath(req, "GET", "/contacts/v4/s_SN9y1q0jczjYCH4zhvfOdHv1QNovKhnJ9bpDcTE0u7WCr2Z-NV9uubHXvOuRozW-HRVam6bQupVYRMC3BCqg=="))
@@ -118,6 +154,23 @@ func TestContact_GetContactById(t *testing.T) {
 	r.NoError(t, err)
 
 	if !reflect.DeepEqual(contact, testGetContactByID) {
+		t.Fatalf("Invalid got contact: expected %+v, got %+v", testGetContactByID, contact)
+	}
+}
+
+func TestContact_GetContactEmailByEmail(t *testing.T) {
+	s, c := newTestClient(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		r.NoError(t, checkMethodAndPath(req, "GET", "/contacts/v4/emails?Email=someone%40pm.me&Page=1&PageSize=10"))
+
+		w.Header().Set("Content-Type", "application/json")
+		fmt.Fprint(w, testGetContactEmailByEmailResponseBody)
+	}))
+	defer s.Close()
+
+	contact, err := c.GetContactEmailByEmail(context.Background(), "someone@pm.me", 1, 10)
+	r.NoError(t, err)
+
+	if !reflect.DeepEqual(contact, testGetContactEmailByEmail) {
 		t.Fatalf("Invalid got contact: expected %+v, got %+v", testGetContactByID, contact)
 	}
 }
