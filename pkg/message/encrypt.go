@@ -66,6 +66,7 @@ func writeEncryptedPart(kr *crypto.KeyRing, header *textproto.Header, r io.Reade
 	encoded := new(bytes.Buffer)
 
 	contentType, contentParams, err := parseContentType(header.Get("Content-Type"))
+	// Ignoring invalid media parameter makes it work for invalid tutanota RFC2047-encoded attachment filenames since we often only really need the content type and not the optional media parameters.
 	if err != nil && !errors.Is(err, mime.ErrInvalidMediaParameter) {
 		return nil, err
 	}
