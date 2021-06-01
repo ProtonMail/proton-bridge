@@ -29,6 +29,7 @@ import (
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	pmmime "github.com/ProtonMail/proton-bridge/pkg/mime"
 	"github.com/emersion/go-message/textproto"
+	"github.com/pkg/errors"
 )
 
 func EncryptRFC822(kr *crypto.KeyRing, r io.Reader) ([]byte, error) {
@@ -65,7 +66,7 @@ func writeEncryptedPart(kr *crypto.KeyRing, header *textproto.Header, r io.Reade
 	encoded := new(bytes.Buffer)
 
 	contentType, contentParams, err := parseContentType(header.Get("Content-Type"))
-	if err != nil {
+	if err != nil && !errors.Is(err, mime.ErrInvalidMediaParameter) {
 		return nil, err
 	}
 
