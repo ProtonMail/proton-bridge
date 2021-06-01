@@ -326,7 +326,7 @@ func (m *Message) ExtractSignatures(kr *crypto.KeyRing) ([]Signature, error) {
 		return nil, nil
 	}
 
-	var signatures []Signature
+	signatures := make([]Signature, 0, len(msg.UnverifiedSignatures))
 
 	for _, signature := range msg.UnverifiedSignatures {
 		buf := new(bytes.Buffer)

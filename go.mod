@@ -1,6 +1,6 @@
 module github.com/ProtonMail/proton-bridge
 
-go 1.13
+go 1.15
 
 // These dependencies are `replace`d below, so the version numbers should be ignored.
 // They are in a separate require block to highlight this.

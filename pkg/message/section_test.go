@@ -98,17 +98,12 @@ func TestParseBodyStructurePGP(t *testing.T) {
 	bs, err := NewBodyStructure(bytes.NewReader(b))
 	require.NoError(t, err)
 
-	paths := []string{}
+	haveStructure := map[string]string{}
 	for path := range *bs {
-		paths = append(paths, path)
-	}
-	sort.Strings(paths)
-
-	for _, path := range paths {
-		require.Equal(t, expectedStructure[path], (*bs)[path].Header.Get("Content-Type"))
+		haveStructure[path] = (*bs)[path].Header.Get("Content-Type")
 	}
 
-	require.True(t, len(*bs) == len(expectedStructure), "Wrong number of sections expected %d but have %d", len(expectedStructure), len(*bs))
+	require.Equal(t, expectedStructure, haveStructure)
 }
 
 func TestGetSection(t *testing.T) {

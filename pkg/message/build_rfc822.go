@@ -226,7 +226,7 @@ func buildPGPRFC822(kr *crypto.KeyRing, msg *pmapi.Message, opts JobOptions) ([]
 
 	sigs, err := msg.ExtractSignatures(kr)
 	if err != nil {
-		return nil, err
+		log.WithError(err).WithField("id", msg.ID).Warn("Extract signature failed")
 	}
 
 	if len(sigs) > 0 {
@@ -277,7 +277,7 @@ func buildPGPMIMEFallbackRFC822(msg *pmapi.Message, opts JobOptions) ([]byte, er
 	return buf.Bytes(), nil
 }
 
-func writeMultipartSignedRFC822(header message.Header, body []byte, sig pmapi.Signature) ([]byte, error) {
+func writeMultipartSignedRFC822(header message.Header, body []byte, sig pmapi.Signature) ([]byte, error) { //nolint[funlen]
 	buf := new(bytes.Buffer)
 
 	header.SetContentType("multipart/signed", map[string]string{

@@ -104,7 +104,7 @@ func (bs *BodyStructure) parseAllChildSections(r io.Reader, currentPath []int, s
 
 	// If multipart, call getAllParts, else read to count lines.
 	if (strings.HasPrefix(mediaType, "multipart/") || mediaType == "message/rfc822") && params["boundary"] != "" {
-		newPath := append(currentPath, 1)
+		nextPath := getChildPath(currentPath)
 
 		var br *boundaryReader
 		br, err = newBoundaryReader(bodyReader, params["boundary"])
@@ -121,9 +121,9 @@ func (bs *BodyStructure) parseAllChildSections(r io.Reader, currentPath []int, s
 			if err != nil {
 				break
 			}
-			err = bs.parseAllChildSections(part, newPath, start)
+			err = bs.parseAllChildSections(part, nextPath, start)
 			part.Reset()
-			newPath[len(newPath)-1]++
+			nextPath[len(nextPath)-1]++
 		}
 		br.reader = nil
 
@@ -152,7 +152,7 @@ func (bs *BodyStructure) parseAllChildSections(r io.Reader, currentPath []int, s
 	(*bs)[path] = info
 
 	// Fix start of subsections.
-	newPath := append(currentPath, 1)
+	newPath := getChildPath(currentPath)
 	shift := info.Size - info.BSize
 	subInfo, err := bs.getInfo(newPath)
 
@@ -195,6 +195,14 @@ func (bs *BodyStructure) parseAllChildSections(r io.Reader, currentPath []int, s
 	}
 
 	return nil
+}
+
+// getChildPath will return the first child path of parent path.
+// NOTE: Return value can be used to iterate over parts so it is necessary to
+// copy parrent values in order to not rewrite values in parent.
+func getChildPath(parent []int) []int {
+	// append alloc inline is the fasted way to copy
+	return append(append(make([]int, 0, len(parent)+1), parent...), 1)
 }
 
 func stringPathFromInts(ints []int) (ret string) {
