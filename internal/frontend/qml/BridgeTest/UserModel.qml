@@ -15,23 +15,14 @@
 // You should have received a copy of the GNU General Public License
 // along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
 
-import QmlProject 1.1
+import QtQml.Models 2.12
 
-Project {
-    mainFile: "./MainWindow.qml"
-
-    /* Include .qml, .js, and image files from current directory and subdirectories */
-    QmlFiles {
-        directory: "./"
+ListModel {
+    // overriding get method to ignore any role and return directly object itself
+    function get(row) {
+        if (row < 0 || row >= count) {
+            return undefined
+        }
+        return data(index(row, 0), Qt.DisplayRole)
     }
-    JavaScriptFiles {
-        directory: "./"
-    }
-    ImageFiles {
-        directory: "./"
-    }
-    /* List of plugin directories passed to QML runtime */
-    importPaths: [
-        "./"
-    ]
 }

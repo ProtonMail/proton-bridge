@@ -2,5 +2,12 @@ module QQtQuick.Controls.Proton
 depends QtQuick.Controls 2.12
 
 singleton ProtonStyle 4.0 Style.qml
+Banner 4.0 Banner.qml
 Button 4.0 Button.qml
-
+CheckBox 4.0 CheckBox.qml
+ProtonLabel 4.0 ProtonLabel.qml
+RoundedRectangle 4.0 RoundedRectangle.qml
+RadioButton 4.0 RadioButton.qml
+Switch 4.0 Switch.qml
+TextArea 4.0 TextArea.qml
+TextField 4.0 TextField.qml

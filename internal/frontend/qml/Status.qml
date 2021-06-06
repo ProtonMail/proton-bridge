@@ -1,3 +1,4 @@
+
 // Copyright (c) 2021 Proton Technologies AG
 //
 // This file is part of ProtonMail Bridge.
@@ -15,23 +16,26 @@
 // You should have received a copy of the GNU General Public License
 // along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
 
-import QmlProject 1.1
+import QtQuick 2.13
+import QtQuick.Layouts 1.12
+import QtQuick.Controls 2.12
+import QtQuick.Controls.impl 2.12
 
-Project {
-    mainFile: "./MainWindow.qml"
+import Proton 4.0
 
-    /* Include .qml, .js, and image files from current directory and subdirectories */
-    QmlFiles {
-        directory: "./"
+RowLayout {
+    id: layout
+    spacing: 8
+
+    ColorImage {
+        id: image
+        source: "./icons/ic-connected.svg"
+        color: ProtonStyle.currentStyle.signal_success
     }
-    JavaScriptFiles {
-        directory: "./"
+
+    Label {
+        id: label
+        text: "Connected"
+        color: ProtonStyle.currentStyle.signal_success
     }
-    ImageFiles {
-        directory: "./"
-    }
-    /* List of plugin directories passed to QML runtime */
-    importPaths: [
-        "./"
-    ]
 }

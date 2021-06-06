@@ -15,6 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
 
+import QtQml 2.12
 import QtQuick 2.13
 import QtQuick.Window 2.13
 import QtQuick.Layouts 1.12
@@ -22,29 +23,96 @@ import QtQuick.Controls 2.12
 
 import Proton 4.0
 
+import "tests"
+
 Window {
-    //currentStyle: Proton.Style.prominentStyle
+    id: root
+    title: "ProtonMail Bridge"
 
-    //Button {
-        //
-        //}
+    width: 960
+    height: 576
 
-        visible: true
-        color: ProtonStyle.currentStyle.background_norm
-        //StackLayout {
-            //    SignIn {
-            //
-            //    }
-            //}
+    minimumHeight: contentLayout.implicitHeight
+    minimumWidth: contentLayout.implicitWidth
 
-            Button {
-                id: testButton1
-                text: "Test button"
+    property var colorScheme: ProtonStyle.currentStyle
+
+    property var backend
+    property var users
+
+
+    property bool isNoUser: backend.users.count === 0
+    property bool isNoLoggedUser: backend.users.count === 1 && backend.users.get(0).loggedIn === false
+    property bool showSetup: true
+
+    signal login(string username, string password)
+    signal login2FA(string username, string code)
+    signal login2Password(string username, string password)
+    signal loginAbort(string username)
+
+    StackLayout {
+        id: contentLayout
+
+        anchors.fill: parent
+
+        currentIndex: (root.isNoUser || root.isNoLoggedUser) ? 0 : ( root.showSetup ? 1 : 2)
+
+        WelcomeWindow {
+            colorScheme: root.colorScheme
+            backend: root.backend
+            window: root
+            enabled: !banners.blocking
+
+            Layout.fillHeight: true
+            Layout.fillWidth: true
+
+            onLogin: {
+                root.login(username, password)
             }
-
-            Button {
-                anchors.top: testButton1.bottom
-                secondary: true
-                text: "Test button"
+            onLogin2FA: {
+                root.login2FA(username, code)
+            }
+            onLogin2Password: {
+                root.login2Password(username, password)
+            }
+            onLoginAbort: {
+                root.loginAbort(username)
             }
         }
+
+        SetupGuide {
+            colorScheme: root.colorScheme
+            window: root
+            enabled: !banners.blocking
+
+            Layout.fillHeight: true
+            Layout.fillWidth: true
+        }
+
+        ContentWrapper {
+            colorScheme: root.colorScheme
+            window: root
+            enabled: !banners.blocking
+
+            Layout.fillHeight: true
+            Layout.fillWidth: true
+        }
+    }
+
+    Banners {
+        id: banners
+        anchors.fill: parent
+        window: root
+        onTop: contentLayout.currentIndex == 0
+    }
+
+    function notifyOnlyPaidUsers()            { banners.notifyOnlyPaidUsers()            }
+    function notifyConnectionLostWhileLogin() { banners.notifyConnectionLostWhileLogin() }
+    function notifyUpdateManually()           { banners.notifyUpdateManually()           }
+    function notifyUserAdded()                { banners.notifyUserAdded()                }
+
+    function showSetupGuide(user)   {
+        setupGuide.user = user
+        root.showSetup = true
+    }
+}

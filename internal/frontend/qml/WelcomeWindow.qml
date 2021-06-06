@@ -1,0 +1,297 @@
+// Copyright (c) 2021 Proton Technologies AG
+//
+// This file is part of ProtonMail Bridge.
+//
+// ProtonMail Bridge is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// ProtonMail Bridge is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
+
+import QtQml 2.12
+import QtQuick 2.13
+import QtQuick.Layouts 1.12
+import QtQuick.Controls 2.12
+
+import Proton 4.0
+
+RowLayout {
+    id: root
+
+    property var colorScheme: parent.colorScheme
+
+    property var backend
+    property var window
+
+    signal login(string username, string password)
+    signal login2FA(string username, string code)
+    signal login2Password(string username, string password)
+    signal loginAbort(string username)
+
+    spacing: 0
+
+    Rectangle {
+        color: root.colorScheme.background_norm
+
+        Layout.fillHeight: true
+        Layout.fillWidth: true
+
+        implicitHeight: children[0].implicitHeight
+        implicitWidth: children[0].implicitWidth
+
+        visible: signInItem.currentIndex == 0
+
+        GridLayout {
+            anchors.fill: parent
+
+            columnSpacing: 0
+            rowSpacing: 0
+
+            columns: 3
+
+            // top margin
+            Item {
+                Layout.columnSpan: 3
+                Layout.fillWidth: true
+
+                // Using binding component here instead of direct binding to avoid binding loop during construction of element
+                Binding on Layout.preferredHeight {
+                    value: (parent.height - welcomeContentItem.height) / 4
+                }
+            }
+
+            // left margin
+            Item {
+                Layout.minimumWidth: 48
+                Layout.maximumWidth: 80
+                Layout.fillWidth: true
+                Layout.preferredHeight: welcomeContentItem.height
+            }
+
+            ColumnLayout {
+                id: welcomeContentItem
+                Layout.fillWidth: true
+                spacing: 0
+
+                Image {
+                    source: "icons/img-welcome.svg"
+                    Layout.alignment: Qt.AlignHCenter
+                    Layout.topMargin: 16
+                }
+
+                Label {
+                    text: qsTr("Welcome to\nProtonMail Bridge")
+                    Layout.alignment: Qt.AlignHCenter
+                    Layout.fillWidth: true
+                    Layout.topMargin: 16
+
+                    color: root.colorScheme.text_norm
+
+                    horizontalAlignment: Text.AlignHCenter
+
+                    font.family: ProtonStyle.font_family
+                    font.weight: ProtonStyle.fontWidth_700
+                    font.pixelSize: 28
+                    lineHeight: 36
+                    lineHeightMode: Text.FixedHeight
+                }
+
+                Label {
+                    id: longTextLabel
+                    text: qsTr("Now you can securely access and manage ProtonMail messages in your favorite email client. Bridge runs in the background and encrypts and decrypts your messages seamlessly.")
+                    Layout.alignment: Qt.AlignHCenter
+                    Layout.fillWidth: true
+                    Layout.topMargin: 16
+                    Layout.preferredWidth: 320
+
+                    color: root.colorScheme.text_norm
+                    wrapMode: Text.WordWrap
+
+                    horizontalAlignment: Text.AlignHCenter
+
+                    font.family: ProtonStyle.font_family
+                    font.weight: ProtonStyle.fontWidth_400
+                    font.pixelSize: 14
+                    lineHeight: 20
+                    lineHeightMode: Text.FixedHeight
+                    font.letterSpacing: 0.2
+                }
+            }
+
+            // Right margin
+            Item {
+                Layout.minimumWidth: 48
+                Layout.maximumWidth: 80
+                Layout.fillWidth: true
+                Layout.preferredHeight: welcomeContentItem.height
+            }
+
+            // bottom margin
+            Item {
+                Layout.columnSpan: 3
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+
+                implicitHeight: children[0].implicitHeight + children[0].anchors.bottomMargin + children[0].anchors.topMargin
+                implicitWidth: children[0].implicitWidth
+
+                Image {
+                    id: logoImage
+                    source: "icons/product_logos.svg"
+
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    anchors.bottom: parent.bottom
+                    anchors.topMargin: 48
+                    anchors.bottomMargin: 48
+                }
+            }
+        }
+    }
+
+    Rectangle {
+        color: (signInItem.currentIndex == 0) ? root.colorScheme.background_weak : root.colorScheme.background_norm
+        Layout.fillHeight: true
+        Layout.fillWidth: true
+
+        implicitHeight: children[0].implicitHeight
+        implicitWidth: children[0].implicitWidth
+
+        RowLayout {
+            anchors.fill: parent
+            spacing: 0
+            Item {
+                Layout.fillHeight: true
+                Layout.fillWidth: true
+                Layout.preferredWidth: signInItem.currentIndex == 0 ? 0 : parent.width / 4
+
+                implicitHeight: children[0].implicitHeight + children[0].anchors.topMargin + children[0].anchors.bottomMargin
+                implicitWidth: children[0].implicitWidth + children[0].anchors.leftMargin + children[0].anchors.rightMargin
+
+                Button {
+                    anchors.left: parent.left
+                    anchors.bottom: parent.bottom
+
+                    anchors.leftMargin: 80
+                    anchors.rightMargin: 80
+                    anchors.topMargin: 80
+                    anchors.bottomMargin: 80
+
+                    visible: signInItem.currentIndex != 0
+
+                    secondary: true
+                    text: qsTr("Back")
+
+                    onClicked: {
+                        signInItem.abort()
+                    }
+                }
+            }
+
+            GridLayout {
+                Layout.fillHeight: true
+                Layout.fillWidth: true
+
+                columnSpacing: 0
+                rowSpacing: 0
+
+                columns: 3
+
+                // top margin
+                Item {
+                    Layout.columnSpan: 3
+                    Layout.fillWidth: true
+
+                    // Using binding component here instead of direct binding to avoid binding loop during construction of element
+                    Binding on Layout.preferredHeight {
+                        value: (parent.height - signInItem.height) / 4
+                    }
+                }
+
+                // left margin
+                Item {
+                    Layout.minimumWidth: 48
+                    Layout.maximumWidth: 80
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: signInItem.height
+                }
+
+
+                SignIn {
+                    id: signInItem
+                    colorScheme: root.colorScheme
+
+                    Layout.preferredWidth: 320
+                    Layout.fillWidth: true
+
+                    onLogin: {
+                        root.login(username, password)
+                    }
+                    onLogin2FA: {
+                        root.login2FA(username, code)
+                    }
+                    onLogin2Password: {
+                        root.login2Password(username, password)
+                    }
+                    onLoginAbort: {
+                        root.loginAbort(username)
+                    }
+
+                    user: (backend.users.count === 1 && backend.users.get(0).loggedIn === false) ? backend.users.get(0) : undefined
+                    backend: root.backend
+                    window: root.window
+                }
+
+                // Right margin
+                Item {
+                    Layout.minimumWidth: 48
+                    Layout.maximumWidth: 80
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: signInItem.height
+                }
+
+                // bottom margin
+                Item {
+                    Layout.columnSpan: 3
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                }
+            }
+
+            Item {
+                Layout.fillHeight: true
+                Layout.preferredWidth: signInItem.currentIndex == 0 ? 0 : parent.width / 4
+            }
+        }
+    }
+
+    states: [
+        State {
+            name: "Page 1"
+            PropertyChanges {
+                target: signInItem
+                currentIndex: 0
+            }
+        },
+        State {
+            name: "Page 2"
+            PropertyChanges {
+                target: signInItem
+                currentIndex: 1
+            }
+        },
+        State {
+            name: "Page 3"
+            PropertyChanges {
+                target: signInItem
+                currentIndex: 2
+            }
+        }
+    ]
+}

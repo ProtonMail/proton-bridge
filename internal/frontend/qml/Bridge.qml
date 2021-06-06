@@ -15,17 +15,41 @@
 // You should have received a copy of the GNU General Public License
 // along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
 
+import QtQml 2.12
 import QtQuick 2.13
 import QtQuick.Window 2.13
 import Qt.labs.platform 1.0
 
 QtObject {
-    // default property list children: []
+    id: root
 
-    property var _mainWindow: MainWindow {
+    property var backend
+    property var users
+
+    signal login(string username, string password)
+    signal login2FA(string username, string code)
+    signal login2Password(string username, string password)
+    signal loginAbort(string username)
+
+    property var mainWindow: MainWindow {
         id: mainWindow
-        title: "ProtonMail Bridge"
-        visible: false
+        visible: true
+
+        backend: root.backend
+        users: root.users
+
+        onLogin: {
+            root.login(username, password)
+        }
+        onLogin2FA: {
+            root.login2FA(username, code)
+        }
+        onLogin2Password: {
+            root.login2Password(username, password)
+        }
+        onLoginAbort: {
+            root.loginAbort(username)
+        }
     }
 
     property var _trayMenu: Window {
@@ -33,22 +57,23 @@ QtObject {
         title: "window 2"
         visible: false
         flags: Qt.Dialog
-
-        width: 448
     }
 
     property var _trayIcon: SystemTrayIcon {
         id: trayIcon
         visible: true
-        iconSource: "./icons/rectangle-systray.png"
+        iconSource: "./icons/ic-systray.svg"
         onActivated: {
             switch (reason) {
                 case SystemTrayIcon.Unknown:
                 break;
                 case SystemTrayIcon.Context:
+                trayMenu.x = (Screen.desktopAvailableWidth - trayMenu.width) / 2
+                trayMenu.visible = !trayMenu.visible
                 break
                 case SystemTrayIcon.DoubleClick:
-                break
+                mainWindow.visible = !mainWindow.visible
+                break;
                 case SystemTrayIcon.Trigger:
                 trayMenu.x = (Screen.desktopAvailableWidth - trayMenu.width) / 2
                 trayMenu.visible = !trayMenu.visible

@@ -17,10 +17,10 @@
 
 import QtQml 2.13
 
-// https://wiki.qt.io/Qml_Styling
-// http://imaginativethinking.ca/make-qml-component-singleton/
-
 QtObject {
+    // should be a pointer to ColorScheme object
+    property var prominent
+
     // Primary
     property color primay_norm
 

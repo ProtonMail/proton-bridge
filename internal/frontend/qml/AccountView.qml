@@ -15,23 +15,34 @@
 // You should have received a copy of the GNU General Public License
 // along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
 
-import QmlProject 1.1
+import QtQuick 2.13
+import QtQuick.Layouts 1.12
+import QtQuick.Controls 2.12
 
-Project {
-    mainFile: "./MainWindow.qml"
+import Proton 4.0
 
-    /* Include .qml, .js, and image files from current directory and subdirectories */
-    QmlFiles {
-        directory: "./"
+ColumnLayout {
+    id: root
+    property var colorScheme: parent.colorScheme
+
+    spacing: 0
+
+    Rectangle {
+        Layout.fillWidth: true
+        Layout.minimumHeight: 277
+        Layout.maximumHeight: 277
+
+        color: root.colorScheme.background_norm
+
+        ColumnLayout {
+
+        }
     }
-    JavaScriptFiles {
-        directory: "./"
+
+    Rectangle {
+        Layout.fillWidth: true
+        Layout.fillHeight: true
+
+        color: root.colorScheme.background_weak
     }
-    ImageFiles {
-        directory: "./"
-    }
-    /* List of plugin directories passed to QML runtime */
-    importPaths: [
-        "./"
-    ]
 }
