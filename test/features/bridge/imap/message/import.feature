@@ -19,6 +19,7 @@ Feature: IMAP import messages
       """
     Then IMAP response is "OK"
 
+  # I could not find any RFC why this is not valid. But for now our parser is not able to process it.
   @ignore
   Scenario: Import message with attachment name encoded by RFC 2047 without quoting
     When IMAP client imports message to "INBOX"
@@ -117,6 +118,25 @@ Feature: IMAP import messages
     Then IMAP response is "OK"
     And API mailbox "INBOX" for "user" has 0 message
     And API mailbox "Sent" for "user" has 1 message
+
+  Scenario Outline: Import message without sender
+    When IMAP client imports message to "<mailbox>"
+      """
+      To: Lionel Richie <lionel@richie.com>
+      Subject: RE: Hello, is it me you looking for?
+
+      Nope.
+
+      """
+    Then IMAP response is "OK"
+    And API mailbox "<mailbox>" for "user" has 1 message
+
+    Examples:
+        | mailbox |
+        | Drafts  |
+        | Archive |
+        | Sent    |
+
 
   Scenario: Import embedded message
     When IMAP client imports message to "INBOX"

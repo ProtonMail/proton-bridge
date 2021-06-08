@@ -132,6 +132,10 @@ func (im *imapMailbox) createDraftMessage(kr *crypto.KeyRing, email string, body
 		return err
 	}
 
+	if m.Sender == nil {
+		m.Sender = &mail.Address{}
+	}
+
 	m.Sender.Address = pmapi.ConstructAddress(m.Sender.Address, email)
 
 	draft, _, err := im.user.storeUser.CreateDraft(kr, m, readers, "", "", "")
