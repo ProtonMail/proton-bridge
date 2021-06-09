@@ -33,6 +33,7 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/text/encoding/htmlindex"
 )
 
 func newTestFetcher(
@@ -296,6 +297,25 @@ func (matcher decryptsToMatcher) match(t *testing.T, have string) {
 
 func decryptsTo(kr *crypto.KeyRing, want string) decryptsToMatcher {
 	return decryptsToMatcher{kr: kr, want: want}
+}
+
+type decodesToMatcher struct {
+	charset string
+	want    string
+}
+
+func (matcher decodesToMatcher) match(t *testing.T, have string) {
+	enc, err := htmlindex.Get(matcher.charset)
+	require.NoError(t, err)
+
+	dec, err := enc.NewDecoder().String(have)
+	require.NoError(t, err)
+
+	assert.Equal(t, matcher.want, dec)
+}
+
+func decodesTo(charset string, want string) decodesToMatcher {
+	return decodesToMatcher{charset: charset, want: want}
 }
 
 type verifiesAgainstMatcher struct {
