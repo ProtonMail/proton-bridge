@@ -14,7 +14,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 ### Added
 * GODT-1155: Update gopenpgp v2.1.9 and use go-srp.
 * GODT-1044: Lite parser for appended messages.
-* GODT-1183: Add test for getting contact emails by email
+* GODT-1183: Add test for getting contact emails by email.
 * GODT-1184: Preserve signatures in externally signed messages.
 
 ### Changed
