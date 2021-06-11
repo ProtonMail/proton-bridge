@@ -64,7 +64,16 @@ func (ctx *TestContext) LoginUser(username string, password, mailboxPassword []b
 
 // FinishLogin prevents authentication if not necessary.
 func (ctx *TestContext) FinishLogin(client pmapi.Client, mailboxPassword []byte) error {
-	user, err := ctx.users.FinishLogin(client, client.GetCurrentAuth(), mailboxPassword)
+	type currentAuthGetter interface {
+		GetCurrentAuth() *pmapi.Auth
+	}
+
+	c, ok := client.(currentAuthGetter)
+	if c == nil || !ok {
+		return errors.New("cannot get current auth tokens from client")
+	}
+
+	user, err := ctx.users.FinishLogin(client, c.GetCurrentAuth(), mailboxPassword)
 	if err != nil {
 		return errors.Wrap(err, "failed to finish login")
 	}

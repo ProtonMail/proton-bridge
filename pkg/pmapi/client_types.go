@@ -73,8 +73,6 @@ type Client interface {
 
 	KeyRingForAddressID(string) (kr *crypto.KeyRing, err error)
 	GetPublicKeysForEmail(context.Context, string) ([]PublicKey, bool, error)
-
-	GetCurrentAuth() *Auth
 }
 
 type AuthRefreshHandler func(*AuthRefresh)

@@ -30,6 +30,11 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+type clientAuthGetter interface {
+	pmapi.Client
+	GetCurrentAuth() *pmapi.Auth
+}
+
 // persistentClients keeps authenticated clients for tests.
 //
 // We need to reduce the number of authentication done by live tests.
@@ -37,15 +42,15 @@ import (
 // This is not necessary for controller purposes. We can reuse the same clients
 // for all tests.
 //
-//nolint[gochecknoglobals]
+//nolint:gochecknoglobals // This is necessary for testing
 var persistentClients = struct {
 	manager    pmapi.Manager
-	byName     map[string]pmapi.Client
+	byName     map[string]clientAuthGetter
 	saltByName map[string]string
 }{}
 
 type persistentClient struct {
-	pmapi.Client
+	clientAuthGetter
 	username string
 }
 
@@ -70,7 +75,7 @@ func SetupPersistentClients() {
 	persistentClients.manager = pmapi.New(pmapi.NewConfig(getAppVersionName(app), constants.Version))
 	persistentClients.manager.SetLogging(logrus.WithField("pkg", "liveapi"), logrus.GetLevel() == logrus.TraceLevel)
 
-	persistentClients.byName = map[string]pmapi.Client{}
+	persistentClients.byName = map[string]clientAuthGetter{}
 	persistentClients.saltByName = map[string]string{}
 }
 
@@ -96,11 +101,16 @@ func addPersistentClient(username string, password, mailboxPassword []byte) (pma
 		return cl, nil
 	}
 
-	srp.RandReader = rand.New(rand.NewSource(42)) //nolint[gosec] It is OK to use weaker random number generator here
+	srp.RandReader = rand.New(rand.NewSource(42)) //nolint:gosec // It is OK to use weaker random number generator here
 
-	client, _, err := persistentClients.manager.NewClientWithLogin(context.Background(), username, password)
+	normalClient, _, err := persistentClients.manager.NewClientWithLogin(context.Background(), username, password)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create new persistent client")
+	}
+
+	client, ok := normalClient.(clientAuthGetter)
+	if !ok {
+		return nil, errors.New("cannot make clientAuthGetter")
 	}
 
 	salt, err := client.AuthSalt(context.Background())
