@@ -85,11 +85,14 @@ func readHeaderBody(b []byte) (*textproto.Header, []byte, error) {
 		return nil, nil, err
 	}
 
+	lines := HeaderLines(rawHeader)
+
 	var header textproto.Header
 
-	for _, line := range HeaderLines(rawHeader) {
-		if len(bytes.TrimSpace(line)) > 0 {
-			header.AddRaw(line)
+	// We add lines in reverse so that calling textproto.WriteHeader later writes with the correct order.
+	for i := len(lines) - 1; i >= 0; i-- {
+		if len(bytes.TrimSpace(lines[i])) > 0 {
+			header.AddRaw(lines[i])
 		}
 	}
 

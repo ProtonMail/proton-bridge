@@ -67,6 +67,10 @@ func newTestMessage(
 	arm, err := enc.GetArmored()
 	require.NoError(t, err)
 
+	return newRawTestMessage(messageID, addressID, mimeType, arm, date)
+}
+
+func newRawTestMessage(messageID, addressID, mimeType, body string, date time.Time) *pmapi.Message {
 	return &pmapi.Message{
 		ID:        messageID,
 		AddressID: addressID,
@@ -75,7 +79,7 @@ func newTestMessage(
 			"Content-Type": {mimeType},
 			"Date":         {date.In(time.UTC).Format(time.RFC1123Z)},
 		},
-		Body: arm,
+		Body: body,
 		Time: date.Unix(),
 	}
 }
