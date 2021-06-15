@@ -35,7 +35,7 @@ func benchTestContext() (*context.TestContext, *mocks.IMAPClient) {
 		panic("account " + username + " does not exist")
 	}
 
-	_ = ctx.GetPMAPIController().AddUser(account.User(), account.Addresses(), account.Password(), account.IsTwoFAEnabled())
+	_ = ctx.GetPMAPIController().AddUser(account)
 	if err := ctx.LoginUser(account.Username(), account.Password(), account.MailboxPassword()); err != nil {
 		panic(err)
 	}

@@ -28,6 +28,7 @@ import (
 func UsersSetupFeatureContext(s *godog.Suite) {
 	s.Step(`^there is user "([^"]*)"$`, thereIsUser)
 	s.Step(`^there is connected user "([^"]*)"$`, thereIsConnectedUser)
+	s.Step(`^there is user "([^"]*)" which just logged in$`, thereIsUserWhichJustLoggedIn)
 	s.Step(`^there is disconnected user "([^"]*)"$`, thereIsDisconnectedUser)
 	s.Step(`^there is database file for "([^"]*)"$`, thereIsDatabaseFileForUser)
 	s.Step(`^there is no database file for "([^"]*)"$`, thereIsNoDatabaseFileForUser)
@@ -39,7 +40,7 @@ func thereIsUser(bddUserID string) error {
 	if account == nil {
 		return godog.ErrPending
 	}
-	err := ctx.GetPMAPIController().AddUser(account.User(), account.Addresses(), account.Password(), account.IsTwoFAEnabled())
+	err := ctx.GetPMAPIController().AddUser(account)
 	return internalError(err, "adding user %s", account.Username())
 }
 
@@ -48,7 +49,21 @@ func thereIsConnectedUser(bddUserID string) error {
 	if account == nil {
 		return godog.ErrPending
 	}
-	err := ctx.GetPMAPIController().AddUser(account.User(), account.Addresses(), account.Password(), account.IsTwoFAEnabled())
+	username := account.Username()
+	ctl := ctx.GetPMAPIController()
+	err := ctl.AddUser(account)
+	if err != nil {
+		return internalError(err, "adding user %s", username)
+	}
+	return ctx.FinishLogin(ctx.GetPMAPIController().GetAuthClient(username), account.MailboxPassword())
+}
+
+func thereIsUserWhichJustLoggedIn(bddUserID string) error {
+	account := ctx.GetTestAccount(bddUserID)
+	if account == nil {
+		return godog.ErrPending
+	}
+	err := ctx.GetPMAPIController().AddUser(account)
 	if err != nil {
 		return internalError(err, "adding user %s", account.Username())
 	}
@@ -60,7 +75,7 @@ func thereIsDisconnectedUser(bddUserID string) error {
 	if account == nil {
 		return godog.ErrPending
 	}
-	err := ctx.GetPMAPIController().AddUser(account.User(), account.Addresses(), account.Password(), account.IsTwoFAEnabled())
+	err := ctx.GetPMAPIController().AddUser(account)
 	if err != nil {
 		return internalError(err, "adding user %s", account.Username())
 	}

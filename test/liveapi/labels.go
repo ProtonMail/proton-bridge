@@ -37,9 +37,9 @@ var systemLabelNameToID = map[string]string{ //nolint[gochecknoglobals]
 }
 
 func (ctl *Controller) AddUserLabel(username string, label *pmapi.Label) error {
-	client, ok := ctl.pmapiByUsername[username]
-	if !ok {
-		return fmt.Errorf("user %s does not exist", username)
+	client, err := getPersistentClient(username)
+	if err != nil {
+		return err
 	}
 
 	label.Exclusive = getLabelExclusive(label.Name)
@@ -68,9 +68,9 @@ func (ctl *Controller) getLabelID(username, labelName string) (string, error) {
 		return labelID, nil
 	}
 
-	client, ok := ctl.pmapiByUsername[username]
-	if !ok {
-		return "", fmt.Errorf("user %s does not exist", username)
+	client, err := getPersistentClient(username)
+	if err != nil {
+		return "", err
 	}
 
 	labels, err := client.ListLabels(context.Background())

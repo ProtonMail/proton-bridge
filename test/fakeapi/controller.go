@@ -24,6 +24,8 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// Controller implements dummy PMAPIController interface without actual
+// endpoint.
 type Controller struct {
 	// Internal states.
 	lock               *sync.RWMutex

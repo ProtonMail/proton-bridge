@@ -20,7 +20,6 @@ package message
 import (
 	"bytes"
 	"encoding/base64"
-	"io/ioutil"
 	"mime"
 	"net/mail"
 	"strings"
@@ -290,17 +289,12 @@ func writeMultipartSignedRFC822(header message.Header, body []byte, sig pmapi.Si
 		return nil, err
 	}
 
-	ent, err := message.Read(bytes.NewReader(body))
+	bodyHeader, bodyData, err := readHeaderBody(body)
 	if err != nil {
 		return nil, err
 	}
 
-	bodyPart, err := w.CreatePart(ent.Header)
-	if err != nil {
-		return nil, err
-	}
-
-	bodyData, err := ioutil.ReadAll(ent.Body)
+	bodyPart, err := w.CreatePart(message.Header{Header: *bodyHeader})
 	if err != nil {
 		return nil, err
 	}
@@ -347,23 +341,18 @@ func writeMultipartSignedRFC822(header message.Header, body []byte, sig pmapi.Si
 func writeMultipartEncryptedRFC822(header message.Header, body []byte) ([]byte, error) {
 	buf := new(bytes.Buffer)
 
-	ent, err := message.Read(bytes.NewReader(body))
+	bodyHeader, bodyData, err := readHeaderBody(body)
 	if err != nil {
 		return nil, err
 	}
 
-	entFields := ent.Header.Fields()
+	entFields := bodyHeader.Fields()
 
 	for entFields.Next() {
 		header.Set(entFields.Key(), entFields.Value())
 	}
 
 	w, err := message.CreateWriter(buf, header)
-	if err != nil {
-		return nil, err
-	}
-
-	bodyData, err := ioutil.ReadAll(ent.Body)
 	if err != nil {
 		return nil, err
 	}

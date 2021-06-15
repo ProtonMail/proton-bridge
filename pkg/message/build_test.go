@@ -98,6 +98,31 @@ func TestBuildPlainEncryptedMessage(t *testing.T) {
 		expectBody(contains(`Where do fruits go on vacation? Pear-is!`))
 }
 
+func TestBuildPlainEncryptedLatin2Message(t *testing.T) {
+	m := gomock.NewController(t)
+	defer m.Finish()
+
+	b := NewBuilder(1, 1, 1)
+	defer b.Done()
+
+	body := readerToString(getFileReader("pgp-mime-body-plaintext-latin2.eml"))
+
+	kr := tests.MakeKeyRing(t)
+	msg := newTestMessage(t, kr, "messageID", "addressID", "multipart/mixed", body, time.Date(2020, time.January, 1, 0, 0, 0, 0, time.UTC))
+
+	res, err := b.NewJob(context.Background(), newTestFetcher(m, kr, msg), msg.ID).GetResult()
+	require.NoError(t, err)
+
+	section(t, res).
+		expectContentType(is(`text/plain`)).
+		expectContentTypeParam("charset", is(`iso-8859-2`)).
+		expectDate(is(`Wed, 01 Jan 2020 00:00:00 +0000`)).
+		expectHeader(`Subject`, is(`plain no pubkey no sign`)).
+		expectHeader(`From`, is(`"pm.bridge.qa" <pm.bridge.qa@gmail.com>`)).
+		expectHeader(`To`, is(`schizofrenic@pm.me`)).
+		expectBody(decodesTo("iso-8859-2", "řšřšřš\r\n"))
+}
+
 func TestBuildHTMLEncryptedMessage(t *testing.T) {
 	m := gomock.NewController(t)
 	defer m.Finish()

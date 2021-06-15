@@ -15,7 +15,7 @@ Feature: IMAP auth
     Then IMAP response is "IMAP error: NO account is logged out, use the app to login again"
 
   Scenario: Authenticates with connected user that was loaded without internet
-    Given there is connected user "user"
+    Given there is user "user" which just logged in
     And there is no internet connection
     When bridge starts
     And the internet connection is restored
@@ -28,13 +28,13 @@ Feature: IMAP auth
     Then "user" is connected
 
   Scenario: Authenticates with freshly logged-out user
-    Given there is connected user "user"
+    Given there is user "user" which just logged in
     When "user" logs out
     And IMAP client authenticates "user"
     Then IMAP response is "IMAP error: NO account is logged out, use the app to login again"
 
   Scenario: Authenticates user which was re-logged in
-    Given there is connected user "user"
+    Given there is user "user" which just logged in
     When "user" logs out
     And IMAP client authenticates "user"
     Then IMAP response is "IMAP error: NO account is logged out, use the app to login again"

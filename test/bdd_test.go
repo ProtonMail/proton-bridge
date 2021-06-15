@@ -29,6 +29,9 @@ const (
 )
 
 func FeatureContext(s *godog.Suite) {
+	s.BeforeSuite(context.BeforeRun)
+	s.AfterSuite(context.AfterRun)
+
 	s.BeforeScenario(beforeScenario)
 	s.AfterScenario(afterScenario)
 

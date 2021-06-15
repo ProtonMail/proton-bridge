@@ -12,89 +12,89 @@ import (
 	gomock "github.com/golang/mock/gomock"
 )
 
-// MockPanicHandler is a mock of PanicHandler interface
+// MockPanicHandler is a mock of PanicHandler interface.
 type MockPanicHandler struct {
 	ctrl     *gomock.Controller
 	recorder *MockPanicHandlerMockRecorder
 }
 
-// MockPanicHandlerMockRecorder is the mock recorder for MockPanicHandler
+// MockPanicHandlerMockRecorder is the mock recorder for MockPanicHandler.
 type MockPanicHandlerMockRecorder struct {
 	mock *MockPanicHandler
 }
 
-// NewMockPanicHandler creates a new mock instance
+// NewMockPanicHandler creates a new mock instance.
 func NewMockPanicHandler(ctrl *gomock.Controller) *MockPanicHandler {
 	mock := &MockPanicHandler{ctrl: ctrl}
 	mock.recorder = &MockPanicHandlerMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockPanicHandler) EXPECT() *MockPanicHandlerMockRecorder {
 	return m.recorder
 }
 
-// HandlePanic mocks base method
+// HandlePanic mocks base method.
 func (m *MockPanicHandler) HandlePanic() {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "HandlePanic")
 }
 
-// HandlePanic indicates an expected call of HandlePanic
+// HandlePanic indicates an expected call of HandlePanic.
 func (mr *MockPanicHandlerMockRecorder) HandlePanic() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HandlePanic", reflect.TypeOf((*MockPanicHandler)(nil).HandlePanic))
 }
 
-// MockBridgeUser is a mock of BridgeUser interface
+// MockBridgeUser is a mock of BridgeUser interface.
 type MockBridgeUser struct {
 	ctrl     *gomock.Controller
 	recorder *MockBridgeUserMockRecorder
 }
 
-// MockBridgeUserMockRecorder is the mock recorder for MockBridgeUser
+// MockBridgeUserMockRecorder is the mock recorder for MockBridgeUser.
 type MockBridgeUserMockRecorder struct {
 	mock *MockBridgeUser
 }
 
-// NewMockBridgeUser creates a new mock instance
+// NewMockBridgeUser creates a new mock instance.
 func NewMockBridgeUser(ctrl *gomock.Controller) *MockBridgeUser {
 	mock := &MockBridgeUser{ctrl: ctrl}
 	mock.recorder = &MockBridgeUserMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockBridgeUser) EXPECT() *MockBridgeUserMockRecorder {
 	return m.recorder
 }
 
-// CloseAllConnections mocks base method
+// CloseAllConnections mocks base method.
 func (m *MockBridgeUser) CloseAllConnections() {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "CloseAllConnections")
 }
 
-// CloseAllConnections indicates an expected call of CloseAllConnections
+// CloseAllConnections indicates an expected call of CloseAllConnections.
 func (mr *MockBridgeUserMockRecorder) CloseAllConnections() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CloseAllConnections", reflect.TypeOf((*MockBridgeUser)(nil).CloseAllConnections))
 }
 
-// CloseConnection mocks base method
+// CloseConnection mocks base method.
 func (m *MockBridgeUser) CloseConnection(arg0 string) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "CloseConnection", arg0)
 }
 
-// CloseConnection indicates an expected call of CloseConnection
+// CloseConnection indicates an expected call of CloseConnection.
 func (mr *MockBridgeUserMockRecorder) CloseConnection(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CloseConnection", reflect.TypeOf((*MockBridgeUser)(nil).CloseConnection), arg0)
 }
 
-// GetAddressID mocks base method
+// GetAddressID mocks base method.
 func (m *MockBridgeUser) GetAddressID(arg0 string) (string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetAddressID", arg0)
@@ -103,13 +103,13 @@ func (m *MockBridgeUser) GetAddressID(arg0 string) (string, error) {
 	return ret0, ret1
 }
 
-// GetAddressID indicates an expected call of GetAddressID
+// GetAddressID indicates an expected call of GetAddressID.
 func (mr *MockBridgeUserMockRecorder) GetAddressID(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAddressID", reflect.TypeOf((*MockBridgeUser)(nil).GetAddressID), arg0)
 }
 
-// GetClient mocks base method
+// GetClient mocks base method.
 func (m *MockBridgeUser) GetClient() pmapi.Client {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetClient")
@@ -117,13 +117,13 @@ func (m *MockBridgeUser) GetClient() pmapi.Client {
 	return ret0
 }
 
-// GetClient indicates an expected call of GetClient
+// GetClient indicates an expected call of GetClient.
 func (mr *MockBridgeUserMockRecorder) GetClient() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetClient", reflect.TypeOf((*MockBridgeUser)(nil).GetClient))
 }
 
-// GetPrimaryAddress mocks base method
+// GetPrimaryAddress mocks base method.
 func (m *MockBridgeUser) GetPrimaryAddress() string {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetPrimaryAddress")
@@ -131,13 +131,13 @@ func (m *MockBridgeUser) GetPrimaryAddress() string {
 	return ret0
 }
 
-// GetPrimaryAddress indicates an expected call of GetPrimaryAddress
+// GetPrimaryAddress indicates an expected call of GetPrimaryAddress.
 func (mr *MockBridgeUserMockRecorder) GetPrimaryAddress() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPrimaryAddress", reflect.TypeOf((*MockBridgeUser)(nil).GetPrimaryAddress))
 }
 
-// GetStoreAddresses mocks base method
+// GetStoreAddresses mocks base method.
 func (m *MockBridgeUser) GetStoreAddresses() []string {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetStoreAddresses")
@@ -145,13 +145,13 @@ func (m *MockBridgeUser) GetStoreAddresses() []string {
 	return ret0
 }
 
-// GetStoreAddresses indicates an expected call of GetStoreAddresses
+// GetStoreAddresses indicates an expected call of GetStoreAddresses.
 func (mr *MockBridgeUserMockRecorder) GetStoreAddresses() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetStoreAddresses", reflect.TypeOf((*MockBridgeUser)(nil).GetStoreAddresses))
 }
 
-// ID mocks base method
+// ID mocks base method.
 func (m *MockBridgeUser) ID() string {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ID")
@@ -159,13 +159,13 @@ func (m *MockBridgeUser) ID() string {
 	return ret0
 }
 
-// ID indicates an expected call of ID
+// ID indicates an expected call of ID.
 func (mr *MockBridgeUserMockRecorder) ID() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ID", reflect.TypeOf((*MockBridgeUser)(nil).ID))
 }
 
-// IsCombinedAddressMode mocks base method
+// IsCombinedAddressMode mocks base method.
 func (m *MockBridgeUser) IsCombinedAddressMode() bool {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "IsCombinedAddressMode")
@@ -173,13 +173,13 @@ func (m *MockBridgeUser) IsCombinedAddressMode() bool {
 	return ret0
 }
 
-// IsCombinedAddressMode indicates an expected call of IsCombinedAddressMode
+// IsCombinedAddressMode indicates an expected call of IsCombinedAddressMode.
 func (mr *MockBridgeUserMockRecorder) IsCombinedAddressMode() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsCombinedAddressMode", reflect.TypeOf((*MockBridgeUser)(nil).IsCombinedAddressMode))
 }
 
-// IsConnected mocks base method
+// IsConnected mocks base method.
 func (m *MockBridgeUser) IsConnected() bool {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "IsConnected")
@@ -187,13 +187,13 @@ func (m *MockBridgeUser) IsConnected() bool {
 	return ret0
 }
 
-// IsConnected indicates an expected call of IsConnected
+// IsConnected indicates an expected call of IsConnected.
 func (mr *MockBridgeUserMockRecorder) IsConnected() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsConnected", reflect.TypeOf((*MockBridgeUser)(nil).IsConnected))
 }
 
-// Logout mocks base method
+// Logout mocks base method.
 func (m *MockBridgeUser) Logout() error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Logout")
@@ -201,13 +201,13 @@ func (m *MockBridgeUser) Logout() error {
 	return ret0
 }
 
-// Logout indicates an expected call of Logout
+// Logout indicates an expected call of Logout.
 func (mr *MockBridgeUserMockRecorder) Logout() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Logout", reflect.TypeOf((*MockBridgeUser)(nil).Logout))
 }
 
-// UpdateUser mocks base method
+// UpdateUser mocks base method.
 func (m *MockBridgeUser) UpdateUser(arg0 context.Context) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateUser", arg0)
@@ -215,36 +215,36 @@ func (m *MockBridgeUser) UpdateUser(arg0 context.Context) error {
 	return ret0
 }
 
-// UpdateUser indicates an expected call of UpdateUser
+// UpdateUser indicates an expected call of UpdateUser.
 func (mr *MockBridgeUserMockRecorder) UpdateUser(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUser", reflect.TypeOf((*MockBridgeUser)(nil).UpdateUser), arg0)
 }
 
-// MockChangeNotifier is a mock of ChangeNotifier interface
+// MockChangeNotifier is a mock of ChangeNotifier interface.
 type MockChangeNotifier struct {
 	ctrl     *gomock.Controller
 	recorder *MockChangeNotifierMockRecorder
 }
 
-// MockChangeNotifierMockRecorder is the mock recorder for MockChangeNotifier
+// MockChangeNotifierMockRecorder is the mock recorder for MockChangeNotifier.
 type MockChangeNotifierMockRecorder struct {
 	mock *MockChangeNotifier
 }
 
-// NewMockChangeNotifier creates a new mock instance
+// NewMockChangeNotifier creates a new mock instance.
 func NewMockChangeNotifier(ctrl *gomock.Controller) *MockChangeNotifier {
 	mock := &MockChangeNotifier{ctrl: ctrl}
 	mock.recorder = &MockChangeNotifierMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockChangeNotifier) EXPECT() *MockChangeNotifierMockRecorder {
 	return m.recorder
 }
 
-// CanDelete mocks base method
+// CanDelete mocks base method.
 func (m *MockChangeNotifier) CanDelete(arg0 string) (bool, func()) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CanDelete", arg0)
@@ -253,67 +253,67 @@ func (m *MockChangeNotifier) CanDelete(arg0 string) (bool, func()) {
 	return ret0, ret1
 }
 
-// CanDelete indicates an expected call of CanDelete
+// CanDelete indicates an expected call of CanDelete.
 func (mr *MockChangeNotifierMockRecorder) CanDelete(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CanDelete", reflect.TypeOf((*MockChangeNotifier)(nil).CanDelete), arg0)
 }
 
-// DeleteMessage mocks base method
+// DeleteMessage mocks base method.
 func (m *MockChangeNotifier) DeleteMessage(arg0, arg1 string, arg2 uint32) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "DeleteMessage", arg0, arg1, arg2)
 }
 
-// DeleteMessage indicates an expected call of DeleteMessage
+// DeleteMessage indicates an expected call of DeleteMessage.
 func (mr *MockChangeNotifierMockRecorder) DeleteMessage(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteMessage", reflect.TypeOf((*MockChangeNotifier)(nil).DeleteMessage), arg0, arg1, arg2)
 }
 
-// MailboxCreated mocks base method
+// MailboxCreated mocks base method.
 func (m *MockChangeNotifier) MailboxCreated(arg0, arg1 string) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "MailboxCreated", arg0, arg1)
 }
 
-// MailboxCreated indicates an expected call of MailboxCreated
+// MailboxCreated indicates an expected call of MailboxCreated.
 func (mr *MockChangeNotifierMockRecorder) MailboxCreated(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MailboxCreated", reflect.TypeOf((*MockChangeNotifier)(nil).MailboxCreated), arg0, arg1)
 }
 
-// MailboxStatus mocks base method
+// MailboxStatus mocks base method.
 func (m *MockChangeNotifier) MailboxStatus(arg0, arg1 string, arg2, arg3, arg4 uint32) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "MailboxStatus", arg0, arg1, arg2, arg3, arg4)
 }
 
-// MailboxStatus indicates an expected call of MailboxStatus
+// MailboxStatus indicates an expected call of MailboxStatus.
 func (mr *MockChangeNotifierMockRecorder) MailboxStatus(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MailboxStatus", reflect.TypeOf((*MockChangeNotifier)(nil).MailboxStatus), arg0, arg1, arg2, arg3, arg4)
 }
 
-// Notice mocks base method
+// Notice mocks base method.
 func (m *MockChangeNotifier) Notice(arg0, arg1 string) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "Notice", arg0, arg1)
 }
 
-// Notice indicates an expected call of Notice
+// Notice indicates an expected call of Notice.
 func (mr *MockChangeNotifierMockRecorder) Notice(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Notice", reflect.TypeOf((*MockChangeNotifier)(nil).Notice), arg0, arg1)
 }
 
-// UpdateMessage mocks base method
+// UpdateMessage mocks base method.
 func (m *MockChangeNotifier) UpdateMessage(arg0, arg1 string, arg2, arg3 uint32, arg4 *pmapi.Message, arg5 bool) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "UpdateMessage", arg0, arg1, arg2, arg3, arg4, arg5)
 }
 
-// UpdateMessage indicates an expected call of UpdateMessage
+// UpdateMessage indicates an expected call of UpdateMessage.
 func (mr *MockChangeNotifierMockRecorder) UpdateMessage(arg0, arg1, arg2, arg3, arg4, arg5 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateMessage", reflect.TypeOf((*MockChangeNotifier)(nil).UpdateMessage), arg0, arg1, arg2, arg3, arg4, arg5)
