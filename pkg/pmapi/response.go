@@ -23,6 +23,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/go-resty/resty/v2"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -69,6 +70,16 @@ func (m *manager) catchAPIError(_ *resty.Client, res *resty.Response) error {
 	}
 
 	return err
+}
+
+func updateTime(_ *resty.Client, res *resty.Response) error {
+	if date, err := time.Parse(time.RFC1123, res.Header().Get("Date")); err != nil {
+		log.WithError(err).Warning("Cannot parse header date")
+	} else {
+		crypto.UpdateTime(date.Unix())
+	}
+
+	return nil
 }
 
 func catchRetryAfter(_ *resty.Client, res *resty.Response) (time.Duration, error) {

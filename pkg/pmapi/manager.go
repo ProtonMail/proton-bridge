@@ -59,6 +59,7 @@ func newManager(cfg Config) *manager {
 	// wrapped in JSON. If error is returned, `handleRequestFailure` is called,
 	// otherwise `handleRequestSuccess` is called.
 	m.rc.SetError(&Error{})
+	m.rc.OnAfterResponse(updateTime)
 	m.rc.OnAfterResponse(m.catchAPIError)
 	m.rc.OnAfterResponse(m.handleRequestSuccess)
 	m.rc.OnError(m.handleRequestFailure)

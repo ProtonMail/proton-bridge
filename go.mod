@@ -19,7 +19,7 @@ require (
 	github.com/ProtonMail/go-rfc5322 v0.8.0
 	github.com/ProtonMail/go-srp v0.0.0-20210514134713-bd9454f3fa01
 	github.com/ProtonMail/go-vcard v0.0.0-20180326232728-33aaa0a0c8a5
-	github.com/ProtonMail/gopenpgp/v2 v2.1.9
+	github.com/ProtonMail/gopenpgp/v2 v2.1.10
 	github.com/PuerkitoBio/goquery v1.5.1
 	github.com/abiosoft/ishell v2.0.0+incompatible
 	github.com/abiosoft/readline v0.0.0-20180607040430-155bce2042db // indirect
