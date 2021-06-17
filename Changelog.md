@@ -2,6 +2,15 @@
 
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
+## [Bridge 1.8.7] James
+
+### Changed
+* GODT-1201: Update gopenpgp to 2.1.10.
+
+### Fixed
+* GODT-1193: Do not doubly encode parts.
+
+
 ## [Bridge 1.8.6] James
 
 ### Removed
