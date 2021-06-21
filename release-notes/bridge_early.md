@@ -1,3 +1,17 @@
+## v1.8.7
+- 2021-06-22
+
+### New
+
+- Updated crypto-libraries to gopenpgp/v2 v2.1.10
+
+### Fixed
+
+- Fixed IMAP/SMTP restart in Bridge to mitigate connection issues
+- Fixed unknown charset error for 'combined' messages
+- Implemented a long-term fix for 'invalid or missing message signature' error
+
+
 ## v1.8.5
 - 2021-06-11
 
