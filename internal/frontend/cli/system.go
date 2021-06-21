@@ -58,14 +58,17 @@ func (f *frontendCLI) deleteCache(c *ishell.Context) {
 	if !f.yesNoQuestion("Do you really want to remove all stored preferences") {
 		return
 	}
+
 	if err := f.bridge.ClearData(); err != nil {
 		f.printAndLogError("Cache clear failed: ", err.Error())
 		return
 	}
+
 	f.Println("Cached cleared, restarting bridge")
-	// Clearing data removes everything (db, preferences, ...)
-	// so everything has to be stopped and started again.
+
+	// Clearing data removes everything (db, preferences, ...) so everything has to be stopped and started again.
 	f.restarter.SetToRestart()
+
 	f.Stop()
 }
 

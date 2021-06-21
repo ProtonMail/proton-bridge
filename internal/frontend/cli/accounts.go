@@ -192,12 +192,32 @@ func (f *frontendCLI) deleteAccounts(c *ishell.Context) {
 	if !f.yesNoQuestion("Do you really want remove all accounts") {
 		return
 	}
+
 	for _, user := range f.bridge.GetUsers() {
 		if err := f.bridge.DeleteUser(user.ID(), false); err != nil {
 			f.printAndLogError("Cannot delete account ", user.Username(), ": ", err)
 		}
 	}
+
 	c.Println("Keychain cleared")
+}
+
+func (f *frontendCLI) deleteEverything(c *ishell.Context) {
+	f.ShowPrompt(false)
+	defer f.ShowPrompt(true)
+
+	if !f.yesNoQuestion("Do you really want remove everything") {
+		return
+	}
+
+	f.bridge.FactoryReset()
+
+	c.Println("Everything cleared")
+
+	// Clearing data removes everything (db, preferences, ...) so everything has to be stopped and started again.
+	f.restarter.SetToRestart()
+
+	f.Stop()
 }
 
 func (f *frontendCLI) changeMode(c *ishell.Context) {

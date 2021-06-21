@@ -86,18 +86,11 @@ func (pc *persistentClient) GetEvent(ctx context.Context, eventID string) (*pmap
 func SetupPersistentClients() {
 	app := os.Getenv("TEST_APP")
 
-	persistentClients.manager = pmapi.New(pmapi.NewConfig(getAppVersionName(app), constants.Version))
+	persistentClients.manager = pmapi.New(pmapi.NewConfig(app, constants.Version))
 	persistentClients.manager.SetLogging(logrus.WithField("pkg", "liveapi"), logrus.GetLevel() == logrus.TraceLevel)
 
 	persistentClients.byName = map[string]clientAuthGetter{}
 	persistentClients.saltByName = map[string]string{}
-}
-
-func getAppVersionName(app string) string {
-	if app == "ie" {
-		return "importExport"
-	}
-	return app
 }
 
 func CleanupPersistentClients() {

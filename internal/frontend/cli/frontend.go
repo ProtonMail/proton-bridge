@@ -84,6 +84,11 @@ func New( //nolint[funlen]
 		Aliases: []string{"a", "k", "keychain"},
 		Func:    fe.deleteAccounts,
 	})
+	clearCmd.AddCmd(&ishell.Cmd{Name: "everything",
+		Help:    "remove everything",
+		Aliases: []string{"a", "k", "keychain"},
+		Func:    fe.deleteEverything,
+	})
 	fe.AddCmd(clearCmd)
 
 	// Change commands.

@@ -53,6 +53,8 @@ type UserManager interface {
 	GetUser(query string) (User, error)
 	DeleteUser(userID string, clearCache bool) error
 	ClearData() error
+	ClearUsers() error
+	FactoryReset()
 }
 
 // User is an interface of user needed by frontend.

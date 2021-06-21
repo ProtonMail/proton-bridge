@@ -331,6 +331,7 @@ func (u *Users) ClearData() error {
 		if err := user.Logout(); err != nil {
 			result = multierror.Append(result, err)
 		}
+
 		if err := user.closeStore(); err != nil {
 			result = multierror.Append(result, err)
 		}
@@ -340,8 +341,7 @@ func (u *Users) ClearData() error {
 		result = multierror.Append(result, err)
 	}
 
-	// Need to clear imap cache otherwise fetch response will be remembered
-	// from previous test
+	// Need to clear imap cache otherwise fetch response will be remembered from previous test.
 	imapcache.Clear()
 
 	return result
@@ -383,6 +383,19 @@ func (u *Users) DeleteUser(userID string, clearStore bool) error {
 	}
 
 	return errors.New("user " + userID + " not found")
+}
+
+// ClearUsers deletes all users.
+func (u *Users) ClearUsers() error {
+	var result error
+
+	for _, user := range u.GetUsers() {
+		if err := u.DeleteUser(user.ID(), false); err != nil {
+			result = multierror.Append(result, err)
+		}
+	}
+
+	return result
 }
 
 // SendMetric sends a metric. We don't want to return any errors, only log them.

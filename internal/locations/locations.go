@@ -73,28 +73,20 @@ func (l *Locations) getLicenseFilePath() string {
 
 	switch runtime.GOOS {
 	case "linux":
-		appName := l.configName
-		if l.configName == "importExport" {
-			appName = "import-export"
-		}
 		// Most Linux distributions.
-		path := "/usr/share/doc/protonmail/" + appName + "/LICENSE"
+		path := "/usr/share/doc/protonmail/" + l.configName + "/LICENSE"
 		if _, err := os.Stat(path); err == nil {
 			return path
 		}
 		// Arch distributions.
-		return "/usr/share/licenses/protonmail-" + appName + "/LICENSE"
+		return "/usr/share/licenses/protonmail-" + l.configName + "/LICENSE"
 	case "darwin": //nolint[goconst]
 		path := filepath.Join(filepath.Dir(os.Args[0]), "..", "Resources", "LICENSE")
 		if _, err := os.Stat(path); err == nil {
 			return path
 		}
 
-		appName := "ProtonMail Bridge.app"
-		if l.configName == "importExport" {
-			appName = "ProtonMail Import-Export.app"
-		}
-		return "/Applications/" + appName + "/Contents/Resources/LICENSE"
+		return "/Applications/ProtonMail Bridge.app/Contents/Resources/LICENSE"
 	case "windows":
 		path := filepath.Join(filepath.Dir(os.Args[0]), "LICENSE.txt")
 		if _, err := os.Stat(path); err == nil {
@@ -205,10 +197,10 @@ func (l *Locations) getUpdatesPath() string {
 // Clear removes everything except the lock and update files.
 func (l *Locations) Clear() error {
 	return files.Remove(
-		l.getSettingsPath(),
-		l.getLogsPath(),
-		l.getCachePath(),
+		l.userConfig,
+		l.userCache,
 	).Except(
+		l.GetLockFile(),
 		l.getUpdatesPath(),
 	).Do()
 }

@@ -156,7 +156,7 @@ func (b *Bridge) SetUpdateChannel(channel updater.UpdateChannel) (needRestart bo
 
 	// We have to deal right away only with downgrade - that action needs to
 	// clear data and updates, and install bridge right away. But regular
-	// upgrade can be leaved out for periodic check.
+	// upgrade can be left out for periodic check.
 	if !b.updater.IsDowngrade(version) {
 		return false, nil
 	}
@@ -164,6 +164,7 @@ func (b *Bridge) SetUpdateChannel(channel updater.UpdateChannel) (needRestart bo
 	if err := b.Users.ClearData(); err != nil {
 		log.WithError(err).Error("Failed to clear data while downgrading channel")
 	}
+
 	if err := b.locations.ClearUpdates(); err != nil {
 		log.WithError(err).Error("Failed to clear updates while downgrading channel")
 	}
@@ -173,6 +174,23 @@ func (b *Bridge) SetUpdateChannel(channel updater.UpdateChannel) (needRestart bo
 	}
 
 	return true, b.versioner.RemoveOtherVersions(version.Version)
+}
+
+// FactoryReset will remove all local cache and settings.
+// We want to downgrade to latest stable version if user is early higher than stable.
+// Setting the channel back to stable will do this for us.
+func (b *Bridge) FactoryReset() {
+	if _, err := b.SetUpdateChannel(updater.StableChannel); err != nil {
+		log.WithError(err).Error("Failed to revert to stable update channel")
+	}
+
+	if err := b.Users.ClearUsers(); err != nil {
+		log.WithError(err).Error("Failed to remove bridge users")
+	}
+
+	if err := b.Users.ClearData(); err != nil {
+		log.WithError(err).Error("Failed to remove bridge data")
+	}
 }
 
 // GetKeychainApp returns current keychain helper.
