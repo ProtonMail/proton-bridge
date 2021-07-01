@@ -325,7 +325,7 @@ func encryptSymmDecryptKey(
 		return
 	}
 
-	pgpMessage, err := firstKey.Encrypt(crypto.NewPlainMessageFromString(textToEncrypt), kr)
+	pgpMessage, err := firstKey.Encrypt(crypto.NewPlainMessage([]byte(textToEncrypt)), kr)
 	if err != nil {
 		return
 	}
