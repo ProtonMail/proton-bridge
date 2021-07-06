@@ -18,6 +18,7 @@
 package credentials
 
 import (
+	"errors"
 	"fmt"
 	"sort"
 	"sync"
@@ -228,21 +229,28 @@ func (s *Store) Get(userID string) (creds *Credentials, err error) {
 	return s.get(userID)
 }
 
-func (s *Store) get(userID string) (creds *Credentials, err error) {
+func (s *Store) get(userID string) (*Credentials, error) {
 	log := log.WithField("user", userID)
 
 	_, secret, err := s.secrets.Get(userID)
 	if err != nil {
-		log.WithError(err).Warn("Could not get credentials from native keychain")
-		return
+		return nil, err
+	}
+
+	if secret == "" {
+		return nil, errors.New("secret is empty")
 	}
 
 	credentials := &Credentials{UserID: userID}
-	if err = credentials.Unmarshal(secret); err != nil {
-		err = fmt.Errorf("backend/credentials: malformed secret: %v", err)
-		_ = s.secrets.Delete(userID)
-		log.WithError(err).Error("Could not unmarshal secret")
-		return
+
+	if err := credentials.Unmarshal(secret); err != nil {
+		log.WithError(fmt.Errorf("malformed secret: %w", err)).Error("Could not unmarshal secret")
+
+		if err := s.secrets.Delete(userID); err != nil {
+			log.WithError(err).Error("Failed to remove malformed secret")
+		}
+
+		return nil, err
 	}
 
 	return credentials, nil
