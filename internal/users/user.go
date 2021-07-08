@@ -279,26 +279,6 @@ func (u *User) GetStoreAddresses() []string {
 	return u.creds.EmailList()
 }
 
-// getStoreAddresses returns a user's used addresses (with the original address in first place).
-func (u *User) getStoreAddresses() []string { // nolint[unused]
-	addrInfo, err := u.store.GetAddressInfo()
-	if err != nil {
-		u.log.WithError(err).Error("Failed getting address info from store")
-		return nil
-	}
-
-	addresses := []string{}
-	for _, addr := range addrInfo {
-		addresses = append(addresses, addr.Address)
-	}
-
-	if u.IsCombinedAddressMode() {
-		return addresses[:1]
-	}
-
-	return addresses
-}
-
 // GetAddresses returns list of all addresses.
 func (u *User) GetAddresses() []string {
 	u.lock.RLock()

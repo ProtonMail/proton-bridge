@@ -209,20 +209,6 @@ var testCardsCleartext = []Card{
 	},
 }
 
-func TestClient_Encrypt(t *testing.T) {
-	c := newClient(newManager(Config{}), "")
-	c.userKeyRing = testPrivateKeyRing
-
-	cardEncrypted, err := c.EncryptAndSignCards(testCardsCleartext)
-	r.Nil(t, err)
-
-	// Result is always different, so the best way is to test it by decrypting again.
-	// Another test for decrypting will help us to be sure it's working.
-	cardCleartext, err := c.DecryptAndVerifyCards(cardEncrypted)
-	r.Nil(t, err)
-	r.Equal(t, testCardsCleartext[0].Data, cardCleartext[0].Data)
-}
-
 func TestClient_Decrypt(t *testing.T) {
 	c := newClient(newManager(Config{}), "")
 	c.userKeyRing = testPrivateKeyRing

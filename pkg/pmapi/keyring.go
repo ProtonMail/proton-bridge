@@ -166,10 +166,6 @@ func (keys *PMKeys) UnlockAll(passphrase []byte, userKey *crypto.KeyRing) (kr *c
 // ErrNoKeyringAvailable represents an error caused by a keyring being nil or having no entities.
 var ErrNoKeyringAvailable = errors.New("no keyring available")
 
-func (c *client) encrypt(plain string, signer *crypto.KeyRing) (armored string, err error) {
-	return encrypt(c.userKeyRing, plain, signer)
-}
-
 func encrypt(encrypter *crypto.KeyRing, plain string, signer *crypto.KeyRing) (armored string, err error) {
 	if encrypter == nil {
 		return "", ErrNoKeyringAvailable
@@ -207,18 +203,6 @@ func decrypt(decrypter *crypto.KeyRing, armored string) (plainBody []byte, err e
 		return
 	}
 	return plainMessage.GetBinary(), nil
-}
-
-func (c *client) sign(plain string) (armoredSignature string, err error) {
-	if c.userKeyRing == nil {
-		return "", ErrNoKeyringAvailable
-	}
-	plainMessage := crypto.NewPlainMessageFromString(plain)
-	pgpSignature, err := c.userKeyRing.SignDetached(plainMessage)
-	if err != nil {
-		return
-	}
-	return pgpSignature.GetArmored()
 }
 
 func (c *client) verify(plain, amroredSignature string) (err error) {
