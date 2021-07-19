@@ -1,0 +1,16 @@
+From: Sender <sender@pm.me>
+To: Receiver <receiver@pm.me>
+Content-Type: multipart/mixed; boundary=longrandomstring
+
+--longrandomstring
+
+body
+--longrandomstring
+Content-Type: message/rfc822
+Content-Disposition: attachment
+
+From: Sender <sender@pm.me>
+To: Receiver <receiver@pm.me>
+
+inner body
+--longrandomstring--

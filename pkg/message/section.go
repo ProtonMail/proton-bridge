@@ -103,7 +103,7 @@ func (bs *BodyStructure) parseAllChildSections(r io.Reader, currentPath []int, s
 	mediaType, params, _ := pmmime.ParseMediaType(info.Header.Get("Content-Type"))
 
 	// If multipart, call getAllParts, else read to count lines.
-	if (strings.HasPrefix(mediaType, "multipart/") || mediaType == "message/rfc822") && params["boundary"] != "" {
+	if (strings.HasPrefix(mediaType, "multipart/") || mediaType == rfc822Message) && params["boundary"] != "" {
 		nextPath := getChildPath(currentPath)
 
 		var br *boundaryReader

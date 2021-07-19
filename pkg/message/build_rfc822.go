@@ -480,7 +480,7 @@ func getAttachmentPartHeader(att *pmapi.Attachment) message.Header {
 	hdr.SetContentDisposition(att.Disposition, map[string]string{"filename": mime.QEncoding.Encode("utf-8", att.Name)})
 
 	// Use base64 for all attachments except embedded RFC822 messages.
-	if att.MIMEType != "message/rfc822" {
+	if att.MIMEType != rfc822Message {
 		hdr.Set("Content-Transfer-Encoding", "base64")
 	} else {
 		hdr.Del("Content-Transfer-Encoding")

@@ -120,3 +120,91 @@ Feature: SMTP sending of HTML messages with attachments
         }
       }
       """
+
+  Scenario: Alternative plain and HTML message with rfc822 attachment
+    When SMTP client sends message
+      """
+      From: Bridge Test <[userAddress]>
+      To: External Bridge <pm.bridge.qa@gmail.com>
+      Subject: Alternative plain and HTML with rfc822 attachment
+      Content-Type: multipart/mixed; boundary=main-parts
+
+      This is a multipart message in MIME format
+
+      --main-parts
+      Content-Type: multipart/alternative; boundary=alternatives
+
+      --alternatives
+      Content-Type: text/plain
+
+      There is an attachment
+
+
+      --alternatives
+      Content-Type: text/html
+
+      <html><body>There <b>is</b> an attachment<body></html>
+
+
+      --alternatives--
+
+      --main-parts
+      Content-Type: message/rfc822
+      Content-Transfer-Encoding: 7bit
+      Content-Disposition: attachment
+
+      Received: from mx1.opensuse.org (mx1.infra.opensuse.org [192.168.47.95]) by
+          mailman3.infra.opensuse.org (Postfix) with ESMTP id 38BE2AC3 for
+          <factory@lists.opensuse.org>; Sun, 11 Jul 2021 19:50:34 +0000 (UTC)
+      From: "Bob " <Bob@something.net>
+      Sender: "Bob" <Bob@gmail.com>
+      To: "opensuse-factory" <opensuse-factory@opensuse.org>
+      Cc: "Bob" <Bob@something.net>
+      References:  <y6ZUV5yEyOVQHETZRmi1GFe-Xumzct7QcLpGoSsi1MefGaoovfrUqdkmQ5gM6uySZ7JPIJhDkPJFDqHS1fb_mQ==@protonmail.internalid>
+      Subject: VirtualBox problems with kernel 5.13
+      Date: Sun, 11 Jul 2021 21:50:25 +0200
+      Message-ID: <71672e5f-24a2-c79f-03cc-4c923eb1790b@lwfinger.net>
+      MIME-Version: 1.0
+      Content-Type: text/plain; charset="utf-8"
+      Content-Transfer-Encoding: quoted-printable
+      X-Mailer: Microsoft Outlook 16.0
+      List-Unsubscribe: <mailto:factory-leave@lists.opensuse.org>
+      Content-Language: en-us
+      List-Help: <mailto:factory-request@lists.opensuse.org?subject=help>
+      List-Subscribe: <mailto:factory-join@lists.opensuse.org>
+      Thread-Index: AQFWvbNSAqFOch49YPlLU4eJWPObaQK2iKDq
+
+      I am writing this message as openSUSE's maintainer of VirtualBox.
+
+      Nearly every update of the Linux kernel to a new 5.X version breaks =
+      VirtualBox.
+
+      Bob
+
+      --main-parts--
+
+      """
+    Then SMTP response is "OK"
+    And mailbox "Sent" for "user" has messages
+      | from          | to                     | subject                                           |
+      | [userAddress] | pm.bridge.qa@gmail.com | Alternative plain and HTML with rfc822 attachment |
+    And message is sent with API call
+      """
+      {
+        "Message": {
+          "Subject": "Alternative plain and HTML with rfc822 attachment",
+          "Sender": {
+            "Name": "Bridge Test"
+          },
+          "ToList": [
+            {
+              "Address": "pm.bridge.qa@gmail.com",
+              "Name": "External Bridge"
+            }
+          ],
+          "CCList": [],
+          "BCCList": [],
+          "MIMEType": "text/html"
+        }
+      }
+      """

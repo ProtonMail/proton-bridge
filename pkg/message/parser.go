@@ -528,6 +528,9 @@ func parseAttachment(h message.Header) (*pmapi.Attachment, error) {
 	if att.Name == "" {
 		att.Name = mimeTypeParams["name"]
 	}
+	if att.Name == "" && mimeType == rfc822Message {
+		att.Name = "message.eml"
+	}
 	if att.Name == "" {
 		att.Name = "attachment.bin"
 	}
