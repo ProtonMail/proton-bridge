@@ -23,7 +23,7 @@
 //  - persistent settings
 //  - event listener
 //  - credentials store
-//  - pmapi ClientManager
+//  - pmapi Manager
 // In addition, the base initialises logging and reacts to command line arguments
 // which control the log verbosity and enable cpu/memory profiling.
 package base
@@ -85,7 +85,7 @@ type Base struct {
 	Cache          *cache.Cache
 	Listener       listener.Listener
 	Creds          *credentials.Store
-	CM             *pmapi.ClientManager
+	CM             pmapi.Manager
 	CookieJar      *cookies.Jar
 	UserAgent      *useragent.UserAgent
 	Updater        *updater.Updater
@@ -181,13 +181,23 @@ func New( // nolint[funlen]
 		kc = keychain.NewMissingKeychain()
 	}
 
+	cfg := pmapi.NewConfig(configName, constants.Version)
+	cfg.GetUserAgent = userAgent.String
+	cfg.UpgradeApplicationHandler = func() { listener.Emit(events.UpgradeApplicationEvent, "") }
+	cfg.TLSIssueHandler = func() { listener.Emit(events.TLSCertIssue, "") }
+
+	cm := pmapi.New(cfg)
+
+	cm.AddConnectionObserver(pmapi.NewConnectionObserver(
+		func() { listener.Emit(events.InternetOffEvent, "") },
+		func() { listener.Emit(events.InternetOnEvent, "") },
+	))
+
 	jar, err := cookies.NewCookieJar(settingsObj)
 	if err != nil {
 		return nil, err
 	}
 
-	cm := pmapi.NewClientManager(getAPIConfig(configName, listener), userAgent)
-	cm.SetRoundTripper(pmapi.GetRoundTripper(cm, listener))
 	cm.SetCookieJar(jar)
 
 	key, err := crypto.NewKeyFromArmored(updater.DefaultPublicKey)
@@ -328,6 +338,7 @@ func (b *Base) run(appMainLoop func(*Base, *cli.Context) error) cli.ActionFunc {
 		}
 
 		logging.SetLevel(c.String(flagLogLevel))
+		b.CM.SetLogging(logrus.WithField("pkg", "pmapi"), logrus.GetLevel() == logrus.TraceLevel)
 
 		logrus.
 			WithField("appName", b.Name).
@@ -374,14 +385,4 @@ func (b *Base) doTeardown() error {
 	}
 
 	return nil
-}
-
-func getAPIConfig(configName string, listener listener.Listener) *pmapi.ClientConfig {
-	apiConfig := pmapi.GetAPIConfig(configName, constants.Version)
-
-	apiConfig.ConnectionOffHandler = func() { listener.Emit(events.InternetOffEvent, "") }
-	apiConfig.ConnectionOnHandler = func() { listener.Emit(events.InternetOnEvent, "") }
-	apiConfig.UpgradeApplicationHandler = func() { listener.Emit(events.UpgradeApplicationEvent, "") }
-
-	return apiConfig
 }

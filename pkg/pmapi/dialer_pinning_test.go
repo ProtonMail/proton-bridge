@@ -18,124 +18,132 @@
 package pmapi
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
-	"github.com/stretchr/testify/assert"
+	a "github.com/stretchr/testify/assert"
+	r "github.com/stretchr/testify/require"
 )
 
-const liveAPI = "api.protonmail.ch"
-
-var testLiveConfig = &ClientConfig{
-	AppVersion: "Bridge_1.2.4-test",
-	ClientID:   "Bridge",
-}
-
-func createAndSetPinningDialer(cm *ClientManager) (*int, *PinningTLSDialer) {
-	called := 0
-
-	dialer := NewPinningTLSDialer(NewBasicTLSDialer())
-	dialer.SetTLSIssueNotifier(func() { called++ })
-	cm.SetRoundTripper(CreateTransportWithDialer(dialer))
-
-	return &called, dialer
-}
-
 func TestTLSPinValid(t *testing.T) {
-	cm := newTestClientManager(testLiveConfig)
-	cm.host = liveAPI
-	rootScheme = "https"
-	called, _ := createAndSetPinningDialer(cm)
-	client := cm.GetClient("pmapi" + t.Name())
+	called, _, cm := createClientWithPinningDialer(getRootURL())
 
-	_, err := client.AuthInfo("this.address.is.disabled")
-	Ok(t, err)
-
-	Equals(t, 0, *called)
+	_, _ = cm.getAuthInfo(context.Background(), GetAuthInfoReq{Username: "username"})
+	checkTLSIssueHandler(t, 0, called)
 }
 
 func TestTLSPinBackup(t *testing.T) {
-	cm := newTestClientManager(testLiveConfig)
-	cm.host = liveAPI
-	called, p := createAndSetPinningDialer(cm)
-	p.pinChecker.trustedPins[1] = p.pinChecker.trustedPins[0]
-	p.pinChecker.trustedPins[0] = ""
+	called, dialer, cm := createClientWithPinningDialer(getRootURL())
+	copyTrustedPins(dialer.pinChecker)
+	dialer.pinChecker.trustedPins[1] = dialer.pinChecker.trustedPins[0]
+	dialer.pinChecker.trustedPins[0] = ""
 
-	client := cm.GetClient("pmapi" + t.Name())
-
-	_, err := client.AuthInfo("this.address.is.disabled")
-	Ok(t, err)
-
-	Equals(t, 0, *called)
+	_, _ = cm.getAuthInfo(context.Background(), GetAuthInfoReq{Username: "username"})
+	checkTLSIssueHandler(t, 0, called)
 }
 
-func _TestTLSPinNoMatch(t *testing.T) { // nolint[unused]
-	cm := newTestClientManager(testLiveConfig)
-	cm.host = liveAPI
-
-	called, p := createAndSetPinningDialer(cm)
-	for i := 0; i < len(p.pinChecker.trustedPins); i++ {
-		p.pinChecker.trustedPins[i] = "testing"
-	}
-
-	client := cm.GetClient("pmapi" + t.Name())
-
-	_, err := client.AuthInfo("this.address.is.disabled")
-	Ok(t, err)
-
-	// check that it will be called only once per session
-	client = cm.GetClient("pmapi" + t.Name())
-	_, err = client.AuthInfo("this.address.is.disabled")
-	Ok(t, err)
-
-	Equals(t, 1, *called)
-}
-
-func _TestTLSPinInvalid(t *testing.T) { // nolint[unused]
-	cm := newTestClientManager(testLiveConfig)
-
+func TestTLSPinInvalid(t *testing.T) {
 	ts := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		writeJSONResponsefromFile(t, w, "/auth/info/post_response.json", 0)
 	}))
 	defer ts.Close()
 
-	called, _ := createAndSetPinningDialer(cm)
+	called, _, cm := createClientWithPinningDialer(ts.URL)
 
-	client := cm.GetClient("pmapi" + t.Name())
-
-	cm.host = liveAPI
-	_, err := client.AuthInfo("this.address.is.disabled")
-	Ok(t, err)
-
-	cm.host = ts.URL
-	_, err = client.AuthInfo("this.address.is.disabled")
-	Assert(t, err != nil, "error is expected but have %v", err)
-
-	Equals(t, 1, *called)
+	_, _ = cm.getAuthInfo(context.Background(), GetAuthInfoReq{Username: "username"})
+	checkTLSIssueHandler(t, 1, called)
 }
 
-// The tests below should pass but cannot run in CI due to proxy issues.
+func TestTLSPinNoMatch(t *testing.T) {
+	skipIfProxyIsSet(t)
 
-func _TestTLSSignedCertWrongPublicKey(t *testing.T) { // nolint[unused]
-	cm := newTestClientManager(testLiveConfig)
-	_, dialer := createAndSetPinningDialer(cm)
+	called, dialer, cm := createClientWithPinningDialer(getRootURL())
+
+	copyTrustedPins(dialer.pinChecker)
+	for i := 0; i < len(dialer.pinChecker.trustedPins); i++ {
+		dialer.pinChecker.trustedPins[i] = "testing"
+	}
+
+	_, _ = cm.getAuthInfo(context.Background(), GetAuthInfoReq{Username: "username"})
+	_, _ = cm.getAuthInfo(context.Background(), GetAuthInfoReq{Username: "username"})
+
+	// Check that it will be reported only once per session, but notified every time.
+	r.Equal(t, 1, len(dialer.reporter.sentReports))
+	checkTLSIssueHandler(t, 2, called)
+}
+
+func TestTLSSignedCertWrongPublicKey(t *testing.T) {
+	skipIfProxyIsSet(t)
+
+	_, dialer, _ := createClientWithPinningDialer("")
 	_, err := dialer.DialTLS("tcp", "rsa4096.badssl.com:443")
-	assert.Error(t, err, "expected dial to fail because of wrong public key")
+	r.Error(t, err, "expected dial to fail because of wrong public key")
 }
 
-func _TestTLSSignedCertTrustedPublicKey(t *testing.T) { // nolint[unused]
-	cm := newTestClientManager(testLiveConfig)
-	_, dialer := createAndSetPinningDialer(cm)
+func TestTLSSignedCertTrustedPublicKey(t *testing.T) {
+	skipIfProxyIsSet(t)
+
+	_, dialer, _ := createClientWithPinningDialer("")
+	copyTrustedPins(dialer.pinChecker)
 	dialer.pinChecker.trustedPins = append(dialer.pinChecker.trustedPins, `pin-sha256="W8/42Z0ffufwnHIOSndT+eVzBJSC0E8uTIC8O6mEliQ="`)
 	_, err := dialer.DialTLS("tcp", "rsa4096.badssl.com:443")
-	assert.NoError(t, err, "expected dial to succeed because public key is known and cert is signed by CA")
+	r.NoError(t, err, "expected dial to succeed because public key is known and cert is signed by CA")
 }
 
-func _TestTLSSelfSignedCertTrustedPublicKey(t *testing.T) { // nolint[unused]
-	cm := newTestClientManager(testLiveConfig)
-	_, dialer := createAndSetPinningDialer(cm)
+func TestTLSSelfSignedCertTrustedPublicKey(t *testing.T) {
+	skipIfProxyIsSet(t)
+
+	_, dialer, _ := createClientWithPinningDialer("")
+	copyTrustedPins(dialer.pinChecker)
 	dialer.pinChecker.trustedPins = append(dialer.pinChecker.trustedPins, `pin-sha256="9SLklscvzMYj8f+52lp5ze/hY0CFHyLSPQzSpYYIBm8="`)
 	_, err := dialer.DialTLS("tcp", "self-signed.badssl.com:443")
-	assert.NoError(t, err, "expected dial to succeed because public key is known despite cert being self-signed")
+	r.NoError(t, err, "expected dial to succeed because public key is known despite cert being self-signed")
+}
+
+func createClientWithPinningDialer(hostURL string) (*int, *PinningTLSDialer, *manager) {
+	called := 0
+
+	cfg := Config{
+		AppVersion:      "Bridge_1.2.4-test",
+		HostURL:         hostURL,
+		TLSIssueHandler: func() { called++ },
+	}
+
+	dialer := NewPinningTLSDialer(cfg, NewBasicTLSDialer(cfg))
+
+	cm := newManager(cfg)
+	cm.SetTransport(CreateTransportWithDialer(dialer))
+
+	return &called, dialer, cm
+}
+
+func copyTrustedPins(pinChecker *pinChecker) {
+	copiedPins := make([]string, len(pinChecker.trustedPins))
+	copy(copiedPins, pinChecker.trustedPins)
+	pinChecker.trustedPins = copiedPins
+}
+
+func checkTLSIssueHandler(t *testing.T, wantCalledAtLeast int, called *int) {
+	// TLSIssueHandler is called in goroutine se we need to wait a bit to be sure it was called.
+	a.Eventually(
+		t,
+		func() bool {
+			if wantCalledAtLeast == 0 {
+				return *called == 0
+			}
+			// Dialer can do more attempts resulting in more calls.
+			return *called >= wantCalledAtLeast
+		},
+		time.Second,
+		10*time.Millisecond,
+	)
+	// Repeated again so it generates nice message.
+	if wantCalledAtLeast == 0 {
+		r.Equal(t, 0, *called)
+	} else {
+		r.GreaterOrEqual(t, *called, wantCalledAtLeast)
+	}
 }

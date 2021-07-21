@@ -37,10 +37,10 @@ func TestGetSequenceNumberAndGetUID(t *testing.T) {
 
 	m.newStoreNoEvents(true)
 
-	insertMessage(t, m, "msg1", "Test message 1", addrID1, 0, []string{pmapi.AllMailLabel, pmapi.InboxLabel})
-	insertMessage(t, m, "msg2", "Test message 2", addrID1, 0, []string{pmapi.AllMailLabel, pmapi.ArchiveLabel})
-	insertMessage(t, m, "msg3", "Test message 3", addrID1, 0, []string{pmapi.AllMailLabel, pmapi.InboxLabel})
-	insertMessage(t, m, "msg4", "Test message 4", addrID1, 0, []string{pmapi.AllMailLabel})
+	insertMessage(t, m, "msg1", "Test message 1", addrID1, false, []string{pmapi.AllMailLabel, pmapi.InboxLabel})
+	insertMessage(t, m, "msg2", "Test message 2", addrID1, false, []string{pmapi.AllMailLabel, pmapi.ArchiveLabel})
+	insertMessage(t, m, "msg3", "Test message 3", addrID1, false, []string{pmapi.AllMailLabel, pmapi.InboxLabel})
+	insertMessage(t, m, "msg4", "Test message 4", addrID1, false, []string{pmapi.AllMailLabel})
 
 	checkAllMessageIDs(t, m, []string{"msg1", "msg2", "msg3", "msg4"})
 
@@ -56,7 +56,7 @@ func checkMailboxMessageIDs(t *testing.T, m *mocksForStore, mailboxLabel string,
 	storeAddress := m.store.addresses[addrID1]
 	storeMailbox := storeAddress.mailboxes[mailboxLabel]
 
-	ids, err := storeMailbox.GetAPIIDsFromSequenceRange(0, uint32(len(wantIDs)))
+	ids, err := storeMailbox.GetAPIIDsFromSequenceRange(1, uint32(len(wantIDs)))
 	require.Nil(t, err)
 
 	idx := 0
@@ -82,20 +82,20 @@ func TestGetUIDByHeader(t *testing.T) { //nolint[funlen]
 
 	m.newStoreNoEvents(true)
 
-	tstMsg := getTestMessage("msg1", "Without external ID", addrID1, 0, []string{pmapi.AllMailLabel, pmapi.SentLabel})
+	tstMsg := getTestMessage("msg1", "Without external ID", addrID1, false, []string{pmapi.AllMailLabel, pmapi.SentLabel})
 	require.Nil(t, m.store.createOrUpdateMessageEvent(tstMsg))
 
-	tstMsg = getTestMessage("msg2", "External ID with spaces", addrID1, 0, []string{pmapi.AllMailLabel, pmapi.SentLabel})
+	tstMsg = getTestMessage("msg2", "External ID with spaces", addrID1, false, []string{pmapi.AllMailLabel, pmapi.SentLabel})
 	tstMsg.ExternalID = "   externalID-non-pm-com "
 	require.Nil(t, m.store.createOrUpdateMessageEvent(tstMsg))
 
-	tstMsg = getTestMessage("msg3", "External ID with <>", addrID1, 0, []string{pmapi.AllMailLabel, pmapi.SentLabel})
+	tstMsg = getTestMessage("msg3", "External ID with <>", addrID1, false, []string{pmapi.AllMailLabel, pmapi.SentLabel})
 	tstMsg.ExternalID = "<externalID@pm.me>"
 	tstMsg.Header = mail.Header{"References": []string{"wrongID", "externalID-non-pm-com", "msg2"}}
 	require.Nil(t, m.store.createOrUpdateMessageEvent(tstMsg))
 
 	// Not sure if this is a real-world scenario but we should be able to address this properly.
-	tstMsg = getTestMessage("msg4", "External ID with <> and spaces and special characters", addrID1, 0, []string{pmapi.AllMailLabel, pmapi.SentLabel})
+	tstMsg = getTestMessage("msg4", "External ID with <> and spaces and special characters", addrID1, false, []string{pmapi.AllMailLabel, pmapi.SentLabel})
 	tstMsg.ExternalID = "   <   external.()+*[]ID@another.pm.me    >    "
 	require.Nil(t, m.store.createOrUpdateMessageEvent(tstMsg))
 

@@ -20,48 +20,33 @@ package imap
 import (
 	"fmt"
 	"testing"
-	"time"
 
 	"github.com/ProtonMail/proton-bridge/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/internal/config/useragent"
-	"github.com/ProtonMail/proton-bridge/internal/events"
-	"github.com/ProtonMail/proton-bridge/pkg/listener"
-	"github.com/ProtonMail/proton-bridge/pkg/ports"
+	"github.com/ProtonMail/proton-bridge/internal/serverutil/mocks"
 	imapserver "github.com/emersion/go-imap/server"
 
 	"github.com/stretchr/testify/require"
 )
 
-type testPanicHandler struct{}
-
-func (ph *testPanicHandler) HandlePanic() {}
-
 func TestIMAPServerTurnOffAndOnAgain(t *testing.T) {
-	panicHandler := &testPanicHandler{}
+	r := require.New(t)
+	ts := mocks.NewTestServer(12345)
 
-	eventListener := listener.New()
-
-	port := ports.FindFreePortFrom(12345)
 	server := imapserver.New(nil)
-	server.Addr = fmt.Sprintf("%v:%v", bridge.Host, port)
+	server.Addr = fmt.Sprintf("%v:%v", bridge.Host, ts.WantPort)
 
 	s := &imapServer{
-		panicHandler:  panicHandler,
+		panicHandler:  ts.PanicHandler,
 		server:        server,
-		eventListener: eventListener,
+		port:          ts.WantPort,
+		eventListener: ts.EventListener,
 		userAgent:     useragent.New(),
 	}
 	s.isRunning.Store(false)
 
+	r.True(ts.IsPortFree())
+
 	go s.ListenAndServe()
-	time.Sleep(5 * time.Second)
-	require.False(t, ports.IsPortFree(port))
-
-	eventListener.Emit(events.InternetOffEvent, "")
-	time.Sleep(10 * time.Second)
-	require.True(t, ports.IsPortFree(port))
-
-	eventListener.Emit(events.InternetOnEvent, "")
-	time.Sleep(10 * time.Second)
-	require.False(t, ports.IsPortFree(port))
+	ts.RunServerTests(r)
 }

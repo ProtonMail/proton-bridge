@@ -113,10 +113,3 @@ type Listener interface {
 	Add(string, chan<- string)
 	RetryEmit(string)
 }
-
-func MakeAndRegisterEvent(eventListener Listener, event string) <-chan string {
-	ch := make(chan string)
-	eventListener.Add(event, ch)
-	eventListener.RetryEmit(event)
-	return ch
-}

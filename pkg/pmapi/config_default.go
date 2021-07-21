@@ -21,24 +21,15 @@ package pmapi
 
 import (
 	"net/http"
-
-	"github.com/ProtonMail/proton-bridge/internal/events"
-	"github.com/ProtonMail/proton-bridge/pkg/listener"
 )
 
-func GetRoundTripper(cm *ClientManager, listener listener.Listener) http.RoundTripper {
-	// We use a TLS dialer.
-	basicDialer := NewBasicTLSDialer()
+func getRootURL() string {
+	return "https://api.protonmail.ch"
+}
 
-	// We wrap the TLS dialer in a layer which enforces connections to trusted servers.
-	pinningDialer := NewPinningTLSDialer(basicDialer)
-
-	// We want any pin mismatches to be communicated back to bridge GUI and reported.
-	pinningDialer.SetTLSIssueNotifier(func() { listener.Emit(events.TLSCertIssue, "") })
-	pinningDialer.EnableRemoteTLSIssueReporting(cm)
-
-	// We wrap the pinning dialer in a layer which adds "alternative routing" feature.
-	proxyDialer := NewProxyTLSDialer(pinningDialer, cm)
-
-	return CreateTransportWithDialer(proxyDialer)
+func newProxyDialerAndTransport(cfg Config) (*ProxyTLSDialer, http.RoundTripper) {
+	basicDialer := NewBasicTLSDialer(cfg)
+	pinningDialer := NewPinningTLSDialer(cfg, basicDialer)
+	proxyDialer := NewProxyTLSDialer(cfg, pinningDialer)
+	return proxyDialer, CreateTransportWithDialer(proxyDialer)
 }

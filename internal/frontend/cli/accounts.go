@@ -18,6 +18,7 @@
 package cli
 
 import (
+	"context"
 	"strings"
 
 	"github.com/ProtonMail/proton-bridge/internal/bridge"
@@ -126,7 +127,7 @@ func (f *frontendCLI) loginAccount(c *ishell.Context) { // nolint[funlen]
 			return
 		}
 
-		err = client.Auth2FA(twoFactor, auth)
+		err = client.Auth2FA(context.Background(), twoFactor)
 		if err != nil {
 			f.processAPIError(err)
 			return

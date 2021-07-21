@@ -18,13 +18,14 @@
 package users
 
 import (
+	"context"
 	"testing"
 
 	"github.com/ProtonMail/proton-bridge/internal/events"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	gomock "github.com/golang/mock/gomock"
 	"github.com/pkg/errors"
-	"github.com/stretchr/testify/assert"
+	r "github.com/stretchr/testify/require"
 )
 
 func TestUpdateUser(t *testing.T) {
@@ -35,25 +36,14 @@ func TestUpdateUser(t *testing.T) {
 	defer cleanUpUserData(user)
 
 	gomock.InOrder(
-		m.pmapiClient.EXPECT().IsUnlocked().Return(false),
-		m.pmapiClient.EXPECT().Unlock([]byte("pass")).Return(nil),
-
-		m.pmapiClient.EXPECT().UpdateUser().Return(nil, nil),
-		m.pmapiClient.EXPECT().ReloadKeys([]byte(testCredentials.MailboxPassword)).Return(nil),
+		m.pmapiClient.EXPECT().UpdateUser(gomock.Any()).Return(nil, nil),
+		m.pmapiClient.EXPECT().ReloadKeys(gomock.Any(), []byte(testCredentials.MailboxPassword)).Return(nil),
 		m.pmapiClient.EXPECT().Addresses().Return([]*pmapi.Address{testPMAPIAddress}),
 
-		m.credentialsStore.EXPECT().UpdateEmails("user", []string{testPMAPIAddress.Email}),
-		m.credentialsStore.EXPECT().Get("user").Return(testCredentials, nil),
+		m.credentialsStore.EXPECT().UpdateEmails("user", []string{testPMAPIAddress.Email}).Return(testCredentials, nil),
 	)
 
-	gomock.InOrder(
-		m.pmapiClient.EXPECT().GetEvent(testPMAPIEvent.EventID).Return(testPMAPIEvent, nil).MaxTimes(1),
-		m.pmapiClient.EXPECT().ListMessages(gomock.Any()).Return([]*pmapi.Message{}, 0, nil).MaxTimes(1),
-	)
-
-	assert.NoError(t, user.UpdateUser())
-
-	waitForEvents()
+	r.NoError(t, user.UpdateUser(context.Background()))
 }
 
 func TestUserSwitchAddressMode(t *testing.T) {
@@ -63,128 +53,91 @@ func TestUserSwitchAddressMode(t *testing.T) {
 	user := testNewUser(m)
 	defer cleanUpUserData(user)
 
-	assert.True(t, user.store.IsCombinedMode())
-	assert.True(t, user.creds.IsCombinedAddressMode)
-	assert.True(t, user.IsCombinedAddressMode())
-	waitForEvents()
+	// Ignore any sync on background.
+	m.pmapiClient.EXPECT().ListMessages(gomock.Any(), gomock.Any()).Return([]*pmapi.Message{}, 0, nil).AnyTimes()
 
+	// Check initial state.
+	r.True(t, user.store.IsCombinedMode())
+	r.True(t, user.creds.IsCombinedAddressMode)
+	r.True(t, user.IsCombinedAddressMode())
+
+	// Mock change to split mode.
 	gomock.InOrder(
 		m.eventListener.EXPECT().Emit(events.CloseConnectionEvent, "user@pm.me"),
-		m.pmapiClient.EXPECT().ListLabels().Return([]*pmapi.Label{}, nil),
-		m.pmapiClient.EXPECT().CountMessages("").Return([]*pmapi.MessagesCount{}, nil),
+		m.pmapiClient.EXPECT().ListLabels(gomock.Any()).Return([]*pmapi.Label{}, nil),
+		m.pmapiClient.EXPECT().CountMessages(gomock.Any(), "").Return([]*pmapi.MessagesCount{}, nil),
 		m.pmapiClient.EXPECT().Addresses().Return([]*pmapi.Address{testPMAPIAddress}),
-
-		m.credentialsStore.EXPECT().SwitchAddressMode("user").Return(nil),
-		m.credentialsStore.EXPECT().Get("user").Return(testCredentialsSplit, nil),
+		m.credentialsStore.EXPECT().SwitchAddressMode("user").Return(testCredentialsSplit, nil),
 	)
 
-	assert.NoError(t, user.SwitchAddressMode())
-	assert.False(t, user.store.IsCombinedMode())
-	assert.False(t, user.creds.IsCombinedAddressMode)
-	assert.False(t, user.IsCombinedAddressMode())
+	// Check switch to split mode.
+	r.NoError(t, user.SwitchAddressMode())
+	r.False(t, user.store.IsCombinedMode())
+	r.False(t, user.creds.IsCombinedAddressMode)
+	r.False(t, user.IsCombinedAddressMode())
 
+	// MOck change to combined mode.
 	gomock.InOrder(
 		m.eventListener.EXPECT().Emit(events.CloseConnectionEvent, "users@pm.me"),
 		m.eventListener.EXPECT().Emit(events.CloseConnectionEvent, "anotheruser@pm.me"),
 		m.eventListener.EXPECT().Emit(events.CloseConnectionEvent, "alsouser@pm.me"),
-		m.pmapiClient.EXPECT().ListLabels().Return([]*pmapi.Label{}, nil),
-		m.pmapiClient.EXPECT().CountMessages("").Return([]*pmapi.MessagesCount{}, nil),
+		m.pmapiClient.EXPECT().ListLabels(gomock.Any()).Return([]*pmapi.Label{}, nil),
+		m.pmapiClient.EXPECT().CountMessages(gomock.Any(), "").Return([]*pmapi.MessagesCount{}, nil),
 		m.pmapiClient.EXPECT().Addresses().Return([]*pmapi.Address{testPMAPIAddress}),
-
-		m.credentialsStore.EXPECT().SwitchAddressMode("user").Return(nil),
-		m.credentialsStore.EXPECT().Get("user").Return(testCredentials, nil),
+		m.credentialsStore.EXPECT().SwitchAddressMode("user").Return(testCredentials, nil),
 	)
-	m.pmapiClient.EXPECT().ListMessages(gomock.Any()).Return([]*pmapi.Message{}, 0, nil).AnyTimes()
 
-	assert.NoError(t, user.SwitchAddressMode())
-	assert.True(t, user.store.IsCombinedMode())
-	assert.True(t, user.creds.IsCombinedAddressMode)
-	assert.True(t, user.IsCombinedAddressMode())
-
-	waitForEvents()
+	// Check switch to combined mode.
+	r.NoError(t, user.SwitchAddressMode())
+	r.True(t, user.store.IsCombinedMode())
+	r.True(t, user.creds.IsCombinedAddressMode)
+	r.True(t, user.IsCombinedAddressMode())
 }
 
 func TestLogoutUser(t *testing.T) {
 	m := initMocks(t)
 	defer m.ctrl.Finish()
 
-	user := testNewUserForLogout(m)
+	user := testNewUser(m)
 	defer cleanUpUserData(user)
 
 	gomock.InOrder(
-		m.pmapiClient.EXPECT().Logout().Return(),
-		m.credentialsStore.EXPECT().Logout("user").Return(nil),
-		m.credentialsStore.EXPECT().Get("user").Return(testCredentialsDisconnected, nil),
+		m.pmapiClient.EXPECT().AuthDelete(gomock.Any()).Return(nil),
+		m.credentialsStore.EXPECT().Logout("user").Return(testCredentialsDisconnected, nil),
+		m.eventListener.EXPECT().Emit(events.CloseConnectionEvent, "user@pm.me"),
 	)
 
-	m.eventListener.EXPECT().Emit(events.CloseConnectionEvent, "user@pm.me")
-
 	err := user.Logout()
-
-	waitForEvents()
-
-	assert.NoError(t, err)
+	r.NoError(t, err)
 }
 
 func TestLogoutUserFailsLogout(t *testing.T) {
 	m := initMocks(t)
 	defer m.ctrl.Finish()
 
-	user := testNewUserForLogout(m)
+	user := testNewUser(m)
 	defer cleanUpUserData(user)
 
 	gomock.InOrder(
-		m.pmapiClient.EXPECT().Logout().Return(),
-		m.credentialsStore.EXPECT().Logout("user").Return(errors.New("logout failed")),
+		m.pmapiClient.EXPECT().AuthDelete(gomock.Any()).Return(nil),
+		m.credentialsStore.EXPECT().Logout("user").Return(nil, errors.New("logout failed")),
 		m.credentialsStore.EXPECT().Delete("user").Return(nil),
-		m.credentialsStore.EXPECT().Get("user").Return(testCredentialsDisconnected, nil),
+		m.eventListener.EXPECT().Emit(events.CloseConnectionEvent, "user@pm.me"),
 	)
-	m.eventListener.EXPECT().Emit(events.CloseConnectionEvent, "user@pm.me")
 
 	err := user.Logout()
-	waitForEvents()
-	assert.NoError(t, err)
+	r.NoError(t, err)
 }
 
-func TestCheckBridgeLoginOK(t *testing.T) {
+func TestCheckBridgeLogin(t *testing.T) {
 	m := initMocks(t)
 	defer m.ctrl.Finish()
 
 	user := testNewUser(m)
 	defer cleanUpUserData(user)
 
-	gomock.InOrder(
-		m.pmapiClient.EXPECT().IsUnlocked().Return(false),
-		m.pmapiClient.EXPECT().Unlock([]byte("pass")).Return(nil),
-	)
-
 	err := user.CheckBridgeLogin(testCredentials.BridgePassword)
-
-	waitForEvents()
-
-	assert.NoError(t, err)
-}
-
-func TestCheckBridgeLoginTwiceOK(t *testing.T) {
-	m := initMocks(t)
-	defer m.ctrl.Finish()
-
-	user := testNewUser(m)
-	defer cleanUpUserData(user)
-
-	gomock.InOrder(
-		m.pmapiClient.EXPECT().IsUnlocked().Return(false),
-		m.pmapiClient.EXPECT().Unlock([]byte("pass")).Return(nil),
-		m.pmapiClient.EXPECT().IsUnlocked().Return(true),
-	)
-
-	err := user.CheckBridgeLogin(testCredentials.BridgePassword)
-	waitForEvents()
-	assert.NoError(t, err)
-
-	err = user.CheckBridgeLogin(testCredentials.BridgePassword)
-	waitForEvents()
-	assert.NoError(t, err)
+	r.NoError(t, err)
 }
 
 func TestCheckBridgeLoginUpgradeApplication(t *testing.T) {
@@ -199,8 +152,7 @@ func TestCheckBridgeLoginUpgradeApplication(t *testing.T) {
 	isApplicationOutdated = true
 
 	err := user.CheckBridgeLogin("any-pass")
-	waitForEvents()
-	assert.Equal(t, pmapi.ErrUpgradeApplication, err)
+	r.Equal(t, pmapi.ErrUpgradeApplication, err)
 
 	isApplicationOutdated = false
 }
@@ -209,28 +161,26 @@ func TestCheckBridgeLoginLoggedOut(t *testing.T) {
 	m := initMocks(t)
 	defer m.ctrl.Finish()
 
-	m.credentialsStore.EXPECT().Get("user").Return(testCredentialsDisconnected, nil)
-
-	user, err := newUser(m.PanicHandler, "user", m.eventListener, m.credentialsStore, m.clientManager, m.storeMaker)
-	assert.NoError(t, err)
-
-	m.clientManager.EXPECT().GetClient(gomock.Any()).Return(m.pmapiClient).MinTimes(1)
 	gomock.InOrder(
+		// Mock init of user.
 		m.credentialsStore.EXPECT().Get("user").Return(testCredentialsDisconnected, nil),
-		m.pmapiClient.EXPECT().ListLabels().Return(nil, errors.New("ErrUnauthorized")),
+		m.pmapiClient.EXPECT().AddAuthRefreshHandler(gomock.Any()),
+		m.pmapiClient.EXPECT().ListLabels(gomock.Any()).Return(nil, errors.New("ErrUnauthorized")),
 		m.pmapiClient.EXPECT().Addresses().Return(nil),
+
+		// Mock CheckBridgeLogin.
+		m.eventListener.EXPECT().Emit(events.LogoutEvent, "user"),
 	)
 
-	err = user.init()
-	assert.Error(t, err)
+	user, _, err := newUser(m.PanicHandler, "user", m.eventListener, m.credentialsStore, m.storeMaker, false)
+	r.NoError(t, err)
 
+	err = user.connect(m.pmapiClient, testCredentialsDisconnected)
+	r.Error(t, err)
 	defer cleanUpUserData(user)
 
-	m.eventListener.EXPECT().Emit(events.LogoutEvent, "user")
-
 	err = user.CheckBridgeLogin(testCredentialsDisconnected.BridgePassword)
-	waitForEvents()
-	assert.Equal(t, ErrLoggedOutUser, err)
+	r.Equal(t, ErrLoggedOutUser, err)
 }
 
 func TestCheckBridgeLoginBadPassword(t *testing.T) {
@@ -240,12 +190,6 @@ func TestCheckBridgeLoginBadPassword(t *testing.T) {
 	user := testNewUser(m)
 	defer cleanUpUserData(user)
 
-	gomock.InOrder(
-		m.pmapiClient.EXPECT().IsUnlocked().Return(false),
-		m.pmapiClient.EXPECT().Unlock([]byte("pass")).Return(nil),
-	)
-
 	err := user.CheckBridgeLogin("wrong!")
-	waitForEvents()
-	assert.Equal(t, "backend/credentials: incorrect password", err.Error())
+	r.EqualError(t, err, "backend/credentials: incorrect password")
 }

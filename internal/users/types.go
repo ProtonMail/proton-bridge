@@ -20,13 +20,7 @@ package users
 import (
 	"github.com/ProtonMail/proton-bridge/internal/store"
 	"github.com/ProtonMail/proton-bridge/internal/users/credentials"
-	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 )
-
-type Configer interface {
-	GetAppVersion() string
-	GetAPIConfig() *pmapi.ClientConfig
-}
 
 type Locator interface {
 	Clear() error
@@ -38,23 +32,14 @@ type PanicHandler interface {
 
 type CredentialsStorer interface {
 	List() (userIDs []string, err error)
-	Add(userID, userName, apiToken, mailboxPassword string, emails []string) (*credentials.Credentials, error)
+	Add(userID, userName, uid, ref, mailboxPassword string, emails []string) (*credentials.Credentials, error)
 	Get(userID string) (*credentials.Credentials, error)
-	SwitchAddressMode(userID string) error
-	UpdateEmails(userID string, emails []string) error
-	UpdatePassword(userID, password string) error
-	UpdateToken(userID, apiToken string) error
-	Logout(userID string) error
+	SwitchAddressMode(userID string) (*credentials.Credentials, error)
+	UpdateEmails(userID string, emails []string) (*credentials.Credentials, error)
+	UpdatePassword(userID, password string) (*credentials.Credentials, error)
+	UpdateToken(userID, uid, ref string) (*credentials.Credentials, error)
+	Logout(userID string) (*credentials.Credentials, error)
 	Delete(userID string) error
-}
-
-type ClientManager interface {
-	GetClient(userID string) pmapi.Client
-	GetAnonymousClient() pmapi.Client
-	AllowProxy()
-	DisallowProxy()
-	GetAuthUpdateChannel() chan pmapi.ClientAuth
-	CheckConnection() error
 }
 
 type StoreMaker interface {

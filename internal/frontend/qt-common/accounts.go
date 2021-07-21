@@ -20,6 +20,7 @@
 package qtcommon
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"sync"
@@ -164,7 +165,7 @@ func (a *Accounts) showLoginError(err error, scope string) bool {
 		return false
 	}
 	log.Warnf("%s: %v", scope, err)
-	if err == pmapi.ErrAPINotReachable {
+	if err == pmapi.ErrNoConnection {
 		a.qml.SetConnectionStatus(false)
 		SendNotification(a.qml, TabAccount, a.qml.CanNotReachAPI())
 		a.qml.ProcessFinished()
@@ -207,7 +208,7 @@ func (a *Accounts) Auth2FA(twoFacAuth string) int {
 	if a.auth == nil || a.authClient == nil {
 		err = fmt.Errorf("missing authentication in auth2FA %p %p", a.auth, a.authClient)
 	} else {
-		err = a.authClient.Auth2FA(twoFacAuth, a.auth)
+		err = a.authClient.Auth2FA(context.Background(), twoFacAuth)
 	}
 
 	if a.showLoginError(err, "auth2FA") {

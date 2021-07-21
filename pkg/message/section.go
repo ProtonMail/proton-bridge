@@ -32,13 +32,18 @@ import (
 	"github.com/vmihailenco/msgpack/v5"
 )
 
+// BodyStructure is used to parse an email into MIME sections and then generate
+// body structure for IMAP server.
+type BodyStructure map[string]*SectionInfo
+
+// SectionInfo is used to hold data about parts of each section.
 type SectionInfo struct {
 	Header                    textproto.MIMEHeader
 	Start, BSize, Size, Lines int
 	reader                    io.Reader
 }
 
-// Read and count.
+// Read will also count the final size of section.
 func (si *SectionInfo) Read(p []byte) (n int, err error) {
 	n, err = si.reader.Read(p)
 	si.Size += n
@@ -46,118 +51,13 @@ func (si *SectionInfo) Read(p []byte) (n int, err error) {
 	return
 }
 
-type boundaryReader struct {
-	reader *bufio.Reader
-
-	closed, first bool
-	skipped       int
-
-	nl               []byte // "\r\n" or "\n" (set after seeing first boundary line)
-	nlDashBoundary   []byte // nl + "--boundary"
-	dashBoundaryDash []byte // "--boundary--"
-	dashBoundary     []byte // "--boundary"
-}
-
-func newBoundaryReader(r *bufio.Reader, boundary string) (br *boundaryReader, err error) {
-	b := []byte("\r\n--" + boundary + "--")
-	br = &boundaryReader{
-		reader:           r,
-		closed:           false,
-		first:            true,
-		nl:               b[:2],
-		nlDashBoundary:   b[:len(b)-2],
-		dashBoundaryDash: b[2:],
-		dashBoundary:     b[2 : len(b)-2],
-	}
-	err = br.WriteNextPartTo(nil)
-	return
-}
-
-func skipLWSPChar(b []byte) []byte {
-	for len(b) > 0 && (b[0] == ' ' || b[0] == '\t') {
-		b = b[1:]
-	}
-	return b
-}
-
-func (br *boundaryReader) isFinalBoundary(line []byte) bool {
-	if !bytes.HasPrefix(line, br.dashBoundaryDash) {
-		return false
-	}
-	rest := line[len(br.dashBoundaryDash):]
-	rest = skipLWSPChar(rest)
-	return len(rest) == 0 || bytes.Equal(rest, br.nl)
-}
-
-func (br *boundaryReader) isBoundaryDelimiterLine(line []byte) (ret bool) {
-	if !bytes.HasPrefix(line, br.dashBoundary) {
-		return false
-	}
-	rest := line[len(br.dashBoundary):]
-	rest = skipLWSPChar(rest)
-
-	if br.first && len(rest) == 1 && rest[0] == '\n' {
-		br.nl = br.nl[1:]
-		br.nlDashBoundary = br.nlDashBoundary[1:]
-	}
-	return bytes.Equal(rest, br.nl)
-}
-
-func (br *boundaryReader) WriteNextPartTo(part io.Writer) (err error) {
-	if br.closed {
-		return io.EOF
-	}
-
-	var line, slice []byte
-	br.skipped = 0
-
-	for {
-		slice, err = br.reader.ReadSlice('\n')
-		line = append(line, slice...)
-		if err == bufio.ErrBufferFull {
-			continue
-		}
-
-		br.skipped += len(line)
-
-		if err == io.EOF && br.isFinalBoundary(line) {
-			err = nil
-			br.closed = true
-			return
-		}
-
-		if err != nil {
-			return
-		}
-
-		if br.isBoundaryDelimiterLine(line) {
-			br.first = false
-			return
-		}
-
-		if br.isFinalBoundary(line) {
-			br.closed = true
-			return
-		}
-
-		if part != nil {
-			if _, err = part.Write(line); err != nil {
-				return
-			}
-		}
-
-		line = []byte{}
-	}
-}
-
-type BodyStructure map[string]*SectionInfo
-
 func NewBodyStructure(reader io.Reader) (structure *BodyStructure, err error) {
 	structure = &BodyStructure{}
 	err = structure.Parse(reader)
 	return
 }
 
+// DeserializeBodyStructure will create new structure from msgpack bytes.
 func DeserializeBodyStructure(raw []byte) (*BodyStructure, error) {
 	bs := &BodyStructure{}
 	err := msgpack.Unmarshal(raw, bs)
@@ -167,6 +67,7 @@ func DeserializeBodyStructure(raw []byte) (*BodyStructure, error) {
 	return bs, err
 }
 
+// Serialize will write msgpack bytes.
 func (bs *BodyStructure) Serialize() ([]byte, error) {
 	data, err := msgpack.Marshal(bs)
 	if err != nil {
@@ -175,6 +76,7 @@ func (bs *BodyStructure) Serialize() ([]byte, error) {
 	return data, nil
 }
 
+// Parse will read the mail and create all body structures.
 func (bs *BodyStructure) Parse(r io.Reader) error {
 	return bs.parseAllChildSections(r, []int{}, 0)
 }
@@ -215,7 +117,7 @@ func (bs *BodyStructure) parseAllChildSections(r io.Reader, currentPath []int, s
 		for err == nil {
 			start += br.skipped
 			part := &bytes.Buffer{}
-			err = br.WriteNextPartTo(part)
+			err = br.writeNextPartTo(part)
 			if err != nil {
 				break
 			}
@@ -319,19 +221,16 @@ func (bs *BodyStructure) getInfo(sectionPath []int) (sectionInfo *SectionInfo, e
 	return
 }
 
+// GetSection returns bytes of section including MIME header.
 func (bs *BodyStructure) GetSection(wholeMail io.ReadSeeker, sectionPath []int) (section []byte, err error) {
 	info, err := bs.getInfo(sectionPath)
 	if err != nil {
 		return
 	}
-	if _, err = wholeMail.Seek(int64(info.Start), io.SeekStart); err != nil {
-		return
-	}
-	section = make([]byte, info.Size)
-	_, err = wholeMail.Read(section)
-	return
+	return goToOffsetAndReadNBytes(wholeMail, info.Start, info.Size)
 }
 
+// GetSectionContent returns bytes of section content (excluding MIME header).
 func (bs *BodyStructure) GetSectionContent(wholeMail io.ReadSeeker, sectionPath []int) (section []byte, err error) {
 	info, err := bs.getInfo(sectionPath)
 	if err != nil {
@@ -348,12 +247,7 @@ func (bs *BodyStructure) GetMailHeader() (header textproto.MIMEHeader, err error
 // GetMailHeaderBytes returns the bytes with main mail header.
 // Warning: It can contain extra lines or multipart comment.
 func (bs *BodyStructure) GetMailHeaderBytes(wholeMail io.ReadSeeker) (header []byte, err error) {
-	info, err := bs.getInfo([]int{})
-	if err != nil {
-		return
-	}
-	headerLength := info.Size - info.BSize
-	return goToOffsetAndReadNBytes(wholeMail, 0, headerLength)
+	return bs.GetSectionHeaderBytes(wholeMail, []int{})
 }
 
 func goToOffsetAndReadNBytes(wholeMail io.ReadSeeker, offset, length int) ([]byte, error) {
@@ -380,6 +274,17 @@ func (bs *BodyStructure) GetSectionHeader(sectionPath []int) (header textproto.M
 	return
 }
 
+func (bs *BodyStructure) GetSectionHeaderBytes(wholeMail io.ReadSeeker, sectionPath []int) (header []byte, err error) {
+	info, err := bs.getInfo(sectionPath)
+	if err != nil {
+		return
+	}
+	headerLength := info.Size - info.BSize
+	return goToOffsetAndReadNBytes(wholeMail, info.Start, headerLength)
+}
+
+// IMAPBodyStructure will prepare imap bodystructure recurently for given part.
+// Use empty path to create whole email structure.
 func (bs *BodyStructure) IMAPBodyStructure(currentPart []int) (imapBS *imap.BodyStructure, err error) {
 	var info *SectionInfo
 	if info, err = bs.getInfo(currentPart); err != nil {

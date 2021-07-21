@@ -17,14 +17,14 @@
 
 package store
 
-import "github.com/ProtonMail/proton-bridge/pkg/pmapi"
+import (
+	"context"
+
+	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
+)
 
 type PanicHandler interface {
 	HandlePanic()
-}
-
-type ClientManager interface {
-	GetClient(userID string) pmapi.Client
 }
 
 // BridgeUser is subset of bridge.User for use by the Store.
@@ -35,7 +35,8 @@ type BridgeUser interface {
 	IsCombinedAddressMode() bool
 	GetPrimaryAddress() string
 	GetStoreAddresses() []string
-	UpdateUser() error
+	GetClient() pmapi.Client
+	UpdateUser(context.Context) error
 	CloseAllConnections()
 	CloseConnection(string)
 	Logout() error

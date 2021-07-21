@@ -102,7 +102,8 @@ type storeMessageProvider interface {
 
 	SetSize(int64) error
 	SetHeader([]byte) error
-	GetHeader() textproto.MIMEHeader
+	GetHeader() []byte
+	GetMIMEHeader() textproto.MIMEHeader
 	IsFullHeaderCached() bool
 	SetBodyStructure(*pkgMsg.BodyStructure) error
 	GetBodyStructure() (*pkgMsg.BodyStructure, error)

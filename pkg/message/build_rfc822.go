@@ -329,7 +329,7 @@ func getMessageHeader(msg *pmapi.Message, opts JobOptions) message.Header { // n
 	// Sanitize the date; it needs to have a valid unix timestamp.
 	if opts.SanitizeDate {
 		if date, err := rfc5322.ParseDateTime(hdr.Get("Date")); err != nil || date.Before(time.Unix(0, 0)) {
-			msgDate := sanitizeMessageDate(msg.Time)
+			msgDate := SanitizeMessageDate(msg.Time)
 			hdr.Set("Date", msgDate.In(time.UTC).Format(time.RFC1123Z))
 			// We clobbered the date so we save it under X-Original-Date.
 			hdr.Set("X-Original-Date", date.In(time.UTC).Format(time.RFC1123Z))
@@ -364,10 +364,10 @@ func getMessageHeader(msg *pmapi.Message, opts JobOptions) message.Header { // n
 	return hdr
 }
 
-// sanitizeMessageDate will return time from msgTime timestamp. If timestamp is
+// SanitizeMessageDate will return time from msgTime timestamp. If timestamp is
 // not after epoch the RFC822 publish day will be used. No message should
 // realistically be older than RFC822 itself.
-func sanitizeMessageDate(msgTime int64) time.Time {
+func SanitizeMessageDate(msgTime int64) time.Time {
 	if msgTime := time.Unix(msgTime, 0); msgTime.After(time.Unix(0, 0)) {
 		return msgTime
 	}

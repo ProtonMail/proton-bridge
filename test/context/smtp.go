@@ -60,7 +60,7 @@ func (ctx *TestContext) withSMTPServer() {
 	useSSL := ctx.settings.GetBool(settings.SMTPSSLKey)
 
 	backend := smtp.NewSMTPBackend(ph, ctx.listener, ctx.settings, ctx.bridge)
-	server := smtp.NewSMTPServer(true, port, useSSL, tls, backend, ctx.listener)
+	server := smtp.NewSMTPServer(ph, true, port, useSSL, tls, backend, ctx.listener)
 
 	go server.ListenAndServe()
 	require.NoError(ctx.t, waitForPort(port, 5*time.Second))

@@ -32,8 +32,8 @@ import (
 	"github.com/ProtonMail/proton-bridge/internal/events"
 	"github.com/ProtonMail/proton-bridge/internal/imap/id"
 	"github.com/ProtonMail/proton-bridge/internal/imap/uidplus"
+	"github.com/ProtonMail/proton-bridge/internal/serverutil"
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
-	"github.com/ProtonMail/proton-bridge/pkg/ports"
 	"github.com/emersion/go-imap"
 	imapappendlimit "github.com/emersion/go-imap-appendlimit"
 	imapidle "github.com/emersion/go-imap-idle"
@@ -116,60 +116,63 @@ func NewIMAPServer(panicHandler panicHandler, debugClient, debugServer bool, por
 	return server
 }
 
-// Starts the server.
-func (s *imapServer) ListenAndServe() {
-	go s.monitorDisconnectedUsers()
-	go s.monitorInternetConnection()
+func (s *imapServer) HandlePanic()    { s.panicHandler.HandlePanic() }
+func (s *imapServer) IsRunning() bool { return s.isRunning.Load().(bool) }
+func (s *imapServer) Port() int       { return s.port }
 
-	// When starting the Bridge, we don't want to retry to notify user
-	// quickly about the issue. Very probably retry will not help anyway.
-	s.listenAndServe(0)
+// ListenAndServe starts the server and keeps it on based on internet
+// availability.
+func (s *imapServer) ListenAndServe() {
+	serverutil.ListenAndServe(s, s.eventListener)
 }
 
-func (s *imapServer) listenAndServe(retries int) {
-	if s.isRunning.Load().(bool) {
+// ListenRetryAndServe will start listener. If port is occupied it will try
+// again after coolDown time. Once listener is OK it will serve.
+func (s *imapServer) ListenRetryAndServe(retries int, retryAfter time.Duration) {
+	if s.IsRunning() {
 		return
 	}
 	s.isRunning.Store(true)
 
-	log.Info("IMAP server listening at ", s.server.Addr)
-	l, err := net.Listen("tcp", s.server.Addr)
+	l := log.WithField("address", s.server.Addr)
+	l.Info("IMAP server is starting")
+	listener, err := net.Listen("tcp", s.server.Addr)
 	if err != nil {
 		s.isRunning.Store(false)
 		if retries > 0 {
-			log.WithError(err).WithField("retries", retries).Warn("IMAP listener failed")
-			time.Sleep(15 * time.Second)
-			s.listenAndServe(retries - 1)
+			l.WithError(err).WithField("retries", retries).Warn("IMAP listener failed")
+			time.Sleep(retryAfter)
+			s.ListenRetryAndServe(retries-1, retryAfter)
 			return
 		}
 
-		log.WithError(err).Error("IMAP listener failed")
+		l.WithError(err).Error("IMAP listener failed")
 		s.eventListener.Emit(events.ErrorEvent, "IMAP failed: "+err.Error())
 		return
 	}
 
 	err = s.server.Serve(&connListener{
-		Listener:  l,
+		Listener:  listener,
 		server:    s,
 		userAgent: s.userAgent,
 	})
 	// Serve returns error every time, even after closing the server.
 	// User shouldn't be notified about error if server shouldn't be running,
 	// but it should in case it was not closed by `s.Close()`.
-	if err != nil && s.isRunning.Load().(bool) {
+	if err != nil && s.IsRunning() {
 		s.isRunning.Store(false)
-		log.WithError(err).Error("IMAP server failed")
+		l.WithError(err).Error("IMAP server failed")
 		s.eventListener.Emit(events.ErrorEvent, "IMAP failed: "+err.Error())
 		return
 	}
 	defer s.server.Close() //nolint[errcheck]
 
-	log.Info("IMAP server stopped")
+	l.Info("IMAP server stopped")
 }
 
 // Stops the server.
 func (s *imapServer) Close() {
-	if !s.isRunning.Load().(bool) {
+	if !s.IsRunning() {
 		return
 	}
 	s.isRunning.Store(false)
@@ -180,62 +183,16 @@ func (s *imapServer) Close() {
 	}
 }
 
-func (s *imapServer) monitorInternetConnection() {
-	on := make(chan string)
-	s.eventListener.Add(events.InternetOnEvent, on)
-	off := make(chan string)
-	s.eventListener.Add(events.InternetOffEvent, off)
-
-	for {
-		var expectedIsPortFree bool
-		select {
-		case <-on:
-			go func() {
-				defer s.panicHandler.HandlePanic()
-				// We had issues on Mac that from time to time something
-				// blocked our port for a bit after we closed IMAP server
-				// due to connection issues.
-				// Restart always helped, so we do retry to not bother user.
-				s.listenAndServe(10)
-			}()
-			expectedIsPortFree = false
-		case <-off:
-			s.Close()
-			expectedIsPortFree = true
-		}
-
-		start := time.Now()
-		for {
-			if ports.IsPortFree(s.port) == expectedIsPortFree {
-				break
-			}
-			// Safety stop if something went wrong.
-			if time.Since(start) > 15*time.Second {
-				log.WithField("expectedIsPortFree", expectedIsPortFree).Warn("Server start/stop check timeouted")
-				break
-			}
-			time.Sleep(100 * time.Millisecond)
-		}
-	}
-}
-
-func (s *imapServer) monitorDisconnectedUsers() {
-	ch := make(chan string)
-	s.eventListener.Add(events.CloseConnectionEvent, ch)
-
-	for address := range ch {
-		address := address
-		log.Info("Disconnecting all open IMAP connections for ", address)
-		disconnectUser := func(conn imapserver.Conn) {
-			connUser := conn.Context().User
-			if connUser != nil && strings.EqualFold(connUser.Username(), address) {
-				if err := conn.Close(); err != nil {
-					log.WithError(err).Error("Failed to close the connection")
-				}
+func (s *imapServer) DisconnectUser(address string) {
+	log.Info("Disconnecting all open IMAP connections for ", address)
+	s.server.ForEachConn(func(conn imapserver.Conn) {
+		connUser := conn.Context().User
+		if connUser != nil && strings.EqualFold(connUser.Username(), address) {
+			if err := conn.Close(); err != nil {
+				log.WithError(err).Error("Failed to close the connection")
 			}
 		}
-		s.server.ForEachConn(disconnectUser)
-	}
+	})
 }
 
 // connListener sets debug loggers on server containing fields with local

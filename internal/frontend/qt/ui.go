@@ -84,7 +84,6 @@ type GoQMLInterface struct {
 	_ string  `property:"progressDescription"`
 
 	_ func(isAvailable bool) `signal:"setConnectionStatus"`
-	_ func()                 `slot:"checkInternet"`
 
 	_ func() `slot:"setToRestart"`
 
@@ -204,8 +203,6 @@ func (s *GoQMLInterface) SetFrontend(f *FrontendQt) {
 	s.ConnectGetBackendVersion(func() string {
 		return f.programVer
 	})
-
-	s.ConnectCheckInternet(f.checkInternet)
 
 	s.ConnectSetToRestart(f.restarter.SetToRestart)
 

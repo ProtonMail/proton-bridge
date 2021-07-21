@@ -15,12 +15,11 @@
 // You should have received a copy of the GNU General Public License
 // along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
 
+// Package message contains set of tools to convert message between Proton API
+// and IMAP format.
 package message
 
 import (
-	"strings"
-
-	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	"github.com/sirupsen/logrus"
 )
 
@@ -29,20 +28,3 @@ const (
 )
 
 var log = logrus.WithField("pkg", "pkg/message") //nolint[gochecknoglobals]
-
-func GetBoundary(m *pmapi.Message) string {
-	// The boundary needs to be deterministic because messages are not supposed to
-	// change.
-	return newBoundary(m.ID).gen()
-}
-
-func SeparateInlineAttachments(m *pmapi.Message) (atts, inlines []*pmapi.Attachment) {
-	for _, att := range m.Attachments {
-		if strings.Contains(att.Header.Get("Content-Disposition"), pmapi.DispositionInline) {
-			inlines = append(inlines, att)
-		} else {
-			atts = append(atts, att)
-		}
-	}
-	return
-}

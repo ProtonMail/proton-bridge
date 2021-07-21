@@ -24,7 +24,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/internal/events"
 	"github.com/ProtonMail/proton-bridge/internal/users/credentials"
 	gomock "github.com/golang/mock/gomock"
-	a "github.com/stretchr/testify/assert"
+	r "github.com/stretchr/testify/require"
 )
 
 func TestNewUserNoCredentialsStore(t *testing.T) {
@@ -33,80 +33,56 @@ func TestNewUserNoCredentialsStore(t *testing.T) {
 
 	m.credentialsStore.EXPECT().Get("user").Return(nil, errors.New("fail"))
 
-	_, err := newUser(m.PanicHandler, "user", m.eventListener, m.credentialsStore, m.clientManager, m.storeMaker)
-	a.Error(t, err)
-}
-
-func TestNewUserAuthRefreshFails(t *testing.T) {
-	m := initMocks(t)
-	defer m.ctrl.Finish()
-
-	m.clientManager.EXPECT().GetClient("user").Return(m.pmapiClient).MinTimes(1)
-	m.eventListener.EXPECT().Emit(events.LogoutEvent, "user")
-	m.eventListener.EXPECT().Emit(events.UserRefreshEvent, "user")
-	m.eventListener.EXPECT().Emit(events.CloseConnectionEvent, "user@pm.me")
-
-	gomock.InOrder(
-		m.credentialsStore.EXPECT().Get("user").Return(testCredentials, nil),
-		m.credentialsStore.EXPECT().Get("user").Return(testCredentials, nil),
-		m.pmapiClient.EXPECT().AuthRefresh("token").Return(nil, errors.New("bad token")),
-		m.credentialsStore.EXPECT().Logout("user").Return(nil),
-
-		m.pmapiClient.EXPECT().Logout(),
-		m.credentialsStore.EXPECT().Logout("user").Return(nil),
-		m.credentialsStore.EXPECT().Get("user").Return(testCredentialsDisconnected, nil),
-	)
-
-	checkNewUserHasCredentials(testCredentialsDisconnected, m)
+	_, _, err := newUser(m.PanicHandler, "user", m.eventListener, m.credentialsStore, m.storeMaker, false)
+	r.Error(t, err)
 }
 
 func TestNewUserUnlockFails(t *testing.T) {
 	m := initMocks(t)
 	defer m.ctrl.Finish()
 
-	m.clientManager.EXPECT().GetClient("user").Return(m.pmapiClient).MinTimes(1)
-
-	m.eventListener.EXPECT().Emit(events.LogoutEvent, "user")
-	m.eventListener.EXPECT().Emit(events.UserRefreshEvent, "user")
-	m.eventListener.EXPECT().Emit(events.CloseConnectionEvent, "user@pm.me")
-
 	gomock.InOrder(
+		// Init of user.
 		m.credentialsStore.EXPECT().Get("user").Return(testCredentials, nil),
-		m.credentialsStore.EXPECT().Get("user").Return(testCredentials, nil),
-		m.pmapiClient.EXPECT().AuthRefresh("token").Return(testAuthRefresh, nil),
+		m.pmapiClient.EXPECT().AddAuthRefreshHandler(gomock.Any()),
+		m.pmapiClient.EXPECT().IsUnlocked().Return(false),
+		m.pmapiClient.EXPECT().Unlock(gomock.Any(), []byte(testCredentials.MailboxPassword)).Return(errors.New("bad password")),
 
-		m.pmapiClient.EXPECT().Unlock([]byte("pass")).Return(errors.New("bad password")),
-		m.credentialsStore.EXPECT().Logout("user").Return(nil),
-		m.pmapiClient.EXPECT().Logout(),
-		m.credentialsStore.EXPECT().Logout("user").Return(nil),
-		m.credentialsStore.EXPECT().Get("user").Return(testCredentialsDisconnected, nil),
+		// Handle of unlock error.
+		m.pmapiClient.EXPECT().AuthDelete(gomock.Any()).Return(nil),
+		m.credentialsStore.EXPECT().Logout("user").Return(testCredentialsDisconnected, nil),
+		m.eventListener.EXPECT().Emit(events.CloseConnectionEvent, "user@pm.me"),
+		m.eventListener.EXPECT().Emit(events.LogoutEvent, "user"),
+		m.eventListener.EXPECT().Emit(events.UserRefreshEvent, "user"),
 	)
 
-	checkNewUserHasCredentials(testCredentialsDisconnected, m)
+	checkNewUserHasCredentials(m, "failed to unlock user: bad password", testCredentialsDisconnected)
 }
 
 func TestNewUser(t *testing.T) {
 	m := initMocks(t)
 	defer m.ctrl.Finish()
 
-	m.clientManager.EXPECT().GetClient("user").Return(m.pmapiClient).MinTimes(1)
-	mockConnectedUser(m)
+	m.credentialsStore.EXPECT().Get("user").Return(testCredentials, nil)
+	mockInitConnectedUser(m)
 	mockEventLoopNoAction(m)
 
-	checkNewUserHasCredentials(testCredentials, m)
+	checkNewUserHasCredentials(m, "", testCredentials)
 }
 
-func checkNewUserHasCredentials(creds *credentials.Credentials, m mocks) {
-	user, _ := newUser(m.PanicHandler, "user", m.eventListener, m.credentialsStore, m.clientManager, m.storeMaker)
+func checkNewUserHasCredentials(m mocks, wantErr string, wantCreds *credentials.Credentials) {
+	user, _, err := newUser(m.PanicHandler, "user", m.eventListener, m.credentialsStore, m.storeMaker, false)
+	r.NoError(m.t, err)
 	defer cleanUpUserData(user)
 
-	_ = user.init()
+	err = user.connect(m.pmapiClient, testCredentials)
+	if wantErr == "" {
+		r.NoError(m.t, err)
+	} else {
+		r.EqualError(m.t, err, wantErr)
+	}
+
+	r.Equal(m.t, wantCreds, user.creds)
 
 	waitForEvents()
-
-	a.Equal(m.t, creds, user.creds)
-}
-
-func _TestUserEventRefreshUpdatesAddresses(t *testing.T) { // nolint[funlen]
-	a.Fail(t, "not implemented")
 }

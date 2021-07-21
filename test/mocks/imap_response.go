@@ -117,7 +117,7 @@ func (ir *IMAPResponse) AssertResult(wantResult string) *IMAPResponse {
 func (ir *IMAPResponse) AssertError(wantErrMsg string) *IMAPResponse {
 	ir.wait()
 	if ir.err == nil {
-		a.Fail(ir.t, "Expected error %s", wantErrMsg)
+		a.Fail(ir.t, "Error is nil", "Expected to have %q", wantErrMsg)
 	} else {
 		a.Regexp(ir.t, wantErrMsg, ir.err.Error(), "Expected error %s but got %s", wantErrMsg, ir.err)
 	}

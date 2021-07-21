@@ -149,3 +149,13 @@ func (s *Credentials) Logout() {
 func (s *Credentials) IsConnected() bool {
 	return s.APIToken != "" && s.MailboxPassword != ""
 }
+
+func (s *Credentials) SplitAPIToken() (string, string, error) {
+	split := strings.Split(s.APIToken, ":")
+
+	if len(split) != 2 {
+		return "", "", errors.New("malformed API token")
+	}
+
+	return split[0], split[1], nil
+}

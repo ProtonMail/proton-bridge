@@ -173,10 +173,14 @@ func processMessageTableCell(column, cellValue, username string, message *pmapi.
 	case "body":
 		message.Body = cellValue
 	case "read":
-		unread := 1
-		if cellValue == "true" {
-			unread = 0
+		var unread pmapi.Boolean
+
+		if cellValue == "true" { //nolint[goconst]
+			unread = false
+		} else {
+			unread = true
 		}
+
 		message.Unread = unread
 	case "starred":
 		if cellValue == "true" {

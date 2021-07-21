@@ -18,7 +18,10 @@
 package pmapi
 
 import (
+	"context"
+
 	"github.com/getsentry/sentry-go"
+	"github.com/go-resty/resty/v2"
 	"github.com/pkg/errors"
 )
 
@@ -81,11 +84,18 @@ type User struct {
 	}
 }
 
-// UserRes holds structure of JSON response.
-type UserRes struct {
-	Res
+func (c *client) getUser(ctx context.Context) (user *User, err error) {
+	var res struct {
+		User *User
+	}
 
-	User *User
+	if _, err := c.do(ctx, func(r *resty.Request) (*resty.Response, error) {
+		return r.SetResult(&res).Get("/users")
+	}); err != nil {
+		return nil, err
+	}
+
+	return res.User, nil
 }
 
 // unlockUser unlocks all the client's user keys using the given passphrase.
@@ -102,40 +112,29 @@ func (c *client) unlockUser(passphrase []byte) (err error) {
 }
 
 // UpdateUser retrieves details about user and loads its addresses.
-func (c *client) UpdateUser() (user *User, err error) {
-	req, err := c.NewRequest("GET", "/users", nil)
+func (c *client) UpdateUser(ctx context.Context) (*User, error) {
+	user, err := c.getUser(ctx)
 	if err != nil {
-		return
+		return nil, err
 	}
 
-	var res UserRes
-	if err = c.DoJSON(req, &res); err != nil {
-		return
-	}
-
-	user, err = res.User, res.Err()
+	addresses, err := c.GetAddresses(ctx)
 	if err != nil {
 		return nil, err
 	}
 
 	c.user = user
-	sentry.ConfigureScope(func(scope *sentry.Scope) {
-		scope.SetUser(sentry.User{ID: user.ID})
-	})
-
-	var tmpList AddressList
-	if tmpList, err = c.GetAddresses(); err == nil {
-		c.addresses = tmpList
-	}
+	c.addresses = addresses
+	sentry.ConfigureScope(func(scope *sentry.Scope) { scope.SetUser(sentry.User{ID: user.ID}) })
 
 	return user, err
 }
 
 // CurrentUser returns currently active user or user will be updated.
-func (c *client) CurrentUser() (user *User, err error) {
+func (c *client) CurrentUser(ctx context.Context) (*User, error) {
 	if c.user != nil && len(c.addresses) != 0 {
-		user = c.user
-		return
+		return c.user, nil
 	}
-	return c.UpdateUser()
+
+	return c.UpdateUser(ctx)
 }

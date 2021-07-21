@@ -22,30 +22,36 @@ import (
 	"encoding/base64"
 	"io"
 	"io/ioutil"
+	"mime"
 	"mime/multipart"
 	"net/http"
 	"net/textproto"
+	"strings"
 
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
+	pmmime "github.com/ProtonMail/proton-bridge/pkg/mime"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
+	"github.com/emersion/go-message"
 	"github.com/emersion/go-textwrapper"
 )
 
+// BuildEncrypted is used for importing encrypted message.
 func BuildEncrypted(m *pmapi.Message, readers []io.Reader, kr *crypto.KeyRing) ([]byte, error) { //nolint[funlen]
 	b := &bytes.Buffer{}
+	boundary := newBoundary(m.ID).gen()
 
 	// Overwrite content for main header for import.
 	// Even if message has just simple body we should upload as multipart/mixed.
 	// Each part has encrypted body and header reflects the original header.
-	mainHeader := GetHeader(m)
-	mainHeader.Set("Content-Type", "multipart/mixed; boundary="+GetBoundary(m))
+	mainHeader := convertGoMessageToTextprotoHeader(getMessageHeader(m, JobOptions{}))
+	mainHeader.Set("Content-Type", "multipart/mixed; boundary="+boundary)
 	mainHeader.Del("Content-Disposition")
 	mainHeader.Del("Content-Transfer-Encoding")
 	if err := WriteHeader(b, mainHeader); err != nil {
 		return nil, err
 	}
 	mw := multipart.NewWriter(b)
-	if err := mw.SetBoundary(GetBoundary(m)); err != nil {
+	if err := mw.SetBoundary(boundary); err != nil {
 		return nil, err
 	}
 
@@ -71,7 +77,7 @@ func BuildEncrypted(m *pmapi.Message, readers []io.Reader, kr *crypto.KeyRing) (
 	for i := 0; i < len(m.Attachments); i++ {
 		att := m.Attachments[i]
 		r := readers[i]
-		h := GetAttachmentHeader(att, false)
+		h := getAttachmentHeader(att, false)
 		p, err := mw.CreatePart(h)
 		if err != nil {
 			return nil, err
@@ -103,6 +109,55 @@ func BuildEncrypted(m *pmapi.Message, readers []io.Reader, kr *crypto.KeyRing) (
 	}
 
 	return b.Bytes(), nil
+}
+
+func convertGoMessageToTextprotoHeader(h message.Header) textproto.MIMEHeader {
+	out := make(textproto.MIMEHeader)
+	hf := h.Fields()
+	for hf.Next() {
+		// go-message fields are in the reverse order.
+		// textproto.MIMEHeader is not ordered except for the values of
+		// the same key which are ordered
+		key := textproto.CanonicalMIMEHeaderKey(hf.Key())
+		out[key] = append([]string{hf.Value()}, out[key]...)
+	}
+	return out
+}
+
+func getAttachmentHeader(att *pmapi.Attachment, buildForIMAP bool) textproto.MIMEHeader {
+	mediaType := att.MIMEType
+	if mediaType == "application/pgp-encrypted" {
+		mediaType = "application/octet-stream"
+	}
+
+	transferEncoding := "base64"
+	if mediaType == rfc822Message && buildForIMAP {
+		transferEncoding = "8bit"
+	}
+
+	encodedName := pmmime.EncodeHeader(att.Name)
+	disposition := "attachment" //nolint[goconst]
+	if strings.Contains(att.Header.Get("Content-Disposition"), pmapi.DispositionInline) {
+		disposition = pmapi.DispositionInline
+	}
+
+	h := make(textproto.MIMEHeader)
+	h.Set("Content-Type", mime.FormatMediaType(mediaType, map[string]string{"name": encodedName}))
+	if transferEncoding != "" {
+		h.Set("Content-Transfer-Encoding", transferEncoding)
+	}
+	h.Set("Content-Disposition", mime.FormatMediaType(disposition, map[string]string{"filename": encodedName}))
+
+	// Forward some original header lines.
+	forward := []string{"Content-Id", "Content-Description", "Content-Location"}
+	for _, k := range forward {
+		v := att.Header.Get(k)
+		if v != "" {
+			h.Set(k, v)
+		}
+	}
+
+	return h
 }
 
 func WriteHeader(w io.Writer, h textproto.MIMEHeader) (err error) {

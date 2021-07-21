@@ -40,6 +40,8 @@ func IMAPChecksFeatureContext(s *godog.Suite) {
 	s.Step(`^IMAP client receives update marking message seq "([^"]*)" as unread within (\d+) seconds$`, imapClientReceivesUpdateMarkingMessageSeqAsUnreadWithin)
 	s.Step(`^IMAP client "([^"]*)" receives update marking message seq "([^"]*)" as unread within (\d+) seconds$`, imapClientNamedReceivesUpdateMarkingMessageSeqAsUnreadWithin)
 	s.Step(`^IMAP client "([^"]*)" does not receive update for message seq "([^"]*)" within (\d+) seconds$`, imapClientDoesNotReceiveUpdateForMessageSeqWithin)
+	s.Step(`^IMAP client is logged out$`, imapClientIsLoggedOut)
+	s.Step(`^IMAP client "([^"]*)" is logged out$`, imapClientNamedIsLoggedOut)
 }
 
 func imapResponseIs(expectedResponse string) error {
@@ -135,4 +137,14 @@ func iterateOverSeqSet(seqSet string, callback func(string)) {
 			callback(strconv.Itoa(int(i)))
 		}
 	}
+}
+
+func imapClientIsLoggedOut() error {
+	return imapClientNamedIsLoggedOut("imap")
+}
+
+func imapClientNamedIsLoggedOut(clientName string) error {
+	res := ctx.GetIMAPClient(clientName).SendCommand("CAPABILITY")
+	res.AssertError("read response failed:")
+	return ctx.GetTestingError()
 }

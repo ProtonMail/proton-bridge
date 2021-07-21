@@ -24,6 +24,8 @@ import (
 func SMTPChecksFeatureContext(s *godog.Suite) {
 	s.Step(`^SMTP response is "([^"]*)"$`, smtpResponseIs)
 	s.Step(`^SMTP response to "([^"]*)" is "([^"]*)"$`, smtpResponseNamedIs)
+	s.Step(`^SMTP client is logged out`, smtpClientIsLoggedOut)
+	s.Step(`^SMTP client "([^"]*)" is logged out`, smtpClientNamedIsLoggedOut)
 }
 
 func smtpResponseIs(expectedResponse string) error {
@@ -37,5 +39,15 @@ func smtpResponseNamedIs(clientID, expectedResponse string) error {
 	} else {
 		res.AssertError(expectedResponse)
 	}
+	return ctx.GetTestingError()
+}
+
+func smtpClientIsLoggedOut() error {
+	return smtpClientNamedIsLoggedOut("smtp")
+}
+
+func smtpClientNamedIsLoggedOut(clientName string) error {
+	res := ctx.GetSMTPClient(clientName).SendCommands("HELO loggedOut.com")
+	res.AssertError("read response failed:")
 	return ctx.GetTestingError()
 }

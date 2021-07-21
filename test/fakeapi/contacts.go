@@ -18,6 +18,7 @@
 package fakeapi
 
 import (
+	"context"
 	"fmt"
 	"net/url"
 	"strconv"
@@ -29,7 +30,7 @@ func (api *FakePMAPI) DecryptAndVerifyCards(cards []pmapi.Card) ([]pmapi.Card, e
 	return cards, nil
 }
 
-func (api *FakePMAPI) GetContactEmailByEmail(email string, page int, pageSize int) ([]pmapi.ContactEmail, error) {
+func (api *FakePMAPI) GetContactEmailByEmail(_ context.Context, email string, page int, pageSize int) ([]pmapi.ContactEmail, error) {
 	v := url.Values{}
 	v.Set("Page", strconv.Itoa(page))
 	if pageSize > 0 {
@@ -42,7 +43,7 @@ func (api *FakePMAPI) GetContactEmailByEmail(email string, page int, pageSize in
 	return []pmapi.ContactEmail{}, nil
 }
 
-func (api *FakePMAPI) GetContactByID(contactID string) (pmapi.Contact, error) {
+func (api *FakePMAPI) GetContactByID(_ context.Context, contactID string) (pmapi.Contact, error) {
 	if err := api.checkAndRecordCall(GET, "/contacts/"+contactID, nil); err != nil {
 		return pmapi.Contact{}, err
 	}

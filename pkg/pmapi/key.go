@@ -18,11 +18,9 @@
 package pmapi
 
 import (
-	"fmt"
-	"net/http"
-	"net/url"
+	"context"
 
-	"github.com/ProtonMail/gopenpgp/v2/crypto"
+	"github.com/go-resty/resty/v2"
 )
 
 // Key flags.
@@ -31,84 +29,32 @@ const (
 	UseToEncryptFlag
 )
 
-type PublicKeyRes struct {
-	Res
-
-	RecipientType int
-	MIMEType      string
-	Keys          []PublicKey
-}
-
 type PublicKey struct {
 	Flags     int
 	PublicKey string
 }
 
-// PublicKeys returns the public keys of the given email addresses.
-func (c *client) PublicKeys(emails []string) (keys map[string]*crypto.Key, err error) {
-	if len(emails) == 0 {
-		err = fmt.Errorf("pmapi: cannot get public keys: no email address provided")
-		return
-	}
-
-	keys = make(map[string]*crypto.Key)
-
-	for _, email := range emails {
-		email = url.QueryEscape(email)
-
-		var req *http.Request
-		if req, err = c.NewRequest("GET", "/keys?Email="+email, nil); err != nil {
-			return
-		}
-
-		var res PublicKeyRes
-		if err = c.DoJSON(req, &res); err != nil {
-			return
-		}
-
-		for _, rawKey := range res.Keys {
-			if rawKey.Flags&UseToEncryptFlag == UseToEncryptFlag {
-				var key *crypto.Key
-
-				if key, err = crypto.NewKeyFromArmored(rawKey.PublicKey); err != nil {
-					return
-				}
-
-				keys[email] = key
-			}
-		}
-	}
-
-	return keys, err
-}
+type RecipientType int
 
 const (
-	RecipientInternal = 1
-	RecipientExternal = 2
+	RecipientTypeInternal RecipientType = iota + 1
+	RecipientTypeExternal
 )
 
 // GetPublicKeysForEmail returns all sending public keys for the given email address.
-func (c *client) GetPublicKeysForEmail(email string) (keys []PublicKey, internal bool, err error) {
-	email = url.QueryEscape(email)
-
-	var req *http.Request
-	if req, err = c.NewRequest("GET", "/keys?Email="+email, nil); err != nil {
-		return
+func (c *client) GetPublicKeysForEmail(ctx context.Context, email string) (keys []PublicKey, internal bool, err error) {
+	var res struct {
+		Keys          []PublicKey
+		RecipientType RecipientType
 	}
 
-	var res PublicKeyRes
-	if err = c.DoJSON(req, &res); err != nil {
-		return
+	if _, err := c.do(ctx, func(r *resty.Request) (*resty.Response, error) {
+		return r.SetResult(&res).SetQueryParam("Email", email).Get("/keys")
+	}); err != nil {
+		return nil, false, err
 	}
 
-	internal = res.RecipientType == RecipientInternal
-
-	for _, key := range res.Keys {
-		if key.Flags&UseToEncryptFlag == UseToEncryptFlag {
-			keys = append(keys, key)
-		}
-	}
-	return
+	return res.Keys, res.RecipientType == RecipientTypeInternal, nil
 }
 
 // KeySalt contains id and salt for key.
@@ -116,25 +62,17 @@ type KeySalt struct {
 	ID, KeySalt string
 }
 
-// KeySaltRes is used to unmarshal API response.
-type KeySaltRes struct {
-	Res
-	KeySalts []KeySalt
-}
-
 // GetKeySalts sends request to get list of key salts (n.b. locked route).
-func (c *client) GetKeySalts() (keySalts []KeySalt, err error) {
-	var req *http.Request
-	if req, err = c.NewRequest("GET", "/keys/salts", nil); err != nil {
-		return
+func (c *client) GetKeySalts(ctx context.Context) (keySalts []KeySalt, err error) {
+	var res struct {
+		KeySalts []KeySalt
 	}
 
-	var res KeySaltRes
-	if err = c.DoJSON(req, &res); err != nil {
-		return
+	if _, err := c.do(ctx, func(r *resty.Request) (*resty.Response, error) {
+		return r.SetResult(&res).Get("/keys/salts")
+	}); err != nil {
+		return nil, err
 	}
 
-	keySalts = res.KeySalts
-
-	return
+	return res.KeySalts, nil
 }

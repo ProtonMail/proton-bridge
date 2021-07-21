@@ -18,69 +18,66 @@
 package pmapi
 
 import (
+	"context"
 	"io"
 
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
+	"github.com/go-resty/resty/v2"
 )
 
 // Client defines the interface of a PMAPI client.
 type Client interface {
-	Auth(username, password string, info *AuthInfo) (*Auth, error)
-	AuthInfo(username string) (*AuthInfo, error)
-	AuthRefresh(token string) (*Auth, error)
-	Auth2FA(twoFactorCode string, auth *Auth) error
-	AuthSalt() (salt string, err error)
-	Logout()
-	DeleteAuth() error
-	IsConnected() bool
-	CloseConnections()
-	ClearData()
+	Auth2FA(context.Context, string) error
+	AuthSalt(ctx context.Context) (string, error)
+	AuthDelete(context.Context) error
+	AddAuthRefreshHandler(AuthRefreshHandler)
 
-	CurrentUser() (*User, error)
-	UpdateUser() (*User, error)
-	Unlock(passphrase []byte) (err error)
-	ReloadKeys(passphrase []byte) (err error)
+	CurrentUser(ctx context.Context) (*User, error)
+	UpdateUser(ctx context.Context) (*User, error)
+	Unlock(ctx context.Context, passphrase []byte) (err error)
+	ReloadKeys(ctx context.Context, passphrase []byte) (err error)
 	IsUnlocked() bool
 
-	GetAddresses() (addresses AddressList, err error)
 	Addresses() AddressList
-	ReorderAddresses(addressIDs []string) error
+	GetAddresses(context.Context) (addresses AddressList, err error)
+	ReorderAddresses(ctx context.Context, addressIDs []string) error
 
-	GetEvent(eventID string) (*Event, error)
+	GetEvent(ctx context.Context, eventID string) (*Event, error)
 
-	SendMessage(string, *SendMessageReq) (sent, parent *Message, err error)
-	CreateDraft(m *Message, parent string, action int) (created *Message, err error)
-	Import([]*ImportMsgReq) ([]*ImportMsgRes, error)
+	SendMessage(context.Context, string, *SendMessageReq) (sent, parent *Message, err error)
+	CreateDraft(ctx context.Context, m *Message, parent string, action int) (created *Message, err error)
+	Import(context.Context, ImportMsgReqs) ([]*ImportMsgRes, error)
 
-	CountMessages(addressID string) ([]*MessagesCount, error)
-	ListMessages(filter *MessagesFilter) ([]*Message, int, error)
-	GetMessage(apiID string) (*Message, error)
-	DeleteMessages(apiIDs []string) error
-	LabelMessages(apiIDs []string, labelID string) error
-	UnlabelMessages(apiIDs []string, labelID string) error
-	MarkMessagesRead(apiIDs []string) error
-	MarkMessagesUnread(apiIDs []string) error
+	CountMessages(ctx context.Context, addressID string) ([]*MessagesCount, error)
+	ListMessages(ctx context.Context, filter *MessagesFilter) ([]*Message, int, error)
+	GetMessage(ctx context.Context, apiID string) (*Message, error)
+	DeleteMessages(ctx context.Context, apiIDs []string) error
+	LabelMessages(ctx context.Context, apiIDs []string, labelID string) error
+	UnlabelMessages(ctx context.Context, apiIDs []string, labelID string) error
+	MarkMessagesRead(ctx context.Context, apiIDs []string) error
+	MarkMessagesUnread(ctx context.Context, apiIDs []string) error
 
-	ListLabels() ([]*Label, error)
-	CreateLabel(label *Label) (*Label, error)
-	UpdateLabel(label *Label) (*Label, error)
-	DeleteLabel(labelID string) error
-	EmptyFolder(labelID string, addressID string) error
+	ListLabels(ctx context.Context) ([]*Label, error)
+	CreateLabel(ctx context.Context, label *Label) (*Label, error)
+	UpdateLabel(ctx context.Context, label *Label) (*Label, error)
+	DeleteLabel(ctx context.Context, labelID string) error
+	EmptyFolder(ctx context.Context, labelID string, addressID string) error
 
-	Report(report ReportReq) error
-	SendSimpleMetric(category, action, label string) error
-
-	GetMailSettings() (MailSettings, error)
-	GetContactEmailByEmail(string, int, int) ([]ContactEmail, error)
-	GetContactByID(string) (Contact, error)
+	GetMailSettings(ctx context.Context) (MailSettings, error)
+	GetContactEmailByEmail(context.Context, string, int, int) ([]ContactEmail, error)
+	GetContactByID(context.Context, string) (Contact, error)
 	DecryptAndVerifyCards([]Card) ([]Card, error)
 
-	GetAttachment(id string) (att io.ReadCloser, err error)
-	CreateAttachment(att *Attachment, r io.Reader, sig io.Reader) (created *Attachment, err error)
-	DeleteAttachment(attID string) (err error)
+	GetAttachment(ctx context.Context, id string) (att io.ReadCloser, err error)
+	CreateAttachment(ctx context.Context, att *Attachment, r io.Reader, sig io.Reader) (created *Attachment, err error)
 
 	KeyRingForAddressID(string) (kr *crypto.KeyRing, err error)
-	GetPublicKeysForEmail(string) ([]PublicKey, bool, error)
+	GetPublicKeysForEmail(context.Context, string) ([]PublicKey, bool, error)
+}
 
-	DownloadAndVerify(string, string, *crypto.KeyRing) (io.Reader, error)
+type AuthRefreshHandler func(*AuthRefresh)
+
+type clientManager interface {
+	r(context.Context) *resty.Request
+	authRefresh(context.Context, string, string) (*AuthRefresh, error)
 }

@@ -18,6 +18,7 @@
 package transfer
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"time"
@@ -29,8 +30,16 @@ import (
 const (
 	pmapiRetries          = 10
 	pmapiReconnectTimeout = 30 * time.Minute
-	pmapiReconnectSleep   = time.Minute
+	pmapiReconnectSleep   = 10 * time.Second
 )
+
+func (p *PMAPIProvider) SetConnectionUp() {
+	p.connection = true
+}
+
+func (p *PMAPIProvider) SetConnectionDown() {
+	p.connection = false
+}
 
 func (p *PMAPIProvider) ensureConnection(callback func() error) error {
 	var callErr error
@@ -57,11 +66,8 @@ func (p *PMAPIProvider) tryReconnect() error {
 			return previousErr
 		}
 
-		err := p.clientManager.CheckConnection()
-		log.WithError(err).Debug("Connection check")
-		if err != nil {
+		if !p.connection {
 			time.Sleep(pmapiReconnectSleep)
-			previousErr = err
 			continue
 		}
 
@@ -77,7 +83,7 @@ func (p *PMAPIProvider) listMessages(filter *pmapi.MessagesFilter) (messages []*
 		p.timeIt.start("listing", key)
 		defer p.timeIt.stop("listing", key)
 
-		messages, count, err = p.client().ListMessages(filter)
+		messages, count, err = p.client.ListMessages(context.Background(), filter)
 		return err
 	})
 	return
@@ -88,18 +94,18 @@ func (p *PMAPIProvider) getMessage(msgID string) (message *pmapi.Message, err er
 		p.timeIt.start("download", msgID)
 		defer p.timeIt.stop("download", msgID)
 
-		message, err = p.client().GetMessage(msgID)
+		message, err = p.client.GetMessage(context.Background(), msgID)
 		return err
 	})
 	return
 }
 
-func (p *PMAPIProvider) importRequest(msgSourceID string, req []*pmapi.ImportMsgReq) (res []*pmapi.ImportMsgRes, err error) {
+func (p *PMAPIProvider) importRequest(msgSourceID string, req pmapi.ImportMsgReqs) (res []*pmapi.ImportMsgRes, err error) {
 	err = p.ensureConnection(func() error {
 		p.timeIt.start("upload", msgSourceID)
 		defer p.timeIt.stop("upload", msgSourceID)
 
-		res, err = p.client().Import(req)
+		res, err = p.client.Import(context.Background(), req)
 		return err
 	})
 	return
@@ -110,7 +116,7 @@ func (p *PMAPIProvider) createDraft(msgSourceID string, message *pmapi.Message, 
 		p.timeIt.start("upload", msgSourceID)
 		defer p.timeIt.stop("upload", msgSourceID)
 
-		draft, err = p.client().CreateDraft(message, parent, action)
+		draft, err = p.client.CreateDraft(context.Background(), message, parent, action)
 		return err
 	})
 	return
@@ -123,7 +129,7 @@ func (p *PMAPIProvider) createAttachment(msgSourceID string, att *pmapi.Attachme
 		p.timeIt.start("upload", key)
 		defer p.timeIt.stop("upload", key)
 
-		created, err = p.client().CreateAttachment(att, r, sig)
+		created, err = p.client.CreateAttachment(context.Background(), att, r, sig)
 		return err
 	})
 	return

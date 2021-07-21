@@ -1331,10 +1331,6 @@ Window {
             return (fname!="fail")
         }
 
-        function checkInternet() {
-            // nothing to do
-        }
-
         function loadImportReports(fname) {
             console.log("load import reports for ", fname)
         }

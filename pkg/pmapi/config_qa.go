@@ -24,28 +24,25 @@ import (
 	"net/http"
 	"os"
 	"strings"
-
-	"github.com/ProtonMail/proton-bridge/pkg/listener"
 )
 
-func init() {
+func getRootURL() string {
 	// This config allows to dynamically change ROOT URL.
-	fullRootURL := os.Getenv("PMAPI_ROOT_URL")
-	if strings.HasPrefix(fullRootURL, "http") {
-		rootURLparts := strings.SplitN(fullRootURL, "://", 2)
-		rootScheme = rootURLparts[0]
-		rootURL = rootURLparts[1]
-	} else if fullRootURL != "" {
-		rootURL = fullRootURL
-		rootScheme = "https"
+	url := os.Getenv("PMAPI_ROOT_URL")
+	if strings.HasPrefix(url, "http") {
+		return url
 	}
+	if url != "" {
+		return "https://" + url
+	}
+	return "https://api.protonmail.ch"
 }
 
-func GetRoundTripper(_ *ClientManager, _ listener.Listener) http.RoundTripper {
-	transport := CreateTransportWithDialer(NewBasicTLSDialer())
+func newProxyDialerAndTransport(cfg Config) (*ProxyTLSDialer, http.RoundTripper) {
+	transport := CreateTransportWithDialer(NewBasicTLSDialer(cfg))
 
 	// TLS certificate of testing environment might be self-signed.
 	transport.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 
-	return transport
+	return nil, transport
 }

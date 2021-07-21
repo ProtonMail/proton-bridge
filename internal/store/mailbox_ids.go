@@ -36,23 +36,41 @@ import (
 func (storeMailbox *Mailbox) GetAPIIDsFromUIDRange(start, stop uint32) (apiIDs []string, err error) {
 	err = storeMailbox.db().View(func(tx *bolt.Tx) error {
 		b := storeMailbox.txGetIMAPIDsBucket(tx)
+		c := b.Cursor()
 
+		// GODT-1153 If the mailbox is empty we should reply BAD to client.
+		if uid, _ := c.Last(); uid == nil {
+			return nil
+		}
+
+		// If the start range is a wildcard, the range can only refer to the last message in the mailbox.
+		if start == 0 {
+			_, apiID := c.Last()
+			apiIDs = append(apiIDs, string(apiID))
+			return nil
+		}
+
+		// Resolve the stop value to be the final UID in the mailbox.
 		if stop == 0 {
-			// A null stop means no stop.
-			stop = ^uint32(0)
+			stop = storeMailbox.txGetFinalUID(b)
+		}
+
+		// After resolving the stop value, it might be less than start so we sort it.
+		if start > stop {
+			start, stop = stop, start
 		}
 
 		startb := itob(start)
 		stopb := itob(stop)
 
-		c := b.Cursor()
 		for k, v := c.Seek(startb); k != nil && bytes.Compare(k, stopb) <= 0; k, v = c.Next() {
 			apiIDs = append(apiIDs, string(v))
 		}
 
 		return nil
 	})
-	return
+
+	return apiIDs, err
 }
 
 // GetAPIIDsFromSequenceRange returns API IDs by IMAP sequence number range.
@@ -60,28 +78,52 @@ func (storeMailbox *Mailbox) GetAPIIDsFromSequenceRange(start, stop uint32) (api
 	err = storeMailbox.db().View(func(tx *bolt.Tx) error {
 		b := storeMailbox.txGetIMAPIDsBucket(tx)
 		c := b.Cursor()
+
+		// GODT-1153 If the mailbox is empty we should reply BAD to client.
+		if uid, _ := c.Last(); uid == nil {
+			return nil
+		}
+
+		// If the start range is a wildcard, the range can only refer to the last message in the mailbox.
+		if start == 0 {
+			_, apiID := c.Last()
+			apiIDs = append(apiIDs, string(apiID))
+			return nil
+		}
+
 		var i uint32
+
 		for k, v := c.First(); k != nil; k, v = c.Next() {
 			i++
+
 			if i < start {
 				continue
 			}
+
 			if stop > 0 && i > stop {
 				break
 			}
+
 			apiIDs = append(apiIDs, string(v))
 		}
+
+		if stop == 0 && len(apiIDs) == 0 {
+			if _, apiID := c.Last(); len(apiID) > 0 {
+				apiIDs = append(apiIDs, string(apiID))
+			}
+		}
+
 		return nil
 	})
-	return
+
+	return apiIDs, err
 }
 
 // GetLatestAPIID returns the latest message API ID which still exists.
 // Info: not the latest IMAP UID which can be already removed.
 func (storeMailbox *Mailbox) GetLatestAPIID() (apiID string, err error) {
 	err = storeMailbox.db().View(func(tx *bolt.Tx) error {
-		b := storeMailbox.txGetAPIIDsBucket(tx)
-		c := b.Cursor()
+		c := storeMailbox.txGetAPIIDsBucket(tx).Cursor()
 		lastAPIID, _ := c.Last()
 		apiID = string(lastAPIID)
 		if apiID == "" {
@@ -282,4 +324,14 @@ func (storeMailbox *Mailbox) GetUIDByHeader(header *mail.Header) (foundUID uint3
 	})
 
 	return foundUID
+}
+
+func (storeMailbox *Mailbox) txGetFinalUID(b *bolt.Bucket) uint32 {
+	uid, _ := b.Cursor().Last()
+
+	if uid == nil {
+		panic(errors.New("cannot get final UID of empty mailbox"))
+	}
+
+	return btoi(uid)
 }

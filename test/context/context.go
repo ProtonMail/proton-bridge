@@ -23,7 +23,6 @@ import (
 
 	"github.com/ProtonMail/proton-bridge/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/internal/config/useragent"
-	"github.com/ProtonMail/proton-bridge/internal/constants"
 	"github.com/ProtonMail/proton-bridge/internal/importexport"
 	"github.com/ProtonMail/proton-bridge/internal/transfer"
 	"github.com/ProtonMail/proton-bridge/internal/users"
@@ -53,7 +52,7 @@ type TestContext struct {
 	// pmapiController is used to control real or fake pmapi clients.
 	// The clients are created by the clientManager.
 	pmapiController PMAPIController
-	clientManager   *pmapi.ClientManager
+	clientManager   pmapi.Manager
 
 	// Core related variables.
 	bridge       *bridge.Bridge
@@ -97,22 +96,18 @@ type TestContext struct {
 func New(app string) *TestContext {
 	setLogrusVerbosityFromEnv()
 
-	userAgent := useragent.New()
-
-	cm := pmapi.NewClientManager(
-		pmapi.GetAPIConfig(getConfigName(app), constants.Version),
-		userAgent,
-	)
+	listener := listener.New()
+	pmapiController, clientManager := newPMAPIController(app, listener)
 
 	ctx := &TestContext{
 		t:                     &bddT{},
 		cache:                 newFakeCache(),
 		locations:             newFakeLocations(),
 		settings:              newFakeSettings(),
-		listener:              listener.New(),
-		userAgent:             userAgent,
-		pmapiController:       newPMAPIController(cm),
-		clientManager:         cm,
+		listener:              listener,
+		userAgent:             useragent.New(),
+		pmapiController:       pmapiController,
+		clientManager:         clientManager,
 		testAccounts:          newTestAccounts(),
 		credStore:             newFakeCredStore(),
 		imapClients:           make(map[string]*mocks.IMAPClient),
@@ -141,14 +136,6 @@ func New(app string) *TestContext {
 	return ctx
 }
 
-func getConfigName(app string) string {
-	if app == "ie" {
-		return "importExport"
-	}
-
-	return app
-}
-
 // Cleanup runs through all cleanup steps.
 // This can be a deferred call so that it is run even if the test steps failed the test.
 func (ctx *TestContext) Cleanup() *TestContext {
@@ -164,7 +151,7 @@ func (ctx *TestContext) GetPMAPIController() PMAPIController {
 }
 
 // GetClientManager returns client manager being used for testing.
-func (ctx *TestContext) GetClientManager() *pmapi.ClientManager {
+func (ctx *TestContext) GetClientManager() pmapi.Manager {
 	return ctx.clientManager
 }
 

@@ -128,7 +128,7 @@ func mailboxForAddressOfUserHasMessages(mailboxName, bddAddressID, bddUserID str
 	if err != nil {
 		return internalError(err, "getting store mailbox")
 	}
-	apiIDs, err := mailbox.GetAPIIDsFromSequenceRange(0, 1000)
+	apiIDs, err := mailbox.GetAPIIDsFromSequenceRange(1, 1000)
 	if err != nil {
 		return internalError(err, "getting API IDs from sequence range")
 	}
@@ -255,10 +255,13 @@ func messagesContainsMessageRow(account *accounts.TestAccount, allMessages []int
 					matches = false
 				}
 			case "read":
-				unread := 1
+				var unread pmapi.Boolean
 				if cell.Value == "true" { //nolint[goconst]
-					unread = 0
+					unread = false
+				} else {
+					unread = true
 				}
+
 				if message.Unread != unread {
 					matches = false
 				}
@@ -295,7 +298,7 @@ func areAddressesSame(first, second string) bool {
 
 func messagesInMailboxForUserIsMarkedAsRead(bddMessageIDs, mailboxName, bddUserID string) error {
 	return checkMessages(bddUserID, mailboxName, bddMessageIDs, func(message *store.Message) error {
-		if message.Message().Unread == 0 {
+		if !message.Message().Unread {
 			return nil
 		}
 		return fmt.Errorf("message %s \"%s\" is expected to be read but is not", message.ID(), message.Message().Subject)
@@ -304,7 +307,7 @@ func messagesInMailboxForUserIsMarkedAsRead(bddMessageIDs, mailboxName, bddUserI
 
 func messagesInMailboxForUserIsMarkedAsUnread(bddMessageIDs, mailboxName, bddUserID string) error {
 	return checkMessages(bddUserID, mailboxName, bddMessageIDs, func(message *store.Message) error {
-		if message.Message().Unread == 1 {
+		if message.Message().Unread {
 			return nil
 		}
 		return fmt.Errorf("message %s \"%s\" is expected to not be read but is", message.ID(), message.Message().Subject)

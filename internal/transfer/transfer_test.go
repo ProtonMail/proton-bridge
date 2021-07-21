@@ -23,7 +23,6 @@ import (
 
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	transfermocks "github.com/ProtonMail/proton-bridge/internal/transfer/mocks"
-	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	pmapimocks "github.com/ProtonMail/proton-bridge/pkg/pmapi/mocks"
 	gomock "github.com/golang/mock/gomock"
 )
@@ -33,10 +32,8 @@ type mocks struct {
 
 	ctrl               *gomock.Controller
 	panicHandler       *transfermocks.MockPanicHandler
-	clientManager      *transfermocks.MockClientManager
 	imapClientProvider *transfermocks.MockIMAPClientProvider
 	pmapiClient        *pmapimocks.MockClient
-	pmapiConfig        *pmapi.ClientConfig
 
 	keyring *crypto.KeyRing
 }
@@ -49,14 +46,10 @@ func initMocks(t *testing.T) mocks {
 
 		ctrl:               mockCtrl,
 		panicHandler:       transfermocks.NewMockPanicHandler(mockCtrl),
-		clientManager:      transfermocks.NewMockClientManager(mockCtrl),
 		imapClientProvider: transfermocks.NewMockIMAPClientProvider(mockCtrl),
 		pmapiClient:        pmapimocks.NewMockClient(mockCtrl),
-		pmapiConfig:        &pmapi.ClientConfig{},
 		keyring:            newTestKeyring(),
 	}
-
-	m.clientManager.EXPECT().GetClient("user").Return(m.pmapiClient).AnyTimes()
 
 	return m
 }

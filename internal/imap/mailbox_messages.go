@@ -18,7 +18,6 @@
 package imap
 
 import (
-	"errors"
 	"fmt"
 	"net/mail"
 	"strings"
@@ -30,6 +29,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/pkg/parallel"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	"github.com/emersion/go-imap"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )
 
@@ -359,9 +359,8 @@ func (im *imapMailbox) SearchMessages(isUID bool, criteria *imap.SearchCriteria)
 			}
 		}
 
-		// In order to speed up search it is not needed to check
-		// if IsFullHeaderCached.
-		header := storeMessage.GetHeader()
+		// In order to speed up search it is not needed to check if IsFullHeaderCached.
+		header := storeMessage.GetMIMEHeader()
 
 		if !criteria.SentBefore.IsZero() || !criteria.SentSince.IsZero() {
 			t, err := mail.Header(header).Date()
@@ -422,7 +421,7 @@ func (im *imapMailbox) SearchMessages(isUID bool, criteria *imap.SearchCriteria)
 		if isStringInList(m.LabelIDs, pmapi.StarredLabel) {
 			messageFlagsMap[imap.FlaggedFlag] = true
 		}
-		if m.Unread == 0 {
+		if !m.Unread {
 			messageFlagsMap[imap.SeenFlag] = true
 		}
 		if m.Has(pmapi.FlagReplied) || m.Has(pmapi.FlagRepliedAll) {
@@ -526,18 +525,6 @@ func (im *imapMailbox) listMessages(isUID bool, seqSet *imap.SeqSet, items []ima
 		return err
 	}
 
-	// From RFC: UID range of 559:* always includes the UID of the last message
-	// in the mailbox, even if 559 is higher than any assigned UID value.
-	// See: https://tools.ietf.org/html/rfc3501#page-61
-	if isUID && seqSet.Dynamic() && len(apiIDs) == 0 {
-		l.Debug("Requesting empty UID dynamic fetch, adding latest message")
-		apiID, err := im.storeMailbox.GetLatestAPIID()
-		if err != nil {
-			return nil
-		}
-		apiIDs = []string{apiID}
-	}
-
 	input := make([]interface{}, len(apiIDs))
 	for i, apiID := range apiIDs {
 		input[i] = apiID
@@ -560,7 +547,7 @@ func (im *imapMailbox) listMessages(isUID bool, seqSet *imap.SeqSet, items []ima
 			return nil, err
 		}
 
-		if storeMessage.Message().Unread == 1 {
+		if storeMessage.Message().Unread {
 			for section := range msg.Body {
 				// Peek means get messages without marking them as read.
 				// If client does not only ask for peek, we have to mark them as read.

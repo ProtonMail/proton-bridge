@@ -18,11 +18,13 @@
 package fakeapi
 
 import (
+	"context"
+
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 )
 
-func (api *FakePMAPI) GetMailSettings() (pmapi.MailSettings, error) {
+func (api *FakePMAPI) GetMailSettings(context.Context) (pmapi.MailSettings, error) {
 	if err := api.checkAndRecordCall(GET, "/mail/v4/settings", nil); err != nil {
 		return pmapi.MailSettings{}, err
 	}
@@ -33,7 +35,7 @@ func (api *FakePMAPI) IsUnlocked() bool {
 	return api.userKeyRing != nil
 }
 
-func (api *FakePMAPI) Unlock(passphrase []byte) (err error) {
+func (api *FakePMAPI) Unlock(_ context.Context, passphrase []byte) (err error) {
 	if api.userKeyRing != nil {
 		return
 	}
@@ -63,19 +65,19 @@ func (api *FakePMAPI) Unlock(passphrase []byte) (err error) {
 	return nil
 }
 
-func (api *FakePMAPI) ReloadKeys(passphrase []byte) (err error) {
-	if _, err = api.UpdateUser(); err != nil {
+func (api *FakePMAPI) ReloadKeys(ctx context.Context, passphrase []byte) (err error) {
+	if _, err = api.UpdateUser(ctx); err != nil {
 		return
 	}
 
-	return api.Unlock(passphrase)
+	return api.Unlock(ctx, passphrase)
 }
 
-func (api *FakePMAPI) CurrentUser() (*pmapi.User, error) {
-	return api.UpdateUser()
+func (api *FakePMAPI) CurrentUser(ctx context.Context) (*pmapi.User, error) {
+	return api.UpdateUser(ctx)
 }
 
-func (api *FakePMAPI) UpdateUser() (*pmapi.User, error) {
+func (api *FakePMAPI) UpdateUser(context.Context) (*pmapi.User, error) {
 	if err := api.checkAndRecordCall(GET, "/users", nil); err != nil {
 		return nil, err
 	}
@@ -83,14 +85,14 @@ func (api *FakePMAPI) UpdateUser() (*pmapi.User, error) {
 	return api.user, nil
 }
 
-func (api *FakePMAPI) GetAddresses() (pmapi.AddressList, error) {
+func (api *FakePMAPI) GetAddresses(context.Context) (pmapi.AddressList, error) {
 	if err := api.checkAndRecordCall(GET, "/addresses", nil); err != nil {
 		return nil, err
 	}
 	return *api.addresses, nil
 }
 
-func (api *FakePMAPI) ReorderAddresses(addressIDs []string) error {
+func (api *FakePMAPI) ReorderAddresses(_ context.Context, addressIDs []string) error {
 	if err := api.checkAndRecordCall(PUT, "/addresses/order", nil); err != nil {
 		return err
 	}
@@ -114,6 +116,12 @@ func (api *FakePMAPI) ReorderAddresses(addressIDs []string) error {
 }
 
 func (api *FakePMAPI) Addresses() pmapi.AddressList {
+	if api.controller.noInternetConnection {
+		return nil
+	}
+	if api.addresses == nil {
+		return pmapi.AddressList{}
+	}
 	return *api.addresses
 }
 

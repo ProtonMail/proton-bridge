@@ -31,7 +31,7 @@ type bridgeUser interface {
 	CheckBridgeLogin(password string) error
 	IsCombinedAddressMode() bool
 	GetAddressID(address string) (string, error)
-	GetTemporaryPMAPIClient() pmapi.Client
+	GetClient() pmapi.Client
 	GetStore() storeUserProvider
 }
 
