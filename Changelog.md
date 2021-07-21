@@ -2,6 +2,12 @@
 
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
+## [Bridge 1.8.8] James
+
+### Changed
+* GODT-1234 Set attachment name 'message.eml' for `message/rfc822` attachments.
+
+
 ## [Bridge 1.8.7] James
 
 ### Changed
