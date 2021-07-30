@@ -37,19 +37,11 @@ import (
 	"time"
 
 	"github.com/ProtonMail/proton-bridge/internal/bridge"
+	"github.com/ProtonMail/proton-bridge/internal/config/settings"
 	"github.com/ProtonMail/proton-bridge/internal/events"
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
-	"github.com/ProtonMail/proton-bridge/pkg/message"
 	"github.com/emersion/go-imap"
 	goIMAPBackend "github.com/emersion/go-imap/backend"
-)
-
-const (
-	// NOTE: Each fetch worker has its own set of attach workers so there can be up to 20*5=100 API requests at once.
-	// This is a reasonable limit to not overwhelm API while still maintaining as much parallelism as possible.
-	fetchWorkers  = 20 // In how many workers to fetch message (group list on IMAP).
-	attachWorkers = 5  // In how many workers to fetch attachments (for one message).
-	buildWorkers  = 20 // In how many workers to build messages.
 )
 
 type panicHandler interface {
@@ -61,15 +53,18 @@ type imapBackend struct {
 	bridge        bridger
 	updates       *imapUpdates
 	eventListener listener.Listener
+	listWorkers   int
 
 	users       map[string]*imapUser
 	usersLocker sync.Locker
 
-	builder *message.Builder
-
 	imapCache     map[string]map[string]string
 	imapCachePath string
 	imapCacheLock *sync.RWMutex
+}
+
+type settingsProvider interface {
+	GetInt(string) int
 }
 
 // NewIMAPBackend returns struct implementing go-imap/backend interface.
@@ -77,10 +72,13 @@ func NewIMAPBackend(
 	panicHandler panicHandler,
 	eventListener listener.Listener,
 	cache cacheProvider,
+	setting settingsProvider,
 	bridge *bridge.Bridge,
 ) *imapBackend { //nolint[golint]
 	bridgeWrap := newBridgeWrap(bridge)
-	backend := newIMAPBackend(panicHandler, cache, bridgeWrap, eventListener)
+
+	imapWorkers := setting.GetInt(settings.IMAPWorkers)
+	backend := newIMAPBackend(panicHandler, cache, bridgeWrap, eventListener, imapWorkers)
 
 	go backend.monitorDisconnectedUsers()
 
@@ -92,6 +90,7 @@ func newIMAPBackend(
 	cache cacheProvider,
 	bridge bridger,
 	eventListener listener.Listener,
+	listWorkers int,
 ) *imapBackend {
 	return &imapBackend{
 		panicHandler:  panicHandler,
@@ -102,10 +101,9 @@ func newIMAPBackend(
 		users:       map[string]*imapUser{},
 		usersLocker: &sync.Mutex{},
 
-		builder: message.NewBuilder(fetchWorkers, attachWorkers, buildWorkers),
-
 		imapCachePath: cache.GetIMAPCachePath(),
 		imapCacheLock: &sync.RWMutex{},
+		listWorkers:   listWorkers,
 	}
 }
 

@@ -49,7 +49,7 @@ func TestUsersFinishLoginNewUser(t *testing.T) {
 	// Init users with no user from keychain.
 	m.credentialsStore.EXPECT().List().Return([]string{}, nil)
 
-	mockAddingConnectedUser(m)
+	mockAddingConnectedUser(t, m)
 	mockEventLoopNoAction(m)
 
 	m.clientManager.EXPECT().SendSimpleMetric(gomock.Any(), string(metrics.Setup), string(metrics.NewUser), string(metrics.NoLabel))
@@ -74,7 +74,7 @@ func TestUsersFinishLoginExistingDisconnectedUser(t *testing.T) {
 		m.credentialsStore.EXPECT().UpdateToken(testCredentialsDisconnected.UserID, testAuthRefresh.UID, testAuthRefresh.RefreshToken).Return(testCredentials, nil),
 		m.credentialsStore.EXPECT().UpdatePassword(testCredentialsDisconnected.UserID, testCredentials.MailboxPassword).Return(testCredentials, nil),
 	)
-	mockInitConnectedUser(m)
+	mockInitConnectedUser(t, m)
 	mockEventLoopNoAction(m)
 	m.eventListener.EXPECT().Emit(events.UserRefreshEvent, testCredentialsDisconnected.UserID)
 
@@ -95,7 +95,7 @@ func TestUsersFinishLoginConnectedUser(t *testing.T) {
 
 	// Mock loading connected user.
 	m.credentialsStore.EXPECT().List().Return([]string{testCredentials.UserID}, nil)
-	mockLoadingConnectedUser(m, testCredentials)
+	mockLoadingConnectedUser(t, m, testCredentials)
 	mockEventLoopNoAction(m)
 
 	// Mock process of FinishLogin of already connected user.

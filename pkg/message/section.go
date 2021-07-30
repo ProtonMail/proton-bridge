@@ -38,9 +38,10 @@ type BodyStructure map[string]*SectionInfo
 
 // SectionInfo is used to hold data about parts of each section.
 type SectionInfo struct {
-	Header                    textproto.MIMEHeader
+	Header                    []byte
 	Start, BSize, Size, Lines int
 	reader                    io.Reader
+	isHeaderReadFinished      bool
 }
 
 // Read will also count the final size of section.
@@ -48,7 +49,36 @@ func (si *SectionInfo) Read(p []byte) (n int, err error) {
 	n, err = si.reader.Read(p)
 	si.Size += n
 	si.Lines += bytes.Count(p, []byte("\n"))
+
+	si.readHeader(p)
 	return
+}
+
+// readHeader appends read data to Header until empty line is found.
+func (si *SectionInfo) readHeader(p []byte) {
+	if si.isHeaderReadFinished {
+		return
+	}
+
+	si.Header = append(si.Header, p...)
+
+	if i := bytes.Index(si.Header, []byte("\n\r\n")); i > 0 {
+		si.Header = si.Header[:i+3]
+		si.isHeaderReadFinished = true
+		return
+	}
+
+	// textproto works also with simple line ending so we should be liberal
+	// as well.
+	if i := bytes.Index(si.Header, []byte("\n\n")); i > 0 {
+		si.Header = si.Header[:i+2]
+		si.isHeaderReadFinished = true
+	}
+}
+
+// GetMIMEHeader parses bytes and return MIME header.
+func (si *SectionInfo) GetMIMEHeader() (textproto.MIMEHeader, error) {
+	return textproto.NewReader(bufio.NewReader(bytes.NewReader(si.Header))).ReadMIMEHeader()
 }
 
 func NewBodyStructure(reader io.Reader) (structure *BodyStructure, err error) {
@@ -93,14 +123,15 @@ func (bs *BodyStructure) parseAllChildSections(r io.Reader, currentPath []int, s
 	bufInfo := bufio.NewReader(info)
 	tp := textproto.NewReader(bufInfo)
 
-	if info.Header, err = tp.ReadMIMEHeader(); err != nil {
+	tpHeader, err := tp.ReadMIMEHeader()
+	if err != nil {
 		return
 	}
 
 	bodyInfo := &SectionInfo{reader: tp.R}
 	bodyReader := bufio.NewReader(bodyInfo)
 
-	mediaType, params, _ := pmmime.ParseMediaType(info.Header.Get("Content-Type"))
+	mediaType, params, _ := pmmime.ParseMediaType(tpHeader.Get("Content-Type"))
 
 	// If multipart, call getAllParts, else read to count lines.
 	if (strings.HasPrefix(mediaType, "multipart/") || mediaType == rfc822Message) && params["boundary"] != "" {
@@ -260,9 +291,9 @@ func (bs *BodyStructure) GetMailHeader() (header textproto.MIMEHeader, err error
 }
 
 // GetMailHeaderBytes returns the bytes with main mail header.
-// Warning: It can contain extra lines or multipart comment.
-func (bs *BodyStructure) GetMailHeaderBytes(wholeMail io.ReadSeeker) (header []byte, err error) {
-	return bs.GetSectionHeaderBytes(wholeMail, []int{})
+// Warning: It can contain extra lines.
+func (bs *BodyStructure) GetMailHeaderBytes() (header []byte, err error) {
+	return bs.GetSectionHeaderBytes([]int{})
 }
 
 func goToOffsetAndReadNBytes(wholeMail io.ReadSeeker, offset, length int) ([]byte, error) {
@@ -283,22 +314,21 @@ func goToOffsetAndReadNBytes(wholeMail io.ReadSeeker, offset, length int) ([]byt
 }
 
 // GetSectionHeader returns the mime header of specified section.
-func (bs *BodyStructure) GetSectionHeader(sectionPath []int) (header textproto.MIMEHeader, err error) {
+func (bs *BodyStructure) GetSectionHeader(sectionPath []int) (textproto.MIMEHeader, error) {
 	info, err := bs.getInfoCheckSection(sectionPath)
 	if err != nil {
-		return
+		return nil, err
 	}
-	header = info.Header
-	return
+	return info.GetMIMEHeader()
 }
 
-func (bs *BodyStructure) GetSectionHeaderBytes(wholeMail io.ReadSeeker, sectionPath []int) (header []byte, err error) {
+// GetSectionHeaderBytes returns raw header bytes of specified section.
+func (bs *BodyStructure) GetSectionHeaderBytes(sectionPath []int) ([]byte, error) {
 	info, err := bs.getInfoCheckSection(sectionPath)
 	if err != nil {
-		return
+		return nil, err
 	}
-	headerLength := info.Size - info.BSize
-	return goToOffsetAndReadNBytes(wholeMail, info.Start, headerLength)
+	return info.Header, nil
 }
 
 // IMAPBodyStructure will prepare imap bodystructure recurently for given part.
@@ -309,7 +339,12 @@ func (bs *BodyStructure) IMAPBodyStructure(currentPart []int) (imapBS *imap.Body
 		return
 	}
 
-	mediaType, params, _ := pmmime.ParseMediaType(info.Header.Get("Content-Type"))
+	tpHeader, err := info.GetMIMEHeader()
+	if err != nil {
+		return
+	}
+
+	mediaType, params, _ := pmmime.ParseMediaType(tpHeader.Get("Content-Type"))
 
 	mediaTypeSep := strings.Split(mediaType, "/")
 
@@ -324,19 +359,19 @@ func (bs *BodyStructure) IMAPBodyStructure(currentPart []int) (imapBS *imap.Body
 		Lines:       uint32(info.Lines),
 	}
 
-	if val := info.Header.Get("Content-ID"); val != "" {
+	if val := tpHeader.Get("Content-ID"); val != "" {
 		imapBS.Id = val
 	}
 
-	if val := info.Header.Get("Content-Transfer-Encoding"); val != "" {
+	if val := tpHeader.Get("Content-Transfer-Encoding"); val != "" {
 		imapBS.Encoding = val
 	}
 
-	if val := info.Header.Get("Content-Description"); val != "" {
+	if val := tpHeader.Get("Content-Description"); val != "" {
 		imapBS.Description = val
 	}
 
-	if val := info.Header.Get("Content-Disposition"); val != "" {
+	if val := tpHeader.Get("Content-Disposition"); val != "" {
 		imapBS.Disposition = val
 	}
 

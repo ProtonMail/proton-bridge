@@ -21,7 +21,6 @@ import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
-	"net/textproto"
 	"path/filepath"
 	"runtime"
 	"sort"
@@ -71,7 +70,9 @@ func TestParseBodyStructure(t *testing.T) {
 	debug("%10s: %-50s %5s %5s %5s %5s", "section", "type", "start", "size", "bsize", "lines")
 	for _, path := range paths {
 		sec := (*bs)[path]
-		contentType := (*bs)[path].Header.Get("Content-Type")
+		header, err := sec.GetMIMEHeader()
+		require.NoError(t, err)
+		contentType := header.Get("Content-Type")
 		debug("%10s: %-50s %5d %5d %5d %5d", path, contentType, sec.Start, sec.Size, sec.BSize, sec.Lines)
 		require.Equal(t, expectedStructure[path], contentType)
 	}
@@ -100,7 +101,9 @@ func TestParseBodyStructurePGP(t *testing.T) {
 
 	haveStructure := map[string]string{}
 	for path := range *bs {
-		haveStructure[path] = (*bs)[path].Header.Get("Content-Type")
+		header, err := (*bs)[path].GetMIMEHeader()
+		require.NoError(t, err)
+		haveStructure[path] = header.Get("Content-Type")
 	}
 
 	require.Equal(t, expectedStructure, haveStructure)
@@ -192,7 +195,7 @@ Content-Type: plain/text
 		r.NoError(err, debug(wantPath, info, haveBody))
 		r.Equal(wantBody, string(haveBody), debug(wantPath, info, haveBody))
 
-		haveHeader, err := bs.GetSectionHeaderBytes(strings.NewReader(wantMail), wantPath)
+		haveHeader, err := bs.GetSectionHeaderBytes(wantPath)
 		r.NoError(err, debug(wantPath, info, haveHeader))
 		r.Equal(wantHeader, string(haveHeader), debug(wantPath, info, haveHeader))
 	}
@@ -211,7 +214,7 @@ Content-Type: multipart/mixed; boundary="0000MAIN"
 	bs, err := NewBodyStructure(structReader)
 	require.NoError(t, err)
 
-	haveHeader, err := bs.GetMailHeaderBytes(strings.NewReader(sampleMail))
+	haveHeader, err := bs.GetMailHeaderBytes()
 	require.NoError(t, err)
 	require.Equal(t, wantHeader, haveHeader)
 }
@@ -533,18 +536,14 @@ func TestBodyStructureSerialize(t *testing.T) {
 	r := require.New(t)
 	want := &BodyStructure{
 		"1": {
-			Header: textproto.MIMEHeader{
-				"Content": []string{"type"},
-			},
-			Start: 1,
-			Size:  2,
-			BSize: 3,
-			Lines: 4,
+			Header: []byte("Content: type"),
+			Start:  1,
+			Size:   2,
+			BSize:  3,
+			Lines:  4,
 		},
 		"1.1.1": {
-			Header: textproto.MIMEHeader{
-				"X-Pm-Key": []string{"id"},
-			},
+			Header: []byte("X-Pm-Key: id"),
 			Start:  11,
 			Size:   12,
 			BSize:  13,
@@ -561,4 +560,33 @@ func TestBodyStructureSerialize(t *testing.T) {
 	// Before compare remove reader (should not be serialized)
 	(*want)["1.1.1"].reader = nil
 	r.Equal(want, have)
+}
+
+func TestSectionInfoReadHeader(t *testing.T) {
+	r := require.New(t)
+
+	testData := []struct {
+		wantHeader, mail string
+	}{
+		{
+			"key1: val1\nkey2: val2\n\n",
+			"key1: val1\nkey2: val2\n\nbody is here\n\nand it is not confused",
+		},
+		{
+			"key1:\n val1\n\n",
+			"key1:\n val1\n\nbody is here",
+		},
+		{
+			"key1: val1\r\nkey2: val2\r\n\r\n",
+			"key1: val1\r\nkey2: val2\r\n\r\nbody is here\r\n\r\nand it is not confused",
+		},
+	}
+
+	for _, td := range testData {
+		bs, err := NewBodyStructure(strings.NewReader(td.mail))
+		r.NoError(err, "case %q", td.mail)
+		haveHeader, err := bs.GetMailHeaderBytes()
+		r.NoError(err, "case %q", td.mail)
+		r.Equal(td.wantHeader, string(haveHeader), "case %q", td.mail)
+	}
 }

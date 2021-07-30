@@ -67,40 +67,19 @@ func (message *Message) Message() *pmapi.Message {
 	return message.msg
 }
 
-// IsMarkedDeleted returns true if message is marked as deleted for specific
-// mailbox.
+// IsMarkedDeleted returns true if message is marked as deleted for specific mailbox.
 func (message *Message) IsMarkedDeleted() bool {
-	isMarkedAsDeleted := false
-	err := message.storeMailbox.db().View(func(tx *bolt.Tx) error {
+	var isMarkedAsDeleted bool
+
+	if err := message.storeMailbox.db().View(func(tx *bolt.Tx) error {
 		isMarkedAsDeleted = message.storeMailbox.txGetDeletedIDsBucket(tx).Get([]byte(message.msg.ID)) != nil
 		return nil
-	})
-	if err != nil {
+	}); err != nil {
 		message.storeMailbox.log.WithError(err).Error("Not able to retrieve deleted mark, assuming false.")
 		return false
 	}
-	return isMarkedAsDeleted
-}
 
-// SetSize updates the information about size of decrypted message which can be
-// used for IMAP. This should not trigger any IMAP update.
-// NOTE: The size from the server corresponds to pure body bytes. Hence it
-// should not be used. The correct size has to be calculated from decrypted and
-// built message.
-func (message *Message) SetSize(size int64) error {
-	message.msg.Size = size
-	txUpdate := func(tx *bolt.Tx) error {
-		stored, err := message.store.txGetMessage(tx, message.msg.ID)
-		if err != nil {
-			return err
-		}
-		stored.Size = size
-		return message.store.txPutMessage(
-			tx.Bucket(metadataBucket),
-			stored,
-		)
-	}
-	return message.store.db.Update(txUpdate)
+	return isMarkedAsDeleted
 }
 
 // SetContentTypeAndHeader updates the information about content type and
@@ -112,7 +91,7 @@ func (message *Message) SetSize(size int64) error {
 func (message *Message) SetContentTypeAndHeader(mimeType string, header mail.Header) error {
 	message.msg.MIMEType = mimeType
 	message.msg.Header = header
-	txUpdate := func(tx *bolt.Tx) error {
+	return message.store.db.Update(func(tx *bolt.Tx) error {
 		stored, err := message.store.txGetMessage(tx, message.msg.ID)
 		if err != nil {
 			return err
@@ -123,34 +102,26 @@ func (message *Message) SetContentTypeAndHeader(mimeType string, header mail.Hea
 			tx.Bucket(metadataBucket),
 			stored,
 		)
-	}
-	return message.store.db.Update(txUpdate)
-}
-
-// SetHeader checks header can be parsed and if yes it stores header bytes in
-// database.
-func (message *Message) SetHeader(header []byte) error {
-	_, err := textproto.NewReader(bufio.NewReader(bytes.NewReader(header))).ReadMIMEHeader()
-	if err != nil {
-		return err
-	}
-	return message.store.db.Update(func(tx *bolt.Tx) error {
-		return tx.Bucket(headersBucket).Put([]byte(message.ID()), header)
 	})
 }
 
 // IsFullHeaderCached will check that valid full header is stored in DB.
 func (message *Message) IsFullHeaderCached() bool {
-	header, err := message.getRawHeader()
-	return err == nil && header != nil
-}
-
-func (message *Message) getRawHeader() (raw []byte, err error) {
-	err = message.store.db.View(func(tx *bolt.Tx) error {
-		raw = tx.Bucket(headersBucket).Get([]byte(message.ID()))
+	var raw []byte
+	err := message.store.db.View(func(tx *bolt.Tx) error {
+		raw = tx.Bucket(bodystructureBucket).Get([]byte(message.ID()))
 		return nil
 	})
-	return
+	return err == nil && raw != nil
+}
+
+func (message *Message) getRawHeader() ([]byte, error) {
+	bs, err := message.GetBodyStructure()
+	if err != nil {
+		return nil, err
+	}
+
+	return bs.GetMailHeaderBytes()
 }
 
 // GetHeader will return cached header from DB.
@@ -178,44 +149,79 @@ func (message *Message) GetMIMEHeader() textproto.MIMEHeader {
 	return header
 }
 
-// SetBodyStructure stores serialized body structure in database.
-func (message *Message) SetBodyStructure(bs *pkgMsg.BodyStructure) error {
-	txUpdate := func(tx *bolt.Tx) error {
-		return message.store.txPutBodyStructure(
-			tx.Bucket(bodystructureBucket),
-			message.ID(), bs,
-		)
-	}
-	return message.store.db.Update(txUpdate)
-}
+// GetBodyStructure returns the message's body structure.
+// It checks first if it's in the store. If it is, it returns it from store,
+// otherwise it computes it from the message cache (and saves the result to the store).
+func (message *Message) GetBodyStructure() (*pkgMsg.BodyStructure, error) {
+	var raw []byte
 
-// GetBodyStructure deserializes body structure from database. If body structure
-// is not in database it returns nil error and nil body structure. If error
-// occurs it returns nil body structure.
-func (message *Message) GetBodyStructure() (bs *pkgMsg.BodyStructure, err error) {
-	txRead := func(tx *bolt.Tx) error {
-		bs, err = message.store.txGetBodyStructure(
-			tx.Bucket(bodystructureBucket),
-			message.ID(),
-		)
-		return err
-	}
-	if err = message.store.db.View(txRead); err != nil {
+	if err := message.store.db.View(func(tx *bolt.Tx) error {
+		raw = tx.Bucket(bodystructureBucket).Get([]byte(message.ID()))
+		return nil
+	}); err != nil {
 		return nil, err
 	}
+
+	if len(raw) > 0 {
+		// If not possible to deserialize just continue with build.
+		if bs, err := pkgMsg.DeserializeBodyStructure(raw); err == nil {
+			return bs, nil
+		}
+	}
+
+	literal, err := message.store.getCachedMessage(message.ID())
+	if err != nil {
+		return nil, err
+	}
+
+	bs, err := pkgMsg.NewBodyStructure(bytes.NewReader(literal))
+	if err != nil {
+		return nil, err
+	}
+
+	if raw, err = bs.Serialize(); err != nil {
+		return nil, err
+	}
+
+	if err := message.store.db.Update(func(tx *bolt.Tx) error {
+		return tx.Bucket(bodystructureBucket).Put([]byte(message.ID()), raw)
+	}); err != nil {
+		return nil, err
+	}
+
 	return bs, nil
 }
 
-func (message *Message) IncreaseBuildCount() (times uint32, err error) {
-	txUpdate := func(tx *bolt.Tx) error {
-		times, err = message.store.txIncreaseMsgBuildCount(
-			tx.Bucket(msgBuildCountBucket),
-			message.ID(),
-		)
-		return err
-	}
-	if err = message.store.db.Update(txUpdate); err != nil {
+// GetRFC822 returns the raw message literal.
+func (message *Message) GetRFC822() ([]byte, error) {
+	return message.store.getCachedMessage(message.ID())
+}
+
+// GetRFC822Size returns the size of the raw message literal.
+func (message *Message) GetRFC822Size() (uint32, error) {
+	var raw []byte
+
+	if err := message.store.db.View(func(tx *bolt.Tx) error {
+		raw = tx.Bucket(sizeBucket).Get([]byte(message.ID()))
+		return nil
+	}); err != nil {
 		return 0, err
 	}
-	return times, nil
+
+	if len(raw) > 0 {
+		return btoi(raw), nil
+	}
+
+	literal, err := message.store.getCachedMessage(message.ID())
+	if err != nil {
+		return 0, err
+	}
+
+	if err := message.store.db.Update(func(tx *bolt.Tx) error {
+		return tx.Bucket(sizeBucket).Put([]byte(message.ID()), itob(uint32(len(literal))))
+	}); err != nil {
+		return 0, err
+	}
+
+	return uint32(len(literal)), nil
 }

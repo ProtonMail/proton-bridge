@@ -100,18 +100,28 @@ func (p *keyValueStore) GetBool(key string) bool {
 }
 
 func (p *keyValueStore) GetInt(key string) int {
+	if p.Get(key) == "" {
+		return 0
+	}
+
 	value, err := strconv.Atoi(p.Get(key))
 	if err != nil {
 		logrus.WithError(err).Error("Cannot parse int")
 	}
+
 	return value
 }
 
 func (p *keyValueStore) GetFloat64(key string) float64 {
+	if p.Get(key) == "" {
+		return 0
+	}
+
 	value, err := strconv.ParseFloat(p.Get(key), 64)
 	if err != nil {
 		logrus.WithError(err).Error("Cannot parse float64")
 	}
+
 	return value
 }
 

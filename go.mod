@@ -32,7 +32,6 @@ require (
 	github.com/emersion/go-imap-move v0.0.0-20190710073258-6e5a51a5b342
 	github.com/emersion/go-imap-quota v0.0.0-20210203125329-619074823f3c
 	github.com/emersion/go-imap-unselect v0.0.0-20171113212723-b985794e5f26
-	github.com/emersion/go-mbox v1.0.2
 	github.com/emersion/go-message v0.12.1-0.20201221184100-40c3f864532b
 	github.com/emersion/go-sasl v0.0.0-20200509203442-7bfe0ed36a21
 	github.com/emersion/go-smtp v0.14.0
@@ -45,7 +44,6 @@ require (
 	github.com/golang/mock v1.4.4
 	github.com/google/go-cmp v0.5.1
 	github.com/google/uuid v1.1.1
-	github.com/gopherjs/gopherjs v0.0.0-20190430165422-3e4dfb77656c // indirect
 	github.com/hashicorp/go-multierror v1.1.0
 	github.com/jaytaylor/html2text v0.0.0-20200412013138-3577fbdbcff7
 	github.com/keybase/go-keychain v0.0.0-20200502122510-cda31fe0c86d
@@ -55,13 +53,11 @@ require (
 	github.com/nsf/jsondiff v0.0.0-20200515183724-f29ed568f4ce
 	github.com/olekukonko/tablewriter v0.0.4 // indirect
 	github.com/pkg/errors v0.9.1
+	github.com/ricochet2200/go-disk-usage/du v0.0.0-20210707232629-ac9918953285
 	github.com/sirupsen/logrus v1.7.0
-	github.com/skratchdot/open-golang v0.0.0-20200116055534-eef842397966
 	github.com/ssor/bom v0.0.0-20170718123548-6386211fdfcf // indirect
+	github.com/stretchr/objx v0.2.0 // indirect
 	github.com/stretchr/testify v1.7.0
-	github.com/therecipe/qt v0.0.0-20200701200531-7f61353ee73e
-	github.com/therecipe/qt/internal/binding/files/docs/5.12.0 v0.0.0-20200904063919-c0c124a5770d // indirect
-	github.com/therecipe/qt/internal/binding/files/docs/5.13.0 v0.0.0-20200904063919-c0c124a5770d // indirect
 	github.com/urfave/cli/v2 v2.2.0
 	github.com/vmihailenco/msgpack/v5 v5.1.3
 	go.etcd.io/bbolt v1.3.6

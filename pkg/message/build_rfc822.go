@@ -34,7 +34,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func buildRFC822(kr *crypto.KeyRing, msg *pmapi.Message, attData [][]byte, opts JobOptions) ([]byte, error) {
+func buildRFC822(kr *crypto.KeyRing, msg *pmapi.Message, attData map[string][]byte, opts JobOptions) ([]byte, error) {
 	switch {
 	case len(msg.Attachments) > 0:
 		return buildMultipartRFC822(kr, msg, attData, opts)
@@ -80,7 +80,7 @@ func buildSimpleRFC822(kr *crypto.KeyRing, msg *pmapi.Message, opts JobOptions) 
 func buildMultipartRFC822(
 	kr *crypto.KeyRing,
 	msg *pmapi.Message,
-	attData [][]byte,
+	attData map[string][]byte,
 	opts JobOptions,
 ) ([]byte, error) {
 	boundary := newBoundary(msg.ID)
@@ -103,13 +103,13 @@ func buildMultipartRFC822(
 		attachData [][]byte
 	)
 
-	for i, att := range msg.Attachments {
+	for _, att := range msg.Attachments {
 		if att.Disposition == pmapi.DispositionInline {
 			inlineAtts = append(inlineAtts, att)
-			inlineData = append(inlineData, attData[i])
+			inlineData = append(inlineData, attData[att.ID])
 		} else {
 			attachAtts = append(attachAtts, att)
-			attachData = append(attachData, attData[i])
+			attachData = append(attachData, attData[att.ID])
 		}
 	}
 

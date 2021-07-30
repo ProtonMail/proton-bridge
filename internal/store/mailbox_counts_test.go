@@ -107,7 +107,7 @@ func checkCounts(t testing.TB, wantCounts []*pmapi.MessagesCount, haveStore *Sto
 func TestMailboxCountRemove(t *testing.T) {
 	m, clear := initMocks(t)
 	defer clear()
-	m.newStoreNoEvents(true)
+	m.newStoreNoEvents(t, true)
 
 	testCounts := []*pmapi.MessagesCount{
 		{LabelID: "label1", Total: 100, Unread: 0},

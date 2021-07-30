@@ -18,13 +18,15 @@
 package users
 
 import (
+	"testing"
+
 	r "github.com/stretchr/testify/require"
 )
 
 // testNewUser sets up a new, authorised user.
-func testNewUser(m mocks) *User {
+func testNewUser(t *testing.T, m mocks) *User {
 	m.credentialsStore.EXPECT().Get("user").Return(testCredentials, nil)
-	mockInitConnectedUser(m)
+	mockInitConnectedUser(t, m)
 	mockEventLoopNoAction(m)
 
 	user, creds, err := newUser(m.PanicHandler, "user", m.eventListener, m.credentialsStore, m.storeMaker)

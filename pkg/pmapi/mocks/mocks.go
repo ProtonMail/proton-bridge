@@ -362,6 +362,21 @@ func (mr *MockClientMockRecorder) GetPublicKeysForEmail(arg0, arg1 interface{}) 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPublicKeysForEmail", reflect.TypeOf((*MockClient)(nil).GetPublicKeysForEmail), arg0, arg1)
 }
 
+// GetUserKeyRing mocks base method.
+func (m *MockClient) GetUserKeyRing() (*crypto.KeyRing, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetUserKeyRing")
+	ret0, _ := ret[0].(*crypto.KeyRing)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetUserKeyRing indicates an expected call of GetUserKeyRing.
+func (mr *MockClientMockRecorder) GetUserKeyRing() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserKeyRing", reflect.TypeOf((*MockClient)(nil).GetUserKeyRing))
+}
+
 // Import mocks base method.
 func (m *MockClient) Import(arg0 context.Context, arg1 pmapi.ImportMsgReqs) ([]*pmapi.ImportMsgRes, error) {
 	m.ctrl.T.Helper()

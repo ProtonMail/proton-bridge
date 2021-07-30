@@ -31,7 +31,7 @@ func TestClearStoreWithStore(t *testing.T) {
 	m := initMocks(t)
 	defer m.ctrl.Finish()
 
-	user := testNewUser(m)
+	user := testNewUser(t, m)
 	defer cleanUpUserData(user)
 
 	r.Nil(t, user.store.Close())
@@ -43,7 +43,7 @@ func TestClearStoreWithoutStore(t *testing.T) {
 	m := initMocks(t)
 	defer m.ctrl.Finish()
 
-	user := testNewUser(m)
+	user := testNewUser(t, m)
 	defer cleanUpUserData(user)
 
 	r.NotNil(t, user.store)

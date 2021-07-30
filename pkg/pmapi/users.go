@@ -20,6 +20,7 @@ package pmapi
 import (
 	"context"
 
+	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/getsentry/sentry-go"
 	"github.com/go-resty/resty/v2"
 	"github.com/pkg/errors"
@@ -137,4 +138,13 @@ func (c *client) CurrentUser(ctx context.Context) (*User, error) {
 	}
 
 	return c.UpdateUser(ctx)
+}
+
+// CurrentUser returns currently active user or user will be updated.
+func (c *client) GetUserKeyRing() (*crypto.KeyRing, error) {
+	if c.userKeyRing == nil {
+		return nil, errors.New("user keyring is not available")
+	}
+
+	return c.userKeyRing, nil
 }

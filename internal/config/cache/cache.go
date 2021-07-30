@@ -45,6 +45,11 @@ func (c *Cache) GetDBDir() string {
 	return c.getCurrentCacheDir()
 }
 
+// GetDefaultMessageCacheDir returns folder for cached messages files.
+func (c *Cache) GetDefaultMessageCacheDir() string {
+	return filepath.Join(c.getCurrentCacheDir(), "messages")
+}
+
 // GetIMAPCachePath returns path to file with IMAP status.
 func (c *Cache) GetIMAPCachePath() string {
 	return filepath.Join(c.getCurrentCacheDir(), "user_info.json")

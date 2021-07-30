@@ -33,7 +33,7 @@ func TestGetAllMessageIDs(t *testing.T) {
 	m, clear := initMocks(t)
 	defer clear()
 
-	m.newStoreNoEvents(true)
+	m.newStoreNoEvents(t, true)
 
 	insertMessage(t, m, "msg1", "Test message 1", addrID1, false, []string{pmapi.AllMailLabel, pmapi.InboxLabel})
 	insertMessage(t, m, "msg2", "Test message 2", addrID1, false, []string{pmapi.AllMailLabel, pmapi.ArchiveLabel})
@@ -47,7 +47,7 @@ func TestGetMessageFromDB(t *testing.T) {
 	m, clear := initMocks(t)
 	defer clear()
 
-	m.newStoreNoEvents(true)
+	m.newStoreNoEvents(t, true)
 	insertMessage(t, m, "msg1", "Test message 1", addrID1, false, []string{pmapi.AllMailLabel})
 
 	tests := []struct{ msgID, wantErr string }{
@@ -72,7 +72,7 @@ func TestCreateOrUpdateMessageMetadata(t *testing.T) {
 	m, clear := initMocks(t)
 	defer clear()
 
-	m.newStoreNoEvents(true)
+	m.newStoreNoEvents(t, true)
 	insertMessage(t, m, "msg1", "Test message 1", addrID1, false, []string{pmapi.AllMailLabel})
 
 	msg, err := m.store.getMessageFromDB("msg1")
@@ -81,12 +81,10 @@ func TestCreateOrUpdateMessageMetadata(t *testing.T) {
 	// Check non-meta and calculated data are cleared/empty.
 	a.Equal(t, "", msg.Body)
 	a.Equal(t, []*pmapi.Attachment(nil), msg.Attachments)
-	a.Equal(t, int64(-1), msg.Size)
 	a.Equal(t, "", msg.MIMEType)
 	a.Equal(t, make(mail.Header), msg.Header)
 
 	// Change the calculated data.
-	wantSize := int64(42)
 	wantMIMEType := "plain-text"
 	wantHeader := mail.Header{
 		"Key": []string{"value"},
@@ -94,13 +92,11 @@ func TestCreateOrUpdateMessageMetadata(t *testing.T) {
 
 	storeMsg, err := m.store.addresses[addrID1].mailboxes[pmapi.AllMailLabel].GetMessage("msg1")
 	require.Nil(t, err)
-	require.Nil(t, storeMsg.SetSize(wantSize))
 	require.Nil(t, storeMsg.SetContentTypeAndHeader(wantMIMEType, wantHeader))
 
 	// Check calculated data.
 	msg, err = m.store.getMessageFromDB("msg1")
 	require.Nil(t, err)
-	a.Equal(t, wantSize, msg.Size)
 	a.Equal(t, wantMIMEType, msg.MIMEType)
 	a.Equal(t, wantHeader, msg.Header)
 
@@ -109,7 +105,6 @@ func TestCreateOrUpdateMessageMetadata(t *testing.T) {
 
 	msg, err = m.store.getMessageFromDB("msg1")
 	require.Nil(t, err)
-	a.Equal(t, wantSize, msg.Size)
 	a.Equal(t, wantMIMEType, msg.MIMEType)
 	a.Equal(t, wantHeader, msg.Header)
 }
@@ -118,7 +113,7 @@ func TestDeleteMessage(t *testing.T) {
 	m, clear := initMocks(t)
 	defer clear()
 
-	m.newStoreNoEvents(true)
+	m.newStoreNoEvents(t, true)
 	insertMessage(t, m, "msg1", "Test message 1", addrID1, false, []string{pmapi.AllMailLabel})
 	insertMessage(t, m, "msg2", "Test message 2", addrID1, false, []string{pmapi.AllMailLabel})
 
@@ -129,8 +124,7 @@ func TestDeleteMessage(t *testing.T) {
 }
 
 func insertMessage(t *testing.T, m *mocksForStore, id, subject, sender string, unread bool, labelIDs []string) { //nolint[unparam]
-	msg := getTestMessage(id, subject, sender, unread, labelIDs)
-	require.Nil(t, m.store.createOrUpdateMessageEvent(msg))
+	require.Nil(t, m.store.createOrUpdateMessageEvent(getTestMessage(id, subject, sender, unread, labelIDs)))
 }
 
 func getTestMessage(id, subject, sender string, unread bool, labelIDs []string) *pmapi.Message {
@@ -142,7 +136,6 @@ func getTestMessage(id, subject, sender string, unread bool, labelIDs []string) 
 		Sender:   address,
 		ToList:   []*mail.Address{address},
 		LabelIDs: labelIDs,
-		Size:     12345,
 		Body:     "body of message",
 		Attachments: []*pmapi.Attachment{{
 			ID:        "attachment1",
@@ -162,7 +155,7 @@ func TestCreateDraftCheckMessageSize(t *testing.T) {
 	m, clear := initMocks(t)
 	defer clear()
 
-	m.newStoreNoEvents(false)
+	m.newStoreNoEvents(t, false)
 	m.client.EXPECT().CurrentUser(gomock.Any()).Return(&pmapi.User{
 		MaxUpload: 100, // Decrypted message 5 chars, encrypted 500+.
 	}, nil)
@@ -181,7 +174,7 @@ func TestCreateDraftCheckMessageWithAttachmentSize(t *testing.T) {
 	m, clear := initMocks(t)
 	defer clear()
 
-	m.newStoreNoEvents(false)
+	m.newStoreNoEvents(t, false)
 	m.client.EXPECT().CurrentUser(gomock.Any()).Return(&pmapi.User{
 		MaxUpload: 800, // Decrypted message 5 chars + 5 chars of attachment, encrypted 500+ + 300+.
 	}, nil)

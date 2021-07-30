@@ -107,6 +107,21 @@ func (u *User) connect(client pmapi.Client, creds *credentials.Credentials) erro
 		return err
 	}
 
+	// If the client is already unlocked, we can unlock the store cache as well.
+	if client.IsUnlocked() {
+		kr, err := client.GetUserKeyRing()
+		if err != nil {
+			return err
+		}
+
+		if err := u.store.UnlockCache(kr); err != nil {
+			return err
+		}
+
+		// NOTE(GODT-1158): If using in-memory cache we probably shouldn't start the watcher?
+		u.store.StartWatcher()
+	}
+
 	return nil
 }
 

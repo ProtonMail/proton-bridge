@@ -38,7 +38,7 @@ const (
 )
 
 type eventLoop struct {
-	cache          *Cache
+	currentEvents  *Events
 	currentEventID string
 	currentEvent   *pmapi.Event
 	pollCh         chan chan struct{}
@@ -51,26 +51,26 @@ type eventLoop struct {
 
 	log *logrus.Entry
 
-	store  *Store
-	user   BridgeUser
-	events listener.Listener
+	store    *Store
+	user     BridgeUser
+	listener listener.Listener
 }
 
-func newEventLoop(cache *Cache, store *Store, user BridgeUser, events listener.Listener) *eventLoop {
+func newEventLoop(currentEvents *Events, store *Store, user BridgeUser, listener listener.Listener) *eventLoop {
 	eventLog := log.WithField("userID", user.ID())
 	eventLog.Trace("Creating new event loop")
 
 	return &eventLoop{
-		cache:          cache,
-		currentEventID: cache.getEventID(user.ID()),
+		currentEvents:  currentEvents,
+		currentEventID: currentEvents.getEventID(user.ID()),
 		pollCh:         make(chan chan struct{}),
 		isRunning:      false,
 
 		log: eventLog,
 
-		store:  store,
-		user:   user,
-		events: events,
+		store:    store,
+		user:     user,
+		listener: listener,
 	}
 }
 
@@ -89,7 +89,7 @@ func (loop *eventLoop) setFirstEventID() (err error) {
 
 	loop.currentEventID = event.EventID
 
-	if err = loop.cache.setEventID(loop.user.ID(), loop.currentEventID); err != nil {
+	if err = loop.currentEvents.setEventID(loop.user.ID(), loop.currentEventID); err != nil {
 		loop.log.WithError(err).Error("Could not set latest event ID in user cache")
 		return
 	}
@@ -229,7 +229,7 @@ func (loop *eventLoop) processNextEvent() (more bool, err error) { // nolint[fun
 
 		if err != nil && isFdCloseToULimit() {
 			l.Warn("Ulimit reached")
-			loop.events.Emit(bridgeEvents.RestartBridgeEvent, "")
+			loop.listener.Emit(bridgeEvents.RestartBridgeEvent, "")
 			err = nil
 		}
 
@@ -291,7 +291,7 @@ func (loop *eventLoop) processNextEvent() (more bool, err error) { // nolint[fun
 		// This allows the event loop to continue to function (unless the cache was broken
 		// and bridge stopped, in which case it will start from the old event ID anyway).
 		loop.currentEventID = event.EventID
-		if err = loop.cache.setEventID(loop.user.ID(), event.EventID); err != nil {
+		if err = loop.currentEvents.setEventID(loop.user.ID(), event.EventID); err != nil {
 			return false, errors.Wrap(err, "failed to save event ID to cache")
 		}
 	}
@@ -371,7 +371,7 @@ func (loop *eventLoop) processAddresses(log *logrus.Entry, addressEvents []*pmap
 		switch addressEvent.Action {
 		case pmapi.EventCreate:
 			log.WithField("email", addressEvent.Address.Email).Debug("Address was created")
-			loop.events.Emit(bridgeEvents.AddressChangedEvent, loop.user.GetPrimaryAddress())
+			loop.listener.Emit(bridgeEvents.AddressChangedEvent, loop.user.GetPrimaryAddress())
 
 		case pmapi.EventUpdate:
 			oldAddress := oldList.ByID(addressEvent.ID)
@@ -383,7 +383,7 @@ func (loop *eventLoop) processAddresses(log *logrus.Entry, addressEvents []*pmap
 			email := oldAddress.Email
 			log.WithField("email", email).Debug("Address was updated")
 			if addressEvent.Address.Receive != oldAddress.Receive {
-				loop.events.Emit(bridgeEvents.AddressChangedLogoutEvent, email)
+				loop.listener.Emit(bridgeEvents.AddressChangedLogoutEvent, email)
 			}
 
 		case pmapi.EventDelete:
@@ -396,7 +396,7 @@ func (loop *eventLoop) processAddresses(log *logrus.Entry, addressEvents []*pmap
 			email := oldAddress.Email
 			log.WithField("email", email).Debug("Address was deleted")
 			loop.user.CloseConnection(email)
-			loop.events.Emit(bridgeEvents.AddressChangedLogoutEvent, email)
+			loop.listener.Emit(bridgeEvents.AddressChangedLogoutEvent, email)
 		case pmapi.EventUpdateFlags:
 			log.Error("EventUpdateFlags for address event is uknown operation")
 		}

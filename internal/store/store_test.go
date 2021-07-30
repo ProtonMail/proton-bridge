@@ -23,13 +23,17 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 	"time"
 
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
+	"github.com/ProtonMail/proton-bridge/internal/store/cache"
 	storemocks "github.com/ProtonMail/proton-bridge/internal/store/mocks"
+	"github.com/ProtonMail/proton-bridge/pkg/message"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	pmapimocks "github.com/ProtonMail/proton-bridge/pkg/pmapi/mocks"
+	tests "github.com/ProtonMail/proton-bridge/test"
 	"github.com/golang/mock/gomock"
 
 	"github.com/stretchr/testify/require"
@@ -139,7 +143,7 @@ type mocksForStore struct {
 	store          *Store
 
 	tmpDir string
-	cache  *Cache
+	cache  *Events
 }
 
 func initMocks(tb testing.TB) (*mocksForStore, func()) {
@@ -162,7 +166,7 @@ func initMocks(tb testing.TB) (*mocksForStore, func()) {
 	require.NoError(tb, err)
 
 	cacheFile := filepath.Join(mocks.tmpDir, "cache.json")
-	mocks.cache = NewCache(cacheFile)
+	mocks.cache = NewEvents(cacheFile)
 
 	return mocks, func() {
 		if err := recover(); err != nil {
@@ -176,13 +180,14 @@ func initMocks(tb testing.TB) (*mocksForStore, func()) {
 	}
 }
 
-func (mocks *mocksForStore) newStoreNoEvents(combinedMode bool, msgs ...*pmapi.Message) { //nolint[unparam]
+func (mocks *mocksForStore) newStoreNoEvents(t *testing.T, combinedMode bool, msgs ...*pmapi.Message) { //nolint[unparam]
 	mocks.user.EXPECT().ID().Return("userID").AnyTimes()
 	mocks.user.EXPECT().IsConnected().Return(true)
 	mocks.user.EXPECT().IsCombinedAddressMode().Return(combinedMode)
 
 	mocks.user.EXPECT().GetClient().AnyTimes().Return(mocks.client)
 
+	mocks.client.EXPECT().GetUserKeyRing().Return(tests.MakeKeyRing(t), nil).AnyTimes()
 	mocks.client.EXPECT().Addresses().Return(pmapi.AddressList{
 		{ID: addrID1, Email: addr1, Type: pmapi.OriginalAddress, Receive: true},
 		{ID: addrID2, Email: addr2, Type: pmapi.AliasAddress, Receive: true},
@@ -213,6 +218,8 @@ func (mocks *mocksForStore) newStoreNoEvents(combinedMode bool, msgs ...*pmapi.M
 		mocks.panicHandler,
 		mocks.user,
 		mocks.events,
+		cache.NewInMemoryCache(1<<20),
+		message.NewBuilder(runtime.NumCPU(), runtime.NumCPU()),
 		filepath.Join(mocks.tmpDir, "mailbox-test.db"),
 		mocks.cache,
 	)

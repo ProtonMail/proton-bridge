@@ -19,21 +19,13 @@ package imap
 
 import (
 	"bytes"
-	"context"
 
-	"github.com/ProtonMail/proton-bridge/internal/imap/cache"
 	"github.com/ProtonMail/proton-bridge/pkg/message"
-	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	"github.com/emersion/go-imap"
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 )
 
-func (im *imapMailbox) getMessage(
-	storeMessage storeMessageProvider,
-	items []imap.FetchItem,
-	msgBuildCountHistogram *msgBuildCountHistogram,
-) (msg *imap.Message, err error) {
+func (im *imapMailbox) getMessage(storeMessage storeMessageProvider, items []imap.FetchItem) (msg *imap.Message, err error) {
 	msglog := im.log.WithField("msgID", storeMessage.ID())
 	msglog.Trace("Getting message")
 
@@ -69,9 +61,12 @@ func (im *imapMailbox) getMessage(
 			// There is no point having message older than RFC itself, it's not possible.
 			msg.InternalDate = message.SanitizeMessageDate(m.Time)
 		case imap.FetchRFC822Size:
-			if msg.Size, err = im.getSize(storeMessage); err != nil {
+			size, err := storeMessage.GetRFC822Size()
+			if err != nil {
 				return nil, err
 			}
+
+			msg.Size = size
 		case imap.FetchUid:
 			if msg.Uid, err = storeMessage.UID(); err != nil {
 				return nil, err
@@ -79,7 +74,7 @@ func (im *imapMailbox) getMessage(
 		case imap.FetchAll, imap.FetchFast, imap.FetchFull, imap.FetchRFC822, imap.FetchRFC822Header, imap.FetchRFC822Text:
 			fallthrough // this is list of defined items by go-imap, but items can be also sections generated from requests
 		default:
-			if err = im.getLiteralForSection(item, msg, storeMessage, msgBuildCountHistogram); err != nil {
+			if err = im.getLiteralForSection(item, msg, storeMessage); err != nil {
 				return
 			}
 		}
@@ -88,35 +83,7 @@ func (im *imapMailbox) getMessage(
 	return msg, err
 }
 
-// getSize returns cached size or it will build the message, save the size in
-// DB and then returns the size after build.
-//
-// We are storing size in DB as part of pmapi messages metada. The size
-// attribute on the server represents size of encrypted body. The value is
-// cleared in Bridge and the final decrypted size (including header, attachment
-// and MIME structure) is computed after building the message.
-func (im *imapMailbox) getSize(storeMessage storeMessageProvider) (uint32, error) {
-	m := storeMessage.Message()
-	if m.Size <= 0 {
-		im.log.WithField("msgID", m.ID).Debug("Size unknown - downloading body")
-		// We are sure the size is not a problem right now. Clients
-		// might not first check sizes of all messages so we couldn't
-		// be sure if seeing 1st or 2nd sync is all right or not.
-		// Therefore, it's better to exclude getting size from the
-		// counting and see build count as real message build.
-		if _, _, err := im.getBodyAndStructure(storeMessage, nil); err != nil {
-			return 0, err
-		}
-	}
-	return uint32(m.Size), nil
-}
-
-func (im *imapMailbox) getLiteralForSection(
-	itemSection imap.FetchItem,
-	msg *imap.Message,
-	storeMessage storeMessageProvider,
-	msgBuildCountHistogram *msgBuildCountHistogram,
-) error {
+func (im *imapMailbox) getLiteralForSection(itemSection imap.FetchItem, msg *imap.Message, storeMessage storeMessageProvider) error {
 	section, err := imap.ParseBodySectionName(itemSection)
 	if err != nil {
 		log.WithError(err).Warn("Failed to parse body section name; part will be skipped")
@@ -124,7 +91,7 @@ func (im *imapMailbox) getLiteralForSection(
 	}
 
 	var literal imap.Literal
-	if literal, err = im.getMessageBodySection(storeMessage, section, msgBuildCountHistogram); err != nil {
+	if literal, err = im.getMessageBodySection(storeMessage, section); err != nil {
 		return err
 	}
 
@@ -149,88 +116,25 @@ func (im *imapMailbox) getBodyStructure(storeMessage storeMessageProvider) (bs *
 		// be sure if seeing 1st or 2nd sync is all right or not.
 		// Therefore, it's better to exclude first body structure fetch
 		// from the counting and see build count as real message build.
-		if bs, _, err = im.getBodyAndStructure(storeMessage, nil); err != nil {
+		if bs, _, err = im.getBodyAndStructure(storeMessage); err != nil {
 			return
 		}
 	}
 	return
 }
 
-func (im *imapMailbox) getBodyAndStructure(
-	storeMessage storeMessageProvider, msgBuildCountHistogram *msgBuildCountHistogram,
-) (
-	structure *message.BodyStructure, bodyReader *bytes.Reader, err error,
-) {
-	m := storeMessage.Message()
-	id := im.storeUser.UserID() + m.ID
-	cache.BuildLock(id)
-	defer cache.BuildUnlock(id)
-	bodyReader, structure = cache.LoadMail(id)
-
-	// return the message which was found in cache
-	if bodyReader.Len() != 0 && structure != nil {
-		return structure, bodyReader, nil
+func (im *imapMailbox) getBodyAndStructure(storeMessage storeMessageProvider) (*message.BodyStructure, *bytes.Reader, error) {
+	rfc822, err := storeMessage.GetRFC822()
+	if err != nil {
+		return nil, nil, err
 	}
 
-	structure, body, err := im.buildMessage(m)
-	bodyReader = bytes.NewReader(body)
-	size := int64(len(body))
-	l := im.log.WithField("newSize", size).WithField("msgID", m.ID)
-
-	if err != nil || structure == nil || size == 0 {
-		l.WithField("hasStructure", structure != nil).Warn("Failed to build message")
-		return structure, bodyReader, err
+	structure, err := storeMessage.GetBodyStructure()
+	if err != nil {
+		return nil, nil, err
 	}
 
-	// Save the size, body structure and header even for messages which
-	// were unable to decrypt. Hence they doesn't have to be computed every
-	// time.
-	m.Size = size
-	cacheMessageInStore(storeMessage, structure, body, l)
-
-	if msgBuildCountHistogram != nil {
-		times, errCount := storeMessage.IncreaseBuildCount()
-		if errCount != nil {
-			l.WithError(errCount).Warn("Cannot increase build count")
-		}
-		msgBuildCountHistogram.add(times)
-	}
-
-	// Drafts can change therefore we don't want to cache them.
-	if !isMessageInDraftFolder(m) {
-		cache.SaveMail(id, body, structure)
-	}
-
-	return structure, bodyReader, err
-}
-
-func cacheMessageInStore(storeMessage storeMessageProvider, structure *message.BodyStructure, body []byte, l *logrus.Entry) {
-	m := storeMessage.Message()
-	if errSize := storeMessage.SetSize(m.Size); errSize != nil {
-		l.WithError(errSize).Warn("Cannot update size while building")
-	}
-	if structure != nil && !isMessageInDraftFolder(m) {
-		if errStruct := storeMessage.SetBodyStructure(structure); errStruct != nil {
-			l.WithError(errStruct).Warn("Cannot update bodystructure while building")
-		}
-	}
-	header, errHead := structure.GetMailHeaderBytes(bytes.NewReader(body))
-	if errHead == nil && len(header) != 0 {
-		if errStore := storeMessage.SetHeader(header); errStore != nil {
-			l.WithError(errStore).Warn("Cannot update header in store")
-		}
-	} else {
-		l.WithError(errHead).Warn("Cannot get header bytes from structure")
-	}
-}
-
-func isMessageInDraftFolder(m *pmapi.Message) bool {
-	for _, labelID := range m.LabelIDs {
-		if labelID == pmapi.DraftLabel {
-			return true
-		}
-	}
-	return false
+	return structure, bytes.NewReader(rfc822), nil
 }
 
 // This will download message (or read from cache) and pick up the section,
@@ -246,11 +150,7 @@ func isMessageInDraftFolder(m *pmapi.Message) bool {
 // For all other cases it is necessary to download and decrypt the message
 // and drop the header which was obtained from cache. The header will
 // will be stored in DB once successfully built. Check `getBodyAndStructure`.
-func (im *imapMailbox) getMessageBodySection(
-	storeMessage storeMessageProvider,
-	section *imap.BodySectionName,
-	msgBuildCountHistogram *msgBuildCountHistogram,
-) (imap.Literal, error) {
+func (im *imapMailbox) getMessageBodySection(storeMessage storeMessageProvider, section *imap.BodySectionName) (imap.Literal, error) {
 	var header []byte
 	var response []byte
 
@@ -260,7 +160,7 @@ func (im *imapMailbox) getMessageBodySection(
 	if isMainHeaderRequested && storeMessage.IsFullHeaderCached() {
 		header = storeMessage.GetHeader()
 	} else {
-		structure, bodyReader, err := im.getBodyAndStructure(storeMessage, msgBuildCountHistogram)
+		structure, bodyReader, err := im.getBodyAndStructure(storeMessage)
 		if err != nil {
 			return nil, err
 		}
@@ -276,7 +176,7 @@ func (im *imapMailbox) getMessageBodySection(
 		case section.Specifier == imap.MIMESpecifier: // The MIME part specifier refers to the [MIME-IMB] header for this part.
 			fallthrough
 		case section.Specifier == imap.HeaderSpecifier:
-			header, err = structure.GetSectionHeaderBytes(bodyReader, section.Path)
+			header, err = structure.GetSectionHeaderBytes(section.Path)
 		default:
 			err = errors.New("Unknown specifier " + string(section.Specifier))
 		}
@@ -292,31 +192,4 @@ func (im *imapMailbox) getMessageBodySection(
 
 	// Trim any output if requested.
 	return bytes.NewBuffer(section.ExtractPartial(response)), nil
-}
-
-// buildMessage from PM to IMAP.
-func (im *imapMailbox) buildMessage(m *pmapi.Message) (*message.BodyStructure, []byte, error) {
-	body, err := im.builder.NewJobWithOptions(
-		context.Background(),
-		im.user.client(),
-		m.ID,
-		message.JobOptions{
-			IgnoreDecryptionErrors: true, // Whether to ignore decryption errors and create a "custom message" instead.
-			SanitizeDate:           true, // Whether to replace all dates before 1970 with RFC822's birthdate.
-			AddInternalID:          true, // Whether to include MessageID as X-Pm-Internal-Id.
-			AddExternalID:          true, // Whether to include ExternalID as X-Pm-External-Id.
-			AddMessageDate:         true, // Whether to include message time as X-Pm-Date.
-			AddMessageIDReference:  true, // Whether to include the MessageID in References.
-		},
-	).GetResult()
-	if err != nil {
-		return nil, nil, err
-	}
-
-	structure, err := message.NewBodyStructure(bytes.NewReader(body))
-	if err != nil {
-		return nil, nil, err
-	}
-
-	return structure, body, nil
 }

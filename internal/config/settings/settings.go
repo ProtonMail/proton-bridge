@@ -43,6 +43,16 @@ const (
 	UpdateChannelKey       = "update_channel"
 	RolloutKey             = "rollout"
 	PreferredKeychainKey   = "preferred_keychain"
+	CacheEnabledKey        = "cache_enabled"
+	CacheCompressionKey    = "cache_compression"
+	CacheLocationKey       = "cache_location"
+	CacheMinFreeAbsKey     = "cache_min_free_abs"
+	CacheMinFreeRatKey     = "cache_min_free_rat"
+	CacheConcurrencyRead   = "cache_concurrent_read"
+	CacheConcurrencyWrite  = "cache_concurrent_write"
+	IMAPWorkers            = "imap_workers"
+	FetchWorkers           = "fetch_workers"
+	AttachmentWorkers      = "attachment_workers"
 )
 
 type Settings struct {
@@ -80,6 +90,16 @@ func (s *Settings) setDefaultValues() {
 	s.setDefault(UpdateChannelKey, "")
 	s.setDefault(RolloutKey, fmt.Sprintf("%v", rand.Float64())) //nolint[gosec] G404 It is OK to use weak random number generator here
 	s.setDefault(PreferredKeychainKey, "")
+	s.setDefault(CacheEnabledKey, "true")
+	s.setDefault(CacheCompressionKey, "true")
+	s.setDefault(CacheLocationKey, "")
+	s.setDefault(CacheMinFreeAbsKey, "250000000")
+	s.setDefault(CacheMinFreeRatKey, "")
+	s.setDefault(CacheConcurrencyRead, "16")
+	s.setDefault(CacheConcurrencyWrite, "16")
+	s.setDefault(IMAPWorkers, "16")
+	s.setDefault(FetchWorkers, "16")
+	s.setDefault(AttachmentWorkers, "16")
 
 	s.setDefault(APIPortKey, DefaultAPIPort)
 	s.setDefault(IMAPPortKey, DefaultIMAPPort)

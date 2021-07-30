@@ -135,7 +135,7 @@ func (iu *imapUser) ListMailboxes(showOnlySubcribed bool) ([]goIMAPBackend.Mailb
 		if showOnlySubcribed && !iu.isSubscribed(storeMailbox.LabelID()) {
 			continue
 		}
-		mailbox := newIMAPMailbox(iu.panicHandler, iu, storeMailbox, iu.backend.builder)
+		mailbox := newIMAPMailbox(iu.panicHandler, iu, storeMailbox)
 		mailboxes = append(mailboxes, mailbox)
 	}
 
@@ -167,7 +167,7 @@ func (iu *imapUser) GetMailbox(name string) (mb goIMAPBackend.Mailbox, err error
 		return
 	}
 
-	return newIMAPMailbox(iu.panicHandler, iu, storeMailbox, iu.backend.builder), nil
+	return newIMAPMailbox(iu.panicHandler, iu, storeMailbox), nil
 }
 
 // CreateMailbox creates a new mailbox.

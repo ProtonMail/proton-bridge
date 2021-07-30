@@ -77,6 +77,9 @@ type Bridger interface {
 	ReportBug(osType, osVersion, description, accountName, address, emailClient string) error
 	AllowProxy()
 	DisallowProxy()
+	EnableCache() error
+	DisableCache() error
+	MigrateCache(from, to string) error
 	GetUpdateChannel() updater.UpdateChannel
 	SetUpdateChannel(updater.UpdateChannel) (needRestart bool, err error)
 	GetKeychainApp() string

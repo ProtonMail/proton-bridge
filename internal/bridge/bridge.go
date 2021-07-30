@@ -28,17 +28,17 @@ import (
 	"github.com/ProtonMail/proton-bridge/internal/constants"
 	"github.com/ProtonMail/proton-bridge/internal/metrics"
 	"github.com/ProtonMail/proton-bridge/internal/sentry"
+	"github.com/ProtonMail/proton-bridge/internal/store/cache"
 	"github.com/ProtonMail/proton-bridge/internal/updater"
 	"github.com/ProtonMail/proton-bridge/internal/users"
+	"github.com/ProtonMail/proton-bridge/pkg/message"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
 	logrus "github.com/sirupsen/logrus"
 )
 
-var (
-	log = logrus.WithField("pkg", "bridge") //nolint[gochecknoglobals]
-)
+var log = logrus.WithField("pkg", "bridge") //nolint[gochecknoglobals]
 
 type Bridge struct {
 	*users.Users
@@ -52,11 +52,13 @@ type Bridge struct {
 
 func New(
 	locations Locator,
-	cache Cacher,
-	s SettingsProvider,
+	cacheProvider CacheProvider,
+	setting SettingsProvider,
 	sentryReporter *sentry.Reporter,
 	panicHandler users.PanicHandler,
 	eventListener listener.Listener,
+	cache cache.Cache,
+	builder *message.Builder,
 	clientManager pmapi.Manager,
 	credStorer users.CredentialsStorer,
 	updater Updater,
@@ -64,7 +66,7 @@ func New(
 ) *Bridge {
 	// Allow DoH before starting the app if the user has previously set this setting.
 	// This allows us to start even if protonmail is blocked.
-	if s.GetBool(settings.AllowProxyKey) {
+	if setting.GetBool(settings.AllowProxyKey) {
 		clientManager.AllowProxy()
 	}
 
@@ -74,25 +76,25 @@ func New(
 		eventListener,
 		clientManager,
 		credStorer,
-		newStoreFactory(cache, sentryReporter, panicHandler, eventListener),
+		newStoreFactory(cacheProvider, sentryReporter, panicHandler, eventListener, cache, builder),
 	)
 
 	b := &Bridge{
 		Users: u,
 
 		locations:     locations,
-		settings:      s,
+		settings:      setting,
 		clientManager: clientManager,
 		updater:       updater,
 		versioner:     versioner,
 	}
 
-	if s.GetBool(settings.FirstStartKey) {
+	if setting.GetBool(settings.FirstStartKey) {
 		if err := b.SendMetric(metrics.New(metrics.Setup, metrics.FirstStart, metrics.Label(constants.Version))); err != nil {
 			logrus.WithError(err).Error("Failed to send metric")
 		}
 
-		s.SetBool(settings.FirstStartKey, false)
+		setting.SetBool(settings.FirstStartKey, false)
 	}
 
 	go b.heartbeat()

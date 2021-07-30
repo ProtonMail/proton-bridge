@@ -26,8 +26,11 @@ import (
 	"time"
 
 	"github.com/ProtonMail/proton-bridge/internal/sentry"
+	"github.com/ProtonMail/proton-bridge/internal/store/cache"
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
+	"github.com/ProtonMail/proton-bridge/pkg/message"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
+	"github.com/ProtonMail/proton-bridge/pkg/pool"
 	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -52,19 +55,21 @@ var (
 
 	// Database structure:
 	// * metadata
-	//   * {messageID} -> message data (subject, from, to, time, body size, ...)
+	//   * {messageID} -> message data (subject, from, to, time, ...)
 	// * headers
 	//   * {messageID} -> header bytes
 	// * bodystructure
 	//   * {messageID} -> message body structure
-	// * msgbuildcount
-	//   * {messageID} -> uint32 number of message builds to track re-sync issues
+	// * size
+	//   * {messageID} -> uint32 value
 	// * counts
 	//   * {mailboxID} -> mailboxCounts: totalOnAPI, unreadOnAPI, labelName, labelColor, labelIsExclusive
 	// * address_info
 	//   * {index} -> {address, addressID}
 	// * address_mode
 	//   * mode -> string split or combined
+	// * cache_passphrase
+	//   * passphrase -> cache passphrase (pgp encrypted message)
 	// * mailboxes_version
 	//     * version -> uint32 value
 	// * sync_state
@@ -79,19 +84,20 @@ var (
 	//       * {messageID} -> uint32 imapUID
 	//     * deleted_ids (can be missing or have no keys)
 	//       * {messageID} -> true
-	metadataBucket      = []byte("metadata")          //nolint[gochecknoglobals]
-	headersBucket       = []byte("headers")           //nolint[gochecknoglobals]
-	bodystructureBucket = []byte("bodystructure")     //nolint[gochecknoglobals]
-	msgBuildCountBucket = []byte("msgbuildcount")     //nolint[gochecknoglobals]
-	countsBucket        = []byte("counts")            //nolint[gochecknoglobals]
-	addressInfoBucket   = []byte("address_info")      //nolint[gochecknoglobals]
-	addressModeBucket   = []byte("address_mode")      //nolint[gochecknoglobals]
-	syncStateBucket     = []byte("sync_state")        //nolint[gochecknoglobals]
-	mailboxesBucket     = []byte("mailboxes")         //nolint[gochecknoglobals]
-	imapIDsBucket       = []byte("imap_ids")          //nolint[gochecknoglobals]
-	apiIDsBucket        = []byte("api_ids")           //nolint[gochecknoglobals]
-	deletedIDsBucket    = []byte("deleted_ids")       //nolint[gochecknoglobals]
-	mboxVersionBucket   = []byte("mailboxes_version") //nolint[gochecknoglobals]
+	metadataBucket        = []byte("metadata")          //nolint[gochecknoglobals]
+	headersBucket         = []byte("headers")           //nolint[gochecknoglobals]
+	bodystructureBucket   = []byte("bodystructure")     //nolint[gochecknoglobals]
+	sizeBucket            = []byte("size")              //nolint[gochecknoglobals]
+	countsBucket          = []byte("counts")            //nolint[gochecknoglobals]
+	addressInfoBucket     = []byte("address_info")      //nolint[gochecknoglobals]
+	addressModeBucket     = []byte("address_mode")      //nolint[gochecknoglobals]
+	cachePassphraseBucket = []byte("cache_passphrase")  //nolint[gochecknoglobals]
+	syncStateBucket       = []byte("sync_state")        //nolint[gochecknoglobals]
+	mailboxesBucket       = []byte("mailboxes")         //nolint[gochecknoglobals]
+	imapIDsBucket         = []byte("imap_ids")          //nolint[gochecknoglobals]
+	apiIDsBucket          = []byte("api_ids")           //nolint[gochecknoglobals]
+	deletedIDsBucket      = []byte("deleted_ids")       //nolint[gochecknoglobals]
+	mboxVersionBucket     = []byte("mailboxes_version") //nolint[gochecknoglobals]
 
 	// ErrNoSuchAPIID when mailbox does not have API ID.
 	ErrNoSuchAPIID = errors.New("no such api id") //nolint[gochecknoglobals]
@@ -117,17 +123,22 @@ func exposeContextForSMTP() context.Context {
 type Store struct {
 	sentryReporter *sentry.Reporter
 	panicHandler   PanicHandler
-	eventLoop      *eventLoop
 	user           BridgeUser
+	eventLoop      *eventLoop
+	currentEvents  *Events
 
 	log *logrus.Entry
 
-	cache     *Cache
 	filePath  string
 	db        *bolt.DB
 	lock      *sync.RWMutex
 	addresses map[string]*Address
 	notifier  ChangeNotifier
+
+	builder *message.Builder
+	cache   cache.Cache
+	cacher  *Cacher
+	done    chan struct{}
 
 	isSyncRunning bool
 	syncCooldown  cooldown
@@ -139,12 +150,14 @@ func New( // nolint[funlen]
 	sentryReporter *sentry.Reporter,
 	panicHandler PanicHandler,
 	user BridgeUser,
-	events listener.Listener,
+	listener listener.Listener,
+	cache cache.Cache,
+	builder *message.Builder,
 	path string,
-	cache *Cache,
+	currentEvents *Events,
 ) (store *Store, err error) {
-	if user == nil || events == nil || cache == nil {
-		return nil, fmt.Errorf("missing parameters - user: %v, events: %v, cache: %v", user, events, cache)
+	if user == nil || listener == nil || currentEvents == nil {
+		return nil, fmt.Errorf("missing parameters - user: %v, listener: %v, currentEvents: %v", user, listener, currentEvents)
 	}
 
 	l := log.WithField("user", user.ID())
@@ -160,20 +173,28 @@ func New( // nolint[funlen]
 
 	bdb, err := openBoltDatabase(path)
 	if err != nil {
-		err = errors.Wrap(err, "failed to open store database")
-		return
+		return nil, errors.Wrap(err, "failed to open store database")
 	}
 
 	store = &Store{
 		sentryReporter: sentryReporter,
 		panicHandler:   panicHandler,
 		user:           user,
-		cache:          cache,
-		filePath:       path,
-		db:             bdb,
-		lock:           &sync.RWMutex{},
-		log:            l,
+		currentEvents:  currentEvents,
+
+		log: l,
+
+		filePath: path,
+		db:       bdb,
+		lock:     &sync.RWMutex{},
+
+		builder: builder,
+		cache:   cache,
 	}
+
+	// Create a new cacher. It's not started yet.
+	// NOTE(GODT-1158): I hate this circular dependency store->cacher->store :(
+	store.cacher = newCacher(store)
 
 	// Minimal increase is event pollInterval, doubles every failed retry up to 5 minutes.
 	store.syncCooldown.setExponentialWait(pollInterval, 2, 5*time.Minute)
@@ -188,7 +209,7 @@ func New( // nolint[funlen]
 	}
 
 	if user.IsConnected() {
-		store.eventLoop = newEventLoop(cache, store, user, events)
+		store.eventLoop = newEventLoop(currentEvents, store, user, listener)
 		go func() {
 			defer store.panicHandler.HandlePanic()
 			store.eventLoop.start()
@@ -216,10 +237,11 @@ func openBoltDatabase(filePath string) (db *bolt.DB, err error) {
 			metadataBucket,
 			headersBucket,
 			bodystructureBucket,
-			msgBuildCountBucket,
+			sizeBucket,
 			countsBucket,
 			addressInfoBucket,
 			addressModeBucket,
+			cachePassphraseBucket,
 			syncStateBucket,
 			mailboxesBucket,
 			mboxVersionBucket,
@@ -365,6 +387,24 @@ func (store *Store) addAddress(address, addressID string, labels []*pmapi.Label)
 	return
 }
 
+// newBuildJob returns a new build job for the given message using the store's message builder.
+func (store *Store) newBuildJob(messageID string, priority int) (*message.Job, pool.DoneFunc) {
+	return store.builder.NewJobWithOptions(
+		context.Background(),
+		store.client(),
+		messageID,
+		message.JobOptions{
+			IgnoreDecryptionErrors: true, // Whether to ignore decryption errors and create a "custom message" instead.
+			SanitizeDate:           true, // Whether to replace all dates before 1970 with RFC822's birthdate.
+			AddInternalID:          true, // Whether to include MessageID as X-Pm-Internal-Id.
+			AddExternalID:          true, // Whether to include ExternalID as X-Pm-External-Id.
+			AddMessageDate:         true, // Whether to include message time as X-Pm-Date.
+			AddMessageIDReference:  true, // Whether to include the MessageID in References.
+		},
+		priority,
+	)
+}
+
 // Close stops the event loop and closes the database to free the file.
 func (store *Store) Close() error {
 	store.lock.Lock()
@@ -381,12 +421,21 @@ func (store *Store) CloseEventLoop() {
 }
 
 func (store *Store) close() error {
+	// Stop the watcher first before closing the database.
+	store.stopWatcher()
+
+	// Stop the cacher.
+	store.cacher.stop()
+
+	// Stop the event loop.
 	store.CloseEventLoop()
+
+	// Close the database.
 	return store.db.Close()
 }
 
 // Remove closes and removes the database file and clears the cache file.
-func (store *Store) Remove() (err error) {
+func (store *Store) Remove() error {
 	store.lock.Lock()
 	defer store.lock.Unlock()
 
@@ -394,22 +443,34 @@ func (store *Store) Remove() (err error) {
 
 	var result *multierror.Error
 
-	if err = store.close(); err != nil {
+	if err := store.close(); err != nil {
 		result = multierror.Append(result, errors.Wrap(err, "failed to close store"))
 	}
 
-	if err = RemoveStore(store.cache, store.filePath, store.user.ID()); err != nil {
+	if err := RemoveStore(store.currentEvents, store.filePath, store.user.ID()); err != nil {
 		result = multierror.Append(result, errors.Wrap(err, "failed to remove store"))
+	}
+
+	if err := store.RemoveCache(); err != nil {
+		result = multierror.Append(result, errors.Wrap(err, "failed to remove cache"))
 	}
 
 	return result.ErrorOrNil()
 }
 
+func (store *Store) RemoveCache() error {
+	if err := store.clearCachePassphrase(); err != nil {
+		logrus.WithError(err).Error("Failed to clear cache passphrase")
+	}
+
+	return store.cache.Delete(store.user.ID())
+}
+
 // RemoveStore removes the database file and clears the cache file.
-func RemoveStore(cache *Cache, path, userID string) error {
+func RemoveStore(currentEvents *Events, path, userID string) error {
 	var result *multierror.Error
 
-	if err := cache.clearCacheUser(userID); err != nil {
+	if err := currentEvents.clearUserEvents(userID); err != nil {
 		result = multierror.Append(result, errors.Wrap(err, "failed to clear event loop user cache"))
 	}
 

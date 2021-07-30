@@ -32,7 +32,7 @@ func TestUpdateUser(t *testing.T) {
 	m := initMocks(t)
 	defer m.ctrl.Finish()
 
-	user := testNewUser(m)
+	user := testNewUser(t, m)
 	defer cleanUpUserData(user)
 
 	gomock.InOrder(
@@ -50,7 +50,7 @@ func TestUserSwitchAddressMode(t *testing.T) {
 	m := initMocks(t)
 	defer m.ctrl.Finish()
 
-	user := testNewUser(m)
+	user := testNewUser(t, m)
 	defer cleanUpUserData(user)
 
 	// Ignore any sync on background.
@@ -76,7 +76,7 @@ func TestUserSwitchAddressMode(t *testing.T) {
 	r.False(t, user.creds.IsCombinedAddressMode)
 	r.False(t, user.IsCombinedAddressMode())
 
-	// MOck change to combined mode.
+	// Mock change to combined mode.
 	gomock.InOrder(
 		m.eventListener.EXPECT().Emit(events.CloseConnectionEvent, "users@pm.me"),
 		m.eventListener.EXPECT().Emit(events.CloseConnectionEvent, "anotheruser@pm.me"),
@@ -98,7 +98,7 @@ func TestLogoutUser(t *testing.T) {
 	m := initMocks(t)
 	defer m.ctrl.Finish()
 
-	user := testNewUser(m)
+	user := testNewUser(t, m)
 	defer cleanUpUserData(user)
 
 	gomock.InOrder(
@@ -115,7 +115,7 @@ func TestLogoutUserFailsLogout(t *testing.T) {
 	m := initMocks(t)
 	defer m.ctrl.Finish()
 
-	user := testNewUser(m)
+	user := testNewUser(t, m)
 	defer cleanUpUserData(user)
 
 	gomock.InOrder(
@@ -133,7 +133,7 @@ func TestCheckBridgeLogin(t *testing.T) {
 	m := initMocks(t)
 	defer m.ctrl.Finish()
 
-	user := testNewUser(m)
+	user := testNewUser(t, m)
 	defer cleanUpUserData(user)
 
 	err := user.CheckBridgeLogin(testCredentials.BridgePassword)
@@ -144,7 +144,7 @@ func TestCheckBridgeLoginUpgradeApplication(t *testing.T) {
 	m := initMocks(t)
 	defer m.ctrl.Finish()
 
-	user := testNewUser(m)
+	user := testNewUser(t, m)
 	defer cleanUpUserData(user)
 
 	m.eventListener.EXPECT().Emit(events.UpgradeApplicationEvent, "")
@@ -187,7 +187,7 @@ func TestCheckBridgeLoginBadPassword(t *testing.T) {
 	m := initMocks(t)
 	defer m.ctrl.Finish()
 
-	user := testNewUser(m)
+	user := testNewUser(t, m)
 	defer cleanUpUserData(user)
 
 	err := user.CheckBridgeLogin("wrong!")

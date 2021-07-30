@@ -23,47 +23,65 @@ import (
 
 	"github.com/ProtonMail/proton-bridge/internal/sentry"
 	"github.com/ProtonMail/proton-bridge/internal/store"
+	"github.com/ProtonMail/proton-bridge/internal/store/cache"
 	"github.com/ProtonMail/proton-bridge/internal/users"
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
+	"github.com/ProtonMail/proton-bridge/pkg/message"
 )
 
 type storeFactory struct {
-	cache          Cacher
+	cacheProvider  CacheProvider
 	sentryReporter *sentry.Reporter
 	panicHandler   users.PanicHandler
 	eventListener  listener.Listener
-	storeCache     *store.Cache
+	events         *store.Events
+	cache          cache.Cache
+	builder        *message.Builder
 }
 
 func newStoreFactory(
-	cache Cacher,
+	cacheProvider CacheProvider,
 	sentryReporter *sentry.Reporter,
 	panicHandler users.PanicHandler,
 	eventListener listener.Listener,
+	cache cache.Cache,
+	builder *message.Builder,
 ) *storeFactory {
 	return &storeFactory{
-		cache:          cache,
+		cacheProvider:  cacheProvider,
 		sentryReporter: sentryReporter,
 		panicHandler:   panicHandler,
 		eventListener:  eventListener,
-		storeCache:     store.NewCache(cache.GetIMAPCachePath()),
+		events:         store.NewEvents(cacheProvider.GetIMAPCachePath()),
+		cache:          cache,
+		builder:        builder,
 	}
 }
 
 // New creates new store for given user.
 func (f *storeFactory) New(user store.BridgeUser) (*store.Store, error) {
-	storePath := getUserStorePath(f.cache.GetDBDir(), user.ID())
-	return store.New(f.sentryReporter, f.panicHandler, user, f.eventListener, storePath, f.storeCache)
+	return store.New(
+		f.sentryReporter,
+		f.panicHandler,
+		user,
+		f.eventListener,
+		f.cache,
+		f.builder,
+		getUserStorePath(f.cacheProvider.GetDBDir(), user.ID()),
+		f.events,
+	)
 }
 
 // Remove removes all store files for given user.
 func (f *storeFactory) Remove(userID string) error {
-	storePath := getUserStorePath(f.cache.GetDBDir(), userID)
-	return store.RemoveStore(f.storeCache, storePath, userID)
+	return store.RemoveStore(
+		f.events,
+		getUserStorePath(f.cacheProvider.GetDBDir(), userID),
+		userID,
+	)
 }
 
 // getUserStorePath returns the file path of the store database for the given userID.
 func getUserStorePath(storeDir string, userID string) (path string) {
-	fileName := fmt.Sprintf("mailbox-%v.db", userID)
-	return filepath.Join(storeDir, fileName)
+	return filepath.Join(storeDir, fmt.Sprintf("mailbox-%v.db", userID))
 }

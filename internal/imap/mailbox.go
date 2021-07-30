@@ -37,12 +37,10 @@ type imapMailbox struct {
 	storeUser    storeUserProvider
 	storeAddress storeAddressProvider
 	storeMailbox storeMailboxProvider
-
-	builder *message.Builder
 }
 
 // newIMAPMailbox returns struct implementing go-imap/mailbox interface.
-func newIMAPMailbox(panicHandler panicHandler, user *imapUser, storeMailbox storeMailboxProvider, builder *message.Builder) *imapMailbox {
+func newIMAPMailbox(panicHandler panicHandler, user *imapUser, storeMailbox storeMailboxProvider) *imapMailbox {
 	return &imapMailbox{
 		panicHandler: panicHandler,
 		user:         user,
@@ -56,8 +54,6 @@ func newIMAPMailbox(panicHandler panicHandler, user *imapUser, storeMailbox stor
 		storeUser:    user.storeUser,
 		storeAddress: user.storeAddress,
 		storeMailbox: storeMailbox,
-
-		builder: builder,
 	}
 }
 

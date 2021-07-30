@@ -25,35 +25,3 @@ type JobOptions struct {
 	AddMessageDate         bool // Whether to include message time as X-Pm-Date.
 	AddMessageIDReference  bool // Whether to include the MessageID in References.
 }
-
-type BuildJob struct {
-	messageID string
-	literal   []byte
-	err       error
-
-	done chan struct{}
-}
-
-func newBuildJob(messageID string) *BuildJob {
-	return &BuildJob{
-		messageID: messageID,
-		done:      make(chan struct{}),
-	}
-}
-
-// GetResult returns the build result or any error which occurred during building.
-// If the result is not ready yet, it blocks.
-func (job *BuildJob) GetResult() ([]byte, error) {
-	<-job.done
-	return job.literal, job.err
-}
-
-func (job *BuildJob) postSuccess(literal []byte) {
-	job.literal = literal
-	close(job.done)
-}
-
-func (job *BuildJob) postFailure(err error) {
-	job.err = err
-	close(job.done)
-}

@@ -71,6 +71,7 @@ type Client interface {
 	GetAttachment(ctx context.Context, id string) (att io.ReadCloser, err error)
 	CreateAttachment(ctx context.Context, att *Attachment, r io.Reader, sig io.Reader) (created *Attachment, err error)
 
+	GetUserKeyRing() (*crypto.KeyRing, error)
 	KeyRingForAddressID(string) (kr *crypto.KeyRing, err error)
 	GetPublicKeysForEmail(context.Context, string) ([]PublicKey, bool, error)
 }

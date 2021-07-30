@@ -64,7 +64,7 @@ func TestNewUser(t *testing.T) {
 	defer m.ctrl.Finish()
 
 	m.credentialsStore.EXPECT().Get("user").Return(testCredentials, nil)
-	mockInitConnectedUser(m)
+	mockInitConnectedUser(t, m)
 	mockEventLoopNoAction(m)
 
 	checkNewUserHasCredentials(m, "", testCredentials)

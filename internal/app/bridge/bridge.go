@@ -32,7 +32,9 @@ import (
 	"github.com/ProtonMail/proton-bridge/internal/frontend/types"
 	"github.com/ProtonMail/proton-bridge/internal/imap"
 	"github.com/ProtonMail/proton-bridge/internal/smtp"
+	"github.com/ProtonMail/proton-bridge/internal/store/cache"
 	"github.com/ProtonMail/proton-bridge/internal/updater"
+	"github.com/ProtonMail/proton-bridge/pkg/message"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
@@ -69,10 +71,21 @@ func New(base *base.Base) *cli.App {
 func run(b *base.Base, c *cli.Context) error { // nolint[funlen]
 	tlsConfig, err := loadTLSConfig(b)
 	if err != nil {
-		logrus.WithError(err).Fatal("Failed to load TLS config")
+		return err
 	}
-	bridge := bridge.New(b.Locations, b.Cache, b.Settings, b.SentryReporter, b.CrashHandler, b.Listener, b.CM, b.Creds, b.Updater, b.Versioner)
-	imapBackend := imap.NewIMAPBackend(b.CrashHandler, b.Listener, b.Cache, bridge)
+
+	cache, err := loadCache(b)
+	if err != nil {
+		return err
+	}
+
+	builder := message.NewBuilder(
+		b.Settings.GetInt(settings.FetchWorkers),
+		b.Settings.GetInt(settings.AttachmentWorkers),
+	)
+
+	bridge := bridge.New(b.Locations, b.Cache, b.Settings, b.SentryReporter, b.CrashHandler, b.Listener, cache, builder, b.CM, b.Creds, b.Updater, b.Versioner)
+	imapBackend := imap.NewIMAPBackend(b.CrashHandler, b.Listener, b.Cache, b.Settings, bridge)
 	smtpBackend := smtp.NewSMTPBackend(b.CrashHandler, b.Listener, b.Settings, bridge)
 
 	go func() {
@@ -232,4 +245,36 @@ func checkAndHandleUpdate(u types.Updater, f frontend.Frontend, autoUpdate bool)
 	}
 
 	f.NotifySilentUpdateInstalled()
+}
+
+// NOTE(GODT-1158): How big should in-memory cache be?
+// NOTE(GODT-1158): How to handle cache location migration if user changes custom path?
+func loadCache(b *base.Base) (cache.Cache, error) {
+	if !b.Settings.GetBool(settings.CacheEnabledKey) {
+		return cache.NewInMemoryCache(100 * (1 << 20)), nil
+	}
+
+	var compressor cache.Compressor
+
+	// NOTE(GODT-1158): If user changes compression setting we have to nuke the cache.
+	if b.Settings.GetBool(settings.CacheCompressionKey) {
+		compressor = &cache.GZipCompressor{}
+	} else {
+		compressor = &cache.NoopCompressor{}
+	}
+
+	var path string
+
+	if customPath := b.Settings.Get(settings.CacheLocationKey); customPath != "" {
+		path = customPath
+	} else {
+		path = b.Cache.GetDefaultMessageCacheDir()
+	}
+
+	return cache.NewOnDiskCache(path, compressor, cache.Options{
+		MinFreeAbs:      uint64(b.Settings.GetInt(settings.CacheMinFreeAbsKey)),
+		MinFreeRat:      b.Settings.GetFloat64(settings.CacheMinFreeRatKey),
+		ConcurrentRead:  b.Settings.GetInt(settings.CacheConcurrencyRead),
+		ConcurrentWrite: b.Settings.GetInt(settings.CacheConcurrencyWrite),
+	})
 }

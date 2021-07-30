@@ -53,7 +53,7 @@ func TestEventLoopProcessMoreEvents(t *testing.T) {
 			More:    false,
 		}, nil),
 	)
-	m.newStoreNoEvents(true)
+	m.newStoreNoEvents(t, true)
 
 	// Event loop runs in goroutine started during store creation (newStoreNoEvents).
 	// Force to run the next event.
@@ -78,7 +78,7 @@ func TestEventLoopUpdateMessageFromLoop(t *testing.T) {
 	subject := "old subject"
 	newSubject := "new subject"
 
-	m.newStoreNoEvents(true, &pmapi.Message{
+	m.newStoreNoEvents(t, true, &pmapi.Message{
 		ID:      "msg1",
 		Subject: subject,
 	})
@@ -106,7 +106,7 @@ func TestEventLoopDeletionNotPaused(t *testing.T) {
 	m, clear := initMocks(t)
 	defer clear()
 
-	m.newStoreNoEvents(true, &pmapi.Message{
+	m.newStoreNoEvents(t, true, &pmapi.Message{
 		ID:       "msg1",
 		Subject:  "subject",
 		LabelIDs: []string{"label"},
@@ -133,7 +133,7 @@ func TestEventLoopDeletionPaused(t *testing.T) {
 	m, clear := initMocks(t)
 	defer clear()
 
-	m.newStoreNoEvents(true, &pmapi.Message{
+	m.newStoreNoEvents(t, true, &pmapi.Message{
 		ID:       "msg1",
 		Subject:  "subject",
 		LabelIDs: []string{"label"},

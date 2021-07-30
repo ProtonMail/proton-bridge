@@ -58,7 +58,7 @@ func (ctx *TestContext) withIMAPServer() {
 	port := ctx.settings.GetInt(settings.IMAPPortKey)
 	tls, _ := tls.New(settingsPath).GetConfig()
 
-	backend := imap.NewIMAPBackend(ph, ctx.listener, ctx.cache, ctx.bridge)
+	backend := imap.NewIMAPBackend(ph, ctx.listener, ctx.cache, ctx.settings, ctx.bridge)
 	server := imap.NewIMAPServer(ph, true, true, port, tls, backend, ctx.userAgent, ctx.listener)
 
 	go server.ListenAndServe()

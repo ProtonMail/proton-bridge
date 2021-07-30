@@ -175,7 +175,6 @@ type Message struct {
 	CCList         []*mail.Address
 	BCCList        []*mail.Address
 	Time           int64 // Unix time
-	Size           int64
 	NumAttachments int
 	ExpirationTime int64 // Unix time
 	SpamScore      int

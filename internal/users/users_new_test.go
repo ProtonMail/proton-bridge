@@ -49,7 +49,7 @@ func TestNewUsersWithConnectedUser(t *testing.T) {
 	defer m.ctrl.Finish()
 
 	m.credentialsStore.EXPECT().List().Return([]string{testCredentials.UserID}, nil)
-	mockLoadingConnectedUser(m, testCredentials)
+	mockLoadingConnectedUser(t, m, testCredentials)
 	mockEventLoopNoAction(m)
 	checkUsersNew(t, m, []*credentials.Credentials{testCredentials})
 }
@@ -71,7 +71,7 @@ func TestNewUsersWithUsers(t *testing.T) {
 
 	m.credentialsStore.EXPECT().List().Return([]string{testCredentialsDisconnected.UserID, testCredentials.UserID}, nil)
 	mockLoadingDisconnectedUser(m, testCredentialsDisconnected)
-	mockLoadingConnectedUser(m, testCredentials)
+	mockLoadingConnectedUser(t, m, testCredentials)
 	mockEventLoopNoAction(m)
 	checkUsersNew(t, m, []*credentials.Credentials{testCredentialsDisconnected, testCredentials})
 }

@@ -28,7 +28,7 @@ type Locator interface {
 	ClearUpdates() error
 }
 
-type Cacher interface {
+type CacheProvider interface {
 	GetIMAPCachePath() string
 	GetDBDir() string
 }
@@ -38,6 +38,7 @@ type SettingsProvider interface {
 	Set(key string, value string)
 	GetBool(key string) bool
 	SetBool(key string, val bool)
+	GetInt(key string) int
 }
 
 type Updater interface {

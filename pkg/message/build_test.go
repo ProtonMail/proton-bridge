@@ -37,13 +37,16 @@ func TestBuildPlainMessage(t *testing.T) {
 	m := gomock.NewController(t)
 	defer m.Finish()
 
-	b := NewBuilder(1, 1, 1)
+	b := NewBuilder(2, 2)
 	defer b.Done()
 
 	kr := tests.MakeKeyRing(t)
 	msg := newTestMessage(t, kr, "messageID", "addressID", "text/plain", "body", time.Now())
 
-	res, err := b.NewJob(context.Background(), newTestFetcher(m, kr, msg), msg.ID).GetResult()
+	job, done := b.NewJob(context.Background(), newTestFetcher(m, kr, msg), msg.ID, ForegroundPriority)
+	defer done()
+
+	res, err := job.GetResult()
 	require.NoError(t, err)
 
 	section(t, res).
@@ -56,14 +59,17 @@ func TestBuildPlainMessageWithLongKey(t *testing.T) {
 	m := gomock.NewController(t)
 	defer m.Finish()
 
-	b := NewBuilder(1, 1, 1)
+	b := NewBuilder(1, 1)
 	defer b.Done()
 
 	kr := tests.MakeKeyRing(t)
 	msg := newTestMessage(t, kr, "messageID", "addressID", "text/plain", "body", time.Now())
 	msg.Header["ReallyVeryVeryVeryVeryVeryLongLongLongLongLongLongLongKeyThatWillHaveNotSoLongValue"] = []string{"value"}
 
-	res, err := b.NewJob(context.Background(), newTestFetcher(m, kr, msg), msg.ID).GetResult()
+	job, done := b.NewJob(context.Background(), newTestFetcher(m, kr, msg), msg.ID, ForegroundPriority)
+	defer done()
+
+	res, err := job.GetResult()
 	require.NoError(t, err)
 
 	section(t, res).
@@ -77,13 +83,16 @@ func TestBuildHTMLMessage(t *testing.T) {
 	m := gomock.NewController(t)
 	defer m.Finish()
 
-	b := NewBuilder(1, 1, 1)
+	b := NewBuilder(2, 2)
 	defer b.Done()
 
 	kr := tests.MakeKeyRing(t)
 	msg := newTestMessage(t, kr, "messageID", "addressID", "text/html", "<html><body>body</body></html>", time.Now())
 
-	res, err := b.NewJob(context.Background(), newTestFetcher(m, kr, msg), msg.ID).GetResult()
+	job, done := b.NewJob(context.Background(), newTestFetcher(m, kr, msg), msg.ID, ForegroundPriority)
+	defer done()
+
+	res, err := job.GetResult()
 	require.NoError(t, err)
 
 	section(t, res).
@@ -96,7 +105,7 @@ func TestBuildPlainEncryptedMessage(t *testing.T) {
 	m := gomock.NewController(t)
 	defer m.Finish()
 
-	b := NewBuilder(1, 1, 1)
+	b := NewBuilder(2, 2)
 	defer b.Done()
 
 	body := readerToString(getFileReader("pgp-mime-body-plaintext.eml"))
@@ -104,7 +113,10 @@ func TestBuildPlainEncryptedMessage(t *testing.T) {
 	kr := tests.MakeKeyRing(t)
 	msg := newTestMessage(t, kr, "messageID", "addressID", "multipart/mixed", body, time.Date(2020, time.January, 1, 0, 0, 0, 0, time.UTC))
 
-	res, err := b.NewJob(context.Background(), newTestFetcher(m, kr, msg), msg.ID).GetResult()
+	job, done := b.NewJob(context.Background(), newTestFetcher(m, kr, msg), msg.ID, ForegroundPriority)
+	defer done()
+
+	res, err := job.GetResult()
 	require.NoError(t, err)
 
 	section(t, res).
@@ -124,7 +136,7 @@ func TestBuildPlainEncryptedMessageMissingHeader(t *testing.T) {
 	m := gomock.NewController(t)
 	defer m.Finish()
 
-	b := NewBuilder(1, 1, 1)
+	b := NewBuilder(1, 1)
 	defer b.Done()
 
 	body := readerToString(getFileReader("plaintext-missing-header.eml"))
@@ -132,7 +144,10 @@ func TestBuildPlainEncryptedMessageMissingHeader(t *testing.T) {
 	kr := tests.MakeKeyRing(t)
 	msg := newTestMessage(t, kr, "messageID", "addressID", "multipart/mixed", body, time.Now())
 
-	res, err := b.NewJob(context.Background(), newTestFetcher(m, kr, msg), msg.ID).GetResult()
+	job, done := b.NewJob(context.Background(), newTestFetcher(m, kr, msg), msg.ID, ForegroundPriority)
+	defer done()
+
+	res, err := job.GetResult()
 	require.NoError(t, err)
 
 	section(t, res).
@@ -144,7 +159,7 @@ func TestBuildPlainEncryptedMessageInvalidHeader(t *testing.T) {
 	m := gomock.NewController(t)
 	defer m.Finish()
 
-	b := NewBuilder(1, 1, 1)
+	b := NewBuilder(1, 1)
 	defer b.Done()
 
 	body := readerToString(getFileReader("plaintext-invalid-header.eml"))
@@ -152,7 +167,10 @@ func TestBuildPlainEncryptedMessageInvalidHeader(t *testing.T) {
 	kr := tests.MakeKeyRing(t)
 	msg := newTestMessage(t, kr, "messageID", "addressID", "multipart/mixed", body, time.Now())
 
-	res, err := b.NewJob(context.Background(), newTestFetcher(m, kr, msg), msg.ID).GetResult()
+	job, done := b.NewJob(context.Background(), newTestFetcher(m, kr, msg), msg.ID, ForegroundPriority)
+	defer done()
+
+	res, err := job.GetResult()
 	require.NoError(t, err)
 
 	section(t, res).
@@ -164,7 +182,7 @@ func TestBuildPlainSignedEncryptedMessageMissingHeader(t *testing.T) {
 	m := gomock.NewController(t)
 	defer m.Finish()
 
-	b := NewBuilder(1, 1, 1)
+	b := NewBuilder(1, 1)
 	defer b.Done()
 
 	body := readerToString(getFileReader("plaintext-missing-header.eml"))
@@ -180,7 +198,10 @@ func TestBuildPlainSignedEncryptedMessageMissingHeader(t *testing.T) {
 
 	msg := newRawTestMessage("messageID", "addressID", "multipart/mixed", arm, time.Date(2020, time.January, 1, 0, 0, 0, 0, time.UTC))
 
-	res, err := b.NewJob(context.Background(), newTestFetcher(m, kr, msg), msg.ID).GetResult()
+	job, done := b.NewJob(context.Background(), newTestFetcher(m, kr, msg), msg.ID, ForegroundPriority)
+	defer done()
+
+	res, err := job.GetResult()
 	require.NoError(t, err)
 
 	section(t, res).
@@ -204,7 +225,7 @@ func TestBuildPlainSignedEncryptedMessageInvalidHeader(t *testing.T) {
 	m := gomock.NewController(t)
 	defer m.Finish()
 
-	b := NewBuilder(1, 1, 1)
+	b := NewBuilder(1, 1)
 	defer b.Done()
 
 	body := readerToString(getFileReader("plaintext-invalid-header.eml"))
@@ -220,7 +241,10 @@ func TestBuildPlainSignedEncryptedMessageInvalidHeader(t *testing.T) {
 
 	msg := newRawTestMessage("messageID", "addressID", "multipart/mixed", arm, time.Date(2020, time.January, 1, 0, 0, 0, 0, time.UTC))
 
-	res, err := b.NewJob(context.Background(), newTestFetcher(m, kr, msg), msg.ID).GetResult()
+	job, done := b.NewJob(context.Background(), newTestFetcher(m, kr, msg), msg.ID, ForegroundPriority)
+	defer done()
+
+	res, err := job.GetResult()
 	require.NoError(t, err)
 
 	section(t, res).
@@ -244,7 +268,7 @@ func TestBuildPlainEncryptedLatin2Message(t *testing.T) {
 	m := gomock.NewController(t)
 	defer m.Finish()
 
-	b := NewBuilder(1, 1, 1)
+	b := NewBuilder(2, 2)
 	defer b.Done()
 
 	body := readerToString(getFileReader("pgp-mime-body-plaintext-latin2.eml"))
@@ -252,7 +276,10 @@ func TestBuildPlainEncryptedLatin2Message(t *testing.T) {
 	kr := tests.MakeKeyRing(t)
 	msg := newTestMessage(t, kr, "messageID", "addressID", "multipart/mixed", body, time.Date(2020, time.January, 1, 0, 0, 0, 0, time.UTC))
 
-	res, err := b.NewJob(context.Background(), newTestFetcher(m, kr, msg), msg.ID).GetResult()
+	job, done := b.NewJob(context.Background(), newTestFetcher(m, kr, msg), msg.ID, ForegroundPriority)
+	defer done()
+
+	res, err := job.GetResult()
 	require.NoError(t, err)
 
 	section(t, res).
@@ -269,7 +296,7 @@ func TestBuildHTMLEncryptedMessage(t *testing.T) {
 	m := gomock.NewController(t)
 	defer m.Finish()
 
-	b := NewBuilder(1, 1, 1)
+	b := NewBuilder(2, 2)
 	defer b.Done()
 
 	body := readerToString(getFileReader("pgp-mime-body-html.eml"))
@@ -277,7 +304,10 @@ func TestBuildHTMLEncryptedMessage(t *testing.T) {
 	kr := tests.MakeKeyRing(t)
 	msg := newTestMessage(t, kr, "messageID", "addressID", "multipart/mixed", body, time.Date(2020, time.January, 1, 0, 0, 0, 0, time.UTC))
 
-	res, err := b.NewJob(context.Background(), newTestFetcher(m, kr, msg), msg.ID).GetResult()
+	job, done := b.NewJob(context.Background(), newTestFetcher(m, kr, msg), msg.ID, ForegroundPriority)
+	defer done()
+
+	res, err := job.GetResult()
 	require.NoError(t, err)
 
 	section(t, res).
@@ -298,7 +328,7 @@ func TestBuildPlainSignedMessage(t *testing.T) {
 	m := gomock.NewController(t)
 	defer m.Finish()
 
-	b := NewBuilder(1, 1, 1)
+	b := NewBuilder(2, 2)
 	defer b.Done()
 
 	body := readerToString(getFileReader("text_plain.eml"))
@@ -314,7 +344,10 @@ func TestBuildPlainSignedMessage(t *testing.T) {
 
 	msg := newRawTestMessage("messageID", "addressID", "multipart/mixed", arm, time.Date(2020, time.January, 1, 0, 0, 0, 0, time.UTC))
 
-	res, err := b.NewJob(context.Background(), newTestFetcher(m, kr, msg), msg.ID).GetResult()
+	job, done := b.NewJob(context.Background(), newTestFetcher(m, kr, msg), msg.ID, ForegroundPriority)
+	defer done()
+
+	res, err := job.GetResult()
 	require.NoError(t, err)
 
 	section(t, res).
@@ -339,7 +372,7 @@ func TestBuildPlainSignedBase64Message(t *testing.T) {
 	m := gomock.NewController(t)
 	defer m.Finish()
 
-	b := NewBuilder(1, 1, 1)
+	b := NewBuilder(2, 2)
 	defer b.Done()
 
 	body := readerToString(getFileReader("text_plain_base64.eml"))
@@ -355,7 +388,10 @@ func TestBuildPlainSignedBase64Message(t *testing.T) {
 
 	msg := newRawTestMessage("messageID", "addressID", "multipart/mixed", arm, time.Date(2020, time.January, 1, 0, 0, 0, 0, time.UTC))
 
-	res, err := b.NewJob(context.Background(), newTestFetcher(m, kr, msg), msg.ID).GetResult()
+	job, done := b.NewJob(context.Background(), newTestFetcher(m, kr, msg), msg.ID, ForegroundPriority)
+	defer done()
+
+	res, err := job.GetResult()
 	require.NoError(t, err)
 
 	section(t, res).
@@ -381,7 +417,7 @@ func TestBuildSignedPlainEncryptedMessage(t *testing.T) {
 	m := gomock.NewController(t)
 	defer m.Finish()
 
-	b := NewBuilder(1, 1, 1)
+	b := NewBuilder(2, 2)
 	defer b.Done()
 
 	body := readerToString(getFileReader("pgp-mime-body-signed-plaintext.eml"))
@@ -389,7 +425,10 @@ func TestBuildSignedPlainEncryptedMessage(t *testing.T) {
 	kr := tests.MakeKeyRing(t)
 	msg := newTestMessage(t, kr, "messageID", "addressID", "multipart/mixed", body, time.Date(2020, time.January, 1, 0, 0, 0, 0, time.UTC))
 
-	res, err := b.NewJob(context.Background(), newTestFetcher(m, kr, msg), msg.ID).GetResult()
+	job, done := b.NewJob(context.Background(), newTestFetcher(m, kr, msg), msg.ID, ForegroundPriority)
+	defer done()
+
+	res, err := job.GetResult()
 	require.NoError(t, err)
 
 	section(t, res).
@@ -421,7 +460,7 @@ func TestBuildSignedHTMLEncryptedMessage(t *testing.T) {
 	m := gomock.NewController(t)
 	defer m.Finish()
 
-	b := NewBuilder(1, 1, 1)
+	b := NewBuilder(2, 2)
 	defer b.Done()
 
 	body := readerToString(getFileReader("pgp-mime-body-signed-html.eml"))
@@ -429,7 +468,10 @@ func TestBuildSignedHTMLEncryptedMessage(t *testing.T) {
 	kr := tests.MakeKeyRing(t)
 	msg := newTestMessage(t, kr, "messageID", "addressID", "multipart/mixed", body, time.Date(2020, time.January, 1, 0, 0, 0, 0, time.UTC))
 
-	res, err := b.NewJob(context.Background(), newTestFetcher(m, kr, msg), msg.ID).GetResult()
+	job, done := b.NewJob(context.Background(), newTestFetcher(m, kr, msg), msg.ID, ForegroundPriority)
+	defer done()
+
+	res, err := job.GetResult()
 	require.NoError(t, err)
 
 	section(t, res).
@@ -463,7 +505,7 @@ func TestBuildSignedPlainEncryptedMessageWithPubKey(t *testing.T) {
 	m := gomock.NewController(t)
 	defer m.Finish()
 
-	b := NewBuilder(1, 1, 1)
+	b := NewBuilder(2, 2)
 	defer b.Done()
 
 	body := readerToString(getFileReader("pgp-mime-body-signed-plaintext-with-pubkey.eml"))
@@ -471,7 +513,10 @@ func TestBuildSignedPlainEncryptedMessageWithPubKey(t *testing.T) {
 	kr := tests.MakeKeyRing(t)
 	msg := newTestMessage(t, kr, "messageID", "addressID", "multipart/mixed", body, time.Date(2020, time.January, 1, 0, 0, 0, 0, time.UTC))
 
-	res, err := b.NewJob(context.Background(), newTestFetcher(m, kr, msg), msg.ID).GetResult()
+	job, done := b.NewJob(context.Background(), newTestFetcher(m, kr, msg), msg.ID, ForegroundPriority)
+	defer done()
+
+	res, err := job.GetResult()
 	require.NoError(t, err)
 
 	section(t, res).
@@ -512,7 +557,7 @@ func TestBuildSignedHTMLEncryptedMessageWithPubKey(t *testing.T) {
 	m := gomock.NewController(t)
 	defer m.Finish()
 
-	b := NewBuilder(1, 1, 1)
+	b := NewBuilder(2, 2)
 	defer b.Done()
 
 	body := readerToString(getFileReader("pgp-mime-body-signed-html-with-pubkey.eml"))
@@ -520,7 +565,10 @@ func TestBuildSignedHTMLEncryptedMessageWithPubKey(t *testing.T) {
 	kr := tests.MakeKeyRing(t)
 	msg := newTestMessage(t, kr, "messageID", "addressID", "multipart/mixed", body, time.Date(2020, time.January, 1, 0, 0, 0, 0, time.UTC))
 
-	res, err := b.NewJob(context.Background(), newTestFetcher(m, kr, msg), msg.ID).GetResult()
+	job, done := b.NewJob(context.Background(), newTestFetcher(m, kr, msg), msg.ID, ForegroundPriority)
+	defer done()
+
+	res, err := job.GetResult()
 	require.NoError(t, err)
 
 	section(t, res).
@@ -562,7 +610,7 @@ func TestBuildSignedMultipartAlternativeEncryptedMessageWithPubKey(t *testing.T)
 	m := gomock.NewController(t)
 	defer m.Finish()
 
-	b := NewBuilder(1, 1, 1)
+	b := NewBuilder(2, 2)
 	defer b.Done()
 
 	body := readerToString(getFileReader("pgp-mime-body-signed-multipart-alternative-with-pubkey.eml"))
@@ -570,7 +618,10 @@ func TestBuildSignedMultipartAlternativeEncryptedMessageWithPubKey(t *testing.T)
 	kr := tests.MakeKeyRing(t)
 	msg := newTestMessage(t, kr, "messageID", "addressID", "multipart/mixed", body, time.Date(2020, time.January, 1, 0, 0, 0, 0, time.UTC))
 
-	res, err := b.NewJob(context.Background(), newTestFetcher(m, kr, msg), msg.ID).GetResult()
+	job, done := b.NewJob(context.Background(), newTestFetcher(m, kr, msg), msg.ID, ForegroundPriority)
+	defer done()
+
+	res, err := job.GetResult()
 	require.NoError(t, err)
 
 	section(t, res).
@@ -628,7 +679,7 @@ func TestBuildSignedEmbeddedMessageRFC822EncryptedMessageWithPubKey(t *testing.T
 	m := gomock.NewController(t)
 	defer m.Finish()
 
-	b := NewBuilder(1, 1, 1)
+	b := NewBuilder(2, 2)
 	defer b.Done()
 
 	body := readerToString(getFileReader("pgp-mime-body-signed-embedded-message-rfc822-with-pubkey.eml"))
@@ -636,7 +687,10 @@ func TestBuildSignedEmbeddedMessageRFC822EncryptedMessageWithPubKey(t *testing.T
 	kr := tests.MakeKeyRing(t)
 	msg := newTestMessage(t, kr, "messageID", "addressID", "multipart/mixed", body, time.Date(2020, time.January, 1, 0, 0, 0, 0, time.UTC))
 
-	res, err := b.NewJob(context.Background(), newTestFetcher(m, kr, msg), msg.ID).GetResult()
+	job, done := b.NewJob(context.Background(), newTestFetcher(m, kr, msg), msg.ID, ForegroundPriority)
+	defer done()
+
+	res, err := job.GetResult()
 	require.NoError(t, err)
 
 	section(t, res).
@@ -682,14 +736,17 @@ func TestBuildHTMLMessageWithAttachment(t *testing.T) {
 	m := gomock.NewController(t)
 	defer m.Finish()
 
-	b := NewBuilder(1, 1, 1)
+	b := NewBuilder(2, 2)
 	defer b.Done()
 
 	kr := tests.MakeKeyRing(t)
 	msg := newTestMessage(t, kr, "messageID", "addressID", "text/html", "<html><body>body</body></html>", time.Now())
 	att := addTestAttachment(t, kr, msg, "attachID", "file.png", "image/png", "attachment", "attachment")
 
-	res, err := b.NewJob(context.Background(), newTestFetcher(m, kr, msg, att), msg.ID).GetResult()
+	job, done := b.NewJob(context.Background(), newTestFetcher(m, kr, msg, att), msg.ID, ForegroundPriority)
+	defer done()
+
+	res, err := job.GetResult()
 	require.NoError(t, err)
 
 	section(t, res, 1).
@@ -709,14 +766,17 @@ func TestBuildHTMLMessageWithRFC822Attachment(t *testing.T) {
 	m := gomock.NewController(t)
 	defer m.Finish()
 
-	b := NewBuilder(1, 1, 1)
+	b := NewBuilder(2, 2)
 	defer b.Done()
 
 	kr := tests.MakeKeyRing(t)
 	msg := newTestMessage(t, kr, "messageID", "addressID", "text/html", "<html><body>body</body></html>", time.Now())
 	att := addTestAttachment(t, kr, msg, "attachID", "file.eml", "message/rfc822", "attachment", "... message/rfc822 ...")
 
-	res, err := b.NewJob(context.Background(), newTestFetcher(m, kr, msg, att), msg.ID).GetResult()
+	job, done := b.NewJob(context.Background(), newTestFetcher(m, kr, msg, att), msg.ID, ForegroundPriority)
+	defer done()
+
+	res, err := job.GetResult()
 	require.NoError(t, err)
 
 	section(t, res, 1).
@@ -736,14 +796,17 @@ func TestBuildHTMLMessageWithInlineAttachment(t *testing.T) {
 	m := gomock.NewController(t)
 	defer m.Finish()
 
-	b := NewBuilder(1, 1, 1)
+	b := NewBuilder(2, 2)
 	defer b.Done()
 
 	kr := tests.MakeKeyRing(t)
 	msg := newTestMessage(t, kr, "messageID", "addressID", "text/html", "<html><body>body</body></html>", time.Now())
 	inl := addTestAttachment(t, kr, msg, "inlineID", "file.png", "image/png", "inline", "inline")
 
-	res, err := b.NewJob(context.Background(), newTestFetcher(m, kr, msg, inl), msg.ID).GetResult()
+	job, done := b.NewJob(context.Background(), newTestFetcher(m, kr, msg, inl), msg.ID, ForegroundPriority)
+	defer done()
+
+	res, err := job.GetResult()
 	require.NoError(t, err)
 
 	section(t, res, 1).
@@ -766,7 +829,7 @@ func TestBuildHTMLMessageWithComplexAttachments(t *testing.T) {
 	m := gomock.NewController(t)
 	defer m.Finish()
 
-	b := NewBuilder(1, 1, 1)
+	b := NewBuilder(2, 2)
 	defer b.Done()
 
 	kr := tests.MakeKeyRing(t)
@@ -776,7 +839,10 @@ func TestBuildHTMLMessageWithComplexAttachments(t *testing.T) {
 	att0 := addTestAttachment(t, kr, msg, "attachID0", "attach0.png", "image/png", "attachment", "attach0")
 	att1 := addTestAttachment(t, kr, msg, "attachID1", "attach1.png", "image/png", "attachment", "attach1")
 
-	res, err := b.NewJob(context.Background(), newTestFetcher(m, kr, msg, inl0, inl1, att0, att1), msg.ID).GetResult()
+	job, done := b.NewJob(context.Background(), newTestFetcher(m, kr, msg, inl0, inl1, att0, att1), msg.ID, ForegroundPriority)
+	defer done()
+
+	res, err := job.GetResult()
 	require.NoError(t, err)
 
 	section(t, res, 1).
@@ -820,14 +886,17 @@ func TestBuildAttachmentWithExoticFilename(t *testing.T) {
 	m := gomock.NewController(t)
 	defer m.Finish()
 
-	b := NewBuilder(1, 1, 1)
+	b := NewBuilder(2, 2)
 	defer b.Done()
 
 	kr := tests.MakeKeyRing(t)
 	msg := newTestMessage(t, kr, "messageID", "addressID", "text/html", "<html><body>body</body></html>", time.Now())
 	att := addTestAttachment(t, kr, msg, "attachID", `I řeally šhould leařn czech.png`, "image/png", "attachment", "attachment")
 
-	res, err := b.NewJob(context.Background(), newTestFetcher(m, kr, msg, att), msg.ID).GetResult()
+	job, done := b.NewJob(context.Background(), newTestFetcher(m, kr, msg, att), msg.ID, ForegroundPriority)
+	defer done()
+
+	res, err := job.GetResult()
 	require.NoError(t, err)
 
 	// The "name" and "filename" params should actually be RFC2047-encoded because they aren't 7-bit clean.
@@ -843,7 +912,7 @@ func TestBuildAttachmentWithLongFilename(t *testing.T) {
 	m := gomock.NewController(t)
 	defer m.Finish()
 
-	b := NewBuilder(1, 1, 1)
+	b := NewBuilder(2, 2)
 	defer b.Done()
 
 	veryLongName := strings.Repeat("a", 200) + ".png"
@@ -852,7 +921,10 @@ func TestBuildAttachmentWithLongFilename(t *testing.T) {
 	msg := newTestMessage(t, kr, "messageID", "addressID", "text/html", "<html><body>body</body></html>", time.Now())
 	att := addTestAttachment(t, kr, msg, "attachID", veryLongName, "image/png", "attachment", "attachment")
 
-	res, err := b.NewJob(context.Background(), newTestFetcher(m, kr, msg, att), msg.ID).GetResult()
+	job, done := b.NewJob(context.Background(), newTestFetcher(m, kr, msg, att), msg.ID, ForegroundPriority)
+	defer done()
+
+	res, err := job.GetResult()
 	require.NoError(t, err)
 
 	// NOTE: hasMaxLineLength is too high! Long filenames should be linewrapped using multipart filenames.
@@ -868,13 +940,16 @@ func TestBuildMessageDate(t *testing.T) {
 	m := gomock.NewController(t)
 	defer m.Finish()
 
-	b := NewBuilder(1, 1, 1)
+	b := NewBuilder(2, 2)
 	defer b.Done()
 
 	kr := tests.MakeKeyRing(t)
 	msg := newTestMessage(t, kr, "messageID", "addressID", "text/plain", "body", time.Date(2020, time.January, 1, 0, 0, 0, 0, time.UTC))
 
-	res, err := b.NewJob(context.Background(), newTestFetcher(m, kr, msg), msg.ID).GetResult()
+	job, done := b.NewJob(context.Background(), newTestFetcher(m, kr, msg), msg.ID, ForegroundPriority)
+	defer done()
+
+	res, err := job.GetResult()
 	require.NoError(t, err)
 
 	section(t, res).expectDate(is(`Wed, 01 Jan 2020 00:00:00 +0000`))
@@ -884,7 +959,7 @@ func TestBuildMessageWithInvalidDate(t *testing.T) {
 	m := gomock.NewController(t)
 	defer m.Finish()
 
-	b := NewBuilder(1, 1, 1)
+	b := NewBuilder(2, 2)
 	defer b.Done()
 
 	kr := tests.MakeKeyRing(t)
@@ -893,21 +968,26 @@ func TestBuildMessageWithInvalidDate(t *testing.T) {
 	msg := newTestMessage(t, kr, "messageID", "addressID", "text/html", "<html><body>body</body></html>", time.Unix(-1, 0))
 
 	// Build the message as usual; the date will be before 1970.
-	resRaw, err := b.NewJob(context.Background(), newTestFetcher(m, kr, msg), msg.ID).GetResult()
+	jobRaw, done := b.NewJob(context.Background(), newTestFetcher(m, kr, msg), msg.ID, ForegroundPriority)
+	resRaw, err := jobRaw.GetResult()
 	require.NoError(t, err)
+	done()
 
 	section(t, resRaw).
 		expectDate(is(`Wed, 31 Dec 1969 23:59:59 +0000`)).
 		expectHeader(`X-Original-Date`, isMissing())
 
 	// Build the message with date sanitization enabled; the date will be RFC822's birthdate.
-	resFix, err := b.NewJobWithOptions(
+	jobFix, done := b.NewJobWithOptions(
 		context.Background(),
 		newTestFetcher(m, kr, msg),
 		msg.ID,
 		JobOptions{SanitizeDate: true},
-	).GetResult()
+		ForegroundPriority,
+	)
+	resFix, err := jobFix.GetResult()
 	require.NoError(t, err)
+	done()
 
 	section(t, resFix).
 		expectDate(is(`Fri, 13 Aug 1982 00:00:00 +0000`)).
@@ -918,13 +998,16 @@ func TestBuildMessageInternalID(t *testing.T) {
 	m := gomock.NewController(t)
 	defer m.Finish()
 
-	b := NewBuilder(1, 1, 1)
+	b := NewBuilder(2, 2)
 	defer b.Done()
 
 	kr := tests.MakeKeyRing(t)
 	msg := newTestMessage(t, kr, "messageID", "addressID", "text/plain", "body", time.Now())
 
-	res, err := b.NewJob(context.Background(), newTestFetcher(m, kr, msg), msg.ID).GetResult()
+	job, done := b.NewJob(context.Background(), newTestFetcher(m, kr, msg), msg.ID, ForegroundPriority)
+	defer done()
+
+	res, err := job.GetResult()
 	require.NoError(t, err)
 
 	section(t, res).expectHeader(`Message-Id`, is(`<messageID@protonmail.internalid>`))
@@ -934,7 +1017,7 @@ func TestBuildMessageExternalID(t *testing.T) {
 	m := gomock.NewController(t)
 	defer m.Finish()
 
-	b := NewBuilder(1, 1, 1)
+	b := NewBuilder(2, 2)
 	defer b.Done()
 
 	kr := tests.MakeKeyRing(t)
@@ -943,7 +1026,10 @@ func TestBuildMessageExternalID(t *testing.T) {
 	// Set the message's external ID; this should be used preferentially to set the Message-Id header field.
 	msg.ExternalID = "externalID"
 
-	res, err := b.NewJob(context.Background(), newTestFetcher(m, kr, msg), msg.ID).GetResult()
+	job, done := b.NewJob(context.Background(), newTestFetcher(m, kr, msg), msg.ID, ForegroundPriority)
+	defer done()
+
+	res, err := job.GetResult()
 	require.NoError(t, err)
 
 	section(t, res).expectHeader(`Message-Id`, is(`<externalID>`))
@@ -953,7 +1039,7 @@ func TestBuild8BitBody(t *testing.T) {
 	m := gomock.NewController(t)
 	defer m.Finish()
 
-	b := NewBuilder(1, 1, 1)
+	b := NewBuilder(2, 2)
 	defer b.Done()
 
 	kr := tests.MakeKeyRing(t)
@@ -961,7 +1047,10 @@ func TestBuild8BitBody(t *testing.T) {
 	// Set an 8-bit body; the charset should be set to UTF-8.
 	msg := newTestMessage(t, kr, "messageID", "addressID", "text/plain", "I řeally šhould leařn czech", time.Now())
 
-	res, err := b.NewJob(context.Background(), newTestFetcher(m, kr, msg), msg.ID).GetResult()
+	job, done := b.NewJob(context.Background(), newTestFetcher(m, kr, msg), msg.ID, ForegroundPriority)
+	defer done()
+
+	res, err := job.GetResult()
 	require.NoError(t, err)
 
 	section(t, res).expectContentTypeParam(`charset`, is(`utf-8`))
@@ -971,7 +1060,7 @@ func TestBuild8BitSubject(t *testing.T) {
 	m := gomock.NewController(t)
 	defer m.Finish()
 
-	b := NewBuilder(1, 1, 1)
+	b := NewBuilder(2, 2)
 	defer b.Done()
 
 	kr := tests.MakeKeyRing(t)
@@ -980,7 +1069,10 @@ func TestBuild8BitSubject(t *testing.T) {
 	// Set an 8-bit subject; it should be RFC2047-encoded.
 	msg.Subject = `I řeally šhould leařn czech`
 
-	res, err := b.NewJob(context.Background(), newTestFetcher(m, kr, msg), msg.ID).GetResult()
+	job, done := b.NewJob(context.Background(), newTestFetcher(m, kr, msg), msg.ID, ForegroundPriority)
+	defer done()
+
+	res, err := job.GetResult()
 	require.NoError(t, err)
 
 	section(t, res).
@@ -992,7 +1084,7 @@ func TestBuild8BitSender(t *testing.T) {
 	m := gomock.NewController(t)
 	defer m.Finish()
 
-	b := NewBuilder(1, 1, 1)
+	b := NewBuilder(2, 2)
 	defer b.Done()
 
 	kr := tests.MakeKeyRing(t)
@@ -1004,7 +1096,10 @@ func TestBuild8BitSender(t *testing.T) {
 		Address: `mail@example.com`,
 	}
 
-	res, err := b.NewJob(context.Background(), newTestFetcher(m, kr, msg), msg.ID).GetResult()
+	job, done := b.NewJob(context.Background(), newTestFetcher(m, kr, msg), msg.ID, ForegroundPriority)
+	defer done()
+
+	res, err := job.GetResult()
 	require.NoError(t, err)
 
 	section(t, res).
@@ -1016,7 +1111,7 @@ func TestBuild8BitRecipients(t *testing.T) {
 	m := gomock.NewController(t)
 	defer m.Finish()
 
-	b := NewBuilder(1, 1, 1)
+	b := NewBuilder(2, 2)
 	defer b.Done()
 
 	kr := tests.MakeKeyRing(t)
@@ -1028,7 +1123,10 @@ func TestBuild8BitRecipients(t *testing.T) {
 		{Name: `leařn czech`, Address: `mail2@example.com`},
 	}
 
-	res, err := b.NewJob(context.Background(), newTestFetcher(m, kr, msg), msg.ID).GetResult()
+	job, done := b.NewJob(context.Background(), newTestFetcher(m, kr, msg), msg.ID, ForegroundPriority)
+	defer done()
+
+	res, err := job.GetResult()
 	require.NoError(t, err)
 
 	section(t, res).
@@ -1040,7 +1138,7 @@ func TestBuildIncludeMessageIDReference(t *testing.T) {
 	m := gomock.NewController(t)
 	defer m.Finish()
 
-	b := NewBuilder(1, 1, 1)
+	b := NewBuilder(2, 2)
 	defer b.Done()
 
 	kr := tests.MakeKeyRing(t)
@@ -1049,18 +1147,23 @@ func TestBuildIncludeMessageIDReference(t *testing.T) {
 	// Add references.
 	msg.Header["References"] = []string{"<myreference@domain.com>"}
 
-	res, err := b.NewJob(context.Background(), newTestFetcher(m, kr, msg), msg.ID).GetResult()
+	job, done := b.NewJob(context.Background(), newTestFetcher(m, kr, msg), msg.ID, ForegroundPriority)
+	res, err := job.GetResult()
 	require.NoError(t, err)
+	done()
 
 	section(t, res).expectHeader(`References`, is(`<myreference@domain.com>`))
 
-	resRef, err := b.NewJobWithOptions(
+	jobRef, done := b.NewJobWithOptions(
 		context.Background(),
 		newTestFetcher(m, kr, msg),
 		msg.ID,
 		JobOptions{AddMessageIDReference: true},
-	).GetResult()
+		ForegroundPriority,
+	)
+	resRef, err := jobRef.GetResult()
 	require.NoError(t, err)
+	done()
 
 	section(t, resRef).expectHeader(`References`, is(`<myreference@domain.com> <messageID@protonmail.internalid>`))
 }
@@ -1069,7 +1172,7 @@ func TestBuildMessageIsDeterministic(t *testing.T) {
 	m := gomock.NewController(t)
 	defer m.Finish()
 
-	b := NewBuilder(1, 1, 1)
+	b := NewBuilder(2, 2)
 	defer b.Done()
 
 	kr := tests.MakeKeyRing(t)
@@ -1077,11 +1180,15 @@ func TestBuildMessageIsDeterministic(t *testing.T) {
 	inl := addTestAttachment(t, kr, msg, "inlineID", "file.png", "image/png", "inline", "inline")
 	att := addTestAttachment(t, kr, msg, "attachID", "attach.png", "image/png", "attachment", "attachment")
 
-	res1, err := b.NewJob(context.Background(), newTestFetcher(m, kr, msg, inl, att), msg.ID).GetResult()
+	job1, done := b.NewJob(context.Background(), newTestFetcher(m, kr, msg, inl, att), msg.ID, ForegroundPriority)
+	res1, err := job1.GetResult()
 	require.NoError(t, err)
+	done()
 
-	res2, err := b.NewJob(context.Background(), newTestFetcher(m, kr, msg, inl, att), msg.ID).GetResult()
+	job2, done := b.NewJob(context.Background(), newTestFetcher(m, kr, msg, inl, att), msg.ID, ForegroundPriority)
+	res2, err := job2.GetResult()
 	require.NoError(t, err)
+	done()
 
 	assert.Equal(t, res1, res2)
 }
@@ -1090,15 +1197,18 @@ func TestBuildParallel(t *testing.T) {
 	m := gomock.NewController(t)
 	defer m.Finish()
 
-	b := NewBuilder(2, 2, 2)
+	b := NewBuilder(2, 2)
 	defer b.Done()
 
 	kr := tests.MakeKeyRing(t)
 	msg1 := newTestMessage(t, kr, "messageID1", "addressID", "text/plain", "body1", time.Now())
 	msg2 := newTestMessage(t, kr, "messageID2", "addressID", "text/plain", "body2", time.Now())
 
-	job1 := b.NewJob(context.Background(), newTestFetcher(m, kr, msg1), msg1.ID)
-	job2 := b.NewJob(context.Background(), newTestFetcher(m, kr, msg2), msg2.ID)
+	job1, done := b.NewJob(context.Background(), newTestFetcher(m, kr, msg1), msg1.ID, ForegroundPriority)
+	defer done()
+
+	job2, done := b.NewJob(context.Background(), newTestFetcher(m, kr, msg2), msg2.ID, ForegroundPriority)
+	defer done()
 
 	res1, err := job1.GetResult()
 	require.NoError(t, err)
@@ -1115,7 +1225,7 @@ func TestBuildParallelSameMessage(t *testing.T) {
 	m := gomock.NewController(t)
 	defer m.Finish()
 
-	b := NewBuilder(2, 2, 2)
+	b := NewBuilder(2, 2)
 	defer b.Done()
 
 	kr := tests.MakeKeyRing(t)
@@ -1123,8 +1233,12 @@ func TestBuildParallelSameMessage(t *testing.T) {
 
 	// Jobs for the same messageID are shared so fetcher is only called once.
 	fetcher := newTestFetcher(m, kr, msg)
-	job1 := b.NewJob(context.Background(), fetcher, msg.ID)
-	job2 := b.NewJob(context.Background(), fetcher, msg.ID)
+
+	job1, done := b.NewJob(context.Background(), fetcher, msg.ID, ForegroundPriority)
+	defer done()
+
+	job2, done := b.NewJob(context.Background(), fetcher, msg.ID, ForegroundPriority)
+	defer done()
 
 	res1, err := job1.GetResult()
 	require.NoError(t, err)
@@ -1141,7 +1255,7 @@ func TestBuildUndecryptableMessage(t *testing.T) {
 	m := gomock.NewController(t)
 	defer m.Finish()
 
-	b := NewBuilder(1, 1, 1)
+	b := NewBuilder(2, 2)
 	defer b.Done()
 
 	kr := tests.MakeKeyRing(t)
@@ -1149,7 +1263,10 @@ func TestBuildUndecryptableMessage(t *testing.T) {
 	// Use a different keyring for encrypting the message; it won't be decryptable.
 	msg := newTestMessage(t, tests.MakeKeyRing(t), "messageID", "addressID", "text/plain", "body", time.Now())
 
-	_, err := b.NewJob(context.Background(), newTestFetcher(m, kr, msg), msg.ID).GetResult()
+	job, done := b.NewJob(context.Background(), newTestFetcher(m, kr, msg), msg.ID, ForegroundPriority)
+	defer done()
+
+	_, err := job.GetResult()
 	assert.True(t, errors.Is(err, ErrDecryptionFailed))
 }
 
@@ -1157,7 +1274,7 @@ func TestBuildUndecryptableAttachment(t *testing.T) {
 	m := gomock.NewController(t)
 	defer m.Finish()
 
-	b := NewBuilder(1, 1, 1)
+	b := NewBuilder(2, 2)
 	defer b.Done()
 
 	kr := tests.MakeKeyRing(t)
@@ -1166,7 +1283,10 @@ func TestBuildUndecryptableAttachment(t *testing.T) {
 	// Use a different keyring for encrypting the attachment; it won't be decryptable.
 	att := addTestAttachment(t, tests.MakeKeyRing(t), msg, "attachID", "file.png", "image/png", "attachment", "attachment")
 
-	_, err := b.NewJob(context.Background(), newTestFetcher(m, kr, msg, att), msg.ID).GetResult()
+	job, done := b.NewJob(context.Background(), newTestFetcher(m, kr, msg, att), msg.ID, ForegroundPriority)
+	defer done()
+
+	_, err := job.GetResult()
 	assert.True(t, errors.Is(err, ErrDecryptionFailed))
 }
 
@@ -1174,7 +1294,7 @@ func TestBuildCustomMessagePlain(t *testing.T) {
 	m := gomock.NewController(t)
 	defer m.Finish()
 
-	b := NewBuilder(1, 1, 1)
+	b := NewBuilder(2, 2)
 	defer b.Done()
 
 	kr := tests.MakeKeyRing(t)
@@ -1184,12 +1304,16 @@ func TestBuildCustomMessagePlain(t *testing.T) {
 	msg := newTestMessage(t, foreignKR, "messageID", "addressID", "text/plain", "body", time.Now())
 
 	// Tell the job to ignore decryption errors; a custom message will be returned instead of an error.
-	res, err := b.NewJobWithOptions(
+	job, done := b.NewJobWithOptions(
 		context.Background(),
 		newTestFetcher(m, kr, msg),
 		msg.ID,
 		JobOptions{IgnoreDecryptionErrors: true},
-	).GetResult()
+		ForegroundPriority,
+	)
+	defer done()
+
+	res, err := job.GetResult()
 	require.NoError(t, err)
 
 	section(t, res).
@@ -1206,7 +1330,7 @@ func TestBuildCustomMessageHTML(t *testing.T) {
 	m := gomock.NewController(t)
 	defer m.Finish()
 
-	b := NewBuilder(1, 1, 1)
+	b := NewBuilder(2, 2)
 	defer b.Done()
 
 	kr := tests.MakeKeyRing(t)
@@ -1216,12 +1340,16 @@ func TestBuildCustomMessageHTML(t *testing.T) {
 	msg := newTestMessage(t, foreignKR, "messageID", "addressID", "text/html", "<html><body>body</body></html>", time.Now())
 
 	// Tell the job to ignore decryption errors; a custom message will be returned instead of an error.
-	res, err := b.NewJobWithOptions(
+	job, done := b.NewJobWithOptions(
 		context.Background(),
 		newTestFetcher(m, kr, msg),
 		msg.ID,
 		JobOptions{IgnoreDecryptionErrors: true},
-	).GetResult()
+		ForegroundPriority,
+	)
+	defer done()
+
+	res, err := job.GetResult()
 	require.NoError(t, err)
 
 	section(t, res).
@@ -1238,7 +1366,7 @@ func TestBuildCustomMessageEncrypted(t *testing.T) {
 	m := gomock.NewController(t)
 	defer m.Finish()
 
-	b := NewBuilder(1, 1, 1)
+	b := NewBuilder(2, 2)
 	defer b.Done()
 
 	kr := tests.MakeKeyRing(t)
@@ -1252,12 +1380,16 @@ func TestBuildCustomMessageEncrypted(t *testing.T) {
 	msg.Subject = "this is a subject to make sure we preserve subject"
 
 	// Tell the job to ignore decryption errors; a custom message will be returned instead of an error.
-	res, err := b.NewJobWithOptions(
+	job, done := b.NewJobWithOptions(
 		context.Background(),
 		newTestFetcher(m, kr, msg),
 		msg.ID,
 		JobOptions{IgnoreDecryptionErrors: true},
-	).GetResult()
+		ForegroundPriority,
+	)
+	defer done()
+
+	res, err := job.GetResult()
 	require.NoError(t, err)
 
 	section(t, res).
@@ -1283,7 +1415,7 @@ func TestBuildCustomMessagePlainWithAttachment(t *testing.T) {
 	m := gomock.NewController(t)
 	defer m.Finish()
 
-	b := NewBuilder(1, 1, 1)
+	b := NewBuilder(2, 2)
 	defer b.Done()
 
 	kr := tests.MakeKeyRing(t)
@@ -1294,12 +1426,16 @@ func TestBuildCustomMessagePlainWithAttachment(t *testing.T) {
 	att := addTestAttachment(t, foreignKR, msg, "attachID", "file.png", "image/png", "attachment", "attachment")
 
 	// Tell the job to ignore decryption errors; a custom message will be returned instead of an error.
-	res, err := b.NewJobWithOptions(
+	job, done := b.NewJobWithOptions(
 		context.Background(),
 		newTestFetcher(m, kr, msg, att),
 		msg.ID,
 		JobOptions{IgnoreDecryptionErrors: true},
-	).GetResult()
+		ForegroundPriority,
+	)
+	defer done()
+
+	res, err := job.GetResult()
 	require.NoError(t, err)
 
 	section(t, res).
@@ -1324,7 +1460,7 @@ func TestBuildCustomMessageHTMLWithAttachment(t *testing.T) {
 	m := gomock.NewController(t)
 	defer m.Finish()
 
-	b := NewBuilder(1, 1, 1)
+	b := NewBuilder(2, 2)
 	defer b.Done()
 
 	kr := tests.MakeKeyRing(t)
@@ -1335,12 +1471,16 @@ func TestBuildCustomMessageHTMLWithAttachment(t *testing.T) {
 	att := addTestAttachment(t, foreignKR, msg, "attachID", "file.png", "image/png", "attachment", "attachment")
 
 	// Tell the job to ignore decryption errors; a custom message will be returned instead of an error.
-	res, err := b.NewJobWithOptions(
+	job, done := b.NewJobWithOptions(
 		context.Background(),
 		newTestFetcher(m, kr, msg, att),
 		msg.ID,
 		JobOptions{IgnoreDecryptionErrors: true},
-	).GetResult()
+		ForegroundPriority,
+	)
+	defer done()
+
+	res, err := job.GetResult()
 	require.NoError(t, err)
 
 	section(t, res).
@@ -1365,7 +1505,7 @@ func TestBuildCustomMessageOnlyBodyIsUndecryptable(t *testing.T) {
 	m := gomock.NewController(t)
 	defer m.Finish()
 
-	b := NewBuilder(1, 1, 1)
+	b := NewBuilder(2, 2)
 	defer b.Done()
 
 	kr := tests.MakeKeyRing(t)
@@ -1378,12 +1518,16 @@ func TestBuildCustomMessageOnlyBodyIsUndecryptable(t *testing.T) {
 	att := addTestAttachment(t, kr, msg, "attachID", "file.png", "image/png", "attachment", "attachment")
 
 	// Tell the job to ignore decryption errors; a custom message will be returned instead of an error.
-	res, err := b.NewJobWithOptions(
+	job, done := b.NewJobWithOptions(
 		context.Background(),
 		newTestFetcher(m, kr, msg, att),
 		msg.ID,
 		JobOptions{IgnoreDecryptionErrors: true},
-	).GetResult()
+		ForegroundPriority,
+	)
+	defer done()
+
+	res, err := job.GetResult()
 	require.NoError(t, err)
 
 	section(t, res).
@@ -1407,7 +1551,7 @@ func TestBuildCustomMessageOnlyAttachmentIsUndecryptable(t *testing.T) {
 	m := gomock.NewController(t)
 	defer m.Finish()
 
-	b := NewBuilder(1, 1, 1)
+	b := NewBuilder(2, 2)
 	defer b.Done()
 
 	// Use the original keyring for encrypting the message; it should decrypt fine.
@@ -1419,12 +1563,16 @@ func TestBuildCustomMessageOnlyAttachmentIsUndecryptable(t *testing.T) {
 	att := addTestAttachment(t, foreignKR, msg, "attachID", "file.png", "image/png", "attachment", "attachment")
 
 	// Tell the job to ignore decryption errors; a custom message will be returned instead of an error.
-	res, err := b.NewJobWithOptions(
+	job, done := b.NewJobWithOptions(
 		context.Background(),
 		newTestFetcher(m, kr, msg, att),
 		msg.ID,
 		JobOptions{IgnoreDecryptionErrors: true},
-	).GetResult()
+		ForegroundPriority,
+	)
+	defer done()
+
+	res, err := job.GetResult()
 	require.NoError(t, err)
 
 	section(t, res).
@@ -1448,7 +1596,7 @@ func TestBuildFetchMessageFail(t *testing.T) {
 	m := gomock.NewController(t)
 	defer m.Finish()
 
-	b := NewBuilder(1, 1, 1)
+	b := NewBuilder(2, 2)
 	defer b.Done()
 
 	kr := tests.MakeKeyRing(t)
@@ -1459,7 +1607,10 @@ func TestBuildFetchMessageFail(t *testing.T) {
 	f.EXPECT().GetMessage(gomock.Any(), msg.ID).Return(nil, errors.New("oops"))
 
 	// The job should fail, returning an error and a nil result.
-	res, err := b.NewJob(context.Background(), f, msg.ID).GetResult()
+	job, done := b.NewJob(context.Background(), f, msg.ID, ForegroundPriority)
+	defer done()
+
+	res, err := job.GetResult()
 	assert.Error(t, err)
 	assert.Nil(t, res)
 }
@@ -1468,7 +1619,7 @@ func TestBuildFetchAttachmentFail(t *testing.T) {
 	m := gomock.NewController(t)
 	defer m.Finish()
 
-	b := NewBuilder(1, 1, 1)
+	b := NewBuilder(2, 2)
 	defer b.Done()
 
 	kr := tests.MakeKeyRing(t)
@@ -1481,7 +1632,10 @@ func TestBuildFetchAttachmentFail(t *testing.T) {
 	f.EXPECT().GetAttachment(gomock.Any(), msg.Attachments[0].ID).Return(nil, errors.New("oops"))
 
 	// The job should fail, returning an error and a nil result.
-	res, err := b.NewJob(context.Background(), f, msg.ID).GetResult()
+	job, done := b.NewJob(context.Background(), f, msg.ID, ForegroundPriority)
+	defer done()
+
+	res, err := job.GetResult()
 	assert.Error(t, err)
 	assert.Nil(t, res)
 }
@@ -1490,7 +1644,7 @@ func TestBuildNoSuchKeyRing(t *testing.T) {
 	m := gomock.NewController(t)
 	defer m.Finish()
 
-	b := NewBuilder(1, 1, 1)
+	b := NewBuilder(2, 2)
 	defer b.Done()
 
 	kr := tests.MakeKeyRing(t)
@@ -1501,7 +1655,10 @@ func TestBuildNoSuchKeyRing(t *testing.T) {
 	f.EXPECT().GetMessage(gomock.Any(), msg.ID).Return(msg, nil)
 	f.EXPECT().KeyRingForAddressID(msg.AddressID).Return(nil, errors.New("oops"))
 
-	res, err := b.NewJob(context.Background(), f, msg.ID).GetResult()
+	job, done := b.NewJob(context.Background(), f, msg.ID, ForegroundPriority)
+	defer done()
+
+	res, err := job.GetResult()
 	assert.Error(t, err)
 	assert.Nil(t, res)
 

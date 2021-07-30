@@ -80,7 +80,6 @@ type storeMailboxProvider interface {
 	GetDelimiter() string
 
 	GetMessage(apiID string) (storeMessageProvider, error)
-	FetchMessage(apiID string) (storeMessageProvider, error)
 	LabelMessages(apiID []string) error
 	UnlabelMessages(apiID []string) error
 	MarkMessagesRead(apiID []string) error
@@ -100,14 +99,12 @@ type storeMessageProvider interface {
 	Message() *pmapi.Message
 	IsMarkedDeleted() bool
 
-	SetSize(int64) error
-	SetHeader([]byte) error
 	GetHeader() []byte
+	GetRFC822() ([]byte, error)
+	GetRFC822Size() (uint32, error)
 	GetMIMEHeader() textproto.MIMEHeader
 	IsFullHeaderCached() bool
-	SetBodyStructure(*pkgMsg.BodyStructure) error
 	GetBodyStructure() (*pkgMsg.BodyStructure, error)
-	IncreaseBuildCount() (uint32, error)
 }
 
 type storeUserWrap struct {
@@ -164,8 +161,4 @@ func newStoreMailboxWrap(mailbox *store.Mailbox) *storeMailboxWrap {
 
 func (s *storeMailboxWrap) GetMessage(apiID string) (storeMessageProvider, error) {
 	return s.Mailbox.GetMessage(apiID)
-}
-
-func (s *storeMailboxWrap) FetchMessage(apiID string) (storeMessageProvider, error) {
-	return s.Mailbox.FetchMessage(apiID)
 }

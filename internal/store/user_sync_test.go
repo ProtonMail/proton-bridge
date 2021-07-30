@@ -30,7 +30,7 @@ func TestLoadSaveSyncState(t *testing.T) {
 	m, clear := initMocks(t)
 	defer clear()
 
-	m.newStoreNoEvents(true)
+	m.newStoreNoEvents(t, true)
 	insertMessage(t, m, "msg1", "Test message 1", addrID1, false, []string{pmapi.AllMailLabel, pmapi.InboxLabel})
 	insertMessage(t, m, "msg2", "Test message 2", addrID1, false, []string{pmapi.AllMailLabel, pmapi.InboxLabel})
 

@@ -479,11 +479,16 @@ func (im *imapMailbox) SearchMessages(isUID bool, criteria *imap.SearchCriteria)
 		}
 
 		// Filter by size (only if size was already calculated).
-		if m.Size > 0 {
-			if criteria.Larger != 0 && m.Size <= int64(criteria.Larger) {
+		size, err := storeMessage.GetRFC822Size()
+		if err != nil {
+			return nil, err
+		}
+
+		if size > 0 {
+			if criteria.Larger != 0 && int64(size) <= int64(criteria.Larger) {
 				continue
 			}
-			if criteria.Smaller != 0 && m.Size >= int64(criteria.Smaller) {
+			if criteria.Smaller != 0 && int64(size) >= int64(criteria.Smaller) {
 				continue
 			}
 		}
@@ -513,13 +518,12 @@ func (im *imapMailbox) SearchMessages(isUID bool, criteria *imap.SearchCriteria)
 //
 // Messages must be sent to msgResponse. When the function returns, msgResponse must be closed.
 func (im *imapMailbox) ListMessages(isUID bool, seqSet *imap.SeqSet, items []imap.FetchItem, msgResponse chan<- *imap.Message) error {
-	msgBuildCountHistogram := newMsgBuildCountHistogram()
 	return im.logCommand(func() error {
-		return im.listMessages(isUID, seqSet, items, msgResponse, msgBuildCountHistogram)
-	}, "FETCH", isUID, seqSet, items, msgBuildCountHistogram)
+		return im.listMessages(isUID, seqSet, items, msgResponse)
+	}, "FETCH", isUID, seqSet, items)
 }
 
-func (im *imapMailbox) listMessages(isUID bool, seqSet *imap.SeqSet, items []imap.FetchItem, msgResponse chan<- *imap.Message, msgBuildCountHistogram *msgBuildCountHistogram) (err error) { //nolint[funlen]
+func (im *imapMailbox) listMessages(isUID bool, seqSet *imap.SeqSet, items []imap.FetchItem, msgResponse chan<- *imap.Message) (err error) { //nolint[funlen]
 	defer func() {
 		close(msgResponse)
 		if err != nil {
@@ -564,7 +568,7 @@ func (im *imapMailbox) listMessages(isUID bool, seqSet *imap.SeqSet, items []ima
 			return nil, err
 		}
 
-		msg, err := im.getMessage(storeMessage, items, msgBuildCountHistogram)
+		msg, err := im.getMessage(storeMessage, items)
 		if err != nil {
 			err = fmt.Errorf("list message build: %v", err)
 			l.WithField("metaID", storeMessage.ID()).Error(err)
@@ -594,7 +598,7 @@ func (im *imapMailbox) listMessages(isUID bool, seqSet *imap.SeqSet, items []ima
 		return nil
 	}
 
-	err = parallel.RunParallel(fetchWorkers, input, processCallback, collectCallback)
+	err = parallel.RunParallel(im.user.backend.listWorkers, input, processCallback, collectCallback)
 	if err != nil {
 		return err
 	}

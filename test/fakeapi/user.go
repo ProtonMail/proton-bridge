@@ -125,6 +125,10 @@ func (api *FakePMAPI) Addresses() pmapi.AddressList {
 	return *api.addresses
 }
 
+func (api *FakePMAPI) GetUserKeyRing() (*crypto.KeyRing, error) {
+	return api.userKeyRing, nil
+}
+
 func (api *FakePMAPI) KeyRingForAddressID(addrID string) (*crypto.KeyRing, error) {
 	return api.addrKeyRing[addrID], nil
 }

@@ -27,7 +27,6 @@ import (
 	"strings"
 
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
-	pkgMsg "github.com/ProtonMail/proton-bridge/pkg/message"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -154,11 +153,6 @@ func (store *Store) checkDraftTotalSize(message *pmapi.Message, attachments []*d
 		return false, err
 	}
 
-	msgSize := message.Size
-	if msgSize == 0 {
-		msgSize = int64(len(message.Body))
-	}
-
 	var attSize int64
 	for _, att := range attachments {
 		b, err := ioutil.ReadAll(att.encReader)
@@ -169,7 +163,7 @@ func (store *Store) checkDraftTotalSize(message *pmapi.Message, attachments []*d
 		att.encReader = bytes.NewBuffer(b)
 	}
 
-	return msgSize+attSize <= maxUpload, nil
+	return int64(len(message.Body))+attSize <= maxUpload, nil
 }
 
 func (store *Store) getDraftAction(message *pmapi.Message) int {
@@ -237,39 +231,6 @@ func (store *Store) txPutMessage(metaBucket *bolt.Bucket, onlyMeta *pmapi.Messag
 	return nil
 }
 
-func (store *Store) txPutBodyStructure(bsBucket *bolt.Bucket, msgID string, bs *pkgMsg.BodyStructure) error {
-	raw, err := bs.Serialize()
-	if err != nil {
-		return err
-	}
-	err = bsBucket.Put([]byte(msgID), raw)
-	if err != nil {
-		return errors.Wrap(err, "cannot put bodystructure bucket")
-	}
-	return nil
-}
-
-func (store *Store) txGetBodyStructure(bsBucket *bolt.Bucket, msgID string) (*pkgMsg.BodyStructure, error) {
-	raw := bsBucket.Get([]byte(msgID))
-	if len(raw) == 0 {
-		return nil, nil
-	}
-	return pkgMsg.DeserializeBodyStructure(raw)
-}
-
-func (store *Store) txIncreaseMsgBuildCount(b *bolt.Bucket, msgID string) (uint32, error) {
-	key := []byte(msgID)
-	count := uint32(0)
-
-	raw := b.Get(key)
-	if raw != nil {
-		count = btoi(raw)
-	}
-
-	count++
-	return count, b.Put(key, itob(count))
-}
-
 // createOrUpdateMessageEvent is helper to create only one message with
 // createOrUpdateMessagesEvent.
 func (store *Store) createOrUpdateMessageEvent(msg *pmapi.Message) error {
@@ -287,7 +248,7 @@ func (store *Store) createOrUpdateMessagesEvent(msgs []*pmapi.Message) error { /
 		b := tx.Bucket(metadataBucket)
 		for _, msg := range msgs {
 			clearNonMetadata(msg)
-			txUpdateMetadaFromDB(b, msg, store.log)
+			txUpdateMetadataFromDB(b, msg, store.log)
 		}
 		return nil
 	})
@@ -341,6 +302,11 @@ func (store *Store) createOrUpdateMessagesEvent(msgs []*pmapi.Message) error { /
 		return err
 	}
 
+	// Notify the cacher that it should start caching messages.
+	for _, msg := range msgs {
+		store.cacher.newJob(msg.ID)
+	}
+
 	return nil
 }
 
@@ -351,16 +317,12 @@ func clearNonMetadata(onlyMeta *pmapi.Message) {
 	onlyMeta.Attachments = nil
 }
 
-// txUpdateMetadaFromDB changes the the onlyMeta data.
+// txUpdateMetadataFromDB changes the the onlyMeta data.
 // If there is stored message in metaBucket the size, header and MIMEType are
 // not changed if already set. To change these:
 // * size must be updated by Message.SetSize
 // * contentType and header must be updated by Message.SetContentTypeAndHeader.
-func txUpdateMetadaFromDB(metaBucket *bolt.Bucket, onlyMeta *pmapi.Message, log *logrus.Entry) {
-	// Size attribute on the server is counting encrypted data. We need to compute
-	// "real" size of decrypted data. Negative values will be processed during fetch.
-	onlyMeta.Size = -1
-
+func txUpdateMetadataFromDB(metaBucket *bolt.Bucket, onlyMeta *pmapi.Message, log *logrus.Entry) {
 	msgb := metaBucket.Get([]byte(onlyMeta.ID))
 	if msgb == nil {
 		return
@@ -378,8 +340,7 @@ func txUpdateMetadaFromDB(metaBucket *bolt.Bucket, onlyMeta *pmapi.Message, log 
 		return
 	}
 
-	// Keep already calculated size and content type.
-	onlyMeta.Size = stored.Size
+	// Keep content type.
 	onlyMeta.MIMEType = stored.MIMEType
 	if stored.Header != "" && stored.Header != "(No Header)" {
 		tmpMsg, err := mail.ReadMessage(
@@ -401,6 +362,12 @@ func (store *Store) deleteMessageEvent(apiID string) error {
 
 // deleteMessagesEvent deletes the message from metadata and all mailbox buckets.
 func (store *Store) deleteMessagesEvent(apiIDs []string) error {
+	for _, messageID := range apiIDs {
+		if err := store.cache.Rem(store.UserID(), messageID); err != nil {
+			logrus.WithError(err).Error("Failed to remove message from cache")
+		}
+	}
+
 	return store.db.Update(func(tx *bolt.Tx) error {
 		for _, apiID := range apiIDs {
 			if err := tx.Bucket(metadataBucket).Delete([]byte(apiID)); err != nil {

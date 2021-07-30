@@ -19,6 +19,7 @@ package cli
 
 import (
 	"fmt"
+	"os"
 	"strconv"
 	"strings"
 
@@ -155,6 +156,67 @@ func (f *frontendCLI) disallowProxy(c *ishell.Context) {
 	}
 }
 
+func (f *frontendCLI) enableCacheOnDisk(c *ishell.Context) {
+	if f.settings.GetBool(settings.CacheEnabledKey) {
+		f.Println("The local cache is already enabled.")
+		return
+	}
+
+	if f.yesNoQuestion("Are you sure you want to enable the local cache") {
+		// Set this back to the default location before enabling.
+		f.settings.Set(settings.CacheLocationKey, "")
+
+		if err := f.bridge.EnableCache(); err != nil {
+			f.Println("The local cache could not be enabled.")
+			return
+		}
+
+		f.settings.SetBool(settings.CacheEnabledKey, true)
+		f.restarter.SetToRestart()
+		f.Stop()
+	}
+}
+
+func (f *frontendCLI) disableCacheOnDisk(c *ishell.Context) {
+	if !f.settings.GetBool(settings.CacheEnabledKey) {
+		f.Println("The local cache is already disabled.")
+		return
+	}
+
+	if f.yesNoQuestion("Are you sure you want to disable the local cache") {
+		if err := f.bridge.DisableCache(); err != nil {
+			f.Println("The local cache could not be disabled.")
+			return
+		}
+
+		f.settings.SetBool(settings.CacheEnabledKey, false)
+		f.restarter.SetToRestart()
+		f.Stop()
+	}
+}
+
+func (f *frontendCLI) setCacheOnDiskLocation(c *ishell.Context) {
+	if !f.settings.GetBool(settings.CacheEnabledKey) {
+		f.Println("The local cache must be enabled.")
+		return
+	}
+
+	if location := f.settings.Get(settings.CacheLocationKey); location != "" {
+		f.Println("The current local cache location is:", location)
+	}
+
+	if location := f.readStringInAttempts("Enter a new location for the cache", c.ReadLine, f.isCacheLocationUsable); location != "" {
+		if err := f.bridge.MigrateCache(f.settings.Get(settings.CacheLocationKey), location); err != nil {
+			f.Println("The local cache location could not be changed.")
+			return
+		}
+
+		f.settings.Set(settings.CacheLocationKey, location)
+		f.restarter.SetToRestart()
+		f.Stop()
+	}
+}
+
 func (f *frontendCLI) isPortFree(port string) bool {
 	port = strings.ReplaceAll(port, ":", "")
 	if port == "" || port == currentPort {
@@ -170,4 +232,14 @@ func (f *frontendCLI) isPortFree(port string) bool {
 		return false
 	}
 	return true
+}
+
+// NOTE(GODT-1158): Check free space in location.
+func (f *frontendCLI) isCacheLocationUsable(location string) bool {
+	stat, err := os.Stat(location)
+	if err != nil {
+		return false
+	}
+
+	return stat.IsDir()
 }

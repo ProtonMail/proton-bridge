@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"runtime"
 	"runtime/debug"
 	"testing"
 	"time"
@@ -28,10 +29,13 @@ import (
 	"github.com/ProtonMail/proton-bridge/internal/events"
 	"github.com/ProtonMail/proton-bridge/internal/sentry"
 	"github.com/ProtonMail/proton-bridge/internal/store"
+	"github.com/ProtonMail/proton-bridge/internal/store/cache"
 	"github.com/ProtonMail/proton-bridge/internal/users/credentials"
 	usersmocks "github.com/ProtonMail/proton-bridge/internal/users/mocks"
+	"github.com/ProtonMail/proton-bridge/pkg/message"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	pmapimocks "github.com/ProtonMail/proton-bridge/pkg/pmapi/mocks"
+	tests "github.com/ProtonMail/proton-bridge/test"
 	gomock "github.com/golang/mock/gomock"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -42,9 +46,11 @@ func TestMain(m *testing.M) {
 	if os.Getenv("VERBOSITY") == "fatal" {
 		logrus.SetLevel(logrus.FatalLevel)
 	}
+
 	if os.Getenv("VERBOSITY") == "trace" {
 		logrus.SetLevel(logrus.TraceLevel)
 	}
+
 	os.Exit(m.Run())
 }
 
@@ -151,7 +157,7 @@ type mocks struct {
 	clientManager *pmapimocks.MockManager
 	pmapiClient   *pmapimocks.MockClient
 
-	storeCache *store.Cache
+	storeCache *store.Events
 }
 
 func initMocks(t *testing.T) mocks {
@@ -178,7 +184,7 @@ func initMocks(t *testing.T) mocks {
 		clientManager: pmapimocks.NewMockManager(mockCtrl),
 		pmapiClient:   pmapimocks.NewMockClient(mockCtrl),
 
-		storeCache: store.NewCache(cacheFile.Name()),
+		storeCache: store.NewEvents(cacheFile.Name()),
 	}
 
 	// Called during clean-up.
@@ -187,9 +193,20 @@ func initMocks(t *testing.T) mocks {
 	// Set up store factory.
 	m.storeMaker.EXPECT().New(gomock.Any()).DoAndReturn(func(user store.BridgeUser) (*store.Store, error) {
 		var sentryReporter *sentry.Reporter // Sentry reporter is not used under unit tests.
-		dbFile, err := ioutil.TempFile("", "bridge-store-db-*.db")
+
+		dbFile, err := ioutil.TempFile(t.TempDir(), "bridge-store-db-*.db")
 		r.NoError(t, err, "could not get temporary file for store db")
-		return store.New(sentryReporter, m.PanicHandler, user, m.eventListener, dbFile.Name(), m.storeCache)
+
+		return store.New(
+			sentryReporter,
+			m.PanicHandler,
+			user,
+			m.eventListener,
+			cache.NewInMemoryCache(1<<20),
+			message.NewBuilder(runtime.NumCPU(), runtime.NumCPU()),
+			dbFile.Name(),
+			m.storeCache,
+		)
 	}).AnyTimes()
 	m.storeMaker.EXPECT().Remove(gomock.Any()).AnyTimes()
 
@@ -212,8 +229,8 @@ func (fr *fullStackReporter) Fatalf(format string, args ...interface{}) {
 
 func testNewUsersWithUsers(t *testing.T, m mocks) *Users {
 	m.credentialsStore.EXPECT().List().Return([]string{testCredentials.UserID, testCredentialsSplit.UserID}, nil)
-	mockLoadingConnectedUser(m, testCredentials)
-	mockLoadingConnectedUser(m, testCredentialsSplit)
+	mockLoadingConnectedUser(t, m, testCredentials)
+	mockLoadingConnectedUser(t, m, testCredentialsSplit)
 	mockEventLoopNoAction(m)
 
 	return testNewUsers(t, m)
@@ -245,7 +262,7 @@ func cleanUpUsersData(b *Users) {
 	}
 }
 
-func mockAddingConnectedUser(m mocks) {
+func mockAddingConnectedUser(t *testing.T, m mocks) {
 	gomock.InOrder(
 		// Mock of users.FinishLogin.
 		m.pmapiClient.EXPECT().AuthSalt(gomock.Any()).Return("", nil),
@@ -256,10 +273,10 @@ func mockAddingConnectedUser(m mocks) {
 		m.credentialsStore.EXPECT().Get("user").Return(testCredentials, nil),
 	)
 
-	mockInitConnectedUser(m)
+	mockInitConnectedUser(t, m)
 }
 
-func mockLoadingConnectedUser(m mocks, creds *credentials.Credentials) {
+func mockLoadingConnectedUser(t *testing.T, m mocks, creds *credentials.Credentials) {
 	authRefresh := &pmapi.AuthRefresh{
 		UID:          "uid",
 		AccessToken:  "acc",
@@ -273,10 +290,10 @@ func mockLoadingConnectedUser(m mocks, creds *credentials.Credentials) {
 		m.credentialsStore.EXPECT().UpdateToken(creds.UserID, authRefresh.UID, authRefresh.RefreshToken).Return(creds, nil),
 	)
 
-	mockInitConnectedUser(m)
+	mockInitConnectedUser(t, m)
 }
 
-func mockInitConnectedUser(m mocks) {
+func mockInitConnectedUser(t *testing.T, m mocks) {
 	// Mock of user initialisation.
 	m.pmapiClient.EXPECT().AddAuthRefreshHandler(gomock.Any())
 	m.pmapiClient.EXPECT().IsUnlocked().Return(true).AnyTimes()
@@ -286,6 +303,7 @@ func mockInitConnectedUser(m mocks) {
 		m.pmapiClient.EXPECT().ListLabels(gomock.Any()).Return([]*pmapi.Label{}, nil),
 		m.pmapiClient.EXPECT().CountMessages(gomock.Any(), "").Return([]*pmapi.MessagesCount{}, nil),
 		m.pmapiClient.EXPECT().Addresses().Return([]*pmapi.Address{testPMAPIAddress}),
+		m.pmapiClient.EXPECT().GetUserKeyRing().Return(tests.MakeKeyRing(t), nil).AnyTimes(),
 	)
 }
 

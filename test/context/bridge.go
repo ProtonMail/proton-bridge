@@ -21,11 +21,14 @@ import (
 	"time"
 
 	"github.com/ProtonMail/proton-bridge/internal/bridge"
+	"github.com/ProtonMail/proton-bridge/internal/config/settings"
 	"github.com/ProtonMail/proton-bridge/internal/config/useragent"
 	"github.com/ProtonMail/proton-bridge/internal/constants"
 	"github.com/ProtonMail/proton-bridge/internal/sentry"
+	"github.com/ProtonMail/proton-bridge/internal/store/cache"
 	"github.com/ProtonMail/proton-bridge/internal/users"
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
+	"github.com/ProtonMail/proton-bridge/pkg/message"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 )
 
@@ -61,18 +64,28 @@ func (ctx *TestContext) RestartBridge() error {
 }
 
 // newBridgeInstance creates a new bridge instance configured to use the given config/credstore.
+// NOTE(GODT-1158): Need some tests with on-disk cache as well! Configurable in feature file or envvar?
 func newBridgeInstance(
 	t *bddT,
 	locations bridge.Locator,
-	cache bridge.Cacher,
-	settings *fakeSettings,
+	cacheProvider bridge.CacheProvider,
+	fakeSettings *fakeSettings,
 	credStore users.CredentialsStorer,
 	eventListener listener.Listener,
 	clientManager pmapi.Manager,
 ) *bridge.Bridge {
-	sentryReporter := sentry.NewReporter("bridge", constants.Version, useragent.New())
-	panicHandler := &panicHandler{t: t}
-	updater := newFakeUpdater()
-	versioner := newFakeVersioner()
-	return bridge.New(locations, cache, settings, sentryReporter, panicHandler, eventListener, clientManager, credStore, updater, versioner)
+	return bridge.New(
+		locations,
+		cacheProvider,
+		fakeSettings,
+		sentry.NewReporter("bridge", constants.Version, useragent.New()),
+		&panicHandler{t: t},
+		eventListener,
+		cache.NewInMemoryCache(100*(1<<20)),
+		message.NewBuilder(fakeSettings.GetInt(settings.FetchWorkers), fakeSettings.GetInt(settings.AttachmentWorkers)),
+		clientManager,
+		credStore,
+		newFakeUpdater(),
+		newFakeVersioner(),
+	)
 }

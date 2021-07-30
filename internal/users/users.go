@@ -20,12 +20,13 @@ package users
 
 import (
 	"context"
+	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/ProtonMail/proton-bridge/internal/events"
-	imapcache "github.com/ProtonMail/proton-bridge/internal/imap/cache"
 	"github.com/ProtonMail/proton-bridge/internal/metrics"
 	"github.com/ProtonMail/proton-bridge/internal/users/credentials"
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
@@ -225,6 +226,7 @@ func (u *Users) FinishLogin(client pmapi.Client, auth *pmapi.Auth, password []by
 			return nil, errors.Wrap(err, "failed to update password of user in credentials store")
 		}
 
+		// will go and unlock cache if not already done
 		if err := user.connect(client, creds); err != nil {
 			return nil, errors.Wrap(err, "failed to reconnect existing user")
 		}
@@ -341,9 +343,6 @@ func (u *Users) ClearData() error {
 		result = multierror.Append(result, err)
 	}
 
-	// Need to clear imap cache otherwise fetch response will be remembered from previous test.
-	imapcache.Clear()
-
 	return result
 }
 
@@ -366,6 +365,7 @@ func (u *Users) DeleteUser(userID string, clearStore bool) error {
 			if err := user.closeStore(); err != nil {
 				log.WithError(err).Error("Failed to close user store")
 			}
+
 			if clearStore {
 				// Clear cache after closing connections (done in logout).
 				if err := user.clearStore(); err != nil {
@@ -425,6 +425,41 @@ func (u *Users) AllowProxy() {
 // It also needs to work before the app is initialised (because we may need to use the proxy at startup).
 func (u *Users) DisallowProxy() {
 	u.clientManager.DisallowProxy()
+}
+
+func (u *Users) EnableCache() error {
+	// NOTE(GODT-1158): Check for available size before enabling.
+
+	return nil
+}
+
+func (u *Users) MigrateCache(from, to string) error {
+	// NOTE(GODT-1158): Is it enough to just close the store? Do we need to force-close the cacher too?
+
+	for _, user := range u.users {
+		if err := user.closeStore(); err != nil {
+			logrus.WithError(err).Error("Failed to close user's store")
+		}
+	}
+
+	// Ensure the parent directory exists.
+	if err := os.MkdirAll(filepath.Dir(to), 0700); err != nil {
+		return err
+	}
+
+	return os.Rename(from, to)
+}
+
+func (u *Users) DisableCache() error {
+	// NOTE(GODT-1158): Is it an error if we can't remove a user's cache?
+
+	for _, user := range u.users {
+		if err := user.store.RemoveCache(); err != nil {
+			logrus.WithError(err).Error("Failed to remove user's message cache")
+		}
+	}
+
+	return nil
 }
 
 // hasUser returns whether the struct currently has a user with ID `id`.

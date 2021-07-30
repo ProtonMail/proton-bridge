@@ -128,6 +128,24 @@ func New( //nolint[funlen]
 	})
 	fe.AddCmd(dohCmd)
 
+	// Cache-On-Disk commands.
+	codCmd := &ishell.Cmd{Name: "local-cache",
+		Help: "manage the local encrypted message cache",
+	}
+	codCmd.AddCmd(&ishell.Cmd{Name: "enable",
+		Help: "enable the local cache",
+		Func: fe.enableCacheOnDisk,
+	})
+	codCmd.AddCmd(&ishell.Cmd{Name: "disable",
+		Help: "disable the local cache",
+		Func: fe.disableCacheOnDisk,
+	})
+	codCmd.AddCmd(&ishell.Cmd{Name: "change-location",
+		Help: "change the location of the local cache",
+		Func: fe.setCacheOnDiskLocation,
+	})
+	fe.AddCmd(codCmd)
+
 	// Updates commands.
 	updatesCmd := &ishell.Cmd{Name: "updates",
 		Help: "manage bridge updates",
