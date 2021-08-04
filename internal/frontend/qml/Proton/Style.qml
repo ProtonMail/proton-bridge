@@ -32,9 +32,8 @@ QtObject {
     //    property color primay_norm
     //    ...
     // }
-    // and instead of "var" later on "ColorScheme" should be used (also in each component)
 
-    property var lightStyle: ColorScheme {
+    property ColorScheme lightStyle: ColorScheme {
         id: _lightStyle
 
         prominent: prominentStyle
@@ -105,7 +104,7 @@ QtObject {
         backdrop_norm: "#7A262A33"
     }
 
-    property var prominentStyle: ColorScheme {
+    property ColorScheme prominentStyle: ColorScheme {
         id: _prominentStyle
 
         prominent: this
@@ -176,7 +175,7 @@ QtObject {
         backdrop_norm: "#52000000"
     }
 
-    property var darkStyle: ColorScheme {
+    property ColorScheme darkStyle: ColorScheme {
         id: _darkStyle
 
         prominent: prominentStyle
@@ -249,7 +248,7 @@ QtObject {
 
     // TODO: if default style should be loaded from somewhere
     // (i.e. from preferencies file) - it should be loaded here
-    property var currentStyle: lightStyle
+    property ColorScheme currentStyle: lightStyle
 
     property string font_family: {
         switch (Qt.platform.os) {
@@ -281,15 +280,13 @@ QtObject {
     property int caption_line_height: 16
     property real caption_letter_spacing: 0.4
 
-    property int fontWidth_100: Font.Thin
-    property int fontWidth_200: Font.Light
-    property int fontWidth_300: Font.ExtraLight
-    property int fontWidth_400: Font.Normal
-    property int fontWidth_500: Font.Medium
-    property int fontWidth_600: Font.DemiBold
-    property int fontWidth_700: Font.Bold
-    property int fontWidth_800: Font.ExtraBold
-    property int fontWidth_900: Font.Black
-
-    property var transparent: "#00000000"
+    property int fontWeight_100: Font.Thin
+    property int fontWeight_200: Font.Light
+    property int fontWeight_300: Font.ExtraLight
+    property int fontWeight_400: Font.Normal
+    property int fontWeight_500: Font.Medium
+    property int fontWeight_600: Font.DemiBold
+    property int fontWeight_700: Font.Bold
+    property int fontWeight_800: Font.ExtraBold
+    property int fontWeight_900: Font.Black
 }

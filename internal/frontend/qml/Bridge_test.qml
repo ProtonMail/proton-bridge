@@ -26,21 +26,31 @@ import QtQml.Models 2.12
 import Proton 4.0
 
 import "./BridgeTest"
+import BridgePreview 1.0
+
+import Notifications 1.0
 
 Window {
     id: root
 
     width: 640
     height: 480
-    x: 100
-    y: 100
 
-    property var colorScheme: ProtonStyle.darkStyle
+    property ColorScheme colorScheme: ProtonStyle.darkStyle
 
     flags   : Qt.Window | Qt.Dialog
     visible : true
     title   : "Bridge Test GUI"
     color   : colorScheme.background_norm
+
+    function getCursorPos() {
+        return BridgePreview.getCursorPos()
+    }
+    function quit() {
+        if (bridge !== undefined && bridge !== null) {
+            bridge.destroy()
+        }
+    }
 
     function _log(msg, color) {
         logTextArea.text += "<p style='color: " + color + ";'>" + msg + "</p>"
@@ -93,6 +103,11 @@ Window {
         QtObject {
             property string username: ""
             property bool loggedIn: false
+
+            property bool setupGuideSeen: true
+
+            property string captionText: "50.3 MB / 20 GB"
+            property string avatarText: "jd"
 
             signal loginUsernamePasswordError()
             signal loginFreeUserError()
@@ -166,6 +181,7 @@ Window {
     Component.onCompleted: {
         var newLoginUser = _userComponent.createObject()
         root.loginUser = newLoginUser
+        root.loginUser.setupGuideSeen = false
         _usersTest.append({object: newLoginUser})
 
         newLoginUser.loginUsernamePasswordError.connect(root.loginUsernamePasswordError)
@@ -194,7 +210,7 @@ Window {
         }
 
         TabButton {
-            text: "Playground"
+            text: "Notifications"
         }
 
         TabButton {
@@ -215,16 +231,13 @@ Window {
         RowLayout {
             id: globalTab
             spacing : 5
-            property alias colorScheme: root.colorScheme
 
             ColumnLayout {
                 spacing : 5
 
-                property alias colorScheme: globalTab.colorScheme
-
-                ProtonLabel {
+                Label {
+                    colorScheme: root.colorScheme
                     text: "Global settings"
-                    color: globalTab.colorScheme.text_norm
                 }
 
                 ButtonGroup {
@@ -232,6 +245,7 @@ Window {
                 }
 
                 RadioButton {
+                    colorScheme: root.colorScheme
                     Layout.fillWidth: true
 
                     text: "Light UI"
@@ -246,6 +260,7 @@ Window {
                 }
 
                 RadioButton {
+                    colorScheme: root.colorScheme
                     Layout.fillWidth: true
 
                     text: "Dark UI"
@@ -262,6 +277,7 @@ Window {
                 }
 
                 Button {
+                    colorScheme: root.colorScheme
                     //Layout.fillWidth: true
 
                     text: "Open Bridge"
@@ -272,6 +288,7 @@ Window {
                 }
 
                 Button {
+                    colorScheme: root.colorScheme
                     //Layout.fillWidth: true
 
                     text: "Close Bridge"
@@ -289,14 +306,13 @@ Window {
             ColumnLayout {
                 spacing : 5
 
-                property alias colorScheme: globalTab.colorScheme
-
-                ProtonLabel {
+                Label {
+                    colorScheme: root.colorScheme
                     text: "Notifications"
-                    color: globalTab.colorScheme.text_norm
                 }
 
                 Button {
+                    colorScheme: root.colorScheme
                     text: "Notify: danger"
                     enabled: bridge !== undefined && bridge !== null
                     onClicked: {
@@ -305,6 +321,7 @@ Window {
                 }
 
                 Button {
+                    colorScheme: root.colorScheme
                     text: "Notify: warning"
                     enabled: bridge !== undefined && bridge !== null
                     onClicked: {
@@ -313,14 +330,13 @@ Window {
                 }
 
                 Button {
+                    colorScheme: root.colorScheme
                     text: "Notify: success"
                     enabled: bridge !== undefined && bridge !== null
                     onClicked: {
                         bridge.mainWindow.notifyUserAdded()
                     }
                 }
-
-
 
                 Item {
                     Layout.fillHeight: true
@@ -345,14 +361,131 @@ Window {
         }
 
         RowLayout {
-            id: playgroundTab
+            id: notificationsTab
+            spacing: 5
 
-            property var colorScheme: root.colorScheme
+            ColumnLayout {
+                spacing: 5
 
-            AccountDelegate{}
+                Switch {
+                    colorScheme: root.colorScheme
+
+                    text: "Internet connection"
+                    checked: true
+                    onCheckedChanged: {
+                        checked ? root.internetOn() : root.internetOff()
+                    }
+                }
+
+                Button {
+                    colorScheme: root.colorScheme
+
+                    text: "Update manual ready"
+                    onClicked: {
+                        root.updateManualReady("3.14.1592")
+                    }
+                }
+                Button {
+                    colorScheme: root.colorScheme
+
+                    text: "Update manual done"
+                    onClicked: {
+                        root.updateManualRestartNeeded()
+                    }
+                }
+                Button {
+                    colorScheme: root.colorScheme
+
+                    text: "Update manual error"
+                    onClicked: {
+                        root.updateManualError()
+                    }
+                }
+                Button {
+                    colorScheme: root.colorScheme
+
+                    text: "Update force"
+                    onClicked: {
+                        root.updateForce("3.14.1592")
+                    }
+                }
+                Button {
+                    colorScheme: root.colorScheme
+
+                    text: "Update force error"
+                    onClicked: {
+                        root.updateForceError()
+                    }
+                }
+
+                Button {
+                    colorScheme: root.colorScheme
+
+                    text: "Update silent done"
+                    onClicked: {
+                        root.updateSilentRestartNeeded()
+                    }
+                }
+
+                Button {
+                    colorScheme: root.colorScheme
+
+                    text: "Update solent error"
+                    onClicked: {
+                        root.updateSilentError()
+                    }
+                }
+
+                Button {
+                    colorScheme: root.colorScheme
+
+                    text: "Bug report send OK"
+                    onClicked: {
+                        root.bugReportSendSuccess()
+                    }
+                }
+
+                Button {
+                    colorScheme: root.colorScheme
+
+                    text: "Bug report send error"
+                    onClicked: {
+                        root.bugReportSendError()
+                    }
+                }
+
+                Button {
+                    colorScheme: root.colorScheme
+
+                    text: "Cache anavailable"
+                    onClicked: {
+                        root.cacheAnavailable()
+                    }
+                }
+                Button {
+                    colorScheme: root.colorScheme
+
+                    text: "Cache can't move"
+                    onClicked: {
+                        root.cacheCantMove()
+                    }
+                }
+
+                Button {
+                    colorScheme: root.colorScheme
+
+                    text: "Disk full"
+                    onClicked: {
+                        root.diskFull()
+                    }
+                }
+
+
+            }
         }
 
         TextArea {
+            colorScheme: root.colorScheme
             id: logTextArea
             Layout.fillHeight: true
             Layout.fillWidth: true
@@ -365,7 +498,7 @@ Window {
         }
     }
 
-    property var bridge
+    property Bridge bridge
 
     // this signals are used only when trying to login with new user (i.e. not in users model)
     signal loginUsernamePasswordError()
@@ -377,6 +510,25 @@ Window {
     signal login2PasswordRequested()
     signal login2PasswordError()
     signal login2PasswordErrorAbort()
+
+    signal internetOff()
+    signal internetOn()
+
+    signal updateManualReady(var version)
+    signal updateManualRestartNeeded()
+    signal updateManualError()
+    signal updateForce(var version)
+    signal updateForceError()
+    signal updateSilentRestartNeeded()
+    signal updateSilentError()
+
+    signal bugReportSendSuccess()
+    signal bugReportSendError()
+
+    signal cacheAnavailable()
+    signal cacheCantMove()
+
+    signal diskFull()
 
     onLoginUsernamePasswordError: {
         console.debug("<- loginUsernamePasswordError")
@@ -404,6 +556,13 @@ Window {
     }
     onLogin2PasswordErrorAbort: {
         console.debug("<- login2PasswordErrorAbort")
+    }
+
+    onInternetOff: {
+        console.debug("<- internetOff")
+    }
+    onInternetOn: {
+        console.debug("<- internetOn")
     }
 
     Component {

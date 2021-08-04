@@ -15,40 +15,35 @@
 // You should have received a copy of the GNU General Public License
 // along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
 
-import QtQuick 2.13
-import QtQuick.Layouts 1.12
+import QtQml 2.12
 import QtQuick.Controls 2.12
 
-import Proton 4.0
-
-Item {
+QtObject {
     id: root
-    property ColorScheme colorScheme
 
-    implicitHeight: children[0].implicitHeight
-    implicitWidth: children[0].implicitWidth
+    default property var children
 
-    ColumnLayout {
-        anchors.fill: parent
-        spacing: 0
+    enum NotificationType {
+        Info = 0,
+        Success = 1,
+        Warning = 2,
+        Danger = 3
+    }
 
-        Rectangle {
-            Layout.fillWidth: true
-            Layout.minimumHeight: 277
-            Layout.maximumHeight: 277
+    property string text
+    property string description
+    property string icon
+    property list<Action> action
+    property int type
+    property int group
 
-            color: root.colorScheme.background_norm
+    property bool dismissed: false
+    property bool active: false
+    readonly property var occurred: active ? new Date() : undefined
 
-            ColumnLayout {
+    property var data
 
-            }
-        }
-
-        Rectangle {
-            Layout.fillWidth: true
-            Layout.fillHeight: true
-
-            color: root.colorScheme.background_weak
-        }
+    onActiveChanged: {
+        dismissed = false
     }
 }

@@ -1,0 +1,6 @@
+module Notifications
+depends QtQml 2.12
+
+Notifications 1.0 Notifications.qml
+NotificationFilter 1.0 NotificationFilter.qml
+Notification 1.0 Notification.qml

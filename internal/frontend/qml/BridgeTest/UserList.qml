@@ -24,7 +24,7 @@ import Proton 4.0
 ColumnLayout {
     id: root
 
-    property var colorScheme
+    property ColorScheme colorScheme
     property var backend
 
     property alias currentIndex: usersListView.currentIndex
@@ -46,10 +46,10 @@ ColumnLayout {
             anchors.margins: 10
 
             Label {
+                colorScheme: root.colorScheme
                 text: modelData.username
                 anchors.margins: 10
                 anchors.fill: parent
-                color: root.colorScheme.text_norm
 
                 MouseArea {
                     anchors.fill: parent
@@ -69,14 +69,25 @@ ColumnLayout {
         Layout.fillWidth: true
 
         Button {
+            colorScheme: root.colorScheme
+
             text: "+"
 
             onClicked: {
-                var newUserObject = backend.userComponent.createObject(backend, { username: "test@protonmail.com", loggedIn: false } )
+                var newUserObject = backend.userComponent.createObject(backend)
+                newUserObject.username = backend.loginUser.username.length > 0 ? backend.loginUser.username : "test@protonmail.com"
+                newUserObject.loggedIn = true
+                newUserObject.setupGuideSeen = true // backend.loginUser.setupGuideSeen
+
+                backend.loginUser.username = ""
+                backend.loginUser.loggedIn = false
+                backend.loginUser.setupGuideSeen = false
+
                 backend.users.append( { object: newUserObject } )
             }
         }
         Button {
+            colorScheme: root.colorScheme
             text: "-"
 
             enabled: usersListView.currentIndex != 0

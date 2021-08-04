@@ -23,10 +23,11 @@ import QtQuick.Controls 2.12
 import Proton 4.0
 
 RowLayout {
-    property var colorScheme: parent.colorScheme
+    property ColorScheme colorScheme
 
     // Primary buttons
     ButtonsColumn {
+        colorScheme: root.colorScheme
         Layout.fillWidth: true
         Layout.fillHeight: true
 
@@ -35,6 +36,7 @@ RowLayout {
 
     // Secondary buttons
     ButtonsColumn {
+        colorScheme: root.colorScheme
         Layout.fillWidth: true
         Layout.fillHeight: true
 
@@ -44,6 +46,7 @@ RowLayout {
 
     // Secondary icons
     ButtonsColumn {
+        colorScheme: root.colorScheme
         Layout.fillWidth: true
         Layout.fillHeight: true
 
@@ -58,6 +61,7 @@ RowLayout {
 
     // Icons
     ButtonsColumn {
+        colorScheme: root.colorScheme
         Layout.fillWidth: true
         Layout.fillHeight: true
 

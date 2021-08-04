@@ -1,13 +1,36 @@
+# Copyright (c) 2021 Proton Technologies AG
+#
+# This file is part of ProtonMail Bridge.
+#
+# ProtonMail Bridge is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# ProtonMail Bridge is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
+
 module QQtQuick.Controls.Proton
 depends QtQuick.Controls 2.12
 
 singleton ProtonStyle 4.0 Style.qml
-Banner 4.0 Banner.qml
+ColorScheme 4.0 ColorScheme.qml
+
+ApplicationWindow 4.0 ApplicationWindow.qml
 Button 4.0 Button.qml
 CheckBox 4.0 CheckBox.qml
-ProtonLabel 4.0 ProtonLabel.qml
-RoundedRectangle 4.0 RoundedRectangle.qml
+Dialog 4.0 Dialog.qml
+Label 4.0 Label.qml
+Menu 4.0 Menu.qml
+MenuItem 4.0 MenuItem.qml
+Popup 4.0 Popup.qml
 RadioButton 4.0 RadioButton.qml
+RoundedRectangle 4.0 RoundedRectangle.qml
 Switch 4.0 Switch.qml
 TextArea 4.0 TextArea.qml
 TextField 4.0 TextField.qml

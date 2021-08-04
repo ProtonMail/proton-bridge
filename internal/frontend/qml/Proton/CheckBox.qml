@@ -21,7 +21,7 @@ import QtQuick.Controls.impl 2.12
 import QtQuick.Templates 2.12 as T
 
 T.CheckBox {
-    property var colorScheme: parent.colorScheme ? parent.colorScheme : Style.currentStyle
+    property ColorScheme colorScheme
 
     property bool error: false
 
@@ -46,39 +46,39 @@ T.CheckBox {
 
         color: {
             if (!checked) {
-                return colorScheme.background_norm
+                return control.colorScheme.background_norm
             }
 
             if (!control.enabled) {
-                return colorScheme.field_disabled
+                return control.colorScheme.field_disabled
             }
 
             if (control.error) {
-                return colorScheme.signal_danger
+                return control.colorScheme.signal_danger
             }
 
             if (control.hovered) {
-                return colorScheme.interaction_norm_hover
+                return control.colorScheme.interaction_norm_hover
             }
 
-            return colorScheme.interaction_norm
+            return control.colorScheme.interaction_norm
         }
 
         border.width: control.checked ? 0 : 1
         border.color: {
             if (!control.enabled) {
-                return colorScheme.field_disabled
+                return control.colorScheme.field_disabled
             }
 
             if (control.error) {
-                return colorScheme.signal_danger
+                return control.colorScheme.signal_danger
             }
 
             if (control.hovered) {
-                return colorScheme.interaction_norm_hover
+                return control.colorScheme.interaction_norm_hover
             }
 
-            return colorScheme.field_norm
+            return control.colorScheme.field_norm
         }
 
         ColorImage {
@@ -112,21 +112,21 @@ T.CheckBox {
 
         color: {
             if (!enabled) {
-                return colorScheme.text_disabled
+                return control.colorScheme.text_disabled
             }
 
             if (error) {
-                return colorScheme.signal_danger
+                return control.colorScheme.signal_danger
             }
 
-            return colorScheme.text_norm
+            return control.colorScheme.text_norm
         }
 
         font.family: Style.font_family
-        font.weight: Style.fontWidth_400
-        font.pixelSize: 14
-        lineHeight: 20
+        font.weight: Style.fontWeight_400
+        font.pixelSize: Style.body_font_size
+        lineHeight: Style.body_line_height
         lineHeightMode: Text.FixedHeight
-        font.letterSpacing: 0.2
+        font.letterSpacing: Style.body_letter_spacing
     }
 }

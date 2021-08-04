@@ -18,92 +18,107 @@
 
 import QtQuick 2.13
 import QtQuick.Layouts 1.12
+import QtQuick.Controls 2.12
 import QtQuick.Controls.impl 2.12
 
 import Proton 4.0
 
-RowLayout {
+Item {
     id:root
 
-    property var colorScheme
-    property var window
+    property ColorScheme colorScheme
+    property var backend
 
-    property var user: { "username": "janedoe@protonmail.com" }
+    property var user
 
-    ColumnLayout {
-        Layout.fillHeight: true
-        Layout.leftMargin: 80
-        Layout.rightMargin: 80
-        Layout.topMargin: 30
-        Layout.bottomMargin: 70
+    signal dismissed()
 
-        ProtonLabel {
-            text: qsTr("Set up email client")
-            font.weight: ProtonStyle.fontWidth_700
-            state: "heading"
-        }
+    implicitHeight: children[0].implicitHeight
+    implicitWidth: children[0].implicitWidth
 
-        ProtonLabel {
-            text: user.username
-            color: root.colorScheme.text_weak
-            state: "lead"
-        }
+    RowLayout {
+        anchors.fill: parent
+        spacing: 0
 
-        ProtonLabel {
-            Layout.topMargin: 32
-            text: qsTr("Choose an email client")
-            font.weight: ProtonStyle.fontWidth_600
-            state: "body"
-        }
+        ColumnLayout {
+            Layout.fillHeight: true
+            Layout.leftMargin: 80
+            Layout.rightMargin: 80
+            Layout.topMargin: 30
+            Layout.bottomMargin: 70
+            spacing: 0
 
-        ListModel {
-            id: clients
-            ListElement{name : "Apple Mail"          ; iconSource : "./icons/ic-apple-mail.svg"          }
-            ListElement{name : "Microsoft Outlook"   ; iconSource : "./icons/ic-microsoft-outlook.svg"   }
-            ListElement{name : "Mozilla Thunderbird" ; iconSource : "./icons/ic-mozilla-thunderbird.svg" }
-            ListElement{name : "Other"               ; iconSource : "./icons/ic-other-mail-clients.svg"  }
-        }
+            Label {
+                colorScheme: root.colorScheme
+                text: qsTr("Set up email client")
+                type: Label.LabelType.Heading
+            }
+
+            Label {
+                colorScheme: root.colorScheme
+                text: user ? user.username : ""
+                color: root.colorScheme.text_weak
+                type: Label.LabelType.Lead
+            }
+
+            Label {
+                colorScheme: root.colorScheme
+                Layout.topMargin: 32
+                text: qsTr("Choose an email client")
+                type: Label.LabelType.Body_semibold
+            }
+
+            ListModel {
+                id: clients
+                ListElement{name : "Apple Mail"          ; iconSource : "./icons/ic-apple-mail.svg"          }
+                ListElement{name : "Microsoft Outlook"   ; iconSource : "./icons/ic-microsoft-outlook.svg"   }
+                ListElement{name : "Mozilla Thunderbird" ; iconSource : "./icons/ic-mozilla-thunderbird.svg" }
+                ListElement{name : "Other"               ; iconSource : "./icons/ic-other-mail-clients.svg"  }
+            }
 
 
-        Repeater {
-            model: clients
+            Repeater {
+                model: clients
 
-            ColumnLayout {
-                RowLayout {
-                    Layout.topMargin: 12
-                    Layout.bottomMargin: 12
-                    Layout.leftMargin: 16
-                    Layout.rightMargin: 16
+                ColumnLayout {
+                    RowLayout {
+                        Layout.topMargin: 12
+                        Layout.bottomMargin: 12
+                        Layout.leftMargin: 16
+                        Layout.rightMargin: 16
 
-                    IconLabel {
-                        icon.source: model.iconSource
-                        icon.height: 36
+                        ColorImage {
+                            source: model.iconSource
+                            height: 36
+                        }
+
+                        Label {
+                            colorScheme: root.colorScheme
+                            Layout.leftMargin: 12
+                            text: model.name
+                            type: Label.LabelType.Body
+                        }
                     }
 
-                    ProtonLabel {
-                        Layout.leftMargin: 12
-                        text: model.name
-                        state: "body"
+                    Rectangle {
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: 1
+                        color: root.colorScheme.border_weak
                     }
-                }
-
-                Rectangle {
-                    Layout.fillWidth: true
-                    Layout.preferredHeight: 1
-                    color: root.colorScheme.border_weak
                 }
             }
-        }
 
-        Item { Layout.fillHeight: true }
+            Item { Layout.fillHeight: true }
 
-        Button {
-            text: qsTr("Set up later")
-            flat: true
+            Button {
+                colorScheme: root.colorScheme
+                text: qsTr("Set up later")
+                flat: true
 
-            onClicked: {
-                root.window.showSetup = false
-                root.reset()
+                onClicked: {
+                    user.setupGuideSeen = true
+                    root.dismissed()
+                }
             }
         }
     }

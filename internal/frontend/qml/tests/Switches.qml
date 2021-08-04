@@ -23,11 +23,10 @@ import QtQuick.Controls 2.12
 import Proton 4.0
 
 RowLayout {
-    property var colorScheme: parent.colorScheme
+    property ColorScheme colorScheme
 
     ColumnLayout {
         Layout.fillWidth: true
-        property var colorScheme: parent.colorScheme
 
         spacing: parent.spacing
 
@@ -62,7 +61,6 @@ RowLayout {
 
     ColumnLayout {
         Layout.fillWidth: true
-        property var colorScheme: parent.colorScheme
 
         spacing: parent.spacing
 

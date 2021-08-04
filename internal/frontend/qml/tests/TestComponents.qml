@@ -22,42 +22,47 @@ import QtQuick.Controls 2.12
 import Proton 4.0
 
 Rectangle {
-    property var colorScheme
+    property ColorScheme colorScheme
     color: colorScheme.background_norm
     clip: true
 
     ColumnLayout {
         anchors.fill: parent
-        property var colorScheme: parent.colorScheme
 
         spacing: 5
 
         Buttons {
+            colorScheme: root.colorScheme
             Layout.fillWidth: true
             Layout.margins: 20
         }
 
         TextFields {
+            colorScheme: root.colorScheme
             Layout.fillWidth: true
             Layout.margins: 20
         }
 
         TextAreas {
+            colorScheme: root.colorScheme
             Layout.fillWidth: true
             Layout.margins: 20
         }
 
         CheckBoxes {
+            colorScheme: root.colorScheme
             Layout.fillWidth: true
             Layout.margins: 20
         }
 
         RadioButtons {
+            colorScheme: root.colorScheme
             Layout.fillWidth: true
             Layout.margins: 20
         }
 
         Switches {
+            colorScheme: root.colorScheme
             Layout.fillWidth: true
             Layout.margins: 20
         }

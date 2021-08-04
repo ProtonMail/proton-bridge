@@ -23,16 +23,16 @@ import QtQuick.Controls 2.12
 import Proton 4.0
 
 RowLayout {
-    property var colorScheme: parent.colorScheme
+    property ColorScheme colorScheme
 
     // Norm
     ColumnLayout {
         Layout.fillWidth: true
-        property var colorScheme: parent.colorScheme
 
         spacing: parent.spacing
 
         TextField {
+            colorScheme: root.colorScheme
             Layout.fillWidth: true
 
             placeholderText: "Placeholder"
@@ -42,6 +42,7 @@ RowLayout {
         }
 
         TextField {
+            colorScheme: root.colorScheme
             Layout.fillWidth: true
 
             text: "Value"
@@ -53,6 +54,7 @@ RowLayout {
 
 
         TextField {
+            colorScheme: root.colorScheme
             Layout.fillWidth: true
             error: true
 
@@ -65,6 +67,7 @@ RowLayout {
 
 
         TextField {
+            colorScheme: root.colorScheme
             Layout.fillWidth: true
 
             text: "Value"
@@ -80,11 +83,11 @@ RowLayout {
     // Masked
     ColumnLayout {
         Layout.fillWidth: true
-        property var colorScheme: parent.colorScheme
 
         spacing: parent.spacing
 
         TextField {
+            colorScheme: root.colorScheme
             Layout.fillWidth: true
             echoMode: TextInput.Password
             placeholderText: "Password"
@@ -94,6 +97,7 @@ RowLayout {
         }
 
         TextField {
+            colorScheme: root.colorScheme
             Layout.fillWidth: true
             text: "Password"
 
@@ -105,6 +109,7 @@ RowLayout {
         }
 
         TextField {
+            colorScheme: root.colorScheme
             Layout.fillWidth: true
             text: "Password"
             error: true
@@ -117,6 +122,7 @@ RowLayout {
         }
 
         TextField {
+            colorScheme: root.colorScheme
             Layout.fillWidth: true
             text: "Password"
             enabled: false
@@ -132,50 +138,31 @@ RowLayout {
     // Varia
     ColumnLayout {
         Layout.fillWidth: true
-        property var colorScheme: parent.colorScheme
 
         spacing: parent.spacing
 
         TextField {
+            colorScheme: root.colorScheme
             Layout.fillWidth: true
 
             placeholderText: "Placeholder"
             label: "Label"
             hint: "Hint"
-
-            Rectangle {
-                anchors.fill: parent
-                border.color: "red"
-                border.width: 1
-                z: parent.z - 1
-            }
         }
 
         TextField {
+            colorScheme: root.colorScheme
             Layout.fillWidth: true
 
             placeholderText: "Placeholder"
             assistiveText: "Assistive text"
-
-            Rectangle {
-                anchors.fill: parent
-                border.color: "red"
-                border.width: 1
-                z: parent.z - 1
-            }
         }
 
         TextField {
+            colorScheme: root.colorScheme
             Layout.fillWidth: true
 
             placeholderText: "Placeholder"
-
-            Rectangle {
-                anchors.fill: parent
-                border.color: "red"
-                border.width: 1
-                z: parent.z - 1
-            }
         }
     }
 }

@@ -21,49 +21,58 @@ import QtQuick.Controls 2.12
 
 import Proton 4.0
 
-RowLayout {
+Item {
     id: root
-    property var colorScheme: parent.colorScheme
 
-    property var text: "janedoe@protonmail.com"
-    property var avatarText: "jd"
-    property var captionText: "50.5 MB / 20 GB"
+    property ColorScheme colorScheme
+    property var user
 
-    spacing: 16
+    implicitHeight: children[0].implicitHeight
+    implicitWidth: children[0].implicitWidth
 
-    Rectangle {
-        id: avatar
-        Layout.preferredHeight: account.height
-        Layout.preferredWidth: account.height
-        radius: 4
+    RowLayout {
+        anchors.fill: parent
+        spacing: 12
 
-        color: root.colorScheme.background_avatar
+        Rectangle {
+            id: avatar
 
-        ProtonLabel {
-            anchors.centerIn: avatar
-            color: root.colorScheme.text_norm
-            text: root.avatarText.toUpperCase()
-            state: "body"
-            horizontalAlignment: Qt.AlignHCenter
-            verticalAlignment: Qt.AlignVCenter
-        }
-    }
+            Layout.fillHeight: true
+            Layout.preferredWidth: height
 
-    ColumnLayout {
-        id: account
-        Layout.fillHeight: true
-        Layout.fillWidth: true
+            radius: 4
 
-        ProtonLabel {
-            text: root.text
-            color: root.colorScheme.text_norm
-            state: "body"
+            color: root.colorScheme.background_avatar
+
+            Label {
+                colorScheme: root.colorScheme
+                anchors.fill: parent
+                text: root.user.avatarText.toUpperCase()
+                type: Label.LabelType.Body
+                color: root.colorScheme.text_invert
+                horizontalAlignment: Qt.AlignHCenter
+                verticalAlignment: Qt.AlignVCenter
+            }
         }
 
-        ProtonLabel {
-            text: root.captionText
-            color: root.colorScheme.text_weak
-            state: "caption"
+        ColumnLayout {
+            id: account
+            Layout.fillHeight: true
+            Layout.fillWidth: true
+
+            spacing: 0
+
+            Label {
+                colorScheme: root.colorScheme
+                text: user.username
+                type: Label.LabelType.Body
+            }
+
+            Label {
+                colorScheme: root.colorScheme
+                text: user.captionText
+                type: Label.LabelType.Caption
+            }
         }
     }
 }

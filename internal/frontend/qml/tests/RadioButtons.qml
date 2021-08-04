@@ -23,37 +23,42 @@ import QtQuick.Controls 2.12
 import Proton 4.0
 
 RowLayout {
-    property var colorScheme: parent.colorScheme
+    property ColorScheme colorScheme
 
     ColumnLayout {
         Layout.fillWidth: true
-        property var colorScheme: parent.colorScheme
 
         spacing: parent.spacing
 
         RadioButton {
+            colorScheme: root.colorScheme
             text: "Radio"
         }
 
         RadioButton {
+            colorScheme: root.colorScheme
             text: "Radio"
             error: true
         }
 
         RadioButton {
+            colorScheme: root.colorScheme
             text: "Radio"
             enabled: false
         }
         RadioButton {
+            colorScheme: root.colorScheme
             text: ""
         }
 
         RadioButton {
+            colorScheme: root.colorScheme
             text: ""
             error: true
         }
 
         RadioButton {
+            colorScheme: root.colorScheme
             text: ""
             enabled: false
         }
@@ -61,38 +66,43 @@ RowLayout {
 
     ColumnLayout {
         Layout.fillWidth: true
-        property var colorScheme: parent.colorScheme
 
         spacing: parent.spacing
 
         RadioButton {
+            colorScheme: root.colorScheme
             text: "Radio"
             checked: true
         }
 
         RadioButton {
+            colorScheme: root.colorScheme
             text: "Radio"
             checked: true
             error: true
         }
 
         RadioButton {
+            colorScheme: root.colorScheme
             text: "Radio"
             checked: true
             enabled: false
         }
         RadioButton {
+            colorScheme: root.colorScheme
             text: ""
             checked: true
         }
 
         RadioButton {
+            colorScheme: root.colorScheme
             text: ""
             checked: true
             error: true
         }
 
         RadioButton {
+            colorScheme: root.colorScheme
             text: ""
             checked: true
             enabled: false

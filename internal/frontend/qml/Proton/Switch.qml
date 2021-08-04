@@ -21,7 +21,7 @@ import QtQuick.Controls 2.12
 import QtQuick.Controls.impl 2.12
 
 T.Switch {
-    property var colorScheme: parent.colorScheme ? parent.colorScheme : Style.currentStyle
+    property ColorScheme colorScheme
 
     property bool loading: false
 
@@ -57,9 +57,9 @@ T.Switch {
         leftPadding: 0
         rightPadding: 0
         padding: 0
-        color: control.enabled || control.loading ? colorScheme.background_norm : colorScheme.background_strong
+        color: control.enabled || control.loading ? control.colorScheme.background_norm : control.colorScheme.background_strong
         border.width: control.enabled && !loading ? 1 : 0
-        border.color: control.hovered ? colorScheme.field_hover : colorScheme.field_norm
+        border.color: control.hovered ? control.colorScheme.field_hover : control.colorScheme.field_norm
 
         Rectangle {
             x: Math.max(0, Math.min(parent.width - width, control.visualPosition * parent.width - (width / 2)))
@@ -72,22 +72,22 @@ T.Switch {
 
             color: {
                 if (!control.enabled) {
-                    return colorScheme.field_disabled
+                    return control.colorScheme.field_disabled
                 }
 
                 if (control.checked) {
                     if (control.hovered) {
-                        return colorScheme.interaction_norm_hover
+                        return control.colorScheme.interaction_norm_hover
                     }
 
-                    return colorScheme.interaction_norm
+                    return control.colorScheme.interaction_norm
                 }
 
                 if (control.hovered) {
-                    return colorScheme.field_hover
+                    return control.colorScheme.field_hover
                 }
 
-                return colorScheme.field_norm
+                return control.colorScheme.field_norm
             }
 
             ColorImage {
@@ -114,7 +114,7 @@ T.Switch {
 
             width: 18
             height: 18
-            color: colorScheme.interaction_norm_hover
+            color: control.colorScheme.interaction_norm_hover
             source: "../icons/Loader_16.svg"
             visible: control.loading
 
@@ -137,13 +137,13 @@ T.Switch {
 
         text: control.text
 
-        color: control.enabled || control.loading ? colorScheme.text_norm : colorScheme.text_disabled
+        color: control.enabled || control.loading ? control.colorScheme.text_norm : control.colorScheme.text_disabled
 
         font.family: Style.font_family
-        font.weight: Style.fontWidth_400
-        font.pixelSize: 14
-        lineHeight: 20
+        font.weight: Style.fontWeight_400
+        font.pixelSize: Style.body_font_size
+        lineHeight: Style.body_line_height
         lineHeightMode: Text.FixedHeight
-        font.letterSpacing: 0.2
+        font.letterSpacing: Style.body_letter_spacing
     }
 }

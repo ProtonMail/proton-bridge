@@ -23,7 +23,7 @@ import QtQuick.Templates 2.12 as T
 
 Item {
     id: root
-    property var colorScheme: parent.colorScheme ? parent.colorScheme : Style.currentStyle
+    property ColorScheme colorScheme
 
     property alias background: control.background
     property alias bottomInset: control.bottomInset
@@ -104,61 +104,53 @@ Item {
 
         radius: 4
         visible: true
-        color: colorScheme.background_norm
+        color: root.colorScheme.background_norm
         border.color: {
             if (!control.enabled) {
-                return colorScheme.field_disabled
+                return root.colorScheme.field_disabled
             }
 
             if (control.activeFocus) {
-                return colorScheme.interaction_norm
+                return root.colorScheme.interaction_norm
             }
 
             if (root.error) {
-                return colorScheme.signal_danger
+                return root.colorScheme.signal_danger
             }
 
             if (control.hovered) {
-                return colorScheme.field_hover
+                return root.colorScheme.field_hover
             }
 
-            return colorScheme.field_norm
+            return root.colorScheme.field_norm
         }
         border.width: 1
     }
 
     Label {
+        colorScheme: root.colorScheme
         id: label
 
         anchors.top: root.top
         anchors.left: root.left
         anchors.bottomMargin: 4
 
-        color: root.enabled ? colorScheme.text_norm : colorScheme.text_disabled
+        color: root.enabled ? root.colorScheme.text_norm : root.colorScheme.text_disabled
 
-        font.family: Style.font_family
-        font.weight: Style.fontWidth_600
-        font.pixelSize: 14
-        lineHeight: 20
-        lineHeightMode: Text.FixedHeight
-        font.letterSpacing: 0.2
+        type: Label.LabelType.Body_semibold
     }
 
     Label {
+        colorScheme: root.colorScheme
         id: hint
 
         anchors.right: root.right
         anchors.bottom: controlView.top
         anchors.bottomMargin: 5
 
-        color: root.enabled ? colorScheme.text_weak : colorScheme.text_disabled
+        color: root.enabled ? root.colorScheme.text_weak : root.colorScheme.text_disabled
 
-        font.family: Style.font_family
-        font.weight: Style.fontWidth_400
-        font.pixelSize: 12
-        lineHeight: 16
-        lineHeightMode: Text.FixedHeight
-        font.letterSpacing: 0.4
+        type: Label.LabelType.Caption
     }
 
     ColorImage {
@@ -168,10 +160,11 @@ Item {
         anchors.top: assistiveText.top
         anchors.bottom: assistiveText.bottom
         source: "../icons/ic-exclamation-circle-filled.svg"
-        color: colorScheme.signal_danger
+        color: root.colorScheme.signal_danger
     }
 
     Label {
+        colorScheme: root.colorScheme
         id: assistiveText
 
         anchors.left: root.error ? errorIcon.right : parent.left
@@ -181,22 +174,17 @@ Item {
 
         color: {
             if (!root.enabled) {
-                return colorScheme.text_disabled
+                return root.colorScheme.text_disabled
             }
 
             if (root.error) {
-                return colorScheme.signal_danger
+                return root.colorScheme.signal_danger
             }
 
-            return colorScheme.text_weak
+            return root.colorScheme.text_weak
         }
 
-        font.family: Style.font_family
-        font.weight: root.error ? Style.fontWidth_600 : Style.fontWidth_400
-        font.pixelSize: 12
-        lineHeight: 16
-        lineHeightMode: Text.FixedHeight
-        font.letterSpacing: 0.4
+        type: root.error ? Label.LabelType.Caption_semibold : Label.LabelType.Caption
     }
 
     ScrollView {
@@ -222,8 +210,8 @@ Item {
             padding: 8
             leftPadding: 12
 
-            color: control.enabled ? colorScheme.text_norm : colorScheme.text_disabled
-            placeholderTextColor: control.enabled ? colorScheme.text_hint : colorScheme.text_disabled
+            color: control.enabled ? root.colorScheme.text_norm : root.colorScheme.text_disabled
+            placeholderTextColor: control.enabled ? root.colorScheme.text_hint : root.colorScheme.text_disabled
 
             selectionColor: control.palette.highlight
             selectedTextColor: control.palette.highlightedText
@@ -231,7 +219,7 @@ Item {
             cursorDelegate: Rectangle {
                 id: cursor
                 width: 1
-                color: colorScheme.interaction_norm
+                color: root.colorScheme.interaction_norm
                 visible: control.activeFocus && !control.readOnly && control.selectionStart === control.selectionEnd
 
                 Connections {

@@ -18,16 +18,20 @@
 import QtQuick 2.13
 import QtQuick.Controls 2.12
 
+import Proton 4.0
+
 Rectangle {
     anchors.fill: parent
     color: "transparent"
     border.color: "red"
     border.width: 1
-    z: parent.z - 1
+    //z: parent.z - 1
+    z: 10000000
 
     Label {
         text: parent.width + "x" + parent.height
         anchors.centerIn: parent
         color: "black"
+        colorScheme: ProtonStyle.currentStyle
     }
 }

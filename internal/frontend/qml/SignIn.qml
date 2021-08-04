@@ -25,7 +25,7 @@ import Proton 4.0
 
 Item {
     id: root
-    property var colorScheme: parent.colorScheme
+    property ColorScheme colorScheme
 
     function abort() {
         root.loginAbort(usernameTextField.text)
@@ -173,20 +173,22 @@ Item {
 
             spacing: 0
 
-            ProtonLabel {
+            Label {
+                colorScheme: root.colorScheme
                 text: qsTr("Sign in")
                 Layout.alignment: Qt.AlignHCenter
                 Layout.topMargin: 16
-                font.weight: ProtonStyle.fontWidth_700
+                type: Label.LabelType.Title
             }
 
-            ProtonLabel {
+            Label {
+                colorScheme: root.colorScheme
                 id: subTitle
                 text: qsTr("Enter your Proton Account details.")
                 Layout.alignment: Qt.AlignHCenter
                 Layout.topMargin: 8
                 color: root.colorScheme.text_weak
-                state: "body"
+                type: Label.LabelType.Body
             }
 
             RowLayout {
@@ -201,17 +203,18 @@ Item {
                     source: "./icons/ic-exclamation-circle-filled.svg"
                 }
 
-                ProtonLabel {
+                Label {
+                    colorScheme: root.colorScheme
                     id: errorLabel
                     Layout.leftMargin: 4
                     color: root.colorScheme.signal_danger
 
-                    font.weight: root.error ? ProtonStyle.fontWidth_600 : ProtonStyle.fontWidth_400
-                    state: "caption"
+                    type: root.error ? Label.LabelType.Caption_semibold : Label.LabelType.Caption
                 }
             }
 
             TextField {
+                colorScheme: root.colorScheme
                 id: usernameTextField
                 label: qsTr("Username or email")
 
@@ -236,6 +239,7 @@ Item {
             }
 
             TextField {
+                colorScheme: root.colorScheme
                 id: passwordTextField
                 label: qsTr("Password")
 
@@ -259,6 +263,7 @@ Item {
             }
 
             Button {
+                colorScheme: root.colorScheme
                 id: signInButton
                 text: qsTr("Sign in")
 
@@ -308,12 +313,13 @@ Item {
                 }
             }
 
-            ProtonLabel {
+            Label {
+                colorScheme: root.colorScheme
                 textFormat: Text.StyledText
-                text: putLink("https://protonmail.com/upgrade", qsTr("Create or upgrade your account"))
+                text: link("https://protonmail.com/upgrade", qsTr("Create or upgrade your account"))
                 Layout.alignment: Qt.AlignHCenter
                 Layout.topMargin: 24
-                state: "body"
+                type: Label.LabelType.Body
 
                 onLinkActivated: {
                     Qt.openUrlExternally(link)
@@ -335,16 +341,16 @@ Item {
 
             spacing: 0
 
-            ProtonLabel {
+            Label {
+                colorScheme: root.colorScheme
                 text: qsTr("Two-factor authentication")
                 Layout.topMargin: 16
                 Layout.alignment: Qt.AlignCenter
-                font.weight: ProtonStyle.fontWidth_700
-
-
+                type: Label.LabelType.Heading
             }
 
             TextField {
+                colorScheme: root.colorScheme
                 id: twoFactorPasswordTextField
                 label: qsTr("Two-factor authentication code")
 
@@ -360,6 +366,7 @@ Item {
             }
 
             Button {
+                colorScheme: root.colorScheme
                 id: twoFAButton
                 text: loading ? qsTr("Authenticating") : qsTr("Authenticate")
 
@@ -410,19 +417,16 @@ Item {
 
             spacing: 0
 
-            ProtonLabel {
+            Label {
+                colorScheme: root.colorScheme
                 text: qsTr("Unlock your mailbox")
                 Layout.topMargin: 16
                 Layout.alignment: Qt.AlignCenter
-                font.weight: ProtonStyle.fontWidth_700
+                type: Label.LabelType.Heading
             }
 
-
-
-
-
-
             TextField {
+                colorScheme: root.colorScheme
                 id: secondPasswordTextField
                 label: qsTr("Mailbox password")
 
@@ -439,6 +443,7 @@ Item {
             }
 
             Button {
+                colorScheme: root.colorScheme
                 id: secondPasswordButton
                 text: loading ? qsTr("Unlocking") : qsTr("Unlock")
 

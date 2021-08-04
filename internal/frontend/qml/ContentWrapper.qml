@@ -23,9 +23,14 @@ import Proton 4.0
 
 Item {
     id: root
-    property var colorScheme: parent.colorScheme
+    property ColorScheme colorScheme
 
-    property var window
+    property var backend
+
+    signal login(string username, string password)
+    signal login2FA(string username, string code)
+    signal login2Password(string username, string password)
+    signal loginAbort(string username)
 
     RowLayout {
         anchors.fill: parent
@@ -33,7 +38,7 @@ Item {
 
         Rectangle {
             id: leftBar
-            property var colorScheme: ProtonStyle.prominentStyle
+            property ColorScheme colorScheme: root.colorScheme.prominent
 
             Layout.minimumWidth: 264
             Layout.maximumWidth: 320
@@ -55,9 +60,8 @@ Item {
                     Layout.preferredHeight: 60
                     spacing: 0
 
-                    property var colorScheme: leftBar.colorScheme
-
                     Status {
+                        colorScheme: leftBar.colorScheme
                         Layout.leftMargin: 16
                         Layout.topMargin: 24
                         Layout.bottomMargin: 17
@@ -72,6 +76,7 @@ Item {
                     }
 
                     Button {
+                        colorScheme: leftBar.colorScheme
                         Layout.minimumHeight: 36
                         Layout.maximumHeight: 36
                         Layout.preferredHeight: 36
@@ -89,6 +94,7 @@ Item {
                     }
 
                     Button {
+                        colorScheme: leftBar.colorScheme
                         Layout.minimumHeight: 36
                         Layout.maximumHeight: 36
                         Layout.preferredHeight: 36
@@ -127,20 +133,20 @@ Item {
 
                     header: Rectangle {
                         height: headerLabel.height+16
-                        color: ProtonStyle.transparent
-                        ProtonLabel{
-                            id:headerLabel
+                        // color: ProtonStyle.transparent
+                        Label{
+                            colorScheme: leftBar.colorScheme
+                            id: headerLabel
                             text: qsTr("Accounts")
-                            color: leftBar.colorScheme.text_norm
-                            state: "body"
+                            type: Label.LabelType.Body
                         }
                     }
 
-                    model: window.backend.users
+                    model: root.backend.users
                     delegate: AccountDelegate{
                         id: accountDelegate
                         colorScheme: leftBar.colorScheme
-                        text: modelData.username
+                        user: modelData
                     }
                 }
 
@@ -160,9 +166,8 @@ Item {
                     Layout.maximumHeight: 52
                     Layout.preferredHeight: 52
 
-                    property var colorScheme: leftBar.colorScheme
-
                     Button {
+                        colorScheme: leftBar.colorScheme
                         width: 36
                         height: 36
 
@@ -209,14 +214,13 @@ Item {
                         Layout.fillHeight: true
 
                         colorScheme: root.colorScheme
-                        user: (root.window.backend.users.count === 1 && root.window.backend.users.get(0).loggedIn === false) ? root.window.backend.users.get(0) : undefined
-                        backend: root.window.backend
-                        window: root.window
+                        user: (root.backend.users.count === 1 && root.backend.users.get(0).loggedIn === false) ? root.backend.users.get(0) : undefined
+                        backend: root.backend
 
-                        onLogin          : { root.window.login          ( username , password ) }
-                        onLogin2FA       : { root.window.login2FA       ( username , code     ) }
-                        onLogin2Password : { root.window.login2Password ( username , password ) }
-                        onLoginAbort     : { root.window.loginAbort     ( username ) }
+                        onLogin          : { root.login          ( username , password ) }
+                        onLogin2FA       : { root.login2FA       ( username , code     ) }
+                        onLogin2Password : { root.login2Password ( username , password ) }
+                        onLoginAbort     : { root.loginAbort     ( username ) }
                     }
                 }
             }

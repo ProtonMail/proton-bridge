@@ -22,7 +22,7 @@ import Proton 4.0
 
 ColumnLayout {
     id: root
-    property var colorScheme: parent.colorScheme
+    property ColorScheme colorScheme
 
     property string textNormal: "Button"
     property string iconNormal: ""
@@ -33,6 +33,7 @@ ColumnLayout {
     property bool secondary: false
 
     Button {
+        colorScheme: root.colorScheme
         Layout.fillWidth: true
 
         Layout.minimumHeight: implicitHeight
@@ -45,6 +46,7 @@ ColumnLayout {
 
 
     Button {
+        colorScheme: root.colorScheme
         Layout.fillWidth: true
 
         Layout.minimumHeight: implicitHeight
@@ -58,6 +60,7 @@ ColumnLayout {
     }
 
     Button {
+        colorScheme: root.colorScheme
         Layout.fillWidth: true
 
         Layout.minimumHeight: implicitHeight

@@ -22,10 +22,11 @@ import QtQuick.Layouts 1.12
 import QtQuick.Controls 2.12
 
 import Proton 4.0
+import Notifications 1.0
 
 import "tests"
 
-Window {
+ApplicationWindow {
     id: root
     title: "ProtonMail Bridge"
 
@@ -35,33 +36,104 @@ Window {
     minimumHeight: contentLayout.implicitHeight
     minimumWidth: contentLayout.implicitWidth
 
-    property var colorScheme: ProtonStyle.currentStyle
+    colorScheme: ProtonStyle.currentStyle
 
     property var backend
-    property var users
-
-
-    property bool isNoUser: backend.users.count === 0
-    property bool isNoLoggedUser: backend.users.count === 1 && backend.users.get(0).loggedIn === false
-    property bool showSetup: true
+    property var notifications
 
     signal login(string username, string password)
     signal login2FA(string username, string code)
     signal login2Password(string username, string password)
     signal loginAbort(string username)
 
+    // show Setup Guide on every new user
+    Connections {
+        target: root.backend.users
+
+        onRowsInserted: {
+            // considerring that users are added one-by-one
+            var user = root.backend.users.get(first)
+
+            if (!user.loggedIn) {
+                return
+            }
+
+            if (user.setupGuideSeen) {
+                return
+            }
+
+            root.showSetup(user)
+        }
+
+        onRowsAboutToBeRemoved: {
+            for (var i = first; i <= last; i++ ) {
+                var user = root.backend.users.get(i)
+
+                if (setupGuide.user === user) {
+                    setupGuide.user = null
+                    contentLayout._showSetup = false
+                    return
+                }
+            }
+        }
+    }
+
+    function showSetup(user) {
+        setupGuide.user = user
+        if (setupGuide.user) {
+            contentLayout._showSetup = true
+        } else {
+            contentLayout._showSetup = false
+        }
+    }
+
     StackLayout {
         id: contentLayout
 
         anchors.fill: parent
 
-        currentIndex: (root.isNoUser || root.isNoLoggedUser) ? 0 : ( root.showSetup ? 1 : 2)
+        property bool _showSetup: false
+        currentIndex: {
+            // show welcome when there are no users or only one non-logged-in user is present
+            if (backend.users.count === 0) {
+                return 1
+            }
 
-        WelcomeWindow {
+            if (backend.users.count === 1 && backend.users.get(0).loggedIn === false) {
+                return 1
+            }
+
+            if (contentLayout._showSetup) {
+                return 2
+            }
+
+            return 0
+        }
+
+        ContentWrapper {
             colorScheme: root.colorScheme
             backend: root.backend
-            window: root
-            enabled: !banners.blocking
+
+            Layout.fillHeight: true
+            Layout.fillWidth: true
+
+            onLogin: {
+                root.login(username, password)
+            }
+            onLogin2FA: {
+                root.login2FA(username, code)
+            }
+            onLogin2Password: {
+                root.login2Password(username, password)
+            }
+            onLoginAbort: {
+                root.loginAbort(username)
+            }
+        }
+
+        WelcomeGuide {
+            colorScheme: root.colorScheme
+            backend: root.backend
 
             Layout.fillHeight: true
             Layout.fillWidth: true
@@ -81,38 +153,21 @@ Window {
         }
 
         SetupGuide {
+            id: setupGuide
             colorScheme: root.colorScheme
-            window: root
-            enabled: !banners.blocking
+            backend: root.backend
 
             Layout.fillHeight: true
             Layout.fillWidth: true
-        }
 
-        ContentWrapper {
-            colorScheme: root.colorScheme
-            window: root
-            enabled: !banners.blocking
-
-            Layout.fillHeight: true
-            Layout.fillWidth: true
+            onDismissed: {
+                root.showSetup(null)
+            }
         }
     }
 
-    Banners {
-        id: banners
-        anchors.fill: parent
-        window: root
-        onTop: contentLayout.currentIndex == 0
-    }
-
-    function notifyOnlyPaidUsers()            { banners.notifyOnlyPaidUsers()            }
-    function notifyConnectionLostWhileLogin() { banners.notifyConnectionLostWhileLogin() }
-    function notifyUpdateManually()           { banners.notifyUpdateManually()           }
-    function notifyUserAdded()                { banners.notifyUserAdded()                }
-
-    function showSetupGuide(user)   {
-        setupGuide.user = user
-        root.showSetup = true
+    NotificationPopups {
+        colorScheme: root.colorScheme
+        notifications: root.notifications
     }
 }

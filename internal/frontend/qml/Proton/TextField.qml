@@ -21,10 +21,11 @@ import QtQuick.Controls 2.12
 import QtQuick.Controls.impl 2.12
 import QtQuick.Templates 2.12 as T
 import QtQuick.Layouts 1.12
+import "."
 
 Item {
     id: root
-    property var colorScheme: parent.colorScheme ? parent.colorScheme : Style.currentStyle
+    property ColorScheme colorScheme
 
     property alias background: control.background
     property alias bottomInset: control.bottomInset
@@ -91,7 +92,7 @@ Item {
     property alias hint: hint.text
     property alias assistiveText: assistiveText.text
 
-    property var echoMode: TextInput.Normal
+    property int echoMode: TextInput.Normal
 
     property bool error: false
 
@@ -117,7 +118,7 @@ Item {
     function selectAll() { control.selectAll() }
     function selectWord() { control.selectWord() }
     function undo() { control.undo() }
-    function forceActiveFocus() {control.forceActiveFocus()}
+    function forceActiveFocus() { control.forceActiveFocus() }
 
     ColumnLayout {
         anchors.fill: parent
@@ -127,22 +128,22 @@ Item {
             Layout.fillWidth: true
             spacing: 0
 
-            ProtonLabel {
+            Label {
+                colorScheme: root.colorScheme
                 id: label
                 Layout.fillHeight: true
                 Layout.fillWidth: true
-                color: root.enabled ? colorScheme.text_norm : colorScheme.text_disabled
-                font.weight: Style.fontWidth_600
-                state: "body"
+                type: Label.LabelType.Body_semibold
             }
 
-            ProtonLabel {
+            Label {
+                colorScheme: root.colorScheme
                 id: hint
                 Layout.fillHeight: true
                 Layout.fillWidth: true
-                color: root.enabled ? colorScheme.text_weak : colorScheme.text_disabled
+                color: root.enabled ? root.colorScheme.text_weak : root.colorScheme.text_disabled
                 horizontalAlignment: Text.AlignRight
-                state: "caption"
+                type: Label.LabelType.Caption
             }
         }
 
@@ -157,25 +158,25 @@ Item {
 
             radius: 4
             visible: true
-            color: colorScheme.background_norm
+            color: root.colorScheme.background_norm
             border.color: {
                 if (!control.enabled) {
-                    return colorScheme.field_disabled
+                    return root.colorScheme.field_disabled
                 }
 
                 if (control.activeFocus) {
-                    return colorScheme.interaction_norm
+                    return root.colorScheme.interaction_norm
                 }
 
                 if (root.error) {
-                    return colorScheme.signal_danger
+                    return root.colorScheme.signal_danger
                 }
 
                 if (control.hovered) {
-                    return colorScheme.field_hover
+                    return root.colorScheme.field_hover
                 }
 
-                return colorScheme.field_norm
+                return root.colorScheme.field_norm
             }
             border.width: 1
 
@@ -193,25 +194,27 @@ Item {
                     Layout.fillWidth: true
 
                     implicitWidth: implicitBackgroundWidth + leftInset + rightInset
-                    || Math.max(contentWidth, placeholder.implicitWidth) + leftPadding + rightPadding
+                                   || Math.max(contentWidth, placeholder.implicitWidth) + leftPadding + rightPadding
                     implicitHeight: Math.max(implicitBackgroundHeight + topInset + bottomInset,
-                    contentHeight + topPadding + bottomPadding,
-                    placeholder.implicitHeight + topPadding + bottomPadding)
+                                             contentHeight + topPadding + bottomPadding,
+                                             placeholder.implicitHeight + topPadding + bottomPadding)
 
                     padding: 8
                     leftPadding: 12
 
-                    color: control.enabled ? colorScheme.text_norm : colorScheme.text_disabled
+                    color: control.enabled ? root.colorScheme.text_norm : root.colorScheme.text_disabled
 
                     selectionColor: control.palette.highlight
                     selectedTextColor: control.palette.highlightedText
-                    placeholderTextColor: control.enabled ? colorScheme.text_hint : colorScheme.text_disabled
+                    placeholderTextColor: control.enabled ? root.colorScheme.text_hint : root.colorScheme.text_disabled
                     verticalAlignment: TextInput.AlignVCenter
+
+                    echoMode: eyeButton.checked ? TextInput.Normal : root.echoMode
 
                     cursorDelegate: Rectangle {
                         id: cursor
                         width: 1
-                        color: colorScheme.interaction_norm
+                        color: root.colorScheme.interaction_norm
                         visible: control.activeFocus && !control.readOnly && control.selectionStart === control.selectionEnd
 
                         Connections {
@@ -268,22 +271,16 @@ Item {
                 }
 
                 Button {
+                    colorScheme: root.colorScheme
                     id: eyeButton
 
                     Layout.fillHeight: true
 
                     visible: root.echoMode === TextInput.Password
-                    icon.source: control.echoMode == TextInput.Password ? "../icons/ic-eye.svg" : "../icons/ic-eye-slash.svg"
                     icon.color: control.color
-                    background: Rectangle{color: "#00000000"}
-                    onClicked: {
-                        if (control.echoMode == TextInput.Password) {
-                            control.echoMode = TextInput.Normal
-                        } else {
-                            control.echoMode = TextInput.Password
-                        }
-                    }
-                    Component.onCompleted: control.echoMode = root.echoMode
+                    background: Item { }
+                    checkable: true
+                    icon.source: checked ? "../icons/ic-eye-slash.svg" : "../icons/ic-eye.svg"
                 }
             }
         }
@@ -292,17 +289,16 @@ Item {
             Layout.fillWidth: true
             spacing: 0
 
-            // FIXME: maybe somewhere in the future there will be an Icon component capable of setting color to the icon
-            // but before that moment we need to use IconLabel
-            IconLabel {
+            ColorImage {
                 id: errorIcon
 
                 visible: root.error && (assistiveText.text.length > 0)
-                icon.source: "../icons/ic-exclamation-circle-filled.svg"
-                icon.color: colorScheme.signal_danger
+                source: "../icons/ic-exclamation-circle-filled.svg"
+                color: root.colorScheme.signal_danger
             }
 
-            ProtonLabel {
+            Label {
+                colorScheme: root.colorScheme
                 id: assistiveText
 
                 Layout.fillHeight: true
@@ -311,18 +307,17 @@ Item {
 
                 color: {
                     if (!root.enabled) {
-                        return colorScheme.text_disabled
+                        return root.colorScheme.text_disabled
                     }
 
                     if (root.error) {
-                        return colorScheme.signal_danger
+                        return root.colorScheme.signal_danger
                     }
 
-                    return colorScheme.text_weak
+                    return root.colorScheme.text_weak
                 }
 
-                font.weight: root.error ? Style.fontWidth_600 : Style.fontWidth_400
-                state: "caption"
+                type: root.error ? Label.LabelType.Caption_semibold : Label.LabelType.Caption
             }
         }
     }

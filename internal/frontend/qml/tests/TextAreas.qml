@@ -23,15 +23,16 @@ import QtQuick.Controls 2.12
 import Proton 4.0
 
 RowLayout {
-    property var colorScheme: parent.colorScheme
+    id: root
+    property ColorScheme colorScheme
 
     ColumnLayout {
         Layout.fillWidth: true
-        property var colorScheme: parent.colorScheme
 
         spacing: parent.spacing
 
         TextArea {
+            colorScheme: root.colorScheme
             Layout.fillWidth: true
             Layout.preferredHeight: 100
 
@@ -42,6 +43,7 @@ RowLayout {
         }
 
         TextArea {
+            colorScheme: root.colorScheme
             Layout.fillWidth: true
             Layout.preferredHeight: 100
 
@@ -54,6 +56,7 @@ RowLayout {
 
 
         TextArea {
+            colorScheme: root.colorScheme
             Layout.fillWidth: true
             Layout.preferredHeight: 100
 
@@ -68,6 +71,7 @@ RowLayout {
 
 
         TextArea {
+            colorScheme: root.colorScheme
             Layout.fillWidth: true
             Layout.preferredHeight: 100
 

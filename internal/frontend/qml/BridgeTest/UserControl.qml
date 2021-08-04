@@ -20,7 +20,11 @@ import QtQuick 2.13
 import QtQuick.Layouts 1.12
 import QtQuick.Controls 2.13
 
+import Proton 4.0
+
 ColumnLayout {
+    id: root
+
     property var user
     property var backend
 
@@ -29,9 +33,10 @@ ColumnLayout {
     Layout.fillHeight: true
     //Layout.fillWidth: true
 
-    property var colorScheme
+    property ColorScheme colorScheme
 
     TextField {
+        colorScheme: root.colorScheme
         Layout.fillWidth: true
 
         text: user !== undefined ? user.username : ""
@@ -41,39 +46,57 @@ ColumnLayout {
         }
     }
 
-    RowLayout {
+    ColumnLayout {
         Layout.fillWidth: true
 
-        Button {
-            //Layout.fillWidth: true
+        Switch {
+            id: userLoginSwitch
+            colorScheme: root.colorScheme
 
-            text: "Login"
-            enabled: user !== undefined && !user.loggedIn && user.username.length > 0
+            text: "LoggedIn"
+            enabled: user !== undefined && user.username.length > 0
 
-            onClicked: {
-                if (user === backend.loginUser) {
-                    var newUserObject = backend.userComponent.createObject(backend, {username: user.username, loggedIn: true})
-                    backend.users.append( { object: newUserObject } )
+            checked: user ? user.loggedIn : false
 
-                    user.username = ""
-                    user.resetLoginRequests()
+            onCheckedChanged: {
+                if (!user) {
                     return
                 }
 
-                user.loggedIn = true
-                user.resetLoginRequests()
+                if (checked) {
+                    if (user === backend.loginUser) {
+                        var newUserObject = backend.userComponent.createObject(backend, {username: user.username, loggedIn: true, setupGuideSeen: user.setupGuideSeen})
+                        backend.users.append( { object: newUserObject } )
+
+                        user.username = ""
+                        user.resetLoginRequests()
+                        return
+                    }
+
+                    user.loggedIn = true
+                    user.resetLoginRequests()
+                    return
+                } else {
+                    user.loggedIn = false
+                    user.resetLoginRequests()
+                }
             }
         }
 
-        Button {
-            //Layout.fillWidth: true
+        Switch {
+            colorScheme: root.colorScheme
 
-            text: "Logout"
-            enabled: user !== undefined && user.loggedIn && user.username.length > 0
+            text: "Setup guide seen"
+            enabled: user !== undefined && user.username.length > 0
 
-            onClicked: {
-                user.loggedIn = false
-                user.resetLoginRequests()
+            checked: user ? user.setupGuideSeen : false
+
+            onCheckedChanged: {
+                if (!user) {
+                    return
+                }
+
+                user.setupGuideSeen = checked
             }
         }
     }
@@ -83,6 +106,7 @@ ColumnLayout {
         Layout.fillWidth: true
 
         Label {
+            colorScheme: root.colorScheme
             id: loginLabel
             text: "Login:"
 
@@ -90,6 +114,7 @@ ColumnLayout {
         }
 
         Button {
+            colorScheme: root.colorScheme
             text: "name/pass error"
             enabled: user !== undefined && user.isLoginRequested && !user.isLogin2FARequested && !user.isLogin2PasswordProvided
 
@@ -100,6 +125,7 @@ ColumnLayout {
         }
 
         Button {
+            colorScheme: root.colorScheme
             text: "free user error"
             enabled: user !== undefined && user.isLoginRequested
             onClicked: {
@@ -109,6 +135,7 @@ ColumnLayout {
         }
 
         Button {
+            colorScheme: root.colorScheme
             text: "connection error"
             enabled: user !== undefined && user.isLoginRequested
             onClicked: {
@@ -122,6 +149,7 @@ ColumnLayout {
         Layout.fillWidth: true
 
         Label {
+            colorScheme: root.colorScheme
             id: faLabel
             text: "2FA:"
 
@@ -129,6 +157,7 @@ ColumnLayout {
         }
 
         Button {
+            colorScheme: root.colorScheme
             text: "request"
 
             enabled: user !== undefined && user.isLoginRequested && !user.isLogin2FARequested && !user.isLogin2PasswordRequested
@@ -139,6 +168,7 @@ ColumnLayout {
         }
 
         Button {
+            colorScheme: root.colorScheme
             text: "error"
 
             enabled: user !== undefined && user.isLogin2FAProvided && !(user.isLogin2PasswordRequested && !user.isLogin2PasswordProvided)
@@ -149,6 +179,7 @@ ColumnLayout {
         }
 
         Button {
+            colorScheme: root.colorScheme
             text: "Abort"
 
             enabled: user !== undefined && user.isLogin2FAProvided && !(user.isLogin2PasswordRequested && !user.isLogin2PasswordProvided)
@@ -163,6 +194,7 @@ ColumnLayout {
         Layout.fillWidth: true
 
         Label {
+            colorScheme: root.colorScheme
             id: passLabel
             text: "2 Password:"
 
@@ -170,6 +202,7 @@ ColumnLayout {
         }
 
         Button {
+            colorScheme: root.colorScheme
             text: "request"
 
             enabled: user !== undefined && user.isLoginRequested && !user.isLogin2PasswordRequested && !(user.isLogin2FARequested && !user.isLogin2FAProvided)
@@ -180,6 +213,7 @@ ColumnLayout {
         }
 
         Button {
+            colorScheme: root.colorScheme
             text: "error"
 
             enabled: user !== undefined && user.isLogin2PasswordProvided && !(user.isLogin2FARequested && !user.isLogin2FAProvided)
@@ -191,6 +225,7 @@ ColumnLayout {
         }
 
         Button {
+            colorScheme: root.colorScheme
             text: "Abort"
 
             enabled: user !== undefined && user.isLogin2PasswordProvided && !(user.isLogin2FARequested && !user.isLogin2FAProvided)

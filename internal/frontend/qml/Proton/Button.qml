@@ -22,13 +22,17 @@ import QtQuick.Templates 2.12 as T
 import "."
 
 T.Button {
-    property var colorScheme: parent.colorScheme ? parent.colorScheme : Style.currentStyle
+    property ColorScheme colorScheme
 
     property alias secondary: control.flat
     readonly property bool primary: !secondary
     readonly property bool isIcon: control.text === ""
 
     property bool loading: false
+
+    property bool borderless: false
+
+    property int labelType: Label.LabelType.Body
 
     // TODO: store previous enabled state and restore it?
     // For now assuming that only enabled buttons could have loading state
@@ -55,9 +59,7 @@ T.Button {
     horizontalPadding: 16
     spacing: 10
 
-    font.family: Style.font_family
-    font.pixelSize: Style.body_font_size
-    font.letterSpacing: Style.body_letter_spacing
+    font: label.font
 
     icon.width: 16
     icon.height: 16
@@ -65,7 +67,7 @@ T.Button {
         if (primary && !isIcon) {
             return "#FFFFFF"
         } else {
-            return colorScheme.text_norm
+            return control.colorScheme.text_norm
         }
     }
 
@@ -103,6 +105,7 @@ T.Button {
             }
 
             Label {
+                colorScheme: root.colorScheme
                 id: label
                 anchors.left: labelIcon.left
                 anchors.top: labelIcon.top
@@ -115,15 +118,16 @@ T.Button {
                 verticalAlignment: Qt.AlignVCenter
 
                 text: control.text
-                font: control.font
                 color: {
                     if (primary && !isIcon) {
                         return "#FFFFFF"
                     } else {
-                        return colorScheme.text_norm
+                        return control.colorScheme.text_norm
                     }
                 }
                 opacity: control.enabled || control.loading ? 1.0 : 0.5
+
+                type: labelType
             }
 
             ColorImage {
@@ -176,74 +180,74 @@ T.Button {
                     // Primary colors
 
                     if (control.down) {
-                        return colorScheme.interaction_norm_active
+                        return control.colorScheme.interaction_norm_active
                     }
 
                     if (control.enabled && (control.highlighted || control.hovered || control.checked)) {
-                        return colorScheme.interaction_norm_hover
+                        return control.colorScheme.interaction_norm_hover
                     }
 
                     if (control.loading) {
-                        return colorScheme.interaction_norm_hover
+                        return control.colorScheme.interaction_norm_hover
                     }
 
-                    return colorScheme.interaction_norm
+                    return control.colorScheme.interaction_norm
                 } else {
                     // Secondary colors
 
                     if (control.down) {
-                        return colorScheme.interaction_default_active
+                        return control.colorScheme.interaction_default_active
                     }
 
                     if (control.enabled && (control.highlighted || control.hovered || control.checked)) {
-                        return colorScheme.interaction_default_hover
+                        return control.colorScheme.interaction_default_hover
                     }
 
                     if (control.loading) {
-                        return colorScheme.interaction_default_hover
+                        return control.colorScheme.interaction_default_hover
                     }
 
-                    return colorScheme.interaction_default
+                    return control.colorScheme.interaction_default
                 }
             } else {
                 if (primary) {
                     // Primary icon colors
 
                     if (control.down) {
-                        return colorScheme.interaction_default_active
+                        return control.colorScheme.interaction_default_active
                     }
 
                     if (control.enabled && (control.highlighted || control.hovered || control.checked)) {
-                        return colorScheme.interaction_default_hover
+                        return control.colorScheme.interaction_default_hover
                     }
 
                     if (control.loading) {
-                        return colorScheme.interaction_default_hover
+                        return control.colorScheme.interaction_default_hover
                     }
 
-                    return colorScheme.interaction_default
+                    return control.colorScheme.interaction_default
                 } else {
                     // Secondary icon colors
 
                     if (control.down) {
-                        return colorScheme.interaction_default_active
+                        return control.colorScheme.interaction_default_active
                     }
 
                     if (control.enabled && (control.highlighted || control.hovered || control.checked)) {
-                        return colorScheme.interaction_default_hover
+                        return control.colorScheme.interaction_default_hover
                     }
 
                     if (control.loading) {
-                        return colorScheme.interaction_default_hover
+                        return control.colorScheme.interaction_default_hover
                     }
 
-                    return colorScheme.interaction_default
+                    return control.colorScheme.interaction_default
                 }
             }
         }
 
-        border.color: colorScheme.border_norm
-        border.width: secondary ? 1 : 0
+        border.color: control.colorScheme.border_norm
+        border.width: secondary && !borderless ? 1 : 0
 
         opacity: control.enabled || control.loading ? 1.0 : 0.5
     }
