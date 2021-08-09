@@ -52,8 +52,8 @@ func TestNewUserUnlockFails(t *testing.T) {
 		m.pmapiClient.EXPECT().AuthDelete(gomock.Any()).Return(nil),
 		m.credentialsStore.EXPECT().Logout("user").Return(testCredentialsDisconnected, nil),
 		m.eventListener.EXPECT().Emit(events.CloseConnectionEvent, "user@pm.me"),
-		m.eventListener.EXPECT().Emit(events.LogoutEvent, "user"),
 		m.eventListener.EXPECT().Emit(events.UserRefreshEvent, "user"),
+		m.eventListener.EXPECT().Emit(events.LogoutEvent, "user"),
 	)
 
 	checkNewUserHasCredentials(m, "failed to unlock user: bad password", testCredentialsDisconnected)

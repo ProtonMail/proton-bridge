@@ -29,6 +29,13 @@ QtObject {
     property StatusWindow frontendStatus
     property SystemTrayIcon frontendTray
 
+    signal askDisableBeta()
+    signal askEnableBeta()
+    signal askEnableSplitMode(var user)
+    signal askDisableLocalCache()
+    signal askEnableLocalCache(var path)
+    signal askResetBridge()
+
     enum Group {
         Connection  = 1,
         Update      = 2,
@@ -48,12 +55,20 @@ QtObject {
         root.updateForceError,
         root.updateSilentRestartNeeded,
         root.updateSilentError,
+        root.updateIsLatestVersion,
+        root.disableBeta,
+        root.enableBeta,
         root.bugReportSendSuccess,
         root.bugReportSendError,
-        root.cacheAnavailable,
+        root.cacheUnavailable,
         root.cacheCantMove,
         root.accountChanged,
-        root.diskFull
+        root.diskFull,
+        root.cacheLocationChangeSuccess,
+        root.enableSplitMode,
+        root.disableLocalCache,
+        root.enableLocalCache,
+        root.resetBridge
     ]
 
     // Connection
@@ -93,10 +108,18 @@ QtObject {
 
         action: [
             Action {
-                text: qsTr("Update")
+                text: qsTr("Install update")
 
                 onTriggered: {
-                    // TODO: call update from backend
+                    root.backend.installUpdate()
+                    root.updateManualReady.active = false
+                }
+            },
+            Action {
+                text: qsTr("Update manually")
+
+                onTriggered: {
+                    Qt.openUrlExternally(root.backend.getLandingPage())
                     root.updateManualReady.active = false
                 }
             },
@@ -104,7 +127,6 @@ QtObject {
                 text: qsTr("Remind me later")
 
                 onTriggered: {
-                    // TODO: start timer here
                     root.updateManualReady.active = false
                 }
             }
@@ -128,14 +150,14 @@ QtObject {
             text: qsTr("Restart Bridge")
 
             onTriggered: {
-                // TODO
+                root.backend.restart()
                 root.updateManualRestartNeeded.active = false
             }
         }
     }
 
     property Notification updateManualError: Notification {
-        text: qsTr("Bridge couldn’t update")
+        text: qsTr("Bridge couldn’t update. Please update manually.")
         icon: "./icons/ic-exclamation-circle-filled.svg"
         type: Notification.NotificationType.Warning
         group: Notifications.Group.Update
@@ -147,19 +169,28 @@ QtObject {
             }
         }
 
-        action: Action {
-            text: qsTr("Update manually")
+        action: [
+            Action {
+                text: qsTr("Update manually")
 
-            onTriggered: {
-                // TODO
-                root.updateManualError.active = false
+                onTriggered: {
+                    Qt.openUrlExternally(root.backend.getLandingPage())
+                    root.updateManualError.active = false
+                }
+            },
+            Action {
+                text: qsTr("Remind me later")
+
+                onTriggered: {
+                    root.updateManualReady.active = false
+                }
             }
-        }
+        ]
     }
 
     property Notification updateForce: Notification {
         text: qsTr("Update to ProtonMail Bridge") + " " + (data ? data.version : "")
-        description: qsTr("This version of Bridge is no longer supported, please update. Learn why. To update manually, go to: https:/protonmail.com/bridge/download")
+        description: qsTr("This version of Bridge is no longer supported, please update.")
         icon: "./icons/ic-exclamation-circle-filled.svg"
         type: Notification.NotificationType.Danger
         group: Notifications.Group.Update | Notifications.Group.Dialogs
@@ -175,18 +206,26 @@ QtObject {
 
         action: [
             Action {
-                text: qsTr("Update")
+                text: qsTr("Install update")
 
                 onTriggered: {
-                    // TODO: trigger update here
+                    root.backend.installUpdate()
                     root.updateForce.active = false
                 }
             },
             Action {
-                text: qsTr("Quite Bridge")
+                text: qsTr("Update manually")
 
                 onTriggered: {
-                    // TODO: quit Bridge here
+                    Qt.openUrlExternally(root.backend.getLandingPage())
+                    root.updateForce.active = false
+                }
+            },
+            Action {
+                text: qsTr("Quit Bridge")
+
+                onTriggered: {
+                    root.backend.quit()
                     root.updateForce.active = false
                 }
             }
@@ -195,7 +234,7 @@ QtObject {
 
     property Notification updateForceError: Notification {
         text: qsTr("Bridge coudn’t update")
-        description: qsTr("You must update manually. Go to: https:/protonmail.com/bridge/download")
+        description: qsTr("You must update manually.")
         icon: "./icons/ic-exclamation-circle-filled.svg"
         type: Notification.NotificationType.Danger
         group: Notifications.Group.Update | Notifications.Group.Dialogs
@@ -213,15 +252,15 @@ QtObject {
                 text: qsTr("Update manually")
 
                 onTriggered: {
-                    // TODO: trigger update here
+                    Qt.openUrlExternally(root.backend.getLandingPage())
                     root.updateForceError.active = false
                 }
             },
             Action {
-                text: qsTr("Quite Bridge")
+                text: qsTr("Quit Bridge")
 
                 onTriggered: {
-                    // TODO: quit Bridge here
+                    root.backend.quit()
                     root.updateForce.active = false
                 }
             }
@@ -245,7 +284,7 @@ QtObject {
             text: qsTr("Restart Bridge")
 
             onTriggered: {
-                // TODO
+                root.backend.restart()
                 root.updateSilentRestartNeeded.active = false
             }
         }
@@ -268,18 +307,105 @@ QtObject {
             text: qsTr("Update manually")
 
             onTriggered: {
-                // TODO
+                Qt.openUrlExternally(root.backend.getLandingPage())
                 root.updateSilentError.active = false
             }
         }
     }
 
+    property Notification updateIsLatestVersion: Notification {
+        text: qsTr("Bridge is up to date")
+        icon: "./icons/ic-info-circle-filled.svg"
+        type: Notification.NotificationType.Info
+        group: Notifications.Group.Update
+
+        Connections {
+            target: root.backend
+            onUpdateIsLatestVersion: {
+                root.updateIsLatestVersion.active = true
+            }
+        }
+
+        action: Action {
+            text: qsTr("Ok")
+
+            onTriggered: {
+                root.updateIsLatestVersion.active = false
+            }
+        }
+    }
+
+    property Notification disableBeta: Notification {
+        text: qsTr("Disable beta access?")
+        description: qsTr("This resets Bridge to the current release and will restart the app. Your preferences, cached data, and email client configurations will be cleared. ")
+        icon: "./icons/ic-exclamation-circle-filled.svg"
+        type: Notification.NotificationType.Warning
+        group: Notifications.Group.Update | Notifications.Group.Dialogs
+
+        Connections {
+            target: root
+            onAskDisableBeta: {
+                root.disableBeta.active = true
+            }
+        }
+
+        action: [
+            Action {
+                text: qsTr("Remind me later")
+
+                onTriggered: {
+                    root.disableBeta.active = false
+                }
+            },
+            Action {
+                text: qsTr("Disable and restart")
+                onTriggered: {
+                    root.backend.toggleBeta(false)
+                    root.disableBeta.loading = true
+                }
+            }
+        ]
+    }
+
+    property Notification enableBeta: Notification {
+        text: qsTr("Enable beta access?")
+        description: qsTr("Bridge will update to the latest beta version according to your update preferences. Disabling beta access later on will reset Bridge and require you to reconfigure your client.")
+        icon: "./icons/ic-info-circle-filled.svg"
+        type: Notification.NotificationType.Info
+        group: Notifications.Group.Update | Notifications.Group.Dialogs
+
+        Connections {
+            target: root
+            onAskEnableBeta: {
+                root.enableBeta.active = true
+            }
+        }
+
+        action: [
+            Action {
+                text: qsTr("Enable")
+                onTriggered: {
+                    root.backend.toggleBeta(true)
+                    root.enableBeta.active = false
+                }
+            },
+            Action {
+                text: qsTr("Cancel")
+
+                onTriggered: {
+                    root.enableBeta.active = false
+                }
+            }
+        ]
+    }
+
+
     // Bug reports
     property Notification bugReportSendSuccess: Notification {
-        text: qsTr("Bug report sent")
-        description: qsTr("We’ve received your report, thank you! Our team will get back to you as soon as we can.")
+        text: qsTr("Thank you for the report. We'll get back to you as soon as we can.")
+        icon: "./icons/ic-info-circle-filled.svg"
         type: Notification.NotificationType.Success
-        group: Notifications.Group.Configuration | Notifications.Group.Dialogs
+        group: Notifications.Group.Configuration
 
         Connections {
             target: root.backend
@@ -302,10 +428,10 @@ QtObject {
     }
 
     property Notification bugReportSendError: Notification {
-        text: qsTr("There was a problem")
-        description: qsTr("There was a problem with sending your report. Please try again later or contact us directly at security@protonmail.com")
-        type: Notification.NotificationType.Warning
-        group: Notifications.Group.Configuration | Notifications.Group.Dialogs
+        text: qsTr("Report could not be sent. Try again or email us directly.")
+        icon: "./icons/ic-exclamation-circle-filled.svg"
+        type: Notification.NotificationType.Danger
+        group: Notifications.Group.Configuration
 
         Connections {
             target: root.backend
@@ -323,7 +449,7 @@ QtObject {
     }
 
     // Cache
-    property Notification cacheAnavailable: Notification {
+    property Notification cacheUnavailable: Notification {
         text: qsTr("Cache location is unavailable")
         description: qsTr("Check the directory or change it in your settings.")
         type: Notification.NotificationType.Warning
@@ -331,8 +457,8 @@ QtObject {
 
         Connections {
             target: root.backend
-            onCacheAnavailable: {
-                root.cacheAnavailable.active = true
+            onCacheUnavailable: {
+                root.cacheUnavailable.active = true
             }
         }
 
@@ -340,13 +466,15 @@ QtObject {
             Action {
                 text: qsTr("Quit Bridge")
                 onTriggered: {
-                    root.cacheAnavailable.active = false
+                    root.backend.quit()
+                    root.cacheUnavailable.active = false
                 }
             },
             Action {
                 text: qsTr("Change location")
                 onTriggered: {
-                    root.cacheAnavailable.active = false
+                    root.cacheUnavailable.active = false
+                    root.frontendMain.showLocalCacheSettings()
                 }
             }
         ]
@@ -376,6 +504,31 @@ QtObject {
                 text: qsTr("Change location")
                 onTriggered: {
                     root.cacheCantMove.active = false
+                    root.frontendMain.showLocalCacheSettings()
+                }
+            }
+        ]
+    }
+
+    property Notification cacheLocationChangeSuccess: Notification {
+        text: qsTr("Cache location successfully changed")
+        icon: "./icons/ic-info-circle-filled.svg"
+        type: Notification.NotificationType.Success
+        group: Notifications.Group.Configuration
+
+        Connections {
+            target: root.backend
+            onCacheLocationChangeSuccess: {
+                console.log("notify location changed succesfully")
+                root.cacheLocationChangeSuccess.active = true
+            }
+        }
+
+        action: [
+            Action {
+                text: qsTr("Ok")
+                onTriggered: {
+                    root.cacheLocationChangeSuccess.active = false
                 }
             }
         ]
@@ -414,6 +567,7 @@ QtObject {
             Action {
                 text: qsTr("Quit Bridge")
                 onTriggered: {
+                    root.backend.quit()
                     root.diskFull.active = false
                 }
             },
@@ -421,6 +575,171 @@ QtObject {
                 text: qsTr("Settings")
                 onTriggered: {
                     root.diskFull.active = false
+                    root.frontendMain.showLocalCacheSettings()
+                }
+            }
+        ]
+    }
+
+    property Notification enableSplitMode: Notification {
+        text: qsTr("Enable split mode?")
+        description: qsTr("Changing between split and combined address mode will require you to delete your accounts(s) from your email client and begin the setup process from scratch.")
+        type: Notification.NotificationType.Warning
+        group: Notifications.Group.Configuration | Notifications.Group.Dialogs
+
+        property var user
+
+        Connections {
+            target: root
+            onAskEnableSplitMode: {
+                root.enableSplitMode.user = user
+                root.enableSplitMode.active = true
+            }
+        }
+
+
+        Connections {
+            target: (root && root.enableSplitMode && root.enableSplitMode.user ) ? root.enableSplitMode.user : null
+            onToggleSplitModeFinished: {
+                root.enableSplitMode.active = false
+                root.enableSplitMode.loading = false
+            }
+        }
+
+        action: [
+            Action {
+                text: qsTr("Cancel")
+                onTriggered: {
+                    root.enableSplitMode.active = false
+                }
+            },
+            Action {
+                text: qsTr("Enable split mode")
+                onTriggered: {
+                    root.enableSplitMode.loading = true
+                    root.enableSplitMode.user.toggleSplitMode(true)
+                }
+            }
+        ]
+    }
+
+    property Notification disableLocalCache: Notification {
+        text: qsTr("Disable local cache?")
+        description: qsTr("This action will clear your local cache, including locally stored messages. Bridge will restart.")
+        type: Notification.NotificationType.Warning
+        group: Notifications.Group.Configuration | Notifications.Group.Dialogs
+
+        Connections {
+            target: root
+            onAskDisableLocalCache: {
+                root.disableLocalCache.active = true
+            }
+        }
+
+
+        Connections {
+            target: root.backend
+            onChangeLocalCacheFinished: {
+                root.disableLocalCache.active = false
+                root.disableLocalCache.loading = false
+            }
+        }
+
+        action: [
+            Action {
+                text: qsTr("Cancel")
+                onTriggered: {
+                    root.disableLocalCache.active = false
+                }
+            },
+            Action {
+                text: qsTr("Disable and restart")
+                onTriggered: {
+                    root.disableLocalCache.loading = true
+                    root.backend.changeLocalCache(false, root.backend.diskCachePath)
+                }
+            }
+        ]
+    }
+
+    property Notification enableLocalCache: Notification {
+        text: qsTr("Enable local cache?")
+        description: qsTr("Bridge will restart.")
+        type: Notification.NotificationType.Warning
+        group: Notifications.Group.Configuration | Notifications.Group.Dialogs
+
+        property var path
+
+        Connections {
+            target: root
+            onAskEnableLocalCache: {
+                root.enableLocalCache.active = true
+                root.enableLocalCache.path = path
+            }
+        }
+
+
+        Connections {
+            target: root.backend
+            onChangeLocalCacheFinished: {
+                root.enableLocalCache.active = false
+                root.enableLocalCache.loading = false
+            }
+        }
+
+        action: [
+            Action {
+                text: qsTr("Enable and restart")
+                onTriggered: {
+                    root.enableLocalCache.loading = true
+                    root.backend.changeLocalCache(true, root.enableLocalCache.path)
+                }
+            },
+            Action {
+                text: qsTr("Cancel")
+                onTriggered: {
+                    root.enableLocalCache.active = false
+                }
+            }
+        ]
+    }
+
+    property Notification resetBridge: Notification {
+        text: qsTr("Reset Bridge?")
+        description: qsTr("This will clear your accounts, preferences, and cached data. You will need to reconfigure your email client. Bridge will automatically restart")
+        type: Notification.NotificationType.Warning
+        group: Notifications.Group.Configuration | Notifications.Group.Dialogs
+
+        property var user
+
+        Connections {
+            target: root
+            onAskResetBridge: {
+                root.resetBridge.active = true
+            }
+        }
+
+
+        Connections {
+            target: root.backend
+            onResetFinished: {
+                root.resetBridge.active = false
+                root.resetBridge.loading = false
+            }
+        }
+
+        action: [
+            Action {
+                text: qsTr("Cancel")
+                onTriggered: {
+                    root.resetBridge.active = false
+                }
+            },
+            Action {
+                text: qsTr("Reset and restart")
+                onTriggered: {
+                    root.resetBridge.loading = true
+                    root.backend.triggerReset()
                 }
             }
         ]

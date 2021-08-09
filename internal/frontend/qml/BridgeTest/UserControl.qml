@@ -236,6 +236,53 @@ ColumnLayout {
         }
     }
 
+    Button {
+        colorScheme: root.colorScheme
+        text: "Login Finished"
+
+        onClicked: {
+            root.backend.loginFinished()
+            user.resetLoginRequests()
+        }
+    }
+
+    RowLayout {
+        TextField {
+            colorScheme: root.colorScheme
+            label: "used:"
+            text: user && user.usedBytes ? user.usedBytes : 0
+            validator: DoubleValidator {bottom: 1; top: 1024*1024*1024*1024*1024}
+            onEditingFinished: {
+                user.usedBytes = parseFloat(text)
+            }
+            implicitWidth: 200
+        }
+        TextField {
+            colorScheme: root.colorScheme
+            label: "total:"
+            text: user && user.totalBytes ? user.totalBytes : 0
+            validator: DoubleValidator {bottom: 1; top: 1024*1024*1024*1024*1024}
+            onEditingFinished: {
+                user.totalBytes = parseFloat(text)
+            }
+            implicitWidth: 200
+        }
+    }
+
+    RowLayout {
+        Label {colorScheme: root.colorScheme; text: "Split mode"}
+        Toggle { colorScheme: root.colorScheme; checked: user ? user.splitMode : false; onClicked: {user.splitMode = !user.splitMode}}
+        Button { colorScheme: root.colorScheme; text: "Toggle Finished"; onClicked: {user.toggleSplitModeFinished()}}
+    }
+
+    TextArea {
+        colorScheme: root.colorScheme
+        text: user && user.addresses ? user.addresses.join("\n") : "user@protonmail.com"
+        Layout.fillWidth: true
+        onEditingFinished: {
+            user.addresses = text.split("\n")
+        }
+    }
 
     Item {
         Layout.fillHeight: true

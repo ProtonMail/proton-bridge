@@ -20,6 +20,7 @@ import QtQuick 2.12
 import QtQuick.Controls 2.12
 import QtQuick.Controls.impl 2.12
 import QtQuick.Templates 2.12 as T
+import "."
 
 Item {
     id: root
@@ -86,15 +87,18 @@ Item {
     property alias wrapMode: control.wrapMode
 
     implicitWidth: background.width
-    implicitHeight: control.implicitHeight +
-                    Math.max(label.implicitHeight + label.anchors.topMargin + label.anchors.bottomMargin, hint.implicitHeight + hint.anchors.topMargin + hint.anchors.bottomMargin) +
-                    assistiveText.implicitHeight
+    implicitHeight: control.implicitHeight + Math.max(
+        label.implicitHeight + label.anchors.topMargin + label.anchors.bottomMargin,
+        hint.implicitHeight + hint.anchors.topMargin + hint.anchors.bottomMargin
+    ) + assistiveText.implicitHeight
 
     property alias label: label.text
     property alias hint: hint.text
     property alias assistiveText: assistiveText.text
 
     property bool error: false
+
+    signal editingFinished()
 
     // Backgroud is moved away from within control as it will be clipped with scrollview
     Rectangle {
@@ -200,12 +204,16 @@ Item {
         T.TextArea {
             id: control
 
-            implicitWidth: Math.max(contentWidth + leftPadding + rightPadding,
-                                    implicitBackgroundWidth + leftInset + rightInset,
-                                    placeholder.implicitWidth + leftPadding + rightPadding)
-            implicitHeight: Math.max(contentHeight + topPadding + bottomPadding,
-                                     implicitBackgroundHeight + topInset + bottomInset,
-                                     placeholder.implicitHeight + topPadding + bottomPadding)
+            implicitWidth: Math.max(
+                contentWidth + leftPadding + rightPadding,
+                implicitBackgroundWidth + leftInset + rightInset,
+                placeholder.implicitWidth + leftPadding + rightPadding
+            )
+            implicitHeight: Math.max(
+                contentHeight + topPadding + bottomPadding,
+                implicitBackgroundHeight + topInset + bottomInset,
+                placeholder.implicitHeight + topPadding + bottomPadding
+            )
 
             padding: 8
             leftPadding: 12
@@ -215,6 +223,8 @@ Item {
 
             selectionColor: control.palette.highlight
             selectedTextColor: control.palette.highlightedText
+
+            onEditingFinished: root.editingFinished()
 
             cursorDelegate: Rectangle {
                 id: cursor

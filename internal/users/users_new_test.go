@@ -91,6 +91,7 @@ func TestNewUsersWithConnectedUserWithBadToken(t *testing.T) {
 	m.credentialsStore.EXPECT().Get("user").Return(testCredentials, nil)
 	m.credentialsStore.EXPECT().Logout("user").Return(testCredentialsDisconnected, nil)
 
+	m.eventListener.EXPECT().Emit(events.UserRefreshEvent, "user")
 	m.eventListener.EXPECT().Emit(events.LogoutEvent, "user")
 	m.eventListener.EXPECT().Emit(events.UserRefreshEvent, "user")
 	m.eventListener.EXPECT().Emit(events.CloseConnectionEvent, "user@pm.me")

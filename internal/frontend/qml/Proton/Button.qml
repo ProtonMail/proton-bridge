@@ -246,9 +246,25 @@ T.Button {
             }
         }
 
-        border.color: control.colorScheme.border_norm
+        border.color: {
+            return control.colorScheme.border_norm
+        }
         border.width: secondary && !borderless ? 1 : 0
 
         opacity: control.enabled || control.loading ? 1.0 : 0.5
+    }
+
+
+    Component.onCompleted: {
+        if (!control.colorScheme) {
+            console.trace()
+            var next = root
+            for (var i = 0; i<1000; i++) {
+                console.log(i, next, "colorscheme", next.colorScheme)
+                next = next.parent
+                if (!next) break
+            }
+            console.error("ColorScheme not defined")
+        }
     }
 }

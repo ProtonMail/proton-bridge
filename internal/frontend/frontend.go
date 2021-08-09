@@ -24,6 +24,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/internal/config/settings"
 	"github.com/ProtonMail/proton-bridge/internal/config/useragent"
 	"github.com/ProtonMail/proton-bridge/internal/frontend/cli"
+	"github.com/ProtonMail/proton-bridge/internal/frontend/qt"
 	"github.com/ProtonMail/proton-bridge/internal/frontend/types"
 	"github.com/ProtonMail/proton-bridge/internal/locations"
 	"github.com/ProtonMail/proton-bridge/internal/updater"
@@ -59,6 +60,23 @@ func New(
 ) Frontend {
 	bridgeWrap := types.NewBridgeWrap(bridge)
 	switch frontendType {
+	case "qt":
+		return qt.New(
+			version,
+			buildVersion,
+			programName,
+			showWindowOnStart,
+			panicHandler,
+			locations,
+			settings,
+			eventListener,
+			updater,
+			userAgent,
+			bridgeWrap,
+			noEncConfirmator,
+			autostart,
+			restarter,
+		)
 	case "cli":
 		return cli.New(
 			panicHandler,

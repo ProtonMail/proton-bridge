@@ -22,20 +22,16 @@ import QtQuick.Layouts 1.12
 import QtQuick.Controls 2.13
 
 import Proton 4.0
-import ProtonBackend 1.0
 import Notifications 1.0
 
-// Because of https://bugreports.qt.io/browse/QTBUG-69777 and other bugs alike it is impossible
-// to use Window with flags: Qt.Popup here since it won't close by it's own on click outside.
-PopupWindow {
+Window {
     id: root
     title: "ProtonMail Bridge"
 
     height: contentLayout.implicitHeight
     width: contentLayout.implicitWidth
 
-    minimumHeight: 201
-    minimumWidth: 448
+    flags: Qt.FramelessWindowHint
 
     property ColorScheme colorScheme: ProtonStyle.currentStyle
 
@@ -47,15 +43,19 @@ PopupWindow {
     signal showMainWindow()
     signal showHelp()
     signal showSettings()
+    signal showSignIn(string username)
     signal quit()
 
     ColumnLayout {
         id: contentLayout
 
+        Layout.minimumHeight: 201
+
         anchors.fill: parent
         spacing: 0
 
         ColumnLayout {
+            Layout.minimumWidth: 448
             Layout.fillWidth: true
             spacing: 0
 
@@ -76,13 +76,13 @@ PopupWindow {
                         }
 
                         switch (statusItem.activeNotification.type) {
-                        case Notification.NotificationType.Danger:
+                            case Notification.NotificationType.Danger:
                             return root.colorScheme.signal_danger
-                        case Notification.NotificationType.Warning:
+                            case Notification.NotificationType.Warning:
                             return root.colorScheme.signal_warning
-                        case Notification.NotificationType.Success:
+                            case Notification.NotificationType.Success:
                             return root.colorScheme.signal_success
-                        case Notification.NotificationType.Info:
+                            case Notification.NotificationType.Info:
                             return root.colorScheme.signal_info
                         }
                     }
@@ -149,8 +149,8 @@ PopupWindow {
             Layout.fillHeight: true
 
             Layout.maximumHeight: accountListView.count ?
-                                      accountListView.contentHeight / accountListView.count * 3 + accountListView.anchors.topMargin + accountListView.anchors.bottomMargin :
-                                      Number.POSITIVE_INFINITY
+            accountListView.contentHeight / accountListView.count * 3 + accountListView.anchors.topMargin + accountListView.anchors.bottomMargin :
+            Number.POSITIVE_INFINITY
 
             color: root.colorScheme.background_norm
             clip: true
@@ -171,12 +171,16 @@ PopupWindow {
 
                 interactive: contentHeight > parent.height
                 snapMode: ListView.SnapToItem
+                boundsBehavior: Flickable.StopAtBounds
 
                 delegate: Item {
+                    id: viewItem
                     width: ListView.view.width
 
                     implicitHeight: children[0].implicitHeight
                     implicitWidth: children[0].implicitWidth
+
+                    property var user: root.backend.users.get(index)
 
                     RowLayout {
                         spacing: 0
@@ -187,15 +191,19 @@ PopupWindow {
 
                             Layout.margins: 12
 
-                            user: modelData
+                            user: viewItem.user
                             colorScheme: root.colorScheme
-
                         }
+
                         Button {
                             Layout.margins: 12
                             colorScheme: root.colorScheme
-                            visible: true
-                            text: "test"
+                            visible: !viewItem.user.loggedIn
+                            text: qsTr("Sign in")
+                            onClicked: {
+                                root.showSignIn(viewItem.username)
+                                root.visible = false
+                            }
                         }
                     }
                 }
@@ -296,5 +304,9 @@ PopupWindow {
                 }
             }
         }
+    }
+
+    onActiveChanged: {
+        if (!active) root.close()
     }
 }

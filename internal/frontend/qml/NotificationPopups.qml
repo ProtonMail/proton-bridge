@@ -28,6 +28,7 @@ Item {
 
     property ColorScheme colorScheme
     property var notifications
+    property var mainWindow
 
     property int notificationWhitelist: NotificationFilter.FilterConsts.All
     property int notificationBlacklist: NotificationFilter.FilterConsts.None
@@ -42,6 +43,7 @@ Item {
     Banner {
         colorScheme: root.colorScheme
         notification: bannerNotificationFilter.topmost
+        mainWindow: root.mainWindow
     }
 
     NotificationDialog {
@@ -66,17 +68,17 @@ Item {
 
     NotificationDialog {
         colorScheme: root.colorScheme
-        notification: root.notifications.bugReportSendSuccess
+        notification: root.notifications.disableBeta
     }
 
     NotificationDialog {
         colorScheme: root.colorScheme
-        notification: root.notifications.bugReportSendError
+        notification: root.notifications.enableBeta
     }
 
     NotificationDialog {
         colorScheme: root.colorScheme
-        notification: root.notifications.cacheAnavailable
+        notification: root.notifications.cacheUnavailable
     }
 
     NotificationDialog {
@@ -87,5 +89,25 @@ Item {
     NotificationDialog {
         colorScheme: root.colorScheme
         notification: root.notifications.diskFull
+    }
+
+    NotificationDialog {
+        colorScheme: root.colorScheme
+        notification: root.notifications.enableSplitMode
+    }
+
+    NotificationDialog {
+        colorScheme: root.colorScheme
+        notification: root.notifications.disableLocalCache
+    }
+
+    NotificationDialog {
+        colorScheme: root.colorScheme
+        notification: root.notifications.enableLocalCache
+    }
+
+    NotificationDialog {
+        colorScheme: root.colorScheme
+        notification: root.notifications.resetBridge
     }
 }

@@ -349,6 +349,7 @@ func (u *User) CheckBridgeLogin(password string) error {
 func (u *User) UpdateUser(ctx context.Context) error {
 	u.lock.Lock()
 	defer u.lock.Unlock()
+	defer u.listener.Emit(events.UserRefreshEvent, u.userID)
 
 	_, err := u.client.UpdateUser(ctx)
 	if err != nil {
@@ -376,6 +377,7 @@ func (u *User) SwitchAddressMode() error {
 
 	u.lock.Lock()
 	defer u.lock.Unlock()
+	defer u.listener.Emit(events.UserRefreshEvent, u.userID)
 
 	u.CloseAllConnections()
 
@@ -414,7 +416,6 @@ func (u *User) logout() error {
 
 	if wasConnected {
 		u.listener.Emit(events.LogoutEvent, u.userID)
-		u.listener.Emit(events.UserRefreshEvent, u.userID)
 	}
 
 	return err
@@ -425,6 +426,7 @@ func (u *User) logout() error {
 func (u *User) Logout() error {
 	u.lock.Lock()
 	defer u.lock.Unlock()
+	defer u.listener.Emit(events.UserRefreshEvent, u.userID)
 
 	u.log.Debug("Logging out user")
 

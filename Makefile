@@ -88,7 +88,7 @@ ${TGZ_TARGET}: ${DEPLOY_DIR}/${TARGET_OS}
 	cd ${DEPLOY_DIR}/${TARGET_OS} && tar czf ../../../../$@ .
 
 ${DEPLOY_DIR}/linux: ${EXE_TARGET}
-	cp -pf ./internal/frontend/share/icons/${SRC_SVG} ${DEPLOY_DIR}/linux/logo.svg
+	cp -pf ./internal/frontend/share/${SRC_SVG} ${DEPLOY_DIR}/linux/logo.svg
 	cp -pf ./LICENSE ${DEPLOY_DIR}/linux/
 	cp -pf ./Changelog.md ${DEPLOY_DIR}/linux/
 	cp -pf ./dist/${EXE_NAME}.desktop ${DEPLOY_DIR}/linux/
@@ -98,7 +98,7 @@ ${DEPLOY_DIR}/darwin: ${EXE_TARGET}
 		mv ${EXE_TARGET}/Contents/MacOS/{${DIRNAME},${EXE_NAME}}; \
 		perl -i -pe"s/>${DIRNAME}/>${EXE_NAME}/g" ${EXE_TARGET}/Contents/Info.plist; \
 	fi
-	cp ./internal/frontend/share/icons/${SRC_ICNS} ${DARWINAPP_CONTENTS}/Resources/${SRC_ICNS}
+	cp ./internal/frontend/share/${SRC_ICNS} ${DARWINAPP_CONTENTS}/Resources/${SRC_ICNS}
 	cp LICENSE ${DARWINAPP_CONTENTS}/Resources/
 	rm -rf "${DARWINAPP_CONTENTS}/Frameworks/QtWebEngine.framework"
 	rm -rf "${DARWINAPP_CONTENTS}/Frameworks/QtWebView.framework"
@@ -106,7 +106,7 @@ ${DEPLOY_DIR}/darwin: ${EXE_TARGET}
 	./utils/remove_non_relative_links_darwin.sh "${EXE_TARGET}${EXE_BINARY_DARWIN}"
 
 ${DEPLOY_DIR}/windows: ${EXE_TARGET}
-	cp ./internal/frontend/share/icons/${SRC_ICO} ${DEPLOY_DIR}/windows/logo.ico
+	cp ./internal/frontend/share/${SRC_ICO} ${DEPLOY_DIR}/windows/logo.ico
 	cp LICENSE ${DEPLOY_DIR}/windows/
 
 QT_BUILD_TARGET:=build desktop
@@ -127,9 +127,9 @@ ${EXE_TARGET}: check-has-go gofiles ${RESOURCE_FILE} ${VENDOR_TARGET}
 
 WINDRES_YEAR:=$(shell date +%Y)
 APP_VERSION_COMMA:=$(shell echo "${APP_VERSION}" | sed -e 's/[^0-9,.]*//g' -e 's/\./,/g')
-resource.syso: ./internal/frontend/share/info.rc ./internal/frontend/share/icons/${SRC_ICO} .FORCE
+resource.syso: ./internal/frontend/share/info.rc ./internal/frontend/share/${SRC_ICO} .FORCE
 	rm -f ./*.syso
-	windres --target=pe-x86-64 -I ./internal/frontend/share/icons/ -D ICO_FILE=${SRC_ICO} -D EXE_NAME="${EXE_NAME}" -D FILE_VERSION="${APP_VERSION}" -D ORIGINAL_FILE_NAME="${EXE}" -D PRODUCT_VERSION="${APP_VERSION}" -D FILE_VERSION_COMMA=${APP_VERSION_COMMA} -D YEAR=${WINDRES_YEAR} -o $@ $<
+	windres --target=pe-x86-64 -I ./internal/frontend/share/ -D ICO_FILE=${SRC_ICO} -D EXE_NAME="${EXE_NAME}" -D FILE_VERSION="${APP_VERSION}" -D ORIGINAL_FILE_NAME="${EXE}" -D PRODUCT_VERSION="${APP_VERSION}" -D FILE_VERSION_COMMA=${APP_VERSION_COMMA} -D YEAR=${WINDRES_YEAR} -o $@ $<
 
 ## Rules for therecipe/qt
 .PHONY: prepare-vendor update-vendor update-qt-docs
@@ -278,7 +278,7 @@ RUN_FLAGS?=-m -l=${LOG} --log-imap=${LOG_IMAP} ${LOG_SMTP}
 run: run-nogui-cli
 
 run-qt: ${EXE_TARGET}
-	PROTONMAIL_ENV=dev ./$< ${RUN_FLAGS} | tee last.log
+	PROTONMAIL_ENV=dev ./$< ${RUN_FLAGS} 2>&1 | tee last.log
 run-qt-cli: ${EXE_TARGET}
 	PROTONMAIL_ENV=dev ./$< ${RUN_FLAGS} -c
 
@@ -296,9 +296,7 @@ run-qml-preview:
 	
 
 clean-frontend-qt:
-	# TODO: $(MAKE) -C internal/frontend/qt -f Makefile.local clean
-clean-frontend-qt-common:
-	# TODO: $(MAKE) -C internal/frontend/qt-common -f Makefile.local clean
+	$(MAKE) -C internal/frontend -f Makefile.local clean
 
 clean-vendor: clean-frontend-qt clean-frontend-qt-common
 	rm -rf ./vendor

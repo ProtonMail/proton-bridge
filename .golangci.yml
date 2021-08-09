@@ -1,8 +1,6 @@
 ---
 run:
   timeout: 10m
-  build-tags:
-    - nogui
   skip-dirs:
     - pkg/mime
 

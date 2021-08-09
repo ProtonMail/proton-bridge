@@ -39,6 +39,7 @@ QtObject {
 
     property bool dismissed: false
     property bool active: false
+    property bool loading: false
     readonly property var occurred: active ? new Date() : undefined
 
     property var data

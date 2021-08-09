@@ -62,7 +62,7 @@ ApplicationWindow {
                 return
             }
 
-            root.showSetup(user)
+            root.showSetup(user,user.addresses[0])
         }
 
         onRowsAboutToBeRemoved: {
@@ -75,15 +75,6 @@ ApplicationWindow {
                     return
                 }
             }
-        }
-    }
-
-    function showSetup(user) {
-        setupGuide.user = user
-        if (setupGuide.user) {
-            contentLayout._showSetup = true
-        } else {
-            contentLayout._showSetup = false
         }
     }
 
@@ -111,11 +102,17 @@ ApplicationWindow {
         }
 
         ContentWrapper {
+            id: contentWrapper
             colorScheme: root.colorScheme
             backend: root.backend
+            notifications: root.notifications
 
             Layout.fillHeight: true
             Layout.fillWidth: true
+
+            onShowSetupGuide: {
+                root.showSetup(user,address)
+            }
 
             onLogin: {
                 root.login(username, password)
@@ -161,7 +158,7 @@ ApplicationWindow {
             Layout.fillWidth: true
 
             onDismissed: {
-                root.showSetup(null)
+                root.showSetup(null,"")
             }
         }
     }
@@ -169,5 +166,25 @@ ApplicationWindow {
     NotificationPopups {
         colorScheme: root.colorScheme
         notifications: root.notifications
+        mainWindow: root
+    }
+
+    function showLocalCacheSettings() { contentWrapper.showLocalCacheSettings() }
+    function showSettings() { contentWrapper.showSettings() }
+    function showHelp() { contentWrapper.showHelp() }
+
+    function showSignIn(username) {
+        if (contentLayout.currentIndex == 1) return
+        contentWrapper.showSignIn(username)
+    }
+
+    function showSetup(user, address) {
+        setupGuide.user = user
+        setupGuide.address = address
+        if (setupGuide.user) {
+            contentLayout._showSetup = true
+        } else {
+            contentLayout._showSetup = false
+        }
     }
 }

@@ -33,8 +33,10 @@ import Notifications 1.0
 Window {
     id: root
 
-    width: 640
-    height: 480
+    x: 10
+    y: 10
+    width: 800
+    height: 600
 
     property ColorScheme colorScheme: ProtonStyle.darkStyle
 
@@ -103,11 +105,20 @@ Window {
         QtObject {
             property string username: ""
             property bool loggedIn: false
+            property bool splitMode: false
 
             property bool setupGuideSeen: true
 
-            property string captionText: "50.3 MB / 20 GB"
+            property var usedBytes: 5350*1024*1024
+            property var totalBytes: 20*1024*1024*1024
             property string avatarText: "jd"
+
+            property string password: "SMj975NnEYYsqu55GGmlpv"
+            property var addresses: [
+                "janedoe@protonmail.com",
+                "jane@pm.me",
+                "jdoe@pm.me"
+            ]
 
             signal loginUsernamePasswordError()
             signal loginFreeUserError()
@@ -129,6 +140,30 @@ Window {
 
                 root.log("<- User (" + username + "): " + msg)
             }
+
+            function toggleSplitMode(makeActive) {
+                userSignal("toggle split mode "+makeActive)
+            }
+            signal toggleSplitModeFinished()
+
+            function configureAppleMail(address){
+                userSignal("confugure apple mail "+address)
+            }
+
+            function logout(){
+                userSignal("logout")
+                loggedIn = false
+            }
+            function remove(){
+                console.log("remove this", users.count)
+                for (var i=0; i<users.count; i++) {
+                    if (users.get(i) === this) {
+                        users.remove(i,1)
+                        return
+                    }
+                }
+            }
+
 
             onLoginUsernamePasswordError: {
                 userSignal("loginUsernamePasswordError")
@@ -193,6 +228,17 @@ Window {
         newLoginUser.login2PasswordRequested.connect(root.login2PasswordRequested)
         newLoginUser.login2PasswordError.connect(root.login2PasswordError)
         newLoginUser.login2PasswordErrorAbort.connect(root.login2PasswordErrorAbort)
+
+
+        // add one user on start
+        var haveUserOnStart = false
+        if (haveUserOnStart) {
+            var newUserObject = root.userComponent.createObject(root)
+            newUserObject.username = "LerooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooyJenkins@protonmail.com"
+            newUserObject.loggedIn = true
+            newUserObject.setupGuideSeen = true
+            root.users.append( { object: newUserObject } )
+        }
     }
 
 
@@ -215,6 +261,10 @@ Window {
 
         TabButton {
             text: "Log"
+        }
+
+        TabButton {
+            text: "Settings signals"
         }
     }
 
@@ -284,6 +334,7 @@ Window {
                     enabled: bridge === undefined || bridge === null
                     onClicked: {
                         bridge = bridgeComponent.createObject()
+                        if (true) bridge._mainWindow.show()
                     }
                 }
 
@@ -368,9 +419,8 @@ Window {
                 spacing: 5
 
                 Switch {
-                    colorScheme: root.colorScheme
-
                     text: "Internet connection"
+                    colorScheme: root.colorScheme
                     checked: true
                     onCheckedChanged: {
                         checked ? root.internetOn() : root.internetOff()
@@ -378,115 +428,124 @@ Window {
                 }
 
                 Button {
-                    colorScheme: root.colorScheme
-
                     text: "Update manual ready"
+                    colorScheme: root.colorScheme
                     onClicked: {
                         root.updateManualReady("3.14.1592")
                     }
                 }
-                Button {
-                    colorScheme: root.colorScheme
 
+                Button {
                     text: "Update manual done"
+                    colorScheme: root.colorScheme
                     onClicked: {
                         root.updateManualRestartNeeded()
                     }
                 }
-                Button {
-                    colorScheme: root.colorScheme
 
+                Button {
                     text: "Update manual error"
+                    colorScheme: root.colorScheme
                     onClicked: {
                         root.updateManualError()
                     }
                 }
-                Button {
-                    colorScheme: root.colorScheme
 
+                Button {
                     text: "Update force"
+                    colorScheme: root.colorScheme
                     onClicked: {
                         root.updateForce("3.14.1592")
                     }
                 }
-                Button {
-                    colorScheme: root.colorScheme
 
+                Button {
                     text: "Update force error"
+                    colorScheme: root.colorScheme
                     onClicked: {
                         root.updateForceError()
                     }
                 }
 
                 Button {
-                    colorScheme: root.colorScheme
-
                     text: "Update silent done"
+                    colorScheme: root.colorScheme
                     onClicked: {
                         root.updateSilentRestartNeeded()
                     }
                 }
 
                 Button {
+                    text: "Update silent error"
                     colorScheme: root.colorScheme
-
-                    text: "Update solent error"
                     onClicked: {
                         root.updateSilentError()
                     }
                 }
 
                 Button {
+                    text: "Update is latest version"
                     colorScheme: root.colorScheme
-
-                    text: "Bug report send OK"
                     onClicked: {
+                        root.updateIsLatestVersion()
+                    }
+                }
+
+                Button {
+                    text: "Bug report send OK"
+                    colorScheme: root.colorScheme
+                    onClicked: {
+                        root.reportBugFinished()
                         root.bugReportSendSuccess()
                     }
                 }
 
                 Button {
-                    colorScheme: root.colorScheme
-
                     text: "Bug report send error"
+                    colorScheme: root.colorScheme
                     onClicked: {
+                        root.reportBugFinished()
                         root.bugReportSendError()
                     }
                 }
 
                 Button {
-                    colorScheme: root.colorScheme
-
                     text: "Cache anavailable"
+                    colorScheme: root.colorScheme
                     onClicked: {
-                        root.cacheAnavailable()
+                        root.cacheUnavailable()
                     }
                 }
-                Button {
-                    colorScheme: root.colorScheme
 
+                Button {
                     text: "Cache can't move"
+                    colorScheme: root.colorScheme
                     onClicked: {
                         root.cacheCantMove()
                     }
                 }
 
                 Button {
+                    text: "Cache location change success"
+                    onClicked: {
+                        root.cacheLocationChangeSuccess()
+                    }
                     colorScheme: root.colorScheme
+                }
 
+                Button {
                     text: "Disk full"
+                    colorScheme: root.colorScheme
                     onClicked: {
                         root.diskFull()
                     }
                 }
-
-
             }
         }
 
         TextArea {
-            colorScheme: root.colorScheme
             id: logTextArea
+            colorScheme: root.colorScheme
             Layout.fillHeight: true
             Layout.fillWidth: true
 
@@ -496,20 +555,90 @@ Window {
             textFormat: TextEdit.RichText
             //readOnly: true
         }
+
+        ScrollView {
+            id: settingsTab
+            ColumnLayout {
+                RowLayout {
+                    Label {colorScheme: root.colorScheme; text: "Automatic updates:"}
+                    Toggle {colorScheme: root.colorScheme; checked: root.isAutomaticUpdateOn; onClicked: root.isAutomaticUpdateOn = !root.isAutomaticUpdateOn}
+                }
+                RowLayout {
+                    Label {colorScheme: root.colorScheme; text: "Autostart:"}
+                    Toggle {colorScheme: root.colorScheme; checked: root.isAutostartOn; onClicked: root.isAutostartOn = !root.isAutostartOn}
+                    Button {colorScheme: root.colorScheme; text: "Toggle finished"; onClicked: root.toggleAutostartFinished()}
+                }
+                RowLayout {
+                    Label {colorScheme: root.colorScheme; text: "Beta:"}
+                    Toggle {colorScheme: root.colorScheme; checked: root.isBetaEnabled; onClicked: root.isBetaEnabled = !root.isBetaEnabled}
+                }
+                RowLayout {
+                    Label {colorScheme: root.colorScheme; text: "DoH:"}
+                    Toggle {colorScheme: root.colorScheme; checked: root.isDoHEnabled; onClicked: root.isDoHEnabled = !root.isDoHEnabled}
+                }
+                RowLayout {
+                    Label {colorScheme: root.colorScheme; text: "Ports:"}
+                    TextField {
+                        colorScheme:root.colorScheme
+                        label: "IMAP"
+                        text: root.portIMAP
+                        onEditingFinished: root.portIMAP = this.text*1
+                        validator: IntValidator {bottom: 1; top: 65536}
+                    }
+                    TextField {
+                        colorScheme:root.colorScheme
+                        label: "SMTP"
+                        text: root.portSMTP
+                        onEditingFinished: root.portSMTP = this.text*1
+                        validator: IntValidator {bottom: 1; top: 65536}
+                    }
+                    Button {colorScheme: root.colorScheme; text: "Change finished"; onClicked: root.changePortFinished()}
+                }
+                RowLayout {
+                    Label {colorScheme: root.colorScheme; text: "SMTP using SSL:"}
+                    Toggle {colorScheme: root.colorScheme; checked: root.useSSLforSMTP; onClicked: root.useSSLforSMTP = !root.useSSLforSMTP}
+                }
+                RowLayout {
+                    Label {colorScheme: root.colorScheme; text: "Local cache:"}
+                    Toggle {colorScheme: root.colorScheme; checked: root.isDiskCacheEnabled; onClicked: root.isDiskCacheEnabled = !root.isDiskCacheEnabled}
+                    TextField {
+                        colorScheme:root.colorScheme
+                        label: "Path"
+                        text: root.diskCachePath
+                        implicitWidth: 160
+                        onEditingFinished: root.diskCachePath = this.text
+                    }
+                    Button {colorScheme: root.colorScheme; text: "Change finished:"; onClicked: root.changeLocalCacheFinished()}
+                }
+                RowLayout {
+                    Label {colorScheme: root.colorScheme; text: "Reset:"}
+                    Button {colorScheme: root.colorScheme; text: "Finished"; onClicked: root.resetFinished()}
+                }
+                RowLayout {
+                    Label {colorScheme: root.colorScheme; text: "Check update:"}
+                    Button {colorScheme: root.colorScheme; text: "Finished"; onClicked: root.checkUpdatesFinished()}
+                }
+            }
+        }
     }
 
     property Bridge bridge
 
+    property string goos: "linux"
+
+    property bool dockIconVisible: false
+
     // this signals are used only when trying to login with new user (i.e. not in users model)
-    signal loginUsernamePasswordError()
-    signal loginFreeUserError()
-    signal loginConnectionError()
+    signal loginUsernamePasswordError(string errorMsg)
+    signal loginFreeUserError(string errorMsg)
+    signal loginConnectionError(string errorMsg)
     signal login2FARequested()
-    signal login2FAError()
-    signal login2FAErrorAbort()
+    signal login2FAError(string errorMsg)
+    signal login2FAErrorAbort(string errorMsg)
     signal login2PasswordRequested()
-    signal login2PasswordError()
-    signal login2PasswordErrorAbort()
+    signal login2PasswordError(string errorMsg)
+    signal login2PasswordErrorAbort(string errorMsg)
+    signal loginFinished()
 
     signal internetOff()
     signal internetOn()
@@ -521,14 +650,140 @@ Window {
     signal updateForceError()
     signal updateSilentRestartNeeded()
     signal updateSilentError()
+    signal updateIsLatestVersion()
+    function checkUpdates(){
+        console.log("check updates")
+    }
+    signal checkUpdatesFinished()
 
+
+    property bool   isDiskCacheEnabled: true
+    property string diskCachePath: "/home/bridge"
+    signal cacheUnavailable()
+    signal cacheCantMove()
+    signal cacheLocationChangeSuccess()
+    signal diskFull()
+    function changeLocalCache(enableDiskCache, diskCachePath) {
+        console.debug("-> disk cache", enableDiskCache, diskCachePath)
+    }
+    signal changeLocalCacheFinished()
+
+
+    // Settings
+    property bool isAutomaticUpdateOn : true
+    function toggleAutomaticUpdate(makeItActive) {
+        console.debug("-> silent updates", makeItActive, root.isAutomaticUpdateOn)
+        root.isAutomaticUpdateOn = makeItActive
+    }
+
+    property bool isAutostartOn : true // Example of settings with loading state
+    function toggleAutostart(makeItActive) {
+        console.debug("-> autostart", makeItActive, root.isAutomaticUpdateOn)
+    }
+    signal toggleAutostartFinished()
+
+    property bool isBetaEnabled : false
+    function toggleBeta(makeItActive){
+        console.debug("-> beta", makeItActive, root.isBetaEnabled)
+        root.isBetaEnabled = makeItActive
+    }
+
+    property bool isDoHEnabled : true
+    function toggleDoH(makeItActive){
+        console.debug("-> DoH", makeItActive, root.isDoHEnabled)
+        root.isDoHEnabled = makeItActive
+    }
+
+    property bool useSSLforSMTP: false
+    function toggleUseSSLforSMTP(makeItActive){
+        console.debug("-> SMTP SSL", makeItActive, root.useSSLforSMTP)
+    }
+    signal toggleUseSSLFinished()
+
+    property string hostname: "127.0.0.1"
+    property int portIMAP: 1143
+    property int portSMTP: 1025
+    function changePorts(imapPort, smtpPort){
+        console.debug("-> ports", imapPort, smtpPort)
+    }
+    function isPortFree(port){
+        if (port == portIMAP) return false
+        if (port == portSMTP) return false
+        if (port == 12345) return false
+        return true
+    }
+    signal changePortFinished()
+    signal portIssueIMAP()
+    signal portIssueSMTP()
+
+    function triggerReset() {
+        console.debug("-> trigger reset")
+    }
+    signal resetFinished()
+
+    property string logsPath: "/home/cuto" // StandardPaths.locate(StandardPaths.DesktopLocation)
+    property string version: "v2.0.X"
+    property string licensePath: "/home/cuto" // StandardPaths.locate(StandardPaths.DesktopLocation)
+    property string releaseNotesLink: "https://protonmail.com/download/bridge/early_releases.html"
+
+    property string currentEmailClient: "" // "Apple Mail 14.0"
+    function updateCurrentMailClient(){
+        currentEmailClient = "Apple Mail 14.0"
+    }
+
+    function reportBug(description,address,emailClient,includeLogs){
+        console.log("report bug")
+        console.log("  description",description)
+        console.log("  address",address)
+        console.log("  emailClient",emailClient)
+        console.log("  includeLogs",includeLogs)
+    }
+    signal reportBugFinished()
     signal bugReportSendSuccess()
     signal bugReportSendError()
 
-    signal cacheAnavailable()
-    signal cacheCantMove()
+    property var availableKeychain: ["gnome-keyring", "pass"]
+    property string selectedKeychain
+    function selectKeychain(wantedKeychain){
+        selectedKeychain = wantedKeychain
+    }
+    signal hasNoKeychain()
 
-    signal diskFull()
+    signal noActiveKeyForRecipient(string email)
+    signal showMainWindow()
+
+    signal addressChanged(string address)
+    signal addressChangedLogout(string address)
+    signal userDisconnected(string username)
+    signal apiCertIssue()
+
+
+
+    function login(username, password) {
+        root.log("-> login(" + username + ", " + password + ")")
+
+        loginUser.username = username
+        loginUser.isLoginRequested = true
+    }
+
+    function login2FA(username, code) {
+        root.log("-> login2FA(" + username + ", " + code + ")")
+
+        loginUser.isLogin2FAProvided = true
+    }
+
+    function login2Password(username, password) {
+        root.log("-> login2FA(" + username + ", " + password + ")")
+
+        loginUser.isLogin2PasswordProvided = true
+    }
+
+    function loginAbort(username) {
+        root.log("-> loginAbort(" + username + ")")
+
+        loginUser.resetLoginRequests()
+    }
+
 
     onLoginUsernamePasswordError: {
         console.debug("<- loginUsernamePasswordError")
@@ -557,6 +812,9 @@ Window {
     onLogin2PasswordErrorAbort: {
         console.debug("<- login2PasswordErrorAbort")
     }
+    onLoginFinished: {
+        console.debug("<- loginFinished")
+    }
 
     onInternetOff: {
         console.debug("<- internetOff")
@@ -571,30 +829,6 @@ Window {
         Bridge {
             backend: root
 
-            onLogin: {
-                root.log("-> login(" + username + ", " + password + ")")
-
-                loginUser.username = username
-                loginUser.isLoginRequested = true
-            }
-
-            onLogin2FA: {
-                root.log("-> login2FA(" + username + ", " + code + ")")
-
-                loginUser.isLogin2FAProvided = true
-            }
-
-            onLogin2Password: {
-                root.log("-> login2FA(" + username + ", " + password + ")")
-
-                loginUser.isLogin2PasswordProvided = true
-            }
-
-            onLoginAbort: {
-                root.log("-> loginAbort(" + username + ")")
-
-                loginUser.resetLoginRequests()
-            }
         }
     }
 

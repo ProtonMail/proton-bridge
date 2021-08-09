@@ -30,11 +30,13 @@ Item {
     property var backend
 
     property var user
+    property string address
 
     signal dismissed()
 
     implicitHeight: children[0].implicitHeight
     implicitWidth: children[0].implicitWidth
+
 
     RowLayout {
         anchors.fill: parent
@@ -56,7 +58,7 @@ Item {
 
             Label {
                 colorScheme: root.colorScheme
-                text: user ? user.username : ""
+                text: address
                 color: root.colorScheme.text_weak
                 type: Label.LabelType.Lead
             }
@@ -80,30 +82,50 @@ Item {
             Repeater {
                 model: clients
 
-                ColumnLayout {
-                    RowLayout {
-                        Layout.topMargin: 12
-                        Layout.bottomMargin: 12
-                        Layout.leftMargin: 16
-                        Layout.rightMargin: 16
+                Rectangle {
+                    implicitWidth: clientRow.width
+                    implicitHeight: clientRow.height
 
-                        ColorImage {
-                            source: model.iconSource
-                            height: 36
+                    ColumnLayout {
+                        id: clientRow
+
+                        RowLayout {
+                            Layout.topMargin: 12
+                            Layout.bottomMargin: 12
+                            Layout.leftMargin: 16
+                            Layout.rightMargin: 16
+
+                            ColorImage {
+                                source: model.iconSource
+                                height: 36
+                            }
+
+                            Label {
+                                colorScheme: root.colorScheme
+                                Layout.leftMargin: 12
+                                text: model.name
+                                type: Label.LabelType.Body
+                            }
                         }
 
-                        Label {
-                            colorScheme: root.colorScheme
-                            Layout.leftMargin: 12
-                            text: model.name
-                            type: Label.LabelType.Body
+                        Rectangle {
+                            Layout.fillWidth: true
+                            Layout.preferredHeight: 1
+                            color: root.colorScheme.border_weak
                         }
                     }
 
-                    Rectangle {
-                        Layout.fillWidth: true
-                        Layout.preferredHeight: 1
-                        color: root.colorScheme.border_weak
+
+                    MouseArea {
+                        anchors.fill: parent
+                        onClicked: {
+                            if (model.name != "Apple Mail") {
+                                console.log(" TODO configure ", model.name)
+                                return
+                            }
+                            root.user.configureAppleMail(root.address)
+                            root.dismissed()
+                        }
                     }
                 }
             }

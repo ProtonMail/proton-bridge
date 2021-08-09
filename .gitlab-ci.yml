@@ -126,6 +126,7 @@ build-linux-qa:
   extends: .build-base
   only:
     - web
+    - branches
   script:
     - BUILD_TAGS="build_qa" make build
   artifacts:
@@ -161,6 +162,7 @@ build-darwin-qa:
   extends: .build-darwin-base
   only:
     - web
+    - branches
   script:
     - BUILD_TAGS="build_qa" make build
   artifacts:

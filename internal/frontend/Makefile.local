@@ -1,0 +1,14 @@
+FILES=$(shell find  .  -iname 'rcc.qrc')
+FILES+=$(shell find . -iname 'rcc.cpp')
+FILES+=$(shell find . -iname 'rcc_cgo*.go')
+
+FILES+=$(shell find . -iname 'moc.go')
+FILES+=$(shell find . -iname 'moc.cpp')
+FILES+=$(shell find . -iname 'moc.h')
+FILES+=$(shell find . -iname 'moc_cgo*.go')
+
+FILES+=$(shell find ./qml -iname '*.qmlc')
+
+clean:
+	rm -f ${FILES}
+

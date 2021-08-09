@@ -351,6 +351,7 @@ func (u *Users) ClearData() error {
 func (u *Users) DeleteUser(userID string, clearStore bool) error {
 	u.lock.Lock()
 	defer u.lock.Unlock()
+	defer u.events.Emit(events.UserRefreshEvent, userID)
 
 	log := log.WithField("user", userID)
 

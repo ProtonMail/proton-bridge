@@ -239,7 +239,7 @@ Item {
                             root.loginAbort(username)
                         }
 
-                        user: (backend.users.count === 1 && backend.users.get(0).loggedIn === false) ? backend.users.get(0) : undefined
+                        username: (backend.users.count === 1 && backend.users.get(0).loggedIn === false) ? backend.users.get(0).username : ""
                         backend: root.backend
                         window: root.window
                     }

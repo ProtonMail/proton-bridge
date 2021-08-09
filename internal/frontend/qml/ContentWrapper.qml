@@ -26,11 +26,25 @@ Item {
     property ColorScheme colorScheme
 
     property var backend
+    property var notifications
 
     signal login(string username, string password)
     signal login2FA(string username, string code)
     signal login2Password(string username, string password)
     signal loginAbort(string username)
+
+    signal showSetupGuide(var user, string address)
+
+    property var noUser: QtObject {
+        property var avatarText: ""
+        property var username: ""
+        property var password: ""
+        property var usedBytes: 1
+        property var totalBytes: 1
+        property var loggedIn: false
+        property var splitMode: false
+        property var addresses: []
+    }
 
     RowLayout {
         anchors.fill: parent
@@ -91,6 +105,8 @@ Item {
                         horizontalPadding: 0
 
                         icon.source: "./icons/ic-question-circle.svg"
+
+                        onClicked: rightContent.showHelpView()
                     }
 
                     Button {
@@ -109,10 +125,14 @@ Item {
                         horizontalPadding: 0
 
                         icon.source: "./icons/ic-cog-wheel.svg"
+
+                        onClicked: rightContent.showGeneralSettings()
                     }
                 }
 
-                // Separator
+                Item {implicitHeight:10}
+
+                // Separator line
                 Rectangle {
                     Layout.fillWidth: true
                     Layout.minimumHeight: 1
@@ -122,14 +142,20 @@ Item {
 
                 ListView {
                     id: accounts
+
+                    property var _topBottomMargins: 24
+                    property var _leftRightMargins: 16
+
                     Layout.fillWidth: true
                     Layout.fillHeight: true
-                    Layout.leftMargin: 16
-                    Layout.rightMargin: 16
-                    Layout.topMargin: 24
-                    Layout.bottomMargin: 24
+                    Layout.leftMargin: accounts._leftRightMargins
+                    Layout.rightMargin: accounts._leftRightMargins
+                    Layout.topMargin: accounts._topBottomMargins
+                    Layout.bottomMargin: accounts._topBottomMargins
 
                     spacing: 12
+                    clip: true
+                    boundsBehavior: Flickable.StopAtBounds
 
                     header: Rectangle {
                         height: headerLabel.height+16
@@ -142,11 +168,28 @@ Item {
                         }
                     }
 
+                    highlight: Rectangle {
+                        color: leftBar.colorScheme.interaction_default_active
+                        radius: 4
+                    }
+
                     model: root.backend.users
                     delegate: AccountDelegate{
+                        width: leftBar.width - 2*accounts._leftRightMargins
+
                         id: accountDelegate
                         colorScheme: leftBar.colorScheme
-                        user: modelData
+                        user: root.backend.users.get(index)
+                        onClicked: {
+                            var user = root.backend.users.get(index)
+                            accounts.currentIndex = index
+                            if (user.loggedIn) {
+                                rightContent.showAccount()
+                            } else {
+                                signIn.username = user.username
+                                rightContent.showSignIn()
+                            }
+                        }
                     }
                 }
 
@@ -181,15 +224,16 @@ Item {
 
                         icon.source: "./icons/ic-plus.svg"
 
-                        onClicked: root.showSignIn()
+                        onClicked: {
+                            signIn.username = ""
+                            rightContent.showSignIn()
+                        }
                     }
                 }
             }
         }
 
-        Rectangle {
-            id: rightPlane
-
+        Rectangle { // right content background
             Layout.fillWidth: true
             Layout.fillHeight: true
 
@@ -199,14 +243,44 @@ Item {
                 id: rightContent
                 anchors.fill: parent
 
-                AccountView {
+                AccountView { // 0
                     colorScheme: root.colorScheme
+                    backend: root.backend
+                    notifications: root.notifications
+                    user: {
+                        if (accounts.currentIndex < 0) return root.noUser
+                        if (root.backend.users.count == 0) return root.noUser
+                        return root.backend.users.get(accounts.currentIndex)
+                    }
+                    onShowSignIn: {
+                        signIn.username = this.user.username
+                        rightContent.showSignIn()
+                    }
+                    onShowSetupGuide: {
+                        root.showSetupGuide(user,address)
+                    }
                 }
 
-                GridLayout {
+                GridLayout { // 1
+                    columns: 2
+
+                    Button {
+                        id: backButton
+                        Layout.leftMargin: 18
+                        Layout.topMargin: 10
+                        Layout.alignment: Qt.AlignTop
+
+                        colorScheme: root.colorScheme
+                        onClicked: rightContent.showAccount()
+                        icon.source: "icons/ic-arrow-left.svg"
+                        secondary: true
+                        horizontalPadding: 8
+                    }
+
                     SignIn {
+                        id: signIn
                         Layout.topMargin: 68
-                        Layout.leftMargin: 80
+                        Layout.leftMargin: 80 - backButton.width - 18
                         Layout.rightMargin: 80
                         Layout.bottomMargin: 68
                         Layout.preferredWidth: 320
@@ -214,21 +288,70 @@ Item {
                         Layout.fillHeight: true
 
                         colorScheme: root.colorScheme
-                        user: (root.backend.users.count === 1 && root.backend.users.get(0).loggedIn === false) ? root.backend.users.get(0) : undefined
                         backend: root.backend
 
-                        onLogin          : { root.login          ( username , password ) }
-                        onLogin2FA       : { root.login2FA       ( username , code     ) }
-                        onLogin2Password : { root.login2Password ( username , password ) }
-                        onLoginAbort     : { root.loginAbort     ( username ) }
+                        onLogin          : { root.backend.login          ( username , password ) }
+                        onLogin2FA       : { root.backend.login2FA       ( username , code     ) }
+                        onLogin2Password : { root.backend.login2Password ( username , password ) }
+                        onLoginAbort     : { root.backend.loginAbort     ( username ) }
                     }
                 }
+
+                GeneralSettings { // 2
+                    colorScheme: root.colorScheme
+                    backend: root.backend
+                    notifications: root.notifications
+                }
+
+                PortSettings { // 3
+                    colorScheme: root.colorScheme
+                    backend: root.backend
+                }
+
+                SMTPSettings { // 4
+                    colorScheme: root.colorScheme
+                    backend: root.backend
+                }
+
+                LocalCacheSettings { // 5
+                    colorScheme: root.colorScheme
+                    backend: root.backend
+                    notifications: root.notifications
+                }
+
+                HelpView { // 6
+                    colorScheme: root.colorScheme
+                    backend: root.backend
+                }
+
+                BugReportView { // 7
+                    colorScheme: root.colorScheme
+                    backend: root.backend
+                    selectedAddress: {
+                        if (accounts.currentIndex < 0) return ""
+                        if (root.backend.users.count == 0) return ""
+                        return root.backend.users.get(accounts.currentIndex).addresses[0]
+                    }
+                }
+
+                function showAccount            () { rightContent.currentIndex = 0 }
+                function showSignIn             () { rightContent.currentIndex = 1 }
+                function showGeneralSettings    () { rightContent.currentIndex = 2 }
+                function showPortSettings       () { rightContent.currentIndex = 3 }
+                function showSMTPSettings       () { rightContent.currentIndex = 4 }
+                function showLocalCacheSettings () { rightContent.currentIndex = 5 }
+                function showHelpView           () { rightContent.currentIndex = 6 }
+                function showBugReport          () { rightContent.currentIndex = 7 }
             }
         }
     }
 
-
-    function showSignIn() {
-        rightContent.currentIndex = 1
+    function showLocalCacheSettings(){rightContent.showLocalCacheSettings() }
+    function showSettings(){rightContent.showGeneralSettings() }
+    function showHelp(){rightContent.showHelpView() }
+    function showSignIn(username){
+        signIn.username = username
+        rightContent.showSignIn()
     }
+
 }

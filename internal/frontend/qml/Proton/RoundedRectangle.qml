@@ -21,7 +21,7 @@ import QtQuick 2.8
 Rectangle {
     id: root
 
-    color: Style.transparent
+    color: "transparent"
 
     property color fillColor        : Style.currentStyle.background_norm
     property color strokeColor      : Style.currentStyle.background_strong

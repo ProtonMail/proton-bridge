@@ -1,0 +1,11 @@
+# Auto generated
+moc.cpp
+moc.go
+moc.h
+moc_cgo_*.go
+moc_moc.h
+rcc.cpp
+rcc.qrc
+rcc_cgo_*.go
+*.qmlc
+

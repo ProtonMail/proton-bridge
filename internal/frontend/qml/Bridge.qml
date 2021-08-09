@@ -25,12 +25,7 @@ import Notifications 1.0
 QtObject {
     id: root
 
-    property var backend
-
-    signal login(string username, string password)
-    signal login2FA(string username, string code)
-    signal login2Password(string username, string password)
-    signal loginAbort(string username)
+    property var backend: go
 
     property Notifications _notifications: Notifications {
         id: notifications
@@ -45,19 +40,23 @@ QtObject {
         visible: false
 
         backend: root.backend
-        notifications: notifications
+        notifications: root._notifications
 
         onLogin: {
-            root.login(username, password)
+            backend.login(username, password)
         }
         onLogin2FA: {
-            root.login2FA(username, code)
+            backend.login2FA(username, code)
         }
         onLogin2Password: {
-            root.login2Password(username, password)
+            backend.login2Password(username, password)
         }
         onLoginAbort: {
-            root.loginAbort(username)
+            backend.loginAbort(username)
+        }
+
+        onVisibleChanged: {
+            backend.dockIconVisible = visible
         }
     }
 
@@ -66,19 +65,44 @@ QtObject {
         visible: false
 
         backend: root.backend
-        notifications: notifications
+        notifications: root._notifications
+
+        property var x_center: 10
+        property var x_min: 0
+        property var x_max: 100
+        property var y_center: 1000
+        property var y_min: 0
+        property var y_max: 10000
+
+        x: bound(x_center,x_min, x_max-statusWindow.width)
+        y: bound(y_center,y_min, y_max-statusWindow.height)
+
 
         onShowMainWindow: {
             mainWindow.visible = true
         }
+
         onShowHelp: {
-
+            mainWindow.showHelp()
+            mainWindow.visible = true
         }
+
         onShowSettings: {
-
+            mainWindow.showSettings()
+            mainWindow.visible = true
         }
+
+        onShowSignIn: {
+            mainWindow.showSignIn(username)
+            mainWindow.visible = true
+        }
+
         onQuit: {
             backend.quit()
+        }
+
+        function bound(num, lower_limit, upper_limit) {
+            return Math.max(lower_limit, Math.min(upper_limit, num))
         }
     }
 
@@ -88,103 +112,59 @@ QtObject {
         iconSource: "./icons/ic-systray.svg"
         onActivated: {
             function calcStatusWindowPosition(statusWidth, statusHeight) {
-                function bound(num, lower_limit, upper_limit) {
-                    return Math.max(lower_limit, Math.min(upper_limit, num))
+                function isInInterval(num, lower_limit, upper_limit) {
+                    return lower_limit <= num && num <= upper_limit
                 }
-                // checks if rect1 fits within rect2
-                function isRectFit(rect1, rect2) {
-                    //if (rect2.)
-                    if ((rect2.left > rect1.left) ||
-                            (rect2.right < rect1.right) ||
-                            (rect2.top > rect1.top) ||
-                            (rect2.bottom < rect1.bottom)) {
-                        return false
-                    }
 
-                    return true
-                }
 
                 // First we get icon center position.
                 // On some platforms (X11 / Wayland) Qt does not provide icon geometry info.
                 // In this case we rely on cursor position
+                var iconWidth = geometry.width *1.2
+                var iconHeight = geometry.height *1.2
                 var iconCenter = Qt.point(geometry.x + (geometry.width / 2), geometry.y + (geometry.height / 2))
-
                 if (geometry.width == 0 && geometry.height == 0) {
                     iconCenter = backend.getCursorPos()
+                    // fallback: simple guess, no data to estimate
+                    iconWidth = 25
+                    iconHeight = 25
                 }
 
-                // Now bound this position to virtual screen available rect
-                // TODO: here we should detect which screen mouse is on and use that screen available geometry to bound
-                iconCenter.x = bound(iconCenter.x, 0, Qt.application.screens[0].desktopAvailableWidth)
-                iconCenter.y = bound(iconCenter.y, 0, Qt.application.screens[0].desktopAvailableHeight)
+                // Find screen
+                var screen = Qt.application.screens[0]
 
-                var x = 0
-                var y = 0
-
-                // Check if window may fit above
-                x = iconCenter.x - statusWidth / 2
-                y = iconCenter.y - statusHeight
-                if (isRectFit(
-                            Qt.rect(x, y, statusWidth, statusHeight),
-                            // TODO: we should detect which screen mouse is on and use that screen available geometry to bound
-                            Qt.rect(0, 0, Qt.application.screens[0].desktopAvailableWidth, Qt.application.screens[0].desktopAvailableHeight)
-                            )) {
-                    return Qt.point(x, y)
+                for (var i in Qt.application.screens) {
+                    screen = Qt.application.screens[i]
+                    if (
+                        isInInterval(iconCenter.x, screen.virtualX, screen.virtualX+screen.width) &&
+                        isInInterval(iconCenter.y, screen.virtualY, screen.virtualY+screen.heigh)
+                    ) {
+                        return
+                    }
                 }
 
-                // Check if window may fit below
-                x = iconCenter.x - statusWidth / 2
-                y = iconCenter.y
-                if (isRectFit(
-                            Qt.rect(x, y, statusWidth, statusHeight),
-                            // TODO: we should detect which screen mouse is on and use that screen available geometry to bound
-                            Qt.rect(0, 0, Qt.application.screens[0].desktopAvailableWidth, Qt.application.screens[0].desktopAvailableHeight)
-                            )) {
-                    return Qt.point(x, y)
-                }
-
-                // Check if window may fit to the left
-                x = iconCenter.x - statusWidth
-                y = iconCenter.y - statusHeight / 2
-                if (isRectFit(
-                            Qt.rect(x, y, statusWidth, statusHeight),
-                            // TODO: we should detect which screen mouse is on and use that screen available geometry to bound
-                            Qt.rect(0, 0, Qt.application.screens[0].desktopAvailableWidth, Qt.application.screens[0].desktopAvailableHeight)
-                            )) {
-                    return Qt.point(x, y)
-                }
-
-                // Check if window may fit to the right
-                x = iconCenter.x
-                y = iconCenter.y - statusHeight / 2
-                if (isRectFit(
-                            Qt.rect(x, y, statusWidth, statusHeight),
-                            // TODO: we should detect which screen mouse is on and use that screen available geometry to bound
-                            Qt.rect(0, 0, Qt.application.screens[0].desktopAvailableWidth, Qt.application.screens[0].desktopAvailableHeight)
-                            )) {
-                    return Qt.point(x, y)
-                }
-
-                // TODO: add fallback
+                // Calculate allowed square where status window top left corner can be positioned
+                statusWindow.x_center = iconCenter.x
+                statusWindow.y_center = iconCenter.y
+                statusWindow.x_min = screen.virtualX + iconWidth
+                statusWindow.x_max = screen.virtualX + screen.width - iconWidth
+                statusWindow.y_min = screen.virtualY + iconHeight
+                statusWindow.y_max = screen.virtualY + screen.height - iconHeight
             }
 
             switch (reason) {
-            case SystemTrayIcon.Unknown:
+                case SystemTrayIcon.Unknown:
                 break;
-            case SystemTrayIcon.Context:
-            case SystemTrayIcon.Trigger:!statusWindow.visible
-                if (!statusWindow.visible) {
-                    var point = calcStatusWindowPosition(statusWindow.width, statusWindow.height)
-                    statusWindow.x = point.x
-                    statusWindow.y = point.y
-                }
+                case SystemTrayIcon.Context:
+                case SystemTrayIcon.Trigger:
+                calcStatusWindowPosition()
                 statusWindow.visible = !statusWindow.visible
                 break
-            case SystemTrayIcon.DoubleClick:
-            case SystemTrayIcon.MiddleClick:
+                case SystemTrayIcon.DoubleClick:
+                case SystemTrayIcon.MiddleClick:
                 mainWindow.visible = !mainWindow.visible
                 break;
-            default:
+                default:
                 break;
             }
         }

@@ -6,9 +6,6 @@
 .*.sw?
 *~
 
-# Compiled Object files, Static and Dynamic libs (Shared Objects)
-vendor
-
 # Test files
 godog.test
 debug.test
@@ -17,17 +14,12 @@ coverage.html
 # Run files
 mem.pprof
 
-# Auto generated frontend
-internal/frontend/qml/BridgeUI/*.qmlc
-internal/frontend/qml/ImportExportUI/*.qmlc
-internal/frontend/qml/ProtonUI/*.qmlc
-internal/frontend/qml/ProtonUI/fontawesome.ttf
-internal/frontend/qml/ProtonUI/images
-internal/frontend/qml/ImportExportUI/images
-frontend/qml/*.qmlc
-
-# Credits files (generated).
+# Auto generated
 internal/**/credits.go
+vendor
+vendor-cache
+/main.go
+
 
 # Build files
 /launcher-*
@@ -37,18 +29,3 @@ internal/**/credits.go
 /hasher
 cmd/Desktop-Bridge/deploy
 cmd/Import-Export/deploy
-internal/frontend/qt*/moc.cpp
-internal/frontend/qt*/moc.go
-internal/frontend/qt*/moc.h
-internal/frontend/qt*/moc_cgo_*.go
-internal/frontend/qt*/moc_moc.h
-internal/frontend/qt*/rcc.cpp
-internal/frontend/qt*/rcc.qrc
-internal/frontend/qt*/rcc_cgo_*.go
-
-internal/frontend/rcc.cpp
-internal/frontend/rcc.qrc
-internal/frontend/rcc_cgo_*.go
-vendor-cache/
-
-/main.go

@@ -42,17 +42,8 @@ Item {
     property var backend
     property var window
 
-    // in case of adding new account this property should be undefined
-    property var user
+    property alias username: usernameTextField.text
     state: "Page 1"
-
-    onUserChanged: {
-        stackLayout.currentIndex = 0
-        loginNormalLayout.reset()
-        passwordTextField.text = ""
-        login2FALayout.reset()
-        login2PasswordLayout.reset()
-    }
 
     onLoginAbort: {
         stackLayout.currentIndex = 0
@@ -78,15 +69,15 @@ Item {
         }
 
         Connections {
-            target: user !== undefined ? user : root.backend
+            target: root.backend
 
             onLoginUsernamePasswordError: {
                 console.assert(stackLayout.currentIndex == 0, "Unexpected loginUsernamePasswordError")
                 console.assert(signInButton.loading == true, "Unexpected loginUsernamePasswordError")
 
                 stackLayout.loginFailed()
-                errorLabel.text = qsTr("Your email and/or password are incorrect")
-
+                if (errorMsg!="") errorLabel.text = errorMsg
+                else errorLabel.text = qsTr("Your email and/or password are incorrect")
             }
 
             onLoginFreeUserError: {
@@ -151,6 +142,14 @@ Item {
 
                 errorLabel.text = qsTr("Incorrect login credentials. Please try again.")
                 passwordTextField.text = ""
+            }
+
+            onLoginFinished: {
+                stackLayout.currentIndex = 0
+                loginNormalLayout.reset()
+                passwordTextField.text = ""
+                login2FALayout.reset()
+                login2PasswordLayout.reset()
             }
         }
 
@@ -217,8 +216,6 @@ Item {
                 colorScheme: root.colorScheme
                 id: usernameTextField
                 label: qsTr("Username or email")
-
-                text: user !== undefined ? user.username : ""
 
                 Layout.fillWidth: true
                 Layout.topMargin: 24
@@ -304,12 +301,7 @@ Item {
                     enabled = false
                     loading = true
 
-                    if (root.user !== undefined) {
-                        root.user.login(usernameTextField.text, passwordTextField.text)
-                        return
-                    }
-
-                    root.login(usernameTextField.text, passwordTextField.text)
+                    root.login(usernameTextField.text, Qt.btoa(passwordTextField.text))
                 }
             }
 
@@ -394,12 +386,7 @@ Item {
                     enabled = false
                     loading = true
 
-                    if (root.user !== undefined) {
-                        root.user.login2FA(usernameTextField.text, twoFactorPasswordTextField.text)
-                        return
-                    }
-
-                    root.login2FA(usernameTextField.text, twoFactorPasswordTextField.text)
+                    root.login2FA(usernameTextField.text, Qt.btoa(twoFactorPasswordTextField.text))
                 }
             }
         }
@@ -471,12 +458,7 @@ Item {
                     enabled = false
                     loading = true
 
-                    if (root.user !== undefined) {
-                        root.user.login2Password(usernameTextField.text, secondPasswordTextField.text)
-                        return
-                    }
-
-                    root.login2Password(usernameTextField.text, secondPasswordTextField.text)
+                    root.login2Password(usernameTextField.text, Qt.btoa(secondPasswordTextField.text))
                 }
             }
         }
