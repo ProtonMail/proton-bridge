@@ -494,7 +494,10 @@ func toMessageHeader(hdr mail.Header) message.Header {
 
 	for key, val := range hdr {
 		for _, val := range val {
-			res.Add(key, val)
+			// Using AddRaw instead of Add to save key-value pair as byte buffer within Header.
+			// This buffer is used latter on in message writer to construct message and avoid crash
+			// when key length is more than 76 characters long.
+			res.AddRaw([]byte(key + ": " + val + "\r\n"))
 		}
 	}
 

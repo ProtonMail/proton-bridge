@@ -52,6 +52,27 @@ func TestBuildPlainMessage(t *testing.T) {
 		expectTransferEncoding(is(`quoted-printable`))
 }
 
+func TestBuildPlainMessageWithLongKey(t *testing.T) {
+	m := gomock.NewController(t)
+	defer m.Finish()
+
+	b := NewBuilder(1, 1, 1)
+	defer b.Done()
+
+	kr := tests.MakeKeyRing(t)
+	msg := newTestMessage(t, kr, "messageID", "addressID", "text/plain", "body", time.Now())
+	msg.Header["ReallyVeryVeryVeryVeryVeryLongLongLongLongLongLongLongKeyThatWillHaveNotSoLongValue"] = []string{"value"}
+
+	res, err := b.NewJob(context.Background(), newTestFetcher(m, kr, msg), msg.ID).GetResult()
+	require.NoError(t, err)
+
+	section(t, res).
+		expectContentType(is(`text/plain`)).
+		expectBody(is(`body`)).
+		expectTransferEncoding(is(`quoted-printable`)).
+		expectHeader(`ReallyVeryVeryVeryVeryVeryLongLongLongLongLongLongLongKeyThatWillHaveNotSoLongValue`, is(`value`))
+}
+
 func TestBuildHTMLMessage(t *testing.T) {
 	m := gomock.NewController(t)
 	defer m.Finish()
