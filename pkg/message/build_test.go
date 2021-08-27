@@ -120,6 +120,126 @@ func TestBuildPlainEncryptedMessage(t *testing.T) {
 		expectBody(contains(`Where do fruits go on vacation? Pear-is!`))
 }
 
+func TestBuildPlainEncryptedMessageMissingHeader(t *testing.T) {
+	m := gomock.NewController(t)
+	defer m.Finish()
+
+	b := NewBuilder(1, 1, 1)
+	defer b.Done()
+
+	body := readerToString(getFileReader("plaintext-missing-header.eml"))
+
+	kr := tests.MakeKeyRing(t)
+	msg := newTestMessage(t, kr, "messageID", "addressID", "multipart/mixed", body, time.Now())
+
+	res, err := b.NewJob(context.Background(), newTestFetcher(m, kr, msg), msg.ID).GetResult()
+	require.NoError(t, err)
+
+	section(t, res).
+		expectContentType(is(`text/plain`)).
+		expectBody(is("How do we know that the ocean is friendly? It waves!\r\n"))
+}
+
+func TestBuildPlainEncryptedMessageInvalidHeader(t *testing.T) {
+	m := gomock.NewController(t)
+	defer m.Finish()
+
+	b := NewBuilder(1, 1, 1)
+	defer b.Done()
+
+	body := readerToString(getFileReader("plaintext-invalid-header.eml"))
+
+	kr := tests.MakeKeyRing(t)
+	msg := newTestMessage(t, kr, "messageID", "addressID", "multipart/mixed", body, time.Now())
+
+	res, err := b.NewJob(context.Background(), newTestFetcher(m, kr, msg), msg.ID).GetResult()
+	require.NoError(t, err)
+
+	section(t, res).
+		expectContentType(is(`text/plain`)).
+		expectBody(is("MalformedKey Value\r\n\r\nHow do we know that the ocean is friendly? It waves!\r\n"))
+}
+
+func TestBuildPlainSignedEncryptedMessageMissingHeader(t *testing.T) {
+	m := gomock.NewController(t)
+	defer m.Finish()
+
+	b := NewBuilder(1, 1, 1)
+	defer b.Done()
+
+	body := readerToString(getFileReader("plaintext-missing-header.eml"))
+
+	kr := tests.MakeKeyRing(t)
+	sig := tests.MakeKeyRing(t)
+
+	enc, err := kr.Encrypt(crypto.NewPlainMessageFromString(body), sig)
+	require.NoError(t, err)
+
+	arm, err := enc.GetArmored()
+	require.NoError(t, err)
+
+	msg := newRawTestMessage("messageID", "addressID", "multipart/mixed", arm, time.Date(2020, time.January, 1, 0, 0, 0, 0, time.UTC))
+
+	res, err := b.NewJob(context.Background(), newTestFetcher(m, kr, msg), msg.ID).GetResult()
+	require.NoError(t, err)
+
+	section(t, res).
+		expectContentType(is(`multipart/signed`)).
+		expectContentTypeParam(`micalg`, is(`SHA-256`)). // NOTE: Maybe this is bad... should probably be pgp-sha256
+		expectContentTypeParam(`protocol`, is(`application/pgp-signature`)).
+		expectDate(is(`Wed, 01 Jan 2020 00:00:00 +0000`))
+
+	section(t, res, 1).
+		expectContentType(is(`text/plain`)).
+		expectBody(is("How do we know that the ocean is friendly? It waves!\r\n"))
+
+	section(t, res, 2).
+		expectContentType(is(`application/pgp-signature`)).
+		expectContentTypeParam(`name`, is(`OpenPGP_signature.asc`)).
+		expectContentDisposition(is(`attachment`)).
+		expectContentDispositionParam(`filename`, is(`OpenPGP_signature`))
+}
+
+func TestBuildPlainSignedEncryptedMessageInvalidHeader(t *testing.T) {
+	m := gomock.NewController(t)
+	defer m.Finish()
+
+	b := NewBuilder(1, 1, 1)
+	defer b.Done()
+
+	body := readerToString(getFileReader("plaintext-invalid-header.eml"))
+
+	kr := tests.MakeKeyRing(t)
+	sig := tests.MakeKeyRing(t)
+
+	enc, err := kr.Encrypt(crypto.NewPlainMessageFromString(body), sig)
+	require.NoError(t, err)
+
+	arm, err := enc.GetArmored()
+	require.NoError(t, err)
+
+	msg := newRawTestMessage("messageID", "addressID", "multipart/mixed", arm, time.Date(2020, time.January, 1, 0, 0, 0, 0, time.UTC))
+
+	res, err := b.NewJob(context.Background(), newTestFetcher(m, kr, msg), msg.ID).GetResult()
+	require.NoError(t, err)
+
+	section(t, res).
+		expectContentType(is(`multipart/signed`)).
+		expectContentTypeParam(`micalg`, is(`SHA-256`)). // NOTE: Maybe this is bad... should probably be pgp-sha256
+		expectContentTypeParam(`protocol`, is(`application/pgp-signature`)).
+		expectDate(is(`Wed, 01 Jan 2020 00:00:00 +0000`))
+
+	section(t, res, 1).
+		expectContentType(is(`text/plain`)).
+		expectBody(is("MalformedKey Value\r\n\r\nHow do we know that the ocean is friendly? It waves!\r\n"))
+
+	section(t, res, 2).
+		expectContentType(is(`application/pgp-signature`)).
+		expectContentTypeParam(`name`, is(`OpenPGP_signature.asc`)).
+		expectContentDisposition(is(`attachment`)).
+		expectContentDispositionParam(`filename`, is(`OpenPGP_signature`))
+}
+
 func TestBuildPlainEncryptedLatin2Message(t *testing.T) {
 	m := gomock.NewController(t)
 	defer m.Finish()

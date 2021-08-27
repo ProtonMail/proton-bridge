@@ -347,6 +347,12 @@ func writeMultipartEncryptedRFC822(header message.Header, body []byte) ([]byte, 
 		return nil, err
 	}
 
+	// If parsed header is empty then either it is malformed or it is missing.
+	// Anyway message could not be considered multipart/mixed anymore since there will be no boundary.
+	if bodyHeader.Len() == 0 {
+		header.Del("Content-Type")
+	}
+
 	entFields := bodyHeader.Fields()
 
 	for entFields.Next() {

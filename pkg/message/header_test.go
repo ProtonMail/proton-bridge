@@ -79,3 +79,34 @@ Content-ID: <>
 		[]byte("Content-ID: <>\n"),
 	}, HeaderLines([]byte(header)))
 }
+
+func TestReadHeaderBody(t *testing.T) {
+	const data = "key: value\r\n\r\nbody\n"
+
+	header, body, err := readHeaderBody([]byte(data))
+
+	assert.NoError(t, err)
+	assert.Equal(t, 1, header.Len())
+	assert.Equal(t, "value", header.Get("key"))
+	assert.Equal(t, []byte("body\n"), body)
+}
+
+func TestReadHeaderBodyWithoutHeader(t *testing.T) {
+	const data = "body\n"
+
+	header, body, err := readHeaderBody([]byte(data))
+
+	assert.NoError(t, err)
+	assert.Equal(t, 0, header.Len())
+	assert.Equal(t, []byte(data), body)
+}
+
+func TestReadHeaderBodyInvalidHeader(t *testing.T) {
+	const data = "value\r\n\r\nbody\n"
+
+	header, body, err := readHeaderBody([]byte(data))
+
+	assert.NoError(t, err)
+	assert.Equal(t, 0, header.Len())
+	assert.Equal(t, []byte(data), body)
+}

@@ -22,6 +22,7 @@ import (
 	"bytes"
 	"io"
 	"io/ioutil"
+	"unicode"
 
 	"github.com/emersion/go-message/textproto"
 	"github.com/pkg/errors"
@@ -37,8 +38,7 @@ func HeaderLines(header []byte) [][]byte {
 	forEachLine(bufio.NewReader(bytes.NewReader(header)), func(line []byte) {
 		l := bytes.SplitN(line, []byte(`: `), 2)
 		isLineContinuation := quote%2 != 0 || // no quotes opened
-			len(l) != 2 || // it doesn't have colon
-			(len(l) == 2 && !bytes.Equal(bytes.TrimSpace(l[0]), l[0])) // has white space in front of header field
+			!bytes.Equal(bytes.TrimLeftFunc(l[0], unicode.IsSpace), l[0]) // has whitespace indent at beginning
 		switch {
 		case len(bytes.TrimSpace(line)) == 0:
 			lines = append(lines, line)
@@ -89,6 +89,12 @@ func readHeaderBody(b []byte) (*textproto.Header, []byte, error) {
 
 	var header textproto.Header
 
+	// We assume that everything before first occurrence of empty line is header.
+	// If header is invalid for any reason or empty - put everything as body and let header be empty.
+	if !isHeaderValid(lines) {
+		return &header, b, nil
+	}
+
 	// We add lines in reverse so that calling textproto.WriteHeader later writes with the correct order.
 	for i := len(lines) - 1; i >= 0; i-- {
 		if len(bytes.TrimSpace(lines[i])) > 0 {
@@ -97,6 +103,20 @@ func readHeaderBody(b []byte) (*textproto.Header, []byte, error) {
 	}
 
 	return &header, body, nil
+}
+
+func isHeaderValid(headerLines [][]byte) bool {
+	if len(headerLines) == 0 {
+		return false
+	}
+
+	for _, line := range headerLines {
+		if (bytes.IndexByte(line, ':') == -1) && (len(bytes.TrimSpace(line)) > 0) {
+			return false
+		}
+	}
+
+	return true
 }
 
 func splitHeaderBody(b []byte) ([]byte, []byte, error) {
