@@ -1,3 +1,14 @@
+## v1.8.9
+- 2021-09-01
+
+### Fixed
+
+- Fixed an issues with incorrect handling of 401 server error leading to random Bridge logouts
+- Changed encoding of message/rfc822 - to better handle sending of the .msg files
+- Fixed crash within RFC822 builder for invalid or empty headers
+- Fixed crash within RFC822 builder for header with key length > 76 chars
+
+
 ## v1.8.7
 - 2021-06-22
 
