@@ -2,6 +2,15 @@
 
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
+## [Bridge 1.8.9] James
+
+### Fixed
+* GODT-1263: Fix crash on invalid or empty header.
+* GODT-1235: Fix 401 response error handling.
+* GODT-1261: Fix building messages with long key.
+* Other: use windows-compatible filename when dumping message in QA builds.
+
+
 ## [Bridge 1.8.8] James
 
 ### Changed
