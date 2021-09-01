@@ -18,6 +18,7 @@
 package credentials
 
 import (
+	"errors"
 	"fmt"
 	"sort"
 	"sync"
@@ -39,7 +40,7 @@ func NewStore(keychain *keychain.Keychain) *Store {
 	return &Store{secrets: keychain}
 }
 
-func (s *Store) Add(userID, userName, uid, ref, mailboxPassword string, emails []string) (*Credentials, error) {
+func (s *Store) Add(userID, userName, uid, ref string, mailboxPassword []byte, emails []string) (*Credentials, error) {
 	storeLocker.Lock()
 	defer storeLocker.Unlock()
 
@@ -108,7 +109,7 @@ func (s *Store) UpdateEmails(userID string, emails []string) (*Credentials, erro
 	return credentials, s.saveCredentials(credentials)
 }
 
-func (s *Store) UpdatePassword(userID, password string) (*Credentials, error) {
+func (s *Store) UpdatePassword(userID string, password []byte) (*Credentials, error) {
 	storeLocker.Lock()
 	defer storeLocker.Unlock()
 
@@ -228,21 +229,28 @@ func (s *Store) Get(userID string) (creds *Credentials, err error) {
 	return s.get(userID)
 }
 
-func (s *Store) get(userID string) (creds *Credentials, err error) {
+func (s *Store) get(userID string) (*Credentials, error) {
 	log := log.WithField("user", userID)
 
 	_, secret, err := s.secrets.Get(userID)
 	if err != nil {
-		log.WithError(err).Warn("Could not get credentials from native keychain")
-		return
+		return nil, err
+	}
+
+	if secret == "" {
+		return nil, errors.New("secret is empty")
 	}
 
 	credentials := &Credentials{UserID: userID}
-	if err = credentials.Unmarshal(secret); err != nil {
-		err = fmt.Errorf("backend/credentials: malformed secret: %v", err)
-		_ = s.secrets.Delete(userID)
-		log.WithError(err).Error("Could not unmarshal secret")
-		return
+
+	if err := credentials.Unmarshal(secret); err != nil {
+		log.WithError(fmt.Errorf("malformed secret: %w", err)).Error("Could not unmarshal secret")
+
+		if err := s.secrets.Delete(userID); err != nil {
+			log.WithError(err).Error("Failed to remove malformed secret")
+		}
+
+		return nil, err
 	}
 
 	return credentials, nil

@@ -217,3 +217,13 @@ func randomString(length int) string {
 
 	return base64.StdEncoding.EncodeToString(noise)[:length]
 }
+
+func (c *client) GetCurrentAuth() *Auth {
+	return &Auth{
+		UserID: c.user.ID,
+		AuthRefresh: AuthRefresh{
+			UID:          c.uid,
+			RefreshToken: c.ref,
+		},
+	}
+}

@@ -143,6 +143,51 @@ func Test401RevokedAuth(t *testing.T) {
 	r.EqualError(t, err, ErrUnauthorized.Error())
 }
 
+func Test401RevokedAuthTokenUpdate(t *testing.T) {
+	var oldAuth = &AuthRefresh{
+		UID:          "UID",
+		AccessToken:  "oldAcc",
+		RefreshToken: "oldRef",
+		ExpiresIn:    3600,
+	}
+
+	var newAuth = &AuthRefresh{
+		UID:          "UID",
+		AccessToken:  "newAcc",
+		RefreshToken: "newRef",
+	}
+
+	mux := http.NewServeMux()
+
+	mux.HandleFunc("/auth/refresh", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		if err := json.NewEncoder(w).Encode(newAuth); err != nil {
+			panic(err)
+		}
+	})
+
+	mux.HandleFunc("/addresses", func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get("Authorization") == ("Bearer " + oldAuth.AccessToken) {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+
+		if r.Header.Get("Authorization") == ("Bearer " + newAuth.AccessToken) {
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+	})
+
+	ts := httptest.NewServer(mux)
+
+	c := New(Config{HostURL: ts.URL}).
+		NewClient(oldAuth.UID, oldAuth.AccessToken, oldAuth.RefreshToken, time.Now().Add(time.Hour))
+
+	// The request will fail with 401, triggering a refresh. After the refresh it should succeed.
+	_, err := c.GetAddresses(context.Background())
+	r.NoError(t, err)
+}
+
 func TestAuth2FA(t *testing.T) {
 	twoFACode := "code"
 

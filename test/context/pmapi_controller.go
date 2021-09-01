@@ -23,6 +23,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/internal/events"
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
+	"github.com/ProtonMail/proton-bridge/test/accounts"
 	"github.com/ProtonMail/proton-bridge/test/fakeapi"
 	"github.com/ProtonMail/proton-bridge/test/liveapi"
 )
@@ -30,7 +31,8 @@ import (
 type PMAPIController interface {
 	TurnInternetConnectionOff()
 	TurnInternetConnectionOn()
-	AddUser(user *pmapi.User, addresses *pmapi.AddressList, password string, twoFAEnabled bool) error
+	GetAuthClient(username string) pmapi.Client
+	AddUser(account *accounts.TestAccount) error
 	AddUserLabel(username string, label *pmapi.Label) error
 	GetLabelIDs(username string, labelNames []string) ([]string, error)
 	AddUserMessage(username string, message *pmapi.Message) (string, error)

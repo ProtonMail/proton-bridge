@@ -18,13 +18,11 @@
 package imap
 
 import (
-	"bufio"
 	"bytes"
-	"io"
 	"strings"
 
+	"github.com/ProtonMail/proton-bridge/pkg/message"
 	"github.com/emersion/go-imap"
-	"github.com/pkg/errors"
 )
 
 func filterHeader(header []byte, section *imap.BodySectionName) []byte {
@@ -53,7 +51,7 @@ func filterHeader(header []byte, section *imap.BodySectionName) []byte {
 func filterHeaderLines(header []byte, wantField func(string) bool) []byte {
 	var res []byte
 
-	for _, line := range headerLines(header) {
+	for _, line := range message.HeaderLines(header) {
 		if len(bytes.TrimSpace(line)) == 0 {
 			res = append(res, line...)
 		} else {
@@ -70,35 +68,4 @@ func filterHeaderLines(header []byte, wantField func(string) bool) []byte {
 	}
 
 	return res
-}
-
-// NOTE: This sucks because we trim and split stuff here already, only to do it again when we use this function!
-func headerLines(header []byte) [][]byte {
-	var lines [][]byte
-
-	r := bufio.NewReader(bytes.NewReader(header))
-
-	for {
-		b, err := r.ReadBytes('\n')
-		if err != nil {
-			if err != io.EOF {
-				panic(errors.Wrap(err, "failed to read header line"))
-			}
-
-			break
-		}
-
-		switch {
-		case len(bytes.TrimSpace(b)) == 0:
-			lines = append(lines, b)
-
-		case len(bytes.SplitN(b, []byte(": "), 2)) != 2:
-			lines[len(lines)-1] = append(lines[len(lines)-1], b...)
-
-		default:
-			lines = append(lines, b)
-		}
-	}
-
-	return lines
 }

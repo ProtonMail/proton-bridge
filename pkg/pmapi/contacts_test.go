@@ -71,6 +71,29 @@ var testGetContactByIDResponseBody = `{
     }
 }`
 
+var testGetContactEmailByEmailResponseBody = `{
+  "Code": 1000,
+  "ContactEmails": [
+    {
+      "ID": "aefew4323jFv0BhSMw==",
+      "Name": "ProtonMail Features",
+      "Email": "features@protonmail.black",
+      "Type": [
+        "work"
+      ],
+      "Defaults": 1,
+      "Order": 1,
+      "ContactID": "a29olIjFv0rnXxBhSMw==",
+      "LabelIDs": [
+        "I6hgx3Ol-d3HYa3E394T_ACXDmTaBub14w=="
+      ],
+      "CanonicalEmail": "features@protonmail.black",
+      "LastUsedTime": 1612546350
+    }
+  ],
+  "Total": 2
+}`
+
 var testGetContactByID = Contact{
 	ID:         "s_SN9y1q0jczjYCH4zhvfOdHv1QNovKhnJ9bpDcTE0u7WCr2Z-NV9uubHXvOuRozW-HRVam6bQupVYRMC3BCqg==",
 	Name:       "Alice",
@@ -105,6 +128,19 @@ var testGetContactByID = Contact{
 	LabelIDs: []string{},
 }
 
+var testGetContactEmailByEmail = []ContactEmail{
+	{
+		ID:        "aefew4323jFv0BhSMw==",
+		Name:      "ProtonMail Features",
+		Email:     "features@protonmail.black",
+		Type:      []string{"work"},
+		Defaults:  1,
+		Order:     1,
+		ContactID: "a29olIjFv0rnXxBhSMw==",
+		LabelIDs:  []string{"I6hgx3Ol-d3HYa3E394T_ACXDmTaBub14w=="},
+	},
+}
+
 func TestContact_GetContactById(t *testing.T) {
 	s, c := newTestClient(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		r.NoError(t, checkMethodAndPath(req, "GET", "/contacts/v4/s_SN9y1q0jczjYCH4zhvfOdHv1QNovKhnJ9bpDcTE0u7WCr2Z-NV9uubHXvOuRozW-HRVam6bQupVYRMC3BCqg=="))
@@ -118,6 +154,23 @@ func TestContact_GetContactById(t *testing.T) {
 	r.NoError(t, err)
 
 	if !reflect.DeepEqual(contact, testGetContactByID) {
+		t.Fatalf("Invalid got contact: expected %+v, got %+v", testGetContactByID, contact)
+	}
+}
+
+func TestContact_GetContactEmailByEmail(t *testing.T) {
+	s, c := newTestClient(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		r.NoError(t, checkMethodAndPath(req, "GET", "/contacts/v4/emails?Email=someone%40pm.me&Page=1&PageSize=10"))
+
+		w.Header().Set("Content-Type", "application/json")
+		fmt.Fprint(w, testGetContactEmailByEmailResponseBody)
+	}))
+	defer s.Close()
+
+	contact, err := c.GetContactEmailByEmail(context.Background(), "someone@pm.me", 1, 10)
+	r.NoError(t, err)
+
+	if !reflect.DeepEqual(contact, testGetContactEmailByEmail) {
 		t.Fatalf("Invalid got contact: expected %+v, got %+v", testGetContactByID, contact)
 	}
 }
@@ -154,20 +207,6 @@ var testCardsCleartext = []Card{
 		Data:      "data",
 		Signature: "-----BEGIN PGP SIGNATURE-----\nVersion: GopenPGP 0.0.1 (ddacebe0)\nComment: https://gopenpgp.org\n\nwsBcBAABCgAQBQJdZQ1kCRA+tiWe3yHfJAAA9nMH/0X7pS8TGt6Ox0BewRh0vjfQ\n9LPLwbOiHdj97LNqutZcLlDTfm9SPH82221ZpVILWhB0u2kFeNUGihVbjAqJGYJn\nEk2TELLwn8csYRy9r5JkyUirqrvh7jgl4vs1yt8O/3Yb4ARudOoZr8Yrb4+NVNe0\nCcwQJnH/fJPtF1hbarKwtKtCo3IFwTis4pc8qWJRpBH61z1mO0Yr/LIh85QndhnF\nnZ/3MkWOY0kp2gl4ptqtNUw7z+JJ4LLVdT3ycdVK7GVTZmIG90y5KKxwJvrwbS7/\n8rmPGPQ5diLEMrzuKC2plXT6Pdy0ShtZxie2C3JY86e7ol7xvl0pNqxzOrj424w=\n=AOTG\n-----END PGP SIGNATURE-----",
 	},
-}
-
-func TestClient_Encrypt(t *testing.T) {
-	c := newClient(newManager(Config{}), "")
-	c.userKeyRing = testPrivateKeyRing
-
-	cardEncrypted, err := c.EncryptAndSignCards(testCardsCleartext)
-	r.Nil(t, err)
-
-	// Result is always different, so the best way is to test it by decrypting again.
-	// Another test for decrypting will help us to be sure it's working.
-	cardCleartext, err := c.DecryptAndVerifyCards(cardEncrypted)
-	r.Nil(t, err)
-	r.Equal(t, testCardsCleartext[0].Data, cardCleartext[0].Data)
 }
 
 func TestClient_Decrypt(t *testing.T) {

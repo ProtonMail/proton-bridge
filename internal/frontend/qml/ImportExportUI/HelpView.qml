@@ -81,7 +81,7 @@ Item {
                     color: Style.main.textDisabled
                     horizontalAlignment: Qt.AlignHCenter
                     font.pointSize :  Style.main.fontSize * Style.pt
-                    text: "ProtonMail Import-Export app Version "+go.getBackendVersion()+"\n© 2020 Proton Technologies AG"
+                    text: "ProtonMail Import-Export app Version "+go.getBackendVersion()+"\n© 2021 Proton Technologies AG"
                 }
             }
 

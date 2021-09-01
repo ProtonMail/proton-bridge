@@ -48,9 +48,7 @@ func (storeMailbox *Mailbox) FetchMessage(apiID string) (*Message, error) {
 	return newStoreMessage(storeMailbox, msg), nil
 }
 
-// ImportMessage imports the message by calling an API.
-// It has to be propagated to all mailboxes which is done by the event loop.
-func (storeMailbox *Mailbox) ImportMessage(msg *pmapi.Message, body []byte, labelIDs []string) error {
+func (storeMailbox *Mailbox) ImportMessage(enc []byte, seen bool, labelIDs []string, flags, time int64) (string, error) {
 	defer storeMailbox.pollNow()
 
 	if storeMailbox.labelID != pmapi.AllMailLabel {
@@ -59,24 +57,25 @@ func (storeMailbox *Mailbox) ImportMessage(msg *pmapi.Message, body []byte, labe
 
 	importReqs := &pmapi.ImportMsgReq{
 		Metadata: &pmapi.ImportMetadata{
-			AddressID: msg.AddressID,
-			Unread:    msg.Unread,
-			Flags:     msg.Flags,
-			Time:      msg.Time,
+			AddressID: storeMailbox.storeAddress.addressID,
+			Unread:    pmapi.Boolean(!seen),
+			Flags:     flags,
+			Time:      time,
 			LabelIDs:  labelIDs,
 		},
-		Message: body,
+		Message: append(enc, "\r\n"...),
 	}
 
 	res, err := storeMailbox.client().Import(exposeContextForIMAP(), pmapi.ImportMsgReqs{importReqs})
 	if err != nil {
-		return err
+		return "", err
 	}
+
 	if len(res) == 0 {
-		return errors.New("no import response")
+		return "", errors.New("no import response")
 	}
-	msg.ID = res[0].MessageID
-	return res[0].Error
+
+	return res[0].MessageID, res[0].Error
 }
 
 // LabelMessages adds the label by calling an API.
@@ -355,6 +354,10 @@ func (storeMailbox *Mailbox) txCreateOrUpdateMessages(tx *bolt.Tx, msgs []*pmapi
 	// Buckets are not initialized right away because it's a heavy operation.
 	// The best option is to get the same bucket only once and only when needed.
 	var apiBucket, imapBucket, deletedBucket *bolt.Bucket
+
+	// Collect updates to send them later, after possibly sending the status/EXISTS update.
+	updates := make([]func(), 0, len(msgs))
+
 	for _, msg := range msgs {
 		if storeMailbox.txSkipAndRemoveFromMailbox(tx, msg) {
 			continue
@@ -417,14 +420,18 @@ func (storeMailbox *Mailbox) txCreateOrUpdateMessages(tx *bolt.Tx, msgs []*pmapi
 		if err != nil {
 			return errors.Wrap(err, "cannot get sequence number from UID")
 		}
-		storeMailbox.store.notifyUpdateMessage(
-			storeMailbox.storeAddress.address,
-			storeMailbox.labelName,
-			uid,
-			seqNum,
-			msg,
-			false, // new message is never marked as deleted
-		)
+
+		updates = append(updates, func() {
+			storeMailbox.store.notifyUpdateMessage(
+				storeMailbox.storeAddress.address,
+				storeMailbox.labelName,
+				uid,
+				seqNum,
+				msg,
+				false, // new message is never marked as deleted
+			)
+		})
+
 		shouldSendMailboxUpdate = true
 	}
 
@@ -432,6 +439,10 @@ func (storeMailbox *Mailbox) txCreateOrUpdateMessages(tx *bolt.Tx, msgs []*pmapi
 		if err := storeMailbox.txMailboxStatusUpdate(tx); err != nil {
 			return err
 		}
+	}
+
+	for _, update := range updates {
+		update()
 	}
 
 	return nil

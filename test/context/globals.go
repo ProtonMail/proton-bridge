@@ -1,6 +1,6 @@
 // Copyright (c) 2021 Proton Technologies AG
 //
-// This file is part of ProtonMail Bridge.
+// This file is part of ProtonMail Bridge.Bridge.
 //
 // ProtonMail Bridge is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,21 +15,26 @@
 // You should have received a copy of the GNU General Public License
 // along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
 
-package serverutil
+package context
 
 import (
-	"testing"
+	"os"
 
-	"github.com/ProtonMail/proton-bridge/internal/serverutil/mocks"
-	"github.com/stretchr/testify/require"
+	"github.com/ProtonMail/proton-bridge/test/liveapi"
 )
 
-func TestServerTurnOffAndOnAgain(t *testing.T) {
-	r := require.New(t)
-	s := mocks.NewTestServer(12321)
+// BeforeRun does necessary setup.
+func BeforeRun() {
+	setLogrusVerbosityFromEnv()
 
-	r.True(s.IsPortFree())
+	if os.Getenv(EnvName) == EnvLive {
+		liveapi.SetupPersistentClients()
+	}
+}
 
-	go ListenAndServe(s, s.EventListener)
-	s.RunServerTests(r)
+// AfterRun does necessary cleanup.
+func AfterRun() {
+	if os.Getenv(EnvName) == EnvLive {
+		liveapi.CleanupPersistentClients()
+	}
 }

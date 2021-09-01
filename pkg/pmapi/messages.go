@@ -27,6 +27,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"net/mail"
 	"net/url"
@@ -34,9 +35,11 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/ProtonMail/go-crypto/openpgp"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/go-resty/resty/v2"
 	"github.com/sirupsen/logrus"
+	"golang.org/x/crypto/openpgp/armor"
 	"golang.org/x/crypto/openpgp/packet"
 )
 
@@ -291,6 +294,54 @@ func (m *Message) Decrypt(kr *crypto.KeyRing) ([]byte, error) {
 	}
 
 	return body, nil
+}
+
+type Signature struct {
+	Hash string
+	Data []byte
+}
+
+func (m *Message) ExtractSignatures(kr *crypto.KeyRing) ([]Signature, error) {
+	var entities openpgp.EntityList
+
+	for _, key := range kr.GetKeys() {
+		entities = append(entities, key.GetEntity())
+	}
+
+	p, err := armor.Decode(strings.NewReader(m.Body))
+	if err != nil {
+		return nil, err
+	}
+
+	msg, err := openpgp.ReadMessage(p.Body, entities, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	if _, err := ioutil.ReadAll(msg.UnverifiedBody); err != nil {
+		return nil, err
+	}
+
+	if !msg.IsSigned {
+		return nil, nil
+	}
+
+	signatures := make([]Signature, 0, len(msg.UnverifiedSignatures))
+
+	for _, signature := range msg.UnverifiedSignatures {
+		buf := new(bytes.Buffer)
+
+		if err := signature.Serialize(buf); err != nil {
+			return nil, err
+		}
+
+		signatures = append(signatures, Signature{
+			Hash: signature.Hash.String(),
+			Data: buf.Bytes(),
+		})
+	}
+
+	return signatures, nil
 }
 
 func (m *Message) decryptLegacy(kr *crypto.KeyRing) (dec []byte, err error) {

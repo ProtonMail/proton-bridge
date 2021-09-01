@@ -17,42 +17,42 @@ import (
 	logrus "github.com/sirupsen/logrus"
 )
 
-// MockClient is a mock of Client interface
+// MockClient is a mock of Client interface.
 type MockClient struct {
 	ctrl     *gomock.Controller
 	recorder *MockClientMockRecorder
 }
 
-// MockClientMockRecorder is the mock recorder for MockClient
+// MockClientMockRecorder is the mock recorder for MockClient.
 type MockClientMockRecorder struct {
 	mock *MockClient
 }
 
-// NewMockClient creates a new mock instance
+// NewMockClient creates a new mock instance.
 func NewMockClient(ctrl *gomock.Controller) *MockClient {
 	mock := &MockClient{ctrl: ctrl}
 	mock.recorder = &MockClientMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockClient) EXPECT() *MockClientMockRecorder {
 	return m.recorder
 }
 
-// AddAuthRefreshHandler mocks base method
+// AddAuthRefreshHandler mocks base method.
 func (m *MockClient) AddAuthRefreshHandler(arg0 pmapi.AuthRefreshHandler) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "AddAuthRefreshHandler", arg0)
 }
 
-// AddAuthRefreshHandler indicates an expected call of AddAuthRefreshHandler
+// AddAuthRefreshHandler indicates an expected call of AddAuthRefreshHandler.
 func (mr *MockClientMockRecorder) AddAuthRefreshHandler(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddAuthRefreshHandler", reflect.TypeOf((*MockClient)(nil).AddAuthRefreshHandler), arg0)
 }
 
-// Addresses mocks base method
+// Addresses mocks base method.
 func (m *MockClient) Addresses() pmapi.AddressList {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Addresses")
@@ -60,13 +60,13 @@ func (m *MockClient) Addresses() pmapi.AddressList {
 	return ret0
 }
 
-// Addresses indicates an expected call of Addresses
+// Addresses indicates an expected call of Addresses.
 func (mr *MockClientMockRecorder) Addresses() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Addresses", reflect.TypeOf((*MockClient)(nil).Addresses))
 }
 
-// Auth2FA mocks base method
+// Auth2FA mocks base method.
 func (m *MockClient) Auth2FA(arg0 context.Context, arg1 string) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Auth2FA", arg0, arg1)
@@ -74,13 +74,13 @@ func (m *MockClient) Auth2FA(arg0 context.Context, arg1 string) error {
 	return ret0
 }
 
-// Auth2FA indicates an expected call of Auth2FA
+// Auth2FA indicates an expected call of Auth2FA.
 func (mr *MockClientMockRecorder) Auth2FA(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Auth2FA", reflect.TypeOf((*MockClient)(nil).Auth2FA), arg0, arg1)
 }
 
-// AuthDelete mocks base method
+// AuthDelete mocks base method.
 func (m *MockClient) AuthDelete(arg0 context.Context) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AuthDelete", arg0)
@@ -88,13 +88,13 @@ func (m *MockClient) AuthDelete(arg0 context.Context) error {
 	return ret0
 }
 
-// AuthDelete indicates an expected call of AuthDelete
+// AuthDelete indicates an expected call of AuthDelete.
 func (mr *MockClientMockRecorder) AuthDelete(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AuthDelete", reflect.TypeOf((*MockClient)(nil).AuthDelete), arg0)
 }
 
-// AuthSalt mocks base method
+// AuthSalt mocks base method.
 func (m *MockClient) AuthSalt(arg0 context.Context) (string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AuthSalt", arg0)
@@ -103,13 +103,13 @@ func (m *MockClient) AuthSalt(arg0 context.Context) (string, error) {
 	return ret0, ret1
 }
 
-// AuthSalt indicates an expected call of AuthSalt
+// AuthSalt indicates an expected call of AuthSalt.
 func (mr *MockClientMockRecorder) AuthSalt(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AuthSalt", reflect.TypeOf((*MockClient)(nil).AuthSalt), arg0)
 }
 
-// CountMessages mocks base method
+// CountMessages mocks base method.
 func (m *MockClient) CountMessages(arg0 context.Context, arg1 string) ([]*pmapi.MessagesCount, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CountMessages", arg0, arg1)
@@ -118,13 +118,13 @@ func (m *MockClient) CountMessages(arg0 context.Context, arg1 string) ([]*pmapi.
 	return ret0, ret1
 }
 
-// CountMessages indicates an expected call of CountMessages
+// CountMessages indicates an expected call of CountMessages.
 func (mr *MockClientMockRecorder) CountMessages(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountMessages", reflect.TypeOf((*MockClient)(nil).CountMessages), arg0, arg1)
 }
 
-// CreateAttachment mocks base method
+// CreateAttachment mocks base method.
 func (m *MockClient) CreateAttachment(arg0 context.Context, arg1 *pmapi.Attachment, arg2, arg3 io.Reader) (*pmapi.Attachment, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateAttachment", arg0, arg1, arg2, arg3)
@@ -133,13 +133,13 @@ func (m *MockClient) CreateAttachment(arg0 context.Context, arg1 *pmapi.Attachme
 	return ret0, ret1
 }
 
-// CreateAttachment indicates an expected call of CreateAttachment
+// CreateAttachment indicates an expected call of CreateAttachment.
 func (mr *MockClientMockRecorder) CreateAttachment(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateAttachment", reflect.TypeOf((*MockClient)(nil).CreateAttachment), arg0, arg1, arg2, arg3)
 }
 
-// CreateDraft mocks base method
+// CreateDraft mocks base method.
 func (m *MockClient) CreateDraft(arg0 context.Context, arg1 *pmapi.Message, arg2 string, arg3 int) (*pmapi.Message, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateDraft", arg0, arg1, arg2, arg3)
@@ -148,13 +148,13 @@ func (m *MockClient) CreateDraft(arg0 context.Context, arg1 *pmapi.Message, arg2
 	return ret0, ret1
 }
 
-// CreateDraft indicates an expected call of CreateDraft
+// CreateDraft indicates an expected call of CreateDraft.
 func (mr *MockClientMockRecorder) CreateDraft(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateDraft", reflect.TypeOf((*MockClient)(nil).CreateDraft), arg0, arg1, arg2, arg3)
 }
 
-// CreateLabel mocks base method
+// CreateLabel mocks base method.
 func (m *MockClient) CreateLabel(arg0 context.Context, arg1 *pmapi.Label) (*pmapi.Label, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateLabel", arg0, arg1)
@@ -163,13 +163,13 @@ func (m *MockClient) CreateLabel(arg0 context.Context, arg1 *pmapi.Label) (*pmap
 	return ret0, ret1
 }
 
-// CreateLabel indicates an expected call of CreateLabel
+// CreateLabel indicates an expected call of CreateLabel.
 func (mr *MockClientMockRecorder) CreateLabel(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateLabel", reflect.TypeOf((*MockClient)(nil).CreateLabel), arg0, arg1)
 }
 
-// CurrentUser mocks base method
+// CurrentUser mocks base method.
 func (m *MockClient) CurrentUser(arg0 context.Context) (*pmapi.User, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CurrentUser", arg0)
@@ -178,13 +178,13 @@ func (m *MockClient) CurrentUser(arg0 context.Context) (*pmapi.User, error) {
 	return ret0, ret1
 }
 
-// CurrentUser indicates an expected call of CurrentUser
+// CurrentUser indicates an expected call of CurrentUser.
 func (mr *MockClientMockRecorder) CurrentUser(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CurrentUser", reflect.TypeOf((*MockClient)(nil).CurrentUser), arg0)
 }
 
-// DecryptAndVerifyCards mocks base method
+// DecryptAndVerifyCards mocks base method.
 func (m *MockClient) DecryptAndVerifyCards(arg0 []pmapi.Card) ([]pmapi.Card, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DecryptAndVerifyCards", arg0)
@@ -193,13 +193,13 @@ func (m *MockClient) DecryptAndVerifyCards(arg0 []pmapi.Card) ([]pmapi.Card, err
 	return ret0, ret1
 }
 
-// DecryptAndVerifyCards indicates an expected call of DecryptAndVerifyCards
+// DecryptAndVerifyCards indicates an expected call of DecryptAndVerifyCards.
 func (mr *MockClientMockRecorder) DecryptAndVerifyCards(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DecryptAndVerifyCards", reflect.TypeOf((*MockClient)(nil).DecryptAndVerifyCards), arg0)
 }
 
-// DeleteLabel mocks base method
+// DeleteLabel mocks base method.
 func (m *MockClient) DeleteLabel(arg0 context.Context, arg1 string) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteLabel", arg0, arg1)
@@ -207,13 +207,13 @@ func (m *MockClient) DeleteLabel(arg0 context.Context, arg1 string) error {
 	return ret0
 }
 
-// DeleteLabel indicates an expected call of DeleteLabel
+// DeleteLabel indicates an expected call of DeleteLabel.
 func (mr *MockClientMockRecorder) DeleteLabel(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteLabel", reflect.TypeOf((*MockClient)(nil).DeleteLabel), arg0, arg1)
 }
 
-// DeleteMessages mocks base method
+// DeleteMessages mocks base method.
 func (m *MockClient) DeleteMessages(arg0 context.Context, arg1 []string) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteMessages", arg0, arg1)
@@ -221,13 +221,13 @@ func (m *MockClient) DeleteMessages(arg0 context.Context, arg1 []string) error {
 	return ret0
 }
 
-// DeleteMessages indicates an expected call of DeleteMessages
+// DeleteMessages indicates an expected call of DeleteMessages.
 func (mr *MockClientMockRecorder) DeleteMessages(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteMessages", reflect.TypeOf((*MockClient)(nil).DeleteMessages), arg0, arg1)
 }
 
-// EmptyFolder mocks base method
+// EmptyFolder mocks base method.
 func (m *MockClient) EmptyFolder(arg0 context.Context, arg1, arg2 string) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "EmptyFolder", arg0, arg1, arg2)
@@ -235,13 +235,13 @@ func (m *MockClient) EmptyFolder(arg0 context.Context, arg1, arg2 string) error 
 	return ret0
 }
 
-// EmptyFolder indicates an expected call of EmptyFolder
+// EmptyFolder indicates an expected call of EmptyFolder.
 func (mr *MockClientMockRecorder) EmptyFolder(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EmptyFolder", reflect.TypeOf((*MockClient)(nil).EmptyFolder), arg0, arg1, arg2)
 }
 
-// GetAddresses mocks base method
+// GetAddresses mocks base method.
 func (m *MockClient) GetAddresses(arg0 context.Context) (pmapi.AddressList, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetAddresses", arg0)
@@ -250,13 +250,13 @@ func (m *MockClient) GetAddresses(arg0 context.Context) (pmapi.AddressList, erro
 	return ret0, ret1
 }
 
-// GetAddresses indicates an expected call of GetAddresses
+// GetAddresses indicates an expected call of GetAddresses.
 func (mr *MockClientMockRecorder) GetAddresses(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAddresses", reflect.TypeOf((*MockClient)(nil).GetAddresses), arg0)
 }
 
-// GetAttachment mocks base method
+// GetAttachment mocks base method.
 func (m *MockClient) GetAttachment(arg0 context.Context, arg1 string) (io.ReadCloser, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetAttachment", arg0, arg1)
@@ -265,13 +265,13 @@ func (m *MockClient) GetAttachment(arg0 context.Context, arg1 string) (io.ReadCl
 	return ret0, ret1
 }
 
-// GetAttachment indicates an expected call of GetAttachment
+// GetAttachment indicates an expected call of GetAttachment.
 func (mr *MockClientMockRecorder) GetAttachment(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAttachment", reflect.TypeOf((*MockClient)(nil).GetAttachment), arg0, arg1)
 }
 
-// GetContactByID mocks base method
+// GetContactByID mocks base method.
 func (m *MockClient) GetContactByID(arg0 context.Context, arg1 string) (pmapi.Contact, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetContactByID", arg0, arg1)
@@ -280,13 +280,13 @@ func (m *MockClient) GetContactByID(arg0 context.Context, arg1 string) (pmapi.Co
 	return ret0, ret1
 }
 
-// GetContactByID indicates an expected call of GetContactByID
+// GetContactByID indicates an expected call of GetContactByID.
 func (mr *MockClientMockRecorder) GetContactByID(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetContactByID", reflect.TypeOf((*MockClient)(nil).GetContactByID), arg0, arg1)
 }
 
-// GetContactEmailByEmail mocks base method
+// GetContactEmailByEmail mocks base method.
 func (m *MockClient) GetContactEmailByEmail(arg0 context.Context, arg1 string, arg2, arg3 int) ([]pmapi.ContactEmail, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetContactEmailByEmail", arg0, arg1, arg2, arg3)
@@ -295,13 +295,13 @@ func (m *MockClient) GetContactEmailByEmail(arg0 context.Context, arg1 string, a
 	return ret0, ret1
 }
 
-// GetContactEmailByEmail indicates an expected call of GetContactEmailByEmail
+// GetContactEmailByEmail indicates an expected call of GetContactEmailByEmail.
 func (mr *MockClientMockRecorder) GetContactEmailByEmail(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetContactEmailByEmail", reflect.TypeOf((*MockClient)(nil).GetContactEmailByEmail), arg0, arg1, arg2, arg3)
 }
 
-// GetEvent mocks base method
+// GetEvent mocks base method.
 func (m *MockClient) GetEvent(arg0 context.Context, arg1 string) (*pmapi.Event, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetEvent", arg0, arg1)
@@ -310,13 +310,13 @@ func (m *MockClient) GetEvent(arg0 context.Context, arg1 string) (*pmapi.Event, 
 	return ret0, ret1
 }
 
-// GetEvent indicates an expected call of GetEvent
+// GetEvent indicates an expected call of GetEvent.
 func (mr *MockClientMockRecorder) GetEvent(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetEvent", reflect.TypeOf((*MockClient)(nil).GetEvent), arg0, arg1)
 }
 
-// GetMailSettings mocks base method
+// GetMailSettings mocks base method.
 func (m *MockClient) GetMailSettings(arg0 context.Context) (pmapi.MailSettings, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetMailSettings", arg0)
@@ -325,13 +325,13 @@ func (m *MockClient) GetMailSettings(arg0 context.Context) (pmapi.MailSettings, 
 	return ret0, ret1
 }
 
-// GetMailSettings indicates an expected call of GetMailSettings
+// GetMailSettings indicates an expected call of GetMailSettings.
 func (mr *MockClientMockRecorder) GetMailSettings(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMailSettings", reflect.TypeOf((*MockClient)(nil).GetMailSettings), arg0)
 }
 
-// GetMessage mocks base method
+// GetMessage mocks base method.
 func (m *MockClient) GetMessage(arg0 context.Context, arg1 string) (*pmapi.Message, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetMessage", arg0, arg1)
@@ -340,13 +340,13 @@ func (m *MockClient) GetMessage(arg0 context.Context, arg1 string) (*pmapi.Messa
 	return ret0, ret1
 }
 
-// GetMessage indicates an expected call of GetMessage
+// GetMessage indicates an expected call of GetMessage.
 func (mr *MockClientMockRecorder) GetMessage(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMessage", reflect.TypeOf((*MockClient)(nil).GetMessage), arg0, arg1)
 }
 
-// GetPublicKeysForEmail mocks base method
+// GetPublicKeysForEmail mocks base method.
 func (m *MockClient) GetPublicKeysForEmail(arg0 context.Context, arg1 string) ([]pmapi.PublicKey, bool, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetPublicKeysForEmail", arg0, arg1)
@@ -356,13 +356,13 @@ func (m *MockClient) GetPublicKeysForEmail(arg0 context.Context, arg1 string) ([
 	return ret0, ret1, ret2
 }
 
-// GetPublicKeysForEmail indicates an expected call of GetPublicKeysForEmail
+// GetPublicKeysForEmail indicates an expected call of GetPublicKeysForEmail.
 func (mr *MockClientMockRecorder) GetPublicKeysForEmail(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPublicKeysForEmail", reflect.TypeOf((*MockClient)(nil).GetPublicKeysForEmail), arg0, arg1)
 }
 
-// Import mocks base method
+// Import mocks base method.
 func (m *MockClient) Import(arg0 context.Context, arg1 pmapi.ImportMsgReqs) ([]*pmapi.ImportMsgRes, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Import", arg0, arg1)
@@ -371,13 +371,13 @@ func (m *MockClient) Import(arg0 context.Context, arg1 pmapi.ImportMsgReqs) ([]*
 	return ret0, ret1
 }
 
-// Import indicates an expected call of Import
+// Import indicates an expected call of Import.
 func (mr *MockClientMockRecorder) Import(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Import", reflect.TypeOf((*MockClient)(nil).Import), arg0, arg1)
 }
 
-// IsUnlocked mocks base method
+// IsUnlocked mocks base method.
 func (m *MockClient) IsUnlocked() bool {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "IsUnlocked")
@@ -385,13 +385,13 @@ func (m *MockClient) IsUnlocked() bool {
 	return ret0
 }
 
-// IsUnlocked indicates an expected call of IsUnlocked
+// IsUnlocked indicates an expected call of IsUnlocked.
 func (mr *MockClientMockRecorder) IsUnlocked() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsUnlocked", reflect.TypeOf((*MockClient)(nil).IsUnlocked))
 }
 
-// KeyRingForAddressID mocks base method
+// KeyRingForAddressID mocks base method.
 func (m *MockClient) KeyRingForAddressID(arg0 string) (*crypto.KeyRing, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "KeyRingForAddressID", arg0)
@@ -400,13 +400,13 @@ func (m *MockClient) KeyRingForAddressID(arg0 string) (*crypto.KeyRing, error) {
 	return ret0, ret1
 }
 
-// KeyRingForAddressID indicates an expected call of KeyRingForAddressID
+// KeyRingForAddressID indicates an expected call of KeyRingForAddressID.
 func (mr *MockClientMockRecorder) KeyRingForAddressID(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "KeyRingForAddressID", reflect.TypeOf((*MockClient)(nil).KeyRingForAddressID), arg0)
 }
 
-// LabelMessages mocks base method
+// LabelMessages mocks base method.
 func (m *MockClient) LabelMessages(arg0 context.Context, arg1 []string, arg2 string) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "LabelMessages", arg0, arg1, arg2)
@@ -414,13 +414,13 @@ func (m *MockClient) LabelMessages(arg0 context.Context, arg1 []string, arg2 str
 	return ret0
 }
 
-// LabelMessages indicates an expected call of LabelMessages
+// LabelMessages indicates an expected call of LabelMessages.
 func (mr *MockClientMockRecorder) LabelMessages(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LabelMessages", reflect.TypeOf((*MockClient)(nil).LabelMessages), arg0, arg1, arg2)
 }
 
-// ListLabels mocks base method
+// ListLabels mocks base method.
 func (m *MockClient) ListLabels(arg0 context.Context) ([]*pmapi.Label, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListLabels", arg0)
@@ -429,13 +429,13 @@ func (m *MockClient) ListLabels(arg0 context.Context) ([]*pmapi.Label, error) {
 	return ret0, ret1
 }
 
-// ListLabels indicates an expected call of ListLabels
+// ListLabels indicates an expected call of ListLabels.
 func (mr *MockClientMockRecorder) ListLabels(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListLabels", reflect.TypeOf((*MockClient)(nil).ListLabels), arg0)
 }
 
-// ListMessages mocks base method
+// ListMessages mocks base method.
 func (m *MockClient) ListMessages(arg0 context.Context, arg1 *pmapi.MessagesFilter) ([]*pmapi.Message, int, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListMessages", arg0, arg1)
@@ -445,13 +445,13 @@ func (m *MockClient) ListMessages(arg0 context.Context, arg1 *pmapi.MessagesFilt
 	return ret0, ret1, ret2
 }
 
-// ListMessages indicates an expected call of ListMessages
+// ListMessages indicates an expected call of ListMessages.
 func (mr *MockClientMockRecorder) ListMessages(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListMessages", reflect.TypeOf((*MockClient)(nil).ListMessages), arg0, arg1)
 }
 
-// MarkMessagesRead mocks base method
+// MarkMessagesRead mocks base method.
 func (m *MockClient) MarkMessagesRead(arg0 context.Context, arg1 []string) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "MarkMessagesRead", arg0, arg1)
@@ -459,13 +459,13 @@ func (m *MockClient) MarkMessagesRead(arg0 context.Context, arg1 []string) error
 	return ret0
 }
 
-// MarkMessagesRead indicates an expected call of MarkMessagesRead
+// MarkMessagesRead indicates an expected call of MarkMessagesRead.
 func (mr *MockClientMockRecorder) MarkMessagesRead(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MarkMessagesRead", reflect.TypeOf((*MockClient)(nil).MarkMessagesRead), arg0, arg1)
 }
 
-// MarkMessagesUnread mocks base method
+// MarkMessagesUnread mocks base method.
 func (m *MockClient) MarkMessagesUnread(arg0 context.Context, arg1 []string) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "MarkMessagesUnread", arg0, arg1)
@@ -473,13 +473,13 @@ func (m *MockClient) MarkMessagesUnread(arg0 context.Context, arg1 []string) err
 	return ret0
 }
 
-// MarkMessagesUnread indicates an expected call of MarkMessagesUnread
+// MarkMessagesUnread indicates an expected call of MarkMessagesUnread.
 func (mr *MockClientMockRecorder) MarkMessagesUnread(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MarkMessagesUnread", reflect.TypeOf((*MockClient)(nil).MarkMessagesUnread), arg0, arg1)
 }
 
-// ReloadKeys mocks base method
+// ReloadKeys mocks base method.
 func (m *MockClient) ReloadKeys(arg0 context.Context, arg1 []byte) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ReloadKeys", arg0, arg1)
@@ -487,13 +487,13 @@ func (m *MockClient) ReloadKeys(arg0 context.Context, arg1 []byte) error {
 	return ret0
 }
 
-// ReloadKeys indicates an expected call of ReloadKeys
+// ReloadKeys indicates an expected call of ReloadKeys.
 func (mr *MockClientMockRecorder) ReloadKeys(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReloadKeys", reflect.TypeOf((*MockClient)(nil).ReloadKeys), arg0, arg1)
 }
 
-// ReorderAddresses mocks base method
+// ReorderAddresses mocks base method.
 func (m *MockClient) ReorderAddresses(arg0 context.Context, arg1 []string) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ReorderAddresses", arg0, arg1)
@@ -501,13 +501,13 @@ func (m *MockClient) ReorderAddresses(arg0 context.Context, arg1 []string) error
 	return ret0
 }
 
-// ReorderAddresses indicates an expected call of ReorderAddresses
+// ReorderAddresses indicates an expected call of ReorderAddresses.
 func (mr *MockClientMockRecorder) ReorderAddresses(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReorderAddresses", reflect.TypeOf((*MockClient)(nil).ReorderAddresses), arg0, arg1)
 }
 
-// SendMessage mocks base method
+// SendMessage mocks base method.
 func (m *MockClient) SendMessage(arg0 context.Context, arg1 string, arg2 *pmapi.SendMessageReq) (*pmapi.Message, *pmapi.Message, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SendMessage", arg0, arg1, arg2)
@@ -517,13 +517,13 @@ func (m *MockClient) SendMessage(arg0 context.Context, arg1 string, arg2 *pmapi.
 	return ret0, ret1, ret2
 }
 
-// SendMessage indicates an expected call of SendMessage
+// SendMessage indicates an expected call of SendMessage.
 func (mr *MockClientMockRecorder) SendMessage(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendMessage", reflect.TypeOf((*MockClient)(nil).SendMessage), arg0, arg1, arg2)
 }
 
-// UnlabelMessages mocks base method
+// UnlabelMessages mocks base method.
 func (m *MockClient) UnlabelMessages(arg0 context.Context, arg1 []string, arg2 string) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UnlabelMessages", arg0, arg1, arg2)
@@ -531,13 +531,13 @@ func (m *MockClient) UnlabelMessages(arg0 context.Context, arg1 []string, arg2 s
 	return ret0
 }
 
-// UnlabelMessages indicates an expected call of UnlabelMessages
+// UnlabelMessages indicates an expected call of UnlabelMessages.
 func (mr *MockClientMockRecorder) UnlabelMessages(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UnlabelMessages", reflect.TypeOf((*MockClient)(nil).UnlabelMessages), arg0, arg1, arg2)
 }
 
-// Unlock mocks base method
+// Unlock mocks base method.
 func (m *MockClient) Unlock(arg0 context.Context, arg1 []byte) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Unlock", arg0, arg1)
@@ -545,13 +545,13 @@ func (m *MockClient) Unlock(arg0 context.Context, arg1 []byte) error {
 	return ret0
 }
 
-// Unlock indicates an expected call of Unlock
+// Unlock indicates an expected call of Unlock.
 func (mr *MockClientMockRecorder) Unlock(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Unlock", reflect.TypeOf((*MockClient)(nil).Unlock), arg0, arg1)
 }
 
-// UpdateLabel mocks base method
+// UpdateLabel mocks base method.
 func (m *MockClient) UpdateLabel(arg0 context.Context, arg1 *pmapi.Label) (*pmapi.Label, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateLabel", arg0, arg1)
@@ -560,13 +560,13 @@ func (m *MockClient) UpdateLabel(arg0 context.Context, arg1 *pmapi.Label) (*pmap
 	return ret0, ret1
 }
 
-// UpdateLabel indicates an expected call of UpdateLabel
+// UpdateLabel indicates an expected call of UpdateLabel.
 func (mr *MockClientMockRecorder) UpdateLabel(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateLabel", reflect.TypeOf((*MockClient)(nil).UpdateLabel), arg0, arg1)
 }
 
-// UpdateUser mocks base method
+// UpdateUser mocks base method.
 func (m *MockClient) UpdateUser(arg0 context.Context) (*pmapi.User, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateUser", arg0)
@@ -575,72 +575,72 @@ func (m *MockClient) UpdateUser(arg0 context.Context) (*pmapi.User, error) {
 	return ret0, ret1
 }
 
-// UpdateUser indicates an expected call of UpdateUser
+// UpdateUser indicates an expected call of UpdateUser.
 func (mr *MockClientMockRecorder) UpdateUser(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUser", reflect.TypeOf((*MockClient)(nil).UpdateUser), arg0)
 }
 
-// MockManager is a mock of Manager interface
+// MockManager is a mock of Manager interface.
 type MockManager struct {
 	ctrl     *gomock.Controller
 	recorder *MockManagerMockRecorder
 }
 
-// MockManagerMockRecorder is the mock recorder for MockManager
+// MockManagerMockRecorder is the mock recorder for MockManager.
 type MockManagerMockRecorder struct {
 	mock *MockManager
 }
 
-// NewMockManager creates a new mock instance
+// NewMockManager creates a new mock instance.
 func NewMockManager(ctrl *gomock.Controller) *MockManager {
 	mock := &MockManager{ctrl: ctrl}
 	mock.recorder = &MockManagerMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockManager) EXPECT() *MockManagerMockRecorder {
 	return m.recorder
 }
 
-// AddConnectionObserver mocks base method
+// AddConnectionObserver mocks base method.
 func (m *MockManager) AddConnectionObserver(arg0 pmapi.ConnectionObserver) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "AddConnectionObserver", arg0)
 }
 
-// AddConnectionObserver indicates an expected call of AddConnectionObserver
+// AddConnectionObserver indicates an expected call of AddConnectionObserver.
 func (mr *MockManagerMockRecorder) AddConnectionObserver(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddConnectionObserver", reflect.TypeOf((*MockManager)(nil).AddConnectionObserver), arg0)
 }
 
-// AllowProxy mocks base method
+// AllowProxy mocks base method.
 func (m *MockManager) AllowProxy() {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "AllowProxy")
 }
 
-// AllowProxy indicates an expected call of AllowProxy
+// AllowProxy indicates an expected call of AllowProxy.
 func (mr *MockManagerMockRecorder) AllowProxy() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AllowProxy", reflect.TypeOf((*MockManager)(nil).AllowProxy))
 }
 
-// DisallowProxy mocks base method
+// DisallowProxy mocks base method.
 func (m *MockManager) DisallowProxy() {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "DisallowProxy")
 }
 
-// DisallowProxy indicates an expected call of DisallowProxy
+// DisallowProxy indicates an expected call of DisallowProxy.
 func (mr *MockManagerMockRecorder) DisallowProxy() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DisallowProxy", reflect.TypeOf((*MockManager)(nil).DisallowProxy))
 }
 
-// DownloadAndVerify mocks base method
+// DownloadAndVerify mocks base method.
 func (m *MockManager) DownloadAndVerify(arg0 *crypto.KeyRing, arg1, arg2 string) ([]byte, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DownloadAndVerify", arg0, arg1, arg2)
@@ -649,13 +649,13 @@ func (m *MockManager) DownloadAndVerify(arg0 *crypto.KeyRing, arg1, arg2 string)
 	return ret0, ret1
 }
 
-// DownloadAndVerify indicates an expected call of DownloadAndVerify
+// DownloadAndVerify indicates an expected call of DownloadAndVerify.
 func (mr *MockManagerMockRecorder) DownloadAndVerify(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DownloadAndVerify", reflect.TypeOf((*MockManager)(nil).DownloadAndVerify), arg0, arg1, arg2)
 }
 
-// NewClient mocks base method
+// NewClient mocks base method.
 func (m *MockManager) NewClient(arg0, arg1, arg2 string, arg3 time.Time) pmapi.Client {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "NewClient", arg0, arg1, arg2, arg3)
@@ -663,14 +663,14 @@ func (m *MockManager) NewClient(arg0, arg1, arg2 string, arg3 time.Time) pmapi.C
 	return ret0
 }
 
-// NewClient indicates an expected call of NewClient
+// NewClient indicates an expected call of NewClient.
 func (mr *MockManagerMockRecorder) NewClient(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewClient", reflect.TypeOf((*MockManager)(nil).NewClient), arg0, arg1, arg2, arg3)
 }
 
-// NewClientWithLogin mocks base method
-func (m *MockManager) NewClientWithLogin(arg0 context.Context, arg1, arg2 string) (pmapi.Client, *pmapi.Auth, error) {
+// NewClientWithLogin mocks base method.
+func (m *MockManager) NewClientWithLogin(arg0 context.Context, arg1 string, arg2 []byte) (pmapi.Client, *pmapi.Auth, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "NewClientWithLogin", arg0, arg1, arg2)
 	ret0, _ := ret[0].(pmapi.Client)
@@ -679,13 +679,13 @@ func (m *MockManager) NewClientWithLogin(arg0 context.Context, arg1, arg2 string
 	return ret0, ret1, ret2
 }
 
-// NewClientWithLogin indicates an expected call of NewClientWithLogin
+// NewClientWithLogin indicates an expected call of NewClientWithLogin.
 func (mr *MockManagerMockRecorder) NewClientWithLogin(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewClientWithLogin", reflect.TypeOf((*MockManager)(nil).NewClientWithLogin), arg0, arg1, arg2)
 }
 
-// NewClientWithRefresh mocks base method
+// NewClientWithRefresh mocks base method.
 func (m *MockManager) NewClientWithRefresh(arg0 context.Context, arg1, arg2 string) (pmapi.Client, *pmapi.AuthRefresh, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "NewClientWithRefresh", arg0, arg1, arg2)
@@ -695,13 +695,13 @@ func (m *MockManager) NewClientWithRefresh(arg0 context.Context, arg1, arg2 stri
 	return ret0, ret1, ret2
 }
 
-// NewClientWithRefresh indicates an expected call of NewClientWithRefresh
+// NewClientWithRefresh indicates an expected call of NewClientWithRefresh.
 func (mr *MockManagerMockRecorder) NewClientWithRefresh(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewClientWithRefresh", reflect.TypeOf((*MockManager)(nil).NewClientWithRefresh), arg0, arg1, arg2)
 }
 
-// ReportBug mocks base method
+// ReportBug mocks base method.
 func (m *MockManager) ReportBug(arg0 context.Context, arg1 pmapi.ReportBugReq) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ReportBug", arg0, arg1)
@@ -709,13 +709,13 @@ func (m *MockManager) ReportBug(arg0 context.Context, arg1 pmapi.ReportBugReq) e
 	return ret0
 }
 
-// ReportBug indicates an expected call of ReportBug
+// ReportBug indicates an expected call of ReportBug.
 func (mr *MockManagerMockRecorder) ReportBug(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReportBug", reflect.TypeOf((*MockManager)(nil).ReportBug), arg0, arg1)
 }
 
-// SendSimpleMetric mocks base method
+// SendSimpleMetric mocks base method.
 func (m *MockManager) SendSimpleMetric(arg0 context.Context, arg1, arg2, arg3 string) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SendSimpleMetric", arg0, arg1, arg2, arg3)
@@ -723,55 +723,55 @@ func (m *MockManager) SendSimpleMetric(arg0 context.Context, arg1, arg2, arg3 st
 	return ret0
 }
 
-// SendSimpleMetric indicates an expected call of SendSimpleMetric
+// SendSimpleMetric indicates an expected call of SendSimpleMetric.
 func (mr *MockManagerMockRecorder) SendSimpleMetric(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendSimpleMetric", reflect.TypeOf((*MockManager)(nil).SendSimpleMetric), arg0, arg1, arg2, arg3)
 }
 
-// SetCookieJar mocks base method
+// SetCookieJar mocks base method.
 func (m *MockManager) SetCookieJar(arg0 http.CookieJar) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "SetCookieJar", arg0)
 }
 
-// SetCookieJar indicates an expected call of SetCookieJar
+// SetCookieJar indicates an expected call of SetCookieJar.
 func (mr *MockManagerMockRecorder) SetCookieJar(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetCookieJar", reflect.TypeOf((*MockManager)(nil).SetCookieJar), arg0)
 }
 
-// SetLogging mocks base method
+// SetLogging mocks base method.
 func (m *MockManager) SetLogging(arg0 *logrus.Entry, arg1 bool) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "SetLogging", arg0, arg1)
 }
 
-// SetLogging indicates an expected call of SetLogging
+// SetLogging indicates an expected call of SetLogging.
 func (mr *MockManagerMockRecorder) SetLogging(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetLogging", reflect.TypeOf((*MockManager)(nil).SetLogging), arg0, arg1)
 }
 
-// SetRetryCount mocks base method
+// SetRetryCount mocks base method.
 func (m *MockManager) SetRetryCount(arg0 int) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "SetRetryCount", arg0)
 }
 
-// SetRetryCount indicates an expected call of SetRetryCount
+// SetRetryCount indicates an expected call of SetRetryCount.
 func (mr *MockManagerMockRecorder) SetRetryCount(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetRetryCount", reflect.TypeOf((*MockManager)(nil).SetRetryCount), arg0)
 }
 
-// SetTransport mocks base method
+// SetTransport mocks base method.
 func (m *MockManager) SetTransport(arg0 http.RoundTripper) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "SetTransport", arg0)
 }
 
-// SetTransport indicates an expected call of SetTransport
+// SetTransport indicates an expected call of SetTransport.
 func (mr *MockManagerMockRecorder) SetTransport(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetTransport", reflect.TypeOf((*MockManager)(nil).SetTransport), arg0)

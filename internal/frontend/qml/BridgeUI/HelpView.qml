@@ -94,7 +94,7 @@ Item {
                     font.pointSize :  Style.main.fontSize * Style.pt
                     text:
                     "ProtonMail Bridge "+go.getBackendVersion()+"\n"+
-                    "© 2020 Proton Technologies AG"
+                    "© 2021 Proton Technologies AG"
                 }
             }
             Row {

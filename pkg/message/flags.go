@@ -59,30 +59,3 @@ func GetFlags(m *pmapi.Message) (flags []string) {
 
 	return
 }
-
-// ParseFlags sets attributes to pmapi messages based on imap flags.
-func ParseFlags(m *pmapi.Message, flags []string) {
-	if m.Header.Get("received") == "" {
-		m.Flags = pmapi.FlagSent
-	} else {
-		m.Flags = pmapi.FlagReceived
-	}
-
-	m.Unread = true
-	for _, f := range flags {
-		switch f {
-		case imap.SeenFlag:
-			m.Unread = false
-		case imap.DraftFlag:
-			m.Flags &= ^pmapi.FlagSent
-			m.Flags &= ^pmapi.FlagReceived
-			m.LabelIDs = append(m.LabelIDs, pmapi.DraftLabel)
-		case imap.FlaggedFlag:
-			m.LabelIDs = append(m.LabelIDs, pmapi.StarredLabel)
-		case imap.AnsweredFlag:
-			m.Flags |= pmapi.FlagReplied
-		case AppleMailJunkFlag, ThunderbirdJunkFlag:
-			m.LabelIDs = append(m.LabelIDs, pmapi.SpamLabel)
-		}
-	}
-}

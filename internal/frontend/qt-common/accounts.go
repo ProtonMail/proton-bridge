@@ -186,7 +186,7 @@ func (a *Accounts) showLoginError(err error, scope string) bool {
 //  2: when has no 2FA but have MBOX
 func (a *Accounts) Login(login, password string) int {
 	var err error
-	a.authClient, a.auth, err = a.um.Login(login, password)
+	a.authClient, a.auth, err = a.um.Login(login, []byte(password))
 	if a.showLoginError(err, "login") {
 		return -1
 	}
@@ -230,7 +230,7 @@ func (a *Accounts) AddAccount(mailboxPassword string) int {
 		return -1
 	}
 
-	user, err := a.um.FinishLogin(a.authClient, a.auth, mailboxPassword)
+	user, err := a.um.FinishLogin(a.authClient, a.auth, []byte(mailboxPassword))
 	if err != nil {
 		log.WithError(err).Error("Login was unsuccessful")
 		a.qml.SetAddAccountWarning("Failure: "+err.Error(), -2)

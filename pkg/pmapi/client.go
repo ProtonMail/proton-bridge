@@ -84,6 +84,8 @@ func (c *client) r(ctx context.Context) (*resty.Request, error) {
 	return r, nil
 }
 
+// do executes fn and may repeate it in case "401 Unauthorized" error is returned.
+// Note: fn may be called more than once.
 func (c *client) do(ctx context.Context, fn func(*resty.Request) (*resty.Response, error)) (*resty.Response, error) {
 	r, err := c.r(ctx)
 	if err != nil {
@@ -99,6 +101,12 @@ func (c *client) do(ctx context.Context, fn func(*resty.Request) (*resty.Respons
 
 		if !isAuthRefreshDisabled(ctx) {
 			if err := c.authRefresh(ctx); err != nil {
+				return nil, err
+			}
+
+			// We need to reconstruct request since access token is changed with authRefresh.
+			r, err := c.r(ctx)
+			if err != nil {
 				return nil, err
 			}
 

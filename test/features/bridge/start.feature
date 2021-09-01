@@ -1,6 +1,6 @@
 Feature: Start bridge
   Scenario: Start with connected user, database file and internet connection
-    Given there is connected user "user"
+    Given there is user "user" which just logged in
     And there is database file for "user"
     When bridge starts
     Then "user" is connected
@@ -8,7 +8,7 @@ Feature: Start bridge
     And "user" has running event loop
 
   Scenario: Start with connected user, database file and no internet connection
-    Given there is connected user "user"
+    Given there is user "user" which just logged in
     And there is database file for "user"
     And there is no internet connection
     When bridge starts
@@ -17,7 +17,7 @@ Feature: Start bridge
     And "user" has running event loop
 
   Scenario: Start with connected user, no database file and internet connection
-    Given there is connected user "user"
+    Given there is user "user" which just logged in
     And there is no database file for "user"
     When bridge starts
     Then "user" is connected
@@ -25,7 +25,7 @@ Feature: Start bridge
     And "user" has running event loop
 
   Scenario: Start with connected user, no database file and no internet connection
-    Given there is connected user "user"
+    Given there is user "user" which just logged in
     And there is no database file for "user"
     And there is no internet connection
     When bridge starts

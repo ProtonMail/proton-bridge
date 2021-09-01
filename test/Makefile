@@ -1,7 +1,7 @@
 .PHONY: check-go check-godog install-godog test test-bridge test-ie test-live test-live-bridge test-live-ie test-stage test-debug test-live-debug bench
 
 export GO111MODULE=on
-export BRIDGE_VERSION:=1.5.5+integrationtests
+export BRIDGE_VERSION:=1.8.9+integrationtests
 export VERBOSITY?=fatal
 export TEST_DATA=testdata
 export TEST_APP?=bridge

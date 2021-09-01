@@ -14,30 +14,30 @@ import (
 	gomock "github.com/golang/mock/gomock"
 )
 
-// MockFetcher is a mock of Fetcher interface
+// MockFetcher is a mock of Fetcher interface.
 type MockFetcher struct {
 	ctrl     *gomock.Controller
 	recorder *MockFetcherMockRecorder
 }
 
-// MockFetcherMockRecorder is the mock recorder for MockFetcher
+// MockFetcherMockRecorder is the mock recorder for MockFetcher.
 type MockFetcherMockRecorder struct {
 	mock *MockFetcher
 }
 
-// NewMockFetcher creates a new mock instance
+// NewMockFetcher creates a new mock instance.
 func NewMockFetcher(ctrl *gomock.Controller) *MockFetcher {
 	mock := &MockFetcher{ctrl: ctrl}
 	mock.recorder = &MockFetcherMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockFetcher) EXPECT() *MockFetcherMockRecorder {
 	return m.recorder
 }
 
-// GetAttachment mocks base method
+// GetAttachment mocks base method.
 func (m *MockFetcher) GetAttachment(arg0 context.Context, arg1 string) (io.ReadCloser, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetAttachment", arg0, arg1)
@@ -46,13 +46,13 @@ func (m *MockFetcher) GetAttachment(arg0 context.Context, arg1 string) (io.ReadC
 	return ret0, ret1
 }
 
-// GetAttachment indicates an expected call of GetAttachment
+// GetAttachment indicates an expected call of GetAttachment.
 func (mr *MockFetcherMockRecorder) GetAttachment(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAttachment", reflect.TypeOf((*MockFetcher)(nil).GetAttachment), arg0, arg1)
 }
 
-// GetMessage mocks base method
+// GetMessage mocks base method.
 func (m *MockFetcher) GetMessage(arg0 context.Context, arg1 string) (*pmapi.Message, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetMessage", arg0, arg1)
@@ -61,13 +61,13 @@ func (m *MockFetcher) GetMessage(arg0 context.Context, arg1 string) (*pmapi.Mess
 	return ret0, ret1
 }
 
-// GetMessage indicates an expected call of GetMessage
+// GetMessage indicates an expected call of GetMessage.
 func (mr *MockFetcherMockRecorder) GetMessage(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMessage", reflect.TypeOf((*MockFetcher)(nil).GetMessage), arg0, arg1)
 }
 
-// KeyRingForAddressID mocks base method
+// KeyRingForAddressID mocks base method.
 func (m *MockFetcher) KeyRingForAddressID(arg0 string) (*crypto.KeyRing, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "KeyRingForAddressID", arg0)
@@ -76,7 +76,7 @@ func (m *MockFetcher) KeyRingForAddressID(arg0 string) (*crypto.KeyRing, error) 
 	return ret0, ret1
 }
 
-// KeyRingForAddressID indicates an expected call of KeyRingForAddressID
+// KeyRingForAddressID indicates an expected call of KeyRingForAddressID.
 func (mr *MockFetcherMockRecorder) KeyRingForAddressID(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "KeyRingForAddressID", reflect.TypeOf((*MockFetcher)(nil).KeyRingForAddressID), arg0)

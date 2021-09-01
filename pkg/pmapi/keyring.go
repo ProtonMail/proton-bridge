@@ -36,8 +36,8 @@ type PMKey struct {
 	Fingerprint string
 	PrivateKey  *crypto.Key
 	Primary     int
-	Token       *string `json:",omitempty"`
-	Signature   *string `json:",omitempty"`
+	Token       string
+	Signature   string
 }
 
 type clearable []byte
@@ -84,12 +84,12 @@ func (key PMKey) getPassphraseFromToken(kr *crypto.KeyRing) (passphrase []byte, 
 		return nil, errors.New("no user key was provided")
 	}
 
-	msg, err := crypto.NewPGPMessageFromArmored(*key.Token)
+	msg, err := crypto.NewPGPMessageFromArmored(key.Token)
 	if err != nil {
 		return
 	}
 
-	sig, err := crypto.NewPGPSignatureFromArmored(*key.Signature)
+	sig, err := crypto.NewPGPSignatureFromArmored(key.Signature)
 	if err != nil {
 		return
 	}
@@ -137,7 +137,7 @@ func (keys *PMKeys) UnlockAll(passphrase []byte, userKey *crypto.KeyRing) (kr *c
 	for _, key := range *keys {
 		var secret []byte
 
-		if key.Token == nil || key.Signature == nil {
+		if key.Token == "" || key.Signature == "" {
 			secret = passphrase
 		} else if secret, err = key.getPassphraseFromToken(userKey); err != nil {
 			return
@@ -165,10 +165,6 @@ func (keys *PMKeys) UnlockAll(passphrase []byte, userKey *crypto.KeyRing) (kr *c
 
 // ErrNoKeyringAvailable represents an error caused by a keyring being nil or having no entities.
 var ErrNoKeyringAvailable = errors.New("no keyring available")
-
-func (c *client) encrypt(plain string, signer *crypto.KeyRing) (armored string, err error) {
-	return encrypt(c.userKeyRing, plain, signer)
-}
 
 func encrypt(encrypter *crypto.KeyRing, plain string, signer *crypto.KeyRing) (armored string, err error) {
 	if encrypter == nil {
@@ -207,18 +203,6 @@ func decrypt(decrypter *crypto.KeyRing, armored string) (plainBody []byte, err e
 		return
 	}
 	return plainMessage.GetBinary(), nil
-}
-
-func (c *client) sign(plain string) (armoredSignature string, err error) {
-	if c.userKeyRing == nil {
-		return "", ErrNoKeyringAvailable
-	}
-	plainMessage := crypto.NewPlainMessageFromString(plain)
-	pgpSignature, err := c.userKeyRing.SignDetached(plainMessage)
-	if err != nil {
-		return
-	}
-	return pgpSignature.GetArmored()
 }
 
 func (c *client) verify(plain, amroredSignature string) (err error) {

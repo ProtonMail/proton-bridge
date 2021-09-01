@@ -33,6 +33,7 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/text/encoding/htmlindex"
 )
 
 func newTestFetcher(
@@ -66,6 +67,10 @@ func newTestMessage(
 	arm, err := enc.GetArmored()
 	require.NoError(t, err)
 
+	return newRawTestMessage(messageID, addressID, mimeType, arm, date)
+}
+
+func newRawTestMessage(messageID, addressID, mimeType, body string, date time.Time) *pmapi.Message {
 	return &pmapi.Message{
 		ID:        messageID,
 		AddressID: addressID,
@@ -74,7 +79,7 @@ func newTestMessage(
 			"Content-Type": {mimeType},
 			"Date":         {date.In(time.UTC).Format(time.RFC1123Z)},
 		},
-		Body: arm,
+		Body: body,
 		Time: date.Unix(),
 	}
 }
@@ -133,7 +138,7 @@ func section(t *testing.T, b []byte, section ...int) *testSection {
 	bs, err := NewBodyStructure(bytes.NewReader(b))
 	require.NoError(t, err)
 
-	raw, err := bs.GetSection(bytes.NewReader(b), append([]int{}, section...))
+	raw, err := bs.GetSection(bytes.NewReader(b), section)
 	require.NoError(t, err)
 
 	return &testSection{
@@ -296,6 +301,25 @@ func (matcher decryptsToMatcher) match(t *testing.T, have string) {
 
 func decryptsTo(kr *crypto.KeyRing, want string) decryptsToMatcher {
 	return decryptsToMatcher{kr: kr, want: want}
+}
+
+type decodesToMatcher struct {
+	charset string
+	want    string
+}
+
+func (matcher decodesToMatcher) match(t *testing.T, have string) {
+	enc, err := htmlindex.Get(matcher.charset)
+	require.NoError(t, err)
+
+	dec, err := enc.NewDecoder().String(have)
+	require.NoError(t, err)
+
+	assert.Equal(t, matcher.want, dec)
+}
+
+func decodesTo(charset string, want string) decodesToMatcher {
+	return decodesToMatcher{charset: charset, want: want}
 }
 
 type verifiesAgainstMatcher struct {

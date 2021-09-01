@@ -84,7 +84,7 @@ func TestNewUsersWithConnectedUserWithBadToken(t *testing.T) {
 	m.clientManager.EXPECT().NewClient("uid", "", "acc", time.Time{}).Return(m.pmapiClient)
 	m.pmapiClient.EXPECT().AddAuthRefreshHandler(gomock.Any())
 	m.pmapiClient.EXPECT().IsUnlocked().Return(false)
-	m.pmapiClient.EXPECT().Unlock(gomock.Any(), []byte(testCredentials.MailboxPassword)).Return(errors.New("not authorized"))
+	m.pmapiClient.EXPECT().Unlock(gomock.Any(), testCredentials.MailboxPassword).Return(errors.New("not authorized"))
 	m.pmapiClient.EXPECT().AuthDelete(gomock.Any())
 
 	m.credentialsStore.EXPECT().List().Return([]string{"user"}, nil)

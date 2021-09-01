@@ -48,7 +48,7 @@ func dumpMessageData(b []byte, subject string) {
 	}
 
 	if err := ioutil.WriteFile(
-		filepath.Join(path, fmt.Sprintf("%v-%v.eml", subject, time.Now().Format(time.RFC3339Nano))),
+		filepath.Join(path, fmt.Sprintf("%v-%v.eml", subject, time.Now().Unix())),
 		b,
 		0600,
 	); err != nil {

@@ -1,24 +1,25 @@
 module github.com/ProtonMail/proton-bridge
 
-go 1.13
+go 1.15
 
 // These dependencies are `replace`d below, so the version numbers should be ignored.
 // They are in a separate require block to highlight this.
 require (
 	github.com/docker/docker-credential-helpers v0.6.3
 	github.com/emersion/go-imap v1.0.6
-	github.com/jameskeane/bcrypt v0.0.0-20170924085257-7509ea014998
-	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
+	github.com/jameskeane/bcrypt v0.0.0-20170924085257-7509ea014998 // indirect
 )
 
 require (
 	github.com/0xAX/notificator v0.0.0-20191016112426-3962a5ea8da1
 	github.com/Masterminds/semver/v3 v3.1.0
 	github.com/ProtonMail/go-autostart v0.0.0-20181114175602-c5272053443a
+	github.com/ProtonMail/go-crypto v0.0.0-20210428141323-04723f9f07d7
 	github.com/ProtonMail/go-imap-id v0.0.0-20190926060100-f94a56b9ecde
-	github.com/ProtonMail/go-rfc5322 v0.5.0
+	github.com/ProtonMail/go-rfc5322 v0.8.0
+	github.com/ProtonMail/go-srp v0.0.0-20210514134713-bd9454f3fa01
 	github.com/ProtonMail/go-vcard v0.0.0-20180326232728-33aaa0a0c8a5
-	github.com/ProtonMail/gopenpgp/v2 v2.1.3
+	github.com/ProtonMail/gopenpgp/v2 v2.1.10
 	github.com/PuerkitoBio/goquery v1.5.1
 	github.com/abiosoft/ishell v2.0.0+incompatible
 	github.com/abiosoft/readline v0.0.0-20180607040430-155bce2042db // indirect
@@ -27,7 +28,6 @@ require (
 	github.com/chzyer/test v0.0.0-20180213035817-a1ea475d72b1 // indirect
 	github.com/cucumber/godog v0.8.1
 	github.com/emersion/go-imap-appendlimit v0.0.0-20190308131241-25671c986a6a
-	github.com/emersion/go-imap-idle v0.0.0-20200601154248-f05f54664cc4
 	github.com/emersion/go-imap-move v0.0.0-20190710073258-6e5a51a5b342
 	github.com/emersion/go-imap-quota v0.0.0-20210203125329-619074823f3c
 	github.com/emersion/go-imap-unselect v0.0.0-20171113212723-b985794e5f26
@@ -64,13 +64,15 @@ require (
 	github.com/urfave/cli/v2 v2.2.0
 	github.com/vmihailenco/msgpack/v5 v5.1.3
 	go.etcd.io/bbolt v1.3.5
+	golang.org/x/crypto v0.0.0-20210322153248-0c34fe9e7dc2
 	golang.org/x/net v0.0.0-20210405180319-a5a99cb37ef4
 	golang.org/x/text v0.3.5-0.20201125200606-c27b9fd57aec
+
 )
 
 replace (
 	github.com/docker/docker-credential-helpers => github.com/ProtonMail/docker-credential-helpers v1.1.0
 	github.com/emersion/go-imap => github.com/ProtonMail/go-imap v0.0.0-20201228133358-4db68cea0cac
-	github.com/jameskeane/bcrypt => github.com/ProtonMail/bcrypt v0.0.0-20170924085257-7509ea014998
-	golang.org/x/crypto => github.com/ProtonMail/crypto v0.0.0-20201112115411-41db4ea0dd1c
+	github.com/emersion/go-message => github.com/ProtonMail/go-message v0.0.0-20210611055058-fabeff2ec753
+	github.com/jameskeane/bcrypt => github.com/ProtonMail/bcrypt v0.0.0-20210511135022-227b4adcab57
 )

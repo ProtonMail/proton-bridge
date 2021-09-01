@@ -75,5 +75,10 @@ func (api *FakePMAPI) CreateAttachment(_ context.Context, attachment *pmapi.Atta
 		return nil, err
 	}
 	attachment.KeyPackets = base64.StdEncoding.EncodeToString(bytes)
+	msg := api.getMessage(attachment.MessageID)
+	if msg == nil {
+		return nil, fmt.Errorf("no such message ID %q", attachment.MessageID)
+	}
+	msg.Attachments = append(msg.Attachments, attachment)
 	return attachment, nil
 }

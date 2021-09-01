@@ -24,9 +24,10 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/ProtonMail/go-srp"
 	"github.com/ProtonMail/proton-bridge/internal/store"
 	"github.com/ProtonMail/proton-bridge/internal/users"
-	"github.com/ProtonMail/proton-bridge/pkg/srp"
+	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 )
@@ -37,7 +38,7 @@ func (ctx *TestContext) GetUsers() *users.Users {
 }
 
 // LoginUser logs in the user with the given username, password, and mailbox password.
-func (ctx *TestContext) LoginUser(username, password, mailboxPassword string) error {
+func (ctx *TestContext) LoginUser(username string, password, mailboxPassword []byte) error {
 	srp.RandReader = rand.New(rand.NewSource(42)) //nolint[gosec] It is OK to use weaker random number generator here
 
 	client, auth, err := ctx.users.Login(username, password)
@@ -52,6 +53,27 @@ func (ctx *TestContext) LoginUser(username, password, mailboxPassword string) er
 	}
 
 	user, err := ctx.users.FinishLogin(client, auth, mailboxPassword)
+	if err != nil {
+		return errors.Wrap(err, "failed to finish login")
+	}
+
+	ctx.addCleanupChecked(user.Logout, "Logging out user")
+
+	return nil
+}
+
+// FinishLogin prevents authentication if not necessary.
+func (ctx *TestContext) FinishLogin(client pmapi.Client, mailboxPassword []byte) error {
+	type currentAuthGetter interface {
+		GetCurrentAuth() *pmapi.Auth
+	}
+
+	c, ok := client.(currentAuthGetter)
+	if c == nil || !ok {
+		return errors.New("cannot get current auth tokens from client")
+	}
+
+	user, err := ctx.users.FinishLogin(client, c.GetCurrentAuth(), mailboxPassword)
 	if err != nil {
 		return errors.Wrap(err, "failed to finish login")
 	}

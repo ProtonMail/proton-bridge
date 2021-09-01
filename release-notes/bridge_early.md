@@ -1,3 +1,84 @@
+## v1.8.9
+- 2021-09-01
+
+### Fixed
+
+- Fixed an issues with incorrect handling of 401 server error leading to random Bridge logouts
+- Changed encoding of message/rfc822 - to better handle sending of the .msg files
+- Fixed crash within RFC822 builder for invalid or empty headers
+- Fixed crash within RFC822 builder for header with key length > 76 chars
+
+
+## v1.8.7
+- 2021-06-22
+
+### New
+
+- Updated crypto-libraries to gopenpgp/v2 v2.1.10
+
+### Fixed
+
+- Fixed IMAP/SMTP restart in Bridge to mitigate connection issues
+- Fixed unknown charset error for 'combined' messages
+- Implemented a long-term fix for 'invalid or missing message signature' error
+
+
+## v1.8.5
+- 2021-06-11
+
+### New
+
+- Updated golang Secure Remote Password Protocol
+- Updated crypto-libraries to gopenpgp/v2 v2.1.9
+- Implemented new message parser (for imports from external accounts)
+
+### Fixed
+
+- Bridge not to strip PGP signatures of incoming clear text messages
+- Import of messages with malformed MIME header
+- Improved parsing of message headers
+- Fetching bodies of non-multipart messages
+- Sync and performance improvements
+
+
+## v1.8.3
+- 2021-05-27
+
+### Fixed
+
+- A bug with sending encrypted emails to external contacts 
+
+
+## v1.8.2
+- 2021-05-21
+
+### Fixed
+
+- Hotfix for error during bug reporting
+
+
+## v1.8.1
+- 2021-05-19
+
+### Fixed
+
+- Hotfix for crash when listing empty folder
+
+
+## v1.8.0
+- 2021-05-10
+
+### New
+
+- Implemented connection manager to improve performance during weak connection, better handling of connection loss and other connectivity issues
+- Prompt profile installation during Apple Mail auto-configuration on MacOS Big Sur
+
+### Fixed
+
+- Bugs with building of message bodies/headers
+- Incorrect naming format of some of the attachments 
+
+
 ## v1.7.1
 - 2021-04-27
 

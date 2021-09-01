@@ -64,29 +64,6 @@ var errVerificationFailed = errors.New("signature verification failed")
 
 // ================= Public utility functions ======================
 
-func (c *client) EncryptAndSignCards(cards []Card) ([]Card, error) {
-	var err error
-	for i := range cards {
-		card := &cards[i]
-		if isEncryptedCardType(card.Type) {
-			if isSignedCardType(card.Type) {
-				if card.Signature, err = c.sign(card.Data); err != nil {
-					return nil, err
-				}
-			}
-
-			if card.Data, err = c.encrypt(card.Data, nil); err != nil {
-				return nil, err
-			}
-		} else if isSignedCardType(card.Type) {
-			if card.Signature, err = c.sign(card.Data); err != nil {
-				return nil, err
-			}
-		}
-	}
-	return cards, nil
-}
-
 func (c *client) DecryptAndVerifyCards(cards []Card) ([]Card, error) {
 	for i := range cards {
 		card := &cards[i]

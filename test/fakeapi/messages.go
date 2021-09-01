@@ -34,10 +34,8 @@ func (api *FakePMAPI) GetMessage(_ context.Context, apiID string) (*pmapi.Messag
 	if err := api.checkAndRecordCall(GET, "/mail/v4/messages/"+apiID, nil); err != nil {
 		return nil, err
 	}
-	for _, message := range api.messages {
-		if message.ID == apiID {
-			return message, nil
-		}
+	if msg := api.getMessage(apiID); msg != nil {
+		return msg, nil
 	}
 	return nil, fmt.Errorf("message %s not found", apiID)
 }
@@ -175,8 +173,8 @@ func (api *FakePMAPI) SendMessage(ctx context.Context, messageID string, sendMes
 	if err := api.checkAndRecordCall(POST, "/mail/v4/messages/"+messageID, sendMessageRequest); err != nil {
 		return nil, nil, err
 	}
-	message, err := api.GetMessage(ctx, messageID)
-	if err != nil {
+	message := api.getMessage(messageID)
+	if message == nil {
 		return nil, nil, errors.Wrap(err, "draft does not exist")
 	}
 	message.Time = time.Now().Unix()
@@ -270,6 +268,15 @@ func (api *FakePMAPI) findMessage(newMsg *pmapi.Message) *pmapi.Message {
 		if !msg.IsDraft() &&
 			msg.Subject == newMsg.Subject &&
 			msg.ExternalID == newMsg.ExternalID {
+			return msg
+		}
+	}
+	return nil
+}
+
+func (api *FakePMAPI) getMessage(msgID string) *pmapi.Message {
+	for _, msg := range api.messages {
+		if msg.ID == msgID {
 			return msg
 		}
 	}

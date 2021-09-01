@@ -21,43 +21,42 @@ import (
 	"context"
 
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
+	"github.com/ProtonMail/proton-bridge/test/accounts"
 	"github.com/cucumber/godog"
 	"github.com/pkg/errors"
 )
 
-func (ctl *Controller) AddUser(user *pmapi.User, addresses *pmapi.AddressList, password string, twoFAEnabled bool) error {
-	if twoFAEnabled {
+func (ctl *Controller) AddUser(account *accounts.TestAccount) error {
+	if account.IsTwoFAEnabled() {
 		return godog.ErrPending
 	}
 
-	client, _, err := ctl.clientManager.NewClientWithLogin(context.Background(), user.Name, password)
+	client, err := addPersistentClient(account.User().Name, account.Password(), account.MailboxPassword())
 	if err != nil {
-		return errors.Wrap(err, "failed to create new client")
+		return errors.Wrap(err, "failed to add persistent client")
 	}
 
-	salt, err := client.AuthSalt(context.Background())
-	if err != nil {
-		return errors.Wrap(err, "failed to get salt")
-	}
-
-	mailboxPassword, err := pmapi.HashMailboxPassword(password, salt)
-	if err != nil {
-		return errors.Wrap(err, "failed to hash mailbox password")
-	}
-
-	if err := client.Unlock(context.Background(), mailboxPassword); err != nil {
-		return errors.Wrap(err, "failed to unlock user")
-	}
-
-	if err := cleanup(client, addresses); err != nil {
+	if err := cleanup(client, account.Addresses()); err != nil {
 		return errors.Wrap(err, "failed to clean user")
 	}
-
-	ctl.pmapiByUsername[user.Name] = client
 
 	return nil
 }
 
 func (ctl *Controller) ReorderAddresses(user *pmapi.User, addressIDs []string) error {
-	return ctl.pmapiByUsername[user.Name].ReorderAddresses(context.Background(), addressIDs)
+	client, err := getPersistentClient(user.Name)
+	if err != nil {
+		return err
+	}
+	return client.ReorderAddresses(context.Background(), addressIDs)
+}
+
+func (ctl *Controller) GetAuthClient(username string) pmapi.Client {
+	client, err := getPersistentClient(username)
+	if err != nil {
+		ctl.log.WithError(err).
+			WithField("username", username).
+			Fatal("Cannot get authenticated client")
+	}
+	return client
 }

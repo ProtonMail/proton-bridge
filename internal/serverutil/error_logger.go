@@ -15,29 +15,25 @@
 // You should have received a copy of the GNU General Public License
 // along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
 
-package smtp
+package serverutil
 
 import (
-	"testing"
-
-	"github.com/ProtonMail/proton-bridge/internal/serverutil/mocks"
-
-	"github.com/stretchr/testify/require"
+	"github.com/sirupsen/logrus"
 )
 
-func TestSMTPServerTurnOffAndOnAgain(t *testing.T) {
-	r := require.New(t)
-	ts := mocks.NewTestServer(12342)
+// ServerErrorLogger implements go-imap/logger interface.
+type ServerErrorLogger struct {
+	l *logrus.Entry
+}
 
-	s := &Server{
-		panicHandler:  ts.PanicHandler,
-		port:          ts.WantPort,
-		eventListener: ts.EventListener,
-	}
-	s.isRunning.Store(false)
+func NewServerErrorLogger(protocol Protocol) *ServerErrorLogger {
+	return &ServerErrorLogger{l: logrus.WithField("protocol", protocol)}
+}
 
-	r.True(ts.IsPortFree())
+func (s *ServerErrorLogger) Printf(format string, args ...interface{}) {
+	s.l.Errorf(format, args...)
+}
 
-	go s.ListenAndServe()
-	ts.RunServerTests(r)
+func (s *ServerErrorLogger) Println(args ...interface{}) {
+	s.l.Errorln(args...)
 }
