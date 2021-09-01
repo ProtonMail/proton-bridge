@@ -1,3 +1,24 @@
+## v1.8.7
+- 2021-06-24
+
+### New
+
+- Updated golang Secure Remote Password Protocol
+- Updated crypto-libraries to gopenpgp/v2 v2.1.10
+- Implemented new message parser (for imports from external accounts)
+
+### Fixed
+
+- Fixed IMAP/SMTP restart in Bridge to mitigate connection issues
+- Fixed unknown charset error for 'combined' messages
+- Implemented a long-term fix for 'invalid or missing message signature' error
+- Bridge not to strip PGP signatures of incoming clear text messages
+- Import of messages with malformed MIME header
+- Improved parsing of message headers
+- Fetching bodies of non-multipart messages
+- Sync and performance improvements
+
+
 ## v1.8.3
 - 2021-05-27
 

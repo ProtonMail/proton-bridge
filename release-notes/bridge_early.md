@@ -1,9 +1,34 @@
+## v1.8.9
+- 2021-09-01
+
+### Fixed
+
+- Fixed an issues with incorrect handling of 401 server error leading to random Bridge logouts
+- Changed encoding of message/rfc822 - to better handle sending of the .msg files
+- Fixed crash within RFC822 builder for invalid or empty headers
+- Fixed crash within RFC822 builder for header with key length > 76 chars
+
+
+## v1.8.7
+- 2021-06-22
+
+### New
+
+- Updated crypto-libraries to gopenpgp/v2 v2.1.10
+
+### Fixed
+
+- Fixed IMAP/SMTP restart in Bridge to mitigate connection issues
+- Fixed unknown charset error for 'combined' messages
+- Implemented a long-term fix for 'invalid or missing message signature' error
+
+
 ## v1.8.5
 - 2021-06-11
 
 ### New
 
-- Implemented golang Secure Remote Password Protocol
+- Updated golang Secure Remote Password Protocol
 - Updated crypto-libraries to gopenpgp/v2 v2.1.9
 - Implemented new message parser (for imports from external accounts)
 
