@@ -22,6 +22,7 @@ import (
 	"sync"
 
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
+	"github.com/ProtonMail/proton-bridge/test/context/calls"
 	"github.com/sirupsen/logrus"
 )
 
@@ -30,7 +31,7 @@ type Controller struct {
 	log *logrus.Entry
 	// Internal states.
 	lock                 *sync.RWMutex
-	calls                []*fakeCall
+	calls                calls.Calls
 	messageIDsByUsername map[string][]string
 
 	// State controlled by test.
@@ -41,7 +42,7 @@ func NewController(_ string) (*Controller, pmapi.Manager) {
 	controller := &Controller{
 		log:                  logrus.WithField("pkg", "live-controller"),
 		lock:                 &sync.RWMutex{},
-		calls:                []*fakeCall{},
+		calls:                calls.Calls{},
 		messageIDsByUsername: map[string][]string{},
 
 		noInternetConnection: false,

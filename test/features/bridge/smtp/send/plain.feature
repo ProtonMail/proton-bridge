@@ -256,3 +256,69 @@ Feature: SMTP sending of plain messages
         }
       }
       """
+
+  Scenario: RCPT does not contain all CC
+    When SMTP client sends "MAIL FROM:<[userAddress]>"
+    Then SMTP response is "OK"
+    When SMTP client sends "RCPT TO:<bridgetest@protonmail.com>"
+    Then SMTP response is "OK"
+    When SMTP client sends "DATA"
+    Then SMTP response is "OK"
+    When SMTP client sends 
+      """
+      From: Bridge Test <[userAddress]>
+      To: Internal Bridge <bridgetest@protonmail.com>
+      CC: Internal Bridge 2 <bridgetest2@protonmail.com>
+      Content-Type: text/plain
+      Subject: RCPT-CC test
+
+      This is CC missing in RCPT test. Have a nice day!
+.
+      """
+    Then SMTP response is "OK"
+    And mailbox "Sent" for "user" has messages
+      | from          | to                        | cc                         | subject      |
+      | [userAddress] | bridgetest@protonmail.com | bridgetest2@protonmail.com | RCPT-CC test |
+    And message is sent with API call
+      """
+      {
+        "Message": {
+          "Subject": "RCPT-CC test",
+          "Sender": {
+            "Name": "Bridge Test"
+          },
+          "ToList": [
+            {
+              "Address": "bridgetest@protonmail.com",
+              "Name": "Internal Bridge"
+            }
+          ],
+          "CCList": [
+            {
+              "Address": "bridgetest2@protonmail.com",
+              "Name": "Internal Bridge 2"
+            }
+          ],
+          "BCCList": []
+        }
+      }
+      """
+    And packages are sent with API call
+      """
+      {
+        "Packages":[
+            {
+              "Addresses":{
+                  "bridgetest@protonmail.com":{
+                    "Type":1
+                  },
+                  "bridgetest2@protonmail.com":{
+                    "Type":1
+                  }
+              },
+              "Type":1,
+              "MIMEType":"text/plain"
+            }
+        ]
+      }
+      """

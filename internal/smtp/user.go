@@ -362,7 +362,8 @@ func (su *smtpUser) Send(returnPath string, to []string, messageReader io.Reader
 	req := pmapi.NewSendMessageReq(kr, mimeBody, plainBody, richBody, attkeys)
 	containsUnencryptedRecipients := false
 
-	for _, email := range to {
+	for _, recipient := range message.Recipients() {
+		email := recipient.Address
 		if !looksLikeEmail(email) {
 			return errors.New(`"` + email + `" is not a valid recipient.`)
 		}

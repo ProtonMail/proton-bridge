@@ -37,6 +37,7 @@ func APIChecksFeatureContext(s *godog.Suite) {
 	s.Step(`^API endpoint "([^"]*)" is not called$`, apiIsNotCalled)
 	s.Step(`^API endpoint "([^"]*)" is not called with$`, apiIsNotCalledWith)
 	s.Step(`^message is sent with API call$`, messageIsSentWithAPICall)
+	s.Step(`^packages are sent with API call$`, packagesAreSentWithAPICall)
 	s.Step(`^API mailbox "([^"]*)" for "([^"]*)" has (\d+) message(?:s)?$`, apiMailboxForUserHasNumberOfMessages)
 	s.Step(`^API mailbox "([^"]*)" for address "([^"]*)" of "([^"]*)" has (\d+) message(?:s)?$`, apiMailboxForAddressOfUserHasNumberOfMessages)
 	s.Step(`^API mailbox "([^"]*)" for "([^"]*)" has messages$`, apiMailboxForUserHasMessages)
@@ -53,6 +54,17 @@ func apiIsCalled(endpoint string) error {
 
 func apiIsCalledWith(endpoint string, data *gherkin.DocString) error {
 	if !apiIsCalledWithHelper(endpoint, data.Content) {
+		return fmt.Errorf("%s was not called with %s", endpoint, data.Content)
+	}
+	return nil
+}
+
+func apiIsCalledWithRegex(endpoint string, data *gherkin.DocString) error {
+	match, err := apiIsCalledWithHelperRegex(endpoint, data.Content)
+	if err != nil {
+		return err
+	}
+	if !match {
 		return fmt.Errorf("%s was not called with %s", endpoint, data.Content)
 	}
 	return nil
@@ -80,9 +92,31 @@ func apiIsCalledWithHelper(endpoint string, content string) bool {
 	return ctx.GetPMAPIController().WasCalled(method, path, request)
 }
 
+func apiIsCalledWithHelperRegex(endpoint string, content string) (bool, error) {
+	split := strings.Split(endpoint, " ")
+	method := split[0]
+	path := split[1]
+	request := []byte(content)
+	return ctx.GetPMAPIController().WasCalledRegex(method, path, request)
+}
+
 func messageIsSentWithAPICall(data *gherkin.DocString) error {
 	endpoint := "POST /mail/v4/messages"
 	if err := apiIsCalledWith(endpoint, data); err != nil {
+		return err
+	}
+	for _, request := range ctx.GetPMAPIController().GetCalls("POST", "/mail/v4/messages") {
+		if !checkAllRequiredFieldsForSendingMessage(request) {
+			return fmt.Errorf("%s was not called with all required fields: %s", endpoint, request)
+		}
+	}
+
+	return nil
+}
+
+func packagesAreSentWithAPICall(data *gherkin.DocString) error {
+	endpoint := "POST /mail/v4/messages/.+$"
+	if err := apiIsCalledWithRegex(endpoint, data); err != nil {
 		return err
 	}
 	for _, request := range ctx.GetPMAPIController().GetCalls("POST", "/mail/v4/messages") {

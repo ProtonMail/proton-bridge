@@ -40,6 +40,7 @@ type PMAPIController interface {
 	ReorderAddresses(user *pmapi.User, addressIDs []string) error
 	PrintCalls()
 	WasCalled(method, path string, expectedRequest []byte) bool
+	WasCalledRegex(methodRegex, pathRegex string, expectedRequest []byte) (bool, error)
 	GetCalls(method, path string) [][]byte
 }
 

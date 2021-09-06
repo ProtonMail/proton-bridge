@@ -429,6 +429,14 @@ func (m *Message) Has(flag int64) bool {
 	return (m.Flags & flag) == flag
 }
 
+func (m *Message) Recipients() []*mail.Address {
+	var recipients []*mail.Address
+	recipients = append(recipients, m.ToList...)
+	recipients = append(recipients, m.CCList...)
+	recipients = append(recipients, m.BCCList...)
+	return recipients
+}
+
 // MessagesCount contains message counts for one label.
 type MessagesCount struct {
 	LabelID string
