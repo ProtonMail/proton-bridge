@@ -23,10 +23,9 @@ import (
 
 	"github.com/ProtonMail/proton-bridge/internal/transfer"
 	"github.com/cucumber/godog"
-	"github.com/cucumber/godog/gherkin"
 )
 
-func TransferActionsFeatureContext(s *godog.Suite) {
+func TransferActionsFeatureContext(s *godog.ScenarioContext) {
 	s.Step(`^user "([^"]*)" imports local files$`, userImportsLocalFiles)
 	s.Step(`^user "([^"]*)" imports local files with rules$`, userImportsLocalFilesWithRules)
 	s.Step(`^user "([^"]*)" imports local files to address "([^"]*)"$`, userImportsLocalFilesToAddress)
@@ -51,7 +50,7 @@ func userImportsLocalFiles(bddUserID string) error {
 	return userImportsLocalFilesToAddressWithRules(bddUserID, "", nil)
 }
 
-func userImportsLocalFilesWithRules(bddUserID string, rules *gherkin.DataTable) error {
+func userImportsLocalFilesWithRules(bddUserID string, rules *godog.Table) error {
 	return userImportsLocalFilesToAddressWithRules(bddUserID, "", rules)
 }
 
@@ -59,7 +58,7 @@ func userImportsLocalFilesToAddress(bddUserID, bddAddressID string) error {
 	return userImportsLocalFilesToAddressWithRules(bddUserID, bddAddressID, nil)
 }
 
-func userImportsLocalFilesToAddressWithRules(bddUserID, bddAddressID string, rules *gherkin.DataTable) error {
+func userImportsLocalFilesToAddressWithRules(bddUserID, bddAddressID string, rules *godog.Table) error {
 	return doTransfer(bddUserID, bddAddressID, rules, func(username, address string) (*transfer.Transfer, error) {
 		path := ctx.GetTransferLocalRootForImport()
 		return ctx.GetImportExport().GetLocalImporter(username, address, path)
@@ -72,7 +71,7 @@ func userImportsRemoteMessages(bddUserID string) error {
 	return userImportsRemoteMessagesToAddressWithRules(bddUserID, "", nil)
 }
 
-func userImportsRemoteMessagesWithRules(bddUserID string, rules *gherkin.DataTable) error {
+func userImportsRemoteMessagesWithRules(bddUserID string, rules *godog.Table) error {
 	return userImportsRemoteMessagesToAddressWithRules(bddUserID, "", rules)
 }
 
@@ -80,7 +79,7 @@ func userImportsRemoteMessagesToAddress(bddUserID, bddAddressID string) error {
 	return userImportsRemoteMessagesToAddressWithRules(bddUserID, bddAddressID, nil)
 }
 
-func userImportsRemoteMessagesToAddressWithRules(bddUserID, bddAddressID string, rules *gherkin.DataTable) error {
+func userImportsRemoteMessagesToAddressWithRules(bddUserID, bddAddressID string, rules *godog.Table) error {
 	return doTransfer(bddUserID, bddAddressID, rules, func(username, address string) (*transfer.Transfer, error) {
 		imapServer := ctx.GetTransferRemoteIMAPServer()
 		return ctx.GetImportExport().GetRemoteImporter(username, address, imapServer.Username, imapServer.Password, imapServer.Host, imapServer.Port)
@@ -93,7 +92,7 @@ func userExportsToEMLFiles(bddUserID string) error {
 	return userExportsAddressToEMLFilesWithRules(bddUserID, "", nil)
 }
 
-func userExportsToEMLFilesWithRules(bddUserID string, rules *gherkin.DataTable) error {
+func userExportsToEMLFilesWithRules(bddUserID string, rules *godog.Table) error {
 	return userExportsAddressToEMLFilesWithRules(bddUserID, "", rules)
 }
 
@@ -101,7 +100,7 @@ func userExportsAddressToEMLFiles(bddUserID, bddAddressID string) error {
 	return userExportsAddressToEMLFilesWithRules(bddUserID, bddAddressID, nil)
 }
 
-func userExportsAddressToEMLFilesWithRules(bddUserID, bddAddressID string, rules *gherkin.DataTable) error {
+func userExportsAddressToEMLFilesWithRules(bddUserID, bddAddressID string, rules *godog.Table) error {
 	return doTransfer(bddUserID, bddAddressID, rules, func(username, address string) (*transfer.Transfer, error) {
 		path := ctx.GetTransferLocalRootForExport()
 		return ctx.GetImportExport().GetEMLExporter(username, address, path)
@@ -114,7 +113,7 @@ func userExportsToMBOXFiles(bddUserID string) error {
 	return userExportsAddressToMBOXFilesWithRules(bddUserID, "", nil)
 }
 
-func userExportsToMBOXFilesWithRules(bddUserID string, rules *gherkin.DataTable) error {
+func userExportsToMBOXFilesWithRules(bddUserID string, rules *godog.Table) error {
 	return userExportsAddressToMBOXFilesWithRules(bddUserID, "", rules)
 }
 
@@ -122,7 +121,7 @@ func userExportsAddressToMBOXFiles(bddUserID, bddAddressID string) error {
 	return userExportsAddressToMBOXFilesWithRules(bddUserID, bddAddressID, nil)
 }
 
-func userExportsAddressToMBOXFilesWithRules(bddUserID, bddAddressID string, rules *gherkin.DataTable) error {
+func userExportsAddressToMBOXFilesWithRules(bddUserID, bddAddressID string, rules *godog.Table) error {
 	return doTransfer(bddUserID, bddAddressID, rules, func(username, address string) (*transfer.Transfer, error) {
 		path := ctx.GetTransferLocalRootForExport()
 		return ctx.GetImportExport().GetMBOXExporter(username, address, path)
@@ -131,7 +130,7 @@ func userExportsAddressToMBOXFilesWithRules(bddUserID, bddAddressID string, rule
 
 // Helpers.
 
-func doTransfer(bddUserID, bddAddressID string, rules *gherkin.DataTable, getTransferrer func(string, string) (*transfer.Transfer, error)) error {
+func doTransfer(bddUserID, bddAddressID string, rules *godog.Table, getTransferrer func(string, string) (*transfer.Transfer, error)) error {
 	account := ctx.GetTestAccountWithAddress(bddUserID, bddAddressID)
 	if account == nil {
 		return godog.ErrPending
@@ -149,7 +148,7 @@ func doTransfer(bddUserID, bddAddressID string, rules *gherkin.DataTable, getTra
 	return nil
 }
 
-func setRules(transferrer *transfer.Transfer, rules *gherkin.DataTable) error {
+func setRules(transferrer *transfer.Transfer, rules *godog.Table) error {
 	if rules == nil {
 		return nil
 	}

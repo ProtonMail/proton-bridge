@@ -24,7 +24,7 @@ import (
 	a "github.com/stretchr/testify/assert"
 )
 
-func UsersChecksFeatureContext(s *godog.Suite) {
+func UsersChecksFeatureContext(s *godog.ScenarioContext) {
 	s.Step(`^"([^"]*)" has address mode in "([^"]*)" mode$`, userHasAddressModeInMode)
 	s.Step(`^"([^"]*)" is disconnected$`, userIsDisconnected)
 	s.Step(`^"([^"]*)" is connected$`, userIsConnected)

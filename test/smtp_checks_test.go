@@ -21,7 +21,7 @@ import (
 	"github.com/cucumber/godog"
 )
 
-func SMTPChecksFeatureContext(s *godog.Suite) {
+func SMTPChecksFeatureContext(s *godog.ScenarioContext) {
 	s.Step(`^SMTP response is "([^"]*)"$`, smtpResponseIs)
 	s.Step(`^SMTP response to "([^"]*)" is "([^"]*)"$`, smtpResponseNamedIs)
 	s.Step(`^SMTP client is logged out`, smtpClientIsLoggedOut)

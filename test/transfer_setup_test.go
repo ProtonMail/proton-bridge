@@ -28,12 +28,12 @@ import (
 
 	"github.com/ProtonMail/proton-bridge/pkg/message"
 	"github.com/cucumber/godog"
-	"github.com/cucumber/godog/gherkin"
+	"github.com/cucumber/messages-go/v16"
 	"github.com/emersion/go-imap"
 	"github.com/emersion/go-mbox"
 )
 
-func TransferSetupFeatureContext(s *godog.Suite) {
+func TransferSetupFeatureContext(s *godog.ScenarioContext) {
 	s.Step(`^there are EML files$`, thereAreEMLFiles)
 	s.Step(`^there is EML file "([^"]*)"$`, thereIsEMLFile)
 	s.Step(`^there is MBOX file "([^"]*)" with messages$`, thereIsMBOXFileWithMessages)
@@ -44,7 +44,7 @@ func TransferSetupFeatureContext(s *godog.Suite) {
 	s.Step(`^there is skip encrypted messages set to "([^"]*)"$`, thereIsSkipEncryptedMessagesSetTo)
 }
 
-func thereAreEMLFiles(messages *gherkin.DataTable) error {
+func thereAreEMLFiles(messages *godog.Table) error {
 	head := messages.Rows[0].Cells
 	for _, row := range messages.Rows[1:] {
 		fileName := ""
@@ -66,11 +66,11 @@ func thereAreEMLFiles(messages *gherkin.DataTable) error {
 	return nil
 }
 
-func thereIsEMLFile(fileName string, message *gherkin.DocString) error {
+func thereIsEMLFile(fileName string, message *godog.DocString) error {
 	return createFile(fileName, message.Content)
 }
 
-func thereIsMBOXFileWithMessages(fileName string, messages *gherkin.DataTable) error {
+func thereIsMBOXFileWithMessages(fileName string, messages *godog.Table) error {
 	mboxBuffer := &bytes.Buffer{}
 	mboxWriter := mbox.NewWriter(mboxBuffer)
 
@@ -102,11 +102,11 @@ func thereIsMBOXFileWithMessages(fileName string, messages *gherkin.DataTable) e
 	return createFile(fileName, mboxBuffer.String())
 }
 
-func thereIsMBOXFile(fileName string, messages *gherkin.DocString) error {
+func thereIsMBOXFile(fileName string, messages *godog.DocString) error {
 	return createFile(fileName, messages.Content)
 }
 
-func thereAreIMAPMailboxes(mailboxes *gherkin.DataTable) error {
+func thereAreIMAPMailboxes(mailboxes *godog.Table) error {
 	imapServer := ctx.GetTransferRemoteIMAPServer()
 	head := mailboxes.Rows[0].Cells
 	for _, row := range mailboxes.Rows[1:] {
@@ -124,7 +124,7 @@ func thereAreIMAPMailboxes(mailboxes *gherkin.DataTable) error {
 	return nil
 }
 
-func thereAreIMAPMessages(messages *gherkin.DataTable) (err error) {
+func thereAreIMAPMessages(messages *godog.Table) (err error) {
 	imapServer := ctx.GetTransferRemoteIMAPServer()
 	head := messages.Rows[0].Cells
 	for _, row := range messages.Rows[1:] {
@@ -170,7 +170,7 @@ func thereAreIMAPMessages(messages *gherkin.DataTable) (err error) {
 	return nil
 }
 
-func thereIsIMAPMessage(mailboxName string, seqNum, uid int, dateValue, subject string, message *gherkin.DocString) error {
+func thereIsIMAPMessage(mailboxName string, seqNum, uid int, dateValue, subject string, message *godog.DocString) error {
 	imapServer := ctx.GetTransferRemoteIMAPServer()
 
 	date, err := time.Parse(timeFormat, dateValue)
@@ -187,7 +187,7 @@ func thereIsIMAPMessage(mailboxName string, seqNum, uid int, dateValue, subject 
 	return nil
 }
 
-func getBodyFromDataRow(head []*gherkin.TableCell, row *gherkin.TableRow) string {
+func getBodyFromDataRow(head []*messages.PickleTableCell, row *messages.PickleTableRow) string {
 	body := "hello"
 	headers := textproto.MIMEHeader{}
 	headers.Set("Received", "by 2002:0:0:0:0:0:0:0 with SMTP id 0123456789abcdef; Wed, 30 Dec 2020 01:23:45 0000")

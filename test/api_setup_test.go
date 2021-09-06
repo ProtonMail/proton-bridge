@@ -21,7 +21,7 @@ import (
 	"github.com/cucumber/godog"
 )
 
-func APISetupFeatureContext(s *godog.Suite) {
+func APISetupFeatureContext(s *godog.ScenarioContext) {
 	s.Step(`^there is no internet connection$`, thereIsNoInternetConnection)
 }
 

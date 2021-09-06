@@ -21,7 +21,7 @@ import (
 	"github.com/cucumber/godog"
 )
 
-func IMAPActionsAuthFeatureContext(s *godog.Suite) {
+func IMAPActionsAuthFeatureContext(s *godog.ScenarioContext) {
 	s.Step(`^IMAP client authenticates "([^"]*)"$`, imapClientAuthenticates)
 	s.Step(`^IMAP client "([^"]*)" authenticates "([^"]*)"$`, imapClientNamedAuthenticates)
 	s.Step(`^IMAP client authenticates "([^"]*)" with address "([^"]*)"$`, imapClientAuthenticatesWithAddress)

@@ -26,7 +26,8 @@ require (
 	github.com/allan-simon/go-singleinstance v0.0.0-20160830203053-79edcfdc2dfc
 	github.com/chzyer/logex v1.1.10 // indirect
 	github.com/chzyer/test v0.0.0-20180213035817-a1ea475d72b1 // indirect
-	github.com/cucumber/godog v0.8.1
+	github.com/cucumber/godog v0.12.1
+	github.com/cucumber/messages-go/v16 v16.0.1
 	github.com/emersion/go-imap-appendlimit v0.0.0-20190308131241-25671c986a6a
 	github.com/emersion/go-imap-move v0.0.0-20190710073258-6e5a51a5b342
 	github.com/emersion/go-imap-quota v0.0.0-20210203125329-619074823f3c
@@ -57,7 +58,7 @@ require (
 	github.com/sirupsen/logrus v1.7.0
 	github.com/skratchdot/open-golang v0.0.0-20200116055534-eef842397966
 	github.com/ssor/bom v0.0.0-20170718123548-6386211fdfcf // indirect
-	github.com/stretchr/testify v1.6.1
+	github.com/stretchr/testify v1.7.0
 	github.com/therecipe/qt v0.0.0-20200701200531-7f61353ee73e
 	github.com/therecipe/qt/internal/binding/files/docs/5.12.0 v0.0.0-20200904063919-c0c124a5770d // indirect
 	github.com/therecipe/qt/internal/binding/files/docs/5.13.0 v0.0.0-20200904063919-c0c124a5770d // indirect

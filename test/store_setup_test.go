@@ -27,10 +27,9 @@ import (
 
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	"github.com/cucumber/godog"
-	"github.com/cucumber/godog/gherkin"
 )
 
-func StoreSetupFeatureContext(s *godog.Suite) {
+func StoreSetupFeatureContext(s *godog.ScenarioContext) {
 	s.Step(`^there is "([^"]*)" with mailboxes`, thereIsUserWithMailboxes)
 	s.Step(`^there is "([^"]*)" with mailbox "([^"]*)"$`, thereIsUserWithMailbox)
 	s.Step(`^there are messages in mailbox(?:es)? "([^"]*)" for "([^"]*)"$`, thereAreMessagesInMailboxesForUser)
@@ -40,7 +39,7 @@ func StoreSetupFeatureContext(s *godog.Suite) {
 	s.Step(`^there are (\d+) messages in mailbox(?:es)? "([^"]*)" for address "([^"]*)" of "([^"]*)"$`, thereAreSomeMessagesInMailboxesForAddressOfUser)
 }
 
-func thereIsUserWithMailboxes(bddUserID string, mailboxes *gherkin.DataTable) error {
+func thereIsUserWithMailboxes(bddUserID string, mailboxes *godog.Table) error {
 	for _, row := range mailboxes.Rows {
 		if err := thereIsUserWithMailbox(bddUserID, row.Cells[0].Value); err != nil {
 			return err
@@ -71,11 +70,11 @@ func thereIsUserWithMailbox(bddUserID, mailboxName string) error {
 	return internalError(store.RebuildMailboxes(), "rebuilding mailboxes")
 }
 
-func thereAreMessagesInMailboxesForUser(mailboxNames, bddUserID string, messages *gherkin.DataTable) error {
+func thereAreMessagesInMailboxesForUser(mailboxNames, bddUserID string, messages *godog.Table) error {
 	return thereAreMessagesInMailboxesForAddressOfUser(mailboxNames, "", bddUserID, messages)
 }
 
-func thereAreMessagesInMailboxesForAddressOfUser(mailboxNames, bddAddressID, bddUserID string, messages *gherkin.DataTable) error {
+func thereAreMessagesInMailboxesForAddressOfUser(mailboxNames, bddAddressID, bddUserID string, messages *godog.Table) error {
 	account := ctx.GetTestAccountWithAddress(bddUserID, bddAddressID)
 	if account == nil {
 		return godog.ErrPending
@@ -222,13 +221,13 @@ func thereAreSomeMessagesInMailboxesForUser(numberOfMessages int, mailboxNames, 
 	return thereAreSomeMessagesInMailboxesForAddressOfUser(numberOfMessages, mailboxNames, "", bddUserID)
 }
 
-func thereAreSomeMessagesForUserAsFollows(bddUserID string, structure *gherkin.DataTable) error {
+func thereAreSomeMessagesForUserAsFollows(bddUserID string, structure *godog.Table) error {
 	return processMailboxStructureDataTable(structure, func(bddAddressID string, mailboxNames string, numberOfMessages int) error {
 		return thereAreSomeMessagesInMailboxesForAddressOfUser(numberOfMessages, mailboxNames, bddAddressID, bddUserID)
 	})
 }
 
-func processMailboxStructureDataTable(structure *gherkin.DataTable, callback func(string, string, int) error) error {
+func processMailboxStructureDataTable(structure *godog.Table, callback func(string, string, int) error) error {
 	head := structure.Rows[0].Cells
 	for i := 1; i < len(structure.Rows); i++ {
 		bddAddressID := ""

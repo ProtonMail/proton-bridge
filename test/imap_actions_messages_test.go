@@ -23,11 +23,10 @@ import (
 	"sync"
 
 	"github.com/cucumber/godog"
-	"github.com/cucumber/godog/gherkin"
 	"golang.org/x/net/html/charset"
 )
 
-func IMAPActionsMessagesFeatureContext(s *godog.Suite) {
+func IMAPActionsMessagesFeatureContext(s *godog.ScenarioContext) {
 	s.Step(`^IMAP client sends command "([^"]*)"$`, imapClientSendsCommand)
 	s.Step(`^IMAP client fetches "([^"]*)"$`, imapClientFetches)
 	s.Step(`^IMAP client fetches header(?:s)? of "([^"]*)"$`, imapClientFetchesHeader)
@@ -161,11 +160,11 @@ func imapClientsMoveMessageSeqOfUserFromToByAppendAndDelete(sourceIMAPClient, ta
 	return nil
 }
 
-func imapClientCreatesMessage(mailboxName string, message *gherkin.DocString) error {
+func imapClientCreatesMessage(mailboxName string, message *godog.DocString) error {
 	return imapClientCreatesMessageWithEncoding(mailboxName, "utf8", message)
 }
 
-func imapClientCreatesMessageWithEncoding(mailboxName, encodingName string, message *gherkin.DocString) error {
+func imapClientCreatesMessageWithEncoding(mailboxName, encodingName string, message *godog.DocString) error {
 	encoding, _ := charset.Lookup(encodingName)
 
 	msg := message.Content
@@ -313,11 +312,11 @@ func imapClientNamedExpungeByUID(imapClient, uids string) error {
 	return nil
 }
 
-func imapClientSendsID(data *gherkin.DocString) error {
+func imapClientSendsID(data *godog.DocString) error {
 	return imapClientNamedSendsID("imap", data)
 }
 
-func imapClientNamedSendsID(imapClient string, data *gherkin.DocString) error {
+func imapClientNamedSendsID(imapClient string, data *godog.DocString) error {
 	res := ctx.GetIMAPClient(imapClient).ID(data.Content)
 	ctx.SetIMAPLastResponse(imapClient, res)
 	return nil
