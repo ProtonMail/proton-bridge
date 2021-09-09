@@ -29,7 +29,7 @@ import (
 
 const (
 	Pass         = "pass-app"
-	GnomeKeyring = "gnome-keyring"
+	SecretService = "secret-service"
 )
 
 func init() { // nolint[noinit]
@@ -39,16 +39,14 @@ func init() { // nolint[noinit]
 		Helpers[Pass] = newPassHelper
 	}
 
-	if _, err := exec.LookPath("gnome-keyring"); err == nil {
-		Helpers[GnomeKeyring] = newGnomeKeyringHelper
-	}
+	Helpers[SecretService] = newSecretServiceHelper
 
 	// If Pass is available, use it by default.
 	// Otherwise, if GnomeKeyring is available, use it by default.
 	if _, ok := Helpers[Pass]; ok && isUsable(newPassHelper("")) {
 		defaultHelper = Pass
-	} else if _, ok := Helpers[GnomeKeyring]; ok && isUsable(newGnomeKeyringHelper("")) {
-		defaultHelper = GnomeKeyring
+	} else if _, ok := Helpers[SecretService]; ok && isUsable(newSecretServiceHelper("")) {
+		defaultHelper = SecretService
 	}
 }
 
@@ -56,7 +54,7 @@ func newPassHelper(string) (credentials.Helper, error) {
 	return &pass.Pass{}, nil
 }
 
-func newGnomeKeyringHelper(string) (credentials.Helper, error) {
+func newSecretServiceHelper(string) (credentials.Helper, error) {
 	return &secretservice.Secretservice{}, nil
 }
 
