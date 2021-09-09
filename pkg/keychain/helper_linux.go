@@ -42,7 +42,7 @@ func init() { // nolint[noinit]
 	Helpers[SecretService] = newSecretServiceHelper
 
 	// If Pass is available, use it by default.
-	// Otherwise, if GnomeKeyring is available, use it by default.
+	// Otherwise, if SecretService is available, use it by default.
 	if _, ok := Helpers[Pass]; ok && isUsable(newPassHelper("")) {
 		defaultHelper = Pass
 	} else if _, ok := Helpers[SecretService]; ok && isUsable(newSecretServiceHelper("")) {
