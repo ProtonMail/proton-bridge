@@ -117,7 +117,7 @@ func (f *FrontendQt) configureAppleMail(userID, address string) {
 
 func (f *FrontendQt) triggerReset() {
 	defer f.qml.ResetFinished()
-	//TODO
+	f.bridge.FactoryReset()
 	f.restart()
 }
 
