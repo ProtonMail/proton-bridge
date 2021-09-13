@@ -29,15 +29,44 @@ import (
 )
 
 func (f *FrontendQt) setIsDiskCacheEnabled() {
-	//TODO
+	f.qml.SetIsDiskCacheEnabled(f.settings.GetBool(settings.CacheEnabledKey))
 }
 
 func (f *FrontendQt) setDiskCachePath() {
-	//TODO
+	f.qml.SetDiskCachePath(f.settings.Get(settings.CacheLocationKey))
 }
 
 func (f *FrontendQt) changeLocalCache(enableDiskCache bool, diskCachePath string) {
-	//TODO
+	defer f.qml.ChangeLocalCacheFinished()
+	defer f.setIsDiskCacheEnabled()
+	defer f.setDiskCachePath()
+
+	if enableDiskCache != f.settings.GetBool(settings.CacheEnabledKey) {
+		if enableDiskCache {
+			if err := f.bridge.EnableCache(); err != nil {
+				f.log.WithError(err).Error("Cannot enable disk cache")
+			}
+		} else {
+			if err := f.bridge.DisableCache(); err != nil {
+				f.log.WithError(err).Error("Cannot disable disk cache")
+			}
+		}
+	}
+
+	// If disk cache not enabled, or path not changed then no need to change location
+	if !enableDiskCache || diskCachePath == f.settings.Get(settings.CacheLocationKey) {
+		return
+	}
+
+	if err := f.bridge.MigrateCache(f.settings.Get(settings.CacheLocationKey), diskCachePath); err != nil {
+		f.log.WithError(err).Error("The local cache location could not be changed.")
+		f.qml.CacheCantMove()
+		return
+	}
+
+	f.settings.Set(settings.CacheLocationKey, diskCachePath)
+	f.qml.CacheLocationChangeSuccess()
+	f.restart()
 }
 
 func (f *FrontendQt) setIsAutostartOn() {

@@ -164,7 +164,7 @@ func (q *QMLBackend) setup(f *FrontendQt) {
 
 	f.setIsDiskCacheEnabled()
 	f.setDiskCachePath()
-	q.ConnectChangeLocalCache(f.changeLocalCache)
+	q.ConnectChangeLocalCache(func(e bool, d string) { go f.changeLocalCache(e, d) })
 
 	f.setIsAutomaticUpdateOn()
 	q.ConnectToggleAutomaticUpdate(func(m bool) { go f.toggleAutomaticUpdate(m) })
