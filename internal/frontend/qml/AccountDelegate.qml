@@ -143,7 +143,7 @@ Item {
             RowLayout {
                 Label {
                     colorScheme: root.colorScheme
-                    text: root.usedSpace
+                    text: user.loggedIn ? root.usedSpace : qsTr("Signed out")
                     color: root.usedSpaceColor
                     type: {
                         switch (root.type) {
@@ -155,7 +155,7 @@ Item {
 
                 Label {
                     colorScheme: root.colorScheme
-                    text: " / " + root.totalSpace
+                    text: user.loggedIn ? " / " + root.totalSpace : ""
                     color: root.colorScheme.text_weak
                     type: {
                         switch (root.type) {
@@ -168,8 +168,7 @@ Item {
 
 
             Rectangle {
-                visible: root.type == AccountDelegate.LargeView
-
+                visible: root.type == AccountDelegate.LargeView && user.loggedIn
                 width: 140
                 height: 4
                 radius: 3

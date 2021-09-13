@@ -178,3 +178,7 @@ func (f *FrontendQt) quit() {
 	f.log.Warn("Your wish is my command.. I quit!")
 	f.app.Exit(0)
 }
+
+func (f *FrontendQt) guiReady() {
+	f.initializationDone.Do(f.initializing.Done)
+}

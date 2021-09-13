@@ -78,6 +78,14 @@ ApplicationWindow {
         }
     }
 
+    Connections {
+        target: root.backend
+
+        onShowMainWindow: {
+            root.showAndRise()
+        }
+    }
+
     StackLayout {
         id: contentLayout
 
@@ -185,6 +193,14 @@ ApplicationWindow {
             contentLayout._showSetup = true
         } else {
             contentLayout._showSetup = false
+        }
+    }
+
+    function showAndRise() {
+        root.show()
+        root.raise()
+        if (!root.active) {
+            root.requestActivate()
         }
     }
 }

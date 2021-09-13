@@ -79,22 +79,22 @@ QtObject {
 
 
         onShowMainWindow: {
-            mainWindow.visible = true
+            mainWindow.showAndRise()
         }
 
         onShowHelp: {
             mainWindow.showHelp()
-            mainWindow.visible = true
+            mainWindow.showAndRise()
         }
 
         onShowSettings: {
             mainWindow.showSettings()
-            mainWindow.visible = true
+            mainWindow.showAndRise()
         }
 
         onShowSignIn: {
             mainWindow.showSignIn(username)
-            mainWindow.visible = true
+            mainWindow.showAndRise()
         }
 
         onQuit: {
@@ -111,7 +111,7 @@ QtObject {
         visible: true
         iconSource: "./icons/ic-systray.svg"
         onActivated: {
-            function calcStatusWindowPosition(statusWidth, statusHeight) {
+            function calcStatusWindowPosition() {
                 function isInInterval(num, lower_limit, upper_limit) {
                     return lower_limit <= num && num <= upper_limit
                 }
@@ -152,17 +152,26 @@ QtObject {
                 statusWindow.y_max = screen.virtualY + screen.height - iconHeight
             }
 
+            function toggleWindow(win) {
+                if (win.visible) {
+                    win.close()
+                } else {
+                    win.showAndRise()
+                }
+            }
+
+
             switch (reason) {
                 case SystemTrayIcon.Unknown:
                 break;
                 case SystemTrayIcon.Context:
                 case SystemTrayIcon.Trigger:
                 calcStatusWindowPosition()
-                statusWindow.visible = !statusWindow.visible
+                toggleWindow(statusWindow)
                 break
                 case SystemTrayIcon.DoubleClick:
                 case SystemTrayIcon.MiddleClick:
-                mainWindow.visible = !mainWindow.visible
+                toggleWindow(mainWindow)
                 break;
                 default:
                 break;
@@ -172,11 +181,13 @@ QtObject {
 
     Component.onCompleted: {
         if (root.backend.users.count === 0) {
-            mainWindow.show()
+            mainWindow.showAndRise()
         }
 
         if (root.backend.users.count === 1 && root.backend.users.get(0).loggedIn === false) {
-            mainWindow.show()
+            mainWindow.showAndRise()
         }
+
+        root.backend.guiReady()
     }
 }

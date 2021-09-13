@@ -54,6 +54,10 @@ Window {
         }
     }
 
+    function guiReady() {
+        console.log("Gui Ready")
+    }
+
     function _log(msg, color) {
         logTextArea.text += "<p style='color: " + color + ";'>" + msg + "</p>"
         logTextArea.text += "\n"
@@ -334,7 +338,7 @@ Window {
                     enabled: bridge === undefined || bridge === null
                     onClicked: {
                         bridge = bridgeComponent.createObject()
-                        if (true) bridge._mainWindow.show()
+                        if (true) bridge._mainWindow.showAndRise()
                     }
                 }
 

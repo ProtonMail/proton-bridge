@@ -83,19 +83,21 @@ ScrollView {
                 Button {
                     Layout.alignment: Qt.AlignTop
                     colorScheme: root.colorScheme
-                    icon.source: "icons/ic-trash.svg"
+                    text: qsTr("Sign in")
                     secondary: true
-                    visible: root.user.loggedIn
-                    onClicked: root.user.remove()
+                    visible: !root.user.loggedIn
+                    enabled: !root.user.loggedIn
+                    onClicked: root.parent.rightContent.showSignIn()
                 }
 
                 Button {
                     Layout.alignment: Qt.AlignTop
                     colorScheme: root.colorScheme
-                    text: qsTr("Sign in")
+                    icon.source: "icons/ic-trash.svg"
                     secondary: true
-                    visible: !root.user.loggedIn
-                    onClicked: root.parent.rightContent.showSignIn()
+                    visible: true
+                    enabled: true
+                    onClicked: root.user.remove()
                 }
             }
 

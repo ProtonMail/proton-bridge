@@ -31,7 +31,7 @@ Window {
     height: contentLayout.implicitHeight
     width: contentLayout.implicitWidth
 
-    flags: Qt.FramelessWindowHint
+    flags: Qt.FramelessWindowHint | Qt.NoDropShadowWindowHint | Qt.WindowStaysOnTopHint
 
     property ColorScheme colorScheme: ProtonStyle.currentStyle
 
@@ -202,7 +202,7 @@ Window {
                             text: qsTr("Sign in")
                             onClicked: {
                                 root.showSignIn(viewItem.username)
-                                root.visible = false
+                                root.close()
                             }
                         }
                     }
@@ -243,7 +243,7 @@ Window {
 
                     onClicked: {
                         root.showMainWindow()
-                        root.visible = false
+                        root.close()
                     }
                 }
 
@@ -274,7 +274,7 @@ Window {
                             text: qsTr("Help")
                             onClicked: {
                                 root.showHelp()
-                                root.visible = false
+                                root.close()
                             }
                         }
                         MenuItem {
@@ -282,7 +282,7 @@ Window {
                             text: qsTr("Settings")
                             onClicked: {
                                 root.showSettings()
-                                root.visible = false
+                                root.close()
                             }
                         }
                         MenuItem {
@@ -290,7 +290,7 @@ Window {
                             text: qsTr("Quit ProtonBridge")
                             onClicked: {
                                 root.quit()
-                                root.visible = false
+                                root.close()
                             }
                         }
 
@@ -308,5 +308,13 @@ Window {
 
     onActiveChanged: {
         if (!active) root.close()
+    }
+
+    function showAndRise() {
+        root.show()
+        root.raise()
+        if (!root.active) {
+            root.requestActivate()
+        }
     }
 }

@@ -33,6 +33,7 @@ type QMLBackend struct {
 	core.QObject
 
 	_ func() *core.QPoint `slot:"getCursorPos"`
+	_ func()              `slot:"guiReady"`
 	_ func()              `slot:"quit"`
 	_ func()              `slot:"restart"`
 
@@ -141,6 +142,7 @@ func (q *QMLBackend) setup(f *FrontendQt) {
 	q.ConnectGetCursorPos(getCursorPos)
 	q.ConnectQuit(f.quit)
 	q.ConnectRestart(f.restart)
+	q.ConnectGuiReady(f.guiReady)
 
 	q.ConnectIsDockIconVisible(func() bool {
 		return dockIcon.GetDockIconVisibleState()

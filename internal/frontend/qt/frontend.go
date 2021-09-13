@@ -33,6 +33,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	"github.com/sirupsen/logrus"
+	"github.com/therecipe/qt/core"
 	"github.com/therecipe/qt/qml"
 	"github.com/therecipe/qt/widgets"
 )
@@ -57,8 +58,10 @@ type FrontendQt struct {
 
 	newVersionInfo updater.VersionInfo
 
-	log      *logrus.Entry
-	usersMtx sync.Mutex
+	log                *logrus.Entry
+	usersMtx           sync.Mutex
+	initializing       sync.WaitGroup
+	initializationDone sync.Once
 
 	app    *widgets.QApplication
 	engine *qml.QQmlApplicationEngine
@@ -81,7 +84,9 @@ func New(
 	autostart *autostart.App,
 	restarter types.Restarter,
 ) *FrontendQt {
-	return &FrontendQt{
+	userAgent.SetPlatform(core.QSysInfo_PrettyProductName())
+
+	f := &FrontendQt{
 		programName:    "Proton Mail Bridge",
 		programVersion: version,
 		log:            logrus.WithField("pkg", "frontend/qt"),
@@ -96,6 +101,19 @@ func New(
 		autostart:     autostart,
 		restarter:     restarter,
 	}
+
+	// Initializing.Done is only called sync.Once. Please keep the increment
+	// set to 1
+	f.initializing.Add(1)
+
+	if showWindowOnStart {
+		go func() {
+			f.initializing.Wait()
+			f.qml.ShowMainWindow()
+		}()
+	}
+
+	return f
 }
 
 func (f *FrontendQt) Loop() error {
@@ -142,5 +160,5 @@ func (f *FrontendQt) NotifySilentUpdateError(err error) {
 }
 
 func (f *FrontendQt) WaitUntilFrontendIsReady() {
-	// TODO: Implement
+	f.initializing.Wait()
 }
