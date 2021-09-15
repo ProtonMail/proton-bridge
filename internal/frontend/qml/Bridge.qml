@@ -188,6 +188,10 @@ QtObject {
             mainWindow.showAndRise()
         }
 
+        if (root.backend.showOnStartup) {
+            mainWindow.showAndRise()
+        }
+
         root.backend.guiReady()
     }
 }

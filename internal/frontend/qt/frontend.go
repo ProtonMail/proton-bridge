@@ -51,6 +51,7 @@ type FrontendQt struct {
 	noEncConfirmator types.NoEncConfirmator
 	autostart        *autostart.App
 	restarter        types.Restarter
+	showOnStartup    bool
 
 	authClient pmapi.Client
 	auth       *pmapi.Auth
@@ -100,18 +101,12 @@ func New(
 		bridge:        bridge,
 		autostart:     autostart,
 		restarter:     restarter,
+		showOnStartup: showWindowOnStart,
 	}
 
 	// Initializing.Done is only called sync.Once. Please keep the increment
 	// set to 1
 	f.initializing.Add(1)
-
-	if showWindowOnStart {
-		go func() {
-			f.initializing.Wait()
-			f.qml.ShowMainWindow()
-		}()
-	}
 
 	return f
 }

@@ -37,6 +37,8 @@ type QMLBackend struct {
 	_ func()              `slot:"quit"`
 	_ func()              `slot:"restart"`
 
+	_ bool `property:showOnStartup`
+
 	_ bool `property:dockIconVisible`
 
 	_ QMLUserModel `property:"users"`
@@ -143,6 +145,10 @@ func (q *QMLBackend) setup(f *FrontendQt) {
 	q.ConnectQuit(f.quit)
 	q.ConnectRestart(f.restart)
 	q.ConnectGuiReady(f.guiReady)
+
+	q.ConnectIsShowOnStartup(func() bool {
+		return f.showOnStartup
+	})
 
 	q.ConnectIsDockIconVisible(func() bool {
 		return dockIcon.GetDockIconVisibleState()
