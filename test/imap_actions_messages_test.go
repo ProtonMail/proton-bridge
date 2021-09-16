@@ -18,10 +18,14 @@
 package tests
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
+	"strings"
 	"sync"
+	"time"
 
+	"github.com/ProtonMail/proton-bridge/test/mocks"
 	"github.com/cucumber/godog"
 	"golang.org/x/net/html/charset"
 )
@@ -35,7 +39,8 @@ func IMAPActionsMessagesFeatureContext(s *godog.ScenarioContext) {
 	s.Step(`^IMAP client searches for "([^"]*)"$`, imapClientSearchesFor)
 	s.Step(`^IMAP client copies message seq "([^"]*)" to "([^"]*)"$`, imapClientCopiesMessagesTo)
 	s.Step(`^IMAP client moves message seq "([^"]*)" to "([^"]*)"$`, imapClientMovesMessagesTo)
-	s.Step(`^IMAP clients "([^"]*)" and "([^"]*)" move message seq "([^"]*)" of "([^"]*)" from "([^"]*)" to "([^"]*)" by append and delete$`, imapClientsMoveMessageSeqOfUserFromToByAppendAndDelete)
+	s.Step(`^IMAP clients "([^"]*)" and "([^"]*)" move message seq "([^"]*)" of "([^"]*)" from "([^"]*)" to "([^"]*)"$`, imapClientsMoveMessageSeqOfUserFromTo)
+	s.Step(`^IMAP clients "([^"]*)" and "([^"]*)" move message seq "([^"]*)" of "([^"]*)" to "([^"]*)" by ([^"]*) ([^"]*) ([^"]*)`, imapClientsMoveMessageSeqOfUserFromToByOrederedOperations)
 	s.Step(`^IMAP client imports message to "([^"]*)"$`, imapClientCreatesMessage)
 	s.Step(`^IMAP client imports message to "([^"]*)" with encoding "([^"]*)"$`, imapClientCreatesMessageWithEncoding)
 	s.Step(`^IMAP client creates message "([^"]*)" from "([^"]*)" to "([^"]*)" with body "([^"]*)" in "([^"]*)"$`, imapClientCreatesMessageFromToWithBody)
@@ -113,7 +118,7 @@ func imapClientMovesMessagesTo(messageSeq, newMailboxName string) error {
 	return nil
 }
 
-func imapClientsMoveMessageSeqOfUserFromToByAppendAndDelete(sourceIMAPClient, targetIMAPClient, messageSeq, bddUserID, sourceMailboxName, targetMailboxName string) error {
+func imapClientsMoveMessageSeqOfUserFromTo(sourceIMAPClient, targetIMAPClient, messageSeq, bddUserID, sourceMailboxName, targetMailboxName string) error {
 	account := ctx.GetTestAccount(bddUserID)
 	if account == nil {
 		return godog.ErrPending
@@ -157,6 +162,45 @@ func imapClientsMoveMessageSeqOfUserFromToByAppendAndDelete(sourceIMAPClient, ta
 	}()
 
 	wg.Wait()
+	return nil
+}
+
+func extractMessageBodyFromImapResponse(response *mocks.IMAPResponse) (string, error) {
+	sections := response.Sections()
+	if len(sections) != 1 {
+		return "", internalError(errors.New("unexpected result from FETCH"), "retrieving message body using FETCH")
+	}
+	sections = strings.Split(sections[0], "\n")
+	if len(sections) < 2 {
+		return "", internalError(errors.New("failed to parse FETCH result"), "extraction body from FETCH reply")
+	}
+	return strings.Join(sections[1:], "\n"), nil
+}
+
+func imapClientsMoveMessageSeqOfUserFromToByOrederedOperations(sourceIMAPClient, targetIMAPClient, messageSeq, bddUserID, targetMailboxName, op1, op2, op3 string) error {
+	account := ctx.GetTestAccount(bddUserID)
+	if account == nil {
+		return godog.ErrPending
+	}
+	msgStr, err := extractMessageBodyFromImapResponse(ctx.GetIMAPClient(sourceIMAPClient).Fetch(messageSeq, "BODY.PEEK[]").AssertOK())
+	if err != nil {
+		return err
+	}
+
+	for _, op := range []string{op1, op2, op3} {
+		switch op {
+		case "APPEND":
+			res := ctx.GetIMAPClient(targetIMAPClient).Append(targetMailboxName, msgStr)
+			ctx.SetIMAPLastResponse(targetIMAPClient, res)
+		case "DELETE":
+			_ = imapClientNamedMarksMessageSeqAsDeleted(sourceIMAPClient, messageSeq)
+		case "EXPUNGE":
+			_ = imapClientNamedExpunge(sourceIMAPClient)
+		default:
+			return errors.New("unknow IMAP operation " + op)
+		}
+		time.Sleep(100 * time.Millisecond)
+	}
 	return nil
 }
 
