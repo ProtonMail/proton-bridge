@@ -163,15 +163,11 @@ func (f *frontendCLI) enableCacheOnDisk(c *ishell.Context) {
 	}
 
 	if f.yesNoQuestion("Are you sure you want to enable the local cache") {
-		// Set this back to the default location before enabling.
-		f.settings.Set(settings.CacheLocationKey, "")
-
 		if err := f.bridge.EnableCache(); err != nil {
 			f.Println("The local cache could not be enabled.")
 			return
 		}
 
-		f.settings.SetBool(settings.CacheEnabledKey, true)
 		f.restarter.SetToRestart()
 		f.Stop()
 	}
@@ -189,7 +185,6 @@ func (f *frontendCLI) disableCacheOnDisk(c *ishell.Context) {
 			return
 		}
 
-		f.settings.SetBool(settings.CacheEnabledKey, false)
 		f.restarter.SetToRestart()
 		f.Stop()
 	}
@@ -211,7 +206,6 @@ func (f *frontendCLI) setCacheOnDiskLocation(c *ishell.Context) {
 			return
 		}
 
-		f.settings.Set(settings.CacheLocationKey, location)
 		f.restarter.SetToRestart()
 		f.Stop()
 	}

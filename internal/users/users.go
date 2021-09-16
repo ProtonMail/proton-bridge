@@ -434,6 +434,18 @@ func (u *Users) EnableCache() error {
 	return nil
 }
 
+func (u *Users) DisableCache() error {
+	// NOTE(GODT-1158): Is it an error if we can't remove a user's cache?
+
+	for _, user := range u.users {
+		if err := user.store.RemoveCache(); err != nil {
+			logrus.WithError(err).Error("Failed to remove user's message cache")
+		}
+	}
+
+	return nil
+}
+
 func (u *Users) MigrateCache(from, to string) error {
 	// NOTE(GODT-1158): Is it enough to just close the store? Do we need to force-close the cacher too?
 
@@ -449,18 +461,6 @@ func (u *Users) MigrateCache(from, to string) error {
 	}
 
 	return os.Rename(from, to)
-}
-
-func (u *Users) DisableCache() error {
-	// NOTE(GODT-1158): Is it an error if we can't remove a user's cache?
-
-	for _, user := range u.users {
-		if err := user.store.RemoveCache(); err != nil {
-			logrus.WithError(err).Error("Failed to remove user's message cache")
-		}
-	}
-
-	return nil
 }
 
 // hasUser returns whether the struct currently has a user with ID `id`.

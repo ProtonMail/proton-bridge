@@ -204,3 +204,36 @@ func (b *Bridge) GetKeychainApp() string {
 func (b *Bridge) SetKeychainApp(helper string) {
 	b.settings.Set(settings.PreferredKeychainKey, helper)
 }
+
+func (b *Bridge) EnableCache() error {
+	// Set this back to the default location before enabling.
+	b.settings.Set(settings.CacheLocationKey, "")
+
+	if err := b.Users.EnableCache(); err != nil {
+		return err
+	}
+
+	b.settings.SetBool(settings.CacheEnabledKey, true)
+
+	return nil
+}
+
+func (b *Bridge) DisableCache() error {
+	if err := b.Users.DisableCache(); err != nil {
+		return err
+	}
+
+	b.settings.SetBool(settings.CacheEnabledKey, false)
+
+	return nil
+}
+
+func (b *Bridge) MigrateCache(from, to string) error {
+	if err := b.Users.MigrateCache(from, to); err != nil {
+		return err
+	}
+
+	b.settings.Set(settings.CacheLocationKey, to)
+
+	return nil
+}
