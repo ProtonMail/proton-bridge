@@ -450,7 +450,7 @@ func (u *User) Logout() error {
 	}
 
 	// Do not close whole store, just event loop. Some information might be needed offline (e.g. addressID)
-	u.closeEventLoop()
+	u.closeEventLoopAndCacher()
 
 	u.CloseAllConnections()
 
@@ -459,12 +459,12 @@ func (u *User) Logout() error {
 	return nil
 }
 
-func (u *User) closeEventLoop() {
+func (u *User) closeEventLoopAndCacher() {
 	if u.store == nil {
 		return
 	}
 
-	u.store.CloseEventLoop()
+	u.store.CloseEventLoopAndCacher()
 }
 
 // CloseAllConnections calls CloseConnection for all users addresses.

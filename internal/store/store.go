@@ -413,22 +413,20 @@ func (store *Store) Close() error {
 	return store.close()
 }
 
-// CloseEventLoop stops the eventloop (if it is present).
-func (store *Store) CloseEventLoop() {
+// CloseEventLoopAndCacher stops the eventloop (if it is present).
+func (store *Store) CloseEventLoopAndCacher() {
 	if store.eventLoop != nil {
 		store.eventLoop.stop()
 	}
+
+	store.stopWatcher()
+
+	store.cacher.stop()
 }
 
 func (store *Store) close() error {
-	// Stop the watcher first before closing the database.
-	store.stopWatcher()
-
-	// Stop the cacher.
-	store.cacher.stop()
-
-	// Stop the event loop.
-	store.CloseEventLoop()
+	// Stop the event loop and cacher first before closing the DB.
+	store.CloseEventLoopAndCacher()
 
 	// Close the database.
 	return store.db.Close()
