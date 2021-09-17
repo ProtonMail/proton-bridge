@@ -14,12 +14,12 @@ require (
 	github.com/0xAX/notificator v0.0.0-20191016112426-3962a5ea8da1
 	github.com/Masterminds/semver/v3 v3.1.0
 	github.com/ProtonMail/go-autostart v0.0.0-20181114175602-c5272053443a
-	github.com/ProtonMail/go-crypto v0.0.0-20210428141323-04723f9f07d7
+	github.com/ProtonMail/go-crypto v0.0.0-20210707164159-52430bf6b52c
 	github.com/ProtonMail/go-imap-id v0.0.0-20190926060100-f94a56b9ecde
 	github.com/ProtonMail/go-rfc5322 v0.8.0
-	github.com/ProtonMail/go-srp v0.0.0-20210514134713-bd9454f3fa01
+	github.com/ProtonMail/go-srp v0.0.0-20210910093455-a843a0b9adff
 	github.com/ProtonMail/go-vcard v0.0.0-20180326232728-33aaa0a0c8a5
-	github.com/ProtonMail/gopenpgp/v2 v2.1.10
+	github.com/ProtonMail/gopenpgp/v2 v2.2.2
 	github.com/PuerkitoBio/goquery v1.5.1
 	github.com/abiosoft/ishell v2.0.0+incompatible
 	github.com/abiosoft/readline v0.0.0-20180607040430-155bce2042db // indirect
