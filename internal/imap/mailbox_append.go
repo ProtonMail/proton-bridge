@@ -164,7 +164,9 @@ func (im *imapMailbox) labelExistingMessage(msg storeMessageProvider) error { //
 	storeMBox := im.storeMailbox
 
 	// Outlook Uses APPEND instead of COPY. There is no need to copy to All Mail because messages are already there.
-	// if the message is copied from Spam or Trash, it should stay as is.  Return error.
+	// If the message is copied from Spam or Trash, it must be moved otherwise we will have data loss.
+        // If the message is moved from any folder, the moment when expunge happens on source we will move message trash unless we move it to archive.
+        // If the message is already in Archive we should not call API at all.
 	// Otherwise the message is already in All mail, Return OK.
 	if pmapi.AllMailLabel == storeMBox.LabelID() {
 		foundArchive := false
