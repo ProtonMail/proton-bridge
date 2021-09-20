@@ -1,7 +1,7 @@
 # Encryption
 
 Encryption is done in PMAPI, bridge utils and bridge itself. The best would be to keep encryption
-in PMAPI and bridge utils (in pacakge such as messages). All packages are using our high-level
+in PMAPI and bridge utils (in package such as messages). All packages are using our high-level
 GopenPGP library on top of openpgp.
 
 ## `gopenpgp.KeyRing`
