@@ -185,7 +185,7 @@ func (im *imapMailbox) labelExistingMessage(msg storeMessageProvider) error { //
 		return err
 	}
 
-	return uidplus.AppendResponse(storeMBox.UIDValidity(), storeMBox.GetUIDList([]string{msg.ID()}))
+	return uidplus.AppendResponse(im.storeMailbox.UIDValidity(), im.storeMailbox.GetUIDList([]string{msg.ID()}))
 }
 
 func (im *imapMailbox) importMessage(kr *crypto.KeyRing, hdr textproto.Header, body []byte, imapFlags []string, date time.Time) error {
