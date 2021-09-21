@@ -17,18 +17,47 @@
 
 package store
 
+import "math"
+
 // UserID returns user ID.
 func (store *Store) UserID() string {
 	return store.user.ID()
 }
 
-// GetSpace returns used and total space in bytes.
-func (store *Store) GetSpace() (usedSpace, maxSpace uint, err error) {
+// GetSpaceKB returns used and total space in kilo bytes (needed for IMAP
+// Quota.  Quota is "in units of 1024 octets" (or KB) and PM returns bytes.
+func (store *Store) GetSpaceKB() (usedSpace, maxSpace uint32, err error) {
 	apiUser, err := store.client().CurrentUser(exposeContextForIMAP())
 	if err != nil {
 		return 0, 0, err
 	}
-	return uint(apiUser.UsedSpace), uint(apiUser.MaxSpace), nil
+	if apiUser.UsedSpace != nil {
+		usedSpace = store.toKBandLimit(*apiUser.UsedSpace, usedSpaceType)
+	}
+	if apiUser.MaxSpace != nil {
+		maxSpace = store.toKBandLimit(*apiUser.MaxSpace, maxSpaceType)
+	}
+	return
+}
+
+type spaceType string
+
+const (
+	usedSpaceType = spaceType("used")
+	maxSpaceType  = spaceType("max")
+)
+
+func (store *Store) toKBandLimit(n int64, space spaceType) uint32 {
+	if n < 0 {
+		log.WithField("space", space).Warning("negative number of bytes")
+		return uint32(0)
+	}
+	n /= 1024
+	if n > math.MaxUint32 {
+		log.WithField("space", space).Warning("too large number of bytes")
+		return uint32(math.MaxUint32)
+	}
+	return uint32(n)
 }
 
 // GetMaxUpload returns max size of message + all attachments in bytes.

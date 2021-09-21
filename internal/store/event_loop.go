@@ -337,6 +337,11 @@ func (loop *eventLoop) processEvent(event *pmapi.Event) (err error) {
 		}
 	}
 
+	if event.User != nil {
+		loop.user.UpdateSpace(event.User)
+		loop.listener.Emit(bridgeEvents.UserRefreshEvent, loop.user.ID())
+	}
+
 	// One would expect that every event would contain MessageCount as part of
 	// the event.Messages, but this is apparently not the case.
 	// MessageCounts are served on an irregular basis, so we should update and

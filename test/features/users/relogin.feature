@@ -6,6 +6,7 @@ Feature: Re-login
     Then last response is "failed to finish login: user is already connected"
     And "user" is connected
     And "user" has running event loop
+    And "user" has non-zero space
 
   @ignore
   Scenario: Re-login with connected user and no database file
@@ -24,6 +25,7 @@ Feature: Re-login
     Then last response is "OK"
     And "user" is connected
     And "user" has running event loop
+    And "user" has non-zero space
 
   Scenario: Re-login with disconnected user and no database file
     Given there is disconnected user "user"
@@ -33,3 +35,4 @@ Feature: Re-login
     And "user" is connected
     And "user" has database file
     And "user" has running event loop
+    And "user" has non-zero space

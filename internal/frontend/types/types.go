@@ -60,6 +60,8 @@ type UserManager interface {
 // User is an interface of user needed by frontend.
 type User interface {
 	ID() string
+	UsedBytes() int64
+	TotalBytes() int64
 	Username() string
 	IsConnected() bool
 	IsCombinedAddressMode() bool

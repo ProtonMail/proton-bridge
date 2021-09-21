@@ -36,7 +36,7 @@ func TestUpdateUser(t *testing.T) {
 	defer cleanUpUserData(user)
 
 	gomock.InOrder(
-		m.pmapiClient.EXPECT().UpdateUser(gomock.Any()).Return(nil, nil),
+		m.pmapiClient.EXPECT().UpdateUser(gomock.Any()).Return(testPMAPIUser, nil),
 		m.pmapiClient.EXPECT().ReloadKeys(gomock.Any(), testCredentials.MailboxPassword).Return(nil),
 		m.pmapiClient.EXPECT().Addresses().Return([]*pmapi.Address{testPMAPIAddress}),
 

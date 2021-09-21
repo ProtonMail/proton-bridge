@@ -34,6 +34,8 @@ func UsersChecksFeatureContext(s *godog.ScenarioContext) {
 	s.Step(`^"([^"]*)" does not have loaded store$`, userDoesNotHaveLoadedStore)
 	s.Step(`^"([^"]*)" has running event loop$`, userHasRunningEventLoop)
 	s.Step(`^"([^"]*)" does not have running event loop$`, userDoesNotHaveRunningEventLoop)
+	s.Step(`^"([^"]*)" has non-zero space$`, userHasNonZeroSpace)
+	s.Step(`^"([^"]*)" has zero space$`, userHasZeroSpace)
 }
 
 func userHasAddressModeInMode(bddUserID, wantAddressMode string) error {
@@ -162,3 +164,26 @@ func userDoesNotHaveRunningEventLoop(bddUserID string) error {
 	}, 5*time.Second, 10*time.Millisecond)
 	return ctx.GetTestingError()
 }
+
+func userHasSpace(bddUserID string, wantNonZero bool) error {
+	account := ctx.GetTestAccount(bddUserID)
+	if account == nil {
+		return godog.ErrPending
+	}
+
+	user, err := ctx.GetUser(account.Username())
+	if err != nil {
+		return internalError(err, "getting user %s", account.Username())
+	}
+
+	// We should only test `user.TotalBytes()>0` and not test
+	// `user.UsedBytes()>0`. The later value can be always zero when
+	// account is empty even when user object had already cached the value
+	// from server.
+	a.Equal(ctx.GetTestingT(), wantNonZero, user.TotalBytes() > 0)
+
+	return ctx.GetTestingError()
+}
+
+func userHasNonZeroSpace(bddUserID string) error { return userHasSpace(bddUserID, true) }
+func userHasZeroSpace(bddUserID string) error    { return userHasSpace(bddUserID, false) }

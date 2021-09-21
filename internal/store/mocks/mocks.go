@@ -207,6 +207,18 @@ func (mr *MockBridgeUserMockRecorder) Logout() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Logout", reflect.TypeOf((*MockBridgeUser)(nil).Logout))
 }
 
+// UpdateSpace mocks base method.
+func (m *MockBridgeUser) UpdateSpace(arg0 *pmapi.User) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "UpdateSpace", arg0)
+}
+
+// UpdateSpace indicates an expected call of UpdateSpace.
+func (mr *MockBridgeUserMockRecorder) UpdateSpace(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateSpace", reflect.TypeOf((*MockBridgeUser)(nil).UpdateSpace), arg0)
+}
+
 // UpdateUser mocks base method.
 func (m *MockBridgeUser) UpdateUser(arg0 context.Context) error {
 	m.ctrl.T.Helper()

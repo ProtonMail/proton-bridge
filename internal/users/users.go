@@ -115,6 +115,10 @@ func (u *Users) watchEvents() {
 						log.WithError(err).Error("Failed to load store after reconnecting")
 					}
 				}
+
+				if user.totalBytes == 0 {
+					user.UpdateSpace(nil)
+				}
 			}
 		}
 	}

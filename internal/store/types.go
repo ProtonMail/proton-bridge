@@ -37,6 +37,7 @@ type BridgeUser interface {
 	GetStoreAddresses() []string
 	GetClient() pmapi.Client
 	UpdateUser(context.Context) error
+	UpdateSpace(*pmapi.User)
 	CloseAllConnections()
 	CloseConnection(string)
 	Logout() error

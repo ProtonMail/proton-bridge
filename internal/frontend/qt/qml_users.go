@@ -287,8 +287,8 @@ func (qu *QMLUser) update(user types.User) {
 	qu.SetLoggedIn(user.IsConnected())
 	qu.SetSplitMode(!user.IsCombinedAddressMode())
 	qu.SetSetupGuideSeen(false)
-	qu.SetUsedBytes(1.0)      // TODO
-	qu.SetTotalBytes(10000.0) // TODO
+	qu.SetUsedBytes(float32(user.UsedBytes()))
+	qu.SetTotalBytes(float32(user.TotalBytes()))
 	qu.SetPassword(user.GetBridgePassword())
 	qu.SetAddresses(user.GetAddresses())
 }

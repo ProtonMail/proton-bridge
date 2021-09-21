@@ -221,10 +221,11 @@ var (
 				},
 			},
 		},
-		User: User{
+		User: &User{
 			ID:        "userID1",
 			Name:      "user",
-			UsedSpace: 23456,
+			UsedSpace: &usedSpace,
+			MaxSpace:  &maxSpace,
 		},
 		Addresses: []*EventAddress{
 			{
@@ -464,7 +465,8 @@ const (
 		"User": {
         "ID": "userID1",
         "Name": "user",
-        "UsedSpace": 12345
+        "UsedSpace": 12345,
+        "MaxSpace": 12345678
     },
 		"Addresses": [
         {

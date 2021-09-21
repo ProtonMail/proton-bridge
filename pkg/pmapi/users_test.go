@@ -28,19 +28,24 @@ import (
 	r "github.com/stretchr/testify/require"
 )
 
-var testCurrentUser = &User{
-	ID:         "MJLke8kWh1BBvG95JBIrZvzpgsZ94hNNgjNHVyhXMiv4g9cn6SgvqiIFR5cigpml2LD_iUk_3DkV29oojTt3eA==",
-	Name:       "jason",
-	UsedSpace:  96691332,
-	Currency:   "USD",
-	Role:       2,
-	Subscribed: 1,
-	Services:   1,
-	MaxSpace:   10737418240,
-	MaxUpload:  26214400,
-	Private:    1,
-	Keys:       *loadPMKeys(readTestFile("keyring_userKey_JSON", false)),
-}
+var (
+	usedSpace = int64(23456)
+	maxSpace  = int64(12345678)
+
+	testCurrentUser = &User{
+		ID:         "MJLke8kWh1BBvG95JBIrZvzpgsZ94hNNgjNHVyhXMiv4g9cn6SgvqiIFR5cigpml2LD_iUk_3DkV29oojTt3eA==",
+		Name:       "jason",
+		UsedSpace:  &usedSpace,
+		Currency:   "USD",
+		Role:       2,
+		Subscribed: 1,
+		Services:   1,
+		MaxSpace:   &maxSpace,
+		MaxUpload:  26214400,
+		Private:    1,
+		Keys:       *loadPMKeys(readTestFile("keyring_userKey_JSON", false)),
+	}
+)
 
 func routeGetUsers(tb testing.TB, w http.ResponseWriter, req *http.Request) string {
 	r.NoError(tb, checkMethodAndPath(req, "GET", "/users"))

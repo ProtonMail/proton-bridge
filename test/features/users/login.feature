@@ -6,6 +6,7 @@ Feature: Login for the first time
     And "user" is connected
     And "user" has database file
     And "user" has running event loop
+    And "user" has non-zero space
 
   @ignore-live
   Scenario: Login with bad username
@@ -31,6 +32,7 @@ Feature: Login for the first time
     And "user2fa" is connected
     And "user2fa" has database file
     And "user2fa" has running event loop
+    And "user2fa" has non-zero space
 
   Scenario: Login user with capital letters in address
     Given there is user "userAddressWithCapitalLetter"
@@ -39,6 +41,7 @@ Feature: Login for the first time
     And "userAddressWithCapitalLetter" is connected
     And "userAddressWithCapitalLetter" has database file
     And "userAddressWithCapitalLetter" has running event loop
+    And "userAddressWithCapitalLetter" has non-zero space
 
   Scenario: Login user with more addresses
     Given there is user "userMoreAddresses"
@@ -47,6 +50,7 @@ Feature: Login for the first time
     And "userMoreAddresses" is connected
     And "userMoreAddresses" has database file
     And "userMoreAddresses" has running event loop
+    And "userMoreAddresses" has non-zero space
 
   @ignore-live
   Scenario: Login user with disabled primary address
@@ -56,6 +60,7 @@ Feature: Login for the first time
     And "userDisabledPrimaryAddress" is connected
     And "userDisabledPrimaryAddress" has database file
     And "userDisabledPrimaryAddress" has running event loop
+    And "userDisabledPrimaryAddress" has non-zero space
 
   Scenario: Login two users
     Given there is user "user"

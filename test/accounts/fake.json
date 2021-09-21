@@ -3,27 +3,37 @@
         "user": {
             "ID": "1",
             "Name": "user",
-            "MaxUpload": 26214400
+            "MaxUpload": 26214400,
+            "UsedSpace": 1048576,
+            "MaxSpace": 10485760
         },
         "user2fa": {
             "ID": "2",
             "Name": "user2fa",
-            "MaxUpload": 26214400
+            "MaxUpload": 26214400,
+            "UsedSpace": 1048576,
+            "MaxSpace": 10485760
         },
         "userAddressWithCapitalLetter": {
             "ID": "3",
             "Name": "userAddressWithCapitalLetter",
-            "MaxUpload": 26214400
+            "MaxUpload": 26214400,
+            "UsedSpace": 1048576,
+            "MaxSpace": 10485760
         },
         "userMoreAddresses": {
             "ID": "4",
             "Name": "userMoreAddresses",
-            "MaxUpload": 26214400
+            "MaxUpload": 26214400,
+            "UsedSpace": 1048576,
+            "MaxSpace": 10485760
         },
         "userDisabledPrimaryAddress": {
             "ID": "5",
             "Name": "userDisabledPrimaryAddress",
-            "MaxUpload": 26214400
+            "MaxUpload": 26214400,
+            "UsedSpace": 1048576,
+            "MaxSpace": 10485760
         }
     },
     "addresses": {

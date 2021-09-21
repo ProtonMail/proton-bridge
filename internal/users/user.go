@@ -49,6 +49,8 @@ type User struct {
 	userID string
 	creds  *credentials.Credentials
 
+	usedBytes, totalBytes int64
+
 	lock sync.RWMutex
 }
 
@@ -121,6 +123,8 @@ func (u *User) connect(client pmapi.Client, creds *credentials.Credentials) erro
 		// NOTE(GODT-1158): If using in-memory cache we probably shouldn't start the watcher?
 		u.store.StartWatcher()
 	}
+
+	u.UpdateSpace(nil)
 
 	return nil
 }
@@ -199,6 +203,40 @@ func (u *User) closeStore() error {
 // ID returns the user's userID.
 func (u *User) ID() string {
 	return u.userID
+}
+
+// UsedBytes returns number of bytes used on server.
+func (u *User) UsedBytes() int64 {
+	return u.usedBytes
+}
+
+// TotalBytes returns number of bytes available on server.
+func (u *User) TotalBytes() int64 {
+	return u.totalBytes
+}
+
+// UpdateSpace will update TotalBytes and UsedBytes values from API user. If
+// pointer is nill it will get fresh user from API. API user can come from
+// update event which means it doesn't contain all data. Therefore only
+// positive values will be updated.
+func (u *User) UpdateSpace(apiUser *pmapi.User) {
+	// If missing get latest pmapi.User from API instead of using cached
+	// values from client.CurrentUser()
+	if apiUser == nil {
+		var err error
+		apiUser, err = u.client.GetUser(context.Background())
+		if err != nil {
+			u.log.WithError(err).Warning("Cannot update user space")
+			return
+		}
+	}
+
+	if apiUser.UsedSpace != nil {
+		u.usedBytes = *apiUser.UsedSpace
+	}
+	if apiUser.MaxSpace != nil {
+		u.totalBytes = *apiUser.MaxSpace
+	}
 }
 
 // Username returns the user's username as found in the user's credentials.
@@ -351,7 +389,7 @@ func (u *User) UpdateUser(ctx context.Context) error {
 	defer u.lock.Unlock()
 	defer u.listener.Emit(events.UserRefreshEvent, u.userID)
 
-	_, err := u.client.UpdateUser(ctx)
+	user, err := u.client.UpdateUser(ctx)
 	if err != nil {
 		return err
 	}
@@ -366,6 +404,8 @@ func (u *User) UpdateUser(ctx context.Context) error {
 	}
 
 	u.creds = creds
+
+	u.UpdateSpace(user)
 
 	return nil
 }

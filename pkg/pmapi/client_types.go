@@ -32,6 +32,7 @@ type Client interface {
 	AuthDelete(context.Context) error
 	AddAuthRefreshHandler(AuthRefreshHandler)
 
+	GetUser(ctx context.Context) (*User, error)
 	CurrentUser(ctx context.Context) (*User, error)
 	UpdateUser(ctx context.Context) (*User, error)
 	Unlock(ctx context.Context, passphrase []byte) (err error)

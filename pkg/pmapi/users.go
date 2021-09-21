@@ -63,10 +63,10 @@ const (
 type User struct {
 	ID         string
 	Name       string
-	UsedSpace  int64
+	UsedSpace  *int64
 	Currency   string
 	Credit     int
-	MaxSpace   int64
+	MaxSpace   *int64
 	MaxUpload  int64
 	Role       int
 	Private    int
@@ -85,7 +85,7 @@ type User struct {
 	}
 }
 
-func (c *client) getUser(ctx context.Context) (user *User, err error) {
+func (c *client) GetUser(ctx context.Context) (user *User, err error) {
 	var res struct {
 		User *User
 	}
@@ -114,7 +114,7 @@ func (c *client) unlockUser(passphrase []byte) (err error) {
 
 // UpdateUser retrieves details about user and loads its addresses.
 func (c *client) UpdateUser(ctx context.Context) (*User, error) {
-	user, err := c.getUser(ctx)
+	user, err := c.GetUser(ctx)
 	if err != nil {
 		return nil, err
 	}

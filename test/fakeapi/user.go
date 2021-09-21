@@ -85,6 +85,14 @@ func (api *FakePMAPI) UpdateUser(context.Context) (*pmapi.User, error) {
 	return api.user, nil
 }
 
+func (api *FakePMAPI) GetUser(ctx context.Context) (*pmapi.User, error) {
+	if err := api.checkAndRecordCall(GET, "/users", nil); err != nil {
+		return nil, err
+	}
+
+	return api.user, nil
+}
+
 func (api *FakePMAPI) GetAddresses(context.Context) (pmapi.AddressList, error) {
 	if err := api.checkAndRecordCall(GET, "/addresses", nil); err != nil {
 		return nil, err

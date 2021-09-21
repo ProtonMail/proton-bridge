@@ -40,7 +40,7 @@ type Event struct {
 	// Changes applied to labels.
 	Labels []*EventLabel
 	// Current user status.
-	User User
+	User *User
 	// Changes to addresses.
 	Addresses []*EventAddress
 	// Messages to show to the user.
@@ -198,17 +198,32 @@ func (c *client) getEvent(ctx context.Context, eventID string, numberOfMergedEve
 // mergeEvents combines an old events and a new events object.
 // This is not as simple as just blindly joining the two because some things should only be taken from the new events.
 func mergeEvents(eventsOld *Event, eventsNew *Event) (mergedEvents *Event) {
-	mergedEvents = &Event{
+	return &Event{
 		EventID:       eventsNew.EventID,
 		Refresh:       eventsOld.Refresh | eventsNew.Refresh,
 		More:          eventsNew.More,
 		Messages:      append(eventsOld.Messages, eventsNew.Messages...),
 		MessageCounts: append(eventsOld.MessageCounts, eventsNew.MessageCounts...),
 		Labels:        append(eventsOld.Labels, eventsNew.Labels...),
-		User:          eventsNew.User,
+		User:          mergeUserEvents(eventsOld.User, eventsNew.User),
 		Addresses:     append(eventsOld.Addresses, eventsNew.Addresses...),
 		Notices:       append(eventsOld.Notices, eventsNew.Notices...),
 	}
+}
 
-	return
+func mergeUserEvents(userOld, userNew *User) *User {
+	if userNew == nil {
+		return userOld
+	}
+
+	if userOld != nil {
+		if userNew.MaxSpace == nil {
+			userNew.MaxSpace = userOld.MaxSpace
+		}
+		if userNew.UsedSpace == nil {
+			userNew.UsedSpace = userOld.UsedSpace
+		}
+	}
+
+	return userNew
 }

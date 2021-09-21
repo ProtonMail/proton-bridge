@@ -225,7 +225,7 @@ func (iu *imapUser) GetQuota(name string) (*imapquota.Status, error) {
 	// Called from go-imap in goroutines - we need to handle panics for each function.
 	defer iu.panicHandler.HandlePanic()
 
-	usedSpace, maxSpace, err := iu.storeUser.GetSpace()
+	usedSpace, maxSpace, err := iu.storeUser.GetSpaceKB()
 	if err != nil {
 		log.Error("Failed getting quota: ", err)
 		return nil, err
@@ -233,9 +233,8 @@ func (iu *imapUser) GetQuota(name string) (*imapquota.Status, error) {
 
 	resources := make(map[string][2]uint32)
 	var list [2]uint32
-	// Quota is "in units of 1024 octets" (or KB) and PM returns bytes.
-	list[0] = uint32(usedSpace / 1024)
-	list[1] = uint32(maxSpace / 1024)
+	list[0] = usedSpace
+	list[1] = maxSpace
 	resources[imapquota.ResourceStorage] = list
 	status := &imapquota.Status{
 		Name:      "",

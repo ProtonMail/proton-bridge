@@ -21,7 +21,6 @@ import (
 	"context"
 	"fmt"
 	"math/rand"
-	"os"
 	"sync"
 
 	"github.com/ProtonMail/go-srp"
@@ -84,7 +83,7 @@ func (pc *persistentClient) GetEvent(ctx context.Context, eventID string) (*pmap
 }
 
 func SetupPersistentClients() {
-	app := os.Getenv("TEST_APP")
+	app := "bridge"
 
 	persistentClients.manager = pmapi.New(pmapi.NewConfig(app, constants.Version))
 	persistentClients.manager.SetLogging(logrus.WithField("pkg", "liveapi"), logrus.GetLevel() == logrus.TraceLevel)

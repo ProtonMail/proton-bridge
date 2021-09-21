@@ -42,7 +42,7 @@ Item {
 
     function spaceWithUnits(bytes){
         if (bytes*1 !== bytes ) return "0 kB"
-        var units = ['B',"kB", "MB", "TB"];
+        var units = ['B',"kB", "MB", "GB", "TB"];
         var i = parseInt(Math.floor(Math.log(bytes)/Math.log(1024)));
 
         return Math.round(bytes*10 / Math.pow(1024, i))/10 + " " + units[i]

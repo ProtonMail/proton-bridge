@@ -116,9 +116,14 @@ var (
 		IsCombinedAddressMode: false,
 	}
 
+	usedSpace = int64(1048576)
+	maxSpace  = int64(10485760)
+
 	testPMAPIUser = &pmapi.User{ //nolint[gochecknoglobals]
-		ID:   "user",
-		Name: "username",
+		ID:        "user",
+		Name:      "username",
+		UsedSpace: &usedSpace,
+		MaxSpace:  &maxSpace,
 	}
 
 	testPMAPIUserDisconnected = &pmapi.User{ //nolint[gochecknoglobals]
@@ -297,6 +302,7 @@ func mockInitConnectedUser(t *testing.T, m mocks) {
 	// Mock of user initialisation.
 	m.pmapiClient.EXPECT().AddAuthRefreshHandler(gomock.Any())
 	m.pmapiClient.EXPECT().IsUnlocked().Return(true).AnyTimes()
+	m.pmapiClient.EXPECT().GetUser(gomock.Any()).Return(testPMAPIUser, nil) // load connected user
 
 	// Mock of store initialisation.
 	gomock.InOrder(
