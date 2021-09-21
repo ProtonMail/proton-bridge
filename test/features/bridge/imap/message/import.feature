@@ -198,3 +198,23 @@ Feature: IMAP import messages
 
       """
     Then IMAP response is "OK \[APPENDUID \d 1\] APPEND completed"
+
+  Scenario: Import message to All Mail
+    When IMAP client imports message to "All Mail"
+      """
+      From: Foo <from1@pm.me>
+      To: Bridge Test <to1@pm.me>
+      Subject: subj1
+      Received: by 2002:0:0:0:0:0:0:0 with SMTP id 0123456789abcdef; Wed, 30 Dec 2020 01:23:45 0000
+
+      body1
+      """
+    Then IMAP response is "OK \[APPENDUID \d 1\] APPEND completed"
+    Then mailbox "Archive" for "user" has messages
+      | from        | to        | subject | body
+      | from1@pm.me | to1@pm.me | subj1   | body1
+    And API mailbox "Archive" for "user" has 1 message
+    And mailbox "All Mail" for "user" has messages
+      | from        | to        | subject | body
+      | from1@pm.me | to1@pm.me | subj1   | body1
+    And API mailbox "All Mail" for "user" has 1 message
