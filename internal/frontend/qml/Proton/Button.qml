@@ -152,6 +152,9 @@ T.Button {
                     Math.min(control.icon.height, availableHeight)
                 }
 
+                sourceSize.width: control.icon.width
+                sourceSize.height: control.icon.height
+
                 color: control.icon.color
                 source: control.loading ? "../icons/Loader_16.svg" : control.icon.source
                 visible: control.loading || control.icon.source

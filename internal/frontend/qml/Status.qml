@@ -86,6 +86,8 @@ Item {
 
         ColorImage {
             id: image
+            Layout.fillHeight: true
+            sourceSize.height: height
         }
 
         Label {

@@ -17,6 +17,7 @@
 
 import QtQuick 2.13
 import QtQuick.Layouts 1.12
+import QtQuick.Controls 2.12
 import QtQuick.Controls.impl 2.12
 
 import Proton 4.0
@@ -57,6 +58,7 @@ ColumnLayout {
             source: "icons/ic-copy.svg"
             color: root.colorScheme.text_norm
             height: root.colorScheme.body_font_size
+            sourceSize.height: root.colorScheme.body_font_size
 
             MouseArea {
                 anchors.fill: parent

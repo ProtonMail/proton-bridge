@@ -71,6 +71,7 @@ RowLayout{
                 source: "../icons/ic-check.svg"
                 color: root.colorScheme.background_norm
                 height: root.colorScheme.body_font_size
+                sourceSize.height: root.colorScheme.body_font_size
                 visible: root.checked
             }
         }
@@ -81,6 +82,7 @@ RowLayout{
             source: "../icons/Loader_16.svg"
             color: root.colorScheme.text_norm
             height: root.colorScheme.body_font_size
+            sourceSize.height: root.colorScheme.body_font_size
             visible: root.loading
 
             RotationAnimation {

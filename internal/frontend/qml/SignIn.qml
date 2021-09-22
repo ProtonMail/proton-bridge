@@ -200,6 +200,8 @@ Item {
                 ColorImage {
                     color: root.colorScheme.signal_danger
                     source: "./icons/ic-exclamation-circle-filled.svg"
+                    height: errorLabel.height
+                    sourceSize.height: errorLabel.height
                 }
 
                 Label {

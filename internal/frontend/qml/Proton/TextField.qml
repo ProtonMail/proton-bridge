@@ -295,6 +295,8 @@ Item {
                 visible: root.error && (assistiveText.text.length > 0)
                 source: "../icons/ic-exclamation-circle-filled.svg"
                 color: root.colorScheme.signal_danger
+                height: assistiveText.height
+                sourceSize.height: assistiveText.height
             }
 
             Label {

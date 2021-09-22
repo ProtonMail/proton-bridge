@@ -87,6 +87,8 @@ T.CheckBox {
 
             width: parent.width - 4
             height: parent.height - 4
+            sourceSize.width: parent.width - 4
+            sourceSize.height: parent.height - 4
             color: "#FFFFFF"
             source: "../icons/ic-check.svg"
             visible: control.checkState === Qt.Checked

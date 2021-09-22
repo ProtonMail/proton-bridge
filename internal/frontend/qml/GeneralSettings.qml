@@ -87,6 +87,7 @@ SettingsView {
             source: root._isAdvancedShown ? "icons/ic-chevron-up.svg" : "icons/ic-chevron-down.svg"
             color: root.colorScheme.interaction_norm
             height: root.colorScheme.body_font_size
+            sourceSize.height: root.colorScheme.body_font_size
             MouseArea {
                 anchors.fill: parent
                 onClicked: root._isAdvancedShown = !root._isAdvancedShown

@@ -96,6 +96,8 @@ T.Switch {
 
                 width: 16
                 height: 16
+                sourceSize.width: 16
+                sourceSize.height: 16
                 color: "#FFFFFF"
                 source: "../icons/ic-check.svg"
                 visible: control.checked
@@ -114,6 +116,8 @@ T.Switch {
 
             width: 18
             height: 18
+            sourceSize.width: 18
+            sourceSize.height: 18
             color: control.colorScheme.interaction_norm_hover
             source: "../icons/Loader_16.svg"
             visible: control.loading

@@ -164,6 +164,7 @@ Item {
         anchors.top: assistiveText.top
         anchors.bottom: assistiveText.bottom
         source: "../icons/ic-exclamation-circle-filled.svg"
+        sourceSize.height: height
         color: root.colorScheme.signal_danger
     }
 

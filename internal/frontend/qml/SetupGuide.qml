@@ -98,6 +98,7 @@ Item {
                             ColorImage {
                                 source: model.iconSource
                                 height: 36
+                                sourceSize.height: 36
                             }
 
                             Label {

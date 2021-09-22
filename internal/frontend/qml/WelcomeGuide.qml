@@ -89,6 +89,8 @@ Item {
                         source: "icons/img-welcome.svg"
                         Layout.alignment: Qt.AlignHCenter
                         Layout.topMargin: 16
+                        sourceSize.height: 148
+                        sourceSize.width: 264
                     }
 
                     Label {
@@ -145,6 +147,8 @@ Item {
                         anchors.bottom: parent.bottom
                         anchors.topMargin: 48
                         anchors.bottomMargin: 48
+                        sourceSize.height: 22
+                        sourceSize.width: 132
                     }
                 }
             }
