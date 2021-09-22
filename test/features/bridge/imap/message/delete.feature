@@ -96,12 +96,22 @@ Feature: IMAP remove messages from mailbox
       | LOGOUT        | 9  |
       | UNSELECT      | 10 |
 
-  Scenario: Not possible to delete from All Mail
-    Given there are 1 messages in mailbox "INBOX" for "user"
+  Scenario: Not possible to delete from All Mail and expunge does nothing
+    Given there are messages in mailbox "INBOX" for "user"
+      | id | from              | to         | subject | body  |
+      | 1  | john.doe@mail.com | user@pm.me | subj1   | body1 |
     And there is IMAP client logged in as "user"
     And there is IMAP client selected in "All Mail"
     When IMAP client marks message seq "1" as deleted
     Then IMAP response is "IMAP error: NO operation not allowed for 'All Mail' folder"
+    And mailbox "All Mail" for "user" has messages
+      | from              | to         | subject |
+      | john.doe@mail.com | user@pm.me | subj1   |
+    When IMAP client sends expunge
+    Then IMAP response is "OK"
+    And mailbox "All Mail" for "user" has messages
+      | from              | to         | subject |
+      | john.doe@mail.com | user@pm.me | subj1   |
 
   Scenario: Expunge specific message only
     Given there are 5 messages in mailbox "INBOX" for "user"
