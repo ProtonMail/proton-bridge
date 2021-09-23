@@ -266,6 +266,10 @@ func (im *imapMailbox) labelMessages(uid bool, seqSet *imap.SeqSet, targetLabel 
 		}
 		return errors.New("move from Sent to Inbox is not allowed")
 	}
+	// Moving from All Mail is not allowed.
+	if im.storeMailbox.LabelID() == pmapi.AllMailLabel {
+		return errors.New("move from All Mail is not allowed")
+	}
 
 	deletedIDs := []string{}
 	allDeletedIDs, err := im.storeMailbox.GetDeletedAPIIDs()

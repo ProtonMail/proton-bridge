@@ -80,16 +80,12 @@ Feature: IMAP move messages
   Scenario: Move message from All Mail is not possible
     Given there is IMAP client selected in "All Mail"
     When IMAP client moves message seq "1" to "Folders/folder"
-    Then IMAP response is "OK"
+    Then IMAP response is "NO move from All Mail is not allowed"
     And mailbox "All Mail" for "user" has messages
       | from              | to         | subject |
       | john.doe@mail.com | user@pm.me | foo     |
       | jane.doe@mail.com | name@pm.me | bar     |
-    And mailbox "Folders/folder" for "user" has messages
-      | from              | to         | subject |
-      | john.doe@mail.com | user@pm.me | baz     |
-    And API endpoint "PUT /mail/v4/messages/label" is called
-    And API endpoint "PUT /mail/v4/messages/unlabel" is not called
+    And mailbox "Folders/folder" for "user" has 0 messages
 
   Scenario: Move message from Inbox to Sent is not possible
     Given there is IMAP client selected in "INBOX"
