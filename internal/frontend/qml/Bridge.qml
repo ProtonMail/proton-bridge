@@ -109,13 +109,14 @@ QtObject {
     property SystemTrayIcon _trayIcon: SystemTrayIcon {
         id: trayIcon
         visible: true
-        iconSource: "./icons/ic-systray.svg"
+        icon.source: "./icons/systray-mono.png"
+        icon.mask: true // make sure that systems like macOS will use proper color
+        tooltip: `Proton Mail Bridge v${go.version}`
         onActivated: {
             function calcStatusWindowPosition() {
                 function isInInterval(num, lower_limit, upper_limit) {
                     return lower_limit <= num && num <= upper_limit
                 }
-
 
                 // First we get icon center position.
                 // On some platforms (X11 / Wayland) Qt does not provide icon geometry info.
