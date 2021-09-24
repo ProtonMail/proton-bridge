@@ -137,8 +137,14 @@ func (im *imapMailbox) setFlags(messageIDs, flags []string) error { //nolint
 	return nil
 }
 
-func (im *imapMailbox) addOrRemoveFlags(operation imap.FlagsOp, messageIDs, flags []string) error {
+func (im *imapMailbox) addOrRemoveFlags(operation imap.FlagsOp, messageIDs, flags []string) error { //nolint[funlen]
 	for _, f := range flags {
+		// Adding flag 'nojunk' is equivalent to removing flag 'junk'
+		if (operation == imap.AddFlags) && (f == "nojunk") {
+			operation = imap.RemoveFlags
+			f = "junk"
+		}
+
 		switch f {
 		case imap.SeenFlag:
 			switch operation { //nolint[exhaustive] imap.SetFlags is processed by im.setFlags
@@ -175,12 +181,11 @@ func (im *imapMailbox) addOrRemoveFlags(operation imap.FlagsOp, messageIDs, flag
 			}
 		case imap.AnsweredFlag, imap.DraftFlag, imap.RecentFlag:
 			// Not supported.
-		case message.AppleMailJunkFlag, message.ThunderbirdJunkFlag:
+		case strings.ToLower(message.AppleMailJunkFlag), strings.ToLower(message.ThunderbirdJunkFlag):
 			storeMailbox, err := im.storeAddress.GetMailbox("Spam")
 			if err != nil {
 				return err
 			}
-
 			// Handle custom junk flags for Apple Mail and Thunderbird.
 			switch operation { //nolint[exhaustive] imap.SetFlag is processed by im.setFlags
 			// No label removal is necessary because Spam and Inbox are both exclusive labels so the backend
@@ -190,7 +195,15 @@ func (im *imapMailbox) addOrRemoveFlags(operation imap.FlagsOp, messageIDs, flag
 					return err
 				}
 			case imap.RemoveFlags:
+				// when removing junk flag, the message should be moved to the INBOX folder.
 				if err := storeMailbox.UnlabelMessages(messageIDs); err != nil {
+					return err
+				}
+				inboxMailbox, err := im.storeAddress.GetMailbox("INBOX")
+				if err != nil {
+					return err
+				}
+				if err := inboxMailbox.LabelMessages(messageIDs); err != nil {
 					return err
 				}
 			}

@@ -48,6 +48,10 @@ func IMAPActionsMessagesFeatureContext(s *godog.ScenarioContext) {
 	s.Step(`^IMAP client creates message "([^"]*)" from address "([^"]*)" of "([^"]*)" to "([^"]*)" with body "([^"]*)" in "([^"]*)"$`, imapClientCreatesMessageFromAddressOfUserToWithBody)
 	s.Step(`^IMAP client marks message seq "([^"]*)" with "([^"]*)"$`, imapClientMarksMessageSeqWithFlags)
 	s.Step(`^IMAP client "([^"]*)" marks message seq "([^"]*)" with "([^"]*)"$`, imapClientNamedMarksMessageSeqWithFlags)
+	s.Step(`^IMAP client adds flags "([^"]*)" to message seq "([^"]*)"$`, imapClientAddsFlagsToMessageSeq)
+	s.Step(`^IMAP client "([^"]*)" adds flags "([^"]*)" to message seq "([^"]*)"$`, imapClientNamedAddsFlagsToMessageSeq)
+	s.Step(`^IMAP client removes flags "([^"]*)" from message seq "([^"]*)"$`, imapClientRemovesFlagsFromMessageSeq)
+	s.Step(`^IMAP client "([^"]*)" removes flags "([^"]*)" from message seq "([^"]*)"$`, imapClientNamedRemovesFlagsFromMessageSeq)
 	s.Step(`^IMAP client marks message seq "([^"]*)" as read$`, imapClientMarksMessageSeqAsRead)
 	s.Step(`^IMAP client "([^"]*)" marks message seq "([^"]*)" as read$`, imapClientNamedMarksMessageSeqAsRead)
 	s.Step(`^IMAP client marks message seq "([^"]*)" as unread$`, imapClientMarksMessageSeqAsUnread)
@@ -262,6 +266,26 @@ func imapClientMarksMessageSeqWithFlags(messageSeq, flags string) error {
 
 func imapClientNamedMarksMessageSeqWithFlags(imapClient, messageSeq, flags string) error {
 	res := ctx.GetIMAPClient(imapClient).SetFlags(messageSeq, flags)
+	ctx.SetIMAPLastResponse(imapClient, res)
+	return nil
+}
+
+func imapClientAddsFlagsToMessageSeq(flags, messageSeq string) error {
+	return imapClientNamedAddsFlagsToMessageSeq("imap", flags, messageSeq)
+}
+
+func imapClientNamedAddsFlagsToMessageSeq(imapClient, flags, messageSeq string) error {
+	res := ctx.GetIMAPClient(imapClient).AddFlags(messageSeq, flags)
+	ctx.SetIMAPLastResponse(imapClient, res)
+	return nil
+}
+
+func imapClientRemovesFlagsFromMessageSeq(flags, messageSeq string) error {
+	return imapClientNamedRemovesFlagsFromMessageSeq("imap", flags, messageSeq)
+}
+
+func imapClientNamedRemovesFlagsFromMessageSeq(imapClient, flags, messageSeq string) error {
+	res := ctx.GetIMAPClient(imapClient).RemoveFlags(messageSeq, flags)
 	ctx.SetIMAPLastResponse(imapClient, res)
 	return nil
 }
