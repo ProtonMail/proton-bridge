@@ -42,7 +42,7 @@ Item {
     NotificationFilter {
         id: notificationFilter
 
-        source: root.notifications.all
+        source: root.notifications ? root.notifications.all : undefined
         whitelist: root.notificationWhitelist
         blacklist: root.notificationBlacklist
 
@@ -59,19 +59,19 @@ Item {
             label.text = topmost.text
 
             switch (topmost.type) {
-            case Notification.NotificationType.Danger:
+                case Notification.NotificationType.Danger:
                 image.color = root.colorScheme.signal_danger
                 label.color = root.colorScheme.signal_danger
                 break;
-            case Notification.NotificationType.Warning:
+                case Notification.NotificationType.Warning:
                 image.color = root.colorScheme.signal_warning
                 label.color = root.colorScheme.signal_warning
                 break;
-            case Notification.NotificationType.Success:
+                case Notification.NotificationType.Success:
                 image.color = root.colorScheme.signal_success
                 label.color = root.colorScheme.signal_success
                 break;
-            case Notification.NotificationType.Info:
+                case Notification.NotificationType.Info:
                 image.color = root.colorScheme.signal_info
                 label.color = root.colorScheme.signal_info
                 break;

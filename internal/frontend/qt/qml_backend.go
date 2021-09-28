@@ -28,6 +28,10 @@ import (
 	"github.com/therecipe/qt/core"
 )
 
+func init() {
+	QMLBackend_QRegisterMetaType()
+}
+
 // QMLBackend connects QML frontend with Go backend.
 type QMLBackend struct {
 	core.QObject
@@ -138,6 +142,8 @@ type QMLBackend struct {
 	_ func(address string)  `signal:addressChangedLogout`
 	_ func(username string) `signal:userDisconnected`
 	_ func()                `signal:apiCertIssue`
+
+	_ func(userID string) `signal:userChanged`
 }
 
 func (q *QMLBackend) setup(f *FrontendQt) {
@@ -150,38 +156,81 @@ func (q *QMLBackend) setup(f *FrontendQt) {
 		return f.showOnStartup
 	})
 
-	q.ConnectIsDockIconVisible(func() bool {
-		return dockIcon.GetDockIconVisibleState()
-	})
-	q.ConnectSetDockIconVisible(func(visible bool) {
-		dockIcon.SetDockIconVisibleState(visible)
-	})
+	q.ConnectIsDockIconVisible(dockIcon.GetDockIconVisibleState)
+	q.ConnectSetDockIconVisible(dockIcon.SetDockIconVisibleState)
 
-	q.SetUsers(NewQMLUserModel(nil))
-	f.loadUsers()
+	um := NewQMLUserModel(q)
+	um.f = f
+	q.SetUsers(um)
+	um.load()
+
+	q.ConnectUserChanged(um.userChanged)
 
 	q.SetGoos(runtime.GOOS)
 
-	q.ConnectLogin(func(u, p string) { go f.login(u, p) })
-	q.ConnectLogin2FA(func(u, p string) { go f.login2FA(u, p) })
-	q.ConnectLogin2Password(func(u, p string) { go f.login2Password(u, p) })
-	q.ConnectLoginAbort(func(u string) { go f.loginAbort(u) })
+	q.ConnectLogin(func(u, p string) {
+		go func() {
+			defer f.panicHandler.HandlePanic()
+			f.login(u, p)
+		}()
+	})
+	q.ConnectLogin2FA(func(u, p string) {
+		go func() {
+			defer f.panicHandler.HandlePanic()
+			f.login2FA(u, p)
+		}()
+	})
+	q.ConnectLogin2Password(func(u, p string) {
+		go func() {
+			defer f.panicHandler.HandlePanic()
+			f.login2Password(u, p)
+		}()
+	})
+	q.ConnectLoginAbort(func(u string) {
+		go func() {
+			defer f.panicHandler.HandlePanic()
+			f.loginAbort(u)
+		}()
+	})
 
-	go f.checkUpdatesAndNotify(false)
-	q.ConnectCheckUpdates(func() { go f.checkUpdatesAndNotify(true) })
+	go func() {
+		defer f.panicHandler.HandlePanic()
+		f.checkUpdatesAndNotify(false)
+	}()
+	q.ConnectCheckUpdates(func() {
+		go func() {
+			defer f.panicHandler.HandlePanic()
+			f.checkUpdatesAndNotify(true)
+		}()
+	})
 
 	f.setIsDiskCacheEnabled()
 	f.setDiskCachePath()
-	q.ConnectChangeLocalCache(func(e bool, d string) { go f.changeLocalCache(e, d) })
+	q.ConnectChangeLocalCache(func(e bool, d string) {
+		go func() {
+			defer f.panicHandler.HandlePanic()
+			f.changeLocalCache(e, d)
+		}()
+	})
 
 	f.setIsAutomaticUpdateOn()
-	q.ConnectToggleAutomaticUpdate(func(m bool) { go f.toggleAutomaticUpdate(m) })
+	q.ConnectToggleAutomaticUpdate(func(m bool) {
+		go func() {
+			defer f.panicHandler.HandlePanic()
+			f.toggleAutomaticUpdate(m)
+		}()
+	})
 
 	f.setIsAutostartOn()
 	q.ConnectToggleAutostart(f.toggleAutostart)
 
 	f.setIsBetaEnabled()
-	q.ConnectToggleBeta(func(m bool) { go f.toggleBeta(m) })
+	q.ConnectToggleBeta(func(m bool) {
+		go func() {
+			defer f.panicHandler.HandlePanic()
+			f.toggleBeta(m)
+		}()
+	})
 
 	q.SetIsDoHEnabled(f.settings.GetBool(settings.AllowProxyKey))
 	q.ConnectToggleDoH(f.toggleDoH)
@@ -195,7 +244,12 @@ func (q *QMLBackend) setup(f *FrontendQt) {
 	q.ConnectChangePorts(f.changePorts)
 	q.ConnectIsPortFree(f.isPortFree)
 
-	q.ConnectTriggerReset(func() { go f.triggerReset() })
+	q.ConnectTriggerReset(func() {
+		go func() {
+			defer f.panicHandler.HandlePanic()
+			f.triggerReset()
+		}()
+	})
 
 	f.setVersion()
 	f.setLogsPath()
@@ -203,9 +257,24 @@ func (q *QMLBackend) setup(f *FrontendQt) {
 	f.setLicensePath()
 
 	f.setCurrentEmailClient()
-	q.ConnectUpdateCurrentMailClient(func() { go f.setCurrentEmailClient() })
-	q.ConnectReportBug(func(d, a, e string, i bool) { go f.reportBug(d, a, e, i) })
+	q.ConnectUpdateCurrentMailClient(func() {
+		go func() {
+			defer f.panicHandler.HandlePanic()
+			f.setCurrentEmailClient()
+		}()
+	})
+	q.ConnectReportBug(func(d, a, e string, i bool) {
+		go func() {
+			defer f.panicHandler.HandlePanic()
+			f.reportBug(d, a, e, i)
+		}()
+	})
 
 	f.setKeychain()
-	q.ConnectSelectKeychain(func(k string) { go f.selectKeychain(k) })
+	q.ConnectSelectKeychain(func(k string) {
+		go func() {
+			defer f.panicHandler.HandlePanic()
+			f.selectKeychain(k)
+		}()
+	})
 }

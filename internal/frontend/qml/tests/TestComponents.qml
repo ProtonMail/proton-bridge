@@ -19,52 +19,68 @@ import QtQuick 2.13
 import QtQuick.Layouts 1.12
 import QtQuick.Controls 2.12
 
-import Proton 4.0
+import "../Proton"
 
 Rectangle {
+    id: root
     property ColorScheme colorScheme
     color: colorScheme.background_norm
     clip: true
 
-    ColumnLayout {
+    implicitHeight: children[0].implicitHeight + children[0].anchors.topMargin + children[0].anchors.bottomMargin
+    implicitWidth: children[0].implicitWidth + children[0].anchors.leftMargin + children[0].anchors.rightMargin
+
+    ScrollView {
         anchors.fill: parent
 
-        spacing: 5
+        ColumnLayout {
+            anchors.margins: 20
 
-        Buttons {
-            colorScheme: root.colorScheme
-            Layout.fillWidth: true
-            Layout.margins: 20
-        }
+            width: root.width
 
-        TextFields {
-            colorScheme: root.colorScheme
-            Layout.fillWidth: true
-            Layout.margins: 20
-        }
+            spacing: 5
 
-        TextAreas {
-            colorScheme: root.colorScheme
-            Layout.fillWidth: true
-            Layout.margins: 20
-        }
+            Buttons {
+                colorScheme: root.colorScheme
+                Layout.fillWidth: true
+                Layout.margins: 20
+            }
 
-        CheckBoxes {
-            colorScheme: root.colorScheme
-            Layout.fillWidth: true
-            Layout.margins: 20
-        }
+            CheckBoxes {
+                colorScheme: root.colorScheme
+                Layout.fillWidth: true
+                Layout.margins: 20
+            }
 
-        RadioButtons {
-            colorScheme: root.colorScheme
-            Layout.fillWidth: true
-            Layout.margins: 20
-        }
+            ComboBoxes {
+                colorScheme: root.colorScheme
+                Layout.fillWidth: true
+                Layout.margins: 20
+            }
 
-        Switches {
-            colorScheme: root.colorScheme
-            Layout.fillWidth: true
-            Layout.margins: 20
+            RadioButtons {
+                colorScheme: root.colorScheme
+                Layout.fillWidth: true
+                Layout.margins: 20
+            }
+
+            Switches {
+                colorScheme: root.colorScheme
+                Layout.fillWidth: true
+                Layout.margins: 20
+            }
+
+            TextAreas {
+                colorScheme: root.colorScheme
+                Layout.fillWidth: true
+                Layout.margins: 20
+            }
+
+            TextFields {
+                colorScheme: root.colorScheme
+                Layout.fillWidth: true
+                Layout.margins: 20
+            }
         }
     }
 }

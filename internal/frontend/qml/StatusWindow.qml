@@ -198,7 +198,7 @@ Window {
                         Button {
                             Layout.margins: 12
                             colorScheme: root.colorScheme
-                            visible: !viewItem.user.loggedIn
+                            visible: viewItem.user ? !viewItem.user.loggedIn : false
                             text: qsTr("Sign in")
                             onClicked: {
                                 root.showSignIn(viewItem.username)

@@ -20,9 +20,10 @@ import QtQuick.Window 2.13
 import QtQuick.Layouts 1.12
 import QtQuick.Controls 2.12
 
-import Proton 4.0
+import "../Proton"
 
 RowLayout {
+    id: root
     property ColorScheme colorScheme
 
     ColumnLayout {
@@ -32,30 +33,36 @@ RowLayout {
 
         Switch {
             text: "Toggle"
+            colorScheme: root.colorScheme
         }
 
         Switch {
             text: "Toggle"
             enabled: false
+            colorScheme: root.colorScheme
         }
 
         Switch {
             text: "Toggle"
             loading: true
+            colorScheme: root.colorScheme
         }
 
         Switch {
             text: ""
+            colorScheme: root.colorScheme
         }
 
         Switch {
             text: ""
             enabled: false
+            colorScheme: root.colorScheme
         }
 
         Switch {
             text: ""
             loading: true
+            colorScheme: root.colorScheme
         }
     }
 
@@ -67,35 +74,41 @@ RowLayout {
         Switch {
             text: "Toggle"
             checked: true
+            colorScheme: root.colorScheme
         }
 
         Switch {
             text: "Toggle"
             checked: true
             enabled: false
+            colorScheme: root.colorScheme
         }
 
         Switch {
             text: "Toggle"
             checked: true
             loading: true
+            colorScheme: root.colorScheme
         }
 
         Switch {
             text: ""
             checked: true
+            colorScheme: root.colorScheme
         }
 
         Switch {
             text: ""
             checked: true
             enabled: false
+            colorScheme: root.colorScheme
         }
 
         Switch {
             text: ""
             checked: true
             loading: true
+            colorScheme: root.colorScheme
         }
     }
 }

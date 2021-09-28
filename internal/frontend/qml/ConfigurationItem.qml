@@ -22,7 +22,7 @@ import QtQuick.Controls.impl 2.12
 
 import Proton 4.0
 
-ColumnLayout {
+Item {
     id: root
     Layout.fillWidth: true
 
@@ -30,54 +30,60 @@ ColumnLayout {
     property string label
     property string value
 
-    RowLayout {
-        Layout.fillWidth: true
+    implicitHeight: children[0].implicitHeight
+    implicitWidth: children[0].implicitWidth
 
-        ColumnLayout {
-            Label {
-                colorScheme: root.colorScheme
-                text: root.label
-                type: Label.Body
-            }
-            TextEdit {
-                id: valueText
-                text: root.value
-                color: root.colorScheme.text_weak
-                readOnly: true
-                selectByMouse: true
-                selectByKeyboard: true
-                selectionColor: root.colorScheme.text_weak
-            }
-        }
+    ColumnLayout {
+        width: root.width
 
-        Item {
+        RowLayout {
             Layout.fillWidth: true
-        }
 
-        ColorImage {
-            source: "icons/ic-copy.svg"
-            color: root.colorScheme.text_norm
-            height: root.colorScheme.body_font_size
-            sourceSize.height: root.colorScheme.body_font_size
-
-            MouseArea {
-                anchors.fill: parent
-                onClicked : {
-                    valueText.select(0, valueText.length)
-                    valueText.copy()
-                    valueText.deselect()
+            ColumnLayout {
+                Label {
+                    colorScheme: root.colorScheme
+                    text: root.label
+                    type: Label.Body
                 }
-                onPressed: parent.scale = 0.90
-                onReleased: parent.scale = 1
+                TextEdit {
+                    id: valueText
+                    text: root.value
+                    color: root.colorScheme.text_weak
+                    readOnly: true
+                    selectByMouse: true
+                    selectByKeyboard: true
+                    selectionColor: root.colorScheme.text_weak
+                }
             }
 
+            Item {
+                Layout.fillWidth: true
+            }
+
+            ColorImage {
+                source: "icons/ic-copy.svg"
+                color: root.colorScheme.text_norm
+                height: root.colorScheme.body_font_size
+                sourceSize.height: root.colorScheme.body_font_size
+
+                MouseArea {
+                    anchors.fill: parent
+                    onClicked : {
+                        valueText.select(0, valueText.length)
+                        valueText.copy()
+                        valueText.deselect()
+                    }
+                    onPressed: parent.scale = 0.90
+                    onReleased: parent.scale = 1
+                }
+
+            }
         }
-    }
 
-
-    Rectangle {
-        Layout.fillWidth: true
-        height: 1
-        color: root.colorScheme.border_norm
+        Rectangle {
+            Layout.fillWidth: true
+            height: 1
+            color: root.colorScheme.border_norm
+        }
     }
 }

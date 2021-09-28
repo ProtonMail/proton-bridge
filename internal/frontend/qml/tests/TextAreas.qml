@@ -20,7 +20,7 @@ import QtQuick.Window 2.13
 import QtQuick.Layouts 1.12
 import QtQuick.Controls 2.12
 
-import Proton 4.0
+import "../Proton"
 
 RowLayout {
     id: root

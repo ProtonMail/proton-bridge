@@ -42,19 +42,6 @@ QtObject {
         backend: root.backend
         notifications: root._notifications
 
-        onLogin: {
-            backend.login(username, password)
-        }
-        onLogin2FA: {
-            backend.login2FA(username, code)
-        }
-        onLogin2Password: {
-            backend.login2Password(username, password)
-        }
-        onLoginAbort: {
-            backend.loginAbort(username)
-        }
-
         onVisibleChanged: {
             backend.dockIconVisible = visible
         }
@@ -167,12 +154,10 @@ QtObject {
                 break;
                 case SystemTrayIcon.Context:
                 case SystemTrayIcon.Trigger:
-                calcStatusWindowPosition()
-                toggleWindow(statusWindow)
-                break
                 case SystemTrayIcon.DoubleClick:
                 case SystemTrayIcon.MiddleClick:
-                toggleWindow(mainWindow)
+                calcStatusWindowPosition()
+                toggleWindow(statusWindow)
                 break;
                 default:
                 break;
@@ -181,12 +166,30 @@ QtObject {
     }
 
     Component.onCompleted: {
-        if (root.backend.users.count === 0) {
+        if (!root.backend) {
+            console.log("backend not loaded")
+        }
+
+        if (!root.backend.users) {
+            console.log("users not loaded")
+        }
+
+        var c = root.backend.users.count
+        var u = root.backend.users.get(0)
+        // DEBUG
+        if (c != 0) {
+            console.log("users non zero", c)
+            console.log("first user", u )
+        }
+
+        if (c === 0) {
             mainWindow.showAndRise()
         }
 
-        if (root.backend.users.count === 1 && root.backend.users.get(0).loggedIn === false) {
-            mainWindow.showAndRise()
+        if (u) {
+            if (c === 1 && u.loggedIn === false) {
+                mainWindow.showAndRise()
+            }
         }
 
         if (root.backend.showOnStartup) {

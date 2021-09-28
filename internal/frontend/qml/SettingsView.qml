@@ -22,7 +22,7 @@ import QtQuick.Controls.impl 2.13
 
 import Proton 4.0
 
-ScrollView {
+Item {
     id: root
 
     property var colorScheme
@@ -31,36 +31,45 @@ ScrollView {
 
     signal back()
 
-    property int _leftRightMargins: 64
-    property int _topBottomMargins: 68
-    property int _spacing: 22
+    property int _leftMargin: 64
+    property int _rightMargin: 64
+    property int _topMargin: 32
+    property int _bottomMargin: 32
+    property int _spacing: 20
 
-    clip: true
-    contentWidth: pane.width
-    contentHeight: pane.height
 
-    RowLayout{
-        id: pane
-        width: root.width
+    ScrollView {
+        clip: true
+
+        width:root.width
+        height:root.height
+
+        contentWidth: content.width
+        contentHeight: content.height
 
         ColumnLayout {
             id: content
             spacing: root._spacing
-            Layout.maximumWidth: root.width - 2*root._leftRightMargins
-            Layout.fillWidth: true
-            Layout.topMargin: root._topBottomMargins
-            Layout.bottomMargin: root._topBottomMargins
-            Layout.leftMargin: root._leftRightMargins
-            Layout.rightMargin: root._leftRightMargins
+            width: root.width - (root._leftMargin + root._rightMargin)
+
+            anchors{
+                top: parent.top
+                left: parent.left
+                topMargin: root._topMargin
+                bottomMargin: root._bottomMargin
+                leftMargin: root._leftMargin
+                rightMargin: root._rightMargin
+            }
         }
     }
 
     Button {
+        id: backButton
         anchors {
             top: parent.top
             left: parent.left
-            topMargin: 10
-            leftMargin: 18
+            topMargin: root._topMargin
+            leftMargin: (root._leftMargin-backButton.width) / 2
         }
         colorScheme: root.colorScheme
         onClicked: root.back()

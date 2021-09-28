@@ -24,6 +24,7 @@ ColorScheme 4.0 ColorScheme.qml
 ApplicationWindow 4.0 ApplicationWindow.qml
 Button 4.0 Button.qml
 CheckBox 4.0 CheckBox.qml
+ComboBox 4.0 ComboBox.qml
 Dialog 4.0 Dialog.qml
 Label 4.0 Label.qml
 Menu 4.0 Menu.qml

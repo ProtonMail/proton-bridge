@@ -20,15 +20,19 @@ import QtQuick.Layouts 1.12
 import QtQuick.Controls 2.13
 import QtQuick.Controls.impl 2.13
 
-RowLayout{
+Item {
     id: root
     property var colorScheme
     property bool checked
-    property bool disabled
     property bool hovered
     property bool loading
 
     signal clicked
+
+    property bool _disabled: !enabled
+
+    implicitHeight: children[0].implicitHeight
+    implicitWidth: children[0].implicitWidth
 
     Rectangle {
         id: indicator
@@ -38,12 +42,12 @@ RowLayout{
         radius: 20
         color: {
             if (root.loading) return "transparent"
-            if (root.disabled) return root.colorScheme.background_strong
+            if (root._disabled) return root.colorScheme.background_strong
             return root.colorScheme.background_norm
         }
         border {
             width: 1
-            color: (root.disabled || root.loading) ? "transparent" : colorScheme.field_norm
+            color: (root._disabled || root.loading) ? "transparent" : colorScheme.field_norm
         }
 
         Rectangle {
@@ -55,7 +59,7 @@ RowLayout{
             radius: 12
             color: {
                 if (root.loading) return "transparent"
-                if (root.disabled) return root.colorScheme.field_disabled
+                if (root._disabled) return root.colorScheme.field_disabled
 
                 if (root.checked) {
                     if (root.hovered) return root.colorScheme.interaction_norm_hover
@@ -101,7 +105,7 @@ RowLayout{
             hoverEnabled: true
             onEntered: {root.hovered = true }
             onExited: {root.hovered = false }
-            onClicked: { root.clicked();}
+            onClicked: { if (root.enabled) root.clicked();}
             onPressed: {root.hovered = true }
             onReleased: { root.hovered = containsMouse }
         }

@@ -41,11 +41,6 @@ ApplicationWindow {
     property var backend
     property var notifications
 
-    signal login(string username, string password)
-    signal login2FA(string username, string code)
-    signal login2Password(string username, string password)
-    signal loginAbort(string username)
-
     // show Setup Guide on every new user
     Connections {
         target: root.backend.users
@@ -98,7 +93,15 @@ ApplicationWindow {
                 return 1
             }
 
-            if (backend.users.count === 1 && backend.users.get(0).loggedIn === false) {
+            var u = backend.users.get(0)
+
+            if (!u) {
+                console.trace()
+                console.log("empty user")
+                return 1
+            }
+
+            if (backend.users.count === 1 && u.loggedIn === false) {
                 return 1
             }
 
@@ -121,19 +124,6 @@ ApplicationWindow {
             onShowSetupGuide: {
                 root.showSetup(user,address)
             }
-
-            onLogin: {
-                root.login(username, password)
-            }
-            onLogin2FA: {
-                root.login2FA(username, code)
-            }
-            onLogin2Password: {
-                root.login2Password(username, password)
-            }
-            onLoginAbort: {
-                root.loginAbort(username)
-            }
         }
 
         WelcomeGuide {
@@ -142,19 +132,6 @@ ApplicationWindow {
 
             Layout.fillHeight: true
             Layout.fillWidth: true
-
-            onLogin: {
-                root.login(username, password)
-            }
-            onLogin2FA: {
-                root.login2FA(username, code)
-            }
-            onLogin2Password: {
-                root.login2Password(username, password)
-            }
-            onLoginAbort: {
-                root.loginAbort(username)
-            }
         }
 
         SetupGuide {

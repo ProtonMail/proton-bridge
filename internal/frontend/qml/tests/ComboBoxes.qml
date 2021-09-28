@@ -28,85 +28,73 @@ RowLayout {
 
     ColumnLayout {
         Layout.fillWidth: true
-
-        spacing: parent.spacing
-
-        RadioButton {
+        ComboBox {
+            Layout.fillWidth: true
+            model: ["First", "Second", "Third"]
             colorScheme: root.colorScheme
-            text: "Radio"
         }
 
-        RadioButton {
+        ComboBox {
+            Layout.fillWidth: true
+            model: ["First", "Second", "Third"]
+            editable: true
             colorScheme: root.colorScheme
-            text: "Radio"
-            error: true
         }
+    }
 
-        RadioButton {
+    ColumnLayout {
+        Layout.fillWidth: true
+        ComboBox {
+            Layout.fillWidth: true
+            model: ["First", "Second", "Third"]
             colorScheme: root.colorScheme
-            text: "Radio"
             enabled: false
         }
-        RadioButton {
-            colorScheme: root.colorScheme
-            text: ""
-        }
 
-        RadioButton {
+        ComboBox {
+            Layout.fillWidth: true
+            model: ["First", "Second", "Third"]
+            editable: true
             colorScheme: root.colorScheme
-            text: ""
-            error: true
-        }
-
-        RadioButton {
-            colorScheme: root.colorScheme
-            text: ""
             enabled: false
         }
     }
 
     ColumnLayout {
         Layout.fillWidth: true
-
-        spacing: parent.spacing
-
-        RadioButton {
+        ComboBox {
+            Layout.fillWidth: true
+            model: ["First", "Second", "Third"]
             colorScheme: root.colorScheme
-            text: "Radio"
-            checked: true
+            LayoutMirroring.enabled: true
         }
 
-        RadioButton {
+        ComboBox {
+            Layout.fillWidth: true
+            model: ["First", "Second", "Third"]
+            editable: true
             colorScheme: root.colorScheme
-            text: "Radio"
-            checked: true
-            error: true
+            LayoutMirroring.enabled: true
         }
+    }
 
-        RadioButton {
+    ColumnLayout {
+        Layout.fillWidth: true
+        ComboBox {
+            Layout.fillWidth: true
+            model: ["First", "Second", "Third"]
             colorScheme: root.colorScheme
-            text: "Radio"
-            checked: true
             enabled: false
-        }
-        RadioButton {
-            colorScheme: root.colorScheme
-            text: ""
-            checked: true
+            LayoutMirroring.enabled: true
         }
 
-        RadioButton {
+        ComboBox {
+            Layout.fillWidth: true
+            model: ["First", "Second", "Third"]
+            editable: true
             colorScheme: root.colorScheme
-            text: ""
-            checked: true
-            error: true
-        }
-
-        RadioButton {
-            colorScheme: root.colorScheme
-            text: ""
-            checked: true
             enabled: false
+            LayoutMirroring.enabled: true
         }
     }
 }

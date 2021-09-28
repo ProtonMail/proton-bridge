@@ -43,6 +43,11 @@ func (f *FrontendQt) watchEvents() {
 	userChangedCh := f.eventListener.ProvideChannel(events.UserRefreshEvent)
 	certIssue := f.eventListener.ProvideChannel(events.TLSCertIssue)
 
+	// This loop is executed outside main Qt application thread. In order
+	// to make sure that all signals are propagated correctly to QML we
+	// must call QMLBackend signals to apply any changes to GUI. The
+	// signals will make sure the changes are executed in main Qt app
+	// thread.
 	for {
 		select {
 		case errorDetails := <-errorCh:
@@ -77,7 +82,7 @@ func (f *FrontendQt) watchEvents() {
 		case <-updateApplicationCh:
 			f.updateForce()
 		case userID := <-userChangedCh:
-			f.userChanged(userID)
+			f.qml.UserChanged(userID)
 		case <-certIssue:
 			f.qml.ApiCertIssue()
 		}

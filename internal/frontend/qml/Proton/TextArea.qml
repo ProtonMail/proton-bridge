@@ -20,7 +20,8 @@ import QtQuick 2.12
 import QtQuick.Controls 2.12
 import QtQuick.Controls.impl 2.12
 import QtQuick.Templates 2.12 as T
-import "."
+
+import "." as Proton
 
 Item {
     id: root
@@ -131,7 +132,7 @@ Item {
         border.width: 1
     }
 
-    Label {
+    Proton.Label {
         colorScheme: root.colorScheme
         id: label
 
@@ -141,10 +142,10 @@ Item {
 
         color: root.enabled ? root.colorScheme.text_norm : root.colorScheme.text_disabled
 
-        type: Label.LabelType.Body_semibold
+        type: Proton.Label.LabelType.Body_semibold
     }
 
-    Label {
+    Proton.Label {
         colorScheme: root.colorScheme
         id: hint
 
@@ -154,7 +155,7 @@ Item {
 
         color: root.enabled ? root.colorScheme.text_weak : root.colorScheme.text_disabled
 
-        type: Label.LabelType.Caption
+        type: Proton.Label.LabelType.Caption
     }
 
     ColorImage {
@@ -168,7 +169,7 @@ Item {
         color: root.colorScheme.signal_danger
     }
 
-    Label {
+    Proton.Label {
         colorScheme: root.colorScheme
         id: assistiveText
 
@@ -189,7 +190,7 @@ Item {
             return root.colorScheme.text_weak
         }
 
-        type: root.error ? Label.LabelType.Caption_semibold : Label.LabelType.Caption
+        type: root.error ? Proton.Label.LabelType.Caption_semibold : Proton.Label.LabelType.Caption
     }
 
     ScrollView {

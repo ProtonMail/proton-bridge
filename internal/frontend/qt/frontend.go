@@ -60,7 +60,6 @@ type FrontendQt struct {
 	newVersionInfo updater.VersionInfo
 
 	log                *logrus.Entry
-	usersMtx           sync.Mutex
 	initializing       sync.WaitGroup
 	initializationDone sync.Once
 

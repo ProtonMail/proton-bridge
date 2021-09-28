@@ -19,7 +19,8 @@ import QtQuick 2.12
 import QtQuick.Controls 2.12
 import QtQuick.Controls.impl 2.12
 import QtQuick.Templates 2.12 as T
-import "."
+
+import "." as Proton
 
 T.Button {
     property ColorScheme colorScheme
@@ -32,7 +33,7 @@ T.Button {
 
     property bool borderless: false
 
-    property int labelType: Label.LabelType.Body
+    property int labelType: Proton.Label.LabelType.Body
 
     // TODO: store previous enabled state and restore it?
     // For now assuming that only enabled buttons could have loading state
@@ -104,7 +105,7 @@ T.Button {
                 return control.display === AbstractButton.TextUnderIcon ? textImplicitHeight + iconImplicitHeight + spacing : Math.max(textImplicitHeight, iconImplicitHeight)
             }
 
-            Label {
+            Proton.Label {
                 colorScheme: root.colorScheme
                 id: label
                 anchors.left: labelIcon.left

@@ -28,7 +28,6 @@ Item {
 
     property ColorScheme colorScheme
     property var backend
-
     property var user
     property string address
 
@@ -124,7 +123,9 @@ Item {
                                 console.log(" TODO configure ", model.name)
                                 return
                             }
-                            root.user.configureAppleMail(root.address)
+                            if (user) {
+                                root.user.configureAppleMail(root.address)
+                            }
                             root.dismissed()
                         }
                     }
@@ -139,7 +140,9 @@ Item {
                 flat: true
 
                 onClicked: {
-                    user.setupGuideSeen = true
+                    if (user) {
+                        user.setupGuideSeen = true
+                    }
                     root.dismissed()
                 }
             }

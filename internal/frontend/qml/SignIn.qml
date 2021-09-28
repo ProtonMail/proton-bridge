@@ -27,30 +27,26 @@ Item {
     id: root
     property ColorScheme colorScheme
 
-    function abort() {
-        root.loginAbort(usernameTextField.text)
+    function reset() {
+        stackLayout.currentIndex = 0
+        loginNormalLayout.reset()
+        login2FALayout.reset()
+        login2PasswordLayout.reset()
+
     }
 
-    signal login(string username, string password)
-    signal login2FA(string username, string code)
-    signal login2Password(string username, string password)
-    signal loginAbort(string username)
+    function abort() {
+        root.reset()
+        root.backend.loginAbort(usernameTextField.text)
+    }
 
     implicitHeight: children[0].implicitHeight
     implicitWidth: children[0].implicitWidth
 
     property var backend
-    property var window
 
     property alias username: usernameTextField.text
     state: "Page 1"
-
-    onLoginAbort: {
-        stackLayout.currentIndex = 0
-        loginNormalLayout.reset()
-        login2FALayout.reset()
-        login2PasswordLayout.reset()
-    }
 
     property alias currentIndex: stackLayout.currentIndex
 
@@ -83,18 +79,16 @@ Item {
             onLoginFreeUserError: {
                 console.assert(stackLayout.currentIndex == 0, "Unexpected loginFreeUserError")
                 stackLayout.loginFailed()
-                window.notifyOnlyPaidUsers()
             }
+
             onLoginConnectionError: {
                 if (stackLayout.currentIndex == 0 ) {
                     stackLayout.loginFailed()
                 }
-                window.notifyConnectionLostWhileLogin()
             }
 
             onLogin2FARequested: {
                 console.assert(stackLayout.currentIndex == 0, "Unexpected login2FARequested")
-
                 stackLayout.currentIndex = 1
             }
             onLogin2FAError: {
@@ -108,19 +102,12 @@ Item {
             }
             onLogin2FAErrorAbort: {
                 console.assert(stackLayout.currentIndex == 1, "Unexpected login2FAErrorAbort")
-
-                stackLayout.currentIndex = 0
-                loginNormalLayout.reset()
-                login2FALayout.reset()
-                login2PasswordLayout.reset()
-
+                root.reset()
                 errorLabel.text = qsTr("Incorrect login credentials. Please try again.")
-                passwordTextField.text = ""
             }
 
             onLogin2PasswordRequested: {
                 console.assert(stackLayout.currentIndex == 0 || stackLayout.currentIndex == 1, "Unexpected login2PasswordRequested")
-
                 stackLayout.currentIndex = 2
             }
             onLogin2PasswordError: {
@@ -134,22 +121,13 @@ Item {
             }
             onLogin2PasswordErrorAbort: {
                 console.assert(stackLayout.currentIndex == 2, "Unexpected login2PasswordErrorAbort")
-
-                stackLayout.currentIndex = 0
-                loginNormalLayout.reset()
-                login2FALayout.reset()
-                login2PasswordLayout.reset()
-
+                root.reset()
                 errorLabel.text = qsTr("Incorrect login credentials. Please try again.")
-                passwordTextField.text = ""
             }
 
             onLoginFinished: {
                 stackLayout.currentIndex = 0
-                loginNormalLayout.reset()
-                passwordTextField.text = ""
-                login2FALayout.reset()
-                login2PasswordLayout.reset()
+                root.reset()
             }
         }
 
@@ -168,6 +146,7 @@ Item {
                 passwordTextField.enabled = true
                 passwordTextField.error = false
                 passwordTextField.assistiveText = ""
+                passwordTextField.text = ""
             }
 
             spacing: 0
@@ -303,7 +282,7 @@ Item {
                     enabled = false
                     loading = true
 
-                    root.login(usernameTextField.text, Qt.btoa(passwordTextField.text))
+                    root.backend.login(usernameTextField.text, Qt.btoa(passwordTextField.text))
                 }
             }
 
@@ -331,6 +310,7 @@ Item {
                 twoFactorPasswordTextField.enabled = true
                 twoFactorPasswordTextField.error = false
                 twoFactorPasswordTextField.assistiveText = ""
+                twoFactorPasswordTextField.text=""
             }
 
             spacing: 0
@@ -388,7 +368,7 @@ Item {
                     enabled = false
                     loading = true
 
-                    root.login2FA(usernameTextField.text, Qt.btoa(twoFactorPasswordTextField.text))
+                    root.backend.login2FA(usernameTextField.text, Qt.btoa(twoFactorPasswordTextField.text))
                 }
             }
         }
@@ -402,6 +382,7 @@ Item {
                 secondPasswordTextField.enabled = true
                 secondPasswordTextField.error = false
                 secondPasswordTextField.assistiveText = ""
+                secondPasswordTextField.text = ""
             }
 
             spacing: 0
@@ -460,7 +441,7 @@ Item {
                     enabled = false
                     loading = true
 
-                    root.login2Password(usernameTextField.text, Qt.btoa(secondPasswordTextField.text))
+                    root.backend.login2Password(usernameTextField.text, Qt.btoa(secondPasswordTextField.text))
                 }
             }
         }

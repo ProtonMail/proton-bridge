@@ -20,7 +20,7 @@ import QtQuick.Window 2.13
 import QtQuick.Layouts 1.12
 import QtQuick.Controls 2.12
 
-import Proton 4.0
+import "../Proton"
 
 RowLayout {
     id: root
@@ -33,29 +33,35 @@ RowLayout {
 
         CheckBox {
             text: "Checkbox"
+            colorScheme: root.colorScheme
         }
 
         CheckBox {
             text: "Checkbox"
             error: true
+            colorScheme: root.colorScheme
         }
 
         CheckBox {
             text: "Checkbox"
             enabled: false
+            colorScheme: root.colorScheme
         }
         CheckBox {
             text: ""
+            colorScheme: root.colorScheme
         }
 
         CheckBox {
             text: ""
             error: true
+            colorScheme: root.colorScheme
         }
 
         CheckBox {
             text: ""
             enabled: false
+            colorScheme: root.colorScheme
         }
     }
 
@@ -67,34 +73,40 @@ RowLayout {
         CheckBox {
             text: "Checkbox"
             checked: true
+            colorScheme: root.colorScheme
         }
 
         CheckBox {
             text: "Checkbox"
             checked: true
             error: true
+            colorScheme: root.colorScheme
         }
 
         CheckBox {
             text: "Checkbox"
             checked: true
             enabled: false
+            colorScheme: root.colorScheme
         }
         CheckBox {
             text: ""
             checked: true
+            colorScheme: root.colorScheme
         }
 
         CheckBox {
             text: ""
             checked: true
             error: true
+            colorScheme: root.colorScheme
         }
 
         CheckBox {
             text: ""
             checked: true
             enabled: false
+            colorScheme: root.colorScheme
         }
     }
 }

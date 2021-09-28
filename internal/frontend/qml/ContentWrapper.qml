@@ -28,23 +28,7 @@ Item {
     property var backend
     property var notifications
 
-    signal login(string username, string password)
-    signal login2FA(string username, string code)
-    signal login2Password(string username, string password)
-    signal loginAbort(string username)
-
     signal showSetupGuide(var user, string address)
-
-    property var noUser: QtObject {
-        property var avatarText: ""
-        property var username: ""
-        property var password: ""
-        property var usedBytes: 1
-        property var totalBytes: 1
-        property var loggedIn: false
-        property var splitMode: false
-        property var addresses: []
-    }
 
     RowLayout {
         anchors.fill: parent
@@ -183,6 +167,7 @@ Item {
                         onClicked: {
                             var user = root.backend.users.get(index)
                             accounts.currentIndex = index
+                            if (!user) return
                             if (user.loggedIn) {
                                 rightContent.showAccount()
                             } else {
@@ -248,8 +233,8 @@ Item {
                     backend: root.backend
                     notifications: root.notifications
                     user: {
-                        if (accounts.currentIndex < 0) return root.noUser
-                        if (root.backend.users.count == 0) return root.noUser
+                        if (accounts.currentIndex < 0) return undefined
+                        if (root.backend.users.count == 0) return undefined
                         return root.backend.users.get(accounts.currentIndex)
                     }
                     onShowSignIn: {
@@ -261,7 +246,7 @@ Item {
                     }
                 }
 
-                GridLayout { // 1
+                GridLayout { // 1 Sign In
                     columns: 2
 
                     Button {
@@ -271,7 +256,10 @@ Item {
                         Layout.alignment: Qt.AlignTop
 
                         colorScheme: root.colorScheme
-                        onClicked: rightContent.showAccount()
+                        onClicked: {
+                            signIn.abort()
+                            rightContent.showAccount()
+                        }
                         icon.source: "icons/ic-arrow-left.svg"
                         secondary: true
                         horizontalPadding: 8
@@ -289,11 +277,6 @@ Item {
 
                         colorScheme: root.colorScheme
                         backend: root.backend
-
-                        onLogin          : { root.backend.login          ( username , password ) }
-                        onLogin2FA       : { root.backend.login2FA       ( username , code     ) }
-                        onLogin2Password : { root.backend.login2Password ( username , password ) }
-                        onLoginAbort     : { root.backend.loginAbort     ( username ) }
                     }
                 }
 
@@ -330,7 +313,9 @@ Item {
                     selectedAddress: {
                         if (accounts.currentIndex < 0) return ""
                         if (root.backend.users.count == 0) return ""
-                        return root.backend.users.get(accounts.currentIndex).addresses[0]
+                        var user = root.backend.users.get(accounts.currentIndex)
+                        if (!user) return ""
+                        return user.addresses[0]
                     }
                 }
 
@@ -342,6 +327,12 @@ Item {
                 function showLocalCacheSettings () { rightContent.currentIndex = 5 }
                 function showHelpView           () { rightContent.currentIndex = 6 }
                 function showBugReport          () { rightContent.currentIndex = 7 }
+
+                Connections {
+                    target: root.backend
+
+                    onLoginFinished: rightContent.showAccount()
+                }
             }
         }
     }
@@ -353,5 +344,4 @@ Item {
         signIn.username = username
         rightContent.showSignIn()
     }
-
 }

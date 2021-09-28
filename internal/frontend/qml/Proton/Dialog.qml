@@ -21,8 +21,6 @@ import QtQuick.Templates 2.12 as T
 import QtQuick.Controls 2.12
 import QtQuick.Controls.impl 2.12
 
-import "."
-
 T.Dialog {
     id: root
     property ColorScheme colorScheme

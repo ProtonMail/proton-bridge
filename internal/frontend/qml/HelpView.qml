@@ -39,7 +39,9 @@ SettingsView {
         actionIcon: "./icons/ic-external-link.svg"
         description: qsTr("Get help setting up your client with our instructions and FAQs.")
         type: SettingsItem.PrimaryButton
-        onClicked: {Qt.openUrlExternally("https://protonmail.com/bridge/install")}
+        onClicked: {Qt.openUrlExternally("https://protonmail.com/support/categories/bridge/")}
+
+        Layout.fillWidth: true
     }
 
     SettingsItem {
@@ -55,6 +57,8 @@ SettingsView {
         }
 
         Connections {target: root.backend; onCheckUpdatesFinished: checkUpdates.loading = false}
+
+        Layout.fillWidth: true
     }
 
     SettingsItem {
@@ -64,7 +68,9 @@ SettingsView {
         actionText: qsTr("View logs")
         description: qsTr("Open and review logs to troubleshoot.")
         type: SettingsItem.Button
-        onClicked: {Qt.openUrlExternally(root.backend.logsPath)}
+        onClicked: {Qt.openUrlExternally("file://"+root.backend.logsPath)}
+
+        Layout.fillWidth: true
     }
 
     SettingsItem {
@@ -78,6 +84,8 @@ SettingsView {
             root.backend.updateCurrentMailClient()
             root.parent.showBugReport()
         }
+
+        Layout.fillWidth: true
     }
 
     Label {
@@ -91,7 +99,7 @@ SettingsView {
         text: {
             var version = root.backend.version
             var license = qsTr("License")
-            var licensePath = root.backend.licensePath
+            var licensePath = "file://"+root.backend.licensePath
             var release= qsTr("Release notes")
             var releaseNotesLink = root.backend.releaseNotesLink
             return `<p style="text-align:center;">Proton Mail Bridge v${version}<br>

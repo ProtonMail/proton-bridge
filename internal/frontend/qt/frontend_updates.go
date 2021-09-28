@@ -40,7 +40,7 @@ func (f *FrontendQt) checkUpdates() error {
 
 func (f *FrontendQt) checkUpdatesAndNotify(isRequestFromUser bool) {
 	checkingUpdates.Lock()
-	defer checkingUpdates.Lock()
+	defer checkingUpdates.Unlock()
 	defer f.qml.CheckUpdatesFinished()
 
 	if err := f.checkUpdates(); err != nil {
@@ -68,7 +68,7 @@ func (f *FrontendQt) checkUpdatesAndNotify(isRequestFromUser bool) {
 
 func (f *FrontendQt) updateForce() {
 	checkingUpdates.Lock()
-	defer checkingUpdates.Lock()
+	defer checkingUpdates.Unlock()
 
 	version := ""
 	if err := f.checkUpdates(); err == nil {

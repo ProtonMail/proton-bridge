@@ -48,7 +48,7 @@ func (f *FrontendQt) initiateQtApplication() error {
 	// QML Engine and path
 	f.engine = qml.NewQQmlApplicationEngine(f.app)
 
-	f.qml = NewQMLBackend(nil)
+	f.qml = NewQMLBackend(f.engine)
 	f.qml.setup(f)
 	f.engine.RootContext().SetContextProperty("go", f.qml)
 

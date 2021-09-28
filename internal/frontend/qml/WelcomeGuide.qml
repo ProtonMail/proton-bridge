@@ -28,12 +28,6 @@ Item {
     property ColorScheme colorScheme
 
     property var backend
-    property var window
-
-    signal login(string username, string password)
-    signal login2FA(string username, string code)
-    signal login2Password(string username, string password)
-    signal loginAbort(string username)
 
     implicitHeight: children[0].implicitHeight
     implicitWidth: children[0].implicitWidth
@@ -230,22 +224,14 @@ Item {
                         Layout.preferredWidth: 320
                         Layout.fillWidth: true
 
-                        onLogin: {
-                            root.login(username, password)
+                        username: {
+                            if (root.backend.users.count !== 1) return ""
+                            var user = root.backend.users.get(0)
+                            if (user) return ""
+                            if (user.loggedIn)  return ""
+                            return user.username
                         }
-                        onLogin2FA: {
-                            root.login2FA(username, code)
-                        }
-                        onLogin2Password: {
-                            root.login2Password(username, password)
-                        }
-                        onLoginAbort: {
-                            root.loginAbort(username)
-                        }
-
-                        username: (backend.users.count === 1 && backend.users.get(0).loggedIn === false) ? backend.users.get(0).username : ""
                         backend: root.backend
-                        window: root.window
                     }
 
                     // Right margin

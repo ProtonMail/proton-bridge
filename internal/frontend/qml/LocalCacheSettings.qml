@@ -54,6 +54,8 @@ SettingsView {
         type: SettingsItem.Toggle
         checked: root._diskCacheEnabled
         onClicked: root._diskCacheEnabled = !root._diskCacheEnabled
+
+        Layout.fillWidth: true
     }
 
     SettingsItem {
@@ -66,6 +68,8 @@ SettingsView {
         onClicked: {
             pathDialog.open()
         }
+
+        Layout.fillWidth: true
 
         FileDialog {
             id: pathDialog

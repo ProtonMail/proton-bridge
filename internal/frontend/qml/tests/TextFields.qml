@@ -20,9 +20,10 @@ import QtQuick.Window 2.13
 import QtQuick.Layouts 1.12
 import QtQuick.Controls 2.12
 
-import Proton 4.0
+import "../Proton"
 
 RowLayout {
+    id: root
     property ColorScheme colorScheme
 
     // Norm
@@ -148,13 +149,6 @@ RowLayout {
             placeholderText: "Placeholder"
             label: "Label"
             hint: "Hint"
-        }
-
-        TextField {
-            colorScheme: root.colorScheme
-            Layout.fillWidth: true
-
-            placeholderText: "Placeholder"
             assistiveText: "Assistive text"
         }
 
@@ -163,6 +157,23 @@ RowLayout {
             Layout.fillWidth: true
 
             placeholderText: "Placeholder"
+            label: "Label"
+        }
+
+        TextField {
+            colorScheme: root.colorScheme
+            Layout.fillWidth: true
+
+            placeholderText: "Placeholder"
+            hint: "Hint"
+        }
+
+        TextField {
+            colorScheme: root.colorScheme
+            Layout.fillWidth: true
+
+            placeholderText: "Placeholder"
+            assistiveText: "Assistive text"
         }
     }
 }

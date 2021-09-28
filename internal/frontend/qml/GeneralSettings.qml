@@ -43,6 +43,8 @@ SettingsView {
         type: SettingsItem.Toggle
         checked: root.backend.isAutomaticUpdateOn
         onClicked: root.backend.toggleAutomaticUpdate(!autoUpdate.checked)
+
+        Layout.fillWidth: true
     }
 
     SettingsItem {
@@ -62,6 +64,8 @@ SettingsView {
                 autostart.loading = false
             }
         }
+
+        Layout.fillWidth: true
     }
 
     SettingsItem {
@@ -78,6 +82,8 @@ SettingsView {
                 root.notifications.askDisableBeta()
             }
         }
+
+        Layout.fillWidth: true
     }
 
     RowLayout {
@@ -117,6 +123,8 @@ SettingsView {
         type: SettingsItem.Toggle
         checked: root.backend.isDoHEnabled
         onClicked: root.backend.toggleDoH(!doh.checked)
+
+        Layout.fillWidth: true
     }
 
     SettingsItem {
@@ -128,6 +136,8 @@ SettingsView {
         description: qsTr("Choose which ports are used by default.")
         type: SettingsItem.Button
         onClicked: root.parent.showPortSettings()
+
+        Layout.fillWidth: true
     }
 
     SettingsItem {
@@ -139,6 +149,8 @@ SettingsView {
         description: qsTr("Change the protocol Bridge and your client use to connect.")
         type: SettingsItem.Button
         onClicked: root.parent.showSMTPSettings()
+
+        Layout.fillWidth: true
     }
 
     SettingsItem {
@@ -150,6 +162,8 @@ SettingsView {
         description: qsTr("Configure Bridge's local cache settings.")
         type: SettingsItem.Button
         onClicked: root.parent.showLocalCacheSettings()
+
+        Layout.fillWidth: true
     }
 
     SettingsItem {
@@ -163,6 +177,8 @@ SettingsView {
         onClicked: {
             root.notifications.askResetBridge()
         }
+
+        Layout.fillWidth: true
     }
 
     onBack: root.parent.showAccount()

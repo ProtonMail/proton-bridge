@@ -22,78 +22,9 @@ package qt
 import (
 	"context"
 	"encoding/base64"
-	"github.com/ProtonMail/proton-bridge/internal/frontend/types"
+	"github.com/ProtonMail/proton-bridge/internal/users"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 )
-
-func (f *FrontendQt) loadUsers() {
-	f.usersMtx.Lock()
-	defer f.usersMtx.Unlock()
-
-	f.qml.Users().clear()
-
-	for _, user := range f.bridge.GetUsers() {
-		f.qml.Users().addUser(newQMLUserFromBacked(f, user))
-	}
-
-	// If there are no active accounts.
-	if f.qml.Users().Count() == 0 {
-		f.log.Info("No active accounts")
-	}
-}
-
-func (f *FrontendQt) userChanged(userID string) {
-	f.usersMtx.Lock()
-	defer f.usersMtx.Unlock()
-
-	fUsers := f.qml.Users()
-
-	index := fUsers.indexByID(userID)
-	user, err := f.bridge.GetUser(userID)
-
-	if user == nil || err != nil {
-		if index >= 0 { // delete existing user
-			fUsers.removeUser(index)
-		}
-		return
-	}
-
-	if index < 0 { // add non-existing user
-		fUsers.addUser(newQMLUserFromBacked(f, user))
-		return
-	}
-
-	// update exiting user
-	fUsers.users[index].update(user)
-}
-
-func newQMLUserFromBacked(f *FrontendQt, user types.User) *QMLUser {
-	qu := NewQMLUser(nil)
-	qu.ID = user.ID()
-
-	qu.update(user)
-
-	qu.ConnectToggleSplitMode(func(activateSplitMode bool) {
-		go func() {
-			defer qu.ToggleSplitModeFinished()
-			if activateSplitMode == user.IsCombinedAddressMode() {
-				user.SwitchAddressMode()
-			}
-			qu.SetSplitMode(!user.IsCombinedAddressMode())
-		}()
-	})
-
-	qu.ConnectLogout(func() {
-		qu.SetLoggedIn(false)
-		go user.Logout()
-	})
-
-	qu.ConnectConfigureAppleMail(func(address string) {
-		go f.configureAppleMail(qu.ID, address)
-	})
-
-	return qu
-}
 
 func (f *FrontendQt) login(username, password string) {
 	var err error
@@ -107,6 +38,7 @@ func (f *FrontendQt) login(username, password string) {
 
 	f.authClient, f.auth, err = f.bridge.Login(username, f.password)
 	if err != nil {
+		// TODO login free user error
 		f.qml.LoginUsernamePasswordError(err.Error())
 		f.loginClean()
 		return
@@ -185,29 +117,24 @@ func (f *FrontendQt) login2Password(username, mboxPassword string) {
 func (f *FrontendQt) finishLogin() {
 	defer f.loginClean()
 
-	if f.auth == nil || f.authClient == nil {
-		f.log.Errorf("Finish login: Authethication incomplete %p %p", f.auth, f.authClient)
+	if len(f.password) == 0 || f.auth == nil || f.authClient == nil {
+		f.log.
+			WithField("hasPass", len(f.password) != 0).
+			WithField("hasAuth", f.auth != nil).
+			WithField("hasClient", f.authClient != nil).
+			Error("Finish login: authethication incomplete")
 		f.qml.Login2PasswordErrorAbort("Missing authentication, try again.")
 		return
 	}
 
-	user, err := f.bridge.FinishLogin(f.authClient, f.auth, f.password)
-	if err != nil {
-		f.log.Errorf("Authethication incomplete %p %p", f.auth, f.authClient)
-		f.qml.Login2PasswordErrorAbort("Missing authentication, try again.")
+	_, err := f.bridge.FinishLogin(f.authClient, f.auth, f.password)
+	if err != nil && err != users.ErrUserAlreadyConnected {
+		f.log.WithError(err).Errorf("Finish login failed")
+		f.qml.Login2PasswordErrorAbort(err.Error())
 		return
 	}
 
-	index := f.qml.Users().indexByID(user.ID())
-	if index < 0 {
-		qu := newQMLUserFromBacked(f, user)
-		qu.SetSetupGuideSeen(false)
-		f.qml.Users().addUser(qu)
-		return
-	}
-
-	f.qml.Users().users[index].update(user)
-	f.qml.LoginFinished()
+	defer f.qml.LoginFinished()
 }
 
 func (f *FrontendQt) loginAbort(username string) {

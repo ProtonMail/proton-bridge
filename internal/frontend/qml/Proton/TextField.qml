@@ -21,7 +21,8 @@ import QtQuick.Controls 2.12
 import QtQuick.Controls.impl 2.12
 import QtQuick.Templates 2.12 as T
 import QtQuick.Layouts 1.12
-import "."
+
+import "." as Proton
 
 Item {
     id: root
@@ -128,22 +129,22 @@ Item {
             Layout.fillWidth: true
             spacing: 0
 
-            Label {
+            Proton.Label {
                 colorScheme: root.colorScheme
                 id: label
                 Layout.fillHeight: true
                 Layout.fillWidth: true
-                type: Label.LabelType.Body_semibold
+                type: Proton.Label.LabelType.Body_semibold
             }
 
-            Label {
+            Proton.Label {
                 colorScheme: root.colorScheme
                 id: hint
                 Layout.fillHeight: true
                 Layout.fillWidth: true
                 color: root.enabled ? root.colorScheme.text_weak : root.colorScheme.text_disabled
                 horizontalAlignment: Text.AlignRight
-                type: Label.LabelType.Caption
+                type: Proton.Label.LabelType.Caption
             }
         }
 
@@ -270,7 +271,7 @@ Item {
                     }
                 }
 
-                Button {
+                Proton.Button {
                     colorScheme: root.colorScheme
                     id: eyeButton
 
@@ -299,7 +300,7 @@ Item {
                 sourceSize.height: assistiveText.height
             }
 
-            Label {
+            Proton.Label {
                 colorScheme: root.colorScheme
                 id: assistiveText
 
@@ -319,7 +320,7 @@ Item {
                     return root.colorScheme.text_weak
                 }
 
-                type: root.error ? Label.LabelType.Caption_semibold : Label.LabelType.Caption
+                type: root.error ? Proton.Label.LabelType.Caption_semibold : Proton.Label.LabelType.Caption
             }
         }
     }

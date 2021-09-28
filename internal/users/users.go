@@ -40,8 +40,13 @@ var (
 	log                   = logrus.WithField("pkg", "users") //nolint[gochecknoglobals]
 	isApplicationOutdated = false                            //nolint[gochecknoglobals]
 
-	// ErrWrongMailboxPassword is returned when login password is OK but not the mailbox one.
+	// ErrWrongMailboxPassword is returned when login password is OK but
+	// not the mailbox one.
 	ErrWrongMailboxPassword = errors.New("wrong mailbox password")
+
+	// ErrUserAlreadyConnected is returned when authentication was OK but
+	// there is already active account for this user.
+	ErrUserAlreadyConnected = errors.New("user is already connected")
 )
 
 // Users is a struct handling users.
@@ -212,7 +217,7 @@ func (u *Users) FinishLogin(client pmapi.Client, auth *pmapi.Auth, password []by
 				logrus.WithError(err).Warn("Failed to delete new auth session")
 			}
 
-			return nil, errors.New("user is already connected")
+			return nil, ErrUserAlreadyConnected
 		}
 
 		// Update the user's credentials with the latest auth used to connect this user.

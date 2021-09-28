@@ -21,7 +21,7 @@ import QtQuick.Controls 2.12
 
 import Proton 4.0
 
-ColumnLayout {
+Item {
     id: root
     property var colorScheme
 
@@ -32,36 +32,45 @@ ColumnLayout {
     property var    type: SettingsItem.ActionType.Toggle
 
     property bool checked: true
-    property bool disabled: false
     property bool loading: false
+    property bool showSeparator: true
+
+    property var _bottomMargin: 20
+    property var _lineWidth: 1
+    property var _toggleTopMargin: 6
 
     signal clicked
-
-    spacing: 20
-
-    Layout.fillWidth: true
-    Layout.maximumWidth: root.parent.Layout.maximumWidth
 
     enum ActionType {
         Toggle = 1, Button = 2, PrimaryButton = 3
     }
 
+    implicitHeight: children[0].implicitHeight + children[0].anchors.topMargin + children[0].anchors.bottomMargin
+    implicitWidth: children[0].implicitWidth + children[0].anchors.leftMargin + children[0].anchors.rightMargin
+
     RowLayout {
-        Layout.fillWidth: true
+        anchors.fill: parent
+        spacing: 16
 
         ColumnLayout {
+            Layout.fillHeight: true
+            Layout.fillWidth: true
+            Layout.bottomMargin: root._bottomMargin
+
+            spacing: 4
+
             Label {
-                id:mainLabel
+                id: mainLabel
                 colorScheme: root.colorScheme
                 text: root.text
                 type: Label.Body_semibold
             }
 
             Label {
-                Layout.minimumWidth: mainLabel.width
-                Layout.maximumWidth: root.Layout.maximumWidth - root.spacing - (
-                    toggle.visible ? toggle.width : button.width
-                )
+                Layout.fillHeight: true
+                Layout.fillWidth: true
+
+                Layout.preferredWidth: parent.width
 
                 wrapMode: Text.WordWrap
                 colorScheme: root.colorScheme
@@ -70,15 +79,12 @@ ColumnLayout {
             }
         }
 
-        Item {
-            Layout.fillWidth: true
-            Layout.fillHeight: true
-        }
-
         Toggle {
+            Layout.alignment: Qt.AlignTop
+            Layout.topMargin: root._toggleTopMargin
             id: toggle
             colorScheme: root.colorScheme
-            visible: root.type == SettingsItem.ActionType.Toggle
+            visible: root.type === SettingsItem.ActionType.Toggle
 
             checked: root.checked
             loading: root.loading
@@ -86,20 +92,25 @@ ColumnLayout {
         }
 
         Button {
+            Layout.alignment: Qt.AlignTop
+
             id: button
             colorScheme: root.colorScheme
-            visible: root.type == SettingsItem.Button || root.type == SettingsItem.PrimaryButton
+            visible: root.type === SettingsItem.Button || root.type === SettingsItem.PrimaryButton
             text: root.actionText + (root.actionIcon != "" ? "  " : "")
             loading: root.loading
             icon.source: root.actionIcon
             onClicked: { if (!root.loading) root.clicked() }
-            secondary: root.type != SettingsItem.PrimaryButton
+            secondary: root.type !== SettingsItem.PrimaryButton
         }
     }
 
     Rectangle {
-        Layout.fillWidth: true
+        anchors.left: root.left
+        anchors.right: root.right
+        anchors.bottom: root.bottom
         color: colorScheme.border_weak
-        height: 1
+        height: root._lineWidth
+        visible: root.showSeparator
     }
 }

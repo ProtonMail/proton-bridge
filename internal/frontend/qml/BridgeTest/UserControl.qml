@@ -116,10 +116,10 @@ ColumnLayout {
         Button {
             colorScheme: root.colorScheme
             text: "name/pass error"
-            enabled: user !== undefined && user.isLoginRequested && !user.isLogin2FARequested && !user.isLogin2PasswordProvided
+            enabled: user !== undefined //&& user.isLoginRequested && !user.isLogin2FARequested && !user.isLogin2PasswordProvided
 
             onClicked: {
-                user.loginUsernamePasswordError()
+                root.backend.loginUsernamePasswordError("")
                 user.resetLoginRequests()
             }
         }
@@ -127,9 +127,9 @@ ColumnLayout {
         Button {
             colorScheme: root.colorScheme
             text: "free user error"
-            enabled: user !== undefined && user.isLoginRequested
+            enabled: user !== undefined //&& user.isLoginRequested
             onClicked: {
-                user.loginFreeUserError()
+                root.backend.loginFreeUserError("")
                 user.resetLoginRequests()
             }
         }
@@ -137,9 +137,9 @@ ColumnLayout {
         Button {
             colorScheme: root.colorScheme
             text: "connection error"
-            enabled: user !== undefined && user.isLoginRequested
+            enabled: user !== undefined //&& user.isLoginRequested
             onClicked: {
-                user.loginConnectionError()
+                root.backend.loginConnectionError("")
                 user.resetLoginRequests()
             }
         }
@@ -160,9 +160,9 @@ ColumnLayout {
             colorScheme: root.colorScheme
             text: "request"
 
-            enabled: user !== undefined && user.isLoginRequested && !user.isLogin2FARequested && !user.isLogin2PasswordRequested
+            enabled: user !== undefined //&& user.isLoginRequested && !user.isLogin2FARequested && !user.isLogin2PasswordRequested
             onClicked: {
-                user.login2FARequested()
+                root.backend.login2FARequested()
                 user.isLogin2FARequested = true
             }
         }
@@ -171,9 +171,9 @@ ColumnLayout {
             colorScheme: root.colorScheme
             text: "error"
 
-            enabled: user !== undefined && user.isLogin2FAProvided && !(user.isLogin2PasswordRequested && !user.isLogin2PasswordProvided)
+            enabled: user !== undefined //&& user.isLogin2FAProvided && !(user.isLogin2PasswordRequested && !user.isLogin2PasswordProvided)
             onClicked: {
-                user.login2FAError()
+                root.backend.login2FAError("")
                 user.isLogin2FAProvided = false
             }
         }
@@ -182,9 +182,9 @@ ColumnLayout {
             colorScheme: root.colorScheme
             text: "Abort"
 
-            enabled: user !== undefined && user.isLogin2FAProvided && !(user.isLogin2PasswordRequested && !user.isLogin2PasswordProvided)
+            enabled: user !== undefined //&& user.isLogin2FAProvided && !(user.isLogin2PasswordRequested && !user.isLogin2PasswordProvided)
             onClicked: {
-                user.login2FAErrorAbort()
+                root.backend.login2FAErrorAbort("")
                 user.resetLoginRequests()
             }
         }
@@ -205,9 +205,9 @@ ColumnLayout {
             colorScheme: root.colorScheme
             text: "request"
 
-            enabled: user !== undefined && user.isLoginRequested && !user.isLogin2PasswordRequested && !(user.isLogin2FARequested && !user.isLogin2FAProvided)
+            enabled: user !== undefined //&& user.isLoginRequested && !user.isLogin2PasswordRequested && !(user.isLogin2FARequested && !user.isLogin2FAProvided)
             onClicked: {
-                user.login2PasswordRequested()
+                root.backend.login2PasswordRequested("")
                 user.isLogin2PasswordRequested = true
             }
         }
@@ -216,9 +216,9 @@ ColumnLayout {
             colorScheme: root.colorScheme
             text: "error"
 
-            enabled: user !== undefined && user.isLogin2PasswordProvided && !(user.isLogin2FARequested && !user.isLogin2FAProvided)
+            enabled: user !== undefined //&& user.isLogin2PasswordProvided && !(user.isLogin2FARequested && !user.isLogin2FAProvided)
             onClicked: {
-                user.login2PasswordError()
+                root.backend.login2PasswordError("")
 
                 user.isLogin2PasswordProvided = false
             }
@@ -228,9 +228,9 @@ ColumnLayout {
             colorScheme: root.colorScheme
             text: "Abort"
 
-            enabled: user !== undefined && user.isLogin2PasswordProvided && !(user.isLogin2FARequested && !user.isLogin2FAProvided)
+            enabled: user !== undefined //&& user.isLogin2PasswordProvided && !(user.isLogin2FARequested && !user.isLogin2FAProvided)
             onClicked: {
-                user.login2PasswordErrorAbort()
+                root.backend.login2PasswordErrorAbort("")
                 user.resetLoginRequests()
             }
         }

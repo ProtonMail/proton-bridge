@@ -56,6 +56,8 @@ QtObject {
         root.updateSilentRestartNeeded,
         root.updateSilentError,
         root.updateIsLatestVersion,
+        root.loginConnectionError,
+        root.onlyPaidUsers,
         root.disableBeta,
         root.enableBeta,
         root.bugReportSendSuccess,
@@ -119,7 +121,7 @@ QtObject {
                 text: qsTr("Update manually")
 
                 onTriggered: {
-                    Qt.openUrlExternally(root.backend.getLandingPage())
+                    Qt.openUrlExternally(root.backend.landingPageLink)
                     root.updateManualReady.active = false
                 }
             },
@@ -174,7 +176,7 @@ QtObject {
                 text: qsTr("Update manually")
 
                 onTriggered: {
-                    Qt.openUrlExternally(root.backend.getLandingPage())
+                    Qt.openUrlExternally(root.backend.landingPageLink)
                     root.updateManualError.active = false
                 }
             },
@@ -217,7 +219,7 @@ QtObject {
                 text: qsTr("Update manually")
 
                 onTriggered: {
-                    Qt.openUrlExternally(root.backend.getLandingPage())
+                    Qt.openUrlExternally(root.backend.landingPageLink)
                     root.updateForce.active = false
                 }
             },
@@ -252,7 +254,7 @@ QtObject {
                 text: qsTr("Update manually")
 
                 onTriggered: {
-                    Qt.openUrlExternally(root.backend.getLandingPage())
+                    Qt.openUrlExternally(root.backend.landingPageLink)
                     root.updateForceError.active = false
                 }
             },
@@ -307,7 +309,7 @@ QtObject {
             text: qsTr("Update manually")
 
             onTriggered: {
-                Qt.openUrlExternally(root.backend.getLandingPage())
+                Qt.openUrlExternally(root.backend.landingPageLink)
                 root.updateSilentError.active = false
             }
         }
@@ -399,6 +401,52 @@ QtObject {
         ]
     }
 
+    // login
+    property Notification loginConnectionError: Notification {
+        text: qsTr("Bridge is not able to contact the server, please check your internet connection.")
+        icon: "./icons/ic-exclamation-circle-filled.svg"
+        type: Notification.NotificationType.Danger
+        group: Notifications.Group.Configuration
+
+        Connections {
+            target: root.backend
+            onLoginConnectionError: {
+                root.loginConnectionError.active = true
+            }
+        }
+
+        action: [
+            Action {
+                text: qsTr("OK")
+                onTriggered: {
+                    root.loginConnectionError.active = false
+                }
+            }
+        ]
+    }
+
+    property Notification onlyPaidUsers: Notification {
+        text: qsTr("Bridge is exclusive to our paid plans. Upgrade your account to use Bridge.")
+        icon: "./icons/ic-exclamation-circle-filled.svg"
+        type: Notification.NotificationType.Danger
+        group: Notifications.Group.Configuration
+
+        Connections {
+            target: root.backend
+            onLoginFreeUserError: {
+                root.onlyPaidUsers.active = true
+            }
+        }
+
+        action: [
+            Action {
+                text: qsTr("OK")
+                onTriggered: {
+                    root.onlyPaidUsers.active = false
+                }
+            }
+        ]
+    }
 
     // Bug reports
     property Notification bugReportSendSuccess: Notification {
@@ -420,9 +468,6 @@ QtObject {
                 onTriggered: {
                     root.bugReportSendSuccess.active = false
                 }
-            },
-            Action {
-                text: "test"
             }
         ]
     }

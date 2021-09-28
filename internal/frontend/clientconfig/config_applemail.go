@@ -99,10 +99,10 @@ func saveConfigTemporarily(mc *mobileconfig.Config) (fname string, err error) {
 	}
 
 	// Make sure the temporary file is deleted.
-	go (func() {
+	go func() {
 		<-time.After(10 * time.Minute)
 		_ = os.RemoveAll(dir)
-	})()
+	}()
 
 	// Make sure the file is only readable for the current user.
 	fname = filepath.Clean(filepath.Join(dir, "protonmail.mobileconfig"))

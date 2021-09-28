@@ -48,9 +48,9 @@ Item {
         if (root.usedFraction < .75) return root.colorScheme.signal_warning
         return root.colorScheme.signal_danger
     }
-    property real usedFraction: root.user.totalBytes ? root.user.usedBytes / root.user.totalBytes : 0
-    property string totalSpace: root.spaceWithUnits(root.user.totalBytes)
-    property string usedSpace: root.spaceWithUnits(root.user.usedBytes)
+    property real usedFraction: root.user && root.user.totalBytes ? Math.abs(root.user.usedBytes / root.user.totalBytes) : 0
+    property string totalSpace: root.spaceWithUnits(root.user ? root.user.totalBytes : 0)
+    property string usedSpace: root.spaceWithUnits(root.user ? root.user.usedBytes : 0)
 
     function spaceWithUnits(bytes){
         if (bytes*1 !== bytes ) return "0 kB"
@@ -96,7 +96,7 @@ Item {
             Label {
                 colorScheme: root.colorScheme
                 anchors.fill: parent
-                text: root.user.avatarText.toUpperCase()
+                text: root.user ? root.user.avatarText.toUpperCase(): ""
                 type: {
                     switch (root.type) {
                         case AccountDelegate.SmallView: return Label.Body
@@ -128,7 +128,7 @@ Item {
                 )
 
                 colorScheme: root.colorScheme
-                text: user.username
+                text: root.user ? user.username : ""
                 type: {
                     switch (root.type) {
                         case AccountDelegate.SmallView: return Label.Body
@@ -143,7 +143,7 @@ Item {
             RowLayout {
                 Label {
                     colorScheme: root.colorScheme
-                    text: user.loggedIn ? root.usedSpace : qsTr("Signed out")
+                    text: root.user && root.user.loggedIn ? root.usedSpace : qsTr("Signed out")
                     color: root.usedSpaceColor
                     type: {
                         switch (root.type) {
@@ -155,7 +155,7 @@ Item {
 
                 Label {
                     colorScheme: root.colorScheme
-                    text: user.loggedIn ? " / " + root.totalSpace : ""
+                    text: root.user && root.user.loggedIn ? " / " + root.totalSpace : ""
                     color: root.colorScheme.text_weak
                     type: {
                         switch (root.type) {
@@ -168,7 +168,7 @@ Item {
 
 
             Rectangle {
-                visible: root.type == AccountDelegate.LargeView && user.loggedIn
+                visible: root.user ? root.type == AccountDelegate.LargeView : false
                 width: 140
                 height: 4
                 radius: 3
@@ -177,6 +177,7 @@ Item {
                 Rectangle {
                     radius: 3
                     color: root.usedSpaceColor
+                    visible: root.user ? parent.visible && root.user.loggedIn : false
                     anchors {
                         top    : parent.top
                         bottom : parent.bottom
