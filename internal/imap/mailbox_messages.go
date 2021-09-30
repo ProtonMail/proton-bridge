@@ -243,6 +243,10 @@ func (im *imapMailbox) moveMessages(uid bool, seqSet *imap.SeqSet, targetLabel s
 	// Called from go-imap in goroutines - we need to handle panics for each function.
 	defer im.panicHandler.HandlePanic()
 
+	// Moving from All Mail is not allowed.
+	if im.storeMailbox.LabelID() == pmapi.AllMailLabel {
+		return errors.New("move from All Mail is not allowed")
+	}
 	return im.labelMessages(uid, seqSet, targetLabel, true)
 }
 
@@ -278,10 +282,6 @@ func (im *imapMailbox) labelMessages(uid bool, seqSet *imap.SeqSet, targetLabel 
 			return errors.New("move from Inbox to Sent is not allowed")
 		}
 		return errors.New("move from Sent to Inbox is not allowed")
-	}
-	// Moving from All Mail is not allowed.
-	if im.storeMailbox.LabelID() == pmapi.AllMailLabel {
-		return errors.New("move from All Mail is not allowed")
 	}
 
 	deletedIDs := []string{}
