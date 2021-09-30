@@ -17,7 +17,7 @@ require (
 	github.com/ProtonMail/go-crypto v0.0.0-20210707164159-52430bf6b52c
 	github.com/ProtonMail/go-imap-id v0.0.0-20190926060100-f94a56b9ecde
 	github.com/ProtonMail/go-rfc5322 v0.8.0
-	github.com/ProtonMail/go-srp v0.0.0-20210910093455-a843a0b9adff
+	github.com/ProtonMail/go-srp v0.0.1
 	github.com/ProtonMail/go-vcard v0.0.0-20180326232728-33aaa0a0c8a5
 	github.com/ProtonMail/gopenpgp/v2 v2.2.2
 	github.com/PuerkitoBio/goquery v1.5.1
@@ -68,7 +68,6 @@ require (
 	golang.org/x/crypto v0.0.0-20210322153248-0c34fe9e7dc2
 	golang.org/x/net v0.0.0-20210405180319-a5a99cb37ef4
 	golang.org/x/text v0.3.5-0.20201125200606-c27b9fd57aec
-
 )
 
 replace (

@@ -29,6 +29,7 @@ github.com/ProtonMail/docker-credential-helpers v1.1.0/go.mod h1:mK0aBveCxhnQ756
 github.com/ProtonMail/go-autostart v0.0.0-20181114175602-c5272053443a h1:fXK2KsfnkBV9Nh+9SKzHchYjuE9s0vI20JG1mbtEAcc=
 github.com/ProtonMail/go-autostart v0.0.0-20181114175602-c5272053443a/go.mod h1:oTGdE7/DlWIr23G0IKW3OXK9wZ5Hw1GGiaJFccTvZi4=
 github.com/ProtonMail/go-crypto v0.0.0-20210428141323-04723f9f07d7/go.mod h1:z4/9nQmJSSwwds7ejkxaJwO37dru3geImFUdJlaLzQo=
+github.com/ProtonMail/go-crypto v0.0.0-20210512092938-c05353c2d58c/go.mod h1:z4/9nQmJSSwwds7ejkxaJwO37dru3geImFUdJlaLzQo=
 github.com/ProtonMail/go-crypto v0.0.0-20210707164159-52430bf6b52c h1:FP7mMdsXy0ybzar1sJeIcZtaJka0U/ZmLTW4wRpolYk=
 github.com/ProtonMail/go-crypto v0.0.0-20210707164159-52430bf6b52c/go.mod h1:z4/9nQmJSSwwds7ejkxaJwO37dru3geImFUdJlaLzQo=
 github.com/ProtonMail/go-imap v0.0.0-20201228133358-4db68cea0cac h1:2xU3QncAiS/W3UlWZTkbNKW5WkLzk6Egl1T0xX+sbjs=
@@ -43,6 +44,8 @@ github.com/ProtonMail/go-rfc5322 v0.8.0 h1:7emrf75n3CDIduQflx7aT1nJa5h/kGsiFKUYX
 github.com/ProtonMail/go-rfc5322 v0.8.0/go.mod h1:BwpTbkJxkMGkc+pC84AXZnwuWOisEULBpfPIyIKS/Us=
 github.com/ProtonMail/go-srp v0.0.0-20210910093455-a843a0b9adff h1:eiue56XAPSkOpsy5Fwnyz4+Vd7i2cN5D4orc++Irt1g=
 github.com/ProtonMail/go-srp v0.0.0-20210910093455-a843a0b9adff/go.mod h1:Uvv5cqSGCs8MTZ8sbKiCkBnaB6/OA3eq2mc77tl2VVA=
+github.com/ProtonMail/go-srp v0.0.1 h1:J0O9Zb5XTC6iDrB7feH41cu+TUEB+l7uHctXIK6oS2o=
+github.com/ProtonMail/go-srp v0.0.1/go.mod h1:Uvv5cqSGCs8MTZ8sbKiCkBnaB6/OA3eq2mc77tl2VVA=
 github.com/ProtonMail/go-vcard v0.0.0-20180326232728-33aaa0a0c8a5 h1:Uga1DHFN4GUxuDQr0F71tpi8I9HqPIlZodZAI1lR6VQ=
 github.com/ProtonMail/go-vcard v0.0.0-20180326232728-33aaa0a0c8a5/go.mod h1:oeP9CMN+ajWp5jKp1kue5daJNwMMxLF+ujPaUIoJWlA=
 github.com/ProtonMail/gopenpgp/v2 v2.2.2 h1:u2m7xt+CZWj88qK1UUNBoXeJCFJwJCZ/Ff4ymGoxEXs=
