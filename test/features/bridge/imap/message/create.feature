@@ -65,6 +65,7 @@ Feature: IMAP create messages
       | from      | to             | subject        | body                |
       | [primary] | chosen@one.com | Meet the Twins | Hello, Mr. Anderson |
     And there is IMAP client selected in "Sent"
+    Then mailbox "Sent" for "userMoreAddresses" has 1 messages
     When IMAP client creates message "Meet the Twins" from address "primary" of "userMoreAddresses" to "chosen@one.com" with body "Hello, Mr. Anderson" in "Sent"
     Then IMAP response is "OK"
     And mailbox "Sent" for "userMoreAddresses" has 2 messages
