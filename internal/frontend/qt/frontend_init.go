@@ -21,12 +21,13 @@ package qt
 
 import (
 	"errors"
+	"os"
+
 	qmlLog "github.com/ProtonMail/proton-bridge/internal/frontend/qt/log"
 	"github.com/therecipe/qt/core"
 	"github.com/therecipe/qt/qml"
 	"github.com/therecipe/qt/quickcontrols2"
 	"github.com/therecipe/qt/widgets"
-	"os"
 )
 
 func (f *FrontendQt) initiateQtApplication() error {
@@ -50,7 +51,6 @@ func (f *FrontendQt) initiateQtApplication() error {
 
 	f.qml = NewQMLBackend(f.engine)
 	f.qml.setup(f)
-	f.engine.RootContext().SetContextProperty("go", f.qml)
 
 	f.engine.AddImportPath("qrc:/qml/")
 	f.engine.AddPluginPath("qrc:/qml/")
@@ -66,6 +66,8 @@ func (f *FrontendQt) initiateQtApplication() error {
 	if len(f.engine.RootObjects()) == 0 {
 		return errors.New("QML not loaded properly")
 	}
+
+	f.engine.RootObjects()[0].SetProperty("backend", f.qml.ToVariant())
 
 	return nil
 }

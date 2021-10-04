@@ -726,7 +726,7 @@ Window {
     signal resetFinished()
 
     property string logsPath: "/home/cuto" // StandardPaths.locate(StandardPaths.DesktopLocation)
-    property string version: "v2.0.X"
+    property string version: "2.0.X-BridePreview"
     property string licensePath: "/home/cuto" // StandardPaths.locate(StandardPaths.DesktopLocation)
     property string releaseNotesLink: "https://protonmail.com/download/bridge/early_releases.html"
 

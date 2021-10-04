@@ -25,7 +25,7 @@ import Notifications 1.0
 QtObject {
     id: root
 
-    property var backend: go
+    property var backend
 
     property Notifications _notifications: Notifications {
         id: notifications
@@ -98,7 +98,7 @@ QtObject {
         visible: true
         icon.source: "./icons/systray-mono.png"
         icon.mask: true // make sure that systems like macOS will use proper color
-        tooltip: `Proton Mail Bridge v${go.version}`
+        tooltip: `Proton Mail Bridge v${backend.version}`
         onActivated: {
             function calcStatusWindowPosition() {
                 function isInInterval(num, lower_limit, upper_limit) {
