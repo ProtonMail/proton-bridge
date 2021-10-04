@@ -17,7 +17,11 @@
 
 package pool
 
-import "github.com/ProtonMail/proton-bridge/pkg/pchan"
+import (
+	"sync"
+
+	"github.com/ProtonMail/proton-bridge/pkg/pchan"
+)
 
 type WorkFunc func(interface{}, int) (interface{}, error)
 
@@ -74,6 +78,7 @@ type Job struct {
 	item *pchan.Item
 
 	ready, done chan struct{}
+	once        sync.Once
 }
 
 func newJob(req interface{}) *Job {
@@ -115,13 +120,7 @@ func (job *Job) setItem(item *pchan.Item) {
 }
 
 func (job *Job) markDone() {
-	select {
-	case <-job.done:
-		return
-
-	default:
-		close(job.done)
-	}
+	job.once.Do(func() { close(job.done) })
 }
 
 func (job *Job) waitDone() {

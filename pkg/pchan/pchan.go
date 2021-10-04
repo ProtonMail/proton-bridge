@@ -26,6 +26,7 @@ type PChan struct {
 	lock        sync.Mutex
 	items       []*Item
 	ready, done chan struct{}
+	once        sync.Once
 }
 
 type Item struct {
@@ -82,13 +83,7 @@ func (ch *PChan) Pop() (interface{}, int, bool) {
 }
 
 func (ch *PChan) Close() {
-	select {
-	case <-ch.done:
-		return
-
-	default:
-		close(ch.done)
-	}
+	ch.once.Do(func() { close(ch.done) })
 }
 
 func (ch *PChan) push(val interface{}, prio int) *Item {
