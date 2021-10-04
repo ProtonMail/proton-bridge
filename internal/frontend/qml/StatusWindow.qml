@@ -113,6 +113,9 @@ Window {
                         Layout.fillHeight: true
                         Layout.fillWidth: true
 
+                        Layout.topMargin: 20
+                        Layout.bottomMargin: 20
+
                         colorScheme: root.colorScheme
                         backend: root.backend
                         notifications: root.notifications

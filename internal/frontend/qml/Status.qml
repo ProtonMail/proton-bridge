@@ -82,7 +82,6 @@ Item {
     RowLayout {
         anchors.fill: parent
         spacing: 8
-        anchors.margins: 12
 
         ColorImage {
             id: image
