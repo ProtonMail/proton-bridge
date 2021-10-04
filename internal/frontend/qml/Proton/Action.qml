@@ -15,35 +15,9 @@
 // You should have received a copy of the GNU General Public License
 // along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
 
-import QtQml 2.12
-import QtQuick.Controls 2.12
+import QtQuick 2.12
+import QtQuick.Templates 2.12 as T
 
-QtObject {
-    id: root
-
-    default property var children
-
-    enum NotificationType {
-        Info = 0,
-        Success = 1,
-        Warning = 2,
-        Danger = 3
-    }
-
-    property string text
-    property string description
-    property string icon
-    property list<Action> action
-    property int type
-    property int group
-
-    property bool dismissed: false
-    property bool active: false
-    readonly property var occurred: active ? new Date() : undefined
-
-    property var data
-
-    onActiveChanged: {
-        dismissed = false
-    }
+T.Action {
+    property bool loading
 }

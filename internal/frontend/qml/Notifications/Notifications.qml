@@ -353,6 +353,7 @@ QtObject {
 
         action: [
             Action {
+                id: disableBeta_remindLater
                 text: qsTr("Remind me later")
 
                 onTriggered: {
@@ -360,10 +361,12 @@ QtObject {
                 }
             },
             Action {
+                id: disableBeta_disable
                 text: qsTr("Disable and restart")
                 onTriggered: {
                     root.backend.toggleBeta(false)
-                    root.disableBeta.loading = true
+                    disableBeta_disable.loading = true
+                    disableBeta_remindLater.enabled = false
                 }
             }
         ]
@@ -647,21 +650,26 @@ QtObject {
             target: (root && root.enableSplitMode && root.enableSplitMode.user ) ? root.enableSplitMode.user : null
             onToggleSplitModeFinished: {
                 root.enableSplitMode.active = false
-                root.enableSplitMode.loading = false
+
+                enableSplitMode_enable.loading = false
+                enableSplitMode_cancel.enabled = true
             }
         }
 
         action: [
             Action {
+                id: enableSplitMode_cancel
                 text: qsTr("Cancel")
                 onTriggered: {
                     root.enableSplitMode.active = false
                 }
             },
             Action {
+                id: enableSplitMode_enable
                 text: qsTr("Enable split mode")
                 onTriggered: {
-                    root.enableSplitMode.loading = true
+                    enableSplitMode_enable.loading = true
+                    enableSplitMode_cancel.enabled = false
                     root.enableSplitMode.user.toggleSplitMode(true)
                 }
             }
@@ -686,21 +694,26 @@ QtObject {
             target: root.backend
             onChangeLocalCacheFinished: {
                 root.disableLocalCache.active = false
-                root.disableLocalCache.loading = false
+
+                disableLocalCache_disable.loading = false
+                disableLocalCache_cancel.enabled = true
             }
         }
 
         action: [
             Action {
+                id: disableLocalCache_cancel
                 text: qsTr("Cancel")
                 onTriggered: {
                     root.disableLocalCache.active = false
                 }
             },
             Action {
+                id: disableLocalCache_disable
                 text: qsTr("Disable and restart")
                 onTriggered: {
-                    root.disableLocalCache.loading = true
+                    disableLocalCache_disable.loading = true
+                    disableLocalCache_cancel.enabled = false
                     root.backend.changeLocalCache(false, root.backend.diskCachePath)
                 }
             }
@@ -728,19 +741,24 @@ QtObject {
             target: root.backend
             onChangeLocalCacheFinished: {
                 root.enableLocalCache.active = false
-                root.enableLocalCache.loading = false
+
+                enableLocalCache_enable.loading = false
+                enableLocalCache_cancel.enabled = true
             }
         }
 
         action: [
             Action {
+                id: enableLocalCache_enable
                 text: qsTr("Enable and restart")
                 onTriggered: {
-                    root.enableLocalCache.loading = true
+                    enableLocalCache_enable.loading = true
+                    enableLocalCache_cancel.enabled = false
                     root.backend.changeLocalCache(true, root.enableLocalCache.path)
                 }
             },
             Action {
+                id: enableLocalCache_cancel
                 text: qsTr("Cancel")
                 onTriggered: {
                     root.enableLocalCache.active = false
@@ -769,21 +787,26 @@ QtObject {
             target: root.backend
             onResetFinished: {
                 root.resetBridge.active = false
-                root.resetBridge.loading = false
+
+                resetBridge_reset.loading = false
+                resetBridge_cancel.enabled = true
             }
         }
 
         action: [
             Action {
+                id: resetBridge_cancel
                 text: qsTr("Cancel")
                 onTriggered: {
                     root.resetBridge.active = false
                 }
             },
             Action {
+                id: resetBridge_reset
                 text: qsTr("Reset and restart")
                 onTriggered: {
-                    root.resetBridge.loading = true
+                    resetBridge_reset.loading = true
+                    resetBridge_cancel.enabled = false
                     root.backend.triggerReset()
                 }
             }

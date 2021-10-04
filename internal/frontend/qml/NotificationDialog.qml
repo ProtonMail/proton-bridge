@@ -110,7 +110,7 @@ Dialog {
 
                     secondary: index > 0
 
-                    loading: notification.loading
+                    loading: modelData.loading
                 }
             }
         }
