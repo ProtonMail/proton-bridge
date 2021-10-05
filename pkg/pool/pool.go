@@ -77,20 +77,21 @@ type Job struct {
 
 	item *pchan.Item
 
-	ready, done chan struct{}
+	ready, done sync.WaitGroup
 	once        sync.Once
 }
 
 func newJob(req interface{}) *Job {
-	return &Job{
-		req:   req,
-		ready: make(chan struct{}),
-		done:  make(chan struct{}),
-	}
+	job := &Job{req: req}
+
+	job.ready.Add(1)
+	job.done.Add(1)
+
+	return job
 }
 
 func (job *Job) GetResult() (interface{}, error) {
-	<-job.ready
+	job.ready.Wait()
 
 	return job.res, job.err
 }
@@ -104,13 +105,13 @@ func (job *Job) SetPriority(prio int) {
 }
 
 func (job *Job) postSuccess(res interface{}) {
-	defer close(job.ready)
+	defer job.ready.Done()
 
 	job.res = res
 }
 
 func (job *Job) postFailure(err error) {
-	defer close(job.ready)
+	defer job.ready.Done()
 
 	job.err = err
 }
@@ -120,9 +121,9 @@ func (job *Job) setItem(item *pchan.Item) {
 }
 
 func (job *Job) markDone() {
-	job.once.Do(func() { close(job.done) })
+	job.once.Do(func() { job.done.Done() })
 }
 
 func (job *Job) waitDone() {
-	<-job.done
+	job.done.Wait()
 }

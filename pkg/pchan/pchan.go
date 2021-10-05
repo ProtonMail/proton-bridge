@@ -33,11 +33,11 @@ type Item struct {
 	ch   *PChan
 	val  interface{}
 	prio int
-	done chan struct{}
+	done sync.WaitGroup
 }
 
 func (item *Item) Wait() {
-	<-item.done
+	item.done.Wait()
 }
 
 func (item *Item) GetPriority() int {
@@ -90,14 +90,13 @@ func (ch *PChan) push(val interface{}, prio int) *Item {
 	ch.lock.Lock()
 	defer ch.lock.Unlock()
 
-	done := make(chan struct{})
-
 	item := &Item{
 		ch:   ch,
 		val:  val,
 		prio: prio,
-		done: done,
 	}
+
+	item.done.Add(1)
 
 	ch.items = append(ch.items, item)
 
@@ -116,7 +115,7 @@ func (ch *PChan) pop() (interface{}, int) {
 
 	item, ch.items = ch.items[len(ch.items)-1], ch.items[:len(ch.items)-1]
 
-	defer close(item.done)
+	defer item.done.Done()
 
 	return item.val, item.prio
 }
