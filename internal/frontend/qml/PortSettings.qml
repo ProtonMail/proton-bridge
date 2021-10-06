@@ -108,13 +108,13 @@ SettingsView {
         var num = field.text*1
         if (! (num > 1 && num < 65536) )  {
             field.error = true
-            field.assistiveText = qsTr("Invalid port number.")
+            field.assistiveText = qsTr("Invalid port number")
             return
         }
 
         if (imapField.text == smtpField.text) {
             field.error = true
-            field.assistiveText = qsTr("Port numbers must be different.")
+            field.assistiveText = qsTr("Port numbers must be different")
             return
         }
 
@@ -131,7 +131,7 @@ SettingsView {
         if (num == root.backend.portSMTP) return true
         if (!root.backend.isPortFree(num)) {
             field.error = true
-            field.assistiveText = qsTr("Port occupied.")
+            field.assistiveText = qsTr("Port occupied")
             submitButton.loading = false
             return false
         }
