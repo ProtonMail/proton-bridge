@@ -27,4 +27,7 @@ Window {
         anchors.fill: parent
         colorScheme: ProtonStyle.currentStyle
     }
+    onClosing: {
+        Qt.quit()
+    }
 }

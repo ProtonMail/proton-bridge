@@ -125,9 +125,9 @@ QtObject {
                     screen = Qt.application.screens[i]
                     if (
                         isInInterval(iconCenter.x, screen.virtualX, screen.virtualX+screen.width) &&
-                        isInInterval(iconCenter.y, screen.virtualY, screen.virtualY+screen.heigh)
+                        isInInterval(iconCenter.y, screen.virtualY, screen.virtualY+screen.height)
                     ) {
-                        return
+                        break
                     }
                 }
 

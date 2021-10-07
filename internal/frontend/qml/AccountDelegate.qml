@@ -28,18 +28,6 @@ Item {
     property var user
 
     property var _spacing: 12
-    property var _leftRightMargins: {
-        switch(root.type) {
-            case AccountDelegate.SmallView: return 12
-            case AccountDelegate.LargeView: return 0
-        }
-    }
-    property var _topBottomMargins: {
-        switch(root.type) {
-            case AccountDelegate.SmallView: return 10
-            case AccountDelegate.LargeView: return 0
-        }
-    }
 
     property color usedSpaceColor : {
         if (!root.enabled) return root.colorScheme.text_weak
@@ -60,10 +48,8 @@ Item {
         return Math.round(bytes*10 / Math.pow(1024, i))/10 + " " + units[i]
     }
 
-    signal clicked()
-
     // width expected to be set by parent object
-    implicitHeight : children[0].implicitHeight + 2*root._topBottomMargins
+    implicitHeight : children[0].implicitHeight
 
     enum ViewType{
         SmallView, LargeView
@@ -77,10 +63,6 @@ Item {
             top: root.top
             left: root.left
             right: root.rigth
-            leftMargin   : root._leftRightMargins
-            rightMargin  : root._leftRightMargins
-            topMargin    : root._topBottomMargins
-            bottomMargin : root._topBottomMargins
         }
 
         Rectangle {
@@ -124,7 +106,7 @@ Item {
 
             Label {
                 Layout.maximumWidth: root.width - (
-                    root._spacing + avatar.width + 2*root._leftRightMargins
+                    root._spacing + avatar.width
                 )
 
                 colorScheme: root.colorScheme
@@ -191,10 +173,5 @@ Item {
         Item {
             Layout.fillWidth: true
         }
-    }
-
-    MouseArea {
-        anchors.fill: root
-        onClicked: root.clicked()
     }
 }

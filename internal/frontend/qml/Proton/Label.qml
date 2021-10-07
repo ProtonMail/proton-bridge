@@ -133,6 +133,8 @@ T.Label {
         }
     }
 
+    verticalAlignment: Text.AlignBottom
+
     function link(url, text) {
         return `<a href="${url}">${text}</a>`
     }

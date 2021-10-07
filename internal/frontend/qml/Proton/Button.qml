@@ -19,6 +19,7 @@ import QtQuick 2.12
 import QtQuick.Controls 2.12
 import QtQuick.Controls.impl 2.12
 import QtQuick.Templates 2.12 as T
+import QtQuick.Layouts 1.12
 
 import "." as Proton
 
@@ -72,103 +73,70 @@ T.Button {
         }
     }
 
-    contentItem: Item {
+    contentItem: RowLayout {
         id: _contentItem
+        spacing: control.spacing
 
-        // Since contentItem is allways resized to maximum available size - we need to "incapsulate" label
-        // and icon within one single item with calculated fixed implicit size
+        Proton.Label {
+            colorScheme: root.colorScheme
+            id: label
 
-        implicitHeight: labelIcon.implicitHeight
-        implicitWidth: labelIcon.implicitWidth
+            Layout.fillWidth: true
+            Layout.fillHeight: true
 
-        Item {
-            id: labelIcon
+            elide: Text.ElideRight
+            horizontalAlignment: Qt.AlignHCenter
 
-            anchors.horizontalCenter: _contentItem.horizontalCenter
-            anchors.verticalCenter: _contentItem.verticalCenter
-
-            width: Math.min(implicitWidth, control.availableWidth)
-            height: Math.min(implicitHeight, control.availableHeight)
-
-            implicitWidth: {
-                var textImplicitWidth = control.text !== "" ? label.implicitWidth : 0
-                var iconImplicitWidth = iconImage.source ? iconImage.implicitWidth : 0
-                var spacing = (control.text !== ""  && iconImage.source && control.display === AbstractButton.TextBesideIcon) ? control.spacing : 0
-
-                return control.display === AbstractButton.TextBesideIcon ? textImplicitWidth + iconImplicitWidth + spacing : Math.max(textImplicitWidth, iconImplicitWidth)
-            }
-            implicitHeight: {
-                var textImplicitHeight = control.text !== "" ? label.implicitHeight : 0
-                var iconImplicitHeight = iconImage.source ? iconImage.implicitHeight : 0
-                var spacing = (control.text !== ""  && iconImage.source && control.display === AbstractButton.TextUnderIcon) ? control.spacing : 0
-
-                return control.display === AbstractButton.TextUnderIcon ? textImplicitHeight + iconImplicitHeight + spacing : Math.max(textImplicitHeight, iconImplicitHeight)
-            }
-
-            Proton.Label {
-                colorScheme: root.colorScheme
-                id: label
-                anchors.left: labelIcon.left
-                anchors.top: labelIcon.top
-                anchors.bottom: labelIcon.bottom
-                anchors.right: control.loading ? iconImage.left : labelIcon.right
-                anchors.rightMargin: control.loading ? control.spacing : 0
-
-                elide: Text.ElideRight
-                horizontalAlignment: Qt.AlignHCenter
-                verticalAlignment: Qt.AlignVCenter
-
-                text: control.text
-                color: {
-                    if (primary && !isIcon) {
-                        return "#FFFFFF"
-                    } else {
-                        return control.colorScheme.text_norm
-                    }
+            visible: !control.isIcon
+            text: control.text
+            color: {
+                if (primary && !isIcon) {
+                    return "#FFFFFF"
+                } else {
+                    return control.colorScheme.text_norm
                 }
-                opacity: control.enabled || control.loading ? 1.0 : 0.5
+            }
+            opacity: control.enabled || control.loading ? 1.0 : 0.5
 
-                type: labelType
+            type: labelType
+        }
+
+        ColorImage {
+            id: iconImage
+
+            Layout.alignment: Qt.AlignCenter
+
+            width: {
+                // special case for loading since we want icon to be square for rotation animation
+                if (control.loading) {
+                    return Math.min(control.icon.width, availableWidth, control.icon.height, availableHeight)
+                }
+
+                return Math.min(control.icon.width, availableWidth)
+            }
+            height: {
+                if (control.loading) {
+                    return width
+                }
+
+                Math.min(control.icon.height, availableHeight)
             }
 
-            ColorImage {
-                id: iconImage
+            sourceSize.width: control.icon.width
+            sourceSize.height: control.icon.height
 
-                anchors.verticalCenter: labelIcon.verticalCenter
-                anchors.right: labelIcon.right
+            color: control.icon.color
+            source: control.loading ? "../icons/Loader_16.svg" : control.icon.source
+            visible: control.loading || control.icon.source
 
-                width: {
-                    // special case for loading since we want icon to be square for rotation animation
-                    if (control.loading) {
-                        return Math.min(control.icon.width, availableWidth, control.icon.height, availableHeight)
-                    }
-
-                    return Math.min(control.icon.width, availableWidth)
-                }
-                height: {
-                    if (control.loading) {
-                        return width
-                    }
-
-                    Math.min(control.icon.height, availableHeight)
-                }
-
-                sourceSize.width: control.icon.width
-                sourceSize.height: control.icon.height
-
-                color: control.icon.color
-                source: control.loading ? "../icons/Loader_16.svg" : control.icon.source
-                visible: control.loading || control.icon.source
-
-                RotationAnimation {
-                    target: iconImage
-                    loops: Animation.Infinite
-                    duration: 1000
-                    from: 0
-                    to: 360
-                    direction: RotationAnimation.Clockwise
-                    running: control.loading
-                }
+            RotationAnimation {
+                target: iconImage
+                loops: Animation.Infinite
+                duration: 1000
+                from: 0
+                to: 360
+                direction: RotationAnimation.Clockwise
+                running: control.loading
             }
         }
     }

@@ -158,21 +158,37 @@ Item {
                     }
 
                     model: root.backend.users
-                    delegate: AccountDelegate{
-                        width: leftBar.width - 2*accounts._leftRightMargins
+                    delegate: Item {
 
-                        id: accountDelegate
-                        colorScheme: leftBar.colorScheme
-                        user: root.backend.users.get(index)
-                        onClicked: {
-                            var user = root.backend.users.get(index)
-                            accounts.currentIndex = index
-                            if (!user) return
-                            if (user.loggedIn) {
-                                rightContent.showAccount()
-                            } else {
-                                signIn.username = user.username
-                                rightContent.showSignIn()
+                        width: leftBar.width - 2*accounts._leftRightMargins
+                        implicitHeight: children[0].implicitHeight + children[0].anchors.topMargin + children[0].anchors.bottomMargin
+                        implicitWidth: children[0].implicitWidth + children[0].anchors.leftMargin + children[0].anchors.rightMargin
+
+                        AccountDelegate {
+                            id: accountDelegate
+
+                            anchors.fill: parent
+                            anchors.topMargin: 8
+                            anchors.bottomMargin: 8
+                            anchors.leftMargin: 12
+                            anchors.rightMargin: 12
+
+                            colorScheme: leftBar.colorScheme
+                            user: root.backend.users.get(index)
+                        }
+
+                        MouseArea {
+                            anchors.fill: parent
+                            onClicked: {
+                                var user = root.backend.users.get(index)
+                                accounts.currentIndex = index
+                                if (!user) return
+                                if (user.loggedIn) {
+                                    rightContent.showAccount()
+                                } else {
+                                    signIn.username = user.username
+                                    rightContent.showSignIn()
+                                }
                             }
                         }
                     }

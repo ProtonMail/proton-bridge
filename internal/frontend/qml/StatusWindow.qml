@@ -31,14 +31,13 @@ Window {
     height: contentLayout.implicitHeight
     width: contentLayout.implicitWidth
 
-    flags: Qt.FramelessWindowHint | Qt.NoDropShadowWindowHint | Qt.WindowStaysOnTopHint
+    flags: (Qt.platform.os === "linux" ? Qt.Tool : 0) | Qt.FramelessWindowHint | Qt.NoDropShadowWindowHint | Qt.WindowStaysOnTopHint | Qt.WA_TranslucentBackground
+    color: "transparent"
 
     property ColorScheme colorScheme: ProtonStyle.currentStyle
 
     property var backend
     property var notifications
-
-    color: "transparent"
 
     signal showMainWindow()
     signal showHelp()
@@ -110,11 +109,10 @@ Window {
                     Status {
                         id: statusItem
 
-                        Layout.fillHeight: true
                         Layout.fillWidth: true
 
-                        Layout.topMargin: 20
-                        Layout.bottomMargin: 20
+                        Layout.topMargin: 12
+                        Layout.bottomMargin: 12
 
                         colorScheme: root.colorScheme
                         backend: root.backend
@@ -126,6 +124,9 @@ Window {
                     Button {
                         colorScheme: root.colorScheme
                         secondary: true
+
+                        Layout.topMargin: 12
+                        Layout.bottomMargin: 12
 
                         visible: (statusItem.activeNotification && statusItem.activeNotification.action) ? true : false
                         action: statusItem.activeNotification && statusItem.activeNotification.action.length > 0 ? statusItem.activeNotification.action[0] : null
@@ -176,6 +177,8 @@ Window {
                 snapMode: ListView.SnapToItem
                 boundsBehavior: Flickable.StopAtBounds
 
+                spacing: 4
+
                 delegate: Item {
                     id: viewItem
                     width: ListView.view.width
@@ -192,14 +195,17 @@ Window {
                         AccountDelegate {
                             Layout.fillWidth: true
 
-                            Layout.margins: 12
+                            Layout.topMargin: 12
+                            Layout.bottomMargin: 12
 
                             user: viewItem.user
                             colorScheme: root.colorScheme
                         }
 
                         Button {
-                            Layout.margins: 12
+                            Layout.topMargin: 12
+                            Layout.bottomMargin: 12
+
                             colorScheme: root.colorScheme
                             visible: viewItem.user ? !viewItem.user.loggedIn : false
                             text: qsTr("Sign in")

@@ -18,7 +18,8 @@
 import QtQuick 2.13
 import QtQuick.Controls 2.12
 
-import Proton 4.0
+import "."
+import "./Proton"
 
 Rectangle {
     anchors.fill: parent
