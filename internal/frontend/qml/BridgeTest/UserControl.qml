@@ -162,7 +162,7 @@ ColumnLayout {
 
             enabled: user !== undefined //&& user.isLoginRequested && !user.isLogin2FARequested && !user.isLogin2PasswordRequested
             onClicked: {
-                root.backend.login2FARequested()
+                root.backend.login2FARequested(user.username)
                 user.isLogin2FARequested = true
             }
         }

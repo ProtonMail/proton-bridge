@@ -769,7 +769,7 @@ QtObject {
 
     property Notification resetBridge: Notification {
         text: qsTr("Reset Bridge?")
-        description: qsTr("This will clear your accounts, preferences, and cached data. You will need to reconfigure your email client. Bridge will automatically restart")
+        description: qsTr("This will clear your accounts, preferences, and cached data. You will need to reconfigure your email client. Bridge will automatically restart.")
         type: Notification.NotificationType.Warning
         group: Notifications.Group.Configuration | Notifications.Group.Dialogs
 

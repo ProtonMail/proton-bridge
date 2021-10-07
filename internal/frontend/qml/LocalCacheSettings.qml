@@ -39,7 +39,7 @@ SettingsView {
 
     Label {
         colorScheme: root.colorScheme
-        text: qsTr("Bridge caches your encrypted messages localy to optimise the communication with the local client. Disabling this feature might have a nevative impact on performance.")
+        text: qsTr("Bridge stores your encrypted messages locally to optimize communication with the local client.")
         type: Label.Body
         color: root.colorScheme.text_weak
         Layout.fillWidth: true
@@ -50,7 +50,7 @@ SettingsView {
     SettingsItem {
         colorScheme: root.colorScheme
         text: qsTr("Enable local cache")
-        description: "When enabled messages are stored on disk." // TODO: wrong text in wireframe
+        description: qsTr("Recommended for optimal performance.")
         type: SettingsItem.Toggle
         checked: root._diskCacheEnabled
         onClicked: root._diskCacheEnabled = !root._diskCacheEnabled
@@ -145,5 +145,7 @@ SettingsView {
         root._diskCachePath = path.replace(pattern, "")
     }
 
-    Component.onCompleted: root.setDefaultValues()
+    onVisibleChanged: {
+        root.setDefaultValues()
+    }
 }

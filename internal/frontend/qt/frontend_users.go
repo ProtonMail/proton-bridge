@@ -39,6 +39,12 @@ func (f *FrontendQt) login(username, password string) {
 
 	f.authClient, f.auth, err = f.bridge.Login(username, f.password)
 	if err != nil {
+		if err == pmapi.ErrPasswordWrong {
+			// Remove error message since it is hardcodded in QML.
+			f.qml.LoginUsernamePasswordError("")
+			f.loginClean()
+			return
+		}
 		if err == pmapi.ErrPaidPlanRequired {
 			f.qml.LoginFreeUserError()
 			f.loginClean()
@@ -50,7 +56,7 @@ func (f *FrontendQt) login(username, password string) {
 	}
 
 	if f.auth.HasTwoFactor() {
-		f.qml.Login2FARequested()
+		f.qml.Login2FARequested(username)
 		return
 	}
 	if f.auth.HasMailboxPassword() {

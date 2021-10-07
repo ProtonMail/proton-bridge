@@ -50,8 +50,8 @@ SettingsView {
     SettingsItem {
         id: autostart
         colorScheme: root.colorScheme
-        text: qsTr("Automatically start Bridge")
-        description: qsTr("The app will autostart everytime you reset your device.")
+        text: qsTr("Open on startup")
+        description: qsTr("Bridge will open upon startup.")
         type: SettingsItem.Toggle
         checked: root.backend.isAutostartOn
         onClicked: {
@@ -159,7 +159,7 @@ SettingsView {
         colorScheme: root.colorScheme
         text: qsTr("Local cache")
         actionText: qsTr("Configure")
-        description: qsTr("Configure Bridge's local cache settings.")
+        description: qsTr("Configure Bridge's local cache.")
         type: SettingsItem.Button
         onClicked: root.parent.showLocalCacheSettings()
 

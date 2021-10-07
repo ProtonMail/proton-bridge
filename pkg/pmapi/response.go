@@ -31,6 +31,7 @@ import (
 
 const (
 	errCodeUpgradeApplication   = 5003
+	errCodePasswordWrong        = 8002
 	errCodeAuthPaidPlanRequired = 10004
 )
 
@@ -61,6 +62,8 @@ func (m *manager) catchAPIError(_ *resty.Client, res *resty.Response) error {
 			if m.cfg.UpgradeApplicationHandler != nil {
 				m.cfg.UpgradeApplicationHandler()
 			}
+		case apiErr.Code == errCodePasswordWrong:
+			err = ErrPasswordWrong
 		case apiErr.Code == errCodeAuthPaidPlanRequired:
 			err = ErrPaidPlanRequired
 		case res.StatusCode() == http.StatusUnprocessableEntity:

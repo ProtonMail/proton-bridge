@@ -73,7 +73,7 @@ Item {
 
                 stackLayout.loginFailed()
                 if (errorMsg!="") errorLabel.text = errorMsg
-                else errorLabel.text = qsTr("Your email and/or password are incorrect")
+                else errorLabel.text = qsTr("Incorrect login credentials")
             }
 
             onLoginFreeUserError: {
@@ -89,6 +89,7 @@ Item {
 
             onLogin2FARequested: {
                 console.assert(stackLayout.currentIndex == 0, "Unexpected login2FARequested")
+                twoFactorUsernameLabel.text = username
                 stackLayout.currentIndex = 1
             }
             onLogin2FAError: {
@@ -289,7 +290,7 @@ Item {
             Label {
                 colorScheme: root.colorScheme
                 textFormat: Text.StyledText
-                text: link("https://protonmail.com/upgrade", qsTr("Create or upgrade your account"))
+                text: link("https://protonmail.com/signup", qsTr("Create or upgrade your account"))
                 Layout.alignment: Qt.AlignHCenter
                 Layout.topMargin: 24
                 type: Label.LabelType.Body
@@ -323,13 +324,24 @@ Item {
                 type: Label.LabelType.Heading
             }
 
+            Label {
+                colorScheme: root.colorScheme
+                id: twoFactorUsernameLabel
+
+                Layout.alignment: Qt.AlignCenter
+                Layout.topMargin: 8
+                type: Label.LabelType.Lead
+                color: root.colorScheme.text_weak
+            }
+
             TextField {
                 colorScheme: root.colorScheme
                 id: twoFactorPasswordTextField
-                label: qsTr("Two-factor authentication code")
+                label: qsTr("Two-factor code")
+                assistiveText: qsTr("Enter the 6-digit code")
 
                 Layout.fillWidth: true
-                Layout.topMargin: 8 + implicitHeight + 24 + subTitle.implicitHeight
+                Layout.topMargin: 32
 
                 onTextEdited: {
                     if (error) {

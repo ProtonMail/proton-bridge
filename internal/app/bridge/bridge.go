@@ -269,6 +269,8 @@ func loadCache(b *base.Base) (cache.Cache, error) {
 		path = customPath
 	} else {
 		path = b.Cache.GetDefaultMessageCacheDir()
+		// Store path so it will allways persist if default location will be changed in new version.
+		b.Settings.Set(settings.CacheLocationKey, path)
 	}
 
 	return cache.NewOnDiskCache(path, compressor, cache.Options{

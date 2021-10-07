@@ -636,7 +636,7 @@ Window {
     signal loginUsernamePasswordError(string errorMsg)
     signal loginFreeUserError()
     signal loginConnectionError(string errorMsg)
-    signal login2FARequested()
+    signal login2FARequested(string username)
     signal login2FAError(string errorMsg)
     signal login2FAErrorAbort(string errorMsg)
     signal login2PasswordRequested()
@@ -799,7 +799,7 @@ Window {
         console.debug("<- loginConnectionError")
     }
     onLogin2FARequested: {
-        console.debug("<- login2FARequested")
+        console.debug("<- login2FARequested", username)
     }
     onLogin2FAError: {
         console.debug("<- login2FAError")

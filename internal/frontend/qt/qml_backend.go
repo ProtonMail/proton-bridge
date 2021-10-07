@@ -57,7 +57,7 @@ type QMLBackend struct {
 	_ func(errorMsg string)           `signal:"loginUsernamePasswordError"`
 	_ func()                          `signal:"loginFreeUserError"`
 	_ func(errorMsg string)           `signal:"loginConnectionError"`
-	_ func()                          `signal:"login2FARequested"`
+	_ func(username string)           `signal:"login2FARequested"`
 	_ func(errorMsg string)           `signal:"login2FAError"`
 	_ func(errorMsg string)           `signal:"login2FAErrorAbort"`
 	_ func()                          `signal:"login2PasswordRequested"`

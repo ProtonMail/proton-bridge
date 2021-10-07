@@ -89,7 +89,7 @@ Item {
 
                     Label {
                         colorScheme: root.colorScheme
-                        text: qsTr("Welcome to\nProtonMail Bridge")
+                        text: qsTr("Welcome to\nProton Mail Bridge")
                         Layout.alignment: Qt.AlignHCenter
                         Layout.fillWidth: true
                         Layout.topMargin: 16
