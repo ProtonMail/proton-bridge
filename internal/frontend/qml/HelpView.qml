@@ -93,21 +93,15 @@ SettingsView {
         colorScheme: root.colorScheme
         type: Label.Caption
         color: root.colorScheme.text_weak
-        textFormat: Text.RichText
+        textFormat: Text.StyledText
         linkColor: root.colorScheme.interaction_norm_active
 
-        text: {
-            var version = root.backend.version
-            var license = qsTr("License")
-            var licensePath = "file://"+root.backend.licensePath
-            var release= qsTr("Release notes")
-            var releaseNotesLink = root.backend.releaseNotesLink
-            return `<p style="text-align:center;">Proton Mail Bridge v${version}<br>
-            © 2021 Proton Technologies AG<br>
-            <a style="color: ${linkColor};" href="${licensePath}">${license}</a>
-            <a style="color: ${linkColor};" href="${releaseNotesLink}">${release}</a>
-            </p>`
-        }
+        horizontalAlignment: Text.AlignHCenter
+
+        text: qsTr("Proton Mail Bridge v%1<br>© 2021 Proton Technologies AG<br>%2 %3").
+            arg(root.backend.version).
+            arg(link("file://"+root.backend.licensePath, qsTr("License"))).
+            arg(link(root.backend.releaseNotesLink, qsTr("Release notes")))
 
         onLinkActivated: Qt.openUrlExternally(link)
     }
