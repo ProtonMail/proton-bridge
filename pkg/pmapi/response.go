@@ -30,7 +30,8 @@ import (
 )
 
 const (
-	errCodeUpgradeApplication = 5003
+	errCodeUpgradeApplication   = 5003
+	errCodeAuthPaidPlanRequired = 10004
 )
 
 type Error struct {
@@ -60,6 +61,8 @@ func (m *manager) catchAPIError(_ *resty.Client, res *resty.Response) error {
 			if m.cfg.UpgradeApplicationHandler != nil {
 				m.cfg.UpgradeApplicationHandler()
 			}
+		case apiErr.Code == errCodeAuthPaidPlanRequired:
+			err = ErrPaidPlanRequired
 		case res.StatusCode() == http.StatusUnprocessableEntity:
 			err = ErrUnprocessableEntity{apiErr}
 		default:

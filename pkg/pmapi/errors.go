@@ -26,6 +26,8 @@ var (
 
 	ErrBad2FACode         = errors.New("incorrect 2FA code")
 	ErrBad2FACodeTryAgain = errors.New("incorrect 2FA code: please try again")
+
+	ErrPaidPlanRequired = errors.New("paid subscription plan is required")
 )
 
 type ErrUnprocessableEntity struct {

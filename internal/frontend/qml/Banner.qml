@@ -40,6 +40,8 @@ Popup {
 
     shouldShow: notification ? (notification.active && !notification.dismissed) : false
 
+    modal: false
+
     Action {
         id: defaultDismissAction
 

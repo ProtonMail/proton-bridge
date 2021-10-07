@@ -22,6 +22,7 @@ package qt
 import (
 	"context"
 	"encoding/base64"
+
 	"github.com/ProtonMail/proton-bridge/internal/users"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 )
@@ -38,7 +39,11 @@ func (f *FrontendQt) login(username, password string) {
 
 	f.authClient, f.auth, err = f.bridge.Login(username, f.password)
 	if err != nil {
-		// TODO login free user error
+		if err == pmapi.ErrPaidPlanRequired {
+			f.qml.LoginFreeUserError()
+			f.loginClean()
+			return
+		}
 		f.qml.LoginUsernamePasswordError(err.Error())
 		f.loginClean()
 		return

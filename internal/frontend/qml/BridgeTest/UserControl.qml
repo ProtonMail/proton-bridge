@@ -129,7 +129,7 @@ ColumnLayout {
             text: "free user error"
             enabled: user !== undefined //&& user.isLoginRequested
             onClicked: {
-                root.backend.loginFreeUserError("")
+                root.backend.loginFreeUserError()
                 user.resetLoginRequests()
             }
         }

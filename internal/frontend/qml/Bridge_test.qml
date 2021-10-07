@@ -634,7 +634,7 @@ Window {
 
     // this signals are used only when trying to login with new user (i.e. not in users model)
     signal loginUsernamePasswordError(string errorMsg)
-    signal loginFreeUserError(string errorMsg)
+    signal loginFreeUserError()
     signal loginConnectionError(string errorMsg)
     signal login2FARequested()
     signal login2FAError(string errorMsg)
