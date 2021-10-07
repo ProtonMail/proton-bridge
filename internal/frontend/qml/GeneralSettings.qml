@@ -180,6 +180,4 @@ SettingsView {
 
         Layout.fillWidth: true
     }
-
-    onBack: root.parent.showAccount()
 }

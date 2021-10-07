@@ -111,8 +111,4 @@ SettingsView {
 
         onLinkActivated: Qt.openUrlExternally(link)
     }
-
-    onBack: {
-        root.parent.showAccount()
-    }
 }

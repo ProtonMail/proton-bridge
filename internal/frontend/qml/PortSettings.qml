@@ -101,7 +101,6 @@ SettingsView {
     }
 
     onBack: {
-        root.parent.showGeneralSettings()
         root.setDefaultValues()
     }
 

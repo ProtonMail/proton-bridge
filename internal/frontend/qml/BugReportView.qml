@@ -35,23 +35,33 @@ SettingsView {
 
     TextArea {
         id: description
-        property int _minChars: 150
-        property bool _inputOK: description.text.length>=description._minChars
+        property int _minLength: 150
+        property int _maxLength: 800
+        property bool _inputOK: description.text.length>=description._minLength && description.text.length<=description._maxLength
 
         label: qsTr("Description")
         colorScheme: root.colorScheme
         Layout.fillWidth: true
         Layout.minimumHeight: 100
-        hint: description.text.length + "/800"
-        placeholderText: qsTr("Tell us what went wrong or isn't working (min. 150 characters).")
+        hint: description.text.length + "/" + _maxLength
+        placeholderText: qsTr("Tell us what went wrong or isn't working (min. %1 characters).").arg(_minLength)
+
         onEditingFinished: {
             if (!description._inputOK) {
                 description.error = true
-                description.assistiveText = qsTr("Enter a problem description (min. 150 characters)")
+                if (description.text.length <= description._minLength) {
+                    description.assistiveText = qsTr("Enter a problem description (min. %1 characters).").arg(_minLength)
+                } else {
+                    description.assistiveText = qsTr("Enter a problem description (max. %1 characters).").arg(_maxLength)
+                }
             } else {
                 description.error = false
                 description.assistiveText = ""
             }
+        }
+        onTextChanged: {
+            description.error = false
+            description.assistiveText = ""
         }
     }
 
@@ -74,6 +84,10 @@ SettingsView {
                 address.error = false
             }
         }
+        onTextChanged: {
+            address.error = false
+            address.assistiveText = ""
+        }
     }
 
     TextField {
@@ -84,6 +98,7 @@ SettingsView {
         colorScheme: root.colorScheme
         Layout.fillWidth: true
         placeholderText: qsTr("e.g. Apple Mail 14.0")
+
         onEditingFinished: {
             if (!emailClient._inputOK) {
                 emailClient.assistiveText = qsTr("Enter an email client name and version")
@@ -92,6 +107,10 @@ SettingsView {
                 emailClient.assistiveText = ""
                 emailClient.error = false
             }
+        }
+        onTextChanged: {
+            emailClient.error = false
+            emailClient.assistiveText = ""
         }
     }
 
@@ -137,8 +156,17 @@ SettingsView {
 
     function setDefaultValue() {
         description.text = ""
+        description.error = false
+        description.assistiveText = ""
+
         address.text = root.selectedAddress
+        address.error = false
+        address.assistiveText = ""
+
         emailClient.text = root.backend.currentEmailClient
+        emailClient.error = false
+        emailClient.assistiveText = ""
+
         includeLogs.checked = true
     }
 
@@ -159,9 +187,7 @@ SettingsView {
 
     Component.onCompleted: root.setDefaultValue()
 
-
-    onBack: {
+    onVisibleChanged: {
         root.setDefaultValue()
-        root.parent.showHelpView()
     }
 }

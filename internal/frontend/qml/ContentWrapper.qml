@@ -284,27 +284,47 @@ Item {
                     colorScheme: root.colorScheme
                     backend: root.backend
                     notifications: root.notifications
+
+                    onBack: {
+                        rightContent.showAccount()
+                    }
                 }
 
                 PortSettings { // 3
                     colorScheme: root.colorScheme
                     backend: root.backend
+
+                    onBack: {
+                        rightContent.showGeneralSettings()
+                    }
                 }
 
                 SMTPSettings { // 4
                     colorScheme: root.colorScheme
                     backend: root.backend
+
+                    onBack: {
+                        rightContent.showGeneralSettings()
+                    }
                 }
 
                 LocalCacheSettings { // 5
                     colorScheme: root.colorScheme
                     backend: root.backend
                     notifications: root.notifications
+
+                    onBack: {
+                        rightContent.showGeneralSettings()
+                    }
                 }
 
                 HelpView { // 6
                     colorScheme: root.colorScheme
                     backend: root.backend
+
+                    onBack: {
+                        rightContent.showAccount()
+                    }
                 }
 
                 BugReportView { // 7
@@ -316,6 +336,10 @@ Item {
                         var user = root.backend.users.get(accounts.currentIndex)
                         if (!user) return ""
                         return user.addresses[0]
+                    }
+
+                    onBack: {
+                        rightContent.showHelpView()
                     }
                 }
 
