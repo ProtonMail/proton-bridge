@@ -27,24 +27,6 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func (u *Users) EnableCache() error {
-	// NOTE(GODT-1158): Check for available size before enabling.
-
-	return nil
-}
-
-func (u *Users) DisableCache() error {
-	// NOTE(GODT-1158): Is it an error if we can't remove a user's cache?
-
-	for _, user := range u.users {
-		if err := user.store.RemoveCache(); err != nil {
-			logrus.WithError(err).Error("Failed to remove user's message cache")
-		}
-	}
-
-	return nil
-}
-
 // isFolderEmpty checks whether a folder is empty.
 // path must point to an existing folder.
 func isFolderEmpty(path string) (bool, error) {
@@ -171,8 +153,13 @@ func copyFile(srcPath, dstPath string) error {
 	}
 
 	dstInfo, err := os.Stat(dstPath)
-	if err == nil && !dstInfo.Mode().IsRegular() {
-		return errors.New("destination exists and is not a regular file")
+	if err == nil {
+		if !dstInfo.Mode().IsRegular() {
+			return errors.New("destination exists and is not a regular file")
+		}
+		if os.SameFile(srcInfo, dstInfo) {
+			return errors.New("source and destination are the same")
+		}
 	}
 
 	src, err := os.Open(filepath.Clean(srcPath))
@@ -192,6 +179,24 @@ func copyFile(srcPath, dstPath string) error {
 	}()
 	_, err = io.Copy(dst, src)
 	return err
+}
+
+func (u *Users) EnableCache() error {
+	// NOTE(GODT-1158): Check for available size before enabling.
+
+	return nil
+}
+
+func (u *Users) DisableCache() error {
+	// NOTE(GODT-1158): Is it an error if we can't remove a user's cache?
+
+	for _, user := range u.users {
+		if err := user.store.RemoveCache(); err != nil {
+			logrus.WithError(err).Error("Failed to remove user's message cache")
+		}
+	}
+
+	return nil
 }
 
 // MigrateCache moves the message cache folder from folder srcPath to folder dstPath.
