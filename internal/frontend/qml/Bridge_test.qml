@@ -43,7 +43,12 @@ Window {
     flags   : Qt.Window | Qt.Dialog
     visible : true
     title   : "Bridge Test GUI"
-    color   : colorScheme.background_norm
+
+    // This is needed because on MacOS if first window shown is not transparent -
+    // all other windows of application will not have transparent background (black
+    // instead of transparency). In our case that mean that if BridgeTest will be
+    // shown before StatusWindow - StatusWindow will not have transparent corners.
+    color: "transparent"
 
     function getCursorPos() {
         return BridgePreview.getCursorPos()
@@ -272,364 +277,373 @@ Window {
         }
     }
 
-    StackLayout {
+    Rectangle {
+        color: root.colorScheme.background_norm
+
         anchors.top: tabBar.bottom
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.bottom: parent.bottom
 
-        currentIndex: tabBar.currentIndex
+        implicitHeight: children[0].contentHeight + children[0].anchors.topMargin + children[0].anchors.bottomMargin
+        implicitWidth: children[0].contentWidth + children[0].anchors.leftMargin + children[0].anchors.rightMargin
 
-        anchors.margins: 10
+        StackLayout {
+            anchors.fill: parent
 
-        RowLayout {
-            id: globalTab
-            spacing : 5
+            currentIndex: tabBar.currentIndex
 
-            ColumnLayout {
+            anchors.margins: 10
+
+            RowLayout {
+                id: globalTab
                 spacing : 5
 
-                Label {
-                    colorScheme: root.colorScheme
-                    text: "Global settings"
-                }
+                ColumnLayout {
+                    spacing : 5
 
-                ButtonGroup {
-                    id: styleRadioGroup
-                }
-
-                RadioButton {
-                    colorScheme: root.colorScheme
-                    Layout.fillWidth: true
-
-                    text: "Light UI"
-                    checked: ProtonStyle.currentStyle === ProtonStyle.lightStyle
-                    ButtonGroup.group: styleRadioGroup
-
-                    onCheckedChanged: {
-                        if (checked && ProtonStyle.currentStyle !== ProtonStyle.lightStyle) {
-                            ProtonStyle.currentStyle = ProtonStyle.lightStyle
-                        }
+                    Label {
+                        colorScheme: root.colorScheme
+                        text: "Global settings"
                     }
-                }
 
-                RadioButton {
-                    colorScheme: root.colorScheme
-                    Layout.fillWidth: true
+                    ButtonGroup {
+                        id: styleRadioGroup
+                    }
 
-                    text: "Dark UI"
-                    checked: ProtonStyle.currentStyle === ProtonStyle.darkStyle
-                    ButtonGroup.group: styleRadioGroup
+                    RadioButton {
+                        colorScheme: root.colorScheme
+                        Layout.fillWidth: true
 
-                    onCheckedChanged: {
-                        if (checked && ProtonStyle.currentStyle !== ProtonStyle.darkStyle) {
-                            ProtonStyle.currentStyle = ProtonStyle.darkStyle
+                        text: "Light UI"
+                        checked: ProtonStyle.currentStyle === ProtonStyle.lightStyle
+                        ButtonGroup.group: styleRadioGroup
+
+                        onCheckedChanged: {
+                            if (checked && ProtonStyle.currentStyle !== ProtonStyle.lightStyle) {
+                                ProtonStyle.currentStyle = ProtonStyle.lightStyle
+                            }
                         }
                     }
 
+                    RadioButton {
+                        colorScheme: root.colorScheme
+                        Layout.fillWidth: true
 
-                }
+                        text: "Dark UI"
+                        checked: ProtonStyle.currentStyle === ProtonStyle.darkStyle
+                        ButtonGroup.group: styleRadioGroup
 
-                CheckBox {
-                    id: showOnStartupCheckbox
-                    colorScheme: root.colorScheme
-                    text: "Show on startup"
-                    checked: root.showOnStartup
-                    onCheckedChanged: {
-                        root.showOnStartup = checked
+                        onCheckedChanged: {
+                            if (checked && ProtonStyle.currentStyle !== ProtonStyle.darkStyle) {
+                                ProtonStyle.currentStyle = ProtonStyle.darkStyle
+                            }
+                        }
+
+
+                    }
+
+                    CheckBox {
+                        id: showOnStartupCheckbox
+                        colorScheme: root.colorScheme
+                        text: "Show on startup"
+                        checked: root.showOnStartup
+                        onCheckedChanged: {
+                            root.showOnStartup = checked
+                        }
+                    }
+
+                    Button {
+                        colorScheme: root.colorScheme
+                        //Layout.fillWidth: true
+
+                        text: "Open Bridge"
+                        enabled: bridge === undefined || bridge === null
+                        onClicked: {
+                            bridge = bridgeComponent.createObject()
+                        }
+                    }
+
+                    Button {
+                        colorScheme: root.colorScheme
+                        //Layout.fillWidth: true
+
+                        text: "Close Bridge"
+                        enabled: bridge !== undefined && bridge !== null
+                        onClicked: {
+                            bridge.destroy()
+                        }
+                    }
+
+                    Item {
+                        Layout.fillHeight: true
                     }
                 }
 
-                Button {
-                    colorScheme: root.colorScheme
-                    //Layout.fillWidth: true
+                ColumnLayout {
+                    spacing : 5
 
-                    text: "Open Bridge"
-                    enabled: bridge === undefined || bridge === null
-                    onClicked: {
-                        bridge = bridgeComponent.createObject()
+                    Label {
+                        colorScheme: root.colorScheme
+                        text: "Notifications"
+                    }
+
+                    Button {
+                        colorScheme: root.colorScheme
+                        text: "Notify: danger"
+                        enabled: bridge !== undefined && bridge !== null
+                        onClicked: {
+                            bridge.mainWindow.notifyOnlyPaidUsers()
+                        }
+                    }
+
+                    Button {
+                        colorScheme: root.colorScheme
+                        text: "Notify: warning"
+                        enabled: bridge !== undefined && bridge !== null
+                        onClicked: {
+                            bridge.mainWindow.notifyUpdateManually()
+                        }
+                    }
+
+                    Button {
+                        colorScheme: root.colorScheme
+                        text: "Notify: success"
+                        enabled: bridge !== undefined && bridge !== null
+                        onClicked: {
+                            bridge.mainWindow.notifyUserAdded()
+                        }
+                    }
+
+                    Item {
+                        Layout.fillHeight: true
                     }
                 }
+            }
 
-                Button {
-                    colorScheme: root.colorScheme
-                    //Layout.fillWidth: true
-
-                    text: "Close Bridge"
-                    enabled: bridge !== undefined && bridge !== null
-                    onClicked: {
-                        bridge.destroy()
-                    }
-                }
-
-                Item {
+            RowLayout {
+                id: usersTab
+                UserList {
+                    id: usersListView
                     Layout.fillHeight: true
+                    colorScheme: root.colorScheme
+                    backend: root
+                }
+
+                UserControl {
+                    colorScheme: root.colorScheme
+                    backend: root
+                    user: ((root.usersTest.count > usersListView.currentIndex) && usersListView.currentIndex != -1) ? root.usersTest.get(usersListView.currentIndex) : undefined
                 }
             }
 
-            ColumnLayout {
-                spacing : 5
-
-                Label {
-                    colorScheme: root.colorScheme
-                    text: "Notifications"
-                }
-
-                Button {
-                    colorScheme: root.colorScheme
-                    text: "Notify: danger"
-                    enabled: bridge !== undefined && bridge !== null
-                    onClicked: {
-                        bridge.mainWindow.notifyOnlyPaidUsers()
-                    }
-                }
-
-                Button {
-                    colorScheme: root.colorScheme
-                    text: "Notify: warning"
-                    enabled: bridge !== undefined && bridge !== null
-                    onClicked: {
-                        bridge.mainWindow.notifyUpdateManually()
-                    }
-                }
-
-                Button {
-                    colorScheme: root.colorScheme
-                    text: "Notify: success"
-                    enabled: bridge !== undefined && bridge !== null
-                    onClicked: {
-                        bridge.mainWindow.notifyUserAdded()
-                    }
-                }
-
-                Item {
-                    Layout.fillHeight: true
-                }
-            }
-        }
-
-        RowLayout {
-            id: usersTab
-            UserList {
-                id: usersListView
-                Layout.fillHeight: true
-                colorScheme: root.colorScheme
-                backend: root
-            }
-
-            UserControl {
-                colorScheme: root.colorScheme
-                backend: root
-                user: ((root.usersTest.count > usersListView.currentIndex) && usersListView.currentIndex != -1) ? root.usersTest.get(usersListView.currentIndex) : undefined
-            }
-        }
-
-        RowLayout {
-            id: notificationsTab
-            spacing: 5
-
-            ColumnLayout {
+            RowLayout {
+                id: notificationsTab
                 spacing: 5
 
-                Switch {
-                    text: "Internet connection"
-                    colorScheme: root.colorScheme
-                    checked: true
-                    onCheckedChanged: {
-                        checked ? root.internetOn() : root.internetOff()
-                    }
-                }
+                ColumnLayout {
+                    spacing: 5
 
-                Button {
-                    text: "Update manual ready"
-                    colorScheme: root.colorScheme
-                    onClicked: {
-                        root.updateManualReady("3.14.1592")
+                    Switch {
+                        text: "Internet connection"
+                        colorScheme: root.colorScheme
+                        checked: true
+                        onCheckedChanged: {
+                            checked ? root.internetOn() : root.internetOff()
+                        }
                     }
-                }
 
-                Button {
-                    text: "Update manual done"
-                    colorScheme: root.colorScheme
-                    onClicked: {
-                        root.updateManualRestartNeeded()
+                    Button {
+                        text: "Update manual ready"
+                        colorScheme: root.colorScheme
+                        onClicked: {
+                            root.updateManualReady("3.14.1592")
+                        }
                     }
-                }
 
-                Button {
-                    text: "Update manual error"
-                    colorScheme: root.colorScheme
-                    onClicked: {
-                        root.updateManualError()
+                    Button {
+                        text: "Update manual done"
+                        colorScheme: root.colorScheme
+                        onClicked: {
+                            root.updateManualRestartNeeded()
+                        }
                     }
-                }
 
-                Button {
-                    text: "Update force"
-                    colorScheme: root.colorScheme
-                    onClicked: {
-                        root.updateForce("3.14.1592")
+                    Button {
+                        text: "Update manual error"
+                        colorScheme: root.colorScheme
+                        onClicked: {
+                            root.updateManualError()
+                        }
                     }
-                }
 
-                Button {
-                    text: "Update force error"
-                    colorScheme: root.colorScheme
-                    onClicked: {
-                        root.updateForceError()
+                    Button {
+                        text: "Update force"
+                        colorScheme: root.colorScheme
+                        onClicked: {
+                            root.updateForce("3.14.1592")
+                        }
                     }
-                }
 
-                Button {
-                    text: "Update silent done"
-                    colorScheme: root.colorScheme
-                    onClicked: {
-                        root.updateSilentRestartNeeded()
+                    Button {
+                        text: "Update force error"
+                        colorScheme: root.colorScheme
+                        onClicked: {
+                            root.updateForceError()
+                        }
                     }
-                }
 
-                Button {
-                    text: "Update silent error"
-                    colorScheme: root.colorScheme
-                    onClicked: {
-                        root.updateSilentError()
+                    Button {
+                        text: "Update silent done"
+                        colorScheme: root.colorScheme
+                        onClicked: {
+                            root.updateSilentRestartNeeded()
+                        }
                     }
-                }
 
-                Button {
-                    text: "Update is latest version"
-                    colorScheme: root.colorScheme
-                    onClicked: {
-                        root.updateIsLatestVersion()
+                    Button {
+                        text: "Update silent error"
+                        colorScheme: root.colorScheme
+                        onClicked: {
+                            root.updateSilentError()
+                        }
                     }
-                }
 
-                Button {
-                    text: "Bug report send OK"
-                    colorScheme: root.colorScheme
-                    onClicked: {
-                        root.reportBugFinished()
-                        root.bugReportSendSuccess()
+                    Button {
+                        text: "Update is latest version"
+                        colorScheme: root.colorScheme
+                        onClicked: {
+                            root.updateIsLatestVersion()
+                        }
                     }
-                }
 
-                Button {
-                    text: "Bug report send error"
-                    colorScheme: root.colorScheme
-                    onClicked: {
-                        root.reportBugFinished()
-                        root.bugReportSendError()
+                    Button {
+                        text: "Bug report send OK"
+                        colorScheme: root.colorScheme
+                        onClicked: {
+                            root.reportBugFinished()
+                            root.bugReportSendSuccess()
+                        }
                     }
-                }
 
-                Button {
-                    text: "Cache anavailable"
-                    colorScheme: root.colorScheme
-                    onClicked: {
-                        root.cacheUnavailable()
+                    Button {
+                        text: "Bug report send error"
+                        colorScheme: root.colorScheme
+                        onClicked: {
+                            root.reportBugFinished()
+                            root.bugReportSendError()
+                        }
                     }
-                }
 
-                Button {
-                    text: "Cache can't move"
-                    colorScheme: root.colorScheme
-                    onClicked: {
-                        root.cacheCantMove()
+                    Button {
+                        text: "Cache anavailable"
+                        colorScheme: root.colorScheme
+                        onClicked: {
+                            root.cacheUnavailable()
+                        }
                     }
-                }
 
-                Button {
-                    text: "Cache location change success"
-                    onClicked: {
-                        root.cacheLocationChangeSuccess()
+                    Button {
+                        text: "Cache can't move"
+                        colorScheme: root.colorScheme
+                        onClicked: {
+                            root.cacheCantMove()
+                        }
                     }
-                    colorScheme: root.colorScheme
-                }
 
-                Button {
-                    text: "Disk full"
-                    colorScheme: root.colorScheme
-                    onClicked: {
-                        root.diskFull()
+                    Button {
+                        text: "Cache location change success"
+                        onClicked: {
+                            root.cacheLocationChangeSuccess()
+                        }
+                        colorScheme: root.colorScheme
+                    }
+
+                    Button {
+                        text: "Disk full"
+                        colorScheme: root.colorScheme
+                        onClicked: {
+                            root.diskFull()
+                        }
                     }
                 }
             }
-        }
 
-        TextArea {
-            id: logTextArea
-            colorScheme: root.colorScheme
-            Layout.fillHeight: true
-            Layout.fillWidth: true
+            TextArea {
+                id: logTextArea
+                colorScheme: root.colorScheme
+                Layout.fillHeight: true
+                Layout.fillWidth: true
 
-            Layout.preferredWidth: 400
-            Layout.preferredHeight: 200
+                Layout.preferredWidth: 400
+                Layout.preferredHeight: 200
 
-            textFormat: TextEdit.RichText
-            //readOnly: true
-        }
+                textFormat: TextEdit.RichText
+                //readOnly: true
+            }
 
-        ScrollView {
-            id: settingsTab
-            ColumnLayout {
-                RowLayout {
-                    Label {colorScheme: root.colorScheme; text: "Automatic updates:"}
-                    Toggle {colorScheme: root.colorScheme; checked: root.isAutomaticUpdateOn; onClicked: root.isAutomaticUpdateOn = !root.isAutomaticUpdateOn}
-                }
-                RowLayout {
-                    Label {colorScheme: root.colorScheme; text: "Autostart:"}
-                    Toggle {colorScheme: root.colorScheme; checked: root.isAutostartOn; onClicked: root.isAutostartOn = !root.isAutostartOn}
-                    Button {colorScheme: root.colorScheme; text: "Toggle finished"; onClicked: root.toggleAutostartFinished()}
-                }
-                RowLayout {
-                    Label {colorScheme: root.colorScheme; text: "Beta:"}
-                    Toggle {colorScheme: root.colorScheme; checked: root.isBetaEnabled; onClicked: root.isBetaEnabled = !root.isBetaEnabled}
-                }
-                RowLayout {
-                    Label {colorScheme: root.colorScheme; text: "DoH:"}
-                    Toggle {colorScheme: root.colorScheme; checked: root.isDoHEnabled; onClicked: root.isDoHEnabled = !root.isDoHEnabled}
-                }
-                RowLayout {
-                    Label {colorScheme: root.colorScheme; text: "Ports:"}
-                    TextField {
-                        colorScheme:root.colorScheme
-                        label: "IMAP"
-                        text: root.portIMAP
-                        onEditingFinished: root.portIMAP = this.text*1
-                        validator: IntValidator {bottom: 1; top: 65536}
+            ScrollView {
+                id: settingsTab
+                ColumnLayout {
+                    RowLayout {
+                        Label {colorScheme: root.colorScheme; text: "Automatic updates:"}
+                        Toggle {colorScheme: root.colorScheme; checked: root.isAutomaticUpdateOn; onClicked: root.isAutomaticUpdateOn = !root.isAutomaticUpdateOn}
                     }
-                    TextField {
-                        colorScheme:root.colorScheme
-                        label: "SMTP"
-                        text: root.portSMTP
-                        onEditingFinished: root.portSMTP = this.text*1
-                        validator: IntValidator {bottom: 1; top: 65536}
+                    RowLayout {
+                        Label {colorScheme: root.colorScheme; text: "Autostart:"}
+                        Toggle {colorScheme: root.colorScheme; checked: root.isAutostartOn; onClicked: root.isAutostartOn = !root.isAutostartOn}
+                        Button {colorScheme: root.colorScheme; text: "Toggle finished"; onClicked: root.toggleAutostartFinished()}
                     }
-                    Button {colorScheme: root.colorScheme; text: "Change finished"; onClicked: root.changePortFinished()}
-                }
-                RowLayout {
-                    Label {colorScheme: root.colorScheme; text: "SMTP using SSL:"}
-                    Toggle {colorScheme: root.colorScheme; checked: root.useSSLforSMTP; onClicked: root.useSSLforSMTP = !root.useSSLforSMTP}
-                }
-                RowLayout {
-                    Label {colorScheme: root.colorScheme; text: "Local cache:"}
-                    Toggle {colorScheme: root.colorScheme; checked: root.isDiskCacheEnabled; onClicked: root.isDiskCacheEnabled = !root.isDiskCacheEnabled}
-                    TextField {
-                        colorScheme:root.colorScheme
-                        label: "Path"
-                        text: root.diskCachePath
-                        implicitWidth: 160
-                        onEditingFinished: root.diskCachePath = this.text
+                    RowLayout {
+                        Label {colorScheme: root.colorScheme; text: "Beta:"}
+                        Toggle {colorScheme: root.colorScheme; checked: root.isBetaEnabled; onClicked: root.isBetaEnabled = !root.isBetaEnabled}
                     }
-                    Button {colorScheme: root.colorScheme; text: "Change finished:"; onClicked: root.changeLocalCacheFinished()}
-                }
-                RowLayout {
-                    Label {colorScheme: root.colorScheme; text: "Reset:"}
-                    Button {colorScheme: root.colorScheme; text: "Finished"; onClicked: root.resetFinished()}
-                }
-                RowLayout {
-                    Label {colorScheme: root.colorScheme; text: "Check update:"}
-                    Button {colorScheme: root.colorScheme; text: "Finished"; onClicked: root.checkUpdatesFinished()}
+                    RowLayout {
+                        Label {colorScheme: root.colorScheme; text: "DoH:"}
+                        Toggle {colorScheme: root.colorScheme; checked: root.isDoHEnabled; onClicked: root.isDoHEnabled = !root.isDoHEnabled}
+                    }
+                    RowLayout {
+                        Label {colorScheme: root.colorScheme; text: "Ports:"}
+                        TextField {
+                            colorScheme:root.colorScheme
+                            label: "IMAP"
+                            text: root.portIMAP
+                            onEditingFinished: root.portIMAP = this.text*1
+                            validator: IntValidator {bottom: 1; top: 65536}
+                        }
+                        TextField {
+                            colorScheme:root.colorScheme
+                            label: "SMTP"
+                            text: root.portSMTP
+                            onEditingFinished: root.portSMTP = this.text*1
+                            validator: IntValidator {bottom: 1; top: 65536}
+                        }
+                        Button {colorScheme: root.colorScheme; text: "Change finished"; onClicked: root.changePortFinished()}
+                    }
+                    RowLayout {
+                        Label {colorScheme: root.colorScheme; text: "SMTP using SSL:"}
+                        Toggle {colorScheme: root.colorScheme; checked: root.useSSLforSMTP; onClicked: root.useSSLforSMTP = !root.useSSLforSMTP}
+                    }
+                    RowLayout {
+                        Label {colorScheme: root.colorScheme; text: "Local cache:"}
+                        Toggle {colorScheme: root.colorScheme; checked: root.isDiskCacheEnabled; onClicked: root.isDiskCacheEnabled = !root.isDiskCacheEnabled}
+                        TextField {
+                            colorScheme:root.colorScheme
+                            label: "Path"
+                            text: root.diskCachePath
+                            implicitWidth: 160
+                            onEditingFinished: root.diskCachePath = this.text
+                        }
+                        Button {colorScheme: root.colorScheme; text: "Change finished:"; onClicked: root.changeLocalCacheFinished()}
+                    }
+                    RowLayout {
+                        Label {colorScheme: root.colorScheme; text: "Reset:"}
+                        Button {colorScheme: root.colorScheme; text: "Finished"; onClicked: root.resetFinished()}
+                    }
+                    RowLayout {
+                        Label {colorScheme: root.colorScheme; text: "Check update:"}
+                        Button {colorScheme: root.colorScheme; text: "Finished"; onClicked: root.checkUpdatesFinished()}
+                    }
                 }
             }
         }

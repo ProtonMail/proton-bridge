@@ -41,6 +41,12 @@ ApplicationWindow {
     property var backend
     property var notifications
 
+    // This is needed because on MacOS if first window shown is not transparent -
+    // all other windows of application will not have transparent background (black
+    // instead of transparency). In our case that mean that if MainWindow will be
+    // shown before StatusWindow - StatusWindow will not have transparent corners.
+    color: "transparent"
+
     // show Setup Guide on every new user
     Connections {
         target: root.backend.users
