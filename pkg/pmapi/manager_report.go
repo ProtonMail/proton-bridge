@@ -38,7 +38,7 @@ func (m *manager) ReportBug(ctx context.Context, rep ReportBugReq) error {
 	r := m.r(ctx).SetMultipartFormData(rep.GetMultipartFormData())
 
 	for _, att := range rep.Attachments {
-		r = r.SetMultipartField(att.name, att.filename, "application/octet-stream", att.body)
+		r = r.SetMultipartField(att.name, att.name, att.mime, att.body)
 	}
 
 	if _, err := wrapNoConnection(r.Post("/reports/bug")); err != nil {

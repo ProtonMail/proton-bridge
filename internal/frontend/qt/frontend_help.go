@@ -19,6 +19,8 @@
 
 package qt
 
+import "github.com/therecipe/qt/core"
+
 func (f *FrontendQt) setVersion() {
 	f.qml.SetVersion(f.programVersion)
 }
@@ -41,5 +43,21 @@ func (f *FrontendQt) setCurrentEmailClient() {
 }
 
 func (f *FrontendQt) reportBug(description, address, emailClient string, includeLogs bool) {
-	//TODO
+	defer f.qml.ReportBugFinished()
+
+	if err := f.bridge.ReportBug(
+		core.QSysInfo_ProductType(),
+		core.QSysInfo_PrettyProductName(),
+		description,
+		"Unknown account",
+		address,
+		emailClient,
+		includeLogs,
+	); err != nil {
+		f.log.WithError(err).Error("Failed to report bug")
+		f.qml.BugReportSendError()
+		return
+	}
+
+	f.qml.BugReportSendSuccess()
 }

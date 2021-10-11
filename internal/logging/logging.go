@@ -31,12 +31,17 @@ import (
 )
 
 const (
-	// MaxLogSize defines the maximum log size we should permit.
-	// Zendesk has a file size limit of 20MB. When the last N log files are zipped,
-	// it should fit under 20MB. So here we permit up to 10MB (most files are a few hundred kB).
-	MaxLogSize = 10 * 2 << 20
+	// MaxLogSize defines the maximum log size we should permit: 5 MB
+	//
+	// The Zendesk limit for an attachement is 50MB and this is what will
+	// be allowed via the API. However, if that fails for some reason, the
+	// fallback is sending the report via email, which has a limit of 10mb
+	// total or 7MB per file. Since we can produce up to 6 logs, and we
+	// compress all the files (avarage compression - 80%), we need to have
+	// a limit of 30MB total before compression, hence 5MB per log file.
+	MaxLogSize = 5 * 1024 * 1024
 
-	// MaxLogs defines how many old log files should be kept.
+	// MaxLogs defines how many log files should be kept.
 	MaxLogs = 3
 )
 
@@ -56,7 +61,8 @@ func Init(logsPath string) error {
 	})
 
 	rotator, err := NewRotator(MaxLogSize, func() (io.WriteCloser, error) {
-		if err := clearLogs(logsPath, MaxLogs); err != nil {
+		// Leaving MaxLogs-1 since new log file will be opened right away.
+		if err := clearLogs(logsPath, MaxLogs-1, MaxLogs); err != nil {
 			return nil, err
 		}
 
@@ -91,6 +97,6 @@ func getLogName(version, revision string) string {
 	return fmt.Sprintf("v%v_%v_%v.log", version, revision, time.Now().Unix())
 }
 
-func matchLogName(name string) bool {
+func MatchLogName(name string) bool {
 	return regexp.MustCompile(`^v.*\.log$`).MatchString(name)
 }

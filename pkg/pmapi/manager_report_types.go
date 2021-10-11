@@ -29,8 +29,8 @@ const (
 )
 
 type reportAtt struct {
-	name, filename string
-	body           io.Reader
+	name, mime string
+	body       io.Reader
 }
 
 // ReportBugReq stores data for report.
@@ -56,8 +56,8 @@ type ReportBugReq struct {
 }
 
 // AddAttachment to report.
-func (rep *ReportBugReq) AddAttachment(name, filename string, r io.Reader) {
-	rep.Attachments = append(rep.Attachments, reportAtt{name: name, filename: filename, body: r})
+func (rep *ReportBugReq) AddAttachment(name, mime string, r io.Reader) {
+	rep.Attachments = append(rep.Attachments, reportAtt{name: name, mime: mime, body: r})
 }
 
 func (rep *ReportBugReq) GetMultipartFormData() map[string]string {

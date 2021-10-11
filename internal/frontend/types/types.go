@@ -74,7 +74,7 @@ type User interface {
 type Bridger interface {
 	UserManager
 
-	ReportBug(osType, osVersion, description, accountName, address, emailClient string) error
+	ReportBug(osType, osVersion, description, accountName, address, emailClient string, attachLogs bool) error
 	AllowProxy()
 	DisallowProxy()
 	EnableCache() error

@@ -57,6 +57,6 @@ func getStackTraceName(version, revision string) string {
 	return fmt.Sprintf("v%v_%v_crash_%v.log", version, revision, time.Now().Unix())
 }
 
-func matchStackTraceName(name string) bool {
+func MatchStackTraceName(name string) bool {
 	return regexp.MustCompile(`^v.*_crash_.*\.log$`).MatchString(name)
 }

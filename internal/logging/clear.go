@@ -26,7 +26,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func clearLogs(logDir string, maxLogs int) error {
+func clearLogs(logDir string, maxLogs int, maxCrashes int) error {
 	files, err := ioutil.ReadDir(logDir)
 	if err != nil {
 		return err
@@ -36,8 +36,8 @@ func clearLogs(logDir string, maxLogs int) error {
 	var crashesWithPrefix []string
 
 	for _, file := range files {
-		if matchLogName(file.Name()) {
-			if matchStackTraceName(file.Name()) {
+		if MatchLogName(file.Name()) {
+			if MatchStackTraceName(file.Name()) {
 				crashesWithPrefix = append(crashesWithPrefix, file.Name())
 			} else {
 				logsWithPrefix = append(logsWithPrefix, file.Name())
@@ -46,7 +46,7 @@ func clearLogs(logDir string, maxLogs int) error {
 			// Older versions of Bridge stored logs in subfolders for each version.
 			// That also has to be cleared and the functionality can be removed after some time.
 			if file.IsDir() {
-				if err := clearLogs(filepath.Join(logDir, file.Name()), maxLogs); err != nil {
+				if err := clearLogs(filepath.Join(logDir, file.Name()), maxLogs, maxCrashes); err != nil {
 					return err
 				}
 			} else {
@@ -56,7 +56,7 @@ func clearLogs(logDir string, maxLogs int) error {
 	}
 
 	removeOldLogs(logDir, logsWithPrefix, maxLogs)
-	removeOldLogs(logDir, crashesWithPrefix, maxLogs)
+	removeOldLogs(logDir, crashesWithPrefix, maxCrashes)
 
 	return nil
 }
@@ -76,10 +76,10 @@ func removeOldLogs(logDir string, filenames []string, maxLogs int) {
 func removeLog(logDir, filename string) {
 	// We need to be sure to delete only log files.
 	// Directory with logs can also contain other files.
-	if !matchLogName(filename) {
+	if !MatchLogName(filename) {
 		return
 	}
-	if err := os.RemoveAll(filepath.Join(logDir, filename)); err != nil {
-		logrus.WithError(err).Error("Failed to remove old logs")
+	if err := os.Remove(filepath.Join(logDir, filename)); err != nil {
+		logrus.WithError(err).Error("Failed to remove", filepath.Join(logDir, filename))
 	}
 }

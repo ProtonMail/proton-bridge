@@ -19,7 +19,6 @@
 package bridge
 
 import (
-	"context"
 	"fmt"
 	"strconv"
 	"time"
@@ -124,19 +123,6 @@ func (b *Bridge) heartbeat() {
 		// Heartbeat was sent successfully so update the last heartbeat day.
 		b.settings.Set(settings.LastHeartbeatKey, fmt.Sprintf("%v", time.Now().YearDay()))
 	}
-}
-
-// ReportBug reports a new bug from the user.
-func (b *Bridge) ReportBug(osType, osVersion, description, accountName, address, emailClient string) error {
-	return b.clientManager.ReportBug(context.Background(), pmapi.ReportBugReq{
-		OS:          osType,
-		OSVersion:   osVersion,
-		Browser:     emailClient,
-		Title:       "[Bridge] Bug",
-		Description: description,
-		Username:    accountName,
-		Email:       address,
-	})
 }
 
 // GetUpdateChannel returns currently set update channel.

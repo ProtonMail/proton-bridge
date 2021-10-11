@@ -36,7 +36,7 @@ func TestClearLogs(t *testing.T) {
 	require.NoError(t, ioutil.WriteFile(filepath.Join(dir, "v2_12.log"), []byte("Hello"), 0755))
 	require.NoError(t, ioutil.WriteFile(filepath.Join(dir, "v2_13.log"), []byte("Hello"), 0755))
 
-	require.NoError(t, clearLogs(dir, 3))
+	require.NoError(t, clearLogs(dir, 3, 0))
 	checkFileNames(t, dir, []string{
 		"other.log",
 		"v1_11.log",

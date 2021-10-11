@@ -26,6 +26,7 @@ import (
 type Locator interface {
 	Clear() error
 	ClearUpdates() error
+	ProvideLogsPath() (string, error)
 }
 
 type CacheProvider interface {
