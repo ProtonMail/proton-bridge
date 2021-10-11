@@ -15,6 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
 
+//go:build build_qt
 // +build build_qt
 
 package qt
@@ -47,7 +48,8 @@ func (f *FrontendQt) initiateQtApplication() error {
 	f.app.SetQuitOnLastWindowClosed(false)
 
 	// QML Engine and path
-	f.engine = qml.NewQQmlApplicationEngine(f.app)
+	f.engine = qml.NewQQmlEngine(f.app)
+	rootComponent := qml.NewQQmlComponent2(f.engine, f.engine)
 
 	f.qml = NewQMLBackend(f.engine)
 	f.qml.setup(f)
@@ -60,14 +62,25 @@ func (f *FrontendQt) initiateQtApplication() error {
 	quickcontrols2.QQuickStyle_AddStylePath("qrc:/qml/")
 	quickcontrols2.QQuickStyle_SetStyle("Proton")
 
-	f.engine.Load(core.NewQUrl3("qrc:/qml/Bridge.qml", 0))
+	// Before loading a component we should load translations.
+	// See https://github.com/qt/qtdeclarative/blob/bedef212a74a62452ed31d7f65536a6c67881fc4/src/qml/qml/qqmlapplicationengine.cpp#L69 as example.
 
-	// Check QML is loaded properly.
-	if len(f.engine.RootObjects()) == 0 {
+	rootComponent.LoadUrl(core.NewQUrl3("qrc:/qml/Bridge.qml", 0))
+
+	if rootComponent.Status() != qml.QQmlComponent__Ready {
 		return errors.New("QML not loaded properly")
 	}
 
-	f.engine.RootObjects()[0].SetProperty("backend", f.qml.ToVariant())
+	// Instead of creating component right away we use BeginCreate to stop right before binding evaluation.
+	// That is needed to set backend property so all bindings will be calculated properly.
+	rootObject := rootComponent.BeginCreate(f.engine.RootContext())
+	// Check QML is loaded properly.
+	if rootObject == nil {
+		return errors.New("QML not created properly")
+	}
+
+	rootObject.SetProperty("backend", f.qml.ToVariant())
+	rootComponent.CompleteCreate()
 
 	return nil
 }

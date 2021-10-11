@@ -224,13 +224,7 @@ Item {
                         Layout.preferredWidth: 320
                         Layout.fillWidth: true
 
-                        username: {
-                            if (root.backend.users.count !== 1) return ""
-                            var user = root.backend.users.get(0)
-                            if (user) return ""
-                            if (user.loggedIn)  return ""
-                            return user.username
-                        }
+                        username: root.backend.users.count === 1 && root.backend.users.get(0) && root.backend.users.get(0).loggedIn === false ? root.backend.users.get(0).username : ""
                         backend: root.backend
                     }
 

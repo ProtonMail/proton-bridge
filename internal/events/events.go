@@ -54,4 +54,5 @@ func SetupEvents(listener listener.Listener) {
 	listener.SetBuffer(InternetOffEvent)
 	listener.SetBuffer(UpgradeApplicationEvent)
 	listener.SetBuffer(TLSCertIssue)
+	listener.SetBuffer(UserRefreshEvent)
 }

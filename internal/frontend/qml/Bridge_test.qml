@@ -330,6 +330,16 @@ Window {
 
                 }
 
+                CheckBox {
+                    id: showOnStartupCheckbox
+                    colorScheme: root.colorScheme
+                    text: "Show on startup"
+                    checked: root.showOnStartup
+                    onCheckedChanged: {
+                        root.showOnStartup = checked
+                    }
+                }
+
                 Button {
                     colorScheme: root.colorScheme
                     //Layout.fillWidth: true
@@ -338,7 +348,6 @@ Window {
                     enabled: bridge === undefined || bridge === null
                     onClicked: {
                         bridge = bridgeComponent.createObject()
-                        if (true) bridge._mainWindow.showAndRise()
                     }
                 }
 
@@ -630,6 +639,7 @@ Window {
 
     property string goos: "linux"
 
+    property bool showOnStartup: true // this actually needs to be false, but since we use Bridge_test for testing purpose - lets default this to true just for convenience
     property bool dockIconVisible: false
 
     // this signals are used only when trying to login with new user (i.e. not in users model)
