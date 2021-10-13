@@ -44,8 +44,8 @@ Item {
         width:root.width
         height:root.height
 
-        contentWidth: content.width
-        contentHeight: content.height
+        contentWidth: content.width + content.anchors.leftMargin + content.anchors.rightMargin
+        contentHeight: content.height + content.anchors.topMargin + content.anchors.bottomMargin
 
         ColumnLayout {
             id: content

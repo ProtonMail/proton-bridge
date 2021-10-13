@@ -22,7 +22,13 @@ import "."
 import "./Proton"
 
 Rectangle {
-    anchors.fill: parent
+    property var target: parent
+
+    x: target.x
+    y: target.y
+    width: target.width
+    height: target.height
+
     color: "transparent"
     border.color: "red"
     border.width: 1
