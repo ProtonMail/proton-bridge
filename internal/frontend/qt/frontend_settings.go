@@ -15,6 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
 
+//go:build build_qt
 // +build build_qt
 
 package qt
@@ -116,6 +117,7 @@ func (f *FrontendQt) toggleUseSSLforSMTP(makeItEnabled bool) {
 }
 
 func (f *FrontendQt) changePorts(imapPort, smtpPort int) {
+	defer f.qml.ChangePortFinished()
 	f.settings.SetInt(settings.IMAPPortKey, imapPort)
 	f.settings.SetInt(settings.SMTPPortKey, smtpPort)
 	f.restart()

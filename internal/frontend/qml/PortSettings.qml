@@ -135,6 +135,8 @@ SettingsView {
             submitButton.loading = false
             return false
         }
+
+        return true
     }
 
     function submit(){
