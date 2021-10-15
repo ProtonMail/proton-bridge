@@ -24,8 +24,7 @@ import (
 	"testing"
 
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
-	a "github.com/stretchr/testify/assert"
-	r "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 )
 
 const testMessageCleartext = `<div>jeej saas<br></div><div><br></div><div class="protonmail_signature_block"><div>Sent from <a href="https://protonmail.ch">ProtonMail</a>, encrypted email based in Switzerland.<br></div><div><br></div></div>`
@@ -127,70 +126,78 @@ ClW54lp9eeOfYTsdTSbn9VaSO0E6m2/Q4Tk=
 -----END PGP PUBLIC KEY BLOCK-----`
 
 func TestMessage_IsBodyEncrypted(t *testing.T) {
+	r := require.New(t)
 	msg := &Message{Body: testMessageEncrypted}
-	r.True(t, msg.IsBodyEncrypted(), "the body should be encrypted")
+	r.True(msg.IsBodyEncrypted(), "the body should be encrypted")
 
 	msg.Body = testMessageCleartext
-	r.True(t, !msg.IsBodyEncrypted(), "the body should not be encrypted")
+	r.True(!msg.IsBodyEncrypted(), "the body should not be encrypted")
 }
 
 func TestMessage_Decrypt(t *testing.T) {
+	r := require.New(t)
 	msg := &Message{Body: testMessageEncrypted}
 	dec, err := msg.Decrypt(testPrivateKeyRing)
-	r.NoError(t, err)
-	r.Equal(t, testMessageCleartext, string(dec))
+	r.NoError(err)
+	r.Equal(testMessageCleartext, string(dec))
 }
 
 func TestMessage_Decrypt_Legacy(t *testing.T) {
+	r := require.New(t)
 	testPrivateKeyLegacy := readTestFile("testPrivateKeyLegacy", false)
 
 	key, err := crypto.NewKeyFromArmored(testPrivateKeyLegacy)
-	r.NoError(t, err)
+	r.NoError(err)
 
 	unlockedKey, err := key.Unlock([]byte(testMailboxPasswordLegacy))
-	r.NoError(t, err)
+	r.NoError(err)
 
 	testPrivateKeyRingLegacy, err := crypto.NewKeyRing(unlockedKey)
-	r.NoError(t, err)
+	r.NoError(err)
 
 	msg := &Message{Body: testMessageEncryptedLegacy}
 
 	dec, err := msg.Decrypt(testPrivateKeyRingLegacy)
-	r.NoError(t, err)
+	r.NoError(err)
 
-	r.Equal(t, testMessageCleartextLegacy, string(dec))
+	r.Equal(testMessageCleartextLegacy, string(dec))
 }
 
 func TestMessage_Decrypt_signed(t *testing.T) {
+	r := require.New(t)
 	msg := &Message{Body: testMessageSigned}
 	dec, err := msg.Decrypt(testPrivateKeyRing)
-	r.NoError(t, err)
-	r.Equal(t, testMessageCleartext, string(dec))
+	r.NoError(err)
+	r.Equal(testMessageCleartext, string(dec))
 }
 
 func TestMessage_Encrypt(t *testing.T) {
+	r := require.New(t)
+
 	key, err := crypto.NewKeyFromArmored(testMessageSigner)
-	r.NoError(t, err)
+	r.NoError(err)
 
 	signer, err := crypto.NewKeyRing(key)
-	r.NoError(t, err)
+	r.NoError(err)
 
 	msg := &Message{Body: testMessageCleartext}
-	r.NoError(t, msg.Encrypt(testPrivateKeyRing, testPrivateKeyRing))
+	r.NoError(msg.Encrypt(testPrivateKeyRing, testPrivateKeyRing))
 
 	dec, err := msg.Decrypt(testPrivateKeyRing)
-	r.NoError(t, err)
+	r.NoError(err)
 
-	r.Equal(t, testMessageCleartext, string(dec))
-	r.Equal(t, testIdentity, signer.GetIdentities()[0])
+	r.Equal(testMessageCleartext, string(dec))
+	r.Equal(testIdentity, signer.GetIdentities()[0])
 }
 
 func routeLabelMessages(tb testing.TB, w http.ResponseWriter, req *http.Request) string {
-	r.NoError(tb, checkMethodAndPath(req, "PUT", "/mail/v4/messages/label"))
+	require.NoError(tb, checkMethodAndPath(req, "PUT", "/mail/v4/messages/label"))
 	return "messages/label/put_response.json"
 }
 
 func TestMessage_LabelMessages_NoPaging(t *testing.T) {
+	r := require.New(t)
+
 	// This should be only enough IDs to produce one page.
 	testIDs := []string{}
 	for i := 0; i < messageIDPageSize-1; i++ {
@@ -203,10 +210,12 @@ func TestMessage_LabelMessages_NoPaging(t *testing.T) {
 	)
 	defer finish()
 
-	a.NoError(t, c.LabelMessages(context.Background(), testIDs, "mylabel"))
+	r.NoError(c.LabelMessages(context.Background(), testIDs, "mylabel"))
 }
 
 func TestMessage_LabelMessages_Paging(t *testing.T) {
+	r := require.New(t)
+
 	// This should be enough IDs to produce three pages.
 	testIDs := []string{}
 	for i := 0; i < 3*messageIDPageSize; i++ {
@@ -221,5 +230,26 @@ func TestMessage_LabelMessages_Paging(t *testing.T) {
 	)
 	defer finish()
 
-	a.NoError(t, c.LabelMessages(context.Background(), testIDs, "mylabel"))
+	r.NoError(c.LabelMessages(context.Background(), testIDs, "mylabel"))
+}
+
+// TestClient_GetMessage might look like no actual functionality is tested
+// here. But there was case when API was responding with bad payload and it was
+// useful to have this to quickly test it.
+func TestClient_GetMessage(t *testing.T) {
+	r := require.New(t)
+	testID := "AeUizgtA3H44qRgcr-HdBApwLiUhlQg5kB81mg_QalWotmQJIHep9OScWIo7Wu9pnYxM4RqQxJnr3BE4kh4y_Q=="
+
+	finish, c := newTestClientCallbacks(t,
+		func(tb testing.TB, w http.ResponseWriter, req *http.Request) string {
+			r.NoError(checkMethodAndPath(req, "GET", "/mail/v4/messages/"+testID))
+
+			return "/messages/get_response.json"
+		},
+	)
+	defer finish()
+
+	msg, err := c.GetMessage(context.Background(), testID)
+	r.NoError(err)
+	r.Equal(testID, msg.ID)
 }
