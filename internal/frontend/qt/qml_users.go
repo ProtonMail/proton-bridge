@@ -15,6 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
 
+//go:build build_qt
 // +build build_qt
 
 package qt
@@ -51,6 +52,7 @@ func (um *QMLUserModel) init() {
 	defer um.access.Unlock()
 	um.SetCount(0)
 	um.ConnectRowCount(um.rowCount)
+	um.ConnectRoleNames(um.roleNames)
 	um.ConnectData(um.data)
 	um.ConnectGet(um.get)
 	um.ConnectCount(func() int {
@@ -60,6 +62,12 @@ func (um *QMLUserModel) init() {
 	})
 	um.userIDs = []string{}
 	um.userByID = map[string]*QMLUser{}
+}
+
+func (um *QMLUserModel) roleNames() map[int]*core.QByteArray {
+	return map[int]*core.QByteArray{
+		int(core.Qt__DisplayRole): core.NewQByteArray2("user", -1),
+	}
 }
 
 func (um *QMLUserModel) data(index *core.QModelIndex, property int) *core.QVariant {
