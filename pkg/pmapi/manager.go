@@ -66,6 +66,13 @@ func newManager(cfg Config) *manager {
 	m.rc.OnError(m.handleRequestFailure)
 
 	// Configure retry mechanism.
+	//
+	// SetRetryCount(30): The most probable value of Retry-After is 1s (max
+	// 10s). Retrying up to 30 times will most probably cause a delay of
+	// 30s. The worst case scenario is 5min which is OK for background
+	// requests. We shuold use context to control a foreground requests
+	// which should be finish or fail sooner.
+	m.rc.SetRetryCount(30)
 	m.rc.SetRetryMaxWaitTime(time.Minute)
 	m.rc.SetRetryAfter(catchRetryAfter)
 	m.rc.AddRetryCondition(shouldRetry)

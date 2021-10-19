@@ -34,6 +34,11 @@ const testForceUpgradeBody = `{
 	"Error":"Upgrade!"
 }`
 
+const testTooManyAPIRequests = `{
+	"Code":85131,
+	"Error":"Too many recent API requests"
+}`
+
 func TestHandleTooManyRequests(t *testing.T) {
 	var numCalls int
 
@@ -42,6 +47,8 @@ func TestHandleTooManyRequests(t *testing.T) {
 
 		if numCalls < 5 {
 			w.WriteHeader(http.StatusTooManyRequests)
+			w.Header().Set("content-type", "application/json;charset=utf-8")
+			fmt.Fprint(w, testTooManyAPIRequests)
 		} else {
 			w.WriteHeader(http.StatusOK)
 		}

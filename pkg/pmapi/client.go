@@ -84,7 +84,7 @@ func (c *client) r(ctx context.Context) (*resty.Request, error) {
 	return r, nil
 }
 
-// do executes fn and may repeate it in case "401 Unauthorized" error is returned.
+// do executes fn and may repeat execution in case of retry after "401 Unauthorized" error.
 // Note: fn may be called more than once.
 func (c *client) do(ctx context.Context, fn func(*resty.Request) (*resty.Response, error)) (*resty.Response, error) {
 	r, err := c.r(ctx)

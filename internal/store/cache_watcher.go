@@ -23,26 +23,27 @@ func (store *Store) StartWatcher() {
 	store.done = make(chan struct{})
 
 	go func() {
-		ticker := time.NewTicker(3 * time.Minute)
+		ticker := time.NewTicker(10 * time.Minute)
 		defer ticker.Stop()
 
 		for {
+			// NOTE(GODT-1158): Race condition here? What if DB was already closed?
+			messageIDs, err := store.getAllMessageIDs()
+			if err != nil {
+				return
+			}
+
+			for _, messageID := range messageIDs {
+				if !store.IsCached(messageID) {
+					store.cacher.newJob(messageID)
+				}
+			}
+
 			select {
-			case <-ticker.C:
-				// NOTE(GODT-1158): Race condition here? What if DB was already closed?
-				messageIDs, err := store.getAllMessageIDs()
-				if err != nil {
-					return
-				}
-
-				for _, messageID := range messageIDs {
-					if !store.IsCached(messageID) {
-						store.cacher.newJob(messageID)
-					}
-				}
-
 			case <-store.done:
 				return
+			case <-ticker.C:
+				continue
 			}
 		}
 	}()

@@ -32,6 +32,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/internal/frontend/types"
 	"github.com/ProtonMail/proton-bridge/internal/imap"
 	"github.com/ProtonMail/proton-bridge/internal/smtp"
+	"github.com/ProtonMail/proton-bridge/internal/store"
 	"github.com/ProtonMail/proton-bridge/internal/store/cache"
 	"github.com/ProtonMail/proton-bridge/internal/updater"
 	"github.com/ProtonMail/proton-bridge/pkg/message"
@@ -74,7 +75,7 @@ func run(b *base.Base, c *cli.Context) error { // nolint[funlen]
 		return err
 	}
 
-	cache, err := loadCache(b)
+	cache, err := loadMessageCache(b)
 	if err != nil {
 		return err
 	}
@@ -247,16 +248,20 @@ func checkAndHandleUpdate(u types.Updater, f frontend.Frontend, autoUpdate bool)
 	f.NotifySilentUpdateInstalled()
 }
 
-// NOTE(GODT-1158): How big should in-memory cache be?
-// NOTE(GODT-1158): How to handle cache location migration if user changes custom path?
-func loadCache(b *base.Base) (cache.Cache, error) {
+func loadMessageCache(b *base.Base) (cache.Cache, error) {
 	if !b.Settings.GetBool(settings.CacheEnabledKey) {
-		return cache.NewInMemoryCache(100 * (1 << 20)), nil
+		// Memory cache was estimated by empirical usage in past and it
+		// was set to 100MB.
+		// NOTE: This value must not be less than maximal size of one
+		// email (~30MB).
+		return cache.NewInMemoryCache(100 << 20), nil
 	}
 
 	var compressor cache.Compressor
 
-	// NOTE(GODT-1158): If user changes compression setting we have to nuke the cache.
+	// NOTE(GODT-1158): Changing compression is not an option currently
+	// available for user but, if user changes compression setting we have
+	// to nuke the cache.
 	if b.Settings.GetBool(settings.CacheCompressionKey) {
 		compressor = &cache.GZipCompressor{}
 	} else {
@@ -269,9 +274,14 @@ func loadCache(b *base.Base) (cache.Cache, error) {
 		path = customPath
 	} else {
 		path = b.Cache.GetDefaultMessageCacheDir()
-		// Store path so it will allways persist if default location will be changed in new version.
+		// Store path so it will allways persist if default location
+		// will be changed in new version.
 		b.Settings.Set(settings.CacheLocationKey, path)
 	}
+
+	// To prevent memory peaks we set maximal write concurency for store
+	// build jobs.
+	store.SetBuildAndCacheJobLimit(b.Settings.GetInt(settings.CacheConcurrencyWrite))
 
 	return cache.NewOnDiskCache(path, compressor, cache.Options{
 		MinFreeAbs:      uint64(b.Settings.GetInt(settings.CacheMinFreeAbsKey)),

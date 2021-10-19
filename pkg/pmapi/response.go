@@ -129,6 +129,10 @@ func isTooManyRequest(res *resty.Response) bool {
 }
 
 func isNoResponse(res *resty.Response, err error) bool {
+	// Do not retry TLS failures
+	if errors.Is(err, ErrTLSMismatch) {
+		return false
+	}
 	return res.RawResponse == nil && err != nil
 }
 

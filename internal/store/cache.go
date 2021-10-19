@@ -89,6 +89,24 @@ func (store *Store) clearCachePassphrase() error {
 	})
 }
 
+// buildAndCacheJobs is used to limit the number of parallel background build
+// jobs by using a buffered channel. When channel is blocking the go routines
+// is running but the download didn't started yet and hence no space needs to
+// be allocated. Once other instances are finished the job can continue. The
+// bottleneck is `store.cache.Set` which can be take some time to write all
+// downloaded bytes. Therefore, it is not effective to start fetching and
+// building the message for more than maximum of possible parallel cache
+// writers.
+//
+// Default buildAndCacheJobs vaule is 16, it can be changed by SetBuildAndCacheJobLimit.
+var (
+	buildAndCacheJobs = make(chan struct{}, 16) //nolint[gochecknoglobals]
+)
+
+func SetBuildAndCacheJobLimit(maxJobs int) {
+	buildAndCacheJobs = make(chan struct{}, maxJobs)
+}
+
 func (store *Store) getCachedMessage(messageID string) ([]byte, error) {
 	if store.cache.Has(store.user.ID(), messageID) {
 		return store.cache.Get(store.user.ID(), messageID)
@@ -118,6 +136,9 @@ func (store *Store) IsCached(messageID string) bool {
 // BuildAndCacheMessage builds the given message (with background priority) and puts it in the cache.
 // It builds with background priority.
 func (store *Store) BuildAndCacheMessage(messageID string) error {
+	buildAndCacheJobs <- struct{}{}
+	defer func() { <-buildAndCacheJobs }()
+
 	job, done := store.newBuildJob(messageID, message.BackgroundPriority)
 	defer done()
 
