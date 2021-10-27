@@ -706,7 +706,7 @@ Window {
 
     property bool isAutostartOn : true // Example of settings with loading state
     function toggleAutostart(makeItActive) {
-        console.debug("-> autostart", makeItActive, root.isAutomaticUpdateOn)
+        console.debug("-> autostart", makeItActive, root.isAutostartOn)
     }
     signal toggleAutostartFinished()
 

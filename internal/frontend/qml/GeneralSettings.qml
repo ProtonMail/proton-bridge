@@ -56,7 +56,7 @@ SettingsView {
         checked: root.backend.isAutostartOn
         onClicked: {
             autostart.loading = true
-            root.backend.toggleAutostart(!autoUpdate.checked)
+            root.backend.toggleAutostart(!autostart.checked)
         }
         Connections{
             target: root.backend
