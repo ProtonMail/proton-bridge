@@ -76,11 +76,6 @@ T.ApplicationWindow {
             root.popupVisible.visible = false
         }
 
-        // do nothing if there is already visible popup
-        if (root.popupVisible) {
-            return
-        }
-
         var topmost = null
         for (var i = 0; i < popups.count; i++) {
             var obj = popups.get(i)
@@ -100,13 +95,18 @@ T.ApplicationWindow {
             topmost = obj
         }
 
-        root.popupVisible = topmost
+        if (root.popupVisible !== topmost) {
+            if (root.popupVisible) {
+                root.popupVisible.visible = false
+            }
+            root.popupVisible = topmost
+        }
 
-        if (!topmost) {
+        if (!root.popupVisible) {
             return
         }
 
-        topmost.visible = true
+        root.popupVisible.visible = true
     }
 
     Connections {
