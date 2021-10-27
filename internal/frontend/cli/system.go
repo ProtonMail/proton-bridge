@@ -129,7 +129,7 @@ func (f *frontendCLI) changePort(c *ishell.Context) {
 }
 
 func (f *frontendCLI) allowProxy(c *ishell.Context) {
-	if f.settings.GetBool(settings.AllowProxyKey) {
+	if f.bridge.GetProxyAllowed() {
 		f.Println("Bridge is already set to use alternative routing to connect to Proton if it is being blocked.")
 		return
 	}
@@ -137,13 +137,12 @@ func (f *frontendCLI) allowProxy(c *ishell.Context) {
 	f.Println("Bridge is currently set to NOT use alternative routing to connect to Proton if it is being blocked.")
 
 	if f.yesNoQuestion("Are you sure you want to allow bridge to do this") {
-		f.settings.SetBool(settings.AllowProxyKey, true)
-		f.bridge.AllowProxy()
+		f.bridge.SetProxyAllowed(true)
 	}
 }
 
 func (f *frontendCLI) disallowProxy(c *ishell.Context) {
-	if !f.settings.GetBool(settings.AllowProxyKey) {
+	if !f.bridge.GetProxyAllowed() {
 		f.Println("Bridge is already set to NOT use alternative routing to connect to Proton if it is being blocked.")
 		return
 	}
@@ -151,8 +150,7 @@ func (f *frontendCLI) disallowProxy(c *ishell.Context) {
 	f.Println("Bridge is currently set to use alternative routing to connect to Proton if it is being blocked.")
 
 	if f.yesNoQuestion("Are you sure you want to stop bridge from doing this") {
-		f.settings.SetBool(settings.AllowProxyKey, false)
-		f.bridge.DisallowProxy()
+		f.bridge.SetProxyAllowed(false)
 	}
 }
 

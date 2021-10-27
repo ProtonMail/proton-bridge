@@ -419,18 +419,6 @@ func (u *Users) SendMetric(m metrics.Metric) error {
 	return nil
 }
 
-// AllowProxy instructs the app to use DoH to access an API proxy if necessary.
-// It also needs to work before the app is initialised (because we may need to use the proxy at startup).
-func (u *Users) AllowProxy() {
-	u.clientManager.AllowProxy()
-}
-
-// DisallowProxy instructs the app to not use DoH to access an API proxy if necessary.
-// It also needs to work before the app is initialised (because we may need to use the proxy at startup).
-func (u *Users) DisallowProxy() {
-	u.clientManager.DisallowProxy()
-}
-
 // hasUser returns whether the struct currently has a user with ID `id`.
 func (u *Users) hasUser(id string) (user *User, ok bool) {
 	for _, u := range u.users {

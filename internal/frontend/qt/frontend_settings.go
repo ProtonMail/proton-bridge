@@ -99,12 +99,8 @@ func (f *FrontendQt) toggleAutostart(makeItEnabled bool) {
 }
 
 func (f *FrontendQt) toggleDoH(makeItEnabled bool) {
-	if f.settings.GetBool(settings.AllowProxyKey) == makeItEnabled {
-		f.qml.SetIsDoHEnabled(makeItEnabled)
-		return
-	}
-	f.settings.SetBool(settings.AllowProxyKey, makeItEnabled)
-	f.restart()
+	f.bridge.SetProxyAllowed(makeItEnabled)
+	f.qml.SetIsDoHEnabled(f.bridge.GetProxyAllowed())
 }
 
 func (f *FrontendQt) toggleUseSSLforSMTP(makeItEnabled bool) {

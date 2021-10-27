@@ -75,8 +75,8 @@ type Bridger interface {
 	UserManager
 
 	ReportBug(osType, osVersion, description, accountName, address, emailClient string, attachLogs bool) error
-	AllowProxy()
-	DisallowProxy()
+	SetProxyAllowed(bool)
+	GetProxyAllowed() bool
 	EnableCache() error
 	DisableCache() error
 	MigrateCache(from, to string) error

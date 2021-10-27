@@ -223,3 +223,19 @@ func (b *Bridge) MigrateCache(from, to string) error {
 
 	return nil
 }
+
+// SetProxyAllowed instructs the app whether to use DoH to access an API proxy if necessary.
+// It also needs to work before the app is initialised (because we may need to use the proxy at startup).
+func (b *Bridge) SetProxyAllowed(proxyAllowed bool) {
+	b.settings.SetBool(settings.AllowProxyKey, proxyAllowed)
+	if proxyAllowed {
+		b.clientManager.AllowProxy()
+	} else {
+		b.clientManager.DisallowProxy()
+	}
+}
+
+// GetProxyAllowed returns whether use of DoH is enabled to access an API proxy if necessary.
+func (b *Bridge) GetProxyAllowed() bool {
+	return b.settings.GetBool(settings.AllowProxyKey)
+}
