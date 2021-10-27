@@ -71,7 +71,7 @@ T.ComboBox {
                     return root.colorScheme.interaction_norm
                 }
 
-                if (root.hovered) {
+                if (root.hovered || root.activeFocus) {
                     return root.colorScheme.field_hover
                 }
 
@@ -91,7 +91,7 @@ T.ComboBox {
                 return root.colorScheme.interaction_default_active
             }
 
-            if (root.enabled && root.hovered) {
+            if (root.enabled && root.hovered || root.activeFocus) {
                 return root.colorScheme.interaction_default_hover
             }
 
@@ -121,14 +121,25 @@ T.ComboBox {
         width: parent.width
         text: root.textRole ? (Array.isArray(root.model) ? modelData[root.textRole] : model[root.textRole]) : modelData
 
-        palette.text: root.enabled ? root.colorScheme.text_norm : root.colorScheme.text_disabled
+        palette.text: {
+            if (!root.enabled) {
+                return root.colorScheme.text_disabled
+            }
+
+            if (selected) {
+                return root.colorScheme.text_invert
+            }
+
+            return root.colorScheme.text_norm
+        }
         font: root.font
 
         hoverEnabled: root.hoverEnabled
 
-        // we use highlighted to indicate currently selected delegate
-        highlighted: root.currentIndex === index
-        palette.highlightedText: root.enabled ? root.colorScheme.text_invert : root.colorScheme.text_disabled
+        property bool selected: root.currentIndex === index
+
+        highlighted: root.highlightedIndex === index
+        palette.highlightedText: selected ? root.colorScheme.text_invert : root.colorScheme.text_norm
 
         background: PaddedRectangle {
             radius: 4
@@ -137,11 +148,11 @@ T.ComboBox {
                     return root.colorScheme.interaction_default_active
                 }
 
-                if (parent.highlighted) {
+                if (parent.selected) {
                     return root.colorScheme.interaction_norm
                 }
 
-                if (parent.hovered) {
+                if (parent.hovered || parent.highlighted) {
                     return root.colorScheme.interaction_default_hover
                 }
 

@@ -57,7 +57,7 @@ T.CheckBox {
                 return control.colorScheme.signal_danger
             }
 
-            if (control.hovered) {
+            if (control.hovered || control.activeFocus) {
                 return control.colorScheme.interaction_norm_hover
             }
 
@@ -74,7 +74,7 @@ T.CheckBox {
                 return control.colorScheme.signal_danger
             }
 
-            if (control.hovered) {
+            if (control.hovered || control.activeFocus) {
                 return control.colorScheme.interaction_norm_hover
             }
 

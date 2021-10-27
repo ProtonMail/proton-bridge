@@ -155,7 +155,7 @@ T.Button {
                         return control.colorScheme.interaction_norm_active
                     }
 
-                    if (control.enabled && (control.highlighted || control.hovered || control.checked)) {
+                    if (control.enabled && (control.highlighted || control.hovered || control.checked || control.activeFocus)) {
                         return control.colorScheme.interaction_norm_hover
                     }
 
@@ -171,7 +171,7 @@ T.Button {
                         return control.colorScheme.interaction_default_active
                     }
 
-                    if (control.enabled && (control.highlighted || control.hovered || control.checked)) {
+                    if (control.enabled && (control.highlighted || control.hovered || control.checked || control.activeFocus)) {
                         return control.colorScheme.interaction_default_hover
                     }
 
@@ -189,7 +189,7 @@ T.Button {
                         return control.colorScheme.interaction_default_active
                     }
 
-                    if (control.enabled && (control.highlighted || control.hovered || control.checked)) {
+                    if (control.enabled && (control.highlighted || control.hovered || control.checked || control.activeFocus)) {
                         return control.colorScheme.interaction_default_hover
                     }
 
@@ -205,7 +205,7 @@ T.Button {
                         return control.colorScheme.interaction_default_active
                     }
 
-                    if (control.enabled && (control.highlighted || control.hovered || control.checked)) {
+                    if (control.enabled && (control.highlighted || control.hovered || control.checked || control.activeFocus)) {
                         return control.colorScheme.interaction_default_hover
                     }
 

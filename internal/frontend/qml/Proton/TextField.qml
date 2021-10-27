@@ -279,7 +279,6 @@ Item {
 
                     visible: root.echoMode === TextInput.Password
                     icon.color: control.color
-                    background: Item { }
                     checkable: true
                     icon.source: checked ? "../icons/ic-eye-slash.svg" : "../icons/ic-eye.svg"
                 }

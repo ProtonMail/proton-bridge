@@ -46,7 +46,7 @@ T.Switch {
     padding: 0
     spacing: 7
 
-    indicator: PaddedRectangle {
+    indicator: Rectangle {
         implicitWidth: 40
         implicitHeight: 24
 
@@ -54,9 +54,6 @@ T.Switch {
         y: control.topPadding + (control.availableHeight - height) / 2
 
         radius: 12
-        leftPadding: 0
-        rightPadding: 0
-        padding: 0
         color: control.enabled || control.loading ? control.colorScheme.background_norm : control.colorScheme.background_strong
         border.width: control.enabled && !loading ? 1 : 0
         border.color: control.hovered ? control.colorScheme.field_hover : control.colorScheme.field_norm
@@ -76,14 +73,14 @@ T.Switch {
                 }
 
                 if (control.checked) {
-                    if (control.hovered) {
+                    if (control.hovered || control.activeFocus) {
                         return control.colorScheme.interaction_norm_hover
                     }
 
                     return control.colorScheme.interaction_norm
                 }
 
-                if (control.hovered) {
+                if (control.hovered || control.activeFocus) {
                     return control.colorScheme.field_hover
                 }
 
