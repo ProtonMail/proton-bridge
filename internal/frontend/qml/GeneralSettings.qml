@@ -71,8 +71,8 @@ SettingsView {
     SettingsItem {
         id: beta
         colorScheme: root.colorScheme
-        text: qsTr("Enable Beta access")
-        description: qsTr("Be the first one to see new features.")
+        text: qsTr("Beta access")
+        description: qsTr("Be among the first to try new features.")
         type: SettingsItem.Toggle
         checked: root.backend.isBetaEnabled
         onClicked: {

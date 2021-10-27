@@ -329,7 +329,7 @@ QtObject {
         }
 
         action: Action {
-            text: qsTr("Ok")
+            text: qsTr("OK")
 
             onTriggered: {
                 root.updateIsLatestVersion.active = false
@@ -373,8 +373,8 @@ QtObject {
     }
 
     property Notification enableBeta: Notification {
-        text: qsTr("Enable beta access?")
-        description: qsTr("Bridge will update to the latest beta version according to your update preferences. Disabling beta access later on will reset Bridge and require you to reconfigure your client.")
+        text: qsTr("Enable Beta access")
+        description: qsTr("Be the first to get new updates and use new features. Bridge will update to the latest beta version.")
         icon: "./icons/ic-info-circle-filled.svg"
         type: Notification.NotificationType.Info
         group: Notifications.Group.Update | Notifications.Group.Dialogs
@@ -467,7 +467,7 @@ QtObject {
 
         action: [
             Action {
-                text: qsTr("Ok")
+                text: qsTr("OK")
                 onTriggered: {
                     root.bugReportSendSuccess.active = false
                 }
@@ -489,7 +489,7 @@ QtObject {
         }
 
         action: Action {
-            text: qsTr("Ok")
+            text: qsTr("OK")
             onTriggered: {
                 root.bugReportSendError.active = false
             }
@@ -574,7 +574,7 @@ QtObject {
 
         action: [
             Action {
-                text: qsTr("Ok")
+                text: qsTr("OK")
                 onTriggered: {
                     root.cacheLocationChangeSuccess.active = false
                 }

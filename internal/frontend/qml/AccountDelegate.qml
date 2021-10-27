@@ -123,6 +123,7 @@ Item {
             Item { implicitHeight: root.type == AccountDelegate.LargeView ? 6 : 0 }
 
             RowLayout {
+                spacing: 0
                 Label {
                     colorScheme: root.colorScheme
                     text: root.user && root.user.loggedIn ? root.usedSpace : qsTr("Signed out")

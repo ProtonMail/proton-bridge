@@ -245,7 +245,7 @@ Window {
                 Button {
                     colorScheme: root.colorScheme
                     secondary: true
-                    text: qsTr("Open ProtonBridge")
+                    text: qsTr("Open Bridge")
 
                     borderless: true
                     labelType: Label.LabelType.Caption_semibold
@@ -296,7 +296,7 @@ Window {
                         }
                         MenuItem {
                             colorScheme: root.colorScheme
-                            text: qsTr("Quit ProtonBridge")
+                            text: qsTr("Quit Bridge")
                             onClicked: {
                                 root.quit()
                                 root.close()
