@@ -94,9 +94,12 @@ Popup {
 
             RowLayout {
                 anchors.fill: parent
-                anchors.margins: 12
 
-                spacing: 10
+                anchors.topMargin: 14
+                anchors.bottomMargin: 14
+                anchors.leftMargin: 16
+
+                spacing: 8
 
                 ColorImage {
                     color: root.colorScheme.text_invert
@@ -130,14 +133,12 @@ Popup {
                 Label {
                     colorScheme: root.colorScheme
                     Layout.fillWidth: true
-                    Layout.fillHeight: true
+                    Layout.alignment: Qt.AlignVCenter
 
                     color: root.colorScheme.text_invert
                     text: root.notification ? root.notification.text : ""
 
                     wrapMode: Text.WordWrap
-
-                    verticalAlignment: Text.AlignVCenter
                 }
             }
         }

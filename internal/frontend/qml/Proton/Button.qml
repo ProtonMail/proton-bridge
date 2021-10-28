@@ -36,6 +36,9 @@ T.Button {
 
     property int labelType: Proton.Label.LabelType.Body
 
+    property alias textVerticalAlignment: label.verticalAlignment
+    property alias textHorizontalAlignment: label.horizontalAlignment
+
     // TODO: store previous enabled state and restore it?
     // For now assuming that only enabled buttons could have loading state
     onLoadingChanged: {
@@ -82,7 +85,7 @@ T.Button {
             id: label
 
             Layout.fillWidth: true
-            Layout.fillHeight: true
+            Layout.alignment: Qt.AlignVCenter
 
             elide: Text.ElideRight
             horizontalAlignment: Qt.AlignHCenter
