@@ -23,6 +23,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"math/rand"
 	"mime/multipart"
 	"net/http"
 	"testing"
@@ -114,4 +115,33 @@ func TestClient_Import(t *testing.T) { // nolint[funlen]
 	r.NoError(t, err)
 	r.Equal(t, 1, len(imported))
 	r.Equal(t, testImportRes, imported[0])
+}
+
+func TestClientImportBigSize(t *testing.T) {
+	s, c := newTestClient(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		r.FailNow(t, "request is not dropped")
+	}))
+	defer s.Close()
+
+	const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	const size = MaxImportMessageRequestSize + 1
+	msg := make([]byte, size)
+	for i := 0; i < size; i++ {
+		msg[i] = letterBytes[rand.Intn(len(letterBytes))]
+	}
+
+	importRequest := []*ImportMsgReq{
+		{
+			Metadata: &ImportMetadata{
+				AddressID: "addressID",
+				Unread:    Boolean(false),
+				Flags:     FlagReceived | FlagImported,
+				LabelIDs:  []string{ArchiveLabel},
+			},
+			Message: msg,
+		},
+	}
+
+	_, err := c.Import(context.Background(), importRequest)
+	r.EqualError(t, err, "request size is too big")
 }

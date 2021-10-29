@@ -82,6 +82,14 @@ func updateTime(_ *resty.Client, res *resty.Response) error {
 	return nil
 }
 
+func logConnReuse(_ *resty.Client, res *resty.Response) error {
+	if !res.Request.TraceInfo().IsConnReused {
+		logrus.WithField("host", res.Request.URL).Trace("Connection was NOT reused")
+	}
+
+	return nil
+}
+
 func catchRetryAfter(_ *resty.Client, res *resty.Response) (time.Duration, error) {
 	if res.StatusCode() == http.StatusTooManyRequests {
 		if after := res.Header().Get("Retry-After"); after != "" {

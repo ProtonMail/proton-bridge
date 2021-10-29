@@ -2,6 +2,17 @@
 
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
+## [Bridge 1.8.10] James
+
+### Fixed
+* GODT-1348: Max 100 conn per host.
+* GODT-1204: Handle importing too big messages.
+* GODT-1202: Do not update package if it's version older than launcher.
+* GODT-1318: Bump gopenpgp to v2.2.2, go-srp to v0.0.1, go-crypto to 52430bf6.
+* GODT-219: Update to godog v0.12.1.
+* GODT-1205: "RCPT TO" does not contain all addressed from "CC".
+* GODT-1103: Cleanup on windows when uninstalling Bridge.
+
 ## [Bridge 1.8.9] James
 
 ### Fixed

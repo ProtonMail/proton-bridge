@@ -21,7 +21,7 @@ import (
 	"github.com/cucumber/godog"
 )
 
-func SMTPSetupFeatureContext(s *godog.Suite) {
+func SMTPSetupFeatureContext(s *godog.ScenarioContext) {
 	s.Step(`^there is SMTP client logged in as "([^"]*)"$`, thereIsSMTPClientLoggedInAs)
 	s.Step(`^there is SMTP client "([^"]*)" logged in as "([^"]*)"$`, thereIsSMTPClientNamedLoggedInAs)
 	s.Step(`^there is SMTP client logged in as "([^"]*)" with address "([^"]*)"$`, thereIsSMTPClientLoggedInAsWithAddress)

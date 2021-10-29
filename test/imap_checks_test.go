@@ -26,7 +26,7 @@ import (
 	"github.com/emersion/go-imap"
 )
 
-func IMAPChecksFeatureContext(s *godog.Suite) {
+func IMAPChecksFeatureContext(s *godog.ScenarioContext) {
 	s.Step(`^IMAP response is "([^"]*)"$`, imapResponseIs)
 	s.Step(`^IMAP response to "([^"]*)" is "([^"]*)"$`, imapResponseNamedIs)
 	s.Step(`^IMAP response contains "([^"]*)"$`, imapResponseContains)

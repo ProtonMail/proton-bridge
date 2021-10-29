@@ -21,7 +21,7 @@ import (
 	"github.com/cucumber/godog"
 )
 
-func UsersActionsFeatureContext(s *godog.Suite) {
+func UsersActionsFeatureContext(s *godog.ScenarioContext) {
 	s.Step(`^"([^"]*)" logs in$`, userLogsIn)
 	s.Step(`^"([^"]*)" logs in with bad password$`, userLogsInWithBadPassword)
 	s.Step(`^"([^"]*)" logs out$`, userLogsOut)

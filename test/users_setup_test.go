@@ -25,7 +25,7 @@ import (
 	a "github.com/stretchr/testify/assert"
 )
 
-func UsersSetupFeatureContext(s *godog.Suite) {
+func UsersSetupFeatureContext(s *godog.ScenarioContext) {
 	s.Step(`^there is user "([^"]*)"$`, thereIsUser)
 	s.Step(`^there is connected user "([^"]*)"$`, thereIsConnectedUser)
 	s.Step(`^there is user "([^"]*)" which just logged in$`, thereIsUserWhichJustLoggedIn)

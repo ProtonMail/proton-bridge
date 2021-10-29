@@ -24,6 +24,7 @@ import (
 	"path/filepath"
 	"runtime"
 
+	"github.com/Masterminds/semver/v3"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/ProtonMail/proton-bridge/internal/config/useragent"
 	"github.com/ProtonMail/proton-bridge/internal/constants"
@@ -86,7 +87,7 @@ func main() { // nolint[funlen]
 
 	versioner := versioner.New(updatesPath)
 
-	exe, err := getPathToExecutable(ExeName, versioner, kr, reporter)
+	exe, err := getPathToUpdatedExecutable(ExeName, versioner, kr, reporter)
 	if err != nil {
 		if exe, err = getFallbackExecutable(ExeName, versioner); err != nil {
 			logrus.WithError(err).Fatal("Failed to find any launchable executable")
@@ -142,7 +143,7 @@ func appendLauncherPath(path string, args []string) []string {
 	return res
 }
 
-func getPathToExecutable(
+func getPathToUpdatedExecutable(
 	name string,
 	versioner *versioner.Versioner,
 	kr *crypto.KeyRing,
@@ -151,6 +152,11 @@ func getPathToExecutable(
 	versions, err := versioner.ListVersions()
 	if err != nil {
 		return "", errors.Wrap(err, "failed to list available versions")
+	}
+
+	currentVersion, err := semver.StrictNewVersion(constants.Version)
+	if err != nil {
+		logrus.WithField("version", constants.Version).WithError(err).Error("Failed to parse current version")
 	}
 
 	for _, version := range versions {
@@ -170,6 +176,11 @@ func getPathToExecutable(
 			continue
 		}
 
+		// Skip versions that are less or equal to launcher version.
+		if currentVersion != nil && !version.SemVer().GreaterThan(currentVersion) {
+			continue
+		}
+
 		exe, err := version.GetExecutable(name)
 		if err != nil {
 			vlog.WithError(err).Error("Failed to get executable")
@@ -179,7 +190,7 @@ func getPathToExecutable(
 		return exe, nil
 	}
 
-	return "", errors.New("no available versions")
+	return "", errors.New("no available newer versions")
 }
 
 func getFallbackExecutable(name string, versioner *versioner.Versioner) (string, error) {

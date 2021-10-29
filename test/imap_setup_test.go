@@ -21,7 +21,7 @@ import (
 	"github.com/cucumber/godog"
 )
 
-func IMAPSetupFeatureContext(s *godog.Suite) {
+func IMAPSetupFeatureContext(s *godog.ScenarioContext) {
 	s.Step(`^there is IMAP client logged in as "([^"]*)"$`, thereIsIMAPClientLoggedInAs)
 	s.Step(`^there is IMAP client "([^"]*)" logged in as "([^"]*)"$`, thereIsIMAPClientNamedLoggedInAs)
 	s.Step(`^there is IMAP client logged in as "([^"]*)" with address "([^"]*)"$`, thereIsIMAPClientLoggedInAsWithAddress)

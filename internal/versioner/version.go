@@ -59,6 +59,10 @@ func (v *Version) Equal(version *semver.Version) bool {
 	return v.version.Equal(version)
 }
 
+func (v *Version) SemVer() *semver.Version {
+	return v.version
+}
+
 // VerifyFiles verifies all files in the version directory.
 func (v *Version) VerifyFiles(kr *crypto.KeyRing) error {
 	fileBytes, err := ioutil.ReadFile(filepath.Join(v.path, sumFile)) // nolint[gosec]

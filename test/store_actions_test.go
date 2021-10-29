@@ -24,7 +24,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func StoreActionsFeatureContext(s *godog.Suite) {
+func StoreActionsFeatureContext(s *godog.ScenarioContext) {
 	s.Step(`^the event loop of "([^"]*)" loops once$`, theEventLoopLoops)
 	s.Step(`^"([^"]*)" receives an address event$`, receivesAnAddressEvent)
 }

@@ -29,14 +29,13 @@ import (
 
 	"github.com/ProtonMail/go-rfc5322"
 	"github.com/cucumber/godog"
-	"github.com/cucumber/godog/gherkin"
 	"github.com/emersion/go-mbox"
 	"github.com/emersion/go-message"
 	"github.com/pkg/errors"
 	a "github.com/stretchr/testify/assert"
 )
 
-func TransferChecksFeatureContext(s *godog.Suite) {
+func TransferChecksFeatureContext(s *godog.ScenarioContext) {
 	s.Step(`^progress result is "([^"]*)"$`, progressFinishedWith)
 	s.Step(`^transfer exported (\d+) messages$`, transferExportedNumberOfMessages)
 	s.Step(`^transfer imported (\d+) messages$`, transferImportedNumberOfMessages)
@@ -92,7 +91,7 @@ func transferFailedForNumberOfMessages(wantCount int) error {
 	return ctx.GetTestingError()
 }
 
-func transferExportedMessages(messages *gherkin.DataTable) error {
+func transferExportedMessages(messages *godog.Table) error {
 	expectedMessages := map[string][]MessageAttributes{}
 
 	head := messages.Rows[0].Cells
