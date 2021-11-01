@@ -253,6 +253,10 @@ func (c *IMAPClient) ExpungeUID(ids string) *IMAPResponse {
 	return c.SendCommand(fmt.Sprintf("UID EXPUNGE %s", ids))
 }
 
+func (c *IMAPClient) Noop() *IMAPResponse {
+	return c.SendCommand("NOOP")
+}
+
 // Extennsions
 // Extennsions: IDLE
 

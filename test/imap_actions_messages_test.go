@@ -186,6 +186,10 @@ func imapClientsMoveMessageSeqOfUserFromToByOrederedOperations(sourceIMAPClient,
 	if account == nil {
 		return godog.ErrPending
 	}
+
+	// call NOOP to prevent unilateral updates in following FETCH
+	ctx.GetIMAPClient(sourceIMAPClient).Noop().AssertOK()
+
 	msgStr, err := extractMessageBodyFromImapResponse(ctx.GetIMAPClient(sourceIMAPClient).Fetch(messageSeq, "BODY.PEEK[]").AssertOK())
 	if err != nil {
 		return err
