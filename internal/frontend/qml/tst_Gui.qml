@@ -281,8 +281,8 @@ Window {
 
         property bool hasNoKeychain : true
 
-        property var availableKeychain: ["pass-app", "gnome-keyring"]
-        property var selectedKeychain: "gnome-keyring"
+        property var availableKeychain: ["pass-app", "secret-service"]
+        property var selectedKeychain: "secret-service"
 
         property string wrongCredentials
         property string wrongMailboxPassword

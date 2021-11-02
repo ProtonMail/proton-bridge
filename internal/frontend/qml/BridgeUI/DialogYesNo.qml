@@ -321,7 +321,7 @@ Dialog {
                 target: root
                 currentIndex : 0
                 note     : qsTr(
-                    "%1 is not able to detected a supported password manager (pass, gnome-keyring). Please install and setup supported password manager and restart the application.",
+                    "%1 is not able to detected a supported password manager (pass, gnome-keyring or other provider of FreeDesktop Secret Service API). Please install and setup supported password manager and restart the application.",
                     "Error message when no keychain is detected"
                 ).arg(go.programTitle)
                 question         : qsTr("Do you want to close application now?", "when no password manager found." )
