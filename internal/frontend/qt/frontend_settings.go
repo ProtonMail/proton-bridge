@@ -108,7 +108,7 @@ func (f *FrontendQt) toggleUseSSLforSMTP(makeItEnabled bool) {
 		f.qml.SetUseSSLforSMTP(makeItEnabled)
 		return
 	}
-	f.settings.SetBool(settings.SMTPPortKey, makeItEnabled)
+	f.settings.SetBool(settings.SMTPSSLKey, makeItEnabled)
 	f.restart()
 }
 

@@ -84,6 +84,8 @@ SettingsView {
                 submitButton.loading = true
                 root.submit()
             }
+
+            enabled: sslButton.checked !== root.backend.useSSLforSMTP
         }
 
         Button {
@@ -100,10 +102,6 @@ SettingsView {
         }
     }
 
-    onBack: {
-        root.setDefaultValues()
-    }
-
     function submit(){
         submitButton.loading = true
         root.backend.toggleUseSSLforSMTP(sslButton.checked)
@@ -114,6 +112,7 @@ SettingsView {
         starttlsButton.checked = !root.backend.useSSLforSMTP
     }
 
-
-    Component.onCompleted: root.setDefaultValues()
+    onVisibleChanged: {
+        root.setDefaultValues()
+    }
 }
