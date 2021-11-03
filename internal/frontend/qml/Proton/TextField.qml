@@ -24,7 +24,7 @@ import QtQuick.Layouts 1.12
 
 import "." as Proton
 
-Item {
+FocusScope {
     id: root
     property ColorScheme colorScheme
 
@@ -82,7 +82,9 @@ Item {
     property alias selectionEnd: control.selectionEnd
     property alias selectionStart: control.selectionStart
     property alias text: control.text
-    property alias validator: control.validator
+    // We are using our own type of validators. It should be a function
+    // returning an error string in case of error and undefined if no error
+    property var validator
     property alias verticalAlignment: control.verticalAlignment
     property alias wrapMode: control.wrapMode
 
@@ -91,7 +93,8 @@ Item {
 
     property alias label: label.text
     property alias hint: hint.text
-    property alias assistiveText: assistiveText.text
+    property string assistiveText
+    property string errorString
 
     property int echoMode: TextInput.Normal
 
@@ -200,17 +203,37 @@ Item {
                                              contentHeight + topPadding + bottomPadding,
                                              placeholder.implicitHeight + topPadding + bottomPadding)
 
-                    padding: 8
+                    topPadding: 8
+                    bottomPadding: 8
                     leftPadding: 12
+                    rightPadding: 12
+
+                    font.family: Style.font_family
+                    font.weight: Style.fontWeight_400
+                    font.pixelSize: Style.body_font_size
+                    font.letterSpacing: Style.body_letter_spacing
 
                     color: control.enabled ? root.colorScheme.text_norm : root.colorScheme.text_disabled
-
+                    placeholderTextColor: control.enabled ? root.colorScheme.text_hint : root.colorScheme.text_disabled
                     selectionColor: control.palette.highlight
                     selectedTextColor: control.palette.highlightedText
-                    placeholderTextColor: control.enabled ? root.colorScheme.text_hint : root.colorScheme.text_disabled
+
                     verticalAlignment: TextInput.AlignVCenter
 
                     echoMode: eyeButton.checked ? TextInput.Normal : root.echoMode
+
+                    // enforcing default focus here within component
+                    focus: true
+
+                    KeyNavigation.priority: root.KeyNavigation.priority
+                    KeyNavigation.backtab: root.KeyNavigation.backtab
+                    KeyNavigation.tab: root.KeyNavigation.tab
+                    KeyNavigation.up: root.KeyNavigation.up
+                    KeyNavigation.down: root.KeyNavigation.down
+                    KeyNavigation.left: root.KeyNavigation.left
+                    KeyNavigation.right: root.KeyNavigation.right
+
+                    selectByMouse: true
 
                     cursorDelegate: Rectangle {
                         id: cursor
@@ -292,6 +315,8 @@ Item {
             ColorImage {
                 id: errorIcon
 
+                Layout.rightMargin: 4
+
                 visible: root.error && (assistiveText.text.length > 0)
                 source: "../icons/ic-exclamation-circle-filled.svg"
                 color: root.colorScheme.signal_danger
@@ -305,7 +330,8 @@ Item {
 
                 Layout.fillHeight: true
                 Layout.fillWidth: true
-                Layout.leftMargin: 4
+
+                text: root.error ? root.errorString : root.assistiveText
 
                 color: {
                     if (!root.enabled) {
@@ -322,5 +348,34 @@ Item {
                 type: root.error ? Proton.Label.LabelType.Caption_semibold : Proton.Label.LabelType.Caption
             }
         }
+    }
+
+    property bool validateOnEditingFinished: true
+    onEditingFinished: {
+        if (!validateOnEditingFinished) {
+            return
+        }
+        validate()
+    }
+
+    function validate() {
+        if (validator === undefined) {
+            return
+        }
+
+        var error = validator(text)
+
+        if (error) {
+            root.error = true
+            root.errorString = error
+        } else {
+            root.error = false
+            root.errorString = ""
+        }
+    }
+
+    onTextChanged: {
+        root.error = false
+        root.errorString = ""
     }
 }

@@ -22,66 +22,92 @@ import QtQuick.Controls 2.12
 
 import "../Proton"
 
-RowLayout {
+ColumnLayout {
     id: root
     property ColorScheme colorScheme
 
-    ColumnLayout {
+    spacing: 10
+
+    TextArea {
+        colorScheme: root.colorScheme
         Layout.fillWidth: true
+        Layout.preferredHeight: 100
 
-        spacing: parent.spacing
+        placeholderText: "Placeholder"
+        label: "Label"
+        hint: "Hint"
+        assistiveText: "Assistive text"
 
-        TextArea {
-            colorScheme: root.colorScheme
-            Layout.fillWidth: true
-            Layout.preferredHeight: 100
+        wrapMode: TextInput.Wrap
+    }
 
-            placeholderText: "Placeholder"
-            label: "Label"
-            hint: "Hint"
-            assistiveText: "Assistive text"
-        }
+    TextArea {
+        colorScheme: root.colorScheme
+        Layout.fillWidth: true
+        Layout.preferredHeight: 100
 
-        TextArea {
-            colorScheme: root.colorScheme
-            Layout.fillWidth: true
-            Layout.preferredHeight: 100
+        text: "Value"
+        placeholderText: "Placeholder"
+        label: "Label"
+        hint: "Hint"
+        assistiveText: "Assistive text"
 
-            text: "Value"
-            placeholderText: "Placeholder"
-            label: "Label"
-            hint: "Hint"
-            assistiveText: "Assistive text"
-        }
+        wrapMode: TextInput.Wrap
+    }
 
 
-        TextArea {
-            colorScheme: root.colorScheme
-            Layout.fillWidth: true
-            Layout.preferredHeight: 100
+    TextArea {
+        colorScheme: root.colorScheme
+        Layout.fillWidth: true
+        Layout.preferredHeight: 100
 
-            error: true
+        error: true
 
-            text: "Value"
-            placeholderText: "Placeholder"
-            label: "Label"
-            hint: "Hint"
-            assistiveText: "Error message"
-        }
+        text: "Value"
+        placeholderText: "Placeholder"
+        label: "Label"
+        hint: "Hint"
+        errorString: "Error message"
+
+        wrapMode: TextInput.Wrap
+    }
 
 
-        TextArea {
-            colorScheme: root.colorScheme
-            Layout.fillWidth: true
-            Layout.preferredHeight: 100
+    TextArea {
+        colorScheme: root.colorScheme
+        Layout.fillWidth: true
+        Layout.preferredHeight: 100
 
-            enabled: false
+        enabled: false
 
-            text: "Value"
-            placeholderText: "Placeholder"
-            label: "Label"
-            hint: "Hint"
-            assistiveText: "Assistive text"
+        text: "Value"
+        placeholderText: "Placeholder"
+        label: "Label"
+        hint: "Hint"
+        assistiveText: "Assistive text"
+
+        wrapMode: TextInput.Wrap
+    }
+
+    TextArea {
+        colorScheme: root.colorScheme
+        Layout.fillWidth: true
+        Layout.preferredHeight: 100
+
+        placeholderText: "Type 42 here"
+        label: "42 Validator"
+        hint: "Accepts only \"42\""
+        assistiveText: "Type sometihng here, preferably 42"
+
+        wrapMode: TextInput.Wrap
+
+        validator: function(str) {
+            if (str === "42") {
+                return
+            }
+
+            return "Not 42"
         }
     }
 }
+

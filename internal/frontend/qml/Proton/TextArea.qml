@@ -20,10 +20,11 @@ import QtQuick 2.12
 import QtQuick.Controls 2.12
 import QtQuick.Controls.impl 2.12
 import QtQuick.Templates 2.12 as T
+import QtQuick.Layouts 1.12
 
 import "." as Proton
 
-Item {
+FocusScope {
     id: root
     property ColorScheme colorScheme
 
@@ -84,191 +85,269 @@ Item {
     property alias textFormat: control.textFormat
     property alias textMargin: control.textMargin
     property alias topPadding: control.topPadding
+    // We are using our own type of validators. It should be a function
+    // returning an error string in case of error and undefined if no error
+    property var validator
     property alias verticalAlignment: control.verticalAlignment
     property alias wrapMode: control.wrapMode
 
-    implicitWidth: background.width
-    implicitHeight: control.implicitHeight + Math.max(
-        label.implicitHeight + label.anchors.topMargin + label.anchors.bottomMargin,
-        hint.implicitHeight + hint.anchors.topMargin + hint.anchors.bottomMargin
-    ) + assistiveText.implicitHeight
+    implicitWidth: children[0].implicitWidth
+    implicitHeight: children[0].implicitHeight
 
     property alias label: label.text
     property alias hint: hint.text
-    property alias assistiveText: assistiveText.text
+    property string assistiveText
+    property string errorString
 
     property bool error: false
 
     signal editingFinished()
 
-    // Backgroud is moved away from within control as it will be clipped with scrollview
-    Rectangle {
-        id: background
+    function append(text) { return control.append(text) }
+    function clear() { return control.clear() }
+    function copy() { return control.copy() }
+    function cut() { return control.cut() }
+    function deselect() { return control.deselect() }
+    function getFormattedText(start, end) { return control.getFormattedText(start, end) }
+    function getText(start, end) { return control.getText(start, end) }
+    function insert(position, text) { return control.insert(position, text) }
+    function isRightToLeft(start, end) { return control.isRightToLeft(start, end) }
+    function linkAt(x, y) { return control.linkAt(x, y) }
+    function moveCursorSelection(position, mode) { return control.moveCursorSelection(position, mode) }
+    function paste() { return control.paste() }
+    function positionAt(x, y) { return control.positionAt(x, y) }
+    function positionToRectangle(position) { return control.positionToRectangle(position) }
+    function redo() { return control.redo() }
+    function remove(start, end) { return control.remove(start, end) }
+    function select(start, end) { return control.select(start, end) }
+    function selectAll() { return control.selectAll() }
+    function selectWord() { return control.selectWord() }
+    function undo() { return control.undo() }
 
-        anchors.fill: controlView
+    ColumnLayout {
+        anchors.fill: parent
+        spacing: 0
 
-        radius: 4
-        visible: true
-        color: root.colorScheme.background_norm
-        border.color: {
-            if (!control.enabled) {
-                return root.colorScheme.field_disabled
+        RowLayout {
+            Layout.fillWidth: true
+            spacing: 0
+
+            Proton.Label {
+                colorScheme: root.colorScheme
+                id: label
+
+                Layout.fillWidth: true
+
+                color: root.enabled ? root.colorScheme.text_norm : root.colorScheme.text_disabled
+
+                type: Proton.Label.LabelType.Body_semibold
             }
 
-            if (control.activeFocus) {
-                return root.colorScheme.interaction_norm
+            Proton.Label {
+                colorScheme: root.colorScheme
+                id: hint
+
+                Layout.fillWidth: true
+
+                color: root.enabled ? root.colorScheme.text_weak : root.colorScheme.text_disabled
+                horizontalAlignment: Text.AlignRight
+                type: Proton.Label.LabelType.Caption
             }
-
-            if (root.error) {
-                return root.colorScheme.signal_danger
-            }
-
-            if (control.hovered) {
-                return root.colorScheme.field_hover
-            }
-
-            return root.colorScheme.field_norm
-        }
-        border.width: 1
-    }
-
-    Proton.Label {
-        colorScheme: root.colorScheme
-        id: label
-
-        anchors.top: root.top
-        anchors.left: root.left
-        anchors.bottomMargin: 4
-
-        color: root.enabled ? root.colorScheme.text_norm : root.colorScheme.text_disabled
-
-        type: Proton.Label.LabelType.Body_semibold
-    }
-
-    Proton.Label {
-        colorScheme: root.colorScheme
-        id: hint
-
-        anchors.right: root.right
-        anchors.bottom: controlView.top
-        anchors.bottomMargin: 5
-
-        color: root.enabled ? root.colorScheme.text_weak : root.colorScheme.text_disabled
-
-        type: Proton.Label.LabelType.Caption
-    }
-
-    ColorImage {
-        id: errorIcon
-        visible: root.error
-        anchors.left: parent.left
-        anchors.top: assistiveText.top
-        anchors.bottom: assistiveText.bottom
-        source: "../icons/ic-exclamation-circle-filled.svg"
-        sourceSize.height: height
-        color: root.colorScheme.signal_danger
-    }
-
-    Proton.Label {
-        colorScheme: root.colorScheme
-        id: assistiveText
-
-        anchors.left: root.error ? errorIcon.right : parent.left
-        anchors.leftMargin: root.error ? 5 : 0
-        anchors.bottom: root.bottom
-        anchors.topMargin: 4
-
-        color: {
-            if (!root.enabled) {
-                return root.colorScheme.text_disabled
-            }
-
-            if (root.error) {
-                return root.colorScheme.signal_danger
-            }
-
-            return root.colorScheme.text_weak
         }
 
-        type: root.error ? Proton.Label.LabelType.Caption_semibold : Proton.Label.LabelType.Caption
-    }
+        ScrollView {
+            id: controlView
 
-    ScrollView {
-        id: controlView
+            Layout.fillHeight: true
+            Layout.fillWidth: true
 
-        anchors.top: label.bottom
-        anchors.left: root.left
-        anchors.right: root.right
-        anchors.bottom: assistiveText.top
+            clip: true
 
-        clip: true
+            T.TextArea {
+                id: control
 
-        T.TextArea {
-            id: control
+                implicitWidth: Math.max(
+                                   contentWidth + leftPadding + rightPadding,
+                                   implicitBackgroundWidth + leftInset + rightInset,
+                                   placeholder.implicitWidth + leftPadding + rightPadding
+                                   )
+                implicitHeight: Math.max(
+                                    contentHeight + topPadding + bottomPadding,
+                                    implicitBackgroundHeight + topInset + bottomInset,
+                                    placeholder.implicitHeight + topPadding + bottomPadding
+                                    )
 
-            implicitWidth: Math.max(
-                contentWidth + leftPadding + rightPadding,
-                implicitBackgroundWidth + leftInset + rightInset,
-                placeholder.implicitWidth + leftPadding + rightPadding
-            )
-            implicitHeight: Math.max(
-                contentHeight + topPadding + bottomPadding,
-                implicitBackgroundHeight + topInset + bottomInset,
-                placeholder.implicitHeight + topPadding + bottomPadding
-            )
+                topPadding: 8
+                bottomPadding: 8
+                leftPadding: 12
+                rightPadding: 12
 
-            padding: 8
-            leftPadding: 12
+                font.family: Style.font_family
+                font.weight: Style.fontWeight_400
+                font.pixelSize: Style.body_font_size
+                font.letterSpacing: Style.body_letter_spacing
 
-            color: control.enabled ? root.colorScheme.text_norm : root.colorScheme.text_disabled
-            placeholderTextColor: control.enabled ? root.colorScheme.text_hint : root.colorScheme.text_disabled
+                color: control.enabled ? root.colorScheme.text_norm : root.colorScheme.text_disabled
+                placeholderTextColor: control.enabled ? root.colorScheme.text_hint : root.colorScheme.text_disabled
+                selectionColor: control.palette.highlight
+                selectedTextColor: control.palette.highlightedText
 
-            selectionColor: control.palette.highlight
-            selectedTextColor: control.palette.highlightedText
+                onEditingFinished: root.editingFinished()
 
-            onEditingFinished: root.editingFinished()
+                wrapMode: TextInput.Wrap
 
-            cursorDelegate: Rectangle {
-                id: cursor
-                width: 1
-                color: root.colorScheme.interaction_norm
-                visible: control.activeFocus && !control.readOnly && control.selectionStart === control.selectionEnd
+                // enforcing default focus here within component
+                focus: root.focus
 
-                Connections {
-                    target: control
-                    onCursorPositionChanged: {
-                        // keep a moving cursor visible
-                        cursor.opacity = 1
-                        timer.restart()
+                KeyNavigation.priority: root.KeyNavigation.priority
+                KeyNavigation.backtab: root.KeyNavigation.backtab
+                KeyNavigation.tab: root.KeyNavigation.tab
+                KeyNavigation.up: root.KeyNavigation.up
+                KeyNavigation.down: root.KeyNavigation.down
+                KeyNavigation.left: root.KeyNavigation.left
+                KeyNavigation.right: root.KeyNavigation.right
+
+                selectByMouse: true
+
+                cursorDelegate: Rectangle {
+                    id: cursor
+                    width: 1
+                    color: root.colorScheme.interaction_norm
+                    visible: control.activeFocus && !control.readOnly && control.selectionStart === control.selectionEnd
+
+                    Connections {
+                        target: control
+                        onCursorPositionChanged: {
+                            // keep a moving cursor visible
+                            cursor.opacity = 1
+                            timer.restart()
+                        }
+                    }
+
+                    Timer {
+                        id: timer
+                        running: control.activeFocus && !control.readOnly
+                        repeat: true
+                        interval: Qt.styleHints.cursorFlashTime / 2
+                        onTriggered: cursor.opacity = !cursor.opacity ? 1 : 0
+                        // force the cursor visible when gaining focus
+                        onRunningChanged: cursor.opacity = 1
                     }
                 }
 
-                Timer {
-                    id: timer
-                    running: control.activeFocus && !control.readOnly
-                    repeat: true
-                    interval: Qt.styleHints.cursorFlashTime / 2
-                    onTriggered: cursor.opacity = !cursor.opacity ? 1 : 0
-                    // force the cursor visible when gaining focus
-                    onRunningChanged: cursor.opacity = 1
+                PlaceholderText {
+                    id: placeholder
+                    x: control.leftPadding
+                    y: control.topPadding
+                    width: control.width - (control.leftPadding + control.rightPadding)
+                    height: control.height - (control.topPadding + control.bottomPadding)
+
+                    text: control.placeholderText
+                    font: control.font
+                    color: control.placeholderTextColor
+                    verticalAlignment: control.verticalAlignment
+                    visible: !control.length && !control.preeditText && (!control.activeFocus || control.horizontalAlignment !== Qt.AlignHCenter)
+                    elide: Text.ElideRight
+                    renderType: control.renderType
+                }
+
+                background: Rectangle {
+                    anchors.fill: parent
+
+                    radius: 4
+                    visible: true
+                    color: root.colorScheme.background_norm
+                    border.color: {
+                        if (!control.enabled) {
+                            return root.colorScheme.field_disabled
+                        }
+
+                        if (control.activeFocus) {
+                            return root.colorScheme.interaction_norm
+                        }
+
+                        if (root.error) {
+                            return root.colorScheme.signal_danger
+                        }
+
+                        if (control.hovered) {
+                            return root.colorScheme.field_hover
+                        }
+
+                        return root.colorScheme.field_norm
+                    }
+                    border.width: 1
                 }
             }
+        }
 
-            PlaceholderText {
-                id: placeholder
-                x: control.leftPadding
-                y: control.topPadding
-                width: control.width - (control.leftPadding + control.rightPadding)
-                height: control.height - (control.topPadding + control.bottomPadding)
+        RowLayout {
+            Layout.fillWidth: true
+            spacing: 0
 
-                text: control.placeholderText
-                font: control.font
-                color: control.placeholderTextColor
-                verticalAlignment: control.verticalAlignment
-                visible: !control.length && !control.preeditText && (!control.activeFocus || control.horizontalAlignment !== Qt.AlignHCenter)
-                elide: Text.ElideRight
-                renderType: control.renderType
+            ColorImage {
+                id: errorIcon
+
+                Layout.rightMargin: 4
+
+                visible: root.error && (assistiveText.text.length > 0)
+                source: "../icons/ic-exclamation-circle-filled.svg"
+                color: root.colorScheme.signal_danger
+                height: assistiveText.height
+                sourceSize.height: assistiveText.height
+            }
+
+            Proton.Label {
+                colorScheme: root.colorScheme
+                id: assistiveText
+
+                Layout.fillWidth: true
+
+                text: root.error ? root.errorString : root.assistiveText
+
+                color: {
+                    if (!root.enabled) {
+                        return root.colorScheme.text_disabled
+                    }
+
+                    if (root.error) {
+                        return root.colorScheme.signal_danger
+                    }
+
+                    return root.colorScheme.text_weak
+                }
+
+                type: root.error ? Proton.Label.LabelType.Caption_semibold : Proton.Label.LabelType.Caption
             }
         }
+    }
+
+    property bool validateOnEditingFinished: true
+    onEditingFinished: {
+        if (!validateOnEditingFinished) {
+            return
+        }
+        validate()
+    }
+
+    function validate() {
+        if (validator === undefined) {
+            return
+        }
+
+        var error = validator(text)
+
+        if (error) {
+            root.error = true
+            root.errorString = error
+        } else {
+            root.error = false
+            root.errorString = ""
+        }
+    }
+
+    onTextChanged: {
+        root.error = false
+        root.errorString = ""
     }
 }

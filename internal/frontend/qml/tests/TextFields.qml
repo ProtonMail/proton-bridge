@@ -63,7 +63,7 @@ RowLayout {
             placeholderText: "Placeholder"
             label: "Label"
             hint: "Hint"
-            assistiveText: "Error message"
+            errorString: "Error message"
         }
 
 
@@ -119,7 +119,7 @@ RowLayout {
             placeholderText: "Password"
             label: "Label"
             hint: "Hint"
-            assistiveText: "Error message"
+            errorString: "Error message"
         }
 
         TextField {
@@ -146,10 +146,18 @@ RowLayout {
             colorScheme: root.colorScheme
             Layout.fillWidth: true
 
-            placeholderText: "Placeholder"
-            label: "Label"
-            hint: "Hint"
-            assistiveText: "Assistive text"
+            placeholderText: "Type 42 here"
+            label: "42 Validator"
+            hint: "Accepts only \"42\""
+            assistiveText: "Type sometihng here, preferably 42"
+
+            validator: function(str) {
+                if (str === "42") {
+                    return
+                }
+
+                return "Not 42"
+            }
         }
 
         TextField {

@@ -37,7 +37,6 @@ SettingsView {
         id: description
         property int _minLength: 150
         property int _maxLength: 800
-        property bool _inputOK: description.text.length>=description._minLength && description.text.length<=description._maxLength
 
         label: qsTr("Description")
         colorScheme: root.colorScheme
@@ -46,71 +45,59 @@ SettingsView {
         hint: description.text.length + "/" + _maxLength
         placeholderText: qsTr("Tell us what went wrong or isn't working (min. %1 characters).").arg(_minLength)
 
-        onEditingFinished: {
-            if (!description._inputOK) {
-                description.error = true
-                if (description.text.length <= description._minLength) {
-                    description.assistiveText = qsTr("Enter a problem description (min. %1 characters).").arg(_minLength)
-                } else {
-                    description.assistiveText = qsTr("Enter a problem description (max. %1 characters).").arg(_maxLength)
-                }
-            } else {
-                description.error = false
-                description.assistiveText = ""
+        validator: function(text) {
+            if (description.text.length < description._minLength) {
+                return qsTr("Enter a problem description (min. %1 characters).").arg(_minLength)
+            }
+
+            if (description.text.length > description._maxLength) {
+                return qsTr("Enter a problem description (max. %1 characters).").arg(_maxLength)
+            }
+
+            return
+        }
+
+        onTextChanged: {
+            // Rise max length error imidiatly while typing
+            if (description.text.length > description._maxLength) {
+                validate()
             }
         }
-        onTextChanged: {
-            description.error = false
-            description.assistiveText = ""
-        }
+
+        KeyNavigation.priority: KeyNavigation.BeforeItem
+        KeyNavigation.tab: address
     }
 
 
     TextField {
         id: address
-        property bool _inputOK: root.isValidEmail(address.text)
 
         label: qsTr("Your contact email")
         colorScheme: root.colorScheme
         Layout.fillWidth: true
         placeholderText: qsTr("e.g. jane.doe@protonmail.com")
 
-        onEditingFinished: {
-            if (!address._inputOK) {
-                address.error = true
-                address.assistiveText = qsTr("Enter valid email address")
-            } else {
-                address.assistiveText = ""
-                address.error = false
+        validator: function(str) {
+            if (!isValidEmail(str)) {
+                return qsTr("Enter valid email address")
             }
-        }
-        onTextChanged: {
-            address.error = false
-            address.assistiveText = ""
+            return
         }
     }
 
     TextField {
         id: emailClient
-        property bool _inputOK: emailClient.text.length > 0
 
         label: qsTr("Your email client (including version)")
         colorScheme: root.colorScheme
         Layout.fillWidth: true
         placeholderText: qsTr("e.g. Apple Mail 14.0")
 
-        onEditingFinished: {
-            if (!emailClient._inputOK) {
-                emailClient.assistiveText = qsTr("Enter an email client name and version")
-                emailClient.error = true
-            } else {
-                emailClient.assistiveText = ""
-                emailClient.error = false
+        validator: function(str) {
+            if (str.length === 0) {
+                return qsTr("Enter an email client name and version")
             }
-        }
-        onTextChanged: {
-            emailClient.error = false
-            emailClient.assistiveText = ""
+            return
         }
     }
 
@@ -148,25 +135,26 @@ SettingsView {
         id: sendButton
         text: qsTr("Send")
         colorScheme: root.colorScheme
-        onClicked: root.submit()
-        enabled: description._inputOK && address._inputOK && emailClient._inputOK
+
+        onClicked: {
+            description.validate()
+            address.validate()
+            emailClient.validate()
+
+            if (description.error || address.error || emailClient.error) {
+                return
+            }
+
+            submit()
+        }
 
         Connections {target: root.backend; onReportBugFinished: sendButton.loading = false }
     }
 
     function setDefaultValue() {
         description.text = ""
-        description.error = false
-        description.assistiveText = ""
-
         address.text = root.selectedAddress
-        address.error = false
-        address.assistiveText = ""
-
         emailClient.text = root.backend.currentEmailClient
-        emailClient.error = false
-        emailClient.assistiveText = ""
-
         includeLogs.checked = true
     }
 
@@ -184,8 +172,6 @@ SettingsView {
             includeLogs.checked
         )
     }
-
-    Component.onCompleted: root.setDefaultValue()
 
     onVisibleChanged: {
         root.setDefaultValue()

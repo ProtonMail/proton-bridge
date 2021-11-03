@@ -99,7 +99,7 @@ Item {
 
                 twoFactorPasswordTextField.enabled = true
                 twoFactorPasswordTextField.error = true
-                twoFactorPasswordTextField.assistiveText = qsTr("Your code is incorrect")
+                twoFactorPasswordTextField.errorString = qsTr("Your code is incorrect")
             }
             onLogin2FAErrorAbort: {
                 console.assert(stackLayout.currentIndex == 1, "Unexpected login2FAErrorAbort")
@@ -118,7 +118,7 @@ Item {
 
                 secondPasswordTextField.enabled = true
                 secondPasswordTextField.error = true
-                secondPasswordTextField.assistiveText = qsTr("Your mailbox password is incorrect")
+                secondPasswordTextField.errorString = qsTr("Your mailbox password is incorrect")
             }
             onLogin2PasswordErrorAbort: {
                 console.assert(stackLayout.currentIndex == 2, "Unexpected login2PasswordErrorAbort")
@@ -142,11 +142,11 @@ Item {
 
                 usernameTextField.enabled = true
                 usernameTextField.error = false
-                usernameTextField.assistiveText = ""
+                usernameTextField.errorString = ""
 
                 passwordTextField.enabled = true
                 passwordTextField.error = false
-                passwordTextField.assistiveText = ""
+                passwordTextField.errorString = ""
                 passwordTextField.text = ""
             }
 
@@ -202,16 +202,20 @@ Item {
                 Layout.fillWidth: true
                 Layout.topMargin: 24
 
-                onTextEdited: { // TODO: repeating?
+                onTextChanged: {
+                    // remove "invalid username / password error"
                     if (error || errorLabel.text.length > 0) {
                         errorLabel.text = ""
-
                         usernameTextField.error = false
-                        usernameTextField.assistiveText = ""
-
                         passwordTextField.error = false
-                        passwordTextField.assistiveText = ""
                     }
+                }
+
+                validator: function(str) {
+                    if (str.length === 0) {
+                        return qsTr("Enter username or email")
+                    }
+                    return
                 }
 
                 onAccepted: passwordTextField.forceActiveFocus()
@@ -226,16 +230,20 @@ Item {
                 Layout.topMargin: 8
                 echoMode: TextInput.Password
 
-                onTextEdited: {
+                onTextChanged: {
+                    // remove "invalid username / password error"
                     if (error || errorLabel.text.length > 0) {
                         errorLabel.text = ""
-
                         usernameTextField.error = false
-                        usernameTextField.assistiveText = ""
-
                         passwordTextField.error = false
-                        passwordTextField.assistiveText = ""
                     }
+                }
+
+                validator: function(str) {
+                    if (str.length === 0) {
+                        return qsTr("Enter password")
+                    }
+                    return
                 }
 
                 onAccepted: signInButton.checkAndSignIn()
@@ -253,27 +261,10 @@ Item {
                 onClicked: checkAndSignIn()
 
                 function checkAndSignIn() {
-                    var err = false
+                    usernameTextField.validate()
+                    passwordTextField.validate()
 
-                    if (usernameTextField.text.length == 0) {
-                        usernameTextField.error = true
-                        usernameTextField.assistiveText = qsTr("Enter username or email")
-                        err = true
-                    } else {
-                        usernameTextField.error = false
-                        usernameTextField.assistiveText = qsTr("")
-                    }
-
-                    if (passwordTextField.text.length == 0) {
-                        passwordTextField.error = true
-                        passwordTextField.assistiveText = qsTr("Enter password")
-                        err = true
-                    } else {
-                        passwordTextField.error = false
-                        passwordTextField.assistiveText = qsTr("")
-                    }
-
-                    if (err) {
+                    if (usernameTextField.error || passwordTextField.error) {
                         return
                     }
 
@@ -310,8 +301,8 @@ Item {
 
                 twoFactorPasswordTextField.enabled = true
                 twoFactorPasswordTextField.error = false
-                twoFactorPasswordTextField.assistiveText = ""
-                twoFactorPasswordTextField.text=""
+                twoFactorPasswordTextField.errorString = ""
+                twoFactorPasswordTextField.text = ""
             }
 
             spacing: 0
@@ -343,11 +334,11 @@ Item {
                 Layout.fillWidth: true
                 Layout.topMargin: 32
 
-                onTextEdited: {
-                    if (error) {
-                        twoFactorPasswordTextField.error = false
-                        twoFactorPasswordTextField.assistiveText = ""
+                validator: function(str) {
+                    if (str.length === 0) {
+                        return qsTr("Enter username or email")
                     }
+                    return
                 }
             }
 
@@ -360,18 +351,9 @@ Item {
                 Layout.topMargin: 24
 
                 onClicked: {
-                    var err = false
+                    twoFactorPasswordTextField.validate()
 
-                    if (twoFactorPasswordTextField.text.length == 0) {
-                        twoFactorPasswordTextField.error = true
-                        twoFactorPasswordTextField.assistiveText = qsTr("Enter username or email")
-                        err = true
-                    } else {
-                        twoFactorPasswordTextField.error = false
-                        twoFactorPasswordTextField.assistiveText = qsTr("")
-                    }
-
-                    if (err) {
+                    if (twoFactorPasswordTextField.error) {
                         return
                     }
 
@@ -393,7 +375,7 @@ Item {
 
                 secondPasswordTextField.enabled = true
                 secondPasswordTextField.error = false
-                secondPasswordTextField.assistiveText = ""
+                secondPasswordTextField.errorString = ""
                 secondPasswordTextField.text = ""
             }
 
@@ -416,11 +398,11 @@ Item {
                 Layout.topMargin: 8 + implicitHeight + 24 + subTitle.implicitHeight
                 echoMode: TextInput.Password
 
-                onTextEdited: {
-                    if (error) {
-                        secondPasswordTextField.error = false
-                        secondPasswordTextField.assistiveText = ""
+                validator: function(str) {
+                    if (str.length === 0) {
+                        return qsTr("Enter username or email")
                     }
+                    return
                 }
             }
 
@@ -433,18 +415,9 @@ Item {
                 Layout.topMargin: 24
 
                 onClicked: {
-                    var err = false
+                    secondPasswordTextField.validate()
 
-                    if (secondPasswordTextField.text.length == 0) {
-                        secondPasswordTextField.error = true
-                        secondPasswordTextField.assistiveText = qsTr("Enter username or email")
-                        err = true
-                    } else {
-                        secondPasswordTextField.error = false
-                        secondPasswordTextField.assistiveText = qsTr("")
-                    }
-
-                    if (err) {
+                    if (secondPasswordTextField.error) {
                         return
                     }
 

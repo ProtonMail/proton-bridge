@@ -25,10 +25,9 @@ import Proton 4.0
 SettingsView {
     id: root
 
-    property bool _valuesOK: !imapField.error && !smtpField.error
     property bool _valuesChanged: (
-        imapField.text*1 != root.backend.portIMAP ||
-        smtpField.text*1 != root.backend.portSMTP
+        imapField.text*1 !== root.backend.portIMAP ||
+        smtpField.text*1 !== root.backend.portSMTP
     )
 
     Label {
@@ -55,14 +54,14 @@ SettingsView {
             colorScheme: root.colorScheme
             label: qsTr("IMAP port")
             Layout.preferredWidth: 160
-            onEditingFinished: root.validate(imapField)
+            validator: root.validate
         }
         TextField {
             id: smtpField
             colorScheme: root.colorScheme
             label: qsTr("SMTP port")
             Layout.preferredWidth: 160
-            onEditingFinished: root.validate(smtpField)
+            validator: root.validate
         }
     }
 
@@ -79,10 +78,34 @@ SettingsView {
             id: submitButton
             colorScheme: root.colorScheme
             text: qsTr("Save and restart")
-            enabled: root._valuesOK && root._valuesChanged
+            enabled: root._valuesChanged
             onClicked: {
+                // removing error here because we may have set it manually (port occupied)
+                imapField.error = false
+                smtpField.error = false
+
+                // checking errors seperatly because we want to display "same port" error only once
+                imapField.validate()
+                if (imapField.error) {
+                    return
+                }
+                smtpField.validate()
+                if (smtpField.error) {
+                    return
+                }
+
                 submitButton.loading = true
-                root.submit()
+
+                // check both ports before returning an error
+                var err = false
+                err |= !isPortFree(imapField)
+                err |= !isPortFree(smtpField)
+                if (err) {
+                    submitButton.loading = false
+                    return
+                }
+
+                root.backend.changePorts(imapField.text, smtpField.text)
             }
         }
 
@@ -104,46 +127,30 @@ SettingsView {
         root.setDefaultValues()
     }
 
-    function validate(field) {
-        var num = field.text*1
+    function validate(port) {
+        var num = port*1
         if (! (num > 1 && num < 65536) )  {
-            field.error = true
-            field.assistiveText = qsTr("Invalid port number")
-            return
+            return qsTr("Invalid port number")
         }
 
         if (imapField.text == smtpField.text) {
-            field.error = true
-            field.assistiveText = qsTr("Port numbers must be different")
-            return
+            return qsTr("Port numbers must be different")
         }
 
-        field.error = false
-        field.assistiveText = ""
+        return
     }
 
     function isPortFree(field) {
-        field.error = false
-        field.assistiveText = ""
-
         var num = field.text*1
-        if (num == root.backend.portIMAP) return true
-        if (num == root.backend.portSMTP) return true
+        if (num === root.backend.portIMAP) return true
+        if (num === root.backend.portSMTP) return true
         if (!root.backend.isPortFree(num)) {
             field.error = true
-            field.assistiveText = qsTr("Port occupied")
-            submitButton.loading = false
+            field.errorString = qsTr("Port occupied")
             return false
         }
 
         return true
-    }
-
-    function submit(){
-        submitButton.loading = true
-        if (!isPortFree(imapField)) return
-        if (!isPortFree(smtpField)) return
-        root.backend.changePorts(imapField.text, smtpField.text)
     }
 
     function setDefaultValues(){
