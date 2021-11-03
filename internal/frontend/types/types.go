@@ -81,7 +81,7 @@ type Bridger interface {
 	DisableCache() error
 	MigrateCache(from, to string) error
 	GetUpdateChannel() updater.UpdateChannel
-	SetUpdateChannel(updater.UpdateChannel) (needRestart bool, err error)
+	SetUpdateChannel(updater.UpdateChannel)
 	GetKeychainApp() string
 	SetKeychainApp(keychain string)
 }

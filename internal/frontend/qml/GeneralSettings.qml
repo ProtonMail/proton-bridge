@@ -79,7 +79,7 @@ SettingsView {
             if (!beta.checked) {
                 root.notifications.askEnableBeta()
             } else {
-                root.notifications.askDisableBeta()
+                root.backend.toggleBeta(false)
             }
         }
 

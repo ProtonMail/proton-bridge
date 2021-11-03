@@ -68,11 +68,6 @@ Item {
 
     NotificationDialog {
         colorScheme: root.colorScheme
-        notification: root.notifications.disableBeta
-    }
-
-    NotificationDialog {
-        colorScheme: root.colorScheme
         notification: root.notifications.enableBeta
     }
 

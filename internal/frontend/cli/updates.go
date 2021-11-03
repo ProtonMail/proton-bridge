@@ -81,13 +81,7 @@ func (f *frontendCLI) selectEarlyChannel(c *ishell.Context) {
 	f.Println("Bridge is currently on the stable update channel.")
 
 	if f.yesNoQuestion("Are you sure you want to switch to the early-access update channel") {
-		needRestart, err := f.bridge.SetUpdateChannel(updater.EarlyChannel)
-		if err != nil {
-			f.Println("There was a problem switching update channel.")
-		}
-		if needRestart {
-			f.restarter.SetToRestart()
-		}
+		f.bridge.SetUpdateChannel(updater.EarlyChannel)
 	}
 }
 
@@ -101,12 +95,6 @@ func (f *frontendCLI) selectStableChannel(c *ishell.Context) {
 	f.Println("Switching to the stable channel may reset all data!")
 
 	if f.yesNoQuestion("Are you sure you want to switch to the stable update channel") {
-		needRestart, err := f.bridge.SetUpdateChannel(updater.StableChannel)
-		if err != nil {
-			f.Println("There was a problem switching update channel.")
-		}
-		if needRestart {
-			f.restarter.SetToRestart()
-		}
+		f.bridge.SetUpdateChannel(updater.StableChannel)
 	}
 }

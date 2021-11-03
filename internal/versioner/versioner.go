@@ -29,6 +29,7 @@ import (
 var (
 	ErrNoVersions   = errors.New("no available versions")
 	ErrNoExecutable = errors.New("no executable found")
+	ErrNoRemoveBase = errors.New("can't remove base version")
 )
 
 // Versioner manages a directory of versioned app directories.

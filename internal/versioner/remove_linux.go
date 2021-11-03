@@ -15,27 +15,38 @@
 // You should have received a copy of the GNU General Public License
 // along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
 
-//go:build darwin
-// +build darwin
+//go:build linux
+// +build linux
 
 package versioner
 
-import "github.com/Masterminds/semver/v3"
+import (
+	"os"
+	"path/filepath"
+	"strings"
+)
 
-// RemoveOldVersions removes all but the latest app version.
-func (v *Versioner) RemoveOldVersions() error {
-	// darwin does not use the versioner; removal is a noop.
-	return nil
-}
-
-// RemoveOtherVersions removes all but the specific provided app version.
-func (v *Versioner) RemoveOtherVersions(versionToKeep *semver.Version) error {
-	// darwin does not use the versioner; removal is a noop.
-	return nil
-}
-
-// RemoveOtherVersions removes current app version unless it is base installed version.
 func (v *Versioner) RemoveCurrentVersion() error {
-	// darwin does not use the versioner; removal is a noop.
-	return nil
+	// get current executable
+	exec, err := os.Executable()
+	if err != nil {
+		return err
+	}
+
+	// Check that current executtable is update package so we won't
+	// delete base version (that is controlled by package manager).
+	// Get absolute paths to ensure there is no crazy stuff there.
+	absExec, err := filepath.Abs(exec)
+	if err != nil {
+		return err
+	}
+	absRoot, err := filepath.Abs(v.root)
+	if err != nil {
+		return err
+	}
+	if !strings.HasPrefix(absExec, absRoot) {
+		return ErrNoRemoveBase
+	}
+
+	return os.RemoveAll(filepath.Dir(absExec))
 }

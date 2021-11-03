@@ -29,7 +29,6 @@ QtObject {
     property StatusWindow frontendStatus
     property SystemTrayIcon frontendTray
 
-    signal askDisableBeta()
     signal askEnableBeta()
     signal askEnableSplitMode(var user)
     signal askDisableLocalCache()
@@ -58,7 +57,6 @@ QtObject {
         root.updateIsLatestVersion,
         root.loginConnectionError,
         root.onlyPaidUsers,
-        root.disableBeta,
         root.enableBeta,
         root.bugReportSendSuccess,
         root.bugReportSendError,
@@ -335,41 +333,6 @@ QtObject {
                 root.updateIsLatestVersion.active = false
             }
         }
-    }
-
-    property Notification disableBeta: Notification {
-        text: qsTr("Disable beta access?")
-        description: qsTr("This resets Bridge to the current release and will restart the app. Your preferences, cached data, and email client configurations will be cleared. ")
-        icon: "./icons/ic-exclamation-circle-filled.svg"
-        type: Notification.NotificationType.Warning
-        group: Notifications.Group.Update | Notifications.Group.Dialogs
-
-        Connections {
-            target: root
-            onAskDisableBeta: {
-                root.disableBeta.active = true
-            }
-        }
-
-        action: [
-            Action {
-                id: disableBeta_remindLater
-                text: qsTr("Remind me later")
-
-                onTriggered: {
-                    root.disableBeta.active = false
-                }
-            },
-            Action {
-                id: disableBeta_disable
-                text: qsTr("Disable and restart")
-                onTriggered: {
-                    root.backend.toggleBeta(false)
-                    disableBeta_disable.loading = true
-                    disableBeta_remindLater.enabled = false
-                }
-            }
-        ]
     }
 
     property Notification enableBeta: Notification {

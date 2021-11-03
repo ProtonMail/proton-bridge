@@ -15,6 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
 
+//go:build !darwin
 // +build !darwin
 
 package versioner
@@ -23,6 +24,7 @@ import (
 	"os"
 
 	"github.com/Masterminds/semver/v3"
+	"github.com/ProtonMail/proton-bridge/internal/constants"
 	"github.com/sirupsen/logrus"
 )
 
@@ -56,6 +58,12 @@ func (v *Versioner) RemoveOtherVersions(versionToKeep *semver.Version) error {
 
 	for _, version := range versions {
 		if version.Equal(versionToKeep) {
+			continue
+		}
+		if version.Equal(semver.MustParse(constants.Version)) {
+			if err := v.RemoveCurrentVersion(); err != nil {
+				logrus.WithError(err).Error("Failed to remove current app version")
+			}
 			continue
 		}
 		if err := os.RemoveAll(version.path); err != nil {

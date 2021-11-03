@@ -23,6 +23,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/Masterminds/semver/v3"
 	"github.com/ProtonMail/proton-bridge/internal/config/settings"
 	"github.com/ProtonMail/proton-bridge/internal/constants"
 	"github.com/ProtonMail/proton-bridge/internal/metrics"
@@ -131,53 +132,53 @@ func (b *Bridge) GetUpdateChannel() updater.UpdateChannel {
 }
 
 // SetUpdateChannel switches update channel.
-// Downgrading to previous version (by switching from early to stable, for example)
-// requires clearing all data including update files due to possibility of
-// inconsistency between versions and absence of backwards migration scripts.
-func (b *Bridge) SetUpdateChannel(channel updater.UpdateChannel) (needRestart bool, err error) {
+func (b *Bridge) SetUpdateChannel(channel updater.UpdateChannel) {
 	b.settings.Set(settings.UpdateChannelKey, string(channel))
+}
 
+func (b *Bridge) resetToLatestStable() error {
 	version, err := b.updater.Check()
 	if err != nil {
-		return false, err
+		// If we can not check for updates - just remove all local updates and reset to base installer version.
+		// Not using `b.locations.ClearUpdates()` because `versioner.RemoveOtherVersions` can also handle
+		// case when it is needed to remove currently running verion.
+		if err := b.versioner.RemoveOtherVersions(semver.MustParse("0.0.0")); err != nil {
+			log.WithError(err).Error("Failed to clear updates while downgrading channel")
+		}
+		return nil
 	}
 
-	// We have to deal right away only with downgrade - that action needs to
-	// clear data and updates, and install bridge right away. But regular
-	// upgrade can be left out for periodic check.
-	if !b.updater.IsDowngrade(version) {
-		return false, nil
-	}
-
-	if err := b.Users.ClearData(); err != nil {
-		log.WithError(err).Error("Failed to clear data while downgrading channel")
-	}
-
-	if err := b.locations.ClearUpdates(); err != nil {
-		log.WithError(err).Error("Failed to clear updates while downgrading channel")
+	// If current version is same as upstream stable version - do nothing.
+	if version.Version.Equal(semver.MustParse(constants.Version)) {
+		return nil
 	}
 
 	if err := b.updater.InstallUpdate(version); err != nil {
-		return false, err
+		return err
 	}
 
-	return true, b.versioner.RemoveOtherVersions(version.Version)
+	return b.versioner.RemoveOtherVersions(version.Version)
 }
 
 // FactoryReset will remove all local cache and settings.
-// We want to downgrade to latest stable version if user is early higher than stable.
-// Setting the channel back to stable will do this for us.
+// It will also downgrade to latest stable version if user is on early version.
 func (b *Bridge) FactoryReset() {
-	if _, err := b.SetUpdateChannel(updater.StableChannel); err != nil {
-		log.WithError(err).Error("Failed to revert to stable update channel")
-	}
+	wasEarly := b.GetUpdateChannel() == updater.EarlyChannel
 
-	if err := b.Users.ClearUsers(); err != nil {
-		log.WithError(err).Error("Failed to remove bridge users")
+	b.settings.Set(settings.UpdateChannelKey, string(updater.StableChannel))
+
+	if wasEarly {
+		if err := b.resetToLatestStable(); err != nil {
+			log.WithError(err).Error("Failed to reset to latest stable version")
+		}
 	}
 
 	if err := b.Users.ClearData(); err != nil {
 		log.WithError(err).Error("Failed to remove bridge data")
+	}
+
+	if err := b.Users.ClearUsers(); err != nil {
+		log.WithError(err).Error("Failed to remove bridge users")
 	}
 }
 

@@ -15,6 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
 
+//go:build build_qt
 // +build build_qt
 
 package qt
@@ -100,31 +101,15 @@ func (f *FrontendQt) setIsBetaEnabled() {
 }
 
 func (f *FrontendQt) toggleBeta(makeItEnabled bool) {
-	channel := f.bridge.GetUpdateChannel()
-
-	if makeItEnabled == (channel == updater.EarlyChannel) {
-		f.qml.SetIsBetaEnabled(makeItEnabled)
-		return
-	}
-
-	channel = updater.StableChannel
+	channel := updater.StableChannel
 	if makeItEnabled {
 		channel = updater.EarlyChannel
 	}
 
-	needRestart, err := f.bridge.SetUpdateChannel(channel)
+	f.bridge.SetUpdateChannel(channel)
+
 	f.setIsBetaEnabled()
 
-	if err != nil {
-		f.log.WithError(err).Warn("Switching udpate channel failed.")
-		f.qml.UpdateManualError()
-		return
-	}
-
-	if needRestart {
-		f.restart()
-		return
-	}
-
-	f.checkUpdatesAndNotify(false)
+	// Immediately check the updates to set the correct landing page link.
+	f.checkUpdates()
 }
