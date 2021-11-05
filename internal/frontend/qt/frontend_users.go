@@ -22,7 +22,9 @@ package qt
 import (
 	"context"
 	"encoding/base64"
+	"time"
 
+	"github.com/ProtonMail/proton-bridge/internal/events"
 	"github.com/ProtonMail/proton-bridge/internal/users"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 )
@@ -138,14 +140,40 @@ func (f *FrontendQt) finishLogin() {
 		return
 	}
 
-	_, err := f.bridge.FinishLogin(f.authClient, f.auth, f.password)
+	done := make(chan string)
+	f.eventListener.Add(events.UserChangeDone, done)
+	defer f.eventListener.Remove(events.UserChangeDone, done)
+
+	user, err := f.bridge.FinishLogin(f.authClient, f.auth, f.password)
 	if err != nil && err != users.ErrUserAlreadyConnected {
 		f.log.WithError(err).Errorf("Finish login failed")
 		f.qml.Login2PasswordErrorAbort(err.Error())
 		return
 	}
 
-	defer f.qml.LoginFinished()
+	// The user changed should be triggerd by FinishLogin but it is not
+	// guaranteed when this is going to happen. Therefore we should wait
+	// until we receive the signal from userChanged function.
+	f.waitForUserChangeDone(done, user.ID())
+
+	index := f.qml.Users().indexByID(user.ID())
+	f.log.WithField("index", index).Debug("Login finished")
+
+	defer f.qml.LoginFinished(index)
+}
+
+func (f *FrontendQt) waitForUserChangeDone(done <-chan string, userID string) {
+	for {
+		select {
+		case changedID := <-done:
+			if changedID == userID {
+				return
+			}
+		case <-time.After(2 * time.Second):
+			f.log.WithField("ID", userID).Warning("Login finished but user not added within 2 seconds")
+			return
+		}
+	}
 }
 
 func (f *FrontendQt) loginAbort(username string) {

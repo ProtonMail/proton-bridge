@@ -41,6 +41,7 @@ const (
 	NoActiveKeyForRecipientEvent = "noActiveKeyForRecipient"
 	UpgradeApplicationEvent      = "upgradeApplication"
 	TLSCertIssue                 = "tlsCertPinningIssue"
+	UserChangeDone               = "QMLUserChangedDone"
 
 	// LogoutEventTimeout is the minimum time to permit between logout events being sent.
 	LogoutEventTimeout = 3 * time.Minute
@@ -55,4 +56,5 @@ func SetupEvents(listener listener.Listener) {
 	listener.SetBuffer(UpgradeApplicationEvent)
 	listener.SetBuffer(TLSCertIssue)
 	listener.SetBuffer(UserRefreshEvent)
+	listener.Book(UserChangeDone)
 }

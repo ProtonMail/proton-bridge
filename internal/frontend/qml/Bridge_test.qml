@@ -670,7 +670,7 @@ Window {
     signal login2PasswordRequested()
     signal login2PasswordError(string errorMsg)
     signal login2PasswordErrorAbort(string errorMsg)
-    signal loginFinished()
+    signal loginFinished(int index)
 
     signal internetOff()
     signal internetOn()
@@ -847,7 +847,7 @@ Window {
         console.debug("<- login2PasswordErrorAbort")
     }
     onLoginFinished: {
-        console.debug("<- loginFinished")
+        console.debug("<- loginFinished", index)
     }
 
     onInternetOff: {

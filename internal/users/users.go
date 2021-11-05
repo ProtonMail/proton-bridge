@@ -219,7 +219,7 @@ func (u *Users) FinishLogin(client pmapi.Client, auth *pmapi.Auth, password []by
 				logrus.WithError(err).Warn("Failed to delete new auth session")
 			}
 
-			return nil, ErrUserAlreadyConnected
+			return user, ErrUserAlreadyConnected
 		}
 
 		// Update the user's credentials with the latest auth used to connect this user.

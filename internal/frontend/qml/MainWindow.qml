@@ -85,6 +85,10 @@ ApplicationWindow {
         onShowMainWindow: {
             root.showAndRise()
         }
+
+        onLoginFinished: {
+            console.debug("Login finished", index)
+        }
     }
 
     StackLayout {

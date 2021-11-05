@@ -159,7 +159,6 @@ Item {
 
                     model: root.backend.users
                     delegate: Item {
-
                         width: leftBar.width - 2*accounts._leftRightMargins
                         implicitHeight: children[0].implicitHeight + children[0].anchors.topMargin + children[0].anchors.bottomMargin
                         implicitWidth: children[0].implicitWidth + children[0].anchors.leftMargin + children[0].anchors.rightMargin
@@ -359,7 +358,13 @@ Item {
                     }
                 }
 
-                function showAccount            () { rightContent.currentIndex = 0 }
+                function showAccount(index) {
+                    if (index !== undefined && index >= 0){
+                        accounts.currentIndex = index
+                    }
+                    rightContent.currentIndex = 0
+                }
+
                 function showSignIn             () { rightContent.currentIndex = 1 }
                 function showGeneralSettings    () { rightContent.currentIndex = 2 }
                 function showPortSettings       () { rightContent.currentIndex = 3 }
@@ -371,7 +376,7 @@ Item {
                 Connections {
                     target: root.backend
 
-                    onLoginFinished: rightContent.showAccount()
+                    onLoginFinished: rightContent.showAccount(index)
                 }
             }
         }

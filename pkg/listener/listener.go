@@ -35,6 +35,7 @@ type Listener interface {
 	Emit(eventName string, data string)
 	SetBuffer(eventName string)
 	RetryEmit(eventName string)
+	Book(eventName string)
 }
 
 type listener struct {
@@ -54,6 +55,19 @@ func New() Listener {
 		buffered:  make(map[string][]string),
 		lock:      &sync.RWMutex{},
 	}
+}
+
+// Book wil create the list of channels for specific eventName. This should be
+// used when there is not always listening channel available and it should not
+// be logged when no channel is awaiting an emitted event.
+func (l *listener) Book(eventName string) {
+	if l.channels == nil {
+		l.channels = make(map[string][]chan<- string)
+	}
+	if _, ok := l.channels[eventName]; !ok {
+		l.channels[eventName] = []chan<- string{}
+	}
+	log.WithField("name", eventName).Debug("Channel booked")
 }
 
 // SetLimit sets the limit for the `eventName`. When the same event (name and data)

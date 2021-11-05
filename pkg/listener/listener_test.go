@@ -59,6 +59,9 @@ func TestAddAndRemove(t *testing.T) {
 
 	channel := make(chan string)
 	listener.Add("event", channel)
+	listener.Emit("event", "hello!")
+	checkChannelEmitted(t, channel, "hello!")
+
 	listener.Remove("event", channel)
 	listener.Emit("event", "hello!")
 

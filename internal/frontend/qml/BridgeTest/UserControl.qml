@@ -236,13 +236,21 @@ ColumnLayout {
         }
     }
 
-    Button {
-        colorScheme: root.colorScheme
-        text: "Login Finished"
+    RowLayout {
+        Button {
+            colorScheme: root.colorScheme
+            text: "Login Finished"
 
-        onClicked: {
-            root.backend.loginFinished()
-            user.resetLoginRequests()
+            onClicked: {
+                root.backend.loginFinished(0+loginFinishedIndex.text)
+                user.resetLoginRequests()
+            }
+        }
+        TextField {
+            id: loginFinishedIndex
+            colorScheme: root.colorScheme
+            label: "Index:"
+            text: "0"
         }
     }
 
@@ -251,7 +259,6 @@ ColumnLayout {
             colorScheme: root.colorScheme
             label: "used:"
             text: user && user.usedBytes ? user.usedBytes : 0
-            validator: DoubleValidator {bottom: 1; top: 1024*1024*1024*1024*1024}
             onEditingFinished: {
                 user.usedBytes = parseFloat(text)
             }
@@ -261,7 +268,6 @@ ColumnLayout {
             colorScheme: root.colorScheme
             label: "total:"
             text: user && user.totalBytes ? user.totalBytes : 0
-            validator: DoubleValidator {bottom: 1; top: 1024*1024*1024*1024*1024}
             onEditingFinished: {
                 user.totalBytes = parseFloat(text)
             }

@@ -23,6 +23,7 @@ package qt
 import (
 	"sync"
 
+	"github.com/ProtonMail/proton-bridge/internal/events"
 	"github.com/ProtonMail/proton-bridge/internal/frontend/types"
 	"github.com/therecipe/qt/core"
 )
@@ -174,6 +175,8 @@ func (um *QMLUserModel) load() {
 }
 
 func (um *QMLUserModel) userChanged(userID string) {
+	defer um.f.eventListener.Emit(events.UserChangeDone, userID)
+
 	index := um.indexByIDNotSafe(userID)
 	user, err := um.f.bridge.GetUser(userID)
 

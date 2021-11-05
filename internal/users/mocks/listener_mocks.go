@@ -46,6 +46,18 @@ func (mr *MockListenerMockRecorder) Add(arg0, arg1 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Add", reflect.TypeOf((*MockListener)(nil).Add), arg0, arg1)
 }
 
+// Book mocks base method.
+func (m *MockListener) Book(arg0 string) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "Book", arg0)
+}
+
+// Book indicates an expected call of Book.
+func (mr *MockListenerMockRecorder) Book(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Book", reflect.TypeOf((*MockListener)(nil).Book), arg0)
+}
+
 // Emit mocks base method.
 func (m *MockListener) Emit(arg0, arg1 string) {
 	m.ctrl.T.Helper()
