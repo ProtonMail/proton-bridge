@@ -45,6 +45,9 @@ type Event struct {
 	Addresses []*EventAddress
 	// Messages to show to the user.
 	Notices []string
+
+	// Update of used user space
+	UsedSpace *int64
 }
 
 // EventAction is the action that created a change.
@@ -182,6 +185,21 @@ func (c *client) getEvent(ctx context.Context, eventID string, numberOfMergedEve
 		return r.SetResult(&event).Get("/events/" + eventID)
 	}); err != nil {
 		return nil, err
+	}
+
+	// API notifies about used space two ways:
+	//    - by `event.User.UsedSpace`
+	//    - by `event.UsedSpace`
+	//
+	// Because event merging is implemented for User object we copy the
+	// value from event.UsedSpace to event.User.UsedSpace and continue with
+	// user.
+	if event.UsedSpace != nil {
+		if event.User == nil {
+			event.User = &User{UsedSpace: event.UsedSpace}
+		} else {
+			event.User.UsedSpace = event.UsedSpace
+		}
 	}
 
 	if event.More && numberOfMergedEvents < maxNumberOfMergedEvents {

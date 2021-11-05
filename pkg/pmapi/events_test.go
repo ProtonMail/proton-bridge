@@ -420,7 +420,6 @@ const (
             "Unread": 0
         }
     ],
-    "UsedSpace": 7552905,
     "Notices": ["Server will be down in 2min because of a NSA attack"],
     "Code": 1000
 }
@@ -465,7 +464,7 @@ const (
 		"User": {
         "ID": "userID1",
         "Name": "user",
-        "UsedSpace": 12345,
+        "UsedSpace": 444,
         "MaxSpace": 12345678
     },
 		"Addresses": [
@@ -478,6 +477,7 @@ const (
             }
         }
     ],
+    "UsedSpace": 12345,
     "Notices": ["Server will be down in 2min because of a NSA attack"]
 }
 `
