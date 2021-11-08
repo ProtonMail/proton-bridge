@@ -61,9 +61,17 @@ func NewReporter(appName, appVersion string, userAgent fmt.Stringer) *Reporter {
 }
 
 func (r *Reporter) ReportException(i interface{}) error {
+	return r.ReportExceptionWithContext(i, make(map[string]interface{}))
+}
+
+func (r *Reporter) ReportMessage(msg string) error {
+	return r.ReportMessageWithContext(msg, make(map[string]interface{}))
+}
+
+func (r *Reporter) ReportExceptionWithContext(i interface{}, context map[string]interface{}) error {
 	err := fmt.Errorf("recover: %v", i)
 
-	return r.scopedReport(func() {
+	return r.scopedReport(context, func() {
 		if eventID := sentry.CaptureException(err); eventID != nil {
 			logrus.WithError(err).
 				WithField("reportID", *eventID).
@@ -72,8 +80,8 @@ func (r *Reporter) ReportException(i interface{}) error {
 	})
 }
 
-func (r *Reporter) ReportMessage(msg string) error {
-	return r.scopedReport(func() {
+func (r *Reporter) ReportMessageWithContext(msg string, context map[string]interface{}) error {
+	return r.scopedReport(context, func() {
 		if eventID := sentry.CaptureMessage(msg); eventID != nil {
 			logrus.WithField("message", msg).
 				WithField("reportID", *eventID).
@@ -83,7 +91,7 @@ func (r *Reporter) ReportMessage(msg string) error {
 }
 
 // Report reports a sentry crash with stacktrace from all goroutines.
-func (r *Reporter) scopedReport(doReport func()) error {
+func (r *Reporter) scopedReport(context map[string]interface{}, doReport func()) error {
 	SkipDuringUnwind()
 
 	if os.Getenv("PROTONMAIL_ENV") == "dev" {
@@ -101,6 +109,7 @@ func (r *Reporter) scopedReport(doReport func()) error {
 	sentry.WithScope(func(scope *sentry.Scope) {
 		SkipDuringUnwind()
 		scope.SetTags(tags)
+		scope.SetContexts(context)
 		doReport()
 	})
 
