@@ -30,7 +30,16 @@ func (api *FakePMAPI) isLabelFolder(labelID string) bool {
 			return bool(label.Exclusive)
 		}
 	}
-	return labelID == pmapi.InboxLabel || labelID == pmapi.ArchiveLabel || labelID == pmapi.SentLabel
+	switch labelID {
+	case pmapi.InboxLabel,
+		pmapi.TrashLabel,
+		pmapi.SpamLabel,
+		pmapi.ArchiveLabel,
+		pmapi.SentLabel,
+		pmapi.DraftLabel:
+		return true
+	}
+	return false
 }
 
 func (api *FakePMAPI) ListLabels(context.Context) ([]*pmapi.Label, error) {

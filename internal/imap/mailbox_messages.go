@@ -182,7 +182,7 @@ func (im *imapMailbox) addOrRemoveFlags(operation imap.FlagsOp, messageIDs, flag
 		case imap.AnsweredFlag, imap.DraftFlag, imap.RecentFlag:
 			// Not supported.
 		case strings.ToLower(message.AppleMailJunkFlag), strings.ToLower(message.ThunderbirdJunkFlag):
-			storeMailbox, err := im.storeAddress.GetMailbox("Spam")
+			spamMailbox, err := im.storeAddress.GetMailbox("Spam")
 			if err != nil {
 				return err
 			}
@@ -191,20 +191,27 @@ func (im *imapMailbox) addOrRemoveFlags(operation imap.FlagsOp, messageIDs, flag
 			// No label removal is necessary because Spam and Inbox are both exclusive labels so the backend
 			// will automatically take care of label removal.
 			case imap.AddFlags:
-				if err := storeMailbox.LabelMessages(messageIDs); err != nil {
+				if err := spamMailbox.LabelMessages(messageIDs); err != nil {
 					return err
 				}
 			case imap.RemoveFlags:
-				// when removing junk flag, the message should be moved to the INBOX folder.
-				if err := storeMailbox.UnlabelMessages(messageIDs); err != nil {
-					return err
+				// During spam flag removal only messages which
+				// are in Spam folder should be moved to Inbox.
+				// For other messages it is NOOP.
+				messagesInSpam := []string{}
+				for _, mID := range messageIDs {
+					if uid := spamMailbox.GetUIDList([]string{mID}); len(*uid) != 0 {
+						messagesInSpam = append(messagesInSpam, mID)
+					}
 				}
-				inboxMailbox, err := im.storeAddress.GetMailbox("INBOX")
-				if err != nil {
-					return err
-				}
-				if err := inboxMailbox.LabelMessages(messageIDs); err != nil {
-					return err
+				if len(messagesInSpam) != 0 {
+					inboxMailbox, err := im.storeAddress.GetMailbox("INBOX")
+					if err != nil {
+						return err
+					}
+					if err := inboxMailbox.LabelMessages(messagesInSpam); err != nil {
+						return err
+					}
 				}
 			}
 		}

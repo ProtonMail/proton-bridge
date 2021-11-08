@@ -20,7 +20,7 @@ Feature: IMAP update messages in Spam folder
       | john.doe@mail.com | user@pm.me | foo     |
       | jane.doe@mail.com | name@pm.me | bar     |
 
-  Scenario Outline: Removing flag "junk" or adding flags "nojunk" moves message to INBOX
+  Scenario Outline: Move from Spam to INBOX when client <operation> <flag>
     When IMAP client <operation> flags "<flag>" <suffix> message seq "1"
     Then IMAP response is "OK"
     And mailbox "INBOX" for "user" has 1 messages
@@ -38,3 +38,25 @@ Feature: IMAP update messages in Spam folder
     | removes   | from   | junk   |
     | removes   | from   | Junk   |
     | removes   | from   | $Junk  |
+
+  Scenario Outline: Do not move from Archive to INBOX when client <operation> <flag>
+    Given there are messages in mailbox "Archive" for "user"
+      | id | from              | to         | subject  | body  | read  | starred | deleted |
+      | 1  | john.doe@mail.com | user@pm.me | Archived | hello | false | false   | false   |
+    And there is IMAP client selected in "Archive"
+    When IMAP client <operation> flags "<flag>" <suffix> message seq "1"
+    Then IMAP response is "OK"
+    And mailbox "INBOX" for "user" has 0 messages
+    And mailbox "Archive" for "user" has 1 messages
+    And mailbox "Archive" for "user" has messages
+      | from              | to         | subject  |
+      | john.doe@mail.com | user@pm.me | Archived |
+    Examples:
+    | operation | suffix | flag   |
+    | adds      | to     | nojunk |
+    | adds      | to     | NoJunk |
+    | removes   | from   | junk   |
+    | removes   | from   | Junk   |
+    | removes   | from   | $Junk  |
+
+
