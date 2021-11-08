@@ -23,7 +23,7 @@ import QtQuick.Controls.impl 2.12
 
 import Proton 4.0
 
-Item {
+Rectangle {
     id:root
 
     property ColorScheme colorScheme
@@ -36,6 +36,7 @@ Item {
     implicitHeight: children[0].implicitHeight
     implicitWidth: children[0].implicitWidth
 
+    color: root.colorScheme.background_norm
 
     RowLayout {
         anchors.fill: parent
