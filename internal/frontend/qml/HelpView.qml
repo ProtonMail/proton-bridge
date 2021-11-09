@@ -24,6 +24,8 @@ import Proton 4.0
 SettingsView {
     id: root
 
+    fillHeight: true
+
     Label {
         colorScheme: root.colorScheme
         text: qsTr("Help")
@@ -85,6 +87,12 @@ SettingsView {
             root.parent.showBugReport()
         }
 
+        Layout.fillWidth: true
+    }
+
+    // fill height so the footer label will be allways attached to the bottom
+    Item {
+        Layout.fillHeight: true
         Layout.fillWidth: true
     }
 

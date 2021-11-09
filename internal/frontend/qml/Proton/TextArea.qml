@@ -124,11 +124,27 @@ FocusScope {
     function selectWord() { return control.selectWord() }
     function undo() { return control.undo() }
 
+    // Calculates the height of the component to make exactly lineNum visible in edit area
+    function heightForLinesVisible(lineNum) {
+        var totalHeight = 0
+        totalHeight += headerLayout.height
+        totalHeight += footerLayout.height
+        totalHeight += control.topPadding + control.bottomPadding
+        totalHeight += lineNum * fontMetrics.height
+        return totalHeight
+    }
+
+    FontMetrics {
+        id: fontMetrics
+        font: control.font
+    }
+
     ColumnLayout {
         anchors.fill: parent
         spacing: 0
 
         RowLayout {
+            id: headerLayout
             Layout.fillWidth: true
             spacing: 0
 
@@ -282,6 +298,7 @@ FocusScope {
         }
 
         RowLayout {
+            id: footerLayout
             Layout.fillWidth: true
             spacing: 0
 

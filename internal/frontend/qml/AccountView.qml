@@ -40,195 +40,208 @@ Item {
     property int _lineWidth: 1
 
     ScrollView {
+        id: scrollView
         clip: true
 
         anchors.fill: parent
 
-        ColumnLayout {
-            width: root.width
-            spacing: 0
+        Item {
+            // can't use parent here because parent is not ScrollView (Flickable inside contentItem inside ScrollView)
+            width: scrollView.availableWidth
+            height: scrollView.availableHeight
 
-            Rectangle {
-                id: topRectangle
-                color: root.colorScheme.background_norm
+            implicitHeight: children[0].implicitHeight + children[0].anchors.topMargin + children[0].anchors.bottomMargin
+            // do not set implicitWidth because implicit width of ColumnLayout will be equal to maximum implicit width of
+            // internal items. And if one of internal items would be a Text or Label - implicit width of those is always
+            // equal to non-wrapped text (i.e. one line only). That will lead to enabling horizontal scroll when not needed
+            implicitWidth: width
 
-                implicitHeight: children[0].implicitHeight + children[0].anchors.topMargin + children[0].anchors.bottomMargin
-                implicitWidth: children[0].implicitWidth + children[0].anchors.leftMargin + children[0].anchors.rightMargin
+            ColumnLayout {
+                spacing: 0
 
-                Layout.fillWidth: true
+                anchors.fill: parent
 
-                ColumnLayout {
-                    spacing: root._spacing
+                Rectangle {
+                    id: topRectangle
+                    color: root.colorScheme.background_norm
 
-                    anchors.fill: parent
-                    anchors.leftMargin: root._leftMargin
-                    anchors.rightMargin: root._rightMargin
-                    anchors.topMargin: root._topMargin
-                    anchors.bottomMargin: root._bottomMargin
+                    implicitHeight: children[0].implicitHeight + children[0].anchors.topMargin + children[0].anchors.bottomMargin
+                    implicitWidth: children[0].implicitWidth + children[0].anchors.leftMargin + children[0].anchors.rightMargin
 
+                    Layout.fillWidth: true
 
-                    RowLayout { // account delegate with action buttons
-                        Layout.fillWidth: true
+                    ColumnLayout {
+                        spacing: root._spacing
 
-                        AccountDelegate {
+                        anchors.fill: parent
+                        anchors.leftMargin: root._leftMargin
+                        anchors.rightMargin: root._rightMargin
+                        anchors.topMargin: root._topMargin
+                        anchors.bottomMargin: root._bottomMargin
+
+                        RowLayout { // account delegate with action buttons
                             Layout.fillWidth: true
+
+                            AccountDelegate {
+                                Layout.fillWidth: true
+                                colorScheme: root.colorScheme
+                                user: root.user
+                                type: AccountDelegate.LargeView
+                                enabled: root.user ? root.user.loggedIn : false
+                            }
+
+                            Button {
+                                Layout.alignment: Qt.AlignTop
+                                colorScheme: root.colorScheme
+                                text: qsTr("Sign out")
+                                secondary: true
+                                visible: root.user ? root.user.loggedIn : false
+                                onClicked: {
+                                    if (!root.user) return
+                                    root.user.logout()
+                                }
+                            }
+
+                            Button {
+                                Layout.alignment: Qt.AlignTop
+                                colorScheme: root.colorScheme
+                                text: qsTr("Sign in")
+                                secondary: true
+                                visible: root.user ? !root.user.loggedIn : false
+                                onClicked: {
+                                    if (!root.user) return
+                                    root.parent.rightContent.showSignIn()
+                                }
+                            }
+
+                            Button {
+                                Layout.alignment: Qt.AlignTop
+                                colorScheme: root.colorScheme
+                                icon.source: "icons/ic-trash.svg"
+                                secondary: true
+                                onClicked: {
+                                    if (!root.user) return
+                                    root.user.remove()
+                                }
+                            }
+                        }
+
+                        Rectangle {
+                            Layout.fillWidth: true
+                            height: root._lineWidth
+                            color: root.colorScheme.border_weak
+                        }
+
+                        SettingsItem {
                             colorScheme: root.colorScheme
-                            user: root.user
-                            type: AccountDelegate.LargeView
+                            text: qsTr("Email clients")
+                            actionText: qsTr("Configure")
+                            description: qsTr("Proton Mail Bridge works with email clients that support IMAP/SMPT to send and receive messages. Using the mailbox details below, you can (re)configure your client at any point.")
+                            type: SettingsItem.Button
                             enabled: root.user ? root.user.loggedIn : false
-                        }
-
-                        Button {
-                            Layout.alignment: Qt.AlignTop
-                            colorScheme: root.colorScheme
-                            text: qsTr("Sign out")
-                            secondary: true
-                            visible: root.user ? root.user.loggedIn : false
+                            visible: root.user ? !root.user.splitMode || root.user.addresses.length==1 : false
+                            showSeparator: splitMode.visible
                             onClicked: {
                                 if (!root.user) return
-                                root.user.logout()
+                                root.showSetupGuide(root.user, user.addresses[0])
                             }
-                        }
 
-                        Button {
-                            Layout.alignment: Qt.AlignTop
-                            colorScheme: root.colorScheme
-                            text: qsTr("Sign in")
-                            secondary: true
-                            visible: root.user ? !root.user.loggedIn : false
-                            onClicked: {
-                                if (!root.user) return
-                                root.parent.rightContent.showSignIn()
-                            }
-                        }
-
-                        Button {
-                            Layout.alignment: Qt.AlignTop
-                            colorScheme: root.colorScheme
-                            icon.source: "icons/ic-trash.svg"
-                            secondary: true
-                            onClicked: {
-                                if (!root.user) return
-                                root.user.remove()
-                            }
-                        }
-                    }
-
-                    Rectangle {
-                        Layout.fillWidth: true
-                        height: root._lineWidth
-                        color: root.colorScheme.border_weak
-                    }
-
-                    SettingsItem {
-                        colorScheme: root.colorScheme
-                        text: qsTr("Email clients")
-                        actionText: qsTr("Configure")
-                        description: qsTr("Proton Mail Bridge works with email clients that support IMAP/SMPT to send and receive messages. Using the mailbox details below, you can (re)configure your client at any point.")
-                        type: SettingsItem.Button
-                        enabled: root.user ? root.user.loggedIn : false
-                        visible: root.user ? !root.user.splitMode || root.user.addresses.length==1 : false
-                        showSeparator: splitMode.visible
-                        onClicked: {
-                            if (!root.user) return
-                            root.showSetupGuide(root.user, user.addresses[0])
-                        }
-
-                        Layout.fillWidth: true
-                    }
-
-                    SettingsItem {
-                        id: splitMode
-                        colorScheme: root.colorScheme
-                        text: qsTr("Split addresses")
-                        description: qsTr("Split addresses allows you to configure multiple email addresses individually. Changing its mode will require you to delete your accounts(s) from your email client and begin the setup process from scratch.")
-                        type: SettingsItem.Toggle
-                        checked: root.user ? root.user.splitMode : false
-                        visible: root.user ? root.user.addresses.length > 1 : false
-                        enabled: root.user ? root.user.loggedIn : false
-                        showSeparator: addressSelector.visible
-                        onClicked: {
-                            if (!splitMode.checked){
-                                root.notifications.askEnableSplitMode(user)
-                            } else {
-                                root.user.toggleSplitMode(!splitMode.checked)
-                            }
-                        }
-
-                        Layout.fillWidth: true
-                    }
-
-                    RowLayout {
-                        Layout.fillWidth: true
-                        enabled: root.user ? root.user.loggedIn : false
-                        visible: root.user ? root.user.splitMode : false
-
-                        ComboBox {
-                            id: addressSelector
-                            colorScheme: root.colorScheme
                             Layout.fillWidth: true
-                            model: root.user ? root.user.addresses : null
                         }
 
-                        Button {
+                        SettingsItem {
+                            id: splitMode
                             colorScheme: root.colorScheme
-                            text: qsTr("Configure")
-                            secondary: true
+                            text: qsTr("Split addresses")
+                            description: qsTr("Split addresses allows you to configure multiple email addresses individually. Changing its mode will require you to delete your accounts(s) from your email client and begin the setup process from scratch.")
+                            type: SettingsItem.Toggle
+                            checked: root.user ? root.user.splitMode : false
+                            visible: root.user ? root.user.addresses.length > 1 : false
+                            enabled: root.user ? root.user.loggedIn : false
+                            showSeparator: addressSelector.visible
                             onClicked: {
-                                if (!root.user) return
-                                root.showSetupGuide(root.user, addressSelector.displayText)
+                                if (!splitMode.checked){
+                                    root.notifications.askEnableSplitMode(user)
+                                } else {
+                                    root.user.toggleSplitMode(!splitMode.checked)
+                                }
+                            }
+
+                            Layout.fillWidth: true
+                        }
+
+                        RowLayout {
+                            Layout.fillWidth: true
+                            enabled: root.user ? root.user.loggedIn : false
+                            visible: root.user ? root.user.splitMode : false
+
+                            ComboBox {
+                                id: addressSelector
+                                colorScheme: root.colorScheme
+                                Layout.fillWidth: true
+                                model: root.user ? root.user.addresses : null
+                            }
+
+                            Button {
+                                colorScheme: root.colorScheme
+                                text: qsTr("Configure")
+                                secondary: true
+                                onClicked: {
+                                    if (!root.user) return
+                                    root.showSetupGuide(root.user, addressSelector.displayText)
+                                }
                             }
                         }
                     }
                 }
-            }
 
-            Rectangle {
-                color: root.colorScheme.background_weak
+                Rectangle {
+                    color: root.colorScheme.background_weak
 
-                implicitHeight: children[0].implicitHeight + children[0].anchors.topMargin + children[0].anchors.bottomMargin
-                implicitWidth: children[0].implicitWidth + children[0].anchors.leftMargin + children[0].anchors.rightMargin
+                    implicitHeight: children[0].implicitHeight + children[0].anchors.topMargin + children[0].anchors.bottomMargin
+                    implicitWidth: children[0].implicitWidth + children[0].anchors.leftMargin + children[0].anchors.rightMargin
 
-                Layout.fillWidth: true
+                    Layout.fillWidth: true
 
-                ColumnLayout {
-                    id: configuration
+                    ColumnLayout {
+                        id: configuration
 
-                    anchors.fill: parent
-                    anchors.leftMargin: root._leftMargin
-                    anchors.rightMargin: root._rightMargin
-                    anchors.topMargin: root._detailsTopMargin
-                    anchors.bottomMargin: root._spacing
+                        anchors.fill: parent
+                        anchors.leftMargin: root._leftMargin
+                        anchors.rightMargin: root._rightMargin
+                        anchors.topMargin: root._detailsTopMargin
+                        anchors.bottomMargin: root._spacing
 
-                    spacing: root._spacing
-                    visible: root.user ? root.user.loggedIn : false
+                        spacing: root._spacing
+                        visible: root.user ? root.user.loggedIn : false
 
-                    property string currentAddress: addressSelector.displayText
+                        property string currentAddress: addressSelector.displayText
 
-                    Label {
-                        colorScheme: root.colorScheme
-                        text: qsTr("Mailbox details")
-                        type: Label.Body_semibold
-                    }
+                        Label {
+                            colorScheme: root.colorScheme
+                            text: qsTr("Mailbox details")
+                            type: Label.Body_semibold
+                        }
 
-                    Configuration {
-                        colorScheme: root.colorScheme
-                        title: qsTr("IMAP")
-                        hostname:   root.backend.hostname
-                        port:       root.backend.portIMAP.toString()
-                        username:   configuration.currentAddress
-                        password:   root.user ? root.user.password : ""
-                        security:   "STARTTLS"
-                    }
+                        Configuration {
+                            colorScheme: root.colorScheme
+                            title: qsTr("IMAP")
+                            hostname:   root.backend.hostname
+                            port:       root.backend.portIMAP.toString()
+                            username:   configuration.currentAddress
+                            password:   root.user ? root.user.password : ""
+                            security:   "STARTTLS"
+                        }
 
-                    Configuration {
-                        colorScheme: root.colorScheme
-                        title: qsTr("SMTP")
-                        hostname : root.backend.hostname
-                        port     : root.backend.portSMTP.toString()
-                        username : configuration.currentAddress
-                        password : root.user ? root.user.password : ""
-                        security : root.backend.useSSLforSMTP ? "SSL" : "STARTTLS"
+                        Configuration {
+                            colorScheme: root.colorScheme
+                            title: qsTr("SMTP")
+                            hostname : root.backend.hostname
+                            port     : root.backend.portSMTP.toString()
+                            username : configuration.currentAddress
+                            password : root.user ? root.user.password : ""
+                            security : root.backend.useSSLforSMTP ? "SSL" : "STARTTLS"
+                        }
                     }
                 }
             }

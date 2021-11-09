@@ -24,6 +24,8 @@ import Proton 4.0
 SettingsView {
     id: root
 
+    fillHeight: true
+
     property var selectedAddress
 
     Label {
@@ -41,7 +43,8 @@ SettingsView {
         label: qsTr("Description")
         colorScheme: root.colorScheme
         Layout.fillWidth: true
-        Layout.minimumHeight: 100
+        Layout.fillHeight: true
+        Layout.minimumHeight: heightForLinesVisible(4)
         hint: description.text.length + "/" + _maxLength
         placeholderText: qsTr("Tell us what went wrong or isn't working (min. %1 characters).").arg(_minLength)
 
@@ -66,6 +69,11 @@ SettingsView {
 
         KeyNavigation.priority: KeyNavigation.BeforeItem
         KeyNavigation.tab: address
+
+        // set implicitHeight to explicit height because se don't
+        // want TextArea implicitHeight (which is height of all text)
+        // to be considered in SettingsView internal scroll view
+        implicitHeight: height
     }
 
 

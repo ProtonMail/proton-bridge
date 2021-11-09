@@ -28,6 +28,8 @@ SettingsView {
     property bool _isAdvancedShown: false
     property var notifications
 
+    fillHeight: false
+
     Label {
         colorScheme: root.colorScheme
         text: qsTr("Settings")

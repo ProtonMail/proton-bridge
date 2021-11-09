@@ -26,6 +26,8 @@ import Proton 4.0
 SettingsView {
     id: root
 
+    fillHeight: false
+
     property var notifications
     property bool _diskCacheEnabled: true
     property string _diskCachePath: "/home"

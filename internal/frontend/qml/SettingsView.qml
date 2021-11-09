@@ -37,28 +37,47 @@ Item {
     property int _bottomMargin: 32
     property int _spacing: 20
 
+    // fillHeight indicates whether the SettingsView should fill all available explicit height set
+    property bool fillHeight: false
 
     ScrollView {
+        id: scrollView
         clip: true
 
-        width:root.width
-        height:root.height
+        anchors.fill: parent
 
-        contentWidth: content.width + content.anchors.leftMargin + content.anchors.rightMargin
-        contentHeight: content.height + content.anchors.topMargin + content.anchors.bottomMargin
+        Item {
+            // can't use parent here because parent is not ScrollView (Flickable inside contentItem inside ScrollView)
+            width: scrollView.availableWidth
+            height: scrollView.availableHeight
 
-        ColumnLayout {
-            id: content
-            spacing: root._spacing
-            width: root.width - (root._leftMargin + root._rightMargin)
+            implicitHeight: children[0].implicitHeight + children[0].anchors.topMargin + children[0].anchors.bottomMargin
+            // do not set implicitWidth because implicit width of ColumnLayout will be equal to maximum implicit width of
+            // internal items. And if one of internal items would be a Text or Label - implicit width of those is always
+            // equal to non-wrapped text (i.e. one line only). That will lead to enabling horizontal scroll when not needed
+            implicitWidth: width
 
-            anchors{
-                top: parent.top
-                left: parent.left
-                topMargin: root._topMargin
-                bottomMargin: root._bottomMargin
-                leftMargin: root._leftMargin
-                rightMargin: root._rightMargin
+            ColumnLayout {
+                anchors.fill: parent
+                spacing: 0
+
+                ColumnLayout {
+                    id: content
+                    spacing: root._spacing
+
+                    Layout.fillWidth: true
+
+                    Layout.topMargin: root._topMargin
+                    Layout.bottomMargin: root._bottomMargin
+                    Layout.leftMargin: root._leftMargin
+                    Layout.rightMargin: root._rightMargin
+                }
+
+                Item {
+                    id: filler
+                    Layout.fillHeight: true
+                    visible: !root.fillHeight
+                }
             }
         }
     }

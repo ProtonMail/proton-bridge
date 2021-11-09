@@ -25,6 +25,8 @@ import Proton 4.0
 SettingsView {
     id: root
 
+    fillHeight: false
+
     Label {
         colorScheme: root.colorScheme
         text: qsTr("SMTP connection mode")

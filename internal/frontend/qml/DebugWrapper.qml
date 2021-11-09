@@ -41,4 +41,15 @@ Rectangle {
         color: "black"
         colorScheme: ProtonStyle.currentStyle
     }
+
+    Rectangle {
+        width: target.implicitWidth
+        height: target.implicitHeight
+
+        color: "transparent"
+        border.color: "green"
+        border.width: 1
+        //z: parent.z - 1
+        z: 10000000
+    }
 }

@@ -25,6 +25,8 @@ import Proton 4.0
 SettingsView {
     id: root
 
+    fillHeight: false
+
     property bool _valuesChanged: (
         imapField.text*1 !== root.backend.portIMAP ||
         smtpField.text*1 !== root.backend.portSMTP
