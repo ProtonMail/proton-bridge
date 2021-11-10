@@ -136,7 +136,7 @@ Item {
                             colorScheme: root.colorScheme
                             text: qsTr("Email clients")
                             actionText: qsTr("Configure")
-                            description: qsTr("Proton Mail Bridge works with email clients that support IMAP/SMPT to send and receive messages. Using the mailbox details below, you can (re)configure your client at any point.")
+                            description: qsTr("Proton Mail Bridge works with email clients that support IMAP/SMTP to send and receive messages. Using the mailbox details below, you can (re)configure your client at any point.")
                             type: SettingsItem.Button
                             enabled: root.user ? root.user.loggedIn : false
                             visible: root.user ? !root.user.splitMode || root.user.addresses.length==1 : false
