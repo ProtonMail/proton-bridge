@@ -32,6 +32,7 @@ type Locator interface {
 type CacheProvider interface {
 	GetIMAPCachePath() string
 	GetDBDir() string
+	GetDefaultMessageCacheDir() string
 }
 
 type SettingsProvider interface {

@@ -53,3 +53,7 @@ func (c *fakeCache) GetIMAPCachePath() string {
 func (c *fakeCache) GetTransferDir() string {
 	return c.dir
 }
+
+func (c *fakeCache) GetDefaultMessageCacheDir() string {
+	return c.dir
+}

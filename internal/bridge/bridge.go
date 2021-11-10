@@ -48,6 +48,7 @@ type Bridge struct {
 	clientManager pmapi.Manager
 	updater       Updater
 	versioner     Versioner
+	cacheProvider CacheProvider
 }
 
 func New(
@@ -87,6 +88,7 @@ func New(
 		clientManager: clientManager,
 		updater:       updater,
 		versioner:     versioner,
+		cacheProvider: cacheProvider,
 	}
 
 	if setting.GetBool(settings.FirstStartKey) {
@@ -193,9 +195,6 @@ func (b *Bridge) SetKeychainApp(helper string) {
 }
 
 func (b *Bridge) EnableCache() error {
-	// Set this back to the default location before enabling.
-	b.settings.Set(settings.CacheLocationKey, "")
-
 	if err := b.Users.EnableCache(); err != nil {
 		return err
 	}
@@ -211,6 +210,8 @@ func (b *Bridge) DisableCache() error {
 	}
 
 	b.settings.SetBool(settings.CacheEnabledKey, false)
+	// Reset back to the default location when disabling.
+	b.settings.Set(settings.CacheLocationKey, b.cacheProvider.GetDefaultMessageCacheDir())
 
 	return nil
 }
