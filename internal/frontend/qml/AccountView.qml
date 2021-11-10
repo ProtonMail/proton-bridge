@@ -153,7 +153,7 @@ Item {
                             id: splitMode
                             colorScheme: root.colorScheme
                             text: qsTr("Split addresses")
-                            description: qsTr("Split addresses allows you to configure multiple email addresses individually. Changing its mode will require you to delete your accounts(s) from your email client and begin the setup process from scratch.")
+                            description: qsTr("Split addresses allows you to configure multiple email addresses individually. Changing its mode will require you to delete your account(s) from your email client and begin the setup process from scratch.")
                             type: SettingsItem.Toggle
                             checked: root.user ? root.user.splitMode : false
                             visible: root.user ? root.user.addresses.length > 1 : false
