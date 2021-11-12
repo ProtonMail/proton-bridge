@@ -2,6 +2,24 @@
 
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
+## [Bridge 1.8.11] James
+
+### Fixed
+* GODT-1415: Only messages which are in Spam should be moved to INBOX once they are marked as not-a-spam.
+* GODT-1405: Integration test fix: Prevent unilateral update in FETCH when copying message by append.
+* GODT-1392: Fix broken header fields for attachments.
+* GODT-1360: Fix live integration test.
+* GODT-968: Messages in All Mail should not be able to mark as deleted.
+* GODT-967: Append external message to All Mail should be APPEND to Archive instead.
+* GODT-966: Append internal message to AllMail should be no action.
+* GODT-965: MOVE command should end with error for All Mail.
+* GODT-963: STORE removing junk or adding nojunk should move message to inbox.
+
+### Changed
+* GODT-1397: Update bbolt to v1.3.6.
+* GODT-1410: Remove event ID from sentry report description.
+* GODT-1395: CI should fail on go.sum changed.
+
 ## [Bridge 1.8.10] James
 
 ### Fixed
@@ -12,6 +30,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-219: Update to godog v0.12.1.
 * GODT-1205: "RCPT TO" does not contain all addressed from "CC".
 * GODT-1103: Cleanup on windows when uninstalling Bridge.
+
 
 ## [Bridge 1.8.9] James
 
