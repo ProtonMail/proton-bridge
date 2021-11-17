@@ -52,6 +52,13 @@ QtObject {
         onVisibleChanged: {
             backend.dockIconVisible = visible
         }
+
+        Connections {
+            target: root.backend
+            onCacheUnavailable: {
+                mainWindow.showAndRise()
+            }
+        }
     }
 
     property StatusWindow _statusWindow: StatusWindow {

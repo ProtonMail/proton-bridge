@@ -24,7 +24,7 @@ import (
 
 	"github.com/ProtonMail/proton-bridge/internal/api"
 	"github.com/ProtonMail/proton-bridge/internal/app/base"
-	"github.com/ProtonMail/proton-bridge/internal/bridge"
+	pkgBridge "github.com/ProtonMail/proton-bridge/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/internal/config/settings"
 	pkgTLS "github.com/ProtonMail/proton-bridge/internal/config/tls"
 	"github.com/ProtonMail/proton-bridge/internal/constants"
@@ -46,6 +46,10 @@ const (
 	flagLogSMTP        = "log-smtp"
 	flagNoWindow       = "no-window"
 	flagNonInteractive = "noninteractive"
+
+	// Memory cache was estimated by empirical usage in past and it was set to 100MB.
+	// NOTE: This value must not be less than maximal size of one email (~30MB).
+	inMemoryCacheLimnit = 100 * (1 << 20)
 )
 
 func New(base *base.Base) *cli.App {
@@ -75,9 +79,9 @@ func run(b *base.Base, c *cli.Context) error { // nolint[funlen]
 		return err
 	}
 
-	cache, err := loadMessageCache(b)
-	if err != nil {
-		return err
+	cache, cacheErr := loadMessageCache(b)
+	if cacheErr != nil {
+		logrus.WithError(cacheErr).Error("Could not load local cache.")
 	}
 
 	builder := message.NewBuilder(
@@ -85,9 +89,13 @@ func run(b *base.Base, c *cli.Context) error { // nolint[funlen]
 		b.Settings.GetInt(settings.AttachmentWorkers),
 	)
 
-	bridge := bridge.New(b.Locations, b.Cache, b.Settings, b.SentryReporter, b.CrashHandler, b.Listener, cache, builder, b.CM, b.Creds, b.Updater, b.Versioner)
+	bridge := pkgBridge.New(b.Locations, b.Cache, b.Settings, b.SentryReporter, b.CrashHandler, b.Listener, cache, builder, b.CM, b.Creds, b.Updater, b.Versioner)
 	imapBackend := imap.NewIMAPBackend(b.CrashHandler, b.Listener, b.Cache, b.Settings, bridge)
 	smtpBackend := smtp.NewSMTPBackend(b.CrashHandler, b.Listener, b.Settings, bridge)
+
+	if cacheErr != nil {
+		bridge.AddError(pkgBridge.ErrLocalCacheUnavailable)
+	}
 
 	go func() {
 		defer b.CrashHandler.HandlePanic()
@@ -248,13 +256,12 @@ func checkAndHandleUpdate(u types.Updater, f frontend.Frontend, autoUpdate bool)
 	f.NotifySilentUpdateInstalled()
 }
 
+// loadMessageCache loads local cache in case it is enabled in settings and available.
+// In any other case it is returning in-memory cache. Could also return an error in case
+// local cache is enabled but unavailable (in-memory cache will be returned nevertheless).
 func loadMessageCache(b *base.Base) (cache.Cache, error) {
 	if !b.Settings.GetBool(settings.CacheEnabledKey) {
-		// Memory cache was estimated by empirical usage in past and it
-		// was set to 100MB.
-		// NOTE: This value must not be less than maximal size of one
-		// email (~30MB).
-		return cache.NewInMemoryCache(100 << 20), nil
+		return cache.NewInMemoryCache(inMemoryCacheLimnit), nil
 	}
 
 	var compressor cache.Compressor
@@ -283,10 +290,16 @@ func loadMessageCache(b *base.Base) (cache.Cache, error) {
 	// build jobs.
 	store.SetBuildAndCacheJobLimit(b.Settings.GetInt(settings.CacheConcurrencyWrite))
 
-	return cache.NewOnDiskCache(path, compressor, cache.Options{
+	messageCache, err := cache.NewOnDiskCache(path, compressor, cache.Options{
 		MinFreeAbs:      uint64(b.Settings.GetInt(settings.CacheMinFreeAbsKey)),
 		MinFreeRat:      b.Settings.GetFloat64(settings.CacheMinFreeRatKey),
 		ConcurrentRead:  b.Settings.GetInt(settings.CacheConcurrencyRead),
 		ConcurrentWrite: b.Settings.GetInt(settings.CacheConcurrencyWrite),
 	})
+
+	if err != nil {
+		return cache.NewInMemoryCache(inMemoryCacheLimnit), err
+	}
+
+	return messageCache, nil
 }

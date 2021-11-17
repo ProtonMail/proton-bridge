@@ -23,6 +23,7 @@ import (
 
 	"github.com/ProtonMail/proton-bridge/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/internal/config/settings"
+	"github.com/ProtonMail/proton-bridge/internal/users"
 	"github.com/ProtonMail/proton-bridge/pkg/confirmer"
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
 	goSMTPBackend "github.com/emersion/go-smtp"
@@ -77,6 +78,11 @@ func newSMTPBackend(
 func (sb *smtpBackend) Login(_ *goSMTPBackend.ConnectionState, username, password string) (goSMTPBackend.Session, error) {
 	// Called from go-smtp in goroutines - we need to handle panics for each function.
 	defer sb.panicHandler.HandlePanic()
+
+	if sb.bridge.HasError(bridge.ErrLocalCacheUnavailable) {
+		return nil, users.ErrLoggedOutUser
+	}
+
 	username = strings.ToLower(username)
 
 	user, err := sb.bridge.GetUser(username)

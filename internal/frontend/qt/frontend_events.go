@@ -15,6 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
 
+//go:build build_qt
 // +build build_qt
 
 // Package qt provides communication between Qt/QML frontend and Go backend
@@ -23,11 +24,17 @@ package qt
 import (
 	"strings"
 
+	"github.com/ProtonMail/proton-bridge/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/internal/events"
 )
 
 func (f *FrontendQt) watchEvents() {
 	f.WaitUntilFrontendIsReady()
+
+	// First we check bridge global errors for any error that should be shown on GUI.
+	if f.bridge.HasError(bridge.ErrLocalCacheUnavailable) {
+		f.qml.CacheUnavailable()
+	}
 
 	errorCh := f.eventListener.ProvideChannel(events.ErrorEvent)
 	credentialsErrorCh := f.eventListener.ProvideChannel(events.CredentialsErrorEvent)

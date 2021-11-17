@@ -19,6 +19,7 @@
 package bridge
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 	"time"
@@ -40,6 +41,8 @@ import (
 
 var log = logrus.WithField("pkg", "bridge") //nolint[gochecknoglobals]
 
+var ErrLocalCacheUnavailable = errors.New("local cache is unavailable")
+
 type Bridge struct {
 	*users.Users
 
@@ -49,6 +52,8 @@ type Bridge struct {
 	updater       Updater
 	versioner     Versioner
 	cacheProvider CacheProvider
+	// Bridge's global errors list.
+	errors []error
 }
 
 func New(
@@ -240,4 +245,37 @@ func (b *Bridge) SetProxyAllowed(proxyAllowed bool) {
 // GetProxyAllowed returns whether use of DoH is enabled to access an API proxy if necessary.
 func (b *Bridge) GetProxyAllowed() bool {
 	return b.settings.GetBool(settings.AllowProxyKey)
+}
+
+// AddError add an error to a global error list if it does not contain it yet. Adding nil is noop.
+func (b *Bridge) AddError(err error) {
+	if err == nil {
+		return
+	}
+	if b.HasError(err) {
+		return
+	}
+
+	b.errors = append(b.errors, err)
+}
+
+// DelError removes an error from global error list.
+func (b *Bridge) DelError(err error) {
+	for idx, val := range b.errors {
+		if val == err {
+			b.errors = append(b.errors[:idx], b.errors[idx+1:]...)
+			return
+		}
+	}
+}
+
+// HasError returnes true if global error list contains an err.
+func (b *Bridge) HasError(err error) bool {
+	for _, val := range b.errors {
+		if val == err {
+			return true
+		}
+	}
+
+	return false
 }

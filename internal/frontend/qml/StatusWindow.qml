@@ -128,7 +128,7 @@ Window {
                         Layout.topMargin: 12
                         Layout.bottomMargin: 12
 
-                        visible: (statusItem.activeNotification && statusItem.activeNotification.action) ? true : false
+                        visible: statusItem.activeNotification && statusItem.activeNotification.action.length > 0
                         action: statusItem.activeNotification && statusItem.activeNotification.action.length > 0 ? statusItem.activeNotification.action[0] : null
                     }
                 }

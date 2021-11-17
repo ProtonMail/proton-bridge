@@ -86,6 +86,7 @@ type Bridger interface {
 	SetUpdateChannel(updater.UpdateChannel)
 	GetKeychainApp() string
 	SetKeychainApp(keychain string)
+	HasError(err error) bool
 }
 
 type bridgeWrap struct {

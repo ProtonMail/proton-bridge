@@ -30,8 +30,13 @@ QtObject {
         Danger = 3
     }
 
-    property string text
+    // title is used in dialogs only
+    property string title
+    // description is used in banners and in dialogs as description
     property string description
+    // brief is used in status view only
+    property string brief
+
     property string icon
     property list<Action> action
     property int type

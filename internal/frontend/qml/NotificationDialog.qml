@@ -55,12 +55,12 @@ Dialog {
                 }
 
                 switch (root.notification.type) {
-                    case Notification.NotificationType.Info:
+                case Notification.NotificationType.Info:
                     return "./icons/ic-info.svg"
-                    case Notification.NotificationType.Success:
+                case Notification.NotificationType.Success:
                     return "./icons/ic-success.svg"
-                    case Notification.NotificationType.Warning:
-                    case Notification.NotificationType.Danger:
+                case Notification.NotificationType.Warning:
+                case Notification.NotificationType.Danger:
                     return "./icons/ic-alert.svg"
                 }
             }
@@ -70,7 +70,7 @@ Dialog {
             Layout.alignment: Qt.AlignHCenter
             Layout.bottomMargin: 8
             colorScheme: root.colorScheme
-            text: root.notification.text
+            text: root.notification.title
             type: Label.LabelType.Title
         }
 

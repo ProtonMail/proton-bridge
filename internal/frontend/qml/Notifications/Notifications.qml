@@ -74,7 +74,8 @@ QtObject {
 
     // Connection
     property Notification noInternet: Notification {
-        text: qsTr("No connection")
+        description: qsTr("Bridge is not able to contact the server, please check your internet connection.")
+        brief: qsTr("No connection")
         icon: "./icons/ic-no-connection.svg"
         type: Notification.NotificationType.Danger
         group: Notifications.Group.Connection
@@ -93,8 +94,9 @@ QtObject {
 
     // Updates
     property Notification updateManualReady: Notification {
-        text: qsTr("Update to Bridge") + " " + (data ? data.version : "")
+        title: qsTr("Update to Bridge %1").arg(data ? data.version : "")
         description: qsTr("A new version of ProtonMail Bridge is available. See what's changed.")
+        brief: qsTr("Update available. (See what's new.)")
         icon: "./icons/ic-info-circle-filled.svg"
         type: Notification.NotificationType.Info
         group: Notifications.Group.Update | Notifications.Group.Dialogs
@@ -135,7 +137,8 @@ QtObject {
     }
 
     property Notification updateManualRestartNeeded: Notification {
-        text: qsTr("Bridge update is ready")
+        description: qsTr("Bridge update is ready")
+        brief: description
         icon: "./icons/ic-info-circle-filled.svg"
         type: Notification.NotificationType.Info
         group: Notifications.Group.Update
@@ -158,7 +161,8 @@ QtObject {
     }
 
     property Notification updateManualError: Notification {
-        text: qsTr("Bridge couldn’t update. Please update manually.")
+        description: qsTr("Bridge couldn’t update")
+        brief: description
         icon: "./icons/ic-exclamation-circle-filled.svg"
         type: Notification.NotificationType.Warning
         group: Notifications.Group.Update
@@ -190,8 +194,9 @@ QtObject {
     }
 
     property Notification updateForce: Notification {
-        text: qsTr("Update to ProtonMail Bridge") + " " + (data ? data.version : "")
+        title: qsTr("Update to Bridge %1").arg(data ? data.version : "")
         description: qsTr("This version of Bridge is no longer supported, please update.")
+        brief: qsTr("Bridge is outdated")
         icon: "./icons/ic-exclamation-circle-filled.svg"
         type: Notification.NotificationType.Danger
         group: Notifications.Group.Update | Notifications.Group.Dialogs
@@ -234,8 +239,9 @@ QtObject {
     }
 
     property Notification updateForceError: Notification {
-        text: qsTr("Bridge coudn’t update")
-        description: qsTr("You must update manually.")
+        title: qsTr("Bridge coudn’t update")
+        description: qsTr("You must update manually. Go to: https:/protonmail.com/bridge/download")
+        brief: title
         icon: "./icons/ic-exclamation-circle-filled.svg"
         type: Notification.NotificationType.Danger
         group: Notifications.Group.Update | Notifications.Group.Dialogs
@@ -269,7 +275,8 @@ QtObject {
     }
 
     property Notification updateSilentRestartNeeded: Notification {
-        text: qsTr("Bridge update is ready")
+        description: qsTr("Bridge update is ready")
+        brief: description
         icon: "./icons/ic-info-circle-filled.svg"
         type: Notification.NotificationType.Info
         group: Notifications.Group.Update
@@ -292,7 +299,8 @@ QtObject {
     }
 
     property Notification updateSilentError: Notification {
-        text: qsTr("Bridge couldn’t update")
+        description: qsTr("Bridge couldn’t update")
+        brief: description
         icon: "./icons/ic-exclamation-circle-filled.svg"
         type: Notification.NotificationType.Warning
         group: Notifications.Group.Update
@@ -315,7 +323,7 @@ QtObject {
     }
 
     property Notification updateIsLatestVersion: Notification {
-        text: qsTr("Bridge is up to date")
+        description: qsTr("Bridge is up to date")
         icon: "./icons/ic-info-circle-filled.svg"
         type: Notification.NotificationType.Info
         group: Notifications.Group.Update
@@ -337,7 +345,7 @@ QtObject {
     }
 
     property Notification enableBeta: Notification {
-        text: qsTr("Enable Beta access")
+        title: qsTr("Enable Beta access")
         description: qsTr("Be the first to get new updates and use new features. Bridge will update to the latest beta version.")
         icon: "./icons/ic-info-circle-filled.svg"
         type: Notification.NotificationType.Info
@@ -370,7 +378,7 @@ QtObject {
 
     // login
     property Notification loginConnectionError: Notification {
-        text: qsTr("Bridge is not able to contact the server, please check your internet connection.")
+        description: qsTr("Bridge is not able to contact the server, please check your internet connection.")
         icon: "./icons/ic-exclamation-circle-filled.svg"
         type: Notification.NotificationType.Danger
         group: Notifications.Group.Configuration
@@ -393,7 +401,7 @@ QtObject {
     }
 
     property Notification onlyPaidUsers: Notification {
-        text: qsTr("Bridge is exclusive to our paid plans. Upgrade your account to use Bridge.")
+        description: qsTr("Bridge is exclusive to our paid plans. Upgrade your account to use Bridge.")
         icon: "./icons/ic-exclamation-circle-filled.svg"
         type: Notification.NotificationType.Danger
         group: Notifications.Group.Configuration
@@ -416,7 +424,7 @@ QtObject {
     }
 
     property Notification alreadyLoggedIn: Notification {
-        text: qsTr("This account is already signed it.")
+        description: qsTr("This account is already signed it.")
         icon: "./icons/ic-exclamation-circle-filled.svg"
         type: Notification.NotificationType.Info
         group: Notifications.Group.Configuration
@@ -440,7 +448,7 @@ QtObject {
 
     // Bug reports
     property Notification bugReportSendSuccess: Notification {
-        text: qsTr("Thank you for the report. We'll get back to you as soon as we can.")
+        description: qsTr("Thank you for the report. We'll get back to you as soon as we can.")
         icon: "./icons/ic-info-circle-filled.svg"
         type: Notification.NotificationType.Success
         group: Notifications.Group.Configuration
@@ -463,7 +471,7 @@ QtObject {
     }
 
     property Notification bugReportSendError: Notification {
-        text: qsTr("Report could not be sent. Try again or email us directly.")
+        description: qsTr("Report could not be sent. Try again or email us directly.")
         icon: "./icons/ic-exclamation-circle-filled.svg"
         type: Notification.NotificationType.Danger
         group: Notifications.Group.Configuration
@@ -485,8 +493,9 @@ QtObject {
 
     // Cache
     property Notification cacheUnavailable: Notification {
-        text: qsTr("Cache location is unavailable")
+        title: qsTr("Cache location is unavailable")
         description: qsTr("Check the directory or change it in your settings.")
+        brief: qsTr("The current cache location is unavailable. Check the directory or change it in your settings.")
         type: Notification.NotificationType.Warning
         group: Notifications.Group.Configuration | Notifications.Group.Dialogs
 
@@ -516,7 +525,7 @@ QtObject {
     }
 
     property Notification cacheCantMove: Notification {
-        text: qsTr("Can’t move cache")
+        title: qsTr("Can’t move cache")
         description: qsTr("The location you have selected is not available. Make sure you have enough free space or choose another location.")
         type: Notification.NotificationType.Warning
         group: Notifications.Group.Configuration | Notifications.Group.Dialogs
@@ -546,7 +555,7 @@ QtObject {
     }
 
     property Notification cacheLocationChangeSuccess: Notification {
-        text: qsTr("Cache location successfully changed")
+        description: qsTr("Cache location successfully changed")
         icon: "./icons/ic-info-circle-filled.svg"
         type: Notification.NotificationType.Success
         group: Notifications.Group.Configuration
@@ -571,7 +580,8 @@ QtObject {
 
     // Other
     property Notification accountChanged: Notification {
-        text: qsTr("The address list for your account has changed")
+        description: qsTr("The address list for .... account has changed. You need to reconfigure your email client.")
+        brief: qsTr("The address list for your account has changed. Reconfigure your email client.")
         icon: "./icons/ic-exclamation-circle-filled.svg"
         type: Notification.NotificationType.Danger
         group: Notifications.Group.Configuration
@@ -586,8 +596,9 @@ QtObject {
     }
 
     property Notification diskFull: Notification {
-        text: qsTr("Your disk is almost full")
+        title: qsTr("Your disk is almost full")
         description: qsTr("Quit Bridge and free disk space or disable the local cache (not recommended).")
+        brief: qsTr("Your disk is almost full. Free disk space or disable the local cache.")
         type: Notification.NotificationType.Warning
         group: Notifications.Group.Configuration | Notifications.Group.Dialogs
 
@@ -617,8 +628,8 @@ QtObject {
     }
 
     property Notification enableSplitMode: Notification {
-        text: qsTr("Enable split mode?")
-        description: qsTr("Changing between split and combined address mode will require you to delete your accounts(s) from your email client and begin the setup process from scratch.")
+        title: qsTr("Enable split mode?")
+        description: qsTr("Changing between split and combined address mode will require you to delete your account(s) from your email client and begin the setup process from scratch.")
         type: Notification.NotificationType.Warning
         group: Notifications.Group.Configuration | Notifications.Group.Dialogs
 
@@ -631,7 +642,6 @@ QtObject {
                 root.enableSplitMode.active = true
             }
         }
-
 
         Connections {
             target: (root && root.enableSplitMode && root.enableSplitMode.user ) ? root.enableSplitMode.user : null
@@ -664,7 +674,7 @@ QtObject {
     }
 
     property Notification disableLocalCache: Notification {
-        text: qsTr("Disable local cache?")
+        title: qsTr("Disable local cache?")
         description: qsTr("This action will clear your local cache, including locally stored messages. Bridge will restart.")
         type: Notification.NotificationType.Warning
         group: Notifications.Group.Configuration | Notifications.Group.Dialogs
@@ -675,7 +685,6 @@ QtObject {
                 root.disableLocalCache.active = true
             }
         }
-
 
         Connections {
             target: root.backend
@@ -708,7 +717,7 @@ QtObject {
     }
 
     property Notification enableLocalCache: Notification {
-        text: qsTr("Enable local cache?")
+        title: qsTr("Enable local cache")
         description: qsTr("Bridge will restart.")
         type: Notification.NotificationType.Warning
         group: Notifications.Group.Configuration | Notifications.Group.Dialogs
@@ -722,7 +731,6 @@ QtObject {
                 root.enableLocalCache.path = path
             }
         }
-
 
         Connections {
             target: root.backend
@@ -755,7 +763,7 @@ QtObject {
     }
 
     property Notification resetBridge: Notification {
-        text: qsTr("Reset Bridge?")
+        title: qsTr("Reset Bridge?")
         description: qsTr("This will clear your accounts, preferences, and cached data. You will need to reconfigure your email client. Bridge will automatically restart.")
         type: Notification.NotificationType.Warning
         group: Notifications.Group.Configuration | Notifications.Group.Dialogs
@@ -768,7 +776,6 @@ QtObject {
                 root.resetBridge.active = true
             }
         }
-
 
         Connections {
             target: root.backend

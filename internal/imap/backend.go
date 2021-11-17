@@ -39,6 +39,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/internal/config/settings"
 	"github.com/ProtonMail/proton-bridge/internal/events"
+	"github.com/ProtonMail/proton-bridge/internal/users"
 	"github.com/ProtonMail/proton-bridge/pkg/listener"
 	"github.com/emersion/go-imap"
 	goIMAPBackend "github.com/emersion/go-imap/backend"
@@ -167,6 +168,10 @@ func (ib *imapBackend) deleteUser(address string) {
 func (ib *imapBackend) Login(_ *imap.ConnInfo, username, password string) (goIMAPBackend.User, error) {
 	// Called from go-imap in goroutines - we need to handle panics for each function.
 	defer ib.panicHandler.HandlePanic()
+
+	if ib.bridge.HasError(bridge.ErrLocalCacheUnavailable) {
+		return nil, users.ErrLoggedOutUser
+	}
 
 	imapUser, err := ib.getUser(username)
 	if err != nil {
