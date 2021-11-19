@@ -75,6 +75,13 @@ func thereAreMessagesInMailboxesForUser(mailboxNames, bddUserID string, messages
 }
 
 func thereAreMessagesInMailboxesForAddressOfUser(mailboxNames, bddAddressID, bddUserID string, messages *godog.Table) error {
+	// It is needed to prevent event processing before syncing these message
+	// otherwise the seqID and UID will be in reverse order. The
+	// synchronization add newest message first, the eventloop adds the oldest
+	// message first.
+	ctx.MessagePreparationStarted()
+	defer ctx.MessagePreparationFinished()
+
 	account := ctx.GetTestAccountWithAddress(bddUserID, bddAddressID)
 	if account == nil {
 		return godog.ErrPending
@@ -263,6 +270,13 @@ func processMailboxStructureDataTable(structure *godog.Table, callback func(stri
 }
 
 func thereAreSomeMessagesInMailboxesForAddressOfUser(numberOfMessages int, mailboxNames, bddAddressID, bddUserID string) error {
+	// It is needed to prevent event processing before syncing these message
+	// otherwise the seqID and UID will be in reverse order. The
+	// synchronization add newest message first, the eventloop adds the oldest
+	// message first.
+	ctx.MessagePreparationStarted()
+	defer ctx.MessagePreparationFinished()
+
 	account := ctx.GetTestAccountWithAddress(bddUserID, bddAddressID)
 	if account == nil {
 		return godog.ErrPending

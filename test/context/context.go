@@ -177,3 +177,6 @@ func (ctx *TestContext) SetLastError(err error) {
 func (ctx *TestContext) GetLastError() error {
 	return ctx.lastError
 }
+
+func (ctx *TestContext) MessagePreparationStarted()  { ctx.pmapiController.LockEvents() }
+func (ctx *TestContext) MessagePreparationFinished() { ctx.pmapiController.UnlockEvents() }

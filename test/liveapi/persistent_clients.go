@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
+	"sync"
 
 	"github.com/ProtonMail/go-srp"
 	"github.com/ProtonMail/proton-bridge/internal/constants"
@@ -47,6 +48,8 @@ var persistentClients = struct {
 	manager    pmapi.Manager
 	byName     map[string]clientAuthGetter
 	saltByName map[string]string
+
+	eventsPaused sync.WaitGroup
 }{}
 
 type persistentClient struct {
@@ -67,6 +70,17 @@ func (pc *persistentClient) AuthDelete(_ context.Context) error {
 // is expected behaviour.
 func (pc *persistentClient) AuthSalt(_ context.Context) (string, error) {
 	return persistentClients.saltByName[pc.username], nil
+}
+
+// GetEvent needs to wait for preparation to finish. Otherwise messages will be
+// in wrong order and test will fail.
+func (pc *persistentClient) GetEvent(ctx context.Context, eventID string) (*pmapi.Event, error) {
+	persistentClients.eventsPaused.Wait()
+	normalClient, ok := persistentClients.byName[pc.username].(pmapi.Client)
+	if !ok {
+		return nil, errors.New("cannot convert to normal client")
+	}
+	return normalClient.GetEvent(ctx, eventID)
 }
 
 func SetupPersistentClients() {
