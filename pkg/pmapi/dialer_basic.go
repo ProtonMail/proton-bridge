@@ -33,9 +33,11 @@ func CreateTransportWithDialer(dialer TLSDialer) *http.Transport {
 	return &http.Transport{
 		DialTLS: dialer.DialTLS,
 
-		Proxy:                 http.ProxyFromEnvironment,
-		MaxIdleConns:          100,
-		IdleConnTimeout:       5 * time.Minute,
+		Proxy:               http.ProxyFromEnvironment,
+		MaxIdleConns:        100,
+		MaxIdleConnsPerHost: 100,
+		IdleConnTimeout:     5 * time.Minute,
+
 		ExpectContinueTimeout: 500 * time.Millisecond,
 
 		// GODT-126: this was initially 10s but logs from users showed a significant number

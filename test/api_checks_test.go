@@ -27,16 +27,16 @@ import (
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	"github.com/ProtonMail/proton-bridge/test/accounts"
 	"github.com/cucumber/godog"
-	"github.com/cucumber/godog/gherkin"
 	"github.com/stretchr/testify/assert"
 )
 
-func APIChecksFeatureContext(s *godog.Suite) {
+func APIChecksFeatureContext(s *godog.ScenarioContext) {
 	s.Step(`^API endpoint "([^"]*)" is called$`, apiIsCalled)
 	s.Step(`^API endpoint "([^"]*)" is called with$`, apiIsCalledWith)
 	s.Step(`^API endpoint "([^"]*)" is not called$`, apiIsNotCalled)
 	s.Step(`^API endpoint "([^"]*)" is not called with$`, apiIsNotCalledWith)
 	s.Step(`^message is sent with API call$`, messageIsSentWithAPICall)
+	s.Step(`^packages are sent with API call$`, packagesAreSentWithAPICall)
 	s.Step(`^API mailbox "([^"]*)" for "([^"]*)" has (\d+) message(?:s)?$`, apiMailboxForUserHasNumberOfMessages)
 	s.Step(`^API mailbox "([^"]*)" for address "([^"]*)" of "([^"]*)" has (\d+) message(?:s)?$`, apiMailboxForAddressOfUserHasNumberOfMessages)
 	s.Step(`^API mailbox "([^"]*)" for "([^"]*)" has messages$`, apiMailboxForUserHasMessages)
@@ -51,8 +51,19 @@ func apiIsCalled(endpoint string) error {
 	return nil
 }
 
-func apiIsCalledWith(endpoint string, data *gherkin.DocString) error {
+func apiIsCalledWith(endpoint string, data *godog.DocString) error {
 	if !apiIsCalledWithHelper(endpoint, data.Content) {
+		return fmt.Errorf("%s was not called with %s", endpoint, data.Content)
+	}
+	return nil
+}
+
+func apiIsCalledWithRegex(endpoint string, data *godog.DocString) error {
+	match, err := apiIsCalledWithHelperRegex(endpoint, data.Content)
+	if err != nil {
+		return err
+	}
+	if !match {
 		return fmt.Errorf("%s was not called with %s", endpoint, data.Content)
 	}
 	return nil
@@ -65,7 +76,7 @@ func apiIsNotCalled(endpoint string) error {
 	return nil
 }
 
-func apiIsNotCalledWith(endpoint string, data *gherkin.DocString) error {
+func apiIsNotCalledWith(endpoint string, data *godog.DocString) error {
 	if apiIsCalledWithHelper(endpoint, data.Content) {
 		return fmt.Errorf("%s was called with %s", endpoint, data.Content)
 	}
@@ -80,9 +91,31 @@ func apiIsCalledWithHelper(endpoint string, content string) bool {
 	return ctx.GetPMAPIController().WasCalled(method, path, request)
 }
 
-func messageIsSentWithAPICall(data *gherkin.DocString) error {
+func apiIsCalledWithHelperRegex(endpoint string, content string) (bool, error) {
+	split := strings.Split(endpoint, " ")
+	method := split[0]
+	path := split[1]
+	request := []byte(content)
+	return ctx.GetPMAPIController().WasCalledRegex(method, path, request)
+}
+
+func messageIsSentWithAPICall(data *godog.DocString) error {
 	endpoint := "POST /mail/v4/messages"
 	if err := apiIsCalledWith(endpoint, data); err != nil {
+		return err
+	}
+	for _, request := range ctx.GetPMAPIController().GetCalls("POST", "/mail/v4/messages") {
+		if !checkAllRequiredFieldsForSendingMessage(request) {
+			return fmt.Errorf("%s was not called with all required fields: %s", endpoint, request)
+		}
+	}
+
+	return nil
+}
+
+func packagesAreSentWithAPICall(data *godog.DocString) error {
+	endpoint := "POST /mail/v4/messages/.+$"
+	if err := apiIsCalledWithRegex(endpoint, data); err != nil {
 		return err
 	}
 	for _, request := range ctx.GetPMAPIController().GetCalls("POST", "/mail/v4/messages") {
@@ -145,11 +178,11 @@ func apiMailboxForAddressOfUserHasNumberOfMessages(mailboxName, bddAddressID, bd
 	return nil
 }
 
-func apiMailboxForUserHasMessages(mailboxName, bddUserID string, messages *gherkin.DataTable) error {
+func apiMailboxForUserHasMessages(mailboxName, bddUserID string, messages *godog.Table) error {
 	return apiMailboxForAddressOfUserHasMessages(mailboxName, "", bddUserID, messages)
 }
 
-func apiMailboxForAddressOfUserHasMessages(mailboxName, bddAddressID, bddUserID string, messages *gherkin.DataTable) error {
+func apiMailboxForAddressOfUserHasMessages(mailboxName, bddAddressID, bddUserID string, messages *godog.Table) error {
 	account := ctx.GetTestAccountWithAddress(bddUserID, bddAddressID)
 	if account == nil {
 		return godog.ErrPending

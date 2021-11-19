@@ -27,11 +27,11 @@ import (
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	"github.com/ProtonMail/proton-bridge/test/accounts"
 	"github.com/cucumber/godog"
-	"github.com/cucumber/godog/gherkin"
+	"github.com/cucumber/messages-go/v16"
 	"github.com/hashicorp/go-multierror"
 )
 
-func StoreChecksFeatureContext(s *godog.Suite) {
+func StoreChecksFeatureContext(s *godog.ScenarioContext) {
 	s.Step(`^"([^"]*)" has mailbox "([^"]*)"$`, userHasMailbox)
 	s.Step(`^"([^"]*)" does not have mailbox "([^"]*)"$`, userDoesNotHaveMailbox)
 	s.Step(`^"([^"]*)" has the following messages$`, userHasFollowingMessages)
@@ -72,7 +72,7 @@ func userDoesNotHaveMailbox(bddUserID, mailboxName string) error {
 	return nil
 }
 
-func userHasFollowingMessages(bddUserID string, structure *gherkin.DataTable) error {
+func userHasFollowingMessages(bddUserID string, structure *godog.Table) error {
 	return processMailboxStructureDataTable(structure, func(bddAddressID string, mailboxNames string, numberOfMessages int) error {
 		for _, mailboxName := range strings.Split(mailboxNames, ",") {
 			if err := mailboxForAddressOfUserHasNumberOfMessages(mailboxName, bddAddressID, bddUserID, numberOfMessages); err != nil {
@@ -111,7 +111,7 @@ func mailboxForAddressOfUserHasNumberOfMessages(mailboxName, bddAddressID, bddUs
 	return nil
 }
 
-func mailboxForUserHasMessages(mailboxName, bddUserID string, messages *gherkin.DataTable) error {
+func mailboxForUserHasMessages(mailboxName, bddUserID string, messages *godog.Table) error {
 	return mailboxForAddressOfUserHasMessages(mailboxName, "", bddUserID, messages)
 }
 
@@ -119,7 +119,7 @@ func mailboxForUserHasNoMessages(mailboxName, bddUserID string) error {
 	return mailboxForUserHasNumberOfMessages(mailboxName, bddUserID, 0)
 }
 
-func mailboxForAddressOfUserHasMessages(mailboxName, bddAddressID, bddUserID string, messages *gherkin.DataTable) error {
+func mailboxForAddressOfUserHasMessages(mailboxName, bddAddressID, bddUserID string, messages *godog.Table) error {
 	account := ctx.GetTestAccountWithAddress(bddUserID, bddAddressID)
 	if account == nil {
 		return godog.ErrPending
@@ -172,7 +172,7 @@ func mailboxForAddressOfUserHasMessages(mailboxName, bddAddressID, bddUserID str
 	return nil
 }
 
-func pmapiMessagesContainsMessageRow(account *accounts.TestAccount, pmapiMessages []*pmapi.Message, head []*gherkin.TableCell, row *gherkin.TableRow) (bool, error) {
+func pmapiMessagesContainsMessageRow(account *accounts.TestAccount, pmapiMessages []*pmapi.Message, head []*messages.PickleTableCell, row *messages.PickleTableRow) (bool, error) {
 	messages := make([]interface{}, len(pmapiMessages))
 	for i := range pmapiMessages {
 		messages[i] = pmapiMessages[i]
@@ -180,7 +180,7 @@ func pmapiMessagesContainsMessageRow(account *accounts.TestAccount, pmapiMessage
 	return messagesContainsMessageRow(account, messages, head, row)
 }
 
-func storeMessagesContainsMessageRow(account *accounts.TestAccount, storeMessages []*store.Message, head []*gherkin.TableCell, row *gherkin.TableRow) (bool, error) {
+func storeMessagesContainsMessageRow(account *accounts.TestAccount, storeMessages []*store.Message, head []*messages.PickleTableCell, row *messages.PickleTableRow) (bool, error) {
 	messages := make([]interface{}, len(storeMessages))
 	for i := range storeMessages {
 		messages[i] = storeMessages[i]
@@ -188,7 +188,7 @@ func storeMessagesContainsMessageRow(account *accounts.TestAccount, storeMessage
 	return messagesContainsMessageRow(account, messages, head, row)
 }
 
-func messagesContainsMessageRow(account *accounts.TestAccount, allMessages []interface{}, head []*gherkin.TableCell, row *gherkin.TableRow) (bool, error) { //nolint[funlen]
+func messagesContainsMessageRow(account *accounts.TestAccount, allMessages []interface{}, head []*messages.PickleTableCell, row *messages.PickleTableRow) (bool, error) { //nolint[funlen]
 	found := false
 	for _, someMessage := range allMessages {
 		var message *pmapi.Message

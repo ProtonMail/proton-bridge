@@ -18,16 +18,19 @@
 package tests
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
+	"strings"
 	"sync"
+	"time"
 
+	"github.com/ProtonMail/proton-bridge/test/mocks"
 	"github.com/cucumber/godog"
-	"github.com/cucumber/godog/gherkin"
 	"golang.org/x/net/html/charset"
 )
 
-func IMAPActionsMessagesFeatureContext(s *godog.Suite) {
+func IMAPActionsMessagesFeatureContext(s *godog.ScenarioContext) {
 	s.Step(`^IMAP client sends command "([^"]*)"$`, imapClientSendsCommand)
 	s.Step(`^IMAP client fetches "([^"]*)"$`, imapClientFetches)
 	s.Step(`^IMAP client fetches header(?:s)? of "([^"]*)"$`, imapClientFetchesHeader)
@@ -36,7 +39,8 @@ func IMAPActionsMessagesFeatureContext(s *godog.Suite) {
 	s.Step(`^IMAP client searches for "([^"]*)"$`, imapClientSearchesFor)
 	s.Step(`^IMAP client copies message seq "([^"]*)" to "([^"]*)"$`, imapClientCopiesMessagesTo)
 	s.Step(`^IMAP client moves message seq "([^"]*)" to "([^"]*)"$`, imapClientMovesMessagesTo)
-	s.Step(`^IMAP clients "([^"]*)" and "([^"]*)" move message seq "([^"]*)" of "([^"]*)" from "([^"]*)" to "([^"]*)" by append and delete$`, imapClientsMoveMessageSeqOfUserFromToByAppendAndDelete)
+	s.Step(`^IMAP clients "([^"]*)" and "([^"]*)" move message seq "([^"]*)" of "([^"]*)" from "([^"]*)" to "([^"]*)"$`, imapClientsMoveMessageSeqOfUserFromTo)
+	s.Step(`^IMAP clients "([^"]*)" and "([^"]*)" move message seq "([^"]*)" of "([^"]*)" to "([^"]*)" by ([^"]*) ([^"]*) ([^"]*)`, imapClientsMoveMessageSeqOfUserFromToByOrederedOperations)
 	s.Step(`^IMAP client imports message to "([^"]*)"$`, imapClientCreatesMessage)
 	s.Step(`^IMAP client imports message to "([^"]*)" with encoding "([^"]*)"$`, imapClientCreatesMessageWithEncoding)
 	s.Step(`^IMAP client creates message "([^"]*)" from "([^"]*)" to "([^"]*)" with body "([^"]*)" in "([^"]*)"$`, imapClientCreatesMessageFromToWithBody)
@@ -44,6 +48,10 @@ func IMAPActionsMessagesFeatureContext(s *godog.Suite) {
 	s.Step(`^IMAP client creates message "([^"]*)" from address "([^"]*)" of "([^"]*)" to "([^"]*)" with body "([^"]*)" in "([^"]*)"$`, imapClientCreatesMessageFromAddressOfUserToWithBody)
 	s.Step(`^IMAP client marks message seq "([^"]*)" with "([^"]*)"$`, imapClientMarksMessageSeqWithFlags)
 	s.Step(`^IMAP client "([^"]*)" marks message seq "([^"]*)" with "([^"]*)"$`, imapClientNamedMarksMessageSeqWithFlags)
+	s.Step(`^IMAP client adds flags "([^"]*)" to message seq "([^"]*)"$`, imapClientAddsFlagsToMessageSeq)
+	s.Step(`^IMAP client "([^"]*)" adds flags "([^"]*)" to message seq "([^"]*)"$`, imapClientNamedAddsFlagsToMessageSeq)
+	s.Step(`^IMAP client removes flags "([^"]*)" from message seq "([^"]*)"$`, imapClientRemovesFlagsFromMessageSeq)
+	s.Step(`^IMAP client "([^"]*)" removes flags "([^"]*)" from message seq "([^"]*)"$`, imapClientNamedRemovesFlagsFromMessageSeq)
 	s.Step(`^IMAP client marks message seq "([^"]*)" as read$`, imapClientMarksMessageSeqAsRead)
 	s.Step(`^IMAP client "([^"]*)" marks message seq "([^"]*)" as read$`, imapClientNamedMarksMessageSeqAsRead)
 	s.Step(`^IMAP client marks message seq "([^"]*)" as unread$`, imapClientMarksMessageSeqAsUnread)
@@ -114,7 +122,7 @@ func imapClientMovesMessagesTo(messageSeq, newMailboxName string) error {
 	return nil
 }
 
-func imapClientsMoveMessageSeqOfUserFromToByAppendAndDelete(sourceIMAPClient, targetIMAPClient, messageSeq, bddUserID, sourceMailboxName, targetMailboxName string) error {
+func imapClientsMoveMessageSeqOfUserFromTo(sourceIMAPClient, targetIMAPClient, messageSeq, bddUserID, sourceMailboxName, targetMailboxName string) error {
 	account := ctx.GetTestAccount(bddUserID)
 	if account == nil {
 		return godog.ErrPending
@@ -161,11 +169,54 @@ func imapClientsMoveMessageSeqOfUserFromToByAppendAndDelete(sourceIMAPClient, ta
 	return nil
 }
 
-func imapClientCreatesMessage(mailboxName string, message *gherkin.DocString) error {
+func extractMessageBodyFromImapResponse(response *mocks.IMAPResponse) (string, error) {
+	sections := response.Sections()
+	if len(sections) != 1 {
+		return "", internalError(errors.New("unexpected result from FETCH"), "retrieving message body using FETCH")
+	}
+	sections = strings.Split(sections[0], "\n")
+	if len(sections) < 2 {
+		return "", internalError(errors.New("failed to parse FETCH result"), "extraction body from FETCH reply")
+	}
+	return strings.Join(sections[1:], "\n"), nil
+}
+
+func imapClientsMoveMessageSeqOfUserFromToByOrederedOperations(sourceIMAPClient, targetIMAPClient, messageSeq, bddUserID, targetMailboxName, op1, op2, op3 string) error {
+	account := ctx.GetTestAccount(bddUserID)
+	if account == nil {
+		return godog.ErrPending
+	}
+
+	// call NOOP to prevent unilateral updates in following FETCH
+	ctx.GetIMAPClient(sourceIMAPClient).Noop().AssertOK()
+
+	msgStr, err := extractMessageBodyFromImapResponse(ctx.GetIMAPClient(sourceIMAPClient).Fetch(messageSeq, "BODY.PEEK[]").AssertOK())
+	if err != nil {
+		return err
+	}
+
+	for _, op := range []string{op1, op2, op3} {
+		switch op {
+		case "APPEND":
+			res := ctx.GetIMAPClient(targetIMAPClient).Append(targetMailboxName, msgStr)
+			ctx.SetIMAPLastResponse(targetIMAPClient, res)
+		case "DELETE":
+			_ = imapClientNamedMarksMessageSeqAsDeleted(sourceIMAPClient, messageSeq)
+		case "EXPUNGE":
+			_ = imapClientNamedExpunge(sourceIMAPClient)
+		default:
+			return errors.New("unknow IMAP operation " + op)
+		}
+		time.Sleep(100 * time.Millisecond)
+	}
+	return nil
+}
+
+func imapClientCreatesMessage(mailboxName string, message *godog.DocString) error {
 	return imapClientCreatesMessageWithEncoding(mailboxName, "utf8", message)
 }
 
-func imapClientCreatesMessageWithEncoding(mailboxName, encodingName string, message *gherkin.DocString) error {
+func imapClientCreatesMessageWithEncoding(mailboxName, encodingName string, message *godog.DocString) error {
 	encoding, _ := charset.Lookup(encodingName)
 
 	msg := message.Content
@@ -219,6 +270,26 @@ func imapClientMarksMessageSeqWithFlags(messageSeq, flags string) error {
 
 func imapClientNamedMarksMessageSeqWithFlags(imapClient, messageSeq, flags string) error {
 	res := ctx.GetIMAPClient(imapClient).SetFlags(messageSeq, flags)
+	ctx.SetIMAPLastResponse(imapClient, res)
+	return nil
+}
+
+func imapClientAddsFlagsToMessageSeq(flags, messageSeq string) error {
+	return imapClientNamedAddsFlagsToMessageSeq("imap", flags, messageSeq)
+}
+
+func imapClientNamedAddsFlagsToMessageSeq(imapClient, flags, messageSeq string) error {
+	res := ctx.GetIMAPClient(imapClient).AddFlags(messageSeq, flags)
+	ctx.SetIMAPLastResponse(imapClient, res)
+	return nil
+}
+
+func imapClientRemovesFlagsFromMessageSeq(flags, messageSeq string) error {
+	return imapClientNamedRemovesFlagsFromMessageSeq("imap", flags, messageSeq)
+}
+
+func imapClientNamedRemovesFlagsFromMessageSeq(imapClient, flags, messageSeq string) error {
+	res := ctx.GetIMAPClient(imapClient).RemoveFlags(messageSeq, flags)
 	ctx.SetIMAPLastResponse(imapClient, res)
 	return nil
 }
@@ -313,11 +384,11 @@ func imapClientNamedExpungeByUID(imapClient, uids string) error {
 	return nil
 }
 
-func imapClientSendsID(data *gherkin.DocString) error {
+func imapClientSendsID(data *godog.DocString) error {
 	return imapClientNamedSendsID("imap", data)
 }
 
-func imapClientNamedSendsID(imapClient string, data *gherkin.DocString) error {
+func imapClientNamedSendsID(imapClient string, data *godog.DocString) error {
 	res := ctx.GetIMAPClient(imapClient).ID(data.Content)
 	ctx.SetIMAPLastResponse(imapClient, res)
 	return nil

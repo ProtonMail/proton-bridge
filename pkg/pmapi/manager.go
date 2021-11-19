@@ -43,7 +43,7 @@ func New(cfg Config) Manager {
 func newManager(cfg Config) *manager {
 	m := &manager{
 		cfg:    cfg,
-		rc:     resty.New(),
+		rc:     resty.New().EnableTrace(),
 		locker: &sync.Mutex{},
 	}
 
@@ -59,6 +59,7 @@ func newManager(cfg Config) *manager {
 	// wrapped in JSON. If error is returned, `handleRequestFailure` is called,
 	// otherwise `handleRequestSuccess` is called.
 	m.rc.SetError(&Error{})
+	m.rc.OnAfterResponse(logConnReuse)
 	m.rc.OnAfterResponse(updateTime)
 	m.rc.OnAfterResponse(m.catchAPIError)
 	m.rc.OnAfterResponse(m.handleRequestSuccess)

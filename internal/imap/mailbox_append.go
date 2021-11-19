@@ -20,6 +20,7 @@ package imap
 import (
 	"bufio"
 	"bytes"
+	"fmt"
 	"io/ioutil"
 	"net/mail"
 	"strings"
@@ -116,11 +117,10 @@ func (im *imapMailbox) createMessage(imapFlags []string, date time.Time, r imap.
 	if internalID != "" {
 		if msg, err := im.storeMailbox.GetMessage(internalID); err == nil {
 			if im.user.user.IsCombinedAddressMode() || im.storeAddress.AddressID() == msg.Message().AddressID {
-				return im.labelExistingMessage(msg.ID(), msg.IsMarkedDeleted())
+				return im.labelExistingMessage(msg)
 			}
 		}
 	}
-
 	return im.importMessage(kr, hdr, body, imapFlags, date)
 }
 
@@ -146,7 +146,17 @@ func (im *imapMailbox) createDraftMessage(kr *crypto.KeyRing, email string, body
 	return uidplus.AppendResponse(im.storeMailbox.UIDValidity(), im.storeMailbox.GetUIDList([]string{draft.ID}))
 }
 
-func (im *imapMailbox) labelExistingMessage(messageID string, isDeleted bool) error {
+func findMailboxForAddress(address storeAddressProvider, labelID string) (storeMailboxProvider, error) {
+	for _, mailBox := range address.ListMailboxes() {
+		if mailBox.LabelID() == labelID {
+			return mailBox, nil
+		}
+	}
+	return nil, fmt.Errorf("could not find %v label in mailbox for user %v", labelID,
+		address.AddressString())
+}
+
+func (im *imapMailbox) labelExistingMessage(msg storeMessageProvider) error { //nolint[funlen]
 	im.log.Info("Labelling existing message")
 
 	// IMAP clients can move message to local folder (setting \Deleted flag)
@@ -156,20 +166,37 @@ func (im *imapMailbox) labelExistingMessage(messageID string, isDeleted bool) er
 	// not delete the message (EXPUNGE would delete the original message and
 	// the new duplicate one would stay). API detects duplicates; therefore
 	// we need to remove \Deleted flag if IMAP client re-imports.
-	if isDeleted {
-		if err := im.storeMailbox.MarkMessagesUndeleted([]string{messageID}); err != nil {
+	if msg.IsMarkedDeleted() {
+		if err := im.storeMailbox.MarkMessagesUndeleted([]string{msg.ID()}); err != nil {
 			log.WithError(err).Error("Failed to undelete re-imported message")
 		}
 	}
 
-	if err := im.storeMailbox.LabelMessages([]string{messageID}); err != nil {
+	// Outlook Uses APPEND instead of COPY. There is no need to copy to All Mail because messages are already there.
+	// If the message is copied from Spam or Trash, it must be moved otherwise we will have data loss.
+	// If the message is moved from any folder, the moment when expunge happens on source we will move message trash unless we move it to archive.
+	// If the message is already in Archive we should not call API at all.
+	// Otherwise the message is already in All mail, Return OK.
+	var storeMBox = im.storeMailbox
+	if pmapi.AllMailLabel == storeMBox.LabelID() {
+		if msg.Message().HasLabelID(pmapi.ArchiveLabel) {
+			return uidplus.AppendResponse(storeMBox.UIDValidity(), storeMBox.GetUIDList([]string{msg.ID()}))
+		}
+		var err error
+		storeMBox, err = findMailboxForAddress(im.storeAddress, pmapi.ArchiveLabel)
+		if err != nil {
+			return err
+		}
+	}
+
+	if err := storeMBox.LabelMessages([]string{msg.ID()}); err != nil {
 		return err
 	}
 
-	return uidplus.AppendResponse(im.storeMailbox.UIDValidity(), im.storeMailbox.GetUIDList([]string{messageID}))
+	return uidplus.AppendResponse(im.storeMailbox.UIDValidity(), im.storeMailbox.GetUIDList([]string{msg.ID()}))
 }
 
-func (im *imapMailbox) importMessage(kr *crypto.KeyRing, hdr textproto.Header, body []byte, imapFlags []string, date time.Time) error {
+func (im *imapMailbox) importMessage(kr *crypto.KeyRing, hdr textproto.Header, body []byte, imapFlags []string, date time.Time) error { //nolint[funlen]
 	im.log.Info("Importing external message")
 
 	var (
@@ -211,18 +238,29 @@ func (im *imapMailbox) importMessage(kr *crypto.KeyRing, hdr textproto.Header, b
 		return err
 	}
 
-	messageID, err := im.storeMailbox.ImportMessage(enc, seen, labelIDs, flags, time)
+	var targetMailbox = im.storeMailbox
+	if targetMailbox.LabelID() == pmapi.AllMailLabel {
+		// Importing mail in directly into All Mail is not allowed. Instead we redirect the import to Archive
+		// The mail will automatically appear in All mail. The appends response still reports that the mail was
+		// successfully APPEND to All Mail.
+		targetMailbox, err = findMailboxForAddress(im.storeAddress, pmapi.ArchiveLabel)
+		if err != nil {
+			return err
+		}
+	}
+
+	messageID, err := targetMailbox.ImportMessage(enc, seen, labelIDs, flags, time)
 	if err != nil {
 		return err
 	}
 
-	msg, err := im.storeMailbox.GetMessage(messageID)
+	msg, err := targetMailbox.GetMessage(messageID)
 	if err != nil {
 		return err
 	}
 
 	if msg.IsMarkedDeleted() {
-		if err := im.storeMailbox.MarkMessagesUndeleted([]string{messageID}); err != nil {
+		if err := targetMailbox.MarkMessagesUndeleted([]string{messageID}); err != nil {
 			log.WithError(err).Error("Failed to undelete re-imported message")
 		}
 	}

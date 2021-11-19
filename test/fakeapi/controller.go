@@ -21,6 +21,7 @@ import (
 	"sync"
 
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
+	"github.com/ProtonMail/proton-bridge/test/context/calls"
 	"github.com/sirupsen/logrus"
 )
 
@@ -30,7 +31,7 @@ type Controller struct {
 	// Internal states.
 	lock               *sync.RWMutex
 	fakeAPIs           []*FakePMAPI
-	calls              []*fakeCall
+	calls              calls.Calls
 	labelIDGenerator   idGenerator
 	messageIDGenerator idGenerator
 	tokenGenerator     idGenerator
@@ -52,7 +53,7 @@ func NewController() (*Controller, pmapi.Manager) {
 	controller := &Controller{
 		lock:               &sync.RWMutex{},
 		fakeAPIs:           []*FakePMAPI{},
-		calls:              []*fakeCall{},
+		calls:              calls.Calls{},
 		labelIDGenerator:   100, // We cannot use system label IDs.
 		messageIDGenerator: 0,
 		tokenGenerator:     1000, // No specific reason; 1000 simply feels right.

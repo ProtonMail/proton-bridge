@@ -137,8 +137,14 @@ func (im *imapMailbox) setFlags(messageIDs, flags []string) error { //nolint
 	return nil
 }
 
-func (im *imapMailbox) addOrRemoveFlags(operation imap.FlagsOp, messageIDs, flags []string) error {
+func (im *imapMailbox) addOrRemoveFlags(operation imap.FlagsOp, messageIDs, flags []string) error { //nolint[funlen]
 	for _, f := range flags {
+		// Adding flag 'nojunk' is equivalent to removing flag 'junk'
+		if (operation == imap.AddFlags) && (f == "nojunk") {
+			operation = imap.RemoveFlags
+			f = "junk"
+		}
+
 		switch f {
 		case imap.SeenFlag:
 			switch operation { //nolint[exhaustive] imap.SetFlags is processed by im.setFlags
@@ -175,23 +181,37 @@ func (im *imapMailbox) addOrRemoveFlags(operation imap.FlagsOp, messageIDs, flag
 			}
 		case imap.AnsweredFlag, imap.DraftFlag, imap.RecentFlag:
 			// Not supported.
-		case message.AppleMailJunkFlag, message.ThunderbirdJunkFlag:
-			storeMailbox, err := im.storeAddress.GetMailbox("Spam")
+		case strings.ToLower(message.AppleMailJunkFlag), strings.ToLower(message.ThunderbirdJunkFlag):
+			spamMailbox, err := im.storeAddress.GetMailbox("Spam")
 			if err != nil {
 				return err
 			}
-
 			// Handle custom junk flags for Apple Mail and Thunderbird.
 			switch operation { //nolint[exhaustive] imap.SetFlag is processed by im.setFlags
 			// No label removal is necessary because Spam and Inbox are both exclusive labels so the backend
 			// will automatically take care of label removal.
 			case imap.AddFlags:
-				if err := storeMailbox.LabelMessages(messageIDs); err != nil {
+				if err := spamMailbox.LabelMessages(messageIDs); err != nil {
 					return err
 				}
 			case imap.RemoveFlags:
-				if err := storeMailbox.UnlabelMessages(messageIDs); err != nil {
-					return err
+				// During spam flag removal only messages which
+				// are in Spam folder should be moved to Inbox.
+				// For other messages it is NOOP.
+				messagesInSpam := []string{}
+				for _, mID := range messageIDs {
+					if uid := spamMailbox.GetUIDList([]string{mID}); len(*uid) != 0 {
+						messagesInSpam = append(messagesInSpam, mID)
+					}
+				}
+				if len(messagesInSpam) != 0 {
+					inboxMailbox, err := im.storeAddress.GetMailbox("INBOX")
+					if err != nil {
+						return err
+					}
+					if err := inboxMailbox.LabelMessages(messagesInSpam); err != nil {
+						return err
+					}
 				}
 			}
 		}
@@ -230,6 +250,10 @@ func (im *imapMailbox) moveMessages(uid bool, seqSet *imap.SeqSet, targetLabel s
 	// Called from go-imap in goroutines - we need to handle panics for each function.
 	defer im.panicHandler.HandlePanic()
 
+	// Moving from All Mail is not allowed.
+	if im.storeMailbox.LabelID() == pmapi.AllMailLabel {
+		return errors.New("move from All Mail is not allowed")
+	}
 	return im.labelMessages(uid, seqSet, targetLabel, true)
 }
 

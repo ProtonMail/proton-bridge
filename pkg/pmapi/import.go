@@ -27,7 +27,10 @@ import (
 	"github.com/go-resty/resty/v2"
 )
 
-const MaxImportMessageRequestLength = 10
+const (
+	MaxImportMessageRequestLength = 10
+	MaxImportMessageRequestSize   = 25 * 1024 * 1024 // 25 MB total limit
+)
 
 type ImportMsgReq struct {
 	Metadata *ImportMetadata // Metadata about the message to import.
@@ -89,6 +92,14 @@ type ImportMsgRes struct {
 func (c *client) Import(ctx context.Context, reqs ImportMsgReqs) ([]*ImportMsgRes, error) {
 	if len(reqs) > MaxImportMessageRequestLength {
 		return nil, errors.New("request is too long")
+	}
+
+	remainingSize := MaxImportMessageRequestSize
+	for _, req := range reqs {
+		remainingSize -= len(req.Message)
+		if remainingSize < 0 {
+			return nil, errors.New("request size is too big")
+		}
 	}
 
 	fields, err := reqs.buildMultipartFormData()

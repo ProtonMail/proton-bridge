@@ -48,6 +48,26 @@ Feature: IMAP copy messages
       | from              | to         | subject | body  | read | deleted |
       | john.doe@mail.com | user@pm.me | foo     | hello | true | false   |
 
+  Scenario: Copy message from All mail moves from the original location
+    Given there is IMAP client selected in "All Mail"
+    When IMAP client copies message seq "1" to "Folders/mbox"
+    Then IMAP response is "OK"
+    And mailbox "INBOX" for "user" has 2 messages
+    And mailbox "INBOX" for "user" has messages
+      | from              | to         | subject  | body  | read  | deleted |
+      | jane.doe@mail.com | name@pm.me | bar      | world | false | true    |
+      | john.doe@mail.com | user@pm.me | response | hello | true  | false   |
+    And mailbox "All Mail" for "user" has 3 messages
+    And mailbox "All Mail" for "user" has messages
+      | from              | to         | subject  | body  | read  | deleted |
+      | john.doe@mail.com | user@pm.me | foo      | hello | true  | false   |
+      | jane.doe@mail.com | name@pm.me | bar      | world | false | false   |
+      | john.doe@mail.com | user@pm.me | response | hello | true  | false   |
+    And mailbox "Folders/mbox" for "user" has 1 messages
+    And mailbox "Folders/mbox" for "user" has messages
+      | from              | to         | subject | body  | read | deleted |
+      | john.doe@mail.com | user@pm.me | foo     | hello | true | false   |
+
   Scenario: Copy all messages to folder does move
     Given there is IMAP client selected in "INBOX"
     When IMAP client copies message seq "1:*" to "Folders/mbox"

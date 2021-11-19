@@ -21,7 +21,7 @@ import (
 	"github.com/cucumber/godog"
 )
 
-func BridgeActionsFeatureContext(s *godog.Suite) {
+func BridgeActionsFeatureContext(s *godog.ScenarioContext) {
 	s.Step(`^bridge starts$`, bridgeStarts)
 	s.Step(`^bridge syncs "([^"]*)"$`, bridgeSyncsUser)
 }

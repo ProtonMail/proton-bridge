@@ -23,7 +23,7 @@ import (
 	"github.com/cucumber/godog"
 )
 
-func APIActionsFeatureContext(s *godog.Suite) {
+func APIActionsFeatureContext(s *godog.ScenarioContext) {
 	s.Step(`^the internet connection is lost$`, theInternetConnectionIsLost)
 	s.Step(`^the internet connection is restored$`, theInternetConnectionIsRestored)
 	s.Step(`^(\d+) second[s]? pass$`, secondsPass)

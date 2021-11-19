@@ -18,9 +18,10 @@
 package tests
 
 import (
+	"context"
 	"os"
 
-	"github.com/ProtonMail/proton-bridge/test/context"
+	testContext "github.com/ProtonMail/proton-bridge/test/context"
 	"github.com/cucumber/godog"
 )
 
@@ -28,12 +29,14 @@ const (
 	timeFormat = "2006-01-02T15:04:05"
 )
 
-func FeatureContext(s *godog.Suite) {
-	s.BeforeSuite(context.BeforeRun)
-	s.AfterSuite(context.AfterRun)
+func SuiteInitializer(s *godog.TestSuiteContext) {
+	s.BeforeSuite(testContext.BeforeRun)
+	s.AfterSuite(testContext.AfterRun)
+}
 
-	s.BeforeScenario(beforeScenario)
-	s.AfterScenario(afterScenario)
+func ScenarioInitializer(s *godog.ScenarioContext) {
+	s.Before(beforeScenario)
+	s.After(afterScenario)
 
 	APIActionsFeatureContext(s)
 	APIChecksFeatureContext(s)
@@ -66,16 +69,16 @@ func FeatureContext(s *godog.Suite) {
 	UsersChecksFeatureContext(s)
 }
 
-var ctx *context.TestContext //nolint[gochecknoglobals]
+var ctx *testContext.TestContext //nolint[gochecknoglobals]
 
-func beforeScenario(scenario interface{}) {
-	// bridge or ie. With godog 0.10.x and later it can be determined from
-	// scenario.Uri and its file location.
+func beforeScenario(scenarioCtx context.Context, _ *godog.Scenario) (context.Context, error) {
+	// NOTE(GODT-219) It would be possible to optimised the usage of godog with our context.
 	app := os.Getenv("TEST_APP")
-	ctx = context.New(app)
+	ctx = testContext.New(app)
+	return scenarioCtx, nil
 }
 
-func afterScenario(scenario interface{}, err error) {
+func afterScenario(scenarioCtx context.Context, _ *godog.Scenario, err error) (context.Context, error) {
 	if err != nil {
 		for _, user := range ctx.GetUsers().GetUsers() {
 			store := user.GetStore()
@@ -88,4 +91,6 @@ func afterScenario(scenario interface{}, err error) {
 	if err != nil {
 		ctx.GetPMAPIController().PrintCalls()
 	}
+
+	return scenarioCtx, err
 }

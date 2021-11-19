@@ -22,7 +22,7 @@ import (
 	a "github.com/stretchr/testify/assert"
 )
 
-func CommonChecksFeatureContext(s *godog.Suite) {
+func CommonChecksFeatureContext(s *godog.ScenarioContext) {
 	s.Step(`^last response is "([^"]*)"$`, lastResponseIs)
 }
 

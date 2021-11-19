@@ -247,7 +247,12 @@ func (loop *eventLoop) processNextEvent() (more bool, err error) { // nolint[fun
 			l.WithError(err).WithField("errors", loop.errCounter).Error("Error skipped")
 			loop.errCounter++
 			if loop.errCounter == errMaxSentry {
-				if sentryErr := loop.store.sentryReporter.ReportMessage("Warning: event loop issues: " + err.Error() + ", " + loop.currentEventID); sentryErr != nil {
+				context := map[string]interface{}{
+					"EventLoop": map[string]interface{}{
+						"EventID": loop.currentEventID,
+					},
+				}
+				if sentryErr := loop.store.sentryReporter.ReportMessageWithContext("Warning: event loop issues: "+err.Error(), context); sentryErr != nil {
 					l.WithError(sentryErr).Error("Failed to report error to sentry")
 				}
 			}
@@ -302,7 +307,12 @@ func (loop *eventLoop) processEvent(event *pmapi.Event) (err error) {
 		eventLog.Info("Processing refresh event")
 		loop.store.triggerSync()
 
-		if sentryErr := loop.store.sentryReporter.ReportMessage("Warning: refresh occurred, " + loop.currentEventID); sentryErr != nil {
+		context := map[string]interface{}{
+			"EventLoop": map[string]interface{}{
+				"EventID": loop.currentEventID,
+			},
+		}
+		if sentryErr := loop.store.sentryReporter.ReportMessageWithContext("Warning: refresh occurred", context); sentryErr != nil {
 			loop.log.WithError(sentryErr).Error("Failed to report refresh to sentry")
 		}
 

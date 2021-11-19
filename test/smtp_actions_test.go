@@ -21,10 +21,9 @@ import (
 	"strings"
 
 	"github.com/cucumber/godog"
-	"github.com/cucumber/godog/gherkin"
 )
 
-func SMTPActionsAuthFeatureContext(s *godog.Suite) {
+func SMTPActionsAuthFeatureContext(s *godog.ScenarioContext) {
 	s.Step(`^SMTP client authenticates "([^"]*)"$`, smtpClientAuthenticates)
 	s.Step(`^SMTP client "([^"]*)" authenticates "([^"]*)"$`, smtpClientNamedAuthenticates)
 	s.Step(`^SMTP client authenticates "([^"]*)" with address "([^"]*)"$`, smtpClientAuthenticatesWithAddress)
@@ -37,6 +36,7 @@ func SMTPActionsAuthFeatureContext(s *godog.Suite) {
 	s.Step(`^SMTP client sends message with bcc "([^"]*)"$`, smtpClientSendsMessageWithBCC)
 	s.Step(`^SMTP client "([^"]*)" sends message with bcc "([^"]*)"$`, smtpClientNamedSendsMessageWithBCC)
 	s.Step(`^SMTP client sends "([^"]*)"$`, smtpClientSendsCommand)
+	s.Step(`^SMTP client sends$`, smtpClientSendsCommandMultiline)
 	s.Step(`^SMTP client "([^"]*)" sends "([^"]*)"$`, smtpClientNamedSendsCommand)
 }
 
@@ -90,19 +90,19 @@ func smtpClientLogsOut() error {
 	return nil
 }
 
-func smtpClientSendsMessage(message *gherkin.DocString) error {
+func smtpClientSendsMessage(message *godog.DocString) error {
 	return smtpClientNamedSendsMessage("smtp", message)
 }
 
-func smtpClientNamedSendsMessage(clientID string, message *gherkin.DocString) error {
+func smtpClientNamedSendsMessage(clientID string, message *godog.DocString) error {
 	return smtpClientNamedSendsMessageWithBCC(clientID, "", message)
 }
 
-func smtpClientSendsMessageWithBCC(bcc string, message *gherkin.DocString) error {
+func smtpClientSendsMessageWithBCC(bcc string, message *godog.DocString) error {
 	return smtpClientNamedSendsMessageWithBCC("smtp", bcc, message)
 }
 
-func smtpClientNamedSendsMessageWithBCC(clientID, bcc string, message *gherkin.DocString) error {
+func smtpClientNamedSendsMessageWithBCC(clientID, bcc string, message *godog.DocString) error {
 	res := ctx.GetSMTPClient(clientID).SendMail(strings.NewReader(message.Content), bcc)
 	ctx.SetSMTPLastResponse(clientID, res)
 	return nil
@@ -110,6 +110,9 @@ func smtpClientNamedSendsMessageWithBCC(clientID, bcc string, message *gherkin.D
 
 func smtpClientSendsCommand(command string) error {
 	return smtpClientNamedSendsCommand("smtp", command)
+}
+func smtpClientSendsCommandMultiline(command *godog.DocString) error {
+	return smtpClientNamedSendsCommand("smtp", command.Content)
 }
 func smtpClientNamedSendsCommand(clientName, command string) error {
 	command = strings.ReplaceAll(command, "\\r", "\r")

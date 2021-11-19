@@ -33,7 +33,7 @@ var opt = godog.Options{ //nolint[gochecknoglobals]
 }
 
 func init() { //nolint[gochecknoinits]
-	godog.BindFlags("godog.", flag.CommandLine, &opt)
+	godog.BindCommandLineFlags("godog.", &opt)
 
 	// This would normally be done using ldflags but `godog` command doesn't support that.
 	constants.Version = os.Getenv("BRIDGE_VERSION")
@@ -43,9 +43,12 @@ func TestMain(m *testing.M) {
 	flag.Parse()
 	opt.Paths = flag.Args()
 
-	status := godog.RunWithOptions("godogs", func(s *godog.Suite) {
-		FeatureContext(s)
-	}, opt)
+	status := godog.TestSuite{
+		Name:                 "bridge-integration-tests",
+		TestSuiteInitializer: SuiteInitializer,
+		ScenarioInitializer:  ScenarioInitializer,
+		Options:              &opt,
+	}.Run()
 
 	if st := m.Run(); st > status {
 		status = st

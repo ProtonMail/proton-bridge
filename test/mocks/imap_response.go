@@ -107,6 +107,11 @@ func (ir *IMAPResponse) AssertOK() *IMAPResponse {
 	return ir
 }
 
+func (ir *IMAPResponse) Sections() []string {
+	ir.wait()
+	return ir.sections
+}
+
 func (ir *IMAPResponse) AssertResult(wantResult string) *IMAPResponse {
 	ir.wait()
 	a.NoError(ir.t, ir.err)

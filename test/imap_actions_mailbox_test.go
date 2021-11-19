@@ -23,7 +23,7 @@ import (
 	"github.com/cucumber/godog"
 )
 
-func IMAPActionsMailboxFeatureContext(s *godog.Suite) {
+func IMAPActionsMailboxFeatureContext(s *godog.ScenarioContext) {
 	s.Step(`^IMAP client creates mailbox "([^"]*)"$`, imapClientCreatesMailbox)
 	s.Step(`^IMAP client renames mailbox "([^"]*)" to "([^"]*)"$`, imapClientRenamesMailboxTo)
 	s.Step(`^IMAP client deletes mailbox "([^"]*)"$`, imapClientDeletesMailbox)
