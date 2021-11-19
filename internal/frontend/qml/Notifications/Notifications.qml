@@ -689,7 +689,7 @@ QtObject {
         type: Notification.NotificationType.Warning
         group: Notifications.Group.Configuration | Notifications.Group.Dialogs
 
-        property var path
+        property url path
 
         Connections {
             target: root

@@ -29,6 +29,7 @@ Item {
     property string actionText: "Action"
     property string actionIcon: ""
     property string description: "Lorem ipsum dolor sit amet"
+    property alias descriptionWrap: descriptionLabel.wrapMode
     property var    type: SettingsItem.ActionType.Toggle
 
     property bool checked: true
@@ -67,6 +68,7 @@ Item {
             }
 
             Label {
+                id: descriptionLabel
                 Layout.fillHeight: true
                 Layout.fillWidth: true
 

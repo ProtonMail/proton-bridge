@@ -15,11 +15,14 @@
 // You should have received a copy of the GNU General Public License
 // along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
 
+//go:build build_qt
 // +build build_qt
 
 package qt
 
-import "github.com/therecipe/qt/core"
+import (
+	"github.com/therecipe/qt/core"
+)
 
 func (f *FrontendQt) setVersion() {
 	f.qml.SetVersion(f.programVersion)
@@ -31,11 +34,12 @@ func (f *FrontendQt) setLogsPath() {
 		f.log.WithError(err).Error("Cannot update path folder")
 		return
 	}
-	f.qml.SetLogsPath(path)
+
+	f.qml.SetLogsPath(core.QUrl_FromLocalFile(path))
 }
 
 func (f *FrontendQt) setLicensePath() {
-	f.qml.SetLicensePath(f.locations.GetLicenseFilePath())
+	f.qml.SetLicensePath(core.QUrl_FromLocalFile(f.locations.GetLicenseFilePath()))
 }
 
 func (f *FrontendQt) setCurrentEmailClient() {

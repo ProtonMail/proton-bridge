@@ -21,12 +21,14 @@
 package qt
 
 import (
+	"runtime"
 	"time"
 
 	"github.com/ProtonMail/proton-bridge/internal/config/settings"
 	"github.com/ProtonMail/proton-bridge/internal/frontend/clientconfig"
 	"github.com/ProtonMail/proton-bridge/pkg/keychain"
 	"github.com/ProtonMail/proton-bridge/pkg/ports"
+	"github.com/therecipe/qt/core"
 )
 
 func (f *FrontendQt) setIsDiskCacheEnabled() {
@@ -34,10 +36,10 @@ func (f *FrontendQt) setIsDiskCacheEnabled() {
 }
 
 func (f *FrontendQt) setDiskCachePath() {
-	f.qml.SetDiskCachePath(f.settings.Get(settings.CacheLocationKey))
+	f.qml.SetDiskCachePath(core.QUrl_FromLocalFile(f.settings.Get(settings.CacheLocationKey)))
 }
 
-func (f *FrontendQt) changeLocalCache(enableDiskCache bool, diskCachePath string) {
+func (f *FrontendQt) changeLocalCache(enableDiskCache bool, diskCachePath *core.QUrl) {
 	defer f.qml.ChangeLocalCacheFinished()
 	defer f.setIsDiskCacheEnabled()
 	defer f.setDiskCachePath()
@@ -54,18 +56,23 @@ func (f *FrontendQt) changeLocalCache(enableDiskCache bool, diskCachePath string
 		}
 	}
 
+	_diskCachePath := diskCachePath.Path(core.QUrl__FullyDecoded)
+	if (runtime.GOOS == "windows") && (_diskCachePath[0] == '/') {
+		_diskCachePath = _diskCachePath[1:]
+	}
+
 	// If disk cache not enabled, or path not changed then no need to change location
-	if !enableDiskCache || diskCachePath == f.settings.Get(settings.CacheLocationKey) {
+	if !enableDiskCache || _diskCachePath == f.settings.Get(settings.CacheLocationKey) {
 		return
 	}
 
-	if err := f.bridge.MigrateCache(f.settings.Get(settings.CacheLocationKey), diskCachePath); err != nil {
+	if err := f.bridge.MigrateCache(f.settings.Get(settings.CacheLocationKey), _diskCachePath); err != nil {
 		f.log.WithError(err).Error("The local cache location could not be changed.")
 		f.qml.CacheCantMove()
 		return
 	}
 
-	f.settings.Set(settings.CacheLocationKey, diskCachePath)
+	f.settings.Set(settings.CacheLocationKey, _diskCachePath)
 	f.qml.CacheLocationChangeSuccess()
 	f.restart()
 }

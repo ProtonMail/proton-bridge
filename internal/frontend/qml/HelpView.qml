@@ -70,7 +70,7 @@ SettingsView {
         actionText: qsTr("View logs")
         description: qsTr("Open and review logs to troubleshoot.")
         type: SettingsItem.Button
-        onClicked: {Qt.openUrlExternally("file://"+root.backend.logsPath)}
+        onClicked: Qt.openUrlExternally(root.backend.logsPath)
 
         Layout.fillWidth: true
     }
@@ -108,7 +108,7 @@ SettingsView {
 
         text: qsTr("Proton Mail Bridge v%1<br>© 2021 Proton AG<br>%2 %3").
             arg(root.backend.version).
-            arg(link("file://"+root.backend.licensePath, qsTr("License"))).
+            arg(link(root.backend.licensePath, qsTr("License"))).
             arg(link(root.backend.releaseNotesLink, qsTr("Release notes")))
 
         onLinkActivated: Qt.openUrlExternally(link)

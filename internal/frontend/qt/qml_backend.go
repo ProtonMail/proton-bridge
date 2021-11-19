@@ -80,14 +80,14 @@ type QMLBackend struct {
 	_ func()               `slot:"checkUpdates"`
 	_ func()               `signal:"checkUpdatesFinished"`
 
-	_ bool                                             `property:"isDiskCacheEnabled"`
-	_ string                                           `property:"diskCachePath"`
-	_ func()                                           `signal:"cacheUnavailable"`
-	_ func()                                           `signal:"cacheCantMove"`
-	_ func()                                           `signal:"cacheLocationChangeSuccess"`
-	_ func()                                           `signal:"diskFull"`
-	_ func(enableDiskCache bool, diskCachePath string) `slot:"changeLocalCache"`
-	_ func()                                           `signal:"changeLocalCacheFinished"`
+	_ bool                                                `property:"isDiskCacheEnabled"`
+	_ core.QUrl                                           `property:"diskCachePath"`
+	_ func()                                              `signal:"cacheUnavailable"`
+	_ func()                                              `signal:"cacheCantMove"`
+	_ func()                                              `signal:"cacheLocationChangeSuccess"`
+	_ func()                                              `signal:"diskFull"`
+	_ func(enableDiskCache bool, diskCachePath core.QUrl) `slot:"changeLocalCache"`
+	_ func()                                              `signal:"changeLocalCacheFinished"`
 
 	_ bool                    `property:"isAutomaticUpdateOn"`
 	_ func(makeItActive bool) `slot:"toggleAutomaticUpdate"`
@@ -118,11 +118,11 @@ type QMLBackend struct {
 	_ func() `slot:"triggerReset"`
 	_ func() `signal:"resetFinished"`
 
-	_ string `property:"version"`
-	_ string `property:"logsPath"`
-	_ string `property:"licensePath"`
-	_ string `property:"releaseNotesLink"`
-	_ string `property:"landingPageLink"`
+	_ string    `property:"version"`
+	_ core.QUrl `property:"logsPath"`
+	_ core.QUrl `property:"licensePath"`
+	_ core.QUrl `property:"releaseNotesLink"`
+	_ core.QUrl `property:"landingPageLink"`
 
 	_ string                                                           `property:"currentEmailClient"`
 	_ func()                                                           `slot:"updateCurrentMailClient"`
@@ -207,7 +207,7 @@ func (q *QMLBackend) setup(f *FrontendQt) {
 
 	f.setIsDiskCacheEnabled()
 	f.setDiskCachePath()
-	q.ConnectChangeLocalCache(func(e bool, d string) {
+	q.ConnectChangeLocalCache(func(e bool, d *core.QUrl) {
 		go func() {
 			defer f.panicHandler.HandlePanic()
 			f.changeLocalCache(e, d)

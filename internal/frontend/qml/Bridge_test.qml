@@ -23,6 +23,8 @@ import QtQuick.Controls 2.13
 
 import QtQml.Models 2.12
 
+import Qt.labs.platform 1.1
+
 import Proton 4.0
 
 import "./BridgeTest"
@@ -630,11 +632,13 @@ Window {
                         TextField {
                             colorScheme:root.colorScheme
                             label: "Path"
-                            text: root.diskCachePath
+                            text: root.diskCachePath.toString().replace("file://", "")
                             implicitWidth: 160
-                            onEditingFinished: root.diskCachePath = this.text
+                            onEditingFinished: {
+                                root.diskCachePath = Qt.resolvedUrl("file://"+text)
+                            }
                         }
-                        Button {colorScheme: root.colorScheme; text: "Change finished:"; onClicked: root.changeLocalCacheFinished()}
+                        Button {colorScheme: root.colorScheme; text: "Change finished"; onClicked: root.changeLocalCacheFinished()}
                     }
                     RowLayout {
                         Label {colorScheme: root.colorScheme; text: "Reset:"}
@@ -686,7 +690,8 @@ Window {
 
 
     property bool   isDiskCacheEnabled: true
-    property string diskCachePath: "/home/bridge"
+    // Qt.resolvedUrl("file:///C:/Users/user/AppData/Roaming/protonmail/bridge/cache/c11/messages")
+    property url diskCachePath: StandardPaths.standardLocations(StandardPaths.HomeLocation)[0]
     signal cacheUnavailable()
     signal cacheCantMove()
     signal cacheLocationChangeSuccess()
@@ -749,10 +754,11 @@ Window {
     }
     signal resetFinished()
 
-    property string logsPath: "/home/cuto" // StandardPaths.locate(StandardPaths.DesktopLocation)
     property string version: "2.0.X-BridePreview"
-    property string licensePath: "/home/cuto" // StandardPaths.locate(StandardPaths.DesktopLocation)
-    property string releaseNotesLink: "https://protonmail.com/download/bridge/early_releases.html"
+    property url logsPath: StandardPaths.standardLocations(StandardPaths.HomeLocation)[0]
+    property url licensePath: StandardPaths.standardLocations(StandardPaths.HomeLocation)[0]
+    property url releaseNotesLink: Qt.resolvedUrl("https://protonmail.com/download/bridge/early_releases.html")
+    property url landingPageLink: Qt.resolvedUrl("https://protonmail.com/bridge")
 
     property string currentEmailClient: "" // "Apple Mail 14.0"
     function updateCurrentMailClient(){

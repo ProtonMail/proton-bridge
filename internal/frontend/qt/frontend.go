@@ -141,8 +141,8 @@ func (f *FrontendQt) NotifyManualUpdate(version updater.VersionInfo, canInstall 
 
 func (f *FrontendQt) SetVersion(version updater.VersionInfo) {
 	f.newVersionInfo = version
-	f.qml.SetReleaseNotesLink(version.ReleaseNotesPage)
-	f.qml.SetLandingPageLink(version.LandingPage)
+	f.qml.SetReleaseNotesLink(core.NewQUrl3(version.ReleaseNotesPage, core.QUrl__TolerantMode))
+	f.qml.SetLandingPageLink(core.NewQUrl3(version.LandingPage, core.QUrl__TolerantMode))
 }
 
 func (f *FrontendQt) NotifySilentUpdateInstalled() {

@@ -122,7 +122,7 @@ SettingsView {
             text: qsTr("View logs")
             secondary: true
             colorScheme: root.colorScheme
-            onClicked: Qt.openUrlExternally("file://"+root.backend.logsPath)
+            onClicked: Qt.openUrlExternally(root.backend.logsPath)
         }
     }
 

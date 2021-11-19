@@ -30,7 +30,7 @@ SettingsView {
 
     property var notifications
     property bool _diskCacheEnabled: true
-    property string _diskCachePath: "/home"
+    property url _diskCachePath: pathDialog.shortcuts.home
 
     Label {
         colorScheme: root.colorScheme
@@ -64,7 +64,10 @@ SettingsView {
         colorScheme: root.colorScheme
         text: qsTr("Current cache location")
         actionText: qsTr("Change location")
-        description: root._diskCachePath
+        description: root.backend.goos === "windows" ?
+                         root._diskCachePath.toString().replace("file:///", "").replace(new RegExp("/", 'g'), "\\") + "\\" :
+                         root._diskCachePath.toString().replace("file://", "") + "/"
+        descriptionWrap: Text.WrapAnywhere
         type: SettingsItem.Button
         enabled: root._diskCacheEnabled
         onClicked: {
@@ -76,8 +79,8 @@ SettingsView {
         FileDialog {
             id: pathDialog
             title: qsTr("Select cache location")
-            folder: shortcuts.home
-            onAccepted: root.sanitizePath(pathDialog.fileUrl.toString())
+            folder: root._diskCachePath
+            onAccepted: root._diskCachePath = pathDialog.fileUrl
             selectFolder: true
         }
     }
@@ -120,7 +123,6 @@ SettingsView {
     }
 
     function submit(){
-        console.log("submit")
         if (!root._diskCacheEnabled && root.backend.isDiskCacheEnabled) {
             root.notifications.askDisableLocalCache()
             return
@@ -139,12 +141,6 @@ SettingsView {
     function setDefaultValues(){
         root._diskCacheEnabled = root.backend.isDiskCacheEnabled
         root._diskCachePath = root.backend.diskCachePath
-    }
-
-    function sanitizePath(path) {
-        var pattern = "file://"
-        if (root.backend.goos=="windows") pattern+="/"
-        root._diskCachePath = path.replace(pattern, "")
     }
 
     onVisibleChanged: {
