@@ -135,10 +135,10 @@ type Store struct {
 	addresses map[string]*Address
 	notifier  ChangeNotifier
 
-	builder *message.Builder
-	cache   cache.Cache
-	cacher  *Cacher
-	done    chan struct{}
+	builder      *message.Builder
+	cache        cache.Cache
+	msgCachePool *MsgCachePool
+	done         chan struct{}
 
 	isSyncRunning bool
 	syncCooldown  cooldown
@@ -194,7 +194,7 @@ func New( // nolint[funlen]
 
 	// Create a new cacher. It's not started yet.
 	// NOTE(GODT-1158): I hate this circular dependency store->cacher->store :(
-	store.cacher = newCacher(store)
+	store.msgCachePool = newMsgCachePool(store)
 
 	// Minimal increase is event pollInterval, doubles every failed retry up to 5 minutes.
 	store.syncCooldown.setExponentialWait(pollInterval, 2, 5*time.Minute)
@@ -388,9 +388,9 @@ func (store *Store) addAddress(address, addressID string, labels []*pmapi.Label)
 }
 
 // newBuildJob returns a new build job for the given message using the store's message builder.
-func (store *Store) newBuildJob(messageID string, priority int) (*message.Job, pool.DoneFunc) {
+func (store *Store) newBuildJob(ctx context.Context, messageID string, priority int) (*message.Job, pool.DoneFunc) {
 	return store.builder.NewJobWithOptions(
-		context.Background(),
+		ctx,
 		store.client(),
 		messageID,
 		message.JobOptions{
@@ -421,7 +421,7 @@ func (store *Store) CloseEventLoopAndCacher() {
 
 	store.stopWatcher()
 
-	store.cacher.stop()
+	store.msgCachePool.stop()
 }
 
 func (store *Store) close() error {
@@ -457,6 +457,8 @@ func (store *Store) Remove() error {
 }
 
 func (store *Store) RemoveCache() error {
+	store.stopWatcher()
+
 	if err := store.clearCachePassphrase(); err != nil {
 		logrus.WithError(err).Error("Failed to clear cache passphrase")
 	}

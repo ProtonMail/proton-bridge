@@ -34,6 +34,12 @@ import (
 
 var ErrLowSpace = errors.New("not enough free space left on device")
 
+// IsOnDiskCache will return true if Cache is type of onDiskCache.
+func IsOnDiskCache(c Cache) bool {
+	_, ok := c.(*onDiskCache)
+	return ok
+}
+
 type onDiskCache struct {
 	path string
 	opts Options

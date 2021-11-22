@@ -188,8 +188,6 @@ func (u *Users) EnableCache() error {
 }
 
 func (u *Users) DisableCache() error {
-	// NOTE(GODT-1158): Is it an error if we can't remove a user's cache?
-
 	for _, user := range u.users {
 		if err := user.store.RemoveCache(); err != nil {
 			logrus.WithError(err).Error("Failed to remove user's message cache")
@@ -202,24 +200,22 @@ func (u *Users) DisableCache() error {
 // MigrateCache moves the message cache folder from folder srcPath to folder dstPath.
 // srcPath must point to an existing folder. dstPath must be an empty folder or not exist.
 func (u *Users) MigrateCache(srcPath, dstPath string) error {
-	// NOTE(GODT-1158): Is it enough dstPath just close the store? Do we need dstPath force-close the cacher too?
-
 	fiSrc, err := os.Stat(srcPath)
 	if os.IsNotExist(err) {
-		logrus.WithError(err).Error("unknown source for cache migration")
-		return err
+		logrus.WithError(err).Warn("Skipping migration: Unknown source for cache migration")
+		return nil
 	}
 	if !fiSrc.IsDir() {
-		logrus.WithError(err).Error("cache migration cannot be perform srcPath a file")
-		return err
+		logrus.WithError(err).Warn("Skipping migration: srcPath is not a dir")
+		return nil
 	}
 
 	if isSubfolderOf(dstPath, srcPath) {
-		return errors.New("the destination folder is a subfolder of the source folder")
+		return errors.New("destination folder is a subfolder of the source folder")
 	}
 
 	if err = checkFolderIsSuitableDestinationForCache(dstPath); err != nil {
-		logrus.WithError(err).Error("destination folder is not suitable for cache migration")
+		logrus.WithError(err).Error("The destination folder is not suitable for cache migration")
 		return err
 	}
 

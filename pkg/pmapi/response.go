@@ -18,6 +18,7 @@
 package pmapi
 
 import (
+	"context"
 	"math/rand"
 	"net/http"
 	"strconv"
@@ -138,6 +139,10 @@ func isNoResponse(res *resty.Response, err error) bool {
 
 func wrapNoConnection(res *resty.Response, err error) (*resty.Response, error) {
 	if err, ok := err.(*resty.ResponseError); ok {
+		return res, err
+	}
+
+	if errors.Is(err, context.Canceled) {
 		return res, err
 	}
 

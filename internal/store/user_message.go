@@ -304,7 +304,7 @@ func (store *Store) createOrUpdateMessagesEvent(msgs []*pmapi.Message) error { /
 
 	// Notify the cacher that it should start caching messages.
 	for _, msg := range msgs {
-		store.cacher.newJob(msg.ID)
+		store.msgCachePool.newJob(msg.ID)
 	}
 
 	return nil

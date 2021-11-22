@@ -25,7 +25,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func withTestCacher(t *testing.T, doTest func(storer *storemocks.MockStorer, cacher *Cacher)) {
+func withTestCacher(t *testing.T, doTest func(storer *storemocks.MockStorer, cacher *MsgCachePool)) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -33,7 +33,7 @@ func withTestCacher(t *testing.T, doTest func(storer *storemocks.MockStorer, cac
 	storer := storemocks.NewMockStorer(ctrl)
 
 	// Create a new cacher pointing to the fake store.
-	cacher := newCacher(storer)
+	cacher := newMsgCachePool(storer)
 
 	// Start the cacher and wait for it to stop.
 	cacher.start()
@@ -44,16 +44,16 @@ func withTestCacher(t *testing.T, doTest func(storer *storemocks.MockStorer, cac
 
 func TestCacher(t *testing.T) {
 	// If the message is not yet cached, we should expect to try to build and cache it.
-	withTestCacher(t, func(storer *storemocks.MockStorer, cacher *Cacher) {
+	withTestCacher(t, func(storer *storemocks.MockStorer, cacher *MsgCachePool) {
 		storer.EXPECT().IsCached("messageID").Return(false)
-		storer.EXPECT().BuildAndCacheMessage("messageID").Return(nil)
+		storer.EXPECT().BuildAndCacheMessage(cacher.ctx, "messageID").Return(nil)
 		cacher.newJob("messageID")
 	})
 }
 
 func TestCacherAlreadyCached(t *testing.T) {
 	// If the message is already cached, we should not try to build it.
-	withTestCacher(t, func(storer *storemocks.MockStorer, cacher *Cacher) {
+	withTestCacher(t, func(storer *storemocks.MockStorer, cacher *MsgCachePool) {
 		storer.EXPECT().IsCached("messageID").Return(true)
 		cacher.newJob("messageID")
 	})
@@ -61,9 +61,9 @@ func TestCacherAlreadyCached(t *testing.T) {
 
 func TestCacherFail(t *testing.T) {
 	// If building the message fails, we should not try to cache it.
-	withTestCacher(t, func(storer *storemocks.MockStorer, cacher *Cacher) {
+	withTestCacher(t, func(storer *storemocks.MockStorer, cacher *MsgCachePool) {
 		storer.EXPECT().IsCached("messageID").Return(false)
-		storer.EXPECT().BuildAndCacheMessage("messageID").Return(errors.New("failed to build message"))
+		storer.EXPECT().BuildAndCacheMessage(cacher.ctx, "messageID").Return(errors.New("failed to build message"))
 		cacher.newJob("messageID")
 	})
 }
@@ -76,14 +76,14 @@ func TestCacherStop(t *testing.T) {
 	storer := storemocks.NewMockStorer(ctrl)
 
 	// Create a new cacher pointing to the fake store.
-	cacher := newCacher(storer)
+	cacher := newMsgCachePool(storer)
 
 	// Start the cacher.
 	cacher.start()
 
 	// Send a job -- this should succeed.
 	storer.EXPECT().IsCached("messageID").Return(false)
-	storer.EXPECT().BuildAndCacheMessage("messageID").Return(nil)
+	storer.EXPECT().BuildAndCacheMessage(cacher.ctx, "messageID").Return(nil)
 	cacher.newJob("messageID")
 
 	// Stop the cacher.

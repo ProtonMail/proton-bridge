@@ -17,14 +17,27 @@
 
 package store
 
-import "time"
+import (
+	"context"
+	"time"
+
+	"github.com/ProtonMail/proton-bridge/internal/store/cache"
+)
 
 func (store *Store) StartWatcher() {
+	if !cache.IsOnDiskCache(store.cache) {
+		return
+	}
+
 	store.done = make(chan struct{})
+
+	ctx, cancel := context.WithCancel(context.Background())
+	store.msgCachePool.ctx = ctx
 
 	go func() {
 		ticker := time.NewTicker(10 * time.Minute)
 		defer ticker.Stop()
+		defer cancel()
 
 		for {
 			// NOTE(GODT-1158): Race condition here? What if DB was already closed?
@@ -35,7 +48,7 @@ func (store *Store) StartWatcher() {
 
 			for _, messageID := range messageIDs {
 				if !store.IsCached(messageID) {
-					store.cacher.newJob(messageID)
+					store.msgCachePool.newJob(messageID)
 				}
 			}
 

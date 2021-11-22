@@ -61,18 +61,15 @@ func (f *FrontendQt) changeLocalCache(enableDiskCache bool, diskCachePath *core.
 		_diskCachePath = _diskCachePath[1:]
 	}
 
-	// If disk cache not enabled, or path not changed then no need to change location
-	if !enableDiskCache || _diskCachePath == f.settings.Get(settings.CacheLocationKey) {
-		return
+	if enableDiskCache && _diskCachePath != f.settings.Get(settings.CacheLocationKey) {
+		if err := f.bridge.MigrateCache(f.settings.Get(settings.CacheLocationKey), _diskCachePath); err != nil {
+			f.log.WithError(err).Error("The local cache location could not be changed.")
+			f.qml.CacheCantMove()
+			return
+		}
+		f.settings.Set(settings.CacheLocationKey, _diskCachePath)
 	}
 
-	if err := f.bridge.MigrateCache(f.settings.Get(settings.CacheLocationKey), _diskCachePath); err != nil {
-		f.log.WithError(err).Error("The local cache location could not be changed.")
-		f.qml.CacheCantMove()
-		return
-	}
-
-	f.settings.Set(settings.CacheLocationKey, _diskCachePath)
 	f.qml.CacheLocationChangeSuccess()
 	f.restart()
 }

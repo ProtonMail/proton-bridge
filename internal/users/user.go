@@ -120,7 +120,6 @@ func (u *User) connect(client pmapi.Client, creds *credentials.Credentials) erro
 			return err
 		}
 
-		// NOTE(GODT-1158): If using in-memory cache we probably shouldn't start the watcher?
 		u.store.StartWatcher()
 	}
 

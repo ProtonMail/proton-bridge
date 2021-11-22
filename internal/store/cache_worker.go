@@ -18,35 +18,38 @@
 package store
 
 import (
+	"context"
 	"sync"
 
 	"github.com/sirupsen/logrus"
 )
 
-type Cacher struct {
+type MsgCachePool struct {
 	storer  Storer
 	jobs    chan string
 	done    chan struct{}
 	started bool
 	wg      *sync.WaitGroup
+	ctx     context.Context
 }
 
 type Storer interface {
 	IsCached(messageID string) bool
-	BuildAndCacheMessage(messageID string) error
+	BuildAndCacheMessage(ctx context.Context, messageID string) error
 }
 
-func newCacher(storer Storer) *Cacher {
-	return &Cacher{
+func newMsgCachePool(storer Storer) *MsgCachePool {
+	return &MsgCachePool{
 		storer: storer,
 		jobs:   make(chan string),
 		done:   make(chan struct{}),
 		wg:     &sync.WaitGroup{},
+		ctx:    context.Background(),
 	}
 }
 
 // newJob sends a new job to the cacher if it's running.
-func (cacher *Cacher) newJob(messageID string) {
+func (cacher *MsgCachePool) newJob(messageID string) {
 	if !cacher.started {
 		return
 	}
@@ -63,7 +66,7 @@ func (cacher *Cacher) newJob(messageID string) {
 	}
 }
 
-func (cacher *Cacher) start() {
+func (cacher *MsgCachePool) start() {
 	cacher.started = true
 
 	go func() {
@@ -79,17 +82,17 @@ func (cacher *Cacher) start() {
 	}()
 }
 
-func (cacher *Cacher) handleJob(messageID string) {
+func (cacher *MsgCachePool) handleJob(messageID string) {
 	defer cacher.wg.Done()
 
-	if err := cacher.storer.BuildAndCacheMessage(messageID); err != nil {
+	if err := cacher.storer.BuildAndCacheMessage(cacher.ctx, messageID); err != nil {
 		logrus.WithError(err).Error("Failed to build and cache message")
 	} else {
 		logrus.WithField("messageID", messageID).Trace("Message cached")
 	}
 }
 
-func (cacher *Cacher) stop() {
+func (cacher *MsgCachePool) stop() {
 	cacher.started = false
 
 	cacher.wg.Wait()

@@ -355,17 +355,17 @@ func (m *MockStorer) EXPECT() *MockStorerMockRecorder {
 }
 
 // BuildAndCacheMessage mocks base method.
-func (m *MockStorer) BuildAndCacheMessage(arg0 string) error {
+func (m *MockStorer) BuildAndCacheMessage(arg0 context.Context, arg1 string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "BuildAndCacheMessage", arg0)
+	ret := m.ctrl.Call(m, "BuildAndCacheMessage", arg0, arg1)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // BuildAndCacheMessage indicates an expected call of BuildAndCacheMessage.
-func (mr *MockStorerMockRecorder) BuildAndCacheMessage(arg0 interface{}) *gomock.Call {
+func (mr *MockStorerMockRecorder) BuildAndCacheMessage(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BuildAndCacheMessage", reflect.TypeOf((*MockStorer)(nil).BuildAndCacheMessage), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BuildAndCacheMessage", reflect.TypeOf((*MockStorer)(nil).BuildAndCacheMessage), arg0, arg1)
 }
 
 // IsCached mocks base method.

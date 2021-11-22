@@ -18,6 +18,8 @@
 package store
 
 import (
+	"context"
+
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/ProtonMail/proton-bridge/pkg/message"
 	"github.com/sirupsen/logrus"
@@ -59,7 +61,7 @@ func (store *Store) UnlockCache(kr *crypto.KeyRing) error {
 		return err
 	}
 
-	store.cacher.start()
+	store.msgCachePool.start()
 
 	return nil
 }
@@ -112,7 +114,7 @@ func (store *Store) getCachedMessage(messageID string) ([]byte, error) {
 		return store.cache.Get(store.user.ID(), messageID)
 	}
 
-	job, done := store.newBuildJob(messageID, message.ForegroundPriority)
+	job, done := store.newBuildJob(context.Background(), messageID, message.ForegroundPriority)
 	defer done()
 
 	literal, err := job.GetResult()
@@ -135,11 +137,11 @@ func (store *Store) IsCached(messageID string) bool {
 
 // BuildAndCacheMessage builds the given message (with background priority) and puts it in the cache.
 // It builds with background priority.
-func (store *Store) BuildAndCacheMessage(messageID string) error {
+func (store *Store) BuildAndCacheMessage(ctx context.Context, messageID string) error {
 	buildAndCacheJobs <- struct{}{}
 	defer func() { <-buildAndCacheJobs }()
 
-	job, done := store.newBuildJob(messageID, message.BackgroundPriority)
+	job, done := store.newBuildJob(ctx, messageID, message.BackgroundPriority)
 	defer done()
 
 	literal, err := job.GetResult()
