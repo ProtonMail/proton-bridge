@@ -377,6 +377,7 @@ Item {
                     target: root.backend
 
                     onLoginFinished: rightContent.showAccount(index)
+                    onLoginAlreadyLoggedIn: rightContent.showAccount(index)
                 }
             }
         }

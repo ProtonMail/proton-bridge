@@ -26,6 +26,7 @@ ColumnLayout {
     id: root
 
     property var user
+    property var userIndex
     property var backend
 
     spacing : 5
@@ -250,7 +251,25 @@ ColumnLayout {
             id: loginFinishedIndex
             colorScheme: root.colorScheme
             label: "Index:"
-            text: "0"
+            text: root.userIndex
+        }
+    }
+
+    RowLayout {
+        Button {
+            colorScheme: root.colorScheme
+            text: "Already logged in"
+
+            onClicked: {
+                root.backend.loginAlreadyLoggedIn(0+loginAlreadyLoggedInIndex.text)
+                user.resetLoginRequests()
+            }
+        }
+        TextField {
+            id: loginAlreadyLoggedInIndex
+            colorScheme: root.colorScheme
+            label: "Index:"
+            text: root.userIndex
         }
     }
 

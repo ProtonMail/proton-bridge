@@ -15,6 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
 
+//go:build build_qt
 // +build build_qt
 
 package qt
@@ -145,6 +146,7 @@ func (f *FrontendQt) finishLogin() {
 	defer f.eventListener.Remove(events.UserChangeDone, done)
 
 	user, err := f.bridge.FinishLogin(f.authClient, f.auth, f.password)
+
 	if err != nil && err != users.ErrUserAlreadyConnected {
 		f.log.WithError(err).Errorf("Finish login failed")
 		f.qml.Login2PasswordErrorAbort(err.Error())
@@ -158,8 +160,12 @@ func (f *FrontendQt) finishLogin() {
 
 	index := f.qml.Users().indexByID(user.ID())
 	f.log.WithField("index", index).Debug("Login finished")
-
 	defer f.qml.LoginFinished(index)
+
+	if err == users.ErrUserAlreadyConnected {
+		f.log.WithError(err).Error("User already logged in")
+		f.qml.LoginAlreadyLoggedIn(index)
+	}
 }
 
 func (f *FrontendQt) waitForUserChangeDone(done <-chan string, userID string) {

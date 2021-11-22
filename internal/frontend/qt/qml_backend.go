@@ -65,6 +65,7 @@ type QMLBackend struct {
 	_ func(errorMsg string)           `signal:"login2PasswordError"`
 	_ func(errorMsg string)           `signal:"login2PasswordErrorAbort"`
 	_ func(index int)                 `signal:"loginFinished"`
+	_ func(index int)                 `signal:"loginAlreadyLoggedIn"`
 
 	_ func() `signal:"internetOff"`
 	_ func() `signal:"internetOn"`

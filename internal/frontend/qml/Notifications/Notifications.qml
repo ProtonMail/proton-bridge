@@ -57,6 +57,7 @@ QtObject {
         root.updateIsLatestVersion,
         root.loginConnectionError,
         root.onlyPaidUsers,
+        root.alreadyLoggedIn,
         root.enableBeta,
         root.bugReportSendSuccess,
         root.bugReportSendError,
@@ -409,6 +410,29 @@ QtObject {
                 text: qsTr("OK")
                 onTriggered: {
                     root.onlyPaidUsers.active = false
+                }
+            }
+        ]
+    }
+
+    property Notification alreadyLoggedIn: Notification {
+        text: qsTr("This account is already signed it.")
+        icon: "./icons/ic-exclamation-circle-filled.svg"
+        type: Notification.NotificationType.Info
+        group: Notifications.Group.Configuration
+
+        Connections {
+            target: root.backend
+            onLoginAlreadyLoggedIn: {
+                root.alreadyLoggedIn.active = true
+            }
+        }
+
+        action: [
+            Action {
+                text: qsTr("OK")
+                onTriggered: {
+                    root.alreadyLoggedIn.active = false
                 }
             }
         ]

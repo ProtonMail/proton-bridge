@@ -436,6 +436,7 @@ Window {
                     colorScheme: root.colorScheme
                     backend: root
                     user: ((root.usersTest.count > usersListView.currentIndex) && usersListView.currentIndex != -1) ? root.usersTest.get(usersListView.currentIndex) : undefined
+                    userIndex: usersListView.currentIndex - 1 // -1 because 0 index is fake user
                 }
             }
 
@@ -671,6 +672,7 @@ Window {
     signal login2PasswordError(string errorMsg)
     signal login2PasswordErrorAbort(string errorMsg)
     signal loginFinished(int index)
+    signal loginAlreadyLoggedIn(int index)
 
     signal internetOff()
     signal internetOn()
@@ -848,6 +850,9 @@ Window {
     }
     onLoginFinished: {
         console.debug("<- loginFinished", index)
+    }
+    onLoginAlreadyLoggedIn: {
+        console.debug("<- loginAlreadyLoggedIn", index)
     }
 
     onInternetOff: {
