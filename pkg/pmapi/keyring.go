@@ -37,6 +37,7 @@ type PMKey struct {
 	PrivateKey  *crypto.Key
 	Primary     int
 	Token       string
+	Active      Boolean
 	Signature   string
 }
 
@@ -135,6 +136,11 @@ func (keys *PMKeys) UnlockAll(passphrase []byte, userKey *crypto.KeyRing) (kr *c
 	}
 
 	for _, key := range *keys {
+		if !key.Active {
+			logrus.WithField("fingerprint", key.Fingerprint).Warn("Skipping inactive key")
+			continue
+		}
+
 		var secret []byte
 
 		if key.Token == "" || key.Signature == "" {

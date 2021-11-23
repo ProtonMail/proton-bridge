@@ -61,5 +61,5 @@ func TestClient_CurrentUser(t *testing.T) {
 	// Ignore KeyRings during the check because they have unexported fields and cannot be compared
 	r.True(t, cmp.Equal(user, testCurrentUser, cmpopts.IgnoreTypes(&crypto.Key{})))
 
-	r.Nil(t, c.Unlock(context.Background(), []byte(testMailboxPassword)))
+	r.NoError(t, c.Unlock(context.Background(), []byte(testMailboxPassword)))
 }

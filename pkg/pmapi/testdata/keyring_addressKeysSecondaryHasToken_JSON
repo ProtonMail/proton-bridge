@@ -2,6 +2,7 @@
   {
     "ID": "MhF8dxtN5Lz_GruskN3L9kTKWusZHBdhWaxc7w1tgze2qB6uM9AyC6mWRQg1B7WGZ_r-9gn-XC95-IkpNJr0jg==",
     "Primary": 1,
+    "Active": 1,
     "Flags": 3,
     "Version": 3,
     "Activation": null,
@@ -12,6 +13,7 @@
   {
 	  "ID": "hKRtZeTDhvzfAaycb5BOVx6Y3hc3gs4QvET8H_YZBTwAQBPp3h6FI4nnkJePCYuM9CG0zf7TQzOJeB2rPi0YmQ==",
 	  "Primary": 0,
+    "Active": 1,
 	  "Flags": 3,
 	  "Version": 3,
 	  "Activation": null,
