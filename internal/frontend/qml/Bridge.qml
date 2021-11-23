@@ -25,6 +25,13 @@ import Notifications 1.0
 QtObject {
     id: root
 
+    function isInInterval(num, lower_limit, upper_limit) {
+        return lower_limit <= num && num <= upper_limit
+    }
+    function bound(num, lower_limit, upper_limit) {
+        return Math.max(lower_limit, Math.min(upper_limit, num))
+    }
+
     property var backend
 
     property Notifications _notifications: Notifications {
@@ -54,17 +61,6 @@ QtObject {
         backend: root.backend
         notifications: root._notifications
 
-        property var x_center: 10
-        property var x_min: 0
-        property var x_max: 100
-        property var y_center: 1000
-        property var y_min: 0
-        property var y_max: 10000
-
-        x: bound(x_center,x_min, x_max-statusWindow.width)
-        y: bound(y_center,y_min, y_max-statusWindow.height)
-
-
         onShowMainWindow: {
             mainWindow.showAndRise()
         }
@@ -88,8 +84,59 @@ QtObject {
             backend.quit()
         }
 
-        function bound(num, lower_limit, upper_limit) {
-            return Math.max(lower_limit, Math.min(upper_limit, num))
+        property rect screenRect
+        property rect iconRect
+
+        // use binding from function with width and height as arguments so it will be recalculated every time width and height are changed
+        property point position: getPosition(width, height)
+        x: position.x
+        y: position.y
+
+        function getPosition(_width, _height) {
+            if (screenRect.width === 0 || screenRect.height === 0) {
+                return Qt.point(0, 0)
+            }
+
+            var _x = 0
+            var _y = 0
+
+            // fit above
+            _y = iconRect.top - height
+            if (isInInterval(_y, screenRect.top, screenRect.bottom - height)) {
+                // position preferebly in the horizontal center but bound to the screen rect
+                _x = bound(iconRect.left + (iconRect.width - width)/2, screenRect.left, screenRect.right - width)
+                return Qt.point(_x, _y)
+            }
+
+            // fit below
+            _y = iconRect.bottom
+            if (isInInterval(_y, screenRect.top, screenRect.bottom - height)) {
+                // position preferebly in the horizontal center but bound to the screen rect
+                _x = bound(iconRect.left + (iconRect.width - width)/2, screenRect.left, screenRect.right - width)
+                return Qt.point(_x, _y)
+            }
+
+            // fit to the left
+            _x = iconRect.left - width
+            if (isInInterval(_x, screenRect.left, screenRect.right - width)) {
+                // position preferebly in the vertical center but bound to the screen rect
+                _y = bound(iconRect.top + (iconRect.height - height)/2, screenRect.top, screenRect.bottom - height)
+                return Qt.point(_x, _y)
+            }
+
+            // fir to the right
+            _x = iconRect.right
+            if (isInInterval(_x, screenRect.left, screenRect.right - width)) {
+                // position preferebly in the vertical center but bound to the screen rect
+                _y = bound(iconRect.top + (iconRect.height - height)/2, screenRect.top, screenRect.bottom - height)
+                return Qt.point(_x, _y)
+            }
+
+            // Fallback: position satatus window right above icon and let window manager decide.
+            console.warn("Can't position status window: screenRect =", screenRect, "iconRect =", iconRect)
+            _x = bound(iconRect.left + (iconRect.width - width)/2, screenRect.left, screenRect.right - width)
+            _y = bound(iconRect.top + (iconRect.height - height)/2, screenRect.top, screenRect.bottom - height)
+            return Qt.point(_x, _y)
         }
     }
 
@@ -101,43 +148,44 @@ QtObject {
         tooltip: `Proton Mail Bridge v${backend.version}`
         onActivated: {
             function calcStatusWindowPosition() {
-                function isInInterval(num, lower_limit, upper_limit) {
-                    return lower_limit <= num && num <= upper_limit
-                }
-
-                // First we get icon center position.
-                // On some platforms (X11 / Wayland) Qt does not provide icon geometry info.
+                // On some platforms (X11 / Plasma) Qt does not provide icon position and geometry info.
                 // In this case we rely on cursor position
-                var iconWidth = geometry.width *1.2
-                var iconHeight = geometry.height *1.2
-                var iconCenter = Qt.point(geometry.x + (geometry.width / 2), geometry.y + (geometry.height / 2))
+                var iconRect = Qt.rect(geometry.x, geometry.y, geometry.width, geometry.height)
                 if (geometry.width == 0 && geometry.height == 0) {
-                    iconCenter = backend.getCursorPos()
-                    // fallback: simple guess, no data to estimate
-                    iconWidth = 25
-                    iconHeight = 25
+                    var mousePos = backend.getCursorPos()
+                    iconRect.x = mousePos.x
+                    iconRect.y = mousePos.y
+                    iconRect.width = 0
+                    iconRect.height = 0
                 }
 
                 // Find screen
-                var screen = Qt.application.screens[0]
-
+                var screen
                 for (var i in Qt.application.screens) {
-                    screen = Qt.application.screens[i]
+                    var _screen = Qt.application.screens[i]
                     if (
-                        isInInterval(iconCenter.x, screen.virtualX, screen.virtualX+screen.width) &&
-                        isInInterval(iconCenter.y, screen.virtualY, screen.virtualY+screen.height)
+                        isInInterval(iconRect.x, _screen.virtualX, _screen.virtualX + _screen.width) &&
+                        isInInterval(iconRect.y, _screen.virtualY, _screen.virtualY + _screen.height)
                     ) {
+                        screen = _screen
                         break
                     }
                 }
+                if (!screen) {
+                    // Fallback to primary screen
+                    screen = Qt.application.screens[0]
+                }
 
-                // Calculate allowed square where status window top left corner can be positioned
-                statusWindow.x_center = iconCenter.x
-                statusWindow.y_center = iconCenter.y
-                statusWindow.x_min = screen.virtualX + iconWidth
-                statusWindow.x_max = screen.virtualX + screen.width - iconWidth
-                statusWindow.y_min = screen.virtualY + iconHeight
-                statusWindow.y_max = screen.virtualY + screen.height - iconHeight
+                // In case we used mouse to detect icon position - we want to make a fake icon rectangle from a point
+                if (iconRect.width == 0 && iconRect.height == 0) {
+                    iconRect.x = bound(iconRect.x - 16, screen.virtualX, screen.virtualX + screen.width - 32)
+                    iconRect.y = bound(iconRect.y - 16, screen.virtualY, screen.virtualY + screen.height - 32)
+                    iconRect.width = 32
+                    iconRect.height = 32
+                }
+
+                statusWindow.screenRect = Qt.rect(screen.virtualX, screen.virtualY, screen.width, screen.height)
+                statusWindow.iconRect = iconRect
             }
 
             function toggleWindow(win) {
@@ -151,15 +199,15 @@ QtObject {
 
             switch (reason) {
                 case SystemTrayIcon.Unknown:
-                break;
+                    break;
                 case SystemTrayIcon.Context:
                 case SystemTrayIcon.Trigger:
                 case SystemTrayIcon.DoubleClick:
                 case SystemTrayIcon.MiddleClick:
-                calcStatusWindowPosition()
-                toggleWindow(statusWindow)
+                    calcStatusWindowPosition()
+                    toggleWindow(statusWindow)
                 break;
-                default:
+                    default:
                 break;
             }
         }
