@@ -6,8 +6,11 @@
    viewBox="0 0 264 148"
    version="1.1"
    id="svg90"
-   sodipodi:docname="img-welcome.svg"
+   sodipodi:docname="img-welcome-dark.svg"
    inkscape:version="1.1.1 (3bf5ae0d25, 2021-09-20)"
+   inkscape:export-filename="/home/dev/gopath/src/github.com/ProtonMail/proton-bridge/internal/frontend/qml/icons/img-welcome.png"
+   inkscape:export-xdpi="400"
+   inkscape:export-ydpi="400"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns="http://www.w3.org/2000/svg"
@@ -32,12 +35,15 @@
      inkscape:window-maximized="1"
      inkscape:current-layer="svg90" />
   <rect
-     style="fill:#ffffff;stroke-width:1.88976;stroke-linecap:round;stroke-linejoin:round;fill-opacity:1"
+     style="fill:#262a33;stroke-width:1.88976;stroke-linecap:round;stroke-linejoin:round;fill-opacity:1"
      id="rect931"
      width="264"
      height="148"
      x="0"
-     y="0" />
+     y="0"
+     inkscape:export-filename="/home/dev/gopath/src/github.com/ProtonMail/proton-bridge/internal/frontend/qml/icons/img-welcome-dark.png"
+     inkscape:export-xdpi="400"
+     inkscape:export-ydpi="400" />
   <path
      fill="#B0D4E5"
      d="M220.171 147.001H43.856a3.018 3.018 0 01-3.051-3.051v-1.712c0-1.711 1.34-3.05 3.05-3.05h176.316a3.017 3.017 0 013.05 3.05v1.712c0 1.711-1.413 3.051-3.05 3.051z"

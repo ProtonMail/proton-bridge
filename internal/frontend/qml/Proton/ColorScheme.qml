@@ -85,4 +85,7 @@ QtObject {
 
     // Backdrop
     property color backdrop_norm
+
+    // Images
+    property string welcome_img
 }

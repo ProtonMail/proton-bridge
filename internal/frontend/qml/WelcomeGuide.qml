@@ -80,7 +80,7 @@ Item {
                     spacing: 0
 
                     Image {
-                        source: "icons/img-welcome.svg"
+                        source: colorScheme.welcome_img
                         Layout.alignment: Qt.AlignHCenter
                         Layout.topMargin: 16
                         sourceSize.height: 148

@@ -102,6 +102,9 @@ QtObject {
 
         // Backdrop
         backdrop_norm: "#7A262A33"
+
+        // Images
+        welcome_img: "icons/img-welcome.png"
     }
 
     property ColorScheme prominentStyle: ColorScheme {
@@ -173,6 +176,9 @@ QtObject {
 
         // Backdrop
         backdrop_norm: "#52000000"
+
+        // Images
+        welcome_img: "icons/img-welcome-dark.png"
     }
 
     property ColorScheme darkStyle: ColorScheme {
@@ -244,6 +250,9 @@ QtObject {
 
         // Backdrop
         backdrop_norm: "#52000000"
+
+        // Images
+        welcome_img: "icons/img-welcome-dark.png"
     }
 
     // TODO: if default style should be loaded from somewhere
