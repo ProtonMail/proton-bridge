@@ -86,12 +86,7 @@ Item {
                     }
                 }
                 font.weight: Font.Normal
-                color: {
-                    switch(root.type) {
-                        case AccountDelegate.SmallView: return root.colorScheme.text_norm
-                        case AccountDelegate.LargeView: return root.colorScheme.text_invert
-                    }
-                }
+                color: "#FFFFFF"
                 horizontalAlignment: Qt.AlignHCenter
                 verticalAlignment: Qt.AlignVCenter
             }
