@@ -110,7 +110,7 @@ Item {
                                 visible: root.user ? !root.user.loggedIn : false
                                 onClicked: {
                                     if (!root.user) return
-                                    root.parent.rightContent.showSignIn()
+                                    root.showSignIn()
                                 }
                             }
 
