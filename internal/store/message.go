@@ -20,7 +20,6 @@ package store
 import (
 	"bufio"
 	"bytes"
-	"net/mail"
 	"net/textproto"
 
 	pkgMsg "github.com/ProtonMail/proton-bridge/pkg/message"
@@ -82,29 +81,6 @@ func (message *Message) IsMarkedDeleted() bool {
 	return isMarkedAsDeleted
 }
 
-// SetContentTypeAndHeader updates the information about content type and
-// header of decrypted message. This should not trigger any IMAP update.
-// NOTE: Content type depends on details of decrypted message which we want to
-// cache.
-//
-// Deprecated: Use SetHeader instead.
-func (message *Message) SetContentTypeAndHeader(mimeType string, header mail.Header) error {
-	message.msg.MIMEType = mimeType
-	message.msg.Header = header
-	return message.store.db.Update(func(tx *bolt.Tx) error {
-		stored, err := message.store.txGetMessage(tx, message.msg.ID)
-		if err != nil {
-			return err
-		}
-		stored.MIMEType = mimeType
-		stored.Header = header
-		return message.store.txPutMessage(
-			tx.Bucket(metadataBucket),
-			stored,
-		)
-	})
-}
-
 // IsFullHeaderCached will check that valid full header is stored in DB.
 func (message *Message) IsFullHeaderCached() bool {
 	var raw []byte
@@ -143,6 +119,10 @@ func (message *Message) GetMIMEHeader() textproto.MIMEHeader {
 
 	header, err := textproto.NewReader(bufio.NewReader(bytes.NewReader(raw))).ReadMIMEHeader()
 	if err != nil {
+		message.store.log.
+			WithField("msgID", message.ID()).
+			WithError(err).
+			Warn("Cannot build header from bodystructure")
 		return textproto.MIMEHeader(message.msg.Header)
 	}
 
@@ -177,6 +157,11 @@ func (message *Message) GetBodyStructure() (*pkgMsg.BodyStructure, error) {
 	bs, err := pkgMsg.NewBodyStructure(bytes.NewReader(literal))
 	if err != nil {
 		return nil, err
+	}
+
+	// Do not cache draft bodystructure
+	if message.msg.IsDraft() {
+		return bs, nil
 	}
 
 	if raw, err = bs.Serialize(); err != nil {
@@ -217,10 +202,13 @@ func (message *Message) GetRFC822Size() (uint32, error) {
 		return 0, err
 	}
 
-	if err := message.store.db.Update(func(tx *bolt.Tx) error {
-		return tx.Bucket(sizeBucket).Put([]byte(message.ID()), itob(uint32(len(literal))))
-	}); err != nil {
-		return 0, err
+	// Do not cache draft size
+	if !message.msg.IsDraft() {
+		if err := message.store.db.Update(func(tx *bolt.Tx) error {
+			return tx.Bucket(sizeBucket).Put([]byte(message.ID()), itob(uint32(len(literal))))
+		}); err != nil {
+			return 0, err
+		}
 	}
 
 	return uint32(len(literal)), nil

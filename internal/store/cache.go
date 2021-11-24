@@ -122,9 +122,10 @@ func (store *Store) getCachedMessage(messageID string) ([]byte, error) {
 		return nil, err
 	}
 
-	// NOTE(GODT-1158): No need to block until cache has been set; do this async?
-	if err := store.cache.Set(store.user.ID(), messageID, literal); err != nil {
-		logrus.WithError(err).Error("Failed to cache message")
+	if !store.isMessageADraft(messageID) {
+		if err := store.cache.Set(store.user.ID(), messageID, literal); err != nil {
+			logrus.WithError(err).Error("Failed to cache message")
+		}
 	}
 
 	return literal, nil
@@ -140,6 +141,10 @@ func (store *Store) IsCached(messageID string) bool {
 func (store *Store) BuildAndCacheMessage(ctx context.Context, messageID string) error {
 	buildAndCacheJobs <- struct{}{}
 	defer func() { <-buildAndCacheJobs }()
+
+	if store.isMessageADraft(messageID) {
+		return nil
+	}
 
 	job, done := store.newBuildJob(ctx, messageID, message.BackgroundPriority)
 	defer done()

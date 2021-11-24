@@ -324,7 +324,7 @@ func clearNonMetadata(onlyMeta *pmapi.Message) {
 // If there is stored message in metaBucket the size, header and MIMEType are
 // not changed if already set. To change these:
 // * size must be updated by Message.SetSize
-// * contentType and header must be updated by Message.SetContentTypeAndHeader.
+// * contentType and header must be updated by bodystructure.
 func txUpdateMetadataFromDB(metaBucket *bolt.Bucket, onlyMeta *pmapi.Message, log *logrus.Entry) {
 	msgb := metaBucket.Get([]byte(onlyMeta.ID))
 	if msgb == nil {
@@ -385,4 +385,14 @@ func (store *Store) deleteMessagesEvent(apiIDs []string) error {
 		}
 		return nil
 	})
+}
+
+func (store *Store) isMessageADraft(apiID string) bool {
+	msg, err := store.getMessageFromDB(apiID)
+	if err != nil {
+		store.log.WithError(err).Warn("Cannot decide wheather message is draff")
+		return false
+	}
+
+	return msg.IsDraft()
 }

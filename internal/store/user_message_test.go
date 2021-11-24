@@ -20,13 +20,16 @@ package store
 import (
 	"io"
 	"net/mail"
+	"net/textproto"
 	"strings"
 	"testing"
 
+	pkgMsg "github.com/ProtonMail/proton-bridge/pkg/message"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	"github.com/golang/mock/gomock"
 	a "github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	bolt "go.etcd.io/bbolt"
 )
 
 func TestGetAllMessageIDs(t *testing.T) {
@@ -78,35 +81,31 @@ func TestCreateOrUpdateMessageMetadata(t *testing.T) {
 	msg, err := m.store.getMessageFromDB("msg1")
 	require.Nil(t, err)
 
+	message := &Message{msg: msg, store: m.store, storeMailbox: nil}
+
 	// Check non-meta and calculated data are cleared/empty.
-	a.Equal(t, "", msg.Body)
-	a.Equal(t, []*pmapi.Attachment(nil), msg.Attachments)
-	a.Equal(t, "", msg.MIMEType)
-	a.Equal(t, make(mail.Header), msg.Header)
+	a.Equal(t, "", message.msg.Body)
+	a.Equal(t, []*pmapi.Attachment(nil), message.msg.Attachments)
+	a.Equal(t, "", message.msg.MIMEType)
+	a.Equal(t, make(mail.Header), message.msg.Header)
 
-	// Change the calculated data.
-	wantMIMEType := "plain-text"
-	wantHeader := mail.Header{
-		"Key": []string{"value"},
-	}
+	wantHeader, wantSize := putBodystructureAndSizeToDB(m, "msg1")
 
-	storeMsg, err := m.store.addresses[addrID1].mailboxes[pmapi.AllMailLabel].GetMessage("msg1")
+	// Check cached data.
 	require.Nil(t, err)
-	require.Nil(t, storeMsg.SetContentTypeAndHeader(wantMIMEType, wantHeader))
-
-	// Check calculated data.
-	msg, err = m.store.getMessageFromDB("msg1")
+	a.Equal(t, wantHeader, message.GetMIMEHeader())
+	haveSize, err := message.GetRFC822Size()
 	require.Nil(t, err)
-	a.Equal(t, wantMIMEType, msg.MIMEType)
-	a.Equal(t, wantHeader, msg.Header)
+	a.Equal(t, wantSize, haveSize)
 
-	// Check calculated data are not overridden by reinsert.
+	// Check cached data are not overridden by reinsert.
 	insertMessage(t, m, "msg1", "Test message 1", addrID1, false, []string{pmapi.AllMailLabel})
 
-	msg, err = m.store.getMessageFromDB("msg1")
 	require.Nil(t, err)
-	a.Equal(t, wantMIMEType, msg.MIMEType)
-	a.Equal(t, wantHeader, msg.Header)
+	a.Equal(t, wantHeader, message.GetMIMEHeader())
+	haveSize, err = message.GetRFC822Size()
+	require.Nil(t, err)
+	a.Equal(t, wantSize, haveSize)
 }
 
 func TestDeleteMessage(t *testing.T) {
@@ -134,6 +133,7 @@ func getTestMessage(id, subject, sender string, unread bool, labelIDs []string) 
 		Subject:  subject,
 		Unread:   pmapi.Boolean(unread),
 		Sender:   address,
+		Flags:    pmapi.FlagReceived,
 		ToList:   []*mail.Address{address},
 		LabelIDs: labelIDs,
 		Body:     "body of message",
@@ -193,4 +193,35 @@ func TestCreateDraftCheckMessageWithAttachmentSize(t *testing.T) {
 	_, _, err := m.store.CreateDraft(testPrivateKeyRing, message, attachmentReaders, "", "", "")
 
 	require.EqualError(t, err, "message is too large")
+}
+
+func putBodystructureAndSizeToDB(m *mocksForStore, msgID string) (header textproto.MIMEHeader, size uint32) {
+	size = uint32(42)
+
+	require.NoError(m.tb, m.store.db.Update(func(tx *bolt.Tx) error {
+		return tx.Bucket(sizeBucket).Put([]byte(msgID), itob(size))
+	}))
+
+	header = textproto.MIMEHeader{
+		"Key": []string{"value"},
+	}
+
+	bs := pkgMsg.BodyStructure{
+		"": &pkgMsg.SectionInfo{
+			Header: []byte("Key: value\r\n\r\n"),
+			Start:  0,
+			BSize:  int(size - 11),
+			Size:   int(size),
+			Lines:  3,
+		},
+	}
+
+	raw, err := bs.Serialize()
+	require.NoError(m.tb, err)
+
+	require.NoError(m.tb, m.store.db.Update(func(tx *bolt.Tx) error {
+		return tx.Bucket(bodystructureBucket).Put([]byte(msgID), raw)
+	}))
+
+	return header, size
 }
