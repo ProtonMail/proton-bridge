@@ -50,7 +50,8 @@ T.Label {
     property int type: Proton.Label.LabelType.Body
 
     color: root.enabled ? root.colorScheme.text_norm : root.colorScheme.text_disabled
-    palette.link: root.colorScheme.interaction_norm
+    linkColor: root.colorScheme.interaction_norm
+    palette.link: linkColor
 
     font.family: Style.font_family
     lineHeightMode: Text.FixedHeight

@@ -102,7 +102,6 @@ SettingsView {
         type: Label.Caption
         color: root.colorScheme.text_weak
         textFormat: Text.StyledText
-        linkColor: root.colorScheme.interaction_norm_active
 
         horizontalAlignment: Text.AlignHCenter
 
