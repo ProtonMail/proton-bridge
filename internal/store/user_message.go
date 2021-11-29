@@ -27,6 +27,7 @@ import (
 	"strings"
 
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
+	"github.com/ProtonMail/proton-bridge/internal/store/cache"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -303,8 +304,10 @@ func (store *Store) createOrUpdateMessagesEvent(msgs []*pmapi.Message) error { /
 	}
 
 	// Notify the cacher that it should start caching messages.
-	for _, msg := range msgs {
-		store.msgCachePool.newJob(msg.ID)
+	if cache.IsOnDiskCache(store.cache) {
+		for _, msg := range msgs {
+			store.msgCachePool.newJob(msg.ID)
+		}
 	}
 
 	return nil
