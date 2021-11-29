@@ -23,6 +23,7 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -59,6 +60,12 @@ func NewOnDiskCache(path string, cmp Compressor, opts Options) (Cache, error) {
 	if err := os.MkdirAll(path, 0700); err != nil {
 		return nil, err
 	}
+
+	file, err := ioutil.TempFile(path, "tmp")
+	if err != nil {
+		return nil, fmt.Errorf("cannot write to target: %w", err)
+	}
+	os.Remove(file.Name()) //nolint[errcheck]
 
 	usage := du.NewDiskUsage(path)
 

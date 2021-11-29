@@ -202,7 +202,7 @@ func (u *Users) DisableCache() error {
 func (u *Users) MigrateCache(srcPath, dstPath string) error {
 	fiSrc, err := os.Stat(srcPath)
 	if os.IsNotExist(err) {
-		logrus.WithError(err).Warn("Skipping migration: Unknown source for cache migration")
+		logrus.WithError(err).Warn("Skipping migration: unknown source for cache migration")
 		return nil
 	}
 	if !fiSrc.IsDir() {
@@ -225,9 +225,17 @@ func (u *Users) MigrateCache(srcPath, dstPath string) error {
 		}
 	}
 
-	err = os.Rename(srcPath, dstPath)
+	// GODT-1381 Edge case: read-only source migration: prevent re-naming
+	// (read-only is conserved). Do copy instead.
+	tmp, err := ioutil.TempFile(srcPath, "tmp")
 	if err == nil {
-		return nil
+		defer os.Remove(tmp.Name()) //nolint[errcheck]
+
+		if err := os.Rename(srcPath, dstPath); err == nil {
+			return nil
+		}
+	} else {
+		logrus.WithError(err).Warn("Cannot write to source: do copy to new destination instead of rename")
 	}
 
 	// Rename failed let's try an actual copy/delete
@@ -236,7 +244,8 @@ func (u *Users) MigrateCache(srcPath, dstPath string) error {
 	}
 
 	if err = os.RemoveAll(srcPath); err != nil { // we don't care much about error there.
-		logrus.Info("Original cache folder could not be entirely removed")
+		logrus.WithError(err).Warn("Original cache folder could not be entirely removed")
 	}
+
 	return nil
 }
