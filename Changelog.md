@@ -2,6 +2,12 @@
 
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
+## [Bridge 1.8.12] James
+
+### Fixed
+* GODT-1432: Check if keys are active before unlocking.
+
+
 ## [Bridge 1.8.11] James
 
 ### Fixed
@@ -19,6 +25,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-1397: Update bbolt to v1.3.6.
 * GODT-1410: Remove event ID from sentry report description.
 * GODT-1395: CI should fail on go.sum changed.
+
 
 ## [Bridge 1.8.10] James
 
