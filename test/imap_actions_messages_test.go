@@ -34,7 +34,8 @@ func IMAPActionsMessagesFeatureContext(s *godog.ScenarioContext) {
 	s.Step(`^IMAP client sends command "([^"]*)"$`, imapClientSendsCommand)
 	s.Step(`^IMAP client fetches "([^"]*)"$`, imapClientFetches)
 	s.Step(`^IMAP client fetches header(?:s)? of "([^"]*)"$`, imapClientFetchesHeader)
-	s.Step(`^IMAP client fetches body "([^"]*)"$`, imapClientFetchesBody)
+	s.Step(`^IMAP client fetches bod(?:y|ies) "([^"]*)"$`, imapClientFetchesBody)
+	s.Step(`^IMAP client fetches bod(?:y|ies) of UID "([^"]*)"$`, imapClientFetchesUIDBody)
 	s.Step(`^IMAP client fetches by UID "([^"]*)"$`, imapClientFetchesByUID)
 	s.Step(`^IMAP client searches for "([^"]*)"$`, imapClientSearchesFor)
 	s.Step(`^IMAP client copies message seq "([^"]*)" to "([^"]*)"$`, imapClientCopiesMessagesTo)
@@ -94,6 +95,12 @@ func imapClientFetchesHeader(fetchRange string) error {
 
 func imapClientFetchesBody(fetchRange string) error {
 	res := ctx.GetIMAPClient("imap").Fetch(fetchRange, "BODY.PEEK[]")
+	ctx.SetIMAPLastResponse("imap", res)
+	return nil
+}
+
+func imapClientFetchesUIDBody(fetchRange string) error {
+	res := ctx.GetIMAPClient("imap").FetchUID(fetchRange, "BODY.PEEK[]")
 	ctx.SetIMAPLastResponse("imap", res)
 	return nil
 }

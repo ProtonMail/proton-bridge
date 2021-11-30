@@ -73,6 +73,10 @@ func (ctl *Controller) AddUserMessage(username string, message *pmapi.Message) (
 	return result.MessageID, nil
 }
 
+func (ctl *Controller) SetDraftBody(username string, messageID string, body string) error {
+	return errors.New("set draft body is not implemented for live")
+}
+
 func (ctl *Controller) GetMessages(username, labelID string) ([]*pmapi.Message, error) {
 	client, err := getPersistentClient(username)
 	if err != nil {

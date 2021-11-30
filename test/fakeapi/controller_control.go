@@ -157,6 +157,39 @@ func (ctl *Controller) AddUserMessage(username string, message *pmapi.Message) (
 	return message.ID, nil
 }
 
+func (ctl *Controller) SetDraftBody(username string, messageID string, body string) error {
+	// change the body in fakeAPI
+	fakeUser, ok := ctl.usersByUsername[username]
+	if !ok {
+		return fmt.Errorf("user %s not found", username)
+	}
+
+	fakeAPI := ctl.getFakeAPIForUser(fakeUser.user.ID)
+	if fakeAPI == nil {
+		return fmt.Errorf("fakeAPI %s not found", fakeUser.user.ID)
+	}
+
+	message := fakeAPI.getMessage(messageID)
+	if message == nil {
+		return fmt.Errorf("fake message %s not found", messageID)
+	}
+
+	message.Body = body
+
+	// assuming this is draft we set following
+	// - Draft type (NOTE: Type is not part of pmapi.MessageEvent, but it's there on API)
+	// - It must not have FlagReceived and FlagSent
+	// - Standard labelsIDs NOTE:wrong behaviour once we will have edge case tests for drafts outside draft folder
+	message.Type = pmapi.MessageTypeDraft
+	message.Flags = pmapi.FlagE2E | pmapi.FlagInternal
+	message.LabelIDs = []string{pmapi.AllDraftsLabel, pmapi.AllMailLabel, pmapi.DraftLabel}
+
+	// send draft update
+	fakeAPI.addEventMessage(pmapi.EventUpdate, message)
+
+	return nil
+}
+
 func (ctl *Controller) getFakeAPIForUser(userID string) *FakePMAPI {
 	for _, fakeAPI := range ctl.fakeAPIs {
 		if fakeAPI.userID == userID {

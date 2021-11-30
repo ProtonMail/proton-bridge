@@ -108,11 +108,17 @@ func thereAreMessagesInMailboxesForAddressOfUser(mailboxNames, bddAddressID, bdd
 
 		if message.HasLabelID(pmapi.SentLabel) {
 			message.Flags |= pmapi.FlagSent
+			message.Type = pmapi.MessageTypeSent
 		} else {
 			// some tests (Outlook move by DELETE EXPUNGE APPEND) imply creating hard copies of emails,
 			// and the importMessage() function flags the email as Sent if the 'Received' key in not present in the
 			// header.
 			header.Add("Received", "from dummy.protonmail.com")
+		}
+
+		if message.HasLabelID(pmapi.DraftLabel) {
+			message.Type = pmapi.MessageTypeDraft
+			message.Flags = pmapi.FlagInternal | pmapi.FlagE2E
 		}
 
 		bddMessageID := ""

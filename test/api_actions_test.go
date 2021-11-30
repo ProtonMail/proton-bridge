@@ -27,6 +27,7 @@ func APIActionsFeatureContext(s *godog.ScenarioContext) {
 	s.Step(`^the internet connection is lost$`, theInternetConnectionIsLost)
 	s.Step(`^the internet connection is restored$`, theInternetConnectionIsRestored)
 	s.Step(`^(\d+) second[s]? pass$`, secondsPass)
+	s.Step(`^the body of draft "([^"]*)" for "([^"]*)" has changed to "([^"]*)"$`, draftBodyChanged)
 }
 
 func theInternetConnectionIsLost() error {
@@ -41,5 +42,24 @@ func theInternetConnectionIsRestored() error {
 
 func secondsPass(seconds int) error {
 	time.Sleep(time.Duration(seconds) * time.Second)
+	return nil
+}
+
+func draftBodyChanged(bddMessageID, bddUserID, body string) error {
+	account := ctx.GetTestAccount(bddUserID)
+	if account == nil {
+		return godog.ErrPending
+	}
+
+	messageID, err := ctx.GetAPIMessageID(account.Username(), bddMessageID)
+	if err != nil {
+		return internalError(err, "getting apiID for %s", bddMessageID)
+	}
+
+	err = ctx.GetPMAPIController().SetDraftBody(account.Username(), messageID, body)
+	if err != nil {
+		return internalError(err, "cannot set body of %s", messageID)
+	}
+
 	return nil
 }
