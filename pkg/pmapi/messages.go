@@ -74,19 +74,19 @@ const (
 
 // Message flag definitions.
 const (
-	FlagReceived   = 1
-	FlagSent       = 2
-	FlagInternal   = 4
-	FlagE2E        = 8
-	FlagAuto       = 16
-	FlagReplied    = 32
-	FlagRepliedAll = 64
-	FlagForwarded  = 128
+	FlagReceived   = int64(1)
+	FlagSent       = int64(2)
+	FlagInternal   = int64(4)
+	FlagE2E        = int64(8)
+	FlagAuto       = int64(16)
+	FlagReplied    = int64(32)
+	FlagRepliedAll = int64(64)
+	FlagForwarded  = int64(128)
 
-	FlagAutoreplied = 256
-	FlagImported    = 512
-	FlagOpened      = 1024
-	FlagReceiptSent = 2048
+	FlagAutoreplied = int64(256)
+	FlagImported    = int64(512)
+	FlagOpened      = int64(1024)
+	FlagReceiptSent = int64(2048)
 )
 
 // Draft flags.
@@ -139,13 +139,6 @@ const (
 	RemoveLabels                         // Remove specified labels from current ones.
 )
 
-const (
-	MessageTypeInbox int = iota
-	MessageTypeDraft
-	MessageTypeSent
-	MessageTypeInboxAndSent
-)
-
 // Due to API limitations, we shouldn't make requests with more than 100 message IDs at a time.
 const messageIDPageSize = 100
 
@@ -166,7 +159,6 @@ type Message struct {
 	ConversationID string `json:",omitempty"` // only filter
 	Subject        string
 	Unread         Boolean
-	Type           int
 	Flags          int64
 	Sender         *mail.Address
 	ReplyTo        *mail.Address   `json:",omitempty"`

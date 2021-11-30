@@ -179,6 +179,7 @@ func (api *FakePMAPI) SendMessage(ctx context.Context, messageID string, sendMes
 	}
 	message.Time = time.Now().Unix()
 	message.LabelIDs = append(message.LabelIDs, pmapi.SentLabel)
+	message.Flags |= pmapi.FlagSent
 	api.addEventMessage(pmapi.EventUpdate, message)
 	return message, nil, nil
 }

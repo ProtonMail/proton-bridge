@@ -395,6 +395,9 @@ func TestSendRecorder_isSendingOrSent(t *testing.T) {
 	q.addMessage("hash")
 	q.setMessageID("hash", "messageID")
 
+	draftFlag := pmapi.FlagInternal | pmapi.FlagE2E
+	selfSent := pmapi.FlagSent | pmapi.FlagReceived
+
 	testCases := []struct {
 		hash          string
 		message       *pmapi.Message
@@ -402,14 +405,14 @@ func TestSendRecorder_isSendingOrSent(t *testing.T) {
 		wantIsSending bool
 		wantWasSent   bool
 	}{
-		{"badhash", &pmapi.Message{Type: pmapi.MessageTypeDraft}, nil, false, false},
+		{"badhash", &pmapi.Message{Flags: draftFlag}, nil, false, false},
 		{"hash", nil, errors.New("message not found"), false, false},
-		{"hash", &pmapi.Message{Type: pmapi.MessageTypeInbox}, nil, false, false},
-		{"hash", &pmapi.Message{Type: pmapi.MessageTypeDraft, Time: time.Now().Add(-20 * time.Minute).Unix()}, nil, false, false},
-		{"hash", &pmapi.Message{Type: pmapi.MessageTypeDraft, Time: time.Now().Unix()}, nil, true, false},
-		{"hash", &pmapi.Message{Type: pmapi.MessageTypeSent}, nil, false, true},
-		{"hash", &pmapi.Message{Type: pmapi.MessageTypeInboxAndSent}, nil, false, true},
-		{"", &pmapi.Message{Type: pmapi.MessageTypeInboxAndSent}, nil, false, false},
+		{"hash", &pmapi.Message{Flags: pmapi.FlagReceived}, nil, false, false},
+		{"hash", &pmapi.Message{Flags: draftFlag, Time: time.Now().Add(-20 * time.Minute).Unix()}, nil, false, false},
+		{"hash", &pmapi.Message{Flags: draftFlag, Time: time.Now().Unix()}, nil, true, false},
+		{"hash", &pmapi.Message{Flags: pmapi.FlagSent}, nil, false, true},
+		{"hash", &pmapi.Message{Flags: selfSent}, nil, false, true},
+		{"", &pmapi.Message{Flags: selfSent}, nil, false, false},
 	}
 	for i, tc := range testCases {
 		tc := tc // bind

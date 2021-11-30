@@ -177,10 +177,8 @@ func (ctl *Controller) SetDraftBody(username string, messageID string, body stri
 	message.Body = body
 
 	// assuming this is draft we set following
-	// - Draft type (NOTE: Type is not part of pmapi.MessageEvent, but it's there on API)
 	// - It must not have FlagReceived and FlagSent
 	// - Standard labelsIDs NOTE:wrong behaviour once we will have edge case tests for drafts outside draft folder
-	message.Type = pmapi.MessageTypeDraft
 	message.Flags = pmapi.FlagE2E | pmapi.FlagInternal
 	message.LabelIDs = []string{pmapi.AllDraftsLabel, pmapi.AllMailLabel, pmapi.DraftLabel}
 

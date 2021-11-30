@@ -25,6 +25,12 @@ Feature: IMAP operations with Drafts
     When IMAP client fetches body of UID "1"
     Then IMAP response is "OK"
     Then IMAP response contains "Nope"
+    When IMAP client sends command "UID FETCH 1 RFC822.SIZE"
+    Then IMAP response is "OK"
+    Then IMAP response contains "495"
+    When IMAP client sends command "UID FETCH 1 BODYSTRUCTURE"
+    Then IMAP response is "OK"
+    Then IMAP response contains "4 14"
     Given the body of draft "msg1" for "user" has changed to "Yes I am"
     And the event loop of "user" loops once
     And mailbox "Drafts" for "user" has 1 messages
@@ -32,4 +38,10 @@ Feature: IMAP operations with Drafts
     Then IMAP response is "OK"
     Then IMAP response contains "Yes I am"
     Then IMAP response does not contain "Nope"
+    When IMAP client sends command "UID FETCH 2 RFC822.SIZE"
+    Then IMAP response is "OK"
+    Then IMAP response contains "499"
+    When IMAP client sends command "UID FETCH 2 BODYSTRUCTURE"
+    Then IMAP response is "OK"
+    Then IMAP response contains "8 14"
 

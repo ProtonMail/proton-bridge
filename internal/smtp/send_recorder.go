@@ -133,7 +133,7 @@ func (q *sendRecorder) isSendingOrSent(client messageGetter, hash string) (isSen
 	if err != nil {
 		return
 	}
-	if message.Type == pmapi.MessageTypeDraft {
+	if message.IsDraft() {
 		// If message is in draft for a long time, let's assume there is
 		// some problem and message will not be sent anymore.
 		if time.Since(time.Unix(message.Time, 0)).Minutes() > 10 {
@@ -141,8 +141,8 @@ func (q *sendRecorder) isSendingOrSent(client messageGetter, hash string) (isSen
 		}
 		isSending = true
 	}
-	// MessageTypeInboxAndSent can be when message was sent to myself.
-	if message.Type == pmapi.MessageTypeSent || message.Type == pmapi.MessageTypeInboxAndSent {
+	// Message can be in Inbox and Sent when message was sent to myself.
+	if message.Has(pmapi.FlagSent) {
 		wasSent = true
 	}
 

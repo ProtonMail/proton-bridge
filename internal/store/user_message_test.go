@@ -78,23 +78,23 @@ func TestCreateOrUpdateMessageMetadata(t *testing.T) {
 	m.newStoreNoEvents(t, true)
 	insertMessage(t, m, "msg1", "Test message 1", addrID1, false, []string{pmapi.AllMailLabel})
 
-	msg, err := m.store.getMessageFromDB("msg1")
+	metadata, err := m.store.getMessageFromDB("msg1")
 	require.Nil(t, err)
 
-	message := &Message{msg: msg, store: m.store, storeMailbox: nil}
+	msg := &Message{msg: metadata, store: m.store, storeMailbox: nil}
 
 	// Check non-meta and calculated data are cleared/empty.
-	a.Equal(t, "", message.msg.Body)
-	a.Equal(t, []*pmapi.Attachment(nil), message.msg.Attachments)
-	a.Equal(t, "", message.msg.MIMEType)
-	a.Equal(t, make(mail.Header), message.msg.Header)
+	a.Equal(t, "", metadata.Body)
+	a.Equal(t, []*pmapi.Attachment(nil), metadata.Attachments)
+	a.Equal(t, "", metadata.MIMEType)
+	a.Equal(t, make(mail.Header), metadata.Header)
 
 	wantHeader, wantSize := putBodystructureAndSizeToDB(m, "msg1")
 
 	// Check cached data.
 	require.Nil(t, err)
-	a.Equal(t, wantHeader, message.GetMIMEHeader())
-	haveSize, err := message.GetRFC822Size()
+	a.Equal(t, wantHeader, msg.GetMIMEHeader())
+	haveSize, err := msg.GetRFC822Size()
 	require.Nil(t, err)
 	a.Equal(t, wantSize, haveSize)
 
@@ -102,8 +102,8 @@ func TestCreateOrUpdateMessageMetadata(t *testing.T) {
 	insertMessage(t, m, "msg1", "Test message 1", addrID1, false, []string{pmapi.AllMailLabel})
 
 	require.Nil(t, err)
-	a.Equal(t, wantHeader, message.GetMIMEHeader())
-	haveSize, err = message.GetRFC822Size()
+	a.Equal(t, wantHeader, msg.GetMIMEHeader())
+	haveSize, err = msg.GetRFC822Size()
 	require.Nil(t, err)
 	a.Equal(t, wantSize, haveSize)
 }

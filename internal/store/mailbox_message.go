@@ -370,7 +370,7 @@ func (storeMailbox *Mailbox) txCreateOrUpdateMessages(tx *bolt.Tx, msgs []*pmapi
 
 		// Draft bodies can change and bodies are not re-fetched by IMAP clients.
 		// Every change has to be a new message; we need to delete the old one and always recreate it.
-		if msg.Type == pmapi.MessageTypeDraft || msg.IsDraft() {
+		if msg.IsDraft() {
 			if err := storeMailbox.txDeleteMessage(tx, msg.ID); err != nil {
 				return errors.Wrap(err, "cannot delete old draft")
 			}
