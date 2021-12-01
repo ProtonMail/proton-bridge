@@ -73,7 +73,8 @@ const (
 	FlagCLI      = "cli"
 	flagCLIShort = "c"
 	flagRestart  = "restart"
-	flagLauncher = "launcher"
+	FlagLauncher = "launcher"
+	FlagNoWindow = "no-window"
 )
 
 type Base struct {
@@ -235,7 +236,7 @@ func New( // nolint[funlen]
 	autostart := &autostart.App{
 		Name:        appName,
 		DisplayName: appName,
-		Exec:        []string{exe},
+		Exec:        []string{exe, "--" + FlagNoWindow},
 	}
 
 	return &Base{
@@ -264,13 +265,13 @@ func New( // nolint[funlen]
 	}, nil
 }
 
-func (b *Base) NewApp(action func(*Base, *cli.Context) error) *cli.App {
+func (b *Base) NewApp(mainLoop func(*Base, *cli.Context) error) *cli.App {
 	app := cli.NewApp()
 
 	app.Name = b.Name
 	app.Usage = b.usage
 	app.Version = constants.Version
-	app.Action = b.run(action)
+	app.Action = b.wrapMainLoop(mainLoop)
 	app.Flags = []cli.Flag{
 		&cli.BoolFlag{
 			Name:    flagCPUProfile,
@@ -292,13 +293,17 @@ func (b *Base) NewApp(action func(*Base, *cli.Context) error) *cli.App {
 			Aliases: []string{flagCLIShort},
 			Usage:   "Use command line interface",
 		},
+		&cli.BoolFlag{
+			Name:  FlagNoWindow,
+			Usage: "Don't show window after start",
+		},
 		&cli.StringFlag{
 			Name:   flagRestart,
 			Usage:  "The number of times the application has already restarted",
 			Hidden: true,
 		},
 		&cli.StringFlag{
-			Name:   flagLauncher,
+			Name:   FlagLauncher,
 			Usage:  "The launcher to use to restart the application",
 			Hidden: true,
 		},
@@ -317,15 +322,18 @@ func (b *Base) AddTeardownAction(fn func() error) {
 	b.teardown = append(b.teardown, fn)
 }
 
-func (b *Base) run(appMainLoop func(*Base, *cli.Context) error) cli.ActionFunc { // nolint[funlen]
+func (b *Base) wrapMainLoop(appMainLoop func(*Base, *cli.Context) error) cli.ActionFunc { // nolint[funlen]
 	return func(c *cli.Context) error {
 		defer b.CrashHandler.HandlePanic()
 		defer func() { _ = b.Lock.Close() }()
 
-		// If launcher was used to start the app, use that for restart/autostart.
-		if launcher := c.String(flagLauncher); launcher != "" {
-			b.Autostart.Exec = []string{launcher}
+		// If launcher was used to start the app, use that for restart
+		// and autostart.
+		if launcher := c.String(FlagLauncher); launcher != "" {
 			b.command = launcher
+			// Bridge supports no-window option which we should use
+			// for autostart.
+			b.Autostart.Exec = []string{launcher, "--" + FlagNoWindow}
 		}
 
 		if c.Bool(flagCPUProfile) {

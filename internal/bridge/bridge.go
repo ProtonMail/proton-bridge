@@ -25,6 +25,7 @@ import (
 	"time"
 
 	"github.com/Masterminds/semver/v3"
+	"github.com/ProtonMail/go-autostart"
 	"github.com/ProtonMail/proton-bridge/internal/config/settings"
 	"github.com/ProtonMail/proton-bridge/internal/constants"
 	"github.com/ProtonMail/proton-bridge/internal/metrics"
@@ -52,8 +53,11 @@ type Bridge struct {
 	updater       Updater
 	versioner     Versioner
 	cacheProvider CacheProvider
+	autostart     *autostart.App
 	// Bridge's global errors list.
 	errors []error
+
+	lastVersion string
 }
 
 func New(
@@ -69,6 +73,7 @@ func New(
 	credStorer users.CredentialsStorer,
 	updater Updater,
 	versioner Versioner,
+	autostart *autostart.App,
 ) *Bridge {
 	// Allow DoH before starting the app if the user has previously set this setting.
 	// This allows us to start even if protonmail is blocked.
@@ -94,6 +99,7 @@ func New(
 		updater:       updater,
 		versioner:     versioner,
 		cacheProvider: cacheProvider,
+		autostart:     autostart,
 	}
 
 	if setting.GetBool(settings.FirstStartKey) {
@@ -101,8 +107,16 @@ func New(
 			logrus.WithError(err).Error("Failed to send metric")
 		}
 
+		if err := b.EnableAutostart(); err != nil {
+			log.WithError(err).Error("Failed to enable autostart")
+		}
+
 		setting.SetBool(settings.FirstStartKey, false)
 	}
+
+	// Keep in bridge and update in settings the last used version.
+	b.lastVersion = b.settings.Get(settings.LastVersionKey)
+	b.settings.Set(settings.LastVersionKey, constants.Version)
 
 	go b.heartbeat()
 
@@ -278,4 +292,9 @@ func (b *Bridge) HasError(err error) bool {
 	}
 
 	return false
+}
+
+// GetLastVersion returns the version which was used in previous execution of Bridge.
+func (b *Bridge) GetLastVersion() string {
+	return b.lastVersion
 }

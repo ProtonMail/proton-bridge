@@ -75,21 +75,21 @@ func (f *FrontendQt) changeLocalCache(enableDiskCache bool, diskCachePath *core.
 }
 
 func (f *FrontendQt) setIsAutostartOn() {
-	f.qml.SetIsAutostartOn(f.autostart.IsEnabled())
+	f.qml.SetIsAutostartOn(f.bridge.IsAutostartEnabled())
 }
 
 func (f *FrontendQt) toggleAutostart(makeItEnabled bool) {
 	defer f.qml.ToggleAutostartFinished()
-	if makeItEnabled == f.autostart.IsEnabled() {
+	if makeItEnabled == f.bridge.IsAutostartEnabled() {
 		f.setIsAutostartOn()
 		return
 	}
 
 	var err error
 	if makeItEnabled {
-		err = f.autostart.Enable()
+		err = f.bridge.EnableAutostart()
 	} else {
-		err = f.autostart.Disable()
+		err = f.bridge.DisableAutostart()
 	}
 	f.setIsAutostartOn()
 

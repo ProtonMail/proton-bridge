@@ -25,7 +25,6 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/ProtonMail/go-autostart"
 	"github.com/ProtonMail/proton-bridge/internal/config/settings"
 	"github.com/ProtonMail/proton-bridge/internal/config/useragent"
 	"github.com/ProtonMail/proton-bridge/internal/frontend/types"
@@ -50,7 +49,6 @@ type FrontendQt struct {
 	userAgent        *useragent.UserAgent
 	bridge           types.Bridger
 	noEncConfirmator types.NoEncConfirmator
-	autostart        *autostart.App
 	restarter        types.Restarter
 	showOnStartup    bool
 
@@ -82,7 +80,6 @@ func New(
 	userAgent *useragent.UserAgent,
 	bridge types.Bridger,
 	_ types.NoEncConfirmator,
-	autostart *autostart.App,
 	restarter types.Restarter,
 ) *FrontendQt {
 	userAgent.SetPlatform(core.QSysInfo_PrettyProductName())
@@ -99,7 +96,6 @@ func New(
 		updater:       updater,
 		userAgent:     userAgent,
 		bridge:        bridge,
-		autostart:     autostart,
 		restarter:     restarter,
 		showOnStartup: showWindowOnStart,
 	}
@@ -120,6 +116,12 @@ func (f *FrontendQt) Loop() error {
 	go func() {
 		defer f.panicHandler.HandlePanic()
 		f.watchEvents()
+	}()
+
+	// Set whether this is the first time GUI starts.
+	f.qml.SetIsFirstGUIStart(f.settings.GetBool(settings.FirstStartGUIKey))
+	defer func() {
+		f.settings.SetBool(settings.FirstStartGUIKey, false)
 	}()
 
 	if ret := f.app.Exec(); ret != 0 {

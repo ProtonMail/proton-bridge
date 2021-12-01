@@ -20,6 +20,7 @@ package context
 import (
 	"time"
 
+	"github.com/ProtonMail/go-autostart"
 	"github.com/ProtonMail/proton-bridge/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/internal/config/settings"
 	"github.com/ProtonMail/proton-bridge/internal/config/useragent"
@@ -87,5 +88,9 @@ func newBridgeInstance(
 		credStore,
 		newFakeUpdater(),
 		newFakeVersioner(),
+		&autostart.App{
+			Name: "bridge",
+			Exec: []string{"bridge"},
+		},
 	)
 }

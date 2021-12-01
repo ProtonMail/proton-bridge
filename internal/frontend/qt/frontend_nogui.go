@@ -23,7 +23,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/ProtonMail/go-autostart"
 	"github.com/ProtonMail/proton-bridge/internal/config/settings"
 	"github.com/ProtonMail/proton-bridge/internal/config/useragent"
 	"github.com/ProtonMail/proton-bridge/internal/frontend/types"
@@ -50,7 +49,6 @@ func New(
 	userAgent *useragent.UserAgent,
 	bridge types.Bridger,
 	noEncConfirmator types.NoEncConfirmator,
-	autostart *autostart.App,
 	restarter types.Restarter,
 ) *FrontendHeadless {
 	return &FrontendHeadless{}

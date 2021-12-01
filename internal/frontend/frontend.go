@@ -19,7 +19,6 @@
 package frontend
 
 import (
-	"github.com/ProtonMail/go-autostart"
 	"github.com/ProtonMail/proton-bridge/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/internal/config/settings"
 	"github.com/ProtonMail/proton-bridge/internal/config/useragent"
@@ -55,7 +54,6 @@ func New(
 	userAgent *useragent.UserAgent,
 	bridge *bridge.Bridge,
 	noEncConfirmator types.NoEncConfirmator,
-	autostart *autostart.App,
 	restarter types.Restarter,
 ) Frontend {
 	bridgeWrap := types.NewBridgeWrap(bridge)
@@ -74,7 +72,6 @@ func New(
 			userAgent,
 			bridgeWrap,
 			noEncConfirmator,
-			autostart,
 			restarter,
 		)
 	case "cli":

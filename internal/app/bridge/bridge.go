@@ -44,7 +44,6 @@ import (
 const (
 	flagLogIMAP        = "log-imap"
 	flagLogSMTP        = "log-smtp"
-	flagNoWindow       = "no-window"
 	flagNonInteractive = "noninteractive"
 
 	// Memory cache was estimated by empirical usage in past and it was set to 100MB.
@@ -53,7 +52,7 @@ const (
 )
 
 func New(base *base.Base) *cli.App {
-	app := base.NewApp(run)
+	app := base.NewApp(mailLoop)
 
 	app.Flags = append(app.Flags, []cli.Flag{
 		&cli.StringFlag{
@@ -63,9 +62,6 @@ func New(base *base.Base) *cli.App {
 			Name:  flagLogSMTP,
 			Usage: "Enable logging of SMTP communications (may contain decrypted data!)"},
 		&cli.BoolFlag{
-			Name:  flagNoWindow,
-			Usage: "Don't show window after start"},
-		&cli.BoolFlag{
 			Name:  flagNonInteractive,
 			Usage: "Start Bridge entirely noninteractively"},
 	}...)
@@ -73,7 +69,7 @@ func New(base *base.Base) *cli.App {
 	return app
 }
 
-func run(b *base.Base, c *cli.Context) error { // nolint[funlen]
+func mailLoop(b *base.Base, c *cli.Context) error { // nolint[funlen]
 	tlsConfig, err := loadTLSConfig(b)
 	if err != nil {
 		return err
@@ -89,7 +85,21 @@ func run(b *base.Base, c *cli.Context) error { // nolint[funlen]
 		b.Settings.GetInt(settings.AttachmentWorkers),
 	)
 
-	bridge := pkgBridge.New(b.Locations, b.Cache, b.Settings, b.SentryReporter, b.CrashHandler, b.Listener, cache, builder, b.CM, b.Creds, b.Updater, b.Versioner)
+	bridge := pkgBridge.New(
+		b.Locations,
+		b.Cache,
+		b.Settings,
+		b.SentryReporter,
+		b.CrashHandler,
+		b.Listener,
+		cache,
+		builder,
+		b.CM,
+		b.Creds,
+		b.Updater,
+		b.Versioner,
+		b.Autostart,
+	)
 	imapBackend := imap.NewIMAPBackend(b.CrashHandler, b.Listener, b.Cache, b.Settings, bridge)
 	smtpBackend := smtp.NewSMTPBackend(b.CrashHandler, b.Listener, b.Settings, bridge)
 
@@ -122,9 +132,6 @@ func run(b *base.Base, c *cli.Context) error { // nolint[funlen]
 			smtpPort, useSSL, tlsConfig, smtpBackend, b.Listener).ListenAndServe()
 	}()
 
-	// Bridge supports no-window option which we should use for autostart.
-	b.Autostart.Exec = append(b.Autostart.Exec, "--"+flagNoWindow)
-
 	// We want to remove old versions if the app exits successfully.
 	b.AddTeardownAction(b.Versioner.RemoveOldVersions)
 
@@ -147,7 +154,7 @@ func run(b *base.Base, c *cli.Context) error { // nolint[funlen]
 		constants.BuildVersion,
 		b.Name,
 		frontendMode,
-		!c.Bool(flagNoWindow),
+		!c.Bool(base.FlagNoWindow),
 		b.CrashHandler,
 		b.Locations,
 		b.Settings,
@@ -156,7 +163,6 @@ func run(b *base.Base, c *cli.Context) error { // nolint[funlen]
 		b.UserAgent,
 		bridge,
 		smtpBackend,
-		b.Autostart,
 		b,
 	)
 

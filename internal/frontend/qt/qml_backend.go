@@ -90,6 +90,8 @@ type QMLBackend struct {
 	_ func(enableDiskCache bool, diskCachePath core.QUrl) `slot:"changeLocalCache"`
 	_ func()                                              `signal:"changeLocalCacheFinished"`
 
+	_ bool `property:"isFirstGUIStart"`
+
 	_ bool                    `property:"isAutomaticUpdateOn"`
 	_ func(makeItActive bool) `slot:"toggleAutomaticUpdate"`
 
