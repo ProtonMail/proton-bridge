@@ -38,7 +38,7 @@ Window {
     x: 10
     y: 10
     width: 800
-    height: 600
+    height: 800
 
     property ColorScheme colorScheme: ProtonStyle.darkStyle
 
@@ -126,7 +126,7 @@ Window {
 
             property string password: "SMj975NnEYYsqu55GGmlpv"
             property var addresses: [
-                "janedoe@protonmail.com",
+                "jaanedoe@protonmail.com",
                 "jane@pm.me",
                 "jdoe@pm.me"
             ]
@@ -363,6 +363,15 @@ Window {
                         enabled: bridge === undefined || bridge === null
                         onClicked: {
                             bridge = bridgeComponent.createObject()
+                            var showSetupGuide = false
+                            if (showSetupGuide) {
+                                var newUserObject = root.userComponent.createObject(root)
+                                newUserObject.username = "LerooooyJenkins@protonmail.com"
+                                newUserObject.loggedIn = true
+                                newUserObject.setupGuideSeen = false
+                                root.users.append( { object: newUserObject } )
+                            }
+
                         }
                     }
 
@@ -656,7 +665,7 @@ Window {
 
     property Bridge bridge
 
-    property string goos: "linux"
+    property string goos: "darwin"
 
     property bool showOnStartup: true // this actually needs to be false, but since we use Bridge_test for testing purpose - lets default this to true just for convenience
     property bool dockIconVisible: false

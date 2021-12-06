@@ -23,7 +23,7 @@ import QtQuick.Controls.impl 2.12
 
 import Proton 4.0
 
-Rectangle {
+Item {
     id:root
 
     property ColorScheme colorScheme
@@ -32,27 +32,85 @@ Rectangle {
     property string address
 
     signal dismissed()
+    signal finished()
 
     implicitHeight: children[0].implicitHeight
     implicitWidth: children[0].implicitWidth
 
-    color: root.colorScheme.background_norm
 
-    RowLayout {
+    ListModel {
+        id: clients
+        property string name : "Apple Mail"
+        property string iconSource : "./icons/ic-apple-mail.svg"
+        property bool haveAutoSetup: true
+        property string link: "https://protonmail.com/bridge/applemail"
+
+        Component.onCompleted : {
+            if (root.backend.goos == "darwin") {
+                append({
+                    "name"          : "Apple Mail",
+                    "iconSource"    : "./icons/ic-apple-mail.svg",
+                    "haveAutoSetup" : true,
+                    "link"          : "https://protonmail.com/bridge/applemail"
+                })
+                append({
+                    "name"          : "Microsoft Outlook",
+                    "iconSource"    : "./icons/ic-microsoft-outlook.svg",
+                    "haveAutoSetup" : false,
+                    "link"          : "https://protonmail.com/bridge/outlook2019-mac"
+                })
+            }
+            if (root.backend.goos == "windows") {
+                append({
+                    "name"          : "Microsoft Outlook",
+                    "iconSource"    : "./icons/ic-microsoft-outlook.svg",
+                    "haveAutoSetup" : false,
+                    "link"          : "https://protonmail.com/bridge/outlook2019"
+                })
+            }
+
+            append({
+                "name"          : "Mozilla Thunderbird",
+                "iconSource"    : "./icons/ic-mozilla-thunderbird.svg",
+                "haveAutoSetup" : false,
+                "link"          : "https://protonmail.com/bridge/thunderbird"
+            })
+
+            append({
+                "name"          : "Other",
+                "iconSource"    : "./icons/ic-other-mail-clients.svg",
+                "haveAutoSetup" : false,
+                "link"          : "https://protonmail.com/bridge/clients"
+            })
+
+        }
+    }
+
+    Rectangle {
+        anchors.fill: root
+        color: root.colorScheme.background_norm
+    }
+
+    StackLayout {
+        id: guidePages
         anchors.fill: parent
-        spacing: 0
+        anchors.leftMargin: 80
+        anchors.rightMargin: 80
+        anchors.topMargin: 30
+        anchors.bottomMargin: 70
 
-        ColumnLayout {
+
+        ColumnLayout { // 0: Client selection
+            id: clientView
             Layout.fillHeight: true
-            Layout.leftMargin: 80
-            Layout.rightMargin: 80
-            Layout.topMargin: 30
-            Layout.bottomMargin: 70
-            spacing: 0
+
+            property int columnWidth: 268
+
+            spacing: 8
 
             Label {
                 colorScheme: root.colorScheme
-                text: qsTr("Set up email client")
+                text: qsTr("Setting up email client")
                 type: Label.LabelType.Heading
             }
 
@@ -63,71 +121,140 @@ Rectangle {
                 type: Label.LabelType.Lead
             }
 
-            Label {
-                colorScheme: root.colorScheme
-                Layout.topMargin: 32
-                text: qsTr("Choose an email client")
-                type: Label.LabelType.Body_semibold
-            }
+            RowLayout {
+                Layout.topMargin: 32-clientView.spacing
+                spacing: 24
 
-            ListModel {
-                id: clients
-                ListElement{name : "Apple Mail"          ; iconSource : "./icons/ic-apple-mail.svg"          }
-                ListElement{name : "Microsoft Outlook"   ; iconSource : "./icons/ic-microsoft-outlook.svg"   }
-                ListElement{name : "Mozilla Thunderbird" ; iconSource : "./icons/ic-mozilla-thunderbird.svg" }
-                ListElement{name : "Other"               ; iconSource : "./icons/ic-other-mail-clients.svg"  }
-            }
+                ColumnLayout {
+                    id: clientColumn
+                    Layout.alignment: Qt.AlignTop
 
-
-            Repeater {
-                model: clients
-
-                Rectangle {
-                    implicitWidth: clientRow.width
-                    implicitHeight: clientRow.height
-
-                    ColumnLayout {
-                        id: clientRow
-
-                        RowLayout {
-                            Layout.topMargin: 12
-                            Layout.bottomMargin: 12
-                            Layout.leftMargin: 16
-                            Layout.rightMargin: 16
-
-                            ColorImage {
-                                source: model.iconSource
-                                height: 36
-                                sourceSize.height: 36
-                            }
-
-                            Label {
-                                colorScheme: root.colorScheme
-                                Layout.leftMargin: 12
-                                text: model.name
-                                type: Label.LabelType.Body
-                            }
-                        }
-
-                        Rectangle {
-                            Layout.fillWidth: true
-                            Layout.preferredHeight: 1
-                            color: root.colorScheme.border_weak
-                        }
+                    Label {
+                        id: labelA
+                        colorScheme: root.colorScheme
+                        text: qsTr("Choose an email client")
+                        type: Label.LabelType.Body_semibold
                     }
 
+                    ListView {
+                        id: clientList
+                        Layout.fillHeight: true
+                        width: clientView.columnWidth
 
-                    MouseArea {
-                        anchors.fill: parent
-                        onClicked: {
-                            if (model.name != "Apple Mail") {
-                                console.log(" TODO configure ", model.name)
-                                return
+                        model: clients
+
+                        highlight: Rectangle {
+                            color: root.colorScheme.interaction_default_active
+                            radius: 4
+                        }
+
+                        delegate: Item {
+                            implicitWidth: clientRow.width
+                            implicitHeight: clientRow.height
+
+                            ColumnLayout {
+                                id: clientRow
+                                width: clientList.width
+
+                                RowLayout {
+                                    Layout.topMargin: 12
+                                    Layout.bottomMargin: 12
+                                    Layout.leftMargin: 16
+                                    Layout.rightMargin: 16
+
+                                    ColorImage {
+                                        source: model.iconSource
+                                        height: 36
+                                        sourceSize.height: 36
+                                    }
+
+                                    Label {
+                                        colorScheme: root.colorScheme
+                                        Layout.leftMargin: 12
+                                        text: model.name
+                                        type: Label.LabelType.Body
+                                    }
+                                }
+
+                                Rectangle {
+                                    Layout.fillWidth: true
+                                    Layout.preferredHeight: 1
+                                    color: root.colorScheme.border_weak
+                                }
                             }
-                            if (user) {
-                                root.user.configureAppleMail(root.address)
+
+                            MouseArea {
+                                anchors.fill: parent
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: {
+                                    clientList.currentIndex = index
+                                    if (!model.haveAutoSetup) {
+                                        root.setupAction(1,index)
+                                    }
+                                }
                             }
-                            root.dismissed()
+                        }
+                    }
+                }
+
+                ColumnLayout {
+                    id: actionColumn
+                    visible: clientList.currentIndex >= 0 && clients.get(clientList.currentIndex).haveAutoSetup
+                    Layout.alignment: Qt.AlignTop
+
+                    Label {
+                        colorScheme: root.colorScheme
+                        text: qsTr("Choose configuration mode")
+                        type: Label.LabelType.Body_semibold
+                    }
+
+                    ListView {
+                        id: actionList
+                        Layout.fillHeight: true
+                        width: clientView.columnWidth
+
+                        model: [
+                            qsTr("Configure automatically"),
+                            qsTr("Configure manually"),
+                        ]
+
+                        highlight: Rectangle {
+                            color: root.colorScheme.interaction_default_active
+                            radius: 4
+                        }
+
+                        delegate: Item {
+                            implicitWidth: children[0].width
+                            implicitHeight: children[0].height
+
+                            ColumnLayout {
+                                width: actionList.width
+
+                                Label {
+                                    Layout.topMargin: 20
+                                    Layout.bottomMargin: 20
+                                    Layout.leftMargin: 16
+                                    Layout.rightMargin: 16
+                                    colorScheme: root.colorScheme
+                                    text: modelData
+                                    type: Label.LabelType.Body
+                                }
+
+                                Rectangle {
+                                    Layout.fillWidth: true
+                                    Layout.preferredHeight: 1
+                                    color: root.colorScheme.border_weak
+                                }
+                            }
+
+                            MouseArea {
+                                anchors.fill: parent
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: {
+                                    actionList.currentIndex = index
+                                    root.setupAction(index,clientList.currentIndex)
+                                }
+                            }
                         }
                     }
                 }
@@ -141,6 +268,7 @@ Rectangle {
                 flat: true
 
                 onClicked: {
+                    root.setupAction(-1,-1)
                     if (user) {
                         user.setupGuideSeen = true
                     }
@@ -148,5 +276,42 @@ Rectangle {
                 }
             }
         }
+    }
+
+    function setupAction(actionID,clientID){
+        if (user) {
+            user.setupGuideSeen = true
+        }
+
+        switch (actionID) {
+            case -1: root.dismissed(); break; // dismiss
+            case 0: // automatic
+            if (user) {
+                switch (clientID) {
+                    case 0:
+                    root.user.configureAppleMail(root.address)
+                    break;
+                }
+            }
+            root.finished()
+            break;
+            case 1: // manual
+            var clientObj = clients.get(clientID)
+            if (clientObj != undefined && clientObj.link != "" ) {
+                Qt.openUrlExternally(clientObj.link)
+            } else {
+                console.log("unexpected client index", actionID, clientID)
+            }
+            root.finished();
+            break;
+            default:
+            console.log("unexpected client setup action", actionID, clientID)
+        }
+    }
+
+    function reset(){
+        guidePages.currentIndex = 0
+        clientList.currentIndex = -1
+        actionList.currentIndex = -1
     }
 }

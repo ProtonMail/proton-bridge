@@ -155,6 +155,13 @@ ApplicationWindow {
             onDismissed: {
                 root.showSetup(null,"")
             }
+
+            onFinished: {
+                // TODO: Do not close window. Trigger backend to check that
+                // there is a successfully connected client. Then backend
+                // should send another signal to close the setup guide.
+                root.showSetup(null,"")
+            }
         }
     }
 
@@ -176,6 +183,7 @@ ApplicationWindow {
     function showSetup(user, address) {
         setupGuide.user = user
         setupGuide.address = address
+        setupGuide.reset()
         if (setupGuide.user) {
             contentLayout._showSetup = true
         } else {
