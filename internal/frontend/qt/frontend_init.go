@@ -23,6 +23,7 @@ package qt
 import (
 	"errors"
 	"os"
+	"runtime"
 
 	qmlLog "github.com/ProtonMail/proton-bridge/internal/frontend/qt/log"
 	"github.com/therecipe/qt/core"
@@ -36,13 +37,22 @@ func (f *FrontendQt) initiateQtApplication() error {
 
 	f.app = widgets.NewQApplication(len(os.Args), os.Args)
 
+	if os.Getenv("QSG_INFO") != "" && os.Getenv("QSG_INFO") != "0" {
+		core.QLoggingCategory_SetFilterRules("qt.scenegraph.general=true")
+	}
+
 	core.QCoreApplication_SetApplicationName(f.programName)
 	core.QCoreApplication_SetApplicationVersion(f.programVersion)
 
 	// High DPI scaling for windows.
 	core.QCoreApplication_SetAttribute(core.Qt__AA_EnableHighDpiScaling, false)
-	// Software OpenGL: to avoid dedicated GPU.
-	core.QCoreApplication_SetAttribute(core.Qt__AA_UseSoftwareOpenGL, true)
+
+	// Use software OpenGL to avoid dedicated GPU on darwin. It cause no
+	// problems on linux, but it can cause initializaion issues on windows
+	// for some specific GPU / driver combination.
+	if runtime.GOOS != "windows" {
+		core.QCoreApplication_SetAttribute(core.Qt__AA_UseSoftwareOpenGL, true)
+	}
 
 	// Bridge runs background, no window is needed to be opened.
 	f.app.SetQuitOnLastWindowClosed(false)
