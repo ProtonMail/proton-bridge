@@ -136,7 +136,7 @@ Item {
                             colorScheme: root.colorScheme
                             text: qsTr("Email clients")
                             actionText: qsTr("Configure")
-                            description: qsTr("Proton Mail Bridge works with email clients that support IMAP/SMTP to send and receive messages. Using the mailbox details below, you can (re)configure your client at any point.")
+                            description: qsTr("Using the mailbox details below (re)configure your client.")
                             type: SettingsItem.Button
                             enabled: root.user ? root.user.loggedIn : false
                             visible: root.user ? !root.user.splitMode || root.user.addresses.length==1 : false
@@ -153,7 +153,7 @@ Item {
                             id: splitMode
                             colorScheme: root.colorScheme
                             text: qsTr("Split addresses")
-                            description: qsTr("Split addresses allows you to configure multiple email addresses individually. Changing its mode will require you to delete your account(s) from your email client and begin the setup process from scratch.")
+                            description: qsTr("Setup multiple email addresses individually.")
                             type: SettingsItem.Toggle
                             checked: root.user ? root.user.splitMode : false
                             visible: root.user ? root.user.addresses.length > 1 : false
