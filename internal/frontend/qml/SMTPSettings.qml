@@ -65,7 +65,7 @@ SettingsView {
             id: starttlsButton
             colorScheme: root.colorScheme
             ButtonGroup.group: protocolSelection
-            text: qsTr("STARTLS")
+            text: qsTr("STARTTLS")
         }
     }
 

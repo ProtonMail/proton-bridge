@@ -90,6 +90,8 @@ type Bridger interface {
 	IsAutostartEnabled() bool
 	EnableAutostart() error
 	DisableAutostart() error
+	GetLastVersion() string
+	IsFirstStart() bool
 }
 
 type bridgeWrap struct {

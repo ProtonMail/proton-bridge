@@ -292,9 +292,7 @@ Window {
 
         StackLayout {
             anchors.fill: parent
-
             currentIndex: tabBar.currentIndex
-
             anchors.margins: 10
 
             RowLayout {
@@ -341,8 +339,6 @@ Window {
                                 ProtonStyle.currentStyle = ProtonStyle.darkStyle
                             }
                         }
-
-
                     }
 
                     CheckBox {
@@ -352,6 +348,16 @@ Window {
                         checked: root.showOnStartup
                         onCheckedChanged: {
                             root.showOnStartup = checked
+                        }
+                    }
+
+                    CheckBox {
+                        id: showSplashScreen
+                        colorScheme: root.colorScheme
+                        text: "Show splash screen"
+                        checked: root.showSplashScreen
+                        onCheckedChanged: {
+                            root.showSplashScreen = checked
                         }
                     }
 
@@ -802,6 +808,7 @@ Window {
     signal userDisconnected(string username)
     signal apiCertIssue()
 
+    property bool showSplashScreen: true
 
 
     function login(username, password) {

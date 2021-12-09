@@ -98,6 +98,10 @@ ApplicationWindow {
 
         property bool _showSetup: false
         currentIndex: {
+            if (backend.showSplashScreen) {
+                return 3
+            }
+
             // show welcome when there are no users or only one non-logged-in user is present
             if (backend.users.count === 0) {
                 return 1
@@ -122,7 +126,7 @@ ApplicationWindow {
             return 0
         }
 
-        ContentWrapper {
+        ContentWrapper { // 0
             id: contentWrapper
             colorScheme: root.colorScheme
             backend: root.backend
@@ -136,7 +140,7 @@ ApplicationWindow {
             }
         }
 
-        WelcomeGuide {
+        WelcomeGuide { // 1
             colorScheme: root.colorScheme
             backend: root.backend
 
@@ -144,7 +148,7 @@ ApplicationWindow {
             Layout.fillWidth: true
         }
 
-        SetupGuide {
+        SetupGuide { // 2
             id: setupGuide
             colorScheme: root.colorScheme
             backend: root.backend
@@ -162,6 +166,15 @@ ApplicationWindow {
                 // should send another signal to close the setup guide.
                 root.showSetup(null,"")
             }
+        }
+
+        SplashScreen { // 3
+            id: splashScreen
+            colorScheme: root.colorScheme
+            backend: root.backend
+
+            Layout.fillHeight: true
+            Layout.fillWidth: true
         }
     }
 

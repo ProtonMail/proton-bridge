@@ -57,7 +57,8 @@ type Bridge struct {
 	// Bridge's global errors list.
 	errors []error
 
-	lastVersion string
+	isFirstStart bool
+	lastVersion  string
 }
 
 func New(
@@ -91,8 +92,7 @@ func New(
 	)
 
 	b := &Bridge{
-		Users: u,
-
+		Users:         u,
 		locations:     locations,
 		settings:      setting,
 		clientManager: clientManager,
@@ -100,9 +100,11 @@ func New(
 		versioner:     versioner,
 		cacheProvider: cacheProvider,
 		autostart:     autostart,
+		isFirstStart:  false,
 	}
 
 	if setting.GetBool(settings.FirstStartKey) {
+		b.isFirstStart = true
 		if err := b.SendMetric(metrics.New(metrics.Setup, metrics.FirstStart, metrics.Label(constants.Version))); err != nil {
 			logrus.WithError(err).Error("Failed to send metric")
 		}
@@ -110,7 +112,6 @@ func New(
 		if err := b.EnableAutostart(); err != nil {
 			log.WithError(err).Error("Failed to enable autostart")
 		}
-
 		setting.SetBool(settings.FirstStartKey, false)
 	}
 
@@ -294,7 +295,14 @@ func (b *Bridge) HasError(err error) bool {
 	return false
 }
 
-// GetLastVersion returns the version which was used in previous execution of Bridge.
+// GetLastVersion returns the version which was used in previous execution of
+// Bridge.
 func (b *Bridge) GetLastVersion() string {
 	return b.lastVersion
+}
+
+// IsFirstStart returns true when Bridge is running for first time or after
+// factory reset.
+func (b *Bridge) IsFirstStart() bool {
+	return b.isFirstStart
 }

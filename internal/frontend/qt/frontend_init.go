@@ -25,6 +25,7 @@ import (
 	"os"
 	"runtime"
 
+	"github.com/Masterminds/semver/v3"
 	qmlLog "github.com/ProtonMail/proton-bridge/internal/frontend/qt/log"
 	"github.com/therecipe/qt/core"
 	"github.com/therecipe/qt/qml"
@@ -93,4 +94,26 @@ func (f *FrontendQt) initiateQtApplication() error {
 	rootComponent.CompleteCreate()
 
 	return nil
+}
+
+func (f *FrontendQt) setShowSplashScreen() {
+	f.qml.SetShowSplashScreen(false)
+
+	// Splash screen should not be shown to new users or after factory reset.
+	if f.bridge.IsFirstStart() {
+		return
+	}
+
+	ver, err := semver.NewVersion(f.bridge.GetLastVersion())
+	if err != nil {
+		f.log.WithError(err).WithField("last", f.bridge.GetLastVersion()).Debug("Cannot parse last version")
+		return
+	}
+
+	// Current splash screen contains update on "What's new" in facelift.
+	// Therefore, it should be shown only if the last used version was less
+	// than 1.9.0.
+	if ver.LessThan(semver.MustParse("1.9.0")) {
+		f.qml.SetShowSplashScreen(true)
+	}
 }

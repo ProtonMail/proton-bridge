@@ -43,6 +43,7 @@ type QMLBackend struct {
 	_ func()              `slot:"restart"`
 
 	_ bool `property:showOnStartup`
+	_ bool `property:showSplashScreen`
 
 	_ bool `property:dockIconVisible`
 
@@ -255,6 +256,7 @@ func (q *QMLBackend) setup(f *FrontendQt) {
 		}()
 	})
 
+	f.setShowSplashScreen()
 	f.setVersion()
 	f.setLogsPath()
 	// release notes link is set by update

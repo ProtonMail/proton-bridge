@@ -289,7 +289,6 @@ Item {
                 onLinkActivated: {
                     Qt.openUrlExternally(link)
                 }
-
             }
         }
 
