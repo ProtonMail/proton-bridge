@@ -34,6 +34,7 @@ QtObject {
     signal askDisableLocalCache()
     signal askEnableLocalCache(var path)
     signal askResetBridge()
+    signal askDeleteAccount(var user)
 
     enum Group {
         Connection  = 1,
@@ -69,7 +70,8 @@ QtObject {
         root.enableSplitMode,
         root.disableLocalCache,
         root.enableLocalCache,
-        root.resetBridge
+        root.resetBridge,
+        root.deleteAccount
     ]
 
     // Connection
@@ -324,6 +326,7 @@ QtObject {
 
     property Notification updateIsLatestVersion: Notification {
         description: qsTr("Bridge is up to date")
+        brief: description
         icon: "./icons/ic-info-circle-filled.svg"
         type: Notification.NotificationType.Info
         group: Notifications.Group.Update
@@ -346,6 +349,7 @@ QtObject {
 
     property Notification enableBeta: Notification {
         title: qsTr("Enable Beta access")
+        brief: title
         description: qsTr("Be the first to get new updates and use new features. Bridge will update to the latest beta version.")
         icon: "./icons/ic-info-circle-filled.svg"
         type: Notification.NotificationType.Info
@@ -379,6 +383,7 @@ QtObject {
     // login
     property Notification loginConnectionError: Notification {
         description: qsTr("Bridge is not able to contact the server, please check your internet connection.")
+        brief: description
         icon: "./icons/ic-exclamation-circle-filled.svg"
         type: Notification.NotificationType.Danger
         group: Notifications.Group.Configuration
@@ -402,6 +407,7 @@ QtObject {
 
     property Notification onlyPaidUsers: Notification {
         description: qsTr("Bridge is exclusive to our paid plans. Upgrade your account to use Bridge.")
+        brief: description
         icon: "./icons/ic-exclamation-circle-filled.svg"
         type: Notification.NotificationType.Danger
         group: Notifications.Group.Configuration
@@ -425,6 +431,7 @@ QtObject {
 
     property Notification alreadyLoggedIn: Notification {
         description: qsTr("This account is already signed it.")
+        brief: description
         icon: "./icons/ic-exclamation-circle-filled.svg"
         type: Notification.NotificationType.Info
         group: Notifications.Group.Configuration
@@ -449,6 +456,7 @@ QtObject {
     // Bug reports
     property Notification bugReportSendSuccess: Notification {
         description: qsTr("Thank you for the report. We'll get back to you as soon as we can.")
+        brief: description
         icon: "./icons/ic-info-circle-filled.svg"
         type: Notification.NotificationType.Success
         group: Notifications.Group.Configuration
@@ -472,6 +480,7 @@ QtObject {
 
     property Notification bugReportSendError: Notification {
         description: qsTr("Report could not be sent. Try again or email us directly.")
+        brief: description
         icon: "./icons/ic-exclamation-circle-filled.svg"
         type: Notification.NotificationType.Danger
         group: Notifications.Group.Configuration
@@ -496,6 +505,7 @@ QtObject {
         title: qsTr("Cache location is unavailable")
         description: qsTr("Check the directory or change it in your settings.")
         brief: qsTr("The current cache location is unavailable. Check the directory or change it in your settings.")
+        icon: "./icons/ic-exclamation-circle-filled.svg"
         type: Notification.NotificationType.Warning
         group: Notifications.Group.Configuration | Notifications.Group.Dialogs
 
@@ -526,7 +536,9 @@ QtObject {
 
     property Notification cacheCantMove: Notification {
         title: qsTr("Can’t move cache")
+        brief: title
         description: qsTr("The location you have selected is not available. Make sure you have enough free space or choose another location.")
+        icon: "./icons/ic-exclamation-circle-filled.svg"
         type: Notification.NotificationType.Warning
         group: Notifications.Group.Configuration | Notifications.Group.Dialogs
 
@@ -556,6 +568,7 @@ QtObject {
 
     property Notification cacheLocationChangeSuccess: Notification {
         description: qsTr("Cache location successfully changed")
+        brief: description
         icon: "./icons/ic-info-circle-filled.svg"
         type: Notification.NotificationType.Success
         group: Notifications.Group.Configuration
@@ -599,6 +612,7 @@ QtObject {
         title: qsTr("Your disk is almost full")
         description: qsTr("Quit Bridge and free disk space or disable the local cache (not recommended).")
         brief: qsTr("Your disk is almost full. Free disk space or disable the local cache.")
+        icon: "./icons/ic-exclamation-circle-filled.svg"
         type: Notification.NotificationType.Warning
         group: Notifications.Group.Configuration | Notifications.Group.Dialogs
 
@@ -629,7 +643,9 @@ QtObject {
 
     property Notification enableSplitMode: Notification {
         title: qsTr("Enable split mode?")
+        brief: title
         description: qsTr("Changing between split and combined address mode will require you to delete your account(s) from your email client and begin the setup process from scratch.")
+        icon: "./icons/ic-question-circle.svg"
         type: Notification.NotificationType.Warning
         group: Notifications.Group.Configuration | Notifications.Group.Dialogs
 
@@ -675,7 +691,9 @@ QtObject {
 
     property Notification disableLocalCache: Notification {
         title: qsTr("Disable local cache?")
+        brief: title
         description: qsTr("This action will clear your local cache, including locally stored messages. Bridge will restart.")
+        icon: "./icons/ic-question-circle.svg"
         type: Notification.NotificationType.Warning
         group: Notifications.Group.Configuration | Notifications.Group.Dialogs
 
@@ -718,7 +736,9 @@ QtObject {
 
     property Notification enableLocalCache: Notification {
         title: qsTr("Enable local cache")
+        brief: title
         description: qsTr("Bridge will restart.")
+        icon: "./icons/ic-question-circle.svg"
         type: Notification.NotificationType.Warning
         group: Notifications.Group.Configuration | Notifications.Group.Dialogs
 
@@ -764,8 +784,10 @@ QtObject {
 
     property Notification resetBridge: Notification {
         title: qsTr("Reset Bridge?")
+        brief: title
+        icon: "./icons/ic-exclamation-circle-filled.svg"
         description: qsTr("This will clear your accounts, preferences, and cached data. You will need to reconfigure your email client. Bridge will automatically restart.")
-        type: Notification.NotificationType.Warning
+        type: Notification.NotificationType.Danger
         group: Notifications.Group.Configuration | Notifications.Group.Dialogs
 
         property var user
@@ -802,6 +824,43 @@ QtObject {
                     resetBridge_reset.loading = true
                     resetBridge_cancel.enabled = false
                     root.backend.triggerReset()
+                }
+            }
+        ]
+    }
+
+    property Notification deleteAccount: Notification {
+        title: qsTr("Delete this account?")
+        brief: title
+        icon: "./icons/ic-exclamation-circle-filled.svg"
+        description: qsTr("Are you sure you want to delete this account and all the stored preferences and other data associated with it?")
+        type: Notification.NotificationType.Danger
+        group: Notifications.Group.Configuration | Notifications.Group.Dialogs
+
+        property var user
+
+        Connections {
+            target: root
+            onAskDeleteAccount: {
+                root.deleteAccount.user = user
+                root.deleteAccount.active = true
+            }
+        }
+
+        action: [
+            Action {
+                id: deleteAccount_cancel
+                text: qsTr("Cancel")
+                onTriggered: {
+                    root.deleteAccount.active = false
+                }
+            },
+            Action {
+                id: deleteAccount_delete
+                text: qsTr("Delete this account")
+                onTriggered: {
+                    root.deleteAccount.user.remove()
+                    root.deleteAccount.active = false
                 }
             }
         ]

@@ -121,7 +121,7 @@ Item {
                                 secondary: true
                                 onClicked: {
                                     if (!root.user) return
-                                    root.user.remove()
+                                    root.notifications.askDeleteAccount(root.user)
                                 }
                             }
                         }
