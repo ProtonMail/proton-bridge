@@ -2,6 +2,86 @@
 
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
+## [Bridge 2.0.0] Kwai
+
+## Added
+* GODT-22: New GUI style and improved UX:
+    * GODT-1168 GODT-1169 Qml artifacts for preview.
+    * GODT-1177: Remove Import-Export from repo.
+    * GODT-1167 GODT-1179 Make run-qml-preview.
+    * GODT-1051: Add factory reset to bridge object.
+    * GODT-1179 GODT-658: Components and login flows.
+    * GODT-1051: Factory reset button.
+    * GODT-1158: Adding cache on disk signals.
+    * GODT-1298: Signal GUI is ready and rise window.
+    * Other: Reactive show on startup.
+    * GODT-1319: Set sourceSize everywhere for images.
+    * GODT-1317 Use large png for systray and mark it as mask.
+    * GODT-1346: GODT-1340 GODT-1315 QML changes.
+    * GODT-1365: Create ComboBox component.
+    * GODT-1338: GODT-1343 Help view buttons.
+    * GODT-1340: Not crashing, user list updating in main thread.
+    * GODT-1345: Adding panic handlers.
+    * GODT-1271: Fix Status margings.
+    * GODT-1320: Add loading property to each action within a notification.
+    * GODT-1210: Add "free user" banner.
+    * GODT-1314: Limit description field length within 150/800 bounds.
+    * GODT-1250: Fix Port settings wording.
+    * GODT-1369: Fix link render and wording in Help view.
+    * GODT-1358: Fix wording.
+    * GODT-1272: Fix status view layout.
+    * GODT-1336: Fix showing window on startup.
+    * GODT-175: Add option to attach logs for bug reports.
+    * GODT-1272: Ultimate fix for MacOS transparency.
+    * GODT-1384: Fix SettingsView scroll.
+    * GODT-1385: Fix port setting.
+    * GODT-1378: varia GUI fixes.
+    * GODT-1390: Fix autostart toggle.
+    * GODT-1251: Fix change SMTP settings.
+    * GODT-1389: Fix buttons and banner layout.
+    * GODT-1316: Set default TextArea and TextField behavior.
+    * GODT-1244: Refactor switching stable-early and factory reset.
+    * GODT-1351: Cache and update of space bytes in user object.
+    * GODT-1351: Fix used size update from mail operations.
+    * GODT-1411: refactor SettingView content to fill height.
+    * GODT-1327: Reset cache path to default when disabling.
+    * GODT-1412: Refactor paths and links.
+    * GODT-1226: Fix status window position.
+    * GODT-1366: Simple lookup of index and select current user.
+    * GODT-1325: Add "already logged in" notification.
+    * GODT-1391: Fix link colors across GUI.
+    * GODT-1391: Fix color for avatar text.
+    * GODT-1442: Fix "Sign In" button.
+    * GODT-1428: Fix welcome illustration by using PNG.
+    * GODT-1455 Adding links to setup guide.
+    * GODT-1456: Make text selectable and clickable.
+    * GODT-1459: Wording.
+    * GODT-1460 GODT-1462: Adding delete account dialog and fixing status view brief and icon.
+    * GODT-1458: Splash screen and wording.
+* GODT-1158: Caching encrypted full body messages on disk:
+    * GODT-1433: Do not save message to cache if it's a draft.
+    * GODT-1431 Do not cache message during new message event when CoD is off.
+    * GODT-1381 Treat readonly folder as failure for cache on disk.
+    * GODT-1431 Prevent watcher when not using disk on cache.
+    * GODT-1381: Use in-memory cache in case local cache is unavailable.
+    * GODT-1356 GODT-1302: Cache on disk concurency and API retries.
+    * GODT-1332 Added tests for cache move functions.
+    * GODT-1332: moved cache related functions to separate file.
+    * GODT-1332 moving cache does not work on Windows.
+    * GODT-1367: use waitgroup instead of channel in pool/pchan.
+    * GODT-1367: Use sync.Once to only close pool jobs once.
+    * GODT-1349: Change cache-related settings when enabling/disabling/moving cache.
+    * GODT-1350: stop cacher/worker properly when logging out user.
+    * GODT-1158: Store full messages bodies on disk.
+* GODT-1433 Adding first integration test for drafts.
+
+## Changed
+* GODT-1438: Turn off SW OpenGL on windows and add debug info about graphic renderer.
+* GODT-1425: Factory reset enables launch on startup.
+* GODT-1433 Message.Type is deprecated, use Flags instead.
+* GODT-1388: Refactor Alternative routing.
+
+
 ## [Bridge 1.8.12] James
 
 ### Fixed
