@@ -81,7 +81,7 @@ func (loop *eventLoop) client() pmapi.Client {
 func (loop *eventLoop) setFirstEventID() (err error) {
 	loop.log.Info("Setting first event ID")
 
-	event, err := loop.client().GetEvent(context.Background(), "")
+	event, err := loop.client().GetEvent(pmapi.ContextWithoutRetry(context.Background()), "")
 	if err != nil {
 		loop.log.WithError(err).Error("Could not get latest event ID")
 		return
@@ -269,7 +269,7 @@ func (loop *eventLoop) processNextEvent() (more bool, err error) { // nolint[fun
 	loop.pollCounter++
 
 	var event *pmapi.Event
-	if event, err = loop.client().GetEvent(context.Background(), loop.currentEventID); err != nil {
+	if event, err = loop.client().GetEvent(pmapi.ContextWithoutRetry(context.Background()), loop.currentEventID); err != nil {
 		return false, errors.Wrap(err, "failed to get event")
 	}
 

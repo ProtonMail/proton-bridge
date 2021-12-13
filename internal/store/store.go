@@ -312,7 +312,7 @@ func (store *Store) client() pmapi.Client {
 // initCounts initialises the counts for each label. It tries to use the API first to fetch the labels but if
 // the API is unavailable for whatever reason it tries to fetch the labels locally.
 func (store *Store) initCounts() (labels []*pmapi.Label, err error) {
-	if labels, err = store.client().ListLabels(context.Background()); err != nil {
+	if labels, err = store.client().ListLabels(pmapi.ContextWithoutRetry(context.Background())); err != nil {
 		store.log.WithError(err).Warn("Could not list API labels. Trying with local labels.")
 		if labels, err = store.getLabelsFromLocalStorage(); err != nil {
 			store.log.WithError(err).Error("Cannot list local labels")

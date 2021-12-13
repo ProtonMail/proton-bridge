@@ -34,6 +34,9 @@ type manager struct {
 	locker              sync.Locker
 	connectionObservers []ConnectionObserver
 	proxyDialer         *ProxyTLSDialer
+
+	pingMutex *sync.RWMutex
+	isPinging bool
 }
 
 func New(cfg Config) Manager {
@@ -42,9 +45,11 @@ func New(cfg Config) Manager {
 
 func newManager(cfg Config) *manager {
 	m := &manager{
-		cfg:    cfg,
-		rc:     resty.New().EnableTrace(),
-		locker: &sync.Mutex{},
+		cfg:       cfg,
+		rc:        resty.New().EnableTrace(),
+		locker:    &sync.Mutex{},
+		pingMutex: &sync.RWMutex{},
+		isPinging: false,
 	}
 
 	proxyDialer, transport := newProxyDialerAndTransport(cfg)
@@ -75,7 +80,7 @@ func newManager(cfg Config) *manager {
 	m.rc.SetRetryCount(30)
 	m.rc.SetRetryMaxWaitTime(time.Minute)
 	m.rc.SetRetryAfter(catchRetryAfter)
-	m.rc.AddRetryCondition(shouldRetry)
+	m.rc.AddRetryCondition(m.shouldRetry)
 
 	return m
 }

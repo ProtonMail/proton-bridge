@@ -21,6 +21,7 @@ import (
 	"io/ioutil"
 
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
+	"golang.org/x/net/context"
 )
 
 // DownloadAndVerify downloads a file and its signature from the given locations `file` and `sig`.
@@ -50,7 +51,7 @@ func (m *manager) DownloadAndVerify(kr *crypto.KeyRing, url, sig string) ([]byte
 }
 
 func (m *manager) fetchFile(url string) ([]byte, error) {
-	res, err := m.rc.R().SetDoNotParseResponse(true).Get(url)
+	res, err := m.r(ContextWithoutRetry(context.Background())).SetDoNotParseResponse(true).Get(url)
 	if err != nil {
 		return nil, err
 	}

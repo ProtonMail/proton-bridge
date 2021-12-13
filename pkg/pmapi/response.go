@@ -118,11 +118,21 @@ func catchRetryAfter(_ *resty.Client, res *resty.Response) (time.Duration, error
 	return 0, nil
 }
 
-func shouldRetry(res *resty.Response, err error) bool {
+func (m *manager) shouldRetry(res *resty.Response, err error) bool {
 	if isRetryDisabled(res.Request.Context()) {
 		return false
 	}
-	return isTooManyRequest(res) || isNoResponse(res, err)
+	if isTooManyRequest(res) {
+		return true
+	}
+	if isNoResponse(res, err) {
+		// Even if the context of request allows to retry we should check
+		// whether the server is reachable or not. In some cases the we can
+		// keep retrying but also report that connection is lost.
+		go m.pingUntilSuccess()
+		return true
+	}
+	return false
 }
 
 func isTooManyRequest(res *resty.Response) bool {

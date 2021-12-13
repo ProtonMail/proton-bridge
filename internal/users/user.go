@@ -223,7 +223,7 @@ func (u *User) UpdateSpace(apiUser *pmapi.User) {
 	// values from client.CurrentUser()
 	if apiUser == nil {
 		var err error
-		apiUser, err = u.client.GetUser(context.Background())
+		apiUser, err = u.client.GetUser(pmapi.ContextWithoutRetry(context.Background()))
 		if err != nil {
 			u.log.WithError(err).Warning("Cannot update user space")
 			return

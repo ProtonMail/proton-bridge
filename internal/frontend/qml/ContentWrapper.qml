@@ -20,6 +20,7 @@ import QtQuick.Layouts 1.12
 import QtQuick.Controls 2.12
 
 import Proton 4.0
+import Notifications 1.0
 
 Item {
     id: root
@@ -59,12 +60,16 @@ Item {
                     spacing: 0
 
                     Status {
-                        colorScheme: leftBar.colorScheme
                         Layout.leftMargin: 16
                         Layout.topMargin: 24
                         Layout.bottomMargin: 17
-
                         Layout.alignment: Qt.AlignHCenter
+
+                        colorScheme: leftBar.colorScheme
+                        backend: root.backend
+                        notifications: root.notifications
+
+                        notificationWhitelist: Notifications.Group.Connection | Notifications.Group.ForceUpdate
                     }
 
                     // just a placeholder

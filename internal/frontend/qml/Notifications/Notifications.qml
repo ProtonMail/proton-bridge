@@ -37,10 +37,11 @@ QtObject {
     signal askDeleteAccount(var user)
 
     enum Group {
-        Connection  = 1,
-        Update      = 2,
+        Connection    = 1,
+        Update        = 2,
         Configuration = 4,
-        API         = 32,
+        ForceUpdate   = 8,
+        API           = 32,
 
         // Special group for notifications that require dialog popup instead of banner
         Dialogs = 64
@@ -201,7 +202,7 @@ QtObject {
         brief: qsTr("Bridge is outdated")
         icon: "./icons/ic-exclamation-circle-filled.svg"
         type: Notification.NotificationType.Danger
-        group: Notifications.Group.Update | Notifications.Group.Dialogs
+        group: Notifications.Group.Update | Notifications.Group.ForceUpdate | Notifications.Group.Dialogs
 
         Connections {
             target: root.backend

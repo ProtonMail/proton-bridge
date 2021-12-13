@@ -242,7 +242,7 @@ Window {
 
 
         // add one user on start
-        var haveUserOnStart = false
+        var haveUserOnStart = true
         if (haveUserOnStart) {
             var newUserObject = root.userComponent.createObject(root)
             newUserObject.username = "LerooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooyJenkins@protonmail.com"
@@ -808,7 +808,7 @@ Window {
     signal userDisconnected(string username)
     signal apiCertIssue()
 
-    property bool showSplashScreen: true
+    property bool showSplashScreen: false
 
 
     function login(username, password) {

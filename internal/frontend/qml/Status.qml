@@ -59,19 +59,19 @@ Item {
             label.text = topmost.brief
 
             switch (topmost.type) {
-            case Notification.NotificationType.Danger:
+                case Notification.NotificationType.Danger:
                 image.color = root.colorScheme.signal_danger
                 label.color = root.colorScheme.signal_danger
                 break;
-            case Notification.NotificationType.Warning:
+                case Notification.NotificationType.Warning:
                 image.color = root.colorScheme.signal_warning
                 label.color = root.colorScheme.signal_warning
                 break;
-            case Notification.NotificationType.Success:
+                case Notification.NotificationType.Success:
                 image.color = root.colorScheme.signal_success
                 label.color = root.colorScheme.signal_success
                 break;
-            case Notification.NotificationType.Info:
+                case Notification.NotificationType.Info:
                 image.color = root.colorScheme.signal_info
                 label.color = root.colorScheme.signal_info
                 break;
@@ -85,8 +85,12 @@ Item {
 
         ColorImage {
             id: image
-            Layout.fillHeight: true
+            width: 16
+            height: 16
+            sourceSize.width: width
             sourceSize.height: height
+            source: "./icons/ic-connected.svg"
+            color: root.colorScheme.signal_success
         }
 
         Label {
@@ -100,88 +104,9 @@ Item {
 
             horizontalAlignment: Text.AlignLeft
             verticalAlignment: Text.AlignVCenter
+
+            text: qsTr("Connected")
+            color: root.colorScheme.signal_success
         }
     }
-
-    state: "Connected"
-    states: [
-        State {
-            name: "Connected"
-            PropertyChanges {
-                target: image
-                source: "./icons/ic-connected.svg"
-                color: ProtonStyle.currentStyle.signal_success
-            }
-            PropertyChanges {
-                target: label
-                text: qsTr("Connected")
-                color: ProtonStyle.currentStyle.signal_success
-            }
-        },
-        State {
-            name: "No connection"
-            PropertyChanges {
-                target: image
-                source: "./icons/ic-no-connection.svg"
-                color: ProtonStyle.currentStyle.signal_danger
-            }
-            PropertyChanges {
-                target: label
-                text: qsTr("No connection")
-                color: ProtonStyle.currentStyle.signal_danger
-            }
-        },
-        State {
-            name: "Outdated"
-            PropertyChanges {
-                target: image
-                source: "./icons/ic-exclamation-circle-filled.svg"
-                color: ProtonStyle.currentStyle.signal_danger
-            }
-            PropertyChanges {
-                target: label
-                text: qsTr("Bridge is outdated")
-                color: ProtonStyle.currentStyle.signal_danger
-            }
-        },
-        State {
-            name: "Account changed"
-            PropertyChanges {
-                target: image
-                source: "./icons/ic-exclamation-circle-filled.svg"
-                color: ProtonStyle.currentStyle.signal_danger
-            }
-            PropertyChanges {
-                target: label
-                text: qsTr("The address list for your account has changed")
-                color: ProtonStyle.currentStyle.signal_danger
-            }
-        },
-        State {
-            name: "Auto update failed"
-            PropertyChanges {
-                target: image
-                source: "./icons/ic-info-circle-filled.svg"
-                color: ProtonStyle.currentStyle.signal_info
-            }
-            PropertyChanges {
-                target: label
-                text: qsTr("Bridge couldn’t update automatically")
-                color: ProtonStyle.currentStyle.signal_info
-            }
-        },
-        State {
-            name: "Update ready"
-            PropertyChanges {
-                target: image
-                source: "./icons/ic-info-circle-filled.svg"
-                color: ProtonStyle.currentStyle.signal_info
-            }
-            PropertyChanges {
-                target: label
-                text: qsTr("Bridge update is ready")
-                color: ProtonStyle.currentStyle.signal_info
-            }
-        }
-    ]
 }

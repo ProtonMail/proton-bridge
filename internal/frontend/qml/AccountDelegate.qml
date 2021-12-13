@@ -36,12 +36,27 @@ Item {
         if (root.usedFraction < .75) return root.colorScheme.signal_warning
         return root.colorScheme.signal_danger
     }
-    property real usedFraction: root.user && root.user.totalBytes ? Math.abs(root.user.usedBytes / root.user.totalBytes) : 0
-    property string totalSpace: root.spaceWithUnits(root.user ? root.user.totalBytes : 0)
-    property string usedSpace: root.spaceWithUnits(root.user ? root.user.usedBytes : 0)
+    property real usedFraction: root.user ? reasonableFracion(root.user.usedBytes, root.user.totalBytes) : 0
+    property string totalSpace: root.spaceWithUnits(root.user ? root.reasonableBytes(root.user.totalBytes) : 0)
+    property string usedSpace: root.spaceWithUnits(root.user ? root.reasonableBytes(root.user.usedBytes) : 0)
+
+    function reasonableFracion(used, total){
+        var usedSafe = root.reasonableBytes(used)
+        var totalSafe = root.reasonableBytes(total)
+        if (totalSafe == 0 || usedSafe == 0) return 0
+        if (totalSafe <= usedSafe) return 1
+        return usedSafe / totalSafe
+    }
+
+    function reasonableBytes(bytes){
+        var safeBytes = bytes+0
+        if (safeBytes != bytes) return 0
+        if (safeBytes < 0) return 0
+        return Math.ceil(safeBytes)
+    }
 
     function spaceWithUnits(bytes){
-        if (bytes*1 !== bytes ) return "0 kB"
+        if (bytes*1 !== bytes || bytes == 0 ) return "0 kB"
         var units = ['B',"kB", "MB", "GB", "TB"];
         var i = parseInt(Math.floor(Math.log(bytes)/Math.log(1024)));
 
