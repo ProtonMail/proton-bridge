@@ -128,6 +128,8 @@ type QMLBackend struct {
 	_ core.QUrl `property:"releaseNotesLink"`
 	_ core.QUrl `property:"landingPageLink"`
 
+	_ string                                                           `property:"colorSchemeName"`
+	_ func(string)                                                     `slot:"changeColorScheme"`
 	_ string                                                           `property:"currentEmailClient"`
 	_ func()                                                           `slot:"updateCurrentMailClient"`
 	_ func(description, address, emailClient string, includeLogs bool) `slot:"reportBug"`
@@ -261,6 +263,14 @@ func (q *QMLBackend) setup(f *FrontendQt) {
 	f.setLogsPath()
 	// release notes link is set by update
 	f.setLicensePath()
+
+	f.setColorScheme()
+	q.ConnectChangeColorScheme(func(newScheme string) {
+		go func() {
+			defer f.panicHandler.HandlePanic()
+			f.changeColorScheme(newScheme)
+		}()
+	})
 
 	f.setCurrentEmailClient()
 	q.ConnectUpdateCurrentMailClient(func() {

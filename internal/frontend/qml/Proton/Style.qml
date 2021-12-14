@@ -36,7 +36,7 @@ QtObject {
     property ColorScheme lightStyle: ColorScheme {
         id: _lightStyle
 
-        prominent: prominentStyle
+        prominent: lightProminentStyle
 
         // Primary
         primay_norm: "#657EE4"
@@ -107,8 +107,8 @@ QtObject {
         welcome_img: "icons/img-welcome.png"
     }
 
-    property ColorScheme prominentStyle: ColorScheme {
-        id: _prominentStyle
+    property ColorScheme lightProminentStyle: ColorScheme {
+        id: _lightProminentStyle
 
         prominent: this
 
@@ -184,7 +184,7 @@ QtObject {
     property ColorScheme darkStyle: ColorScheme {
         id: _darkStyle
 
-        prominent: prominentStyle
+        prominent: darkProminentStyle
 
         // Primary
         primay_norm: "#657EE4"
@@ -245,8 +245,8 @@ QtObject {
         signal_info_active: "#3D99EB"
 
         // Shadows
-        shadow_norm: "#262A33"
-        shadow_lifted: "#262A33"
+        shadow_norm: "#262A33" // #000000 32% x+0 y+1 blur:4
+        shadow_lifted: "#262A33" // #000000 40% x+0 y+8 blur:24
 
         // Backdrop
         backdrop_norm: "#52000000"
@@ -255,8 +255,80 @@ QtObject {
         welcome_img: "icons/img-welcome-dark.png"
     }
 
-    // TODO: if default style should be loaded from somewhere
-    // (i.e. from preferencies file) - it should be loaded here
+    property ColorScheme darkProminentStyle: ColorScheme {
+        id: _darkProminentStyle
+
+        prominent: this
+
+        // Primary
+        primay_norm: "#657EE4"
+
+        // Interaction-norm
+        interaction_norm: "#657EE4"
+        interaction_norm_hover: "#7D92E8"
+        interaction_norm_active: "#98A9EE"
+
+        // Text
+        text_norm: "#FFFFFF"
+        text_weak: "#A4A9B5"
+        text_hint: "#696F7D"
+        text_disabled: "#575D6B"
+        text_invert: "#262A33"
+
+        // Field
+        field_norm: "#575D6B"
+        field_hover: "#696F7D"
+        field_disabled: "#464B58"
+
+        // Border
+        border_norm: "#464B58"
+        border_weak: "#363A46"
+
+        // Background
+        background_norm: "#1A1D24"
+        background_weak: "#2E323C"
+        background_strong: "#363A46"
+        background_avatar: "#575D6B"
+
+        // Interaction-weak
+        interaction_weak: "#464B58"
+        interaction_weak_hover: "#575D6B"
+        interaction_weak_active: "#696F7D"
+
+        // Interaction-default
+        interaction_default: "#00000000"
+        interaction_default_hover: "#33575D6B"
+        interaction_default_active: "#4D575D6B"
+
+        // Scrollbar
+        scrollbar_norm: "#464B58"
+        scrollbar_hover: "#575D6B"
+
+        // Signal
+        signal_danger: "#ED4C51"
+        signal_danger_hover: "#F7595E"
+        signal_danger_active: "#FF666B"
+        signal_warning: "#F5930A"
+        signal_warning_hover: "#F5A716"
+        signal_warning_active: "#F5B922"
+        signal_success: "#349172"
+        signal_success_hover: "#339C79"
+        signal_success_active: "#31A67F"
+        signal_info: "#2C89DB"
+        signal_info_hover: "#3491E3"
+        signal_info_active: "#3D99EB"
+
+        // Shadows
+        shadow_norm: "#262A33" // #000000 32% x+0 y+1 blur:4
+        shadow_lifted: "#262A33" // #000000 40% x+0 y+8 blur:24
+
+        // Backdrop
+        backdrop_norm: "#52000000"
+
+        // Images
+        welcome_img: "icons/img-welcome-dark.png"
+    }
+
     property ColorScheme currentStyle: lightStyle
 
     property string font_family: {

@@ -130,6 +130,19 @@ SettingsView {
     }
 
     SettingsItem {
+        id: darkMode
+        visible: root._isAdvancedShown
+        colorScheme: root.colorScheme
+        text: qsTr("Dark mode")
+        description: qsTr("Choose dark color theme.")
+        type: SettingsItem.Toggle
+        checked: root.backend.colorSchemeName == "dark"
+        onClicked: root.backend.changeColorScheme( darkMode.checked ? "light" : "dark")
+
+        Layout.fillWidth: true
+    }
+
+    SettingsItem {
         id: ports
         visible: root._isAdvancedShown
         colorScheme: root.colorScheme

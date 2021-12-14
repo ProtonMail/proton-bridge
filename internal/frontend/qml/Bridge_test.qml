@@ -321,7 +321,7 @@ Window {
 
                         onCheckedChanged: {
                             if (checked && ProtonStyle.currentStyle !== ProtonStyle.lightStyle) {
-                                ProtonStyle.currentStyle = ProtonStyle.lightStyle
+                                root.colorSchemeName = "light"
                             }
                         }
                     }
@@ -336,7 +336,7 @@ Window {
 
                         onCheckedChanged: {
                             if (checked && ProtonStyle.currentStyle !== ProtonStyle.darkStyle) {
-                                ProtonStyle.currentStyle = ProtonStyle.darkStyle
+                                root.colorSchemeName = "dark"
                             }
                         }
                     }
@@ -776,6 +776,12 @@ Window {
     property url licensePath: StandardPaths.standardLocations(StandardPaths.HomeLocation)[0]
     property url releaseNotesLink: Qt.resolvedUrl("https://protonmail.com/download/bridge/early_releases.html")
     property url landingPageLink: Qt.resolvedUrl("https://protonmail.com/bridge")
+
+    property string colorSchemeName: "light"
+    function changeColorScheme(newScheme){
+        root.colorSchemeName = newScheme
+    }
+
 
     property string currentEmailClient: "" // "Apple Mail 14.0"
     function updateCurrentMailClient(){

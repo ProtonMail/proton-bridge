@@ -20,6 +20,7 @@ import QtQuick 2.13
 import QtQuick.Window 2.13
 import Qt.labs.platform 1.1
 
+import Proton 4.0
 import Notifications 1.0
 
 QtObject {
@@ -58,6 +59,7 @@ QtObject {
             onCacheUnavailable: {
                 mainWindow.showAndRise()
             }
+            onColorSchemeNameChanged: root.setColorScheme()
         }
     }
 
@@ -206,15 +208,15 @@ QtObject {
 
             switch (reason) {
                 case SystemTrayIcon.Unknown:
-                    break;
+                break;
                 case SystemTrayIcon.Context:
                 case SystemTrayIcon.Trigger:
                 case SystemTrayIcon.DoubleClick:
                 case SystemTrayIcon.MiddleClick:
-                    calcStatusWindowPosition()
-                    toggleWindow(statusWindow)
+                calcStatusWindowPosition()
+                toggleWindow(statusWindow)
                 break;
-                    default:
+                default:
                 break;
             }
         }
@@ -224,6 +226,9 @@ QtObject {
         if (!root.backend) {
             console.log("backend not loaded")
         }
+
+        root.setColorScheme()
+
 
         if (!root.backend.users) {
             console.log("users not loaded")
@@ -252,5 +257,10 @@ QtObject {
         }
 
         root.backend.guiReady()
+    }
+
+    function setColorScheme() {
+        if (root.backend.colorSchemeName == "light") ProtonStyle.currentStyle = ProtonStyle.lightStyle
+        if (root.backend.colorSchemeName == "dark") ProtonStyle.currentStyle = ProtonStyle.darkStyle
     }
 }

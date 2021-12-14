@@ -26,6 +26,7 @@ import (
 
 	"github.com/ProtonMail/proton-bridge/internal/config/settings"
 	"github.com/ProtonMail/proton-bridge/internal/frontend/clientconfig"
+	"github.com/ProtonMail/proton-bridge/internal/frontend/theme"
 	"github.com/ProtonMail/proton-bridge/pkg/keychain"
 	"github.com/ProtonMail/proton-bridge/pkg/ports"
 	"github.com/therecipe/qt/core"
@@ -183,4 +184,22 @@ func (f *FrontendQt) quit() {
 
 func (f *FrontendQt) guiReady() {
 	f.initializationDone.Do(f.initializing.Done)
+}
+
+func (f *FrontendQt) setColorScheme() {
+	current := f.settings.Get(settings.ColorScheme)
+	if !theme.IsAvailable(theme.Theme(current)) {
+		current = string(theme.DefaultTheme())
+		f.settings.Set(settings.ColorScheme, current)
+	}
+	f.qml.SetColorSchemeName(current)
+}
+
+func (f *FrontendQt) changeColorScheme(newScheme string) {
+	if !theme.IsAvailable(theme.Theme(newScheme)) {
+		f.log.WithField("scheme", newScheme).Warn("Color scheme not available")
+		return
+	}
+	f.settings.Set(settings.ColorScheme, newScheme)
+	f.setColorScheme()
 }

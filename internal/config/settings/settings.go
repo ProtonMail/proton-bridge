@@ -53,6 +53,7 @@ const (
 	IMAPWorkers            = "imap_workers"
 	FetchWorkers           = "fetch_workers"
 	AttachmentWorkers      = "attachment_workers"
+	ColorScheme            = "color_scheme"
 )
 
 type Settings struct {
@@ -100,6 +101,7 @@ func (s *Settings) setDefaultValues() {
 	s.setDefault(IMAPWorkers, "16")
 	s.setDefault(FetchWorkers, "16")
 	s.setDefault(AttachmentWorkers, "16")
+	s.setDefault(ColorScheme, "")
 
 	s.setDefault(APIPortKey, DefaultAPIPort)
 	s.setDefault(IMAPPortKey, DefaultIMAPPort)
