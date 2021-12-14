@@ -41,7 +41,7 @@ SettingsView {
 
     Label {
         colorScheme: root.colorScheme
-        text: qsTr("Bridge stores your encrypted messages locally to optimize communication with the local client.")
+        text: qsTr("Bridge stores your encrypted messages locally to optimize communication with your client.")
         type: Label.Body
         color: root.colorScheme.text_weak
         Layout.fillWidth: true
