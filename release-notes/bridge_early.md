@@ -1,12 +1,13 @@
-## v2.0.0
-- 2021-12-14
+## v2.0.1
+- 2021-12-15
 
 ### New
 
 New Bridge GUI
-- Added a Status View in addition to the Main Bridge Window
-- Added storage information per signed in account
-- Refactor of sign in flows
+
+* Added a Status View in addition to the Main Bridge Window
+* Added storage information per signed in account
+* Refactor of sign in flows
 - Refactor of  Helps and Settings section
 - Refactor of  bug reports
 - Refactor of Bridge update flows for beta and stable channeles
@@ -14,13 +15,13 @@ New Bridge GUI
 - Introduce local cache configuration
 
 New local cache
-- Refactor of message.BodyStructure
-- Refactor of local store
-- Allow to store full encrypted message bodies on dysk
+
+* Refactor of message.BodyStructure
+* Refactor of local store
+* Allow to store full encrypted message bodies on dysk
 
 ### Fixed
 - Blurry system icons with multiple monitor setup
-- 
 
 
 ## v1.8.12
