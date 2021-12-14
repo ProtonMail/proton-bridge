@@ -2,6 +2,12 @@
 
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
+## [Bridge 2.0.1] Kwai
+
+### Fixed
+* GODT-1468: Fix main windows status and add background context without retry.
+
+
 ## [Bridge 2.0.0] Kwai
 
 ## Added
