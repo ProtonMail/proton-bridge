@@ -75,6 +75,9 @@ func mailLoop(b *base.Base, c *cli.Context) error { // nolint[funlen]
 		return err
 	}
 
+	// GODT-1481: Always turn off reporting of unencrypted recipient in v2.
+	b.Settings.SetBool(settings.ReportOutgoingNoEncKey, false)
+
 	cache, cacheErr := loadMessageCache(b)
 	if cacheErr != nil {
 		logrus.WithError(cacheErr).Error("Could not load local cache.")
