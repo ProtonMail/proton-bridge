@@ -21,8 +21,8 @@ import (
 	"context"
 
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
+	"github.com/ProtonMail/proton-bridge/internal/store/cache"
 	"github.com/ProtonMail/proton-bridge/pkg/message"
-	"github.com/sirupsen/logrus"
 	bolt "go.etcd.io/bbolt"
 )
 
@@ -110,8 +110,15 @@ func SetBuildAndCacheJobLimit(maxJobs int) {
 }
 
 func (store *Store) getCachedMessage(messageID string) ([]byte, error) {
-	if store.cache.Has(store.user.ID(), messageID) {
-		return store.cache.Get(store.user.ID(), messageID)
+	if store.IsCached(messageID) {
+		literal, err := store.cache.Get(store.user.ID(), messageID)
+		if err == nil {
+			return literal, nil
+		}
+		store.log.
+			WithField("msg", messageID).
+			WithError(err).
+			Warn("Message is cached but cannot be retrieved")
 	}
 
 	job, done := store.newBuildJob(context.Background(), messageID, message.ForegroundPriority)
@@ -123,17 +130,43 @@ func (store *Store) getCachedMessage(messageID string) ([]byte, error) {
 	}
 
 	if !store.isMessageADraft(messageID) {
-		if err := store.cache.Set(store.user.ID(), messageID, literal); err != nil {
-			logrus.WithError(err).Error("Failed to cache message")
+		if err := store.writeToCacheUnlockIfFails(messageID, literal); err != nil {
+			store.log.WithError(err).Error("Failed to cache message")
 		}
+	} else {
+		store.log.Debug("Skipping cache draft message")
 	}
 
 	return literal, nil
 }
 
+func (store *Store) writeToCacheUnlockIfFails(messageID string, literal []byte) error {
+	err := store.cache.Set(store.user.ID(), messageID, literal)
+	if err == nil && err != cache.ErrCacheNeedsUnlock {
+		return err
+	}
+
+	kr, err := store.client().GetUserKeyRing()
+	if err != nil {
+		return err
+	}
+
+	if err := store.UnlockCache(kr); err != nil {
+		return err
+	}
+
+	return store.cache.Set(store.user.ID(), messageID, literal)
+}
+
 // IsCached returns whether the given message already exists in the cache.
-func (store *Store) IsCached(messageID string) bool {
-	return store.cache.Has(store.user.ID(), messageID)
+func (store *Store) IsCached(messageID string) (has bool) {
+	defer func() {
+		if r := recover(); r != nil {
+			store.log.WithField("recovered", r).Error("Cannot retrieve whether message exits, assuming no")
+		}
+	}()
+	has = store.cache.Has(store.user.ID(), messageID)
+	return
 }
 
 // BuildAndCacheMessage builds the given message (with background priority) and puts it in the cache.

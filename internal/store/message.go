@@ -24,7 +24,6 @@ import (
 
 	pkgMsg "github.com/ProtonMail/proton-bridge/pkg/message"
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
-	"github.com/pkg/errors"
 	bolt "go.etcd.io/bbolt"
 )
 
@@ -101,20 +100,42 @@ func (message *Message) getRawHeader() ([]byte, error) {
 }
 
 // GetHeader will return cached header from DB.
-func (message *Message) GetHeader() []byte {
+func (message *Message) GetHeader() ([]byte, error) {
 	raw, err := message.getRawHeader()
 	if err != nil {
-		panic(errors.Wrap(err, "failed to get raw message header"))
+		message.store.log.
+			WithField("msgID", message.ID()).
+			WithError(err).
+			Warn("Cannot get raw header")
+		return nil, err
 	}
 
-	return raw
+	return raw, nil
+}
+
+// GetMIMEHeaderFast returns full header if message was cached. If full header
+// is not available it will return header from metadata.
+// NOTE: Returned header may not contain all fields.
+func (message *Message) GetMIMEHeaderFast() (header textproto.MIMEHeader) {
+	var err error
+	if message.IsFullHeaderCached() {
+		header, err = message.GetMIMEHeader()
+	}
+	if header == nil || err != nil {
+		header = textproto.MIMEHeader(message.Message().Header)
+	}
+	return
 }
 
 // GetMIMEHeader will return cached header from DB, parsed as a textproto.MIMEHeader.
-func (message *Message) GetMIMEHeader() textproto.MIMEHeader {
+func (message *Message) GetMIMEHeader() (textproto.MIMEHeader, error) {
 	raw, err := message.getRawHeader()
 	if err != nil {
-		panic(errors.Wrap(err, "failed to get raw message header"))
+		message.store.log.
+			WithField("msgID", message.ID()).
+			WithError(err).
+			Warn("Cannot get raw header for MIME header")
+		return nil, err
 	}
 
 	header, err := textproto.NewReader(bufio.NewReader(bytes.NewReader(raw))).ReadMIMEHeader()
@@ -123,10 +144,10 @@ func (message *Message) GetMIMEHeader() textproto.MIMEHeader {
 			WithField("msgID", message.ID()).
 			WithError(err).
 			Warn("Cannot build header from bodystructure")
-		return textproto.MIMEHeader(message.msg.Header)
+		return nil, err
 	}
 
-	return header
+	return header, nil
 }
 
 // GetBodyStructure returns the message's body structure.

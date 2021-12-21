@@ -330,7 +330,9 @@ func (storeMailbox *Mailbox) txGetFinalUID(b *bolt.Bucket) uint32 {
 	uid, _ := b.Cursor().Last()
 
 	if uid == nil {
-		panic(errors.New("cannot get final UID of empty mailbox"))
+		// This happened most probably due to empty mailbox and whole
+		// store needs to be re-initialize in order to fix it.
+		panic(errors.New("cannot get final UID"))
 	}
 
 	return btoi(uid)

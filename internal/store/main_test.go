@@ -25,7 +25,10 @@ import (
 
 func init() { //nolint[gochecknoinits]
 	logrus.SetLevel(logrus.ErrorLevel)
-	if os.Getenv("VERBOSITY") == "trace" {
+	switch os.Getenv("VERBOSITY") {
+	case "trace":
 		logrus.SetLevel(logrus.TraceLevel)
+	case "debug":
+		logrus.SetLevel(logrus.DebugLevel)
 	}
 }

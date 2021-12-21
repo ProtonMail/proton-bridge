@@ -67,6 +67,10 @@ func (cacher *MsgCachePool) newJob(messageID string) {
 }
 
 func (cacher *MsgCachePool) start() {
+	if cacher.started {
+		return
+	}
+
 	cacher.started = true
 
 	go func() {

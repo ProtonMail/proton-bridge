@@ -40,9 +40,9 @@ func (im *imapMailbox) getMessage(storeMessage storeMessageProvider, items []ima
 	for _, item := range items {
 		switch item {
 		case imap.FetchEnvelope:
-			// No need to check IsFullHeaderCached here. API header
-			// contain enough information to build the envelope.
-			msg.Envelope = message.GetEnvelope(m, storeMessage.GetMIMEHeader())
+			// No need to retrieve full header here. API header
+			// contains enough information to build the envelope.
+			msg.Envelope = message.GetEnvelope(m, storeMessage.GetMIMEHeaderFast())
 		case imap.FetchBody, imap.FetchBodyStructure:
 			structure, err := im.getBodyStructure(storeMessage)
 			if err != nil {
@@ -158,7 +158,10 @@ func (im *imapMailbox) getMessageBodySection(storeMessage storeMessageProvider, 
 
 	isMainHeaderRequested := len(section.Path) == 0 && section.Specifier == imap.HeaderSpecifier
 	if isMainHeaderRequested && storeMessage.IsFullHeaderCached() {
-		header = storeMessage.GetHeader()
+		var err error
+		if header, err = storeMessage.GetHeader(); err != nil {
+			return nil, err
+		}
 	} else {
 		structure, bodyReader, err := im.getBodyAndStructure(storeMessage)
 		if err != nil {

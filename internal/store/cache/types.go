@@ -17,8 +17,13 @@
 
 package cache
 
+import "errors"
+
+var ErrCacheNeedsUnlock = errors.New("cache needs to be unlocked")
+
 type Cache interface {
 	Unlock(userID string, passphrase []byte) error
+	Lock(userID string)
 	Delete(userID string) error
 
 	Has(userID, messageID string) bool

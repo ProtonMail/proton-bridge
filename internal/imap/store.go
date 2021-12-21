@@ -99,10 +99,10 @@ type storeMessageProvider interface {
 	Message() *pmapi.Message
 	IsMarkedDeleted() bool
 
-	GetHeader() []byte
+	GetHeader() ([]byte, error)
 	GetRFC822() ([]byte, error)
 	GetRFC822Size() (uint32, error)
-	GetMIMEHeader() textproto.MIMEHeader
+	GetMIMEHeaderFast() textproto.MIMEHeader
 	IsFullHeaderCached() bool
 	GetBodyStructure() (*pkgMsg.BodyStructure, error)
 }

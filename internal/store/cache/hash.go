@@ -26,6 +26,7 @@ func getHash(name string) string {
 	hash := sha256.New()
 
 	if _, err := hash.Write([]byte(name)); err != nil {
+		// sha256.Write always returns nill err so this should never happen
 		panic(err)
 	}
 

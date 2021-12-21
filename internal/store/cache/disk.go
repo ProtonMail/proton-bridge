@@ -33,6 +33,7 @@ import (
 	"github.com/ricochet2200/go-disk-usage/du"
 )
 
+var ErrMsgCorrupted = errors.New("ecrypted file was corrupted")
 var ErrLowSpace = errors.New("not enough free space left on device")
 
 // IsOnDiskCache will return true if Cache is type of onDiskCache.
@@ -86,6 +87,10 @@ func NewOnDiskCache(path string, cmp Compressor, opts Options) (Cache, error) {
 	}, nil
 }
 
+func (c *onDiskCache) Lock(userID string) {
+	delete(c.gcm, userID)
+}
+
 func (c *onDiskCache) Unlock(userID string, passphrase []byte) error {
 	hash := sha256.New()
 
@@ -135,17 +140,29 @@ func (c *onDiskCache) Has(userID, messageID string) bool {
 		return false
 
 	default:
+		// Cannot decide whether the message is cached or not.
+		// Potential recover needs to be don in caller function.
 		panic(err)
 	}
 }
 
 func (c *onDiskCache) Get(userID, messageID string) ([]byte, error) {
+	gcm, ok := c.gcm[userID]
+	if !ok || gcm == nil {
+		return nil, ErrCacheNeedsUnlock
+	}
+
 	enc, err := c.readFile(c.getMessagePath(userID, messageID))
 	if err != nil {
 		return nil, err
 	}
 
-	cmp, err := c.gcm[userID].Open(nil, enc[:c.gcm[userID].NonceSize()], enc[c.gcm[userID].NonceSize():], nil)
+	// Data stored in file must larger than NonceSize.
+	if len(enc) <= gcm.NonceSize() {
+		return nil, ErrMsgCorrupted
+	}
+
+	cmp, err := gcm.Open(nil, enc[:gcm.NonceSize()], enc[gcm.NonceSize():], nil)
 	if err != nil {
 		return nil, err
 	}
@@ -154,7 +171,11 @@ func (c *onDiskCache) Get(userID, messageID string) ([]byte, error) {
 }
 
 func (c *onDiskCache) Set(userID, messageID string, literal []byte) error {
-	nonce := make([]byte, c.gcm[userID].NonceSize())
+	gcm, ok := c.gcm[userID]
+	if !ok {
+		return ErrCacheNeedsUnlock
+	}
+	nonce := make([]byte, gcm.NonceSize())
 
 	if _, err := rand.Read(nonce); err != nil {
 		return err
@@ -165,12 +186,13 @@ func (c *onDiskCache) Set(userID, messageID string, literal []byte) error {
 		return err
 	}
 
-	// NOTE(GODT-1158): How to properly handle low space? Don't return error, that's bad. Instead send event?
+	// NOTE(GODT-1158, GODT-1488): Need to properly handle low space. Don't
+	// return error, that's bad. Send event and clean least used message.
 	if !c.hasSpace(len(cmp)) {
 		return nil
 	}
 
-	return c.writeFile(c.getMessagePath(userID, messageID), c.gcm[userID].Seal(nonce, nonce, cmp, nil))
+	return c.writeFile(c.getMessagePath(userID, messageID), gcm.Seal(nonce, nonce, cmp, nil))
 }
 
 func (c *onDiskCache) Rem(userID, messageID string) error {

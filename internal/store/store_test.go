@@ -187,7 +187,8 @@ func (mocks *mocksForStore) newStoreNoEvents(t *testing.T, combinedMode bool, ms
 
 	mocks.user.EXPECT().GetClient().AnyTimes().Return(mocks.client)
 
-	mocks.client.EXPECT().GetUserKeyRing().Return(tests.MakeKeyRing(t), nil).AnyTimes()
+	testUserKeyring := tests.MakeKeyRing(t)
+	mocks.client.EXPECT().GetUserKeyRing().Return(testUserKeyring, nil).AnyTimes()
 	mocks.client.EXPECT().Addresses().Return(pmapi.AddressList{
 		{ID: addrID1, Email: addr1, Type: pmapi.OriginalAddress, Receive: true},
 		{ID: addrID2, Email: addr2, Type: pmapi.AliasAddress, Receive: true},
@@ -224,6 +225,8 @@ func (mocks *mocksForStore) newStoreNoEvents(t *testing.T, combinedMode bool, ms
 		mocks.cache,
 	)
 	require.NoError(mocks.tb, err)
+
+	require.NoError(mocks.tb, mocks.store.UnlockCache(testUserKeyring))
 
 	// We want to wait until first sync has finished.
 	// Checking that event after sync was reuested is not the best way to
