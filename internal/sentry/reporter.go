@@ -61,17 +61,21 @@ func NewReporter(appName, appVersion string, userAgent fmt.Stringer) *Reporter {
 }
 
 func (r *Reporter) ReportException(i interface{}) error {
+	SkipDuringUnwind()
 	return r.ReportExceptionWithContext(i, make(map[string]interface{}))
 }
 
 func (r *Reporter) ReportMessage(msg string) error {
+	SkipDuringUnwind()
 	return r.ReportMessageWithContext(msg, make(map[string]interface{}))
 }
 
 func (r *Reporter) ReportExceptionWithContext(i interface{}, context map[string]interface{}) error {
-	err := fmt.Errorf("recover: %v", i)
+	SkipDuringUnwind()
 
+	err := fmt.Errorf("recover: %v", i)
 	return r.scopedReport(context, func() {
+		SkipDuringUnwind()
 		if eventID := sentry.CaptureException(err); eventID != nil {
 			logrus.WithError(err).
 				WithField("reportID", *eventID).
@@ -81,7 +85,9 @@ func (r *Reporter) ReportExceptionWithContext(i interface{}, context map[string]
 }
 
 func (r *Reporter) ReportMessageWithContext(msg string, context map[string]interface{}) error {
+	SkipDuringUnwind()
 	return r.scopedReport(context, func() {
+		SkipDuringUnwind()
 		if eventID := sentry.CaptureMessage(msg); eventID != nil {
 			logrus.WithField("message", msg).
 				WithField("reportID", *eventID).
