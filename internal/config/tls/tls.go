@@ -148,7 +148,7 @@ func (t *TLS) GetConfig() (*tls.Config, error) {
 	return &tls.Config{
 		Certificates: []tls.Certificate{c},
 		ServerName:   "127.0.0.1",
-		ClientAuth:   tls.VerifyClientCertIfGiven,
+		ClientAuth:   tls.RequestClientCert,
 		RootCAs:      caCertPool,
 		ClientCAs:    caCertPool,
 	}, nil
