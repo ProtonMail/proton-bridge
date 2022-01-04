@@ -2,6 +2,8 @@ Feature: IMAP create mailbox
   Background:
     Given there is connected user "user"
     And there is IMAP client logged in as "user"
+    And "user" does not have mailbox "Folders/mbox"
+    And "user" does not have mailbox "Labels/mbox"
 
   Scenario: Create folder
     When IMAP client creates mailbox "Folders/mbox"

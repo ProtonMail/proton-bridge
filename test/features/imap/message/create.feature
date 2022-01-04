@@ -58,14 +58,21 @@ Feature: IMAP create messages
 
   # Importing duplicate messages when messageID cannot be found in Sent already.
   #
-  # Previously, we discarded messages for which sender matches account address to
+  # Previously, we discarded messages for which sender matches account address to
   # avoid duplicates, but this led to discarding messages imported through mail client.
+  #
+  # NOTE: We need to introduce cooldown here in order to detect duplicates
+  # properly. Once mail is imported to API the Sphinx indices for duplicate
+  # detection are updated every 10s. Therefore it is good to leave at least 15
+  # second gap after import in order to be able to correctly handle the case
+  # when we try to detect duplicate imports
   Scenario: Imports a similar (duplicate) message to sent
     Given there are messages in mailbox "Sent" for "userMoreAddresses"
       | from      | to             | subject        | body                |
       | [primary] | chosen@one.com | Meet the Twins | Hello, Mr. Anderson |
+    And wait for Sphinx to create duplication indices
     And there is IMAP client selected in "Sent"
     Then mailbox "Sent" for "userMoreAddresses" has 1 messages
     When IMAP client creates message "Meet the Twins" from address "primary" of "userMoreAddresses" to "chosen@one.com" with body "Hello, Mr. Anderson" in "Sent"
-    Then IMAP response is "OK"
+    Then IMAP response is "OK \[APPENDUID 4 2\] APPEND completed"
     And mailbox "Sent" for "userMoreAddresses" has 2 messages

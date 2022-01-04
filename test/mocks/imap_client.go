@@ -23,6 +23,7 @@ import (
 	"net"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/ProtonMail/proton-bridge/pkg/message"
 	"github.com/stretchr/testify/assert"
@@ -176,6 +177,7 @@ func (c *IMAPClient) AppendBody(mailboxName, subject, from, to, body string) *IM
 	msg := fmt.Sprintf("Subject: %s\r\n", subject)
 	msg += fmt.Sprintf("From: %s\r\n", from)
 	msg += fmt.Sprintf("To: %s\r\n", to)
+	msg += fmt.Sprintf("Message-Id: <%d@imapbridge.com>\r\n", time.Now().Unix())
 	if mailboxName != "Sent" {
 		msg += "Received: by 2002:0:0:0:0:0:0:0 with SMTP id 0123456789abcdef; Wed, 30 Dec 2020 01:23:45 0000\r\n"
 	}

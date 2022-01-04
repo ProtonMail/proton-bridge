@@ -43,8 +43,8 @@ type PMAPIController interface {
 	WasCalled(method, path string, expectedRequest []byte) bool
 	WasCalledRegex(methodRegex, pathRegex string, expectedRequest []byte) (bool, error)
 	GetCalls(method, path string) [][]byte
-	LockEvents()
-	UnlockEvents()
+	LockEvents(username string)
+	UnlockEvents(username string)
 }
 
 func newPMAPIController(listener listener.Listener) (PMAPIController, pmapi.Manager) {

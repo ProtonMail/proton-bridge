@@ -17,10 +17,71 @@
 
 package liveapi
 
-func (ctl *Controller) LockEvents() {
+import (
+	"context"
+	"time"
+)
+
+func (ctl *Controller) LockEvents(username string) {
+	ctl.recordEvent(username)
 	persistentClients.eventsPaused.Add(1)
 }
 
-func (ctl *Controller) UnlockEvents() {
+func (ctl *Controller) UnlockEvents(username string) {
 	persistentClients.eventsPaused.Done()
+	ctl.waitForEventChange(username)
+}
+
+func (ctl *Controller) recordEvent(username string) {
+	ctl.lastEventByUsername[username] = ""
+	client, err := getPersistentClient(username)
+	if err != nil {
+		ctl.log.WithError(err).Error("Cannot get persistent client to record event")
+		return
+	}
+
+	event, err := client.GetEvent(context.Background(), "")
+	if err != nil {
+		ctl.log.WithError(err).Error("Cannot record event")
+		return
+	}
+
+	ctl.lastEventByUsername[username] = event.EventID
+	ctl.log.WithField("last", event.EventID).Debug("Event recorded")
+}
+
+func (ctl *Controller) waitForEventChange(username string) {
+	lastEvent := ctl.lastEventByUsername[username]
+	ctl.lastEventByUsername[username] = ""
+
+	log := ctl.log.WithField("last", lastEvent)
+
+	if lastEvent == "" {
+		log.Debug("Nothing to wait for, event not recoreded")
+		return
+	}
+
+	client, err := getPersistentClient(username)
+	if err != nil {
+		log.WithError(err).Error("Cannot get persistent client to check event")
+		return
+	}
+
+	for i, delay := range []int{1, 5, 10, 30} {
+		ilog := log.WithField("try", i)
+		event, err := client.GetEvent(context.Background(), "")
+		if err != nil {
+			ilog.WithError(err).Error("Cannot check event")
+			return
+		}
+		if lastEvent != event.EventID {
+			ilog.WithField("current", event.EventID).Debug("Event changed")
+			return
+		}
+
+		ilog.WithField("delay", delay).Warn("Retrying event change again")
+		time.Sleep(time.Duration(delay) * time.Second)
+	}
+
+	ctl.log.WithError(err).Warn("Event check timed out")
 }

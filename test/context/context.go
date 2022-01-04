@@ -107,8 +107,11 @@ func New() *TestContext {
 		smtpLastResponses:     make(map[string]*mocks.SMTPResponse),
 		smtpResponseLocker:    &sync.Mutex{},
 		bddMessageIDsToAPIIDs: make(map[string]string),
-		logger:                logrus.StandardLogger(),
+		logger:                logrus.StandardLogger().WithField("ctx", "scenario"),
 	}
+
+	ctx.logger.Info("New context")
+	ctx.addCleanup(func() { ctx.logger.Info("Context end") }, "End of context")
 
 	// Ensure that the config is cleaned up after the test is over.
 	ctx.addCleanupChecked(ctx.locations.Clear, "Cleaning bridge config data")
@@ -163,5 +166,9 @@ func (ctx *TestContext) GetLastError() error {
 	return ctx.lastError
 }
 
-func (ctx *TestContext) MessagePreparationStarted()  { ctx.pmapiController.LockEvents() }
-func (ctx *TestContext) MessagePreparationFinished() { ctx.pmapiController.UnlockEvents() }
+func (ctx *TestContext) MessagePreparationStarted(username string) {
+	ctx.pmapiController.LockEvents(username)
+}
+func (ctx *TestContext) MessagePreparationFinished(username string) {
+	ctx.pmapiController.UnlockEvents(username)
+}

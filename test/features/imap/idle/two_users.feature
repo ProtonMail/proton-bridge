@@ -14,8 +14,7 @@ Feature: IMAP IDLE with two users
   Scenario: IDLE statements are not leaked to other alias
     Given there is connected user "userMoreAddresses"
     And there is "userMoreAddresses" in "combined" address mode
-    And there is "userMoreAddresses" with mailbox "Folders/mbox"
-    And there are messages in mailbox "Folders/mbox" for "userMoreAddresses"
+    And there are messages in mailbox "INBOX" for "userMoreAddresses"
       | from              | to          | subject |
       | john.doe@mail.com | [primary]   | foo     |
       | jane.doe@mail.com | [secondary] | bar     |

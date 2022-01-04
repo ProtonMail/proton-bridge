@@ -230,7 +230,7 @@ func (ctl *Controller) GetAuthClient(username string) pmapi.Client {
 }
 
 // LockEvents doesn't needs to be implemented for fakeAPI.
-func (ctl *Controller) LockEvents() {}
+func (ctl *Controller) LockEvents(string) {}
 
 // UnlockEvents doesn't needs to be implemented for fakeAPI.
-func (ctl *Controller) UnlockEvents() {}
+func (ctl *Controller) UnlockEvents(string) {}

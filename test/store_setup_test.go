@@ -37,6 +37,7 @@ func StoreSetupFeatureContext(s *godog.ScenarioContext) {
 	s.Step(`^there are (\d+) messages in mailbox(?:es)? "([^"]*)" for "([^"]*)"$`, thereAreSomeMessagesInMailboxesForUser)
 	s.Step(`^there are messages for "([^"]*)" as follows$`, thereAreSomeMessagesForUserAsFollows)
 	s.Step(`^there are (\d+) messages in mailbox(?:es)? "([^"]*)" for address "([^"]*)" of "([^"]*)"$`, thereAreSomeMessagesInMailboxesForAddressOfUser)
+	s.Step(`^wait for Sphinx to create duplication indices$`, waitForSphinx)
 }
 
 func thereIsUserWithMailboxes(bddUserID string, mailboxes *godog.Table) error {
@@ -75,17 +76,17 @@ func thereAreMessagesInMailboxesForUser(mailboxNames, bddUserID string, messages
 }
 
 func thereAreMessagesInMailboxesForAddressOfUser(mailboxNames, bddAddressID, bddUserID string, messages *godog.Table) error {
-	// It is needed to prevent event processing before syncing these message
-	// otherwise the seqID and UID will be in reverse order. The
-	// synchronization add newest message first, the eventloop adds the oldest
-	// message first.
-	ctx.MessagePreparationStarted()
-	defer ctx.MessagePreparationFinished()
-
 	account := ctx.GetTestAccountWithAddress(bddUserID, bddAddressID)
 	if account == nil {
 		return godog.ErrPending
 	}
+
+	// It is needed to prevent event processing before syncing these message
+	// otherwise the seqID and UID will be in reverse order. The
+	// synchronization add newest message first, the eventloop adds the oldest
+	// message first.
+	ctx.MessagePreparationStarted(account.Username())
+	defer ctx.MessagePreparationFinished(account.Username())
 
 	labelIDs, err := ctx.GetPMAPIController().GetLabelIDs(account.Username(), strings.Split(mailboxNames, ","))
 	if err != nil {
@@ -100,9 +101,10 @@ func thereAreMessagesInMailboxesForAddressOfUser(mailboxNames, bddAddressID, bdd
 	for i := len(messages.Rows) - 1; i > 0; i-- {
 		row := messages.Rows[i]
 		message := &pmapi.Message{
-			MIMEType:  pmapi.ContentTypePlainText,
-			LabelIDs:  labelIDs,
-			AddressID: account.AddressID(),
+			MIMEType:   pmapi.ContentTypePlainText,
+			LabelIDs:   labelIDs,
+			AddressID:  account.AddressID(),
+			ExternalID: fmt.Sprintf("%d@integration.setup.test", time.Now().Unix()),
 		}
 		header := make(textproto.MIMEHeader)
 
@@ -275,17 +277,17 @@ func processMailboxStructureDataTable(structure *godog.Table, callback func(stri
 }
 
 func thereAreSomeMessagesInMailboxesForAddressOfUser(numberOfMessages int, mailboxNames, bddAddressID, bddUserID string) error {
-	// It is needed to prevent event processing before syncing these message
-	// otherwise the seqID and UID will be in reverse order. The
-	// synchronization add newest message first, the eventloop adds the oldest
-	// message first.
-	ctx.MessagePreparationStarted()
-	defer ctx.MessagePreparationFinished()
-
 	account := ctx.GetTestAccountWithAddress(bddUserID, bddAddressID)
 	if account == nil {
 		return godog.ErrPending
 	}
+
+	// It is needed to prevent event processing before syncing these message
+	// otherwise the seqID and UID will be in reverse order. The
+	// synchronization add newest message first, the eventloop adds the oldest
+	// message first.
+	ctx.MessagePreparationStarted(account.Username())
+	defer ctx.MessagePreparationFinished(account.Username())
 
 	for i := 1; i <= numberOfMessages; i++ {
 		labelIDs, err := ctx.GetPMAPIController().GetLabelIDs(account.Username(), strings.Split(mailboxNames, ","))
@@ -293,12 +295,13 @@ func thereAreSomeMessagesInMailboxesForAddressOfUser(numberOfMessages int, mailb
 			return internalError(err, "getting labels %s for %s", mailboxNames, account.Username())
 		}
 		lastMessageID, err := ctx.GetPMAPIController().AddUserMessage(account.Username(), &pmapi.Message{
-			MIMEType:  "text/plain",
-			LabelIDs:  labelIDs,
-			AddressID: account.AddressID(),
-			Subject:   fmt.Sprintf("Test message #%d", i),
-			Sender:    &mail.Address{Address: "anyone@example.com"},
-			ToList:    []*mail.Address{{Address: account.Address()}},
+			MIMEType:   "text/plain",
+			LabelIDs:   labelIDs,
+			AddressID:  account.AddressID(),
+			Subject:    fmt.Sprintf("Test message #%d", i),
+			Sender:     &mail.Address{Address: "anyone@example.com"},
+			ToList:     []*mail.Address{{Address: account.Address()}},
+			ExternalID: fmt.Sprintf("%d@integration.setup.test", time.Now().Unix()),
 		})
 		if err != nil {
 			return internalError(err, "adding message")
@@ -310,4 +313,9 @@ func thereAreSomeMessagesInMailboxesForAddressOfUser(numberOfMessages int, mailb
 		ctx.PairMessageID(account.Username(), bddMessageID, lastMessageID)
 	}
 	return internalError(ctx.WaitForSync(account.Username()), "waiting for sync")
+}
+
+func waitForSphinx() error {
+	time.Sleep(15 * time.Second)
+	return nil
 }

@@ -36,6 +36,8 @@ type Controller struct {
 
 	// State controlled by test.
 	noInternetConnection bool
+
+	lastEventByUsername map[string]string
 }
 
 func NewController() (*Controller, pmapi.Manager) {
@@ -46,6 +48,7 @@ func NewController() (*Controller, pmapi.Manager) {
 		messageIDsByUsername: map[string][]string{},
 
 		noInternetConnection: false,
+		lastEventByUsername:  map[string]string{},
 	}
 
 	persistentClients.manager.SetTransport(&fakeTransport{
