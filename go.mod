@@ -39,10 +39,10 @@ require (
 	github.com/emersion/go-vcard v0.0.0-20190105225839-8856043f13c5 // indirect
 	github.com/fatih/color v1.9.0
 	github.com/flynn-archive/go-shlex v0.0.0-20150515145356-3f9db97f8568 // indirect
-	github.com/getsentry/sentry-go v0.8.0
+	github.com/getsentry/sentry-go v0.12.0
 	github.com/go-resty/resty/v2 v2.6.0
 	github.com/golang/mock v1.4.4
-	github.com/google/go-cmp v0.5.1
+	github.com/google/go-cmp v0.5.5
 	github.com/google/uuid v1.1.1
 	github.com/hashicorp/go-multierror v1.1.0
 	github.com/jaytaylor/html2text v0.0.0-20200412013138-3577fbdbcff7
@@ -63,9 +63,9 @@ require (
 	github.com/urfave/cli/v2 v2.2.0
 	github.com/vmihailenco/msgpack/v5 v5.1.3
 	go.etcd.io/bbolt v1.3.6
-	golang.org/x/crypto v0.0.0-20210322153248-0c34fe9e7dc2
-	golang.org/x/net v0.0.0-20210405180319-a5a99cb37ef4
-	golang.org/x/text v0.3.5-0.20201125200606-c27b9fd57aec
+	golang.org/x/net v0.0.0-20211008194852-3b03d305991f
+	golang.org/x/sys v0.0.0-20211216021012-1d35b9e2eb4e
+	golang.org/x/text v0.3.7
 )
 
 replace (

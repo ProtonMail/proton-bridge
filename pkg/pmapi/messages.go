@@ -36,11 +36,11 @@ import (
 	"strings"
 
 	"github.com/ProtonMail/go-crypto/openpgp"
+	"github.com/ProtonMail/go-crypto/openpgp/armor"
+	"github.com/ProtonMail/go-crypto/openpgp/packet"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/go-resty/resty/v2"
 	"github.com/sirupsen/logrus"
-	"golang.org/x/crypto/openpgp/armor"
-	"golang.org/x/crypto/openpgp/packet"
 )
 
 // Header types.

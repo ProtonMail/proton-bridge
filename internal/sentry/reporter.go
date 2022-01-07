@@ -175,3 +175,7 @@ func isFunctionFilteredOut(function string) bool {
 	}
 	return false
 }
+
+func Flush(maxWaiTime time.Duration) {
+	sentry.Flush(maxWaiTime)
+}

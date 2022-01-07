@@ -33,6 +33,7 @@ func (b *Base) restartApp(crash bool) error {
 
 	if crash {
 		args = incrementRestartFlag(os.Args)[1:]
+		defer func() { os.Exit(1) }()
 	} else {
 		args = os.Args[1:]
 	}

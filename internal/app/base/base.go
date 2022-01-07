@@ -358,10 +358,13 @@ func (b *Base) wrapMainLoop(appMainLoop func(*Base, *cli.Context) error) cli.Act
 			Info("Run app")
 
 		b.CrashHandler.AddRecoveryAction(func(interface{}) error {
+			sentry.Flush(2 * time.Second)
+
 			if c.Int(flagRestart) > maxAllowedRestarts {
 				logrus.
 					WithField("restart", c.Int("restart")).
 					Warn("Not restarting, already restarted too many times")
+				os.Exit(1)
 
 				return nil
 			}
