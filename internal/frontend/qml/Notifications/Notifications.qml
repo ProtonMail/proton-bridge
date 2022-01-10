@@ -870,7 +870,7 @@ QtObject {
 
     property Notification noKeychain: Notification {
         title: qsTr("No keychain available")
-        description: qsTr("Bridge is not able to detected a supported password manager (pass, gnome-keyring). Please install and setup supported password manager and restart the application.")
+        description: qsTr("Bridge is not able to detected a supported password manager (pass or secret-service). Please install and setup supported password manager and restart the application.")
         brief: title
         icon: "./icons/ic-exclamation-circle-filled.svg"
         type: Notification.NotificationType.Danger
