@@ -117,6 +117,20 @@ SettingsView {
     }
 
     SettingsItem {
+        id: keychains
+        visible: root._isAdvancedShown && root.backend.availableKeychain.length > 1
+        colorScheme: root.colorScheme
+        text: qsTr("Change keychain")
+        description: qsTr("Change which keychain Bridge uses as default")
+        actionText: qsTr("Change")
+        type: SettingsItem.Button
+        checked: root.backend.isDoHEnabled
+        onClicked: root.parent.showKeychainSettings()
+
+        Layout.fillWidth: true
+    }
+
+    SettingsItem {
         id: doh
         visible: root._isAdvancedShown
         colorScheme: root.colorScheme

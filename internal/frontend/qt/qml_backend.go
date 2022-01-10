@@ -138,8 +138,9 @@ type QMLBackend struct {
 	_ func()                                                           `signal:"bugReportSendError"`
 
 	_ []string              `property:"availableKeychain"`
-	_ string                `property:"selectedKeychain"`
-	_ func(keychain string) `slot:"selectKeychain"`
+	_ string                `property:"currentKeychain"`
+	_ func(keychain string) `slot:"changeKeychain"`
+	_ func()                `signal:"changeKeychainFinished"`
 	_ func()                `signal:"notifyHasNoKeychain"`
 
 	_ func(email string) `signal:noActiveKeyForRecipient`
@@ -287,10 +288,10 @@ func (q *QMLBackend) setup(f *FrontendQt) {
 	})
 
 	f.setKeychain()
-	q.ConnectSelectKeychain(func(k string) {
+	q.ConnectChangeKeychain(func(k string) {
 		go func() {
 			defer f.panicHandler.HandlePanic()
-			f.selectKeychain(k)
+			f.changeKeychain(k)
 		}()
 	})
 }

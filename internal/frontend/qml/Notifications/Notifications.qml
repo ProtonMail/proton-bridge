@@ -72,7 +72,8 @@ QtObject {
         root.disableLocalCache,
         root.enableLocalCache,
         root.resetBridge,
-        root.deleteAccount
+        root.deleteAccount,
+        root.noKeychain
     ]
 
     // Connection
@@ -862,6 +863,33 @@ QtObject {
                 onTriggered: {
                     root.deleteAccount.user.remove()
                     root.deleteAccount.active = false
+                }
+            }
+        ]
+    }
+
+    property Notification noKeychain: Notification {
+        title: qsTr("No keychain available")
+        description: qsTr("Bridge is not able to detected a supported password manager (pass, gnome-keyring). Please install and setup supported password manager and restart the application.")
+        brief: title
+        icon: "./icons/ic-exclamation-circle-filled.svg"
+        type: Notification.NotificationType.Danger
+        group: Notifications.Group.Dialogs | Notifications.Group.Configuration
+
+        Connections {
+            target: root.backend
+
+            onHasNoKeychain: {
+                root.noKeychain.active = true
+            }
+        }
+
+        action: [
+            Action {
+                text: qsTr("Quit Bridge")
+
+                onTriggered: {
+                    root.backend.quit()
                 }
             }
         ]

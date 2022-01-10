@@ -242,8 +242,8 @@ Window {
 
 
         // add one user on start
-        var haveUserOnStart = true
-        if (haveUserOnStart) {
+        var hasUserOnStart = true
+        if (hasUserOnStart) {
             var newUserObject = root.userComponent.createObject(root)
             newUserObject.username = "LerooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooyJenkins@protonmail.com"
             newUserObject.loggedIn = true
@@ -584,6 +584,14 @@ Window {
                             root.diskFull()
                         }
                     }
+
+                    Button {
+                        text: "No keychain"
+                        colorScheme: root.colorScheme
+                        onClicked: {
+                            root.hasNoKeychain()
+                        }
+                    }
                 }
             }
 
@@ -799,11 +807,14 @@ Window {
     signal bugReportSendSuccess()
     signal bugReportSendError()
 
-    property var availableKeychain: ["gnome-keyring", "pass"]
-    property string selectedKeychain
-    function selectKeychain(wantedKeychain){
-        selectedKeychain = wantedKeychain
+    property var availableKeychain: ["gnome-keyring", "pass", "macos-keychain", "windows-credentials"]
+    property string currentKeychain: availableKeychain[0]
+    function changeKeychain(wantedKeychain){
+        console.log("Changing keychain from", root.currentKeychain, "to", wantedKeychain)
+        root.currentKeychain = wantedKeychain
+        root.changeKeychainFinished()
     }
+    signal changeKeychainFinished()
     signal hasNoKeychain()
 
     signal noActiveKeyForRecipient(string email)

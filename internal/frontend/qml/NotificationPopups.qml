@@ -110,4 +110,9 @@ Item {
         colorScheme: root.colorScheme
         notification: root.notifications.deleteAccount
     }
+
+    NotificationDialog {
+        colorScheme: root.colorScheme
+        notification: root.notifications.noKeychain
+    }
 }

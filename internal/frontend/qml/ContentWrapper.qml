@@ -310,7 +310,7 @@ Item {
                     }
                 }
 
-                PortSettings { // 3
+                KeychainSettings { // 3
                     colorScheme: root.colorScheme
                     backend: root.backend
 
@@ -319,7 +319,7 @@ Item {
                     }
                 }
 
-                SMTPSettings { // 4
+                PortSettings { // 4
                     colorScheme: root.colorScheme
                     backend: root.backend
 
@@ -328,7 +328,16 @@ Item {
                     }
                 }
 
-                LocalCacheSettings { // 5
+                SMTPSettings { // 5
+                    colorScheme: root.colorScheme
+                    backend: root.backend
+
+                    onBack: {
+                        rightContent.showGeneralSettings()
+                    }
+                }
+
+                LocalCacheSettings { // 6
                     colorScheme: root.colorScheme
                     backend: root.backend
                     notifications: root.notifications
@@ -338,7 +347,7 @@ Item {
                     }
                 }
 
-                HelpView { // 6
+                HelpView { // 7
                     colorScheme: root.colorScheme
                     backend: root.backend
 
@@ -347,7 +356,7 @@ Item {
                     }
                 }
 
-                BugReportView { // 7
+                BugReportView { // 8
                     colorScheme: root.colorScheme
                     backend: root.backend
                     selectedAddress: {
@@ -372,11 +381,12 @@ Item {
 
                 function showSignIn             () { rightContent.currentIndex = 1 }
                 function showGeneralSettings    () { rightContent.currentIndex = 2 }
-                function showPortSettings       () { rightContent.currentIndex = 3 }
-                function showSMTPSettings       () { rightContent.currentIndex = 4 }
-                function showLocalCacheSettings () { rightContent.currentIndex = 5 }
-                function showHelpView           () { rightContent.currentIndex = 6 }
-                function showBugReport          () { rightContent.currentIndex = 7 }
+                function showKeychainSettings   () { rightContent.currentIndex = 3 }
+                function showPortSettings       () { rightContent.currentIndex = 4 }
+                function showSMTPSettings       () { rightContent.currentIndex = 5 }
+                function showLocalCacheSettings () { rightContent.currentIndex = 6 }
+                function showHelpView           () { rightContent.currentIndex = 7 }
+                function showBugReport          () { rightContent.currentIndex = 8 }
 
                 Connections {
                     target: root.backend

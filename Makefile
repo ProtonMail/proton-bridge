@@ -292,7 +292,7 @@ run-debug:
 
 run-qml-preview:
 	find internal/frontend/qml/ -iname '*qmlc' | xargs rm -f
-	cd internal/frontend/qml/ && qmlscene -verbose -I . -f Bridge_test.qml
+	bridge_preview internal/frontend/qml/Bridge_test.qml
 	
 
 clean-frontend-qt:

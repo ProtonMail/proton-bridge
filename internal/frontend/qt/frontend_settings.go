@@ -159,10 +159,12 @@ func (f *FrontendQt) setKeychain() {
 		availableKeychain = append(availableKeychain, chain)
 	}
 	f.qml.SetAvailableKeychain(availableKeychain)
-	f.qml.SetSelectedKeychain(f.bridge.GetKeychainApp())
+	f.qml.SetCurrentKeychain(f.bridge.GetKeychainApp())
 }
 
-func (f *FrontendQt) selectKeychain(wantKeychain string) {
+func (f *FrontendQt) changeKeychain(wantKeychain string) {
+	defer f.qml.ChangeKeychainFinished()
+
 	if f.bridge.GetKeychainApp() == wantKeychain {
 		return
 	}
