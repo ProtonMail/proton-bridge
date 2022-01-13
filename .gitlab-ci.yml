@@ -48,7 +48,7 @@ lint:
   tags:
     - medium
 
-test:
+test-linux:
   stage: test
   only:
     - branches
@@ -64,6 +64,14 @@ test:
     - make test
   tags:
     - medium
+
+test-windows:
+  extends: .build-windows-base
+  stage: test
+  only:
+    - branches
+  script:
+    - make test
 
 test-integration:
   stage: test
@@ -95,6 +103,7 @@ build-qml:
   script:
     - cd internal/frontend/qml
     - tar -cvzf ../../../bridge_qml.tgz ./*
+
 
 .build-base:
   stage: build
@@ -134,6 +143,7 @@ build-linux-qa:
     paths:
       - bridge_*.tgz
 
+
 .build-darwin-base:
   extends: .build-base
   before_script:
@@ -167,6 +177,40 @@ build-darwin-qa:
     - BUILD_TAGS="build_qa" make build
   artifacts:
     name: "bridge-darwin-qa-$CI_COMMIT_SHORT_SHA"
+    paths:
+      - bridge_*.tgz
+
+
+.build-windows-base:
+  extends: .build-base
+  before_script:
+    - export GOROOT=/c/Go
+    - export PATH=$GOROOT/bin:$PATH
+    - export GOARCH=amd64
+    - export GOPATH=~/go
+    - export GO111MODULE=on
+    - export PATH=$GOPATH/bin:$PATH
+    - export MSYSTEM=
+    - export PATH=$PATH:/c/grrrQt/5.13.2/mingw73_64/bin
+  tags:
+    - windows-bridge
+
+build-windows:
+  extends: .build-windows-base
+  artifacts:
+    name: "bridge-windows-$CI_COMMIT_SHORT_SHA"
+    paths:
+      - bridge_*.tgz
+
+build-windows-qa:
+  extends: .build-windows-base
+  only:
+    - web
+    - branches
+  script:
+    - BUILD_TAGS="build_qa" make build
+  artifacts:
+    name: "bridge-windows-qa-$CI_COMMIT_SHORT_SHA"
     paths:
       - bridge_*.tgz
 

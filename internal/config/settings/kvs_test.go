@@ -25,81 +25,118 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const testPrefFilePath = "/tmp/pref.json"
-
 func TestLoadNoKeyValueStore(t *testing.T) {
-	pref := newTestEmptyKeyValueStore(t)
-	require.Equal(t, "", pref.Get("key"))
+	r := require.New(t)
+	pref, clean := newTestEmptyKeyValueStore(r)
+	defer clean()
+
+	r.Equal("", pref.Get("key"))
 }
 
 func TestLoadBadKeyValueStore(t *testing.T) {
-	require.NoError(t, ioutil.WriteFile(testPrefFilePath, []byte("{\"key\":\"value"), 0700))
-	pref := newKeyValueStore(testPrefFilePath)
-	require.Equal(t, "", pref.Get("key"))
+	r := require.New(t)
+	path, clean := newTmpFile(r)
+	defer clean()
+
+	r.NoError(ioutil.WriteFile(path, []byte("{\"key\":\"MISSING_QUOTES"), 0700))
+	pref := newKeyValueStore(path)
+	r.Equal("", pref.Get("key"))
 }
 
-func TestKeyValueStoreGet(t *testing.T) {
-	pref := newTestKeyValueStore(t)
-	require.Equal(t, "value", pref.Get("str"))
-	require.Equal(t, "42", pref.Get("int"))
-	require.Equal(t, "true", pref.Get("bool"))
-	require.Equal(t, "t", pref.Get("falseBool"))
+func TestKeyValueStor(t *testing.T) {
+	r := require.New(t)
+	pref, clean := newTestKeyValueStore(r)
+	defer clean()
+
+	r.Equal("value", pref.Get("str"))
+	r.Equal("42", pref.Get("int"))
+	r.Equal("true", pref.Get("bool"))
+	r.Equal("t", pref.Get("falseBool"))
 }
 
 func TestKeyValueStoreGetInt(t *testing.T) {
-	pref := newTestKeyValueStore(t)
-	require.Equal(t, 0, pref.GetInt("str"))
-	require.Equal(t, 42, pref.GetInt("int"))
-	require.Equal(t, 0, pref.GetInt("bool"))
-	require.Equal(t, 0, pref.GetInt("falseBool"))
+	r := require.New(t)
+	pref, clean := newTestKeyValueStore(r)
+	defer clean()
+
+	r.Equal(0, pref.GetInt("str"))
+	r.Equal(42, pref.GetInt("int"))
+	r.Equal(0, pref.GetInt("bool"))
+	r.Equal(0, pref.GetInt("falseBool"))
 }
 
 func TestKeyValueStoreGetBool(t *testing.T) {
-	pref := newTestKeyValueStore(t)
-	require.Equal(t, false, pref.GetBool("str"))
-	require.Equal(t, false, pref.GetBool("int"))
-	require.Equal(t, true, pref.GetBool("bool"))
-	require.Equal(t, false, pref.GetBool("falseBool"))
+	r := require.New(t)
+	pref, clean := newTestKeyValueStore(r)
+	defer clean()
+
+	r.Equal(false, pref.GetBool("str"))
+	r.Equal(false, pref.GetBool("int"))
+	r.Equal(true, pref.GetBool("bool"))
+	r.Equal(false, pref.GetBool("falseBool"))
 }
 
 func TestKeyValueStoreSetDefault(t *testing.T) {
-	pref := newTestEmptyKeyValueStore(t)
+	r := require.New(t)
+	pref, clean := newTestEmptyKeyValueStore(r)
+	defer clean()
+
 	pref.setDefault("key", "value")
 	pref.setDefault("key", "othervalue")
-	require.Equal(t, "value", pref.Get("key"))
+	r.Equal("value", pref.Get("key"))
 }
 
 func TestKeyValueStoreSet(t *testing.T) {
-	pref := newTestEmptyKeyValueStore(t)
+	r := require.New(t)
+	pref, clean := newTestEmptyKeyValueStore(r)
+	defer clean()
+
 	pref.Set("str", "value")
-	checkSavedKeyValueStore(t, "{\n\t\"str\": \"value\"\n}")
+	checkSavedKeyValueStore(r, pref.path, "{\n\t\"str\": \"value\"\n}")
 }
 
 func TestKeyValueStoreSetInt(t *testing.T) {
-	pref := newTestEmptyKeyValueStore(t)
+	r := require.New(t)
+	pref, clean := newTestEmptyKeyValueStore(r)
+	defer clean()
+
 	pref.SetInt("int", 42)
-	checkSavedKeyValueStore(t, "{\n\t\"int\": \"42\"\n}")
+	checkSavedKeyValueStore(r, pref.path, "{\n\t\"int\": \"42\"\n}")
 }
 
 func TestKeyValueStoreSetBool(t *testing.T) {
-	pref := newTestEmptyKeyValueStore(t)
+	r := require.New(t)
+	pref, clean := newTestEmptyKeyValueStore(r)
+	defer clean()
+
 	pref.SetBool("trueBool", true)
 	pref.SetBool("falseBool", false)
-	checkSavedKeyValueStore(t, "{\n\t\"falseBool\": \"false\",\n\t\"trueBool\": \"true\"\n}")
+	checkSavedKeyValueStore(r, pref.path, "{\n\t\"falseBool\": \"false\",\n\t\"trueBool\": \"true\"\n}")
 }
 
-func newTestEmptyKeyValueStore(t *testing.T) *keyValueStore {
-	require.NoError(t, os.RemoveAll(testPrefFilePath))
-	return newKeyValueStore(testPrefFilePath)
+func newTmpFile(r *require.Assertions) (path string, clean func()) {
+	tmpfile, err := ioutil.TempFile("", "pref.*.json")
+	r.NoError(err)
+	defer r.NoError(tmpfile.Close())
+
+	return tmpfile.Name(), func() {
+		r.NoError(os.Remove(tmpfile.Name()))
+	}
 }
 
-func newTestKeyValueStore(t *testing.T) *keyValueStore {
-	require.NoError(t, ioutil.WriteFile(testPrefFilePath, []byte("{\"str\":\"value\",\"int\":\"42\",\"bool\":\"true\",\"falseBool\":\"t\"}"), 0700))
-	return newKeyValueStore(testPrefFilePath)
+func newTestEmptyKeyValueStore(r *require.Assertions) (*keyValueStore, func()) {
+	path, clean := newTmpFile(r)
+	return newKeyValueStore(path), clean
 }
 
-func checkSavedKeyValueStore(t *testing.T, expected string) {
-	data, err := ioutil.ReadFile(testPrefFilePath)
-	require.NoError(t, err)
-	require.Equal(t, expected, string(data))
+func newTestKeyValueStore(r *require.Assertions) (*keyValueStore, func()) {
+	path, clean := newTmpFile(r)
+	r.NoError(ioutil.WriteFile(path, []byte("{\"str\":\"value\",\"int\":\"42\",\"bool\":\"true\",\"falseBool\":\"t\"}"), 0700))
+	return newKeyValueStore(path), clean
+}
+
+func checkSavedKeyValueStore(r *require.Assertions, path, expected string) {
+	data, err := ioutil.ReadFile(path)
+	r.NoError(err)
+	r.Equal(expected, string(data))
 }

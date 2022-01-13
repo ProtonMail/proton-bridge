@@ -63,10 +63,16 @@ func NewOnDiskCache(path string, cmp Compressor, opts Options) (Cache, error) {
 	}
 
 	file, err := ioutil.TempFile(path, "tmp")
+	defer func() {
+		file.Close()           //nolint[errcheck]
+		os.Remove(file.Name()) //nolint[errcheck]
+	}()
 	if err != nil {
+		return nil, fmt.Errorf("cannot open test write target: %w", err)
+	}
+	if _, err := file.Write([]byte("test-write")); err != nil {
 		return nil, fmt.Errorf("cannot write to target: %w", err)
 	}
-	os.Remove(file.Name()) //nolint[errcheck]
 
 	usage := du.NewDiskUsage(path)
 

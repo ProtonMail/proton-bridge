@@ -229,7 +229,10 @@ func (u *Users) MigrateCache(srcPath, dstPath string) error {
 	// (read-only is conserved). Do copy instead.
 	tmp, err := ioutil.TempFile(srcPath, "tmp")
 	if err == nil {
-		defer os.Remove(tmp.Name()) //nolint[errcheck]
+		defer func() {
+			tmp.Close()           //nolint[errcheck]
+			os.Remove(tmp.Name()) //nolint[errcheck]
+		}()
 
 		if err := os.Rename(srcPath, dstPath); err == nil {
 			return nil

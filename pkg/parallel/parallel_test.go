@@ -21,6 +21,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"runtime"
 	"testing"
 	"time"
 
@@ -33,6 +34,7 @@ var (
 	wantOutput              = []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
 	testProcessSleep        = 100 // ms
 	runParallelTimeOverhead = 150 // ms
+	windowsCIExtra          = 250 // ms - estimated experimentally
 )
 
 func TestParallel(t *testing.T) {
@@ -56,6 +58,9 @@ func TestParallel(t *testing.T) {
 
 			wantMinDuration := int(math.Ceil(float64(len(testInput))/float64(workers))) * testProcessSleep
 			wantMaxDuration := wantMinDuration + runParallelTimeOverhead
+			if runtime.GOOS == "windows" {
+				wantMaxDuration += windowsCIExtra
+			}
 			r.True(t, duration.Nanoseconds() > int64(wantMinDuration*1000000), "Duration too short: %v (expected: %v)", duration, wantMinDuration)
 			r.True(t, duration.Nanoseconds() < int64(wantMaxDuration*1000000), "Duration too long: %v (expected: %v)", duration, wantMaxDuration)
 		})

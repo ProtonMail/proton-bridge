@@ -65,11 +65,13 @@ func makeDummyVersionDirectory(t *testing.T, exeName, updates, version string) s
 	exe, err := os.Create(filepath.Join(target, getExeName(exeName)))
 	require.NoError(t, err)
 	require.NotNil(t, exe)
+	require.NoError(t, exe.Close())
 	require.NoError(t, os.Chmod(exe.Name(), 0700))
 
 	sig, err := os.Create(filepath.Join(target, getExeName(exeName)+".sig"))
 	require.NoError(t, err)
 	require.NotNil(t, sig)
+	require.NoError(t, sig.Close())
 
 	return target
 }
