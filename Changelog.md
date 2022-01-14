@@ -2,6 +2,25 @@
 
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
+## [Bridge 2.1.0] London
+
+### Fixed
+* GODT-1482: Comment or mitigate panics, unlock cache when needed.
+* GODT-1481: Always turn off non-encrypted recipient report.
+
+### Changed
+* GODT-1494: Update GopenPGP to 2.4.1.
+* GODT-1490: Update go sentry and openpgp.
+* GODT-1474: Optimising live integration tests.
+* GODT-1483: Correct scope in sentry report.
+* GODT-1477: Change CoD wording.
+
+## Added
+* GODT-1478: Add GUI settings for keychain selection.
+* Other: Change copyright year.
+* GODT-1329: Dark mode, with autodetect.
+
+
 ## [Bridge 2.0.1] Kwai
 
 ### Fixed
