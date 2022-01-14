@@ -31,7 +31,7 @@ import (
 
 var skippedFunctions = []string{} //nolint[gochecknoglobals]
 
-func init() { // nolint[noinit]
+func init() { //nolint[noinit, gochecknoinits]
 	if err := sentry.Init(sentry.ClientOptions{
 		Dsn:        constants.DSNSentry,
 		Release:    constants.Revision,
@@ -49,6 +49,7 @@ type Reporter struct {
 	appName    string
 	appVersion string
 	userAgent  fmt.Stringer
+	hostArch   string
 }
 
 // NewReporter creates new sentry reporter with appName and appVersion to report.
@@ -57,6 +58,7 @@ func NewReporter(appName, appVersion string, userAgent fmt.Stringer) *Reporter {
 		appName:    appName,
 		appVersion: appVersion,
 		userAgent:  userAgent,
+		hostArch:   getHostAarch(),
 	}
 }
 
@@ -110,6 +112,7 @@ func (r *Reporter) scopedReport(context map[string]interface{}, doReport func())
 		"Version":   r.appVersion,
 		"UserAgent": r.userAgent.String(),
 		"UserID":    "",
+		"HostArch":  r.hostArch,
 	}
 
 	sentry.WithScope(func(scope *sentry.Scope) {
