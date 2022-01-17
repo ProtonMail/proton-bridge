@@ -82,4 +82,5 @@ type AuthRefreshHandler func(*AuthRefresh)
 type clientManager interface {
 	r(context.Context) *resty.Request
 	authRefresh(context.Context, string, string) (*AuthRefresh, error)
+	setSentryUserID(userID string)
 }

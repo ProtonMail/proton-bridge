@@ -21,7 +21,6 @@ import (
 	"context"
 
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
-	"github.com/getsentry/sentry-go"
 	"github.com/go-resty/resty/v2"
 	"github.com/pkg/errors"
 )
@@ -126,7 +125,7 @@ func (c *client) UpdateUser(ctx context.Context) (*User, error) {
 
 	c.user = user
 	c.addresses = addresses
-	sentry.ConfigureScope(func(scope *sentry.Scope) { scope.SetUser(sentry.User{ID: user.ID}) })
+	c.manager.setSentryUserID(user.ID)
 
 	return user, err
 }

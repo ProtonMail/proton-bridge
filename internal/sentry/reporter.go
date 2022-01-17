@@ -20,11 +20,13 @@ package sentry
 import (
 	"errors"
 	"fmt"
+	"log"
 	"os"
 	"runtime"
 	"time"
 
 	"github.com/ProtonMail/proton-bridge/internal/constants"
+	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	"github.com/getsentry/sentry-go"
 	"github.com/sirupsen/logrus"
 )
@@ -42,7 +44,13 @@ func init() { //nolint[noinit, gochecknoinits]
 
 	sentry.ConfigureScope(func(scope *sentry.Scope) {
 		scope.SetFingerprint([]string{"{{ default }}"})
+		scope.SetTag("UserID", "not-defined")
 	})
+
+	sentry.Logger = log.New(
+		logrus.WithField("pkg", "sentry-go").WriterLevel(logrus.WarnLevel),
+		"", 0,
+	)
 }
 
 type Reporter struct {
@@ -111,7 +119,6 @@ func (r *Reporter) scopedReport(context map[string]interface{}, doReport func())
 		"Client":    r.appName,
 		"Version":   r.appVersion,
 		"UserAgent": r.userAgent.String(),
-		"UserID":    "",
 		"HostArch":  r.hostArch,
 	}
 
@@ -181,4 +188,7 @@ func isFunctionFilteredOut(function string) bool {
 
 func Flush(maxWaiTime time.Duration) {
 	sentry.Flush(maxWaiTime)
+}
+
+func (r *Reporter) SetClientFromManager(cm pmapi.Manager) {
 }

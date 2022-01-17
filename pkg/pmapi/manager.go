@@ -23,6 +23,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/getsentry/sentry-go"
 	"github.com/go-resty/resty/v2"
 )
 
@@ -35,8 +36,9 @@ type manager struct {
 	connectionObservers []ConnectionObserver
 	proxyDialer         *ProxyTLSDialer
 
-	pingMutex *sync.RWMutex
-	isPinging bool
+	pingMutex           *sync.RWMutex
+	isPinging           bool
+	setSentryUserIDOnce sync.Once
 }
 
 func New(cfg Config) Manager {
@@ -45,11 +47,12 @@ func New(cfg Config) Manager {
 
 func newManager(cfg Config) *manager {
 	m := &manager{
-		cfg:       cfg,
-		rc:        resty.New().EnableTrace(),
-		locker:    &sync.Mutex{},
-		pingMutex: &sync.RWMutex{},
-		isPinging: false,
+		cfg:                 cfg,
+		rc:                  resty.New().EnableTrace(),
+		locker:              &sync.Mutex{},
+		pingMutex:           &sync.RWMutex{},
+		isPinging:           false,
+		setSentryUserIDOnce: sync.Once{},
 	}
 
 	proxyDialer, transport := newProxyDialerAndTransport(cfg)
@@ -157,4 +160,12 @@ func (m *manager) handleRequestFailure(req *resty.Request, err error) {
 	}
 
 	go m.pingUntilSuccess()
+}
+
+func (m *manager) setSentryUserID(userID string) {
+	m.setSentryUserIDOnce.Do(func() {
+		sentry.ConfigureScope(func(scope *sentry.Scope) {
+			scope.SetTag("UserID", userID)
+		})
+	})
 }
