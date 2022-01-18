@@ -37,7 +37,7 @@ func (api *FakePMAPI) GetMessage(_ context.Context, apiID string) (*pmapi.Messag
 	if msg := api.getMessage(apiID); msg != nil {
 		return msg, nil
 	}
-	return nil, fmt.Errorf("message %s not found", apiID)
+	return nil, pmapi.ErrUnprocessableEntity{OriginalError: fmt.Errorf("message %s not found", apiID)}
 }
 
 // ListMessages does not implement following filters:

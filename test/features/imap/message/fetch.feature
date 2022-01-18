@@ -177,3 +177,14 @@ Feature: IMAP fetch messages
     # We had bug to incorectly set empty date, so let's make sure
     # there is no reference anywhere in the response.
     And IMAP response does not contain "\nDate: Thu, 01 Jan 1970"
+
+  Scenario: Fetch of message which was deleted without event processed
+    Given there are 10 messages in mailbox "INBOX" for "user"
+    And message "5" was deleted forever without event processed for "user"
+    And there is IMAP client logged in as "user"
+    And there is IMAP client selected in "INBOX"
+    When IMAP client fetches bodies "1:*"
+    Then IMAP response is "NO"
+    When IMAP client fetches bodies "1:*"
+    Then IMAP response is "OK"
+    And IMAP response has 9 messages

@@ -104,3 +104,14 @@ func (ctl *Controller) GetMessages(username, labelID string) ([]*pmapi.Message, 
 
 	return messages, nil
 }
+
+func (ctl *Controller) RemoveUserMessageWithoutEvent(username string, messageID string) error {
+	client, err := getPersistentClient(username)
+	if err != nil {
+		return err
+	}
+
+	addMessageIDToSkipEventOnceDeleted(messageID)
+
+	return client.DeleteMessages(context.Background(), []string{messageID})
+}

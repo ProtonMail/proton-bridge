@@ -45,6 +45,7 @@ type PMAPIController interface {
 	GetCalls(method, path string) [][]byte
 	LockEvents(username string)
 	UnlockEvents(username string)
+	RemoveUserMessageWithoutEvent(username, messageID string) error
 }
 
 func newPMAPIController(listener listener.Listener) (PMAPIController, pmapi.Manager) {

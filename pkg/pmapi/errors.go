@@ -32,9 +32,9 @@ var (
 )
 
 type ErrUnprocessableEntity struct {
-	originalError error
+	OriginalError error
 }
 
 func (err ErrUnprocessableEntity) Error() string {
-	return err.originalError.Error()
+	return err.OriginalError.Error()
 }

@@ -234,3 +234,19 @@ func (ctl *Controller) LockEvents(string) {}
 
 // UnlockEvents doesn't needs to be implemented for fakeAPI.
 func (ctl *Controller) UnlockEvents(string) {}
+
+func (ctl *Controller) RemoveUserMessageWithoutEvent(username string, messageID string) error {
+	msgs, ok := ctl.messagesByUsername[username]
+	if !ok {
+		return nil
+	}
+
+	for i, message := range msgs {
+		if message.ID == messageID {
+			ctl.messagesByUsername[username] = append(msgs[:i], msgs[i+1:]...)
+			return nil
+		}
+	}
+
+	return errors.New("message not found")
+}

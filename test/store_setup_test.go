@@ -38,6 +38,7 @@ func StoreSetupFeatureContext(s *godog.ScenarioContext) {
 	s.Step(`^there are messages for "([^"]*)" as follows$`, thereAreSomeMessagesForUserAsFollows)
 	s.Step(`^there are (\d+) messages in mailbox(?:es)? "([^"]*)" for address "([^"]*)" of "([^"]*)"$`, thereAreSomeMessagesInMailboxesForAddressOfUser)
 	s.Step(`^wait for Sphinx to create duplication indices$`, waitForSphinx)
+	s.Step(`^message(?:s)? "([^"]*)" (?:was|were) deleted forever without event processed for "([^"]*)"$`, messageWasDeletedWithoutEvent)
 }
 
 func thereIsUserWithMailboxes(bddUserID string, mailboxes *godog.Table) error {
@@ -318,4 +319,17 @@ func thereAreSomeMessagesInMailboxesForAddressOfUser(numberOfMessages int, mailb
 func waitForSphinx() error {
 	time.Sleep(15 * time.Second)
 	return nil
+}
+
+func messageWasDeletedWithoutEvent(bddMessageID, bddUserID string) error {
+	account := ctx.GetTestAccount(bddUserID)
+	if account == nil {
+		return godog.ErrPending
+	}
+	apiID, err := ctx.GetAPIMessageID(account.Username(), bddMessageID)
+	if err != nil {
+		return internalError(err, "getting BDD message ID %s", bddMessageID)
+	}
+
+	return ctx.GetPMAPIController().RemoveUserMessageWithoutEvent(account.Username(), apiID)
 }

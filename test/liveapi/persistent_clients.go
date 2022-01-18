@@ -48,7 +48,8 @@ var persistentClients = struct {
 	byName     map[string]clientAuthGetter
 	saltByName map[string]string
 
-	eventsPaused sync.WaitGroup
+	eventsPaused         sync.WaitGroup
+	skipDeletedMessageID map[string]struct{}
 }{}
 
 type persistentClient struct {
@@ -79,7 +80,40 @@ func (pc *persistentClient) GetEvent(ctx context.Context, eventID string) (*pmap
 	if !ok {
 		return nil, errors.New("cannot convert to normal client")
 	}
-	return normalClient.GetEvent(ctx, eventID)
+
+	event, err := normalClient.GetEvent(ctx, eventID)
+	if err != nil {
+		return event, err
+	}
+
+	return skipDeletedMessageIDs(event), nil
+}
+
+func addMessageIDToSkipEventOnceDeleted(msgID string) {
+	if persistentClients.skipDeletedMessageID == nil {
+		persistentClients.skipDeletedMessageID = map[string]struct{}{}
+	}
+	persistentClients.skipDeletedMessageID[msgID] = struct{}{}
+}
+
+func skipDeletedMessageIDs(event *pmapi.Event) *pmapi.Event {
+	if len(event.Messages) == 0 {
+		return event
+	}
+
+	n := 0
+	for i, m := range event.Messages {
+		if _, ok := persistentClients.skipDeletedMessageID[m.ID]; ok && m.Action == pmapi.EventDelete {
+			delete(persistentClients.skipDeletedMessageID, m.ID)
+			continue
+		}
+
+		event.Messages[i] = m
+		n++
+	}
+	event.Messages = event.Messages[:n]
+
+	return event
 }
 
 func SetupPersistentClients() {
