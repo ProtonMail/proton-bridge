@@ -4,6 +4,17 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 ## [Bridge 2.1.0] London
 
+## Added
+* GODT-1376: Add first userID to sentry scope.
+* GODT-1375: Add host architecture to sentry reports.
+* GODT-1364: Add windows CI machine for tests, and build.
+
+### Fixed
+* GODT-1499: Remove message from DB once it is not on server any more.
+
+
+## [Bridge 2.1.0] London
+
 ### Fixed
 * GODT-1482: Comment or mitigate panics, unlock cache when needed.
 * GODT-1481: Always turn off non-encrypted recipient report.
