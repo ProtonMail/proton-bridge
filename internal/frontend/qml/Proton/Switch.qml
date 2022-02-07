@@ -38,10 +38,10 @@ T.Switch {
     id: control
 
     implicitWidth: Math.max(implicitBackgroundWidth + leftInset + rightInset,
-                            implicitContentWidth + leftPadding + rightPadding)
+    implicitContentWidth + leftPadding + rightPadding)
     implicitHeight: Math.max(implicitBackgroundHeight + topInset + bottomInset,
-                             implicitContentHeight + topPadding + bottomPadding,
-                             implicitIndicatorHeight + topPadding + bottomPadding)
+    implicitContentHeight + topPadding + bottomPadding,
+    implicitIndicatorHeight + topPadding + bottomPadding)
 
     padding: 0
     spacing: 7
@@ -53,7 +53,7 @@ T.Switch {
         x: text ? (control.mirrored ? control.width - width - control.rightPadding : control.leftPadding) : control.leftPadding + (control.availableWidth - width) / 2
         y: control.topPadding + (control.availableHeight - height) / 2
 
-        radius: 12
+        radius: height / 2.
         color: control.enabled || control.loading ? control.colorScheme.background_norm : control.colorScheme.background_strong
         border.width: control.enabled && !loading ? 1 : 0
         border.color: control.hovered ? control.colorScheme.field_hover : control.colorScheme.field_norm
@@ -63,7 +63,7 @@ T.Switch {
             y: (parent.height - height) / 2
             width: 24
             height: 24
-            radius: 12
+            radius: parent.radius
 
             visible: !loading
 

@@ -147,7 +147,7 @@ T.Button {
     background: Rectangle {
         implicitWidth: 36
         implicitHeight: 36
-        radius: 4
+        radius: Style.button_radius
         visible: true
         color: {
             if (!isIcon) {

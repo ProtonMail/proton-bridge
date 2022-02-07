@@ -37,7 +37,7 @@ Rectangle {
     implicitHeight: content.height + 2*root._margin
 
     color: root.colorScheme.background_norm
-    radius: 9
+    radius: ProtonStyle.card_radius
 
     property int _margin: 24
 

@@ -160,7 +160,7 @@ FocusScope {
             Layout.fillHeight: true
             Layout.fillWidth: true
 
-            radius: 4
+            radius: Style.input_radius
             visible: true
             color: root.colorScheme.background_norm
             border.color: {
@@ -198,10 +198,10 @@ FocusScope {
                     Layout.fillWidth: true
 
                     implicitWidth: implicitBackgroundWidth + leftInset + rightInset
-                                   || Math.max(contentWidth, placeholder.implicitWidth) + leftPadding + rightPadding
+                    || Math.max(contentWidth, placeholder.implicitWidth) + leftPadding + rightPadding
                     implicitHeight: Math.max(implicitBackgroundHeight + topInset + bottomInset,
-                                             contentHeight + topPadding + bottomPadding,
-                                             placeholder.implicitHeight + topPadding + bottomPadding)
+                    contentHeight + topPadding + bottomPadding,
+                    placeholder.implicitHeight + topPadding + bottomPadding)
 
                     topPadding: 8
                     bottomPadding: 8

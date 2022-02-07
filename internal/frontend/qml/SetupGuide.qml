@@ -145,7 +145,7 @@ Item {
 
                         highlight: Rectangle {
                             color: root.colorScheme.interaction_default_active
-                            radius: 4
+                            radius: ProtonStyle.context_item_radius
                         }
 
                         delegate: Item {
@@ -220,7 +220,7 @@ Item {
 
                         highlight: Rectangle {
                             color: root.colorScheme.interaction_default_active
-                            radius: 4
+                            radius: ProtonStyle.context_item_radius
                         }
 
                         delegate: Item {

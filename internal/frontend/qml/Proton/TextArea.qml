@@ -183,15 +183,15 @@ FocusScope {
                 id: control
 
                 implicitWidth: Math.max(
-                                   contentWidth + leftPadding + rightPadding,
-                                   implicitBackgroundWidth + leftInset + rightInset,
-                                   placeholder.implicitWidth + leftPadding + rightPadding
-                                   )
+                    contentWidth + leftPadding + rightPadding,
+                    implicitBackgroundWidth + leftInset + rightInset,
+                    placeholder.implicitWidth + leftPadding + rightPadding
+                )
                 implicitHeight: Math.max(
-                                    contentHeight + topPadding + bottomPadding,
-                                    implicitBackgroundHeight + topInset + bottomInset,
-                                    placeholder.implicitHeight + topPadding + bottomPadding
-                                    )
+                    contentHeight + topPadding + bottomPadding,
+                    implicitBackgroundHeight + topInset + bottomInset,
+                    placeholder.implicitHeight + topPadding + bottomPadding
+                )
 
                 topPadding: 8
                 bottomPadding: 8
@@ -270,7 +270,7 @@ FocusScope {
                 background: Rectangle {
                     anchors.fill: parent
 
-                    radius: 4
+                    radius: Style.input_radius
                     visible: true
                     color: root.colorScheme.background_norm
                     border.color: {

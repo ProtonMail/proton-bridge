@@ -159,7 +159,7 @@ Item {
 
                     highlight: Rectangle {
                         color: leftBar.colorScheme.interaction_default_active
-                        radius: 4
+                        radius: ProtonStyle.account_row_radius
                     }
 
                     model: root.backend.users

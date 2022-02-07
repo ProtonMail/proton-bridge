@@ -73,7 +73,7 @@ Popup {
                 anchors.bottom: parent.bottom
                 anchors.left: parent.left
                 width: parent.width + 10
-                radius: 10
+                radius: ProtonStyle.banner_radius
                 color: {
                     if (!root.notification) {
                         return "transparent"
@@ -180,7 +180,7 @@ Popup {
                     anchors.bottom: parent.bottom
                     anchors.right: parent.right
                     width: parent.width + 10
-                    radius: 10
+                    radius: ProtonStyle.banner_radius
                     color: {
                         if (!root.notification) {
                             return "transparent"

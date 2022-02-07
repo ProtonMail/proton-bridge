@@ -28,10 +28,10 @@ T.CheckBox {
     id: control
 
     implicitWidth: Math.max(implicitBackgroundWidth + leftInset + rightInset,
-                            implicitContentWidth + leftPadding + rightPadding)
+    implicitContentWidth + leftPadding + rightPadding)
     implicitHeight: Math.max(implicitBackgroundHeight + topInset + bottomInset,
-                             implicitContentHeight + topPadding + bottomPadding,
-                             implicitIndicatorHeight + topPadding + bottomPadding)
+    implicitContentHeight + topPadding + bottomPadding,
+    implicitIndicatorHeight + topPadding + bottomPadding)
 
     padding: 0
     spacing: 8
@@ -39,7 +39,7 @@ T.CheckBox {
     indicator: Rectangle {
         implicitWidth: 20
         implicitHeight: 20
-        radius: 4
+        radius: Style.checkbox_radius
 
         x: text ? (control.mirrored ? control.width - width - control.rightPadding : control.leftPadding) : control.leftPadding + (control.availableWidth - width) / 2
         y: control.topPadding + (control.availableHeight - height) / 2
@@ -96,7 +96,7 @@ T.CheckBox {
 
         // TODO: do we need PartiallyChecked state?
 
-        //Rectangle {
+        // Rectangle {
         //    x: (parent.width - width) / 2
         //    y: (parent.height - height) / 2
         //    width: 16

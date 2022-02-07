@@ -27,10 +27,10 @@ T.ComboBox {
     property ColorScheme colorScheme
 
     implicitWidth: Math.max(implicitBackgroundWidth + leftInset + rightInset,
-                            implicitContentWidth + leftPadding + rightPadding)
+    implicitContentWidth + leftPadding + rightPadding)
     implicitHeight: Math.max(implicitBackgroundHeight + topInset + bottomInset,
-                             implicitContentHeight + topPadding + bottomPadding,
-                             implicitIndicatorHeight + topPadding + bottomPadding)
+    implicitContentHeight + topPadding + bottomPadding,
+    implicitIndicatorHeight + topPadding + bottomPadding)
 
     leftPadding: 12 + (!root.mirrored || !indicator || !indicator.visible ? 0 : indicator.width + spacing)
     rightPadding: 12 + (root.mirrored || !indicator || !indicator.visible ? 0 : indicator.width + spacing)
@@ -64,7 +64,7 @@ T.ComboBox {
         placeholderTextColor: root.enabled ? root.colorScheme.text_hint : root.colorScheme.text_disabled
 
         background: Rectangle {
-            radius: 4
+            radius: Style.context_item_radius
             visible: root.enabled && root.editable && !root.flat
             border.color: {
                 if (root.activeFocus) {
@@ -85,7 +85,7 @@ T.ComboBox {
     background: Rectangle {
         implicitWidth: 140
         implicitHeight: 36
-        radius: 4
+        radius: Style.context_item_radius
         color: {
             if (root.down) {
                 return root.colorScheme.interaction_default_active
@@ -142,7 +142,7 @@ T.ComboBox {
         palette.highlightedText: selected ? root.colorScheme.text_invert : root.colorScheme.text_norm
 
         background: PaddedRectangle {
-            radius: 4
+            radius: Style.context_item_radius
             color: {
                 if (parent.down) {
                     return root.colorScheme.interaction_default_active
@@ -187,7 +187,7 @@ T.ComboBox {
 
         background: Rectangle {
             color: root.colorScheme.background_norm
-            radius: 10
+            radius: Style.dialog_radius
             border.color: root.colorScheme.border_weak
             border.width: 1
         }

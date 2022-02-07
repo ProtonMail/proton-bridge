@@ -53,19 +53,19 @@ T.Dialog {
     anchors.centerIn: Overlay.overlay
 
     implicitWidth: Math.max(implicitBackgroundWidth + leftInset + rightInset,
-                            contentWidth + leftPadding + rightPadding,
-                            implicitHeaderWidth,
-                            implicitFooterWidth)
+    contentWidth + leftPadding + rightPadding,
+    implicitHeaderWidth,
+    implicitFooterWidth)
     implicitHeight: Math.max(implicitBackgroundHeight + topInset + bottomInset,
-                             contentHeight + topPadding + bottomPadding
-                             + (implicitHeaderHeight > 0 ? implicitHeaderHeight + spacing : 0)
-                             + (implicitFooterHeight > 0 ? implicitFooterHeight + spacing : 0))
+    contentHeight + topPadding + bottomPadding
+    + (implicitHeaderHeight > 0 ? implicitHeaderHeight + spacing : 0)
+    + (implicitFooterHeight > 0 ? implicitFooterHeight + spacing : 0))
 
     padding: 24
 
     background: Rectangle {
         color: root.colorScheme.background_norm
-        radius: 10
+        radius: Style.dialog_radius
     }
 
     // TODO: Add DropShadow here

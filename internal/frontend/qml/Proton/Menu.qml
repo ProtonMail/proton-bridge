@@ -27,10 +27,14 @@ T.Menu {
 
     property ColorScheme colorScheme
 
-    implicitWidth: Math.max(implicitBackgroundWidth + leftInset + rightInset,
-                            contentWidth + leftPadding + rightPadding)
-    implicitHeight: Math.max(implicitBackgroundHeight + topInset + bottomInset,
-                             contentHeight + topPadding + bottomPadding)
+    implicitWidth: Math.max(
+        implicitBackgroundWidth + leftInset + rightInset,
+        contentWidth + leftPadding + rightPadding
+    )
+    implicitHeight: Math.max(
+        implicitBackgroundHeight + topInset + bottomInset,
+        contentHeight + topPadding + bottomPadding
+    )
 
     margins: 0
     overlap: 1
@@ -63,6 +67,6 @@ T.Menu {
         color: colorScheme.background_norm
         border.width: 1
         border.color: colorScheme.border_weak
-        radius: 10
+        radius: Style.account_row_radius
     }
 }

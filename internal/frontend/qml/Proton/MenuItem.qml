@@ -27,10 +27,10 @@ T.MenuItem {
     property ColorScheme colorScheme
 
     implicitWidth: Math.max(implicitBackgroundWidth + leftInset + rightInset,
-                            implicitContentWidth + leftPadding + rightPadding)
+    implicitContentWidth + leftPadding + rightPadding)
     implicitHeight: Math.max(implicitBackgroundHeight + topInset + bottomInset,
-                             implicitContentHeight + topPadding + bottomPadding,
-                             implicitIndicatorHeight + topPadding + bottomPadding)
+    implicitContentHeight + topPadding + bottomPadding,
+    implicitIndicatorHeight + topPadding + bottomPadding)
 
     padding: 6
     spacing: 6
@@ -66,7 +66,7 @@ T.MenuItem {
     background: Rectangle {
         implicitWidth: 164
         implicitHeight: 36
-        radius: 4
+        radius: Style.button_radius
         color: control.down ? control.colorScheme.interaction_default_active : control.highlighted ? control.colorScheme.interaction_default_hover : control.colorScheme.interaction_default
     }
 }

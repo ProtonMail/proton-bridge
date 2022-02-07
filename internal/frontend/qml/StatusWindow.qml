@@ -67,7 +67,7 @@ Window {
                     anchors.left: parent.left
                     anchors.right: parent.right
                     height: parent.height * 2
-                    radius: 10
+                    radius: ProtonStyle.dialog_radius
 
                     color: {
                         if (!statusItem.activeNotification) {
@@ -232,7 +232,7 @@ Window {
                 anchors.left: parent.left
                 anchors.right: parent.right
                 height: parent.height * 2
-                radius: 10
+                radius: ProtonStyle.dialog_radius
 
                 color: root.colorScheme.background_weak
             }

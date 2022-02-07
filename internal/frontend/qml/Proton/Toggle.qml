@@ -39,7 +39,7 @@ Item {
         implicitWidth: 40
         implicitHeight: 24
 
-        radius: 20
+        radius: width/2
         color: {
             if (root.loading) return "transparent"
             if (root._disabled) return root.colorScheme.background_strong
@@ -56,7 +56,7 @@ Item {
             anchors.leftMargin: root.checked ? 16 : 0
             width: 24
             height: 24
-            radius: 12
+            radius: width/2
             color: {
                 if (root.loading) return "transparent"
                 if (root._disabled) return root.colorScheme.field_disabled
