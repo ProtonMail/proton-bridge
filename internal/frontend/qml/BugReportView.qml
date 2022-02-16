@@ -181,7 +181,7 @@ SettingsView {
     }
 
     function isValidEmail(text){
-        var reEmail = /\w+@\w+\.\w+/
+        var reEmail = /^[^@]+@[^@]+\.[A-Za-z]+\s*$/
         return reEmail.test(text)
     }
 

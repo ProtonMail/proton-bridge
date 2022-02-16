@@ -53,7 +53,7 @@ func (f *FrontendQt) reportBug(description, address, emailClient string, include
 		core.QSysInfo_ProductType(),
 		core.QSysInfo_PrettyProductName(),
 		description,
-		"Unknown account",
+		address,
 		address,
 		emailClient,
 		includeLogs,

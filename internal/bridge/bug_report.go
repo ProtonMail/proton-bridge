@@ -39,6 +39,12 @@ var ErrSizeTooLarge = errors.New("file is too big")
 
 // ReportBug reports a new bug from the user.
 func (b *Bridge) ReportBug(osType, osVersion, description, accountName, address, emailClient string, attachLogs bool) error {
+	if user, err := b.GetUser(address); err == nil {
+		accountName = user.Username()
+	} else if users := b.GetUsers(); len(users) > 0 {
+		accountName = users[0].Username()
+	}
+
 	report := pmapi.ReportBugReq{
 		OS:          osType,
 		OSVersion:   osVersion,
