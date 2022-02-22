@@ -33,6 +33,7 @@ func UsersSetupFeatureContext(s *godog.ScenarioContext) {
 	s.Step(`^there is database file for "([^"]*)"$`, thereIsDatabaseFileForUser)
 	s.Step(`^there is no database file for "([^"]*)"$`, thereIsNoDatabaseFileForUser)
 	s.Step(`^there is "([^"]*)" in "([^"]*)" address mode$`, thereIsUserWithAddressMode)
+	s.Step(`^credentials? (?:are|is) locked$`, credentialsAreLocked)
 }
 
 func thereIsUser(bddUserID string) error {
@@ -148,5 +149,10 @@ func thereIsUserWithAddressMode(bddUserID, wantAddressMode string) error {
 		}
 	}
 	ctx.EventuallySyncIsFinishedForUsername(user.Username())
+	return nil
+}
+
+func credentialsAreLocked() error {
+	ctx.CredentialsFailsOnWrite(true)
 	return nil
 }

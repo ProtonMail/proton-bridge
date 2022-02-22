@@ -345,6 +345,10 @@ func (u *User) GetAddressID(address string) (id string, err error) {
 		return u.store.GetAddressID(address)
 	}
 
+	if u.client == nil {
+		return "", errors.New("bridge account is not fully connected to server")
+	}
+
 	addresses := u.client.Addresses()
 	pmapiAddress := addresses.ByEmail(address)
 	if pmapiAddress != nil {
@@ -473,7 +477,9 @@ func (u *User) Logout() error {
 		return nil
 	}
 
-	if err := u.client.AuthDelete(context.Background()); err != nil {
+	if u.client == nil {
+		u.log.Warn("Failed to delete auth: no client")
+	} else if err := u.client.AuthDelete(context.Background()); err != nil {
 		u.log.WithError(err).Warn("Failed to delete auth")
 	}
 

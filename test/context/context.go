@@ -172,3 +172,7 @@ func (ctx *TestContext) MessagePreparationStarted(username string) {
 func (ctx *TestContext) MessagePreparationFinished(username string) {
 	ctx.pmapiController.UnlockEvents(username)
 }
+
+func (ctx *TestContext) CredentialsFailsOnWrite(shouldFail bool) {
+	ctx.credStore.(*fakeCredStore).failOnWrite = shouldFail
+}
