@@ -55,6 +55,26 @@ Window {
     function getCursorPos() {
         return BridgePreview.getCursorPos()
     }
+
+    function restart() {
+        root.quit()
+        console.log("Restarting....")
+        root.openBridge()
+    }
+
+    function openBridge() {
+        bridge = bridgeComponent.createObject()
+        var showSetupGuide = false
+        if (showSetupGuide) {
+            var newUserObject = root.userComponent.createObject(root)
+            newUserObject.username = "LerooooyJenkins@protonmail.com"
+            newUserObject.loggedIn = true
+            newUserObject.setupGuideSeen = false
+            root.users.append( { object: newUserObject } )
+        }
+    }
+
+
     function quit() {
         if (bridge !== undefined && bridge !== null) {
             bridge.destroy()
@@ -367,18 +387,7 @@ Window {
 
                         text: "Open Bridge"
                         enabled: bridge === undefined || bridge === null
-                        onClicked: {
-                            bridge = bridgeComponent.createObject()
-                            var showSetupGuide = false
-                            if (showSetupGuide) {
-                                var newUserObject = root.userComponent.createObject(root)
-                                newUserObject.username = "LerooooyJenkins@protonmail.com"
-                                newUserObject.loggedIn = true
-                                newUserObject.setupGuideSeen = false
-                                root.users.append( { object: newUserObject } )
-                            }
-
-                        }
+                        onClicked: root.openBridge()
                     }
 
                     Button {
@@ -589,7 +598,7 @@ Window {
                         text: "No keychain"
                         colorScheme: root.colorScheme
                         onClicked: {
-                            root.hasNoKeychain()
+                            root.notifyHasNoKeychain()
                         }
                     }
                 }
@@ -815,7 +824,7 @@ Window {
         root.changeKeychainFinished()
     }
     signal changeKeychainFinished()
-    signal hasNoKeychain()
+    signal notifyHasNoKeychain()
 
     signal noActiveKeyForRecipient(string email)
     signal showMainWindow()

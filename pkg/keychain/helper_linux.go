@@ -35,17 +35,19 @@ const (
 func init() { // nolint[noinit]
 	Helpers = make(map[string]helperConstructor)
 
-	Helpers[SecretService] = newSecretServiceHelper
+	if isUsable(newSecretServiceHelper("")) {
+		Helpers[SecretService] = newSecretServiceHelper
+	}
 
-	if _, err := exec.LookPath("pass"); err == nil {
+	if _, err := exec.LookPath("pass"); err == nil && isUsable(newPassHelper("")) {
 		Helpers[Pass] = newPassHelper
 	}
 
 	// If Pass is available, use it by default.
 	// Otherwise, if SecretService is available, use it by default.
-	if _, ok := Helpers[Pass]; ok && isUsable(newPassHelper("")) {
+	if _, ok := Helpers[Pass]; ok {
 		defaultHelper = Pass
-	} else if isUsable(newSecretServiceHelper("")) {
+	} else if _, ok := Helpers[SecretService]; ok {
 		defaultHelper = SecretService
 	}
 }
