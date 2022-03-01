@@ -35,7 +35,7 @@ const (
 func init() { // nolint[noinit]
 	Helpers = make(map[string]helperConstructor)
 
-	if isUsable(newSecretServiceHelper("")) {
+	if _, err := exec.LookPath("gnome-keyring"); err == nil && isUsable(newSecretServiceHelper("")) {
 		Helpers[SecretService] = newSecretServiceHelper
 	}
 

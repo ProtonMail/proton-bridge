@@ -56,7 +56,9 @@ You need to have a keychain in order to run the ProtonMail Bridge. On Mac or
 Windows, Bridge uses native credential managers. On Linux, use `secret-service` freedesktop.org API
 (e.g. [Gnome keyring](https://wiki.gnome.org/Projects/GnomeKeyring/))
 or
-[pass](https://www.passwordstore.org/).
+[pass](https://www.passwordstore.org/). We are working on allowing other secret
+services (e.g. KeepassXC), but for now only gnome-keyring is usable without
+major problems.
 
 
 ## Environment Variables
