@@ -61,6 +61,7 @@ type FrontendQt struct {
 	log                *logrus.Entry
 	initializing       sync.WaitGroup
 	initializationDone sync.Once
+	firstTimeAutostart sync.Once
 
 	app    *widgets.QApplication
 	engine *qml.QQmlEngine

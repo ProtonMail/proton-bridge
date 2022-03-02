@@ -44,6 +44,8 @@ func (f *FrontendQt) initiateQtApplication() error {
 
 	core.QCoreApplication_SetApplicationName(f.programName)
 	core.QCoreApplication_SetApplicationVersion(f.programVersion)
+	core.QCoreApplication_SetOrganizationName("Proton AG")
+	core.QCoreApplication_SetOrganizationDomain("proton.ch")
 
 	// High DPI scaling for windows.
 	core.QCoreApplication_SetAttribute(core.Qt__AA_EnableHighDpiScaling, false)

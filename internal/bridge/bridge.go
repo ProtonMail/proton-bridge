@@ -108,10 +108,6 @@ func New(
 		if err := b.SendMetric(metrics.New(metrics.Setup, metrics.FirstStart, metrics.Label(constants.Version))); err != nil {
 			logrus.WithError(err).Error("Failed to send metric")
 		}
-
-		if err := b.EnableAutostart(); err != nil {
-			log.WithError(err).Error("Failed to enable autostart")
-		}
 		setting.SetBool(settings.FirstStartKey, false)
 	}
 
