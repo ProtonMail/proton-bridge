@@ -114,7 +114,7 @@ const mailTemplate = `<?xml version="1.0" encoding="UTF-8"?>
         <integer>1</integer>
 
         <key>PreventAppSheet</key>
-        <true/>
+        <false/>
 
         <key>PreventMove</key>
         <false/>
