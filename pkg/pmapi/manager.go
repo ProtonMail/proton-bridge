@@ -33,6 +33,7 @@ type manager struct {
 
 	isDown              bool
 	locker              sync.Locker
+	refreshingAuth      sync.Locker
 	connectionObservers []ConnectionObserver
 	proxyDialer         *ProxyTLSDialer
 
@@ -50,6 +51,7 @@ func newManager(cfg Config) *manager {
 		cfg:                 cfg,
 		rc:                  resty.New().EnableTrace(),
 		locker:              &sync.Mutex{},
+		refreshingAuth:      &sync.Mutex{},
 		pingMutex:           &sync.RWMutex{},
 		isPinging:           false,
 		setSentryUserIDOnce: sync.Once{},

@@ -25,179 +25,203 @@ import (
 	"testing"
 	"time"
 
-	a "github.com/stretchr/testify/assert"
-	r "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 )
 
 func TestAutomaticAuthRefresh(t *testing.T) {
-	var wantAuthRefresh = &AuthRefresh{
-		UID:          "testUID",
-		AccessToken:  "testAcc",
-		RefreshToken: "testRef",
-		ExpiresIn:    100,
-	}
-
+	r := require.New(t)
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("/auth/refresh", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
+	currentTokens := newTestRefreshToken(r)
+	testUID := currentTokens.UID
+	testAcc := currentTokens.AccessToken
+	testRef := currentTokens.RefreshToken
+	currentTokens.ExpiresIn = 100
 
-		if err := json.NewEncoder(w).Encode(wantAuthRefresh); err != nil {
-			panic(err)
-		}
-	})
-
-	mux.HandleFunc("/addresses", func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-	})
+	mux.HandleFunc("/auth/refresh", currentTokens.handleAuthRefresh)
+	mux.HandleFunc("/addresses", currentTokens.handleAuthCheckOnly)
 
 	ts := httptest.NewServer(mux)
 
 	var gotAuthRefresh *AuthRefresh
 
 	c := New(Config{HostURL: ts.URL}).
-		NewClient("uid", "acc", "ref", time.Now().Add(-time.Second))
+		NewClient(testUID, testAcc, testRef, time.Now().Add(-time.Second))
 
 	c.AddAuthRefreshHandler(func(auth *AuthRefresh) { gotAuthRefresh = auth })
 
 	// Make a request with an access token that already expired one second ago.
 	_, err := c.GetAddresses(context.Background())
-	r.NoError(t, err)
+	r.NoError(err)
+
+	wantAuthRefresh := currentTokens.wantAuthRefresh()
 
 	// The auth callback should have been called.
-	a.Equal(t, *wantAuthRefresh, *gotAuthRefresh)
+	r.NotNil(gotAuthRefresh)
+	r.Equal(wantAuthRefresh, *gotAuthRefresh)
 
 	cl := c.(*client) //nolint[forcetypeassert] we want to panic here
-	a.Equal(t, wantAuthRefresh.AccessToken, cl.acc)
-	a.Equal(t, wantAuthRefresh.RefreshToken, cl.ref)
-	a.WithinDuration(t, expiresIn(100), cl.exp, time.Second)
+	r.Equal(wantAuthRefresh.AccessToken, cl.acc)
+	r.Equal(wantAuthRefresh.RefreshToken, cl.ref)
+	r.WithinDuration(expiresIn(100), cl.exp, time.Second)
 }
 
 func Test401AuthRefresh(t *testing.T) {
-	var wantAuthRefresh = &AuthRefresh{
-		UID:          "testUID",
-		AccessToken:  "testAcc",
-		RefreshToken: "testRef",
-	}
+	r := require.New(t)
+	currentTokens := newTestRefreshToken(r)
+	testUID := currentTokens.UID
+	testRef := currentTokens.RefreshToken
 
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("/auth/refresh", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-
-		if err := json.NewEncoder(w).Encode(wantAuthRefresh); err != nil {
-			panic(err)
-		}
-	})
-
-	var call int
-
-	mux.HandleFunc("/addresses", func(w http.ResponseWriter, r *http.Request) {
-		call++
-
-		if call == 1 {
-			w.WriteHeader(http.StatusUnauthorized)
-		} else {
-			w.WriteHeader(http.StatusOK)
-		}
-	})
+	mux.HandleFunc("/auth/refresh", currentTokens.handleAuthRefresh)
+	mux.HandleFunc("/addresses", currentTokens.handleAuthCheckOnly)
 
 	ts := httptest.NewServer(mux)
-
 	var gotAuthRefresh *AuthRefresh
 
 	// Create a new client.
-	c := New(Config{HostURL: ts.URL}).
-		NewClient("uid", "acc", "ref", time.Now().Add(time.Hour))
+	m := New(Config{HostURL: ts.URL})
+	c := m.NewClient(testUID, "oldAccToken", testRef, time.Now().Add(time.Hour))
 
 	// Register an auth handler.
 	c.AddAuthRefreshHandler(func(auth *AuthRefresh) { gotAuthRefresh = auth })
 
 	// The first request will fail with 401, triggering a refresh and retry.
 	_, err := c.GetAddresses(context.Background())
-	r.NoError(t, err)
+	r.NoError(err)
 
 	// The auth callback should have been called.
-	r.Equal(t, *wantAuthRefresh, *gotAuthRefresh)
+	r.NotNil(gotAuthRefresh)
+	r.Equal(currentTokens.wantAuthRefresh(), *gotAuthRefresh)
 }
 
 func Test401RevokedAuth(t *testing.T) {
+	r := require.New(t)
+	currentTokens := newTestRefreshToken(r)
+
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("/auth/refresh", func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusUnauthorized)
-	})
-
-	mux.HandleFunc("/addresses", func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusUnauthorized)
-	})
+	mux.HandleFunc("/auth/refresh", currentTokens.handleAuthRefresh)
+	mux.HandleFunc("/addresses", currentTokens.handleAuthCheckOnly)
 
 	ts := httptest.NewServer(mux)
 
 	c := New(Config{HostURL: ts.URL}).
-		NewClient("uid", "acc", "ref", time.Now().Add(time.Hour))
+		NewClient("badUID", "badAcc", "badRef", time.Now().Add(time.Hour))
 
 	// The request will fail with 401, triggering a refresh.
 	// The retry will also fail with 401, returning an error.
 	_, err := c.GetAddresses(context.Background())
-	r.EqualError(t, err, ErrUnauthorized.Error())
+	r.True(IsFailedAuth(err))
 }
 
-func Test401RevokedAuthTokenUpdate(t *testing.T) {
-	var oldAuth = &AuthRefresh{
-		UID:          "UID",
-		AccessToken:  "oldAcc",
-		RefreshToken: "oldRef",
-		ExpiresIn:    3600,
-	}
-
-	var newAuth = &AuthRefresh{
-		UID:          "UID",
-		AccessToken:  "newAcc",
-		RefreshToken: "newRef",
-	}
+func Test401OldRefreshToken(t *testing.T) {
+	r := require.New(t)
+	currentTokens := newTestRefreshToken(r)
 
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("/auth/refresh", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/auth/refresh", currentTokens.handleAuthRefresh)
+	mux.HandleFunc("/addresses", currentTokens.handleAuthCheckOnly)
+
+	ts := httptest.NewServer(mux)
+
+	c := New(Config{HostURL: ts.URL}).
+		NewClient(currentTokens.UID, "oldAcc", "oldRef", time.Now().Add(time.Hour))
+
+	// The request will fail with 401, triggering a refresh.
+	// The retry will also fail with 401, returning an error.
+	_, err := c.GetAddresses(context.Background())
+	r.True(IsFailedAuth(err))
+}
+
+func Test401NoAccessToken(t *testing.T) {
+	r := require.New(t)
+	currentTokens := newTestRefreshToken(r)
+	testUID := currentTokens.UID
+	testRef := currentTokens.RefreshToken
+	mux := http.NewServeMux()
+	mux.HandleFunc("/auth/refresh", currentTokens.handleAuthRefresh)
+	mux.HandleFunc("/addresses", currentTokens.handleAuthCheckOnly)
+
+	ts := httptest.NewServer(mux)
+
+	c := New(Config{HostURL: ts.URL}).
+		NewClient(testUID, "", testRef, time.Now().Add(time.Hour))
+
+	// The request will fail with 401, triggering a refresh. After the refresh it should succeed.
+	_, err := c.GetAddresses(context.Background())
+	r.NoError(err)
+}
+
+func Test401ExpiredAuthUpdateUser(t *testing.T) {
+	r := require.New(t)
+	mux := http.NewServeMux()
+	currentTokens := newTestRefreshToken(r)
+	testUID := currentTokens.UID
+	testRef := currentTokens.RefreshToken
+
+	mux.HandleFunc("/auth/refresh", currentTokens.handleAuthRefresh)
+
+	mux.HandleFunc("/users", func(w http.ResponseWriter, r *http.Request) {
+		if !currentTokens.isAuthorized(r.Header) {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+
 		w.Header().Set("Content-Type", "application/json")
-		if err := json.NewEncoder(w).Encode(newAuth); err != nil {
+		w.WriteHeader(http.StatusOK)
+		respObj := struct {
+			Code int
+			User *User
+		}{
+			Code: 1000,
+			User: &User{
+				ID:        "MJLke8kWh1BBvG95JBIrZvzpgsZ94hNNgjNHVyhXMiv4g9cn6SgvqiIFR5cigpml2LD_iUk_3DkV29oojTt3eA==",
+				Name:      "jason",
+				UsedSpace: &usedSpace,
+			},
+		}
+		if err := json.NewEncoder(w).Encode(respObj); err != nil {
 			panic(err)
 		}
 	})
 
 	mux.HandleFunc("/addresses", func(w http.ResponseWriter, r *http.Request) {
-		if r.Header.Get("Authorization") == ("Bearer " + oldAuth.AccessToken) {
+		if !currentTokens.isAuthorized(r.Header) {
 			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
 
-		if r.Header.Get("Authorization") == ("Bearer " + newAuth.AccessToken) {
-			w.WriteHeader(http.StatusOK)
-			return
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		if err := json.NewEncoder(w).Encode(testAddressList); err != nil {
+			panic(err)
 		}
 	})
 
 	ts := httptest.NewServer(mux)
-
-	c := New(Config{HostURL: ts.URL}).
-		NewClient(oldAuth.UID, oldAuth.AccessToken, oldAuth.RefreshToken, time.Now().Add(time.Hour))
+	m := New(Config{HostURL: ts.URL})
+	c, _, err := m.NewClientWithRefresh(context.Background(), testUID, testRef)
+	r.NoError(err)
 
 	// The request will fail with 401, triggering a refresh. After the refresh it should succeed.
-	_, err := c.GetAddresses(context.Background())
-	r.NoError(t, err)
+	_, err = c.UpdateUser(context.Background())
+	r.NoError(err)
 }
 
 func TestAuth2FA(t *testing.T) {
+	r := require.New(t)
 	twoFACode := "code"
 
 	finish, c := newTestClientCallbacks(t,
 		func(tb testing.TB, w http.ResponseWriter, req *http.Request) string {
-			r.NoError(t, checkMethodAndPath(req, "POST", "/auth/2fa"))
+			r.NoError(checkMethodAndPath(req, "POST", "/auth/2fa"))
 
 			var twoFAreq auth2FAReq
-			r.NoError(t, json.NewDecoder(req.Body).Decode(&twoFAreq))
-			r.Equal(t, twoFAreq.TwoFactorCode, twoFACode)
+			r.NoError(json.NewDecoder(req.Body).Decode(&twoFAreq))
+			r.Equal(twoFAreq.TwoFactorCode, twoFACode)
 
 			return "/auth/2fa/post_response.json"
 		},
@@ -205,31 +229,33 @@ func TestAuth2FA(t *testing.T) {
 	defer finish()
 
 	err := c.Auth2FA(context.Background(), twoFACode)
-	r.NoError(t, err)
+	r.NoError(err)
 }
 
 func TestAuth2FA_Fail(t *testing.T) {
+	r := require.New(t)
 	finish, c := newTestClientCallbacks(t,
 		func(tb testing.TB, w http.ResponseWriter, req *http.Request) string {
-			r.NoError(t, checkMethodAndPath(req, "POST", "/auth/2fa"))
+			r.NoError(checkMethodAndPath(req, "POST", "/auth/2fa"))
 			return "/auth/2fa/post_401_bad_password.json"
 		},
 	)
 	defer finish()
 
 	err := c.Auth2FA(context.Background(), "code")
-	r.Equal(t, ErrBad2FACode, err)
+	r.Equal(ErrBad2FACode, err)
 }
 
 func TestAuth2FA_Retry(t *testing.T) {
+	r := require.New(t)
 	finish, c := newTestClientCallbacks(t,
 		func(tb testing.TB, w http.ResponseWriter, req *http.Request) string {
-			r.NoError(t, checkMethodAndPath(req, "POST", "/auth/2fa"))
+			r.NoError(checkMethodAndPath(req, "POST", "/auth/2fa"))
 			return "/auth/2fa/post_422_bad_password.json"
 		},
 	)
 	defer finish()
 
 	err := c.Auth2FA(context.Background(), "code")
-	r.Equal(t, ErrBad2FACodeTryAgain, err)
+	r.Equal(ErrBad2FACodeTryAgain, err)
 }

@@ -178,8 +178,10 @@ func (u *Users) loadConnectedUser(ctx context.Context, user *User, creds *creden
 			return connectErr
 		}
 
-		if logoutErr := user.logout(); logoutErr != nil {
-			logrus.WithError(logoutErr).Warn("Could not logout user")
+		if pmapi.IsFailedAuth(connectErr) {
+			if logoutErr := user.logout(); logoutErr != nil {
+				logrus.WithError(logoutErr).Warn("Could not logout user")
+			}
 		}
 		return errors.Wrap(err, "could not refresh token")
 	}

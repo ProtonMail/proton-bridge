@@ -82,6 +82,10 @@ func (api *FakePMAPI) UpdateUser(context.Context) (*pmapi.User, error) {
 		return nil, err
 	}
 
+	if err := api.checkAndRecordCall(GET, "/addresses", nil); err != nil {
+		return nil, err
+	}
+
 	return api.user, nil
 }
 

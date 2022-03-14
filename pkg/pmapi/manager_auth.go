@@ -102,6 +102,9 @@ func (m *manager) auth(ctx context.Context, req AuthReq) (*Auth, error) {
 }
 
 func (m *manager) authRefresh(ctx context.Context, uid, ref string) (*AuthRefresh, error) {
+	m.refreshingAuth.Lock()
+	defer m.refreshingAuth.Unlock()
+
 	var req = authRefreshReq{
 		UID:          uid,
 		RefreshToken: ref,
@@ -117,6 +120,9 @@ func (m *manager) authRefresh(ctx context.Context, uid, ref string) (*AuthRefres
 
 	_, err := wrapNoConnection(m.r(ctx).SetBody(req).SetResult(&res).Post("/auth/refresh"))
 	if err != nil {
+		if IsBadRequest(err) || IsUnprocessableEntity(err) {
+			err = ErrAuthFailed{err}
+		}
 		return nil, err
 	}
 

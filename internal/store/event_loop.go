@@ -477,7 +477,7 @@ func (loop *eventLoop) processMessages(eventLog *logrus.Entry, messages []*pmapi
 				msgLog.WithError(err).Warning("Message was not present in DB. Trying fetch...")
 
 				if msg, err = loop.client().GetMessage(context.Background(), message.ID); err != nil {
-					if _, ok := err.(pmapi.ErrUnprocessableEntity); ok {
+					if pmapi.IsUnprocessableEntity(err) {
 						msgLog.WithError(err).Warn("Skipping message update because message exists neither in local DB nor on API")
 						err = nil
 						continue

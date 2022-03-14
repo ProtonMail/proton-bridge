@@ -74,12 +74,12 @@ func (ctl *Controller) createSession(username string, hasFullScope bool) *fakeSe
 
 func (ctl *Controller) refreshSessionIfAuthorized(uid, ref string) (*fakeSession, error) {
 	session, ok := ctl.sessionsByUID[uid]
-	if !ok {
-		return nil, pmapi.ErrUnauthorized
+	if !ok || session.uid != uid {
+		return nil, pmapi.ErrAuthFailed{OriginalError: errors.New("bad uid")}
 	}
 
 	if ref != session.ref {
-		return nil, pmapi.ErrUnauthorized
+		return nil, pmapi.ErrAuthFailed{OriginalError: errors.New("bad refresh token")}
 	}
 
 	session.ref = ctl.tokenGenerator.next("ref")

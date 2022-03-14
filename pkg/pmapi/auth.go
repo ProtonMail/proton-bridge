@@ -51,7 +51,7 @@ type TwoFAInfo struct {
 }
 
 func (twoFAInfo TwoFAInfo) hasTwoFactor() bool {
-	return twoFAInfo.Enabled > 0
+	return twoFAInfo.Enabled > TwoFADisabled
 }
 
 type TwoFAStatus int
@@ -185,7 +185,7 @@ func (c *client) authRefresh(ctx context.Context) error {
 
 	auth, err := c.manager.authRefresh(ctx, c.uid, c.ref)
 	if err != nil {
-		if err != ErrNoConnection {
+		if IsFailedAuth(err) {
 			c.sendAuthRefresh(nil)
 		}
 		return err

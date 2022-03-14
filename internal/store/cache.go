@@ -194,7 +194,7 @@ func (store *Store) BuildAndCacheMessage(ctx context.Context, messageID string) 
 }
 
 func (store *Store) checkAndRemoveDeletedMessage(err error, msgID string) {
-	if _, ok := err.(pmapi.ErrUnprocessableEntity); !ok {
+	if !pmapi.IsUnprocessableEntity(err) {
 		return
 	}
 	l := store.log.WithError(err).WithField("msgID", msgID)

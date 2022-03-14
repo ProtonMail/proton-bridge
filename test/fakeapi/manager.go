@@ -69,7 +69,7 @@ func (m *fakePMAPIManager) NewClientWithRefresh(_ context.Context, uid, ref stri
 
 	session, err := m.controller.refreshSessionIfAuthorized(uid, ref)
 	if err != nil {
-		return nil, nil, pmapi.ErrUnauthorized
+		return nil, nil, err
 	}
 
 	user, ok := m.controller.usersByUsername[session.username]

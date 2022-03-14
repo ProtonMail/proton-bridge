@@ -19,11 +19,11 @@ package pmapi
 
 import (
 	"context"
-	"errors"
 	"strings"
 
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/go-resty/resty/v2"
+	"github.com/pkg/errors"
 )
 
 // Address statuses.
@@ -201,7 +201,7 @@ func (c *client) unlockAddress(passphrase []byte, address *Address) error {
 
 	kr, err := address.Keys.UnlockAll(passphrase, c.userKeyRing)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "cannot unlock address keys for "+address.ID)
 	}
 
 	c.addrKeyRing[address.ID] = kr

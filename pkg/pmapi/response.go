@@ -59,21 +59,26 @@ func (m *manager) catchAPIError(_ *resty.Client, res *resty.Response) error {
 	if apiErr, ok := res.Error().(*Error); ok {
 		switch {
 		case apiErr.Code == errCodeUpgradeApplication:
-			err = ErrUpgradeApplication
 			if m.cfg.UpgradeApplicationHandler != nil {
 				m.cfg.UpgradeApplicationHandler()
 			}
+			return ErrUpgradeApplication
 		case apiErr.Code == errCodePasswordWrong:
-			err = ErrPasswordWrong
+			return ErrPasswordWrong
 		case apiErr.Code == errCodeAuthPaidPlanRequired:
-			err = ErrPaidPlanRequired
-		case res.StatusCode() == http.StatusUnprocessableEntity:
-			err = ErrUnprocessableEntity{apiErr}
+			return ErrPaidPlanRequired
 		default:
 			err = apiErr
 		}
 	} else {
 		err = errors.New(res.Status())
+	}
+
+	switch res.StatusCode() {
+	case http.StatusUnprocessableEntity:
+		err = ErrUnprocessableEntity{err}
+	case http.StatusBadRequest:
+		err = ErrBadRequest{err}
 	}
 
 	return err

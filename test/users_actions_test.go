@@ -29,6 +29,7 @@ func UsersActionsFeatureContext(s *godog.ScenarioContext) {
 	s.Step(`^user deletes "([^"]*)"$`, userDeletesUser)
 	s.Step(`^user deletes "([^"]*)" with cache$`, userDeletesUserWithCache)
 	s.Step(`^"([^"]*)" swaps address "([^"]*)" with address "([^"]*)"$`, swapsAddressWithAddress)
+	s.Step(`^session was revoked for "([^"]*)"$`, sessionRevoked)
 }
 
 func userLogsIn(bddUserID string) error {
@@ -122,4 +123,9 @@ func swapsAddressWithAddress(bddUserID, bddAddressID1, bddAddressID2 string) err
 	ctx.ReorderAddresses(account.Username(), bddAddressID1, bddAddressID2)
 
 	return ctx.GetPMAPIController().ReorderAddresses(account.User(), addressIDs)
+}
+
+func sessionRevoked(bddUserID string) error {
+	account := ctx.GetTestAccount(bddUserID)
+	return ctx.GetPMAPIController().RevokeSession(account.Username())
 }

@@ -133,12 +133,30 @@ func (api *FakePMAPI) authRefresh() error {
 
 	session, err := api.controller.refreshSessionIfAuthorized(api.uid, api.ref)
 	if err != nil {
+		if pmapi.IsFailedAuth(err) {
+			go api.handleAuth(nil)
+		}
 		return err
 	}
 
 	api.ref = session.ref
 	api.acc = session.acc
+
+	go api.handleAuth(&pmapi.AuthRefresh{
+		UID:          api.uid,
+		AccessToken:  api.acc,
+		RefreshToken: api.ref,
+		ExpiresIn:    7200,
+		Scopes:       []string{"full", "self", "user", "mail"},
+	})
+
 	return nil
+}
+
+func (api *FakePMAPI) handleAuth(auth *pmapi.AuthRefresh) {
+	for _, handle := range api.authHandlers {
+		handle(auth)
+	}
 }
 
 func (api *FakePMAPI) setUser(username string) error {

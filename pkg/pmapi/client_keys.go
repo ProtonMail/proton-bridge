@@ -19,8 +19,6 @@ package pmapi
 
 import (
 	"context"
-
-	"github.com/pkg/errors"
 )
 
 // Unlock unlocks all the user and address keys using the given passphrase, creating user and address keyrings.
@@ -34,26 +32,26 @@ func (c *client) Unlock(ctx context.Context, passphrase []byte) (err error) {
 
 // unlock unlocks the user's keys but without locking the keyring lock first.
 // Should only be used internally by methods that first lock the lock.
-func (c *client) unlock(ctx context.Context, passphrase []byte) (err error) {
-	if _, err = c.CurrentUser(ctx); err != nil {
-		return
+func (c *client) unlock(ctx context.Context, passphrase []byte) error {
+	if _, err := c.CurrentUser(ctx); err != nil {
+		return err
 	}
 
 	if c.userKeyRing == nil {
-		if err = c.unlockUser(passphrase); err != nil {
-			return errors.Wrap(err, "failed to unlock user")
+		if err := c.unlockUser(passphrase); err != nil {
+			return ErrUnlockFailed{err}
 		}
 	}
 
 	for _, address := range c.addresses {
 		if c.addrKeyRing[address.ID] == nil {
-			if err = c.unlockAddress(passphrase, address); err != nil {
-				return errors.Wrap(err, "failed to unlock address")
+			if err := c.unlockAddress(passphrase, address); err != nil {
+				return ErrUnlockFailed{err}
 			}
 		}
 	}
 
-	return
+	return nil
 }
 
 func (c *client) ReloadKeys(ctx context.Context, passphrase []byte) (err error) {

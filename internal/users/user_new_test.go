@@ -23,6 +23,7 @@ import (
 
 	"github.com/ProtonMail/proton-bridge/internal/events"
 	"github.com/ProtonMail/proton-bridge/internal/users/credentials"
+	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	gomock "github.com/golang/mock/gomock"
 	r "github.com/stretchr/testify/require"
 )
@@ -46,7 +47,7 @@ func TestNewUserUnlockFails(t *testing.T) {
 		m.credentialsStore.EXPECT().Get("user").Return(testCredentials, nil),
 		m.pmapiClient.EXPECT().AddAuthRefreshHandler(gomock.Any()),
 		m.pmapiClient.EXPECT().IsUnlocked().Return(false),
-		m.pmapiClient.EXPECT().Unlock(gomock.Any(), testCredentials.MailboxPassword).Return(errors.New("bad password")),
+		m.pmapiClient.EXPECT().Unlock(gomock.Any(), testCredentials.MailboxPassword).Return(pmapi.ErrUnlockFailed{OriginalError: errors.New("bad password")}),
 
 		// Handle of unlock error.
 		m.pmapiClient.EXPECT().AuthDelete(gomock.Any()).Return(nil),

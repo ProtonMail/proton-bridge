@@ -250,3 +250,10 @@ func (ctl *Controller) RemoveUserMessageWithoutEvent(username string, messageID 
 
 	return errors.New("message not found")
 }
+
+func (ctl *Controller) RevokeSession(username string) error {
+	for _, session := range ctl.sessionsByUID {
+		session.uid = "revoked"
+	}
+	return nil
+}

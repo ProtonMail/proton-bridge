@@ -46,6 +46,7 @@ type PMAPIController interface {
 	LockEvents(username string)
 	UnlockEvents(username string)
 	RemoveUserMessageWithoutEvent(username, messageID string) error
+	RevokeSession(username string) error
 }
 
 func newPMAPIController(listener listener.Listener) (PMAPIController, pmapi.Manager) {

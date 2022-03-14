@@ -60,3 +60,7 @@ func (ctl *Controller) GetAuthClient(username string) pmapi.Client {
 	}
 	return client
 }
+
+func (ctl *Controller) RevokeSession(username string) error {
+	return errors.New("revoke live session not implemented")
+}
