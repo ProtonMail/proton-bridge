@@ -36,11 +36,16 @@ const (
 	proxyDoHTimeout          = 20 * time.Second
 	proxyCanReachTimeout     = 20 * time.Second
 	proxyQuery               = "dMFYGSLTQOJXXI33ONVQWS3BOMNUA.protonpro.xyz"
+
+	Quad9Provider     = "https://dns11.quad9.net/dns-query"
+	Quad9PortProvider = "https://dns11.quad9.net:5053/dns-query"
+	GoogleProvider    = "https://dns.google/dns-query"
 )
 
 var dohProviders = []string{ //nolint[gochecknoglobals]
-	"https://dns11.quad9.net/dns-query",
-	"https://dns.google/dns-query",
+	Quad9Provider,
+	Quad9PortProvider,
+	GoogleProvider,
 }
 
 // proxyProvider manages known proxies.

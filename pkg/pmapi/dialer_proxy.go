@@ -60,11 +60,16 @@ func formatAsAddress(rawURL string) string {
 		panic(err)
 	}
 
+	host := url.Host
+	if host == "" {
+		host = url.Path
+	}
+
 	port := "443"
 	if url.Scheme == "http" {
 		port = "80"
 	}
-	return net.JoinHostPort(url.Host, port)
+	return net.JoinHostPort(host, port)
 }
 
 // DialTLS dials the given network/address. If it fails, it retries using a proxy.

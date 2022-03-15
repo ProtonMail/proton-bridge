@@ -27,12 +27,6 @@ import (
 	"golang.org/x/net/http/httpproxy"
 )
 
-const (
-	TestDoHQuery       = "dMFYGSLTQOJXXI33ONVQWS3BOMNUA.protonpro.xyz"
-	TestQuad9Provider  = "https://dns11.quad9.net/dns-query"
-	TestGoogleProvider = "https://dns.google/dns-query"
-)
-
 func TestProxyProvider_FindProxy(t *testing.T) {
 	proxy := getTrustedServer()
 	defer closeServer(proxy)
@@ -142,17 +136,28 @@ func TestProxyProvider_FindProxy_CanReachTimeout(t *testing.T) {
 }
 
 func TestProxyProvider_DoHLookup_Quad9(t *testing.T) {
-	p := newProxyProvider(Config{}, []string{TestQuad9Provider, TestGoogleProvider}, TestDoHQuery)
+	p := newProxyProvider(Config{}, []string{Quad9Provider, GoogleProvider}, proxyQuery)
 
-	records, err := p.dohLookup(context.Background(), TestDoHQuery, TestQuad9Provider)
+	records, err := p.dohLookup(context.Background(), proxyQuery, Quad9Provider)
+	r.NoError(t, err)
+	r.NotEmpty(t, records)
+}
+
+// DISABLEDTestProxyProvider_DoHLookup_Quad9Port cannot run on CI due to custom
+// port filter. Basic functionality should be covered by other tests. Keeping
+// code here to be able to run it locally if needed.
+func DISABLEDTestProxyProviderDoHLookupQuad9Port(t *testing.T) {
+	p := newProxyProvider(Config{}, []string{Quad9PortProvider, GoogleProvider}, proxyQuery)
+
+	records, err := p.dohLookup(context.Background(), proxyQuery, Quad9PortProvider)
 	r.NoError(t, err)
 	r.NotEmpty(t, records)
 }
 
 func TestProxyProvider_DoHLookup_Google(t *testing.T) {
-	p := newProxyProvider(Config{}, []string{TestQuad9Provider, TestGoogleProvider}, TestDoHQuery)
+	p := newProxyProvider(Config{}, []string{Quad9Provider, GoogleProvider}, proxyQuery)
 
-	records, err := p.dohLookup(context.Background(), TestDoHQuery, TestGoogleProvider)
+	records, err := p.dohLookup(context.Background(), proxyQuery, GoogleProvider)
 	r.NoError(t, err)
 	r.NotEmpty(t, records)
 }
@@ -160,7 +165,7 @@ func TestProxyProvider_DoHLookup_Google(t *testing.T) {
 func TestProxyProvider_DoHLookup_FindProxy(t *testing.T) {
 	skipIfProxyIsSet(t)
 
-	p := newProxyProvider(Config{}, []string{TestQuad9Provider, TestGoogleProvider}, TestDoHQuery)
+	p := newProxyProvider(Config{}, []string{Quad9Provider, GoogleProvider}, proxyQuery)
 
 	url, err := p.findReachableServer()
 	r.NoError(t, err)
@@ -170,7 +175,7 @@ func TestProxyProvider_DoHLookup_FindProxy(t *testing.T) {
 func TestProxyProvider_DoHLookup_FindProxyFirstProviderUnreachable(t *testing.T) {
 	skipIfProxyIsSet(t)
 
-	p := newProxyProvider(Config{}, []string{"https://unreachable", TestQuad9Provider, TestGoogleProvider}, TestDoHQuery)
+	p := newProxyProvider(Config{}, []string{"https://unreachable", Quad9Provider, GoogleProvider}, proxyQuery)
 
 	url, err := p.findReachableServer()
 	r.NoError(t, err)

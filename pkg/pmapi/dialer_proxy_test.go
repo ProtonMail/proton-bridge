@@ -251,3 +251,18 @@ func TestProxyDialer_UseProxy_FindSecondAlternativeIfFirstFailsAndAPIIsStillBloc
 	require.NoError(t, err)
 	require.Equal(t, formatAsAddress(proxy2.URL), d.proxyAddress)
 }
+
+func TestFormatAsAddress(t *testing.T) {
+	r := require.New(t)
+	testData := map[string]string{
+		"sub.domain.tld":         "sub.domain.tld:443",
+		"http://sub.domain.tld":  "sub.domain.tld:80",
+		"https://sub.domain.tld": "sub.domain.tld:443",
+		"ftp://sub.domain.tld":   "sub.domain.tld:443",
+		"//sub.domain.tld":       "sub.domain.tld:443",
+	}
+
+	for rawURL, wantURL := range testData {
+		r.Equal(wantURL, formatAsAddress(rawURL))
+	}
+}
