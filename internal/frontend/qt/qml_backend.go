@@ -142,6 +142,7 @@ type QMLBackend struct {
 	_ func(keychain string) `slot:"changeKeychain"`
 	_ func()                `signal:"changeKeychainFinished"`
 	_ func()                `signal:"notifyHasNoKeychain"`
+	_ func()                `signal:"notifyRebuildKeychain"`
 
 	_ func(email string) `signal:noActiveKeyForRecipient`
 	_ func()             `signal:showMainWindow`

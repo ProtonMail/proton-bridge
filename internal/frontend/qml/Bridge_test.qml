@@ -601,6 +601,14 @@ Window {
                             root.notifyHasNoKeychain()
                         }
                     }
+
+                    Button {
+                        text: "Rebuild keychain"
+                        colorScheme: root.colorScheme
+                        onClicked: {
+                            root.notifyRebuildKeychain()
+                        }
+                    }
                 }
             }
 
@@ -825,6 +833,7 @@ Window {
     }
     signal changeKeychainFinished()
     signal notifyHasNoKeychain()
+    signal notifyRebuildKeychain()
 
     signal noActiveKeyForRecipient(string email)
     signal showMainWindow()

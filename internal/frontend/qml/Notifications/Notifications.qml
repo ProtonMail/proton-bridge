@@ -73,7 +73,8 @@ QtObject {
         root.enableLocalCache,
         root.resetBridge,
         root.deleteAccount,
-        root.noKeychain
+        root.noKeychain,
+        root.rebuildKeychain
     ]
 
     // Connection
@@ -897,6 +898,38 @@ QtObject {
 
                 onTriggered: {
                     root.backend.restart()
+                }
+            }
+        ]
+    }
+
+    property Notification rebuildKeychain: Notification {
+        title: qsTr("Your macOS keychain might be corrupted")
+        description: qsTr("Bridge is not able to access your macOS keychain. Please consult the instructions on our support page.")
+        brief: title
+        icon: "./icons/ic-exclamation-circle-filled.svg"
+        type: Notification.NotificationType.Danger
+        group: Notifications.Group.Dialogs | Notifications.Group.Configuration
+
+        property var supportLink: "https://protonmail.com/support/knowledge-base/macos-keychain-corrupted"
+
+
+        Connections {
+            target: root.backend
+
+            onNotifyRebuildKeychain: {
+                console.log("notifications")
+                root.rebuildKeychain.active = true
+            }
+        }
+
+        action: [
+            Action {
+                text: qsTr("Open the support page")
+
+                onTriggered: {
+                    Qt.openUrlExternally(root.rebuildKeychain.supportLink)
+                    root.backend.quit()
                 }
             }
         ]

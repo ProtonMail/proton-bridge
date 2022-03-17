@@ -26,6 +26,7 @@ import (
 
 	"github.com/ProtonMail/proton-bridge/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/internal/events"
+	"github.com/ProtonMail/proton-bridge/pkg/keychain"
 )
 
 func (f *FrontendQt) watchEvents() {
@@ -64,7 +65,11 @@ func (f *FrontendQt) watchEvents() {
 			if strings.Contains(errorDetails, "SMTP failed") {
 				f.qml.PortIssueSMTP()
 			}
-		case <-credentialsErrorCh:
+		case reason := <-credentialsErrorCh:
+			if reason == keychain.ErrMacKeychainRebuild.Error() {
+				f.qml.NotifyRebuildKeychain()
+				continue
+			}
 			f.qml.NotifyHasNoKeychain()
 		case email := <-noActiveKeyForRecipientCh:
 			f.qml.NoActiveKeyForRecipient(email)

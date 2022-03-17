@@ -37,6 +37,9 @@ var (
 	// ErrNoKeychain indicates that no suitable keychain implementation could be loaded.
 	ErrNoKeychain = errors.New("no keychain") // nolint[noglobals]
 
+	// ErrMacKeychainRebuild is returned on macOS with blocked or corrupted keychain.
+	ErrMacKeychainRebuild = errors.New("keychain error -25293")
+
 	// Helpers holds all discovered keychain helpers. It is populated in init().
 	Helpers map[string]helperConstructor // nolint[noglobals]
 

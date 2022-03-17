@@ -115,4 +115,9 @@ Item {
         colorScheme: root.colorScheme
         notification: root.notifications.noKeychain
     }
+
+    NotificationDialog {
+        colorScheme: root.colorScheme
+        notification: root.notifications.rebuildKeychain
+    }
 }

@@ -40,6 +40,16 @@ func init() { // nolint[noinit]
 	defaultHelper = MacOSKeychain
 }
 
+func parseError(original error) error {
+	if original == nil {
+		return nil
+	}
+	if strings.Contains(original.Error(), "25293") {
+		return ErrMacKeychainRebuild
+	}
+	return original
+}
+
 func newMacOSHelper(url string) (credentials.Helper, error) {
 	return &macOSHelper{url: url}, nil
 }
@@ -76,7 +86,7 @@ func (h *macOSHelper) Add(creds *credentials.Credentials) error {
 
 	query := newQuery(hostURL, userID)
 	query.SetData([]byte(creds.Secret))
-	return keychain.AddItem(query)
+	return parseError(keychain.AddItem(query))
 }
 
 func (h *macOSHelper) Delete(secretURL string) error {
@@ -87,7 +97,7 @@ func (h *macOSHelper) Delete(secretURL string) error {
 
 	query := newQuery(hostURL, userID)
 
-	return keychain.DeleteItem(query)
+	return parseError(keychain.DeleteItem(query))
 }
 
 func (h *macOSHelper) Get(secretURL string) (string, string, error) {
@@ -102,7 +112,7 @@ func (h *macOSHelper) Get(secretURL string) (string, string, error) {
 
 	results, err := keychain.QueryItem(query)
 	if err != nil {
-		return "", "", err
+		return "", "", parseError(err)
 	}
 
 	if len(results) == 0 {
@@ -121,7 +131,7 @@ func (h *macOSHelper) List() (map[string]string, error) {
 
 	userIDs, err := keychain.GetGenericPasswordAccounts(h.url)
 	if err != nil {
-		return nil, err
+		return nil, parseError(err)
 	}
 
 	for _, userID := range userIDs {
