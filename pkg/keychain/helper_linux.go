@@ -28,12 +28,17 @@ import (
 )
 
 const (
-	Pass          = "pass-app"
-	SecretService = "secret-service"
+	Pass              = "pass-app"
+	SecretService     = "secret-service"
+	SecretServiceDBus = "secret-service-dbus"
 )
 
 func init() { // nolint[noinit]
 	Helpers = make(map[string]helperConstructor)
+
+	if isUsable(newDBusHelper("")) {
+		Helpers[SecretServiceDBus] = newDBusHelper
+	}
 
 	if _, err := exec.LookPath("gnome-keyring"); err == nil && isUsable(newSecretServiceHelper("")) {
 		Helpers[SecretService] = newSecretServiceHelper
@@ -43,6 +48,8 @@ func init() { // nolint[noinit]
 		Helpers[Pass] = newPassHelper
 	}
 
+	defaultHelper = SecretServiceDBus
+
 	// If Pass is available, use it by default.
 	// Otherwise, if SecretService is available, use it by default.
 	if _, ok := Helpers[Pass]; ok {
@@ -50,6 +57,10 @@ func init() { // nolint[noinit]
 	} else if _, ok := Helpers[SecretService]; ok {
 		defaultHelper = SecretService
 	}
+}
+
+func newDBusHelper(string) (credentials.Helper, error) {
+	return &SecretServiceDBusHelper{}, nil
 }
 
 func newPassHelper(string) (credentials.Helper, error) {
