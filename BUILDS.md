@@ -1,7 +1,9 @@
 # Building ProtonMail Bridge and Import-Export app
 
 ## Prerequisites
-* 64-bit OS (the go-rfc5322 module cannot currently be compiled for 32-bit OSes)
+* 64-bit AMD OS:
+    - the go-rfc5322 module cannot currently be compiled for 32-bit OSes
+    - the Apple M1 builds are not supported yet due to dependencies
 * Go 1.13
 * Bash with basic build utils: make, gcc, sed, find, grep, ...
 * For Windows it is recommended to use MinGW 64bit shell from [MSYS2](https://www.msys2.org/)

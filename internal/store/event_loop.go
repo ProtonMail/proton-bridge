@@ -243,7 +243,7 @@ func (loop *eventLoop) processNextEvent() (more bool, err error) { // nolint[fun
 		}
 
 		// All errors except ErrUnauthorized (which is not possible to recover from) are ignored.
-		if err != nil && errors.Cause(err) != pmapi.ErrUnauthorized {
+		if err != nil && !pmapi.IsFailedAuth(errors.Cause(err)) && errors.Cause(err) != pmapi.ErrUnauthorized {
 			l.WithError(err).WithField("errors", loop.errCounter).Error("Error skipped")
 			loop.errCounter++
 			if loop.errCounter == errMaxSentry {

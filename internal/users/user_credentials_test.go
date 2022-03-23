@@ -170,7 +170,7 @@ func TestCheckBridgeLoginLoggedOut(t *testing.T) {
 		// Mock init of user.
 		m.credentialsStore.EXPECT().Get("user").Return(testCredentialsDisconnected, nil),
 		m.pmapiClient.EXPECT().AddAuthRefreshHandler(gomock.Any()),
-		m.pmapiClient.EXPECT().ListLabels(gomock.Any()).Return(nil, errors.New("ErrUnauthorized")),
+		m.pmapiClient.EXPECT().ListLabels(gomock.Any()).Return(nil, pmapi.ErrUnauthorized),
 		m.pmapiClient.EXPECT().Addresses().Return(nil),
 
 		// Mock CheckBridgeLogin.

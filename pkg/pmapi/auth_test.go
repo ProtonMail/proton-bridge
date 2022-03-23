@@ -196,7 +196,14 @@ func Test401ExpiredAuthUpdateUser(t *testing.T) {
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		if err := json.NewEncoder(w).Encode(testAddressList); err != nil {
+		respObj := struct {
+			Code      int
+			Addresses []*Address
+		}{
+			Code:      1000,
+			Addresses: []*Address{},
+		}
+		if err := json.NewEncoder(w).Encode(respObj); err != nil {
 			panic(err)
 		}
 	})

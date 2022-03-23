@@ -37,7 +37,6 @@ import (
 	pmapimocks "github.com/ProtonMail/proton-bridge/pkg/pmapi/mocks"
 	tests "github.com/ProtonMail/proton-bridge/test"
 	gomock "github.com/golang/mock/gomock"
-	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	r "github.com/stretchr/testify/require"
 )
@@ -331,7 +330,7 @@ func mockInitDisconnectedUser(m mocks) {
 		m.pmapiClient.EXPECT().AddAuthRefreshHandler(gomock.Any()),
 
 		// Mock of store initialisation for the unauthorized user.
-		m.pmapiClient.EXPECT().ListLabels(gomock.Any()).Return(nil, errors.New("ErrUnauthorized")),
+		m.pmapiClient.EXPECT().ListLabels(gomock.Any()).Return(nil, pmapi.ErrUnauthorized),
 		m.pmapiClient.EXPECT().Addresses().Return(nil),
 	)
 }
