@@ -2,7 +2,25 @@
 
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
-## [Bridge 2.1.0] London
+## [Bridge 2.1.2] London
+
+## Added
+* GODT-1522: Rebuild macOS keychain notification.
+* GODT-1437 Add new proxy provider (Quad9 with port).
+* GODT-1516: Return notification on missing keychain.
+
+## Changed
+* GODT-1451: Do not check for gnome keyring to allow other implementations of secret-service API. Thanks to @remgodow.
+* GODT-1516 GODT-1451: KeepassXC is crashing on start. We need to block it until it's fixed.
+
+## Fixed
+* GODT-1524: Logout issues with macOS.
+* GODT-1503 GODT-1492: Improve email validation and username in bug report.
+* GODT-1507: Enable autostart after Qt setup.
+* GODT-1515: Do not crash when bridge users got disconnected.
+
+
+## [Bridge 2.1.1] London
 
 ## Added
 * GODT-1376: Add first userID to sentry scope.
