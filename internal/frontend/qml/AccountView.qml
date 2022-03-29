@@ -163,6 +163,7 @@ Item {
                                 if (!splitMode.checked){
                                     root.notifications.askEnableSplitMode(user)
                                 } else {
+                                    addressSelector.currentIndex = 0
                                     root.user.toggleSplitMode(!splitMode.checked)
                                 }
                             }
