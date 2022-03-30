@@ -182,6 +182,7 @@ ApplicationWindow {
         colorScheme: root.colorScheme
         notifications: root.notifications
         mainWindow: root
+        backend: root.backend
     }
 
     function showLocalCacheSettings() { contentWrapper.showLocalCacheSettings() }

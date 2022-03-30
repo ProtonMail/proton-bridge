@@ -166,8 +166,9 @@ QtObject {
     }
 
     property Notification updateManualError: Notification {
-        description: qsTr("Bridge couldn’t update")
-        brief: description
+        title: qsTr("Bridge couldn’t update")
+        brief: title
+        description: qsTr("Please follow manual installation in order to update Bridge.")
         icon: "./icons/ic-exclamation-circle-filled.svg"
         type: Notification.NotificationType.Warning
         group: Notifications.Group.Update
@@ -192,7 +193,7 @@ QtObject {
                 text: qsTr("Remind me later")
 
                 onTriggered: {
-                    root.updateManualReady.active = false
+                    root.updateManualError.active = false
                 }
             }
         ]
@@ -273,7 +274,7 @@ QtObject {
 
                 onTriggered: {
                     root.backend.quit()
-                    root.updateForce.active = false
+                    root.updateForceError.active = false
                 }
             }
         ]

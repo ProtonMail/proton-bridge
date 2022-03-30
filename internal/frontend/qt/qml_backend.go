@@ -81,6 +81,7 @@ type QMLBackend struct {
 	_ func()               `signal:"updateIsLatestVersion"`
 	_ func()               `slot:"checkUpdates"`
 	_ func()               `signal:"checkUpdatesFinished"`
+	_ func()               `slot:"installUpdate"`
 
 	_ bool                                                `property:"isDiskCacheEnabled"`
 	_ core.QUrl                                           `property:"diskCachePath"`
@@ -210,6 +211,13 @@ func (q *QMLBackend) setup(f *FrontendQt) {
 		go func() {
 			defer f.panicHandler.HandlePanic()
 			f.checkUpdatesAndNotify(true)
+		}()
+	})
+
+	q.ConnectInstallUpdate(func() {
+		go func() {
+			defer f.panicHandler.HandlePanic()
+			f.installUpdate()
 		}()
 	})
 

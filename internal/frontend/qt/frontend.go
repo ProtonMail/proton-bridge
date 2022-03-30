@@ -153,7 +153,7 @@ func (f *FrontendQt) NotifySilentUpdateInstalled() {
 }
 
 func (f *FrontendQt) NotifySilentUpdateError(err error) {
-	f.log.WithError(err).Warn("Update failed, asking for manual.")
+	f.log.WithError(err).Warn("In-app update failed, asking for manual.")
 	f.qml.UpdateManualError()
 }
 

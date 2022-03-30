@@ -25,6 +25,7 @@ import Notifications 1.0
 
 Item {
     id: root
+    property var backend
 
     property ColorScheme colorScheme
     property var notifications
@@ -51,8 +52,11 @@ Item {
         notification: root.notifications.updateManualReady
 
         Switch {
+            id:autoUpdate
             colorScheme: root.colorScheme
             text: qsTr("Update automatically in the future")
+            checked: root.backend.isAutomaticUpdateOn
+            onClicked: root.backend.toggleAutomaticUpdate(autoUpdate.checked)
         }
     }
 

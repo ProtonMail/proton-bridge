@@ -133,7 +133,7 @@ QtObject {
                 return Qt.point(_x, _y)
             }
 
-            // fir to the right
+            // fit to the right
             _x = iconRect.right
             if (isInInterval(_x, screenRect.left, screenRect.right - width)) {
                 // position preferebly in the vertical center but bound to the screen rect

@@ -729,6 +729,9 @@ Window {
         console.log("check updates")
     }
     signal checkUpdatesFinished()
+    function installUpdate() {
+        console.log("manuall install update triggered")
+    }
 
 
     property bool   isDiskCacheEnabled: true
@@ -748,7 +751,19 @@ Window {
     property bool isAutomaticUpdateOn : true
     function toggleAutomaticUpdate(makeItActive) {
         console.debug("-> silent updates", makeItActive, root.isAutomaticUpdateOn)
-        root.isAutomaticUpdateOn = makeItActive
+        var callback = function () {
+            root.isAutomaticUpdateOn = makeItActive;
+            console.debug("-> CHANGED silent updates", makeItActive, root.isAutomaticUpdateOn)
+        }
+        atimer.onTriggered.connect(callback)
+        atimer.restart()
+    }
+
+    Timer {
+        id: atimer
+        interval: 2000
+        running: false
+        repeat: false
     }
 
     property bool isAutostartOn : true // Example of settings with loading state

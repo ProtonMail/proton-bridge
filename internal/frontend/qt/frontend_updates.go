@@ -25,6 +25,7 @@ import (
 
 	"github.com/ProtonMail/proton-bridge/internal/config/settings"
 	"github.com/ProtonMail/proton-bridge/internal/updater"
+	"github.com/pkg/errors"
 )
 
 var checkingUpdates = sync.Mutex{}
@@ -62,8 +63,17 @@ func (f *FrontendQt) checkUpdatesAndNotify(isRequestFromUser bool) {
 
 	if !f.updater.CanInstall(f.newVersionInfo) {
 		f.log.Debug("A manual update is required")
-		f.qml.UpdateManualReady(f.newVersionInfo.Version.String())
+		f.qml.UpdateManualError()
 		return
+	}
+
+	if f.settings.GetBool(settings.AutoUpdateKey) {
+		// NOOP will update eventually
+		return
+	}
+
+	if isRequestFromUser {
+		f.qml.UpdateManualReady(f.newVersionInfo.Version.String())
 	}
 }
 
@@ -112,4 +122,27 @@ func (f *FrontendQt) toggleBeta(makeItEnabled bool) {
 
 	// Immediately check the updates to set the correct landing page link.
 	f.checkUpdates()
+}
+
+func (f *FrontendQt) installUpdate() {
+	checkingUpdates.Lock()
+	defer checkingUpdates.Unlock()
+
+	if !f.updater.CanInstall(f.newVersionInfo) {
+		f.log.Warning("Skipping update installation, current version too old")
+		f.qml.UpdateManualError()
+		return
+	}
+
+	if err := f.updater.InstallUpdate(f.newVersionInfo); err != nil {
+		if errors.Cause(err) == updater.ErrDownloadVerify {
+			f.log.WithError(err).Warning("Skipping update installation due to temporary error")
+		} else {
+			f.log.WithError(err).Error("The update couldn't be installed")
+			f.qml.UpdateManualError()
+		}
+		return
+	}
+
+	f.qml.UpdateSilentRestartNeeded()
 }
