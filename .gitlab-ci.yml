@@ -172,7 +172,6 @@ build-darwin-qa:
   extends: .build-darwin-base
   only:
     - web
-    - branches
   script:
     - BUILD_TAGS="build_qa" make build
   artifacts:
