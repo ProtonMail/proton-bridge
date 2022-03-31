@@ -34,7 +34,7 @@ var (
 	wantOutput              = []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
 	testProcessSleep        = 100 // ms
 	runParallelTimeOverhead = 150 // ms
-	windowsCIExtra          = 250 // ms - estimated experimentally
+	windowsCIExtra          = 500 // ms - estimated experimentally
 )
 
 func TestParallel(t *testing.T) {

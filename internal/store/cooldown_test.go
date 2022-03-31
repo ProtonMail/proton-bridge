@@ -127,6 +127,6 @@ func TestCooldownNotSooner(t *testing.T) {
 	assert.True(t, testCooldown.isTooSoon())
 
 	// After given wait time it shouldn't be soon anymore.
-	time.Sleep(waitTime / 2)
+	time.Sleep(waitTime/2 + time.Millisecond)
 	assert.False(t, testCooldown.isTooSoon())
 }

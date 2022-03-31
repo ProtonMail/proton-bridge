@@ -127,18 +127,9 @@ SettingsView {
     }
 
     TextEdit {
-        text: {
-            var address = "bridge@protonmail.com"
-            var mailTo = `<a href="mailto://${address}">${address}</a>`
-            return "<style>a:link { color: " + root.colorScheme.interaction_norm + "; }</style>" +qsTr(
-                "These reports are not end-to-end encrypted. In case of sensitive information, contact us at %1."
-            ).arg(mailTo)
-        }
-        onLinkActivated: Qt.openUrlExternally(link)
-        textFormat: Text.RichText
+        text: qsTr("Reports are not end-to-end encrypted, please do not send any sensitive information.")
 
         readOnly: true
-
 
         Layout.fillWidth: true
         color: root.colorScheme.text_weak
