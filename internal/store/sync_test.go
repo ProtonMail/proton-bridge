@@ -1,19 +1,19 @@
-// Copyright (c) 2022 Proton Technologies AG
+// Copyright (c) 2022 Proton AG
 //
-// This file is part of ProtonMail Bridge.
+// This file is part of Proton Mail Bridge.
 //
-// ProtonMail Bridge is free software: you can redistribute it and/or modify
+// Proton Mail Bridge is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// ProtonMail Bridge is distributed in the hope that it will be useful,
+// Proton Mail Bridge is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
+// along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 package store
 
@@ -154,7 +154,7 @@ func generateIDsR(start, stop int) []string {
 
 // Tests
 
-func TestSyncAllMail(t *testing.T) { //nolint[funlen]
+func TestSyncAllMail(t *testing.T) { //nolint:funlen
 	m, clear := initMocks(t)
 	defer clear()
 
@@ -269,7 +269,7 @@ func TestSyncAllMail_FailedCreateOrUpdateMessage(t *testing.T) {
 	require.EqualError(t, err, "failed to sync group: failed to create or update messages: error")
 }
 
-func TestFindIDRanges(t *testing.T) { //nolint[funlen]
+func TestFindIDRanges(t *testing.T) { //nolint:funlen
 	store := newSyncer()
 	syncState := newTestSyncState(store)
 
@@ -374,7 +374,7 @@ func TestFindIDRanges_FailedListing(t *testing.T) {
 	require.EqualError(t, err, "failed to get first ID and count: failed to list messages: error")
 }
 
-func TestGetSplitIDAndCount(t *testing.T) { //nolint[funlen]
+func TestGetSplitIDAndCount(t *testing.T) { //nolint:funlen
 	tests := []struct {
 		name       string
 		err        error
@@ -520,7 +520,7 @@ func TestSyncBatch_FailedCreateOrUpdateMessage(t *testing.T) {
 	require.EqualError(t, err, "failed to create or update messages: error")
 }
 
-func testSyncBatch(t *testing.T, store storeSynchronizer, api messageLister, rangeIdx int, splitIDs ...string) error { //nolint[unparam]
+func testSyncBatch(t *testing.T, store storeSynchronizer, api messageLister, rangeIdx int, splitIDs ...string) error { //nolint:unparam
 	syncState := newTestSyncState(store, splitIDs...)
 	idRange := syncState.idRanges[rangeIdx]
 	shouldStop := 0

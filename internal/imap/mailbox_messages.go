@@ -1,19 +1,19 @@
-// Copyright (c) 2022 Proton Technologies AG
+// Copyright (c) 2022 Proton AG
 //
-// This file is part of ProtonMail Bridge.
+// This file is part of Proton Mail Bridge.
 //
-// ProtonMail Bridge is free software: you can redistribute it and/or modify
+// Proton Mail Bridge is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// ProtonMail Bridge is distributed in the hope that it will be useful,
+// Proton Mail Bridge is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
+// along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 package imap
 
@@ -70,7 +70,7 @@ func (im *imapMailbox) updateMessagesFlags(uid bool, seqSet *imap.SeqSet, operat
 // to set flags passed as an argument and unset the rest. For example,
 // if message is not read, is flagged and is not deleted, call FLAGS \Seen
 // should flag message as read, unflagged and keep undeleted.
-func (im *imapMailbox) setFlags(messageIDs, flags []string) error { //nolint
+func (im *imapMailbox) setFlags(messageIDs, flags []string) error { //nolint:funlen
 	seen := false
 	flagged := false
 	deleted := false
@@ -137,7 +137,7 @@ func (im *imapMailbox) setFlags(messageIDs, flags []string) error { //nolint
 	return nil
 }
 
-func (im *imapMailbox) addOrRemoveFlags(operation imap.FlagsOp, messageIDs, flags []string) error { //nolint[funlen]
+func (im *imapMailbox) addOrRemoveFlags(operation imap.FlagsOp, messageIDs, flags []string) error { //nolint:funlen
 	for _, f := range flags {
 		// Adding flag 'nojunk' is equivalent to removing flag 'junk'
 		if (operation == imap.AddFlags) && (f == "nojunk") {
@@ -147,7 +147,7 @@ func (im *imapMailbox) addOrRemoveFlags(operation imap.FlagsOp, messageIDs, flag
 
 		switch f {
 		case imap.SeenFlag:
-			switch operation { //nolint[exhaustive] imap.SetFlags is processed by im.setFlags
+			switch operation { //nolint:exhaustive // imap.SetFlags is processed by im.setFlags
 			case imap.AddFlags:
 				if err := im.storeMailbox.MarkMessagesRead(messageIDs); err != nil {
 					return err
@@ -158,7 +158,7 @@ func (im *imapMailbox) addOrRemoveFlags(operation imap.FlagsOp, messageIDs, flag
 				}
 			}
 		case imap.FlaggedFlag:
-			switch operation { //nolint[exhaustive] imap.SetFlag is processed by im.setFlags
+			switch operation { //nolint:exhaustive // imap.SetFlag is processed by im.setFlags
 			case imap.AddFlags:
 				if err := im.storeMailbox.MarkMessagesStarred(messageIDs); err != nil {
 					return err
@@ -169,7 +169,7 @@ func (im *imapMailbox) addOrRemoveFlags(operation imap.FlagsOp, messageIDs, flag
 				}
 			}
 		case imap.DeletedFlag:
-			switch operation { //nolint[exhaustive] imap.SetFlag is processed by im.setFlags
+			switch operation { //nolint:exhaustive // imap.SetFlag is processed by im.setFlags
 			case imap.AddFlags:
 				if err := im.storeMailbox.MarkMessagesDeleted(messageIDs); err != nil {
 					return err
@@ -187,7 +187,7 @@ func (im *imapMailbox) addOrRemoveFlags(operation imap.FlagsOp, messageIDs, flag
 				return err
 			}
 			// Handle custom junk flags for Apple Mail and Thunderbird.
-			switch operation { //nolint[exhaustive] imap.SetFlag is processed by im.setFlags
+			switch operation { //nolint:exhaustive // imap.SetFlag is processed by im.setFlags
 			// No label removal is necessary because Spam and Inbox are both exclusive labels so the backend
 			// will automatically take care of label removal.
 			case imap.AddFlags:
@@ -257,7 +257,7 @@ func (im *imapMailbox) moveMessages(uid bool, seqSet *imap.SeqSet, targetLabel s
 	return im.labelMessages(uid, seqSet, targetLabel, true)
 }
 
-func (im *imapMailbox) labelMessages(uid bool, seqSet *imap.SeqSet, targetLabel string, move bool) error { //nolint[funlen]
+func (im *imapMailbox) labelMessages(uid bool, seqSet *imap.SeqSet, targetLabel string, move bool) error { //nolint:funlen
 	messageIDs, err := im.apiIDsFromSeqSet(uid, seqSet)
 	if err != nil || len(messageIDs) == 0 {
 		return err
@@ -332,7 +332,7 @@ func (im *imapMailbox) labelMessages(uid bool, seqSet *imap.SeqSet, targetLabel 
 
 // SearchMessages searches messages. The returned list must contain UIDs if
 // uid is set to true, or sequence numbers otherwise.
-func (im *imapMailbox) SearchMessages(isUID bool, criteria *imap.SearchCriteria) (ids []uint32, err error) { //nolint[gocyclo]
+func (im *imapMailbox) SearchMessages(isUID bool, criteria *imap.SearchCriteria) (ids []uint32, err error) { //nolint:gocyclo,funlen
 	// Called from go-imap in goroutines - we need to handle panics for each function.
 	defer im.panicHandler.HandlePanic()
 
@@ -524,7 +524,7 @@ func (im *imapMailbox) ListMessages(isUID bool, seqSet *imap.SeqSet, items []ima
 	}, "FETCH", isUID, seqSet, items)
 }
 
-func (im *imapMailbox) listMessages(isUID bool, seqSet *imap.SeqSet, items []imap.FetchItem, msgResponse chan<- *imap.Message) (err error) { //nolint[funlen]
+func (im *imapMailbox) listMessages(isUID bool, seqSet *imap.SeqSet, items []imap.FetchItem, msgResponse chan<- *imap.Message) (err error) { //nolint:funlen
 	defer func() {
 		close(msgResponse)
 		if err != nil {
@@ -560,7 +560,7 @@ func (im *imapMailbox) listMessages(isUID bool, seqSet *imap.SeqSet, items []ima
 	}
 
 	processCallback := func(value interface{}) (interface{}, error) {
-		apiID := value.(string) //nolint[forcetypeassert] we want to panic here
+		apiID := value.(string) //nolint:forcetypeassert // we want to panic here
 
 		storeMessage, err := im.storeMailbox.GetMessage(apiID)
 		if err != nil {
@@ -594,7 +594,7 @@ func (im *imapMailbox) listMessages(isUID bool, seqSet *imap.SeqSet, items []ima
 	}
 
 	collectCallback := func(idx int, value interface{}) error {
-		msg := value.(*imap.Message) //nolint[forcetypeassert] we want to panic here
+		msg := value.(*imap.Message) //nolint:forcetypeassert // we want to panic here
 		msgResponse <- msg
 		return nil
 	}

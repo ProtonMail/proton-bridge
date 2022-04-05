@@ -1,19 +1,19 @@
-// Copyright (c) 2022 Proton Technologies AG
+// Copyright (c) 2022 Proton AG
 //
-// This file is part of ProtonMail Bridge.
+// This file is part of Proton Mail Bridge.
 //
-// ProtonMail Bridge is free software: you can redistribute it and/or modify
+// Proton Mail Bridge is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// ProtonMail Bridge is distributed in the hope that it will be useful,
+// Proton Mail Bridge is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
+// along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 package pmapi
 
@@ -150,7 +150,7 @@ const InternalIDDomain = `protonmail.internalid`
 
 // RxInternalReferenceFormat is compiled regexp which describes the match for
 // a message ID used in reference headers.
-var RxInternalReferenceFormat = regexp.MustCompile(`(?U)<(.+)@` + regexp.QuoteMeta(InternalIDDomain) + `>`) //nolint[gochecknoglobals]
+var RxInternalReferenceFormat = regexp.MustCompile(`(?U)<(.+)@` + regexp.QuoteMeta(InternalIDDomain) + `>`) //nolint:gochecknoglobals
 
 // Message structure.
 type Message struct {
@@ -460,7 +460,7 @@ type MessagesFilter struct {
 	AutoWildcard   *bool
 }
 
-func (filter *MessagesFilter) urlValues() url.Values { // nolint[funlen]
+func (filter *MessagesFilter) urlValues() url.Values { //nolint:funlen
 	v := url.Values{}
 
 	if filter.Page != 0 {

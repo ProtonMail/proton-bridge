@@ -1,19 +1,19 @@
-// Copyright (c) 2022 Proton Technologies AG
+// Copyright (c) 2022 Proton AG
 //
-// This file is part of ProtonMail Bridge.
+// This file is part of Proton Mail Bridge.
 //
-// ProtonMail Bridge is free software: you can redistribute it and/or modify
+// Proton Mail Bridge is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// ProtonMail Bridge is distributed in the hope that it will be useful,
+// Proton Mail Bridge is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
+// along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 // Package store communicates with API and caches metadata in a local database.
 package store
@@ -51,7 +51,7 @@ const (
 )
 
 var (
-	log = logrus.WithField("pkg", "store") //nolint[gochecknoglobals]
+	log = logrus.WithField("pkg", "store") //nolint:gochecknoglobals
 
 	// Database structure:
 	// * metadata
@@ -84,27 +84,27 @@ var (
 	//       * {messageID} -> uint32 imapUID
 	//     * deleted_ids (can be missing or have no keys)
 	//       * {messageID} -> true
-	metadataBucket        = []byte("metadata")          //nolint[gochecknoglobals]
-	headersBucket         = []byte("headers")           //nolint[gochecknoglobals]
-	bodystructureBucket   = []byte("bodystructure")     //nolint[gochecknoglobals]
-	sizeBucket            = []byte("size")              //nolint[gochecknoglobals]
-	countsBucket          = []byte("counts")            //nolint[gochecknoglobals]
-	addressInfoBucket     = []byte("address_info")      //nolint[gochecknoglobals]
-	addressModeBucket     = []byte("address_mode")      //nolint[gochecknoglobals]
-	cachePassphraseBucket = []byte("cache_passphrase")  //nolint[gochecknoglobals]
-	syncStateBucket       = []byte("sync_state")        //nolint[gochecknoglobals]
-	mailboxesBucket       = []byte("mailboxes")         //nolint[gochecknoglobals]
-	imapIDsBucket         = []byte("imap_ids")          //nolint[gochecknoglobals]
-	apiIDsBucket          = []byte("api_ids")           //nolint[gochecknoglobals]
-	deletedIDsBucket      = []byte("deleted_ids")       //nolint[gochecknoglobals]
-	mboxVersionBucket     = []byte("mailboxes_version") //nolint[gochecknoglobals]
+	metadataBucket        = []byte("metadata")          //nolint:gochecknoglobals
+	headersBucket         = []byte("headers")           //nolint:gochecknoglobals
+	bodystructureBucket   = []byte("bodystructure")     //nolint:gochecknoglobals
+	sizeBucket            = []byte("size")              //nolint:gochecknoglobals
+	countsBucket          = []byte("counts")            //nolint:gochecknoglobals
+	addressInfoBucket     = []byte("address_info")      //nolint:gochecknoglobals
+	addressModeBucket     = []byte("address_mode")      //nolint:gochecknoglobals
+	cachePassphraseBucket = []byte("cache_passphrase")  //nolint:gochecknoglobals
+	syncStateBucket       = []byte("sync_state")        //nolint:gochecknoglobals
+	mailboxesBucket       = []byte("mailboxes")         //nolint:gochecknoglobals
+	imapIDsBucket         = []byte("imap_ids")          //nolint:gochecknoglobals
+	apiIDsBucket          = []byte("api_ids")           //nolint:gochecknoglobals
+	deletedIDsBucket      = []byte("deleted_ids")       //nolint:gochecknoglobals
+	mboxVersionBucket     = []byte("mailboxes_version") //nolint:gochecknoglobals
 
 	// ErrNoSuchAPIID when mailbox does not have API ID.
-	ErrNoSuchAPIID = errors.New("no such api id") //nolint[gochecknoglobals]
+	ErrNoSuchAPIID = errors.New("no such api id") //nolint:gochecknoglobals
 	// ErrNoSuchUID when mailbox does not have IMAP UID.
-	ErrNoSuchUID = errors.New("no such uid") //nolint[gochecknoglobals]
+	ErrNoSuchUID = errors.New("no such uid") //nolint:gochecknoglobals
 	// ErrNoSuchSeqNum when mailbox does not have IMAP ID.
-	ErrNoSuchSeqNum = errors.New("no such sequence number") //nolint[gochecknoglobals]
+	ErrNoSuchSeqNum = errors.New("no such sequence number") //nolint:gochecknoglobals
 )
 
 // exposeContextForIMAP should be replaced once with context passed
@@ -146,7 +146,7 @@ type Store struct {
 }
 
 // New creates or opens a store for the given `user`.
-func New( // nolint[funlen]
+func New( //nolint:funlen
 	sentryReporter *sentry.Reporter,
 	panicHandler PanicHandler,
 	user BridgeUser,

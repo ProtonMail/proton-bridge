@@ -51,7 +51,7 @@ PMAPI directly.
 graph TD
 
     C["Client (e.g. Thunderbird)"]
-    PM[ProtonMail Server]
+    PM[Proton Mail Server]
 
     subgraph "Bridge app"
         subgraph "Bridge core"

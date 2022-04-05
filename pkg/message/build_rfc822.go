@@ -1,19 +1,19 @@
-// Copyright (c) 2022 Proton Technologies AG
+// Copyright (c) 2022 Proton AG
 //
-// This file is part of ProtonMail Bridge.
+// This file is part of Proton Mail Bridge.
 //
-// ProtonMail Bridge is free software: you can redistribute it and/or modify
+// Proton Mail Bridge is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// ProtonMail Bridge is distributed in the hope that it will be useful,
+// Proton Mail Bridge is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
+// along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 package message
 
@@ -277,7 +277,7 @@ func buildPGPMIMEFallbackRFC822(msg *pmapi.Message, opts JobOptions) ([]byte, er
 	return buf.Bytes(), nil
 }
 
-func writeMultipartSignedRFC822(header message.Header, body []byte, sig pmapi.Signature) ([]byte, error) { //nolint[funlen]
+func writeMultipartSignedRFC822(header message.Header, body []byte, sig pmapi.Signature) ([]byte, error) { //nolint:funlen
 	buf := new(bytes.Buffer)
 
 	boundary := newBoundary("").gen()
@@ -370,7 +370,7 @@ func writeMultipartEncryptedRFC822(header message.Header, body []byte) ([]byte, 
 	return buf.Bytes(), nil
 }
 
-func getMessageHeader(msg *pmapi.Message, opts JobOptions) message.Header { // nolint[funlen]
+func getMessageHeader(msg *pmapi.Message, opts JobOptions) message.Header { //nolint:funlen
 	hdr := toMessageHeader(msg.Header)
 
 	// SetText will RFC2047-encode.

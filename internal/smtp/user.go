@@ -1,21 +1,22 @@
-// Copyright (c) 2022 Proton Technologies AG
+// Copyright (c) 2022 Proton AG
 //
-// This file is part of ProtonMail Bridge.
+// This file is part of Proton Mail Bridge.
 //
-// ProtonMail Bridge is free software: you can redistribute it and/or modify
+// Proton Mail Bridge is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// ProtonMail Bridge is distributed in the hope that it will be useful,
+// Proton Mail Bridge is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
+// along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
-// NOTE: Comments in this file refer to a specification in a document called "ProtonMail Encryption logic". It will be referred to via abbreviation PMEL.
+// NOTE: Comments in this file refer to a specification in a document called
+// "Proton Mail Encryption logic". It will be referred to via abbreviation PMEL.
 
 package smtp
 
@@ -211,7 +212,7 @@ func (su *smtpUser) Data(r io.Reader) error {
 }
 
 // Send sends an email from the given address to the given addresses with the given body.
-func (su *smtpUser) Send(returnPath string, to []string, messageReader io.Reader) (err error) { //nolint[funlen]
+func (su *smtpUser) Send(returnPath string, to []string, messageReader io.Reader) (err error) { //nolint:funlen,gocyclo
 	// Called from go-smtp in goroutines - we need to handle panics for each function.
 	defer su.panicHandler.HandlePanic()
 

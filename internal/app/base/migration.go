@@ -1,28 +1,33 @@
-// Copyright (c) 2022 Proton Technologies AG
+// Copyright (c) 2022 Proton AG
 //
-// This file is part of ProtonMail Bridge.
+// This file is part of Proton Mail Bridge.
 //
-// ProtonMail Bridge is free software: you can redistribute it and/or modify
+// Proton Mail Bridge is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// ProtonMail Bridge is distributed in the hope that it will be useful,
+// Proton Mail Bridge is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
+// along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 package base
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
+	"runtime"
 
+	"github.com/Masterminds/semver/v3"
+	"github.com/ProtonMail/proton-bridge/internal/config/settings"
 	"github.com/ProtonMail/proton-bridge/internal/constants"
 	"github.com/ProtonMail/proton-bridge/internal/locations"
+	"github.com/ProtonMail/proton-bridge/pkg/keychain"
 	"github.com/sirupsen/logrus"
 )
 
@@ -50,7 +55,7 @@ func migrateFiles(configName string) error {
 	if err := migrateCacheFromBoth15xAnd16x(locations, userCacheDir); err != nil {
 		return err
 	}
-	if err := migrateUpdatesFrom16x(configName, locations); err != nil { //nolint[revive] It is more clear to structure this way
+	if err := migrateUpdatesFrom16x(configName, locations); err != nil { //nolint:revive It is more clear to structure this way
 		return err
 	}
 	return nil
@@ -105,6 +110,122 @@ func migrateUpdatesFrom16x(configName string, locations *locations.Locations) er
 	newUpdatesPath := locations.GetUpdatesPath()
 
 	return moveIfExists(oldUpdatesPath, newUpdatesPath)
+}
+
+// migrateMacKeychainBefore220 deals with write access restriction to mac
+// keychain passwords which are caused by application renaming. The old
+// passwords are copied under new name in order to have write access afer
+// renaming.
+func migrateMacKeychainBefore220(settingsObj *settings.Settings, keychainName string) error {
+	l := logrus.WithField("pkg", "app/base/migration")
+	if runtime.GOOS != "darwin" {
+		return nil
+	}
+
+	if shouldContinue, err := isBefore220(settingsObj); !shouldContinue || err != nil {
+		return err
+	}
+
+	l.Warn("Migrating mac keychain")
+
+	helperConstructor, ok := keychain.Helpers["macos-keychain"]
+	if !ok {
+		return errors.New("cannot find macos-keychain helper")
+	}
+
+	oldKC, err := helperConstructor("ProtonMailBridgeService")
+	if err != nil {
+		l.WithError(err).Error("Keychain constructor failed")
+		return err
+	}
+
+	idByURL, err := oldKC.List()
+	if err != nil {
+		l.WithError(err).Error("List old keychain failed")
+		return err
+	}
+
+	newKC, err := keychain.NewKeychain(settingsObj, keychainName)
+	if err != nil {
+		return err
+	}
+
+	for url, id := range idByURL {
+		li := l.WithField("id", id).WithField("url", url)
+		userID, secret, err := oldKC.Get(url)
+		if err != nil {
+			li.WithField("userID", userID).
+				WithField("err", err).
+				Error("Faild to get old item")
+			continue
+		}
+
+		if _, _, err := newKC.Get(userID); err == nil {
+			li.Warn("Skipping migration, item already exists.")
+			continue
+		}
+
+		if err := newKC.Put(userID, secret); err != nil {
+			li.WithError(err).Error("Failed to migrate user")
+		}
+
+		li.Info("Item migrated")
+	}
+
+	return nil
+}
+
+// migrateStartup220 removes old startup links. The creation of new links is
+// handled by bridge initialisation.
+func migrateStartup220(settingsObj *settings.Settings) error {
+	if shouldContinue, err := isBefore220(settingsObj); !shouldContinue || err != nil {
+		return err
+	}
+
+	logrus.WithField("pkg", "app/base/migration").Warn("Migrating autostartup links")
+
+	path, err := os.UserHomeDir()
+	if err != nil {
+		return err
+	}
+
+	switch runtime.GOOS {
+	case "windows":
+		path = filepath.Join(path, `AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup\ProtonMail Bridge.lnk`)
+	case "linux":
+		path = filepath.Join(path, `.config/autostart/ProtonMail Bridge.desktop`)
+	case "darwin":
+		path = filepath.Join(path, `Library/LaunchAgents/ProtonMail Bridge.plist`)
+	default:
+		return errors.New("unknown GOOS")
+	}
+
+	return os.Remove(path)
+}
+
+// isBefore220 decide if last used version was older than 2.2.0. If cannot decide it returns false with error.
+func isBefore220(settingsObj *settings.Settings) (bool, error) {
+	lastUsedVersion := settingsObj.Get(settings.LastVersionKey)
+
+	// Skipping migration: it is first bridge start or cache was cleared.
+	if lastUsedVersion == "" {
+		return false, nil
+	}
+
+	v220 := semver.MustParse("2.2.0")
+	lastVer, err := semver.NewVersion(lastUsedVersion)
+
+	// Skipping migration: Should not happen but cannot decide what to do.
+	if err != nil {
+		return false, err
+	}
+
+	// Skipping migration: 2.2.0>= was already used hence old stuff was already migrated.
+	if !lastVer.LessThan(v220) {
+		return false, nil
+	}
+
+	return true, nil
 }
 
 func moveIfExists(source, destination string) error {

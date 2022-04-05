@@ -1,19 +1,19 @@
-// Copyright (c) 2022 Proton Technologies AG
+// Copyright (c) 2022 Proton AG
 //
-// This file is part of ProtonMail Bridge.
+// This file is part of Proton Mail Bridge.
 //
-// ProtonMail Bridge is free software: you can redistribute it and/or modify
+// Proton Mail Bridge is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// ProtonMail Bridge is distributed in the hope that it will be useful,
+// Proton Mail Bridge is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
+// along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 // Package base implements a common application base currently shared by bridge and IE.
 // The base includes the following:
@@ -102,7 +102,7 @@ type Base struct {
 	teardown []func() error // actions to perform when app is exiting
 }
 
-func New( // nolint[funlen]
+func New( //nolint:funlen
 	appName,
 	appUsage,
 	configName,
@@ -157,6 +157,14 @@ func New( // nolint[funlen]
 	if err != nil {
 		logrus.Warnf("%v is already running", appName)
 		return nil, api.CheckOtherInstanceAndFocus(settingsObj.GetInt(settings.APIPortKey))
+	}
+
+	if err := migrateMacKeychainBefore220(settingsObj, keychainName); err != nil {
+		logrus.WithError(err).Warn("Keychain migration failed")
+	}
+
+	if err := migrateStartup220(settingsObj); err != nil {
+		logrus.WithError(err).Warn("Failed to remove old startup paths")
 	}
 
 	cachePath, err := locations.ProvideCachePath()
@@ -324,7 +332,7 @@ func (b *Base) AddTeardownAction(fn func() error) {
 	b.teardown = append(b.teardown, fn)
 }
 
-func (b *Base) wrapMainLoop(appMainLoop func(*Base, *cli.Context) error) cli.ActionFunc { // nolint[funlen]
+func (b *Base) wrapMainLoop(appMainLoop func(*Base, *cli.Context) error) cli.ActionFunc { //nolint:funlen
 	return func(c *cli.Context) error {
 		defer b.CrashHandler.HandlePanic()
 		defer func() { _ = b.Lock.Close() }()

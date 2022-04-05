@@ -1,19 +1,19 @@
-// Copyright (c) 2022 Proton Technologies AG
+// Copyright (c) 2022 Proton AG
 //
-// This file is part of ProtonMail Bridge.Bridge.
+// This file is part of Proton Mail Bridge.Bridge.
 //
-// ProtonMail Bridge is free software: you can redistribute it and/or modify
+// Proton Mail Bridge is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// ProtonMail Bridge is distributed in the hope that it will be useful,
+// Proton Mail Bridge is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
+// along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 package fakeapi
 
@@ -207,7 +207,7 @@ func (api *FakePMAPI) Import(_ context.Context, importMessageRequests pmapi.Impo
 }
 
 func (api *FakePMAPI) generateMessageFromImportRequest(msgReq *pmapi.ImportMsgReq) (*pmapi.Message, error) {
-	m, _, _, _, err := message.Parse(bytes.NewReader(msgReq.Message)) // nolint[dogsled]
+	m, _, _, _, err := message.Parse(bytes.NewReader(msgReq.Message)) //nolint:dogsled
 	if err != nil {
 		return nil, err
 	}
@@ -418,7 +418,7 @@ func (api *FakePMAPI) MarkMessagesUnread(_ context.Context, apiIDs []string) err
 	return nil
 }
 
-func (api *FakePMAPI) updateMessages(method method, path string, request interface{}, apiIDs []string, updateCallback func(*pmapi.Message) error) error { //nolint[unparam]
+func (api *FakePMAPI) updateMessages(method method, path string, request interface{}, apiIDs []string, updateCallback func(*pmapi.Message) error) error { //nolint:unparam
 	if err := api.checkAndRecordCall(method, path, request); err != nil {
 		return err
 	}
