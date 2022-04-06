@@ -85,7 +85,7 @@ hasher:
 
 ${TGZ_TARGET}: ${DEPLOY_DIR}/${TARGET_OS}
 	rm -f $@
-	cd ${DEPLOY_DIR}/${TARGET_OS} && tar -czf ../../../../$@ .
+	cd ${DEPLOY_DIR}/${TARGET_OS} && tar -czvf ../../../../$@ .
 
 ${DEPLOY_DIR}/linux: ${EXE_TARGET}
 	cp -pf ./internal/frontend/share/${SRC_SVG} ${DEPLOY_DIR}/linux/logo.svg
