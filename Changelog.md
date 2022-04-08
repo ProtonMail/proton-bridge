@@ -2,6 +2,18 @@
 
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
+## [Bridge 2.1.3] London
+
+## Added
+GODT-1525: Add keybase/go-keychain/secretservice as new keychain helper.
+
+## Changed
+GODT-1527: Change bug report description.
+
+## Fixed
+GODT-1537: Manual in-app update mechanism.
+
+
 ## [Bridge 2.1.2] London
 
 ## Added

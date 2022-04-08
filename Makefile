@@ -10,7 +10,7 @@ TARGET_OS?=${GOOS}
 .PHONY: build build-nogui build-launcher versioner hasher
 
 # Keep version hardcoded so app build works also without Git repository.
-BRIDGE_APP_VERSION?=2.1.2+git
+BRIDGE_APP_VERSION?=2.1.3+git
 APP_VERSION:=${BRIDGE_APP_VERSION}
 SRC_ICO:=logo.ico
 SRC_ICNS:=Bridge.icns
