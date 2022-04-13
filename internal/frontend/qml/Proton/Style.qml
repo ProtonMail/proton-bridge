@@ -106,6 +106,7 @@ QtObject {
 
         // Images
         welcome_img: "icons/img-welcome.png"
+        logo_img: "icons/product_logos.svg"
     }
 
     property ColorScheme lightProminentStyle: ColorScheme {
@@ -180,6 +181,7 @@ QtObject {
 
         // Images
         welcome_img: "icons/img-welcome-dark.png"
+        logo_img:    "icons/product_logos_dark.svg"
     }
 
     property ColorScheme darkStyle: ColorScheme {
@@ -254,6 +256,7 @@ QtObject {
 
         // Images
         welcome_img: "icons/img-welcome-dark.png"
+        logo_img:    "icons/product_logos_dark.svg"
     }
 
     property ColorScheme darkProminentStyle: ColorScheme {
@@ -328,6 +331,7 @@ QtObject {
 
         // Images
         welcome_img: "icons/img-welcome-dark.png"
+        logo_img:    "icons/product_logos_dark.svg"
     }
 
     property ColorScheme currentStyle: lightStyle

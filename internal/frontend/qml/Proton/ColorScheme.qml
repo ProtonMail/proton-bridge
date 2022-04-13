@@ -88,4 +88,5 @@ QtObject {
 
     // Images
     property string welcome_img
+    property string logo_img
 }

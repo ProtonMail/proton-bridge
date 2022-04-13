@@ -102,7 +102,7 @@ Item {
                     Label {
                         colorScheme: root.colorScheme
                         id: longTextLabel
-                        text: qsTr("Now you can securely access and manage Proton Mail messages in your favorite email client. Bridge runs in the background and encrypts and decrypts your messages seamlessly.")
+                        text: qsTr("Add your Proton Mail account to securely access and manage your messages in your favorite email client. Bridge runs in the background and encrypts and decrypts your messages seamlessly.")
                         Layout.alignment: Qt.AlignHCenter
                         Layout.fillWidth: true
                         Layout.topMargin: 16
@@ -135,14 +135,14 @@ Item {
 
                     Image {
                         id: logoImage
-                        source: "icons/product_logos.svg"
+                        source: colorScheme.logo_img
 
                         anchors.horizontalCenter: parent.horizontalCenter
                         anchors.bottom: parent.bottom
                         anchors.topMargin: 48
                         anchors.bottomMargin: 48
-                        sourceSize.height: 22
-                        sourceSize.width: 132
+                        sourceSize.height: 25
+                        sourceSize.width: 200
                     }
                 }
             }

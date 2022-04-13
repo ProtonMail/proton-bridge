@@ -262,7 +262,7 @@ Window {
 
 
         // add one user on start
-        var hasUserOnStart = true
+        var hasUserOnStart = false
         if (hasUserOnStart) {
             var newUserObject = root.userComponent.createObject(root)
             newUserObject.username = "LerooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooyJenkins@protonmail.com"
