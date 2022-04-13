@@ -100,8 +100,13 @@ QtObject {
     // Updates
     property Notification updateManualReady: Notification {
         title: qsTr("Update to Bridge %1").arg(data ? data.version : "")
-        description: qsTr("A new version of ProtonMail Bridge is available. See what's changed.")
-        brief: qsTr("Update available. (See what's new.)")
+        description:  {
+            var descr = qsTr("A new version of ProtonMail Bridge is available.")
+            var text = qsTr("See what's changed.")
+            var link = root.backend.releaseNotesLink
+            return `${descr} <a href="${link}">${text}</a>`
+        }
+        brief: qsTr("Update available.")
         icon: "./icons/ic-info-circle-filled.svg"
         type: Notification.NotificationType.Info
         group: Notifications.Group.Update | Notifications.Group.Dialogs
@@ -834,10 +839,10 @@ QtObject {
     }
 
     property Notification deleteAccount: Notification {
-        title: qsTr("Delete this account?")
+        title: qsTr("Remove this account?")
         brief: title
         icon: "./icons/ic-exclamation-circle-filled.svg"
-        description: qsTr("Are you sure you want to delete this account and all the stored preferences and other data associated with it?")
+        description: qsTr("Are you sure you want to remove this account from Bridge and delete locally stored preferences and data?")
         type: Notification.NotificationType.Danger
         group: Notifications.Group.Configuration | Notifications.Group.Dialogs
 
@@ -861,7 +866,7 @@ QtObject {
             },
             Action {
                 id: deleteAccount_delete
-                text: qsTr("Delete this account")
+                text: qsTr("Remove this account")
                 onTriggered: {
                     root.deleteAccount.user.remove()
                     root.deleteAccount.active = false
