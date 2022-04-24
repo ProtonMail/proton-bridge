@@ -17,10 +17,10 @@
 
 package tls
 
-import "os/exec"
+import "golang.org/x/sys/execabs"
 
 func addTrustedCert(certPath string) error {
-	return exec.Command( //nolint:gosec
+	return execabs.Command( //nolint:gosec
 		"/usr/bin/security",
 		"execute-with-privileges",
 		"/usr/bin/security",
@@ -34,7 +34,7 @@ func addTrustedCert(certPath string) error {
 }
 
 func removeTrustedCert(certPath string) error {
-	return exec.Command( //nolint:gosec
+	return execabs.Command( //nolint:gosec
 		"/usr/bin/security",
 		"execute-with-privileges",
 		"/usr/bin/security",

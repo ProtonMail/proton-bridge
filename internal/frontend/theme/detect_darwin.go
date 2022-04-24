@@ -21,12 +21,13 @@
 package theme
 
 import (
-	"os/exec"
 	"strings"
+
+	"golang.org/x/sys/execabs"
 )
 
 func detectSystemTheme() Theme {
-	out, err := exec.Command("defaults", "read", "-g", "AppleInterfaceStyle").Output() //nolint:gosec
+	out, err := execabs.Command("defaults", "read", "-g", "AppleInterfaceStyle").Output() //nolint:gosec
 	if err == nil && strings.TrimSpace(string(out)) == "Dark" {
 		return Dark
 	}
