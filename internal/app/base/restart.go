@@ -19,10 +19,10 @@ package base
 
 import (
 	"os"
-	"os/exec"
 	"strconv"
 
 	"github.com/sirupsen/logrus"
+	"golang.org/x/sys/execabs"
 )
 
 // maxAllowedRestarts controls after how many crashes the app will give up restarting.
@@ -43,7 +43,7 @@ func (b *Base) restartApp(crash bool) error {
 		WithField("args", args).
 		Warn("Restarting")
 
-	return exec.Command(b.command, args...).Start() //nolint:gosec
+	return execabs.Command(b.command, args...).Start() //nolint:gosec
 }
 
 // incrementRestartFlag increments the value of the restart flag.

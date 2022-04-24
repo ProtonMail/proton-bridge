@@ -20,12 +20,12 @@ package updater
 import (
 	"io/ioutil"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"testing"
 
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/sys/execabs"
 )
 
 const (
@@ -106,7 +106,7 @@ func checkCopyWorks(srcType, dstType string) error {
 }
 
 func checkThatFilesAreSame(src, dst string) error {
-	cmd := exec.Command("diff", "-qr", src, dst) //nolint:gosec
+	cmd := execabs.Command("diff", "-qr", src, dst) //nolint:gosec
 	cmd.Stderr = logrus.StandardLogger().WriterLevel(logrus.ErrorLevel)
 	cmd.Stdout = logrus.StandardLogger().WriterLevel(logrus.InfoLevel)
 	return cmd.Run()

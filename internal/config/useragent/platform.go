@@ -18,11 +18,11 @@
 package useragent
 
 import (
-	"os/exec"
 	"runtime"
 	"strings"
 
 	"github.com/Masterminds/semver/v3"
+	"golang.org/x/sys/execabs"
 )
 
 // IsCatalinaOrNewer checks whether the host is MacOS Catalina 10.15.x or higher.
@@ -43,7 +43,7 @@ func isThisDarwinNewerOrEqual(minVersion *semver.Version) bool {
 		return false
 	}
 
-	rawVersion, err := exec.Command("sw_vers", "-productVersion").Output()
+	rawVersion, err := execabs.Command("sw_vers", "-productVersion").Output()
 	if err != nil {
 		return false
 	}

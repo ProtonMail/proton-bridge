@@ -18,13 +18,13 @@
 package keychain
 
 import (
-	"os/exec"
 	"reflect"
 
 	"github.com/docker/docker-credential-helpers/credentials"
 	"github.com/docker/docker-credential-helpers/pass"
 	"github.com/docker/docker-credential-helpers/secretservice"
 	"github.com/sirupsen/logrus"
+	"golang.org/x/sys/execabs"
 )
 
 const (
@@ -40,11 +40,11 @@ func init() { //nolint:gochecknoinits
 		Helpers[SecretServiceDBus] = newDBusHelper
 	}
 
-	if _, err := exec.LookPath("gnome-keyring"); err == nil && isUsable(newSecretServiceHelper("")) {
+	if _, err := execabs.LookPath("gnome-keyring"); err == nil && isUsable(newSecretServiceHelper("")) {
 		Helpers[SecretService] = newSecretServiceHelper
 	}
 
-	if _, err := exec.LookPath("pass"); err == nil && isUsable(newPassHelper("")) {
+	if _, err := execabs.LookPath("pass"); err == nil && isUsable(newPassHelper("")) {
 		Helpers[Pass] = newPassHelper
 	}
 
