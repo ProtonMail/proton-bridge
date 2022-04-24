@@ -18,47 +18,43 @@
 package store
 
 import (
-	"fmt"
 	"os"
-	"os/exec"
 	"runtime"
-	"strconv"
-	"strings"
-)
 
-func uLimit() int {
-	if runtime.GOOS != "darwin" && runtime.GOOS != "linux" {
-		return 0
-	}
-	out, err := exec.Command("bash", "-c", "ulimit -n").Output()
-	if err != nil {
-		log.Print(err)
-		return 0
-	}
-	outStr := strings.Trim(string(out), " \n")
-	num, err := strconv.Atoi(outStr)
-	if err != nil {
-		log.Print(err)
-		return 0
-	}
-	return num
-}
+	"golang.org/x/sys/unix"
+)
 
 func isFdCloseToULimit() bool {
 	if runtime.GOOS != "darwin" && runtime.GOOS != "linux" {
 		return false
 	}
 
-	pid := fmt.Sprint(os.Getpid())
-	out, err := exec.Command("lsof", "-p", pid).Output() //nolint:gosec
+	var fdPath string
+	switch runtime.GOOS {
+	case "darwin":
+		fdPath = "/dev/fd"
+	case "linux":
+		fdPath = "/proc/self/fd"
+	}
+	f, err := os.Open(fdPath)
 	if err != nil {
 		log.Warn("isFdCloseToULimit: ", err)
 		return false
 	}
-	lines := strings.Split(string(out), "\n")
+	d, err := f.ReadDir(-1)
+	if err != nil {
+		log.Warn("isFdCloseToULimit: ", err)
+		return false
+	}
+	fd := len(d) - 1
 
-	fd := len(lines) - 1
-	ulimit := uLimit()
+	var lim unix.Rlimit
+	err = unix.Getrlimit(unix.RLIMIT_NOFILE, &lim)
+	if err != nil {
+		log.Print(err)
+	}
+	ulimit := lim.Max
+
 	log.Info("File descriptor check: num goroutines ", runtime.NumGoroutine(), " fd ", fd, " ulimit ", ulimit)
 	return fd >= int(0.95*float64(ulimit))
 }
