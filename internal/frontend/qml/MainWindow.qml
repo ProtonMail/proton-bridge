@@ -97,10 +97,6 @@ ApplicationWindow {
 
         property bool _showSetup: false
         currentIndex: {
-            if (backend.showSplashScreen) {
-                return 3
-            }
-
             // show welcome when there are no users or only one non-logged-in user is present
             if (backend.users.count === 0) {
                 return 1
@@ -167,20 +163,18 @@ ApplicationWindow {
             }
         }
 
-        SplashScreen { // 3
-            id: splashScreen
-            colorScheme: root.colorScheme
-            backend: root.backend
-
-            Layout.fillHeight: true
-            Layout.fillWidth: true
-        }
     }
 
     NotificationPopups {
         colorScheme: root.colorScheme
         notifications: root.notifications
         mainWindow: root
+        backend: root.backend
+    }
+
+    SplashScreen {
+        id: splashScreen
+        colorScheme: root.colorScheme
         backend: root.backend
     }
 

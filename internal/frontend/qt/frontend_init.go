@@ -112,10 +112,9 @@ func (f *FrontendQt) setShowSplashScreen() {
 		return
 	}
 
-	// Current splash screen contains update on "What's new" in facelift.
-	// Therefore, it should be shown only if the last used version was less
-	// than 1.9.0.
-	if ver.LessThan(semver.MustParse("1.9.0")) {
+	// Current splash screen contains update on rebranding. Therefore, it
+	// should be shown only if the last used version was less than 2.2.0.
+	if ver.LessThan(semver.MustParse("2.2.0")) {
 		f.qml.SetShowSplashScreen(true)
 	}
 }

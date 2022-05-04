@@ -54,6 +54,7 @@ const (
 	FetchWorkers           = "fetch_workers"
 	AttachmentWorkers      = "attachment_workers"
 	ColorScheme            = "color_scheme"
+	RebrandingMigrationKey = "rebranding_migrated"
 )
 
 type Settings struct {

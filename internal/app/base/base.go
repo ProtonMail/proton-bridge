@@ -159,12 +159,8 @@ func New( //nolint:funlen
 		return nil, api.CheckOtherInstanceAndFocus(settingsObj.GetInt(settings.APIPortKey))
 	}
 
-	if err := migrateMacKeychainBefore220(settingsObj, keychainName); err != nil {
-		logrus.WithError(err).Warn("Keychain migration failed")
-	}
-
-	if err := migrateStartup220(settingsObj); err != nil {
-		logrus.WithError(err).Warn("Failed to remove old startup paths")
+	if err := migrateRebranding(settingsObj, keychainName); err != nil {
+		logrus.WithError(err).Warn("Rebranding migration failed")
 	}
 
 	cachePath, err := locations.ProvideCachePath()
@@ -244,7 +240,7 @@ func New( //nolint:funlen
 	}
 
 	autostart := &autostart.App{
-		Name:        appName,
+		Name:        startupNameForRebranding(appName),
 		DisplayName: appName,
 		Exec:        []string{exe, "--" + FlagNoWindow},
 	}

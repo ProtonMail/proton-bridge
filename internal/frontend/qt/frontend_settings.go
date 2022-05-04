@@ -77,12 +77,14 @@ func (f *FrontendQt) changeLocalCache(enableDiskCache bool, diskCachePath *core.
 
 func (f *FrontendQt) setIsAutostartOn() {
 	// GODT-1507 Windows: autostart needs to be created after Qt is initialized.
+	// GODT-1206: if preferences file says it should be on enable it here.
 	f.firstTimeAutostart.Do(func() {
-		if !f.bridge.IsFirstStart() {
+		shouldAutostartBeOn := f.settings.GetBool(settings.AutostartKey)
+		if f.bridge.IsFirstStart() || shouldAutostartBeOn {
+			if err := f.bridge.EnableAutostart(); err != nil {
+				f.log.WithField("prefs", shouldAutostartBeOn).WithError(err).Error("Failed to enable first autostart")
+			}
 			return
-		}
-		if err := f.bridge.EnableAutostart(); err != nil {
-			f.log.WithError(err).Error("Failed to enable autostart")
 		}
 	})
 	f.qml.SetIsAutostartOn(f.bridge.IsAutostartEnabled())
