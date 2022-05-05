@@ -79,7 +79,7 @@ func (c *controller) ListenAndServe() {
 	defer c.server.HandlePanic()
 
 	l := c.log.WithField("useSSL", c.server.UseSSL()).
-		WithField("address", c.server.Address())
+		WithField("Listening address", c.server.Address())
 
 	var listener net.Listener
 	var err error
