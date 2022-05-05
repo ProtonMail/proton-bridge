@@ -98,7 +98,7 @@ func (s *Server) Close() { s.controller.Close() }
 
 func (Server) Protocol() serverutil.Protocol { return serverutil.SMTP }
 func (s *Server) UseSSL() bool               { return s.useSSL }
-func (s *Server) Address() string            { return fmt.Sprintf("%s:%d", bridge.Host, s.port) }
+func (s *Server) Address() string            { return fmt.Sprintf("%s:%d", bridge.ListeningHost, s.port) }
 func (s *Server) TLSConfig() *tls.Config     { return s.tls }
 func (s *Server) HandlePanic()               { s.panicHandler.HandlePanic() }
 

@@ -19,5 +19,6 @@ package bridge
 
 // Host settings.
 const (
-	Host = "127.0.0.1"
+	Host          = "127.0.0.1"
+	ListeningHost = "0.0.0.0"
 )
