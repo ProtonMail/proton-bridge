@@ -26,7 +26,6 @@ import (
 	"time"
 
 	imapid "github.com/ProtonMail/go-imap-id"
-	"github.com/ProtonMail/proton-bridge/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/internal/config/useragent"
 	"github.com/ProtonMail/proton-bridge/internal/imap/id"
 	"github.com/ProtonMail/proton-bridge/internal/imap/idle"
@@ -49,6 +48,7 @@ type Server struct {
 	userAgent    *useragent.UserAgent
 	debugClient  bool
 	debugServer  bool
+	host         net.IP
 	port         int
 
 	server     *imapserver.Server
@@ -59,6 +59,7 @@ type Server struct {
 func NewIMAPServer(
 	panicHandler panicHandler,
 	debugClient, debugServer bool,
+	host net.IP,
 	port int,
 	tls *tls.Config,
 	imapBackend backend.Backend,
@@ -70,6 +71,7 @@ func NewIMAPServer(
 		userAgent:    userAgent,
 		debugClient:  debugClient,
 		debugServer:  debugServer,
+		host:         host,
 		port:         port,
 	}
 
@@ -129,7 +131,7 @@ func (s *Server) Close() { s.controller.Close() }
 
 func (Server) Protocol() serverutil.Protocol { return serverutil.IMAP }
 func (s *Server) UseSSL() bool               { return false }
-func (s *Server) Address() string            { return fmt.Sprintf("%s:%d", bridge.ListeningHost, s.port) }
+func (s *Server) Address() string            { return fmt.Sprintf("%s:%d", s.host, s.port) }
 func (s *Server) TLSConfig() *tls.Config     { return s.server.TLSConfig }
 func (s *Server) HandlePanic()               { s.panicHandler.HandlePanic() }
 

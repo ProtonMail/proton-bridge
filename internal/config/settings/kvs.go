@@ -22,6 +22,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"net"
 	"os"
 	"strconv"
 	"sync"
@@ -123,6 +124,10 @@ func (p *keyValueStore) GetFloat64(key string) float64 {
 	}
 
 	return value
+}
+
+func (p *keyValueStore) GetIP(key string) net.IP {
+	return net.ParseIP(p.Get(key))
 }
 
 func (p *keyValueStore) Set(key, value string) {

@@ -117,22 +117,24 @@ func mailLoop(b *base.Base, c *cli.Context) error { // nolint[funlen]
 
 	go func() {
 		defer b.CrashHandler.HandlePanic()
+		imapHost := b.Settings.GetIP(settings.IMAPHostKey)
 		imapPort := b.Settings.GetInt(settings.IMAPPortKey)
 		imap.NewIMAPServer(
 			b.CrashHandler,
 			c.String(flagLogIMAP) == "client" || c.String(flagLogIMAP) == "all",
 			c.String(flagLogIMAP) == "server" || c.String(flagLogIMAP) == "all",
-			imapPort, tlsConfig, imapBackend, b.UserAgent, b.Listener).ListenAndServe()
+			imapHost, imapPort, tlsConfig, imapBackend, b.UserAgent, b.Listener).ListenAndServe()
 	}()
 
 	go func() {
 		defer b.CrashHandler.HandlePanic()
+		smtpHost := b.Settings.GetIP(settings.SMTPHostKey)
 		smtpPort := b.Settings.GetInt(settings.SMTPPortKey)
 		useSSL := b.Settings.GetBool(settings.SMTPSSLKey)
 		smtp.NewSMTPServer(
 			b.CrashHandler,
 			c.Bool(flagLogSMTP),
-			smtpPort, useSSL, tlsConfig, smtpBackend, b.Listener).ListenAndServe()
+			smtpHost, smtpPort, useSSL, tlsConfig, smtpBackend, b.Listener).ListenAndServe()
 	}()
 
 	// We want to remove old versions if the app exits successfully.

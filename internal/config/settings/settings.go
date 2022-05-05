@@ -30,6 +30,8 @@ const (
 	FirstStartKey          = "first_time_start"
 	FirstStartGUIKey       = "first_time_start_gui"
 	LastHeartbeatKey       = "last_heartbeat"
+	IMAPHostKey            = "user_listening_host_imap"
+	SMTPHostKey            = "user_listening_host_smtp"
 	APIPortKey             = "user_port_api"
 	IMAPPortKey            = "user_port_imap"
 	SMTPPortKey            = "user_port_smtp"
@@ -74,6 +76,9 @@ func New(settingsPath string) *Settings {
 }
 
 const (
+	DefaultIMAPHost = "127.0.0.1"
+	DefaultSMTPHost = "127.0.0.1"
+
 	DefaultIMAPPort = "1143"
 	DefaultSMTPPort = "1025"
 	DefaultAPIPort  = "1042"
@@ -102,6 +107,9 @@ func (s *Settings) setDefaultValues() {
 	s.setDefault(FetchWorkers, "16")
 	s.setDefault(AttachmentWorkers, "16")
 	s.setDefault(ColorScheme, "")
+
+	s.setDefault(IMAPHostKey, DefaultIMAPHost)
+	s.setDefault(SMTPHostKey, DefaultSMTPHost)
 
 	s.setDefault(APIPortKey, DefaultAPIPort)
 	s.setDefault(IMAPPortKey, DefaultIMAPPort)
