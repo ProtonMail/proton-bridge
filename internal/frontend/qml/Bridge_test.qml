@@ -551,7 +551,12 @@ Window {
                             root.reportBugFinished()
                             root.bugReportSendSuccess()
                         }
+
                     }
+                }
+
+                ColumnLayout {
+                    spacing: 5
 
                     Button {
                         text: "Bug report send error"
@@ -607,6 +612,22 @@ Window {
                         colorScheme: root.colorScheme
                         onClicked: {
                             root.notifyRebuildKeychain()
+                        }
+                    }
+
+                    Button {
+                        text: "Address changed"
+                        colorScheme: root.colorScheme
+                        onClicked: {
+                            root.addressChanged("p@v.el")
+                        }
+                    }
+
+                    Button {
+                        text: "Address changed + Logout"
+                        colorScheme: root.colorScheme
+                        onClicked: {
+                            root.addressChangedLogout("p@v.el")
                         }
                     }
                 }

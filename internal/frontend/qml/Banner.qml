@@ -80,13 +80,13 @@ Popup {
                     }
 
                     switch (root.notification.type) {
-                    case Notification.NotificationType.Info:
+                        case Notification.NotificationType.Info:
                         return root.colorScheme.signal_info
-                    case Notification.NotificationType.Success:
+                        case Notification.NotificationType.Success:
                         return root.colorScheme.signal_success
-                    case Notification.NotificationType.Warning:
+                        case Notification.NotificationType.Warning:
                         return root.colorScheme.signal_warning
-                    case Notification.NotificationType.Danger:
+                        case Notification.NotificationType.Danger:
                         return root.colorScheme.signal_danger
                     }
                 }
@@ -118,13 +118,13 @@ Popup {
                         }
 
                         switch (root.notification.type) {
-                        case Notification.NotificationType.Info:
+                            case Notification.NotificationType.Info:
                             return "./icons/ic-info-circle-filled.svg"
-                        case Notification.NotificationType.Success:
+                            case Notification.NotificationType.Success:
                             return "./icons/ic-info-circle-filled.svg"
-                        case Notification.NotificationType.Warning:
+                            case Notification.NotificationType.Warning:
                             return "./icons/ic-exclamation-circle-filled.svg"
-                        case Notification.NotificationType.Danger:
+                            case Notification.NotificationType.Danger:
                             return "./icons/ic-exclamation-circle-filled.svg"
                         }
                     }
@@ -134,6 +134,7 @@ Popup {
                     colorScheme: root.colorScheme
                     Layout.fillWidth: true
                     Layout.alignment: Qt.AlignVCenter
+                    Layout.leftMargin: 16
 
                     color: root.colorScheme.text_invert
                     text: root.notification ? root.notification.description : ""
@@ -152,13 +153,13 @@ Popup {
                 }
 
                 switch (root.notification.type) {
-                case Notification.NotificationType.Info:
+                    case Notification.NotificationType.Info:
                     return root.colorScheme.signal_info_active
-                case Notification.NotificationType.Success:
+                    case Notification.NotificationType.Success:
                     return root.colorScheme.signal_success_active
-                case Notification.NotificationType.Warning:
+                    case Notification.NotificationType.Warning:
                     return root.colorScheme.signal_warning_active
-                case Notification.NotificationType.Danger:
+                    case Notification.NotificationType.Danger:
                     return root.colorScheme.signal_danger_active
                 }
             }
@@ -190,22 +191,22 @@ Popup {
                         var active
 
                         switch (root.notification.type) {
-                        case Notification.NotificationType.Info:
+                            case Notification.NotificationType.Info:
                             norm = root.colorScheme.signal_info
                             hover = root.colorScheme.signal_info_hover
                             active = root.colorScheme.signal_info_active
                             break;
-                        case Notification.NotificationType.Success:
+                            case Notification.NotificationType.Success:
                             norm = root.colorScheme.signal_success
                             hover = root.colorScheme.signal_success_hover
                             active = root.colorScheme.signal_success_active
                             break;
-                        case Notification.NotificationType.Warning:
+                            case Notification.NotificationType.Warning:
                             norm = root.colorScheme.signal_warning
                             hover = root.colorScheme.signal_warning_hover
                             active = root.colorScheme.signal_warning_active
                             break;
-                        case Notification.NotificationType.Danger:
+                            case Notification.NotificationType.Danger:
                             norm = root.colorScheme.signal_danger
                             hover = root.colorScheme.signal_danger_hover
                             active = root.colorScheme.signal_danger_active

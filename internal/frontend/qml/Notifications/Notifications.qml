@@ -74,7 +74,8 @@ QtObject {
         root.resetBridge,
         root.deleteAccount,
         root.noKeychain,
-        root.rebuildKeychain
+        root.rebuildKeychain,
+        root.addressChanged
     ]
 
     // Connection
@@ -936,6 +937,39 @@ QtObject {
                 onTriggered: {
                     Qt.openUrlExternally(root.rebuildKeychain.supportLink)
                     root.backend.quit()
+                }
+            }
+        ]
+    }
+
+    property Notification addressChanged: Notification {
+        title: qsTr("Address list changes")
+        description: qsTr("The address list for your account has changed. You might need to reconfigure your email client.")
+        brief: description
+        icon: "./icons/ic-exclamation-circle-filled.svg"
+        type: Notification.NotificationType.Warning
+        group: Notifications.Group.Configuration
+
+        Connections {
+            target: root.backend
+
+            onAddressChanged: {
+                root.addressChanged.description = qsTr("The address list for your account %1 has changed. You might need to reconfigure your email client.").arg(address)
+                root.addressChanged.active = true
+            }
+
+            onAddressChangedLogout: {
+                root.addressChanged.description = qsTr("The address list for your account %1 has changed. You have to reconfigure your email client.").arg(address)
+                root.addressChanged.active = true
+            }
+        }
+
+        action: [
+            Action {
+                text: qsTr("OK")
+
+                onTriggered: {
+                    root.addressChanged.active = false
                 }
             }
         ]

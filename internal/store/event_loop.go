@@ -375,7 +375,7 @@ func (loop *eventLoop) processAddresses(log *logrus.Entry, addressEvents []*pmap
 	for _, addressEvent := range addressEvents {
 		switch addressEvent.Action {
 		case pmapi.EventCreate:
-			log.WithField("email", addressEvent.Address.Email).Debug("Address was created")
+			log.WithField("email", addressEvent.Address.Email).Info("Address was created")
 			loop.listener.Emit(bridgeEvents.AddressChangedEvent, loop.user.GetPrimaryAddress())
 
 		case pmapi.EventUpdate:
@@ -386,7 +386,7 @@ func (loop *eventLoop) processAddresses(log *logrus.Entry, addressEvents []*pmap
 			}
 
 			email := oldAddress.Email
-			log.WithField("email", email).Debug("Address was updated")
+			log.WithField("email", email).Info("Address was updated")
 			if addressEvent.Address.Receive != oldAddress.Receive {
 				loop.listener.Emit(bridgeEvents.AddressChangedLogoutEvent, email)
 			}
@@ -399,7 +399,7 @@ func (loop *eventLoop) processAddresses(log *logrus.Entry, addressEvents []*pmap
 			}
 
 			email := oldAddress.Email
-			log.WithField("email", email).Debug("Address was deleted")
+			log.WithField("email", email).Info("Address was deleted")
 			loop.user.CloseConnection(email)
 			loop.listener.Emit(bridgeEvents.AddressChangedLogoutEvent, email)
 		case pmapi.EventUpdateFlags:
