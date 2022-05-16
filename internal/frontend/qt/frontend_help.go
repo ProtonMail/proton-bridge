@@ -40,6 +40,7 @@ func (f *FrontendQt) setLogsPath() {
 
 func (f *FrontendQt) setLicensePath() {
 	f.qml.SetLicensePath(core.QUrl_FromLocalFile(f.locations.GetLicenseFilePath()))
+	f.qml.SetDependencyLicensesLink(core.NewQUrl3(f.locations.GetDependencyLicensesLink(), core.QUrl__TolerantMode))
 }
 
 func (f *FrontendQt) setCurrentEmailClient() {

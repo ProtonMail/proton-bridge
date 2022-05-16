@@ -235,10 +235,13 @@ mocks:
 	mockgen --package mocks github.com/ProtonMail/proton-bridge/pkg/pmapi Client,Manager > pkg/pmapi/mocks/mocks.go
 	mockgen --package mocks github.com/ProtonMail/proton-bridge/pkg/message Fetcher > pkg/message/mocks/mocks.go
 
-lint: gofiles lint-golang lint-license lint-changelog
+lint: gofiles lint-golang lint-license lint-dependencies lint-changelog
 
 lint-license:
 	./utils/missing_license.sh check
+
+lint-dependencies:
+	./utils/dependency_license.sh check
 
 lint-changelog:
 	./utils/changelog_linter.sh Changelog.md

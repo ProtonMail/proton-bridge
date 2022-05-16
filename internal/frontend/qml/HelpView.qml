@@ -105,10 +105,11 @@ SettingsView {
 
         horizontalAlignment: Text.AlignHCenter
 
-        text: qsTr("Proton Mail Bridge v%1<br>© 2021 Proton AG<br>%2 %3").
-            arg(root.backend.version).
-            arg(link(root.backend.licensePath, qsTr("License"))).
-            arg(link(root.backend.releaseNotesLink, qsTr("Release notes")))
+        text: qsTr("Proton Mail Bridge v%1<br>© 2021 Proton AG<br>%2 %3<br>%4").
+        arg(root.backend.version).
+        arg(link(root.backend.licensePath, qsTr("License"))).
+        arg(link(root.backend.dependencyLicensesLink, qsTr("Dependencies"))).
+        arg(link(root.backend.releaseNotesLink, qsTr("Release notes")))
 
         onLinkActivated: Qt.openUrlExternally(link)
     }

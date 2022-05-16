@@ -127,6 +127,7 @@ type QMLBackend struct {
 	_ core.QUrl `property:"logsPath"`
 	_ core.QUrl `property:"licensePath"`
 	_ core.QUrl `property:"releaseNotesLink"`
+	_ core.QUrl `property:"dependencyLicensesLink"`
 	_ core.QUrl `property:"landingPageLink"`
 
 	_ string                                                           `property:"colorSchemeName"`

@@ -43,6 +43,10 @@ lint:
   stage: test
   only:
     - branches
+  before_script:
+    - mkdir -p .cache/bin
+    - export PATH=$(pwd)/.cache/bin:$PATH
+    - export GOPATH="$CI_PROJECT_DIR/.cache"
   script:
     - env GOMAXPROCS=$(( ${CI_TAG_CPU} / 2 )) make lint
   tags:

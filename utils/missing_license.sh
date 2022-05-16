@@ -18,7 +18,13 @@
 # along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
 
 YEAR=`date +%Y`
-MISSING_FILES=`find . -not -path "./vendor/*" -not -path "./vendor-cache/*" -not -path "./.cache/*" -not -name "*mock*.go" -regextype posix-egrep -regex ".*\.go|.*\.qml|.*\.sh|.*\.py" -exec grep -L "Copyright (c) ${YEAR} Proton Technologies AG" {} \;`
+MISSING_FILES=$(find . \
+    -not -path "./vendor/*" \
+    -not -path "./vendor-cache/*" \
+    -not -path "./.cache/*" \
+    -not -name "*mock*.go" \
+    -regextype posix-egrep -regex ".*\.go|.*\.qml|.*\.sh|.*\.py" \
+    -exec grep -L "Copyright (c) ${YEAR} Proton Technologies AG" {} \;)
 
 for f in ${MISSING_FILES}
 do
