@@ -11,6 +11,8 @@
 * Windres (windows)
 * libglvnd and libsecret development files (linux)
 
+Note: on aarch64 Linux distribution you can build Bridge without a GUI (No official support)
+
 To enable the sending of crash reports using Sentry please set the
 `main.DSNSentry` value with the client key of your sentry project before build.
 Otherwise, the sending of crash reports will be disabled.
