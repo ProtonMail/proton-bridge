@@ -23,7 +23,12 @@ MISSING_FILES=$(find . \
     -not -path "./vendor-cache/*" \
     -not -path "./.cache/*" \
     -not -name "*mock*.go" \
-    -regextype posix-egrep -regex ".*\.go|.*\.qml|.*\.sh|.*\.py" \
+    -not -path "*/cmake-build-*/*" \
+    -not -name "*.pb.go" \
+    -not -name "*.pb.h" \
+    -not -name "*.pb.cc" \
+    -not -name "*_moc.h" \
+    -regextype posix-egrep -regex ".*\.go|.*\.qml|.*\.sh|.*\.py|.*\.cpp|.*\.cc|.*\.h|.*\.hpp|.*\.m" \
     -exec grep -L "Copyright (c) ${YEAR} Proton AG" {} \;)
 
 for f in ${MISSING_FILES}

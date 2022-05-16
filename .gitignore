@@ -31,3 +31,7 @@ vendor-cache
 cmd/Desktop-Bridge/deploy
 cmd/Import-Export/deploy
 proton-bridge
+
+# Jetbrains (CLion, Golang) cmake build dirs
+cmake-build-*/
+cmake-build-*/

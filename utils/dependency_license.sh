@@ -55,6 +55,8 @@ generate_dep_licenses(){
     sed -i -r '/go.etcd.io\/bbolt/s|^(.*)$|\1 available under [license](https://github.com/etcd-io/bbolt/blob/master/LICENSE) |g' "$tmpDepLicenses"
     sed -i -r '/howett.net\/plist/s|^(.*)$|\1 available under [license](https://github.com/DHowett/go-plist/blob/main/LICENSE) |g' "$tmpDepLicenses"
     sed -i -r '/golang.org\/x/s|^(.*golang.org/x/([^)]+).*)$|\1 available under [license](https://cs.opensource.google/go/x/\2/+/master:LICENSE) |g' "$tmpDepLicenses"
+    sed -i -r '/google.golang.org\/grpc/s|^(.*)$|\1 available under [license](https://github.com/grpc/grpc-go/blob/master/LICENSE) |g' "$tmpDepLicenses"
+    sed -i -r '/google.golang.org\/protobuf/s|^(.*)$|\1 available under [license](https://github.com/protocolbuffers/protobuf/blob/main/LICENSE) |g' "$tmpDepLicenses"
 }
 
 check_dependecies(){

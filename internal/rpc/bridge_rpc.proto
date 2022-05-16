@@ -1,0 +1,428 @@
+// Copyright (c) 2022 Proton Technologies AG
+//
+// This file is part of ProtonMail Bridge.
+//
+// ProtonMail Bridge is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// ProtonMail Bridge is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
+
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
+
+option go_package = "github.com/ProtonMail/proton-bridge/internal/rpc";
+
+package bridgerpc; // ignored by Go, used as namespace name in C++.
+
+//**********************************************************************************************************************
+//  Service Declaration
+//**********************************************************************************************************************
+service BridgeRpc {
+
+  // App related calls
+  rpc GetCursorPos (google.protobuf.Empty) returns (PointResponse); // May be unnecessary
+  rpc GuiReady (google.protobuf.Empty) returns (google.protobuf.Empty);
+  rpc Quit (google.protobuf.Empty) returns (google.protobuf.Empty);
+  rpc Restart (google.protobuf.Empty) returns (google.protobuf.Empty);
+  rpc SetShowOnStartup(google.protobuf.BoolValue) returns (google.protobuf.Empty);
+  rpc ShowOnStartup(google.protobuf.Empty) returns (google.protobuf.BoolValue);
+  rpc SetShowSplashScreen(google.protobuf.BoolValue) returns (google.protobuf.Empty);
+  rpc ShowSplashScreen(google.protobuf.Empty) returns (google.protobuf.BoolValue);
+  rpc SetDockIconVisible(google.protobuf.BoolValue) returns (google.protobuf.Empty);
+  rpc DockIconVisible(google.protobuf.Empty) returns (google.protobuf.BoolValue);
+  rpc SetIsFirstGuiStart(google.protobuf.BoolValue) returns (google.protobuf.Empty);
+  rpc IsFirstGuiStart(google.protobuf.Empty) returns (google.protobuf.BoolValue);
+  rpc SetIsAutostartOn(google.protobuf.BoolValue) returns (google.protobuf.Empty);
+  rpc IsAutostartOn(google.protobuf.Empty) returns (google.protobuf.BoolValue);
+  rpc SetIsBetaEnabled(google.protobuf.BoolValue) returns (google.protobuf.Empty);
+  rpc IsBetaEnabled(google.protobuf.Empty) returns (google.protobuf.BoolValue);
+  rpc GoOs(google.protobuf.Empty) returns (google.protobuf.StringValue);
+  rpc TriggerReset(google.protobuf.Empty) returns (google.protobuf.Empty);
+  rpc Version(google.protobuf.Empty) returns (google.protobuf.StringValue);
+  rpc LogPath(google.protobuf.Empty) returns (google.protobuf.StringValue);
+  rpc LicensePath(google.protobuf.Empty) returns (google.protobuf.StringValue);
+  rpc ReleaseNotesLink(google.protobuf.Empty) returns (google.protobuf.StringValue);
+  rpc LandingPageLink(google.protobuf.Empty) returns (google.protobuf.StringValue);
+  rpc SetColorSchemeName(google.protobuf.StringValue) returns (google.protobuf.Empty);
+  rpc ColorSchemeName(google.protobuf.Empty) returns (google.protobuf.StringValue);
+  rpc SetCurrentEmailClient(google.protobuf.StringValue) returns (google.protobuf.Empty);
+  rpc CurrentEmailClient(google.protobuf.Empty) returns (google.protobuf.StringValue);
+  rpc ReportBug(ReportBugRequest) returns (google.protobuf.Empty);
+
+  // login
+  rpc Login(LoginRequest) returns (google.protobuf.Empty);
+  rpc Login2FA(LoginRequest) returns (google.protobuf.Empty);
+  rpc Login2Passwords(LoginRequest) returns (google.protobuf.Empty);
+  rpc LoginAbort(LoginAbortRequest) returns (google.protobuf.Empty);
+
+  // update
+  rpc CheckUpdate(google.protobuf.Empty) returns (google.protobuf.Empty);
+  rpc InstallUpdate(google.protobuf.Empty) returns (google.protobuf.Empty);
+  rpc SetIsAutomaticUpdateOn(google.protobuf.BoolValue) returns (google.protobuf.Empty);
+  rpc IsAutomaticUpdateOn(google.protobuf.Empty) returns (google.protobuf.BoolValue);
+
+  // cache
+  rpc SetIsCacheOnDiskEnabled (google.protobuf.BoolValue) returns (google.protobuf.Empty);
+  rpc IsCacheOnDiskEnabled (google.protobuf.Empty) returns (google.protobuf.BoolValue);
+  rpc SetDiskCachePath (google.protobuf.StringValue) returns (google.protobuf.Empty);
+  rpc DiskCachePath(google.protobuf.Empty) returns (google.protobuf.StringValue);
+  rpc ChangeLocalCache(ChangeLocalCacheRequest) returns (google.protobuf.Empty);
+
+  // mail
+  rpc SetIsDoHEnabled(google.protobuf.BoolValue) returns (google.protobuf.Empty);
+  rpc IsDoHEnabled(google.protobuf.Empty) returns (google.protobuf.BoolValue);
+  rpc SetUseSslForSmtp(google.protobuf.BoolValue) returns (google.protobuf.Empty);
+  rpc UseSslForSmtp(google.protobuf.Empty) returns (google.protobuf.BoolValue);
+  rpc Hostname(google.protobuf.Empty) returns (google.protobuf.StringValue);
+  rpc SetImapPort(google.protobuf.Int32Value) returns (google.protobuf.Empty);
+  rpc ImapPort(google.protobuf.Empty) returns (google.protobuf.Int32Value);
+  rpc SetSmtpPort(google.protobuf.Int32Value) returns (google.protobuf.Empty);
+  rpc SmtpPort(google.protobuf.Empty) returns (google.protobuf.Int32Value);
+  rpc ChangePorts(ChangePortsRequest) returns (google.protobuf.Empty);
+  rpc IsPortFree(google.protobuf.Int32Value) returns (google.protobuf.BoolValue);
+
+  // keychain
+  rpc AvailableKeychains(google.protobuf.Empty) returns (AvailableKeychainsResponse);
+  rpc SetCurrentKeychain(google.protobuf.StringValue) returns (google.protobuf.Empty);
+  rpc CurrentKeychain(google.protobuf.Empty) returns (google.protobuf.StringValue);
+
+  // User & user list
+  rpc GetUserList(google.protobuf.Empty) returns (UserListResponse);
+  rpc GetUser(google.protobuf.Empty) returns (User);
+  rpc SetUserSplitMode(UserSplitModeRequest) returns (google.protobuf.Empty);
+  rpc LogoutUser(google.protobuf.StringValue) returns (google.protobuf.Empty);
+  rpc RemoveUser(google.protobuf.StringValue) returns (google.protobuf.Empty);
+  rpc ConfigureUserAppleMail(ConfigureAppleMailRequest) returns (google.protobuf.Empty);
+
+  // Server -> Client event stream
+  rpc GetEvents(google.protobuf.Empty) returns (stream StreamEvent);
+}
+
+//**********************************************************************************************************************
+//  RPC calls requests and replies messages
+//**********************************************************************************************************************
+
+//**********************************************************
+// GUI related messages
+//**********************************************************
+message PointResponse {
+	int32 x = 1;
+  int32 y = 2;
+};
+
+message ReportBugRequest {
+  string description = 1;
+  string address = 2;
+  string emailClient = 3;
+  bool includeLogs = 4;
+
+}
+
+// login related messages
+
+message LoginRequest {
+  string username = 1;
+  string password = 2;
+}
+
+message LoginAbortRequest {
+  string username = 1;
+}
+
+//**********************************************************
+// Cache on disk related messages
+//**********************************************************
+message ChangeLocalCacheRequest {
+  bool enableDiskCache = 1;
+  string diskCachePath = 2;
+}
+
+//**********************************************************
+// Cache on disk related messages
+//**********************************************************
+message ChangePortsRequest {
+  int32 imapPort = 1;
+  int32 smtpPort = 2;
+}
+
+//**********************************************************
+// Cache on disk related messages
+//**********************************************************
+message AvailableKeychainsResponse {
+  repeated string keychains = 1;
+}
+
+//**********************************************************
+// Cache on disk related messages
+//**********************************************************
+message User {
+  string id = 1;
+  string username = 2;
+  string avatarText = 3;
+  bool loggedIn = 4;
+  bool splitMode = 5;
+  bool setupGuideSeen = 6;
+  int64 usedBytes = 7;
+  int64 totalBytes = 8;
+  string password = 9;
+  repeated string addresses = 10;
+}
+
+message UserSplitModeRequest {
+  string userID = 1;
+  bool active = 2;
+}
+
+message UserListResponse {
+  repeated User users = 1;
+}
+
+message ConfigureAppleMailRequest {
+  string userID = 1;
+  string address = 2;
+}
+
+//**********************************************************************************************************************
+//  Event stream messages
+//**********************************************************************************************************************
+message StreamEvent {
+  oneof event {
+    AppEvent app = 1;
+    LoginEvent login = 2;
+    UpdateEvent update = 3;
+    CacheEvent cache = 4;
+    MailSettingsEvent mailSettings = 5;
+    KeychainEvent keychain = 6;
+    MailEvent mail = 7;
+    UserEvent user = 8;
+  }
+}
+
+//**********************************************************
+// App related events
+//**********************************************************
+message AppEvent {
+  oneof event {
+    InternetStatusEvent internetStatus = 1;
+    AutostartFinishedEvent autostartFinished = 2;
+    ResetFinishedEvent resetFinished = 3;
+    ReportBugFinishedEvent reportBugFinished = 4;
+    ReportBugSuccessEvent reportBugSuccess = 5;
+    ReportBugErrorEvent reportBugError = 6;
+    ShowMainWindowEvent showMainWindow = 7;
+  }
+}
+
+message InternetStatusEvent {
+  bool connected = 1;
+}
+
+message AutostartFinishedEvent {}
+message ResetFinishedEvent {}
+message ReportBugFinishedEvent {}
+message ReportBugSuccessEvent {}
+message ReportBugErrorEvent {}
+message ShowMainWindowEvent {}
+
+//**********************************************************
+// Login related events
+//**********************************************************
+message LoginEvent {
+  oneof event {
+    LoginErrorEvent error = 1;
+    LoginTfaRequestedEvent tfaRequested = 2;
+    LoginTwoPasswordsRequestedEvent twoPasswordRequested = 3;
+    LoginFinishedEvent finished = 4;
+  }
+}
+
+enum LoginErrorType {
+  USERNAME_PASSWORD_ERROR = 0;
+  FREE_USER = 1;
+  CONNECTION_ERROR = 2;
+  TFA_ERROR = 3;
+  TFA_ABORT = 4;
+  TWO_PASSWORDS_ERROR = 5;
+  TWO_PASSWORDS_ABORT = 6;
+}
+
+message LoginErrorEvent {
+  LoginErrorType type = 1;
+  string message = 2;
+}
+
+message LoginTfaRequestedEvent {
+  string username = 1;
+}
+
+message LoginTwoPasswordsRequestedEvent {}
+
+message LoginFinishedEvent {
+  bool wasAlreadyLoggedIn = 1;
+}
+
+//**********************************************************
+// Update related events
+//**********************************************************
+message UpdateEvent {
+  oneof event {
+    UpdateErrorEvent error = 1;
+    UpdateManualReadyEvent manualReady = 2;
+    UpdateManualRestartNeededEvent manualRestartNeeded = 3;
+    UpdateForceEvent force = 4;
+    UpdateSilentRestartNeeded silentRestartNeeded = 5;
+    UpdateIsLatestVersion isLatestVersion = 6;
+    UpdateCheckFinished checkFinished = 7;
+  }
+}
+
+enum UpdateErrorType {
+  UPDATE_MANUAL_ERROR = 0;
+  UPDATE_FORCE_ERROR = 1;
+  UPDATE_SILENT_ERROR = 2;
+}
+
+message UpdateErrorEvent {
+  UpdateErrorType type = 1;
+}
+
+message UpdateManualReadyEvent {
+  string version = 1;
+}
+
+message UpdateManualRestartNeededEvent {};
+
+message UpdateForceEvent {
+  string version = 1;
+}
+
+message UpdateSilentRestartNeeded {}
+
+message UpdateIsLatestVersion {}
+
+message UpdateCheckFinished {}
+
+//**********************************************************
+// Cache on disk related events
+//**********************************************************
+message CacheEvent {
+  oneof event {
+    CacheErrorEvent error = 1;
+    CacheLocationChangeSuccessEvent locationChangedSuccess = 2;
+    ChangeLocalCacheFinishedEvent changeLocalCacheFinished = 3;
+  }
+}
+
+enum CacheErrorType {
+  CACHE_UNAVAILABLE_ERROR = 0;
+  CACHE_CANT_MOVE_ERROR = 1;
+  DISK_FULL = 2;
+};
+
+message CacheErrorEvent {
+  CacheErrorType type = 1;
+}
+
+message CacheLocationChangeSuccessEvent {};
+
+message ChangeLocalCacheFinishedEvent {};
+
+//**********************************************************
+// Mail settings related events
+//**********************************************************
+message MailSettingsEvent {
+  oneof event {
+    MailSettingsErrorEvent error = 1;
+    UseSslForSmtpFinishedEvent useSslForSmtpFinished = 2;
+    ChangePortsFinishedEvent changePortsFinished = 3;
+  }
+}
+
+enum MailSettingsErrorType {
+  IMAP_PORT_ISSUE = 0;
+  SMTP_PORT_ISSUE = 1;
+}
+
+message MailSettingsErrorEvent {
+  MailSettingsErrorType type = 1;
+}
+
+message UseSslForSmtpFinishedEvent {}
+
+message ChangePortsFinishedEvent {}
+
+//**********************************************************
+// keychain related events
+//**********************************************************
+message KeychainEvent {
+  oneof event {
+      ChangeKeychainFinishedEvent changeKeychainFinished = 1;
+      HasNoKeychainEvent hasNoKeychain = 2;
+      RebuildKeychainEvent rebuildKeychain = 3;
+  }
+}
+
+message ChangeKeychainFinishedEvent {}
+message HasNoKeychainEvent {}
+message RebuildKeychainEvent {}
+
+//**********************************************************
+// Mail related events
+//**********************************************************
+message MailEvent {
+  oneof event {
+      NoActiveKeyForRecipientEvent noActiveKeyForRecipientEvent = 1;
+      AddressChangedEvent addressChanged = 2;
+      AddressChangedLogoutEvent addressChangedLogout = 3;
+      ApiCertIssueEvent apiCertIssue = 6;
+  }
+}
+
+message NoActiveKeyForRecipientEvent {
+  string email = 1;
+}
+
+message AddressChangedEvent {
+  string address = 1; // TODO: user event ?
+}
+
+message AddressChangedLogoutEvent {
+  string address = 1; // TODO: user event ?
+}
+
+message ApiCertIssueEvent {}
+
+//**********************************************************
+// User list related event
+//**********************************************************
+
+message UserEvent {
+  oneof event {
+    ToggleSplitModeFinishedEvent toggleSplitModeFinished= 1;
+    UserDisconnectedEvent userDisconnected = 2;
+    UserChangedEvent userChanged = 3;
+  }
+}
+
+message ToggleSplitModeFinishedEvent {
+  string userID = 1;
+}
+
+message UserDisconnectedEvent {
+  string username = 1; // TODO: isn't it userID ?
+}
+
+message UserChangedEvent {
+  User user = 1;
+}
+

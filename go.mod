@@ -45,8 +45,8 @@ require (
 	github.com/go-resty/resty/v2 v2.6.0
 	github.com/godbus/dbus v4.1.0+incompatible
 	github.com/golang/mock v1.4.4
-	github.com/google/go-cmp v0.5.5
-	github.com/google/uuid v1.1.1
+	github.com/google/go-cmp v0.5.6
+	github.com/google/uuid v1.1.2
 	github.com/hashicorp/go-multierror v1.1.0
 	github.com/jameskeane/bcrypt v0.0.0-20120420032655-c3cd44c1e20f // indirect
 	github.com/jaytaylor/html2text v0.0.0-20200412013138-3577fbdbcff7
@@ -55,7 +55,6 @@ require (
 	github.com/logrusorgru/aurora v2.0.3+incompatible
 	github.com/mattn/go-runewidth v0.0.9 // indirect
 	github.com/miekg/dns v1.1.41
-	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
 	github.com/nsf/jsondiff v0.0.0-20200515183724-f29ed568f4ce
 	github.com/olekukonko/tablewriter v0.0.4 // indirect
 	github.com/pkg/errors v0.9.1
@@ -65,8 +64,6 @@ require (
 	github.com/ssor/bom v0.0.0-20170718123548-6386211fdfcf // indirect
 	github.com/stretchr/testify v1.7.0
 	github.com/therecipe/qt v0.0.0-20200701200531-7f61353ee73e
-	github.com/therecipe/qt/internal/binding/files/docs/5.12.0 v0.0.0-20200904063919-c0c124a5770d // indirect
-	github.com/therecipe/qt/internal/binding/files/docs/5.13.0 v0.0.0-20200904063919-c0c124a5770d // indirect
 	github.com/urfave/cli/v2 v2.2.0
 	github.com/vmihailenco/msgpack/v5 v5.1.3
 	go.etcd.io/bbolt v1.3.6
@@ -74,6 +71,8 @@ require (
 	golang.org/x/net v0.0.0-20220425223048-2871e0cb64e4
 	golang.org/x/sys v0.0.0-20220627191245-f75cf1eec38b
 	golang.org/x/text v0.3.7
+	google.golang.org/grpc v1.46.2
+	google.golang.org/protobuf v1.28.0
 	howett.net/plist v1.0.0
 )
 
