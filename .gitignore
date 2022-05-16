@@ -34,4 +34,6 @@ proton-bridge
 
 # Jetbrains (CLion, Golang) cmake build dirs
 cmake-build-*/
-cmake-build-*/
+
+# Doxygen doc files
+_doc/

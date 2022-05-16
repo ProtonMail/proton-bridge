@@ -25,7 +25,6 @@
 
 
 using namespace google::protobuf;
-using namespace bridgerpc;
 using namespace grpc;
 
 
@@ -35,22 +34,22 @@ namespace
 
 // \todo Decide where to store this certificate.
 std::string cert = R"(-----BEGIN CERTIFICATE-----
-MIIC5TCCAc2gAwIBAgIJAJL2PajH8kFjMA0GCSqGSIb3DQEBCwUAMBQxEjAQBgNV
-BAMMCWxvY2FsaG9zdDAeFw0yMjA1MTAwNjEzMzdaFw0yMjA2MDkwNjEzMzdaMBQx
+MIIC5TCCAc2gAwIBAgIJAMUQK0VGexMsMA0GCSqGSIb3DQEBCwUAMBQxEjAQBgNV
+BAMMCWxvY2FsaG9zdDAeFw0yMjA2MTQxNjUyNTVaFw0yMjA3MTQxNjUyNTVaMBQx
 EjAQBgNVBAMMCWxvY2FsaG9zdDCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoC
-ggEBAKyb48XL+08YI8m4X/eeD9TQshV+vybKbU7MOG7BnH3Hv7kUH0aVP7OPnU51
-eYRgUu+bkJ8qWhxD7wOLVJBcU5T1lgd+k6St83ix25P02nUc3UeU4MCxMwhjMjYu
-R5F9bfSG0UlCCGAEjjmGh+CfnZkS+rgCwE/xGswFnVrynTMvrLQyN02dz/r4zJPp
-yyVhTOmjdsUDs0zGDbubLf+ypR8VCXg55qYMw7Abpe+rx3BF+NCEjKlATjMeIZNx
-iS0dl0OGjJZ+bfHGhnPiQxP8HxyJ0NjFNtWgblQev2sHmIq65Rry3RP1gbDAW3sk
-MiIfjbnp4gGspYrmHWeWXH8g6WMCAwEAAaM6MDgwFAYDVR0RBA0wC4IJbG9jYWxo
+ggEBAL6T1JQ0jptq512PBLASpCLFB0px7KIzEml0oMUCkVgUF+2cayrvdBXJZnaO
+SG+/JPnHDcQ/ecgqkh2Ii6a2x2kWA5KqWiV+bSHp0drXyUGJfM85muLsnrhYwJ83
+HHtweoUVebRZvHn66KjaH8nBJ+YVWyYbSUhJezcg6nBSEtkW+I/XUHu4S2C7FUc5
+DXPO3yWWZuZ22OZz70DY3uYE/9COuilotuKdj7XgeKDyKIvRXjPFyqGxwnnp6bXC
+vWvrQdcxy0wM+vZxew3QtA/Ag9uKJU9owP6noauXw95l49lEVIA5KXVNtdaldVht
+MO/QoelLZC7h79PK22zbii3x930CAwEAAaM6MDgwFAYDVR0RBA0wC4IJbG9jYWxo
 b3N0MAsGA1UdDwQEAwIHgDATBgNVHSUEDDAKBggrBgEFBQcDATANBgkqhkiG9w0B
-AQsFAAOCAQEAO2WDYnzy9SkaS9VU2jw3nd9MEaILZsXFcVU2+52TKwRBty7b0A1x
-zyxT6nT0pN0Im7DcT5/TvwFuVBJUTFs4c2gW09WUvtfuN8HVFOeX/1Pt10lMPJjR
-I+wTAUQrXJHt57JE9x13gQEOW/mGUDNuoUH2cE9C1f+TrO0LaRj8dubS/gHMuV1i
-aTyxu7hgbLAYq0NGD86CSOwvUvTvs6o628xvfmqqdzlpWIlQq18t2GZYFVWjrISY
-LWw3OCormKSASOPrW1FXhrgwoyDXHNmZT1MHL3Rh9U5qyCwV5kDAcY956sc9lD3G
-XHtSxOHLE1eDKGCUKRcYop/99inTGjJ6Xg==
+AQsFAAOCAQEAW/9PE8dcAN+0C3K96Xd6Y3qOOtQhRw+WlZXhtiqMtlJfTjvuGKs9
+58xuKcTvU5oobxLv+i5+4gpqLjUZZ9FBnYXZIACNVzq4PEXf+YdzcA+y6RS/rqT4
+dUjsuYrScAmdXK03Duw3HWYrTp8gsJzIaYGTltUrOn0E4k/TsZb/tZ6z+oH7Fi+p
+wdsI6Ut6Zwm3Z7WLn5DDk8KvFjHjZkdsCb82SFSAUVrzWo5EtbLIY/7y3A5rGp9D
+t0AVpuGPo5Vn+MW1WA9HT8lhjz0v5wKGMOBi3VYW+Yx8FWHDpacvbZwVM0MjMSAd
+M7SXYbNDiLF4LwPLsunoLsW133Ky7s99MA==
 -----END CERTIFICATE-----)";
 
 Empty empty; // A protobuf empty message reused for the sake of simplicity
@@ -99,7 +98,7 @@ void RpcClient::initTestCase()
     channel_ = CreateChannel("localhost:9292", grpc::SslCredentials(opts));
     QVERIFY2(channel_, "Channel creation failed.");
 
-    stub_ = bridgerpc::BridgeRpc::NewStub(channel_);
+    stub_ = Bridge::NewStub(channel_);
     QVERIFY2(stub_, "Stub creation failed.");
 
     QVERIFY2(channel_->WaitForConnected(gpr_time_add(gpr_now(GPR_CLOCK_REALTIME),

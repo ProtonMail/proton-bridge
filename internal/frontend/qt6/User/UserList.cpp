@@ -1,0 +1,220 @@
+// Copyright (c) 2022 Proton AG
+//
+// This file is part of Proton Mail Bridge.
+//
+// Proton Mail Bridge is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Proton Mail Bridge is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
+
+
+#include "Pch.h"
+#include "UserList.h"
+#include "GRPC/GRPCClient.h"
+
+
+//****************************************************************************************************************************************************
+/// \param[in] parent The parent object of the user list.
+//****************************************************************************************************************************************************
+UserList::UserList(QObject *parent)
+    : QAbstractListModel(parent)
+{
+    /// \todo use mutex to prevent concurrent access
+}
+
+
+//****************************************************************************************************************************************************
+//
+//****************************************************************************************************************************************************
+void UserList::connectGRPCEvents() const
+{
+    GRPCClient* client = &app().grpc();
+    connect(client, &GRPCClient::userChanged, this, &UserList::onUserChanged);
+    connect(client, &GRPCClient::toggleSplitModeFinished, this, &UserList::onToggleSplitModeFinished);
+}
+
+//****************************************************************************************************************************************************
+//
+//****************************************************************************************************************************************************
+int UserList::rowCount(QModelIndex const &) const
+{
+    return users_.size();
+}
+
+
+//****************************************************************************************************************************************************
+/// \param[in] index The index to retrieve data for.
+/// \param[in] role The role to retrieve data for.
+/// \return The data at the index for the given role.
+//****************************************************************************************************************************************************
+QVariant UserList::data(QModelIndex const &index, int role) const
+{
+    /// This It does not seem to be used, but the method is required by the base class.
+    /// From the original QtThe recipe QML backend User model, the User is always returned, regardless of the role.
+    Q_UNUSED(role)
+    int const row  = index.row();
+    if ((row < 0) || (row >= users_.size()))
+        return QVariant();
+    return QVariant::fromValue(users_[row].get());
+}
+
+
+//****************************************************************************************************************************************************
+/// \param[in] userID The userID.
+/// \return the row of the user.
+/// \return -1 if the userID is not in the list
+//****************************************************************************************************************************************************
+int UserList::rowOfUserID(QString const &userID) const
+{
+    for (qint32 row = 0; row < users_.count(); ++row)
+        if (userID == users_[row]->property("id"))
+            return row;
+    return -1;
+}
+
+
+//****************************************************************************************************************************************************
+//
+//****************************************************************************************************************************************************
+void UserList::reset()
+{
+    this->beginResetModel();
+    users_.clear();
+    this->endResetModel();
+}
+
+//****************************************************************************************************************************************************
+/// \param[in] users The new user list.
+//****************************************************************************************************************************************************
+void UserList::reset(QList<SPUser> const &users)
+{
+    this->beginResetModel();
+    users_ = users;
+    this->endResetModel();
+}
+
+
+//****************************************************************************************************************************************************
+/// \param[in] user The user.
+//****************************************************************************************************************************************************
+void UserList::appendUser(SPUser const& user)
+{
+    int const size = users_.size();
+    this->beginInsertRows(QModelIndex(), size, size);
+    users_.append(user);
+    this->endInsertRows();
+}
+
+
+//****************************************************************************************************************************************************
+/// \param[in] row The row.
+//****************************************************************************************************************************************************
+void UserList::removeUserAt(int row)
+{
+    if ((row < 0) && (row >= users_.size()))
+        return;
+    this->beginRemoveRows(QModelIndex(), row, row);
+    users_.removeAt(row);
+    this->endRemoveRows();
+}
+
+
+//****************************************************************************************************************************************************
+/// \param[in] row The row.
+/// \param[in] user The user.
+//****************************************************************************************************************************************************
+void UserList::updateUserAtRow(int row, User const &user)
+{
+    if ((row < 0) || (row >= users_.count()))
+    {
+        app().log().error(QString("invalid user at row %2 (user count = %2)").arg(row).arg(users_.count()));
+        return;
+    }
+
+    users_[row]->update(user);
+
+    QModelIndex modelIndex = this->index(row);
+    emit dataChanged(modelIndex, modelIndex);
+}
+
+
+//****************************************************************************************************************************************************
+/// \param[in] row The row.
+//****************************************************************************************************************************************************
+User *UserList::get(int row) const
+{
+    if ((row < 0) || (row >= users_.count()))
+    {
+        app().log().error(QString("Requesting invalid user at row %1 (user count = %2)").arg(row).arg(users_.count()));
+        return nullptr;
+    }
+
+    app().log().debug(QString("Retrieving user at row %1 (user count = %2)").arg(row).arg(users_.count()));
+    return users_[row].get();
+}
+
+
+//****************************************************************************************************************************************************
+/// \param[in] userID The userID.
+//****************************************************************************************************************************************************
+void UserList::onUserChanged(QString const &userID)
+{
+    int const index = this->rowOfUserID(userID);
+    SPUser user;
+    grpc::Status status = app().grpc().getUser(userID, user);
+    if ((!user) || (!status.ok()))
+    {
+        if (index >= 0) // user exists here but not in the go backend. we delete it.
+        {
+            app().log().debug(QString("Removing user from userlist: %1").arg(userID));
+            this->removeUserAt(index);
+        }
+        return;
+    }
+
+    if (index < 0)
+    {
+        app().log().debug(QString("Adding user in userlist: %1").arg(userID));
+        this->appendUser(user);
+        return;
+    }
+
+    app().log().debug(QString("Updating user in userlist: %1").arg(userID));
+    this->updateUserAtRow(index, *user);
+}
+
+
+//****************************************************************************************************************************************************
+/// The only purpose of this function is to forward the toggleSplitModeFinished event received from gRPC to the
+/// appropriate user.
+///
+/// \param[in] userID the userID.
+//****************************************************************************************************************************************************
+void UserList::onToggleSplitModeFinished(QString const &userID)
+{
+    int const index = this->rowOfUserID(userID);
+    if (index < 0)
+    {
+        app().log().error(QString("Received toggleSplitModeFinished event for unknown userID %1").arg(userID));
+        return;
+    }
+
+    users_[index]->emitToggleSplitModeFinished();
+}
+
+
+//****************************************************************************************************************************************************
+/// \return THe number of items in the list.
+//****************************************************************************************************************************************************
+int UserList::count() const
+{
+    return users_.size();
+}

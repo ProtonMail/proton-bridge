@@ -20,7 +20,7 @@
 #define BRIDGE_RPC_CLIENT_TEST_RPC_CLIENT_H
 
 
-#include "rpc/bridge_rpc.grpc.pb.h"
+#include "grpc/bridge.grpc.pb.h"
 #include "grpc++/grpc++.h"
 #include <QtCore>
 
@@ -90,8 +90,7 @@ private slots:
 
 private: // data members
     std::shared_ptr<grpc::Channel> channel_ { nullptr }; ///< The gRPC channel.
-    std::shared_ptr<bridgerpc::BridgeRpc::Stub> stub_ { nullptr }; ///< The gRPC stub (a.k.a. client).
-
+    std::shared_ptr<grpc::Bridge::Stub> stub_ { nullptr }; ///< The gRPC stub (a.k.a. client).
 };
 
 

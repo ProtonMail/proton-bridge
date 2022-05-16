@@ -1,5 +1,8 @@
 cmake_minimum_required(VERSION 3.22)
 
+set(VCPKG_TARGET_TRIPLET arm64-osx)
+set(CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake")
+
 project(BridgeRpcClientTest VERSION 0.1 LANGUAGES CXX)
 
 if (NOT DEFINED ENV{QTDIR})
@@ -21,13 +24,13 @@ find_package(Qt6 COMPONENTS Core Test REQUIRED)
 
 find_program(PROTOC_EXE protoc)
 find_program(GRPC_CPP_PLUGIN grpc_cpp_plugin)
-set(PROTO_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../../internal/rpc")
-set(PROTO_FILE "${PROTO_DIR}/bridge_rpc.proto")
-set(GRPC_OUT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/rpc")
-set(PROTO_CPP_FILE "${GRPC_OUT_DIR}/bridge_rpc.pb.cc")
-set(PROTO_H_FILE "${GRPC_OUT_DIR}/bridge_rpc.pb.h")
-set(GRPC_CPP_FILE "${GRPC_OUT_DIR}/bridge_rpc.grpc.pb.cc")
-set(GRPC_H_FILE "${GRPC_OUT_DIR}/bridge_rpc.grpc.pb.h")
+set(PROTO_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../../internal/grpc")
+set(PROTO_FILE "${PROTO_DIR}/bridge.proto")
+set(GRPC_OUT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/grpc")
+set(PROTO_CPP_FILE "${GRPC_OUT_DIR}/bridge.pb.cc")
+set(PROTO_H_FILE "${GRPC_OUT_DIR}/bridge.pb.h")
+set(GRPC_CPP_FILE "${GRPC_OUT_DIR}/bridge.grpc.pb.cc")
+set(GRPC_H_FILE "${GRPC_OUT_DIR}/bridge.grpc.pb.h")
 
 add_custom_command(
    OUTPUT

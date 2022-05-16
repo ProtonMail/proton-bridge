@@ -23,7 +23,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/v2/internal/config/settings"
 	"github.com/ProtonMail/proton-bridge/v2/internal/config/useragent"
 	"github.com/ProtonMail/proton-bridge/v2/internal/frontend/cli"
-	"github.com/ProtonMail/proton-bridge/v2/internal/frontend/qt"
+	"github.com/ProtonMail/proton-bridge/v2/internal/frontend/grpc"
 	"github.com/ProtonMail/proton-bridge/v2/internal/frontend/types"
 	"github.com/ProtonMail/proton-bridge/v2/internal/locations"
 	"github.com/ProtonMail/proton-bridge/v2/internal/updater"
@@ -39,7 +39,7 @@ type Frontend interface {
 	WaitUntilFrontendIsReady()
 }
 
-// New returns initialized frontend based on `frontendType`, which can be `cli` or `qt`.
+// New returns initialized frontend based on `frontendType`, which can be `cli` or `grpc`.
 func New(
 	version,
 	buildVersion,
@@ -58,10 +58,9 @@ func New(
 ) Frontend {
 	bridgeWrap := types.NewBridgeWrap(bridge)
 	switch frontendType {
-	case "qt":
-		return qt.New(
+	case "grpc":
+		return grpc.NewService(
 			version,
-			buildVersion,
 			programName,
 			showWindowOnStart,
 			panicHandler,
@@ -74,6 +73,7 @@ func New(
 			noEncConfirmator,
 			restarter,
 		)
+
 	case "cli":
 		return cli.New(
 			panicHandler,

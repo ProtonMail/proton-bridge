@@ -31,7 +31,6 @@ import (
 	"github.com/ProtonMail/proton-bridge/v2/internal/frontend"
 	"github.com/ProtonMail/proton-bridge/v2/internal/frontend/types"
 	"github.com/ProtonMail/proton-bridge/v2/internal/imap"
-	"github.com/ProtonMail/proton-bridge/v2/internal/rpc"
 	"github.com/ProtonMail/proton-bridge/v2/internal/smtp"
 	"github.com/ProtonMail/proton-bridge/v2/internal/store"
 	"github.com/ProtonMail/proton-bridge/v2/internal/store/cache"
@@ -139,11 +138,6 @@ func mailLoop(b *base.Base, c *cli.Context) error { //nolint:funlen
 			smtpPort, useSSL, tlsConfig, smtpBackend, b.Listener).ListenAndServe()
 	}()
 
-	go func() {
-		defer b.CrashHandler.HandlePanic()
-		rpc.NewServer().ListenAndServe()
-	}()
-
 	// We want to remove old versions if the app exits successfully.
 	b.AddTeardownAction(b.Versioner.RemoveOldVersions)
 
@@ -158,7 +152,7 @@ func mailLoop(b *base.Base, c *cli.Context) error { //nolint:funlen
 	case c.Bool(flagNonInteractive):
 		return <-(make(chan error)) // Block forever.
 	default:
-		frontendMode = "qt"
+		frontendMode = "grpc"
 	}
 
 	f := frontend.New(
