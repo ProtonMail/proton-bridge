@@ -40,8 +40,7 @@ func (f *FrontendQt) watchEvents() {
 	errorCh := f.eventListener.ProvideChannel(events.ErrorEvent)
 	credentialsErrorCh := f.eventListener.ProvideChannel(events.CredentialsErrorEvent)
 	noActiveKeyForRecipientCh := f.eventListener.ProvideChannel(events.NoActiveKeyForRecipientEvent)
-	internetOffCh := f.eventListener.ProvideChannel(events.InternetOffEvent)
-	internetOnCh := f.eventListener.ProvideChannel(events.InternetOnEvent)
+	internetConnChangedCh := f.eventListener.ProvideChannel(events.InternetConnChangedEvent)
 	secondInstanceCh := f.eventListener.ProvideChannel(events.SecondInstanceEvent)
 	restartBridgeCh := f.eventListener.ProvideChannel(events.RestartBridgeEvent)
 	addressChangedCh := f.eventListener.ProvideChannel(events.AddressChangedEvent)
@@ -73,10 +72,13 @@ func (f *FrontendQt) watchEvents() {
 			f.qml.NotifyHasNoKeychain()
 		case email := <-noActiveKeyForRecipientCh:
 			f.qml.NoActiveKeyForRecipient(email)
-		case <-internetOffCh:
-			f.qml.InternetOff()
-		case <-internetOnCh:
-			f.qml.InternetOn()
+		case stat := <-internetConnChangedCh:
+			if stat == events.InternetOff {
+				f.qml.InternetOff()
+			}
+			if stat == events.InternetOn {
+				f.qml.InternetOn()
+			}
 		case <-secondInstanceCh:
 			f.qml.ShowMainWindow()
 		case <-restartBridgeCh:

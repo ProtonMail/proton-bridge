@@ -102,14 +102,17 @@ func New(
 
 func (u *Users) watchEvents() {
 	upgradeCh := u.events.ProvideChannel(events.UpgradeApplicationEvent)
-	internetOnCh := u.events.ProvideChannel(events.InternetOnEvent)
+	internetConnChangedCh := u.events.ProvideChannel(events.InternetConnChangedEvent)
 
 	for {
 		select {
 		case <-upgradeCh:
 			isApplicationOutdated = true
 			u.closeAllConnections()
-		case <-internetOnCh:
+		case stat := <-internetConnChangedCh:
+			if stat != events.InternetOn {
+				continue
+			}
 			for _, user := range u.users {
 				if user.store == nil {
 					if err := user.loadStore(); err != nil {

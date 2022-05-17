@@ -244,8 +244,7 @@ func New( //nolint[funlen]
 func (f *frontendCLI) watchEvents() {
 	errorCh := f.eventListener.ProvideChannel(events.ErrorEvent)
 	credentialsErrorCh := f.eventListener.ProvideChannel(events.CredentialsErrorEvent)
-	internetOffCh := f.eventListener.ProvideChannel(events.InternetOffEvent)
-	internetOnCh := f.eventListener.ProvideChannel(events.InternetOnEvent)
+	internetConnChangedCh := f.eventListener.ProvideChannel(events.InternetConnChangedEvent)
 	addressChangedCh := f.eventListener.ProvideChannel(events.AddressChangedEvent)
 	addressChangedLogoutCh := f.eventListener.ProvideChannel(events.AddressChangedLogoutEvent)
 	logoutCh := f.eventListener.ProvideChannel(events.LogoutEvent)
@@ -256,10 +255,13 @@ func (f *frontendCLI) watchEvents() {
 			f.Println("Bridge failed:", errorDetails)
 		case <-credentialsErrorCh:
 			f.notifyCredentialsError()
-		case <-internetOffCh:
-			f.notifyInternetOff()
-		case <-internetOnCh:
-			f.notifyInternetOn()
+		case stat := <-internetConnChangedCh:
+			if stat == events.InternetOff {
+				f.notifyInternetOff()
+			}
+			if stat == events.InternetOn {
+				f.notifyInternetOn()
+			}
 		case address := <-addressChangedCh:
 			f.Printf("Address changed for %s. You may need to reconfigure your email client.", address)
 		case address := <-addressChangedLogoutCh:

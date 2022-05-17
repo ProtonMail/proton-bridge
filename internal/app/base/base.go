@@ -192,8 +192,8 @@ func New( // nolint[funlen]
 	sentryReporter.SetClientFromManager(cm)
 
 	cm.AddConnectionObserver(pmapi.NewConnectionObserver(
-		func() { listener.Emit(events.InternetOffEvent, "") },
-		func() { listener.Emit(events.InternetOnEvent, "") },
+		func() { listener.Emit(events.InternetConnChangedEvent, events.InternetOff) },
+		func() { listener.Emit(events.InternetConnChangedEvent, events.InternetOn) },
 	))
 
 	jar, err := cookies.NewCookieJar(settingsObj)

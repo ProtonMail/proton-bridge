@@ -34,8 +34,9 @@ const (
 	AddressChangedLogoutEvent    = "addressChangedLogout"
 	UserRefreshEvent             = "userRefresh"
 	RestartBridgeEvent           = "restartBridge"
-	InternetOffEvent             = "internetOff"
-	InternetOnEvent              = "internetOn"
+	InternetConnChangedEvent     = "internetChanged"
+	InternetOff                  = "internetOff"
+	InternetOn                   = "internetOn"
 	SecondInstanceEvent          = "secondInstance"
 	OutgoingNoEncEvent           = "outgoingNoEncryption"
 	NoActiveKeyForRecipientEvent = "noActiveKeyForRecipient"
@@ -52,7 +53,7 @@ func SetupEvents(listener listener.Listener) {
 	listener.SetLimit(LogoutEvent, LogoutEventTimeout)
 	listener.SetBuffer(ErrorEvent)
 	listener.SetBuffer(CredentialsErrorEvent)
-	listener.SetBuffer(InternetOffEvent)
+	listener.SetBuffer(InternetConnChangedEvent)
 	listener.SetBuffer(UpgradeApplicationEvent)
 	listener.SetBuffer(TLSCertIssue)
 	listener.SetBuffer(UserRefreshEvent)
