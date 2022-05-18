@@ -80,6 +80,7 @@ Proton Mail Bridge includes the following 3rd party software:
 * [cli](https://github.com/urfave/cli/v2) available under [license](https://github.com/urfave/cli/v2/blob/master/LICENSE) 
 * [msgpack](https://github.com/vmihailenco/msgpack/v5) available under [license](https://github.com/vmihailenco/msgpack/v5/blob/master/LICENSE) 
 * [bbolt](https://go.etcd.io/bbolt) available under [license](https://github.com/etcd-io/bbolt/blob/master/LICENSE) 
+* [crypto](https://golang.org/x/crypto) available under [license](https://cs.opensource.google/go/x/crypto/+/master:LICENSE) 
 * [net](https://golang.org/x/net) available under [license](https://cs.opensource.google/go/x/net/+/master:LICENSE) 
 * [sys](https://golang.org/x/sys) available under [license](https://cs.opensource.google/go/x/sys/+/master:LICENSE) 
 * [text](https://golang.org/x/text) available under [license](https://cs.opensource.google/go/x/text/+/master:LICENSE) 
