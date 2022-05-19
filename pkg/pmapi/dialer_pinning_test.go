@@ -88,7 +88,7 @@ func TestTLSSignedCertTrustedPublicKey(t *testing.T) {
 
 	_, dialer, _ := createClientWithPinningDialer("")
 	copyTrustedPins(dialer.pinChecker)
-	dialer.pinChecker.trustedPins = append(dialer.pinChecker.trustedPins, `pin-sha256="W8/42Z0ffufwnHIOSndT+eVzBJSC0E8uTIC8O6mEliQ="`)
+	dialer.pinChecker.trustedPins = append(dialer.pinChecker.trustedPins, `pin-sha256="2opdB7b5INED5jS7duIDR7dM8Er99i7trnwKuW3GMCY="`)
 	_, err := dialer.DialTLS("tcp", "rsa4096.badssl.com:443")
 	r.NoError(t, err, "expected dial to succeed because public key is known and cert is signed by CA")
 }
