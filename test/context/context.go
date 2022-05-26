@@ -175,5 +175,6 @@ func (ctx *TestContext) MessagePreparationFinished(username string) {
 }
 
 func (ctx *TestContext) CredentialsFailsOnWrite(shouldFail bool) {
-	ctx.credStore.(*fakeCredStore).failOnWrite = shouldFail //nolint:forcetypeassert
+	ctx.credStore.(*fakeCredStore).failOnWrite = shouldFail                                              //nolint:forcetypeassert
+	ctx.addCleanup(func() { ctx.credStore.(*fakeCredStore).failOnWrite = false }, "credentials-cleanup") //nolint:forcetypeassert
 }

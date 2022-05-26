@@ -15,33 +15,36 @@
 // You should have received a copy of the GNU General Public License
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
+//go:build !windows
+// +build !windows
+
 package store
 
 import (
-	"fmt"
-	"os"
-	"os/exec"
 	"runtime"
-	"strconv"
-	"strings"
+	"syscall"
 )
 
-func uLimit() int {
-	if runtime.GOOS != "darwin" && runtime.GOOS != "linux" {
-		return 0
-	}
-	out, err := exec.Command("bash", "-c", "ulimit -n").Output()
+func getCurrentFDLimit() (int, error) {
+	var limits syscall.Rlimit
+	err := syscall.Getrlimit(syscall.RLIMIT_NOFILE, &limits)
 	if err != nil {
-		log.Print(err)
-		return 0
+		return 0, err
 	}
-	outStr := strings.Trim(string(out), " \n")
-	num, err := strconv.Atoi(outStr)
-	if err != nil {
-		log.Print(err)
-		return 0
+	return int(limits.Cur), nil
+}
+
+func countOpenedFDs(limit int) int {
+	openedFDs := 0
+
+	for i := 0; i < limit; i++ {
+		_, _, err := syscall.Syscall(syscall.SYS_FCNTL, uintptr(i), uintptr(syscall.F_GETFL), 0)
+		if err == 0 {
+			openedFDs++
+		}
 	}
-	return num
+
+	return openedFDs
 }
 
 func isFdCloseToULimit() bool {
@@ -49,16 +52,18 @@ func isFdCloseToULimit() bool {
 		return false
 	}
 
-	pid := fmt.Sprint(os.Getpid())
-	out, err := exec.Command("lsof", "-p", pid).Output() //nolint:gosec
+	limit, err := getCurrentFDLimit()
 	if err != nil {
-		log.Warn("isFdCloseToULimit: ", err)
+		log.WithError(err).Error("Cannot get current FD limit")
 		return false
 	}
-	lines := strings.Split(string(out), "\n")
 
-	fd := len(lines) - 1
-	ulimit := uLimit()
-	log.Info("File descriptor check: num goroutines ", runtime.NumGoroutine(), " fd ", fd, " ulimit ", ulimit)
-	return fd >= int(0.95*float64(ulimit))
+	openedFDs := countOpenedFDs(limit)
+
+	log.
+		WithField("noGoroutines", runtime.NumCgoCall()).
+		WithField("noFDs", openedFDs).
+		WithField("limitFD", limit).
+		Info("File descriptor check")
+	return openedFDs >= int(0.95*float64(limit))
 }

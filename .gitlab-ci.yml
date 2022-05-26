@@ -180,6 +180,7 @@ build-linux-qa:
     - export PATH=$GOPATH/bin:$PATH
     - export CGO_CPPFLAGS='-Wno-error -Wno-nullability-completeness -Wno-expansion-to-defined -Wno-builtin-requires-header'
   script:
+    - go version
     - make build
     - git diff && git diff-index --quiet HEAD
   cache: {}

@@ -15,39 +15,9 @@
 // You should have received a copy of the GNU General Public License
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
-package tls
+//go:build windows
+// +build windows
 
-import "golang.org/x/sys/execabs"
+package store
 
-func addTrustedCert(certPath string) error {
-	return execabs.Command( //nolint:gosec
-		"/usr/bin/security",
-		"execute-with-privileges",
-		"/usr/bin/security",
-		"add-trusted-cert",
-		"-d",
-		"-r", "trustRoot",
-		"-p", "ssl",
-		"-k", "/Library/Keychains/System.keychain",
-		certPath,
-	).Run()
-}
-
-func removeTrustedCert(certPath string) error {
-	return execabs.Command( //nolint:gosec
-		"/usr/bin/security",
-		"execute-with-privileges",
-		"/usr/bin/security",
-		"remove-trusted-cert",
-		"-d",
-		certPath,
-	).Run()
-}
-
-func (t *TLS) InstallCerts() error {
-	return addTrustedCert(t.getTLSCertPath())
-}
-
-func (t *TLS) UninstallCerts() error {
-	return removeTrustedCert(t.getTLSCertPath())
-}
+func isFdCloseToULimit() bool { return false }

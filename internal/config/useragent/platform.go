@@ -18,7 +18,6 @@
 package useragent
 
 import (
-	"os/exec"
 	"runtime"
 	"strings"
 
@@ -35,20 +34,20 @@ func IsBigSurOrNewer() bool {
 	return isThisDarwinNewerOrEqual(getMinBigSur())
 }
 
-func getMinCatalina() *semver.Version { return semver.MustParse("10.15.0") }
-func getMinBigSur() *semver.Version   { return semver.MustParse("10.16.0") }
+func getMinCatalina() *semver.Version { return semver.MustParse("19.0.0") }
+func getMinBigSur() *semver.Version   { return semver.MustParse("20.0.0") }
 
 func isThisDarwinNewerOrEqual(minVersion *semver.Version) bool {
 	if runtime.GOOS != "darwin" {
 		return false
 	}
 
-	rawVersion, err := exec.Command("sw_vers", "-productVersion").Output()
+	rawVersion, err := getDarwinVersion()
 	if err != nil {
 		return false
 	}
 
-	return isVersionEqualOrNewer(minVersion, strings.TrimSpace(string(rawVersion)))
+	return isVersionEqualOrNewer(minVersion, strings.TrimSpace(rawVersion))
 }
 
 // isVersionEqualOrNewer is separated to be able to run test on other than darwin.
