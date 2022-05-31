@@ -25,7 +25,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/ProtonMail/proton-bridge/pkg/message/parser"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/message/parser"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/text/encoding/charmap"
@@ -604,7 +604,6 @@ func getFileReader(filename string) io.Reader {
 
 func readerToString(r io.Reader) string {
 	b, err := ioutil.ReadAll(r)
-
 	if err != nil {
 		panic(err)
 	}

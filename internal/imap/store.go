@@ -23,10 +23,10 @@ import (
 	"net/textproto"
 
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
-	"github.com/ProtonMail/proton-bridge/internal/imap/uidplus"
-	"github.com/ProtonMail/proton-bridge/internal/store"
-	pkgMsg "github.com/ProtonMail/proton-bridge/pkg/message"
-	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
+	"github.com/ProtonMail/proton-bridge/v2/internal/imap/uidplus"
+	"github.com/ProtonMail/proton-bridge/v2/internal/store"
+	pkgMsg "github.com/ProtonMail/proton-bridge/v2/pkg/message"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/pmapi"
 )
 
 type storeUserProvider interface {

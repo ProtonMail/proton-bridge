@@ -24,7 +24,7 @@ import (
 	"os"
 
 	"github.com/Masterminds/semver/v3"
-	"github.com/ProtonMail/proton-bridge/internal/updater"
+	"github.com/ProtonMail/proton-bridge/v2/internal/updater"
 	"github.com/go-resty/resty/v2"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"

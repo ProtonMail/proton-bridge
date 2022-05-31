@@ -22,9 +22,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ProtonMail/proton-bridge/internal/events"
-	"github.com/ProtonMail/proton-bridge/internal/serverutil"
-	"github.com/ProtonMail/proton-bridge/pkg/listener"
+	"github.com/ProtonMail/proton-bridge/v2/internal/events"
+	"github.com/ProtonMail/proton-bridge/v2/internal/serverutil"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/listener"
 	"github.com/stretchr/testify/require"
 )
 

@@ -22,9 +22,9 @@ import (
 	"testing"
 	time "time"
 
-	"github.com/ProtonMail/proton-bridge/internal/events"
-	"github.com/ProtonMail/proton-bridge/internal/users/credentials"
-	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
+	"github.com/ProtonMail/proton-bridge/v2/internal/events"
+	"github.com/ProtonMail/proton-bridge/v2/internal/users/credentials"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/pmapi"
 	gomock "github.com/golang/mock/gomock"
 	r "github.com/stretchr/testify/require"
 )

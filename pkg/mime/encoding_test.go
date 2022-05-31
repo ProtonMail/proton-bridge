@@ -126,21 +126,21 @@ func TestGetEncoding(t *testing.T) {
 	// All MIME charsets with aliases can be found here:
 	// https://www.iana.org/assignments/character-sets/character-sets.xhtml
 	mimesets := map[string][]string{
-		"utf-8": []string{ // MIB 16
+		"utf-8": { // MIB 16
 			"utf8",
 			"csutf8",
 			"unicode-1-1-utf-8",
 			"iso-utf-8",
 			"utf8mb4",
 		},
-		"gbk": []string{
+		"gbk": {
 			"gb2312", // MIB 2025
 			//"euc-cn": []string{
 			"euccn",
 			"ibm-euccn",
 		},
 		//"utf7": []string{"utf-7", "unicode-1-1-utf-7"},
-		"iso-8859-2": []string{ // MIB 5
+		"iso-8859-2": { // MIB 5
 			"iso-ir-101",
 			"iso_8859-2",
 			"iso8859-2",
@@ -150,27 +150,27 @@ func TestGetEncoding(t *testing.T) {
 			"ibm852",
 			//"FAILEDibm852",
 		},
-		"iso-8859-3": []string{ // MIB 6
+		"iso-8859-3": { // MIB 6
 			"iso-ir-109",
 			"iso_8859-3",
 			"latin3",
 			"l3",
 			"csisolatin3",
 		},
-		"iso-8859-4": []string{ // MIB 7
+		"iso-8859-4": { // MIB 7
 			"iso-ir-110",
 			"iso_8859-4",
 			"latin4",
 			"l4",
 			"csisolatin4",
 		},
-		"iso-8859-5": []string{ // MIB 8
+		"iso-8859-5": { // MIB 8
 			"iso-ir-144",
 			"iso_8859-5",
 			"cyrillic",
 			"csisolatincyrillic",
 		},
-		"iso-8859-6": []string{ // MIB 9
+		"iso-8859-6": { // MIB 9
 			"iso-ir-127",
 			"iso_8859-6",
 			"ecma-114",
@@ -182,16 +182,18 @@ func TestGetEncoding(t *testing.T) {
 			"iso-8859-6-e",
 			//"iso-8859-6i": []string{ // MIB 82
 			"csiso88596i",
-			"iso-8859-6-i"},
-		"iso-8859-7": []string{ // MIB 10
+			"iso-8859-6-i",
+		},
+		"iso-8859-7": { // MIB 10
 			"iso-ir-126",
 			"iso_8859-7",
 			"elot_928",
 			"ecma-118",
 			"greek",
 			"greek8",
-			"csisolatingreek"},
-		"iso-8859-8": []string{ // MIB 11
+			"csisolatingreek",
+		},
+		"iso-8859-8": { // MIB 11
 			"iso-ir-138",
 			"iso_8859-8",
 			"hebrew",
@@ -200,33 +202,36 @@ func TestGetEncoding(t *testing.T) {
 			"csiso88598e",
 			"iso-8859-8-e",
 		},
-		"iso-8859-8-i": []string{ // MIB 85
+		"iso-8859-8-i": { // MIB 85
 			"logical",
 			"csiso88598i",
 			"iso-8859-8-i", // Hebrew, the "i" means right-to-left, probably unnecessary with ISO cleaning above.
 		},
-		"iso-8859-10": []string{ // MIB 13
+		"iso-8859-10": { // MIB 13
 			"iso-ir-157",
 			"l6",
 			"iso_8859-10:1992",
 			"csisolatin6",
-			"latin6"},
-		"iso-8859-13": []string{ // MIB 109
+			"latin6",
+		},
+		"iso-8859-13": { // MIB 109
 			"csiso885913"},
-		"iso-8859-14": []string{ // MIB 110
+		"iso-8859-14": { // MIB 110
 			"iso-ir-199",
 			"iso_8859-14:1998",
 			"iso_8859-14",
 			"latin8",
 			"iso-celtic",
 			"l8",
-			"csiso885914"},
-		"iso-8859-15": []string{ // MIB 111
+			"csiso885914",
+		},
+		"iso-8859-15": { // MIB 111
 			"iso_8859-15",
 			"latin-9",
 			"csiso885915",
-			"ISO8859-15"},
-		"iso-8859-16": []string{ // MIB 112
+			"ISO8859-15",
+		},
+		"iso-8859-16": { // MIB 112
 			"iso-ir-226",
 			"iso_8859-16:2001",
 			"iso_8859-16",
@@ -234,21 +239,21 @@ func TestGetEncoding(t *testing.T) {
 			"l10",
 			"csiso885916",
 		},
-		"windows-874": []string{ // MIB 2109
+		"windows-874": { // MIB 2109
 			"cswindows874",
 			"cp874",
 			"iso-8859-11",
 			"tis-620",
 		},
-		"windows-1250": []string{ // MIB 2250
+		"windows-1250": { // MIB 2250
 			"cswindows1250",
 			"cp1250",
 		},
-		"windows-1251": []string{ // MIB 2251
+		"windows-1251": { // MIB 2251
 			"cswindows1251",
 			"cp1251",
 		},
-		"windows-1252": []string{ // MIB 2252
+		"windows-1252": { // MIB 2252
 			"cswindows1252",
 			"cp1252",
 			"3dwindows-1252",
@@ -278,20 +283,20 @@ func TestGetEncoding(t *testing.T) {
 			"iso-ir-6",
 			"we8iso8859p1",
 		},
-		"windows-1253": []string{"cswindows1253", "cp1253"},        // MIB 2253
-		"windows-1254": []string{"cswindows1254", "cp1254"},        // MIB 2254
-		"windows-1255": []string{"cSwindows1255", "cp1255"},        // MIB 2255
-		"windows-1256": []string{"cswIndows1256", "cp1256"},        // MIB 2256
-		"windows-1257": []string{"cswinDows1257", "cp1257"},        // MIB 2257
-		"windows-1258": []string{"cswindoWs1258", "cp1258"},        // MIB 2257
-		"koi8-r":       []string{"cskoi8r", "koi8r"},               // MIB 2084
-		"koi8-u":       []string{"cskoi8u", "koi8u"},               // MIB 2088
-		"macintosh":    []string{"mac", "macroman", "csmacintosh"}, // MIB 2027
-		"big5": []string{
+		"windows-1253": {"cswindows1253", "cp1253"},        // MIB 2253
+		"windows-1254": {"cswindows1254", "cp1254"},        // MIB 2254
+		"windows-1255": {"cSwindows1255", "cp1255"},        // MIB 2255
+		"windows-1256": {"cswIndows1256", "cp1256"},        // MIB 2256
+		"windows-1257": {"cswinDows1257", "cp1257"},        // MIB 2257
+		"windows-1258": {"cswindoWs1258", "cp1258"},        // MIB 2257
+		"koi8-r":       {"cskoi8r", "koi8r"},               // MIB 2084
+		"koi8-u":       {"cskoi8u", "koi8u"},               // MIB 2088
+		"macintosh":    {"mac", "macroman", "csmacintosh"}, // MIB 2027
+		"big5": {
 			"zht16mswin950", // cp950
 			"cp950",
 		},
-		"euc-kr": []string{
+		"euc-kr": {
 			"euckr", // MIB 38
 			"ibm-euckr",
 			//"uhc": []string{ // Korea
@@ -299,11 +304,11 @@ func TestGetEncoding(t *testing.T) {
 			"ksc5601",
 			"cp949",
 		},
-		"euc-jp": []string{
+		"euc-jp": {
 			"eucjp",
 			"ibm-eucjp",
 		},
-		"shift_jis": []string{
+		"shift_jis": {
 			"CP932",
 			"MS932",
 			"Windows-932",
@@ -312,7 +317,7 @@ func TestGetEncoding(t *testing.T) {
 			"IBM-943",
 			"CP943",
 		},
-		"iso-2022-jp": []string{ // MIB 39
+		"iso-2022-jp": { // MIB 39
 			"iso2022jp",
 			"csiso2022jp",
 		},
@@ -424,14 +429,14 @@ func TestEncodeReader(t *testing.T) {
 
 	// run tests
 	for _, val := range testData {
-		//fmt.Println("Testing ", val)
+		// fmt.Println("Testing ", val)
 		expected := []byte(val.message)
 		decoded, err := DecodeCharset(val.original, "text/plain; charset="+val.charset)
 		if len(expected) == 0 {
 			if err == nil {
 				t.Error("Expected err but have ", err)
 			} else {
-				//fmt.Println("Expected err: ", err)
+				// fmt.Println("Expected err: ", err)
 				continue
 			}
 		} else {

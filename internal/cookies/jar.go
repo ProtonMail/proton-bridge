@@ -27,7 +27,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ProtonMail/proton-bridge/internal/config/settings"
+	"github.com/ProtonMail/proton-bridge/v2/internal/config/settings"
 )
 
 type cookiesByHost map[string][]*http.Cookie

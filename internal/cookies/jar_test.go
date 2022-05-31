@@ -24,7 +24,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ProtonMail/proton-bridge/internal/config/settings"
+	"github.com/ProtonMail/proton-bridge/v2/internal/config/settings"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

@@ -23,15 +23,17 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/pmapi"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	bolt "go.etcd.io/bbolt"
 )
 
-const syncFinishTimeKey = "sync_state" // The original key was sync_state and we want to keep compatibility.
-const syncIDRangesKey = "id_ranges"
-const syncIDsToBeDeletedKey = "ids_to_be_deleted"
+const (
+	syncFinishTimeKey     = "sync_state" // The original key was sync_state and we want to keep compatibility.
+	syncIDRangesKey       = "id_ranges"
+	syncIDsToBeDeletedKey = "ids_to_be_deleted"
+)
 
 // updateCountsFromServer will download and set the counts.
 func (store *Store) updateCountsFromServer() error {
@@ -204,7 +206,6 @@ func (store *Store) loadSyncState() *syncState {
 
 		return
 	})
-
 	if err != nil {
 		store.log.WithError(err).Error("Failed to load sync state")
 	}

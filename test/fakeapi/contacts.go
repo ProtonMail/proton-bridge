@@ -23,7 +23,7 @@ import (
 	"net/url"
 	"strconv"
 
-	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/pmapi"
 )
 
 func (api *FakePMAPI) DecryptAndVerifyCards(cards []pmapi.Card) ([]pmapi.Card, error) {

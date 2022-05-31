@@ -105,7 +105,7 @@ func (m *manager) authRefresh(ctx context.Context, uid, ref string) (*AuthRefres
 	m.refreshingAuth.Lock()
 	defer m.refreshingAuth.Unlock()
 
-	var req = authRefreshReq{
+	req := authRefreshReq{
 		UID:          uid,
 		RefreshToken: ref,
 		ResponseType: "token",

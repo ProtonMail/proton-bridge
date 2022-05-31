@@ -79,7 +79,7 @@ func (p *keyValueStore) save() error {
 		return err
 	}
 
-	return ioutil.WriteFile(p.path, b, 0600)
+	return ioutil.WriteFile(p.path, b, 0o600)
 }
 
 func (p *keyValueStore) setDefault(key, value string) {

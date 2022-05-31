@@ -25,17 +25,15 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/ProtonMail/proton-bridge/internal/bridge"
-	"github.com/ProtonMail/proton-bridge/internal/config/settings"
-	"github.com/ProtonMail/proton-bridge/internal/events"
-	"github.com/ProtonMail/proton-bridge/pkg/listener"
-	"github.com/ProtonMail/proton-bridge/pkg/ports"
+	"github.com/ProtonMail/proton-bridge/v2/internal/bridge"
+	"github.com/ProtonMail/proton-bridge/v2/internal/config/settings"
+	"github.com/ProtonMail/proton-bridge/v2/internal/events"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/listener"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/ports"
 	"github.com/sirupsen/logrus"
 )
 
-var (
-	log = logrus.WithField("pkg", "api") //nolint:gochecknoglobals
-)
+var log = logrus.WithField("pkg", "api") //nolint:gochecknoglobals
 
 type apiServer struct {
 	host          string

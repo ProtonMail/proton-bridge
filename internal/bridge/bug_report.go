@@ -28,12 +28,14 @@ import (
 	"path/filepath"
 	"sort"
 
-	"github.com/ProtonMail/proton-bridge/internal/logging"
-	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
+	"github.com/ProtonMail/proton-bridge/v2/internal/logging"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/pmapi"
 )
 
-const MaxAttachmentSize = 7 * 1024 * 1024 // 7 MB total limit
-const MaxCompressedFilesCount = 6
+const (
+	MaxAttachmentSize       = 7 * 1024 * 1024 // 7 MB total limit
+	MaxCompressedFilesCount = 6
+)
 
 var ErrSizeTooLarge = errors.New("file is too big")
 

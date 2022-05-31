@@ -29,17 +29,19 @@ import (
 	r "github.com/stretchr/testify/require"
 )
 
-const testSep = "\n"
-const secretFormat = "%v" + testSep + // UserID,
-	"%v" + testSep + // Name,
-	"%v" + testSep + // Emails,
-	"%v" + testSep + // APIToken,
-	"%v" + testSep + // Mailbox,
-	"%v" + testSep + // BridgePassword,
-	"%v" + testSep + // Version string
-	"%v" + testSep + // Timestamp,
-	"%v" + testSep + // IsHidden,
-	"%v" // IsCombinedAddressMode
+const (
+	testSep      = "\n"
+	secretFormat = "%v" + testSep + // UserID,
+		"%v" + testSep + // Name,
+		"%v" + testSep + // Emails,
+		"%v" + testSep + // APIToken,
+		"%v" + testSep + // Mailbox,
+		"%v" + testSep + // BridgePassword,
+		"%v" + testSep + // Version string
+		"%v" + testSep + // Timestamp,
+		"%v" + testSep + // IsHidden,
+		"%v" // IsCombinedAddressMode
+)
 
 // the best would be to run this test on mac, win, and linux separately
 

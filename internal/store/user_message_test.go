@@ -24,8 +24,8 @@ import (
 	"strings"
 	"testing"
 
-	pkgMsg "github.com/ProtonMail/proton-bridge/pkg/message"
-	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
+	pkgMsg "github.com/ProtonMail/proton-bridge/v2/pkg/message"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/pmapi"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
 	bolt "go.etcd.io/bbolt"

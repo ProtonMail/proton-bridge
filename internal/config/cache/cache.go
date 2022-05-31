@@ -22,7 +22,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/ProtonMail/proton-bridge/pkg/files"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/files"
 )
 
 type Cache struct {
@@ -30,7 +30,7 @@ type Cache struct {
 }
 
 func New(dir, version string) (*Cache, error) {
-	if err := os.MkdirAll(filepath.Join(dir, version), 0700); err != nil {
+	if err := os.MkdirAll(filepath.Join(dir, version), 0o700); err != nil {
 		return nil, err
 	}
 

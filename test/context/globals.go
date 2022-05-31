@@ -20,7 +20,7 @@ package context
 import (
 	"os"
 
-	"github.com/ProtonMail/proton-bridge/test/liveapi"
+	"github.com/ProtonMail/proton-bridge/v2/test/liveapi"
 )
 
 // BeforeRun does necessary setup.

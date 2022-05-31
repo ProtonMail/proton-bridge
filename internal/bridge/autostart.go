@@ -18,7 +18,7 @@
 // Package bridge provides core functionality of Bridge app.
 package bridge
 
-import "github.com/ProtonMail/proton-bridge/internal/config/settings"
+import "github.com/ProtonMail/proton-bridge/v2/internal/config/settings"
 
 // IsAutostartEnabled checks if link file exits.
 func (b *Bridge) IsAutostartEnabled() bool {

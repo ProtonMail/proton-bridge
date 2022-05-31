@@ -341,7 +341,8 @@ var testPaths = []struct {
 	path                          []int
 	expectedSection, expectedBody string
 }{
-	{[]int{},
+	{
+		[]int{},
 		sampleMail,
 		`main summary
 
@@ -434,7 +435,8 @@ Content-Type: text/html
 `,
 	},
 
-	{[]int{1},
+	{
+		[]int{1},
 		`Content-Type: text/plain
 
 1. main message
@@ -446,7 +448,8 @@ Content-Type: text/html
 
 `,
 	},
-	{[]int{3},
+	{
+		[]int{3},
 		`Subject: Inside mail 3
 From: Mary Smith <mary@example.net>
 To: John Doe <jdoe@machine.example>
@@ -488,7 +491,8 @@ Content-Transfer-Encoding: base64
 
 `,
 	},
-	{[]int{3, 1},
+	{
+		[]int{3, 1},
 		`Content-Type: text/plain
 
 3.1 message text
@@ -498,7 +502,8 @@ Content-Transfer-Encoding: base64
 
 `,
 	},
-	{[]int{3, 2},
+	{
+		[]int{3, 2},
 		`Content-Type: application/octet-stream
 Content-Disposition: attachment; filename="msg_3_signature.sig"
 Content-Transfer-Encoding: base64
@@ -510,7 +515,8 @@ Content-Transfer-Encoding: base64
 
 `,
 	},
-	{[]int{4, 2, 2, 1},
+	{
+		[]int{4, 2, 2, 1},
 		`Content-Type: text/plain
 
 4.2.2.1 plain text
@@ -520,7 +526,8 @@ Content-Transfer-Encoding: base64
 
 `,
 	},
-	{[]int{4, 2, 2, 2},
+	{
+		[]int{4, 2, 2, 2},
 		`Content-Type: text/html
 
 <h1>4.2.2.2 html text</h1>

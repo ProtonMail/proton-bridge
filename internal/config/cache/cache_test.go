@@ -61,7 +61,7 @@ func TestRemoveOldVersions(t *testing.T) {
 
 func createFilesInDir(t *testing.T, dir string, files ...string) {
 	for _, target := range files {
-		require.NoError(t, os.MkdirAll(filepath.Dir(filepath.Join(dir, target)), 0700))
+		require.NoError(t, os.MkdirAll(filepath.Dir(filepath.Join(dir, target)), 0o700))
 
 		f, err := os.Create(filepath.Join(dir, target))
 		require.NoError(t, err)

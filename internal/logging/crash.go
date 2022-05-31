@@ -25,8 +25,8 @@ import (
 	"runtime/pprof"
 	"time"
 
-	"github.com/ProtonMail/proton-bridge/internal/constants"
-	"github.com/ProtonMail/proton-bridge/internal/crash"
+	"github.com/ProtonMail/proton-bridge/v2/internal/constants"
+	"github.com/ProtonMail/proton-bridge/v2/internal/crash"
 	"github.com/sirupsen/logrus"
 )
 
@@ -34,7 +34,7 @@ func DumpStackTrace(logsPath string) crash.RecoveryAction {
 	return func(r interface{}) error {
 		file := filepath.Join(logsPath, getStackTraceName(constants.Version, constants.Revision))
 
-		f, err := os.OpenFile(filepath.Clean(file), os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0600)
+		f, err := os.OpenFile(filepath.Clean(file), os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0o600)
 		if err != nil {
 			return err
 		}

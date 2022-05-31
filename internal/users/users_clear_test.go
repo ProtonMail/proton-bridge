@@ -20,7 +20,7 @@ package users
 import (
 	"testing"
 
-	"github.com/ProtonMail/proton-bridge/internal/events"
+	"github.com/ProtonMail/proton-bridge/v2/internal/events"
 	gomock "github.com/golang/mock/gomock"
 	r "github.com/stretchr/testify/require"
 )

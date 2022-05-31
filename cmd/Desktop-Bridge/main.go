@@ -37,8 +37,8 @@ package main
 import (
 	"os"
 
-	"github.com/ProtonMail/proton-bridge/internal/app/base"
-	"github.com/ProtonMail/proton-bridge/internal/app/bridge"
+	"github.com/ProtonMail/proton-bridge/v2/internal/app/base"
+	"github.com/ProtonMail/proton-bridge/v2/internal/app/bridge"
 	"github.com/sirupsen/logrus"
 )
 

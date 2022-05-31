@@ -27,7 +27,7 @@ import (
 	"strings"
 
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
-	pmmime "github.com/ProtonMail/proton-bridge/pkg/mime"
+	pmmime "github.com/ProtonMail/proton-bridge/v2/pkg/mime"
 	"github.com/emersion/go-message/textproto"
 	"github.com/pkg/errors"
 )

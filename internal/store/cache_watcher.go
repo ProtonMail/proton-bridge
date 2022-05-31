@@ -21,7 +21,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/ProtonMail/proton-bridge/internal/store/cache"
+	"github.com/ProtonMail/proton-bridge/v2/internal/store/cache"
 )
 
 func (store *Store) StartWatcher() {

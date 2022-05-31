@@ -15,12 +15,13 @@
 // You should have received a copy of the GNU General Public License
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
-// +build !darwin
-// +build build_qt
+//go:build !darwin && build_qt
+// +build !darwin,build_qt
 
 package dockicon
 
 func SetDockIconVisibleState(visible bool) {}
+
 func GetDockIconVisibleState() bool {
 	return true
 }

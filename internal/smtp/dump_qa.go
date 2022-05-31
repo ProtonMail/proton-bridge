@@ -15,6 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
+//go:build build_qa
 // +build build_qa
 
 package smtp
@@ -38,7 +39,7 @@ func dumpMessageData(b []byte, subject string) {
 
 	path := filepath.Join(home, "bridge-qa")
 
-	if err := os.MkdirAll(path, 0700); err != nil {
+	if err := os.MkdirAll(path, 0o700); err != nil {
 		logrus.WithError(err).Error("Failed to dump raw message data")
 		return
 	}
@@ -50,7 +51,7 @@ func dumpMessageData(b []byte, subject string) {
 	if err := ioutil.WriteFile(
 		filepath.Join(path, fmt.Sprintf("%v-%v.eml", subject, time.Now().Unix())),
 		b,
-		0600,
+		0o600,
 	); err != nil {
 		logrus.WithError(err).Error("Failed to dump raw message data")
 		return

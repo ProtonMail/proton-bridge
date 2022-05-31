@@ -22,7 +22,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/pmapi"
 	imapquota "github.com/emersion/go-imap-quota"
 	goIMAPBackend "github.com/emersion/go-imap/backend"
 )

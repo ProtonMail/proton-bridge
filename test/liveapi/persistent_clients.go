@@ -24,8 +24,8 @@ import (
 	"sync"
 
 	"github.com/ProtonMail/go-srp"
-	"github.com/ProtonMail/proton-bridge/internal/constants"
-	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
+	"github.com/ProtonMail/proton-bridge/v2/internal/constants"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/pmapi"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )

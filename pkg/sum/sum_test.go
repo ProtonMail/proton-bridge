@@ -75,7 +75,7 @@ func createFiles(t *testing.T, root string, paths ...string) {
 }
 
 func makeFile(t *testing.T, path string) {
-	require.NoError(t, os.MkdirAll(filepath.Dir(path), 0700))
+	require.NoError(t, os.MkdirAll(filepath.Dir(path), 0o700))
 
 	f, err := os.Create(path)
 	require.NoError(t, err)

@@ -23,7 +23,7 @@ import (
 	"path/filepath"
 
 	"github.com/Masterminds/semver/v3"
-	"github.com/ProtonMail/proton-bridge/pkg/tar"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/tar"
 )
 
 // InstallNewVersion installs a tgz update package of the given version.

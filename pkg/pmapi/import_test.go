@@ -28,7 +28,7 @@ import (
 	"net/http"
 	"testing"
 
-	pmmime "github.com/ProtonMail/proton-bridge/pkg/mime"
+	pmmime "github.com/ProtonMail/proton-bridge/v2/pkg/mime"
 	r "github.com/stretchr/testify/require"
 )
 

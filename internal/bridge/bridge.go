@@ -26,17 +26,17 @@ import (
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/ProtonMail/go-autostart"
-	"github.com/ProtonMail/proton-bridge/internal/config/settings"
-	"github.com/ProtonMail/proton-bridge/internal/constants"
-	"github.com/ProtonMail/proton-bridge/internal/metrics"
-	"github.com/ProtonMail/proton-bridge/internal/sentry"
-	"github.com/ProtonMail/proton-bridge/internal/store/cache"
-	"github.com/ProtonMail/proton-bridge/internal/updater"
-	"github.com/ProtonMail/proton-bridge/internal/users"
-	"github.com/ProtonMail/proton-bridge/pkg/message"
-	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
+	"github.com/ProtonMail/proton-bridge/v2/internal/config/settings"
+	"github.com/ProtonMail/proton-bridge/v2/internal/constants"
+	"github.com/ProtonMail/proton-bridge/v2/internal/metrics"
+	"github.com/ProtonMail/proton-bridge/v2/internal/sentry"
+	"github.com/ProtonMail/proton-bridge/v2/internal/store/cache"
+	"github.com/ProtonMail/proton-bridge/v2/internal/updater"
+	"github.com/ProtonMail/proton-bridge/v2/internal/users"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/message"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/pmapi"
 
-	"github.com/ProtonMail/proton-bridge/pkg/listener"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/listener"
 	logrus "github.com/sirupsen/logrus"
 )
 

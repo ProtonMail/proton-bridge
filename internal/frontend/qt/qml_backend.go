@@ -23,9 +23,9 @@ package qt
 import (
 	"runtime"
 
-	"github.com/ProtonMail/proton-bridge/internal/bridge"
-	"github.com/ProtonMail/proton-bridge/internal/config/settings"
-	dockIcon "github.com/ProtonMail/proton-bridge/internal/frontend/qt/dockicon"
+	"github.com/ProtonMail/proton-bridge/v2/internal/bridge"
+	"github.com/ProtonMail/proton-bridge/v2/internal/config/settings"
+	dockIcon "github.com/ProtonMail/proton-bridge/v2/internal/frontend/qt/dockicon"
 	"github.com/therecipe/qt/core"
 )
 

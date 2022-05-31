@@ -20,7 +20,7 @@ package store
 import (
 	"testing"
 
-	storemocks "github.com/ProtonMail/proton-bridge/internal/store/mocks"
+	storemocks "github.com/ProtonMail/proton-bridge/v2/internal/store/mocks"
 	"github.com/golang/mock/gomock"
 	"github.com/pkg/errors"
 )

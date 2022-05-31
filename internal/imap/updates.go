@@ -22,9 +22,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ProtonMail/proton-bridge/internal/store"
-	"github.com/ProtonMail/proton-bridge/pkg/message"
-	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
+	"github.com/ProtonMail/proton-bridge/v2/internal/store"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/message"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/pmapi"
 	imap "github.com/emersion/go-imap"
 	goIMAPBackend "github.com/emersion/go-imap/backend"
 	"github.com/sirupsen/logrus"

@@ -27,9 +27,9 @@ import (
 	"time"
 
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
-	"github.com/ProtonMail/proton-bridge/internal/imap/uidplus"
-	"github.com/ProtonMail/proton-bridge/pkg/message"
-	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
+	"github.com/ProtonMail/proton-bridge/v2/internal/imap/uidplus"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/message"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/pmapi"
 	"github.com/emersion/go-imap"
 	"github.com/emersion/go-message/textproto"
 	"github.com/pkg/errors"
@@ -177,7 +177,7 @@ func (im *imapMailbox) labelExistingMessage(msg storeMessageProvider) error { //
 	// If the message is moved from any folder, the moment when expunge happens on source we will move message trash unless we move it to archive.
 	// If the message is already in Archive we should not call API at all.
 	// Otherwise the message is already in All mail, Return OK.
-	var storeMBox = im.storeMailbox
+	storeMBox := im.storeMailbox
 	if pmapi.AllMailLabel == storeMBox.LabelID() {
 		if msg.Message().HasLabelID(pmapi.ArchiveLabel) {
 			return uidplus.AppendResponse(storeMBox.UIDValidity(), storeMBox.GetUIDList([]string{msg.ID()}))
@@ -238,7 +238,7 @@ func (im *imapMailbox) importMessage(kr *crypto.KeyRing, hdr textproto.Header, b
 		return err
 	}
 
-	var targetMailbox = im.storeMailbox
+	targetMailbox := im.storeMailbox
 	if targetMailbox.LabelID() == pmapi.AllMailLabel {
 		// Importing mail in directly into All Mail is not allowed. Instead we redirect the import to Archive
 		// The mail will automatically appear in All mail. The appends response still reports that the mail was

@@ -130,7 +130,7 @@ func createTestFolder(dirPath, dirType string) error {
 	path := filepath.Join(dirPath, "testpath")
 	switch dirType {
 	case FileType:
-		err = ioutil.WriteFile(path, []byte("This is a test"), 0640)
+		err = ioutil.WriteFile(path, []byte("This is a test"), 0o640)
 		if err != nil {
 			return err
 		}
@@ -142,12 +142,12 @@ func createTestFolder(dirPath, dirType string) error {
 		}
 
 	case DirType:
-		err = os.MkdirAll(path, 0750)
+		err = os.MkdirAll(path, 0o750)
 		if err != nil {
 			return err
 		}
 
-		err = ioutil.WriteFile(filepath.Join(path, "another_file"), []byte("This is a test"), 0640)
+		err = ioutil.WriteFile(filepath.Join(path, "another_file"), []byte("This is a test"), 0o640)
 		if err != nil {
 			return err
 		}

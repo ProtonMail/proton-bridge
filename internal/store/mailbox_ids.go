@@ -24,7 +24,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/ProtonMail/proton-bridge/internal/imap/uidplus"
+	"github.com/ProtonMail/proton-bridge/v2/internal/imap/uidplus"
 	"github.com/pkg/errors"
 	bolt "go.etcd.io/bbolt"
 )

@@ -51,7 +51,6 @@ func (ir *IMAPResponse) sendCommand(reqTag string, reqIndex int, command string,
 	var section string
 	for {
 		line, err := response.ReadString('\n')
-
 		if err != nil {
 			ir.err = errors.Wrap(err, "read response failed")
 			debug.printErr(ir.err.Error() + "\n")

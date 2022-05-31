@@ -22,9 +22,9 @@ package clientconfig
 import (
 	"errors"
 
-	"github.com/ProtonMail/proton-bridge/internal/config/settings"
-	"github.com/ProtonMail/proton-bridge/internal/config/useragent"
-	"github.com/ProtonMail/proton-bridge/internal/frontend/types"
+	"github.com/ProtonMail/proton-bridge/v2/internal/config/settings"
+	"github.com/ProtonMail/proton-bridge/v2/internal/config/useragent"
+	"github.com/ProtonMail/proton-bridge/v2/internal/frontend/types"
 	"github.com/sirupsen/logrus"
 )
 

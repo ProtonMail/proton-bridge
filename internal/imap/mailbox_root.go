@@ -21,7 +21,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/ProtonMail/proton-bridge/internal/store"
+	"github.com/ProtonMail/proton-bridge/v2/internal/store"
 
 	imap "github.com/emersion/go-imap"
 )

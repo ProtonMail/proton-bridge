@@ -25,9 +25,9 @@ import (
 	"encoding/base64"
 	"time"
 
-	"github.com/ProtonMail/proton-bridge/internal/events"
-	"github.com/ProtonMail/proton-bridge/internal/users"
-	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
+	"github.com/ProtonMail/proton-bridge/v2/internal/events"
+	"github.com/ProtonMail/proton-bridge/v2/internal/users"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/pmapi"
 )
 
 func (f *FrontendQt) login(username, password string) {

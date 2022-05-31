@@ -24,8 +24,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
-	"github.com/ProtonMail/proton-bridge/test/accounts"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/pmapi"
+	"github.com/ProtonMail/proton-bridge/v2/test/accounts"
 )
 
 var systemLabelNameToID = map[string]string{ //nolint:gochecknoglobals

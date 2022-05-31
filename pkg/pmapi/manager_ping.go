@@ -24,10 +24,8 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-var (
-	// retryConnectionSleeps defines a smooth cool down in seconds.
-	retryConnectionSleeps = []int{2, 5, 10, 30, 60} //nolint:gochecknoglobals
-)
+// retryConnectionSleeps defines a smooth cool down in seconds.
+var retryConnectionSleeps = []int{2, 5, 10, 30, 60} //nolint:gochecknoglobals
 
 func (m *manager) pingUntilSuccess() {
 	if m.isPingOngoing() {

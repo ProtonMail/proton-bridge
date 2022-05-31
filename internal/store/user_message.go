@@ -27,8 +27,8 @@ import (
 	"strings"
 
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
-	"github.com/ProtonMail/proton-bridge/internal/store/cache"
-	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
+	"github.com/ProtonMail/proton-bridge/v2/internal/store/cache"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/pmapi"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	bolt "go.etcd.io/bbolt"
@@ -43,7 +43,8 @@ func (store *Store) CreateDraft(
 	attachmentReaders []io.Reader,
 	attachedPublicKey,
 	attachedPublicKeyName string,
-	parentID string) (*pmapi.Message, []*pmapi.Attachment, error) {
+	parentID string,
+) (*pmapi.Message, []*pmapi.Attachment, error) {
 	attachments := store.prepareDraftAttachments(message, attachmentReaders, attachedPublicKey, attachedPublicKeyName)
 
 	if err := encryptDraft(kr, message, attachments); err != nil {
@@ -90,7 +91,8 @@ func (store *Store) prepareDraftAttachments(
 	message *pmapi.Message,
 	attachmentReaders []io.Reader,
 	attachedPublicKey,
-	attachedPublicKeyName string) []*draftAttachment {
+	attachedPublicKeyName string,
+) []*draftAttachment {
 	attachments := []*draftAttachment{}
 	for idx, attachment := range message.Attachments {
 		attachments = append(attachments, &draftAttachment{

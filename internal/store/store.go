@@ -25,12 +25,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ProtonMail/proton-bridge/internal/sentry"
-	"github.com/ProtonMail/proton-bridge/internal/store/cache"
-	"github.com/ProtonMail/proton-bridge/pkg/listener"
-	"github.com/ProtonMail/proton-bridge/pkg/message"
-	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
-	"github.com/ProtonMail/proton-bridge/pkg/pool"
+	"github.com/ProtonMail/proton-bridge/v2/internal/sentry"
+	"github.com/ProtonMail/proton-bridge/v2/internal/store/cache"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/listener"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/message"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/pmapi"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/pool"
 	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -223,7 +223,7 @@ func openBoltDatabase(filePath string) (db *bolt.DB, err error) {
 	l := log.WithField("path", filePath)
 	l.Debug("Opening bolt database")
 
-	if db, err = bolt.Open(filePath, 0600, &bolt.Options{Timeout: 1 * time.Second}); err != nil {
+	if db, err = bolt.Open(filePath, 0o600, &bolt.Options{Timeout: 1 * time.Second}); err != nil {
 		l.WithError(err).Error("Could not open bolt database")
 		return
 	}

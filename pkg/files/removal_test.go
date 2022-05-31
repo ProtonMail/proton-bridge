@@ -97,7 +97,7 @@ func newTestDir(t *testing.T, subdirs ...string) string {
 	require.NoError(t, err)
 
 	for _, target := range subdirs {
-		require.NoError(t, os.MkdirAll(filepath.Join(dir, target), 0700))
+		require.NoError(t, os.MkdirAll(filepath.Join(dir, target), 0o700))
 	}
 
 	return dir

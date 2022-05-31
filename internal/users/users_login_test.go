@@ -20,9 +20,9 @@ package users
 import (
 	"testing"
 
-	"github.com/ProtonMail/proton-bridge/internal/events"
-	"github.com/ProtonMail/proton-bridge/internal/metrics"
-	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
+	"github.com/ProtonMail/proton-bridge/v2/internal/events"
+	"github.com/ProtonMail/proton-bridge/v2/internal/metrics"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/pmapi"
 	gomock "github.com/golang/mock/gomock"
 	"github.com/pkg/errors"
 	r "github.com/stretchr/testify/require"

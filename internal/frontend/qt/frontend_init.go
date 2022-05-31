@@ -26,7 +26,7 @@ import (
 	"runtime"
 
 	"github.com/Masterminds/semver/v3"
-	qmlLog "github.com/ProtonMail/proton-bridge/internal/frontend/qt/log"
+	qmlLog "github.com/ProtonMail/proton-bridge/v2/internal/frontend/qt/log"
 	"github.com/therecipe/qt/core"
 	"github.com/therecipe/qt/qml"
 	"github.com/therecipe/qt/quickcontrols2"

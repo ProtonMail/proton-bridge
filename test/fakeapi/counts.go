@@ -20,7 +20,7 @@ package fakeapi
 import (
 	"context"
 
-	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/pmapi"
 )
 
 func (api *FakePMAPI) CountMessages(_ context.Context, addressID string) ([]*pmapi.MessagesCount, error) {

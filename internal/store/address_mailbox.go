@@ -20,7 +20,7 @@ package store
 import (
 	"fmt"
 
-	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/pmapi"
 )
 
 // ListMailboxes returns all mailboxes.

@@ -26,7 +26,7 @@ import (
 	"io/ioutil"
 	"net/textproto"
 
-	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/pmapi"
 )
 
 // dataPacketOutlineLightInstagram48png is data packet with encrypted data and

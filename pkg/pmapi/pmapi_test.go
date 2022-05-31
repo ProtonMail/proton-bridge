@@ -24,8 +24,10 @@ import (
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 )
 
-const testMailboxPassword = "apple"
-const testMailboxPasswordLegacy = "123"
+const (
+	testMailboxPassword       = "apple"
+	testMailboxPasswordLegacy = "123"
+)
 
 var (
 	testPrivateKeyRing *crypto.KeyRing

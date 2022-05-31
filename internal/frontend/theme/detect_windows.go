@@ -32,7 +32,6 @@ func detectSystemTheme() Theme {
 		`SOFTWARE\Microsoft\Windows\CurrentVersion\Themes\Personalize`,
 		registry.QUERY_VALUE,
 	)
-
 	if err != nil {
 		log.WithError(err).Error("Not able to open register")
 		return Light

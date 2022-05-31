@@ -23,8 +23,8 @@ package qt
 import (
 	"sync"
 
-	"github.com/ProtonMail/proton-bridge/internal/config/settings"
-	"github.com/ProtonMail/proton-bridge/internal/updater"
+	"github.com/ProtonMail/proton-bridge/v2/internal/config/settings"
+	"github.com/ProtonMail/proton-bridge/v2/internal/updater"
 	"github.com/pkg/errors"
 )
 

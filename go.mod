@@ -1,4 +1,4 @@
-module github.com/ProtonMail/proton-bridge
+module github.com/ProtonMail/proton-bridge/v2
 
 go 1.15
 

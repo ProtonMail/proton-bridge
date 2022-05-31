@@ -25,8 +25,8 @@ import (
 	"path/filepath"
 
 	"github.com/Masterminds/semver/v3"
-	"github.com/ProtonMail/proton-bridge/internal/versioner"
-	"github.com/ProtonMail/proton-bridge/pkg/tar"
+	"github.com/ProtonMail/proton-bridge/v2/internal/versioner"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/tar"
 	"github.com/pkg/errors"
 )
 

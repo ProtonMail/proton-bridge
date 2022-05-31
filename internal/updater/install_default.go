@@ -24,7 +24,7 @@ import (
 	"io"
 
 	"github.com/Masterminds/semver/v3"
-	"github.com/ProtonMail/proton-bridge/internal/versioner"
+	"github.com/ProtonMail/proton-bridge/v2/internal/versioner"
 )
 
 type InstallerDefault struct {

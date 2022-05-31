@@ -19,9 +19,9 @@
 package types
 
 import (
-	"github.com/ProtonMail/proton-bridge/internal/bridge"
-	"github.com/ProtonMail/proton-bridge/internal/updater"
-	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
+	"github.com/ProtonMail/proton-bridge/v2/internal/bridge"
+	"github.com/ProtonMail/proton-bridge/v2/internal/updater"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/pmapi"
 )
 
 // PanicHandler is an interface of a type that can be used to gracefully handle panics which occur.

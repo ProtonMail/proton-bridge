@@ -29,12 +29,14 @@ import (
 	"path/filepath"
 	"sync"
 
-	"github.com/ProtonMail/proton-bridge/pkg/semaphore"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/semaphore"
 	"github.com/ricochet2200/go-disk-usage/du"
 )
 
-var ErrMsgCorrupted = errors.New("ecrypted file was corrupted")
-var ErrLowSpace = errors.New("not enough free space left on device")
+var (
+	ErrMsgCorrupted = errors.New("ecrypted file was corrupted")
+	ErrLowSpace     = errors.New("not enough free space left on device")
+)
 
 // IsOnDiskCache will return true if Cache is type of onDiskCache.
 func IsOnDiskCache(c Cache) bool {
@@ -58,7 +60,7 @@ type onDiskCache struct {
 }
 
 func NewOnDiskCache(path string, cmp Compressor, opts Options) (Cache, error) {
-	if err := os.MkdirAll(path, 0700); err != nil {
+	if err := os.MkdirAll(path, 0o700); err != nil {
 		return nil, err
 	}
 
@@ -114,7 +116,7 @@ func (c *onDiskCache) Unlock(userID string, passphrase []byte) error {
 		return err
 	}
 
-	if err := os.MkdirAll(c.getUserPath(userID), 0700); err != nil {
+	if err := os.MkdirAll(c.getUserPath(userID), 0o700); err != nil {
 		return err
 	}
 
@@ -239,7 +241,7 @@ func (c *onDiskCache) writeFile(path string, b []byte) error {
 	defer c.update()
 
 	// NOTE(GODT-1158): What happens when this fails? Should be fixed eventually.
-	return ioutil.WriteFile(filepath.Clean(path), b, 0600)
+	return ioutil.WriteFile(filepath.Clean(path), b, 0o600)
 }
 
 func (c *onDiskCache) hasSpace(size int) bool {

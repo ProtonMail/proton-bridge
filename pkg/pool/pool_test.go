@@ -20,7 +20,7 @@ package pool_test
 import (
 	"testing"
 
-	"github.com/ProtonMail/proton-bridge/pkg/pool"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/pool"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

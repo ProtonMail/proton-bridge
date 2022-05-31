@@ -21,7 +21,7 @@ package events
 import (
 	"time"
 
-	"github.com/ProtonMail/proton-bridge/pkg/listener"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/listener"
 )
 
 // Constants of events used by the event listener in bridge.

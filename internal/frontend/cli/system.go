@@ -23,14 +23,12 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/ProtonMail/proton-bridge/internal/config/settings"
-	"github.com/ProtonMail/proton-bridge/pkg/ports"
+	"github.com/ProtonMail/proton-bridge/v2/internal/config/settings"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/ports"
 	"github.com/abiosoft/ishell"
 )
 
-var (
-	currentPort = "" //nolint:gochecknoglobals
-)
+var currentPort = "" //nolint:gochecknoglobals
 
 func (f *frontendCLI) restart(c *ishell.Context) {
 	if f.yesNoQuestion("Are you sure you want to restart the Bridge") {

@@ -23,8 +23,8 @@ package qt
 import (
 	"sync"
 
-	"github.com/ProtonMail/proton-bridge/internal/events"
-	"github.com/ProtonMail/proton-bridge/internal/frontend/types"
+	"github.com/ProtonMail/proton-bridge/v2/internal/events"
+	"github.com/ProtonMail/proton-bridge/v2/internal/frontend/types"
 	"github.com/therecipe/qt/core"
 )
 

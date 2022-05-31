@@ -18,8 +18,8 @@
 package users
 
 import (
-	"github.com/ProtonMail/proton-bridge/internal/store"
-	"github.com/ProtonMail/proton-bridge/internal/users/credentials"
+	"github.com/ProtonMail/proton-bridge/v2/internal/store"
+	"github.com/ProtonMail/proton-bridge/v2/internal/users/credentials"
 )
 
 type Locator interface {

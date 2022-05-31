@@ -20,8 +20,8 @@ package liveapi
 import (
 	"context"
 
-	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
-	"github.com/ProtonMail/proton-bridge/test/accounts"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/pmapi"
+	"github.com/ProtonMail/proton-bridge/v2/test/accounts"
 	"github.com/cucumber/godog"
 	"github.com/pkg/errors"
 )

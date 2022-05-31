@@ -26,8 +26,8 @@ import (
 	"time"
 
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
-	"github.com/ProtonMail/proton-bridge/pkg/message/mocks"
-	tests "github.com/ProtonMail/proton-bridge/test"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/message/mocks"
+	tests "github.com/ProtonMail/proton-bridge/v2/test"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

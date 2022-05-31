@@ -24,8 +24,8 @@ import (
 	"net"
 	"net/http"
 
-	"github.com/ProtonMail/proton-bridge/internal/serverutil"
-	"github.com/ProtonMail/proton-bridge/pkg/ports"
+	"github.com/ProtonMail/proton-bridge/v2/internal/serverutil"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/ports"
 )
 
 func newTestServer() *testServer {

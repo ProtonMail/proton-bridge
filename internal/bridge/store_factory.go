@@ -21,12 +21,12 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/ProtonMail/proton-bridge/internal/sentry"
-	"github.com/ProtonMail/proton-bridge/internal/store"
-	"github.com/ProtonMail/proton-bridge/internal/store/cache"
-	"github.com/ProtonMail/proton-bridge/internal/users"
-	"github.com/ProtonMail/proton-bridge/pkg/listener"
-	"github.com/ProtonMail/proton-bridge/pkg/message"
+	"github.com/ProtonMail/proton-bridge/v2/internal/sentry"
+	"github.com/ProtonMail/proton-bridge/v2/internal/store"
+	"github.com/ProtonMail/proton-bridge/v2/internal/store/cache"
+	"github.com/ProtonMail/proton-bridge/v2/internal/users"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/listener"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/message"
 )
 
 type storeFactory struct {

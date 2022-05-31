@@ -20,7 +20,7 @@ package bridge
 import (
 	"github.com/Masterminds/semver/v3"
 
-	"github.com/ProtonMail/proton-bridge/internal/updater"
+	"github.com/ProtonMail/proton-bridge/v2/internal/updater"
 )
 
 type Locator interface {

@@ -26,8 +26,8 @@ import (
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
-	"github.com/ProtonMail/proton-bridge/pkg/sum"
-	tests "github.com/ProtonMail/proton-bridge/test"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/sum"
+	tests "github.com/ProtonMail/proton-bridge/v2/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -120,7 +120,7 @@ func createSignedFiles(t *testing.T, root string, paths ...string) *crypto.KeyRi
 }
 
 func makeFile(t *testing.T, path string) {
-	require.NoError(t, os.MkdirAll(filepath.Dir(path), 0700))
+	require.NoError(t, os.MkdirAll(filepath.Dir(path), 0o700))
 
 	f, err := os.Create(path)
 	require.NoError(t, err)
@@ -141,5 +141,5 @@ func signFile(t *testing.T, path string, kr *crypto.KeyRing) {
 
 	sig, err := kr.SignDetached(crypto.NewPlainMessage(file))
 	require.NoError(t, err)
-	require.NoError(t, ioutil.WriteFile(path+".sig", sig.GetBinary(), 0700))
+	require.NoError(t, ioutil.WriteFile(path+".sig", sig.GetBinary(), 0o700))
 }

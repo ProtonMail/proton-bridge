@@ -36,7 +36,6 @@ func newTestParser(t *testing.T, msg string) *Parser {
 
 func getFileReader(filename string) io.ReadCloser {
 	f, err := os.Open(filepath.Join("testdata", filename))
-
 	if err != nil {
 		panic(err)
 	}

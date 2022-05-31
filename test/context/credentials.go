@@ -20,7 +20,7 @@ package context
 import (
 	"strings"
 
-	"github.com/ProtonMail/proton-bridge/internal/users/credentials"
+	"github.com/ProtonMail/proton-bridge/v2/internal/users/credentials"
 	"github.com/pkg/errors"
 )
 

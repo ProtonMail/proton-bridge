@@ -24,11 +24,11 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/ProtonMail/proton-bridge/internal/config/settings"
-	"github.com/ProtonMail/proton-bridge/internal/frontend/clientconfig"
-	"github.com/ProtonMail/proton-bridge/internal/frontend/theme"
-	"github.com/ProtonMail/proton-bridge/pkg/keychain"
-	"github.com/ProtonMail/proton-bridge/pkg/ports"
+	"github.com/ProtonMail/proton-bridge/v2/internal/config/settings"
+	"github.com/ProtonMail/proton-bridge/v2/internal/frontend/clientconfig"
+	"github.com/ProtonMail/proton-bridge/v2/internal/frontend/theme"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/keychain"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/ports"
 	"github.com/therecipe/qt/core"
 )
 

@@ -22,20 +22,20 @@ import (
 	"crypto/tls"
 	"time"
 
-	"github.com/ProtonMail/proton-bridge/internal/api"
-	"github.com/ProtonMail/proton-bridge/internal/app/base"
-	pkgBridge "github.com/ProtonMail/proton-bridge/internal/bridge"
-	"github.com/ProtonMail/proton-bridge/internal/config/settings"
-	pkgTLS "github.com/ProtonMail/proton-bridge/internal/config/tls"
-	"github.com/ProtonMail/proton-bridge/internal/constants"
-	"github.com/ProtonMail/proton-bridge/internal/frontend"
-	"github.com/ProtonMail/proton-bridge/internal/frontend/types"
-	"github.com/ProtonMail/proton-bridge/internal/imap"
-	"github.com/ProtonMail/proton-bridge/internal/smtp"
-	"github.com/ProtonMail/proton-bridge/internal/store"
-	"github.com/ProtonMail/proton-bridge/internal/store/cache"
-	"github.com/ProtonMail/proton-bridge/internal/updater"
-	"github.com/ProtonMail/proton-bridge/pkg/message"
+	"github.com/ProtonMail/proton-bridge/v2/internal/api"
+	"github.com/ProtonMail/proton-bridge/v2/internal/app/base"
+	pkgBridge "github.com/ProtonMail/proton-bridge/v2/internal/bridge"
+	"github.com/ProtonMail/proton-bridge/v2/internal/config/settings"
+	pkgTLS "github.com/ProtonMail/proton-bridge/v2/internal/config/tls"
+	"github.com/ProtonMail/proton-bridge/v2/internal/constants"
+	"github.com/ProtonMail/proton-bridge/v2/internal/frontend"
+	"github.com/ProtonMail/proton-bridge/v2/internal/frontend/types"
+	"github.com/ProtonMail/proton-bridge/v2/internal/imap"
+	"github.com/ProtonMail/proton-bridge/v2/internal/smtp"
+	"github.com/ProtonMail/proton-bridge/v2/internal/store"
+	"github.com/ProtonMail/proton-bridge/v2/internal/store/cache"
+	"github.com/ProtonMail/proton-bridge/v2/internal/updater"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/message"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
@@ -57,13 +57,16 @@ func New(base *base.Base) *cli.App {
 	app.Flags = append(app.Flags, []cli.Flag{
 		&cli.StringFlag{
 			Name:  flagLogIMAP,
-			Usage: "Enable logging of IMAP communications (all|client|server) (may contain decrypted data!)"},
+			Usage: "Enable logging of IMAP communications (all|client|server) (may contain decrypted data!)",
+		},
 		&cli.BoolFlag{
 			Name:  flagLogSMTP,
-			Usage: "Enable logging of SMTP communications (may contain decrypted data!)"},
+			Usage: "Enable logging of SMTP communications (may contain decrypted data!)",
+		},
 		&cli.BoolFlag{
 			Name:  flagNonInteractive,
-			Usage: "Start Bridge entirely noninteractively"},
+			Usage: "Start Bridge entirely noninteractively",
+		},
 	}...)
 
 	return app
@@ -305,7 +308,6 @@ func loadMessageCache(b *base.Base) (cache.Cache, error) {
 		ConcurrentRead:  b.Settings.GetInt(settings.CacheConcurrencyRead),
 		ConcurrentWrite: b.Settings.GetInt(settings.CacheConcurrencyWrite),
 	})
-
 	if err != nil {
 		return cache.NewInMemoryCache(inMemoryCacheLimnit), err
 	}

@@ -26,7 +26,7 @@ import (
 	"strconv"
 	"strings"
 
-	pmmime "github.com/ProtonMail/proton-bridge/pkg/mime"
+	pmmime "github.com/ProtonMail/proton-bridge/v2/pkg/mime"
 	"github.com/emersion/go-imap"
 	"github.com/pkg/errors"
 	"github.com/vmihailenco/msgpack/v5"

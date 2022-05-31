@@ -23,7 +23,7 @@ import (
 	"strings"
 
 	"github.com/ProtonMail/go-vcard"
-	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/pmapi"
 )
 
 type ContactMetadata struct {

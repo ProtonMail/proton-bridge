@@ -35,30 +35,30 @@ func TestSkipDuringUnwind(t *testing.T) {
 	}()
 
 	wantSkippedFunctions := []string{
-		"github.com/ProtonMail/proton-bridge/internal/sentry.TestSkipDuringUnwind",
-		"github.com/ProtonMail/proton-bridge/internal/sentry.TestSkipDuringUnwind.func1",
+		"github.com/ProtonMail/proton-bridge/v2/internal/sentry.TestSkipDuringUnwind",
+		"github.com/ProtonMail/proton-bridge/v2/internal/sentry.TestSkipDuringUnwind.func1",
 	}
 	r.Equal(t, wantSkippedFunctions, skippedFunctions)
 }
 
 func TestFilterOutPanicHandlers(t *testing.T) {
 	skippedFunctions = []string{
-		"github.com/ProtonMail/proton-bridge/pkg/config.(*PanicHandler).HandlePanic",
-		"github.com/ProtonMail/proton-bridge/pkg/config.HandlePanic",
-		"github.com/ProtonMail/proton-bridge/internal/sentry.ReportSentryCrash",
-		"github.com/ProtonMail/proton-bridge/internal/sentry.ReportSentryCrash.func1",
+		"github.com/ProtonMail/proton-bridge/v2/pkg/config.(*PanicHandler).HandlePanic",
+		"github.com/ProtonMail/proton-bridge/v2/pkg/config.HandlePanic",
+		"github.com/ProtonMail/proton-bridge/v2/internal/sentry.ReportSentryCrash",
+		"github.com/ProtonMail/proton-bridge/v2/internal/sentry.ReportSentryCrash.func1",
 	}
 
 	frames := []sentry.Frame{
-		{Module: "github.com/ProtonMail/proton-bridge/internal/cmd", Function: "main"},
+		{Module: "github.com/ProtonMail/proton-bridge/v2/internal/cmd", Function: "main"},
 		{Module: "github.com/urfave/cli", Function: "(*App).Run"},
-		{Module: "github.com/ProtonMail/proton-bridge/internal/cmd", Function: "RegisterHandlePanic"},
+		{Module: "github.com/ProtonMail/proton-bridge/v2/internal/cmd", Function: "RegisterHandlePanic"},
 		{Module: "github.com/ProtonMail/pkg", Function: "HandlePanic"},
 		{Module: "main", Function: "run"},
-		{Module: "github.com/ProtonMail/proton-bridge/pkg/config", Function: "(*PanicHandler).HandlePanic"},
-		{Module: "github.com/ProtonMail/proton-bridge/pkg/config", Function: "HandlePanic"},
-		{Module: "github.com/ProtonMail/proton-bridge/internal/sentry", Function: "ReportSentryCrash"},
-		{Module: "github.com/ProtonMail/proton-bridge/internal/sentry", Function: "ReportSentryCrash.func1"},
+		{Module: "github.com/ProtonMail/proton-bridge/v2/pkg/config", Function: "(*PanicHandler).HandlePanic"},
+		{Module: "github.com/ProtonMail/proton-bridge/v2/pkg/config", Function: "HandlePanic"},
+		{Module: "github.com/ProtonMail/proton-bridge/v2/internal/sentry", Function: "ReportSentryCrash"},
+		{Module: "github.com/ProtonMail/proton-bridge/v2/internal/sentry", Function: "ReportSentryCrash.func1"},
 	}
 
 	gotFrames := filterOutPanicHandlers(frames)

@@ -20,7 +20,7 @@ package main
 import (
 	"os"
 
-	"github.com/ProtonMail/proton-bridge/pkg/sum"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/sum"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
 )

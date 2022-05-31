@@ -38,7 +38,7 @@ func TestLoadBadKeyValueStore(t *testing.T) {
 	path, clean := newTmpFile(r)
 	defer clean()
 
-	r.NoError(ioutil.WriteFile(path, []byte("{\"key\":\"MISSING_QUOTES"), 0700))
+	r.NoError(ioutil.WriteFile(path, []byte("{\"key\":\"MISSING_QUOTES"), 0o700))
 	pref := newKeyValueStore(path)
 	r.Equal("", pref.Get("key"))
 }
@@ -131,7 +131,7 @@ func newTestEmptyKeyValueStore(r *require.Assertions) (*keyValueStore, func()) {
 
 func newTestKeyValueStore(r *require.Assertions) (*keyValueStore, func()) {
 	path, clean := newTmpFile(r)
-	r.NoError(ioutil.WriteFile(path, []byte("{\"str\":\"value\",\"int\":\"42\",\"bool\":\"true\",\"falseBool\":\"t\"}"), 0700))
+	r.NoError(ioutil.WriteFile(path, []byte("{\"str\":\"value\",\"int\":\"42\",\"bool\":\"true\",\"falseBool\":\"t\"}"), 0o700))
 	return newKeyValueStore(path), clean
 }
 

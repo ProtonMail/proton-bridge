@@ -27,7 +27,7 @@ import (
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
-	"github.com/ProtonMail/proton-bridge/pkg/sum"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/sum"
 )
 
 const sumFile = ".sum"

@@ -22,8 +22,8 @@ import (
 	"bytes"
 	"net/textproto"
 
-	pkgMsg "github.com/ProtonMail/proton-bridge/pkg/message"
-	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
+	pkgMsg "github.com/ProtonMail/proton-bridge/v2/pkg/message"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/pmapi"
 	bolt "go.etcd.io/bbolt"
 )
 

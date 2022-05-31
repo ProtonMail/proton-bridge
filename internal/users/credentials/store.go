@@ -24,7 +24,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ProtonMail/proton-bridge/pkg/keychain"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/keychain"
 	"github.com/sirupsen/logrus"
 )
 

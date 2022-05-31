@@ -24,7 +24,7 @@ import (
 	"path/filepath"
 	"runtime"
 
-	"github.com/ProtonMail/proton-bridge/pkg/files"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/files"
 	"github.com/sirupsen/logrus"
 )
 
@@ -107,13 +107,13 @@ func (l *Locations) getLicenseFilePath() string {
 
 // GetDependencyLicensesLink returns link to page listing dependencies.
 func (l *Locations) GetDependencyLicensesLink() string {
-	return "https://github.com/ProtonMail/proton-bridge/blob/master/COPYING_NOTES.md#dependencies"
+	return "https://github.com/ProtonMail/proton-bridge/v2/blob/master/COPYING_NOTES.md#dependencies"
 }
 
 // ProvideSettingsPath returns a location for user settings (e.g. ~/.config/<company>/<app>).
 // It creates it if it doesn't already exist.
 func (l *Locations) ProvideSettingsPath() (string, error) {
-	if err := os.MkdirAll(l.getSettingsPath(), 0700); err != nil {
+	if err := os.MkdirAll(l.getSettingsPath(), 0o700); err != nil {
 		return "", err
 	}
 
@@ -123,7 +123,7 @@ func (l *Locations) ProvideSettingsPath() (string, error) {
 // ProvideLogsPath returns a location for user logs (e.g. ~/.cache/<company>/<app>/logs).
 // It creates it if it doesn't already exist.
 func (l *Locations) ProvideLogsPath() (string, error) {
-	if err := os.MkdirAll(l.getLogsPath(), 0700); err != nil {
+	if err := os.MkdirAll(l.getLogsPath(), 0o700); err != nil {
 		return "", err
 	}
 
@@ -133,7 +133,7 @@ func (l *Locations) ProvideLogsPath() (string, error) {
 // ProvideCachePath returns a location for user cache dirs (e.g. ~/.config/<company>/<app>/cache).
 // It creates it if it doesn't already exist.
 func (l *Locations) ProvideCachePath() (string, error) {
-	if err := os.MkdirAll(l.getCachePath(), 0700); err != nil {
+	if err := os.MkdirAll(l.getCachePath(), 0o700); err != nil {
 		return "", err
 	}
 
@@ -148,7 +148,7 @@ func (l *Locations) GetOldCachePath() string {
 // ProvideUpdatesPath returns a location for update files (e.g. ~/.cache/<company>/<app>/updates).
 // It creates it if it doesn't already exist.
 func (l *Locations) ProvideUpdatesPath() (string, error) {
-	if err := os.MkdirAll(l.getUpdatesPath(), 0700); err != nil {
+	if err := os.MkdirAll(l.getUpdatesPath(), 0o700); err != nil {
 		return "", err
 	}
 

@@ -20,7 +20,7 @@ package cli
 import (
 	"strings"
 
-	pmapi "github.com/ProtonMail/proton-bridge/pkg/pmapi"
+	pmapi "github.com/ProtonMail/proton-bridge/v2/pkg/pmapi"
 	"github.com/fatih/color"
 )
 
@@ -28,9 +28,7 @@ const (
 	maxInputRepeat = 2
 )
 
-var (
-	bold = color.New(color.Bold).SprintFunc() //nolint:gochecknoglobals
-)
+var bold = color.New(color.Bold).SprintFunc() //nolint:gochecknoglobals
 
 func isNotEmpty(val string) bool {
 	return val != ""

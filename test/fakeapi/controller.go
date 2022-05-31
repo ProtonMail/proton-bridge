@@ -20,8 +20,8 @@ package fakeapi
 import (
 	"sync"
 
-	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
-	"github.com/ProtonMail/proton-bridge/test/context/calls"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/pmapi"
+	"github.com/ProtonMail/proton-bridge/v2/test/context/calls"
 	"github.com/sirupsen/logrus"
 )
 

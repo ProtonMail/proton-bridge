@@ -24,8 +24,8 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/ProtonMail/proton-bridge/internal/config/settings"
-	"github.com/ProtonMail/proton-bridge/pkg/keychain"
+	"github.com/ProtonMail/proton-bridge/v2/internal/config/settings"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/keychain"
 	"github.com/hashicorp/go-multierror"
 	"github.com/sirupsen/logrus"
 )

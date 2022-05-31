@@ -41,7 +41,7 @@ func isFolderEmpty(path string) (bool, error) {
 // if it is suitable (non existing, or empty and deletable) the folder is deleted.
 func checkFolderIsSuitableDestinationForCache(path string) error {
 	// Ensure the parent directory exists.
-	if err := os.MkdirAll(filepath.Dir(path), 0700); err != nil {
+	if err := os.MkdirAll(filepath.Dir(path), 0o700); err != nil {
 		return err
 	}
 
@@ -87,7 +87,7 @@ func copyFolder(srcPath, dstPath string) error {
 		return errors.New("source is not an existing folder")
 	}
 
-	if err = os.MkdirAll(dstPath, 0700); err != nil {
+	if err = os.MkdirAll(dstPath, 0o700); err != nil {
 		return err
 	}
 	files, err := ioutil.ReadDir(srcPath)
@@ -170,7 +170,7 @@ func copyFile(srcPath, dstPath string) error {
 		err = src.Close()
 	}()
 
-	dst, err := os.OpenFile(filepath.Clean(dstPath), os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
+	dst, err := os.OpenFile(filepath.Clean(dstPath), os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0o600)
 	if err != nil {
 		return err
 	}

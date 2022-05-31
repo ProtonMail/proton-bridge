@@ -120,7 +120,7 @@ func mkdirAllClear(path string) error {
 	if err := os.RemoveAll(path); err != nil {
 		return err
 	}
-	return os.MkdirAll(path, 0750)
+	return os.MkdirAll(path, 0o750)
 }
 
 // checksum assumes the file is a regular file and that it exists.

@@ -31,7 +31,7 @@ import (
 	"strings"
 	"testing"
 
-	pmmime "github.com/ProtonMail/proton-bridge/pkg/mime"
+	pmmime "github.com/ProtonMail/proton-bridge/v2/pkg/mime"
 
 	"github.com/stretchr/testify/require"
 )

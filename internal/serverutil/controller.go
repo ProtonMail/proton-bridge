@@ -22,8 +22,8 @@ import (
 	"fmt"
 	"net"
 
-	"github.com/ProtonMail/proton-bridge/internal/events"
-	"github.com/ProtonMail/proton-bridge/pkg/listener"
+	"github.com/ProtonMail/proton-bridge/v2/internal/events"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/listener"
 	"github.com/sirupsen/logrus"
 )
 

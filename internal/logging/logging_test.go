@@ -30,11 +30,11 @@ func TestClearLogs(t *testing.T) {
 	dir, err := ioutil.TempDir("", "clear-logs-test")
 	require.NoError(t, err)
 
-	require.NoError(t, ioutil.WriteFile(filepath.Join(dir, "other.log"), []byte("Hello"), 0755))
-	require.NoError(t, ioutil.WriteFile(filepath.Join(dir, "v1_10.log"), []byte("Hello"), 0755))
-	require.NoError(t, ioutil.WriteFile(filepath.Join(dir, "v1_11.log"), []byte("Hello"), 0755))
-	require.NoError(t, ioutil.WriteFile(filepath.Join(dir, "v2_12.log"), []byte("Hello"), 0755))
-	require.NoError(t, ioutil.WriteFile(filepath.Join(dir, "v2_13.log"), []byte("Hello"), 0755))
+	require.NoError(t, ioutil.WriteFile(filepath.Join(dir, "other.log"), []byte("Hello"), 0o755))
+	require.NoError(t, ioutil.WriteFile(filepath.Join(dir, "v1_10.log"), []byte("Hello"), 0o755))
+	require.NoError(t, ioutil.WriteFile(filepath.Join(dir, "v1_11.log"), []byte("Hello"), 0o755))
+	require.NoError(t, ioutil.WriteFile(filepath.Join(dir, "v2_12.log"), []byte("Hello"), 0o755))
+	require.NoError(t, ioutil.WriteFile(filepath.Join(dir, "v2_13.log"), []byte("Hello"), 0o755))
 
 	require.NoError(t, clearLogs(dir, 3, 0))
 	checkFileNames(t, dir, []string{

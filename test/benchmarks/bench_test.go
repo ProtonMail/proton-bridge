@@ -22,8 +22,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ProtonMail/proton-bridge/test/context"
-	"github.com/ProtonMail/proton-bridge/test/mocks"
+	"github.com/ProtonMail/proton-bridge/v2/test/context"
+	"github.com/ProtonMail/proton-bridge/v2/test/mocks"
 )
 
 func benchTestContext() (*context.TestContext, *mocks.IMAPClient) {
@@ -157,7 +157,6 @@ func BenchmarkIMAPOutlook(b *testing.B) {
 	b.Run("default", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
 			for _, command := range []string{
-
 				/*
 					"ID ("+
 						`"name" "Mac OS X Mail" `+

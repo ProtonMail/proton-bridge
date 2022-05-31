@@ -26,16 +26,16 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ProtonMail/proton-bridge/internal/events"
-	"github.com/ProtonMail/proton-bridge/internal/sentry"
-	"github.com/ProtonMail/proton-bridge/internal/store"
-	"github.com/ProtonMail/proton-bridge/internal/store/cache"
-	"github.com/ProtonMail/proton-bridge/internal/users/credentials"
-	usersmocks "github.com/ProtonMail/proton-bridge/internal/users/mocks"
-	"github.com/ProtonMail/proton-bridge/pkg/message"
-	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
-	pmapimocks "github.com/ProtonMail/proton-bridge/pkg/pmapi/mocks"
-	tests "github.com/ProtonMail/proton-bridge/test"
+	"github.com/ProtonMail/proton-bridge/v2/internal/events"
+	"github.com/ProtonMail/proton-bridge/v2/internal/sentry"
+	"github.com/ProtonMail/proton-bridge/v2/internal/store"
+	"github.com/ProtonMail/proton-bridge/v2/internal/store/cache"
+	"github.com/ProtonMail/proton-bridge/v2/internal/users/credentials"
+	usersmocks "github.com/ProtonMail/proton-bridge/v2/internal/users/mocks"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/message"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/pmapi"
+	pmapimocks "github.com/ProtonMail/proton-bridge/v2/pkg/pmapi/mocks"
+	tests "github.com/ProtonMail/proton-bridge/v2/test"
 	gomock "github.com/golang/mock/gomock"
 	"github.com/sirupsen/logrus"
 	r "github.com/stretchr/testify/require"
@@ -221,6 +221,7 @@ func (fr *fullStackReporter) Errorf(format string, args ...interface{}) {
 	fmt.Printf("err: "+format+"\n", args...)
 	fr.T.Fail()
 }
+
 func (fr *fullStackReporter) Fatalf(format string, args ...interface{}) {
 	debug.PrintStack()
 	fmt.Printf("fail: "+format+"\n", args...)

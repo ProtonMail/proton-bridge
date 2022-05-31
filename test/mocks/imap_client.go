@@ -25,7 +25,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ProtonMail/proton-bridge/pkg/message"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/message"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

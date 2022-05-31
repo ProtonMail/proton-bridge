@@ -111,9 +111,11 @@ func smtpClientNamedSendsMessageWithBCC(clientID, bcc string, message *godog.Doc
 func smtpClientSendsCommand(command string) error {
 	return smtpClientNamedSendsCommand("smtp", command)
 }
+
 func smtpClientSendsCommandMultiline(command *godog.DocString) error {
 	return smtpClientNamedSendsCommand("smtp", command.Content)
 }
+
 func smtpClientNamedSendsCommand(clientName, command string) error {
 	command = strings.ReplaceAll(command, "\\r", "\r")
 	command = strings.ReplaceAll(command, "\\n", "\n")

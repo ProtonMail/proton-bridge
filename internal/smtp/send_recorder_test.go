@@ -25,7 +25,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/pmapi"
 	"github.com/stretchr/testify/assert"
 )
 

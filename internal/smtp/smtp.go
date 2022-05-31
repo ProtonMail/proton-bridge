@@ -20,6 +20,4 @@ package smtp
 
 import "github.com/sirupsen/logrus"
 
-var (
-	log = logrus.WithField("pkg", "smtp") //nolint:gochecknoglobals
-)
+var log = logrus.WithField("pkg", "smtp") //nolint:gochecknoglobals

@@ -20,7 +20,7 @@ package api
 import (
 	"net/http"
 
-	"github.com/ProtonMail/proton-bridge/pkg/listener"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/listener"
 )
 
 // httpHandler with Go's Response and Request.

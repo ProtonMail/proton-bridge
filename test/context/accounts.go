@@ -20,7 +20,7 @@ package context
 import (
 	"os"
 
-	"github.com/ProtonMail/proton-bridge/test/accounts"
+	"github.com/ProtonMail/proton-bridge/v2/test/accounts"
 )
 
 func newTestAccounts() *accounts.TestAccounts {

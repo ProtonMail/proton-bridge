@@ -60,13 +60,13 @@ func newTestVersioner(t *testing.T, exeName, updates string, versions ...string)
 
 func makeDummyVersionDirectory(t *testing.T, exeName, updates, version string) string {
 	target := filepath.Join(updates, version)
-	require.NoError(t, os.Mkdir(target, 0700))
+	require.NoError(t, os.Mkdir(target, 0o700))
 
 	exe, err := os.Create(filepath.Join(target, getExeName(exeName)))
 	require.NoError(t, err)
 	require.NotNil(t, exe)
 	require.NoError(t, exe.Close())
-	require.NoError(t, os.Chmod(exe.Name(), 0700))
+	require.NoError(t, os.Chmod(exe.Name(), 0o700))
 
 	sig, err := os.Create(filepath.Join(target, getExeName(exeName)+".sig"))
 	require.NoError(t, err)

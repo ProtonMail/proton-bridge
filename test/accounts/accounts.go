@@ -21,7 +21,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 
-	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/pmapi"
 	"github.com/pkg/errors"
 )
 

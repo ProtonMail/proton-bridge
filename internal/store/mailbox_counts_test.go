@@ -20,7 +20,7 @@ package store
 import (
 	"testing"
 
-	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/pmapi"
 	a "github.com/stretchr/testify/assert"
 )
 

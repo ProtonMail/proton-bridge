@@ -17,7 +17,7 @@
 
 package fakeapi
 
-import "github.com/ProtonMail/proton-bridge/pkg/pmapi"
+import "github.com/ProtonMail/proton-bridge/v2/pkg/pmapi"
 
 type fakeUser struct {
 	user     *pmapi.User

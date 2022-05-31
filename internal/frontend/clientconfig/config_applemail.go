@@ -29,10 +29,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ProtonMail/proton-bridge/internal/bridge"
-	"github.com/ProtonMail/proton-bridge/internal/config/useragent"
-	"github.com/ProtonMail/proton-bridge/internal/frontend/types"
-	"github.com/ProtonMail/proton-bridge/pkg/mobileconfig"
+	"github.com/ProtonMail/proton-bridge/v2/internal/bridge"
+	"github.com/ProtonMail/proton-bridge/v2/internal/config/useragent"
+	"github.com/ProtonMail/proton-bridge/v2/internal/frontend/types"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/mobileconfig"
 )
 
 const (
@@ -107,7 +107,7 @@ func saveConfigTemporarily(mc *mobileconfig.Config) (fname string, err error) {
 
 	// Make sure the file is only readable for the current user.
 	fname = filepath.Clean(filepath.Join(dir, "protonmail.mobileconfig"))
-	f, err := os.OpenFile(fname, os.O_RDWR|os.O_CREATE, 0600)
+	f, err := os.OpenFile(fname, os.O_RDWR|os.O_CREATE, 0o600)
 	if err != nil {
 		return
 	}
