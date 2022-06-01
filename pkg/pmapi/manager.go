@@ -25,6 +25,8 @@ import (
 
 	"github.com/getsentry/sentry-go"
 	"github.com/go-resty/resty/v2"
+	// "github.com/sirupsen/logrus"
+
 )
 
 type manager struct {
@@ -111,8 +113,10 @@ func (m *manager) AddConnectionObserver(observer ConnectionObserver) {
 }
 
 func (m *manager) setHeaderValues(_ *resty.Client, req *resty.Request) error {
+	// logrus.Infof("Setting  x-pm-appversion: %s;\n", m.cfg.AppVersion)
+	// logrus.Infof("Setting  User-Agent: %s;\n", m.cfg.getUserAgent())
 	req.SetHeaders(map[string]string{
-		"x-pm-appversion": m.cfg.AppVersion,
+		"x-pm-appversion": "web-mail@5.0.1.4", // m.cfg.AppVersion,
 		"User-Agent":      m.cfg.getUserAgent(),
 	})
 	return nil

@@ -4,7 +4,7 @@
 * 64-bit AMD OS:
     - the go-rfc5322 module cannot currently be compiled for 32-bit OSes
     - the Apple M1 builds are not supported yet due to dependencies
-* Go 1.13
+* Go 1.16
 * Bash with basic build utils: make, gcc, sed, find, grep, ...
 * For Windows it is recommended to use MinGW 64bit shell from [MSYS2](https://www.msys2.org/)
 * GCC (linux, windows) or Xcode (macOS)
