@@ -155,9 +155,9 @@ QtObject {
     property SystemTrayIcon _trayIcon: SystemTrayIcon {
         id: trayIcon
         visible: true
-        icon.source: "./icons/systray-mono.png"
+        icon.source: getTrayIconPath()
         icon.mask: true // make sure that systems like macOS will use proper color
-        tooltip: `Proton Mail Bridge v${backend.version}`
+        tooltip: `${root.title} v${backend.version}`
         onActivated: {
             function calcStatusWindowPosition() {
                 // On some platforms (X11 / Plasma) Qt does not provide icon position and geometry info.
@@ -222,6 +222,31 @@ QtObject {
                 default:
                 break;
             }
+        }
+
+        property NotificationFilter _systrayfilter: NotificationFilter {
+            source: root._notifications ? root._notifications.all : undefined
+        }
+
+        function getTrayIconPath() {
+            var color = backend.goos == "darwin" ? "mono" : "color" 
+
+            var level = "norm"
+            if (_systrayfilter.topmost) {
+                switch (_systrayfilter.topmost.type) {
+                    case Notification.NotificationType.Danger:
+                    level = "error"
+                    break;
+                    case Notification.NotificationType.Warning:
+                    level = "warn"
+                    break;
+                    case Notification.NotificationType.Info:
+                    level = "update"
+                    break;
+                }
+            }
+
+            return `./icons/systray-${color}-${level}.png`
         }
     }
 
