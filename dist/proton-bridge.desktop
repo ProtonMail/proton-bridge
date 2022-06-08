@@ -8,4 +8,4 @@ Icon=protonmail-bridge
 Exec=protonmail-bridge
 Terminal=false
 Categories=Office;Email;Network
-StartupWMClass=protonmail-bridge
+StartupWMClass=Proton Mail Bridge
