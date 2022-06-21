@@ -1,19 +1,19 @@
-// Copyright (c) 2022 Proton Technologies AG
+// Copyright (c) 2022 Proton AG
 //
-// This file is part of ProtonMail Bridge.Bridge.
+// This file is part of Proton Mail Bridge.Bridge.
 //
-// ProtonMail Bridge is free software: you can redistribute it and/or modify
+// Proton Mail Bridge is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// ProtonMail Bridge is distributed in the hope that it will be useful,
+// Proton Mail Bridge is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
+// along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 // Package context allows integration tests to be written in a fluent, english-like way.
 package context
@@ -147,7 +147,7 @@ func (ctx *TestContext) GetUserAgent() string {
 }
 
 // GetTestingT returns testing.T compatible struct.
-func (ctx *TestContext) GetTestingT() *bddT { //nolint[golint]
+func (ctx *TestContext) GetTestingT() *bddT { //nolint:revive
 	return ctx.t
 }
 
@@ -174,5 +174,5 @@ func (ctx *TestContext) MessagePreparationFinished(username string) {
 }
 
 func (ctx *TestContext) CredentialsFailsOnWrite(shouldFail bool) {
-	ctx.credStore.(*fakeCredStore).failOnWrite = shouldFail
+	ctx.credStore.(*fakeCredStore).failOnWrite = shouldFail //nolint:forcetypeassert
 }

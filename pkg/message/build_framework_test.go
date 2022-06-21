@@ -1,19 +1,19 @@
-// Copyright (c) 2022 Proton Technologies AG
+// Copyright (c) 2022 Proton AG
 //
-// This file is part of ProtonMail Bridge.
+// This file is part of Proton Mail Bridge.
 //
-// ProtonMail Bridge is free software: you can redistribute it and/or modify
+// Proton Mail Bridge is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// ProtonMail Bridge is distributed in the hope that it will be useful,
+// Proton Mail Bridge is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
+// along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 package message
 
@@ -58,7 +58,7 @@ func newTestFetcher(
 func newTestMessage(
 	t *testing.T,
 	kr *crypto.KeyRing,
-	messageID, addressID, mimeType, body string, // nolint[unparam]
+	messageID, addressID, mimeType, body string, //nolint:unparam
 	date time.Time,
 ) *pmapi.Message {
 	enc, err := kr.Encrypt(crypto.NewPlainMessageFromString(body), kr)
@@ -154,7 +154,7 @@ func (s *testSection) expectBody(wantBody matcher) *testSection {
 	return s
 }
 
-func (s *testSection) expectSection(wantSection matcher) *testSection { // nolint[unparam]
+func (s *testSection) expectSection(wantSection matcher) *testSection { //nolint:unparam
 	wantSection.match(s.t, string(s.raw))
 
 	return s
@@ -169,7 +169,7 @@ func (s *testSection) expectContentType(wantContentType matcher) *testSection {
 	return s
 }
 
-func (s *testSection) expectContentTypeParam(key string, wantParam matcher) *testSection { // nolint[unparam]
+func (s *testSection) expectContentTypeParam(key string, wantParam matcher) *testSection { //nolint:unparam
 	_, params, err := s.part.Header.ContentType()
 	require.NoError(s.t, err)
 
@@ -187,7 +187,7 @@ func (s *testSection) expectContentDisposition(wantDisposition matcher) *testSec
 	return s
 }
 
-func (s *testSection) expectContentDispositionParam(key string, wantParam matcher) *testSection { // nolint[unparam]
+func (s *testSection) expectContentDispositionParam(key string, wantParam matcher) *testSection { //nolint:unparam
 	_, params, err := s.part.Header.ContentDisposition()
 	require.NoError(s.t, err)
 
@@ -214,7 +214,7 @@ func (s *testSection) expectHeader(key string, wantValue matcher) *testSection {
 	return s
 }
 
-func (s *testSection) expectDecodedHeader(key string, wantValue matcher) *testSection { // nolint[unparam]
+func (s *testSection) expectDecodedHeader(key string, wantValue matcher) *testSection { //nolint:unparam
 	dec, err := s.part.Header.Text(key)
 	require.NoError(s.t, err)
 

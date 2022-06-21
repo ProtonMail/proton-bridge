@@ -1,22 +1,22 @@
-# ProtonMail Bridge and Import Export app
-Copyright (c) 2020 Proton Technologies AG
+# Proton Mail Bridge and Import Export app
+Copyright (c) 2022 Proton AG
 
-This repository holds the ProtonMail Bridge and the ProtonMail Import-Export applications.
+This repository holds the Proton Mail Bridge and the Proton Mail Import-Export applications.
 For a detailed build information see [BUILDS](./BUILDS.md).
 The license can be found in [LICENSE](./LICENSE) file, for more licensing information see [COPYING_NOTES](./COPYING_NOTES.md).
 For contribution policy see [CONTRIBUTING](./CONTRIBUTING.md).
 
 
 ## Description Bridge
-ProtonMail Bridge for e-mail clients.
+Proton Mail Bridge for e-mail clients.
 
 When launched, Bridge will initialize local IMAP/SMTP servers and render 
 its GUI.
 
-To configure an e-mail client, firstly log in using your ProtonMail credentials. 
+To configure an e-mail client, firstly log in using your Proton Mail credentials. 
 Open your e-mail client and add a new account using the settings which are 
 located in the Bridge GUI. The client will only be able to sync with 
-your ProtonMail account when the Bridge is running, thus the option 
+your Proton Mail account when the Bridge is running, thus the option 
 to start Bridge on startup is enabled by default.
 
 When the main window is closed, Bridge will continue to run in the
@@ -25,9 +25,9 @@ background.
 More details [on the public website](https://protonmail.com/bridge).
 
 ## Description Import-Export app
-ProtonMail Import-Export app for importing and exporting messages.
+Proton Mail Import-Export app for importing and exporting messages.
 
-To transfer messages, firstly log in using your ProtonMail credentials.
+To transfer messages, firstly log in using your Proton Mail credentials.
 For import, expand your account, and pick the address to which to import
 messages from IMAP server or local EML or MBOX files. For export, pick
 the whole account or only a specific address. Then, in both cases,
@@ -40,9 +40,9 @@ More details [on the public website](https://protonmail.com/import-export).
 The Import-Export app is developed in separate branch `master-ie`.
 
 ## Launchers
-Launchers are binaries used to run the ProtonMail Bridge or Import-Export apps.
+Launchers are binaries used to run the Proton Mail Bridge or Import-Export apps.
 
-Official distributions of the ProtonMail Bridge and Import-Export apps contain
+Official distributions of the Proton Mail Bridge and Import-Export apps contain
 both a launcher and the app itself. The launcher is installed in a protected
 area of the system (i.e. an area accessible only with admin privileges) and is
 used to run the app. The launcher ensures that nobody tampered with the app's
@@ -52,7 +52,7 @@ feature enables the app to securely update itself automatically without asking
 the user for a password.
 
 ## Keychain
-You need to have a keychain in order to run the ProtonMail Bridge. On Mac or
+You need to have a keychain in order to run the Proton Mail Bridge. On Mac or
 Windows, Bridge uses native credential managers. On Linux, use `secret-service` freedesktop.org API
 (e.g. [Gnome keyring](https://wiki.gnome.org/Projects/GnomeKeyring/))
 or

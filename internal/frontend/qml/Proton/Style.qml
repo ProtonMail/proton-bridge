@@ -1,19 +1,19 @@
-// Copyright (c) 2022 Proton Technologies AG
+// Copyright (c) 2022 Proton AG
 //
-// This file is part of ProtonMail Bridge.
+// This file is part of Proton Mail Bridge.
 //
-// ProtonMail Bridge is free software: you can redistribute it and/or modify
+// Proton Mail Bridge is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// ProtonMail Bridge is distributed in the hope that it will be useful,
+// Proton Mail Bridge is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
+// along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 pragma Singleton
 import QtQml 2.13
@@ -25,6 +25,7 @@ import "./"
 // http://imaginativethinking.ca/make-qml-component-singleton/
 
 QtObject {
+    id: root
     // TODO: Once we will use Qt >=5.15 this should be refactored with inline components as follows:
     // https://doc.qt.io/qt-5/qtqml-documents-definetypes.html#inline-components
 
@@ -39,72 +40,73 @@ QtObject {
         prominent: lightProminentStyle
 
         // Primary
-        primay_norm: "#657EE4"
+        primay_norm: "#6D4AFF"
 
         // Interaction-norm
-        interaction_norm: "#657EE4"
-        interaction_norm_hover: "#5064B6"
-        interaction_norm_active: "#3C4B88"
+        interaction_norm: "#6D4AFF"
+        interaction_norm_hover: "#4D34B3"
+        interaction_norm_active: "#372580"
 
         // Text
-        text_norm: "#262A33"
-        text_weak: "#696F7D"
-        text_hint: "#A4A9B5"
-        text_disabled: "#BABEC7"
+        text_norm: "#0C0C14"
+        text_weak: "#706D6B"
+        text_hint: "#8F8D8A"
+        text_disabled: "#C2BFBC"
         text_invert: "#FFFFFF"
 
         // Field
-        field_norm: "#BABEC7"
-        field_hover: "#A4A9B5"
-        field_disabled: "#D0D3DA"
+        field_norm: "#ADABA8"
+        field_hover: "#8F8D8A"
+        field_disabled: "#D1CFCD"
 
         // Border
-        border_norm: "#D0D3DA"
-        border_weak: "#E7E9EC"
+        border_norm: "#D1CFCD"
+        border_weak: "#EAE7E4"
 
         // Background
         background_norm: "#FFFFFF"
-        background_weak: "#F3F4F6"
-        background_strong: "#E7E9EC"
-        background_avatar: "#A4A9B5"
+        background_weak: "#F5F4F2"
+        background_strong: "#EAE7E4"
+        background_avatar: "#C2BFBC"
 
         // Interaction-weak
-        interaction_weak: "#D0D3DA"
-        interaction_weak_hover: "#BABEC7"
-        interaction_weak_active: "#A4A9B5"
+        interaction_weak: "#D1CFCD"
+        interaction_weak_hover: "#C2BFBC"
+        interaction_weak_active: "#A8A6A3"
 
         // Interaction-default
-        interaction_default: "#00000000"
-        interaction_default_hover: "#33BABEC7"
-        interaction_default_active: "#4DBABEC7"
+        interaction_default: Qt.rgba(0,0,0,0)
+        interaction_default_hover: Qt.rgba(194./255., 191./255., 188./255., 0.2)
+        interaction_default_active: Qt.rgba(194./255., 191./255., 188./255., 0.4)
 
         // Scrollbar
-        scrollbar_norm: "#D0D3DA"
-        scrollbar_hover: "#BABEC7"
+        scrollbar_norm: "#D1CFCD"
+        scrollbar_hover: "#C2BFBC"
 
         // Signal
-        signal_danger: "#D42F34"
-        signal_danger_hover: "#C7262B"
-        signal_danger_active: "#BA1E23"
-        signal_warning: "#F5830A"
-        signal_warning_hover: "#F5740A"
-        signal_warning_active: "#F5640A"
-        signal_success: "#1B8561"
-        signal_success_hover: "#147857"
-        signal_success_active: "#0F6B4C"
-        signal_info: "#1578CF"
-        signal_info_hover: "#0E6DC2"
-        signal_info_active: "#0764B5"
+        signal_danger: "#DC3251"
+        signal_danger_hover: "#F74F6D"
+        signal_danger_active: "#B72346"
+        signal_warning: "#FF9900"
+        signal_warning_hover: "#FFB800"
+        signal_warning_active: "#FF851A"
+        signal_success: "#1EA885"
+        signal_success_hover: "#23C299"
+        signal_success_active: "#198F71"
+        signal_info: "#239ECE"
+        signal_info_hover: "#27B1E8"
+        signal_info_active: "#1F83B5"
 
         // Shadows
-        shadow_norm: "#FFFFFF"
-        shadow_lifted: "#FFFFFF"
+        shadow_norm: Qt.rgba(0,0,0, 0.1) // #000000 10% x:0 y:1 blur:4
+        shadow_lifted: Qt.rgba(0,0,0, 0.16) // #000000 16% x:0 y:8 blur:24
 
         // Backdrop
-        backdrop_norm: "#7A262A33"
+        backdrop_norm: Qt.rgba(12./255., 12./255., 20./255., 0.32)
 
         // Images
         welcome_img: "icons/img-welcome.png"
+        logo_img: "icons/product_logos.svg"
     }
 
     property ColorScheme lightProminentStyle: ColorScheme {
@@ -113,72 +115,73 @@ QtObject {
         prominent: this
 
         // Primary
-        primay_norm: "#657EE4"
+        primay_norm: "#8A6EFF"
 
         // Interaction-norm
-        interaction_norm: "#657EE4"
-        interaction_norm_hover: "#7D92E8"
-        interaction_norm_active: "#98A9EE"
+        interaction_norm: "#6D4AFF"
+        interaction_norm_hover: "#7C5CFF"
+        interaction_norm_active: "#8A6EFF"
 
         // Text
         text_norm: "#FFFFFF"
-        text_weak: "#949BB9"
-        text_hint: "#565F84"
-        text_disabled: "#444E72"
-        text_invert: "#1C223D"
+        text_weak: "#9282D4"
+        text_hint: "#544399"
+        text_disabled: "#4A398F"
+        text_invert: "#1B1340"
 
         // Field
-        field_norm: "#565F84"
-        field_hover: "#949BB9"
-        field_disabled: "#353E60"
+        field_norm: "#9282D4"
+        field_hover: "#7C5CFF"
+        field_disabled: "#38277A"
 
         // Border
-        border_norm: "#353E60"
-        border_weak: "#2D3657"
+        border_norm: "#413085"
+        border_weak: "#3C2B80"
 
         // Background
-        background_norm: "#1C223D"
-        background_weak: "#272F4F"
-        background_strong: "#2D3657"
-        background_avatar: "#444E72"
+        background_norm: "#1B1340"
+        background_weak: "#271C57"
+        background_strong: "#38277A"
+        background_avatar: "#6D4AFF"
 
         // Interaction-weak
-        interaction_weak: "#353E60"
-        interaction_weak_hover: "#444E72"
-        interaction_weak_active: "#565F84"
+        interaction_weak: "#4A398F"
+        interaction_weak_hover: "#6D4AFF"
+        interaction_weak_active: "#8A6EFF"
 
         // Interaction-default
-        interaction_default: "#00000000"
-        interaction_default_hover: "#4D444E72"
-        interaction_default_active: "#66444E72"
+        interaction_default: Qt.rgba(0,0,0,0)
+        interaction_default_hover: Qt.rgba(68./255., 78./255., 114./255., 0.2)
+        interaction_default_active: Qt.rgba(68./255., 78./255., 114./255., 0.3)
 
         // Scrollbar
-        scrollbar_norm: "#353E60"
-        scrollbar_hover: "#444E72"
+        scrollbar_norm: "#413085"
+        scrollbar_hover: "#4A398F"
 
         // Signal
-        signal_danger: "#ED4C51"
-        signal_danger_hover: "#F7595E"
-        signal_danger_active: "#FF666B"
-        signal_warning: "#F5930A"
-        signal_warning_hover: "#F5A716"
-        signal_warning_active: "#F5B922"
-        signal_success: "#349172"
-        signal_success_hover: "#339C79"
-        signal_success_active: "#31A67F"
+        signal_danger: "#F5385A"
+        signal_danger_hover: "#FF5473"
+        signal_danger_active: "#DC3251"
+        signal_warning: "#FF9900"
+        signal_warning_hover: "#FFB800"
+        signal_warning_active: "#FF8419"
+        signal_success: "#1EA885"
+        signal_success_hover: "#23C299"
+        signal_success_active: "#198F71"
         signal_info: "#2C89DB"
         signal_info_hover: "#3491E3"
-        signal_info_active: "#3D99EB"
+        signal_info_active: "#1F83B5"
 
         // Shadows
-        shadow_norm: "#1C223D"
-        shadow_lifted: "#1C223D"
+        shadow_norm: Qt.rgba(0,0,0, 0.32) // #000000 32% x:0 y:1 blur:4
+        shadow_lifted: Qt.rgba(0,0,0, 0.40) // #000000 40% x:0 y:8 blur:24
 
         // Backdrop
-        backdrop_norm: "#52000000"
+        backdrop_norm: Qt.rgba(0,0,0, 0.32)
 
         // Images
         welcome_img: "icons/img-welcome-dark.png"
+        logo_img:    "icons/product_logos_dark.svg"
     }
 
     property ColorScheme darkStyle: ColorScheme {
@@ -187,72 +190,73 @@ QtObject {
         prominent: darkProminentStyle
 
         // Primary
-        primay_norm: "#657EE4"
+        primay_norm: "#8A6EFF"
 
         // Interaction-norm
-        interaction_norm: "#657EE4"
-        interaction_norm_hover: "#7D92E8"
-        interaction_norm_active: "#98A9EE"
+        interaction_norm: "#6D4AFF"
+        interaction_norm_hover: "#7C5CFF"
+        interaction_norm_active: "#8A6EFF"
 
         // Text
         text_norm: "#FFFFFF"
-        text_weak: "#A4A9B5"
-        text_hint: "#696F7D"
-        text_disabled: "#575D6B"
-        text_invert: "#262A33"
+        text_weak: "#A7A4B5"
+        text_hint: "#6D697D"
+        text_disabled: "#5B576B"
+        text_invert: "#1C1B24"
 
         // Field
-        field_norm: "#575D6B"
-        field_hover: "#696F7D"
-        field_disabled: "#464B58"
+        field_norm: "#5B576B"
+        field_hover: "#6D697D"
+        field_disabled: "#3F3B4C"
 
         // Border
-        border_norm: "#464B58"
-        border_weak: "#363A46"
+        border_norm: "#4A4658"
+        border_weak: "#343140"
 
         // Background
-        background_norm: "#262A33"
-        background_weak: "#2E323C"
-        background_strong: "#363A46"
-        background_avatar: "#575D6B"
+        background_norm: "#1C1B24"
+        background_weak: "#292733"
+        background_strong: "#3F3B4C"
+        background_avatar: "#6D4AFF"
 
         // Interaction-weak
-        interaction_weak: "#464B58"
-        interaction_weak_hover: "#575D6B"
-        interaction_weak_active: "#696F7D"
+        interaction_weak: "#4A4658"
+        interaction_weak_hover: "#5B576B" 
+        interaction_weak_active: "#6D697D"
 
         // Interaction-default
         interaction_default: "#00000000"
-        interaction_default_hover: "#33575D6B"
-        interaction_default_active: "#4D575D6B"
+        interaction_default_hover: Qt.rgba(91./255.,87./255.,107./255.,0.2)
+        interaction_default_active:  Qt.rgba(91./255.,87./255.,107./255.,0.4)
 
         // Scrollbar
-        scrollbar_norm: "#464B58"
-        scrollbar_hover: "#575D6B"
+        scrollbar_norm: "#4A4658"
+        scrollbar_hover: "#5B576B"
 
         // Signal
-        signal_danger: "#ED4C51"
-        signal_danger_hover: "#F7595E"
-        signal_danger_active: "#FF666B"
-        signal_warning: "#F5930A"
-        signal_warning_hover: "#F5A716"
-        signal_warning_active: "#F5B922"
-        signal_success: "#349172"
-        signal_success_hover: "#339C79"
-        signal_success_active: "#31A67F"
-        signal_info: "#2C89DB"
-        signal_info_hover: "#3491E3"
-        signal_info_active: "#3D99EB"
+        signal_danger: "#F5385A"
+        signal_danger_hover: "#FF5473"
+        signal_danger_active: "#DC3251"
+        signal_warning: "#FF9900"
+        signal_warning_hover: "#FFB800"
+        signal_warning_active: "#FF8419"
+        signal_success: "#1EA885"
+        signal_success_hover: "#23C299"
+        signal_success_active: "#198F71"
+        signal_info: "#239ECE"
+        signal_info_hover: "#27B1E8"
+        signal_info_active: "#1F83B5"
 
         // Shadows
-        shadow_norm: "#262A33" // #000000 32% x+0 y+1 blur:4
-        shadow_lifted: "#262A33" // #000000 40% x+0 y+8 blur:24
+        shadow_norm: Qt.rgba(0,0,0,0.4) // #000000 40% x+0 y+1 blur:4
+        shadow_lifted: Qt.rgba(0,0,0,0.48) // #000000 48% x+0 y+8 blur:24
 
         // Backdrop
-        backdrop_norm: "#52000000"
+        backdrop_norm: Qt.rgba(0,0,0,0.32)
 
         // Images
         welcome_img: "icons/img-welcome-dark.png"
+        logo_img:    "icons/product_logos_dark.svg"
     }
 
     property ColorScheme darkProminentStyle: ColorScheme {
@@ -261,72 +265,73 @@ QtObject {
         prominent: this
 
         // Primary
-        primay_norm: "#657EE4"
+        primay_norm: "#8A6EFF"
 
         // Interaction-norm
-        interaction_norm: "#657EE4"
-        interaction_norm_hover: "#7D92E8"
-        interaction_norm_active: "#98A9EE"
+        interaction_norm: "#6D4AFF"
+        interaction_norm_hover: "#7C5CFF"
+        interaction_norm_active: "#8A6EFF"
 
         // Text
         text_norm: "#FFFFFF"
-        text_weak: "#A4A9B5"
-        text_hint: "#696F7D"
-        text_disabled: "#575D6B"
-        text_invert: "#262A33"
+        text_weak: "#A7A4B5"
+        text_hint: "#6D697D"
+        text_disabled: "#5B576B"
+        text_invert: "#1C1B24"
 
         // Field
-        field_norm: "#575D6B"
-        field_hover: "#696F7D"
-        field_disabled: "#464B58"
+        field_norm: "#5B576B"
+        field_hover: "#6D697D"
+        field_disabled: "#3F3B4C"
 
         // Border
-        border_norm: "#464B58"
-        border_weak: "#363A46"
+        border_norm: "#4A4658"
+        border_weak: "#343140"
 
         // Background
-        background_norm: "#1A1D24"
-        background_weak: "#2E323C"
-        background_strong: "#363A46"
-        background_avatar: "#575D6B"
+        background_norm: "#16141c"
+        background_weak: "#292733"
+        background_strong: "#3F3B4C"
+        background_avatar: "#6D4AFF"
 
         // Interaction-weak
-        interaction_weak: "#464B58"
-        interaction_weak_hover: "#575D6B"
-        interaction_weak_active: "#696F7D"
+        interaction_weak: "#4A4658"
+        interaction_weak_hover: "#5B576B" 
+        interaction_weak_active: "#6D697D"
 
         // Interaction-default
         interaction_default: "#00000000"
-        interaction_default_hover: "#33575D6B"
-        interaction_default_active: "#4D575D6B"
+        interaction_default_hover: Qt.rgba(91./255.,87./255.,107./255.,0.2)
+        interaction_default_active:  Qt.rgba(91./255.,87./255.,107./255.,0.4)
 
         // Scrollbar
-        scrollbar_norm: "#464B58"
-        scrollbar_hover: "#575D6B"
+        scrollbar_norm: "#4A4658"
+        scrollbar_hover: "#5B576B"
 
         // Signal
-        signal_danger: "#ED4C51"
-        signal_danger_hover: "#F7595E"
-        signal_danger_active: "#FF666B"
-        signal_warning: "#F5930A"
-        signal_warning_hover: "#F5A716"
-        signal_warning_active: "#F5B922"
-        signal_success: "#349172"
-        signal_success_hover: "#339C79"
-        signal_success_active: "#31A67F"
-        signal_info: "#2C89DB"
-        signal_info_hover: "#3491E3"
-        signal_info_active: "#3D99EB"
+        signal_danger: "#F5385A"
+        signal_danger_hover: "#FF5473"
+        signal_danger_active: "#DC3251"
+        signal_warning: "#FF9900"
+        signal_warning_hover: "#FFB800"
+        signal_warning_active: "#FF8419"
+        signal_success: "#1EA885"
+        signal_success_hover: "#23C299"
+        signal_success_active: "#198F71"
+        signal_info: "#239ECE"
+        signal_info_hover: "#27B1E8"
+        signal_info_active: "#1F83B5"
 
         // Shadows
-        shadow_norm: "#262A33" // #000000 32% x+0 y+1 blur:4
-        shadow_lifted: "#262A33" // #000000 40% x+0 y+8 blur:24
+        shadow_norm: Qt.rgba(0,0,0,0.4) // #000000 40% x+0 y+1 blur:4
+        shadow_lifted: Qt.rgba(0,0,0,0.48) // #000000 48% x+0 y+8 blur:24
 
         // Backdrop
-        backdrop_norm: "#52000000"
+        backdrop_norm: Qt.rgba(0,0,0,0.32)
 
         // Images
         welcome_img: "icons/img-welcome-dark.png"
+        logo_img:    "icons/product_logos_dark.svg"
     }
 
     property ColorScheme currentStyle: lightStyle
@@ -344,6 +349,22 @@ QtObject {
         }
     }
 
+    property real px : 1.00 // px
+
+    property real input_radius         : 8  * root.px // px
+    property real button_radius        : 8  * root.px // px
+    property real checkbox_radius      : 4  * root.px // px
+    property real avatar_radius        : 8  * root.px // px
+    property real big_avatar_radius    : 12 * root.px // px
+    property real account_hover_radius : 12 * root.px // px
+    property real account_row_radius   : 12 * root.px // px
+    property real context_item_radius  : 8  * root.px // px
+    property real banner_radius        : 12 * root.px // px
+    property real dialog_radius        : 12 * root.px // px
+    property real card_radius          : 12 * root.px // px
+    property real storage_bar_radius   : 3  * root.px // px
+    property real tooltip_radius       : 8  * root.px // px
+
     property int heading_font_size: 28
     property int heading_line_height: 36
 
@@ -355,11 +376,11 @@ QtObject {
 
     property int body_font_size: 14
     property int body_line_height: 20
-    property real body_letter_spacing: 0.2
+    property real body_letter_spacing: 0.2 * root.px
 
     property int caption_font_size: 12
     property int caption_line_height: 16
-    property real caption_letter_spacing: 0.4
+    property real caption_letter_spacing: 0.4 * root.px
 
     property int fontWeight_100: Font.Thin
     property int fontWeight_200: Font.Light

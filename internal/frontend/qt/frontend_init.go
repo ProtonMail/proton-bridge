@@ -1,19 +1,19 @@
-// Copyright (c) 2022 Proton Technologies AG
+// Copyright (c) 2022 Proton AG
 //
-// This file is part of ProtonMail Bridge.
+// This file is part of Proton Mail Bridge.
 //
-// ProtonMail Bridge is free software: you can redistribute it and/or modify
+// Proton Mail Bridge is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// ProtonMail Bridge is distributed in the hope that it will be useful,
+// Proton Mail Bridge is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
+// along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 //go:build build_qt
 // +build build_qt
@@ -112,10 +112,9 @@ func (f *FrontendQt) setShowSplashScreen() {
 		return
 	}
 
-	// Current splash screen contains update on "What's new" in facelift.
-	// Therefore, it should be shown only if the last used version was less
-	// than 1.9.0.
-	if ver.LessThan(semver.MustParse("1.9.0")) {
+	// Current splash screen contains update on rebranding. Therefore, it
+	// should be shown only if the last used version was less than 2.2.0.
+	if ver.LessThan(semver.MustParse("2.2.0")) {
 		f.qml.SetShowSplashScreen(true)
 	}
 }

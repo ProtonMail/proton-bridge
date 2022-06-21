@@ -1,31 +1,51 @@
-# ProtonMail Bridge and Import-Export app Changelog
+# Proton Mail Bridge and Import-Export app Changelog
 
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
+## [Bridge 2.2.0] Millau
+
+### Added
+* Rebranding:
+    * GODT-1508: Splash screen for rebranding.
+    * GODT-1542: Update login screen for rebranding.
+    * GODT-1260: Renaming.
+    * GODT-1502: Rebranding: color and radius.
+* GODT-1549: Add notification when address list changes.
+* GODT-1560: Dependecy licenses update and link.
+
+### Changed
+* GODT-1543: Using one buffered event for off and on connection.
+* GODT-1550: Update dependencies.
+* GODT-1545 GODT-1521: Change wording and enable release notes link.
+
+### Fixed
+* GODT-1534: Reset address when leaving split mode.
+
+
 ## [Bridge 2.1.3] London
 
-## Added
+### Added
 GODT-1525: Add keybase/go-keychain/secretservice as new keychain helper.
 
-## Changed
+### Changed
 GODT-1527: Change bug report description.
 
-## Fixed
+### Fixed
 GODT-1537: Manual in-app update mechanism.
 
 
 ## [Bridge 2.1.2] London
 
-## Added
+### Added
 * GODT-1522: Rebuild macOS keychain notification.
 * GODT-1437 Add new proxy provider (Quad9 with port).
 * GODT-1516: Return notification on missing keychain.
 
-## Changed
+### Changed
 * GODT-1451: Do not check for gnome keyring to allow other implementations of secret-service API. Thanks to @remgodow.
 * GODT-1516 GODT-1451: KeepassXC is crashing on start. We need to block it until it's fixed.
 
-## Fixed
+### Fixed
 * GODT-1524: Logout issues with macOS.
 * GODT-1503 GODT-1492: Improve email validation and username in bug report.
 * GODT-1507: Enable autostart after Qt setup.
@@ -34,7 +54,7 @@ GODT-1537: Manual in-app update mechanism.
 
 ## [Bridge 2.1.1] London
 
-## Added
+### Added
 * GODT-1376: Add first userID to sentry scope.
 * GODT-1375: Add host architecture to sentry reports.
 * GODT-1364: Add windows CI machine for tests, and build.
@@ -56,7 +76,7 @@ GODT-1537: Manual in-app update mechanism.
 * GODT-1483: Correct scope in sentry report.
 * GODT-1477: Change CoD wording.
 
-## Added
+### Added
 * GODT-1478: Add GUI settings for keychain selection.
 * Other: Change copyright year.
 * GODT-1329: Dark mode, with autodetect.
@@ -70,7 +90,7 @@ GODT-1537: Manual in-app update mechanism.
 
 ## [Bridge 2.0.0] Kwai
 
-## Added
+### Added
 * GODT-22: New GUI style and improved UX:
     * GODT-1168 GODT-1169 Qml artifacts for preview.
     * GODT-1177: Remove Import-Export from repo.
@@ -141,7 +161,7 @@ GODT-1537: Manual in-app update mechanism.
     * GODT-1158: Store full messages bodies on disk.
 * GODT-1433 Adding first integration test for drafts.
 
-## Changed
+### Changed
 * GODT-1438: Turn off SW OpenGL on windows and add debug info about graphic renderer.
 * GODT-1425: Factory reset enables launch on startup.
 * GODT-1433 Message.Type is deprecated, use Flags instead.

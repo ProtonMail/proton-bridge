@@ -1,19 +1,19 @@
-// Copyright (c) 2022 Proton Technologies AG
+// Copyright (c) 2022 Proton AG
 //
-// This file is part of ProtonMail Bridge.
+// This file is part of Proton Mail Bridge.
 //
-// ProtonMail Bridge is free software: you can redistribute it and/or modify
+// Proton Mail Bridge is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// ProtonMail Bridge is distributed in the hope that it will be useful,
+// Proton Mail Bridge is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
+// along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 package tls
 
@@ -55,8 +55,8 @@ func NewTLSTemplate() (*x509.Certificate, error) {
 		SerialNumber: serialNumber,
 		Subject: pkix.Name{
 			Country:            []string{"CH"},
-			Organization:       []string{"Proton Technologies AG"},
-			OrganizationalUnit: []string{"ProtonMail"},
+			Organization:       []string{"Proton AG"},
+			OrganizationalUnit: []string{"Proton Mail"},
 			CommonName:         "127.0.0.1",
 		},
 		KeyUsage:              x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign,
@@ -110,7 +110,7 @@ func (t *TLS) GenerateCerts(template *x509.Certificate) error {
 	if err != nil {
 		return err
 	}
-	defer certOut.Close() // nolint[errcheck]
+	defer certOut.Close() //nolint:errcheck,gosec
 
 	if err := pem.Encode(certOut, &pem.Block{Type: "CERTIFICATE", Bytes: derBytes}); err != nil {
 		return err
@@ -120,7 +120,7 @@ func (t *TLS) GenerateCerts(template *x509.Certificate) error {
 	if err != nil {
 		return err
 	}
-	defer keyOut.Close() // nolint[errcheck]
+	defer keyOut.Close() //nolint:errcheck,gosec
 
 	return pem.Encode(keyOut, &pem.Block{Type: "RSA PRIVATE KEY", Bytes: x509.MarshalPKCS1PrivateKey(priv)})
 }
@@ -144,7 +144,7 @@ func (t *TLS) GetConfig() (*tls.Config, error) {
 	caCertPool := x509.NewCertPool()
 	caCertPool.AddCert(c.Leaf)
 
-	// nolint[gosec]: We need to support older TLS versions for AppleMail and Outlook.
+	//nolint:gosec  // We need to support older TLS versions for AppleMail and Outlook
 	return &tls.Config{
 		Certificates: []tls.Certificate{c},
 		ServerName:   "127.0.0.1",

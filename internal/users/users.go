@@ -1,19 +1,19 @@
-// Copyright (c) 2022 Proton Technologies AG
+// Copyright (c) 2022 Proton AG
 //
-// This file is part of ProtonMail Bridge.
+// This file is part of Proton Mail Bridge.
 //
-// ProtonMail Bridge is free software: you can redistribute it and/or modify
+// Proton Mail Bridge is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// ProtonMail Bridge is distributed in the hope that it will be useful,
+// Proton Mail Bridge is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
+// along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 // Package users provides core business logic providing API over credentials store and PM API.
 package users
@@ -36,8 +36,8 @@ import (
 )
 
 var (
-	log                   = logrus.WithField("pkg", "users") //nolint[gochecknoglobals]
-	isApplicationOutdated = false                            //nolint[gochecknoglobals]
+	log                   = logrus.WithField("pkg", "users") //nolint:gochecknoglobals
+	isApplicationOutdated = false                            //nolint:gochecknoglobals
 
 	// ErrWrongMailboxPassword is returned when login password is OK but
 	// not the mailbox one.
@@ -102,14 +102,17 @@ func New(
 
 func (u *Users) watchEvents() {
 	upgradeCh := u.events.ProvideChannel(events.UpgradeApplicationEvent)
-	internetOnCh := u.events.ProvideChannel(events.InternetOnEvent)
+	internetConnChangedCh := u.events.ProvideChannel(events.InternetConnChangedEvent)
 
 	for {
 		select {
 		case <-upgradeCh:
 			isApplicationOutdated = true
 			u.closeAllConnections()
-		case <-internetOnCh:
+		case stat := <-internetConnChangedCh:
+			if stat != events.InternetOn {
+				continue
+			}
 			for _, user := range u.users {
 				if user.store == nil {
 					if err := user.loadStore(); err != nil {
@@ -212,7 +215,7 @@ func (u *Users) Login(username string, password []byte) (authClient pmapi.Client
 }
 
 // FinishLogin finishes the login procedure and adds the user into the credentials store.
-func (u *Users) FinishLogin(client pmapi.Client, auth *pmapi.Auth, password []byte) (user *User, err error) { //nolint[funlen]
+func (u *Users) FinishLogin(client pmapi.Client, auth *pmapi.Auth, password []byte) (user *User, err error) { //nolint:funlen
 	apiUser, passphrase, err := getAPIUser(context.Background(), client, password)
 	if err != nil {
 		return nil, err

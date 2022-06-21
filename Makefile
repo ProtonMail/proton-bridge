@@ -10,7 +10,7 @@ TARGET_OS?=${GOOS}
 .PHONY: build build-nogui build-launcher versioner hasher
 
 # Keep version hardcoded so app build works also without Git repository.
-BRIDGE_APP_VERSION?=2.1.3+git
+BRIDGE_APP_VERSION?=2.2.0+git
 APP_VERSION:=${BRIDGE_APP_VERSION}
 SRC_ICO:=logo.ico
 SRC_ICNS:=Bridge.icns
@@ -235,10 +235,13 @@ mocks:
 	mockgen --package mocks github.com/ProtonMail/proton-bridge/pkg/pmapi Client,Manager > pkg/pmapi/mocks/mocks.go
 	mockgen --package mocks github.com/ProtonMail/proton-bridge/pkg/message Fetcher > pkg/message/mocks/mocks.go
 
-lint: gofiles lint-golang lint-license lint-changelog
+lint: gofiles lint-golang lint-license lint-dependencies lint-changelog
 
 lint-license:
 	./utils/missing_license.sh check
+
+lint-dependencies:
+	./utils/dependency_license.sh check
 
 lint-changelog:
 	./utils/changelog_linter.sh Changelog.md

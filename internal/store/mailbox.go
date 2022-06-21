@@ -1,19 +1,19 @@
-// Copyright (c) 2022 Proton Technologies AG
+// Copyright (c) 2022 Proton AG
 //
-// This file is part of ProtonMail Bridge.
+// This file is part of Proton Mail Bridge.
 //
-// ProtonMail Bridge is free software: you can redistribute it and/or modify
+// Proton Mail Bridge is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// ProtonMail Bridge is distributed in the hope that it will be useful,
+// Proton Mail Bridge is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
+// along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 package store
 
@@ -74,7 +74,7 @@ func txNewMailbox(tx *bolt.Tx, storeAddress *Address, labelID, labelPrefix, labe
 	return mb, err
 }
 
-func syncDraftsIfNecssary(tx *bolt.Tx, mb *Mailbox) { //nolint[funlen]
+func syncDraftsIfNecssary(tx *bolt.Tx, mb *Mailbox) { //nolint:funlen
 	// We didn't support drafts before v1.2.6 and therefore if we now created
 	// Drafts mailbox we need to check whether counts match (drafts are synced).
 	// If not, sync them from local metadata without need to do full resync,
@@ -231,7 +231,7 @@ func (storeMailbox *Mailbox) GetDelimiter() string {
 // deleteMailboxEvent deletes the mailbox bucket.
 // This is called from the event loop.
 func (storeMailbox *Mailbox) deleteMailboxEvent() error {
-	if !storeMailbox.isDeleting.Load().(bool) {
+	if !storeMailbox.isDeleting.Load().(bool) { //nolint:forcetypeassert
 		// Deleting label removes bucket. Any ongoing connection selected
 		// in such mailbox then might panic because of non-existing bucket.
 		// Closing connetions prevents that panic but if the connection

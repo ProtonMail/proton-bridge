@@ -1,19 +1,19 @@
-// Copyright (c) 2022 Proton Technologies AG
+// Copyright (c) 2022 Proton AG
 //
-// This file is part of ProtonMail Bridge.
+// This file is part of Proton Mail Bridge.
 //
-// ProtonMail Bridge is free software: you can redistribute it and/or modify
+// Proton Mail Bridge is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// ProtonMail Bridge is distributed in the hope that it will be useful,
+// Proton Mail Bridge is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
+// along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 import QtQuick 2.13
 import QtQuick.Layouts 1.12
@@ -73,20 +73,20 @@ Popup {
                 anchors.bottom: parent.bottom
                 anchors.left: parent.left
                 width: parent.width + 10
-                radius: 10
+                radius: ProtonStyle.banner_radius
                 color: {
                     if (!root.notification) {
                         return "transparent"
                     }
 
                     switch (root.notification.type) {
-                    case Notification.NotificationType.Info:
+                        case Notification.NotificationType.Info:
                         return root.colorScheme.signal_info
-                    case Notification.NotificationType.Success:
+                        case Notification.NotificationType.Success:
                         return root.colorScheme.signal_success
-                    case Notification.NotificationType.Warning:
+                        case Notification.NotificationType.Warning:
                         return root.colorScheme.signal_warning
-                    case Notification.NotificationType.Danger:
+                        case Notification.NotificationType.Danger:
                         return root.colorScheme.signal_danger
                     }
                 }
@@ -118,13 +118,13 @@ Popup {
                         }
 
                         switch (root.notification.type) {
-                        case Notification.NotificationType.Info:
+                            case Notification.NotificationType.Info:
                             return "./icons/ic-info-circle-filled.svg"
-                        case Notification.NotificationType.Success:
+                            case Notification.NotificationType.Success:
                             return "./icons/ic-info-circle-filled.svg"
-                        case Notification.NotificationType.Warning:
+                            case Notification.NotificationType.Warning:
                             return "./icons/ic-exclamation-circle-filled.svg"
-                        case Notification.NotificationType.Danger:
+                            case Notification.NotificationType.Danger:
                             return "./icons/ic-exclamation-circle-filled.svg"
                         }
                     }
@@ -134,6 +134,7 @@ Popup {
                     colorScheme: root.colorScheme
                     Layout.fillWidth: true
                     Layout.alignment: Qt.AlignVCenter
+                    Layout.leftMargin: 16
 
                     color: root.colorScheme.text_invert
                     text: root.notification ? root.notification.description : ""
@@ -152,13 +153,13 @@ Popup {
                 }
 
                 switch (root.notification.type) {
-                case Notification.NotificationType.Info:
+                    case Notification.NotificationType.Info:
                     return root.colorScheme.signal_info_active
-                case Notification.NotificationType.Success:
+                    case Notification.NotificationType.Success:
                     return root.colorScheme.signal_success_active
-                case Notification.NotificationType.Warning:
+                    case Notification.NotificationType.Warning:
                     return root.colorScheme.signal_warning_active
-                case Notification.NotificationType.Danger:
+                    case Notification.NotificationType.Danger:
                     return root.colorScheme.signal_danger_active
                 }
             }
@@ -179,7 +180,7 @@ Popup {
                     anchors.bottom: parent.bottom
                     anchors.right: parent.right
                     width: parent.width + 10
-                    radius: 10
+                    radius: ProtonStyle.banner_radius
                     color: {
                         if (!root.notification) {
                             return "transparent"
@@ -190,22 +191,22 @@ Popup {
                         var active
 
                         switch (root.notification.type) {
-                        case Notification.NotificationType.Info:
+                            case Notification.NotificationType.Info:
                             norm = root.colorScheme.signal_info
                             hover = root.colorScheme.signal_info_hover
                             active = root.colorScheme.signal_info_active
                             break;
-                        case Notification.NotificationType.Success:
+                            case Notification.NotificationType.Success:
                             norm = root.colorScheme.signal_success
                             hover = root.colorScheme.signal_success_hover
                             active = root.colorScheme.signal_success_active
                             break;
-                        case Notification.NotificationType.Warning:
+                            case Notification.NotificationType.Warning:
                             norm = root.colorScheme.signal_warning
                             hover = root.colorScheme.signal_warning_hover
                             active = root.colorScheme.signal_warning_active
                             break;
-                        case Notification.NotificationType.Danger:
+                            case Notification.NotificationType.Danger:
                             norm = root.colorScheme.signal_danger
                             hover = root.colorScheme.signal_danger_hover
                             active = root.colorScheme.signal_danger_active

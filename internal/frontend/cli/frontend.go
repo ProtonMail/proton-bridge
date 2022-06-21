@@ -1,19 +1,19 @@
-// Copyright (c) 2022 Proton Technologies AG
+// Copyright (c) 2022 Proton AG
 //
-// This file is part of ProtonMail Bridge.
+// This file is part of Proton Mail Bridge.
 //
-// ProtonMail Bridge is free software: you can redistribute it and/or modify
+// Proton Mail Bridge is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// ProtonMail Bridge is distributed in the hope that it will be useful,
+// Proton Mail Bridge is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
+// along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 // Package cli provides CLI interface of the Bridge.
 package cli
@@ -31,7 +31,7 @@ import (
 )
 
 var (
-	log = logrus.WithField("pkg", "frontend/cli") //nolint[gochecknoglobals]
+	log = logrus.WithField("pkg", "frontend/cli") //nolint:gochecknoglobals
 )
 
 type frontendCLI struct {
@@ -47,7 +47,7 @@ type frontendCLI struct {
 }
 
 // New returns a new CLI frontend configured with the given options.
-func New( //nolint[funlen]
+func New( //nolint:funlen
 	panicHandler types.PanicHandler,
 
 	locations *locations.Locations,
@@ -56,7 +56,7 @@ func New( //nolint[funlen]
 	updater types.Updater,
 	bridge types.Bridger,
 	restarter types.Restarter,
-) *frontendCLI { //nolint[golint]
+) *frontendCLI { //nolint:revive
 	fe := &frontendCLI{
 		Shell: ishell.New(),
 
@@ -244,8 +244,7 @@ func New( //nolint[funlen]
 func (f *frontendCLI) watchEvents() {
 	errorCh := f.eventListener.ProvideChannel(events.ErrorEvent)
 	credentialsErrorCh := f.eventListener.ProvideChannel(events.CredentialsErrorEvent)
-	internetOffCh := f.eventListener.ProvideChannel(events.InternetOffEvent)
-	internetOnCh := f.eventListener.ProvideChannel(events.InternetOnEvent)
+	internetConnChangedCh := f.eventListener.ProvideChannel(events.InternetConnChangedEvent)
 	addressChangedCh := f.eventListener.ProvideChannel(events.AddressChangedEvent)
 	addressChangedLogoutCh := f.eventListener.ProvideChannel(events.AddressChangedLogoutEvent)
 	logoutCh := f.eventListener.ProvideChannel(events.LogoutEvent)
@@ -256,10 +255,13 @@ func (f *frontendCLI) watchEvents() {
 			f.Println("Bridge failed:", errorDetails)
 		case <-credentialsErrorCh:
 			f.notifyCredentialsError()
-		case <-internetOffCh:
-			f.notifyInternetOff()
-		case <-internetOnCh:
-			f.notifyInternetOn()
+		case stat := <-internetConnChangedCh:
+			if stat == events.InternetOff {
+				f.notifyInternetOff()
+			}
+			if stat == events.InternetOn {
+				f.notifyInternetOn()
+			}
 		case address := <-addressChangedCh:
 			f.Printf("Address changed for %s. You may need to reconfigure your email client.", address)
 		case address := <-addressChangedLogoutCh:
@@ -279,7 +281,7 @@ func (f *frontendCLI) watchEvents() {
 // Loop starts the frontend loop with an interactive shell.
 func (f *frontendCLI) Loop() error {
 	f.Print(`
-            Welcome to ProtonMail Bridge interactive shell
+            Welcome to Proton Mail Bridge interactive shell
                               ___....___
     ^^                __..-:'':__:..:__:'':-..__
                   _.-:__:.-:'':  :  :  :'':-.:__:-._

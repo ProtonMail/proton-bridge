@@ -1,19 +1,19 @@
-// Copyright (c) 2022 Proton Technologies AG
+// Copyright (c) 2022 Proton AG
 //
-// This file is part of ProtonMail Bridge.
+// This file is part of Proton Mail Bridge.
 //
-// ProtonMail Bridge is free software: you can redistribute it and/or modify
+// Proton Mail Bridge is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// ProtonMail Bridge is distributed in the hope that it will be useful,
+// Proton Mail Bridge is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
+// along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 import QtQml 2.12
 import QtQuick 2.12
@@ -183,15 +183,15 @@ FocusScope {
                 id: control
 
                 implicitWidth: Math.max(
-                                   contentWidth + leftPadding + rightPadding,
-                                   implicitBackgroundWidth + leftInset + rightInset,
-                                   placeholder.implicitWidth + leftPadding + rightPadding
-                                   )
+                    contentWidth + leftPadding + rightPadding,
+                    implicitBackgroundWidth + leftInset + rightInset,
+                    placeholder.implicitWidth + leftPadding + rightPadding
+                )
                 implicitHeight: Math.max(
-                                    contentHeight + topPadding + bottomPadding,
-                                    implicitBackgroundHeight + topInset + bottomInset,
-                                    placeholder.implicitHeight + topPadding + bottomPadding
-                                    )
+                    contentHeight + topPadding + bottomPadding,
+                    implicitBackgroundHeight + topInset + bottomInset,
+                    placeholder.implicitHeight + topPadding + bottomPadding
+                )
 
                 topPadding: 8
                 bottomPadding: 8
@@ -270,7 +270,7 @@ FocusScope {
                 background: Rectangle {
                     anchors.fill: parent
 
-                    radius: 4
+                    radius: Style.input_radius
                     visible: true
                     color: root.colorScheme.background_norm
                     border.color: {

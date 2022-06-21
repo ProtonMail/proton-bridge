@@ -1,19 +1,19 @@
-// Copyright (c) 2022 Proton Technologies AG
+// Copyright (c) 2022 Proton AG
 //
-// This file is part of ProtonMail Bridge.
+// This file is part of Proton Mail Bridge.
 //
-// ProtonMail Bridge is free software: you can redistribute it and/or modify
+// Proton Mail Bridge is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// ProtonMail Bridge is distributed in the hope that it will be useful,
+// Proton Mail Bridge is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
+// along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 import QtQml 2.12
 import Qt.labs.platform 1.1
@@ -74,7 +74,8 @@ QtObject {
         root.resetBridge,
         root.deleteAccount,
         root.noKeychain,
-        root.rebuildKeychain
+        root.rebuildKeychain,
+        root.addressChanged
     ]
 
     // Connection
@@ -100,8 +101,13 @@ QtObject {
     // Updates
     property Notification updateManualReady: Notification {
         title: qsTr("Update to Bridge %1").arg(data ? data.version : "")
-        description: qsTr("A new version of ProtonMail Bridge is available. See what's changed.")
-        brief: qsTr("Update available. (See what's new.)")
+        description:  {
+            var descr = qsTr("A new version of Proton Mail Bridge is available.")
+            var text = qsTr("See what's changed.")
+            var link = root.backend.releaseNotesLink
+            return `${descr} <a href="${link}">${text}</a>`
+        }
+        brief: qsTr("Update available.")
         icon: "./icons/ic-info-circle-filled.svg"
         type: Notification.NotificationType.Info
         group: Notifications.Group.Update | Notifications.Group.Dialogs
@@ -834,10 +840,10 @@ QtObject {
     }
 
     property Notification deleteAccount: Notification {
-        title: qsTr("Delete this account?")
+        title: qsTr("Remove this account?")
         brief: title
         icon: "./icons/ic-exclamation-circle-filled.svg"
-        description: qsTr("Are you sure you want to delete this account and all the stored preferences and other data associated with it?")
+        description: qsTr("Are you sure you want to remove this account from Bridge and delete locally stored preferences and data?")
         type: Notification.NotificationType.Danger
         group: Notifications.Group.Configuration | Notifications.Group.Dialogs
 
@@ -861,7 +867,7 @@ QtObject {
             },
             Action {
                 id: deleteAccount_delete
-                text: qsTr("Delete this account")
+                text: qsTr("Remove this account")
                 onTriggered: {
                     root.deleteAccount.user.remove()
                     root.deleteAccount.active = false
@@ -931,6 +937,39 @@ QtObject {
                 onTriggered: {
                     Qt.openUrlExternally(root.rebuildKeychain.supportLink)
                     root.backend.quit()
+                }
+            }
+        ]
+    }
+
+    property Notification addressChanged: Notification {
+        title: qsTr("Address list changes")
+        description: qsTr("The address list for your account has changed. You might need to reconfigure your email client.")
+        brief: description
+        icon: "./icons/ic-exclamation-circle-filled.svg"
+        type: Notification.NotificationType.Warning
+        group: Notifications.Group.Configuration
+
+        Connections {
+            target: root.backend
+
+            onAddressChanged: {
+                root.addressChanged.description = qsTr("The address list for your account %1 has changed. You might need to reconfigure your email client.").arg(address)
+                root.addressChanged.active = true
+            }
+
+            onAddressChangedLogout: {
+                root.addressChanged.description = qsTr("The address list for your account %1 has changed. You have to reconfigure your email client.").arg(address)
+                root.addressChanged.active = true
+            }
+        }
+
+        action: [
+            Action {
+                text: qsTr("OK")
+
+                onTriggered: {
+                    root.addressChanged.active = false
                 }
             }
         ]

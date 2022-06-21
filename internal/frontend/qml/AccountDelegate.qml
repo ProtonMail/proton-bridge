@@ -1,19 +1,19 @@
-// Copyright (c) 2022 Proton Technologies AG
+// Copyright (c) 2022 Proton AG
 //
-// This file is part of ProtonMail Bridge.
+// This file is part of Proton Mail Bridge.
 //
-// ProtonMail Bridge is free software: you can redistribute it and/or modify
+// Proton Mail Bridge is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// ProtonMail Bridge is distributed in the hope that it will be useful,
+// Proton Mail Bridge is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
+// along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 import QtQuick 2.13
 import QtQuick.Layouts 1.12
@@ -27,7 +27,7 @@ Item {
     property ColorScheme colorScheme
     property var user
 
-    property var _spacing: 12
+    property var _spacing: 12 * ProtonStyle.px
 
     property color usedSpaceColor : {
         if (!root.enabled) return root.colorScheme.text_weak
@@ -86,7 +86,7 @@ Item {
             Layout.fillHeight: true
             Layout.preferredWidth: height
 
-            radius: 4
+            radius: ProtonStyle.avatar_radius
 
             color: root.colorScheme.background_avatar
 
@@ -130,7 +130,7 @@ Item {
                 elide: Text.ElideMiddle
             }
 
-            Item { implicitHeight: root.type == AccountDelegate.LargeView ? 6 : 0 }
+            Item { implicitHeight: root.type == AccountDelegate.LargeView ? 6 * ProtonStyle.px : 0 }
 
             RowLayout {
                 spacing: 0
@@ -161,14 +161,16 @@ Item {
 
 
             Rectangle {
+                id: storage_bar
                 visible: root.user ? root.type == AccountDelegate.LargeView : false
-                width: 140
-                height: 4
-                radius: 3
+                width: 140 * ProtonStyle.px
+                height: 4 * ProtonStyle.px
+                radius: ProtonStyle.storage_bar_radius
                 color: root.colorScheme.border_weak
 
                 Rectangle {
-                    radius: 3
+                    id: storage_bar_filled
+                    radius: ProtonStyle.storage_bar_radius
                     color: root.usedSpaceColor
                     visible: root.user ? parent.visible && root.user.loggedIn : false
                     anchors {

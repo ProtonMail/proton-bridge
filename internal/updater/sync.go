@@ -1,19 +1,19 @@
-// Copyright (c) 2022 Proton Technologies AG
+// Copyright (c) 2022 Proton AG
 //
-// This file is part of ProtonMail Bridge.
+// This file is part of Proton Mail Bridge.
 //
-// ProtonMail Bridge is free software: you can redistribute it and/or modify
+// Proton Mail Bridge is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// ProtonMail Bridge is distributed in the hope that it will be useful,
+// Proton Mail Bridge is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
+// along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 package updater
 
@@ -129,7 +129,7 @@ func checksum(path string) (hash string) {
 	if err != nil {
 		return
 	}
-	defer file.Close() //nolint[errcheck]
+	defer file.Close() //nolint:errcheck,gosec
 
 	hasher := sha256.New()
 	if _, err := io.Copy(hasher, file); err != nil {
@@ -141,7 +141,7 @@ func checksum(path string) (hash string) {
 
 // srcDir including app folder.
 // dstDir including app folder.
-func copyRecursively(srcDir, dstDir string) error { // nolint[funlen]
+func copyRecursively(srcDir, dstDir string) error { //nolint:funlen
 	return filepath.Walk(srcDir, func(srcPath string, srcInfo os.FileInfo, err error) error {
 		if err != nil {
 			return err
@@ -228,7 +228,7 @@ func copyRecursively(srcDir, dstDir string) error { // nolint[funlen]
 		if err != nil {
 			return err
 		}
-		defer srcReader.Close() //nolint[errcheck]
+		defer srcReader.Close() //nolint:errcheck,gosec
 		return copyToTmpFileRename(srcReader, dstPath, srcInfo.Mode())
 	})
 }
@@ -244,11 +244,11 @@ func copyToTmpFileRename(srcReader io.Reader, dstPath string, dstMode os.FileMod
 
 func copyToFileTruncate(srcReader io.Reader, dstPath string, dstMode os.FileMode) error {
 	logrus.Debug("Copy and truncate ", dstPath)
-	dstWriter, err := os.OpenFile(filepath.Clean(dstPath), os.O_WRONLY|os.O_CREATE|os.O_TRUNC, dstMode) //nolint[gosec] Cannot guess the safe part of path
+	dstWriter, err := os.OpenFile(filepath.Clean(dstPath), os.O_WRONLY|os.O_CREATE|os.O_TRUNC, dstMode) //nolint:gosec // Cannot guess the safe part of path
 	if err != nil {
 		return err
 	}
-	defer dstWriter.Close() //nolint[errcheck]
+	defer dstWriter.Close() //nolint:errcheck,gosec
 	_, err = io.Copy(dstWriter, srcReader)
 	return err
 }

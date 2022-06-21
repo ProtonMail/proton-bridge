@@ -1,4 +1,4 @@
-# Building ProtonMail Bridge and Import-Export app
+# Building Proton Mail Bridge and Import-Export app
 
 ## Prerequisites
 * 64-bit AMD OS:

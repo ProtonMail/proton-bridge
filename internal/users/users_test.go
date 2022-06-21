@@ -1,19 +1,19 @@
-// Copyright (c) 2022 Proton Technologies AG
+// Copyright (c) 2022 Proton AG
 //
-// This file is part of ProtonMail Bridge.
+// This file is part of Proton Mail Bridge.
 //
-// ProtonMail Bridge is free software: you can redistribute it and/or modify
+// Proton Mail Bridge is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// ProtonMail Bridge is distributed in the hope that it will be useful,
+// Proton Mail Bridge is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
+// along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 package users
 
@@ -54,7 +54,7 @@ func TestMain(m *testing.M) {
 }
 
 var (
-	testAuthRefresh = &pmapi.Auth{ //nolint[gochecknoglobals]
+	testAuthRefresh = &pmapi.Auth{ //nolint:gochecknoglobals
 		UserID: "user",
 		AuthRefresh: pmapi.AuthRefresh{
 			UID:          "uid",
@@ -63,7 +63,7 @@ var (
 		},
 	}
 
-	testCredentials = &credentials.Credentials{ //nolint[gochecknoglobals]
+	testCredentials = &credentials.Credentials{ //nolint:gochecknoglobals
 		UserID:                "user",
 		Name:                  "username",
 		Emails:                "user@pm.me",
@@ -76,7 +76,7 @@ var (
 		IsCombinedAddressMode: true,
 	}
 
-	testCredentialsSplit = &credentials.Credentials{ //nolint[gochecknoglobals]
+	testCredentialsSplit = &credentials.Credentials{ //nolint:gochecknoglobals
 		UserID:                "users",
 		Name:                  "usersname",
 		Emails:                "users@pm.me;anotheruser@pm.me;alsouser@pm.me",
@@ -89,7 +89,7 @@ var (
 		IsCombinedAddressMode: false,
 	}
 
-	testCredentialsDisconnected = &credentials.Credentials{ //nolint[gochecknoglobals]
+	testCredentialsDisconnected = &credentials.Credentials{ //nolint:gochecknoglobals
 		UserID:                "userDisconnected",
 		Name:                  "username",
 		Emails:                "user@pm.me",
@@ -102,7 +102,7 @@ var (
 		IsCombinedAddressMode: true,
 	}
 
-	testCredentialsSplitDisconnected = &credentials.Credentials{ //nolint[gochecknoglobals]
+	testCredentialsSplitDisconnected = &credentials.Credentials{ //nolint:gochecknoglobals
 		UserID:                "usersDisconnected",
 		Name:                  "usersname",
 		Emails:                "users@pm.me;anotheruser@pm.me;alsouser@pm.me",
@@ -118,32 +118,26 @@ var (
 	usedSpace = int64(1048576)
 	maxSpace  = int64(10485760)
 
-	testPMAPIUser = &pmapi.User{ //nolint[gochecknoglobals]
+	testPMAPIUser = &pmapi.User{ //nolint:gochecknoglobals
 		ID:        "user",
 		Name:      "username",
 		UsedSpace: &usedSpace,
 		MaxSpace:  &maxSpace,
 	}
 
-	testPMAPIUserDisconnected = &pmapi.User{ //nolint[gochecknoglobals]
+	testPMAPIUserDisconnected = &pmapi.User{ //nolint:gochecknoglobals
 		ID:   "userDisconnected",
 		Name: "username",
 	}
 
-	testPMAPIAddress = &pmapi.Address{ //nolint[gochecknoglobals]
+	testPMAPIAddress = &pmapi.Address{ //nolint:gochecknoglobals
 		ID:      "testAddressID",
 		Type:    pmapi.OriginalAddress,
 		Email:   "user@pm.me",
 		Receive: true,
 	}
 
-	testPMAPIAddresses = []*pmapi.Address{ //nolint[gochecknoglobals]
-		{ID: "usersAddress1ID", Email: "users@pm.me", Receive: true, Type: pmapi.OriginalAddress},
-		{ID: "usersAddress2ID", Email: "anotheruser@pm.me", Receive: true, Type: pmapi.AliasAddress},
-		{ID: "usersAddress3ID", Email: "alsouser@pm.me", Receive: true, Type: pmapi.AliasAddress},
-	}
-
-	testPMAPIEvent = &pmapi.Event{ // nolint[gochecknoglobals]
+	testPMAPIEvent = &pmapi.Event{ // nolint:gochecknoglobals
 		EventID: "ACXDmTaBub14w==",
 	}
 )
@@ -242,9 +236,9 @@ func testNewUsersWithUsers(t *testing.T, m mocks) *Users {
 	return testNewUsers(t, m)
 }
 
-func testNewUsers(t *testing.T, m mocks) *Users { //nolint[unparam]
+func testNewUsers(t *testing.T, m mocks) *Users { //nolint:unparam
 	m.eventListener.EXPECT().ProvideChannel(events.UpgradeApplicationEvent)
-	m.eventListener.EXPECT().ProvideChannel(events.InternetOnEvent)
+	m.eventListener.EXPECT().ProvideChannel(events.InternetConnChangedEvent)
 
 	users := New(m.locator, m.PanicHandler, m.eventListener, m.clientManager, m.credentialsStore, m.storeMaker)
 

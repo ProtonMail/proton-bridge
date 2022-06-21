@@ -1,19 +1,19 @@
-// Copyright (c) 2022 Proton Technologies AG
+// Copyright (c) 2022 Proton AG
 //
-// This file is part of ProtonMail Bridge.
+// This file is part of Proton Mail Bridge.
 //
-// ProtonMail Bridge is free software: you can redistribute it and/or modify
+// Proton Mail Bridge is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// ProtonMail Bridge is distributed in the hope that it will be useful,
+// Proton Mail Bridge is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
+// along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 package store
 
@@ -162,7 +162,7 @@ func (loop *eventLoop) loop() {
 			return
 		case <-t.C:
 			// Randomise periodic calls within range pollInterval ± pollSpread to reduces potential load spikes on API.
-			//nolint[gosec] It is OK to use weaker random number generator here
+			//nolint:gosec    // It is OK to use weaker random number generator here
 			time.Sleep(time.Duration(rand.Intn(2*int(pollIntervalSpread.Milliseconds()))) * time.Millisecond)
 		case eventProcessedCh = <-loop.pollCh:
 			// We don't want to wait here. Polling should happen instantly.
@@ -214,7 +214,7 @@ func (loop *eventLoop) isBeforeFirstStart() bool {
 // processNextEvent saves only successfully processed `eventID` into cache
 // (disk). It will filter out in defer all errors except invalid token error.
 // Invalid error will be returned and stop the event loop.
-func (loop *eventLoop) processNextEvent() (more bool, err error) { // nolint[funlen]
+func (loop *eventLoop) processNextEvent() (more bool, err error) { //nolint:funlen
 	l := loop.log.
 		WithField("currentEventID", loop.currentEventID).
 		WithField("pollCounter", loop.pollCounter)
@@ -375,7 +375,7 @@ func (loop *eventLoop) processAddresses(log *logrus.Entry, addressEvents []*pmap
 	for _, addressEvent := range addressEvents {
 		switch addressEvent.Action {
 		case pmapi.EventCreate:
-			log.WithField("email", addressEvent.Address.Email).Debug("Address was created")
+			log.WithField("email", addressEvent.Address.Email).Info("Address was created")
 			loop.listener.Emit(bridgeEvents.AddressChangedEvent, loop.user.GetPrimaryAddress())
 
 		case pmapi.EventUpdate:
@@ -386,7 +386,7 @@ func (loop *eventLoop) processAddresses(log *logrus.Entry, addressEvents []*pmap
 			}
 
 			email := oldAddress.Email
-			log.WithField("email", email).Debug("Address was updated")
+			log.WithField("email", email).Info("Address was updated")
 			if addressEvent.Address.Receive != oldAddress.Receive {
 				loop.listener.Emit(bridgeEvents.AddressChangedLogoutEvent, email)
 			}
@@ -399,7 +399,7 @@ func (loop *eventLoop) processAddresses(log *logrus.Entry, addressEvents []*pmap
 			}
 
 			email := oldAddress.Email
-			log.WithField("email", email).Debug("Address was deleted")
+			log.WithField("email", email).Info("Address was deleted")
 			loop.user.CloseConnection(email)
 			loop.listener.Emit(bridgeEvents.AddressChangedLogoutEvent, email)
 		case pmapi.EventUpdateFlags:
@@ -440,7 +440,7 @@ func (loop *eventLoop) processLabels(eventLog *logrus.Entry, labels []*pmapi.Eve
 	return nil
 }
 
-func (loop *eventLoop) processMessages(eventLog *logrus.Entry, messages []*pmapi.EventMessage) (err error) { // nolint[funlen]
+func (loop *eventLoop) processMessages(eventLog *logrus.Entry, messages []*pmapi.EventMessage) (err error) { //nolint:funlen
 	eventLog.Debug("Processing message change event")
 
 	for _, message := range messages {
@@ -541,7 +541,7 @@ func (loop *eventLoop) removeLabelFromMessageWait(labelIDs []string) {
 	}
 }
 
-func updateMessage(msgLog *logrus.Entry, message *pmapi.Message, updates *pmapi.EventMessageUpdated) { //nolint[funlen]
+func updateMessage(msgLog *logrus.Entry, message *pmapi.Message, updates *pmapi.EventMessageUpdated) { //nolint:funlen
 	msgLog.Debug("Updating message")
 
 	message.Time = updates.Time

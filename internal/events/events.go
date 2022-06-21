@@ -1,19 +1,19 @@
-// Copyright (c) 2022 Proton Technologies AG
+// Copyright (c) 2022 Proton AG
 //
-// This file is part of ProtonMail Bridge.
+// This file is part of Proton Mail Bridge.
 //
-// ProtonMail Bridge is free software: you can redistribute it and/or modify
+// Proton Mail Bridge is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// ProtonMail Bridge is distributed in the hope that it will be useful,
+// Proton Mail Bridge is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
+// along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 // Package events provides names of events used by the event listener in bridge.
 package events
@@ -34,8 +34,9 @@ const (
 	AddressChangedLogoutEvent    = "addressChangedLogout"
 	UserRefreshEvent             = "userRefresh"
 	RestartBridgeEvent           = "restartBridge"
-	InternetOffEvent             = "internetOff"
-	InternetOnEvent              = "internetOn"
+	InternetConnChangedEvent     = "internetChanged"
+	InternetOff                  = "internetOff"
+	InternetOn                   = "internetOn"
 	SecondInstanceEvent          = "secondInstance"
 	OutgoingNoEncEvent           = "outgoingNoEncryption"
 	NoActiveKeyForRecipientEvent = "noActiveKeyForRecipient"
@@ -52,7 +53,7 @@ func SetupEvents(listener listener.Listener) {
 	listener.SetLimit(LogoutEvent, LogoutEventTimeout)
 	listener.SetBuffer(ErrorEvent)
 	listener.SetBuffer(CredentialsErrorEvent)
-	listener.SetBuffer(InternetOffEvent)
+	listener.SetBuffer(InternetConnChangedEvent)
 	listener.SetBuffer(UpgradeApplicationEvent)
 	listener.SetBuffer(TLSCertIssue)
 	listener.SetBuffer(UserRefreshEvent)

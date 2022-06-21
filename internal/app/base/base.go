@@ -1,19 +1,19 @@
-// Copyright (c) 2022 Proton Technologies AG
+// Copyright (c) 2022 Proton AG
 //
-// This file is part of ProtonMail Bridge.
+// This file is part of Proton Mail Bridge.
 //
-// ProtonMail Bridge is free software: you can redistribute it and/or modify
+// Proton Mail Bridge is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// ProtonMail Bridge is distributed in the hope that it will be useful,
+// Proton Mail Bridge is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
+// along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 // Package base implements a common application base currently shared by bridge and IE.
 // The base includes the following:
@@ -102,7 +102,7 @@ type Base struct {
 	teardown []func() error // actions to perform when app is exiting
 }
 
-func New( // nolint[funlen]
+func New( //nolint:funlen
 	appName,
 	appUsage,
 	configName,
@@ -159,6 +159,10 @@ func New( // nolint[funlen]
 		return nil, api.CheckOtherInstanceAndFocus(settingsObj.GetInt(settings.APIPortKey))
 	}
 
+	if err := migrateRebranding(settingsObj, keychainName); err != nil {
+		logrus.WithError(err).Warn("Rebranding migration failed")
+	}
+
 	cachePath, err := locations.ProvideCachePath()
 	if err != nil {
 		return nil, err
@@ -192,8 +196,8 @@ func New( // nolint[funlen]
 	sentryReporter.SetClientFromManager(cm)
 
 	cm.AddConnectionObserver(pmapi.NewConnectionObserver(
-		func() { listener.Emit(events.InternetOffEvent, "") },
-		func() { listener.Emit(events.InternetOnEvent, "") },
+		func() { listener.Emit(events.InternetConnChangedEvent, events.InternetOff) },
+		func() { listener.Emit(events.InternetConnChangedEvent, events.InternetOn) },
 	))
 
 	jar, err := cookies.NewCookieJar(settingsObj)
@@ -236,7 +240,7 @@ func New( // nolint[funlen]
 	}
 
 	autostart := &autostart.App{
-		Name:        appName,
+		Name:        startupNameForRebranding(appName),
 		DisplayName: appName,
 		Exec:        []string{exe, "--" + FlagNoWindow},
 	}
@@ -324,7 +328,7 @@ func (b *Base) AddTeardownAction(fn func() error) {
 	b.teardown = append(b.teardown, fn)
 }
 
-func (b *Base) wrapMainLoop(appMainLoop func(*Base, *cli.Context) error) cli.ActionFunc { // nolint[funlen]
+func (b *Base) wrapMainLoop(appMainLoop func(*Base, *cli.Context) error) cli.ActionFunc { //nolint:funlen
 	return func(c *cli.Context) error {
 		defer b.CrashHandler.HandlePanic()
 		defer func() { _ = b.Lock.Close() }()

@@ -1,19 +1,19 @@
-// Copyright (c) 2022 Proton Technologies AG
+// Copyright (c) 2022 Proton AG
 //
-// This file is part of ProtonMail Bridge.
+// This file is part of Proton Mail Bridge.
 //
-// ProtonMail Bridge is free software: you can redistribute it and/or modify
+// Proton Mail Bridge is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// ProtonMail Bridge is distributed in the hope that it will be useful,
+// Proton Mail Bridge is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
+// along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 package imap
 
@@ -124,7 +124,7 @@ func (s *storeUserWrap) GetAddress(addressID string) (storeAddressProvider, erro
 	if err != nil {
 		return nil, err
 	}
-	return newStoreAddressWrap(address), nil //nolint[typecheck] missing methods are inherited
+	return newStoreAddressWrap(address), nil //nolint:typecheck missing methods are inherited
 }
 
 type storeAddressWrap struct {
@@ -138,7 +138,7 @@ func newStoreAddressWrap(address *store.Address) *storeAddressWrap {
 func (s *storeAddressWrap) ListMailboxes() []storeMailboxProvider {
 	mailboxes := []storeMailboxProvider{}
 	for _, mailbox := range s.Address.ListMailboxes() {
-		mailboxes = append(mailboxes, newStoreMailboxWrap(mailbox)) //nolint[typecheck] missing methods are inherited
+		mailboxes = append(mailboxes, newStoreMailboxWrap(mailbox)) //nolint:typecheck missing methods are inherited
 	}
 	return mailboxes
 }
@@ -148,7 +148,7 @@ func (s *storeAddressWrap) GetMailbox(name string) (storeMailboxProvider, error)
 	if err != nil {
 		return nil, err
 	}
-	return newStoreMailboxWrap(mailbox), nil //nolint[typecheck] missing methods are inherited
+	return newStoreMailboxWrap(mailbox), nil //nolint:typecheck missing methods are inherited
 }
 
 type storeMailboxWrap struct {

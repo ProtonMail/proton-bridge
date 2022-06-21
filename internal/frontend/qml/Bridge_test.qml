@@ -1,19 +1,19 @@
-// Copyright (c) 2022 Proton Technologies AG
+// Copyright (c) 2022 Proton AG
 //
-// This file is part of ProtonMail Bridge.
+// This file is part of Proton Mail Bridge.
 //
-// ProtonMail Bridge is free software: you can redistribute it and/or modify
+// Proton Mail Bridge is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// ProtonMail Bridge is distributed in the hope that it will be useful,
+// Proton Mail Bridge is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
+// along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 import QtQml 2.12
 import QtQuick 2.13
@@ -262,7 +262,7 @@ Window {
 
 
         // add one user on start
-        var hasUserOnStart = true
+        var hasUserOnStart = false
         if (hasUserOnStart) {
             var newUserObject = root.userComponent.createObject(root)
             newUserObject.username = "LerooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooyJenkins@protonmail.com"
@@ -551,7 +551,12 @@ Window {
                             root.reportBugFinished()
                             root.bugReportSendSuccess()
                         }
+
                     }
+                }
+
+                ColumnLayout {
+                    spacing: 5
 
                     Button {
                         text: "Bug report send error"
@@ -607,6 +612,22 @@ Window {
                         colorScheme: root.colorScheme
                         onClicked: {
                             root.notifyRebuildKeychain()
+                        }
+                    }
+
+                    Button {
+                        text: "Address changed"
+                        colorScheme: root.colorScheme
+                        onClicked: {
+                            root.addressChanged("p@v.el")
+                        }
+                    }
+
+                    Button {
+                        text: "Address changed + Logout"
+                        colorScheme: root.colorScheme
+                        onClicked: {
+                            root.addressChangedLogout("p@v.el")
                         }
                     }
                 }
@@ -815,6 +836,7 @@ Window {
     property url logsPath: StandardPaths.standardLocations(StandardPaths.HomeLocation)[0]
     property url licensePath: StandardPaths.standardLocations(StandardPaths.HomeLocation)[0]
     property url releaseNotesLink: Qt.resolvedUrl("https://protonmail.com/download/bridge/early_releases.html")
+    property url dependencyLicensesLink: Qt.resolvedUrl("https://github.com/ProtonMail/proton-bridge/blob/master/COPYING_NOTES.md#dependencies")
     property url landingPageLink: Qt.resolvedUrl("https://protonmail.com/bridge")
 
     property string colorSchemeName: "light"

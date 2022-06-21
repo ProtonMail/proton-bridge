@@ -1,19 +1,19 @@
-// Copyright (c) 2022 Proton Technologies AG
+// Copyright (c) 2022 Proton AG
 //
-// This file is part of ProtonMail Bridge.Bridge.
+// This file is part of Proton Mail Bridge.Bridge.
 //
-// ProtonMail Bridge is free software: you can redistribute it and/or modify
+// Proton Mail Bridge is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// ProtonMail Bridge is distributed in the hope that it will be useful,
+// Proton Mail Bridge is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
+// along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 package tests
 
@@ -188,7 +188,7 @@ func storeMessagesContainsMessageRow(account *accounts.TestAccount, storeMessage
 	return messagesContainsMessageRow(account, messages, head, row)
 }
 
-func messagesContainsMessageRow(account *accounts.TestAccount, allMessages []interface{}, head []*messages.PickleTableCell, row *messages.PickleTableRow) (bool, error) { //nolint[funlen]
+func messagesContainsMessageRow(account *accounts.TestAccount, allMessages []interface{}, head []*messages.PickleTableCell, row *messages.PickleTableRow) (bool, error) { //nolint:funlen,gocyclo
 	found := false
 	for _, someMessage := range allMessages {
 		var message *pmapi.Message
@@ -217,12 +217,12 @@ func messagesContainsMessageRow(account *accounts.TestAccount, allMessages []int
 				if message.ExternalID != cell.Value {
 					matches = false
 				}
-			case "from": //nolint[goconst]
+			case "from": //nolint:goconst
 				address := ctx.EnsureAddress(account.Username(), cell.Value)
 				if !areAddressesSame(message.Sender.Address, address) {
 					matches = false
 				}
-			case "to": //nolint[goconst]
+			case "to": //nolint:goconst
 				for _, address := range strings.Split(cell.Value, ",") {
 					address = ctx.EnsureAddress(account.Username(), address)
 					for _, to := range message.ToList {
@@ -242,7 +242,7 @@ func messagesContainsMessageRow(account *accounts.TestAccount, allMessages []int
 						}
 					}
 				}
-			case "subject": //nolint[goconst]
+			case "subject": //nolint:goconst
 				expectedSubject := cell.Value
 				if expectedSubject == "" {
 					expectedSubject = "(No Subject)"
@@ -250,13 +250,13 @@ func messagesContainsMessageRow(account *accounts.TestAccount, allMessages []int
 				if message.Subject != expectedSubject {
 					matches = false
 				}
-			case "body": //nolint[goconst]
+			case "body": //nolint:goconst
 				if message.Body != cell.Value {
 					matches = false
 				}
 			case "read":
 				var unread pmapi.Boolean
-				if cell.Value == "true" { //nolint[goconst]
+				if cell.Value == "true" { //nolint:goconst
 					unread = false
 				} else {
 					unread = true
@@ -265,7 +265,7 @@ func messagesContainsMessageRow(account *accounts.TestAccount, allMessages []int
 				if message.Unread != unread {
 					matches = false
 				}
-			case "deleted": //nolint[goconst]
+			case "deleted": //nolint:goconst
 				if storeMessage == nil {
 					return false, fmt.Errorf("deleted column not supported for pmapi message object")
 				}

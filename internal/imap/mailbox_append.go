@@ -1,19 +1,19 @@
-// Copyright (c) 2022 Proton Technologies AG
+// Copyright (c) 2022 Proton AG
 //
-// This file is part of ProtonMail Bridge.
+// This file is part of Proton Mail Bridge.
 //
-// ProtonMail Bridge is free software: you can redistribute it and/or modify
+// Proton Mail Bridge is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// ProtonMail Bridge is distributed in the hope that it will be useful,
+// Proton Mail Bridge is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
+// along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 package imap
 
@@ -47,7 +47,7 @@ func (im *imapMailbox) CreateMessage(flags []string, date time.Time, body imap.L
 	}, "APPEND", flags, date)
 }
 
-func (im *imapMailbox) createMessage(imapFlags []string, date time.Time, r imap.Literal) error { //nolint[funlen]
+func (im *imapMailbox) createMessage(imapFlags []string, date time.Time, r imap.Literal) error { //nolint:funlen
 	// Called from go-imap in goroutines - we need to handle panics for each function.
 	defer im.panicHandler.HandlePanic()
 
@@ -156,7 +156,7 @@ func findMailboxForAddress(address storeAddressProvider, labelID string) (storeM
 		address.AddressString())
 }
 
-func (im *imapMailbox) labelExistingMessage(msg storeMessageProvider) error { //nolint[funlen]
+func (im *imapMailbox) labelExistingMessage(msg storeMessageProvider) error { //nolint:funlen
 	im.log.Info("Labelling existing message")
 
 	// IMAP clients can move message to local folder (setting \Deleted flag)
@@ -196,7 +196,7 @@ func (im *imapMailbox) labelExistingMessage(msg storeMessageProvider) error { //
 	return uidplus.AppendResponse(im.storeMailbox.UIDValidity(), im.storeMailbox.GetUIDList([]string{msg.ID()}))
 }
 
-func (im *imapMailbox) importMessage(kr *crypto.KeyRing, hdr textproto.Header, body []byte, imapFlags []string, date time.Time) error { //nolint[funlen]
+func (im *imapMailbox) importMessage(kr *crypto.KeyRing, hdr textproto.Header, body []byte, imapFlags []string, date time.Time) error { //nolint:funlen
 	im.log.Info("Importing external message")
 
 	var (
