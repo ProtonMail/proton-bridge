@@ -41,6 +41,9 @@ type client struct {
 	addrKeyRing map[string]*crypto.KeyRing
 	keyRingLock sync.Locker
 
+	// Cache of all Labels
+	allLabels []*Label
+
 	exp time.Time
 }
 
@@ -117,4 +120,14 @@ func (c *client) do(ctx context.Context, fn func(*resty.Request) (*resty.Respons
 	}
 
 	return res, nil
+}
+
+// GetLabelCache returns the current Label cache
+func (c *client) GetLabelCache() []*Label {
+	return c.allLabels
+}
+
+// Clear the "all Labels" cache
+func (c *client) ClearLabelsCache() {
+	c.allLabels = []*Label{}
 }

@@ -52,6 +52,7 @@ type Fetcher interface {
 	GetAttachment(context.Context, string) (io.ReadCloser, error)
 	KeyRingForAddressID(string) (*crypto.KeyRing, error)
 	ListLabels(context.Context) ([]*pmapi.Label, error)
+	GetLabelCache() []*pmapi.Label
 }
 
 // NewBuilder creates a new builder which manages the given number of fetch/attach/build workers.
@@ -197,7 +198,7 @@ func newFetcherWorkFunc(attachmentPool *pool.Pool) pool.WorkFunc {
 		if err != nil {
 			return nil, err
 		}
-		msg.LabelNames = getMessageLabelStrings(req.fetcher, msg)
+		msg.LabelNames = getMessageLabelStrings(req.ctx, req.fetcher, msg)
 
 		attData := make(map[string][]byte)
 
@@ -235,14 +236,21 @@ func newFetcherWorkFunc(attachmentPool *pool.Pool) pool.WorkFunc {
 	}
 }
 
-func getMessageLabelStrings(c Fetcher, msg *pmapi.Message) []string {
+func getMessageLabelStrings(ctx context.Context, c Fetcher, msg *pmapi.Message) []string {
 	logrus.Info(fmt.Sprintf("Fetching message labels names for message ID %s...", msg.ID))
 
-	labels, err := c.ListLabels(context.Background())
 	res := []string{}
-	if err != nil {
-		return res
+
+	var labels []*pmapi.Label
+	labels = c.GetLabelCache()
+	if len(labels) == 0 {
+		labels2, err := c.ListLabels(ctx)
+		if err != nil {
+			return res
+		}
+		labels = labels2
 	}
+
 	for _, lid := range msg.LabelIDs {
 		for _, label := range labels {
 			if label.ID == lid {
@@ -251,5 +259,6 @@ func getMessageLabelStrings(c Fetcher, msg *pmapi.Message) []string {
 			}
 		}
 	}
+
 	return res
 }

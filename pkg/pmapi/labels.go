@@ -89,7 +89,14 @@ type Label struct { //nolint:maligned
 }
 
 func (c *client) ListLabels(ctx context.Context) (labels []*Label, err error) {
-	return c.listLabelType(ctx, LabelTypeMailbox)
+	labels, err = c.listLabelType(ctx, LabelTypeMailbox)
+
+	// Cache list of all Labels
+	if err == nil {
+		copy(c.allLabels, labels)
+	}
+
+	return labels, err
 }
 
 func (c *client) ListContactGroups(ctx context.Context) (labels []*Label, err error) {
@@ -133,6 +140,8 @@ func (c *client) CreateLabel(ctx context.Context, label *Label) (created *Label,
 		return nil, err
 	}
 
+	c.ClearLabelsCache()
+
 	return res.Label, nil
 }
 
@@ -154,6 +163,8 @@ func (c *client) UpdateLabel(ctx context.Context, label *Label) (updated *Label,
 		return nil, err
 	}
 
+	c.ClearLabelsCache()
+
 	return res.Label, nil
 }
 
@@ -164,6 +175,8 @@ func (c *client) DeleteLabel(ctx context.Context, labelID string) error {
 	}); err != nil {
 		return err
 	}
+
+	c.ClearLabelsCache()
 
 	return nil
 }

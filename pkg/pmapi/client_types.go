@@ -75,6 +75,8 @@ type Client interface {
 	GetUserKeyRing() (*crypto.KeyRing, error)
 	KeyRingForAddressID(string) (kr *crypto.KeyRing, err error)
 	GetPublicKeysForEmail(context.Context, string) ([]PublicKey, bool, error)
+
+	GetLabelCache() []*Label
 }
 
 type AuthRefreshHandler func(*AuthRefresh)

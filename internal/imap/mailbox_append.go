@@ -70,48 +70,54 @@ func (im *imapMailbox) createMessage(imapFlags []string, date time.Time, r imap.
 
 	// Convert all X-Keywords labels names to IDs (creating if necessary)
 	labelNames := strings.Split(m.Header.Get("X-Keywords"), ",")
-	labels, err := im.user.client().ListLabels(context.Background())
-	labelIDs := []string{}
-	if err != nil {
-		im.log.Error(err)
-	} else {
-		found := false
-		for _, keyword := range labelNames {
-			found = false
-			for _, label := range labels {
-				if label.Name == keyword {
-					labelIDs = append(labelIDs, label.ID)
-					found = true
-					break
-				}
-			}
+	var labels []*pmapi.Label
+	labels = im.user.client().GetLabelCache()
+	if len(labels) == 0 {
+		labels2, err := im.user.client().ListLabels(context.Background())
+		if err != nil {
+			im.log.Error(err)
+		} else {
+			labels = labels2
+		}
+	}
 
-			if !found {
-				// Create new Label and append ID
-				im.log.Warn(fmt.Sprintf("Label \"%s\" not found, creating...", keyword))
-				label := pmapi.Label{
-					Name:      keyword,
-					Path:      keyword,
-					Color:     pmapi.LeastUsedColor(pmapi.LabelColors),
-					Display:   0,
-					Exclusive: false,
-					Type:      1,
-					Notify:    false,
-				}
-				newLabel, err := im.user.client().CreateLabel(context.Background(), &label)
-				if err != nil {
-					im.log.Error(err)
-				} else {
-					im.log.Info(fmt.Sprintf("Created new label \"%s\" (ID: %s)", keyword, newLabel.ID))
-					labelIDs = append(labelIDs, newLabel.ID)
-				}
+	labelIDs := []string{}
+	found := false
+	for _, keyword := range labelNames {
+		found = false
+		for _, label := range labels {
+			if label.Name == keyword {
+				labelIDs = append(labelIDs, label.ID)
+				found = true
+				break
 			}
 		}
 
-		im.log.Info("Append the following label IDs to m.LabelIDs: -")
-		im.log.Info(labelIDs)
-		m.LabelIDs = append(m.LabelIDs, labelIDs...)
+		if !found {
+			// Create new Label and append ID
+			im.log.Warn(fmt.Sprintf("Label \"%s\" not found, creating...", keyword))
+			label := pmapi.Label{
+				Name:      keyword,
+				Path:      keyword,
+				Color:     pmapi.LeastUsedColor(pmapi.LabelColors),
+				Display:   0,
+				Exclusive: false,
+				Type:      1,
+				Notify:    false,
+			}
+			newLabel, err := im.user.client().CreateLabel(context.Background(), &label)
+			if err != nil {
+				im.log.Error(err)
+			} else {
+				im.log.Info(fmt.Sprintf("Created new label \"%s\" (ID: %s)", keyword, newLabel.ID))
+				labelIDs = append(labelIDs, newLabel.ID)
+			}
+		}
 	}
+
+	im.log.Info("Append the following label IDs to m.LabelIDs: -")
+	im.log.Info(labelIDs)
+	m.LabelIDs = append(m.LabelIDs, labelIDs...)
 
 	addr := im.storeAddress.APIAddress()
 	if addr == nil {
