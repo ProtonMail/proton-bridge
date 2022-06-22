@@ -18,12 +18,14 @@
 package cli
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"strconv"
 	"strings"
 
 	"github.com/ProtonMail/proton-bridge/internal/config/settings"
+	pmapi "github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	"github.com/ProtonMail/proton-bridge/pkg/ports"
 	"github.com/abiosoft/ishell"
 )
@@ -234,4 +236,127 @@ func (f *frontendCLI) isCacheLocationUsable(location string) bool {
 	}
 
 	return stat.IsDir()
+}
+
+func (f *frontendCLI) getMessageById(c *ishell.Context) {
+	user := f.askUserByIndexOrName(c)
+	if user == nil {
+		f.Println("ERROR: no current user")
+		return
+	}
+	f.Println("Currently logged in user:", user.Username())
+	f.Println("Primary address:", user.GetPrimaryAddress())
+
+	f.Print("Please enter message ID: ")
+	messageId := f.ReadLine()
+
+	f.Print("Please enter ProtonMail password: ")
+	password := f.ReadPassword()
+
+	client, _, err := f.bridge.Login(user.Username(), []byte(password))
+	if err != nil {
+		f.processAPIError(err)
+		return
+	}
+
+	message, err := client.GetMessage(context.Background(), messageId)
+	if err != nil {
+		f.processAPIError(err)
+		return
+	}
+	f.Println("Subject:", message.Subject)
+	labels, err := client.ListLabels(context.Background())
+	if err != nil {
+		f.processAPIError(err)
+		return
+	}
+	f.Println("Labels: -")
+	for _, id := range message.LabelIDs {
+		for _, label := range labels {
+			if label.ID == id {
+				f.Println(" -", label.Name)
+				break
+			}
+		}
+	}
+	f.Println(message.Body)
+}
+
+func (f *frontendCLI) getMessages(c *ishell.Context) {
+	user := f.askUserByIndexOrName(c)
+	if user == nil {
+		f.Println("ERROR: no current user")
+		return
+	}
+	f.Println("Currently logged in user:", user.Username())
+	f.Println("Primary address:", user.GetPrimaryAddress())
+
+	f.Print("Please enter ProtonMail password: ")
+	password := f.ReadPassword()
+
+	client, _, err := f.bridge.Login(user.Username(), []byte(password))
+	if err != nil {
+		f.processAPIError(err)
+		return
+	}
+
+	filter := pmapi.MessagesFilter{
+		Page:           0,
+		PageSize:       10,
+		Limit:          10,
+		LabelID:        "",
+		Sort:           "",
+		Desc:           new(bool),
+		Begin:          0,
+		End:            0,
+		BeginID:        "",
+		EndID:          "",
+		Keyword:        "",
+		To:             "",
+		From:           "",
+		Subject:        "",
+		ConversationID: "",
+		AddressID:      "",
+		ID:             []string{},
+		Attachments:    new(bool),
+		Unread:         new(bool),
+		ExternalID:     "",
+		AutoWildcard:   new(bool),
+	}
+	messages, num, err := client.ListMessages(context.Background(), &filter)
+	if err != nil {
+		f.processAPIError(err)
+		return
+	}
+	f.Println("Number fetched:", num)
+	for idx, msg := range messages {
+		f.Println(fmt.Sprintf("Message #%d: %s, %s", idx, msg.ID, msg.Subject))
+	}
+}
+
+func (f *frontendCLI) listAllLabels(c *ishell.Context) {
+	user := f.askUserByIndexOrName(c)
+	if user == nil {
+		f.Println("ERROR: no current user")
+		return
+	}
+	f.Println("Currently logged in user:", user.Username())
+	f.Println("Primary address:", user.GetPrimaryAddress())
+	f.Print("Please enter ProtonMail password: ")
+	password := f.ReadPassword()
+
+	client, _, err := f.bridge.Login(user.Username(), []byte(password))
+	if err != nil {
+		f.processAPIError(err)
+		return
+	}
+
+	labels, err := client.ListLabels(context.Background())
+	if err != nil {
+		f.processAPIError(err)
+		return
+	}
+	for idx, label := range labels {
+		f.Println(fmt.Sprintf("Label %d (ID: %s): %s", idx, label.ID, label.Name))
+	}
 }

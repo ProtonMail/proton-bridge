@@ -19,6 +19,7 @@ package message
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"sync"
@@ -27,6 +28,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	"github.com/ProtonMail/proton-bridge/pkg/pool"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 )
 
 var (
@@ -49,6 +51,7 @@ type Fetcher interface {
 	GetMessage(context.Context, string) (*pmapi.Message, error)
 	GetAttachment(context.Context, string) (io.ReadCloser, error)
 	KeyRingForAddressID(string) (*crypto.KeyRing, error)
+	ListLabels(context.Context) ([]*pmapi.Label, error)
 }
 
 // NewBuilder creates a new builder which manages the given number of fetch/attach/build workers.
@@ -194,6 +197,7 @@ func newFetcherWorkFunc(attachmentPool *pool.Pool) pool.WorkFunc {
 		if err != nil {
 			return nil, err
 		}
+		msg.LabelNames = getMessageLabelStrings(req.fetcher, msg)
 
 		attData := make(map[string][]byte)
 
@@ -229,4 +233,23 @@ func newFetcherWorkFunc(attachmentPool *pool.Pool) pool.WorkFunc {
 
 		return buildRFC822(kr, msg, attData, req.options)
 	}
+}
+
+func getMessageLabelStrings(c Fetcher, msg *pmapi.Message) []string {
+	logrus.Info(fmt.Sprintf("Fetching message labels names for message ID %s...", msg.ID))
+
+	labels, err := c.ListLabels(context.Background())
+	res := []string{}
+	if err != nil {
+		return res
+	}
+	for _, lid := range msg.LabelIDs {
+		for _, label := range labels {
+			if label.ID == lid {
+				res = append(res, label.Name)
+				break
+			}
+		}
+	}
+	return res
 }

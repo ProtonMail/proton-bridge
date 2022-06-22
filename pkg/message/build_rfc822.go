@@ -417,6 +417,12 @@ func getMessageHeader(msg *pmapi.Message, opts JobOptions) message.Header { //no
 		hdr.Set("X-Pm-Internal-Id", msg.ID)
 	}
 
+	// Add X-Keywords header based on the Message Labels
+	if opts.AddXKeywords {
+		log.Info("Adding X-Keywords to message headers...")
+		hdr.Set("X-Keywords", strings.Join(msg.LabelNames, ","))
+	}
+
 	// Set our external ID if requested.
 	// This was useful during debugging of applemail recovered messages; doesn't help with any behaviour.
 	if opts.AddExternalID {

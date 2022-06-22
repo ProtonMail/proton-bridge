@@ -174,6 +174,7 @@ type Message struct {
 	Body           string `json:",omitempty"`
 	Attachments    []*Attachment
 	LabelIDs       []string
+	LabelNames     []string
 	ExternalID     string
 	Header         mail.Header
 	MIMEType       string
@@ -187,6 +188,7 @@ func NewMessage() *Message {
 		BCCList:     []*mail.Address{},
 		Attachments: []*Attachment{},
 		LabelIDs:    []string{},
+		LabelNames:  []string{},
 	}
 }
 
@@ -738,3 +740,4 @@ func ComputeMessageFlagsByLabels(labels []string) (flag int64) {
 
 	return flag
 }
+

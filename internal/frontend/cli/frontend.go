@@ -69,6 +69,32 @@ func New( //nolint:funlen
 		restarter: restarter,
 	}
 
+	// Keyword commands
+	keywordCmd := &ishell.Cmd{
+		Name:    "keywords",
+		Help:    "Commands used for testing X-Keywords support",
+		Aliases: []string{"kw"},
+	}
+	keywordCmd.AddCmd(&ishell.Cmd{
+		Name:    "get-message",
+		Help:    "Fetch and show a Message by ID",
+		Aliases: []string{"fm"},
+		Func:    fe.getMessageById,
+	})
+	keywordCmd.AddCmd(&ishell.Cmd{
+		Name:    "get-messages",
+		Help:    "Fetch and show all Messages",
+		Aliases: []string{"fm"},
+		Func:    fe.getMessages,
+	})
+	keywordCmd.AddCmd(&ishell.Cmd{
+		Name:    "list-labels",
+		Help:    "Fetch and show all defined Labels",
+		Aliases: []string{"ll"},
+		Func:    fe.listAllLabels,
+	})
+	fe.AddCmd(keywordCmd)
+
 	// Clear commands.
 	clearCmd := &ishell.Cmd{Name: "clear",
 		Help:    "remove stored accounts and preferences. (alias: cl)",

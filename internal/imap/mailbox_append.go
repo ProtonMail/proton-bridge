@@ -20,6 +20,7 @@ package imap
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"fmt"
 	"io/ioutil"
 	"net/mail"
@@ -58,6 +59,58 @@ func (im *imapMailbox) createMessage(imapFlags []string, date time.Time, r imap.
 	body, err := ioutil.ReadAll(r)
 	if err != nil {
 		return err
+	}
+
+	m, _, _, _, err := message.Parse(bytes.NewReader(body))
+	if err != nil {
+		return err
+	}
+
+	im.log.Info(fmt.Sprintf("Found X-Keywords header: %s", m.Header.Get("X-Keywords")))
+
+	// Convert all X-Keywords labels names to IDs (creating if necessary)
+	labelNames := strings.Split(m.Header.Get("X-Keywords"), ",")
+	labels, err := im.user.client().ListLabels(context.Background())
+	labelIDs := []string{}
+	if err != nil {
+		im.log.Error(err)
+	} else {
+		found := false
+		for _, keyword := range labelNames {
+			found = false
+			for _, label := range labels {
+				if label.Name == keyword {
+					labelIDs = append(labelIDs, label.ID)
+					found = true
+					break
+				}
+			}
+
+			if !found {
+				// Create new Label and append ID
+				im.log.Warn(fmt.Sprintf("Label \"%s\" not found, creating...", keyword))
+				label := pmapi.Label{
+					Name:      keyword,
+					Path:      keyword,
+					Color:     pmapi.LeastUsedColor(pmapi.LabelColors),
+					Display:   0,
+					Exclusive: false,
+					Type:      1,
+					Notify:    false,
+				}
+				newLabel, err := im.user.client().CreateLabel(context.Background(), &label)
+				if err != nil {
+					im.log.Error(err)
+				} else {
+					im.log.Info(fmt.Sprintf("Created new label \"%s\" (ID: %s)", keyword, newLabel.ID))
+					labelIDs = append(labelIDs, newLabel.ID)
+				}
+			}
+		}
+
+		im.log.Info("Append the following label IDs to m.LabelIDs: -")
+		im.log.Info(labelIDs)
+		m.LabelIDs = append(m.LabelIDs, labelIDs...)
 	}
 
 	addr := im.storeAddress.APIAddress()
@@ -117,11 +170,11 @@ func (im *imapMailbox) createMessage(imapFlags []string, date time.Time, r imap.
 	if internalID != "" {
 		if msg, err := im.storeMailbox.GetMessage(internalID); err == nil {
 			if im.user.user.IsCombinedAddressMode() || im.storeAddress.AddressID() == msg.Message().AddressID {
-				return im.labelExistingMessage(msg)
+				return im.labelExistingMessage(msg, labelIDs)
 			}
 		}
 	}
-	return im.importMessage(kr, hdr, body, imapFlags, date)
+	return im.importMessage(kr, hdr, body, imapFlags, date, labelIDs)
 }
 
 func (im *imapMailbox) createDraftMessage(kr *crypto.KeyRing, email string, body []byte) error {
@@ -156,7 +209,7 @@ func findMailboxForAddress(address storeAddressProvider, labelID string) (storeM
 		address.AddressString())
 }
 
-func (im *imapMailbox) labelExistingMessage(msg storeMessageProvider) error { //nolint:funlen
+func (im *imapMailbox) labelExistingMessage(msg storeMessageProvider, labelIDs []string) error { //nolint:funlen
 	im.log.Info("Labelling existing message")
 
 	// IMAP clients can move message to local folder (setting \Deleted flag)
@@ -193,10 +246,20 @@ func (im *imapMailbox) labelExistingMessage(msg storeMessageProvider) error { //
 		return err
 	}
 
+	im.log.Info(fmt.Sprintf("Message already exists (ID: %s), adding labels...", msg.ID()))
+	for _, labelID := range labelIDs {
+		im.log.Info(fmt.Sprintf("Adding label ID %s...", labelID))
+		im.user.client().LabelMessages(
+			context.Background(),
+			[]string{msg.ID()},
+			labelID,
+		)
+	}
+
 	return uidplus.AppendResponse(im.storeMailbox.UIDValidity(), im.storeMailbox.GetUIDList([]string{msg.ID()}))
 }
 
-func (im *imapMailbox) importMessage(kr *crypto.KeyRing, hdr textproto.Header, body []byte, imapFlags []string, date time.Time) error { //nolint:funlen
+func (im *imapMailbox) importMessage(kr *crypto.KeyRing, hdr textproto.Header, body []byte, imapFlags []string, date time.Time, extraLabelIDs []string) error { //nolint:funlen
 	im.log.Info("Importing external message")
 
 	var (
@@ -247,6 +310,11 @@ func (im *imapMailbox) importMessage(kr *crypto.KeyRing, hdr textproto.Header, b
 		if err != nil {
 			return err
 		}
+	}
+
+	// Append extra labels
+	for _, l := range labelIDs {
+		labelIDs = append(labelIDs, l)
 	}
 
 	messageID, err := targetMailbox.ImportMessage(enc, seen, labelIDs, flags, time)

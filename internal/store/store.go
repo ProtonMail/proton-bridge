@@ -400,6 +400,7 @@ func (store *Store) newBuildJob(ctx context.Context, messageID string, priority 
 			AddExternalID:          true, // Whether to include ExternalID as X-Pm-External-Id.
 			AddMessageDate:         true, // Whether to include message time as X-Pm-Date.
 			AddMessageIDReference:  true, // Whether to include the MessageID in References.
+			AddXKeywords:           true, // Whether to include an "X-Keywords" header with all of the Message Labels.
 		},
 		priority,
 	)
