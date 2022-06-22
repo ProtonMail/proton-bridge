@@ -84,6 +84,7 @@ func (im *imapMailbox) createMessage(imapFlags []string, date time.Time, r imap.
 	labelIDs := []string{}
 	found := false
 	for _, keyword := range labelNames {
+		keyword = strings.TrimSpace(keyword)
 		found = false
 		for _, label := range labels {
 			if label.Name == keyword {
@@ -253,6 +254,44 @@ func (im *imapMailbox) labelExistingMessage(msg storeMessageProvider, labelIDs [
 	}
 
 	im.log.Info(fmt.Sprintf("Message already exists (ID: %s), adding labels...", msg.ID()))
+
+	apiMsg, err := im.user.client().GetMessage(
+		context.Background(),
+		msg.ID(),
+	)
+	if err != nil {
+		im.log.Error(err)
+	} else {
+		im.log.Info("The message currently has the following labels")
+		im.log.Info(apiMsg.LabelIDs)
+
+		// Remove existing Message Labels which are not in labelNames
+		removeLabelIDs := []string{}
+		for _, exLabelID := range apiMsg.LabelIDs {
+			if !pmapi.IsSystemLabel(exLabelID) {
+				found := false
+				for _, newLabelID := range labelIDs {
+					if newLabelID == exLabelID {
+						found = true
+						break
+					}
+				}
+				if !found {
+					removeLabelIDs = append(removeLabelIDs, exLabelID)
+				}
+			}
+		}
+		im.log.Info("Removing the following labels: -")
+		im.log.Info(removeLabelIDs)
+		for _, remLabelID := range removeLabelIDs {
+			im.user.client().UnlabelMessages(
+				context.Background(),
+				[]string{msg.ID()},
+				remLabelID,
+			)
+		}
+	}
+
 	for _, labelID := range labelIDs {
 		im.log.Info(fmt.Sprintf("Adding label ID %s...", labelID))
 		im.user.client().LabelMessages(
