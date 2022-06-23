@@ -78,19 +78,19 @@ func thereIsDisconnectedUser(bddUserID string) error {
 	}
 	err := ctx.GetPMAPIController().AddUser(account)
 	if err != nil {
-		return internalError(err, "adding user %s", account.Username())
+		return internalError(err, "adding user %q", account.Username())
 	}
 	err = ctx.LoginUser(account.Username(), account.Password(), account.MailboxPassword())
 	if err != nil {
-		return internalError(err, "logging user %s in", account.Username())
+		return internalError(err, "logging user %q in", account.Username())
 	}
 	user, err := ctx.GetUser(account.Username())
 	if err != nil {
-		return internalError(err, "getting user %s", account.Username())
+		return internalError(err, "getting user %q", account.Username())
 	}
 	err = user.Logout()
 	if err != nil {
-		return internalError(err, "disconnecting user %s", account.Username())
+		return internalError(err, "disconnecting user %q", account.Username())
 	}
 
 	// We need to wait till event loop is stopped because when it's stopped
