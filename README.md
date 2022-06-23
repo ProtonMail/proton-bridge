@@ -1,26 +1,3 @@
-# Fork of ProtonMail Bridge to add support for `mu4e` tags as Labels
-
-This is a custom fork of ProtonMail Bridge. It adds support for tracking message tags added by `mu` and `mu4e` as ProtonMail Labels.
-
-**NOTE**: This is an experiment at this stage and should be treated as early alpha quality. Only very minor testing has been done and no optimisation has been performed. Therefore please only use this fork at your own risk; I am not responsible for any data loss or corruption that occurs due to its use.
-
-## Explanation of `mu4e` tags and ProtonMail labels
-
-When a message is tagged in `mu4e` a new "X-Keywords" header is added by default (although this can be changed). `mu` can use these headers to filter messages easily by those tags.
-
-With normal IMAP servers, this header can be saved as part of the message which means that tags are stored on the server. However, once a message is stored in ProtonMail it can no longer be modified; if the message with "X-Keywords" is pushed to ProtonMail via IMAP then this header will not be saved. Please see [this issue](https://protonmail.uservoice.com/forums/284483-protonmail/suggestions/43440678-support-for-custom-imap-headers-e-g-x-keywords) for further details.
-
-ProtonMail however offers support for Labels, which function very similarly to these tags, however these are not directly visible per message via ProtonMail Bridge. Instead, Labels act like IMAP folders, meaning that messages appear to be duplicated in one or more of these Label folders.
-
-## Changes in this fork
-
-This forked version of ProtonMail bridge currently has two modifications: -
-
-  - When fetching a message via IMAP, it will now create an "X-Keywords" header automatically with the names of all Labels assigned to the message; and
-  - When storing a message, it will extract the tags from an "X-Keywords" header (if present), convert them to Label IDs (creating new Labels if they are missing), and then assign those Labels to the message.
-
-The benefit of this is that messages can be tagged in `mu4e` and those tags will appear as Labels in ProtonMail. Furthermore, those tags/Labels will be present on all machines which are using this forked version of ProtonMail Bridge to fetch messages.
-
 # Proton Mail Bridge and Import Export app
 Copyright (c) 2022 Proton AG
 
