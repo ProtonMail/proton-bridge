@@ -316,6 +316,20 @@ func (mr *MockClientMockRecorder) GetEvent(arg0, arg1 interface{}) *gomock.Call 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetEvent", reflect.TypeOf((*MockClient)(nil).GetEvent), arg0, arg1)
 }
 
+// GetLabelCache mocks base method.
+func (m *MockClient) GetLabelCache() []*pmapi.Label {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetLabelCache")
+	ret0, _ := ret[0].([]*pmapi.Label)
+	return ret0
+}
+
+// GetLabelCache indicates an expected call of GetLabelCache.
+func (mr *MockClientMockRecorder) GetLabelCache() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLabelCache", reflect.TypeOf((*MockClient)(nil).GetLabelCache))
+}
+
 // GetMailSettings mocks base method.
 func (m *MockClient) GetMailSettings(arg0 context.Context) (pmapi.MailSettings, error) {
 	m.ctrl.T.Helper()

@@ -52,6 +52,20 @@ func (mr *MockFetcherMockRecorder) GetAttachment(arg0, arg1 interface{}) *gomock
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAttachment", reflect.TypeOf((*MockFetcher)(nil).GetAttachment), arg0, arg1)
 }
 
+// GetLabelCache mocks base method.
+func (m *MockFetcher) GetLabelCache() []*pmapi.Label {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetLabelCache")
+	ret0, _ := ret[0].([]*pmapi.Label)
+	return ret0
+}
+
+// GetLabelCache indicates an expected call of GetLabelCache.
+func (mr *MockFetcherMockRecorder) GetLabelCache() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLabelCache", reflect.TypeOf((*MockFetcher)(nil).GetLabelCache))
+}
+
 // GetMessage mocks base method.
 func (m *MockFetcher) GetMessage(arg0 context.Context, arg1 string) (*pmapi.Message, error) {
 	m.ctrl.T.Helper()
@@ -80,4 +94,19 @@ func (m *MockFetcher) KeyRingForAddressID(arg0 string) (*crypto.KeyRing, error) 
 func (mr *MockFetcherMockRecorder) KeyRingForAddressID(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "KeyRingForAddressID", reflect.TypeOf((*MockFetcher)(nil).KeyRingForAddressID), arg0)
+}
+
+// ListLabels mocks base method.
+func (m *MockFetcher) ListLabels(arg0 context.Context) ([]*pmapi.Label, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListLabels", arg0)
+	ret0, _ := ret[0].([]*pmapi.Label)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListLabels indicates an expected call of ListLabels.
+func (mr *MockFetcherMockRecorder) ListLabels(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListLabels", reflect.TypeOf((*MockFetcher)(nil).ListLabels), arg0)
 }
