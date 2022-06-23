@@ -41,7 +41,7 @@ func TestIsCachedCrashRecovers(t *testing.T) {
 	r.False(m.store.IsCached("msg1"))
 }
 
-var wantLiteral = []byte("Mime-Version: 1.0\r\nContent-Transfer-Encoding: quoted-printable\r\nContent-Type: \r\nReferences:  <msg1@protonmail.internalid>\r\nX-Pm-Date: Thu, 01 Jan 1970 00:00:00 +0000\r\nX-Pm-External-Id: <>\r\nX-Pm-Internal-Id: msg1\r\nX-Original-Date: Mon, 01 Jan 0001 00:00:00 +0000\r\nDate: Fri, 13 Aug 1982 00:00:00 +0000\r\nMessage-Id: <msg1@protonmail.internalid>\r\nSubject: subject\r\n\r\n")
+var wantLiteral = []byte("Mime-Version: 1.0\r\nContent-Transfer-Encoding: quoted-printable\r\nContent-Type: \r\nReferences:  <msg1@protonmail.internalid>\r\nX-Pm-Date: Thu, 01 Jan 1970 00:00:00 +0000\r\nX-Pm-External-Id: <>\r\nX-Keywords: \r\nX-Pm-Internal-Id: msg1\r\nX-Original-Date: Mon, 01 Jan 0001 00:00:00 +0000\r\nDate: Fri, 13 Aug 1982 00:00:00 +0000\r\nMessage-Id: <msg1@protonmail.internalid>\r\nSubject: subject\r\n\r\n")
 
 func TestGetCachedMessageOK(t *testing.T) {
 	r := require.New(t)
