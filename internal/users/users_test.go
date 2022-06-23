@@ -269,6 +269,13 @@ func mockAddingConnectedUser(t *testing.T, m mocks) {
 		m.pmapiClient.EXPECT().Unlock(gomock.Any(), testCredentials.MailboxPassword).Return(nil),
 		m.pmapiClient.EXPECT().CurrentUser(gomock.Any()).Return(testPMAPIUser, nil),
 		m.pmapiClient.EXPECT().Addresses().Return([]*pmapi.Address{testPMAPIAddress}),
+		m.pmapiClient.EXPECT().GetLabelCache().Return([]*pmapi.Label{
+			{ID: "label1", Name: "Foo", Color: "blue", Exclusive: false, Order: 2},
+			{ID: "label2", Name: "Bar", Color: "green", Exclusive: false, Order: 1},
+			{ID: "folder1", Name: "One", Color: "red", Exclusive: true, Order: 1},
+			{ID: "folder2", Name: "Two", Color: "orange", Exclusive: true, Order: 2},
+		}).AnyTimes(),
+		m.pmapiClient.EXPECT().LabelMessages(gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes(),
 		m.credentialsStore.EXPECT().Add("user", "username", testAuthRefresh.UID, testAuthRefresh.RefreshToken, testCredentials.MailboxPassword, []string{testPMAPIAddress.Email}).Return(testCredentials, nil),
 		m.credentialsStore.EXPECT().Get("user").Return(testCredentials, nil),
 	)

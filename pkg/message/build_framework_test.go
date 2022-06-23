@@ -51,6 +51,13 @@ func newTestFetcher(
 	}
 
 	f.EXPECT().KeyRingForAddressID(msg.AddressID).Return(kr, nil)
+	f.EXPECT().GetLabelCache().Return([]*pmapi.Label{
+		{ID: "label1", Name: "Foo", Color: "blue", Exclusive: false, Order: 2},
+		{ID: "label2", Name: "Bar", Color: "green", Exclusive: false, Order: 1},
+		{ID: "folder1", Name: "One", Color: "red", Exclusive: true, Order: 1},
+		{ID: "folder2", Name: "Two", Color: "orange", Exclusive: true, Order: 2},
+	}).AnyTimes()
+	f.EXPECT().ListLabels(gomock.Any()).AnyTimes()
 
 	return f
 }

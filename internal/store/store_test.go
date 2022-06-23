@@ -195,6 +195,13 @@ func (mocks *mocksForStore) newStoreNoEvents(t *testing.T, combinedMode bool, ms
 	})
 	mocks.client.EXPECT().ListLabels(gomock.Any()).AnyTimes()
 	mocks.client.EXPECT().CountMessages(gomock.Any(), "")
+	mocks.client.EXPECT().GetLabelCache().Return([]*pmapi.Label{
+		{ID: "label1", Name: "Foo", Color: "blue", Exclusive: false, Order: 2},
+		{ID: "label2", Name: "Bar", Color: "green", Exclusive: false, Order: 1},
+		{ID: "folder1", Name: "One", Color: "red", Exclusive: true, Order: 1},
+		{ID: "folder2", Name: "Two", Color: "orange", Exclusive: true, Order: 2},
+	}).AnyTimes()
+	mocks.client.EXPECT().LabelMessages(gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes()
 
 	// Call to get latest event ID and then to process first event.
 	eventAfterSyncRequested := make(chan struct{})
