@@ -19,7 +19,6 @@ package message
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"sync"
@@ -28,7 +27,6 @@ import (
 	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
 	"github.com/ProtonMail/proton-bridge/pkg/pool"
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 )
 
 var (
@@ -198,7 +196,6 @@ func newFetcherWorkFunc(attachmentPool *pool.Pool) pool.WorkFunc {
 		if err != nil {
 			return nil, err
 		}
-		msg.LabelNames = getMessageLabelStrings(req.ctx, req.fetcher, msg)
 
 		attData := make(map[string][]byte)
 
@@ -234,31 +231,4 @@ func newFetcherWorkFunc(attachmentPool *pool.Pool) pool.WorkFunc {
 
 		return buildRFC822(kr, msg, attData, req.options)
 	}
-}
-
-func getMessageLabelStrings(ctx context.Context, c Fetcher, msg *pmapi.Message) []string {
-	logrus.Info(fmt.Sprintf("Fetching message labels names for message ID %s...", msg.ID))
-
-	res := []string{}
-
-	var labels []*pmapi.Label
-	labels = c.GetLabelCache()
-	if len(labels) == 0 {
-		labels2, err := c.ListLabels(ctx)
-		if err != nil {
-			return res
-		}
-		labels = labels2
-	}
-
-	for _, lid := range msg.LabelIDs {
-		for _, label := range labels {
-			if label.ID == lid {
-				res = append(res, label.Name)
-				break
-			}
-		}
-	}
-
-	return res
 }

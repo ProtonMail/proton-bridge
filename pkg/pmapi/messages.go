@@ -593,7 +593,11 @@ func (c *client) GetMessage(ctx context.Context, messageID string) (msg *Message
 	}
 
 	if _, err := c.do(ctx, func(r *resty.Request) (*resty.Response, error) {
-		return r.SetResult(&res).Get("/mail/v4/messages/" + messageID)
+		var api_res, api_err = r.SetResult(&res).Get("/mail/v4/messages/" + messageID)
+		if api_err == nil {
+			res.Message.LabelNames = getMessageLabelStrings(ctx, c, res.Message)
+		}
+		return api_res, api_err
 	}); err != nil {
 		return nil, err
 	}
@@ -741,3 +745,29 @@ func ComputeMessageFlagsByLabels(labels []string) (flag int64) {
 	return flag
 }
 
+func getMessageLabelStrings(ctx context.Context, c *client, msg *Message) []string {
+	logrus.Info(fmt.Sprintf("Fetching message label names for message ID %s...", msg.ID))
+
+	res := []string{}
+
+	var labels []*Label
+	labels = c.GetLabelCache()
+	if len(labels) == 0 {
+		labels2, err := c.ListLabels(ctx)
+		if err != nil {
+			return res
+		}
+		labels = labels2
+	}
+
+	for _, lid := range msg.LabelIDs {
+		for _, label := range labels {
+			if label.ID == lid {
+				res = append(res, label.Name)
+				break
+			}
+		}
+	}
+
+	return res
+}
