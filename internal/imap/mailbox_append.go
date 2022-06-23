@@ -66,55 +66,7 @@ func (im *imapMailbox) createMessage(imapFlags []string, date time.Time, r imap.
 		return err
 	}
 
-	im.log.Info(fmt.Sprintf("Found X-Keywords header: %s", m.Header.Get("X-Keywords")))
-
-	// Convert all X-Keywords labels names to IDs (creating if necessary)
-	labelNames := strings.Split(m.Header.Get("X-Keywords"), ",")
-	var labels []*pmapi.Label
-	labels = im.user.client().GetLabelCache()
-	if len(labels) == 0 {
-		labels2, err := im.user.client().ListLabels(context.Background())
-		if err != nil {
-			im.log.Error(err)
-		} else {
-			labels = labels2
-		}
-	}
-
-	labelIDs := []string{}
-	found := false
-	for _, keyword := range labelNames {
-		keyword = strings.TrimSpace(keyword)
-		found = false
-		for _, label := range labels {
-			if label.Name == keyword {
-				labelIDs = append(labelIDs, label.ID)
-				found = true
-				break
-			}
-		}
-
-		if !found {
-			// Create new Label and append ID
-			im.log.Warn(fmt.Sprintf("Label \"%s\" not found, creating...", keyword))
-			label := pmapi.Label{
-				Name:      keyword,
-				Path:      keyword,
-				Color:     pmapi.LeastUsedColor(pmapi.LabelColors),
-				Display:   0,
-				Exclusive: false,
-				Type:      1,
-				Notify:    false,
-			}
-			newLabel, err := im.user.client().CreateLabel(context.Background(), &label)
-			if err != nil {
-				im.log.Error(err)
-			} else {
-				im.log.Info(fmt.Sprintf("Created new label \"%s\" (ID: %s)", keyword, newLabel.ID))
-				labelIDs = append(labelIDs, newLabel.ID)
-			}
-		}
-	}
+	labelIDs := im.getLabelIDsFromKeywords(m, context.Background())
 
 	im.log.Info("Append the following label IDs to m.LabelIDs: -")
 	im.log.Info(labelIDs)
@@ -253,7 +205,7 @@ func (im *imapMailbox) labelExistingMessage(msg storeMessageProvider, labelIDs [
 		return err
 	}
 
-	im.log.Info(fmt.Sprintf("Message already exists (ID: %s), adding labels...", msg.ID()))
+	im.log.Infof("Message already exists (ID: %s), adding labels...", msg.ID())
 
 	apiMsg, err := im.user.client().GetMessage(
 		context.Background(),
@@ -281,9 +233,9 @@ func (im *imapMailbox) labelExistingMessage(msg storeMessageProvider, labelIDs [
 				}
 			}
 		}
-		im.log.Info("Removing the following labels: -")
-		im.log.Info(removeLabelIDs)
+
 		for _, remLabelID := range removeLabelIDs {
+			im.log.Infof("Removing label ID %s...", remLabelID)
 			im.user.client().UnlabelMessages(
 				context.Background(),
 				[]string{msg.ID()},
@@ -293,7 +245,7 @@ func (im *imapMailbox) labelExistingMessage(msg storeMessageProvider, labelIDs [
 	}
 
 	for _, labelID := range labelIDs {
-		im.log.Info(fmt.Sprintf("Adding label ID %s...", labelID))
+		im.log.Infof("Adding label ID %s...", labelID)
 		im.user.client().LabelMessages(
 			context.Background(),
 			[]string{msg.ID()},
@@ -379,4 +331,67 @@ func (im *imapMailbox) importMessage(kr *crypto.KeyRing, hdr textproto.Header, b
 	}
 
 	return uidplus.AppendResponse(im.storeMailbox.UIDValidity(), im.storeMailbox.GetUIDList([]string{messageID}))
+}
+
+func (im *imapMailbox) getLabelIDsFromKeywords(m *pmapi.Message, ctx context.Context) []string {
+	var keywordsHeader string
+	keywordsHeader = m.Header.Get("X-Keywords")
+	if len(keywordsHeader) == 0 {
+	    keywordsHeader = m.Header.Get("X-Label")
+	}
+	if len(keywordsHeader) == 0 {
+	    keywordsHeader = m.Header.Get("Keywords")
+	}
+	if len(keywordsHeader) == 0 {
+		return []string{}
+	}
+	im.log.Infof("Found keywords: %s", keywordsHeader)
+
+	// Convert all keywords (label names) to IDs (creating if necessary)
+	labelNames := strings.Split(keywordsHeader, ",")
+	var labels []*pmapi.Label
+	labels = im.user.client().GetLabelCache()
+	if len(labels) == 0 {
+		labels2, err := im.user.client().ListLabels(ctx)
+		if err != nil {
+			im.log.Error(err)
+		} else {
+			labels = labels2
+		}
+	}
+	labelIDs := []string{}
+	found := false
+	for _, keyword := range labelNames {
+		keyword = strings.TrimSpace(keyword)
+		found = false
+		for _, label := range labels {
+			if label.Name == keyword {
+				labelIDs = append(labelIDs, label.ID)
+				found = true
+				break
+			}
+		}
+
+		if !found {
+			// Create new Label and append ID
+			im.log.Warnf("Label \"%s\" not found, creating...", keyword)
+			label := pmapi.Label{
+				Name:      keyword,
+				Path:      keyword,
+				Color:     pmapi.LeastUsedColor(pmapi.LabelColors),
+				Display:   0,
+				Exclusive: false,
+				Type:      1,
+				Notify:    false,
+			}
+			newLabel, err := im.user.client().CreateLabel(ctx, &label)
+			if err != nil {
+				im.log.Error(err)
+			} else {
+				im.log.Infof("Created new label \"%s\" (ID: %s)", keyword, newLabel.ID)
+				labelIDs = append(labelIDs, newLabel.ID)
+			}
+		}
+	}
+	return labelIDs
 }

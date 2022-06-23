@@ -746,7 +746,7 @@ func ComputeMessageFlagsByLabels(labels []string) (flag int64) {
 }
 
 func getMessageLabelStrings(ctx context.Context, c *client, msg *Message) []string {
-	logrus.Info(fmt.Sprintf("Fetching message label names for message ID %s...", msg.ID))
+	logrus.Infof("Fetching message label names for message ID %s...", msg.ID)
 
 	res := []string{}
 
