@@ -7,17 +7,17 @@ go 1.15
 require (
 	github.com/docker/docker-credential-helpers v0.6.3
 	github.com/emersion/go-imap v1.0.6
-	github.com/jameskeane/bcrypt v0.0.0-20170924085257-7509ea014998 // indirect
 )
 
 require (
 	github.com/0xAX/notificator v0.0.0-20191016112426-3962a5ea8da1
 	github.com/Masterminds/semver/v3 v3.1.0
+	github.com/ProtonMail/bcrypt v0.0.0-20211005172633-e235017c1baf // indirect
 	github.com/ProtonMail/go-autostart v0.0.0-20181114175602-c5272053443a
-	github.com/ProtonMail/go-crypto v0.0.0-20211221144345-a4f6767435ab
+	github.com/ProtonMail/go-crypto v0.0.0-20220623141421-5afb4c282135
 	github.com/ProtonMail/go-imap-id v0.0.0-20190926060100-f94a56b9ecde
 	github.com/ProtonMail/go-rfc5322 v0.8.0
-	github.com/ProtonMail/go-srp v0.0.1
+	github.com/ProtonMail/go-srp v0.0.5
 	github.com/ProtonMail/go-vcard v0.0.0-20180326232728-33aaa0a0c8a5
 	github.com/ProtonMail/gopenpgp/v2 v2.4.1
 	github.com/PuerkitoBio/goquery v1.5.1
@@ -48,6 +48,7 @@ require (
 	github.com/google/go-cmp v0.5.5
 	github.com/google/uuid v1.1.1
 	github.com/hashicorp/go-multierror v1.1.0
+	github.com/jameskeane/bcrypt v0.0.0-20120420032655-c3cd44c1e20f // indirect
 	github.com/jaytaylor/html2text v0.0.0-20200412013138-3577fbdbcff7
 	github.com/keybase/go-keychain v0.0.0
 	github.com/kr/text v0.2.0 // indirect
@@ -69,9 +70,9 @@ require (
 	github.com/urfave/cli/v2 v2.2.0
 	github.com/vmihailenco/msgpack/v5 v5.1.3
 	go.etcd.io/bbolt v1.3.6
-	golang.org/x/crypto v0.0.0-20220411220226-7b82a4e95df4 // indirect
+	golang.org/x/crypto v0.0.0-20220622213112-05595931fe9d // indirect
 	golang.org/x/net v0.0.0-20220425223048-2871e0cb64e4
-	golang.org/x/sys v0.0.0-20220111092808-5a964db01320
+	golang.org/x/sys v0.0.0-20220627191245-f75cf1eec38b
 	golang.org/x/text v0.3.7
 	howett.net/plist v1.0.0
 )
@@ -80,6 +81,5 @@ replace (
 	github.com/docker/docker-credential-helpers => github.com/ProtonMail/docker-credential-helpers v1.1.0
 	github.com/emersion/go-imap => github.com/ProtonMail/go-imap v0.0.0-20201228133358-4db68cea0cac
 	github.com/emersion/go-message => github.com/ProtonMail/go-message v0.0.0-20210611055058-fabeff2ec753
-	github.com/jameskeane/bcrypt => github.com/ProtonMail/bcrypt v0.0.0-20210511135022-227b4adcab57
 	github.com/keybase/go-keychain => github.com/cuthix/go-keychain v0.0.0-20220405075754-31e7cee908fe
 )

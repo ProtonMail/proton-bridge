@@ -23,9 +23,9 @@ Proton Mail Bridge includes the following 3rd party software:
 <!-- START AUTOGEN -->
 * [docker-credential-helpers](https://github.com/docker/docker-credential-helpers) available under [license](https://github.com/docker/docker-credential-helpers/blob/master/LICENSE) 
 * [go-imap](https://github.com/emersion/go-imap) available under [license](https://github.com/emersion/go-imap/blob/master/LICENSE) 
-* [bcrypt](https://github.com/jameskeane/bcrypt) available under [license](https://github.com/jameskeane/bcrypt/blob/master/LICENSE) 
 * [notificator](https://github.com/0xAX/notificator) available under [license](https://github.com/0xAX/notificator/blob/master/LICENSE) 
 * [semver](https://github.com/Masterminds/semver/v3) available under [license](https://github.com/Masterminds/semver/v3/blob/master/LICENSE) 
+* [bcrypt](https://github.com/ProtonMail/bcrypt) available under [license](https://github.com/ProtonMail/bcrypt/blob/master/LICENSE) 
 * [go-autostart](https://github.com/ProtonMail/go-autostart) available under [license](https://github.com/ProtonMail/go-autostart/blob/master/LICENSE) 
 * [go-crypto](https://github.com/ProtonMail/go-crypto) available under [license](https://github.com/ProtonMail/go-crypto/blob/master/LICENSE) 
 * [go-imap-id](https://github.com/ProtonMail/go-imap-id) available under [license](https://github.com/ProtonMail/go-imap-id/blob/master/LICENSE) 
@@ -61,6 +61,7 @@ Proton Mail Bridge includes the following 3rd party software:
 * [go-cmp](https://github.com/google/go-cmp) available under [license](https://github.com/google/go-cmp/blob/master/LICENSE) 
 * [uuid](https://github.com/google/uuid) available under [license](https://github.com/google/uuid/blob/master/LICENSE) 
 * [go-multierror](https://github.com/hashicorp/go-multierror) available under [license](https://github.com/hashicorp/go-multierror/blob/master/LICENSE) 
+* [bcrypt](https://github.com/jameskeane/bcrypt) available under [license](https://github.com/jameskeane/bcrypt/blob/master/LICENSE) 
 * [html2text](https://github.com/jaytaylor/html2text) available under [license](https://github.com/jaytaylor/html2text/blob/master/LICENSE) 
 * [go-keychain](https://github.com/keybase/go-keychain) available under [license](https://github.com/keybase/go-keychain/blob/master/LICENSE) 
 * [text](https://github.com/kr/text) available under [license](https://github.com/kr/text/blob/master/LICENSE) 
@@ -88,6 +89,5 @@ Proton Mail Bridge includes the following 3rd party software:
 * [docker-credential-helpers](https://github.com/ProtonMail/docker-credential-helpers) available under [license](https://github.com/ProtonMail/docker-credential-helpers/blob/master/LICENSE) 
 * [go-imap](https://github.com/ProtonMail/go-imap) available under [license](https://github.com/ProtonMail/go-imap/blob/master/LICENSE) 
 * [go-message](https://github.com/ProtonMail/go-message) available under [license](https://github.com/ProtonMail/go-message/blob/master/LICENSE) 
-* [bcrypt](https://github.com/ProtonMail/bcrypt) available under [license](https://github.com/ProtonMail/bcrypt/blob/master/LICENSE) 
 * [go-keychain](https://github.com/cuthix/go-keychain) available under [license](https://github.com/cuthix/go-keychain/blob/master/LICENSE) 
 <!-- END AUTOGEN -->
