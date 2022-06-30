@@ -320,7 +320,7 @@ func encryptSymmDecryptKey(
 		return
 	}
 
-	pgpSplitMessage, err := pgpMessage.SeparateKeyAndData(len(textToEncrypt), 0)
+	pgpSplitMessage, err := pgpMessage.SplitMessage()
 	if err != nil {
 		return
 	}

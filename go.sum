@@ -33,6 +33,7 @@ github.com/ProtonMail/go-autostart v0.0.0-20181114175602-c5272053443a/go.mod h1:
 github.com/ProtonMail/go-crypto v0.0.0-20210428141323-04723f9f07d7/go.mod h1:z4/9nQmJSSwwds7ejkxaJwO37dru3geImFUdJlaLzQo=
 github.com/ProtonMail/go-crypto v0.0.0-20211221144345-a4f6767435ab h1:5FiL/TCaiKCss/BLMIACDxxadYrx767l9kh0qYX+sLQ=
 github.com/ProtonMail/go-crypto v0.0.0-20211221144345-a4f6767435ab/go.mod h1:z4/9nQmJSSwwds7ejkxaJwO37dru3geImFUdJlaLzQo=
+github.com/ProtonMail/go-crypto v0.0.0-20220113124808-70ae35bab23f/go.mod h1:z4/9nQmJSSwwds7ejkxaJwO37dru3geImFUdJlaLzQo=
 github.com/ProtonMail/go-crypto v0.0.0-20220623141421-5afb4c282135 h1:xDc/cFH/hwyr9KyWc0sm26lpsscqtfZBvU8NpRLHwJ0=
 github.com/ProtonMail/go-crypto v0.0.0-20220623141421-5afb4c282135/go.mod h1:z4/9nQmJSSwwds7ejkxaJwO37dru3geImFUdJlaLzQo=
 github.com/ProtonMail/go-imap v0.0.0-20201228133358-4db68cea0cac h1:2xU3QncAiS/W3UlWZTkbNKW5WkLzk6Egl1T0xX+sbjs=
@@ -43,6 +44,8 @@ github.com/ProtonMail/go-message v0.0.0-20210611055058-fabeff2ec753 h1:I8IsYA297
 github.com/ProtonMail/go-message v0.0.0-20210611055058-fabeff2ec753/go.mod h1:NBAn21zgCJ/52WLDyed18YvYFm5tEoeDauubFqLokM4=
 github.com/ProtonMail/go-mime v0.0.0-20190923161245-9b5a4261663a h1:W6RrgN/sTxg1msqzFFb+G80MFmpjMw61IU+slm+wln4=
 github.com/ProtonMail/go-mime v0.0.0-20190923161245-9b5a4261663a/go.mod h1:NYt+V3/4rEeDuaev/zw1zCq8uqVEuPHzDPo3OZrlGJ4=
+github.com/ProtonMail/go-mime v0.0.0-20220302105931-303f85f7fe0f h1:CGq7OieOz3wyQJ1fO8S0eO9TCW1JyvLrf8fhzz1i8ko=
+github.com/ProtonMail/go-mime v0.0.0-20220302105931-303f85f7fe0f/go.mod h1:NYt+V3/4rEeDuaev/zw1zCq8uqVEuPHzDPo3OZrlGJ4=
 github.com/ProtonMail/go-rfc5322 v0.8.0 h1:7emrf75n3CDIduQflx7aT1nJa5h/kGsiFKUYX/+IAkU=
 github.com/ProtonMail/go-rfc5322 v0.8.0/go.mod h1:BwpTbkJxkMGkc+pC84AXZnwuWOisEULBpfPIyIKS/Us=
 github.com/ProtonMail/go-srp v0.0.1 h1:J0O9Zb5XTC6iDrB7feH41cu+TUEB+l7uHctXIK6oS2o=
@@ -53,6 +56,8 @@ github.com/ProtonMail/go-vcard v0.0.0-20180326232728-33aaa0a0c8a5 h1:Uga1DHFN4GU
 github.com/ProtonMail/go-vcard v0.0.0-20180326232728-33aaa0a0c8a5/go.mod h1:oeP9CMN+ajWp5jKp1kue5daJNwMMxLF+ujPaUIoJWlA=
 github.com/ProtonMail/gopenpgp/v2 v2.4.1 h1:b3El0zabaKi73u4sRnb3hOOUczuKuYpN8wnp7wRsZSc=
 github.com/ProtonMail/gopenpgp/v2 v2.4.1/go.mod h1:RFjoVjfhV8f78tjz/fLrp/OXkugL3QmWsiJq/fsQYA4=
+github.com/ProtonMail/gopenpgp/v2 v2.4.7 h1:V3xeelvXgJiZXZuPtSSE+uYbtPw4RmbmyPqXDAESPhg=
+github.com/ProtonMail/gopenpgp/v2 v2.4.7/go.mod h1:ZW1KxHNG6q5LMgFKf9Ap/d2eVYeyGf5+fAUEAjJWtmo=
 github.com/PuerkitoBio/goquery v1.5.1 h1:PSPBGne8NIUWw+/7vFBV+kG2J/5MOjbzc7154OaKCSE=
 github.com/PuerkitoBio/goquery v1.5.1/go.mod h1:GsLWisAFVj4WgDibEWF4pvYnkVQBpKBKeU+7zCJoLcc=
 github.com/Shopify/goreferrer v0.0.0-20181106222321-ec9c9a553398/go.mod h1:a1uqRtAwp2Xwc6WNPJEufxJ7fx3npB4UV/JOLmbu5I0=
