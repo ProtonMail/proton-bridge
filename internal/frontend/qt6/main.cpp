@@ -66,8 +66,7 @@ void initLog()
 //****************************************************************************************************************************************************
 QQmlComponent *createRootQmlComponent(QQmlApplicationEngine &engine)
 {
-    /// \todo GODT-1669 pack QML and resources in QRC resource file.
-    QDir qmlDir("qml");
+    QString const qrcQmlDir = "qrc:/qml";
 
     qmlRegisterType<QMLBackend>("CppBackend", 1, 0, "QMLBackend");
     qmlRegisterType<UserList>("CppBackend", 1, 0, "UserList");
@@ -75,13 +74,13 @@ QQmlComponent *createRootQmlComponent(QQmlApplicationEngine &engine)
 
     auto rootComponent = new QQmlComponent(&engine, &engine);
 
-    engine.addImportPath(qmlDir.absolutePath());
-    engine.addPluginPath(qmlDir.absolutePath());
+    engine.addImportPath(qrcQmlDir);
+    engine.addPluginPath(qrcQmlDir);
 
-    QQuickStyle::addStylePath(qmlDir.absolutePath());
+    QQuickStyle::addStylePath(qrcQmlDir);
     QQuickStyle::setStyle("Proton");
 
-    rootComponent->loadUrl(qmlDir.absoluteFilePath("Bridge.qml"));
+    rootComponent->loadUrl(QUrl(qrcQmlDir + "/Bridge.qml"));
     if (rootComponent->status() != QQmlComponent::Status::Ready)
         throw Exception("Could not load QML component");
 

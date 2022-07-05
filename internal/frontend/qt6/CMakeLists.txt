@@ -103,6 +103,7 @@ add_custom_command(
 )
 
 add_executable(bridge_qt6
+    Resources.qrc
     ${PROTO_CPP_FILE} ${PROTO_H_FILE} ${GRPC_CPP_FILE} ${GRPC_H_FILE}
     AppController.cpp AppController.h
     EventStreamWorker.cpp EventStreamWorker.h
