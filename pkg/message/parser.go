@@ -155,14 +155,6 @@ func convertForeignEncodings(p *parser.Parser) error {
 		RegisterContentTypeHandler("text/.*", func(p *parser.Part) error {
 			return p.ConvertToUTF8()
 		}).
-		RegisterDefaultHandler(func(p *parser.Part) error {
-			// multipart/alternative, for example, can contain extra charset.
-			if _, params, _ := p.ContentType(); params != nil && params["charset"] != "" {
-				return p.ConvertToUTF8()
-			}
-
-			return nil
-		}).
 		Walk()
 }
 
