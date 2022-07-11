@@ -23,7 +23,8 @@
 class QMLBackend;
 class GRPCClient;
 class Log;
-
+class Overseer;
+class BridgeMonitor;
 
 //****************************************************************************************************************************************************
 /// \brief App controller class.
@@ -42,6 +43,8 @@ public: // member functions.
     QMLBackend& backend() { return *backend_; } ///< Return a reference to the backend.
     GRPCClient& grpc() { return *grpc_; } ///< Return a reference to the GRPC client.
     Log& log() { return *log_; } ///< Return a reference to the log.
+    std::unique_ptr<Overseer>& bridgeOverseer() { return bridgeOverseer_; }; ///< Returns a reference the bridge overseer
+    BridgeMonitor* bridgeMonitor() const; ///< Return the bridge worker.
 
 private: // member functions
     AppController(); ///< Default constructor.
@@ -50,6 +53,7 @@ private: // data members
     std::unique_ptr<QMLBackend> backend_; ///< The backend.
     std::unique_ptr<GRPCClient> grpc_; ///< The RPC client.
     std::unique_ptr<Log> log_; ///< The log.
+    std::unique_ptr<Overseer> bridgeOverseer_; ///< The overseer for the bridge monitor worker.
 };
 
 

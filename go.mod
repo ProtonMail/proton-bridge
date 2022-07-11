@@ -20,10 +20,11 @@ require (
 	github.com/ProtonMail/go-srp v0.0.5
 	github.com/ProtonMail/go-vcard v0.0.0-20180326232728-33aaa0a0c8a5
 	github.com/ProtonMail/gopenpgp/v2 v2.4.7
-	github.com/ProtonMail/proton-bridge v1.8.12
 	github.com/PuerkitoBio/goquery v1.5.1
 	github.com/abiosoft/ishell v2.0.0+incompatible
+	github.com/abiosoft/readline v0.0.0-20180607040430-155bce2042db // indirect
 	github.com/allan-simon/go-singleinstance v0.0.0-20160830203053-79edcfdc2dfc
+	github.com/chzyer/test v1.0.0 // indirect
 	github.com/cucumber/godog v0.12.1
 	github.com/cucumber/messages-go/v16 v16.0.1
 	github.com/elastic/go-sysinfo v1.7.1
@@ -36,27 +37,31 @@ require (
 	github.com/emersion/go-sasl v0.0.0-20200509203442-7bfe0ed36a21
 	github.com/emersion/go-smtp v0.14.0
 	github.com/emersion/go-textwrapper v0.0.0-20200911093747-65d896831594
+	github.com/emersion/go-vcard v0.0.0-20220507122617-d4056df0ec4a // indirect
 	github.com/fatih/color v1.9.0
+	github.com/flynn-archive/go-shlex v0.0.0-20150515145356-3f9db97f8568 // indirect
 	github.com/getsentry/sentry-go v0.12.0
 	github.com/go-resty/resty/v2 v2.6.0
 	github.com/godbus/dbus v4.1.0+incompatible
 	github.com/golang/mock v1.4.4
 	github.com/google/go-cmp v0.5.6
 	github.com/google/uuid v1.1.2
+	github.com/gopherjs/gopherjs v0.0.0-20190411002643-bd77b112433e // indirect
 	github.com/hashicorp/go-multierror v1.1.0
-	github.com/jameskeane/bcrypt v0.0.0-20120420032655-c3cd44c1e20f // indirect
 	github.com/jaytaylor/html2text v0.0.0-20200412013138-3577fbdbcff7
 	github.com/keybase/go-keychain v0.0.0
 	github.com/kr/text v0.2.0 // indirect
 	github.com/logrusorgru/aurora v2.0.3+incompatible
 	github.com/miekg/dns v1.1.41
 	github.com/nsf/jsondiff v0.0.0-20200515183724-f29ed568f4ce
+	github.com/olekukonko/tablewriter v0.0.5 // indirect
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/procfs v0.7.3 // indirect
 	github.com/ricochet2200/go-disk-usage/du v0.0.0-20210707232629-ac9918953285
 	github.com/sirupsen/logrus v1.7.0
+	github.com/ssor/bom v0.0.0-20170718123548-6386211fdfcf // indirect
+	github.com/stretchr/objx v0.2.0 // indirect
 	github.com/stretchr/testify v1.7.0
-	github.com/therecipe/qt v0.0.0-20200701200531-7f61353ee73e
 	github.com/urfave/cli/v2 v2.2.0
 	github.com/vmihailenco/msgpack/v5 v5.1.3
 	go.etcd.io/bbolt v1.3.6
@@ -66,7 +71,7 @@ require (
 	golang.org/x/text v0.3.7
 	google.golang.org/grpc v1.46.2
 	google.golang.org/protobuf v1.28.0
-	howett.net/plist v1.0.0 // indirect
+	howett.net/plist v1.0.0
 )
 
 replace (

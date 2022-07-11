@@ -32,7 +32,7 @@ endif()
 set(CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake" CACHE STRING "toolchain")
 
 
-project(bridge_qt6 LANGUAGES CXX)
+project(bridge-gui LANGUAGES CXX)
 if (APPLE) # On macOS, we have some Objective-C++ code in DockIcon to deal with ... the dock icon.
     enable_language(OBJC OBJCXX)
 endif()
@@ -52,12 +52,12 @@ find_package(Protobuf CONFIG REQUIRED)
 message(STATUS "Using protobuf ${Protobuf_VERSION}")
 
 
-find_package(grpc CONFIG REQUIRED)
+find_package(gRPC CONFIG REQUIRED)
 message(STATUS "Using gRPC ${gRPC_VERSION}")
 
 
 if (APPLE) # We need to link the Cocoa framework for the dock icon.
-    find_library(COCOA_LIBRARY Cocoa REQUIRED)
+    find_library(COCOA_LIBRARY Cocoa REQ UIRED)
 endif()
 
 
@@ -67,9 +67,20 @@ find_package(Qt5 COMPONENTS
     Qml
     QuickControls2
     REQUIRED)
+message(STATUS "Using Qt ${Qt5_VERSION}")
 
-find_program(PROTOC_EXE protoc)
+find_program(PROTOC_EXE protoc REQUIRED)
+message(STATUS "protoc found ${PROTOC_EXE}")
+
+message(STATUS "grpc_cpp_plugin ${grpc_cpp_plugin}")
+
 find_program(GRPC_CPP_PLUGIN grpc_cpp_plugin)
+if(GRPC_CPP_PLUGIN STREQUAL GRPC_CPP_PLUGIN-NOTFOUND)
+message(FATAL_ERROR "grpc_cpp_plugin exe could not be found. Please add it to your path. it should be located in \${VCPKG_ROOT}/installed/arm64-osx/tools/grpc")
+else()
+    message(STATUS "grpc_cpp_plugin found at ${GRPC_CPP_PLUGIN}")
+endif()
+
 set(PROTO_DIR  "${CMAKE_CURRENT_SOURCE_DIR}/../grpc")
 set(PROTO_FILE "${PROTO_DIR}/bridge.proto")
 set(GRPC_OUT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/GRPC")
@@ -102,10 +113,11 @@ add_custom_command(
     COMMENT "Generating gPRC/Protobuf C++ code"
 )
 
-add_executable(bridge_qt6
+add_executable(bridge-gui
     Resources.qrc
     ${PROTO_CPP_FILE} ${PROTO_H_FILE} ${GRPC_CPP_FILE} ${GRPC_H_FILE}
     AppController.cpp AppController.h
+    BridgeMonitor.cpp BridgeMonitor.h
     EventStreamWorker.cpp EventStreamWorker.h
     Exception.cpp Exception.h
     Log.cpp Log.h
@@ -121,9 +133,9 @@ add_executable(bridge_qt6
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
-target_precompile_headers(bridge_qt6 PRIVATE Pch.h)
+target_precompile_headers(bridge-gui PRIVATE Pch.h)
 
-target_link_libraries(bridge_qt6
+target_link_libraries(bridge-gui
     Qt5::Core
     Qt5::Quick
     Qt5::Qml
@@ -133,5 +145,5 @@ target_link_libraries(bridge_qt6
     )
 
 if (APPLE)
-target_link_libraries(bridge_qt6 ${COCOA_LIBRARY})
+target_link_libraries(bridge-gui ${COCOA_LIBRARY})
 endif()

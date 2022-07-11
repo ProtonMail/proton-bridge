@@ -20,7 +20,7 @@
 #include "Exception.h"
 #include "QMLBackend.h"
 #include "Log.h"
-#include "EventStreamWorker.h"
+#include "BridgeMonitor.h"
 
 
 //****************************************************************************************************************************************************
@@ -51,18 +51,19 @@ std::shared_ptr<QGuiApplication> initQtApplication(int argc, char *argv[])
 
 
 //****************************************************************************************************************************************************
-//
+/// \return A reference to the log.
 //****************************************************************************************************************************************************
-void initLog()
+Log &initLog()
 {
     Log &log = app().log();
     log.setEchoInConsole(true);
     log.setLevel(Log::Level::Debug);
+    return log;
 }
 
 
 //****************************************************************************************************************************************************
-/// \param[in] engine The QML engine.
+/// \param[in] engine The QML component.
 //****************************************************************************************************************************************************
 QQmlComponent *createRootQmlComponent(QQmlApplicationEngine &engine)
 {
@@ -89,18 +90,90 @@ QQmlComponent *createRootQmlComponent(QQmlApplicationEngine &engine)
 
 
 //****************************************************************************************************************************************************
+/// \param[in] exePath The path of the Bridge executable. If empty, the function will try to locate the bridge application.
+//****************************************************************************************************************************************************
+void launchBridge(QString const &exePath)
+{
+    UPOverseer& overseer = app().bridgeOverseer();
+    overseer.reset();
+
+    QString bridgeExePath = exePath;
+    if (exePath.isEmpty())
+        bridgeExePath = BridgeMonitor::locateBridgeExe();
+
+    if (bridgeExePath.isEmpty())
+        throw Exception("Could not locate the bridge executable path");
+    else
+        app().log().debug(QString("Bridge executable path: %1").arg(QDir::toNativeSeparators(bridgeExePath)));
+
+    overseer = std::make_unique<Overseer>(new BridgeMonitor(bridgeExePath, nullptr), nullptr);
+    overseer->startWorker(true);
+}
+
+
+//****************************************************************************************************************************************************
+/// \param[in] argc The number of command-line arguments.
+/// \param[in] argv The list of command line arguments.
+//****************************************************************************************************************************************************
+void parseArguments(int argc, char **argv, bool &outAttach, QString &outExePath)
+{
+    // for unknown reasons, on Windows QCoreApplication::arguments() frequently returns an empty list, which is incorrect, so we rebuild the argument
+    // list from the original argc and argv values.
+    QStringList args;
+    for (int i = 0; i < argc; i++)
+        args.append(QString::fromLocal8Bit(argv[i]));
+
+    // We do not want to 'advertise' the following switches, so we do not offer a '-h/--help' option.
+    // we have not yet connected to Bridge, we do not know the application version number, so we do not offer a -v/--version switch.
+    QCommandLineParser parser;
+    parser.setApplicationDescription("Proton Mail Bridge");
+    QCommandLineOption attachOption(QStringList() << "attach" << "a", "attach to an existing bridge process");
+    parser.addOption(attachOption);
+    QCommandLineOption exePathOption(QStringList() << "bridge-exe-path" << "b", "bridge executable path", "path", QString());
+    parser.addOption(exePathOption);
+
+    parser.process(args);
+    outAttach = parser.isSet(attachOption);
+    outExePath = parser.value(exePathOption);
+}
+
+
+//****************************************************************************************************************************************************
+//
+//****************************************************************************************************************************************************
+void closeBridgeApp()
+{
+    UPOverseer& overseer = app().bridgeOverseer();
+    if (!overseer) // The app was ran in 'attach' mode and attached to an existing instance of Bridge. No need to close.
+        return;
+
+    app().grpc().quit(); // this will cause the grpc service and the bridge app to close.
+    while (!overseer->isFinished())
+    {
+        QThread::msleep(20);
+    }
+}
+
+
+//****************************************************************************************************************************************************
 /// \param[in] argc The number of command-line arguments.
 /// \param[in] argv The list of command-line arguments.
 /// \return The exit code for the application.
 //****************************************************************************************************************************************************
 int main(int argc, char *argv[])
 {
+    std::shared_ptr<QGuiApplication> guiApp = initQtApplication(argc, argv);
     try
     {
-        std::shared_ptr<QGuiApplication> guiApp = initQtApplication(argc, argv);
-        initLog();
 
-        /// \todo GODT-1667 Locate & Launch go backend (and wait for it).
+        bool attach = false;
+        QString exePath;
+        parseArguments(argc, argv, attach, exePath);
+
+        Log &log = initLog();
+
+        if (!attach)
+            launchBridge(exePath);
 
         app().backend().init();
 
@@ -113,14 +186,21 @@ int main(int argc, char *argv[])
         rootObject->setProperty("backend", QVariant::fromValue(&app().backend()));
         rootComponent->completeCreate();
 
+        BridgeMonitor *bridgeMonitor = app().bridgeMonitor();
+        bool bridgeExited = false;
+        if (bridgeMonitor)
+            QObject::connect(bridgeMonitor, &BridgeMonitor::processExited, [&](int returnCode) {
+                // GODT-1671 We need to find a 'safe' way to check if brige crashed and restart instead of just quitting. Is returnCode enough?
+                bridgeExited = true;
+                qGuiApp->exit(returnCode);
+            });
+
         int result = QGuiApplication::exec();
 
-        app().log().info(QString("Exiting app with return code %1").arg(result));
-
         app().grpc().stopEventStream();
-        app().backend().clearUserList();
-
-        /// \todo GODT-1667 shutdown go backend.
+        app().backend().clearUserList(); // required for proper exit. We may want to investigate why at some point.
+        if (!bridgeExited)
+            closeBridgeApp();
 
         return result;
     }

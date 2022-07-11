@@ -50,6 +50,12 @@ void QMLBackend::init()
     eventStreamOverseer_ = std::make_unique<Overseer>(new EventStreamReader(nullptr), nullptr);
     eventStreamOverseer_->startWorker(true);
 
+    // Grab from bridge the value that will not change during the execution of this app (or that will only change locally
+    logGRPCCallStatus(app().grpc().showSplashScreen(showSplashScreen_), "showSplashScreen");
+    logGRPCCallStatus(app().grpc().goos(goos_), "goos");
+    logGRPCCallStatus(app().grpc().logsPath(logsPath_), "logsPath");
+    logGRPCCallStatus(app().grpc().licensePath(licensePath_), "licensePath");
+
     this->retrieveUserList();
 }
 

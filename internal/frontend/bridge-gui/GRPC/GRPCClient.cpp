@@ -21,6 +21,7 @@
 #include "GRPCUtils.h"
 #include "QMLBackend.h"
 #include "Exception.h"
+#include "AppController.h"
 
 
 using namespace google::protobuf;
@@ -56,6 +57,8 @@ M7SXYbNDiLF4LwPLsunoLsW133Ky7s99MA==
 Empty empty; // re-used across client calls.
 
 
+int const maxConnectionTimeSecs = 60; ///< Amount of time after which we consider connection attemps to the server have failed.
+
 }
 
 
@@ -78,15 +81,25 @@ bool GRPCClient::connectToServer(QString &outError)
         if (!stub_)
             throw Exception("Stub creation failed.");
 
-        if (!channel_->WaitForConnected(gpr_time_add(gpr_now(GPR_CLOCK_REALTIME),
-            gpr_time_from_seconds(10, GPR_TIMESPAN))))
-            throw Exception("Connection to the RPC server failed.");
+        QDateTime const giveUpTime = QDateTime::currentDateTime().addSecs(maxConnectionTimeSecs); // if we reach giveUpTime without connecting, we give up
+        int i = 0;
+        while (true)
+        {
+            app().log().debug(QString("Connection to gRPC server. attempt #%1").arg(++i));
+
+            if (channel_->WaitForConnected(gpr_time_add(gpr_now(GPR_CLOCK_REALTIME), gpr_time_from_seconds(5, GPR_TIMESPAN))))
+                break; // connection established.
+
+            if (QDateTime::currentDateTime() > giveUpTime)
+                throw Exception("Connection to the RPC server failed.");
+        }
 
         if (channel_->GetState(true) != GRPC_CHANNEL_READY)
             throw Exception("connection check failed.");
 
         QMLBackend *backend = &app().backend();
         QObject::connect(this, &GRPCClient::loginFreeUserError, backend, &QMLBackend::loginFreeUserError);
+        app().log().debug("Successfully connected to gRPC server.");
         return true;
     }
     catch (Exception const &e)

@@ -51,7 +51,7 @@ public: // member functions.
 
 public: // Qt/QML properties. Note that the NOTIFY-er signal is required even for read-only properties (QML warning otherwise)
     Q_PROPERTY(bool showOnStartup READ showOnStartup NOTIFY showOnStartupChanged)                                                                     //    _ bool        `property:showOnStartup`
-    Q_PROPERTY(bool showSplashScreen READ showSplashScreen NOTIFY showSplashScreenChanged)                                                            //    _ bool        `property:showSplashScreen`
+    Q_PROPERTY(bool showSplashScreen READ showSplashScreen WRITE setShowSplashScreen NOTIFY showSplashScreenChanged)                                  //    _ bool        `property:showSplashScreen`
     Q_PROPERTY(QString goos READ goos NOTIFY goosChanged)                                                                                             //    _ string      `property:"goos"`
     Q_PROPERTY(QUrl logsPath READ logsPath NOTIFY logsPathChanged)                                                                                    //    _ core.QUrl   `property:"logsPath"`
     Q_PROPERTY(QUrl licensePath READ licensePath NOTIFY licensePathChanged)                                                                           //    _ core.QUrl   `property:"licensePath"`
@@ -79,10 +79,11 @@ public: // Qt/QML properties. Note that the NOTIFY-er signal is required even fo
 
     // Qt Property system setters & getters.
     bool showOnStartup() const { bool v = false; logGRPCCallStatus(app().grpc().showOnStartup(v), "showOnStartup"); return v; };
-    bool showSplashScreen() { bool show = false; logGRPCCallStatus(app().grpc().showSplashScreen(show), "showSplashScreen"); return show; }
-    QString goos() { QString goos; logGRPCCallStatus(app().grpc().goos(goos), "goos"); return goos; }
-    QUrl logsPath() const { QUrl path; logGRPCCallStatus(app().grpc().logsPath(path), "logsPath"); return  path;}
-    QUrl licensePath() const { QUrl path; logGRPCCallStatus(app().grpc().licensePath(path), "licensePath"); return path; }
+    bool showSplashScreen() const { return showSplashScreen_; };
+    void setShowSplashScreen(bool show) { if (show != showSplashScreen_) { showSplashScreen_ = show; emit showSplashScreenChanged(show); } }
+    QString goos() { return goos_; }
+    QUrl logsPath() const { return logsPath_; }
+    QUrl licensePath() const { return licensePath_; }
     QUrl releaseNotesLink() const { return releaseNotesLink_; }
     void setReleaseNotesLink(QUrl const& url) { if (url != releaseNotesLink_) { releaseNotesLink_ = url; emit releaseNotesLinkChanged(url); } }
     QUrl dependencyLicensesLink() const { QUrl link; logGRPCCallStatus(app().grpc().dependencyLicensesLink(link), "dependencyLicensesLink"); return link; }
@@ -212,6 +213,10 @@ private: // member functions
 private: // data members
     UserList* users_ { nullptr }; ///< The user list. Owned by backend.
     std::unique_ptr<Overseer> eventStreamOverseer_; ///< The event stream overseer.
+    bool showSplashScreen_ { false }; ///< The cached version of show splash screen. Retrieved on startup from bridge, and potentially modified locally.
+    QString goos_; ///< The cached version of the GOOS variable.
+    QUrl logsPath_; ///< The logs path. Retrieved from bridge on startup.
+    QUrl licensePath_; ///< The license path. Retrieved from bridge on startup.
     QUrl releaseNotesLink_; /// Release notes is not stored in the backend, it's pushed by the update check so we keep a local copy of it. \todo GODT-1670 Check this is implemented.
     QUrl landingPageLink_; /// Landing page link is not stored in the backend, it's pushed by the update check so we keep a local copy of it. \todo GODT-1670 Check this is implemented.
 

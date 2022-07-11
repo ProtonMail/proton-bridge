@@ -56,13 +56,15 @@ void Overseer::startWorker(bool autorelease) const
 
     worker_->moveToThread(thread_);
     connect(thread_, &QThread::started, worker_, &Worker::run);
-    connect(worker_, &Worker::finished, thread_, &QThread::quit);
-    connect(worker_, &Worker::error, thread_, &QThread::quit);
+    connect(worker_, &Worker::finished, [&]() {thread_->quit(); }); // for unkwown reason, connect to the QThread::quit slot does not work...
+    connect(worker_, &Worker::error, [&]() { thread_->quit(); });
+
     if (autorelease)
     {
         connect(worker_, &Worker::error, this, &Overseer::release);
         connect(worker_, &Worker::finished, this, &Overseer::release);
     }
+
     thread_->start();
 }
 
@@ -92,7 +94,7 @@ void Overseer::release()
 
 
 //****************************************************************************************************************************************************
-/// \return true iff the worker is finished, release
+/// \return true iff the worker is finished.
 //****************************************************************************************************************************************************
 bool Overseer::isFinished() const
 {
@@ -100,4 +102,13 @@ bool Overseer::isFinished() const
         return true;
 
     return worker_->thread()->isFinished();
+}
+
+
+//****************************************************************************************************************************************************
+/// \return The worker.
+//****************************************************************************************************************************************************
+Worker *Overseer::worker() const
+{
+    return worker_;
 }
