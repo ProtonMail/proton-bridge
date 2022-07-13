@@ -5,6 +5,7 @@
 # Editor files
 .*.sw?
 *~
+.idea
 
 # Test files
 godog.test
@@ -29,3 +30,4 @@ vendor-cache
 /hasher
 cmd/Desktop-Bridge/deploy
 cmd/Import-Export/deploy
+proton-bridge

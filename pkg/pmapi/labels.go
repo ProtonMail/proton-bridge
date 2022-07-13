@@ -38,7 +38,7 @@ const (
 	DraftLabel     = "8"
 	StarredLabel   = "10"
 
-	LabelTypeMailbox      = 1
+	LabelTypeMailBox      = 1
 	LabelTypeContactGroup = 2
 )
 
@@ -89,7 +89,7 @@ type Label struct { //nolint:maligned
 }
 
 func (c *client) ListLabels(ctx context.Context) (labels []*Label, err error) {
-	return c.listLabelType(ctx, LabelTypeMailbox)
+	return c.listLabelType(ctx, LabelTypeMailBox)
 }
 
 func (c *client) ListContactGroups(ctx context.Context) (labels []*Label, err error) {
