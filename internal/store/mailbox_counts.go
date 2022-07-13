@@ -128,7 +128,7 @@ func (mc *mailboxCounts) getPMLabel() *pmapi.Label {
 		Path:      mc.LabelName,
 		Color:     mc.Color,
 		Order:     mc.Order,
-		Type:      pmapi.LabelTypeMailbox,
+		Type:      pmapi.LabelTypeMailBox,
 		Exclusive: pmapi.Boolean(mc.IsFolder),
 	}
 }

@@ -59,7 +59,7 @@ func (store *Store) createMailbox(name string) error {
 		Name:      name,
 		Color:     color,
 		Exclusive: pmapi.Boolean(exclusive),
-		Type:      pmapi.LabelTypeMailbox,
+		Type:      pmapi.LabelTypeMailBox,
 	})
 	return err
 }
@@ -188,7 +188,7 @@ func (store *Store) createOrUpdateMailboxEvent(label *pmapi.Label) error {
 	store.lock.Lock()
 	defer store.lock.Unlock()
 
-	if label.Type != pmapi.LabelTypeMailbox {
+	if label.Type != pmapi.LabelTypeMailBox {
 		return nil
 	}
 

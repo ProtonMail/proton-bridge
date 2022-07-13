@@ -64,6 +64,13 @@ type Client interface {
 	DeleteLabel(ctx context.Context, labelID string) error
 	EmptyFolder(ctx context.Context, labelID string, addressID string) error
 
+	// /core/V4/labels routes
+	ListLabelsOnly(ctx context.Context) ([]*Label, error)
+	ListFoldersOnly(ctx context.Context) ([]*Label, error)
+	CreateLabelV4(ctx context.Context, label *Label) (*Label, error)
+	UpdateLabelV4(ctx context.Context, label *Label) (*Label, error)
+	DeleteLabelV4(ctx context.Context, labelID string) error
+
 	GetMailSettings(ctx context.Context) (MailSettings, error)
 	GetContactEmailByEmail(context.Context, string, int, int) ([]ContactEmail, error)
 	GetContactByID(context.Context, string) (Contact, error)
