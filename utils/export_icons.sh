@@ -20,15 +20,7 @@
 RAW_PATHS=./dist/raw
 
 create_bitmaps(){
-    rm -f ${RAW_PATHS}/*_icon_*.png
-
-    export_png ${RAW_PATHS}/mac_icon_512x512.svg 384 1024
-    export_png ${RAW_PATHS}/mac_icon_512x512.svg 192 512
-    export_png ${RAW_PATHS}/mac_icon_512x512.svg 96  256
-    export_png ${RAW_PATHS}/mac_icon_256x256.svg 96  128
-    export_png ${RAW_PATHS}/mac_icon_32x32.svg   192 32
-    export_png ${RAW_PATHS}/mac_icon_32x32.svg   96  16
-
+    rm -f ${RAW_PATHS}/win+lin_icon_*.png
     export_png ${RAW_PATHS}/win+lin_icon_256x256.svg 192 256
 }
 
@@ -55,8 +47,17 @@ export_png(){
 create_mac_icon(){
     out=./dist/Bridge.icns
     rm -f ${out}
+    # ${RAW_PATHS}/mac_icon_256x256@2x.png Duplicate icon element of type ic09
+    # ${RAW_PATHS}/mac_icon_128x128@2x.png Duplicate icon element of type ic08
+    # ${RAW_PATHS}/mac_icon_32x32@2x.png   Bad dimensions: PNG file is 64x64
+    # ${RAW_PATHS}/mac_icon_16x16@2x.png   Duplicate icon element of type il32
     png2icns ${out} \
-        ${RAW_PATHS}/mac_icon_{1024x1024,512x512,256x256,128x128,32x32,16x16}.png
+        ${RAW_PATHS}/mac_icon_512x512@2x.png \
+        ${RAW_PATHS}/mac_icon_512x512.png \
+        ${RAW_PATHS}/mac_icon_256x256.png \
+        ${RAW_PATHS}/mac_icon_128x128.png \
+        ${RAW_PATHS}/mac_icon_32x32.png \
+        ${RAW_PATHS}/mac_icon_16x16.png
 }
 
 create_windows_icon(){
