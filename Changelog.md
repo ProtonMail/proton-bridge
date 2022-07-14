@@ -2,6 +2,28 @@
 
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
+## [Bridge 2.2.1] Millau
+
+### Added
+* GODT-1550: Add gobinsec check after CI build.
+* GODT-1686: Add Label/Folder filtering to pmapi.
+
+### Changed
+* Rebranding:
+    * GODT-1475: Change systray icons.
+    * GODT-1565: Update Bridge application icons.
+    * GODT-1564: Update welcome illustration.
+* GODT-1626: Update gopenpgp v2.4.7.
+* GODT-1627: Update go-srvp to v0.0.5.
+* GODT-1523: Reduce unnecessary shell executions. Inspired by @kortschak.
+* Other: Add v2 to module name.
+* GODT-1562: Update test fingerpring.
+
+### Fixed
+* GODT-1659: Convert charset only for `text/*` MIME types.
+* GODT-1640: Renew test keys.
+
+
 ## [Bridge 2.2.0] Millau
 
 ### Added
