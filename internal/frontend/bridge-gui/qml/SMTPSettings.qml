@@ -15,12 +15,12 @@
 // You should have received a copy of the GNU General Public License
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
-import QtQuick 2.13
-import QtQuick.Layouts 1.12
-import QtQuick.Controls 2.13
-import QtQuick.Controls.impl 2.13
+import QtQuick
+import QtQuick.Layouts
+import QtQuick.Controls
+import QtQuick.Controls.impl
 
-import Proton 4.0
+import Proton
 
 SettingsView {
     id: root
@@ -87,7 +87,7 @@ SettingsView {
                 root.submit()
             }
 
-            enabled: sslButton.checked !== root.backend.useSSLforSMTP
+            enabled: sslButton.checked !== Backend.useSSLforSMTP
         }
 
         Button {
@@ -98,20 +98,22 @@ SettingsView {
         }
 
         Connections {
-            target: root.backend
+            target: Backend
 
-            onToggleUseSSLFinished: submitButton.loading = false
+            function onToggleUseSSLFinished() {
+                submitButton.loading = false
+            }
         }
     }
 
     function submit(){
         submitButton.loading = true
-        root.backend.toggleUseSSLforSMTP(sslButton.checked)
+        Backend.toggleUseSSLforSMTP(sslButton.checked)
     }
 
     function setDefaultValues(){
-        sslButton.checked = root.backend.useSSLforSMTP
-        starttlsButton.checked = !root.backend.useSSLforSMTP
+        sslButton.checked = Backend.useSSLforSMTP
+        starttlsButton.checked = !Backend.useSSLforSMTP
     }
 
     onVisibleChanged: {

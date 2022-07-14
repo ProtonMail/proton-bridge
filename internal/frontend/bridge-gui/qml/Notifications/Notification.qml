@@ -15,8 +15,8 @@
 // You should have received a copy of the GNU General Public License
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
-import QtQml 2.12
-import QtQuick.Controls 2.12
+import QtQml
+import QtQuick.Controls
 
 QtObject {
     id: root

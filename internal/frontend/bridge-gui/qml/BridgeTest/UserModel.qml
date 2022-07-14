@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
-import QtQml.Models 2.12
+import QtQml.Models
 
 ListModel {
     // overriding get method to ignore any role and return directly object itself

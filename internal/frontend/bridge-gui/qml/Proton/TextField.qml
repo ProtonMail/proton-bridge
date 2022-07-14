@@ -15,12 +15,12 @@
 // You should have received a copy of the GNU General Public License
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
-import QtQml 2.12
-import QtQuick 2.12
-import QtQuick.Controls 2.12
-import QtQuick.Controls.impl 2.12
-import QtQuick.Templates 2.12 as T
-import QtQuick.Layouts 1.12
+import QtQml
+import QtQuick
+import QtQuick.Controls
+import QtQuick.Controls.impl
+import QtQuick.Templates as T
+import QtQuick.Layouts
 
 import "." as Proton
 
@@ -160,7 +160,7 @@ FocusScope {
             Layout.fillHeight: true
             Layout.fillWidth: true
 
-            radius: Style.input_radius
+            radius: ProtonStyle.input_radius
             visible: true
             color: root.colorScheme.background_norm
             border.color: {
@@ -208,10 +208,10 @@ FocusScope {
                     leftPadding: 12
                     rightPadding: 12
 
-                    font.family: Style.font_family
-                    font.weight: Style.fontWeight_400
-                    font.pixelSize: Style.body_font_size
-                    font.letterSpacing: Style.body_letter_spacing
+                    font.family: ProtonStyle.font_family
+                    font.weight: ProtonStyle.fontWeight_400
+                    font.pixelSize: ProtonStyle.body_font_size
+                    font.letterSpacing: ProtonStyle.body_letter_spacing
 
                     color: control.enabled ? root.colorScheme.text_norm : root.colorScheme.text_disabled
                     placeholderTextColor: control.enabled ? root.colorScheme.text_hint : root.colorScheme.text_disabled
@@ -243,7 +243,7 @@ FocusScope {
 
                         Connections {
                             target: control
-                            onCursorPositionChanged: {
+                            function onCursorPositionChanged() {
                                 // keep a moving cursor visible
                                 cursor.opacity = 1
                                 timer.restart()

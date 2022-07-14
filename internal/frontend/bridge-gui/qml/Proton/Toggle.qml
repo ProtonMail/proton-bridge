@@ -15,10 +15,10 @@
 // You should have received a copy of the GNU General Public License
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
-import QtQuick 2.13
-import QtQuick.Layouts 1.12
-import QtQuick.Controls 2.13
-import QtQuick.Controls.impl 2.13
+import QtQuick
+import QtQuick.Layouts
+import QtQuick.Controls
+import QtQuick.Controls.impl
 
 Item {
     id: root
@@ -72,7 +72,7 @@ Item {
 
             ColorImage {
                 anchors.centerIn: parent
-                source: "../icons/ic-check.svg"
+                source: "/qml/icons/ic-check.svg"
                 color: root.colorScheme.background_norm
                 height: root.colorScheme.body_font_size
                 sourceSize.height: root.colorScheme.body_font_size
@@ -83,7 +83,7 @@ Item {
         ColorImage {
             id: loader
             anchors.centerIn: parent
-            source: "../icons/Loader_16.svg"
+            source: "/qml/icons/Loader_16.svg"
             color: root.colorScheme.text_norm
             height: root.colorScheme.body_font_size
             sourceSize.height: root.colorScheme.body_font_size

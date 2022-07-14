@@ -15,19 +15,17 @@
 // You should have received a copy of the GNU General Public License
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
-import QtQml 2.12
-import QtQuick 2.13
-import QtQuick.Layouts 1.12
-import QtQuick.Controls 2.12
+import QtQml
+import QtQuick
+import QtQuick.Layouts
+import QtQuick.Controls
 
-import Proton 4.0
+import Proton
 
 Item {
     id: root
 
     property ColorScheme colorScheme
-
-    property var backend
 
     implicitHeight: children[0].implicitHeight
     implicitWidth: children[0].implicitWidth
@@ -224,8 +222,7 @@ Item {
                         Layout.preferredWidth: 320
                         Layout.fillWidth: true
 
-                        username: root.backend.users.count === 1 && root.backend.users.get(0) && root.backend.users.get(0).loggedIn === false ? root.backend.users.get(0).username : ""
-                        backend: root.backend
+                        username: Backend.users.count === 1 && Backend.users.get(0) && Backend.users.get(0).loggedIn === false ? Backend.users.get(0).username : ""
                     }
 
                     // Right margin

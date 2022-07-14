@@ -15,12 +15,12 @@
 // You should have received a copy of the GNU General Public License
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
-import QtQml 2.12
-import QtQuick 2.12
-import QtQuick.Window 2.12
-import QtQuick.Controls 2.12
-import QtQuick.Controls.impl 2.12
-import QtQuick.Templates 2.12 as T
+import QtQml
+import QtQuick
+import QtQuick.Window
+import QtQuick.Controls
+import QtQuick.Controls.impl
+import QtQuick.Templates as T
 
 T.ApplicationWindow {
     id: root
@@ -46,7 +46,7 @@ T.ApplicationWindow {
             return data(index(row, 0), Qt.DisplayRole)
         }
 
-        onRowsInserted: {
+        onRowsInserted: function(parent, first, last) {
             for (var i = first; i <= last; i++) {
                 var obj = popups.get(i)
                 obj.onShouldShowChanged.connect( root.processPopups )
@@ -55,7 +55,7 @@ T.ApplicationWindow {
             processPopups()
         }
 
-        onRowsAboutToBeRemoved: {
+        onRowsAboutToBeRemoved: function (parent, first, last) {
             for (var i = first; i <= last; i++ ) {
                 var obj = popups.get(i)
                 obj.onShouldShowChanged.disconnect( root.processPopups )
@@ -112,7 +112,7 @@ T.ApplicationWindow {
     Connections {
         target: root.popupVisible
 
-        onVisibleChanged: {
+        function onVisibleChanged() {
             if (root.popupVisible.visible) {
                 return
             }
@@ -124,11 +124,11 @@ T.ApplicationWindow {
 
     color: root.colorScheme.background_norm
 
-    overlay.modal: Rectangle {
+    Overlay.modal: Rectangle {
         color: root.colorScheme.backdrop_norm
     }
 
-    overlay.modeless: Rectangle {
+    Overlay.modeless: Rectangle {
         color: "transparent"
     }
 }

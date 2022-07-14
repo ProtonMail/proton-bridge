@@ -15,15 +15,14 @@
 // You should have received a copy of the GNU General Public License
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
-import QtQml 2.12
-import QtQuick 2.13
-import QtQuick.Window 2.13
-import QtQuick.Layouts 1.12
-import QtQuick.Controls 2.12
+import QtQml
+import QtQuick
+import QtQuick.Window
+import QtQuick.Layouts
+import QtQuick.Controls
 
-import Proton 4.0
-import Notifications 1.0
-import CppBackend 1.0
+import Proton
+import Notifications
 
 import "tests"
 
@@ -40,8 +39,6 @@ ApplicationWindow {
 
     colorScheme: ProtonStyle.currentStyle
 
-
-    property var backend
     property var notifications
 
     // This is needed because on MacOS if first window shown is not transparent -
@@ -52,11 +49,11 @@ ApplicationWindow {
 
     // show Setup Guide on every new user
     Connections {
-        target: root.backend.users
+        target: Backend.users
 
-        onRowsInserted: {
+        function onRowsInserted(parent, first, last) {
             // considerring that users are added one-by-one
-            var user = root.backend.users.get(first)
+            var user = Backend.users.get(first)
 
             if (!user.loggedIn) {
                 return
@@ -69,9 +66,9 @@ ApplicationWindow {
             root.showSetup(user,user.addresses[0])
         }
 
-        onRowsAboutToBeRemoved: {
+        function onRowsAboutToBeRemoved(parent, first, last) {
             for (var i = first; i <= last; i++ ) {
-                var user = root.backend.users.get(i)
+                var user = Backend.users.get(i)
 
                 if (setupGuide.user === user) {
                     setupGuide.user = null
@@ -83,13 +80,13 @@ ApplicationWindow {
     }
 
     Connections {
-        target: root.backend
+        target: Backend
 
-        onShowMainWindow: {
+        function onShowMainWindow() {
             root.showAndRise()
         }
 
-        onLoginFinished: {
+        function onLoginFinished(index) {
             console.debug("Login finished", index)
         }
     }
@@ -102,11 +99,11 @@ ApplicationWindow {
         property bool _showSetup: false
         currentIndex: {
             // show welcome when there are no users or only one non-logged-in user is present
-            if (backend.users.count === 0) {
+            if (Backend.users.count === 0) {
                 return 1
             }
 
-            var u = backend.users.get(0)
+            var u = Backend.users.get(0)
 
             if (!u) {
                 console.trace()
@@ -114,7 +111,7 @@ ApplicationWindow {
                 return 1
             }
 
-            if (backend.users.count === 1 && u.loggedIn === false) {
+            if (Backend.users.count === 1 && u.loggedIn === false) {
                 return 1
             }
 
@@ -128,7 +125,6 @@ ApplicationWindow {
         ContentWrapper { // 0
             id: contentWrapper
             colorScheme: root.colorScheme
-            backend: root.backend
             notifications: root.notifications
 
             Layout.fillHeight: true
@@ -141,7 +137,6 @@ ApplicationWindow {
 
         WelcomeGuide { // 1
             colorScheme: root.colorScheme
-            backend: root.backend
 
             Layout.fillHeight: true
             Layout.fillWidth: true
@@ -150,7 +145,6 @@ ApplicationWindow {
         SetupGuide { // 2
             id: setupGuide
             colorScheme: root.colorScheme
-            backend: root.backend
 
             Layout.fillHeight: true
             Layout.fillWidth: true
@@ -160,8 +154,8 @@ ApplicationWindow {
             }
 
             onFinished: {
-                // TODO: Do not close window. Trigger backend to check that
-                // there is a successfully connected client. Then backend
+                // TODO: Do not close window. Trigger Backend to check that
+                // there is a successfully connected client. Then Backend
                 // should send another signal to close the setup guide.
                 root.showSetup(null,"")
             }
@@ -173,13 +167,11 @@ ApplicationWindow {
         colorScheme: root.colorScheme
         notifications: root.notifications
         mainWindow: root
-        backend: root.backend
     }
 
     SplashScreen {
         id: splashScreen
         colorScheme: root.colorScheme
-        backend: root.backend
     }
 
     function showLocalCacheSettings() { contentWrapper.showLocalCacheSettings() }

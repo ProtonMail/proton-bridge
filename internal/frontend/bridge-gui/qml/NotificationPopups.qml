@@ -15,17 +15,16 @@
 // You should have received a copy of the GNU General Public License
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
-import QtQml 2.12
-import QtQuick 2.12
-import QtQuick.Layouts 1.12
-import QtQuick.Controls 2.12
+import QtQml
+import QtQuick
+import QtQuick.Layouts
+import QtQuick.Controls
 
-import Proton 4.0
-import Notifications 1.0
+import Proton
+import Notifications
 
 Item {
     id: root
-    property var backend
 
     property ColorScheme colorScheme
     property var notifications
@@ -55,8 +54,8 @@ Item {
             id:autoUpdate
             colorScheme: root.colorScheme
             text: qsTr("Update automatically in the future")
-            checked: root.backend.isAutomaticUpdateOn
-            onClicked: root.backend.toggleAutomaticUpdate(autoUpdate.checked)
+            checked: Backend.isAutomaticUpdateOn
+            onClicked: Backend.toggleAutomaticUpdate(autoUpdate.checked)
         }
     }
 

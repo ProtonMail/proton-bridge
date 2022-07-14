@@ -16,18 +16,17 @@
 // You should have received a copy of the GNU General Public License
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
-import QtQuick 2.13
-import QtQuick.Layouts 1.12
-import QtQuick.Controls 2.12
-import QtQuick.Controls.impl 2.12
+import QtQuick
+import QtQuick.Layouts
+import QtQuick.Controls
+import QtQuick.Controls.impl
 
-import Proton 4.0
-import Notifications 1.0
+import Proton
+import Notifications
 
 Item {
     id: root
 
-    property var backend
     property var notifications
     property ColorScheme colorScheme
 
@@ -48,7 +47,7 @@ Item {
 
         onTopmostChanged: {
             if (!topmost) {
-                image.source = "./icons/ic-connected.svg"
+                image.source = "/qml/icons/ic-connected.svg"
                 image.color = root.colorScheme.signal_success
                 label.text = qsTr("Connected")
                 label.color = root.colorScheme.signal_success
@@ -89,7 +88,7 @@ Item {
             height: 16
             sourceSize.width: width
             sourceSize.height: height
-            source: "./icons/ic-connected.svg"
+            source: "/qml/icons/ic-connected.svg"
             color: root.colorScheme.signal_success
         }
 

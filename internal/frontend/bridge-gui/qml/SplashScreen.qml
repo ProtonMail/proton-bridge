@@ -15,20 +15,18 @@
 // You should have received a copy of the GNU General Public License
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
-import QtQml 2.12
-import QtQuick 2.13
-import QtQuick.Layouts 1.12
-import QtQuick.Controls 2.12
-import QtQuick.Controls.impl 2.12
+import QtQml
+import QtQuick
+import QtQuick.Layouts
+import QtQuick.Controls
+import QtQuick.Controls.impl
 
-import Proton 4.0
+import Proton
 
 Dialog {
     id: root
 
-    property var backend
-
-    shouldShow: root.backend.showSplashScreen
+    shouldShow: Backend.showSplashScreen
     modal: true
 
     topPadding   : 0
@@ -89,7 +87,7 @@ Dialog {
             Layout.rightMargin: 24
             colorScheme: root.colorScheme
             text: "Got it"
-            onClicked: root.backend.showSplashScreen = false
+            onClicked: Backend.showSplashScreen = false
         }
 
         Image {
@@ -101,7 +99,7 @@ Dialog {
             Layout.preferredWidth: 164
             Layout.preferredHeight: 32
 
-            source: "./icons/img-proton-logos.svg"
+            source: "/qml/icons/img-proton-logos.svg"
         }
     }
 }

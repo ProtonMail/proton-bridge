@@ -21,6 +21,7 @@ depends QtQuick.Controls 2.12
 singleton ProtonStyle 4.0 Style.qml
 ColorScheme 4.0 ColorScheme.qml
 
+Action 4.0 Action.qml
 ApplicationWindow 4.0 ApplicationWindow.qml
 Button 4.0 Button.qml
 CheckBox 4.0 CheckBox.qml

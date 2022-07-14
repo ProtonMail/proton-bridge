@@ -15,10 +15,10 @@
 // You should have received a copy of the GNU General Public License
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
-import QtQuick 2.13
-import QtQuick.Window 2.13
-import QtQuick.Layouts 1.12
-import QtQuick.Controls 2.12
+import QtQuick
+import QtQuick.Window
+import QtQuick.Layouts
+import QtQuick.Controls
 
 import "../Proton"
 
@@ -32,7 +32,7 @@ RowLayout {
         Layout.fillWidth: true
         Layout.fillHeight: true
 
-        iconLoading: "../icons/Loader_16.svg"
+        iconLoading: "/qml/icons/Loader_16.svg"
     }
 
     // Secondary buttons
@@ -42,7 +42,7 @@ RowLayout {
         Layout.fillHeight: true
 
         secondary: true
-        iconLoading: "../icons/Loader_16.svg"
+        iconLoading: "/qml/icons/Loader_16.svg"
     }
 
     // Secondary icons
@@ -53,11 +53,11 @@ RowLayout {
 
         secondary: true
         textNormal: ""
-        iconNormal: "../icons/ic-cross-close.svg"
+        iconNormal: "/qml/icons/ic-cross-close.svg"
         textDisabled: ""
-        iconDisabled: "../icons/ic-cross-close.svg"
+        iconDisabled: "/qml/icons/ic-cross-close.svg"
         textLoading: ""
-        iconLoading: "../icons/Loader_16.svg"
+        iconLoading: "/qml/icons/Loader_16.svg"
     }
 
     // Icons
@@ -67,10 +67,10 @@ RowLayout {
         Layout.fillHeight: true
 
         textNormal: ""
-        iconNormal: "../icons/ic-cross-close.svg"
+        iconNormal: "/qml/icons/ic-cross-close.svg"
         textDisabled: ""
-        iconDisabled: "../icons/ic-cross-close.svg"
+        iconDisabled: "/qml/icons/ic-cross-close.svg"
         textLoading: ""
-        iconLoading: "../icons/Loader_16.svg"
+        iconLoading: "/qml/icons/Loader_16.svg"
     }
 }

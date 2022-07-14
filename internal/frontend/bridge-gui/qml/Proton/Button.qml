@@ -15,12 +15,11 @@
 // You should have received a copy of the GNU General Public License
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
-import QtQuick 2.12
-import QtQuick.Controls 2.12
-import QtQuick.Controls.impl 2.12
-import QtQuick.Templates 2.12 as T
-import QtQuick.Layouts 1.12
-
+import QtQuick
+import QtQuick.Controls
+import QtQuick.Controls.impl
+import QtQuick.Templates as T
+import QtQuick.Layouts
 import "." as Proton
 
 T.Button {
@@ -129,7 +128,7 @@ T.Button {
             sourceSize.height: control.icon.height
 
             color: control.icon.color
-            source: control.loading ? "../icons/Loader_16.svg" : control.icon.source
+            source: control.loading ? "/qml/icons/Loader_16.svg" : control.icon.source
             visible: control.loading || control.icon.source
 
             RotationAnimation {
@@ -147,7 +146,7 @@ T.Button {
     background: Rectangle {
         implicitWidth: 36
         implicitHeight: 36
-        radius: Style.button_radius
+        radius: ProtonStyle.button_radius
         visible: true
         color: {
             if (!isIcon) {

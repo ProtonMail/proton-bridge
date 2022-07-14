@@ -15,13 +15,13 @@
 // You should have received a copy of the GNU General Public License
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
-import QtQml 2.12
-import QtQuick 2.13
-import QtQuick.Window 2.13
-import Qt.labs.platform 1.1
+import QtQml
+import QtQuick
+import QtQuick.Window
+import Qt.labs.platform
 
-import Proton 4.0
-import Notifications 1.0
+import Proton
+import Notifications
 
 QtObject {
     id: root
@@ -33,12 +33,10 @@ QtObject {
         return Math.max(lower_limit, Math.min(upper_limit, num))
     }
 
-    property var backend
     property var title: "Proton Mail Bridge"
 
     property Notifications _notifications: Notifications {
         id: notifications
-        backend: root.backend
         frontendMain: mainWindow
         frontendStatus: statusWindow
         frontendTray: trayIcon
@@ -49,19 +47,18 @@ QtObject {
         visible: false
 
         title: root.title
-        backend: root.backend
         notifications: root._notifications
 
         onVisibleChanged: {
-            backend.dockIconVisible = visible
+            Backend.dockIconVisible = visible
         }
 
         Connections {
-            target: root.backend
-            onCacheUnavailable: {
+            target: Backend
+            function onCacheUnavailable() {
                 mainWindow.showAndRise()
             }
-            onColorSchemeNameChanged: root.setColorScheme()
+            function onColorSchemeNameChanged(scheme) { root.setColorScheme() }
         }
     }
 
@@ -70,7 +67,6 @@ QtObject {
         visible: false
 
         title: root.title
-        backend: root.backend
         notifications: root._notifications
 
         onShowMainWindow: {
@@ -93,7 +89,7 @@ QtObject {
         }
 
         onQuit: {
-            backend.quit()
+            Backend.quit()
         }
 
         property rect screenRect
@@ -157,14 +153,14 @@ QtObject {
         visible: true
         icon.source: getTrayIconPath()
         icon.mask: true // make sure that systems like macOS will use proper color
-        tooltip: `${root.title} v${backend.version}`
-        onActivated: {
+        tooltip: `${root.title} v${Backend.version}`
+        onActivated: function(reason) {
             function calcStatusWindowPosition() {
                 // On some platforms (X11 / Plasma) Qt does not provide icon position and geometry info.
                 // In this case we rely on cursor position
                 var iconRect = Qt.rect(geometry.x, geometry.y, geometry.width, geometry.height)
                 if (geometry.width == 0 && geometry.height == 0) {
-                    var mousePos = backend.getCursorPos()
+                    var mousePos = Backend.getCursorPos()
                     iconRect.x = mousePos.x
                     iconRect.y = mousePos.y
                     iconRect.width = 0
@@ -229,7 +225,7 @@ QtObject {
         }
 
         function getTrayIconPath() {
-            var color = backend.goos == "darwin" ? "mono" : "color" 
+            var color = Backend.goos == "darwin" ? "mono" : "color"
 
             var level = "norm"
             if (_systrayfilter.topmost) {
@@ -245,25 +241,24 @@ QtObject {
                     break;
                 }
             }
-
-            return `./icons/systray-${color}-${level}.png`
+            return `qrc:/qml/icons/systray-${color}-${level}.png`
         }
     }
 
     Component.onCompleted: {
-        if (!root.backend) {
-            console.log("backend not loaded")
+        if (!Backend) {
+            console.log("Backend not loaded")
         }
 
         root.setColorScheme()
 
 
-        if (!root.backend.users) {
+        if (!Backend.users) {
             console.log("users not loaded")
         }
 
-        var c = root.backend.users.count
-        var u = root.backend.users.get(0)
+        var c = Backend.users.count
+        var u = Backend.users.get(0)
         // DEBUG
         if (c != 0) {
             console.log("users non zero", c)
@@ -280,15 +275,15 @@ QtObject {
             }
         }
 
-        if (root.backend.showOnStartup) {
+        if (Backend.showOnStartup) {
             mainWindow.showAndRise()
         }
 
-        root.backend.guiReady()
+        Backend.guiReady()
     }
 
     function setColorScheme() {
-        if (root.backend.colorSchemeName == "light") ProtonStyle.currentStyle = ProtonStyle.lightStyle
-        if (root.backend.colorSchemeName == "dark") ProtonStyle.currentStyle = ProtonStyle.darkStyle
+        if (Backend.colorSchemeName == "light") ProtonStyle.currentStyle = ProtonStyle.lightStyle
+        if (Backend.colorSchemeName == "dark") ProtonStyle.currentStyle = ProtonStyle.darkStyle
     }
 }

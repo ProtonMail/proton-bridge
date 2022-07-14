@@ -15,11 +15,11 @@
 // You should have received a copy of the GNU General Public License
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
-import QtQuick 2.13
-import QtQuick.Layouts 1.12
-import QtQuick.Controls 2.12
+import QtQuick
+import QtQuick.Layouts
+import QtQuick.Controls
 
-import Proton 4.0
+import Proton
 
 SettingsView {
     id: root
@@ -122,7 +122,7 @@ SettingsView {
             text: qsTr("View logs")
             secondary: true
             colorScheme: root.colorScheme
-            onClicked: Qt.openUrlExternally(root.backend.logsPath)
+            onClicked: Qt.openUrlExternally(Backend.logsPath)
         }
     }
 
@@ -137,7 +137,7 @@ SettingsView {
         font.weight: ProtonStyle.fontWeight_400
         font.pixelSize: ProtonStyle.caption_font_size
         font.letterSpacing: ProtonStyle.caption_letter_spacing
-        // No way to set lineHeight: Style.caption_line_height
+        // No way to set lineHeight: ProtonStyle.caption_line_height
         selectionColor: root.colorScheme.interaction_norm
         selectedTextColor: root.colorScheme.text_invert
         wrapMode: Text.WordWrap
@@ -161,13 +161,16 @@ SettingsView {
             submit()
         }
 
-        Connections {target: root.backend; onReportBugFinished: sendButton.loading = false }
+        Connections {
+            target: Backend
+            function onReportBugFinished() { sendButton.loading = false }
+        }
     }
 
     function setDefaultValue() {
         description.text = ""
         address.text = root.selectedAddress
-        emailClient.text = root.backend.currentEmailClient
+        emailClient.text = Backend.currentEmailClient
         includeLogs.checked = true
     }
 
@@ -178,7 +181,7 @@ SettingsView {
 
     function submit() {
         sendButton.loading = true
-        root.backend.reportBug(
+        Backend.reportBug(
             description.text,
             address.text,
             emailClient.text,

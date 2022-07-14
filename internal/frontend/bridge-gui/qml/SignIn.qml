@@ -15,13 +15,13 @@
 // You should have received a copy of the GNU General Public License
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
-import QtQml 2.12
-import QtQuick 2.13
-import QtQuick.Layouts 1.12
-import QtQuick.Controls 2.12
-import QtQuick.Controls.impl 2.12
+import QtQml
+import QtQuick
+import QtQuick.Layouts
+import QtQuick.Controls
+import QtQuick.Controls.impl
 
-import Proton 4.0
+import Proton
 
 Item {
     id: root
@@ -37,13 +37,11 @@ Item {
 
     function abort() {
         root.reset()
-        root.backend.loginAbort(usernameTextField.text)
+        Backend.loginAbort(usernameTextField.text)
     }
 
     implicitHeight: children[0].implicitHeight
     implicitWidth: children[0].implicitWidth
-
-    property var backend
 
     property alias username: usernameTextField.text
     state: "Page 1"
@@ -65,9 +63,9 @@ Item {
         }
 
         Connections {
-            target: root.backend
+            target: Backend
 
-            onLoginUsernamePasswordError: {
+            function onLoginUsernamePasswordError(errorMsg) {
                 console.assert(stackLayout.currentIndex == 0, "Unexpected loginUsernamePasswordError")
                 console.assert(signInButton.loading == true, "Unexpected loginUsernamePasswordError")
 
@@ -76,23 +74,24 @@ Item {
                 else errorLabel.text = qsTr("Incorrect login credentials")
             }
 
-            onLoginFreeUserError: {
+            function onLoginFreeUserError() {
                 console.assert(stackLayout.currentIndex == 0, "Unexpected loginFreeUserError")
                 stackLayout.loginFailed()
             }
 
-            onLoginConnectionError: {
+            function onLoginConnectionError(errorMsg) {
                 if (stackLayout.currentIndex == 0 ) {
                     stackLayout.loginFailed()
                 }
             }
 
-            onLogin2FARequested: {
+            function onLogin2FARequested(username) {
                 console.assert(stackLayout.currentIndex == 0, "Unexpected login2FARequested")
                 twoFactorUsernameLabel.text = username
                 stackLayout.currentIndex = 1
             }
-            onLogin2FAError: {
+
+            function onLogin2FAError(errorMsg) {
                 console.assert(stackLayout.currentIndex == 1, "Unexpected login2FAError")
 
                 twoFAButton.loading = false
@@ -101,17 +100,18 @@ Item {
                 twoFactorPasswordTextField.error = true
                 twoFactorPasswordTextField.errorString = qsTr("Your code is incorrect")
             }
-            onLogin2FAErrorAbort: {
+
+            function onLogin2FAErrorAbort(errorMsg) {
                 console.assert(stackLayout.currentIndex == 1, "Unexpected login2FAErrorAbort")
                 root.reset()
                 errorLabel.text = qsTr("Incorrect login credentials. Please try again.")
             }
 
-            onLogin2PasswordRequested: {
+            function onLogin2PasswordRequested() {
                 console.assert(stackLayout.currentIndex == 0 || stackLayout.currentIndex == 1, "Unexpected login2PasswordRequested")
                 stackLayout.currentIndex = 2
             }
-            onLogin2PasswordError: {
+            function onLogin2PasswordError(errorMsg) {
                 console.assert(stackLayout.currentIndex == 2, "Unexpected login2PasswordError")
 
                 secondPasswordButton.loading = false
@@ -120,13 +120,13 @@ Item {
                 secondPasswordTextField.error = true
                 secondPasswordTextField.errorString = qsTr("Your mailbox password is incorrect")
             }
-            onLogin2PasswordErrorAbort: {
+            function onLogin2PasswordErrorAbort(errorMsg) {
                 console.assert(stackLayout.currentIndex == 2, "Unexpected login2PasswordErrorAbort")
                 root.reset()
                 errorLabel.text = qsTr("Incorrect login credentials. Please try again.")
             }
 
-            onLoginFinished: {
+            function onLoginFinished(index) {
                 stackLayout.currentIndex = 0
                 root.reset()
             }
@@ -179,7 +179,7 @@ Item {
 
                 ColorImage {
                     color: root.colorScheme.signal_danger
-                    source: "./icons/ic-exclamation-circle-filled.svg"
+                    source: "/qml/icons/ic-exclamation-circle-filled.svg"
                     height: errorLabel.height
                     sourceSize.height: errorLabel.height
                 }
@@ -274,7 +274,7 @@ Item {
                     enabled = false
                     loading = true
 
-                    root.backend.login(usernameTextField.text, Qt.btoa(passwordTextField.text))
+                    Backend.login(usernameTextField.text, Qt.btoa(passwordTextField.text))
                 }
             }
 
@@ -361,7 +361,7 @@ Item {
                     enabled = false
                     loading = true
 
-                    root.backend.login2FA(usernameTextField.text, Qt.btoa(twoFactorPasswordTextField.text))
+                    Backend.login2FA(usernameTextField.text, Qt.btoa(twoFactorPasswordTextField.text))
                 }
             }
         }
@@ -425,7 +425,7 @@ Item {
                     enabled = false
                     loading = true
 
-                    root.backend.login2Password(usernameTextField.text, Qt.btoa(secondPasswordTextField.text))
+                    Backend.login2Password(usernameTextField.text, Qt.btoa(secondPasswordTextField.text))
                 }
             }
         }

@@ -15,11 +15,11 @@
 // You should have received a copy of the GNU General Public License
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
-import QtQml 2.12
-import QtQuick 2.12
-import QtQuick.Templates 2.12 as T
-import QtQuick.Controls 2.12
-import QtQuick.Controls.impl 2.12
+import QtQml
+import QtQuick
+import QtQuick.Templates as T
+import QtQuick.Controls
+import QtQuick.Controls.impl
 
 T.Dialog {
     id: root
@@ -65,7 +65,7 @@ T.Dialog {
 
     background: Rectangle {
         color: root.colorScheme.background_norm
-        radius: Style.dialog_radius
+        radius: ProtonStyle.dialog_radius
     }
 
     // TODO: Add DropShadow here

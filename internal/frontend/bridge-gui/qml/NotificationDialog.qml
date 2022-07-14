@@ -15,13 +15,13 @@
 // You should have received a copy of the GNU General Public License
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
-import QtQml 2.12
-import QtQuick 2.12
-import QtQuick.Layouts 1.12
-import QtQuick.Controls 2.12
+import QtQml
+import QtQuick
+import QtQuick.Layouts
+import QtQuick.Controls
 
-import Proton 4.0
-import Notifications 1.0
+import Proton
+import Notifications
 
 Dialog {
     id: root
@@ -56,12 +56,12 @@ Dialog {
 
                 switch (root.notification.type) {
                     case Notification.NotificationType.Info:
-                    return "./icons/ic-info.svg"
+                    return "/qml/icons/ic-info.svg"
                     case Notification.NotificationType.Success:
-                    return "./icons/ic-success.svg"
+                    return "/qml/icons/ic-success.svg"
                     case Notification.NotificationType.Warning:
                     case Notification.NotificationType.Danger:
-                    return "./icons/ic-alert.svg"
+                    return "/qml/icons/ic-alert.svg"
                 }
             }
         }
@@ -84,7 +84,7 @@ Dialog {
             wrapMode: Text.WordWrap
             horizontalAlignment: Text.AlignHCenter
             type: Label.LabelType.Body
-            onLinkActivated: Qt.openUrlExternally(link)
+            onLinkActivated: function(link) { Qt.openUrlExternally(link) }
         }
 
         Item {

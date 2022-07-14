@@ -15,9 +15,9 @@
 // You should have received a copy of the GNU General Public License
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
-import QtQuick.Layouts 1.12
-import QtQuick 2.12
-import QtQuick.Controls 2.12
+import QtQuick.Layouts
+import QtQuick
+import QtQuick.Controls
 
 import "../Proton"
 

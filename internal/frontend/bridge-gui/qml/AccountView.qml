@@ -15,16 +15,15 @@
 // You should have received a copy of the GNU General Public License
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
-import QtQuick 2.13
-import QtQuick.Layouts 1.12
-import QtQuick.Controls 2.12
+import QtQuick
+import QtQuick.Layouts
+import QtQuick.Controls
 
-import Proton 4.0
+import Proton
 
 Item {
     id: root
     property ColorScheme colorScheme
-    property var backend
     property var notifications
     property var user
 
@@ -117,7 +116,7 @@ Item {
                             Button {
                                 Layout.alignment: Qt.AlignTop
                                 colorScheme: root.colorScheme
-                                icon.source: "icons/ic-trash.svg"
+                                icon.source: "/qml/icons/ic-trash.svg"
                                 secondary: true
                                 onClicked: {
                                     if (!root.user) return
@@ -227,8 +226,8 @@ Item {
                         Configuration {
                             colorScheme: root.colorScheme
                             title: qsTr("IMAP")
-                            hostname:   root.backend.hostname
-                            port:       root.backend.portIMAP.toString()
+                            hostname:   Backend.hostname
+                            port:       Backend.portIMAP.toString()
                             username:   configuration.currentAddress
                             password:   root.user ? root.user.password : ""
                             security:   "STARTTLS"
@@ -237,11 +236,11 @@ Item {
                         Configuration {
                             colorScheme: root.colorScheme
                             title: qsTr("SMTP")
-                            hostname : root.backend.hostname
-                            port     : root.backend.portSMTP.toString()
+                            hostname : Backend.hostname
+                            port     : Backend.portSMTP.toString()
                             username : configuration.currentAddress
                             password : root.user ? root.user.password : ""
-                            security : root.backend.useSSLforSMTP ? "SSL" : "STARTTLS"
+                            security : Backend.useSSLforSMTP ? "SSL" : "STARTTLS"
                         }
                     }
                 }

@@ -15,12 +15,12 @@
 // You should have received a copy of the GNU General Public License
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
-import QtQuick 2.13
-import QtQuick.Layouts 1.12
-import QtQuick.Controls 2.13
-import QtQuick.Controls.impl 2.13
+import QtQuick
+import QtQuick.Layouts
+import QtQuick.Controls
+import QtQuick.Controls.impl
 
-import Proton 4.0
+import Proton
 
 SettingsView {
     id: root
@@ -43,8 +43,8 @@ SettingsView {
         text: qsTr("Automatic updates")
         description: qsTr("Bridge will automatically update in the background.")
         type: SettingsItem.Toggle
-        checked: root.backend.isAutomaticUpdateOn
-        onClicked: root.backend.toggleAutomaticUpdate(!autoUpdate.checked)
+        checked: Backend.isAutomaticUpdateOn
+        onClicked: Backend.toggleAutomaticUpdate(!autoUpdate.checked)
 
         Layout.fillWidth: true
     }
@@ -55,14 +55,14 @@ SettingsView {
         text: qsTr("Open on startup")
         description: qsTr("Bridge will open upon startup.")
         type: SettingsItem.Toggle
-        checked: root.backend.isAutostartOn
+        checked: Backend.isAutostartOn
         onClicked: {
             autostart.loading = true
-            root.backend.toggleAutostart(!autostart.checked)
+            Backend.toggleAutostart(!autostart.checked)
         }
         Connections{
-            target: root.backend
-            onToggleAutostartFinished: {
+            target: Backend
+            function onToggleAutostartFinished() {
                 autostart.loading = false
             }
         }
@@ -76,12 +76,12 @@ SettingsView {
         text: qsTr("Beta access")
         description: qsTr("Be among the first to try new features.")
         type: SettingsItem.Toggle
-        checked: root.backend.isBetaEnabled
+        checked: Backend.isBetaEnabled
         onClicked: {
             if (!beta.checked) {
                 root.notifications.askEnableBeta()
             } else {
-                root.backend.toggleBeta(false)
+                Backend.toggleBeta(false)
             }
         }
 
@@ -92,7 +92,7 @@ SettingsView {
         ColorImage {
             Layout.alignment: Qt.AlignTop
 
-            source: root._isAdvancedShown ? "icons/ic-chevron-up.svg" : "icons/ic-chevron-down.svg"
+            source: root._isAdvancedShown ? "/qml/icons/ic-chevron-up.svg" : "/qml/icons/ic-chevron-down.svg"
             color: root.colorScheme.interaction_norm
             height: root.colorScheme.body_font_size
             sourceSize.height: root.colorScheme.body_font_size
@@ -118,13 +118,13 @@ SettingsView {
 
     SettingsItem {
         id: keychains
-        visible: root._isAdvancedShown && root.backend.availableKeychain.length > 1
+        visible: root._isAdvancedShown && Backend.availableKeychain.length > 1
         colorScheme: root.colorScheme
         text: qsTr("Change keychain")
         description: qsTr("Change which keychain Bridge uses as default")
         actionText: qsTr("Change")
         type: SettingsItem.Button
-        checked: root.backend.isDoHEnabled
+        checked: Backend.isDoHEnabled
         onClicked: root.parent.showKeychainSettings()
 
         Layout.fillWidth: true
@@ -137,8 +137,8 @@ SettingsView {
         text: qsTr("Alternative routing")
         description: qsTr("If Proton’s servers are blocked in your location, alternative network routing will be used to reach Proton.")
         type: SettingsItem.Toggle
-        checked: root.backend.isDoHEnabled
-        onClicked: root.backend.toggleDoH(!doh.checked)
+        checked: Backend.isDoHEnabled
+        onClicked: Backend.toggleDoH(!doh.checked)
 
         Layout.fillWidth: true
     }
@@ -150,8 +150,8 @@ SettingsView {
         text: qsTr("Dark mode")
         description: qsTr("Choose dark color theme.")
         type: SettingsItem.Toggle
-        checked: root.backend.colorSchemeName == "dark"
-        onClicked: root.backend.changeColorScheme( darkMode.checked ? "light" : "dark")
+        checked: Backend.colorSchemeName == "dark"
+        onClicked: Backend.changeColorScheme( darkMode.checked ? "light" : "dark")
 
         Layout.fillWidth: true
     }

@@ -16,18 +16,17 @@
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 
-import QtQuick 2.13
-import QtQuick.Layouts 1.12
-import QtQuick.Controls 2.12
-import QtQuick.Controls.impl 2.12
+import QtQuick
+import QtQuick.Layouts
+import QtQuick.Controls
+import QtQuick.Controls.impl
 
-import Proton 4.0
+import Proton
 
 Item {
     id:root
 
     property ColorScheme colorScheme
-    property var backend
     property var user
     property string address
 
@@ -41,29 +40,29 @@ Item {
     ListModel {
         id: clients
         property string name : "Apple Mail"
-        property string iconSource : "./icons/ic-apple-mail.svg"
+        property string iconSource : "/qml/icons/ic-apple-mail.svg"
         property bool haveAutoSetup: true
         property string link: "https://protonmail.com/bridge/applemail"
 
         Component.onCompleted : {
-            if (root.backend.goos == "darwin") {
+            if (Backend.goos == "darwin") {
                 append({
                     "name"          : "Apple Mail",
-                    "iconSource"    : "./icons/ic-apple-mail.svg",
+                    "iconSource"    : "/qml/icons/ic-apple-mail.svg",
                     "haveAutoSetup" : true,
                     "link"          : "https://protonmail.com/bridge/applemail"
                 })
                 append({
                     "name"          : "Microsoft Outlook",
-                    "iconSource"    : "./icons/ic-microsoft-outlook.svg",
+                    "iconSource"    : "/qml/icons/ic-microsoft-outlook.svg",
                     "haveAutoSetup" : false,
                     "link"          : "https://protonmail.com/bridge/outlook2019-mac"
                 })
             }
-            if (root.backend.goos == "windows") {
+            if (Backend.goos == "windows") {
                 append({
                     "name"          : "Microsoft Outlook",
-                    "iconSource"    : "./icons/ic-microsoft-outlook.svg",
+                    "iconSource"    : "/qml/icons/ic-microsoft-outlook.svg",
                     "haveAutoSetup" : false,
                     "link"          : "https://protonmail.com/bridge/outlook2019"
                 })
@@ -71,14 +70,14 @@ Item {
 
             append({
                 "name"          : "Mozilla Thunderbird",
-                "iconSource"    : "./icons/ic-mozilla-thunderbird.svg",
+                "iconSource"    : "/qml/icons/ic-mozilla-thunderbird.svg",
                 "haveAutoSetup" : false,
                 "link"          : "https://protonmail.com/bridge/thunderbird"
             })
 
             append({
                 "name"          : "Other",
-                "iconSource"    : "./icons/ic-other-mail-clients.svg",
+                "iconSource"    : "/qml/icons/ic-other-mail-clients.svg",
                 "haveAutoSetup" : false,
                 "link"          : "https://protonmail.com/bridge/clients"
             })

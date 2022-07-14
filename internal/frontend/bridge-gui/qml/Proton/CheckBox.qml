@@ -15,10 +15,10 @@
 // You should have received a copy of the GNU General Public License
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
-import QtQuick 2.12
-import QtQuick.Controls 2.12
-import QtQuick.Controls.impl 2.12
-import QtQuick.Templates 2.12 as T
+import QtQuick
+import QtQuick.Controls
+import QtQuick.Controls.impl
+import QtQuick.Templates as T
 
 T.CheckBox {
     property ColorScheme colorScheme
@@ -39,7 +39,7 @@ T.CheckBox {
     indicator: Rectangle {
         implicitWidth: 20
         implicitHeight: 20
-        radius: Style.checkbox_radius
+        radius: ProtonStyle.checkbox_radius
 
         x: text ? (control.mirrored ? control.width - width - control.rightPadding : control.leftPadding) : control.leftPadding + (control.availableWidth - width) / 2
         y: control.topPadding + (control.availableHeight - height) / 2
@@ -90,7 +90,7 @@ T.CheckBox {
             sourceSize.width: parent.width - 4
             sourceSize.height: parent.height - 4
             color: "#FFFFFF"
-            source: "../icons/ic-check.svg"
+            source: "/qml/icons/ic-check.svg"
             visible: control.checkState === Qt.Checked
         }
 
@@ -124,11 +124,11 @@ T.CheckBox {
             return control.colorScheme.text_norm
         }
 
-        font.family: Style.font_family
-        font.weight: Style.fontWeight_400
-        font.pixelSize: Style.body_font_size
-        lineHeight: Style.body_line_height
+        font.family: ProtonStyle.font_family
+        font.weight: ProtonStyle.fontWeight_400
+        font.pixelSize: ProtonStyle.body_font_size
+        lineHeight: ProtonStyle.body_line_height
         lineHeightMode: Text.FixedHeight
-        font.letterSpacing: Style.body_letter_spacing
+        font.letterSpacing: ProtonStyle.body_letter_spacing
     }
 }

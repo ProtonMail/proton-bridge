@@ -15,17 +15,16 @@
 // You should have received a copy of the GNU General Public License
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
-import QtQuick 2.13
-import QtQuick.Layouts 1.12
-import QtQuick.Controls 2.13
+import QtQuick
+import QtQuick.Layouts
+import QtQuick.Controls
 
-import Proton 4.0
+import Proton
 
 ColumnLayout {
     id: root
 
     property ColorScheme colorScheme
-    property var backend
 
     property alias currentIndex: usersListView.currentIndex
     ListView {
@@ -33,7 +32,7 @@ ColumnLayout {
         Layout.fillHeight: true
         Layout.preferredWidth: 200
 
-        model: backend.usersTest
+        model: Backend.usersTest
         highlightFollowsCurrentItem: true
 
         delegate: Item {
@@ -74,16 +73,16 @@ ColumnLayout {
             text: "+"
 
             onClicked: {
-                var newUserObject = backend.userComponent.createObject(backend)
-                newUserObject.username = backend.loginUser.username.length > 0 ? backend.loginUser.username : "test@protonmail.com"
+                var newUserObject = Backend.userComponent.createObject(Backend)
+                newUserObject.username = Backend.loginUser.username.length > 0 ? Backend.loginUser.username : "test@protonmail.com"
                 newUserObject.loggedIn = true
-                newUserObject.setupGuideSeen = true // backend.loginUser.setupGuideSeen
+                newUserObject.setupGuideSeen = true // Backend.loginUser.setupGuideSeen
 
-                backend.loginUser.username = ""
-                backend.loginUser.loggedIn = false
-                backend.loginUser.setupGuideSeen = false
+                Backend.loginUser.username = ""
+                Backend.loginUser.loggedIn = false
+                Backend.loginUser.setupGuideSeen = false
 
-                backend.users.append( { object: newUserObject } )
+                Backend.users.append( { object: newUserObject } )
             }
         }
         Button {
@@ -93,8 +92,8 @@ ColumnLayout {
             enabled: usersListView.currentIndex != 0
 
             onClicked: {
-                // var userObject = backend.users.get(usersListView.currentIndex - 1)
-                backend.users.remove(usersListView.currentIndex - 1)
+                // var userObject = Backend.users.get(usersListView.currentIndex - 1)
+                Backend.users.remove(usersListView.currentIndex - 1)
                 // userObject.deleteLater()
             }
         }

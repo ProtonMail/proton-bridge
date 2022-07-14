@@ -15,11 +15,11 @@
 // You should have received a copy of the GNU General Public License
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
-import QtQuick 2.12
-import QtQuick.Window 2.12
-import QtQuick.Controls 2.12
-import QtQuick.Controls.impl 2.12
-import QtQuick.Templates 2.12 as T
+import QtQuick
+import QtQuick.Window
+import QtQuick.Controls
+import QtQuick.Controls.impl
+import QtQuick.Templates as T
 
 T.ComboBox {
     id: root
@@ -40,10 +40,10 @@ T.ComboBox {
 
     spacing: 8
 
-    font.family: Style.font_family
-    font.weight: Style.fontWeight_400
-    font.pixelSize: Style.body_font_size
-    font.letterSpacing: Style.body_letter_spacing
+    font.family: ProtonStyle.font_family
+    font.weight: ProtonStyle.fontWeight_400
+    font.pixelSize: ProtonStyle.body_font_size
+    font.letterSpacing: ProtonStyle.body_letter_spacing
 
     contentItem: T.TextField {
         padding: 5
@@ -64,7 +64,7 @@ T.ComboBox {
         placeholderTextColor: root.enabled ? root.colorScheme.text_hint : root.colorScheme.text_disabled
 
         background: Rectangle {
-            radius: Style.context_item_radius
+            radius: ProtonStyle.context_item_radius
             visible: root.enabled && root.editable && !root.flat
             border.color: {
                 if (root.activeFocus) {
@@ -85,7 +85,7 @@ T.ComboBox {
     background: Rectangle {
         implicitWidth: 140
         implicitHeight: 36
-        radius: Style.context_item_radius
+        radius: ProtonStyle.context_item_radius
         color: {
             if (root.down) {
                 return root.colorScheme.interaction_default_active
@@ -110,7 +110,7 @@ T.ComboBox {
         x: root.mirrored ? 12 : root.width - width - 12
         y: root.topPadding + (root.availableHeight - height) / 2
         color: root.enabled ? root.colorScheme.text_norm : root.colorScheme.text_disabled
-        source: popup.visible ? "../icons/ic-chevron-up.svg" : "../icons/ic-chevron-down.svg"
+        source: popup.visible ? "/qml/icons/ic-chevron-up.svg" : "/qml/icons/ic-chevron-down.svg"
 
         sourceSize.width: 16
         sourceSize.height: 16
@@ -142,7 +142,7 @@ T.ComboBox {
         palette.highlightedText: selected ? root.colorScheme.text_invert : root.colorScheme.text_norm
 
         background: PaddedRectangle {
-            radius: Style.context_item_radius
+            radius: ProtonStyle.context_item_radius
             color: {
                 if (parent.down) {
                     return root.colorScheme.interaction_default_active
@@ -187,7 +187,7 @@ T.ComboBox {
 
         background: Rectangle {
             color: root.colorScheme.background_norm
-            radius: Style.dialog_radius
+            radius: ProtonStyle.dialog_radius
             border.color: root.colorScheme.border_weak
             border.width: 1
         }

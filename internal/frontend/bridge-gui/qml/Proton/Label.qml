@@ -15,10 +15,10 @@
 // You should have received a copy of the GNU General Public License
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
-import QtQuick 2.13
-import QtQuick.Controls 2.12
-import QtQuick.Controls.impl 2.12
-import QtQuick.Templates 2.12 as T
+import QtQuick
+import QtQuick.Controls
+import QtQuick.Controls.impl
+import QtQuick.Templates as T
 
 import "." as Proton
 
@@ -53,67 +53,67 @@ T.Label {
     linkColor: root.colorScheme.interaction_norm
     palette.link: linkColor
 
-    font.family: Style.font_family
+    font.family: ProtonStyle.font_family
     lineHeightMode: Text.FixedHeight
 
     font.weight: {
         switch (root.type) {
         case Proton.Label.LabelType.Heading:
-            return Style.fontWeight_700
+            return ProtonStyle.fontWeight_700
         case Proton.Label.LabelType.Title:
-            return Style.fontWeight_700
+            return ProtonStyle.fontWeight_700
         case Proton.Label.LabelType.Lead:
-            return Style.fontWeight_400
+            return ProtonStyle.fontWeight_400
         case Proton.Label.LabelType.Body:
-            return Style.fontWeight_400
+            return ProtonStyle.fontWeight_400
         case Proton.Label.LabelType.Body_semibold:
-            return Style.fontWeight_600
+            return ProtonStyle.fontWeight_600
         case Proton.Label.LabelType.Body_bold:
-            return Style.fontWeight_700
+            return ProtonStyle.fontWeight_700
         case Proton.Label.LabelType.Caption:
-            return Style.fontWeight_400
+            return ProtonStyle.fontWeight_400
         case Proton.Label.LabelType.Caption_semibold:
-            return Style.fontWeight_600
+            return ProtonStyle.fontWeight_600
         case Proton.Label.LabelType.Caption_bold:
-            return Style.fontWeight_700
+            return ProtonStyle.fontWeight_700
         }
     }
 
     font.pixelSize: {
         switch (root.type) {
         case Proton.Label.LabelType.Heading:
-            return Style.heading_font_size
+            return ProtonStyle.heading_font_size
         case Proton.Label.LabelType.Title:
-            return Style.title_font_size
+            return ProtonStyle.title_font_size
         case Proton.Label.LabelType.Lead:
-            return Style.lead_font_size
+            return ProtonStyle.lead_font_size
         case Proton.Label.LabelType.Body:
         case Proton.Label.LabelType.Body_semibold:
         case Proton.Label.LabelType.Body_bold:
-            return Style.body_font_size
+            return ProtonStyle.body_font_size
         case Proton.Label.LabelType.Caption:
         case Proton.Label.LabelType.Caption_semibold:
         case Proton.Label.LabelType.Caption_bold:
-            return Style.caption_font_size
+            return ProtonStyle.caption_font_size
         }
     }
 
     lineHeight: {
         switch (root.type) {
         case Proton.Label.LabelType.Heading:
-            return Style.heading_line_height
+            return ProtonStyle.heading_line_height
         case Proton.Label.LabelType.Title:
-            return Style.title_line_height
+            return ProtonStyle.title_line_height
         case Proton.Label.LabelType.Lead:
-            return Style.lead_line_height
+            return ProtonStyle.lead_line_height
         case Proton.Label.LabelType.Body:
         case Proton.Label.LabelType.Body_semibold:
         case Proton.Label.LabelType.Body_bold:
-            return Style.body_line_height
+            return ProtonStyle.body_line_height
         case Proton.Label.LabelType.Caption:
         case Proton.Label.LabelType.Caption_semibold:
         case Proton.Label.LabelType.Caption_bold:
-            return Style.caption_line_height
+            return ProtonStyle.caption_line_height
         }
     }
 
@@ -126,11 +126,11 @@ T.Label {
         case Proton.Label.LabelType.Body:
         case Proton.Label.LabelType.Body_semibold:
         case Proton.Label.LabelType.Body_bold:
-            return Style.body_letter_spacing
+            return ProtonStyle.body_letter_spacing
         case Proton.Label.LabelType.Caption:
         case Proton.Label.LabelType.Caption_semibold:
         case Proton.Label.LabelType.Caption_bold:
-            return Style.caption_letter_spacing
+            return ProtonStyle.caption_letter_spacing
         }
     }
 

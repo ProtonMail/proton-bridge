@@ -15,14 +15,14 @@
 // You should have received a copy of the GNU General Public License
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
-import QtQml 2.12
-import QtQuick 2.13
-import QtQuick.Window 2.13
-import QtQuick.Layouts 1.12
-import QtQuick.Controls 2.13
+import QtQml
+import QtQuick
+import QtQuick.Window
+import QtQuick.Layouts
+import QtQuick.Controls
 
-import Proton 4.0
-import Notifications 1.0
+import Proton
+import Notifications
 
 Window {
     id: root
@@ -35,7 +35,6 @@ Window {
 
     property ColorScheme colorScheme: ProtonStyle.currentStyle
 
-    property var backend
     property var notifications
 
     signal showMainWindow()
@@ -114,7 +113,6 @@ Window {
                         Layout.bottomMargin: 12
 
                         colorScheme: root.colorScheme
-                        backend: root.backend
                         notifications: root.notifications
 
                         notificationWhitelist: Notifications.Group.Connection | Notifications.Group.Update | Notifications.Group.Configuration
@@ -164,7 +162,7 @@ Window {
             ListView {
                 id: accountListView
 
-                model: root.backend.users
+                model: Backend.users
                 anchors.fill: parent
 
                 anchors.topMargin: 8
@@ -185,7 +183,7 @@ Window {
                     implicitHeight: children[0].implicitHeight
                     implicitWidth: children[0].implicitWidth
 
-                    property var user: root.backend.users.get(index)
+                    property var user: Backend.users.get(index)
 
                     RowLayout {
                         spacing: 0
@@ -262,7 +260,7 @@ Window {
                 Button {
                     colorScheme: root.colorScheme
                     secondary: true
-                    icon.source: "./icons/ic-three-dots-vertical.svg"
+                    icon.source: "/qml/icons/ic-three-dots-vertical.svg"
                     borderless: true
                     checkable: true
 

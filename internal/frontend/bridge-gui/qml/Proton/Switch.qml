@@ -15,10 +15,10 @@
 // You should have received a copy of the GNU General Public License
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
-import QtQuick 2.12
-import QtQuick.Templates 2.12 as T
-import QtQuick.Controls 2.12
-import QtQuick.Controls.impl 2.12
+import QtQuick
+import QtQuick.Templates as T
+import QtQuick.Controls
+import QtQuick.Controls.impl
 
 T.Switch {
     property ColorScheme colorScheme
@@ -96,7 +96,7 @@ T.Switch {
                 sourceSize.width: 16
                 sourceSize.height: 16
                 color: "#FFFFFF"
-                source: "../icons/ic-check.svg"
+                source: "/qml/icons/ic-check.svg"
                 visible: control.checked
             }
 
@@ -116,7 +116,7 @@ T.Switch {
             sourceSize.width: 18
             sourceSize.height: 18
             color: control.colorScheme.interaction_norm_hover
-            source: "../icons/Loader_16.svg"
+            source: "/qml/icons/Loader_16.svg"
             visible: control.loading
 
             RotationAnimation {
@@ -140,11 +140,11 @@ T.Switch {
 
         color: control.enabled || control.loading ? control.colorScheme.text_norm : control.colorScheme.text_disabled
 
-        font.family: Style.font_family
-        font.weight: Style.fontWeight_400
-        font.pixelSize: Style.body_font_size
-        lineHeight: Style.body_line_height
+        font.family: ProtonStyle.font_family
+        font.weight: ProtonStyle.fontWeight_400
+        font.pixelSize: ProtonStyle.body_font_size
+        lineHeight: ProtonStyle.body_line_height
         lineHeightMode: Text.FixedHeight
-        font.letterSpacing: Style.body_letter_spacing
+        font.letterSpacing: ProtonStyle.body_letter_spacing
     }
 }

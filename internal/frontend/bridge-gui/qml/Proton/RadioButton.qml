@@ -15,10 +15,10 @@
 // You should have received a copy of the GNU General Public License
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
-import QtQuick 2.12
-import QtQuick.Controls 2.12
-import QtQuick.Controls.impl 2.12
-import QtQuick.Templates 2.12 as T
+import QtQuick
+import QtQuick.Controls
+import QtQuick.Controls.impl
+import QtQuick.Templates as T
 
 T.RadioButton {
     property ColorScheme colorScheme
@@ -105,11 +105,11 @@ T.RadioButton {
             return control.colorScheme.text_norm
         }
 
-        font.family: Style.font_family
-        font.weight: Style.fontWeight_400
-        font.pixelSize: Style.body_font_size
-        lineHeight: Style.body_line_height
+        font.family: ProtonStyle.font_family
+        font.weight: ProtonStyle.fontWeight_400
+        font.pixelSize: ProtonStyle.body_font_size
+        lineHeight: ProtonStyle.body_line_height
         lineHeightMode: Text.FixedHeight
-        font.letterSpacing: Style.body_letter_spacing
+        font.letterSpacing: ProtonStyle.body_letter_spacing
     }
 }

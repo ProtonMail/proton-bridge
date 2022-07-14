@@ -15,11 +15,11 @@
 // You should have received a copy of the GNU General Public License
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
-import QtQuick 2.13
-import QtQuick.Layouts 1.12
-import QtQuick.Controls 2.12
+import QtQuick
+import QtQuick.Layouts
+import QtQuick.Controls
 
-import Proton 4.0
+import Proton
 
 SettingsView {
     id: root
@@ -38,7 +38,7 @@ SettingsView {
         colorScheme: root.colorScheme
         text: qsTr("Installation and setup")
         actionText: qsTr("Go to help topics")
-        actionIcon: "./icons/ic-external-link.svg"
+        actionIcon: "/qml/icons/ic-external-link.svg"
         description: qsTr("Get help setting up your client with our instructions and FAQs.")
         type: SettingsItem.PrimaryButton
         onClicked: {Qt.openUrlExternally("https://protonmail.com/support/categories/bridge/")}
@@ -55,10 +55,13 @@ SettingsView {
         type: SettingsItem.Button
         onClicked: {
             checkUpdates.loading = true
-            root.backend.checkUpdates()
+            Backend.checkUpdates()
         }
 
-        Connections {target: root.backend; onCheckUpdatesFinished: checkUpdates.loading = false}
+        Connections {
+            target: Backend
+            function onCheckUpdatesFinished() { checkUpdates.loading = false }
+        }
 
         Layout.fillWidth: true
     }
@@ -70,7 +73,7 @@ SettingsView {
         actionText: qsTr("View logs")
         description: qsTr("Open and review logs to troubleshoot.")
         type: SettingsItem.Button
-        onClicked: Qt.openUrlExternally(root.backend.logsPath)
+        onClicked: Qt.openUrlExternally(Backend.logsPath)
 
         Layout.fillWidth: true
     }
@@ -83,7 +86,7 @@ SettingsView {
         description: qsTr("Something not working as expected? Let us know.")
         type: SettingsItem.Button
         onClicked: {
-            root.backend.updateCurrentMailClient()
+            Backend.updateCurrentMailClient()
             root.parent.showBugReport()
         }
 
@@ -106,11 +109,11 @@ SettingsView {
         horizontalAlignment: Text.AlignHCenter
 
         text: qsTr("Proton Mail Bridge v%1<br>© 2021 Proton AG<br>%2 %3<br>%4").
-        arg(root.backend.version).
-        arg(link(root.backend.licensePath, qsTr("License"))).
-        arg(link(root.backend.dependencyLicensesLink, qsTr("Dependencies"))).
-        arg(link(root.backend.releaseNotesLink, qsTr("Release notes")))
+        arg(Backend.version).
+        arg(link(Backend.licensePath, qsTr("License"))).
+        arg(link(Backend.dependencyLicensesLink, qsTr("Dependencies"))).
+        arg(link(Backend.releaseNotesLink, qsTr("Release notes")))
 
-        onLinkActivated: Qt.openUrlExternally(link)
+        onLinkActivated: function(link) { Qt.openUrlExternally(link) }
     }
 }

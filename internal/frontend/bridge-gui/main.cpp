@@ -28,8 +28,6 @@
 //****************************************************************************************************************************************************
 std::shared_ptr<QGuiApplication> initQtApplication(int argc, char *argv[])
 {
-    // Note the two following attributes must be set before instantiating the QCoreApplication/QGuiApplication class.
-    QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling, false);
     if (QSysInfo::productType() != "windows")
         QCoreApplication::setAttribute(Qt::AA_UseSoftwareOpenGL);
 
@@ -69,22 +67,22 @@ QQmlComponent *createRootQmlComponent(QQmlApplicationEngine &engine)
 {
     QString const qrcQmlDir = "qrc:/qml";
 
-    qmlRegisterType<QMLBackend>("CppBackend", 1, 0, "QMLBackend");
-    qmlRegisterType<UserList>("CppBackend", 1, 0, "UserList");
-    qmlRegisterType<User>("CppBackend", 1, 0, "User");
+    qmlRegisterSingletonInstance("Proton", 1, 0, "Backend", &app().backend());
+    qmlRegisterType<UserList>("Proton", 1, 0, "UserList");
+    qmlRegisterType<User>("Proton", 1, 0, "User");
 
     auto rootComponent = new QQmlComponent(&engine, &engine);
 
     engine.addImportPath(qrcQmlDir);
     engine.addPluginPath(qrcQmlDir);
-
-    QQuickStyle::addStylePath(qrcQmlDir);
     QQuickStyle::setStyle("Proton");
 
     rootComponent->loadUrl(QUrl(qrcQmlDir + "/Bridge.qml"));
     if (rootComponent->status() != QQmlComponent::Status::Ready)
+    {
+        app().log().error(rootComponent->errorString());
         throw Exception("Could not load QML component");
-
+    }
     return rootComponent;
 }
 
@@ -178,9 +176,8 @@ int main(int argc, char *argv[])
         app().backend().init();
 
         QQmlApplicationEngine engine;
-        QQmlComponent *rootComponent = createRootQmlComponent(engine);
-
-        QObject *rootObject = rootComponent->beginCreate(engine.rootContext());
+        std::unique_ptr<QQmlComponent> rootComponent(createRootQmlComponent(engine));
+        std::unique_ptr<QObject> rootObject(rootComponent->beginCreate(engine.rootContext()));
         if (!rootObject)
             throw Exception("Could not create root object.");
         rootObject->setProperty("backend", QVariant::fromValue(&app().backend()));
@@ -188,17 +185,23 @@ int main(int argc, char *argv[])
 
         BridgeMonitor *bridgeMonitor = app().bridgeMonitor();
         bool bridgeExited = false;
+        QMetaObject::Connection connection;
         if (bridgeMonitor)
-            QObject::connect(bridgeMonitor, &BridgeMonitor::processExited, [&](int returnCode) {
+            connection = QObject::connect(bridgeMonitor, &BridgeMonitor::processExited, [&](int returnCode) {
                 // GODT-1671 We need to find a 'safe' way to check if brige crashed and restart instead of just quitting. Is returnCode enough?
-                bridgeExited = true;
+                bridgeExited = true;// clazy:exclude=lambda-in-connect
                 qGuiApp->exit(returnCode);
             });
 
-        int result = QGuiApplication::exec();
+        int const result = QGuiApplication::exec();
 
+        QObject::disconnect(connection);
         app().grpc().stopEventStream();
-        app().backend().clearUserList(); // required for proper exit. We may want to investigate why at some point.
+
+        // We manually delete the QML components to avoid warnings error due to order of deletion of C++ / JS objects and singletons.
+        rootObject.reset();
+        rootComponent.reset();
+
         if (!bridgeExited)
             closeBridgeApp();
 

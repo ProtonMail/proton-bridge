@@ -15,18 +15,17 @@
 // You should have received a copy of the GNU General Public License
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
-import QtQuick 2.13
-import QtQuick.Layouts 1.12
-import QtQuick.Controls 2.12
+import QtQuick
+import QtQuick.Layouts
+import QtQuick.Controls
 
-import Proton 4.0
-import Notifications 1.0
+import Proton
+import Notifications
 
 Item {
     id: root
     property ColorScheme colorScheme
 
-    property var backend
     property var notifications
 
     signal showSetupGuide(var user, string address)
@@ -66,7 +65,6 @@ Item {
                         Layout.alignment: Qt.AlignHCenter
 
                         colorScheme: leftBar.colorScheme
-                        backend: root.backend
                         notifications: root.notifications
 
                         notificationWhitelist: Notifications.Group.Connection | Notifications.Group.ForceUpdate
@@ -93,7 +91,7 @@ Item {
 
                         horizontalPadding: 0
 
-                        icon.source: "./icons/ic-question-circle.svg"
+                        icon.source: "/qml/icons/ic-question-circle.svg"
 
                         onClicked: rightContent.showHelpView()
                     }
@@ -113,7 +111,7 @@ Item {
 
                         horizontalPadding: 0
 
-                        icon.source: "./icons/ic-cog-wheel.svg"
+                        icon.source: "/qml/icons/ic-cog-wheel.svg"
 
                         onClicked: rightContent.showGeneralSettings()
                     }
@@ -162,7 +160,7 @@ Item {
                         radius: ProtonStyle.account_row_radius
                     }
 
-                    model: root.backend.users
+                    model: Backend.users
                     delegate: Item {
                         width: leftBar.width - 2*accounts._leftRightMargins
                         implicitHeight: children[0].implicitHeight + children[0].anchors.topMargin + children[0].anchors.bottomMargin
@@ -178,13 +176,13 @@ Item {
                             anchors.rightMargin: 12
 
                             colorScheme: leftBar.colorScheme
-                            user: root.backend.users.get(index)
+                            user: Backend.users.get(index)
                         }
 
                         MouseArea {
                             anchors.fill: parent
                             onClicked: {
-                                var user = root.backend.users.get(index)
+                                var user = Backend.users.get(index)
                                 accounts.currentIndex = index
                                 if (!user) return
                                 if (user.loggedIn) {
@@ -227,7 +225,7 @@ Item {
 
                         horizontalPadding: 0
 
-                        icon.source: "./icons/ic-plus.svg"
+                        icon.source: "/qml/icons/ic-plus.svg"
 
                         onClicked: {
                             signIn.username = ""
@@ -250,12 +248,11 @@ Item {
 
                 AccountView { // 0
                     colorScheme: root.colorScheme
-                    backend: root.backend
                     notifications: root.notifications
                     user: {
                         if (accounts.currentIndex < 0) return undefined
-                        if (root.backend.users.count == 0) return undefined
-                        return root.backend.users.get(accounts.currentIndex)
+                        if (Backend.users.count == 0) return undefined
+                        return Backend.users.get(accounts.currentIndex)
                     }
                     onShowSignIn: {
                         signIn.username = this.user.username
@@ -280,7 +277,7 @@ Item {
                             signIn.abort()
                             rightContent.showAccount()
                         }
-                        icon.source: "icons/ic-arrow-left.svg"
+                        icon.source: "/qml/icons/ic-arrow-left.svg"
                         secondary: true
                         horizontalPadding: 8
                     }
@@ -296,13 +293,11 @@ Item {
                         Layout.fillHeight: true
 
                         colorScheme: root.colorScheme
-                        backend: root.backend
                     }
                 }
 
                 GeneralSettings { // 2
                     colorScheme: root.colorScheme
-                    backend: root.backend
                     notifications: root.notifications
 
                     onBack: {
@@ -312,7 +307,6 @@ Item {
 
                 KeychainSettings { // 3
                     colorScheme: root.colorScheme
-                    backend: root.backend
 
                     onBack: {
                         rightContent.showGeneralSettings()
@@ -321,7 +315,6 @@ Item {
 
                 PortSettings { // 4
                     colorScheme: root.colorScheme
-                    backend: root.backend
 
                     onBack: {
                         rightContent.showGeneralSettings()
@@ -330,7 +323,6 @@ Item {
 
                 SMTPSettings { // 5
                     colorScheme: root.colorScheme
-                    backend: root.backend
 
                     onBack: {
                         rightContent.showGeneralSettings()
@@ -339,7 +331,6 @@ Item {
 
                 LocalCacheSettings { // 6
                     colorScheme: root.colorScheme
-                    backend: root.backend
                     notifications: root.notifications
 
                     onBack: {
@@ -349,7 +340,6 @@ Item {
 
                 HelpView { // 7
                     colorScheme: root.colorScheme
-                    backend: root.backend
 
                     onBack: {
                         rightContent.showAccount()
@@ -358,11 +348,10 @@ Item {
 
                 BugReportView { // 8
                     colorScheme: root.colorScheme
-                    backend: root.backend
                     selectedAddress: {
                         if (accounts.currentIndex < 0) return ""
-                        if (root.backend.users.count == 0) return ""
-                        var user = root.backend.users.get(accounts.currentIndex)
+                        if (Backend.users.count == 0) return ""
+                        var user = Backend.users.get(accounts.currentIndex)
                         if (!user) return ""
                         return user.addresses[0]
                     }
@@ -389,10 +378,10 @@ Item {
                 function showBugReport          () { rightContent.currentIndex = 8 }
 
                 Connections {
-                    target: root.backend
+                    target: Backend
 
-                    onLoginFinished: rightContent.showAccount(index)
-                    onLoginAlreadyLoggedIn: rightContent.showAccount(index)
+                    function onLoginFinished(index) { rightContent.showAccount(index) }
+                    function onLoginAlreadyLoggedIn(index) { rightContent.showAccount(index) }
                 }
             }
         }

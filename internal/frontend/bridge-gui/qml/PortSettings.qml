@@ -15,12 +15,12 @@
 // You should have received a copy of the GNU General Public License
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
-import QtQuick 2.13
-import QtQuick.Layouts 1.12
-import QtQuick.Controls 2.13
-import QtQuick.Controls.impl 2.13
+import QtQuick
+import QtQuick.Layouts
+import QtQuick.Controls
+import QtQuick.Controls.impl
 
-import Proton 4.0
+import Proton
 
 SettingsView {
     id: root
@@ -28,8 +28,8 @@ SettingsView {
     fillHeight: false
 
     property bool _valuesChanged: (
-        imapField.text*1 !== root.backend.portIMAP ||
-        smtpField.text*1 !== root.backend.portSMTP
+        imapField.text*1 !== Backend.portIMAP ||
+        smtpField.text*1 !== Backend.portSMTP
     )
 
     Label {
@@ -107,7 +107,7 @@ SettingsView {
                     return
                 }
 
-                root.backend.changePorts(imapField.text, smtpField.text)
+                Backend.changePorts(imapField.text, smtpField.text)
             }
         }
 
@@ -119,9 +119,11 @@ SettingsView {
         }
 
         Connections {
-            target: root.backend
+            target: Backend
 
-            onChangePortFinished: submitButton.loading = false
+            function onChangePortFinished() {
+                submitButton.loading = false
+            }
         }
     }
 
@@ -144,9 +146,9 @@ SettingsView {
 
     function isPortFree(field) {
         var num = field.text*1
-        if (num === root.backend.portIMAP) return true
-        if (num === root.backend.portSMTP) return true
-        if (!root.backend.isPortFree(num)) {
+        if (num === Backend.portIMAP) return true
+        if (num === Backend.portSMTP) return true
+        if (!Backend.isPortFree(num)) {
             field.error = true
             field.errorString = qsTr("Port occupied")
             return false
@@ -156,8 +158,8 @@ SettingsView {
     }
 
     function setDefaultValues(){
-        imapField.text = backend.portIMAP
-        smtpField.text = backend.portSMTP
+        imapField.text = Backend.portIMAP
+        smtpField.text = Backend.portSMTP
     }
 
     Component.onCompleted: root.setDefaultValues()

@@ -15,19 +15,19 @@
 // You should have received a copy of the GNU General Public License
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
-import QtQuick 2.13
-import QtQuick.Layouts 1.12
-import QtQuick.Controls 2.13
-import QtQuick.Controls.impl 2.13
+import QtQuick
+import QtQuick.Layouts
+import QtQuick.Controls
+import QtQuick.Controls.impl
 
-import Proton 4.0
+import Proton
 
 SettingsView {
     id: root
 
     fillHeight: false
 
-    property bool _valuesChanged: keychainSelection.checkedButton && keychainSelection.checkedButton.text != root.backend.currentKeychain
+    property bool _valuesChanged: keychainSelection.checkedButton && keychainSelection.checkedButton.text != Backend.currentKeychain
 
     Label {
         colorScheme: root.colorScheme
@@ -51,7 +51,7 @@ SettingsView {
         ButtonGroup{ id: keychainSelection }
 
         Repeater {
-            model: root.backend.availableKeychain
+            model: Backend.availableKeychain
 
             RadioButton {
                 colorScheme: root.colorScheme
@@ -77,7 +77,7 @@ SettingsView {
             text: qsTr("Save and restart")
             enabled: root._valuesChanged
             onClicked: {
-                root.backend.changeKeychain(keychainSelection.checkedButton.text)
+                Backend.changeKeychain(keychainSelection.checkedButton.text)
             }
         }
 
@@ -89,9 +89,9 @@ SettingsView {
         }
 
         Connections {
-            target: root.backend
+            target: Backend
 
-            onChangeKeychainFinished: {
+            function onChangeKeychainFinished() {
                 submitButton.loading = false
                 root.back()
             }
@@ -105,7 +105,7 @@ SettingsView {
     function setDefaultValues(){
         for (var bi in keychainSelection.buttons){
             var button = keychainSelection.buttons[bi]
-            if (button.text == root.backend.currentKeychain) {
+            if (button.text == Backend.currentKeychain) {
                 button.checked = true
                 break;
             }

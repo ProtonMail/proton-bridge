@@ -15,15 +15,13 @@
 // You should have received a copy of the GNU General Public License
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
-import QtQml 2.12
-import Qt.labs.platform 1.1
-import QtQuick.Controls 2.12
+import QtQml
+import Qt.labs.platform
+import QtQuick.Controls
 import ".."
 
 QtObject {
     id: root
-
-    property var backend
 
     property MainWindow frontendMain
     property StatusWindow frontendStatus
@@ -89,12 +87,12 @@ QtObject {
         group: Notifications.Group.Connection
 
         Connections {
-            target: root.backend
+            target: Backend
 
-            onInternetOff: {
+            function onInternetOff() {
                 root.noInternet.active = true
             }
-            onInternetOn: {
+            function onInternetOn() {
                 root.noInternet.active = false
             }
         }
@@ -106,7 +104,7 @@ QtObject {
         description:  {
             var descr = qsTr("A new version of Proton Mail Bridge is available.")
             var text = qsTr("See what's changed.")
-            var link = root.backend.releaseNotesLink
+            var link = Backend.releaseNotesLink
             return `${descr} <a href="${link}">${text}</a>`
         }
         brief: qsTr("Update available.")
@@ -115,8 +113,8 @@ QtObject {
         group: Notifications.Group.Update | Notifications.Group.Dialogs
 
         Connections {
-            target: root.backend
-            onUpdateManualReady: {
+            target: Backend
+            function onUpdateManualReady(version) {
                 root.updateManualReady.data = { version: version }
                 root.updateManualReady.active = true
             }
@@ -127,7 +125,7 @@ QtObject {
                 text: qsTr("Install update")
 
                 onTriggered: {
-                    root.backend.installUpdate()
+                    Backend.installUpdate()
                     root.updateManualReady.active = false
                 }
             },
@@ -135,7 +133,7 @@ QtObject {
                 text: qsTr("Update manually")
 
                 onTriggered: {
-                    Qt.openUrlExternally(root.backend.landingPageLink)
+                    Qt.openUrlExternally(Backend.landingPageLink)
                     root.updateManualReady.active = false
                 }
             },
@@ -157,8 +155,8 @@ QtObject {
         group: Notifications.Group.Update
 
         Connections {
-            target: root.backend
-            onUpdateManualRestartNeeded: {
+            target: Backend
+            function onUpdateManualRestartNeeded() {
                 root.updateManualRestartNeeded.active = true
             }
         }
@@ -167,7 +165,7 @@ QtObject {
             text: qsTr("Restart Bridge")
 
             onTriggered: {
-                root.backend.restart()
+                Backend.restart()
                 root.updateManualRestartNeeded.active = false
             }
         }
@@ -182,8 +180,8 @@ QtObject {
         group: Notifications.Group.Update
 
         Connections {
-            target: root.backend
-            onUpdateManualError: {
+            target: Backend
+            function onUpdateManualError() {
                 root.updateManualError.active = true
             }
         }
@@ -193,7 +191,7 @@ QtObject {
                 text: qsTr("Update manually")
 
                 onTriggered: {
-                    Qt.openUrlExternally(root.backend.landingPageLink)
+                    Qt.openUrlExternally(Backend.landingPageLink)
                     root.updateManualError.active = false
                     root.backend.quit()
                 }
@@ -217,9 +215,9 @@ QtObject {
         group: Notifications.Group.Update | Notifications.Group.ForceUpdate | Notifications.Group.Dialogs
 
         Connections {
-            target: root.backend
+            target: Backend
 
-            onUpdateForce: {
+            function onUpdateForce(version) {
                 root.updateForce.data = { version: version }
                 root.updateForce.active = true
             }
@@ -230,7 +228,7 @@ QtObject {
                 text: qsTr("Install update")
 
                 onTriggered: {
-                    root.backend.installUpdate()
+                    Backend.installUpdate()
                     root.updateForce.active = false
                 }
             },
@@ -238,7 +236,7 @@ QtObject {
                 text: qsTr("Update manually")
 
                 onTriggered: {
-                    Qt.openUrlExternally(root.backend.landingPageLink)
+                    Qt.openUrlExternally(Backend.landingPageLink)
                     root.updateForce.active = false
                 }
             },
@@ -246,7 +244,7 @@ QtObject {
                 text: qsTr("Quit Bridge")
 
                 onTriggered: {
-                    root.backend.quit()
+                    Backend.quit()
                     root.updateForce.active = false
                 }
             }
@@ -262,9 +260,9 @@ QtObject {
         group: Notifications.Group.Update | Notifications.Group.Dialogs
 
         Connections {
-            target: root.backend
+            target: Backend
 
-            onUpdateForceError: {
+            function onUpdateForceError() {
                 root.updateForceError.active = true
             }
         }
@@ -274,7 +272,7 @@ QtObject {
                 text: qsTr("Update manually")
 
                 onTriggered: {
-                    Qt.openUrlExternally(root.backend.landingPageLink)
+                    Qt.openUrlExternally(Backend.landingPageLink)
                     root.updateForceError.active = false
                 }
             },
@@ -282,7 +280,7 @@ QtObject {
                 text: qsTr("Quit Bridge")
 
                 onTriggered: {
-                    root.backend.quit()
+                    Backend.quit()
                     root.updateForceError.active = false
                 }
             }
@@ -297,8 +295,8 @@ QtObject {
         group: Notifications.Group.Update
 
         Connections {
-            target: root.backend
-            onUpdateSilentRestartNeeded: {
+            target: Backend
+            function onUpdateSilentRestartNeeded() {
                 root.updateSilentRestartNeeded.active = true
             }
         }
@@ -307,7 +305,7 @@ QtObject {
             text: qsTr("Restart Bridge")
 
             onTriggered: {
-                root.backend.restart()
+                Backend.restart()
                 root.updateSilentRestartNeeded.active = false
             }
         }
@@ -321,8 +319,8 @@ QtObject {
         group: Notifications.Group.Update
 
         Connections {
-            target: root.backend
-            onUpdateSilentError: {
+            target: Backend
+            function onUpdateSilentError() {
                 root.updateSilentError.active = true
             }
         }
@@ -331,7 +329,7 @@ QtObject {
             text: qsTr("Update manually")
 
             onTriggered: {
-                Qt.openUrlExternally(root.backend.landingPageLink)
+                Qt.openUrlExternally(Backend.landingPageLink)
                 root.updateSilentError.active = false
             }
         }
@@ -345,8 +343,8 @@ QtObject {
         group: Notifications.Group.Update
 
         Connections {
-            target: root.backend
-            onUpdateIsLatestVersion: {
+            target: Backend
+            function onUpdateIsLatestVersion() {
                 root.updateIsLatestVersion.active = true
             }
         }
@@ -370,7 +368,7 @@ QtObject {
 
         Connections {
             target: root
-            onAskEnableBeta: {
+            function onAskEnableBeta() {
                 root.enableBeta.active = true
             }
         }
@@ -379,7 +377,7 @@ QtObject {
             Action {
                 text: qsTr("Enable")
                 onTriggered: {
-                    root.backend.toggleBeta(true)
+                    Backend.toggleBeta(true)
                     root.enableBeta.active = false
                 }
             },
@@ -402,8 +400,8 @@ QtObject {
         group: Notifications.Group.Configuration
 
         Connections {
-            target: root.backend
-            onLoginConnectionError: {
+            target: Backend
+            function onLoginConnectionError(errorMsg) {
                 root.loginConnectionError.active = true
             }
         }
@@ -426,8 +424,8 @@ QtObject {
         group: Notifications.Group.Configuration
 
         Connections {
-            target: root.backend
-            onLoginFreeUserError: {
+            target: Backend
+            function onLoginFreeUserError() {
                 root.onlyPaidUsers.active = true
             }
         }
@@ -450,8 +448,8 @@ QtObject {
         group: Notifications.Group.Configuration
 
         Connections {
-            target: root.backend
-            onLoginAlreadyLoggedIn: {
+            target: Backend
+            function onLoginAlreadyLoggedIn(index) {
                 root.alreadyLoggedIn.active = true
             }
         }
@@ -475,8 +473,8 @@ QtObject {
         group: Notifications.Group.Configuration
 
         Connections {
-            target: root.backend
-            onBugReportSendSuccess: {
+            target: Backend
+            function onBugReportSendSuccess() {
                 root.bugReportSendSuccess.active = true
             }
         }
@@ -499,8 +497,8 @@ QtObject {
         group: Notifications.Group.Configuration
 
         Connections {
-            target: root.backend
-            onBugReportSendError: {
+            target: Backend
+            function onBugReportSendError() {
                 root.bugReportSendError.active = true
             }
         }
@@ -523,8 +521,8 @@ QtObject {
         group: Notifications.Group.Configuration | Notifications.Group.Dialogs
 
         Connections {
-            target: root.backend
-            onCacheUnavailable: {
+            target: Backend
+            function onCacheUnavailable() {
                 root.cacheUnavailable.active = true
             }
         }
@@ -533,7 +531,7 @@ QtObject {
             Action {
                 text: qsTr("Quit Bridge")
                 onTriggered: {
-                    root.backend.quit()
+                    Backend.quit()
                     root.cacheUnavailable.active = false
                 }
             },
@@ -556,8 +554,8 @@ QtObject {
         group: Notifications.Group.Configuration | Notifications.Group.Dialogs
 
         Connections {
-            target: root.backend
-            onCacheCantMove: {
+            target: Backend
+            function onCacheCantMove() {
                 root.cacheCantMove.active = true
             }
         }
@@ -587,8 +585,8 @@ QtObject {
         group: Notifications.Group.Configuration
 
         Connections {
-            target: root.backend
-            onCacheLocationChangeSuccess: {
+            target: Backend
+            function onCacheLocationChangeSuccess() {
                 console.log("notify location changed succesfully")
                 root.cacheLocationChangeSuccess.active = true
             }
@@ -630,8 +628,8 @@ QtObject {
         group: Notifications.Group.Configuration | Notifications.Group.Dialogs
 
         Connections {
-            target: root.backend
-            onDiskFull: {
+            target: Backend
+            function onDiskFull() {
                 root.diskFull.active = true
             }
         }
@@ -640,7 +638,7 @@ QtObject {
             Action {
                 text: qsTr("Quit Bridge")
                 onTriggered: {
-                    root.backend.quit()
+                    Backend.quit()
                     root.diskFull.active = false
                 }
             },
@@ -658,7 +656,7 @@ QtObject {
         title: qsTr("Enable split mode?")
         brief: title
         description: qsTr("Changing between split and combined address mode will require you to delete your account(s) from your email client and begin the setup process from scratch.")
-        icon: "./icons/ic-question-circle.svg"
+        icon: "/qml/icons/ic-question-circle.svg"
         type: Notification.NotificationType.Warning
         group: Notifications.Group.Configuration | Notifications.Group.Dialogs
 
@@ -666,7 +664,7 @@ QtObject {
 
         Connections {
             target: root
-            onAskEnableSplitMode: {
+            function onAskEnableSplitMode(user) {
                 root.enableSplitMode.user = user
                 root.enableSplitMode.active = true
             }
@@ -674,7 +672,7 @@ QtObject {
 
         Connections {
             target: (root && root.enableSplitMode && root.enableSplitMode.user ) ? root.enableSplitMode.user : null
-            onToggleSplitModeFinished: {
+            function onToggleSplitModeFinished() {
                 root.enableSplitMode.active = false
 
                 enableSplitMode_enable.loading = false
@@ -706,20 +704,20 @@ QtObject {
         title: qsTr("Disable local cache?")
         brief: title
         description: qsTr("This action will clear your local cache, including locally stored messages. Bridge will restart.")
-        icon: "./icons/ic-question-circle.svg"
+        icon: "/qml/icons/ic-question-circle.svg"
         type: Notification.NotificationType.Warning
         group: Notifications.Group.Configuration | Notifications.Group.Dialogs
 
         Connections {
             target: root
-            onAskDisableLocalCache: {
+            function onAskDisableLocalCache() {
                 root.disableLocalCache.active = true
             }
         }
 
         Connections {
-            target: root.backend
-            onChangeLocalCacheFinished: {
+            target: Backend
+            function onChangeLocalCacheFinished() {
                 root.disableLocalCache.active = false
 
                 disableLocalCache_disable.loading = false
@@ -741,7 +739,7 @@ QtObject {
                 onTriggered: {
                     disableLocalCache_disable.loading = true
                     disableLocalCache_cancel.enabled = false
-                    root.backend.changeLocalCache(false, root.backend.diskCachePath)
+                    Backend.changeLocalCache(false, Backend.diskCachePath)
                 }
             }
         ]
@@ -751,7 +749,7 @@ QtObject {
         title: qsTr("Enable local cache")
         brief: title
         description: qsTr("Bridge will restart.")
-        icon: "./icons/ic-question-circle.svg"
+        icon: "/qml/icons/ic-question-circle.svg"
         type: Notification.NotificationType.Warning
         group: Notifications.Group.Configuration | Notifications.Group.Dialogs
 
@@ -759,15 +757,15 @@ QtObject {
 
         Connections {
             target: root
-            onAskEnableLocalCache: {
+            function onAskEnableLocalCache(path) {
                 root.enableLocalCache.active = true
                 root.enableLocalCache.path = path
             }
         }
 
         Connections {
-            target: root.backend
-            onChangeLocalCacheFinished: {
+            target: Backend
+            function onChangeLocalCacheFinished() {
                 root.enableLocalCache.active = false
 
                 enableLocalCache_enable.loading = false
@@ -782,7 +780,7 @@ QtObject {
                 onTriggered: {
                     enableLocalCache_enable.loading = true
                     enableLocalCache_cancel.enabled = false
-                    root.backend.changeLocalCache(true, root.enableLocalCache.path)
+                    Backend.changeLocalCache(true, root.enableLocalCache.path)
                 }
             },
             Action {
@@ -807,14 +805,14 @@ QtObject {
 
         Connections {
             target: root
-            onAskResetBridge: {
+            function onAskResetBridge() {
                 root.resetBridge.active = true
             }
         }
 
         Connections {
-            target: root.backend
-            onResetFinished: {
+            target: Backend
+            function onResetFinished() {
                 root.resetBridge.active = false
 
                 resetBridge_reset.loading = false
@@ -836,7 +834,7 @@ QtObject {
                 onTriggered: {
                     resetBridge_reset.loading = true
                     resetBridge_cancel.enabled = false
-                    root.backend.triggerReset()
+                    Backend.triggerReset()
                 }
             }
         ]
@@ -895,7 +893,7 @@ QtObject {
 
         Connections {
             target: root
-            onAskDeleteAccount: {
+            function onAskDeleteAccount(user) {
                 root.deleteAccount.user = user
                 root.deleteAccount.active = true
             }
@@ -929,9 +927,9 @@ QtObject {
         group: Notifications.Group.Dialogs | Notifications.Group.Configuration
 
         Connections {
-            target: root.backend
+            target: Backend
 
-            onNotifyHasNoKeychain: {
+            function onNotifyHasNoKeychain() {
                 root.noKeychain.active = true
             }
         }
@@ -941,14 +939,14 @@ QtObject {
                 text: qsTr("Quit Bridge")
 
                 onTriggered: {
-                    root.backend.quit()
+                    Backend.quit()
                 }
             },
             Action {
                 text: qsTr("Restart Bridge")
 
                 onTriggered: {
-                    root.backend.restart()
+                    Backend.restart()
                 }
             }
         ]
@@ -966,9 +964,9 @@ QtObject {
 
 
         Connections {
-            target: root.backend
+            target: Backend
 
-            onNotifyRebuildKeychain: {
+            function onNotifyRebuildKeychain() {
                 console.log("notifications")
                 root.rebuildKeychain.active = true
             }
@@ -980,7 +978,7 @@ QtObject {
 
                 onTriggered: {
                     Qt.openUrlExternally(root.rebuildKeychain.supportLink)
-                    root.backend.quit()
+                    Backend.quit()
                 }
             }
         ]
@@ -995,14 +993,14 @@ QtObject {
         group: Notifications.Group.Configuration
 
         Connections {
-            target: root.backend
+            target: Backend
 
-            onAddressChanged: {
+            function onAddressChanged(address) {
                 root.addressChanged.description = qsTr("The address list for your account %1 has changed. You might need to reconfigure your email client.").arg(address)
                 root.addressChanged.active = true
             }
 
-            onAddressChangedLogout: {
+            function onAddressChangedLogout(address) {
                 root.addressChanged.description = qsTr("The address list for your account %1 has changed. You have to reconfigure your email client.").arg(address)
                 root.addressChanged.active = true
             }

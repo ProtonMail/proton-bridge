@@ -15,19 +15,18 @@
 // You should have received a copy of the GNU General Public License
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
-import QtQml 2.12
-import QtQuick 2.13
-import QtQuick.Layouts 1.12
-import QtQuick.Controls 2.13
+import QtQml
+import QtQuick
+import QtQuick.Layouts
+import QtQuick.Controls
 
-import Proton 4.0
+import Proton
 
 ColumnLayout {
     id: root
 
     property var user
     property var userIndex
-    property var backend
 
     spacing : 5
 
@@ -65,9 +64,9 @@ ColumnLayout {
                 }
 
                 if (checked) {
-                    if (user === backend.loginUser) {
-                        var newUserObject = backend.userComponent.createObject(backend, {username: user.username, loggedIn: true, setupGuideSeen: user.setupGuideSeen})
-                        backend.users.append( { object: newUserObject } )
+                    if (user === Backend.loginUser) {
+                        var newUserObject = Backend.userComponent.createObject(Backend, {username: user.username, loggedIn: true, setupGuideSeen: user.setupGuideSeen})
+                        Backend.users.append( { object: newUserObject } )
 
                         user.username = ""
                         user.resetLoginRequests()
@@ -120,7 +119,7 @@ ColumnLayout {
             enabled: user !== undefined //&& user.isLoginRequested && !user.isLogin2FARequested && !user.isLogin2PasswordProvided
 
             onClicked: {
-                root.backend.loginUsernamePasswordError("")
+                Backend.loginUsernamePasswordError("")
                 user.resetLoginRequests()
             }
         }
@@ -130,7 +129,7 @@ ColumnLayout {
             text: "free user error"
             enabled: user !== undefined //&& user.isLoginRequested
             onClicked: {
-                root.backend.loginFreeUserError()
+                Backend.loginFreeUserError()
                 user.resetLoginRequests()
             }
         }
@@ -140,7 +139,7 @@ ColumnLayout {
             text: "connection error"
             enabled: user !== undefined //&& user.isLoginRequested
             onClicked: {
-                root.backend.loginConnectionError("")
+                Backend.loginConnectionError("")
                 user.resetLoginRequests()
             }
         }
@@ -163,7 +162,7 @@ ColumnLayout {
 
             enabled: user !== undefined //&& user.isLoginRequested && !user.isLogin2FARequested && !user.isLogin2PasswordRequested
             onClicked: {
-                root.backend.login2FARequested(user.username)
+                Backend.login2FARequested(user.username)
                 user.isLogin2FARequested = true
             }
         }
@@ -174,7 +173,7 @@ ColumnLayout {
 
             enabled: user !== undefined //&& user.isLogin2FAProvided && !(user.isLogin2PasswordRequested && !user.isLogin2PasswordProvided)
             onClicked: {
-                root.backend.login2FAError("")
+                Backend.login2FAError("")
                 user.isLogin2FAProvided = false
             }
         }
@@ -185,7 +184,7 @@ ColumnLayout {
 
             enabled: user !== undefined //&& user.isLogin2FAProvided && !(user.isLogin2PasswordRequested && !user.isLogin2PasswordProvided)
             onClicked: {
-                root.backend.login2FAErrorAbort("")
+                Backend.login2FAErrorAbort("")
                 user.resetLoginRequests()
             }
         }
@@ -208,7 +207,7 @@ ColumnLayout {
 
             enabled: user !== undefined //&& user.isLoginRequested && !user.isLogin2PasswordRequested && !(user.isLogin2FARequested && !user.isLogin2FAProvided)
             onClicked: {
-                root.backend.login2PasswordRequested("")
+                Backend.login2PasswordRequested("")
                 user.isLogin2PasswordRequested = true
             }
         }
@@ -219,7 +218,7 @@ ColumnLayout {
 
             enabled: user !== undefined //&& user.isLogin2PasswordProvided && !(user.isLogin2FARequested && !user.isLogin2FAProvided)
             onClicked: {
-                root.backend.login2PasswordError("")
+                Backend.login2PasswordError("")
 
                 user.isLogin2PasswordProvided = false
             }
@@ -231,7 +230,7 @@ ColumnLayout {
 
             enabled: user !== undefined //&& user.isLogin2PasswordProvided && !(user.isLogin2FARequested && !user.isLogin2FAProvided)
             onClicked: {
-                root.backend.login2PasswordErrorAbort("")
+                Backend.login2PasswordErrorAbort("")
                 user.resetLoginRequests()
             }
         }
@@ -243,7 +242,7 @@ ColumnLayout {
             text: "Login Finished"
 
             onClicked: {
-                root.backend.loginFinished(0+loginFinishedIndex.text)
+                Backend.loginFinished(0+loginFinishedIndex.text)
                 user.resetLoginRequests()
             }
         }
@@ -261,7 +260,7 @@ ColumnLayout {
             text: "Already logged in"
 
             onClicked: {
-                root.backend.loginAlreadyLoggedIn(0+loginAlreadyLoggedInIndex.text)
+                Backend.loginAlreadyLoggedIn(0+loginAlreadyLoggedInIndex.text)
                 user.resetLoginRequests()
             }
         }

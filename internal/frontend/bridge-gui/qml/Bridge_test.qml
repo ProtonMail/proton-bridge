@@ -15,22 +15,22 @@
 // You should have received a copy of the GNU General Public License
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
-import QtQml 2.12
-import QtQuick 2.13
-import QtQuick.Window 2.13
-import QtQuick.Layouts 1.12
-import QtQuick.Controls 2.13
+import QtQml
+import QtQuick
+import QtQuick.Window
+import QtQuick.Layouts
+import QtQuick.Controls
 
-import QtQml.Models 2.12
+import QtQml.Models
 
-import Qt.labs.platform 1.1
+import Qt.labs.platform
 
-import Proton 4.0
+import Proton
 
 import "./BridgeTest"
-import BridgePreview 1.0
+import BridgePreview
 
-import Notifications 1.0
+import Notifications
 
 Window {
     id: root

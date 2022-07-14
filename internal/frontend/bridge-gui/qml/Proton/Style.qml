@@ -16,8 +16,8 @@
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 pragma Singleton
-import QtQml 2.13
-import QtQuick 2.12
+import QtQml
+import QtQuick
 
 import "./"
 
@@ -105,8 +105,8 @@ QtObject {
         backdrop_norm: Qt.rgba(12./255., 12./255., 20./255., 0.32)
 
         // Images
-        welcome_img: "icons/img-welcome.png"
-        logo_img: "icons/product_logos.svg"
+        welcome_img: "/qml/icons/img-welcome.png"
+        logo_img: "/qml/icons/product_logos.svg"
     }
 
     property ColorScheme lightProminentStyle: ColorScheme {
@@ -180,8 +180,8 @@ QtObject {
         backdrop_norm: Qt.rgba(0,0,0, 0.32)
 
         // Images
-        welcome_img: "icons/img-welcome-dark.png"
-        logo_img:    "icons/product_logos_dark.svg"
+        welcome_img: "/qml/icons/img-welcome-dark.png"
+        logo_img:    "/qml/icons/product_logos_dark.svg"
     }
 
     property ColorScheme darkStyle: ColorScheme {
@@ -255,8 +255,8 @@ QtObject {
         backdrop_norm: Qt.rgba(0,0,0,0.32)
 
         // Images
-        welcome_img: "icons/img-welcome-dark.png"
-        logo_img:    "icons/product_logos_dark.svg"
+        welcome_img: "/qml/icons/img-welcome-dark.png"
+        logo_img:    "/qml/icons/product_logos_dark.svg"
     }
 
     property ColorScheme darkProminentStyle: ColorScheme {
@@ -330,8 +330,8 @@ QtObject {
         backdrop_norm: Qt.rgba(0,0,0,0.32)
 
         // Images
-        welcome_img: "icons/img-welcome-dark.png"
-        logo_img:    "icons/product_logos_dark.svg"
+        welcome_img: "/qml/icons/img-welcome-dark.png"
+        logo_img:    "/qml/icons/product_logos_dark.svg"
     }
 
     property ColorScheme currentStyle: lightStyle
@@ -341,7 +341,7 @@ QtObject {
             case "windows":
             return "Segoe UI"
             case "osx":
-            return "SF Pro Display"
+            return ".AppleSystemUIFont" // should be SF Pro for the foreseeable future. Using "SF Pro Display" direcly here is not allowed by the font's license.
             case "linux":
             return "Ubuntu"
             default:

@@ -15,13 +15,13 @@
 // You should have received a copy of the GNU General Public License
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
-import QtQuick 2.13
-import QtQuick.Layouts 1.12
-import QtQuick.Controls 2.12
-import QtQuick.Controls.impl 2.12
+import QtQuick
+import QtQuick.Layouts
+import QtQuick.Controls
+import QtQuick.Controls.impl
 
-import Proton 4.0
-import Notifications 1.0
+import Proton
+import Notifications
 
 Popup {
     id: root
@@ -119,13 +119,13 @@ Popup {
 
                         switch (root.notification.type) {
                             case Notification.NotificationType.Info:
-                            return "./icons/ic-info-circle-filled.svg"
+                            return "/qml/icons/ic-info-circle-filled.svg"
                             case Notification.NotificationType.Success:
-                            return "./icons/ic-info-circle-filled.svg"
+                            return "/qml/icons/ic-info-circle-filled.svg"
                             case Notification.NotificationType.Warning:
-                            return "./icons/ic-exclamation-circle-filled.svg"
+                            return "/qml/icons/ic-exclamation-circle-filled.svg"
                             case Notification.NotificationType.Danger:
-                            return "./icons/ic-exclamation-circle-filled.svg"
+                            return "/qml/icons/ic-exclamation-circle-filled.svg"
                         }
                     }
                 }

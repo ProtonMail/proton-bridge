@@ -56,7 +56,7 @@ QString BridgeMonitor::locateBridgeExe()
 
     for (QString const &dir: dirs)
     {
-        QFileInfo const fileInfo = QDir(dir).absoluteFilePath(exeName);
+        QFileInfo const fileInfo(QDir(dir).absoluteFilePath(exeName));
         if (fileInfo.exists() && fileInfo.isFile() && fileInfo.isExecutable())
             return fileInfo.absoluteFilePath();
     }
@@ -91,7 +91,7 @@ void BridgeMonitor::run()
         emit started();
 
         QProcess p;
-        p.start(exePath_);
+        p.start(exePath_, QStringList());
         p.waitForStarted();
 
         while (!p.waitForFinished(100))

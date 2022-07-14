@@ -15,13 +15,13 @@
 // You should have received a copy of the GNU General Public License
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
-import QtQuick 2.13
-import QtQuick.Layouts 1.12
-import QtQuick.Controls 2.13
-import QtQuick.Controls.impl 2.13
-import QtQuick.Dialogs 1.1
+import QtQuick
+import QtQuick.Layouts
+import QtQuick.Controls
+import QtQuick.Controls.impl
+import QtQuick.Dialogs
 
-import Proton 4.0
+import Proton
 
 SettingsView {
     id: root
@@ -64,7 +64,7 @@ SettingsView {
         colorScheme: root.colorScheme
         text: qsTr("Current cache location")
         actionText: qsTr("Change location")
-        description: root.backend.goos === "windows" ?
+        description: Backend.goos === "windows" ?
                          root._diskCachePath.toString().replace("file:///", "").replace(new RegExp("/", 'g'), "\\") + "\\" :
                          root._diskCachePath.toString().replace("file://", "") + "/"
         descriptionWrap: Text.WrapAnywhere
@@ -76,13 +76,12 @@ SettingsView {
 
         Layout.fillWidth: true
 
-        FileDialog {
+        FolderDialog {
             id: pathDialog
             title: qsTr("Select cache location")
-            folder: root._diskCachePath
+            currentFolder: root._diskCachePath
             onAccepted: root._diskCachePath = pathDialog.fileUrl
-            selectFolder: true
-        }
+       }
     }
 
     RowLayout {
@@ -93,8 +92,8 @@ SettingsView {
             colorScheme: root.colorScheme
             text: qsTr("Save and restart")
             enabled: (
-                root.backend.diskCachePath != root._diskCachePath ||
-                root.backend.isDiskCacheEnabled != root._diskCacheEnabled
+                Backend.diskCachePath != root._diskCachePath ||
+                Backend.isDiskCacheEnabled != root._diskCacheEnabled
             )
             onClicked: {
                 root.submit()
@@ -109,9 +108,9 @@ SettingsView {
         }
 
         Connections {
-            target: root.backend
+            target: Backend
 
-            onChangeLocalCacheFinished: {
+            function onChangeLocalCacheFinished() {
                 submitButton.loading = false
                 root.setDefaultValues()
             }
@@ -123,24 +122,24 @@ SettingsView {
     }
 
     function submit(){
-        if (!root._diskCacheEnabled && root.backend.isDiskCacheEnabled) {
+        if (!root._diskCacheEnabled && Backend.isDiskCacheEnabled) {
             root.notifications.askDisableLocalCache()
             return
         }
 
-        if (root._diskCacheEnabled && !root.backend.isDiskCacheEnabled) {
+        if (root._diskCacheEnabled && !Backend.isDiskCacheEnabled) {
             root.notifications.askEnableLocalCache(root._diskCachePath)
             return
         }
 
         // Not asking, only changing path
         submitButton.loading = true
-        root.backend.changeLocalCache(root.backend.isDiskCacheEnabled, root._diskCachePath)
+        Backend.changeLocalCache(Backend.isDiskCacheEnabled, root._diskCachePath)
     }
 
     function setDefaultValues(){
-        root._diskCacheEnabled = root.backend.isDiskCacheEnabled
-        root._diskCachePath = root.backend.diskCachePath
+        root._diskCacheEnabled = Backend.isDiskCacheEnabled
+        root._diskCachePath = Backend.diskCachePath
     }
 
     onVisibleChanged: {
