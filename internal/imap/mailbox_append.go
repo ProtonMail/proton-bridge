@@ -197,7 +197,7 @@ func (im *imapMailbox) labelExistingMessage(msg storeMessageProvider) error { //
 }
 
 func (im *imapMailbox) importMessage(kr *crypto.KeyRing, hdr textproto.Header, body []byte, imapFlags []string, date time.Time) error { //nolint:funlen
-	im.log.Info("Importing external message")
+	im.log.WithField("size", len(body)).Info("Importing external message")
 
 	var (
 		seen     bool
@@ -251,6 +251,7 @@ func (im *imapMailbox) importMessage(kr *crypto.KeyRing, hdr textproto.Header, b
 
 	messageID, err := targetMailbox.ImportMessage(enc, seen, labelIDs, flags, time)
 	if err != nil {
+		log.WithField("enc.size", len(enc)).Error("Import failed")
 		return err
 	}
 

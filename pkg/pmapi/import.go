@@ -90,7 +90,14 @@ type ImportMsgRes struct {
 
 // Import imports messages to the user's account.
 func (c *client) Import(ctx context.Context, reqs ImportMsgReqs) ([]*ImportMsgRes, error) {
+	if len(reqs) == 0 {
+		return nil, errors.New("missing import requests")
+	}
+
 	if len(reqs) > MaxImportMessageRequestLength {
+		log.
+			WithField("count", len(reqs)).
+			Warn("Importing too many messages at once.")
 		return nil, errors.New("request is too long")
 	}
 
@@ -98,6 +105,10 @@ func (c *client) Import(ctx context.Context, reqs ImportMsgReqs) ([]*ImportMsgRe
 	for _, req := range reqs {
 		remainingSize -= len(req.Message)
 		if remainingSize < 0 {
+			log.
+				WithField("count", len(reqs)).
+				WithField("size", MaxImportMessageRequestLength-remainingSize).
+				Warn("Importing too big message(s)")
 			return nil, errors.New("request size is too big")
 		}
 	}
