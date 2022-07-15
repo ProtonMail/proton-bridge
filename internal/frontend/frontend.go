@@ -21,6 +21,7 @@ package frontend
 import (
 	"github.com/ProtonMail/proton-bridge/v2/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/v2/internal/config/settings"
+	"github.com/ProtonMail/proton-bridge/v2/internal/config/tls"
 	"github.com/ProtonMail/proton-bridge/v2/internal/config/useragent"
 	"github.com/ProtonMail/proton-bridge/v2/internal/frontend/cli"
 	"github.com/ProtonMail/proton-bridge/v2/internal/frontend/grpc"
@@ -47,6 +48,7 @@ func New(
 	frontendType string,
 	showWindowOnStart bool,
 	panicHandler types.PanicHandler,
+	tls *tls.TLS,
 	locations *locations.Locations,
 	settings *settings.Settings,
 	eventListener listener.Listener,
@@ -64,6 +66,7 @@ func New(
 			programName,
 			showWindowOnStart,
 			panicHandler,
+			tls,
 			locations,
 			settings,
 			eventListener,

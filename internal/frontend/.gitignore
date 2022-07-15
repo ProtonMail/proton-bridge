@@ -9,3 +9,5 @@ rcc.qrc
 rcc_cgo_*.go
 *.qmlc
 
+# QtCreator env
+CMakeLists.txt.user

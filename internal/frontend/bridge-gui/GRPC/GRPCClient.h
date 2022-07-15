@@ -171,6 +171,7 @@ signals:
     void changeKeychainFinished();
     void hasNoKeychain();
     void rebuildKeychain();
+    void certIsReady();
 
 signals: // mail releated events
     void noActiveKeyForRecipient(QString const &email);                                                                 //    _ func(email string)      `signal:noActiveKeyForRecipient`
@@ -182,7 +183,8 @@ public:
     grpc::Status startEventStream(); ///< Retrieve and signal the events in the event stream.
     grpc::Status stopEventStream(); ///< Stop the event stream.
 
-
+private slots:
+    void configFolderChanged();
 
 private:
     grpc::Status simpleMethod(SimpleMethod method); ///< perform a gRPC call to a bool setter.
@@ -196,6 +198,7 @@ private:
     grpc::Status getURL(StringGetter getter, QUrl& outValue); ///< Perform a gRPC call to a string getter, with resulted converted to QUrl.
     grpc::Status methodWithStringParam(StringParamMethod method, QString const& str); ///< Perfom a gRPC call that takes a string as a parameter and returns an Empty.
 
+    std::string getServerCertificate(); ///< Wait until server certificates is generated and retrieve it.
     void processAppEvent(grpc::AppEvent const &event); ///< Process an 'App' event.
     void processLoginEvent(grpc::LoginEvent const &event); ///< Process a 'Login' event.
     void processUpdateEvent(grpc::UpdateEvent const &event); ///< Process an 'Update' event.

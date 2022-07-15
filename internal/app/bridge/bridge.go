@@ -162,6 +162,7 @@ func mailLoop(b *base.Base, c *cli.Context) error { //nolint:funlen
 		frontendMode,
 		!c.Bool(base.FlagNoWindow),
 		b.CrashHandler,
+		b.TLS,
 		b.Locations,
 		b.Settings,
 		b.Listener,

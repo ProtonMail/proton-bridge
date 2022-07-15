@@ -20,7 +20,7 @@ package grpc
 //go:generate protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative bridge.proto
 
 import (
-	"crypto/tls"
+	cryptotls "crypto/tls"
 	"net"
 	"runtime"
 	"strings"
@@ -29,6 +29,7 @@ import (
 
 	"github.com/ProtonMail/proton-bridge/v2/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/v2/internal/config/settings"
+	bridgetls "github.com/ProtonMail/proton-bridge/v2/internal/config/tls"
 	"github.com/ProtonMail/proton-bridge/v2/internal/config/useragent"
 	"github.com/ProtonMail/proton-bridge/v2/internal/events"
 	"github.com/ProtonMail/proton-bridge/v2/internal/frontend/types"
@@ -54,6 +55,7 @@ type Service struct { // nolint:structcheck
 	programName    string
 	programVersion string
 	panicHandler   types.PanicHandler
+	tls            *bridgetls.TLS
 	locations      *locations.Locations
 	settings       *settings.Settings
 	eventListener  listener.Listener
@@ -78,6 +80,7 @@ func NewService(
 	programName string,
 	showOnStartup bool,
 	panicHandler types.PanicHandler,
+	tls *bridgetls.TLS,
 	locations *locations.Locations,
 	settings *settings.Settings,
 	eventListener listener.Listener,
@@ -93,6 +96,7 @@ func NewService(
 		programName:               programName,
 		programVersion:            version,
 		panicHandler:              panicHandler,
+		tls:                       tls,
 		locations:                 locations,
 		settings:                  settings,
 		eventListener:             eventListener,
@@ -109,19 +113,16 @@ func NewService(
 	}
 
 	s.userAgent.SetPlatform(runtime.GOOS) // TO-DO GODT-1672 In the previous Qt frontend, this routine used QSysInfo::PrettyProductName to return a more accurate description, e.g. "Windows 10" or "MacOS 10.12"
-
-	cert, err := tls.X509KeyPair([]byte(serverCert), []byte(serverKey))
+	config, err := tls.GetConfig()
+	config.ClientAuth = cryptotls.NoClientCert // skip client auth if the certificate allow it.
 	if err != nil {
-		s.log.WithError(err).Error("could not create key pair")
+		s.log.WithError(err).Error("could not get TLS config")
 		panic(err)
 	}
 
 	s.initAutostart()
 
-	s.grpcServer = grpc.NewServer(grpc.Creds(credentials.NewTLS(&tls.Config{
-		Certificates: []tls.Certificate{cert},
-		MinVersion:   tls.VersionTLS13,
-	})))
+	s.grpcServer = grpc.NewServer(grpc.Creds(credentials.NewTLS(config)))
 
 	RegisterBridgeServer(s.grpcServer, &s)
 
