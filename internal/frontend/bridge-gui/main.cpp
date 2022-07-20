@@ -26,16 +26,11 @@
 //****************************************************************************************************************************************************
 /// // initialize the Qt application.
 //****************************************************************************************************************************************************
-std::shared_ptr<QGuiApplication> initQtApplication(int argc, char *argv[])
+void initQtApplication()
 {
-    if (QSysInfo::productType() != "windows")
-        QCoreApplication::setAttribute(Qt::AA_UseSoftwareOpenGL);
-
     QString const qsgInfo = QProcessEnvironment::systemEnvironment().value("QSG_INFO");
     if ((!qsgInfo.isEmpty()) && (qsgInfo != "0"))
         QLoggingCategory::setFilterRules("qt.scenegraph.general=true");
-
-    auto app = std::make_shared<QGuiApplication>(argc, argv);
 
     /// \todo GODT-1670 Get version from go backend.
     QGuiApplication::setApplicationName("Proton Mail Bridge");
@@ -43,9 +38,7 @@ std::shared_ptr<QGuiApplication> initQtApplication(int argc, char *argv[])
     QGuiApplication::setOrganizationName("Proton AG");
     QGuiApplication::setOrganizationDomain("proton.ch");
     QGuiApplication::setQuitOnLastWindowClosed(false);
-
-    return app;
-}
+ }
 
 
 //****************************************************************************************************************************************************
@@ -160,9 +153,13 @@ void closeBridgeApp()
 //****************************************************************************************************************************************************
 int main(int argc, char *argv[])
 {
-    std::shared_ptr<QGuiApplication> guiApp = initQtApplication(argc, argv);
     try
     {
+        if (QSysInfo::productType() != "windows")
+            QCoreApplication::setAttribute(Qt::AA_UseSoftwareOpenGL);
+
+        QGuiApplication guiApp(argc, argv);
+        initQtApplication();
 
         bool attach = false;
         QString exePath;
@@ -177,11 +174,9 @@ int main(int argc, char *argv[])
 
         QQmlApplicationEngine engine;
         std::unique_ptr<QQmlComponent> rootComponent(createRootQmlComponent(engine));
-        std::unique_ptr<QObject> rootObject(rootComponent->beginCreate(engine.rootContext()));
+        std::unique_ptr<QObject>rootObject(rootComponent->create(engine.rootContext()));
         if (!rootObject)
             throw Exception("Could not create root object.");
-        rootObject->setProperty("backend", QVariant::fromValue(&app().backend()));
-        rootComponent->completeCreate();
 
         BridgeMonitor *bridgeMonitor = app().bridgeMonitor();
         bool bridgeExited = false;
