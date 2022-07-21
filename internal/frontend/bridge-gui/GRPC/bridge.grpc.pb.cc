@@ -1262,19 +1262,19 @@ void Bridge::Stub::async::ConfigureUserAppleMail(::grpc::ClientContext* context,
   return result;
 }
 
-::grpc::ClientReader< ::grpc::StreamEvent>* Bridge::Stub::StartEventStreamRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request) {
+::grpc::ClientReader< ::grpc::StreamEvent>* Bridge::Stub::StartEventStreamRaw(::grpc::ClientContext* context, const ::grpc::EventStreamRequest& request) {
   return ::grpc::internal::ClientReaderFactory< ::grpc::StreamEvent>::Create(channel_.get(), rpcmethod_StartEventStream_, context, request);
 }
 
-void Bridge::Stub::async::StartEventStream(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::grpc::ClientReadReactor< ::grpc::StreamEvent>* reactor) {
+void Bridge::Stub::async::StartEventStream(::grpc::ClientContext* context, const ::grpc::EventStreamRequest* request, ::grpc::ClientReadReactor< ::grpc::StreamEvent>* reactor) {
   ::grpc::internal::ClientCallbackReaderFactory< ::grpc::StreamEvent>::Create(stub_->channel_.get(), stub_->rpcmethod_StartEventStream_, context, request, reactor);
 }
 
-::grpc::ClientAsyncReader< ::grpc::StreamEvent>* Bridge::Stub::AsyncStartEventStreamRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq, void* tag) {
+::grpc::ClientAsyncReader< ::grpc::StreamEvent>* Bridge::Stub::AsyncStartEventStreamRaw(::grpc::ClientContext* context, const ::grpc::EventStreamRequest& request, ::grpc::CompletionQueue* cq, void* tag) {
   return ::grpc::internal::ClientAsyncReaderFactory< ::grpc::StreamEvent>::Create(channel_.get(), cq, rpcmethod_StartEventStream_, context, request, true, tag);
 }
 
-::grpc::ClientAsyncReader< ::grpc::StreamEvent>* Bridge::Stub::PrepareAsyncStartEventStreamRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) {
+::grpc::ClientAsyncReader< ::grpc::StreamEvent>* Bridge::Stub::PrepareAsyncStartEventStreamRaw(::grpc::ClientContext* context, const ::grpc::EventStreamRequest& request, ::grpc::CompletionQueue* cq) {
   return ::grpc::internal::ClientAsyncReaderFactory< ::grpc::StreamEvent>::Create(channel_.get(), cq, rpcmethod_StartEventStream_, context, request, false, nullptr);
 }
 
@@ -1795,10 +1795,10 @@ Bridge::Service::Service() {
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       Bridge_method_names[49],
       ::grpc::internal::RpcMethod::SERVER_STREAMING,
-      new ::grpc::internal::ServerStreamingHandler< Bridge::Service, ::google::protobuf::Empty, ::grpc::StreamEvent>(
+      new ::grpc::internal::ServerStreamingHandler< Bridge::Service, ::grpc::EventStreamRequest, ::grpc::StreamEvent>(
           [](Bridge::Service* service,
              ::grpc::ServerContext* ctx,
-             const ::google::protobuf::Empty* req,
+             const ::grpc::EventStreamRequest* req,
              ::grpc::ServerWriter<::grpc::StreamEvent>* writer) {
                return service->StartEventStream(ctx, req, writer);
              }, this)));
@@ -2160,7 +2160,7 @@ Bridge::Service::~Service() {
   return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
 }
 
-::grpc::Status Bridge::Service::StartEventStream(::grpc::ServerContext* context, const ::google::protobuf::Empty* request, ::grpc::ServerWriter< ::grpc::StreamEvent>* writer) {
+::grpc::Status Bridge::Service::StartEventStream(::grpc::ServerContext* context, const ::grpc::EventStreamRequest* request, ::grpc::ServerWriter< ::grpc::StreamEvent>* writer) {
   (void) context;
   (void) request;
   (void) writer;

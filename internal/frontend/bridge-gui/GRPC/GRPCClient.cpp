@@ -258,6 +258,27 @@ grpc::Status GRPCClient::currentEmailClient(QString &outName)
 
 
 //****************************************************************************************************************************************************
+/// \param[in] description The description of the bug.
+/// \param[in] address The email address.
+/// \param[in] emailClient The email client.
+/// \param[in] includeLogs Should the report include the logs.
+/// \return The status foer the gRPC call.
+//****************************************************************************************************************************************************
+grpc::Status GRPCClient::reportBug(QString const &description, QString const &address, QString const &emailClient, bool includeLogs)
+{
+    grpc::ClientContext ctx;
+    ReportBugRequest request;
+    request.set_ostype(QSysInfo::productType().toStdString());
+    request.set_osversion(QSysInfo::prettyProductName().toStdString());
+    request.set_description(description.toStdString());
+    request.set_address(address.toStdString());
+    request.set_emailclient(emailClient.toStdString());
+    request.set_includelogs(includeLogs);
+    return stub_->ReportBug(&ctx, request, &empty);
+}
+
+
+//****************************************************************************************************************************************************
 /// \param[out] outUseSSL The value for the property.
 /// \return The status for the gRPC call.
 //****************************************************************************************************************************************************
@@ -717,7 +738,9 @@ grpc::Status GRPCClient::setCurrentKeychain(QString const &keychain)
 grpc::Status GRPCClient::startEventStream()
 {
     grpc::ClientContext ctx;
-    std::unique_ptr<grpc::ClientReader<grpc::StreamEvent>> reader(stub_->StartEventStream(&ctx, empty));
+    EventStreamRequest request;
+    request.set_clientplatform(QSysInfo::prettyProductName().toStdString());
+    std::unique_ptr<grpc::ClientReader<grpc::StreamEvent>> reader(stub_->StartEventStream(&ctx, request));
     grpc::StreamEvent event;
 
     while (reader->Read(&event))
@@ -1251,3 +1274,5 @@ void GRPCClient::processUserEvent(UserEvent const &event)
         app().log().error("Unknown User event received.");
     }
 }
+
+

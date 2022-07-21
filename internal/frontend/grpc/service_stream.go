@@ -27,12 +27,14 @@ import (
 )
 
 // StartEventStream implement the gRPC server->Client event stream.
-func (s *Service) StartEventStream(_ *emptypb.Empty, server Bridge_StartEventStreamServer) error {
+func (s *Service) StartEventStream(request *EventStreamRequest, server Bridge_StartEventStreamServer) error {
 	s.log.Info("Starting Event stream")
 
 	if s.eventStreamCh != nil {
 		return status.Errorf(codes.AlreadyExists, "the service is already streaming") // TO-DO GODT-1667 decide if we want to kill the existing stream.
 	}
+
+	s.userAgent.SetPlatform(request.ClientPlatform)
 
 	s.eventStreamCh = make(chan *StreamEvent)
 	s.eventStreamDoneCh = make(chan struct{})

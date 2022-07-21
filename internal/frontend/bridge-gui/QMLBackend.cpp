@@ -310,13 +310,3 @@ void QMLBackend::triggerReset()
 {
     app().log().error(QString("%1() is not implemented.").arg(__FUNCTION__));
 }
-
-//****************************************************************************************************************************************************
-//
-//****************************************************************************************************************************************************
-void QMLBackend::reportBug(QString const &description, QString const &address, QString const &emailClient,
-    bool includeLogs)
-{
-    Q_UNUSED(includeLogs)
-    app().log().error(QString("%1() is not implemented.").arg(__FUNCTION__));
-}

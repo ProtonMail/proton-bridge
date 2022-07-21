@@ -30,6 +30,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/v2/pkg/keychain"
 	"github.com/ProtonMail/proton-bridge/v2/pkg/pmapi"
 	"github.com/ProtonMail/proton-bridge/v2/pkg/ports"
+	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -218,11 +219,35 @@ func (s *Service) CurrentEmailClient(context.Context, *emptypb.Empty) (*wrappers
 }
 
 func (s *Service) ReportBug(_ context.Context, report *ReportBugRequest) (*emptypb.Empty, error) {
-	s.log.WithField("description", report.Description).
-		WithField("address", report.Address).
-		WithField("emailClient", report.EmailClient).
-		WithField("includeLogs", report.IncludeLogs).
-		Info("ReportBug")
+	s.log.WithFields(logrus.Fields{
+		"osType":      report.OsType,
+		"osVersion":   report.OsVersion,
+		"description": report.Description,
+		"address":     report.Address,
+		"emailClient": report.EmailClient,
+		"includeLogs": report.IncludeLogs,
+	}).Info("ReportBug")
+
+	go func() {
+		defer func() { _ = s.SendEvent(NewReportBugFinishedEvent()) }()
+
+		if err := s.bridge.ReportBug(
+			report.OsType,
+			report.OsVersion,
+			report.Description,
+			report.Address,
+			report.Address,
+			report.EmailClient,
+			report.IncludeLogs,
+		); err != nil {
+			s.log.WithError(err).Error("Failed to report bug")
+			_ = s.SendEvent(NewReportBugErrorEvent())
+			return
+		}
+
+		_ = s.SendEvent(NewReportBugSuccessEvent())
+	}()
+
 	return &emptypb.Empty{}, nil
 }
 

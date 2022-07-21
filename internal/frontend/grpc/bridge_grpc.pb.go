@@ -83,7 +83,7 @@ type BridgeClient interface {
 	RemoveUser(ctx context.Context, in *wrapperspb.StringValue, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	ConfigureUserAppleMail(ctx context.Context, in *ConfigureAppleMailRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	// Server -> Client event stream
-	StartEventStream(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (Bridge_StartEventStreamClient, error)
+	StartEventStream(ctx context.Context, in *EventStreamRequest, opts ...grpc.CallOption) (Bridge_StartEventStreamClient, error)
 	StopEventStream(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
@@ -536,7 +536,7 @@ func (c *bridgeClient) ConfigureUserAppleMail(ctx context.Context, in *Configure
 	return out, nil
 }
 
-func (c *bridgeClient) StartEventStream(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (Bridge_StartEventStreamClient, error) {
+func (c *bridgeClient) StartEventStream(ctx context.Context, in *EventStreamRequest, opts ...grpc.CallOption) (Bridge_StartEventStreamClient, error) {
 	stream, err := c.cc.NewStream(ctx, &Bridge_ServiceDesc.Streams[0], "/grpc.Bridge/StartEventStream", opts...)
 	if err != nil {
 		return nil, err
@@ -640,7 +640,7 @@ type BridgeServer interface {
 	RemoveUser(context.Context, *wrapperspb.StringValue) (*emptypb.Empty, error)
 	ConfigureUserAppleMail(context.Context, *ConfigureAppleMailRequest) (*emptypb.Empty, error)
 	// Server -> Client event stream
-	StartEventStream(*emptypb.Empty, Bridge_StartEventStreamServer) error
+	StartEventStream(*EventStreamRequest, Bridge_StartEventStreamServer) error
 	StopEventStream(context.Context, *emptypb.Empty) (*emptypb.Empty, error)
 	mustEmbedUnimplementedBridgeServer()
 }
@@ -796,7 +796,7 @@ func (UnimplementedBridgeServer) RemoveUser(context.Context, *wrapperspb.StringV
 func (UnimplementedBridgeServer) ConfigureUserAppleMail(context.Context, *ConfigureAppleMailRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ConfigureUserAppleMail not implemented")
 }
-func (UnimplementedBridgeServer) StartEventStream(*emptypb.Empty, Bridge_StartEventStreamServer) error {
+func (UnimplementedBridgeServer) StartEventStream(*EventStreamRequest, Bridge_StartEventStreamServer) error {
 	return status.Errorf(codes.Unimplemented, "method StartEventStream not implemented")
 }
 func (UnimplementedBridgeServer) StopEventStream(context.Context, *emptypb.Empty) (*emptypb.Empty, error) {
@@ -1698,7 +1698,7 @@ func _Bridge_ConfigureUserAppleMail_Handler(srv interface{}, ctx context.Context
 }
 
 func _Bridge_StartEventStream_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(emptypb.Empty)
+	m := new(EventStreamRequest)
 	if err := stream.RecvMsg(m); err != nil {
 		return err
 	}

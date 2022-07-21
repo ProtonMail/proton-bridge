@@ -22,7 +22,6 @@ package grpc
 import (
 	cryptotls "crypto/tls"
 	"net"
-	"runtime"
 	"strings"
 	"sync"
 	"time"
@@ -112,7 +111,6 @@ func NewService(
 		firstTimeAutostart: sync.Once{},
 	}
 
-	s.userAgent.SetPlatform(runtime.GOOS) // TO-DO GODT-1672 In the previous Qt frontend, this routine used QSysInfo::PrettyProductName to return a more accurate description, e.g. "Windows 10" or "MacOS 10.12"
 	config, err := tls.GetConfig()
 	config.ClientAuth = cryptotls.NoClientCert // skip client auth if the certificate allow it.
 	if err != nil {
