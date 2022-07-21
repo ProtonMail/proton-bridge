@@ -17,6 +17,7 @@
 
 
 #!/bin/bash
+BRIDGE_APP_VERSION=${BRIDGE_APP_VERSION:-2.2.1+git}
 BUILD_DIR="./cmake-build-debug"
-cmake  -DCMAKE_BUILD_TYPE=Debug -G Ninja -S . -B ${BUILD_DIR}
+cmake  -DCMAKE_BUILD_TYPE=Debug -DBRIDGE_APP_VERSION=${BRIDGE_APP_VERSION} -G Ninja -S . -B ${BUILD_DIR}
 ninja -C ${BUILD_DIR}

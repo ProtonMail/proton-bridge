@@ -55,9 +55,9 @@ public: // Qt/QML properties. Note that the NOTIFY-er signal is required even fo
     Q_PROPERTY(QString goos READ goos NOTIFY goosChanged)                                                                                             //    _ string      `property:"goos"`
     Q_PROPERTY(QUrl logsPath READ logsPath NOTIFY logsPathChanged)                                                                                    //    _ core.QUrl   `property:"logsPath"`
     Q_PROPERTY(QUrl licensePath READ licensePath NOTIFY licensePathChanged)                                                                           //    _ core.QUrl   `property:"licensePath"`
-    Q_PROPERTY(QUrl releaseNotesLink READ releaseNotesLink WRITE setReleaseNotesLink NOTIFY releaseNotesLinkChanged)                                  //    _ core.QUrl   `property:"releaseNotesLink"`
+    Q_PROPERTY(QUrl releaseNotesLink READ releaseNotesLink NOTIFY releaseNotesLinkChanged)                                  //    _ core.QUrl   `property:"releaseNotesLink"`
     Q_PROPERTY(QUrl dependencyLicensesLink READ dependencyLicensesLink NOTIFY dependencyLicensesLinkChanged)                                          //    _ core.QUrl   `property:"dependencyLicensesLink"`
-    Q_PROPERTY(QUrl landingPageLink READ landingPageLink WRITE setLandingPageLink NOTIFY landingPageLinkChanged)                                      //    _ core.QUrl   `property:"landingPageLink"`
+    Q_PROPERTY(QUrl landingPageLink READ landingPageLink NOTIFY landingPageLinkChanged)                                      //    _ core.QUrl   `property:"landingPageLink"`
     Q_PROPERTY(QString version READ version NOTIFY versionChanged)                                                                                    //    _ string      `property:"version"`
     Q_PROPERTY(QString hostname READ hostname NOTIFY hostnameChanged)                                                                                 //    _ string      `property:"hostname"`
     Q_PROPERTY(bool isAutostartOn READ isAutostartOn NOTIFY isAutostartOnChanged)                                                                     //    _ bool        `property:"isAutostartOn"`
@@ -84,11 +84,9 @@ public: // Qt/QML properties. Note that the NOTIFY-er signal is required even fo
     QString goos() { return goos_; }
     QUrl logsPath() const { return logsPath_; }
     QUrl licensePath() const { return licensePath_; }
-    QUrl releaseNotesLink() const { return releaseNotesLink_; }
-    void setReleaseNotesLink(QUrl const& url) { if (url != releaseNotesLink_) { releaseNotesLink_ = url; emit releaseNotesLinkChanged(url); } }
+    QUrl releaseNotesLink() const { QUrl link; logGRPCCallStatus(app().grpc().releaseNotesPageLink(link), "releaseNotesPageLink"); return link;   }
     QUrl dependencyLicensesLink() const { QUrl link; logGRPCCallStatus(app().grpc().dependencyLicensesLink(link), "dependencyLicensesLink"); return link; }
-    QUrl landingPageLink() const { return landingPageLink_; }
-    void setLandingPageLink(QUrl const& url) { if (url != landingPageLink_) { landingPageLink_ = url; emit landingPageLinkChanged(url); } }
+    QUrl landingPageLink() const { QUrl link; logGRPCCallStatus(app().grpc().landingPageLink(link), "landingPageLink"); return link;  }
     QString version() const { QString version; logGRPCCallStatus(app().grpc().version(version), "version"); return version; }
     QString hostname() const { QString hostname; logGRPCCallStatus(app().grpc().hostname(hostname), "hostname"); return hostname; }
     bool isAutostartOn() const { bool v; logGRPCCallStatus(app().grpc().isAutostartOn(v), "isAutostartOn"); return v; };
@@ -218,8 +216,6 @@ private: // data members
     QString goos_; ///< The cached version of the GOOS variable.
     QUrl logsPath_; ///< The logs path. Retrieved from bridge on startup.
     QUrl licensePath_; ///< The license path. Retrieved from bridge on startup.
-    QUrl releaseNotesLink_; /// Release notes is not stored in the backend, it's pushed by the update check so we keep a local copy of it. \todo GODT-1670 Check this is implemented.
-    QUrl landingPageLink_; /// Landing page link is not stored in the backend, it's pushed by the update check so we keep a local copy of it. \todo GODT-1670 Check this is implemented.
 
     friend class AppController;
 };

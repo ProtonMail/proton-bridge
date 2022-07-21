@@ -22,6 +22,7 @@
 #include "GRPC/GRPCClient.h"
 #include "Worker/Overseer.h"
 #include "EventStreamWorker.h"
+#include "Version.h"
 
 
 //****************************************************************************************************************************************************
@@ -46,6 +47,10 @@ void QMLBackend::init()
         app().log().info("Connected to backend via gRPC service.");
     else
         throw Exception(QString("Cannot connectToServer to go backend via gRPC: %1").arg(error));
+    QString bridgeVer;
+    app().grpc().version(bridgeVer);
+    if (bridgeVer != PROJECT_VER)
+        throw Exception(QString("Version Mismatched from Bridge (%1) and Bridge-GUI (%2)").arg(bridgeVer).arg(PROJECT_VER));
 
     eventStreamOverseer_ = std::make_unique<Overseer>(new EventStreamReader(nullptr), nullptr);
     eventStreamOverseer_->startWorker(true);
@@ -97,6 +102,17 @@ void QMLBackend::connectGrpcEvents()
         qint32 const index = users_->rowOfUserID(userID); emit loginFinished(index); });
     connect(client, &GRPCClient::loginAlreadyLoggedIn, this, [&](QString const &userID) {
         qint32 const index = users_->rowOfUserID(userID); emit loginAlreadyLoggedIn(index); });
+
+    // update events
+    connect(client, &GRPCClient::updateManualError, this, &QMLBackend::updateManualError);
+    connect(client, &GRPCClient::updateForceError, this, &QMLBackend::updateForceError);
+    connect(client, &GRPCClient::updateSilentError, this, &QMLBackend::updateSilentError);
+    connect(client, &GRPCClient::updateManualReady, this, &QMLBackend::updateManualReady);
+    connect(client, &GRPCClient::updateManualRestartNeeded, this, &QMLBackend::updateManualRestartNeeded);
+    connect(client, &GRPCClient::updateForce, this, &QMLBackend::updateForce);
+    connect(client, &GRPCClient::updateSilentRestartNeeded, this, &QMLBackend::updateSilentRestartNeeded);
+    connect(client, &GRPCClient::updateIsLatestVersion, this, &QMLBackend::updateIsLatestVersion);
+    connect(client, &GRPCClient::checkUpdatesFinished, this, &QMLBackend::checkUpdatesFinished);
 
     // mail settings events
     connect(client, &GRPCClient::portIssueIMAP, this, &QMLBackend::portIssueIMAP);
@@ -289,9 +305,8 @@ void QMLBackend::toggleAutomaticUpdate(bool active)
 //****************************************************************************************************************************************************
 void QMLBackend::checkUpdates()
 {
-    app().log().error(QString("%1() is not implemented.").arg(__FUNCTION__));
+    app().grpc().checkUpdate();
 }
-
 
 
 //****************************************************************************************************************************************************

@@ -51,22 +51,22 @@ type Service struct { // nolint:structcheck
 	eventStreamCh     chan *StreamEvent
 	eventStreamDoneCh chan struct{}
 
-	programName    string
-	programVersion string
-	panicHandler   types.PanicHandler
-	tls            *bridgetls.TLS
-	locations      *locations.Locations
-	settings       *settings.Settings
-	eventListener  listener.Listener
-	updater        types.Updater
-	userAgent      *useragent.UserAgent
-	bridge         types.Bridger
-	restarter      types.Restarter
-	showOnStartup  bool
-	authClient     pmapi.Client
-	auth           *pmapi.Auth
-	password       []byte
-	// newVersionInfo     updater.VersionInfo // TO-DO GODT-1670 Implement version check
+	programName        string
+	programVersion     string
+	panicHandler       types.PanicHandler
+	tls                *bridgetls.TLS
+	locations          *locations.Locations
+	settings           *settings.Settings
+	eventListener      listener.Listener
+	updater            types.Updater
+	userAgent          *useragent.UserAgent
+	bridge             types.Bridger
+	restarter          types.Restarter
+	showOnStartup      bool
+	authClient         pmapi.Client
+	auth               *pmapi.Auth
+	password           []byte
+	newVersionInfo     updater.VersionInfo
 	log                *logrus.Entry
 	initializing       sync.WaitGroup
 	initializationDone sync.Once
@@ -168,13 +168,20 @@ func (s *Service) Loop() error {
 	return nil
 }
 
-// frontend interface functions TODO GODT-1670 Implement
+func (s *Service) NotifyManualUpdate(version updater.VersionInfo, canInstall bool) {
+	if canInstall {
+		_ = s.SendEvent(NewUpdateManualReadyEvent(version.Version.String()))
+	} else {
+		_ = s.SendEvent(NewUpdateErrorEvent(UpdateErrorType_UPDATE_MANUAL_ERROR))
+	}
+}
 
-func (s *Service) NotifyManualUpdate( /* update */ _ updater.VersionInfo /*canInstall */, _ bool) {}
-func (s *Service) SetVersion( /* update */ updater.VersionInfo)                                   {}
-func (s *Service) NotifySilentUpdateInstalled()                                                   {}
-func (s *Service) NotifySilentUpdateError(error)                                                  {}
-func (s *Service) WaitUntilFrontendIsReady()                                                      {}
+func (s *Service) SetVersion(update updater.VersionInfo) {
+	s.newVersionInfo = update
+}
+func (s *Service) NotifySilentUpdateInstalled()  {}
+func (s *Service) NotifySilentUpdateError(error) {}
+func (s *Service) WaitUntilFrontendIsReady()     {}
 
 func (s *Service) watchEvents() { // nolint:funlen
 	if s.bridge.HasError(bridge.ErrLocalCacheUnavailable) {
@@ -315,14 +322,44 @@ func (s *Service) restart() {
 	s.log.Error("Restart is not implemented") // TO-DO GODT-1671 implement restart.
 }
 
+var checkingUpdates = sync.Mutex{}
+
 func (s *Service) checkUpdate() {
-	s.log.Error("checkUpdate is not implemented") // TO-DO GODT-1670 implement update check.
+
+	version, err := s.updater.Check()
+	if err != nil {
+		s.log.WithError(err).Error("An error occurred while checking for updates")
+		s.SetVersion(updater.VersionInfo{})
+		return
+	}
+	s.SetVersion(version)
 }
 
 func (s *Service) updateForce() {
 	s.log.Error("updateForce is not implemented") // TO-DO GODT-1670 implement update.
 }
 
-func (s *Service) checkUpdateAndNotify() {
-	s.log.Error("checkUpdateAndNotify is not implemented") // TO-DO GODT-1670 implement update check.
+func (s *Service) checkUpdateAndNotify(isReqFromUser bool) {
+	checkingUpdates.Lock()
+	defer func() {
+		checkingUpdates.Unlock()
+		_ = s.SendEvent(NewUpdateCheckFinishedEvent())
+	}()
+
+	s.checkUpdate()
+	version := s.newVersionInfo
+	if "" == version.Version.String() {
+		if isReqFromUser {
+			_ = s.SendEvent(NewUpdateErrorEvent(UpdateErrorType_UPDATE_MANUAL_ERROR))
+		}
+		return
+	}
+	if !s.updater.IsUpdateApplicable(s.newVersionInfo) {
+		s.log.Info("No need to update")
+		if isReqFromUser {
+			_ = s.SendEvent(NewUpdateIsLatestVersionEvent())
+		}
+	} else if isReqFromUser {
+		s.NotifyManualUpdate(s.newVersionInfo, s.updater.CanInstall(s.newVersionInfo))
+	}
 }

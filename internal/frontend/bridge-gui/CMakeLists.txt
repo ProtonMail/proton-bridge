@@ -46,8 +46,15 @@ if  (WIN32)
 endif()
 set(CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake" CACHE STRING "toolchain")
 
-
 project(bridge-gui LANGUAGES CXX)
+
+if (NOT DEFINED BRIDGE_APP_VERSION)
+    message(FATAL_ERROR "BRIDGE_APP_VERSION is not defined.")
+else()
+    message(STATUS "Bridge version is ${BRIDGE_APP_VERSION}")
+endif()
+
+configure_file(Version.h.in ${CMAKE_SOURCE_DIR}/Version.h)
 if (APPLE) # On macOS, we have some Objective-C++ code in DockIcon to deal with the dock icon.
     enable_language(OBJC OBJCXX)
 endif()
@@ -137,6 +144,7 @@ add_executable(bridge-gui
     Log.cpp Log.h
     main.cpp
     Pch.h
+    Version.h
     QMLBackend.cpp QMLBackend.h
     ${DOCK_ICON_SRC_FILE} DockIcon/DockIcon.h
     GRPC/GRPCClient.cpp GRPC/GRPCClient.h

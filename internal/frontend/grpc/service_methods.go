@@ -25,6 +25,7 @@ import (
 	"github.com/Masterminds/semver/v3"
 	"github.com/ProtonMail/proton-bridge/v2/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/v2/internal/config/settings"
+	"github.com/ProtonMail/proton-bridge/v2/internal/constants"
 	"github.com/ProtonMail/proton-bridge/v2/internal/frontend/theme"
 	"github.com/ProtonMail/proton-bridge/v2/internal/updater"
 	"github.com/ProtonMail/proton-bridge/v2/pkg/keychain"
@@ -165,7 +166,7 @@ func (s *Service) TriggerReset(context.Context, *emptypb.Empty) (*emptypb.Empty,
 
 func (s *Service) Version(context.Context, *emptypb.Empty) (*wrapperspb.StringValue, error) {
 	s.log.Info("Version")
-	return nil, ErrNotImplemented
+	return wrapperspb.String(constants.Version), nil
 }
 
 func (s *Service) LogsPath(context.Context, *emptypb.Empty) (*wrapperspb.StringValue, error) {
@@ -185,6 +186,14 @@ func (s *Service) LicensePath(context.Context, *emptypb.Empty) (*wrapperspb.Stri
 
 func (s *Service) DependencyLicensesLink(context.Context, *emptypb.Empty) (*wrapperspb.StringValue, error) {
 	return wrapperspb.String(s.locations.GetDependencyLicensesLink()), nil
+}
+
+func (s *Service) ReleaseNotesPageLink(context.Context, *emptypb.Empty) (*wrapperspb.StringValue, error) {
+	return wrapperspb.String(s.newVersionInfo.ReleaseNotesPage), nil
+}
+
+func (s *Service) LandingPageLink(context.Context, *emptypb.Empty) (*wrapperspb.StringValue, error) {
+	return wrapperspb.String(s.newVersionInfo.LandingPage), nil
 }
 
 func (s *Service) SetColorSchemeName(_ context.Context, name *wrapperspb.StringValue) (*emptypb.Empty, error) {
@@ -385,7 +394,11 @@ func (s *Service) LoginAbort(_ context.Context, loginAbort *LoginAbortRequest) (
 
 func (s *Service) CheckUpdate(context.Context, *emptypb.Empty) (*emptypb.Empty, error) {
 	s.log.Info("CheckUpdate")
-	// TO-DO GODT-1670 Implement update check
+	go func() {
+		defer s.panicHandler.HandlePanic()
+
+		s.checkUpdateAndNotify(true)
+	}()
 	return &emptypb.Empty{}, nil
 }
 
@@ -404,7 +417,7 @@ func (s *Service) SetIsAutomaticUpdateOn(_ context.Context, isOn *wrapperspb.Boo
 	}
 
 	s.settings.SetBool(settings.AutoUpdateKey, isOn.Value)
-	s.checkUpdateAndNotify()
+	s.checkUpdateAndNotify(false)
 
 	return &emptypb.Empty{}, nil
 }

@@ -40,9 +40,9 @@ type BridgeClient interface {
 	Version(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*wrapperspb.StringValue, error)
 	LogsPath(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*wrapperspb.StringValue, error)
 	LicensePath(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*wrapperspb.StringValue, error)
-	// rpc ReleaseNotesLink(google.protobuf.Empty) returns (google.protobuf.StringValue); // TODO GODT-1670 Apparently cannot be polled for now, will be sent as update.
+	ReleaseNotesPageLink(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*wrapperspb.StringValue, error)
 	DependencyLicensesLink(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*wrapperspb.StringValue, error)
-	//  rpc LandingPageLink(google.protobuf.Empty) returns (google.protobuf.StringValue); // TODO GODT-1670 Apparently cannot be polled for now, will be sent as update.
+	LandingPageLink(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*wrapperspb.StringValue, error)
 	SetColorSchemeName(ctx context.Context, in *wrapperspb.StringValue, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	ColorSchemeName(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*wrapperspb.StringValue, error)
 	CurrentEmailClient(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*wrapperspb.StringValue, error)
@@ -230,9 +230,27 @@ func (c *bridgeClient) LicensePath(ctx context.Context, in *emptypb.Empty, opts 
 	return out, nil
 }
 
+func (c *bridgeClient) ReleaseNotesPageLink(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*wrapperspb.StringValue, error) {
+	out := new(wrapperspb.StringValue)
+	err := c.cc.Invoke(ctx, "/grpc.Bridge/ReleaseNotesPageLink", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *bridgeClient) DependencyLicensesLink(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*wrapperspb.StringValue, error) {
 	out := new(wrapperspb.StringValue)
 	err := c.cc.Invoke(ctx, "/grpc.Bridge/DependencyLicensesLink", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *bridgeClient) LandingPageLink(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*wrapperspb.StringValue, error) {
+	out := new(wrapperspb.StringValue)
+	err := c.cc.Invoke(ctx, "/grpc.Bridge/LandingPageLink", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -597,9 +615,9 @@ type BridgeServer interface {
 	Version(context.Context, *emptypb.Empty) (*wrapperspb.StringValue, error)
 	LogsPath(context.Context, *emptypb.Empty) (*wrapperspb.StringValue, error)
 	LicensePath(context.Context, *emptypb.Empty) (*wrapperspb.StringValue, error)
-	// rpc ReleaseNotesLink(google.protobuf.Empty) returns (google.protobuf.StringValue); // TODO GODT-1670 Apparently cannot be polled for now, will be sent as update.
+	ReleaseNotesPageLink(context.Context, *emptypb.Empty) (*wrapperspb.StringValue, error)
 	DependencyLicensesLink(context.Context, *emptypb.Empty) (*wrapperspb.StringValue, error)
-	//  rpc LandingPageLink(google.protobuf.Empty) returns (google.protobuf.StringValue); // TODO GODT-1670 Apparently cannot be polled for now, will be sent as update.
+	LandingPageLink(context.Context, *emptypb.Empty) (*wrapperspb.StringValue, error)
 	SetColorSchemeName(context.Context, *wrapperspb.StringValue) (*emptypb.Empty, error)
 	ColorSchemeName(context.Context, *emptypb.Empty) (*wrapperspb.StringValue, error)
 	CurrentEmailClient(context.Context, *emptypb.Empty) (*wrapperspb.StringValue, error)
@@ -694,8 +712,14 @@ func (UnimplementedBridgeServer) LogsPath(context.Context, *emptypb.Empty) (*wra
 func (UnimplementedBridgeServer) LicensePath(context.Context, *emptypb.Empty) (*wrapperspb.StringValue, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method LicensePath not implemented")
 }
+func (UnimplementedBridgeServer) ReleaseNotesPageLink(context.Context, *emptypb.Empty) (*wrapperspb.StringValue, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ReleaseNotesPageLink not implemented")
+}
 func (UnimplementedBridgeServer) DependencyLicensesLink(context.Context, *emptypb.Empty) (*wrapperspb.StringValue, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DependencyLicensesLink not implemented")
+}
+func (UnimplementedBridgeServer) LandingPageLink(context.Context, *emptypb.Empty) (*wrapperspb.StringValue, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method LandingPageLink not implemented")
 }
 func (UnimplementedBridgeServer) SetColorSchemeName(context.Context, *wrapperspb.StringValue) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetColorSchemeName not implemented")
@@ -1085,6 +1109,24 @@ func _Bridge_LicensePath_Handler(srv interface{}, ctx context.Context, dec func(
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Bridge_ReleaseNotesPageLink_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(emptypb.Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BridgeServer).ReleaseNotesPageLink(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/grpc.Bridge/ReleaseNotesPageLink",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BridgeServer).ReleaseNotesPageLink(ctx, req.(*emptypb.Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Bridge_DependencyLicensesLink_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(emptypb.Empty)
 	if err := dec(in); err != nil {
@@ -1099,6 +1141,24 @@ func _Bridge_DependencyLicensesLink_Handler(srv interface{}, ctx context.Context
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(BridgeServer).DependencyLicensesLink(ctx, req.(*emptypb.Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Bridge_LandingPageLink_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(emptypb.Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BridgeServer).LandingPageLink(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/grpc.Bridge/LandingPageLink",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BridgeServer).LandingPageLink(ctx, req.(*emptypb.Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1804,8 +1864,16 @@ var Bridge_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Bridge_LicensePath_Handler,
 		},
 		{
+			MethodName: "ReleaseNotesPageLink",
+			Handler:    _Bridge_ReleaseNotesPageLink_Handler,
+		},
+		{
 			MethodName: "DependencyLicensesLink",
 			Handler:    _Bridge_DependencyLicensesLink_Handler,
+		},
+		{
+			MethodName: "LandingPageLink",
+			Handler:    _Bridge_LandingPageLink_Handler,
 		},
 		{
 			MethodName: "SetColorSchemeName",

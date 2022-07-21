@@ -45,9 +45,9 @@ service Bridge {
   rpc Version(google.protobuf.Empty) returns (google.protobuf.StringValue);
   rpc LogsPath(google.protobuf.Empty) returns (google.protobuf.StringValue);
   rpc LicensePath(google.protobuf.Empty) returns (google.protobuf.StringValue);
-// rpc ReleaseNotesLink(google.protobuf.Empty) returns (google.protobuf.StringValue); // TODO GODT-1670 Apparently cannot be polled for now, will be sent as update.
+  rpc ReleaseNotesPageLink(google.protobuf.Empty) returns (google.protobuf.StringValue);
   rpc DependencyLicensesLink(google.protobuf.Empty) returns (google.protobuf.StringValue);
-//  rpc LandingPageLink(google.protobuf.Empty) returns (google.protobuf.StringValue); // TODO GODT-1670 Apparently cannot be polled for now, will be sent as update.
+  rpc LandingPageLink(google.protobuf.Empty) returns (google.protobuf.StringValue);
   rpc SetColorSchemeName(google.protobuf.StringValue) returns (google.protobuf.Empty);
   rpc ColorSchemeName(google.protobuf.Empty) returns (google.protobuf.StringValue); // TODO Color scheme should probably entirely be managed by the client.
   rpc CurrentEmailClient(google.protobuf.Empty) returns (google.protobuf.StringValue);

@@ -70,6 +70,8 @@ public: // member functions.
     grpc::Status licensePath(QUrl &outPath); ///< Performs the 'LicensePath' call.
     grpc::Status dependencyLicensesLink(QUrl &outUrl); ///< Performs the 'DependencyLicensesLink' call.
     grpc::Status version(QString &outVersion); ///< Performs the 'Version' call.
+    grpc::Status releaseNotesPageLink(QUrl &outUrl); ///< Performs the 'releaseNotesPageLink' call.
+    grpc::Status landingPageLink(QUrl &outUrl); ///< Performs the 'landingPageLink' call.
     grpc::Status hostname(QString &outHostname); ///< Performs the 'Hostname' call.
 
 signals: // app related signals

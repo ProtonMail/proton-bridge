@@ -11,3 +11,6 @@ rcc_cgo_*.go
 
 # QtCreator env
 CMakeLists.txt.user
+
+# Generated file
+bridge-gui/Version.h

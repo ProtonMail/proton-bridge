@@ -460,6 +460,23 @@ grpc::Status GRPCClient::version(QString &outVersion)
     return this->getString(&Bridge::Stub::Version, outVersion);
 }
 
+//****************************************************************************************************************************************************
+/// \param[out] outUrl The value for the property.
+/// \return The status for the gRPC call.
+//****************************************************************************************************************************************************
+grpc::Status GRPCClient::releaseNotesPageLink(QUrl &outUrl)
+{
+    return this->getURL(&Bridge::Stub::ReleaseNotesPageLink, outUrl);
+}
+
+//****************************************************************************************************************************************************
+/// \param[out] outUrl The value for the property.
+/// \return The status for the gRPC call.
+//****************************************************************************************************************************************************
+grpc::Status GRPCClient::landingPageLink(QUrl &outUrl)
+{
+    return this->getURL(&Bridge::Stub::LandingPageLink, outUrl);
+}
 
 //****************************************************************************************************************************************************
 /// \param[out] outHostname The value for the property.

@@ -21,6 +21,7 @@
 #include "QMLBackend.h"
 #include "Log.h"
 #include "BridgeMonitor.h"
+#include "Version.h"
 
 
 //****************************************************************************************************************************************************
@@ -34,7 +35,7 @@ void initQtApplication()
 
     /// \todo GODT-1670 Get version from go backend.
     QGuiApplication::setApplicationName("Proton Mail Bridge");
-    QGuiApplication::setApplicationVersion("3.0");
+    QGuiApplication::setApplicationVersion(PROJECT_VER);
     QGuiApplication::setOrganizationName("Proton AG");
     QGuiApplication::setOrganizationDomain("proton.ch");
     QGuiApplication::setQuitOnLastWindowClosed(false);
