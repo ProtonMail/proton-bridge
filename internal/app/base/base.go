@@ -57,7 +57,6 @@ import (
 	"github.com/ProtonMail/proton-bridge/v2/pkg/keychain"
 	"github.com/ProtonMail/proton-bridge/v2/pkg/listener"
 	"github.com/ProtonMail/proton-bridge/v2/pkg/pmapi"
-	"github.com/allan-simon/go-singleinstance"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
 )
@@ -153,9 +152,9 @@ func New( //nolint:funlen
 	}
 	settingsObj := settings.New(settingsPath)
 
-	lock, err := singleinstance.CreateLockFile(locations.GetLockFile())
+	lock, err := checkSingleInstance(locations.GetLockFile(), settingsObj)
 	if err != nil {
-		logrus.Warnf("%v is already running", appName)
+		logrus.WithError(err).Warnf("%v is already running", appName)
 		return nil, api.CheckOtherInstanceAndFocus(settingsObj.GetInt(settings.APIPortKey))
 	}
 

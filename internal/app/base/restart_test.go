@@ -21,7 +21,9 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/Masterminds/semver/v3"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestIncrementRestartFlag(t *testing.T) {
@@ -46,4 +48,16 @@ func TestIncrementRestartFlag(t *testing.T) {
 			assert.Equal(t, tt.out, incrementRestartFlag(tt.in))
 		})
 	}
+}
+
+func TestVersionLessThan(t *testing.T) {
+	r := require.New(t)
+
+	old := semver.MustParse("1.1.0")
+	current := semver.MustParse("1.1.1")
+	newer := semver.MustParse("1.1.2")
+
+	r.True(old.LessThan(current))
+	r.False(current.LessThan(current))
+	r.False(newer.LessThan(current))
 }
