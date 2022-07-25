@@ -16,8 +16,8 @@
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 
-#ifndef BRIDGE_QT6_QMLBACKEND_H
-#define BRIDGE_QT6_QMLBACKEND_H
+#ifndef BRIDGE_GUI_QMLBACKEND_H
+#define BRIDGE_GUI_QMLBACKEND_H
 
 
 #include <grpcpp/support/status.h>
@@ -221,4 +221,4 @@ private: // data members
 };
 
 
-#endif // BRIDGE_QT6_QMLBACKEND_H
+#endif // BRIDGE_GUI_QMLBACKEND_H

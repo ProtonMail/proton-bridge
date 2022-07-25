@@ -16,8 +16,8 @@
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 
-#ifndef BRIDGE_QT6_EVENT_STREAM_WORKER_H
-#define BRIDGE_QT6_EVENT_STREAM_WORKER_H
+#ifndef BRIDGE_GUI_EVENT_STREAM_WORKER_H
+#define BRIDGE_GUI_EVENT_STREAM_WORKER_H
 
 
 #include "GRPC/bridge.grpc.pb.h"
@@ -49,4 +49,4 @@ signals:
 };
 
 
-#endif //BRIDGE_QT6_EVENT_STREAM_WORKER_H
+#endif //BRIDGE_GUI_EVENT_STREAM_WORKER_H

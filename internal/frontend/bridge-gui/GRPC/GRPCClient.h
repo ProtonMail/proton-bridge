@@ -16,8 +16,8 @@
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 
-#ifndef BRIDGE_QT6_RPC_CLIENT_H
-#define BRIDGE_QT6_RPC_CLIENT_H
+#ifndef BRIDGE_GUI_RPC_CLIENT_H
+#define BRIDGE_GUI_RPC_CLIENT_H
 
 
 #include "GRPC/bridge.grpc.pb.h"
@@ -218,4 +218,4 @@ private: // data members.
 };
 
 
-#endif // BRIDGE_QT6_RPC_CLIENT_H
+#endif // BRIDGE_GUI_RPC_CLIENT_H

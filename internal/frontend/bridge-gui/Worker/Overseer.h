@@ -16,8 +16,8 @@
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 
-#ifndef BRIDGE_QT6_OVERSEER_H
-#define BRIDGE_QT6_OVERSEER_H
+#ifndef BRIDGE_GUI_OVERSEER_H
+#define BRIDGE_GUI_OVERSEER_H
 
 
 #include "Worker.h"
@@ -53,4 +53,4 @@ typedef std::unique_ptr<Overseer> UPOverseer; ///< Type definition for unique po
 typedef std::shared_ptr<Overseer> SPOverseer; ///< Type definition for shared pointer to Overseer.
 
 
-#endif //BRIDGE_QT6_OVERSEER_H
+#endif //BRIDGE_GUI_OVERSEER_H

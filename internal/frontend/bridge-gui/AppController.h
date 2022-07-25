@@ -16,8 +16,8 @@
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 
-#ifndef BRIDGE_QT6_APP_CONTROLLER_H
-#define BRIDGE_QT6_APP_CONTROLLER_H
+#ifndef BRIDGE_GUI_APP_CONTROLLER_H
+#define BRIDGE_GUI_APP_CONTROLLER_H
 
 
 class QMLBackend;
@@ -60,4 +60,4 @@ private: // data members
 AppController& app(); ///< Return a reference to the app controller.
 
 
-#endif // BRIDGE_QT6_APP_CONTROLLER_H
+#endif // BRIDGE_GUI_APP_CONTROLLER_H

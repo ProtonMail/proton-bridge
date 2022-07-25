@@ -16,8 +16,8 @@
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 
-#ifndef BRIDGE_QT6_WORKER_H
-#define BRIDGE_QT6_WORKER_H
+#ifndef BRIDGE_GUI_WORKER_H
+#define BRIDGE_GUI_WORKER_H
 
 //****************************************************************************************************************************************************
 /// \brief Pure virtual class for worker intended to perform a threaded operation.
@@ -43,4 +43,4 @@ signals:
 };
 
 
-#endif //BRIDGE_QT6_WORKER_H
+#endif //BRIDGE_GUI_WORKER_H

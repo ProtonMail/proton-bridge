@@ -16,8 +16,8 @@
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 
-#ifndef BRIDGE_QT6_GRPCUTILS_H
-#define BRIDGE_QT6_GRPCUTILS_H
+#ifndef BRIDGE_GUI_GRPCUTILS_H
+#define BRIDGE_GUI_GRPCUTILS_H
 
 
 #include "Log.h"
@@ -31,4 +31,4 @@ SPUser parsegrpcUser(grpc::User const& grpcUser); ///< Parse a gRPC user struct 
 grpc::LogLevel logLevelToGRPC(Log::Level level); ///< Convert a Log::Level to gRPC enum value.
 
 
-#endif // BRIDGE_QT6_GRPCUTILS_H
+#endif // BRIDGE_GUI_GRPCUTILS_H

@@ -16,8 +16,8 @@
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 
-#ifndef BRIDGE_QT6_LOG_H
-#define BRIDGE_QT6_LOG_H
+#ifndef BRIDGE_GUI_LOG_H
+#define BRIDGE_GUI_LOG_H
 
 
 //****************************************************************************************************************************************************
@@ -79,4 +79,4 @@ private: // data members
 };
 
 
-#endif //BRIDGE_QT6_LOG_H
+#endif //BRIDGE_GUI_LOG_H

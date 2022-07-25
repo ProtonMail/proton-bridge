@@ -16,12 +16,12 @@
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 
-#ifndef BRIDGE_QT6_DOCK_ICON_H
-#define BRIDGE_QT6_DOCK_ICON_H
+#ifndef BRIDGE_GUI_DOCK_ICON_H
+#define BRIDGE_GUI_DOCK_ICON_H
 
 
 void setDockIconVisibleState(bool visible); ///< Set the DOCK icon visibility state
 bool getDockIconVisibleState(); ///< Get the Dock icon visibility state
 
 
-#endif // #ifndef BRIDGE_QT6_DOCK_ICON_H
+#endif // #ifndef BRIDGE_GUI_DOCK_ICON_H

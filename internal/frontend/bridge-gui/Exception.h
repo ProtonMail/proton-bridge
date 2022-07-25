@@ -16,8 +16,8 @@
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 
-#ifndef BRIDGE_QT6_EXCEPTION_H
-#define BRIDGE_QT6_EXCEPTION_H
+#ifndef BRIDGE_GUI_EXCEPTION_H
+#define BRIDGE_GUI_EXCEPTION_H
 
 
 #include <stdexcept>
@@ -43,4 +43,4 @@ private: // data members
 };
 
 
-#endif //BRIDGE_QT6_EXCEPTION_H
+#endif //BRIDGE_GUI_EXCEPTION_H

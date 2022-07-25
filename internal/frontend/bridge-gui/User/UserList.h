@@ -16,8 +16,8 @@
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 
-#ifndef BRIDGE_QT6_USER_LIST_H
-#define BRIDGE_QT6_USER_LIST_H
+#ifndef BRIDGE_GUI_USER_LIST_H
+#define BRIDGE_GUI_USER_LIST_H
 
 #include "User.h"
 
@@ -61,4 +61,4 @@ private: // data members
 };
 
 
-#endif // BRIDGE_QT6_USER_LIST_H
+#endif // BRIDGE_GUI_USER_LIST_H

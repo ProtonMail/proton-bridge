@@ -16,8 +16,15 @@
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 
+#ifndef BRIDGE_GUI_PCH_H
+#define BRIDGE_GUI_PCH_H
+
+
 #include <QtCore>
 #include <QtQuick>
 #include <QtQml>
 #include <QtQuickControls2>
 #include <AppController.h>
+
+
+#endif // BRIDGE_GUI_PCH_H

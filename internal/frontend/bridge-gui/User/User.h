@@ -16,8 +16,8 @@
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 
-#ifndef BRIDGE_QT6_USER_H
-#define BRIDGE_QT6_USER_H
+#ifndef BRIDGE_GUI_USER_H
+#define BRIDGE_GUI_USER_H
 
 
 #include "Log.h"
@@ -90,4 +90,4 @@ private:
 typedef std::shared_ptr<User> SPUser;
 
 
-#endif // BRIDGE_QT6_USER_H
+#endif // BRIDGE_GUI_USER_H
