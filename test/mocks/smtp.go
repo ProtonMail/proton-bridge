@@ -33,6 +33,8 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 type SMTPClient struct {
@@ -82,7 +84,7 @@ func (c *SMTPClient) SendCommands(commands ...string) *SMTPResponse {
 
 	for _, command := range commands {
 		command = strings.ReplaceAll(command, "[userAddress]", c.address)
-		command = strings.ReplaceAll(command, "[userAddress|capitalize]", strings.Title(c.address))
+		command = strings.ReplaceAll(command, "[userAddress|capitalize]", cases.Title(language.Und).String(c.address))
 
 		tstart := time.Now()
 

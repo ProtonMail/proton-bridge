@@ -19,7 +19,9 @@ package pmapi
 
 import (
 	"runtime"
-	"strings"
+
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 type Config struct {
@@ -47,7 +49,7 @@ type Config struct {
 func NewConfig(appVersionName, appVersion string) Config {
 	return Config{
 		HostURL:    getRootURL(),
-		AppVersion: getAPIOS() + strings.Title(appVersionName) + "_" + appVersion,
+		AppVersion: getAPIOS() + cases.Title(language.Und).String(appVersionName) + "_" + appVersion,
 	}
 }
 
@@ -61,7 +63,7 @@ func (c *Config) getUserAgent() string {
 // getAPIOS returns actual operating system.
 func getAPIOS() string {
 	switch os := runtime.GOOS; os {
-	case "darwin": // nolint: goconst
+	case "darwin": // nolint: const
 		return "macOS"
 	case "linux":
 		return "Linux"

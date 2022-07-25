@@ -34,14 +34,14 @@ func detectSystemTheme() Theme {
 	}
 
 	path := filepath.Join(home, "/Library/Preferences/.GlobalPreferences.plist")
-	prefFile, err := os.Open(path)
+	prefFile, err := os.Open(path) //nolint:gosec // file is safe
 	if err != nil {
 		return Light
 	}
-	defer prefFile.Close()
+	defer func() { _ = prefFile.Close() }()
 
 	var data struct {
-		AppleInterfaceStyle string `plist:AppleInterfaceStyle`
+		AppleInterfaceStyle string `plist:"AppleInterfaceStyle"`
 	}
 
 	dec := plist.NewDecoder(prefFile)

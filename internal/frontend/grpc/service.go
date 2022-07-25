@@ -60,6 +60,7 @@ type Service struct { // nolint:structcheck
 	settings           *settings.Settings
 	eventListener      listener.Listener
 	updater            types.Updater
+	updateCheckMutex   sync.Mutex
 	userAgent          *useragent.UserAgent
 	bridge             types.Bridger
 	restarter          types.Restarter
@@ -331,10 +332,7 @@ func (s *Service) restart() {
 	s.log.Error("Restart is not implemented") // TO-DO GODT-1671 implement restart.
 }
 
-var checkingUpdates = sync.Mutex{}
-
 func (s *Service) checkUpdate() {
-
 	version, err := s.updater.Check()
 	if err != nil {
 		s.log.WithError(err).Error("An error occurred while checking for updates")
@@ -345,22 +343,22 @@ func (s *Service) checkUpdate() {
 }
 
 func (s *Service) updateForce() {
-	checkingUpdates.Lock()
-	defer checkingUpdates.Unlock()
+	s.updateCheckMutex.Lock()
+	defer s.updateCheckMutex.Unlock()
 	s.checkUpdate()
 	_ = s.SendEvent(NewUpdateForceEvent(s.newVersionInfo.Version.String()))
 }
 
 func (s *Service) checkUpdateAndNotify(isReqFromUser bool) {
-	checkingUpdates.Lock()
+	s.updateCheckMutex.Lock()
 	defer func() {
-		checkingUpdates.Unlock()
+		s.updateCheckMutex.Unlock()
 		_ = s.SendEvent(NewUpdateCheckFinishedEvent())
 	}()
 
 	s.checkUpdate()
 	version := s.newVersionInfo
-	if "" == version.Version.String() {
+	if version.Version.String() == "" {
 		if isReqFromUser {
 			_ = s.SendEvent(NewUpdateErrorEvent(UpdateErrorType_UPDATE_MANUAL_ERROR))
 		}
@@ -377,8 +375,8 @@ func (s *Service) checkUpdateAndNotify(isReqFromUser bool) {
 }
 
 func (s *Service) installUpdate() {
-	checkingUpdates.Lock()
-	defer checkingUpdates.Unlock()
+	s.updateCheckMutex.Lock()
+	defer s.updateCheckMutex.Unlock()
 
 	if !s.updater.CanInstall(s.newVersionInfo) {
 		s.log.Warning("Skipping update installation, current version too old")

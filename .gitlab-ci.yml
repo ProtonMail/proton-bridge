@@ -16,7 +16,7 @@
 # along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
 
 ---
-image: gitlab.protontech.ch:4567/go/bridge-internal:latest
+image: gitlab.protontech.ch:4567/go/bridge-internal:go18
 
 before_script:
   - eval $(ssh-agent -s)

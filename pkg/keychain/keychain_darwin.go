@@ -24,13 +24,16 @@ import (
 	"fmt"
 	"os"
 	"strings"
+
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 // hostURL uniquely identifies the app's keychain items within the system keychain.
 func hostURL(keychainName string) string {
 	// Skip when it was in-app update and not manual
 	if path, err := os.Executable(); err == nil && strings.Contains(path, "ProtonMail Bridge") {
-		return fmt.Sprintf("ProtonMail%vService", strings.Title(keychainName))
+		return fmt.Sprintf("ProtonMail%vService", cases.Title(language.Und).String(keychainName))
 	}
-	return fmt.Sprintf("Proton Mail %v", strings.Title(keychainName))
+	return fmt.Sprintf("Proton Mail %v", cases.Title(language.Und).String(keychainName))
 }
