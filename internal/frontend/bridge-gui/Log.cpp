@@ -20,6 +20,86 @@
 #include "Log.h"
 
 
+namespace
+{
+
+
+//****************************************************************************************************************************************************
+/// \param[in] type The message type.
+/// \param[in] message The message.
+//****************************************************************************************************************************************************
+void qtMessageHandler(QtMsgType type, QMessageLogContext const &, QString const &message)
+{
+    static Log &log = app().log();
+    switch (type)
+    {
+    case QtDebugMsg:
+        log.debug(message);
+        break;
+
+    case QtWarningMsg:
+        log.warn(message);
+        break;
+
+    case QtCriticalMsg:
+    case QtFatalMsg:
+        log.error(message);
+        break;
+
+    case QtInfoMsg:
+    default:
+        log.info(message);
+        break;
+    }
+}
+
+
+//****************************************************************************************************************************************************
+/// \param[in] level The level.
+/// \return A string describing the level.
+//****************************************************************************************************************************************************
+QString logLevelToString(Log::Level level)
+{
+    switch (level)
+    {
+    case Log::Level::Panic: return "PANIC";
+    case Log::Level::Fatal: return "FATAL";
+    case Log::Level::Error: return "ERROR";
+    case Log::Level::Warn: return "WARN";
+    case Log::Level::Info: return "INFO";
+    case Log::Level::Debug: return "DEBUG";
+    case Log::Level::Trace: return "TRACE";
+    default: return "UNKNOWN";
+    }
+}
+
+
+
+//****************************************************************************************************************************************************
+/// \brief return a string representing the log entry
+///
+/// \param[in] level The log entry level.
+/// \param[in] message The log entry message.
+/// \return The string for the log entry
+//****************************************************************************************************************************************************
+QString logEntryToString(Log::Level level, QString const &message)
+{
+    return QString("[%1] %2").arg(logLevelToString(level)).arg(message);
+}
+
+
+}
+
+
+//****************************************************************************************************************************************************
+/// the message handle process the message from the Qt logging system.
+//****************************************************************************************************************************************************
+void Log::installQtMessageHandler()
+{
+    qInstallMessageHandler(qtMessageHandler);
+}
+
+
 //****************************************************************************************************************************************************
 //
 //****************************************************************************************************************************************************
@@ -72,88 +152,83 @@ bool Log::echoInConsole() const
 
 
 //****************************************************************************************************************************************************
-/// \param[in] message The message
+/// \param[in] message The message.
 //****************************************************************************************************************************************************
-void Log::debug(QString const &message)
+void Log::panic(QString const &message)
 {
-    QMutexLocker locker(&mutex_);
-
-    if (qint32(level_) > qint32(Level::Debug))
-        return;
-
-    emit debugEntryAdded(message);
-    QString const withPrefix = "[DEBUG] " + message;
-    emit entryAdded(withPrefix);
-    if (echoInConsole_)
-    {
-        stdout_ << withPrefix << "\n";
-        stdout_.flush();
-    }
-}
-
-//****************************************************************************************************************************************************
-/// \param[in] message The message
-//****************************************************************************************************************************************************
-void Log::info(QString const &message)
-{
-    QMutexLocker locker(&mutex_);
-
-    if (qint32(level_) > qint32(Level::Info))
-        return;
-
-    emit infoEntryAdded(message);
-    QString const withPrefix = "[INFO] " + message;
-    emit entryAdded(withPrefix);
-    if (echoInConsole_)
-    {
-        stdout_ << withPrefix << "\n";
-        stdout_.flush();
-    }
+    return this->addEntry(Level::Panic, message);
 }
 
 
 //****************************************************************************************************************************************************
-//
+/// \param[in] message The message.
 //****************************************************************************************************************************************************
-void Log::warn(QString const &message)
+void Log::fatal(QString const &message)
 {
-    QMutexLocker locker(&mutex_);
-
-    if (qint32(level_) > qint32(Level::Warn))
-        return;
-
-    emit infoEntryAdded(message);
-    QString const withPrefix = "[WARNING] " + message;
-    emit entryAdded(withPrefix);
-    if (echoInConsole_)
-    {
-        stdout_ << withPrefix << "\n";
-        stdout_.flush();
-    }
+    return this->addEntry(Level::Fatal, message);
 }
 
 
 //****************************************************************************************************************************************************
-/// message
+/// \param[in] message The message.
 //****************************************************************************************************************************************************
 void Log::error(QString const &message)
 {
-    QMutexLocker locker(&mutex_);
-
-    if (qint32(level_) > qint32(Level::Error))
-        return;
-
-    emit infoEntryAdded(message);
-    QString const withPrefix = "[ERROR] " + message;
-    emit entryAdded(withPrefix);
-    if (echoInConsole_)
-    {
-        stderr_ << withPrefix << "\n";
-        stderr_.flush();
-    }
+    return this->addEntry(Level::Error, message);
 }
 
 
+//****************************************************************************************************************************************************
+/// \param[in] message The message.
+//****************************************************************************************************************************************************
+void Log::warn(QString const &message)
+{
+    return this->addEntry(Level::Warn, message);
+}
 
 
+//****************************************************************************************************************************************************
+/// \param[in] message The message.
+//****************************************************************************************************************************************************
+void Log::info(QString const &message)
+{
+    return this->addEntry(Level::Info, message);
+}
 
+
+//****************************************************************************************************************************************************
+/// \param[in] message The message.
+//****************************************************************************************************************************************************
+void Log::debug(QString const &message)
+{
+    return this->addEntry(Level::Debug, message);
+}
+
+
+//****************************************************************************************************************************************************
+/// \param[in] message The message.
+//****************************************************************************************************************************************************
+void Log::trace(QString const &message)
+{
+    return this->addEntry(Level::Trace, message);
+}
+
+
+//****************************************************************************************************************************************************
+/// \param[in] level The level.
+/// \param[in] message The message.
+//****************************************************************************************************************************************************
+void Log::addEntry(Log::Level level, QString const &message)
+{
+    QMutexLocker locker(&mutex_);
+    if (qint32(level) > qint32(level_))
+        return;
+    emit entryAdded(level, message);
+
+    if (echoInConsole_)
+    {
+        QTextStream& stream = (qint32(level) <= (qint32(Level::Warn))) ? stderr_ : stdout_;
+        stream << logEntryToString(level, message) << "\n";
+        stream.flush();
+    }
+}

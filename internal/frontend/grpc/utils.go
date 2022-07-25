@@ -22,6 +22,7 @@ import (
 	"strings"
 
 	"github.com/ProtonMail/proton-bridge/v2/internal/frontend/types"
+	"github.com/sirupsen/logrus"
 )
 
 var (
@@ -69,5 +70,27 @@ func grpcUserFromBridge(user types.User) *User {
 		TotalBytes:     user.TotalBytes(),
 		Password:       user.GetBridgePassword(),
 		Addresses:      user.GetAddresses(),
+	}
+}
+
+// logrusLevelFromGrpcLevel converts a gRPC log level to a logrus log level.
+func logrusLevelFromGrpcLevel(level LogLevel) logrus.Level {
+	switch level {
+	case LogLevel_PANIC:
+		return logrus.PanicLevel
+	case LogLevel_FATAL:
+		return logrus.FatalLevel
+	case LogLevel_ERROR:
+		return logrus.ErrorLevel
+	case LogLevel_WARN:
+		return logrus.WarnLevel
+	case LogLevel_INFO:
+		return logrus.InfoLevel
+	case LogLevel_DEBUG:
+		return logrus.DebugLevel
+	case LogLevel_TRACE:
+		return logrus.TraceLevel
+	default:
+		return logrus.ErrorLevel
 	}
 }

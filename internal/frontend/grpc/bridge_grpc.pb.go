@@ -25,6 +25,7 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type BridgeClient interface {
 	// App related calls
+	AddLogEntry(ctx context.Context, in *AddLogEntryRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	GuiReady(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	Quit(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	Restart(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*emptypb.Empty, error)
@@ -93,6 +94,15 @@ type bridgeClient struct {
 
 func NewBridgeClient(cc grpc.ClientConnInterface) BridgeClient {
 	return &bridgeClient{cc}
+}
+
+func (c *bridgeClient) AddLogEntry(ctx context.Context, in *AddLogEntryRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/grpc.Bridge/AddLogEntry", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *bridgeClient) GuiReady(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*emptypb.Empty, error) {
@@ -600,6 +610,7 @@ func (c *bridgeClient) StopEventStream(ctx context.Context, in *emptypb.Empty, o
 // for forward compatibility
 type BridgeServer interface {
 	// App related calls
+	AddLogEntry(context.Context, *AddLogEntryRequest) (*emptypb.Empty, error)
 	GuiReady(context.Context, *emptypb.Empty) (*emptypb.Empty, error)
 	Quit(context.Context, *emptypb.Empty) (*emptypb.Empty, error)
 	Restart(context.Context, *emptypb.Empty) (*emptypb.Empty, error)
@@ -667,6 +678,9 @@ type BridgeServer interface {
 type UnimplementedBridgeServer struct {
 }
 
+func (UnimplementedBridgeServer) AddLogEntry(context.Context, *AddLogEntryRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddLogEntry not implemented")
+}
 func (UnimplementedBridgeServer) GuiReady(context.Context, *emptypb.Empty) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GuiReady not implemented")
 }
@@ -837,6 +851,24 @@ type UnsafeBridgeServer interface {
 
 func RegisterBridgeServer(s grpc.ServiceRegistrar, srv BridgeServer) {
 	s.RegisterService(&Bridge_ServiceDesc, srv)
+}
+
+func _Bridge_AddLogEntry_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AddLogEntryRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BridgeServer).AddLogEntry(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/grpc.Bridge/AddLogEntry",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BridgeServer).AddLogEntry(ctx, req.(*AddLogEntryRequest))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _Bridge_GuiReady_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -1803,6 +1835,10 @@ var Bridge_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "grpc.Bridge",
 	HandlerType: (*BridgeServer)(nil),
 	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "AddLogEntry",
+			Handler:    _Bridge_AddLogEntry_Handler,
+		},
 		{
 			MethodName: "GuiReady",
 			Handler:    _Bridge_GuiReady_Handler,

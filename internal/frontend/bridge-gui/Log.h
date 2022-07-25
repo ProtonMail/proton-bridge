@@ -27,13 +27,20 @@ class Log : public QObject
 {
     Q_OBJECT
 public: // data types.
+    /// \brief Log level class. The list matches [logrus log levels](https://pkg.go.dev/github.com/sirupsen/logrus).
     enum class Level
     {
-        Debug = 0, ///< Debug
-        Info = 1,  ///< Info
-        Warn = 2,  ///< Warn
-        Error = 3, ///< Error
-    }; ///< Log level class
+        Panic, ///< Panic log level.
+        Fatal, ///< Fatal log level.
+        Error, ///< Error log level.
+        Warn, ///< Warn log level.
+        Info, ///< Info log level.
+        Debug, ///< Debug log level.
+        Trace ///< Trace log level.
+    };
+
+public: // static member functions
+    static void installQtMessageHandler(); ///< Install the Qt message handler.
 
 public: // member functions.
     Log(); ///< Default constructor.
@@ -49,17 +56,18 @@ public: // member functions.
     bool echoInConsole() const; ///< Check if the log entries should be echoed in STDOUT/STDERR.
 
 public slots:
-    void debug(QString const &message); ///< Adds a debug entry in the log.
-    void info(QString const &message); ///< Adds an info entry to the log.
-    void warn(QString const &message); ///< Adds a warning entry to the log.
+    void panic(QString const &message); ///< Adds an panic entry to the log.
+    void fatal(QString const &message); ///< Adds an fatal entry to the log.
     void error(QString const &message); ///< Adds an error entry to the log.
+    void warn(QString const &message); ///< Adds a warn entry to the log.
+    void info(QString const &message); ///< Adds an info entry to the log.
+    void debug(QString const &message); ///< Adds a debug entry in the log.
+    void trace(QString const &message); ///< Adds a trace entry in the log.
+
+    void addEntry(Log::Level level, QString const &message); ///< Adds a trace entry in the log.
 
 signals:
-    void debugEntryAdded(QString const &); ///< Signal for debug entries.
-    void infoEntryAdded(QString const &message); ///< Signal for info entries.
-    void warnEntryAdded(QString const &message); ///< Signal for warning entries.
-    void errorEntryAdded(QString const &message); ///< Signal for error entries.
-    void entryAdded(QString const &message); ///< Signal emitted when any type of entry is added.
+    void entryAdded(Log::Level entry, QString const &); ///< Signal emitted when a log entry is added.
 
 private: // data members
     mutable QMutex mutex_; ///< The mutex.

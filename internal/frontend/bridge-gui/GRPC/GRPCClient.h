@@ -23,6 +23,7 @@
 #include "GRPC/bridge.grpc.pb.h"
 #include "grpc++/grpc++.h"
 #include "User/User.h"
+#include "Log.h"
 
 
 typedef grpc::Status (grpc::Bridge::Stub::*SimpleMethod)(grpc::ClientContext*, const google::protobuf::Empty&, google::protobuf::Empty*);
@@ -49,7 +50,8 @@ public: // member functions.
     GRPCClient& operator=(GRPCClient const&) = delete; ///< Disabled assignment operator.
     GRPCClient& operator=(GRPCClient&&) = delete; ///< Disabled move assignment operator.
     bool connectToServer(QString &outError); ///< Establish connection to the gRPC server.
-
+    
+    grpc::Status addLogEntry(Log::Level level, QString const& package, QString const &message); ///< Performs the "AddLogEntry" gRPC call.
     grpc::Status guiReady(); ///< performs the "GuiReady" gRPC call.
     grpc::Status isFirstGUIStart(bool &outIsFirst); ///< performs the "IsFirstGUIStart" gRPC call.
     grpc::Status isAutostartOn(bool &outIsOn); ///< Performs the "isAutostartOn" gRPC call.

@@ -16,8 +16,9 @@
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 
+#include "Pch.h"
+#include "Exception.h"
 #include "GRPCUtils.h"
-#include "QMLBackend.h"
 
 
 //****************************************************************************************************************************************************
@@ -60,4 +61,24 @@ SPUser parsegrpcUser(grpc::User const &grpcUser)
     user->setProperty("addresses", addresses);
     user->setProperty("id", QString::fromStdString(grpcUser.id()));
     return user;
+}
+
+
+//****************************************************************************************************************************************************
+/// \param[in] level The log level
+//****************************************************************************************************************************************************
+grpc::LogLevel logLevelToGRPC(Log::Level level)
+{
+    switch (level)
+    {
+    case Log::Level::Panic: return grpc::LogLevel::PANIC;
+    case Log::Level::Fatal: return grpc::LogLevel::FATAL;
+    case Log::Level::Error: return grpc::LogLevel::ERROR;
+    case Log::Level::Warn: return grpc::LogLevel::WARN;
+    case Log::Level::Info: return grpc::LogLevel::INFO;
+    case Log::Level::Debug: return grpc::LogLevel::DEBUG;
+    case Log::Level::Trace: return grpc::LogLevel::TRACE;
+    default:
+        throw Exception(QString("unknown log level %1.").arg(qint32(level)));
+    }
 }

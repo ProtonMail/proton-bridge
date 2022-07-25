@@ -40,6 +40,32 @@ import (
 
 var ErrNotImplemented = status.Errorf(codes.Unimplemented, "Not implemented")
 
+func (s *Service) AddLogEntry(_ context.Context, request *AddLogEntryRequest) (*emptypb.Empty, error) {
+	entry := s.log
+	if len(request.Package) > 0 {
+		entry = entry.WithField("pkg", request.Package)
+	}
+
+	level := logrusLevelFromGrpcLevel(request.Level)
+
+	// we do a special case for Panic and Fatal as using logrus.Entry.Log will not panic nor exit respectively.
+	if level == logrus.PanicLevel {
+		entry.Panic(request.Message)
+
+		return &emptypb.Empty{}, nil
+	}
+
+	if level == logrus.FatalLevel {
+		entry.Fatal(request.Message)
+
+		return &emptypb.Empty{}, nil
+	}
+
+	entry.Log(level, request.Message)
+
+	return &emptypb.Empty{}, nil
+}
+
 // GuiReady implement the GuiReady gRPC service call.
 func (s *Service) GuiReady(context.Context, *emptypb.Empty) (*emptypb.Empty, error) {
 	s.log.Info("GuiReady")

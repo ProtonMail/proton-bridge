@@ -40,7 +40,7 @@ int const maxCertificateWaitMsecs = 60 * 1000; ///< Ammount of time we wait for 
 }
 
 //****************************************************************************************************************************************************
-/// \return user configuration directory used by bridge (based on Golang OS/File::UserConfigDir).
+/// \return user configuration directory used by bridge (based on Golang OS/File's UserConfigDir).
 //****************************************************************************************************************************************************
 static const QString _userConfigDir(){
     QString dir;
@@ -166,6 +166,22 @@ bool GRPCClient::connectToServer(QString &outError)
     }
 }
 
+
+//****************************************************************************************************************************************************
+/// \param[in] level The level of the log entry.
+/// \param[in] package The package (component) that triggered the entry.
+/// \param[in] message The message.
+/// \return The status for the gRPC call.
+//****************************************************************************************************************************************************
+grpc::Status GRPCClient::addLogEntry(Log::Level level, QString const &package, QString const &message)
+{
+    grpc::ClientContext ctx;
+    AddLogEntryRequest request;
+    request.set_level(logLevelToGRPC(level));
+    request.set_package(package.toStdString());
+    request.set_message(message.toStdString());
+    return stub_->AddLogEntry(&ctx, request, &empty);
+}
 
 //****************************************************************************************************************************************************
 /// \return The status for the gRPC call.
@@ -1291,5 +1307,3 @@ void GRPCClient::processUserEvent(UserEvent const &event)
         app().log().error("Unknown User event received.");
     }
 }
-
-

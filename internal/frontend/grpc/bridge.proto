@@ -26,10 +26,11 @@ package grpc; // ignored by Go, used as namespace name in C++.
 
 //**********************************************************************************************************************
 //  Service Declaration
-//**********************************************************************************************************************
+//**********************************************************************************************************************≠––
 service Bridge {
 
   // App related calls
+  rpc AddLogEntry(AddLogEntryRequest) returns (google.protobuf.Empty);
   rpc GuiReady (google.protobuf.Empty) returns (google.protobuf.Empty);
   rpc Quit (google.protobuf.Empty) returns (google.protobuf.Empty);
   rpc Restart (google.protobuf.Empty) returns (google.protobuf.Empty);
@@ -103,6 +104,28 @@ service Bridge {
 //  RPC calls requests and replies messages
 //**********************************************************************************************************************
 
+//**********************************************************
+//  Log related message
+//**********************************************************
+enum LogLevel {
+  PANIC = 0;
+  FATAL = 1;
+  ERROR = 2;
+  WARN  = 3;
+  INFO  = 4;
+  DEBUG = 5;
+  TRACE = 6;
+}
+
+message AddLogEntryRequest {
+  LogLevel level = 1;
+  string package = 2; // package is Go lingo but it identifies the component responsible for the log entry
+  string message = 3;
+};
+
+//**********************************************************
+//  Bug reporting related messages.
+//**********************************************************
 message ReportBugRequest {
   string osType = 1;
   string osVersion = 2;
@@ -114,6 +137,9 @@ message ReportBugRequest {
 }
 
 // login related messages
+//**********************************************************
+// Login related messages
+//**********************************************************
 
 message LoginRequest {
   string username = 1;
@@ -125,7 +151,7 @@ message LoginAbortRequest {
 }
 
 //**********************************************************
-// Cache on disk related messages
+// Cache on disk related message
 //**********************************************************
 message ChangeLocalCacheRequest {
   bool enableDiskCache = 1;
@@ -133,7 +159,7 @@ message ChangeLocalCacheRequest {
 }
 
 //**********************************************************
-// Cache on disk related messages
+// Port related message
 //**********************************************************
 message ChangePortsRequest {
   int32 imapPort = 1;
@@ -141,7 +167,7 @@ message ChangePortsRequest {
 }
 
 //**********************************************************
-// Cache on disk related messages
+// Keychain related message
 //**********************************************************
 message AvailableKeychainsResponse {
   repeated string keychains = 1;

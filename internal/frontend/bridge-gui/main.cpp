@@ -49,6 +49,7 @@ Log &initLog()
     Log &log = app().log();
     log.setEchoInConsole(true);
     log.setLevel(Log::Level::Debug);
+    Log::installQtMessageHandler();
     return log;
 }
 
@@ -105,6 +106,8 @@ void launchBridge(QString const &exePath)
 //****************************************************************************************************************************************************
 /// \param[in] argc The number of command-line arguments.
 /// \param[in] argv The list of command line arguments.
+/// \param[out] outAttach The value for the 'attach' command-line parameter.
+/// \param[out] outExePath The value for the 'bridge-exe-path' command-line parameter.
 //****************************************************************************************************************************************************
 void parseArguments(int argc, char **argv, bool &outAttach, QString &outExePath)
 {
@@ -208,5 +211,3 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 }
-
-

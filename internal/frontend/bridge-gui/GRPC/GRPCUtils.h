@@ -19,6 +19,8 @@
 #ifndef BRIDGE_QT6_GRPCUTILS_H
 #define BRIDGE_QT6_GRPCUTILS_H
 
+
+#include "Log.h"
 #include "GRPC/bridge.grpc.pb.h"
 #include "grpc++/grpc++.h"
 #include "User/User.h"
@@ -26,5 +28,7 @@
 
 void logGRPCCallStatus(grpc::Status const& status, QString const &callName); ///< Log the status of a gRPC code.
 SPUser parsegrpcUser(grpc::User const& grpcUser); ///< Parse a gRPC user struct and return a User.
+grpc::LogLevel logLevelToGRPC(Log::Level level); ///< Convert a Log::Level to gRPC enum value.
+
 
 #endif // BRIDGE_QT6_GRPCUTILS_H

@@ -55,6 +55,10 @@ void QMLBackend::init()
     eventStreamOverseer_ = std::make_unique<Overseer>(new EventStreamReader(nullptr), nullptr);
     eventStreamOverseer_->startWorker(true);
 
+    connect(&app().log(), &Log::entryAdded, [&](Log::Level level, QString const& message) {
+        app().grpc().addLogEntry(level, "frontend/bridge-gui", message);
+    });
+
     // Grab from bridge the value that will not change during the execution of this app (or that will only change locally
     logGRPCCallStatus(app().grpc().showSplashScreen(showSplashScreen_), "showSplashScreen");
     logGRPCCallStatus(app().grpc().goos(goos_), "goos");
