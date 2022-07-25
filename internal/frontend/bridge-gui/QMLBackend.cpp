@@ -305,7 +305,7 @@ void QMLBackend::toggleAutomaticUpdate(bool active)
 //****************************************************************************************************************************************************
 void QMLBackend::checkUpdates()
 {
-    app().grpc().checkUpdate();
+    logGRPCCallStatus(app().grpc().checkUpdate(), "checkUpdate");
 }
 
 
@@ -314,7 +314,7 @@ void QMLBackend::checkUpdates()
 //****************************************************************************************************************************************************
 void QMLBackend::installUpdate()
 {
-    app().log().error(QString("%1() is not implemented.").arg(__FUNCTION__));
+    logGRPCCallStatus(app().grpc().installUpdate(), "installUpdate");
 }
 
 

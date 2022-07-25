@@ -38,6 +38,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/v2/pkg/keychain"
 	"github.com/ProtonMail/proton-bridge/v2/pkg/listener"
 	"github.com/ProtonMail/proton-bridge/v2/pkg/pmapi"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -179,9 +180,17 @@ func (s *Service) NotifyManualUpdate(version updater.VersionInfo, canInstall boo
 func (s *Service) SetVersion(update updater.VersionInfo) {
 	s.newVersionInfo = update
 }
-func (s *Service) NotifySilentUpdateInstalled()  {}
-func (s *Service) NotifySilentUpdateError(error) {}
-func (s *Service) WaitUntilFrontendIsReady()     {}
+
+func (s *Service) NotifySilentUpdateInstalled() {
+	_ = s.SendEvent(NewUpdateSilentRestartNeededEvent())
+}
+
+func (s *Service) NotifySilentUpdateError(err error) {
+	s.log.WithError(err).Error("In app update failed, asking for manual.")
+	_ = s.SendEvent(NewUpdateErrorEvent(UpdateErrorType_UPDATE_SILENT_ERROR))
+}
+
+func (s *Service) WaitUntilFrontendIsReady() {}
 
 func (s *Service) watchEvents() { // nolint:funlen
 	if s.bridge.HasError(bridge.ErrLocalCacheUnavailable) {
@@ -336,7 +345,10 @@ func (s *Service) checkUpdate() {
 }
 
 func (s *Service) updateForce() {
-	s.log.Error("updateForce is not implemented") // TO-DO GODT-1670 implement update.
+	checkingUpdates.Lock()
+	defer checkingUpdates.Unlock()
+	s.checkUpdate()
+	_ = s.SendEvent(NewUpdateForceEvent(s.newVersionInfo.Version.String()))
 }
 
 func (s *Service) checkUpdateAndNotify(isReqFromUser bool) {
@@ -362,4 +374,27 @@ func (s *Service) checkUpdateAndNotify(isReqFromUser bool) {
 	} else if isReqFromUser {
 		s.NotifyManualUpdate(s.newVersionInfo, s.updater.CanInstall(s.newVersionInfo))
 	}
+}
+
+func (s *Service) installUpdate() {
+	checkingUpdates.Lock()
+	defer checkingUpdates.Unlock()
+
+	if !s.updater.CanInstall(s.newVersionInfo) {
+		s.log.Warning("Skipping update installation, current version too old")
+		_ = s.SendEvent(NewUpdateErrorEvent(UpdateErrorType_UPDATE_MANUAL_ERROR))
+		return
+	}
+
+	if err := s.updater.InstallUpdate(s.newVersionInfo); err != nil {
+		if errors.Cause(err) == updater.ErrDownloadVerify {
+			s.log.WithError(err).Warning("Skipping update installation due to temporary error")
+		} else {
+			s.log.WithError(err).Error("The update couldn't be installed")
+			_ = s.SendEvent(NewUpdateErrorEvent(UpdateErrorType_UPDATE_MANUAL_ERROR))
+		}
+		return
+	}
+
+	_ = s.SendEvent(NewUpdateSilentRestartNeededEvent())
 }

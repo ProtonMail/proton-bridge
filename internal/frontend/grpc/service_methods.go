@@ -404,7 +404,12 @@ func (s *Service) CheckUpdate(context.Context, *emptypb.Empty) (*emptypb.Empty, 
 
 func (s *Service) InstallUpdate(context.Context, *emptypb.Empty) (*emptypb.Empty, error) {
 	s.log.Info("InstallUpdate")
-	// TO-DO GODT-1670 Implement update install
+	go func() {
+		defer s.panicHandler.HandlePanic()
+
+		s.installUpdate()
+	}()
+
 	return &emptypb.Empty{}, nil
 }
 

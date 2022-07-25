@@ -33,7 +33,6 @@ void initQtApplication()
     if ((!qsgInfo.isEmpty()) && (qsgInfo != "0"))
         QLoggingCategory::setFilterRules("qt.scenegraph.general=true");
 
-    /// \todo GODT-1670 Get version from go backend.
     QGuiApplication::setApplicationName("Proton Mail Bridge");
     QGuiApplication::setApplicationVersion(PROJECT_VER);
     QGuiApplication::setOrganizationName("Proton AG");
