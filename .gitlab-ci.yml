@@ -38,6 +38,7 @@ stages:
   - cache
   - test
   - build
+  - check
   - mirror
 
 # Stage: CACHE
@@ -138,9 +139,6 @@ build-qml:
   script:
     - make build
     - git diff && git diff-index --quiet HEAD
-    - curl -L https://services.nvd.nist.gov/rest/json/cves/1.0/
-    - gobinsec -verbose -wait -config utils/gobinsec_conf.yml
-      cmd/Desktop-Bridge/deploy/linux/proton-bridge
   artifacts:
     # Note: The latest artifacts for refs are locked against deletion, and kept
     # regardless of the expiry time. Introduced in GitLab 13.0 behind a
@@ -234,6 +232,26 @@ build-windows-qa:
     BUILD_TAGS: "build_qa"
   artifacts:
     name: "bridge-windows-qa-$CI_COMMIT_SHORT_SHA"
+
+# Stage: CHECK
+check-gobinsec:
+  stage: check
+  only:
+    - branches
+  cache:
+    key: gobinsec-cache
+    paths:
+      - gobinsec-cache.yml
+    policy: pull-push
+  before_script:
+    - mkdir build
+    - tar -xzf bridge_linux_*.tgz -C build
+  script:
+    - "[ ! -f ./gobinsec-cache.yml ] && wget bridgeteam.protontech.ch/bridgeteam/gobinsec-cache.yml"
+    - cat ./gobinsec-cache.yml
+    - gobinsec -cache -config utils/gobinsec_conf.yml build/proton-bridge
+
+
 
 # Stage: MIRROR
 
