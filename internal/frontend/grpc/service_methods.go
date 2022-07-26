@@ -69,7 +69,8 @@ func (s *Service) AddLogEntry(_ context.Context, request *AddLogEntryRequest) (*
 // GuiReady implement the GuiReady gRPC service call.
 func (s *Service) GuiReady(context.Context, *emptypb.Empty) (*emptypb.Empty, error) {
 	s.log.Info("GuiReady")
-	// Note nothing to be done. old Qt frontend had a sync.one
+	// sync.one
+	s.initializationDone.Do(s.initializing.Done)
 	return &emptypb.Empty{}, nil
 }
 

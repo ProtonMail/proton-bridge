@@ -113,6 +113,10 @@ func NewService(
 		firstTimeAutostart: sync.Once{},
 	}
 
+	// Initializing.Done is only called sync.Once. Please keep the increment
+	// set to 1
+	s.initializing.Add(1)
+
 	config, err := tls.GetConfig()
 	config.ClientAuth = cryptotls.NoClientCert // skip client auth if the certificate allow it.
 	if err != nil {
@@ -191,7 +195,9 @@ func (s *Service) NotifySilentUpdateError(err error) {
 	_ = s.SendEvent(NewUpdateErrorEvent(UpdateErrorType_UPDATE_SILENT_ERROR))
 }
 
-func (s *Service) WaitUntilFrontendIsReady() {}
+func (s *Service) WaitUntilFrontendIsReady() {
+	s.initializing.Wait()
+}
 
 func (s *Service) watchEvents() { // nolint:funlen
 	if s.bridge.HasError(bridge.ErrLocalCacheUnavailable) {
