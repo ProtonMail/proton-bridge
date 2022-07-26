@@ -2,6 +2,16 @@
 
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
+## [Bridge 2.2.2] Millau
+
+### Added
+* Introduced gobinsec cache.
+
+### Fixed
+* GODT-1743: Terminate running bridge if has old version.
+* GODT-1743: Quit bridge when opening manual install.
+
+
 ## [Bridge 2.2.1] Millau
 
 ### Added
