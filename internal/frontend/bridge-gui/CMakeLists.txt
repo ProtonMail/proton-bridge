@@ -17,9 +17,15 @@
 
 cmake_minimum_required(VERSION 3.22)
 
-#We rely on vcpkg for to get gRPC+Protobuf
-if (NOT DEFINED ENV{VCPKG_ROOT})
-    message(FATAL_ERROR "vcpkg is required. Install vcpkg and define VCPKG_ROOT to point the the vcpkg installation folder. (e.g. ~/vcpkg/")
+# We rely on vcpkg for to get gRPC / Protobuf
+# run build.sh / build.ps1 to get gRPC / Protobuf and dependencies installed.
+
+set(VCPKG_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../../../extern/vcpkg")
+message(STATUS "VCPKG_ROOT is ${VCPKG_ROOT}")
+if (WIN32)
+    find_program(VCPKG_EXE "${VCPKG_ROOT}/vcpkg.exe")
+else()
+    find_program(VCPKG_EXE "${VCPKG_ROOT}/vcpkg")
 endif()
 
 
@@ -42,9 +48,10 @@ if (APPLE)
 endif()
 
 if  (WIN32)
+    message(STATUS "Building for Intel x64 Windows computers")
     set(VCPKG_TARGET_TRIPLET x64-windows)
 endif()
-set(CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake" CACHE STRING "toolchain")
+set(CMAKE_TOOLCHAIN_FILE "${VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake" CACHE STRING "toolchain")
 
 project(bridge-gui LANGUAGES CXX)
 
@@ -88,7 +95,7 @@ find_package(Qt6 COMPONENTS
     Qml
     QuickControls2
     REQUIRED)
-message(STATUS "Using Qt ${Qt5_VERSION}")
+message(STATUS "Using Qt ${Qt6_VERSION}")
 
 find_program(PROTOC_EXE protoc REQUIRED)
 message(STATUS "protoc found ${PROTOC_EXE}")
