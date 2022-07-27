@@ -42,10 +42,7 @@ public slots:
     void run() override; ///< Run the reader.
 
 signals:
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "NotImplementedFunctions"
     void eventReceived(QString eventString); ///< signal for events.
-#pragma clang diagnostic pop
 };
 
 

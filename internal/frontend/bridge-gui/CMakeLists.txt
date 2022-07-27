@@ -42,7 +42,7 @@ if (APPLE)
 endif()
 
 if  (WIN32)
-    set(VCPKG_TARGET_TRIPLET x64-mingw-static)
+    set(VCPKG_TARGET_TRIPLET x64-windows)
 endif()
 set(CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake" CACHE STRING "toolchain")
 

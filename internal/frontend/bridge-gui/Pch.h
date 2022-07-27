@@ -27,4 +27,11 @@
 #include <AppController.h>
 
 
+#if defined(Q_OS_WIN32) && defined(ERROR)
+// The folks at Microsoft have decided that it was OK to `#define ERROR 0` in wingdi.h. It is not OK, because
+// any occurrence of ERROR, even scoped, will be substituted. For instance Log::Level::ERROR (case imposed by gRPC).
+#undef ERROR
+#endif
+
+
 #endif // BRIDGE_GUI_PCH_H
