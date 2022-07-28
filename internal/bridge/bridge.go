@@ -57,8 +57,9 @@ type Bridge struct {
 	// Bridge's global errors list.
 	errors []error
 
-	isFirstStart bool
-	lastVersion  string
+	isAllMailVisible bool
+	isFirstStart     bool
+	lastVersion      string
 }
 
 func New(
@@ -92,15 +93,16 @@ func New(
 	)
 
 	b := &Bridge{
-		Users:         u,
-		locations:     locations,
-		settings:      setting,
-		clientManager: clientManager,
-		updater:       updater,
-		versioner:     versioner,
-		cacheProvider: cacheProvider,
-		autostart:     autostart,
-		isFirstStart:  false,
+		Users:            u,
+		locations:        locations,
+		settings:         setting,
+		clientManager:    clientManager,
+		updater:          updater,
+		versioner:        versioner,
+		cacheProvider:    cacheProvider,
+		autostart:        autostart,
+		isFirstStart:     false,
+		isAllMailVisible: setting.GetBool(settings.IsAllMailVisible),
 	}
 
 	if setting.GetBool(settings.FirstStartKey) {
@@ -301,4 +303,15 @@ func (b *Bridge) GetLastVersion() string {
 // factory reset.
 func (b *Bridge) IsFirstStart() bool {
 	return b.isFirstStart
+}
+
+// IsAllMailVisible can be called extensively by IMAP. Therefore, it is better
+// to cache the value instead of reading from settings file.
+func (b *Bridge) IsAllMailVisible() bool {
+	return b.isAllMailVisible
+}
+
+func (b *Bridge) SetIsAllMailVisible(isVisible bool) {
+	b.settings.SetBool(settings.IsAllMailVisible, isVisible)
+	b.isAllMailVisible = isVisible
 }

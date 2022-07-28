@@ -33,7 +33,7 @@ func IMAPChecksFeatureContext(s *godog.ScenarioContext) {
 	s.Step(`^IMAP response to "([^"]*)" contains "([^"]*)"$`, imapResponseNamedContains)
 	s.Step(`^IMAP response has (\d+) message(?:s)?$`, imapResponseHasNumberOfMessages)
 	s.Step(`^IMAP response to "([^"]*)" has (\d+) message(?:s)?$`, imapResponseNamedHasNumberOfMessages)
-	s.Step(`^IMAP response does not contain "([^"]*)"$`, imapResponseDoesNotContain)
+	s.Step(`^IMAP response does(?: not|n't) contain "([^"]*)"$`, imapResponseDoesNotContain)
 	s.Step(`^IMAP response to "([^"]*)" does not contain "([^"]*)"$`, imapResponseNamedDoesNotContain)
 	s.Step(`^IMAP client receives update marking message seq "([^"]*)" as read within (\d+) seconds$`, imapClientReceivesUpdateMarkingMessageSeqAsReadWithin)
 	s.Step(`^IMAP client "([^"]*)" receives update marking message seq "([^"]*)" as read within (\d+) seconds$`, imapClientNamedReceivesUpdateMarkingMessageSeqAsReadWithin)

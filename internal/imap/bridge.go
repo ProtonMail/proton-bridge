@@ -31,6 +31,7 @@ type cacheProvider interface {
 type bridger interface {
 	GetUser(query string) (bridgeUser, error)
 	HasError(err error) bool
+	IsAllMailVisible() bool
 }
 
 type bridgeUser interface {

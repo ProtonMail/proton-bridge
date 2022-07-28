@@ -55,6 +55,7 @@ const (
 	AttachmentWorkers      = "attachment_workers"
 	ColorScheme            = "color_scheme"
 	RebrandingMigrationKey = "rebranding_migrated"
+	IsAllMailVisible       = "is_all_mail_visible"
 )
 
 type Settings struct {
@@ -110,4 +111,6 @@ func (s *Settings) setDefaultValues() {
 
 	// By default, stick to STARTTLS. If the user uses catalina+applemail they'll have to change to SSL.
 	s.setDefault(SMTPSSLKey, "false")
+
+	s.setDefault(IsAllMailVisible, "true")
 }

@@ -24,6 +24,8 @@ import (
 func BridgeActionsFeatureContext(s *godog.ScenarioContext) {
 	s.Step(`^bridge starts$`, bridgeStarts)
 	s.Step(`^bridge syncs "([^"]*)"$`, bridgeSyncsUser)
+	s.Step(`^All mail mailbox is hidden$`, allMailMailboxIsHidden)
+	s.Step(`^All mail mailbox is visible$`, allMailMailboxIsVisible)
 }
 
 func bridgeStarts() error {
@@ -40,5 +42,15 @@ func bridgeSyncsUser(bddUserID string) error {
 		return internalError(err, "waiting for sync")
 	}
 	ctx.SetLastError(ctx.GetTestingError())
+	return nil
+}
+
+func allMailMailboxIsHidden() error {
+	ctx.GetBridge().SetIsAllMailVisible(false)
+	return nil
+}
+
+func allMailMailboxIsVisible() error {
+	ctx.GetBridge().SetIsAllMailVisible(true)
 	return nil
 }
