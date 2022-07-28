@@ -137,6 +137,23 @@ func New( //nolint:funlen
 	})
 	fe.AddCmd(dohCmd)
 
+	// All mail visibility commands.
+	allMailCmd := &ishell.Cmd{
+		Name: "all-mail-visibility",
+		Help: "choose not to list the All Mail folder in your local client",
+	}
+	allMailCmd.AddCmd(&ishell.Cmd{
+		Name: "disable",
+		Help: "All Mail folder will not be listed in your local client",
+		Func: fe.disableAllMail,
+	})
+	allMailCmd.AddCmd(&ishell.Cmd{
+		Name: "enable",
+		Help: "All Mail folder will be listed in your local client",
+		Func: fe.enableAllMail,
+	})
+	fe.AddCmd(allMailCmd)
+
 	// Cache-On-Disk commands.
 	codCmd := &ishell.Cmd{
 		Name: "local-cache",

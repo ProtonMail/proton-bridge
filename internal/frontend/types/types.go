@@ -92,6 +92,8 @@ type Bridger interface {
 	DisableAutostart() error
 	GetLastVersion() string
 	IsFirstStart() bool
+	IsAllMailVisible() bool
+	SetIsAllMailVisible(bool)
 }
 
 type bridgeWrap struct {

@@ -152,6 +152,32 @@ func (f *frontendCLI) disallowProxy(c *ishell.Context) {
 	}
 }
 
+func (f *frontendCLI) disableAllMail(c *ishell.Context) {
+	if !f.bridge.IsAllMailVisible() {
+		f.Println("All Mail folder is not listed in your local client.")
+		return
+	}
+
+	f.Println("All Mail folder is listed in your client right now.")
+
+	if f.yesNoQuestion("Do you want to hide All Mail folder") {
+		f.bridge.SetIsAllMailVisible(false)
+	}
+}
+
+func (f *frontendCLI) enableAllMail(c *ishell.Context) {
+	if f.bridge.IsAllMailVisible() {
+		f.Println("All Mail folder is listed in your local client.")
+		return
+	}
+
+	f.Println("All Mail folder is not listed in your client right now.")
+
+	if f.yesNoQuestion("Do you want to show All Mail folder") {
+		f.bridge.SetIsAllMailVisible(true)
+	}
+}
+
 func (f *frontendCLI) enableCacheOnDisk(c *ishell.Context) {
 	if f.settings.GetBool(settings.CacheEnabledKey) {
 		f.Println("The local cache is already enabled.")

@@ -157,6 +157,19 @@ SettingsView {
     }
 
     SettingsItem {
+        id: allMail
+        visible: root._isAdvancedShown
+        colorScheme: root.colorScheme
+        text: qsTr("Disable All Mail")
+        description: qsTr("Choose not to list the All Mail folder in your local client.")
+        type: SettingsItem.Toggle
+        checked: root.backend.isAllMailDisabled
+        onClicked: root.backend.changeIsAllMailDisabled(!allMail.checked )
+
+        Layout.fillWidth: true
+    }
+
+    SettingsItem {
         id: ports
         visible: root._isAdvancedShown
         colorScheme: root.colorScheme

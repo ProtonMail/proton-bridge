@@ -155,6 +155,9 @@ type QMLBackend struct {
 	_ func()                `signal:apiCertIssue`
 
 	_ func(userID string) `signal:userChanged`
+
+	_ bool                  `property:"isAllMailDisabled"`
+	_ func(isDisabled bool) `slot:"changeIsAllMailDisabled"`
 }
 
 func (q *QMLBackend) setup(f *FrontendQt) {
@@ -304,4 +307,11 @@ func (q *QMLBackend) setup(f *FrontendQt) {
 			f.changeKeychain(k)
 		}()
 	})
+
+	q.SetIsAllMailDisabled(!f.bridge.IsAllMailVisible())
+	q.ConnectChangeIsAllMailDisabled(func(isDisabled bool) {
+		f.bridge.SetIsAllMailVisible(!isDisabled)
+		f.qml.SetIsAllMailDisabled(isDisabled)
+	})
+
 }
