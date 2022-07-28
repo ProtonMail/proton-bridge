@@ -193,7 +193,7 @@ QtObject {
                 onTriggered: {
                     Qt.openUrlExternally(Backend.landingPageLink)
                     root.updateManualError.active = false
-                    root.backend.quit()
+                    Backend.quit()
                 }
             },
             Action {

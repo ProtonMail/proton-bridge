@@ -83,7 +83,7 @@ void QMLBackend::connectGrpcEvents()
     // app events
     connect(client, &GRPCClient::internetStatus, this, [&](bool isOn) { if (isOn) emit internetOn(); else emit internetOff(); });
     connect(client, &GRPCClient::toggleAutostartFinished, this, &QMLBackend::toggleAutostartFinished);
-    connect(client, &GRPCClient::resetFinished, this, &QMLBackend::resetFinished);
+    connect(client, &GRPCClient::resetFinished, this, &QMLBackend::onResetFinished);
     connect(client, &GRPCClient::reportBugFinished, this, &QMLBackend::reportBugFinished);
     connect(client, &GRPCClient::reportBugSuccess, this, &QMLBackend::bugReportSendSuccess);
     connect(client, &GRPCClient::reportBugError, this, &QMLBackend::bugReportSendError);
@@ -220,7 +220,12 @@ void QMLBackend::quit()
 void QMLBackend::restart()
 {
     app().grpc().restart();
-    app().log().error("RESTART is not implemented"); /// \todo GODT-1671 implement restart.
+    app().grpc().quit();
+}
+
+void QMLBackend::forceLauncher(QString launcher)
+{
+    app().grpc().forceLauncher(launcher);
 }
 
 
@@ -332,4 +337,13 @@ void QMLBackend::installUpdate()
 void QMLBackend::triggerReset()
 {
     app().grpc().triggerReset();
+}
+
+//****************************************************************************************************************************************************
+//
+//****************************************************************************************************************************************************
+void QMLBackend::onResetFinished()
+{
+    emit resetFinished();
+    this->restart();
 }

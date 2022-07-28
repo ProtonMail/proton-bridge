@@ -19,11 +19,19 @@
 #include "QMLBackend.h"
 #include "BridgeMonitor.h"
 #include "Version.h"
+#include "UserDirectories.h"
 #include <bridgepp/Log/Log.h>
 #include <bridgepp/Exception/Exception.h>
 
 
 using namespace bridgepp;
+
+
+namespace
+{
+    QString const launcherFlag = "--launcher"; ///< launcher flag parameter used for bridge.
+    QString const bridgeLock = "bridge-gui.lock"; ///< file name used for the lock file.
+}
 
 
 //****************************************************************************************************************************************************
@@ -84,53 +92,91 @@ QQmlComponent *createRootQmlComponent(QQmlApplicationEngine &engine)
 
 
 //****************************************************************************************************************************************************
-/// \param[in] exePath The path of the Bridge executable. If empty, the function will try to locate the bridge application.
+/// \param[in] lock The lock file to be checked.
+/// \return True if the lock can be taken, false otherwize. 
 //****************************************************************************************************************************************************
-void launchBridge(QString const &exePath)
+bool checkSingleInstance(QLockFile &lock)
+{
+    lock.setStaleLockTime(0);
+    if (!lock.tryLock())
+    {
+        qint64 pid;
+        QString hostname, appName, details;
+        if (lock.getLockInfo(&pid, &hostname, &appName))
+            details = QString("(PID : %1 - Host : %2 - App : %3)").arg(pid).arg(hostname, appName);
+
+        app().log().error(QString("Instance already exists %1 %2").arg(lock.fileName(), details));
+        return false;
+    }
+    else
+    {
+        app().log().info(QString("lock file created %1").arg(lock.fileName()));
+    }
+    return true;
+}
+
+
+//****************************************************************************************************************************************************
+/// \param [in]  argc number of arguments passed to the application.
+/// \param [in]  argv list of arguments passed to the application.
+/// \param [out] args list of arguments passed to the application as a QStringList.
+/// \param [out] launcher launcher used in argument, forced to self application if not specify.
+/// \param[out] outAttach The value for the 'attach' command-line parameter.
+//****************************************************************************************************************************************************
+void parseArguments(int argc, char *argv[], QStringList& args, QString& launcher, bool &outAttach) {
+    bool flagFound = false;
+    launcher = QString::fromLocal8Bit(argv[0]);
+    // for unknown reasons, on Windows QCoreApplication::arguments() frequently returns an empty list, which is incorrect, so we rebuild the argument
+    // list from the original argc and argv values.
+   for (int i = 1; i < argc; i++) {
+        QString const &arg = QString::fromLocal8Bit(argv[i]);
+        // we can't use QCommandLineParser here since it will fails on unknown options.
+        // Arguments may contain some bridge flags.
+        if (arg == launcherFlag)
+        {
+            args.append(arg);
+            launcher = QString::fromLocal8Bit(argv[++i]);
+            args.append(launcher);
+            flagFound = true;
+        }
+#ifdef QT_DEBUG
+        else if (arg == "--attach" || arg == "-a")
+        {
+            // we don't keep the attach mode within the args since we don't need it for Bridge.
+            outAttach = true;
+        }
+#endif
+        else
+        {
+            args.append(arg);
+        }
+    }
+    if (!flagFound)
+    {
+        // add bridge-gui as launcher
+        args.append(launcherFlag);
+        args.append(launcher);
+    }
+}
+
+
+//****************************************************************************************************************************************************
+/// \param [in] args list of arguments to pass to bridge.
+//****************************************************************************************************************************************************
+void launchBridge(QStringList const &args)
 {
     UPOverseer& overseer = app().bridgeOverseer();
     overseer.reset();
 
-    QString bridgeExePath = exePath;
-    if (exePath.isEmpty())
-        bridgeExePath = BridgeMonitor::locateBridgeExe();
+    const QString bridgeExePath = BridgeMonitor::locateBridgeExe();
 
     if (bridgeExePath.isEmpty())
         throw Exception("Could not locate the bridge executable path");
     else
         app().log().debug(QString("Bridge executable path: %1").arg(QDir::toNativeSeparators(bridgeExePath)));
 
-    overseer = std::make_unique<Overseer>(new BridgeMonitor(bridgeExePath, nullptr), nullptr);
+    overseer = std::make_unique<Overseer>(new BridgeMonitor(bridgeExePath, args, nullptr), nullptr);
     overseer->startWorker(true);
-}
-
-
-//****************************************************************************************************************************************************
-/// \param[in] argc The number of command-line arguments.
-/// \param[in] argv The list of command line arguments.
-/// \param[out] outAttach The value for the 'attach' command-line parameter.
-/// \param[out] outExePath The value for the 'bridge-exe-path' command-line parameter.
-//****************************************************************************************************************************************************
-void parseArguments(int argc, char **argv, bool &outAttach, QString &outExePath)
-{
-    // for unknown reasons, on Windows QCoreApplication::arguments() frequently returns an empty list, which is incorrect, so we rebuild the argument
-    // list from the original argc and argv values.
-    QStringList args;
-    for (int i = 0; i < argc; i++)
-        args.append(QString::fromLocal8Bit(argv[i]));
-
-    // We do not want to 'advertise' the following switches, so we do not offer a '-h/--help' option.
-    // we have not yet connected to Bridge, we do not know the application version number, so we do not offer a -v/--version switch.
-    QCommandLineParser parser;
-    parser.setApplicationDescription("Proton Mail Bridge");
-    QCommandLineOption attachOption(QStringList() << "attach" << "a", "attach to an existing bridge process");
-    parser.addOption(attachOption);
-    QCommandLineOption exePathOption(QStringList() << "bridge-exe-path" << "b", "bridge executable path", "path", QString());
-    parser.addOption(exePathOption);
-
-    parser.process(args);
-    outAttach = parser.isSet(attachOption);
-    outExePath = parser.value(exePathOption);
 }
 
 
@@ -166,14 +212,19 @@ int main(int argc, char *argv[])
         QGuiApplication guiApp(argc, argv);
         initQtApplication();
 
-        bool attach = false;
-        QString exePath;
-        parseArguments(argc, argv, attach, exePath);
-
         Log &log = initLog();
 
+        QLockFile lock(UserDirectories::UserCacheDir() + "/" + bridgeLock);
+        if (!checkSingleInstance(lock))
+            return EXIT_FAILURE;
+
+        QStringList args;
+        QString launcher;
+        bool attach = false;
+        parseArguments(argc, argv, args, launcher, attach);
+
         if (!attach)
-            launchBridge(exePath);
+            launchBridge(args);
 
         app().backend().init();
 
@@ -185,15 +236,34 @@ int main(int argc, char *argv[])
 
         BridgeMonitor *bridgeMonitor = app().bridgeMonitor();
         bool bridgeExited = false;
+        bool startError = false;
         QMetaObject::Connection connection;
         if (bridgeMonitor)
-            connection = QObject::connect(bridgeMonitor, &BridgeMonitor::processExited, [&](int returnCode) {
-                // GODT-1671 We need to find a 'safe' way to check if Bridge crashed and restart instead of just quitting. Is returnCode enough?
-                bridgeExited = true;// clazy:exclude=lambda-in-connect
-                qGuiApp->exit(returnCode);
-            });
+        {
+            const BridgeMonitor::MonitorStatus& status = bridgeMonitor->getStatus();
+            if (!status.running && !attach)
+            {
+                // BridgeMonitor already stopped meaning we are attached to an orphan Bridge.
+                // Restart the full process to be sure there is no more bridge orphans
+                app().log().error("Found orphan bridge, need to restart.");
+                app().backend().forceLauncher(launcher);
+                app().backend().restart();
+                bridgeExited = true;
+                startError = true;
+            }
+            else
+            {
+                app().log().debug(QString("Monitoring Bridge PID : %1").arg(status.pid));
+                connection = QObject::connect(bridgeMonitor, &BridgeMonitor::processExited, [&](int returnCode) {
+                    bridgeExited = true;// clazy:exclude=lambda-in-connect
+                    qGuiApp->exit(returnCode);
+                });
+            }
+        }
 
-        int const result = QGuiApplication::exec();
+        int result = 0;
+        if (!startError)
+            result = QGuiApplication::exec();
 
         QObject::disconnect(connection);
         app().grpc().stopEventStream();
@@ -204,7 +274,8 @@ int main(int argc, char *argv[])
 
         if (!bridgeExited)
             closeBridgeApp();
-
+        // release the lock file
+        lock.unlock();
         return result;
     }
     catch (Exception const &e)

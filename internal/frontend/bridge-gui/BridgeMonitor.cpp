@@ -34,7 +34,7 @@ QString const exeSuffix = ".exe";
 QString const exeSuffix;
 #endif
 
-QString const exeName = "bridge" + exeSuffix; ///< The bridge executable file name.
+QString const exeName = "proton-bridge" + exeSuffix; ///< The bridge executable file name.*
 
 
 }
@@ -55,9 +55,10 @@ QString BridgeMonitor::locateBridgeExe()
 /// \param[in] exePath The path of the Bridge executable.
 /// \param[in] parent The parent object of the worker.
 //****************************************************************************************************************************************************
-BridgeMonitor::BridgeMonitor(QString const &exePath, QObject *parent)
+BridgeMonitor::BridgeMonitor(QString const &exePath, QStringList const &args, QObject *parent)
     : Worker(parent)
     , exePath_(exePath)
+    , args_(args)
 {
     QFileInfo fileInfo(exePath);
     if (!fileInfo.exists())
@@ -77,8 +78,11 @@ void BridgeMonitor::run()
         emit started();
 
         QProcess p;
-        p.start(exePath_, QStringList());
+        p.start(exePath_, args_);
         p.waitForStarted();
+
+        status_.running = true;
+        status_.pid = p.processId();
 
         while (!p.waitForFinished(100))
         {
@@ -86,11 +90,23 @@ void BridgeMonitor::run()
             p.readAllStandardError();
             p.readAllStandardOutput();
         }
-        emit processExited(p.exitCode());
+
+        status_.running = false;
+        status_.returnCode =  p.exitCode();
+
+        emit processExited(status_.returnCode );
         emit finished();
     }
     catch (Exception const &e)
     {
         emit error(e.qwhat());
     }
+}
+
+//****************************************************************************************************************************************************
+/// \return status of the monitored process
+//****************************************************************************************************************************************************
+const BridgeMonitor::MonitorStatus& BridgeMonitor::getStatus()
+{
+    return status_;
 }

@@ -388,6 +388,18 @@ grpc::Status GRPCClient::triggerReset()
 
 
 //****************************************************************************************************************************************************
+/// \return The status for the gRPC call.
+//****************************************************************************************************************************************************
+grpc::Status GRPCClient::forceLauncher(QString const &launcher)
+{
+    grpc::ClientContext ctx;
+    StringValue s;
+    s.set_value(launcher.toStdString());
+    return this->logGRPCCallStatus(stub_->ForceLauncher(&ctx, s, &empty), __FUNCTION__);
+}
+
+
+//****************************************************************************************************************************************************
 /// \param[in] port The port to check.
 /// \param[out] outFree The result of the check.
 /// \return The status for the gRPC call.

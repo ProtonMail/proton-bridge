@@ -93,10 +93,11 @@ type Base struct {
 	TLS            *tls.TLS
 	Autostart      *autostart.App
 
-	Name    string // the app's name
-	usage   string // the app's usage description
-	command string // the command used to launch the app (either the exe path or the launcher path)
-	restart bool   // whether the app is currently set to restart
+	Name     string // the app's name
+	usage    string // the app's usage description
+	command  string // the command used to launch the app (either the exe path or the launcher path)
+	restart  bool   // whether the app is currently set to restart
+	launcher string // launcher to be used if not set in args
 
 	teardown []func() error // actions to perform when app is exiting
 }
@@ -322,6 +323,11 @@ func (b *Base) SetToRestart() {
 	b.restart = true
 }
 
+func (b *Base) ForceLauncher(launcher string) {
+	b.launcher = launcher
+	b.setupLauncher(launcher)
+}
+
 // AddTeardownAction adds an action to perform during app teardown.
 func (b *Base) AddTeardownAction(fn func() error) {
 	b.teardown = append(b.teardown, fn)
@@ -335,10 +341,7 @@ func (b *Base) wrapMainLoop(appMainLoop func(*Base, *cli.Context) error) cli.Act
 		// If launcher was used to start the app, use that for restart
 		// and autostart.
 		if launcher := c.String(FlagLauncher); launcher != "" {
-			b.command = launcher
-			// Bridge supports no-window option which we should use
-			// for autostart.
-			b.Autostart.Exec = []string{launcher, "--" + FlagNoWindow}
+			b.setupLauncher(launcher)
 		}
 
 		if c.Bool(flagCPUProfile) {
@@ -401,4 +404,11 @@ func (b *Base) doTeardown() error {
 	}
 
 	return nil
+}
+
+func (b *Base) setupLauncher(launcher string) {
+	b.command = launcher
+	// Bridge supports no-window option which we should use
+	// for autostart.
+	b.Autostart.Exec = []string{launcher, "--" + FlagNoWindow}
 }

@@ -335,7 +335,7 @@ func (s *Service) waitForUserChangeDone(done <-chan string, userID string) {
 }
 
 func (s *Service) restart() {
-	s.log.Error("Restart is not implemented") // TO-DO GODT-1671 implement restart.
+	s.restarter.SetToRestart()
 }
 
 func (s *Service) triggerReset() {

@@ -33,8 +33,14 @@ class BridgeMonitor: public bridgepp::Worker
 public: // static member functions
     static QString locateBridgeExe(); ///< Try to find the bridge executable path.
 
+    struct MonitorStatus {
+        bool running = false;
+        int returnCode = 0;
+        qint64 pid = 0;
+    };
+
 public: // member functions.
-    BridgeMonitor(QString const& exePath, QObject *parent); ///< Default constructor.
+    BridgeMonitor(QString const& exePath, QStringList const &args, QObject *parent); ///< Default constructor.
     BridgeMonitor(BridgeMonitor const&) = delete; ///< Disabled copy-constructor.
     BridgeMonitor(BridgeMonitor&&) = delete; ///< Disabled assignment copy-constructor.
     ~BridgeMonitor() override = default; ///< Destructor.
@@ -42,11 +48,14 @@ public: // member functions.
     BridgeMonitor& operator=(BridgeMonitor&&) = delete; ///< Disabled move assignment operator.
     void run() override; ///< Run the worker.
 
+    const MonitorStatus& getStatus();
 signals:
-    void processExited(int code); ///< Slot for the exiting of the process
+    void processExited(int code); ///< Slot for the exiting of the process.
 
 private: // data members
     QString const exePath_; ///< The path to the bridge executable.
+    QStringList args_; ///< arguments to be passed to the brigde.
+    MonitorStatus status_; ///< Status of the monitoring.
 };
 
 

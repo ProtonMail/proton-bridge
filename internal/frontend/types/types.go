@@ -32,6 +32,7 @@ type PanicHandler interface {
 // Restarter allows the app to set itself to restart next time it is closed.
 type Restarter interface {
 	SetToRestart()
+	ForceLauncher(string)
 }
 
 type NoEncConfirmator interface {

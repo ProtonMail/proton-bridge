@@ -150,11 +150,13 @@ public slots: // slot for signals received from QML -> To be forwarded to Bridge
     void guiReady();                                                                                                                                  //    _ func()                                                              `slot:"guiReady"`
     void quit();                                                                                                                                      //    _ func()                                                              `slot:"quit"`
     void restart();                                                                                                                                   //    _ func()                                                              `slot:"restart"`
+    void forceLauncher(QString launcher);                                                                                                             //    _ func()                                                              `slot:"forceLauncher"`
     void checkUpdates();                                                                                                                              //    _ func()                                                              `slot:"checkUpdates"`
     void installUpdate();                                                                                                                             //    _ func()                                                              `slot:"installUpdate"`
     void triggerReset();                                                                                                                              //    _ func()                                                              `slot:"triggerReset"`
     void reportBug(QString const &description, QString const& address, QString const &emailClient, bool includeLogs) {
         app().grpc().reportBug(description, address, emailClient, includeLogs); }                                                  //    _ func(description, address, emailClient string, includeLogs bool)    `slot:"reportBug"`
+    void onResetFinished();
 
 signals: // Signals received from the Go backend, to be forwarded to QML
     void toggleAutostartFinished();                                                                                                                   //    _ func()                  `signal:"toggleAutostartFinished"`

@@ -38,6 +38,10 @@ func (b *Base) restartApp(crash bool) error {
 		args = os.Args[1:]
 	}
 
+	if b.launcher != "" {
+		args = forceLauncherFlag(args, b.launcher)
+	}
+
 	logrus.
 		WithField("command", b.command).
 		WithField("args", args).
@@ -74,6 +78,32 @@ func incrementRestartFlag(args []string) []string {
 
 	if !hasFlag {
 		res = append(res, "--restart", "1")
+	}
+
+	return res
+}
+
+// forceLauncherFlag  replace or add the launcher args with the one set in the app.
+func forceLauncherFlag(args []string, launcher string) []string {
+	res := append([]string{}, args...)
+
+	hasFlag := false
+
+	for k, v := range res {
+		if v != "--launcher" {
+			continue
+		}
+
+		if k+1 >= len(res) {
+			continue
+		}
+
+		hasFlag = true
+		res[k+1] = launcher
+	}
+
+	if !hasFlag {
+		res = append(res, "--launcher", launcher)
 	}
 
 	return res

@@ -59,7 +59,7 @@ void Overseer::startWorker(bool autorelease) const
 
     worker_->moveToThread(thread_);
     connect(thread_, &QThread::started, worker_, &Worker::run);
-    connect(worker_, &Worker::finished, [&]() { thread_->quit(); }); // for unkwown reason, connect to the QThread::quit slot does not work...
+    connect(worker_, &Worker::finished, [&]() {thread_->quit(); }); // Safety, normally the thread already properly quits.
     connect(worker_, &Worker::error, [&]() { thread_->quit(); });
 
     if (autorelease)

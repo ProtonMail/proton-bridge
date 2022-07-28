@@ -92,11 +92,14 @@ func (s *Service) Quit(ctx context.Context, empty *emptypb.Empty) (*emptypb.Empt
 
 // Restart implement the Restart gRPC service call.
 func (s *Service) Restart(context.Context, *emptypb.Empty) (*emptypb.Empty, error) {
-	s.log.Info("Restart") // TO-DO-GODT-1671  handle restart.
+	s.log.Info("Restart")
+	go func() {
+		defer s.panicHandler.HandlePanic()
 
-	s.restart()
+		s.restart()
+	}()
 
-	return nil, ErrNotImplemented
+	return &emptypb.Empty{}, nil
 }
 
 func (s *Service) ShowOnStartup(context.Context, *emptypb.Empty) (*wrapperspb.BoolValue, error) {
@@ -192,7 +195,7 @@ func (s *Service) TriggerReset(context.Context, *emptypb.Empty) (*emptypb.Empty,
 		defer s.panicHandler.HandlePanic()
 		s.triggerReset()
 	}()
-	return nil, ErrNotImplemented
+	return &emptypb.Empty{}, nil
 }
 
 func (s *Service) Version(context.Context, *emptypb.Empty) (*wrapperspb.StringValue, error) {
@@ -288,6 +291,15 @@ func (s *Service) ReportBug(_ context.Context, report *ReportBugRequest) (*empty
 		_ = s.SendEvent(NewReportBugSuccessEvent())
 	}()
 
+	return &emptypb.Empty{}, nil
+}
+
+func (s *Service) ForceLauncher(_ context.Context, launcher *wrapperspb.StringValue) (*emptypb.Empty, error) {
+	s.log.WithField("launcher", launcher.Value).Info("ForceLauncher")
+	go func() {
+		defer s.panicHandler.HandlePanic()
+		s.restarter.ForceLauncher(launcher.Value)
+	}()
 	return &emptypb.Empty{}, nil
 }
 

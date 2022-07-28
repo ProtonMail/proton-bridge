@@ -38,20 +38,27 @@ import (
 type Locations struct {
 	userConfig, userCache string
 	configName            string
+	configGuiName         string
 }
 
 // New returns a new locations object.
 func New(provider Provider, configName string) *Locations {
 	return &Locations{
-		userConfig: provider.UserConfig(),
-		userCache:  provider.UserCache(),
-		configName: configName,
+		userConfig:    provider.UserConfig(),
+		userCache:     provider.UserCache(),
+		configName:    configName,
+		configGuiName: configName + "-gui",
 	}
 }
 
 // GetLockFile returns the path to the lock file (e.g. ~/.cache/<company>/<app>/<app>.lock).
 func (l *Locations) GetLockFile() string {
 	return filepath.Join(l.userCache, l.configName+".lock")
+}
+
+// GetGuiLockFile returns the path to the lock file (e.g. ~/.cache/<company>/<app>/<app>.lock).
+func (l *Locations) GetGuiLockFile() string {
+	return filepath.Join(l.userCache, l.configGuiName+".lock")
 }
 
 // GetLicenseFilePath returns path to liense file.
@@ -210,6 +217,7 @@ func (l *Locations) Clear() error {
 		l.userCache,
 	).Except(
 		l.GetLockFile(),
+		l.GetGuiLockFile(),
 		l.getUpdatesPath(),
 	).Do()
 }
@@ -226,6 +234,7 @@ func (l *Locations) ClearUpdates() error {
 func (l *Locations) Clean() error {
 	return files.Remove(l.userCache).Except(
 		l.GetLockFile(),
+		l.GetGuiLockFile(),
 		l.getLogsPath(),
 		l.getCachePath(),
 		l.getUpdatesPath(),

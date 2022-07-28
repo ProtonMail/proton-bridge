@@ -42,6 +42,10 @@ const (
 	appName    = "Proton Mail Launcher"
 	configName = "bridge"
 	exeName    = "proton-bridge"
+	guiName    = "proton-bridge-gui"
+
+	FlagCLI      = "--cli"
+	FlagLauncher = "--launcher"
 )
 
 func main() { //nolint:funlen
@@ -86,9 +90,15 @@ func main() { //nolint:funlen
 
 	versioner := versioner.New(updatesPath)
 
-	exe, err := getPathToUpdatedExecutable(exeName, versioner, kr, reporter)
+	exeToLaunch := guiName
+	args := os.Args[1:]
+	if isCliMode(&args) {
+		exeToLaunch = exeName
+	}
+
+	exe, err := getPathToUpdatedExecutable(exeToLaunch, versioner, kr, reporter)
 	if err != nil {
-		if exe, err = getFallbackExecutable(exeName, versioner); err != nil {
+		if exe, err = getFallbackExecutable(exeToLaunch, versioner); err != nil {
 			logrus.WithError(err).Fatal("Failed to find any launchable executable")
 		}
 	}
@@ -98,7 +108,7 @@ func main() { //nolint:funlen
 		logrus.WithError(err).Fatal("Failed to determine path to launcher")
 	}
 
-	cmd := execabs.Command(exe, appendLauncherPath(launcher, os.Args[1:])...) //nolint:gosec
+	cmd := execabs.Command(exe, appendLauncherPath(launcher, args)...) //nolint:gosec
 
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
@@ -122,7 +132,7 @@ func appendLauncherPath(path string, args []string) []string {
 	hasFlag := false
 
 	for k, v := range res {
-		if v != "--launcher" {
+		if v != FlagLauncher {
 			continue
 		}
 
@@ -136,10 +146,20 @@ func appendLauncherPath(path string, args []string) []string {
 	}
 
 	if !hasFlag {
-		res = append(res, "--launcher", path)
+		res = append(res, FlagLauncher, path)
 	}
 
 	return res
+}
+
+func isCliMode(args *[]string) bool {
+	for _, v := range *args {
+		if v == FlagCLI {
+			return true
+		}
+	}
+
+	return false
 }
 
 func getPathToUpdatedExecutable(
