@@ -327,5 +327,5 @@ void QMLBackend::installUpdate()
 //****************************************************************************************************************************************************
 void QMLBackend::triggerReset()
 {
-    app().log().error(QString("%1() is not implemented.").arg(__FUNCTION__));
+    logGRPCCallStatus(app().grpc().triggerReset(), "triggerReset");
 }

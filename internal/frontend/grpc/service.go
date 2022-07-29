@@ -338,6 +338,13 @@ func (s *Service) restart() {
 	s.log.Error("Restart is not implemented") // TO-DO GODT-1671 implement restart.
 }
 
+func (s *Service) triggerReset() {
+	defer func() {
+		_ = s.SendEvent(NewResetFinishedEvent())
+	}()
+	s.bridge.FactoryReset()
+}
+
 func (s *Service) checkUpdate() {
 	version, err := s.updater.Check()
 	if err != nil {

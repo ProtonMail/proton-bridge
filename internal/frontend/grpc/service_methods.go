@@ -188,6 +188,10 @@ func (s *Service) GoOs(context.Context, *emptypb.Empty) (*wrapperspb.StringValue
 
 func (s *Service) TriggerReset(context.Context, *emptypb.Empty) (*emptypb.Empty, error) {
 	s.log.Info("TriggerReset")
+	go func() {
+		defer s.panicHandler.HandlePanic()
+		s.triggerReset()
+	}()
 	return nil, ErrNotImplemented
 }
 

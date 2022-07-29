@@ -64,6 +64,7 @@ public: // member functions.
     grpc::Status reportBug(QString const &description, QString const &address, QString const &emailClient, bool includeLogs); ///< Performs the 'ReportBug' gRPC call.
     grpc::Status quit(); ///< Perform the "Quit" gRPC call.
     grpc::Status restart(); ///< Performs the Restart gRPC call.
+    grpc::Status triggerReset(); ///< Performs the triggerReset gRPC call.
     grpc::Status isPortFree(qint32 port, bool &outFree); ///< Performs the 'IsPortFree' call.
     grpc::Status showOnStartup(bool &outValue); ///< Performs the 'ShowOnStartup' call.
     grpc::Status showSplashScreen(bool &outValue); ///< Performs the 'ShowSplashScreen' call.
