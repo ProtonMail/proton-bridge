@@ -15,20 +15,27 @@
 // You should have received a copy of the GNU General Public License
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
-package cache
+package algo
 
 import (
 	"crypto/sha256"
+	"encoding/base64"
 	"encoding/hex"
 )
 
-func getHash(name string) string {
-	hash := sha256.New()
+func Hash256(b []byte) []byte {
+	h := sha256.Sum256(b)
+	return h[:]
+}
 
-	if _, err := hash.Write([]byte(name)); err != nil {
-		// sha256.Write always returns nill err so this should never happen
-		panic(err)
-	}
+func HashBase64SHA256(s string) string {
+	return base64.StdEncoding.EncodeToString(
+		Hash256([]byte(s)),
+	)
+}
 
-	return hex.EncodeToString(hash.Sum(nil))
+func HashHexSHA256(s string) string {
+	return hex.EncodeToString(
+		Hash256([]byte(s)),
+	)
 }

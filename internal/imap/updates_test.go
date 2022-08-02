@@ -25,7 +25,7 @@ import (
 )
 
 func TestUpdatesCanDelete(t *testing.T) {
-	u := newIMAPUpdates()
+	u := newIMAPUpdates(nil)
 
 	can, _ := u.CanDelete("mbox")
 	require.True(t, can)
@@ -38,7 +38,7 @@ func TestUpdatesCanDelete(t *testing.T) {
 }
 
 func TestUpdatesCannotDelete(t *testing.T) {
-	u := newIMAPUpdates()
+	u := newIMAPUpdates(nil)
 
 	u.forbidExpunge("mbox")
 	can, wait := u.CanDelete("mbox")

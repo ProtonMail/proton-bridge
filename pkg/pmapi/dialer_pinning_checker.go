@@ -18,13 +18,13 @@
 package pmapi
 
 import (
-	"crypto/sha256"
 	"crypto/tls"
 	"crypto/x509"
-	"encoding/base64"
 	"errors"
 	"fmt"
 	"net"
+
+	"github.com/ProtonMail/proton-bridge/v2/pkg/algo"
 )
 
 // ErrTLSMismatch indicates that no TLS fingerprint match could be found.
@@ -63,6 +63,5 @@ func (p *pinChecker) checkCertificate(conn net.Conn) error {
 }
 
 func certFingerprint(cert *x509.Certificate) string {
-	hash := sha256.Sum256(cert.RawSubjectPublicKeyInfo)
-	return fmt.Sprintf(`pin-sha256=%q`, base64.StdEncoding.EncodeToString(hash[:]))
+	return fmt.Sprintf(`pin-sha256=%q`, algo.HashBase64SHA256(string(cert.RawSubjectPublicKeyInfo)))
 }

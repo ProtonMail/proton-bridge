@@ -21,7 +21,6 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
-	"crypto/sha256"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -29,6 +28,7 @@ import (
 	"path/filepath"
 	"sync"
 
+	"github.com/ProtonMail/proton-bridge/v2/pkg/algo"
 	"github.com/ProtonMail/proton-bridge/v2/pkg/semaphore"
 	"github.com/ricochet2200/go-disk-usage/du"
 )
@@ -100,13 +100,7 @@ func (c *onDiskCache) Lock(userID string) {
 }
 
 func (c *onDiskCache) Unlock(userID string, passphrase []byte) error {
-	hash := sha256.New()
-
-	if _, err := hash.Write(passphrase); err != nil {
-		return err
-	}
-
-	aes, err := aes.NewCipher(hash.Sum(nil))
+	aes, err := aes.NewCipher(algo.Hash256(passphrase))
 	if err != nil {
 		return err
 	}
@@ -279,9 +273,9 @@ func (c *onDiskCache) update() {
 }
 
 func (c *onDiskCache) getUserPath(userID string) string {
-	return filepath.Join(c.path, getHash(userID))
+	return filepath.Join(c.path, algo.HashHexSHA256(userID))
 }
 
 func (c *onDiskCache) getMessagePath(userID, messageID string) string {
-	return filepath.Join(c.getUserPath(userID), getHash(messageID))
+	return filepath.Join(c.getUserPath(userID), algo.HashHexSHA256(messageID))
 }

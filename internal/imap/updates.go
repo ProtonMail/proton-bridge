@@ -23,6 +23,7 @@ import (
 	"time"
 
 	"github.com/ProtonMail/proton-bridge/v2/internal/store"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/algo"
 	"github.com/ProtonMail/proton-bridge/v2/pkg/message"
 	"github.com/ProtonMail/proton-bridge/v2/pkg/pmapi"
 	imap "github.com/emersion/go-imap"
@@ -42,14 +43,16 @@ type imapUpdates struct {
 	blocking        map[string]bool
 	delayedExpunges map[string][]chan struct{}
 	ch              chan goIMAPBackend.Update
+	ib              *imapBackend
 }
 
-func newIMAPUpdates() *imapUpdates {
+func newIMAPUpdates(ib *imapBackend) *imapUpdates {
 	return &imapUpdates{
 		lock:            &sync.Mutex{},
 		blocking:        map[string]bool{},
 		delayedExpunges: map[string][]chan struct{}{},
 		ch:              make(chan goIMAPBackend.Update),
+		ib:              ib,
 	}
 }
 
@@ -113,6 +116,8 @@ func (iu *imapUpdates) CanDelete(mailboxID string) (bool, func()) {
 }
 
 func (iu *imapUpdates) Notice(address, notice string) {
+	l := iu.updateLog(address, "")
+	l.Info("Notice")
 	update := new(goIMAPBackend.StatusUpdate)
 	update.Update = goIMAPBackend.NewUpdate(address, "")
 	update.StatusResp = &imap.StatusResp{
@@ -120,7 +125,7 @@ func (iu *imapUpdates) Notice(address, notice string) {
 		Code: imap.CodeAlert,
 		Info: notice,
 	}
-	iu.sendIMAPUpdate(update, false)
+	iu.sendIMAPUpdate(l, update, false)
 }
 
 func (iu *imapUpdates) UpdateMessage(
@@ -128,14 +133,14 @@ func (iu *imapUpdates) UpdateMessage(
 	uid, sequenceNumber uint32,
 	msg *pmapi.Message, hasDeletedFlag bool,
 ) {
-	log.WithFields(logrus.Fields{
-		"address": address,
-		"mailbox": mailboxName,
-		"seqNum":  sequenceNumber,
-		"uid":     uid,
-		"flags":   message.GetFlags(msg),
-		"deleted": hasDeletedFlag,
-	}).Trace("IDLE update")
+	l := iu.updateLog(address, mailboxName).
+		WithFields(logrus.Fields{
+			"seqNum":  sequenceNumber,
+			"uid":     uid,
+			"flags":   message.GetFlags(msg),
+			"deleted": hasDeletedFlag,
+		})
+	l.Info("IDLE update")
 	update := new(goIMAPBackend.MessageUpdate)
 	update.Update = goIMAPBackend.NewUpdate(address, mailboxName)
 	update.Message = imap.NewMessage(sequenceNumber, []imap.FetchItem{imap.FetchFlags, imap.FetchUid})
@@ -144,26 +149,22 @@ func (iu *imapUpdates) UpdateMessage(
 		update.Message.Flags = append(update.Message.Flags, imap.DeletedFlag)
 	}
 	update.Message.Uid = uid
-	iu.sendIMAPUpdate(update, iu.isBlocking(address, mailboxName, operationUpdateMessage))
+	iu.sendIMAPUpdate(l, update, iu.isBlocking(address, mailboxName, operationUpdateMessage))
 }
 
 func (iu *imapUpdates) DeleteMessage(address, mailboxName string, sequenceNumber uint32) {
-	log.WithFields(logrus.Fields{
-		"address": address,
-		"mailbox": mailboxName,
-		"seqNum":  sequenceNumber,
-	}).Trace("IDLE delete")
+	l := iu.updateLog(address, mailboxName).
+		WithField("seqNum", sequenceNumber)
+	l.Info("IDLE delete")
 	update := new(goIMAPBackend.ExpungeUpdate)
 	update.Update = goIMAPBackend.NewUpdate(address, mailboxName)
 	update.SeqNum = sequenceNumber
-	iu.sendIMAPUpdate(update, iu.isBlocking(address, mailboxName, operationDeleteMessage))
+	iu.sendIMAPUpdate(l, update, iu.isBlocking(address, mailboxName, operationDeleteMessage))
 }
 
 func (iu *imapUpdates) MailboxCreated(address, mailboxName string) {
-	log.WithFields(logrus.Fields{
-		"address": address,
-		"mailbox": mailboxName,
-	}).Trace("IDLE mailbox info")
+	l := iu.updateLog(address, mailboxName)
+	l.Info("IDLE mailbox info")
 	update := new(goIMAPBackend.MailboxInfoUpdate)
 	update.Update = goIMAPBackend.NewUpdate(address, "")
 	update.MailboxInfo = &imap.MailboxInfo{
@@ -171,29 +172,30 @@ func (iu *imapUpdates) MailboxCreated(address, mailboxName string) {
 		Delimiter:  store.PathDelimiter,
 		Name:       mailboxName,
 	}
-	iu.sendIMAPUpdate(update, false)
+	iu.sendIMAPUpdate(l, update, false)
 }
 
 func (iu *imapUpdates) MailboxStatus(address, mailboxName string, total, unread, unreadSeqNum uint32) {
-	log.WithFields(logrus.Fields{
-		"address":      address,
-		"mailbox":      mailboxName,
-		"total":        total,
-		"unread":       unread,
-		"unreadSeqNum": unreadSeqNum,
-	}).Trace("IDLE status")
+	l := iu.updateLog(address, mailboxName).
+		WithFields(logrus.Fields{
+			"total":        total,
+			"unread":       unread,
+			"unreadSeqNum": unreadSeqNum,
+		})
+	l.Info("IDLE status")
 	update := new(goIMAPBackend.MailboxUpdate)
 	update.Update = goIMAPBackend.NewUpdate(address, mailboxName)
 	update.MailboxStatus = imap.NewMailboxStatus(mailboxName, []imap.StatusItem{imap.StatusMessages, imap.StatusUnseen})
 	update.MailboxStatus.Messages = total
 	update.MailboxStatus.Unseen = unread
 	update.MailboxStatus.UnseenSeqNum = unreadSeqNum
-	iu.sendIMAPUpdate(update, true)
+	iu.sendIMAPUpdate(l, update, true)
 }
 
-func (iu *imapUpdates) sendIMAPUpdate(update goIMAPBackend.Update, isBlocking bool) {
+func (iu *imapUpdates) sendIMAPUpdate(updateLog *logrus.Entry, update goIMAPBackend.Update, isBlocking bool) {
+	l := updateLog.WithField("blocking", isBlocking)
 	if iu.ch == nil {
-		log.Trace("IMAP IDLE unavailable")
+		l.Info("IMAP IDLE unavailable")
 		return
 	}
 
@@ -201,7 +203,7 @@ func (iu *imapUpdates) sendIMAPUpdate(update goIMAPBackend.Update, isBlocking bo
 	go func() {
 		select {
 		case <-time.After(1 * time.Second):
-			log.Warn("IMAP update could not be sent (timeout)")
+			l.Warn("IMAP update could not be sent (timeout)")
 			return
 		case iu.ch <- update:
 		}
@@ -214,7 +216,35 @@ func (iu *imapUpdates) sendIMAPUpdate(update goIMAPBackend.Update, isBlocking bo
 	select {
 	case <-done:
 	case <-time.After(1 * time.Second):
-		log.Warn("IMAP update could not be delivered (timeout)")
+		l.Warn("IMAP update could not be delivered (timeout)")
 		return
 	}
+}
+
+func (iu *imapUpdates) getIDs(address, mailboxName string) (addressID, mailboxID string) {
+	addressID = "unknown-" + algo.HashBase64SHA256(address)
+	mailboxID = "unknown-" + algo.HashBase64SHA256(mailboxName)
+
+	if iu == nil || iu.ib == nil {
+		return
+	}
+
+	user, err := iu.ib.getUser(address)
+	if err != nil || user == nil || user.storeAddress == nil {
+		return
+	}
+	addressID = user.addressID
+
+	if v := user.mailboxIDs[mailboxName]; v != "" {
+		mailboxID = v
+	}
+
+	return
+}
+
+func (iu *imapUpdates) updateLog(address, mailboxName string) *logrus.Entry {
+	addressID, mailboxID := iu.getIDs(address, mailboxName)
+	return log.
+		WithField("address", addressID).
+		WithField("mailbox", mailboxID)
 }

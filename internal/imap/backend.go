@@ -93,10 +93,9 @@ func newIMAPBackend(
 	eventListener listener.Listener,
 	listWorkers int,
 ) *imapBackend {
-	return &imapBackend{
+	ib := &imapBackend{
 		panicHandler:  panicHandler,
 		bridge:        bridge,
-		updates:       newIMAPUpdates(),
 		eventListener: eventListener,
 
 		users:       map[string]*imapUser{},
@@ -106,6 +105,8 @@ func newIMAPBackend(
 		imapCacheLock: &sync.RWMutex{},
 		listWorkers:   listWorkers,
 	}
+	ib.updates = newIMAPUpdates(ib)
+	return ib
 }
 
 func (ib *imapBackend) getUser(address string) (*imapUser, error) {

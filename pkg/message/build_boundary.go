@@ -18,8 +18,7 @@
 package message
 
 import (
-	"crypto/sha256"
-	"encoding/hex"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/algo"
 )
 
 type boundary struct {
@@ -31,13 +30,6 @@ func newBoundary(seed string) *boundary {
 }
 
 func (bw *boundary) gen() string {
-	hash := sha256.New()
-
-	if _, err := hash.Write([]byte(bw.val)); err != nil {
-		panic(err)
-	}
-
-	bw.val = hex.EncodeToString(hash.Sum(nil))
-
+	bw.val = algo.HashHexSHA256(bw.val)
 	return bw.val
 }

@@ -332,7 +332,16 @@ func (im *imapMailbox) labelMessages(uid bool, seqSet *imap.SeqSet, targetLabel 
 
 // SearchMessages searches messages. The returned list must contain UIDs if
 // uid is set to true, or sequence numbers otherwise.
-func (im *imapMailbox) SearchMessages(isUID bool, criteria *imap.SearchCriteria) (ids []uint32, err error) { //nolint:gocyclo,funlen
+func (im *imapMailbox) SearchMessages(isUID bool, criteria *imap.SearchCriteria) (ids []uint32, err error) {
+	err = im.logCommand(func() error {
+		var searchError error
+		ids, searchError = im.searchMessages(isUID, criteria)
+		return searchError
+	}, "SEARCH", isUID, criteria.Format())
+	return ids, err
+}
+
+func (im *imapMailbox) searchMessages(isUID bool, criteria *imap.SearchCriteria) (ids []uint32, err error) { //nolint:gocyclo,funlen
 	// Called from go-imap in goroutines - we need to handle panics for each function.
 	defer im.panicHandler.HandlePanic()
 
