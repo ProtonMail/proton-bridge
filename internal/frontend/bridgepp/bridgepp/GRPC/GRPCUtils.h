@@ -16,19 +16,27 @@
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 
-#ifndef BRIDGE_GUI_GRPCUTILS_H
-#define BRIDGE_GUI_GRPCUTILS_H
+#ifndef BRIDGE_GUI_GRPC_UTILS_H
+#define BRIDGE_GUI_GRPC_UTILS_H
 
 
-#include "Log.h"
-#include "GRPC/bridge.grpc.pb.h"
-#include "grpc++/grpc++.h"
-#include "User/User.h"
+#include "../User/User.h"
+#include "../Log/Log.h"
+#include "bridge.grpc.pb.h"
 
 
-void logGRPCCallStatus(grpc::Status const& status, QString const &callName); ///< Log the status of a gRPC code.
-SPUser parsegrpcUser(grpc::User const& grpcUser); ///< Parse a gRPC user struct and return a User.
+namespace bridgepp
+{
+
+
+QString serverCertificatePath(); ///< Return the path of the server certificate.
+QString serverKeyPath(); ///< Return the path of the server key.
 grpc::LogLevel logLevelToGRPC(Log::Level level); ///< Convert a Log::Level to gRPC enum value.
+Log::Level logLevelFromGRPC(grpc::LogLevel level); ///< Convert a grpc::LogLevel to a Log::Level.
+void userToGRPC(User const &user, grpc::User &outGRPCUser); ///< Convert a bridgepp::User to a grpc::User.
+SPUser userFromGRPC(grpc::User const &grpcUser); ///< Create a bridgepp::User from a grpc::User.
+
+}
 
 
-#endif // BRIDGE_GUI_GRPCUTILS_H
+#endif // BRIDGE_GUI_GRPC_UTILS_H

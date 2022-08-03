@@ -16,7 +16,6 @@
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 
-#include "Pch.h"
 
 
 #ifndef Q_OS_MACOS

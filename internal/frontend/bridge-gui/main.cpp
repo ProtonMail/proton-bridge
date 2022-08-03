@@ -16,12 +16,14 @@
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 
-#include "Pch.h"
-#include "Exception.h"
 #include "QMLBackend.h"
-#include "Log.h"
 #include "BridgeMonitor.h"
 #include "Version.h"
+#include <bridgepp/Log/Log.h>
+#include <bridgepp/Exception/Exception.h>
+
+
+using namespace bridgepp;
 
 
 //****************************************************************************************************************************************************
@@ -49,7 +51,7 @@ Log &initLog()
     Log &log = app().log();
     log.setEchoInConsole(true);
     log.setLevel(Log::Level::Debug);
-    Log::installQtMessageHandler();
+    log.registerAsQtMessageHandler();
     return log;
 }
 
@@ -63,7 +65,7 @@ QQmlComponent *createRootQmlComponent(QQmlApplicationEngine &engine)
 
     qmlRegisterSingletonInstance("Proton", 1, 0, "Backend", &app().backend());
     qmlRegisterType<UserList>("Proton", 1, 0, "UserList");
-    qmlRegisterType<User>("Proton", 1, 0, "User");
+    qmlRegisterType<bridgepp::User>("Proton", 1, 0, "User");
 
     auto rootComponent = new QQmlComponent(&engine, &engine);
 
@@ -138,7 +140,7 @@ void parseArguments(int argc, char **argv, bool &outAttach, QString &outExePath)
 void closeBridgeApp()
 {
     UPOverseer& overseer = app().bridgeOverseer();
-    if (!overseer) // The app was ran in 'attach' mode and attached to an existing instance of Bridge. No need to close.
+    if (!overseer) // The app was run in 'attach' mode and attached to an existing instance of Bridge. No need to close.
         return;
 
     app().grpc().quit(); // this will cause the grpc service and the bridge app to close.
@@ -186,7 +188,7 @@ int main(int argc, char *argv[])
         QMetaObject::Connection connection;
         if (bridgeMonitor)
             connection = QObject::connect(bridgeMonitor, &BridgeMonitor::processExited, [&](int returnCode) {
-                // GODT-1671 We need to find a 'safe' way to check if brige crashed and restart instead of just quitting. Is returnCode enough?
+                // GODT-1671 We need to find a 'safe' way to check if Bridge crashed and restart instead of just quitting. Is returnCode enough?
                 bridgeExited = true;// clazy:exclude=lambda-in-connect
                 qGuiApp->exit(returnCode);
             });

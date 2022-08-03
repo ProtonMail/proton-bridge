@@ -17,7 +17,10 @@
 
 
 #include "BridgeMonitor.h"
-#include "Exception.h"
+#include <bridgepp/Exception/Exception.h>
+
+
+using namespace bridgepp;
 
 
 namespace

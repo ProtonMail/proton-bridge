@@ -19,6 +19,7 @@
 
 YEAR=`date +%Y`
 MISSING_FILES=$(find . \
+    -not -path "./extern/*" \
     -not -path "./vendor/*" \
     -not -path "./vendor-cache/*" \
     -not -path "./.cache/*" \

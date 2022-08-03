@@ -20,44 +20,49 @@
 #define BRIDGE_GUI_RPC_CLIENT_H
 
 
-#include "GRPC/bridge.grpc.pb.h"
+#include "../User/User.h"
+#include "../Log/Log.h"
+#include "bridge.grpc.pb.h"
 #include "grpc++/grpc++.h"
-#include "User/User.h"
-#include "Log.h"
 
 
-typedef grpc::Status (grpc::Bridge::Stub::*SimpleMethod)(grpc::ClientContext*, const google::protobuf::Empty&, google::protobuf::Empty*);
-typedef grpc::Status (grpc::Bridge::Stub::*BoolSetter)(grpc::ClientContext*, const google::protobuf::BoolValue&, google::protobuf::Empty*);
-typedef grpc::Status (grpc::Bridge::Stub::*BoolGetter)(grpc::ClientContext*, const google::protobuf::Empty&, google::protobuf::BoolValue*);
-typedef grpc::Status (grpc::Bridge::Stub::*Int32Setter)(grpc::ClientContext*, const google::protobuf::Int32Value&, google::protobuf::Empty*);
-typedef grpc::Status (grpc::Bridge::Stub::*Int32Getter)(grpc::ClientContext*, const google::protobuf::Empty&, google::protobuf::Int32Value*);
-typedef grpc::Status (grpc::Bridge::Stub::*StringGetter)(grpc::ClientContext*, const google::protobuf::Empty&, google::protobuf::StringValue*);
-typedef grpc::Status (grpc::Bridge::Stub::*StringSetter)(grpc::ClientContext*, const google::protobuf::StringValue&, google::protobuf::Empty*);
-typedef grpc::Status (grpc::Bridge::Stub::*StringParamMethod)(grpc::ClientContext*, const google::protobuf::StringValue&, google::protobuf::Empty*);
+namespace bridgepp
+{
+
+
+typedef grpc::Status (grpc::Bridge::Stub::*SimpleMethod)(grpc::ClientContext *, const google::protobuf::Empty &, google::protobuf::Empty *);
+typedef grpc::Status (grpc::Bridge::Stub::*BoolSetter)(grpc::ClientContext *, const google::protobuf::BoolValue &, google::protobuf::Empty *);
+typedef grpc::Status (grpc::Bridge::Stub::*BoolGetter)(grpc::ClientContext *, const google::protobuf::Empty &, google::protobuf::BoolValue *);
+typedef grpc::Status (grpc::Bridge::Stub::*Int32Setter)(grpc::ClientContext *, const google::protobuf::Int32Value &, google::protobuf::Empty *);
+typedef grpc::Status (grpc::Bridge::Stub::*Int32Getter)(grpc::ClientContext *, const google::protobuf::Empty &, google::protobuf::Int32Value *);
+typedef grpc::Status (grpc::Bridge::Stub::*StringGetter)(grpc::ClientContext *, const google::protobuf::Empty &, google::protobuf::StringValue *);
+typedef grpc::Status (grpc::Bridge::Stub::*StringSetter)(grpc::ClientContext *, const google::protobuf::StringValue &, google::protobuf::Empty *);
+typedef grpc::Status (grpc::Bridge::Stub::*StringParamMethod)(grpc::ClientContext *, const google::protobuf::StringValue &, google::protobuf::Empty *);
 
 
 //****************************************************************************************************************************************************
 /// \brief gRPC client class. This class encapsulate the gRPC service, abstracting all data type conversions.
 //****************************************************************************************************************************************************
-class GRPCClient: public QObject
+class GRPCClient : public QObject
 {
-    Q_OBJECT
+Q_OBJECT
 public: // member functions.
     GRPCClient() = default; ///< Default constructor.
-    GRPCClient(GRPCClient const&) = delete; ///< Disabled copy-constructor.
-    GRPCClient(GRPCClient&&) = delete; ///< Disabled assignment copy-constructor.
+    GRPCClient(GRPCClient const &) = delete; ///< Disabled copy-constructor.
+    GRPCClient(GRPCClient &&) = delete; ///< Disabled assignment copy-constructor.
     ~GRPCClient() override = default; ///< Destructor.
-    GRPCClient& operator=(GRPCClient const&) = delete; ///< Disabled assignment operator.
-    GRPCClient& operator=(GRPCClient&&) = delete; ///< Disabled move assignment operator.
+    GRPCClient &operator=(GRPCClient const &) = delete; ///< Disabled assignment operator.
+    GRPCClient &operator=(GRPCClient &&) = delete; ///< Disabled move assignment operator.
+    void setLog(Log *log); ///< Set the log for the client.
     bool connectToServer(QString &outError); ///< Establish connection to the gRPC server.
-    
-    grpc::Status addLogEntry(Log::Level level, QString const& package, QString const &message); ///< Performs the "AddLogEntry" gRPC call.
+
+    grpc::Status addLogEntry(Log::Level level, QString const &package, QString const &message); ///< Performs the "AddLogEntry" gRPC call.
     grpc::Status guiReady(); ///< performs the "GuiReady" gRPC call.
     grpc::Status isFirstGUIStart(bool &outIsFirst); ///< performs the "IsFirstGUIStart" gRPC call.
     grpc::Status isAutostartOn(bool &outIsOn); ///< Performs the "isAutostartOn" gRPC call.
     grpc::Status setIsAutostartOn(bool on); ///< Performs the "setIsAutostartOn" gRPC call.
     grpc::Status isBetaEnabled(bool &outEnabled); ///< Performs the "isBetaEnabled" gRPC call.
-    grpc::Status setisBetaEnabled(bool enabled); ///< Performs the 'setIsBetaEnabled' gRPC call.
+    grpc::Status setIsBetaEnabled(bool enabled); ///< Performs the 'setIsBetaEnabled' gRPC call.
     grpc::Status colorSchemeName(QString &outName); ///< Performs the "colorSchemeName' gRPC call.
     grpc::Status setColorSchemeName(QString const &name); ///< Performs the "setColorSchemeName' gRPC call.
     grpc::Status currentEmailClient(QString &outName); ///< Performs the 'currentEmailClient' gRPC call.
@@ -93,7 +98,7 @@ public:
     grpc::Status changeLocalCache(bool enabled, QUrl const &path); ///< Performs the 'ChangeLocalCache' call.
 signals:
     void isCacheOnDiskEnabledChanged(bool enabled);
-    void diskCachePathChanged(QUrl const&outPath);
+    void diskCachePathChanged(QUrl const &outPath);
     void cacheUnavailable();                                                                                            //    _ func()                  `signal:"cacheUnavailable"`
     void cacheCantMove();                                                                                               //    _ func()                  `signal:"cacheCantMove"`
     void cacheLocationChangeSuccess();                                                                                  //    _ func()                  `signal:"cacheLocationChangeSuccess"`
@@ -118,9 +123,9 @@ signals:
     void changePortFinished();
 
 public: // login related calls
-    grpc::Status login(QString const &username, QString const& password); ///< Performs the 'login' call.
-    grpc::Status login2FA(QString const &username, QString const& code); ///< Performs the 'login2FA' call.
-    grpc::Status login2Passwords(QString const &username, QString const& password); ///< Performs the 'login2Passwords' call.
+    grpc::Status login(QString const &username, QString const &password); ///< Performs the 'login' call.
+    grpc::Status login2FA(QString const &username, QString const &code); ///< Performs the 'login2FA' call.
+    grpc::Status login2Passwords(QString const &username, QString const &password); ///< Performs the 'login2Passwords' call.
     grpc::Status loginAbort(QString const &username); ///< Performs the 'loginAbort' call.
 
 signals:
@@ -128,13 +133,13 @@ signals:
     void loginFreeUserError();                                                                                          //    _ func()                  `signal:"loginFreeUserError"`
     void loginConnectionError(QString const &errMsg);                                                                   //    _ func(errorMsg string)   `signal:"loginConnectionError"`
     void login2FARequested(QString const &userName);                                                                    //    _ func(username string)   `signal:"login2FARequested"`
-    void login2FAError(QString const& errMsg);                                                                          //    _ func(errorMsg string)   `signal:"login2FAError"`
-    void login2FAErrorAbort(QString const& errMsg);                                                                     //    _ func(errorMsg string)   `signal:"login2FAErrorAbort"`
+    void login2FAError(QString const &errMsg);                                                                          //    _ func(errorMsg string)   `signal:"login2FAError"`
+    void login2FAErrorAbort(QString const &errMsg);                                                                     //    _ func(errorMsg string)   `signal:"login2FAErrorAbort"`
     void login2PasswordRequested();                                                                                     //    _ func()                  `signal:"login2PasswordRequested"`
-    void login2PasswordError(QString const& errMsg);                                                                    //    _ func(errorMsg string)   `signal:"login2PasswordError"`
-    void login2PasswordErrorAbort(QString const& errMsg);                                                               //    _ func(errorMsg string)   `signal:"login2PasswordErrorAbort"`
-    void loginFinished(QString const  &userID);                                                                         //    _ func(index int)         `signal:"loginFinished"`
-    void loginAlreadyLoggedIn(QString const  &userID);                                                                  //    _ func(index int)         `signal:"loginAlreadyLoggedIn"`
+    void login2PasswordError(QString const &errMsg);                                                                    //    _ func(errorMsg string)   `signal:"login2PasswordError"`
+    void login2PasswordErrorAbort(QString const &errMsg);                                                               //    _ func(errorMsg string)   `signal:"login2PasswordErrorAbort"`
+    void loginFinished(QString const &userID);                                                                         //    _ func(index int)         `signal:"loginFinished"`
+    void loginAlreadyLoggedIn(QString const &userID);                                                                  //    _ func(index int)         `signal:"loginAlreadyLoggedIn"`
 
 public: // Update related calls
     grpc::Status checkUpdate();
@@ -154,17 +159,17 @@ signals:
     void checkUpdatesFinished();
 
 public: // user related calls
-    grpc::Status getUserList(QList<SPUser>& outUsers);
-    grpc::Status getUser(QString const &userID, SPUser& outUser);
+    grpc::Status getUserList(QList<SPUser> &outUsers);
+    grpc::Status getUser(QString const &userID, SPUser &outUser);
     grpc::Status logoutUser(QString const &userID); ///< Performs the 'logoutUser' call.
     grpc::Status removeUser(QString const &userID); ///< Performs the 'removeUser' call.
-    grpc::Status configureAppleMail(QString const& userID, QString const &address); ///< Performs the 'configureAppleMail' call.
-    grpc::Status setUserSplitMode(QString const& userID, bool active); ///< Performs the 'SetUserSplitMode' call.
+    grpc::Status configureAppleMail(QString const &userID, QString const &address); ///< Performs the 'configureAppleMail' call.
+    grpc::Status setUserSplitMode(QString const &userID, bool active); ///< Performs the 'SetUserSplitMode' call.
 
 signals:
-    void toggleSplitModeFinished(QString const& userID);
-    void userDisconnected(QString const& username);
-    void userChanged(QString const& userID);
+    void toggleSplitModeFinished(QString const &userID);
+    void userDisconnected(QString const &username);
+    void userChanged(QString const &userID);
 
 
 public: // keychain related calls
@@ -178,7 +183,7 @@ signals:
     void rebuildKeychain();
     void certIsReady();
 
-signals: // mail releated events
+signals: // mail related events
     void noActiveKeyForRecipient(QString const &email);                                                                 //    _ func(email string)      `signal:noActiveKeyForRecipient`
     void addressChanged(QString const &address);                                                                        //    _ func(address string)    `signal:addressChanged`
     void addressChangedLogout(QString const &address);                                                                  //    _ func(address string)    `signal:addressChangedLogout`
@@ -192,16 +197,20 @@ private slots:
     void configFolderChanged();
 
 private:
+    void logDebug(QString const &message); ///< Log an event.
+    void logError(QString const &message); ///< Log an event.
+    grpc::Status logGRPCCallStatus(grpc::Status const &status, QString const &callName); ///< Log the status of a gRPC code.
     grpc::Status simpleMethod(SimpleMethod method); ///< perform a gRPC call to a bool setter.
     grpc::Status setBool(BoolSetter setter, bool value); ///< perform a gRPC call to a bool setter.
-    grpc::Status getBool(BoolGetter getter, bool& outValue); ///< perform a gRPC call to a bool getter.
+    grpc::Status getBool(BoolGetter getter, bool &outValue); ///< perform a gRPC call to a bool getter.
     grpc::Status setInt32(Int32Setter setter, int value); ///< perform a gRPC call to an int setter.
-    grpc::Status getInt32(Int32Getter getter, int& outValue); ///< perform a gRPC call to an int getter.
-    grpc::Status setString(StringSetter getter, QString const& value); ///< Perform a gRPC call to a string setter.
-    grpc::Status getString(StringGetter getter, QString& outValue); ///< Perform a gRPC call to a string getter.
-    grpc::Status getURLForLocalFile(StringGetter getter, QUrl& outValue); ///< Perform a gRPC call to a string getter, with resulted converted to QUrl for a local file path.
-    grpc::Status getURL(StringGetter getter, QUrl& outValue); ///< Perform a gRPC call to a string getter, with resulted converted to QUrl.
-    grpc::Status methodWithStringParam(StringParamMethod method, QString const& str); ///< Perfom a gRPC call that takes a string as a parameter and returns an Empty.
+    grpc::Status getInt32(Int32Getter getter, int &outValue); ///< perform a gRPC call to an int getter.
+    grpc::Status setString(StringSetter getter, QString const &value); ///< Perform a gRPC call to a string setter.
+    grpc::Status getString(StringGetter getter, QString &outValue); ///< Perform a gRPC call to a string getter.
+    grpc::Status getURLForLocalFile(StringGetter getter, QUrl &outValue); ///< Perform a gRPC call to a string getter, with resulted converted to QUrl for a local file path.
+    grpc::Status getURL(StringGetter getter, QUrl &outValue); ///< Perform a gRPC call to a string getter, with resulted converted to QUrl.
+    grpc::Status methodWithStringParam(StringParamMethod method, QString const &str); ///< Perform a gRPC call that takes a string as a parameter and returns an Empty.
+    SPUser parseGRPCUser(grpc::User const &grpcUser); ///< Parse a gRPC user struct and return a User.
 
     std::string getServerCertificate(); ///< Wait until server certificates is generated and retrieve it.
     void processAppEvent(grpc::AppEvent const &event); ///< Process an 'App' event.
@@ -214,9 +223,13 @@ private:
     void processUserEvent(grpc::UserEvent const &event); ///< Process a 'User' event.
 
 private: // data members.
+    Log *log_ { nullptr }; ///< The log for the GRPC client.
     std::shared_ptr<grpc::Channel> channel_ { nullptr }; ///< The gRPC channel.
     std::shared_ptr<grpc::Bridge::Stub> stub_ { nullptr }; ///< The gRPC stub (a.k.a. client).
 };
+
+
+}
 
 
 #endif // BRIDGE_GUI_RPC_CLIENT_H

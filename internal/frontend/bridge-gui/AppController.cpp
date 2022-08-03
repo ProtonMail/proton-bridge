@@ -16,13 +16,15 @@
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 
-#include "Pch.h"
 #include "AppController.h"
 #include "QMLBackend.h"
-#include "GRPC/GRPCClient.h"
-#include "Log.h"
 #include "BridgeMonitor.h"
-#include "Exception.h"
+#include <bridgepp/GRPC/GRPCClient.h>
+#include <bridgepp/Exception/Exception.h>
+#include <bridgepp/Log/Log.h>
+
+
+using namespace bridgepp;
 
 
 //****************************************************************************************************************************************************
@@ -43,7 +45,6 @@ AppController::AppController()
     , grpc_(std::make_unique<GRPCClient>())
     , log_(std::make_unique<Log>())
 {
-
 }
 
 

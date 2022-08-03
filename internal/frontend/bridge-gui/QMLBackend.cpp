@@ -16,13 +16,15 @@
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 
-#include "Pch.h"
 #include "QMLBackend.h"
-#include "Exception.h"
-#include "GRPC/GRPCClient.h"
-#include "Worker/Overseer.h"
 #include "EventStreamWorker.h"
 #include "Version.h"
+#include <bridgepp/GRPC/GRPCClient.h>
+#include <bridgepp/Exception/Exception.h>
+#include <bridgepp/Worker/Overseer.h>
+
+
+using namespace bridgepp;
 
 
 //****************************************************************************************************************************************************
@@ -30,7 +32,6 @@
 //****************************************************************************************************************************************************
 QMLBackend::QMLBackend()
     : QObject()
-    , users_(new UserList(this))
 {
 }
 
@@ -40,6 +41,9 @@ QMLBackend::QMLBackend()
 //****************************************************************************************************************************************************
 void QMLBackend::init()
 {
+    users_ = new UserList(this);
+
+    app().grpc().setLog(&app().log());
     this->connectGrpcEvents();
 
     QString error;
@@ -47,10 +51,11 @@ void QMLBackend::init()
         app().log().info("Connected to backend via gRPC service.");
     else
         throw Exception(QString("Cannot connectToServer to go backend via gRPC: %1").arg(error));
+
     QString bridgeVer;
     app().grpc().version(bridgeVer);
     if (bridgeVer != PROJECT_VER)
-        throw Exception(QString("Version Mismatched from Bridge (%1) and Bridge-GUI (%2)").arg(bridgeVer).arg(PROJECT_VER));
+        throw Exception(QString("Version Mismatched from Bridge (%1) and Bridge-GUI (%2)").arg(bridgeVer, PROJECT_VER));
 
     eventStreamOverseer_ = std::make_unique<Overseer>(new EventStreamReader(nullptr), nullptr);
     eventStreamOverseer_->startWorker(true);
@@ -60,10 +65,10 @@ void QMLBackend::init()
     });
 
     // Grab from bridge the value that will not change during the execution of this app (or that will only change locally
-    logGRPCCallStatus(app().grpc().showSplashScreen(showSplashScreen_), "showSplashScreen");
-    logGRPCCallStatus(app().grpc().goos(goos_), "goos");
-    logGRPCCallStatus(app().grpc().logsPath(logsPath_), "logsPath");
-    logGRPCCallStatus(app().grpc().licensePath(licensePath_), "licensePath");
+    app().grpc().showSplashScreen(showSplashScreen_);
+    app().grpc().goos(goos_);
+    app().grpc().logsPath(logsPath_);
+    app().grpc().licensePath(licensePath_);
 
     this->retrieveUserList();
 }
@@ -147,7 +152,16 @@ void QMLBackend::connectGrpcEvents()
 void QMLBackend::retrieveUserList()
 {
     QList<SPUser> users;
-    logGRPCCallStatus(app().grpc().getUserList(users), "getUserList");
+    app().grpc().getUserList(users);
+
+    // As we want to use shared pointers here, we do not want to use the Qt ownership system, so we set parent to nil.
+    // But: From https://doc.qt.io/qt-5/qtqml-cppintegration-data.html:
+    // " When data is transferred from C++ to QML, the ownership of the data always remains with C++. The exception to this rule
+    // is when a QObject is returned from an explicit C++ method call: in this case, the QML engine assumes ownership of the object. "
+    // This is the case here, so we explicitly indicate that the object is owned by C++.
+    for (SPUser const& user: users)
+        QQmlEngine::setObjectOwnership(user.get(), QQmlEngine::CppOwnership);
+
     users_->reset(users);
 }
 
@@ -176,7 +190,7 @@ QPoint QMLBackend::getCursorPos()
 bool QMLBackend::isPortFree(int port)
 {
     bool isFree = false;
-    logGRPCCallStatus(app().grpc().isPortFree(port, isFree), "isPortFree");
+    app().grpc().isPortFree(port, isFree);
     return isFree;
 }
 
@@ -186,7 +200,7 @@ bool QMLBackend::isPortFree(int port)
 //****************************************************************************************************************************************************
 void QMLBackend::guiReady()
 {
-    logGRPCCallStatus(app().grpc().guiReady(), "guiReady");
+    app().grpc().guiReady();
 }
 
 
@@ -195,7 +209,7 @@ void QMLBackend::guiReady()
 //****************************************************************************************************************************************************
 void QMLBackend::quit()
 {
-    logGRPCCallStatus(app().grpc().quit(), "quit");
+    app().grpc().quit();
     qApp->exit(0);
 }
 
@@ -205,7 +219,7 @@ void QMLBackend::quit()
 //****************************************************************************************************************************************************
 void QMLBackend::restart()
 {
-    logGRPCCallStatus(app().grpc().restart(), "restart");
+    app().grpc().restart();
     app().log().error("RESTART is not implemented"); /// \todo GODT-1671 implement restart.
 }
 
@@ -215,7 +229,7 @@ void QMLBackend::restart()
 //****************************************************************************************************************************************************
 void QMLBackend::toggleAutostart(bool active)
 {
-    logGRPCCallStatus(app().grpc().setIsAutostartOn(active), "setIsAutostartOn");
+    app().grpc().setIsAutostartOn(active);
     emit isAutostartOnChanged(this->isAutostartOn());
 }
 
@@ -225,7 +239,7 @@ void QMLBackend::toggleAutostart(bool active)
 //****************************************************************************************************************************************************
 void QMLBackend::toggleBeta(bool active)
 {
-    logGRPCCallStatus(app().grpc().setisBetaEnabled(active), "setIsBetaEnabled");
+    app().grpc().setIsBetaEnabled(active);
     emit isBetaEnabledChanged(this->isBetaEnabled());
 }
 
@@ -235,7 +249,7 @@ void QMLBackend::toggleBeta(bool active)
 //****************************************************************************************************************************************************
 void QMLBackend::changeColorScheme(QString const &scheme)
 {
-    logGRPCCallStatus(app().grpc().setColorSchemeName(scheme), "setIsBetaEnabled");
+    app().grpc().setColorSchemeName(scheme);
     emit colorSchemeNameChanged(this->colorSchemeName());
 }
 
@@ -245,9 +259,7 @@ void QMLBackend::changeColorScheme(QString const &scheme)
 //****************************************************************************************************************************************************
 void QMLBackend::toggleUseSSLforSMTP(bool makeItActive)
 {
-    grpc::Status status = app().grpc().setUseSSLForSMTP(makeItActive);
-    logGRPCCallStatus(status, "setUseSSLForSMTP");
-    if (status.ok())
+    if (app().grpc().setUseSSLForSMTP(makeItActive).ok())
         emit useSSLforSMTPChanged(makeItActive);
 }
 
@@ -258,9 +270,7 @@ void QMLBackend::toggleUseSSLforSMTP(bool makeItActive)
 //****************************************************************************************************************************************************
 void QMLBackend::changePorts(int imapPort, int smtpPort)
 {
-    grpc::Status status = app().grpc().changePorts(imapPort, smtpPort);
-    logGRPCCallStatus(status, "changePorts");
-    if (status.ok())
+    if (app().grpc().changePorts(imapPort, smtpPort).ok())
     {
         emit portIMAPChanged(imapPort);
         emit portSMTPChanged(smtpPort);
@@ -273,9 +283,7 @@ void QMLBackend::changePorts(int imapPort, int smtpPort)
 //****************************************************************************************************************************************************
 void QMLBackend::toggleDoH(bool active)
 {
-    grpc::Status status = app().grpc().setIsDoHEnabled(active);
-    logGRPCCallStatus(status, "toggleDoH");
-    if (status.ok())
+    if (app().grpc().setIsDoHEnabled(active).ok())
         emit isDoHEnabledChanged(active);
 }
 
@@ -285,9 +293,7 @@ void QMLBackend::toggleDoH(bool active)
 //****************************************************************************************************************************************************
 void QMLBackend::changeKeychain(QString const &keychain)
 {
-    grpc::Status status = app().grpc().setCurrentKeychain(keychain);
-    logGRPCCallStatus(status, "setCurrentKeychain");
-    if (status.ok())
+    if (app().grpc().setCurrentKeychain(keychain).ok())
         emit currentKeychainChanged(keychain);
 }
 
@@ -297,9 +303,7 @@ void QMLBackend::changeKeychain(QString const &keychain)
 //****************************************************************************************************************************************************
 void QMLBackend::toggleAutomaticUpdate(bool active)
 {
-    grpc::Status status = app().grpc().setIsAutomaticUpdateOn(active);
-    logGRPCCallStatus(status, "toggleAutomaticUpdate");
-    if (status.ok())
+    if (app().grpc().setIsAutomaticUpdateOn(active).ok())
         emit isAutomaticUpdateOnChanged(active);
 }
 
@@ -309,7 +313,7 @@ void QMLBackend::toggleAutomaticUpdate(bool active)
 //****************************************************************************************************************************************************
 void QMLBackend::checkUpdates()
 {
-    logGRPCCallStatus(app().grpc().checkUpdate(), "checkUpdate");
+    app().grpc().checkUpdate();
 }
 
 
@@ -318,7 +322,7 @@ void QMLBackend::checkUpdates()
 //****************************************************************************************************************************************************
 void QMLBackend::installUpdate()
 {
-    logGRPCCallStatus(app().grpc().installUpdate(), "installUpdate");
+    app().grpc().installUpdate();
 }
 
 
@@ -327,5 +331,5 @@ void QMLBackend::installUpdate()
 //****************************************************************************************************************************************************
 void QMLBackend::triggerReset()
 {
-    logGRPCCallStatus(app().grpc().triggerReset(), "triggerReset");
+    app().grpc().triggerReset();
 }

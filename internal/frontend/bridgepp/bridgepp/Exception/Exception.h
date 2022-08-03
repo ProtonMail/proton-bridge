@@ -16,31 +16,38 @@
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 
-#ifndef BRIDGE_GUI_WORKER_H
-#define BRIDGE_GUI_WORKER_H
+#ifndef BRIDGE_PP_EXCEPTION_H
+#define BRIDGE_PP_EXCEPTION_H
 
-//****************************************************************************************************************************************************
-/// \brief Pure virtual class for worker intended to perform a threaded operation.
-//****************************************************************************************************************************************************
-class Worker: public QObject
+
+#include <stdexcept>
+
+
+namespace bridgepp
 {
-    Q_OBJECT
+
+
+//****************************************************************************************************************************************************
+/// \brief Exception class.
+//****************************************************************************************************************************************************
+class Exception : public std::exception
+{
 public: // member functions
-    explicit Worker(QObject *parent) : QObject(parent) {} ///< Default constructor.
-    Worker(Worker const&) = delete; ///< Disabled copy-constructor.
-    Worker(Worker&&) = delete; ///< Disabled assignment copy-constructor.
-    ~Worker() override = default; ///< Destructor.
-    Worker& operator=(Worker const&) = delete; ///< Disabled assignment operator.
-    Worker& operator=(Worker&&) = delete; ///< Disabled move assignment operator.
+    explicit Exception(QString what = QString()) noexcept; ///< Constructor
+    Exception(Exception const &ref) noexcept; ///< copy constructor
+    Exception(Exception &&ref) noexcept; ///< copy constructor
+    Exception &operator=(Exception const &) = delete; ///< Disabled assignment operator
+    Exception &operator=(Exception &&) = delete; ///< Disabled assignment operator
+    ~Exception() noexcept override = default; ///< Destructor
+    QString const &qwhat() const noexcept; ///< Return the description of the exception as a QString
+    const char *what() const noexcept override; ///< Return the description of the exception as C style string
 
-public slots:
-    virtual void run() = 0; ///< run the worker.
-
-signals:
-    void started(); ///< Signal for the start of the worker
-    void finished(); ///< Signal for the end of the worker
-    void error(QString const& message); ///< Signal for errors. After an error, worker ends and finished is NOT emitted.
+private: // data members
+    QString const what_; ///< The description of the exception
 };
 
 
-#endif //BRIDGE_GUI_WORKER_H
+} // namespace bridgepp
+
+
+#endif //BRIDGE_PP_EXCEPTION_H

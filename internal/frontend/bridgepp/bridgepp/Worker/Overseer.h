@@ -16,26 +16,30 @@
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 
-#ifndef BRIDGE_GUI_OVERSEER_H
-#define BRIDGE_GUI_OVERSEER_H
+#ifndef BRIDGE_PP_OVERSEER_H
+#define BRIDGE_PP_OVERSEER_H
 
 
 #include "Worker.h"
 
 
+namespace bridgepp
+{
+
+
 //****************************************************************************************************************************************************
 /// \brief Overseer used to manager a worker instance and its associated thread.
 //****************************************************************************************************************************************************
-class Overseer: public QObject
+class Overseer : public QObject
 {
-    Q_OBJECT
+Q_OBJECT
 public: // member functions.
-    explicit Overseer(Worker* worker, QObject* parent); ///< Default constructor.
-    Overseer(Overseer const&) = delete; ///< Disabled copy-constructor.
-    Overseer(Overseer&&) = delete; ///< Disabled assignment copy-constructor.
+    explicit Overseer(Worker *worker, QObject *parent); ///< Default constructor.
+    Overseer(Overseer const &) = delete; ///< Disabled copy-constructor.
+    Overseer(Overseer &&) = delete; ///< Disabled assignment copy-constructor.
     ~Overseer() override; ///< Destructor.
-    Overseer& operator=(Overseer const&) = delete; ///< Disabled assignment operator.
-    Overseer& operator=(Overseer&&) = delete; ///< Disabled move assignment operator.
+    Overseer &operator=(Overseer const &) = delete; ///< Disabled assignment operator.
+    Overseer &operator=(Overseer &&) = delete; ///< Disabled move assignment operator.
     bool isFinished() const; ///< Check if the worker is finished.
     Worker *worker() const; ///< Return worker.
 
@@ -44,8 +48,8 @@ public slots:
     void release(); ///< Delete the worker and its thread.
 
 public: // data members.
-    QThread *thread_ { nullptr }; ///< The thread.
-    Worker *worker_ { nullptr }; ///< The worker.
+    QThread *thread_{nullptr}; ///< The thread.
+    Worker *worker_{nullptr}; ///< The worker.
 };
 
 
@@ -53,4 +57,7 @@ typedef std::unique_ptr<Overseer> UPOverseer; ///< Type definition for unique po
 typedef std::shared_ptr<Overseer> SPOverseer; ///< Type definition for shared pointer to Overseer.
 
 
-#endif //BRIDGE_GUI_OVERSEER_H
+} // namespace bridgepp
+
+
+#endif //BRIDGE_PP_OVERSEER_H

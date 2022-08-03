@@ -16,33 +16,18 @@
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 
-#include <Cocoa/Cocoa.h>
-#include "DockIcon.h"
+#ifndef BRIDGE_GUI_TESTER_BRIDGE_UTILS_H
+#define BRIDGE_GUI_TESTER_BRIDGE_UTILS_H
 
 
-#ifdef Q_OS_MACOS
+namespace bridgepp {
 
 
-void setDockIconVisibleState(bool visible) {
-    if (visible) {
-        [NSApp setActivationPolicy: NSApplicationActivationPolicyRegular];
-        return;
-    } else {
-        [NSApp setActivationPolicy: NSApplicationActivationPolicyAccessory];
-        return;
-    }
-}
+QString userConfigDir(); ///< Get the path of the user configuration folder.
 
 
-bool getDockIconVisibleState() {
-    switch ([NSApp activationPolicy]) {
-    case NSApplicationActivationPolicyAccessory:
-    case NSApplicationActivationPolicyProhibited:
-        return false;
-    case NSApplicationActivationPolicyRegular:
-        return true;
-    }
-}
+} // namespace
 
 
-#endif // #ifdef Q_OS_MACOS
+
+#endif // BRIDGE_GUI_TESTER_BRIDGE_UTILS_H

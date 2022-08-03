@@ -16,12 +16,37 @@
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 
-#include "Pch.h"
 #include "Log.h"
+
+
+namespace bridgepp
+{
 
 
 namespace
 {
+
+Log *qtHandlerLog { nullptr }; ///< The log instance handling qt logs.
+QMutex qtHandlerMutex; ///< A mutex used to access qtHandlerLog.
+
+//****************************************************************************************************************************************************
+/// \param[in] log The log handling qt log entries. Can be null.
+//****************************************************************************************************************************************************
+void setQtMessageHandlerLog(Log *log)
+{
+    QMutexLocker locker(&qtHandlerMutex);
+    qtHandlerLog = log;
+}
+
+
+//****************************************************************************************************************************************************
+/// \return The log handling qt log entries. Can be null.
+//****************************************************************************************************************************************************
+Log *qtMessageHandlerLog()
+{
+    QMutexLocker locker(&qtHandlerMutex);
+    return qtHandlerLog;
+}
 
 
 //****************************************************************************************************************************************************
@@ -30,25 +55,27 @@ namespace
 //****************************************************************************************************************************************************
 void qtMessageHandler(QtMsgType type, QMessageLogContext const &, QString const &message)
 {
-    static Log &log = app().log();
+    Log *log = qtMessageHandlerLog();
+    if (!log)
+        return;
     switch (type)
     {
     case QtDebugMsg:
-        log.debug(message);
+        log->debug(message);
         break;
 
     case QtWarningMsg:
-        log.warn(message);
+        log->warn(message);
         break;
 
     case QtCriticalMsg:
     case QtFatalMsg:
-        log.error(message);
+        log->error(message);
         break;
 
     case QtInfoMsg:
     default:
-        log.info(message);
+        log->info(message);
         break;
     }
 }
@@ -62,17 +89,27 @@ QString logLevelToString(Log::Level level)
 {
     switch (level)
     {
-    case Log::Level::Panic: return "PANIC";
-    case Log::Level::Fatal: return "FATAL";
-    case Log::Level::Error: return "ERROR";
-    case Log::Level::Warn: return "WARN";
-    case Log::Level::Info: return "INFO";
-    case Log::Level::Debug: return "DEBUG";
-    case Log::Level::Trace: return "TRACE";
-    default: return "UNKNOWN";
+    case Log::Level::Panic:
+        return "PANIC";
+    case Log::Level::Fatal:
+        return "FATAL";
+    case Log::Level::Error:
+        return "ERROR";
+    case Log::Level::Warn:
+        return "WARN";
+    case Log::Level::Info:
+        return "INFO";
+    case Log::Level::Debug:
+        return "DEBUG";
+    case Log::Level::Trace:
+        return "TRACE";
+    default:
+        return "UNKNOWN";
     }
 }
 
+
+} // anonymous namespace
 
 
 //****************************************************************************************************************************************************
@@ -82,20 +119,18 @@ QString logLevelToString(Log::Level level)
 /// \param[in] message The log entry message.
 /// \return The string for the log entry
 //****************************************************************************************************************************************************
-QString logEntryToString(Log::Level level, QString const &message)
+QString Log::logEntryToString(Log::Level level, QString const &message)
 {
-    return QString("[%1] %2").arg(logLevelToString(level)).arg(message);
-}
-
-
+    return QString("[%1] %2").arg(logLevelToString(level), message);
 }
 
 
 //****************************************************************************************************************************************************
 /// the message handle process the message from the Qt logging system.
 //****************************************************************************************************************************************************
-void Log::installQtMessageHandler()
+void Log::registerAsQtMessageHandler()
 {
+    setQtMessageHandlerLog(this);
     qInstallMessageHandler(qtMessageHandler);
 }
 
@@ -227,8 +262,11 @@ void Log::addEntry(Log::Level level, QString const &message)
 
     if (echoInConsole_)
     {
-        QTextStream& stream = (qint32(level) <= (qint32(Level::Warn))) ? stderr_ : stdout_;
+        QTextStream &stream = (qint32(level) <= (qint32(Level::Warn))) ? stderr_ : stdout_;
         stream << logEntryToString(level, message) << "\n";
         stream.flush();
     }
 }
+
+
+} // namespace bridgepp

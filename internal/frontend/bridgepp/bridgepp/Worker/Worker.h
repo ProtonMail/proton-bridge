@@ -16,33 +16,41 @@
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 
-#ifndef BRIDGE_GUI_EVENT_STREAM_WORKER_H
-#define BRIDGE_GUI_EVENT_STREAM_WORKER_H
+#ifndef BRIDGE_PP_WORKER_H
+#define BRIDGE_PP_WORKER_H
 
 
-#include <bridgepp/Worker/Worker.h>
-
-
-//****************************************************************************************************************************************************
-/// \brief Stream reader class.
-//****************************************************************************************************************************************************
-class EventStreamReader: public bridgepp::Worker
+namespace bridgepp
 {
-    Q_OBJECT
+
+
+//****************************************************************************************************************************************************
+/// \brief Pure virtual class for worker intended to perform a threaded operation.
+//****************************************************************************************************************************************************
+class Worker : public QObject
+{
+Q_OBJECT
 public: // member functions
-    explicit EventStreamReader(QObject *parent); ///< Default constructor.
-    EventStreamReader(EventStreamReader const&) = delete; ///< Disabled copy-constructor.
-    EventStreamReader(EventStreamReader&&) = delete; ///< Disabled assignment copy-constructor.
-    ~EventStreamReader() override = default; ///< Destructor.
-    EventStreamReader& operator=(EventStreamReader const&) = delete; ///< Disabled assignment operator.
-    EventStreamReader& operator=(EventStreamReader&&) = delete; ///< Disabled move assignment operator.
+    explicit Worker(QObject *parent)
+        : QObject(parent)
+    {} ///< Default constructor.
+    Worker(Worker const &) = delete; ///< Disabled copy-constructor.
+    Worker(Worker &&) = delete; ///< Disabled assignment copy-constructor.
+    ~Worker() override = default; ///< Destructor.
+    Worker &operator=(Worker const &) = delete; ///< Disabled assignment operator.
+    Worker &operator=(Worker &&) = delete; ///< Disabled move assignment operator.
 
 public slots:
-    void run() override; ///< Run the reader.
+    virtual void run() = 0; ///< run the worker.
 
 signals:
-    void eventReceived(QString eventString); ///< signal for events.
+    void started(); ///< Signal for the start of the worker
+    void finished(); ///< Signal for the end of the worker
+    void error(QString const &message); ///< Signal for errors. After an error, worker ends and finished is NOT emitted.
 };
 
 
-#endif //BRIDGE_GUI_EVENT_STREAM_WORKER_H
+} // namespace bridgepp
+
+
+#endif //BRIDGE_PP_WORKER_H

@@ -16,11 +16,13 @@
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 
-#include "Pch.h"
 #include "EventStreamWorker.h"
-#include "GRPC/GRPCClient.h"
-#include "Log.h"
-#include "Exception.h"
+#include <bridgepp/GRPC/GRPCClient.h>
+#include <bridgepp/Exception/Exception.h>
+#include <bridgepp/Log/Log.h>
+
+
+using namespace bridgepp;
 
 
 //****************************************************************************************************************************************************

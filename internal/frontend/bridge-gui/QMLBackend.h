@@ -16,16 +16,15 @@
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 
-#ifndef BRIDGE_GUI_QMLBACKEND_H
-#define BRIDGE_GUI_QMLBACKEND_H
+#ifndef BRIDGE_GUI_QML_BACKEND_H
+#define BRIDGE_GUI_QML_BACKEND_H
 
 
-#include <grpcpp/support/status.h>
 #include "DockIcon/DockIcon.h"
-#include "GRPC/GRPCClient.h"
-#include "GRPC/GRPCUtils.h"
-#include "Worker/Overseer.h"
-#include "User/UserList.h"
+#include "UserList.h"
+#include <bridgepp/GRPC/GRPCClient.h>
+#include <bridgepp/GRPC/GRPCUtils.h>
+#include <bridgepp/Worker/Overseer.h>
 
 
 //****************************************************************************************************************************************************
@@ -78,31 +77,31 @@ public: // Qt/QML properties. Note that the NOTIFY-er signal is required even fo
     Q_PROPERTY(bool dockIconVisible READ dockIconVisible WRITE setDockIconVisible NOTIFY dockIconVisibleChanged)                                      //    _ bool        `property:dockIconVisible`
 
     // Qt Property system setters & getters.
-    bool showOnStartup() const { bool v = false; logGRPCCallStatus(app().grpc().showOnStartup(v), "showOnStartup"); return v; };
+    bool showOnStartup() const { bool v = false; app().grpc().showOnStartup(v); return v; };
     bool showSplashScreen() const { return showSplashScreen_; };
     void setShowSplashScreen(bool show) { if (show != showSplashScreen_) { showSplashScreen_ = show; emit showSplashScreenChanged(show); } }
     QString goos() { return goos_; }
     QUrl logsPath() const { return logsPath_; }
     QUrl licensePath() const { return licensePath_; }
-    QUrl releaseNotesLink() const { QUrl link; logGRPCCallStatus(app().grpc().releaseNotesPageLink(link), "releaseNotesPageLink"); return link;   }
-    QUrl dependencyLicensesLink() const { QUrl link; logGRPCCallStatus(app().grpc().dependencyLicensesLink(link), "dependencyLicensesLink"); return link; }
-    QUrl landingPageLink() const { QUrl link; logGRPCCallStatus(app().grpc().landingPageLink(link), "landingPageLink"); return link;  }
-    QString version() const { QString version; logGRPCCallStatus(app().grpc().version(version), "version"); return version; }
-    QString hostname() const { QString hostname; logGRPCCallStatus(app().grpc().hostname(hostname), "hostname"); return hostname; }
-    bool isAutostartOn() const { bool v; logGRPCCallStatus(app().grpc().isAutostartOn(v), "isAutostartOn"); return v; };
-    bool isBetaEnabled() const { bool v; logGRPCCallStatus(app().grpc().isBetaEnabled(v), "isBetaEnabled"); return v; }
-    QString colorSchemeName() const { QString name; logGRPCCallStatus(app().grpc().colorSchemeName(name), "colorSchemeName"); return name; }
-    bool isDiskCacheEnabled() const { bool enabled; logGRPCCallStatus(app().grpc().isCacheOnDiskEnabled(enabled), "isCacheOnDiskEnabled"); return enabled;}
-    QUrl diskCachePath() const { QUrl path; logGRPCCallStatus(app().grpc().diskCachePath(path), "diskCachePath"); return path; }
-    bool useSSLForSMTP() const{ bool useSSL; logGRPCCallStatus(app().grpc().useSSLForSMTP(useSSL), "useSSLForSMTP"); return useSSL; }
-    int portIMAP() const { int port; logGRPCCallStatus(app().grpc().portIMAP(port), "portIMAP"); return port; }
-    int portSMTP() const { int port; logGRPCCallStatus(app().grpc().portSMTP(port), "portSMTP"); return port; }
-    bool isDoHEnabled() const { bool isEnabled; logGRPCCallStatus(app().grpc().isDoHEnabled(isEnabled), "isDoHEnabled"); return isEnabled;}
-    bool isFirstGUIStart() const { bool v; logGRPCCallStatus(app().grpc().isFirstGUIStart(v), "isFirstGUIStart"); return v; };
-    bool isAutomaticUpdateOn() const { bool isOn = false; logGRPCCallStatus(app().grpc().isAutomaticUpdateOn(isOn), "isAutomaticUpdateOn"); return isOn; }
-    QString currentEmailClient() { QString client; logGRPCCallStatus(app().grpc().currentEmailClient(client), "currentEmailClient"); return client;}
-    QStringList availableKeychain() const { QStringList keychains; logGRPCCallStatus(app().grpc().availableKeychains(keychains), "availableKeychain"); return keychains; }
-    QString currentKeychain() const { QString keychain; logGRPCCallStatus(app().grpc().currentKeychain(keychain), "currentKeychain"); return keychain; }
+    QUrl releaseNotesLink() const { QUrl link; app().grpc().releaseNotesPageLink(link); return link;   }
+    QUrl dependencyLicensesLink() const { QUrl link; app().grpc().dependencyLicensesLink(link); return link; }
+    QUrl landingPageLink() const { QUrl link; app().grpc().landingPageLink(link); return link;  }
+    QString version() const { QString version; app().grpc().version(version); return version; }
+    QString hostname() const { QString hostname; app().grpc().hostname(hostname); return hostname; }
+    bool isAutostartOn() const { bool v; app().grpc().isAutostartOn(v); return v; };
+    bool isBetaEnabled() const { bool v; app().grpc().isBetaEnabled(v); return v; }
+    QString colorSchemeName() const { QString name; app().grpc().colorSchemeName(name); return name; }
+    bool isDiskCacheEnabled() const { bool enabled; app().grpc().isCacheOnDiskEnabled(enabled); return enabled;}
+    QUrl diskCachePath() const { QUrl path; app().grpc().diskCachePath(path); return path; }
+    bool useSSLForSMTP() const{ bool useSSL; app().grpc().useSSLForSMTP(useSSL); return useSSL; }
+    int portIMAP() const { int port; app().grpc().portIMAP(port); return port; }
+    int portSMTP() const { int port; app().grpc().portSMTP(port); return port; }
+    bool isDoHEnabled() const { bool isEnabled; app().grpc().isDoHEnabled(isEnabled); return isEnabled;}
+    bool isFirstGUIStart() const { bool v; app().grpc().isFirstGUIStart(v); return v; };
+    bool isAutomaticUpdateOn() const { bool isOn = false; app().grpc().isAutomaticUpdateOn(isOn); return isOn; }
+    QString currentEmailClient() { QString client; app().grpc().currentEmailClient(client); return client;}
+    QStringList availableKeychain() const { QStringList keychains; app().grpc().availableKeychains(keychains); return keychains; }
+    QString currentKeychain() const { QString keychain; app().grpc().currentKeychain(keychain); return keychain; }
     bool dockIconVisible() const { return getDockIconVisibleState(); };
     void setDockIconVisible(bool visible) { setDockIconVisibleState(visible); emit dockIconVisibleChanged(visible); }
 
@@ -137,12 +136,11 @@ public slots: // slot for signals received from QML -> To be forwarded to Bridge
     void toggleAutostart(bool active);                                                                                                                //    _ func(makeItActive bool)                                             `slot:"toggleAutostart"`
     void toggleBeta(bool active);                                                                                                                     //    _ func(makeItActive bool)                                             `slot:"toggleBeta"`
     void changeColorScheme(QString const &scheme);                                                                                                    //    _ func(string)                                                        `slot:"changeColorScheme"`
-    void changeLocalCache(bool enable, QUrl const& path) { logGRPCCallStatus(app().grpc().changeLocalCache(enable, path), "changeLocalCache"); }      //    _ func(enableDiskCache bool, diskCachePath core.QUrl)                 `slot:"changeLocalCache"`
-    void login(QString const& username, QString const& password) { logGRPCCallStatus(app().grpc().login(username, password), "login");}               //    _ func(username, password string)                                     `slot:"login"`
-    void login2FA(QString const& username, QString const& code) { logGRPCCallStatus(app().grpc().login2FA(username, code), "login2FA");}              //    _ func(username, code string)                                         `slot:"login2FA"`
-    void login2Password(QString const& username, QString const& password) { logGRPCCallStatus(app().grpc().login2Passwords(username, password),
-        "login2Passwords");}                                                                                                                          //    _ func(username, password string)                                     `slot:"login2Password"`
-    void loginAbort(QString const& username){ logGRPCCallStatus(app().grpc().loginAbort(username), "loginAbort");}                                    //    _ func(username string)                                               `slot:"loginAbort"`
+    void changeLocalCache(bool enable, QUrl const& path) { app().grpc().changeLocalCache(enable, path); }      //    _ func(enableDiskCache bool, diskCachePath core.QUrl)                 `slot:"changeLocalCache"`
+    void login(QString const& username, QString const& password) { app().grpc().login(username, password);}               //    _ func(username, password string)                                     `slot:"login"`
+    void login2FA(QString const& username, QString const& code) { app().grpc().login2FA(username, code);}              //    _ func(username, code string)                                         `slot:"login2FA"`
+    void login2Password(QString const& username, QString const& password) { app().grpc().login2Passwords(username, password);}                                                                                                                          //    _ func(username, password string)                                     `slot:"login2Password"`
+    void loginAbort(QString const& username){ app().grpc().loginAbort(username);}                                    //    _ func(username string)                                               `slot:"loginAbort"`
     void toggleUseSSLforSMTP(bool makeItActive);                                                                                                      //    _ func(makeItActive bool)                                             `slot:"toggleUseSSLforSMTP"`
     void changePorts(int imapPort, int smtpPort);                                                                                                     //    _ func(imapPort, smtpPort int)                                        `slot:"changePorts"`
     void toggleDoH(bool active);                                                                                                                      //    _ func(makeItActive bool)                                             `slot:"toggleDoH"`
@@ -156,7 +154,7 @@ public slots: // slot for signals received from QML -> To be forwarded to Bridge
     void installUpdate();                                                                                                                             //    _ func()                                                              `slot:"installUpdate"`
     void triggerReset();                                                                                                                              //    _ func()                                                              `slot:"triggerReset"`
     void reportBug(QString const &description, QString const& address, QString const &emailClient, bool includeLogs) {
-        logGRPCCallStatus(app().grpc().reportBug(description, address, emailClient, includeLogs), "reportBug"); }                                                  //    _ func(description, address, emailClient string, includeLogs bool)    `slot:"reportBug"`
+        app().grpc().reportBug(description, address, emailClient, includeLogs); }                                                  //    _ func(description, address, emailClient string, includeLogs bool)    `slot:"reportBug"`
 
 signals: // Signals received from the Go backend, to be forwarded to QML
     void toggleAutostartFinished();                                                                                                                   //    _ func()                  `signal:"toggleAutostartFinished"`
@@ -211,7 +209,7 @@ private: // member functions
 
 private: // data members
     UserList* users_ { nullptr }; ///< The user list. Owned by backend.
-    std::unique_ptr<Overseer> eventStreamOverseer_; ///< The event stream overseer.
+    std::unique_ptr<bridgepp::Overseer> eventStreamOverseer_; ///< The event stream overseer.
     bool showSplashScreen_ { false }; ///< The cached version of show splash screen. Retrieved on startup from bridge, and potentially modified locally.
     QString goos_; ///< The cached version of the GOOS variable.
     QUrl logsPath_; ///< The logs path. Retrieved from bridge on startup.
@@ -221,4 +219,4 @@ private: // data members
 };
 
 
-#endif // BRIDGE_GUI_QMLBACKEND_H
+#endif // BRIDGE_GUI_QML_BACKEND_H

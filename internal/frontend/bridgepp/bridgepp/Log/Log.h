@@ -16,8 +16,12 @@
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 
-#ifndef BRIDGE_GUI_LOG_H
-#define BRIDGE_GUI_LOG_H
+#ifndef BRIDGE_PP_LOG_H
+#define BRIDGE_PP_LOG_H
+
+
+namespace bridgepp
+{
 
 
 //****************************************************************************************************************************************************
@@ -25,9 +29,9 @@
 //****************************************************************************************************************************************************
 class Log : public QObject
 {
-    Q_OBJECT
+Q_OBJECT
 public: // data types.
-    /// \brief Log level class. The list matches [logrus log levels](https://pkg.go.dev/github.com/sirupsen/logrus).
+    /// \brief Log level class. The list matches [loggers log levels](https://pkg.go.dev/github.com/sirupsen/logrus).
     enum class Level
     {
         Panic, ///< Panic log level.
@@ -39,8 +43,9 @@ public: // data types.
         Trace ///< Trace log level.
     };
 
-public: // static member functions
-    static void installQtMessageHandler(); ///< Install the Qt message handler.
+public: // static member functions.
+    static QString logEntryToString(Log::Level level, QString const &message); ///< Return a string describing a log entry.
+
 
 public: // member functions.
     Log(); ///< Default constructor.
@@ -54,6 +59,7 @@ public: // member functions.
     Level level() const; ///< Get the log level.
     void setEchoInConsole(bool value); ///< Set if the log entries should be echoed in STDOUT/STDERR.
     bool echoInConsole() const; ///< Check if the log entries should be echoed in STDOUT/STDERR.
+    void registerAsQtMessageHandler(); ///< Install the Qt message handler.
 
 public slots:
     void panic(QString const &message); ///< Adds an panic entry to the log.
@@ -79,4 +85,7 @@ private: // data members
 };
 
 
-#endif //BRIDGE_GUI_LOG_H
+} // namespace bridgepp
+
+
+#endif //BRIDGE_PP_LOG_H

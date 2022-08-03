@@ -16,99 +16,59 @@
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 
-#include "Pch.h"
-#include "Overseer.h"
 #include "Exception.h"
 
 
-//****************************************************************************************************************************************************
-/// \param[in] worker The worker.
-/// \param[in] parent The parent object of the worker.
-//****************************************************************************************************************************************************
-Overseer::Overseer(Worker *worker, QObject *parent)
-    : QObject(parent)
-    , thread_(new QThread(parent))
-    , worker_(worker)
+namespace bridgepp
 {
-    if (!worker_)
-        throw Exception("Overseer cannot accept a nil worker.");
+
+
+//****************************************************************************************************************************************************
+/// \param[in] what A description of the exception
+//****************************************************************************************************************************************************
+Exception::Exception(QString what) noexcept
+    : std::exception()
+    , what_(std::move(what))
+{
 }
 
 
 //****************************************************************************************************************************************************
-//
+/// \param[in] ref The Exception to copy from
 //****************************************************************************************************************************************************
-Overseer::~Overseer()
+Exception::Exception(Exception const& ref) noexcept
+    : std::exception(ref)
+    , what_(ref.what_)
 {
-    this->release();
 }
 
 
 //****************************************************************************************************************************************************
-/// \param[in] autorelease Should the overseer automatically release the worker and thread when done.
+/// \param[in] ref The Exception to copy from
 //****************************************************************************************************************************************************
-void Overseer::startWorker(bool autorelease) const
+Exception::Exception(Exception&& ref) noexcept
+    : std::exception(ref)
+    , what_(ref.what_)
 {
-    if (!worker_)
-        throw Exception("Cannot start overseer with null worker.");
-    if (!thread_)
-        throw Exception("Cannot start overseer with null thread.");
-
-    worker_->moveToThread(thread_);
-    connect(thread_, &QThread::started, worker_, &Worker::run);
-    connect(worker_, &Worker::finished, [&]() {thread_->quit(); }); // for unkwown reason, connect to the QThread::quit slot does not work...
-    connect(worker_, &Worker::error, [&]() { thread_->quit(); });
-
-    if (autorelease)
-    {
-        connect(worker_, &Worker::error, this, &Overseer::release);
-        connect(worker_, &Worker::finished, this, &Overseer::release);
-    }
-
-    thread_->start();
 }
 
 
 //****************************************************************************************************************************************************
-//
+/// \return a string describing the exception
 //****************************************************************************************************************************************************
-void Overseer::release()
+QString const& Exception::qwhat() const noexcept
 {
-    if (worker_)
-    {
-        worker_->deleteLater();
-        worker_ = nullptr;
-    }
-
-    if (thread_)
-    {
-        if (!thread_->isFinished())
-        {
-            thread_->quit();
-            thread_->wait();
-        }
-        thread_->deleteLater();
-        thread_ = nullptr;
-    }
+    return what_;
 }
 
 
 //****************************************************************************************************************************************************
-/// \return true iff the worker is finished.
+/// \return A pointer to the description string of the exception.
 //****************************************************************************************************************************************************
-bool Overseer::isFinished() const
+const char* Exception::what() const noexcept
 {
-    if ((!worker_) || (!worker_->thread()))
-        return true;
-
-    return worker_->thread()->isFinished();
+    return what_.toLocal8Bit().constData();
 }
 
 
-//****************************************************************************************************************************************************
-/// \return The worker.
-//****************************************************************************************************************************************************
-Worker *Overseer::worker() const
-{
-    return worker_;
-}
+} // namespace bridgepp

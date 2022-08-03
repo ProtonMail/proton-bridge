@@ -21,13 +21,13 @@
 #define BRIDGE_GUI_BRIDGE_MONITOR_H
 
 
-#include "Worker/Worker.h"
+#include <bridgepp/Worker/Worker.h>
 
 
 //**********************************************************************************************************************
 /// \brief Bridge process launcher and monitor class.
 //**********************************************************************************************************************
-class BridgeMonitor: public Worker
+class BridgeMonitor: public bridgepp::Worker
 {
     Q_OBJECT
 public: // static member functions

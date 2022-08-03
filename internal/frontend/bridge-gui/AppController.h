@@ -21,10 +21,16 @@
 
 
 class QMLBackend;
-class GRPCClient;
+class BridgeMonitor;
+
+
+namespace bridgepp
+{
 class Log;
 class Overseer;
-class BridgeMonitor;
+class GRPCClient;
+}
+
 
 //****************************************************************************************************************************************************
 /// \brief App controller class.
@@ -41,9 +47,9 @@ public: // member functions.
     AppController& operator=(AppController const&) = delete; ///< Disabled assignment operator.
     AppController& operator=(AppController&&) = delete; ///< Disabled move assignment operator.
     QMLBackend& backend() { return *backend_; } ///< Return a reference to the backend.
-    GRPCClient& grpc() { return *grpc_; } ///< Return a reference to the GRPC client.
-    Log& log() { return *log_; } ///< Return a reference to the log.
-    std::unique_ptr<Overseer>& bridgeOverseer() { return bridgeOverseer_; }; ///< Returns a reference the bridge overseer
+    bridgepp::GRPCClient& grpc() { return *grpc_; } ///< Return a reference to the GRPC client.
+    bridgepp::Log& log() { return *log_; } ///< Return a reference to the log.
+    std::unique_ptr<bridgepp::Overseer>& bridgeOverseer() { return bridgeOverseer_; }; ///< Returns a reference the bridge overseer
     BridgeMonitor* bridgeMonitor() const; ///< Return the bridge worker.
 
 private: // member functions
@@ -51,9 +57,9 @@ private: // member functions
 
 private: // data members
     std::unique_ptr<QMLBackend> backend_; ///< The backend.
-    std::unique_ptr<GRPCClient> grpc_; ///< The RPC client.
-    std::unique_ptr<Log> log_; ///< The log.
-    std::unique_ptr<Overseer> bridgeOverseer_; ///< The overseer for the bridge monitor worker.
+    std::unique_ptr<bridgepp::GRPCClient> grpc_; ///< The RPC client.
+    std::unique_ptr<bridgepp::Log> log_; ///< The log.
+    std::unique_ptr<bridgepp::Overseer> bridgeOverseer_; ///< The overseer for the bridge monitor worker.
 };
 
 

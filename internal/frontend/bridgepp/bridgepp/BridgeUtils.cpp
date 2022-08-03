@@ -16,31 +16,41 @@
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 
-#ifndef BRIDGE_GUI_EXCEPTION_H
-#define BRIDGE_GUI_EXCEPTION_H
+#include "BridgeUtils.h"
+#include "Exception/Exception.h"
 
 
-#include <stdexcept>
-
-
-//****************************************************************************************************************************************************
-/// \brief Exception class.
-//****************************************************************************************************************************************************
-class Exception: public std::exception
+namespace bridgepp
 {
-public: // member functions
-    explicit Exception(QString what = QString()) noexcept; ///< Constructor
-    Exception(Exception const& ref) noexcept; ///< copy constructor
-    Exception(Exception&& ref) noexcept; ///< copy constructor
-    Exception& operator=(Exception const&) = delete; ///< Disabled assignment operator
-    Exception& operator=(Exception&&) = delete; ///< Disabled assignment operator
-    ~Exception() noexcept override = default; ///< Destructor
-    QString const& qwhat() const noexcept; ///< Return the description of the exception as a QString
-    const char* what() const noexcept override; ///< Return the description of the exception as C style string
 
-private: // data members
-    QString const what_; ///< The description of the exception
-};
+//****************************************************************************************************************************************************
+/// \return user configuration directory used by bridge (based on Golang OS/File's UserConfigDir).
+//****************************************************************************************************************************************************
+QString userConfigDir()
+{
+    QString dir;
+#ifdef Q_OS_WIN
+    dir = qgetenv ("AppData");
+    if (dir.isEmpty())
+        throw Exception("%AppData% is not defined.");
+#elif defined(Q_OS_IOS) || defined(Q_OS_DARWIN)
+    dir = qgetenv("HOME");
+    if (dir.isEmpty())
+        throw Exception("$HOME is not defined.");
+    dir += "/Library/Application Support";
+#else
+    dir = qgetenv ("XDG_CONFIG_HOME");
+    if (dir.isEmpty())
+        dir = qgetenv ("HOME");
+    if (dir.isEmpty())
+        throw Exception("neither $XDG_CONFIG_HOME nor $HOME are defined");
+    dir += "/.config";
+#endif
+    QString folder = dir + "/protonmail/bridge";
+    QDir().mkpath(folder);
+
+    return folder;
+}
 
 
-#endif //BRIDGE_GUI_EXCEPTION_H
+} // namespace bridgepp

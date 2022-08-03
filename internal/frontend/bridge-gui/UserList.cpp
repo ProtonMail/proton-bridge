@@ -16,9 +16,10 @@
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 
-#include "Pch.h"
 #include "UserList.h"
-#include "GRPC/GRPCClient.h"
+
+
+using namespace bridgepp;
 
 
 //****************************************************************************************************************************************************
@@ -36,10 +37,11 @@ UserList::UserList(QObject *parent)
 //****************************************************************************************************************************************************
 void UserList::connectGRPCEvents() const
 {
-    GRPCClient* client = &app().grpc();
-    connect(client, &GRPCClient::userChanged, this, &UserList::onUserChanged);
-    connect(client, &GRPCClient::toggleSplitModeFinished, this, &UserList::onToggleSplitModeFinished);
+    GRPCClient& client = app().grpc();
+    connect(&client, &GRPCClient::userChanged, this, &UserList::onUserChanged);
+    connect(&client, &GRPCClient::toggleSplitModeFinished, this, &UserList::onToggleSplitModeFinished);
 }
+
 
 //****************************************************************************************************************************************************
 //
@@ -60,7 +62,7 @@ QVariant UserList::data(QModelIndex const &index, int role) const
     /// This It does not seem to be used, but the method is required by the base class.
     /// From the original QtThe recipe QML backend User model, the User is always returned, regardless of the role.
     Q_UNUSED(role)
-    int const row  = index.row();
+    int const row = index.row();
     if ((row < 0) || (row >= users_.size()))
         return QVariant();
     return QVariant::fromValue(users_[row].get());
@@ -91,6 +93,7 @@ void UserList::reset()
     this->endResetModel();
 }
 
+
 //****************************************************************************************************************************************************
 /// \param[in] users The new user list.
 //****************************************************************************************************************************************************
@@ -105,7 +108,7 @@ void UserList::reset(QList<SPUser> const &users)
 //****************************************************************************************************************************************************
 /// \param[in] user The user.
 //****************************************************************************************************************************************************
-void UserList::appendUser(SPUser const& user)
+void UserList::appendUser(SPUser const &user)
 {
     int const size = users_.size();
     this->beginInsertRows(QModelIndex(), size, size);
@@ -135,7 +138,7 @@ void UserList::updateUserAtRow(int row, User const &user)
 {
     if ((row < 0) || (row >= users_.count()))
     {
-        app().log().error(QString("invalid user at row %2 (user count = %2)").arg(row).arg(users_.count()));
+        app().log().error(QString("invalid user at row %2 (user userCount = %2)").arg(row).arg(users_.count()));
         return;
     }
 
@@ -153,11 +156,11 @@ User *UserList::get(int row) const
 {
     if ((row < 0) || (row >= users_.count()))
     {
-        app().log().error(QString("Requesting invalid user at row %1 (user count = %2)").arg(row).arg(users_.count()));
+        app().log().error(QString("Requesting invalid user at row %1 (user userCount = %2)").arg(row).arg(users_.count()));
         return nullptr;
     }
 
-    app().log().debug(QString("Retrieving user at row %1 (user count = %2)").arg(row).arg(users_.count()));
+    app().log().debug(QString("Retrieving user at row %1 (user userCount = %2)").arg(row).arg(users_.count()));
     return users_[row].get();
 }
 
@@ -170,11 +173,13 @@ void UserList::onUserChanged(QString const &userID)
     int const index = this->rowOfUserID(userID);
     SPUser user;
     grpc::Status status = app().grpc().getUser(userID, user);
+    QQmlEngine::setObjectOwnership(user.get(), QQmlEngine::CppOwnership);
+
     if ((!user) || (!status.ok()))
     {
         if (index >= 0) // user exists here but not in the go backend. we delete it.
         {
-            app().log().debug(QString("Removing user from userlist: %1").arg(userID));
+            app().log().debug(QString("Removing user from user list: %1").arg(userID));
             this->removeUserAt(index);
         }
         return;
@@ -182,12 +187,12 @@ void UserList::onUserChanged(QString const &userID)
 
     if (index < 0)
     {
-        app().log().debug(QString("Adding user in userlist: %1").arg(userID));
+        app().log().debug(QString("Adding user in user list: %1").arg(userID));
         this->appendUser(user);
         return;
     }
 
-    app().log().debug(QString("Updating user in userlist: %1").arg(userID));
+    app().log().debug(QString("Updating user in user list: %1").arg(userID));
     this->updateUserAtRow(index, *user);
 }
 

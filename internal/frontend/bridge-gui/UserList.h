@@ -19,45 +19,49 @@
 #ifndef BRIDGE_GUI_USER_LIST_H
 #define BRIDGE_GUI_USER_LIST_H
 
-#include "User.h"
+
+#include <bridgepp/User/User.h>
+#include <bridgepp/Log/Log.h>
+#include <bridgepp/GRPC/GRPCClient.h>
+
 
 //****************************************************************************************************************************************************
 /// \brief User list class.
 //****************************************************************************************************************************************************
-class UserList: public QAbstractListModel
+class UserList : public QAbstractListModel
 {
-    Q_OBJECT
+Q_OBJECT
 public: // member functions.
-    explicit UserList(QObject *parent = nullptr); ///< Default constructor.
-    UserList(UserList const &other) = delete ; ///< Disabled copy-constructor.
-    UserList& operator=(UserList const& other) = delete; ///< Disabled assignment operator.
+    UserList(QObject *parent); ///< Default constructor.
+    UserList(UserList const &other) = delete; ///< Disabled copy-constructor.
+    UserList &operator=(UserList const &other) = delete; ///< Disabled assignment operator.
     ~UserList() override = default; ///< Destructor
     void connectGRPCEvents() const; ///< Connects gRPC event to the model.
     int rowCount(QModelIndex const &parent) const override; ///< Return the number of row in the model
     QVariant data(QModelIndex const &index, int role) const override; ///< Retrieve model data.
     void reset(); ///< Reset the user list.
-    void reset(QList<SPUser> const &users); ///< Replace the user list.
+    void reset(QList<bridgepp::SPUser> const &users); ///< Replace the user list.
     int rowOfUserID(QString const &userID) const;
     void removeUserAt(int row); ///< Remove the user at a given row
-    void appendUser(SPUser const& user); ///< Add a new user.
-    void updateUserAtRow(int row, User const& user); ///< Update the user at given row.
+    void appendUser(bridgepp::SPUser const &user); ///< Add a new user.
+    void updateUserAtRow(int row, bridgepp::User const &user); ///< Update the user at given row.
 
-    // the count property.
+    // the userCount property.
     Q_PROPERTY(int count READ count NOTIFY countChanged)
-    int count() const; ///< The count property getter.
+    int count() const; ///< The userCount property getter.
 
 signals:
-    void countChanged(int count); ///< Signal for the count property.
+    void countChanged(int count); ///< Signal for the userCount property.
 
 public:
-    Q_INVOKABLE User* get(int row) const;
+    Q_INVOKABLE bridgepp::User *get(int row) const;
 
 public slots: ///< handler for signals coming from the gRPC service
     void onUserChanged(QString const &userID);
     void onToggleSplitModeFinished(QString const &userID);
 
 private: // data members
-    QList<SPUser> users_; ///< The user list.
+    QList<bridgepp::SPUser> users_; ///< The user list.
 };
 
 

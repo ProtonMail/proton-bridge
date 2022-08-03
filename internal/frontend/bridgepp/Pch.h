@@ -16,33 +16,11 @@
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 
-#include <Cocoa/Cocoa.h>
-#include "DockIcon.h"
+#ifndef BRIDGE_PP_PCH_H
+#define BRIDGE_PP_PCH_H
 
 
-#ifdef Q_OS_MACOS
+#include <QtCore>
 
 
-void setDockIconVisibleState(bool visible) {
-    if (visible) {
-        [NSApp setActivationPolicy: NSApplicationActivationPolicyRegular];
-        return;
-    } else {
-        [NSApp setActivationPolicy: NSApplicationActivationPolicyAccessory];
-        return;
-    }
-}
-
-
-bool getDockIconVisibleState() {
-    switch ([NSApp activationPolicy]) {
-    case NSApplicationActivationPolicyAccessory:
-    case NSApplicationActivationPolicyProhibited:
-        return false;
-    case NSApplicationActivationPolicyRegular:
-        return true;
-    }
-}
-
-
-#endif // #ifdef Q_OS_MACOS
+#endif // BRIDGE_PP_PCH_H
