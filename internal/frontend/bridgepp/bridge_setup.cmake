@@ -32,7 +32,9 @@ if (WIN32)
 else()
     find_program(VCPKG_EXE "${VCPKG_ROOT}/vcpkg")
 endif()
-
+if (NOT VCPKG_EXE)
+    message(FATAL_ERROR "vcpkg is not installed. Run build.sh (macOS/Linux) or build.ps1 (Windows) first.")
+endif()
 
 # For now we support only a single architecture for macOS (ARM64 or x86_64). We need to investigate how to build universal binaries with vcpkg.
 if (APPLE)
