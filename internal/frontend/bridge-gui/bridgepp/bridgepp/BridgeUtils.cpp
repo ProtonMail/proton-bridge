@@ -23,6 +23,14 @@
 namespace bridgepp
 {
 
+namespace {
+
+QString const configFolder = "protonmail/bridge";
+
+
+}
+
+
 //****************************************************************************************************************************************************
 /// \return user configuration directory used by bridge (based on Golang OS/File's UserConfigDir).
 //****************************************************************************************************************************************************
@@ -34,19 +42,51 @@ QString userConfigDir()
     if (dir.isEmpty())
         throw Exception("%AppData% is not defined.");
 #elif defined(Q_OS_IOS) || defined(Q_OS_DARWIN)
-    dir = qgetenv("HOME");
+    dir = qgetenv ("HOME");
     if (dir.isEmpty())
         throw Exception("$HOME is not defined.");
     dir += "/Library/Application Support";
 #else
     dir = qgetenv ("XDG_CONFIG_HOME");
-    if (dir.isEmpty())
-        dir = qgetenv ("HOME");
-    if (dir.isEmpty())
-        throw Exception("neither $XDG_CONFIG_HOME nor $HOME are defined");
-    dir += "/.config";
+        if (dir.isEmpty())
+            dir = qgetenv ("HOME");
+        if (dir.isEmpty())
+            throw Exception("neither $XDG_CONFIG_HOME nor $HOME are defined");
+        dir += "/.config";
 #endif
-    QString folder = dir + "/protonmail/bridge";
+    QString const folder = QDir(dir).absoluteFilePath(configFolder);
+    QDir().mkpath(folder);
+
+    return folder;
+}
+
+
+//****************************************************************************************************************************************************
+/// \return user configuration directory used by bridge (based on Golang OS/File's UserCacheDir).
+//****************************************************************************************************************************************************
+QString userCacheDir()
+{
+    QString dir;
+
+#ifdef Q_OS_WIN
+    dir = qgetenv ("LocalAppData");
+    if (dir.isEmpty())
+        throw Exception("%LocalAppData% is not defined.");
+#elif defined(Q_OS_IOS) || defined(Q_OS_DARWIN)
+    dir = qgetenv ("HOME");
+    if (dir.isEmpty())
+        throw Exception("$HOME is not defined.");
+    dir += "/Library/Caches";
+#else
+    dir = qgetenv ("XDG_CACHE_HOME");
+        if (dir.isEmpty())
+            dir = qgetenv ("HOME");
+        if (dir.isEmpty())
+            throw Exception("neither XDG_CACHE_HOME nor $HOME are defined");
+        dir += "/.cache";
+#endif
+
+    QString const folder = QDir(dir).absoluteFilePath(configFolder);
     QDir().mkpath(folder);
 
     return folder;

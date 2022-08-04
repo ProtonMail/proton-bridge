@@ -19,8 +19,8 @@
 #include "QMLBackend.h"
 #include "BridgeMonitor.h"
 #include "Version.h"
-#include "UserDirectories.h"
 #include <bridgepp/Log/Log.h>
+#include <bridgepp/BridgeUtils.h>
 #include <bridgepp/Exception/Exception.h>
 
 
@@ -130,7 +130,7 @@ void parseArguments(int argc, char *argv[], QStringList& args, QString& launcher
     // list from the original argc and argv values.
    for (int i = 1; i < argc; i++) {
         QString const &arg = QString::fromLocal8Bit(argv[i]);
-        // we can't use QCommandLineParser here since it will fails on unknown options.
+        // we can't use QCommandLineParser here since it will fail on unknown options.
         // Arguments may contain some bridge flags.
         if (arg == launcherFlag)
         {
@@ -214,7 +214,7 @@ int main(int argc, char *argv[])
 
         Log &log = initLog();
 
-        QLockFile lock(UserDirectories::UserCacheDir() + "/" + bridgeLock);
+        QLockFile lock(bridgepp::userCacheDir() + "/" + bridgeLock);
         if (!checkSingleInstance(lock))
             return EXIT_FAILURE;
 

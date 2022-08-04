@@ -34,7 +34,6 @@ else()
     message(STATUS "Bridge version is ${BRIDGE_APP_VERSION}")
 endif()
 
-configure_file(Version.h.in ${CMAKE_SOURCE_DIR}/Version.h)
 if (APPLE) # On macOS, we have some Objective-C++ code in DockIcon to deal with the dock icon.
     enable_language(OBJC OBJCXX)
 endif()
@@ -68,7 +67,7 @@ message(STATUS "Using Qt ${Qt6_VERSION}")
 #*****************************************************************************************************************************************************
 
 
-configure_file(Version.h.in ${CMAKE_CURRENT_SOURCE_DIR}/Version.h)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Version.h.in ${CMAKE_CURRENT_SOURCE_DIR}/Version.h)
 
 if (NOT TARGET bridgepp)
 add_subdirectory(../bridgepp bridgepp)
@@ -91,7 +90,7 @@ add_executable(bridge-gui
     QMLBackend.cpp QMLBackend.h
     UserList.cpp UserList.h
     ${DOCK_ICON_SRC_FILE} DockIcon/DockIcon.h
-    UserDirectories.h)
+    )
 
 target_precompile_headers(bridge-gui PRIVATE Pch.h)
 target_include_directories(bridge-gui PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})

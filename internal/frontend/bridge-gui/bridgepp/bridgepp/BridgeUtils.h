@@ -24,6 +24,7 @@ namespace bridgepp {
 
 
 QString userConfigDir(); ///< Get the path of the user configuration folder.
+QString userCacheDir(); ///< Get the path of the user cache folder.
 
 
 } // namespace
