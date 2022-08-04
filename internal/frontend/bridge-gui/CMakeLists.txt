@@ -15,12 +15,10 @@
 # You should have received a copy of the GNU General Public License
 # along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
+
 cmake_minimum_required(VERSION 3.22)
-
-
-include_guard()
 set(VCPKG_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../../../extern/vcpkg")
-include(../bridgepp/bridge_setup.cmake)
+include(../bridge_setup.cmake)
 
 
 #*****************************************************************************************************************************************************
@@ -69,9 +67,11 @@ message(STATUS "Using Qt ${Qt6_VERSION}")
 #*****************************************************************************************************************************************************
 
 
-configure_file(Version.h.in ${CMAKE_SOURCE_DIR}/Version.h)
+configure_file(Version.h.in ${CMAKE_CURRENT_SOURCE_DIR}/Version.h)
 
+if (NOT TARGET bridgepp)
 add_subdirectory(../bridgepp bridgepp)
+endif()
 
 if (APPLE)
     set(DOCK_ICON_SRC_FILE DockIcon/DockIcon.mm)

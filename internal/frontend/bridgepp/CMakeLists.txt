@@ -17,11 +17,8 @@
 
 
 cmake_minimum_required(VERSION 3.22)
-
-
-include_guard()
 set(VCPKG_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../../../extern/vcpkg")
-include(bridge_setup.cmake)
+include(../bridge_setup.cmake)
 
 
 #****************************************************************************************************************************************************
@@ -37,6 +34,7 @@ if (NOT DEFINED BRIDGE_APP_VERSION)
 else()
     message(STATUS "Bridge version is ${BRIDGE_APP_VERSION}")
 endif()
+
 
 #****************************************************************************************************************************************************
 # Qt

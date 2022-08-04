@@ -25,7 +25,10 @@ include_guard()
 # We rely on vcpkg for to get gRPC / Protobuf
 # run build.sh / build.ps1 to get gRPC / Protobuf and dependencies installed.
 
-set(VCPKG_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../../../extern/vcpkg")
+if (NOT DEFINED VCPKG_ROOT)
+    message(FATAL_ERROR "VCPKG_ROOT is not defined.")
+endif()
+
 message(STATUS "VCPKG_ROOT is ${VCPKG_ROOT}")
 if (WIN32)
     find_program(VCPKG_EXE "${VCPKG_ROOT}/vcpkg.exe")
