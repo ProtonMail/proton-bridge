@@ -23,7 +23,7 @@ $cmakeExe = "C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE
 $bridgeVersion = ($env:BRIDGE_APP_VERSION ??= "2.2.1+") # TODO get the version number from a unified location.
 $buildConfig = ($env:BRIDGE_GUI_BUILD_CONFIG ??= "Debug")
 $buildDir=(Join-Path $PSScriptRoot "cmake-build-$buildConfig-visual-studio".ToLower())
-$vcpkgRoot = (Join-Path $PSScriptRoot "../../../extern/vcpkg" -Resolve)
+$vcpkgRoot = (Join-Path $PSScriptRoot "../../../../extern/vcpkg" -Resolve)
 $vcpkgExe = (Join-Path $vcpkgRoot "vcpkg.exe")
 $vcpkgBootstrap = (Join-Path $vcpkgRoot "bootstrap-vcpkg.bat")
 

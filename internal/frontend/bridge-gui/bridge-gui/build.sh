@@ -20,7 +20,7 @@
 BRIDGE_APP_VERSION=${BRIDGE_APP_VERSION:-2.2.1+git} # TODO get the version number from a unified location.
 BUILD_CONFIG=${BRIDGE_GUI_BUILD_CONFIG:-Debug}
 BUILD_DIR=$(echo "./cmake-build-${BUILD_CONFIG}" | tr '[:upper:]' '[:lower:]')
-VCPKG_ROOT="../../../extern/vcpkg"
+VCPKG_ROOT="../../../../extern/vcpkg"
 VCPKG_EXE="${VCPKG_ROOT}/vcpkg"
 VCPKG_BOOTSTRAP="${VCPKG_ROOT}/bootstrap-vcpkg.sh"
 

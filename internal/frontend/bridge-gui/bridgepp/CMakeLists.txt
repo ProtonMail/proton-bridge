@@ -17,8 +17,8 @@
 
 
 cmake_minimum_required(VERSION 3.22)
-set(VCPKG_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../../../extern/vcpkg")
-include(../bridge_setup.cmake)
+set(VCPKG_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../../../../extern/vcpkg")
+include(../BridgeSetup.cmake)
 
 
 #****************************************************************************************************************************************************
@@ -61,15 +61,15 @@ message(STATUS "protoc found ${PROTOC_EXE}")
 message(STATUS "grpc_cpp_plugin ${grpc_cpp_plugin}")
 
 find_program(GRPC_CPP_PLUGIN grpc_cpp_plugin)
-if (GRPC_CPP_PLUGIN STREQUAL GRPC_CPP_PLUGIN-NOTFOUND)
+if (NOT GRPC_CPP_PLUGIN)
     message(FATAL_ERROR "grpc_cpp_plugin exe could not be found. Please add it to your path. it should be located in \${VCPKG_ROOT}/installed/arm64-osx/tools/grpc")
 else ()
     message(STATUS "grpc_cpp_plugin found at ${GRPC_CPP_PLUGIN}")
 endif ()
 
-set(PROTO_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../grpc")
+set(PROTO_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../grpc")
 set(PROTO_FILE "${PROTO_DIR}/bridge.proto")
-set(GRPC_OUT_DIR "bridgepp/GRPC")
+set(GRPC_OUT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/bridgepp/GRPC")
 set(PROTO_CPP_FILE "${GRPC_OUT_DIR}/bridge.pb.cc")
 set(PROTO_H_FILE "${GRPC_OUT_DIR}/bridge.pb.h")
 set(GRPC_CPP_FILE "${GRPC_OUT_DIR}/bridge.grpc.pb.cc")
