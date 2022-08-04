@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1226</width>
+    <height>1086</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <widget class="QWidget" name="centralWidget">
+   <layout class="QVBoxLayout" name="verticalLayout_2">
+    <item>
+     <widget class="QSplitter" name="splitter">
+      <property name="orientation">
+       <enum>Qt::Vertical</enum>
+      </property>
+      <widget class="QTabWidget" name="tabTop">
+       <property name="currentIndex">
+        <number>0</number>
+       </property>
+       <widget class="SettingsTab" name="settingsTab">
+        <attribute name="title">
+         <string>Settings</string>
+        </attribute>
+       </widget>
+       <widget class="UsersTab" name="usersTab">
+        <attribute name="title">
+         <string>Users</string>
+        </attribute>
+       </widget>
+      </widget>
+      <widget class="QTabWidget" name="tabBottom">
+       <property name="currentIndex">
+        <number>0</number>
+       </property>
+       <widget class="QWidget" name="tabLog">
+        <attribute name="title">
+         <string>Log</string>
+        </attribute>
+        <layout class="QVBoxLayout" name="verticalLayout">
+         <item>
+          <widget class="QPlainTextEdit" name="editLog">
+           <property name="font">
+            <font>
+             <family>Monaco</family>
+            </font>
+           </property>
+           <property name="readOnly">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+       <widget class="QWidget" name="tabBridgeGUILog">
+        <attribute name="title">
+         <string>Bridge-GUI Log</string>
+        </attribute>
+        <layout class="QVBoxLayout" name="verticalLayout_3">
+         <item>
+          <widget class="QPlainTextEdit" name="editBridgeGUILog">
+           <property name="font">
+            <font>
+             <family>Monaco</family>
+            </font>
+           </property>
+           <property name="readOnly">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </widget>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>SettingsTab</class>
+   <extends>QWidget</extends>
+   <header>Tabs/SettingsTab.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>UsersTab</class>
+   <extends>QWidget</extends>
+   <header>Tabs/UsersTab.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>

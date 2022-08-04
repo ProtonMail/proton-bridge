@@ -108,8 +108,10 @@ void QMLBackend::connectGrpcEvents()
     connect(client, &GRPCClient::login2PasswordError, this, &QMLBackend::login2PasswordError);
     connect(client, &GRPCClient::login2PasswordErrorAbort, this, &QMLBackend::login2PasswordErrorAbort);
     connect(client, &GRPCClient::loginFinished, this, [&](QString const &userID) {
+        this->retrieveUserList();
         qint32 const index = users_->rowOfUserID(userID); emit loginFinished(index); });
     connect(client, &GRPCClient::loginAlreadyLoggedIn, this, [&](QString const &userID) {
+        this->retrieveUserList();
         qint32 const index = users_->rowOfUserID(userID); emit loginAlreadyLoggedIn(index); });
 
     // update events

@@ -31,4 +31,4 @@ project(frontend)
 
 add_subdirectory(bridgepp)
 add_subdirectory(bridge-gui)
-
+add_subdirectory(bridge-gui-tester)
