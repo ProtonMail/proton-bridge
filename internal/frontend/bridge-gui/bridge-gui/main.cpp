@@ -39,7 +39,7 @@ namespace
 
     QString const launcherFlag = "--launcher"; ///< launcher flag parameter used for bridge.
     QString const bridgeLock = "bridge-gui.lock"; ///< file name used for the lock file.
-    QString const exeName = "proton-bridge" + exeSuffix; ///< The bridge executable file name.*
+    QString const exeName = "bridge" + exeSuffix; ///< The bridge executable file name.*
 }
 
 

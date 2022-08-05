@@ -41,8 +41,8 @@ import (
 const (
 	appName    = "Proton Mail Launcher"
 	configName = "bridge"
-	exeName    = "proton-bridge"
-	guiName    = "proton-bridge-gui"
+	exeName    = "bridge"
+	guiName    = "proton-bridge"
 
 	FlagCLI      = "--cli"
 	FlagLauncher = "--launcher"

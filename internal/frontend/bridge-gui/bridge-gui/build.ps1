@@ -17,19 +17,59 @@
 
 #!/bin/bash
 
+$scriptpath = $MyInvocation.MyCommand.Path
+$dir = Split-Path $scriptpath
+Write-host "Bridge-gui directory is $dir"
+Push-Location $dir
+
 $ErrorActionPreference = "Stop"
 
-$cmakeExe = "C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" # Hardcoded for now.
-$bridgeVersion = ($env:BRIDGE_APP_VERSION ??= "2.2.1+") # TODO get the version number from a unified location.
-$buildConfig = ($env:BRIDGE_GUI_BUILD_CONFIG ??= "Debug")
-$buildDir=(Join-Path $PSScriptRoot "cmake-build-$buildConfig-visual-studio".ToLower())
+$cmakeExe=$(Get-Command cmake).source
+if ($null -eq $cmakeExe)
+{
+    $cmakeExe = "C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" # Hardcoded for now.
+}
+$bridgeVersion = ($env:BRIDGE_APP_VERSION)
+if ($null -eq $bridgeVersion)
+{
+    $bridgeVersion =  "2.2.1+"
+}
+$buildConfig = ($env:BRIDGE_GUI_BUILD_CONFIG)
+if ($null -eq $buildConfig)
+{
+    $buildConfig =  "Debug"
+}
+
+$buildDir=(Join-Path $PSScriptRoot "cmake-build-$buildConfig".ToLower())
 $vcpkgRoot = (Join-Path $PSScriptRoot "../../../../extern/vcpkg" -Resolve)
 $vcpkgExe = (Join-Path $vcpkgRoot "vcpkg.exe")
 $vcpkgBootstrap = (Join-Path $vcpkgRoot "bootstrap-vcpkg.bat")
 
+function check_exit() {
+    if ($? -ne $True)
+    {
+        Write-Host "Process failed: $args[0]"
+        Remove-Item "$buildDir" -Recurse
+        exit 1
+    }
+}
+
 git submodule update --init --recursive $vcpkgRoot
 . $vcpkgBootstrap -disableMetrics
-. $vcpkgExe install grpc:x64-windows
-. $vcpkgExe upgrade --no-dry-run 
+. $vcpkgExe install grpc:x64-windows --clean-after-build
+. $vcpkgExe upgrade --no-dry-run
 . $cmakeExe -G "Visual Studio 17 2022" -DCMAKE_BUILD_TYPE="$buildConfig" -DBRIDGE_APP_VERSION="$bridgeVersion" -S . -B $buildDir
-. $cmakeExe --build $buildDir
+check_exit "CMake failed"
+. $cmakeExe --build $buildDir --config "$buildConfig"
+check_exit "Build failed"
+
+if  ($($args.count) -gt 0 )
+{
+    if ($args[0] = "install")
+    {
+        . $cmakeExe --install $buildDir
+        check_exit "Install failed"
+    }
+}
+
+Pop-Location

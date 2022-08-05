@@ -5,9 +5,10 @@ export GO111MODULE=on
 GOOS:=$(shell go env GOOS)
 TARGET_CMD?=Desktop-Bridge
 TARGET_OS?=${GOOS}
+ROOT_DIR:=$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 
 ## Build
-.PHONY: build build-nogui build-launcher versioner hasher
+.PHONY: build build-gui build-nogui build-launcher versioner hasher
 
 # Keep version hardcoded so app build works also without Git repository.
 BRIDGE_APP_VERSION?=2.3.0+git
@@ -16,7 +17,6 @@ SRC_ICO:=bridge.ico
 SRC_ICNS:=Bridge.icns
 SRC_SVG:=bridge.svg
 EXE_NAME:=proton-bridge
-CONFIGNAME:=bridge
 REVISION:=$(shell git rev-parse --short=10 HEAD)
 BUILD_TIME:=$(shell date +%FT%T%z)
 
@@ -37,23 +37,31 @@ BUILD_FLAGS_GUI+=-ldflags '${GO_LDFLAGS}'
 BUILD_FLAGS_LAUNCHER+=-ldflags '${GO_LDFLAGS_LAUNCHER}'
 
 DEPLOY_DIR:=cmd/${TARGET_CMD}/deploy
-ICO_FILES:=
 DIRNAME:=$(shell basename ${CURDIR})
 EXE:=${EXE_NAME}
-EXE_QT:=${DIRNAME}
+EXE_GO:=bridge
+EXE_GUI_NAME:=bridge-gui
+EXE_GUI:=${EXE_GUI_NAME}
+LAUNCHER_PATH:=./cmd/launcher/
+LAUNCHER_EXE:=launcher-${EXE}
+
 ifeq "${TARGET_OS}" "windows"
     EXE:=${EXE}.exe
-    EXE_QT:=${EXE_QT}.exe
+    EXE_GUI:=${EXE_GUI}.exe
+    EXE_GO:=${EXE_GO}.exe
+    LAUNCHER_EXE:=${LAUNCHER_EXE}.exe
     RESOURCE_FILE:=resource.syso
 endif
 ifeq "${TARGET_OS}" "darwin"
     DARWINAPP_CONTENTS:=${DEPLOY_DIR}/darwin/${EXE}.app/Contents
     EXE:=${EXE}.app
-    EXE_QT:=${EXE_QT}.app
-    EXE_BINARY_DARWIN:=/Contents/MacOS/${EXE_NAME}
+    EXE_GUI:=${EXE_GUI_NAME}.app
+    EXE_BINARY_DARWIN:=Contents/MacOS/${EXE_NAME}
+    EXE_GO:=${EXE_GUI}/Contents/MacOS/${EXE_GO}
 endif
 EXE_TARGET:=${DEPLOY_DIR}/${TARGET_OS}/${EXE}
-EXE_QT_TARGET:=${DEPLOY_DIR}/${TARGET_OS}/${EXE_QT}
+EXE_GUI_TARGET:=${DEPLOY_DIR}/${TARGET_OS}/${EXE_GUI}
+EXE_GO_TARGET:=${DEPLOY_DIR}/${TARGET_OS}/${EXE_GO}
 
 TGZ_TARGET:=bridge_${TARGET_OS}_${REVISION}.tgz
 
@@ -63,19 +71,23 @@ else
     VENDOR_TARGET=update-vendor
 endif
 
-build: ${TGZ_TARGET}
+build: build-gui
 
-build-nogui: gofiles
+build-gui: ${TGZ_TARGET}
+
+build-nogui: ${EXE_NAME}
+
+${EXE_NAME}: gofiles
 	go build ${BUILD_FLAGS} -o ${EXE_NAME} cmd/${TARGET_CMD}/main.go
 
-ifeq "${GOOS}" "windows"
-  	PRERESOURCECMD:=cp ./resource.syso ./cmd/launcher/resource.syso
-	POSTRESOURCECMD:=rm -f ./cmd/launcher/resource.syso
-endif
 build-launcher: ${RESOURCE_FILE}
-	${PRERESOURCECMD}
-	go build ${BUILD_FLAGS_LAUNCHER} -o launcher-${EXE} ./cmd/launcher/
-	${POSTRESOURCECMD}
+ifeq "${GOOS}" "windows"
+	powershell Copy-Item ${ROOT_DIR}/${RESOURCE_FILE} ${ROOT_DIR}/${LAUNCHER_PATH}${RESOURCE_FILE}
+endif
+	go build ${BUILD_FLAGS_LAUNCHER} -o ${LAUNCHER_EXE} ${LAUNCHER_PATH}
+ifeq "${GOOS}" "windows"
+	powershell Remove-Item ${ROOT_DIR}/${LAUNCHER_PATH}${RESOURCE_FILE} -Force
+endif
 
 versioner:
 	go build ${BUILD_FLAGS} -o versioner utils/versioner/main.go
@@ -85,81 +97,60 @@ hasher:
 
 ${TGZ_TARGET}: ${DEPLOY_DIR}/${TARGET_OS}
 	rm -f $@
-	cd ${DEPLOY_DIR}/${TARGET_OS} && tar -czvf ../../../../$@ .
+	tar -czvf $@ -C ${DEPLOY_DIR}/${TARGET_OS} .
 
-${DEPLOY_DIR}/linux: ${EXE_TARGET}
+${DEPLOY_DIR}/linux: ${EXE_TARGET} build-launcher
 	cp -pf ./dist/${SRC_SVG} ${DEPLOY_DIR}/linux/logo.svg
 	cp -pf ./LICENSE ${DEPLOY_DIR}/linux/
 	cp -pf ./Changelog.md ${DEPLOY_DIR}/linux/
 	cp -pf ./dist/${EXE_NAME}.desktop ${DEPLOY_DIR}/linux/
+	cp -pf ${LAUNCHER_EXE} ${DEPLOY_DIR}/linux/
 
-${DEPLOY_DIR}/darwin: ${EXE_TARGET}
-	if [ "${DIRNAME}" != "${EXE_NAME}" ]; then \
-		mv ${EXE_TARGET}/Contents/MacOS/{${DIRNAME},${EXE_NAME}}; \
-		perl -i -pe"s/>${DIRNAME}/>${EXE_NAME}/g" ${EXE_TARGET}/Contents/Info.plist; \
-	fi
+${DEPLOY_DIR}/darwin: ${EXE_TARGET} build-launcher
+	mv ${EXE_TARGET}/Contents/MacOS/{${EXE_GUI_NAME},${EXE_NAME}}
+	perl -i -pe"s/>${EXE_GUI_NAME}/>${LAUNCHER_EXE}/g" ${ROOT_DIR}/${EXE_TARGET}/Contents/Info.plist
 	cp ./dist/${SRC_ICNS} ${DARWINAPP_CONTENTS}/Resources/${SRC_ICNS}
 	cp LICENSE ${DARWINAPP_CONTENTS}/Resources/
 	rm -rf "${DARWINAPP_CONTENTS}/Frameworks/QtWebEngine.framework"
 	rm -rf "${DARWINAPP_CONTENTS}/Frameworks/QtWebView.framework"
 	rm -rf "${DARWINAPP_CONTENTS}/Frameworks/QtWebEngineCore.framework"
-	./utils/remove_non_relative_links_darwin.sh "${EXE_TARGET}${EXE_BINARY_DARWIN}"
+	cp ${LAUNCHER_EXE}  ${EXE_TARGET}/Contents/MacOS/${LAUNCHER_EXE}
+	./utils/remove_non_relative_links_darwin.sh "${EXE_TARGET}/${EXE_BINARY_DARWIN}"
 
-${DEPLOY_DIR}/windows: ${EXE_TARGET}
+${DEPLOY_DIR}/windows: ${EXE_TARGET} build-launcher
 	cp ./dist/${SRC_ICO} ${DEPLOY_DIR}/windows/logo.ico
 	cp LICENSE ${DEPLOY_DIR}/windows/
+	cp ${LAUNCHER_EXE} ${DEPLOY_DIR}/windows/$(notdir ${LAUNCHER_EXE})
+	# plugins are installed in a plugins folder while needs to be near the exe
+	mv ${DEPLOY_DIR}/windows/plugins/* ${DEPLOY_DIR}/windows/.
+	rm -rf ${DEPLOY_DIR}/windows/plugins
 
-QT_BUILD_TARGET:=build desktop
-ifneq "${GOOS}" "${TARGET_OS}"
-  ifeq "${TARGET_OS}" "windows"
-    QT_BUILD_TARGET:=-docker build windows_64_shared
-  endif
-endif
-
-${EXE_TARGET}: check-has-go gofiles ${RESOURCE_FILE} ${VENDOR_TARGET}
-	rm -rf deploy ${TARGET_OS} ${DEPLOY_DIR}
-	cp cmd/${TARGET_CMD}/main.go .
-	qtdeploy ${BUILD_FLAGS_GUI} ${QT_BUILD_TARGET}
-	mv deploy cmd/${TARGET_CMD}
-	if [ "${EXE_QT_TARGET}" != "${EXE_TARGET}" ]; then mv ${EXE_QT_TARGET} ${EXE_TARGET}; fi
-	rm -rf ${TARGET_OS} main.go
-
+${EXE_TARGET}: check-build-essentials ${EXE_NAME}
+	# TODO: resource.syso for windows
+	cd internal/frontend/bridge-gui/bridge-gui && \
+		BRIDGE_APP_VERSION=${APP_VERSION} \
+		BRIDGE_REVISION=${REVISION} \
+		BRIDGE_BUILD_TIME=${BUILD_TIME} \
+		BRIDGE_GUI_BUILD_CONFIG=Release \
+		BRIDGE_INSTALL_PATH=${ROOT_DIR}/${DEPLOY_DIR}/${GOOS} \
+		./build.sh install
+	cp -pf "${ROOT_DIR}/${EXE_NAME}" "$(ROOT_DIR)/${EXE_GO_TARGET}"
+	mv "${ROOT_DIR}/${EXE_GUI_TARGET}" "$(ROOT_DIR)/${EXE_TARGET}"
 
 WINDRES_YEAR:=$(shell date +%Y)
 APP_VERSION_COMMA:=$(shell echo "${APP_VERSION}" | sed -e 's/[^0-9,.]*//g' -e 's/\./,/g')
-resource.syso: ./dist/info.rc ./dist/${SRC_ICO} .FORCE
+${RESOURCE_FILE}: ./dist/info.rc ./dist/${SRC_ICO} .FORCE
 	rm -f ./*.syso
-	windres --target=pe-x86-64 -I ./internal/frontend/share/ -D ICO_FILE=${SRC_ICO} -D EXE_NAME="${EXE_NAME}" -D FILE_VERSION="${APP_VERSION}" -D ORIGINAL_FILE_NAME="${EXE}" -D PRODUCT_VERSION="${APP_VERSION}" -D FILE_VERSION_COMMA=${APP_VERSION_COMMA} -D YEAR=${WINDRES_YEAR} -o $@ $<
-
-## Rules for therecipe/qt
-.PHONY: prepare-vendor update-vendor update-qt-docs
-THERECIPE_ENV:=github.com/therecipe/env_${TARGET_OS}_amd64_513
-
-# vendor folder will be deleted by gomod hence we cache the big repo
-# therecipe/env in order to download it only once
-vendor-cache/${THERECIPE_ENV}:
-	git clone https://${THERECIPE_ENV}.git vendor-cache/${THERECIPE_ENV}
-	if [ "${TARGET_OS}" == "darwin" ]; then cp -f "./utils/QTBUG-88600/libqcocoa.dylib" "./vendor-cache/${THERECIPE_ENV}/5.13.0/clang_64/plugins/platforms/"; fi;
-
-# The command used to make symlinks is different on windows.
-# So if the GOOS is windows and we aren't crossbuilding (in which case the host os would still be *nix)
-# we need to change the LINKCMD to something windowsy.
-LINKCMD:=ln -sf ${CURDIR}/vendor-cache/${THERECIPE_ENV} vendor/${THERECIPE_ENV}
-ifeq "${GOOS}" "windows"
-  WINDIR:=$(subst /c/,c:\\,${CURDIR})/vendor-cache/${THERECIPE_ENV}
-  LINKCMD:=cmd //c 'mklink $(subst /,\,vendor\${THERECIPE_ENV} ${WINDIR})'
-endif
-
-prepare-vendor:
-	go install -v -tags=no_env github.com/therecipe/qt/cmd/...
-	go mod vendor
-
-# update-vendor is PHONY because we need to make sure that we always have updated vendor
-update-vendor: vendor-cache/${THERECIPE_ENV} prepare-vendor
-	${LINKCMD}
-
-update-qt-docs:
-	go get github.com/therecipe/qt/internal/binding/files/docs/$(QT_API)
+	windres --target=pe-x86-64 \
+		-I ./internal/frontend/share/ \
+		-D ICO_FILE=${SRC_ICO} \
+		-D EXE_NAME="${EXE_NAME}" \
+		-D FILE_VERSION="${APP_VERSION}" \
+		-D ORIGINAL_FILE_NAME="${EXE}" \
+		-D PRODUCT_VERSION="${APP_VERSION}" \
+		-D FILE_VERSION_COMMA=${APP_VERSION_COMMA} \
+		-D YEAR=${WINDRES_YEAR} \
+		-o ./${RESOURCE_FILE} $<
 
 ## Dev dependencies
 .PHONY: install-devel-tools install-linter install-go-mod-outdated install-git-hooks
@@ -184,9 +175,22 @@ install-git-hooks:
 	chmod +x .git/hooks/*
 
 ## Checks, mocks and docs
-.PHONY: check-has-go add-license change-copyright-year test bench coverage mocks lint-license lint-golang lint updates doc release-notes
+.PHONY: check-has-go check-build-essentials add-license change-copyright-year test bench coverage mocks lint-license lint-golang lint updates doc release-notes
 check-has-go:
 	@which go || (echo "Install Go-lang!" && exit 1)
+
+
+check_is_installed=if ! which $(1) > /dev/null; then echo "Please install $(1)"; exit 1; fi
+check-build-essentials: check-qt-dir
+	@$(call check_is_installed,zip)
+	@$(call check_is_installed,unzip)
+	@$(call check_is_installed,tar)
+	@$(call check_is_installed,curl)
+	@$(call check_is_installed,cmake)
+	@$(call check_is_installed,ninja)
+
+check-qt-dir:
+	@if ! ls "${QT6DIR}/bin/qt.conf" > /dev/null; then echo "Please set QT6DIR"; exit 1; fi
 
 add-license:
 	./utils/missing_license.sh add
@@ -296,7 +300,7 @@ run-debug:
 run-qml-preview:
 	find internal/frontend/qml/ -iname '*qmlc' | xargs rm -f
 	bridge_preview internal/frontend/qml/Bridge_test.qml
-	
+
 
 clean-frontend-qt:
 	$(MAKE) -C internal/frontend -f Makefile.local clean
@@ -304,14 +308,26 @@ clean-frontend-qt:
 clean-vendor: clean-frontend-qt clean-frontend-qt-common
 	rm -rf ./vendor
 
-clean: clean-vendor
+clean-gui:
+	cd internal/frontend/bridge-gui/ && \
+		rm -f Version.h && \
+		rm -rf cmake-build-*/
+
+clean-vcpkg:
+	git submodule deinit -f ./extern/vcpkg
+	rm -rf ./.git/submodule/vcpkg
+	rm -rf ./extern/vcpkg
+	git checkout -- extern/vcpkg
+
+clean: clean-vendor clean-gui clean-vcpkg
 	rm -rf vendor-cache
 	rm -rf cmd/Desktop-Bridge/deploy
 	rm -rf cmd/Import-Export/deploy
 	rm -f build last.log mem.pprof main.go
-	rm -f resource.syso
+	rm -f ${RESOURCE_FILE}
 	rm -f release-notes/bridge.html
 	rm -f release-notes/import-export.html
+
 
 .PHONY: generate
 generate:
