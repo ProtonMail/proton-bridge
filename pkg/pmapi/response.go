@@ -105,17 +105,27 @@ func logConnReuse(_ *resty.Client, res *resty.Response) error {
 func catchRetryAfter(_ *resty.Client, res *resty.Response) (time.Duration, error) {
 	if res.StatusCode() == http.StatusTooManyRequests {
 		if after := res.Header().Get("Retry-After"); after != "" {
+			l := log.
+				WithField("statusCode", res.StatusCode()).
+				WithField("url", res.Request.URL).
+				WithField("verb", res.Request.Method)
+
 			seconds, err := strconv.Atoi(after)
 			if err != nil {
-				log.WithError(err).Warning("Cannot convert Retry-After to number")
+				l.WithError(err).Warning("Cannot convert Retry-After to number")
 				seconds = 10
 			}
 
 			// To avoid spikes when all clients retry at the same time, we add some random wait.
 			seconds += rand.Intn(10) //nolint:gosec // It is OK to use weak random number generator here.
+			l = l.WithField("seconds", seconds).WithField("start", time.Now().Unix())
 
-			log.Warningf("Retrying %s after %ds induced by http code %d", res.Request.URL, seconds, res.StatusCode())
-			return time.Duration(seconds) * time.Second, nil
+			// Maximum retry time in client is is one minute. But
+			// here wait times can be longer e.g. high API load
+			l.Warn("Retrying after induced by http code. Waiting now...")
+			time.Sleep(time.Duration(seconds) * time.Second)
+			l.Warn("Wait done")
+			return 0, nil
 		}
 	}
 

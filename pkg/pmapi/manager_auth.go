@@ -62,6 +62,10 @@ func (m *manager) NewClientWithLogin(ctx context.Context, username string, passw
 		return nil, nil, err
 	}
 
+	// Do not retry requests after this point. The ephemeral from auth info
+	// won't be valid any more
+	ctx = ContextWithoutRetry(ctx)
+
 	auth, err := m.auth(ctx, AuthReq{
 		Username:        username,
 		ClientProof:     base64.StdEncoding.EncodeToString(proofs.ClientProof),

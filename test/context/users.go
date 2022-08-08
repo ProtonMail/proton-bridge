@@ -21,6 +21,7 @@ import (
 	"context"
 	"fmt"
 	"math/rand"
+	"os"
 	"path/filepath"
 	"time"
 
@@ -29,6 +30,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/v2/internal/users"
 	"github.com/ProtonMail/proton-bridge/v2/pkg/pmapi"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -52,14 +54,20 @@ func (ctx *TestContext) LoginUser(username string, password, mailboxPassword []b
 		}
 	}
 
-	userID, err := ctx.users.FinishLogin(client, auth, mailboxPassword)
+	user, err := ctx.users.FinishLogin(client, auth, mailboxPassword)
 	if err != nil {
 		return errors.Wrap(err, "failed to finish login")
 	}
 
-	ctx.addCleanupChecked(func() error {
-		return ctx.bridge.LogoutUser(userID)
-	}, "Logging out user")
+	ctx.addCleanupChecked(
+		func() error {
+			if os.Getenv(EnvName) == EnvLive {
+				logrus.Warn("Pausing user.Logout by two minutes to not hit issues with too many login attempts.")
+				time.Sleep(2 * time.Minute)
+			}
+			return user.Logout()
+		}, "Logging out user",
+	)
 
 	return nil
 }
@@ -75,14 +83,12 @@ func (ctx *TestContext) FinishLogin(client pmapi.Client, mailboxPassword []byte)
 		return errors.New("cannot get current auth tokens from client")
 	}
 
-	userID, err := ctx.users.FinishLogin(client, c.GetCurrentAuth(), mailboxPassword)
+	user, err := ctx.users.FinishLogin(client, c.GetCurrentAuth(), mailboxPassword)
 	if err != nil {
 		return errors.Wrap(err, "failed to finish login")
 	}
 
-	ctx.addCleanupChecked(func() error {
-		return ctx.bridge.LogoutUser(userID)
-	}, "Logging out user")
+	ctx.addCleanupChecked(user.Logout, "Logging out user")
 
 	return nil
 }

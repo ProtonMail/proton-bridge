@@ -85,7 +85,7 @@ func newManager(cfg Config) *manager {
 	// The resty is increasing the delay between retries up to 1 minute
 	// (SetRetryMaxWaitTime) so for 10 retries the cumulative delay can be
 	// up to 5min.
-	m.rc.SetRetryCount(5)
+	m.rc.SetRetryCount(3)
 	m.rc.SetRetryMaxWaitTime(time.Minute)
 	m.rc.SetRetryAfter(catchRetryAfter)
 	m.rc.AddRetryCondition(m.shouldRetry)
