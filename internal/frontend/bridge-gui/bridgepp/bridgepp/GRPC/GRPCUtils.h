@@ -16,8 +16,8 @@
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 
-#ifndef BRIDGE_GUI_GRPC_UTILS_H
-#define BRIDGE_GUI_GRPC_UTILS_H
+#ifndef BRIDGE_PP_GRPC_UTILS_H
+#define BRIDGE_PP_GRPC_UTILS_H
 
 
 #include "../User/User.h"
@@ -42,4 +42,4 @@ SPUser userFromGRPC(grpc::User const &grpcUser); ///< Create a bridgepp::User fr
 }
 
 
-#endif // BRIDGE_GUI_GRPC_UTILS_H
+#endif // BRIDGE_PP_GRPC_UTILS_H

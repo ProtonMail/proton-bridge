@@ -52,7 +52,7 @@ ApplicationWindow {
         target: Backend.users
 
         function onRowsInserted(parent, first, last) {
-            // considerring that users are added one-by-one
+            // considering that users are added one-by-one
             var user = Backend.users.get(first)
 
             if (!user.loggedIn) {
@@ -130,7 +130,7 @@ ApplicationWindow {
             Layout.fillHeight: true
             Layout.fillWidth: true
 
-            onShowSetupGuide: {
+            onShowSetupGuide: function(user, address) {
                 root.showSetup(user,address)
             }
         }

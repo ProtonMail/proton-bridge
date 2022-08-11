@@ -45,7 +45,6 @@ SettingsView {
         type: Label.Body
         color: root.colorScheme.text_weak
         Layout.fillWidth: true
-        Layout.maximumWidth: this.parent.Layout.maximumWidth
         wrapMode: Text.WordWrap
     }
 

@@ -19,6 +19,6 @@
 #ifndef BRIDGE_GUI_VERSION_H
 #define BRIDGE_GUI_VERSION_H
 
-#define PROJECT_VER  "2.2.1+git"
+#define PROJECT_VER  "2.2.2+git"
 
 #endif // BRIDGE_GUI_VERSION_H

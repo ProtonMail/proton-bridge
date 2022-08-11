@@ -16,8 +16,8 @@
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 
-#ifndef BRIDGE_GUI_TESTER_EVENT_FACTORY_H
-#define BRIDGE_GUI_TESTER_EVENT_FACTORY_H
+#ifndef BRIDGE_PP_EVENT_FACTORY_H
+#define BRIDGE_PP_EVENT_FACTORY_H
 
 
 #include "bridge.grpc.pb.h"
@@ -85,4 +85,4 @@ SPStreamEvent newUserChangedEvent(QString const &userID); ///< Create a new User
 } // namespace bridgepp
 
 
-#endif //BRIDGE_GUI_TESTER_EVENT_FACTORY_H
+#endif //BRIDGE_PP_EVENT_FACTORY_H

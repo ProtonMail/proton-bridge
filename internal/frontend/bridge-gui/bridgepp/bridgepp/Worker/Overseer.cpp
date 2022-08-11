@@ -109,6 +109,26 @@ bool Overseer::isFinished() const
 
 
 //****************************************************************************************************************************************************
+/// \param timeoutMs The timeout after which the function should return false if the event stream reader is not finished. if -1 one, the function
+/// never times out.
+/// \return false if and only if the timeout delay was reached.
+//****************************************************************************************************************************************************
+bool Overseer::wait(qint32 timeoutMs) const
+{
+    QElapsedTimer timer;
+    timer.start();
+
+    while (!this->isFinished()) {
+        if ((timeoutMs >= 0) && (timer.elapsed() > timeoutMs))
+            return false;
+        QThread::msleep(10);
+    }
+
+    return true;
+}
+
+
+//****************************************************************************************************************************************************
 /// \return The worker.
 //****************************************************************************************************************************************************
 Worker *Overseer::worker() const

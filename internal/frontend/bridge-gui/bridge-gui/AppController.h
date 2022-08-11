@@ -21,7 +21,6 @@
 
 
 class QMLBackend;
-class BridgeMonitor;
 
 
 namespace bridgepp
@@ -29,6 +28,7 @@ namespace bridgepp
 class Log;
 class Overseer;
 class GRPCClient;
+class ProcessMonitor;
 }
 
 
@@ -50,7 +50,7 @@ public: // member functions.
     bridgepp::GRPCClient& grpc() { return *grpc_; } ///< Return a reference to the GRPC client.
     bridgepp::Log& log() { return *log_; } ///< Return a reference to the log.
     std::unique_ptr<bridgepp::Overseer>& bridgeOverseer() { return bridgeOverseer_; }; ///< Returns a reference the bridge overseer
-    BridgeMonitor* bridgeMonitor() const; ///< Return the bridge worker.
+    bridgepp::ProcessMonitor* bridgeMonitor() const; ///< Return the bridge worker.
 
 private: // member functions
     AppController(); ///< Default constructor.

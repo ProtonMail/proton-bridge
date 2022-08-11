@@ -16,8 +16,8 @@
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 
-#ifndef BRIDGE_GUI_USER_H
-#define BRIDGE_GUI_USER_H
+#ifndef BRIDGE_PP_USER_H
+#define BRIDGE_PP_USER_H
 
 
 namespace bridgepp
@@ -127,4 +127,4 @@ private: // data members.
 } // namespace bridgepp
 
 
-#endif // BRIDGE_GUI_USER_H
+#endif // BRIDGE_PP_USER_H

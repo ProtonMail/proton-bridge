@@ -31,8 +31,8 @@ using namespace bridgepp;
 EventStreamReader::EventStreamReader(QObject *parent)
     : Worker(parent)
 {
-    connect(this, &EventStreamReader::started, [&]() { app().log().debug("EventStreamReader started");});
-    connect(this, &EventStreamReader::finished, [&]() { app().log().debug("EventStreamReader finished");});
+    connect(this, &EventStreamReader::started, [&]() { app().log().debug("EventStreamReader started"); });
+    connect(this, &EventStreamReader::finished, [&]() { app().log().debug("EventStreamReader finished"); });
     connect(this, &EventStreamReader::error, &app().log(), &Log::error);
 }
 

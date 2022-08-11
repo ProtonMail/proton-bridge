@@ -82,7 +82,6 @@ endif()
 add_executable(bridge-gui
     Resources.qrc
     AppController.cpp AppController.h
-    BridgeMonitor.cpp BridgeMonitor.h
     EventStreamWorker.cpp EventStreamWorker.h
     main.cpp
     Pch.h

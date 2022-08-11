@@ -73,6 +73,18 @@ void QMLBackend::init()
     this->retrieveUserList();
 }
 
+
+//****************************************************************************************************************************************************
+/// \param timeoutMs The timeout after which the function should return false if the event stream reader is not finished. if -1 one, the function
+/// never times out.
+/// \return false if and only if the timeout delay was reached.
+//****************************************************************************************************************************************************
+bool QMLBackend::waitForEventStreamReaderToFinish(qint32 timeoutMs)
+{
+    return eventStreamOverseer_->wait(timeoutMs);
+}
+
+
 //****************************************************************************************************************************************************
 //
 //****************************************************************************************************************************************************
@@ -87,6 +99,7 @@ void QMLBackend::connectGrpcEvents()
     connect(client, &GRPCClient::reportBugFinished, this, &QMLBackend::reportBugFinished);
     connect(client, &GRPCClient::reportBugSuccess, this, &QMLBackend::bugReportSendSuccess);
     connect(client, &GRPCClient::reportBugError, this, &QMLBackend::bugReportSendError);
+    connect(client, &GRPCClient::showMainWindow, this, &QMLBackend::showMainWindow);
 
     // cache events
     connect(client, &GRPCClient::isCacheOnDiskEnabledChanged, this, &QMLBackend::isDiskCacheEnabledChanged);
@@ -165,15 +178,6 @@ void QMLBackend::retrieveUserList()
         QQmlEngine::setObjectOwnership(user.get(), QQmlEngine::CppOwnership);
 
     users_->reset(users);
-}
-
-
-//****************************************************************************************************************************************************
-//
-//****************************************************************************************************************************************************
-void QMLBackend::clearUserList()
-{
-    users_->reset();
 }
 
 

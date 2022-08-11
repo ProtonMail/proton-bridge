@@ -91,6 +91,7 @@ void UserList::reset()
     this->beginResetModel();
     users_.clear();
     this->endResetModel();
+    emit countChanged(0);
 }
 
 
@@ -102,6 +103,7 @@ void UserList::reset(QList<SPUser> const &users)
     this->beginResetModel();
     users_ = users;
     this->endResetModel();
+    emit countChanged(users_.size());
 }
 
 
@@ -114,6 +116,7 @@ void UserList::appendUser(SPUser const &user)
     this->beginInsertRows(QModelIndex(), size, size);
     users_.append(user);
     this->endInsertRows();
+    emit countChanged(users_.size());
 }
 
 
@@ -127,6 +130,7 @@ void UserList::removeUserAt(int row)
     this->beginRemoveRows(QModelIndex(), row, row);
     users_.removeAt(row);
     this->endRemoveRows();
+    emit countChanged(users_.size());
 }
 
 

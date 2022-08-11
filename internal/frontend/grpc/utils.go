@@ -64,7 +64,7 @@ func grpcUserFromBridge(user types.User) *User {
 		Username:       user.Username(),
 		AvatarText:     getInitials(user.Username()),
 		LoggedIn:       user.IsConnected(),
-		SplitMode:      user.IsCombinedAddressMode(),
+		SplitMode:      !user.IsCombinedAddressMode(),
 		SetupGuideSeen: true, // users listed have already seen the setup guide.
 		UsedBytes:      user.UsedBytes(),
 		TotalBytes:     user.TotalBytes(),

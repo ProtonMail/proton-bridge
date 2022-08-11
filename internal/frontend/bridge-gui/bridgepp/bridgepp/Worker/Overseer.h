@@ -41,6 +41,7 @@ public: // member functions.
     Overseer &operator=(Overseer const &) = delete; ///< Disabled assignment operator.
     Overseer &operator=(Overseer &&) = delete; ///< Disabled move assignment operator.
     bool isFinished() const; ///< Check if the worker is finished.
+    bool wait(qint32 timeoutMs) const; ///< Wait for the worker to finish.
     Worker *worker() const; ///< Return worker.
 
 public slots:

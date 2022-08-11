@@ -19,7 +19,6 @@
 #include "MainWindow.h"
 #include "AppController.h"
 #include "GRPCServerWorker.h"
-#include <bridgepp/BridgeUtils.h>
 #include <bridgepp/Exception/Exception.h>
 #include <bridgepp/Worker/Overseer.h>
 
@@ -58,35 +57,30 @@ int main(int argc, char **argv)
         QApplication::setOrganizationDomain("proton.ch");
         QApplication::setQuitOnLastWindowClosed(true);
 
-        app().log().setEchoInConsole(true);
-        app().log().info(QString("%1 started.").arg(applicationName));
+        Log& log = app().log();
+        log.setEchoInConsole(true);
+        log.info(QString("%1 started.").arg(applicationName));
 
         MainWindow window(nullptr);
         app().setMainWindow(&window);
         window.setWindowTitle(QApplication::applicationName());
         window.show();
 
-        GRPCServerWorker *serverWorker = new GRPCServerWorker(nullptr);
+        auto *serverWorker = new GRPCServerWorker(nullptr);
         QObject::connect(serverWorker, &Worker::started, []() { app().log().info("Server worker started."); });
         QObject::connect(serverWorker, &Worker::finished, []() { app().log().info("Server worker finished."); });
-        QObject::connect(serverWorker, &Worker::error, [](QString const &message) {
-            throw Exception(QString("gRPC Server encountered an error: %1").arg(message));
-        });
+        QObject::connect(serverWorker, &Worker::error, [&](QString const &message) { app().log().error(message); qApp->exit(EXIT_FAILURE); });
         UPOverseer overseer = std::make_unique<Overseer>(serverWorker, nullptr);
         overseer->startWorker(true);
 
         qint32 const exitCode = QApplication::exec();
 
         serverWorker->stop();
-        while (!overseer->isFinished())
-        {
-            QThread::msleep(10);
-        }
+        if (!overseer->wait(5000))
+            log.warn("gRPC server took too long to finish.");
 
         app().log().info(QString("%1 exiting with code %2.").arg(applicationName).arg(exitCode));
-
         return exitCode;
-
     }
     catch (Exception const &e)
     {

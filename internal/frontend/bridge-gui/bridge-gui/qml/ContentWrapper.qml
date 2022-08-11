@@ -258,7 +258,7 @@ Item {
                         signIn.username = this.user.username
                         rightContent.showSignIn()
                     }
-                    onShowSetupGuide: {
+                    onShowSetupGuide: function(user, address) {
                         root.showSetupGuide(user,address)
                     }
                 }

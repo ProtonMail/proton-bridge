@@ -17,11 +17,11 @@
 
 
 #include "QMLBackend.h"
-#include "BridgeMonitor.h"
 #include "Version.h"
 #include <bridgepp/Log/Log.h>
 #include <bridgepp/BridgeUtils.h>
 #include <bridgepp/Exception/Exception.h>
+#include <bridgepp/ProcessMonitor.h>
 
 
 using namespace bridgepp;
@@ -29,10 +29,29 @@ using namespace bridgepp;
 
 namespace
 {
+
+/// \brief The file extension for the bridge executable file.
+#ifdef Q_OS_WIN32
+    QString const exeSuffix = ".exe";
+#else
+    QString const exeSuffix;
+#endif
+
     QString const launcherFlag = "--launcher"; ///< launcher flag parameter used for bridge.
     QString const bridgeLock = "bridge-gui.lock"; ///< file name used for the lock file.
+    QString const exeName = "proton-bridge" + exeSuffix; ///< The bridge executable file name.*
 }
 
+
+//****************************************************************************************************************************************************
+/// \return The path of the bridge executable.
+/// \return A null string if the executable could not be located.
+//****************************************************************************************************************************************************
+QString locateBridgeExe()
+{
+    QFileInfo const fileInfo(QDir(QCoreApplication::applicationDirPath()).absoluteFilePath(exeName));
+    return  (fileInfo.exists() && fileInfo.isFile() && fileInfo.isExecutable()) ? fileInfo.absoluteFilePath() : QString();
+}
 
 //****************************************************************************************************************************************************
 /// // initialize the Qt application.
@@ -93,7 +112,7 @@ QQmlComponent *createRootQmlComponent(QQmlApplicationEngine &engine)
 
 //****************************************************************************************************************************************************
 /// \param[in] lock The lock file to be checked.
-/// \return True if the lock can be taken, false otherwize. 
+/// \return True if the lock can be taken, false otherwise.
 //****************************************************************************************************************************************************
 bool checkSingleInstance(QLockFile &lock)
 {
@@ -168,14 +187,14 @@ void launchBridge(QStringList const &args)
     UPOverseer& overseer = app().bridgeOverseer();
     overseer.reset();
 
-    const QString bridgeExePath = BridgeMonitor::locateBridgeExe();
+    const QString bridgeExePath = locateBridgeExe();
 
     if (bridgeExePath.isEmpty())
         throw Exception("Could not locate the bridge executable path");
     else
         app().log().debug(QString("Bridge executable path: %1").arg(QDir::toNativeSeparators(bridgeExePath)));
 
-    overseer = std::make_unique<Overseer>(new BridgeMonitor(bridgeExePath, args, nullptr), nullptr);
+    overseer = std::make_unique<Overseer>(new ProcessMonitor(bridgeExePath, args, nullptr), nullptr);
     overseer->startWorker(true);
 }
 
@@ -234,16 +253,16 @@ int main(int argc, char *argv[])
         if (!rootObject)
             throw Exception("Could not create root object.");
 
-        BridgeMonitor *bridgeMonitor = app().bridgeMonitor();
+        ProcessMonitor *bridgeMonitor = app().bridgeMonitor();
         bool bridgeExited = false;
         bool startError = false;
         QMetaObject::Connection connection;
         if (bridgeMonitor)
         {
-            const BridgeMonitor::MonitorStatus& status = bridgeMonitor->getStatus();
+            const ProcessMonitor::MonitorStatus& status = bridgeMonitor->getStatus();
             if (!status.running && !attach)
             {
-                // BridgeMonitor already stopped meaning we are attached to an orphan Bridge.
+                // ProcessMonitor already stopped meaning we are attached to an orphan Bridge.
                 // Restart the full process to be sure there is no more bridge orphans
                 app().log().error("Found orphan bridge, need to restart.");
                 app().backend().forceLauncher(launcher);
@@ -254,7 +273,7 @@ int main(int argc, char *argv[])
             else
             {
                 app().log().debug(QString("Monitoring Bridge PID : %1").arg(status.pid));
-                connection = QObject::connect(bridgeMonitor, &BridgeMonitor::processExited, [&](int returnCode) {
+                connection = QObject::connect(bridgeMonitor, &ProcessMonitor::processExited, [&](int returnCode) {
                     bridgeExited = true;// clazy:exclude=lambda-in-connect
                     qGuiApp->exit(returnCode);
                 });
@@ -267,6 +286,8 @@ int main(int argc, char *argv[])
 
         QObject::disconnect(connection);
         app().grpc().stopEventStream();
+        if (!app().backend().waitForEventStreamReaderToFinish(5000))
+            log.warn("Event stream reader took too long to finish.");
 
         // We manually delete the QML components to avoid warnings error due to order of deletion of C++ / JS objects and singletons.
         rootObject.reset();
@@ -280,7 +301,7 @@ int main(int argc, char *argv[])
     }
     catch (Exception const &e)
     {
-        app().log().error(e.qwhat());
+        QTextStream(stderr) << e.qwhat() << "\n";
         return EXIT_FAILURE;
     }
 }

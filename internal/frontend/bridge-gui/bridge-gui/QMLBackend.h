@@ -42,7 +42,7 @@ public: // member functions.
     QMLBackend &operator=(QMLBackend const &) = delete; ///< Disabled assignment operator.
     QMLBackend &operator=(QMLBackend &&) = delete; ///< Disabled move assignment operator.
     void init(); ///< Initialize the backend.
-    void clearUserList(); ///< Clear the user list.
+    bool waitForEventStreamReaderToFinish(qint32 timeoutMs); ///< Wait for the event stream reader to finish.
 
     // invokable methods can be called from QML. They generally return a value, which slots cannot do.
     Q_INVOKABLE static QPoint getCursorPos();                                                                                                         //   _ func() *core.QPoint             `slot:"getCursorPos"`

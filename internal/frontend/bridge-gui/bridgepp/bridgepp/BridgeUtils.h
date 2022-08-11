@@ -16,14 +16,15 @@
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 
-#ifndef BRIDGE_GUI_TESTER_BRIDGE_UTILS_H
-#define BRIDGE_GUI_TESTER_BRIDGE_UTILS_H
+#ifndef BRIDGE_PP_TESTER_BRIDGE_UTILS_H
+#define BRIDGE_PP_TESTER_BRIDGE_UTILS_H
 
 
 #include <bridgepp/User/User.h>
 
 
-namespace bridgepp {
+namespace bridgepp
+{
 
 
 QString userConfigDir(); ///< Get the path of the user configuration folder.
@@ -34,8 +35,8 @@ QString randomFirstName(); ///< Get a random first name from a pre-determined li
 QString randomLastName(); ///< Get a random first name from a pre-determined list.
 SPUser randomUser(); ///< Get a random user.
 
+
 } // namespace
 
 
-
-#endif // BRIDGE_GUI_TESTER_BRIDGE_UTILS_H
+#endif // BRIDGE_PP_TESTER_BRIDGE_UTILS_H

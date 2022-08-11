@@ -16,8 +16,8 @@
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 
-#ifndef BRIDGE_GUI_RPC_CLIENT_H
-#define BRIDGE_GUI_RPC_CLIENT_H
+#ifndef BRIDGE_PP_RPC_CLIENT_H
+#define BRIDGE_PP_RPC_CLIENT_H
 
 
 #include "../User/User.h"
@@ -233,4 +233,4 @@ private: // data members.
 }
 
 
-#endif // BRIDGE_GUI_RPC_CLIENT_H
+#endif // BRIDGE_PP_RPC_CLIENT_H
