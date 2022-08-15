@@ -316,7 +316,7 @@ Status GRPCService::CurrentEmailClient(ServerContext *, Empty const *, StringVal
 
 
 //****************************************************************************************************************************************************
-/// \param[in] response The request.
+/// \param[in] request The request.
 /// \return The status for the call.
 //****************************************************************************************************************************************************
 Status GRPCService::ForceLauncher(ServerContext *, StringValue const *request, Empty *)
@@ -660,7 +660,8 @@ Status GRPCService::ChangePorts(ServerContext *, ChangePortsRequest const *reque
 
 
 //****************************************************************************************************************************************************
-/// \param[out] response the response.
+/// \param[in] request The request.
+/// \param[out] response The response.
 /// \return The status for the call.
 //****************************************************************************************************************************************************
 Status GRPCService::IsPortFree(ServerContext *, Int32Value const *request, BoolValue *response)

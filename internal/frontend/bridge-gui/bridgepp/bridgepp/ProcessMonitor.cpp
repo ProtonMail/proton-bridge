@@ -26,6 +26,7 @@ namespace bridgepp
 
 //****************************************************************************************************************************************************
 /// \param[in] exePath The path of the executable.
+/// \param[in] args The list of command-line arguments.
 /// \param[in] parent The parent object of the worker.
 //****************************************************************************************************************************************************
 ProcessMonitor::ProcessMonitor(QString const &exePath, QStringList const &args, QObject *parent)

@@ -51,7 +51,9 @@ int UserTable::columnCount(QModelIndex const &) const
 
 
 //****************************************************************************************************************************************************
-/// \param[in]
+/// \param[in] index The model index.
+/// \param[in] role The role to retrieve data for.
+/// \return The data for the role at the given index.
 //****************************************************************************************************************************************************
 QVariant UserTable::data(QModelIndex const &index, int role) const
 {

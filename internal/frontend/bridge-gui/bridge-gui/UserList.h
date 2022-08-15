@@ -39,7 +39,6 @@ public: // member functions.
     void connectGRPCEvents() const; ///< Connects gRPC event to the model.
     int rowCount(QModelIndex const &parent) const override; ///< Return the number of row in the model
     QVariant data(QModelIndex const &index, int role) const override; ///< Retrieve model data.
-    void reset(); ///< Reset the user list.
     void reset(QList<bridgepp::SPUser> const &users); ///< Replace the user list.
     int rowOfUserID(QString const &userID) const;
     void removeUserAt(int row); ///< Remove the user at a given row

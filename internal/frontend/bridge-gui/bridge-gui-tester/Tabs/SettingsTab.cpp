@@ -146,7 +146,7 @@ bool SettingsTab::isFirstGUIStart() const
 
 
 //****************************************************************************************************************************************************
-/// \return true iff the 'Show Splash Screen' check box is checked.
+/// \return true iff autosart is on.
 //****************************************************************************************************************************************************
 bool SettingsTab::isAutostartOn() const
 {
@@ -155,7 +155,7 @@ bool SettingsTab::isAutostartOn() const
 
 
 //****************************************************************************************************************************************************
-/// \return true iff the 'Show Splash Screen' check box is checked.
+/// \param[in] on Should autostart be turned on?
 //****************************************************************************************************************************************************
 void SettingsTab::setIsAutostartOn(bool on)
 {
@@ -376,6 +376,7 @@ bool SettingsTab::isCacheOnDiskEnabled() const
 
 //****************************************************************************************************************************************************
 /// \param[in] enabled Is the cache on disk enabled?
+/// \param[in] path The path of the local cache.
 //****************************************************************************************************************************************************
 void SettingsTab::changeLocalCache(bool enabled, QString const &path)
 {
