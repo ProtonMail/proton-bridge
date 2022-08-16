@@ -283,19 +283,19 @@ PROTOBUF_NAMESPACE_CLOSE
 namespace grpc {
 
 enum LogLevel : int {
-  PANIC = 0,
-  FATAL = 1,
-  ERROR = 2,
-  WARN = 3,
-  INFO = 4,
-  DEBUG = 5,
-  TRACE = 6,
+  LOG_PANIC = 0,
+  LOG_FATAL = 1,
+  LOG_ERROR = 2,
+  LOG_WARN = 3,
+  LOG_INFO = 4,
+  LOG_DEBUG = 5,
+  LOG_TRACE = 6,
   LogLevel_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::min(),
   LogLevel_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::max()
 };
 bool LogLevel_IsValid(int value);
-constexpr LogLevel LogLevel_MIN = PANIC;
-constexpr LogLevel LogLevel_MAX = TRACE;
+constexpr LogLevel LogLevel_MIN = LOG_PANIC;
+constexpr LogLevel LogLevel_MAX = LOG_TRACE;
 constexpr int LogLevel_ARRAYSIZE = LogLevel_MAX + 1;
 
 const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* LogLevel_descriptor();

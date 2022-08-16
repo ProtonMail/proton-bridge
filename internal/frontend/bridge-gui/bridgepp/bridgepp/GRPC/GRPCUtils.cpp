@@ -21,13 +21,6 @@
 #include "../BridgeUtils.h"
 
 
-#if defined(Q_OS_WIN32) && defined(ERROR)
-// The folks at Microsoft have decided that it was OK to `#define ERROR 0` in wingdi.h. It is not OK, because
-// any occurrence of ERROR, even scoped, will be substituted. For instance Log::Level::ERROR (case imposed by gRPC).
-#undef ERROR
-#endif
-
-
 namespace bridgepp
 {
 
@@ -85,19 +78,19 @@ grpc::LogLevel logLevelToGRPC(Log::Level level)
     switch (level)
     {
     case Log::Level::Panic:
-        return grpc::LogLevel::PANIC;
+        return grpc::LogLevel::LOG_PANIC;
     case Log::Level::Fatal:
-        return grpc::LogLevel::FATAL;
+        return grpc::LogLevel::LOG_FATAL;
     case Log::Level::Error:
-        return grpc::LogLevel::ERROR;
+        return grpc::LogLevel::LOG_ERROR;
     case Log::Level::Warn:
-        return grpc::LogLevel::WARN;
+        return grpc::LogLevel::LOG_WARN;
     case Log::Level::Info:
-        return grpc::LogLevel::INFO;
+        return grpc::LogLevel::LOG_INFO;
     case Log::Level::Debug:
-        return grpc::LogLevel::DEBUG;
+        return grpc::LogLevel::LOG_DEBUG;
     case Log::Level::Trace:
-        return grpc::LogLevel::TRACE;
+        return grpc::LogLevel::LOG_TRACE;
     default:
         throw Exception(QString("unknown log level %1.").arg(qint32(level)));
     }
@@ -112,19 +105,19 @@ Log::Level logLevelFromGRPC(grpc::LogLevel level)
 {
     switch (level)
     {
-    case grpc::PANIC:
+    case grpc::LOG_PANIC:
         return Log::Level::Panic;
-    case grpc::FATAL:
+    case grpc::LOG_FATAL:
         return Log::Level::Fatal;
-    case grpc::ERROR:
+    case grpc::LOG_ERROR:
         return Log::Level::Error;
-    case grpc::WARN:
+    case grpc::LOG_WARN:
         return Log::Level::Warn;
-    case grpc::INFO:
+    case grpc::LOG_INFO:
         return Log::Level::Info;
-    case grpc::DEBUG:
+    case grpc::LOG_DEBUG:
         return Log::Level::Debug;
-    case grpc::TRACE:
+    case grpc::LOG_TRACE:
         return Log::Level::Trace;
     default:
         throw Exception(QString("unknown log level %1.").arg(qint32(level)));
@@ -174,8 +167,8 @@ void userToGRPC(User const &user, grpc::User &outGRPCUser)
     outGRPCUser.set_loggedin(user.loggedIn());
     outGRPCUser.set_splitmode(user.splitMode());
     outGRPCUser.set_setupguideseen(user.setupGuideSeen());
-    outGRPCUser.set_usedbytes(user.usedBytes());
-    outGRPCUser.set_totalbytes(user.totalBytes());
+    outGRPCUser.set_usedbytes(qint64(user.usedBytes()));
+    outGRPCUser.set_totalbytes(qint64(user.totalBytes()));
 }
 
 

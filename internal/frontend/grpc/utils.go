@@ -76,19 +76,19 @@ func grpcUserFromBridge(user types.User) *User {
 // logrusLevelFromGrpcLevel converts a gRPC log level to a logrus log level.
 func logrusLevelFromGrpcLevel(level LogLevel) logrus.Level {
 	switch level {
-	case LogLevel_PANIC:
+	case LogLevel_LOG_PANIC:
 		return logrus.PanicLevel
-	case LogLevel_FATAL:
+	case LogLevel_LOG_FATAL:
 		return logrus.FatalLevel
-	case LogLevel_ERROR:
+	case LogLevel_LOG_ERROR:
 		return logrus.ErrorLevel
-	case LogLevel_WARN:
+	case LogLevel_LOG_WARN:
 		return logrus.WarnLevel
-	case LogLevel_INFO:
+	case LogLevel_LOG_INFO:
 		return logrus.InfoLevel
-	case LogLevel_DEBUG:
+	case LogLevel_LOG_DEBUG:
 		return logrus.DebugLevel
-	case LogLevel_TRACE:
+	case LogLevel_LOG_TRACE:
 		return logrus.TraceLevel
 	default:
 		return logrus.ErrorLevel

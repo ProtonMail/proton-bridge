@@ -106,16 +106,17 @@ service Bridge {
 //**********************************************************************************************************************
 
 //**********************************************************
-//  Log related message
+// Log related message
 //**********************************************************
+// Note: the enum values are prefixed with 'LOG_' to avoid a clash in C++ on Windows with the ERROR macro defined in wingdi.h
 enum LogLevel {
-  PANIC = 0;
-  FATAL = 1;
-  ERROR = 2;
-  WARN  = 3;
-  INFO  = 4;
-  DEBUG = 5;
-  TRACE = 6;
+  LOG_PANIC = 0;
+  LOG_FATAL = 1;
+  LOG_ERROR = 2;
+  LOG_WARN  = 3;
+  LOG_INFO  = 4;
+  LOG_DEBUG = 5;
+  LOG_TRACE = 6;
 }
 
 message AddLogEntryRequest {
