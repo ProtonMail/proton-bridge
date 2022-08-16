@@ -28,10 +28,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ProtonMail/proton-bridge/internal/bridge"
-	"github.com/ProtonMail/proton-bridge/internal/config/useragent"
-	"github.com/ProtonMail/proton-bridge/internal/frontend/types"
-	"github.com/ProtonMail/proton-bridge/pkg/mobileconfig"
+	"github.com/ProtonMail/proton-bridge/v2/internal/bridge"
+	"github.com/ProtonMail/proton-bridge/v2/internal/config/useragent"
+	"github.com/ProtonMail/proton-bridge/v2/internal/frontend/types"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/mobileconfig"
 	"golang.org/x/sys/execabs"
 )
 

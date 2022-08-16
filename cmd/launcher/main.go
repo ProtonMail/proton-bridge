@@ -98,7 +98,7 @@ func main() { //nolint:funlen
 		logrus.WithError(err).Fatal("Failed to determine path to launcher")
 	}
 
-	cmd := execabs.Command(exe, appendLauncherPath(launcher, os.Args[1:])...) // nolint:gosec
+	cmd := execabs.Command(exe, appendLauncherPath(launcher, os.Args[1:])...) //nolint:gosec
 
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout

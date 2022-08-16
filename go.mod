@@ -73,7 +73,7 @@ require (
 	golang.org/x/net v0.0.0-20220425223048-2871e0cb64e4
 	golang.org/x/sys v0.0.0-20220111092808-5a964db01320
 	golang.org/x/text v0.3.7
-	howett.net/plist v1.0.0 // indirect
+	howett.net/plist v1.0.0
 )
 
 replace (

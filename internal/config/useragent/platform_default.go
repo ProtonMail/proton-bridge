@@ -15,40 +15,13 @@
 // You should have received a copy of the GNU General Public License
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
-//go:build darwin
-// +build darwin
+//go:build !darwin
+// +build !darwin
 
-package theme
+package useragent
 
-import (
-	"os"
-	"path/filepath"
+import "errors"
 
-	"howett.net/plist"
-)
-
-func detectSystemTheme() Theme {
-	home, err := os.UserHomeDir()
-	if err != nil {
-		return Light
-	}
-
-	path := filepath.Join(home, "/Library/Preferences/.GlobalPreferences.plist")
-	prefFile, err := os.Open(path)
-	if err != nil {
-		return Light
-	}
-	defer prefFile.Close()
-
-	var data struct {
-		AppleInterfaceStyle string `plist:AppleInterfaceStyle`
-	}
-
-	dec := plist.NewDecoder(prefFile)
-	err = dec.Decode(&data)
-	if err == nil && data.AppleInterfaceStyle == "Dark" {
-		return Dark
-	}
-
-	return Light
+func getDarwinVersion() (string, error) {
+	return "", errors.New("implemented only for darwin")
 }

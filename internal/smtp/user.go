@@ -313,16 +313,16 @@ func (su *smtpUser) Send(returnPath string, to []string, messageReader io.Reader
 
 	startTime := time.Now()
 	for isSending && time.Since(startTime) < 90*time.Second {
-		log.Debug("Message is still in send queue, waiting for a bit")
+		log.Warn("Message is still in send queue, waiting for a bit")
 		time.Sleep(15 * time.Second)
 		isSending, wasSent = su.backend.sendRecorder.isSendingOrSent(su.client(), sendRecorderMessageHash)
 	}
 	if isSending {
-		log.Debug("Message is still in send queue, returning error to prevent client from adding it to the sent folder prematurely")
+		log.Warn("Message is still in send queue, returning error to prevent client from adding it to the sent folder prematurely")
 		return errors.New("original message is still being sent")
 	}
 	if wasSent {
-		log.Debug("Message was already sent")
+		log.Warn("Message was already sent")
 		return nil
 	}
 

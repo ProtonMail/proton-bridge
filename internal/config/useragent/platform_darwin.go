@@ -15,40 +15,15 @@
 // You should have received a copy of the GNU General Public License
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
+//go:build darwin
+// +build darwin
+
 package useragent
 
 import (
-	"testing"
-
-	"github.com/stretchr/testify/assert"
+	"syscall"
 )
 
-func TestIsVersionCatalinaOrNewer(t *testing.T) {
-	testData := map[struct{ version string }]bool{
-		{""}:       false,
-		{"18.0.0"}: false,
-		{"19.0.0"}: true,
-		{"20.0.0"}: true,
-		{"21.0.0"}: true,
-	}
-
-	for args, exp := range testData {
-		got := isVersionEqualOrNewer(getMinCatalina(), args.version)
-		assert.Equal(t, exp, got, "version %v", args.version)
-	}
-}
-
-func TestIsVersionBigSurOrNewer(t *testing.T) {
-	testData := map[struct{ version string }]bool{
-		{""}:       false,
-		{"18.0.0"}: false,
-		{"19.0.0"}: false,
-		{"20.0.0"}: true,
-		{"21.0.0"}: true,
-	}
-
-	for args, exp := range testData {
-		got := isVersionEqualOrNewer(getMinBigSur(), args.version)
-		assert.Equal(t, exp, got, "version %v", args.version)
-	}
+func getDarwinVersion() (string, error) {
+	return syscall.Sysctl("kern.osrelease")
 }
