@@ -1,8 +1,7 @@
 # bridge-gui
 
 bridge-gui is the graphical user interface for Bridge. It's a C++ [Qt](https://www.qt.io) application  that 
-communicates with the bridge executable via gRPC remote procedure call, on a local-only TLS-secured connection. 
-For more technical details ,see this [RFC](https://confluence.protontech.ch/x/diWHBQ).
+communicates with the bridge executable via gRPC remote procedure call, on a local-only TLS-secured connection.
 
 # Components
 
