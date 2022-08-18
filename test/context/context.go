@@ -22,6 +22,7 @@ import (
 	"sync"
 
 	"github.com/ProtonMail/proton-bridge/v2/internal/bridge"
+	"github.com/ProtonMail/proton-bridge/v2/internal/config/tls"
 	"github.com/ProtonMail/proton-bridge/v2/internal/config/useragent"
 	"github.com/ProtonMail/proton-bridge/v2/internal/users"
 	"github.com/ProtonMail/proton-bridge/v2/pkg/listener"
@@ -43,6 +44,7 @@ type TestContext struct {
 	cache        *fakeCache
 	locations    *fakeLocations
 	settings     *fakeSettings
+	tls          *tls.TLS
 	listener     listener.Listener
 	userAgent    *useragent.UserAgent
 	testAccounts *accounts.TestAccounts
@@ -89,11 +91,15 @@ func New() *TestContext {
 	listener := listener.New()
 	pmapiController, clientManager := newPMAPIController(listener)
 
+	locations := newFakeLocations()
+	settingsPath, _ := locations.ProvideSettingsPath()
+
 	ctx := &TestContext{
 		t:                     &bddT{},
 		cache:                 newFakeCache(),
-		locations:             newFakeLocations(),
+		locations:             locations,
 		settings:              newFakeSettings(),
+		tls:                   tls.New(settingsPath),
 		listener:              listener,
 		userAgent:             useragent.New(),
 		pmapiController:       pmapiController,

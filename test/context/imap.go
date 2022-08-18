@@ -23,7 +23,6 @@ import (
 
 	"github.com/ProtonMail/proton-bridge/v2/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/v2/internal/config/settings"
-	"github.com/ProtonMail/proton-bridge/v2/internal/config/tls"
 	"github.com/ProtonMail/proton-bridge/v2/internal/imap"
 	"github.com/ProtonMail/proton-bridge/v2/test/mocks"
 	"github.com/stretchr/testify/require"
@@ -53,10 +52,9 @@ func (ctx *TestContext) withIMAPServer() {
 		return
 	}
 
-	settingsPath, _ := ctx.locations.ProvideSettingsPath()
 	ph := newPanicHandler(ctx.t)
 	port := ctx.settings.GetInt(settings.IMAPPortKey)
-	tls, _ := tls.New(settingsPath).GetConfig()
+	tls, _ := ctx.tls.GetConfig()
 
 	backend := imap.NewIMAPBackend(ph, ctx.listener, ctx.cache, ctx.settings, ctx.bridge)
 	server := imap.NewIMAPServer(ph, true, true, port, tls, backend, ctx.userAgent, ctx.listener)

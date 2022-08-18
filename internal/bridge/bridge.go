@@ -27,6 +27,7 @@ import (
 	"github.com/Masterminds/semver/v3"
 	"github.com/ProtonMail/go-autostart"
 	"github.com/ProtonMail/proton-bridge/v2/internal/config/settings"
+	"github.com/ProtonMail/proton-bridge/v2/internal/config/tls"
 	"github.com/ProtonMail/proton-bridge/v2/internal/constants"
 	"github.com/ProtonMail/proton-bridge/v2/internal/metrics"
 	"github.com/ProtonMail/proton-bridge/v2/internal/sentry"
@@ -52,6 +53,7 @@ type Bridge struct {
 	clientManager pmapi.Manager
 	updater       Updater
 	versioner     Versioner
+	tls           *tls.TLS
 	cacheProvider CacheProvider
 	autostart     *autostart.App
 	// Bridge's global errors list.
@@ -69,6 +71,7 @@ func New(
 	sentryReporter *sentry.Reporter,
 	panicHandler users.PanicHandler,
 	eventListener listener.Listener,
+	tls *tls.TLS,
 	cache cache.Cache,
 	builder *message.Builder,
 	clientManager pmapi.Manager,
@@ -99,6 +102,7 @@ func New(
 		clientManager:    clientManager,
 		updater:          updater,
 		versioner:        versioner,
+		tls:              tls,
 		cacheProvider:    cacheProvider,
 		autostart:        autostart,
 		isFirstStart:     false,

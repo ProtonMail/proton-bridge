@@ -23,7 +23,6 @@ import (
 
 	"github.com/ProtonMail/proton-bridge/v2/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/v2/internal/config/settings"
-	"github.com/ProtonMail/proton-bridge/v2/internal/config/tls"
 	"github.com/ProtonMail/proton-bridge/v2/internal/smtp"
 	"github.com/ProtonMail/proton-bridge/v2/test/mocks"
 	"github.com/stretchr/testify/require"
@@ -53,9 +52,8 @@ func (ctx *TestContext) withSMTPServer() {
 		return
 	}
 
-	settingsPath, _ := ctx.locations.ProvideSettingsPath()
 	ph := newPanicHandler(ctx.t)
-	tls, _ := tls.New(settingsPath).GetConfig()
+	tls, _ := ctx.tls.GetConfig()
 	port := ctx.settings.GetInt(settings.SMTPPortKey)
 	useSSL := ctx.settings.GetBool(settings.SMTPSSLKey)
 

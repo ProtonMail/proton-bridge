@@ -28,7 +28,6 @@ import (
 
 	"github.com/ProtonMail/proton-bridge/v2/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/v2/internal/config/settings"
-	bridgetls "github.com/ProtonMail/proton-bridge/v2/internal/config/tls"
 	"github.com/ProtonMail/proton-bridge/v2/internal/config/useragent"
 	"github.com/ProtonMail/proton-bridge/v2/internal/events"
 	"github.com/ProtonMail/proton-bridge/v2/internal/frontend/types"
@@ -53,7 +52,6 @@ type Service struct { // nolint:structcheck
 	eventStreamDoneCh chan struct{}
 
 	panicHandler       types.PanicHandler
-	tls                *bridgetls.TLS
 	locations          *locations.Locations
 	settings           *settings.Settings
 	eventListener      listener.Listener
@@ -77,7 +75,6 @@ type Service struct { // nolint:structcheck
 func NewService(
 	showOnStartup bool,
 	panicHandler types.PanicHandler,
-	tls *bridgetls.TLS,
 	locations *locations.Locations,
 	settings *settings.Settings,
 	eventListener listener.Listener,
@@ -91,7 +88,6 @@ func NewService(
 	s := Service{
 		UnimplementedBridgeServer: UnimplementedBridgeServer{},
 		panicHandler:              panicHandler,
-		tls:                       tls,
 		locations:                 locations,
 		settings:                  settings,
 		eventListener:             eventListener,
@@ -111,7 +107,7 @@ func NewService(
 	// set to 1
 	s.initializing.Add(1)
 
-	config, err := tls.GetConfig()
+	config, err := bridge.GetTLSConfig()
 	config.ClientAuth = cryptotls.NoClientCert // skip client auth if the certificate allow it.
 	if err != nil {
 		s.log.WithError(err).Error("could not get TLS config")

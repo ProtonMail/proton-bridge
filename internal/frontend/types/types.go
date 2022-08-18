@@ -19,6 +19,8 @@
 package types
 
 import (
+	"crypto/tls"
+
 	"github.com/ProtonMail/proton-bridge/v2/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/v2/internal/updater"
 	"github.com/ProtonMail/proton-bridge/v2/pkg/pmapi"
@@ -76,6 +78,10 @@ type User interface {
 // Bridger is an interface of bridge needed by frontend.
 type Bridger interface {
 	UserManager
+
+	GetTLSConfig() (*tls.Config, error)
+
+	// -- old --
 
 	ReportBug(osType, osVersion, description, accountName, address, emailClient string, attachLogs bool) error
 	SetProxyAllowed(bool)

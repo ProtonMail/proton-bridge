@@ -19,14 +19,12 @@
 package bridge
 
 import (
-	"crypto/tls"
 	"time"
 
 	"github.com/ProtonMail/proton-bridge/v2/internal/api"
 	"github.com/ProtonMail/proton-bridge/v2/internal/app/base"
 	pkgBridge "github.com/ProtonMail/proton-bridge/v2/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/v2/internal/config/settings"
-	pkgTLS "github.com/ProtonMail/proton-bridge/v2/internal/config/tls"
 	"github.com/ProtonMail/proton-bridge/v2/internal/constants"
 	"github.com/ProtonMail/proton-bridge/v2/internal/frontend"
 	"github.com/ProtonMail/proton-bridge/v2/internal/frontend/types"
@@ -52,7 +50,7 @@ const (
 )
 
 func New(base *base.Base) *cli.App {
-	app := base.NewApp(mailLoop)
+	app := base.NewApp(main)
 
 	app.Flags = append(app.Flags, []cli.Flag{
 		&cli.StringFlag{
@@ -72,12 +70,7 @@ func New(base *base.Base) *cli.App {
 	return app
 }
 
-func mailLoop(b *base.Base, c *cli.Context) error { //nolint:funlen
-	tlsConfig, err := loadTLSConfig(b)
-	if err != nil {
-		return err
-	}
-
+func main(b *base.Base, c *cli.Context) error { //nolint:funlen
 	// GODT-1481: Always turn off reporting of unencrypted recipient in v2.
 	b.Settings.SetBool(settings.ReportOutgoingNoEncKey, false)
 
@@ -98,6 +91,7 @@ func mailLoop(b *base.Base, c *cli.Context) error { //nolint:funlen
 		b.SentryReporter,
 		b.CrashHandler,
 		b.Listener,
+		b.TLS,
 		cache,
 		builder,
 		b.CM,
@@ -108,6 +102,11 @@ func mailLoop(b *base.Base, c *cli.Context) error { //nolint:funlen
 	)
 	imapBackend := imap.NewIMAPBackend(b.CrashHandler, b.Listener, b.Cache, b.Settings, bridge)
 	smtpBackend := smtp.NewSMTPBackend(b.CrashHandler, b.Listener, b.Settings, bridge)
+
+	tlsConfig, err := bridge.GetTLSConfig()
+	if err != nil {
+		return err
+	}
 
 	if cacheErr != nil {
 		bridge.AddError(pkgBridge.ErrLocalCacheUnavailable)
@@ -159,7 +158,6 @@ func mailLoop(b *base.Base, c *cli.Context) error { //nolint:funlen
 		frontendMode,
 		!c.Bool(base.FlagNoWindow),
 		b.CrashHandler,
-		b.TLS,
 		b.Locations,
 		b.Settings,
 		b.Listener,
@@ -181,44 +179,6 @@ func mailLoop(b *base.Base, c *cli.Context) error { //nolint:funlen
 	}()
 
 	return f.Loop()
-}
-
-func loadTLSConfig(b *base.Base) (*tls.Config, error) {
-	if !b.TLS.HasCerts() {
-		if err := generateTLSCerts(b); err != nil {
-			return nil, err
-		}
-	}
-
-	tlsConfig, err := b.TLS.GetConfig()
-	if err == nil {
-		return tlsConfig, nil
-	}
-
-	logrus.WithError(err).Error("Failed to load TLS config, regenerating certificates")
-
-	if err := generateTLSCerts(b); err != nil {
-		return nil, err
-	}
-
-	return b.TLS.GetConfig()
-}
-
-func generateTLSCerts(b *base.Base) error {
-	template, err := pkgTLS.NewTLSTemplate()
-	if err != nil {
-		return errors.Wrap(err, "failed to generate TLS template")
-	}
-
-	if err := b.TLS.GenerateCerts(template); err != nil {
-		return errors.Wrap(err, "failed to generate TLS certs")
-	}
-
-	if err := b.TLS.InstallCerts(); err != nil {
-		return errors.Wrap(err, "failed to install TLS certs")
-	}
-
-	return nil
 }
 
 func checkAndHandleUpdate(u types.Updater, f frontend.Frontend, autoUpdate bool) {
