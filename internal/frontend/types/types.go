@@ -81,6 +81,10 @@ type Bridger interface {
 
 	GetTLSConfig() (*tls.Config, error)
 
+	ProvideLogsPath() (string, error)
+	GetLicenseFilePath() string
+	GetDependencyLicensesLink() string
+
 	// -- old --
 
 	ReportBug(osType, osVersion, description, accountName, address, emailClient string, attachLogs bool) error

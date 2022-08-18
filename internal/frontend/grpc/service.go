@@ -31,7 +31,6 @@ import (
 	"github.com/ProtonMail/proton-bridge/v2/internal/config/useragent"
 	"github.com/ProtonMail/proton-bridge/v2/internal/events"
 	"github.com/ProtonMail/proton-bridge/v2/internal/frontend/types"
-	"github.com/ProtonMail/proton-bridge/v2/internal/locations"
 	"github.com/ProtonMail/proton-bridge/v2/internal/updater"
 	"github.com/ProtonMail/proton-bridge/v2/internal/users"
 	"github.com/ProtonMail/proton-bridge/v2/pkg/keychain"
@@ -52,7 +51,6 @@ type Service struct { // nolint:structcheck
 	eventStreamDoneCh chan struct{}
 
 	panicHandler       types.PanicHandler
-	locations          *locations.Locations
 	settings           *settings.Settings
 	eventListener      listener.Listener
 	updater            types.Updater
@@ -75,7 +73,6 @@ type Service struct { // nolint:structcheck
 func NewService(
 	showOnStartup bool,
 	panicHandler types.PanicHandler,
-	locations *locations.Locations,
 	settings *settings.Settings,
 	eventListener listener.Listener,
 	updater types.Updater,
@@ -88,7 +85,6 @@ func NewService(
 	s := Service{
 		UnimplementedBridgeServer: UnimplementedBridgeServer{},
 		panicHandler:              panicHandler,
-		locations:                 locations,
 		settings:                  settings,
 		eventListener:             eventListener,
 		updater:                   updater,

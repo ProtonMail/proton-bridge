@@ -158,7 +158,6 @@ func main(b *base.Base, c *cli.Context) error { //nolint:funlen
 		frontendMode,
 		!c.Bool(base.FlagNoWindow),
 		b.CrashHandler,
-		b.Locations,
 		b.Settings,
 		b.Listener,
 		b.Updater,

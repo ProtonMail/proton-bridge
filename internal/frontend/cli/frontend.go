@@ -22,7 +22,6 @@ import (
 	"github.com/ProtonMail/proton-bridge/v2/internal/config/settings"
 	"github.com/ProtonMail/proton-bridge/v2/internal/events"
 	"github.com/ProtonMail/proton-bridge/v2/internal/frontend/types"
-	"github.com/ProtonMail/proton-bridge/v2/internal/locations"
 	"github.com/ProtonMail/proton-bridge/v2/internal/updater"
 	"github.com/ProtonMail/proton-bridge/v2/pkg/listener"
 
@@ -35,7 +34,6 @@ var log = logrus.WithField("pkg", "frontend/cli") //nolint:gochecknoglobals
 type frontendCLI struct {
 	*ishell.Shell
 
-	locations     *locations.Locations
 	settings      *settings.Settings
 	eventListener listener.Listener
 	updater       types.Updater
@@ -48,7 +46,6 @@ type frontendCLI struct {
 func New( //nolint:funlen
 	panicHandler types.PanicHandler,
 
-	locations *locations.Locations,
 	settings *settings.Settings,
 	eventListener listener.Listener,
 	updater types.Updater,
@@ -58,7 +55,6 @@ func New( //nolint:funlen
 	fe := &frontendCLI{
 		Shell: ishell.New(),
 
-		locations:     locations,
 		settings:      settings,
 		eventListener: eventListener,
 		updater:       updater,

@@ -205,7 +205,7 @@ func (s *Service) Version(context.Context, *emptypb.Empty) (*wrapperspb.StringVa
 
 func (s *Service) LogsPath(context.Context, *emptypb.Empty) (*wrapperspb.StringValue, error) {
 	s.log.Info("LogsPath")
-	path, err := s.locations.ProvideLogsPath()
+	path, err := s.bridge.ProvideLogsPath()
 	if err != nil {
 		s.log.WithError(err).Error("Cannot determine logs path")
 		return nil, err
@@ -215,11 +215,11 @@ func (s *Service) LogsPath(context.Context, *emptypb.Empty) (*wrapperspb.StringV
 
 func (s *Service) LicensePath(context.Context, *emptypb.Empty) (*wrapperspb.StringValue, error) {
 	s.log.Info("LicensePath")
-	return wrapperspb.String(s.locations.GetLicenseFilePath()), nil
+	return wrapperspb.String(s.bridge.GetLicenseFilePath()), nil
 }
 
 func (s *Service) DependencyLicensesLink(context.Context, *emptypb.Empty) (*wrapperspb.StringValue, error) {
-	return wrapperspb.String(s.locations.GetDependencyLicensesLink()), nil
+	return wrapperspb.String(s.bridge.GetDependencyLicensesLink()), nil
 }
 
 func (s *Service) ReleaseNotesPageLink(context.Context, *emptypb.Empty) (*wrapperspb.StringValue, error) {

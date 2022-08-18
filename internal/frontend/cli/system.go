@@ -39,7 +39,7 @@ func (f *frontendCLI) restart(c *ishell.Context) {
 }
 
 func (f *frontendCLI) printLogDir(c *ishell.Context) {
-	if path, err := f.locations.ProvideLogsPath(); err != nil {
+	if path, err := f.bridge.ProvideLogsPath(); err != nil {
 		f.Println("Failed to determine location of log files")
 	} else {
 		f.Println("Log files are stored in\n\n ", path)
