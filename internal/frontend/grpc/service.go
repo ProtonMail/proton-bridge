@@ -28,7 +28,6 @@ import (
 
 	"github.com/ProtonMail/proton-bridge/v2/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/v2/internal/config/settings"
-	"github.com/ProtonMail/proton-bridge/v2/internal/config/useragent"
 	"github.com/ProtonMail/proton-bridge/v2/internal/events"
 	"github.com/ProtonMail/proton-bridge/v2/internal/frontend/types"
 	"github.com/ProtonMail/proton-bridge/v2/internal/updater"
@@ -55,7 +54,6 @@ type Service struct { // nolint:structcheck
 	eventListener      listener.Listener
 	updater            types.Updater
 	updateCheckMutex   sync.Mutex
-	userAgent          *useragent.UserAgent
 	bridge             types.Bridger
 	restarter          types.Restarter
 	showOnStartup      bool
@@ -76,7 +74,6 @@ func NewService(
 	settings *settings.Settings,
 	eventListener listener.Listener,
 	updater types.Updater,
-	userAgent *useragent.UserAgent,
 	bridge types.Bridger,
 	_ types.NoEncConfirmator,
 	restarter types.Restarter,
@@ -88,7 +85,6 @@ func NewService(
 		settings:                  settings,
 		eventListener:             eventListener,
 		updater:                   updater,
-		userAgent:                 userAgent,
 		bridge:                    bridge,
 		restarter:                 restarter,
 		showOnStartup:             showOnStartup,

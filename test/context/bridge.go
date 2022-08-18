@@ -42,7 +42,7 @@ func (ctx *TestContext) GetBridge() *bridge.Bridge {
 // withBridgeInstance creates a bridge instance for use in the test.
 // TestContext has this by default once called with env variable TEST_APP=bridge.
 func (ctx *TestContext) withBridgeInstance() {
-	ctx.bridge = newBridgeInstance(ctx.t, ctx.locations, ctx.cache, ctx.settings, ctx.tls, ctx.credStore, ctx.listener, ctx.clientManager)
+	ctx.bridge = newBridgeInstance(ctx.t, ctx.locations, ctx.cache, ctx.settings, ctx.tls, ctx.userAgent, ctx.credStore, ctx.listener, ctx.clientManager)
 	ctx.users = ctx.bridge.Users
 	ctx.addCleanupChecked(ctx.bridge.ClearData, "Cleaning bridge data")
 }
@@ -74,6 +74,7 @@ func newBridgeInstance(
 	cacheProvider bridge.CacheProvider,
 	fakeSettings *fakeSettings,
 	tls *tls.TLS,
+	userAgent *useragent.UserAgent,
 	credStore users.CredentialsStorer,
 	eventListener listener.Listener,
 	clientManager pmapi.Manager,
@@ -82,10 +83,11 @@ func newBridgeInstance(
 		locations,
 		cacheProvider,
 		fakeSettings,
-		sentry.NewReporter("bridge", constants.Version, useragent.New()),
+		sentry.NewReporter("bridge", constants.Version, userAgent),
 		&panicHandler{t: t},
 		eventListener,
 		tls,
+		userAgent,
 		cache.NewInMemoryCache(100*(1<<20)),
 		message.NewBuilder(fakeSettings.GetInt(settings.FetchWorkers), fakeSettings.GetInt(settings.AttachmentWorkers)),
 		clientManager,

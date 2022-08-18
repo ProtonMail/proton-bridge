@@ -28,6 +28,7 @@ import (
 	"github.com/ProtonMail/go-autostart"
 	"github.com/ProtonMail/proton-bridge/v2/internal/config/settings"
 	"github.com/ProtonMail/proton-bridge/v2/internal/config/tls"
+	"github.com/ProtonMail/proton-bridge/v2/internal/config/useragent"
 	"github.com/ProtonMail/proton-bridge/v2/internal/constants"
 	"github.com/ProtonMail/proton-bridge/v2/internal/metrics"
 	"github.com/ProtonMail/proton-bridge/v2/internal/sentry"
@@ -54,6 +55,7 @@ type Bridge struct {
 	updater       Updater
 	versioner     Versioner
 	tls           *tls.TLS
+	userAgent     *useragent.UserAgent
 	cacheProvider CacheProvider
 	autostart     *autostart.App
 	// Bridge's global errors list.
@@ -72,6 +74,7 @@ func New(
 	panicHandler users.PanicHandler,
 	eventListener listener.Listener,
 	tls *tls.TLS,
+	userAgent *useragent.UserAgent,
 	cache cache.Cache,
 	builder *message.Builder,
 	clientManager pmapi.Manager,
@@ -103,6 +106,7 @@ func New(
 		updater:          updater,
 		versioner:        versioner,
 		tls:              tls,
+		userAgent:        userAgent,
 		cacheProvider:    cacheProvider,
 		autostart:        autostart,
 		isFirstStart:     false,

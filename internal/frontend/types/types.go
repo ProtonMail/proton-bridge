@@ -85,6 +85,9 @@ type Bridger interface {
 	GetLicenseFilePath() string
 	GetDependencyLicensesLink() string
 
+	GetCurrentUserAgent() string
+	SetCurrentPlatform(string)
+
 	// -- old --
 
 	ReportBug(osType, osVersion, description, accountName, address, emailClient string, attachLogs bool) error

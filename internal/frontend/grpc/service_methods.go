@@ -258,7 +258,7 @@ func (s *Service) ColorSchemeName(context.Context, *emptypb.Empty) (*wrapperspb.
 func (s *Service) CurrentEmailClient(context.Context, *emptypb.Empty) (*wrapperspb.StringValue, error) {
 	s.log.Info("CurrentEmailClient")
 
-	return wrapperspb.String(s.userAgent.String()), nil
+	return wrapperspb.String(s.bridge.GetCurrentUserAgent()), nil
 }
 
 func (s *Service) ReportBug(_ context.Context, report *ReportBugRequest) (*emptypb.Empty, error) {

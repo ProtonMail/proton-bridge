@@ -21,7 +21,6 @@ package frontend
 import (
 	"github.com/ProtonMail/proton-bridge/v2/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/v2/internal/config/settings"
-	"github.com/ProtonMail/proton-bridge/v2/internal/config/useragent"
 	"github.com/ProtonMail/proton-bridge/v2/internal/frontend/cli"
 	"github.com/ProtonMail/proton-bridge/v2/internal/frontend/grpc"
 	"github.com/ProtonMail/proton-bridge/v2/internal/frontend/types"
@@ -46,7 +45,6 @@ func New(
 	settings *settings.Settings,
 	eventListener listener.Listener,
 	updater types.Updater,
-	userAgent *useragent.UserAgent,
 	bridge *bridge.Bridge,
 	noEncConfirmator types.NoEncConfirmator,
 	restarter types.Restarter,
@@ -60,7 +58,6 @@ func New(
 			settings,
 			eventListener,
 			updater,
-			userAgent,
 			bridgeWrap,
 			noEncConfirmator,
 			restarter,

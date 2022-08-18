@@ -34,7 +34,7 @@ func (s *Service) StartEventStream(request *EventStreamRequest, server Bridge_St
 		return status.Errorf(codes.AlreadyExists, "the service is already streaming") // TO-DO GODT-1667 decide if we want to kill the existing stream.
 	}
 
-	s.userAgent.SetPlatform(request.ClientPlatform)
+	s.bridge.SetCurrentPlatform(request.ClientPlatform)
 
 	s.eventStreamCh = make(chan *StreamEvent)
 	s.eventStreamDoneCh = make(chan struct{})
