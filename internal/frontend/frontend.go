@@ -42,9 +42,6 @@ type Frontend interface {
 
 // New returns initialized frontend based on `frontendType`, which can be `cli` or `grpc`.
 func New(
-	version,
-	buildVersion,
-	programName,
 	frontendType string,
 	showWindowOnStart bool,
 	panicHandler types.PanicHandler,
@@ -62,8 +59,6 @@ func New(
 	switch frontendType {
 	case "grpc":
 		return grpc.NewService(
-			version,
-			programName,
 			showWindowOnStart,
 			panicHandler,
 			tls,

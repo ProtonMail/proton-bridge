@@ -17,13 +17,14 @@
 
 // Package base implements a common application base currently shared by bridge and IE.
 // The base includes the following:
-//  - access to standard filesystem locations like config, cache, logging dirs
-//  - an extensible crash handler
-//  - versioned cache directory
-//  - persistent settings
-//  - event listener
-//  - credentials store
-//  - pmapi Manager
+//   - access to standard filesystem locations like config, cache, logging dirs
+//   - an extensible crash handler
+//   - versioned cache directory
+//   - persistent settings
+//   - event listener
+//   - credentials store
+//   - pmapi Manager
+//
 // In addition, the base initialises logging and reacts to command line arguments
 // which control the log verbosity and enable cpu/memory profiling.
 package base

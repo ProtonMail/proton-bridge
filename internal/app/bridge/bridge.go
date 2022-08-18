@@ -156,9 +156,6 @@ func mailLoop(b *base.Base, c *cli.Context) error { //nolint:funlen
 	}
 
 	f := frontend.New(
-		constants.Version,
-		constants.BuildVersion,
-		b.Name,
 		frontendMode,
 		!c.Bool(base.FlagNoWindow),
 		b.CrashHandler,

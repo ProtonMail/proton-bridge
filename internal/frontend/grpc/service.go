@@ -52,8 +52,6 @@ type Service struct { // nolint:structcheck
 	eventStreamCh     chan *StreamEvent
 	eventStreamDoneCh chan struct{}
 
-	programName        string
-	programVersion     string
 	panicHandler       types.PanicHandler
 	tls                *bridgetls.TLS
 	locations          *locations.Locations
@@ -77,8 +75,6 @@ type Service struct { // nolint:structcheck
 
 // NewService returns a new instance of the service.
 func NewService(
-	version,
-	programName string,
 	showOnStartup bool,
 	panicHandler types.PanicHandler,
 	tls *bridgetls.TLS,
@@ -94,8 +90,6 @@ func NewService(
 ) *Service {
 	s := Service{
 		UnimplementedBridgeServer: UnimplementedBridgeServer{},
-		programName:               programName,
-		programVersion:            version,
 		panicHandler:              panicHandler,
 		tls:                       tls,
 		locations:                 locations,
