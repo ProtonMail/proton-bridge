@@ -45,6 +45,14 @@ func (l *fakeLocations) ProvideSettingsPath() (string, error) {
 	return l.dir, nil
 }
 
+func (l *fakeLocations) GetDependencyLicensesLink() string {
+	return "/path/to/dependencies"
+}
+
+func (l *fakeLocations) GetLicenseFilePath() string {
+	return "/path/to/license"
+}
+
 func (l *fakeLocations) Clear() error {
 	return os.RemoveAll(l.dir)
 }

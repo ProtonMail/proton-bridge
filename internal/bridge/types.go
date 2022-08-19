@@ -24,9 +24,13 @@ import (
 )
 
 type Locator interface {
+	ProvideLogsPath() (string, error)
+
+	GetLicenseFilePath() string
+	GetDependencyLicensesLink() string
+
 	Clear() error
 	ClearUpdates() error
-	ProvideLogsPath() (string, error)
 }
 
 type CacheProvider interface {

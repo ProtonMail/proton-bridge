@@ -1,13 +1,13 @@
 package bridge
 
 func (bridge *Bridge) ProvideLogsPath() (string, error) {
-	panic("TODO")
+	return bridge.locations.ProvideLogsPath()
 }
 
 func (bridge *Bridge) GetLicenseFilePath() string {
-	panic("TODO")
+	return bridge.locations.GetLicenseFilePath()
 }
 
 func (bridge *Bridge) GetDependencyLicensesLink() string {
-	panic("TODO")
+	return bridge.locations.GetDependencyLicensesLink()
 }
