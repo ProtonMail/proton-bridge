@@ -71,9 +71,6 @@ func New(base *base.Base) *cli.App {
 }
 
 func main(b *base.Base, c *cli.Context) error { //nolint:funlen
-	// GODT-1481: Always turn off reporting of unencrypted recipient in v2.
-	b.Settings.SetBool(settings.ReportOutgoingNoEncKey, false)
-
 	cache, cacheErr := loadMessageCache(b)
 	if cacheErr != nil {
 		logrus.WithError(cacheErr).Error("Could not load local cache.")
@@ -163,7 +160,6 @@ func main(b *base.Base, c *cli.Context) error { //nolint:funlen
 		b.Listener,
 		b.Updater,
 		bridge,
-		smtpBackend,
 		b,
 	)
 

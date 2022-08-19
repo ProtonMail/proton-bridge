@@ -37,10 +37,6 @@ type Restarter interface {
 	ForceLauncher(string)
 }
 
-type NoEncConfirmator interface {
-	ConfirmNoEncryption(string, bool)
-}
-
 type Updater interface {
 	Check() (updater.VersionInfo, error)
 	InstallUpdate(updater.VersionInfo) error

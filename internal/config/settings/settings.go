@@ -38,7 +38,6 @@ const (
 	AutostartKey           = "autostart"
 	AutoUpdateKey          = "autoupdate"
 	CookiesKey             = "cookies"
-	ReportOutgoingNoEncKey = "report_outgoing_email_without_encryption"
 	LastVersionKey         = "last_used_version"
 	UpdateChannelKey       = "update_channel"
 	RolloutKey             = "rollout"
@@ -88,7 +87,6 @@ func (s *Settings) setDefaultValues() {
 	s.setDefault(AllowProxyKey, "true")
 	s.setDefault(AutostartKey, "true")
 	s.setDefault(AutoUpdateKey, "true")
-	s.setDefault(ReportOutgoingNoEncKey, "false")
 	s.setDefault(LastVersionKey, "")
 	s.setDefault(UpdateChannelKey, "")
 	s.setDefault(RolloutKey, fmt.Sprintf("%v", rand.Float64())) //nolint:gosec // G404 It is OK to use weak random number generator here

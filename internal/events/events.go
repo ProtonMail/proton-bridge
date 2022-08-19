@@ -38,7 +38,6 @@ const (
 	InternetOff                  = "internetOff"
 	InternetOn                   = "internetOn"
 	SecondInstanceEvent          = "secondInstance"
-	OutgoingNoEncEvent           = "outgoingNoEncryption"
 	NoActiveKeyForRecipientEvent = "noActiveKeyForRecipient"
 	UpgradeApplicationEvent      = "upgradeApplication"
 	TLSCertIssue                 = "tlsCertPinningIssue"

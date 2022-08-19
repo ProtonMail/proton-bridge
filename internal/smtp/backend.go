@@ -22,13 +22,10 @@ import (
 	"time"
 
 	"github.com/ProtonMail/proton-bridge/v2/internal/bridge"
-	"github.com/ProtonMail/proton-bridge/v2/internal/config/settings"
 	"github.com/ProtonMail/proton-bridge/v2/internal/users"
-	"github.com/ProtonMail/proton-bridge/v2/pkg/confirmer"
 	"github.com/ProtonMail/proton-bridge/v2/pkg/listener"
 	goSMTPBackend "github.com/emersion/go-smtp"
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 )
 
 type panicHandler interface {
@@ -44,7 +41,6 @@ type smtpBackend struct {
 	eventListener listener.Listener
 	settings      settingsProvider
 	bridge        bridger
-	confirmer     *confirmer.Confirmer
 	sendRecorder  *sendRecorder
 }
 
@@ -69,7 +65,6 @@ func newSMTPBackend(
 		eventListener: eventListener,
 		settings:      settings,
 		bridge:        bridge,
-		confirmer:     confirmer.New(),
 		sendRecorder:  newSendRecorder(),
 	}
 }
@@ -115,14 +110,4 @@ func (sb *smtpBackend) AnonymousLogin(_ *goSMTPBackend.ConnectionState) (goSMTPB
 	defer sb.panicHandler.HandlePanic()
 
 	return nil, errors.New("anonymous login not supported")
-}
-
-func (sb *smtpBackend) shouldReportOutgoingNoEnc() bool {
-	return sb.settings.GetBool(settings.ReportOutgoingNoEncKey)
-}
-
-func (sb *smtpBackend) ConfirmNoEncryption(messageID string, shouldSend bool) {
-	if err := sb.confirmer.SetResult(messageID, shouldSend); err != nil {
-		logrus.WithError(err).Error("Failed to set confirmation value")
-	}
 }

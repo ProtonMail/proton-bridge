@@ -46,7 +46,6 @@ func New(
 	eventListener listener.Listener,
 	updater types.Updater,
 	bridge *bridge.Bridge,
-	noEncConfirmator types.NoEncConfirmator,
 	restarter types.Restarter,
 ) Frontend {
 	bridgeWrap := types.NewBridgeWrap(bridge)
@@ -59,7 +58,6 @@ func New(
 			eventListener,
 			updater,
 			bridgeWrap,
-			noEncConfirmator,
 			restarter,
 		)
 

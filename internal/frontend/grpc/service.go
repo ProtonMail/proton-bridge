@@ -75,9 +75,7 @@ func NewService(
 	eventListener listener.Listener,
 	updater types.Updater,
 	bridge types.Bridger,
-	_ types.NoEncConfirmator,
 	restarter types.Restarter,
-
 ) *Service {
 	s := Service{
 		UnimplementedBridgeServer: UnimplementedBridgeServer{},
