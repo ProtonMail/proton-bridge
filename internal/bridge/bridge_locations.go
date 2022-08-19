@@ -1,13 +1,13 @@
 package bridge
 
-func (bridge *Bridge) ProvideLogsPath() (string, error) {
-	return bridge.locations.ProvideLogsPath()
+func (b *Bridge) ProvideLogsPath() (string, error) {
+	return b.locations.ProvideLogsPath()
 }
 
-func (bridge *Bridge) GetLicenseFilePath() string {
-	return bridge.locations.GetLicenseFilePath()
+func (b *Bridge) GetLicenseFilePath() string {
+	return b.locations.GetLicenseFilePath()
 }
 
-func (bridge *Bridge) GetDependencyLicensesLink() string {
-	return bridge.locations.GetDependencyLicensesLink()
+func (b *Bridge) GetDependencyLicensesLink() string {
+	return b.locations.GetDependencyLicensesLink()
 }
