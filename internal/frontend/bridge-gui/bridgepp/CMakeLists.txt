@@ -17,7 +17,8 @@
 
 
 cmake_minimum_required(VERSION 3.22)
-set(VCPKG_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../../../../extern/vcpkg")
+
+set(BRIDGE_REPO_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../../../..")
 include(../BridgeSetup.cmake)
 
 
@@ -45,6 +46,7 @@ endif ()
 set(CMAKE_PREFIX_PATH $ENV{QT6DIR} ${CMAKE_PREFIX_PATH})
 find_package(Qt6 COMPONENTS Core REQUIRED)
 qt_standard_project_setup()
+
 
 #****************************************************************************************************************************************************
 # gRPC / Protobuf

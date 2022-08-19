@@ -17,7 +17,7 @@
 
 
 cmake_minimum_required(VERSION 3.22)
-set(VCPKG_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../../../../extern/vcpkg")
+set(BRIDGE_REPO_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../../../..")
 include(../BridgeSetup.cmake)
 
 
@@ -61,7 +61,7 @@ set(CMAKE_PREFIX_PATH $ENV{QT6DIR} ${CMAKE_PREFIX_PATH})
 if (DEFINED ENV{BRIDGE_INSTALL_PATH})
     set(CMAKE_INSTALL_PREFIX "$ENV{BRIDGE_INSTALL_PATH}")
 else(DEFINED ENV{BRIDGE_INSTALL_PATH})
-    message(status "Using Default install path (${CMAKE_INSTALL_PREFIX}), export BRIDGE_INSTALL_PATH to change it.")
+    message(STATUS "Using Default install path (${CMAKE_INSTALL_PREFIX}), export BRIDGE_INSTALL_PATH to change it.")
 endif(DEFINED ENV{BRIDGE_INSTALL_PATH})
 
 if(NOT UNIX)

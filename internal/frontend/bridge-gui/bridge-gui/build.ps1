@@ -18,9 +18,11 @@
 #!/bin/bash
 
 $scriptpath = $MyInvocation.MyCommand.Path
-$dir = Split-Path $scriptpath
-Write-host "Bridge-gui directory is $dir"
-Push-Location $dir
+$scriptDir = Split-Path $scriptpath
+$bridgeRepoRootDir = Join-Path $scriptDir "../../../.." -Resolve
+Write-host "Bridge-gui directory is $scriptDir"
+Write-host "Bridge repos root dir $bridgeRepoRootDir"
+Push-Location $scriptDir
 
 $ErrorActionPreference = "Stop"
 
@@ -29,10 +31,11 @@ if ($null -eq $cmakeExe)
 {
     $cmakeExe = "C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" # Hardcoded for now.
 }
+
 $bridgeVersion = ($env:BRIDGE_APP_VERSION)
 if ($null -eq $bridgeVersion)
 {
-    $bridgeVersion =  "2.2.1+"
+    $bridgeVersion = . (Join-Path $bridgeRepoRootDir "utils/bridge_app_version.ps1")
 }
 $buildConfig = ($env:BRIDGE_GUI_BUILD_CONFIG)
 if ($null -eq $buildConfig)
@@ -40,8 +43,8 @@ if ($null -eq $buildConfig)
     $buildConfig =  "Debug"
 }
 
-$buildDir=(Join-Path $PSScriptRoot "cmake-build-$buildConfig".ToLower())
-$vcpkgRoot = (Join-Path $PSScriptRoot "../../../../extern/vcpkg" -Resolve)
+$buildDir=(Join-Path $scriptDir "cmake-build-$buildConfig".ToLower())
+$vcpkgRoot = (Join-Path $bridgeRepoRootDir "extern/vcpkg" -Resolve)
 $vcpkgExe = (Join-Path $vcpkgRoot "vcpkg.exe")
 $vcpkgBootstrap = (Join-Path $vcpkgRoot "bootstrap-vcpkg.bat")
 

@@ -19,16 +19,39 @@
 include_guard()
 
 
+if (NOT DEFINED BRIDGE_REPO_ROOT)
+    message(FATAL_ERROR "BRIDGE_REPO_ROOT is not defined.")
+endif()
+message(STATUS "BRIDGE_REPO_ROOT is ${BRIDGE_REPO_ROOT}")
+
+#*****************************************************************************************************************************************************
+# Bridge version
+#*****************************************************************************************************************************************************
+if (NOT DEFINED BRIDGE_APP_VERSION)
+    if (WIN32)
+        find_program(POWERSHELL_EXE powershell.exe)
+        if (NOT POWERSHELL_EXE)
+            message(FATAL_ERROR "PowerShell could not be found.")
+        endif()
+        execute_process(COMMAND "${POWERSHELL_EXE}" -ExecutionPolicy Bypass "${BRIDGE_REPO_ROOT}/utils/bridge_app_version.ps1"
+            OUTPUT_VARIABLE BRIDGE_APP_VERSION OUTPUT_STRIP_TRAILING_WHITESPACE COMMAND_ERROR_IS_FATAL ANY)
+    else()
+        execute_process(COMMAND "${BRIDGE_REPO_ROOT}/utils/bridge_app_version.sh"
+            OUTPUT_VARIABLE BRIDGE_APP_VERSION OUTPUT_STRIP_TRAILING_WHITESPACE COMMAND_ERROR_IS_FATAL ANY)
+    endif()
+    if (NOT BRIDGE_APP_VERSION)
+        message(FATAL_ERROR "Could not determine BRIDGE_APP_VERSION.")
+    endif()
+endif()
+
+
 #****************************************************************************************************************************************************
 # vcpkg, toolchain, and architecture
 #****************************************************************************************************************************************************
 # We rely on vcpkg for to get gRPC / Protobuf
 # run build.sh / build.ps1 to get gRPC / Protobuf and dependencies installed.
 
-if (NOT DEFINED VCPKG_ROOT)
-    message(FATAL_ERROR "VCPKG_ROOT is not defined.")
-endif()
-
+set(VCPKG_ROOT "${BRIDGE_REPO_ROOT}/extern/vcpkg")
 message(STATUS "VCPKG_ROOT is ${VCPKG_ROOT}")
 if (WIN32)
     find_program(VCPKG_EXE "${VCPKG_ROOT}/vcpkg.exe")

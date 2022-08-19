@@ -22,8 +22,9 @@ if [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "win32" ]] ; then
 fi
 
 
+BRIDGE_REPO_ROOT="../../../.."
 BRIDGE_INSTALL_PATH=${BRIDGE_INSTALL_PATH:-deploy}
-BRIDGE_APP_VERSION=${BRIDGE_APP_VERSION:-2.2.1+git}
+BRIDGE_APP_VERSION=${BRIDGE_APP_VERSION:-$("${BRIDGE_REPO_ROOT}/utils/bridge_app_version.sh")}
 BUILD_CONFIG=${BRIDGE_GUI_BUILD_CONFIG:-Debug}
 BUILD_DIR=$(echo "./cmake-build-${BUILD_CONFIG}" | tr '[:upper:]' '[:lower:]')
 
@@ -51,7 +52,7 @@ check_exit() {
     fi
 }
 
-VCPKG_ROOT="../../../../extern/vcpkg"
+VCPKG_ROOT="${BRIDGE_REPO_ROOT}/extern/vcpkg"
 
 git submodule update --init --recursive ${VCPKG_ROOT}
 check_exit "Failed to initialize vcpkg as a submodule."
