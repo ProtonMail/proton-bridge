@@ -25,22 +25,23 @@ fi
 BRIDGE_REPO_ROOT="../../../.."
 BRIDGE_INSTALL_PATH=${BRIDGE_INSTALL_PATH:-deploy}
 BRIDGE_APP_VERSION=${BRIDGE_APP_VERSION:-$("${BRIDGE_REPO_ROOT}/utils/bridge_app_version.sh")}
+BRIDGE_VENDOR=${BRIDGE_VENDOR:-"Proton AG"}
 BUILD_CONFIG=${BRIDGE_GUI_BUILD_CONFIG:-Debug}
 BUILD_DIR=$(echo "./cmake-build-${BUILD_CONFIG}" | tr '[:upper:]' '[:lower:]')
 
 realpath() {
-	START_DIR=$PWD
-	BASENAME="$(basename "$1")"
-	cd "$(dirname "$1")" || exit
-	LNK="$(readlink "$BASENAME")"
-	while [ "$LNK" ]; do
-		BASENAME="$(basename "$LNK")"
-		cd "$(dirname "$LNK")" || exit
-		LNK="$(readlink "$BASENAME")"
-	done
-	REALPATH="$PWD/$BASENAME"
-	cd "$START_DIR" || exit
-	echo "$REALPATH"
+    START_DIR=$PWD
+    BASENAME="$(basename "$1")"
+    cd "$(dirname "$1")" || exit
+    LNK="$(readlink "$BASENAME")"
+    while [ "$LNK" ]; do
+        BASENAME="$(basename "$LNK")"
+        cd "$(dirname "$LNK")" || exit
+        LNK="$(readlink "$BASENAME")"
+    done
+    REALPATH="$PWD/$BASENAME"
+    cd "$START_DIR" || exit
+    echo "$REALPATH"
 }
 
 check_exit() {
@@ -86,6 +87,8 @@ ${VCPKG_EXE} upgrade --no-dry-run
 
 cmake  \
     -DCMAKE_BUILD_TYPE="${BUILD_CONFIG}" \
+    -DBRIDGE_APP_FULL_NAME="${BRIDGE_APP_FULL_NAME}" \
+    -DBRIDGE_VENDOR="${BRIDGE_VENDOR}" \
     -DBRIDGE_APP_VERSION="${BRIDGE_APP_VERSION}" \
     -G Ninja \
     -S . \

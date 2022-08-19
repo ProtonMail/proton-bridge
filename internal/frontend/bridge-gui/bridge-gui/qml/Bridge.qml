@@ -33,7 +33,7 @@ QtObject {
         return Math.max(lower_limit, Math.min(upper_limit, num))
     }
 
-    property var title: "Proton Mail Bridge"
+    property var title: Backend.appname
 
     property Notifications _notifications: Notifications {
         id: notifications

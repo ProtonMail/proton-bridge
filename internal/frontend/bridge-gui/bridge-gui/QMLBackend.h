@@ -21,6 +21,7 @@
 
 
 #include "DockIcon/DockIcon.h"
+#include "Version.h"
 #include "UserList.h"
 #include <bridgepp/GRPC/GRPCClient.h>
 #include <bridgepp/GRPC/GRPCUtils.h>
@@ -57,6 +58,8 @@ public: // Qt/QML properties. Note that the NOTIFY-er signal is required even fo
     Q_PROPERTY(QUrl releaseNotesLink READ releaseNotesLink NOTIFY releaseNotesLinkChanged)                                  //    _ core.QUrl   `property:"releaseNotesLink"`
     Q_PROPERTY(QUrl dependencyLicensesLink READ dependencyLicensesLink NOTIFY dependencyLicensesLinkChanged)                                          //    _ core.QUrl   `property:"dependencyLicensesLink"`
     Q_PROPERTY(QUrl landingPageLink READ landingPageLink NOTIFY landingPageLinkChanged)                                      //    _ core.QUrl   `property:"landingPageLink"`
+    Q_PROPERTY(QString appname READ appname NOTIFY appnameChanged)                                                                                    //    _ string      `property:"version"`
+    Q_PROPERTY(QString vendor READ vendor NOTIFY vendorChanged)                                                                                    //    _ string      `property:"version"`
     Q_PROPERTY(QString version READ version NOTIFY versionChanged)                                                                                    //    _ string      `property:"version"`
     Q_PROPERTY(QString hostname READ hostname NOTIFY hostnameChanged)                                                                                 //    _ string      `property:"hostname"`
     Q_PROPERTY(bool isAutostartOn READ isAutostartOn NOTIFY isAutostartOnChanged)                                                                     //    _ bool        `property:"isAutostartOn"`
@@ -86,6 +89,8 @@ public: // Qt/QML properties. Note that the NOTIFY-er signal is required even fo
     QUrl releaseNotesLink() const { QUrl link; app().grpc().releaseNotesPageLink(link); return link;   }
     QUrl dependencyLicensesLink() const { QUrl link; app().grpc().dependencyLicensesLink(link); return link; }
     QUrl landingPageLink() const { QUrl link; app().grpc().landingPageLink(link); return link;  }
+    QString appname() const { return QString(PROJECT_FULL_NAME); }
+    QString vendor() const { return QString(PROJECT_VENDOR); }
     QString version() const { QString version; app().grpc().version(version); return version; }
     QString hostname() const { QString hostname; app().grpc().hostname(hostname); return hostname; }
     bool isAutostartOn() const { bool v; app().grpc().isAutostartOn(v); return v; };
@@ -121,6 +126,8 @@ signals: // Signal used by the Qt property system. Many of them are unused but r
     void releaseNotesLinkChanged(QUrl const &link);
     void dependencyLicensesLinkChanged(QUrl const &link);
     void landingPageLinkChanged(QUrl const &link);
+    void appnameChanged(QString const &appname);
+    void vendorChanged(QString const &vendor);
     void versionChanged(QString const &version);
     void currentEmailClientChanged(QString const &email);
     void currentKeychainChanged(QString const &keychain);

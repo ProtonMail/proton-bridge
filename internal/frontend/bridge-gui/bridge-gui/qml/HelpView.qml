@@ -108,8 +108,10 @@ SettingsView {
 
         horizontalAlignment: Text.AlignHCenter
 
-        text: qsTr("Proton Mail Bridge v%1<br>© 2021 Proton AG<br>%2 %3<br>%4").
+        text: qsTr("%1 v%2<br>© 2021 %3<br>%4 %5<br>%6").
+        arg(Backend.appname).
         arg(Backend.version).
+        arg(Backend.vendor).
         arg(link(Backend.licensePath, qsTr("License"))).
         arg(link(Backend.dependencyLicensesLink, qsTr("Dependencies"))).
         arg(link(Backend.releaseNotesLink, qsTr("Release notes")))

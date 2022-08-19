@@ -28,6 +28,20 @@ include(../BridgeSetup.cmake)
 
 project(bridge-gui LANGUAGES CXX)
 
+if (NOT DEFINED BRIDGE_APP_FULL_NAME)
+    message(FATAL_ERROR "BRIDGE_APP_FULL_NAME is not defined.")
+else()
+    message(STATUS "App name is ${BRIDGE_APP_FULL_NAME}")
+endif()
+
+if (NOT DEFINED BRIDGE_VENDOR)
+    message(FATAL_ERROR "BRIDGE_VENDOR is not defined.")
+else()
+    message(STATUS "App vendor is ${BRIDGE_VENDOR}")
+endif()
+
+
+
 if (NOT DEFINED BRIDGE_APP_VERSION)
     message(FATAL_ERROR "BRIDGE_APP_VERSION is not defined.")
 else()

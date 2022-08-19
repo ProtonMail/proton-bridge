@@ -19,6 +19,7 @@
 package cli
 
 import (
+	"github.com/ProtonMail/proton-bridge/v2/internal/constants"
 	"github.com/ProtonMail/proton-bridge/v2/internal/events"
 	"github.com/ProtonMail/proton-bridge/v2/internal/frontend/types"
 	"github.com/ProtonMail/proton-bridge/v2/internal/updater"
@@ -319,8 +320,8 @@ func (f *frontendCLI) watchEvents() {
 
 // Loop starts the frontend loop with an interactive shell.
 func (f *frontendCLI) Loop() error {
-	f.Print(`
-            Welcome to Proton Mail Bridge interactive shell
+	f.Printf(`
+            Welcome to %s interactive shell
                               ___....___
     ^^                __..-:'':__:..:__:'':-..__
                   _.-:__:.-:'':  :  :  :'':-.:__:-._
@@ -335,7 +336,7 @@ func (f *frontendCLI) Loop() error {
             [ ]                                        [ ]
       jgs   [ ]                                        [ ]
     ~~^_~^~/   \~^-~^~ _~^-~_^~-^~_^~~-^~_~^~-~_~-^~_^/   \~^ ~~_ ^
-`)
+`, constants.FullAppName)
 	f.Run()
 	return nil
 }

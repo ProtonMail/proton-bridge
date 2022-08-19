@@ -39,11 +39,11 @@ import (
 
 	"github.com/ProtonMail/proton-bridge/v2/internal/app/base"
 	"github.com/ProtonMail/proton-bridge/v2/internal/app/bridge"
+	"github.com/ProtonMail/proton-bridge/v2/internal/constants"
 	"github.com/sirupsen/logrus"
 )
 
 const (
-	appName       = "Proton Mail Bridge"
 	appUsage      = "Proton Mail IMAP and SMTP Bridge"
 	configName    = "bridge"
 	updateURLName = "bridge"
@@ -53,7 +53,7 @@ const (
 
 func main() {
 	base, err := base.New(
-		appName,
+		constants.FullAppName,
 		appUsage,
 		configName,
 		updateURLName,

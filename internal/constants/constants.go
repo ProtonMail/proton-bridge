@@ -25,6 +25,9 @@ const VendorName = "protonmail"
 //nolint:gochecknoglobals
 var (
 	// Version of the build.
+	FullAppName = ""
+
+	// Version of the build.
 	Version = ""
 
 	// Revision is current hash of the build.

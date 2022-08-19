@@ -13,6 +13,8 @@ ROOT_DIR:=$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 # Keep version hardcoded so app build works also without Git repository.
 BRIDGE_APP_VERSION?=2.3.0+git
 APP_VERSION:=${BRIDGE_APP_VERSION}
+APP_FULL_NAME:=Proton Bridge
+APP_VENDOR:=Proton AG
 SRC_ICO:=bridge.ico
 SRC_ICNS:=Bridge.icns
 SRC_SVG:=bridge.svg
@@ -23,7 +25,8 @@ BUILD_TIME:=$(shell date +%FT%T%z)
 BUILD_FLAGS:=-tags='${BUILD_TAGS}'
 BUILD_FLAGS_LAUNCHER:=${BUILD_FLAGS}
 BUILD_FLAGS_GUI:=-tags='${BUILD_TAGS} build_qt'
-GO_LDFLAGS:=$(addprefix -X github.com/ProtonMail/proton-bridge/v2/internal/constants.,Version=${APP_VERSION} Revision=${REVISION} BuildTime=${BUILD_TIME})
+GO_LDFLAGS:=$(addprefix -X github.com/ProtonMail/proton-bridge/v2/internal/constants., Version=${APP_VERSION} Revision=${REVISION} BuildTime=${BUILD_TIME})
+GO_LDFLAGS+=-X "github.com/ProtonMail/proton-bridge/v2/internal/constants.FullAppName=${APP_FULL_NAME}"
 ifneq "${BUILD_LDFLAGS}" ""
     GO_LDFLAGS+=${BUILD_LDFLAGS}
 endif
@@ -33,7 +36,7 @@ ifeq "${TARGET_OS}" "windows"
 endif
 
 BUILD_FLAGS+=-ldflags '${GO_LDFLAGS}'
-BUILD_FLAGS_GUI+=-ldflags '${GO_LDFLAGS}'
+BUILD_FLAGS_GUI+=-ldflags "${GO_LDFLAGS}"
 BUILD_FLAGS_LAUNCHER+=-ldflags '${GO_LDFLAGS_LAUNCHER}'
 
 DEPLOY_DIR:=cmd/${TARGET_CMD}/deploy
@@ -128,6 +131,8 @@ ${DEPLOY_DIR}/windows: ${EXE_TARGET} build-launcher
 ${EXE_TARGET}: check-build-essentials ${EXE_NAME}
 	# TODO: resource.syso for windows
 	cd internal/frontend/bridge-gui/bridge-gui && \
+		BRIDGE_APP_FULL_NAME="${APP_FULL_NAME}" \
+		BRIDGE_VENDOR="${APP_VENDOR}" \
 		BRIDGE_APP_VERSION=${APP_VERSION} \
 		BRIDGE_REVISION=${REVISION} \
 		BRIDGE_BUILD_TIME=${BUILD_TIME} \

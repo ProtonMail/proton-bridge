@@ -30,7 +30,7 @@ using namespace bridgepp;
 namespace
 {
 
-/// \brief The file extension for the bridge executable file.
+    /// \brief The file extension for the bridge executable file.
 #ifdef Q_OS_WIN32
     QString const exeSuffix = ".exe";
 #else
@@ -62,12 +62,12 @@ void initQtApplication()
     if ((!qsgInfo.isEmpty()) && (qsgInfo != "0"))
         QLoggingCategory::setFilterRules("qt.scenegraph.general=true");
 
-    QGuiApplication::setApplicationName("Proton Mail Bridge");
+    QGuiApplication::setApplicationName(PROJECT_FULL_NAME);
     QGuiApplication::setApplicationVersion(PROJECT_VER);
-    QGuiApplication::setOrganizationName("Proton AG");
+    QGuiApplication::setOrganizationName(PROJECT_VENDOR);
     QGuiApplication::setOrganizationDomain("proton.ch");
     QGuiApplication::setQuitOnLastWindowClosed(false);
- }
+}
 
 
 //****************************************************************************************************************************************************
@@ -147,7 +147,7 @@ void parseArguments(int argc, char *argv[], QStringList& args, QString& launcher
     launcher = QString::fromLocal8Bit(argv[0]);
     // for unknown reasons, on Windows QCoreApplication::arguments() frequently returns an empty list, which is incorrect, so we rebuild the argument
     // list from the original argc and argv values.
-   for (int i = 1; i < argc; i++) {
+    for (int i = 1; i < argc; i++) {
         QString const &arg = QString::fromLocal8Bit(argv[i]);
         // we can't use QCommandLineParser here since it will fail on unknown options.
         // Arguments may contain some bridge flags.
@@ -274,9 +274,9 @@ int main(int argc, char *argv[])
             {
                 app().log().debug(QString("Monitoring Bridge PID : %1").arg(status.pid));
                 connection = QObject::connect(bridgeMonitor, &ProcessMonitor::processExited, [&](int returnCode) {
-                    bridgeExited = true;// clazy:exclude=lambda-in-connect
-                    qGuiApp->exit(returnCode);
-                });
+                        bridgeExited = true;// clazy:exclude=lambda-in-connect
+                        qGuiApp->exit(returnCode);
+                        });
             }
         }
 
