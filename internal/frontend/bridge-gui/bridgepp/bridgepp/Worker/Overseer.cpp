@@ -43,7 +43,7 @@ Overseer::Overseer(Worker *worker, QObject *parent)
 //****************************************************************************************************************************************************
 Overseer::~Overseer()
 {
-    this->release();
+    this->releaseWorker();
 }
 
 
@@ -61,11 +61,13 @@ void Overseer::startWorker(bool autorelease) const
     connect(thread_, &QThread::started, worker_, &Worker::run);
     connect(worker_, &Worker::finished, [&]() {thread_->quit(); }); // Safety, normally the thread already properly quits.
     connect(worker_, &Worker::error, [&]() { thread_->quit(); });
+    connect(worker_, &Worker::cancelled, [&]() { thread_->quit(); });
 
     if (autorelease)
     {
-        connect(worker_, &Worker::error, this, &Overseer::release);
-        connect(worker_, &Worker::finished, this, &Overseer::release);
+        connect(worker_, &Worker::error, this, &Overseer::releaseWorker);
+        connect(worker_, &Worker::cancelled, this, &Overseer::releaseWorker);
+        connect(worker_, &Worker::finished, this, &Overseer::releaseWorker);
     }
 
     thread_->start();
@@ -75,7 +77,7 @@ void Overseer::startWorker(bool autorelease) const
 //****************************************************************************************************************************************************
 //
 //****************************************************************************************************************************************************
-void Overseer::release()
+void Overseer::releaseWorker()
 {
     if (worker_)
     {
@@ -115,16 +117,32 @@ bool Overseer::isFinished() const
 //****************************************************************************************************************************************************
 bool Overseer::wait(qint32 timeoutMs) const
 {
-    QElapsedTimer timer;
-    timer.start();
+    if (this->isFinished())
+        return true;
 
-    while (!this->isFinished()) {
-        if ((timeoutMs >= 0) && (timer.elapsed() > timeoutMs))
-            return false;
-        QThread::msleep(10);
+    QEventLoop loop;
+    QTimer timer;
+    bool inTime = true;
+    if (timeoutMs >= 0)
+    {
+        connect(&timer, &QTimer::timeout, &loop, [&]() { loop.quit(); inTime = false; } );
+        timer.setSingleShot(true);
+        timer.start(timeoutMs);
     }
 
-    return true;
+    QTimer repeatTimer; // safety timer, used if for some reason the worker does not emit finished(), error() or cancelled()
+    repeatTimer.setSingleShot(false);
+    repeatTimer.setInterval(100);
+    connect(&repeatTimer, &QTimer::timeout, [&]() { if (this->isFinished()) { loop.quit(); }});
+    repeatTimer.start();
+
+    connect(worker_, &Worker::finished, &loop, &QEventLoop::quit);
+    connect(worker_, &Worker::error, &loop, &QEventLoop::quit);
+    connect(worker_, &Worker::cancelled, &loop, &QEventLoop::quit);
+
+    loop.exec();
+
+    return inTime;
 }
 
 

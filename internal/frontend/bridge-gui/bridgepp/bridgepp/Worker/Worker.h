@@ -47,6 +47,7 @@ signals:
     void started(); ///< Signal for the start of the worker
     void finished(); ///< Signal for the end of the worker
     void error(QString const &message); ///< Signal for errors. After an error, worker ends and finished is NOT emitted.
+    void cancelled(); ///< Signal for the cancellation of the worker.
 };
 
 

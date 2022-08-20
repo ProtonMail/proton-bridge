@@ -46,7 +46,7 @@ public: // member functions.
 
 public slots:
     void startWorker(bool autorelease) const; ///< Run the worker.
-    void release(); ///< Delete the worker and its thread.
+    void releaseWorker(); ///< Delete the worker and its thread.
 
 public: // data members.
     QThread *thread_{nullptr}; ///< The thread.
