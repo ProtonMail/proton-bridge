@@ -31,6 +31,7 @@ if ($null -eq $cmakeExe)
 {
     $cmakeExe = "C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" # Hardcoded for now.
 }
+Write-host "CMake found here : $cmakeExe"
 
 $bridgeVersion = ($env:BRIDGE_APP_VERSION)
 if ($null -eq $bridgeVersion)
@@ -51,11 +52,13 @@ $vcpkgBootstrap = (Join-Path $vcpkgRoot "bootstrap-vcpkg.bat")
 function check_exit() {
     if ($? -ne $True)
     {
-        Write-Host "Process failed: $args[0]"
-        Remove-Item "$buildDir" -Recurse
+        Write-Host "Process failed: $args[0] : $?"
+        Remove-Item "$buildDir" -Recurse -ErrorAction Ignore
         exit 1
     }
 }
+
+Write-host "Running build for version $bridgeVersion - $buildConfig in $buildDir"
 
 git submodule update --init --recursive $vcpkgRoot
 . $vcpkgBootstrap -disableMetrics
