@@ -20,6 +20,7 @@ package bridge
 import (
 	"github.com/Masterminds/semver/v3"
 
+	"github.com/ProtonMail/proton-bridge/v2/internal/config/settings"
 	"github.com/ProtonMail/proton-bridge/v2/internal/updater"
 )
 
@@ -40,11 +41,14 @@ type CacheProvider interface {
 }
 
 type SettingsProvider interface {
-	Get(key string) string
-	Set(key string, value string)
-	GetBool(key string) bool
-	SetBool(key string, val bool)
-	GetInt(key string) int
+	Get(key settings.Key) string
+	Set(key settings.Key, value string)
+
+	GetBool(key settings.Key) bool
+	SetBool(key settings.Key, val bool)
+
+	GetInt(key settings.Key) int
+	SetInt(key settings.Key, val int)
 }
 
 type Updater interface {

@@ -22,6 +22,7 @@ import (
 	"time"
 
 	"github.com/ProtonMail/proton-bridge/v2/internal/bridge"
+	"github.com/ProtonMail/proton-bridge/v2/internal/config/settings"
 	"github.com/ProtonMail/proton-bridge/v2/internal/users"
 	"github.com/ProtonMail/proton-bridge/v2/pkg/listener"
 	goSMTPBackend "github.com/emersion/go-smtp"
@@ -33,7 +34,7 @@ type panicHandler interface {
 }
 
 type settingsProvider interface {
-	GetBool(string) bool
+	GetBool(settings.Key) bool
 }
 
 type smtpBackend struct {

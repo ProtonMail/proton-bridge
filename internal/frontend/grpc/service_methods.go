@@ -129,7 +129,7 @@ func (s *Service) ShowSplashScreen(context.Context, *emptypb.Empty) (*wrapperspb
 func (s *Service) IsFirstGuiStart(context.Context, *emptypb.Empty) (*wrapperspb.BoolValue, error) {
 	s.log.Info("IsFirstGuiStart")
 
-	return wrapperspb.Bool(s.settings.GetBool(settings.FirstStartGUIKey)), nil
+	return wrapperspb.Bool(s.bridge.GetBool(settings.FirstStartGUIKey)), nil
 }
 
 func (s *Service) SetIsAutostartOn(_ context.Context, isOn *wrapperspb.BoolValue) (*emptypb.Empty, error) {
@@ -238,7 +238,7 @@ func (s *Service) SetColorSchemeName(_ context.Context, name *wrapperspb.StringV
 		return nil, status.Error(codes.NotFound, "Color scheme not available")
 	}
 
-	s.settings.Set(settings.ColorScheme, name.Value)
+	s.bridge.Set(settings.ColorScheme, name.Value)
 
 	return &emptypb.Empty{}, nil
 }
@@ -246,10 +246,10 @@ func (s *Service) SetColorSchemeName(_ context.Context, name *wrapperspb.StringV
 func (s *Service) ColorSchemeName(context.Context, *emptypb.Empty) (*wrapperspb.StringValue, error) {
 	s.log.Info("ColorSchemeName")
 
-	current := s.settings.Get(settings.ColorScheme)
+	current := s.bridge.Get(settings.ColorScheme)
 	if !theme.IsAvailable(theme.Theme(current)) {
 		current = string(theme.DefaultTheme())
-		s.settings.Set(settings.ColorScheme, current)
+		s.bridge.Set(settings.ColorScheme, current)
 	}
 
 	return wrapperspb.String(current), nil
@@ -459,12 +459,12 @@ func (s *Service) InstallUpdate(context.Context, *emptypb.Empty) (*emptypb.Empty
 func (s *Service) SetIsAutomaticUpdateOn(_ context.Context, isOn *wrapperspb.BoolValue) (*emptypb.Empty, error) {
 	s.log.WithField("isOn", isOn.Value).Info("SetIsAutomaticUpdateOn")
 
-	currentlyOn := s.settings.GetBool(settings.AutoUpdateKey)
+	currentlyOn := s.bridge.GetBool(settings.AutoUpdateKey)
 	if currentlyOn == isOn.Value {
 		return &emptypb.Empty{}, nil
 	}
 
-	s.settings.SetBool(settings.AutoUpdateKey, isOn.Value)
+	s.bridge.SetBool(settings.AutoUpdateKey, isOn.Value)
 	s.checkUpdateAndNotify(false)
 
 	return &emptypb.Empty{}, nil
@@ -473,17 +473,17 @@ func (s *Service) SetIsAutomaticUpdateOn(_ context.Context, isOn *wrapperspb.Boo
 func (s *Service) IsAutomaticUpdateOn(context.Context, *emptypb.Empty) (*wrapperspb.BoolValue, error) {
 	s.log.Info("IsAutomaticUpdateOn")
 
-	return wrapperspb.Bool(s.settings.GetBool(settings.AutoUpdateKey)), nil
+	return wrapperspb.Bool(s.bridge.GetBool(settings.AutoUpdateKey)), nil
 }
 
 func (s *Service) IsCacheOnDiskEnabled(context.Context, *emptypb.Empty) (*wrapperspb.BoolValue, error) {
 	s.log.Info("IsCacheOnDiskEnabled")
-	return wrapperspb.Bool(s.settings.GetBool(settings.CacheEnabledKey)), nil
+	return wrapperspb.Bool(s.bridge.GetBool(settings.CacheEnabledKey)), nil
 }
 
 func (s *Service) DiskCachePath(context.Context, *emptypb.Empty) (*wrapperspb.StringValue, error) {
 	s.log.Info("DiskCachePath")
-	return wrapperspb.String(s.settings.Get(settings.CacheLocationKey)), nil
+	return wrapperspb.String(s.bridge.Get(settings.CacheLocationKey)), nil
 }
 
 func (s *Service) ChangeLocalCache(_ context.Context, change *ChangeLocalCacheRequest) (*emptypb.Empty, error) {
@@ -492,10 +492,10 @@ func (s *Service) ChangeLocalCache(_ context.Context, change *ChangeLocalCacheRe
 		Info("DiskCachePath")
 
 	defer func() { _ = s.SendEvent(NewCacheChangeLocalCacheFinishedEvent()) }()
-	defer func() { _ = s.SendEvent(NewIsCacheOnDiskEnabledChanged(s.settings.GetBool(settings.CacheEnabledKey))) }()
-	defer func() { _ = s.SendEvent(NewDiskCachePathChanged(s.settings.Get(settings.CacheCompressionKey))) }()
+	defer func() { _ = s.SendEvent(NewIsCacheOnDiskEnabledChanged(s.bridge.GetBool(settings.CacheEnabledKey))) }()
+	defer func() { _ = s.SendEvent(NewDiskCachePathChanged(s.bridge.Get(settings.CacheCompressionKey))) }()
 
-	if change.EnableDiskCache != s.settings.GetBool(settings.CacheEnabledKey) {
+	if change.EnableDiskCache != s.bridge.GetBool(settings.CacheEnabledKey) {
 		if change.EnableDiskCache {
 			if err := s.bridge.EnableCache(); err != nil {
 				s.log.WithError(err).Error("Cannot enable disk cache")
@@ -513,13 +513,13 @@ func (s *Service) ChangeLocalCache(_ context.Context, change *ChangeLocalCacheRe
 		path = path[1:]
 	}
 
-	if change.EnableDiskCache && path != s.settings.Get(settings.CacheLocationKey) {
-		if err := s.bridge.MigrateCache(s.settings.Get(settings.CacheLocationKey), path); err != nil {
+	if change.EnableDiskCache && path != s.bridge.Get(settings.CacheLocationKey) {
+		if err := s.bridge.MigrateCache(s.bridge.Get(settings.CacheLocationKey), path); err != nil {
 			s.log.WithError(err).Error("The local cache location could not be changed.")
 			_ = s.SendEvent(NewCacheErrorEvent(CacheErrorType_CACHE_CANT_MOVE_ERROR))
 			return &emptypb.Empty{}, nil
 		}
-		s.settings.Set(settings.CacheLocationKey, path)
+		s.bridge.Set(settings.CacheLocationKey, path)
 	}
 
 	_ = s.SendEvent(NewCacheLocationChangeSuccessEvent())
@@ -545,13 +545,13 @@ func (s *Service) IsDoHEnabled(context.Context, *emptypb.Empty) (*wrapperspb.Boo
 func (s *Service) SetUseSslForSmtp(_ context.Context, useSsl *wrapperspb.BoolValue) (*emptypb.Empty, error) { //nolint:revive,stylecheck
 	s.log.WithField("useSsl", useSsl.Value).Info("SetUseSslForSmtp")
 
-	if s.settings.GetBool(settings.SMTPSSLKey) == useSsl.Value {
+	if s.bridge.GetBool(settings.SMTPSSLKey) == useSsl.Value {
 		return &emptypb.Empty{}, nil
 	}
 
 	defer func() { _ = s.SendEvent(NewMailSettingsUseSslForSmtpFinishedEvent()) }()
 
-	s.settings.SetBool(settings.SMTPSSLKey, useSsl.Value)
+	s.bridge.SetBool(settings.SMTPSSLKey, useSsl.Value)
 	s.restart()
 
 	return &emptypb.Empty{}, nil
@@ -560,7 +560,7 @@ func (s *Service) SetUseSslForSmtp(_ context.Context, useSsl *wrapperspb.BoolVal
 func (s *Service) UseSslForSmtp(context.Context, *emptypb.Empty) (*wrapperspb.BoolValue, error) { //nolint:revive,stylecheck
 	s.log.Info("UseSslForSmtp")
 
-	return wrapperspb.Bool(s.settings.GetBool(settings.SMTPSSLKey)), nil
+	return wrapperspb.Bool(s.bridge.GetBool(settings.SMTPSSLKey)), nil
 }
 
 func (s *Service) Hostname(context.Context, *emptypb.Empty) (*wrapperspb.StringValue, error) {
@@ -572,13 +572,13 @@ func (s *Service) Hostname(context.Context, *emptypb.Empty) (*wrapperspb.StringV
 func (s *Service) ImapPort(context.Context, *emptypb.Empty) (*wrapperspb.Int32Value, error) {
 	s.log.Info("ImapPort")
 
-	return wrapperspb.Int32(int32(s.settings.GetInt(settings.IMAPPortKey))), nil
+	return wrapperspb.Int32(int32(s.bridge.GetInt(settings.IMAPPortKey))), nil
 }
 
 func (s *Service) SmtpPort(context.Context, *emptypb.Empty) (*wrapperspb.Int32Value, error) { //nolint:revive,stylecheck
 	s.log.Info("SmtpPort")
 
-	return wrapperspb.Int32(int32(s.settings.GetInt(settings.SMTPPortKey))), nil
+	return wrapperspb.Int32(int32(s.bridge.GetInt(settings.SMTPPortKey))), nil
 }
 
 func (s *Service) ChangePorts(_ context.Context, ports *ChangePortsRequest) (*emptypb.Empty, error) {
@@ -586,8 +586,8 @@ func (s *Service) ChangePorts(_ context.Context, ports *ChangePortsRequest) (*em
 
 	defer func() { _ = s.SendEvent(NewMailSettingsChangePortFinishedEvent()) }()
 
-	s.settings.SetInt(settings.IMAPPortKey, int(ports.ImapPort))
-	s.settings.SetInt(settings.SMTPPortKey, int(ports.SmtpPort))
+	s.bridge.SetInt(settings.IMAPPortKey, int(ports.ImapPort))
+	s.bridge.SetInt(settings.SMTPPortKey, int(ports.SmtpPort))
 
 	s.restart()
 	return &emptypb.Empty{}, nil

@@ -66,13 +66,13 @@ func (f *frontendCLI) showAccountInfo(c *ishell.Context) {
 
 func (f *frontendCLI) showAccountAddressInfo(user types.User, address string) {
 	smtpSecurity := "STARTTLS"
-	if f.settings.GetBool(settings.SMTPSSLKey) {
+	if f.bridge.GetBool(settings.SMTPSSLKey) {
 		smtpSecurity = "SSL"
 	}
 	f.Println(bold("Configuration for " + address))
 	f.Printf("IMAP Settings\nAddress:   %s\nIMAP port: %d\nUsername:  %s\nPassword:  %s\nSecurity:  %s\n",
 		bridge.Host,
-		f.settings.GetInt(settings.IMAPPortKey),
+		f.bridge.GetInt(settings.IMAPPortKey),
 		address,
 		user.GetBridgePassword(),
 		"STARTTLS",
@@ -80,7 +80,7 @@ func (f *frontendCLI) showAccountAddressInfo(user types.User, address string) {
 	f.Println("")
 	f.Printf("SMTP Settings\nAddress:   %s\nSMTP port: %d\nUsername:  %s\nPassword:  %s\nSecurity:  %s\n",
 		bridge.Host,
-		f.settings.GetInt(settings.SMTPPortKey),
+		f.bridge.GetInt(settings.SMTPPortKey),
 		address,
 		user.GetBridgePassword(),
 		smtpSecurity,

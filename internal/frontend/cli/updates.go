@@ -47,7 +47,7 @@ func (f *frontendCLI) printCredits(c *ishell.Context) {
 }
 
 func (f *frontendCLI) enableAutoUpdates(c *ishell.Context) {
-	if f.settings.GetBool(settings.AutoUpdateKey) {
+	if f.bridge.GetBool(settings.AutoUpdateKey) {
 		f.Println("Bridge is already set to automatically install updates.")
 		return
 	}
@@ -55,12 +55,12 @@ func (f *frontendCLI) enableAutoUpdates(c *ishell.Context) {
 	f.Println("Bridge is currently set to NOT automatically install updates.")
 
 	if f.yesNoQuestion("Are you sure you want to allow bridge to do this") {
-		f.settings.SetBool(settings.AutoUpdateKey, true)
+		f.bridge.SetBool(settings.AutoUpdateKey, true)
 	}
 }
 
 func (f *frontendCLI) disableAutoUpdates(c *ishell.Context) {
-	if !f.settings.GetBool(settings.AutoUpdateKey) {
+	if !f.bridge.GetBool(settings.AutoUpdateKey) {
 		f.Println("Bridge is already set to NOT automatically install updates.")
 		return
 	}
@@ -68,7 +68,7 @@ func (f *frontendCLI) disableAutoUpdates(c *ishell.Context) {
 	f.Println("Bridge is currently set to automatically install updates.")
 
 	if f.yesNoQuestion("Are you sure you want to stop bridge from doing this") {
-		f.settings.SetBool(settings.AutoUpdateKey, false)
+		f.bridge.SetBool(settings.AutoUpdateKey, false)
 	}
 }
 

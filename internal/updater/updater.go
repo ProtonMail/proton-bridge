@@ -37,9 +37,9 @@ type Installer interface {
 }
 
 type Settings interface {
-	Get(string) string
-	Set(string, string)
-	GetFloat64(string) float64
+	Get(settings.Key) string
+	Set(settings.Key, string)
+	GetFloat64(settings.Key) float64
 }
 
 type Updater struct {

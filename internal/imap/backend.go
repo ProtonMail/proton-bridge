@@ -65,7 +65,7 @@ type imapBackend struct {
 }
 
 type settingsProvider interface {
-	GetInt(string) int
+	GetInt(settings.Key) int
 }
 
 // NewIMAPBackend returns struct implementing go-imap/backend interface.

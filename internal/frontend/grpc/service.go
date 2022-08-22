@@ -50,7 +50,6 @@ type Service struct { // nolint:structcheck
 	eventStreamDoneCh chan struct{}
 
 	panicHandler       types.PanicHandler
-	settings           *settings.Settings
 	eventListener      listener.Listener
 	updater            types.Updater
 	updateCheckMutex   sync.Mutex
@@ -71,7 +70,6 @@ type Service struct { // nolint:structcheck
 func NewService(
 	showOnStartup bool,
 	panicHandler types.PanicHandler,
-	settings *settings.Settings,
 	eventListener listener.Listener,
 	updater types.Updater,
 	bridge types.Bridger,
@@ -80,7 +78,6 @@ func NewService(
 	s := Service{
 		UnimplementedBridgeServer: UnimplementedBridgeServer{},
 		panicHandler:              panicHandler,
-		settings:                  settings,
 		eventListener:             eventListener,
 		updater:                   updater,
 		bridge:                    bridge,
@@ -126,7 +123,7 @@ func (s *Service) initAutostart() {
 	// TO-DO GODT-1681 Autostart needs to be properly implement for gRPC approach.
 
 	s.firstTimeAutostart.Do(func() {
-		shouldAutostartBeOn := s.settings.GetBool(settings.AutostartKey)
+		shouldAutostartBeOn := s.bridge.GetBool(settings.AutostartKey)
 		if s.bridge.IsFirstStart() || shouldAutostartBeOn {
 			if err := s.bridge.EnableAutostart(); err != nil {
 				s.log.WithField("prefs", shouldAutostartBeOn).WithError(err).Error("Failed to enable first autostart")
@@ -138,7 +135,7 @@ func (s *Service) initAutostart() {
 
 func (s *Service) Loop() error {
 	defer func() {
-		s.settings.SetBool(settings.FirstStartGUIKey, false)
+		s.bridge.SetBool(settings.FirstStartGUIKey, false)
 	}()
 
 	go func() {

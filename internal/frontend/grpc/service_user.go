@@ -19,9 +19,7 @@ package grpc
 
 import (
 	"context"
-	"time"
 
-	"github.com/ProtonMail/proton-bridge/v2/internal/frontend/clientconfig"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -108,25 +106,29 @@ func (s *Service) RemoveUser(_ context.Context, userID *wrapperspb.StringValue) 
 }
 
 func (s *Service) ConfigureUserAppleMail(_ context.Context, request *ConfigureAppleMailRequest) (*emptypb.Empty, error) {
-	s.log.WithField("UserID", request.UserID).WithField("Address", request.Address).Info("ConfigureUserAppleMail")
+	// NOTE: Configure apple mail should be part of bridge (and thus not need to deal with accounts/settings!
 
-	user, err := s.bridge.GetUser(request.UserID)
-	if err != nil {
-		s.log.WithField("userID", request.UserID).Error("Cannot configure AppleMail for user")
-		return nil, status.Error(codes.NotFound, "Cannot configure AppleMail for user")
-	}
+	/*
+		s.log.WithField("UserID", request.UserID).WithField("Address", request.Address).Info("ConfigureUserAppleMail")
 
-	needRestart, err := clientconfig.ConfigureAppleMail(user, request.Address, s.settings)
-	if err != nil {
-		s.log.WithError(err).Error("Apple Mail config failed")
-		return nil, status.Error(codes.Internal, "Apple Mail config failed")
-	}
+		user, err := s.bridge.GetUser(request.UserID)
+		if err != nil {
+			s.log.WithField("userID", request.UserID).Error("Cannot configure AppleMail for user")
+			return nil, status.Error(codes.NotFound, "Cannot configure AppleMail for user")
+		}
 
-	if needRestart {
-		// There is delay needed for external window to open
-		time.Sleep(2 * time.Second)
-		s.restart()
-	}
+		needRestart, err := clientconfig.ConfigureAppleMail(user, request.Address, s.settings)
+		if err != nil {
+			s.log.WithError(err).Error("Apple Mail config failed")
+			return nil, status.Error(codes.Internal, "Apple Mail config failed")
+		}
+
+		if needRestart {
+			// There is delay needed for external window to open
+			time.Sleep(2 * time.Second)
+			s.restart()
+		}
+	*/
 
 	return &emptypb.Empty{}, nil
 }

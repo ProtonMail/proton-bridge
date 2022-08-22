@@ -22,6 +22,7 @@ import (
 	"crypto/tls"
 
 	"github.com/ProtonMail/proton-bridge/v2/internal/bridge"
+	"github.com/ProtonMail/proton-bridge/v2/internal/config/settings"
 	"github.com/ProtonMail/proton-bridge/v2/internal/updater"
 	"github.com/ProtonMail/proton-bridge/v2/pkg/pmapi"
 )
@@ -83,6 +84,13 @@ type Bridger interface {
 
 	GetCurrentUserAgent() string
 	SetCurrentPlatform(string)
+
+	Get(settings.Key) string
+	Set(settings.Key, string)
+	GetBool(settings.Key) bool
+	SetBool(settings.Key, bool)
+	GetInt(settings.Key) int
+	SetInt(settings.Key, int)
 
 	// -- old --
 
