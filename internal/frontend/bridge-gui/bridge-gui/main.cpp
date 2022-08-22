@@ -285,7 +285,7 @@ int main(int argc, char *argv[])
             result = QGuiApplication::exec();
 
         QObject::disconnect(connection);
-        app().grpc().stopEventStream();
+        app().grpc().stopEventStreamReader();
         if (!app().backend().waitForEventStreamReaderToFinish(5000))
             log.warn("Event stream reader took too long to finish.");
 

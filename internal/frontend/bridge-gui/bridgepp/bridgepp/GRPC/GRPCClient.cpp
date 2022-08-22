@@ -779,14 +779,30 @@ grpc::Status GRPCClient::setCurrentKeychain(QString const &keychain)
 
 
 //****************************************************************************************************************************************************
+/// \return true iff the event stream is active.
+//****************************************************************************************************************************************************
+bool GRPCClient::isEventStreamActive() const
+{
+    QMutexLocker locker(&eventStreamMutex_);
+    return eventStreamContext_.get();
+}
+
+
+//****************************************************************************************************************************************************
 /// \return The status for the gRPC coll.
 //****************************************************************************************************************************************************
-grpc::Status GRPCClient::startEventStream()
+grpc::Status GRPCClient::runEventStreamReader()
 {
-    grpc::ClientContext ctx;
+    {
+        QMutexLocker locker(&eventStreamMutex_);
+        if (eventStreamContext_)
+            return Status(grpc::ALREADY_EXISTS, "event stream is already active.");
+        eventStreamContext_ = std::make_unique<ClientContext>();
+    }
+
     EventStreamRequest request;
     request.set_clientplatform(QSysInfo::prettyProductName().toStdString());
-    std::unique_ptr<grpc::ClientReader<grpc::StreamEvent>> reader(stub_->StartEventStream(&ctx, request));
+    std::unique_ptr<grpc::ClientReader<grpc::StreamEvent>> reader(stub_->RunEventStream(eventStreamContext_.get(), request));
     grpc::StreamEvent event;
 
     while (reader->Read(&event))
@@ -823,15 +839,20 @@ grpc::Status GRPCClient::startEventStream()
         }
     }
 
-    return this->logGRPCCallStatus(reader->Finish(), __FUNCTION__);
+    Status result = this->logGRPCCallStatus(reader->Finish(), __FUNCTION__);
+    QMutexLocker locker(&eventStreamMutex_);
+    eventStreamContext_.reset();
+    return result;
 }
 
 
 //****************************************************************************************************************************************************
 /// \return The status for the call.
 //****************************************************************************************************************************************************
-grpc::Status GRPCClient::stopEventStream()
+grpc::Status GRPCClient::stopEventStreamReader()
 {
+    if (!this->isEventStreamActive())
+        return Status::OK;
     grpc::ClientContext ctx;
     return this->logGRPCCallStatus(stub_->StopEventStream(&ctx, empty, &empty), __FUNCTION__);
 }

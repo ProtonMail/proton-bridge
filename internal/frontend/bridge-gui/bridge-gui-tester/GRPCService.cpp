@@ -805,7 +805,7 @@ Status GRPCService::ConfigureUserAppleMail(ServerContext *, ConfigureAppleMailRe
 /// \param[in] writer The writer
 /// \return The status for the call.
 //****************************************************************************************************************************************************
-Status GRPCService::StartEventStream(ServerContext *, EventStreamRequest const *request, ServerWriter<StreamEvent> *writer)
+Status GRPCService::RunEventStream(ServerContext *, EventStreamRequest const *request, ServerWriter<StreamEvent> *writer)
 {
     app().log().debug(__FUNCTION__);
     {

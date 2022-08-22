@@ -191,8 +191,9 @@ signals: // mail related events
     void apiCertIssue();
 
 public:
-    grpc::Status startEventStream(); ///< Retrieve and signal the events in the event stream.
-    grpc::Status stopEventStream(); ///< Stop the event stream.
+    bool isEventStreamActive() const; ///< Check if the event stream is active.
+    grpc::Status runEventStreamReader(); ///< Retrieve and signal the events in the event stream.
+    grpc::Status stopEventStreamReader(); ///< Stop the event stream.
 
 private slots:
     void configFolderChanged();
@@ -227,6 +228,8 @@ private: // data members.
     Log *log_ { nullptr }; ///< The log for the GRPC client.
     std::shared_ptr<grpc::Channel> channel_ { nullptr }; ///< The gRPC channel.
     std::shared_ptr<grpc::Bridge::Stub> stub_ { nullptr }; ///< The gRPC stub (a.k.a. client).
+    mutable QMutex eventStreamMutex_; ///< The event stream mutex.
+    std::unique_ptr<grpc::ClientContext> eventStreamContext_; /// the client context for the gRPC event stream. Access protected by  eventStreamMutex_.
 };
 
 

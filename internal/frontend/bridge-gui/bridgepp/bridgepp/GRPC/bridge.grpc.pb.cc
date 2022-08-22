@@ -75,7 +75,7 @@ static const char* Bridge_method_names[] = {
   "/grpc.Bridge/LogoutUser",
   "/grpc.Bridge/RemoveUser",
   "/grpc.Bridge/ConfigureUserAppleMail",
-  "/grpc.Bridge/StartEventStream",
+  "/grpc.Bridge/RunEventStream",
   "/grpc.Bridge/StopEventStream",
 };
 
@@ -139,7 +139,7 @@ Bridge::Stub::Stub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, co
   , rpcmethod_LogoutUser_(Bridge_method_names[50], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   , rpcmethod_RemoveUser_(Bridge_method_names[51], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   , rpcmethod_ConfigureUserAppleMail_(Bridge_method_names[52], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_StartEventStream_(Bridge_method_names[53], options.suffix_for_stats(),::grpc::internal::RpcMethod::SERVER_STREAMING, channel)
+  , rpcmethod_RunEventStream_(Bridge_method_names[53], options.suffix_for_stats(),::grpc::internal::RpcMethod::SERVER_STREAMING, channel)
   , rpcmethod_StopEventStream_(Bridge_method_names[54], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   {}
 
@@ -1362,20 +1362,20 @@ void Bridge::Stub::async::ConfigureUserAppleMail(::grpc::ClientContext* context,
   return result;
 }
 
-::grpc::ClientReader< ::grpc::StreamEvent>* Bridge::Stub::StartEventStreamRaw(::grpc::ClientContext* context, const ::grpc::EventStreamRequest& request) {
-  return ::grpc::internal::ClientReaderFactory< ::grpc::StreamEvent>::Create(channel_.get(), rpcmethod_StartEventStream_, context, request);
+::grpc::ClientReader< ::grpc::StreamEvent>* Bridge::Stub::RunEventStreamRaw(::grpc::ClientContext* context, const ::grpc::EventStreamRequest& request) {
+  return ::grpc::internal::ClientReaderFactory< ::grpc::StreamEvent>::Create(channel_.get(), rpcmethod_RunEventStream_, context, request);
 }
 
-void Bridge::Stub::async::StartEventStream(::grpc::ClientContext* context, const ::grpc::EventStreamRequest* request, ::grpc::ClientReadReactor< ::grpc::StreamEvent>* reactor) {
-  ::grpc::internal::ClientCallbackReaderFactory< ::grpc::StreamEvent>::Create(stub_->channel_.get(), stub_->rpcmethod_StartEventStream_, context, request, reactor);
+void Bridge::Stub::async::RunEventStream(::grpc::ClientContext* context, const ::grpc::EventStreamRequest* request, ::grpc::ClientReadReactor< ::grpc::StreamEvent>* reactor) {
+  ::grpc::internal::ClientCallbackReaderFactory< ::grpc::StreamEvent>::Create(stub_->channel_.get(), stub_->rpcmethod_RunEventStream_, context, request, reactor);
 }
 
-::grpc::ClientAsyncReader< ::grpc::StreamEvent>* Bridge::Stub::AsyncStartEventStreamRaw(::grpc::ClientContext* context, const ::grpc::EventStreamRequest& request, ::grpc::CompletionQueue* cq, void* tag) {
-  return ::grpc::internal::ClientAsyncReaderFactory< ::grpc::StreamEvent>::Create(channel_.get(), cq, rpcmethod_StartEventStream_, context, request, true, tag);
+::grpc::ClientAsyncReader< ::grpc::StreamEvent>* Bridge::Stub::AsyncRunEventStreamRaw(::grpc::ClientContext* context, const ::grpc::EventStreamRequest& request, ::grpc::CompletionQueue* cq, void* tag) {
+  return ::grpc::internal::ClientAsyncReaderFactory< ::grpc::StreamEvent>::Create(channel_.get(), cq, rpcmethod_RunEventStream_, context, request, true, tag);
 }
 
-::grpc::ClientAsyncReader< ::grpc::StreamEvent>* Bridge::Stub::PrepareAsyncStartEventStreamRaw(::grpc::ClientContext* context, const ::grpc::EventStreamRequest& request, ::grpc::CompletionQueue* cq) {
-  return ::grpc::internal::ClientAsyncReaderFactory< ::grpc::StreamEvent>::Create(channel_.get(), cq, rpcmethod_StartEventStream_, context, request, false, nullptr);
+::grpc::ClientAsyncReader< ::grpc::StreamEvent>* Bridge::Stub::PrepareAsyncRunEventStreamRaw(::grpc::ClientContext* context, const ::grpc::EventStreamRequest& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc::internal::ClientAsyncReaderFactory< ::grpc::StreamEvent>::Create(channel_.get(), cq, rpcmethod_RunEventStream_, context, request, false, nullptr);
 }
 
 ::grpc::Status Bridge::Stub::StopEventStream(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::google::protobuf::Empty* response) {
@@ -1940,7 +1940,7 @@ Bridge::Service::Service() {
              ::grpc::ServerContext* ctx,
              const ::grpc::EventStreamRequest* req,
              ::grpc::ServerWriter<::grpc::StreamEvent>* writer) {
-               return service->StartEventStream(ctx, req, writer);
+               return service->RunEventStream(ctx, req, writer);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       Bridge_method_names[54],
@@ -2328,7 +2328,7 @@ Bridge::Service::~Service() {
   return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
 }
 
-::grpc::Status Bridge::Service::StartEventStream(::grpc::ServerContext* context, const ::grpc::EventStreamRequest* request, ::grpc::ServerWriter< ::grpc::StreamEvent>* writer) {
+::grpc::Status Bridge::Service::RunEventStream(::grpc::ServerContext* context, const ::grpc::EventStreamRequest* request, ::grpc::ServerWriter< ::grpc::StreamEvent>* writer) {
   (void) context;
   (void) request;
   (void) writer;

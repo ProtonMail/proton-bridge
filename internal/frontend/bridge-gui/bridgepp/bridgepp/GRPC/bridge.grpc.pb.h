@@ -436,14 +436,14 @@ class Bridge final {
       return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>>(PrepareAsyncConfigureUserAppleMailRaw(context, request, cq));
     }
     // Server -> Client event stream
-    std::unique_ptr< ::grpc::ClientReaderInterface< ::grpc::StreamEvent>> StartEventStream(::grpc::ClientContext* context, const ::grpc::EventStreamRequest& request) {
-      return std::unique_ptr< ::grpc::ClientReaderInterface< ::grpc::StreamEvent>>(StartEventStreamRaw(context, request));
+    std::unique_ptr< ::grpc::ClientReaderInterface< ::grpc::StreamEvent>> RunEventStream(::grpc::ClientContext* context, const ::grpc::EventStreamRequest& request) {
+      return std::unique_ptr< ::grpc::ClientReaderInterface< ::grpc::StreamEvent>>(RunEventStreamRaw(context, request));
     }
-    std::unique_ptr< ::grpc::ClientAsyncReaderInterface< ::grpc::StreamEvent>> AsyncStartEventStream(::grpc::ClientContext* context, const ::grpc::EventStreamRequest& request, ::grpc::CompletionQueue* cq, void* tag) {
-      return std::unique_ptr< ::grpc::ClientAsyncReaderInterface< ::grpc::StreamEvent>>(AsyncStartEventStreamRaw(context, request, cq, tag));
+    std::unique_ptr< ::grpc::ClientAsyncReaderInterface< ::grpc::StreamEvent>> AsyncRunEventStream(::grpc::ClientContext* context, const ::grpc::EventStreamRequest& request, ::grpc::CompletionQueue* cq, void* tag) {
+      return std::unique_ptr< ::grpc::ClientAsyncReaderInterface< ::grpc::StreamEvent>>(AsyncRunEventStreamRaw(context, request, cq, tag));
     }
-    std::unique_ptr< ::grpc::ClientAsyncReaderInterface< ::grpc::StreamEvent>> PrepareAsyncStartEventStream(::grpc::ClientContext* context, const ::grpc::EventStreamRequest& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncReaderInterface< ::grpc::StreamEvent>>(PrepareAsyncStartEventStreamRaw(context, request, cq));
+    std::unique_ptr< ::grpc::ClientAsyncReaderInterface< ::grpc::StreamEvent>> PrepareAsyncRunEventStream(::grpc::ClientContext* context, const ::grpc::EventStreamRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncReaderInterface< ::grpc::StreamEvent>>(PrepareAsyncRunEventStreamRaw(context, request, cq));
     }
     // Keep streaming until StopEventStream is called.
     virtual ::grpc::Status StopEventStream(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::google::protobuf::Empty* response) = 0;
@@ -571,7 +571,7 @@ class Bridge final {
       virtual void ConfigureUserAppleMail(::grpc::ClientContext* context, const ::grpc::ConfigureAppleMailRequest* request, ::google::protobuf::Empty* response, std::function<void(::grpc::Status)>) = 0;
       virtual void ConfigureUserAppleMail(::grpc::ClientContext* context, const ::grpc::ConfigureAppleMailRequest* request, ::google::protobuf::Empty* response, ::grpc::ClientUnaryReactor* reactor) = 0;
       // Server -> Client event stream
-      virtual void StartEventStream(::grpc::ClientContext* context, const ::grpc::EventStreamRequest* request, ::grpc::ClientReadReactor< ::grpc::StreamEvent>* reactor) = 0;
+      virtual void RunEventStream(::grpc::ClientContext* context, const ::grpc::EventStreamRequest* request, ::grpc::ClientReadReactor< ::grpc::StreamEvent>* reactor) = 0;
       // Keep streaming until StopEventStream is called.
       virtual void StopEventStream(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::google::protobuf::Empty* response, std::function<void(::grpc::Status)>) = 0;
       virtual void StopEventStream(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::google::protobuf::Empty* response, ::grpc::ClientUnaryReactor* reactor) = 0;
@@ -686,9 +686,9 @@ class Bridge final {
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>* PrepareAsyncRemoveUserRaw(::grpc::ClientContext* context, const ::google::protobuf::StringValue& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>* AsyncConfigureUserAppleMailRaw(::grpc::ClientContext* context, const ::grpc::ConfigureAppleMailRequest& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>* PrepareAsyncConfigureUserAppleMailRaw(::grpc::ClientContext* context, const ::grpc::ConfigureAppleMailRequest& request, ::grpc::CompletionQueue* cq) = 0;
-    virtual ::grpc::ClientReaderInterface< ::grpc::StreamEvent>* StartEventStreamRaw(::grpc::ClientContext* context, const ::grpc::EventStreamRequest& request) = 0;
-    virtual ::grpc::ClientAsyncReaderInterface< ::grpc::StreamEvent>* AsyncStartEventStreamRaw(::grpc::ClientContext* context, const ::grpc::EventStreamRequest& request, ::grpc::CompletionQueue* cq, void* tag) = 0;
-    virtual ::grpc::ClientAsyncReaderInterface< ::grpc::StreamEvent>* PrepareAsyncStartEventStreamRaw(::grpc::ClientContext* context, const ::grpc::EventStreamRequest& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientReaderInterface< ::grpc::StreamEvent>* RunEventStreamRaw(::grpc::ClientContext* context, const ::grpc::EventStreamRequest& request) = 0;
+    virtual ::grpc::ClientAsyncReaderInterface< ::grpc::StreamEvent>* AsyncRunEventStreamRaw(::grpc::ClientContext* context, const ::grpc::EventStreamRequest& request, ::grpc::CompletionQueue* cq, void* tag) = 0;
+    virtual ::grpc::ClientAsyncReaderInterface< ::grpc::StreamEvent>* PrepareAsyncRunEventStreamRaw(::grpc::ClientContext* context, const ::grpc::EventStreamRequest& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>* AsyncStopEventStreamRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>* PrepareAsyncStopEventStreamRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) = 0;
   };
@@ -1066,14 +1066,14 @@ class Bridge final {
     std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>> PrepareAsyncConfigureUserAppleMail(::grpc::ClientContext* context, const ::grpc::ConfigureAppleMailRequest& request, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>>(PrepareAsyncConfigureUserAppleMailRaw(context, request, cq));
     }
-    std::unique_ptr< ::grpc::ClientReader< ::grpc::StreamEvent>> StartEventStream(::grpc::ClientContext* context, const ::grpc::EventStreamRequest& request) {
-      return std::unique_ptr< ::grpc::ClientReader< ::grpc::StreamEvent>>(StartEventStreamRaw(context, request));
+    std::unique_ptr< ::grpc::ClientReader< ::grpc::StreamEvent>> RunEventStream(::grpc::ClientContext* context, const ::grpc::EventStreamRequest& request) {
+      return std::unique_ptr< ::grpc::ClientReader< ::grpc::StreamEvent>>(RunEventStreamRaw(context, request));
     }
-    std::unique_ptr< ::grpc::ClientAsyncReader< ::grpc::StreamEvent>> AsyncStartEventStream(::grpc::ClientContext* context, const ::grpc::EventStreamRequest& request, ::grpc::CompletionQueue* cq, void* tag) {
-      return std::unique_ptr< ::grpc::ClientAsyncReader< ::grpc::StreamEvent>>(AsyncStartEventStreamRaw(context, request, cq, tag));
+    std::unique_ptr< ::grpc::ClientAsyncReader< ::grpc::StreamEvent>> AsyncRunEventStream(::grpc::ClientContext* context, const ::grpc::EventStreamRequest& request, ::grpc::CompletionQueue* cq, void* tag) {
+      return std::unique_ptr< ::grpc::ClientAsyncReader< ::grpc::StreamEvent>>(AsyncRunEventStreamRaw(context, request, cq, tag));
     }
-    std::unique_ptr< ::grpc::ClientAsyncReader< ::grpc::StreamEvent>> PrepareAsyncStartEventStream(::grpc::ClientContext* context, const ::grpc::EventStreamRequest& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncReader< ::grpc::StreamEvent>>(PrepareAsyncStartEventStreamRaw(context, request, cq));
+    std::unique_ptr< ::grpc::ClientAsyncReader< ::grpc::StreamEvent>> PrepareAsyncRunEventStream(::grpc::ClientContext* context, const ::grpc::EventStreamRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncReader< ::grpc::StreamEvent>>(PrepareAsyncRunEventStreamRaw(context, request, cq));
     }
     ::grpc::Status StopEventStream(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::google::protobuf::Empty* response) override;
     std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>> AsyncStopEventStream(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) {
@@ -1191,7 +1191,7 @@ class Bridge final {
       void RemoveUser(::grpc::ClientContext* context, const ::google::protobuf::StringValue* request, ::google::protobuf::Empty* response, ::grpc::ClientUnaryReactor* reactor) override;
       void ConfigureUserAppleMail(::grpc::ClientContext* context, const ::grpc::ConfigureAppleMailRequest* request, ::google::protobuf::Empty* response, std::function<void(::grpc::Status)>) override;
       void ConfigureUserAppleMail(::grpc::ClientContext* context, const ::grpc::ConfigureAppleMailRequest* request, ::google::protobuf::Empty* response, ::grpc::ClientUnaryReactor* reactor) override;
-      void StartEventStream(::grpc::ClientContext* context, const ::grpc::EventStreamRequest* request, ::grpc::ClientReadReactor< ::grpc::StreamEvent>* reactor) override;
+      void RunEventStream(::grpc::ClientContext* context, const ::grpc::EventStreamRequest* request, ::grpc::ClientReadReactor< ::grpc::StreamEvent>* reactor) override;
       void StopEventStream(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::google::protobuf::Empty* response, std::function<void(::grpc::Status)>) override;
       void StopEventStream(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::google::protobuf::Empty* response, ::grpc::ClientUnaryReactor* reactor) override;
      private:
@@ -1311,9 +1311,9 @@ class Bridge final {
     ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>* PrepareAsyncRemoveUserRaw(::grpc::ClientContext* context, const ::google::protobuf::StringValue& request, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>* AsyncConfigureUserAppleMailRaw(::grpc::ClientContext* context, const ::grpc::ConfigureAppleMailRequest& request, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>* PrepareAsyncConfigureUserAppleMailRaw(::grpc::ClientContext* context, const ::grpc::ConfigureAppleMailRequest& request, ::grpc::CompletionQueue* cq) override;
-    ::grpc::ClientReader< ::grpc::StreamEvent>* StartEventStreamRaw(::grpc::ClientContext* context, const ::grpc::EventStreamRequest& request) override;
-    ::grpc::ClientAsyncReader< ::grpc::StreamEvent>* AsyncStartEventStreamRaw(::grpc::ClientContext* context, const ::grpc::EventStreamRequest& request, ::grpc::CompletionQueue* cq, void* tag) override;
-    ::grpc::ClientAsyncReader< ::grpc::StreamEvent>* PrepareAsyncStartEventStreamRaw(::grpc::ClientContext* context, const ::grpc::EventStreamRequest& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientReader< ::grpc::StreamEvent>* RunEventStreamRaw(::grpc::ClientContext* context, const ::grpc::EventStreamRequest& request) override;
+    ::grpc::ClientAsyncReader< ::grpc::StreamEvent>* AsyncRunEventStreamRaw(::grpc::ClientContext* context, const ::grpc::EventStreamRequest& request, ::grpc::CompletionQueue* cq, void* tag) override;
+    ::grpc::ClientAsyncReader< ::grpc::StreamEvent>* PrepareAsyncRunEventStreamRaw(::grpc::ClientContext* context, const ::grpc::EventStreamRequest& request, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>* AsyncStopEventStreamRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>* PrepareAsyncStopEventStreamRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) override;
     const ::grpc::internal::RpcMethod rpcmethod_AddLogEntry_;
@@ -1369,7 +1369,7 @@ class Bridge final {
     const ::grpc::internal::RpcMethod rpcmethod_LogoutUser_;
     const ::grpc::internal::RpcMethod rpcmethod_RemoveUser_;
     const ::grpc::internal::RpcMethod rpcmethod_ConfigureUserAppleMail_;
-    const ::grpc::internal::RpcMethod rpcmethod_StartEventStream_;
+    const ::grpc::internal::RpcMethod rpcmethod_RunEventStream_;
     const ::grpc::internal::RpcMethod rpcmethod_StopEventStream_;
   };
   static std::unique_ptr<Stub> NewStub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options = ::grpc::StubOptions());
@@ -1440,7 +1440,7 @@ class Bridge final {
     virtual ::grpc::Status RemoveUser(::grpc::ServerContext* context, const ::google::protobuf::StringValue* request, ::google::protobuf::Empty* response);
     virtual ::grpc::Status ConfigureUserAppleMail(::grpc::ServerContext* context, const ::grpc::ConfigureAppleMailRequest* request, ::google::protobuf::Empty* response);
     // Server -> Client event stream
-    virtual ::grpc::Status StartEventStream(::grpc::ServerContext* context, const ::grpc::EventStreamRequest* request, ::grpc::ServerWriter< ::grpc::StreamEvent>* writer);
+    virtual ::grpc::Status RunEventStream(::grpc::ServerContext* context, const ::grpc::EventStreamRequest* request, ::grpc::ServerWriter< ::grpc::StreamEvent>* writer);
     // Keep streaming until StopEventStream is called.
     virtual ::grpc::Status StopEventStream(::grpc::ServerContext* context, const ::google::protobuf::Empty* request, ::google::protobuf::Empty* response);
   };
@@ -2505,22 +2505,22 @@ class Bridge final {
     }
   };
   template <class BaseClass>
-  class WithAsyncMethod_StartEventStream : public BaseClass {
+  class WithAsyncMethod_RunEventStream : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithAsyncMethod_StartEventStream() {
+    WithAsyncMethod_RunEventStream() {
       ::grpc::Service::MarkMethodAsync(53);
     }
-    ~WithAsyncMethod_StartEventStream() override {
+    ~WithAsyncMethod_RunEventStream() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status StartEventStream(::grpc::ServerContext* /*context*/, const ::grpc::EventStreamRequest* /*request*/, ::grpc::ServerWriter< ::grpc::StreamEvent>* /*writer*/) override {
+    ::grpc::Status RunEventStream(::grpc::ServerContext* /*context*/, const ::grpc::EventStreamRequest* /*request*/, ::grpc::ServerWriter< ::grpc::StreamEvent>* /*writer*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    void RequestStartEventStream(::grpc::ServerContext* context, ::grpc::EventStreamRequest* request, ::grpc::ServerAsyncWriter< ::grpc::StreamEvent>* writer, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+    void RequestRunEventStream(::grpc::ServerContext* context, ::grpc::EventStreamRequest* request, ::grpc::ServerAsyncWriter< ::grpc::StreamEvent>* writer, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
       ::grpc::Service::RequestAsyncServerStreaming(53, context, request, writer, new_call_cq, notification_cq, tag);
     }
   };
@@ -2544,7 +2544,7 @@ class Bridge final {
       ::grpc::Service::RequestAsyncUnary(54, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
-  typedef WithAsyncMethod_AddLogEntry<WithAsyncMethod_GuiReady<WithAsyncMethod_Quit<WithAsyncMethod_Restart<WithAsyncMethod_ShowOnStartup<WithAsyncMethod_ShowSplashScreen<WithAsyncMethod_IsFirstGuiStart<WithAsyncMethod_SetIsAutostartOn<WithAsyncMethod_IsAutostartOn<WithAsyncMethod_SetIsBetaEnabled<WithAsyncMethod_IsBetaEnabled<WithAsyncMethod_GoOs<WithAsyncMethod_TriggerReset<WithAsyncMethod_Version<WithAsyncMethod_LogsPath<WithAsyncMethod_LicensePath<WithAsyncMethod_ReleaseNotesPageLink<WithAsyncMethod_DependencyLicensesLink<WithAsyncMethod_LandingPageLink<WithAsyncMethod_SetColorSchemeName<WithAsyncMethod_ColorSchemeName<WithAsyncMethod_CurrentEmailClient<WithAsyncMethod_ReportBug<WithAsyncMethod_ForceLauncher<WithAsyncMethod_Login<WithAsyncMethod_Login2FA<WithAsyncMethod_Login2Passwords<WithAsyncMethod_LoginAbort<WithAsyncMethod_CheckUpdate<WithAsyncMethod_InstallUpdate<WithAsyncMethod_SetIsAutomaticUpdateOn<WithAsyncMethod_IsAutomaticUpdateOn<WithAsyncMethod_IsCacheOnDiskEnabled<WithAsyncMethod_DiskCachePath<WithAsyncMethod_ChangeLocalCache<WithAsyncMethod_SetIsDoHEnabled<WithAsyncMethod_IsDoHEnabled<WithAsyncMethod_SetUseSslForSmtp<WithAsyncMethod_UseSslForSmtp<WithAsyncMethod_Hostname<WithAsyncMethod_ImapPort<WithAsyncMethod_SmtpPort<WithAsyncMethod_ChangePorts<WithAsyncMethod_IsPortFree<WithAsyncMethod_AvailableKeychains<WithAsyncMethod_SetCurrentKeychain<WithAsyncMethod_CurrentKeychain<WithAsyncMethod_GetUserList<WithAsyncMethod_GetUser<WithAsyncMethod_SetUserSplitMode<WithAsyncMethod_LogoutUser<WithAsyncMethod_RemoveUser<WithAsyncMethod_ConfigureUserAppleMail<WithAsyncMethod_StartEventStream<WithAsyncMethod_StopEventStream<Service > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > AsyncService;
+  typedef WithAsyncMethod_AddLogEntry<WithAsyncMethod_GuiReady<WithAsyncMethod_Quit<WithAsyncMethod_Restart<WithAsyncMethod_ShowOnStartup<WithAsyncMethod_ShowSplashScreen<WithAsyncMethod_IsFirstGuiStart<WithAsyncMethod_SetIsAutostartOn<WithAsyncMethod_IsAutostartOn<WithAsyncMethod_SetIsBetaEnabled<WithAsyncMethod_IsBetaEnabled<WithAsyncMethod_GoOs<WithAsyncMethod_TriggerReset<WithAsyncMethod_Version<WithAsyncMethod_LogsPath<WithAsyncMethod_LicensePath<WithAsyncMethod_ReleaseNotesPageLink<WithAsyncMethod_DependencyLicensesLink<WithAsyncMethod_LandingPageLink<WithAsyncMethod_SetColorSchemeName<WithAsyncMethod_ColorSchemeName<WithAsyncMethod_CurrentEmailClient<WithAsyncMethod_ReportBug<WithAsyncMethod_ForceLauncher<WithAsyncMethod_Login<WithAsyncMethod_Login2FA<WithAsyncMethod_Login2Passwords<WithAsyncMethod_LoginAbort<WithAsyncMethod_CheckUpdate<WithAsyncMethod_InstallUpdate<WithAsyncMethod_SetIsAutomaticUpdateOn<WithAsyncMethod_IsAutomaticUpdateOn<WithAsyncMethod_IsCacheOnDiskEnabled<WithAsyncMethod_DiskCachePath<WithAsyncMethod_ChangeLocalCache<WithAsyncMethod_SetIsDoHEnabled<WithAsyncMethod_IsDoHEnabled<WithAsyncMethod_SetUseSslForSmtp<WithAsyncMethod_UseSslForSmtp<WithAsyncMethod_Hostname<WithAsyncMethod_ImapPort<WithAsyncMethod_SmtpPort<WithAsyncMethod_ChangePorts<WithAsyncMethod_IsPortFree<WithAsyncMethod_AvailableKeychains<WithAsyncMethod_SetCurrentKeychain<WithAsyncMethod_CurrentKeychain<WithAsyncMethod_GetUserList<WithAsyncMethod_GetUser<WithAsyncMethod_SetUserSplitMode<WithAsyncMethod_LogoutUser<WithAsyncMethod_RemoveUser<WithAsyncMethod_ConfigureUserAppleMail<WithAsyncMethod_RunEventStream<WithAsyncMethod_StopEventStream<Service > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > AsyncService;
   template <class BaseClass>
   class WithCallbackMethod_AddLogEntry : public BaseClass {
    private:
@@ -3977,25 +3977,25 @@ class Bridge final {
       ::grpc::CallbackServerContext* /*context*/, const ::grpc::ConfigureAppleMailRequest* /*request*/, ::google::protobuf::Empty* /*response*/)  { return nullptr; }
   };
   template <class BaseClass>
-  class WithCallbackMethod_StartEventStream : public BaseClass {
+  class WithCallbackMethod_RunEventStream : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithCallbackMethod_StartEventStream() {
+    WithCallbackMethod_RunEventStream() {
       ::grpc::Service::MarkMethodCallback(53,
           new ::grpc::internal::CallbackServerStreamingHandler< ::grpc::EventStreamRequest, ::grpc::StreamEvent>(
             [this](
-                   ::grpc::CallbackServerContext* context, const ::grpc::EventStreamRequest* request) { return this->StartEventStream(context, request); }));
+                   ::grpc::CallbackServerContext* context, const ::grpc::EventStreamRequest* request) { return this->RunEventStream(context, request); }));
     }
-    ~WithCallbackMethod_StartEventStream() override {
+    ~WithCallbackMethod_RunEventStream() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status StartEventStream(::grpc::ServerContext* /*context*/, const ::grpc::EventStreamRequest* /*request*/, ::grpc::ServerWriter< ::grpc::StreamEvent>* /*writer*/) override {
+    ::grpc::Status RunEventStream(::grpc::ServerContext* /*context*/, const ::grpc::EventStreamRequest* /*request*/, ::grpc::ServerWriter< ::grpc::StreamEvent>* /*writer*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    virtual ::grpc::ServerWriteReactor< ::grpc::StreamEvent>* StartEventStream(
+    virtual ::grpc::ServerWriteReactor< ::grpc::StreamEvent>* RunEventStream(
       ::grpc::CallbackServerContext* /*context*/, const ::grpc::EventStreamRequest* /*request*/)  { return nullptr; }
   };
   template <class BaseClass>
@@ -4025,7 +4025,7 @@ class Bridge final {
     virtual ::grpc::ServerUnaryReactor* StopEventStream(
       ::grpc::CallbackServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::google::protobuf::Empty* /*response*/)  { return nullptr; }
   };
-  typedef WithCallbackMethod_AddLogEntry<WithCallbackMethod_GuiReady<WithCallbackMethod_Quit<WithCallbackMethod_Restart<WithCallbackMethod_ShowOnStartup<WithCallbackMethod_ShowSplashScreen<WithCallbackMethod_IsFirstGuiStart<WithCallbackMethod_SetIsAutostartOn<WithCallbackMethod_IsAutostartOn<WithCallbackMethod_SetIsBetaEnabled<WithCallbackMethod_IsBetaEnabled<WithCallbackMethod_GoOs<WithCallbackMethod_TriggerReset<WithCallbackMethod_Version<WithCallbackMethod_LogsPath<WithCallbackMethod_LicensePath<WithCallbackMethod_ReleaseNotesPageLink<WithCallbackMethod_DependencyLicensesLink<WithCallbackMethod_LandingPageLink<WithCallbackMethod_SetColorSchemeName<WithCallbackMethod_ColorSchemeName<WithCallbackMethod_CurrentEmailClient<WithCallbackMethod_ReportBug<WithCallbackMethod_ForceLauncher<WithCallbackMethod_Login<WithCallbackMethod_Login2FA<WithCallbackMethod_Login2Passwords<WithCallbackMethod_LoginAbort<WithCallbackMethod_CheckUpdate<WithCallbackMethod_InstallUpdate<WithCallbackMethod_SetIsAutomaticUpdateOn<WithCallbackMethod_IsAutomaticUpdateOn<WithCallbackMethod_IsCacheOnDiskEnabled<WithCallbackMethod_DiskCachePath<WithCallbackMethod_ChangeLocalCache<WithCallbackMethod_SetIsDoHEnabled<WithCallbackMethod_IsDoHEnabled<WithCallbackMethod_SetUseSslForSmtp<WithCallbackMethod_UseSslForSmtp<WithCallbackMethod_Hostname<WithCallbackMethod_ImapPort<WithCallbackMethod_SmtpPort<WithCallbackMethod_ChangePorts<WithCallbackMethod_IsPortFree<WithCallbackMethod_AvailableKeychains<WithCallbackMethod_SetCurrentKeychain<WithCallbackMethod_CurrentKeychain<WithCallbackMethod_GetUserList<WithCallbackMethod_GetUser<WithCallbackMethod_SetUserSplitMode<WithCallbackMethod_LogoutUser<WithCallbackMethod_RemoveUser<WithCallbackMethod_ConfigureUserAppleMail<WithCallbackMethod_StartEventStream<WithCallbackMethod_StopEventStream<Service > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > CallbackService;
+  typedef WithCallbackMethod_AddLogEntry<WithCallbackMethod_GuiReady<WithCallbackMethod_Quit<WithCallbackMethod_Restart<WithCallbackMethod_ShowOnStartup<WithCallbackMethod_ShowSplashScreen<WithCallbackMethod_IsFirstGuiStart<WithCallbackMethod_SetIsAutostartOn<WithCallbackMethod_IsAutostartOn<WithCallbackMethod_SetIsBetaEnabled<WithCallbackMethod_IsBetaEnabled<WithCallbackMethod_GoOs<WithCallbackMethod_TriggerReset<WithCallbackMethod_Version<WithCallbackMethod_LogsPath<WithCallbackMethod_LicensePath<WithCallbackMethod_ReleaseNotesPageLink<WithCallbackMethod_DependencyLicensesLink<WithCallbackMethod_LandingPageLink<WithCallbackMethod_SetColorSchemeName<WithCallbackMethod_ColorSchemeName<WithCallbackMethod_CurrentEmailClient<WithCallbackMethod_ReportBug<WithCallbackMethod_ForceLauncher<WithCallbackMethod_Login<WithCallbackMethod_Login2FA<WithCallbackMethod_Login2Passwords<WithCallbackMethod_LoginAbort<WithCallbackMethod_CheckUpdate<WithCallbackMethod_InstallUpdate<WithCallbackMethod_SetIsAutomaticUpdateOn<WithCallbackMethod_IsAutomaticUpdateOn<WithCallbackMethod_IsCacheOnDiskEnabled<WithCallbackMethod_DiskCachePath<WithCallbackMethod_ChangeLocalCache<WithCallbackMethod_SetIsDoHEnabled<WithCallbackMethod_IsDoHEnabled<WithCallbackMethod_SetUseSslForSmtp<WithCallbackMethod_UseSslForSmtp<WithCallbackMethod_Hostname<WithCallbackMethod_ImapPort<WithCallbackMethod_SmtpPort<WithCallbackMethod_ChangePorts<WithCallbackMethod_IsPortFree<WithCallbackMethod_AvailableKeychains<WithCallbackMethod_SetCurrentKeychain<WithCallbackMethod_CurrentKeychain<WithCallbackMethod_GetUserList<WithCallbackMethod_GetUser<WithCallbackMethod_SetUserSplitMode<WithCallbackMethod_LogoutUser<WithCallbackMethod_RemoveUser<WithCallbackMethod_ConfigureUserAppleMail<WithCallbackMethod_RunEventStream<WithCallbackMethod_StopEventStream<Service > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > CallbackService;
   typedef CallbackService ExperimentalCallbackService;
   template <class BaseClass>
   class WithGenericMethod_AddLogEntry : public BaseClass {
@@ -4929,18 +4929,18 @@ class Bridge final {
     }
   };
   template <class BaseClass>
-  class WithGenericMethod_StartEventStream : public BaseClass {
+  class WithGenericMethod_RunEventStream : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithGenericMethod_StartEventStream() {
+    WithGenericMethod_RunEventStream() {
       ::grpc::Service::MarkMethodGeneric(53);
     }
-    ~WithGenericMethod_StartEventStream() override {
+    ~WithGenericMethod_RunEventStream() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status StartEventStream(::grpc::ServerContext* /*context*/, const ::grpc::EventStreamRequest* /*request*/, ::grpc::ServerWriter< ::grpc::StreamEvent>* /*writer*/) override {
+    ::grpc::Status RunEventStream(::grpc::ServerContext* /*context*/, const ::grpc::EventStreamRequest* /*request*/, ::grpc::ServerWriter< ::grpc::StreamEvent>* /*writer*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
@@ -6023,22 +6023,22 @@ class Bridge final {
     }
   };
   template <class BaseClass>
-  class WithRawMethod_StartEventStream : public BaseClass {
+  class WithRawMethod_RunEventStream : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithRawMethod_StartEventStream() {
+    WithRawMethod_RunEventStream() {
       ::grpc::Service::MarkMethodRaw(53);
     }
-    ~WithRawMethod_StartEventStream() override {
+    ~WithRawMethod_RunEventStream() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status StartEventStream(::grpc::ServerContext* /*context*/, const ::grpc::EventStreamRequest* /*request*/, ::grpc::ServerWriter< ::grpc::StreamEvent>* /*writer*/) override {
+    ::grpc::Status RunEventStream(::grpc::ServerContext* /*context*/, const ::grpc::EventStreamRequest* /*request*/, ::grpc::ServerWriter< ::grpc::StreamEvent>* /*writer*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    void RequestStartEventStream(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncWriter< ::grpc::ByteBuffer>* writer, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+    void RequestRunEventStream(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncWriter< ::grpc::ByteBuffer>* writer, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
       ::grpc::Service::RequestAsyncServerStreaming(53, context, request, writer, new_call_cq, notification_cq, tag);
     }
   };
@@ -7229,25 +7229,25 @@ class Bridge final {
       ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
   };
   template <class BaseClass>
-  class WithRawCallbackMethod_StartEventStream : public BaseClass {
+  class WithRawCallbackMethod_RunEventStream : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithRawCallbackMethod_StartEventStream() {
+    WithRawCallbackMethod_RunEventStream() {
       ::grpc::Service::MarkMethodRawCallback(53,
           new ::grpc::internal::CallbackServerStreamingHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
-                   ::grpc::CallbackServerContext* context, const::grpc::ByteBuffer* request) { return this->StartEventStream(context, request); }));
+                   ::grpc::CallbackServerContext* context, const::grpc::ByteBuffer* request) { return this->RunEventStream(context, request); }));
     }
-    ~WithRawCallbackMethod_StartEventStream() override {
+    ~WithRawCallbackMethod_RunEventStream() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status StartEventStream(::grpc::ServerContext* /*context*/, const ::grpc::EventStreamRequest* /*request*/, ::grpc::ServerWriter< ::grpc::StreamEvent>* /*writer*/) override {
+    ::grpc::Status RunEventStream(::grpc::ServerContext* /*context*/, const ::grpc::EventStreamRequest* /*request*/, ::grpc::ServerWriter< ::grpc::StreamEvent>* /*writer*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    virtual ::grpc::ServerWriteReactor< ::grpc::ByteBuffer>* StartEventStream(
+    virtual ::grpc::ServerWriteReactor< ::grpc::ByteBuffer>* RunEventStream(
       ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/)  { return nullptr; }
   };
   template <class BaseClass>
@@ -8732,34 +8732,34 @@ class Bridge final {
   };
   typedef WithStreamedUnaryMethod_AddLogEntry<WithStreamedUnaryMethod_GuiReady<WithStreamedUnaryMethod_Quit<WithStreamedUnaryMethod_Restart<WithStreamedUnaryMethod_ShowOnStartup<WithStreamedUnaryMethod_ShowSplashScreen<WithStreamedUnaryMethod_IsFirstGuiStart<WithStreamedUnaryMethod_SetIsAutostartOn<WithStreamedUnaryMethod_IsAutostartOn<WithStreamedUnaryMethod_SetIsBetaEnabled<WithStreamedUnaryMethod_IsBetaEnabled<WithStreamedUnaryMethod_GoOs<WithStreamedUnaryMethod_TriggerReset<WithStreamedUnaryMethod_Version<WithStreamedUnaryMethod_LogsPath<WithStreamedUnaryMethod_LicensePath<WithStreamedUnaryMethod_ReleaseNotesPageLink<WithStreamedUnaryMethod_DependencyLicensesLink<WithStreamedUnaryMethod_LandingPageLink<WithStreamedUnaryMethod_SetColorSchemeName<WithStreamedUnaryMethod_ColorSchemeName<WithStreamedUnaryMethod_CurrentEmailClient<WithStreamedUnaryMethod_ReportBug<WithStreamedUnaryMethod_ForceLauncher<WithStreamedUnaryMethod_Login<WithStreamedUnaryMethod_Login2FA<WithStreamedUnaryMethod_Login2Passwords<WithStreamedUnaryMethod_LoginAbort<WithStreamedUnaryMethod_CheckUpdate<WithStreamedUnaryMethod_InstallUpdate<WithStreamedUnaryMethod_SetIsAutomaticUpdateOn<WithStreamedUnaryMethod_IsAutomaticUpdateOn<WithStreamedUnaryMethod_IsCacheOnDiskEnabled<WithStreamedUnaryMethod_DiskCachePath<WithStreamedUnaryMethod_ChangeLocalCache<WithStreamedUnaryMethod_SetIsDoHEnabled<WithStreamedUnaryMethod_IsDoHEnabled<WithStreamedUnaryMethod_SetUseSslForSmtp<WithStreamedUnaryMethod_UseSslForSmtp<WithStreamedUnaryMethod_Hostname<WithStreamedUnaryMethod_ImapPort<WithStreamedUnaryMethod_SmtpPort<WithStreamedUnaryMethod_ChangePorts<WithStreamedUnaryMethod_IsPortFree<WithStreamedUnaryMethod_AvailableKeychains<WithStreamedUnaryMethod_SetCurrentKeychain<WithStreamedUnaryMethod_CurrentKeychain<WithStreamedUnaryMethod_GetUserList<WithStreamedUnaryMethod_GetUser<WithStreamedUnaryMethod_SetUserSplitMode<WithStreamedUnaryMethod_LogoutUser<WithStreamedUnaryMethod_RemoveUser<WithStreamedUnaryMethod_ConfigureUserAppleMail<WithStreamedUnaryMethod_StopEventStream<Service > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > StreamedUnaryService;
   template <class BaseClass>
-  class WithSplitStreamingMethod_StartEventStream : public BaseClass {
+  class WithSplitStreamingMethod_RunEventStream : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithSplitStreamingMethod_StartEventStream() {
+    WithSplitStreamingMethod_RunEventStream() {
       ::grpc::Service::MarkMethodStreamed(53,
         new ::grpc::internal::SplitServerStreamingHandler<
           ::grpc::EventStreamRequest, ::grpc::StreamEvent>(
             [this](::grpc::ServerContext* context,
                    ::grpc::ServerSplitStreamer<
                      ::grpc::EventStreamRequest, ::grpc::StreamEvent>* streamer) {
-                       return this->StreamedStartEventStream(context,
+                       return this->StreamedRunEventStream(context,
                          streamer);
                   }));
     }
-    ~WithSplitStreamingMethod_StartEventStream() override {
+    ~WithSplitStreamingMethod_RunEventStream() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable regular version of this method
-    ::grpc::Status StartEventStream(::grpc::ServerContext* /*context*/, const ::grpc::EventStreamRequest* /*request*/, ::grpc::ServerWriter< ::grpc::StreamEvent>* /*writer*/) override {
+    ::grpc::Status RunEventStream(::grpc::ServerContext* /*context*/, const ::grpc::EventStreamRequest* /*request*/, ::grpc::ServerWriter< ::grpc::StreamEvent>* /*writer*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     // replace default version of method with split streamed
-    virtual ::grpc::Status StreamedStartEventStream(::grpc::ServerContext* context, ::grpc::ServerSplitStreamer< ::grpc::EventStreamRequest,::grpc::StreamEvent>* server_split_streamer) = 0;
+    virtual ::grpc::Status StreamedRunEventStream(::grpc::ServerContext* context, ::grpc::ServerSplitStreamer< ::grpc::EventStreamRequest,::grpc::StreamEvent>* server_split_streamer) = 0;
   };
-  typedef WithSplitStreamingMethod_StartEventStream<Service > SplitStreamedService;
-  typedef WithStreamedUnaryMethod_AddLogEntry<WithStreamedUnaryMethod_GuiReady<WithStreamedUnaryMethod_Quit<WithStreamedUnaryMethod_Restart<WithStreamedUnaryMethod_ShowOnStartup<WithStreamedUnaryMethod_ShowSplashScreen<WithStreamedUnaryMethod_IsFirstGuiStart<WithStreamedUnaryMethod_SetIsAutostartOn<WithStreamedUnaryMethod_IsAutostartOn<WithStreamedUnaryMethod_SetIsBetaEnabled<WithStreamedUnaryMethod_IsBetaEnabled<WithStreamedUnaryMethod_GoOs<WithStreamedUnaryMethod_TriggerReset<WithStreamedUnaryMethod_Version<WithStreamedUnaryMethod_LogsPath<WithStreamedUnaryMethod_LicensePath<WithStreamedUnaryMethod_ReleaseNotesPageLink<WithStreamedUnaryMethod_DependencyLicensesLink<WithStreamedUnaryMethod_LandingPageLink<WithStreamedUnaryMethod_SetColorSchemeName<WithStreamedUnaryMethod_ColorSchemeName<WithStreamedUnaryMethod_CurrentEmailClient<WithStreamedUnaryMethod_ReportBug<WithStreamedUnaryMethod_ForceLauncher<WithStreamedUnaryMethod_Login<WithStreamedUnaryMethod_Login2FA<WithStreamedUnaryMethod_Login2Passwords<WithStreamedUnaryMethod_LoginAbort<WithStreamedUnaryMethod_CheckUpdate<WithStreamedUnaryMethod_InstallUpdate<WithStreamedUnaryMethod_SetIsAutomaticUpdateOn<WithStreamedUnaryMethod_IsAutomaticUpdateOn<WithStreamedUnaryMethod_IsCacheOnDiskEnabled<WithStreamedUnaryMethod_DiskCachePath<WithStreamedUnaryMethod_ChangeLocalCache<WithStreamedUnaryMethod_SetIsDoHEnabled<WithStreamedUnaryMethod_IsDoHEnabled<WithStreamedUnaryMethod_SetUseSslForSmtp<WithStreamedUnaryMethod_UseSslForSmtp<WithStreamedUnaryMethod_Hostname<WithStreamedUnaryMethod_ImapPort<WithStreamedUnaryMethod_SmtpPort<WithStreamedUnaryMethod_ChangePorts<WithStreamedUnaryMethod_IsPortFree<WithStreamedUnaryMethod_AvailableKeychains<WithStreamedUnaryMethod_SetCurrentKeychain<WithStreamedUnaryMethod_CurrentKeychain<WithStreamedUnaryMethod_GetUserList<WithStreamedUnaryMethod_GetUser<WithStreamedUnaryMethod_SetUserSplitMode<WithStreamedUnaryMethod_LogoutUser<WithStreamedUnaryMethod_RemoveUser<WithStreamedUnaryMethod_ConfigureUserAppleMail<WithSplitStreamingMethod_StartEventStream<WithStreamedUnaryMethod_StopEventStream<Service > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > StreamedService;
+  typedef WithSplitStreamingMethod_RunEventStream<Service > SplitStreamedService;
+  typedef WithStreamedUnaryMethod_AddLogEntry<WithStreamedUnaryMethod_GuiReady<WithStreamedUnaryMethod_Quit<WithStreamedUnaryMethod_Restart<WithStreamedUnaryMethod_ShowOnStartup<WithStreamedUnaryMethod_ShowSplashScreen<WithStreamedUnaryMethod_IsFirstGuiStart<WithStreamedUnaryMethod_SetIsAutostartOn<WithStreamedUnaryMethod_IsAutostartOn<WithStreamedUnaryMethod_SetIsBetaEnabled<WithStreamedUnaryMethod_IsBetaEnabled<WithStreamedUnaryMethod_GoOs<WithStreamedUnaryMethod_TriggerReset<WithStreamedUnaryMethod_Version<WithStreamedUnaryMethod_LogsPath<WithStreamedUnaryMethod_LicensePath<WithStreamedUnaryMethod_ReleaseNotesPageLink<WithStreamedUnaryMethod_DependencyLicensesLink<WithStreamedUnaryMethod_LandingPageLink<WithStreamedUnaryMethod_SetColorSchemeName<WithStreamedUnaryMethod_ColorSchemeName<WithStreamedUnaryMethod_CurrentEmailClient<WithStreamedUnaryMethod_ReportBug<WithStreamedUnaryMethod_ForceLauncher<WithStreamedUnaryMethod_Login<WithStreamedUnaryMethod_Login2FA<WithStreamedUnaryMethod_Login2Passwords<WithStreamedUnaryMethod_LoginAbort<WithStreamedUnaryMethod_CheckUpdate<WithStreamedUnaryMethod_InstallUpdate<WithStreamedUnaryMethod_SetIsAutomaticUpdateOn<WithStreamedUnaryMethod_IsAutomaticUpdateOn<WithStreamedUnaryMethod_IsCacheOnDiskEnabled<WithStreamedUnaryMethod_DiskCachePath<WithStreamedUnaryMethod_ChangeLocalCache<WithStreamedUnaryMethod_SetIsDoHEnabled<WithStreamedUnaryMethod_IsDoHEnabled<WithStreamedUnaryMethod_SetUseSslForSmtp<WithStreamedUnaryMethod_UseSslForSmtp<WithStreamedUnaryMethod_Hostname<WithStreamedUnaryMethod_ImapPort<WithStreamedUnaryMethod_SmtpPort<WithStreamedUnaryMethod_ChangePorts<WithStreamedUnaryMethod_IsPortFree<WithStreamedUnaryMethod_AvailableKeychains<WithStreamedUnaryMethod_SetCurrentKeychain<WithStreamedUnaryMethod_CurrentKeychain<WithStreamedUnaryMethod_GetUserList<WithStreamedUnaryMethod_GetUser<WithStreamedUnaryMethod_SetUserSplitMode<WithStreamedUnaryMethod_LogoutUser<WithStreamedUnaryMethod_RemoveUser<WithStreamedUnaryMethod_ConfigureUserAppleMail<WithSplitStreamingMethod_RunEventStream<WithStreamedUnaryMethod_StopEventStream<Service > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > StreamedService;
 };
 
 }  // namespace grpc

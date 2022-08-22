@@ -26,8 +26,8 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
-// StartEventStream implement the gRPC server->Client event stream.
-func (s *Service) StartEventStream(request *EventStreamRequest, server Bridge_StartEventStreamServer) error {
+// RunEventStream implement the gRPC server->Client event stream.
+func (s *Service) RunEventStream(request *EventStreamRequest, server Bridge_RunEventStreamServer) error {
 	s.log.Info("Starting Event stream")
 
 	if s.eventStreamCh != nil {

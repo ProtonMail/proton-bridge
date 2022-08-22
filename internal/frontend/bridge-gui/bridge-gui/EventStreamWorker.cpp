@@ -46,7 +46,7 @@ void EventStreamReader::run()
     {
         emit started();
 
-        grpc::Status const status = app().grpc().startEventStream();
+        grpc::Status const status = app().grpc().runEventStreamReader();
         if (!status.ok())
             throw Exception(QString::fromStdString(status.error_message()));
 

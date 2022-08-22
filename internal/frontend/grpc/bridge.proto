@@ -97,7 +97,7 @@ service Bridge {
   rpc ConfigureUserAppleMail(ConfigureAppleMailRequest) returns (google.protobuf.Empty);
 
   // Server -> Client event stream
-  rpc StartEventStream(EventStreamRequest) returns (stream StreamEvent); // Keep streaming until StopEventStream is called.
+  rpc RunEventStream(EventStreamRequest) returns (stream StreamEvent); // Keep streaming until StopEventStream is called.
   rpc StopEventStream(google.protobuf.Empty) returns (google.protobuf.Empty);
 }
 

@@ -85,7 +85,7 @@ type BridgeClient interface {
 	RemoveUser(ctx context.Context, in *wrapperspb.StringValue, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	ConfigureUserAppleMail(ctx context.Context, in *ConfigureAppleMailRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	// Server -> Client event stream
-	StartEventStream(ctx context.Context, in *EventStreamRequest, opts ...grpc.CallOption) (Bridge_StartEventStreamClient, error)
+	RunEventStream(ctx context.Context, in *EventStreamRequest, opts ...grpc.CallOption) (Bridge_RunEventStreamClient, error)
 	StopEventStream(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
@@ -574,12 +574,12 @@ func (c *bridgeClient) ConfigureUserAppleMail(ctx context.Context, in *Configure
 	return out, nil
 }
 
-func (c *bridgeClient) StartEventStream(ctx context.Context, in *EventStreamRequest, opts ...grpc.CallOption) (Bridge_StartEventStreamClient, error) {
-	stream, err := c.cc.NewStream(ctx, &Bridge_ServiceDesc.Streams[0], "/grpc.Bridge/StartEventStream", opts...)
+func (c *bridgeClient) RunEventStream(ctx context.Context, in *EventStreamRequest, opts ...grpc.CallOption) (Bridge_RunEventStreamClient, error) {
+	stream, err := c.cc.NewStream(ctx, &Bridge_ServiceDesc.Streams[0], "/grpc.Bridge/RunEventStream", opts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &bridgeStartEventStreamClient{stream}
+	x := &bridgeRunEventStreamClient{stream}
 	if err := x.ClientStream.SendMsg(in); err != nil {
 		return nil, err
 	}
@@ -589,16 +589,16 @@ func (c *bridgeClient) StartEventStream(ctx context.Context, in *EventStreamRequ
 	return x, nil
 }
 
-type Bridge_StartEventStreamClient interface {
+type Bridge_RunEventStreamClient interface {
 	Recv() (*StreamEvent, error)
 	grpc.ClientStream
 }
 
-type bridgeStartEventStreamClient struct {
+type bridgeRunEventStreamClient struct {
 	grpc.ClientStream
 }
 
-func (x *bridgeStartEventStreamClient) Recv() (*StreamEvent, error) {
+func (x *bridgeRunEventStreamClient) Recv() (*StreamEvent, error) {
 	m := new(StreamEvent)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
@@ -680,7 +680,7 @@ type BridgeServer interface {
 	RemoveUser(context.Context, *wrapperspb.StringValue) (*emptypb.Empty, error)
 	ConfigureUserAppleMail(context.Context, *ConfigureAppleMailRequest) (*emptypb.Empty, error)
 	// Server -> Client event stream
-	StartEventStream(*EventStreamRequest, Bridge_StartEventStreamServer) error
+	RunEventStream(*EventStreamRequest, Bridge_RunEventStreamServer) error
 	StopEventStream(context.Context, *emptypb.Empty) (*emptypb.Empty, error)
 	mustEmbedUnimplementedBridgeServer()
 }
@@ -848,8 +848,8 @@ func (UnimplementedBridgeServer) RemoveUser(context.Context, *wrapperspb.StringV
 func (UnimplementedBridgeServer) ConfigureUserAppleMail(context.Context, *ConfigureAppleMailRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ConfigureUserAppleMail not implemented")
 }
-func (UnimplementedBridgeServer) StartEventStream(*EventStreamRequest, Bridge_StartEventStreamServer) error {
-	return status.Errorf(codes.Unimplemented, "method StartEventStream not implemented")
+func (UnimplementedBridgeServer) RunEventStream(*EventStreamRequest, Bridge_RunEventStreamServer) error {
+	return status.Errorf(codes.Unimplemented, "method RunEventStream not implemented")
 }
 func (UnimplementedBridgeServer) StopEventStream(context.Context, *emptypb.Empty) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method StopEventStream not implemented")
@@ -1821,24 +1821,24 @@ func _Bridge_ConfigureUserAppleMail_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Bridge_StartEventStream_Handler(srv interface{}, stream grpc.ServerStream) error {
+func _Bridge_RunEventStream_Handler(srv interface{}, stream grpc.ServerStream) error {
 	m := new(EventStreamRequest)
 	if err := stream.RecvMsg(m); err != nil {
 		return err
 	}
-	return srv.(BridgeServer).StartEventStream(m, &bridgeStartEventStreamServer{stream})
+	return srv.(BridgeServer).RunEventStream(m, &bridgeRunEventStreamServer{stream})
 }
 
-type Bridge_StartEventStreamServer interface {
+type Bridge_RunEventStreamServer interface {
 	Send(*StreamEvent) error
 	grpc.ServerStream
 }
 
-type bridgeStartEventStreamServer struct {
+type bridgeRunEventStreamServer struct {
 	grpc.ServerStream
 }
 
-func (x *bridgeStartEventStreamServer) Send(m *StreamEvent) error {
+func (x *bridgeRunEventStreamServer) Send(m *StreamEvent) error {
 	return x.ServerStream.SendMsg(m)
 }
 
@@ -2086,8 +2086,8 @@ var Bridge_ServiceDesc = grpc.ServiceDesc{
 	},
 	Streams: []grpc.StreamDesc{
 		{
-			StreamName:    "StartEventStream",
-			Handler:       _Bridge_StartEventStream_Handler,
+			StreamName:    "RunEventStream",
+			Handler:       _Bridge_RunEventStream_Handler,
 			ServerStreams: true,
 		},
 	},

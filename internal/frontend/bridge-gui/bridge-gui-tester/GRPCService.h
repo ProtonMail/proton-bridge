@@ -94,7 +94,7 @@ public: // member functions.
     grpc::Status LogoutUser(::grpc::ServerContext *, ::google::protobuf::StringValue const *request, ::google::protobuf::Empty *) override;
     grpc::Status RemoveUser(::grpc::ServerContext *, ::google::protobuf::StringValue const *request, ::google::protobuf::Empty *) override;
     grpc::Status ConfigureUserAppleMail(::grpc::ServerContext *, ::grpc::ConfigureAppleMailRequest const *request, ::google::protobuf::Empty *) override;
-    grpc::Status StartEventStream(::grpc::ServerContext *, ::grpc::EventStreamRequest const *request, ::grpc::ServerWriter<::grpc::StreamEvent> *writer) override;
+    grpc::Status RunEventStream(::grpc::ServerContext *, ::grpc::EventStreamRequest const *request, ::grpc::ServerWriter<::grpc::StreamEvent> *writer) override;
     grpc::Status StopEventStream(::grpc::ServerContext *, ::google::protobuf::Empty const*, ::google::protobuf::Empty *) override;
 
     bool sendEvent(bridgepp::SPStreamEvent const &event); ///< Queue an event for sending through the event stream.

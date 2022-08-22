@@ -1467,7 +1467,7 @@ const char descriptor_table_protodef_bridge_2eproto[] PROTOBUF_SECTION_VARIABLE(
   "LABLE_ERROR\020\000\022\031\n\025CACHE_CANT_MOVE_ERROR\020\001"
   "\022\r\n\tDISK_FULL\020\002*A\n\025MailSettingsErrorType"
   "\022\023\n\017IMAP_PORT_ISSUE\020\000\022\023\n\017SMTP_PORT_ISSUE"
-  "\020\0012\300\035\n\006Bridge\022\?\n\013AddLogEntry\022\030.grpc.AddL"
+  "\020\0012\276\035\n\006Bridge\022\?\n\013AddLogEntry\022\030.grpc.AddL"
   "ogEntryRequest\032\026.google.protobuf.Empty\022:"
   "\n\010GuiReady\022\026.google.protobuf.Empty\032\026.goo"
   "gle.protobuf.Empty\0226\n\004Quit\022\026.google.prot"
@@ -1558,12 +1558,12 @@ const char descriptor_table_protodef_bridge_2eproto[] PROTOBUF_SECTION_VARIABLE(
   "protobuf.StringValue\032\026.google.protobuf.E"
   "mpty\022Q\n\026ConfigureUserAppleMail\022\037.grpc.Co"
   "nfigureAppleMailRequest\032\026.google.protobu"
-  "f.Empty\022A\n\020StartEventStream\022\030.grpc.Event"
-  "StreamRequest\032\021.grpc.StreamEvent0\001\022A\n\017St"
-  "opEventStream\022\026.google.protobuf.Empty\032\026."
-  "google.protobuf.EmptyB6Z4github.com/Prot"
-  "onMail/proton-bridge/v2/internal/grpcb\006p"
-  "roto3"
+  "f.Empty\022\?\n\016RunEventStream\022\030.grpc.EventSt"
+  "reamRequest\032\021.grpc.StreamEvent0\001\022A\n\017Stop"
+  "EventStream\022\026.google.protobuf.Empty\032\026.go"
+  "ogle.protobuf.EmptyB6Z4github.com/Proton"
+  "Mail/proton-bridge/v2/internal/grpcb\006pro"
+  "to3"
   ;
 static const ::_pbi::DescriptorTable* const descriptor_table_bridge_2eproto_deps[2] = {
   &::descriptor_table_google_2fprotobuf_2fempty_2eproto,
@@ -1571,7 +1571,7 @@ static const ::_pbi::DescriptorTable* const descriptor_table_bridge_2eproto_deps
 };
 static ::_pbi::once_flag descriptor_table_bridge_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_bridge_2eproto = {
-    false, false, 9325, descriptor_table_protodef_bridge_2eproto,
+    false, false, 9323, descriptor_table_protodef_bridge_2eproto,
     "bridge.proto",
     &descriptor_table_bridge_2eproto_once, descriptor_table_bridge_2eproto_deps, 2, 57,
     schemas, file_default_instances, TableStruct_bridge_2eproto::offsets,
