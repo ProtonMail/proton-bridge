@@ -92,6 +92,8 @@ type Bridger interface {
 	GetInt(settings.Key) int
 	SetInt(settings.Key, int)
 
+	ConfigureAppleMail(userID, address string) (bool, error)
+
 	// -- old --
 
 	ReportBug(osType, osVersion, description, accountName, address, emailClient string, attachLogs bool) error

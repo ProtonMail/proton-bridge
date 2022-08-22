@@ -19,6 +19,7 @@ package grpc
 
 import (
 	"context"
+	"time"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -106,29 +107,20 @@ func (s *Service) RemoveUser(_ context.Context, userID *wrapperspb.StringValue) 
 }
 
 func (s *Service) ConfigureUserAppleMail(_ context.Context, request *ConfigureAppleMailRequest) (*emptypb.Empty, error) {
-	// NOTE: Configure apple mail should be part of bridge (and thus not need to deal with accounts/settings!
+	s.log.WithField("UserID", request.UserID).WithField("Address", request.Address).Info("ConfigureUserAppleMail")
 
-	/*
-		s.log.WithField("UserID", request.UserID).WithField("Address", request.Address).Info("ConfigureUserAppleMail")
+	restart, err := s.bridge.ConfigureAppleMail(request.UserID, request.Address)
+	if err != nil {
+		s.log.WithField("userID", request.UserID).Error("Cannot configure AppleMail for user")
+		return nil, status.Error(codes.Internal, "Apple Mail config failed")
+	}
 
-		user, err := s.bridge.GetUser(request.UserID)
-		if err != nil {
-			s.log.WithField("userID", request.UserID).Error("Cannot configure AppleMail for user")
-			return nil, status.Error(codes.NotFound, "Cannot configure AppleMail for user")
-		}
-
-		needRestart, err := clientconfig.ConfigureAppleMail(user, request.Address, s.settings)
-		if err != nil {
-			s.log.WithError(err).Error("Apple Mail config failed")
-			return nil, status.Error(codes.Internal, "Apple Mail config failed")
-		}
-
-		if needRestart {
-			// There is delay needed for external window to open
-			time.Sleep(2 * time.Second)
-			s.restart()
-		}
-	*/
+	// There is delay needed for external window to open.
+	if restart {
+		s.log.Warn("Detected Catalina or newer with bad SMTP SSL settings, now using SSL, bridge needs to restart")
+		time.Sleep(2 * time.Second)
+		s.restart()
+	}
 
 	return &emptypb.Empty{}, nil
 }
