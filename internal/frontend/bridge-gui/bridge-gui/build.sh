@@ -21,14 +21,7 @@ if [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "win32" ]] ; then
     exit $?
 fi
 
-
-BRIDGE_REPO_ROOT="../../../.."
-BRIDGE_INSTALL_PATH=${BRIDGE_INSTALL_PATH:-deploy}
-BRIDGE_APP_VERSION=${BRIDGE_APP_VERSION:-$("${BRIDGE_REPO_ROOT}/utils/bridge_app_version.sh")}
-BRIDGE_APP_FULL_NAME=${BRIDGE_APP_FULL_NAME:-"Proton Bridge"}
-BRIDGE_VENDOR=${BRIDGE_VENDOR:-"Proton AG"}
-BUILD_CONFIG=${BRIDGE_GUI_BUILD_CONFIG:-Debug}
-BUILD_DIR=$(echo "./cmake-build-${BUILD_CONFIG}" | tr '[:upper:]' '[:lower:]')
+set -x
 
 realpath() {
     START_DIR=$PWD
@@ -54,6 +47,13 @@ check_exit() {
     fi
 }
 
+BRIDGE_REPO_ROOT=$(realpath "../../../..")
+BRIDGE_INSTALL_PATH=${BRIDGE_INSTALL_PATH:-deploy}
+BRIDGE_APP_VERSION=${BRIDGE_APP_VERSION:-$("${BRIDGE_REPO_ROOT}/utils/bridge_app_version.sh")}
+BRIDGE_APP_FULL_NAME=${BRIDGE_APP_FULL_NAME:-"Proton Bridge"}
+BRIDGE_VENDOR=${BRIDGE_VENDOR:-"Proton AG"}
+BUILD_CONFIG=${BRIDGE_GUI_BUILD_CONFIG:-Debug}
+BUILD_DIR=$(echo "./cmake-build-${BUILD_CONFIG}" | tr '[:upper:]' '[:lower:]')
 VCPKG_ROOT="${BRIDGE_REPO_ROOT}/extern/vcpkg"
 
 git submodule update --init --recursive ${VCPKG_ROOT}
@@ -61,7 +61,6 @@ check_exit "Failed to initialize vcpkg as a submodule."
 
 echo submodule udpated
 
-VCPKG_ROOT=$(realpath "$VCPKG_ROOT")
 VCPKG_EXE="${VCPKG_ROOT}/vcpkg"
 VCPKG_BOOTSTRAP="${VCPKG_ROOT}/bootstrap-vcpkg.sh"
 

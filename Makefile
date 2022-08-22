@@ -80,14 +80,23 @@ build-gui: ${TGZ_TARGET}
 
 build-nogui: ${EXE_NAME}
 
+go-build=go build $(1) -o $(2) $(3)
+go-build-unify=${go-build}
+ifeq "${GOOS}-$(shell uname -m)" "darwin-arm64"
+	go-build-unify= \
+		CGO_ENABLED=1 GOARCH=arm64 $(call go-build,$(1),$(2)_arm,$(3)) && \
+		CGO_ENABLED=1 GOARCH=amd64 $(call go-build,$(1),$(2)_amd,$(3)) && \
+		lipo -create -output $(2) $(2)_arm $(2)_amd && rm -f $(2)_arm $(2)_amd
+endif
+
 ${EXE_NAME}: gofiles
-	go build ${BUILD_FLAGS} -o ${EXE_NAME} cmd/${TARGET_CMD}/main.go
+	$(call go-build-unify,${BUILD_FLAGS},"${EXE_NAME}","cmd/${TARGET_CMD}/main.go")
 
 build-launcher: ${RESOURCE_FILE}
 ifeq "${GOOS}" "windows"
 	powershell Copy-Item ${ROOT_DIR}/${RESOURCE_FILE} ${ROOT_DIR}/${LAUNCHER_PATH}${RESOURCE_FILE}
 endif
-	go build ${BUILD_FLAGS_LAUNCHER} -o ${LAUNCHER_EXE} ${LAUNCHER_PATH}
+	$(call go-build-unify,${BUILD_FLAGS_LAUNCHER},"${LAUNCHER_EXE}","${LAUNCHER_PATH}")
 ifeq "${GOOS}" "windows"
 	powershell Remove-Item ${ROOT_DIR}/${LAUNCHER_PATH}${RESOURCE_FILE} -Force
 endif
