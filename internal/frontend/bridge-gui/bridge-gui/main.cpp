@@ -204,11 +204,12 @@ void launchBridge(QStringList const &args)
 //****************************************************************************************************************************************************
 void closeBridgeApp()
 {
+    app().grpc().quit(); // this will cause the grpc service and the bridge app to close.
+
     UPOverseer& overseer = app().bridgeOverseer();
-    if (!overseer) // The app was run in 'attach' mode and attached to an existing instance of Bridge. No need to close.
+    if (!overseer) // The app was run in 'attach' mode and attached to an existing instance of Bridge. We're not monitoring it.
         return;
 
-    app().grpc().quit(); // this will cause the grpc service and the bridge app to close.
     while (!overseer->isFinished())
     {
         QThread::msleep(20);
