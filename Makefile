@@ -200,8 +200,10 @@ check-build-essentials: check-qt-dir
 	@$(call check_is_installed,unzip)
 	@$(call check_is_installed,tar)
 	@$(call check_is_installed,curl)
+ifneq "${GOOS}" "windows"
 	@$(call check_is_installed,cmake)
 	@$(call check_is_installed,ninja)
+endif
 
 check-qt-dir:
 	@if ! ls "${QT6DIR}/bin/qt.conf" > /dev/null; then echo "Please set QT6DIR"; exit 1; fi
