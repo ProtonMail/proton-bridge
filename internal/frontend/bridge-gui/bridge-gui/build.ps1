@@ -32,12 +32,27 @@ if ($null -eq $cmakeExe)
     $cmakeExe = "C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" # Hardcoded for now.
 }
 Write-host "CMake found here : $cmakeExe"
+$cmake_version = . $cmakeExe --version
+Write-host "CMake version : $cmake_version"
 
 $bridgeVersion = ($env:BRIDGE_APP_VERSION)
 if ($null -eq $bridgeVersion)
 {
     $bridgeVersion = . (Join-Path $bridgeRepoRootDir "utils/bridge_app_version.ps1")
 }
+
+$bridgeFullName = ($env:BRIDGE_APP_FULL_NAME)
+if ($null -eq $bridgeFullName)
+{
+    $bridgeFullName = "Proton Bridge"
+}
+
+$bridgeVendor = ($env:BRIDGE_VENDOR)
+if ($null -eq $bridgeVendor)
+{
+    $bridgeVendor = "Proton AG"
+}
+
 $buildConfig = ($env:BRIDGE_GUI_BUILD_CONFIG)
 if ($null -eq $buildConfig)
 {
@@ -64,7 +79,12 @@ git submodule update --init --recursive $vcpkgRoot
 . $vcpkgBootstrap -disableMetrics
 . $vcpkgExe install grpc:x64-windows --clean-after-build
 . $vcpkgExe upgrade --no-dry-run
-. $cmakeExe -G "Visual Studio 17 2022" -DCMAKE_BUILD_TYPE="$buildConfig" -DBRIDGE_APP_VERSION="$bridgeVersion" -S . -B $buildDir
+. $cmakeExe -G "Visual Studio 17 2022" -DCMAKE_BUILD_TYPE="$buildConfig" `
+                                       -DBRIDGE_APP_FULL_NAME="$bridgeFullName" `
+                                       -DBRIDGE_VENDOR="$bridgeVendor" `
+                                       -DBRIDGE_APP_VERSION="$bridgeVersion" `
+                                       -S . -B $buildDir
+
 check_exit "CMake failed"
 . $cmakeExe --build $buildDir --config "$buildConfig"
 check_exit "Build failed"

@@ -40,8 +40,6 @@ else()
     message(STATUS "App vendor is ${BRIDGE_VENDOR}")
 endif()
 
-
-
 if (NOT DEFINED BRIDGE_APP_VERSION)
     message(FATAL_ERROR "BRIDGE_APP_VERSION is not defined.")
 else()
