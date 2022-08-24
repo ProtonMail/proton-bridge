@@ -30,7 +30,7 @@ Window {
     height: contentLayout.implicitHeight
     width: contentLayout.implicitWidth
 
-    flags: (Qt.platform.os === "linux" ? Qt.Tool : 0) | Qt.FramelessWindowHint | Qt.NoDropShadowWindowHint | Qt.WindowStaysOnTopHint | Qt.WA_TranslucentBackground
+    flags: (Qt.platform.os === "linux" ? Qt.Tool : 0) | Qt.FramelessWindowHint | Qt.NoDropShadowWindowHint | Qt.WindowStaysOnTopHint | Qt.WA_TranslucentBackground | (Backend.useQtDialogFlag ? Qt.Dialog : 0)
     color: "transparent"
 
     property ColorScheme colorScheme: ProtonStyle.currentStyle
