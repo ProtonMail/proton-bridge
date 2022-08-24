@@ -88,7 +88,7 @@ ifeq "${GOOS}-$(shell uname -m)" "darwin-arm64"
 		CGO_ENABLED=1 GOARCH=amd64 $(call go-build,$(1),$(2)_amd,$(3)) && \
 		lipo -create -output $(2) $(2)_arm $(2)_amd && rm -f $(2)_arm $(2)_amd
 endif
-ifeq "${GOOS}-$(shell uname -m)" "darwin-arm64"
+ifeq "${GOOS}" "windows"
 	go-build-finalize= \
 		mv ${RESOURCE_FILE} $(3)/ && \
 		$(call go-build,$(1),$(2)_amd,$(3)) && \
@@ -96,7 +96,7 @@ ifeq "${GOOS}-$(shell uname -m)" "darwin-arm64"
 endif
 
 ${EXE_NAME}: gofiles ${RESOURCE_FILE}
-	$(call go-build-finalize,${BUILD_FLAGS},"${EXE_NAME}","${BUILD_PATH}")
+	$(call go-build-finalize,${BUILD_FLAGS},"${EXE_NAME}","${BUILD_PATH}/main.go")
 
 build-launcher: ${RESOURCE_FILE}
 	$(call go-build-finalize,${BUILD_FLAGS_LAUNCHER},"${LAUNCHER_EXE}","${LAUNCHER_PATH}")
