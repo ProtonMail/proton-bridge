@@ -107,7 +107,7 @@ func (l *Locations) getLicenseFilePath() string {
 
 // GetDependencyLicensesLink returns link to page listing dependencies.
 func (l *Locations) GetDependencyLicensesLink() string {
-	return "https://github.com/ProtonMail/proton-bridge/v2/blob/master/COPYING_NOTES.md#dependencies"
+	return "https://github.com/ProtonMail/proton-bridge/blob/master/COPYING_NOTES.md#dependencies"
 }
 
 // ProvideSettingsPath returns a location for user settings (e.g. ~/.config/<company>/<app>).
