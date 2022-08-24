@@ -40,6 +40,7 @@ BUILD_FLAGS_GUI+=-ldflags "${GO_LDFLAGS}"
 BUILD_FLAGS_LAUNCHER+=-ldflags '${GO_LDFLAGS_LAUNCHER}'
 
 DEPLOY_DIR:=cmd/${TARGET_CMD}/deploy
+BUILD_PATH:=cmd/${TARGET_CMD}
 DIRNAME:=$(shell basename ${CURDIR})
 
 LAUNCHER_EXE:=proton-bridge
@@ -80,25 +81,25 @@ build-gui: ${TGZ_TARGET}
 build-nogui: ${EXE_NAME}
 
 go-build=go build $(1) -o $(2) $(3)
-go-build-unify=${go-build}
+go-build-finalize=${go-build}
 ifeq "${GOOS}-$(shell uname -m)" "darwin-arm64"
-	go-build-unify= \
+	go-build-finalize= \
 		CGO_ENABLED=1 GOARCH=arm64 $(call go-build,$(1),$(2)_arm,$(3)) && \
 		CGO_ENABLED=1 GOARCH=amd64 $(call go-build,$(1),$(2)_amd,$(3)) && \
 		lipo -create -output $(2) $(2)_arm $(2)_amd && rm -f $(2)_arm $(2)_amd
 endif
+ifeq "${GOOS}-$(shell uname -m)" "darwin-arm64"
+	go-build-finalize= \
+		mv ${RESOURCE_FILE} $(3)/ && \
+		$(call go-build,$(1),$(2)_amd,$(3)) && \
+		rm -f $(3)/${RESOURCE_FILE}
+endif
 
-${EXE_NAME}: gofiles
-	$(call go-build-unify,${BUILD_FLAGS},"${EXE_NAME}","cmd/${TARGET_CMD}/main.go")
+${EXE_NAME}: gofiles ${RESOURCE_FILE}
+	$(call go-build-finalize,${BUILD_FLAGS},"${EXE_NAME}","${BUILD_PATH}")
 
 build-launcher: ${RESOURCE_FILE}
-ifeq "${GOOS}" "windows"
-	powershell Copy-Item ${ROOT_DIR}/${RESOURCE_FILE} ${ROOT_DIR}/${LAUNCHER_PATH}${RESOURCE_FILE}
-endif
-	$(call go-build-unify,${BUILD_FLAGS_LAUNCHER},"${LAUNCHER_EXE}","${LAUNCHER_PATH}")
-ifeq "${GOOS}" "windows"
-	powershell Remove-Item ${ROOT_DIR}/${LAUNCHER_PATH}${RESOURCE_FILE} -Force
-endif
+	$(call go-build-finalize,${BUILD_FLAGS_LAUNCHER},"${LAUNCHER_EXE}","${LAUNCHER_PATH}")
 
 versioner:
 	go build ${BUILD_FLAGS} -o versioner utils/versioner/main.go
@@ -152,7 +153,7 @@ ${EXE_TARGET}: check-build-essentials ${EXE_NAME}
 
 WINDRES_YEAR:=$(shell date +%Y)
 APP_VERSION_COMMA:=$(shell echo "${APP_VERSION}" | sed -e 's/[^0-9,.]*//g' -e 's/\./,/g')
-${RESOURCE_FILE}: ./dist/info.rc ./dist/${SRC_ICO} .FORCE
+resource.syso: ./dist/info.rc ./dist/${SRC_ICO} .FORCE
 	rm -f ./*.syso
 	windres --target=pe-x86-64 \
 		-I ./internal/frontend/share/ \
