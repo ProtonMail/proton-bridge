@@ -81,7 +81,7 @@ if(NOT UNIX)
     set(CMAKE_INSTALL_BINDIR ".")
 endif(NOT UNIX)
 
-find_package(Qt6 COMPONENTS Core Quick Qml QuickControls2 REQUIRED)
+find_package(Qt6 COMPONENTS Core Quick Qml QuickControls2 Widgets REQUIRED)
 qt_standard_project_setup()
 set(CMAKE_AUTORCC ON)
 message(STATUS "Using Qt ${Qt6_VERSION}")
@@ -122,6 +122,7 @@ add_executable(bridge-gui
 target_precompile_headers(bridge-gui PRIVATE Pch.h)
 target_include_directories(bridge-gui PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(bridge-gui
+    Qt6::Widgets
     Qt6::Core
     Qt6::Quick
     Qt6::Qml

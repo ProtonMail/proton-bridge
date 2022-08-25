@@ -23,6 +23,7 @@
 #include <QtCore>
 #include <QtQuick>
 #include <QtQml>
+#include <QtWidgets>
 #include <QtQuickControls2>
 #include <AppController.h>
 

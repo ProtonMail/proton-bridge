@@ -229,7 +229,7 @@ int main(int argc, char *argv[])
         if (QSysInfo::productType() != "windows")
             QCoreApplication::setAttribute(Qt::AA_UseSoftwareOpenGL);
 
-        QGuiApplication guiApp(argc, argv);
+        QApplication guiApp(argc, argv);
         initQtApplication();
 
         Log &log = initLog();
