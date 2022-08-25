@@ -78,7 +78,6 @@ public: // Qt/QML properties. Note that the NOTIFY-er signal is required even fo
     Q_PROPERTY(QString currentKeychain READ currentKeychain NOTIFY currentKeychainChanged)                                                            //    _ string      `property:"currentKeychain"`
     Q_PROPERTY(UserList* users MEMBER users_ NOTIFY usersChanged)
     Q_PROPERTY(bool dockIconVisible READ dockIconVisible WRITE setDockIconVisible NOTIFY dockIconVisibleChanged)                                      //    _ bool        `property:dockIconVisible`
-    Q_PROPERTY(bool useQtDialogFlag READ useQtDialogFlag NOTIFY useQtDialogFlagChanged)                                                               //    _ bool        `property:useQtDialogFlag`
 
     // Qt Property system setters & getters.
     bool showOnStartup() const { bool v = false; app().grpc().showOnStartup(v); return v; };
@@ -110,7 +109,6 @@ public: // Qt/QML properties. Note that the NOTIFY-er signal is required even fo
     QString currentKeychain() const { QString keychain; app().grpc().currentKeychain(keychain); return keychain; }
     bool dockIconVisible() const { return getDockIconVisibleState(); };
     void setDockIconVisible(bool visible) { setDockIconVisibleState(visible); emit dockIconVisibleChanged(visible); }
-    bool useQtDialogFlag() const { return useQtDialogFlag_; }
 
 signals: // Signal used by the Qt property system. Many of them are unused but required to avoir warning from the QML engine.
     void showSplashScreenChanged(bool value);
@@ -140,7 +138,6 @@ signals: // Signal used by the Qt property system. Many of them are unused but r
     void portSMTPChanged(int port);
     void usersChanged(UserList* users);
     void dockIconVisibleChanged(bool value);
-    void useQtDialogFlagChanged(bool value);
 
 public slots: // slot for signals received from QML -> To be forwarded to Bridge via RPC Client calls.
     void toggleAutostart(bool active);                                                                                                                //    _ func(makeItActive bool)                                             `slot:"toggleAutostart"`
@@ -226,7 +223,6 @@ private: // data members
     QString goos_; ///< The cached version of the GOOS variable.
     QUrl logsPath_; ///< The logs path. Retrieved from bridge on startup.
     QUrl licensePath_; ///< The license path. Retrieved from bridge on startup.
-    bool useQtDialogFlag_ { false }; ///< Define if the status window needs to propose QtDialog flag (i3wm case)
 
     friend class AppController;
 };

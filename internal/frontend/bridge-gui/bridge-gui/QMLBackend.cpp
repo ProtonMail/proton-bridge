@@ -41,23 +41,9 @@ QMLBackend::QMLBackend()
 //****************************************************************************************************************************************************
 void QMLBackend::init()
 {
-
     users_ = new UserList(this);
 
     app().grpc().setLog(&app().log());
-
-#ifdef Q_OS_LINUX
-    QProcess process;
-    QString pidof("pidof");
-    QStringList args = QStringList() << "i3";
-    process.start(pidof, args);
-    process.waitForReadyRead();
-    if(!process.readAllStandardOutput().isEmpty()) {
-        useQtDialogFlag_ = true;
-        app().log().info("Bridge is running on i3 Window manager.");
-    }
-#endif // Q_OS_LiNUX
-
     this->connectGrpcEvents();
 
     QString error;
