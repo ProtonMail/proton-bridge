@@ -24,18 +24,24 @@ import (
 	"github.com/Masterminds/semver/v3"
 )
 
-// IsCatalinaOrNewer checks whether the host is MacOS Catalina 10.15.x or higher.
+// IsCatalinaOrNewer checks whether the host is macOS Catalina 10.15.x or higher.
 func IsCatalinaOrNewer() bool {
 	return isThisDarwinNewerOrEqual(getMinCatalina())
 }
 
-// IsBigSurOrNewer checks whether the host is MacOS BigSur 10.16.x or higher.
+// IsBigSurOrNewer checks whether the host is macOS BigSur 10.16.x or higher.
 func IsBigSurOrNewer() bool {
 	return isThisDarwinNewerOrEqual(getMinBigSur())
 }
 
+// IsVenturaOrNewer checks whether the host is macOS BigSur 13.x or higher.
+func IsVenturaOrNewer() bool {
+	return isThisDarwinNewerOrEqual(getMinVentura())
+}
+
 func getMinCatalina() *semver.Version { return semver.MustParse("19.0.0") }
 func getMinBigSur() *semver.Version   { return semver.MustParse("20.0.0") }
+func getMinVentura() *semver.Version  { return semver.MustParse("22.0.0") }
 
 func isThisDarwinNewerOrEqual(minVersion *semver.Version) bool {
 	if runtime.GOOS != "darwin" {
