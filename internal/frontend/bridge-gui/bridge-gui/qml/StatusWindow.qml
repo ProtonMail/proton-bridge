@@ -295,8 +295,8 @@ Window {
                             colorScheme: root.colorScheme
                             text: qsTr("Quit Bridge")
                             onClicked: {
-                                root.quit()
                                 root.close()
+                                root.quit()
                             }
                         }
 

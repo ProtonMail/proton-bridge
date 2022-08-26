@@ -89,6 +89,8 @@ QtObject {
         }
 
         onQuit: {
+            mainWindow.hide()
+            trayIcon.visible = false
             Backend.quit()
         }
 
