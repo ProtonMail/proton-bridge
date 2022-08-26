@@ -30,9 +30,11 @@ import (
 	"github.com/ProtonMail/proton-bridge/v2/pkg/keychain"
 	"github.com/ProtonMail/proton-bridge/v2/pkg/listener"
 	"github.com/ProtonMail/proton-bridge/v2/pkg/pmapi"
+	"github.com/bradenaw/juniper/xslices"
 	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
 	logrus "github.com/sirupsen/logrus"
+	"golang.org/x/exp/slices"
 )
 
 var (
@@ -215,10 +217,10 @@ func (u *Users) Login(username string, password []byte) (authClient pmapi.Client
 }
 
 // FinishLogin finishes the login procedure and adds the user into the credentials store.
-func (u *Users) FinishLogin(client pmapi.Client, auth *pmapi.Auth, password []byte) (user *User, err error) { //nolint:funlen
+func (u *Users) FinishLogin(client pmapi.Client, auth *pmapi.Auth, password []byte) (userID string, err error) { //nolint:funlen
 	apiUser, passphrase, err := getAPIUser(context.Background(), client, password)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	if user, ok := u.hasUser(apiUser.ID); ok {
@@ -227,39 +229,39 @@ func (u *Users) FinishLogin(client pmapi.Client, auth *pmapi.Auth, password []by
 				logrus.WithError(err).Warn("Failed to delete new auth session")
 			}
 
-			return user, ErrUserAlreadyConnected
+			return user.ID(), ErrUserAlreadyConnected
 		}
 
 		// Update the user's credentials with the latest auth used to connect this user.
 		if _, err := u.credStorer.UpdateToken(auth.UserID, auth.UID, auth.RefreshToken); err != nil {
 			notifyKeychainRepair(u.events, err)
-			return nil, errors.Wrap(err, "failed to load user credentials")
+			return "", errors.Wrap(err, "failed to load user credentials")
 		}
 
 		// Update the password in case the user changed it.
 		creds, err := u.credStorer.UpdatePassword(apiUser.ID, passphrase)
 		if err != nil {
 			notifyKeychainRepair(u.events, err)
-			return nil, errors.Wrap(err, "failed to update password of user in credentials store")
+			return "", errors.Wrap(err, "failed to update password of user in credentials store")
 		}
 
 		// will go and unlock cache if not already done
 		if err := user.connect(client, creds); err != nil {
-			return nil, errors.Wrap(err, "failed to reconnect existing user")
+			return "", errors.Wrap(err, "failed to reconnect existing user")
 		}
 
 		u.events.Emit(events.UserRefreshEvent, apiUser.ID)
 
-		return user, nil
+		return user.ID(), nil
 	}
 
 	if err := u.addNewUser(client, apiUser, auth, passphrase); err != nil {
-		return nil, errors.Wrap(err, "failed to add new user")
+		return "", errors.Wrap(err, "failed to add new user")
 	}
 
 	u.events.Emit(events.UserRefreshEvent, apiUser.ID)
 
-	return u.GetUser(apiUser.ID)
+	return apiUser.ID, nil
 }
 
 // addNewUser adds a new user.
@@ -322,6 +324,16 @@ func (u *Users) GetUsers() []*User {
 	return u.users
 }
 
+// GetUserIDs returns IDs of all added users into keychain (even logged out users).
+func (u *Users) GetUserIDs() []string {
+	u.lock.RLock()
+	defer u.lock.RUnlock()
+
+	return xslices.Map(u.users, func(user *User) string {
+		return user.ID()
+	})
+}
+
 // GetUser returns a user by `query` which is compared to users' ID, username or any attached e-mail address.
 func (u *Users) GetUser(query string) (*User, error) {
 	u.crashBandicoot(query)
@@ -343,6 +355,44 @@ func (u *Users) GetUser(query string) (*User, error) {
 	return nil, errors.New("user " + query + " not found")
 }
 
+// GetUserInfo returns user about the user with the given ID.
+func (u *Users) GetUserInfo(userID string) (UserInfo, error) {
+	u.lock.RLock()
+	defer u.lock.RUnlock()
+
+	idx := slices.IndexFunc(u.users, func(user *User) bool {
+		return user.userID == userID
+	})
+	if idx < 0 {
+		return UserInfo{}, errors.New("no such user")
+	}
+
+	user := u.users[idx]
+
+	var mode AddressMode
+
+	if user.IsCombinedAddressMode() {
+		mode = CombinedMode
+	} else {
+		mode = SplitMode
+	}
+
+	return UserInfo{
+		ID:       userID,
+		Username: user.Username(),
+		Password: user.GetBridgePassword(),
+
+		Addresses: user.GetAddresses(),
+		Primary:   slices.Index(user.GetAddresses(), user.GetPrimaryAddress()),
+
+		UsedBytes:  user.UsedBytes(),
+		TotalBytes: user.TotalBytes(),
+
+		Connected: user.IsConnected(),
+		Mode:      mode,
+	}, nil
+}
+
 // ClearData closes all connections (to release db files and so on) and clears all data.
 func (u *Users) ClearData() error {
 	var result error
@@ -362,6 +412,42 @@ func (u *Users) ClearData() error {
 	}
 
 	return result
+}
+
+func (u *Users) LogoutUser(userID string) error {
+	u.lock.RLock()
+	defer u.lock.RUnlock()
+
+	idx := slices.IndexFunc(u.users, func(user *User) bool {
+		return user.userID == userID
+	})
+	if idx < 0 {
+		return errors.New("no such user")
+	}
+
+	return u.users[idx].Logout()
+}
+
+func (u *Users) SetAddressMode(userID string, mode AddressMode) error {
+	u.lock.RLock()
+	defer u.lock.RUnlock()
+
+	idx := slices.IndexFunc(u.users, func(user *User) bool {
+		return user.userID == userID
+	})
+	if idx < 0 {
+		return errors.New("no such user")
+	}
+
+	if mode == CombinedMode && u.users[idx].IsCombinedAddressMode() {
+		return nil
+	}
+
+	if mode == SplitMode && !u.users[idx].IsCombinedAddressMode() {
+		return nil
+	}
+
+	return u.users[idx].SwitchAddressMode()
 }
 
 // DeleteUser deletes user completely; it logs user out from the API, stops any

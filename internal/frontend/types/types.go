@@ -21,9 +21,9 @@ package types
 import (
 	"crypto/tls"
 
-	"github.com/ProtonMail/proton-bridge/v2/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/v2/internal/config/settings"
 	"github.com/ProtonMail/proton-bridge/v2/internal/updater"
+	"github.com/ProtonMail/proton-bridge/v2/internal/users"
 	"github.com/ProtonMail/proton-bridge/v2/pkg/pmapi"
 )
 
@@ -45,39 +45,22 @@ type Updater interface {
 	CanInstall(updater.VersionInfo) bool
 }
 
-// UserManager is an interface of users needed by frontend.
-type UserManager interface {
+// Bridger is an interface of bridge needed by frontend.
+type Bridger interface {
 	Login(username string, password []byte) (pmapi.Client, *pmapi.Auth, error)
-	FinishLogin(client pmapi.Client, auth *pmapi.Auth, mailboxPassword []byte) (User, error)
-	GetUsers() []User
-	GetUser(query string) (User, error)
+	FinishLogin(client pmapi.Client, auth *pmapi.Auth, mailboxPassword []byte) (string, error)
+
+	GetUserIDs() []string
+	GetUserInfo(string) (users.UserInfo, error)
+	LogoutUser(userID string) error
 	DeleteUser(userID string, clearCache bool) error
+	SetAddressMode(userID string, split users.AddressMode) error
+
 	ClearData() error
 	ClearUsers() error
 	FactoryReset()
-}
-
-// User is an interface of user needed by frontend.
-type User interface {
-	ID() string
-	UsedBytes() int64
-	TotalBytes() int64
-	Username() string
-	IsConnected() bool
-	IsCombinedAddressMode() bool
-	GetPrimaryAddress() string
-	GetAddresses() []string
-	GetBridgePassword() string
-	SwitchAddressMode() error
-	Logout() error
-}
-
-// Bridger is an interface of bridge needed by frontend.
-type Bridger interface {
-	UserManager
 
 	GetTLSConfig() (*tls.Config, error)
-
 	ProvideLogsPath() (string, error)
 	GetLicenseFilePath() string
 	GetDependencyLicensesLink() string
@@ -114,30 +97,4 @@ type Bridger interface {
 	IsFirstStart() bool
 	IsAllMailVisible() bool
 	SetIsAllMailVisible(bool)
-}
-
-type bridgeWrap struct {
-	*bridge.Bridge
-}
-
-// NewBridgeWrap wraps bridge struct into local bridgeWrap to implement local interface.
-// The problem is that Bridge returns the bridge package's User type.
-// Every method which returns User therefore has to be overridden to fulfill the interface.
-func NewBridgeWrap(bridge *bridge.Bridge) *bridgeWrap { //nolint:revive
-	return &bridgeWrap{Bridge: bridge}
-}
-
-func (b *bridgeWrap) FinishLogin(client pmapi.Client, auth *pmapi.Auth, mailboxPassword []byte) (User, error) {
-	return b.Bridge.FinishLogin(client, auth, mailboxPassword)
-}
-
-func (b *bridgeWrap) GetUsers() (users []User) {
-	for _, user := range b.Bridge.GetUsers() {
-		users = append(users, user)
-	}
-	return
-}
-
-func (b *bridgeWrap) GetUser(query string) (User, error) {
-	return b.Bridge.GetUser(query)
 }

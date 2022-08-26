@@ -23,48 +23,52 @@ import (
 
 	"github.com/ProtonMail/proton-bridge/v2/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/v2/internal/config/settings"
-	"github.com/ProtonMail/proton-bridge/v2/internal/frontend/types"
+	"github.com/ProtonMail/proton-bridge/v2/internal/users"
 	"github.com/abiosoft/ishell"
 )
 
 func (f *frontendCLI) listAccounts(c *ishell.Context) {
 	spacing := "%-2d: %-20s (%-15s, %-15s)\n"
 	f.Printf(bold(strings.ReplaceAll(spacing, "d", "s")), "#", "account", "status", "address mode")
-	for idx, user := range f.bridge.GetUsers() {
+	for idx, userID := range f.bridge.GetUserIDs() {
+		user, err := f.bridge.GetUserInfo(userID)
+		if err != nil {
+			panic(err)
+		}
 		connected := "disconnected"
-		if user.IsConnected() {
+		if user.Connected {
 			connected = "connected"
 		}
 		mode := "split"
-		if user.IsCombinedAddressMode() {
+		if user.Mode == users.CombinedMode {
 			mode = "combined"
 		}
-		f.Printf(spacing, idx, user.Username(), connected, mode)
+		f.Printf(spacing, idx, user.Username, connected, mode)
 	}
 	f.Println()
 }
 
 func (f *frontendCLI) showAccountInfo(c *ishell.Context) {
 	user := f.askUserByIndexOrName(c)
-	if user == nil {
+	if user.ID == "" {
 		return
 	}
 
-	if !user.IsConnected() {
-		f.Printf("Please login to %s to get email client configuration.\n", bold(user.Username()))
+	if !user.Connected {
+		f.Printf("Please login to %s to get email client configuration.\n", bold(user.Username))
 		return
 	}
 
-	if user.IsCombinedAddressMode() {
-		f.showAccountAddressInfo(user, user.GetPrimaryAddress())
+	if user.Mode == users.CombinedMode {
+		f.showAccountAddressInfo(user, user.Addresses[user.Primary])
 	} else {
-		for _, address := range user.GetAddresses() {
+		for _, address := range user.Addresses {
 			f.showAccountAddressInfo(user, address)
 		}
 	}
 }
 
-func (f *frontendCLI) showAccountAddressInfo(user types.User, address string) {
+func (f *frontendCLI) showAccountAddressInfo(user users.UserInfo, address string) {
 	smtpSecurity := "STARTTLS"
 	if f.bridge.GetBool(settings.SMTPSSLKey) {
 		smtpSecurity = "SSL"
@@ -74,7 +78,7 @@ func (f *frontendCLI) showAccountAddressInfo(user types.User, address string) {
 		bridge.Host,
 		f.bridge.GetInt(settings.IMAPPortKey),
 		address,
-		user.GetBridgePassword(),
+		user.Password,
 		"STARTTLS",
 	)
 	f.Println("")
@@ -82,7 +86,7 @@ func (f *frontendCLI) showAccountAddressInfo(user types.User, address string) {
 		bridge.Host,
 		f.bridge.GetInt(settings.SMTPPortKey),
 		address,
-		user.GetBridgePassword(),
+		user.Password,
 		smtpSecurity,
 	)
 	f.Println("")
@@ -95,8 +99,8 @@ func (f *frontendCLI) loginAccount(c *ishell.Context) { //nolint:funlen
 	loginName := ""
 	if len(c.Args) > 0 {
 		user := f.getUserByIndexOrName(c.Args[0])
-		if user != nil {
-			loginName = user.GetPrimaryAddress()
+		if user.ID != "" {
+			loginName = user.Addresses[user.Primary]
 		}
 	}
 
@@ -143,14 +147,19 @@ func (f *frontendCLI) loginAccount(c *ishell.Context) { //nolint:funlen
 	}
 
 	f.Println("Adding account ...")
-	user, err := f.bridge.FinishLogin(client, auth, []byte(mailboxPassword))
+	userID, err := f.bridge.FinishLogin(client, auth, []byte(mailboxPassword))
 	if err != nil {
 		log.WithField("username", loginName).WithError(err).Error("Login was unsuccessful")
 		f.Println("Adding account was unsuccessful:", err)
 		return
 	}
 
-	f.Printf("Account %s was added successfully.\n", bold(user.Username()))
+	user, err := f.bridge.GetUserInfo(userID)
+	if err != nil {
+		panic(err)
+	}
+
+	f.Printf("Account %s was added successfully.\n", bold(user.Username))
 }
 
 func (f *frontendCLI) logoutAccount(c *ishell.Context) {
@@ -158,11 +167,11 @@ func (f *frontendCLI) logoutAccount(c *ishell.Context) {
 	defer f.ShowPrompt(true)
 
 	user := f.askUserByIndexOrName(c)
-	if user == nil {
+	if user.ID == "" {
 		return
 	}
-	if f.yesNoQuestion("Are you sure you want to logout account " + bold(user.Username())) {
-		if err := user.Logout(); err != nil {
+	if f.yesNoQuestion("Are you sure you want to logout account " + bold(user.Username)) {
+		if err := f.bridge.LogoutUser(user.ID); err != nil {
 			f.printAndLogError("Logging out failed: ", err)
 		}
 	}
@@ -173,12 +182,12 @@ func (f *frontendCLI) deleteAccount(c *ishell.Context) {
 	defer f.ShowPrompt(true)
 
 	user := f.askUserByIndexOrName(c)
-	if user == nil {
+	if user.ID == "" {
 		return
 	}
-	if f.yesNoQuestion("Are you sure you want to " + bold("remove account "+user.Username())) {
+	if f.yesNoQuestion("Are you sure you want to " + bold("remove account "+user.Username)) {
 		clearCache := f.yesNoQuestion("Do you want to remove cache for this account")
-		if err := f.bridge.DeleteUser(user.ID(), clearCache); err != nil {
+		if err := f.bridge.DeleteUser(user.ID, clearCache); err != nil {
 			f.printAndLogError("Cannot delete account: ", err)
 			return
 		}
@@ -193,9 +202,13 @@ func (f *frontendCLI) deleteAccounts(c *ishell.Context) {
 		return
 	}
 
-	for _, user := range f.bridge.GetUsers() {
-		if err := f.bridge.DeleteUser(user.ID(), false); err != nil {
-			f.printAndLogError("Cannot delete account ", user.Username(), ": ", err)
+	for _, userID := range f.bridge.GetUserIDs() {
+		user, err := f.bridge.GetUserInfo(userID)
+		if err != nil {
+			panic(err)
+		}
+		if err := f.bridge.DeleteUser(user.ID, false); err != nil {
+			f.printAndLogError("Cannot delete account ", user.Username, ": ", err)
 		}
 	}
 
@@ -222,19 +235,25 @@ func (f *frontendCLI) deleteEverything(c *ishell.Context) {
 
 func (f *frontendCLI) changeMode(c *ishell.Context) {
 	user := f.askUserByIndexOrName(c)
-	if user == nil {
+	if user.ID == "" {
 		return
 	}
 
-	newMode := "combined mode"
-	if user.IsCombinedAddressMode() {
-		newMode = "split mode"
+	var targetMode users.AddressMode
+
+	if user.Mode == users.CombinedMode {
+		targetMode = users.SplitMode
+	} else {
+		targetMode = users.CombinedMode
 	}
-	if !f.yesNoQuestion("Are you sure you want to change the mode for account " + bold(user.Username()) + " to " + bold(newMode)) {
+
+	if !f.yesNoQuestion("Are you sure you want to change the mode for account " + bold(user.Username) + " to " + bold(targetMode)) {
 		return
 	}
-	if err := user.SwitchAddressMode(); err != nil {
+
+	if err := f.bridge.SetAddressMode(user.ID, targetMode); err != nil {
 		f.printAndLogError("Cannot switch address mode:", err)
 	}
-	f.Printf("Address mode for account %s changed to %s\n", user.Username(), newMode)
+
+	f.Printf("Address mode for account %s changed to %s\n", user.Username, targetMode)
 }

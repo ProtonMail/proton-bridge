@@ -46,7 +46,6 @@ func New(
 	bridge *bridge.Bridge,
 	restarter types.Restarter,
 ) Frontend {
-	bridgeWrap := types.NewBridgeWrap(bridge)
 	switch frontendType {
 	case "grpc":
 		return grpc.NewService(
@@ -54,7 +53,7 @@ func New(
 			panicHandler,
 			eventListener,
 			updater,
-			bridgeWrap,
+			bridge,
 			restarter,
 		)
 
@@ -63,7 +62,7 @@ func New(
 			panicHandler,
 			eventListener,
 			updater,
-			bridgeWrap,
+			bridge,
 			restarter,
 		)
 

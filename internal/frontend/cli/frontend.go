@@ -307,11 +307,11 @@ func (f *frontendCLI) watchEvents() {
 		case address := <-addressChangedLogoutCh:
 			f.notifyLogout(address)
 		case userID := <-logoutCh:
-			user, err := f.bridge.GetUser(userID)
+			user, err := f.bridge.GetUserInfo(userID)
 			if err != nil {
 				return
 			}
-			f.notifyLogout(user.Username())
+			f.notifyLogout(user.Username)
 		case <-certIssue:
 			f.notifyCertIssue()
 		}

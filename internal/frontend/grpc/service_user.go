@@ -21,6 +21,8 @@ import (
 	"context"
 	"time"
 
+	"github.com/ProtonMail/proton-bridge/v2/internal/users"
+	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -30,11 +32,15 @@ import (
 func (s *Service) GetUserList(context.Context, *emptypb.Empty) (*UserListResponse, error) {
 	s.log.Info("GetUserList")
 
-	users := s.bridge.GetUsers()
+	var userList []*User
 
-	userList := make([]*User, len(users))
-	for i, user := range users {
-		userList[i] = grpcUserFromBridge(user)
+	for idx, userID := range s.bridge.GetUserIDs() {
+		user, err := s.bridge.GetUserInfo(userID)
+		if err != nil {
+			return nil, err
+		}
+
+		userList[idx] = grpcUserFromInfo(user)
 	}
 
 	// If there are no active accounts.
@@ -48,18 +54,18 @@ func (s *Service) GetUserList(context.Context, *emptypb.Empty) (*UserListRespons
 func (s *Service) GetUser(_ context.Context, userID *wrapperspb.StringValue) (*User, error) {
 	s.log.WithField("userID", userID).Info("GetUser")
 
-	user, err := s.bridge.GetUser(userID.Value)
+	user, err := s.bridge.GetUserInfo(userID.Value)
 	if err != nil {
 		return nil, status.Errorf(codes.NotFound, "user not found %v", userID.Value)
 	}
 
-	return grpcUserFromBridge(user), nil
+	return grpcUserFromInfo(user), nil
 }
 
 func (s *Service) SetUserSplitMode(_ context.Context, splitMode *UserSplitModeRequest) (*emptypb.Empty, error) {
 	s.log.WithField("UserID", splitMode.UserID).WithField("Active", splitMode.Active).Info("SetUserSplitMode")
 
-	user, err := s.bridge.GetUser(splitMode.UserID)
+	user, err := s.bridge.GetUserInfo(splitMode.UserID)
 	if err != nil {
 		return nil, status.Errorf(codes.NotFound, "user not found %v", splitMode.UserID)
 	}
@@ -67,8 +73,17 @@ func (s *Service) SetUserSplitMode(_ context.Context, splitMode *UserSplitModeRe
 	go func() {
 		defer s.panicHandler.HandlePanic()
 		defer func() { _ = s.SendEvent(NewUserToggleSplitModeFinishedEvent(splitMode.UserID)) }()
-		if splitMode.Active == user.IsCombinedAddressMode() {
-			_ = user.SwitchAddressMode() // check for errors
+
+		var targetMode users.AddressMode
+
+		if splitMode.Active && user.Mode == users.CombinedMode {
+			targetMode = users.SplitMode
+		} else if !splitMode.Active && user.Mode == users.SplitMode {
+			targetMode = users.CombinedMode
+		}
+
+		if err := s.bridge.SetAddressMode(user.ID, targetMode); err != nil {
+			logrus.WithError(err).Error("Failed to set address mode")
 		}
 	}()
 
@@ -78,14 +93,16 @@ func (s *Service) SetUserSplitMode(_ context.Context, splitMode *UserSplitModeRe
 func (s *Service) LogoutUser(_ context.Context, userID *wrapperspb.StringValue) (*emptypb.Empty, error) {
 	s.log.WithField("UserID", userID.Value).Info("LogoutUser")
 
-	user, err := s.bridge.GetUser(userID.Value)
-	if err != nil {
+	if _, err := s.bridge.GetUserInfo(userID.Value); err != nil {
 		return nil, status.Errorf(codes.NotFound, "user not found %v", userID.Value)
 	}
 
 	go func() {
 		defer s.panicHandler.HandlePanic()
-		_ = user.Logout()
+
+		if err := s.bridge.LogoutUser(userID.Value); err != nil {
+			logrus.WithError(err).Error("Failed to log user out")
+		}
 	}()
 
 	return &emptypb.Empty{}, nil

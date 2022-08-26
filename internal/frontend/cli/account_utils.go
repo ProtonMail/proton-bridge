@@ -22,7 +22,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/ProtonMail/proton-bridge/v2/internal/frontend/types"
+	"github.com/ProtonMail/proton-bridge/v2/internal/users"
 	"github.com/abiosoft/ishell"
 )
 
@@ -35,9 +35,13 @@ func (f *frontendCLI) completeUsernames(args []string) (usernames []string) {
 	if len(args) == 1 {
 		arg = args[0]
 	}
-	for _, user := range f.bridge.GetUsers() {
-		if strings.HasPrefix(strings.ToLower(user.Username()), strings.ToLower(arg)) {
-			usernames = append(usernames, user.Username())
+	for _, userID := range f.bridge.GetUserIDs() {
+		user, err := f.bridge.GetUserInfo(userID)
+		if err != nil {
+			panic(err)
+		}
+		if strings.HasPrefix(strings.ToLower(user.Username), strings.ToLower(arg)) {
+			usernames = append(usernames, user.Username)
 		}
 	}
 	return
@@ -46,7 +50,7 @@ func (f *frontendCLI) completeUsernames(args []string) (usernames []string) {
 // noAccountWrapper is a decorator for functions which need any account to be properly functional.
 func (f *frontendCLI) noAccountWrapper(callback func(*ishell.Context)) func(*ishell.Context) {
 	return func(c *ishell.Context) {
-		users := f.bridge.GetUsers()
+		users := f.bridge.GetUserIDs()
 		if len(users) == 0 {
 			f.Println("No active accounts. Please add account to continue.")
 		} else {
@@ -55,46 +59,54 @@ func (f *frontendCLI) noAccountWrapper(callback func(*ishell.Context)) func(*ish
 	}
 }
 
-func (f *frontendCLI) askUserByIndexOrName(c *ishell.Context) types.User {
+func (f *frontendCLI) askUserByIndexOrName(c *ishell.Context) users.UserInfo {
 	user := f.getUserByIndexOrName("")
-	if user != nil {
+	if user.ID != "" {
 		return user
 	}
 
-	numberOfAccounts := len(f.bridge.GetUsers())
+	numberOfAccounts := len(f.bridge.GetUserIDs())
 	indexRange := fmt.Sprintf("number between 0 and %d", numberOfAccounts-1)
 	if len(c.Args) == 0 {
 		f.Printf("Please choose %s or username.\n", indexRange)
-		return nil
+		return users.UserInfo{}
 	}
 	arg := c.Args[0]
 	user = f.getUserByIndexOrName(arg)
-	if user == nil {
+	if user.ID == "" {
 		f.Printf("Wrong input '%s'. Choose %s or username.\n", bold(arg), indexRange)
-		return nil
+		return users.UserInfo{}
 	}
 	return user
 }
 
-func (f *frontendCLI) getUserByIndexOrName(arg string) types.User {
-	users := f.bridge.GetUsers()
-	numberOfAccounts := len(users)
+func (f *frontendCLI) getUserByIndexOrName(arg string) users.UserInfo {
+	userIDs := f.bridge.GetUserIDs()
+	numberOfAccounts := len(userIDs)
 	if numberOfAccounts == 0 {
-		return nil
+		return users.UserInfo{}
+	}
+	res := make([]users.UserInfo, len(userIDs))
+	for idx, userID := range userIDs {
+		user, err := f.bridge.GetUserInfo(userID)
+		if err != nil {
+			panic(err)
+		}
+		res[idx] = user
 	}
 	if numberOfAccounts == 1 {
-		return users[0]
+		return res[0]
 	}
 	if index, err := strconv.Atoi(arg); err == nil {
 		if index < 0 || index >= numberOfAccounts {
-			return nil
+			return users.UserInfo{}
 		}
-		return users[index]
+		return res[index]
 	}
-	for _, user := range users {
-		if user.Username() == arg {
+	for _, user := range res {
+		if user.Username == arg {
 			return user
 		}
 	}
-	return nil
+	return users.UserInfo{}
 }

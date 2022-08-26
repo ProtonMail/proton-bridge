@@ -229,11 +229,11 @@ func (s *Service) watchEvents() { // nolint:funlen
 		case address := <-addressChangedLogoutCh:
 			_ = s.SendEvent(NewMailAddressChangeLogoutEvent(address))
 		case userID := <-logoutCh:
-			user, err := s.bridge.GetUser(userID)
+			user, err := s.bridge.GetUserInfo(userID)
 			if err != nil {
 				return
 			}
-			_ = s.SendEvent(NewUserDisconnectedEvent(user.Username()))
+			_ = s.SendEvent(NewUserDisconnectedEvent(user.Username))
 		case <-updateApplicationCh:
 			s.updateForce()
 		case userID := <-userChangedCh:
@@ -275,7 +275,7 @@ func (s *Service) finishLogin() {
 	s.eventListener.Add(events.UserChangeDone, done)
 	defer s.eventListener.Remove(events.UserChangeDone, done)
 
-	user, err := s.bridge.FinishLogin(s.authClient, s.auth, s.password)
+	userID, err := s.bridge.FinishLogin(s.authClient, s.auth, s.password)
 
 	if err != nil && err != users.ErrUserAlreadyConnected {
 		s.log.WithError(err).Errorf("Finish login failed")
@@ -286,14 +286,14 @@ func (s *Service) finishLogin() {
 	// The user changed should be triggered by FinishLogin, but it is not
 	// guaranteed when this is going to happen. Therefor we should wait
 	// until we receive the signal from userChanged function.
-	s.waitForUserChangeDone(done, user.ID())
+	s.waitForUserChangeDone(done, userID)
 
-	s.log.WithField("userID", user.ID()).Debug("Login finished")
-	_ = s.SendEvent(NewLoginFinishedEvent(user.ID()))
+	s.log.WithField("userID", userID).Debug("Login finished")
+	_ = s.SendEvent(NewLoginFinishedEvent(userID))
 
 	if err == users.ErrUserAlreadyConnected {
 		s.log.WithError(err).Error("User already logged in")
-		_ = s.SendEvent(NewLoginAlreadyLoggedInEvent(user.ID()))
+		_ = s.SendEvent(NewLoginAlreadyLoggedInEvent(userID))
 	}
 }
 

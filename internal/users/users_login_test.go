@@ -117,16 +117,16 @@ func checkUsersFinishLogin(t *testing.T, m mocks, auth *pmapi.Auth, mailboxPassw
 	users := testNewUsers(t, m)
 	defer cleanUpUsersData(users)
 
-	user, err := users.FinishLogin(m.pmapiClient, auth, mailboxPassword)
+	userID, err := users.FinishLogin(m.pmapiClient, auth, mailboxPassword)
 
 	r.Equal(t, expectedErr, err)
 
 	if expectedUserID != "" {
-		r.Equal(t, expectedUserID, user.ID())
+		r.Equal(t, expectedUserID, userID)
 		r.Equal(t, 1, len(users.users))
 		r.Equal(t, expectedUserID, users.users[0].ID())
 	} else {
-		r.Equal(t, (*User)(nil), user)
+		r.Equal(t, "", userID)
 		r.Equal(t, 0, len(users.users))
 	}
 }

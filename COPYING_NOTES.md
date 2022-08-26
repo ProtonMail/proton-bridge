@@ -85,6 +85,8 @@ Proton Mail Bridge includes the following 3rd party software:
 * [grpc](https://google.golang.org/grpc) available under [license](https://github.com/grpc/grpc-go/blob/master/LICENSE) 
 * [protobuf](https://google.golang.org/protobuf) available under [license](https://github.com/protocolbuffers/protobuf/blob/main/LICENSE) 
 * [plist](https://howett.net/plist) available under [license](https://github.com/DHowett/go-plist/blob/main/LICENSE) 
+* [juniper](https://github.com/bradenaw/juniper) available under [license](https://github.com/bradenaw/juniper/blob/master/LICENSE) 
+* [exp](https://golang.org/x/exp) available under [license](https://cs.opensource.google/go/x/exp/+/master:LICENSE) 
 * [go-mime](https://github.com/ProtonMail/go-mime) available under [license](https://github.com/ProtonMail/go-mime/blob/master/LICENSE) 
 * [cascadia](https://github.com/andybalholm/cascadia) available under [license](https://github.com/andybalholm/cascadia/blob/master/LICENSE) 
 * [antlr4](https://github.com/antlr/antlr4) available under [license](https://github.com/antlr/antlr4/blob/master/LICENSE) 
@@ -109,7 +111,6 @@ Proton Mail Bridge includes the following 3rd party software:
 github.com/shurcooL/sanitized_anchor_name
 * [pflag](https://github.com/spf13/pflag) available under [license](https://github.com/spf13/pflag/blob/master/LICENSE) 
 * [tagparser](https://github.com/vmihailenco/tagparser) available under [license](https://github.com/vmihailenco/tagparser/blob/master/LICENSE) 
-* [xerrors](https://golang.org/x/xerrors) available under [license](https://cs.opensource.google/go/x/xerrors/+/master:LICENSE) 
 * [genproto](https://google.golang.org/genproto)
 gopkg.in/yaml.v3
 * [docker-credential-helpers](https://github.com/ProtonMail/docker-credential-helpers) available under [license](https://github.com/ProtonMail/docker-credential-helpers/blob/master/LICENSE) 

@@ -52,12 +52,14 @@ func (ctx *TestContext) LoginUser(username string, password, mailboxPassword []b
 		}
 	}
 
-	user, err := ctx.users.FinishLogin(client, auth, mailboxPassword)
+	userID, err := ctx.users.FinishLogin(client, auth, mailboxPassword)
 	if err != nil {
 		return errors.Wrap(err, "failed to finish login")
 	}
 
-	ctx.addCleanupChecked(user.Logout, "Logging out user")
+	ctx.addCleanupChecked(func() error {
+		return ctx.bridge.LogoutUser(userID)
+	}, "Logging out user")
 
 	return nil
 }
@@ -73,12 +75,14 @@ func (ctx *TestContext) FinishLogin(client pmapi.Client, mailboxPassword []byte)
 		return errors.New("cannot get current auth tokens from client")
 	}
 
-	user, err := ctx.users.FinishLogin(client, c.GetCurrentAuth(), mailboxPassword)
+	userID, err := ctx.users.FinishLogin(client, c.GetCurrentAuth(), mailboxPassword)
 	if err != nil {
 		return errors.Wrap(err, "failed to finish login")
 	}
 
-	ctx.addCleanupChecked(user.Logout, "Logging out user")
+	ctx.addCleanupChecked(func() error {
+		return ctx.bridge.LogoutUser(userID)
+	}, "Logging out user")
 
 	return nil
 }

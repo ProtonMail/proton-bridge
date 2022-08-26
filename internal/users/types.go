@@ -46,3 +46,38 @@ type StoreMaker interface {
 	New(user store.BridgeUser) (*store.Store, error)
 	Remove(userID string) error
 }
+
+type UserInfo struct {
+	ID       string
+	Username string
+	Password string
+
+	Addresses []string
+	Primary   int
+
+	UsedBytes  int64
+	TotalBytes int64
+
+	Connected bool
+	Mode      AddressMode
+}
+
+type AddressMode int
+
+const (
+	SplitMode AddressMode = iota
+	CombinedMode
+)
+
+func (mode AddressMode) String() string {
+	switch mode {
+	case SplitMode:
+		return "split mode"
+
+	case CombinedMode:
+		return "combined mode"
+
+	default:
+		return "unknown mode"
+	}
+}
