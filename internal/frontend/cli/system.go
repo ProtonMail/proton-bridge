@@ -152,7 +152,7 @@ func (f *frontendCLI) disallowProxy(c *ishell.Context) {
 	}
 }
 
-func (f *frontendCLI) disableAllMail(c *ishell.Context) {
+func (f *frontendCLI) hideAllMail(c *ishell.Context) {
 	if !f.bridge.IsAllMailVisible() {
 		f.Println("All Mail folder is not listed in your local client.")
 		return
@@ -165,7 +165,7 @@ func (f *frontendCLI) disableAllMail(c *ishell.Context) {
 	}
 }
 
-func (f *frontendCLI) enableAllMail(c *ishell.Context) {
+func (f *frontendCLI) showAllMail(c *ishell.Context) {
 	if f.bridge.IsAllMailVisible() {
 		f.Println("All Mail folder is listed in your local client.")
 		return

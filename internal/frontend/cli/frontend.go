@@ -143,14 +143,14 @@ func New( //nolint:funlen
 		Help: "choose not to list the All Mail folder in your local client",
 	}
 	allMailCmd.AddCmd(&ishell.Cmd{
-		Name: "disable",
+		Name: "hide",
 		Help: "All Mail folder will not be listed in your local client",
-		Func: fe.disableAllMail,
+		Func: fe.hideAllMail,
 	})
 	allMailCmd.AddCmd(&ishell.Cmd{
-		Name: "enable",
+		Name: "show",
 		Help: "All Mail folder will be listed in your local client",
-		Func: fe.enableAllMail,
+		Func: fe.showAllMail,
 	})
 	fe.AddCmd(allMailCmd)
 
