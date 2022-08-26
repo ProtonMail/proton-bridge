@@ -17,6 +17,13 @@
 
 package main
 
+import (
+	"os"
+
+	"github.com/ProtonMail/proton-bridge/v2/internal/app"
+	"github.com/sirupsen/logrus"
+)
+
 /*
                              ___....___
    ^^                __..-:'':__:..:__:'':-..__
@@ -34,41 +41,8 @@ package main
    ~~^_~^~/   \~^-~^~ _~^-~_^~-^~_^~~-^~_~^~-~_~-^~_^/   \~^ ~~_ ^
 */
 
-import (
-	"os"
-
-	"github.com/ProtonMail/proton-bridge/v2/internal/app/base"
-	"github.com/ProtonMail/proton-bridge/v2/internal/app/bridge"
-	"github.com/ProtonMail/proton-bridge/v2/internal/constants"
-	"github.com/sirupsen/logrus"
-)
-
-const (
-	appUsage      = "Proton Mail IMAP and SMTP Bridge"
-	configName    = "bridge"
-	updateURLName = "bridge"
-	keychainName  = "bridge"
-	cacheVersion  = "c11"
-)
-
 func main() {
-	base, err := base.New(
-		constants.FullAppName,
-		appUsage,
-		configName,
-		updateURLName,
-		keychainName,
-		cacheVersion,
-	)
-	if err != nil {
-		logrus.WithError(err).Fatal("Failed to create app base")
-	}
-	// Other instance already running.
-	if base == nil {
-		return
-	}
-
-	if err := bridge.New(base).Run(os.Args); err != nil {
-		logrus.WithError(err).Fatal("Bridge exited with error")
+	if err := app.New().Run(os.Args); err != nil {
+		logrus.Fatal(err)
 	}
 }

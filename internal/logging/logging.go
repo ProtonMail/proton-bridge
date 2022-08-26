@@ -45,12 +45,13 @@ const (
 	MaxLogs = 3
 )
 
-func Init(logsPath string) error {
+func Init(logsPath, level string) error {
 	logrus.SetFormatter(&logrus.TextFormatter{
 		ForceColors:     true,
 		FullTimestamp:   true,
 		TimestampFormat: time.StampMilli,
 	})
+
 	logrus.AddHook(&writer.Hook{
 		Writer: os.Stderr,
 		LogLevels: []logrus.Level{
@@ -74,24 +75,34 @@ func Init(logsPath string) error {
 	}
 
 	logrus.SetOutput(rotator)
-	return nil
+
+	return setLevel(level)
 }
 
-// SetLevel will change the level of logging and in case of Debug or Trace
+// setLevel will change the level of logging and in case of Debug or Trace
 // level it will also prevent from writing to file. Setting level to Info or
 // higher will not set writing to file again if it was previously cancelled by
 // Debug or Trace.
-func SetLevel(level string) {
-	if lvl, err := logrus.ParseLevel(level); err == nil {
-		logrus.SetLevel(lvl)
+func setLevel(level string) error {
+	if level == "" {
+		return nil
 	}
 
+	logLevel, err := logrus.ParseLevel(level)
+	if err != nil {
+		return err
+	}
+
+	logrus.SetLevel(logLevel)
+
+	// The hook to print panic, fatal and error to stderr is always
+	// added. We want to avoid log duplicates by replacing all hooks.
 	if logrus.GetLevel() == logrus.DebugLevel || logrus.GetLevel() == logrus.TraceLevel {
-		// The hook to print panic, fatal and error to stderr is always
-		// added. We want to avoid log duplicates by replacing all hooks
 		_ = logrus.StandardLogger().ReplaceHooks(logrus.LevelHooks{})
 		logrus.SetOutput(os.Stderr)
 	}
+
+	return nil
 }
 
 func getLogName(version, revision string) string {

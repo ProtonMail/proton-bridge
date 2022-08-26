@@ -1,325 +1,318 @@
-// Copyright (c) 2022 Proton AG
-//
-// This file is part of Proton Mail Bridge.
-//
-// Proton Mail Bridge is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// Proton Mail Bridge is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU General Public License
-// along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
-
-// Package bridge provides core functionality of Bridge app.
 package bridge
 
 import (
-	"errors"
+	"context"
+	"crypto/tls"
 	"fmt"
-	"strconv"
-	"time"
+	"net"
+	"net/http"
+	"sync"
 
 	"github.com/Masterminds/semver/v3"
-	"github.com/ProtonMail/go-autostart"
-	"github.com/ProtonMail/proton-bridge/v2/internal/config/settings"
-	"github.com/ProtonMail/proton-bridge/v2/internal/config/tls"
-	"github.com/ProtonMail/proton-bridge/v2/internal/config/useragent"
+	"github.com/ProtonMail/gluon"
+	"github.com/ProtonMail/gluon/watcher"
 	"github.com/ProtonMail/proton-bridge/v2/internal/constants"
-	"github.com/ProtonMail/proton-bridge/v2/internal/metrics"
-	"github.com/ProtonMail/proton-bridge/v2/internal/sentry"
-	"github.com/ProtonMail/proton-bridge/v2/internal/store/cache"
-	"github.com/ProtonMail/proton-bridge/v2/internal/updater"
-	"github.com/ProtonMail/proton-bridge/v2/internal/users"
-	"github.com/ProtonMail/proton-bridge/v2/pkg/message"
-	"github.com/ProtonMail/proton-bridge/v2/pkg/pmapi"
-
-	"github.com/ProtonMail/proton-bridge/v2/pkg/listener"
-	logrus "github.com/sirupsen/logrus"
+	"github.com/ProtonMail/proton-bridge/v2/internal/cookies"
+	"github.com/ProtonMail/proton-bridge/v2/internal/events"
+	"github.com/ProtonMail/proton-bridge/v2/internal/focus"
+	"github.com/ProtonMail/proton-bridge/v2/internal/user"
+	"github.com/ProtonMail/proton-bridge/v2/internal/vault"
+	"github.com/bradenaw/juniper/xslices"
+	"github.com/emersion/go-smtp"
+	"github.com/go-resty/resty/v2"
+	"github.com/sirupsen/logrus"
+	"gitlab.protontech.ch/go/liteapi"
 )
 
-var log = logrus.WithField("pkg", "bridge") //nolint:gochecknoglobals
-
-var ErrLocalCacheUnavailable = errors.New("local cache is unavailable")
-
 type Bridge struct {
-	*users.Users
+	// vault holds bridge-specific data, such as preferences and known users (authorized or not).
+	vault *vault.Vault
 
-	locations     Locator
-	settings      SettingsProvider
-	clientManager pmapi.Manager
+	// users holds authorized users.
+	users map[string]*user.User
+
+	// api manages user API clients.
+	api         *liteapi.Manager
+	cookieJar   *cookies.Jar
+	proxyDialer ProxyDialer
+	identifier  Identifier
+
+	// watchers holds all registered event watchers.
+	watchers     []*watcher.Watcher[events.Event]
+	watchersLock sync.RWMutex
+
+	// tlsConfig holds the bridge TLS config used by the IMAP and SMTP servers.
+	tlsConfig *tls.Config
+
+	// imapServer is the bridge's IMAP server.
+	imapServer   *gluon.Server
+	imapListener net.Listener
+
+	// smtpServer is the bridge's SMTP server.
+	smtpServer   *smtp.Server
+	smtpBackend  *smtpBackend
+	smtpListener net.Listener
+
+	// updater is the bridge's updater.
 	updater       Updater
-	versioner     Versioner
-	tls           *tls.TLS
-	userAgent     *useragent.UserAgent
-	cacheProvider CacheProvider
-	autostart     *autostart.App
-	// Bridge's global errors list.
-	errors []error
+	curVersion    *semver.Version
+	updateCheckCh chan struct{}
 
-	isAllMailVisible bool
-	isFirstStart     bool
-	lastVersion      string
+	// focusService is used to raise the bridge window when needed.
+	focusService *focus.FocusService
+
+	// autostarter is the bridge's autostarter.
+	autostarter Autostarter
+
+	// locator is the bridge's locator.
+	locator Locator
+
+	// errors contains errors encountered during startup.
+	errors []error
 }
 
-func New( //nolint:funlen
-	locations Locator,
-	cacheProvider CacheProvider,
-	setting SettingsProvider,
-	sentryReporter *sentry.Reporter,
-	panicHandler users.PanicHandler,
-	eventListener listener.Listener,
-	tls *tls.TLS,
-	userAgent *useragent.UserAgent,
-	cache cache.Cache,
-	builder *message.Builder,
-	clientManager pmapi.Manager,
-	credStorer users.CredentialsStorer,
-	updater Updater,
-	versioner Versioner,
-	autostart *autostart.App,
-) *Bridge {
-	// Allow DoH before starting the app if the user has previously set this setting.
-	// This allows us to start even if protonmail is blocked.
-	if setting.GetBool(settings.AllowProxyKey) {
-		clientManager.AllowProxy()
+// New creates a new bridge.
+func New(
+	apiURL string, // the URL of the API to use
+	locator Locator, // the locator to provide paths to store data
+	vault *vault.Vault, // the bridge's encrypted data store
+	identifier Identifier, // the identifier to keep track of the user agent
+	tlsReporter TLSReporter, // the TLS reporter to report TLS errors
+	proxyDialer ProxyDialer, // the DoH dialer
+	autostarter Autostarter, // the autostarter to manage autostart settings
+	updater Updater, // the updater to fetch and install updates
+	curVersion *semver.Version, // the current version of the bridge
+) (*Bridge, error) {
+	if vault.GetProxyAllowed() {
+		proxyDialer.AllowProxy()
+	} else {
+		proxyDialer.DisallowProxy()
 	}
 
-	u := users.New(
-		locations,
-		panicHandler,
-		eventListener,
-		clientManager,
-		credStorer,
-		newStoreFactory(cacheProvider, sentryReporter, panicHandler, eventListener, cache, builder),
+	cookieJar, err := cookies.NewCookieJar(vault)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create cookie jar: %w", err)
+	}
+
+	api := liteapi.New(
+		liteapi.WithHostURL(apiURL),
+		liteapi.WithAppVersion(constants.AppVersion),
+		liteapi.WithCookieJar(cookieJar),
+		liteapi.WithTransport(&http.Transport{DialTLSContext: proxyDialer.DialTLSContext}),
 	)
 
-	b := &Bridge{
-		Users:            u,
-		locations:        locations,
-		settings:         setting,
-		clientManager:    clientManager,
-		updater:          updater,
-		versioner:        versioner,
-		tls:              tls,
-		userAgent:        userAgent,
-		cacheProvider:    cacheProvider,
-		autostart:        autostart,
-		isFirstStart:     false,
-		isAllMailVisible: setting.GetBool(settings.IsAllMailVisible),
-	}
-
-	if setting.GetBool(settings.FirstStartKey) {
-		b.isFirstStart = true
-		if err := b.SendMetric(metrics.New(metrics.Setup, metrics.FirstStart, metrics.Label(constants.Version))); err != nil {
-			logrus.WithError(err).Error("Failed to send metric")
-		}
-		setting.SetBool(settings.FirstStartKey, false)
-	}
-
-	// Keep in bridge and update in settings the last used version.
-	b.lastVersion = b.settings.Get(settings.LastVersionKey)
-	b.settings.Set(settings.LastVersionKey, constants.Version)
-
-	go b.heartbeat()
-
-	return b
-}
-
-// heartbeat sends a heartbeat signal once a day.
-func (b *Bridge) heartbeat() {
-	for range time.Tick(time.Minute) {
-		lastHeartbeatDay, err := strconv.ParseInt(b.settings.Get(settings.LastHeartbeatKey), 10, 64)
-		if err != nil {
-			continue
-		}
-
-		// If we're still on the same day, don't send a heartbeat.
-		if time.Now().YearDay() == int(lastHeartbeatDay) {
-			continue
-		}
-
-		// We're on the next (or a different) day, so send a heartbeat.
-		if err := b.SendMetric(metrics.New(metrics.Heartbeat, metrics.Daily, metrics.NoLabel)); err != nil {
-			logrus.WithError(err).Error("Failed to send heartbeat")
-			continue
-		}
-
-		// Heartbeat was sent successfully so update the last heartbeat day.
-		b.settings.Set(settings.LastHeartbeatKey, fmt.Sprintf("%v", time.Now().YearDay()))
-	}
-}
-
-// GetUpdateChannel returns currently set update channel.
-func (b *Bridge) GetUpdateChannel() updater.UpdateChannel {
-	return updater.UpdateChannel(b.settings.Get(settings.UpdateChannelKey))
-}
-
-// SetUpdateChannel switches update channel.
-func (b *Bridge) SetUpdateChannel(channel updater.UpdateChannel) {
-	b.settings.Set(settings.UpdateChannelKey, string(channel))
-}
-
-func (b *Bridge) resetToLatestStable() error {
-	version, err := b.updater.Check()
+	tlsConfig, err := loadTLSConfig(vault)
 	if err != nil {
-		// If we can not check for updates - just remove all local updates and reset to base installer version.
-		// Not using `b.locations.ClearUpdates()` because `versioner.RemoveOtherVersions` can also handle
-		// case when it is needed to remove currently running verion.
-		if err := b.versioner.RemoveOtherVersions(semver.MustParse("0.0.0")); err != nil {
-			log.WithError(err).Error("Failed to clear updates while downgrading channel")
-		}
+		return nil, fmt.Errorf("failed to load TLS config: %w", err)
+	}
+
+	imapServer, err := newIMAPServer(vault.GetGluonDir(), curVersion, tlsConfig)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create IMAP server: %w", err)
+	}
+
+	smtpBackend, err := newSMTPBackend()
+	if err != nil {
+		return nil, fmt.Errorf("failed to create SMTP backend: %w", err)
+	}
+
+	smtpServer, err := newSMTPServer(smtpBackend, tlsConfig)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create SMTP server: %w", err)
+	}
+
+	focusService, err := focus.NewService()
+	if err != nil {
+		return nil, fmt.Errorf("failed to create focus service: %w", err)
+	}
+
+	bridge := &Bridge{
+		vault: vault,
+		users: make(map[string]*user.User),
+
+		api:         api,
+		cookieJar:   cookieJar,
+		proxyDialer: proxyDialer,
+		identifier:  identifier,
+
+		tlsConfig:   tlsConfig,
+		imapServer:  imapServer,
+		smtpServer:  smtpServer,
+		smtpBackend: smtpBackend,
+
+		updater:       updater,
+		curVersion:    curVersion,
+		updateCheckCh: make(chan struct{}, 1),
+
+		focusService: focusService,
+		autostarter:  autostarter,
+		locator:      locator,
+	}
+
+	api.AddStatusObserver(func(status liteapi.Status) {
+		bridge.publish(events.ConnStatus{
+			Status: status,
+		})
+	})
+
+	api.AddErrorHandler(liteapi.AppVersionBadCode, func() {
+		bridge.publish(events.UpdateForced{})
+	})
+
+	api.AddPreRequestHook(func(_ *resty.Client, req *resty.Request) error {
+		req.SetHeader("User-Agent", bridge.identifier.GetUserAgent())
 		return nil
+	})
+
+	go func() {
+		for range tlsReporter.GetTLSIssueCh() {
+			bridge.publish(events.TLSIssue{})
+		}
+	}()
+
+	go func() {
+		for range focusService.GetRaiseCh() {
+			bridge.publish(events.Raise{})
+		}
+	}()
+
+	go func() {
+		for event := range imapServer.AddWatcher() {
+			bridge.handleIMAPEvent(event)
+		}
+	}()
+
+	if err := bridge.loadUsers(context.Background()); err != nil {
+		return nil, fmt.Errorf("failed to load connected users: %w", err)
 	}
 
-	// If current version is same as upstream stable version - do nothing.
-	if version.Version.Equal(semver.MustParse(constants.Version)) {
-		return nil
+	if err := bridge.serveIMAP(); err != nil {
+		bridge.PushError(ErrServeIMAP)
 	}
 
-	if err := b.updater.InstallUpdate(version); err != nil {
-		return err
+	if err := bridge.serveSMTP(); err != nil {
+		bridge.PushError(ErrServeSMTP)
 	}
 
-	return b.versioner.RemoveOtherVersions(version.Version)
+	if err := bridge.watchForUpdates(); err != nil {
+		bridge.PushError(ErrWatchUpdates)
+	}
+
+	return bridge, nil
 }
 
-// FactoryReset will remove all local cache and settings.
-// It will also downgrade to latest stable version if user is on early version.
-func (b *Bridge) FactoryReset() {
-	wasEarly := b.GetUpdateChannel() == updater.EarlyChannel
+// GetEvents returns a channel of events of the given type.
+// If no types are supplied, all events are returned.
+func (bridge *Bridge) GetEvents(ofType ...events.Event) (<-chan events.Event, func()) {
+	newWatcher := bridge.addWatcher(ofType...)
 
-	b.settings.Set(settings.UpdateChannelKey, string(updater.StableChannel))
+	return newWatcher.GetChannel(), func() { bridge.remWatcher(newWatcher) }
+}
 
-	if wasEarly {
-		if err := b.resetToLatestStable(); err != nil {
-			log.WithError(err).Error("Failed to reset to latest stable version")
+func (bridge *Bridge) FactoryReset(ctx context.Context) error {
+	panic("TODO")
+}
+
+func (bridge *Bridge) PushError(err error) {
+	bridge.errors = append(bridge.errors, err)
+}
+
+func (bridge *Bridge) GetErrors() []error {
+	return bridge.errors
+}
+
+func (bridge *Bridge) Close(ctx context.Context) error {
+	// Close the IMAP server.
+	if err := bridge.closeIMAP(ctx); err != nil {
+		logrus.WithError(err).Error("Failed to close IMAP server")
+	}
+
+	// Close the SMTP server.
+	if err := bridge.closeSMTP(); err != nil {
+		logrus.WithError(err).Error("Failed to close SMTP server")
+	}
+
+	// Close all users.
+	for _, user := range bridge.users {
+		if err := user.Close(ctx); err != nil {
+			logrus.WithError(err).Error("Failed to close user")
 		}
 	}
 
-	if err := b.Users.ClearData(); err != nil {
-		log.WithError(err).Error("Failed to remove bridge data")
+	// Persist the cookies.
+	if err := bridge.cookieJar.PersistCookies(); err != nil {
+		logrus.WithError(err).Error("Failed to persist cookies")
 	}
 
-	if err := b.Users.ClearUsers(); err != nil {
-		log.WithError(err).Error("Failed to remove bridge users")
+	// Close the focus service.
+	bridge.focusService.Close()
+
+	// Save the last version of bridge that was run.
+	if err := bridge.vault.SetLastVersion(bridge.curVersion); err != nil {
+		logrus.WithError(err).Error("Failed to save last version")
 	}
-}
-
-// GetKeychainApp returns current keychain helper.
-func (b *Bridge) GetKeychainApp() string {
-	return b.settings.Get(settings.PreferredKeychainKey)
-}
-
-// SetKeychainApp sets current keychain helper.
-func (b *Bridge) SetKeychainApp(helper string) {
-	b.settings.Set(settings.PreferredKeychainKey, helper)
-}
-
-func (b *Bridge) EnableCache() error {
-	if err := b.Users.EnableCache(); err != nil {
-		return err
-	}
-
-	b.settings.SetBool(settings.CacheEnabledKey, true)
 
 	return nil
 }
 
-func (b *Bridge) DisableCache() error {
-	if err := b.Users.DisableCache(); err != nil {
-		return err
-	}
+func (bridge *Bridge) publish(event events.Event) {
+	bridge.watchersLock.RLock()
+	defer bridge.watchersLock.RUnlock()
 
-	b.settings.SetBool(settings.CacheEnabledKey, false)
-	// Reset back to the default location when disabling.
-	b.settings.Set(settings.CacheLocationKey, b.cacheProvider.GetDefaultMessageCacheDir())
-
-	return nil
-}
-
-func (b *Bridge) MigrateCache(from, to string) error {
-	if err := b.Users.MigrateCache(from, to); err != nil {
-		return err
-	}
-
-	b.settings.Set(settings.CacheLocationKey, to)
-
-	return nil
-}
-
-// SetProxyAllowed instructs the app whether to use DoH to access an API proxy if necessary.
-// It also needs to work before the app is initialised (because we may need to use the proxy at startup).
-func (b *Bridge) SetProxyAllowed(proxyAllowed bool) {
-	b.settings.SetBool(settings.AllowProxyKey, proxyAllowed)
-	if proxyAllowed {
-		b.clientManager.AllowProxy()
-	} else {
-		b.clientManager.DisallowProxy()
-	}
-}
-
-// GetProxyAllowed returns whether use of DoH is enabled to access an API proxy if necessary.
-func (b *Bridge) GetProxyAllowed() bool {
-	return b.settings.GetBool(settings.AllowProxyKey)
-}
-
-// AddError add an error to a global error list if it does not contain it yet. Adding nil is noop.
-func (b *Bridge) AddError(err error) {
-	if err == nil {
-		return
-	}
-	if b.HasError(err) {
-		return
-	}
-
-	b.errors = append(b.errors, err)
-}
-
-// DelError removes an error from global error list.
-func (b *Bridge) DelError(err error) {
-	for idx, val := range b.errors {
-		if val == err {
-			b.errors = append(b.errors[:idx], b.errors[idx+1:]...)
-			return
+	for _, watcher := range bridge.watchers {
+		if watcher.IsWatching(event) {
+			if ok := watcher.Send(event); !ok {
+				logrus.WithField("event", event).Warn("Failed to send event to watcher")
+			}
 		}
 	}
 }
 
-// HasError returnes true if global error list contains an err.
-func (b *Bridge) HasError(err error) bool {
-	for _, val := range b.errors {
-		if val == err {
-			return true
-		}
+func (bridge *Bridge) addWatcher(ofType ...events.Event) *watcher.Watcher[events.Event] {
+	bridge.watchersLock.Lock()
+	defer bridge.watchersLock.Unlock()
+
+	newWatcher := watcher.New(ofType...)
+
+	bridge.watchers = append(bridge.watchers, newWatcher)
+
+	return newWatcher
+}
+
+func (bridge *Bridge) remWatcher(oldWatcher *watcher.Watcher[events.Event]) {
+	bridge.watchersLock.Lock()
+	defer bridge.watchersLock.Unlock()
+
+	bridge.watchers = xslices.Filter(bridge.watchers, func(other *watcher.Watcher[events.Event]) bool {
+		return other != oldWatcher
+	})
+}
+
+func loadTLSConfig(vault *vault.Vault) (*tls.Config, error) {
+	cert, err := tls.X509KeyPair(vault.GetBridgeTLSCert(), vault.GetBridgeTLSKey())
+	if err != nil {
+		return nil, err
 	}
 
-	return false
+	return &tls.Config{
+		Certificates: []tls.Certificate{cert},
+	}, nil
 }
 
-// GetLastVersion returns the version which was used in previous execution of
-// Bridge.
-func (b *Bridge) GetLastVersion() string {
-	return b.lastVersion
-}
+func newListener(port int, useTLS bool, tlsConfig *tls.Config) (net.Listener, error) {
+	if useTLS {
+		tlsListener, err := tls.Listen("tcp", fmt.Sprintf(":%v", port), tlsConfig)
+		if err != nil {
+			return nil, err
+		}
 
-// IsFirstStart returns true when Bridge is running for first time or after
-// factory reset.
-func (b *Bridge) IsFirstStart() bool {
-	return b.isFirstStart
-}
+		return tlsListener, nil
+	}
 
-// IsAllMailVisible can be called extensively by IMAP. Therefore, it is better
-// to cache the value instead of reading from settings file.
-func (b *Bridge) IsAllMailVisible() bool {
-	return b.isAllMailVisible
-}
+	netListener, err := net.Listen("tcp", fmt.Sprintf(":%v", port))
+	if err != nil {
+		return nil, err
+	}
 
-func (b *Bridge) SetIsAllMailVisible(isVisible bool) {
-	b.settings.SetBool(settings.IsAllMailVisible, isVisible)
-	b.isAllMailVisible = isVisible
+	return netListener, nil
 }

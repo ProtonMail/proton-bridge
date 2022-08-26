@@ -26,28 +26,31 @@ import (
 	"net/url"
 	"sync"
 	"time"
-
-	"github.com/ProtonMail/proton-bridge/v2/internal/config/settings"
 )
 
 type cookiesByHost map[string][]*http.Cookie
 
+type Persister interface {
+	GetCookies() ([]byte, error)
+	SetCookies([]byte) error
+}
+
 // Jar implements http.CookieJar by wrapping the standard library's cookiejar.Jar.
 // The jar uses a pantry to load cookies at startup and save cookies when set.
 type Jar struct {
-	jar      *cookiejar.Jar
-	settings *settings.Settings
-	cookies  cookiesByHost
-	locker   sync.Locker
+	jar       *cookiejar.Jar
+	persister Persister
+	cookies   cookiesByHost
+	locker    sync.Locker
 }
 
-func NewCookieJar(s *settings.Settings) (*Jar, error) {
+func NewCookieJar(persister Persister) (*Jar, error) {
 	jar, err := cookiejar.New(nil)
 	if err != nil {
 		return nil, err
 	}
 
-	cookiesByHost, err := loadCookies(s)
+	cookiesByHost, err := loadCookies(persister)
 	if err != nil {
 		return nil, err
 	}
@@ -62,10 +65,10 @@ func NewCookieJar(s *settings.Settings) (*Jar, error) {
 	}
 
 	return &Jar{
-		jar:      jar,
-		settings: s,
-		cookies:  cookiesByHost,
-		locker:   &sync.Mutex{},
+		jar:       jar,
+		persister: persister,
+		cookies:   cookiesByHost,
+		locker:    &sync.Mutex{},
 	}, nil
 }
 
@@ -101,16 +104,17 @@ func (j *Jar) PersistCookies() error {
 		return err
 	}
 
-	j.settings.Set(settings.CookiesKey, string(rawCookies))
-
-	return nil
+	return j.persister.SetCookies(rawCookies)
 }
 
 // loadCookies loads all non-expired cookies from disk.
-func loadCookies(s *settings.Settings) (cookiesByHost, error) {
-	rawCookies := s.Get(settings.CookiesKey)
+func loadCookies(persister Persister) (cookiesByHost, error) {
+	rawCookies, err := persister.GetCookies()
+	if err != nil {
+		return nil, err
+	}
 
-	if rawCookies == "" {
+	if len(rawCookies) == 0 {
 		return make(cookiesByHost), nil
 	}
 

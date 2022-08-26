@@ -41,14 +41,11 @@ func (h *Handler) AddRecoveryAction(action RecoveryAction) *Handler {
 func (h *Handler) HandlePanic() {
 	sentry.SkipDuringUnwind()
 
-	r := recover()
-	if r == nil {
-		return
-	}
-
-	for _, action := range h.actions {
-		if err := action(r); err != nil {
-			logrus.WithError(err).Error("Failed to execute recovery action")
+	if r := recover(); r != nil {
+		for _, action := range h.actions {
+			if err := action(r); err != nil {
+				logrus.WithError(err).Error("Failed to execute recovery action")
+			}
 		}
 	}
 }

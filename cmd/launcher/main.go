@@ -26,13 +26,13 @@ import (
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
-	"github.com/ProtonMail/proton-bridge/v2/internal/config/useragent"
 	"github.com/ProtonMail/proton-bridge/v2/internal/constants"
 	"github.com/ProtonMail/proton-bridge/v2/internal/crash"
 	"github.com/ProtonMail/proton-bridge/v2/internal/locations"
 	"github.com/ProtonMail/proton-bridge/v2/internal/logging"
 	"github.com/ProtonMail/proton-bridge/v2/internal/sentry"
 	"github.com/ProtonMail/proton-bridge/v2/internal/updater"
+	"github.com/ProtonMail/proton-bridge/v2/internal/useragent"
 	"github.com/ProtonMail/proton-bridge/v2/internal/versioner"
 	"github.com/bradenaw/juniper/xslices"
 	"github.com/elastic/go-sysinfo"
@@ -43,10 +43,9 @@ import (
 )
 
 const (
-	appName    = "Proton Mail Launcher"
-	configName = "bridge"
-	exeName    = "bridge"
-	guiName    = "bridge-gui"
+	appName = "Proton Mail Launcher"
+	exeName = "bridge"
+	guiName = "bridge-gui"
 
 	FlagCLI      = "--cli"
 	FlagCLIShort = "-c"
@@ -62,12 +61,12 @@ func main() { //nolint:funlen
 	crashHandler := crash.NewHandler(reporter.ReportException)
 	defer crashHandler.HandlePanic()
 
-	locationsProvider, err := locations.NewDefaultProvider(filepath.Join(constants.VendorName, configName))
+	locationsProvider, err := locations.NewDefaultProvider(filepath.Join(constants.VendorName, constants.ConfigName))
 	if err != nil {
 		l.WithError(err).Fatal("Failed to get locations provider")
 	}
 
-	locations := locations.New(locationsProvider, configName)
+	locations := locations.New(locationsProvider, constants.ConfigName)
 
 	logsPath, err := locations.ProvideLogsPath()
 	if err != nil {
@@ -75,11 +74,9 @@ func main() { //nolint:funlen
 	}
 	crashHandler.AddRecoveryAction(logging.DumpStackTrace(logsPath))
 
-	if err := logging.Init(logsPath); err != nil {
-		l.WithError(err).Fatal("Failed to setup logging")
+	if err := logging.Init(logsPath, os.Getenv("VERBOSITY")); err != nil {
+		logrus.WithError(err).Fatal("Failed to setup logging")
 	}
-
-	logging.SetLevel(os.Getenv("VERBOSITY"))
 
 	updatesPath, err := locations.ProvideUpdatesPath()
 	if err != nil {
@@ -137,6 +134,7 @@ func main() { //nolint:funlen
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
+	cmd.Env = os.Environ()
 
 	// On windows, if you use Run(), a terminal stays open; we don't want that.
 	if //goland:noinspection GoBoolExpressions

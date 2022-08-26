@@ -18,17 +18,22 @@
 ---
 image: gitlab.protontech.ch:4567/go/bridge-internal:go18
 
+variables:
+  GOPRIVATE: gitlab.protontech.ch
+
 before_script:
   - eval $(ssh-agent -s)
   - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add - > /dev/null
   - mkdir -p .cache/bin
   - export PATH=$(pwd)/.cache/bin:$PATH
   - export GOPATH="$CI_PROJECT_DIR/.cache"
+  - git config --global --unset-all url.git@gitlab.protontech.ch:.insteadOf
+  - git config --global url.https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_SERVER_HOST}.insteadOf https://${CI_SERVER_HOST}/
   - make install-dev-dependencies
   - git checkout .
 
 cache:
-  key: go18-mod
+  key: go18-gluon
   paths:
     - .cache
   policy: pull
@@ -76,7 +81,7 @@ cache-push:
   script:
     - echo ""
   cache:
-    key: go18-mod
+    key: go18-gluon
     paths:
       - .cache
 

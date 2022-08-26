@@ -18,17 +18,35 @@
 // Package constants contains variables that are set via ldflags during build.
 package constants
 
-import "fmt"
+import (
+	"fmt"
+	"runtime"
+
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
+)
 
 const VendorName = "protonmail"
 
 //nolint:gochecknoglobals
 var (
-	// Version of the build.
+	// Full app name (to show to the user).
 	FullAppName = ""
 
+	// ConfigName determines the name of the location where bridge stores config files.
+	ConfigName = "bridge"
+
+	// UpdateName is the name of the product appearing in the update URL.
+	UpdateName = "bridge"
+
+	// KeyChainName is the name of the entry in the OS keychain.
+	KeyChainName = "bridge"
+
 	// Version of the build.
-	Version = ""
+	Version = "2.3.0+git"
+
+	// AppVersion is the full rendered version of the app (to be used in request headers).
+	AppVersion = getAPIOS() + cases.Title(language.Und).String(ConfigName) + "_" + Version
 
 	// Revision is current hash of the build.
 	Revision = ""
@@ -36,9 +54,31 @@ var (
 	// BuildTime stamp of the build.
 	BuildTime = ""
 
+	// BuildVersion is derived from LongVersion and BuildTime.
+	BuildVersion = fmt.Sprintf("%v (%v) %v", Version, Revision, BuildTime)
+
 	// DSNSentry client keys to be able to report crashes to Sentry.
 	DSNSentry = ""
 
-	// BuildVersion is derived from LongVersion and BuildTime.
-	BuildVersion = fmt.Sprintf("%v (%v) %v", Version, Revision, BuildTime)
+	// APIHost is our API address.
+	APIHost = "https://api.protonmail.ch"
+
+	// The host name of the bridge server.
+	Host = "127.0.0.1"
 )
+
+func getAPIOS() string {
+	switch runtime.GOOS {
+	case "darwin":
+		return "macOS"
+
+	case "linux":
+		return "Linux"
+
+	case "windows":
+		return "Windows"
+
+	default:
+		return "Linux"
+	}
+}

@@ -26,7 +26,6 @@ import (
 	"time"
 
 	"github.com/ProtonMail/proton-bridge/v2/internal/constants"
-	"github.com/ProtonMail/proton-bridge/v2/pkg/pmapi"
 	"github.com/getsentry/sentry-go"
 	"github.com/sirupsen/logrus"
 )
@@ -56,17 +55,21 @@ func init() { //nolint:gochecknoinits
 type Reporter struct {
 	appName    string
 	appVersion string
-	userAgent  fmt.Stringer
+	identifier Identifier
 	hostArch   string
 }
 
+type Identifier interface {
+	GetUserAgent() string
+}
+
 // NewReporter creates new sentry reporter with appName and appVersion to report.
-func NewReporter(appName, appVersion string, userAgent fmt.Stringer) *Reporter {
+func NewReporter(appName, appVersion string, identifier Identifier) *Reporter {
 	return &Reporter{
 		appName:    appName,
 		appVersion: appVersion,
-		userAgent:  userAgent,
-		hostArch:   getHostAarch(),
+		identifier: identifier,
+		hostArch:   getHostArch(),
 	}
 }
 
@@ -118,7 +121,7 @@ func (r *Reporter) scopedReport(context map[string]interface{}, doReport func())
 		"OS":        runtime.GOOS,
 		"Client":    r.appName,
 		"Version":   r.appVersion,
-		"UserAgent": r.userAgent.String(),
+		"UserAgent": r.identifier.GetUserAgent(),
 		"HostArch":  r.hostArch,
 	}
 
@@ -188,7 +191,4 @@ func isFunctionFilteredOut(function string) bool {
 
 func Flush(maxWaiTime time.Duration) {
 	sentry.Flush(maxWaiTime)
-}
-
-func (r *Reporter) SetClientFromManager(cm pmapi.Manager) {
 }

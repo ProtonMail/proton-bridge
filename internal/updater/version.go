@@ -18,8 +18,6 @@
 package updater
 
 import (
-	"fmt"
-
 	"github.com/Masterminds/semver/v3"
 )
 
@@ -80,12 +78,5 @@ type VersionInfo struct {
 //	    ...
 //	  }
 //	}.
-type VersionMap map[string]VersionInfo
 
-// getVersionFileURL returns the URL of the version file.
-// For example:
-//   - https://proton.me/download/bridge/version_linux.json
-//   - https://proton.me/download/ie/version_linux.json
-func (u *Updater) getVersionFileURL() string {
-	return fmt.Sprintf("%v/%v/version_%v.json", Host, u.updateURLName, u.platform)
-}
+type VersionMap map[Channel]VersionInfo

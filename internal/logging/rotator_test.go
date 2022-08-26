@@ -75,23 +75,8 @@ func TestRotator(t *testing.T) {
 	assert.Equal(t, 4, n)
 }
 
-func BenchmarkRotateRAMFile(b *testing.B) {
-	dir, err := os.MkdirTemp("", "rotate-benchmark")
-	require.NoError(b, err)
-	defer os.RemoveAll(dir) //nolint:errcheck
-
-	benchRotate(b, MaxLogSize, getTestFile(b, dir, MaxLogSize-1))
-}
-
-func BenchmarkRotateDiskFile(b *testing.B) {
-	cache, err := os.UserCacheDir()
-	require.NoError(b, err)
-
-	dir, err := os.MkdirTemp(cache, "rotate-benchmark")
-	require.NoError(b, err)
-	defer os.RemoveAll(dir) //nolint:errcheck
-
-	benchRotate(b, MaxLogSize, getTestFile(b, dir, MaxLogSize-1))
+func BenchmarkRotate(b *testing.B) {
+	benchRotate(b, MaxLogSize, getTestFile(b, b.TempDir(), MaxLogSize-1))
 }
 
 func benchRotate(b *testing.B, logSize int, getFile func() (io.WriteCloser, error)) {

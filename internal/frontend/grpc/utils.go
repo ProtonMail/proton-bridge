@@ -21,7 +21,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/ProtonMail/proton-bridge/v2/internal/users"
+	"github.com/ProtonMail/proton-bridge/v2/internal/bridge"
 	"github.com/sirupsen/logrus"
 )
 
@@ -58,17 +58,17 @@ func getInitials(fullName string) string {
 }
 
 // grpcUserFromInfo converts a bridge user to a gRPC user.
-func grpcUserFromInfo(user users.UserInfo) *User {
+func grpcUserFromInfo(user bridge.UserInfo) *User {
 	return &User{
-		Id:             user.ID,
+		Id:             user.UserID,
 		Username:       user.Username,
 		AvatarText:     getInitials(user.Username),
 		LoggedIn:       user.Connected,
-		SplitMode:      user.Mode == users.SplitMode,
+		SplitMode:      user.AddressMode == bridge.SplitMode,
 		SetupGuideSeen: true, // users listed have already seen the setup guide.
-		UsedBytes:      user.UsedBytes,
-		TotalBytes:     user.TotalBytes,
-		Password:       user.Password,
+		UsedBytes:      int64(user.UsedSpace),
+		TotalBytes:     int64(user.MaxSpace),
+		Password:       user.BridgePass,
 		Addresses:      user.Addresses,
 	}
 }

@@ -28,25 +28,24 @@ import (
 )
 
 func TestListVersions(t *testing.T) {
-	updates, err := os.MkdirTemp("", "updates")
-	require.NoError(t, err)
+	dir := t.TempDir()
 
-	v := newTestVersioner(t, "myCoolApp", updates, "2.3.4-beta", "2.3.4", "2.3.5", "2.4.0")
+	v := newTestVersioner(t, "myCoolApp", dir, "2.3.4-beta", "2.3.4", "2.3.5", "2.4.0")
 
 	versions, err := v.ListVersions()
 	require.NoError(t, err)
 
 	assert.Equal(t, semver.MustParse("2.4.0"), versions[0].version)
-	assert.Equal(t, filepath.Join(updates, "2.4.0"), versions[0].path)
+	assert.Equal(t, filepath.Join(dir, "2.4.0"), versions[0].path)
 
 	assert.Equal(t, semver.MustParse("2.3.5"), versions[1].version)
-	assert.Equal(t, filepath.Join(updates, "2.3.5"), versions[1].path)
+	assert.Equal(t, filepath.Join(dir, "2.3.5"), versions[1].path)
 
 	assert.Equal(t, semver.MustParse("2.3.4"), versions[2].version)
-	assert.Equal(t, filepath.Join(updates, "2.3.4"), versions[2].path)
+	assert.Equal(t, filepath.Join(dir, "2.3.4"), versions[2].path)
 
 	assert.Equal(t, semver.MustParse("2.3.4-beta"), versions[3].version)
-	assert.Equal(t, filepath.Join(updates, "2.3.4-beta"), versions[3].path)
+	assert.Equal(t, filepath.Join(dir, "2.3.4-beta"), versions[3].path)
 }
 
 func newTestVersioner(t *testing.T, exeName, updates string, versions ...string) *Versioner {

@@ -27,7 +27,7 @@ import (
 
 const translatedProcDarwin = "sysctl.proc_translated"
 
-func getHostAarch() string {
+func getHostArch() string {
 	host, err := sysinfo.Host()
 	if err != nil {
 		return "not-detected"

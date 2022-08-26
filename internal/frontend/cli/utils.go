@@ -20,7 +20,6 @@ package cli
 import (
 	"strings"
 
-	pmapi "github.com/ProtonMail/proton-bridge/v2/pkg/pmapi"
 	"github.com/fatih/color"
 )
 
@@ -67,15 +66,7 @@ func (f *frontendCLI) printAndLogError(args ...interface{}) {
 }
 
 func (f *frontendCLI) processAPIError(err error) {
-	log.Warn("API error: ", err)
-	switch err {
-	case pmapi.ErrNoConnection:
-		f.notifyInternetOff()
-	case pmapi.ErrUpgradeApplication:
-		f.notifyNeedUpgrade()
-	default:
-		f.Println("Server error:", err.Error())
-	}
+	f.printAndLogError(err)
 }
 
 func (f *frontendCLI) notifyInternetOff() {
@@ -91,12 +82,7 @@ func (f *frontendCLI) notifyLogout(address string) {
 }
 
 func (f *frontendCLI) notifyNeedUpgrade() {
-	version, err := f.updater.Check()
-	if err != nil {
-		log.WithError(err).Error("Failed to notify need upgrade")
-		return
-	}
-	f.Println("Please download and install the newest version of application from", version.LandingPage)
+	f.Println("Please download and install the newest version of the application.")
 }
 
 func (f *frontendCLI) notifyCredentialsError() {

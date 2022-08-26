@@ -18,6 +18,7 @@
 package parser
 
 import (
+	"fmt"
 	"io"
 
 	"github.com/emersion/go-message"
@@ -65,6 +66,19 @@ func (p *Parser) NewWriter() *Writer {
 
 func (p *Parser) Root() *Part {
 	return p.root
+}
+
+func (p *Parser) AttachPublicKey(key, keyName string) {
+	h := message.Header{}
+
+	h.Set("Content-Type", fmt.Sprintf(`application/pgp-keys; name="%v.asc"; filename="%v.asc"`, keyName, keyName))
+	h.Set("Content-Disposition", fmt.Sprintf(`attachment; name="%v.asc"; filename="%v.asc"`, keyName, keyName))
+	h.Set("Content-Transfer-Encoding", "base64")
+
+	p.Root().AddChild(&Part{
+		Header: h,
+		Body:   []byte(key),
+	})
 }
 
 // Section returns the message part referred to by the given section. A section

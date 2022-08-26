@@ -18,13 +18,15 @@
 package cookies
 
 import (
+	"errors"
+	"io/fs"
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
-	"github.com/ProtonMail/proton-bridge/v2/internal/config/settings"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -37,7 +39,7 @@ func TestJarGetSet(t *testing.T) {
 	})
 	defer ts.Close()
 
-	client, _ := getClientWithJar(t, newFakeSettings())
+	client, _ := getClientWithJar(t, newTestPersister(t))
 
 	// Hit a server that sets some cookies.
 	setRes, err := client.Get(ts.URL + "/set")
@@ -63,7 +65,7 @@ func TestJarLoad(t *testing.T) {
 	defer ts.Close()
 
 	// This will be our "persistent storage" from which the cookie jar should load cookies.
-	s := newFakeSettings()
+	s := newTestPersister(t)
 
 	// This client saves cookies to persistent storage.
 	oldClient, jar := getClientWithJar(t, s)
@@ -98,7 +100,7 @@ func TestJarExpiry(t *testing.T) {
 	defer ts.Close()
 
 	// This will be our "persistent storage" from which the cookie jar should load cookies.
-	s := newFakeSettings()
+	s := newTestPersister(t)
 
 	// This client saves cookies to persistent storage.
 	oldClient, jar1 := getClientWithJar(t, s)
@@ -122,9 +124,12 @@ func TestJarExpiry(t *testing.T) {
 	// Save the cookies (expired ones were cleared out).
 	require.NoError(t, jar2.PersistCookies())
 
-	assert.Contains(t, s.Get(settings.CookiesKey), "TestName1")
-	assert.NotContains(t, s.Get(settings.CookiesKey), "TestName2")
-	assert.Contains(t, s.Get(settings.CookiesKey), "TestName3")
+	cookies, err := s.GetCookies()
+	require.NoError(t, err)
+
+	assert.Contains(t, string(cookies), "TestName1")
+	assert.NotContains(t, string(cookies), "TestName2")
+	assert.Contains(t, string(cookies), "TestName3")
 }
 
 type testCookie struct {
@@ -132,8 +137,8 @@ type testCookie struct {
 	maxAge      int
 }
 
-func getClientWithJar(t *testing.T, s *settings.Settings) (*http.Client, *Jar) {
-	jar, err := NewCookieJar(s)
+func getClientWithJar(t *testing.T, persister Persister) (*http.Client, *Jar) {
+	jar, err := NewCookieJar(persister)
 	require.NoError(t, err)
 
 	return &http.Client{Jar: jar}, jar
@@ -168,12 +173,26 @@ func getTestServer(t *testing.T, wantCookies []testCookie) *httptest.Server {
 	return httptest.NewServer(mux)
 }
 
-// newFakeSettings creates a temporary folder for files.
-func newFakeSettings() *settings.Settings {
-	dir, err := os.MkdirTemp("", "test-settings")
-	if err != nil {
-		panic(err)
+type testPersister struct {
+	path string
+}
+
+func newTestPersister(tb testing.TB) *testPersister {
+	path := filepath.Join(tb.TempDir(), "cookies.json")
+
+	if _, err := os.Stat(path); errors.Is(err, fs.ErrNotExist) {
+		if err := os.WriteFile(path, []byte{}, 0600); err != nil {
+			panic(err)
+		}
 	}
 
-	return settings.New(dir)
+	return &testPersister{path: path}
+}
+
+func (p *testPersister) GetCookies() ([]byte, error) {
+	return os.ReadFile(p.path)
+}
+
+func (p *testPersister) SetCookies(rawCookies []byte) error {
+	return os.WriteFile(p.path, rawCookies, 0600)
 }

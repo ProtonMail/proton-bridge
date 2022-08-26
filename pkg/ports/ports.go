@@ -20,6 +20,8 @@ package ports
 import (
 	"fmt"
 	"net"
+
+	"github.com/ProtonMail/proton-bridge/v2/internal/constants"
 )
 
 const (
@@ -32,7 +34,7 @@ func IsPortFree(port int) bool {
 		return false
 	}
 	// First, check localhost only.
-	if isOccupied(fmt.Sprintf("127.0.0.1:%d", port)) {
+	if isOccupied(fmt.Sprintf("%v:%d", constants.Host, port)) {
 		return false
 	}
 	// Second, check also ports opened to public.

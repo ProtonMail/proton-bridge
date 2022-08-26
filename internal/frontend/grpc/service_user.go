@@ -19,9 +19,8 @@ package grpc
 
 import (
 	"context"
-	"time"
 
-	"github.com/ProtonMail/proton-bridge/v2/internal/users"
+	"github.com/ProtonMail/proton-bridge/v2/internal/bridge"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -75,15 +74,15 @@ func (s *Service) SetUserSplitMode(ctx context.Context, splitMode *UserSplitMode
 		defer s.panicHandler.HandlePanic()
 		defer func() { _ = s.SendEvent(NewUserToggleSplitModeFinishedEvent(splitMode.UserID)) }()
 
-		var targetMode users.AddressMode
+		var targetMode bridge.AddressMode
 
-		if splitMode.Active && user.Mode == users.CombinedMode {
-			targetMode = users.SplitMode
-		} else if !splitMode.Active && user.Mode == users.SplitMode {
-			targetMode = users.CombinedMode
+		if splitMode.Active && user.AddressMode == bridge.CombinedMode {
+			targetMode = bridge.SplitMode
+		} else if !splitMode.Active && user.AddressMode == bridge.SplitMode {
+			targetMode = bridge.CombinedMode
 		}
 
-		if err := s.bridge.SetAddressMode(user.ID, targetMode); err != nil {
+		if err := s.bridge.SetAddressMode(user.UserID, targetMode); err != nil {
 			logrus.WithError(err).Error("Failed to set address mode")
 		}
 	}()
@@ -101,7 +100,7 @@ func (s *Service) LogoutUser(ctx context.Context, userID *wrapperspb.StringValue
 	go func() {
 		defer s.panicHandler.HandlePanic()
 
-		if err := s.bridge.LogoutUser(userID.Value); err != nil {
+		if err := s.bridge.LogoutUser(context.Background(), userID.Value); err != nil {
 			logrus.WithError(err).Error("Failed to log user out")
 		}
 	}()
@@ -116,7 +115,7 @@ func (s *Service) RemoveUser(ctx context.Context, userID *wrapperspb.StringValue
 		defer s.panicHandler.HandlePanic()
 
 		// remove preferences
-		if err := s.bridge.DeleteUser(userID.Value, false); err != nil {
+		if err := s.bridge.DeleteUser(context.Background(), userID.Value); err != nil {
 			s.log.WithError(err).Error("Failed to remove user")
 			// notification
 		}
@@ -127,17 +126,9 @@ func (s *Service) RemoveUser(ctx context.Context, userID *wrapperspb.StringValue
 func (s *Service) ConfigureUserAppleMail(ctx context.Context, request *ConfigureAppleMailRequest) (*emptypb.Empty, error) {
 	s.log.WithField("UserID", request.UserID).WithField("Address", request.Address).Debug("ConfigureUserAppleMail")
 
-	restart, err := s.bridge.ConfigureAppleMail(request.UserID, request.Address)
-	if err != nil {
+	if err := s.bridge.ConfigureAppleMail(request.UserID, request.Address); err != nil {
 		s.log.WithField("userID", request.UserID).Error("Cannot configure AppleMail for user")
 		return nil, status.Error(codes.Internal, "Apple Mail config failed")
-	}
-
-	// There is delay needed for external window to open.
-	if restart {
-		s.log.Warn("Detected Catalina or newer with bad SMTP SSL settings, now using SSL, bridge needs to restart")
-		time.Sleep(2 * time.Second)
-		return s.Restart(ctx, &emptypb.Empty{})
 	}
 
 	return &emptypb.Empty{}, nil

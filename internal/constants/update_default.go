@@ -22,8 +22,5 @@ package constants
 
 import "time"
 
-//nolint:gochecknoglobals
-var (
-	// UpdateCheckInterval defines how often we check for new version.
-	UpdateCheckInterval = time.Hour //nolint:gochecknoglobals
-)
+// UpdateCheckInterval defines how often we check for new version.
+const UpdateCheckInterval = time.Hour

@@ -22,7 +22,7 @@ package sentry
 
 import "github.com/elastic/go-sysinfo"
 
-func getHostAarch() string {
+func getHostArch() string {
 	host, err := sysinfo.Host()
 	if err != nil {
 		return "not-detected"

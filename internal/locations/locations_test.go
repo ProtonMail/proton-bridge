@@ -43,11 +43,9 @@ func TestClearRemovesEverythingExceptLockAndUpdateFiles(t *testing.T) {
 
 	assert.NoError(t, l.Clear())
 
-	assert.FileExists(t, l.GetLockFile())
 	assert.DirExists(t, l.getSettingsPath())
 	assert.NoFileExists(t, filepath.Join(l.getSettingsPath(), "prefs.json"))
 	assert.NoDirExists(t, l.getLogsPath())
-	assert.NoDirExists(t, l.getCachePath())
 	assert.DirExists(t, l.getUpdatesPath())
 }
 
@@ -56,11 +54,9 @@ func TestClearUpdateFiles(t *testing.T) {
 
 	assert.NoError(t, l.ClearUpdates())
 
-	assert.FileExists(t, l.GetLockFile())
 	assert.DirExists(t, l.getSettingsPath())
 	assert.FileExists(t, filepath.Join(l.getSettingsPath(), "prefs.json"))
 	assert.DirExists(t, l.getLogsPath())
-	assert.DirExists(t, l.getCachePath())
 	assert.NoDirExists(t, l.getUpdatesPath())
 }
 
@@ -74,13 +70,11 @@ func TestCleanLeavesStandardLocationsUntouched(t *testing.T) {
 
 	assert.NoError(t, l.Clean())
 
-	assert.FileExists(t, l.GetLockFile())
 	assert.DirExists(t, l.getSettingsPath())
 	assert.FileExists(t, filepath.Join(l.getSettingsPath(), "prefs.json"))
 	assert.DirExists(t, l.getLogsPath())
 	assert.FileExists(t, filepath.Join(l.getLogsPath(), "log1.txt"))
 	assert.FileExists(t, filepath.Join(l.getLogsPath(), "log2.txt"))
-	assert.DirExists(t, l.getCachePath())
 	assert.DirExists(t, l.getUpdatesPath())
 }
 
@@ -103,10 +97,8 @@ func TestCleanRemovesUnexpectedFilesAndFolders(t *testing.T) {
 
 	assert.NoError(t, l.Clean())
 
-	assert.FileExists(t, l.GetLockFile())
 	assert.DirExists(t, l.getSettingsPath())
 	assert.DirExists(t, l.getLogsPath())
-	assert.DirExists(t, l.getCachePath())
 	assert.DirExists(t, l.getUpdatesPath())
 
 	assert.NoFileExists(t, filepath.Join(l.userCache, "unexpected1.txt"))
@@ -117,24 +109,14 @@ func TestCleanRemovesUnexpectedFilesAndFolders(t *testing.T) {
 }
 
 func newFakeAppDirs(t *testing.T) *fakeAppDirs {
-	configDir, err := os.MkdirTemp("", "test-locations-config")
-	require.NoError(t, err)
-
-	cacheDir, err := os.MkdirTemp("", "test-locations-cache")
-	require.NoError(t, err)
-
 	return &fakeAppDirs{
-		configDir: configDir,
-		cacheDir:  cacheDir,
+		configDir: t.TempDir(),
+		cacheDir:  t.TempDir(),
 	}
 }
 
 func newTestLocations(t *testing.T) *Locations {
 	l := New(newFakeAppDirs(t), "configName")
-
-	lock := l.GetLockFile()
-	createFilesInDir(t, "", lock)
-	require.FileExists(t, lock)
 
 	settings, err := l.ProvideSettingsPath()
 	require.NoError(t, err)
@@ -146,10 +128,6 @@ func newTestLocations(t *testing.T) *Locations {
 	logs, err := l.ProvideLogsPath()
 	require.NoError(t, err)
 	require.DirExists(t, logs)
-
-	cache, err := l.ProvideCachePath()
-	require.NoError(t, err)
-	require.DirExists(t, cache)
 
 	updates, err := l.ProvideUpdatesPath()
 	require.NoError(t, err)

@@ -72,7 +72,6 @@ service Bridge {
   rpc IsAutomaticUpdateOn(google.protobuf.Empty) returns (google.protobuf.BoolValue);
 
   // cache
-  rpc IsCacheOnDiskEnabled (google.protobuf.Empty) returns (google.protobuf.BoolValue);
   rpc DiskCachePath(google.protobuf.Empty) returns (google.protobuf.StringValue);
   rpc ChangeLocalCache(ChangeLocalCacheRequest) returns (google.protobuf.Empty);
 
@@ -160,7 +159,6 @@ message LoginAbortRequest {
 // Cache on disk related message
 //**********************************************************
 message ChangeLocalCacheRequest {
-  bool enableDiskCache = 1;
   string diskCachePath = 2;
 }
 

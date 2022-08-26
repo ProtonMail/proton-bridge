@@ -21,67 +21,51 @@ import (
 	"archive/zip"
 	"bytes"
 	"context"
-	"errors"
 	"io"
 	"os"
 	"path/filepath"
 	"sort"
 
 	"github.com/ProtonMail/proton-bridge/v2/internal/logging"
-	"github.com/ProtonMail/proton-bridge/v2/pkg/pmapi"
+	"gitlab.protontech.ch/go/liteapi"
 )
 
 const (
-	MaxAttachmentSize       = 7 * 1024 * 1024 // MaxAttachmentSize 7 MB total limit
+	MaxAttachmentSize       = 7 * (1 << 20) // MaxAttachmentSize 7 MB total size of all attachments.
 	MaxCompressedFilesCount = 6
 )
 
-var ErrSizeTooLarge = errors.New("file is too big")
+func (bridge *Bridge) ReportBug(ctx context.Context, osType, osVersion, description, username, email, client string, attachLogs bool) error {
+	var account string
 
-// ReportBug reports a new bug from the user.
-func (b *Bridge) ReportBug(osType, osVersion, description, accountName, address, emailClient string, attachLogs bool) error { //nolint:funlen
-	if user, err := b.GetUser(address); err == nil {
-		accountName = user.Username()
-	} else if users := b.GetUsers(); len(users) > 0 {
-		accountName = users[0].Username()
+	if info, err := bridge.QueryUserInfo(username); err == nil {
+		account = info.Username
+	} else if userIDs := bridge.GetUserIDs(); len(userIDs) > 0 {
+		account = bridge.users[userIDs[0]].Name()
 	}
 
-	report := pmapi.ReportBugReq{
-		OS:          osType,
-		OSVersion:   osVersion,
-		Browser:     emailClient,
-		Title:       "[Bridge] Bug",
-		Description: description,
-		Username:    accountName,
-		Email:       address,
-	}
+	var atts []liteapi.ReportBugAttachment
 
 	if attachLogs {
-		logs, err := b.getMatchingLogs(
-			func(filename string) bool {
-				return logging.MatchLogName(filename) && !logging.MatchStackTraceName(filename)
-			},
-		)
+		logs, err := getMatchingLogs(bridge.locator, func(filename string) bool {
+			return logging.MatchLogName(filename) && !logging.MatchStackTraceName(filename)
+		})
 		if err != nil {
-			log.WithError(err).Error("Can't get log files list")
+			return err
 		}
 
-		guiLogs, err := b.getMatchingLogs(
-			func(filename string) bool {
-				return logging.MatchGUILogName(filename) && !logging.MatchStackTraceName(filename)
-			},
-		)
+		guiLogs, err := getMatchingLogs(bridge.locator, func(filename string) bool {
+			return logging.MatchGUILogName(filename) && !logging.MatchStackTraceName(filename)
+		})
 		if err != nil {
-			log.WithError(err).Error("Can't get GUI log files list")
+			return err
 		}
 
-		crashes, err := b.getMatchingLogs(
-			func(filename string) bool {
-				return logging.MatchLogName(filename) && logging.MatchStackTraceName(filename)
-			},
-		)
+		crashes, err := getMatchingLogs(bridge.locator, func(filename string) bool {
+			return logging.MatchLogName(filename) && logging.MatchStackTraceName(filename)
+		})
 		if err != nil {
-			log.WithError(err).Error("Can't get crash files list")
+			return err
 		}
 
 		var matchFiles []string
@@ -95,26 +79,42 @@ func (b *Bridge) ReportBug(osType, osVersion, description, accountName, address,
 
 		archive, err := zipFiles(matchFiles)
 		if err != nil {
-			log.WithError(err).Error("Can't zip logs and crashes")
+			return err
 		}
 
-		if archive != nil {
-			report.AddAttachment("logs.zip", "application/zip", archive)
+		body, err := io.ReadAll(archive)
+		if err != nil {
+			return err
 		}
+
+		atts = append(atts, liteapi.ReportBugAttachment{
+			Name:     "logs.zip",
+			Filename: "logs.zip",
+			MIMEType: "application/zip",
+			Body:     body,
+		})
 	}
 
-	return b.clientManager.ReportBug(context.Background(), report)
+	return bridge.api.ReportBug(ctx, liteapi.ReportBugReq{
+		OS:          osType,
+		OSVersion:   osVersion,
+		Description: description,
+		Client:      client,
+		Username:    account,
+		Email:       email,
+	}, atts...)
 }
 
 func max(a, b int) int {
 	if a > b {
 		return a
 	}
+
 	return b
 }
 
-func (b *Bridge) getMatchingLogs(filenameMatchFunc func(string) bool) (filenames []string, err error) {
-	logsPath, err := b.locations.ProvideLogsPath()
+func getMatchingLogs(locator Locator, filenameMatchFunc func(string) bool) (filenames []string, err error) {
+	logsPath, err := locator.ProvideLogsPath()
 	if err != nil {
 		return nil, err
 	}
@@ -131,24 +131,25 @@ func (b *Bridge) getMatchingLogs(filenameMatchFunc func(string) bool) (filenames
 			matchFiles = append(matchFiles, filepath.Join(logsPath, file.Name()))
 		}
 	}
+
 	sort.Strings(matchFiles) // Sorted by timestamp: oldest first.
 
 	return matchFiles, nil
 }
 
-type LimitedBuffer struct {
+type limitedBuffer struct {
 	capacity int
 	buf      *bytes.Buffer
 }
 
-func NewLimitedBuffer(capacity int) *LimitedBuffer {
-	return &LimitedBuffer{
+func newLimitedBuffer(capacity int) *limitedBuffer {
+	return &limitedBuffer{
 		capacity: capacity,
 		buf:      bytes.NewBuffer(make([]byte, 0, capacity)),
 	}
 }
 
-func (b *LimitedBuffer) Write(p []byte) (n int, err error) {
+func (b *limitedBuffer) Write(p []byte) (n int, err error) {
 	if len(p)+b.buf.Len() > b.capacity {
 		return 0, ErrSizeTooLarge
 	}
@@ -156,7 +157,7 @@ func (b *LimitedBuffer) Write(p []byte) (n int, err error) {
 	return b.buf.Write(p)
 }
 
-func (b *LimitedBuffer) Read(p []byte) (n int, err error) {
+func (b *limitedBuffer) Read(p []byte) (n int, err error) {
 	return b.buf.Read(p)
 }
 
@@ -165,14 +166,13 @@ func zipFiles(filenames []string) (io.Reader, error) {
 		return nil, nil
 	}
 
-	buf := NewLimitedBuffer(MaxAttachmentSize)
+	buf := newLimitedBuffer(MaxAttachmentSize)
 
 	w := zip.NewWriter(buf)
 	defer w.Close() //nolint:errcheck
 
 	for _, file := range filenames {
-		err := addFileToZip(file, w)
-		if err != nil {
+		if err := addFileToZip(file, w); err != nil {
 			return nil, err
 		}
 	}
@@ -209,12 +209,9 @@ func addFileToZip(filename string, writer *zip.Writer) error {
 		return err
 	}
 
-	_, err = io.Copy(fileWriter, fileReader)
-	if err != nil {
+	if _, err := io.Copy(fileWriter, fileReader); err != nil {
 		return err
 	}
 
-	err = fileReader.Close()
-
-	return err
+	return fileReader.Close()
 }

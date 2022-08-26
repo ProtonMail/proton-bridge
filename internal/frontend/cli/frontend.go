@@ -19,11 +19,13 @@
 package cli
 
 import (
+	"errors"
+
+	"github.com/ProtonMail/proton-bridge/v2/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/v2/internal/constants"
 	"github.com/ProtonMail/proton-bridge/v2/internal/events"
-	"github.com/ProtonMail/proton-bridge/v2/internal/frontend/types"
-	"github.com/ProtonMail/proton-bridge/v2/internal/updater"
-	"github.com/ProtonMail/proton-bridge/v2/pkg/listener"
+	"github.com/ProtonMail/proton-bridge/v2/internal/vault"
+	"gitlab.protontech.ch/go/liteapi"
 
 	"github.com/abiosoft/ishell"
 	"github.com/sirupsen/logrus"
@@ -34,30 +36,14 @@ var log = logrus.WithField("pkg", "frontend/cli") //nolint:gochecknoglobals
 type frontendCLI struct {
 	*ishell.Shell
 
-	eventListener listener.Listener
-	updater       types.Updater
-	bridge        types.Bridger
-
-	restarter types.Restarter
+	bridge *bridge.Bridge
 }
 
 // New returns a new CLI frontend configured with the given options.
-func New( //nolint:funlen
-	panicHandler types.PanicHandler,
-
-	eventListener listener.Listener,
-	updater types.Updater,
-	bridge types.Bridger,
-	restarter types.Restarter,
-) *frontendCLI { //nolint:revive
+func New(bridge *bridge.Bridge) *frontendCLI {
 	fe := &frontendCLI{
-		Shell: ishell.New(),
-
-		eventListener: eventListener,
-		updater:       updater,
-		bridge:        bridge,
-
-		restarter: restarter,
+		Shell:  ishell.New(),
+		bridge: bridge,
 	}
 
 	// Clear commands.
@@ -66,12 +52,6 @@ func New( //nolint:funlen
 		Help:    "remove stored accounts and preferences. (alias: cl)",
 		Aliases: []string{"cl"},
 	}
-	clearCmd.AddCmd(&ishell.Cmd{
-		Name:    "cache",
-		Help:    "remove stored preferences for accounts (aliases: c, prefs, preferences)",
-		Aliases: []string{"c", "prefs", "preferences"},
-		Func:    fe.deleteCache,
-	})
 	clearCmd.AddCmd(&ishell.Cmd{
 		Name:    "accounts",
 		Help:    "remove all accounts from keychain. (aliases: a, k, keychain)",
@@ -100,15 +80,30 @@ func New( //nolint:funlen
 		Completer: fe.completeUsernames,
 	})
 	changeCmd.AddCmd(&ishell.Cmd{
-		Name:    "port",
-		Help:    "change port numbers of IMAP and SMTP servers. (alias: p)",
-		Aliases: []string{"p"},
-		Func:    fe.changePort,
+		Name: "change-location",
+		Help: "change the location of the encrypted message cache",
+		Func: fe.setGluonLocation,
+	})
+	changeCmd.AddCmd(&ishell.Cmd{
+		Name: "imap-port",
+		Help: "change port number of IMAP server.",
+		Func: fe.changeIMAPPort,
+	})
+	changeCmd.AddCmd(&ishell.Cmd{
+		Name: "smtp-port",
+		Help: "change port number of SMTP server.",
+		Func: fe.changeSMTPPort,
+	})
+	changeCmd.AddCmd(&ishell.Cmd{
+		Name:    "imap-security",
+		Help:    "change IMAP SSL settings servers.(alias: ssl-imap, starttls-imap)",
+		Aliases: []string{"ssl-imap", "starttls-imap"},
+		Func:    fe.changeIMAPSecurity,
 	})
 	changeCmd.AddCmd(&ishell.Cmd{
 		Name:    "smtp-security",
-		Help:    "change port numbers of IMAP and SMTP servers.(alias: ssl, starttls)",
-		Aliases: []string{"ssl", "starttls"},
+		Help:    "change SMTP SSL settings servers.(alias: ssl-smtp, starttls-smtp)",
+		Aliases: []string{"ssl-smtp", "starttls-smtp"},
 		Func:    fe.changeSMTPSecurity,
 	})
 	fe.AddCmd(changeCmd)
@@ -130,6 +125,22 @@ func New( //nolint:funlen
 	})
 	fe.AddCmd(dohCmd)
 
+	// Apple Mail commands.
+	configureCmd := &ishell.Cmd{
+		Name: "configure-apple-mail",
+		Help: "Configures Apple Mail to use ProtonMail Bridge",
+		Func: fe.configureAppleMail,
+	}
+	fe.AddCmd(configureCmd)
+
+	// TLS commands.
+	exportTLSCmd := &ishell.Cmd{
+		Name: "export-tls",
+		Help: "Export the TLS certificate used by the Bridge",
+		Func: fe.exportTLSCerts,
+	}
+	fe.AddCmd(exportTLSCmd)
+
 	// All mail visibility commands.
 	allMailCmd := &ishell.Cmd{
 		Name: "all-mail-visibility",
@@ -146,28 +157,6 @@ func New( //nolint:funlen
 		Func: fe.showAllMail,
 	})
 	fe.AddCmd(allMailCmd)
-
-	// Cache-On-Disk commands.
-	codCmd := &ishell.Cmd{
-		Name: "local-cache",
-		Help: "manage the local encrypted message cache",
-	}
-	codCmd.AddCmd(&ishell.Cmd{
-		Name: "enable",
-		Help: "enable the local cache",
-		Func: fe.enableCacheOnDisk,
-	})
-	codCmd.AddCmd(&ishell.Cmd{
-		Name: "disable",
-		Help: "disable the local cache",
-		Func: fe.disableCacheOnDisk,
-	})
-	codCmd.AddCmd(&ishell.Cmd{
-		Name: "change-location",
-		Help: "change the location of the local cache",
-		Func: fe.setCacheOnDiskLocation,
-	})
-	fe.AddCmd(codCmd)
 
 	// Updates commands.
 	updatesCmd := &ishell.Cmd{
@@ -224,7 +213,6 @@ func New( //nolint:funlen
 		Aliases: []string{"man"},
 		Func:    fe.printManual,
 	})
-
 	fe.AddCmd(&ishell.Cmd{
 		Name: "credits",
 		Help: "print used resources.",
@@ -267,55 +255,122 @@ func New( //nolint:funlen
 		Completer: fe.completeUsernames,
 	})
 
-	// System commands.
-	fe.AddCmd(&ishell.Cmd{
-		Name: "restart",
-		Help: "restart the bridge.",
-		Func: fe.restart,
-	})
+	go fe.watchEvents()
 
-	go func() {
-		defer panicHandler.HandlePanic()
-		fe.watchEvents()
-	}()
 	return fe
 }
 
 func (f *frontendCLI) watchEvents() {
-	errorCh := f.eventListener.ProvideChannel(events.ErrorEvent)
-	credentialsErrorCh := f.eventListener.ProvideChannel(events.CredentialsErrorEvent)
-	internetConnChangedCh := f.eventListener.ProvideChannel(events.InternetConnChangedEvent)
-	addressChangedCh := f.eventListener.ProvideChannel(events.AddressChangedEvent)
-	addressChangedLogoutCh := f.eventListener.ProvideChannel(events.AddressChangedLogoutEvent)
-	logoutCh := f.eventListener.ProvideChannel(events.LogoutEvent)
-	certIssue := f.eventListener.ProvideChannel(events.TLSCertIssue)
-	for {
-		select {
-		case errorDetails := <-errorCh:
-			f.Println("Bridge failed:", errorDetails)
-		case <-credentialsErrorCh:
+	eventCh, done := f.bridge.GetEvents()
+	defer done()
+
+	// TODO: Better error events.
+	for _, err := range f.bridge.GetErrors() {
+		switch {
+		case errors.Is(err, vault.ErrCorrupt):
 			f.notifyCredentialsError()
-		case stat := <-internetConnChangedCh:
-			if stat == events.InternetOff {
+
+		case errors.Is(err, vault.ErrInsecure):
+			f.notifyCredentialsError()
+
+		case errors.Is(err, bridge.ErrServeIMAP):
+			f.Println("IMAP server error:", err)
+
+		case errors.Is(err, bridge.ErrServeSMTP):
+			f.Println("SMTP server error:", err)
+		}
+	}
+
+	for event := range eventCh {
+		switch event := event.(type) {
+		case events.ConnStatus:
+			switch event.Status {
+			case liteapi.StatusUp:
+				f.notifyInternetOn()
+
+			case liteapi.StatusDown:
 				f.notifyInternetOff()
 			}
-			if stat == events.InternetOn {
-				f.notifyInternetOn()
-			}
-		case address := <-addressChangedCh:
-			f.Printf("Address changed for %s. You may need to reconfigure your email client.", address)
-		case address := <-addressChangedLogoutCh:
-			f.notifyLogout(address)
-		case userID := <-logoutCh:
-			user, err := f.bridge.GetUserInfo(userID)
+
+		case events.UserDeauth:
+			user, err := f.bridge.GetUserInfo(event.UserID)
 			if err != nil {
 				return
 			}
+
 			f.notifyLogout(user.Username)
-		case <-certIssue:
+
+		case events.UserAddressChanged:
+			user, err := f.bridge.GetUserInfo(event.UserID)
+			if err != nil {
+				return
+			}
+
+			f.Printf("Address changed for %s. You may need to reconfigure your email client.\n", user.Username)
+
+		case events.UserAddressDeleted:
+			f.notifyLogout(event.Address)
+
+		case events.SyncStarted:
+			user, err := f.bridge.GetUserInfo(event.UserID)
+			if err != nil {
+				return
+			}
+
+			f.Printf("A sync has begun for %s.\n", user.Username)
+
+		case events.SyncFinished:
+			user, err := f.bridge.GetUserInfo(event.UserID)
+			if err != nil {
+				return
+			}
+
+			f.Printf("A sync has finished for %s.\n", user.Username)
+
+		case events.SyncProgress:
+			user, err := f.bridge.GetUserInfo(event.UserID)
+			if err != nil {
+				return
+			}
+
+			f.Printf(
+				"Sync (%v): %.1f%% (Elapsed: %0.1fs, ETA: %0.1fs)\n",
+				user.Username,
+				100*event.Progress,
+				event.Elapsed.Seconds(),
+				event.Remaining.Seconds(),
+			)
+
+		case events.UpdateAvailable:
+			f.Printf("An update is available (version %v)\n", event.Version.Version)
+
+		case events.UpdateForced:
+			f.notifyNeedUpgrade()
+
+		case events.TLSIssue:
 			f.notifyCertIssue()
 		}
 	}
+
+	/*
+		errorCh := f.eventListener.ProvideChannel(events.ErrorEvent)
+		credentialsErrorCh := f.eventListener.ProvideChannel(events.CredentialsErrorEvent)
+		for {
+			select {
+			case errorDetails := <-errorCh:
+				f.Println("Bridge failed:", errorDetails)
+			case <-credentialsErrorCh:
+				f.notifyCredentialsError()
+			case stat := <-internetConnChangedCh:
+				if stat == events.InternetOff {
+					f.notifyInternetOff()
+				}
+				if stat == events.InternetOn {
+					f.notifyInternetOn()
+				}
+			}
+		}
+	*/
 }
 
 // Loop starts the frontend loop with an interactive shell.
@@ -340,12 +395,3 @@ func (f *frontendCLI) Loop() error {
 	f.Run()
 	return nil
 }
-
-func (f *frontendCLI) NotifyManualUpdate(update updater.VersionInfo, canInstall bool) {
-	// NOTE: Save the update somewhere so that it can be installed when user chooses "install now".
-}
-
-func (f *frontendCLI) WaitUntilFrontendIsReady()              {}
-func (f *frontendCLI) SetVersion(version updater.VersionInfo) {}
-func (f *frontendCLI) NotifySilentUpdateInstalled()           {}
-func (f *frontendCLI) NotifySilentUpdateError(err error)      {}

@@ -23,98 +23,146 @@ import (
 	"io"
 	"mime"
 	"net/mail"
-	"net/textproto"
 	"regexp"
 	"strings"
 
+	"github.com/ProtonMail/gluon/rfc822"
 	"github.com/ProtonMail/go-rfc5322"
 	"github.com/ProtonMail/proton-bridge/v2/pkg/message/parser"
 	pmmime "github.com/ProtonMail/proton-bridge/v2/pkg/mime"
-	"github.com/ProtonMail/proton-bridge/v2/pkg/pmapi"
+	"github.com/bradenaw/juniper/xslices"
 	"github.com/emersion/go-message"
 	"github.com/jaytaylor/html2text"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+	"gitlab.protontech.ch/go/liteapi"
 )
 
-// Parse parses RAW message.
-func Parse(r io.Reader) (m *pmapi.Message, mimeBody, plainBody string, attReaders []io.Reader, err error) {
-	defer func() {
-		r := recover()
-		if r == nil {
-			return
-		}
+type MIMEBody string
 
-		err = fmt.Errorf("panic while parsing message: %v", r)
+type Body string
+
+type Message struct {
+	Header     mail.Header
+	MIMEBody   MIMEBody
+	RichBody   Body
+	PlainBody  Body
+	Time       int64
+	ExternalID string
+
+	Subject  string
+	Sender   *mail.Address
+	ToList   []*mail.Address
+	CCList   []*mail.Address
+	BCCList  []*mail.Address
+	ReplyTos []*mail.Address
+
+	MIMEType    rfc822.MIMEType
+	Attachments []Attachment
+}
+
+func (m *Message) Recipients() []string {
+	var recipients []string
+
+	for _, addresses := range [][]*mail.Address{m.ToList, m.CCList, m.BCCList} {
+		recipients = append(recipients, xslices.Map(addresses, func(address *mail.Address) string {
+			return address.Address
+		})...)
+	}
+
+	return recipients
+}
+
+type Attachment struct {
+	Header      mail.Header
+	Name        string
+	ContentID   string
+	MIMEType    string
+	Disposition string
+	Data        []byte
+}
+
+// Parse parses an RFC822 message.
+func Parse(r io.Reader) (m Message, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = fmt.Errorf("panic while parsing message: %v", r)
+		}
 	}()
 
 	p, err := parser.New(r)
 	if err != nil {
-		return nil, "", "", nil, errors.Wrap(err, "failed to create new parser")
+		return Message{}, errors.Wrap(err, "failed to create new parser")
 	}
 
-	m, plainBody, attReaders, err = ParserWithParser(p)
-	if err != nil {
-		return nil, "", "", nil, errors.Wrap(err, "failed to parse the message")
-	}
-
-	mimeBody, err = BuildMIMEBody(p)
-	if err != nil {
-		return nil, "", "", nil, errors.Wrap(err, "failed to build mime body")
-	}
-
-	return m, mimeBody, plainBody, attReaders, nil
+	return parse(p)
 }
 
-// ParserWithParser parses message from Parser without building MIME body.
-func ParserWithParser(p *parser.Parser) (m *pmapi.Message, plainBody string, attReaders []io.Reader, err error) {
-	logrus.Trace("Parsing message")
+// Parse parses an RFC822 message using an existing parser.
+func ParseWithParser(p *parser.Parser) (m Message, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = fmt.Errorf("panic while parsing message: %v", r)
+		}
+	}()
 
-	if err = convertEncodedTransferEncoding(p); err != nil {
-		err = errors.Wrap(err, "failed to convert encoded transfer encodings")
-		return
-	}
-
-	if err = convertForeignEncodings(p); err != nil {
-		err = errors.Wrap(err, "failed to convert foreign encodings")
-		return
-	}
-
-	m = pmapi.NewMessage()
-
-	if err = parseMessageHeader(m, p.Root().Header); err != nil {
-		err = errors.Wrap(err, "failed to parse message header")
-		return
-	}
-
-	if m.Attachments, attReaders, err = collectAttachments(p); err != nil {
-		err = errors.Wrap(err, "failed to collect attachments")
-		return
-	}
-
-	if m.Body, plainBody, err = buildBodies(p); err != nil {
-		err = errors.Wrap(err, "failed to build bodies")
-		return
-	}
-
-	if m.MIMEType, err = determineMIMEType(p); err != nil {
-		err = errors.Wrap(err, "failed to determine mime type")
-		return
-	}
-
-	return m, plainBody, attReaders, nil
+	return parse(p)
 }
 
-// BuildMIMEBody builds mime body from the parser returned by NewParser.
-func BuildMIMEBody(p *parser.Parser) (mimeBody string, err error) {
-	mimeBodyBuffer := new(bytes.Buffer)
-
-	if err = p.NewWriter().Write(mimeBodyBuffer); err != nil {
-		err = errors.Wrap(err, "failed to write out mime message")
-		return
+func parse(p *parser.Parser) (Message, error) {
+	if err := convertEncodedTransferEncoding(p); err != nil {
+		return Message{}, errors.Wrap(err, "failed to convert encoded transfer encoding")
 	}
 
-	return mimeBodyBuffer.String(), nil
+	if err := convertForeignEncodings(p); err != nil {
+		return Message{}, errors.Wrap(err, "failed to convert foreign encodings")
+	}
+
+	m, err := parseMessageHeader(p.Root().Header)
+	if err != nil {
+		return Message{}, errors.Wrap(err, "failed to parse message header")
+	}
+
+	atts, err := collectAttachments(p)
+	if err != nil {
+		return Message{}, errors.Wrap(err, "failed to collect attachments")
+	}
+
+	m.Attachments = atts
+
+	richBody, plainBody, err := buildBodies(p)
+	if err != nil {
+		return Message{}, errors.Wrap(err, "failed to build bodies")
+	}
+
+	mimeBody, err := buildMIMEBody(p)
+	if err != nil {
+		return Message{}, errors.Wrap(err, "failed to build mime body")
+	}
+
+	m.RichBody = Body(richBody)
+	m.PlainBody = Body(plainBody)
+	m.MIMEBody = MIMEBody(mimeBody)
+
+	mimeType, err := determineMIMEType(p)
+	if err != nil {
+		return Message{}, errors.Wrap(err, "failed to get mime type")
+	}
+
+	m.MIMEType = rfc822.MIMEType(mimeType)
+
+	return m, nil
+}
+
+// buildMIMEBody builds mime body from the parser returned by NewParser.
+func buildMIMEBody(p *parser.Parser) (mimeBody string, err error) {
+	buf := new(bytes.Buffer)
+
+	if err := p.NewWriter().Write(buf); err != nil {
+		return "", fmt.Errorf("failed to write message: %w", err)
+	}
+
+	return buf.String(), nil
 }
 
 // convertEncodedTransferEncoding decodes any RFC2047-encoded content transfer encodings.
@@ -158,33 +206,30 @@ func convertForeignEncodings(p *parser.Parser) error {
 		Walk()
 }
 
-func collectAttachments(p *parser.Parser) ([]*pmapi.Attachment, []io.Reader, error) {
+func collectAttachments(p *parser.Parser) ([]Attachment, error) {
 	var (
-		atts []*pmapi.Attachment
-		data []io.Reader
+		atts []Attachment
 		err  error
 	)
 
 	w := p.NewWalker().
 		RegisterContentDispositionHandler("attachment", func(p *parser.Part) error {
-			att, err := parseAttachment(p.Header)
+			att, err := parseAttachment(p.Header, p.Body)
 			if err != nil {
 				return err
 			}
 
 			atts = append(atts, att)
-			data = append(data, bytes.NewReader(p.Body))
 
 			return nil
 		}).
 		RegisterContentTypeHandler("text/calendar", func(p *parser.Part) error {
-			att, err := parseAttachment(p.Header)
+			att, err := parseAttachment(p.Header, p.Body)
 			if err != nil {
 				return err
 			}
 
 			atts = append(atts, att)
-			data = append(data, bytes.NewReader(p.Body))
 
 			return nil
 		}).
@@ -196,22 +241,21 @@ func collectAttachments(p *parser.Parser) ([]*pmapi.Attachment, []io.Reader, err
 				return nil
 			}
 
-			att, err := parseAttachment(p.Header)
+			att, err := parseAttachment(p.Header, p.Body)
 			if err != nil {
 				return err
 			}
 
 			atts = append(atts, att)
-			data = append(data, bytes.NewReader(p.Body))
 
 			return nil
 		})
 
 	if err = w.Walk(); err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
-	return atts, data, nil
+	return atts, nil
 }
 
 // buildBodies collects all text/html and text/plain parts and returns two bodies,
@@ -400,24 +444,14 @@ func getPlainBody(part *parser.Part) []byte {
 	}
 }
 
-func AttachPublicKey(p *parser.Parser, key, keyName string) {
-	h := message.Header{}
+func parseMessageHeader(h message.Header) (Message, error) { //nolint:funlen
+	var m Message
 
-	h.Set("Content-Type", fmt.Sprintf(`application/pgp-keys; name="%v.asc"; filename="%v.asc"`, keyName, keyName))
-	h.Set("Content-Disposition", fmt.Sprintf(`attachment; name="%v.asc"; filename="%v.asc"`, keyName, keyName))
-	h.Set("Content-Transfer-Encoding", "base64")
-
-	p.Root().AddChild(&parser.Part{
-		Header: h,
-		Body:   []byte(key),
-	})
-}
-
-func parseMessageHeader(m *pmapi.Message, h message.Header) error { //nolint:funlen
 	mimeHeader, err := toMailHeader(h)
 	if err != nil {
-		return err
+		return Message{}, err
 	}
+
 	m.Header = mimeHeader
 
 	fields := h.Fields()
@@ -428,7 +462,7 @@ func parseMessageHeader(m *pmapi.Message, h message.Header) error { //nolint:fun
 			s, err := fields.Text()
 			if err != nil {
 				if s, err = pmmime.DecodeHeader(fields.Value()); err != nil {
-					return errors.Wrap(err, "failed to parse subject")
+					return Message{}, errors.Wrap(err, "failed to parse subject")
 				}
 			}
 
@@ -437,7 +471,7 @@ func parseMessageHeader(m *pmapi.Message, h message.Header) error { //nolint:fun
 		case "from":
 			sender, err := rfc5322.ParseAddressList(fields.Value())
 			if err != nil {
-				return errors.Wrap(err, "failed to parse from")
+				return Message{}, errors.Wrap(err, "failed to parse from")
 			}
 			if len(sender) > 0 {
 				m.Sender = sender[0]
@@ -446,35 +480,35 @@ func parseMessageHeader(m *pmapi.Message, h message.Header) error { //nolint:fun
 		case "to":
 			toList, err := rfc5322.ParseAddressList(fields.Value())
 			if err != nil {
-				return errors.Wrap(err, "failed to parse to")
+				return Message{}, errors.Wrap(err, "failed to parse to")
 			}
 			m.ToList = toList
 
 		case "reply-to":
 			replyTos, err := rfc5322.ParseAddressList(fields.Value())
 			if err != nil {
-				return errors.Wrap(err, "failed to parse reply-to")
+				return Message{}, errors.Wrap(err, "failed to parse reply-to")
 			}
 			m.ReplyTos = replyTos
 
 		case "cc":
 			ccList, err := rfc5322.ParseAddressList(fields.Value())
 			if err != nil {
-				return errors.Wrap(err, "failed to parse cc")
+				return Message{}, errors.Wrap(err, "failed to parse cc")
 			}
 			m.CCList = ccList
 
 		case "bcc":
 			bccList, err := rfc5322.ParseAddressList(fields.Value())
 			if err != nil {
-				return errors.Wrap(err, "failed to parse bcc")
+				return Message{}, errors.Wrap(err, "failed to parse bcc")
 			}
 			m.BCCList = bccList
 
 		case "date":
 			date, err := rfc5322.ParseDateTime(fields.Value())
 			if err != nil {
-				return errors.Wrap(err, "failed to parse date")
+				return Message{}, errors.Wrap(err, "failed to parse date")
 			}
 			m.Time = date.Unix()
 
@@ -483,48 +517,47 @@ func parseMessageHeader(m *pmapi.Message, h message.Header) error { //nolint:fun
 		}
 	}
 
-	return nil
+	return m, nil
 }
 
-func parseAttachment(h message.Header) (*pmapi.Attachment, error) {
-	att := &pmapi.Attachment{}
+func parseAttachment(h message.Header, body []byte) (Attachment, error) {
+	att := Attachment{
+		Data: body,
+	}
 
-	mimeHeader, err := toMIMEHeader(h)
+	mimeHeader, err := toMailHeader(h)
 	if err != nil {
-		return nil, err
+		return Attachment{}, err
 	}
 	att.Header = mimeHeader
 
 	mimeType, mimeTypeParams, err := h.ContentType()
 	if err != nil {
-		return nil, err
+		return Attachment{}, err
 	}
 	att.MIMEType = mimeType
 
 	// Prefer attachment name from filename param in content disposition.
 	// If not available, try to get it from name param in content type.
 	// Otherwise fallback to attachment.bin.
-	_, dispParams, dispErr := h.ContentDisposition()
-	if dispErr != nil {
-		ext, err := mime.ExtensionsByType(att.MIMEType)
-		if err != nil {
-			return nil, err
-		}
+	if disp, dispParams, err := h.ContentDisposition(); err == nil {
+		att.Disposition = disp
 
-		if len(ext) > 0 {
-			att.Name = "attachment" + ext[0]
+		if filename, ok := dispParams["filename"]; ok {
+			att.Name = filename
 		}
-	} else {
-		att.Name = dispParams["filename"]
 	}
+
 	if att.Name == "" {
-		att.Name = mimeTypeParams["name"]
-	}
-	if att.Name == "" && mimeType == rfc822Message {
-		att.Name = "message.eml"
-	}
-	if att.Name == "" {
-		att.Name = "attachment.bin"
+		if filename, ok := mimeTypeParams["name"]; ok {
+			att.Name = filename
+		} else if mimeType == string(rfc822.MessageRFC822) {
+			att.Name = "message.eml"
+		} else if ext, err := mime.ExtensionsByType(att.MIMEType); err == nil && len(ext) > 0 {
+			att.Name = "attachment" + ext[0]
+		} else {
+			att.Name = "attachment.bin"
+		}
 	}
 
 	// Only set ContentID if it should be inline;
@@ -534,9 +567,12 @@ func parseAttachment(h message.Header) (*pmapi.Attachment, error) {
 	// (This is necessary because some clients don't set Content-Disposition at all,
 	// so we need to rely on other information to deduce if it's inline or attachment.)
 	if h.Has("Content-Disposition") {
-		if disp, _, err := h.ContentDisposition(); err != nil {
-			return nil, err
-		} else if disp == pmapi.DispositionInline {
+		disp, _, err := h.ContentDisposition()
+		if err != nil {
+			return Attachment{}, err
+		}
+
+		if disp == string(liteapi.InlineDisposition) {
 			att.ContentID = strings.Trim(h.Get("Content-Id"), " <>")
 		}
 	} else if h.Has("Content-Id") {
@@ -548,19 +584,6 @@ func parseAttachment(h message.Header) (*pmapi.Attachment, error) {
 
 func toMailHeader(h message.Header) (mail.Header, error) {
 	mimeHeader := make(mail.Header)
-
-	if err := forEachDecodedHeaderField(h, func(key, val string) error {
-		mimeHeader[key] = []string{val}
-		return nil
-	}); err != nil {
-		return nil, err
-	}
-
-	return mimeHeader, nil
-}
-
-func toMIMEHeader(h message.Header) (textproto.MIMEHeader, error) {
-	mimeHeader := make(textproto.MIMEHeader)
 
 	if err := forEachDecodedHeaderField(h, func(key, val string) error {
 		mimeHeader[key] = []string{val}

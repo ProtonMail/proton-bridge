@@ -234,12 +234,8 @@ integration-test-bridge:
 	${MAKE} -C test test-bridge
 
 mocks:
-	mockgen --package mocks github.com/ProtonMail/proton-bridge/v2/internal/users Locator,PanicHandler,CredentialsStorer,StoreMaker > internal/users/mocks/mocks.go
-	mockgen --package mocks github.com/ProtonMail/proton-bridge/v2/pkg/listener Listener > internal/users/mocks/listener_mocks.go
-	mockgen --package mocks github.com/ProtonMail/proton-bridge/v2/internal/store PanicHandler,BridgeUser,ChangeNotifier,Storer > internal/store/mocks/mocks.go
-	mockgen --package mocks github.com/ProtonMail/proton-bridge/v2/pkg/listener Listener > internal/store/mocks/utils_mocks.go
-	mockgen --package mocks github.com/ProtonMail/proton-bridge/v2/pkg/pmapi Client,Manager > pkg/pmapi/mocks/mocks.go
-	mockgen --package mocks github.com/ProtonMail/proton-bridge/v2/pkg/message Fetcher > pkg/message/mocks/mocks.go
+	mockgen --package mocks github.com/ProtonMail/proton-bridge/v2/internal/bridge TLSReporter,ProxyDialer,Autostarter > internal/bridge/mocks/mocks.go
+	mockgen --package mocks github.com/ProtonMail/proton-bridge/v2/internal/updater Downloader,Installer > internal/updater/mocks/mocks.go
 
 lint: gofiles lint-golang lint-license lint-dependencies lint-changelog
 

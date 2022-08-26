@@ -27,8 +27,7 @@ import (
 
 // TestClearLogs tests that cearLogs removes only bridge old log files keeping last three of them.
 func TestClearLogs(t *testing.T) {
-	dir, err := os.MkdirTemp("", "clear-logs-test")
-	require.NoError(t, err)
+	dir := t.TempDir()
 
 	require.NoError(t, os.WriteFile(filepath.Join(dir, "other.log"), []byte("Hello"), 0o755))
 	require.NoError(t, os.WriteFile(filepath.Join(dir, "v1_10.log"), []byte("Hello"), 0o755))

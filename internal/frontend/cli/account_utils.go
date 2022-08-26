@@ -22,7 +22,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/ProtonMail/proton-bridge/v2/internal/users"
+	"github.com/ProtonMail/proton-bridge/v2/internal/bridge"
 	"github.com/abiosoft/ishell"
 )
 
@@ -35,6 +35,7 @@ func (f *frontendCLI) completeUsernames(args []string) (usernames []string) {
 	if len(args) == 1 {
 		arg = args[0]
 	}
+
 	for _, userID := range f.bridge.GetUserIDs() {
 		user, err := f.bridge.GetUserInfo(userID)
 		if err != nil {
@@ -50,8 +51,7 @@ func (f *frontendCLI) completeUsernames(args []string) (usernames []string) {
 // noAccountWrapper is a decorator for functions which need any account to be properly functional.
 func (f *frontendCLI) noAccountWrapper(callback func(*ishell.Context)) func(*ishell.Context) {
 	return func(c *ishell.Context) {
-		users := f.bridge.GetUserIDs()
-		if len(users) == 0 {
+		if len(f.bridge.GetUserIDs()) == 0 {
 			f.Println("No active accounts. Please add account to continue.")
 		} else {
 			callback(c)
@@ -59,9 +59,9 @@ func (f *frontendCLI) noAccountWrapper(callback func(*ishell.Context)) func(*ish
 	}
 }
 
-func (f *frontendCLI) askUserByIndexOrName(c *ishell.Context) users.UserInfo {
+func (f *frontendCLI) askUserByIndexOrName(c *ishell.Context) bridge.UserInfo {
 	user := f.getUserByIndexOrName("")
-	if user.ID != "" {
+	if user.UserID != "" {
 		return user
 	}
 
@@ -69,24 +69,24 @@ func (f *frontendCLI) askUserByIndexOrName(c *ishell.Context) users.UserInfo {
 	indexRange := fmt.Sprintf("number between 0 and %d", numberOfAccounts-1)
 	if len(c.Args) == 0 {
 		f.Printf("Please choose %s or username.\n", indexRange)
-		return users.UserInfo{}
+		return bridge.UserInfo{}
 	}
 	arg := c.Args[0]
 	user = f.getUserByIndexOrName(arg)
-	if user.ID == "" {
+	if user.UserID == "" {
 		f.Printf("Wrong input '%s'. Choose %s or username.\n", bold(arg), indexRange)
-		return users.UserInfo{}
+		return bridge.UserInfo{}
 	}
 	return user
 }
 
-func (f *frontendCLI) getUserByIndexOrName(arg string) users.UserInfo {
+func (f *frontendCLI) getUserByIndexOrName(arg string) bridge.UserInfo {
 	userIDs := f.bridge.GetUserIDs()
 	numberOfAccounts := len(userIDs)
 	if numberOfAccounts == 0 {
-		return users.UserInfo{}
+		return bridge.UserInfo{}
 	}
-	res := make([]users.UserInfo, len(userIDs))
+	res := make([]bridge.UserInfo, len(userIDs))
 	for idx, userID := range userIDs {
 		user, err := f.bridge.GetUserInfo(userID)
 		if err != nil {
@@ -99,7 +99,7 @@ func (f *frontendCLI) getUserByIndexOrName(arg string) users.UserInfo {
 	}
 	if index, err := strconv.Atoi(arg); err == nil {
 		if index < 0 || index >= numberOfAccounts {
-			return users.UserInfo{}
+			return bridge.UserInfo{}
 		}
 		return res[index]
 	}
@@ -108,5 +108,5 @@ func (f *frontendCLI) getUserByIndexOrName(arg string) users.UserInfo {
 			return user
 		}
 	}
-	return users.UserInfo{}
+	return bridge.UserInfo{}
 }
