@@ -160,11 +160,11 @@ SettingsView {
         id: allMail
         visible: root._isAdvancedShown
         colorScheme: root.colorScheme
-        text: qsTr("Disable All Mail")
-        description: qsTr("Choose not to list the All Mail folder in your local client.")
+        text: qsTr("Show All Mail")
+        description: qsTr("Choose to list the All Mail folder in your local client.")
         type: SettingsItem.Toggle
-        checked: root.backend.isAllMailDisabled
-        onClicked: root.backend.changeIsAllMailDisabled(!allMail.checked )
+        checked: root.backend.isAllMailVisible
+        onClicked: root.notifications.askChangeAllMailVisibility(root.backend.isAllMailVisible)
 
         Layout.fillWidth: true
     }

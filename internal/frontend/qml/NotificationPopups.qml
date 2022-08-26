@@ -112,6 +112,11 @@ Item {
 
     NotificationDialog {
         colorScheme: root.colorScheme
+        notification: root.notifications.changeAllMailVisibility
+    }
+
+    NotificationDialog {
+        colorScheme: root.colorScheme
         notification: root.notifications.deleteAccount
     }
 

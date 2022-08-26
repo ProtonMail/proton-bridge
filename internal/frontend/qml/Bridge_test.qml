@@ -674,7 +674,7 @@ Window {
                     }
                     RowLayout {
                         Label {colorScheme: root.colorScheme; text: "All Mail disabled:"}
-                        Toggle {colorScheme: root.colorScheme; checked: root.isAllMailDisabled; onClicked: root.isAllMailDisabled = !root.isAllMailDisabled}
+                        Toggle {colorScheme: root.colorScheme; checked: root.isAllMailVisible; onClicked: root.isAllMailVisible = !root.isAllMailVisible}
                     }
                     RowLayout {
                         Label {colorScheme: root.colorScheme; text: "Ports:"}
@@ -815,10 +815,10 @@ Window {
         root.isDoHEnabled = makeItActive
     }
 
-    property bool isAllMailDisabled : false
-    function changeIsAllMailDisabled(isDisabled){
-        console.debug("-> All Mail Disabled", isDisabled, root.isAllMailDisabled)
-        root.isAllMailDisabled = isDisabled
+    property bool isAllMailVisible : true
+    function changeIsAllMailVisible(isVisible){
+        console.debug("-> All Mail Visible", isVisible, root.isAllMailVisible)
+        root.isAllMailVisible = isVisible
     }
 
 

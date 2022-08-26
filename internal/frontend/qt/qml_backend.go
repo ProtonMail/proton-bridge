@@ -156,8 +156,8 @@ type QMLBackend struct {
 
 	_ func(userID string) `signal:userChanged`
 
-	_ bool                  `property:"isAllMailDisabled"`
-	_ func(isDisabled bool) `slot:"changeIsAllMailDisabled"`
+	_ bool                  `property:"isAllMailVisible"`
+	_ func(isDisabled bool) `slot:"changeIsAllMailVisible"`
 }
 
 func (q *QMLBackend) setup(f *FrontendQt) {
@@ -308,10 +308,10 @@ func (q *QMLBackend) setup(f *FrontendQt) {
 		}()
 	})
 
-	q.SetIsAllMailDisabled(!f.bridge.IsAllMailVisible())
-	q.ConnectChangeIsAllMailDisabled(func(isDisabled bool) {
-		f.bridge.SetIsAllMailVisible(!isDisabled)
-		f.qml.SetIsAllMailDisabled(isDisabled)
+	q.SetIsAllMailVisible(f.bridge.IsAllMailVisible())
+	q.ConnectChangeIsAllMailVisible(func(isVisible bool) {
+		f.bridge.SetIsAllMailVisible(isVisible)
+		f.qml.SetIsAllMailVisible(isVisible)
 	})
 
 }

@@ -34,6 +34,7 @@ QtObject {
     signal askDisableLocalCache()
     signal askEnableLocalCache(var path)
     signal askResetBridge()
+    signal askChangeAllMailVisibility(var isVisibleNow)
     signal askDeleteAccount(var user)
 
     enum Group {
@@ -72,6 +73,7 @@ QtObject {
         root.disableLocalCache,
         root.enableLocalCache,
         root.resetBridge,
+        root.changeAllMailVisibility,
         root.deleteAccount,
         root.noKeychain,
         root.rebuildKeychain,
@@ -835,6 +837,47 @@ QtObject {
                     resetBridge_reset.loading = true
                     resetBridge_cancel.enabled = false
                     root.backend.triggerReset()
+                }
+            }
+        ]
+    }
+
+    property Notification changeAllMailVisibility: Notification {
+        title: root.changeAllMailVisibility.isVisibleNow ?
+        qsTr("Hide All Mail folder?") :
+        qsTr("Show All Mail folder?")
+        brief: title
+        icon: "./icons/ic-info-circle-filled.svg"
+        description: qsTr("Switching between showing and hiding the All Mail folder will require you to restart your client.")
+        type: Notification.NotificationType.Info
+        group: Notifications.Group.Configuration | Notifications.Group.Dialogs
+
+        property var isVisibleNow
+
+        Connections {
+            target: root
+            onAskChangeAllMailVisibility: {
+                root.changeAllMailVisibility.isVisibleNow = isVisibleNow
+                root.changeAllMailVisibility.active = true
+            }
+        }
+
+        action: [
+            Action {
+                id: allMail_change
+                text: root.changeAllMailVisibility.isVisibleNow ? 
+                qsTr("Hide All Mail folder") :
+                qsTr("Show All Mail folder")
+                onTriggered: {
+                    root.backend.changeIsAllMailVisible(!root.changeAllMailVisibility.isVisibleNow)
+                    root.changeAllMailVisibility.active = false
+                }
+            },
+            Action {
+                id: allMail_cancel
+                text: qsTr("Cancel")
+                onTriggered: {
+                    root.changeAllMailVisibility.active = false
                 }
             }
         ]
