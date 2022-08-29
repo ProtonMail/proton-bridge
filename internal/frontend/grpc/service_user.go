@@ -32,9 +32,10 @@ import (
 func (s *Service) GetUserList(context.Context, *emptypb.Empty) (*UserListResponse, error) {
 	s.log.Info("GetUserList")
 
-	var userList []*User
+	userIDs := s.bridge.GetUserIDs()
+	userList := make([]*User, len(userIDs))
 
-	for idx, userID := range s.bridge.GetUserIDs() {
+	for idx, userID := range userIDs {
 		user, err := s.bridge.GetUserInfo(userID)
 		if err != nil {
 			return nil, err
