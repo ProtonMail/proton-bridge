@@ -25,7 +25,11 @@ test-bridge: check-godog
 test-live: test-live-bridge test-live-ie
 test-live-bridge: FEATURES ?= features
 test-live-bridge: check-godog
-	TEST_ENV=live godog --tags="~@ignore && ~@ignore-live" $(FEATURES)
+	TEST_ENV=live godog --tags="~@ignore && ~@ignore-live && ~@ignore-live-auth" $(FEATURES)
+
+test-live-bridge-auth: check-godog
+	TEST_ENV=live godog --tags="@ignore-live-auth" $(FEATURES)
+
 
 # Doesn't work in parallel!
 # Provide TEST_ACCOUNTS with your accounts.

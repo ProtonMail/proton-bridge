@@ -62,7 +62,7 @@ func (ctx *TestContext) LoginUser(username string, password, mailboxPassword []b
 	ctx.addCleanupChecked(
 		func() error {
 			if os.Getenv(EnvName) == EnvLive {
-				logrus.Warn("Pausing user.Logout by two minutes to not hit issues with too many login attempts.")
+				logrus.Warn("Pausing user.Logout by 2 minutes to not hit issues with too many login attempts.")
 				time.Sleep(2 * time.Minute)
 			}
 			return user.Logout()

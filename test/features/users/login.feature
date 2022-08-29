@@ -1,4 +1,5 @@
 Feature: Login for the first time
+  @ignore-live-auth
   Scenario: Normal login
     Given there is user "user"
     When "user" logs in
@@ -19,6 +20,7 @@ Feature: Login for the first time
     When "user" logs in with bad password
     Then last response is "failed to login: Incorrect login credentials. Please try again"
 
+  @ignore-live-auth
   Scenario: Login without internet connection
     Given there is no internet connection
     When "user" logs in
@@ -34,6 +36,7 @@ Feature: Login for the first time
     And "user2fa" has running event loop
     And "user2fa" has non-zero space
 
+  @ignore-live-auth
   Scenario: Login user with capital letters in address
     Given there is user "userAddressWithCapitalLetter"
     When "userAddressWithCapitalLetter" logs in
@@ -43,6 +46,7 @@ Feature: Login for the first time
     And "userAddressWithCapitalLetter" has running event loop
     And "userAddressWithCapitalLetter" has non-zero space
 
+  @ignore-live-auth
   Scenario: Login user with more addresses
     Given there is user "userMoreAddresses"
     When "userMoreAddresses" logs in
@@ -62,6 +66,7 @@ Feature: Login for the first time
     And "userDisabledPrimaryAddress" has running event loop
     And "userDisabledPrimaryAddress" has non-zero space
 
+  @ignore-live-auth
   Scenario: Login two users
     Given there is user "user"
     And there is user "userMoreAddresses"

@@ -9,11 +9,13 @@ Feature: IMAP auth
     When IMAP client authenticates "user" with bad password
     Then IMAP response is "IMAP error: NO backend/credentials: incorrect password"
 
+  @ignore-live-auth
   Scenario: Authenticates with disconnected user
     Given there is disconnected user "user"
     When IMAP client authenticates "user"
     Then IMAP response is "IMAP error: NO account is logged out, use the app to login again"
 
+  @ignore-live-auth
   Scenario: Authenticates with connected user that was loaded without internet
     Given there is user "user" which just logged in
     And there is no internet connection
@@ -27,12 +29,14 @@ Feature: IMAP auth
     And 2 seconds pass
     Then "user" is connected
 
+  @ignore-live-auth
   Scenario: Authenticates with freshly logged-out user
     Given there is user "user" which just logged in
     When "user" logs out
     And IMAP client authenticates "user"
     Then IMAP response is "IMAP error: NO account is logged out, use the app to login again"
 
+  @ignore-live-auth
   Scenario: Authenticates user which was re-logged in
     Given there is user "user" which just logged in
     When "user" logs out
