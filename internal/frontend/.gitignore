@@ -11,3 +11,4 @@ rcc_cgo_*.go
 
 # Generated file
 bridge-gui/bridge-gui/Version.h
+bridge-gui/bridge-gui/Resources.rc

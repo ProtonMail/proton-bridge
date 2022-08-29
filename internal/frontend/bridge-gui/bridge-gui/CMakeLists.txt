@@ -119,6 +119,18 @@ add_executable(bridge-gui
     ${DOCK_ICON_SRC_FILE} DockIcon/DockIcon.h
     )
 
+if (WIN32) # on Windows, we add a (non-Qt) resource file that contains the application icon and version information.
+    string(TIMESTAMP BRIDGE_BUILD_YEAR "%Y")
+    set(REGEX_NUMBER "[0123456789]") # CMake matches does not support \d.
+    if (${BRIDGE_APP_VERSION} MATCHES "^(${REGEX_NUMBER}+)\\.(${REGEX_NUMBER}+)\\.(${REGEX_NUMBER}+)")
+        set(BRIDGE_APP_VERSION_COMMA "${CMAKE_MATCH_1},${CMAKE_MATCH_2},${CMAKE_MATCH_3},0")
+    else()
+        message(FATAL_ERROR "Could not extract comma-separated version number from ${BRIDGE_APP_VERSION}")
+    endif()
+    configure_file("${CMAKE_CURRENT_SOURCE_DIR}/Resources.rc.in" "${CMAKE_CURRENT_SOURCE_DIR}/Resources.rc")
+    target_sources(bridge-gui PRIVATE Resources.rc)
+endif()
+
 target_precompile_headers(bridge-gui PRIVATE Pch.h)
 target_include_directories(bridge-gui PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(bridge-gui
