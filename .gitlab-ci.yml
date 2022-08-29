@@ -108,7 +108,8 @@ test-integration:
 dependency-updates:
   stage: test
   script:
-    - make updates
+    - "echo 'NOTE: Do not run on go1.15 ( 'if...' can be removed once fully updated to go1.18)'"
+    - if [ 18 -le $(go version | cut -d. -f2 | cut -d " " -f1) ]; then make updates; fi
 
 # Stage: BUILD
 
@@ -246,10 +247,11 @@ check-gobinsec:
   before_script:
     - mkdir build
     - tar -xzf bridge_linux_*.tgz -C build
+    - "echo api-key: \"${GOBINSEC_NVD_API_KEY}\" >> utils/gobinsec_conf.yml"
   script:
     - "[ ! -f ./gobinsec-cache.yml ] && wget bridgeteam.protontech.ch/bridgeteam/gobinsec-cache.yml"
     - cat ./gobinsec-cache.yml
-    - gobinsec -cache -config utils/gobinsec_conf.yml build/proton-bridge
+    - gobinsec -wait -cache -config utils/gobinsec_conf.yml build/proton-bridge
 
 
 

@@ -24,6 +24,7 @@ package api
 import (
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/ProtonMail/proton-bridge/v2/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/v2/internal/config/settings"
@@ -57,8 +58,9 @@ func (api *apiServer) ListenAndServe() {
 
 	addr := api.getAddress()
 	server := &http.Server{
-		Addr:    addr,
-		Handler: mux,
+		Addr:              addr,
+		Handler:           mux,
+		ReadHeaderTimeout: 5 * time.Second, // fix gosec G112 (vulnerability to [Slowloris](https://www.cloudflare.com/en-gb/learning/ddos/ddos-attack-tools/slowloris/) attack).
 	}
 
 	log.Info("API listening at ", addr)

@@ -166,7 +166,7 @@ update-qt-docs:
 LINTVER:="v1.39.0"
 LINTSRC:="https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh"
 
-install-dev-dependencies: install-devel-tools install-linter install-go-mod-outdated
+install-dev-dependencies: install-devel-tools install-linter
 
 install-devel-tools: check-has-go
 	go get -v github.com/golang/mock/gomock
