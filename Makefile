@@ -171,7 +171,7 @@ ${RESOURCE_FILE}: ./dist/info.rc ./dist/${SRC_ICO} .FORCE
 LINTVER:="v1.47.2"
 LINTSRC:="https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh"
 
-install-dev-dependencies: install-devel-tools install-linter
+install-dev-dependencies: install-devel-tools install-linter install-go-mod-outdated
 
 install-devel-tools: check-has-go
 	go get -v github.com/golang/mock/gomock
@@ -182,7 +182,7 @@ install-linter: check-has-go
 	curl -sfL $(LINTSRC) | sh -s -- -b $(shell go env GOPATH)/bin $(LINTVER)
 
 install-go-mod-outdated:
-	which go-mod-outdated || go get -u github.com/psampaz/go-mod-outdated
+	which go-mod-outdated || go install github.com/psampaz/go-mod-outdated@latest
 
 install-git-hooks:
 	cp utils/githooks/* .git/hooks/

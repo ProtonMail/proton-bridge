@@ -108,8 +108,7 @@ test-integration:
 dependency-updates:
   stage: test
   script:
-    - "echo 'NOTE: Do not run on go1.15 ( 'if...' can be removed once fully updated to go1.18)'"
-    - if [ 18 -le $(go version | cut -d. -f2 | cut -d " " -f1) ]; then make updates; fi
+    - make updates
 
 # Stage: BUILD
 

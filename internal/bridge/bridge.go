@@ -66,7 +66,7 @@ type Bridge struct {
 	lastVersion      string
 }
 
-func New(
+func New( //nolint:funlen
 	locations Locator,
 	cacheProvider CacheProvider,
 	setting SettingsProvider,
