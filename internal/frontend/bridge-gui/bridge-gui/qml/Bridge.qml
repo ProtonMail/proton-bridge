@@ -59,6 +59,10 @@ QtObject {
                 mainWindow.showAndRise()
             }
             function onColorSchemeNameChanged(scheme) { root.setColorScheme() }
+
+            function onHideMainWindow() {
+                mainWindow.hide();
+            }
         }
     }
 

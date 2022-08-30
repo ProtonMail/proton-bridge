@@ -201,7 +201,7 @@ private slots:
 private:
     void logDebug(QString const &message); ///< Log an event.
     void logError(QString const &message); ///< Log an event.
-    grpc::Status logGRPCCallStatus(grpc::Status const &status, QString const &callName); ///< Log the status of a gRPC code.
+    grpc::Status logGRPCCallStatus(grpc::Status const &status, QString const &callName, QList<grpc::StatusCode> allowedErrors = {}); ///< Log the status of a gRPC code.
     grpc::Status simpleMethod(SimpleMethod method); ///< perform a gRPC call to a bool setter.
     grpc::Status setBool(BoolSetter setter, bool value); ///< perform a gRPC call to a bool setter.
     grpc::Status getBool(BoolGetter getter, bool &outValue); ///< perform a gRPC call to a bool getter.

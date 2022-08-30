@@ -288,7 +288,9 @@ grpc::Status GRPCClient::reportBug(QString const &description, QString const &ad
 //****************************************************************************************************************************************************
 grpc::Status GRPCClient::useSSLForSMTP(bool &outUseSSL)
 {
-    return this->logGRPCCallStatus(this->getBool(&Bridge::Stub::UseSslForSmtp, outUseSSL), __FUNCTION__);
+    Status status = this->getBool(&Bridge::Stub::UseSslForSmtp, outUseSSL);
+    return this->logGRPCCallStatus(status, __FUNCTION__);
+
 }
 
 
@@ -363,7 +365,8 @@ grpc::Status GRPCClient::setIsDoHEnabled(bool enabled)
 grpc::Status GRPCClient::quit()
 {
     grpc::ClientContext ctx;
-    return this->logGRPCCallStatus(stub_->Quit(&ctx, empty, &empty), __FUNCTION__);
+    // quitting will shut down the gRPC service, to we may get an 'Unavailable' response for the call
+    return this->logGRPCCallStatus(stub_->Quit(&ctx, empty, &empty), __FUNCTION__, { StatusCode::UNAVAILABLE });
 }
 
 
@@ -373,7 +376,8 @@ grpc::Status GRPCClient::quit()
 grpc::Status GRPCClient::restart()
 {
     grpc::ClientContext ctx;
-    return this->logGRPCCallStatus(stub_->Restart(&ctx, empty, &empty), __FUNCTION__);
+    // restarting will shut down the gRPC service, to we may get an 'Unavailable' response for the call
+    return this->logGRPCCallStatus(stub_->Restart(&ctx, empty, &empty), __FUNCTION__, { StatusCode::UNAVAILABLE });
 }
 
 
@@ -882,11 +886,11 @@ void GRPCClient::logError(QString const &message)
 /// \param[in] status The status
 /// \param[in] callName The call name.
 //****************************************************************************************************************************************************
-grpc::Status GRPCClient::logGRPCCallStatus(Status const &status, QString const &callName)
+grpc::Status GRPCClient::logGRPCCallStatus(Status const &status, QString const &callName, QList<grpc::StatusCode> allowedErrors)
 {
     if (log_)
     {
-        if (status.ok())
+        if (status.ok() || allowedErrors.contains(status.error_code()))
             log_->debug(QString("%1()").arg(callName));
         else
             log_->error(QString("%1() FAILED").arg(callName));

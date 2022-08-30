@@ -42,6 +42,8 @@ func (b *Base) restartApp(crash bool) error {
 		args = forceLauncherFlag(args, b.launcher)
 	}
 
+	args = append(args, "--wait")
+
 	logrus.
 		WithField("command", b.command).
 		WithField("args", args).

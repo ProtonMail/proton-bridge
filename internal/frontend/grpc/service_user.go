@@ -124,7 +124,7 @@ func (s *Service) RemoveUser(_ context.Context, userID *wrapperspb.StringValue) 
 	return &emptypb.Empty{}, nil
 }
 
-func (s *Service) ConfigureUserAppleMail(_ context.Context, request *ConfigureAppleMailRequest) (*emptypb.Empty, error) {
+func (s *Service) ConfigureUserAppleMail(ctx context.Context, request *ConfigureAppleMailRequest) (*emptypb.Empty, error) {
 	s.log.WithField("UserID", request.UserID).WithField("Address", request.Address).Info("ConfigureUserAppleMail")
 
 	restart, err := s.bridge.ConfigureAppleMail(request.UserID, request.Address)
@@ -137,7 +137,7 @@ func (s *Service) ConfigureUserAppleMail(_ context.Context, request *ConfigureAp
 	if restart {
 		s.log.Warn("Detected Catalina or newer with bad SMTP SSL settings, now using SSL, bridge needs to restart")
 		time.Sleep(2 * time.Second)
-		s.restart()
+		return s.Restart(ctx, &emptypb.Empty{})
 	}
 
 	return &emptypb.Empty{}, nil

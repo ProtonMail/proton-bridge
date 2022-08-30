@@ -22,6 +22,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"time"
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
@@ -33,6 +34,9 @@ import (
 	"github.com/ProtonMail/proton-bridge/v2/internal/sentry"
 	"github.com/ProtonMail/proton-bridge/v2/internal/updater"
 	"github.com/ProtonMail/proton-bridge/v2/internal/versioner"
+	"github.com/bradenaw/juniper/xslices"
+	"github.com/elastic/go-sysinfo"
+	"github.com/elastic/go-sysinfo/types"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/sys/execabs"
@@ -46,6 +50,7 @@ const (
 
 	FlagCLI      = "--cli"
 	FlagLauncher = "--launcher"
+	FlagWait     = "--wait"
 )
 
 func main() { //nolint:funlen
@@ -92,7 +97,7 @@ func main() { //nolint:funlen
 
 	exeToLaunch := guiName
 	args := os.Args[1:]
-	if isCliMode(&args) {
+	if inCLIMode(args) {
 		exeToLaunch = exeName
 	}
 
@@ -108,6 +113,12 @@ func main() { //nolint:funlen
 		logrus.WithError(err).Fatal("Failed to determine path to launcher")
 	}
 
+	var wait bool
+	args, wait = findAndStrip(args, FlagWait)
+	if wait {
+		waitForProcessToFinish(exe)
+	}
+
 	cmd := execabs.Command(exe, appendLauncherPath(launcher, args)...) //nolint:gosec
 
 	cmd.Stdin = os.Stdin
@@ -115,7 +126,8 @@ func main() { //nolint:funlen
 	cmd.Stderr = os.Stderr
 
 	// On windows, if you use Run(), a terminal stays open; we don't want that.
-	if runtime.GOOS == "windows" {
+	if //goland:noinspection GoBoolExpressions
+	runtime.GOOS == "windows" {
 		err = cmd.Start()
 	} else {
 		err = cmd.Run()
@@ -152,14 +164,21 @@ func appendLauncherPath(path string, args []string) []string {
 	return res
 }
 
-func isCliMode(args *[]string) bool {
-	for _, v := range *args {
-		if v == FlagCLI {
-			return true
-		}
-	}
+func inCLIMode(args []string) bool {
+	return sliceContains(args, FlagCLI)
+}
 
-	return false
+// sliceContains checks if a value is present in a list.
+func sliceContains[T comparable](list []T, s T) bool {
+	return xslices.Any(list, func(arg T) bool { return arg == s })
+}
+
+// findAndStrip check if a value is present in s list and remove all occurrences of the value from this list.
+func findAndStrip[T comparable](slice []T, v T) (strippedList []T, found bool) {
+	strippedList = xslices.Filter(slice, func(value T) bool {
+		return value != v
+	})
+	return strippedList, len(strippedList) != len(slice)
 }
 
 func getPathToUpdatedExecutable(
@@ -221,4 +240,45 @@ func getFallbackExecutable(name string, versioner *versioner.Versioner) (string,
 	}
 
 	return versioner.GetExecutableInDirectory(name, filepath.Dir(launcher))
+}
+
+// waitForProcessToFinish waits until the process with the given path is finished.
+func waitForProcessToFinish(exePath string) {
+	for {
+		processes, err := sysinfo.Processes()
+		if err != nil {
+			logrus.WithError(err).Error("Could not determine running processes")
+			return
+		}
+
+		exeInfo, err := os.Stat(exePath)
+		if err != nil {
+			logrus.WithError(err).WithField("file", exeInfo).Error("Could not retrieve file info")
+			return
+		}
+
+		if xslices.Any(processes, func(process types.Process) bool {
+			info, err := process.Info()
+			if err != nil {
+				logrus.WithError(err).Error("Could not retrieve process info")
+			}
+
+			return sameFile(exeInfo, info.Exe)
+		}) {
+			logrus.Infof("Waiting for %v to finish.", exeInfo.Name())
+			time.Sleep(1 * time.Second)
+			continue
+		}
+
+		return
+	}
+}
+
+func sameFile(info os.FileInfo, path string) bool {
+	pathInfo, err := os.Stat(path)
+	if err != nil {
+		logrus.WithError(err).WithField("file", path).Error("Could not retrieve file info")
+	}
+
+	return os.SameFile(pathInfo, info)
 }

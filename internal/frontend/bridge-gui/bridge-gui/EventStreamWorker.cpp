@@ -31,8 +31,8 @@ using namespace bridgepp;
 EventStreamReader::EventStreamReader(QObject *parent)
     : Worker(parent)
 {
-    connect(this, &EventStreamReader::started, [&]() { app().log().debug("EventStreamReader started"); });
-    connect(this, &EventStreamReader::finished, [&]() { app().log().debug("EventStreamReader finished"); });
+    connect(this, &EventStreamReader::started, this, &EventStreamReader::onStarted);
+    connect(this, &EventStreamReader::finished, this, &EventStreamReader::onFinished);
     connect(this, &EventStreamReader::error, &app().log(), &Log::error);
 }
 
@@ -55,5 +55,29 @@ void EventStreamReader::run()
     catch (Exception const &e)
     {
         emit error(e.qwhat());
+    }
+}
+
+
+//****************************************************************************************************************************************************
+//
+//****************************************************************************************************************************************************
+void EventStreamReader::onStarted() const
+{
+    app().log().debug("EventStreamReader started");
+}
+
+
+//****************************************************************************************************************************************************
+//
+//****************************************************************************************************************************************************
+void EventStreamReader::onFinished() const
+{
+    app().log().debug("EventStreamReader finished");
+    if (!app().bridgeMonitor())
+    {
+        // no bridge monitor means we are in a debug environment, running in attached mode. Event stream has terminated, so bridge is shutting
+        // down. Because we're in attached mode, bridge-gui will not get notified that bridge is going down, so we shutdown manually here.
+        qApp->exit(EXIT_SUCCESS);
     }
 }

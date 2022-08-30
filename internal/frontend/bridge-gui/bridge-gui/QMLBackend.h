@@ -143,7 +143,7 @@ public slots: // slot for signals received from QML -> To be forwarded to Bridge
     void toggleAutostart(bool active);                                                                                                                //    _ func(makeItActive bool)                                             `slot:"toggleAutostart"`
     void toggleBeta(bool active);                                                                                                                     //    _ func(makeItActive bool)                                             `slot:"toggleBeta"`
     void changeColorScheme(QString const &scheme);                                                                                                    //    _ func(string)                                                        `slot:"changeColorScheme"`
-    void changeLocalCache(bool enable, QUrl const& path) { app().grpc().changeLocalCache(enable, path); }      //    _ func(enableDiskCache bool, diskCachePath core.QUrl)                 `slot:"changeLocalCache"`
+    void changeLocalCache(bool enable, QUrl const& path);                                                                                             //    _ func(enableDiskCache bool, diskCachePath core.QUrl)                 `slot:"changeLocalCache"`
     void login(QString const& username, QString const& password) { app().grpc().login(username, password);}               //    _ func(username, password string)                                     `slot:"login"`
     void login2FA(QString const& username, QString const& code) { app().grpc().login2FA(username, code);}              //    _ func(username, code string)                                         `slot:"login2FA"`
     void login2Password(QString const& username, QString const& password) { app().grpc().login2Passwords(username, password);}                                                                                                                          //    _ func(username, password string)                                     `slot:"login2Password"`
@@ -211,6 +211,7 @@ signals: // Signals received from the Go backend, to be forwarded to QML
     void bugReportSendSuccess();                                                                                                                      //    _ func()                  `signal:"bugReportSendSuccess"`
     void bugReportSendError();                                                                                                                        //    _ func()                  `signal:"bugReportSendError"`
     void showMainWindow();                                                                                                                            //    _ func()                  `signal:showMainWindow`
+    void hideMainWindow();
 
 private: // member functions
     void retrieveUserList(); ///< Retrieve the list of users via gRPC.

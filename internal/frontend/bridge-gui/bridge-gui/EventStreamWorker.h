@@ -39,6 +39,8 @@ public: // member functions
 
 public slots:
     void run() override; ///< Run the reader.
+    void onStarted() const; ///< Slot for the 'started' signal.
+    void onFinished() const; ///< Slot for the 'finished' signal.
 
 signals:
     void eventReceived(QString eventString); ///< signal for events.

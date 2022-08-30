@@ -229,6 +229,10 @@ void QMLBackend::restart()
     app().grpc().quit();
 }
 
+
+//****************************************************************************************************************************************************
+/// \param[in] launcher The path to the launcher.
+//****************************************************************************************************************************************************
 void QMLBackend::forceLauncher(QString launcher)
 {
     app().grpc().forceLauncher(launcher);
@@ -270,8 +274,9 @@ void QMLBackend::changeColorScheme(QString const &scheme)
 //****************************************************************************************************************************************************
 void QMLBackend::toggleUseSSLforSMTP(bool makeItActive)
 {
-    if (app().grpc().setUseSSLForSMTP(makeItActive).ok())
-        emit useSSLforSMTPChanged(makeItActive);
+    // if call succeed, app will restart. No need to emit a value change signal, because it will trigger a read-back via gRPC that will fail.
+    emit hideMainWindow();
+    app().grpc().setUseSSLForSMTP(makeItActive);
 }
 
 
@@ -281,11 +286,21 @@ void QMLBackend::toggleUseSSLforSMTP(bool makeItActive)
 //****************************************************************************************************************************************************
 void QMLBackend::changePorts(int imapPort, int smtpPort)
 {
-    if (app().grpc().changePorts(imapPort, smtpPort).ok())
-    {
-        emit portIMAPChanged(imapPort);
-        emit portSMTPChanged(smtpPort);
-    }
+    // if call succeed, app will restart. No need to emit a value change signal, because it will trigger a read-back via gRPC that will fail.
+    emit hideMainWindow();
+    app().grpc().changePorts(imapPort, smtpPort);
+}
+
+
+//****************************************************************************************************************************************************
+/// \param[in] enable Is cache enabled?
+/// \param[in] path The path of the cache.
+//****************************************************************************************************************************************************
+void QMLBackend::changeLocalCache(bool enable, QUrl const &path)
+{
+    // if call succeed, app will restart. No need to emit a value change signal, because it will trigger a read-back via gRPC that will fail.
+    emit hideMainWindow();
+    app().grpc().changeLocalCache(enable, path);
 }
 
 
@@ -353,3 +368,5 @@ void QMLBackend::onResetFinished()
     emit resetFinished();
     this->restart();
 }
+
+

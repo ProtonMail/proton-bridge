@@ -38,8 +38,6 @@ import (
 	"google.golang.org/protobuf/types/known/wrapperspb"
 )
 
-var ErrNotImplemented = status.Errorf(codes.Unimplemented, "Not implemented")
-
 func (s *Service) AddLogEntry(_ context.Context, request *AddLogEntryRequest) (*emptypb.Empty, error) {
 	entry := s.log
 	if len(request.Package) > 0 {
@@ -77,29 +75,28 @@ func (s *Service) GuiReady(context.Context, *emptypb.Empty) (*emptypb.Empty, err
 // Quit implement the Quit gRPC service call.
 func (s *Service) Quit(ctx context.Context, empty *emptypb.Empty) (*emptypb.Empty, error) {
 	s.log.Info("Quit")
-	var err error
-	if s.eventStreamCh != nil {
-		if _, err = s.StopEventStream(ctx, empty); err != nil {
-			s.log.WithError(err).Error("Quit failed.")
-		}
-	}
 
-	// The following call is launched as a goroutine, as it will wait for current calls to end, including this one.
-	go func() { s.grpcServer.GracefulStop() }()
-
-	return &emptypb.Empty{}, err
-}
-
-// Restart implement the Restart gRPC service call.
-func (s *Service) Restart(context.Context, *emptypb.Empty) (*emptypb.Empty, error) {
-	s.log.Info("Restart")
+	// Windows is notably slow at Quitting. We do it in a goroutine to speed things up a bit.
 	go func() {
-		defer s.panicHandler.HandlePanic()
+		var err error
+		if s.eventStreamCh != nil {
+			if _, err = s.StopEventStream(ctx, empty); err != nil {
+				s.log.WithError(err).Error("Quit failed.")
+			}
+		}
 
-		s.restart()
+		// The following call is launched as a goroutine, as it will wait for current calls to end, including this one.
+		s.grpcServer.GracefulStop()
 	}()
 
 	return &emptypb.Empty{}, nil
+}
+
+// Restart implement the Restart gRPC service call.
+func (s *Service) Restart(ctx context.Context, empty *emptypb.Empty) (*emptypb.Empty, error) {
+	s.log.Info("Restart")
+	s.restarter.SetToRestart()
+	return s.Quit(ctx, empty)
 }
 
 func (s *Service) ShowOnStartup(context.Context, *emptypb.Empty) (*wrapperspb.BoolValue, error) {
@@ -486,11 +483,12 @@ func (s *Service) DiskCachePath(context.Context, *emptypb.Empty) (*wrapperspb.St
 	return wrapperspb.String(s.bridge.Get(settings.CacheLocationKey)), nil
 }
 
-func (s *Service) ChangeLocalCache(_ context.Context, change *ChangeLocalCacheRequest) (*emptypb.Empty, error) {
+func (s *Service) ChangeLocalCache(ctx context.Context, change *ChangeLocalCacheRequest) (*emptypb.Empty, error) {
 	s.log.WithField("enableDiskCache", change.EnableDiskCache).
 		WithField("diskCachePath", change.DiskCachePath).
 		Info("DiskCachePath")
 
+	defer func() { _, _ = s.Restart(ctx, &emptypb.Empty{}) }()
 	defer func() { _ = s.SendEvent(NewCacheChangeLocalCacheFinishedEvent()) }()
 	defer func() { _ = s.SendEvent(NewIsCacheOnDiskEnabledChanged(s.bridge.GetBool(settings.CacheEnabledKey))) }()
 	defer func() { _ = s.SendEvent(NewDiskCachePathChanged(s.bridge.Get(settings.CacheCompressionKey))) }()
@@ -523,7 +521,6 @@ func (s *Service) ChangeLocalCache(_ context.Context, change *ChangeLocalCacheRe
 	}
 
 	_ = s.SendEvent(NewCacheLocationChangeSuccessEvent())
-	s.restart()
 
 	return &emptypb.Empty{}, nil
 }
@@ -542,19 +539,18 @@ func (s *Service) IsDoHEnabled(context.Context, *emptypb.Empty) (*wrapperspb.Boo
 	return wrapperspb.Bool(s.bridge.GetProxyAllowed()), nil
 }
 
-func (s *Service) SetUseSslForSmtp(_ context.Context, useSsl *wrapperspb.BoolValue) (*emptypb.Empty, error) { //nolint:revive,stylecheck
+func (s *Service) SetUseSslForSmtp(ctx context.Context, useSsl *wrapperspb.BoolValue) (*emptypb.Empty, error) { //nolint:revive,stylecheck
 	s.log.WithField("useSsl", useSsl.Value).Info("SetUseSslForSmtp")
 
 	if s.bridge.GetBool(settings.SMTPSSLKey) == useSsl.Value {
 		return &emptypb.Empty{}, nil
 	}
 
-	defer func() { _ = s.SendEvent(NewMailSettingsUseSslForSmtpFinishedEvent()) }()
-
 	s.bridge.SetBool(settings.SMTPSSLKey, useSsl.Value)
-	s.restart()
 
-	return &emptypb.Empty{}, nil
+	defer func() { _, _ = s.Restart(ctx, &emptypb.Empty{}) }()
+
+	return &emptypb.Empty{}, s.SendEvent(NewMailSettingsUseSslForSmtpFinishedEvent())
 }
 
 func (s *Service) UseSslForSmtp(context.Context, *emptypb.Empty) (*wrapperspb.BoolValue, error) { //nolint:revive,stylecheck
@@ -581,16 +577,15 @@ func (s *Service) SmtpPort(context.Context, *emptypb.Empty) (*wrapperspb.Int32Va
 	return wrapperspb.Int32(int32(s.bridge.GetInt(settings.SMTPPortKey))), nil
 }
 
-func (s *Service) ChangePorts(_ context.Context, ports *ChangePortsRequest) (*emptypb.Empty, error) {
+func (s *Service) ChangePorts(ctx context.Context, ports *ChangePortsRequest) (*emptypb.Empty, error) {
 	s.log.WithField("imapPort", ports.ImapPort).WithField("smtpPort", ports.SmtpPort).Info("ChangePorts")
-
-	defer func() { _ = s.SendEvent(NewMailSettingsChangePortFinishedEvent()) }()
 
 	s.bridge.SetInt(settings.IMAPPortKey, int(ports.ImapPort))
 	s.bridge.SetInt(settings.SMTPPortKey, int(ports.SmtpPort))
 
-	s.restart()
-	return &emptypb.Empty{}, nil
+	defer func() { _, _ = s.Restart(ctx, &emptypb.Empty{}) }()
+
+	return &emptypb.Empty{}, s.SendEvent(NewMailSettingsChangePortFinishedEvent())
 }
 
 func (s *Service) IsPortFree(_ context.Context, port *wrapperspb.Int32Value) (*wrapperspb.BoolValue, error) {

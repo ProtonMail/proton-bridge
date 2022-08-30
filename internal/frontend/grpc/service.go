@@ -20,6 +20,7 @@ package grpc
 //go:generate protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative bridge.proto
 
 import (
+	"context"
 	cryptotls "crypto/tls"
 	"net"
 	"strings"
@@ -39,6 +40,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 // Service is the RPC service struct.
@@ -223,7 +225,7 @@ func (s *Service) watchEvents() { // nolint:funlen
 		case <-secondInstanceCh:
 			_ = s.SendEvent(NewShowMainWindowEvent())
 		case <-restartBridgeCh:
-			s.restart()
+			_, _ = s.Restart(context.Background(), &emptypb.Empty{})
 		case address := <-addressChangedCh:
 			_ = s.SendEvent(NewMailAddressChangeEvent(address))
 		case address := <-addressChangedLogoutCh:
@@ -309,10 +311,6 @@ func (s *Service) waitForUserChangeDone(done <-chan string, userID string) {
 			return
 		}
 	}
-}
-
-func (s *Service) restart() {
-	s.restarter.SetToRestart()
 }
 
 func (s *Service) triggerReset() {

@@ -224,12 +224,14 @@ void closeBridgeApp()
 //****************************************************************************************************************************************************
 int main(int argc, char *argv[])
 {
+    // The application instance is needed to display system message boxes. As we may have to do it in the exception handler,
+    // application instance is create outside the try/catch clause.
+    if (QSysInfo::productType() != "windows")
+        QCoreApplication::setAttribute(Qt::AA_UseSoftwareOpenGL);
+    QApplication guiApp(argc, argv);
+
     try
     {
-        if (QSysInfo::productType() != "windows")
-            QCoreApplication::setAttribute(Qt::AA_UseSoftwareOpenGL);
-
-        QApplication guiApp(argc, argv);
         initQtApplication();
 
         Log &log = initLog();
@@ -302,6 +304,7 @@ int main(int argc, char *argv[])
     }
     catch (Exception const &e)
     {
+        QMessageBox::critical(nullptr, "Error", e.qwhat());
         QTextStream(stderr) << e.qwhat() << "\n";
         return EXIT_FAILURE;
     }
