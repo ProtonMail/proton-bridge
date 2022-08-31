@@ -88,7 +88,7 @@ func (api *FakePMAPI) listLabels(_ context.Context, labeType string, route strin
 	if err := api.checkAndRecordCall(GET, route+"/"+labeType, nil); err != nil {
 		return nil, err
 	}
-	return api.labels, nil
+	return append([]*pmapi.Label{}, api.labels...), nil
 }
 
 func (api *FakePMAPI) createLabel(_ context.Context, label *pmapi.Label, route string) (*pmapi.Label, error) {

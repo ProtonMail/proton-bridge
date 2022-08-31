@@ -54,8 +54,8 @@ type imapUser struct {
 	// UNSELECT, CLOSE, or LOGOUT.
 	appendExpungeLock sync.Mutex
 
-	addressID  string            // cached value for logs to avoid lock
-	mailboxIDs map[string]string // cached values for logs to avoid lock
+	addressID  string           // cached value for logs to avoid lock
+	mailboxIDs safeMapOfStrings // cached values for logs to avoid lock
 }
 
 // newIMAPUser returns struct implementing go-imap/user interface.
@@ -88,7 +88,7 @@ func newIMAPUser(
 
 		currentAddressLowercase: strings.ToLower(address),
 		addressID:               addressID,
-		mailboxIDs:              map[string]string{},
+		mailboxIDs:              newSafeMapOfString(),
 	}, err
 }
 
@@ -133,7 +133,7 @@ func (iu *imapUser) ListMailboxes(showOnlySubcribed bool) ([]goIMAPBackend.Mailb
 
 	mailboxes := []goIMAPBackend.Mailbox{}
 	for _, storeMailbox := range iu.storeAddress.ListMailboxes() {
-		iu.mailboxIDs[storeMailbox.Name()] = storeMailbox.LabelID()
+		iu.mailboxIDs.set(storeMailbox.Name(), storeMailbox.LabelID())
 
 		if storeMailbox.LabelID() == pmapi.AllMailLabel && !iu.backend.bridge.IsAllMailVisible() {
 			continue

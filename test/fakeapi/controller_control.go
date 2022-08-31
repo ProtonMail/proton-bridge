@@ -80,8 +80,10 @@ func (ctl *Controller) AddUserLabel(username string, label *pmapi.Label) error {
 		ctl.labelsByUsername[username] = []*pmapi.Label{}
 	}
 
+	userLabels := ctl.labelsByUsername[username]
+
 	labelName := getLabelNameWithoutPrefix(label.Name)
-	for _, existingLabel := range ctl.labelsByUsername[username] {
+	for _, existingLabel := range userLabels {
 		if existingLabel.Name == labelName {
 			return fmt.Errorf("folder or label %s already exists", label.Name)
 		}
@@ -97,7 +99,9 @@ func (ctl *Controller) AddUserLabel(username string, label *pmapi.Label) error {
 	if label.Path == "" {
 		label.Path = label.Name
 	}
-	ctl.labelsByUsername[username] = append(ctl.labelsByUsername[username], label)
+	userLabels = append(userLabels, label)
+
+	ctl.labelsByUsername[username] = userLabels
 	ctl.resetUsers()
 	return nil
 }

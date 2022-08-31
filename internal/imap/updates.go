@@ -235,7 +235,7 @@ func (iu *imapUpdates) getIDs(address, mailboxName string) (addressID, mailboxID
 	}
 	addressID = user.addressID
 
-	if v := user.mailboxIDs[mailboxName]; v != "" {
+	if v := user.mailboxIDs.get(mailboxName); v != "" {
 		mailboxID = v
 	}
 
