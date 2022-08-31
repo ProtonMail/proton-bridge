@@ -192,6 +192,7 @@ install-git-hooks:
 .PHONY: check-has-go check-build-essentials add-license change-copyright-year test bench coverage mocks lint-license lint-golang lint updates doc release-notes
 check-has-go:
 	@which go || (echo "Install Go-lang!" && exit 1)
+	go version
 
 
 check_is_installed=if ! which $(1) > /dev/null; then echo "Please install $(1)"; exit 1; fi
@@ -215,25 +216,8 @@ change-copyright-year:
 	./utils/missing_license.sh change-year
 
 test: gofiles
-	@# Listing packages manually to not run Qt folder (which needs to run qtsetup first) and integration tests.
 	go test -coverprofile=/tmp/coverage.out -run=${TESTRUN} \
-		./internal/api/... \
-		./internal/bridge/... \
-		./internal/config/... \
-		./internal/constants/... \
-		./internal/cookies/... \
-		./internal/crash/... \
-		./internal/events/... \
-		./internal/frontend/cli/... \
-		./internal/imap/... \
-		./internal/locations/... \
-		./internal/logging/... \
-		./internal/metrics/... \
-		./internal/smtp/... \
-		./internal/store/... \
-		./internal/updater/... \
-		./internal/users/... \
-		./internal/versioner/... \
+		./internal/...\
 		./pkg/...
 
 bench:

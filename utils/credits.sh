@@ -30,7 +30,7 @@ egrep $'^\t[^=>]*$' $LOCKFILE  | sed -r 's/\t([^ ]*) v.*/\1/g' > $TEMPFILE1
 egrep $'^\t.*=>.*v.*$' $LOCKFILE  | sed -r 's/^.*=> ([^ ]*)( v.*)?/\1/g' >> $TEMPFILE1
 cat $TEMPFILE1 | egrep -v 'therecipe/qt/internal|therecipe/env_.*_512|protontech' | sort | uniq > $TEMPFILE2
 # Add non vendor credits
-echo -e "\nFont Awesome 4.7.0\n\nQt 5.13 by Qt group\n" >> $TEMPFILE2
+echo -e "\nQt 6.3.1 by Qt group\n" >> $TEMPFILE2
 # join lines
 sed -i -e ':a' -e 'N' -e '$!ba' -e 's|\n|;|g' $TEMPFILE2
 

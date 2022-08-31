@@ -21,12 +21,11 @@ image: gitlab.protontech.ch:4567/go/bridge-internal:go18
 before_script:
   - eval $(ssh-agent -s)
   - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add - > /dev/null
-
   - mkdir -p .cache/bin
   - export PATH=$(pwd)/.cache/bin:$PATH
   - export GOPATH="$CI_PROJECT_DIR/.cache"
-
   - make install-dev-dependencies
+  - git checkout .
 
 cache:
   key: go18-mod
@@ -211,8 +210,9 @@ build-darwin-qa:
     - export GO111MODULE=on
     - export PATH="${GOPATH}/bin:${PATH}"
     - export MSYSTEM=
-    - export QT6DIR=/c/grrrQt/6.3.1/
-    - export PATH="${QT6DIR}/bin:${PATH}"
+    - export QT6DIR=/c/grrrQt/6.3.1/msvc2019_64
+    - export PATH=$PATH:${QT6DIR}/bin
+    - export PATH="/c/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin:$PATH"
   script:
     - make build
     - git diff && git diff-index --quiet HEAD
