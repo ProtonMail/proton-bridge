@@ -2,7 +2,7 @@
 
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
-## [Bridge 2.2.2] Nihonbashi
+## [Bridge 2.3.0] Nihonbashi
 
 ### Added
 * GODT-1739: Opt-out All Mail visibility in settings file.
@@ -16,6 +16,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-1754: Add logs for unilateral updates and SEARCH.
 
 ### Fixed
+* GODT-1840: Use Safe map for mailboxID cache.
 * GODT-1795: Fix automatic installation of profile for AppleMail on macOS Ventura beta (qt 5).
 * GODT-1833: Fix gobinsec cache.
 * GODT-1799: Fix dependency link.
