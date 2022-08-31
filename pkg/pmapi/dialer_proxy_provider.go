@@ -178,7 +178,7 @@ func (p *proxyProvider) canReach(url string) bool {
 	dialer := NewPinningTLSDialer(p.cfg, NewBasicTLSDialer(p.cfg))
 
 	pinger := resty.New().
-		SetHostURL(url).
+		SetBaseURL(url).
 		SetTimeout(p.canReachTimeout).
 		SetTransport(CreateTransportWithDialer(dialer))
 

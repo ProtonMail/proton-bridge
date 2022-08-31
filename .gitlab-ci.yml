@@ -204,14 +204,15 @@ build-darwin-qa:
 .build-windows-base:
   extends: .build-base
   before_script:
-    - export GOROOT=/c/Go
+    - export GOROOT=/c/Go1.18/
     - export PATH=$GOROOT/bin:$PATH
     - export GOARCH=amd64
-    - export GOPATH=~/go
+    - export GOPATH=~/go18
     - export GO111MODULE=on
-    - export PATH=$GOPATH/bin:$PATH
+    - export PATH="${GOPATH}/bin:${PATH}"
     - export MSYSTEM=
-    - export PATH=$PATH:/c/grrrQt/5.13.2/mingw73_64/bin
+    - export QT6DIR=/c/grrrQt/6.3.1/
+    - export PATH="${QT6DIR}/bin:${PATH}"
   script:
     - make build
     - git diff && git diff-index --quiet HEAD

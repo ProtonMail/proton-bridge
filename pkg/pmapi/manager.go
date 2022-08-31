@@ -61,7 +61,7 @@ func newManager(cfg Config) *manager {
 	m.proxyDialer = proxyDialer
 	m.rc.SetTransport(transport)
 
-	m.rc.SetHostURL(cfg.HostURL)
+	m.rc.SetBaseURL(cfg.HostURL)
 	m.rc.OnBeforeRequest(m.setHeaderValues)
 
 	// Any HTTP status code higher than 399 with JSON inside (and proper header)
