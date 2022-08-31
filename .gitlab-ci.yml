@@ -29,7 +29,7 @@ before_script:
   - make install-dev-dependencies
 
 cache:
-  key: go-mod
+  key: go18-mod
   paths:
     - .cache
   policy: pull
@@ -52,7 +52,7 @@ cache-push:
   script:
     - echo ""
   cache:
-    key: go-mod
+    key: go18-mod
     paths:
       - .cache
 
