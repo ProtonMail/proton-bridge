@@ -90,8 +90,6 @@ test-linux:
 test-windows:
   extends: .build-windows-base
   stage: test
-  only:
-    - branches
   script:
     - make test
 
@@ -111,26 +109,14 @@ dependency-updates:
 
 # Stage: BUILD
 
-build-qml:
-  tags:
-    - small
-  only:
-    - branches
-  stage: build
-  artifacts:
-    name: "bridge-qml-$CI_COMMIT_SHORT_SHA"
-    expire_in: 1 day
-    paths:
-      - bridge_qml.tgz
-  script:
-    - cd internal/frontend/qml
-    - tar -cvzf ../../../bridge_qml.tgz ./*
-
-
 .build-base:
   stage: build
-  only:
-    - manual
+  rules:
+    - if: $CI_JOB_NAME =~ /test/ && $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: always
+    - if: $CI_JOB_NAME =~ /qa/ && $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: always
+    - when: manual
   before_script:
     - mkdir -p .cache/bin
     - export PATH=$(pwd)/.cache/bin:$PATH
@@ -151,14 +137,12 @@ build-qml:
 
 build-linux:
   extends: .build-base
+  image: gitlab.protontech.ch:4567/go/bridge-internal:qt6
   artifacts:
     name: "bridge-linux-$CI_COMMIT_SHORT_SHA"
 
 build-linux-qa:
   extends: build-linux
-  only:
-    - web
-    - branches
   variables:
     BUILD_TAGS: "build_qa"
   artifacts:
@@ -191,9 +175,6 @@ build-darwin:
 
 build-darwin-qa:
   extends: .build-darwin-base
-  only:
-    - web
-    - branches
   variables:
     BUILD_TAGS: "build_qa"
   artifacts:
@@ -226,9 +207,6 @@ build-windows:
 
 build-windows-qa:
   extends: .build-windows-base
-  only:
-    - web
-    - branches
   variables:
     BUILD_TAGS: "build_qa"
   artifacts:
@@ -247,7 +225,6 @@ check-gobinsec:
   before_script:
     - mkdir build
     - tar -xzf bridge_linux_*.tgz -C build
-    - "echo api-key: \"${GOBINSEC_NVD_API_KEY}\" >> utils/gobinsec_conf.yml"
   script:
     - "[ ! -f ./gobinsec-cache.yml ] && wget bridgeteam.protontech.ch/bridgeteam/gobinsec-cache.yml"
     - cat ./gobinsec-cache.yml
