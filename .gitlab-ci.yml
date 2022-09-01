@@ -40,14 +40,39 @@ stages:
   - check
   - mirror
 
+
+.rules-branch-and-MR-always:
+  rules:
+    - if: $CI_COMMIT_BRANCH ||  $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: always
+      allow_failure: false
+    - when: never
+
+.rules-branch-and-MR-manual:
+  rules:
+    - if: $CI_COMMIT_BRANCH ||  $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: manual
+      allow_failure: true
+    - when: never
+
+.rules-branch-manual-MR-always:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: always
+      allow_failure: false
+    - if: $CI_COMMIT_BRANCH
+      when: manual
+      allow_failure: true
+    - when: never
+
 # Stage: CACHE
 
 # This will ensure latest dependency versions and updates the cache for
 # all other following jobs which only pull the cache.
 cache-push:
   stage: cache
-  only:
-    - branches
+  extends:
+    - .rules-branch-and-MR-always
   script:
     - echo ""
   cache:
@@ -59,8 +84,8 @@ cache-push:
 
 lint:
   stage: test
-  only:
-    - branches
+  extends:
+    - .rules-branch-and-MR-always
   before_script:
     - mkdir -p .cache/bin
     - export PATH=$(pwd)/.cache/bin:$PATH
@@ -72,8 +97,8 @@ lint:
 
 test-linux:
   stage: test
-  only:
-    - branches
+  extends:
+    - .rules-branch-manual-MR-always
   script:
     - apt-get -y install pass gnupg rng-tools
     # First have enough of entropy (cat /proc/sys/kernel/random/entropy_avail).
@@ -88,15 +113,18 @@ test-linux:
     - medium
 
 test-windows:
-  extends: .build-windows-base
+  extends:
+    - .build-windows-base
+    - .rules-branch-and-MR-manual   # GODT-1833: change to .rules-branch-and-MR-always once runner fixed
   stage: test
+  needs: []
   script:
     - make test
 
 test-integration:
   stage: test
-  only:
-    - branches
+  extends:
+    - .rules-branch-manual-MR-always
   script:
     - VERBOSITY=debug make -C test test
   tags:
@@ -111,12 +139,16 @@ dependency-updates:
 
 .build-base:
   stage: build
+  needs: ["lint"]
   rules:
-    - if: $CI_JOB_NAME =~ /test/ && $CI_PIPELINE_SOURCE == "merge_request_event"
+    # GODT-1833: use `=~ /qa/` after mac and windows runners are fixed
+    - if: $CI_JOB_NAME =~ /build-linux-qa/  && $CI_PIPELINE_SOURCE == "merge_request_event"
       when: always
-    - if: $CI_JOB_NAME =~ /qa/ && $CI_PIPELINE_SOURCE == "merge_request_event"
-      when: always
-    - when: manual
+      allow_failure: false
+    - if: $CI_COMMIT_BRANCH || $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: manual
+      allow_failure: true
+    - when: never
   before_script:
     - mkdir -p .cache/bin
     - export PATH=$(pwd)/.cache/bin:$PATH
@@ -138,6 +170,13 @@ dependency-updates:
 build-linux:
   extends: .build-base
   image: gitlab.protontech.ch:4567/go/bridge-internal:qt6
+  variables:
+    VCPKG_DEFAULT_BINARY_CACHE: ${CI_PROJECT_DIR}/.cache
+  cache:
+    key: linux-vcpkg
+    paths:
+      - .cache
+    when: 'always'
   artifacts:
     name: "bridge-linux-$CI_COMMIT_SHORT_SHA"
 
@@ -213,22 +252,26 @@ build-windows-qa:
     name: "bridge-windows-qa-$CI_COMMIT_SHORT_SHA"
 
 # Stage: CHECK
+
 check-gobinsec:
   stage: check
-  only:
-    - branches
+  needs: ["build-linux-qa"]
+  extends:
+    - .rules-branch-manual-MR-always
   cache:
-    key: gobinsec-cache
+    key: gobinsec-cache-v2
     paths:
-      - gobinsec-cache.yml
+      - ./gobinsec-cache-valid.yml
     policy: pull-push
   before_script:
     - mkdir build
     - tar -xzf bridge_linux_*.tgz -C build
+    - "[ ! -f ./gobinsec-cache-valid.yml ] && wget bridgeteam.protontech.ch/bridgeteam/gobinsec-cache-valid.yml"
+    - cp ./gobinsec-cache-valid.yml ./gobinsec-cache.yml
   script:
-    - "[ ! -f ./gobinsec-cache.yml ] && wget bridgeteam.protontech.ch/bridgeteam/gobinsec-cache.yml"
     - cat ./gobinsec-cache.yml
-    - gobinsec -wait -cache -config utils/gobinsec_conf.yml build/proton-bridge
+    - gobinsec -wait -cache -config utils/gobinsec_conf.yml build/bridge
+    - cp ./gobinsec-cache.yml ./gobinsec-cache-valid.yml   # Only update cache file if gobinsec succeeds
 
 
 
