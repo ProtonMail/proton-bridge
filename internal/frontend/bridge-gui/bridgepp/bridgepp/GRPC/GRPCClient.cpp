@@ -232,6 +232,26 @@ grpc::Status GRPCClient::setIsBetaEnabled(bool enabled)
 
 
 //****************************************************************************************************************************************************
+/// \param[out] outIsVisible The value for the property.
+/// \return The status for the gRPC call.
+//****************************************************************************************************************************************************
+grpc::Status GRPCClient::isAllMailVisible(bool &outIsVisible)
+{
+    return this->logGRPCCallStatus(this->getBool(&Bridge::Stub::IsAllMailVisible, outIsVisible), __FUNCTION__);
+}
+
+
+//****************************************************************************************************************************************************
+/// \param[in] isVisible The new value for the property.
+/// \return The status for the gRPC call.
+//****************************************************************************************************************************************************
+grpc::Status GRPCClient::setIsAllMailVisible(bool isVisible)
+{
+    return this->logGRPCCallStatus(this->setBool(&Bridge::Stub::SetIsAllMailVisible, isVisible), __FUNCTION__);
+}
+
+
+//****************************************************************************************************************************************************
 /// \param[out] outName The value for the property.
 /// \return The status for the gRPC call.
 //****************************************************************************************************************************************************

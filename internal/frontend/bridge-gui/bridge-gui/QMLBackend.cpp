@@ -258,6 +258,15 @@ void QMLBackend::toggleBeta(bool active)
     emit isBetaEnabledChanged(this->isBetaEnabled());
 }
 
+//****************************************************************************************************************************************************
+/// \param[in] active The new state for the All Mail visibility property.
+//****************************************************************************************************************************************************
+void QMLBackend::changeIsAllMailVisible(bool isVisible)
+{
+    app().grpc().setIsAllMailVisible(isVisible);
+    emit isAllMailVisibleChanged(this->isAllMailVisible());
+}
+
 
 //****************************************************************************************************************************************************
 /// \param[in] scheme the scheme name

@@ -181,6 +181,20 @@ func (s *Service) IsBetaEnabled(context.Context, *emptypb.Empty) (*wrapperspb.Bo
 	return wrapperspb.Bool(s.bridge.GetUpdateChannel() == updater.EarlyChannel), nil
 }
 
+func (s *Service) SetIsAllMailVisible(_ context.Context, isVisible *wrapperspb.BoolValue) (*emptypb.Empty, error) {
+	s.log.WithField("isVisible", isVisible.Value).Info("SetIsAllMailVisible")
+
+	s.bridge.SetIsAllMailVisible(isVisible.Value)
+
+	return &emptypb.Empty{}, nil
+}
+
+func (s *Service) IsAllMailVisible(context.Context, *emptypb.Empty) (*wrapperspb.BoolValue, error) {
+	s.log.Info("IsAllMailVisible")
+
+	return wrapperspb.Bool(s.bridge.IsAllMailVisible()), nil
+}
+
 func (s *Service) GoOs(context.Context, *emptypb.Empty) (*wrapperspb.StringValue, error) {
 	s.log.Info("GoOs") // TO-DO We can probably get rid of this and use QSysInfo::product name
 	return wrapperspb.String(runtime.GOOS), nil

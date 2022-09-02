@@ -854,7 +854,8 @@ QtObject {
 
         Connections {
             target: root
-            onAskChangeAllMailVisibility: {
+
+            function onAskChangeAllMailVisibility(isVisibleNow) {
                 root.changeAllMailVisibility.isVisibleNow = isVisibleNow
                 root.changeAllMailVisibility.active = true
             }
@@ -867,7 +868,7 @@ QtObject {
                 qsTr("Hide All Mail folder") :
                 qsTr("Show All Mail folder")
                 onTriggered: {
-                    root.backend.changeIsAllMailVisible(!root.changeAllMailVisibility.isVisibleNow)
+                    Backend.changeIsAllMailVisible(!root.changeAllMailVisibility.isVisibleNow)
                     root.changeAllMailVisibility.active = false
                 }
             },

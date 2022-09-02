@@ -163,8 +163,8 @@ SettingsView {
         text: qsTr("Show All Mail")
         description: qsTr("Choose to list the All Mail folder in your local client.")
         type: SettingsItem.Toggle
-        checked: root.backend.isAllMailVisible
-        onClicked: root.notifications.askChangeAllMailVisibility(root.backend.isAllMailVisible)
+        checked: Backend.isAllMailVisible
+        onClicked: root.notifications.askChangeAllMailVisibility(Backend.isAllMailVisible)
 
         Layout.fillWidth: true
     }

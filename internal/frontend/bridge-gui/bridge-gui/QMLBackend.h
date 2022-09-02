@@ -55,15 +55,16 @@ public: // Qt/QML properties. Note that the NOTIFY-er signal is required even fo
     Q_PROPERTY(QString goos READ goos NOTIFY goosChanged)                                                                                             //    _ string      `property:"goos"`
     Q_PROPERTY(QUrl logsPath READ logsPath NOTIFY logsPathChanged)                                                                                    //    _ core.QUrl   `property:"logsPath"`
     Q_PROPERTY(QUrl licensePath READ licensePath NOTIFY licensePathChanged)                                                                           //    _ core.QUrl   `property:"licensePath"`
-    Q_PROPERTY(QUrl releaseNotesLink READ releaseNotesLink NOTIFY releaseNotesLinkChanged)                                  //    _ core.QUrl   `property:"releaseNotesLink"`
+    Q_PROPERTY(QUrl releaseNotesLink READ releaseNotesLink NOTIFY releaseNotesLinkChanged)                                                            //    _ core.QUrl   `property:"releaseNotesLink"`
     Q_PROPERTY(QUrl dependencyLicensesLink READ dependencyLicensesLink NOTIFY dependencyLicensesLinkChanged)                                          //    _ core.QUrl   `property:"dependencyLicensesLink"`
-    Q_PROPERTY(QUrl landingPageLink READ landingPageLink NOTIFY landingPageLinkChanged)                                      //    _ core.QUrl   `property:"landingPageLink"`
+    Q_PROPERTY(QUrl landingPageLink READ landingPageLink NOTIFY landingPageLinkChanged)                                                               //    _ core.QUrl   `property:"landingPageLink"`
     Q_PROPERTY(QString appname READ appname NOTIFY appnameChanged)                                                                                    //    _ string      `property:"version"`
-    Q_PROPERTY(QString vendor READ vendor NOTIFY vendorChanged)                                                                                    //    _ string      `property:"version"`
+    Q_PROPERTY(QString vendor READ vendor NOTIFY vendorChanged)                                                                                       //    _ string      `property:"version"`
     Q_PROPERTY(QString version READ version NOTIFY versionChanged)                                                                                    //    _ string      `property:"version"`
     Q_PROPERTY(QString hostname READ hostname NOTIFY hostnameChanged)                                                                                 //    _ string      `property:"hostname"`
     Q_PROPERTY(bool isAutostartOn READ isAutostartOn NOTIFY isAutostartOnChanged)                                                                     //    _ bool        `property:"isAutostartOn"`
     Q_PROPERTY(bool isBetaEnabled READ isBetaEnabled NOTIFY isBetaEnabledChanged)                                                                     //    _ bool        `property:"isBetaEnabled"`
+    Q_PROPERTY(bool isAllMailVisible READ isAllMailVisible NOTIFY isAllMailVisibleChanged)                                                            //    _ bool        `property:"isAllMailVisible"`
     Q_PROPERTY(QString colorSchemeName READ colorSchemeName NOTIFY colorSchemeNameChanged)                                                            //    _ string      `property:"colorSchemeName"`
     Q_PROPERTY(bool isDiskCacheEnabled READ isDiskCacheEnabled NOTIFY isDiskCacheEnabledChanged)                                                      //    _ bool        `property:"isDiskCacheEnabled"`
     Q_PROPERTY(QUrl diskCachePath READ diskCachePath NOTIFY diskCachePathChanged)                                                                     //    _ core.QUrl   `property:"diskCachePath"`
@@ -95,6 +96,7 @@ public: // Qt/QML properties. Note that the NOTIFY-er signal is required even fo
     QString hostname() const { QString hostname; app().grpc().hostname(hostname); return hostname; }
     bool isAutostartOn() const { bool v; app().grpc().isAutostartOn(v); return v; };
     bool isBetaEnabled() const { bool v; app().grpc().isBetaEnabled(v); return v; }
+    bool isAllMailVisible() const { bool v; app().grpc().isAllMailVisible(v); return v; }
     QString colorSchemeName() const { QString name; app().grpc().colorSchemeName(name); return name; }
     bool isDiskCacheEnabled() const { bool enabled; app().grpc().isCacheOnDiskEnabled(enabled); return enabled;}
     QUrl diskCachePath() const { QUrl path; app().grpc().diskCachePath(path); return path; }
@@ -119,6 +121,7 @@ signals: // Signal used by the Qt property system. Many of them are unused but r
     void useSSLforSMTPChanged(bool value);
     void isAutomaticUpdateOnChanged(bool value);
     void isBetaEnabledChanged(bool value);
+    void isAllMailVisibleChanged(bool value);
     void colorSchemeNameChanged(QString const &scheme);
     void isDoHEnabledChanged(bool value);
     void logsPathChanged(QUrl const &path);
@@ -142,12 +145,13 @@ signals: // Signal used by the Qt property system. Many of them are unused but r
 public slots: // slot for signals received from QML -> To be forwarded to Bridge via RPC Client calls.
     void toggleAutostart(bool active);                                                                                                                //    _ func(makeItActive bool)                                             `slot:"toggleAutostart"`
     void toggleBeta(bool active);                                                                                                                     //    _ func(makeItActive bool)                                             `slot:"toggleBeta"`
+    void changeIsAllMailVisible(bool isVisible);                                                                                                      //    _ func(isVisible bool)                                                `slot:"changeIsAllMailVisible"`
     void changeColorScheme(QString const &scheme);                                                                                                    //    _ func(string)                                                        `slot:"changeColorScheme"`
     void changeLocalCache(bool enable, QUrl const& path);                                                                                             //    _ func(enableDiskCache bool, diskCachePath core.QUrl)                 `slot:"changeLocalCache"`
-    void login(QString const& username, QString const& password) { app().grpc().login(username, password);}               //    _ func(username, password string)                                     `slot:"login"`
-    void login2FA(QString const& username, QString const& code) { app().grpc().login2FA(username, code);}              //    _ func(username, code string)                                         `slot:"login2FA"`
-    void login2Password(QString const& username, QString const& password) { app().grpc().login2Passwords(username, password);}                                                                                                                          //    _ func(username, password string)                                     `slot:"login2Password"`
-    void loginAbort(QString const& username){ app().grpc().loginAbort(username);}                                    //    _ func(username string)                                               `slot:"loginAbort"`
+    void login(QString const& username, QString const& password) { app().grpc().login(username, password);}                                           //    _ func(username, password string)                                     `slot:"login"`
+    void login2FA(QString const& username, QString const& code) { app().grpc().login2FA(username, code);}                                             //    _ func(username, code string)                                         `slot:"login2FA"`
+    void login2Password(QString const& username, QString const& password) { app().grpc().login2Passwords(username, password);}                        //    _ func(username, password string)                                     `slot:"login2Password"`
+    void loginAbort(QString const& username){ app().grpc().loginAbort(username);}                                                                     //    _ func(username string)                                               `slot:"loginAbort"`
     void toggleUseSSLforSMTP(bool makeItActive);                                                                                                      //    _ func(makeItActive bool)                                             `slot:"toggleUseSSLforSMTP"`
     void changePorts(int imapPort, int smtpPort);                                                                                                     //    _ func(imapPort, smtpPort int)                                        `slot:"changePorts"`
     void toggleDoH(bool active);                                                                                                                      //    _ func(makeItActive bool)                                             `slot:"toggleDoH"`
@@ -162,7 +166,7 @@ public slots: // slot for signals received from QML -> To be forwarded to Bridge
     void installUpdate();                                                                                                                             //    _ func()                                                              `slot:"installUpdate"`
     void triggerReset();                                                                                                                              //    _ func()                                                              `slot:"triggerReset"`
     void reportBug(QString const &description, QString const& address, QString const &emailClient, bool includeLogs) {
-        app().grpc().reportBug(description, address, emailClient, includeLogs); }                                                  //    _ func(description, address, emailClient string, includeLogs bool)    `slot:"reportBug"`
+        app().grpc().reportBug(description, address, emailClient, includeLogs); }                                                                     //    _ func(description, address, emailClient string, includeLogs bool)    `slot:"reportBug"`
     void onResetFinished();
 
 signals: // Signals received from the Go backend, to be forwarded to QML
