@@ -125,6 +125,7 @@ Feature: IMAP fetch messages
       | 1:*   |
       | *     |
 
+  @ignore-live
   Scenario: Fetch of big mailbox
     Given there are 100 messages in mailbox "Folders/mbox" for "user"
     And there is IMAP client logged in as "user"
