@@ -49,6 +49,7 @@ const (
 	guiName    = "proton-bridge"
 
 	FlagCLI      = "--cli"
+	FlagCLIShort = "-c"
 	FlagLauncher = "--launcher"
 	FlagWait     = "--wait"
 )
@@ -165,7 +166,7 @@ func appendLauncherPath(path string, args []string) []string {
 }
 
 func inCLIMode(args []string) bool {
-	return sliceContains(args, FlagCLI)
+	return sliceContains(args, FlagCLI) || sliceContains(args, FlagCLIShort)
 }
 
 // sliceContains checks if a value is present in a list.
