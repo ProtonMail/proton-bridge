@@ -332,6 +332,7 @@ int main(int argc, char *argv[])
             else
             {
                 app().log().debug(QString("Monitoring Bridge PID : %1").arg(status.pid));
+
                 connection = QObject::connect(bridgeMonitor, &ProcessMonitor::processExited, [&](int returnCode) {
                         bridgeExited = true;// clazy:exclude=lambda-in-connect
                         qGuiApp->exit(returnCode);
@@ -341,7 +342,11 @@ int main(int argc, char *argv[])
 
         int result = 0;
         if (!startError)
+        {
+            // we succeed to run the bridge so we can be set as mainExecutable.
+            app().grpc().setMainExecutable(QString::fromLocal8Bit(argv[0]));
             result = QGuiApplication::exec();
+        }
 
         QObject::disconnect(connection);
         app().grpc().stopEventStreamReader();

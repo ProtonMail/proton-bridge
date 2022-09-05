@@ -404,6 +404,18 @@ grpc::Status GRPCClient::forceLauncher(QString const &launcher)
 
 
 //****************************************************************************************************************************************************
+/// \return The status for the gRPC call.
+//****************************************************************************************************************************************************
+grpc::Status GRPCClient::setMainExecutable(QString const &exe)
+{
+    grpc::ClientContext ctx;
+    StringValue s;
+    s.set_value(exe.toStdString());
+    return this->logGRPCCallStatus(stub_->SetMainExecutable(&ctx, s, &empty), __FUNCTION__);
+}
+
+
+//****************************************************************************************************************************************************
 /// \param[in] port The port to check.
 /// \param[out] outFree The result of the check.
 /// \return The status for the gRPC call.

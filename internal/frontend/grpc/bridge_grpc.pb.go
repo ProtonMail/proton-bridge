@@ -8,7 +8,6 @@ package grpc
 
 import (
 	context "context"
-
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -50,6 +49,7 @@ type BridgeClient interface {
 	CurrentEmailClient(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*wrapperspb.StringValue, error)
 	ReportBug(ctx context.Context, in *ReportBugRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	ForceLauncher(ctx context.Context, in *wrapperspb.StringValue, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	SetMainExecutable(ctx context.Context, in *wrapperspb.StringValue, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	// login
 	Login(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	Login2FA(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
@@ -308,6 +308,15 @@ func (c *bridgeClient) ReportBug(ctx context.Context, in *ReportBugRequest, opts
 func (c *bridgeClient) ForceLauncher(ctx context.Context, in *wrapperspb.StringValue, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	out := new(emptypb.Empty)
 	err := c.cc.Invoke(ctx, "/grpc.Bridge/ForceLauncher", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *bridgeClient) SetMainExecutable(ctx context.Context, in *wrapperspb.StringValue, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/grpc.Bridge/SetMainExecutable", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -645,6 +654,7 @@ type BridgeServer interface {
 	CurrentEmailClient(context.Context, *emptypb.Empty) (*wrapperspb.StringValue, error)
 	ReportBug(context.Context, *ReportBugRequest) (*emptypb.Empty, error)
 	ForceLauncher(context.Context, *wrapperspb.StringValue) (*emptypb.Empty, error)
+	SetMainExecutable(context.Context, *wrapperspb.StringValue) (*emptypb.Empty, error)
 	// login
 	Login(context.Context, *LoginRequest) (*emptypb.Empty, error)
 	Login2FA(context.Context, *LoginRequest) (*emptypb.Empty, error)
@@ -761,6 +771,9 @@ func (UnimplementedBridgeServer) ReportBug(context.Context, *ReportBugRequest) (
 }
 func (UnimplementedBridgeServer) ForceLauncher(context.Context, *wrapperspb.StringValue) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ForceLauncher not implemented")
+}
+func (UnimplementedBridgeServer) SetMainExecutable(context.Context, *wrapperspb.StringValue) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetMainExecutable not implemented")
 }
 func (UnimplementedBridgeServer) Login(context.Context, *LoginRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Login not implemented")
@@ -1296,6 +1309,24 @@ func _Bridge_ForceLauncher_Handler(srv interface{}, ctx context.Context, dec fun
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(BridgeServer).ForceLauncher(ctx, req.(*wrapperspb.StringValue))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Bridge_SetMainExecutable_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(wrapperspb.StringValue)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BridgeServer).SetMainExecutable(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/grpc.Bridge/SetMainExecutable",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BridgeServer).SetMainExecutable(ctx, req.(*wrapperspb.StringValue))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1963,6 +1994,10 @@ var Bridge_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ForceLauncher",
 			Handler:    _Bridge_ForceLauncher_Handler,
+		},
+		{
+			MethodName: "SetMainExecutable",
+			Handler:    _Bridge_SetMainExecutable_Handler,
 		},
 		{
 			MethodName: "Login",

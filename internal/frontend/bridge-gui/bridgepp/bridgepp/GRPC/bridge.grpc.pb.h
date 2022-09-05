@@ -226,6 +226,13 @@ class Bridge final {
     std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>> PrepareAsyncForceLauncher(::grpc::ClientContext* context, const ::google::protobuf::StringValue& request, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>>(PrepareAsyncForceLauncherRaw(context, request, cq));
     }
+    virtual ::grpc::Status SetMainExecutable(::grpc::ClientContext* context, const ::google::protobuf::StringValue& request, ::google::protobuf::Empty* response) = 0;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>> AsyncSetMainExecutable(::grpc::ClientContext* context, const ::google::protobuf::StringValue& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>>(AsyncSetMainExecutableRaw(context, request, cq));
+    }
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>> PrepareAsyncSetMainExecutable(::grpc::ClientContext* context, const ::google::protobuf::StringValue& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>>(PrepareAsyncSetMainExecutableRaw(context, request, cq));
+    }
     // login
     virtual ::grpc::Status Login(::grpc::ClientContext* context, const ::grpc::LoginRequest& request, ::google::protobuf::Empty* response) = 0;
     std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>> AsyncLogin(::grpc::ClientContext* context, const ::grpc::LoginRequest& request, ::grpc::CompletionQueue* cq) {
@@ -506,6 +513,8 @@ class Bridge final {
       virtual void ReportBug(::grpc::ClientContext* context, const ::grpc::ReportBugRequest* request, ::google::protobuf::Empty* response, ::grpc::ClientUnaryReactor* reactor) = 0;
       virtual void ForceLauncher(::grpc::ClientContext* context, const ::google::protobuf::StringValue* request, ::google::protobuf::Empty* response, std::function<void(::grpc::Status)>) = 0;
       virtual void ForceLauncher(::grpc::ClientContext* context, const ::google::protobuf::StringValue* request, ::google::protobuf::Empty* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      virtual void SetMainExecutable(::grpc::ClientContext* context, const ::google::protobuf::StringValue* request, ::google::protobuf::Empty* response, std::function<void(::grpc::Status)>) = 0;
+      virtual void SetMainExecutable(::grpc::ClientContext* context, const ::google::protobuf::StringValue* request, ::google::protobuf::Empty* response, ::grpc::ClientUnaryReactor* reactor) = 0;
       // login
       virtual void Login(::grpc::ClientContext* context, const ::grpc::LoginRequest* request, ::google::protobuf::Empty* response, std::function<void(::grpc::Status)>) = 0;
       virtual void Login(::grpc::ClientContext* context, const ::grpc::LoginRequest* request, ::google::protobuf::Empty* response, ::grpc::ClientUnaryReactor* reactor) = 0;
@@ -628,6 +637,8 @@ class Bridge final {
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>* PrepareAsyncReportBugRaw(::grpc::ClientContext* context, const ::grpc::ReportBugRequest& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>* AsyncForceLauncherRaw(::grpc::ClientContext* context, const ::google::protobuf::StringValue& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>* PrepareAsyncForceLauncherRaw(::grpc::ClientContext* context, const ::google::protobuf::StringValue& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>* AsyncSetMainExecutableRaw(::grpc::ClientContext* context, const ::google::protobuf::StringValue& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>* PrepareAsyncSetMainExecutableRaw(::grpc::ClientContext* context, const ::google::protobuf::StringValue& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>* AsyncLoginRaw(::grpc::ClientContext* context, const ::grpc::LoginRequest& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>* PrepareAsyncLoginRaw(::grpc::ClientContext* context, const ::grpc::LoginRequest& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>* AsyncLogin2FARaw(::grpc::ClientContext* context, const ::grpc::LoginRequest& request, ::grpc::CompletionQueue* cq) = 0;
@@ -862,6 +873,13 @@ class Bridge final {
     }
     std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>> PrepareAsyncForceLauncher(::grpc::ClientContext* context, const ::google::protobuf::StringValue& request, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>>(PrepareAsyncForceLauncherRaw(context, request, cq));
+    }
+    ::grpc::Status SetMainExecutable(::grpc::ClientContext* context, const ::google::protobuf::StringValue& request, ::google::protobuf::Empty* response) override;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>> AsyncSetMainExecutable(::grpc::ClientContext* context, const ::google::protobuf::StringValue& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>>(AsyncSetMainExecutableRaw(context, request, cq));
+    }
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>> PrepareAsyncSetMainExecutable(::grpc::ClientContext* context, const ::google::protobuf::StringValue& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>>(PrepareAsyncSetMainExecutableRaw(context, request, cq));
     }
     ::grpc::Status Login(::grpc::ClientContext* context, const ::grpc::LoginRequest& request, ::google::protobuf::Empty* response) override;
     std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>> AsyncLogin(::grpc::ClientContext* context, const ::grpc::LoginRequest& request, ::grpc::CompletionQueue* cq) {
@@ -1133,6 +1151,8 @@ class Bridge final {
       void ReportBug(::grpc::ClientContext* context, const ::grpc::ReportBugRequest* request, ::google::protobuf::Empty* response, ::grpc::ClientUnaryReactor* reactor) override;
       void ForceLauncher(::grpc::ClientContext* context, const ::google::protobuf::StringValue* request, ::google::protobuf::Empty* response, std::function<void(::grpc::Status)>) override;
       void ForceLauncher(::grpc::ClientContext* context, const ::google::protobuf::StringValue* request, ::google::protobuf::Empty* response, ::grpc::ClientUnaryReactor* reactor) override;
+      void SetMainExecutable(::grpc::ClientContext* context, const ::google::protobuf::StringValue* request, ::google::protobuf::Empty* response, std::function<void(::grpc::Status)>) override;
+      void SetMainExecutable(::grpc::ClientContext* context, const ::google::protobuf::StringValue* request, ::google::protobuf::Empty* response, ::grpc::ClientUnaryReactor* reactor) override;
       void Login(::grpc::ClientContext* context, const ::grpc::LoginRequest* request, ::google::protobuf::Empty* response, std::function<void(::grpc::Status)>) override;
       void Login(::grpc::ClientContext* context, const ::grpc::LoginRequest* request, ::google::protobuf::Empty* response, ::grpc::ClientUnaryReactor* reactor) override;
       void Login2FA(::grpc::ClientContext* context, const ::grpc::LoginRequest* request, ::google::protobuf::Empty* response, std::function<void(::grpc::Status)>) override;
@@ -1253,6 +1273,8 @@ class Bridge final {
     ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>* PrepareAsyncReportBugRaw(::grpc::ClientContext* context, const ::grpc::ReportBugRequest& request, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>* AsyncForceLauncherRaw(::grpc::ClientContext* context, const ::google::protobuf::StringValue& request, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>* PrepareAsyncForceLauncherRaw(::grpc::ClientContext* context, const ::google::protobuf::StringValue& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>* AsyncSetMainExecutableRaw(::grpc::ClientContext* context, const ::google::protobuf::StringValue& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>* PrepareAsyncSetMainExecutableRaw(::grpc::ClientContext* context, const ::google::protobuf::StringValue& request, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>* AsyncLoginRaw(::grpc::ClientContext* context, const ::grpc::LoginRequest& request, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>* PrepareAsyncLoginRaw(::grpc::ClientContext* context, const ::grpc::LoginRequest& request, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>* AsyncLogin2FARaw(::grpc::ClientContext* context, const ::grpc::LoginRequest& request, ::grpc::CompletionQueue* cq) override;
@@ -1340,6 +1362,7 @@ class Bridge final {
     const ::grpc::internal::RpcMethod rpcmethod_CurrentEmailClient_;
     const ::grpc::internal::RpcMethod rpcmethod_ReportBug_;
     const ::grpc::internal::RpcMethod rpcmethod_ForceLauncher_;
+    const ::grpc::internal::RpcMethod rpcmethod_SetMainExecutable_;
     const ::grpc::internal::RpcMethod rpcmethod_Login_;
     const ::grpc::internal::RpcMethod rpcmethod_Login2FA_;
     const ::grpc::internal::RpcMethod rpcmethod_Login2Passwords_;
@@ -1404,6 +1427,7 @@ class Bridge final {
     virtual ::grpc::Status CurrentEmailClient(::grpc::ServerContext* context, const ::google::protobuf::Empty* request, ::google::protobuf::StringValue* response);
     virtual ::grpc::Status ReportBug(::grpc::ServerContext* context, const ::grpc::ReportBugRequest* request, ::google::protobuf::Empty* response);
     virtual ::grpc::Status ForceLauncher(::grpc::ServerContext* context, const ::google::protobuf::StringValue* request, ::google::protobuf::Empty* response);
+    virtual ::grpc::Status SetMainExecutable(::grpc::ServerContext* context, const ::google::protobuf::StringValue* request, ::google::protobuf::Empty* response);
     // login
     virtual ::grpc::Status Login(::grpc::ServerContext* context, const ::grpc::LoginRequest* request, ::google::protobuf::Empty* response);
     virtual ::grpc::Status Login2FA(::grpc::ServerContext* context, const ::grpc::LoginRequest* request, ::google::protobuf::Empty* response);
@@ -1925,12 +1949,32 @@ class Bridge final {
     }
   };
   template <class BaseClass>
+  class WithAsyncMethod_SetMainExecutable : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithAsyncMethod_SetMainExecutable() {
+      ::grpc::Service::MarkMethodAsync(24);
+    }
+    ~WithAsyncMethod_SetMainExecutable() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status SetMainExecutable(::grpc::ServerContext* /*context*/, const ::google::protobuf::StringValue* /*request*/, ::google::protobuf::Empty* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    void RequestSetMainExecutable(::grpc::ServerContext* context, ::google::protobuf::StringValue* request, ::grpc::ServerAsyncResponseWriter< ::google::protobuf::Empty>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+      ::grpc::Service::RequestAsyncUnary(24, context, request, response, new_call_cq, notification_cq, tag);
+    }
+  };
+  template <class BaseClass>
   class WithAsyncMethod_Login : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithAsyncMethod_Login() {
-      ::grpc::Service::MarkMethodAsync(24);
+      ::grpc::Service::MarkMethodAsync(25);
     }
     ~WithAsyncMethod_Login() override {
       BaseClassMustBeDerivedFromService(this);
@@ -1941,7 +1985,7 @@ class Bridge final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestLogin(::grpc::ServerContext* context, ::grpc::LoginRequest* request, ::grpc::ServerAsyncResponseWriter< ::google::protobuf::Empty>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(24, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(25, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -1950,7 +1994,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithAsyncMethod_Login2FA() {
-      ::grpc::Service::MarkMethodAsync(25);
+      ::grpc::Service::MarkMethodAsync(26);
     }
     ~WithAsyncMethod_Login2FA() override {
       BaseClassMustBeDerivedFromService(this);
@@ -1961,7 +2005,7 @@ class Bridge final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestLogin2FA(::grpc::ServerContext* context, ::grpc::LoginRequest* request, ::grpc::ServerAsyncResponseWriter< ::google::protobuf::Empty>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(25, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(26, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -1970,7 +2014,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithAsyncMethod_Login2Passwords() {
-      ::grpc::Service::MarkMethodAsync(26);
+      ::grpc::Service::MarkMethodAsync(27);
     }
     ~WithAsyncMethod_Login2Passwords() override {
       BaseClassMustBeDerivedFromService(this);
@@ -1981,7 +2025,7 @@ class Bridge final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestLogin2Passwords(::grpc::ServerContext* context, ::grpc::LoginRequest* request, ::grpc::ServerAsyncResponseWriter< ::google::protobuf::Empty>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(26, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(27, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -1990,7 +2034,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithAsyncMethod_LoginAbort() {
-      ::grpc::Service::MarkMethodAsync(27);
+      ::grpc::Service::MarkMethodAsync(28);
     }
     ~WithAsyncMethod_LoginAbort() override {
       BaseClassMustBeDerivedFromService(this);
@@ -2001,7 +2045,7 @@ class Bridge final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestLoginAbort(::grpc::ServerContext* context, ::grpc::LoginAbortRequest* request, ::grpc::ServerAsyncResponseWriter< ::google::protobuf::Empty>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(27, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(28, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -2010,7 +2054,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithAsyncMethod_CheckUpdate() {
-      ::grpc::Service::MarkMethodAsync(28);
+      ::grpc::Service::MarkMethodAsync(29);
     }
     ~WithAsyncMethod_CheckUpdate() override {
       BaseClassMustBeDerivedFromService(this);
@@ -2021,7 +2065,7 @@ class Bridge final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestCheckUpdate(::grpc::ServerContext* context, ::google::protobuf::Empty* request, ::grpc::ServerAsyncResponseWriter< ::google::protobuf::Empty>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(28, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(29, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -2030,7 +2074,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithAsyncMethod_InstallUpdate() {
-      ::grpc::Service::MarkMethodAsync(29);
+      ::grpc::Service::MarkMethodAsync(30);
     }
     ~WithAsyncMethod_InstallUpdate() override {
       BaseClassMustBeDerivedFromService(this);
@@ -2041,7 +2085,7 @@ class Bridge final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestInstallUpdate(::grpc::ServerContext* context, ::google::protobuf::Empty* request, ::grpc::ServerAsyncResponseWriter< ::google::protobuf::Empty>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(29, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(30, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -2050,7 +2094,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithAsyncMethod_SetIsAutomaticUpdateOn() {
-      ::grpc::Service::MarkMethodAsync(30);
+      ::grpc::Service::MarkMethodAsync(31);
     }
     ~WithAsyncMethod_SetIsAutomaticUpdateOn() override {
       BaseClassMustBeDerivedFromService(this);
@@ -2061,7 +2105,7 @@ class Bridge final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestSetIsAutomaticUpdateOn(::grpc::ServerContext* context, ::google::protobuf::BoolValue* request, ::grpc::ServerAsyncResponseWriter< ::google::protobuf::Empty>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(30, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(31, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -2070,7 +2114,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithAsyncMethod_IsAutomaticUpdateOn() {
-      ::grpc::Service::MarkMethodAsync(31);
+      ::grpc::Service::MarkMethodAsync(32);
     }
     ~WithAsyncMethod_IsAutomaticUpdateOn() override {
       BaseClassMustBeDerivedFromService(this);
@@ -2081,7 +2125,7 @@ class Bridge final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestIsAutomaticUpdateOn(::grpc::ServerContext* context, ::google::protobuf::Empty* request, ::grpc::ServerAsyncResponseWriter< ::google::protobuf::BoolValue>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(31, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(32, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -2090,7 +2134,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithAsyncMethod_IsCacheOnDiskEnabled() {
-      ::grpc::Service::MarkMethodAsync(32);
+      ::grpc::Service::MarkMethodAsync(33);
     }
     ~WithAsyncMethod_IsCacheOnDiskEnabled() override {
       BaseClassMustBeDerivedFromService(this);
@@ -2101,7 +2145,7 @@ class Bridge final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestIsCacheOnDiskEnabled(::grpc::ServerContext* context, ::google::protobuf::Empty* request, ::grpc::ServerAsyncResponseWriter< ::google::protobuf::BoolValue>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(32, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(33, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -2110,7 +2154,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithAsyncMethod_DiskCachePath() {
-      ::grpc::Service::MarkMethodAsync(33);
+      ::grpc::Service::MarkMethodAsync(34);
     }
     ~WithAsyncMethod_DiskCachePath() override {
       BaseClassMustBeDerivedFromService(this);
@@ -2121,7 +2165,7 @@ class Bridge final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestDiskCachePath(::grpc::ServerContext* context, ::google::protobuf::Empty* request, ::grpc::ServerAsyncResponseWriter< ::google::protobuf::StringValue>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(33, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(34, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -2130,7 +2174,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithAsyncMethod_ChangeLocalCache() {
-      ::grpc::Service::MarkMethodAsync(34);
+      ::grpc::Service::MarkMethodAsync(35);
     }
     ~WithAsyncMethod_ChangeLocalCache() override {
       BaseClassMustBeDerivedFromService(this);
@@ -2141,7 +2185,7 @@ class Bridge final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestChangeLocalCache(::grpc::ServerContext* context, ::grpc::ChangeLocalCacheRequest* request, ::grpc::ServerAsyncResponseWriter< ::google::protobuf::Empty>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(34, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(35, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -2150,7 +2194,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithAsyncMethod_SetIsDoHEnabled() {
-      ::grpc::Service::MarkMethodAsync(35);
+      ::grpc::Service::MarkMethodAsync(36);
     }
     ~WithAsyncMethod_SetIsDoHEnabled() override {
       BaseClassMustBeDerivedFromService(this);
@@ -2161,7 +2205,7 @@ class Bridge final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestSetIsDoHEnabled(::grpc::ServerContext* context, ::google::protobuf::BoolValue* request, ::grpc::ServerAsyncResponseWriter< ::google::protobuf::Empty>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(35, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(36, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -2170,7 +2214,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithAsyncMethod_IsDoHEnabled() {
-      ::grpc::Service::MarkMethodAsync(36);
+      ::grpc::Service::MarkMethodAsync(37);
     }
     ~WithAsyncMethod_IsDoHEnabled() override {
       BaseClassMustBeDerivedFromService(this);
@@ -2181,7 +2225,7 @@ class Bridge final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestIsDoHEnabled(::grpc::ServerContext* context, ::google::protobuf::Empty* request, ::grpc::ServerAsyncResponseWriter< ::google::protobuf::BoolValue>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(36, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(37, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -2190,7 +2234,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithAsyncMethod_SetUseSslForSmtp() {
-      ::grpc::Service::MarkMethodAsync(37);
+      ::grpc::Service::MarkMethodAsync(38);
     }
     ~WithAsyncMethod_SetUseSslForSmtp() override {
       BaseClassMustBeDerivedFromService(this);
@@ -2201,7 +2245,7 @@ class Bridge final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestSetUseSslForSmtp(::grpc::ServerContext* context, ::google::protobuf::BoolValue* request, ::grpc::ServerAsyncResponseWriter< ::google::protobuf::Empty>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(37, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(38, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -2210,7 +2254,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithAsyncMethod_UseSslForSmtp() {
-      ::grpc::Service::MarkMethodAsync(38);
+      ::grpc::Service::MarkMethodAsync(39);
     }
     ~WithAsyncMethod_UseSslForSmtp() override {
       BaseClassMustBeDerivedFromService(this);
@@ -2221,7 +2265,7 @@ class Bridge final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestUseSslForSmtp(::grpc::ServerContext* context, ::google::protobuf::Empty* request, ::grpc::ServerAsyncResponseWriter< ::google::protobuf::BoolValue>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(38, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(39, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -2230,7 +2274,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithAsyncMethod_Hostname() {
-      ::grpc::Service::MarkMethodAsync(39);
+      ::grpc::Service::MarkMethodAsync(40);
     }
     ~WithAsyncMethod_Hostname() override {
       BaseClassMustBeDerivedFromService(this);
@@ -2241,7 +2285,7 @@ class Bridge final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestHostname(::grpc::ServerContext* context, ::google::protobuf::Empty* request, ::grpc::ServerAsyncResponseWriter< ::google::protobuf::StringValue>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(39, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(40, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -2250,7 +2294,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithAsyncMethod_ImapPort() {
-      ::grpc::Service::MarkMethodAsync(40);
+      ::grpc::Service::MarkMethodAsync(41);
     }
     ~WithAsyncMethod_ImapPort() override {
       BaseClassMustBeDerivedFromService(this);
@@ -2261,7 +2305,7 @@ class Bridge final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestImapPort(::grpc::ServerContext* context, ::google::protobuf::Empty* request, ::grpc::ServerAsyncResponseWriter< ::google::protobuf::Int32Value>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(40, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(41, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -2270,7 +2314,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithAsyncMethod_SmtpPort() {
-      ::grpc::Service::MarkMethodAsync(41);
+      ::grpc::Service::MarkMethodAsync(42);
     }
     ~WithAsyncMethod_SmtpPort() override {
       BaseClassMustBeDerivedFromService(this);
@@ -2281,7 +2325,7 @@ class Bridge final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestSmtpPort(::grpc::ServerContext* context, ::google::protobuf::Empty* request, ::grpc::ServerAsyncResponseWriter< ::google::protobuf::Int32Value>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(41, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(42, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -2290,7 +2334,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithAsyncMethod_ChangePorts() {
-      ::grpc::Service::MarkMethodAsync(42);
+      ::grpc::Service::MarkMethodAsync(43);
     }
     ~WithAsyncMethod_ChangePorts() override {
       BaseClassMustBeDerivedFromService(this);
@@ -2301,7 +2345,7 @@ class Bridge final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestChangePorts(::grpc::ServerContext* context, ::grpc::ChangePortsRequest* request, ::grpc::ServerAsyncResponseWriter< ::google::protobuf::Empty>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(42, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(43, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -2310,7 +2354,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithAsyncMethod_IsPortFree() {
-      ::grpc::Service::MarkMethodAsync(43);
+      ::grpc::Service::MarkMethodAsync(44);
     }
     ~WithAsyncMethod_IsPortFree() override {
       BaseClassMustBeDerivedFromService(this);
@@ -2321,7 +2365,7 @@ class Bridge final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestIsPortFree(::grpc::ServerContext* context, ::google::protobuf::Int32Value* request, ::grpc::ServerAsyncResponseWriter< ::google::protobuf::BoolValue>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(43, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(44, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -2330,7 +2374,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithAsyncMethod_AvailableKeychains() {
-      ::grpc::Service::MarkMethodAsync(44);
+      ::grpc::Service::MarkMethodAsync(45);
     }
     ~WithAsyncMethod_AvailableKeychains() override {
       BaseClassMustBeDerivedFromService(this);
@@ -2341,7 +2385,7 @@ class Bridge final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestAvailableKeychains(::grpc::ServerContext* context, ::google::protobuf::Empty* request, ::grpc::ServerAsyncResponseWriter< ::grpc::AvailableKeychainsResponse>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(44, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(45, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -2350,7 +2394,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithAsyncMethod_SetCurrentKeychain() {
-      ::grpc::Service::MarkMethodAsync(45);
+      ::grpc::Service::MarkMethodAsync(46);
     }
     ~WithAsyncMethod_SetCurrentKeychain() override {
       BaseClassMustBeDerivedFromService(this);
@@ -2361,7 +2405,7 @@ class Bridge final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestSetCurrentKeychain(::grpc::ServerContext* context, ::google::protobuf::StringValue* request, ::grpc::ServerAsyncResponseWriter< ::google::protobuf::Empty>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(45, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(46, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -2370,7 +2414,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithAsyncMethod_CurrentKeychain() {
-      ::grpc::Service::MarkMethodAsync(46);
+      ::grpc::Service::MarkMethodAsync(47);
     }
     ~WithAsyncMethod_CurrentKeychain() override {
       BaseClassMustBeDerivedFromService(this);
@@ -2381,7 +2425,7 @@ class Bridge final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestCurrentKeychain(::grpc::ServerContext* context, ::google::protobuf::Empty* request, ::grpc::ServerAsyncResponseWriter< ::google::protobuf::StringValue>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(46, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(47, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -2390,7 +2434,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithAsyncMethod_GetUserList() {
-      ::grpc::Service::MarkMethodAsync(47);
+      ::grpc::Service::MarkMethodAsync(48);
     }
     ~WithAsyncMethod_GetUserList() override {
       BaseClassMustBeDerivedFromService(this);
@@ -2401,7 +2445,7 @@ class Bridge final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestGetUserList(::grpc::ServerContext* context, ::google::protobuf::Empty* request, ::grpc::ServerAsyncResponseWriter< ::grpc::UserListResponse>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(47, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(48, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -2410,7 +2454,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithAsyncMethod_GetUser() {
-      ::grpc::Service::MarkMethodAsync(48);
+      ::grpc::Service::MarkMethodAsync(49);
     }
     ~WithAsyncMethod_GetUser() override {
       BaseClassMustBeDerivedFromService(this);
@@ -2421,7 +2465,7 @@ class Bridge final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestGetUser(::grpc::ServerContext* context, ::google::protobuf::StringValue* request, ::grpc::ServerAsyncResponseWriter< ::grpc::User>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(48, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(49, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -2430,7 +2474,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithAsyncMethod_SetUserSplitMode() {
-      ::grpc::Service::MarkMethodAsync(49);
+      ::grpc::Service::MarkMethodAsync(50);
     }
     ~WithAsyncMethod_SetUserSplitMode() override {
       BaseClassMustBeDerivedFromService(this);
@@ -2441,7 +2485,7 @@ class Bridge final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestSetUserSplitMode(::grpc::ServerContext* context, ::grpc::UserSplitModeRequest* request, ::grpc::ServerAsyncResponseWriter< ::google::protobuf::Empty>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(49, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(50, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -2450,7 +2494,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithAsyncMethod_LogoutUser() {
-      ::grpc::Service::MarkMethodAsync(50);
+      ::grpc::Service::MarkMethodAsync(51);
     }
     ~WithAsyncMethod_LogoutUser() override {
       BaseClassMustBeDerivedFromService(this);
@@ -2461,7 +2505,7 @@ class Bridge final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestLogoutUser(::grpc::ServerContext* context, ::google::protobuf::StringValue* request, ::grpc::ServerAsyncResponseWriter< ::google::protobuf::Empty>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(50, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(51, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -2470,7 +2514,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithAsyncMethod_RemoveUser() {
-      ::grpc::Service::MarkMethodAsync(51);
+      ::grpc::Service::MarkMethodAsync(52);
     }
     ~WithAsyncMethod_RemoveUser() override {
       BaseClassMustBeDerivedFromService(this);
@@ -2481,7 +2525,7 @@ class Bridge final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestRemoveUser(::grpc::ServerContext* context, ::google::protobuf::StringValue* request, ::grpc::ServerAsyncResponseWriter< ::google::protobuf::Empty>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(51, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(52, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -2490,7 +2534,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithAsyncMethod_ConfigureUserAppleMail() {
-      ::grpc::Service::MarkMethodAsync(52);
+      ::grpc::Service::MarkMethodAsync(53);
     }
     ~WithAsyncMethod_ConfigureUserAppleMail() override {
       BaseClassMustBeDerivedFromService(this);
@@ -2501,7 +2545,7 @@ class Bridge final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestConfigureUserAppleMail(::grpc::ServerContext* context, ::grpc::ConfigureAppleMailRequest* request, ::grpc::ServerAsyncResponseWriter< ::google::protobuf::Empty>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(52, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(53, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -2510,7 +2554,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithAsyncMethod_RunEventStream() {
-      ::grpc::Service::MarkMethodAsync(53);
+      ::grpc::Service::MarkMethodAsync(54);
     }
     ~WithAsyncMethod_RunEventStream() override {
       BaseClassMustBeDerivedFromService(this);
@@ -2521,7 +2565,7 @@ class Bridge final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestRunEventStream(::grpc::ServerContext* context, ::grpc::EventStreamRequest* request, ::grpc::ServerAsyncWriter< ::grpc::StreamEvent>* writer, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncServerStreaming(53, context, request, writer, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncServerStreaming(54, context, request, writer, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -2530,7 +2574,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithAsyncMethod_StopEventStream() {
-      ::grpc::Service::MarkMethodAsync(54);
+      ::grpc::Service::MarkMethodAsync(55);
     }
     ~WithAsyncMethod_StopEventStream() override {
       BaseClassMustBeDerivedFromService(this);
@@ -2541,10 +2585,10 @@ class Bridge final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestStopEventStream(::grpc::ServerContext* context, ::google::protobuf::Empty* request, ::grpc::ServerAsyncResponseWriter< ::google::protobuf::Empty>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(54, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(55, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
-  typedef WithAsyncMethod_AddLogEntry<WithAsyncMethod_GuiReady<WithAsyncMethod_Quit<WithAsyncMethod_Restart<WithAsyncMethod_ShowOnStartup<WithAsyncMethod_ShowSplashScreen<WithAsyncMethod_IsFirstGuiStart<WithAsyncMethod_SetIsAutostartOn<WithAsyncMethod_IsAutostartOn<WithAsyncMethod_SetIsBetaEnabled<WithAsyncMethod_IsBetaEnabled<WithAsyncMethod_GoOs<WithAsyncMethod_TriggerReset<WithAsyncMethod_Version<WithAsyncMethod_LogsPath<WithAsyncMethod_LicensePath<WithAsyncMethod_ReleaseNotesPageLink<WithAsyncMethod_DependencyLicensesLink<WithAsyncMethod_LandingPageLink<WithAsyncMethod_SetColorSchemeName<WithAsyncMethod_ColorSchemeName<WithAsyncMethod_CurrentEmailClient<WithAsyncMethod_ReportBug<WithAsyncMethod_ForceLauncher<WithAsyncMethod_Login<WithAsyncMethod_Login2FA<WithAsyncMethod_Login2Passwords<WithAsyncMethod_LoginAbort<WithAsyncMethod_CheckUpdate<WithAsyncMethod_InstallUpdate<WithAsyncMethod_SetIsAutomaticUpdateOn<WithAsyncMethod_IsAutomaticUpdateOn<WithAsyncMethod_IsCacheOnDiskEnabled<WithAsyncMethod_DiskCachePath<WithAsyncMethod_ChangeLocalCache<WithAsyncMethod_SetIsDoHEnabled<WithAsyncMethod_IsDoHEnabled<WithAsyncMethod_SetUseSslForSmtp<WithAsyncMethod_UseSslForSmtp<WithAsyncMethod_Hostname<WithAsyncMethod_ImapPort<WithAsyncMethod_SmtpPort<WithAsyncMethod_ChangePorts<WithAsyncMethod_IsPortFree<WithAsyncMethod_AvailableKeychains<WithAsyncMethod_SetCurrentKeychain<WithAsyncMethod_CurrentKeychain<WithAsyncMethod_GetUserList<WithAsyncMethod_GetUser<WithAsyncMethod_SetUserSplitMode<WithAsyncMethod_LogoutUser<WithAsyncMethod_RemoveUser<WithAsyncMethod_ConfigureUserAppleMail<WithAsyncMethod_RunEventStream<WithAsyncMethod_StopEventStream<Service > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > AsyncService;
+  typedef WithAsyncMethod_AddLogEntry<WithAsyncMethod_GuiReady<WithAsyncMethod_Quit<WithAsyncMethod_Restart<WithAsyncMethod_ShowOnStartup<WithAsyncMethod_ShowSplashScreen<WithAsyncMethod_IsFirstGuiStart<WithAsyncMethod_SetIsAutostartOn<WithAsyncMethod_IsAutostartOn<WithAsyncMethod_SetIsBetaEnabled<WithAsyncMethod_IsBetaEnabled<WithAsyncMethod_GoOs<WithAsyncMethod_TriggerReset<WithAsyncMethod_Version<WithAsyncMethod_LogsPath<WithAsyncMethod_LicensePath<WithAsyncMethod_ReleaseNotesPageLink<WithAsyncMethod_DependencyLicensesLink<WithAsyncMethod_LandingPageLink<WithAsyncMethod_SetColorSchemeName<WithAsyncMethod_ColorSchemeName<WithAsyncMethod_CurrentEmailClient<WithAsyncMethod_ReportBug<WithAsyncMethod_ForceLauncher<WithAsyncMethod_SetMainExecutable<WithAsyncMethod_Login<WithAsyncMethod_Login2FA<WithAsyncMethod_Login2Passwords<WithAsyncMethod_LoginAbort<WithAsyncMethod_CheckUpdate<WithAsyncMethod_InstallUpdate<WithAsyncMethod_SetIsAutomaticUpdateOn<WithAsyncMethod_IsAutomaticUpdateOn<WithAsyncMethod_IsCacheOnDiskEnabled<WithAsyncMethod_DiskCachePath<WithAsyncMethod_ChangeLocalCache<WithAsyncMethod_SetIsDoHEnabled<WithAsyncMethod_IsDoHEnabled<WithAsyncMethod_SetUseSslForSmtp<WithAsyncMethod_UseSslForSmtp<WithAsyncMethod_Hostname<WithAsyncMethod_ImapPort<WithAsyncMethod_SmtpPort<WithAsyncMethod_ChangePorts<WithAsyncMethod_IsPortFree<WithAsyncMethod_AvailableKeychains<WithAsyncMethod_SetCurrentKeychain<WithAsyncMethod_CurrentKeychain<WithAsyncMethod_GetUserList<WithAsyncMethod_GetUser<WithAsyncMethod_SetUserSplitMode<WithAsyncMethod_LogoutUser<WithAsyncMethod_RemoveUser<WithAsyncMethod_ConfigureUserAppleMail<WithAsyncMethod_RunEventStream<WithAsyncMethod_StopEventStream<Service > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > AsyncService;
   template <class BaseClass>
   class WithCallbackMethod_AddLogEntry : public BaseClass {
    private:
@@ -3194,18 +3238,45 @@ class Bridge final {
       ::grpc::CallbackServerContext* /*context*/, const ::google::protobuf::StringValue* /*request*/, ::google::protobuf::Empty* /*response*/)  { return nullptr; }
   };
   template <class BaseClass>
+  class WithCallbackMethod_SetMainExecutable : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithCallbackMethod_SetMainExecutable() {
+      ::grpc::Service::MarkMethodCallback(24,
+          new ::grpc::internal::CallbackUnaryHandler< ::google::protobuf::StringValue, ::google::protobuf::Empty>(
+            [this](
+                   ::grpc::CallbackServerContext* context, const ::google::protobuf::StringValue* request, ::google::protobuf::Empty* response) { return this->SetMainExecutable(context, request, response); }));}
+    void SetMessageAllocatorFor_SetMainExecutable(
+        ::grpc::MessageAllocator< ::google::protobuf::StringValue, ::google::protobuf::Empty>* allocator) {
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(24);
+      static_cast<::grpc::internal::CallbackUnaryHandler< ::google::protobuf::StringValue, ::google::protobuf::Empty>*>(handler)
+              ->SetMessageAllocator(allocator);
+    }
+    ~WithCallbackMethod_SetMainExecutable() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status SetMainExecutable(::grpc::ServerContext* /*context*/, const ::google::protobuf::StringValue* /*request*/, ::google::protobuf::Empty* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    virtual ::grpc::ServerUnaryReactor* SetMainExecutable(
+      ::grpc::CallbackServerContext* /*context*/, const ::google::protobuf::StringValue* /*request*/, ::google::protobuf::Empty* /*response*/)  { return nullptr; }
+  };
+  template <class BaseClass>
   class WithCallbackMethod_Login : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithCallbackMethod_Login() {
-      ::grpc::Service::MarkMethodCallback(24,
+      ::grpc::Service::MarkMethodCallback(25,
           new ::grpc::internal::CallbackUnaryHandler< ::grpc::LoginRequest, ::google::protobuf::Empty>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::grpc::LoginRequest* request, ::google::protobuf::Empty* response) { return this->Login(context, request, response); }));}
     void SetMessageAllocatorFor_Login(
         ::grpc::MessageAllocator< ::grpc::LoginRequest, ::google::protobuf::Empty>* allocator) {
-      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(24);
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(25);
       static_cast<::grpc::internal::CallbackUnaryHandler< ::grpc::LoginRequest, ::google::protobuf::Empty>*>(handler)
               ->SetMessageAllocator(allocator);
     }
@@ -3226,13 +3297,13 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithCallbackMethod_Login2FA() {
-      ::grpc::Service::MarkMethodCallback(25,
+      ::grpc::Service::MarkMethodCallback(26,
           new ::grpc::internal::CallbackUnaryHandler< ::grpc::LoginRequest, ::google::protobuf::Empty>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::grpc::LoginRequest* request, ::google::protobuf::Empty* response) { return this->Login2FA(context, request, response); }));}
     void SetMessageAllocatorFor_Login2FA(
         ::grpc::MessageAllocator< ::grpc::LoginRequest, ::google::protobuf::Empty>* allocator) {
-      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(25);
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(26);
       static_cast<::grpc::internal::CallbackUnaryHandler< ::grpc::LoginRequest, ::google::protobuf::Empty>*>(handler)
               ->SetMessageAllocator(allocator);
     }
@@ -3253,13 +3324,13 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithCallbackMethod_Login2Passwords() {
-      ::grpc::Service::MarkMethodCallback(26,
+      ::grpc::Service::MarkMethodCallback(27,
           new ::grpc::internal::CallbackUnaryHandler< ::grpc::LoginRequest, ::google::protobuf::Empty>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::grpc::LoginRequest* request, ::google::protobuf::Empty* response) { return this->Login2Passwords(context, request, response); }));}
     void SetMessageAllocatorFor_Login2Passwords(
         ::grpc::MessageAllocator< ::grpc::LoginRequest, ::google::protobuf::Empty>* allocator) {
-      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(26);
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(27);
       static_cast<::grpc::internal::CallbackUnaryHandler< ::grpc::LoginRequest, ::google::protobuf::Empty>*>(handler)
               ->SetMessageAllocator(allocator);
     }
@@ -3280,13 +3351,13 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithCallbackMethod_LoginAbort() {
-      ::grpc::Service::MarkMethodCallback(27,
+      ::grpc::Service::MarkMethodCallback(28,
           new ::grpc::internal::CallbackUnaryHandler< ::grpc::LoginAbortRequest, ::google::protobuf::Empty>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::grpc::LoginAbortRequest* request, ::google::protobuf::Empty* response) { return this->LoginAbort(context, request, response); }));}
     void SetMessageAllocatorFor_LoginAbort(
         ::grpc::MessageAllocator< ::grpc::LoginAbortRequest, ::google::protobuf::Empty>* allocator) {
-      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(27);
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(28);
       static_cast<::grpc::internal::CallbackUnaryHandler< ::grpc::LoginAbortRequest, ::google::protobuf::Empty>*>(handler)
               ->SetMessageAllocator(allocator);
     }
@@ -3307,13 +3378,13 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithCallbackMethod_CheckUpdate() {
-      ::grpc::Service::MarkMethodCallback(28,
+      ::grpc::Service::MarkMethodCallback(29,
           new ::grpc::internal::CallbackUnaryHandler< ::google::protobuf::Empty, ::google::protobuf::Empty>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::google::protobuf::Empty* request, ::google::protobuf::Empty* response) { return this->CheckUpdate(context, request, response); }));}
     void SetMessageAllocatorFor_CheckUpdate(
         ::grpc::MessageAllocator< ::google::protobuf::Empty, ::google::protobuf::Empty>* allocator) {
-      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(28);
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(29);
       static_cast<::grpc::internal::CallbackUnaryHandler< ::google::protobuf::Empty, ::google::protobuf::Empty>*>(handler)
               ->SetMessageAllocator(allocator);
     }
@@ -3334,13 +3405,13 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithCallbackMethod_InstallUpdate() {
-      ::grpc::Service::MarkMethodCallback(29,
+      ::grpc::Service::MarkMethodCallback(30,
           new ::grpc::internal::CallbackUnaryHandler< ::google::protobuf::Empty, ::google::protobuf::Empty>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::google::protobuf::Empty* request, ::google::protobuf::Empty* response) { return this->InstallUpdate(context, request, response); }));}
     void SetMessageAllocatorFor_InstallUpdate(
         ::grpc::MessageAllocator< ::google::protobuf::Empty, ::google::protobuf::Empty>* allocator) {
-      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(29);
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(30);
       static_cast<::grpc::internal::CallbackUnaryHandler< ::google::protobuf::Empty, ::google::protobuf::Empty>*>(handler)
               ->SetMessageAllocator(allocator);
     }
@@ -3361,13 +3432,13 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithCallbackMethod_SetIsAutomaticUpdateOn() {
-      ::grpc::Service::MarkMethodCallback(30,
+      ::grpc::Service::MarkMethodCallback(31,
           new ::grpc::internal::CallbackUnaryHandler< ::google::protobuf::BoolValue, ::google::protobuf::Empty>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::google::protobuf::BoolValue* request, ::google::protobuf::Empty* response) { return this->SetIsAutomaticUpdateOn(context, request, response); }));}
     void SetMessageAllocatorFor_SetIsAutomaticUpdateOn(
         ::grpc::MessageAllocator< ::google::protobuf::BoolValue, ::google::protobuf::Empty>* allocator) {
-      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(30);
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(31);
       static_cast<::grpc::internal::CallbackUnaryHandler< ::google::protobuf::BoolValue, ::google::protobuf::Empty>*>(handler)
               ->SetMessageAllocator(allocator);
     }
@@ -3388,13 +3459,13 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithCallbackMethod_IsAutomaticUpdateOn() {
-      ::grpc::Service::MarkMethodCallback(31,
+      ::grpc::Service::MarkMethodCallback(32,
           new ::grpc::internal::CallbackUnaryHandler< ::google::protobuf::Empty, ::google::protobuf::BoolValue>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::google::protobuf::Empty* request, ::google::protobuf::BoolValue* response) { return this->IsAutomaticUpdateOn(context, request, response); }));}
     void SetMessageAllocatorFor_IsAutomaticUpdateOn(
         ::grpc::MessageAllocator< ::google::protobuf::Empty, ::google::protobuf::BoolValue>* allocator) {
-      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(31);
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(32);
       static_cast<::grpc::internal::CallbackUnaryHandler< ::google::protobuf::Empty, ::google::protobuf::BoolValue>*>(handler)
               ->SetMessageAllocator(allocator);
     }
@@ -3415,13 +3486,13 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithCallbackMethod_IsCacheOnDiskEnabled() {
-      ::grpc::Service::MarkMethodCallback(32,
+      ::grpc::Service::MarkMethodCallback(33,
           new ::grpc::internal::CallbackUnaryHandler< ::google::protobuf::Empty, ::google::protobuf::BoolValue>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::google::protobuf::Empty* request, ::google::protobuf::BoolValue* response) { return this->IsCacheOnDiskEnabled(context, request, response); }));}
     void SetMessageAllocatorFor_IsCacheOnDiskEnabled(
         ::grpc::MessageAllocator< ::google::protobuf::Empty, ::google::protobuf::BoolValue>* allocator) {
-      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(32);
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(33);
       static_cast<::grpc::internal::CallbackUnaryHandler< ::google::protobuf::Empty, ::google::protobuf::BoolValue>*>(handler)
               ->SetMessageAllocator(allocator);
     }
@@ -3442,13 +3513,13 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithCallbackMethod_DiskCachePath() {
-      ::grpc::Service::MarkMethodCallback(33,
+      ::grpc::Service::MarkMethodCallback(34,
           new ::grpc::internal::CallbackUnaryHandler< ::google::protobuf::Empty, ::google::protobuf::StringValue>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::google::protobuf::Empty* request, ::google::protobuf::StringValue* response) { return this->DiskCachePath(context, request, response); }));}
     void SetMessageAllocatorFor_DiskCachePath(
         ::grpc::MessageAllocator< ::google::protobuf::Empty, ::google::protobuf::StringValue>* allocator) {
-      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(33);
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(34);
       static_cast<::grpc::internal::CallbackUnaryHandler< ::google::protobuf::Empty, ::google::protobuf::StringValue>*>(handler)
               ->SetMessageAllocator(allocator);
     }
@@ -3469,13 +3540,13 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithCallbackMethod_ChangeLocalCache() {
-      ::grpc::Service::MarkMethodCallback(34,
+      ::grpc::Service::MarkMethodCallback(35,
           new ::grpc::internal::CallbackUnaryHandler< ::grpc::ChangeLocalCacheRequest, ::google::protobuf::Empty>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::grpc::ChangeLocalCacheRequest* request, ::google::protobuf::Empty* response) { return this->ChangeLocalCache(context, request, response); }));}
     void SetMessageAllocatorFor_ChangeLocalCache(
         ::grpc::MessageAllocator< ::grpc::ChangeLocalCacheRequest, ::google::protobuf::Empty>* allocator) {
-      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(34);
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(35);
       static_cast<::grpc::internal::CallbackUnaryHandler< ::grpc::ChangeLocalCacheRequest, ::google::protobuf::Empty>*>(handler)
               ->SetMessageAllocator(allocator);
     }
@@ -3496,13 +3567,13 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithCallbackMethod_SetIsDoHEnabled() {
-      ::grpc::Service::MarkMethodCallback(35,
+      ::grpc::Service::MarkMethodCallback(36,
           new ::grpc::internal::CallbackUnaryHandler< ::google::protobuf::BoolValue, ::google::protobuf::Empty>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::google::protobuf::BoolValue* request, ::google::protobuf::Empty* response) { return this->SetIsDoHEnabled(context, request, response); }));}
     void SetMessageAllocatorFor_SetIsDoHEnabled(
         ::grpc::MessageAllocator< ::google::protobuf::BoolValue, ::google::protobuf::Empty>* allocator) {
-      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(35);
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(36);
       static_cast<::grpc::internal::CallbackUnaryHandler< ::google::protobuf::BoolValue, ::google::protobuf::Empty>*>(handler)
               ->SetMessageAllocator(allocator);
     }
@@ -3523,13 +3594,13 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithCallbackMethod_IsDoHEnabled() {
-      ::grpc::Service::MarkMethodCallback(36,
+      ::grpc::Service::MarkMethodCallback(37,
           new ::grpc::internal::CallbackUnaryHandler< ::google::protobuf::Empty, ::google::protobuf::BoolValue>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::google::protobuf::Empty* request, ::google::protobuf::BoolValue* response) { return this->IsDoHEnabled(context, request, response); }));}
     void SetMessageAllocatorFor_IsDoHEnabled(
         ::grpc::MessageAllocator< ::google::protobuf::Empty, ::google::protobuf::BoolValue>* allocator) {
-      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(36);
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(37);
       static_cast<::grpc::internal::CallbackUnaryHandler< ::google::protobuf::Empty, ::google::protobuf::BoolValue>*>(handler)
               ->SetMessageAllocator(allocator);
     }
@@ -3550,13 +3621,13 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithCallbackMethod_SetUseSslForSmtp() {
-      ::grpc::Service::MarkMethodCallback(37,
+      ::grpc::Service::MarkMethodCallback(38,
           new ::grpc::internal::CallbackUnaryHandler< ::google::protobuf::BoolValue, ::google::protobuf::Empty>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::google::protobuf::BoolValue* request, ::google::protobuf::Empty* response) { return this->SetUseSslForSmtp(context, request, response); }));}
     void SetMessageAllocatorFor_SetUseSslForSmtp(
         ::grpc::MessageAllocator< ::google::protobuf::BoolValue, ::google::protobuf::Empty>* allocator) {
-      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(37);
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(38);
       static_cast<::grpc::internal::CallbackUnaryHandler< ::google::protobuf::BoolValue, ::google::protobuf::Empty>*>(handler)
               ->SetMessageAllocator(allocator);
     }
@@ -3577,13 +3648,13 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithCallbackMethod_UseSslForSmtp() {
-      ::grpc::Service::MarkMethodCallback(38,
+      ::grpc::Service::MarkMethodCallback(39,
           new ::grpc::internal::CallbackUnaryHandler< ::google::protobuf::Empty, ::google::protobuf::BoolValue>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::google::protobuf::Empty* request, ::google::protobuf::BoolValue* response) { return this->UseSslForSmtp(context, request, response); }));}
     void SetMessageAllocatorFor_UseSslForSmtp(
         ::grpc::MessageAllocator< ::google::protobuf::Empty, ::google::protobuf::BoolValue>* allocator) {
-      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(38);
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(39);
       static_cast<::grpc::internal::CallbackUnaryHandler< ::google::protobuf::Empty, ::google::protobuf::BoolValue>*>(handler)
               ->SetMessageAllocator(allocator);
     }
@@ -3604,13 +3675,13 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithCallbackMethod_Hostname() {
-      ::grpc::Service::MarkMethodCallback(39,
+      ::grpc::Service::MarkMethodCallback(40,
           new ::grpc::internal::CallbackUnaryHandler< ::google::protobuf::Empty, ::google::protobuf::StringValue>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::google::protobuf::Empty* request, ::google::protobuf::StringValue* response) { return this->Hostname(context, request, response); }));}
     void SetMessageAllocatorFor_Hostname(
         ::grpc::MessageAllocator< ::google::protobuf::Empty, ::google::protobuf::StringValue>* allocator) {
-      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(39);
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(40);
       static_cast<::grpc::internal::CallbackUnaryHandler< ::google::protobuf::Empty, ::google::protobuf::StringValue>*>(handler)
               ->SetMessageAllocator(allocator);
     }
@@ -3631,13 +3702,13 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithCallbackMethod_ImapPort() {
-      ::grpc::Service::MarkMethodCallback(40,
+      ::grpc::Service::MarkMethodCallback(41,
           new ::grpc::internal::CallbackUnaryHandler< ::google::protobuf::Empty, ::google::protobuf::Int32Value>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::google::protobuf::Empty* request, ::google::protobuf::Int32Value* response) { return this->ImapPort(context, request, response); }));}
     void SetMessageAllocatorFor_ImapPort(
         ::grpc::MessageAllocator< ::google::protobuf::Empty, ::google::protobuf::Int32Value>* allocator) {
-      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(40);
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(41);
       static_cast<::grpc::internal::CallbackUnaryHandler< ::google::protobuf::Empty, ::google::protobuf::Int32Value>*>(handler)
               ->SetMessageAllocator(allocator);
     }
@@ -3658,13 +3729,13 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithCallbackMethod_SmtpPort() {
-      ::grpc::Service::MarkMethodCallback(41,
+      ::grpc::Service::MarkMethodCallback(42,
           new ::grpc::internal::CallbackUnaryHandler< ::google::protobuf::Empty, ::google::protobuf::Int32Value>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::google::protobuf::Empty* request, ::google::protobuf::Int32Value* response) { return this->SmtpPort(context, request, response); }));}
     void SetMessageAllocatorFor_SmtpPort(
         ::grpc::MessageAllocator< ::google::protobuf::Empty, ::google::protobuf::Int32Value>* allocator) {
-      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(41);
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(42);
       static_cast<::grpc::internal::CallbackUnaryHandler< ::google::protobuf::Empty, ::google::protobuf::Int32Value>*>(handler)
               ->SetMessageAllocator(allocator);
     }
@@ -3685,13 +3756,13 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithCallbackMethod_ChangePorts() {
-      ::grpc::Service::MarkMethodCallback(42,
+      ::grpc::Service::MarkMethodCallback(43,
           new ::grpc::internal::CallbackUnaryHandler< ::grpc::ChangePortsRequest, ::google::protobuf::Empty>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::grpc::ChangePortsRequest* request, ::google::protobuf::Empty* response) { return this->ChangePorts(context, request, response); }));}
     void SetMessageAllocatorFor_ChangePorts(
         ::grpc::MessageAllocator< ::grpc::ChangePortsRequest, ::google::protobuf::Empty>* allocator) {
-      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(42);
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(43);
       static_cast<::grpc::internal::CallbackUnaryHandler< ::grpc::ChangePortsRequest, ::google::protobuf::Empty>*>(handler)
               ->SetMessageAllocator(allocator);
     }
@@ -3712,13 +3783,13 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithCallbackMethod_IsPortFree() {
-      ::grpc::Service::MarkMethodCallback(43,
+      ::grpc::Service::MarkMethodCallback(44,
           new ::grpc::internal::CallbackUnaryHandler< ::google::protobuf::Int32Value, ::google::protobuf::BoolValue>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::google::protobuf::Int32Value* request, ::google::protobuf::BoolValue* response) { return this->IsPortFree(context, request, response); }));}
     void SetMessageAllocatorFor_IsPortFree(
         ::grpc::MessageAllocator< ::google::protobuf::Int32Value, ::google::protobuf::BoolValue>* allocator) {
-      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(43);
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(44);
       static_cast<::grpc::internal::CallbackUnaryHandler< ::google::protobuf::Int32Value, ::google::protobuf::BoolValue>*>(handler)
               ->SetMessageAllocator(allocator);
     }
@@ -3739,13 +3810,13 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithCallbackMethod_AvailableKeychains() {
-      ::grpc::Service::MarkMethodCallback(44,
+      ::grpc::Service::MarkMethodCallback(45,
           new ::grpc::internal::CallbackUnaryHandler< ::google::protobuf::Empty, ::grpc::AvailableKeychainsResponse>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::google::protobuf::Empty* request, ::grpc::AvailableKeychainsResponse* response) { return this->AvailableKeychains(context, request, response); }));}
     void SetMessageAllocatorFor_AvailableKeychains(
         ::grpc::MessageAllocator< ::google::protobuf::Empty, ::grpc::AvailableKeychainsResponse>* allocator) {
-      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(44);
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(45);
       static_cast<::grpc::internal::CallbackUnaryHandler< ::google::protobuf::Empty, ::grpc::AvailableKeychainsResponse>*>(handler)
               ->SetMessageAllocator(allocator);
     }
@@ -3766,13 +3837,13 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithCallbackMethod_SetCurrentKeychain() {
-      ::grpc::Service::MarkMethodCallback(45,
+      ::grpc::Service::MarkMethodCallback(46,
           new ::grpc::internal::CallbackUnaryHandler< ::google::protobuf::StringValue, ::google::protobuf::Empty>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::google::protobuf::StringValue* request, ::google::protobuf::Empty* response) { return this->SetCurrentKeychain(context, request, response); }));}
     void SetMessageAllocatorFor_SetCurrentKeychain(
         ::grpc::MessageAllocator< ::google::protobuf::StringValue, ::google::protobuf::Empty>* allocator) {
-      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(45);
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(46);
       static_cast<::grpc::internal::CallbackUnaryHandler< ::google::protobuf::StringValue, ::google::protobuf::Empty>*>(handler)
               ->SetMessageAllocator(allocator);
     }
@@ -3793,13 +3864,13 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithCallbackMethod_CurrentKeychain() {
-      ::grpc::Service::MarkMethodCallback(46,
+      ::grpc::Service::MarkMethodCallback(47,
           new ::grpc::internal::CallbackUnaryHandler< ::google::protobuf::Empty, ::google::protobuf::StringValue>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::google::protobuf::Empty* request, ::google::protobuf::StringValue* response) { return this->CurrentKeychain(context, request, response); }));}
     void SetMessageAllocatorFor_CurrentKeychain(
         ::grpc::MessageAllocator< ::google::protobuf::Empty, ::google::protobuf::StringValue>* allocator) {
-      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(46);
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(47);
       static_cast<::grpc::internal::CallbackUnaryHandler< ::google::protobuf::Empty, ::google::protobuf::StringValue>*>(handler)
               ->SetMessageAllocator(allocator);
     }
@@ -3820,13 +3891,13 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithCallbackMethod_GetUserList() {
-      ::grpc::Service::MarkMethodCallback(47,
+      ::grpc::Service::MarkMethodCallback(48,
           new ::grpc::internal::CallbackUnaryHandler< ::google::protobuf::Empty, ::grpc::UserListResponse>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::google::protobuf::Empty* request, ::grpc::UserListResponse* response) { return this->GetUserList(context, request, response); }));}
     void SetMessageAllocatorFor_GetUserList(
         ::grpc::MessageAllocator< ::google::protobuf::Empty, ::grpc::UserListResponse>* allocator) {
-      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(47);
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(48);
       static_cast<::grpc::internal::CallbackUnaryHandler< ::google::protobuf::Empty, ::grpc::UserListResponse>*>(handler)
               ->SetMessageAllocator(allocator);
     }
@@ -3847,13 +3918,13 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithCallbackMethod_GetUser() {
-      ::grpc::Service::MarkMethodCallback(48,
+      ::grpc::Service::MarkMethodCallback(49,
           new ::grpc::internal::CallbackUnaryHandler< ::google::protobuf::StringValue, ::grpc::User>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::google::protobuf::StringValue* request, ::grpc::User* response) { return this->GetUser(context, request, response); }));}
     void SetMessageAllocatorFor_GetUser(
         ::grpc::MessageAllocator< ::google::protobuf::StringValue, ::grpc::User>* allocator) {
-      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(48);
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(49);
       static_cast<::grpc::internal::CallbackUnaryHandler< ::google::protobuf::StringValue, ::grpc::User>*>(handler)
               ->SetMessageAllocator(allocator);
     }
@@ -3874,13 +3945,13 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithCallbackMethod_SetUserSplitMode() {
-      ::grpc::Service::MarkMethodCallback(49,
+      ::grpc::Service::MarkMethodCallback(50,
           new ::grpc::internal::CallbackUnaryHandler< ::grpc::UserSplitModeRequest, ::google::protobuf::Empty>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::grpc::UserSplitModeRequest* request, ::google::protobuf::Empty* response) { return this->SetUserSplitMode(context, request, response); }));}
     void SetMessageAllocatorFor_SetUserSplitMode(
         ::grpc::MessageAllocator< ::grpc::UserSplitModeRequest, ::google::protobuf::Empty>* allocator) {
-      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(49);
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(50);
       static_cast<::grpc::internal::CallbackUnaryHandler< ::grpc::UserSplitModeRequest, ::google::protobuf::Empty>*>(handler)
               ->SetMessageAllocator(allocator);
     }
@@ -3901,13 +3972,13 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithCallbackMethod_LogoutUser() {
-      ::grpc::Service::MarkMethodCallback(50,
+      ::grpc::Service::MarkMethodCallback(51,
           new ::grpc::internal::CallbackUnaryHandler< ::google::protobuf::StringValue, ::google::protobuf::Empty>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::google::protobuf::StringValue* request, ::google::protobuf::Empty* response) { return this->LogoutUser(context, request, response); }));}
     void SetMessageAllocatorFor_LogoutUser(
         ::grpc::MessageAllocator< ::google::protobuf::StringValue, ::google::protobuf::Empty>* allocator) {
-      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(50);
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(51);
       static_cast<::grpc::internal::CallbackUnaryHandler< ::google::protobuf::StringValue, ::google::protobuf::Empty>*>(handler)
               ->SetMessageAllocator(allocator);
     }
@@ -3928,13 +3999,13 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithCallbackMethod_RemoveUser() {
-      ::grpc::Service::MarkMethodCallback(51,
+      ::grpc::Service::MarkMethodCallback(52,
           new ::grpc::internal::CallbackUnaryHandler< ::google::protobuf::StringValue, ::google::protobuf::Empty>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::google::protobuf::StringValue* request, ::google::protobuf::Empty* response) { return this->RemoveUser(context, request, response); }));}
     void SetMessageAllocatorFor_RemoveUser(
         ::grpc::MessageAllocator< ::google::protobuf::StringValue, ::google::protobuf::Empty>* allocator) {
-      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(51);
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(52);
       static_cast<::grpc::internal::CallbackUnaryHandler< ::google::protobuf::StringValue, ::google::protobuf::Empty>*>(handler)
               ->SetMessageAllocator(allocator);
     }
@@ -3955,13 +4026,13 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithCallbackMethod_ConfigureUserAppleMail() {
-      ::grpc::Service::MarkMethodCallback(52,
+      ::grpc::Service::MarkMethodCallback(53,
           new ::grpc::internal::CallbackUnaryHandler< ::grpc::ConfigureAppleMailRequest, ::google::protobuf::Empty>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::grpc::ConfigureAppleMailRequest* request, ::google::protobuf::Empty* response) { return this->ConfigureUserAppleMail(context, request, response); }));}
     void SetMessageAllocatorFor_ConfigureUserAppleMail(
         ::grpc::MessageAllocator< ::grpc::ConfigureAppleMailRequest, ::google::protobuf::Empty>* allocator) {
-      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(52);
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(53);
       static_cast<::grpc::internal::CallbackUnaryHandler< ::grpc::ConfigureAppleMailRequest, ::google::protobuf::Empty>*>(handler)
               ->SetMessageAllocator(allocator);
     }
@@ -3982,7 +4053,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithCallbackMethod_RunEventStream() {
-      ::grpc::Service::MarkMethodCallback(53,
+      ::grpc::Service::MarkMethodCallback(54,
           new ::grpc::internal::CallbackServerStreamingHandler< ::grpc::EventStreamRequest, ::grpc::StreamEvent>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::grpc::EventStreamRequest* request) { return this->RunEventStream(context, request); }));
@@ -4004,13 +4075,13 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithCallbackMethod_StopEventStream() {
-      ::grpc::Service::MarkMethodCallback(54,
+      ::grpc::Service::MarkMethodCallback(55,
           new ::grpc::internal::CallbackUnaryHandler< ::google::protobuf::Empty, ::google::protobuf::Empty>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::google::protobuf::Empty* request, ::google::protobuf::Empty* response) { return this->StopEventStream(context, request, response); }));}
     void SetMessageAllocatorFor_StopEventStream(
         ::grpc::MessageAllocator< ::google::protobuf::Empty, ::google::protobuf::Empty>* allocator) {
-      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(54);
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(55);
       static_cast<::grpc::internal::CallbackUnaryHandler< ::google::protobuf::Empty, ::google::protobuf::Empty>*>(handler)
               ->SetMessageAllocator(allocator);
     }
@@ -4025,7 +4096,7 @@ class Bridge final {
     virtual ::grpc::ServerUnaryReactor* StopEventStream(
       ::grpc::CallbackServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::google::protobuf::Empty* /*response*/)  { return nullptr; }
   };
-  typedef WithCallbackMethod_AddLogEntry<WithCallbackMethod_GuiReady<WithCallbackMethod_Quit<WithCallbackMethod_Restart<WithCallbackMethod_ShowOnStartup<WithCallbackMethod_ShowSplashScreen<WithCallbackMethod_IsFirstGuiStart<WithCallbackMethod_SetIsAutostartOn<WithCallbackMethod_IsAutostartOn<WithCallbackMethod_SetIsBetaEnabled<WithCallbackMethod_IsBetaEnabled<WithCallbackMethod_GoOs<WithCallbackMethod_TriggerReset<WithCallbackMethod_Version<WithCallbackMethod_LogsPath<WithCallbackMethod_LicensePath<WithCallbackMethod_ReleaseNotesPageLink<WithCallbackMethod_DependencyLicensesLink<WithCallbackMethod_LandingPageLink<WithCallbackMethod_SetColorSchemeName<WithCallbackMethod_ColorSchemeName<WithCallbackMethod_CurrentEmailClient<WithCallbackMethod_ReportBug<WithCallbackMethod_ForceLauncher<WithCallbackMethod_Login<WithCallbackMethod_Login2FA<WithCallbackMethod_Login2Passwords<WithCallbackMethod_LoginAbort<WithCallbackMethod_CheckUpdate<WithCallbackMethod_InstallUpdate<WithCallbackMethod_SetIsAutomaticUpdateOn<WithCallbackMethod_IsAutomaticUpdateOn<WithCallbackMethod_IsCacheOnDiskEnabled<WithCallbackMethod_DiskCachePath<WithCallbackMethod_ChangeLocalCache<WithCallbackMethod_SetIsDoHEnabled<WithCallbackMethod_IsDoHEnabled<WithCallbackMethod_SetUseSslForSmtp<WithCallbackMethod_UseSslForSmtp<WithCallbackMethod_Hostname<WithCallbackMethod_ImapPort<WithCallbackMethod_SmtpPort<WithCallbackMethod_ChangePorts<WithCallbackMethod_IsPortFree<WithCallbackMethod_AvailableKeychains<WithCallbackMethod_SetCurrentKeychain<WithCallbackMethod_CurrentKeychain<WithCallbackMethod_GetUserList<WithCallbackMethod_GetUser<WithCallbackMethod_SetUserSplitMode<WithCallbackMethod_LogoutUser<WithCallbackMethod_RemoveUser<WithCallbackMethod_ConfigureUserAppleMail<WithCallbackMethod_RunEventStream<WithCallbackMethod_StopEventStream<Service > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > CallbackService;
+  typedef WithCallbackMethod_AddLogEntry<WithCallbackMethod_GuiReady<WithCallbackMethod_Quit<WithCallbackMethod_Restart<WithCallbackMethod_ShowOnStartup<WithCallbackMethod_ShowSplashScreen<WithCallbackMethod_IsFirstGuiStart<WithCallbackMethod_SetIsAutostartOn<WithCallbackMethod_IsAutostartOn<WithCallbackMethod_SetIsBetaEnabled<WithCallbackMethod_IsBetaEnabled<WithCallbackMethod_GoOs<WithCallbackMethod_TriggerReset<WithCallbackMethod_Version<WithCallbackMethod_LogsPath<WithCallbackMethod_LicensePath<WithCallbackMethod_ReleaseNotesPageLink<WithCallbackMethod_DependencyLicensesLink<WithCallbackMethod_LandingPageLink<WithCallbackMethod_SetColorSchemeName<WithCallbackMethod_ColorSchemeName<WithCallbackMethod_CurrentEmailClient<WithCallbackMethod_ReportBug<WithCallbackMethod_ForceLauncher<WithCallbackMethod_SetMainExecutable<WithCallbackMethod_Login<WithCallbackMethod_Login2FA<WithCallbackMethod_Login2Passwords<WithCallbackMethod_LoginAbort<WithCallbackMethod_CheckUpdate<WithCallbackMethod_InstallUpdate<WithCallbackMethod_SetIsAutomaticUpdateOn<WithCallbackMethod_IsAutomaticUpdateOn<WithCallbackMethod_IsCacheOnDiskEnabled<WithCallbackMethod_DiskCachePath<WithCallbackMethod_ChangeLocalCache<WithCallbackMethod_SetIsDoHEnabled<WithCallbackMethod_IsDoHEnabled<WithCallbackMethod_SetUseSslForSmtp<WithCallbackMethod_UseSslForSmtp<WithCallbackMethod_Hostname<WithCallbackMethod_ImapPort<WithCallbackMethod_SmtpPort<WithCallbackMethod_ChangePorts<WithCallbackMethod_IsPortFree<WithCallbackMethod_AvailableKeychains<WithCallbackMethod_SetCurrentKeychain<WithCallbackMethod_CurrentKeychain<WithCallbackMethod_GetUserList<WithCallbackMethod_GetUser<WithCallbackMethod_SetUserSplitMode<WithCallbackMethod_LogoutUser<WithCallbackMethod_RemoveUser<WithCallbackMethod_ConfigureUserAppleMail<WithCallbackMethod_RunEventStream<WithCallbackMethod_StopEventStream<Service > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > CallbackService;
   typedef CallbackService ExperimentalCallbackService;
   template <class BaseClass>
   class WithGenericMethod_AddLogEntry : public BaseClass {
@@ -4436,12 +4507,29 @@ class Bridge final {
     }
   };
   template <class BaseClass>
+  class WithGenericMethod_SetMainExecutable : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithGenericMethod_SetMainExecutable() {
+      ::grpc::Service::MarkMethodGeneric(24);
+    }
+    ~WithGenericMethod_SetMainExecutable() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status SetMainExecutable(::grpc::ServerContext* /*context*/, const ::google::protobuf::StringValue* /*request*/, ::google::protobuf::Empty* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+  };
+  template <class BaseClass>
   class WithGenericMethod_Login : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithGenericMethod_Login() {
-      ::grpc::Service::MarkMethodGeneric(24);
+      ::grpc::Service::MarkMethodGeneric(25);
     }
     ~WithGenericMethod_Login() override {
       BaseClassMustBeDerivedFromService(this);
@@ -4458,7 +4546,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithGenericMethod_Login2FA() {
-      ::grpc::Service::MarkMethodGeneric(25);
+      ::grpc::Service::MarkMethodGeneric(26);
     }
     ~WithGenericMethod_Login2FA() override {
       BaseClassMustBeDerivedFromService(this);
@@ -4475,7 +4563,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithGenericMethod_Login2Passwords() {
-      ::grpc::Service::MarkMethodGeneric(26);
+      ::grpc::Service::MarkMethodGeneric(27);
     }
     ~WithGenericMethod_Login2Passwords() override {
       BaseClassMustBeDerivedFromService(this);
@@ -4492,7 +4580,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithGenericMethod_LoginAbort() {
-      ::grpc::Service::MarkMethodGeneric(27);
+      ::grpc::Service::MarkMethodGeneric(28);
     }
     ~WithGenericMethod_LoginAbort() override {
       BaseClassMustBeDerivedFromService(this);
@@ -4509,7 +4597,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithGenericMethod_CheckUpdate() {
-      ::grpc::Service::MarkMethodGeneric(28);
+      ::grpc::Service::MarkMethodGeneric(29);
     }
     ~WithGenericMethod_CheckUpdate() override {
       BaseClassMustBeDerivedFromService(this);
@@ -4526,7 +4614,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithGenericMethod_InstallUpdate() {
-      ::grpc::Service::MarkMethodGeneric(29);
+      ::grpc::Service::MarkMethodGeneric(30);
     }
     ~WithGenericMethod_InstallUpdate() override {
       BaseClassMustBeDerivedFromService(this);
@@ -4543,7 +4631,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithGenericMethod_SetIsAutomaticUpdateOn() {
-      ::grpc::Service::MarkMethodGeneric(30);
+      ::grpc::Service::MarkMethodGeneric(31);
     }
     ~WithGenericMethod_SetIsAutomaticUpdateOn() override {
       BaseClassMustBeDerivedFromService(this);
@@ -4560,7 +4648,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithGenericMethod_IsAutomaticUpdateOn() {
-      ::grpc::Service::MarkMethodGeneric(31);
+      ::grpc::Service::MarkMethodGeneric(32);
     }
     ~WithGenericMethod_IsAutomaticUpdateOn() override {
       BaseClassMustBeDerivedFromService(this);
@@ -4577,7 +4665,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithGenericMethod_IsCacheOnDiskEnabled() {
-      ::grpc::Service::MarkMethodGeneric(32);
+      ::grpc::Service::MarkMethodGeneric(33);
     }
     ~WithGenericMethod_IsCacheOnDiskEnabled() override {
       BaseClassMustBeDerivedFromService(this);
@@ -4594,7 +4682,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithGenericMethod_DiskCachePath() {
-      ::grpc::Service::MarkMethodGeneric(33);
+      ::grpc::Service::MarkMethodGeneric(34);
     }
     ~WithGenericMethod_DiskCachePath() override {
       BaseClassMustBeDerivedFromService(this);
@@ -4611,7 +4699,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithGenericMethod_ChangeLocalCache() {
-      ::grpc::Service::MarkMethodGeneric(34);
+      ::grpc::Service::MarkMethodGeneric(35);
     }
     ~WithGenericMethod_ChangeLocalCache() override {
       BaseClassMustBeDerivedFromService(this);
@@ -4628,7 +4716,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithGenericMethod_SetIsDoHEnabled() {
-      ::grpc::Service::MarkMethodGeneric(35);
+      ::grpc::Service::MarkMethodGeneric(36);
     }
     ~WithGenericMethod_SetIsDoHEnabled() override {
       BaseClassMustBeDerivedFromService(this);
@@ -4645,7 +4733,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithGenericMethod_IsDoHEnabled() {
-      ::grpc::Service::MarkMethodGeneric(36);
+      ::grpc::Service::MarkMethodGeneric(37);
     }
     ~WithGenericMethod_IsDoHEnabled() override {
       BaseClassMustBeDerivedFromService(this);
@@ -4662,7 +4750,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithGenericMethod_SetUseSslForSmtp() {
-      ::grpc::Service::MarkMethodGeneric(37);
+      ::grpc::Service::MarkMethodGeneric(38);
     }
     ~WithGenericMethod_SetUseSslForSmtp() override {
       BaseClassMustBeDerivedFromService(this);
@@ -4679,7 +4767,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithGenericMethod_UseSslForSmtp() {
-      ::grpc::Service::MarkMethodGeneric(38);
+      ::grpc::Service::MarkMethodGeneric(39);
     }
     ~WithGenericMethod_UseSslForSmtp() override {
       BaseClassMustBeDerivedFromService(this);
@@ -4696,7 +4784,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithGenericMethod_Hostname() {
-      ::grpc::Service::MarkMethodGeneric(39);
+      ::grpc::Service::MarkMethodGeneric(40);
     }
     ~WithGenericMethod_Hostname() override {
       BaseClassMustBeDerivedFromService(this);
@@ -4713,7 +4801,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithGenericMethod_ImapPort() {
-      ::grpc::Service::MarkMethodGeneric(40);
+      ::grpc::Service::MarkMethodGeneric(41);
     }
     ~WithGenericMethod_ImapPort() override {
       BaseClassMustBeDerivedFromService(this);
@@ -4730,7 +4818,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithGenericMethod_SmtpPort() {
-      ::grpc::Service::MarkMethodGeneric(41);
+      ::grpc::Service::MarkMethodGeneric(42);
     }
     ~WithGenericMethod_SmtpPort() override {
       BaseClassMustBeDerivedFromService(this);
@@ -4747,7 +4835,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithGenericMethod_ChangePorts() {
-      ::grpc::Service::MarkMethodGeneric(42);
+      ::grpc::Service::MarkMethodGeneric(43);
     }
     ~WithGenericMethod_ChangePorts() override {
       BaseClassMustBeDerivedFromService(this);
@@ -4764,7 +4852,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithGenericMethod_IsPortFree() {
-      ::grpc::Service::MarkMethodGeneric(43);
+      ::grpc::Service::MarkMethodGeneric(44);
     }
     ~WithGenericMethod_IsPortFree() override {
       BaseClassMustBeDerivedFromService(this);
@@ -4781,7 +4869,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithGenericMethod_AvailableKeychains() {
-      ::grpc::Service::MarkMethodGeneric(44);
+      ::grpc::Service::MarkMethodGeneric(45);
     }
     ~WithGenericMethod_AvailableKeychains() override {
       BaseClassMustBeDerivedFromService(this);
@@ -4798,7 +4886,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithGenericMethod_SetCurrentKeychain() {
-      ::grpc::Service::MarkMethodGeneric(45);
+      ::grpc::Service::MarkMethodGeneric(46);
     }
     ~WithGenericMethod_SetCurrentKeychain() override {
       BaseClassMustBeDerivedFromService(this);
@@ -4815,7 +4903,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithGenericMethod_CurrentKeychain() {
-      ::grpc::Service::MarkMethodGeneric(46);
+      ::grpc::Service::MarkMethodGeneric(47);
     }
     ~WithGenericMethod_CurrentKeychain() override {
       BaseClassMustBeDerivedFromService(this);
@@ -4832,7 +4920,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithGenericMethod_GetUserList() {
-      ::grpc::Service::MarkMethodGeneric(47);
+      ::grpc::Service::MarkMethodGeneric(48);
     }
     ~WithGenericMethod_GetUserList() override {
       BaseClassMustBeDerivedFromService(this);
@@ -4849,7 +4937,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithGenericMethod_GetUser() {
-      ::grpc::Service::MarkMethodGeneric(48);
+      ::grpc::Service::MarkMethodGeneric(49);
     }
     ~WithGenericMethod_GetUser() override {
       BaseClassMustBeDerivedFromService(this);
@@ -4866,7 +4954,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithGenericMethod_SetUserSplitMode() {
-      ::grpc::Service::MarkMethodGeneric(49);
+      ::grpc::Service::MarkMethodGeneric(50);
     }
     ~WithGenericMethod_SetUserSplitMode() override {
       BaseClassMustBeDerivedFromService(this);
@@ -4883,7 +4971,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithGenericMethod_LogoutUser() {
-      ::grpc::Service::MarkMethodGeneric(50);
+      ::grpc::Service::MarkMethodGeneric(51);
     }
     ~WithGenericMethod_LogoutUser() override {
       BaseClassMustBeDerivedFromService(this);
@@ -4900,7 +4988,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithGenericMethod_RemoveUser() {
-      ::grpc::Service::MarkMethodGeneric(51);
+      ::grpc::Service::MarkMethodGeneric(52);
     }
     ~WithGenericMethod_RemoveUser() override {
       BaseClassMustBeDerivedFromService(this);
@@ -4917,7 +5005,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithGenericMethod_ConfigureUserAppleMail() {
-      ::grpc::Service::MarkMethodGeneric(52);
+      ::grpc::Service::MarkMethodGeneric(53);
     }
     ~WithGenericMethod_ConfigureUserAppleMail() override {
       BaseClassMustBeDerivedFromService(this);
@@ -4934,7 +5022,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithGenericMethod_RunEventStream() {
-      ::grpc::Service::MarkMethodGeneric(53);
+      ::grpc::Service::MarkMethodGeneric(54);
     }
     ~WithGenericMethod_RunEventStream() override {
       BaseClassMustBeDerivedFromService(this);
@@ -4951,7 +5039,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithGenericMethod_StopEventStream() {
-      ::grpc::Service::MarkMethodGeneric(54);
+      ::grpc::Service::MarkMethodGeneric(55);
     }
     ~WithGenericMethod_StopEventStream() override {
       BaseClassMustBeDerivedFromService(this);
@@ -5443,12 +5531,32 @@ class Bridge final {
     }
   };
   template <class BaseClass>
+  class WithRawMethod_SetMainExecutable : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithRawMethod_SetMainExecutable() {
+      ::grpc::Service::MarkMethodRaw(24);
+    }
+    ~WithRawMethod_SetMainExecutable() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status SetMainExecutable(::grpc::ServerContext* /*context*/, const ::google::protobuf::StringValue* /*request*/, ::google::protobuf::Empty* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    void RequestSetMainExecutable(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+      ::grpc::Service::RequestAsyncUnary(24, context, request, response, new_call_cq, notification_cq, tag);
+    }
+  };
+  template <class BaseClass>
   class WithRawMethod_Login : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawMethod_Login() {
-      ::grpc::Service::MarkMethodRaw(24);
+      ::grpc::Service::MarkMethodRaw(25);
     }
     ~WithRawMethod_Login() override {
       BaseClassMustBeDerivedFromService(this);
@@ -5459,7 +5567,7 @@ class Bridge final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestLogin(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(24, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(25, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -5468,7 +5576,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawMethod_Login2FA() {
-      ::grpc::Service::MarkMethodRaw(25);
+      ::grpc::Service::MarkMethodRaw(26);
     }
     ~WithRawMethod_Login2FA() override {
       BaseClassMustBeDerivedFromService(this);
@@ -5479,7 +5587,7 @@ class Bridge final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestLogin2FA(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(25, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(26, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -5488,7 +5596,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawMethod_Login2Passwords() {
-      ::grpc::Service::MarkMethodRaw(26);
+      ::grpc::Service::MarkMethodRaw(27);
     }
     ~WithRawMethod_Login2Passwords() override {
       BaseClassMustBeDerivedFromService(this);
@@ -5499,7 +5607,7 @@ class Bridge final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestLogin2Passwords(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(26, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(27, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -5508,7 +5616,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawMethod_LoginAbort() {
-      ::grpc::Service::MarkMethodRaw(27);
+      ::grpc::Service::MarkMethodRaw(28);
     }
     ~WithRawMethod_LoginAbort() override {
       BaseClassMustBeDerivedFromService(this);
@@ -5519,7 +5627,7 @@ class Bridge final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestLoginAbort(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(27, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(28, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -5528,7 +5636,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawMethod_CheckUpdate() {
-      ::grpc::Service::MarkMethodRaw(28);
+      ::grpc::Service::MarkMethodRaw(29);
     }
     ~WithRawMethod_CheckUpdate() override {
       BaseClassMustBeDerivedFromService(this);
@@ -5539,7 +5647,7 @@ class Bridge final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestCheckUpdate(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(28, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(29, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -5548,7 +5656,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawMethod_InstallUpdate() {
-      ::grpc::Service::MarkMethodRaw(29);
+      ::grpc::Service::MarkMethodRaw(30);
     }
     ~WithRawMethod_InstallUpdate() override {
       BaseClassMustBeDerivedFromService(this);
@@ -5559,7 +5667,7 @@ class Bridge final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestInstallUpdate(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(29, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(30, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -5568,7 +5676,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawMethod_SetIsAutomaticUpdateOn() {
-      ::grpc::Service::MarkMethodRaw(30);
+      ::grpc::Service::MarkMethodRaw(31);
     }
     ~WithRawMethod_SetIsAutomaticUpdateOn() override {
       BaseClassMustBeDerivedFromService(this);
@@ -5579,7 +5687,7 @@ class Bridge final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestSetIsAutomaticUpdateOn(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(30, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(31, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -5588,7 +5696,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawMethod_IsAutomaticUpdateOn() {
-      ::grpc::Service::MarkMethodRaw(31);
+      ::grpc::Service::MarkMethodRaw(32);
     }
     ~WithRawMethod_IsAutomaticUpdateOn() override {
       BaseClassMustBeDerivedFromService(this);
@@ -5599,7 +5707,7 @@ class Bridge final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestIsAutomaticUpdateOn(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(31, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(32, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -5608,7 +5716,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawMethod_IsCacheOnDiskEnabled() {
-      ::grpc::Service::MarkMethodRaw(32);
+      ::grpc::Service::MarkMethodRaw(33);
     }
     ~WithRawMethod_IsCacheOnDiskEnabled() override {
       BaseClassMustBeDerivedFromService(this);
@@ -5619,7 +5727,7 @@ class Bridge final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestIsCacheOnDiskEnabled(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(32, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(33, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -5628,7 +5736,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawMethod_DiskCachePath() {
-      ::grpc::Service::MarkMethodRaw(33);
+      ::grpc::Service::MarkMethodRaw(34);
     }
     ~WithRawMethod_DiskCachePath() override {
       BaseClassMustBeDerivedFromService(this);
@@ -5639,7 +5747,7 @@ class Bridge final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestDiskCachePath(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(33, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(34, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -5648,7 +5756,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawMethod_ChangeLocalCache() {
-      ::grpc::Service::MarkMethodRaw(34);
+      ::grpc::Service::MarkMethodRaw(35);
     }
     ~WithRawMethod_ChangeLocalCache() override {
       BaseClassMustBeDerivedFromService(this);
@@ -5659,7 +5767,7 @@ class Bridge final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestChangeLocalCache(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(34, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(35, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -5668,7 +5776,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawMethod_SetIsDoHEnabled() {
-      ::grpc::Service::MarkMethodRaw(35);
+      ::grpc::Service::MarkMethodRaw(36);
     }
     ~WithRawMethod_SetIsDoHEnabled() override {
       BaseClassMustBeDerivedFromService(this);
@@ -5679,7 +5787,7 @@ class Bridge final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestSetIsDoHEnabled(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(35, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(36, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -5688,7 +5796,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawMethod_IsDoHEnabled() {
-      ::grpc::Service::MarkMethodRaw(36);
+      ::grpc::Service::MarkMethodRaw(37);
     }
     ~WithRawMethod_IsDoHEnabled() override {
       BaseClassMustBeDerivedFromService(this);
@@ -5699,7 +5807,7 @@ class Bridge final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestIsDoHEnabled(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(36, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(37, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -5708,7 +5816,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawMethod_SetUseSslForSmtp() {
-      ::grpc::Service::MarkMethodRaw(37);
+      ::grpc::Service::MarkMethodRaw(38);
     }
     ~WithRawMethod_SetUseSslForSmtp() override {
       BaseClassMustBeDerivedFromService(this);
@@ -5719,7 +5827,7 @@ class Bridge final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestSetUseSslForSmtp(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(37, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(38, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -5728,7 +5836,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawMethod_UseSslForSmtp() {
-      ::grpc::Service::MarkMethodRaw(38);
+      ::grpc::Service::MarkMethodRaw(39);
     }
     ~WithRawMethod_UseSslForSmtp() override {
       BaseClassMustBeDerivedFromService(this);
@@ -5739,7 +5847,7 @@ class Bridge final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestUseSslForSmtp(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(38, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(39, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -5748,7 +5856,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawMethod_Hostname() {
-      ::grpc::Service::MarkMethodRaw(39);
+      ::grpc::Service::MarkMethodRaw(40);
     }
     ~WithRawMethod_Hostname() override {
       BaseClassMustBeDerivedFromService(this);
@@ -5759,7 +5867,7 @@ class Bridge final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestHostname(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(39, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(40, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -5768,7 +5876,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawMethod_ImapPort() {
-      ::grpc::Service::MarkMethodRaw(40);
+      ::grpc::Service::MarkMethodRaw(41);
     }
     ~WithRawMethod_ImapPort() override {
       BaseClassMustBeDerivedFromService(this);
@@ -5779,7 +5887,7 @@ class Bridge final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestImapPort(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(40, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(41, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -5788,7 +5896,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawMethod_SmtpPort() {
-      ::grpc::Service::MarkMethodRaw(41);
+      ::grpc::Service::MarkMethodRaw(42);
     }
     ~WithRawMethod_SmtpPort() override {
       BaseClassMustBeDerivedFromService(this);
@@ -5799,7 +5907,7 @@ class Bridge final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestSmtpPort(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(41, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(42, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -5808,7 +5916,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawMethod_ChangePorts() {
-      ::grpc::Service::MarkMethodRaw(42);
+      ::grpc::Service::MarkMethodRaw(43);
     }
     ~WithRawMethod_ChangePorts() override {
       BaseClassMustBeDerivedFromService(this);
@@ -5819,7 +5927,7 @@ class Bridge final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestChangePorts(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(42, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(43, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -5828,7 +5936,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawMethod_IsPortFree() {
-      ::grpc::Service::MarkMethodRaw(43);
+      ::grpc::Service::MarkMethodRaw(44);
     }
     ~WithRawMethod_IsPortFree() override {
       BaseClassMustBeDerivedFromService(this);
@@ -5839,7 +5947,7 @@ class Bridge final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestIsPortFree(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(43, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(44, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -5848,7 +5956,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawMethod_AvailableKeychains() {
-      ::grpc::Service::MarkMethodRaw(44);
+      ::grpc::Service::MarkMethodRaw(45);
     }
     ~WithRawMethod_AvailableKeychains() override {
       BaseClassMustBeDerivedFromService(this);
@@ -5859,7 +5967,7 @@ class Bridge final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestAvailableKeychains(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(44, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(45, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -5868,7 +5976,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawMethod_SetCurrentKeychain() {
-      ::grpc::Service::MarkMethodRaw(45);
+      ::grpc::Service::MarkMethodRaw(46);
     }
     ~WithRawMethod_SetCurrentKeychain() override {
       BaseClassMustBeDerivedFromService(this);
@@ -5879,7 +5987,7 @@ class Bridge final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestSetCurrentKeychain(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(45, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(46, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -5888,7 +5996,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawMethod_CurrentKeychain() {
-      ::grpc::Service::MarkMethodRaw(46);
+      ::grpc::Service::MarkMethodRaw(47);
     }
     ~WithRawMethod_CurrentKeychain() override {
       BaseClassMustBeDerivedFromService(this);
@@ -5899,7 +6007,7 @@ class Bridge final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestCurrentKeychain(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(46, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(47, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -5908,7 +6016,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawMethod_GetUserList() {
-      ::grpc::Service::MarkMethodRaw(47);
+      ::grpc::Service::MarkMethodRaw(48);
     }
     ~WithRawMethod_GetUserList() override {
       BaseClassMustBeDerivedFromService(this);
@@ -5919,7 +6027,7 @@ class Bridge final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestGetUserList(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(47, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(48, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -5928,7 +6036,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawMethod_GetUser() {
-      ::grpc::Service::MarkMethodRaw(48);
+      ::grpc::Service::MarkMethodRaw(49);
     }
     ~WithRawMethod_GetUser() override {
       BaseClassMustBeDerivedFromService(this);
@@ -5939,7 +6047,7 @@ class Bridge final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestGetUser(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(48, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(49, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -5948,7 +6056,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawMethod_SetUserSplitMode() {
-      ::grpc::Service::MarkMethodRaw(49);
+      ::grpc::Service::MarkMethodRaw(50);
     }
     ~WithRawMethod_SetUserSplitMode() override {
       BaseClassMustBeDerivedFromService(this);
@@ -5959,7 +6067,7 @@ class Bridge final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestSetUserSplitMode(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(49, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(50, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -5968,7 +6076,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawMethod_LogoutUser() {
-      ::grpc::Service::MarkMethodRaw(50);
+      ::grpc::Service::MarkMethodRaw(51);
     }
     ~WithRawMethod_LogoutUser() override {
       BaseClassMustBeDerivedFromService(this);
@@ -5979,7 +6087,7 @@ class Bridge final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestLogoutUser(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(50, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(51, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -5988,7 +6096,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawMethod_RemoveUser() {
-      ::grpc::Service::MarkMethodRaw(51);
+      ::grpc::Service::MarkMethodRaw(52);
     }
     ~WithRawMethod_RemoveUser() override {
       BaseClassMustBeDerivedFromService(this);
@@ -5999,7 +6107,7 @@ class Bridge final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestRemoveUser(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(51, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(52, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -6008,7 +6116,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawMethod_ConfigureUserAppleMail() {
-      ::grpc::Service::MarkMethodRaw(52);
+      ::grpc::Service::MarkMethodRaw(53);
     }
     ~WithRawMethod_ConfigureUserAppleMail() override {
       BaseClassMustBeDerivedFromService(this);
@@ -6019,7 +6127,7 @@ class Bridge final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestConfigureUserAppleMail(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(52, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(53, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -6028,7 +6136,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawMethod_RunEventStream() {
-      ::grpc::Service::MarkMethodRaw(53);
+      ::grpc::Service::MarkMethodRaw(54);
     }
     ~WithRawMethod_RunEventStream() override {
       BaseClassMustBeDerivedFromService(this);
@@ -6039,7 +6147,7 @@ class Bridge final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestRunEventStream(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncWriter< ::grpc::ByteBuffer>* writer, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncServerStreaming(53, context, request, writer, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncServerStreaming(54, context, request, writer, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -6048,7 +6156,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawMethod_StopEventStream() {
-      ::grpc::Service::MarkMethodRaw(54);
+      ::grpc::Service::MarkMethodRaw(55);
     }
     ~WithRawMethod_StopEventStream() override {
       BaseClassMustBeDerivedFromService(this);
@@ -6059,7 +6167,7 @@ class Bridge final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestStopEventStream(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(54, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(55, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -6591,12 +6699,34 @@ class Bridge final {
       ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
   };
   template <class BaseClass>
+  class WithRawCallbackMethod_SetMainExecutable : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithRawCallbackMethod_SetMainExecutable() {
+      ::grpc::Service::MarkMethodRawCallback(24,
+          new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
+            [this](
+                   ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->SetMainExecutable(context, request, response); }));
+    }
+    ~WithRawCallbackMethod_SetMainExecutable() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status SetMainExecutable(::grpc::ServerContext* /*context*/, const ::google::protobuf::StringValue* /*request*/, ::google::protobuf::Empty* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    virtual ::grpc::ServerUnaryReactor* SetMainExecutable(
+      ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
+  };
+  template <class BaseClass>
   class WithRawCallbackMethod_Login : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawCallbackMethod_Login() {
-      ::grpc::Service::MarkMethodRawCallback(24,
+      ::grpc::Service::MarkMethodRawCallback(25,
           new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->Login(context, request, response); }));
@@ -6618,7 +6748,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawCallbackMethod_Login2FA() {
-      ::grpc::Service::MarkMethodRawCallback(25,
+      ::grpc::Service::MarkMethodRawCallback(26,
           new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->Login2FA(context, request, response); }));
@@ -6640,7 +6770,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawCallbackMethod_Login2Passwords() {
-      ::grpc::Service::MarkMethodRawCallback(26,
+      ::grpc::Service::MarkMethodRawCallback(27,
           new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->Login2Passwords(context, request, response); }));
@@ -6662,7 +6792,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawCallbackMethod_LoginAbort() {
-      ::grpc::Service::MarkMethodRawCallback(27,
+      ::grpc::Service::MarkMethodRawCallback(28,
           new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->LoginAbort(context, request, response); }));
@@ -6684,7 +6814,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawCallbackMethod_CheckUpdate() {
-      ::grpc::Service::MarkMethodRawCallback(28,
+      ::grpc::Service::MarkMethodRawCallback(29,
           new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->CheckUpdate(context, request, response); }));
@@ -6706,7 +6836,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawCallbackMethod_InstallUpdate() {
-      ::grpc::Service::MarkMethodRawCallback(29,
+      ::grpc::Service::MarkMethodRawCallback(30,
           new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->InstallUpdate(context, request, response); }));
@@ -6728,7 +6858,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawCallbackMethod_SetIsAutomaticUpdateOn() {
-      ::grpc::Service::MarkMethodRawCallback(30,
+      ::grpc::Service::MarkMethodRawCallback(31,
           new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->SetIsAutomaticUpdateOn(context, request, response); }));
@@ -6750,7 +6880,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawCallbackMethod_IsAutomaticUpdateOn() {
-      ::grpc::Service::MarkMethodRawCallback(31,
+      ::grpc::Service::MarkMethodRawCallback(32,
           new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->IsAutomaticUpdateOn(context, request, response); }));
@@ -6772,7 +6902,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawCallbackMethod_IsCacheOnDiskEnabled() {
-      ::grpc::Service::MarkMethodRawCallback(32,
+      ::grpc::Service::MarkMethodRawCallback(33,
           new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->IsCacheOnDiskEnabled(context, request, response); }));
@@ -6794,7 +6924,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawCallbackMethod_DiskCachePath() {
-      ::grpc::Service::MarkMethodRawCallback(33,
+      ::grpc::Service::MarkMethodRawCallback(34,
           new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->DiskCachePath(context, request, response); }));
@@ -6816,7 +6946,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawCallbackMethod_ChangeLocalCache() {
-      ::grpc::Service::MarkMethodRawCallback(34,
+      ::grpc::Service::MarkMethodRawCallback(35,
           new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->ChangeLocalCache(context, request, response); }));
@@ -6838,7 +6968,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawCallbackMethod_SetIsDoHEnabled() {
-      ::grpc::Service::MarkMethodRawCallback(35,
+      ::grpc::Service::MarkMethodRawCallback(36,
           new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->SetIsDoHEnabled(context, request, response); }));
@@ -6860,7 +6990,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawCallbackMethod_IsDoHEnabled() {
-      ::grpc::Service::MarkMethodRawCallback(36,
+      ::grpc::Service::MarkMethodRawCallback(37,
           new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->IsDoHEnabled(context, request, response); }));
@@ -6882,7 +7012,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawCallbackMethod_SetUseSslForSmtp() {
-      ::grpc::Service::MarkMethodRawCallback(37,
+      ::grpc::Service::MarkMethodRawCallback(38,
           new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->SetUseSslForSmtp(context, request, response); }));
@@ -6904,7 +7034,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawCallbackMethod_UseSslForSmtp() {
-      ::grpc::Service::MarkMethodRawCallback(38,
+      ::grpc::Service::MarkMethodRawCallback(39,
           new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->UseSslForSmtp(context, request, response); }));
@@ -6926,7 +7056,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawCallbackMethod_Hostname() {
-      ::grpc::Service::MarkMethodRawCallback(39,
+      ::grpc::Service::MarkMethodRawCallback(40,
           new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->Hostname(context, request, response); }));
@@ -6948,7 +7078,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawCallbackMethod_ImapPort() {
-      ::grpc::Service::MarkMethodRawCallback(40,
+      ::grpc::Service::MarkMethodRawCallback(41,
           new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->ImapPort(context, request, response); }));
@@ -6970,7 +7100,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawCallbackMethod_SmtpPort() {
-      ::grpc::Service::MarkMethodRawCallback(41,
+      ::grpc::Service::MarkMethodRawCallback(42,
           new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->SmtpPort(context, request, response); }));
@@ -6992,7 +7122,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawCallbackMethod_ChangePorts() {
-      ::grpc::Service::MarkMethodRawCallback(42,
+      ::grpc::Service::MarkMethodRawCallback(43,
           new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->ChangePorts(context, request, response); }));
@@ -7014,7 +7144,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawCallbackMethod_IsPortFree() {
-      ::grpc::Service::MarkMethodRawCallback(43,
+      ::grpc::Service::MarkMethodRawCallback(44,
           new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->IsPortFree(context, request, response); }));
@@ -7036,7 +7166,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawCallbackMethod_AvailableKeychains() {
-      ::grpc::Service::MarkMethodRawCallback(44,
+      ::grpc::Service::MarkMethodRawCallback(45,
           new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->AvailableKeychains(context, request, response); }));
@@ -7058,7 +7188,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawCallbackMethod_SetCurrentKeychain() {
-      ::grpc::Service::MarkMethodRawCallback(45,
+      ::grpc::Service::MarkMethodRawCallback(46,
           new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->SetCurrentKeychain(context, request, response); }));
@@ -7080,7 +7210,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawCallbackMethod_CurrentKeychain() {
-      ::grpc::Service::MarkMethodRawCallback(46,
+      ::grpc::Service::MarkMethodRawCallback(47,
           new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->CurrentKeychain(context, request, response); }));
@@ -7102,7 +7232,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawCallbackMethod_GetUserList() {
-      ::grpc::Service::MarkMethodRawCallback(47,
+      ::grpc::Service::MarkMethodRawCallback(48,
           new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->GetUserList(context, request, response); }));
@@ -7124,7 +7254,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawCallbackMethod_GetUser() {
-      ::grpc::Service::MarkMethodRawCallback(48,
+      ::grpc::Service::MarkMethodRawCallback(49,
           new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->GetUser(context, request, response); }));
@@ -7146,7 +7276,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawCallbackMethod_SetUserSplitMode() {
-      ::grpc::Service::MarkMethodRawCallback(49,
+      ::grpc::Service::MarkMethodRawCallback(50,
           new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->SetUserSplitMode(context, request, response); }));
@@ -7168,7 +7298,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawCallbackMethod_LogoutUser() {
-      ::grpc::Service::MarkMethodRawCallback(50,
+      ::grpc::Service::MarkMethodRawCallback(51,
           new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->LogoutUser(context, request, response); }));
@@ -7190,7 +7320,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawCallbackMethod_RemoveUser() {
-      ::grpc::Service::MarkMethodRawCallback(51,
+      ::grpc::Service::MarkMethodRawCallback(52,
           new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->RemoveUser(context, request, response); }));
@@ -7212,7 +7342,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawCallbackMethod_ConfigureUserAppleMail() {
-      ::grpc::Service::MarkMethodRawCallback(52,
+      ::grpc::Service::MarkMethodRawCallback(53,
           new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->ConfigureUserAppleMail(context, request, response); }));
@@ -7234,7 +7364,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawCallbackMethod_RunEventStream() {
-      ::grpc::Service::MarkMethodRawCallback(53,
+      ::grpc::Service::MarkMethodRawCallback(54,
           new ::grpc::internal::CallbackServerStreamingHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
                    ::grpc::CallbackServerContext* context, const::grpc::ByteBuffer* request) { return this->RunEventStream(context, request); }));
@@ -7256,7 +7386,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawCallbackMethod_StopEventStream() {
-      ::grpc::Service::MarkMethodRawCallback(54,
+      ::grpc::Service::MarkMethodRawCallback(55,
           new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->StopEventStream(context, request, response); }));
@@ -7921,12 +8051,39 @@ class Bridge final {
     virtual ::grpc::Status StreamedForceLauncher(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::google::protobuf::StringValue,::google::protobuf::Empty>* server_unary_streamer) = 0;
   };
   template <class BaseClass>
+  class WithStreamedUnaryMethod_SetMainExecutable : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithStreamedUnaryMethod_SetMainExecutable() {
+      ::grpc::Service::MarkMethodStreamed(24,
+        new ::grpc::internal::StreamedUnaryHandler<
+          ::google::protobuf::StringValue, ::google::protobuf::Empty>(
+            [this](::grpc::ServerContext* context,
+                   ::grpc::ServerUnaryStreamer<
+                     ::google::protobuf::StringValue, ::google::protobuf::Empty>* streamer) {
+                       return this->StreamedSetMainExecutable(context,
+                         streamer);
+                  }));
+    }
+    ~WithStreamedUnaryMethod_SetMainExecutable() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable regular version of this method
+    ::grpc::Status SetMainExecutable(::grpc::ServerContext* /*context*/, const ::google::protobuf::StringValue* /*request*/, ::google::protobuf::Empty* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    // replace default version of method with streamed unary
+    virtual ::grpc::Status StreamedSetMainExecutable(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::google::protobuf::StringValue,::google::protobuf::Empty>* server_unary_streamer) = 0;
+  };
+  template <class BaseClass>
   class WithStreamedUnaryMethod_Login : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithStreamedUnaryMethod_Login() {
-      ::grpc::Service::MarkMethodStreamed(24,
+      ::grpc::Service::MarkMethodStreamed(25,
         new ::grpc::internal::StreamedUnaryHandler<
           ::grpc::LoginRequest, ::google::protobuf::Empty>(
             [this](::grpc::ServerContext* context,
@@ -7953,7 +8110,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithStreamedUnaryMethod_Login2FA() {
-      ::grpc::Service::MarkMethodStreamed(25,
+      ::grpc::Service::MarkMethodStreamed(26,
         new ::grpc::internal::StreamedUnaryHandler<
           ::grpc::LoginRequest, ::google::protobuf::Empty>(
             [this](::grpc::ServerContext* context,
@@ -7980,7 +8137,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithStreamedUnaryMethod_Login2Passwords() {
-      ::grpc::Service::MarkMethodStreamed(26,
+      ::grpc::Service::MarkMethodStreamed(27,
         new ::grpc::internal::StreamedUnaryHandler<
           ::grpc::LoginRequest, ::google::protobuf::Empty>(
             [this](::grpc::ServerContext* context,
@@ -8007,7 +8164,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithStreamedUnaryMethod_LoginAbort() {
-      ::grpc::Service::MarkMethodStreamed(27,
+      ::grpc::Service::MarkMethodStreamed(28,
         new ::grpc::internal::StreamedUnaryHandler<
           ::grpc::LoginAbortRequest, ::google::protobuf::Empty>(
             [this](::grpc::ServerContext* context,
@@ -8034,7 +8191,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithStreamedUnaryMethod_CheckUpdate() {
-      ::grpc::Service::MarkMethodStreamed(28,
+      ::grpc::Service::MarkMethodStreamed(29,
         new ::grpc::internal::StreamedUnaryHandler<
           ::google::protobuf::Empty, ::google::protobuf::Empty>(
             [this](::grpc::ServerContext* context,
@@ -8061,7 +8218,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithStreamedUnaryMethod_InstallUpdate() {
-      ::grpc::Service::MarkMethodStreamed(29,
+      ::grpc::Service::MarkMethodStreamed(30,
         new ::grpc::internal::StreamedUnaryHandler<
           ::google::protobuf::Empty, ::google::protobuf::Empty>(
             [this](::grpc::ServerContext* context,
@@ -8088,7 +8245,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithStreamedUnaryMethod_SetIsAutomaticUpdateOn() {
-      ::grpc::Service::MarkMethodStreamed(30,
+      ::grpc::Service::MarkMethodStreamed(31,
         new ::grpc::internal::StreamedUnaryHandler<
           ::google::protobuf::BoolValue, ::google::protobuf::Empty>(
             [this](::grpc::ServerContext* context,
@@ -8115,7 +8272,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithStreamedUnaryMethod_IsAutomaticUpdateOn() {
-      ::grpc::Service::MarkMethodStreamed(31,
+      ::grpc::Service::MarkMethodStreamed(32,
         new ::grpc::internal::StreamedUnaryHandler<
           ::google::protobuf::Empty, ::google::protobuf::BoolValue>(
             [this](::grpc::ServerContext* context,
@@ -8142,7 +8299,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithStreamedUnaryMethod_IsCacheOnDiskEnabled() {
-      ::grpc::Service::MarkMethodStreamed(32,
+      ::grpc::Service::MarkMethodStreamed(33,
         new ::grpc::internal::StreamedUnaryHandler<
           ::google::protobuf::Empty, ::google::protobuf::BoolValue>(
             [this](::grpc::ServerContext* context,
@@ -8169,7 +8326,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithStreamedUnaryMethod_DiskCachePath() {
-      ::grpc::Service::MarkMethodStreamed(33,
+      ::grpc::Service::MarkMethodStreamed(34,
         new ::grpc::internal::StreamedUnaryHandler<
           ::google::protobuf::Empty, ::google::protobuf::StringValue>(
             [this](::grpc::ServerContext* context,
@@ -8196,7 +8353,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithStreamedUnaryMethod_ChangeLocalCache() {
-      ::grpc::Service::MarkMethodStreamed(34,
+      ::grpc::Service::MarkMethodStreamed(35,
         new ::grpc::internal::StreamedUnaryHandler<
           ::grpc::ChangeLocalCacheRequest, ::google::protobuf::Empty>(
             [this](::grpc::ServerContext* context,
@@ -8223,7 +8380,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithStreamedUnaryMethod_SetIsDoHEnabled() {
-      ::grpc::Service::MarkMethodStreamed(35,
+      ::grpc::Service::MarkMethodStreamed(36,
         new ::grpc::internal::StreamedUnaryHandler<
           ::google::protobuf::BoolValue, ::google::protobuf::Empty>(
             [this](::grpc::ServerContext* context,
@@ -8250,7 +8407,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithStreamedUnaryMethod_IsDoHEnabled() {
-      ::grpc::Service::MarkMethodStreamed(36,
+      ::grpc::Service::MarkMethodStreamed(37,
         new ::grpc::internal::StreamedUnaryHandler<
           ::google::protobuf::Empty, ::google::protobuf::BoolValue>(
             [this](::grpc::ServerContext* context,
@@ -8277,7 +8434,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithStreamedUnaryMethod_SetUseSslForSmtp() {
-      ::grpc::Service::MarkMethodStreamed(37,
+      ::grpc::Service::MarkMethodStreamed(38,
         new ::grpc::internal::StreamedUnaryHandler<
           ::google::protobuf::BoolValue, ::google::protobuf::Empty>(
             [this](::grpc::ServerContext* context,
@@ -8304,7 +8461,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithStreamedUnaryMethod_UseSslForSmtp() {
-      ::grpc::Service::MarkMethodStreamed(38,
+      ::grpc::Service::MarkMethodStreamed(39,
         new ::grpc::internal::StreamedUnaryHandler<
           ::google::protobuf::Empty, ::google::protobuf::BoolValue>(
             [this](::grpc::ServerContext* context,
@@ -8331,7 +8488,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithStreamedUnaryMethod_Hostname() {
-      ::grpc::Service::MarkMethodStreamed(39,
+      ::grpc::Service::MarkMethodStreamed(40,
         new ::grpc::internal::StreamedUnaryHandler<
           ::google::protobuf::Empty, ::google::protobuf::StringValue>(
             [this](::grpc::ServerContext* context,
@@ -8358,7 +8515,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithStreamedUnaryMethod_ImapPort() {
-      ::grpc::Service::MarkMethodStreamed(40,
+      ::grpc::Service::MarkMethodStreamed(41,
         new ::grpc::internal::StreamedUnaryHandler<
           ::google::protobuf::Empty, ::google::protobuf::Int32Value>(
             [this](::grpc::ServerContext* context,
@@ -8385,7 +8542,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithStreamedUnaryMethod_SmtpPort() {
-      ::grpc::Service::MarkMethodStreamed(41,
+      ::grpc::Service::MarkMethodStreamed(42,
         new ::grpc::internal::StreamedUnaryHandler<
           ::google::protobuf::Empty, ::google::protobuf::Int32Value>(
             [this](::grpc::ServerContext* context,
@@ -8412,7 +8569,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithStreamedUnaryMethod_ChangePorts() {
-      ::grpc::Service::MarkMethodStreamed(42,
+      ::grpc::Service::MarkMethodStreamed(43,
         new ::grpc::internal::StreamedUnaryHandler<
           ::grpc::ChangePortsRequest, ::google::protobuf::Empty>(
             [this](::grpc::ServerContext* context,
@@ -8439,7 +8596,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithStreamedUnaryMethod_IsPortFree() {
-      ::grpc::Service::MarkMethodStreamed(43,
+      ::grpc::Service::MarkMethodStreamed(44,
         new ::grpc::internal::StreamedUnaryHandler<
           ::google::protobuf::Int32Value, ::google::protobuf::BoolValue>(
             [this](::grpc::ServerContext* context,
@@ -8466,7 +8623,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithStreamedUnaryMethod_AvailableKeychains() {
-      ::grpc::Service::MarkMethodStreamed(44,
+      ::grpc::Service::MarkMethodStreamed(45,
         new ::grpc::internal::StreamedUnaryHandler<
           ::google::protobuf::Empty, ::grpc::AvailableKeychainsResponse>(
             [this](::grpc::ServerContext* context,
@@ -8493,7 +8650,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithStreamedUnaryMethod_SetCurrentKeychain() {
-      ::grpc::Service::MarkMethodStreamed(45,
+      ::grpc::Service::MarkMethodStreamed(46,
         new ::grpc::internal::StreamedUnaryHandler<
           ::google::protobuf::StringValue, ::google::protobuf::Empty>(
             [this](::grpc::ServerContext* context,
@@ -8520,7 +8677,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithStreamedUnaryMethod_CurrentKeychain() {
-      ::grpc::Service::MarkMethodStreamed(46,
+      ::grpc::Service::MarkMethodStreamed(47,
         new ::grpc::internal::StreamedUnaryHandler<
           ::google::protobuf::Empty, ::google::protobuf::StringValue>(
             [this](::grpc::ServerContext* context,
@@ -8547,7 +8704,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithStreamedUnaryMethod_GetUserList() {
-      ::grpc::Service::MarkMethodStreamed(47,
+      ::grpc::Service::MarkMethodStreamed(48,
         new ::grpc::internal::StreamedUnaryHandler<
           ::google::protobuf::Empty, ::grpc::UserListResponse>(
             [this](::grpc::ServerContext* context,
@@ -8574,7 +8731,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithStreamedUnaryMethod_GetUser() {
-      ::grpc::Service::MarkMethodStreamed(48,
+      ::grpc::Service::MarkMethodStreamed(49,
         new ::grpc::internal::StreamedUnaryHandler<
           ::google::protobuf::StringValue, ::grpc::User>(
             [this](::grpc::ServerContext* context,
@@ -8601,7 +8758,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithStreamedUnaryMethod_SetUserSplitMode() {
-      ::grpc::Service::MarkMethodStreamed(49,
+      ::grpc::Service::MarkMethodStreamed(50,
         new ::grpc::internal::StreamedUnaryHandler<
           ::grpc::UserSplitModeRequest, ::google::protobuf::Empty>(
             [this](::grpc::ServerContext* context,
@@ -8628,7 +8785,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithStreamedUnaryMethod_LogoutUser() {
-      ::grpc::Service::MarkMethodStreamed(50,
+      ::grpc::Service::MarkMethodStreamed(51,
         new ::grpc::internal::StreamedUnaryHandler<
           ::google::protobuf::StringValue, ::google::protobuf::Empty>(
             [this](::grpc::ServerContext* context,
@@ -8655,7 +8812,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithStreamedUnaryMethod_RemoveUser() {
-      ::grpc::Service::MarkMethodStreamed(51,
+      ::grpc::Service::MarkMethodStreamed(52,
         new ::grpc::internal::StreamedUnaryHandler<
           ::google::protobuf::StringValue, ::google::protobuf::Empty>(
             [this](::grpc::ServerContext* context,
@@ -8682,7 +8839,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithStreamedUnaryMethod_ConfigureUserAppleMail() {
-      ::grpc::Service::MarkMethodStreamed(52,
+      ::grpc::Service::MarkMethodStreamed(53,
         new ::grpc::internal::StreamedUnaryHandler<
           ::grpc::ConfigureAppleMailRequest, ::google::protobuf::Empty>(
             [this](::grpc::ServerContext* context,
@@ -8709,7 +8866,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithStreamedUnaryMethod_StopEventStream() {
-      ::grpc::Service::MarkMethodStreamed(54,
+      ::grpc::Service::MarkMethodStreamed(55,
         new ::grpc::internal::StreamedUnaryHandler<
           ::google::protobuf::Empty, ::google::protobuf::Empty>(
             [this](::grpc::ServerContext* context,
@@ -8730,14 +8887,14 @@ class Bridge final {
     // replace default version of method with streamed unary
     virtual ::grpc::Status StreamedStopEventStream(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::google::protobuf::Empty,::google::protobuf::Empty>* server_unary_streamer) = 0;
   };
-  typedef WithStreamedUnaryMethod_AddLogEntry<WithStreamedUnaryMethod_GuiReady<WithStreamedUnaryMethod_Quit<WithStreamedUnaryMethod_Restart<WithStreamedUnaryMethod_ShowOnStartup<WithStreamedUnaryMethod_ShowSplashScreen<WithStreamedUnaryMethod_IsFirstGuiStart<WithStreamedUnaryMethod_SetIsAutostartOn<WithStreamedUnaryMethod_IsAutostartOn<WithStreamedUnaryMethod_SetIsBetaEnabled<WithStreamedUnaryMethod_IsBetaEnabled<WithStreamedUnaryMethod_GoOs<WithStreamedUnaryMethod_TriggerReset<WithStreamedUnaryMethod_Version<WithStreamedUnaryMethod_LogsPath<WithStreamedUnaryMethod_LicensePath<WithStreamedUnaryMethod_ReleaseNotesPageLink<WithStreamedUnaryMethod_DependencyLicensesLink<WithStreamedUnaryMethod_LandingPageLink<WithStreamedUnaryMethod_SetColorSchemeName<WithStreamedUnaryMethod_ColorSchemeName<WithStreamedUnaryMethod_CurrentEmailClient<WithStreamedUnaryMethod_ReportBug<WithStreamedUnaryMethod_ForceLauncher<WithStreamedUnaryMethod_Login<WithStreamedUnaryMethod_Login2FA<WithStreamedUnaryMethod_Login2Passwords<WithStreamedUnaryMethod_LoginAbort<WithStreamedUnaryMethod_CheckUpdate<WithStreamedUnaryMethod_InstallUpdate<WithStreamedUnaryMethod_SetIsAutomaticUpdateOn<WithStreamedUnaryMethod_IsAutomaticUpdateOn<WithStreamedUnaryMethod_IsCacheOnDiskEnabled<WithStreamedUnaryMethod_DiskCachePath<WithStreamedUnaryMethod_ChangeLocalCache<WithStreamedUnaryMethod_SetIsDoHEnabled<WithStreamedUnaryMethod_IsDoHEnabled<WithStreamedUnaryMethod_SetUseSslForSmtp<WithStreamedUnaryMethod_UseSslForSmtp<WithStreamedUnaryMethod_Hostname<WithStreamedUnaryMethod_ImapPort<WithStreamedUnaryMethod_SmtpPort<WithStreamedUnaryMethod_ChangePorts<WithStreamedUnaryMethod_IsPortFree<WithStreamedUnaryMethod_AvailableKeychains<WithStreamedUnaryMethod_SetCurrentKeychain<WithStreamedUnaryMethod_CurrentKeychain<WithStreamedUnaryMethod_GetUserList<WithStreamedUnaryMethod_GetUser<WithStreamedUnaryMethod_SetUserSplitMode<WithStreamedUnaryMethod_LogoutUser<WithStreamedUnaryMethod_RemoveUser<WithStreamedUnaryMethod_ConfigureUserAppleMail<WithStreamedUnaryMethod_StopEventStream<Service > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > StreamedUnaryService;
+  typedef WithStreamedUnaryMethod_AddLogEntry<WithStreamedUnaryMethod_GuiReady<WithStreamedUnaryMethod_Quit<WithStreamedUnaryMethod_Restart<WithStreamedUnaryMethod_ShowOnStartup<WithStreamedUnaryMethod_ShowSplashScreen<WithStreamedUnaryMethod_IsFirstGuiStart<WithStreamedUnaryMethod_SetIsAutostartOn<WithStreamedUnaryMethod_IsAutostartOn<WithStreamedUnaryMethod_SetIsBetaEnabled<WithStreamedUnaryMethod_IsBetaEnabled<WithStreamedUnaryMethod_GoOs<WithStreamedUnaryMethod_TriggerReset<WithStreamedUnaryMethod_Version<WithStreamedUnaryMethod_LogsPath<WithStreamedUnaryMethod_LicensePath<WithStreamedUnaryMethod_ReleaseNotesPageLink<WithStreamedUnaryMethod_DependencyLicensesLink<WithStreamedUnaryMethod_LandingPageLink<WithStreamedUnaryMethod_SetColorSchemeName<WithStreamedUnaryMethod_ColorSchemeName<WithStreamedUnaryMethod_CurrentEmailClient<WithStreamedUnaryMethod_ReportBug<WithStreamedUnaryMethod_ForceLauncher<WithStreamedUnaryMethod_SetMainExecutable<WithStreamedUnaryMethod_Login<WithStreamedUnaryMethod_Login2FA<WithStreamedUnaryMethod_Login2Passwords<WithStreamedUnaryMethod_LoginAbort<WithStreamedUnaryMethod_CheckUpdate<WithStreamedUnaryMethod_InstallUpdate<WithStreamedUnaryMethod_SetIsAutomaticUpdateOn<WithStreamedUnaryMethod_IsAutomaticUpdateOn<WithStreamedUnaryMethod_IsCacheOnDiskEnabled<WithStreamedUnaryMethod_DiskCachePath<WithStreamedUnaryMethod_ChangeLocalCache<WithStreamedUnaryMethod_SetIsDoHEnabled<WithStreamedUnaryMethod_IsDoHEnabled<WithStreamedUnaryMethod_SetUseSslForSmtp<WithStreamedUnaryMethod_UseSslForSmtp<WithStreamedUnaryMethod_Hostname<WithStreamedUnaryMethod_ImapPort<WithStreamedUnaryMethod_SmtpPort<WithStreamedUnaryMethod_ChangePorts<WithStreamedUnaryMethod_IsPortFree<WithStreamedUnaryMethod_AvailableKeychains<WithStreamedUnaryMethod_SetCurrentKeychain<WithStreamedUnaryMethod_CurrentKeychain<WithStreamedUnaryMethod_GetUserList<WithStreamedUnaryMethod_GetUser<WithStreamedUnaryMethod_SetUserSplitMode<WithStreamedUnaryMethod_LogoutUser<WithStreamedUnaryMethod_RemoveUser<WithStreamedUnaryMethod_ConfigureUserAppleMail<WithStreamedUnaryMethod_StopEventStream<Service > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > StreamedUnaryService;
   template <class BaseClass>
   class WithSplitStreamingMethod_RunEventStream : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithSplitStreamingMethod_RunEventStream() {
-      ::grpc::Service::MarkMethodStreamed(53,
+      ::grpc::Service::MarkMethodStreamed(54,
         new ::grpc::internal::SplitServerStreamingHandler<
           ::grpc::EventStreamRequest, ::grpc::StreamEvent>(
             [this](::grpc::ServerContext* context,
@@ -8759,7 +8916,7 @@ class Bridge final {
     virtual ::grpc::Status StreamedRunEventStream(::grpc::ServerContext* context, ::grpc::ServerSplitStreamer< ::grpc::EventStreamRequest,::grpc::StreamEvent>* server_split_streamer) = 0;
   };
   typedef WithSplitStreamingMethod_RunEventStream<Service > SplitStreamedService;
-  typedef WithStreamedUnaryMethod_AddLogEntry<WithStreamedUnaryMethod_GuiReady<WithStreamedUnaryMethod_Quit<WithStreamedUnaryMethod_Restart<WithStreamedUnaryMethod_ShowOnStartup<WithStreamedUnaryMethod_ShowSplashScreen<WithStreamedUnaryMethod_IsFirstGuiStart<WithStreamedUnaryMethod_SetIsAutostartOn<WithStreamedUnaryMethod_IsAutostartOn<WithStreamedUnaryMethod_SetIsBetaEnabled<WithStreamedUnaryMethod_IsBetaEnabled<WithStreamedUnaryMethod_GoOs<WithStreamedUnaryMethod_TriggerReset<WithStreamedUnaryMethod_Version<WithStreamedUnaryMethod_LogsPath<WithStreamedUnaryMethod_LicensePath<WithStreamedUnaryMethod_ReleaseNotesPageLink<WithStreamedUnaryMethod_DependencyLicensesLink<WithStreamedUnaryMethod_LandingPageLink<WithStreamedUnaryMethod_SetColorSchemeName<WithStreamedUnaryMethod_ColorSchemeName<WithStreamedUnaryMethod_CurrentEmailClient<WithStreamedUnaryMethod_ReportBug<WithStreamedUnaryMethod_ForceLauncher<WithStreamedUnaryMethod_Login<WithStreamedUnaryMethod_Login2FA<WithStreamedUnaryMethod_Login2Passwords<WithStreamedUnaryMethod_LoginAbort<WithStreamedUnaryMethod_CheckUpdate<WithStreamedUnaryMethod_InstallUpdate<WithStreamedUnaryMethod_SetIsAutomaticUpdateOn<WithStreamedUnaryMethod_IsAutomaticUpdateOn<WithStreamedUnaryMethod_IsCacheOnDiskEnabled<WithStreamedUnaryMethod_DiskCachePath<WithStreamedUnaryMethod_ChangeLocalCache<WithStreamedUnaryMethod_SetIsDoHEnabled<WithStreamedUnaryMethod_IsDoHEnabled<WithStreamedUnaryMethod_SetUseSslForSmtp<WithStreamedUnaryMethod_UseSslForSmtp<WithStreamedUnaryMethod_Hostname<WithStreamedUnaryMethod_ImapPort<WithStreamedUnaryMethod_SmtpPort<WithStreamedUnaryMethod_ChangePorts<WithStreamedUnaryMethod_IsPortFree<WithStreamedUnaryMethod_AvailableKeychains<WithStreamedUnaryMethod_SetCurrentKeychain<WithStreamedUnaryMethod_CurrentKeychain<WithStreamedUnaryMethod_GetUserList<WithStreamedUnaryMethod_GetUser<WithStreamedUnaryMethod_SetUserSplitMode<WithStreamedUnaryMethod_LogoutUser<WithStreamedUnaryMethod_RemoveUser<WithStreamedUnaryMethod_ConfigureUserAppleMail<WithSplitStreamingMethod_RunEventStream<WithStreamedUnaryMethod_StopEventStream<Service > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > StreamedService;
+  typedef WithStreamedUnaryMethod_AddLogEntry<WithStreamedUnaryMethod_GuiReady<WithStreamedUnaryMethod_Quit<WithStreamedUnaryMethod_Restart<WithStreamedUnaryMethod_ShowOnStartup<WithStreamedUnaryMethod_ShowSplashScreen<WithStreamedUnaryMethod_IsFirstGuiStart<WithStreamedUnaryMethod_SetIsAutostartOn<WithStreamedUnaryMethod_IsAutostartOn<WithStreamedUnaryMethod_SetIsBetaEnabled<WithStreamedUnaryMethod_IsBetaEnabled<WithStreamedUnaryMethod_GoOs<WithStreamedUnaryMethod_TriggerReset<WithStreamedUnaryMethod_Version<WithStreamedUnaryMethod_LogsPath<WithStreamedUnaryMethod_LicensePath<WithStreamedUnaryMethod_ReleaseNotesPageLink<WithStreamedUnaryMethod_DependencyLicensesLink<WithStreamedUnaryMethod_LandingPageLink<WithStreamedUnaryMethod_SetColorSchemeName<WithStreamedUnaryMethod_ColorSchemeName<WithStreamedUnaryMethod_CurrentEmailClient<WithStreamedUnaryMethod_ReportBug<WithStreamedUnaryMethod_ForceLauncher<WithStreamedUnaryMethod_SetMainExecutable<WithStreamedUnaryMethod_Login<WithStreamedUnaryMethod_Login2FA<WithStreamedUnaryMethod_Login2Passwords<WithStreamedUnaryMethod_LoginAbort<WithStreamedUnaryMethod_CheckUpdate<WithStreamedUnaryMethod_InstallUpdate<WithStreamedUnaryMethod_SetIsAutomaticUpdateOn<WithStreamedUnaryMethod_IsAutomaticUpdateOn<WithStreamedUnaryMethod_IsCacheOnDiskEnabled<WithStreamedUnaryMethod_DiskCachePath<WithStreamedUnaryMethod_ChangeLocalCache<WithStreamedUnaryMethod_SetIsDoHEnabled<WithStreamedUnaryMethod_IsDoHEnabled<WithStreamedUnaryMethod_SetUseSslForSmtp<WithStreamedUnaryMethod_UseSslForSmtp<WithStreamedUnaryMethod_Hostname<WithStreamedUnaryMethod_ImapPort<WithStreamedUnaryMethod_SmtpPort<WithStreamedUnaryMethod_ChangePorts<WithStreamedUnaryMethod_IsPortFree<WithStreamedUnaryMethod_AvailableKeychains<WithStreamedUnaryMethod_SetCurrentKeychain<WithStreamedUnaryMethod_CurrentKeychain<WithStreamedUnaryMethod_GetUserList<WithStreamedUnaryMethod_GetUser<WithStreamedUnaryMethod_SetUserSplitMode<WithStreamedUnaryMethod_LogoutUser<WithStreamedUnaryMethod_RemoveUser<WithStreamedUnaryMethod_ConfigureUserAppleMail<WithSplitStreamingMethod_RunEventStream<WithStreamedUnaryMethod_StopEventStream<Service > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > StreamedService;
 };
 
 }  // namespace grpc

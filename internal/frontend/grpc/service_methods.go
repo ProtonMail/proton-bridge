@@ -300,6 +300,15 @@ func (s *Service) ForceLauncher(_ context.Context, launcher *wrapperspb.StringVa
 	return &emptypb.Empty{}, nil
 }
 
+func (s *Service) SetMainExecutable(_ context.Context, exe *wrapperspb.StringValue) (*emptypb.Empty, error) {
+	s.log.WithField("executable", exe.Value).Info("SetMainExecutable")
+	go func() {
+		defer s.panicHandler.HandlePanic()
+		s.restarter.SetMainExecutable(exe.Value)
+	}()
+	return &emptypb.Empty{}, nil
+}
+
 func (s *Service) Login(_ context.Context, login *LoginRequest) (*emptypb.Empty, error) {
 	s.log.WithField("username", login.Username).Info("Login")
 	go func() {

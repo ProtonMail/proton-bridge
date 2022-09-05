@@ -54,6 +54,7 @@ service Bridge {
   rpc CurrentEmailClient(google.protobuf.Empty) returns (google.protobuf.StringValue);
   rpc ReportBug(ReportBugRequest) returns (google.protobuf.Empty);
   rpc ForceLauncher(google.protobuf.StringValue) returns (google.protobuf.Empty);
+  rpc SetMainExecutable(google.protobuf.StringValue) returns (google.protobuf.Empty);
 
   // login
   rpc Login(LoginRequest) returns (google.protobuf.Empty);

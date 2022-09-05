@@ -36,6 +36,7 @@ type PanicHandler interface {
 type Restarter interface {
 	SetToRestart()
 	ForceLauncher(string)
+	SetMainExecutable(string)
 }
 
 type Updater interface {

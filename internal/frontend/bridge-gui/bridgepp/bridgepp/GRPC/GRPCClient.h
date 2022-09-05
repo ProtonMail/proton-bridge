@@ -71,6 +71,7 @@ public: // member functions.
     grpc::Status restart(); ///< Performs the Restart gRPC call.
     grpc::Status triggerReset(); ///< Performs the triggerReset gRPC call.
     grpc::Status forceLauncher(QString const &launcher); ///< Performs the 'ForceLauncher' call.
+    grpc::Status setMainExecutable(QString const &exe); ///< Performs the 'SetMainExecutable' call.
     grpc::Status isPortFree(qint32 port, bool &outFree); ///< Performs the 'IsPortFree' call.
     grpc::Status showOnStartup(bool &outValue); ///< Performs the 'ShowOnStartup' call.
     grpc::Status showSplashScreen(bool &outValue); ///< Performs the 'ShowSplashScreen' call.

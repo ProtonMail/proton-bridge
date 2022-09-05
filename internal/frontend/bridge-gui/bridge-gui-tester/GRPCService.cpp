@@ -328,6 +328,19 @@ Status GRPCService::ForceLauncher(ServerContext *, StringValue const *request, E
 
 
 //****************************************************************************************************************************************************
+/// \param[in] request The request.
+/// \return The status for the call.
+//****************************************************************************************************************************************************
+Status GRPCService::SetMainExecutable(ServerContext *, StringValue const *request, Empty *)
+{
+    app().log().debug(__FUNCTION__);
+    app().log().info(QString("SetMainExecutable: %1").arg(QString::fromStdString(request->value())));
+    return Status::OK;
+}
+
+
+
+//****************************************************************************************************************************************************
 /// \param[in] request The request
 //****************************************************************************************************************************************************
 Status GRPCService::ReportBug(ServerContext *, ReportBugRequest const *request, Empty *)

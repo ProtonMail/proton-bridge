@@ -114,10 +114,9 @@ func main() { //nolint:funlen
 		logrus.WithError(err).Fatal("Failed to determine path to launcher")
 	}
 
-	var wait bool
-	args, wait = findAndStrip(args, FlagWait)
+	args, wait, mainExe := findAndStripWait(args)
 	if wait {
-		waitForProcessToFinish(exe)
+		waitForProcessToFinish(mainExe)
 	}
 
 	cmd := execabs.Command(exe, appendLauncherPath(launcher, args)...) //nolint:gosec
@@ -180,6 +179,31 @@ func findAndStrip[T comparable](slice []T, v T) (strippedList []T, found bool) {
 		return value != v
 	})
 	return strippedList, len(strippedList) != len(slice)
+}
+
+// findAndStripWait Check for waiter flag get its value and clean them both.
+func findAndStripWait(args []string) ([]string, bool, string) {
+	res := append([]string{}, args...)
+
+	hasFlag := false
+	var value string
+
+	for k, v := range res {
+		if v != FlagWait {
+			continue
+		}
+		if k+1 >= len(res) {
+			continue
+		}
+		hasFlag = true
+		value = res[k+1]
+	}
+
+	if hasFlag {
+		res, _ = findAndStrip(res, FlagWait)
+		res, _ = findAndStrip(res, value)
+	}
+	return res, hasFlag, value
 }
 
 func getPathToUpdatedExecutable(

@@ -94,11 +94,12 @@ type Base struct {
 	TLS            *tls.TLS
 	Autostart      *autostart.App
 
-	Name     string // the app's name
-	usage    string // the app's usage description
-	command  string // the command used to launch the app (either the exe path or the launcher path)
-	restart  bool   // whether the app is currently set to restart
-	launcher string // launcher to be used if not set in args
+	Name           string // the app's name
+	usage          string // the app's usage description
+	command        string // the command used to launch the app (either the exe path or the launcher path)
+	restart        bool   // whether the app is currently set to restart
+	launcher       string // launcher to be used if not set in args
+	mainExecutable string // mainExecutable  the main executable process.
 
 	teardown []func() error // actions to perform when app is exiting
 }
@@ -269,6 +270,9 @@ func New( //nolint:funlen
 		// By default, the command is the app's executable.
 		// This can be changed at runtime by using the "--launcher" flag.
 		command: exe,
+		// By default, the command is the app's executable.
+		// This can be changed at runtime by summoning the SetMainExecutable gRPC call.
+		mainExecutable: exe,
 	}, nil
 }
 
@@ -327,6 +331,11 @@ func (b *Base) SetToRestart() {
 func (b *Base) ForceLauncher(launcher string) {
 	b.launcher = launcher
 	b.setupLauncher(launcher)
+}
+
+func (b *Base) SetMainExecutable(exe string) {
+	logrus.Info("Main Executable set to ", exe)
+	b.mainExecutable = exe
 }
 
 // AddTeardownAction adds an action to perform during app teardown.
