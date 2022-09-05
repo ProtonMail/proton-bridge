@@ -23,6 +23,10 @@
 #include <bridgepp/Exception/Exception.h>
 #include <bridgepp/ProcessMonitor.h>
 
+#include <QNetworkAccessManager>
+#include <QNetworkRequest>
+#include <QJsonDocument>
+#include <QJsonObject>
 
 using namespace bridgepp;
 
@@ -136,6 +140,55 @@ bool checkSingleInstance(QLockFile &lock)
 
 
 //****************************************************************************************************************************************************
+/// \return QUrl to reqch the bridge API.
+//****************************************************************************************************************************************************
+QUrl getApiUrl()
+{
+    QUrl url;
+    // use default url.
+    url.setScheme("http");
+    url.setHost("127.0.0.1");
+    url.setPort(1042);
+
+    // override with what can be found in the prefs.json file.
+    QFile prefFile(QString("%1/%2").arg(bridgepp::userConfigDir(), "prefs.json"));
+    if (prefFile.exists())
+    {
+        prefFile.open(QIODevice::ReadOnly|QIODevice::Text);
+        QByteArray data = prefFile.readAll();
+        prefFile.close();
+        QJsonDocument doc = QJsonDocument::fromJson(data);
+        if (!doc.isNull()) {
+            QString userPortApi = "user_port_api";
+            QJsonObject obj = doc.object();
+            if (!obj.isEmpty() && obj.contains(userPortApi))
+                url.setPort(doc.object()[userPortApi].toString().toInt());
+        }
+    }
+    return url;
+}
+
+
+//****************************************************************************************************************************************************
+/// \brief Use api to bring focus on existing bridge instance.
+//****************************************************************************************************************************************************
+void focusOtherInstance()
+{
+    QNetworkAccessManager *manager;
+    QNetworkRequest request;
+    manager = new QNetworkAccessManager();
+    QUrl url = getApiUrl();
+    url.setPath("/focus");
+    request.setUrl(url);
+    QNetworkReply* rep = manager->get(request);
+
+    QEventLoop loop;
+    QObject::connect(rep, &QNetworkReply::finished, &loop, &QEventLoop::quit);
+    loop.exec();
+}
+
+
+//****************************************************************************************************************************************************
 /// \param [in]  argc number of arguments passed to the application.
 /// \param [in]  argv list of arguments passed to the application.
 /// \param [out] args list of arguments passed to the application as a QStringList.
@@ -238,8 +291,11 @@ int main(int argc, char *argv[])
 
         QLockFile lock(bridgepp::userCacheDir() + "/" + bridgeLock);
         if (!checkSingleInstance(lock))
+        {
+            focusOtherInstance();
             return EXIT_FAILURE;
 
+        }
         QStringList args;
         QString launcher;
         bool attach = false;
