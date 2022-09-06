@@ -46,7 +46,7 @@ const (
 	appName    = "Proton Mail Launcher"
 	configName = "bridge"
 	exeName    = "bridge"
-	guiName    = "proton-bridge"
+	guiName    = "bridge-gui"
 
 	FlagCLI      = "--cli"
 	FlagCLIShort = "-c"
@@ -138,32 +138,17 @@ func main() { //nolint:funlen
 	}
 }
 
+// appendLauncherPath add launcher path if missing.
 func appendLauncherPath(path string, args []string) []string {
-	res := append([]string{}, args...)
-
-	hasFlag := false
-
-	for k, v := range res {
-		if v != FlagLauncher {
-			continue
-		}
-
-		hasFlag = true
-
-		if k+1 >= len(res) {
-			continue
-		}
-
-		res[k+1] = path
-	}
-
-	if !hasFlag {
+	if !sliceContains(args, FlagLauncher) {
+		res := append([]string{}, args...)
 		res = append(res, FlagLauncher, path)
+		return res
 	}
-
-	return res
+	return args
 }
 
+// inCLIMode detect if CLI mode is asked.
 func inCLIMode(args []string) bool {
 	return sliceContains(args, FlagCLI) || sliceContains(args, FlagCLIShort)
 }

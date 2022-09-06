@@ -41,30 +41,29 @@ BUILD_FLAGS_LAUNCHER+=-ldflags '${GO_LDFLAGS_LAUNCHER}'
 
 DEPLOY_DIR:=cmd/${TARGET_CMD}/deploy
 DIRNAME:=$(shell basename ${CURDIR})
-EXE:=${EXE_NAME}
-EXE_GO:=bridge
-EXE_GUI_NAME:=bridge-gui
-EXE_GUI:=${EXE_GUI_NAME}
+
+LAUNCHER_EXE:=proton-bridge
+BRIDGE_EXE=bridge
+BRIDGE_GUI_EXE_NAME=bridge-gui
+BRIDGE_GUI_EXE=${BRIDGE_GUI_EXE_NAME}
 LAUNCHER_PATH:=./cmd/launcher/
-LAUNCHER_EXE:=launcher-${EXE}
 
 ifeq "${TARGET_OS}" "windows"
-    EXE:=${EXE}.exe
-    EXE_GUI:=${EXE_GUI}.exe
-    EXE_GO:=${EXE_GO}.exe
+    BRIDGE_EXE:=${BRIDGE_EXE}.exe
+    BRIDGE_GUI_EXE:=${BRIDGE_GUI_EXE}.exe
     LAUNCHER_EXE:=${LAUNCHER_EXE}.exe
     RESOURCE_FILE:=resource.syso
 endif
 ifeq "${TARGET_OS}" "darwin"
-    DARWINAPP_CONTENTS:=${DEPLOY_DIR}/darwin/${EXE}.app/Contents
-    EXE:=${EXE}.app
-    EXE_GUI:=${EXE_GUI_NAME}.app
-    EXE_BINARY_DARWIN:=Contents/MacOS/${EXE_NAME}
-    EXE_GO:=${EXE_GUI}/Contents/MacOS/${EXE_GO}
+	BRIDGE_EXE_NAME:=${BRIDGE_EXE}
+	BRIDGE_EXE:=${BRIDGE_EXE}.app
+	BRIDGE_GUI_EXE:=${BRIDGE_GUI_EXE}.app
+	EXE_BINARY_DARWIN:=Contents/MacOS/${BRIDGE_GUI_EXE_NAME}
+	EXE_TARGET_DARWIN:=${DEPLOY_DIR}/${TARGET_OS}/${LAUNCHER_EXE}.app
+	DARWINAPP_CONTENTS:=${EXE_TARGET_DARWIN}/Contents
 endif
-EXE_TARGET:=${DEPLOY_DIR}/${TARGET_OS}/${EXE}
-EXE_GUI_TARGET:=${DEPLOY_DIR}/${TARGET_OS}/${EXE_GUI}
-EXE_GO_TARGET:=${DEPLOY_DIR}/${TARGET_OS}/${EXE_GO}
+EXE_TARGET:=${DEPLOY_DIR}/${TARGET_OS}/${BRIDGE_EXE}
+EXE_GUI_TARGET:=${DEPLOY_DIR}/${TARGET_OS}/${BRIDGE_GUI_EXE}
 
 TGZ_TARGET:=bridge_${TARGET_OS}_${REVISION}.tgz
 
@@ -119,15 +118,16 @@ ${DEPLOY_DIR}/linux: ${EXE_TARGET} build-launcher
 	cp -pf ${LAUNCHER_EXE} ${DEPLOY_DIR}/linux/
 
 ${DEPLOY_DIR}/darwin: ${EXE_TARGET} build-launcher
-	mv ${EXE_TARGET}/Contents/MacOS/{${EXE_GUI_NAME},${EXE_NAME}}
-	perl -i -pe"s/>${EXE_GUI_NAME}/>${LAUNCHER_EXE}/g" ${ROOT_DIR}/${EXE_TARGET}/Contents/Info.plist
+	mv ${EXE_GUI_TARGET} ${EXE_TARGET_DARWIN}
+	mv ${EXE_TARGET} ${DARWINAPP_CONTENTS}/MacOS/${BRIDGE_EXE_NAME}
+	perl -i -pe"s/>${BRIDGE_GUI_EXE_NAME}/>${LAUNCHER_EXE}/g" ${DARWINAPP_CONTENTS}/Info.plist
 	cp ./dist/${SRC_ICNS} ${DARWINAPP_CONTENTS}/Resources/${SRC_ICNS}
 	cp LICENSE ${DARWINAPP_CONTENTS}/Resources/
 	rm -rf "${DARWINAPP_CONTENTS}/Frameworks/QtWebEngine.framework"
 	rm -rf "${DARWINAPP_CONTENTS}/Frameworks/QtWebView.framework"
 	rm -rf "${DARWINAPP_CONTENTS}/Frameworks/QtWebEngineCore.framework"
-	cp ${LAUNCHER_EXE}  ${EXE_TARGET}/Contents/MacOS/${LAUNCHER_EXE}
-	./utils/remove_non_relative_links_darwin.sh "${EXE_TARGET}/${EXE_BINARY_DARWIN}"
+	cp ${LAUNCHER_EXE}  ${DARWINAPP_CONTENTS}/MacOS/${LAUNCHER_EXE}
+	./utils/remove_non_relative_links_darwin.sh "${EXE_TARGET_DARWIN}/${EXE_BINARY_DARWIN}"
 
 ${DEPLOY_DIR}/windows: ${EXE_TARGET} build-launcher
 	cp ./dist/${SRC_ICO} ${DEPLOY_DIR}/windows/logo.ico
@@ -148,8 +148,7 @@ ${EXE_TARGET}: check-build-essentials ${EXE_NAME}
 		BRIDGE_GUI_BUILD_CONFIG=Release \
 		BRIDGE_INSTALL_PATH=${ROOT_DIR}/${DEPLOY_DIR}/${GOOS} \
 		./build.sh install
-	cp -pf "${ROOT_DIR}/${EXE_NAME}" "$(ROOT_DIR)/${EXE_GO_TARGET}"
-	mv "${ROOT_DIR}/${EXE_GUI_TARGET}" "$(ROOT_DIR)/${EXE_TARGET}"
+	mv "${ROOT_DIR}/${EXE_NAME}" "$(ROOT_DIR)/${EXE_TARGET}"
 
 WINDRES_YEAR:=$(shell date +%Y)
 APP_VERSION_COMMA:=$(shell echo "${APP_VERSION}" | sed -e 's/[^0-9,.]*//g' -e 's/\./,/g')
