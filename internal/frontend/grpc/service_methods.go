@@ -613,8 +613,9 @@ func (s *Service) AvailableKeychains(context.Context, *emptypb.Empty) (*Availabl
 	return &AvailableKeychainsResponse{Keychains: keychains}, nil
 }
 
-func (s *Service) SetCurrentKeychain(_ context.Context, keychain *wrapperspb.StringValue) (*emptypb.Empty, error) {
+func (s *Service) SetCurrentKeychain(ctx context.Context, keychain *wrapperspb.StringValue) (*emptypb.Empty, error) {
 	s.log.WithField("keychain", keychain.Value).Info("SetCurrentKeyChain") // we do not check validity.
+	defer func() { _, _ = s.Restart(ctx, &emptypb.Empty{}) }()
 	defer func() { _ = s.SendEvent(NewKeychainChangeKeychainFinishedEvent()) }()
 
 	if s.bridge.GetKeychainApp() == keychain.Value {
