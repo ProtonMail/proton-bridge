@@ -71,6 +71,7 @@ void initQtApplication()
     QGuiApplication::setOrganizationName(PROJECT_VENDOR);
     QGuiApplication::setOrganizationDomain("proton.ch");
     QGuiApplication::setQuitOnLastWindowClosed(false);
+    QGuiApplication::setWindowIcon(QIcon(":bridge.svg"));
 }
 
 
