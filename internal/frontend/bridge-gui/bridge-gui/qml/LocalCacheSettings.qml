@@ -79,7 +79,7 @@ SettingsView {
             id: pathDialog
             title: qsTr("Select cache location")
             currentFolder: root._diskCachePath
-            onAccepted: root._diskCachePath = pathDialog.fileUrl
+            onAccepted: root._diskCachePath = pathDialog.selectedFolder
        }
     }
 
