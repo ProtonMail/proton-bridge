@@ -115,7 +115,7 @@ test-linux:
 test-windows:
   extends:
     - .build-windows-base
-    - .rules-branch-and-MR-manual   # GODT-1833: change to .rules-branch-and-MR-always once runner fixed
+    - .rules-branch-and-MR-always
   stage: test
   needs: []
   script:
@@ -257,7 +257,7 @@ check-gobinsec:
   stage: check
   needs: ["build-linux-qa"]
   extends:
-    - .rules-branch-manual-MR-always
+    - .rules-branch-and-MR-manual
   cache:
     key: gobinsec-cache-v2
     paths:
