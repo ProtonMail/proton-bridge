@@ -46,6 +46,7 @@ public: // member functions.
     bool isFirstGUIStart() const; ///< Get the value for the 'Is First GUI Start' check.
     bool isAutostartOn() const; ///< Get the value for the 'Autostart' check.
     bool isBetaEnabled() const; ///< Get the value for the 'Beta Enabled' check.
+    bool isAllMailVisible() const; ///< Get the value for the 'All Mail Visible' check.
     QString colorSchemeName() const; ///< Get the value of the 'Use Dark Theme' checkbox.
     qint32 eventDelayMs() const; ///< Get the delay for sending automatically generated events.
     QString logsPath() const; ///< Get the content of the 'Logs Path' edit.
@@ -70,9 +71,10 @@ public: // slots
     void updateGUIState(); ///< Update the GUI state.
     void setIsStreaming(bool isStreaming); ///< Set the isStreamingEvents value.
     void setClientPlatform(QString const &clientPlatform); ///< Set the client platform.
-    void setIsAutostartOn(bool on); ///< Set the value for the 'Autostart' check.
-    void setIsBetaEnabled(bool enabled); ///< Get the value for the 'Beta Enabled' check.
-    void setColorSchemeName(QString const &name); ///< Set the value for the 'Use Dark Theme' checkbox.
+    void setIsAutostartOn(bool on); ///< Set the value for the 'Autostart' check box.
+    void setIsBetaEnabled(bool enabled); ///< Set the value for the 'Beta Enabled' check box.
+    void setIsAllMailVisible(bool visible); ///< Set the value for the 'All Mail Visible' check box.
+    void setColorSchemeName(QString const &name); ///< Set the value for the 'Use Dark Theme' check box.
     void setBugReport(QString const &osType, QString const &osVersion, QString const &emailClient, QString const &address, QString const &description,
         bool includeLogs); ///< Set the content of the bug report box.
     void changePorts(qint32 imapPort, qint32 smtpPort); ///< Change the IMAP and SMTP ports.

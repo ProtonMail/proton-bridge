@@ -39,6 +39,7 @@ void GRPCQtProxy::connectSignals()
     connect(this, &GRPCQtProxy::delayedEventRequested, &mainWindow, &MainWindow::sendDelayedEvent);
     connect(this, &GRPCQtProxy::setIsAutostartOnReceived, &settingsTab, &SettingsTab::setIsAutostartOn);
     connect(this, &GRPCQtProxy::setIsBetaEnabledReceived, &settingsTab, &SettingsTab::setIsBetaEnabled);
+    connect(this, &GRPCQtProxy::setIsAllMailVisibleReceived, &settingsTab, &SettingsTab::setIsAllMailVisible);
     connect(this, &GRPCQtProxy::setColorSchemeNameReceived, &settingsTab, &SettingsTab::setColorSchemeName);
     connect(this, &GRPCQtProxy::reportBugReceived, &settingsTab, &SettingsTab::setBugReport);
     connect(this, &GRPCQtProxy::setIsStreamingReceived, &settingsTab, &SettingsTab::setIsStreaming);
@@ -80,6 +81,15 @@ void GRPCQtProxy::setIsAutostartOn(bool on)
 void GRPCQtProxy::setIsBetaEnabled(bool enabled)
 {
     emit setIsBetaEnabledReceived(enabled);
+}
+
+
+//****************************************************************************************************************************************************
+/// \param[in] visible The value.
+//****************************************************************************************************************************************************
+void GRPCQtProxy::setIsAllMailVisible(bool visible)
+{
+    emit setIsAllMailVisibleReceived(visible);
 }
 
 

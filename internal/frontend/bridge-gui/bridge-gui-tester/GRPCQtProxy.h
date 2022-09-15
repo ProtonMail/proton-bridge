@@ -41,6 +41,7 @@ public: // member functions.
     void sendDelayedEvent(bridgepp::SPStreamEvent const &event); ///< Sends a delayed stream event.
     void setIsAutostartOn(bool on); ///< Forwards a SetIsAutostartOn call via a Qt signal.
     void setIsBetaEnabled(bool enabled); ///< Forwards a SetIsBetaEnabled call via a Qt signal.
+    void setIsAllMailVisible(bool visible); ///< Forwards a SetIsAllMailVisible call via a Qt signal.
     void setColorSchemeName(QString const &name); ///< Forward a SetColorSchemeName call via a Qt Signal
     void reportBug(QString const &osType, QString const &osVersion, QString const &emailClient, QString const &address,
         QString const &description, bool includeLogs); ///< Forwards a ReportBug call via a Qt signal.
@@ -60,6 +61,7 @@ signals:
     void delayedEventRequested(bridgepp::SPStreamEvent const &event); ///< Signal for sending a delayed event. delayed is set in the UI.
     void setIsAutostartOnReceived(bool on); ///< Forwards a SetIsAutostartOn call via a Qt signal.
     void setIsBetaEnabledReceived(bool enabled); ///< Forwards a SetIsBetaEnabled call via a Qt signal.
+    void setIsAllMailVisibleReceived(bool enabled); ///< Forwards a SetIsBetaEnabled call via a Qt signal.
     void setColorSchemeNameReceived(QString const &name); ///< Forward a SetColorScheme call via a Qt Signal
     void reportBugReceived(QString const &osType, QString const &osVersion, QString const &emailClient, QString const &address,
         QString const &description, bool includeLogs); ///< Signal for the ReportBug gRPC call

@@ -200,6 +200,24 @@ void SettingsTab::setIsBetaEnabled(bool enabled)
 
 
 //****************************************************************************************************************************************************
+/// \return true if the 'All Mail Visible' check box is checked.
+//****************************************************************************************************************************************************
+bool SettingsTab::isAllMailVisible() const
+{
+    return ui_.checkAllMailVisible->isChecked();
+}
+
+
+//****************************************************************************************************************************************************
+/// \param[in] visible The new value for the 'All Mail Visible' check box.
+//****************************************************************************************************************************************************
+void SettingsTab::setIsAllMailVisible(bool visible)
+{
+    ui_.checkAllMailVisible->setChecked(visible);
+}
+
+
+//****************************************************************************************************************************************************
 /// \return The delay to apply before sending automatically generated events.
 //****************************************************************************************************************************************************
 qint32 SettingsTab::eventDelayMs() const
@@ -447,6 +465,7 @@ void SettingsTab::resetUI()
     ui_.checkIsFirstGUIStart->setChecked(false);
     ui_.checkAutostart->setChecked(true);
     ui_.checkBetaEnabled->setChecked(true);
+    ui_.checkAllMailVisible->setChecked(true);
     ui_.checkDarkTheme->setChecked(false);
 
     QString const tmpDir = QStandardPaths::writableLocation(QStandardPaths::TempLocation);

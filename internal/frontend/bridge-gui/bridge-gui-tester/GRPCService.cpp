@@ -185,6 +185,30 @@ Status GRPCService::IsBetaEnabled(ServerContext *, Empty const *, BoolValue *res
 
 
 //****************************************************************************************************************************************************
+/// \param[in] request The request.
+/// \return The status for the call.
+//****************************************************************************************************************************************************
+Status GRPCService::SetIsAllMailVisible(ServerContext *, BoolValue const *request, Empty *)
+{
+    app().log().debug(__FUNCTION__);
+    qtProxy_.setIsAllMailVisible(request->value());
+    return Status::OK;
+}
+
+
+//****************************************************************************************************************************************************
+/// \param[out] response The response.
+/// \return The status for the call.
+//****************************************************************************************************************************************************
+Status GRPCService::IsAllMailVisible(ServerContext *, Empty const *request, BoolValue *response)
+{
+    app().log().debug(__FUNCTION__);
+    response->set_value(app().mainWindow().settingsTab().isAllMailVisible());
+    return Status::OK;
+}
+
+
+//****************************************************************************************************************************************************
 /// \param[out] response The response.
 /// \return The status for the call.
 //****************************************************************************************************************************************************

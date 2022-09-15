@@ -153,7 +153,14 @@
             </property>
            </widget>
           </item>
-          <item row="1" column="2">
+          <item row="2" column="1">
+           <widget class="QCheckBox" name="checkAutomaticUpdate">
+            <property name="text">
+             <string>Automatic Update</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
            <widget class="QCheckBox" name="checkDarkTheme">
             <property name="text">
              <string>Dark Theme</string>
@@ -163,10 +170,13 @@
             </property>
            </widget>
           </item>
-          <item row="2" column="0">
-           <widget class="QCheckBox" name="checkAutomaticUpdate">
+          <item row="1" column="2">
+           <widget class="QCheckBox" name="checkAllMailVisible">
             <property name="text">
-             <string>Automatic Update</string>
+             <string>Show 'All Mail'</string>
+            </property>
+            <property name="checked">
+             <bool>false</bool>
             </property>
            </widget>
           </item>
@@ -814,25 +824,42 @@
   </layout>
  </widget>
  <tabstops>
+  <tabstop>editVersion</tabstop>
+  <tabstop>comboOS</tabstop>
+  <tabstop>editCurrentEmailClient</tabstop>
   <tabstop>checkShowOnStartup</tabstop>
   <tabstop>checkShowSplashScreen</tabstop>
   <tabstop>checkIsFirstGUIStart</tabstop>
   <tabstop>checkAutostart</tabstop>
   <tabstop>checkBetaEnabled</tabstop>
+  <tabstop>checkAllMailVisible</tabstop>
   <tabstop>checkDarkTheme</tabstop>
-  <tabstop>editVersion</tabstop>
-  <tabstop>comboOS</tabstop>
-  <tabstop>editCurrentEmailClient</tabstop>
-  <tabstop>editOSType</tabstop>
-  <tabstop>editOSVersion</tabstop>
-  <tabstop>editEmailClient</tabstop>
-  <tabstop>editAddress</tabstop>
-  <tabstop>editDescription</tabstop>
+  <tabstop>checkAutomaticUpdate</tabstop>
+  <tabstop>editHostname</tabstop>
+  <tabstop>spinPortIMAP</tabstop>
+  <tabstop>spinPortSMTP</tabstop>
+  <tabstop>checkUseSSLForSMTP</tabstop>
+  <tabstop>checkDoHEnabled</tabstop>
   <tabstop>editLogsPath</tabstop>
   <tabstop>editLicensePath</tabstop>
   <tabstop>editReleaseNotesLink</tabstop>
   <tabstop>editDependencyLicenseLink</tabstop>
   <tabstop>editLandingPageLink</tabstop>
+  <tabstop>checkCacheOnDiskEnabled</tabstop>
+  <tabstop>editDiskCachePath</tabstop>
+  <tabstop>editOSType</tabstop>
+  <tabstop>editOSVersion</tabstop>
+  <tabstop>editEmailClient</tabstop>
+  <tabstop>editAddress</tabstop>
+  <tabstop>editDescription</tabstop>
+  <tabstop>spinEventDelay</tabstop>
+  <tabstop>buttonInternetOff</tabstop>
+  <tabstop>buttonInternetOn</tabstop>
+  <tabstop>buttonShowMainWindow</tabstop>
+  <tabstop>checkIsPortFree</tabstop>
+  <tabstop>checkNextCacheChangeWillSucceed</tabstop>
+  <tabstop>comboCacheError</tabstop>
+  <tabstop>checkNextBugReportWillSucceed</tabstop>
  </tabstops>
  <resources/>
  <connections/>
