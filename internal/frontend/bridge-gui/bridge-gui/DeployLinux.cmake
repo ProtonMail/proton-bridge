@@ -58,6 +58,7 @@ AppendQt6Lib("libicui18n.so.56")
 AppendQt6Lib("libicuuc.so.56")
 AppendQt6Lib("libicudata.so.56")
 AppendQt6Lib("libQt6XcbQpa.so.6")
+AppendQt6Lib("libQt6WaylandClient.so.6")
 # QML dependencies
 AppendQt6Lib("libQt6QmlWorkerScript.so.6")
 AppendQt6Lib("libQt6Widgets.so.6")
