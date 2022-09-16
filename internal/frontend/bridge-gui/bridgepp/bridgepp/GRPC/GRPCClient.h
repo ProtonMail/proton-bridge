@@ -161,6 +161,7 @@ signals:
     void updateSilentRestartNeeded();
     void updateIsLatestVersion();
     void checkUpdatesFinished();
+    void updateVersionChanged();
 
 public: // user related calls
     grpc::Status getUserList(QList<SPUser> &outUsers);

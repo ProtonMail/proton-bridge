@@ -93,6 +93,10 @@ func NewUpdateCheckFinishedEvent() *StreamEvent {
 	return updateEvent(&UpdateEvent{Event: &UpdateEvent_CheckFinished{CheckFinished: &UpdateCheckFinished{}}})
 }
 
+func NewUpdateVersionChangedEvent() *StreamEvent {
+	return updateEvent(&UpdateEvent{Event: &UpdateEvent_VersionChanged{VersionChanged: &UpdateVersionChanged{}}})
+}
+
 func NewCacheErrorEvent(err CacheErrorType) *StreamEvent {
 	return cacheEvent(&CacheEvent{Event: &CacheEvent_Error{Error: &CacheErrorEvent{Type: err}}})
 }

@@ -1251,6 +1251,10 @@ void GRPCClient::processUpdateEvent(UpdateEvent const &event)
         this->logDebug("Update event received: kCheckFinished.");
         emit checkUpdatesFinished();
         break;
+    case UpdateEvent::kVersionChanged:
+        this->logDebug("Update event received: kVersionChanged.");
+        emit updateVersionChanged();
+        break;
     default:
         this->logError("Unknown Update event received.");
         break;

@@ -305,6 +305,7 @@ message UpdateEvent {
     UpdateSilentRestartNeeded silentRestartNeeded = 5;
     UpdateIsLatestVersion isLatestVersion = 6;
     UpdateCheckFinished checkFinished = 7;
+    UpdateVersionChanged versionChanged = 8;
   }
 }
 
@@ -333,6 +334,8 @@ message UpdateSilentRestartNeeded {}
 message UpdateIsLatestVersion {}
 
 message UpdateCheckFinished {}
+
+message UpdateVersionChanged {}
 
 //**********************************************************
 // Cache on disk related events
@@ -400,9 +403,9 @@ message ChangePortsFinishedEvent {}
 //**********************************************************
 message KeychainEvent {
   oneof event {
-      ChangeKeychainFinishedEvent changeKeychainFinished = 1;
-      HasNoKeychainEvent hasNoKeychain = 2;
-      RebuildKeychainEvent rebuildKeychain = 3;
+    ChangeKeychainFinishedEvent changeKeychainFinished = 1;
+    HasNoKeychainEvent hasNoKeychain = 2;
+    RebuildKeychainEvent rebuildKeychain = 3;
   }
 }
 
@@ -415,10 +418,10 @@ message RebuildKeychainEvent {}
 //**********************************************************
 message MailEvent {
   oneof event {
-      NoActiveKeyForRecipientEvent noActiveKeyForRecipientEvent = 1;
-      AddressChangedEvent addressChanged = 2;
-      AddressChangedLogoutEvent addressChangedLogout = 3;
-      ApiCertIssueEvent apiCertIssue = 6;
+    NoActiveKeyForRecipientEvent noActiveKeyForRecipientEvent = 1;
+    AddressChangedEvent addressChanged = 2;
+    AddressChangedLogoutEvent addressChangedLogout = 3;
+    ApiCertIssueEvent apiCertIssue = 6;
   }
 }
 

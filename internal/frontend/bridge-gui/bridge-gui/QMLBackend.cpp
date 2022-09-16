@@ -137,6 +137,7 @@ void QMLBackend::connectGrpcEvents()
     connect(client, &GRPCClient::updateSilentRestartNeeded, this, &QMLBackend::updateSilentRestartNeeded);
     connect(client, &GRPCClient::updateIsLatestVersion, this, &QMLBackend::updateIsLatestVersion);
     connect(client, &GRPCClient::checkUpdatesFinished, this, &QMLBackend::checkUpdatesFinished);
+    connect(client, &GRPCClient::updateVersionChanged, this, &QMLBackend::onVersionChanged);
 
     // mail settings events
     connect(client, &GRPCClient::portIssueIMAP, this, &QMLBackend::portIssueIMAP);
@@ -369,6 +370,7 @@ void QMLBackend::triggerReset()
     app().grpc().triggerReset();
 }
 
+
 //****************************************************************************************************************************************************
 //
 //****************************************************************************************************************************************************
@@ -379,3 +381,11 @@ void QMLBackend::onResetFinished()
 }
 
 
+//****************************************************************************************************************************************************
+// onVersionChanged update dynamic link related to version
+//****************************************************************************************************************************************************
+void QMLBackend::onVersionChanged()
+{
+    emit releaseNotesLinkChanged(releaseNotesLink());
+    emit landingPageLinkChanged(landingPageLink());
+}

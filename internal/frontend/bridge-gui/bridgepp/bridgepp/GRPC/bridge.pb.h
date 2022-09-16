@@ -199,6 +199,9 @@ extern UpdateManualRestartNeededEventDefaultTypeInternal _UpdateManualRestartNee
 class UpdateSilentRestartNeeded;
 struct UpdateSilentRestartNeededDefaultTypeInternal;
 extern UpdateSilentRestartNeededDefaultTypeInternal _UpdateSilentRestartNeeded_default_instance_;
+class UpdateVersionChanged;
+struct UpdateVersionChangedDefaultTypeInternal;
+extern UpdateVersionChangedDefaultTypeInternal _UpdateVersionChanged_default_instance_;
 class UseSslForSmtpFinishedEvent;
 struct UseSslForSmtpFinishedEventDefaultTypeInternal;
 extern UseSslForSmtpFinishedEventDefaultTypeInternal _UseSslForSmtpFinishedEvent_default_instance_;
@@ -272,6 +275,7 @@ template<> ::grpc::UpdateIsLatestVersion* Arena::CreateMaybeMessage<::grpc::Upda
 template<> ::grpc::UpdateManualReadyEvent* Arena::CreateMaybeMessage<::grpc::UpdateManualReadyEvent>(Arena*);
 template<> ::grpc::UpdateManualRestartNeededEvent* Arena::CreateMaybeMessage<::grpc::UpdateManualRestartNeededEvent>(Arena*);
 template<> ::grpc::UpdateSilentRestartNeeded* Arena::CreateMaybeMessage<::grpc::UpdateSilentRestartNeeded>(Arena*);
+template<> ::grpc::UpdateVersionChanged* Arena::CreateMaybeMessage<::grpc::UpdateVersionChanged>(Arena*);
 template<> ::grpc::UseSslForSmtpFinishedEvent* Arena::CreateMaybeMessage<::grpc::UseSslForSmtpFinishedEvent>(Arena*);
 template<> ::grpc::User* Arena::CreateMaybeMessage<::grpc::User>(Arena*);
 template<> ::grpc::UserChangedEvent* Arena::CreateMaybeMessage<::grpc::UserChangedEvent>(Arena*);
@@ -4953,6 +4957,7 @@ class UpdateEvent final :
     kSilentRestartNeeded = 5,
     kIsLatestVersion = 6,
     kCheckFinished = 7,
+    kVersionChanged = 8,
     EVENT_NOT_SET = 0,
   };
 
@@ -5041,6 +5046,7 @@ class UpdateEvent final :
     kSilentRestartNeededFieldNumber = 5,
     kIsLatestVersionFieldNumber = 6,
     kCheckFinishedFieldNumber = 7,
+    kVersionChangedFieldNumber = 8,
   };
   // .grpc.UpdateErrorEvent error = 1;
   bool has_error() const;
@@ -5168,6 +5174,24 @@ class UpdateEvent final :
       ::grpc::UpdateCheckFinished* checkfinished);
   ::grpc::UpdateCheckFinished* unsafe_arena_release_checkfinished();
 
+  // .grpc.UpdateVersionChanged versionChanged = 8;
+  bool has_versionchanged() const;
+  private:
+  bool _internal_has_versionchanged() const;
+  public:
+  void clear_versionchanged();
+  const ::grpc::UpdateVersionChanged& versionchanged() const;
+  PROTOBUF_NODISCARD ::grpc::UpdateVersionChanged* release_versionchanged();
+  ::grpc::UpdateVersionChanged* mutable_versionchanged();
+  void set_allocated_versionchanged(::grpc::UpdateVersionChanged* versionchanged);
+  private:
+  const ::grpc::UpdateVersionChanged& _internal_versionchanged() const;
+  ::grpc::UpdateVersionChanged* _internal_mutable_versionchanged();
+  public:
+  void unsafe_arena_set_allocated_versionchanged(
+      ::grpc::UpdateVersionChanged* versionchanged);
+  ::grpc::UpdateVersionChanged* unsafe_arena_release_versionchanged();
+
   void clear_event();
   EventCase event_case() const;
   // @@protoc_insertion_point(class_scope:grpc.UpdateEvent)
@@ -5180,6 +5204,7 @@ class UpdateEvent final :
   void set_has_silentrestartneeded();
   void set_has_islatestversion();
   void set_has_checkfinished();
+  void set_has_versionchanged();
 
   inline bool has_event() const;
   inline void clear_has_event();
@@ -5198,6 +5223,7 @@ class UpdateEvent final :
       ::grpc::UpdateSilentRestartNeeded* silentrestartneeded_;
       ::grpc::UpdateIsLatestVersion* islatestversion_;
       ::grpc::UpdateCheckFinished* checkfinished_;
+      ::grpc::UpdateVersionChanged* versionchanged_;
     } event_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
     uint32_t _oneof_case_[1];
@@ -6134,6 +6160,124 @@ class UpdateCheckFinished final :
 };
 // -------------------------------------------------------------------
 
+class UpdateVersionChanged final :
+    public ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase /* @@protoc_insertion_point(class_definition:grpc.UpdateVersionChanged) */ {
+ public:
+  inline UpdateVersionChanged() : UpdateVersionChanged(nullptr) {}
+  explicit PROTOBUF_CONSTEXPR UpdateVersionChanged(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  UpdateVersionChanged(const UpdateVersionChanged& from);
+  UpdateVersionChanged(UpdateVersionChanged&& from) noexcept
+    : UpdateVersionChanged() {
+    *this = ::std::move(from);
+  }
+
+  inline UpdateVersionChanged& operator=(const UpdateVersionChanged& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline UpdateVersionChanged& operator=(UpdateVersionChanged&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const UpdateVersionChanged& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const UpdateVersionChanged* internal_default_instance() {
+    return reinterpret_cast<const UpdateVersionChanged*>(
+               &_UpdateVersionChanged_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    34;
+
+  friend void swap(UpdateVersionChanged& a, UpdateVersionChanged& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(UpdateVersionChanged* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(UpdateVersionChanged* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  UpdateVersionChanged* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<UpdateVersionChanged>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase::CopyFrom;
+  inline void CopyFrom(const UpdateVersionChanged& from) {
+    ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase::CopyImpl(*this, from);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase::MergeFrom;
+  void MergeFrom(const UpdateVersionChanged& from) {
+    ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase::MergeImpl(*this, from);
+  }
+  public:
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "grpc.UpdateVersionChanged";
+  }
+  protected:
+  explicit UpdateVersionChanged(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // @@protoc_insertion_point(class_scope:grpc.UpdateVersionChanged)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+  };
+  friend struct ::TableStruct_bridge_2eproto;
+};
+// -------------------------------------------------------------------
+
 class CacheEvent final :
     public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:grpc.CacheEvent) */ {
  public:
@@ -6191,7 +6335,7 @@ class CacheEvent final :
                &_CacheEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    34;
+    35;
 
   friend void swap(CacheEvent& a, CacheEvent& b) {
     a.Swap(&b);
@@ -6444,7 +6588,7 @@ class CacheErrorEvent final :
                &_CacheErrorEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    35;
+    36;
 
   friend void swap(CacheErrorEvent& a, CacheErrorEvent& b) {
     a.Swap(&b);
@@ -6591,7 +6735,7 @@ class CacheLocationChangeSuccessEvent final :
                &_CacheLocationChangeSuccessEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    36;
+    37;
 
   friend void swap(CacheLocationChangeSuccessEvent& a, CacheLocationChangeSuccessEvent& b) {
     a.Swap(&b);
@@ -6709,7 +6853,7 @@ class ChangeLocalCacheFinishedEvent final :
                &_ChangeLocalCacheFinishedEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    37;
+    38;
 
   friend void swap(ChangeLocalCacheFinishedEvent& a, ChangeLocalCacheFinishedEvent& b) {
     a.Swap(&b);
@@ -6828,7 +6972,7 @@ class IsCacheOnDiskEnabledChanged final :
                &_IsCacheOnDiskEnabledChanged_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    38;
+    39;
 
   friend void swap(IsCacheOnDiskEnabledChanged& a, IsCacheOnDiskEnabledChanged& b) {
     a.Swap(&b);
@@ -6976,7 +7120,7 @@ class DiskCachePathChanged final :
                &_DiskCachePathChanged_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    39;
+    40;
 
   friend void swap(DiskCachePathChanged& a, DiskCachePathChanged& b) {
     a.Swap(&b);
@@ -7136,7 +7280,7 @@ class MailSettingsEvent final :
                &_MailSettingsEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    40;
+    41;
 
   friend void swap(MailSettingsEvent& a, MailSettingsEvent& b) {
     a.Swap(&b);
@@ -7347,7 +7491,7 @@ class MailSettingsErrorEvent final :
                &_MailSettingsErrorEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    41;
+    42;
 
   friend void swap(MailSettingsErrorEvent& a, MailSettingsErrorEvent& b) {
     a.Swap(&b);
@@ -7494,7 +7638,7 @@ class UseSslForSmtpFinishedEvent final :
                &_UseSslForSmtpFinishedEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    42;
+    43;
 
   friend void swap(UseSslForSmtpFinishedEvent& a, UseSslForSmtpFinishedEvent& b) {
     a.Swap(&b);
@@ -7612,7 +7756,7 @@ class ChangePortsFinishedEvent final :
                &_ChangePortsFinishedEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    43;
+    44;
 
   friend void swap(ChangePortsFinishedEvent& a, ChangePortsFinishedEvent& b) {
     a.Swap(&b);
@@ -7738,7 +7882,7 @@ class KeychainEvent final :
                &_KeychainEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    44;
+    45;
 
   friend void swap(KeychainEvent& a, KeychainEvent& b) {
     a.Swap(&b);
@@ -7948,7 +8092,7 @@ class ChangeKeychainFinishedEvent final :
                &_ChangeKeychainFinishedEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    45;
+    46;
 
   friend void swap(ChangeKeychainFinishedEvent& a, ChangeKeychainFinishedEvent& b) {
     a.Swap(&b);
@@ -8066,7 +8210,7 @@ class HasNoKeychainEvent final :
                &_HasNoKeychainEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    46;
+    47;
 
   friend void swap(HasNoKeychainEvent& a, HasNoKeychainEvent& b) {
     a.Swap(&b);
@@ -8184,7 +8328,7 @@ class RebuildKeychainEvent final :
                &_RebuildKeychainEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    47;
+    48;
 
   friend void swap(RebuildKeychainEvent& a, RebuildKeychainEvent& b) {
     a.Swap(&b);
@@ -8311,7 +8455,7 @@ class MailEvent final :
                &_MailEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    48;
+    49;
 
   friend void swap(MailEvent& a, MailEvent& b) {
     a.Swap(&b);
@@ -8543,7 +8687,7 @@ class NoActiveKeyForRecipientEvent final :
                &_NoActiveKeyForRecipientEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    49;
+    50;
 
   friend void swap(NoActiveKeyForRecipientEvent& a, NoActiveKeyForRecipientEvent& b) {
     a.Swap(&b);
@@ -8696,7 +8840,7 @@ class AddressChangedEvent final :
                &_AddressChangedEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    50;
+    51;
 
   friend void swap(AddressChangedEvent& a, AddressChangedEvent& b) {
     a.Swap(&b);
@@ -8849,7 +8993,7 @@ class AddressChangedLogoutEvent final :
                &_AddressChangedLogoutEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    51;
+    52;
 
   friend void swap(AddressChangedLogoutEvent& a, AddressChangedLogoutEvent& b) {
     a.Swap(&b);
@@ -9001,7 +9145,7 @@ class ApiCertIssueEvent final :
                &_ApiCertIssueEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    52;
+    53;
 
   friend void swap(ApiCertIssueEvent& a, ApiCertIssueEvent& b) {
     a.Swap(&b);
@@ -9127,7 +9271,7 @@ class UserEvent final :
                &_UserEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    53;
+    54;
 
   friend void swap(UserEvent& a, UserEvent& b) {
     a.Swap(&b);
@@ -9338,7 +9482,7 @@ class ToggleSplitModeFinishedEvent final :
                &_ToggleSplitModeFinishedEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    54;
+    55;
 
   friend void swap(ToggleSplitModeFinishedEvent& a, ToggleSplitModeFinishedEvent& b) {
     a.Swap(&b);
@@ -9491,7 +9635,7 @@ class UserDisconnectedEvent final :
                &_UserDisconnectedEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    55;
+    56;
 
   friend void swap(UserDisconnectedEvent& a, UserDisconnectedEvent& b) {
     a.Swap(&b);
@@ -9644,7 +9788,7 @@ class UserChangedEvent final :
                &_UserChangedEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    56;
+    57;
 
   friend void swap(UserChangedEvent& a, UserChangedEvent& b) {
     a.Swap(&b);
@@ -13437,6 +13581,80 @@ inline ::grpc::UpdateCheckFinished* UpdateEvent::mutable_checkfinished() {
   return _msg;
 }
 
+// .grpc.UpdateVersionChanged versionChanged = 8;
+inline bool UpdateEvent::_internal_has_versionchanged() const {
+  return event_case() == kVersionChanged;
+}
+inline bool UpdateEvent::has_versionchanged() const {
+  return _internal_has_versionchanged();
+}
+inline void UpdateEvent::set_has_versionchanged() {
+  _impl_._oneof_case_[0] = kVersionChanged;
+}
+inline void UpdateEvent::clear_versionchanged() {
+  if (_internal_has_versionchanged()) {
+    if (GetArenaForAllocation() == nullptr) {
+      delete _impl_.event_.versionchanged_;
+    }
+    clear_has_event();
+  }
+}
+inline ::grpc::UpdateVersionChanged* UpdateEvent::release_versionchanged() {
+  // @@protoc_insertion_point(field_release:grpc.UpdateEvent.versionChanged)
+  if (_internal_has_versionchanged()) {
+    clear_has_event();
+    ::grpc::UpdateVersionChanged* temp = _impl_.event_.versionchanged_;
+    if (GetArenaForAllocation() != nullptr) {
+      temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+    }
+    _impl_.event_.versionchanged_ = nullptr;
+    return temp;
+  } else {
+    return nullptr;
+  }
+}
+inline const ::grpc::UpdateVersionChanged& UpdateEvent::_internal_versionchanged() const {
+  return _internal_has_versionchanged()
+      ? *_impl_.event_.versionchanged_
+      : reinterpret_cast< ::grpc::UpdateVersionChanged&>(::grpc::_UpdateVersionChanged_default_instance_);
+}
+inline const ::grpc::UpdateVersionChanged& UpdateEvent::versionchanged() const {
+  // @@protoc_insertion_point(field_get:grpc.UpdateEvent.versionChanged)
+  return _internal_versionchanged();
+}
+inline ::grpc::UpdateVersionChanged* UpdateEvent::unsafe_arena_release_versionchanged() {
+  // @@protoc_insertion_point(field_unsafe_arena_release:grpc.UpdateEvent.versionChanged)
+  if (_internal_has_versionchanged()) {
+    clear_has_event();
+    ::grpc::UpdateVersionChanged* temp = _impl_.event_.versionchanged_;
+    _impl_.event_.versionchanged_ = nullptr;
+    return temp;
+  } else {
+    return nullptr;
+  }
+}
+inline void UpdateEvent::unsafe_arena_set_allocated_versionchanged(::grpc::UpdateVersionChanged* versionchanged) {
+  clear_event();
+  if (versionchanged) {
+    set_has_versionchanged();
+    _impl_.event_.versionchanged_ = versionchanged;
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:grpc.UpdateEvent.versionChanged)
+}
+inline ::grpc::UpdateVersionChanged* UpdateEvent::_internal_mutable_versionchanged() {
+  if (!_internal_has_versionchanged()) {
+    clear_event();
+    set_has_versionchanged();
+    _impl_.event_.versionchanged_ = CreateMaybeMessage< ::grpc::UpdateVersionChanged >(GetArenaForAllocation());
+  }
+  return _impl_.event_.versionchanged_;
+}
+inline ::grpc::UpdateVersionChanged* UpdateEvent::mutable_versionchanged() {
+  ::grpc::UpdateVersionChanged* _msg = _internal_mutable_versionchanged();
+  // @@protoc_insertion_point(field_mutable:grpc.UpdateEvent.versionChanged)
+  return _msg;
+}
+
 inline bool UpdateEvent::has_event() const {
   return event_case() != EVENT_NOT_SET;
 }
@@ -13593,6 +13811,10 @@ inline void UpdateForceEvent::set_allocated_version(std::string* version) {
 // -------------------------------------------------------------------
 
 // UpdateCheckFinished
+
+// -------------------------------------------------------------------
+
+// UpdateVersionChanged
 
 // -------------------------------------------------------------------
 
@@ -15476,6 +15698,8 @@ inline void UserChangedEvent::set_allocated_userid(std::string* userid) {
 #ifdef __GNUC__
   #pragma GCC diagnostic pop
 #endif  // __GNUC__
+// -------------------------------------------------------------------
+
 // -------------------------------------------------------------------
 
 // -------------------------------------------------------------------

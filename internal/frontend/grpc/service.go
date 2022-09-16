@@ -163,6 +163,7 @@ func (s *Service) NotifyManualUpdate(version updater.VersionInfo, canInstall boo
 
 func (s *Service) SetVersion(update updater.VersionInfo) {
 	s.newVersionInfo = update
+	_ = s.SendEvent(NewUpdateVersionChangedEvent())
 }
 
 func (s *Service) NotifySilentUpdateInstalled() {
