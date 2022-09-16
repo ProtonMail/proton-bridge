@@ -222,6 +222,7 @@ Item {
                         Layout.preferredWidth: 320
                         Layout.fillWidth: true
 
+                        focus: true
                         username: Backend.users.count === 1 && Backend.users.get(0) && Backend.users.get(0).loggedIn === false ? Backend.users.get(0).username : ""
                     }
 

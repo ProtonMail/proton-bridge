@@ -23,7 +23,7 @@ import QtQuick.Controls.impl
 
 import Proton
 
-Item {
+FocusScope {
     id: root
     property ColorScheme colorScheme
 
@@ -89,6 +89,7 @@ Item {
                 console.assert(stackLayout.currentIndex == 0, "Unexpected login2FARequested")
                 twoFactorUsernameLabel.text = username
                 stackLayout.currentIndex = 1
+                twoFactorPasswordTextField.focus = true
             }
 
             function onLogin2FAError(errorMsg) {
@@ -99,6 +100,7 @@ Item {
                 twoFactorPasswordTextField.enabled = true
                 twoFactorPasswordTextField.error = true
                 twoFactorPasswordTextField.errorString = qsTr("Your code is incorrect")
+                twoFactorPasswordTextField.focus = true
             }
 
             function onLogin2FAErrorAbort(errorMsg) {
@@ -110,6 +112,7 @@ Item {
             function onLogin2PasswordRequested() {
                 console.assert(stackLayout.currentIndex == 0 || stackLayout.currentIndex == 1, "Unexpected login2PasswordRequested")
                 stackLayout.currentIndex = 2
+                secondPasswordTextField.focus = true
             }
             function onLogin2PasswordError(errorMsg) {
                 console.assert(stackLayout.currentIndex == 2, "Unexpected login2PasswordError")
@@ -119,6 +122,7 @@ Item {
                 secondPasswordTextField.enabled = true
                 secondPasswordTextField.error = true
                 secondPasswordTextField.errorString = qsTr("Your mailbox password is incorrect")
+                secondPasswordTextField.focus = true
             }
             function onLogin2PasswordErrorAbort(errorMsg) {
                 console.assert(stackLayout.currentIndex == 2, "Unexpected login2PasswordErrorAbort")
@@ -143,6 +147,7 @@ Item {
                 usernameTextField.enabled = true
                 usernameTextField.error = false
                 usernameTextField.errorString = ""
+                usernameTextField.focus = true
 
                 passwordTextField.enabled = true
                 passwordTextField.error = false
@@ -198,7 +203,7 @@ Item {
                 colorScheme: root.colorScheme
                 id: usernameTextField
                 label: qsTr("Username or email")
-
+                focus: true
                 Layout.fillWidth: true
                 Layout.topMargin: 24
 
@@ -335,10 +340,15 @@ Item {
 
                 validator: function(str) {
                     if (str.length === 0) {
-                        return qsTr("Enter username or email")
+                        return qsTr("Enter the 6-digit code")
                     }
                     return
                 }
+
+                onAccepted: {
+                    twoFAButton.onClicked()
+                }
+
             }
 
             Button {
@@ -399,9 +409,13 @@ Item {
 
                 validator: function(str) {
                     if (str.length === 0) {
-                        return qsTr("Enter username or email")
+                        return qsTr("Enter password")
                     }
                     return
+                }
+
+                onAccepted: {
+                    secondPasswordButton.onClicked()
                 }
             }
 

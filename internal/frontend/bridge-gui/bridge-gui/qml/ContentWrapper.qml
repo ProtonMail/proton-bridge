@@ -368,7 +368,7 @@ Item {
                     rightContent.currentIndex = 0
                 }
 
-                function showSignIn             () { rightContent.currentIndex = 1 }
+                function showSignIn             () { rightContent.currentIndex = 1; signIn.focus = true }
                 function showGeneralSettings    () { rightContent.currentIndex = 2 }
                 function showKeychainSettings   () { rightContent.currentIndex = 3 }
                 function showPortSettings       () { rightContent.currentIndex = 4 }
