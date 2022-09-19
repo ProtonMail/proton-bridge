@@ -167,18 +167,34 @@ void QMLBackend::connectGrpcEvents()
 //****************************************************************************************************************************************************
 void QMLBackend::retrieveUserList()
 {
-    QList<SPUser> users;
-    app().grpc().getUserList(users);
+    QList<SPUser> newUsers;
+    app().grpc().getUserList(newUsers);
 
     // As we want to use shared pointers here, we do not want to use the Qt ownership system, so we set parent to nil.
     // But: From https://doc.qt.io/qt-5/qtqml-cppintegration-data.html:
     // " When data is transferred from C++ to QML, the ownership of the data always remains with C++. The exception to this rule
     // is when a QObject is returned from an explicit C++ method call: in this case, the QML engine assumes ownership of the object. "
     // This is the case here, so we explicitly indicate that the object is owned by C++.
-    for (SPUser const& user: users)
-        QQmlEngine::setObjectOwnership(user.get(), QQmlEngine::CppOwnership);
+    for (SPUser const& user: newUsers)
 
-    users_->reset(users);
+    for (qsizetype i = 0; i < newUsers.size(); ++i)
+    {
+        SPUser newUser = newUsers[i];
+        SPUser existingUser = users_->getUserWithID(newUser->id());
+        if (!existingUser)
+        {
+            // The user is new. We indicate to QML that it is managed by the C++ backend.
+            QQmlEngine::setObjectOwnership(user.get(), QQmlEngine::CppOwnership);
+            continue;
+        }
+
+        // The user is already listed. QML code may have a pointer because of an ongoing process (for instance in the SetupGuide),
+        // As a consequence we do not want to replace this existing user, but we want to update it.
+        existingUser->update(*newUser);
+        newUsers[i] = existingUser;
+    }
+
+    users_->reset(newUsers);
 }
 
 

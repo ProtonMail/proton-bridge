@@ -44,6 +44,7 @@ public: // member functions.
     void removeUserAt(int row); ///< Remove the user at a given row
     void appendUser(bridgepp::SPUser const &user); ///< Add a new user.
     void updateUserAtRow(int row, bridgepp::User const &user); ///< Update the user at given row.
+    bridgepp::SPUser getUserWithID(QString const& userID) const; ///< Retrieve the user with the given ID.
 
     // the userCount property.
     Q_PROPERTY(int count READ count NOTIFY countChanged)

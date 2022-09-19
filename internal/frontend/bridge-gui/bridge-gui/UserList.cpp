@@ -143,6 +143,19 @@ void UserList::updateUserAtRow(int row, User const &user)
 
 
 //****************************************************************************************************************************************************
+/// \param[in] userID The userID.
+/// \return The user with the given ID.
+/// \return A null pointer if the user could not be found.
+//****************************************************************************************************************************************************
+bridgepp::SPUser UserList::getUserWithID(QString const &userID) const
+{
+    QList<SPUser>::const_iterator it = std::find_if(users_.begin(), users_.end(), [userID](SPUser const & user) -> bool {
+        return user && user->id() == userID; });
+    return (it == users_.end()) ? nullptr : *it;
+}
+
+
+//****************************************************************************************************************************************************
 /// \param[in] row The row.
 //****************************************************************************************************************************************************
 User *UserList::get(int row) const
