@@ -229,17 +229,17 @@ func (u *Users) MigrateCache(srcPath, dstPath string) error {
 	// (read-only is conserved). Do copy instead.
 	tmp, err := ioutil.TempFile(srcPath, "tmp")
 	if err == nil {
-		defer func() {
-			tmp.Close()           //nolint:errcheck,gosec
-			os.Remove(tmp.Name()) //nolint:errcheck,gosec
-		}()
-
-		if err := os.Rename(srcPath, dstPath); err == nil {
-			return nil
+		// Removal of tmp file cannot be deferred, as we are going to try to move the containing folder.
+		if err = tmp.Close(); err == nil {
+			if err = os.Remove(tmp.Name()); err == nil {
+				if err = os.Rename(srcPath, dstPath); err == nil {
+					return nil
+				}
+			}
 		}
-	} else {
-		logrus.WithError(err).Warn("Cannot write to source: do copy to new destination instead of rename")
 	}
+
+	logrus.WithError(err).Warn("Cannot write to source: do copy to new destination instead of rename")
 
 	// Rename failed let's try an actual copy/delete
 	if err = copyFolder(srcPath, dstPath); err != nil {
