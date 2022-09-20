@@ -485,7 +485,11 @@ func (s *Service) SetIsAutomaticUpdateOn(_ context.Context, isOn *wrapperspb.Boo
 	}
 
 	s.bridge.SetBool(settings.AutoUpdateKey, isOn.Value)
-	s.checkUpdateAndNotify(false)
+	go func() {
+		defer s.panicHandler.HandlePanic()
+
+		s.checkUpdateAndNotify(false)
+	}()
 
 	return &emptypb.Empty{}, nil
 }
