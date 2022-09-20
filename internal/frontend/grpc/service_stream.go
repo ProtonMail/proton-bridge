@@ -117,7 +117,7 @@ func (s *Service) StartEventTest() error { //nolint:funlen
 		// cache
 		NewCacheErrorEvent(CacheErrorType_CACHE_UNAVAILABLE_ERROR),
 		NewCacheLocationChangeSuccessEvent(),
-		NewCacheChangeLocalCacheFinishedEvent(),
+		NewCacheChangeLocalCacheFinishedEvent(true),
 		NewIsCacheOnDiskEnabledChanged(true),
 		NewDiskCachePathChanged("/dummy/path"),
 

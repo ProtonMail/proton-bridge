@@ -362,7 +362,9 @@ message CacheErrorEvent {
 
 message CacheLocationChangeSuccessEvent {};
 
-message ChangeLocalCacheFinishedEvent {};
+message ChangeLocalCacheFinishedEvent {
+  bool willRestart = 1;
+};
 
 
 message IsCacheOnDiskEnabledChanged {

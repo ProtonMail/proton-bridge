@@ -105,8 +105,10 @@ func NewCacheLocationChangeSuccessEvent() *StreamEvent {
 	return cacheEvent(&CacheEvent{Event: &CacheEvent_LocationChangedSuccess{LocationChangedSuccess: &CacheLocationChangeSuccessEvent{}}})
 }
 
-func NewCacheChangeLocalCacheFinishedEvent() *StreamEvent {
-	return cacheEvent(&CacheEvent{Event: &CacheEvent_ChangeLocalCacheFinished{ChangeLocalCacheFinished: &ChangeLocalCacheFinishedEvent{}}})
+func NewCacheChangeLocalCacheFinishedEvent(willRestart bool) *StreamEvent {
+	return cacheEvent(&CacheEvent{Event: &CacheEvent_ChangeLocalCacheFinished{
+		ChangeLocalCacheFinished: &ChangeLocalCacheFinishedEvent{WillRestart: willRestart},
+	}})
 }
 
 func NewIsCacheOnDiskEnabledChanged(enabled bool) *StreamEvent {

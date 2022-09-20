@@ -107,7 +107,7 @@ signals:
     void cacheCantMove();                                                                                               //    _ func()                  `signal:"cacheCantMove"`
     void cacheLocationChangeSuccess();                                                                                  //    _ func()                  `signal:"cacheLocationChangeSuccess"`
     void diskFull();                                                                                                    //    _ func()                  `signal:"diskFull"`
-    void changeLocalCacheFinished();                                                                                    //    _ func()                  `signal:"changeLocalCacheFinished"`
+    void changeLocalCacheFinished(bool willRestart);                                                                                    //    _ func()                  `signal:"changeLocalCacheFinished"`
 
 
     // mail settings related calls

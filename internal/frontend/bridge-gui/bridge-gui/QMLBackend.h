@@ -169,6 +169,7 @@ public slots: // slot for signals received from QML -> To be forwarded to Bridge
         app().grpc().reportBug(description, address, emailClient, includeLogs); }                                                                     //    _ func(description, address, emailClient string, includeLogs bool)    `slot:"reportBug"`
     void onResetFinished();                                                                                                                           //    _ func()                                                              `slot:"onResetFinished"`
     void onVersionChanged();                                                                                                                          //    _ func()                                                              `slot:"onVersionChanged"`
+    void onChangeLocalCacheFinished(bool willRestart);
 
 signals: // Signals received from the Go backend, to be forwarded to QML
     void toggleAutostartFinished();                                                                                                                   //    _ func()                  `signal:"toggleAutostartFinished"`

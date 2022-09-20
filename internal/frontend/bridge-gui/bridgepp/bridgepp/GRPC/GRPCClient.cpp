@@ -1274,12 +1274,15 @@ void GRPCClient::processCacheEvent(CacheEvent const &event)
         switch (event.error().type())
         {
         case CACHE_UNAVAILABLE_ERROR:
+            this->logError("Cache error received: cacheUnavailable.");
             emit cacheUnavailable();
             break;
         case CACHE_CANT_MOVE_ERROR:
+            this->logError("Cache error received: cacheCantMove.");
             emit cacheCantMove();
             break;
         case DISK_FULL:
+            this->logError("Cache error received: diskFull.");
             emit diskFull();
             break;
         default:
@@ -1295,7 +1298,7 @@ void GRPCClient::processCacheEvent(CacheEvent const &event)
         break;
 
     case CacheEvent::kChangeLocalCacheFinished:
-        emit cacheLocationChangeSuccess();
+        emit changeLocalCacheFinished(event.changelocalcachefinished().willrestart());
         this->logDebug("Cache event received: ChangeLocalCacheFinished.");
         break;
 

@@ -515,19 +515,28 @@ func (s *Service) ChangeLocalCache(ctx context.Context, change *ChangeLocalCache
 		WithField("diskCachePath", change.DiskCachePath).
 		Info("DiskCachePath")
 
-	defer func() { _, _ = s.Restart(ctx, &emptypb.Empty{}) }()
-	defer func() { _ = s.SendEvent(NewCacheChangeLocalCacheFinishedEvent()) }()
-	defer func() { _ = s.SendEvent(NewIsCacheOnDiskEnabledChanged(s.bridge.GetBool(settings.CacheEnabledKey))) }()
-	defer func() { _ = s.SendEvent(NewDiskCachePathChanged(s.bridge.Get(settings.CacheCompressionKey))) }()
+	restart := false
+	defer func(willRestart *bool) {
+		_ = s.SendEvent(NewCacheChangeLocalCacheFinishedEvent(*willRestart))
+		if *willRestart {
+			_, _ = s.Restart(ctx, &emptypb.Empty{})
+		}
+	}(&restart)
 
 	if change.EnableDiskCache != s.bridge.GetBool(settings.CacheEnabledKey) {
 		if change.EnableDiskCache {
 			if err := s.bridge.EnableCache(); err != nil {
 				s.log.WithError(err).Error("Cannot enable disk cache")
+			} else {
+				restart = true
+				_ = s.SendEvent(NewIsCacheOnDiskEnabledChanged(s.bridge.GetBool(settings.CacheEnabledKey)))
 			}
 		} else {
 			if err := s.bridge.DisableCache(); err != nil {
 				s.log.WithError(err).Error("Cannot disable disk cache")
+			} else {
+				restart = true
+				_ = s.SendEvent(NewIsCacheOnDiskEnabledChanged(s.bridge.GetBool(settings.CacheEnabledKey)))
 			}
 		}
 	}
@@ -544,7 +553,10 @@ func (s *Service) ChangeLocalCache(ctx context.Context, change *ChangeLocalCache
 			_ = s.SendEvent(NewCacheErrorEvent(CacheErrorType_CACHE_CANT_MOVE_ERROR))
 			return &emptypb.Empty{}, nil
 		}
+
 		s.bridge.Set(settings.CacheLocationKey, path)
+		restart = true
+		_ = s.SendEvent(NewDiskCachePathChanged(s.bridge.Get(settings.CacheLocationKey)))
 	}
 
 	_ = s.SendEvent(NewCacheLocationChangeSuccessEvent())

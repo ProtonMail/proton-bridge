@@ -108,7 +108,7 @@ void QMLBackend::connectGrpcEvents()
     connect(client, &GRPCClient::cacheCantMove, this, &QMLBackend::cacheCantMove);
     connect(client, &GRPCClient::diskFull, this, &QMLBackend::diskFull);
     connect(client, &GRPCClient::cacheLocationChangeSuccess, this, &QMLBackend::cacheLocationChangeSuccess);
-    connect(client, &GRPCClient::changeLocalCacheFinished, this, &QMLBackend::changeLocalCacheFinished);
+    connect(client, &GRPCClient::changeLocalCacheFinished, this, &QMLBackend::onChangeLocalCacheFinished);
 
     // login events
     connect(client, &GRPCClient::loginUsernamePasswordError, this, &QMLBackend::loginUsernamePasswordError);
@@ -324,8 +324,6 @@ void QMLBackend::changePorts(int imapPort, int smtpPort)
 //****************************************************************************************************************************************************
 void QMLBackend::changeLocalCache(bool enable, QUrl const &path)
 {
-    // if call succeed, app will restart. No need to emit a value change signal, because it will trigger a read-back via gRPC that will fail.
-    emit hideMainWindow();
     app().grpc().changeLocalCache(enable, path);
 }
 
@@ -404,4 +402,15 @@ void QMLBackend::onVersionChanged()
 {
     emit releaseNotesLinkChanged(releaseNotesLink());
     emit landingPageLinkChanged(landingPageLink());
+}
+
+
+//****************************************************************************************************************************************************
+///
+//****************************************************************************************************************************************************
+void QMLBackend::onChangeLocalCacheFinished(bool willRestart)
+{
+    if (willRestart)
+        emit hideMainWindow();
+    emit changeLocalCacheFinished();
 }

@@ -6807,9 +6807,10 @@ class CacheLocationChangeSuccessEvent final :
 // -------------------------------------------------------------------
 
 class ChangeLocalCacheFinishedEvent final :
-    public ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase /* @@protoc_insertion_point(class_definition:grpc.ChangeLocalCacheFinishedEvent) */ {
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:grpc.ChangeLocalCacheFinishedEvent) */ {
  public:
   inline ChangeLocalCacheFinishedEvent() : ChangeLocalCacheFinishedEvent(nullptr) {}
+  ~ChangeLocalCacheFinishedEvent() override;
   explicit PROTOBUF_CONSTEXPR ChangeLocalCacheFinishedEvent(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
 
   ChangeLocalCacheFinishedEvent(const ChangeLocalCacheFinishedEvent& from);
@@ -6882,15 +6883,29 @@ class ChangeLocalCacheFinishedEvent final :
   ChangeLocalCacheFinishedEvent* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
     return CreateMaybeMessage<ChangeLocalCacheFinishedEvent>(arena);
   }
-  using ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase::CopyFrom;
-  inline void CopyFrom(const ChangeLocalCacheFinishedEvent& from) {
-    ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase::CopyImpl(*this, from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const ChangeLocalCacheFinishedEvent& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const ChangeLocalCacheFinishedEvent& from) {
+    ChangeLocalCacheFinishedEvent::MergeImpl(*this, from);
   }
-  using ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase::MergeFrom;
-  void MergeFrom(const ChangeLocalCacheFinishedEvent& from) {
-    ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase::MergeImpl(*this, from);
-  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
   public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(ChangeLocalCacheFinishedEvent* other);
 
   private:
   friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
@@ -6911,6 +6926,18 @@ class ChangeLocalCacheFinishedEvent final :
 
   // accessors -------------------------------------------------------
 
+  enum : int {
+    kWillRestartFieldNumber = 1,
+  };
+  // bool willRestart = 1;
+  void clear_willrestart();
+  bool willrestart() const;
+  void set_willrestart(bool value);
+  private:
+  bool _internal_willrestart() const;
+  void _internal_set_willrestart(bool value);
+  public:
+
   // @@protoc_insertion_point(class_scope:grpc.ChangeLocalCacheFinishedEvent)
  private:
   class _Internal;
@@ -6919,7 +6946,10 @@ class ChangeLocalCacheFinishedEvent final :
   typedef void InternalArenaConstructable_;
   typedef void DestructorSkippable_;
   struct Impl_ {
+    bool willrestart_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
+  union { Impl_ _impl_; };
   friend struct ::TableStruct_bridge_2eproto;
 };
 // -------------------------------------------------------------------
@@ -14230,6 +14260,26 @@ inline void CacheErrorEvent::set_type(::grpc::CacheErrorType value) {
 // -------------------------------------------------------------------
 
 // ChangeLocalCacheFinishedEvent
+
+// bool willRestart = 1;
+inline void ChangeLocalCacheFinishedEvent::clear_willrestart() {
+  _impl_.willrestart_ = false;
+}
+inline bool ChangeLocalCacheFinishedEvent::_internal_willrestart() const {
+  return _impl_.willrestart_;
+}
+inline bool ChangeLocalCacheFinishedEvent::willrestart() const {
+  // @@protoc_insertion_point(field_get:grpc.ChangeLocalCacheFinishedEvent.willRestart)
+  return _internal_willrestart();
+}
+inline void ChangeLocalCacheFinishedEvent::_internal_set_willrestart(bool value) {
+  
+  _impl_.willrestart_ = value;
+}
+inline void ChangeLocalCacheFinishedEvent::set_willrestart(bool value) {
+  _internal_set_willrestart(value);
+  // @@protoc_insertion_point(field_set:grpc.ChangeLocalCacheFinishedEvent.willRestart)
+}
 
 // -------------------------------------------------------------------
 
