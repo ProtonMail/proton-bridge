@@ -131,7 +131,7 @@ ${DEPLOY_DIR}/darwin: ${EXE_TARGET} build-launcher
 
 ${DEPLOY_DIR}/windows: ${EXE_TARGET} build-launcher
 	cp ./dist/${SRC_ICO} ${DEPLOY_DIR}/windows/logo.ico
-	cp LICENSE ${DEPLOY_DIR}/windows/
+	cp LICENSE ${DEPLOY_DIR}/windows/LICENSE.txt
 	cp ${LAUNCHER_EXE} ${DEPLOY_DIR}/windows/$(notdir ${LAUNCHER_EXE})
 	# plugins are installed in a plugins folder while needs to be near the exe
 	mv ${DEPLOY_DIR}/windows/plugins/* ${DEPLOY_DIR}/windows/.
