@@ -392,7 +392,7 @@ Status GRPCService::Login(ServerContext *, LoginRequest const *request, Empty *)
     loginUsername_ = QString::fromStdString(request->username());
     if (usersTab.nextUserUsernamePasswordError())
     {
-        qtProxy_.sendDelayedEvent(newLoginError(LoginErrorType::USERNAME_PASSWORD_ERROR, "Username/password error."));
+        qtProxy_.sendDelayedEvent(newLoginError(LoginErrorType::USERNAME_PASSWORD_ERROR, usersTab.usernamePasswordErrorMessage()));
         return Status::OK;
     }
     if (usersTab.nextUserFreeUserError())

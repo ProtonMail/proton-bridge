@@ -51,6 +51,7 @@ UsersTab::UsersTab(QWidget *parent)
     connect(ui_.buttonEditUser, &QPushButton::clicked, this, &UsersTab::onEditUserButton);
     connect(ui_.tableUserList, &QTableView::doubleClicked, this, &UsersTab::onEditUserButton);
     connect(ui_.buttonRemoveUser, &QPushButton::clicked, this, &UsersTab::onRemoveUserButton);
+    connect(ui_.checkUsernamePasswordError, &QCheckBox::toggled, this, &UsersTab::updateGUIState);
 
     users_.append(randomUser());
 
@@ -129,6 +130,7 @@ void UsersTab::updateGUIState()
     bool const hasSelectedUser = ui_.tableUserList->selectionModel()->hasSelection();
     ui_.buttonEditUser->setEnabled(hasSelectedUser);
     ui_.buttonRemoveUser->setEnabled(hasSelectedUser);
+    ui_.editUsernamePasswordError->setEnabled(ui_.checkUsernamePasswordError->isChecked());
 }
 
 
@@ -249,6 +251,15 @@ bool UsersTab::nextUserTwoPasswordsAbort() const
 bool UsersTab::nextUserAlreadyLoggedIn() const
 {
     return ui_.checkAlreadyLoggedIn->isChecked();
+}
+
+
+//****************************************************************************************************************************************************
+/// \return the message for the username/password error.
+//****************************************************************************************************************************************************
+QString UsersTab::usernamePasswordErrorMessage() const
+{
+    return ui_.editUsernamePasswordError->text();
 }
 
 

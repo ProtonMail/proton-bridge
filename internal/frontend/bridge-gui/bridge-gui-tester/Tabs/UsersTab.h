@@ -48,6 +48,7 @@ public: // member functions.
     bool nextUserTwoPasswordsError() const; ///< Check if next user login should trigger 2nd password error.
     bool nextUserTwoPasswordsAbort() const; ///< Check if next user login should trigger 2nd password abort.
     bool nextUserAlreadyLoggedIn() const; ///< Check if next user login should report user as already logged in.
+    QString usernamePasswordErrorMessage() const; ///< Return the username password error message.
 
 public slots:
     void setUserSplitMode(QString const &userID, bool makeItActive); ///< Slot for the split mode.
@@ -60,9 +61,9 @@ private slots:
     void onEditUserButton(); ///< Edit the currently selected user.
     void onRemoveUserButton(); ///< Remove the currently selected user.
     void onSelectionChanged(QItemSelection, QItemSelection); ///< Slot for the change of the selection.
+    void updateGUIState(); ///< Update the GUI state.
 
 private: // member functions.
-    void updateGUIState(); ///< Update the GUI state.
     qint32 selectedIndex() const; ///< Get the index of the selected row.
     bridgepp::SPUser selectedUser(); ///< Get the selected user.
 

@@ -185,13 +185,15 @@ FocusScope {
                 ColorImage {
                     color: root.colorScheme.signal_danger
                     source: "/qml/icons/ic-exclamation-circle-filled.svg"
-                    height: errorLabel.height
-                    sourceSize.height: errorLabel.height
+                    height: errorLabel.lineHeight
+                    sourceSize.height: errorLabel.lineHeight
                 }
 
                 Label {
                     colorScheme: root.colorScheme
                     id: errorLabel
+                    wrapMode: Text.WordWrap
+                    Layout.fillWidth: true;
                     Layout.leftMargin: 4
                     color: root.colorScheme.signal_danger
 
