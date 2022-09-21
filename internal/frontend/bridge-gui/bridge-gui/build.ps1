@@ -44,7 +44,7 @@ if ($null -eq $bridgeVersion)
 $bridgeFullName = ($env:BRIDGE_APP_FULL_NAME)
 if ($null -eq $bridgeFullName)
 {
-    $bridgeFullName = "Proton Bridge"
+    $bridgeFullName = "Proton Mail Bridge"
 }
 
 $bridgeVendor = ($env:BRIDGE_VENDOR)

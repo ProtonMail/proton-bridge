@@ -50,7 +50,7 @@ check_exit() {
 BRIDGE_REPO_ROOT=$(realpath "../../../..")
 BRIDGE_INSTALL_PATH=${BRIDGE_INSTALL_PATH:-deploy}
 BRIDGE_APP_VERSION=${BRIDGE_APP_VERSION:-$("${BRIDGE_REPO_ROOT}/utils/bridge_app_version.sh")}
-BRIDGE_APP_FULL_NAME=${BRIDGE_APP_FULL_NAME:-"Proton Bridge"}
+BRIDGE_APP_FULL_NAME=${BRIDGE_APP_FULL_NAME:-"Proton Mail Bridge"}
 BRIDGE_VENDOR=${BRIDGE_VENDOR:-"Proton AG"}
 BUILD_CONFIG=${BRIDGE_GUI_BUILD_CONFIG:-Debug}
 BUILD_DIR=$(echo "./cmake-build-${BUILD_CONFIG}" | tr '[:upper:]' '[:lower:]')

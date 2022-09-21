@@ -13,7 +13,7 @@ ROOT_DIR:=$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 # Keep version hardcoded so app build works also without Git repository.
 BRIDGE_APP_VERSION?=2.3.0+git
 APP_VERSION:=${BRIDGE_APP_VERSION}
-APP_FULL_NAME:=Proton Bridge
+APP_FULL_NAME:=Proton Mail Bridge
 APP_VENDOR:=Proton AG
 SRC_ICO:=bridge.ico
 SRC_ICNS:=Bridge.icns
