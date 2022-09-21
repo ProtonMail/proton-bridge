@@ -2,6 +2,17 @@
 
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
+## [Bridge 2.4.0] Osney
+
+### Added
+* GODT-1551: Upgrade to Qt 6:
+    * Change the app architecture.
+    * Drop therecipe/qt dependency.
+    * Update to go1.18.
+    * Update to Qt 6.3.2.
+* GODT-1170 GODT-1675: Native Mac M1 release.
+
+
 ## [Bridge 2.3.0] Nihonbashi
 
 ### Added
