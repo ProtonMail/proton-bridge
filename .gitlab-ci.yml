@@ -259,7 +259,7 @@ check-gobinsec:
   extends:
     - .rules-branch-and-MR-manual
   cache:
-    key: gobinsec-cache-v2
+    key: gobinsec-cache-v3
     paths:
       - ./gobinsec-cache-valid.yml
     policy: pull-push
