@@ -441,7 +441,7 @@ QtObject {
     }
 
     property Notification alreadyLoggedIn: Notification {
-        description: qsTr("This account is already signed it.")
+        description: qsTr("This account is already signed in.")
         brief: description
         icon: "./icons/ic-exclamation-circle-filled.svg"
         type: Notification.NotificationType.Info
