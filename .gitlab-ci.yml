@@ -270,7 +270,7 @@ check-gobinsec:
     - cp ./gobinsec-cache-valid.yml ./gobinsec-cache.yml
   script:
     - cat ./gobinsec-cache.yml
-    - gobinsec -wait -cache -config utils/gobinsec_conf.yml build/bridge
+    - ./utils/run_gobinsec.sh
     - cp ./gobinsec-cache.yml ./gobinsec-cache-valid.yml   # Only update cache file if gobinsec succeeds
 
 

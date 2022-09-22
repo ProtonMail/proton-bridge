@@ -5,3 +5,7 @@ wait: true
 file:
   name: "./gobinsec-cache.yml"
   expiration: 24h
+
+ignore:
+  # golang.org/x/net wrong match, we are using 2871e0cb, fixed by 37e1c6af
+  - "CVE-2021-33194"
