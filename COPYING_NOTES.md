@@ -102,6 +102,7 @@ Proton Mail Bridge includes the following 3rd party software:
 * [tablewriter](https://github.com/olekukonko/tablewriter) available under [license](https://github.com/olekukonko/tablewriter/blob/master/LICENSE) 
 * [go-difflib](https://github.com/pmezard/go-difflib) available under [license](https://github.com/pmezard/go-difflib/blob/master/LICENSE) 
 * [procfs](https://github.com/prometheus/procfs) available under [license](https://github.com/prometheus/procfs/blob/master/LICENSE) 
+* [uniseg](https://github.com/rivo/uniseg) available under [license](https://github.com/rivo/uniseg/blob/master/LICENSE) 
 * [blackfriday](https://github.com/russross/blackfriday/v2) available under [license](https://github.com/russross/blackfriday/v2/blob/master/LICENSE) 
 * [pflag](https://github.com/spf13/pflag) available under [license](https://github.com/spf13/pflag/blob/master/LICENSE) 
 * [bom](https://github.com/ssor/bom) available under [license](https://github.com/ssor/bom/blob/master/LICENSE) 
