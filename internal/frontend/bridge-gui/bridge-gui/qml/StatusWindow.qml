@@ -43,6 +43,13 @@ Window {
     signal showSignIn(string username)
     signal quit()
 
+    onVisibleChanged: {
+        if (visible) { // GODT-1479 restore the hover-able status that may have been disabled when clicking on the 'Open Bridge' button.
+            openBridgeButton.hoverEnabled = true
+            openBridgeButton.focus = false
+        }
+    }
+
     ColumnLayout {
         id: contentLayout
 
@@ -240,6 +247,7 @@ Window {
                 spacing: 0
 
                 Button {
+                    id: openBridgeButton
                     colorScheme: root.colorScheme
                     secondary: true
                     text: qsTr("Open Bridge")
@@ -248,6 +256,9 @@ Window {
                     labelType: Label.LabelType.Caption_semibold
 
                     onClicked: {
+                        // GODT-1479: we disable hover for the button to avoid a visual glitch where the button is
+                        // wrongly hovered when re-opening the status window after clicking
+                        hoverEnabled = false;
                         root.showMainWindow()
                         root.close()
                     }
