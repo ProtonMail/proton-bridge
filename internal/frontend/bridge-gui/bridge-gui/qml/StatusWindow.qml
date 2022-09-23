@@ -47,6 +47,8 @@ Window {
         if (visible) { // GODT-1479 restore the hover-able status that may have been disabled when clicking on the 'Open Bridge' button.
             openBridgeButton.hoverEnabled = true
             openBridgeButton.focus = false
+        } else {
+            menu.close()
         }
     }
 
