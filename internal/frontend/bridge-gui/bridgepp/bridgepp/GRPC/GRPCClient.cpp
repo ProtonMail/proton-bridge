@@ -897,10 +897,10 @@ grpc::Status GRPCClient::stopEventStreamReader()
 //****************************************************************************************************************************************************
 /// \param[in] message The event message.
 //****************************************************************************************************************************************************
-void GRPCClient::logDebug(QString const &message)
+void GRPCClient::logTrace(QString const &message)
 {
     if (log_)
-        log_->debug(message);
+        log_->trace(message);
 }
 
 
@@ -1102,31 +1102,31 @@ void GRPCClient::processAppEvent(AppEvent const &event)
     switch (event.event_case())
     {
     case AppEvent::kInternetStatus:
-        this->logDebug("App event received: InternetStatus.");
+        this->logTrace("App event received: InternetStatus.");
         emit internetStatus(event.internetstatus().connected());
         break;
     case AppEvent::kToggleAutostartFinished:
-        this->logDebug("App event received: AutostartFinished.");
+        this->logTrace("App event received: AutostartFinished.");
         emit toggleAutostartFinished();
         break;
     case AppEvent::kResetFinished:
-        this->logDebug("App event received: ResetFinished.");
+        this->logTrace("App event received: ResetFinished.");
         emit resetFinished();
         break;
     case AppEvent::kReportBugFinished:
-        this->logDebug("App event received: ReportBugFinished.");
+        this->logTrace("App event received: ReportBugFinished.");
         emit reportBugFinished();
         break;
     case AppEvent::kReportBugSuccess:
-        this->logDebug("App event received: ReportBugSuccess.");
+        this->logTrace("App event received: ReportBugSuccess.");
         emit reportBugSuccess();
         break;
     case AppEvent::kReportBugError:
-        this->logDebug("App event received: ReportBugError.");
+        this->logTrace("App event received: ReportBugError.");
         emit reportBugError();
         break;
     case AppEvent::kShowMainWindow:
-        this->logDebug("App event received: ShowMainWindow.");
+        this->logTrace("App event received: ShowMainWindow.");
         emit showMainWindow();
         break;
     default:
@@ -1144,7 +1144,7 @@ void GRPCClient::processLoginEvent(LoginEvent const &event)
     {
     case LoginEvent::kError:
     {
-        this->logDebug("Login event received: Error.");
+        this->logTrace("Login event received: Error.");
         LoginErrorEvent const &error = event.error();
         switch (error.type())
         {
@@ -1176,19 +1176,19 @@ void GRPCClient::processLoginEvent(LoginEvent const &event)
         break;
     }
     case LoginEvent::kTfaRequested:
-        this->logDebug("Login event received: TfaRequested.");
+        this->logTrace("Login event received: TfaRequested.");
         emit login2FARequested(QString::fromStdString(event.tfarequested().username()));
         break;
     case LoginEvent::kTwoPasswordRequested:
-        this->logDebug("Login event received: TwoPasswordRequested.");
+        this->logTrace("Login event received: TwoPasswordRequested.");
         emit login2PasswordRequested();
         break;
     case LoginEvent::kFinished:
-        this->logDebug("Login event received: Finished.");
+        this->logTrace("Login event received: Finished.");
         emit loginFinished(QString::fromStdString(event.finished().userid()));
         break;
     case LoginEvent::kAlreadyLoggedIn:
-        this->logDebug("Login event received: AlreadyLoggedIn.");
+        this->logTrace("Login event received: AlreadyLoggedIn.");
         emit loginAlreadyLoggedIn(QString::fromStdString(event.finished().userid()));
         break;
     default:
@@ -1207,7 +1207,7 @@ void GRPCClient::processUpdateEvent(UpdateEvent const &event)
     {
     case UpdateEvent::kError:
     {
-        this->logDebug("Update event received: Error.");
+        this->logTrace("Update event received: Error.");
 
         UpdateErrorEvent const &errorEvent = event.error();
         switch (errorEvent.type())
@@ -1228,31 +1228,31 @@ void GRPCClient::processUpdateEvent(UpdateEvent const &event)
         break;
     }
     case UpdateEvent::kManualReady:
-        this->logDebug("Update event received: ManualReady.");
+        this->logTrace("Update event received: ManualReady.");
         emit updateManualReady(QString::fromStdString(event.manualready().version()));
         break;
     case UpdateEvent::kManualRestartNeeded:
-        this->logDebug("Update event received: kManualRestartNeeded.");
+        this->logTrace("Update event received: kManualRestartNeeded.");
         emit updateManualRestartNeeded();
         break;
     case UpdateEvent::kForce:
-        this->logDebug("Update event received: kForce.");
+        this->logTrace("Update event received: kForce.");
         emit updateForce(QString::fromStdString(event.force().version()));
         break;
     case UpdateEvent::kSilentRestartNeeded:
-        this->logDebug("Update event received: kSilentRestartNeeded.");
+        this->logTrace("Update event received: kSilentRestartNeeded.");
         emit updateSilentRestartNeeded();
         break;
     case UpdateEvent::kIsLatestVersion:
-        this->logDebug("Update event received: kIsLatestVersion.");
+        this->logTrace("Update event received: kIsLatestVersion.");
         emit updateIsLatestVersion();
         break;
     case UpdateEvent::kCheckFinished:
-        this->logDebug("Update event received: kCheckFinished.");
+        this->logTrace("Update event received: kCheckFinished.");
         emit checkUpdatesFinished();
         break;
     case UpdateEvent::kVersionChanged:
-        this->logDebug("Update event received: kVersionChanged.");
+        this->logTrace("Update event received: kVersionChanged.");
         emit updateVersionChanged();
         break;
     default:
@@ -1293,22 +1293,22 @@ void GRPCClient::processCacheEvent(CacheEvent const &event)
     }
 
     case CacheEvent::kLocationChangedSuccess:
-        this->logDebug("Cache event received: LocationChangedSuccess.");
+        this->logTrace("Cache event received: LocationChangedSuccess.");
         emit cacheLocationChangeSuccess();
         break;
 
     case CacheEvent::kChangeLocalCacheFinished:
         emit changeLocalCacheFinished(event.changelocalcachefinished().willrestart());
-        this->logDebug("Cache event received: ChangeLocalCacheFinished.");
+        this->logTrace("Cache event received: ChangeLocalCacheFinished.");
         break;
 
     case CacheEvent::kIsCacheOnDiskEnabledChanged:
-        this->logDebug("Cache event received: IsCacheOnDiskEnabledChanged.");
+        this->logTrace("Cache event received: IsCacheOnDiskEnabledChanged.");
         emit isCacheOnDiskEnabledChanged(event.iscacheondiskenabledchanged().enabled());
         break;
 
     case CacheEvent::kDiskCachePathChanged:
-        this->logDebug("Cache event received: DiskCachePathChanged.");
+        this->logTrace("Cache event received: DiskCachePathChanged.");
         emit diskCachePathChanged(QUrl::fromLocalFile(QString::fromStdString(event.diskcachepathchanged().path())));
         break;
 
@@ -1326,7 +1326,7 @@ void GRPCClient::processMailSettingsEvent(MailSettingsEvent const &event)
     switch (event.event_case())
     {
     case MailSettingsEvent::kError:
-        this->logDebug("MailSettings event received: Error.");
+        this->logTrace("MailSettings event received: Error.");
         switch (event.error().type())
         {
         case IMAP_PORT_ISSUE:
@@ -1341,11 +1341,11 @@ void GRPCClient::processMailSettingsEvent(MailSettingsEvent const &event)
         }
 
     case MailSettingsEvent::kUseSslForSmtpFinished:
-        this->logDebug("MailSettings event received: UseSslForSmtpFinished.");
+        this->logTrace("MailSettings event received: UseSslForSmtpFinished.");
         emit toggleUseSSLFinished();
         break;
     case MailSettingsEvent::kChangePortsFinished:
-        this->logDebug("MailSettings event received: ChangePortsFinished.");
+        this->logTrace("MailSettings event received: ChangePortsFinished.");
         emit changePortFinished();
         break;
     default:
@@ -1362,15 +1362,15 @@ void GRPCClient::processKeychainEvent(KeychainEvent const &event)
     switch (event.event_case())
     {
     case KeychainEvent::kChangeKeychainFinished:
-        this->logDebug("Keychain event received: ChangeKeychainFinished.");
+        this->logTrace("Keychain event received: ChangeKeychainFinished.");
         emit changeKeychainFinished();
         break;
     case KeychainEvent::kHasNoKeychain:
-        this->logDebug("Keychain event received: HasNoKeychain.");
+        this->logTrace("Keychain event received: HasNoKeychain.");
         emit hasNoKeychain();
         break;
     case KeychainEvent::kRebuildKeychain:
-        this->logDebug("Keychain event received: RebuildKeychain.");
+        this->logTrace("Keychain event received: RebuildKeychain.");
         emit rebuildKeychain();
         break;
     default:
@@ -1387,20 +1387,20 @@ void GRPCClient::processMailEvent(MailEvent const &event)
     switch (event.event_case())
     {
     case MailEvent::kNoActiveKeyForRecipientEvent:
-        this->logDebug("Mail event received: kNoActiveKeyForRecipientEvent.");
+        this->logTrace("Mail event received: kNoActiveKeyForRecipientEvent.");
         emit noActiveKeyForRecipient(QString::fromStdString(event.noactivekeyforrecipientevent().email()));
         break;
     case MailEvent::kAddressChanged:
-        this->logDebug("Mail event received: AddressChanged.");
+        this->logTrace("Mail event received: AddressChanged.");
         emit addressChanged(QString::fromStdString(event.addresschanged().address()));
         break;
     case MailEvent::kAddressChangedLogout:
-        this->logDebug("Mail event received: AddressChangedLogout.");
+        this->logTrace("Mail event received: AddressChangedLogout.");
         emit addressChangedLogout(QString::fromStdString(event.addresschangedlogout().address()));
         break;
     case MailEvent::kApiCertIssue:
         emit apiCertIssue();
-        this->logDebug("Mail event received: ApiCertIssue.");
+        this->logTrace("Mail event received: ApiCertIssue.");
         break;
     default:
         this->logError("Unknown Mail event received.");
@@ -1418,21 +1418,21 @@ void GRPCClient::processUserEvent(UserEvent const &event)
     case UserEvent::kToggleSplitModeFinished:
     {
         QString const userID = QString::fromStdString(event.togglesplitmodefinished().userid());
-        this->logDebug(QString("User event received: ToggleSplitModeFinished (userID = %1).").arg(userID));
+        this->logTrace(QString("User event received: ToggleSplitModeFinished (userID = %1).").arg(userID));
         emit toggleSplitModeFinished(userID);
         break;
     }
     case UserEvent::kUserDisconnected:
     {
         QString const username = QString::fromStdString(event.userdisconnected().username());
-        this->logDebug(QString("User event received: UserDisconnected (username =  %1).").arg(username));
+        this->logTrace(QString("User event received: UserDisconnected (username =  %1).").arg(username));
         emit userDisconnected(username);
         break;
     }
     case UserEvent::kUserChanged:
     {
         QString const userID = QString::fromStdString(event.userchanged().userid());
-        this->logDebug(QString("User event received: UserChanged (userID = %1).").arg(userID));
+        this->logTrace(QString("User event received: UserChanged (userID = %1).").arg(userID));
         emit userChanged(userID);
         break;
     }

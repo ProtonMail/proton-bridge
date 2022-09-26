@@ -30,7 +30,7 @@ import (
 )
 
 func (s *Service) GetUserList(context.Context, *emptypb.Empty) (*UserListResponse, error) {
-	s.log.Info("GetUserList")
+	s.log.Debug("GetUserList")
 
 	userIDs := s.bridge.GetUserIDs()
 	userList := make([]*User, len(userIDs))
@@ -46,14 +46,14 @@ func (s *Service) GetUserList(context.Context, *emptypb.Empty) (*UserListRespons
 
 	// If there are no active accounts.
 	if len(userList) == 0 {
-		s.log.Info("No active accounts")
+		s.log.Debug("No active accounts")
 	}
 
 	return &UserListResponse{Users: userList}, nil
 }
 
 func (s *Service) GetUser(_ context.Context, userID *wrapperspb.StringValue) (*User, error) {
-	s.log.WithField("userID", userID).Info("GetUser")
+	s.log.WithField("userID", userID).Debug("GetUser")
 
 	user, err := s.bridge.GetUserInfo(userID.Value)
 	if err != nil {
@@ -64,7 +64,7 @@ func (s *Service) GetUser(_ context.Context, userID *wrapperspb.StringValue) (*U
 }
 
 func (s *Service) SetUserSplitMode(_ context.Context, splitMode *UserSplitModeRequest) (*emptypb.Empty, error) {
-	s.log.WithField("UserID", splitMode.UserID).WithField("Active", splitMode.Active).Info("SetUserSplitMode")
+	s.log.WithField("UserID", splitMode.UserID).WithField("Active", splitMode.Active).Debug("SetUserSplitMode")
 
 	user, err := s.bridge.GetUserInfo(splitMode.UserID)
 	if err != nil {
@@ -92,7 +92,7 @@ func (s *Service) SetUserSplitMode(_ context.Context, splitMode *UserSplitModeRe
 }
 
 func (s *Service) LogoutUser(_ context.Context, userID *wrapperspb.StringValue) (*emptypb.Empty, error) {
-	s.log.WithField("UserID", userID.Value).Info("LogoutUser")
+	s.log.WithField("UserID", userID.Value).Debug("LogoutUser")
 
 	if _, err := s.bridge.GetUserInfo(userID.Value); err != nil {
 		return nil, status.Errorf(codes.NotFound, "user not found %v", userID.Value)
@@ -110,7 +110,7 @@ func (s *Service) LogoutUser(_ context.Context, userID *wrapperspb.StringValue) 
 }
 
 func (s *Service) RemoveUser(_ context.Context, userID *wrapperspb.StringValue) (*emptypb.Empty, error) {
-	s.log.WithField("UserID", userID.Value).Info("RemoveUser")
+	s.log.WithField("UserID", userID.Value).Debug("RemoveUser")
 
 	go func() {
 		defer s.panicHandler.HandlePanic()
@@ -125,7 +125,7 @@ func (s *Service) RemoveUser(_ context.Context, userID *wrapperspb.StringValue) 
 }
 
 func (s *Service) ConfigureUserAppleMail(ctx context.Context, request *ConfigureAppleMailRequest) (*emptypb.Empty, error) {
-	s.log.WithField("UserID", request.UserID).WithField("Address", request.Address).Info("ConfigureUserAppleMail")
+	s.log.WithField("UserID", request.UserID).WithField("Address", request.Address).Debug("ConfigureUserAppleMail")
 
 	restart, err := s.bridge.ConfigureAppleMail(request.UserID, request.Address)
 	if err != nil {

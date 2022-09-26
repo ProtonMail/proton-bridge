@@ -29,6 +29,18 @@ namespace
 Log *qtHandlerLog { nullptr }; ///< The log instance handling qt logs.
 QMutex qtHandlerMutex; ///< A mutex used to access qtHandlerLog.
 
+// Mapping of log levels to string. Maybe used to lookup using both side a a key, so a list of pair is more convenient that a map.
+QList<QPair<Log::Level, QString>> const logLevelStrings {
+    { Log::Level::Panic, "panic", },
+    { Log::Level::Fatal, "fatal", },
+    { Log::Level::Error, "error", },
+    { Log::Level::Warn,  "warn", },
+    { Log::Level::Info,  "info", },
+    { Log::Level::Debug, "debug", },
+    { Log::Level::Trace, "trace", },
+};
+
+
 //****************************************************************************************************************************************************
 /// \param[in] log The log handling qt log entries. Can be null.
 //****************************************************************************************************************************************************
@@ -79,36 +91,6 @@ void qtMessageHandler(QtMsgType type, QMessageLogContext const &, QString const 
         break;
     }
 }
-
-
-//****************************************************************************************************************************************************
-/// \param[in] level The level.
-/// \return A string describing the level.
-//****************************************************************************************************************************************************
-QString logLevelToString(Log::Level level)
-{
-    switch (level)
-    {
-    case Log::Level::Panic:
-        return "PANIC";
-    case Log::Level::Fatal:
-        return "FATAL";
-    case Log::Level::Error:
-        return "ERROR";
-    case Log::Level::Warn:
-        return "WARN";
-    case Log::Level::Info:
-        return "INFO";
-    case Log::Level::Debug:
-        return "DEBUG";
-    case Log::Level::Trace:
-        return "TRACE";
-    default:
-        return "UNKNOWN";
-    }
-}
-
-
 } // anonymous namespace
 
 
@@ -121,7 +103,43 @@ QString logLevelToString(Log::Level level)
 //****************************************************************************************************************************************************
 QString Log::logEntryToString(Log::Level level, QString const &message)
 {
-    return QString("[%1] %2").arg(logLevelToString(level), message);
+    return QString("[%1] %2").arg(levelToString(level).toUpper(), message);
+}
+
+
+//****************************************************************************************************************************************************
+/// \param[in] level The level.
+/// \return A string describing the level.
+//****************************************************************************************************************************************************
+QString Log::levelToString(Log::Level level)
+{
+    QList<QPair<Log::Level, QString>>::const_iterator it = std::find_if(logLevelStrings.begin(), logLevelStrings.end(),
+        [&level](QPair<Log::Level, QString> const &pair) -> bool {
+            return pair.first == level;
+        });
+    return (it == logLevelStrings.end()) ? QString() : it->second;
+}
+
+
+//****************************************************************************************************************************************************
+/// The matching is case-insensitive.
+///
+/// \param[in] str The string
+/// \param[out] outLevel The log level parsed. if not found, the value of the variable is not modified.
+/// \return true iff parsing was successful.
+//****************************************************************************************************************************************************
+bool Log::stringToLevel(QString const &str, Log::Level &outLevel)
+{
+    QList<QPair<Log::Level, QString>>::const_iterator it = std::find_if(logLevelStrings.begin(), logLevelStrings.end(),
+        [&str](QPair<Log::Level, QString> const &pair) -> bool {
+            return 0 == QString::compare(str, pair.second, Qt::CaseInsensitive);
+        });
+
+    bool const found = (it != logLevelStrings.end());
+    if (found)
+        outLevel = it->first;
+
+    return found;
 }
 
 
@@ -162,7 +180,7 @@ void Log::setLevel(Log::Level level)
 Log::Level Log::level() const
 {
     QMutexLocker locker(&mutex_);
-    return Log::Level::Debug;
+    return level_;
 }
 
 

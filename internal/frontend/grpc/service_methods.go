@@ -66,7 +66,7 @@ func (s *Service) AddLogEntry(_ context.Context, request *AddLogEntryRequest) (*
 
 // GuiReady implement the GuiReady gRPC service call.
 func (s *Service) GuiReady(context.Context, *emptypb.Empty) (*emptypb.Empty, error) {
-	s.log.Info("GuiReady")
+	s.log.Debug("GuiReady")
 	// sync.one
 	s.initializationDone.Do(s.initializing.Done)
 	return &emptypb.Empty{}, nil
@@ -74,7 +74,7 @@ func (s *Service) GuiReady(context.Context, *emptypb.Empty) (*emptypb.Empty, err
 
 // Quit implement the Quit gRPC service call.
 func (s *Service) Quit(ctx context.Context, empty *emptypb.Empty) (*emptypb.Empty, error) {
-	s.log.Info("Quit")
+	s.log.Debug("Quit")
 
 	// Windows is notably slow at Quitting. We do it in a goroutine to speed things up a bit.
 	go func() {
@@ -94,19 +94,19 @@ func (s *Service) Quit(ctx context.Context, empty *emptypb.Empty) (*emptypb.Empt
 
 // Restart implement the Restart gRPC service call.
 func (s *Service) Restart(ctx context.Context, empty *emptypb.Empty) (*emptypb.Empty, error) {
-	s.log.Info("Restart")
+	s.log.Debug("Restart")
 	s.restarter.SetToRestart()
 	return s.Quit(ctx, empty)
 }
 
 func (s *Service) ShowOnStartup(context.Context, *emptypb.Empty) (*wrapperspb.BoolValue, error) {
-	s.log.Info("ShowOnStartup")
+	s.log.Debug("ShowOnStartup")
 
 	return wrapperspb.Bool(s.showOnStartup), nil
 }
 
 func (s *Service) ShowSplashScreen(context.Context, *emptypb.Empty) (*wrapperspb.BoolValue, error) {
-	s.log.Info("ShowSplashScreen")
+	s.log.Debug("ShowSplashScreen")
 
 	if s.bridge.IsFirstStart() {
 		return wrapperspb.Bool(false), nil
@@ -124,13 +124,13 @@ func (s *Service) ShowSplashScreen(context.Context, *emptypb.Empty) (*wrapperspb
 }
 
 func (s *Service) IsFirstGuiStart(context.Context, *emptypb.Empty) (*wrapperspb.BoolValue, error) {
-	s.log.Info("IsFirstGuiStart")
+	s.log.Debug("IsFirstGuiStart")
 
 	return wrapperspb.Bool(s.bridge.GetBool(settings.FirstStartGUIKey)), nil
 }
 
 func (s *Service) SetIsAutostartOn(_ context.Context, isOn *wrapperspb.BoolValue) (*emptypb.Empty, error) {
-	s.log.WithField("show", isOn.Value).Info("SetIsAutostartOn")
+	s.log.WithField("show", isOn.Value).Debug("SetIsAutostartOn")
 
 	defer func() { _ = s.SendEvent(NewToggleAutostartFinishedEvent()) }()
 
@@ -156,13 +156,13 @@ func (s *Service) SetIsAutostartOn(_ context.Context, isOn *wrapperspb.BoolValue
 }
 
 func (s *Service) IsAutostartOn(context.Context, *emptypb.Empty) (*wrapperspb.BoolValue, error) {
-	s.log.Info("IsAutostartOn")
+	s.log.Debug("IsAutostartOn")
 
 	return wrapperspb.Bool(s.bridge.IsAutostartEnabled()), nil
 }
 
 func (s *Service) SetIsBetaEnabled(_ context.Context, isEnabled *wrapperspb.BoolValue) (*emptypb.Empty, error) {
-	s.log.WithField("isEnabled", isEnabled.Value).Info("SetIsBetaEnabled")
+	s.log.WithField("isEnabled", isEnabled.Value).Debug("SetIsBetaEnabled")
 
 	channel := updater.StableChannel
 	if isEnabled.Value {
@@ -176,13 +176,13 @@ func (s *Service) SetIsBetaEnabled(_ context.Context, isEnabled *wrapperspb.Bool
 }
 
 func (s *Service) IsBetaEnabled(context.Context, *emptypb.Empty) (*wrapperspb.BoolValue, error) {
-	s.log.Info("IsBetaEnabled")
+	s.log.Debug("IsBetaEnabled")
 
 	return wrapperspb.Bool(s.bridge.GetUpdateChannel() == updater.EarlyChannel), nil
 }
 
 func (s *Service) SetIsAllMailVisible(_ context.Context, isVisible *wrapperspb.BoolValue) (*emptypb.Empty, error) {
-	s.log.WithField("isVisible", isVisible.Value).Info("SetIsAllMailVisible")
+	s.log.WithField("isVisible", isVisible.Value).Debug("SetIsAllMailVisible")
 
 	s.bridge.SetIsAllMailVisible(isVisible.Value)
 
@@ -190,18 +190,18 @@ func (s *Service) SetIsAllMailVisible(_ context.Context, isVisible *wrapperspb.B
 }
 
 func (s *Service) IsAllMailVisible(context.Context, *emptypb.Empty) (*wrapperspb.BoolValue, error) {
-	s.log.Info("IsAllMailVisible")
+	s.log.Debug("IsAllMailVisible")
 
 	return wrapperspb.Bool(s.bridge.IsAllMailVisible()), nil
 }
 
 func (s *Service) GoOs(context.Context, *emptypb.Empty) (*wrapperspb.StringValue, error) {
-	s.log.Info("GoOs") // TO-DO We can probably get rid of this and use QSysInfo::product name
+	s.log.Debug("GoOs") // TO-DO We can probably get rid of this and use QSysInfo::product name
 	return wrapperspb.String(runtime.GOOS), nil
 }
 
 func (s *Service) TriggerReset(context.Context, *emptypb.Empty) (*emptypb.Empty, error) {
-	s.log.Info("TriggerReset")
+	s.log.Debug("TriggerReset")
 	go func() {
 		defer s.panicHandler.HandlePanic()
 		s.triggerReset()
@@ -210,12 +210,12 @@ func (s *Service) TriggerReset(context.Context, *emptypb.Empty) (*emptypb.Empty,
 }
 
 func (s *Service) Version(context.Context, *emptypb.Empty) (*wrapperspb.StringValue, error) {
-	s.log.Info("Version")
+	s.log.Debug("Version")
 	return wrapperspb.String(constants.Version), nil
 }
 
 func (s *Service) LogsPath(context.Context, *emptypb.Empty) (*wrapperspb.StringValue, error) {
-	s.log.Info("LogsPath")
+	s.log.Debug("LogsPath")
 	path, err := s.bridge.ProvideLogsPath()
 	if err != nil {
 		s.log.WithError(err).Error("Cannot determine logs path")
@@ -225,7 +225,7 @@ func (s *Service) LogsPath(context.Context, *emptypb.Empty) (*wrapperspb.StringV
 }
 
 func (s *Service) LicensePath(context.Context, *emptypb.Empty) (*wrapperspb.StringValue, error) {
-	s.log.Info("LicensePath")
+	s.log.Debug("LicensePath")
 	return wrapperspb.String(s.bridge.GetLicenseFilePath()), nil
 }
 
@@ -242,7 +242,7 @@ func (s *Service) LandingPageLink(context.Context, *emptypb.Empty) (*wrapperspb.
 }
 
 func (s *Service) SetColorSchemeName(_ context.Context, name *wrapperspb.StringValue) (*emptypb.Empty, error) {
-	s.log.WithField("ColorSchemeName", name.Value).Info("SetColorSchemeName")
+	s.log.WithField("ColorSchemeName", name.Value).Debug("SetColorSchemeName")
 
 	if !theme.IsAvailable(theme.Theme(name.Value)) {
 		s.log.WithField("scheme", name.Value).Warn("Color scheme not available")
@@ -255,7 +255,7 @@ func (s *Service) SetColorSchemeName(_ context.Context, name *wrapperspb.StringV
 }
 
 func (s *Service) ColorSchemeName(context.Context, *emptypb.Empty) (*wrapperspb.StringValue, error) {
-	s.log.Info("ColorSchemeName")
+	s.log.Debug("ColorSchemeName")
 
 	current := s.bridge.Get(settings.ColorScheme)
 	if !theme.IsAvailable(theme.Theme(current)) {
@@ -267,7 +267,7 @@ func (s *Service) ColorSchemeName(context.Context, *emptypb.Empty) (*wrapperspb.
 }
 
 func (s *Service) CurrentEmailClient(context.Context, *emptypb.Empty) (*wrapperspb.StringValue, error) {
-	s.log.Info("CurrentEmailClient")
+	s.log.Debug("CurrentEmailClient")
 
 	return wrapperspb.String(s.bridge.GetCurrentUserAgent()), nil
 }
@@ -280,7 +280,7 @@ func (s *Service) ReportBug(_ context.Context, report *ReportBugRequest) (*empty
 		"address":     report.Address,
 		"emailClient": report.EmailClient,
 		"includeLogs": report.IncludeLogs,
-	}).Info("ReportBug")
+	}).Debug("ReportBug")
 
 	go func() {
 		defer func() { _ = s.SendEvent(NewReportBugFinishedEvent()) }()
@@ -306,7 +306,7 @@ func (s *Service) ReportBug(_ context.Context, report *ReportBugRequest) (*empty
 }
 
 func (s *Service) ForceLauncher(_ context.Context, launcher *wrapperspb.StringValue) (*emptypb.Empty, error) {
-	s.log.WithField("launcher", launcher.Value).Info("ForceLauncher")
+	s.log.WithField("launcher", launcher.Value).Debug("ForceLauncher")
 	go func() {
 		defer s.panicHandler.HandlePanic()
 		s.restarter.ForceLauncher(launcher.Value)
@@ -315,7 +315,7 @@ func (s *Service) ForceLauncher(_ context.Context, launcher *wrapperspb.StringVa
 }
 
 func (s *Service) SetMainExecutable(_ context.Context, exe *wrapperspb.StringValue) (*emptypb.Empty, error) {
-	s.log.WithField("executable", exe.Value).Info("SetMainExecutable")
+	s.log.WithField("executable", exe.Value).Debug("SetMainExecutable")
 	go func() {
 		defer s.panicHandler.HandlePanic()
 		s.restarter.SetMainExecutable(exe.Value)
@@ -324,7 +324,7 @@ func (s *Service) SetMainExecutable(_ context.Context, exe *wrapperspb.StringVal
 }
 
 func (s *Service) Login(_ context.Context, login *LoginRequest) (*emptypb.Empty, error) {
-	s.log.WithField("username", login.Username).Info("Login")
+	s.log.WithField("username", login.Username).Debug("Login")
 	go func() {
 		defer s.panicHandler.HandlePanic()
 
@@ -370,7 +370,7 @@ func (s *Service) Login(_ context.Context, login *LoginRequest) (*emptypb.Empty,
 }
 
 func (s *Service) Login2FA(_ context.Context, login *LoginRequest) (*emptypb.Empty, error) {
-	s.log.WithField("username", login.Username).Info("Login2FA")
+	s.log.WithField("username", login.Username).Debug("Login2FA")
 
 	go func() {
 		defer s.panicHandler.HandlePanic()
@@ -423,7 +423,7 @@ func (s *Service) Login2FA(_ context.Context, login *LoginRequest) (*emptypb.Emp
 }
 
 func (s *Service) Login2Passwords(_ context.Context, login *LoginRequest) (*emptypb.Empty, error) {
-	s.log.WithField("username", login.Username).Info("Login2Passwords")
+	s.log.WithField("username", login.Username).Debug("Login2Passwords")
 
 	go func() {
 		defer s.panicHandler.HandlePanic()
@@ -445,7 +445,7 @@ func (s *Service) Login2Passwords(_ context.Context, login *LoginRequest) (*empt
 }
 
 func (s *Service) LoginAbort(_ context.Context, loginAbort *LoginAbortRequest) (*emptypb.Empty, error) {
-	s.log.WithField("username", loginAbort.Username).Info("LoginAbort")
+	s.log.WithField("username", loginAbort.Username).Debug("LoginAbort")
 	go func() {
 		defer s.panicHandler.HandlePanic()
 
@@ -456,7 +456,7 @@ func (s *Service) LoginAbort(_ context.Context, loginAbort *LoginAbortRequest) (
 }
 
 func (s *Service) CheckUpdate(context.Context, *emptypb.Empty) (*emptypb.Empty, error) {
-	s.log.Info("CheckUpdate")
+	s.log.Debug("CheckUpdate")
 	go func() {
 		defer s.panicHandler.HandlePanic()
 
@@ -466,7 +466,7 @@ func (s *Service) CheckUpdate(context.Context, *emptypb.Empty) (*emptypb.Empty, 
 }
 
 func (s *Service) InstallUpdate(context.Context, *emptypb.Empty) (*emptypb.Empty, error) {
-	s.log.Info("InstallUpdate")
+	s.log.Debug("InstallUpdate")
 	go func() {
 		defer s.panicHandler.HandlePanic()
 
@@ -477,7 +477,7 @@ func (s *Service) InstallUpdate(context.Context, *emptypb.Empty) (*emptypb.Empty
 }
 
 func (s *Service) SetIsAutomaticUpdateOn(_ context.Context, isOn *wrapperspb.BoolValue) (*emptypb.Empty, error) {
-	s.log.WithField("isOn", isOn.Value).Info("SetIsAutomaticUpdateOn")
+	s.log.WithField("isOn", isOn.Value).Debug("SetIsAutomaticUpdateOn")
 
 	currentlyOn := s.bridge.GetBool(settings.AutoUpdateKey)
 	if currentlyOn == isOn.Value {
@@ -495,25 +495,25 @@ func (s *Service) SetIsAutomaticUpdateOn(_ context.Context, isOn *wrapperspb.Boo
 }
 
 func (s *Service) IsAutomaticUpdateOn(context.Context, *emptypb.Empty) (*wrapperspb.BoolValue, error) {
-	s.log.Info("IsAutomaticUpdateOn")
+	s.log.Debug("IsAutomaticUpdateOn")
 
 	return wrapperspb.Bool(s.bridge.GetBool(settings.AutoUpdateKey)), nil
 }
 
 func (s *Service) IsCacheOnDiskEnabled(context.Context, *emptypb.Empty) (*wrapperspb.BoolValue, error) {
-	s.log.Info("IsCacheOnDiskEnabled")
+	s.log.Debug("IsCacheOnDiskEnabled")
 	return wrapperspb.Bool(s.bridge.GetBool(settings.CacheEnabledKey)), nil
 }
 
 func (s *Service) DiskCachePath(context.Context, *emptypb.Empty) (*wrapperspb.StringValue, error) {
-	s.log.Info("DiskCachePath")
+	s.log.Debug("DiskCachePath")
 	return wrapperspb.String(s.bridge.Get(settings.CacheLocationKey)), nil
 }
 
 func (s *Service) ChangeLocalCache(ctx context.Context, change *ChangeLocalCacheRequest) (*emptypb.Empty, error) {
 	s.log.WithField("enableDiskCache", change.EnableDiskCache).
 		WithField("diskCachePath", change.DiskCachePath).
-		Info("DiskCachePath")
+		Debug("DiskCachePath")
 
 	restart := false
 	defer func(willRestart *bool) {
@@ -565,7 +565,7 @@ func (s *Service) ChangeLocalCache(ctx context.Context, change *ChangeLocalCache
 }
 
 func (s *Service) SetIsDoHEnabled(_ context.Context, isEnabled *wrapperspb.BoolValue) (*emptypb.Empty, error) {
-	s.log.WithField("isEnabled", isEnabled.Value).Info("SetIsDohEnabled")
+	s.log.WithField("isEnabled", isEnabled.Value).Debug("SetIsDohEnabled")
 
 	s.bridge.SetProxyAllowed(isEnabled.Value)
 
@@ -573,13 +573,13 @@ func (s *Service) SetIsDoHEnabled(_ context.Context, isEnabled *wrapperspb.BoolV
 }
 
 func (s *Service) IsDoHEnabled(context.Context, *emptypb.Empty) (*wrapperspb.BoolValue, error) {
-	s.log.Info("IsDohEnabled")
+	s.log.Debug("IsDohEnabled")
 
 	return wrapperspb.Bool(s.bridge.GetProxyAllowed()), nil
 }
 
 func (s *Service) SetUseSslForSmtp(ctx context.Context, useSsl *wrapperspb.BoolValue) (*emptypb.Empty, error) { //nolint:revive,stylecheck
-	s.log.WithField("useSsl", useSsl.Value).Info("SetUseSslForSmtp")
+	s.log.WithField("useSsl", useSsl.Value).Debug("SetUseSslForSmtp")
 
 	if s.bridge.GetBool(settings.SMTPSSLKey) == useSsl.Value {
 		return &emptypb.Empty{}, nil
@@ -593,31 +593,31 @@ func (s *Service) SetUseSslForSmtp(ctx context.Context, useSsl *wrapperspb.BoolV
 }
 
 func (s *Service) UseSslForSmtp(context.Context, *emptypb.Empty) (*wrapperspb.BoolValue, error) { //nolint:revive,stylecheck
-	s.log.Info("UseSslForSmtp")
+	s.log.Debug("UseSslForSmtp")
 
 	return wrapperspb.Bool(s.bridge.GetBool(settings.SMTPSSLKey)), nil
 }
 
 func (s *Service) Hostname(context.Context, *emptypb.Empty) (*wrapperspb.StringValue, error) {
-	s.log.Info("Hostname")
+	s.log.Debug("Hostname")
 
 	return wrapperspb.String(bridge.Host), nil
 }
 
 func (s *Service) ImapPort(context.Context, *emptypb.Empty) (*wrapperspb.Int32Value, error) {
-	s.log.Info("ImapPort")
+	s.log.Debug("ImapPort")
 
 	return wrapperspb.Int32(int32(s.bridge.GetInt(settings.IMAPPortKey))), nil
 }
 
 func (s *Service) SmtpPort(context.Context, *emptypb.Empty) (*wrapperspb.Int32Value, error) { //nolint:revive,stylecheck
-	s.log.Info("SmtpPort")
+	s.log.Debug("SmtpPort")
 
 	return wrapperspb.Int32(int32(s.bridge.GetInt(settings.SMTPPortKey))), nil
 }
 
 func (s *Service) ChangePorts(ctx context.Context, ports *ChangePortsRequest) (*emptypb.Empty, error) {
-	s.log.WithField("imapPort", ports.ImapPort).WithField("smtpPort", ports.SmtpPort).Info("ChangePorts")
+	s.log.WithField("imapPort", ports.ImapPort).WithField("smtpPort", ports.SmtpPort).Debug("ChangePorts")
 
 	s.bridge.SetInt(settings.IMAPPortKey, int(ports.ImapPort))
 	s.bridge.SetInt(settings.SMTPPortKey, int(ports.SmtpPort))
@@ -628,12 +628,12 @@ func (s *Service) ChangePorts(ctx context.Context, ports *ChangePortsRequest) (*
 }
 
 func (s *Service) IsPortFree(_ context.Context, port *wrapperspb.Int32Value) (*wrapperspb.BoolValue, error) {
-	s.log.Info("IsPortFree")
+	s.log.Debug("IsPortFree")
 	return wrapperspb.Bool(ports.IsPortFree(int(port.Value))), nil
 }
 
 func (s *Service) AvailableKeychains(context.Context, *emptypb.Empty) (*AvailableKeychainsResponse, error) {
-	s.log.Info("AvailableKeychains")
+	s.log.Debug("AvailableKeychains")
 
 	keychains := make([]string, 0, len(keychain.Helpers))
 	for chain := range keychain.Helpers {
@@ -644,7 +644,7 @@ func (s *Service) AvailableKeychains(context.Context, *emptypb.Empty) (*Availabl
 }
 
 func (s *Service) SetCurrentKeychain(ctx context.Context, keychain *wrapperspb.StringValue) (*emptypb.Empty, error) {
-	s.log.WithField("keychain", keychain.Value).Info("SetCurrentKeyChain") // we do not check validity.
+	s.log.WithField("keychain", keychain.Value).Debug("SetCurrentKeyChain") // we do not check validity.
 	defer func() { _, _ = s.Restart(ctx, &emptypb.Empty{}) }()
 	defer func() { _ = s.SendEvent(NewKeychainChangeKeychainFinishedEvent()) }()
 
@@ -658,7 +658,7 @@ func (s *Service) SetCurrentKeychain(ctx context.Context, keychain *wrapperspb.S
 }
 
 func (s *Service) CurrentKeychain(context.Context, *emptypb.Empty) (*wrapperspb.StringValue, error) {
-	s.log.Info("CurrentKeychain")
+	s.log.Debug("CurrentKeychain")
 
 	return wrapperspb.String(s.bridge.GetKeychainApp()), nil
 }

@@ -110,6 +110,7 @@ endif(UNIX)
 add_executable(bridge-gui
     Resources.qrc
     AppController.cpp AppController.h
+    CommandLine.cpp CommandLine.h
     EventStreamWorker.cpp EventStreamWorker.h
     main.cpp
     Pch.h

@@ -58,11 +58,23 @@ void ProcessMonitor::run()
         status_.running = true;
         status_.pid = p.processId();
 
+        QTextStream out(stdout), err(stderr);
+        QByteArray array;
         while (!p.waitForFinished(100))
         {
-            // we discard output from bridge, it's logged to file on bridge side.
-            p.readAllStandardError();
-            p.readAllStandardOutput();
+            array = p.readAllStandardError();
+            if (!array.isEmpty())
+            {
+                err << array;
+                err.flush();
+            }
+
+            array = p.readAllStandardOutput();
+            if (!array.isEmpty())
+            {
+                out << array;
+                out.flush();
+            }
         }
 
         status_.running = false;

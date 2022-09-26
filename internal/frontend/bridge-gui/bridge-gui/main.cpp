@@ -16,6 +16,8 @@
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 
+#include "Pch.h"
+#include "CommandLine.h"
 #include "QMLBackend.h"
 #include "Version.h"
 #include <bridgepp/Log/Log.h>
@@ -23,10 +25,6 @@
 #include <bridgepp/Exception/Exception.h>
 #include <bridgepp/ProcessMonitor.h>
 
-#include <QNetworkAccessManager>
-#include <QNetworkRequest>
-#include <QJsonDocument>
-#include <QJsonObject>
 
 using namespace bridgepp;
 
@@ -41,7 +39,6 @@ namespace
     QString const exeSuffix;
 #endif
 
-    QString const launcherFlag = "--launcher"; ///< launcher flag parameter used for bridge.
     QString const bridgeLock = "bridge-gui.lock"; ///< file name used for the lock file.
     QString const exeName = "bridge" + exeSuffix; ///< The bridge executable file name.*
 }
@@ -81,8 +78,6 @@ void initQtApplication()
 Log &initLog()
 {
     Log &log = app().log();
-    log.setEchoInConsole(true);
-    log.setLevel(Log::Level::Debug);
     log.registerAsQtMessageHandler();
     return log;
 }
@@ -141,7 +136,7 @@ bool checkSingleInstance(QLockFile &lock)
 
 
 //****************************************************************************************************************************************************
-/// \return QUrl to reqch the bridge API.
+/// \return QUrl to reach the bridge API.
 //****************************************************************************************************************************************************
 QUrl getApiUrl()
 {
@@ -186,50 +181,6 @@ void focusOtherInstance()
     QEventLoop loop;
     QObject::connect(rep, &QNetworkReply::finished, &loop, &QEventLoop::quit);
     loop.exec();
-}
-
-
-//****************************************************************************************************************************************************
-/// \param [in]  argc number of arguments passed to the application.
-/// \param [in]  argv list of arguments passed to the application.
-/// \param [out] args list of arguments passed to the application as a QStringList.
-/// \param [out] launcher launcher used in argument, forced to self application if not specify.
-/// \param[out] outAttach The value for the 'attach' command-line parameter.
-//****************************************************************************************************************************************************
-void parseArguments(int argc, char *argv[], QStringList& args, QString& launcher, bool &outAttach) {
-    bool flagFound = false;
-    launcher = QString::fromLocal8Bit(argv[0]);
-    // for unknown reasons, on Windows QCoreApplication::arguments() frequently returns an empty list, which is incorrect, so we rebuild the argument
-    // list from the original argc and argv values.
-    for (int i = 1; i < argc; i++) {
-        QString const &arg = QString::fromLocal8Bit(argv[i]);
-        // we can't use QCommandLineParser here since it will fail on unknown options.
-        // Arguments may contain some bridge flags.
-        if (arg == launcherFlag)
-        {
-            args.append(arg);
-            launcher = QString::fromLocal8Bit(argv[++i]);
-            args.append(launcher);
-            flagFound = true;
-        }
-#ifdef QT_DEBUG
-        else if (arg == "--attach" || arg == "-a")
-        {
-            // we don't keep the attach mode within the args since we don't need it for Bridge.
-            outAttach = true;
-        }
-#endif
-        else
-        {
-            args.append(arg);
-        }
-    }
-    if (!flagFound)
-    {
-        // add bridge-gui as launcher
-        args.append(launcherFlag);
-        args.append(launcher);
-    }
 }
 
 
@@ -300,7 +251,14 @@ int main(int argc, char *argv[])
         QStringList args;
         QString launcher;
         bool attach = false;
-        parseArguments(argc, argv, args, launcher, attach);
+        Log::Level logLevel = Log::defaultLevel;
+        parseCommandLineArguments(argc, argv, args, launcher, attach, logLevel);
+
+        // In attached mode, we do not intercept stderr and stdout of bridge, as we did not launch it ourselves, so we output the log to the console.
+        // When not in attached mode, log entries are forwarded to bridge, which output it on stdout/stderr. bridge-gui's process monitor intercept
+        // these outputs and output them on the command-line.
+        log.setEchoInConsole(attach);
+        log.setLevel(logLevel);
 
         if (!attach)
             launchBridge(args);
@@ -344,7 +302,7 @@ int main(int argc, char *argv[])
         int result = 0;
         if (!startError)
         {
-            // we succeed to run the bridge so we can be set as mainExecutable.
+            // we succeeded in launching bridge, so we can be set as mainExecutable.
             app().grpc().setMainExecutable(QString::fromLocal8Bit(argv[0]));
             result = QGuiApplication::exec();
         }

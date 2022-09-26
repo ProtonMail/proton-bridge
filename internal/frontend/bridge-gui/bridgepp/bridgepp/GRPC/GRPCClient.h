@@ -203,7 +203,7 @@ private slots:
     void configFolderChanged();
 
 private:
-    void logDebug(QString const &message); ///< Log an event.
+    void logTrace(QString const &message); ///< Log an event.
     void logError(QString const &message); ///< Log an event.
     grpc::Status logGRPCCallStatus(grpc::Status const &status, QString const &callName, QList<grpc::StatusCode> allowedErrors = {}); ///< Log the status of a gRPC code.
     grpc::Status simpleMethod(SimpleMethod method); ///< perform a gRPC call to a bool setter.

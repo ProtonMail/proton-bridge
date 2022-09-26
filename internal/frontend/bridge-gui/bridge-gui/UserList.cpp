@@ -161,12 +161,9 @@ bridgepp::SPUser UserList::getUserWithID(QString const &userID) const
 User *UserList::get(int row) const
 {
     if ((row < 0) || (row >= users_.count()))
-    {
-        app().log().error(QString("Requesting invalid user at row %1 (user userCount = %2)").arg(row).arg(users_.count()));
         return nullptr;
-    }
 
-    app().log().debug(QString("Retrieving user at row %1 (user userCount = %2)").arg(row).arg(users_.count()));
+    app().log().trace(QString("Retrieving user at row %1 (user userCount = %2)").arg(row).arg(users_.count()));
     return users_[row].get();
 }
 
@@ -185,7 +182,7 @@ void UserList::onUserChanged(QString const &userID)
     {
         if (index >= 0) // user exists here but not in the go backend. we delete it.
         {
-            app().log().debug(QString("Removing user from user list: %1").arg(userID));
+            app().log().trace(QString("Removing user from user list: %1").arg(userID));
             this->removeUserAt(index);
         }
         return;
@@ -193,12 +190,12 @@ void UserList::onUserChanged(QString const &userID)
 
     if (index < 0)
     {
-        app().log().debug(QString("Adding user in user list: %1").arg(userID));
+        app().log().trace(QString("Adding user in user list: %1").arg(userID));
         this->appendUser(user);
         return;
     }
 
-    app().log().debug(QString("Updating user in user list: %1").arg(userID));
+    app().log().trace(QString("Updating user in user list: %1").arg(userID));
     this->updateUserAtRow(index, *user);
 }
 

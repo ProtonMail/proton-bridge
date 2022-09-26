@@ -45,7 +45,11 @@ public: // data types.
 
 public: // static member functions.
     static QString logEntryToString(Log::Level level, QString const &message); ///< Return a string describing a log entry.
+    static QString levelToString(Log::Level level); ///< return the string for a level.
+    static bool stringToLevel(QString const &str, Log::Level& outLevel); ///< parse a level from a string.
 
+public: // static data member.
+    static const Level defaultLevel { Level::Info }; ///< The default log level (the same as logrus).
 
 public: // member functions.
     Log(); ///< Default constructor.
@@ -77,8 +81,8 @@ signals:
 
 private: // data members
     mutable QMutex mutex_; ///< The mutex.
-    Level level_{Level::Debug}; ///< The log level
-    bool echoInConsole_{false}; ///< Set if the log messages should be sent to STDOUT/STDERR.
+    Level level_ { defaultLevel }; ///< The log level
+    bool echoInConsole_ { false }; ///< Set if the log messages should be sent to STDOUT/STDERR.
 
     QTextStream stdout_; ///< The stdout stream.
     QTextStream stderr_; ///< The stderr stream.

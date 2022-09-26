@@ -28,7 +28,7 @@ import (
 
 // RunEventStream implement the gRPC server->Client event stream.
 func (s *Service) RunEventStream(request *EventStreamRequest, server Bridge_RunEventStreamServer) error {
-	s.log.Info("Starting Event stream")
+	s.log.Debug("Starting Event stream")
 
 	if s.eventStreamCh != nil {
 		return status.Errorf(codes.AlreadyExists, "the service is already streaming") // TO-DO GODT-1667 decide if we want to kill the existing stream.
@@ -50,13 +50,13 @@ func (s *Service) RunEventStream(request *EventStreamRequest, server Bridge_RunE
 	for {
 		select {
 		case <-s.eventStreamDoneCh:
-			s.log.Info("Stop Event stream")
+			s.log.Debug("Stop Event stream")
 			return nil
 
 		case event := <-s.eventStreamCh:
-			s.log.WithField("event", event).Info("Sending event")
+			s.log.WithField("event", event).Debug("Sending event")
 			if err := server.Send(event); err != nil {
-				s.log.Info("Stop Event stream")
+				s.log.Debug("Stop Event stream")
 				return err
 			}
 		}
