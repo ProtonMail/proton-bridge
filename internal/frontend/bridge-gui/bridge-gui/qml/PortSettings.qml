@@ -56,6 +56,7 @@ SettingsView {
             colorScheme: root.colorScheme
             label: qsTr("IMAP port")
             Layout.preferredWidth: 160
+            Layout.alignment: Qt.AlignTop | Qt.AlignLeft
             validator: root.validate
         }
         TextField {
@@ -63,6 +64,7 @@ SettingsView {
             colorScheme: root.colorScheme
             label: qsTr("SMTP port")
             Layout.preferredWidth: 160
+            Layout.alignment: Qt.AlignTop | Qt.AlignLeft
             validator: root.validate
         }
     }
@@ -86,7 +88,7 @@ SettingsView {
                 imapField.error = false
                 smtpField.error = false
 
-                // checking errors seperatly because we want to display "same port" error only once
+                // checking errors separately because we want to display "same port" error only once
                 imapField.validate()
                 if (imapField.error) {
                     return

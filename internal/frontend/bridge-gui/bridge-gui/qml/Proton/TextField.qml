@@ -320,8 +320,8 @@ FocusScope {
                 visible: root.error && (assistiveText.text.length > 0)
                 source: "../icons/ic-exclamation-circle-filled.svg"
                 color: root.colorScheme.signal_danger
-                height: assistiveText.height
-                sourceSize.height: assistiveText.height
+                height: assistiveText.lineHeight
+                sourceSize.height: assistiveText.lineHeight
             }
 
             Proton.Label {
@@ -330,6 +330,7 @@ FocusScope {
 
                 Layout.fillHeight: true
                 Layout.fillWidth: true
+                wrapMode: Text.WordWrap
 
                 text: root.error ? root.errorString : root.assistiveText
 
