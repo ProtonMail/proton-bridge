@@ -109,6 +109,7 @@ func TestFeatures(testingT *testing.T) {
 			ctx.Step(`^user "([^"]*)" is deleted$`, s.userIsDeleted)
 			ctx.Step(`^the auth of user "([^"]*)" is revoked$`, s.theAuthOfUserIsRevoked)
 			ctx.Step(`^user "([^"]*)" is listed and connected$`, s.userIsListedAndConnected)
+			ctx.Step(`^user "([^"]*)" is eventually listed and connected$`, s.userIsEventuallyListedAndConnected)
 			ctx.Step(`^user "([^"]*)" is listed but not connected$`, s.userIsListedButNotConnected)
 			ctx.Step(`^user "([^"]*)" is not listed$`, s.userIsNotListed)
 			ctx.Step(`^user "([^"]*)" finishes syncing$`, s.userFinishesSyncing)

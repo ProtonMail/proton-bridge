@@ -12,13 +12,13 @@ import (
 )
 
 func TestBridge_WithoutUsers(t *testing.T) {
-	withEnv(t, func(s *server.Server, locator bridge.Locator, storeKey []byte) {
-		withBridge(t, s.GetHostURL(), locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+	withEnv(t, func(ctx context.Context, s *server.Server, dialer *bridge.TestDialer, locator bridge.Locator, storeKey []byte) {
+		withBridge(t, ctx, s.GetHostURL(), dialer, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
 			require.Empty(t, bridge.GetUserIDs())
 			require.Empty(t, getConnectedUserIDs(t, bridge))
 		})
 
-		withBridge(t, s.GetHostURL(), locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+		withBridge(t, ctx, s.GetHostURL(), dialer, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
 			require.Empty(t, bridge.GetUserIDs())
 			require.Empty(t, getConnectedUserIDs(t, bridge))
 		})
@@ -26,11 +26,8 @@ func TestBridge_WithoutUsers(t *testing.T) {
 }
 
 func TestBridge_Login(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	withEnv(t, func(s *server.Server, locator bridge.Locator, storeKey []byte) {
-		withBridge(t, s.GetHostURL(), locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+	withEnv(t, func(ctx context.Context, s *server.Server, dialer *bridge.TestDialer, locator bridge.Locator, storeKey []byte) {
+		withBridge(t, ctx, s.GetHostURL(), dialer, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
 			// Login the user.
 			userID, err := bridge.LoginUser(ctx, username, password, nil, nil)
 			require.NoError(t, err)
@@ -43,11 +40,8 @@ func TestBridge_Login(t *testing.T) {
 }
 
 func TestBridge_LoginLogoutLogin(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	withEnv(t, func(s *server.Server, locator bridge.Locator, storeKey []byte) {
-		withBridge(t, s.GetHostURL(), locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+	withEnv(t, func(ctx context.Context, s *server.Server, dialer *bridge.TestDialer, locator bridge.Locator, storeKey []byte) {
+		withBridge(t, ctx, s.GetHostURL(), dialer, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
 			// Login the user.
 			userID := must(bridge.LoginUser(ctx, username, password, nil, nil))
 
@@ -74,11 +68,8 @@ func TestBridge_LoginLogoutLogin(t *testing.T) {
 }
 
 func TestBridge_LoginDeleteLogin(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	withEnv(t, func(s *server.Server, locator bridge.Locator, storeKey []byte) {
-		withBridge(t, s.GetHostURL(), locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+	withEnv(t, func(ctx context.Context, s *server.Server, dialer *bridge.TestDialer, locator bridge.Locator, storeKey []byte) {
+		withBridge(t, ctx, s.GetHostURL(), dialer, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
 			// Login the user.
 			userID := must(bridge.LoginUser(ctx, username, password, nil, nil))
 
@@ -105,11 +96,8 @@ func TestBridge_LoginDeleteLogin(t *testing.T) {
 }
 
 func TestBridge_LoginDeauthLogin(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	withEnv(t, func(s *server.Server, locator bridge.Locator, storeKey []byte) {
-		withBridge(t, s.GetHostURL(), locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+	withEnv(t, func(ctx context.Context, s *server.Server, dialer *bridge.TestDialer, locator bridge.Locator, storeKey []byte) {
+		withBridge(t, ctx, s.GetHostURL(), dialer, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
 			// Login the user.
 			userID := must(bridge.LoginUser(ctx, username, password, nil, nil))
 
@@ -142,13 +130,10 @@ func TestBridge_LoginDeauthLogin(t *testing.T) {
 func TestBridge_LoginExpireLogin(t *testing.T) {
 	const authLife = 2 * time.Second
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	withEnv(t, func(s *server.Server, locator bridge.Locator, storeKey []byte) {
+	withEnv(t, func(ctx context.Context, s *server.Server, dialer *bridge.TestDialer, locator bridge.Locator, storeKey []byte) {
 		s.SetAuthLife(authLife)
 
-		withBridge(t, s.GetHostURL(), locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+		withBridge(t, ctx, s.GetHostURL(), dialer, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
 			// Login the user. Its auth will only be valid for a short time.
 			userID := must(bridge.LoginUser(ctx, username, password, nil, nil))
 
@@ -162,41 +147,64 @@ func TestBridge_LoginExpireLogin(t *testing.T) {
 }
 
 func TestBridge_FailToLoad(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	withEnv(t, func(s *server.Server, locator bridge.Locator, storeKey []byte) {
+	withEnv(t, func(ctx context.Context, s *server.Server, dialer *bridge.TestDialer, locator bridge.Locator, storeKey []byte) {
 		var userID string
 
-		withBridge(t, s.GetHostURL(), locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
-			// Login the user.
+		// Login the user.
+		withBridge(t, ctx, s.GetHostURL(), dialer, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
 			userID = must(bridge.LoginUser(ctx, username, password, nil, nil))
 		})
 
 		// Deauth the user while bridge is stopped.
 		require.NoError(t, s.RevokeUser(userID))
 
-		withBridge(t, s.GetHostURL(), locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
-			// The user is disconnected.
+		// When bridge starts, the user will not be logged in.
+		withBridge(t, ctx, s.GetHostURL(), dialer, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
 			require.Equal(t, []string{userID}, bridge.GetUserIDs())
 			require.Empty(t, getConnectedUserIDs(t, bridge))
 		})
 	})
 }
 
-func TestBridge_LoginRestart(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	withEnv(t, func(s *server.Server, locator bridge.Locator, storeKey []byte) {
+func TestBridge_LoadWithoutInternet(t *testing.T) {
+	withEnv(t, func(ctx context.Context, s *server.Server, dialer *bridge.TestDialer, locator bridge.Locator, storeKey []byte) {
 		var userID string
 
-		withBridge(t, s.GetHostURL(), locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+		// Login the user.
+		withBridge(t, ctx, s.GetHostURL(), dialer, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+			userID = must(bridge.LoginUser(ctx, username, password, nil, nil))
+		})
+
+		// Simulate loss of internet connection.
+		dialer.SetCanDial(false)
+
+		// Start bridge without internet.
+		withBridge(t, ctx, s.GetHostURL(), dialer, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+			// Initially, users are not connected.
+			require.Equal(t, []string{userID}, bridge.GetUserIDs())
+			require.Empty(t, getConnectedUserIDs(t, bridge))
+
+			// Simulate internet connection.
+			dialer.SetCanDial(true)
+
+			// The user will eventually be connected.
+			require.Eventually(t, func() bool {
+				return len(getConnectedUserIDs(t, bridge)) == 1 && getConnectedUserIDs(t, bridge)[0] == userID
+			}, 10*time.Second, time.Second)
+		})
+	})
+}
+
+func TestBridge_LoginRestart(t *testing.T) {
+	withEnv(t, func(ctx context.Context, s *server.Server, dialer *bridge.TestDialer, locator bridge.Locator, storeKey []byte) {
+		var userID string
+
+		withBridge(t, ctx, s.GetHostURL(), dialer, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
 			// Login the user.
 			userID = must(bridge.LoginUser(ctx, username, password, nil, nil))
 		})
 
-		withBridge(t, s.GetHostURL(), locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+		withBridge(t, ctx, s.GetHostURL(), dialer, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
 			// The user is still connected.
 			require.Equal(t, []string{userID}, bridge.GetUserIDs())
 			require.Equal(t, []string{userID}, getConnectedUserIDs(t, bridge))
@@ -205,13 +213,10 @@ func TestBridge_LoginRestart(t *testing.T) {
 }
 
 func TestBridge_LoginLogoutRestart(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	withEnv(t, func(s *server.Server, locator bridge.Locator, storeKey []byte) {
+	withEnv(t, func(ctx context.Context, s *server.Server, dialer *bridge.TestDialer, locator bridge.Locator, storeKey []byte) {
 		var userID string
 
-		withBridge(t, s.GetHostURL(), locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+		withBridge(t, ctx, s.GetHostURL(), dialer, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
 			// Login the user.
 			userID = must(bridge.LoginUser(ctx, username, password, nil, nil))
 
@@ -219,7 +224,7 @@ func TestBridge_LoginLogoutRestart(t *testing.T) {
 			require.NoError(t, bridge.LogoutUser(ctx, userID))
 		})
 
-		withBridge(t, s.GetHostURL(), locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+		withBridge(t, ctx, s.GetHostURL(), dialer, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
 			// The user is still disconnected.
 			require.Equal(t, []string{userID}, bridge.GetUserIDs())
 			require.Empty(t, getConnectedUserIDs(t, bridge))
@@ -228,13 +233,10 @@ func TestBridge_LoginLogoutRestart(t *testing.T) {
 }
 
 func TestBridge_LoginDeleteRestart(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	withEnv(t, func(s *server.Server, locator bridge.Locator, storeKey []byte) {
+	withEnv(t, func(ctx context.Context, s *server.Server, dialer *bridge.TestDialer, locator bridge.Locator, storeKey []byte) {
 		var userID string
 
-		withBridge(t, s.GetHostURL(), locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+		withBridge(t, ctx, s.GetHostURL(), dialer, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
 			// Login the user.
 			userID = must(bridge.LoginUser(ctx, username, password, nil, nil))
 
@@ -242,7 +244,7 @@ func TestBridge_LoginDeleteRestart(t *testing.T) {
 			require.NoError(t, bridge.DeleteUser(ctx, userID))
 		})
 
-		withBridge(t, s.GetHostURL(), locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+		withBridge(t, ctx, s.GetHostURL(), dialer, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
 			// The user is still gone.
 			require.Empty(t, bridge.GetUserIDs())
 			require.Empty(t, getConnectedUserIDs(t, bridge))
@@ -251,13 +253,10 @@ func TestBridge_LoginDeleteRestart(t *testing.T) {
 }
 
 func TestBridge_BridgePass(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	withEnv(t, func(s *server.Server, locator bridge.Locator, storeKey []byte) {
+	withEnv(t, func(ctx context.Context, s *server.Server, dialer *bridge.TestDialer, locator bridge.Locator, storeKey []byte) {
 		var userID, pass string
 
-		withBridge(t, s.GetHostURL(), locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+		withBridge(t, ctx, s.GetHostURL(), dialer, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
 			// Login the user.
 			userID = must(bridge.LoginUser(ctx, username, password, nil, nil))
 
@@ -274,8 +273,8 @@ func TestBridge_BridgePass(t *testing.T) {
 			require.Equal(t, pass, pass)
 		})
 
-		withBridge(t, s.GetHostURL(), locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
-			// The bridge should load schizofrenic.
+		withBridge(t, ctx, s.GetHostURL(), dialer, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+			// The bridge should load the user.
 			require.Equal(t, []string{userID}, bridge.GetUserIDs())
 			require.Equal(t, []string{userID}, getConnectedUserIDs(t, bridge))
 

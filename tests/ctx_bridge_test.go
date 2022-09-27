@@ -54,7 +54,6 @@ func (t *testCtx) startBridge() error {
 	t.bridge = bridge
 
 	// Connect the event channels.
-	t.connStatusCh = chToType[events.Event, events.ConnStatus](bridge.GetEvents(events.ConnStatus{}))
 	t.userLoginCh = chToType[events.Event, events.UserLoggedIn](bridge.GetEvents(events.UserLoggedIn{}))
 	t.userLogoutCh = chToType[events.Event, events.UserLoggedOut](bridge.GetEvents(events.UserLoggedOut{}))
 	t.userDeletedCh = chToType[events.Event, events.UserDeleted](bridge.GetEvents(events.UserDeleted{}))
@@ -62,6 +61,7 @@ func (t *testCtx) startBridge() error {
 	t.syncStartedCh = chToType[events.Event, events.SyncStarted](bridge.GetEvents(events.SyncStarted{}))
 	t.syncFinishedCh = chToType[events.Event, events.SyncFinished](bridge.GetEvents(events.SyncFinished{}))
 	t.forcedUpdateCh = chToType[events.Event, events.UpdateForced](bridge.GetEvents(events.UpdateForced{}))
+	t.connStatusCh, _ = bridge.GetEvents(events.ConnStatusUp{}, events.ConnStatusDown{})
 	t.updateCh, _ = bridge.GetEvents(events.UpdateAvailable{}, events.UpdateNotAvailable{}, events.UpdateInstalled{}, events.UpdateForced{})
 
 	return nil

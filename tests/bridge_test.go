@@ -9,7 +9,6 @@ import (
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/ProtonMail/proton-bridge/v2/internal/events"
-	"gitlab.protontech.ch/go/liteapi"
 )
 
 func (s *scenario) bridgeStarts() error {
@@ -85,9 +84,9 @@ func (s *scenario) theUserReportsABug() error {
 }
 
 func (s *scenario) bridgeSendsAConnectionUpEvent() error {
-	return try(s.t.connStatusCh, 5*time.Second, func(event events.ConnStatus) error {
-		if event.Status != liteapi.StatusUp {
-			return fmt.Errorf("expected connection up event, got %v", event.Status)
+	return try(s.t.connStatusCh, 5*time.Second, func(event events.Event) error {
+		if event, ok := event.(events.ConnStatusUp); !ok {
+			return fmt.Errorf("expected connection up event, got %T", event)
 		}
 
 		return nil
@@ -95,9 +94,9 @@ func (s *scenario) bridgeSendsAConnectionUpEvent() error {
 }
 
 func (s *scenario) bridgeSendsAConnectionDownEvent() error {
-	return try(s.t.connStatusCh, 5*time.Second, func(event events.ConnStatus) error {
-		if event.Status != liteapi.StatusDown {
-			return fmt.Errorf("expected connection down event, got %v", event.Status)
+	return try(s.t.connStatusCh, 5*time.Second, func(event events.Event) error {
+		if event, ok := event.(events.ConnStatusDown); !ok {
+			return fmt.Errorf("expected connection down event, got %T", event)
 		}
 
 		return nil

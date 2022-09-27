@@ -38,7 +38,6 @@ import (
 	"github.com/ProtonMail/proton-bridge/v2/pkg/restarter"
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
-	"gitlab.protontech.ch/go/liteapi"
 	"google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials"
@@ -219,8 +218,11 @@ func (s *Service) watchEvents() {
 
 	for event := range eventCh {
 		switch event := event.(type) {
-		case events.ConnStatus:
-			_ = s.SendEvent(NewInternetStatusEvent(event.Status == liteapi.StatusUp))
+		case events.ConnStatusUp:
+			_ = s.SendEvent(NewInternetStatusEvent(true))
+
+		case events.ConnStatusDown:
+			_ = s.SendEvent(NewInternetStatusEvent(false))
 
 		case events.Raise:
 			_ = s.SendEvent(NewShowMainWindowEvent())

@@ -35,12 +35,12 @@ func (s *scenario) itFailsWithError(wantErr string) error {
 }
 
 func (s *scenario) internetIsTurnedOff() error {
-	s.t.mocks.TLSDialer.SetCanDial(false)
+	s.t.dialer.SetCanDial(false)
 	return nil
 }
 
 func (s *scenario) internetIsTurnedOn() error {
-	s.t.mocks.TLSDialer.SetCanDial(true)
+	s.t.dialer.SetCanDial(true)
 	return nil
 }
 

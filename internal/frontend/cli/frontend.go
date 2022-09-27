@@ -25,7 +25,6 @@ import (
 	"github.com/ProtonMail/proton-bridge/v2/internal/constants"
 	"github.com/ProtonMail/proton-bridge/v2/internal/events"
 	"github.com/ProtonMail/proton-bridge/v2/internal/vault"
-	"gitlab.protontech.ch/go/liteapi"
 
 	"github.com/abiosoft/ishell"
 	"github.com/sirupsen/logrus"
@@ -283,14 +282,11 @@ func (f *frontendCLI) watchEvents() {
 
 	for event := range eventCh {
 		switch event := event.(type) {
-		case events.ConnStatus:
-			switch event.Status {
-			case liteapi.StatusUp:
-				f.notifyInternetOn()
+		case events.ConnStatusUp:
+			f.notifyInternetOn()
 
-			case liteapi.StatusDown:
-				f.notifyInternetOff()
-			}
+		case events.ConnStatusDown:
+			f.notifyInternetOff()
 
 		case events.UserDeauth:
 			user, err := f.bridge.GetUserInfo(event.UserID)

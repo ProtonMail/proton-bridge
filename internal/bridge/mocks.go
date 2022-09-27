@@ -14,9 +14,7 @@ import (
 )
 
 type Mocks struct {
-	TLSDialer   *TestDialer
 	ProxyDialer *mocks.MockProxyDialer
-
 	TLSReporter *mocks.MockTLSReporter
 	TLSIssueCh  chan struct{}
 
@@ -24,13 +22,11 @@ type Mocks struct {
 	Autostarter *mocks.MockAutostarter
 }
 
-func NewMocks(tb testing.TB, version, minAuto *semver.Version) *Mocks {
+func NewMocks(tb testing.TB, dialer *TestDialer, version, minAuto *semver.Version) *Mocks {
 	ctl := gomock.NewController(tb)
 
 	mocks := &Mocks{
-		TLSDialer:   NewTestDialer(),
 		ProxyDialer: mocks.NewMockProxyDialer(ctl),
-
 		TLSReporter: mocks.NewMockTLSReporter(ctl),
 		TLSIssueCh:  make(chan struct{}),
 
@@ -44,7 +40,7 @@ func NewMocks(tb testing.TB, version, minAuto *semver.Version) *Mocks {
 		gomock.Any(),
 		gomock.Any(),
 	).DoAndReturn(func(ctx context.Context, network, address string) (net.Conn, error) {
-		return mocks.TLSDialer.DialTLSContext(ctx, network, address)
+		return dialer.DialTLSContext(ctx, network, address)
 	}).AnyTimes()
 
 	// When getting the TLS issue channel, we want to return the test channel.

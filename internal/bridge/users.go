@@ -176,8 +176,10 @@ func (bridge *Bridge) loadUsers(ctx context.Context) error {
 		if err := bridge.loadUser(ctx, user); err != nil {
 			logrus.WithError(err).Error("Failed to load connected user")
 
-			if err := user.Clear(); err != nil {
-				logrus.WithError(err).Error("Failed to clear user")
+			if _, ok := err.(*resty.ResponseError); ok {
+				if err := user.Clear(); err != nil {
+					logrus.WithError(err).Error("Failed to clear user")
+				}
 			}
 
 			continue

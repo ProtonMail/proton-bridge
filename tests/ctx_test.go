@@ -22,6 +22,7 @@ type testCtx struct {
 	// These are the objects supporting the test.
 	dir      string
 	api      API
+	dialer   *bridge.TestDialer
 	locator  *locations.Locations
 	storeKey []byte
 	version  *semver.Version
@@ -31,7 +32,6 @@ type testCtx struct {
 	bridge *bridge.Bridge
 
 	// These channels hold events of various types coming from bridge.
-	connStatusCh   <-chan events.ConnStatus
 	userLoginCh    <-chan events.UserLoggedIn
 	userLogoutCh   <-chan events.UserLoggedOut
 	userDeletedCh  <-chan events.UserDeleted
@@ -39,6 +39,7 @@ type testCtx struct {
 	syncStartedCh  <-chan events.SyncStarted
 	syncFinishedCh <-chan events.SyncFinished
 	forcedUpdateCh <-chan events.UpdateForced
+	connStatusCh   <-chan events.Event
 	updateCh       <-chan events.Event
 
 	// These maps hold expected userIDByName, their primary addresses and bridge passwords.
@@ -69,12 +70,15 @@ type smtpClient struct {
 }
 
 func newTestCtx(tb testing.TB) *testCtx {
+	dialer := bridge.NewTestDialer()
+
 	ctx := &testCtx{
 		dir:      tb.TempDir(),
 		api:      newFakeAPI(),
+		dialer:   dialer,
 		locator:  locations.New(bridge.NewTestLocationsProvider(tb), "config-name"),
 		storeKey: []byte("super-secret-store-key"),
-		mocks:    bridge.NewMocks(tb, defaultVersion, defaultVersion),
+		mocks:    bridge.NewMocks(tb, dialer, defaultVersion, defaultVersion),
 		version:  defaultVersion,
 
 		userIDByName: make(map[string]string),

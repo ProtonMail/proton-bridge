@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/ProtonMail/gluon/rfc822"
 	"github.com/bradenaw/juniper/xslices"
@@ -180,6 +181,14 @@ func (s *scenario) userIsListedAndConnected(username string) error {
 	}
 
 	return nil
+}
+
+func (s *scenario) userIsEventuallyListedAndConnected(username string) error {
+	return eventually(
+		func() error { return s.userIsListedAndConnected(username) },
+		5*time.Second,
+		100*time.Millisecond,
+	)
 }
 
 func (s *scenario) userIsListedButNotConnected(username string) error {

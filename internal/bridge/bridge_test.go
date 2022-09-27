@@ -15,7 +15,6 @@ import (
 	"github.com/ProtonMail/proton-bridge/v2/internal/vault"
 	"github.com/bradenaw/juniper/xslices"
 	"github.com/stretchr/testify/require"
-	"gitlab.protontech.ch/go/liteapi"
 	"gitlab.protontech.ch/go/liteapi/server"
 )
 
@@ -30,24 +29,24 @@ var (
 )
 
 func TestBridge_ConnStatus(t *testing.T) {
-	withEnv(t, func(s *server.Server, locator bridge.Locator, vaultKey []byte) {
-		withBridge(t, s.GetHostURL(), locator, vaultKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+	withEnv(t, func(ctx context.Context, s *server.Server, dialer *bridge.TestDialer, locator bridge.Locator, vaultKey []byte) {
+		withBridge(t, ctx, s.GetHostURL(), dialer, locator, vaultKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
 			// Get a stream of connection status events.
-			eventCh, done := bridge.GetEvents(events.ConnStatus{})
+			eventCh, done := bridge.GetEvents(events.ConnStatusUp{}, events.ConnStatusDown{})
 			defer done()
 
 			// Simulate network disconnect.
-			mocks.TLSDialer.SetCanDial(false)
+			dialer.SetCanDial(false)
 
 			// Trigger some operation that will fail due to the network disconnect.
 			_, err := bridge.LoginUser(context.Background(), username, password, nil, nil)
 			require.Error(t, err)
 
 			// Wait for the event.
-			require.Equal(t, events.ConnStatus{Status: liteapi.StatusDown}, <-eventCh)
+			require.Equal(t, events.ConnStatusDown{}, <-eventCh)
 
 			// Simulate network reconnect.
-			mocks.TLSDialer.SetCanDial(true)
+			dialer.SetCanDial(true)
 
 			// Trigger some operation that will succeed due to the network reconnect.
 			userID, err := bridge.LoginUser(context.Background(), username, password, nil, nil)
@@ -55,14 +54,14 @@ func TestBridge_ConnStatus(t *testing.T) {
 			require.NotEmpty(t, userID)
 
 			// Wait for the event.
-			require.Equal(t, events.ConnStatus{Status: liteapi.StatusUp}, <-eventCh)
+			require.Equal(t, events.ConnStatusUp{}, <-eventCh)
 		})
 	})
 }
 
 func TestBridge_TLSIssue(t *testing.T) {
-	withEnv(t, func(s *server.Server, locator bridge.Locator, vaultKey []byte) {
-		withBridge(t, s.GetHostURL(), locator, vaultKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+	withEnv(t, func(ctx context.Context, s *server.Server, dialer *bridge.TestDialer, locator bridge.Locator, vaultKey []byte) {
+		withBridge(t, ctx, s.GetHostURL(), dialer, locator, vaultKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
 			// Get a stream of TLS issue events.
 			tlsEventCh, done := bridge.GetEvents(events.TLSIssue{})
 			defer done()
@@ -79,8 +78,8 @@ func TestBridge_TLSIssue(t *testing.T) {
 }
 
 func TestBridge_Focus(t *testing.T) {
-	withEnv(t, func(s *server.Server, locator bridge.Locator, vaultKey []byte) {
-		withBridge(t, s.GetHostURL(), locator, vaultKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+	withEnv(t, func(ctx context.Context, s *server.Server, dialer *bridge.TestDialer, locator bridge.Locator, vaultKey []byte) {
+		withBridge(t, ctx, s.GetHostURL(), dialer, locator, vaultKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
 			// Get a stream of TLS issue events.
 			raiseCh, done := bridge.GetEvents(events.Raise{})
 			defer done()
@@ -95,14 +94,14 @@ func TestBridge_Focus(t *testing.T) {
 }
 
 func TestBridge_UserAgent(t *testing.T) {
-	withEnv(t, func(s *server.Server, locator bridge.Locator, vaultKey []byte) {
+	withEnv(t, func(ctx context.Context, s *server.Server, dialer *bridge.TestDialer, locator bridge.Locator, vaultKey []byte) {
 		var calls []server.Call
 
 		s.AddCallWatcher(func(call server.Call) {
 			calls = append(calls, call)
 		})
 
-		withBridge(t, s.GetHostURL(), locator, vaultKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+		withBridge(t, ctx, s.GetHostURL(), dialer, locator, vaultKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
 			// Set the platform to something other than the default.
 			bridge.SetCurrentPlatform("platform")
 
@@ -120,7 +119,7 @@ func TestBridge_UserAgent(t *testing.T) {
 }
 
 func TestBridge_Cookies(t *testing.T) {
-	withEnv(t, func(s *server.Server, locator bridge.Locator, vaultKey []byte) {
+	withEnv(t, func(ctx context.Context, s *server.Server, dialer *bridge.TestDialer, locator bridge.Locator, vaultKey []byte) {
 		var calls []server.Call
 
 		s.AddCallWatcher(func(call server.Call) {
@@ -130,7 +129,7 @@ func TestBridge_Cookies(t *testing.T) {
 		var sessionID string
 
 		// Start bridge and add a user so that API assigns us a session ID via cookie.
-		withBridge(t, s.GetHostURL(), locator, vaultKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+		withBridge(t, ctx, s.GetHostURL(), dialer, locator, vaultKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
 			_, err := bridge.LoginUser(context.Background(), username, password, nil, nil)
 			require.NoError(t, err)
 
@@ -141,7 +140,7 @@ func TestBridge_Cookies(t *testing.T) {
 		})
 
 		// Start bridge again and check that it uses the same session ID.
-		withBridge(t, s.GetHostURL(), locator, vaultKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+		withBridge(t, ctx, s.GetHostURL(), dialer, locator, vaultKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
 			cookie, err := calls[len(calls)-1].Request.Cookie("Session-Id")
 			require.NoError(t, err)
 
@@ -151,8 +150,8 @@ func TestBridge_Cookies(t *testing.T) {
 }
 
 func TestBridge_CheckUpdate(t *testing.T) {
-	withEnv(t, func(s *server.Server, locator bridge.Locator, vaultKey []byte) {
-		withBridge(t, s.GetHostURL(), locator, vaultKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+	withEnv(t, func(ctx context.Context, s *server.Server, dialer *bridge.TestDialer, locator bridge.Locator, vaultKey []byte) {
+		withBridge(t, ctx, s.GetHostURL(), dialer, locator, vaultKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
 			// Disable autoupdate for this test.
 			require.NoError(t, bridge.SetAutoUpdate(false))
 
@@ -182,8 +181,8 @@ func TestBridge_CheckUpdate(t *testing.T) {
 }
 
 func TestBridge_AutoUpdate(t *testing.T) {
-	withEnv(t, func(s *server.Server, locator bridge.Locator, vaultKey []byte) {
-		withBridge(t, s.GetHostURL(), locator, vaultKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+	withEnv(t, func(ctx context.Context, s *server.Server, dialer *bridge.TestDialer, locator bridge.Locator, vaultKey []byte) {
+		withBridge(t, ctx, s.GetHostURL(), dialer, locator, vaultKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
 			// Enable autoupdate for this test.
 			require.NoError(t, bridge.SetAutoUpdate(true))
 
@@ -208,8 +207,8 @@ func TestBridge_AutoUpdate(t *testing.T) {
 }
 
 func TestBridge_ManualUpdate(t *testing.T) {
-	withEnv(t, func(s *server.Server, locator bridge.Locator, vaultKey []byte) {
-		withBridge(t, s.GetHostURL(), locator, vaultKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+	withEnv(t, func(ctx context.Context, s *server.Server, dialer *bridge.TestDialer, locator bridge.Locator, vaultKey []byte) {
+		withBridge(t, ctx, s.GetHostURL(), dialer, locator, vaultKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
 			// Disable autoupdate for this test.
 			require.NoError(t, bridge.SetAutoUpdate(false))
 
@@ -235,8 +234,8 @@ func TestBridge_ManualUpdate(t *testing.T) {
 }
 
 func TestBridge_ForceUpdate(t *testing.T) {
-	withEnv(t, func(s *server.Server, locator bridge.Locator, vaultKey []byte) {
-		withBridge(t, s.GetHostURL(), locator, vaultKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+	withEnv(t, func(ctx context.Context, s *server.Server, dialer *bridge.TestDialer, locator bridge.Locator, vaultKey []byte) {
+		withBridge(t, ctx, s.GetHostURL(), dialer, locator, vaultKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
 			// Get a stream of update events.
 			updateCh, done := bridge.GetEvents(events.UpdateForced{})
 			defer done()
@@ -255,11 +254,11 @@ func TestBridge_ForceUpdate(t *testing.T) {
 }
 
 func TestBridge_BadVaultKey(t *testing.T) {
-	withEnv(t, func(s *server.Server, locator bridge.Locator, vaultKey []byte) {
+	withEnv(t, func(ctx context.Context, s *server.Server, dialer *bridge.TestDialer, locator bridge.Locator, vaultKey []byte) {
 		var userID string
 
 		// Login a user.
-		withBridge(t, s.GetHostURL(), locator, vaultKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+		withBridge(t, ctx, s.GetHostURL(), dialer, locator, vaultKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
 			newUserID, err := bridge.LoginUser(context.Background(), username, password, nil, nil)
 			require.NoError(t, err)
 
@@ -267,24 +266,24 @@ func TestBridge_BadVaultKey(t *testing.T) {
 		})
 
 		// Start bridge with the correct vault key -- it should load the users correctly.
-		withBridge(t, s.GetHostURL(), locator, vaultKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+		withBridge(t, ctx, s.GetHostURL(), dialer, locator, vaultKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
 			require.ElementsMatch(t, []string{userID}, bridge.GetUserIDs())
 		})
 
 		// Start bridge with a bad vault key, the vault will be wiped and bridge will show no users.
-		withBridge(t, s.GetHostURL(), locator, []byte("bad"), func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+		withBridge(t, ctx, s.GetHostURL(), dialer, locator, []byte("bad"), func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
 			require.Empty(t, bridge.GetUserIDs())
 		})
 
 		// Start bridge with a nil vault key, the vault will be wiped and bridge will show no users.
-		withBridge(t, s.GetHostURL(), locator, nil, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+		withBridge(t, ctx, s.GetHostURL(), dialer, locator, nil, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
 			require.Empty(t, bridge.GetUserIDs())
 		})
 	})
 }
 
 // withEnv creates the full test environment and runs the tests.
-func withEnv(t *testing.T, tests func(server *server.Server, locator bridge.Locator, vaultKey []byte)) {
+func withEnv(t *testing.T, tests func(ctx context.Context, server *server.Server, dialer *bridge.TestDialer, locator bridge.Locator, vaultKey []byte)) {
 	// Create test API.
 	server := server.NewTLS()
 	defer server.Close()
@@ -297,17 +296,24 @@ func withEnv(t *testing.T, tests func(server *server.Server, locator bridge.Loca
 	vaultKey, err := crypto.RandomToken(32)
 	require.NoError(t, err)
 
-	// Run the tests.
-	tests(server, locations.New(bridge.NewTestLocationsProvider(t), "config-name"), vaultKey)
-}
-
-// withBridge creates a new bridge which points to the given API URL and uses the given keychain, and closes it when done.
-func withBridge(t *testing.T, apiURL string, locator bridge.Locator, vaultKey []byte, tests func(bridge *bridge.Bridge, mocks *bridge.Mocks)) {
+	// Create a context used for the test.
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
+	// Run the tests.
+	tests(
+		ctx,
+		server,
+		bridge.NewTestDialer(),
+		locations.New(bridge.NewTestLocationsProvider(t), "config-name"),
+		vaultKey,
+	)
+}
+
+// withBridge creates a new bridge which points to the given API URL and uses the given keychain, and closes it when done.
+func withBridge(t *testing.T, ctx context.Context, apiURL string, dialer *bridge.TestDialer, locator bridge.Locator, vaultKey []byte, tests func(bridge *bridge.Bridge, mocks *bridge.Mocks)) {
 	// Create the mock objects used in the tests.
-	mocks := bridge.NewMocks(t, v2_3_0, v2_3_0)
+	mocks := bridge.NewMocks(t, dialer, v2_3_0, v2_3_0)
 
 	// Bridge will enable the proxy by default at startup.
 	mocks.ProxyDialer.EXPECT().AllowProxy()
@@ -320,25 +326,19 @@ func withBridge(t *testing.T, apiURL string, locator bridge.Locator, vaultKey []
 	vault, _, err := vault.New(vaultDir, t.TempDir(), vaultKey)
 	require.NoError(t, err)
 
+	// Let the IMAP and SMTP servers choose random available ports for this test.
+	require.NoError(t, vault.SetIMAPPort(0))
+	require.NoError(t, vault.SetSMTPPort(0))
+
 	// Create a new bridge.
-	bridge, err := bridge.New(
-		apiURL,
-		locator,
-		vault,
-		useragent.New(),
-		mocks.TLSReporter,
-		mocks.ProxyDialer,
-		mocks.Autostarter,
-		mocks.Updater,
-		v2_3_0,
-	)
+	bridge, err := bridge.New(apiURL, locator, vault, useragent.New(), mocks.TLSReporter, mocks.ProxyDialer, mocks.Autostarter, mocks.Updater, v2_3_0)
 	require.NoError(t, err)
+
+	// Close the bridge when done.
+	defer bridge.Close(ctx)
 
 	// Use the bridge.
 	tests(bridge, mocks)
-
-	// Close the bridge.
-	require.NoError(t, bridge.Close(ctx))
 }
 
 // must is a helper function that panics on error.

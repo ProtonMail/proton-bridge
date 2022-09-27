@@ -7,6 +7,7 @@ import (
 	"net"
 	"net/http"
 	"sync"
+	"time"
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/ProtonMail/gluon"
@@ -150,9 +151,13 @@ func New(
 	}
 
 	api.AddStatusObserver(func(status liteapi.Status) {
-		bridge.publish(events.ConnStatus{
-			Status: status,
-		})
+		switch {
+		case status == liteapi.StatusUp:
+			go bridge.onStatusUp()
+
+		case status == liteapi.StatusDown:
+			go bridge.onStatusDown()
+		}
 	})
 
 	api.AddErrorHandler(liteapi.AppVersionBadCode, func() {
@@ -286,6 +291,48 @@ func (bridge *Bridge) remWatcher(oldWatcher *watcher.Watcher[events.Event]) {
 	bridge.watchers = xslices.Filter(bridge.watchers, func(other *watcher.Watcher[events.Event]) bool {
 		return other != oldWatcher
 	})
+}
+
+func (bridge *Bridge) onStatusUp() {
+	bridge.publish(events.ConnStatusUp{})
+
+	for _, userID := range bridge.vault.GetUserIDs() {
+		if _, ok := bridge.users[userID]; !ok {
+			if vaultUser, err := bridge.vault.GetUser(userID); err != nil {
+				logrus.WithError(err).Error("Failed to get user from vault")
+			} else if err := bridge.loadUser(context.Background(), vaultUser); err != nil {
+				logrus.WithError(err).Error("Failed to load user")
+			}
+		}
+	}
+}
+
+func (bridge *Bridge) onStatusDown() {
+	bridge.publish(events.ConnStatusDown{})
+
+	upCh, done := bridge.GetEvents(events.ConnStatusUp{})
+	defer done()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	backoff := time.Second
+
+	for {
+		select {
+		case <-upCh:
+			return
+
+		case <-time.After(backoff):
+			if err := bridge.api.Ping(ctx); err != nil {
+				logrus.WithError(err).Debug("Failed to ping API")
+			}
+		}
+
+		if backoff < 30*time.Second {
+			backoff *= 2
+		}
+	}
 }
 
 func loadTLSConfig(vault *vault.Vault) (*tls.Config, error) {
