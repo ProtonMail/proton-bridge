@@ -70,13 +70,15 @@ type smtpClient struct {
 }
 
 func newTestCtx(tb testing.TB) *testCtx {
+	dir := tb.TempDir()
+
 	dialer := bridge.NewTestDialer()
 
 	ctx := &testCtx{
-		dir:      tb.TempDir(),
+		dir:      dir,
 		api:      newFakeAPI(),
 		dialer:   dialer,
-		locator:  locations.New(bridge.NewTestLocationsProvider(tb), "config-name"),
+		locator:  locations.New(bridge.NewTestLocationsProvider(dir), "config-name"),
 		storeKey: []byte("super-secret-store-key"),
 		mocks:    bridge.NewMocks(tb, dialer, defaultVersion, defaultVersion),
 		version:  defaultVersion,

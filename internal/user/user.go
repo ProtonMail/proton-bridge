@@ -56,7 +56,7 @@ func New(
 			return nil, err
 		}
 
-		if err := vault.UpdateEventID(eventID); err != nil {
+		if err := vault.SetEventID(eventID); err != nil {
 			return nil, err
 		}
 	}
@@ -85,7 +85,7 @@ func New(
 	// When we receive an auth object, we update it in the store.
 	// This will be used to authorize the user on the next run.
 	client.AddAuthHandler(func(auth liteapi.Auth) {
-		if err := user.vault.UpdateAuth(auth.UID, auth.RefreshToken); err != nil {
+		if err := user.vault.SetAuth(auth.UID, auth.RefreshToken); err != nil {
 			logrus.WithError(err).Error("Failed to update auth")
 		}
 	})
@@ -104,7 +104,7 @@ func New(
 			if err := user.handleAPIEvent(event); err != nil {
 				logrus.WithError(err).Error("Failed to handle event")
 			} else {
-				if err := user.vault.UpdateEventID(event.EventID); err != nil {
+				if err := user.vault.SetEventID(event.EventID); err != nil {
 					logrus.WithError(err).Error("Failed to update event ID")
 				}
 			}

@@ -10,48 +10,14 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func (bridge *Bridge) GetSMTPPort() int {
-	return bridge.vault.GetSMTPPort()
-}
-
-func (bridge *Bridge) SetSMTPPort(newPort int) error {
-	if newPort == bridge.vault.GetSMTPPort() {
-		return nil
-	}
-
-	if err := bridge.vault.SetSMTPPort(newPort); err != nil {
-		return err
-	}
-
-	return bridge.restartSMTP()
-}
-
-func (bridge *Bridge) GetSMTPSSL() bool {
-	return bridge.vault.GetSMTPSSL()
-}
-
-func (bridge *Bridge) SetSMTPSSL(newSSL bool) error {
-	if newSSL == bridge.vault.GetSMTPSSL() {
-		return nil
-	}
-
-	if err := bridge.vault.SetSMTPSSL(newSSL); err != nil {
-		return err
-	}
-
-	return bridge.restartSMTP()
-}
-
 func (bridge *Bridge) serveSMTP() error {
 	smtpListener, err := newListener(bridge.vault.GetSMTPPort(), bridge.vault.GetSMTPSSL(), bridge.tlsConfig)
 	if err != nil {
 		return fmt.Errorf("failed to create SMTP listener: %w", err)
 	}
 
-	bridge.smtpListener = smtpListener
-
 	go func() {
-		if err := bridge.smtpServer.Serve(bridge.smtpListener); err != nil {
+		if err := bridge.smtpServer.Serve(smtpListener); err != nil {
 			logrus.WithError(err).Error("SMTP server stopped")
 		}
 	}()

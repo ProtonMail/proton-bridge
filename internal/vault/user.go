@@ -45,37 +45,37 @@ func (user *User) HasSync() bool {
 	return user.vault.getUser(user.userID).HasSync
 }
 
-func (user *User) UpdateKeyPass(keyPass []byte) error {
+func (user *User) SetKeyPass(keyPass []byte) error {
 	return user.vault.modUser(user.userID, func(data *UserData) {
 		data.KeyPass = keyPass
 	})
 }
 
-// UpdateAuth updates the auth secrets for the given user.
-func (user *User) UpdateAuth(authUID, authRef string) error {
+// SetAuth updates the auth secrets for the given user.
+func (user *User) SetAuth(authUID, authRef string) error {
 	return user.vault.modUser(user.userID, func(data *UserData) {
 		data.AuthUID = authUID
 		data.AuthRef = authRef
 	})
 }
 
-// UpdateGluonData updates the gluon ID and key for the given user.
-func (user *User) UpdateGluonData(gluonID string, gluonKey []byte) error {
+// SetGluonAuth updates the gluon ID and key for the given user.
+func (user *User) SetGluonAuth(gluonID string, gluonKey []byte) error {
 	return user.vault.modUser(user.userID, func(data *UserData) {
 		data.GluonID = gluonID
 		data.GluonKey = gluonKey
 	})
 }
 
-// UpdateEventID updates the event ID for the given user.
-func (user *User) UpdateEventID(eventID string) error {
+// SetEventID updates the event ID for the given user.
+func (user *User) SetEventID(eventID string) error {
 	return user.vault.modUser(user.userID, func(data *UserData) {
 		data.EventID = eventID
 	})
 }
 
-// UpdateSync updates the sync state for the given user.
-func (user *User) UpdateSync(hasSync bool) error {
+// SetSync updates the sync state for the given user.
+func (user *User) SetSync(hasSync bool) error {
 	return user.vault.modUser(user.userID, func(data *UserData) {
 		data.HasSync = hasSync
 	})

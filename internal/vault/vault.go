@@ -74,6 +74,22 @@ func (vault *Vault) GetUser(userID string) (*User, error) {
 	}, nil
 }
 
+// ForUser executes a callback for each user in the vault.
+func (vault *Vault) ForUser(fn func(*User) error) error {
+	for _, userID := range vault.GetUserIDs() {
+		user, err := vault.GetUser(userID)
+		if err != nil {
+			return err
+		}
+
+		if err := fn(user); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 // AddUser creates a new user in the vault with the given ID and username.
 // A bridge password is generated using the package's token generator.
 func (vault *Vault) AddUser(userID, username, authUID, authRef string, keyPass []byte) (*User, error) {

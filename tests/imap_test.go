@@ -124,6 +124,14 @@ func (s *scenario) imapClientSeesTheFollowingMailboxInfo(clientID string, table 
 	return matchMailboxes(haveMailboxes, table)
 }
 
+func (s *scenario) imapClientEventuallySeesTheFollowingMailboxInfo(clientID string, table *godog.Table) error {
+	return eventually(
+		func() error { return s.imapClientSeesTheFollowingMailboxInfo(clientID, table) },
+		5*time.Second,
+		100*time.Millisecond,
+	)
+}
+
 func (s *scenario) imapClientSeesTheFollowingMailboxInfoForMailbox(clientID, mailbox string, table *godog.Table) error {
 	_, client := s.t.getIMAPClient(clientID)
 

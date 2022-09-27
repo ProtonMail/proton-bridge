@@ -308,7 +308,7 @@ func (bridge *Bridge) addNewUser(
 		return nil, err
 	}
 
-	if err := vaultUser.UpdateGluonData(gluonID, gluonKey); err != nil {
+	if err := vaultUser.SetGluonAuth(gluonID, gluonKey); err != nil {
 		return nil, err
 	}
 
@@ -336,11 +336,11 @@ func (bridge *Bridge) addExistingUser(
 		return nil, err
 	}
 
-	if err := vaultUser.UpdateAuth(authUID, authRef); err != nil {
+	if err := vaultUser.SetAuth(authUID, authRef); err != nil {
 		return nil, err
 	}
 
-	if err := vaultUser.UpdateKeyPass(saltedKeyPass); err != nil {
+	if err := vaultUser.SetKeyPass(saltedKeyPass); err != nil {
 		return nil, err
 	}
 

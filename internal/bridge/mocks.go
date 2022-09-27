@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"errors"
 	"net"
+	"os"
 	"testing"
 
 	"github.com/Masterminds/semver/v3"
@@ -75,10 +76,20 @@ type TestLocationsProvider struct {
 	config, cache string
 }
 
-func NewTestLocationsProvider(tb testing.TB) *TestLocationsProvider {
+func NewTestLocationsProvider(dir string) *TestLocationsProvider {
+	config, err := os.MkdirTemp(dir, "config")
+	if err != nil {
+		panic(err)
+	}
+
+	cache, err := os.MkdirTemp(dir, "cache")
+	if err != nil {
+		panic(err)
+	}
+
 	return &TestLocationsProvider{
-		config: tb.TempDir(),
-		cache:  tb.TempDir(),
+		config: config,
+		cache:  cache,
 	}
 }
 

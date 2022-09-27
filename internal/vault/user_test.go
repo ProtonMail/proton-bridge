@@ -24,16 +24,16 @@ func TestUser(t *testing.T) {
 	require.NoError(t, err)
 
 	// Set event IDs for user 1 and 2.
-	require.NoError(t, user1.UpdateEventID("eventID1"))
-	require.NoError(t, user2.UpdateEventID("eventID2"))
+	require.NoError(t, user1.SetEventID("eventID1"))
+	require.NoError(t, user2.SetEventID("eventID2"))
 
 	// Set sync state for user 1 and 2.
-	require.NoError(t, user1.UpdateSync(true))
-	require.NoError(t, user2.UpdateSync(false))
+	require.NoError(t, user1.SetSync(true))
+	require.NoError(t, user2.SetSync(false))
 
 	// Set gluon data for user 1 and 2.
-	require.NoError(t, user1.UpdateGluonData("gluonID1", []byte("gluonKey1")))
-	require.NoError(t, user2.UpdateGluonData("gluonID2", []byte("gluonKey2")))
+	require.NoError(t, user1.SetGluonAuth("gluonID1", []byte("gluonKey1")))
+	require.NoError(t, user2.SetGluonAuth("gluonID2", []byte("gluonKey2")))
 
 	// List available users.
 	require.ElementsMatch(t, []string{"userID1", "userID2"}, s.GetUserIDs())

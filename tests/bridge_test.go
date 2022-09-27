@@ -55,6 +55,15 @@ func (s *scenario) theUserChangesTheGluonPath() error {
 	return s.t.bridge.SetGluonDir(context.Background(), gluonDir)
 }
 
+func (s *scenario) theUserDeletesTheGluonFiles() error {
+	path, err := s.t.locator.ProvideGluonPath()
+	if err != nil {
+		return err
+	}
+
+	return os.RemoveAll(path)
+}
+
 func (s *scenario) theUserHasDisabledAutomaticUpdates() error {
 	var started bool
 

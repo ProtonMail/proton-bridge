@@ -34,7 +34,7 @@ func (user *User) sync(ctx context.Context) error {
 		UserID: user.ID(),
 	}
 
-	if err := user.vault.UpdateSync(true); err != nil {
+	if err := user.vault.SetSync(true); err != nil {
 		return fmt.Errorf("failed to update sync status: %w", err)
 	}
 

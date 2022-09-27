@@ -50,9 +50,8 @@ type Bridge struct {
 	imapListener net.Listener
 
 	// smtpServer is the bridge's SMTP server.
-	smtpServer   *smtp.Server
-	smtpBackend  *smtpBackend
-	smtpListener net.Listener
+	smtpServer  *smtp.Server
+	smtpBackend *smtpBackend
 
 	// updater is the bridge's updater.
 	updater       Updater
@@ -107,7 +106,13 @@ func New(
 		return nil, fmt.Errorf("failed to load TLS config: %w", err)
 	}
 
-	imapServer, err := newIMAPServer(vault.GetGluonDir(), curVersion, tlsConfig)
+	// TODO: Handle case that the gluon directory is missing!
+	gluonDir, err := getGluonDir(vault)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get Gluon directory: %w", err)
+	}
+
+	imapServer, err := newIMAPServer(gluonDir, curVersion, tlsConfig)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create IMAP server: %w", err)
 	}

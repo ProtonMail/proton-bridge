@@ -26,6 +26,70 @@ func (bridge *Bridge) SetKeychainApp(helper string) error {
 	return vault.SetHelper(vaultDir, helper)
 }
 
+func (bridge *Bridge) GetIMAPPort() int {
+	return bridge.vault.GetIMAPPort()
+}
+
+func (bridge *Bridge) SetIMAPPort(newPort int) error {
+	if newPort == bridge.vault.GetIMAPPort() {
+		return nil
+	}
+
+	if err := bridge.vault.SetIMAPPort(newPort); err != nil {
+		return err
+	}
+
+	return bridge.restartIMAP(context.Background())
+}
+
+func (bridge *Bridge) GetIMAPSSL() bool {
+	return bridge.vault.GetIMAPSSL()
+}
+
+func (bridge *Bridge) SetIMAPSSL(newSSL bool) error {
+	if newSSL == bridge.vault.GetIMAPSSL() {
+		return nil
+	}
+
+	if err := bridge.vault.SetIMAPSSL(newSSL); err != nil {
+		return err
+	}
+
+	return bridge.restartIMAP(context.Background())
+}
+
+func (bridge *Bridge) GetSMTPPort() int {
+	return bridge.vault.GetSMTPPort()
+}
+
+func (bridge *Bridge) SetSMTPPort(newPort int) error {
+	if newPort == bridge.vault.GetSMTPPort() {
+		return nil
+	}
+
+	if err := bridge.vault.SetSMTPPort(newPort); err != nil {
+		return err
+	}
+
+	return bridge.restartSMTP()
+}
+
+func (bridge *Bridge) GetSMTPSSL() bool {
+	return bridge.vault.GetSMTPSSL()
+}
+
+func (bridge *Bridge) SetSMTPSSL(newSSL bool) error {
+	if newSSL == bridge.vault.GetSMTPSSL() {
+		return nil
+	}
+
+	if err := bridge.vault.SetSMTPSSL(newSSL); err != nil {
+		return err
+	}
+
+	return bridge.restartSMTP()
+}
+
 func (bridge *Bridge) GetGluonDir() string {
 	return bridge.vault.GetGluonDir()
 }

@@ -2,6 +2,7 @@ package bridge_test
 
 import (
 	"context"
+	"os"
 	"testing"
 
 	"github.com/Masterminds/semver/v3"
@@ -282,6 +283,31 @@ func TestBridge_BadVaultKey(t *testing.T) {
 	})
 }
 
+func TestBridge_MissingGluonDir(t *testing.T) {
+	withEnv(t, func(ctx context.Context, s *server.Server, dialer *bridge.TestDialer, locator bridge.Locator, vaultKey []byte) {
+		var gluonDir string
+
+		withBridge(t, ctx, s.GetHostURL(), dialer, locator, vaultKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+			_, err := bridge.LoginUser(context.Background(), username, password, nil, nil)
+			require.NoError(t, err)
+
+			// Move the gluon dir.
+			bridge.SetGluonDir(ctx, t.TempDir())
+
+			// Get the gluon dir.
+			gluonDir = bridge.GetGluonDir()
+		})
+
+		// The user removes the gluon dir while bridge is not running.
+		require.NoError(t, os.RemoveAll(gluonDir))
+
+		// Bridge starts but can't find the gluon dir; there should be no error.
+		withBridge(t, ctx, s.GetHostURL(), dialer, locator, vaultKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+			// ...
+		})
+	})
+}
+
 // withEnv creates the full test environment and runs the tests.
 func withEnv(t *testing.T, tests func(ctx context.Context, server *server.Server, dialer *bridge.TestDialer, locator bridge.Locator, vaultKey []byte)) {
 	// Create test API.
@@ -305,7 +331,7 @@ func withEnv(t *testing.T, tests func(ctx context.Context, server *server.Server
 		ctx,
 		server,
 		bridge.NewTestDialer(),
-		locations.New(bridge.NewTestLocationsProvider(t), "config-name"),
+		locations.New(bridge.NewTestLocationsProvider(t.TempDir()), "config-name"),
 		vaultKey,
 	)
 }
