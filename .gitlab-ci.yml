@@ -257,7 +257,7 @@ check-gobinsec:
   stage: check
   needs: ["build-linux-qa"]
   extends:
-    - .rules-branch-and-MR-manual
+    - .rules-branch-manual-MR-always
   cache:
     key: gobinsec-cache-v3
     paths:
@@ -267,10 +267,12 @@ check-gobinsec:
     - mkdir build
     - tar -xzf bridge_linux_*.tgz -C build
     - "[ ! -f ./gobinsec-cache-valid.yml ] && wget bridgeteam.protontech.ch/bridgeteam/gobinsec-cache-valid.yml"
-    - cp ./gobinsec-cache-valid.yml ./gobinsec-cache.yml
+    - mv ./gobinsec-cache-valid.yml ./utils/gobinsec_update/gobinsec-cache-valid.yml
   script:
+    - ./utils/gobinsec_update.sh
+    - cp ./utils/gobinsec_update/gobinsec-cache-valid.yml ./gobinsec-cache.yml
     - cat ./gobinsec-cache.yml
-    - ./utils/run_gobinsec.sh
+    - gobinsec -wait -cache -config utils/gobinsec_conf.yml build/bridge
     - cp ./gobinsec-cache.yml ./gobinsec-cache-valid.yml   # Only update cache file if gobinsec succeeds
 
 

@@ -17,7 +17,8 @@
 # You should have received a copy of the GNU General Public License
 # along with Proton Mail Bridge.  If not, see <https://www.gnu.org/licenses/>.
 
-gobinsec -wait -cache -config utils/gobinsec_conf.yml build/bridge || FAILED=true
+cd $( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/gobinsec_update
+make run || FAILED=true
 if [ $FAILED ]; then
-  gobinsec -wait -cache -config utils/gobinsec_conf.yml build/bridge
+  make run
 fi

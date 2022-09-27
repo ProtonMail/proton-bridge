@@ -11,6 +11,7 @@
 godog.test
 debug.test
 coverage.html
+gobinsec-cache*.yml
 
 # Run files
 mem.pprof
