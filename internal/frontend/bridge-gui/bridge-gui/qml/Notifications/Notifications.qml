@@ -48,6 +48,8 @@ QtObject {
 
     property var all: [
         root.noInternet,
+        root.portIssueIMAP,
+        root.portIssueSMTP,
         root.updateManualReady,
         root.updateManualRestartNeeded,
         root.updateManualError,
@@ -94,6 +96,38 @@ QtObject {
             }
             function onInternetOn() {
                 root.noInternet.active = false
+            }
+        }
+    }
+
+    property Notification portIssueIMAP: Notification {
+        description: qsTr("The IMAP server could not be started. Please check or change the IMAP port and restart the application.")
+        brief: qsTr("IMAP port error")
+        icon: "./icons/ic-alert.svg"
+        type: Notification.NotificationType.Danger
+        group: Notifications.Group.Connection
+
+        Connections {
+            target: Backend
+
+            function onPortIssueIMAP() {
+                root.portIssueIMAP.active = true
+            }
+        }
+    }
+
+    property Notification portIssueSMTP: Notification {
+        description: qsTr("The SMTP server could not be started. Please check or change the SMTP port and restart the application.")
+        brief: qsTr("SMTP port error")
+        icon: "./icons/ic-alert.svg"
+        type: Notification.NotificationType.Danger
+        group: Notifications.Group.Connection
+
+        Connections {
+            target: Backend
+
+            function onPortIssueSMTP() {
+                root.portIssueSMTP.active = true
             }
         }
     }

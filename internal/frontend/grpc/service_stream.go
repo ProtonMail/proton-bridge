@@ -20,7 +20,6 @@ package grpc
 import (
 	"context"
 
-	"github.com/pkg/errors"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -45,6 +44,18 @@ func (s *Service) RunEventStream(request *EventStreamRequest, server Bridge_RunE
 		s.eventStreamCh = nil
 		close(s.eventStreamDoneCh)
 		s.eventStreamDoneCh = nil
+	}()
+
+	// if events occurred before streaming started, they've been queued. Now that the stream channel is available
+	// we can flush the queued
+	go func() {
+		s.eventQueueMutex.Lock()
+		defer s.eventQueueMutex.Unlock()
+		for _, event := range s.eventQueue {
+			s.eventStreamCh <- event
+		}
+
+		s.eventQueue = nil
 	}()
 
 	for {
@@ -76,8 +87,13 @@ func (s *Service) StopEventStream(_ context.Context, _ *emptypb.Empty) (*emptypb
 
 // SendEvent sends an event to the via the gRPC event stream.
 func (s *Service) SendEvent(event *StreamEvent) error {
+	s.eventQueueMutex.Lock()
+	defer s.eventQueueMutex.Unlock()
+
 	if s.eventStreamCh == nil {
-		return errors.New("gRPC service is not streaming")
+		// nobody is connected to the event stream, we queue events
+		s.eventQueue = append(s.eventQueue, event)
+		return nil
 	}
 
 	s.eventStreamCh <- event

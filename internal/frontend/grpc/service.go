@@ -50,6 +50,8 @@ type Service struct { // nolint:structcheck
 	listener          net.Listener
 	eventStreamCh     chan *StreamEvent
 	eventStreamDoneCh chan struct{}
+	eventQueue        []*StreamEvent
+	eventQueueMutex   sync.Mutex
 
 	panicHandler       types.PanicHandler
 	eventListener      listener.Listener
