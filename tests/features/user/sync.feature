@@ -6,11 +6,11 @@ Feature: Bridge can fully sync an account
       | one   | folder |
       | two   | folder |
       | three | label  |
-    And the account "user@pm.me" has the following messages in "one":
+    And the address "user@pm.me" of account "user@pm.me" has the following messages in "one":
       | sender  | recipient | subject | unread |
       | a@pm.me | a@pm.me   | one     | true  |
       | b@pm.me | b@pm.me   | two     | false |
-    And the account "user@pm.me" has the following messages in "two":
+    And the address "user@pm.me" of account "user@pm.me" has the following messages in "two":
       | sender  | recipient | subject | unread |
       | a@pm.me | a@pm.me   | one     | true  |
       | b@pm.me | b@pm.me   | two     | false |

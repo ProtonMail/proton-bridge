@@ -4,7 +4,6 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/sha256"
-	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"io/fs"
@@ -12,6 +11,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/ProtonMail/gluon/imap"
 	"github.com/ProtonMail/proton-bridge/v2/internal/certs"
 	"github.com/bradenaw/juniper/xslices"
 )
@@ -99,16 +99,16 @@ func (vault *Vault) AddUser(userID, username, authUID, authRef string, keyPass [
 		return nil, errors.New("user already exists")
 	}
 
-	tok, err := RandomToken(16)
-	if err != nil {
-		return nil, err
-	}
-
 	if err := vault.mod(func(data *Data) {
 		data.Users = append(data.Users, UserData{
-			UserID:     userID,
-			Username:   username,
-			BridgePass: hex.EncodeToString(tok),
+			UserID:   userID,
+			Username: username,
+
+			GluonKey:    newRandomToken(32),
+			GluonIDs:    make(map[string]string),
+			UIDValidity: make(map[string]imap.UID),
+			BridgePass:  newRandomToken(16),
+			AddressMode: CombinedMode,
 
 			AuthUID: authUID,
 			AuthRef: authRef,
@@ -119,6 +119,14 @@ func (vault *Vault) AddUser(userID, username, authUID, authRef string, keyPass [
 	}
 
 	return vault.GetUser(userID)
+}
+
+func (vault *Vault) ClearUser(userID string) error {
+	return vault.modUser(userID, func(data *UserData) {
+		data.AuthUID = ""
+		data.AuthRef = ""
+		data.KeyPass = nil
+	})
 }
 
 // DeleteUser removes the given user from the vault.

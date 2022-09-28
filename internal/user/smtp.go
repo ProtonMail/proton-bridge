@@ -20,12 +20,14 @@ import (
 )
 
 type smtpSession struct {
-	client    *liteapi.Client
-	username  string
-	addresses []liteapi.Address
-	userKR    *crypto.KeyRing
-	addrKRs   map[string]*crypto.KeyRing
-	settings  liteapi.MailSettings
+	client *liteapi.Client
+
+	username string
+	emails   map[string]string
+	settings liteapi.MailSettings
+
+	userKR  *crypto.KeyRing
+	addrKRs map[string]*crypto.KeyRing
 
 	from string
 	to   map[string]struct{}
@@ -34,18 +36,20 @@ type smtpSession struct {
 func newSMTPSession(
 	client *liteapi.Client,
 	username string,
-	addresses []liteapi.Address,
+	addresses map[string]string,
+	settings liteapi.MailSettings,
 	userKR *crypto.KeyRing,
 	addrKRs map[string]*crypto.KeyRing,
-	settings liteapi.MailSettings,
 ) *smtpSession {
 	return &smtpSession{
-		client:    client,
-		username:  username,
-		addresses: addresses,
-		userKR:    userKR,
-		addrKRs:   addrKRs,
-		settings:  settings,
+		client: client,
+
+		username: username,
+		emails:   addresses,
+		settings: settings,
+
+		userKR:  userKR,
+		addrKRs: addrKRs,
 
 		from: "",
 		to:   make(map[string]struct{}),
@@ -86,15 +90,15 @@ func (session *smtpSession) Mail(from string, opts smtp.MailOptions) error {
 		return ErrNotImplemented
 	}
 
-	idx := xslices.IndexFunc(session.addresses, func(address liteapi.Address) bool {
-		return strings.EqualFold(address.Email, from)
-	})
-
-	if idx < 0 {
-		return ErrInvalidReturnPath
+	for addrID, email := range session.emails {
+		if strings.EqualFold(from, email) {
+			session.from = addrID
+		}
 	}
 
-	session.from = session.addresses[idx].ID
+	if session.from == "" {
+		return ErrInvalidReturnPath
+	}
 
 	return nil
 }
@@ -129,10 +133,10 @@ func (session *smtpSession) Data(r io.Reader) error {
 
 	addrKR, ok := session.addrKRs[session.from]
 	if !ok {
-		return ErrMissingAddressKey
+		return ErrMissingAddrKey
 	}
 
-	addrKR, err := addrKR.FirstKey()
+	addrKey, err := addrKR.FirstKey()
 	if err != nil {
 		return fmt.Errorf("failed to get first key: %w", err)
 	}
@@ -143,7 +147,7 @@ func (session *smtpSession) Data(r io.Reader) error {
 	}
 
 	if session.settings.AttachPublicKey == liteapi.AttachPublicKeyEnabled {
-		key, err := addrKR.GetKey(0)
+		key, err := addrKey.GetKey(0)
 		if err != nil {
 			return fmt.Errorf("failed to get user public key: %w", err)
 		}
@@ -153,7 +157,7 @@ func (session *smtpSession) Data(r io.Reader) error {
 			return fmt.Errorf("failed to get user public key: %w", err)
 		}
 
-		parser.AttachPublicKey(pubKey, fmt.Sprintf("publickey - %v - %v", addrKR.GetIdentities()[0].Name, key.GetFingerprint()[:8]))
+		parser.AttachPublicKey(pubKey, fmt.Sprintf("publickey - %v - %v", addrKey.GetIdentities()[0].Name, key.GetFingerprint()[:8]))
 	}
 
 	message, err := message.ParseWithParser(parser)
@@ -161,7 +165,7 @@ func (session *smtpSession) Data(r io.Reader) error {
 		return fmt.Errorf("failed to parse message: %w", err)
 	}
 
-	draft, attKeys, err := session.createDraft(ctx, addrKR, message)
+	draft, attKeys, err := session.createDraft(ctx, addrKey, message)
 	if err != nil {
 		return fmt.Errorf("failed to create draft: %w", err)
 	}
@@ -171,7 +175,7 @@ func (session *smtpSession) Data(r io.Reader) error {
 		return fmt.Errorf("failed to get recipients: %w", err)
 	}
 
-	req, err := createSendReq(addrKR, message.MIMEBody, message.RichBody, message.PlainBody, recipients, attKeys)
+	req, err := createSendReq(addrKey, message.MIMEBody, message.RichBody, message.PlainBody, recipients, attKeys)
 	if err != nil {
 		return fmt.Errorf("failed to create packages: %w", err)
 	}

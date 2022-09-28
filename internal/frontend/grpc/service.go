@@ -228,13 +228,13 @@ func (s *Service) watchEvents() {
 			_ = s.SendEvent(NewShowMainWindowEvent())
 
 		case events.UserAddressCreated:
-			_ = s.SendEvent(NewMailAddressChangeEvent(event.Address))
+			_ = s.SendEvent(NewMailAddressChangeEvent(event.Email))
 
-		case events.UserAddressChanged:
-			_ = s.SendEvent(NewMailAddressChangeEvent(event.Address))
+		case events.UserAddressUpdated:
+			_ = s.SendEvent(NewMailAddressChangeEvent(event.Email))
 
 		case events.UserAddressDeleted:
-			_ = s.SendEvent(NewMailAddressChangeLogoutEvent(event.Address))
+			_ = s.SendEvent(NewMailAddressChangeLogoutEvent(event.Email))
 
 		case events.UserChanged:
 			_ = s.SendEvent(NewUserChangedEvent(event.UserID))

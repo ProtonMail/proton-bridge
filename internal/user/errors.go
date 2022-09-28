@@ -8,5 +8,5 @@ var (
 	ErrNotSupported      = errors.New("not supported")
 	ErrInvalidReturnPath = errors.New("invalid return path")
 	ErrInvalidRecipient  = errors.New("invalid recipient")
-	ErrMissingAddressKey = errors.New("missing address key")
+	ErrMissingAddrKey    = errors.New("missing address key")
 )

@@ -5,7 +5,7 @@ go 1.18
 require (
 	github.com/0xAX/notificator v0.0.0-20220220101646-ee9b8921e557
 	github.com/Masterminds/semver/v3 v3.1.1
-	github.com/ProtonMail/gluon v0.11.1-0.20220922143913-ef3617264557
+	github.com/ProtonMail/gluon v0.11.1-0.20221001180052-2e11f5804b8a
 	github.com/ProtonMail/go-autostart v0.0.0-20210130080809-00ed301c8e9a
 	github.com/ProtonMail/go-rfc5322 v0.11.0
 	github.com/ProtonMail/gopenpgp/v2 v2.4.10
@@ -37,7 +37,7 @@ require (
 	github.com/sirupsen/logrus v1.9.0
 	github.com/stretchr/testify v1.8.0
 	github.com/urfave/cli/v2 v2.16.3
-	gitlab.protontech.ch/go/liteapi v0.31.0
+	gitlab.protontech.ch/go/liteapi v0.31.1-0.20221001204216-b781c54ca2a6
 	golang.org/x/exp v0.0.0-20220921164117-439092de6870
 	golang.org/x/net v0.1.0
 	golang.org/x/sys v0.1.0

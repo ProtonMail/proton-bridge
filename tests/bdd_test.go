@@ -30,8 +30,8 @@ import (
 )
 
 func init() {
-	user.DefaultEventPeriod = time.Second
-	user.DefaultEventJitter = time.Second
+	user.DefaultEventPeriod = 100 * time.Millisecond
+	user.DefaultEventJitter = 0
 }
 
 type scenario struct {
@@ -76,6 +76,16 @@ func TestFeatures(testingT *testing.T) {
 			ctx.Step(`^the user agent is "([^"]*)"$`, s.theUserAgentIs)
 			ctx.Step(`^the value of the "([^"]*)" header in the request to "([^"]*)" is "([^"]*)"$`, s.theValueOfTheHeaderInTheRequestToIs)
 
+			// ==== SETUP ====
+			ctx.Step(`^there exists an account with username "([^"]*)" and password "([^"]*)"$`, s.thereExistsAnAccountWithUsernameAndPassword)
+			ctx.Step(`^the account "([^"]*)" has additional address "([^"]*)"$`, s.theAccountHasAdditionalAddress)
+			ctx.Step(`^the account "([^"]*)" no longer has additional address "([^"]*)"$`, s.theAccountNoLongerHasAdditionalAddress)
+			ctx.Step(`^the account "([^"]*)" has (\d+) custom folders$`, s.theAccountHasCustomFolders)
+			ctx.Step(`^the account "([^"]*)" has (\d+) custom labels$`, s.theAccountHasCustomLabels)
+			ctx.Step(`^the account "([^"]*)" has the following custom mailboxes:$`, s.theAccountHasTheFollowingCustomMailboxes)
+			ctx.Step(`^the address "([^"]*)" of account "([^"]*)" has the following messages in "([^"]*)":$`, s.theAddressOfAccountHasTheFollowingMessagesInMailbox)
+			ctx.Step(`^the address "([^"]*)" of account "([^"]*)" has (\d+) messages in "([^"]*)"$`, s.theAddressOfAccountHasMessagesInMailbox)
+
 			// ==== BRIDGE ====
 			ctx.Step(`^bridge starts$`, s.bridgeStarts)
 			ctx.Step(`^bridge restarts$`, s.bridgeRestarts)
@@ -85,12 +95,15 @@ func TestFeatures(testingT *testing.T) {
 			ctx.Step(`^the user has disabled automatic updates$`, s.theUserHasDisabledAutomaticUpdates)
 			ctx.Step(`^the user changes the IMAP port to (\d+)$`, s.theUserChangesTheIMAPPortTo)
 			ctx.Step(`^the user changes the SMTP port to (\d+)$`, s.theUserChangesTheSMTPPortTo)
+			ctx.Step(`^the user sets the address mode of "([^"]*)" to "([^"]*)"$`, s.theUserSetsTheAddressModeOfTo)
 			ctx.Step(`^the user changes the gluon path$`, s.theUserChangesTheGluonPath)
 			ctx.Step(`^the user deletes the gluon files$`, s.theUserDeletesTheGluonFiles)
 			ctx.Step(`^the user reports a bug$`, s.theUserReportsABug)
 			ctx.Step(`^bridge sends a connection up event$`, s.bridgeSendsAConnectionUpEvent)
 			ctx.Step(`^bridge sends a connection down event$`, s.bridgeSendsAConnectionDownEvent)
 			ctx.Step(`^bridge sends a deauth event for user "([^"]*)"$`, s.bridgeSendsADeauthEventForUser)
+			ctx.Step(`^bridge sends an address created event for user "([^"]*)"$`, s.bridgeSendsAnAddressCreatedEventForUser)
+			ctx.Step(`^bridge sends an address deleted event for user "([^"]*)"$`, s.bridgeSendsAnAddressDeletedEventForUser)
 			ctx.Step(`^bridge sends sync started and finished events for user "([^"]*)"$`, s.bridgeSendsSyncStartedAndFinishedEventsForUser)
 			ctx.Step(`^bridge sends an update available event for version "([^"]*)"$`, s.bridgeSendsAnUpdateAvailableEventForVersion)
 			ctx.Step(`^bridge sends a manual update event for version "([^"]*)"$`, s.bridgeSendsAManualUpdateEventForVersion)
@@ -99,12 +112,6 @@ func TestFeatures(testingT *testing.T) {
 			ctx.Step(`^bridge sends a forced update event$`, s.bridgeSendsAForcedUpdateEvent)
 
 			// ==== USER ====
-			ctx.Step(`^there exists an account with username "([^"]*)" and password "([^"]*)"$`, s.thereExistsAnAccountWithUsernameAndPassword)
-			ctx.Step(`^the account "([^"]*)" has (\d+) custom folders$`, s.theAccountHasCustomFolders)
-			ctx.Step(`^the account "([^"]*)" has (\d+) custom labels$`, s.theAccountHasCustomLabels)
-			ctx.Step(`^the account "([^"]*)" has the following custom mailboxes:$`, s.theAccountHasTheFollowingCustomMailboxes)
-			ctx.Step(`^the account "([^"]*)" has the following messages in "([^"]*)":$`, s.theAccountHasTheFollowingMessagesInMailbox)
-			ctx.Step(`^the account "([^"]*)" has (\d+) messages in "([^"]*)"$`, s.theAccountHasMessagesInMailbox)
 			ctx.Step(`^the user logs in with username "([^"]*)" and password "([^"]*)"$`, s.userLogsInWithUsernameAndPassword)
 			ctx.Step(`^user "([^"]*)" logs out$`, s.userLogsOut)
 			ctx.Step(`^user "([^"]*)" is deleted$`, s.userIsDeleted)
@@ -119,8 +126,10 @@ func TestFeatures(testingT *testing.T) {
 			ctx.Step(`^user "([^"]*)" connects IMAP client "([^"]*)"$`, s.userConnectsIMAPClient)
 			ctx.Step(`^user "([^"]*)" connects IMAP client "([^"]*)" on port (\d+)$`, s.userConnectsIMAPClientOnPort)
 			ctx.Step(`^user "([^"]*)" connects and authenticates IMAP client "([^"]*)"$`, s.userConnectsAndAuthenticatesIMAPClient)
+			ctx.Step(`^user "([^"]*)" connects and authenticates IMAP client "([^"]*)" with address "([^"]*)"$`, s.userConnectsAndAuthenticatesIMAPClientWithAddress)
 			ctx.Step(`^IMAP client "([^"]*)" can authenticate$`, s.imapClientCanAuthenticate)
 			ctx.Step(`^IMAP client "([^"]*)" cannot authenticate$`, s.imapClientCannotAuthenticate)
+			ctx.Step(`^IMAP client "([^"]*)" cannot authenticate with address "([^"]*)"$`, s.imapClientCannotAuthenticateWithAddress)
 			ctx.Step(`^IMAP client "([^"]*)" cannot authenticate with incorrect username$`, s.imapClientCannotAuthenticateWithIncorrectUsername)
 			ctx.Step(`^IMAP client "([^"]*)" cannot authenticate with incorrect password$`, s.imapClientCannotAuthenticateWithIncorrectPassword)
 			ctx.Step(`^IMAP client "([^"]*)" announces its ID with name "([^"]*)" and version "([^"]*)"$`, s.imapClientAnnouncesItsIDWithNameAndVersion)
@@ -151,6 +160,7 @@ func TestFeatures(testingT *testing.T) {
 			ctx.Step(`^user "([^"]*)" connects SMTP client "([^"]*)"$`, s.userConnectsSMTPClient)
 			ctx.Step(`^user "([^"]*)" connects SMTP client "([^"]*)" on port (\d+)$`, s.userConnectsSMTPClientOnPort)
 			ctx.Step(`^user "([^"]*)" connects and authenticates SMTP client "([^"]*)"$`, s.userConnectsAndAuthenticatesSMTPClient)
+			ctx.Step(`^user "([^"]*)" connects and authenticates SMTP client "([^"]*)" with address "([^"]*)"$`, s.userConnectsAndAuthenticatesSMTPClientWithAddress)
 			ctx.Step(`^SMTP client "([^"]*)" can authenticate$`, s.smtpClientCanAuthenticate)
 			ctx.Step(`^SMTP client "([^"]*)" cannot authenticate$`, s.smtpClientCannotAuthenticate)
 			ctx.Step(`^SMTP client "([^"]*)" cannot authenticate with incorrect username$`, s.smtpClientCannotAuthenticateWithIncorrectUsername)

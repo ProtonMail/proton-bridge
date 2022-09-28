@@ -4,19 +4,24 @@ import (
 	"context"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/ProtonMail/proton-bridge/v2/internal/bridge"
+	"github.com/ProtonMail/proton-bridge/v2/internal/certs"
 	"github.com/ProtonMail/proton-bridge/v2/internal/events"
 	"github.com/ProtonMail/proton-bridge/v2/internal/focus"
 	"github.com/ProtonMail/proton-bridge/v2/internal/locations"
 	"github.com/ProtonMail/proton-bridge/v2/internal/updater"
+	"github.com/ProtonMail/proton-bridge/v2/internal/user"
 	"github.com/ProtonMail/proton-bridge/v2/internal/useragent"
 	"github.com/ProtonMail/proton-bridge/v2/internal/vault"
+	"github.com/ProtonMail/proton-bridge/v2/tests"
 	"github.com/bradenaw/juniper/xslices"
 	"github.com/stretchr/testify/require"
 	"gitlab.protontech.ch/go/liteapi/server"
+	"gitlab.protontech.ch/go/liteapi/server/account"
 )
 
 const (
@@ -28,6 +33,13 @@ var (
 	v2_3_0 = semver.MustParse("2.3.0")
 	v2_4_0 = semver.MustParse("2.4.0")
 )
+
+func init() {
+	user.DefaultEventPeriod = 100 * time.Millisecond
+	user.DefaultEventJitter = 0
+	account.GenerateKey = tests.FastGenerateKey
+	certs.GenerateCert = tests.FastGenerateCert
+}
 
 func TestBridge_ConnStatus(t *testing.T) {
 	withEnv(t, func(ctx context.Context, s *server.Server, dialer *bridge.TestDialer, locator bridge.Locator, vaultKey []byte) {
@@ -156,19 +168,27 @@ func TestBridge_CheckUpdate(t *testing.T) {
 			// Disable autoupdate for this test.
 			require.NoError(t, bridge.SetAutoUpdate(false))
 
-			// Get a stream of update events.
-			updateCh, done := bridge.GetEvents(events.UpdateNotAvailable{}, events.UpdateAvailable{})
+			// Get a stream of update not available events.
+			noUpdateCh, done := bridge.GetEvents(events.UpdateNotAvailable{})
 			defer done()
 
 			// We are currently on the latest version.
 			bridge.CheckForUpdates()
-			require.Equal(t, events.UpdateNotAvailable{}, <-updateCh)
+
+			// we should receive an event indicating that no update is available.
+			require.Equal(t, events.UpdateNotAvailable{}, <-noUpdateCh)
 
 			// Simulate a new version being available.
 			mocks.Updater.SetLatestVersion(v2_4_0, v2_3_0)
 
+			// Get a stream of update available events.
+			updateCh, done := bridge.GetEvents(events.UpdateAvailable{})
+			defer done()
+
 			// Check for updates.
 			bridge.CheckForUpdates()
+
+			// We should receive an event indicating that an update is available.
 			require.Equal(t, events.UpdateAvailable{
 				Version: updater.VersionInfo{
 					Version:           v2_4_0,
@@ -188,7 +208,7 @@ func TestBridge_AutoUpdate(t *testing.T) {
 			require.NoError(t, bridge.SetAutoUpdate(true))
 
 			// Get a stream of update events.
-			updateCh, done := bridge.GetEvents(events.UpdateNotAvailable{}, events.UpdateInstalled{})
+			updateCh, done := bridge.GetEvents(events.UpdateInstalled{})
 			defer done()
 
 			// Simulate a new version being available.
@@ -196,6 +216,8 @@ func TestBridge_AutoUpdate(t *testing.T) {
 
 			// Check for updates.
 			bridge.CheckForUpdates()
+
+			// We should receive an event indicating that the update was installed.
 			require.Equal(t, events.UpdateInstalled{
 				Version: updater.VersionInfo{
 					Version:           v2_4_0,
@@ -213,8 +235,8 @@ func TestBridge_ManualUpdate(t *testing.T) {
 			// Disable autoupdate for this test.
 			require.NoError(t, bridge.SetAutoUpdate(false))
 
-			// Get a stream of update events.
-			updateCh, done := bridge.GetEvents(events.UpdateNotAvailable{}, events.UpdateAvailable{})
+			// Get a stream of update available events.
+			updateCh, done := bridge.GetEvents(events.UpdateAvailable{})
 			defer done()
 
 			// Simulate a new version being available, but it's too new for us.
@@ -222,6 +244,8 @@ func TestBridge_ManualUpdate(t *testing.T) {
 
 			// Check for updates.
 			bridge.CheckForUpdates()
+
+			// We should receive an event indicating an update is available, but we can't install it.
 			require.Equal(t, events.UpdateAvailable{
 				Version: updater.VersionInfo{
 					Version:           v2_4_0,

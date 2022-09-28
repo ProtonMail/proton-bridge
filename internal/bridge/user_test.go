@@ -7,6 +7,7 @@ import (
 
 	"github.com/ProtonMail/proton-bridge/v2/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/v2/internal/events"
+	"github.com/ProtonMail/proton-bridge/v2/internal/vault"
 	"github.com/stretchr/testify/require"
 	"gitlab.protontech.ch/go/liteapi/server"
 )
@@ -280,6 +281,33 @@ func TestBridge_BridgePass(t *testing.T) {
 
 			// The bridge pass should be the same.
 			require.Equal(t, pass, must(bridge.GetUserInfo(userID)).BridgePass)
+		})
+	})
+}
+
+func TestBridge_AddressMode(t *testing.T) {
+	withEnv(t, func(ctx context.Context, s *server.Server, dialer *bridge.TestDialer, locator bridge.Locator, storeKey []byte) {
+		withBridge(t, ctx, s.GetHostURL(), dialer, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+			// Login the user.
+			userID, err := bridge.LoginUser(ctx, username, password, nil, nil)
+			require.NoError(t, err)
+
+			// Get the user's info.
+			info, err := bridge.GetUserInfo(userID)
+			require.NoError(t, err)
+
+			// The user is in combined mode by default.
+			require.Equal(t, vault.CombinedMode, info.AddressMode)
+
+			// Put the user in split mode.
+			require.NoError(t, bridge.SetAddressMode(ctx, userID, vault.SplitMode))
+
+			// Get the user's info.
+			info, err = bridge.GetUserInfo(userID)
+			require.NoError(t, err)
+
+			// The user is in split mode.
+			require.Equal(t, vault.SplitMode, info.AddressMode)
 		})
 	})
 }

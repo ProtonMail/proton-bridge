@@ -23,6 +23,7 @@ import (
 
 	"github.com/ProtonMail/proton-bridge/v2/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/v2/internal/constants"
+	"github.com/ProtonMail/proton-bridge/v2/internal/vault"
 	"github.com/abiosoft/ishell"
 )
 
@@ -39,7 +40,7 @@ func (f *frontendCLI) listAccounts(c *ishell.Context) {
 			connected = "connected"
 		}
 		mode := "split"
-		if user.AddressMode == bridge.CombinedMode {
+		if user.AddressMode == vault.CombinedMode {
 			mode = "combined"
 		}
 		f.Printf(spacing, idx, user.Username, connected, mode)
@@ -58,7 +59,7 @@ func (f *frontendCLI) showAccountInfo(c *ishell.Context) {
 		return
 	}
 
-	if user.AddressMode == bridge.CombinedMode {
+	if user.AddressMode == vault.CombinedMode {
 		f.showAccountAddressInfo(user, user.Addresses[0])
 	} else {
 		for _, address := range user.Addresses {
@@ -225,19 +226,19 @@ func (f *frontendCLI) changeMode(c *ishell.Context) {
 		return
 	}
 
-	var targetMode bridge.AddressMode
+	var targetMode vault.AddressMode
 
-	if user.AddressMode == bridge.CombinedMode {
-		targetMode = bridge.SplitMode
+	if user.AddressMode == vault.CombinedMode {
+		targetMode = vault.SplitMode
 	} else {
-		targetMode = bridge.CombinedMode
+		targetMode = vault.CombinedMode
 	}
 
 	if !f.yesNoQuestion("Are you sure you want to change the mode for account " + bold(user.Username) + " to " + bold(targetMode)) {
 		return
 	}
 
-	if err := f.bridge.SetAddressMode(user.UserID, targetMode); err != nil {
+	if err := f.bridge.SetAddressMode(context.Background(), user.UserID, targetMode); err != nil {
 		f.printAndLogError("Cannot switch address mode:", err)
 	}
 

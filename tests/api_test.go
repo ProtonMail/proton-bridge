@@ -13,7 +13,9 @@ type API interface {
 	GetHostURL() string
 	AddCallWatcher(func(server.Call), ...string)
 
-	AddUser(username, password, address string) (userID, addrID string, err error)
+	AddUser(username, password, address string) (string, string, error)
+	AddAddress(userID, address, password string) (string, error)
+	RemoveAddress(userID, addrID string) error
 	RevokeUser(userID string) error
 
 	GetLabels(userID string) ([]liteapi.Label, error)

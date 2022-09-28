@@ -2,43 +2,44 @@ package user
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/ProtonMail/gluon/imap"
+	"github.com/ProtonMail/gluon/queue"
 	"github.com/ProtonMail/proton-bridge/v2/internal/events"
+	"github.com/ProtonMail/proton-bridge/v2/internal/vault"
 	"github.com/bradenaw/juniper/xslices"
 	"gitlab.protontech.ch/go/liteapi"
-	"golang.org/x/exp/maps"
-	"golang.org/x/exp/slices"
 )
 
 // handleAPIEvent handles the given liteapi.Event.
-func (user *User) handleAPIEvent(event liteapi.Event) error {
+func (user *User) handleAPIEvent(ctx context.Context, event liteapi.Event) error {
 	if event.User != nil {
-		if err := user.handleUserEvent(*event.User); err != nil {
+		if err := user.handleUserEvent(ctx, *event.User); err != nil {
 			return err
 		}
 	}
 
 	if len(event.Addresses) > 0 {
-		if err := user.handleAddressEvents(event.Addresses); err != nil {
+		if err := user.handleAddressEvents(ctx, event.Addresses); err != nil {
 			return err
 		}
 	}
 
 	if event.MailSettings != nil {
-		if err := user.handleMailSettingsEvent(*event.MailSettings); err != nil {
+		if err := user.handleMailSettingsEvent(ctx, *event.MailSettings); err != nil {
 			return err
 		}
 	}
 
 	if len(event.Labels) > 0 {
-		if err := user.handleLabelEvents(event.Labels); err != nil {
+		if err := user.handleLabelEvents(ctx, event.Labels); err != nil {
 			return err
 		}
 	}
 
 	if len(event.Messages) > 0 {
-		if err := user.handleMessageEvents(event.Messages); err != nil {
+		if err := user.handleMessageEvents(ctx, event.Messages); err != nil {
 			return err
 		}
 	}
@@ -47,7 +48,7 @@ func (user *User) handleAPIEvent(event liteapi.Event) error {
 }
 
 // handleUserEvent handles the given user event.
-func (user *User) handleUserEvent(userEvent liteapi.User) error {
+func (user *User) handleUserEvent(ctx context.Context, userEvent liteapi.User) error {
 	userKR, err := userEvent.Keys.Unlock(user.vault.KeyPass(), nil)
 	if err != nil {
 		return err
@@ -57,49 +58,31 @@ func (user *User) handleUserEvent(userEvent liteapi.User) error {
 
 	user.userKR = userKR
 
-	user.notifyCh <- events.UserChanged{
+	user.eventCh.Enqueue(events.UserChanged{
 		UserID: user.ID(),
-	}
+	})
 
 	return nil
 }
 
 // handleAddressEvents handles the given address events.
 // TODO: If split address mode, need to signal back to bridge to update the addresses!
-func (user *User) handleAddressEvents(addressEvents []liteapi.AddressEvent) error {
+func (user *User) handleAddressEvents(ctx context.Context, addressEvents []liteapi.AddressEvent) error {
 	for _, event := range addressEvents {
 		switch event.Action {
-		case liteapi.EventDelete:
-			address, err := user.deleteAddress(event.ID)
-			if err != nil {
-				return err
-			}
-
-			// TODO: This is not the same as addressChangedLogout event!
-			// That was only relevant in split mode. This is used differently now.
-			user.notifyCh <- events.UserAddressDeleted{
-				UserID:  user.ID(),
-				Address: address.Email,
-			}
-
 		case liteapi.EventCreate:
-			if err := user.createAddress(event.Address); err != nil {
-				return err
-			}
-
-			user.notifyCh <- events.UserAddressCreated{
-				UserID:  user.ID(),
-				Address: event.Address.Email,
+			if err := user.handleCreateAddressEvent(ctx, event); err != nil {
+				return fmt.Errorf("failed to handle create address event: %w", err)
 			}
 
 		case liteapi.EventUpdate:
-			if err := user.updateAddress(event.Address); err != nil {
-				return err
+			if err := user.handleUpdateAddressEvent(ctx, event); err != nil {
+				return fmt.Errorf("failed to handle update address event: %w", err)
 			}
 
-			user.notifyCh <- events.UserAddressChanged{
-				UserID:  user.ID(),
-				Address: event.Address.Email,
+		case liteapi.EventDelete:
+			if err := user.handleDeleteAddressEvent(ctx, event); err != nil {
+				return fmt.Errorf("failed to delete address: %w", err)
 			}
 		}
 	}
@@ -107,106 +90,184 @@ func (user *User) handleAddressEvents(addressEvents []liteapi.AddressEvent) erro
 	return nil
 }
 
-// createAddress creates the given address.
-func (user *User) createAddress(address liteapi.Address) error {
-	addrKR, err := address.Keys.Unlock(user.vault.KeyPass(), user.userKR)
+func (user *User) handleCreateAddressEvent(ctx context.Context, event liteapi.AddressEvent) error {
+	addrKR, err := event.Address.Keys.Unlock(user.vault.KeyPass(), user.userKR)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to unlock address keys: %w", err)
 	}
 
-	if user.imapConn != nil {
-		user.imapConn.addAddress(address.Email)
+	user.apiAddrs.insert(event.Address)
+
+	user.addrKRs[event.Address.ID] = addrKR
+
+	if user.vault.AddressMode() == vault.SplitMode {
+		user.updateCh[event.Address.ID] = queue.NewQueuedChannel[imap.Update](0, 0)
+
+		if err := user.syncLabels(ctx, event.Address.ID); err != nil {
+			return fmt.Errorf("failed to sync labels to new address: %w", err)
+		}
 	}
 
-	user.addresses = append(user.addresses, address)
-
-	user.addrKRs[address.ID] = addrKR
+	user.eventCh.Enqueue(events.UserAddressCreated{
+		UserID:    user.ID(),
+		AddressID: event.Address.ID,
+		Email:     event.Address.Email,
+	})
 
 	return nil
 }
 
-// updateAddress updates the given address.
-func (user *User) updateAddress(address liteapi.Address) error {
-	if _, err := user.deleteAddress(address.ID); err != nil {
-		return err
+func (user *User) handleUpdateAddressEvent(ctx context.Context, event liteapi.AddressEvent) error {
+	addrKR, err := event.Address.Keys.Unlock(user.vault.KeyPass(), user.userKR)
+	if err != nil {
+		return fmt.Errorf("failed to unlock address keys: %w", err)
 	}
 
-	return user.createAddress(address)
-}
+	user.apiAddrs.insert(event.Address)
 
-// deleteAddress deletes the given address.
-func (user *User) deleteAddress(addressID string) (liteapi.Address, error) {
-	idx := xslices.IndexFunc(user.addresses, func(address liteapi.Address) bool {
-		return address.ID == addressID
+	user.addrKRs[event.Address.ID] = addrKR
+
+	user.eventCh.Enqueue(events.UserAddressUpdated{
+		UserID:    user.ID(),
+		AddressID: event.Address.ID,
+		Email:     event.Address.Email,
 	})
 
-	if idx < 0 {
-		return liteapi.Address{}, ErrNoSuchAddress
+	return nil
+}
+
+func (user *User) handleDeleteAddressEvent(ctx context.Context, event liteapi.AddressEvent) error {
+	email := user.apiAddrs.delete(event.ID)
+
+	if user.vault.AddressMode() == vault.SplitMode {
+		user.updateCh[event.ID].Close()
+		delete(user.updateCh, event.ID)
 	}
 
-	if user.imapConn != nil {
-		user.imapConn.remAddress(user.addresses[idx].Email)
-	}
+	user.eventCh.Enqueue(events.UserAddressDeleted{
+		UserID:    user.ID(),
+		AddressID: event.ID,
+		Email:     email,
+	})
 
-	var address liteapi.Address
-
-	address, user.addresses = user.addresses[idx], append(user.addresses[:idx], user.addresses[idx+1:]...)
-
-	delete(user.addrKRs, addressID)
-
-	return address, nil
+	return nil
 }
 
 // handleMailSettingsEvent handles the given mail settings event.
-func (user *User) handleMailSettingsEvent(mailSettingsEvent liteapi.MailSettings) error {
+func (user *User) handleMailSettingsEvent(ctx context.Context, mailSettingsEvent liteapi.MailSettings) error {
 	user.settings = mailSettingsEvent
+
 	return nil
 }
 
 // handleLabelEvents handles the given label events.
-func (user *User) handleLabelEvents(labelEvents []liteapi.LabelEvent) error {
+func (user *User) handleLabelEvents(ctx context.Context, labelEvents []liteapi.LabelEvent) error {
 	for _, event := range labelEvents {
 		switch event.Action {
-		case liteapi.EventDelete:
-			user.updateCh <- imap.NewMailboxDeleted(imap.LabelID(event.ID))
-
 		case liteapi.EventCreate:
-			user.updateCh <- newMailboxCreatedUpdate(imap.LabelID(event.ID), getMailboxName(event.Label))
+			if err := user.handleCreateLabelEvent(ctx, event); err != nil {
+				return fmt.Errorf("failed to handle create label event: %w", err)
+			}
 
 		case liteapi.EventUpdate, liteapi.EventUpdateFlags:
-			user.updateCh <- imap.NewMailboxUpdated(imap.LabelID(event.ID), getMailboxName(event.Label))
+			if err := user.handleUpdateLabelEvent(ctx, event); err != nil {
+				return fmt.Errorf("failed to handle update label event: %w", err)
+			}
+
+		case liteapi.EventDelete:
+			if err := user.handleDeleteLabelEvent(ctx, event); err != nil {
+				return fmt.Errorf("failed to handle delete label event: %w", err)
+			}
 		}
+	}
+
+	return nil
+}
+
+func (user *User) handleCreateLabelEvent(ctx context.Context, event liteapi.LabelEvent) error {
+	for _, updateCh := range user.updateCh {
+		updateCh.Enqueue(newMailboxCreatedUpdate(imap.LabelID(event.ID), getMailboxName(event.Label)))
+	}
+
+	return nil
+}
+
+func (user *User) handleUpdateLabelEvent(ctx context.Context, event liteapi.LabelEvent) error {
+	for _, updateCh := range user.updateCh {
+		updateCh.Enqueue(imap.NewMailboxUpdated(imap.LabelID(event.ID), getMailboxName(event.Label)))
+	}
+
+	return nil
+}
+
+func (user *User) handleDeleteLabelEvent(ctx context.Context, event liteapi.LabelEvent) error {
+	for _, updateCh := range user.updateCh {
+		updateCh.Enqueue(imap.NewMailboxDeleted(imap.LabelID(event.ID)))
 	}
 
 	return nil
 }
 
 // handleMessageEvents handles the given message events.
-func (user *User) handleMessageEvents(messageEvents []liteapi.MessageEvent) error {
-	ctx, cancel := context.WithCancel(context.Background())
+func (user *User) handleMessageEvents(ctx context.Context, messageEvents []liteapi.MessageEvent) error {
+	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
 	for _, event := range messageEvents {
 		switch event.Action {
-		case liteapi.EventDelete:
-			return ErrNotImplemented
-
 		case liteapi.EventCreate:
-			messages, err := user.builder.ProcessAll(ctx, []request{{event.ID, user.addrKRs[event.Message.AddressID]}})
-			if err != nil {
-				return err
+			if err := user.handleCreateMessageEvent(ctx, event); err != nil {
+				return fmt.Errorf("failed to handle create message event: %w", err)
 			}
 
-			user.updateCh <- imap.NewMessagesCreated(maps.Values(messages)...)
-
 		case liteapi.EventUpdate, liteapi.EventUpdateFlags:
-			user.updateCh <- imap.NewMessageLabelsUpdated(
-				imap.MessageID(event.ID),
-				imapLabelIDs(filterLabelIDs(event.Message.LabelIDs)),
-				bool(!event.Message.Unread),
-				slices.Contains(event.Message.LabelIDs, liteapi.StarredLabel),
-			)
+			if err := user.handleUpdateMessageEvent(ctx, event); err != nil {
+				return fmt.Errorf("failed to handle update message event: %w", err)
+			}
+
+		case liteapi.EventDelete:
+			return ErrNotImplemented
 		}
+	}
+
+	return nil
+}
+
+func (user *User) handleCreateMessageEvent(ctx context.Context, event liteapi.MessageEvent) error {
+	var addressID string
+
+	if user.GetAddressMode() == vault.CombinedMode {
+		addressID = user.apiAddrs.primary()
+	} else {
+		addressID = event.Message.AddressID
+	}
+
+	message, err := user.builder.ProcessOne(ctx, request{
+		messageID: event.ID,
+		addressID: addressID,
+		addrKR:    user.addrKRs[event.Message.AddressID],
+	})
+	if err != nil {
+		return err
+	}
+
+	user.updateCh[addressID].Enqueue(imap.NewMessagesCreated(message))
+
+	return nil
+}
+
+func (user *User) handleUpdateMessageEvent(ctx context.Context, event liteapi.MessageEvent) error {
+	update := imap.NewMessageLabelsUpdated(
+		imap.MessageID(event.ID),
+		mapTo[string, imap.LabelID](xslices.Filter(event.Message.LabelIDs, wantLabelID)),
+		event.Message.Seen(),
+		event.Message.Starred(),
+	)
+
+	if user.GetAddressMode() == vault.CombinedMode {
+		user.updateCh[user.apiAddrs.primary()].Enqueue(update)
+	} else {
+		user.updateCh[event.Message.AddressID].Enqueue(update)
 	}
 
 	return nil

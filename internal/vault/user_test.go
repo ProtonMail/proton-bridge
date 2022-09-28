@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"testing"
 
+	"github.com/ProtonMail/gluon/imap"
 	"github.com/ProtonMail/proton-bridge/v2/internal/vault"
 	"github.com/stretchr/testify/require"
 )
@@ -32,30 +33,48 @@ func TestUser(t *testing.T) {
 	require.NoError(t, user2.SetSync(false))
 
 	// Set gluon data for user 1 and 2.
-	require.NoError(t, user1.SetGluonAuth("gluonID1", []byte("gluonKey1")))
-	require.NoError(t, user2.SetGluonAuth("gluonID2", []byte("gluonKey2")))
+	require.NoError(t, user1.SetGluonID("addrID1", "gluonID1"))
+	require.NoError(t, user2.SetGluonID("addrID2", "gluonID2"))
+	require.NoError(t, user1.SetUIDValidity("addrID1", imap.UID(1)))
+	require.NoError(t, user2.SetUIDValidity("addrID2", imap.UID(2)))
 
 	// List available users.
 	require.ElementsMatch(t, []string{"userID1", "userID2"}, s.GetUserIDs())
 
+	// Check gluon information for user 1.
+	gluonID1, ok := user1.GetGluonIDs()["addrID1"]
+	require.True(t, ok)
+	require.Equal(t, "gluonID1", gluonID1)
+	uidValidity1, ok := user1.GetUIDValidity("addrID1")
+	require.True(t, ok)
+	require.Equal(t, imap.UID(1), uidValidity1)
+	require.NotEmpty(t, user1.GluonKey())
+
 	// Get auth information for user 1.
 	require.Equal(t, "userID1", user1.UserID())
 	require.Equal(t, "user1", user1.Username())
-	require.Equal(t, "gluonID1", user1.GluonID())
-	require.Equal(t, []byte("gluonKey1"), user1.GluonKey())
 	require.Equal(t, hex.EncodeToString([]byte("token")), user1.BridgePass())
+	require.Equal(t, vault.CombinedMode, user1.AddressMode())
 	require.Equal(t, "authUID1", user1.AuthUID())
 	require.Equal(t, "authRef1", user1.AuthRef())
 	require.Equal(t, []byte("keyPass1"), user1.KeyPass())
 	require.Equal(t, "eventID1", user1.EventID())
 	require.Equal(t, true, user1.HasSync())
 
+	// Check gluon information for user 1.
+	gluonID2, ok := user2.GetGluonIDs()["addrID2"]
+	require.True(t, ok)
+	require.Equal(t, "gluonID2", gluonID2)
+	uidValidity2, ok := user2.GetUIDValidity("addrID2")
+	require.True(t, ok)
+	require.Equal(t, imap.UID(2), uidValidity2)
+	require.NotEmpty(t, user2.GluonKey())
+
 	// Get auth information for user 2.
 	require.Equal(t, "userID2", user2.UserID())
 	require.Equal(t, "user2", user2.Username())
-	require.Equal(t, "gluonID2", user2.GluonID())
-	require.Equal(t, []byte("gluonKey2"), user2.GluonKey())
 	require.Equal(t, hex.EncodeToString([]byte("token")), user2.BridgePass())
+	require.Equal(t, vault.CombinedMode, user2.AddressMode())
 	require.Equal(t, "authUID2", user2.AuthUID())
 	require.Equal(t, "authRef2", user2.AuthRef())
 	require.Equal(t, []byte("keyPass2"), user2.KeyPass())
@@ -63,8 +82,8 @@ func TestUser(t *testing.T) {
 	require.Equal(t, false, user2.HasSync())
 
 	// Clear the users.
-	require.NoError(t, user1.Clear())
-	require.NoError(t, user2.Clear())
+	require.NoError(t, s.ClearUser("userID1"))
+	require.NoError(t, s.ClearUser("userID2"))
 
 	// Their secrets should now be cleared.
 	require.Equal(t, "", user1.AuthUID())

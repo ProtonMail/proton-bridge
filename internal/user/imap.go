@@ -25,11 +25,12 @@ const (
 )
 
 type imapConnector struct {
+	addrID   string
 	client   *liteapi.Client
 	updateCh <-chan imap.Update
 
-	addresses []string
-	password  string
+	emails   []string
+	password string
 
 	flags, permFlags, attrs imap.FlagSet
 }
@@ -37,15 +38,15 @@ type imapConnector struct {
 func newIMAPConnector(
 	client *liteapi.Client,
 	updateCh <-chan imap.Update,
-	addresses []string,
 	password string,
+	emails ...string,
 ) *imapConnector {
 	return &imapConnector{
 		client:   client,
 		updateCh: updateCh,
 
-		addresses: addresses,
-		password:  password,
+		emails:   emails,
+		password: password,
 
 		flags:     defaultFlags,
 		permFlags: defaultPermanentFlags,
@@ -59,7 +60,7 @@ func (conn *imapConnector) Authorize(username string, password string) bool {
 		return false
 	}
 
-	return xslices.IndexFunc(conn.addresses, func(address string) bool {
+	return xslices.IndexFunc(conn.emails, func(address string) bool {
 		return strings.EqualFold(address, username)
 	}) >= 0
 }
@@ -187,7 +188,7 @@ func (conn *imapConnector) GetMessage(ctx context.Context, messageID imap.Messag
 		ID:    imap.MessageID(message.ID),
 		Flags: flags,
 		Date:  time.Unix(message.Time, 0),
-	}, imapLabelIDs(message.LabelIDs), nil
+	}, mapTo[string, imap.LabelID](message.LabelIDs), nil
 }
 
 // CreateMessage creates a new message on the remote.
@@ -204,21 +205,21 @@ func (conn *imapConnector) CreateMessage(
 
 // LabelMessages labels the given messages with the given label ID.
 func (conn *imapConnector) LabelMessages(ctx context.Context, messageIDs []imap.MessageID, labelID imap.LabelID) error {
-	return conn.client.LabelMessages(ctx, strMessageIDs(messageIDs), string(labelID))
+	return conn.client.LabelMessages(ctx, mapTo[imap.MessageID, string](messageIDs), string(labelID))
 }
 
 // UnlabelMessages unlabels the given messages with the given label ID.
 func (conn *imapConnector) UnlabelMessages(ctx context.Context, messageIDs []imap.MessageID, labelID imap.LabelID) error {
-	return conn.client.UnlabelMessages(ctx, strMessageIDs(messageIDs), string(labelID))
+	return conn.client.UnlabelMessages(ctx, mapTo[imap.MessageID, string](messageIDs), string(labelID))
 }
 
 // MoveMessages removes the given messages from one label and adds them to the other label.
 func (conn *imapConnector) MoveMessages(ctx context.Context, messageIDs []imap.MessageID, labelFromID imap.LabelID, labelToID imap.LabelID) error {
-	if err := conn.client.LabelMessages(ctx, strMessageIDs(messageIDs), string(labelToID)); err != nil {
+	if err := conn.client.LabelMessages(ctx, mapTo[imap.MessageID, string](messageIDs), string(labelToID)); err != nil {
 		return fmt.Errorf("labeling messages: %w", err)
 	}
 
-	if err := conn.client.UnlabelMessages(ctx, strMessageIDs(messageIDs), string(labelFromID)); err != nil {
+	if err := conn.client.UnlabelMessages(ctx, mapTo[imap.MessageID, string](messageIDs), string(labelFromID)); err != nil {
 		return fmt.Errorf("unlabeling messages: %w", err)
 	}
 
@@ -228,18 +229,18 @@ func (conn *imapConnector) MoveMessages(ctx context.Context, messageIDs []imap.M
 // MarkMessagesSeen sets the seen value of the given messages.
 func (conn *imapConnector) MarkMessagesSeen(ctx context.Context, messageIDs []imap.MessageID, seen bool) error {
 	if seen {
-		return conn.client.MarkMessagesRead(ctx, strMessageIDs(messageIDs)...)
+		return conn.client.MarkMessagesRead(ctx, mapTo[imap.MessageID, string](messageIDs)...)
 	} else {
-		return conn.client.MarkMessagesUnread(ctx, strMessageIDs(messageIDs)...)
+		return conn.client.MarkMessagesUnread(ctx, mapTo[imap.MessageID, string](messageIDs)...)
 	}
 }
 
 // MarkMessagesFlagged sets the flagged value of the given messages.
 func (conn *imapConnector) MarkMessagesFlagged(ctx context.Context, messageIDs []imap.MessageID, flagged bool) error {
 	if flagged {
-		return conn.client.LabelMessages(ctx, strMessageIDs(messageIDs), liteapi.StarredLabel)
+		return conn.client.LabelMessages(ctx, mapTo[imap.MessageID, string](messageIDs), liteapi.StarredLabel)
 	} else {
-		return conn.client.UnlabelMessages(ctx, strMessageIDs(messageIDs), liteapi.StarredLabel)
+		return conn.client.UnlabelMessages(ctx, mapTo[imap.MessageID, string](messageIDs), liteapi.StarredLabel)
 	}
 }
 
@@ -249,45 +250,17 @@ func (conn *imapConnector) GetUpdates() <-chan imap.Update {
 	return conn.updateCh
 }
 
-// Close the connector when it will no longer be used and all resources should be closed/released.
-func (conn *imapConnector) Close(ctx context.Context) error {
+// GetUIDValidity returns the default UID validity for this user.
+func (conn *imapConnector) GetUIDValidity() imap.UID {
+	return imap.UID(1)
+}
+
+// SetUIDValidity sets the default UID validity for this user.
+func (conn *imapConnector) SetUIDValidity(uidValidity imap.UID) error {
 	return nil
 }
 
-func (conn *imapConnector) addAddress(address string) {
-	conn.addresses = append(conn.addresses, address)
-}
-
-func (conn *imapConnector) remAddress(address string) {
-	idx := slices.Index(conn.addresses, address)
-
-	if idx < 0 {
-		return
-	}
-
-	conn.addresses = append(conn.addresses[:idx], conn.addresses[idx+1:]...)
-}
-
-func strLabelIDs(imapLabelIDs []imap.LabelID) []string {
-	return xslices.Map(imapLabelIDs, func(labelID imap.LabelID) string {
-		return string(labelID)
-	})
-}
-
-func imapLabelIDs(labelIDs []string) []imap.LabelID {
-	return xslices.Map(labelIDs, func(labelID string) imap.LabelID {
-		return imap.LabelID(labelID)
-	})
-}
-
-func strMessageIDs(imapMessageIDs []imap.MessageID) []string {
-	return xslices.Map(imapMessageIDs, func(messageID imap.MessageID) string {
-		return string(messageID)
-	})
-}
-
-func imapMessageIDs(messageIDs []string) []imap.MessageID {
-	return xslices.Map(messageIDs, func(messageID string) imap.MessageID {
-		return imap.MessageID(messageID)
-	})
+// Close the connector will no longer be used and all resources should be closed/released.
+func (conn *imapConnector) Close(ctx context.Context) error {
+	return nil
 }

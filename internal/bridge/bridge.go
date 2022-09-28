@@ -232,6 +232,13 @@ func (bridge *Bridge) GetErrors() []error {
 }
 
 func (bridge *Bridge) Close(ctx context.Context) error {
+	// Abort any ongoing syncs.
+	for _, user := range bridge.users {
+		if err := user.AbortSync(ctx); err != nil {
+			return fmt.Errorf("failed to abort sync: %w", err)
+		}
+	}
+
 	// Close the IMAP server.
 	if err := bridge.closeIMAP(ctx); err != nil {
 		logrus.WithError(err).Error("Failed to close IMAP server")

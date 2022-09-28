@@ -5,7 +5,7 @@ Feature: IMAP copy messages
       | name  | type   |
       | mbox  | folder |
       | label | label  |
-    And the account "user@pm.me" has the following messages in "Inbox":
+    And the address "user@pm.me" of account "user@pm.me" has the following messages in "Inbox":
       | sender            | recipient    | subject | unread |
       | john.doe@mail.com | user@pm.me   | foo     | false  |
       | jane.doe@mail.com | name@pm.me   | bar     | true   |

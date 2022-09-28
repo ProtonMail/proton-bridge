@@ -1,5 +1,7 @@
 package events
 
+import "github.com/ProtonMail/proton-bridge/v2/internal/vault"
+
 type UserLoggedIn struct {
 	eventBase
 
@@ -33,20 +35,30 @@ type UserChanged struct {
 type UserAddressCreated struct {
 	eventBase
 
-	UserID  string
-	Address string
+	UserID    string
+	AddressID string
+	Email     string
 }
 
-type UserAddressChanged struct {
+type UserAddressUpdated struct {
 	eventBase
 
-	UserID  string
-	Address string
+	UserID    string
+	AddressID string
+	Email     string
 }
 
 type UserAddressDeleted struct {
 	eventBase
 
-	UserID  string
-	Address string
+	UserID    string
+	AddressID string
+	Email     string
+}
+
+type AddressModeChanged struct {
+	eventBase
+
+	UserID      string
+	AddressMode vault.AddressMode
 }

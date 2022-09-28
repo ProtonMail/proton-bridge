@@ -20,7 +20,7 @@ package grpc
 import (
 	"context"
 
-	"github.com/ProtonMail/proton-bridge/v2/internal/bridge"
+	"github.com/ProtonMail/proton-bridge/v2/internal/vault"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -74,15 +74,15 @@ func (s *Service) SetUserSplitMode(ctx context.Context, splitMode *UserSplitMode
 		defer s.panicHandler.HandlePanic()
 		defer func() { _ = s.SendEvent(NewUserToggleSplitModeFinishedEvent(splitMode.UserID)) }()
 
-		var targetMode bridge.AddressMode
+		var targetMode vault.AddressMode
 
-		if splitMode.Active && user.AddressMode == bridge.CombinedMode {
-			targetMode = bridge.SplitMode
-		} else if !splitMode.Active && user.AddressMode == bridge.SplitMode {
-			targetMode = bridge.CombinedMode
+		if splitMode.Active && user.AddressMode == vault.CombinedMode {
+			targetMode = vault.SplitMode
+		} else if !splitMode.Active && user.AddressMode == vault.SplitMode {
+			targetMode = vault.CombinedMode
 		}
 
-		if err := s.bridge.SetAddressMode(user.UserID, targetMode); err != nil {
+		if err := s.bridge.SetAddressMode(context.Background(), user.UserID, targetMode); err != nil {
 			logrus.WithError(err).Error("Failed to set address mode")
 		}
 	}()

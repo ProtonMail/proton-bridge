@@ -14,6 +14,7 @@ import (
 	"github.com/emersion/go-imap/client"
 	"gitlab.protontech.ch/go/liteapi"
 	"gitlab.protontech.ch/go/liteapi/server"
+	"golang.org/x/exp/maps"
 )
 
 var defaultVersion = semver.MustParse("1.0.0")
@@ -32,10 +33,12 @@ type testCtx struct {
 	bridge *bridge.Bridge
 
 	// These channels hold events of various types coming from bridge.
-	userLoginCh    <-chan events.UserLoggedIn
-	userLogoutCh   <-chan events.UserLoggedOut
-	userDeletedCh  <-chan events.UserDeleted
-	userDeauthCh   <-chan events.UserDeauth
+	loginCh        <-chan events.UserLoggedIn
+	logoutCh       <-chan events.UserLoggedOut
+	deletedCh      <-chan events.UserDeleted
+	deauthCh       <-chan events.UserDeauth
+	addrCreatedCh  <-chan events.UserAddressCreated
+	addrDeletedCh  <-chan events.UserAddressDeleted
 	syncStartedCh  <-chan events.SyncStarted
 	syncFinishedCh <-chan events.SyncFinished
 	forcedUpdateCh <-chan events.UpdateForced
@@ -43,10 +46,10 @@ type testCtx struct {
 	updateCh       <-chan events.Event
 
 	// These maps hold expected userIDByName, their primary addresses and bridge passwords.
-	userIDByName map[string]string
-	userAddrByID map[string]string
-	userPassByID map[string]string
-	addrIDByID   map[string]string
+	userIDByName       map[string]string
+	userAddrByEmail    map[string]map[string]string
+	userPassByID       map[string]string
+	userBridgePassByID map[string]string
 
 	// These are the IMAP and SMTP clients used to connect to bridge.
 	imapClients map[string]*imapClient
@@ -83,10 +86,10 @@ func newTestCtx(tb testing.TB) *testCtx {
 		mocks:    bridge.NewMocks(tb, dialer, defaultVersion, defaultVersion),
 		version:  defaultVersion,
 
-		userIDByName: make(map[string]string),
-		userAddrByID: make(map[string]string),
-		userPassByID: make(map[string]string),
-		addrIDByID:   make(map[string]string),
+		userIDByName:       make(map[string]string),
+		userAddrByEmail:    make(map[string]map[string]string),
+		userPassByID:       make(map[string]string),
+		userBridgePassByID: make(map[string]string),
 
 		imapClients: make(map[string]*imapClient),
 		smtpClients: make(map[string]*smtpClient),
@@ -112,12 +115,28 @@ func (t *testCtx) setUserID(username, userID string) {
 	t.userIDByName[username] = userID
 }
 
-func (t *testCtx) getUserAddr(userID string) string {
-	return t.userAddrByID[userID]
+func (t *testCtx) getUserAddrID(userID, email string) string {
+	return t.userAddrByEmail[userID][email]
 }
 
-func (t *testCtx) setUserAddr(userID, addr string) {
-	t.userAddrByID[userID] = addr
+func (t *testCtx) getUserAddrs(userID string) []string {
+	return maps.Keys(t.userAddrByEmail[userID])
+}
+
+func (t *testCtx) setUserAddr(userID, addrID, email string) {
+	if _, ok := t.userAddrByEmail[userID]; !ok {
+		t.userAddrByEmail[userID] = make(map[string]string)
+	}
+
+	t.userAddrByEmail[userID][email] = addrID
+}
+
+func (t *testCtx) unsetUserAddr(userID, wantAddrID string) {
+	for email, addrID := range t.userAddrByEmail[userID] {
+		if addrID == wantAddrID {
+			delete(t.userAddrByEmail[userID], email)
+		}
+	}
 }
 
 func (t *testCtx) getUserPass(userID string) string {
@@ -128,12 +147,12 @@ func (t *testCtx) setUserPass(userID, pass string) {
 	t.userPassByID[userID] = pass
 }
 
-func (t *testCtx) getAddrID(userID string) string {
-	return t.addrIDByID[userID]
+func (t *testCtx) getUserBridgePass(userID string) string {
+	return t.userBridgePassByID[userID]
 }
 
-func (t *testCtx) setAddrID(userID, addrID string) {
-	t.addrIDByID[userID] = addrID
+func (t *testCtx) setUserBridgePass(userID, pass string) {
+	t.userBridgePassByID[userID] = pass
 }
 
 func (t *testCtx) getMBoxID(userID string, name string) string {

@@ -9,6 +9,7 @@ import (
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/ProtonMail/proton-bridge/v2/internal/events"
+	"github.com/ProtonMail/proton-bridge/v2/internal/vault"
 )
 
 func (s *scenario) bridgeStarts() error {
@@ -44,6 +45,19 @@ func (s *scenario) theUserChangesTheIMAPPortTo(port int) error {
 
 func (s *scenario) theUserChangesTheSMTPPortTo(port int) error {
 	return s.t.bridge.SetSMTPPort(port)
+}
+
+func (s *scenario) theUserSetsTheAddressModeOfTo(user, mode string) error {
+	switch mode {
+	case "split":
+		return s.t.bridge.SetAddressMode(context.Background(), s.t.getUserID(user), vault.SplitMode)
+
+	case "combined":
+		return s.t.bridge.SetAddressMode(context.Background(), s.t.getUserID(user), vault.CombinedMode)
+
+	default:
+		return fmt.Errorf("unknown address mode %q", mode)
+	}
 }
 
 func (s *scenario) theUserChangesTheGluonPath() error {
@@ -113,9 +127,29 @@ func (s *scenario) bridgeSendsAConnectionDownEvent() error {
 }
 
 func (s *scenario) bridgeSendsADeauthEventForUser(username string) error {
-	return try(s.t.userDeauthCh, 5*time.Second, func(event events.UserDeauth) error {
+	return try(s.t.deauthCh, 5*time.Second, func(event events.UserDeauth) error {
 		if wantUserID := s.t.getUserID(username); wantUserID != event.UserID {
 			return fmt.Errorf("expected deauth event for user with ID %s, got %s", wantUserID, event.UserID)
+		}
+
+		return nil
+	})
+}
+
+func (s *scenario) bridgeSendsAnAddressCreatedEventForUser(username string) error {
+	return try(s.t.addrCreatedCh, 5*time.Second, func(event events.UserAddressCreated) error {
+		if wantUserID := s.t.getUserID(username); wantUserID != event.UserID {
+			return fmt.Errorf("expected user address created event for user with ID %s, got %s", wantUserID, event.UserID)
+		}
+
+		return nil
+	})
+}
+
+func (s *scenario) bridgeSendsAnAddressDeletedEventForUser(username string) error {
+	return try(s.t.addrDeletedCh, 5*time.Second, func(event events.UserAddressDeleted) error {
+		if wantUserID := s.t.getUserID(username); wantUserID != event.UserID {
+			return fmt.Errorf("expected user address deleted event for user with ID %s, got %s", wantUserID, event.UserID)
 		}
 
 		return nil

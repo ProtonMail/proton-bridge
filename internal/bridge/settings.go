@@ -2,6 +2,7 @@ package bridge
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/ProtonMail/proton-bridge/v2/internal/updater"
@@ -96,40 +97,39 @@ func (bridge *Bridge) GetGluonDir() string {
 
 func (bridge *Bridge) SetGluonDir(ctx context.Context, newGluonDir string) error {
 	if newGluonDir == bridge.GetGluonDir() {
-		return nil
+		return fmt.Errorf("new gluon dir is the same as the old one")
 	}
 
 	if err := bridge.closeIMAP(context.Background()); err != nil {
-		return err
+		return fmt.Errorf("failed to close IMAP: %w", err)
 	}
 
 	if err := moveDir(bridge.GetGluonDir(), newGluonDir); err != nil {
-		return err
+		return fmt.Errorf("failed to move gluon dir: %w", err)
 	}
 
 	if err := bridge.vault.SetGluonDir(newGluonDir); err != nil {
-		return err
+		return fmt.Errorf("failed to set new gluon dir: %w", err)
 	}
 
 	imapServer, err := newIMAPServer(bridge.vault.GetGluonDir(), bridge.curVersion, bridge.tlsConfig)
 	if err != nil {
-		return err
-	}
-
-	for _, user := range bridge.users {
-		imapConn, err := user.NewGluonConnector(ctx)
-		if err != nil {
-			return err
-		}
-
-		if err := imapServer.LoadUser(context.Background(), imapConn, user.GluonID(), user.GluonKey()); err != nil {
-			return err
-		}
+		return fmt.Errorf("failed to create new IMAP server: %w", err)
 	}
 
 	bridge.imapServer = imapServer
 
-	return bridge.serveIMAP()
+	for _, user := range bridge.users {
+		if err := bridge.addIMAPUser(ctx, user); err != nil {
+			return fmt.Errorf("failed to add IMAP user: %w", err)
+		}
+	}
+
+	if err := bridge.serveIMAP(); err != nil {
+		return fmt.Errorf("failed to serve IMAP: %w", err)
+	}
+
+	return nil
 }
 
 func (bridge *Bridge) GetProxyAllowed() bool {

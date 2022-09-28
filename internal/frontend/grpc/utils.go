@@ -22,6 +22,7 @@ import (
 	"strings"
 
 	"github.com/ProtonMail/proton-bridge/v2/internal/bridge"
+	"github.com/ProtonMail/proton-bridge/v2/internal/vault"
 	"github.com/sirupsen/logrus"
 )
 
@@ -64,7 +65,7 @@ func grpcUserFromInfo(user bridge.UserInfo) *User {
 		Username:       user.Username,
 		AvatarText:     getInitials(user.Username),
 		LoggedIn:       user.Connected,
-		SplitMode:      user.AddressMode == bridge.SplitMode,
+		SplitMode:      user.AddressMode == vault.SplitMode,
 		SetupGuideSeen: true, // users listed have already seen the setup guide.
 		UsedBytes:      int64(user.UsedSpace),
 		TotalBytes:     int64(user.MaxSpace),

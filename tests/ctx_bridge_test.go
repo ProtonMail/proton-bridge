@@ -54,10 +54,12 @@ func (t *testCtx) startBridge() error {
 	t.bridge = bridge
 
 	// Connect the event channels.
-	t.userLoginCh = chToType[events.Event, events.UserLoggedIn](bridge.GetEvents(events.UserLoggedIn{}))
-	t.userLogoutCh = chToType[events.Event, events.UserLoggedOut](bridge.GetEvents(events.UserLoggedOut{}))
-	t.userDeletedCh = chToType[events.Event, events.UserDeleted](bridge.GetEvents(events.UserDeleted{}))
-	t.userDeauthCh = chToType[events.Event, events.UserDeauth](bridge.GetEvents(events.UserDeauth{}))
+	t.loginCh = chToType[events.Event, events.UserLoggedIn](bridge.GetEvents(events.UserLoggedIn{}))
+	t.logoutCh = chToType[events.Event, events.UserLoggedOut](bridge.GetEvents(events.UserLoggedOut{}))
+	t.deletedCh = chToType[events.Event, events.UserDeleted](bridge.GetEvents(events.UserDeleted{}))
+	t.deauthCh = chToType[events.Event, events.UserDeauth](bridge.GetEvents(events.UserDeauth{}))
+	t.addrCreatedCh = chToType[events.Event, events.UserAddressCreated](bridge.GetEvents(events.UserAddressCreated{}))
+	t.addrDeletedCh = chToType[events.Event, events.UserAddressDeleted](bridge.GetEvents(events.UserAddressDeleted{}))
 	t.syncStartedCh = chToType[events.Event, events.SyncStarted](bridge.GetEvents(events.SyncStarted{}))
 	t.syncFinishedCh = chToType[events.Event, events.SyncFinished](bridge.GetEvents(events.SyncFinished{}))
 	t.forcedUpdateCh = chToType[events.Event, events.UpdateForced](bridge.GetEvents(events.UpdateForced{}))

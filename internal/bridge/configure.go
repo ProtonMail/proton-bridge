@@ -14,8 +14,9 @@ func (bridge *Bridge) ConfigureAppleMail(userID, address string) error {
 		return ErrNoSuchUser
 	}
 
+	// TODO: Handle split mode!
 	if address == "" {
-		address = user.Addresses()[0]
+		address = user.Emails()[0]
 	}
 
 	// If configuring apple mail for Catalina or newer, users should use SSL.
@@ -32,7 +33,7 @@ func (bridge *Bridge) ConfigureAppleMail(userID, address string) error {
 		bridge.vault.GetIMAPSSL(),
 		bridge.vault.GetSMTPSSL(),
 		address,
-		strings.Join(user.Addresses(), ","),
+		strings.Join(user.Emails(), ","),
 		user.BridgePass(),
 	)
 }

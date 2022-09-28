@@ -5,9 +5,14 @@ import (
 )
 
 // RandomToken is a function that returns a random token.
-var RandomToken func(size int) ([]byte, error)
-
 // By default, we use crypto.RandomToken to generate tokens.
-func init() {
-	RandomToken = crypto.RandomToken
+var RandomToken = crypto.RandomToken
+
+func newRandomToken(size int) []byte {
+	token, err := RandomToken(size)
+	if err != nil {
+		panic(err)
+	}
+
+	return token
 }

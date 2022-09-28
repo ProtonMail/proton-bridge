@@ -13,16 +13,16 @@ var ErrJobCancelled = errors.New("Job cancelled by surrounding context")
 
 // Pool is a worker pool that handles input of type In and returns results of type Out.
 type Pool[In comparable, Out any] struct {
-	queue *queue.QueuedChannel[*Job[In, Out]]
+	queue *queue.QueuedChannel[*job[In, Out]]
 	size  int
 }
 
-// DoneFunc must be called to free up pool resources.
-type DoneFunc func()
+// doneFunc must be called to free up pool resources.
+type doneFunc func()
 
 // New returns a new pool.
 func New[In comparable, Out any](size int, work func(context.Context, In) (Out, error)) *Pool[In, Out] {
-	queue := queue.NewQueuedChannel[*Job[In, Out]](0, 0)
+	queue := queue.NewQueuedChannel[*job[In, Out]](0, 0)
 
 	for i := 0; i < size; i++ {
 		go func() {
@@ -51,17 +51,6 @@ func New[In comparable, Out any](size int, work func(context.Context, In) (Out, 
 	}
 }
 
-// NewJob submits a job to the pool. It returns a job handle and a DoneFunc.
-// The job handle allows the job result to be obtained. The DoneFunc is used to mark the job as done,
-// which frees up the worker in the pool for reuse.
-func (pool *Pool[In, Out]) NewJob(ctx context.Context, req In) (*Job[In, Out], DoneFunc) {
-	job := newJob[In, Out](ctx, req)
-
-	pool.queue.Enqueue(job)
-
-	return job, func() { close(job.done) }
-}
-
 // Process submits jobs to the pool. The callback provides access to the result, or an error if one occurred.
 func (pool *Pool[In, Out]) Process(ctx context.Context, reqs []In, fn func(In, Out, error) error) error {
 	ctx, cancel := context.WithCancel(ctx)
@@ -81,10 +70,10 @@ func (pool *Pool[In, Out]) Process(ctx context.Context, reqs []In, fn func(In, O
 		go func() {
 			defer wg.Done()
 
-			job, done := pool.NewJob(ctx, req)
+			job, done := pool.newJob(ctx, req)
 			defer done()
 
-			res, err := job.Result()
+			res, err := job.result()
 
 			if err := fn(req, res, err); err != nil {
 				lock.Lock()
@@ -134,44 +123,25 @@ func (pool *Pool[In, Out]) ProcessAll(ctx context.Context, reqs []In) (map[In]Ou
 	return data, nil
 }
 
+// ProcessOne submits one job to the pool and returns the result.
+func (pool *Pool[In, Out]) ProcessOne(ctx context.Context, req In) (Out, error) {
+	job, done := pool.newJob(ctx, req)
+	defer done()
+
+	return job.result()
+}
+
 func (pool *Pool[In, Out]) Done() {
 	pool.queue.Close()
 }
 
-type Job[In, Out any] struct {
-	ctx context.Context
-	req In
+// newJob submits a job to the pool. It returns a job handle and a DoneFunc.
+// The job handle allows the job result to be obtained. The DoneFunc is used to mark the job as done,
+// which frees up the worker in the pool for reuse.
+func (pool *Pool[In, Out]) newJob(ctx context.Context, req In) (*job[In, Out], doneFunc) {
+	job := newJob[In, Out](ctx, req)
 
-	res chan Out
-	err chan error
+	pool.queue.Enqueue(job)
 
-	done chan struct{}
-}
-
-func newJob[In, Out any](ctx context.Context, req In) *Job[In, Out] {
-	return &Job[In, Out]{
-		ctx:  ctx,
-		req:  req,
-		res:  make(chan Out),
-		err:  make(chan error),
-		done: make(chan struct{}),
-	}
-}
-
-func (job *Job[In, Out]) Result() (Out, error) {
-	return <-job.res, <-job.err
-}
-
-func (job *Job[In, Out]) postSuccess(res Out) {
-	close(job.err)
-	job.res <- res
-}
-
-func (job *Job[In, Out]) postFailure(err error) {
-	close(job.res)
-	job.err <- err
-}
-
-func (job *Job[In, Out]) waitDone() {
-	<-job.done
+	return job, func() { close(job.done) }
 }

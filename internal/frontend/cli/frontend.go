@@ -296,7 +296,7 @@ func (f *frontendCLI) watchEvents() {
 
 			f.notifyLogout(user.Username)
 
-		case events.UserAddressChanged:
+		case events.UserAddressUpdated:
 			user, err := f.bridge.GetUserInfo(event.UserID)
 			if err != nil {
 				return
@@ -305,7 +305,7 @@ func (f *frontendCLI) watchEvents() {
 			f.Printf("Address changed for %s. You may need to reconfigure your email client.\n", user.Username)
 
 		case events.UserAddressDeleted:
-			f.notifyLogout(event.Address)
+			f.notifyLogout(event.Email)
 
 		case events.SyncStarted:
 			user, err := f.bridge.GetUserInfo(event.UserID)

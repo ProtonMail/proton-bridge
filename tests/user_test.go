@@ -16,6 +16,7 @@ import (
 )
 
 func (s *scenario) thereExistsAnAccountWithUsernameAndPassword(username, password string) error {
+	// Create the user.
 	userID, addrID, err := s.t.api.AddUser(username, password, username)
 	if err != nil {
 		return err
@@ -24,11 +25,37 @@ func (s *scenario) thereExistsAnAccountWithUsernameAndPassword(username, passwor
 	// Set the ID of this user.
 	s.t.setUserID(username, userID)
 
-	// Set the address ID of this user.
-	s.t.setAddrID(userID, addrID)
+	// Set the password of this user.
+	s.t.setUserPass(userID, password)
 
 	// Set the address of this user (right now just the same as the username, but let's stay flexible).
-	s.t.setUserAddr(userID, username)
+	s.t.setUserAddr(userID, addrID, username)
+
+	return nil
+}
+
+func (s *scenario) theAccountHasAdditionalAddress(username, address string) error {
+	userID := s.t.getUserID(username)
+
+	addrID, err := s.t.api.AddAddress(userID, address, s.t.getUserPass(userID))
+	if err != nil {
+		return err
+	}
+
+	s.t.setUserAddr(userID, addrID, address)
+
+	return nil
+}
+
+func (s *scenario) theAccountNoLongerHasAdditionalAddress(username, address string) error {
+	userID := s.t.getUserID(username)
+	addrID := s.t.getUserAddrID(userID, address)
+
+	if err := s.t.api.RemoveAddress(userID, addrID); err != nil {
+		return err
+	}
+
+	s.t.unsetUserAddr(userID, addrID)
 
 	return nil
 }
@@ -84,9 +111,9 @@ func (s *scenario) theAccountHasTheFollowingCustomMailboxes(username string, tab
 	return nil
 }
 
-func (s *scenario) theAccountHasTheFollowingMessagesInMailbox(username, mailbox string, table *godog.Table) error {
+func (s *scenario) theAddressOfAccountHasTheFollowingMessagesInMailbox(address, username, mailbox string, table *godog.Table) error {
 	userID := s.t.getUserID(username)
-	addrID := s.t.getAddrID(userID)
+	addrID := s.t.getUserAddrID(userID, address)
 	mboxID := s.t.getMBoxID(userID, mailbox)
 
 	for _, wantMessage := range parseMessages(table) {
@@ -109,9 +136,9 @@ func (s *scenario) theAccountHasTheFollowingMessagesInMailbox(username, mailbox 
 	return nil
 }
 
-func (s *scenario) theAccountHasMessagesInMailbox(username string, count int, mailbox string) error {
+func (s *scenario) theAddressOfAccountHasMessagesInMailbox(address, username string, count int, mailbox string) error {
 	userID := s.t.getUserID(username)
-	addrID := s.t.getAddrID(userID)
+	addrID := s.t.getUserAddrID(userID, address)
 	mboxID := s.t.getMBoxID(userID, mailbox)
 
 	for idx := 0; idx < count; idx++ {
@@ -148,7 +175,7 @@ func (s *scenario) userLogsInWithUsernameAndPassword(username, password string) 
 			return err
 		}
 
-		s.t.setUserPass(userID, info.BridgePass)
+		s.t.setUserBridgePass(userID, info.BridgePass)
 	}
 
 	return nil

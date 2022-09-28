@@ -2,16 +2,20 @@ package user
 
 import (
 	"context"
+	"time"
 
 	"github.com/ProtonMail/gluon/imap"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/ProtonMail/proton-bridge/v2/internal/pool"
 	"github.com/ProtonMail/proton-bridge/v2/pkg/message"
+	"github.com/bradenaw/juniper/xslices"
 	"gitlab.protontech.ch/go/liteapi"
+	"golang.org/x/exp/slices"
 )
 
 type request struct {
 	messageID string
+	addressID string
 	addrKR    *crypto.KeyRing
 }
 
@@ -54,8 +58,38 @@ func newBuilder(f fetcher, msgWorkers, attWorkers int) *pool.Pool[request, *imap
 			return nil, err
 		}
 
-		return getMessageCreatedUpdate(msg, literal)
+		return newMessageCreatedUpdate(msg, literal)
 	})
 
 	return msgPool
+}
+
+func newMessageCreatedUpdate(message liteapi.Message, literal []byte) (*imap.MessageCreated, error) {
+	parsedMessage, err := imap.NewParsedMessage(literal)
+	if err != nil {
+		return nil, err
+	}
+
+	flags := imap.NewFlagSet()
+
+	if !message.Unread {
+		flags = flags.Add(imap.FlagSeen)
+	}
+
+	if slices.Contains(message.LabelIDs, liteapi.StarredLabel) {
+		flags = flags.Add(imap.FlagFlagged)
+	}
+
+	imapMessage := imap.Message{
+		ID:    imap.MessageID(message.ID),
+		Flags: flags,
+		Date:  time.Unix(message.Time, 0),
+	}
+
+	return &imap.MessageCreated{
+		Message:       imapMessage,
+		Literal:       literal,
+		LabelIDs:      mapTo[string, imap.LabelID](xslices.Filter(message.LabelIDs, wantLabelID)),
+		ParsedMessage: parsedMessage,
+	}, nil
 }

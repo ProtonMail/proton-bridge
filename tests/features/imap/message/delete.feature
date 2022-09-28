@@ -5,7 +5,7 @@ Feature: IMAP remove messages from mailbox
       | name  | type   |
       | mbox  | folder |
       | label | label  |
-    And the account "user@pm.me" has 10 messages in "mbox"
+    And the address "user@pm.me" of account "user@pm.me" has 10 messages in "mbox"
     And bridge starts
     And the user logs in with username "user@pm.me" and password "password"
     And user "user@pm.me" finishes syncing

@@ -4,6 +4,7 @@ import (
 	"math/rand"
 
 	"github.com/Masterminds/semver/v3"
+	"github.com/ProtonMail/gluon/imap"
 	"github.com/ProtonMail/proton-bridge/v2/internal/updater"
 )
 
@@ -45,15 +46,24 @@ type Settings struct {
 	FirstStartGUI bool
 }
 
+type AddressMode int
+
+const (
+	CombinedMode AddressMode = iota
+	SplitMode
+)
+
 // UserData holds information about a single bridge user.
 // The user may or may not be logged in.
 type UserData struct {
 	UserID   string
 	Username string
 
-	GluonID    string
-	GluonKey   []byte
-	BridgePass string
+	GluonKey    []byte
+	GluonIDs    map[string]string
+	UIDValidity map[string]imap.UID
+	BridgePass  []byte
+	AddressMode AddressMode
 
 	AuthUID string
 	AuthRef string

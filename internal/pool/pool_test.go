@@ -15,16 +15,16 @@ import (
 func TestPool_NewJob(t *testing.T) {
 	doubler := newDoubler(runtime.NumCPU())
 
-	job1, done1 := doubler.NewJob(context.Background(), 1)
+	job1, done1 := doubler.newJob(context.Background(), 1)
 	defer done1()
 
-	job2, done2 := doubler.NewJob(context.Background(), 2)
+	job2, done2 := doubler.newJob(context.Background(), 2)
 	defer done2()
 
-	res2, err := job2.Result()
+	res2, err := job2.result()
 	require.NoError(t, err)
 
-	res1, err := job1.Result()
+	res1, err := job1.result()
 	require.NoError(t, err)
 
 	assert.Equal(t, 2, res1)
@@ -36,31 +36,31 @@ func TestPool_NewJob_Done(t *testing.T) {
 	doubler := newDoubler(2)
 
 	// Start two jobs. Don't mark the jobs as done yet.
-	job1, done1 := doubler.NewJob(context.Background(), 1)
-	job2, done2 := doubler.NewJob(context.Background(), 2)
+	job1, done1 := doubler.newJob(context.Background(), 1)
+	job2, done2 := doubler.newJob(context.Background(), 2)
 
 	// Get the first result.
-	res1, _ := job1.Result()
+	res1, _ := job1.result()
 	assert.Equal(t, 2, res1)
 
 	// Get the first result.
-	res2, _ := job2.Result()
+	res2, _ := job2.result()
 	assert.Equal(t, 4, res2)
 
 	// Additional jobs will wait.
-	job3, _ := doubler.NewJob(context.Background(), 3)
-	job4, _ := doubler.NewJob(context.Background(), 4)
+	job3, _ := doubler.newJob(context.Background(), 3)
+	job4, _ := doubler.newJob(context.Background(), 4)
 
 	// Channel to collect results from jobs 3 and 4.
 	resCh := make(chan int, 2)
 
 	go func() {
-		res, _ := job3.Result()
+		res, _ := job3.result()
 		resCh <- res
 	}()
 
 	go func() {
-		res, _ := job4.Result()
+		res, _ := job4.result()
 		resCh <- res
 	}()
 
