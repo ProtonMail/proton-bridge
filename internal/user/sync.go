@@ -181,7 +181,7 @@ func getMessageCreatedUpdate(message liteapi.Message, literal []byte) (*imap.Mes
 
 	flags := imap.NewFlagSet()
 
-	if !message.Unread.Bool() {
+	if !message.Unread {
 		flags = flags.Add(imap.FlagSeen)
 	}
 

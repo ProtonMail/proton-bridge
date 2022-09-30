@@ -175,7 +175,7 @@ func (conn *imapConnector) GetMessage(ctx context.Context, messageID imap.Messag
 
 	flags := imap.NewFlagSet()
 
-	if !message.Unread.Bool() {
+	if !message.Unread {
 		flags = flags.Add(imap.FlagSeen)
 	}
 

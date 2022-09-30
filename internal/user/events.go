@@ -203,7 +203,7 @@ func (user *User) handleMessageEvents(messageEvents []liteapi.MessageEvent) erro
 			user.updateCh <- imap.NewMessageLabelsUpdated(
 				imap.MessageID(event.ID),
 				imapLabelIDs(filterLabelIDs(event.Message.LabelIDs)),
-				!event.Message.Unread.Bool(),
+				bool(!event.Message.Unread),
 				slices.Contains(event.Message.LabelIDs, liteapi.StarredLabel),
 			)
 		}
