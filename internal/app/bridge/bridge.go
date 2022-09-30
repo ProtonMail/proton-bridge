@@ -160,6 +160,7 @@ func main(b *base.Base, c *cli.Context) error { //nolint:funlen
 		b.Updater,
 		bridge,
 		b,
+		b.Locations,
 	)
 
 	// Watch for updates routine

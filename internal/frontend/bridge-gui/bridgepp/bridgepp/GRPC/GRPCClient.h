@@ -22,6 +22,7 @@
 
 #include "../User/User.h"
 #include "../Log/Log.h"
+#include "GRPCConfig.h"
 #include "bridge.grpc.pb.h"
 #include "grpc++/grpc++.h"
 
@@ -46,6 +47,10 @@ typedef grpc::Status (grpc::Bridge::Stub::*StringParamMethod)(grpc::ClientContex
 class GRPCClient : public QObject
 {
 Q_OBJECT
+public: // static member functions
+    static void removeServiceConfigFile(); ///< Delete the service config file.
+    static GRPCConfig waitAndRetrieveServiceConfig(qint64 timeoutMs); ///< Wait and retrieve the service configuration.
+
 public: // member functions.
     GRPCClient() = default; ///< Default constructor.
     GRPCClient(GRPCClient const &) = delete; ///< Disabled copy-constructor.
@@ -54,7 +59,7 @@ public: // member functions.
     GRPCClient &operator=(GRPCClient const &) = delete; ///< Disabled assignment operator.
     GRPCClient &operator=(GRPCClient &&) = delete; ///< Disabled move assignment operator.
     void setLog(Log *log); ///< Set the log for the client.
-    bool connectToServer(QString &outError); ///< Establish connection to the gRPC server.
+    bool connectToServer(GRPCConfig const &config, QString &outError); ///< Establish connection to the gRPC server.
 
     grpc::Status addLogEntry(Log::Level level, QString const &package, QString const &message); ///< Performs the "AddLogEntry" gRPC call.
     grpc::Status guiReady(); ///< performs the "GuiReady" gRPC call.
@@ -217,6 +222,7 @@ private:
     grpc::Status getURL(StringGetter getter, QUrl &outValue); ///< Perform a gRPC call to a string getter, with resulted converted to QUrl.
     grpc::Status methodWithStringParam(StringParamMethod method, QString const &str); ///< Perform a gRPC call that takes a string as a parameter and returns an Empty.
     SPUser parseGRPCUser(grpc::User const &grpcUser); ///< Parse a gRPC user struct and return a User.
+
 
     std::string getServerCertificate(); ///< Wait until server certificates is generated and retrieve it.
     void processAppEvent(grpc::AppEvent const &event); ///< Process an 'App' event.

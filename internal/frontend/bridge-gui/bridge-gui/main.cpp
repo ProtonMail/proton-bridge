@@ -41,6 +41,7 @@ namespace
 
     QString const bridgeLock = "bridge-gui.lock"; ///< file name used for the lock file.
     QString const exeName = "bridge" + exeSuffix; ///< The bridge executable file name.*
+    qint64 const grpcServiceConfigWaitDelayMs = 60000; ///< The wait delay for the gRPC config file in milliseconds.
 }
 
 
@@ -261,9 +262,16 @@ int main(int argc, char *argv[])
         log.setLevel(logLevel);
 
         if (!attach)
+        {
+            // before launching bridge, we remove any trailing service config file, because we need to make sure we get a newly generated one.
+            GRPCClient::removeServiceConfigFile();
             launchBridge(args);
+        }
 
-        app().backend().init();
+        app().backend().init(GRPCClient::waitAndRetrieveServiceConfig(attach ? 0 : grpcServiceConfigWaitDelayMs));
+
+        if (!attach)
+            GRPCClient::removeServiceConfigFile();
 
         QQmlApplicationEngine engine;
         std::unique_ptr<QQmlComponent> rootComponent(createRootQmlComponent(engine));

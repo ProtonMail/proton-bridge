@@ -107,13 +107,13 @@ add_library(bridgepp
     bridgepp/Exception/Exception.h bridgepp/Exception/Exception.cpp
     bridgepp/GRPC/GRPCClient.cpp bridgepp/GRPC/GRPCClient.h
     bridgepp/GRPC/EventFactory.cpp bridgepp/GRPC/EventFactory.h
+    bridgepp/GRPC/GRPCConfig.cpp bridgepp/GRPC/GRPCConfig.h
     bridgepp/GRPC/GRPCUtils.cpp bridgepp/GRPC/GRPCUtils.h
     ${PROTO_CPP_FILE} ${PROTO_H_FILE} ${GRPC_CPP_FILE} ${GRPC_H_FILE}
     bridgepp/Log/Log.h bridgepp/Log/Log.cpp
     bridgepp/ProcessMonitor.cpp bridgepp/ProcessMonitor.h
     bridgepp/User/User.cpp bridgepp/User/User.h
-    bridgepp/Worker/Worker.h bridgepp/Worker/Overseer.h bridgepp/Worker/Overseer.cpp
-    )
+    bridgepp/Worker/Worker.h bridgepp/Worker/Overseer.h bridgepp/Worker/Overseer.cpp)
 
 target_include_directories(bridgepp PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 

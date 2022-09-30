@@ -37,9 +37,9 @@ QMLBackend::QMLBackend()
 
 
 //****************************************************************************************************************************************************
-//
+/// \param[in] serviceConfig
 //****************************************************************************************************************************************************
-void QMLBackend::init()
+void QMLBackend::init(GRPCConfig const &serviceConfig)
 {
     users_ = new UserList(this);
 
@@ -47,7 +47,7 @@ void QMLBackend::init()
     this->connectGrpcEvents();
 
     QString error;
-    if (app().grpc().connectToServer(error))
+    if (app().grpc().connectToServer(serviceConfig, error))
         app().log().info("Connected to backend via gRPC service.");
     else
         throw Exception(QString("Cannot connectToServer to go backend via gRPC: %1").arg(error));

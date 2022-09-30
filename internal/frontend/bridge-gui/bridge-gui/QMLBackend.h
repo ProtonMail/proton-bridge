@@ -42,7 +42,7 @@ public: // member functions.
     ~QMLBackend() override = default; ///< Destructor.
     QMLBackend &operator=(QMLBackend const &) = delete; ///< Disabled assignment operator.
     QMLBackend &operator=(QMLBackend &&) = delete; ///< Disabled move assignment operator.
-    void init(); ///< Initialize the backend.
+    void init(GRPCConfig const &serviceConfig); ///< Initialize the backend.
     bool waitForEventStreamReaderToFinish(qint32 timeoutMs); ///< Wait for the event stream reader to finish.
 
     // invokable methods can be called from QML. They generally return a value, which slots cannot do.

@@ -22,7 +22,9 @@ package grpc
 import (
 	"context"
 	cryptotls "crypto/tls"
+	"fmt"
 	"net"
+	"path/filepath"
 	"strings"
 	"sync"
 	"time"
@@ -31,6 +33,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/v2/internal/config/settings"
 	"github.com/ProtonMail/proton-bridge/v2/internal/events"
 	"github.com/ProtonMail/proton-bridge/v2/internal/frontend/types"
+	"github.com/ProtonMail/proton-bridge/v2/internal/locations"
 	"github.com/ProtonMail/proton-bridge/v2/internal/updater"
 	"github.com/ProtonMail/proton-bridge/v2/internal/users"
 	"github.com/ProtonMail/proton-bridge/v2/pkg/keychain"
@@ -41,6 +44,10 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/protobuf/types/known/emptypb"
+)
+
+const (
+	serviceConfigFileName = "grpcServiceConfig.json"
 )
 
 // Service is the RPC service struct.
@@ -68,6 +75,7 @@ type Service struct { // nolint:structcheck
 	initializing       sync.WaitGroup
 	initializationDone sync.Once
 	firstTimeAutostart sync.Once
+	locations          *locations.Locations
 }
 
 // NewService returns a new instance of the service.
@@ -78,6 +86,7 @@ func NewService(
 	updater types.Updater,
 	bridge types.Bridger,
 	restarter types.Restarter,
+	locations *locations.Locations,
 ) *Service {
 	s := Service{
 		UnimplementedBridgeServer: UnimplementedBridgeServer{},
@@ -92,6 +101,7 @@ func NewService(
 		initializing:       sync.WaitGroup{},
 		initializationDone: sync.Once{},
 		firstTimeAutostart: sync.Once{},
+		locations:          locations,
 	}
 
 	// Initializing.Done is only called sync.Once. Please keep the increment
@@ -111,11 +121,17 @@ func NewService(
 
 	RegisterBridgeServer(s.grpcServer, &s)
 
-	s.listener, err = net.Listen("tcp", "127.0.0.1:9292") // Port should be configurable from the command-line.
+	s.listener, err = net.Listen("tcp", "127.0.0.1:0") // Port 0 means that the port is randomly picked by the system.
+
 	if err != nil {
-		s.log.WithError(err).Error("could not create listener")
-		panic(err)
+		s.log.WithError(err).Panic("could not create listener")
 	}
+
+	if err := s.saveGRPCServerConfigFile(); err != nil {
+		s.log.WithError(err).Panic("could not write gRPC service configuration file")
+	}
+
+	s.log.Info("gRPC server listening at ", s.listener.Addr())
 
 	return &s
 }
@@ -386,4 +402,20 @@ func (s *Service) installUpdate() {
 	}
 
 	_ = s.SendEvent(NewUpdateSilentRestartNeededEvent())
+}
+
+func (s *Service) saveGRPCServerConfigFile() error {
+	address, ok := s.listener.Addr().(*net.TCPAddr)
+	if !ok {
+		return fmt.Errorf("could not retrieve gRPC service listener address")
+	}
+
+	sc := config{Port: address.Port}
+
+	settingsPath, err := s.locations.ProvideSettingsPath()
+	if err != nil {
+		return err
+	}
+
+	return sc.save(filepath.Join(settingsPath, serviceConfigFileName))
 }

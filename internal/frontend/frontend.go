@@ -23,6 +23,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/v2/internal/frontend/cli"
 	"github.com/ProtonMail/proton-bridge/v2/internal/frontend/grpc"
 	"github.com/ProtonMail/proton-bridge/v2/internal/frontend/types"
+	"github.com/ProtonMail/proton-bridge/v2/internal/locations"
 	"github.com/ProtonMail/proton-bridge/v2/internal/updater"
 	"github.com/ProtonMail/proton-bridge/v2/pkg/listener"
 )
@@ -45,6 +46,7 @@ func New(
 	updater types.Updater,
 	bridge *bridge.Bridge,
 	restarter types.Restarter,
+	locations *locations.Locations,
 ) Frontend {
 	switch frontendType {
 	case "grpc":
@@ -55,6 +57,7 @@ func New(
 			updater,
 			bridge,
 			restarter,
+			locations,
 		)
 
 	case "cli":
