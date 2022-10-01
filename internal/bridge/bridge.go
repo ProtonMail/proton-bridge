@@ -69,6 +69,9 @@ type Bridge struct {
 
 	// errors contains errors encountered during startup.
 	errors []error
+
+	// stopCh is used to stop ongoing goroutines when the bridge is closed.
+	stopCh chan struct{}
 }
 
 // New creates a new bridge.
@@ -153,6 +156,8 @@ func New(
 		focusService: focusService,
 		autostarter:  autostarter,
 		locator:      locator,
+
+		stopCh: make(chan struct{}),
 	}
 
 	api.AddStatusObserver(func(status liteapi.Status) {
@@ -232,12 +237,8 @@ func (bridge *Bridge) GetErrors() []error {
 }
 
 func (bridge *Bridge) Close(ctx context.Context) error {
-	// Abort any ongoing syncs.
-	for _, user := range bridge.users {
-		if err := user.AbortSync(ctx); err != nil {
-			return fmt.Errorf("failed to abort sync: %w", err)
-		}
-	}
+	// Stop ongoing operations such as connectivity checks.
+	close(bridge.stopCh)
 
 	// Close the IMAP server.
 	if err := bridge.closeIMAP(ctx); err != nil {
@@ -251,7 +252,7 @@ func (bridge *Bridge) Close(ctx context.Context) error {
 
 	// Close all users.
 	for _, user := range bridge.users {
-		if err := user.Close(ctx); err != nil {
+		if err := user.Close(); err != nil {
 			logrus.WithError(err).Error("Failed to close user")
 		}
 	}
@@ -333,6 +334,9 @@ func (bridge *Bridge) onStatusDown() {
 	for {
 		select {
 		case <-upCh:
+			return
+
+		case <-bridge.stopCh:
 			return
 
 		case <-time.After(backoff):

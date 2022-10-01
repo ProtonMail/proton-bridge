@@ -7,6 +7,7 @@ import (
 	"github.com/ProtonMail/gluon/imap"
 	"github.com/ProtonMail/gluon/queue"
 	"github.com/ProtonMail/proton-bridge/v2/internal/events"
+	"github.com/ProtonMail/proton-bridge/v2/internal/safe"
 	"github.com/ProtonMail/proton-bridge/v2/internal/vault"
 	"github.com/bradenaw/juniper/xslices"
 	"gitlab.protontech.ch/go/liteapi"
@@ -54,7 +55,7 @@ func (user *User) handleUserEvent(ctx context.Context, userEvent liteapi.User) e
 		return err
 	}
 
-	user.apiUser = userEvent
+	user.apiUser.Set(userEvent)
 
 	user.userKR = userKR
 
@@ -96,23 +97,28 @@ func (user *User) handleCreateAddressEvent(ctx context.Context, event liteapi.Ad
 		return fmt.Errorf("failed to unlock address keys: %w", err)
 	}
 
-	user.apiAddrs.insert(event.Address)
+	apiAddrs, err := user.client.GetAddresses(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to get addresses: %w", err)
+	}
+
+	user.apiAddrs.Set(apiAddrs)
 
 	user.addrKRs[event.Address.ID] = addrKR
-
-	if user.vault.AddressMode() == vault.SplitMode {
-		user.updateCh[event.Address.ID] = queue.NewQueuedChannel[imap.Update](0, 0)
-
-		if err := user.syncLabels(ctx, event.Address.ID); err != nil {
-			return fmt.Errorf("failed to sync labels to new address: %w", err)
-		}
-	}
 
 	user.eventCh.Enqueue(events.UserAddressCreated{
 		UserID:    user.ID(),
 		AddressID: event.Address.ID,
 		Email:     event.Address.Email,
 	})
+
+	if user.vault.AddressMode() == vault.SplitMode {
+		user.updateCh[event.Address.ID] = queue.NewQueuedChannel[imap.Update](0, 0)
+
+		if err := syncLabels(ctx, user.client, user.updateCh[event.Address.ID]); err != nil {
+			return fmt.Errorf("failed to sync labels to new address: %w", err)
+		}
+	}
 
 	return nil
 }
@@ -123,7 +129,12 @@ func (user *User) handleUpdateAddressEvent(ctx context.Context, event liteapi.Ad
 		return fmt.Errorf("failed to unlock address keys: %w", err)
 	}
 
-	user.apiAddrs.insert(event.Address)
+	apiAddrs, err := user.client.GetAddresses(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to get addresses: %w", err)
+	}
+
+	user.apiAddrs.Set(apiAddrs)
 
 	user.addrKRs[event.Address.ID] = addrKR
 
@@ -137,9 +148,23 @@ func (user *User) handleUpdateAddressEvent(ctx context.Context, event liteapi.Ad
 }
 
 func (user *User) handleDeleteAddressEvent(ctx context.Context, event liteapi.AddressEvent) error {
-	email := user.apiAddrs.delete(event.ID)
+	email, err := safe.GetSliceErr(user.apiAddrs, func(apiAddrs []liteapi.Address) (string, error) {
+		return getAddrEmail(apiAddrs, event.ID)
+	})
+	if err != nil {
+		return fmt.Errorf("failed to get address email: %w", err)
+	}
 
-	if user.vault.AddressMode() == vault.SplitMode {
+	apiAddrs, err := user.client.GetAddresses(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to get addresses: %w", err)
+	}
+
+	user.apiAddrs.Set(apiAddrs)
+
+	delete(user.addrKRs, event.ID)
+
+	if len(user.updateCh) > 1 {
 		user.updateCh[event.ID].Close()
 		delete(user.updateCh, event.ID)
 	}
@@ -155,7 +180,7 @@ func (user *User) handleDeleteAddressEvent(ctx context.Context, event liteapi.Ad
 
 // handleMailSettingsEvent handles the given mail settings event.
 func (user *User) handleMailSettingsEvent(ctx context.Context, mailSettingsEvent liteapi.MailSettings) error {
-	user.settings = mailSettingsEvent
+	user.settings.Set(mailSettingsEvent)
 
 	return nil
 }
@@ -234,24 +259,18 @@ func (user *User) handleMessageEvents(ctx context.Context, messageEvents []litea
 }
 
 func (user *User) handleCreateMessageEvent(ctx context.Context, event liteapi.MessageEvent) error {
-	var addressID string
-
-	if user.GetAddressMode() == vault.CombinedMode {
-		addressID = user.apiAddrs.primary()
-	} else {
-		addressID = event.Message.AddressID
-	}
-
-	message, err := user.builder.ProcessOne(ctx, request{
-		messageID: event.ID,
-		addressID: addressID,
-		addrKR:    user.addrKRs[event.Message.AddressID],
-	})
+	buildRes, err := user.buildRFC822(ctx, event.Message)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to build RFC822: %w", err)
 	}
 
-	user.updateCh[addressID].Enqueue(imap.NewMessagesCreated(message))
+	if len(user.updateCh) > 1 {
+		user.updateCh[buildRes.addressID].Enqueue(imap.NewMessagesCreated(buildRes.update))
+	} else {
+		user.apiAddrs.Get(func(apiAddrs []liteapi.Address) {
+			user.updateCh[apiAddrs[0].ID].Enqueue(imap.NewMessagesCreated(buildRes.update))
+		})
+	}
 
 	return nil
 }
@@ -264,10 +283,12 @@ func (user *User) handleUpdateMessageEvent(ctx context.Context, event liteapi.Me
 		event.Message.Starred(),
 	)
 
-	if user.GetAddressMode() == vault.CombinedMode {
-		user.updateCh[user.apiAddrs.primary()].Enqueue(update)
-	} else {
+	if len(user.updateCh) > 1 {
 		user.updateCh[event.Message.AddressID].Enqueue(update)
+	} else {
+		user.apiAddrs.Get(func(apiAddrs []liteapi.Address) {
+			user.updateCh[apiAddrs[0].ID].Enqueue(update)
+		})
 	}
 
 	return nil

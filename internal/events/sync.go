@@ -22,3 +22,10 @@ type SyncFinished struct {
 
 	UserID string
 }
+
+type SyncFailed struct {
+	eventBase
+
+	UserID string
+	Err    error
+}

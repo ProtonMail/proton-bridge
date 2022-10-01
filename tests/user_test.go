@@ -138,9 +138,9 @@ func (s *scenario) theAddressOfAccountHasMessagesInMailbox(address, username str
 
 	for idx := 0; idx < count; idx++ {
 		messageID, err := s.t.api.CreateMessage(userID, addrID, Message{
-			Subject: fmt.Sprintf("subject %d", idx),
-			To:      fmt.Sprintf("to %d", idx),
-			From:    fmt.Sprintf("from %d", idx),
+			Subject: fmt.Sprintf("%d", idx),
+			To:      fmt.Sprintf("%d@pm.me", idx),
+			From:    fmt.Sprintf("%d@pm.me", idx),
 			Body:    fmt.Sprintf("body %d", idx),
 		}.Build(), liteapi.MessageFlagReceived, idx%2 == 0, false)
 		if err != nil {

@@ -137,7 +137,7 @@ func (s *scenario) bridgeSendsADeauthEventForUser(username string) error {
 }
 
 func (s *scenario) bridgeSendsAnAddressCreatedEventForUser(username string) error {
-	return try(s.t.addrCreatedCh, 5*time.Second, func(event events.UserAddressCreated) error {
+	return try(s.t.addrCreatedCh, 60*time.Second, func(event events.UserAddressCreated) error {
 		if wantUserID := s.t.getUserID(username); wantUserID != event.UserID {
 			return fmt.Errorf("expected user address created event for user with ID %s, got %s", wantUserID, event.UserID)
 		}
@@ -147,7 +147,7 @@ func (s *scenario) bridgeSendsAnAddressCreatedEventForUser(username string) erro
 }
 
 func (s *scenario) bridgeSendsAnAddressDeletedEventForUser(username string) error {
-	return try(s.t.addrDeletedCh, 5*time.Second, func(event events.UserAddressDeleted) error {
+	return try(s.t.addrDeletedCh, 60*time.Second, func(event events.UserAddressDeleted) error {
 		if wantUserID := s.t.getUserID(username); wantUserID != event.UserID {
 			return fmt.Errorf("expected user address deleted event for user with ID %s, got %s", wantUserID, event.UserID)
 		}

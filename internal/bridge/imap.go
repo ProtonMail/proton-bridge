@@ -74,7 +74,7 @@ func getGluonDir(encVault *vault.Vault) (string, error) {
 
 	if empty {
 		if err := encVault.ForUser(func(user *vault.User) error {
-			return user.SetSync(false)
+			return user.ClearSyncStatus()
 		}); err != nil {
 			return "", fmt.Errorf("failed to reset user sync status: %w", err)
 		}

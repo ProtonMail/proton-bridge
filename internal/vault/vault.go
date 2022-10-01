@@ -11,7 +11,6 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/ProtonMail/gluon/imap"
 	"github.com/ProtonMail/proton-bridge/v2/internal/certs"
 	"github.com/bradenaw/juniper/xslices"
 )
@@ -100,20 +99,7 @@ func (vault *Vault) AddUser(userID, username, authUID, authRef string, keyPass [
 	}
 
 	if err := vault.mod(func(data *Data) {
-		data.Users = append(data.Users, UserData{
-			UserID:   userID,
-			Username: username,
-
-			GluonKey:    newRandomToken(32),
-			GluonIDs:    make(map[string]string),
-			UIDValidity: make(map[string]imap.UID),
-			BridgePass:  newRandomString(16),
-			AddressMode: CombinedMode,
-
-			AuthUID: authUID,
-			AuthRef: authRef,
-			KeyPass: keyPass,
-		})
+		data.Users = append(data.Users, newDefaultUser(userID, username, authUID, authRef, keyPass))
 	}); err != nil {
 		return nil, err
 	}

@@ -1,14 +1,128 @@
 package vault_test
 
 import (
-	"encoding/hex"
 	"testing"
 
-	"github.com/ProtonMail/gluon/imap"
 	"github.com/ProtonMail/proton-bridge/v2/internal/vault"
 	"github.com/stretchr/testify/require"
 )
 
+func TestUser_New(t *testing.T) {
+	// Replace the token generator with a dummy one.
+	vault.RandomToken = func(size int) ([]byte, error) {
+		return []byte("token"), nil
+	}
+
+	// Create a new test vault.
+	s := newVault(t)
+
+	// There should be no users in the store.
+	require.Empty(t, s.GetUserIDs())
+
+	// Create a new user.
+	user, err := s.AddUser("userID", "username", "authUID", "authRef", []byte("keyPass"))
+	require.NoError(t, err)
+
+	// The user should be listed in the store.
+	require.ElementsMatch(t, []string{"userID"}, s.GetUserIDs())
+
+	// Check the user's default user information.
+	require.Equal(t, "userID", user.UserID())
+	require.Equal(t, "username", user.Username())
+
+	// Check the user's default auth information.
+	require.Equal(t, "authUID", user.AuthUID())
+	require.Equal(t, "authRef", user.AuthRef())
+	require.Equal(t, "keyPass", string(user.KeyPass()))
+
+	// Check the user has a random bridge password and gluon key.
+	require.Equal(t, "token", string(user.BridgePass()))
+	require.Equal(t, "token", string(user.GluonKey()))
+
+	// Check the user's initial sync status.
+	require.False(t, user.SyncStatus().HasLabels)
+	require.False(t, user.SyncStatus().HasMessages)
+}
+
+func TestUser_Clear(t *testing.T) {
+	// Create a new test vault.
+	s := newVault(t)
+
+	// Create a new user.
+	user, err := s.AddUser("userID", "username", "authUID", "authRef", []byte("keyPass"))
+	require.NoError(t, err)
+
+	// Check the user's default auth information.
+	require.Equal(t, "authUID", user.AuthUID())
+	require.Equal(t, "authRef", user.AuthRef())
+	require.Equal(t, "keyPass", string(user.KeyPass()))
+
+	// Clear the user's auth information.
+	require.NoError(t, s.ClearUser("userID"))
+
+	// Check the user's cleared auth information.
+	require.Empty(t, user.AuthUID())
+	require.Empty(t, user.AuthRef())
+	require.Empty(t, user.KeyPass())
+}
+
+func TestUser_Delete(t *testing.T) {
+	// Create a new test vault.
+	s := newVault(t)
+
+	// The store should have no users.
+	require.Empty(t, s.GetUserIDs())
+
+	// Create a new user.
+	user, err := s.AddUser("userID", "username", "authUID", "authRef", []byte("keyPass"))
+	require.NoError(t, err)
+
+	// The user should be listed in the store.
+	require.ElementsMatch(t, []string{"userID"}, s.GetUserIDs())
+
+	// Clear the user's auth information.
+	require.NoError(t, s.DeleteUser("userID"))
+
+	// The store should have no users again.
+	require.Empty(t, s.GetUserIDs())
+
+	// Attempting to use the user should return an error.
+	require.Panics(t, func() { _ = user.AddressMode() })
+}
+
+func TestUser_SyncStatus(t *testing.T) {
+	// Create a new test vault.
+	s := newVault(t)
+
+	// Create a new user.
+	user, err := s.AddUser("userID", "username", "authUID", "authRef", []byte("keyPass"))
+	require.NoError(t, err)
+
+	// Check the user's initial sync status.
+	require.False(t, user.SyncStatus().HasLabels)
+	require.False(t, user.SyncStatus().HasMessages)
+	require.Empty(t, user.SyncStatus().LastMessageID)
+
+	// Simulate having synced a message.
+	require.NoError(t, user.SetLastMessageID("test"))
+	require.Equal(t, "test", user.SyncStatus().LastMessageID)
+
+	// Simulate finishing the sync.
+	require.NoError(t, user.SetHasLabels(true))
+	require.NoError(t, user.SetHasMessages(true))
+	require.True(t, user.SyncStatus().HasLabels)
+	require.True(t, user.SyncStatus().HasMessages)
+
+	// Clear the sync status.
+	require.NoError(t, user.ClearSyncStatus())
+
+	// Check the user's cleared sync status.
+	require.False(t, user.SyncStatus().HasLabels)
+	require.False(t, user.SyncStatus().HasMessages)
+	require.Empty(t, user.SyncStatus().LastMessageID)
+}
+
+/*
 func TestUser(t *testing.T) {
 	// Replace the token generator with a dummy one.
 	vault.RandomToken = func(size int) ([]byte, error) {
@@ -101,3 +215,5 @@ func TestUser(t *testing.T) {
 	// List available userIDs. User 1 should be gone.
 	require.ElementsMatch(t, []string{"userID2"}, s.GetUserIDs())
 }
+
+*/

@@ -25,20 +25,17 @@ import (
 	"gitlab.protontech.ch/go/liteapi/server/backend"
 )
 
-const (
-	username = "username"
-)
-
-var password = []byte("password")
-
 var (
+	username = "username"
+	password = []byte("password")
+
 	v2_3_0 = semver.MustParse("2.3.0")
 	v2_4_0 = semver.MustParse("2.4.0")
 )
 
 func init() {
-	user.DefaultEventPeriod = 100 * time.Millisecond
-	user.DefaultEventJitter = 0
+	user.EventPeriod = 100 * time.Millisecond
+	user.EventJitter = 0
 	backend.GenerateKey = tests.FastGenerateKey
 	certs.GenerateCert = tests.FastGenerateCert
 }

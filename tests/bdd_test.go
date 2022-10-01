@@ -39,10 +39,10 @@ func init() {
 	certs.GenerateCert = FastGenerateCert
 
 	// Set the event period to 100 milliseconds for more responsive tests.
-	user.DefaultEventPeriod = 100 * time.Millisecond
+	user.EventPeriod = 100 * time.Millisecond
 
 	// Don't use jitter during tests.
-	user.DefaultEventJitter = 0
+	user.EventJitter = 0
 }
 
 type scenario struct {

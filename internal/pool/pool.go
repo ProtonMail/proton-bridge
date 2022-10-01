@@ -9,7 +9,7 @@ import (
 )
 
 // ErrJobCancelled indicates the job was cancelled.
-var ErrJobCancelled = errors.New("Job cancelled by surrounding context")
+var ErrJobCancelled = errors.New("job cancelled by surrounding context")
 
 // Pool is a worker pool that handles input of type In and returns results of type Out.
 type Pool[In comparable, Out any] struct {

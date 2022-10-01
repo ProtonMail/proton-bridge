@@ -46,33 +46,6 @@ type Settings struct {
 	FirstStartGUI bool
 }
 
-type AddressMode int
-
-const (
-	CombinedMode AddressMode = iota
-	SplitMode
-)
-
-// UserData holds information about a single bridge user.
-// The user may or may not be logged in.
-type UserData struct {
-	UserID   string
-	Username string
-
-	GluonKey    []byte
-	GluonIDs    map[string]string
-	UIDValidity map[string]imap.UID
-	BridgePass  []byte
-	AddressMode AddressMode
-
-	AuthUID string
-	AuthRef string
-	KeyPass []byte
-
-	EventID string
-	HasSync bool
-}
-
 func newDefaultSettings(gluonDir string) Settings {
 	return Settings{
 		GluonDir: gluonDir,
@@ -94,5 +67,55 @@ func newDefaultSettings(gluonDir string) Settings {
 		LastVersion:   semver.MustParse("0.0.0"),
 		FirstStart:    true,
 		FirstStartGUI: true,
+	}
+}
+
+// UserData holds information about a single bridge user.
+// The user may or may not be logged in.
+type UserData struct {
+	UserID   string
+	Username string
+
+	GluonKey    []byte
+	GluonIDs    map[string]string
+	UIDValidity map[string]imap.UID
+	BridgePass  []byte
+	AddressMode AddressMode
+
+	AuthUID string
+	AuthRef string
+	KeyPass []byte
+
+	SyncStatus SyncStatus
+	EventID    string
+}
+
+type AddressMode int
+
+const (
+	CombinedMode AddressMode = iota
+	SplitMode
+)
+
+type SyncStatus struct {
+	HasLabels     bool
+	HasMessages   bool
+	LastMessageID string
+}
+
+func newDefaultUser(userID, username, authUID, authRef string, keyPass []byte) UserData {
+	return UserData{
+		UserID:   userID,
+		Username: username,
+
+		GluonKey:    newRandomToken(32),
+		GluonIDs:    make(map[string]string),
+		UIDValidity: make(map[string]imap.UID),
+		BridgePass:  newRandomToken(16),
+		AddressMode: CombinedMode,
+
+		AuthUID: authUID,
+		AuthRef: authRef,
+		KeyPass: keyPass,
 	}
 }

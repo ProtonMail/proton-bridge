@@ -6,14 +6,14 @@ import (
 	"fmt"
 	"io"
 	"net/mail"
+	"net/url"
 	"runtime"
 	"strings"
 
-	"github.com/ProtonMail/gluon/queue"
 	"github.com/ProtonMail/gluon/rfc822"
 	"github.com/ProtonMail/go-rfc5322"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
-	"github.com/ProtonMail/proton-bridge/v2/internal/events"
+	"github.com/ProtonMail/proton-bridge/v2/internal/safe"
 	"github.com/ProtonMail/proton-bridge/v2/internal/vault"
 	"github.com/ProtonMail/proton-bridge/v2/pkg/message"
 	"github.com/ProtonMail/proton-bridge/v2/pkg/message/parser"
@@ -22,37 +22,14 @@ import (
 	"github.com/emersion/go-smtp"
 	"github.com/sirupsen/logrus"
 	"gitlab.protontech.ch/go/liteapi"
-	"golang.org/x/exp/maps"
 	"golang.org/x/exp/slices"
 )
 
 type smtpSession struct {
-	// client is the user's API client.
-	client *liteapi.Client
+	*User
 
-	// eventCh allows the session to publish events.
-	eventCh *queue.QueuedChannel[events.Event]
-
-	// userID is the user's ID.
-	userID string
-
-	// addrID holds the ID of the address that is currently being used.
-	addrID string
-
-	// addrMode holds the address mode that is currently being used.
-	addrMode vault.AddressMode
-
-	// emails holds all email addresses associated with the user, by address ID.
-	emails map[string]string
-
-	// settings holds the mail settings for the user.
-	settings liteapi.MailSettings
-
-	// userKR holds the user's keyring.
-	userKR *crypto.KeyRing
-
-	// addrKRs holds the keyrings for each address.
-	addrKRs map[string]*crypto.KeyRing
+	// authID holds the ID of the address that the SMTP client authenticated with to send the message.
+	authID string
 
 	// fromAddrID is the ID of the current sending address (taken from the return path).
 	fromAddrID string
@@ -61,30 +38,18 @@ type smtpSession struct {
 	to []string
 }
 
-func newSMTPSession(
-	client *liteapi.Client,
-	eventCh *queue.QueuedChannel[events.Event],
-	userID, addrID string,
-	addrMode vault.AddressMode,
-	emails map[string]string,
-	settings liteapi.MailSettings,
-	userKR *crypto.KeyRing,
-	addrKRs map[string]*crypto.KeyRing,
-) *smtpSession {
-	return &smtpSession{
-		client:  client,
-		eventCh: eventCh,
-
-		userID:   userID,
-		addrID:   addrID,
-		addrMode: addrMode,
-
-		emails:   emails,
-		settings: settings,
-
-		userKR:  userKR,
-		addrKRs: addrKRs,
+func newSMTPSession(user *User, email string) (*smtpSession, error) {
+	authID, err := safe.GetSliceErr(user.apiAddrs, func(apiAddrs []liteapi.Address) (string, error) {
+		return getAddrID(apiAddrs, email)
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to get address ID: %w", err)
 	}
+
+	return &smtpSession{
+		User:   user,
+		authID: authID,
+	}, nil
 }
 
 // Discard currently processed message.
@@ -109,30 +74,35 @@ func (session *smtpSession) Logout() error {
 func (session *smtpSession) Mail(from string, opts smtp.MailOptions) error {
 	logrus.Info("SMTP session mail")
 
-	switch {
-	case opts.RequireTLS:
-		return ErrNotImplemented
+	return session.apiAddrs.GetErr(func(apiAddrs []liteapi.Address) error {
 
-	case opts.UTF8:
-		return ErrNotImplemented
-
-	case opts.Auth != nil:
-		if *opts.Auth != "" && *opts.Auth != session.emails[session.addrID] {
+		switch {
+		case opts.RequireTLS:
 			return ErrNotImplemented
+
+		case opts.UTF8:
+			return ErrNotImplemented
+
+		case opts.Auth != nil:
+			email, err := getAddrEmail(apiAddrs, session.authID)
+			if err != nil {
+				return fmt.Errorf("invalid auth address: %w", err)
+			}
+
+			if *opts.Auth != "" && *opts.Auth != email {
+				return ErrNotImplemented
+			}
 		}
-	}
 
-	for addrID, email := range session.emails {
-		if strings.EqualFold(from, email) {
-			session.fromAddrID = addrID
+		fromAddrID, err := getAddrID(apiAddrs, from)
+		if err != nil {
+			return fmt.Errorf("invalid return path: %w", err)
 		}
-	}
 
-	if session.fromAddrID == "" {
-		return ErrInvalidReturnPath
-	}
+		session.fromAddrID = fromAddrID
 
-	return nil
+		return nil
+	})
 }
 
 // Add recipient for currently processed message.
@@ -168,13 +138,15 @@ func (session *smtpSession) Data(r io.Reader) error {
 	}
 
 	// If the message contains a sender, use it instead of the one from the return path.
-	if sender, ok := getMessageSender(parser); ok {
-		for addrID, email := range session.emails {
-			if strings.EqualFold(email, sanitizeEmail(sender)) {
-				session.fromAddrID = addrID
+	session.apiAddrs.Get(func(apiAddrs []liteapi.Address) {
+		if sender, ok := getMessageSender(parser); ok {
+			for _, addr := range apiAddrs {
+				if strings.EqualFold(addr.Email, sanitizeEmail(sender)) {
+					session.fromAddrID = addr.ID
+				}
 			}
 		}
-	}
+	})
 
 	addrKR, ok := session.addrKRs[session.fromAddrID]
 	if !ok {
@@ -186,27 +158,37 @@ func (session *smtpSession) Data(r io.Reader) error {
 		return fmt.Errorf("failed to get first key: %w", err)
 	}
 
-	message, err := sendWithKey(
-		session.client,
-		session.addrID,
-		session.addrMode,
-		session.userKR,
-		firstAddrKR,
-		session.settings,
-		sanitizeEmail(session.emails[session.fromAddrID]),
-		session.to,
-		maps.Values(session.emails),
-		parser,
-	)
+	from, err := safe.GetSliceErr(session.apiAddrs, func(apiAddrs []liteapi.Address) (string, error) {
+		email, err := getAddrEmail(apiAddrs, session.fromAddrID)
+		if err != nil {
+			return "", fmt.Errorf("failed to get address email: %w", err)
+		}
+
+		return sanitizeEmail(email), nil
+	})
+	if err != nil {
+		return fmt.Errorf("failed to get address email: %w", err)
+	}
+
+	message, err := safe.GetSliceErr(session.apiAddrs, func(apiAddrs []liteapi.Address) (liteapi.Message, error) {
+		return safe.GetTypeErr(session.settings, func(settings liteapi.MailSettings) (liteapi.Message, error) {
+			return sendWithKey(
+				session.client,
+				session.authID,
+				session.vault.AddressMode(),
+				apiAddrs,
+				settings,
+				session.userKR,
+				firstAddrKR,
+				parser,
+				from,
+				session.to,
+			)
+		})
+	})
 	if err != nil {
 		return fmt.Errorf("failed to send message: %w", err)
 	}
-
-	session.eventCh.Enqueue(events.MessageSent{
-		UserID:    session.userID,
-		AddressID: session.addrID,
-		MessageID: message.ID,
-	})
 
 	logrus.WithField("messageID", message.ID).Info("Message sent")
 
@@ -216,13 +198,14 @@ func (session *smtpSession) Data(r io.Reader) error {
 // sendWithKey sends the message with the given address key.
 func sendWithKey(
 	client *liteapi.Client,
-	addrID string,
+	authAddrID string,
 	addrMode vault.AddressMode,
-	userKR, addrKR *crypto.KeyRing,
+	apiAddrs []liteapi.Address,
 	settings liteapi.MailSettings,
-	from string,
-	to, emails []string,
+	userKR, addrKR *crypto.KeyRing,
 	parser *parser.Parser,
+	from string,
+	to []string,
 ) (liteapi.Message, error) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -246,11 +229,11 @@ func sendWithKey(
 		return liteapi.Message{}, fmt.Errorf("failed to parse message: %w", err)
 	}
 
-	if err := sanitizeParsedMessage(&message, from, to, emails); err != nil {
+	if err := sanitizeParsedMessage(&message, apiAddrs, from, to); err != nil {
 		return liteapi.Message{}, fmt.Errorf("failed to sanitize message: %w", err)
 	}
 
-	parentID, err := getParentID(ctx, client, addrID, addrMode, message.References)
+	parentID, err := getParentID(ctx, client, authAddrID, addrMode, message.References)
 	if err != nil {
 		return liteapi.Message{}, fmt.Errorf("failed to get parent ID: %w", err)
 	}
@@ -278,7 +261,7 @@ func sendWithKey(
 	return res, nil
 }
 
-func sanitizeParsedMessage(message *message.Message, from string, to, emails []string) error {
+func sanitizeParsedMessage(message *message.Message, apiAddrs []liteapi.Address, from string, to []string) error {
 	// Check sender: set the sender in the parsed message if it's missing.
 	if message.Sender == nil {
 		message.Sender = &mail.Address{Address: from}
@@ -287,12 +270,12 @@ func sanitizeParsedMessage(message *message.Message, from string, to, emails []s
 	}
 
 	// Check that the sending address is owned by the user, and if so, properly capitalize it.
-	if idx := xslices.IndexFunc(emails, func(email string) bool {
-		return strings.EqualFold(email, sanitizeEmail(message.Sender.Address))
+	if idx := xslices.IndexFunc(apiAddrs, func(addr liteapi.Address) bool {
+		return strings.EqualFold(addr.Email, sanitizeEmail(message.Sender.Address))
 	}); idx < 0 {
 		return fmt.Errorf("address %q is not owned by user", message.Sender.Address)
 	} else {
-		message.Sender.Address = constructEmail(message.Sender.Address, emails[idx])
+		message.Sender.Address = constructEmail(message.Sender.Address, apiAddrs[idx].Email)
 	}
 
 	// Check ToList: ensure that ToList only contains addresses we actually plan to send to.
@@ -313,7 +296,7 @@ func sanitizeParsedMessage(message *message.Message, from string, to, emails []s
 func getParentID(
 	ctx context.Context,
 	client *liteapi.Client,
-	addrID string,
+	authAddrID string,
 	addrMode vault.AddressMode,
 	references []string,
 ) (string, error) {
@@ -334,12 +317,12 @@ func getParentID(
 
 	// Try to find a parent ID in the internal references.
 	for _, internal := range internal {
-		filter := map[string][]string{
+		filter := url.Values{
 			"ID": {internal},
 		}
 
 		if addrMode == vault.SplitMode {
-			filter["AddressID"] = []string{addrID}
+			filter["AddressID"] = []string{authAddrID}
 		}
 
 		metadata, err := client.GetAllMessageMetadata(ctx, filter)
@@ -359,12 +342,12 @@ func getParentID(
 	// If no parent was found, try to find it in the last external reference.
 	// There can be multiple messages with the same external ID; in this case, we don't pick any parent.
 	if parentID == "" && len(external) > 0 {
-		filter := map[string][]string{
+		filter := url.Values{
 			"ExternalID": {external[len(external)-1]},
 		}
 
 		if addrMode == vault.SplitMode {
-			filter["AddressID"] = []string{addrID}
+			filter["AddressID"] = []string{authAddrID}
 		}
 
 		metadata, err := client.GetAllMessageMetadata(ctx, filter)

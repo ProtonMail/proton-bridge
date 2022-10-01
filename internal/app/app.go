@@ -84,13 +84,13 @@ func run(c *cli.Context) error {
 
 	// Start CPU profile if requested.
 	if c.Bool(flagCPUProfile) {
-		p := profile.Start(profile.CPUProfile, profile.ProfilePath("cpu.pprof"))
+		p := profile.Start(profile.CPUProfile, profile.ProfilePath("."))
 		defer p.Stop()
 	}
 
 	// Start memory profile if requested.
 	if c.Bool(flagMemProfile) {
-		p := profile.Start(profile.MemProfile, profile.MemProfileAllocs, profile.ProfilePath("mem.pprof"))
+		p := profile.Start(profile.MemProfile, profile.MemProfileAllocs, profile.ProfilePath("."))
 		defer p.Stop()
 	}
 

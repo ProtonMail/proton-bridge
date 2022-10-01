@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/ProtonMail/gluon/imap"
-	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/ProtonMail/proton-bridge/v2/internal/events"
 	"github.com/ProtonMail/proton-bridge/v2/internal/user"
 	"github.com/ProtonMail/proton-bridge/v2/internal/vault"
@@ -86,6 +85,10 @@ func (bridge *Bridge) LoginUser(
 		return "", err
 	}
 
+	if _, ok := bridge.users[auth.UserID]; ok {
+		return "", ErrUserAlreadyLoggedIn
+	}
+
 	if auth.TwoFA.Enabled == liteapi.TOTPEnabled {
 		totp, err := getTOTP()
 		if err != nil {
@@ -110,16 +113,26 @@ func (bridge *Bridge) LoginUser(
 		keyPass = password
 	}
 
-	apiUser, apiAddrs, userKR, addrKRs, saltedKeyPass, err := client.Unlock(ctx, keyPass)
+	apiUser, err := client.GetUser(ctx)
 	if err != nil {
 		return "", err
 	}
 
-	if err := bridge.addUser(ctx, client, apiUser, apiAddrs, userKR, addrKRs, auth.UID, auth.RefreshToken, saltedKeyPass); err != nil {
+	salts, err := client.GetSalts(ctx)
+	if err != nil {
 		return "", err
 	}
 
-	return apiUser.ID, nil
+	saltedKeyPass, err := salts.SaltForKey(keyPass, apiUser.Keys.Primary().ID)
+	if err != nil {
+		return "", err
+	}
+
+	if err := bridge.addUser(ctx, client, apiUser, auth.UID, auth.RefreshToken, saltedKeyPass); err != nil {
+		return "", err
+	}
+
+	return auth.UserID, nil
 }
 
 // LogoutUser logs out the given user.
@@ -158,10 +171,6 @@ func (bridge *Bridge) SetAddressMode(ctx context.Context, userID string, mode va
 		return fmt.Errorf("address mode is already %q", mode)
 	}
 
-	if err := user.AbortSync(ctx); err != nil {
-		return fmt.Errorf("failed to abort sync: %w", err)
-	}
-
 	for _, gluonID := range user.GetGluonIDs() {
 		if err := bridge.imapServer.RemoveUser(ctx, gluonID, true); err != nil {
 			return fmt.Errorf("failed to remove user from IMAP server: %w", err)
@@ -180,8 +189,6 @@ func (bridge *Bridge) SetAddressMode(ctx context.Context, userID string, mode va
 		UserID:      userID,
 		AddressMode: mode,
 	})
-
-	user.DoSync(ctx)
 
 	return nil
 }
@@ -220,12 +227,12 @@ func (bridge *Bridge) loadUser(ctx context.Context, user *vault.User) error {
 		return fmt.Errorf("failed to create API client: %w", err)
 	}
 
-	apiUser, apiAddrs, userKR, addrKRs, err := client.UnlockSalted(ctx, user.KeyPass())
+	apiUser, err := client.GetUser(ctx)
 	if err != nil {
-		return fmt.Errorf("failed to unlock user: %w", err)
+		return fmt.Errorf("failed to get user: %w", err)
 	}
 
-	if err := bridge.addUser(ctx, client, apiUser, apiAddrs, userKR, addrKRs, auth.UID, auth.RefreshToken, user.KeyPass()); err != nil {
+	if err := bridge.addUser(ctx, client, apiUser, auth.UID, auth.RefreshToken, user.KeyPass()); err != nil {
 		return fmt.Errorf("failed to add user: %w", err)
 	}
 
@@ -241,27 +248,20 @@ func (bridge *Bridge) addUser(
 	ctx context.Context,
 	client *liteapi.Client,
 	apiUser liteapi.User,
-	apiAddrs []liteapi.Address,
-	userKR *crypto.KeyRing,
-	addrKRs map[string]*crypto.KeyRing,
 	authUID, authRef string,
 	saltedKeyPass []byte,
 ) error {
-	if _, ok := bridge.users[apiUser.ID]; ok {
-		return ErrUserAlreadyLoggedIn
-	}
-
 	var user *user.User
 
 	if slices.Contains(bridge.vault.GetUserIDs(), apiUser.ID) {
-		existingUser, err := bridge.addExistingUser(ctx, client, apiUser, apiAddrs, userKR, addrKRs, authUID, authRef, saltedKeyPass)
+		existingUser, err := bridge.addExistingUser(ctx, client, apiUser, authUID, authRef, saltedKeyPass)
 		if err != nil {
 			return fmt.Errorf("failed to add existing user: %w", err)
 		}
 
 		user = existingUser
 	} else {
-		newUser, err := bridge.addNewUser(ctx, client, apiUser, apiAddrs, userKR, addrKRs, authUID, authRef, saltedKeyPass)
+		newUser, err := bridge.addNewUser(ctx, client, apiUser, authUID, authRef, saltedKeyPass)
 		if err != nil {
 			return fmt.Errorf("failed to add new user: %w", err)
 		}
@@ -269,9 +269,14 @@ func (bridge *Bridge) addUser(
 		user = newUser
 	}
 
-	// Connects the user's address(es) to gluon.
+	// Connect the user's address(es) to gluon.
 	if err := bridge.addIMAPUser(ctx, user); err != nil {
 		return fmt.Errorf("failed to add IMAP user: %w", err)
+	}
+
+	// Connect the user's address(es) to the SMTP server.
+	if err := bridge.smtpBackend.addUser(user); err != nil {
+		return fmt.Errorf("failed to add user to SMTP backend: %w", err)
 	}
 
 	// Handle events coming from the user before forwarding them to the bridge.
@@ -299,11 +304,6 @@ func (bridge *Bridge) addUser(
 		return nil
 	})
 
-	// TODO: Replace this with proper sync manager.
-	if !user.HasSync() {
-		user.DoSync(ctx)
-	}
-
 	bridge.publish(events.UserLoggedIn{
 		UserID: user.ID(),
 	})
@@ -315,9 +315,6 @@ func (bridge *Bridge) addNewUser(
 	ctx context.Context,
 	client *liteapi.Client,
 	apiUser liteapi.User,
-	apiAddrs []liteapi.Address,
-	userKR *crypto.KeyRing,
-	addrKRs map[string]*crypto.KeyRing,
 	authUID, authRef string,
 	saltedKeyPass []byte,
 ) (*user.User, error) {
@@ -326,12 +323,8 @@ func (bridge *Bridge) addNewUser(
 		return nil, err
 	}
 
-	user, err := user.New(ctx, vaultUser, client, apiUser, apiAddrs, userKR, addrKRs)
+	user, err := user.New(ctx, vaultUser, client, apiUser)
 	if err != nil {
-		return nil, err
-	}
-
-	if err := bridge.smtpBackend.addUser(user); err != nil {
 		return nil, err
 	}
 
@@ -344,9 +337,6 @@ func (bridge *Bridge) addExistingUser(
 	ctx context.Context,
 	client *liteapi.Client,
 	apiUser liteapi.User,
-	apiAddrs []liteapi.Address,
-	userKR *crypto.KeyRing,
-	addrKRs map[string]*crypto.KeyRing,
 	authUID, authRef string,
 	saltedKeyPass []byte,
 ) (*user.User, error) {
@@ -363,12 +353,8 @@ func (bridge *Bridge) addExistingUser(
 		return nil, err
 	}
 
-	user, err := user.New(ctx, vaultUser, client, apiUser, apiAddrs, userKR, addrKRs)
+	user, err := user.New(ctx, vaultUser, client, apiUser)
 	if err != nil {
-		return nil, err
-	}
-
-	if err := bridge.smtpBackend.addUser(user); err != nil {
 		return nil, err
 	}
 
@@ -384,11 +370,6 @@ func (bridge *Bridge) logoutUser(ctx context.Context, userID string, withAPI, wi
 	user, ok := bridge.users[userID]
 	if !ok {
 		return ErrNoSuchUser
-	}
-
-	// TODO: The sync should be canceled by the sync manager.
-	if err := user.AbortSync(ctx); err != nil {
-		return fmt.Errorf("failed to abort user sync: %w", err)
 	}
 
 	if err := bridge.smtpBackend.removeUser(user); err != nil {
@@ -407,7 +388,7 @@ func (bridge *Bridge) logoutUser(ctx context.Context, userID string, withAPI, wi
 		}
 	}
 
-	if err := user.Close(ctx); err != nil {
+	if err := user.Close(); err != nil {
 		return fmt.Errorf("failed to close user: %w", err)
 	}
 
