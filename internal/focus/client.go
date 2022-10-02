@@ -11,6 +11,8 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
+// TryRaise tries to raise the application by dialing the focus service.
+// It returns true if the service is running and the application was told to raise.
 func TryRaise() bool {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
