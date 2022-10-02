@@ -1,8 +1,11 @@
 package tests
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
+
+	"github.com/cucumber/godog"
 )
 
 func (s *scenario) itSucceeds() error {
@@ -52,14 +55,37 @@ func (s *scenario) theUserAgentIs(userAgent string) error {
 	return nil
 }
 
-func (s *scenario) theValueOfTheHeaderInTheRequestToIs(key, path, value string) error {
-	call, err := s.t.getLastCall(path)
+func (s *scenario) theHeaderInTheRequestToHasSetTo(method, path, key, value string) error {
+	call, err := s.t.getLastCall(method, path)
 	if err != nil {
 		return err
 	}
 
-	if haveKey := call.Request.Header.Get(key); haveKey != value {
+	if haveKey := call.Header.Get(key); haveKey != value {
 		return fmt.Errorf("have header %q, want %q", haveKey, value)
+	}
+
+	return nil
+}
+
+func (s *scenario) theBodyInTheRequestToIs(method, path string, value *godog.DocString) error {
+	call, err := s.t.getLastCall(method, path)
+	if err != nil {
+		return err
+	}
+
+	var body, want map[string]any
+
+	if err := json.Unmarshal(call.Body, &body); err != nil {
+		return err
+	}
+
+	if err := json.Unmarshal([]byte(value.Content), &want); err != nil {
+		return err
+	}
+
+	if !IsSub(body, want) {
+		return fmt.Errorf("have body %v, want %v", body, want)
 	}
 
 	return nil

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/smtp"
+	"regexp"
 	"testing"
 
 	"github.com/Masterminds/semver/v3"
@@ -172,20 +173,24 @@ func (t *testCtx) getMBoxID(userID string, name string) string {
 	return labels[idx].ID
 }
 
-func (t *testCtx) getLastCall(path string) (server.Call, error) {
-	calls := t.calls[len(t.calls)-2]
+func (t *testCtx) getLastCall(method, path string) (server.Call, error) {
+	var allCalls []server.Call
 
-	if len(calls) == 0 {
+	for _, calls := range t.calls {
+		allCalls = append(allCalls, calls...)
+	}
+
+	if len(allCalls) == 0 {
 		return server.Call{}, fmt.Errorf("no calls made")
 	}
 
-	for _, call := range calls {
-		if call.URL.Path == path {
+	for idx := len(allCalls) - 1; idx >= 0; idx-- {
+		if call := allCalls[idx]; call.Method == method && regexp.MustCompile("^"+path+"$").MatchString(call.URL.Path) {
 			return call, nil
 		}
 	}
 
-	return calls[len(calls)-1], nil
+	return server.Call{}, fmt.Errorf("no call with method %q and path %q was made", method, path)
 }
 
 func (t *testCtx) pushError(err error) {

@@ -5,7 +5,7 @@ import (
 	"golang.org/x/exp/slices"
 )
 
-type ordMap[Key comparable, Val, Data any] struct {
+type ordMap[Key, Val comparable, Data any] struct {
 	data  map[Key]Data
 	order []Key
 
@@ -14,7 +14,7 @@ type ordMap[Key comparable, Val, Data any] struct {
 	isLess func(Data, Data) bool
 }
 
-func newOrdMap[Key comparable, Val, Data any](
+func newOrdMap[Key, Val comparable, Data any](
 	key func(Data) Key,
 	value func(Data) Val,
 	less func(Data, Data) bool,
@@ -64,8 +64,23 @@ func (set *ordMap[Key, Val, Data]) delete(key Key) Val {
 	return set.toVal(data)
 }
 
-func (set *ordMap[Key, Val, Data]) get(key Key) Val {
-	return set.toVal(set.data[key])
+func (set *ordMap[Key, Val, Data]) getVal(key Key) (Val, bool) {
+	data, ok := set.data[key]
+	if !ok {
+		return *new(Val), false
+	}
+
+	return set.toVal(data), true
+}
+
+func (set *ordMap[Key, Val, Data]) getKey(wantVal Val) (Key, bool) {
+	for key, data := range set.data {
+		if set.toVal(data) == wantVal {
+			return key, true
+		}
+	}
+
+	return *new(Key), false
 }
 
 func (set *ordMap[Key, Val, Data]) keys() []Key {

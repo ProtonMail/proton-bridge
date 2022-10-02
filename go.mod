@@ -24,6 +24,7 @@ require (
 	github.com/fatih/color v1.13.0
 	github.com/getsentry/sentry-go v0.13.0
 	github.com/go-resty/resty/v2 v2.7.0
+	github.com/goccy/go-json v0.9.11
 	github.com/godbus/dbus v4.1.0+incompatible
 	github.com/golang/mock v1.6.0
 	github.com/google/go-cmp v0.5.9
@@ -37,7 +38,7 @@ require (
 	github.com/sirupsen/logrus v1.9.0
 	github.com/stretchr/testify v1.8.0
 	github.com/urfave/cli/v2 v2.16.3
-	gitlab.protontech.ch/go/liteapi v0.31.1
+	gitlab.protontech.ch/go/liteapi v0.32.1-0.20221004092920-6b728aed0d4d
 	golang.org/x/exp v0.0.0-20220921164117-439092de6870
 	golang.org/x/net v0.1.0
 	golang.org/x/sys v0.1.0
@@ -81,7 +82,6 @@ require (
 	github.com/go-playground/locales v0.14.0 // indirect
 	github.com/go-playground/universal-translator v0.18.0 // indirect
 	github.com/go-playground/validator/v10 v10.11.0 // indirect
-	github.com/goccy/go-json v0.9.11 // indirect
 	github.com/gofrs/uuid v4.3.0+incompatible // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/glog v1.0.0 // indirect

@@ -5,11 +5,16 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io"
+	"net/mail"
 	"runtime"
 	"strings"
 
+	"github.com/ProtonMail/gluon/queue"
 	"github.com/ProtonMail/gluon/rfc822"
+	"github.com/ProtonMail/go-rfc5322"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
+	"github.com/ProtonMail/proton-bridge/v2/internal/events"
+	"github.com/ProtonMail/proton-bridge/v2/internal/vault"
 	"github.com/ProtonMail/proton-bridge/v2/pkg/message"
 	"github.com/ProtonMail/proton-bridge/v2/pkg/message/parser"
 	"github.com/bradenaw/juniper/parallel"
@@ -17,42 +22,67 @@ import (
 	"github.com/emersion/go-smtp"
 	"github.com/sirupsen/logrus"
 	"gitlab.protontech.ch/go/liteapi"
+	"golang.org/x/exp/slices"
 )
 
 type smtpSession struct {
+	// client is the user's API client.
 	client *liteapi.Client
 
-	username string
-	emails   map[string]string
+	// eventCh allows the session to publish events.
+	eventCh *queue.QueuedChannel[events.Event]
+
+	// userID is the user's ID.
+	userID string
+
+	// addrID holds the ID of the address that is currently being used.
+	addrID string
+
+	// addrMode holds the address mode that is currently being used.
+	addrMode vault.AddressMode
+
+	// emails holds all email addresses associated with the user, by address ID.
+	emails map[string]string
+
+	// settings holds the mail settings for the user.
 	settings liteapi.MailSettings
 
-	userKR  *crypto.KeyRing
+	// userKR holds the user's keyring.
+	userKR *crypto.KeyRing
+
+	// addrKRs holds the keyrings for each address.
 	addrKRs map[string]*crypto.KeyRing
 
-	from string
-	to   map[string]struct{}
+	// fromAddrID is the ID of the current sending address (taken from the return path).
+	fromAddrID string
+
+	// to holds all to for the current message.
+	to []string
 }
 
 func newSMTPSession(
 	client *liteapi.Client,
-	username string,
-	addresses map[string]string,
+	eventCh *queue.QueuedChannel[events.Event],
+	userID, addrID string,
+	addrMode vault.AddressMode,
+	emails map[string]string,
 	settings liteapi.MailSettings,
 	userKR *crypto.KeyRing,
 	addrKRs map[string]*crypto.KeyRing,
 ) *smtpSession {
 	return &smtpSession{
-		client: client,
+		client:  client,
+		eventCh: eventCh,
 
-		username: username,
-		emails:   addresses,
+		userID:   userID,
+		addrID:   addrID,
+		addrMode: addrMode,
+
+		emails:   emails,
 		settings: settings,
 
 		userKR:  userKR,
 		addrKRs: addrKRs,
-
-		from: "",
-		to:   make(map[string]struct{}),
 	}
 }
 
@@ -61,8 +91,8 @@ func (session *smtpSession) Reset() {
 	logrus.Info("SMTP session reset")
 
 	// Clear the from and to fields.
-	session.from = ""
-	session.to = make(map[string]struct{})
+	session.fromAddrID = ""
+	session.to = nil
 }
 
 // Free all resources associated with session.
@@ -78,25 +108,26 @@ func (session *smtpSession) Logout() error {
 func (session *smtpSession) Mail(from string, opts smtp.MailOptions) error {
 	logrus.Info("SMTP session mail")
 
-	if opts.RequireTLS {
+	switch {
+	case opts.RequireTLS:
 		return ErrNotImplemented
-	}
 
-	if opts.UTF8 {
+	case opts.UTF8:
 		return ErrNotImplemented
-	}
 
-	if opts.Auth != nil && *opts.Auth != "" && *opts.Auth != session.username {
-		return ErrNotImplemented
+	case opts.Auth != nil:
+		if *opts.Auth != "" && *opts.Auth != session.emails[session.addrID] {
+			return ErrNotImplemented
+		}
 	}
 
 	for addrID, email := range session.emails {
 		if strings.EqualFold(from, email) {
-			session.from = addrID
+			session.fromAddrID = addrID
 		}
 	}
 
-	if session.from == "" {
+	if session.fromAddrID == "" {
 		return ErrInvalidReturnPath
 	}
 
@@ -111,34 +142,23 @@ func (session *smtpSession) Rcpt(to string) error {
 		return ErrInvalidRecipient
 	}
 
-	session.to[to] = struct{}{}
+	if !slices.Contains(session.to, to) {
+		session.to = append(session.to, to)
+	}
 
 	return nil
 }
 
 // Set currently processed message contents and send it.
 func (session *smtpSession) Data(r io.Reader) error {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
 	logrus.Info("SMTP session data")
 
-	if session.from == "" {
+	switch {
+	case session.fromAddrID == "":
 		return ErrInvalidReturnPath
-	}
 
-	if len(session.to) == 0 {
+	case len(session.to) == 0:
 		return ErrInvalidRecipient
-	}
-
-	addrKR, ok := session.addrKRs[session.from]
-	if !ok {
-		return ErrMissingAddrKey
-	}
-
-	addrKey, err := addrKR.FirstKey()
-	if err != nil {
-		return fmt.Errorf("failed to get first key: %w", err)
 	}
 
 	parser, err := parser.New(r)
@@ -146,51 +166,216 @@ func (session *smtpSession) Data(r io.Reader) error {
 		return fmt.Errorf("failed to create parser: %w", err)
 	}
 
-	if session.settings.AttachPublicKey == liteapi.AttachPublicKeyEnabled {
-		key, err := addrKey.GetKey(0)
-		if err != nil {
-			return fmt.Errorf("failed to get user public key: %w", err)
+	// If the message contains a sender, use it instead of the one from the return path.
+	if sender, ok := getMessageSender(parser); ok {
+		for addrID, email := range session.emails {
+			if strings.EqualFold(email, sanitizeEmail(sender)) {
+				session.fromAddrID = addrID
+			}
 		}
-
-		pubKey, err := key.GetArmoredPublicKey()
-		if err != nil {
-			return fmt.Errorf("failed to get user public key: %w", err)
-		}
-
-		parser.AttachPublicKey(pubKey, fmt.Sprintf("publickey - %v - %v", addrKey.GetIdentities()[0].Name, key.GetFingerprint()[:8]))
 	}
 
-	message, err := message.ParseWithParser(parser)
+	addrKR, ok := session.addrKRs[session.fromAddrID]
+	if !ok {
+		return ErrMissingAddrKey
+	}
+
+	firstAddrKR, err := addrKR.FirstKey()
 	if err != nil {
-		return fmt.Errorf("failed to parse message: %w", err)
+		return fmt.Errorf("failed to get first key: %w", err)
 	}
 
-	draft, attKeys, err := session.createDraft(ctx, addrKey, message)
+	message, err := sendWithKey(
+		session.client,
+		session.addrID,
+		session.addrMode,
+		session.userKR,
+		firstAddrKR,
+		session.settings,
+		sanitizeEmail(session.emails[session.fromAddrID]),
+		session.to,
+		parser,
+	)
 	if err != nil {
-		return fmt.Errorf("failed to create draft: %w", err)
+		return fmt.Errorf("failed to send message: %w", err)
 	}
 
-	recipients, err := session.getRecipients(ctx, message.Recipients(), message.MIMEType)
-	if err != nil {
-		return fmt.Errorf("failed to get recipients: %w", err)
-	}
+	session.eventCh.Enqueue(events.MessageSent{
+		UserID:    session.userID,
+		AddressID: session.addrID,
+		MessageID: message.ID,
+	})
 
-	req, err := createSendReq(addrKey, message.MIMEBody, message.RichBody, message.PlainBody, recipients, attKeys)
-	if err != nil {
-		return fmt.Errorf("failed to create packages: %w", err)
-	}
-
-	res, err := session.client.SendDraft(ctx, draft.ID, req)
-	if err != nil {
-		return fmt.Errorf("failed to send draft: %w", err)
-	}
-
-	logrus.WithField("messageID", res.ID).Info("SMTP message sent")
+	logrus.WithField("messageID", message.ID).Info("Message sent")
 
 	return nil
 }
 
-func (session *smtpSession) createDraft(ctx context.Context, addrKR *crypto.KeyRing, message message.Message) (liteapi.Message, map[string]*crypto.SessionKey, error) {
+// sendWithKey sends the message with the given address key.
+func sendWithKey(
+	client *liteapi.Client,
+	addrID string,
+	addrMode vault.AddressMode,
+	userKR, addrKR *crypto.KeyRing,
+	settings liteapi.MailSettings,
+	from string,
+	to []string,
+	parser *parser.Parser,
+) (liteapi.Message, error) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	if settings.AttachPublicKey == liteapi.AttachPublicKeyEnabled {
+		key, err := addrKR.GetKey(0)
+		if err != nil {
+			return liteapi.Message{}, fmt.Errorf("failed to get user public key: %w", err)
+		}
+
+		pubKey, err := key.GetArmoredPublicKey()
+		if err != nil {
+			return liteapi.Message{}, fmt.Errorf("failed to get user public key: %w", err)
+		}
+
+		parser.AttachPublicKey(pubKey, fmt.Sprintf("publickey - %v - %v", addrKR.GetIdentities()[0].Name, key.GetFingerprint()[:8]))
+	}
+
+	message, err := message.ParseWithParser(parser)
+	if err != nil {
+		return liteapi.Message{}, fmt.Errorf("failed to parse message: %w", err)
+	}
+
+	if err := sanitizeParsedMessage(&message, from, to); err != nil {
+		return liteapi.Message{}, fmt.Errorf("failed to sanitize message: %w", err)
+	}
+
+	parentID, err := getParentID(ctx, client, addrID, addrMode, message.References)
+	if err != nil {
+		return liteapi.Message{}, fmt.Errorf("failed to get parent ID: %w", err)
+	}
+
+	draft, attKeys, err := createDraftWithAttachments(ctx, client, addrKR, message, parentID)
+	if err != nil {
+		return liteapi.Message{}, fmt.Errorf("failed to create draft: %w", err)
+	}
+
+	recipients, err := getRecipients(ctx, client, userKR, settings, message.Recipients(), message.MIMEType)
+	if err != nil {
+		return liteapi.Message{}, fmt.Errorf("failed to get recipients: %w", err)
+	}
+
+	req, err := createSendReq(addrKR, message.MIMEBody, message.RichBody, message.PlainBody, recipients, attKeys)
+	if err != nil {
+		return liteapi.Message{}, fmt.Errorf("failed to create packages: %w", err)
+	}
+
+	res, err := client.SendDraft(ctx, draft.ID, req)
+	if err != nil {
+		return liteapi.Message{}, fmt.Errorf("failed to send draft: %w", err)
+	}
+
+	return res, nil
+}
+
+func sanitizeParsedMessage(message *message.Message, from string, to []string) error {
+	// Check sender: set the sender in the parsed message if it's missing.
+	if message.Sender == nil {
+		message.Sender = &mail.Address{Address: from}
+	} else if message.Sender.Address == "" {
+		message.Sender.Address = from
+	}
+
+	// Check ToList: ensure that ToList only contains addresses we actually plan to send to.
+	message.ToList = xslices.Filter(message.ToList, func(addr *mail.Address) bool {
+		return slices.Contains(to, addr.Address)
+	})
+
+	// Check BCCList: any recipients not present in the ToList or CCList are BCC recipients.
+	for _, recipient := range to {
+		if !slices.Contains(message.Recipients(), recipient) {
+			message.BCCList = append(message.BCCList, &mail.Address{Address: recipient})
+		}
+	}
+
+	return nil
+}
+
+func getParentID(
+	ctx context.Context,
+	client *liteapi.Client,
+	addrID string,
+	addrMode vault.AddressMode,
+	references []string,
+) (string, error) {
+	var (
+		parentID string
+		internal []string
+		external []string
+	)
+
+	// Collect all the internal and external references of the message.
+	for _, ref := range references {
+		if strings.Contains(ref, message.InternalIDDomain) {
+			internal = append(internal, strings.TrimSuffix(ref, "@"+message.InternalIDDomain))
+		} else {
+			external = append(external, ref)
+		}
+	}
+
+	// Try to find a parent ID in the internal references.
+	for _, internal := range internal {
+		filter := map[string][]string{
+			"ID": {internal},
+		}
+
+		if addrMode == vault.SplitMode {
+			filter["AddressID"] = []string{addrID}
+		}
+
+		metadata, err := client.GetAllMessageMetadata(ctx, filter)
+		if err != nil {
+			return "", fmt.Errorf("failed to get message metadata: %w", err)
+		}
+
+		for _, metadata := range metadata {
+			if !metadata.IsDraft() {
+				parentID = metadata.ID
+			} else if err := client.DeleteMessage(ctx, metadata.ID); err != nil {
+				return "", fmt.Errorf("failed to delete message: %w", err)
+			}
+		}
+	}
+
+	// If no parent was found, try to find it in the last external reference.
+	// There can be multiple messages with the same external ID; in this case, we don't pick any parent.
+	if parentID == "" && len(external) > 0 {
+		filter := map[string][]string{
+			"ExternalID": {external[len(external)-1]},
+		}
+
+		if addrMode == vault.SplitMode {
+			filter["AddressID"] = []string{addrID}
+		}
+
+		metadata, err := client.GetAllMessageMetadata(ctx, filter)
+		if err != nil {
+			return "", fmt.Errorf("failed to get message metadata: %w", err)
+		}
+
+		if len(metadata) == 1 {
+			parentID = metadata[0].ID
+		}
+	}
+
+	return parentID, nil
+}
+
+func createDraftWithAttachments(
+	ctx context.Context,
+	client *liteapi.Client,
+	addrKR *crypto.KeyRing,
+	message message.Message,
+	parentID string,
+) (liteapi.Message, map[string]*crypto.SessionKey, error) {
 	encBody, err := addrKR.Encrypt(crypto.NewPlainMessageFromString(string(message.RichBody)), nil)
 	if err != nil {
 		return liteapi.Message{}, nil, fmt.Errorf("failed to encrypt message body: %w", err)
@@ -201,22 +386,26 @@ func (session *smtpSession) createDraft(ctx context.Context, addrKR *crypto.KeyR
 		return liteapi.Message{}, nil, fmt.Errorf("failed to armor message body: %w", err)
 	}
 
-	draft, err := session.client.CreateDraft(ctx, liteapi.CreateDraftReq{
+	draft, err := client.CreateDraft(ctx, liteapi.CreateDraftReq{
 		Message: liteapi.DraftTemplate{
-			Subject: message.Subject,
-			Sender:  message.Sender,
-			ToList:  message.ToList,
-			CCList:  message.CCList,
-			BCCList: message.BCCList,
-			Body:    armBody,
+			Subject:  message.Subject,
+			Sender:   message.Sender,
+			ToList:   message.ToList,
+			CCList:   message.CCList,
+			BCCList:  message.BCCList,
+			Body:     armBody,
+			MIMEType: message.MIMEType,
+
+			ExternalID: message.ExternalID,
 		},
-		AttachmentKeyPackets: []string{},
+
+		ParentID: parentID,
 	})
 	if err != nil {
 		return liteapi.Message{}, nil, fmt.Errorf("failed to create draft: %w", err)
 	}
 
-	attKeys, err := session.createAttachments(ctx, addrKR, draft.ID, message.Attachments)
+	attKeys, err := createAttachments(ctx, client, addrKR, draft.ID, message.Attachments)
 	if err != nil {
 		return liteapi.Message{}, nil, fmt.Errorf("failed to create attachments: %w", err)
 	}
@@ -224,7 +413,13 @@ func (session *smtpSession) createDraft(ctx context.Context, addrKR *crypto.KeyR
 	return draft, attKeys, nil
 }
 
-func (session *smtpSession) createAttachments(ctx context.Context, addrKR *crypto.KeyRing, draftID string, attachments []message.Attachment) (map[string]*crypto.SessionKey, error) {
+func createAttachments(
+	ctx context.Context,
+	client *liteapi.Client,
+	addrKR *crypto.KeyRing,
+	draftID string,
+	attachments []message.Attachment,
+) (map[string]*crypto.SessionKey, error) {
 	type attKey struct {
 		attID string
 		key   *crypto.SessionKey
@@ -241,7 +436,7 @@ func (session *smtpSession) createAttachments(ctx context.Context, addrKR *crypt
 			return attKey{}, fmt.Errorf("failed to encrypt attachment: %w", err)
 		}
 
-		attachment, err := session.client.UploadAttachment(ctx, liteapi.CreateAttachmentReq{
+		attachment, err := client.UploadAttachment(ctx, liteapi.CreateAttachmentReq{
 			Filename:    att.Name,
 			MessageID:   draftID,
 			MIMEType:    rfc822.MIMEType(att.MIMEType),
@@ -280,12 +475,19 @@ func (session *smtpSession) createAttachments(ctx context.Context, addrKR *crypt
 	return attKeys, nil
 }
 
-func (session *smtpSession) getRecipients(ctx context.Context, addresses []string, mimeType rfc822.MIMEType) (recipients, error) {
+func getRecipients(
+	ctx context.Context,
+	client *liteapi.Client,
+	userKR *crypto.KeyRing,
+	settings liteapi.MailSettings,
+	addresses []string,
+	mimeType rfc822.MIMEType,
+) (recipients, error) {
 	prefs, err := parallel.MapContext(ctx, runtime.NumCPU(), addresses, func(ctx context.Context, address string) (liteapi.SendPreferences, error) {
-		return session.getSendPrefs(ctx, address, mimeType)
+		return getSendPrefs(ctx, client, userKR, settings, address, mimeType)
 	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to get recipients: %w", err)
+		return nil, fmt.Errorf("failed to get send preferences: %w", err)
 	}
 
 	recipients := make(recipients)
@@ -297,22 +499,34 @@ func (session *smtpSession) getRecipients(ctx context.Context, addresses []strin
 	return recipients, nil
 }
 
-func (session *smtpSession) getSendPrefs(ctx context.Context, recipient string, mimeType rfc822.MIMEType) (liteapi.SendPreferences, error) {
-	pubKeys, internal, err := session.client.GetPublicKeys(ctx, recipient)
+func getSendPrefs(
+	ctx context.Context,
+	client *liteapi.Client,
+	userKR *crypto.KeyRing,
+	settings liteapi.MailSettings,
+	recipient string,
+	mimeType rfc822.MIMEType,
+) (liteapi.SendPreferences, error) {
+	pubKeys, recType, err := client.GetPublicKeys(ctx, recipient)
 	if err != nil {
 		return liteapi.SendPreferences{}, fmt.Errorf("failed to get public keys: %w", err)
 	}
 
-	settings, err := session.getContactSettings(ctx, recipient)
+	contactSettings, err := getContactSettings(ctx, client, userKR, recipient)
 	if err != nil {
 		return liteapi.SendPreferences{}, fmt.Errorf("failed to get contact settings: %w", err)
 	}
 
-	return buildSendPrefs(settings, session.settings, pubKeys, mimeType, internal)
+	return buildSendPrefs(contactSettings, settings, pubKeys, mimeType, recType == liteapi.RecipientTypeInternal)
 }
 
-func (session *smtpSession) getContactSettings(ctx context.Context, recipient string) (liteapi.ContactSettings, error) {
-	contacts, err := session.client.GetAllContactEmails(ctx, recipient)
+func getContactSettings(
+	ctx context.Context,
+	client *liteapi.Client,
+	userKR *crypto.KeyRing,
+	recipient string,
+) (liteapi.ContactSettings, error) {
+	contacts, err := client.GetAllContactEmails(ctx, recipient)
 	if err != nil {
 		return liteapi.ContactSettings{}, fmt.Errorf("failed to get contact data: %w", err)
 	}
@@ -325,10 +539,31 @@ func (session *smtpSession) getContactSettings(ctx context.Context, recipient st
 		return liteapi.ContactSettings{}, nil
 	}
 
-	contact, err := session.client.GetContact(ctx, contacts[idx].ContactID)
+	contact, err := client.GetContact(ctx, contacts[idx].ContactID)
 	if err != nil {
 		return liteapi.ContactSettings{}, fmt.Errorf("failed to get contact: %w", err)
 	}
 
-	return contact.GetSettings(session.userKR, recipient)
+	return contact.GetSettings(userKR, recipient)
+}
+
+func getMessageSender(parser *parser.Parser) (string, bool) {
+	address, err := rfc5322.ParseAddressList(parser.Root().Header.Get("From"))
+	if err != nil {
+		return "", false
+	} else if len(address) == 0 {
+		return "", false
+	}
+
+	return address[0].Address, true
+}
+
+func sanitizeEmail(email string) string {
+	splitAt := strings.Split(email, "@")
+	if len(splitAt) != 2 {
+		return email
+	}
+	splitPlus := strings.Split(splitAt[0], "+")
+	email = splitPlus[0] + "@" + splitAt[1]
+	return email
 }

@@ -2,6 +2,7 @@ package bridge_test
 
 import (
 	"context"
+	"net/http"
 	"os"
 	"testing"
 	"time"
@@ -127,7 +128,7 @@ func TestBridge_UserAgent(t *testing.T) {
 			require.NoError(t, err)
 
 			// Assert that the user agent was sent to the API.
-			require.Contains(t, calls[len(calls)-1].Request.Header.Get("User-Agent"), bridge.GetCurrentUserAgent())
+			require.Contains(t, calls[len(calls)-1].Header.Get("User-Agent"), bridge.GetCurrentUserAgent())
 		})
 	})
 }
@@ -147,7 +148,7 @@ func TestBridge_Cookies(t *testing.T) {
 			_, err := bridge.LoginUser(context.Background(), username, password, nil, nil)
 			require.NoError(t, err)
 
-			cookie, err := calls[len(calls)-1].Request.Cookie("Session-Id")
+			cookie, err := (&http.Request{Header: calls[len(calls)-1].Header}).Cookie("Session-Id")
 			require.NoError(t, err)
 
 			sessionID = cookie.Value
@@ -155,7 +156,7 @@ func TestBridge_Cookies(t *testing.T) {
 
 		// Start bridge again and check that it uses the same session ID.
 		withBridge(t, ctx, s.GetHostURL(), dialer, locator, vaultKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
-			cookie, err := calls[len(calls)-1].Request.Cookie("Session-Id")
+			cookie, err := (&http.Request{Header: calls[len(calls)-1].Header}).Cookie("Session-Id")
 			require.NoError(t, err)
 
 			require.Equal(t, sessionID, cookie.Value)
@@ -340,7 +341,7 @@ func withEnv(t *testing.T, tests func(ctx context.Context, server *server.Server
 	defer server.Close()
 
 	// Add test user.
-	_, _, err := server.AddUser(username, string(password), username+"@pm.me")
+	_, _, err := server.CreateUser(username, string(password), username+"@pm.me")
 	require.NoError(t, err)
 
 	// Generate a random vault key.

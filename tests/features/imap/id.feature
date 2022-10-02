@@ -17,4 +17,4 @@ Feature: The IMAP ID is propagated to bridge
     When user "user@pm.me" connects IMAP client "1"
     And IMAP client "1" announces its ID with name "name" and version "version"
     When the user reports a bug
-    Then the value of the "User-Agent" header in the request to "/core/v4/reports/bug" is "name/version ([GOOS])"
+    Then the header in the "POST" request to "/core/v4/reports/bug" has "User-Agent" set to "name/version ([GOOS])"

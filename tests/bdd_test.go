@@ -74,7 +74,8 @@ func TestFeatures(testingT *testing.T) {
 			ctx.Step(`^the internet is turned off$`, s.internetIsTurnedOff)
 			ctx.Step(`^the internet is turned on$`, s.internetIsTurnedOn)
 			ctx.Step(`^the user agent is "([^"]*)"$`, s.theUserAgentIs)
-			ctx.Step(`^the value of the "([^"]*)" header in the request to "([^"]*)" is "([^"]*)"$`, s.theValueOfTheHeaderInTheRequestToIs)
+			ctx.Step(`^the header in the "([^"]*)" request to "([^"]*)" has "([^"]*)" set to "([^"]*)"$`, s.theHeaderInTheRequestToHasSetTo)
+			ctx.Step(`^the body in the "([^"]*)" request to "([^"]*)" is:$`, s.theBodyInTheRequestToIs)
 
 			// ==== SETUP ====
 			ctx.Step(`^there exists an account with username "([^"]*)" and password "([^"]*)"$`, s.thereExistsAnAccountWithUsernameAndPassword)
@@ -167,8 +168,9 @@ func TestFeatures(testingT *testing.T) {
 			ctx.Step(`^SMTP client "([^"]*)" cannot authenticate with incorrect password$`, s.smtpClientCannotAuthenticateWithIncorrectPassword)
 			ctx.Step(`^SMTP client "([^"]*)" sends MAIL FROM "([^"]*)"$`, s.smtpClientSendsMailFrom)
 			ctx.Step(`^SMTP client "([^"]*)" sends RCPT TO "([^"]*)"$`, s.smtpClientSendsRcptTo)
-			ctx.Step(`^SMTP client "([^"]*)" sends DATA "([^"]*)"$`, s.smtpClientSendsData)
+			ctx.Step(`^SMTP client "([^"]*)" sends DATA:$`, s.smtpClientSendsData)
 			ctx.Step(`^SMTP client "([^"]*)" sends RSET$`, s.smtpClientSendsReset)
+			ctx.Step(`^SMTP client "([^"]*)" sends the following message from "([^"]*)" to "([^"]*)":$`, s.smtpClientSendsTheFollowingMessageFromTo)
 		},
 		Options: &godog.Options{
 			Format:   "pretty",

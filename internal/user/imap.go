@@ -25,7 +25,6 @@ const (
 )
 
 type imapConnector struct {
-	addrID   string
 	client   *liteapi.Client
 	updateCh <-chan imap.Update
 

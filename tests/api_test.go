@@ -1,6 +1,8 @@
 package tests
 
 import (
+	"net/mail"
+
 	"github.com/Masterminds/semver/v3"
 	"github.com/ProtonMail/gluon/rfc822"
 	"gitlab.protontech.ch/go/liteapi"
@@ -13,16 +15,16 @@ type API interface {
 	GetHostURL() string
 	AddCallWatcher(func(server.Call), ...string)
 
-	AddUser(username, password, address string) (string, string, error)
-	AddAddress(userID, address, password string) (string, error)
+	CreateUser(username, password, address string) (string, string, error)
+	CreateAddress(userID, address, password string) (string, error)
 	RemoveAddress(userID, addrID string) error
 	RevokeUser(userID string) error
 
 	GetLabels(userID string) ([]liteapi.Label, error)
-	AddLabel(userID, name string, labelType liteapi.LabelType) (string, error)
+	CreateLabel(userID, name string, labelType liteapi.LabelType) (string, error)
 
 	GetMessages(userID string) ([]liteapi.Message, error)
-	AddMessage(userID, addrID string, labelIDs []string, sender, recipient, subject, body string, mimeType rfc822.MIMEType, read, starred bool) (string, error)
+	CreateMessage(userID, addrID string, labelIDs []string, subject string, sender *mail.Address, toList, ccList, bccList []*mail.Address, decBody string, mimeType rfc822.MIMEType, read, starred bool) (string, error)
 
 	Close()
 }

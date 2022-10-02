@@ -33,12 +33,16 @@ func (list *addrList) addrIDs() []string {
 	return list.apiAddrs.keys()
 }
 
+func (list *addrList) addrID(email string) (string, bool) {
+	return list.apiAddrs.getKey(email)
+}
+
 func (list *addrList) emails() []string {
 	return list.apiAddrs.values()
 }
 
-func (list *addrList) email(addrID string) string {
-	return list.apiAddrs.get(addrID)
+func (list *addrList) email(addrID string) (string, bool) {
+	return list.apiAddrs.getVal(addrID)
 }
 
 func (list *addrList) addrMap() map[string]string {

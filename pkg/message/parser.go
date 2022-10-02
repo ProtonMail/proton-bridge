@@ -43,12 +43,11 @@ type MIMEBody string
 type Body string
 
 type Message struct {
-	Header     mail.Header
-	MIMEBody   MIMEBody
-	RichBody   Body
-	PlainBody  Body
-	Time       int64
-	ExternalID string
+	MIMEBody    MIMEBody
+	RichBody    Body
+	PlainBody   Body
+	Attachments []Attachment
+	MIMEType    rfc822.MIMEType
 
 	Subject  string
 	Sender   *mail.Address
@@ -57,8 +56,8 @@ type Message struct {
 	BCCList  []*mail.Address
 	ReplyTos []*mail.Address
 
-	MIMEType    rfc822.MIMEType
-	Attachments []Attachment
+	References []string
+	ExternalID string
 }
 
 func (m *Message) Recipients() []string {
@@ -447,16 +446,7 @@ func getPlainBody(part *parser.Part) []byte {
 func parseMessageHeader(h message.Header) (Message, error) { //nolint:funlen
 	var m Message
 
-	mimeHeader, err := toMailHeader(h)
-	if err != nil {
-		return Message{}, err
-	}
-
-	m.Header = mimeHeader
-
-	fields := h.Fields()
-
-	for fields.Next() {
+	for fields := h.Fields(); fields.Next(); {
 		switch strings.ToLower(fields.Key()) {
 		case "subject":
 			s, err := fields.Text()
@@ -473,6 +463,7 @@ func parseMessageHeader(h message.Header) (Message, error) { //nolint:funlen
 			if err != nil {
 				return Message{}, errors.Wrap(err, "failed to parse from")
 			}
+
 			if len(sender) > 0 {
 				m.Sender = sender[0]
 			}
@@ -482,6 +473,7 @@ func parseMessageHeader(h message.Header) (Message, error) { //nolint:funlen
 			if err != nil {
 				return Message{}, errors.Wrap(err, "failed to parse to")
 			}
+
 			m.ToList = toList
 
 		case "reply-to":
@@ -489,6 +481,7 @@ func parseMessageHeader(h message.Header) (Message, error) { //nolint:funlen
 			if err != nil {
 				return Message{}, errors.Wrap(err, "failed to parse reply-to")
 			}
+
 			m.ReplyTos = replyTos
 
 		case "cc":
@@ -496,6 +489,7 @@ func parseMessageHeader(h message.Header) (Message, error) { //nolint:funlen
 			if err != nil {
 				return Message{}, errors.Wrap(err, "failed to parse cc")
 			}
+
 			m.CCList = ccList
 
 		case "bcc":
@@ -503,17 +497,16 @@ func parseMessageHeader(h message.Header) (Message, error) { //nolint:funlen
 			if err != nil {
 				return Message{}, errors.Wrap(err, "failed to parse bcc")
 			}
-			m.BCCList = bccList
 
-		case "date":
-			date, err := rfc5322.ParseDateTime(fields.Value())
-			if err != nil {
-				return Message{}, errors.Wrap(err, "failed to parse date")
-			}
-			m.Time = date.Unix()
+			m.BCCList = bccList
 
 		case "message-id":
 			m.ExternalID = regexp.MustCompile("<(.*)>").ReplaceAllString(fields.Value(), "$1")
+
+		case "references":
+			m.References = append(m.References, xslices.Map(strings.Fields(fields.Value()), func(ref string) string {
+				return strings.Trim(ref, "<>")
+			})...)
 		}
 	}
 

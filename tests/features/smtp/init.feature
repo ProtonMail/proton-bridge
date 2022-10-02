@@ -6,7 +6,10 @@ Feature: SMTP initiation
     When user "user@pm.me" connects and authenticates SMTP client "1"
 
   Scenario: Send without first announcing FROM and TO
-    When SMTP client "1" sends DATA "Subject: test"
+    When SMTP client "1" sends DATA:
+      """
+      Subject: test
+      """
     Then it fails with error "Missing RCPT TO command"
 
   Scenario: Reset is the same as without FROM and TO
@@ -16,7 +19,10 @@ Feature: SMTP initiation
     Then it succeeds
     When SMTP client "1" sends RSET
     Then it succeeds
-    When SMTP client "1" sends DATA "Subject: test"
+    When SMTP client "1" sends DATA:
+      """
+      Subject: test
+      """
     Then it fails with error "Missing RCPT TO command"
 
   Scenario: Send without FROM
@@ -26,7 +32,10 @@ Feature: SMTP initiation
   Scenario: Send without TO
     When SMTP client "1" sends MAIL FROM "<user@pm.me>"
     Then it succeeds
-    When SMTP client "1" sends DATA "Subject: test"
+    When SMTP client "1" sends DATA:
+      """
+      Subject: test
+      """
     Then it fails with error "Missing RCPT TO command"
 
   Scenario: Send with empty FROM

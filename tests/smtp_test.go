@@ -5,6 +5,7 @@ import (
 	"net/smtp"
 
 	"github.com/ProtonMail/proton-bridge/v2/internal/constants"
+	"github.com/cucumber/godog"
 )
 
 func (s *scenario) userConnectsSMTPClient(username, clientID string) error {
@@ -87,13 +88,13 @@ func (s *scenario) smtpClientSendsRcptTo(clientID, to string) error {
 	return nil
 }
 
-func (s *scenario) smtpClientSendsData(clientID, data string) error {
+func (s *scenario) smtpClientSendsData(clientID string, data *godog.DocString) error {
 	_, client := s.t.getSMTPClient(clientID)
 
 	rc, err := client.Data()
 	if err != nil {
 		s.t.pushError(err)
-	} else if _, err := rc.Write([]byte(data)); err != nil {
+	} else if _, err := rc.Write([]byte(data.Content)); err != nil {
 		s.t.pushError(err)
 	} else if err := rc.Close(); err != nil {
 		s.t.pushError(err)
@@ -106,6 +107,33 @@ func (s *scenario) smtpClientSendsReset(clientID string) error {
 	_, client := s.t.getSMTPClient(clientID)
 
 	s.t.pushError(client.Reset())
+
+	return nil
+}
+
+func (s *scenario) smtpClientSendsTheFollowingMessageFromTo(clientID, from, to string, message *godog.DocString) error {
+	_, client := s.t.getSMTPClient(clientID)
+
+	s.t.pushError(func() error {
+		if err := client.Mail(from); err != nil {
+			return err
+		}
+
+		if err := client.Rcpt(to); err != nil {
+			return err
+		}
+
+		wc, err := client.Data()
+		if err != nil {
+			return err
+		}
+
+		if _, err := wc.Write([]byte(message.Content)); err != nil {
+			return err
+		}
+
+		return wc.Close()
+	}())
 
 	return nil
 }

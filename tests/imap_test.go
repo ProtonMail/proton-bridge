@@ -280,12 +280,28 @@ func (s *scenario) imapClientSeesTheFollowingMessagesInMailbox(clientID, mailbox
 	}
 
 	haveMessages := xslices.Map(fetch, func(msg *imap.Message) Message {
-		return Message{
-			Sender:    msg.Envelope.Sender[0].Address(),
-			Recipient: msg.Envelope.To[0].Address(),
-			Subject:   msg.Envelope.Subject,
-			Unread:    slices.Contains(msg.Flags, imap.SeenFlag),
+		message := Message{
+			Subject: msg.Envelope.Subject,
+			Unread:  slices.Contains(msg.Flags, imap.SeenFlag),
 		}
+
+		if len(msg.Envelope.From) > 0 {
+			message.From = msg.Envelope.From[0].Address()
+		}
+
+		if len(msg.Envelope.To) > 0 {
+			message.To = msg.Envelope.To[0].Address()
+		}
+
+		if len(msg.Envelope.Cc) > 0 {
+			message.CC = msg.Envelope.Cc[0].Address()
+		}
+
+		if len(msg.Envelope.Bcc) > 0 {
+			message.BCC = msg.Envelope.Bcc[0].Address()
+		}
+
+		return message
 	})
 
 	return matchMessages(haveMessages, table)

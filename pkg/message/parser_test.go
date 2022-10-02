@@ -581,10 +581,13 @@ func TestParseEncodedContentTypeBad(t *testing.T) {
 	require.Error(t, err)
 }
 
-type panicReader struct{}
+func TestParseMessageReferences(t *testing.T) {
+	f := getFileReader("references.eml")
 
-func (panicReader) Read(p []byte) (int, error) {
-	panic("lol")
+	m, err := Parse(f)
+	require.NoError(t, err)
+
+	assert.Len(t, m.References, 2)
 }
 
 func TestParsePanic(t *testing.T) {
@@ -602,4 +605,10 @@ func getFileReader(filename string) io.Reader {
 	}
 
 	return f
+}
+
+type panicReader struct{}
+
+func (panicReader) Read(p []byte) (int, error) {
+	panic("lol")
 }

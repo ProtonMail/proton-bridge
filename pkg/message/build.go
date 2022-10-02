@@ -30,6 +30,7 @@ import (
 	"github.com/ProtonMail/go-rfc5322"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/ProtonMail/proton-bridge/v2/pkg/algo"
+	"github.com/bradenaw/juniper/xslices"
 	"github.com/emersion/go-message"
 	"github.com/emersion/go-message/textproto"
 	"github.com/pkg/errors"
@@ -440,8 +441,10 @@ func getMessageHeader(msg liteapi.Message, opts JobOptions) message.Header { //n
 
 	// Include the message ID in the references (supposedly this somehow improves outlook support...).
 	if opts.AddMessageIDReference {
-		if references := hdr.Get("References"); !strings.Contains(references, msg.ID) {
-			hdr.Set("References", references+" <"+msg.ID+"@"+InternalIDDomain+">")
+		if refs := hdr.Values("References"); xslices.IndexFunc(refs, func(ref string) bool {
+			return strings.Contains(ref, msg.ID)
+		}) < 0 {
+			hdr.Set("References", strings.Join(append(refs, "<"+msg.ID+"@"+InternalIDDomain+">"), " "))
 		}
 	}
 

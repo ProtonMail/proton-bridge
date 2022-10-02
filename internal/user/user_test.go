@@ -98,13 +98,13 @@ func withAPI(t *testing.T, ctx context.Context, username, password string, email
 
 	var addrIDs []string
 
-	userID, addrID, err := server.AddUser(username, password, emails[0])
+	userID, addrID, err := server.CreateUser(username, password, emails[0])
 	require.NoError(t, err)
 
 	addrIDs = append(addrIDs, addrID)
 
 	for _, email := range emails[1:] {
-		addrID, err := server.AddAddress(userID, email, password)
+		addrID, err := server.CreateAddress(userID, email, password)
 		require.NoError(t, err)
 
 		addrIDs = append(addrIDs, addrID)

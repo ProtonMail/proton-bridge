@@ -2,6 +2,7 @@ package tests
 
 import (
 	"fmt"
+	"reflect"
 	"strconv"
 	"time"
 
@@ -13,10 +14,24 @@ import (
 )
 
 type Message struct {
-	Sender    string
-	Recipient string
-	Subject   string
-	Unread    bool
+	Subject string `bdd:"subject"`
+
+	From string `bdd:"sender"`
+	To   string `bdd:"recipient"`
+	CC   string `bdd:"cc"`
+	BCC  string `bdd:"bcc"`
+
+	Unread bool `bdd:"unread"`
+}
+
+func newMessageFromRow(header, row *messages.PickleTableRow) Message {
+	var msg Message
+
+	if err := unmarshalRow(header, row, &msg); err != nil {
+		panic(err)
+	}
+
+	return msg
 }
 
 func matchMessages(have []Message, want *godog.Table) error {
@@ -28,20 +43,27 @@ func matchMessages(have []Message, want *godog.Table) error {
 }
 
 func parseMessages(table *godog.Table) []Message {
+	header := table.Rows[0]
+
 	return xslices.Map(table.Rows[1:], func(row *messages.PickleTableRow) Message {
-		return Message{
-			Sender:    row.Cells[0].Value,
-			Recipient: row.Cells[1].Value,
-			Subject:   row.Cells[2].Value,
-			Unread:    mustParseBool(row.Cells[3].Value),
-		}
+		return newMessageFromRow(header, row)
 	})
 }
 
 type Mailbox struct {
-	Name   string
-	Total  int
-	Unread int
+	Name   string `bdd:"name"`
+	Total  int    `bdd:"total"`
+	Unread int    `bdd:"unread"`
+}
+
+func newMailboxFromRow(header, row *messages.PickleTableRow) Mailbox {
+	var mbox Mailbox
+
+	if err := unmarshalRow(header, row, &mbox); err != nil {
+		panic(err)
+	}
+
+	return mbox
 }
 
 func matchMailboxes(have []Mailbox, want *godog.Table) error {
@@ -53,31 +75,11 @@ func matchMailboxes(have []Mailbox, want *godog.Table) error {
 }
 
 func parseMailboxes(table *godog.Table) []Mailbox {
-	mustParseInt := func(s string) int {
-		i, err := strconv.Atoi(s)
-		if err != nil {
-			panic(err)
-		}
-
-		return i
-	}
+	header := table.Rows[0]
 
 	return xslices.Map(table.Rows[1:], func(row *messages.PickleTableRow) Mailbox {
-		return Mailbox{
-			Name:   row.Cells[0].Value,
-			Total:  mustParseInt(row.Cells[1].Value),
-			Unread: mustParseInt(row.Cells[2].Value),
-		}
+		return newMailboxFromRow(header, row)
 	})
-}
-
-func mustParseBool(s string) bool {
-	v, err := strconv.ParseBool(s)
-	if err != nil {
-		panic(err)
-	}
-
-	return v
 }
 
 func eventually(condition func() error, waitFor, tick time.Duration) error {
@@ -107,4 +109,63 @@ func eventually(condition func() error, waitFor, tick time.Duration) error {
 			tick = ticker.C
 		}
 	}
+}
+
+func getCellValue(header, row *messages.PickleTableRow, name string) (string, bool) {
+	for idx, cell := range header.Cells {
+		if cell.Value == name {
+			return row.Cells[idx].Value, true
+		}
+	}
+
+	return "", false
+}
+
+func unmarshalRow(header, row *messages.PickleTableRow, v any) error {
+	typ := reflect.TypeOf(v).Elem()
+
+	for idx := 0; idx < typ.NumField(); idx++ {
+		field := typ.Field(idx)
+
+		if tag, ok := field.Tag.Lookup("bdd"); ok {
+			cell, ok := getCellValue(header, row, tag)
+			if !ok {
+				continue
+			}
+
+			switch field.Type.Kind() {
+			case reflect.String:
+				reflect.ValueOf(v).Elem().Field(idx).SetString(cell)
+
+			case reflect.Int:
+				reflect.ValueOf(v).Elem().Field(idx).SetInt(int64(mustParseInt(cell)))
+
+			case reflect.Bool:
+				reflect.ValueOf(v).Elem().Field(idx).SetBool(mustParseBool(cell))
+
+			default:
+				return fmt.Errorf("unsupported type %q", field.Type.Kind())
+			}
+		}
+	}
+
+	return nil
+}
+
+func mustParseInt(s string) int {
+	i, err := strconv.Atoi(s)
+	if err != nil {
+		panic(err)
+	}
+
+	return i
+}
+
+func mustParseBool(s string) bool {
+	v, err := strconv.ParseBool(s)
+	if err != nil {
+		panic(err)
+	}
+
+	return v
 }

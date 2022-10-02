@@ -18,7 +18,6 @@ import (
 	"github.com/sirupsen/logrus"
 	"gitlab.protontech.ch/go/liteapi"
 	"golang.org/x/exp/maps"
-	"golang.org/x/exp/slices"
 )
 
 var (
@@ -143,7 +142,11 @@ func (user *User) Match(query string) bool {
 		return true
 	}
 
-	return slices.Contains(user.apiAddrs.emails(), query)
+	if _, ok := user.apiAddrs.addrID(query); ok {
+		return true
+	}
+
+	return false
 }
 
 // Emails returns all the user's email addresses.
@@ -289,7 +292,12 @@ func (user *User) NewIMAPConnector(addrID string) (connector.Connector, error) {
 		emails = user.apiAddrs.emails()
 
 	case vault.SplitMode:
-		emails = []string{user.apiAddrs.email(addrID)}
+		email, ok := user.apiAddrs.email(addrID)
+		if !ok {
+			return nil, fmt.Errorf("address %s not found", addrID)
+		}
+
+		emails = []string{email}
 	}
 
 	return newIMAPConnector(
@@ -319,8 +327,23 @@ func (user *User) NewIMAPConnectors() (map[string]connector.Connector, error) {
 }
 
 // NewSMTPSession returns an SMTP session for the user.
-func (user *User) NewSMTPSession(username string) smtp.Session {
-	return newSMTPSession(user.client, username, user.apiAddrs.addrMap(), user.settings, user.userKR, user.addrKRs)
+func (user *User) NewSMTPSession(email string) (smtp.Session, error) {
+	addrID, ok := user.apiAddrs.addrID(email)
+	if !ok {
+		return nil, ErrNoSuchAddress
+	}
+
+	return newSMTPSession(
+		user.client,
+		user.eventCh,
+		user.apiUser.ID,
+		addrID,
+		user.vault.AddressMode(),
+		user.apiAddrs.addrMap(),
+		user.settings,
+		user.userKR,
+		user.addrKRs,
+	), nil
 }
 
 // Logout logs the user out from the API.

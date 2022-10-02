@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/mail"
 	"time"
 
 	"github.com/ProtonMail/gluon/rfc822"
@@ -17,7 +18,7 @@ import (
 
 func (s *scenario) thereExistsAnAccountWithUsernameAndPassword(username, password string) error {
 	// Create the user.
-	userID, addrID, err := s.t.api.AddUser(username, password, username)
+	userID, addrID, err := s.t.api.CreateUser(username, password, username)
 	if err != nil {
 		return err
 	}
@@ -37,7 +38,7 @@ func (s *scenario) thereExistsAnAccountWithUsernameAndPassword(username, passwor
 func (s *scenario) theAccountHasAdditionalAddress(username, address string) error {
 	userID := s.t.getUserID(username)
 
-	addrID, err := s.t.api.AddAddress(userID, address, s.t.getUserPass(userID))
+	addrID, err := s.t.api.CreateAddress(userID, address, s.t.getUserPass(userID))
 	if err != nil {
 		return err
 	}
@@ -62,7 +63,7 @@ func (s *scenario) theAccountNoLongerHasAdditionalAddress(username, address stri
 
 func (s *scenario) theAccountHasCustomFolders(username string, count int) error {
 	for idx := 0; idx < count; idx++ {
-		if _, err := s.t.api.AddLabel(s.t.getUserID(username), uuid.NewString(), liteapi.LabelTypeFolder); err != nil {
+		if _, err := s.t.api.CreateLabel(s.t.getUserID(username), uuid.NewString(), liteapi.LabelTypeFolder); err != nil {
 			return err
 		}
 	}
@@ -72,7 +73,7 @@ func (s *scenario) theAccountHasCustomFolders(username string, count int) error 
 
 func (s *scenario) theAccountHasCustomLabels(username string, count int) error {
 	for idx := 0; idx < count; idx++ {
-		if _, err := s.t.api.AddLabel(s.t.getUserID(username), uuid.NewString(), liteapi.LabelTypeLabel); err != nil {
+		if _, err := s.t.api.CreateLabel(s.t.getUserID(username), uuid.NewString(), liteapi.LabelTypeLabel); err != nil {
 			return err
 		}
 	}
@@ -103,7 +104,7 @@ func (s *scenario) theAccountHasTheFollowingCustomMailboxes(username string, tab
 	})
 
 	for _, wantMailbox := range wantMailboxes {
-		if _, err := s.t.api.AddLabel(s.t.getUserID(username), wantMailbox.name, wantMailbox.typ); err != nil {
+		if _, err := s.t.api.CreateLabel(s.t.getUserID(username), wantMailbox.name, wantMailbox.typ); err != nil {
 			return err
 		}
 	}
@@ -117,13 +118,15 @@ func (s *scenario) theAddressOfAccountHasTheFollowingMessagesInMailbox(address, 
 	mboxID := s.t.getMBoxID(userID, mailbox)
 
 	for _, wantMessage := range parseMessages(table) {
-		if _, err := s.t.api.AddMessage(
+		if _, err := s.t.api.CreateMessage(
 			userID,
 			addrID,
 			[]string{mboxID},
-			wantMessage.Sender,
-			wantMessage.Recipient,
 			wantMessage.Subject,
+			&mail.Address{Address: wantMessage.From},
+			[]*mail.Address{{Address: wantMessage.To}},
+			[]*mail.Address{},
+			[]*mail.Address{},
 			"some body goes here",
 			rfc822.TextPlain,
 			wantMessage.Unread,
@@ -142,16 +145,18 @@ func (s *scenario) theAddressOfAccountHasMessagesInMailbox(address, username str
 	mboxID := s.t.getMBoxID(userID, mailbox)
 
 	for idx := 0; idx < count; idx++ {
-		if _, err := s.t.api.AddMessage(
+		if _, err := s.t.api.CreateMessage(
 			userID,
 			addrID,
 			[]string{mboxID},
-			fmt.Sprintf("sender%v@pm.me", idx),
-			fmt.Sprintf("recipient%v@pm.me", idx),
-			fmt.Sprintf("subject %v", idx),
-			fmt.Sprintf("body %v", idx),
+			fmt.Sprintf("subject %d", idx),
+			&mail.Address{Address: fmt.Sprintf("sender %d", idx)},
+			[]*mail.Address{{Address: fmt.Sprintf("recipient %d", idx)}},
+			[]*mail.Address{},
+			[]*mail.Address{},
+			fmt.Sprintf("body %d", idx),
 			rfc822.TextPlain,
-			false,
+			idx%2 == 0,
 			false,
 		); err != nil {
 			return err
