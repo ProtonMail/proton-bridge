@@ -69,6 +69,30 @@ func NewTLSTemplate() (*x509.Certificate, error) {
 	}, nil
 }
 
+// NewPEMKeyPair return a new TLS private key and certificate in PEM encoded format.
+func NewPEMKeyPair() (pemCert, pemKey []byte, err error) {
+	template, err := NewTLSTemplate()
+	if err != nil {
+		return nil, nil, errors.Wrap(err, "failed to generate TLS template")
+	}
+
+	priv, err := rsa.GenerateKey(rand.Reader, 2048)
+	if err != nil {
+		return nil, nil, errors.Wrap(err, "failed to generate private key")
+	}
+
+	pemKey = pem.EncodeToMemory(&pem.Block{Type: "RSA PRIVATE KEY", Bytes: x509.MarshalPKCS1PrivateKey(priv)})
+
+	derBytes, err := x509.CreateCertificate(rand.Reader, template, template, &priv.PublicKey, priv)
+	if err != nil {
+		return nil, nil, errors.Wrap(err, "failed to create certificate")
+	}
+
+	pemCert = pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: derBytes})
+
+	return pemCert, pemKey, nil
+}
+
 var ErrTLSCertExpiresSoon = fmt.Errorf("TLS certificate will expire soon")
 
 // getTLSCertPath returns path to certificate; used for TLS servers (IMAP, SMTP).
@@ -132,6 +156,21 @@ func (t *TLS) GetConfig() (*tls.Config, error) {
 		return nil, errors.Wrap(err, "failed to load keypair")
 	}
 
+	return getConfigFromKeyPair(c)
+}
+
+// GetConfigFromPEMKeyPair load a TLS config from PEM encoded certificate and key.
+func GetConfigFromPEMKeyPair(permCert, pemKey []byte) (*tls.Config, error) {
+	c, err := tls.X509KeyPair(permCert, pemKey)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to load keypair")
+	}
+
+	return getConfigFromKeyPair(c)
+}
+
+func getConfigFromKeyPair(c tls.Certificate) (*tls.Config, error) {
+	var err error
 	c.Leaf, err = x509.ParseCertificate(c.Certificate[0])
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to parse certificate")

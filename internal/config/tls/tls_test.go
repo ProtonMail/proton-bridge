@@ -75,3 +75,11 @@ func TestGetValidConfig(t *testing.T) {
 	now, notValidAfter := time.Now(), config.Certificates[0].Leaf.NotAfter
 	require.False(t, now.After(notValidAfter), "new certificate expected to be valid at %v but have valid until %v", now, notValidAfter)
 }
+
+func TestNewConfig(t *testing.T) {
+	pemCert, pemKey, err := NewPEMKeyPair()
+	require.NoError(t, err)
+
+	_, err = GetConfigFromPEMKeyPair(pemCert, pemKey)
+	require.NoError(t, err)
+}

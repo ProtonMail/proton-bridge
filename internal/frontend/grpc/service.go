@@ -31,6 +31,7 @@ import (
 
 	"github.com/ProtonMail/proton-bridge/v2/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/v2/internal/config/settings"
+	"github.com/ProtonMail/proton-bridge/v2/internal/config/tls"
 	"github.com/ProtonMail/proton-bridge/v2/internal/events"
 	"github.com/ProtonMail/proton-bridge/v2/internal/frontend/types"
 	"github.com/ProtonMail/proton-bridge/v2/internal/locations"
@@ -76,6 +77,7 @@ type Service struct { // nolint:structcheck
 	initializationDone sync.Once
 	firstTimeAutostart sync.Once
 	locations          *locations.Locations
+	pemCert            string
 }
 
 // NewService returns a new instance of the service.
@@ -108,23 +110,21 @@ func NewService(
 	// set to 1
 	s.initializing.Add(1)
 
-	config, err := bridge.GetTLSConfig()
-	config.ClientAuth = cryptotls.NoClientCert // skip client auth if the certificate allow it.
+	tlsConfig, pemCert, err := s.generateTLSConfig()
 	if err != nil {
-		s.log.WithError(err).Error("could not get TLS config")
-		panic(err)
+		s.log.WithError(err).Panic("could not generate gRPC TLS config")
 	}
 
-	s.initAutostart()
+	s.pemCert = string(pemCert)
 
-	s.grpcServer = grpc.NewServer(grpc.Creds(credentials.NewTLS(config)))
+	s.initAutostart()
+	s.grpcServer = grpc.NewServer(grpc.Creds(credentials.NewTLS(tlsConfig)))
 
 	RegisterBridgeServer(s.grpcServer, &s)
 
 	s.listener, err = net.Listen("tcp", "127.0.0.1:0") // Port 0 means that the port is randomly picked by the system.
-
 	if err != nil {
-		s.log.WithError(err).Panic("could not create listener")
+		s.log.WithError(err).Panic("could not create gRPC listener")
 	}
 
 	if err := s.saveGRPCServerConfigFile(); err != nil {
@@ -404,13 +404,32 @@ func (s *Service) installUpdate() {
 	_ = s.SendEvent(NewUpdateSilentRestartNeededEvent())
 }
 
+func (s *Service) generateTLSConfig() (tlsConfig *cryptotls.Config, pemCert []byte, err error) {
+	pemCert, pemKey, err := tls.NewPEMKeyPair()
+	if err != nil {
+		return nil, nil, errors.New("Could not get TLS config")
+	}
+
+	tlsConfig, err = tls.GetConfigFromPEMKeyPair(pemCert, pemKey)
+	if err != nil {
+		return nil, nil, errors.New("Could not get TLS config")
+	}
+
+	tlsConfig.ClientAuth = cryptotls.NoClientCert // skip client auth if the certificate allow it.
+
+	return tlsConfig, pemCert, nil
+}
+
 func (s *Service) saveGRPCServerConfigFile() error {
 	address, ok := s.listener.Addr().(*net.TCPAddr)
 	if !ok {
 		return fmt.Errorf("could not retrieve gRPC service listener address")
 	}
 
-	sc := config{Port: address.Port}
+	sc := config{
+		Port: address.Port,
+		Cert: s.pemCert,
+	}
 
 	settingsPath, err := s.locations.ProvideSettingsPath()
 	if err != nil {

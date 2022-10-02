@@ -204,9 +204,6 @@ public:
     grpc::Status runEventStreamReader(); ///< Retrieve and signal the events in the event stream.
     grpc::Status stopEventStreamReader(); ///< Stop the event stream.
 
-private slots:
-    void configFolderChanged();
-
 private:
     void logTrace(QString const &message); ///< Log an event.
     void logError(QString const &message); ///< Log an event.
@@ -223,8 +220,6 @@ private:
     grpc::Status methodWithStringParam(StringParamMethod method, QString const &str); ///< Perform a gRPC call that takes a string as a parameter and returns an Empty.
     SPUser parseGRPCUser(grpc::User const &grpcUser); ///< Parse a gRPC user struct and return a User.
 
-
-    std::string getServerCertificate(); ///< Wait until server certificates is generated and retrieve it.
     void processAppEvent(grpc::AppEvent const &event); ///< Process an 'App' event.
     void processLoginEvent(grpc::LoginEvent const &event); ///< Process a 'Login' event.
     void processUpdateEvent(grpc::UpdateEvent const &event); ///< Process an 'Update' event.
