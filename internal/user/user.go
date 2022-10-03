@@ -205,8 +205,8 @@ func (user *User) GluonKey() []byte {
 }
 
 // BridgePass returns the user's bridge password, used for authentication over SMTP and IMAP.
-func (user *User) BridgePass() string {
-	return user.vault.BridgePass()
+func (user *User) BridgePass() []byte {
+	return []byte(user.vault.BridgePass())
 }
 
 // UsedSpace returns the total space used by the user on the API.

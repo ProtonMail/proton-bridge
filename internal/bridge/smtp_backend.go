@@ -23,7 +23,7 @@ func (backend *smtpBackend) Login(state *smtp.ConnectionState, username string, 
 	defer backend.usersLock.RUnlock()
 
 	for _, user := range backend.users {
-		if slices.Contains(user.Emails(), username) && user.BridgePass() == password {
+		if slices.Contains(user.Emails(), username) && string(user.BridgePass()) == password {
 			return user.NewSMTPSession(username), nil
 		}
 	}

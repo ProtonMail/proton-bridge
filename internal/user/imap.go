@@ -30,7 +30,7 @@ type imapConnector struct {
 	updateCh <-chan imap.Update
 
 	emails   []string
-	password string
+	password []byte
 
 	flags, permFlags, attrs imap.FlagSet
 }
@@ -38,7 +38,7 @@ type imapConnector struct {
 func newIMAPConnector(
 	client *liteapi.Client,
 	updateCh <-chan imap.Update,
-	password string,
+	password []byte,
 	emails ...string,
 ) *imapConnector {
 	return &imapConnector{
@@ -55,8 +55,8 @@ func newIMAPConnector(
 }
 
 // Authorize returns whether the given username/password combination are valid for this connector.
-func (conn *imapConnector) Authorize(username string, password string) bool {
-	if subtle.ConstantTimeCompare([]byte(conn.password), []byte(password)) != 1 {
+func (conn *imapConnector) Authorize(username string, password []byte) bool {
+	if subtle.ConstantTimeCompare(conn.password, password) != 1 {
 		return false
 	}
 

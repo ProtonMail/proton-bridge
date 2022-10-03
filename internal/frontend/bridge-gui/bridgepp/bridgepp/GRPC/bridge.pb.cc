@@ -1336,7 +1336,7 @@ const char descriptor_table_protodef_bridge_2eproto[] PROTOBUF_SECTION_VARIABLE(
   "\001 \001(\t\022\021\n\tosVersion\030\002 \001(\t\022\023\n\013description\030"
   "\003 \001(\t\022\017\n\007address\030\004 \001(\t\022\023\n\013emailClient\030\005 "
   "\001(\t\022\023\n\013includeLogs\030\006 \001(\010\"2\n\014LoginRequest"
-  "\022\020\n\010username\030\001 \001(\t\022\020\n\010password\030\002 \001(\t\"%\n\021"
+  "\022\020\n\010username\030\001 \001(\t\022\020\n\010password\030\002 \001(\014\"%\n\021"
   "LoginAbortRequest\022\020\n\010username\030\001 \001(\t\"0\n\027C"
   "hangeLocalCacheRequest\022\025\n\rdiskCachePath\030"
   "\002 \001(\t\"8\n\022ChangePortsRequest\022\020\n\010imapPort\030"
@@ -1346,7 +1346,7 @@ const char descriptor_table_protodef_bridge_2eproto[] PROTOBUF_SECTION_VARIABLE(
   "rText\030\003 \001(\t\022\020\n\010loggedIn\030\004 \001(\010\022\021\n\tsplitMo"
   "de\030\005 \001(\010\022\026\n\016setupGuideSeen\030\006 \001(\010\022\021\n\tused"
   "Bytes\030\007 \001(\003\022\022\n\ntotalBytes\030\010 \001(\003\022\020\n\010passw"
-  "ord\030\t \001(\t\022\021\n\taddresses\030\n \003(\t\"6\n\024UserSpli"
+  "ord\030\t \001(\014\022\021\n\taddresses\030\n \003(\t\"6\n\024UserSpli"
   "tModeRequest\022\016\n\006userID\030\001 \001(\t\022\016\n\006active\030\002"
   " \001(\010\"-\n\020UserListResponse\022\031\n\005users\030\001 \003(\0132"
   "\n.grpc.User\"<\n\031ConfigureAppleMailRequest"
@@ -2488,13 +2488,12 @@ const char* LoginRequest::_InternalParse(const char* ptr, ::_pbi::ParseContext* 
         } else
           goto handle_unusual;
         continue;
-      // string password = 2;
+      // bytes password = 2;
       case 2:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 18)) {
           auto str = _internal_mutable_password();
           ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
           CHK_(ptr);
-          CHK_(::_pbi::VerifyUTF8(str, "grpc.LoginRequest.password"));
         } else
           goto handle_unusual;
         continue;
@@ -2537,13 +2536,9 @@ uint8_t* LoginRequest::_InternalSerialize(
         1, this->_internal_username(), target);
   }
 
-  // string password = 2;
+  // bytes password = 2;
   if (!this->_internal_password().empty()) {
-    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
-      this->_internal_password().data(), static_cast<int>(this->_internal_password().length()),
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
-      "grpc.LoginRequest.password");
-    target = stream->WriteStringMaybeAliased(
+    target = stream->WriteBytesMaybeAliased(
         2, this->_internal_password(), target);
   }
 
@@ -2570,10 +2565,10 @@ size_t LoginRequest::ByteSizeLong() const {
         this->_internal_username());
   }
 
-  // string password = 2;
+  // bytes password = 2;
   if (!this->_internal_password().empty()) {
     total_size += 1 +
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::BytesSize(
         this->_internal_password());
   }
 
@@ -3660,13 +3655,12 @@ const char* User::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
         } else
           goto handle_unusual;
         continue;
-      // string password = 9;
+      // bytes password = 9;
       case 9:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 74)) {
           auto str = _internal_mutable_password();
           ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
           CHK_(ptr);
-          CHK_(::_pbi::VerifyUTF8(str, "grpc.User.password"));
         } else
           goto handle_unusual;
         continue;
@@ -3774,13 +3768,9 @@ uint8_t* User::_InternalSerialize(
     target = ::_pbi::WireFormatLite::WriteInt64ToArray(8, this->_internal_totalbytes(), target);
   }
 
-  // string password = 9;
+  // bytes password = 9;
   if (!this->_internal_password().empty()) {
-    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
-      this->_internal_password().data(), static_cast<int>(this->_internal_password().length()),
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
-      "grpc.User.password");
-    target = stream->WriteStringMaybeAliased(
+    target = stream->WriteBytesMaybeAliased(
         9, this->_internal_password(), target);
   }
 
@@ -3839,10 +3829,10 @@ size_t User::ByteSizeLong() const {
         this->_internal_avatartext());
   }
 
-  // string password = 9;
+  // bytes password = 9;
   if (!this->_internal_password().empty()) {
     total_size += 1 +
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::BytesSize(
         this->_internal_password());
   }
 

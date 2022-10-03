@@ -356,8 +356,8 @@ func (s *Service) Login(ctx context.Context, login *LoginRequest) (*emptypb.Empt
 
 	go func() {
 		defer s.panicHandler.HandlePanic()
-
-		password, err := base64.StdEncoding.DecodeString(login.Password)
+		var password []byte
+		_, err := base64.StdEncoding.Decode(password, login.Password)
 		if err != nil {
 			s.log.WithError(err).Error("Cannot decode password")
 			_ = s.SendEvent(NewLoginError(LoginErrorType_USERNAME_PASSWORD_ERROR, "Cannot decode password"))
@@ -368,7 +368,7 @@ func (s *Service) Login(ctx context.Context, login *LoginRequest) (*emptypb.Empt
 		// - bad credentials
 		// - bad proton plan
 		// - user already exists
-		userID, err := s.bridge.LoginUser(context.Background(), login.Username, string(password), nil, nil)
+		userID, err := s.bridge.LoginUser(context.Background(), login.Username, password, nil, nil)
 		if err != nil {
 			s.log.WithError(err).Error("Cannot login user")
 			_ = s.SendEvent(NewLoginError(LoginErrorType_USERNAME_PASSWORD_ERROR, "Cannot login user"))

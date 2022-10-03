@@ -26,8 +26,9 @@ import (
 
 const (
 	username = "username"
-	password = "password"
 )
+
+var password = []byte("password")
 
 var (
 	v2_3_0 = semver.MustParse("2.3.0")
@@ -339,7 +340,7 @@ func withEnv(t *testing.T, tests func(ctx context.Context, server *server.Server
 	defer server.Close()
 
 	// Add test user.
-	_, _, err := server.AddUser(username, password, username+"@pm.me")
+	_, _, err := server.AddUser(username, string(password), username+"@pm.me")
 	require.NoError(t, err)
 
 	// Generate a random vault key.

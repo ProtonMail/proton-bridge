@@ -129,7 +129,7 @@ func (f *frontendCLI) loginAccount(c *ishell.Context) { //nolint:funlen
 	userID, err := f.bridge.LoginUser(
 		context.Background(),
 		loginName,
-		password,
+		[]byte(password),
 		func() (string, error) {
 			return f.readStringInAttempts("Two factor code", c.ReadLine, isNotEmpty), nil
 		},

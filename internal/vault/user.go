@@ -1,8 +1,6 @@
 package vault
 
 import (
-	"encoding/hex"
-
 	"github.com/ProtonMail/gluon/imap"
 )
 
@@ -52,8 +50,8 @@ func (user *User) AddressMode() AddressMode {
 	return user.vault.getUser(user.userID).AddressMode
 }
 
-func (user *User) BridgePass() string {
-	return hex.EncodeToString(user.vault.getUser(user.userID).BridgePass)
+func (user *User) BridgePass() []byte {
+	return user.vault.getUser(user.userID).BridgePass
 }
 
 func (user *User) AuthUID() string {

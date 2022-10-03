@@ -32,7 +32,7 @@ type UserInfo struct {
 	AddressMode vault.AddressMode
 
 	// BridgePass is the user's bridge password.
-	BridgePass string
+	BridgePass []byte
 
 	// UsedSpace is the amount of space used by the user.
 	UsedSpace int
@@ -76,11 +76,11 @@ func (bridge *Bridge) QueryUserInfo(query string) (UserInfo, error) {
 // If necessary, a TOTP and mailbox password are requested via the callbacks.
 func (bridge *Bridge) LoginUser(
 	ctx context.Context,
-	username, password string,
+	username string, password []byte,
 	getTOTP func() (string, error),
 	getKeyPass func() ([]byte, error),
 ) (string, error) {
-	client, auth, err := bridge.api.NewClientWithLogin(ctx, username, password)
+	client, auth, err := bridge.api.NewClientWithLogin(ctx, username, string(password))
 	if err != nil {
 		return "", err
 	}
@@ -106,7 +106,7 @@ func (bridge *Bridge) LoginUser(
 
 		keyPass = pass
 	} else {
-		keyPass = []byte(password)
+		keyPass = password
 	}
 
 	apiUser, apiAddrs, userKR, addrKRs, saltedKeyPass, err := client.Unlock(ctx, keyPass)

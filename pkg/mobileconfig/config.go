@@ -46,7 +46,7 @@ type IMAP struct {
 	TLS      bool
 
 	Username string
-	Password string
+	Password []byte
 }
 
 type SMTP struct {

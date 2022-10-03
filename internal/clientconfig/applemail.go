@@ -39,7 +39,8 @@ func (c *AppleMail) Configure(
 	hostname string,
 	imapPort, smtpPort int,
 	imapSSL, smtpSSL bool,
-	username, addresses, password string,
+	username, addresses string,
+	password []byte,
 ) error {
 	mc := prepareMobileConfig(hostname, imapPort, smtpPort, imapSSL, smtpSSL, username, addresses, password)
 
@@ -65,7 +66,8 @@ func prepareMobileConfig(
 	hostname string,
 	imapPort, smtpPort int,
 	imapSSL, smtpSSL bool,
-	username, addresses, password string,
+	username, addresses string,
+	password []byte,
 ) *mobileconfig.Config {
 	return &mobileconfig.Config{
 		DisplayName:  username,

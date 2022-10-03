@@ -967,7 +967,7 @@ class LoginRequest final :
   std::string* _internal_mutable_username();
   public:
 
-  // string password = 2;
+  // bytes password = 2;
   void clear_password();
   const std::string& password() const;
   template <typename ArgT0 = const std::string&, typename... ArgT>
@@ -1824,7 +1824,7 @@ class User final :
   std::string* _internal_mutable_avatartext();
   public:
 
-  // string password = 9;
+  // bytes password = 9;
   void clear_password();
   const std::string& password() const;
   template <typename ArgT0 = const std::string&, typename... ArgT>
@@ -10195,7 +10195,7 @@ inline void LoginRequest::set_allocated_username(std::string* username) {
   // @@protoc_insertion_point(field_set_allocated:grpc.LoginRequest.username)
 }
 
-// string password = 2;
+// bytes password = 2;
 inline void LoginRequest::clear_password() {
   _impl_.password_.ClearToEmpty();
 }
@@ -10207,7 +10207,7 @@ template <typename ArgT0, typename... ArgT>
 inline PROTOBUF_ALWAYS_INLINE
 void LoginRequest::set_password(ArgT0&& arg0, ArgT... args) {
  
- _impl_.password_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+ _impl_.password_.SetBytes(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
   // @@protoc_insertion_point(field_set:grpc.LoginRequest.password)
 }
 inline std::string* LoginRequest::mutable_password() {
@@ -10730,7 +10730,7 @@ inline void User::set_totalbytes(int64_t value) {
   // @@protoc_insertion_point(field_set:grpc.User.totalBytes)
 }
 
-// string password = 9;
+// bytes password = 9;
 inline void User::clear_password() {
   _impl_.password_.ClearToEmpty();
 }
@@ -10742,7 +10742,7 @@ template <typename ArgT0, typename... ArgT>
 inline PROTOBUF_ALWAYS_INLINE
 void User::set_password(ArgT0&& arg0, ArgT... args) {
  
- _impl_.password_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+ _impl_.password_.SetBytes(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
   // @@protoc_insertion_point(field_set:grpc.User.password)
 }
 inline std::string* User::mutable_password() {
