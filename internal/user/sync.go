@@ -67,7 +67,7 @@ func (user *User) syncMessages(ctx context.Context) error {
 
 	// Determine which messages to sync.
 	// TODO: This needs to be done better using the new API route to retrieve just the message IDs.
-	metadata, err := user.client.GetAllMessageMetadata(ctx)
+	metadata, err := user.client.GetAllMessageMetadata(ctx, nil)
 	if err != nil {
 		return err
 	}
