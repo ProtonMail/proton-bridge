@@ -66,7 +66,6 @@ public: // Qt/QML properties. Note that the NOTIFY-er signal is required even fo
     Q_PROPERTY(bool isBetaEnabled READ isBetaEnabled NOTIFY isBetaEnabledChanged)                                                                     //    _ bool        `property:"isBetaEnabled"`
     Q_PROPERTY(bool isAllMailVisible READ isAllMailVisible NOTIFY isAllMailVisibleChanged)                                                            //    _ bool        `property:"isAllMailVisible"`
     Q_PROPERTY(QString colorSchemeName READ colorSchemeName NOTIFY colorSchemeNameChanged)                                                            //    _ string      `property:"colorSchemeName"`
-    Q_PROPERTY(bool isDiskCacheEnabled READ isDiskCacheEnabled NOTIFY isDiskCacheEnabledChanged)                                                      //    _ bool        `property:"isDiskCacheEnabled"`
     Q_PROPERTY(QUrl diskCachePath READ diskCachePath NOTIFY diskCachePathChanged)                                                                     //    _ core.QUrl   `property:"diskCachePath"`
     Q_PROPERTY(bool useSSLforSMTP READ useSSLForSMTP NOTIFY useSSLforSMTPChanged)                                                                     //    _ bool        `property:"useSSLforSMTP"`
     Q_PROPERTY(int portIMAP READ portIMAP NOTIFY portIMAPChanged)                                                                                     //    _ int         `property:"portIMAP"`
@@ -98,7 +97,6 @@ public: // Qt/QML properties. Note that the NOTIFY-er signal is required even fo
     bool isBetaEnabled() const { bool v; app().grpc().isBetaEnabled(v); return v; }
     bool isAllMailVisible() const { bool v; app().grpc().isAllMailVisible(v); return v; }
     QString colorSchemeName() const { QString name; app().grpc().colorSchemeName(name); return name; }
-    bool isDiskCacheEnabled() const { bool enabled; app().grpc().isCacheOnDiskEnabled(enabled); return enabled;}
     QUrl diskCachePath() const { QUrl path; app().grpc().diskCachePath(path); return path; }
     bool useSSLForSMTP() const{ bool useSSL; app().grpc().useSSLForSMTP(useSSL); return useSSL; }
     int portIMAP() const { int port; app().grpc().portIMAP(port); return port; }
@@ -116,7 +114,6 @@ signals: // Signal used by the Qt property system. Many of them are unused but r
     void showSplashScreenChanged(bool value);
     void showOnStartupChanged(bool value);
     void goosChanged(QString const &value);
-    void isDiskCacheEnabledChanged(bool value);
     void diskCachePathChanged(QUrl const &url);
     void useSSLforSMTPChanged(bool value);
     void isAutomaticUpdateOnChanged(bool value);
@@ -147,7 +144,6 @@ public slots: // slot for signals received from QML -> To be forwarded to Bridge
     void toggleBeta(bool active);                                                                                                                     //    _ func(makeItActive bool)                                             `slot:"toggleBeta"`
     void changeIsAllMailVisible(bool isVisible);                                                                                                      //    _ func(isVisible bool)                                                `slot:"changeIsAllMailVisible"`
     void changeColorScheme(QString const &scheme);                                                                                                    //    _ func(string)                                                        `slot:"changeColorScheme"`
-    void changeLocalCache(bool enable, QUrl const& path);                                                                                             //    _ func(enableDiskCache bool, diskCachePath core.QUrl)                 `slot:"changeLocalCache"`
     void login(QString const& username, QString const& password) { app().grpc().login(username, password);}                                           //    _ func(username, password string)                                     `slot:"login"`
     void login2FA(QString const& username, QString const& code) { app().grpc().login2FA(username, code);}                                             //    _ func(username, code string)                                         `slot:"login2FA"`
     void login2Password(QString const& username, QString const& password) { app().grpc().login2Passwords(username, password);}                        //    _ func(username, password string)                                     `slot:"login2Password"`

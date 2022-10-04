@@ -57,7 +57,6 @@ SPStreamEvent newUpdateCheckFinished(); ///< Create a new UpdateCheckFinished ev
 SPStreamEvent newCacheErrorEvent(grpc::CacheErrorType errorType); ///< Create a new CacheErrorEvent event.
 SPStreamEvent newCacheLocationChangeSuccessEvent(); ///< Create a new CacheLocationChangeSuccessEvent event.
 SPStreamEvent newChangeLocalCacheFinishedEvent(); ///< Create a new ChangeLocalCacheFinishedEvent event.
-SPStreamEvent newIsCacheOnDiskEnabledChanged(bool enabled); ///< Create a new IsCacheOnDiskEnabledChanged event.
 SPStreamEvent newDiskCachePathChanged(QString const &path); ///< Create a new DiskCachePathChanged event.
 
 // Mail settings related events

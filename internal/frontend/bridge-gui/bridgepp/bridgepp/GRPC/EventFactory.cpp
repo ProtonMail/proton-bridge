@@ -420,20 +420,6 @@ SPStreamEvent newChangeLocalCacheFinishedEvent()
 
 
 //****************************************************************************************************************************************************
-/// \param[in] enabled The new state of the cache.
-/// \return The event.
-//****************************************************************************************************************************************************
-SPStreamEvent newIsCacheOnDiskEnabledChanged(bool enabled)
-{
-    auto event = new grpc::IsCacheOnDiskEnabledChanged;
-    event->set_enabled(enabled);
-    auto cacheEvent = new grpc::CacheEvent;
-    cacheEvent->set_allocated_iscacheondiskenabledchanged(event);
-    return wrapCacheEvent(cacheEvent);
-}
-
-
-//****************************************************************************************************************************************************
 /// \param[in] path The path of the cache.
 /// \return The event.
 //****************************************************************************************************************************************************

@@ -576,36 +576,12 @@ grpc::Status GRPCClient::hostname(QString &outHostname)
 
 
 //****************************************************************************************************************************************************
-/// \param[out] outEnabled The value for the property.
-/// \return The status for the gRPC call.
-//****************************************************************************************************************************************************
-grpc::Status GRPCClient::isCacheOnDiskEnabled(bool &outEnabled)
-{
-    return this->logGRPCCallStatus(getBool(&Bridge::Stub::IsCacheOnDiskEnabled, outEnabled), __FUNCTION__);
-}
-
-
-//****************************************************************************************************************************************************
 /// \param[out] outPath The value for the property.
 /// \return The status for the gRPC call.
 //****************************************************************************************************************************************************
 grpc::Status GRPCClient::diskCachePath(QUrl &outPath)
 {
     return this->logGRPCCallStatus(this->getURLForLocalFile(&Bridge::Stub::DiskCachePath, outPath), __FUNCTION__);
-}
-
-
-//****************************************************************************************************************************************************
-/// \param[in] enabled Should the cache be enabled.
-/// \param[in] path The value for the property.
-/// \return The status for the gRPC call.
-//****************************************************************************************************************************************************
-grpc::Status GRPCClient::changeLocalCache(bool enabled, QUrl const &path)
-{
-    ChangeLocalCacheRequest request;
-    request.set_enablediskcache(enabled);
-    request.set_diskcachepath(path.path(QUrl::FullyDecoded).toStdString());
-    return this->logGRPCCallStatus(stub_->ChangeLocalCache(this->clientContext().get(), request, &empty), __FUNCTION__);
 }
 
 
@@ -1329,11 +1305,6 @@ void GRPCClient::processCacheEvent(CacheEvent const &event)
     case CacheEvent::kChangeLocalCacheFinished:
         emit changeLocalCacheFinished(event.changelocalcachefinished().willrestart());
         this->logTrace("Cache event received: ChangeLocalCacheFinished.");
-        break;
-
-    case CacheEvent::kIsCacheOnDiskEnabledChanged:
-        this->logTrace("Cache event received: IsCacheOnDiskEnabledChanged.");
-        emit isCacheOnDiskEnabledChanged(event.iscacheondiskenabledchanged().enabled());
         break;
 
     case CacheEvent::kDiskCachePathChanged:

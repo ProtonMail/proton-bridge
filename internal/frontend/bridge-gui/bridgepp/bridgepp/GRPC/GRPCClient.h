@@ -104,9 +104,7 @@ signals: // app related signals
 
     // cache related calls
 public:
-    grpc::Status isCacheOnDiskEnabled(bool &outEnabled); ///< Performs the 'isCacheOnDiskEnabled' call.
     grpc::Status diskCachePath(QUrl &outPath); ///< Performs the 'diskCachePath' call.
-    grpc::Status changeLocalCache(bool enabled, QUrl const &path); ///< Performs the 'ChangeLocalCache' call.
 signals:
     void isCacheOnDiskEnabledChanged(bool enabled);
     void diskCachePathChanged(QUrl const &outPath);

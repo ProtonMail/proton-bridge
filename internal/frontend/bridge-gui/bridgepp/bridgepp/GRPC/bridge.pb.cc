@@ -84,7 +84,6 @@ PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORIT
 PROTOBUF_CONSTEXPR ChangeLocalCacheRequest::ChangeLocalCacheRequest(
     ::_pbi::ConstantInitialized): _impl_{
     /*decltype(_impl_.diskcachepath_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
-  , /*decltype(_impl_.enablediskcache_)*/false
   , /*decltype(_impl_._cached_size_)*/{}} {}
 struct ChangeLocalCacheRequestDefaultTypeInternal {
   PROTOBUF_CONSTEXPR ChangeLocalCacheRequestDefaultTypeInternal()
@@ -529,19 +528,6 @@ struct ChangeLocalCacheFinishedEventDefaultTypeInternal {
   };
 };
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 ChangeLocalCacheFinishedEventDefaultTypeInternal _ChangeLocalCacheFinishedEvent_default_instance_;
-PROTOBUF_CONSTEXPR IsCacheOnDiskEnabledChanged::IsCacheOnDiskEnabledChanged(
-    ::_pbi::ConstantInitialized): _impl_{
-    /*decltype(_impl_.enabled_)*/false
-  , /*decltype(_impl_._cached_size_)*/{}} {}
-struct IsCacheOnDiskEnabledChangedDefaultTypeInternal {
-  PROTOBUF_CONSTEXPR IsCacheOnDiskEnabledChangedDefaultTypeInternal()
-      : _instance(::_pbi::ConstantInitialized{}) {}
-  ~IsCacheOnDiskEnabledChangedDefaultTypeInternal() {}
-  union {
-    IsCacheOnDiskEnabledChanged _instance;
-  };
-};
-PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 IsCacheOnDiskEnabledChangedDefaultTypeInternal _IsCacheOnDiskEnabledChanged_default_instance_;
 PROTOBUF_CONSTEXPR DiskCachePathChanged::DiskCachePathChanged(
     ::_pbi::ConstantInitialized): _impl_{
     /*decltype(_impl_.path_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
@@ -769,7 +755,7 @@ struct UserChangedEventDefaultTypeInternal {
 };
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 UserChangedEventDefaultTypeInternal _UserChangedEvent_default_instance_;
 }  // namespace grpc
-static ::_pb::Metadata file_level_metadata_bridge_2eproto[58];
+static ::_pb::Metadata file_level_metadata_bridge_2eproto[57];
 static const ::_pb::EnumDescriptor* file_level_enum_descriptors_bridge_2eproto[5];
 static constexpr ::_pb::ServiceDescriptor const** file_level_service_descriptors_bridge_2eproto = nullptr;
 
@@ -816,7 +802,6 @@ const uint32_t TableStruct_bridge_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(p
   ~0u,  // no _oneof_case_
   ~0u,  // no _weak_field_map_
   ~0u,  // no _inlined_string_donated_
-  PROTOBUF_FIELD_OFFSET(::grpc::ChangeLocalCacheRequest, _impl_.enablediskcache_),
   PROTOBUF_FIELD_OFFSET(::grpc::ChangeLocalCacheRequest, _impl_.diskcachepath_),
   ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::grpc::ChangePortsRequest, _internal_metadata_),
@@ -1067,7 +1052,6 @@ const uint32_t TableStruct_bridge_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(p
   ::_pbi::kInvalidFieldOffsetTag,
   ::_pbi::kInvalidFieldOffsetTag,
   ::_pbi::kInvalidFieldOffsetTag,
-  ::_pbi::kInvalidFieldOffsetTag,
   PROTOBUF_FIELD_OFFSET(::grpc::CacheEvent, _impl_.event_),
   ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::grpc::CacheErrorEvent, _internal_metadata_),
@@ -1089,13 +1073,6 @@ const uint32_t TableStruct_bridge_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(p
   ~0u,  // no _weak_field_map_
   ~0u,  // no _inlined_string_donated_
   PROTOBUF_FIELD_OFFSET(::grpc::ChangeLocalCacheFinishedEvent, _impl_.willrestart_),
-  ~0u,  // no _has_bits_
-  PROTOBUF_FIELD_OFFSET(::grpc::IsCacheOnDiskEnabledChanged, _internal_metadata_),
-  ~0u,  // no _extensions_
-  ~0u,  // no _oneof_case_
-  ~0u,  // no _weak_field_map_
-  ~0u,  // no _inlined_string_donated_
-  PROTOBUF_FIELD_OFFSET(::grpc::IsCacheOnDiskEnabledChanged, _impl_.enabled_),
   ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::grpc::DiskCachePathChanged, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -1236,59 +1213,58 @@ static const ::_pbi::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protode
   { 21, -1, -1, sizeof(::grpc::LoginRequest)},
   { 29, -1, -1, sizeof(::grpc::LoginAbortRequest)},
   { 36, -1, -1, sizeof(::grpc::ChangeLocalCacheRequest)},
-  { 44, -1, -1, sizeof(::grpc::ChangePortsRequest)},
-  { 52, -1, -1, sizeof(::grpc::AvailableKeychainsResponse)},
-  { 59, -1, -1, sizeof(::grpc::User)},
-  { 75, -1, -1, sizeof(::grpc::UserSplitModeRequest)},
-  { 83, -1, -1, sizeof(::grpc::UserListResponse)},
-  { 90, -1, -1, sizeof(::grpc::ConfigureAppleMailRequest)},
-  { 98, -1, -1, sizeof(::grpc::EventStreamRequest)},
-  { 105, -1, -1, sizeof(::grpc::StreamEvent)},
-  { 120, -1, -1, sizeof(::grpc::AppEvent)},
-  { 134, -1, -1, sizeof(::grpc::InternetStatusEvent)},
-  { 141, -1, -1, sizeof(::grpc::ToggleAutostartFinishedEvent)},
-  { 147, -1, -1, sizeof(::grpc::ResetFinishedEvent)},
-  { 153, -1, -1, sizeof(::grpc::ReportBugFinishedEvent)},
-  { 159, -1, -1, sizeof(::grpc::ReportBugSuccessEvent)},
-  { 165, -1, -1, sizeof(::grpc::ReportBugErrorEvent)},
-  { 171, -1, -1, sizeof(::grpc::ShowMainWindowEvent)},
-  { 177, -1, -1, sizeof(::grpc::LoginEvent)},
-  { 189, -1, -1, sizeof(::grpc::LoginErrorEvent)},
-  { 197, -1, -1, sizeof(::grpc::LoginTfaRequestedEvent)},
-  { 204, -1, -1, sizeof(::grpc::LoginTwoPasswordsRequestedEvent)},
-  { 210, -1, -1, sizeof(::grpc::LoginFinishedEvent)},
-  { 217, -1, -1, sizeof(::grpc::UpdateEvent)},
-  { 232, -1, -1, sizeof(::grpc::UpdateErrorEvent)},
-  { 239, -1, -1, sizeof(::grpc::UpdateManualReadyEvent)},
-  { 246, -1, -1, sizeof(::grpc::UpdateManualRestartNeededEvent)},
-  { 252, -1, -1, sizeof(::grpc::UpdateForceEvent)},
-  { 259, -1, -1, sizeof(::grpc::UpdateSilentRestartNeeded)},
-  { 265, -1, -1, sizeof(::grpc::UpdateIsLatestVersion)},
-  { 271, -1, -1, sizeof(::grpc::UpdateCheckFinished)},
-  { 277, -1, -1, sizeof(::grpc::UpdateVersionChanged)},
-  { 283, -1, -1, sizeof(::grpc::CacheEvent)},
-  { 295, -1, -1, sizeof(::grpc::CacheErrorEvent)},
-  { 302, -1, -1, sizeof(::grpc::CacheLocationChangeSuccessEvent)},
-  { 308, -1, -1, sizeof(::grpc::ChangeLocalCacheFinishedEvent)},
-  { 315, -1, -1, sizeof(::grpc::IsCacheOnDiskEnabledChanged)},
-  { 322, -1, -1, sizeof(::grpc::DiskCachePathChanged)},
-  { 329, -1, -1, sizeof(::grpc::MailSettingsEvent)},
-  { 339, -1, -1, sizeof(::grpc::MailSettingsErrorEvent)},
-  { 346, -1, -1, sizeof(::grpc::UseSslForSmtpFinishedEvent)},
-  { 352, -1, -1, sizeof(::grpc::ChangePortsFinishedEvent)},
-  { 358, -1, -1, sizeof(::grpc::KeychainEvent)},
-  { 368, -1, -1, sizeof(::grpc::ChangeKeychainFinishedEvent)},
-  { 374, -1, -1, sizeof(::grpc::HasNoKeychainEvent)},
-  { 380, -1, -1, sizeof(::grpc::RebuildKeychainEvent)},
-  { 386, -1, -1, sizeof(::grpc::MailEvent)},
-  { 397, -1, -1, sizeof(::grpc::NoActiveKeyForRecipientEvent)},
-  { 404, -1, -1, sizeof(::grpc::AddressChangedEvent)},
-  { 411, -1, -1, sizeof(::grpc::AddressChangedLogoutEvent)},
-  { 418, -1, -1, sizeof(::grpc::ApiCertIssueEvent)},
-  { 424, -1, -1, sizeof(::grpc::UserEvent)},
-  { 434, -1, -1, sizeof(::grpc::ToggleSplitModeFinishedEvent)},
-  { 441, -1, -1, sizeof(::grpc::UserDisconnectedEvent)},
-  { 448, -1, -1, sizeof(::grpc::UserChangedEvent)},
+  { 43, -1, -1, sizeof(::grpc::ChangePortsRequest)},
+  { 51, -1, -1, sizeof(::grpc::AvailableKeychainsResponse)},
+  { 58, -1, -1, sizeof(::grpc::User)},
+  { 74, -1, -1, sizeof(::grpc::UserSplitModeRequest)},
+  { 82, -1, -1, sizeof(::grpc::UserListResponse)},
+  { 89, -1, -1, sizeof(::grpc::ConfigureAppleMailRequest)},
+  { 97, -1, -1, sizeof(::grpc::EventStreamRequest)},
+  { 104, -1, -1, sizeof(::grpc::StreamEvent)},
+  { 119, -1, -1, sizeof(::grpc::AppEvent)},
+  { 133, -1, -1, sizeof(::grpc::InternetStatusEvent)},
+  { 140, -1, -1, sizeof(::grpc::ToggleAutostartFinishedEvent)},
+  { 146, -1, -1, sizeof(::grpc::ResetFinishedEvent)},
+  { 152, -1, -1, sizeof(::grpc::ReportBugFinishedEvent)},
+  { 158, -1, -1, sizeof(::grpc::ReportBugSuccessEvent)},
+  { 164, -1, -1, sizeof(::grpc::ReportBugErrorEvent)},
+  { 170, -1, -1, sizeof(::grpc::ShowMainWindowEvent)},
+  { 176, -1, -1, sizeof(::grpc::LoginEvent)},
+  { 188, -1, -1, sizeof(::grpc::LoginErrorEvent)},
+  { 196, -1, -1, sizeof(::grpc::LoginTfaRequestedEvent)},
+  { 203, -1, -1, sizeof(::grpc::LoginTwoPasswordsRequestedEvent)},
+  { 209, -1, -1, sizeof(::grpc::LoginFinishedEvent)},
+  { 216, -1, -1, sizeof(::grpc::UpdateEvent)},
+  { 231, -1, -1, sizeof(::grpc::UpdateErrorEvent)},
+  { 238, -1, -1, sizeof(::grpc::UpdateManualReadyEvent)},
+  { 245, -1, -1, sizeof(::grpc::UpdateManualRestartNeededEvent)},
+  { 251, -1, -1, sizeof(::grpc::UpdateForceEvent)},
+  { 258, -1, -1, sizeof(::grpc::UpdateSilentRestartNeeded)},
+  { 264, -1, -1, sizeof(::grpc::UpdateIsLatestVersion)},
+  { 270, -1, -1, sizeof(::grpc::UpdateCheckFinished)},
+  { 276, -1, -1, sizeof(::grpc::UpdateVersionChanged)},
+  { 282, -1, -1, sizeof(::grpc::CacheEvent)},
+  { 293, -1, -1, sizeof(::grpc::CacheErrorEvent)},
+  { 300, -1, -1, sizeof(::grpc::CacheLocationChangeSuccessEvent)},
+  { 306, -1, -1, sizeof(::grpc::ChangeLocalCacheFinishedEvent)},
+  { 313, -1, -1, sizeof(::grpc::DiskCachePathChanged)},
+  { 320, -1, -1, sizeof(::grpc::MailSettingsEvent)},
+  { 330, -1, -1, sizeof(::grpc::MailSettingsErrorEvent)},
+  { 337, -1, -1, sizeof(::grpc::UseSslForSmtpFinishedEvent)},
+  { 343, -1, -1, sizeof(::grpc::ChangePortsFinishedEvent)},
+  { 349, -1, -1, sizeof(::grpc::KeychainEvent)},
+  { 359, -1, -1, sizeof(::grpc::ChangeKeychainFinishedEvent)},
+  { 365, -1, -1, sizeof(::grpc::HasNoKeychainEvent)},
+  { 371, -1, -1, sizeof(::grpc::RebuildKeychainEvent)},
+  { 377, -1, -1, sizeof(::grpc::MailEvent)},
+  { 388, -1, -1, sizeof(::grpc::NoActiveKeyForRecipientEvent)},
+  { 395, -1, -1, sizeof(::grpc::AddressChangedEvent)},
+  { 402, -1, -1, sizeof(::grpc::AddressChangedLogoutEvent)},
+  { 409, -1, -1, sizeof(::grpc::ApiCertIssueEvent)},
+  { 415, -1, -1, sizeof(::grpc::UserEvent)},
+  { 425, -1, -1, sizeof(::grpc::ToggleSplitModeFinishedEvent)},
+  { 432, -1, -1, sizeof(::grpc::UserDisconnectedEvent)},
+  { 439, -1, -1, sizeof(::grpc::UserChangedEvent)},
 };
 
 static const ::_pb::Message* const file_default_instances[] = {
@@ -1331,7 +1307,6 @@ static const ::_pb::Message* const file_default_instances[] = {
   &::grpc::_CacheErrorEvent_default_instance_._instance,
   &::grpc::_CacheLocationChangeSuccessEvent_default_instance_._instance,
   &::grpc::_ChangeLocalCacheFinishedEvent_default_instance_._instance,
-  &::grpc::_IsCacheOnDiskEnabledChanged_default_instance_._instance,
   &::grpc::_DiskCachePathChanged_default_instance_._instance,
   &::grpc::_MailSettingsEvent_default_instance_._instance,
   &::grpc::_MailSettingsErrorEvent_default_instance_._instance,
@@ -1362,240 +1337,235 @@ const char descriptor_table_protodef_bridge_2eproto[] PROTOBUF_SECTION_VARIABLE(
   "\003 \001(\t\022\017\n\007address\030\004 \001(\t\022\023\n\013emailClient\030\005 "
   "\001(\t\022\023\n\013includeLogs\030\006 \001(\010\"2\n\014LoginRequest"
   "\022\020\n\010username\030\001 \001(\t\022\020\n\010password\030\002 \001(\t\"%\n\021"
-  "LoginAbortRequest\022\020\n\010username\030\001 \001(\t\"I\n\027C"
-  "hangeLocalCacheRequest\022\027\n\017enableDiskCach"
-  "e\030\001 \001(\010\022\025\n\rdiskCachePath\030\002 \001(\t\"8\n\022Change"
-  "PortsRequest\022\020\n\010imapPort\030\001 \001(\005\022\020\n\010smtpPo"
-  "rt\030\002 \001(\005\"/\n\032AvailableKeychainsResponse\022\021"
-  "\n\tkeychains\030\001 \003(\t\"\301\001\n\004User\022\n\n\002id\030\001 \001(\t\022\020"
-  "\n\010username\030\002 \001(\t\022\022\n\navatarText\030\003 \001(\t\022\020\n\010"
-  "loggedIn\030\004 \001(\010\022\021\n\tsplitMode\030\005 \001(\010\022\026\n\016set"
-  "upGuideSeen\030\006 \001(\010\022\021\n\tusedBytes\030\007 \001(\003\022\022\n\n"
-  "totalBytes\030\010 \001(\003\022\020\n\010password\030\t \001(\t\022\021\n\tad"
-  "dresses\030\n \003(\t\"6\n\024UserSplitModeRequest\022\016\n"
-  "\006userID\030\001 \001(\t\022\016\n\006active\030\002 \001(\010\"-\n\020UserLis"
-  "tResponse\022\031\n\005users\030\001 \003(\0132\n.grpc.User\"<\n\031"
-  "ConfigureAppleMailRequest\022\016\n\006userID\030\001 \001("
-  "\t\022\017\n\007address\030\002 \001(\t\",\n\022EventStreamRequest"
-  "\022\026\n\016ClientPlatform\030\001 \001(\t\"\274\002\n\013StreamEvent"
-  "\022\035\n\003app\030\001 \001(\0132\016.grpc.AppEventH\000\022!\n\005login"
-  "\030\002 \001(\0132\020.grpc.LoginEventH\000\022#\n\006update\030\003 \001"
-  "(\0132\021.grpc.UpdateEventH\000\022!\n\005cache\030\004 \001(\0132\020"
-  ".grpc.CacheEventH\000\022/\n\014mailSettings\030\005 \001(\013"
-  "2\027.grpc.MailSettingsEventH\000\022\'\n\010keychain\030"
-  "\006 \001(\0132\023.grpc.KeychainEventH\000\022\037\n\004mail\030\007 \001"
-  "(\0132\017.grpc.MailEventH\000\022\037\n\004user\030\010 \001(\0132\017.gr"
-  "pc.UserEventH\000B\007\n\005event\"\240\003\n\010AppEvent\0223\n\016"
-  "internetStatus\030\001 \001(\0132\031.grpc.InternetStat"
-  "usEventH\000\022E\n\027toggleAutostartFinished\030\002 \001"
-  "(\0132\".grpc.ToggleAutostartFinishedEventH\000"
-  "\0221\n\rresetFinished\030\003 \001(\0132\030.grpc.ResetFini"
-  "shedEventH\000\0229\n\021reportBugFinished\030\004 \001(\0132\034"
-  ".grpc.ReportBugFinishedEventH\000\0227\n\020report"
-  "BugSuccess\030\005 \001(\0132\033.grpc.ReportBugSuccess"
-  "EventH\000\0223\n\016reportBugError\030\006 \001(\0132\031.grpc.R"
-  "eportBugErrorEventH\000\0223\n\016showMainWindow\030\007"
-  " \001(\0132\031.grpc.ShowMainWindowEventH\000B\007\n\005eve"
-  "nt\"(\n\023InternetStatusEvent\022\021\n\tconnected\030\001"
-  " \001(\010\"\036\n\034ToggleAutostartFinishedEvent\"\024\n\022"
-  "ResetFinishedEvent\"\030\n\026ReportBugFinishedE"
-  "vent\"\027\n\025ReportBugSuccessEvent\"\025\n\023ReportB"
-  "ugErrorEvent\"\025\n\023ShowMainWindowEvent\"\235\002\n\n"
-  "LoginEvent\022&\n\005error\030\001 \001(\0132\025.grpc.LoginEr"
-  "rorEventH\000\0224\n\014tfaRequested\030\002 \001(\0132\034.grpc."
-  "LoginTfaRequestedEventH\000\022E\n\024twoPasswordR"
-  "equested\030\003 \001(\0132%.grpc.LoginTwoPasswordsR"
-  "equestedEventH\000\022,\n\010finished\030\004 \001(\0132\030.grpc"
-  ".LoginFinishedEventH\000\0223\n\017alreadyLoggedIn"
-  "\030\005 \001(\0132\030.grpc.LoginFinishedEventH\000B\007\n\005ev"
-  "ent\"F\n\017LoginErrorEvent\022\"\n\004type\030\001 \001(\0162\024.g"
-  "rpc.LoginErrorType\022\017\n\007message\030\002 \001(\t\"*\n\026L"
-  "oginTfaRequestedEvent\022\020\n\010username\030\001 \001(\t\""
-  "!\n\037LoginTwoPasswordsRequestedEvent\"$\n\022Lo"
-  "ginFinishedEvent\022\016\n\006userID\030\001 \001(\t\"\304\003\n\013Upd"
-  "ateEvent\022\'\n\005error\030\001 \001(\0132\026.grpc.UpdateErr"
-  "orEventH\000\0223\n\013manualReady\030\002 \001(\0132\034.grpc.Up"
-  "dateManualReadyEventH\000\022C\n\023manualRestartN"
-  "eeded\030\003 \001(\0132$.grpc.UpdateManualRestartNe"
-  "ededEventH\000\022\'\n\005force\030\004 \001(\0132\026.grpc.Update"
-  "ForceEventH\000\022>\n\023silentRestartNeeded\030\005 \001("
-  "\0132\037.grpc.UpdateSilentRestartNeededH\000\0226\n\017"
-  "isLatestVersion\030\006 \001(\0132\033.grpc.UpdateIsLat"
-  "estVersionH\000\0222\n\rcheckFinished\030\007 \001(\0132\031.gr"
-  "pc.UpdateCheckFinishedH\000\0224\n\016versionChang"
-  "ed\030\010 \001(\0132\032.grpc.UpdateVersionChangedH\000B\007"
-  "\n\005event\"7\n\020UpdateErrorEvent\022#\n\004type\030\001 \001("
-  "\0162\025.grpc.UpdateErrorType\")\n\026UpdateManual"
-  "ReadyEvent\022\017\n\007version\030\001 \001(\t\" \n\036UpdateMan"
-  "ualRestartNeededEvent\"#\n\020UpdateForceEven"
-  "t\022\017\n\007version\030\001 \001(\t\"\033\n\031UpdateSilentRestar"
-  "tNeeded\"\027\n\025UpdateIsLatestVersion\"\025\n\023Upda"
-  "teCheckFinished\"\026\n\024UpdateVersionChanged\""
-  "\325\002\n\nCacheEvent\022&\n\005error\030\001 \001(\0132\025.grpc.Cac"
-  "heErrorEventH\000\022G\n\026locationChangedSuccess"
-  "\030\002 \001(\0132%.grpc.CacheLocationChangeSuccess"
-  "EventH\000\022G\n\030changeLocalCacheFinished\030\003 \001("
-  "\0132#.grpc.ChangeLocalCacheFinishedEventH\000"
-  "\022H\n\033isCacheOnDiskEnabledChanged\030\004 \001(\0132!."
-  "grpc.IsCacheOnDiskEnabledChangedH\000\022:\n\024di"
-  "skCachePathChanged\030\005 \001(\0132\032.grpc.DiskCach"
-  "ePathChangedH\000B\007\n\005event\"5\n\017CacheErrorEve"
-  "nt\022\"\n\004type\030\001 \001(\0162\024.grpc.CacheErrorType\"!"
-  "\n\037CacheLocationChangeSuccessEvent\"4\n\035Cha"
-  "ngeLocalCacheFinishedEvent\022\023\n\013willRestar"
-  "t\030\001 \001(\010\".\n\033IsCacheOnDiskEnabledChanged\022\017"
-  "\n\007enabled\030\001 \001(\010\"$\n\024DiskCachePathChanged\022"
-  "\014\n\004path\030\001 \001(\t\"\315\001\n\021MailSettingsEvent\022-\n\005e"
-  "rror\030\001 \001(\0132\034.grpc.MailSettingsErrorEvent"
-  "H\000\022A\n\025useSslForSmtpFinished\030\002 \001(\0132 .grpc"
-  ".UseSslForSmtpFinishedEventH\000\022=\n\023changeP"
-  "ortsFinished\030\003 \001(\0132\036.grpc.ChangePortsFin"
-  "ishedEventH\000B\007\n\005event\"C\n\026MailSettingsErr"
-  "orEvent\022)\n\004type\030\001 \001(\0162\033.grpc.MailSetting"
-  "sErrorType\"\034\n\032UseSslForSmtpFinishedEvent"
-  "\"\032\n\030ChangePortsFinishedEvent\"\307\001\n\rKeychai"
-  "nEvent\022C\n\026changeKeychainFinished\030\001 \001(\0132!"
-  ".grpc.ChangeKeychainFinishedEventH\000\0221\n\rh"
-  "asNoKeychain\030\002 \001(\0132\030.grpc.HasNoKeychainE"
-  "ventH\000\0225\n\017rebuildKeychain\030\003 \001(\0132\032.grpc.R"
-  "ebuildKeychainEventH\000B\007\n\005event\"\035\n\033Change"
-  "KeychainFinishedEvent\"\024\n\022HasNoKeychainEv"
-  "ent\"\026\n\024RebuildKeychainEvent\"\207\002\n\tMailEven"
-  "t\022J\n\034noActiveKeyForRecipientEvent\030\001 \001(\0132"
-  "\".grpc.NoActiveKeyForRecipientEventH\000\0223\n"
-  "\016addressChanged\030\002 \001(\0132\031.grpc.AddressChan"
-  "gedEventH\000\022\?\n\024addressChangedLogout\030\003 \001(\013"
-  "2\037.grpc.AddressChangedLogoutEventH\000\022/\n\014a"
-  "piCertIssue\030\006 \001(\0132\027.grpc.ApiCertIssueEve"
-  "ntH\000B\007\n\005event\"-\n\034NoActiveKeyForRecipient"
-  "Event\022\r\n\005email\030\001 \001(\t\"&\n\023AddressChangedEv"
-  "ent\022\017\n\007address\030\001 \001(\t\",\n\031AddressChangedLo"
-  "goutEvent\022\017\n\007address\030\001 \001(\t\"\023\n\021ApiCertIss"
-  "ueEvent\"\303\001\n\tUserEvent\022E\n\027toggleSplitMode"
-  "Finished\030\001 \001(\0132\".grpc.ToggleSplitModeFin"
-  "ishedEventH\000\0227\n\020userDisconnected\030\002 \001(\0132\033"
-  ".grpc.UserDisconnectedEventH\000\022-\n\013userCha"
-  "nged\030\003 \001(\0132\026.grpc.UserChangedEventH\000B\007\n\005"
-  "event\".\n\034ToggleSplitModeFinishedEvent\022\016\n"
-  "\006userID\030\001 \001(\t\")\n\025UserDisconnectedEvent\022\020"
-  "\n\010username\030\001 \001(\t\"\"\n\020UserChangedEvent\022\016\n\006"
-  "userID\030\001 \001(\t*q\n\010LogLevel\022\r\n\tLOG_PANIC\020\000\022"
-  "\r\n\tLOG_FATAL\020\001\022\r\n\tLOG_ERROR\020\002\022\014\n\010LOG_WAR"
-  "N\020\003\022\014\n\010LOG_INFO\020\004\022\r\n\tLOG_DEBUG\020\005\022\r\n\tLOG_"
-  "TRACE\020\006*\242\001\n\016LoginErrorType\022\033\n\027USERNAME_P"
-  "ASSWORD_ERROR\020\000\022\r\n\tFREE_USER\020\001\022\024\n\020CONNEC"
-  "TION_ERROR\020\002\022\r\n\tTFA_ERROR\020\003\022\r\n\tTFA_ABORT"
-  "\020\004\022\027\n\023TWO_PASSWORDS_ERROR\020\005\022\027\n\023TWO_PASSW"
-  "ORDS_ABORT\020\006*[\n\017UpdateErrorType\022\027\n\023UPDAT"
-  "E_MANUAL_ERROR\020\000\022\026\n\022UPDATE_FORCE_ERROR\020\001"
-  "\022\027\n\023UPDATE_SILENT_ERROR\020\002*W\n\016CacheErrorT"
-  "ype\022\033\n\027CACHE_UNAVAILABLE_ERROR\020\000\022\031\n\025CACH"
-  "E_CANT_MOVE_ERROR\020\001\022\r\n\tDISK_FULL\020\002*A\n\025Ma"
-  "ilSettingsErrorType\022\023\n\017IMAP_PORT_ISSUE\020\000"
-  "\022\023\n\017SMTP_PORT_ISSUE\020\0012\347\037\n\006Bridge\022I\n\013Chec"
-  "kTokens\022\034.google.protobuf.StringValue\032\034."
-  "google.protobuf.StringValue\022\?\n\013AddLogEnt"
-  "ry\022\030.grpc.AddLogEntryRequest\032\026.google.pr"
-  "otobuf.Empty\022:\n\010GuiReady\022\026.google.protob"
-  "uf.Empty\032\026.google.protobuf.Empty\0226\n\004Quit"
-  "\022\026.google.protobuf.Empty\032\026.google.protob"
-  "uf.Empty\0229\n\007Restart\022\026.google.protobuf.Em"
-  "pty\032\026.google.protobuf.Empty\022C\n\rShowOnSta"
-  "rtup\022\026.google.protobuf.Empty\032\032.google.pr"
-  "otobuf.BoolValue\022F\n\020ShowSplashScreen\022\026.g"
-  "oogle.protobuf.Empty\032\032.google.protobuf.B"
-  "oolValue\022E\n\017IsFirstGuiStart\022\026.google.pro"
-  "tobuf.Empty\032\032.google.protobuf.BoolValue\022"
-  "F\n\020SetIsAutostartOn\022\032.google.protobuf.Bo"
-  "olValue\032\026.google.protobuf.Empty\022C\n\rIsAut"
-  "ostartOn\022\026.google.protobuf.Empty\032\032.googl"
-  "e.protobuf.BoolValue\022F\n\020SetIsBetaEnabled"
-  "\022\032.google.protobuf.BoolValue\032\026.google.pr"
-  "otobuf.Empty\022C\n\rIsBetaEnabled\022\026.google.p"
-  "rotobuf.Empty\032\032.google.protobuf.BoolValu"
-  "e\022I\n\023SetIsAllMailVisible\022\032.google.protob"
-  "uf.BoolValue\032\026.google.protobuf.Empty\022F\n\020"
-  "IsAllMailVisible\022\026.google.protobuf.Empty"
-  "\032\032.google.protobuf.BoolValue\022<\n\004GoOs\022\026.g"
-  "oogle.protobuf.Empty\032\034.google.protobuf.S"
-  "tringValue\022>\n\014TriggerReset\022\026.google.prot"
-  "obuf.Empty\032\026.google.protobuf.Empty\022\?\n\007Ve"
-  "rsion\022\026.google.protobuf.Empty\032\034.google.p"
-  "rotobuf.StringValue\022@\n\010LogsPath\022\026.google"
-  ".protobuf.Empty\032\034.google.protobuf.String"
-  "Value\022C\n\013LicensePath\022\026.google.protobuf.E"
-  "mpty\032\034.google.protobuf.StringValue\022L\n\024Re"
-  "leaseNotesPageLink\022\026.google.protobuf.Emp"
-  "ty\032\034.google.protobuf.StringValue\022N\n\026Depe"
-  "ndencyLicensesLink\022\026.google.protobuf.Emp"
-  "ty\032\034.google.protobuf.StringValue\022G\n\017Land"
-  "ingPageLink\022\026.google.protobuf.Empty\032\034.go"
-  "ogle.protobuf.StringValue\022J\n\022SetColorSch"
-  "emeName\022\034.google.protobuf.StringValue\032\026."
-  "google.protobuf.Empty\022G\n\017ColorSchemeName"
-  "\022\026.google.protobuf.Empty\032\034.google.protob"
-  "uf.StringValue\022J\n\022CurrentEmailClient\022\026.g"
-  "oogle.protobuf.Empty\032\034.google.protobuf.S"
-  "tringValue\022;\n\tReportBug\022\026.grpc.ReportBug"
-  "Request\032\026.google.protobuf.Empty\022E\n\rForce"
-  "Launcher\022\034.google.protobuf.StringValue\032\026"
-  ".google.protobuf.Empty\022I\n\021SetMainExecuta"
-  "ble\022\034.google.protobuf.StringValue\032\026.goog"
-  "le.protobuf.Empty\0223\n\005Login\022\022.grpc.LoginR"
-  "equest\032\026.google.protobuf.Empty\0226\n\010Login2"
-  "FA\022\022.grpc.LoginRequest\032\026.google.protobuf"
-  ".Empty\022=\n\017Login2Passwords\022\022.grpc.LoginRe"
-  "quest\032\026.google.protobuf.Empty\022=\n\nLoginAb"
-  "ort\022\027.grpc.LoginAbortRequest\032\026.google.pr"
-  "otobuf.Empty\022=\n\013CheckUpdate\022\026.google.pro"
-  "tobuf.Empty\032\026.google.protobuf.Empty\022\?\n\rI"
-  "nstallUpdate\022\026.google.protobuf.Empty\032\026.g"
-  "oogle.protobuf.Empty\022L\n\026SetIsAutomaticUp"
-  "dateOn\022\032.google.protobuf.BoolValue\032\026.goo"
-  "gle.protobuf.Empty\022I\n\023IsAutomaticUpdateO"
-  "n\022\026.google.protobuf.Empty\032\032.google.proto"
-  "buf.BoolValue\022J\n\024IsCacheOnDiskEnabled\022\026."
-  "google.protobuf.Empty\032\032.google.protobuf."
-  "BoolValue\022E\n\rDiskCachePath\022\026.google.prot"
-  "obuf.Empty\032\034.google.protobuf.StringValue"
-  "\022I\n\020ChangeLocalCache\022\035.grpc.ChangeLocalC"
-  "acheRequest\032\026.google.protobuf.Empty\022E\n\017S"
-  "etIsDoHEnabled\022\032.google.protobuf.BoolVal"
-  "ue\032\026.google.protobuf.Empty\022B\n\014IsDoHEnabl"
+  "LoginAbortRequest\022\020\n\010username\030\001 \001(\t\"0\n\027C"
+  "hangeLocalCacheRequest\022\025\n\rdiskCachePath\030"
+  "\002 \001(\t\"8\n\022ChangePortsRequest\022\020\n\010imapPort\030"
+  "\001 \001(\005\022\020\n\010smtpPort\030\002 \001(\005\"/\n\032AvailableKeyc"
+  "hainsResponse\022\021\n\tkeychains\030\001 \003(\t\"\301\001\n\004Use"
+  "r\022\n\n\002id\030\001 \001(\t\022\020\n\010username\030\002 \001(\t\022\022\n\navata"
+  "rText\030\003 \001(\t\022\020\n\010loggedIn\030\004 \001(\010\022\021\n\tsplitMo"
+  "de\030\005 \001(\010\022\026\n\016setupGuideSeen\030\006 \001(\010\022\021\n\tused"
+  "Bytes\030\007 \001(\003\022\022\n\ntotalBytes\030\010 \001(\003\022\020\n\010passw"
+  "ord\030\t \001(\t\022\021\n\taddresses\030\n \003(\t\"6\n\024UserSpli"
+  "tModeRequest\022\016\n\006userID\030\001 \001(\t\022\016\n\006active\030\002"
+  " \001(\010\"-\n\020UserListResponse\022\031\n\005users\030\001 \003(\0132"
+  "\n.grpc.User\"<\n\031ConfigureAppleMailRequest"
+  "\022\016\n\006userID\030\001 \001(\t\022\017\n\007address\030\002 \001(\t\",\n\022Eve"
+  "ntStreamRequest\022\026\n\016ClientPlatform\030\001 \001(\t\""
+  "\274\002\n\013StreamEvent\022\035\n\003app\030\001 \001(\0132\016.grpc.AppE"
+  "ventH\000\022!\n\005login\030\002 \001(\0132\020.grpc.LoginEventH"
+  "\000\022#\n\006update\030\003 \001(\0132\021.grpc.UpdateEventH\000\022!"
+  "\n\005cache\030\004 \001(\0132\020.grpc.CacheEventH\000\022/\n\014mai"
+  "lSettings\030\005 \001(\0132\027.grpc.MailSettingsEvent"
+  "H\000\022\'\n\010keychain\030\006 \001(\0132\023.grpc.KeychainEven"
+  "tH\000\022\037\n\004mail\030\007 \001(\0132\017.grpc.MailEventH\000\022\037\n\004"
+  "user\030\010 \001(\0132\017.grpc.UserEventH\000B\007\n\005event\"\240"
+  "\003\n\010AppEvent\0223\n\016internetStatus\030\001 \001(\0132\031.gr"
+  "pc.InternetStatusEventH\000\022E\n\027toggleAutost"
+  "artFinished\030\002 \001(\0132\".grpc.ToggleAutostart"
+  "FinishedEventH\000\0221\n\rresetFinished\030\003 \001(\0132\030"
+  ".grpc.ResetFinishedEventH\000\0229\n\021reportBugF"
+  "inished\030\004 \001(\0132\034.grpc.ReportBugFinishedEv"
+  "entH\000\0227\n\020reportBugSuccess\030\005 \001(\0132\033.grpc.R"
+  "eportBugSuccessEventH\000\0223\n\016reportBugError"
+  "\030\006 \001(\0132\031.grpc.ReportBugErrorEventH\000\0223\n\016s"
+  "howMainWindow\030\007 \001(\0132\031.grpc.ShowMainWindo"
+  "wEventH\000B\007\n\005event\"(\n\023InternetStatusEvent"
+  "\022\021\n\tconnected\030\001 \001(\010\"\036\n\034ToggleAutostartFi"
+  "nishedEvent\"\024\n\022ResetFinishedEvent\"\030\n\026Rep"
+  "ortBugFinishedEvent\"\027\n\025ReportBugSuccessE"
+  "vent\"\025\n\023ReportBugErrorEvent\"\025\n\023ShowMainW"
+  "indowEvent\"\235\002\n\nLoginEvent\022&\n\005error\030\001 \001(\013"
+  "2\025.grpc.LoginErrorEventH\000\0224\n\014tfaRequeste"
+  "d\030\002 \001(\0132\034.grpc.LoginTfaRequestedEventH\000\022"
+  "E\n\024twoPasswordRequested\030\003 \001(\0132%.grpc.Log"
+  "inTwoPasswordsRequestedEventH\000\022,\n\010finish"
+  "ed\030\004 \001(\0132\030.grpc.LoginFinishedEventH\000\0223\n\017"
+  "alreadyLoggedIn\030\005 \001(\0132\030.grpc.LoginFinish"
+  "edEventH\000B\007\n\005event\"F\n\017LoginErrorEvent\022\"\n"
+  "\004type\030\001 \001(\0162\024.grpc.LoginErrorType\022\017\n\007mes"
+  "sage\030\002 \001(\t\"*\n\026LoginTfaRequestedEvent\022\020\n\010"
+  "username\030\001 \001(\t\"!\n\037LoginTwoPasswordsReque"
+  "stedEvent\"$\n\022LoginFinishedEvent\022\016\n\006userI"
+  "D\030\001 \001(\t\"\304\003\n\013UpdateEvent\022\'\n\005error\030\001 \001(\0132\026"
+  ".grpc.UpdateErrorEventH\000\0223\n\013manualReady\030"
+  "\002 \001(\0132\034.grpc.UpdateManualReadyEventH\000\022C\n"
+  "\023manualRestartNeeded\030\003 \001(\0132$.grpc.Update"
+  "ManualRestartNeededEventH\000\022\'\n\005force\030\004 \001("
+  "\0132\026.grpc.UpdateForceEventH\000\022>\n\023silentRes"
+  "tartNeeded\030\005 \001(\0132\037.grpc.UpdateSilentRest"
+  "artNeededH\000\0226\n\017isLatestVersion\030\006 \001(\0132\033.g"
+  "rpc.UpdateIsLatestVersionH\000\0222\n\rcheckFini"
+  "shed\030\007 \001(\0132\031.grpc.UpdateCheckFinishedH\000\022"
+  "4\n\016versionChanged\030\010 \001(\0132\032.grpc.UpdateVer"
+  "sionChangedH\000B\007\n\005event\"7\n\020UpdateErrorEve"
+  "nt\022#\n\004type\030\001 \001(\0162\025.grpc.UpdateErrorType\""
+  ")\n\026UpdateManualReadyEvent\022\017\n\007version\030\001 \001"
+  "(\t\" \n\036UpdateManualRestartNeededEvent\"#\n\020"
+  "UpdateForceEvent\022\017\n\007version\030\001 \001(\t\"\033\n\031Upd"
+  "ateSilentRestartNeeded\"\027\n\025UpdateIsLatest"
+  "Version\"\025\n\023UpdateCheckFinished\"\026\n\024Update"
+  "VersionChanged\"\213\002\n\nCacheEvent\022&\n\005error\030\001"
+  " \001(\0132\025.grpc.CacheErrorEventH\000\022G\n\026locatio"
+  "nChangedSuccess\030\002 \001(\0132%.grpc.CacheLocati"
+  "onChangeSuccessEventH\000\022G\n\030changeLocalCac"
+  "heFinished\030\003 \001(\0132#.grpc.ChangeLocalCache"
+  "FinishedEventH\000\022:\n\024diskCachePathChanged\030"
+  "\005 \001(\0132\032.grpc.DiskCachePathChangedH\000B\007\n\005e"
+  "vent\"5\n\017CacheErrorEvent\022\"\n\004type\030\001 \001(\0162\024."
+  "grpc.CacheErrorType\"!\n\037CacheLocationChan"
+  "geSuccessEvent\"4\n\035ChangeLocalCacheFinish"
+  "edEvent\022\023\n\013willRestart\030\001 \001(\010\"$\n\024DiskCach"
+  "ePathChanged\022\014\n\004path\030\001 \001(\t\"\315\001\n\021MailSetti"
+  "ngsEvent\022-\n\005error\030\001 \001(\0132\034.grpc.MailSetti"
+  "ngsErrorEventH\000\022A\n\025useSslForSmtpFinished"
+  "\030\002 \001(\0132 .grpc.UseSslForSmtpFinishedEvent"
+  "H\000\022=\n\023changePortsFinished\030\003 \001(\0132\036.grpc.C"
+  "hangePortsFinishedEventH\000B\007\n\005event\"C\n\026Ma"
+  "ilSettingsErrorEvent\022)\n\004type\030\001 \001(\0162\033.grp"
+  "c.MailSettingsErrorType\"\034\n\032UseSslForSmtp"
+  "FinishedEvent\"\032\n\030ChangePortsFinishedEven"
+  "t\"\307\001\n\rKeychainEvent\022C\n\026changeKeychainFin"
+  "ished\030\001 \001(\0132!.grpc.ChangeKeychainFinishe"
+  "dEventH\000\0221\n\rhasNoKeychain\030\002 \001(\0132\030.grpc.H"
+  "asNoKeychainEventH\000\0225\n\017rebuildKeychain\030\003"
+  " \001(\0132\032.grpc.RebuildKeychainEventH\000B\007\n\005ev"
+  "ent\"\035\n\033ChangeKeychainFinishedEvent\"\024\n\022Ha"
+  "sNoKeychainEvent\"\026\n\024RebuildKeychainEvent"
+  "\"\207\002\n\tMailEvent\022J\n\034noActiveKeyForRecipien"
+  "tEvent\030\001 \001(\0132\".grpc.NoActiveKeyForRecipi"
+  "entEventH\000\0223\n\016addressChanged\030\002 \001(\0132\031.grp"
+  "c.AddressChangedEventH\000\022\?\n\024addressChange"
+  "dLogout\030\003 \001(\0132\037.grpc.AddressChangedLogou"
+  "tEventH\000\022/\n\014apiCertIssue\030\006 \001(\0132\027.grpc.Ap"
+  "iCertIssueEventH\000B\007\n\005event\"-\n\034NoActiveKe"
+  "yForRecipientEvent\022\r\n\005email\030\001 \001(\t\"&\n\023Add"
+  "ressChangedEvent\022\017\n\007address\030\001 \001(\t\",\n\031Add"
+  "ressChangedLogoutEvent\022\017\n\007address\030\001 \001(\t\""
+  "\023\n\021ApiCertIssueEvent\"\303\001\n\tUserEvent\022E\n\027to"
+  "ggleSplitModeFinished\030\001 \001(\0132\".grpc.Toggl"
+  "eSplitModeFinishedEventH\000\0227\n\020userDisconn"
+  "ected\030\002 \001(\0132\033.grpc.UserDisconnectedEvent"
+  "H\000\022-\n\013userChanged\030\003 \001(\0132\026.grpc.UserChang"
+  "edEventH\000B\007\n\005event\".\n\034ToggleSplitModeFin"
+  "ishedEvent\022\016\n\006userID\030\001 \001(\t\")\n\025UserDiscon"
+  "nectedEvent\022\020\n\010username\030\001 \001(\t\"\"\n\020UserCha"
+  "ngedEvent\022\016\n\006userID\030\001 \001(\t*q\n\010LogLevel\022\r\n"
+  "\tLOG_PANIC\020\000\022\r\n\tLOG_FATAL\020\001\022\r\n\tLOG_ERROR"
+  "\020\002\022\014\n\010LOG_WARN\020\003\022\014\n\010LOG_INFO\020\004\022\r\n\tLOG_DE"
+  "BUG\020\005\022\r\n\tLOG_TRACE\020\006*\242\001\n\016LoginErrorType\022"
+  "\033\n\027USERNAME_PASSWORD_ERROR\020\000\022\r\n\tFREE_USE"
+  "R\020\001\022\024\n\020CONNECTION_ERROR\020\002\022\r\n\tTFA_ERROR\020\003"
+  "\022\r\n\tTFA_ABORT\020\004\022\027\n\023TWO_PASSWORDS_ERROR\020\005"
+  "\022\027\n\023TWO_PASSWORDS_ABORT\020\006*[\n\017UpdateError"
+  "Type\022\027\n\023UPDATE_MANUAL_ERROR\020\000\022\026\n\022UPDATE_"
+  "FORCE_ERROR\020\001\022\027\n\023UPDATE_SILENT_ERROR\020\002*W"
+  "\n\016CacheErrorType\022\033\n\027CACHE_UNAVAILABLE_ER"
+  "ROR\020\000\022\031\n\025CACHE_CANT_MOVE_ERROR\020\001\022\r\n\tDISK"
+  "_FULL\020\002*A\n\025MailSettingsErrorType\022\023\n\017IMAP"
+  "_PORT_ISSUE\020\000\022\023\n\017SMTP_PORT_ISSUE\020\0012\233\037\n\006B"
+  "ridge\022I\n\013CheckTokens\022\034.google.protobuf.S"
+  "tringValue\032\034.google.protobuf.StringValue"
+  "\022\?\n\013AddLogEntry\022\030.grpc.AddLogEntryReques"
+  "t\032\026.google.protobuf.Empty\022:\n\010GuiReady\022\026."
+  "google.protobuf.Empty\032\026.google.protobuf."
+  "Empty\0226\n\004Quit\022\026.google.protobuf.Empty\032\026."
+  "google.protobuf.Empty\0229\n\007Restart\022\026.googl"
+  "e.protobuf.Empty\032\026.google.protobuf.Empty"
+  "\022C\n\rShowOnStartup\022\026.google.protobuf.Empt"
+  "y\032\032.google.protobuf.BoolValue\022F\n\020ShowSpl"
+  "ashScreen\022\026.google.protobuf.Empty\032\032.goog"
+  "le.protobuf.BoolValue\022E\n\017IsFirstGuiStart"
+  "\022\026.google.protobuf.Empty\032\032.google.protob"
+  "uf.BoolValue\022F\n\020SetIsAutostartOn\022\032.googl"
+  "e.protobuf.BoolValue\032\026.google.protobuf.E"
+  "mpty\022C\n\rIsAutostartOn\022\026.google.protobuf."
+  "Empty\032\032.google.protobuf.BoolValue\022F\n\020Set"
+  "IsBetaEnabled\022\032.google.protobuf.BoolValu"
+  "e\032\026.google.protobuf.Empty\022C\n\rIsBetaEnabl"
   "ed\022\026.google.protobuf.Empty\032\032.google.prot"
-  "obuf.BoolValue\022F\n\020SetUseSslForSmtp\022\032.goo"
-  "gle.protobuf.BoolValue\032\026.google.protobuf"
-  ".Empty\022C\n\rUseSslForSmtp\022\026.google.protobu"
-  "f.Empty\032\032.google.protobuf.BoolValue\022@\n\010H"
-  "ostname\022\026.google.protobuf.Empty\032\034.google"
-  ".protobuf.StringValue\022\?\n\010ImapPort\022\026.goog"
-  "le.protobuf.Empty\032\033.google.protobuf.Int3"
-  "2Value\022\?\n\010SmtpPort\022\026.google.protobuf.Emp"
-  "ty\032\033.google.protobuf.Int32Value\022\?\n\013Chang"
-  "ePorts\022\030.grpc.ChangePortsRequest\032\026.googl"
-  "e.protobuf.Empty\022E\n\nIsPortFree\022\033.google."
-  "protobuf.Int32Value\032\032.google.protobuf.Bo"
-  "olValue\022N\n\022AvailableKeychains\022\026.google.p"
-  "rotobuf.Empty\032 .grpc.AvailableKeychainsR"
-  "esponse\022J\n\022SetCurrentKeychain\022\034.google.p"
-  "rotobuf.StringValue\032\026.google.protobuf.Em"
-  "pty\022G\n\017CurrentKeychain\022\026.google.protobuf"
-  ".Empty\032\034.google.protobuf.StringValue\022=\n\013"
-  "GetUserList\022\026.google.protobuf.Empty\032\026.gr"
-  "pc.UserListResponse\0223\n\007GetUser\022\034.google."
-  "protobuf.StringValue\032\n.grpc.User\022F\n\020SetU"
-  "serSplitMode\022\032.grpc.UserSplitModeRequest"
-  "\032\026.google.protobuf.Empty\022B\n\nLogoutUser\022\034"
-  ".google.protobuf.StringValue\032\026.google.pr"
-  "otobuf.Empty\022B\n\nRemoveUser\022\034.google.prot"
-  "obuf.StringValue\032\026.google.protobuf.Empty"
-  "\022Q\n\026ConfigureUserAppleMail\022\037.grpc.Config"
-  "ureAppleMailRequest\032\026.google.protobuf.Em"
-  "pty\022\?\n\016RunEventStream\022\030.grpc.EventStream"
-  "Request\032\021.grpc.StreamEvent0\001\022A\n\017StopEven"
-  "tStream\022\026.google.protobuf.Empty\032\026.google"
-  ".protobuf.EmptyB6Z4github.com/ProtonMail"
-  "/proton-bridge/v2/internal/grpcb\006proto3"
+  "obuf.BoolValue\022I\n\023SetIsAllMailVisible\022\032."
+  "google.protobuf.BoolValue\032\026.google.proto"
+  "buf.Empty\022F\n\020IsAllMailVisible\022\026.google.p"
+  "rotobuf.Empty\032\032.google.protobuf.BoolValu"
+  "e\022<\n\004GoOs\022\026.google.protobuf.Empty\032\034.goog"
+  "le.protobuf.StringValue\022>\n\014TriggerReset\022"
+  "\026.google.protobuf.Empty\032\026.google.protobu"
+  "f.Empty\022\?\n\007Version\022\026.google.protobuf.Emp"
+  "ty\032\034.google.protobuf.StringValue\022@\n\010Logs"
+  "Path\022\026.google.protobuf.Empty\032\034.google.pr"
+  "otobuf.StringValue\022C\n\013LicensePath\022\026.goog"
+  "le.protobuf.Empty\032\034.google.protobuf.Stri"
+  "ngValue\022L\n\024ReleaseNotesPageLink\022\026.google"
+  ".protobuf.Empty\032\034.google.protobuf.String"
+  "Value\022N\n\026DependencyLicensesLink\022\026.google"
+  ".protobuf.Empty\032\034.google.protobuf.String"
+  "Value\022G\n\017LandingPageLink\022\026.google.protob"
+  "uf.Empty\032\034.google.protobuf.StringValue\022J"
+  "\n\022SetColorSchemeName\022\034.google.protobuf.S"
+  "tringValue\032\026.google.protobuf.Empty\022G\n\017Co"
+  "lorSchemeName\022\026.google.protobuf.Empty\032\034."
+  "google.protobuf.StringValue\022J\n\022CurrentEm"
+  "ailClient\022\026.google.protobuf.Empty\032\034.goog"
+  "le.protobuf.StringValue\022;\n\tReportBug\022\026.g"
+  "rpc.ReportBugRequest\032\026.google.protobuf.E"
+  "mpty\022E\n\rForceLauncher\022\034.google.protobuf."
+  "StringValue\032\026.google.protobuf.Empty\022I\n\021S"
+  "etMainExecutable\022\034.google.protobuf.Strin"
+  "gValue\032\026.google.protobuf.Empty\0223\n\005Login\022"
+  "\022.grpc.LoginRequest\032\026.google.protobuf.Em"
+  "pty\0226\n\010Login2FA\022\022.grpc.LoginRequest\032\026.go"
+  "ogle.protobuf.Empty\022=\n\017Login2Passwords\022\022"
+  ".grpc.LoginRequest\032\026.google.protobuf.Emp"
+  "ty\022=\n\nLoginAbort\022\027.grpc.LoginAbortReques"
+  "t\032\026.google.protobuf.Empty\022=\n\013CheckUpdate"
+  "\022\026.google.protobuf.Empty\032\026.google.protob"
+  "uf.Empty\022\?\n\rInstallUpdate\022\026.google.proto"
+  "buf.Empty\032\026.google.protobuf.Empty\022L\n\026Set"
+  "IsAutomaticUpdateOn\022\032.google.protobuf.Bo"
+  "olValue\032\026.google.protobuf.Empty\022I\n\023IsAut"
+  "omaticUpdateOn\022\026.google.protobuf.Empty\032\032"
+  ".google.protobuf.BoolValue\022E\n\rDiskCacheP"
+  "ath\022\026.google.protobuf.Empty\032\034.google.pro"
+  "tobuf.StringValue\022I\n\020ChangeLocalCache\022\035."
+  "grpc.ChangeLocalCacheRequest\032\026.google.pr"
+  "otobuf.Empty\022E\n\017SetIsDoHEnabled\022\032.google"
+  ".protobuf.BoolValue\032\026.google.protobuf.Em"
+  "pty\022B\n\014IsDoHEnabled\022\026.google.protobuf.Em"
+  "pty\032\032.google.protobuf.BoolValue\022F\n\020SetUs"
+  "eSslForSmtp\022\032.google.protobuf.BoolValue\032"
+  "\026.google.protobuf.Empty\022C\n\rUseSslForSmtp"
+  "\022\026.google.protobuf.Empty\032\032.google.protob"
+  "uf.BoolValue\022@\n\010Hostname\022\026.google.protob"
+  "uf.Empty\032\034.google.protobuf.StringValue\022\?"
+  "\n\010ImapPort\022\026.google.protobuf.Empty\032\033.goo"
+  "gle.protobuf.Int32Value\022\?\n\010SmtpPort\022\026.go"
+  "ogle.protobuf.Empty\032\033.google.protobuf.In"
+  "t32Value\022\?\n\013ChangePorts\022\030.grpc.ChangePor"
+  "tsRequest\032\026.google.protobuf.Empty\022E\n\nIsP"
+  "ortFree\022\033.google.protobuf.Int32Value\032\032.g"
+  "oogle.protobuf.BoolValue\022N\n\022AvailableKey"
+  "chains\022\026.google.protobuf.Empty\032 .grpc.Av"
+  "ailableKeychainsResponse\022J\n\022SetCurrentKe"
+  "ychain\022\034.google.protobuf.StringValue\032\026.g"
+  "oogle.protobuf.Empty\022G\n\017CurrentKeychain\022"
+  "\026.google.protobuf.Empty\032\034.google.protobu"
+  "f.StringValue\022=\n\013GetUserList\022\026.google.pr"
+  "otobuf.Empty\032\026.grpc.UserListResponse\0223\n\007"
+  "GetUser\022\034.google.protobuf.StringValue\032\n."
+  "grpc.User\022F\n\020SetUserSplitMode\022\032.grpc.Use"
+  "rSplitModeRequest\032\026.google.protobuf.Empt"
+  "y\022B\n\nLogoutUser\022\034.google.protobuf.String"
+  "Value\032\026.google.protobuf.Empty\022B\n\nRemoveU"
+  "ser\022\034.google.protobuf.StringValue\032\026.goog"
+  "le.protobuf.Empty\022Q\n\026ConfigureUserAppleM"
+  "ail\022\037.grpc.ConfigureAppleMailRequest\032\026.g"
+  "oogle.protobuf.Empty\022\?\n\016RunEventStream\022\030"
+  ".grpc.EventStreamRequest\032\021.grpc.StreamEv"
+  "ent0\001\022A\n\017StopEventStream\022\026.google.protob"
+  "uf.Empty\032\026.google.protobuf.EmptyB6Z4gith"
+  "ub.com/ProtonMail/proton-bridge/v2/inter"
+  "nal/grpcb\006proto3"
   ;
 static const ::_pbi::DescriptorTable* const descriptor_table_bridge_2eproto_deps[2] = {
   &::descriptor_table_google_2fprotobuf_2fempty_2eproto,
@@ -1603,9 +1573,9 @@ static const ::_pbi::DescriptorTable* const descriptor_table_bridge_2eproto_deps
 };
 static ::_pbi::once_flag descriptor_table_bridge_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_bridge_2eproto = {
-    false, false, 9719, descriptor_table_protodef_bridge_2eproto,
+    false, false, 9496, descriptor_table_protodef_bridge_2eproto,
     "bridge.proto",
-    &descriptor_table_bridge_2eproto_once, descriptor_table_bridge_2eproto_deps, 2, 58,
+    &descriptor_table_bridge_2eproto_once, descriptor_table_bridge_2eproto_deps, 2, 57,
     schemas, file_default_instances, TableStruct_bridge_2eproto::offsets,
     file_level_metadata_bridge_2eproto, file_level_enum_descriptors_bridge_2eproto,
     file_level_service_descriptors_bridge_2eproto,
@@ -2886,7 +2856,6 @@ ChangeLocalCacheRequest::ChangeLocalCacheRequest(const ChangeLocalCacheRequest& 
   ChangeLocalCacheRequest* const _this = this; (void)_this;
   new (&_impl_) Impl_{
       decltype(_impl_.diskcachepath_){}
-    , decltype(_impl_.enablediskcache_){}
     , /*decltype(_impl_._cached_size_)*/{}};
 
   _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
@@ -2898,7 +2867,6 @@ ChangeLocalCacheRequest::ChangeLocalCacheRequest(const ChangeLocalCacheRequest& 
     _this->_impl_.diskcachepath_.Set(from._internal_diskcachepath(), 
       _this->GetArenaForAllocation());
   }
-  _this->_impl_.enablediskcache_ = from._impl_.enablediskcache_;
   // @@protoc_insertion_point(copy_constructor:grpc.ChangeLocalCacheRequest)
 }
 
@@ -2908,7 +2876,6 @@ inline void ChangeLocalCacheRequest::SharedCtor(
   (void)is_message_owned;
   new (&_impl_) Impl_{
       decltype(_impl_.diskcachepath_){}
-    , decltype(_impl_.enablediskcache_){false}
     , /*decltype(_impl_._cached_size_)*/{}
   };
   _impl_.diskcachepath_.InitDefault();
@@ -2942,7 +2909,6 @@ void ChangeLocalCacheRequest::Clear() {
   (void) cached_has_bits;
 
   _impl_.diskcachepath_.ClearToEmpty();
-  _impl_.enablediskcache_ = false;
   _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
 }
 
@@ -2952,14 +2918,6 @@ const char* ChangeLocalCacheRequest::_InternalParse(const char* ptr, ::_pbi::Par
     uint32_t tag;
     ptr = ::_pbi::ReadTag(ptr, &tag);
     switch (tag >> 3) {
-      // bool enableDiskCache = 1;
-      case 1:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 8)) {
-          _impl_.enablediskcache_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
-          CHK_(ptr);
-        } else
-          goto handle_unusual;
-        continue;
       // string diskCachePath = 2;
       case 2:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 18)) {
@@ -2999,12 +2957,6 @@ uint8_t* ChangeLocalCacheRequest::_InternalSerialize(
   uint32_t cached_has_bits = 0;
   (void) cached_has_bits;
 
-  // bool enableDiskCache = 1;
-  if (this->_internal_enablediskcache() != 0) {
-    target = stream->EnsureSpace(target);
-    target = ::_pbi::WireFormatLite::WriteBoolToArray(1, this->_internal_enablediskcache(), target);
-  }
-
   // string diskCachePath = 2;
   if (!this->_internal_diskcachepath().empty()) {
     ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
@@ -3038,11 +2990,6 @@ size_t ChangeLocalCacheRequest::ByteSizeLong() const {
         this->_internal_diskcachepath());
   }
 
-  // bool enableDiskCache = 1;
-  if (this->_internal_enablediskcache() != 0) {
-    total_size += 1 + 1;
-  }
-
   return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
 }
 
@@ -3063,9 +3010,6 @@ void ChangeLocalCacheRequest::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg
 
   if (!from._internal_diskcachepath().empty()) {
     _this->_internal_set_diskcachepath(from._internal_diskcachepath());
-  }
-  if (from._internal_enablediskcache() != 0) {
-    _this->_internal_set_enablediskcache(from._internal_enablediskcache());
   }
   _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
 }
@@ -3090,7 +3034,6 @@ void ChangeLocalCacheRequest::InternalSwap(ChangeLocalCacheRequest* other) {
       &_impl_.diskcachepath_, lhs_arena,
       &other->_impl_.diskcachepath_, rhs_arena
   );
-  swap(_impl_.enablediskcache_, other->_impl_.enablediskcache_);
 }
 
 ::PROTOBUF_NAMESPACE_ID::Metadata ChangeLocalCacheRequest::GetMetadata() const {
@@ -9166,7 +9109,6 @@ class CacheEvent::_Internal {
   static const ::grpc::CacheErrorEvent& error(const CacheEvent* msg);
   static const ::grpc::CacheLocationChangeSuccessEvent& locationchangedsuccess(const CacheEvent* msg);
   static const ::grpc::ChangeLocalCacheFinishedEvent& changelocalcachefinished(const CacheEvent* msg);
-  static const ::grpc::IsCacheOnDiskEnabledChanged& iscacheondiskenabledchanged(const CacheEvent* msg);
   static const ::grpc::DiskCachePathChanged& diskcachepathchanged(const CacheEvent* msg);
 };
 
@@ -9181,10 +9123,6 @@ CacheEvent::_Internal::locationchangedsuccess(const CacheEvent* msg) {
 const ::grpc::ChangeLocalCacheFinishedEvent&
 CacheEvent::_Internal::changelocalcachefinished(const CacheEvent* msg) {
   return *msg->_impl_.event_.changelocalcachefinished_;
-}
-const ::grpc::IsCacheOnDiskEnabledChanged&
-CacheEvent::_Internal::iscacheondiskenabledchanged(const CacheEvent* msg) {
-  return *msg->_impl_.event_.iscacheondiskenabledchanged_;
 }
 const ::grpc::DiskCachePathChanged&
 CacheEvent::_Internal::diskcachepathchanged(const CacheEvent* msg) {
@@ -9235,21 +9173,6 @@ void CacheEvent::set_allocated_changelocalcachefinished(::grpc::ChangeLocalCache
   }
   // @@protoc_insertion_point(field_set_allocated:grpc.CacheEvent.changeLocalCacheFinished)
 }
-void CacheEvent::set_allocated_iscacheondiskenabledchanged(::grpc::IsCacheOnDiskEnabledChanged* iscacheondiskenabledchanged) {
-  ::PROTOBUF_NAMESPACE_ID::Arena* message_arena = GetArenaForAllocation();
-  clear_event();
-  if (iscacheondiskenabledchanged) {
-    ::PROTOBUF_NAMESPACE_ID::Arena* submessage_arena =
-      ::PROTOBUF_NAMESPACE_ID::Arena::InternalGetOwningArena(iscacheondiskenabledchanged);
-    if (message_arena != submessage_arena) {
-      iscacheondiskenabledchanged = ::PROTOBUF_NAMESPACE_ID::internal::GetOwnedMessage(
-          message_arena, iscacheondiskenabledchanged, submessage_arena);
-    }
-    set_has_iscacheondiskenabledchanged();
-    _impl_.event_.iscacheondiskenabledchanged_ = iscacheondiskenabledchanged;
-  }
-  // @@protoc_insertion_point(field_set_allocated:grpc.CacheEvent.isCacheOnDiskEnabledChanged)
-}
 void CacheEvent::set_allocated_diskcachepathchanged(::grpc::DiskCachePathChanged* diskcachepathchanged) {
   ::PROTOBUF_NAMESPACE_ID::Arena* message_arena = GetArenaForAllocation();
   clear_event();
@@ -9295,11 +9218,6 @@ CacheEvent::CacheEvent(const CacheEvent& from)
     case kChangeLocalCacheFinished: {
       _this->_internal_mutable_changelocalcachefinished()->::grpc::ChangeLocalCacheFinishedEvent::MergeFrom(
           from._internal_changelocalcachefinished());
-      break;
-    }
-    case kIsCacheOnDiskEnabledChanged: {
-      _this->_internal_mutable_iscacheondiskenabledchanged()->::grpc::IsCacheOnDiskEnabledChanged::MergeFrom(
-          from._internal_iscacheondiskenabledchanged());
       break;
     }
     case kDiskCachePathChanged: {
@@ -9367,12 +9285,6 @@ void CacheEvent::clear_event() {
       }
       break;
     }
-    case kIsCacheOnDiskEnabledChanged: {
-      if (GetArenaForAllocation() == nullptr) {
-        delete _impl_.event_.iscacheondiskenabledchanged_;
-      }
-      break;
-    }
     case kDiskCachePathChanged: {
       if (GetArenaForAllocation() == nullptr) {
         delete _impl_.event_.diskcachepathchanged_;
@@ -9423,14 +9335,6 @@ const char* CacheEvent::_InternalParse(const char* ptr, ::_pbi::ParseContext* ct
       case 3:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 26)) {
           ptr = ctx->ParseMessage(_internal_mutable_changelocalcachefinished(), ptr);
-          CHK_(ptr);
-        } else
-          goto handle_unusual;
-        continue;
-      // .grpc.IsCacheOnDiskEnabledChanged isCacheOnDiskEnabledChanged = 4;
-      case 4:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 34)) {
-          ptr = ctx->ParseMessage(_internal_mutable_iscacheondiskenabledchanged(), ptr);
           CHK_(ptr);
         } else
           goto handle_unusual;
@@ -9493,13 +9397,6 @@ uint8_t* CacheEvent::_InternalSerialize(
         _Internal::changelocalcachefinished(this).GetCachedSize(), target, stream);
   }
 
-  // .grpc.IsCacheOnDiskEnabledChanged isCacheOnDiskEnabledChanged = 4;
-  if (_internal_has_iscacheondiskenabledchanged()) {
-    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
-      InternalWriteMessage(4, _Internal::iscacheondiskenabledchanged(this),
-        _Internal::iscacheondiskenabledchanged(this).GetCachedSize(), target, stream);
-  }
-
   // .grpc.DiskCachePathChanged diskCachePathChanged = 5;
   if (_internal_has_diskcachepathchanged()) {
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
@@ -9545,13 +9442,6 @@ size_t CacheEvent::ByteSizeLong() const {
           *_impl_.event_.changelocalcachefinished_);
       break;
     }
-    // .grpc.IsCacheOnDiskEnabledChanged isCacheOnDiskEnabledChanged = 4;
-    case kIsCacheOnDiskEnabledChanged: {
-      total_size += 1 +
-        ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(
-          *_impl_.event_.iscacheondiskenabledchanged_);
-      break;
-    }
     // .grpc.DiskCachePathChanged diskCachePathChanged = 5;
     case kDiskCachePathChanged: {
       total_size += 1 +
@@ -9595,11 +9485,6 @@ void CacheEvent::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PRO
     case kChangeLocalCacheFinished: {
       _this->_internal_mutable_changelocalcachefinished()->::grpc::ChangeLocalCacheFinishedEvent::MergeFrom(
           from._internal_changelocalcachefinished());
-      break;
-    }
-    case kIsCacheOnDiskEnabledChanged: {
-      _this->_internal_mutable_iscacheondiskenabledchanged()->::grpc::IsCacheOnDiskEnabledChanged::MergeFrom(
-          from._internal_iscacheondiskenabledchanged());
       break;
     }
     case kDiskCachePathChanged: {
@@ -10039,184 +9924,6 @@ void ChangeLocalCacheFinishedEvent::InternalSwap(ChangeLocalCacheFinishedEvent* 
 
 // ===================================================================
 
-class IsCacheOnDiskEnabledChanged::_Internal {
- public:
-};
-
-IsCacheOnDiskEnabledChanged::IsCacheOnDiskEnabledChanged(::PROTOBUF_NAMESPACE_ID::Arena* arena,
-                         bool is_message_owned)
-  : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
-  SharedCtor(arena, is_message_owned);
-  // @@protoc_insertion_point(arena_constructor:grpc.IsCacheOnDiskEnabledChanged)
-}
-IsCacheOnDiskEnabledChanged::IsCacheOnDiskEnabledChanged(const IsCacheOnDiskEnabledChanged& from)
-  : ::PROTOBUF_NAMESPACE_ID::Message() {
-  IsCacheOnDiskEnabledChanged* const _this = this; (void)_this;
-  new (&_impl_) Impl_{
-      decltype(_impl_.enabled_){}
-    , /*decltype(_impl_._cached_size_)*/{}};
-
-  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
-  _this->_impl_.enabled_ = from._impl_.enabled_;
-  // @@protoc_insertion_point(copy_constructor:grpc.IsCacheOnDiskEnabledChanged)
-}
-
-inline void IsCacheOnDiskEnabledChanged::SharedCtor(
-    ::_pb::Arena* arena, bool is_message_owned) {
-  (void)arena;
-  (void)is_message_owned;
-  new (&_impl_) Impl_{
-      decltype(_impl_.enabled_){false}
-    , /*decltype(_impl_._cached_size_)*/{}
-  };
-}
-
-IsCacheOnDiskEnabledChanged::~IsCacheOnDiskEnabledChanged() {
-  // @@protoc_insertion_point(destructor:grpc.IsCacheOnDiskEnabledChanged)
-  if (auto *arena = _internal_metadata_.DeleteReturnArena<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>()) {
-  (void)arena;
-    return;
-  }
-  SharedDtor();
-}
-
-inline void IsCacheOnDiskEnabledChanged::SharedDtor() {
-  GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
-}
-
-void IsCacheOnDiskEnabledChanged::SetCachedSize(int size) const {
-  _impl_._cached_size_.Set(size);
-}
-
-void IsCacheOnDiskEnabledChanged::Clear() {
-// @@protoc_insertion_point(message_clear_start:grpc.IsCacheOnDiskEnabledChanged)
-  uint32_t cached_has_bits = 0;
-  // Prevent compiler warnings about cached_has_bits being unused
-  (void) cached_has_bits;
-
-  _impl_.enabled_ = false;
-  _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
-}
-
-const char* IsCacheOnDiskEnabledChanged::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
-#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
-  while (!ctx->Done(&ptr)) {
-    uint32_t tag;
-    ptr = ::_pbi::ReadTag(ptr, &tag);
-    switch (tag >> 3) {
-      // bool enabled = 1;
-      case 1:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 8)) {
-          _impl_.enabled_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
-          CHK_(ptr);
-        } else
-          goto handle_unusual;
-        continue;
-      default:
-        goto handle_unusual;
-    }  // switch
-  handle_unusual:
-    if ((tag == 0) || ((tag & 7) == 4)) {
-      CHK_(ptr);
-      ctx->SetLastTag(tag);
-      goto message_done;
-    }
-    ptr = UnknownFieldParse(
-        tag,
-        _internal_metadata_.mutable_unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(),
-        ptr, ctx);
-    CHK_(ptr != nullptr);
-  }  // while
-message_done:
-  return ptr;
-failure:
-  ptr = nullptr;
-  goto message_done;
-#undef CHK_
-}
-
-uint8_t* IsCacheOnDiskEnabledChanged::_InternalSerialize(
-    uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
-  // @@protoc_insertion_point(serialize_to_array_start:grpc.IsCacheOnDiskEnabledChanged)
-  uint32_t cached_has_bits = 0;
-  (void) cached_has_bits;
-
-  // bool enabled = 1;
-  if (this->_internal_enabled() != 0) {
-    target = stream->EnsureSpace(target);
-    target = ::_pbi::WireFormatLite::WriteBoolToArray(1, this->_internal_enabled(), target);
-  }
-
-  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
-    target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
-        _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
-  }
-  // @@protoc_insertion_point(serialize_to_array_end:grpc.IsCacheOnDiskEnabledChanged)
-  return target;
-}
-
-size_t IsCacheOnDiskEnabledChanged::ByteSizeLong() const {
-// @@protoc_insertion_point(message_byte_size_start:grpc.IsCacheOnDiskEnabledChanged)
-  size_t total_size = 0;
-
-  uint32_t cached_has_bits = 0;
-  // Prevent compiler warnings about cached_has_bits being unused
-  (void) cached_has_bits;
-
-  // bool enabled = 1;
-  if (this->_internal_enabled() != 0) {
-    total_size += 1 + 1;
-  }
-
-  return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
-}
-
-const ::PROTOBUF_NAMESPACE_ID::Message::ClassData IsCacheOnDiskEnabledChanged::_class_data_ = {
-    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSourceCheck,
-    IsCacheOnDiskEnabledChanged::MergeImpl
-};
-const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*IsCacheOnDiskEnabledChanged::GetClassData() const { return &_class_data_; }
-
-
-void IsCacheOnDiskEnabledChanged::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
-  auto* const _this = static_cast<IsCacheOnDiskEnabledChanged*>(&to_msg);
-  auto& from = static_cast<const IsCacheOnDiskEnabledChanged&>(from_msg);
-  // @@protoc_insertion_point(class_specific_merge_from_start:grpc.IsCacheOnDiskEnabledChanged)
-  GOOGLE_DCHECK_NE(&from, _this);
-  uint32_t cached_has_bits = 0;
-  (void) cached_has_bits;
-
-  if (from._internal_enabled() != 0) {
-    _this->_internal_set_enabled(from._internal_enabled());
-  }
-  _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
-}
-
-void IsCacheOnDiskEnabledChanged::CopyFrom(const IsCacheOnDiskEnabledChanged& from) {
-// @@protoc_insertion_point(class_specific_copy_from_start:grpc.IsCacheOnDiskEnabledChanged)
-  if (&from == this) return;
-  Clear();
-  MergeFrom(from);
-}
-
-bool IsCacheOnDiskEnabledChanged::IsInitialized() const {
-  return true;
-}
-
-void IsCacheOnDiskEnabledChanged::InternalSwap(IsCacheOnDiskEnabledChanged* other) {
-  using std::swap;
-  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
-  swap(_impl_.enabled_, other->_impl_.enabled_);
-}
-
-::PROTOBUF_NAMESPACE_ID::Metadata IsCacheOnDiskEnabledChanged::GetMetadata() const {
-  return ::_pbi::AssignDescriptors(
-      &descriptor_table_bridge_2eproto_getter, &descriptor_table_bridge_2eproto_once,
-      file_level_metadata_bridge_2eproto[39]);
-}
-
-// ===================================================================
-
 class DiskCachePathChanged::_Internal {
  public:
 };
@@ -10415,7 +10122,7 @@ void DiskCachePathChanged::InternalSwap(DiskCachePathChanged* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata DiskCachePathChanged::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_bridge_2eproto_getter, &descriptor_table_bridge_2eproto_once,
-      file_level_metadata_bridge_2eproto[40]);
+      file_level_metadata_bridge_2eproto[39]);
 }
 
 // ===================================================================
@@ -10778,7 +10485,7 @@ void MailSettingsEvent::InternalSwap(MailSettingsEvent* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata MailSettingsEvent::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_bridge_2eproto_getter, &descriptor_table_bridge_2eproto_once,
-      file_level_metadata_bridge_2eproto[41]);
+      file_level_metadata_bridge_2eproto[40]);
 }
 
 // ===================================================================
@@ -10959,7 +10666,7 @@ void MailSettingsErrorEvent::InternalSwap(MailSettingsErrorEvent* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata MailSettingsErrorEvent::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_bridge_2eproto_getter, &descriptor_table_bridge_2eproto_once,
-      file_level_metadata_bridge_2eproto[42]);
+      file_level_metadata_bridge_2eproto[41]);
 }
 
 // ===================================================================
@@ -10999,7 +10706,7 @@ const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*UseSslForSmtpFinishedEvent::Ge
 ::PROTOBUF_NAMESPACE_ID::Metadata UseSslForSmtpFinishedEvent::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_bridge_2eproto_getter, &descriptor_table_bridge_2eproto_once,
-      file_level_metadata_bridge_2eproto[43]);
+      file_level_metadata_bridge_2eproto[42]);
 }
 
 // ===================================================================
@@ -11039,7 +10746,7 @@ const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*ChangePortsFinishedEvent::GetC
 ::PROTOBUF_NAMESPACE_ID::Metadata ChangePortsFinishedEvent::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_bridge_2eproto_getter, &descriptor_table_bridge_2eproto_once,
-      file_level_metadata_bridge_2eproto[44]);
+      file_level_metadata_bridge_2eproto[43]);
 }
 
 // ===================================================================
@@ -11402,7 +11109,7 @@ void KeychainEvent::InternalSwap(KeychainEvent* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata KeychainEvent::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_bridge_2eproto_getter, &descriptor_table_bridge_2eproto_once,
-      file_level_metadata_bridge_2eproto[45]);
+      file_level_metadata_bridge_2eproto[44]);
 }
 
 // ===================================================================
@@ -11442,7 +11149,7 @@ const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*ChangeKeychainFinishedEvent::G
 ::PROTOBUF_NAMESPACE_ID::Metadata ChangeKeychainFinishedEvent::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_bridge_2eproto_getter, &descriptor_table_bridge_2eproto_once,
-      file_level_metadata_bridge_2eproto[46]);
+      file_level_metadata_bridge_2eproto[45]);
 }
 
 // ===================================================================
@@ -11482,7 +11189,7 @@ const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*HasNoKeychainEvent::GetClassDa
 ::PROTOBUF_NAMESPACE_ID::Metadata HasNoKeychainEvent::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_bridge_2eproto_getter, &descriptor_table_bridge_2eproto_once,
-      file_level_metadata_bridge_2eproto[47]);
+      file_level_metadata_bridge_2eproto[46]);
 }
 
 // ===================================================================
@@ -11522,7 +11229,7 @@ const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*RebuildKeychainEvent::GetClass
 ::PROTOBUF_NAMESPACE_ID::Metadata RebuildKeychainEvent::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_bridge_2eproto_getter, &descriptor_table_bridge_2eproto_once,
-      file_level_metadata_bridge_2eproto[48]);
+      file_level_metadata_bridge_2eproto[47]);
 }
 
 // ===================================================================
@@ -11943,7 +11650,7 @@ void MailEvent::InternalSwap(MailEvent* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata MailEvent::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_bridge_2eproto_getter, &descriptor_table_bridge_2eproto_once,
-      file_level_metadata_bridge_2eproto[49]);
+      file_level_metadata_bridge_2eproto[48]);
 }
 
 // ===================================================================
@@ -12146,7 +11853,7 @@ void NoActiveKeyForRecipientEvent::InternalSwap(NoActiveKeyForRecipientEvent* ot
 ::PROTOBUF_NAMESPACE_ID::Metadata NoActiveKeyForRecipientEvent::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_bridge_2eproto_getter, &descriptor_table_bridge_2eproto_once,
-      file_level_metadata_bridge_2eproto[50]);
+      file_level_metadata_bridge_2eproto[49]);
 }
 
 // ===================================================================
@@ -12349,7 +12056,7 @@ void AddressChangedEvent::InternalSwap(AddressChangedEvent* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata AddressChangedEvent::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_bridge_2eproto_getter, &descriptor_table_bridge_2eproto_once,
-      file_level_metadata_bridge_2eproto[51]);
+      file_level_metadata_bridge_2eproto[50]);
 }
 
 // ===================================================================
@@ -12552,7 +12259,7 @@ void AddressChangedLogoutEvent::InternalSwap(AddressChangedLogoutEvent* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata AddressChangedLogoutEvent::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_bridge_2eproto_getter, &descriptor_table_bridge_2eproto_once,
-      file_level_metadata_bridge_2eproto[52]);
+      file_level_metadata_bridge_2eproto[51]);
 }
 
 // ===================================================================
@@ -12592,7 +12299,7 @@ const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*ApiCertIssueEvent::GetClassDat
 ::PROTOBUF_NAMESPACE_ID::Metadata ApiCertIssueEvent::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_bridge_2eproto_getter, &descriptor_table_bridge_2eproto_once,
-      file_level_metadata_bridge_2eproto[53]);
+      file_level_metadata_bridge_2eproto[52]);
 }
 
 // ===================================================================
@@ -12955,7 +12662,7 @@ void UserEvent::InternalSwap(UserEvent* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata UserEvent::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_bridge_2eproto_getter, &descriptor_table_bridge_2eproto_once,
-      file_level_metadata_bridge_2eproto[54]);
+      file_level_metadata_bridge_2eproto[53]);
 }
 
 // ===================================================================
@@ -13158,7 +12865,7 @@ void ToggleSplitModeFinishedEvent::InternalSwap(ToggleSplitModeFinishedEvent* ot
 ::PROTOBUF_NAMESPACE_ID::Metadata ToggleSplitModeFinishedEvent::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_bridge_2eproto_getter, &descriptor_table_bridge_2eproto_once,
-      file_level_metadata_bridge_2eproto[55]);
+      file_level_metadata_bridge_2eproto[54]);
 }
 
 // ===================================================================
@@ -13361,7 +13068,7 @@ void UserDisconnectedEvent::InternalSwap(UserDisconnectedEvent* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata UserDisconnectedEvent::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_bridge_2eproto_getter, &descriptor_table_bridge_2eproto_once,
-      file_level_metadata_bridge_2eproto[56]);
+      file_level_metadata_bridge_2eproto[55]);
 }
 
 // ===================================================================
@@ -13564,7 +13271,7 @@ void UserChangedEvent::InternalSwap(UserChangedEvent* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata UserChangedEvent::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_bridge_2eproto_getter, &descriptor_table_bridge_2eproto_once,
-      file_level_metadata_bridge_2eproto[57]);
+      file_level_metadata_bridge_2eproto[56]);
 }
 
 // @@protoc_insertion_point(namespace_scope)
@@ -13725,10 +13432,6 @@ Arena::CreateMaybeMessage< ::grpc::CacheLocationChangeSuccessEvent >(Arena* aren
 template<> PROTOBUF_NOINLINE ::grpc::ChangeLocalCacheFinishedEvent*
 Arena::CreateMaybeMessage< ::grpc::ChangeLocalCacheFinishedEvent >(Arena* arena) {
   return Arena::CreateMessageInternal< ::grpc::ChangeLocalCacheFinishedEvent >(arena);
-}
-template<> PROTOBUF_NOINLINE ::grpc::IsCacheOnDiskEnabledChanged*
-Arena::CreateMaybeMessage< ::grpc::IsCacheOnDiskEnabledChanged >(Arena* arena) {
-  return Arena::CreateMessageInternal< ::grpc::IsCacheOnDiskEnabledChanged >(arena);
 }
 template<> PROTOBUF_NOINLINE ::grpc::DiskCachePathChanged*
 Arena::CreateMaybeMessage< ::grpc::DiskCachePathChanged >(Arena* arena) {

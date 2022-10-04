@@ -104,7 +104,6 @@ void QMLBackend::connectGrpcEvents()
     connect(client, &GRPCClient::showMainWindow, this, &QMLBackend::showMainWindow);
 
     // cache events
-    connect(client, &GRPCClient::isCacheOnDiskEnabledChanged, this, &QMLBackend::isDiskCacheEnabledChanged);
     connect(client, &GRPCClient::diskCachePathChanged, this, &QMLBackend::diskCachePathChanged);
     connect(client, &GRPCClient::cacheUnavailable, this, &QMLBackend::cacheUnavailable);                                                                                            //    _ func()                  `signal:"cacheUnavailable"`
     connect(client, &GRPCClient::cacheCantMove, this, &QMLBackend::cacheCantMove);
@@ -317,16 +316,6 @@ void QMLBackend::changePorts(int imapPort, int smtpPort)
     // if call succeed, app will restart. No need to emit a value change signal, because it will trigger a read-back via gRPC that will fail.
     emit hideMainWindow();
     app().grpc().changePorts(imapPort, smtpPort);
-}
-
-
-//****************************************************************************************************************************************************
-/// \param[in] enable Is cache enabled?
-/// \param[in] path The path of the cache.
-//****************************************************************************************************************************************************
-void QMLBackend::changeLocalCache(bool enable, QUrl const &path)
-{
-    app().grpc().changeLocalCache(enable, path);
 }
 
 
