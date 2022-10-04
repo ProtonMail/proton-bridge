@@ -162,6 +162,8 @@ SettingsView {
     function setDefaultValues(){
         imapField.text = Backend.portIMAP
         smtpField.text = Backend.portSMTP
+        imapField.error = false
+        smtpField.error = false
     }
 
     Component.onCompleted: root.setDefaultValues()
