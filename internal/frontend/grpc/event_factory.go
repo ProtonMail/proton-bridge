@@ -111,10 +111,6 @@ func NewCacheChangeLocalCacheFinishedEvent(willRestart bool) *StreamEvent {
 	}})
 }
 
-func NewIsCacheOnDiskEnabledChanged(enabled bool) *StreamEvent {
-	return cacheEvent(&CacheEvent{Event: &CacheEvent_IsCacheOnDiskEnabledChanged{IsCacheOnDiskEnabledChanged: &IsCacheOnDiskEnabledChanged{Enabled: enabled}}})
-}
-
 func NewDiskCachePathChanged(path string) *StreamEvent {
 	return cacheEvent(&CacheEvent{Event: &CacheEvent_DiskCachePathChanged{DiskCachePathChanged: &DiskCachePathChanged{Path: path}}})
 }

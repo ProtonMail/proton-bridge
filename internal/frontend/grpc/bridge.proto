@@ -344,7 +344,6 @@ message CacheEvent {
     CacheErrorEvent error = 1;
     CacheLocationChangeSuccessEvent locationChangedSuccess = 2;
     ChangeLocalCacheFinishedEvent changeLocalCacheFinished = 3;
-    IsCacheOnDiskEnabledChanged isCacheOnDiskEnabledChanged = 4;
     DiskCachePathChanged diskCachePathChanged = 5;
   }
 }
@@ -364,11 +363,6 @@ message CacheLocationChangeSuccessEvent {};
 message ChangeLocalCacheFinishedEvent {
   bool willRestart = 1;
 };
-
-
-message IsCacheOnDiskEnabledChanged {
-  bool enabled = 1;
-}
 
 message DiskCachePathChanged {
   string path = 1;

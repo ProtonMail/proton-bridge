@@ -130,7 +130,6 @@ func (s *Service) StartEventTest() error { //nolint:funlen
 		NewCacheErrorEvent(CacheErrorType_CACHE_UNAVAILABLE_ERROR),
 		NewCacheLocationChangeSuccessEvent(),
 		NewCacheChangeLocalCacheFinishedEvent(true),
-		NewIsCacheOnDiskEnabledChanged(true),
 		NewDiskCachePathChanged("/dummy/path"),
 
 		// mail settings
