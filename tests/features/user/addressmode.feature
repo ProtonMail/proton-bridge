@@ -7,11 +7,11 @@ Feature: Address mode
       | one   | folder |
       | two   | folder |
     And the address "user@pm.me" of account "user@pm.me" has the following messages in "one":
-      | sender  | recipient | subject | unread |
+      | from    | to        | subject | unread |
       | a@pm.me | a@pm.me   | one     | true  |
       | b@pm.me | b@pm.me   | two     | false |
     And the address "alias@pm.me" of account "user@pm.me" has the following messages in "two":
-      | sender  | recipient | subject | unread |
+      | from    | to        | subject | unread |
       | c@pm.me | c@pm.me   | three   | true  |
       | d@pm.me | d@pm.me   | four    | false |
     And bridge starts
@@ -21,30 +21,30 @@ Feature: Address mode
   Scenario: The user is in combined mode
     When user "user@pm.me" connects and authenticates IMAP client "1" with address "user@pm.me"
     Then IMAP client "1" sees the following messages in "Folders/one":
-      | sender  | recipient | subject | unread |
+      | from    | to        | subject | unread |
       | a@pm.me | a@pm.me   | one     | true  |
       | b@pm.me | b@pm.me   | two     | false |
     And IMAP client "1" sees the following messages in "Folders/two":
-      | sender  | recipient | subject | unread |
+      | from    | to        | subject | unread |
       | c@pm.me | c@pm.me   | three   | true  |
       | d@pm.me | d@pm.me   | four    | false |
     And IMAP client "1" sees the following messages in "All Mail":
-      | sender  | recipient | subject | unread |
+      | from    | to        | subject | unread |
       | a@pm.me | a@pm.me   | one     | true  |
       | b@pm.me | b@pm.me   | two     | false |
       | c@pm.me | c@pm.me   | three   | true  |
       | d@pm.me | d@pm.me   | four    | false |
     When user "user@pm.me" connects and authenticates IMAP client "2" with address "alias@pm.me"
     Then IMAP client "2" sees the following messages in "Folders/one":
-      | sender  | recipient | subject | unread |
+      | from    | to        | subject | unread |
       | a@pm.me | a@pm.me   | one     | true  |
       | b@pm.me | b@pm.me   | two     | false |
     And IMAP client "2" sees the following messages in "Folders/two":
-      | sender  | recipient | subject | unread |
+      | from    | to        | subject | unread |
       | c@pm.me | c@pm.me   | three   | true  |
       | d@pm.me | d@pm.me   | four    | false |
     And IMAP client "2" sees the following messages in "All Mail":
-      | sender  | recipient | subject | unread |
+      | from    | to        | subject | unread |
       | a@pm.me | a@pm.me   | one     | true  |
       | b@pm.me | b@pm.me   | two     | false |
       | c@pm.me | c@pm.me   | three   | true  |
@@ -55,22 +55,22 @@ Feature: Address mode
     And user "user@pm.me" finishes syncing
     When user "user@pm.me" connects and authenticates IMAP client "1" with address "user@pm.me"
     Then IMAP client "1" sees the following messages in "Folders/one":
-      | sender  | recipient | subject | unread |
+      | from    | to        | subject | unread |
       | a@pm.me | a@pm.me   | one     | true  |
       | b@pm.me | b@pm.me   | two     | false |
     And IMAP client "1" sees 0 messages in "Folders/two"
     And IMAP client "1" sees the following messages in "All Mail":
-      | sender  | recipient | subject | unread |
+      | from    | to        | subject | unread |
       | a@pm.me | a@pm.me   | one     | true  |
       | b@pm.me | b@pm.me   | two     | false |
     When user "user@pm.me" connects and authenticates IMAP client "2" with address "alias@pm.me"
     Then IMAP client "2" sees 0 messages in "Folders/one"
     And IMAP client "2" sees the following messages in "Folders/two":
-      | sender  | recipient | subject | unread |
+      | from    | to        | subject | unread |
       | c@pm.me | c@pm.me   | three   | true  |
       | d@pm.me | d@pm.me   | four    | false |
     And IMAP client "2" sees the following messages in "All Mail":
-      | sender  | recipient | subject | unread |
+      | from    | to        | subject | unread |
       | c@pm.me | c@pm.me   | three   | true  |
       | d@pm.me | d@pm.me   | four    | false |
 
@@ -81,14 +81,14 @@ Feature: Address mode
     And user "user@pm.me" finishes syncing
     When user "user@pm.me" connects and authenticates IMAP client "1" with address "user@pm.me"
     Then IMAP client "1" sees the following messages in "All Mail":
-      | sender  | recipient | subject | unread |
+      | from    | to        | subject | unread |
       | a@pm.me | a@pm.me   | one     | true  |
       | b@pm.me | b@pm.me   | two     | false |
       | c@pm.me | c@pm.me   | three   | true  |
       | d@pm.me | d@pm.me   | four    | false |
     When user "user@pm.me" connects and authenticates IMAP client "2" with address "alias@pm.me"
     Then IMAP client "2" sees the following messages in "All Mail":
-      | sender  | recipient | subject | unread |
+      | from    | to        | subject | unread |
       | a@pm.me | a@pm.me   | one     | true  |
       | b@pm.me | b@pm.me   | two     | false |
       | c@pm.me | c@pm.me   | three   | true  |
@@ -97,14 +97,14 @@ Feature: Address mode
   Scenario: The user adds an address while in combined mode
     When user "user@pm.me" connects and authenticates IMAP client "1" with address "user@pm.me"
     Then IMAP client "1" sees the following messages in "All Mail":
-      | sender  | recipient | subject | unread |
+      | from    | to        | subject | unread |
       | a@pm.me | a@pm.me   | one     | true  |
       | b@pm.me | b@pm.me   | two     | false |
       | c@pm.me | c@pm.me   | three   | true  |
       | d@pm.me | d@pm.me   | four    | false |
     When user "user@pm.me" connects and authenticates IMAP client "2" with address "alias@pm.me"
     Then IMAP client "2" sees the following messages in "All Mail":
-      | sender  | recipient | subject | unread |
+      | from    | to        | subject | unread |
       | a@pm.me | a@pm.me   | one     | true  |
       | b@pm.me | b@pm.me   | two     | false |
       | c@pm.me | c@pm.me   | three   | true  |
@@ -113,7 +113,7 @@ Feature: Address mode
     And bridge sends an address created event for user "user@pm.me"
     When user "user@pm.me" connects and authenticates IMAP client "3" with address "other@pm.me"
     Then IMAP client "3" sees the following messages in "All Mail":
-      | sender  | recipient | subject | unread |
+      | from    | to        | subject | unread |
       | a@pm.me | a@pm.me   | one     | true  |
       | b@pm.me | b@pm.me   | two     | false |
       | c@pm.me | c@pm.me   | three   | true  |
@@ -124,12 +124,12 @@ Feature: Address mode
     And user "user@pm.me" finishes syncing
     When user "user@pm.me" connects and authenticates IMAP client "1" with address "user@pm.me"
     And IMAP client "1" sees the following messages in "All Mail":
-      | sender  | recipient | subject | unread |
+      | from    | to        | subject | unread |
       | a@pm.me | a@pm.me   | one     | true  |
       | b@pm.me | b@pm.me   | two     | false |
     When user "user@pm.me" connects and authenticates IMAP client "2" with address "alias@pm.me"
     And IMAP client "2" sees the following messages in "All Mail":
-      | sender  | recipient | subject | unread |
+      | from    | to        | subject | unread |
       | c@pm.me | c@pm.me   | three   | true  |
       | d@pm.me | d@pm.me   | four    | false |
     Given the account "user@pm.me" has additional address "other@pm.me"
@@ -140,14 +140,14 @@ Feature: Address mode
   Scenario: The user deletes an address while in combined mode
     When user "user@pm.me" connects and authenticates IMAP client "1" with address "user@pm.me"
     Then IMAP client "1" sees the following messages in "All Mail":
-      | sender  | recipient | subject | unread |
+      | from    | to        | subject | unread |
       | a@pm.me | a@pm.me   | one     | true  |
       | b@pm.me | b@pm.me   | two     | false |
       | c@pm.me | c@pm.me   | three   | true  |
       | d@pm.me | d@pm.me   | four    | false |
     When user "user@pm.me" connects and authenticates IMAP client "2" with address "alias@pm.me"
     Then IMAP client "2" sees the following messages in "All Mail":
-      | sender  | recipient | subject | unread |
+      | from    | to        | subject | unread |
       | a@pm.me | a@pm.me   | one     | true  |
       | b@pm.me | b@pm.me   | two     | false |
       | c@pm.me | c@pm.me   | three   | true  |
@@ -162,12 +162,12 @@ Feature: Address mode
     And user "user@pm.me" finishes syncing
     When user "user@pm.me" connects and authenticates IMAP client "1" with address "user@pm.me"
     And IMAP client "1" sees the following messages in "All Mail":
-      | sender  | recipient | subject | unread |
+      | from    | to        | subject | unread |
       | a@pm.me | a@pm.me   | one     | true  |
       | b@pm.me | b@pm.me   | two     | false |
     When user "user@pm.me" connects and authenticates IMAP client "2" with address "alias@pm.me"
     And IMAP client "2" sees the following messages in "All Mail":
-      | sender  | recipient | subject | unread |
+      | from    | to        | subject | unread |
       | c@pm.me | c@pm.me   | three   | true  |
       | d@pm.me | d@pm.me   | four    | false |
     Given the account "user@pm.me" no longer has additional address "alias@pm.me"

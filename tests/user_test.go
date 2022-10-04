@@ -8,9 +8,7 @@ import (
 	"time"
 
 	"github.com/ProtonMail/gluon/rfc822"
-	"github.com/bradenaw/juniper/xslices"
 	"github.com/cucumber/godog"
-	"github.com/cucumber/messages-go/v16"
 	"github.com/google/uuid"
 	"gitlab.protontech.ch/go/liteapi"
 	"golang.org/x/exp/slices"
@@ -82,29 +80,28 @@ func (s *scenario) theAccountHasCustomLabels(username string, count int) error {
 }
 
 func (s *scenario) theAccountHasTheFollowingCustomMailboxes(username string, table *godog.Table) error {
-	type mailbox struct {
-		name string
-		typ  liteapi.LabelType
+	type CustomMailbox struct {
+		Name string `bdd:"name"`
+		Type string `bdd:"type"`
 	}
 
-	wantMailboxes := xslices.Map(table.Rows[1:], func(row *messages.PickleTableRow) mailbox {
-		var mailboxType liteapi.LabelType
-
-		switch row.Cells[1].Value {
-		case "folder":
-			mailboxType = liteapi.LabelTypeFolder
-		case "label":
-			mailboxType = liteapi.LabelTypeLabel
-		}
-
-		return mailbox{
-			name: row.Cells[0].Value,
-			typ:  mailboxType,
-		}
-	})
+	wantMailboxes, err := unmarshalTable[CustomMailbox](table)
+	if err != nil {
+		return err
+	}
 
 	for _, wantMailbox := range wantMailboxes {
-		if _, err := s.t.api.CreateLabel(s.t.getUserID(username), wantMailbox.name, wantMailbox.typ); err != nil {
+		var labelType liteapi.LabelType
+
+		switch wantMailbox.Type {
+		case "folder":
+			labelType = liteapi.LabelTypeFolder
+
+		case "label":
+			labelType = liteapi.LabelTypeLabel
+		}
+
+		if _, err := s.t.api.CreateLabel(s.t.getUserID(username), wantMailbox.Name, labelType); err != nil {
 			return err
 		}
 	}
@@ -117,7 +114,12 @@ func (s *scenario) theAddressOfAccountHasTheFollowingMessagesInMailbox(address, 
 	addrID := s.t.getUserAddrID(userID, address)
 	mboxID := s.t.getMBoxID(userID, mailbox)
 
-	for _, wantMessage := range parseMessages(table) {
+	wantMessages, err := unmarshalTable[Message](table)
+	if err != nil {
+		return err
+	}
+
+	for _, wantMessage := range wantMessages {
 		if _, err := s.t.api.CreateMessage(
 			userID,
 			addrID,
@@ -125,8 +127,8 @@ func (s *scenario) theAddressOfAccountHasTheFollowingMessagesInMailbox(address, 
 			wantMessage.Subject,
 			&mail.Address{Address: wantMessage.From},
 			[]*mail.Address{{Address: wantMessage.To}},
-			[]*mail.Address{},
-			[]*mail.Address{},
+			[]*mail.Address{{Address: wantMessage.CC}},
+			[]*mail.Address{{Address: wantMessage.BCC}},
 			"some body goes here",
 			rfc822.TextPlain,
 			wantMessage.Unread,

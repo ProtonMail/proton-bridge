@@ -6,48 +6,53 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/bradenaw/juniper/xslices"
-	"github.com/cucumber/godog"
 	"github.com/cucumber/messages-go/v16"
-	"github.com/google/go-cmp/cmp"
-	"github.com/google/go-cmp/cmp/cmpopts"
+	"github.com/emersion/go-imap"
+	"golang.org/x/exp/slices"
 )
 
 type Message struct {
 	Subject string `bdd:"subject"`
 
-	From string `bdd:"sender"`
-	To   string `bdd:"recipient"`
+	From string `bdd:"from"`
+	To   string `bdd:"to"`
 	CC   string `bdd:"cc"`
 	BCC  string `bdd:"bcc"`
 
 	Unread bool `bdd:"unread"`
 }
 
-func newMessageFromRow(header, row *messages.PickleTableRow) Message {
-	var msg Message
-
-	if err := unmarshalRow(header, row, &msg); err != nil {
-		panic(err)
+func newMessageFromIMAP(msg *imap.Message) Message {
+	message := Message{
+		Subject: msg.Envelope.Subject,
+		Unread:  slices.Contains(msg.Flags, imap.SeenFlag),
 	}
 
-	return msg
+	if len(msg.Envelope.From) > 0 {
+		message.From = msg.Envelope.From[0].Address()
+	}
+
+	if len(msg.Envelope.To) > 0 {
+		message.To = msg.Envelope.To[0].Address()
+	}
+
+	if len(msg.Envelope.Cc) > 0 {
+		message.CC = msg.Envelope.Cc[0].Address()
+	}
+
+	if len(msg.Envelope.Bcc) > 0 {
+		message.BCC = msg.Envelope.Bcc[0].Address()
+	}
+
+	return message
 }
 
-func matchMessages(have []Message, want *godog.Table) error {
-	if want := parseMessages(want); !cmp.Equal(want, have, cmpopts.SortSlices(func(a, b Message) bool { return a.Subject < b.Subject })) {
-		return fmt.Errorf("want: %v, have: %v", want, have)
+func matchMessages(have, want []Message) error {
+	if !IsSub(ToAny(have), ToAny(want)) {
+		return fmt.Errorf("missing messages: %v", want)
 	}
 
 	return nil
-}
-
-func parseMessages(table *godog.Table) []Message {
-	header := table.Rows[0]
-
-	return xslices.Map(table.Rows[1:], func(row *messages.PickleTableRow) Message {
-		return newMessageFromRow(header, row)
-	})
 }
 
 type Mailbox struct {
@@ -56,30 +61,28 @@ type Mailbox struct {
 	Unread int    `bdd:"unread"`
 }
 
-func newMailboxFromRow(header, row *messages.PickleTableRow) Mailbox {
-	var mbox Mailbox
-
-	if err := unmarshalRow(header, row, &mbox); err != nil {
-		panic(err)
+func newMailboxFromIMAP(status *imap.MailboxStatus) Mailbox {
+	return Mailbox{
+		Name:   status.Name,
+		Total:  int(status.Messages),
+		Unread: int(status.Unseen),
 	}
-
-	return mbox
 }
 
-func matchMailboxes(have []Mailbox, want *godog.Table) error {
-	if want := parseMailboxes(want); !cmp.Equal(want, have, cmpopts.SortSlices(func(a, b Mailbox) bool { return a.Name < b.Name })) {
-		return fmt.Errorf("want: %v, have: %v", want, have)
+func matchMailboxes(have, want []Mailbox) error {
+	slices.SortFunc(have, func(a, b Mailbox) bool {
+		return a.Name < b.Name
+	})
+
+	slices.SortFunc(want, func(a, b Mailbox) bool {
+		return a.Name < b.Name
+	})
+
+	if !IsSub(want, have) {
+		return fmt.Errorf("missing messages: %v", want)
 	}
 
 	return nil
-}
-
-func parseMailboxes(table *godog.Table) []Mailbox {
-	header := table.Rows[0]
-
-	return xslices.Map(table.Rows[1:], func(row *messages.PickleTableRow) Mailbox {
-		return newMailboxFromRow(header, row)
-	})
 }
 
 func eventually(condition func() error, waitFor, tick time.Duration) error {
@@ -111,14 +114,24 @@ func eventually(condition func() error, waitFor, tick time.Duration) error {
 	}
 }
 
-func getCellValue(header, row *messages.PickleTableRow, name string) (string, bool) {
-	for idx, cell := range header.Cells {
-		if cell.Value == name {
-			return row.Cells[idx].Value, true
-		}
+func unmarshalTable[T any](table *messages.PickleTable) ([]T, error) {
+	if len(table.Rows) == 0 {
+		return nil, fmt.Errorf("empty table")
 	}
 
-	return "", false
+	var res []T
+
+	for _, row := range table.Rows[1:] {
+		var v T
+
+		if err := unmarshalRow(table.Rows[0], row, &v); err != nil {
+			return nil, err
+		}
+
+		res = append(res, v)
+	}
+
+	return res, nil
 }
 
 func unmarshalRow(header, row *messages.PickleTableRow, v any) error {
@@ -150,6 +163,16 @@ func unmarshalRow(header, row *messages.PickleTableRow, v any) error {
 	}
 
 	return nil
+}
+
+func getCellValue(header, row *messages.PickleTableRow, name string) (string, bool) {
+	for idx, cell := range header.Cells {
+		if cell.Value == name {
+			return row.Cells[idx].Value, true
+		}
+	}
+
+	return "", false
 }
 
 func mustParseInt(s string) int {

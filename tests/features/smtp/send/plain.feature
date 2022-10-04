@@ -19,8 +19,8 @@ Feature: SMTP sending of plain messages
     Then it succeeds
     When user "user@pm.me" connects and authenticates IMAP client "1"
     Then IMAP client "1" eventually sees the following messages in "Sent":
-      | sender     | recipient                 | subject | unread |
-      | user@pm.me | bridgetest@protonmail.com |         | false  |
+      | from       | to                        | subject |
+      | user@pm.me | bridgetest@protonmail.com |         |
     And the body in the "POST" request to "/mail/v4/messages" is:
       """
       {
@@ -54,8 +54,8 @@ Feature: SMTP sending of plain messages
     Then it succeeds
     When user "user@pm.me" connects and authenticates IMAP client "1"
     Then IMAP client "1" eventually sees the following messages in "Sent":
-      | sender     | recipient              | subject | unread |
-      | user@pm.me | pm.bridge.qa@gmail.com |         | false  |
+      | from       | to                     | subject |
+      | user@pm.me | pm.bridge.qa@gmail.com |         |
     And the body in the "POST" request to "/mail/v4/messages" is:
       """
       {
@@ -92,8 +92,8 @@ Feature: SMTP sending of plain messages
     Then it succeeds
     When user "user@pm.me" connects and authenticates IMAP client "1"
     Then IMAP client "1" eventually sees the following messages in "Sent":
-      | sender     | recipient                 | subject             | unread |
-      | user@pm.me | bridgetest@protonmail.com | Plain text internal | false  |
+      | from       | to                        | subject             |
+      | user@pm.me | bridgetest@protonmail.com | Plain text internal |
     And the body in the "POST" request to "/mail/v4/messages" is:
       """
       {
@@ -130,8 +130,8 @@ Feature: SMTP sending of plain messages
     Then it succeeds
     When user "user@pm.me" connects and authenticates IMAP client "1"
     Then IMAP client "1" eventually sees the following messages in "Sent":
-      | sender     | recipient              | subject             | unread |
-      | user@pm.me | pm.bridge.qa@gmail.com | Plain text external | false |
+      | from       | to                     | subject             |
+      | user@pm.me | pm.bridge.qa@gmail.com | Plain text external |
     And the body in the "POST" request to "/mail/v4/messages" is:
       """
       {
@@ -168,8 +168,8 @@ Feature: SMTP sending of plain messages
     Then it succeeds
     When user "user@pm.me" connects and authenticates IMAP client "1"
     Then IMAP client "1" eventually sees the following messages in "Sent":
-      | sender     | recipient              | subject                        | unread |
-      | user@pm.me | pm.bridge.qa@gmail.com | Plain text no charset external | false  |
+      | from       | to                     | subject                        |
+      | user@pm.me | pm.bridge.qa@gmail.com | Plain text no charset external |
     And the body in the "POST" request to "/mail/v4/messages" is:
       """
       {
@@ -209,8 +209,8 @@ Feature: SMTP sending of plain messages
     Then it succeeds
     When user "user@pm.me" connects and authenticates IMAP client "1"
     Then IMAP client "1" eventually sees the following messages in "Sent":
-      | sender     | recipient              | subject                        | unread |
-      | user@pm.me | pm.bridge.qa@gmail.com | Plain text no charset external | false  |
+      | from       | to                     | subject                        |
+      | user@pm.me | pm.bridge.qa@gmail.com | Plain text no charset external |
     And the body in the "POST" request to "/mail/v4/messages" is:
       """
       {
@@ -245,8 +245,8 @@ Feature: SMTP sending of plain messages
     Then it succeeds
     When user "user@pm.me" connects and authenticates IMAP client "1"
     Then IMAP client "1" eventually sees the following messages in "Sent":
-      | sender     | recipient              | subject                                 | unread |
-      | user@pm.me | pm.bridge.qa@gmail.com | Plain, no charset, no content, external | false  |
+      | from       | to                     | subject                                 |
+      | user@pm.me | pm.bridge.qa@gmail.com | Plain, no charset, no content, external |
     And the body in the "POST" request to "/mail/v4/messages" is:
       """
       {
@@ -285,8 +285,8 @@ Feature: SMTP sending of plain messages
     Then it succeeds
     When user "user@pm.me" connects and authenticates IMAP client "1"
     Then IMAP client "1" eventually sees the following messages in "Sent":
-      | sender     | recipient                 | cc                         | subject      | unread |
-      | user@pm.me | bridgetest@protonmail.com | bridgetest2@protonmail.com | RCPT-CC test | false  |
+      | from       | to                        | cc                         | subject      |
+      | user@pm.me | bridgetest@protonmail.com | bridgetest2@protonmail.com | RCPT-CC test |
     And the body in the "POST" request to "/mail/v4/messages" is:
       """
       {

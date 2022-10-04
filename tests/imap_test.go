@@ -127,15 +127,16 @@ func (s *scenario) imapClientSeesTheFollowingMailboxInfo(clientID string, table 
 		return err
 	}
 
-	haveMailboxes := xslices.Map(status, func(info *imap.MailboxStatus) Mailbox {
-		return Mailbox{
-			Name:   info.Name,
-			Total:  int(info.Messages),
-			Unread: int(info.Unseen),
-		}
+	haveMailboxes := xslices.Map(status, func(status *imap.MailboxStatus) Mailbox {
+		return newMailboxFromIMAP(status)
 	})
 
-	return matchMailboxes(haveMailboxes, table)
+	wantMailboxes, err := unmarshalTable[Mailbox](table)
+	if err != nil {
+		return err
+	}
+
+	return matchMailboxes(haveMailboxes, wantMailboxes)
 }
 
 func (s *scenario) imapClientEventuallySeesTheFollowingMailboxInfo(clientID string, table *godog.Table) error {
@@ -159,14 +160,15 @@ func (s *scenario) imapClientSeesTheFollowingMailboxInfoForMailbox(clientID, mai
 	})
 
 	haveMailboxes := xslices.Map(status, func(info *imap.MailboxStatus) Mailbox {
-		return Mailbox{
-			Name:   info.Name,
-			Total:  int(info.Messages),
-			Unread: int(info.Unseen),
-		}
+		return newMailboxFromIMAP(info)
 	})
 
-	return matchMailboxes(haveMailboxes, table)
+	wantMailboxes, err := unmarshalTable[Mailbox](table)
+	if err != nil {
+		return err
+	}
+
+	return matchMailboxes(haveMailboxes, wantMailboxes)
 }
 
 func (s *scenario) imapClientSeesTheFollowingMailboxes(clientID string, table *godog.Table) error {
@@ -280,31 +282,15 @@ func (s *scenario) imapClientSeesTheFollowingMessagesInMailbox(clientID, mailbox
 	}
 
 	haveMessages := xslices.Map(fetch, func(msg *imap.Message) Message {
-		message := Message{
-			Subject: msg.Envelope.Subject,
-			Unread:  slices.Contains(msg.Flags, imap.SeenFlag),
-		}
-
-		if len(msg.Envelope.From) > 0 {
-			message.From = msg.Envelope.From[0].Address()
-		}
-
-		if len(msg.Envelope.To) > 0 {
-			message.To = msg.Envelope.To[0].Address()
-		}
-
-		if len(msg.Envelope.Cc) > 0 {
-			message.CC = msg.Envelope.Cc[0].Address()
-		}
-
-		if len(msg.Envelope.Bcc) > 0 {
-			message.BCC = msg.Envelope.Bcc[0].Address()
-		}
-
-		return message
+		return newMessageFromIMAP(msg)
 	})
 
-	return matchMessages(haveMessages, table)
+	wantMessages, err := unmarshalTable[Message](table)
+	if err != nil {
+		return err
+	}
+
+	return matchMessages(haveMessages, wantMessages)
 }
 
 func (s *scenario) imapClientEventuallySeesTheFollowingMessagesInMailbox(clientID, mailbox string, table *godog.Table) error {

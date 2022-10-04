@@ -1,10 +1,26 @@
 package tests
 
 import (
+	"encoding/json"
 	"reflect"
 
 	"github.com/bradenaw/juniper/xslices"
 )
+
+func ToAny(v any) any {
+	b, err := json.Marshal(v)
+	if err != nil {
+		panic(err)
+	}
+
+	var a any
+
+	if err := json.Unmarshal(b, &a); err != nil {
+		panic(err)
+	}
+
+	return a
+}
 
 func IsSub(outer, inner any) bool {
 	if outer == nil && inner != nil {
@@ -27,10 +43,6 @@ func IsSub(outer, inner any) bool {
 	case []any:
 		outer, ok := outer.([]any)
 		if !ok {
-			return false
-		}
-
-		if len(inner) != len(outer) {
 			return false
 		}
 
@@ -69,6 +81,10 @@ func isSubMap(outer, inner map[string]any) bool {
 }
 
 func isSubSlice(outer, inner []any) bool {
+	if len(inner) != len(outer) {
+		return false
+	}
+
 	for _, v := range inner {
 		if xslices.IndexFunc(outer, func(outer any) bool {
 			return IsSub(outer, v)

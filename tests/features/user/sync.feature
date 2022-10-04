@@ -7,11 +7,11 @@ Feature: Bridge can fully sync an account
       | two   | folder |
       | three | label  |
     And the address "user@pm.me" of account "user@pm.me" has the following messages in "one":
-      | sender  | recipient | subject | unread |
+      | from    | to        | subject | unread |
       | a@pm.me | a@pm.me   | one     | true  |
       | b@pm.me | b@pm.me   | two     | false |
     And the address "user@pm.me" of account "user@pm.me" has the following messages in "two":
-      | sender  | recipient | subject | unread |
+      | from    | to        | subject | unread |
       | a@pm.me | a@pm.me   | one     | true  |
       | b@pm.me | b@pm.me   | two     | false |
     And bridge starts

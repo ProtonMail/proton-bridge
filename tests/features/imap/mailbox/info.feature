@@ -5,7 +5,7 @@ Feature: IMAP get mailbox info
       | name  | type   |
       | one   | folder |
     And the address "user@pm.me" of account "user@pm.me" has the following messages in "one":
-      | sender  | recipient | subject | unread |
+      | from    | to        | subject | unread |
       | a@pm.me | a@pm.me   | one     | true  |
       | b@pm.me | b@pm.me   | two     | false |
     And bridge starts

@@ -38,7 +38,7 @@ require (
 	github.com/sirupsen/logrus v1.9.0
 	github.com/stretchr/testify v1.8.0
 	github.com/urfave/cli/v2 v2.16.3
-	gitlab.protontech.ch/go/liteapi v0.32.1-0.20221004092920-6b728aed0d4d
+	gitlab.protontech.ch/go/liteapi v0.32.1-0.20221004164551-596cce482fb0
 	golang.org/x/exp v0.0.0-20220921164117-439092de6870
 	golang.org/x/net v0.1.0
 	golang.org/x/sys v0.1.0
@@ -131,4 +131,5 @@ replace (
 	github.com/emersion/go-imap => github.com/ProtonMail/go-imap v0.0.0-20201228133358-4db68cea0cac
 	github.com/emersion/go-message => github.com/ProtonMail/go-message v0.0.0-20210611055058-fabeff2ec753
 	github.com/keybase/go-keychain => github.com/cuthix/go-keychain v0.0.0-20220405075754-31e7cee908fe
+	gitlab.protontech.ch/go/liteapi => ../liteapi
 )
