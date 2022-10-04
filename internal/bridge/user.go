@@ -76,7 +76,8 @@ func (bridge *Bridge) QueryUserInfo(query string) (UserInfo, error) {
 // If necessary, a TOTP and mailbox password are requested via the callbacks.
 func (bridge *Bridge) LoginUser(
 	ctx context.Context,
-	username string, password []byte,
+	username string,
+	password []byte,
 	getTOTP func() (string, error),
 	getKeyPass func() ([]byte, error),
 ) (string, error) {

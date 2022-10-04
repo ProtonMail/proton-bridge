@@ -1,6 +1,8 @@
 package vault
 
 import (
+	"encoding/hex"
+
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 )
 
@@ -15,4 +17,13 @@ func newRandomToken(size int) []byte {
 	}
 
 	return token
+}
+
+func newRandomString(size int) []byte {
+	token, err := RandomToken(size)
+	if err != nil {
+		panic(err)
+	}
+
+	return []byte(hex.EncodeToString(token))
 }

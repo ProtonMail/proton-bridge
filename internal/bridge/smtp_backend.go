@@ -19,7 +19,7 @@ func newSMTPBackend() (*smtpBackend, error) {
 	return &smtpBackend{}, nil
 }
 
-func (backend *smtpBackend) Login(state *smtp.ConnectionState, username string, password string) (smtp.Session, error) {
+func (backend *smtpBackend) Login(state *smtp.ConnectionState, username, password string) (smtp.Session, error) {
 	backend.usersLock.RLock()
 	defer backend.usersLock.RUnlock()
 

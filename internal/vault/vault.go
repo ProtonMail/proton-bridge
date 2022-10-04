@@ -91,7 +91,7 @@ func (vault *Vault) ForUser(fn func(*User) error) error {
 }
 
 // AddUser creates a new user in the vault with the given ID and username.
-// A bridge password is generated using the package's token generator.
+// A bridge password and gluon key are generated using the package's token generator.
 func (vault *Vault) AddUser(userID, username, authUID, authRef string, keyPass []byte) (*User, error) {
 	if idx := xslices.IndexFunc(vault.get().Users, func(user UserData) bool {
 		return user.UserID == userID
@@ -107,7 +107,7 @@ func (vault *Vault) AddUser(userID, username, authUID, authRef string, keyPass [
 			GluonKey:    newRandomToken(32),
 			GluonIDs:    make(map[string]string),
 			UIDValidity: make(map[string]imap.UID),
-			BridgePass:  newRandomToken(16),
+			BridgePass:  newRandomString(16),
 			AddressMode: CombinedMode,
 
 			AuthUID: authUID,

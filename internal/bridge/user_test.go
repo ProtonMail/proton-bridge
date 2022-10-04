@@ -256,6 +256,7 @@ func TestBridge_LoginDeleteRestart(t *testing.T) {
 func TestBridge_BridgePass(t *testing.T) {
 	withEnv(t, func(ctx context.Context, s *server.Server, dialer *bridge.TestDialer, locator bridge.Locator, storeKey []byte) {
 		var userID string
+
 		var pass []byte
 
 		withBridge(t, ctx, s.GetHostURL(), dialer, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
