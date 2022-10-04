@@ -27,13 +27,13 @@ func createSendReq(
 
 	if recs := recipients.scheme(liteapi.InternalScheme, liteapi.ClearScheme, liteapi.PGPInlineScheme); len(recs) > 0 {
 		if recs := recs.content(rfc822.TextHTML); len(recs) > 0 {
-			if err := req.AddPackage(kr, string(richBody), rfc822.TextHTML, recs, attKeys); err != nil {
+			if err := req.AddTextPackage(kr, string(richBody), rfc822.TextHTML, recs, attKeys); err != nil {
 				return liteapi.SendDraftReq{}, err
 			}
 		}
 
 		if recs := recs.content(rfc822.TextPlain); len(recs) > 0 {
-			if err := req.AddPackage(kr, string(plainBody), rfc822.TextPlain, recs, attKeys); err != nil {
+			if err := req.AddTextPackage(kr, string(plainBody), rfc822.TextPlain, recs, attKeys); err != nil {
 				return liteapi.SendDraftReq{}, err
 			}
 		}
