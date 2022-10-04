@@ -49,7 +49,7 @@ type testCtx struct {
 	userIDByName       map[string]string
 	userAddrByEmail    map[string]map[string]string
 	userPassByID       map[string]string
-	userBridgePassByID map[string]string
+	userBridgePassByID map[string][]byte
 
 	// These are the IMAP and SMTP clients used to connect to bridge.
 	imapClients map[string]*imapClient
@@ -89,7 +89,7 @@ func newTestCtx(tb testing.TB) *testCtx {
 		userIDByName:       make(map[string]string),
 		userAddrByEmail:    make(map[string]map[string]string),
 		userPassByID:       make(map[string]string),
-		userBridgePassByID: make(map[string]string),
+		userBridgePassByID: make(map[string][]byte),
 
 		imapClients: make(map[string]*imapClient),
 		smtpClients: make(map[string]*smtpClient),
@@ -148,10 +148,10 @@ func (t *testCtx) setUserPass(userID, pass string) {
 }
 
 func (t *testCtx) getUserBridgePass(userID string) string {
-	return t.userBridgePassByID[userID]
+	return string(t.userBridgePassByID[userID])
 }
 
-func (t *testCtx) setUserBridgePass(userID, pass string) {
+func (t *testCtx) setUserBridgePass(userID string, pass []byte) {
 	t.userBridgePassByID[userID] = pass
 }
 

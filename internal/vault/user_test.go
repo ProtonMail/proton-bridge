@@ -1,6 +1,7 @@
 package vault_test
 
 import (
+	"encoding/hex"
 	"testing"
 
 	"github.com/ProtonMail/gluon/imap"
@@ -52,7 +53,7 @@ func TestUser(t *testing.T) {
 	// Get auth information for user 1.
 	require.Equal(t, "userID1", user1.UserID())
 	require.Equal(t, "user1", user1.Username())
-	require.Equal(t, []byte("token"), user1.BridgePass())
+	require.Equal(t, hex.EncodeToString([]byte("token")), string(user1.BridgePass()))
 	require.Equal(t, vault.CombinedMode, user1.AddressMode())
 	require.Equal(t, "authUID1", user1.AuthUID())
 	require.Equal(t, "authRef1", user1.AuthRef())
@@ -72,7 +73,7 @@ func TestUser(t *testing.T) {
 	// Get auth information for user 2.
 	require.Equal(t, "userID2", user2.UserID())
 	require.Equal(t, "user2", user2.Username())
-	require.Equal(t, []byte("token"), user2.BridgePass())
+	require.Equal(t, hex.EncodeToString([]byte("token")), string(user2.BridgePass()))
 	require.Equal(t, vault.CombinedMode, user2.AddressMode())
 	require.Equal(t, "authUID2", user2.AuthUID())
 	require.Equal(t, "authRef2", user2.AuthRef())

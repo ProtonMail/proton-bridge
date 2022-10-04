@@ -24,7 +24,7 @@ func (backend *smtpBackend) Login(state *smtp.ConnectionState, username, passwor
 	defer backend.usersLock.RUnlock()
 
 	for _, user := range backend.users {
-		if slices.Contains(user.Emails(), username) && subtle.ConstantTimeCompare(user.BridgePass(), []byte(password)) != 1 {
+		if slices.Contains(user.Emails(), username) && subtle.ConstantTimeCompare(user.BridgePass(), []byte(password)) == 1 {
 			return user.NewSMTPSession(username), nil
 		}
 	}
