@@ -1,6 +1,7 @@
 package bridge
 
 import (
+	"crypto/subtle"
 	"sync"
 
 	"github.com/ProtonMail/proton-bridge/v2/internal/user"
@@ -23,7 +24,7 @@ func (backend *smtpBackend) Login(state *smtp.ConnectionState, username string, 
 	defer backend.usersLock.RUnlock()
 
 	for _, user := range backend.users {
-		if slices.Contains(user.Emails(), username) && string(user.BridgePass()) == password {
+		if slices.Contains(user.Emails(), username) && subtle.ConstantTimeCompare(user.BridgePass(), []byte(password)) != 1 {
 			return user.NewSMTPSession(username), nil
 		}
 	}

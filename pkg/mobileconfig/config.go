@@ -57,7 +57,7 @@ type SMTP struct {
 	// Leave Username blank to do not use SMTP authentication.
 	Username string
 	// Leave Password blank to use IMAP credentials.
-	Password string
+	Password []byte
 }
 
 func (c *Config) WriteOut(w io.Writer) error {
