@@ -6,10 +6,10 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/ProtonMail/gluon"
 	"github.com/ProtonMail/gluon/connector"
 	"github.com/ProtonMail/gluon/imap"
 	"github.com/ProtonMail/gluon/queue"
+	"github.com/ProtonMail/gluon/wait"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/ProtonMail/proton-bridge/v2/internal/events"
 	"github.com/ProtonMail/proton-bridge/v2/internal/pool"
@@ -39,7 +39,7 @@ type User struct {
 	settings liteapi.MailSettings
 
 	updateCh map[string]*queue.QueuedChannel[imap.Update]
-	syncWG   gluon.WaitGroup
+	syncWG   wait.Group
 }
 
 func New(
