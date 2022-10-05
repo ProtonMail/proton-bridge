@@ -39,6 +39,7 @@ typedef grpc::Status (grpc::Bridge::Stub::*Int32Getter)(grpc::ClientContext *, c
 typedef grpc::Status (grpc::Bridge::Stub::*StringGetter)(grpc::ClientContext *, const google::protobuf::Empty &, google::protobuf::StringValue *);
 typedef grpc::Status (grpc::Bridge::Stub::*StringSetter)(grpc::ClientContext *, const google::protobuf::StringValue &, google::protobuf::Empty *);
 typedef grpc::Status (grpc::Bridge::Stub::*StringParamMethod)(grpc::ClientContext *, const google::protobuf::StringValue &, google::protobuf::Empty *);
+typedef std::unique_ptr<grpc::ClientContext> UPClientContext;
 
 
 //****************************************************************************************************************************************************
@@ -61,6 +62,7 @@ public: // member functions.
     void setLog(Log *log); ///< Set the log for the client.
     bool connectToServer(GRPCConfig const &config, QString &outError); ///< Establish connection to the gRPC server.
 
+    grpc::Status checkTokens(QString const &clientConfigPath, QString &outReturnedClientToken); ///< Performs a token check.
     grpc::Status addLogEntry(Log::Level level, QString const &package, QString const &message); ///< Performs the "AddLogEntry" gRPC call.
     grpc::Status guiReady(); ///< performs the "GuiReady" gRPC call.
     grpc::Status isFirstGUIStart(bool &outIsFirst); ///< performs the "IsFirstGUIStart" gRPC call.
@@ -228,13 +230,15 @@ private:
     void processKeychainEvent(grpc::KeychainEvent const &event); ///< Process a 'Keychain' event.
     void processMailEvent(grpc::MailEvent const &event); ///< Process a 'Mail' event.
     void processUserEvent(grpc::UserEvent const &event); ///< Process a 'User' event.
+    UPClientContext clientContext() const; ///< Returns a client context with the server token set in metadata.
 
 private: // data members.
     Log *log_ { nullptr }; ///< The log for the GRPC client.
+    std::string serverToken_; ///< The token to for communications with the gRPC server
     std::shared_ptr<grpc::Channel> channel_ { nullptr }; ///< The gRPC channel.
     std::shared_ptr<grpc::Bridge::Stub> stub_ { nullptr }; ///< The gRPC stub (a.k.a. client).
     mutable QMutex eventStreamMutex_; ///< The event stream mutex.
-    std::unique_ptr<grpc::ClientContext> eventStreamContext_; /// the client context for the gRPC event stream. Access protected by  eventStreamMutex_.
+    UPClientContext eventStreamContext_; /// the client context for the gRPC event stream. Access protected by  eventStreamMutex_.
 };
 
 

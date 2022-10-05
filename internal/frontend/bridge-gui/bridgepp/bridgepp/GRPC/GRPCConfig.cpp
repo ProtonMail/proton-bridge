@@ -109,10 +109,10 @@ bool GRPCConfig::save(QString const &path, QString *outError)
 {
     try
     {
-        QJsonObject const object;
-        object[keyPort] = port;
-        object[keyCert] = cert;
-        object[keyToken] = token;
+        QJsonObject object;
+        object.insert(keyPort, port);
+        object.insert(keyCert, cert);
+        object.insert(keyToken, token);
 
         QFile file(path);
         if (!file.open(QIODevice::WriteOnly | QIODevice::Text))

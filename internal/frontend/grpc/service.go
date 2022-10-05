@@ -40,15 +40,18 @@ import (
 	"github.com/ProtonMail/proton-bridge/v2/pkg/keychain"
 	"github.com/ProtonMail/proton-bridge/v2/pkg/listener"
 	"github.com/ProtonMail/proton-bridge/v2/pkg/pmapi"
+	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 const (
-	serviceConfigFileName = "grpcServiceConfig.json"
+	serverConfigFileName   = "grpcServerConfig.json"
+	serverTokenMetadataKey = "server-token"
 )
 
 // Service is the RPC service struct.
@@ -77,6 +80,7 @@ type Service struct { // nolint:structcheck
 	initializationDone sync.Once
 	firstTimeAutostart sync.Once
 	locations          *locations.Locations
+	token              string
 	pemCert            string
 }
 
@@ -104,6 +108,7 @@ func NewService(
 		initializationDone: sync.Once{},
 		firstTimeAutostart: sync.Once{},
 		locations:          locations,
+		token:              uuid.NewString(),
 	}
 
 	// Initializing.Done is only called sync.Once. Please keep the increment
@@ -244,7 +249,10 @@ func (s *Service) watchEvents() { // nolint:funlen
 		case <-secondInstanceCh:
 			_ = s.SendEvent(NewShowMainWindowEvent())
 		case <-restartBridgeCh:
-			_, _ = s.Restart(context.Background(), &emptypb.Empty{})
+			_, _ = s.Restart(
+				metadata.AppendToOutgoingContext(context.Background(), serverTokenMetadataKey, s.token),
+				&emptypb.Empty{},
+			)
 		case address := <-addressChangedCh:
 			_ = s.SendEvent(NewMailAddressChangeEvent(address))
 		case address := <-addressChangedLogoutCh:
@@ -427,8 +435,9 @@ func (s *Service) saveGRPCServerConfigFile() error {
 	}
 
 	sc := config{
-		Port: address.Port,
-		Cert: s.pemCert,
+		Port:  address.Port,
+		Cert:  s.pemCert,
+		Token: s.token,
 	}
 
 	settingsPath, err := s.locations.ProvideSettingsPath()
@@ -436,5 +445,5 @@ func (s *Service) saveGRPCServerConfigFile() error {
 		return err
 	}
 
-	return sc.save(filepath.Join(settingsPath, serviceConfigFileName))
+	return sc.save(filepath.Join(settingsPath, serverConfigFileName))
 }

@@ -17,6 +17,7 @@
 
 
 #include "GRPCUtils.h"
+#include "GRPCConfig.h"
 #include "../Exception/Exception.h"
 #include "../BridgeUtils.h"
 
@@ -30,6 +31,24 @@ namespace
 
 
 //****************************************************************************************************************************************************
+/// \return the gRPC server config file name
+//****************************************************************************************************************************************************
+QString grpcServerConfigFilename()
+{
+    return "grpcServerConfig.json";
+}
+
+
+//****************************************************************************************************************************************************
+/// \return the gRPC client config file name
+//****************************************************************************************************************************************************
+QString grpcClientConfigBaseFilename()
+{
+    return "grpcClientConfig_%1.json";
+}
+
+
+//****************************************************************************************************************************************************
 /// \return The server certificate file name
 //****************************************************************************************************************************************************
 QString serverCertificateFilename()
@@ -37,14 +56,6 @@ QString serverCertificateFilename()
     return "cert.pem";
 }
 
-
-//****************************************************************************************************************************************************
-/// \return the service config file name
-//****************************************************************************************************************************************************
-QString serviceConfigFilename()
-{
-    return "grpcServiceConfig.json";
-}
 
 //****************************************************************************************************************************************************
 //
@@ -61,9 +72,18 @@ QString serverKeyFilename()
 //****************************************************************************************************************************************************
 /// \return The absolute path of the service config path.
 //****************************************************************************************************************************************************
-QString serviceConfigPath()
+QString grpcServerConfigPath()
 {
-    return QDir(userConfigDir()).absoluteFilePath(serviceConfigFilename());
+    return QDir(userConfigDir()).absoluteFilePath(grpcServerConfigFilename());
+}
+
+
+//****************************************************************************************************************************************************
+/// \return The absolute path of the service config path.
+//****************************************************************************************************************************************************
+QString grpcClientConfigBasePath()
+{
+    return QDir(userConfigDir()).absoluteFilePath(grpcClientConfigBaseFilename());
 }
 
 
@@ -81,9 +101,35 @@ QString serverCertificatePath()
 //****************************************************************************************************************************************************
 QString serverKeyPath()
 {
+
     return QDir(userConfigDir()).absoluteFilePath(serverKeyFilename());
 }
 
+
+//****************************************************************************************************************************************************
+/// \param[in] token The token to put in the file.
+/// \return The path of the created file.
+/// \return A null string if the file could not be saved..
+//****************************************************************************************************************************************************
+QString createClientConfigFile(QString const &token)
+{
+    QString const basePath = grpcClientConfigBasePath();
+    QString path, error;
+    for (qint32 i = 0; i < 1000; ++i) // we try a decent amount of times
+    {
+        path = basePath.arg(i);
+        if (!QFileInfo(path).exists())
+        {
+            GRPCConfig config;
+            config.token = token;
+            if (!config.save(path))
+                return QString();
+            return path;
+        }
+    }
+
+    return QString();
+}
 
 
 //****************************************************************************************************************************************************

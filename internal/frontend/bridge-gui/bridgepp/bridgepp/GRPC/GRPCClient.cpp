@@ -34,8 +34,6 @@ namespace
 
 
 Empty empty; // re-used across client calls.
-
-
 int const maxConnectionTimeSecs = 60; ///< Amount of time after which we consider connection attempts to the server have failed.
 
 
@@ -47,7 +45,7 @@ int const maxConnectionTimeSecs = 60; ///< Amount of time after which we conside
 //****************************************************************************************************************************************************
 void GRPCClient::removeServiceConfigFile()
 {
-    QString const path = serviceConfigPath();
+    QString const path = grpcServerConfigPath();
     if (!QFile(path).exists())
         return;
     if (!QFile().remove(path))
@@ -61,7 +59,7 @@ void GRPCClient::removeServiceConfigFile()
 //****************************************************************************************************************************************************
 GRPCConfig GRPCClient::waitAndRetrieveServiceConfig(qint64 timeoutMs)
 {
-    QString const path = serviceConfigPath();
+    QString const path = grpcServerConfigPath();
     QFile file(path);
 
     QElapsedTimer timer;
@@ -107,6 +105,7 @@ bool GRPCClient::connectToServer(GRPCConfig const &config, QString &outError)
 {
     try
     {
+        serverToken_ = config.token.toStdString();
         SslCredentialsOptions opts;
         opts.pem_root_certs += config.cert.toStdString();
 
@@ -138,6 +137,24 @@ bool GRPCClient::connectToServer(GRPCConfig const &config, QString &outError)
 
         if (log_)
             log_->debug("Successfully connected to gRPC server.");
+
+        QString const clientToken = QUuid::createUuid().toString();
+        QString clientConfigPath = createClientConfigFile(clientToken);
+        if (clientConfigPath.isEmpty())
+            throw Exception("gRPC client config could not be saved.");
+
+        QString returnedClientToken;
+        grpc::Status status = this->checkTokens(QDir::toNativeSeparators(clientConfigPath), returnedClientToken);
+        QFile(clientConfigPath).remove();
+        if (clientToken != returnedClientToken)
+            throw Exception("gRPC server returned an invalid token");
+
+
+        if (!status.ok())
+            throw Exception(QString::fromStdString(status.error_message()));
+
+        log_->debug("gRPC token was validated");
+
         return true;
     }
     catch (Exception const &e)
@@ -149,6 +166,24 @@ bool GRPCClient::connectToServer(GRPCConfig const &config, QString &outError)
 
 
 //****************************************************************************************************************************************************
+/// \param[in] clientConfigPath The path to the gRPC client config path.-
+/// \param[in] serverToken The token obtained from the server config file.
+/// \param[out] outReturnedClientToken The client token returned by the server.
+/// \return The status code for the call.
+//****************************************************************************************************************************************************
+grpc::Status GRPCClient::checkTokens(QString const &clientConfigPath, QString &outReturnedClientToken)
+{
+    google::protobuf::StringValue request;
+    request.set_value(clientConfigPath.toStdString());
+    google::protobuf::StringValue response;
+    Status status = stub_->CheckTokens(this->clientContext().get(), request, &response);
+    if (status.ok())
+        outReturnedClientToken = QString::fromStdString(response.value());
+    return this->logGRPCCallStatus(status,  __FUNCTION__);
+}
+
+
+//****************************************************************************************************************************************************
 /// \param[in] level The level of the log entry.
 /// \param[in] package The package (component) that triggered the entry.
 /// \param[in] message The message.
@@ -156,12 +191,11 @@ bool GRPCClient::connectToServer(GRPCConfig const &config, QString &outError)
 //****************************************************************************************************************************************************
 grpc::Status GRPCClient::addLogEntry(Log::Level level, QString const &package, QString const &message)
 {
-    grpc::ClientContext ctx;
     AddLogEntryRequest request;
     request.set_level(logLevelToGRPC(level));
     request.set_package(package.toStdString());
     request.set_message(message.toStdString());
-    return stub_->AddLogEntry(&ctx, request, &empty);
+    return stub_->AddLogEntry(this->clientContext().get(), request, &empty);
 }
 
 
@@ -170,8 +204,7 @@ grpc::Status GRPCClient::addLogEntry(Log::Level level, QString const &package, Q
 //****************************************************************************************************************************************************
 grpc::Status GRPCClient::guiReady()
 {
-    grpc::ClientContext ctx;
-    return this->logGRPCCallStatus(stub_->GuiReady(&ctx, empty, &empty), __FUNCTION__);
+    return this->logGRPCCallStatus(stub_->GuiReady(this->clientContext().get(), empty, &empty), __FUNCTION__);
 }
 
 
@@ -284,7 +317,6 @@ grpc::Status GRPCClient::currentEmailClient(QString &outName)
 //****************************************************************************************************************************************************
 grpc::Status GRPCClient::reportBug(QString const &description, QString const &address, QString const &emailClient, bool includeLogs)
 {
-    grpc::ClientContext ctx;
     ReportBugRequest request;
     request.set_ostype(QSysInfo::productType().toStdString());
     request.set_osversion(QSysInfo::prettyProductName().toStdString());
@@ -292,7 +324,7 @@ grpc::Status GRPCClient::reportBug(QString const &description, QString const &ad
     request.set_address(address.toStdString());
     request.set_emailclient(emailClient.toStdString());
     request.set_includelogs(includeLogs);
-    return this->logGRPCCallStatus(stub_->ReportBug(&ctx, request, &empty), __FUNCTION__);
+    return this->logGRPCCallStatus(stub_->ReportBug(this->clientContext().get(), request, &empty), __FUNCTION__);
 }
 
 
@@ -302,9 +334,7 @@ grpc::Status GRPCClient::reportBug(QString const &description, QString const &ad
 //****************************************************************************************************************************************************
 grpc::Status GRPCClient::useSSLForSMTP(bool &outUseSSL)
 {
-    Status status = this->getBool(&Bridge::Stub::UseSslForSmtp, outUseSSL);
-    return this->logGRPCCallStatus(status, __FUNCTION__);
-
+    return this->logGRPCCallStatus(this->getBool(&Bridge::Stub::UseSslForSmtp, outUseSSL), __FUNCTION__);
 }
 
 
@@ -345,11 +375,10 @@ grpc::Status GRPCClient::portSMTP(int &outPort)
 //****************************************************************************************************************************************************
 grpc::Status GRPCClient::changePorts(int portIMAP, int portSMTP)
 {
-    ClientContext ctx;
     ChangePortsRequest request;
     request.set_imapport(portIMAP);
     request.set_smtpport(portSMTP);
-    return this->logGRPCCallStatus(stub_->ChangePorts(&ctx, request, &empty), __FUNCTION__);
+    return this->logGRPCCallStatus(stub_->ChangePorts(this->clientContext().get(), request, &empty), __FUNCTION__);
 }
 
 
@@ -378,9 +407,8 @@ grpc::Status GRPCClient::setIsDoHEnabled(bool enabled)
 //****************************************************************************************************************************************************
 grpc::Status GRPCClient::quit()
 {
-    grpc::ClientContext ctx;
     // quitting will shut down the gRPC service, to we may get an 'Unavailable' response for the call
-    return this->logGRPCCallStatus(stub_->Quit(&ctx, empty, &empty), __FUNCTION__, { StatusCode::UNAVAILABLE });
+    return this->logGRPCCallStatus(stub_->Quit(this->clientContext().get(), empty, &empty), __FUNCTION__, { StatusCode::UNAVAILABLE });
 }
 
 
@@ -389,9 +417,8 @@ grpc::Status GRPCClient::quit()
 //****************************************************************************************************************************************************
 grpc::Status GRPCClient::restart()
 {
-    grpc::ClientContext ctx;
     // restarting will shut down the gRPC service, to we may get an 'Unavailable' response for the call
-    return this->logGRPCCallStatus(stub_->Restart(&ctx, empty, &empty), __FUNCTION__, { StatusCode::UNAVAILABLE });
+    return this->logGRPCCallStatus(stub_->Restart(this->clientContext().get(), empty, &empty), __FUNCTION__, { StatusCode::UNAVAILABLE });
 }
 
 
@@ -400,8 +427,7 @@ grpc::Status GRPCClient::restart()
 //****************************************************************************************************************************************************
 grpc::Status GRPCClient::triggerReset()
 {
-    grpc::ClientContext ctx;
-    return this->logGRPCCallStatus(stub_->TriggerReset(&ctx, empty, &empty), __FUNCTION__);
+    return this->logGRPCCallStatus(stub_->TriggerReset(this->clientContext().get(), empty, &empty), __FUNCTION__);
 }
 
 
@@ -410,10 +436,7 @@ grpc::Status GRPCClient::triggerReset()
 //****************************************************************************************************************************************************
 grpc::Status GRPCClient::forceLauncher(QString const &launcher)
 {
-    grpc::ClientContext ctx;
-    StringValue s;
-    s.set_value(launcher.toStdString());
-    return this->logGRPCCallStatus(stub_->ForceLauncher(&ctx, s, &empty), __FUNCTION__);
+    return this->logGRPCCallStatus(this->setString(&Bridge::Stub::ForceLauncher, launcher), __FUNCTION__);
 }
 
 
@@ -422,10 +445,7 @@ grpc::Status GRPCClient::forceLauncher(QString const &launcher)
 //****************************************************************************************************************************************************
 grpc::Status GRPCClient::setMainExecutable(QString const &exe)
 {
-    grpc::ClientContext ctx;
-    StringValue s;
-    s.set_value(exe.toStdString());
-    return this->logGRPCCallStatus(stub_->SetMainExecutable(&ctx, s, &empty), __FUNCTION__);
+    return this->logGRPCCallStatus(this->setString(&Bridge::Stub::SetMainExecutable, exe), __FUNCTION__);
 }
 
 
@@ -436,11 +456,10 @@ grpc::Status GRPCClient::setMainExecutable(QString const &exe)
 //****************************************************************************************************************************************************
 grpc::Status GRPCClient::isPortFree(qint32 port, bool &outFree)
 {
-    grpc::ClientContext ctx;
     Int32Value p;
     p.set_value(port);
     BoolValue isFree;
-    Status result = stub_->IsPortFree(&ctx, p, &isFree);
+    Status result = stub_->IsPortFree(this->clientContext().get(), p, &isFree);
     if (result.ok())
         outFree = isFree.value();
     return this->logGRPCCallStatus(result, __FUNCTION__);
@@ -574,11 +593,10 @@ grpc::Status GRPCClient::diskCachePath(QUrl &outPath)
 //****************************************************************************************************************************************************
 grpc::Status GRPCClient::changeLocalCache(bool enabled, QUrl const &path)
 {
-    grpc::ClientContext ctx;
     ChangeLocalCacheRequest request;
     request.set_enablediskcache(enabled);
     request.set_diskcachepath(path.path(QUrl::FullyDecoded).toStdString());
-    return this->logGRPCCallStatus(stub_->ChangeLocalCache(&ctx, request, &empty), __FUNCTION__);
+    return this->logGRPCCallStatus(stub_->ChangeLocalCache(this->clientContext().get(), request, &empty), __FUNCTION__);
 }
 
 
@@ -589,11 +607,10 @@ grpc::Status GRPCClient::changeLocalCache(bool enabled, QUrl const &path)
 //****************************************************************************************************************************************************
 grpc::Status GRPCClient::login(QString const &username, QString const &password)
 {
-    grpc::ClientContext ctx;
     LoginRequest request;
     request.set_username(username.toStdString());
     request.set_password(password.toStdString());
-    return this->logGRPCCallStatus(stub_->Login(&ctx, request, &empty), __FUNCTION__);
+    return this->logGRPCCallStatus(stub_->Login(this->clientContext().get(), request, &empty), __FUNCTION__);
 }
 
 
@@ -604,11 +621,10 @@ grpc::Status GRPCClient::login(QString const &username, QString const &password)
 //****************************************************************************************************************************************************
 grpc::Status GRPCClient::login2FA(QString const &username, QString const &code)
 {
-    grpc::ClientContext ctx;
     LoginRequest request;
     request.set_username(username.toStdString());
     request.set_password(code.toStdString());
-    return this->logGRPCCallStatus(stub_->Login2FA(&ctx, request, &empty), __FUNCTION__);
+    return this->logGRPCCallStatus(stub_->Login2FA(this->clientContext().get(), request, &empty), __FUNCTION__);
 }
 
 
@@ -619,11 +635,10 @@ grpc::Status GRPCClient::login2FA(QString const &username, QString const &code)
 //****************************************************************************************************************************************************
 grpc::Status GRPCClient::login2Passwords(QString const &username, QString const &password)
 {
-    grpc::ClientContext ctx;
     LoginRequest request;
     request.set_username(username.toStdString());
     request.set_password(password.toStdString());
-    return this->logGRPCCallStatus(stub_->Login2Passwords(&ctx, request, &empty), __FUNCTION__);
+    return this->logGRPCCallStatus(stub_->Login2Passwords(this->clientContext().get(), request, &empty), __FUNCTION__);
 }
 
 
@@ -633,10 +648,9 @@ grpc::Status GRPCClient::login2Passwords(QString const &username, QString const 
 //****************************************************************************************************************************************************
 grpc::Status GRPCClient::loginAbort(QString const &username)
 {
-    grpc::ClientContext ctx;
     LoginAbortRequest request;
     request.set_username(username.toStdString());
-    return this->logGRPCCallStatus(stub_->LoginAbort(&ctx, request, &empty), __FUNCTION__);
+    return this->logGRPCCallStatus(stub_->LoginAbort(this->clientContext().get(), request, &empty), __FUNCTION__);
 }
 
 
@@ -703,11 +717,10 @@ grpc::Status GRPCClient::removeUser(QString const &userID)
 //****************************************************************************************************************************************************
 grpc::Status GRPCClient::configureAppleMail(QString const &userID, QString const &address)
 {
-    ClientContext ctx;
     ConfigureAppleMailRequest request;
     request.set_userid(userID.toStdString());
     request.set_address(address.toStdString());
-    return this->logGRPCCallStatus(stub_->ConfigureUserAppleMail(&ctx, request, &empty), __FUNCTION__);
+    return this->logGRPCCallStatus(stub_->ConfigureUserAppleMail(this->clientContext().get(), request, &empty), __FUNCTION__);
 }
 
 
@@ -718,12 +731,11 @@ grpc::Status GRPCClient::configureAppleMail(QString const &userID, QString const
 //****************************************************************************************************************************************************
 grpc::Status GRPCClient::setUserSplitMode(QString const &userID, bool active)
 {
-    ClientContext ctx;
     UserSplitModeRequest request;
     request.set_userid(userID.toStdString());
     request.set_active(active);
 
-    return this->logGRPCCallStatus(stub_->SetUserSplitMode(&ctx, request, &empty), __FUNCTION__);
+    return this->logGRPCCallStatus(stub_->SetUserSplitMode(this->clientContext().get(), request, &empty), __FUNCTION__);
 }
 
 
@@ -735,9 +747,8 @@ grpc::Status GRPCClient::getUserList(QList<SPUser> &outUsers)
 {
     outUsers.clear();
 
-    ClientContext ctx;
     UserListResponse response;
-    Status status = stub_->GetUserList(&ctx, empty, &response);
+    Status status = stub_->GetUserList(this->clientContext().get(), empty, &response);
     if (!status.ok())
         return this->logGRPCCallStatus(status, __FUNCTION__);
 
@@ -755,11 +766,10 @@ grpc::Status GRPCClient::getUserList(QList<SPUser> &outUsers)
 //****************************************************************************************************************************************************
 grpc::Status GRPCClient::getUser(QString const &userID, SPUser &outUser)
 {
-    ClientContext ctx;
     StringValue s;
     s.set_value(userID.toStdString());
     grpc::User grpcUser;
-    Status status = stub_->GetUser(&ctx, s, &grpcUser);
+    Status status = stub_->GetUser(this->clientContext().get(), s, &grpcUser);
 
     if (status.ok())
         outUser = parseGRPCUser(grpcUser);
@@ -775,9 +785,8 @@ grpc::Status GRPCClient::getUser(QString const &userID, SPUser &outUser)
 grpc::Status GRPCClient::availableKeychains(QStringList &outKeychains)
 {
     outKeychains.clear();
-    ClientContext ctx;
     AvailableKeychainsResponse response;
-    Status status = stub_->AvailableKeychains(&ctx, empty, &response);
+    Status status = stub_->AvailableKeychains(this->clientContext().get(), empty, &response);
     if (!status.ok())
         return this->logGRPCCallStatus(status, __FUNCTION__);
 
@@ -827,7 +836,7 @@ grpc::Status GRPCClient::runEventStreamReader()
         QMutexLocker locker(&eventStreamMutex_);
         if (eventStreamContext_)
             return Status(grpc::ALREADY_EXISTS, "event stream is already active.");
-        eventStreamContext_ = std::make_unique<ClientContext>();
+        eventStreamContext_ = this->clientContext();
     }
 
     EventStreamRequest request;
@@ -883,8 +892,7 @@ grpc::Status GRPCClient::stopEventStreamReader()
 {
     if (!this->isEventStreamActive())
         return Status::OK;
-    grpc::ClientContext ctx;
-    return this->logGRPCCallStatus(stub_->StopEventStream(&ctx, empty, &empty), __FUNCTION__);
+    return this->logGRPCCallStatus(stub_->StopEventStream(this->clientContext().get(), empty, &empty), __FUNCTION__);
 }
 
 
@@ -931,8 +939,7 @@ grpc::Status GRPCClient::logGRPCCallStatus(Status const &status, QString const &
 //****************************************************************************************************************************************************
 grpc::Status GRPCClient::simpleMethod(SimpleMethod method)
 {
-    ClientContext ctx;
-    return ((*stub_).*method)(&ctx, empty, &empty);
+    return ((*stub_).*method)(this->clientContext().get(), empty, &empty);
 }
 
 
@@ -943,10 +950,9 @@ grpc::Status GRPCClient::simpleMethod(SimpleMethod method)
 //****************************************************************************************************************************************************
 grpc::Status GRPCClient::setBool(BoolSetter setter, bool value)
 {
-    grpc::ClientContext ctx;
     BoolValue v;
     v.set_value(value);
-    return ((*stub_).*setter)(&ctx, v, &empty);
+    return ((*stub_).*setter)(this->clientContext().get(), v, &empty);
 }
 
 
@@ -957,9 +963,8 @@ grpc::Status GRPCClient::setBool(BoolSetter setter, bool value)
 //****************************************************************************************************************************************************
 grpc::Status GRPCClient::getBool(BoolGetter getter, bool &outValue)
 {
-    grpc::ClientContext ctx;
     BoolValue v;
-    Status result = ((*stub_).*getter)(&ctx, empty, &v);
+    Status result = ((*stub_).*getter)(this->clientContext().get(), empty, &v);
     if (result.ok())
         outValue = v.value();
     return result;
@@ -973,10 +978,9 @@ grpc::Status GRPCClient::getBool(BoolGetter getter, bool &outValue)
 //****************************************************************************************************************************************************
 grpc::Status GRPCClient::setInt32(Int32Setter setter, int value)
 {
-    grpc::ClientContext ctx;
     Int32Value i;
     i.set_value(value);
-    return ((*stub_).*setter)(&ctx, i, &empty);
+    return ((*stub_).*setter)(this->clientContext().get(), i, &empty);
 }
 
 
@@ -987,9 +991,8 @@ grpc::Status GRPCClient::setInt32(Int32Setter setter, int value)
 //****************************************************************************************************************************************************
 grpc::Status GRPCClient::getInt32(Int32Getter getter, int &outValue)
 {
-    grpc::ClientContext ctx;
     Int32Value i;
-    Status result = ((*stub_).*getter)(&ctx, empty, &i);
+    Status result = ((*stub_).*getter)(this->clientContext().get(), empty, &i);
     if (result.ok())
         outValue = i.value();
     return result;
@@ -1003,10 +1006,9 @@ grpc::Status GRPCClient::getInt32(Int32Getter getter, int &outValue)
 //****************************************************************************************************************************************************
 grpc::Status GRPCClient::setString(StringSetter setter, QString const &value)
 {
-    grpc::ClientContext ctx;
     StringValue s;
     s.set_value(value.toStdString());
-    return ((*stub_).*setter)(&ctx, s, &empty);
+    return ((*stub_).*setter)(this->clientContext().get(), s, &empty);
 }
 
 
@@ -1017,9 +1019,8 @@ grpc::Status GRPCClient::setString(StringSetter setter, QString const &value)
 //****************************************************************************************************************************************************
 grpc::Status GRPCClient::getString(StringGetter getter, QString &outValue)
 {
-    grpc::ClientContext ctx;
     StringValue v;
-    Status result = ((*stub_).*getter)(&ctx, empty, &v);
+    Status result = ((*stub_).*getter)(this->clientContext().get(), empty, &v);
     if (result.ok())
         outValue = QString::fromStdString(v.value());
     return result;
@@ -1063,10 +1064,9 @@ grpc::Status GRPCClient::getURL(StringGetter getter, QUrl &outValue)
 //****************************************************************************************************************************************************
 grpc::Status GRPCClient::methodWithStringParam(StringParamMethod method, QString const &str)
 {
-    ClientContext ctx;
     StringValue s;
     s.set_value(str.toStdString());
-    return ((*stub_).*method)(&ctx, s, &empty);
+    return ((*stub_).*method)(this->clientContext().get(), s, &empty);
 }
 
 
@@ -1433,6 +1433,17 @@ void GRPCClient::processUserEvent(UserEvent const &event)
     default:
         this->logError("Unknown User event received.");
     }
+}
+
+
+//****************************************************************************************************************************************************
+/// \return The context with the server token in the metadata
+//****************************************************************************************************************************************************
+UPClientContext GRPCClient::clientContext() const
+{
+    auto ctx = std::make_unique<grpc::ClientContext>();
+    ctx->AddMetadata("server-token", serverToken_);
+    return ctx;
 }
 
 

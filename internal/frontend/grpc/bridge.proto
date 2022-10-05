@@ -30,6 +30,7 @@ package grpc; // ignored by Go, used as namespace name in C++.
 service Bridge {
 
   // App related calls
+  rpc CheckTokens(google.protobuf.StringValue) returns (google.protobuf.StringValue);
   rpc AddLogEntry(AddLogEntryRequest) returns (google.protobuf.Empty);
   rpc GuiReady (google.protobuf.Empty) returns (google.protobuf.Empty);
   rpc Quit (google.protobuf.Empty) returns (google.protobuf.Empty);

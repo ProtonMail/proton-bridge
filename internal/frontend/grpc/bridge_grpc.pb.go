@@ -25,6 +25,7 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type BridgeClient interface {
 	// App related calls
+	CheckTokens(ctx context.Context, in *wrapperspb.StringValue, opts ...grpc.CallOption) (*wrapperspb.StringValue, error)
 	AddLogEntry(ctx context.Context, in *AddLogEntryRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	GuiReady(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	Quit(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*emptypb.Empty, error)
@@ -98,6 +99,15 @@ type bridgeClient struct {
 
 func NewBridgeClient(cc grpc.ClientConnInterface) BridgeClient {
 	return &bridgeClient{cc}
+}
+
+func (c *bridgeClient) CheckTokens(ctx context.Context, in *wrapperspb.StringValue, opts ...grpc.CallOption) (*wrapperspb.StringValue, error) {
+	out := new(wrapperspb.StringValue)
+	err := c.cc.Invoke(ctx, "/grpc.Bridge/CheckTokens", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *bridgeClient) AddLogEntry(ctx context.Context, in *AddLogEntryRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
@@ -650,6 +660,7 @@ func (c *bridgeClient) StopEventStream(ctx context.Context, in *emptypb.Empty, o
 // for forward compatibility
 type BridgeServer interface {
 	// App related calls
+	CheckTokens(context.Context, *wrapperspb.StringValue) (*wrapperspb.StringValue, error)
 	AddLogEntry(context.Context, *AddLogEntryRequest) (*emptypb.Empty, error)
 	GuiReady(context.Context, *emptypb.Empty) (*emptypb.Empty, error)
 	Quit(context.Context, *emptypb.Empty) (*emptypb.Empty, error)
@@ -722,6 +733,9 @@ type BridgeServer interface {
 type UnimplementedBridgeServer struct {
 }
 
+func (UnimplementedBridgeServer) CheckTokens(context.Context, *wrapperspb.StringValue) (*wrapperspb.StringValue, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CheckTokens not implemented")
+}
 func (UnimplementedBridgeServer) AddLogEntry(context.Context, *AddLogEntryRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AddLogEntry not implemented")
 }
@@ -907,6 +921,24 @@ type UnsafeBridgeServer interface {
 
 func RegisterBridgeServer(s grpc.ServiceRegistrar, srv BridgeServer) {
 	s.RegisterService(&Bridge_ServiceDesc, srv)
+}
+
+func _Bridge_CheckTokens_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(wrapperspb.StringValue)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BridgeServer).CheckTokens(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/grpc.Bridge/CheckTokens",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BridgeServer).CheckTokens(ctx, req.(*wrapperspb.StringValue))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _Bridge_AddLogEntry_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -1963,6 +1995,10 @@ var Bridge_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "grpc.Bridge",
 	HandlerType: (*BridgeServer)(nil),
 	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "CheckTokens",
+			Handler:    _Bridge_CheckTokens_Handler,
+		},
 		{
 			MethodName: "AddLogEntry",
 			Handler:    _Bridge_AddLogEntry_Handler,

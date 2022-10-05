@@ -31,9 +31,11 @@ namespace bridgepp
 
 typedef std::shared_ptr<grpc::StreamEvent> SPStreamEvent; ///< Type definition for shared pointer to grpc::StreamEvent.
 
-QString serviceConfigPath(); ///< Return the path of the service config file.
+QString grpcServerConfigPath(); ///< Return the path of the gRPC server config file.
+QString grpcClientConfigBasePath(); ///< Return the path of the gRPC client config file.
 QString serverCertificatePath(); ///< Return the path of the server certificate.
 QString serverKeyPath(); ///< Return the path of the server key.
+QString createClientConfigFile(QString const &token); ///< Create the client config file the server will retrieve and return its path.
 grpc::LogLevel logLevelToGRPC(Log::Level level); ///< Convert a Log::Level to gRPC enum value.
 Log::Level logLevelFromGRPC(grpc::LogLevel level); ///< Convert a grpc::LogLevel to a Log::Level.
 void userToGRPC(User const &user, grpc::User &outGRPCUser); ///< Convert a bridgepp::User to a grpc::User.
