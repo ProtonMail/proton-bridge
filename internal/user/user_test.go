@@ -16,13 +16,13 @@ import (
 	"github.com/stretchr/testify/require"
 	"gitlab.protontech.ch/go/liteapi"
 	"gitlab.protontech.ch/go/liteapi/server"
-	"gitlab.protontech.ch/go/liteapi/server/account"
+	"gitlab.protontech.ch/go/liteapi/server/backend"
 )
 
 func init() {
 	user.DefaultEventPeriod = 100 * time.Millisecond
 	user.DefaultEventJitter = 0
-	account.GenerateKey = tests.FastGenerateKey
+	backend.GenerateKey = tests.FastGenerateKey
 	certs.GenerateCert = tests.FastGenerateCert
 }
 

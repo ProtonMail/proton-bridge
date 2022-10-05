@@ -444,7 +444,7 @@ func clientFetch(client *client.Client, mailbox string) ([]*imap.Message, error)
 	go func() {
 		if err := client.Fetch(
 			&imap.SeqSet{Set: []imap.Seq{{Start: 1, Stop: status.Messages}}},
-			[]imap.FetchItem{imap.FetchFlags, imap.FetchEnvelope, imap.FetchUid},
+			[]imap.FetchItem{imap.FetchFlags, imap.FetchEnvelope, imap.FetchUid, "BODY.PEEK[]"},
 			resCh,
 		); err != nil {
 			panic(err)

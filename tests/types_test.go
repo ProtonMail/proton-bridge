@@ -4,15 +4,21 @@ import (
 	"fmt"
 	"reflect"
 	"strconv"
+	"strings"
 	"time"
 
+	"github.com/ProtonMail/gluon/rfc822"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/message"
+	"github.com/bradenaw/juniper/xslices"
 	"github.com/cucumber/messages-go/v16"
 	"github.com/emersion/go-imap"
 	"golang.org/x/exp/slices"
 )
 
 type Message struct {
-	Subject string `bdd:"subject"`
+	Subject     string `bdd:"subject"`
+	Body        string `bdd:"body"`
+	Attachments string `bdd:"attachments"`
 
 	From string `bdd:"from"`
 	To   string `bdd:"to"`
@@ -22,10 +28,60 @@ type Message struct {
 	Unread bool `bdd:"unread"`
 }
 
+func (msg Message) Build() []byte {
+	var b []byte
+
+	if msg.From != "" {
+		b = append(b, "From: "+msg.From+"\r\n"...)
+	}
+
+	if msg.To != "" {
+		b = append(b, "To: "+msg.To+"\r\n"...)
+	}
+
+	if msg.CC != "" {
+		b = append(b, "Cc: "+msg.CC+"\r\n"...)
+	}
+
+	if msg.BCC != "" {
+		b = append(b, "Bcc: "+msg.BCC+"\r\n"...)
+	}
+
+	if msg.Subject != "" {
+		b = append(b, "Subject: "+msg.Subject+"\r\n"...)
+	}
+
+	if msg.Body != "" {
+		b = append(b, "\r\n"+msg.Body+"\r\n"...)
+	}
+
+	return b
+}
+
 func newMessageFromIMAP(msg *imap.Message) Message {
+	section, err := imap.ParseBodySectionName("BODY[]")
+	if err != nil {
+		panic(err)
+	}
+
+	m, err := message.Parse(msg.GetBody(section))
+	if err != nil {
+		panic(err)
+	}
+
+	var body string
+
+	if m.MIMEType == rfc822.TextPlain {
+		body = strings.TrimSpace(string(m.PlainBody))
+	} else {
+		body = strings.TrimSpace(string(m.RichBody))
+	}
+
 	message := Message{
-		Subject: msg.Envelope.Subject,
-		Unread:  slices.Contains(msg.Flags, imap.SeenFlag),
+		Subject:     msg.Envelope.Subject,
+		Body:        body,
+		Attachments: strings.Join(xslices.Map(m.Attachments, func(att message.Attachment) string { return att.Name }), ", "),
+		Unread:      !slices.Contains(msg.Flags, imap.SeenFlag),
 	}
 
 	if len(msg.Envelope.From) > 0 {
@@ -48,6 +104,14 @@ func newMessageFromIMAP(msg *imap.Message) Message {
 }
 
 func matchMessages(have, want []Message) error {
+	slices.SortFunc(have, func(a, b Message) bool {
+		return a.Subject < b.Subject
+	})
+
+	slices.SortFunc(want, func(a, b Message) bool {
+		return a.Subject < b.Subject
+	})
+
 	if !IsSub(ToAny(have), ToAny(want)) {
 		return fmt.Errorf("missing messages: %v", want)
 	}

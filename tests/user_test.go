@@ -4,10 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net/mail"
 	"time"
 
-	"github.com/ProtonMail/gluon/rfc822"
 	"github.com/cucumber/godog"
 	"github.com/google/uuid"
 	"gitlab.protontech.ch/go/liteapi"
@@ -120,20 +118,12 @@ func (s *scenario) theAddressOfAccountHasTheFollowingMessagesInMailbox(address, 
 	}
 
 	for _, wantMessage := range wantMessages {
-		if _, err := s.t.api.CreateMessage(
-			userID,
-			addrID,
-			[]string{mboxID},
-			wantMessage.Subject,
-			&mail.Address{Address: wantMessage.From},
-			[]*mail.Address{{Address: wantMessage.To}},
-			[]*mail.Address{{Address: wantMessage.CC}},
-			[]*mail.Address{{Address: wantMessage.BCC}},
-			"some body goes here",
-			rfc822.TextPlain,
-			wantMessage.Unread,
-			false,
-		); err != nil {
+		messageID, err := s.t.api.CreateMessage(userID, addrID, wantMessage.Build(), liteapi.MessageFlagReceived, wantMessage.Unread, false)
+		if err != nil {
+			return err
+		}
+
+		if err := s.t.api.LabelMessage(userID, messageID, mboxID); err != nil {
 			return err
 		}
 	}
@@ -147,20 +137,17 @@ func (s *scenario) theAddressOfAccountHasMessagesInMailbox(address, username str
 	mboxID := s.t.getMBoxID(userID, mailbox)
 
 	for idx := 0; idx < count; idx++ {
-		if _, err := s.t.api.CreateMessage(
-			userID,
-			addrID,
-			[]string{mboxID},
-			fmt.Sprintf("subject %d", idx),
-			&mail.Address{Address: fmt.Sprintf("sender %d", idx)},
-			[]*mail.Address{{Address: fmt.Sprintf("recipient %d", idx)}},
-			[]*mail.Address{},
-			[]*mail.Address{},
-			fmt.Sprintf("body %d", idx),
-			rfc822.TextPlain,
-			idx%2 == 0,
-			false,
-		); err != nil {
+		messageID, err := s.t.api.CreateMessage(userID, addrID, Message{
+			Subject: fmt.Sprintf("subject %d", idx),
+			To:      fmt.Sprintf("to %d", idx),
+			From:    fmt.Sprintf("from %d", idx),
+			Body:    fmt.Sprintf("body %d", idx),
+		}.Build(), liteapi.MessageFlagReceived, idx%2 == 0, false)
+		if err != nil {
+			return err
+		}
+
+		if err := s.t.api.LabelMessage(userID, messageID, mboxID); err != nil {
 			return err
 		}
 	}

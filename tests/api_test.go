@@ -1,10 +1,7 @@
 package tests
 
 import (
-	"net/mail"
-
 	"github.com/Masterminds/semver/v3"
-	"github.com/ProtonMail/gluon/rfc822"
 	"gitlab.protontech.ch/go/liteapi"
 	"gitlab.protontech.ch/go/liteapi/server"
 )
@@ -23,8 +20,9 @@ type API interface {
 	GetLabels(userID string) ([]liteapi.Label, error)
 	CreateLabel(userID, name string, labelType liteapi.LabelType) (string, error)
 
-	GetMessages(userID string) ([]liteapi.Message, error)
-	CreateMessage(userID, addrID string, labelIDs []string, subject string, sender *mail.Address, toList, ccList, bccList []*mail.Address, decBody string, mimeType rfc822.MIMEType, read, starred bool) (string, error)
+	CreateMessage(userID, addrID string, literal []byte, flags liteapi.MessageFlag, unread, starred bool) (string, error)
+	LabelMessage(userID, messageID, labelID string) error
+	UnlabelMessage(userID, messageID, labelID string) error
 
 	Close()
 }

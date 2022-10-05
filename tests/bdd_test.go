@@ -28,12 +28,12 @@ import (
 	"github.com/ProtonMail/proton-bridge/v2/internal/user"
 	"github.com/cucumber/godog"
 	"github.com/stretchr/testify/require"
-	"gitlab.protontech.ch/go/liteapi/server/account"
+	"gitlab.protontech.ch/go/liteapi/server/backend"
 )
 
 func init() {
 	// Use the fast key generation for tests.
-	account.GenerateKey = FastGenerateKey
+	backend.GenerateKey = FastGenerateKey
 
 	// Use the fast cert generation for tests.
 	certs.GenerateCert = FastGenerateCert
