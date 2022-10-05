@@ -96,8 +96,8 @@ func newIMAPServer(gluonDir string, version *semver.Version, tlsConfig *tls.Conf
 			"TODO",
 		),
 		gluon.WithLogger(
-			logrus.StandardLogger().WriterLevel(logrus.InfoLevel),
-			logrus.StandardLogger().WriterLevel(logrus.InfoLevel),
+			logrus.StandardLogger().WriterLevel(logrus.TraceLevel),
+			logrus.StandardLogger().WriterLevel(logrus.TraceLevel),
 		),
 	)
 	if err != nil {
