@@ -24,13 +24,24 @@ import (
 	"testing"
 	"time"
 
+	"github.com/ProtonMail/proton-bridge/v2/internal/certs"
 	"github.com/ProtonMail/proton-bridge/v2/internal/user"
 	"github.com/cucumber/godog"
 	"github.com/stretchr/testify/require"
+	"gitlab.protontech.ch/go/liteapi/server/account"
 )
 
 func init() {
+	// Use the fast key generation for tests.
+	account.GenerateKey = FastGenerateKey
+
+	// Use the fast cert generation for tests.
+	certs.GenerateCert = FastGenerateCert
+
+	// Set the event period to 100 milliseconds for more responsive tests.
 	user.DefaultEventPeriod = 100 * time.Millisecond
+
+	// Don't use jitter during tests.
 	user.DefaultEventJitter = 0
 }
 

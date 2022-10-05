@@ -2,7 +2,6 @@ Feature: SMTP sending of plain messages
   Background:
     Given there exists an account with username "user@pm.me" and password "password"
     And there exists an account with username "bridgetest@protonmail.com" and password "password"
-    And there exists an account with username "bridgetest2@protonmail.com" and password "password"
     And bridge starts
     And the user logs in with username "user@pm.me" and password "password"
     And user "user@pm.me" connects and authenticates SMTP client "1"
