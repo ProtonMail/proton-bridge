@@ -17,8 +17,16 @@
 # You should have received a copy of the GNU General Public License
 # along with Proton Mail Bridge.  If not, see <https://www.gnu.org/licenses/>.
 
-cd $( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/gobinsec_update
-make run || FAILED=true
-if [ $FAILED ]; then
-  make run
-fi
+cd "$(\
+    cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd \
+    )"/gobinsec_update || exit 1
+
+for i in $(seq 10); do
+    echo "Trying $i"
+    if make run; then
+        echo "Try $i succeeded"
+        break
+    fi
+    echo "Waiting to try again..."
+    sleep 30
+done
