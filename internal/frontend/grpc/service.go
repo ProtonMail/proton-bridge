@@ -373,7 +373,7 @@ func (s *Service) checkUpdateAndNotify(isReqFromUser bool) {
 
 	s.checkUpdate()
 	version := s.newVersionInfo
-	if version.Version.String() == "" {
+	if (version.Version == nil) || (version.Version.String() == "") {
 		if isReqFromUser {
 			_ = s.SendEvent(NewUpdateErrorEvent(UpdateErrorType_UPDATE_MANUAL_ERROR))
 		}
