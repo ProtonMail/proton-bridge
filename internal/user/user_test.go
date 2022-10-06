@@ -10,9 +10,6 @@ import (
 	"github.com/ProtonMail/proton-bridge/v2/internal/user"
 	"github.com/ProtonMail/proton-bridge/v2/internal/vault"
 	"github.com/ProtonMail/proton-bridge/v2/tests"
-	"github.com/bradenaw/juniper/iterator"
-	"github.com/emersion/go-imap"
-	"github.com/emersion/go-imap/client"
 	"github.com/stretchr/testify/require"
 	"gitlab.protontech.ch/go/liteapi"
 	"gitlab.protontech.ch/go/liteapi/server"
@@ -114,7 +111,7 @@ func withAPI(t *testing.T, ctx context.Context, username, password string, email
 }
 
 func withUser(t *testing.T, ctx context.Context, apiURL, username, password string, fn func(*user.User)) {
-	c, apiAuth, err := liteapi.New(liteapi.WithHostURL(apiURL)).NewClientWithLogin(ctx, username, password)
+	c, apiAuth, err := liteapi.New(liteapi.WithHostURL(apiURL)).NewClientWithLogin(ctx, username, []byte(password))
 	require.NoError(t, err)
 	defer func() { require.NoError(t, c.Close()) }()
 
@@ -133,30 +130,4 @@ func withUser(t *testing.T, ctx context.Context, apiURL, username, password stri
 	defer func() { require.NoError(t, user.Close(ctx)) }()
 
 	fn(user)
-}
-
-func withIMAPClient(t *testing.T, addr string, fn func(*client.Client)) {
-	c, err := client.Dial(addr)
-	require.NoError(t, err)
-	defer c.Close()
-
-	fn(c)
-}
-
-func fetch(t *testing.T, c *client.Client, seqset string, items ...imap.FetchItem) []*imap.Message {
-	msgCh := make(chan *imap.Message)
-
-	go func() {
-		require.NoError(t, c.Fetch(must(imap.ParseSeqSet(seqset)), items, msgCh))
-	}()
-
-	return iterator.Collect(iterator.Chan(msgCh))
-}
-
-func must[T any](v T, err error) T {
-	if err != nil {
-		panic(err)
-	}
-
-	return v
 }

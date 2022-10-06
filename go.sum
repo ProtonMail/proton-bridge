@@ -477,6 +477,8 @@ gitlab.protontech.ch/go/liteapi v0.33.2-0.20221006095946-fc4061f2140b h1:Obu2CCC
 gitlab.protontech.ch/go/liteapi v0.33.2-0.20221006095946-fc4061f2140b/go.mod h1:9nsslyEJn7Utbielp4c+hc7qT6hqIJ52aGFR/tX+tYk=
 gitlab.protontech.ch/go/liteapi v0.33.2-0.20221006105817-e76abecc140a h1:dt6BahWRcy88dcXnEbm9m1X1W+RCZaVlo3W45V+vReQ=
 gitlab.protontech.ch/go/liteapi v0.33.2-0.20221006105817-e76abecc140a/go.mod h1:9nsslyEJn7Utbielp4c+hc7qT6hqIJ52aGFR/tX+tYk=
+gitlab.protontech.ch/go/liteapi v0.33.2-0.20221006110959-d7a4b4b315b8 h1:/ZQr46sMG1H2ykKqBeYtScD7azHo7vgAkswmqGS0eHM=
+gitlab.protontech.ch/go/liteapi v0.33.2-0.20221006110959-d7a4b4b315b8/go.mod h1:9nsslyEJn7Utbielp4c+hc7qT6hqIJ52aGFR/tX+tYk=
 go.etcd.io/bbolt v1.3.2/go.mod h1:IbVyRI1SCnLcuJnV2u8VeU0CEYM7e686BmAb1XKL+uU=
 go.opencensus.io v0.21.0/go.mod h1:mSImk1erAIZhrmZN+AvHh14ztQfjbGwt4TtuofqLduU=
 go.opencensus.io v0.22.0/go.mod h1:+kGneAE2xo2IficOXnaByMWTGM9T73dGwxeWcUqIpI8=

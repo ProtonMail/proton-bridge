@@ -81,7 +81,7 @@ func (bridge *Bridge) LoginUser(
 	getTOTP func() (string, error),
 	getKeyPass func() ([]byte, error),
 ) (string, error) {
-	client, auth, err := bridge.api.NewClientWithLogin(ctx, username, string(password))
+	client, auth, err := bridge.api.NewClientWithLogin(ctx, username, password)
 	if err != nil {
 		return "", err
 	}
