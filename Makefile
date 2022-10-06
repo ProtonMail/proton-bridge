@@ -80,7 +80,7 @@ build-gui: ${TGZ_TARGET}
 
 build-nogui: ${EXE_NAME}
 
-go-build=go build $(1) -o $(2) $(3)
+go-build=go build $(1) -o $(2) $(3)/main.go
 go-build-finalize=${go-build}
 ifeq "${GOOS}-$(shell uname -m)" "darwin-arm64"
 	go-build-finalize= \
@@ -88,15 +88,15 @@ ifeq "${GOOS}-$(shell uname -m)" "darwin-arm64"
 		CGO_ENABLED=1 GOARCH=amd64 $(call go-build,$(1),$(2)_amd,$(3)) && \
 		lipo -create -output $(2) $(2)_arm $(2)_amd && rm -f $(2)_arm $(2)_amd
 endif
-ifeq "${GOOS}" "windows"
+ifeq "${GOOS}-$(shell uname -m)" "windows"
 	go-build-finalize= \
 		mv ${RESOURCE_FILE} $(3)/ && \
-		$(call go-build,$(1),$(2)_amd,$(3)) && \
+		$(call go-build,$(1),$(2),$(3)) && \
 		rm -f $(3)/${RESOURCE_FILE}
 endif
 
 ${EXE_NAME}: gofiles ${RESOURCE_FILE}
-	$(call go-build-finalize,${BUILD_FLAGS},"${EXE_NAME}","${BUILD_PATH}/main.go")
+	$(call go-build-finalize,${BUILD_FLAGS},"${EXE_NAME}","${BUILD_PATH}")
 
 build-launcher: ${RESOURCE_FILE}
 	$(call go-build-finalize,${BUILD_FLAGS_LAUNCHER},"${LAUNCHER_EXE}","${LAUNCHER_PATH}")
