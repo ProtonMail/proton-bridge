@@ -34,7 +34,8 @@ namespace
 
 
 Empty empty; // re-used across client calls.
-int const maxConnectionTimeSecs = 60; ///< Amount of time after which we consider connection attempts to the server have failed.
+qint64 const grpcConnectionWaitTimeoutMs = 60000; ///< Timeout for the connection to the already running gRPC server in milliseconds.
+qint64 const grpcConnectionRetryDelayMs = 10000; ///< Retry delay for the gRPC connection in milliseconds.
 
 
 }
@@ -118,14 +119,14 @@ bool GRPCClient::connectToServer(GRPCConfig const &config, QString &outError)
         if (!stub_)
             throw Exception("Stub creation failed.");
 
-        QDateTime const giveUpTime = QDateTime::currentDateTime().addSecs(maxConnectionTimeSecs); // if we reach giveUpTime without connecting, we give up
+        QDateTime const giveUpTime = QDateTime::currentDateTime().addMSecs(grpcConnectionWaitTimeoutMs); // if we reach giveUpTime without connecting, we give up
         int i = 0;
         while (true)
         {
             if (log_)
                 log_->debug(QString("Connection to gRPC server at %1. attempt #%2").arg(address).arg(++i));
 
-            if (channel_->WaitForConnected(gpr_time_add(gpr_now(GPR_CLOCK_REALTIME), gpr_time_from_seconds(5, GPR_TIMESPAN))))
+            if (channel_->WaitForConnected(gpr_time_add(gpr_now(GPR_CLOCK_REALTIME), gpr_time_from_millis(grpcConnectionRetryDelayMs, GPR_TIMESPAN))))
                 break; // connection established.
 
             if (QDateTime::currentDateTime() > giveUpTime)
