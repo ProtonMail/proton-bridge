@@ -3,6 +3,7 @@ package tests
 import (
 	"fmt"
 	"net/smtp"
+	"strings"
 
 	"github.com/ProtonMail/proton-bridge/v2/internal/constants"
 	"github.com/cucumber/godog"
@@ -119,8 +120,10 @@ func (s *scenario) smtpClientSendsTheFollowingMessageFromTo(clientID, from, to s
 			return err
 		}
 
-		if err := client.Rcpt(to); err != nil {
-			return err
+		for _, to := range strings.Split(to, ", ") {
+			if err := client.Rcpt(to); err != nil {
+				return err
+			}
 		}
 
 		wc, err := client.Data()
