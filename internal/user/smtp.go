@@ -22,6 +22,7 @@ import (
 	"github.com/emersion/go-smtp"
 	"github.com/sirupsen/logrus"
 	"gitlab.protontech.ch/go/liteapi"
+	"golang.org/x/exp/maps"
 	"golang.org/x/exp/slices"
 )
 
@@ -194,6 +195,7 @@ func (session *smtpSession) Data(r io.Reader) error {
 		session.settings,
 		sanitizeEmail(session.emails[session.fromAddrID]),
 		session.to,
+		maps.Values(session.emails),
 		parser,
 	)
 	if err != nil {
@@ -219,7 +221,7 @@ func sendWithKey(
 	userKR, addrKR *crypto.KeyRing,
 	settings liteapi.MailSettings,
 	from string,
-	to []string,
+	to, emails []string,
 	parser *parser.Parser,
 ) (liteapi.Message, error) {
 	ctx, cancel := context.WithCancel(context.Background())
@@ -244,7 +246,7 @@ func sendWithKey(
 		return liteapi.Message{}, fmt.Errorf("failed to parse message: %w", err)
 	}
 
-	if err := sanitizeParsedMessage(&message, from, to); err != nil {
+	if err := sanitizeParsedMessage(&message, from, to, emails); err != nil {
 		return liteapi.Message{}, fmt.Errorf("failed to sanitize message: %w", err)
 	}
 
@@ -276,12 +278,21 @@ func sendWithKey(
 	return res, nil
 }
 
-func sanitizeParsedMessage(message *message.Message, from string, to []string) error {
+func sanitizeParsedMessage(message *message.Message, from string, to, emails []string) error {
 	// Check sender: set the sender in the parsed message if it's missing.
 	if message.Sender == nil {
 		message.Sender = &mail.Address{Address: from}
 	} else if message.Sender.Address == "" {
 		message.Sender.Address = from
+	}
+
+	// Check that the sending address is owned by the user, and if so, properly capitalize it.
+	if idx := xslices.IndexFunc(emails, func(email string) bool {
+		return strings.EqualFold(email, sanitizeEmail(message.Sender.Address))
+	}); idx < 0 {
+		return fmt.Errorf("address %q is not owned by user", message.Sender.Address)
+	} else {
+		message.Sender.Address = constructEmail(message.Sender.Address, emails[idx])
 	}
 
 	// Check ToList: ensure that ToList only contains addresses we actually plan to send to.
@@ -563,7 +574,25 @@ func sanitizeEmail(email string) string {
 	if len(splitAt) != 2 {
 		return email
 	}
-	splitPlus := strings.Split(splitAt[0], "+")
-	email = splitPlus[0] + "@" + splitAt[1]
-	return email
+
+	return strings.Split(splitAt[0], "+")[0] + "@" + splitAt[1]
+}
+
+func constructEmail(headerEmail string, addressEmail string) string {
+	splitAtHeader := strings.Split(headerEmail, "@")
+	if len(splitAtHeader) != 2 {
+		return addressEmail
+	}
+
+	splitPlus := strings.Split(splitAtHeader[0], "+")
+	if len(splitPlus) != 2 {
+		return addressEmail
+	}
+
+	splitAtAddress := strings.Split(addressEmail, "@")
+	if len(splitAtAddress) != 2 {
+		return addressEmail
+	}
+
+	return splitAtAddress[0] + "+" + splitPlus[1] + "@" + splitAtAddress[1]
 }
