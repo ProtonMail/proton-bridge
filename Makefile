@@ -54,6 +54,7 @@ ifeq "${TARGET_OS}" "windows"
     BRIDGE_GUI_EXE:=${BRIDGE_GUI_EXE}.exe
     LAUNCHER_EXE:=${LAUNCHER_EXE}.exe
     RESOURCE_FILE:=resource.syso
+    RESOURCE_FILE_LAUNCHER:=resource_launcher.syso
 endif
 ifeq "${TARGET_OS}" "darwin"
 	BRIDGE_EXE_NAME:=${BRIDGE_EXE}
@@ -88,7 +89,7 @@ ifeq "${GOOS}-$(shell uname -m)" "darwin-arm64"
 		CGO_ENABLED=1 GOARCH=amd64 $(call go-build,$(1),$(2)_amd,$(3)) && \
 		lipo -create -output $(2) $(2)_arm $(2)_amd && rm -f $(2)_arm $(2)_amd
 endif
-ifeq "${GOOS}-$(shell uname -m)" "windows"
+ifeq "${GOOS}" "windows"
 	go-build-finalize= \
 		mv ${RESOURCE_FILE} $(3)/ && \
 		$(call go-build,$(1),$(2),$(3)) && \
@@ -98,7 +99,7 @@ endif
 ${EXE_NAME}: gofiles ${RESOURCE_FILE}
 	$(call go-build-finalize,${BUILD_FLAGS},"${EXE_NAME}","${BUILD_PATH}")
 
-build-launcher: ${RESOURCE_FILE}
+build-launcher: ${RESOURCE_FILE_LAUNCHER}
 	$(call go-build-finalize,${BUILD_FLAGS_LAUNCHER},"${LAUNCHER_EXE}","${LAUNCHER_PATH}")
 
 versioner:
@@ -139,7 +140,6 @@ ${DEPLOY_DIR}/windows: ${EXE_TARGET} build-launcher
 	rm -rf ${DEPLOY_DIR}/windows/plugins
 
 ${EXE_TARGET}: check-build-essentials ${EXE_NAME}
-	# TODO: resource.syso for windows
 	cd internal/frontend/bridge-gui/bridge-gui && \
 		BRIDGE_APP_FULL_NAME="${APP_FULL_NAME}" \
 		BRIDGE_VENDOR="${APP_VENDOR}" \
@@ -158,9 +158,22 @@ resource.syso: ./dist/info.rc ./dist/${SRC_ICO} .FORCE
 	windres --target=pe-x86-64 \
 		-I ./internal/frontend/share/ \
 		-D ICO_FILE=${SRC_ICO} \
-		-D EXE_NAME="${EXE_NAME}" \
+		-D EXE_NAME="${BRIDGE_GUI_EXE}" \
 		-D FILE_VERSION="${APP_VERSION}" \
-		-D ORIGINAL_FILE_NAME="${EXE}" \
+		-D ORIGINAL_FILE_NAME="${BRIDGE_GUI_EXE}" \
+		-D PRODUCT_VERSION="${APP_VERSION}" \
+		-D FILE_VERSION_COMMA=${APP_VERSION_COMMA} \
+		-D YEAR=${WINDRES_YEAR} \
+		-o ./${RESOURCE_FILE} $<
+
+resource_launcher.syso: ./dist/info.rc ./dist/${SRC_ICO} .FORCE
+	rm -f ./*.syso
+	windres --target=pe-x86-64 \
+		-I ./internal/frontend/share/ \
+		-D ICO_FILE=${SRC_ICO} \
+		-D EXE_NAME="${LAUNCHER_EXE}" \
+		-D FILE_VERSION="${APP_VERSION}" \
+		-D ORIGINAL_FILE_NAME="${LAUNCHER_EXE}" \
 		-D PRODUCT_VERSION="${APP_VERSION}" \
 		-D FILE_VERSION_COMMA=${APP_VERSION_COMMA} \
 		-D YEAR=${WINDRES_YEAR} \
