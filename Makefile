@@ -21,12 +21,14 @@ SRC_SVG:=bridge.svg
 EXE_NAME:=proton-bridge
 REVISION:=$(shell git rev-parse --short=10 HEAD)
 BUILD_TIME:=$(shell date +%FT%T%z)
+MACOS_MIN_VERSION=11.0
 
 BUILD_FLAGS:=-tags='${BUILD_TAGS}'
 BUILD_FLAGS_LAUNCHER:=${BUILD_FLAGS}
 BUILD_FLAGS_GUI:=-tags='${BUILD_TAGS} build_qt'
 GO_LDFLAGS:=$(addprefix -X github.com/ProtonMail/proton-bridge/v2/internal/constants., Version=${APP_VERSION} Revision=${REVISION} BuildTime=${BUILD_TIME})
 GO_LDFLAGS+=-X "github.com/ProtonMail/proton-bridge/v2/internal/constants.FullAppName=${APP_FULL_NAME}"
+
 ifneq "${BUILD_LDFLAGS}" ""
 	GO_LDFLAGS+=${BUILD_LDFLAGS}
 endif
@@ -39,7 +41,6 @@ endif
 BUILD_FLAGS+=-ldflags '${GO_LDFLAGS}'
 BUILD_FLAGS_GUI+=-ldflags "${GO_LDFLAGS}"
 BUILD_FLAGS_LAUNCHER+=-ldflags '${GO_LDFLAGS_LAUNCHER}'
-
 DEPLOY_DIR:=cmd/${TARGET_CMD}/deploy
 DIRNAME:=$(shell basename ${CURDIR})
 
@@ -84,8 +85,8 @@ go-build=go build $(1) -o $(2) $(3)
 go-build-finalize=${go-build}
 ifeq "${GOOS}-$(shell uname -m)" "darwin-arm64"
 	go-build-finalize= \
-		CGO_ENABLED=1 GOARCH=arm64 $(call go-build,$(1),$(2)_arm,$(3)) && \
-		CGO_ENABLED=1 GOARCH=amd64 $(call go-build,$(1),$(2)_amd,$(3)) && \
+		MACOSX_DEPLOYMENT_TARGET=${MACOS_MIN_VERSION} CGO_ENABLED=1 CGO_CFLAGS="-mmacosx-version-min=${MACOS_MIN_VERSION}" GOARCH=arm64 $(call go-build,$(1),$(2)_arm,$(3)) && \
+		MACOSX_DEPLOYMENT_TARGET=${MACOS_MIN_VERSION} CGO_ENABLED=1 CGO_CFLAGS="-mmacosx-version-min=${MACOS_MIN_VERSION}" GOARCH=amd64 $(call go-build,$(1),$(2)_amd,$(3)) && \
 		lipo -create -output $(2) $(2)_arm $(2)_amd && rm -f $(2)_arm $(2)_amd
 endif
 

@@ -19,6 +19,9 @@
 include_guard()
 
 
+set(CMAKE_OSX_DEPLOYMENT_TARGET 11.0)
+
+
 if (NOT DEFINED BRIDGE_REPO_ROOT)
     message(FATAL_ERROR "BRIDGE_REPO_ROOT is not defined.")
 endif()
@@ -71,10 +74,10 @@ if (APPLE)
 
     if (CMAKE_OSX_ARCHITECTURES STREQUAL "arm64")
         message(STATUS "Building for Apple Silicon Mac computers")
-        set(VCPKG_TARGET_TRIPLET arm64-osx)
+        set(VCPKG_TARGET_TRIPLET arm64-osx-min-11-0)
     elseif (CMAKE_OSX_ARCHITECTURES STREQUAL "x86_64")
         message(STATUS "Building for Intel based Mac computers")
-        set(VCPKG_TARGET_TRIPLET x64-osx)
+        set(VCPKG_TARGET_TRIPLET x64-osx-min-11-0)
     else ()
         message(FATAL_ERROR "Unknown value for CMAKE_OSX_ARCHITECTURE. Please use one of \"arm64\" and \"x86_64\". Multiple architectures are not supported.")
     endif ()

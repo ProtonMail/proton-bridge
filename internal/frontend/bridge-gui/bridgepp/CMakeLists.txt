@@ -59,7 +59,7 @@ message(STATUS "protoc found ${PROTOC_EXE}")
 
 message(STATUS "grpc_cpp_plugin ${grpc_cpp_plugin}")
 
-find_program(GRPC_CPP_PLUGIN grpc_cpp_plugin)
+find_program(GRPC_CPP_PLUGIN grpc_cpp_plugin HINTS "${VCPKG_ROOT}/installed/arm64-osx/tools/grpc" "${VCPKG_ROOT}/installed/x64-osx/tools/grpc")
 if (NOT GRPC_CPP_PLUGIN)
     message(FATAL_ERROR "grpc_cpp_plugin exe could not be found. Please add it to your path. it should be located in \${VCPKG_ROOT}/installed/arm64-osx/tools/grpc")
 else ()

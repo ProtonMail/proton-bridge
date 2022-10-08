@@ -54,6 +54,7 @@ BRIDGE_APP_FULL_NAME=${BRIDGE_APP_FULL_NAME:-"Proton Mail Bridge"}
 BRIDGE_VENDOR=${BRIDGE_VENDOR:-"Proton AG"}
 BUILD_CONFIG=${BRIDGE_GUI_BUILD_CONFIG:-Debug}
 BUILD_DIR=$(echo "./cmake-build-${BUILD_CONFIG}" | tr '[:upper:]' '[:lower:]')
+VCPKG_OSX_DEPLOYMENT_TARGET=11.0
 VCPKG_ROOT="${BRIDGE_REPO_ROOT}/extern/vcpkg"
 
 git submodule update --init --recursive ${VCPKG_ROOT}
@@ -70,10 +71,10 @@ check_exit "Failed to bootstrap vcpkg."
 
 if [[ "$OSTYPE" == "darwin"* ]]; then
     if [[ "$(uname -m)" == "arm64" ]]; then
-        ${VCPKG_EXE} install grpc:arm64-osx --clean-after-build
+        ${VCPKG_EXE} install grpc:arm64-osx-min-11-0 --overlay-triplets=vcpkg/triplets --clean-after-build
         check_exit "Failed installing gRPC for macOS / Apple Silicon"
     fi
-    ${VCPKG_EXE} install grpc:x64-osx --clean-after-build
+    ${VCPKG_EXE} install grpc:x64-osx-min-11-0 --overlay-triplets=vcpkg/triplets --clean-after-build
     check_exit "Failed installing gRPC for macOS / Intel x64"
 elif [[ "$OSTYPE" == "linux"* ]]; then
     ${VCPKG_EXE} install grpc:x64-linux --clean-after-build
@@ -85,11 +86,17 @@ fi
 
 ${VCPKG_EXE} upgrade --no-dry-run
 
+if [[ "$OSTYPE" == "darwin"* ]]; then
+  BRIDGE_CMAKE_MACOS_OPTS="-DCMAKE_OSX_ARCHITECTURES=${BRIDGE_MACOS_ARCH:-$(uname -m)}"
+else
+  BRIDGE_CMAKE_MACOS_OPTS=""
+fi
+
 cmake  \
     -DCMAKE_BUILD_TYPE="${BUILD_CONFIG}" \
     -DBRIDGE_APP_FULL_NAME="${BRIDGE_APP_FULL_NAME}" \
     -DBRIDGE_VENDOR="${BRIDGE_VENDOR}" \
-    -DBRIDGE_APP_VERSION="${BRIDGE_APP_VERSION}" \
+    -DBRIDGE_APP_VERSION="${BRIDGE_APP_VERSION}" "${BRIDGE_CMAKE_MACOS_OPTS}" \
     -G Ninja \
     -S . \
     -B "${BUILD_DIR}"
