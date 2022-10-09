@@ -259,7 +259,12 @@ func (user *User) handleMessageEvents(ctx context.Context, messageEvents []litea
 }
 
 func (user *User) handleCreateMessageEvent(ctx context.Context, event liteapi.MessageEvent) error {
-	buildRes, err := user.buildRFC822(ctx, event.Message)
+	full, err := user.client.GetFullMessage(ctx, event.Message.ID)
+	if err != nil {
+		return fmt.Errorf("failed to get full message: %w", err)
+	}
+
+	buildRes, err := buildRFC822(ctx, full, user.addrKRs)
 	if err != nil {
 		return fmt.Errorf("failed to build RFC822: %w", err)
 	}

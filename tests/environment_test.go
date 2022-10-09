@@ -38,12 +38,12 @@ func (s *scenario) itFailsWithError(wantErr string) error {
 }
 
 func (s *scenario) internetIsTurnedOff() error {
-	s.t.dialer.SetCanDial(false)
+	s.t.netCtl.SetCanDial(false)
 	return nil
 }
 
 func (s *scenario) internetIsTurnedOn() error {
-	s.t.dialer.SetCanDial(true)
+	s.t.netCtl.SetCanDial(true)
 	return nil
 }
 

@@ -2,17 +2,19 @@ package tests
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 
 	"github.com/ProtonMail/proton-bridge/v2/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/v2/internal/events"
 	"github.com/ProtonMail/proton-bridge/v2/internal/useragent"
 	"github.com/ProtonMail/proton-bridge/v2/internal/vault"
+	"gitlab.protontech.ch/go/liteapi"
 )
 
 func (t *testCtx) startBridge() error {
 	// Bridge will enable the proxy by default at startup.
-	t.mocks.ProxyDialer.EXPECT().AllowProxy()
+	t.mocks.ProxyCtl.EXPECT().AllowProxy()
 
 	// Get the path to the vault.
 	vaultDir, err := t.locator.ProvideSettingsPath()
@@ -41,7 +43,8 @@ func (t *testCtx) startBridge() error {
 		vault,
 		useragent.New(),
 		t.mocks.TLSReporter,
-		t.mocks.ProxyDialer,
+		liteapi.NewDialer(t.netCtl, &tls.Config{InsecureSkipVerify: true}).GetRoundTripper(),
+		t.mocks.ProxyCtl,
 		t.mocks.Autostarter,
 		t.mocks.Updater,
 		t.version,

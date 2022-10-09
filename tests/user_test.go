@@ -14,7 +14,7 @@ import (
 
 func (s *scenario) thereExistsAnAccountWithUsernameAndPassword(username, password string) error {
 	// Create the user.
-	userID, addrID, err := s.t.api.CreateUser(username, password, username)
+	userID, addrID, err := s.t.api.CreateUser(username, username, []byte(password))
 	if err != nil {
 		return err
 	}
@@ -34,7 +34,7 @@ func (s *scenario) thereExistsAnAccountWithUsernameAndPassword(username, passwor
 func (s *scenario) theAccountHasAdditionalAddress(username, address string) error {
 	userID := s.t.getUserID(username)
 
-	addrID, err := s.t.api.CreateAddress(userID, address, s.t.getUserPass(userID))
+	addrID, err := s.t.api.CreateAddress(userID, address, []byte(s.t.getUserPass(userID)))
 	if err != nil {
 		return err
 	}

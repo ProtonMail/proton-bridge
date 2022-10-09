@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/hex"
 	"fmt"
-	"runtime"
 	"time"
 
 	"github.com/ProtonMail/gluon/connector"
@@ -14,7 +13,6 @@ import (
 	"github.com/ProtonMail/gluon/wait"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/ProtonMail/proton-bridge/v2/internal/events"
-	"github.com/ProtonMail/proton-bridge/v2/internal/pool"
 	"github.com/ProtonMail/proton-bridge/v2/internal/safe"
 	"github.com/ProtonMail/proton-bridge/v2/internal/vault"
 	"github.com/bradenaw/juniper/xslices"
@@ -31,7 +29,6 @@ var (
 type User struct {
 	vault   *vault.User
 	client  *liteapi.Client
-	attPool *pool.Pool[string, []byte]
 	eventCh *queue.QueuedChannel[events.Event]
 
 	apiUser  *safe.Type[liteapi.User]
@@ -91,7 +88,6 @@ func New(ctx context.Context, encVault *vault.User, client *liteapi.Client, apiU
 	user := &User{
 		vault:   encVault,
 		client:  client,
-		attPool: pool.New(runtime.NumCPU(), client.GetAttachment),
 		eventCh: queue.NewQueuedChannel[events.Event](0, 0),
 
 		apiUser:  safe.NewType(apiUser),
@@ -123,7 +119,7 @@ func New(ctx context.Context, encVault *vault.User, client *liteapi.Client, apiU
 
 	// If we haven't synced yet, do it first.
 	// If it fails, we don't start the event loop.
-	// Oterwise, begin processing API events, logging any errors that occur.
+	// Otherwise, begin processing API events, logging any errors that occur.
 	go func() {
 		if status := user.vault.SyncStatus(); !status.HasMessages {
 			if err := <-user.startSync(); err != nil {
@@ -336,17 +332,23 @@ func (user *User) NewSMTPSession(email string) (smtp.Session, error) {
 }
 
 // Logout logs the user out from the API.
+// If withVault is true, the user's vault is also cleared.
 func (user *User) Logout(ctx context.Context) error {
-	return user.client.AuthDelete(ctx)
+	if err := user.client.AuthDelete(ctx); err != nil {
+		return fmt.Errorf("failed to delete auth: %w", err)
+	}
+
+	if err := user.vault.Clear(); err != nil {
+		return fmt.Errorf("failed to clear vault: %w", err)
+	}
+
+	return nil
 }
 
 // Close closes ongoing connections and cleans up resources.
 func (user *User) Close() error {
 	// Cancel ongoing syncs.
 	user.stopSync()
-
-	// Close the attachment pool.
-	user.attPool.Done()
 
 	// Close the user's API client.
 	user.client.Close()

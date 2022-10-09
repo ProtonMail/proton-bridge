@@ -9,21 +9,19 @@ import (
 )
 
 type flusher struct {
-	userID   string
 	updateCh *queue.QueuedChannel[imap.Update]
+	updates  []*imap.MessageCreated
 
-	updates      []*imap.MessageCreated
-	maxChunkSize int
-	curChunkSize int
+	maxUpdateSize int
+	curChunkSize  int
 
 	pushLock sync.Mutex
 }
 
-func newFlusher(userID string, updateCh *queue.QueuedChannel[imap.Update], maxChunkSize int) *flusher {
+func newFlusher(updateCh *queue.QueuedChannel[imap.Update], maxUpdateSize int) *flusher {
 	return &flusher{
-		userID:       userID,
-		updateCh:     updateCh,
-		maxChunkSize: maxChunkSize,
+		updateCh:      updateCh,
+		maxUpdateSize: maxUpdateSize,
 	}
 }
 
@@ -33,19 +31,17 @@ func (f *flusher) push(ctx context.Context, update *imap.MessageCreated) {
 
 	f.updates = append(f.updates, update)
 
-	if f.curChunkSize += len(update.Literal); f.curChunkSize >= f.maxChunkSize {
+	if f.curChunkSize += len(update.Literal); f.curChunkSize >= f.maxUpdateSize {
 		f.flush(ctx, false)
 	}
 }
 
 func (f *flusher) flush(ctx context.Context, wait bool) {
-	if len(f.updates) == 0 {
-		return
+	if len(f.updates) > 0 {
+		f.updateCh.Enqueue(imap.NewMessagesCreated(f.updates...))
+		f.updates = nil
+		f.curChunkSize = 0
 	}
-
-	f.updateCh.Enqueue(imap.NewMessagesCreated(f.updates...))
-	f.updates = nil
-	f.curChunkSize = 0
 
 	if wait {
 		update := imap.NewNoop()

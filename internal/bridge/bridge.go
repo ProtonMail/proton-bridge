@@ -33,10 +33,10 @@ type Bridge struct {
 	users map[string]*user.User
 
 	// api manages user API clients.
-	api         *liteapi.Manager
-	cookieJar   *cookies.Jar
-	proxyDialer ProxyDialer
-	identifier  Identifier
+	api        *liteapi.Manager
+	cookieJar  *cookies.Jar
+	proxyCtl   ProxyController
+	identifier Identifier
 
 	// watchers holds all registered event watchers.
 	watchers     []*watcher.Watcher[events.Event]
@@ -81,15 +81,16 @@ func New(
 	vault *vault.Vault, // the bridge's encrypted data store
 	identifier Identifier, // the identifier to keep track of the user agent
 	tlsReporter TLSReporter, // the TLS reporter to report TLS errors
-	proxyDialer ProxyDialer, // the DoH dialer
+	roundTripper http.RoundTripper, // the round tripper to use for API requests
+	proxyCtl ProxyController, // the DoH controller
 	autostarter Autostarter, // the autostarter to manage autostart settings
 	updater Updater, // the updater to fetch and install updates
 	curVersion *semver.Version, // the current version of the bridge
 ) (*Bridge, error) {
 	if vault.GetProxyAllowed() {
-		proxyDialer.AllowProxy()
+		proxyCtl.AllowProxy()
 	} else {
-		proxyDialer.DisallowProxy()
+		proxyCtl.DisallowProxy()
 	}
 
 	cookieJar, err := cookies.NewCookieJar(vault)
@@ -101,7 +102,7 @@ func New(
 		liteapi.WithHostURL(apiURL),
 		liteapi.WithAppVersion(constants.AppVersion),
 		liteapi.WithCookieJar(cookieJar),
-		liteapi.WithTransport(&http.Transport{DialTLSContext: proxyDialer.DialTLSContext}),
+		liteapi.WithTransport(roundTripper),
 	)
 
 	tlsConfig, err := loadTLSConfig(vault)
@@ -139,10 +140,10 @@ func New(
 		vault: vault,
 		users: make(map[string]*user.User),
 
-		api:         api,
-		cookieJar:   cookieJar,
-		proxyDialer: proxyDialer,
-		identifier:  identifier,
+		api:        api,
+		cookieJar:  cookieJar,
+		proxyCtl:   proxyCtl,
+		identifier: identifier,
 
 		tlsConfig:   tlsConfig,
 		imapServer:  imapServer,
@@ -179,6 +180,10 @@ func New(
 		return nil
 	})
 
+	if err := bridge.loadUsers(); err != nil {
+		return nil, fmt.Errorf("failed to load users: %w", err)
+	}
+
 	go func() {
 		for range tlsReporter.GetTLSIssueCh() {
 			bridge.publish(events.TLSIssue{})
@@ -196,10 +201,6 @@ func New(
 			bridge.handleIMAPEvent(event)
 		}
 	}()
-
-	if err := bridge.loadUsers(context.Background()); err != nil {
-		return nil, fmt.Errorf("failed to load connected users: %w", err)
-	}
 
 	if err := bridge.serveIMAP(); err != nil {
 		bridge.PushError(ErrServeIMAP)
@@ -309,14 +310,8 @@ func (bridge *Bridge) remWatcher(oldWatcher *watcher.Watcher[events.Event]) {
 func (bridge *Bridge) onStatusUp() {
 	bridge.publish(events.ConnStatusUp{})
 
-	for _, userID := range bridge.vault.GetUserIDs() {
-		if _, ok := bridge.users[userID]; !ok {
-			if vaultUser, err := bridge.vault.GetUser(userID); err != nil {
-				logrus.WithError(err).Error("Failed to get user from vault")
-			} else if err := bridge.loadUser(context.Background(), vaultUser); err != nil {
-				logrus.WithError(err).Error("Failed to load user")
-			}
-		}
+	if err := bridge.loadUsers(); err != nil {
+		logrus.WithError(err).Error("Failed to load users")
 	}
 }
 

@@ -24,7 +24,7 @@ type testCtx struct {
 	// These are the objects supporting the test.
 	dir      string
 	api      API
-	dialer   *bridge.TestDialer
+	netCtl   *liteapi.NetCtl
 	locator  *locations.Locations
 	storeKey []byte
 	version  *semver.Version
@@ -76,15 +76,13 @@ type smtpClient struct {
 func newTestCtx(tb testing.TB) *testCtx {
 	dir := tb.TempDir()
 
-	dialer := bridge.NewTestDialer()
-
 	ctx := &testCtx{
 		dir:      dir,
 		api:      newFakeAPI(),
-		dialer:   dialer,
+		netCtl:   liteapi.NewNetCtl(),
 		locator:  locations.New(bridge.NewTestLocationsProvider(dir), "config-name"),
 		storeKey: []byte("super-secret-store-key"),
-		mocks:    bridge.NewMocks(tb, dialer, defaultVersion, defaultVersion),
+		mocks:    bridge.NewMocks(tb, defaultVersion, defaultVersion),
 		version:  defaultVersion,
 
 		userIDByName:       make(map[string]string),

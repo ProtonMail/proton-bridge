@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/ProtonMail/gluon/imap"
+	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/ProtonMail/proton-bridge/v2/pkg/message"
 	"github.com/bradenaw/juniper/xslices"
 	"gitlab.protontech.ch/go/liteapi"
@@ -29,30 +30,20 @@ func defaultJobOpts() message.JobOptions {
 	}
 }
 
-func (user *User) buildRFC822(ctx context.Context, metadata liteapi.MessageMetadata) (*buildRes, error) {
-	msg, err := user.client.GetMessage(ctx, metadata.ID)
+func buildRFC822(ctx context.Context, full liteapi.FullMessage, addrKRs map[string]*crypto.KeyRing) (*buildRes, error) {
+	literal, err := message.BuildRFC822(addrKRs[full.AddressID], full.Message, full.AttData, defaultJobOpts())
 	if err != nil {
-		return nil, fmt.Errorf("failed to get message %s: %w", metadata.ID, err)
+		return nil, fmt.Errorf("failed to build message %s: %w", full.ID, err)
 	}
 
-	attData, err := user.attPool.ProcessAll(ctx, xslices.Map(msg.Attachments, func(att liteapi.Attachment) string { return att.ID }))
+	update, err := newMessageCreatedUpdate(full.MessageMetadata, literal)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get attachments for message %s: %w", metadata.ID, err)
-	}
-
-	literal, err := message.BuildRFC822(user.addrKRs[msg.AddressID], msg, attData, defaultJobOpts())
-	if err != nil {
-		return nil, fmt.Errorf("failed to build message %s: %w", metadata.ID, err)
-	}
-
-	update, err := newMessageCreatedUpdate(metadata, literal)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create IMAP update for message %s: %w", metadata.ID, err)
+		return nil, fmt.Errorf("failed to create IMAP update for message %s: %w", full.ID, err)
 	}
 
 	return &buildRes{
-		messageID: metadata.ID,
-		addressID: metadata.AddressID,
+		messageID: full.ID,
+		addressID: full.AddressID,
 		update:    update,
 	}, nil
 }

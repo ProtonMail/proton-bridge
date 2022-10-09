@@ -81,7 +81,18 @@ func newBridge(locations *locations.Locations, identifier *useragent.UserAgent) 
 	}
 
 	// Create a new bridge.
-	bridge, err := bridge.New(constants.APIHost, locations, encVault, identifier, pinningDialer, proxyDialer, autostarter, updater, version)
+	bridge, err := bridge.New(
+		constants.APIHost,
+		locations,
+		encVault,
+		identifier,
+		pinningDialer,
+		dialer.CreateTransportWithDialer(proxyDialer),
+		proxyDialer,
+		autostarter,
+		updater,
+		version,
+	)
 	if err != nil {
 		return nil, fmt.Errorf("could not create bridge: %w", err)
 	}

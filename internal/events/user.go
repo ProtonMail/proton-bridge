@@ -2,6 +2,12 @@ package events
 
 import "github.com/ProtonMail/proton-bridge/v2/internal/vault"
 
+type UserLoaded struct {
+	eventBase
+
+	UserID string
+}
+
 type UserLoggedIn struct {
 	eventBase
 

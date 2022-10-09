@@ -18,6 +18,9 @@ func (bridge *Bridge) watchForUpdates() error {
 	go func() {
 		for {
 			select {
+			case <-bridge.stopCh:
+				return
+
 			case <-bridge.updateCheckCh:
 			case <-ticker.C:
 			}

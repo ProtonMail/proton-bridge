@@ -138,3 +138,12 @@ func (user *User) SetEventID(eventID string) error {
 		data.EventID = eventID
 	})
 }
+
+// Clear clears the user's auth secrets.
+func (user *User) Clear() error {
+	return user.vault.modUser(user.userID, func(data *UserData) {
+		data.AuthUID = ""
+		data.AuthRef = ""
+		data.KeyPass = nil
+	})
+}

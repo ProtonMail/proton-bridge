@@ -6,6 +6,7 @@ import (
 
 	"github.com/ProtonMail/gluon/imap"
 	"github.com/ProtonMail/proton-bridge/v2/internal/events"
+	"github.com/ProtonMail/proton-bridge/v2/internal/try"
 	"github.com/ProtonMail/proton-bridge/v2/internal/user"
 	"github.com/ProtonMail/proton-bridge/v2/internal/vault"
 	"github.com/go-resty/resty/v2"
@@ -82,76 +83,76 @@ func (bridge *Bridge) LoginUser(
 ) (string, error) {
 	client, auth, err := bridge.api.NewClientWithLogin(ctx, username, password)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to create new API client: %w", err)
 	}
 
-	if _, ok := bridge.users[auth.UserID]; ok {
-		return "", ErrUserAlreadyLoggedIn
-	}
+	userID, err := try.CatchVal(
+		func() (string, error) {
+			if _, ok := bridge.users[auth.UserID]; ok {
+				return "", ErrUserAlreadyLoggedIn
+			}
 
-	if auth.TwoFA.Enabled == liteapi.TOTPEnabled {
-		totp, err := getTOTP()
-		if err != nil {
-			return "", err
-		}
+			if auth.TwoFA.Enabled == liteapi.TOTPEnabled {
+				totp, err := getTOTP()
+				if err != nil {
+					return "", fmt.Errorf("failed to get TOTP: %w", err)
+				}
 
-		if err := client.Auth2FA(ctx, liteapi.Auth2FAReq{TwoFactorCode: totp}); err != nil {
-			return "", err
-		}
-	}
+				if err := client.Auth2FA(ctx, liteapi.Auth2FAReq{TwoFactorCode: totp}); err != nil {
+					return "", fmt.Errorf("failed to authorize 2FA: %w", err)
+				}
+			}
 
-	var keyPass []byte
+			var keyPass []byte
 
-	if auth.PasswordMode == liteapi.TwoPasswordMode {
-		pass, err := getKeyPass()
-		if err != nil {
-			return "", err
-		}
+			if auth.PasswordMode == liteapi.TwoPasswordMode {
+				userKeyPass, err := getKeyPass()
+				if err != nil {
+					return "", fmt.Errorf("failed to get key password: %w", err)
+				}
 
-		keyPass = pass
-	} else {
-		keyPass = password
-	}
+				keyPass = userKeyPass
+			} else {
+				keyPass = password
+			}
 
-	apiUser, err := client.GetUser(ctx)
+			return bridge.loginUser(ctx, client, auth.UID, auth.RefreshToken, keyPass)
+		},
+		func() error {
+			return client.AuthDelete(ctx)
+		},
+		func() error {
+			bridge.deleteUser(ctx, auth.UserID)
+			return nil
+		},
+	)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to login user: %w", err)
 	}
 
-	salts, err := client.GetSalts(ctx)
-	if err != nil {
-		return "", err
-	}
+	bridge.publish(events.UserLoggedIn{
+		UserID: userID,
+	})
 
-	saltedKeyPass, err := salts.SaltForKey(keyPass, apiUser.Keys.Primary().ID)
-	if err != nil {
-		return "", err
-	}
-
-	if err := bridge.addUser(ctx, client, apiUser, auth.UID, auth.RefreshToken, saltedKeyPass); err != nil {
-		return "", err
-	}
-
-	return auth.UserID, nil
+	return userID, nil
 }
 
 // LogoutUser logs out the given user.
 func (bridge *Bridge) LogoutUser(ctx context.Context, userID string) error {
-	return bridge.logoutUser(ctx, userID, true, false)
+	if err := bridge.logoutUser(ctx, userID); err != nil {
+		return fmt.Errorf("failed to logout user: %w", err)
+	}
+
+	bridge.publish(events.UserLoggedOut{
+		UserID: userID,
+	})
+
+	return nil
 }
 
 // DeleteUser deletes the given user.
-// If it is authorized, it is logged out first.
 func (bridge *Bridge) DeleteUser(ctx context.Context, userID string) error {
-	if bridge.users[userID] != nil {
-		if err := bridge.logoutUser(ctx, userID, true, true); err != nil {
-			return err
-		}
-	}
-
-	if err := bridge.vault.DeleteUser(userID); err != nil {
-		return err
-	}
+	bridge.deleteUser(ctx, userID)
 
 	bridge.publish(events.UserDeleted{
 		UserID: userID,
@@ -193,52 +194,90 @@ func (bridge *Bridge) SetAddressMode(ctx context.Context, userID string, mode va
 	return nil
 }
 
-// loadUsers loads authorized users from the vault.
-func (bridge *Bridge) loadUsers(ctx context.Context) error {
-	for _, userID := range bridge.vault.GetUserIDs() {
-		user, err := bridge.vault.GetUser(userID)
-		if err != nil {
-			return err
+func (bridge *Bridge) loginUser(ctx context.Context, client *liteapi.Client, authUID, authRef string, keyPass []byte) (string, error) {
+	apiUser, err := client.GetUser(ctx)
+	if err != nil {
+		return "", fmt.Errorf("failed to get API user: %w", err)
+	}
+
+	salts, err := client.GetSalts(ctx)
+	if err != nil {
+		return "", fmt.Errorf("failed to get key salts: %w", err)
+	}
+
+	saltedKeyPass, err := salts.SaltForKey(keyPass, apiUser.Keys.Primary().ID)
+	if err != nil {
+		return "", fmt.Errorf("failed to salt key password: %w", err)
+	}
+
+	if err := bridge.addUser(ctx, client, apiUser, authUID, authRef, saltedKeyPass); err != nil {
+		return "", fmt.Errorf("failed to add bridge user: %w", err)
+	}
+
+	return apiUser.ID, nil
+}
+
+// loadUsers is a loop that, when polled, attempts to load authorized users from the vault.
+func (bridge *Bridge) loadUsers() error {
+	return bridge.vault.ForUser(func(user *vault.User) error {
+		if _, ok := bridge.users[user.UserID()]; ok {
+			return nil
 		}
 
 		if user.AuthUID() == "" {
-			continue
+			return nil
 		}
 
-		if err := bridge.loadUser(ctx, user); err != nil {
-			logrus.WithError(err).Error("Failed to load connected user")
-
+		if err := bridge.loadUser(user); err != nil {
 			if _, ok := err.(*resty.ResponseError); ok {
-				if err := bridge.vault.ClearUser(userID); err != nil {
+				logrus.WithError(err).Error("Failed to load connected user, clearing its secrets from vault")
+
+				if err := user.Clear(); err != nil {
 					logrus.WithError(err).Error("Failed to clear user")
 				}
+			} else {
+				logrus.WithError(err).Error("Failed to load connected user")
 			}
 
-			continue
+			return nil
 		}
-	}
 
-	return nil
+		bridge.publish(events.UserLoaded{
+			UserID: user.UserID(),
+		})
+
+		return nil
+	})
 }
 
-func (bridge *Bridge) loadUser(ctx context.Context, user *vault.User) error {
+// loadUser loads an existing user from the vault.
+func (bridge *Bridge) loadUser(user *vault.User) error {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	client, auth, err := bridge.api.NewClientWithRefresh(ctx, user.AuthUID(), user.AuthRef())
 	if err != nil {
 		return fmt.Errorf("failed to create API client: %w", err)
 	}
 
-	apiUser, err := client.GetUser(ctx)
-	if err != nil {
-		return fmt.Errorf("failed to get user: %w", err)
-	}
+	if err := try.Catch(
+		func() error {
+			apiUser, err := client.GetUser(ctx)
+			if err != nil {
+				return fmt.Errorf("failed to get user: %w", err)
+			}
 
-	if err := bridge.addUser(ctx, client, apiUser, auth.UID, auth.RefreshToken, user.KeyPass()); err != nil {
-		return fmt.Errorf("failed to add user: %w", err)
+			return bridge.addUser(ctx, client, apiUser, auth.UID, auth.RefreshToken, user.KeyPass())
+		},
+		func() error {
+			return client.AuthDelete(ctx)
+		},
+		func() error {
+			return bridge.logoutUser(ctx, user.UserID())
+		},
+	); err != nil {
+		return fmt.Errorf("failed to load user: %w", err)
 	}
-
-	bridge.publish(events.UserLoggedIn{
-		UserID: user.UserID(),
-	})
 
 	return nil
 }
@@ -304,10 +343,6 @@ func (bridge *Bridge) addUser(
 		return nil
 	})
 
-	bridge.publish(events.UserLoggedIn{
-		UserID: user.ID(),
-	})
-
 	return nil
 }
 
@@ -363,54 +398,6 @@ func (bridge *Bridge) addExistingUser(
 	return user, nil
 }
 
-// logoutUser closes and removes the user with the given ID.
-// If withAPI is true, the user will additionally be logged out from API.
-// If withFiles is true, the user's files will be deleted.
-func (bridge *Bridge) logoutUser(ctx context.Context, userID string, withAPI, withFiles bool) error {
-	user, ok := bridge.users[userID]
-	if !ok {
-		return ErrNoSuchUser
-	}
-
-	if err := bridge.smtpBackend.removeUser(user); err != nil {
-		return fmt.Errorf("failed to remove SMTP user: %w", err)
-	}
-
-	for _, gluonID := range user.GetGluonIDs() {
-		if err := bridge.imapServer.RemoveUser(ctx, gluonID, withFiles); err != nil {
-			return fmt.Errorf("failed to remove IMAP user: %w", err)
-		}
-	}
-
-	if withAPI {
-		if err := user.Logout(ctx); err != nil {
-			return fmt.Errorf("failed to logout user: %w", err)
-		}
-	}
-
-	if err := user.Close(); err != nil {
-		return fmt.Errorf("failed to close user: %w", err)
-	}
-
-	if err := bridge.vault.ClearUser(userID); err != nil {
-		return fmt.Errorf("failed to clear user: %w", err)
-	}
-
-	if withFiles {
-		if err := bridge.vault.DeleteUser(userID); err != nil {
-			return fmt.Errorf("failed to delete user: %w", err)
-		}
-	}
-
-	delete(bridge.users, userID)
-
-	bridge.publish(events.UserLoggedOut{
-		UserID: userID,
-	})
-
-	return nil
-}
-
 // addIMAPUser connects the given user to gluon.
 func (bridge *Bridge) addIMAPUser(ctx context.Context, user *user.User) error {
 	imapConn, err := user.NewIMAPConnectors()
@@ -436,6 +423,65 @@ func (bridge *Bridge) addIMAPUser(ctx context.Context, user *user.User) error {
 	}
 
 	return nil
+}
+
+// logoutUser logs the given user out from bridge.
+func (bridge *Bridge) logoutUser(ctx context.Context, userID string) error {
+	user, ok := bridge.users[userID]
+	if !ok {
+		return ErrNoSuchUser
+	}
+
+	if err := bridge.smtpBackend.removeUser(user); err != nil {
+		logrus.WithError(err).Error("Failed to remove user from SMTP backend")
+	}
+
+	for _, gluonID := range user.GetGluonIDs() {
+		if err := bridge.imapServer.RemoveUser(ctx, gluonID, false); err != nil {
+			logrus.WithError(err).Error("Failed to remove IMAP user")
+		}
+	}
+
+	if err := user.Logout(ctx); err != nil {
+		logrus.WithError(err).Error("Failed to logout user")
+	}
+
+	if err := user.Close(); err != nil {
+		logrus.WithError(err).Error("Failed to close user")
+	}
+
+	delete(bridge.users, userID)
+
+	return nil
+}
+
+// deleteUser deletes the given user from bridge.
+func (bridge *Bridge) deleteUser(ctx context.Context, userID string) {
+	if user, ok := bridge.users[userID]; ok {
+		if err := bridge.smtpBackend.removeUser(user); err != nil {
+			logrus.WithError(err).Error("Failed to remove user from SMTP backend")
+		}
+
+		for _, gluonID := range user.GetGluonIDs() {
+			if err := bridge.imapServer.RemoveUser(ctx, gluonID, true); err != nil {
+				logrus.WithError(err).Error("Failed to remove IMAP user")
+			}
+		}
+
+		if err := user.Logout(ctx); err != nil {
+			logrus.WithError(err).Error("Failed to logout user")
+		}
+
+		if err := user.Close(); err != nil {
+			logrus.WithError(err).Error("Failed to close user")
+		}
+	}
+
+	if err := bridge.vault.DeleteUser(userID); err != nil {
+		logrus.WithError(err).Error("Failed to delete user from vault")
+	}
+
+	delete(bridge.users, userID)
 }
 
 // getUserInfo returns information about a disconnected user.

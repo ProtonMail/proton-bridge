@@ -234,7 +234,7 @@ integration-test-bridge:
 	${MAKE} -C test test-bridge
 
 mocks:
-	mockgen --package mocks github.com/ProtonMail/proton-bridge/v2/internal/bridge TLSReporter,ProxyDialer,Autostarter > internal/bridge/mocks/mocks.go
+	mockgen --package mocks github.com/ProtonMail/proton-bridge/v2/internal/bridge TLSReporter,ProxyController,Autostarter > internal/bridge/mocks/mocks.go
 	mockgen --package mocks github.com/ProtonMail/proton-bridge/v2/internal/updater Downloader,Installer > internal/updater/mocks/mocks.go
 
 lint: gofiles lint-golang lint-license lint-dependencies lint-changelog

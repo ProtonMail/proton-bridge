@@ -3,6 +3,8 @@ package bridge
 import (
 	"crypto/tls"
 	"fmt"
+	"net"
+	"strconv"
 
 	"github.com/ProtonMail/proton-bridge/v2/internal/constants"
 	"github.com/emersion/go-sasl"
@@ -21,6 +23,22 @@ func (bridge *Bridge) serveSMTP() error {
 			logrus.WithError(err).Error("SMTP server stopped")
 		}
 	}()
+
+	_, port, err := net.SplitHostPort(smtpListener.Addr().String())
+	if err != nil {
+		return fmt.Errorf("failed to get SMTP listener address: %w", err)
+	}
+
+	portInt, err := strconv.Atoi(port)
+	if err != nil {
+		return fmt.Errorf("failed to convert SMTP listener port to int: %w", err)
+	}
+
+	if portInt != bridge.vault.GetSMTPPort() {
+		if err := bridge.vault.SetSMTPPort(portInt); err != nil {
+			return fmt.Errorf("failed to update SMTP port in vault: %w", err)
+		}
+	}
 
 	return nil
 }

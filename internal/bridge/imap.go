@@ -6,7 +6,9 @@ import (
 	"errors"
 	"fmt"
 	"io/fs"
+	"net"
 	"os"
+	"strconv"
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/ProtonMail/gluon"
@@ -31,6 +33,22 @@ func (bridge *Bridge) serveIMAP() error {
 
 	if err := bridge.imapServer.Serve(context.Background(), bridge.imapListener); err != nil {
 		return fmt.Errorf("failed to serve IMAP: %w", err)
+	}
+
+	_, port, err := net.SplitHostPort(imapListener.Addr().String())
+	if err != nil {
+		return fmt.Errorf("failed to get IMAP listener address: %w", err)
+	}
+
+	portInt, err := strconv.Atoi(port)
+	if err != nil {
+		return fmt.Errorf("failed to convert IMAP listener port to int: %w", err)
+	}
+
+	if portInt != bridge.vault.GetIMAPPort() {
+		if err := bridge.vault.SetIMAPPort(portInt); err != nil {
+			return fmt.Errorf("failed to update IMAP port in vault: %w", err)
+		}
 	}
 
 	go func() {

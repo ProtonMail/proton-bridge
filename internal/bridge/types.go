@@ -1,9 +1,6 @@
 package bridge
 
 import (
-	"context"
-	"net"
-
 	"github.com/ProtonMail/proton-bridge/v2/internal/updater"
 )
 
@@ -21,15 +18,13 @@ type Identifier interface {
 	SetPlatform(platform string)
 }
 
-type TLSReporter interface {
-	GetTLSIssueCh() <-chan struct{}
-}
-
-type ProxyDialer interface {
-	DialTLSContext(ctx context.Context, network, addr string) (net.Conn, error)
-
+type ProxyController interface {
 	AllowProxy()
 	DisallowProxy()
+}
+
+type TLSReporter interface {
+	GetTLSIssueCh() <-chan struct{}
 }
 
 type Autostarter interface {

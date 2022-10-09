@@ -12,8 +12,8 @@ type API interface {
 	GetHostURL() string
 	AddCallWatcher(func(server.Call), ...string)
 
-	CreateUser(username, password, address string) (string, string, error)
-	CreateAddress(userID, address, password string) (string, error)
+	CreateUser(username, address string, password []byte) (string, string, error)
+	CreateAddress(userID, address string, password []byte) (string, error)
 	RemoveAddress(userID, addrID string) error
 	RevokeUser(userID string) error
 

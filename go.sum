@@ -397,8 +397,8 @@ github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673/go.mod h1:N3UwUGtsr
 github.com/yuin/goldmark v1.3.5/go.mod h1:mwnBkeHKe2W/ZEtQ+71ViKU8L12m81fl3OWwC1Zlc8k=
 github.com/zclconf/go-cty v1.11.0 h1:726SxLdi2SDnjY+BStqB9J1hNp4+2WlzyXLuimibIe0=
 github.com/zclconf/go-cty v1.11.0/go.mod h1:s9IfD1LK5ccNMSWCVFCE2rJfHiZgi7JijgeWIMfhLvA=
-gitlab.protontech.ch/go/liteapi v0.33.2-0.20221007210933-605ca74449b7 h1:Hef7jPRzcfLOvOUHYoQ6efaI7p7/aT5kpZDqJ29owNI=
-gitlab.protontech.ch/go/liteapi v0.33.2-0.20221007210933-605ca74449b7/go.mod h1:9nsslyEJn7Utbielp4c+hc7qT6hqIJ52aGFR/tX+tYk=
+gitlab.protontech.ch/go/liteapi v0.33.2-0.20221010190235-49df4dcc853e h1:CTGaREzkbz7u98nKt6+xsca2bWML79lH1XGbodRo+MY=
+gitlab.protontech.ch/go/liteapi v0.33.2-0.20221010190235-49df4dcc853e/go.mod h1:9nsslyEJn7Utbielp4c+hc7qT6hqIJ52aGFR/tX+tYk=
 go.etcd.io/bbolt v1.3.2/go.mod h1:IbVyRI1SCnLcuJnV2u8VeU0CEYM7e686BmAb1XKL+uU=
 go.opencensus.io v0.21.0/go.mod h1:mSImk1erAIZhrmZN+AvHh14ztQfjbGwt4TtuofqLduU=
 go.opencensus.io v0.22.0/go.mod h1:+kGneAE2xo2IficOXnaByMWTGM9T73dGwxeWcUqIpI8=

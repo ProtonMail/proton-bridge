@@ -107,14 +107,6 @@ func (vault *Vault) AddUser(userID, username, authUID, authRef string, keyPass [
 	return vault.GetUser(userID)
 }
 
-func (vault *Vault) ClearUser(userID string) error {
-	return vault.modUser(userID, func(data *UserData) {
-		data.AuthUID = ""
-		data.AuthRef = ""
-		data.KeyPass = nil
-	})
-}
-
 // DeleteUser removes the given user from the vault.
 func (vault *Vault) DeleteUser(userID string) error {
 	return vault.mod(func(data *Data) {

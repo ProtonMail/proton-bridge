@@ -58,7 +58,7 @@ func TestUser_Clear(t *testing.T) {
 	require.Equal(t, "keyPass", string(user.KeyPass()))
 
 	// Clear the user's auth information.
-	require.NoError(t, s.ClearUser("userID"))
+	require.NoError(t, user.Clear())
 
 	// Check the user's cleared auth information.
 	require.Empty(t, user.AuthUID())

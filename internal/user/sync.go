@@ -4,14 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"runtime"
 	"strings"
 	"time"
 
 	"github.com/ProtonMail/gluon/imap"
 	"github.com/ProtonMail/gluon/queue"
-	"github.com/bradenaw/juniper/iterator"
-	"github.com/bradenaw/juniper/parallel"
 	"github.com/bradenaw/juniper/stream"
 	"github.com/bradenaw/juniper/xslices"
 	"github.com/google/uuid"
@@ -105,34 +102,38 @@ func syncLabels(ctx context.Context, client *liteapi.Client, updateCh ...*queue.
 
 func (user *User) syncMessages(ctx context.Context) error {
 	// Determine which messages to sync.
-	metadata, err := user.client.GetAllMessageMetadata(ctx, nil)
+	allMetadata, err := user.client.GetAllMessageMetadata(ctx, nil)
 	if err != nil {
 		return fmt.Errorf("get all message metadata: %w", err)
 	}
 
-	// If possible, begin syncing from the last synced message.
+	metadata := allMetadata
+
+	// If possible, begin syncing from one beyond the last synced message.
 	if beginID := user.vault.SyncStatus().LastMessageID; beginID != "" {
 		if idx := xslices.IndexFunc(metadata, func(metadata liteapi.MessageMetadata) bool {
 			return metadata.ID == beginID
 		}); idx >= 0 {
-			metadata = metadata[idx:]
+			metadata = metadata[idx+1:]
 		}
 	}
 
 	// Process the metadata, building the messages.
-	buildCh := stream.Chunk(parallel.MapStream(
-		ctx,
-		stream.FromIterator(iterator.Slice(metadata)),
-		runtime.NumCPU()*runtime.NumCPU()/2,
-		runtime.NumCPU()*runtime.NumCPU()/2,
-		user.buildRFC822,
+	buildCh := stream.Chunk(stream.Map(
+		user.client.GetFullMessages(ctx, xslices.Map(metadata, func(metadata liteapi.MessageMetadata) string {
+			return metadata.ID
+		})...),
+		func(ctx context.Context, full liteapi.FullMessage) (*buildRes, error) {
+			return buildRFC822(ctx, full, user.addrKRs)
+		},
 	), maxBatchSize)
+	defer buildCh.Close()
 
 	// Create the flushers, one per update channel.
 	flushers := make(map[string]*flusher)
 
 	for addrID, updateCh := range user.updateCh {
-		flusher := newFlusher(user.ID(), updateCh, maxUpdateSize)
+		flusher := newFlusher(updateCh, maxUpdateSize)
 		defer flusher.flush(ctx, true)
 
 		flushers[addrID] = flusher
@@ -141,6 +142,8 @@ func (user *User) syncMessages(ctx context.Context) error {
 	// Create a reporter to report sync progress updates.
 	reporter := newReporter(user.ID(), user.eventCh, len(metadata), time.Second)
 	defer reporter.done()
+
+	var count int
 
 	// Send each update to the appropriate flusher.
 	for {
@@ -170,6 +173,8 @@ func (user *User) syncMessages(ctx context.Context) error {
 		}
 
 		reporter.add(len(batch))
+
+		count += len(batch)
 	}
 }
 

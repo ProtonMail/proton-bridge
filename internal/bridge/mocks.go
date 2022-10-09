@@ -1,10 +1,6 @@
 package bridge
 
 import (
-	"context"
-	"crypto/tls"
-	"errors"
-	"net"
 	"os"
 	"testing"
 
@@ -15,7 +11,7 @@ import (
 )
 
 type Mocks struct {
-	ProxyDialer *mocks.MockProxyDialer
+	ProxyCtl    *mocks.MockProxyController
 	TLSReporter *mocks.MockTLSReporter
 	TLSIssueCh  chan struct{}
 
@@ -23,11 +19,11 @@ type Mocks struct {
 	Autostarter *mocks.MockAutostarter
 }
 
-func NewMocks(tb testing.TB, dialer *TestDialer, version, minAuto *semver.Version) *Mocks {
+func NewMocks(tb testing.TB, version, minAuto *semver.Version) *Mocks {
 	ctl := gomock.NewController(tb)
 
 	mocks := &Mocks{
-		ProxyDialer: mocks.NewMockProxyDialer(ctl),
+		ProxyCtl:    mocks.NewMockProxyController(ctl),
 		TLSReporter: mocks.NewMockTLSReporter(ctl),
 		TLSIssueCh:  make(chan struct{}),
 
@@ -35,41 +31,14 @@ func NewMocks(tb testing.TB, dialer *TestDialer, version, minAuto *semver.Versio
 		Autostarter: mocks.NewMockAutostarter(ctl),
 	}
 
-	// When using the proxy dialer, we want to use the test dialer.
-	mocks.ProxyDialer.EXPECT().DialTLSContext(
-		gomock.Any(),
-		gomock.Any(),
-		gomock.Any(),
-	).DoAndReturn(func(ctx context.Context, network, address string) (net.Conn, error) {
-		return dialer.DialTLSContext(ctx, network, address)
-	}).AnyTimes()
-
 	// When getting the TLS issue channel, we want to return the test channel.
 	mocks.TLSReporter.EXPECT().GetTLSIssueCh().Return(mocks.TLSIssueCh).AnyTimes()
 
 	return mocks
 }
 
-type TestDialer struct {
-	canDial bool
-}
-
-func NewTestDialer() *TestDialer {
-	return &TestDialer{
-		canDial: true,
-	}
-}
-
-func (d *TestDialer) DialTLSContext(ctx context.Context, network, address string) (conn net.Conn, err error) {
-	if !d.canDial {
-		return nil, errors.New("cannot dial")
-	}
-
-	return (&tls.Dialer{Config: &tls.Config{InsecureSkipVerify: true}}).DialContext(ctx, network, address)
-}
-
-func (d *TestDialer) SetCanDial(canDial bool) {
-	d.canDial = canDial
+func (mocks *Mocks) Close() {
+	close(mocks.TLSIssueCh)
 }
 
 type TestLocationsProvider struct {

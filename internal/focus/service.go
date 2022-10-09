@@ -64,4 +64,5 @@ func (service *FocusService) GetRaiseCh() <-chan struct{} {
 // Close closes the service.
 func (service *FocusService) Close() {
 	service.server.Stop()
+	close(service.raiseCh)
 }

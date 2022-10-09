@@ -138,9 +138,9 @@ func (bridge *Bridge) GetProxyAllowed() bool {
 
 func (bridge *Bridge) SetProxyAllowed(allowed bool) error {
 	if allowed {
-		bridge.proxyDialer.AllowProxy()
+		bridge.proxyCtl.AllowProxy()
 	} else {
-		bridge.proxyDialer.DisallowProxy()
+		bridge.proxyCtl.DisallowProxy()
 	}
 
 	return bridge.vault.SetProxyAllowed(allowed)

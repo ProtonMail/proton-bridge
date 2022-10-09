@@ -23,7 +23,15 @@ func NewMap[Key comparable, Val any](from map[Key]Val) *Map[Key, Val] {
 	return m
 }
 
-func (m *Map[Key, Val]) Get(key Key, fn func(val Val)) bool {
+func (m *Map[Key, Val]) Has(key Key) bool {
+	m.lock.RLock()
+	defer m.lock.RUnlock()
+
+	_, ok := m.data[key]
+	return ok
+}
+
+func (m *Map[Key, Val]) Get(key Key, fn func(Val)) bool {
 	m.lock.RLock()
 	defer m.lock.RUnlock()
 
@@ -37,7 +45,7 @@ func (m *Map[Key, Val]) Get(key Key, fn func(val Val)) bool {
 	return true
 }
 
-func (m *Map[Key, Val]) GetErr(key Key, fn func(val Val) error) (bool, error) {
+func (m *Map[Key, Val]) GetErr(key Key, fn func(Val) error) (bool, error) {
 	m.lock.RLock()
 	defer m.lock.RUnlock()
 
@@ -56,6 +64,15 @@ func (m *Map[Key, Val]) Set(key Key, val Val) {
 	m.data[key] = val
 }
 
+func (m *Map[Key, Val]) Iter(fn func(key Key, val Val)) {
+	m.lock.RLock()
+	defer m.lock.RUnlock()
+
+	for key, val := range m.data {
+		fn(key, val)
+	}
+}
+
 func (m *Map[Key, Val]) Keys(fn func(keys []Key)) {
 	m.lock.RLock()
 	defer m.lock.RUnlock()
@@ -70,28 +87,52 @@ func (m *Map[Key, Val]) Values(fn func(vals []Val)) {
 	fn(maps.Values(m.data))
 }
 
-func GetMap[Key comparable, Val, Ret any](m *Map[Key, Val], key Key, fn func(val Val) Ret) (Ret, bool) {
+func GetMap[Key comparable, Val, Ret any](m *Map[Key, Val], key Key, fn func(Val) Ret, fallback func() Ret) Ret {
 	m.lock.RLock()
 	defer m.lock.RUnlock()
 
 	val, ok := m.data[key]
 	if !ok {
-		return *new(Ret), false
+		return fallback()
 	}
 
-	return fn(val), true
+	return fn(val)
 }
 
-func GetMapErr[Key comparable, Val, Ret any](m *Map[Key, Val], key Key, fn func(val Val) (Ret, error)) (Ret, bool, error) {
+func GetMapErr[Key comparable, Val, Ret any](m *Map[Key, Val], key Key, fn func(Val) (Ret, error), fallback func() (Ret, error)) (Ret, error) {
 	m.lock.RLock()
 	defer m.lock.RUnlock()
 
 	val, ok := m.data[key]
 	if !ok {
-		return *new(Ret), false, nil
+		return fallback()
 	}
 
-	ret, err := fn(val)
+	return fn(val)
+}
 
-	return ret, true, err
+func FindMap[Key comparable, Val, Ret any](m *Map[Key, Val], cmp func(Val) bool, fn func(Val) Ret, fallback func() Ret) Ret {
+	m.lock.RLock()
+	defer m.lock.RUnlock()
+
+	for _, val := range m.data {
+		if cmp(val) {
+			return fn(val)
+		}
+	}
+
+	return fallback()
+}
+
+func FindMapErr[Key comparable, Val, Ret any](m *Map[Key, Val], cmp func(Val) bool, fn func(Val) (Ret, error), fallback func() (Ret, error)) (Ret, error) {
+	m.lock.RLock()
+	defer m.lock.RUnlock()
+
+	for _, val := range m.data {
+		if cmp(val) {
+			return fn(val)
+		}
+	}
+
+	return fallback()
 }
