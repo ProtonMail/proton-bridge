@@ -59,6 +59,7 @@ int main(int argc, char **argv)
 
         Log& log = app().log();
         log.setEchoInConsole(true);
+        log.setLevel(Log::Level::Debug);
         log.info(QString("%1 started.").arg(applicationName));
 
         MainWindow window(nullptr);

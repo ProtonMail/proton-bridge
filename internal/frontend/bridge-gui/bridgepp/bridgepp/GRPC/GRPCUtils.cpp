@@ -26,6 +26,9 @@ namespace bridgepp
 {
 
 
+std::string const grpcMetadataServerTokenKey = "server-token";
+
+
 namespace
 {
 

@@ -65,8 +65,10 @@ endif()
 
 add_executable(bridge-gui-tester
     AppController.cpp AppController.h
+    Cert.cpp Cert.h
     main.cpp
     MainWindow.cpp MainWindow.h
+    GRPCMetaDataProcessor.cpp GRPCMetaDataProcessor.h
     GRPCQtProxy.cpp GRPCQtProxy.h
     GRPCService.cpp GRPCService.h
     GRPCServerWorker.cpp GRPCServerWorker.h

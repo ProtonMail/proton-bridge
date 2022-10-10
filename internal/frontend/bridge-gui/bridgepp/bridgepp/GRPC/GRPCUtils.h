@@ -29,6 +29,9 @@ namespace bridgepp
 {
 
 
+extern std::string const grpcMetadataServerTokenKey; ///< The key for the server token stored in the gRPC calls context metadata.
+
+
 typedef std::shared_ptr<grpc::StreamEvent> SPStreamEvent; ///< Type definition for shared pointer to grpc::StreamEvent.
 
 QString grpcServerConfigPath(); ///< Return the path of the gRPC server config file.

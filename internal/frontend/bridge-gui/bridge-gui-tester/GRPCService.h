@@ -40,7 +40,7 @@ public: // member functions.
     GRPCService &operator=(GRPCService &&) = delete; ///< Disabled move assignment operator.
     void connectProxySignals(); ///< Connect the signals of the Qt Proxy to the GUI components
     bool isStreaming() const; ///< Check if the service is currently streaming events.
-
+    grpc::Status CheckTokens(::grpc::ServerContext *context, ::google::protobuf::StringValue const *request, ::google::protobuf::StringValue *response) override;
     grpc::Status AddLogEntry(::grpc::ServerContext *, ::grpc::AddLogEntryRequest const *request, ::google::protobuf::Empty *) override;
     grpc::Status GuiReady(::grpc::ServerContext *, ::google::protobuf::Empty const*, ::google::protobuf::Empty *) override;
     grpc::Status Quit(::grpc::ServerContext *, ::google::protobuf::Empty const*, ::google::protobuf::Empty *) override;

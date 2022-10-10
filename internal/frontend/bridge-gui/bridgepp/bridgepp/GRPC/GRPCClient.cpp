@@ -1443,7 +1443,7 @@ void GRPCClient::processUserEvent(UserEvent const &event)
 UPClientContext GRPCClient::clientContext() const
 {
     auto ctx = std::make_unique<grpc::ClientContext>();
-    ctx->AddMetadata("server-token", serverToken_);
+    ctx->AddMetadata(grpcMetadataServerTokenKey, serverToken_);
     return ctx;
 }
 

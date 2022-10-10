@@ -20,6 +20,7 @@
 #include "MainWindow.h"
 #include <bridgepp/BridgeUtils.h>
 #include <bridgepp/GRPC/EventFactory.h>
+#include <bridgepp/GRPC/GRPCConfig.h>
 
 
 using namespace grpc;
@@ -52,6 +53,28 @@ bool GRPCService::isStreaming() const
 {
     QMutexLocker locker(&eventStreamMutex_);
     return isStreaming_;
+}
+
+
+//****************************************************************************************************************************************************
+/// \param[in] request The request.
+/// \param[out] response The response.
+//****************************************************************************************************************************************************
+Status GRPCService::CheckTokens(::grpc::ServerContext *, ::google::protobuf::StringValue const *request, ::google::protobuf::StringValue *response)
+{
+    Log& log = app().log();
+    log.debug(__FUNCTION__);
+    GRPCConfig config;
+    QString error;
+    if (!config.load(QString::fromStdString(request->value()), &error))
+    {
+        QString const err = "Could not load gRPC client config";
+        log.error(err);
+        return grpc::Status(StatusCode::UNAUTHENTICATED, err.toStdString());
+    }
+
+    response->set_value(config.token.toStdString());
+    return grpc::Status::OK;
 }
 
 

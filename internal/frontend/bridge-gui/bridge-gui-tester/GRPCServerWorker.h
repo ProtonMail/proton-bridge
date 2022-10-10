@@ -21,6 +21,7 @@
 
 
 #include <bridgepp/Worker/Worker.h>
+#include "GRPCMetaDataProcessor.h"
 #include "GRPCService.h"
 #include <grpcpp/grpcpp.h>
 
@@ -44,6 +45,7 @@ public: // member functions.
 
 private: // data members
     std::unique_ptr<grpc::Server> server_ { nullptr }; ///< The gRPC server.
+    SPMetadataProcessor processor_;
 };
 
 
