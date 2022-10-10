@@ -47,7 +47,6 @@ func New( //nolint:funlen
 
 	eventListener listener.Listener,
 	updater types.Updater,
-	bridge types.Bridger,
 	restarter types.Restarter,
 ) *frontendCLI { //nolint:revive
 	fe := &frontendCLI{
@@ -55,7 +54,6 @@ func New( //nolint:funlen
 
 		eventListener: eventListener,
 		updater:       updater,
-		bridge:        bridge,
 
 		restarter: restarter,
 	}
@@ -319,7 +317,8 @@ func (f *frontendCLI) watchEvents() {
 }
 
 // Loop starts the frontend loop with an interactive shell.
-func (f *frontendCLI) Loop() error {
+func (f *frontendCLI) Loop(b types.Bridger) error {
+	f.bridge = b
 	f.Printf(`
             Welcome to %s interactive shell
                               ___....___

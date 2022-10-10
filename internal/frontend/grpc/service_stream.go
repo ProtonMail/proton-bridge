@@ -95,12 +95,8 @@ func (s *Service) StopEventStream(ctx context.Context, _ *emptypb.Empty) (*empty
 
 // SendEvent sends an event to the via the gRPC event stream.
 func (s *Service) SendEvent(event *StreamEvent) error {
-	s.eventQueueMutex.Lock()
-	defer s.eventQueueMutex.Unlock()
-
-	if s.eventStreamCh == nil {
-		// nobody is connected to the event stream, we queue events
-		s.eventQueue = append(s.eventQueue, event)
+	if s.eventStreamCh == nil { // nobody is connected to the event stream, we queue events
+		s.queueEvent(event)
 		return nil
 	}
 
@@ -174,4 +170,15 @@ func (s *Service) StartEventTest() error { //nolint:funlen
 	}
 
 	return nil
+}
+
+func (s *Service) queueEvent(event *StreamEvent) {
+	s.eventQueueMutex.Lock()
+	defer s.eventQueueMutex.Unlock()
+
+	if event.isInternetStatus() {
+		s.eventQueue = append(filterOutInternetStatusEvents(s.eventQueue), event)
+	} else {
+		s.eventQueue = append(s.eventQueue, event)
+	}
 }

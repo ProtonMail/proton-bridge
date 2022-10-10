@@ -19,7 +19,6 @@
 package frontend
 
 import (
-	"github.com/ProtonMail/proton-bridge/v2/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/v2/internal/frontend/cli"
 	"github.com/ProtonMail/proton-bridge/v2/internal/frontend/grpc"
 	"github.com/ProtonMail/proton-bridge/v2/internal/frontend/types"
@@ -28,8 +27,17 @@ import (
 	"github.com/ProtonMail/proton-bridge/v2/pkg/listener"
 )
 
+// Type describes the available types of frontend.
+type Type int
+
+const (
+	CLI Type = iota
+	GRPC
+	NonInteractive
+)
+
 type Frontend interface {
-	Loop() error
+	Loop(b types.Bridger) error
 	NotifyManualUpdate(update updater.VersionInfo, canInstall bool)
 	SetVersion(update updater.VersionInfo)
 	NotifySilentUpdateInstalled()
@@ -37,37 +45,37 @@ type Frontend interface {
 	WaitUntilFrontendIsReady()
 }
 
-// New returns initialized frontend based on `frontendType`, which can be `cli` or `grpc`.
+// New returns initialized frontend based on `frontendType`, which can be `CLI` or `GRPC`.
 func New(
-	frontendType string,
+	frontendType Type,
 	showWindowOnStart bool,
 	panicHandler types.PanicHandler,
 	eventListener listener.Listener,
 	updater types.Updater,
-	bridge *bridge.Bridge,
 	restarter types.Restarter,
 	locations *locations.Locations,
 ) Frontend {
 	switch frontendType {
-	case "grpc":
+	case GRPC:
 		return grpc.NewService(
 			showWindowOnStart,
 			panicHandler,
 			eventListener,
 			updater,
-			bridge,
 			restarter,
 			locations,
 		)
 
-	case "cli":
+	case CLI:
 		return cli.New(
 			panicHandler,
 			eventListener,
 			updater,
-			bridge,
 			restarter,
 		)
+
+	case NonInteractive:
+		fallthrough
 
 	default:
 		return nil

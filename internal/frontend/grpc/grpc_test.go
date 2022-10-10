@@ -53,3 +53,25 @@ func TestConfig(t *testing.T) {
 	// failure to save
 	require.Error(t, conf2.save(filepath.Join(tempDir, "non/existing/folder", tempFileName)))
 }
+
+func TestIsInternetStatus(t *testing.T) {
+	require.True(t, NewInternetStatusEvent(true).isInternetStatus())
+	require.True(t, NewInternetStatusEvent(false).isInternetStatus())
+	require.False(t, NewKeychainHasNoKeychainEvent().isInternetStatus())
+	require.False(t, NewLoginAlreadyLoggedInEvent("").isInternetStatus())
+}
+
+func TestFilterOutInternetStatusEvents(t *testing.T) {
+	require.Zero(t, len(filterOutInternetStatusEvents([]*StreamEvent{})))
+
+	off := NewInternetStatusEvent(false)
+	on := NewInternetStatusEvent(true)
+	show := NewShowMainWindowEvent()
+	finished := NewLoginFinishedEvent("id")
+
+	require.Zero(t, len(filterOutInternetStatusEvents([]*StreamEvent{})))
+	require.Zero(t, len(filterOutInternetStatusEvents([]*StreamEvent{off, on, off})))
+	require.Equal(t, filterOutInternetStatusEvents([]*StreamEvent{off, show, on}), []*StreamEvent{show})
+	require.Equal(t, filterOutInternetStatusEvents([]*StreamEvent{finished, off, show, on}), []*StreamEvent{finished, show})
+	require.Equal(t, filterOutInternetStatusEvents([]*StreamEvent{finished, show}), []*StreamEvent{finished, show})
+}
