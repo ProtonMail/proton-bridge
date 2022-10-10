@@ -29,7 +29,17 @@ func (bridge *Bridge) serveIMAP() error {
 
 	bridge.imapListener = imapListener
 
-	return bridge.imapServer.Serve(context.Background(), bridge.imapListener)
+	if err := bridge.imapServer.Serve(context.Background(), bridge.imapListener); err != nil {
+		return fmt.Errorf("failed to serve IMAP: %w", err)
+	}
+
+	go func() {
+		for err := range bridge.imapServer.GetErrorCh() {
+			logrus.WithError(err).Error("IMAP server error")
+		}
+	}()
+
+	return nil
 }
 
 func (bridge *Bridge) restartIMAP(ctx context.Context) error {
