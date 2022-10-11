@@ -15,6 +15,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/v2/internal/events"
 	"github.com/ProtonMail/proton-bridge/v2/internal/focus"
 	"github.com/ProtonMail/proton-bridge/v2/internal/locations"
+	"github.com/ProtonMail/proton-bridge/v2/internal/safe"
 	"github.com/ProtonMail/proton-bridge/v2/internal/updater"
 	"github.com/ProtonMail/proton-bridge/v2/internal/user"
 	"github.com/ProtonMail/proton-bridge/v2/internal/useragent"
@@ -134,31 +135,32 @@ func TestBridge_UserAgent(t *testing.T) {
 
 func TestBridge_Cookies(t *testing.T) {
 	withTLSEnv(t, func(ctx context.Context, s *server.Server, netCtl *liteapi.NetCtl, locator bridge.Locator, vaultKey []byte) {
-		var calls []server.Call
+		sessionIDs := safe.NewSet[string]()
 
+		// Save any session IDs the API returns.
 		s.AddCallWatcher(func(call server.Call) {
-			calls = append(calls, call)
-		})
+			cookie, err := (&http.Request{Header: call.Header}).Cookie("Session-Id")
+			if err != nil {
+				return
+			}
 
-		var sessionID string
+			sessionIDs.Insert(cookie.Value)
+		})
 
 		// Start bridge and add a user so that API assigns us a session ID via cookie.
 		withBridge(t, ctx, s.GetHostURL(), netCtl, locator, vaultKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
 			_, err := bridge.LoginUser(context.Background(), username, password, nil, nil)
 			require.NoError(t, err)
-
-			cookie, err := (&http.Request{Header: calls[len(calls)-1].Header}).Cookie("Session-Id")
-			require.NoError(t, err)
-
-			sessionID = cookie.Value
 		})
 
 		// Start bridge again and check that it uses the same session ID.
 		withBridge(t, ctx, s.GetHostURL(), netCtl, locator, vaultKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
-			cookie, err := (&http.Request{Header: calls[len(calls)-1].Header}).Cookie("Session-Id")
-			require.NoError(t, err)
+			// ...
+		})
 
-			require.Equal(t, sessionID, cookie.Value)
+		// We should have used just one session ID.
+		sessionIDs.Values(func(sessionIDs []string) {
+			require.Len(t, sessionIDs, 1)
 		})
 	})
 }
