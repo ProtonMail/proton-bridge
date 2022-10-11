@@ -304,13 +304,13 @@ func getMailboxName(label liteapi.Label) []string {
 
 	switch label.Type {
 	case liteapi.LabelTypeFolder:
-		name = []string{folderPrefix, label.Name}
+		name = append([]string{folderPrefix}, label.Path...)
 
 	case liteapi.LabelTypeLabel:
-		name = []string{labelPrefix, label.Name}
+		name = append([]string{labelPrefix}, label.Path...)
 
 	default:
-		name = []string{label.Name}
+		name = label.Path
 	}
 
 	return name

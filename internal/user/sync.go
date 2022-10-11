@@ -73,7 +73,7 @@ func syncLabels(ctx context.Context, client *liteapi.Client, updateCh ...*queue.
 
 	for _, folder := range folders {
 		for _, updateCh := range updateCh {
-			updateCh.Enqueue(newMailboxCreatedUpdate(imap.LabelID(folder.ID), []string{folderPrefix, folder.Path}))
+			updateCh.Enqueue(newMailboxCreatedUpdate(imap.LabelID(folder.ID), getMailboxName(folder)))
 		}
 	}
 
@@ -85,7 +85,7 @@ func syncLabels(ctx context.Context, client *liteapi.Client, updateCh ...*queue.
 
 	for _, label := range labels {
 		for _, updateCh := range updateCh {
-			updateCh.Enqueue(newMailboxCreatedUpdate(imap.LabelID(label.ID), []string{labelPrefix, label.Path}))
+			updateCh.Enqueue(newMailboxCreatedUpdate(imap.LabelID(label.ID), getMailboxName(label)))
 		}
 	}
 
