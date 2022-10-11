@@ -64,6 +64,13 @@ func (m *Map[Key, Val]) Set(key Key, val Val) {
 	m.data[key] = val
 }
 
+func (m *Map[Key, Val]) Delete(key Key) {
+	m.lock.Lock()
+	defer m.lock.Unlock()
+
+	delete(m.data, key)
+}
+
 func (m *Map[Key, Val]) Iter(fn func(key Key, val Val)) {
 	m.lock.RLock()
 	defer m.lock.RUnlock()

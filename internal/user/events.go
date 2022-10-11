@@ -6,6 +6,7 @@ import (
 
 	"github.com/ProtonMail/gluon/imap"
 	"github.com/ProtonMail/gluon/queue"
+	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/ProtonMail/proton-bridge/v2/internal/events"
 	"github.com/ProtonMail/proton-bridge/v2/internal/safe"
 	"github.com/ProtonMail/proton-bridge/v2/internal/vault"
@@ -57,7 +58,7 @@ func (user *User) handleUserEvent(ctx context.Context, userEvent liteapi.User) e
 
 	user.apiUser.Set(userEvent)
 
-	user.userKR = userKR
+	user.userKR.Set(userKR)
 
 	user.eventCh.Enqueue(events.UserChanged{
 		UserID: user.ID(),
@@ -92,7 +93,9 @@ func (user *User) handleAddressEvents(ctx context.Context, addressEvents []litea
 }
 
 func (user *User) handleCreateAddressEvent(ctx context.Context, event liteapi.AddressEvent) error {
-	addrKR, err := event.Address.Keys.Unlock(user.vault.KeyPass(), user.userKR)
+	addrKR, err := safe.GetTypeErr(user.userKR, func(userKR *crypto.KeyRing) (*crypto.KeyRing, error) {
+		return event.Address.Keys.Unlock(user.vault.KeyPass(), userKR)
+	})
 	if err != nil {
 		return fmt.Errorf("failed to unlock address keys: %w", err)
 	}
@@ -104,7 +107,7 @@ func (user *User) handleCreateAddressEvent(ctx context.Context, event liteapi.Ad
 
 	user.apiAddrs.Set(apiAddrs)
 
-	user.addrKRs[event.Address.ID] = addrKR
+	user.addrKRs.Set(event.Address.ID, addrKR)
 
 	user.eventCh.Enqueue(events.UserAddressCreated{
 		UserID:    user.ID(),
@@ -124,7 +127,9 @@ func (user *User) handleCreateAddressEvent(ctx context.Context, event liteapi.Ad
 }
 
 func (user *User) handleUpdateAddressEvent(ctx context.Context, event liteapi.AddressEvent) error {
-	addrKR, err := event.Address.Keys.Unlock(user.vault.KeyPass(), user.userKR)
+	addrKR, err := safe.GetTypeErr(user.userKR, func(userKR *crypto.KeyRing) (*crypto.KeyRing, error) {
+		return event.Address.Keys.Unlock(user.vault.KeyPass(), userKR)
+	})
 	if err != nil {
 		return fmt.Errorf("failed to unlock address keys: %w", err)
 	}
@@ -136,7 +141,7 @@ func (user *User) handleUpdateAddressEvent(ctx context.Context, event liteapi.Ad
 
 	user.apiAddrs.Set(apiAddrs)
 
-	user.addrKRs[event.Address.ID] = addrKR
+	user.addrKRs.Set(event.Address.ID, addrKR)
 
 	user.eventCh.Enqueue(events.UserAddressUpdated{
 		UserID:    user.ID(),
@@ -162,7 +167,7 @@ func (user *User) handleDeleteAddressEvent(ctx context.Context, event liteapi.Ad
 
 	user.apiAddrs.Set(apiAddrs)
 
-	delete(user.addrKRs, event.ID)
+	user.addrKRs.Delete(event.ID)
 
 	if len(user.updateCh) > 1 {
 		user.updateCh[event.ID].Close()
@@ -264,7 +269,16 @@ func (user *User) handleCreateMessageEvent(ctx context.Context, event liteapi.Me
 		return fmt.Errorf("failed to get full message: %w", err)
 	}
 
-	buildRes, err := buildRFC822(ctx, full, user.addrKRs)
+	buildRes, err := safe.GetMapErr(
+		user.addrKRs,
+		full.AddressID,
+		func(addrKR *crypto.KeyRing) (*buildRes, error) {
+			return buildRFC822(ctx, full, addrKR)
+		},
+		func() (*buildRes, error) {
+			return nil, fmt.Errorf("address keyring not found")
+		},
+	)
 	if err != nil {
 		return fmt.Errorf("failed to build RFC822: %w", err)
 	}

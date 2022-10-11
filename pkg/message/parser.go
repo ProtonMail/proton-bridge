@@ -60,18 +60,6 @@ type Message struct {
 	ExternalID string
 }
 
-func (m *Message) Recipients() []string {
-	var recipients []string
-
-	for _, addresses := range [][]*mail.Address{m.ToList, m.CCList, m.BCCList} {
-		recipients = append(recipients, xslices.Map(addresses, func(address *mail.Address) string {
-			return address.Address
-		})...)
-	}
-
-	return recipients
-}
-
 type Attachment struct {
 	Header      mail.Header
 	Name        string

@@ -35,8 +35,8 @@ type User struct {
 	apiAddrs *safe.Slice[liteapi.Address]
 	settings *safe.Value[liteapi.MailSettings]
 
-	userKR  *crypto.KeyRing
-	addrKRs map[string]*crypto.KeyRing
+	userKR  *safe.Value[*crypto.KeyRing]
+	addrKRs *safe.Map[string, *crypto.KeyRing]
 
 	updateCh   map[string]*queue.QueuedChannel[imap.Update]
 	syncStopCh chan struct{}
@@ -94,8 +94,8 @@ func New(ctx context.Context, encVault *vault.User, client *liteapi.Client, apiU
 		apiAddrs: safe.NewSlice(apiAddrs),
 		settings: safe.NewValue(settings),
 
-		userKR:  userKR,
-		addrKRs: addrKRs,
+		userKR:  safe.NewValue(userKR),
+		addrKRs: safe.NewMap(addrKRs),
 
 		updateCh:   updateCh,
 		syncStopCh: make(chan struct{}),

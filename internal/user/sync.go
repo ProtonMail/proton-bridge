@@ -9,6 +9,8 @@ import (
 
 	"github.com/ProtonMail/gluon/imap"
 	"github.com/ProtonMail/gluon/queue"
+	"github.com/ProtonMail/gopenpgp/v2/crypto"
+	"github.com/ProtonMail/proton-bridge/v2/internal/safe"
 	"github.com/bradenaw/juniper/stream"
 	"github.com/bradenaw/juniper/xslices"
 	"github.com/google/uuid"
@@ -124,7 +126,16 @@ func (user *User) syncMessages(ctx context.Context) error {
 			return metadata.ID
 		})...),
 		func(ctx context.Context, full liteapi.FullMessage) (*buildRes, error) {
-			return buildRFC822(ctx, full, user.addrKRs)
+			return safe.GetMapErr(
+				user.addrKRs,
+				full.AddressID,
+				func(addrKR *crypto.KeyRing) (*buildRes, error) {
+					return buildRFC822(ctx, full, addrKR)
+				},
+				func() (*buildRes, error) {
+					return nil, fmt.Errorf("address keyring not found")
+				},
+			)
 		},
 	), maxBatchSize)
 	defer buildCh.Close()

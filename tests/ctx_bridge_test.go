@@ -38,11 +38,13 @@ func (t *testCtx) startBridge() error {
 		return fmt.Errorf("vault is corrupt")
 	}
 
+	// Create the underlying cookie jar.
 	jar, err := cookiejar.New(nil)
 	if err != nil {
 		return err
 	}
 
+	// Create the persisting cookie jar.
 	persister, err := cookies.NewCookieJar(jar, vault)
 	if err != nil {
 		return err
