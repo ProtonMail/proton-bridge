@@ -40,7 +40,7 @@ func (bridge *Bridge) SetIMAPPort(newPort int) error {
 		return err
 	}
 
-	return bridge.restartIMAP(context.Background())
+	return bridge.restartIMAP()
 }
 
 func (bridge *Bridge) GetIMAPSSL() bool {
@@ -56,7 +56,7 @@ func (bridge *Bridge) SetIMAPSSL(newSSL bool) error {
 		return err
 	}
 
-	return bridge.restartIMAP(context.Background())
+	return bridge.restartIMAP()
 }
 
 func (bridge *Bridge) GetSMTPPort() int {
@@ -112,7 +112,7 @@ func (bridge *Bridge) SetGluonDir(ctx context.Context, newGluonDir string) error
 		return fmt.Errorf("failed to set new gluon dir: %w", err)
 	}
 
-	imapServer, err := newIMAPServer(bridge.vault.GetGluonDir(), bridge.curVersion, bridge.tlsConfig, bridge.logIMAPClientCommands, bridge.logIMAPServerCommands)
+	imapServer, err := newIMAPServer(bridge.vault.GetGluonDir(), bridge.curVersion, bridge.tlsConfig, bridge.logIMAPClient, bridge.logIMAPServer)
 	if err != nil {
 		return fmt.Errorf("failed to create new IMAP server: %w", err)
 	}
@@ -193,7 +193,7 @@ func (bridge *Bridge) SetAutoUpdate(autoUpdate bool) error {
 }
 
 func (bridge *Bridge) GetUpdateChannel() updater.Channel {
-	return updater.Channel(bridge.vault.GetUpdateChannel())
+	return bridge.vault.GetUpdateChannel()
 }
 
 func (bridge *Bridge) SetUpdateChannel(channel updater.Channel) error {

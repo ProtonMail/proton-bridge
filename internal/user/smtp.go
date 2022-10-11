@@ -75,7 +75,6 @@ func (session *smtpSession) Mail(from string, opts smtp.MailOptions) error {
 	logrus.Info("SMTP session mail")
 
 	return session.apiAddrs.GetErr(func(apiAddrs []liteapi.Address) error {
-
 		switch {
 		case opts.RequireTLS:
 			return ErrNotImplemented

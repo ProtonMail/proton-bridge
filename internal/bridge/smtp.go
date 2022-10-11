@@ -3,9 +3,10 @@ package bridge
 import (
 	"crypto/tls"
 	"fmt"
-	"github.com/ProtonMail/proton-bridge/v2/internal/logging"
 	"net"
 	"strconv"
+
+	"github.com/ProtonMail/proton-bridge/v2/internal/logging"
 
 	"github.com/ProtonMail/proton-bridge/v2/internal/constants"
 	"github.com/emersion/go-sasl"
@@ -49,12 +50,7 @@ func (bridge *Bridge) restartSMTP() error {
 		return err
 	}
 
-	smtpServer, err := newSMTPServer(bridge.smtpBackend, bridge.tlsConfig, bridge.logSMTPCommands)
-	if err != nil {
-		return err
-	}
-
-	bridge.smtpServer = smtpServer
+	bridge.smtpServer = newSMTPServer(bridge.smtpBackend, bridge.tlsConfig, bridge.logSMTP)
 
 	return bridge.serveSMTP()
 }
@@ -69,7 +65,7 @@ func (bridge *Bridge) closeSMTP() error {
 	return nil
 }
 
-func newSMTPServer(smtpBackend *smtpBackend, tlsConfig *tls.Config, shouldLog bool) (*smtp.Server, error) {
+func newSMTPServer(smtpBackend *smtpBackend, tlsConfig *tls.Config, shouldLog bool) *smtp.Server {
 	smtpServer := smtp.NewServer(smtpBackend)
 
 	smtpServer.TLSConfig = tlsConfig
@@ -99,5 +95,5 @@ func newSMTPServer(smtpBackend *smtpBackend, tlsConfig *tls.Config, shouldLog bo
 		})
 	})
 
-	return smtpServer, nil
+	return smtpServer
 }

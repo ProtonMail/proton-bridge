@@ -63,7 +63,7 @@ func (bridge *Bridge) serveIMAP() error {
 	return nil
 }
 
-func (bridge *Bridge) restartIMAP(ctx context.Context) error {
+func (bridge *Bridge) restartIMAP() error {
 	if err := bridge.imapListener.Close(); err != nil {
 		logrus.WithError(err).Warn("Failed to close IMAP listener")
 	}
@@ -73,11 +73,11 @@ func (bridge *Bridge) restartIMAP(ctx context.Context) error {
 
 func (bridge *Bridge) closeIMAP(ctx context.Context) error {
 	if err := bridge.imapServer.Close(ctx); err != nil {
-		logrus.WithError(err).Warn("Failed to close IMAP server")
+		return fmt.Errorf("failed to close IMAP server: %w", err)
 	}
 
 	if err := bridge.imapListener.Close(); err != nil {
-		logrus.WithError(err).Warn("Failed to close IMAP listener")
+		return fmt.Errorf("failed to close IMAP listener: %w", err)
 	}
 
 	return nil
@@ -98,9 +98,16 @@ func (bridge *Bridge) handleIMAPEvent(event imapEvents.Event) {
 }
 
 func getGluonDir(encVault *vault.Vault) (string, error) {
-	empty, err := isEmpty(encVault.GetGluonDir())
+	empty, exists, err := isEmpty(encVault.GetGluonDir())
 	if err != nil {
 		return "", fmt.Errorf("failed to check if gluon dir is empty: %w", err)
+	}
+
+	// TODO: Handle case that the gluon directory is missing and we can't create it!
+	if !exists {
+		if err := os.MkdirAll(encVault.GetGluonDir(), 0700); err != nil {
+			return "", fmt.Errorf("failed to create gluon dir: %w", err)
+		}
 	}
 
 	if empty {
@@ -114,27 +121,33 @@ func getGluonDir(encVault *vault.Vault) (string, error) {
 	return encVault.GetGluonDir(), nil
 }
 
-func newIMAPServer(gluonDir string, version *semver.Version, tlsConfig *tls.Config, logIMAPCommandsClient, logIMAPCommandsServer bool) (*gluon.Server, error) {
-	var imapClientLog io.Writer
-	var imapServerLog io.Writer
-
-	if logIMAPCommandsClient || logIMAPCommandsServer {
+func newIMAPServer(
+	gluonDir string,
+	version *semver.Version,
+	tlsConfig *tls.Config,
+	logClient, logServer bool,
+) (*gluon.Server, error) {
+	if logClient || logServer {
 		log := logrus.WithField("protocol", "IMAP")
 		log.Warning("================================================")
 		log.Warning("THIS LOG WILL CONTAIN **DECRYPTED** MESSAGE DATA")
 		log.Warning("================================================")
 	}
 
-	if logIMAPCommandsClient {
+	var imapClientLog io.Writer
+
+	if logClient {
 		imapClientLog = logging.NewIMAPLogger()
 	} else {
 		imapClientLog = io.Discard
 	}
 
-	if logIMAPCommandsServer {
+	var imapServerLog io.Writer
+
+	if logServer {
 		imapServerLog = logging.NewIMAPLogger()
 	} else {
-		imapClientLog = io.Discard
+		imapServerLog = io.Discard
 	}
 
 	imapServer, err := gluon.New(
@@ -160,19 +173,21 @@ func newIMAPServer(gluonDir string, version *semver.Version, tlsConfig *tls.Conf
 	return imapServer, nil
 }
 
-func isEmpty(dir string) (bool, error) {
+// isEmpty returns whether the given directory is empty.
+// If the directory does not exist, the second return value is false.
+func isEmpty(dir string) (bool, bool, error) {
 	if _, err := os.Stat(dir); err != nil {
 		if !errors.Is(err, fs.ErrNotExist) {
-			return false, fmt.Errorf("failed to stat %s: %w", dir, err)
+			return false, false, fmt.Errorf("failed to stat %s: %w", dir, err)
 		}
 
-		return true, nil
+		return true, false, nil
 	}
 
 	entries, err := os.ReadDir(dir)
 	if err != nil {
-		return false, fmt.Errorf("failed to read dir %s: %w", dir, err)
+		return false, false, fmt.Errorf("failed to read dir %s: %w", dir, err)
 	}
 
-	return len(entries) == 0, nil
+	return len(entries) == 0, true, nil
 }

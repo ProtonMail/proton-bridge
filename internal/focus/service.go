@@ -1,3 +1,4 @@
+// Package focus provides a gRPC service for raising the application.
 package focus
 
 import (
@@ -14,10 +15,10 @@ import (
 const Host = "127.0.0.1"
 
 // Port is the port to listen on.
-var Port = 1042
+var Port = 1042 // nolint:gochecknoglobals
 
-// FocusService is a gRPC service that can be used to raise the application.
-type FocusService struct {
+// Service is a gRPC service that can be used to raise the application.
+type Service struct {
 	proto.UnimplementedFocusServer
 
 	server   *grpc.Server
@@ -27,13 +28,13 @@ type FocusService struct {
 
 // NewService creates a new focus service.
 // It listens on the local host and port 1042 (by default).
-func NewService() (*FocusService, error) {
+func NewService() (*Service, error) {
 	listener, err := net.Listen("tcp", net.JoinHostPort(Host, fmt.Sprint(Port)))
 	if err != nil {
 		return nil, fmt.Errorf("failed to listen: %w", err)
 	}
 
-	service := &FocusService{
+	service := &Service{
 		server:   grpc.NewServer(),
 		listener: listener,
 		raiseCh:  make(chan struct{}, 1),
@@ -51,18 +52,18 @@ func NewService() (*FocusService, error) {
 }
 
 // Raise implements the gRPC FocusService interface; it raises the application.
-func (service *FocusService) Raise(context.Context, *emptypb.Empty) (*emptypb.Empty, error) {
+func (service *Service) Raise(context.Context, *emptypb.Empty) (*emptypb.Empty, error) {
 	service.raiseCh <- struct{}{}
 	return &emptypb.Empty{}, nil
 }
 
 // GetRaiseCh returns a channel on which events are sent when the application should be raised.
-func (service *FocusService) GetRaiseCh() <-chan struct{} {
+func (service *Service) GetRaiseCh() <-chan struct{} {
 	return service.raiseCh
 }
 
 // Close closes the service.
-func (service *FocusService) Close() {
+func (service *Service) Close() {
 	service.server.Stop()
 	close(service.raiseCh)
 }

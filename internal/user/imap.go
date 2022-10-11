@@ -14,9 +14,9 @@ import (
 )
 
 var (
-	defaultFlags          = imap.NewFlagSet(imap.FlagSeen, imap.FlagFlagged, imap.FlagDeleted)
-	defaultPermanentFlags = imap.NewFlagSet(imap.FlagSeen, imap.FlagFlagged, imap.FlagDeleted)
-	defaultAttributes     = imap.NewFlagSet()
+	defaultFlags          = imap.NewFlagSet(imap.FlagSeen, imap.FlagFlagged, imap.FlagDeleted) // nolint:gochecknoglobals
+	defaultPermanentFlags = imap.NewFlagSet(imap.FlagSeen, imap.FlagFlagged, imap.FlagDeleted) // nolint:gochecknoglobals
+	defaultAttributes     = imap.NewFlagSet()                                                  // nolint:gochecknoglobals
 )
 
 const (

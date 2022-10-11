@@ -22,8 +22,8 @@ import (
 )
 
 var (
-	EventPeriod = 20 * time.Second
-	EventJitter = 20 * time.Second
+	EventPeriod = 20 * time.Second // nolint:gochecknoglobals
+	EventJitter = 20 * time.Second // nolint:gochecknoglobals
 )
 
 type User struct {
@@ -31,9 +31,9 @@ type User struct {
 	client  *liteapi.Client
 	eventCh *queue.QueuedChannel[events.Event]
 
-	apiUser  *safe.Type[liteapi.User]
+	apiUser  *safe.Value[liteapi.User]
 	apiAddrs *safe.Slice[liteapi.Address]
-	settings *safe.Type[liteapi.MailSettings]
+	settings *safe.Value[liteapi.MailSettings]
 
 	userKR  *crypto.KeyRing
 	addrKRs map[string]*crypto.KeyRing
@@ -90,9 +90,9 @@ func New(ctx context.Context, encVault *vault.User, client *liteapi.Client, apiU
 		client:  client,
 		eventCh: queue.NewQueuedChannel[events.Event](0, 0),
 
-		apiUser:  safe.NewType(apiUser),
+		apiUser:  safe.NewValue(apiUser),
 		apiAddrs: safe.NewSlice(apiAddrs),
-		settings: safe.NewType(settings),
+		settings: safe.NewValue(settings),
 
 		userKR:  userKR,
 		addrKRs: addrKRs,

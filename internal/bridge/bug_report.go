@@ -31,7 +31,7 @@ import (
 )
 
 const (
-	MaxAttachmentSize       = 7 * (1 << 20) // MaxAttachmentSize 7 MB total size of all attachments.
+	MaxTotalAttachmentSize  = 7 * (1 << 20)
 	MaxCompressedFilesCount = 6
 )
 
@@ -166,7 +166,7 @@ func zipFiles(filenames []string) (io.Reader, error) {
 		return nil, nil
 	}
 
-	buf := newLimitedBuffer(MaxAttachmentSize)
+	buf := newLimitedBuffer(MaxTotalAttachmentSize)
 
 	w := zip.NewWriter(buf)
 	defer w.Close() //nolint:errcheck

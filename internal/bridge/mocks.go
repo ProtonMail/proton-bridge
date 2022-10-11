@@ -94,10 +94,10 @@ func (testUpdater *TestUpdater) SetLatestVersion(version, minAuto *semver.Versio
 	}
 }
 
-func (updater *TestUpdater) GetVersionInfo(downloader updater.Downloader, channel updater.Channel) (updater.VersionInfo, error) {
-	return updater.latest, nil
+func (testUpdater *TestUpdater) GetVersionInfo(downloader updater.Downloader, channel updater.Channel) (updater.VersionInfo, error) {
+	return testUpdater.latest, nil
 }
 
-func (updater *TestUpdater) InstallUpdate(downloader updater.Downloader, update updater.VersionInfo) error {
+func (testUpdater *TestUpdater) InstallUpdate(downloader updater.Downloader, update updater.VersionInfo) error {
 	return nil
 }

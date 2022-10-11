@@ -39,17 +39,17 @@ func move(from, to string) error {
 		return err
 	}
 
-	f, err := os.Open(from)
+	f, err := os.Open(from) // nolint:gosec
 	if err != nil {
 		return err
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
-	c, err := os.Create(to)
+	c, err := os.Create(to) // nolint:gosec
 	if err != nil {
 		return err
 	}
-	defer c.Close()
+	defer func() { _ = f.Close() }()
 
 	if err := os.Chmod(to, 0600); err != nil {
 		return err

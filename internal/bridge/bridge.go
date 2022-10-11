@@ -1,3 +1,4 @@
+// Package bridge implements the Bridge, which acts as the backend to the UI.
 package bridge
 
 import (
@@ -59,7 +60,7 @@ type Bridge struct {
 	updateCheckCh chan struct{}
 
 	// focusService is used to raise the bridge window when needed.
-	focusService *focus.FocusService
+	focusService *focus.Service
 
 	// autostarter is the bridge's autostarter.
 	autostarter Autostarter
@@ -70,36 +71,30 @@ type Bridge struct {
 	// errors contains errors encountered during startup.
 	errors []error
 
+	// These control the bridge's IMAP and SMTP logging behaviour.
+	logIMAPClient bool
+	logIMAPServer bool
+	logSMTP       bool
+
 	// stopCh is used to stop ongoing goroutines when the bridge is closed.
 	stopCh chan struct{}
-
-	logIMAPClientCommands bool
-	logIMAPServerCommands bool
-	logSMTPCommands       bool
 }
 
 // New creates a new bridge.
 func New(
-	apiURL string,                  // the URL of the API to use
-	locator Locator,                // the locator to provide paths to store data
-	vault *vault.Vault,             // the bridge's encrypted data store
-	identifier Identifier,          // the identifier to keep track of the user agent
-	tlsReporter TLSReporter,        // the TLS reporter to report TLS errors
+	apiURL string, // the URL of the API to use
+	locator Locator, // the locator to provide paths to store data
+	vault *vault.Vault, // the bridge's encrypted data store
+	identifier Identifier, // the identifier to keep track of the user agent
+	tlsReporter TLSReporter, // the TLS reporter to report TLS errors
 	roundTripper http.RoundTripper, // the round tripper to use for API requests
-	proxyCtl ProxyController,       // the DoH controller
-	autostarter Autostarter,        // the autostarter to manage autostart settings
-	updater Updater,                // the updater to fetch and install updates
-	curVersion *semver.Version,     // the current version of the bridge
-	logIMAPClientCommands bool,
-	logIMAPServerCommands bool,
-	logSMTPCommands bool,
+	proxyCtl ProxyController, // the DoH controller
+	autostarter Autostarter, // the autostarter to manage autostart settings
+	updater Updater, // the updater to fetch and install updates
+	curVersion *semver.Version, // the current version of the bridge
+	logIMAPClient, logIMAPServer bool, // whether to log IMAP client/server activity
+	logSMTP bool, // whether to log SMTP activity
 ) (*Bridge, error) {
-	if vault.GetProxyAllowed() {
-		proxyCtl.AllowProxy()
-	} else {
-		proxyCtl.DisallowProxy()
-	}
-
 	cookieJar, err := cookies.NewCookieJar(vault)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create cookie jar: %w", err)
@@ -117,15 +112,9 @@ func New(
 		return nil, fmt.Errorf("failed to load TLS config: %w", err)
 	}
 
-	// TODO: Handle case that the gluon directory is missing!
 	gluonDir, err := getGluonDir(vault)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get Gluon directory: %w", err)
-	}
-
-	imapServer, err := newIMAPServer(gluonDir, curVersion, tlsConfig, logIMAPClientCommands, logIMAPServerCommands)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create IMAP server: %w", err)
 	}
 
 	smtpBackend, err := newSMTPBackend()
@@ -133,9 +122,9 @@ func New(
 		return nil, fmt.Errorf("failed to create SMTP backend: %w", err)
 	}
 
-	smtpServer, err := newSMTPServer(smtpBackend, tlsConfig, logSMTPCommands)
+	imapServer, err := newIMAPServer(gluonDir, curVersion, tlsConfig, logIMAPClient, logIMAPServer)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create SMTP server: %w", err)
+		return nil, fmt.Errorf("failed to create IMAP server: %w", err)
 	}
 
 	focusService, err := focus.NewService()
@@ -143,7 +132,49 @@ func New(
 		return nil, fmt.Errorf("failed to create focus service: %w", err)
 	}
 
-	bridge := &Bridge{
+	bridge := newBridge(
+		vault,
+		api,
+		cookieJar,
+		proxyCtl,
+		identifier,
+		tlsConfig,
+		imapServer,
+		smtpBackend,
+		updater,
+		curVersion,
+		focusService,
+		autostarter,
+		locator,
+		logIMAPClient,
+		logIMAPServer,
+		logSMTP,
+	)
+
+	if err := bridge.init(tlsReporter); err != nil {
+		return nil, fmt.Errorf("failed to initialize bridge: %w", err)
+	}
+
+	return bridge, nil
+}
+
+func newBridge(
+	vault *vault.Vault,
+	api *liteapi.Manager,
+	cookieJar *cookies.Jar,
+	proxyCtl ProxyController,
+	identifier Identifier,
+	tlsConfig *tls.Config,
+	imapServer *gluon.Server,
+	smtpBackend *smtpBackend,
+	updater Updater,
+	curVersion *semver.Version,
+	focusService *focus.Service,
+	autostarter Autostarter,
+	locator Locator,
+	logIMAPClient, logIMAPServer, logSMTP bool,
+) *Bridge {
+	return &Bridge{
 		vault: vault,
 		users: make(map[string]*user.User),
 
@@ -154,7 +185,7 @@ func New(
 
 		tlsConfig:   tlsConfig,
 		imapServer:  imapServer,
-		smtpServer:  smtpServer,
+		smtpServer:  newSMTPServer(smtpBackend, tlsConfig, logSMTP),
 		smtpBackend: smtpBackend,
 
 		updater:       updater,
@@ -165,14 +196,22 @@ func New(
 		autostarter:  autostarter,
 		locator:      locator,
 
-		stopCh: make(chan struct{}),
+		logIMAPClient: logIMAPClient,
+		logIMAPServer: logIMAPServer,
+		logSMTP:       logSMTP,
 
-		logIMAPClientCommands: logIMAPClientCommands,
-		logIMAPServerCommands: logIMAPServerCommands,
-		logSMTPCommands:       logSMTPCommands,
+		stopCh: make(chan struct{}),
+	}
+}
+
+func (bridge *Bridge) init(tlsReporter TLSReporter) error {
+	if bridge.vault.GetProxyAllowed() {
+		bridge.proxyCtl.AllowProxy()
+	} else {
+		bridge.proxyCtl.DisallowProxy()
 	}
 
-	api.AddStatusObserver(func(status liteapi.Status) {
+	bridge.api.AddStatusObserver(func(status liteapi.Status) {
 		switch {
 		case status == liteapi.StatusUp:
 			go bridge.onStatusUp()
@@ -182,17 +221,17 @@ func New(
 		}
 	})
 
-	api.AddErrorHandler(liteapi.AppVersionBadCode, func() {
+	bridge.api.AddErrorHandler(liteapi.AppVersionBadCode, func() {
 		bridge.publish(events.UpdateForced{})
 	})
 
-	api.AddPreRequestHook(func(_ *resty.Client, req *resty.Request) error {
+	bridge.api.AddPreRequestHook(func(_ *resty.Client, req *resty.Request) error {
 		req.SetHeader("User-Agent", bridge.identifier.GetUserAgent())
 		return nil
 	})
 
 	if err := bridge.loadUsers(); err != nil {
-		return nil, fmt.Errorf("failed to load users: %w", err)
+		return fmt.Errorf("failed to load users: %w", err)
 	}
 
 	go func() {
@@ -202,13 +241,13 @@ func New(
 	}()
 
 	go func() {
-		for range focusService.GetRaiseCh() {
+		for range bridge.focusService.GetRaiseCh() {
 			bridge.publish(events.Raise{})
 		}
 	}()
 
 	go func() {
-		for event := range imapServer.AddWatcher() {
+		for event := range bridge.imapServer.AddWatcher() {
 			bridge.handleIMAPEvent(event)
 		}
 	}()
@@ -225,7 +264,7 @@ func New(
 		bridge.PushError(ErrWatchUpdates)
 	}
 
-	return bridge, nil
+	return nil
 }
 
 // GetEvents returns a channel of events of the given type.
@@ -363,6 +402,7 @@ func loadTLSConfig(vault *vault.Vault) (*tls.Config, error) {
 		return nil, err
 	}
 
+	// TODO: Do we have to set MinVersion to tls.VersionTLS12?
 	return &tls.Config{
 		Certificates: []tls.Certificate{cert},
 	}, nil

@@ -13,6 +13,10 @@ func (bridge *Bridge) CheckForUpdates() {
 }
 
 func (bridge *Bridge) watchForUpdates() error {
+	if _, err := bridge.updater.GetVersionInfo(bridge.api, bridge.vault.GetUpdateChannel()); err != nil {
+		return err
+	}
+
 	ticker := time.NewTicker(constants.UpdateCheckInterval)
 
 	go func() {
@@ -22,7 +26,10 @@ func (bridge *Bridge) watchForUpdates() error {
 				return
 
 			case <-bridge.updateCheckCh:
+				// ...
+
 			case <-ticker.C:
+				// ...
 			}
 
 			version, err := bridge.updater.GetVersionInfo(bridge.api, bridge.vault.GetUpdateChannel())

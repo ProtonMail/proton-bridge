@@ -73,7 +73,7 @@ func (bridge *Bridge) handleUserAddressCreated(ctx context.Context, user *user.U
 }
 
 // TODO: Handle addresses that have been disabled!
-func (bridge *Bridge) handleUserAddressUpdated(ctx context.Context, user *user.User, event events.UserAddressUpdated) error {
+func (bridge *Bridge) handleUserAddressUpdated(_ context.Context, user *user.User, _ events.UserAddressUpdated) error {
 	switch user.GetAddressMode() {
 	case vault.CombinedMode:
 		return fmt.Errorf("not implemented")
