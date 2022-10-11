@@ -19,7 +19,7 @@ func TestBridge_Sync(t *testing.T) {
 	s := server.New()
 	defer s.Close()
 
-	numMsg := 1 << 10
+	numMsg := 1 << 8
 
 	withEnv(t, s, func(ctx context.Context, netCtl *liteapi.NetCtl, locator bridge.Locator, storeKey []byte) {
 		userID, addrID, err := s.CreateUser("imap", "imap@pm.me", password)
@@ -80,51 +80,51 @@ func TestBridge_Sync(t *testing.T) {
 
 		// Login the user; its sync should fail.
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
-			syncCh, done := chToType[events.Event, events.SyncFailed](bridge.GetEvents(events.SyncFailed{}))
-			defer done()
+			{
+				syncCh, done := chToType[events.Event, events.SyncFailed](bridge.GetEvents(events.SyncFailed{}))
+				defer done()
 
-			userID, err := bridge.LoginFull(ctx, "imap", password, nil, nil)
-			require.NoError(t, err)
+				userID, err := bridge.LoginFull(ctx, "imap", password, nil, nil)
+				require.NoError(t, err)
 
-			require.Equal(t, userID, (<-syncCh).UserID)
+				require.Equal(t, userID, (<-syncCh).UserID)
 
-			info, err := bridge.GetUserInfo(userID)
-			require.NoError(t, err)
-			require.True(t, info.Connected)
+				info, err := bridge.GetUserInfo(userID)
+				require.NoError(t, err)
+				require.True(t, info.Connected)
 
-			client, err := client.Dial(fmt.Sprintf(":%v", bridge.GetIMAPPort()))
-			require.NoError(t, err)
-			require.NoError(t, client.Login("imap@pm.me", string(info.BridgePass)))
-			defer func() { _ = client.Logout() }()
+				client, err := client.Dial(fmt.Sprintf(":%v", bridge.GetIMAPPort()))
+				require.NoError(t, err)
+				require.NoError(t, client.Login("imap@pm.me", string(info.BridgePass)))
+				defer func() { _ = client.Logout() }()
 
-			status, err := client.Select(`Folders/folder`, false)
-			require.NoError(t, err)
-			require.Less(t, status.Messages, uint32(numMsg))
-		})
+				status, err := client.Select(`Folders/folder`, false)
+				require.NoError(t, err)
+				require.Less(t, status.Messages, uint32(numMsg))
+			}
 
-		// Remove the network limit, allowing the sync to finish.
-		netCtl.SetReadLimit(0)
+			// Remove the network limit, allowing the sync to finish.
+			netCtl.SetReadLimit(0)
 
-		// Login the user; its sync should now finish.
-		// If we then connect an IMAP client, it should eventually see all the messages.
-		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
-			syncCh, done := chToType[events.Event, events.SyncFinished](bridge.GetEvents(events.SyncFinished{}))
-			defer done()
+			{
+				syncCh, done := chToType[events.Event, events.SyncFinished](bridge.GetEvents(events.SyncFinished{}))
+				defer done()
 
-			require.Equal(t, userID, (<-syncCh).UserID)
+				require.Equal(t, userID, (<-syncCh).UserID)
 
-			info, err := bridge.GetUserInfo(userID)
-			require.NoError(t, err)
-			require.True(t, info.Connected)
+				info, err := bridge.GetUserInfo(userID)
+				require.NoError(t, err)
+				require.True(t, info.Connected)
 
-			client, err := client.Dial(fmt.Sprintf(":%v", bridge.GetIMAPPort()))
-			require.NoError(t, err)
-			require.NoError(t, client.Login("imap@pm.me", string(info.BridgePass)))
-			defer func() { _ = client.Logout() }()
+				client, err := client.Dial(fmt.Sprintf(":%v", bridge.GetIMAPPort()))
+				require.NoError(t, err)
+				require.NoError(t, client.Login("imap@pm.me", string(info.BridgePass)))
+				defer func() { _ = client.Logout() }()
 
-			status, err := client.Select(`Folders/folder`, false)
-			require.NoError(t, err)
-			require.Equal(t, uint32(numMsg), status.Messages)
+				status, err := client.Select(`Folders/folder`, false)
+				require.NoError(t, err)
+				require.Equal(t, uint32(numMsg), status.Messages)
+			}
 		})
 	})
 }

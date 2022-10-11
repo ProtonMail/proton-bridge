@@ -43,23 +43,13 @@ func (bridge *Bridge) handleUserAddressCreated(ctx context.Context, user *user.U
 				return fmt.Errorf("failed to remove user from IMAP server: %w", err)
 			}
 
-			imapConn, err := user.NewIMAPConnector(addrID)
-			if err != nil {
-				return fmt.Errorf("failed to create IMAP connector: %w", err)
-			}
-
-			if err := bridge.imapServer.LoadUser(ctx, imapConn, gluonID, user.GluonKey()); err != nil {
+			if err := bridge.imapServer.LoadUser(ctx, user.NewIMAPConnector(addrID), gluonID, user.GluonKey()); err != nil {
 				return fmt.Errorf("failed to add user to IMAP server: %w", err)
 			}
 		}
 
 	case vault.SplitMode:
-		imapConn, err := user.NewIMAPConnector(event.AddressID)
-		if err != nil {
-			return fmt.Errorf("failed to create IMAP connector: %w", err)
-		}
-
-		gluonID, err := bridge.imapServer.AddUser(ctx, imapConn, user.GluonKey())
+		gluonID, err := bridge.imapServer.AddUser(ctx, user.NewIMAPConnector(event.AddressID), user.GluonKey())
 		if err != nil {
 			return fmt.Errorf("failed to add user to IMAP server: %w", err)
 		}
@@ -93,12 +83,7 @@ func (bridge *Bridge) handleUserAddressDeleted(ctx context.Context, user *user.U
 				return fmt.Errorf("failed to remove user from IMAP server: %w", err)
 			}
 
-			imapConn, err := user.NewIMAPConnector(addrID)
-			if err != nil {
-				return fmt.Errorf("failed to create IMAP connector: %w", err)
-			}
-
-			if err := bridge.imapServer.LoadUser(ctx, imapConn, gluonID, user.GluonKey()); err != nil {
+			if err := bridge.imapServer.LoadUser(ctx, user.NewIMAPConnector(addrID), gluonID, user.GluonKey()); err != nil {
 				return fmt.Errorf("failed to add user to IMAP server: %w", err)
 			}
 		}

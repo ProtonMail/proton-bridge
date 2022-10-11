@@ -51,7 +51,7 @@ func (t *testCtx) startBridge() error {
 	}
 
 	// Create the bridge.
-	bridge, err := bridge.New(
+	bridge, eventCh, err := bridge.New(
 		t.locator,
 		vault,
 		t.mocks.Autostarter,
@@ -72,6 +72,9 @@ func (t *testCtx) startBridge() error {
 	if err != nil {
 		return err
 	}
+
+	// Wait for the users to be loaded.
+	waitForEvent(eventCh, events.AllUsersLoaded{})
 
 	// Save the bridge t.
 	t.bridge = bridge
@@ -100,4 +103,13 @@ func (t *testCtx) stopBridge() error {
 	t.bridge = nil
 
 	return nil
+}
+
+func waitForEvent[T any](eventCh <-chan events.Event, wantEvent T) {
+	for event := range eventCh {
+		switch event.(type) {
+		case T:
+			return
+		}
+	}
 }

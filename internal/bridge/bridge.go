@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"net"
 	"net/http"
-	"sync"
 	"time"
 
 	"github.com/Masterminds/semver/v3"
@@ -16,9 +15,10 @@ import (
 	"github.com/ProtonMail/proton-bridge/v2/internal/constants"
 	"github.com/ProtonMail/proton-bridge/v2/internal/events"
 	"github.com/ProtonMail/proton-bridge/v2/internal/focus"
+	"github.com/ProtonMail/proton-bridge/v2/internal/safe"
+	"github.com/ProtonMail/proton-bridge/v2/internal/try"
 	"github.com/ProtonMail/proton-bridge/v2/internal/user"
 	"github.com/ProtonMail/proton-bridge/v2/internal/vault"
-	"github.com/bradenaw/juniper/xslices"
 	"github.com/emersion/go-smtp"
 	"github.com/go-resty/resty/v2"
 	"github.com/sirupsen/logrus"
@@ -30,16 +30,14 @@ type Bridge struct {
 	vault *vault.Vault
 
 	// users holds authorized users.
-	users map[string]*user.User
+	users  *safe.Map[string, *user.User]
+	loadCh chan struct{}
+	loadWG try.Group
 
 	// api manages user API clients.
 	api        *liteapi.Manager
 	proxyCtl   ProxyController
 	identifier Identifier
-
-	// watchers holds all registered event watchers.
-	watchers     []*watcher.Watcher[events.Event]
-	watchersLock sync.RWMutex
 
 	// tlsConfig holds the bridge TLS config used by the IMAP and SMTP servers.
 	tlsConfig *tls.Config
@@ -65,6 +63,9 @@ type Bridge struct {
 
 	// locator is the bridge's locator.
 	locator Locator
+
+	// watchers holds all registered event watchers.
+	watchers *safe.Slice[*watcher.Watcher[events.Event]]
 
 	// errors contains errors encountered during startup.
 	errors []error
@@ -95,7 +96,7 @@ func New(
 
 	logIMAPClient, logIMAPServer bool, // whether to log IMAP client/server activity
 	logSMTP bool, // whether to log SMTP activity
-) (*Bridge, error) {
+) (*Bridge, <-chan events.Event, error) {
 	api := liteapi.New(
 		liteapi.WithHostURL(apiURL),
 		liteapi.WithAppVersion(constants.AppVersion(curVersion.Original())),
@@ -105,54 +106,62 @@ func New(
 
 	tlsConfig, err := loadTLSConfig(vault)
 	if err != nil {
-		return nil, fmt.Errorf("failed to load TLS config: %w", err)
+		return nil, nil, fmt.Errorf("failed to load TLS config: %w", err)
 	}
 
 	gluonDir, err := getGluonDir(vault)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get Gluon directory: %w", err)
+		return nil, nil, fmt.Errorf("failed to get Gluon directory: %w", err)
 	}
 
 	smtpBackend, err := newSMTPBackend()
 	if err != nil {
-		return nil, fmt.Errorf("failed to create SMTP backend: %w", err)
+		return nil, nil, fmt.Errorf("failed to create SMTP backend: %w", err)
 	}
 
 	imapServer, err := newIMAPServer(gluonDir, curVersion, tlsConfig, logIMAPClient, logIMAPServer)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create IMAP server: %w", err)
+		return nil, nil, fmt.Errorf("failed to create IMAP server: %w", err)
 	}
 
 	focusService, err := focus.NewService()
 	if err != nil {
-		return nil, fmt.Errorf("failed to create focus service: %w", err)
+		return nil, nil, fmt.Errorf("failed to create focus service: %w", err)
 	}
 
 	bridge := newBridge(
+		// App stuff
 		locator,
 		vault,
 		autostarter,
 		updater,
 		curVersion,
 
+		// API stuff
 		api,
 		identifier,
 		proxyCtl,
 
+		// Service stuff
 		tlsConfig,
 		imapServer,
 		smtpBackend,
 		focusService,
+
+		// Logging stuff
 		logIMAPClient,
 		logIMAPServer,
 		logSMTP,
 	)
 
+	// Get an event channel for all events (individual events can be subscribed to later).
+	eventCh, _ := bridge.GetEvents()
+
 	if err := bridge.init(tlsReporter); err != nil {
-		return nil, fmt.Errorf("failed to initialize bridge: %w", err)
+		return nil, nil, fmt.Errorf("failed to initialize bridge: %w", err)
 	}
 
-	return bridge, nil
+	return bridge, eventCh, nil
 }
 
 func newBridge(
@@ -174,7 +183,9 @@ func newBridge(
 ) *Bridge {
 	return &Bridge{
 		vault: vault,
-		users: make(map[string]*user.User),
+
+		users:  safe.NewMap[string, *user.User](nil),
+		loadCh: make(chan struct{}, 1),
 
 		api:        api,
 		proxyCtl:   proxyCtl,
@@ -192,6 +203,8 @@ func newBridge(
 		focusService: focusService,
 		autostarter:  autostarter,
 		locator:      locator,
+
+		watchers: safe.NewSlice[*watcher.Watcher[events.Event]](),
 
 		logIMAPClient: logIMAPClient,
 		logIMAPServer: logIMAPServer,
@@ -227,10 +240,6 @@ func (bridge *Bridge) init(tlsReporter TLSReporter) error {
 		return nil
 	})
 
-	if err := bridge.loadUsers(); err != nil {
-		return fmt.Errorf("failed to load users: %w", err)
-	}
-
 	go func() {
 		for range tlsReporter.GetTLSIssueCh() {
 			bridge.publish(events.TLSIssue{})
@@ -261,6 +270,8 @@ func (bridge *Bridge) init(tlsReporter TLSReporter) error {
 		bridge.PushError(ErrWatchUpdates)
 	}
 
+	go bridge.loadLoop()
+
 	return nil
 }
 
@@ -288,6 +299,9 @@ func (bridge *Bridge) Close(ctx context.Context) error {
 	// Stop ongoing operations such as connectivity checks.
 	close(bridge.stopCh)
 
+	// Wait for ongoing user load operations to finish.
+	bridge.loadWG.Wait()
+
 	// Close the IMAP server.
 	if err := bridge.closeIMAP(ctx); err != nil {
 		logrus.WithError(err).Error("Failed to close IMAP server")
@@ -299,10 +313,10 @@ func (bridge *Bridge) Close(ctx context.Context) error {
 	}
 
 	// Close all users.
-	for _, user := range bridge.users {
-		if err := user.Close(); err != nil {
-			logrus.WithError(err).Error("Failed to close user")
-		}
+	if err := bridge.users.IterValuesErr(func(user *user.User) error {
+		return user.Close()
+	}); err != nil {
+		logrus.WithError(err).Error("Failed to close users")
 	}
 
 	// Close the focus service.
@@ -317,48 +331,43 @@ func (bridge *Bridge) Close(ctx context.Context) error {
 }
 
 func (bridge *Bridge) publish(event events.Event) {
-	bridge.watchersLock.RLock()
-	defer bridge.watchersLock.RUnlock()
-
-	for _, watcher := range bridge.watchers {
+	bridge.watchers.Iter(func(watcher *watcher.Watcher[events.Event]) {
 		if watcher.IsWatching(event) {
 			if ok := watcher.Send(event); !ok {
 				logrus.WithField("event", event).Warn("Failed to send event to watcher")
 			}
 		}
-	}
+	})
 }
 
 func (bridge *Bridge) addWatcher(ofType ...events.Event) *watcher.Watcher[events.Event] {
-	bridge.watchersLock.Lock()
-	defer bridge.watchersLock.Unlock()
-
 	newWatcher := watcher.New(ofType...)
 
-	bridge.watchers = append(bridge.watchers, newWatcher)
+	bridge.watchers.Append(newWatcher)
 
 	return newWatcher
 }
 
 func (bridge *Bridge) remWatcher(oldWatcher *watcher.Watcher[events.Event]) {
-	bridge.watchersLock.Lock()
-	defer bridge.watchersLock.Unlock()
-
-	bridge.watchers = xslices.Filter(bridge.watchers, func(other *watcher.Watcher[events.Event]) bool {
-		return other != oldWatcher
-	})
+	bridge.watchers.Delete(oldWatcher)
 }
 
 func (bridge *Bridge) onStatusUp() {
 	bridge.publish(events.ConnStatusUp{})
 
-	if err := bridge.loadUsers(); err != nil {
-		logrus.WithError(err).Error("Failed to load users")
-	}
+	bridge.loadCh <- struct{}{}
+
+	bridge.users.IterValues(func(user *user.User) {
+		user.OnStatusUp()
+	})
 }
 
 func (bridge *Bridge) onStatusDown() {
 	bridge.publish(events.ConnStatusDown{})
+
+	bridge.users.IterValues(func(user *user.User) {
+		user.OnStatusDown()
+	})
 
 	upCh, done := bridge.GetEvents(events.ConnStatusUp{})
 	defer done()

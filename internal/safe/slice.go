@@ -1,13 +1,17 @@
 package safe
 
-import "sync"
+import (
+	"sync"
 
-type Slice[Val any] struct {
+	"github.com/bradenaw/juniper/xslices"
+)
+
+type Slice[Val comparable] struct {
 	data []Val
 	lock sync.RWMutex
 }
 
-func NewSlice[Val any](from []Val) *Slice[Val] {
+func NewSlice[Val comparable](from ...Val) *Slice[Val] {
 	s := &Slice[Val]{
 		data: make([]Val, len(from)),
 	}
@@ -17,37 +21,27 @@ func NewSlice[Val any](from []Val) *Slice[Val] {
 	return s
 }
 
-func (s *Slice[Val]) Get(fn func(data []Val)) {
+func (s *Slice[Val]) Iter(fn func(val Val)) {
 	s.lock.RLock()
 	defer s.lock.RUnlock()
 
-	fn(s.data)
+	for _, val := range s.data {
+		fn(val)
+	}
 }
 
-func (s *Slice[Val]) GetErr(fn func(data []Val) error) error {
-	s.lock.RLock()
-	defer s.lock.RUnlock()
-
-	return fn(s.data)
-}
-
-func (s *Slice[Val]) Set(data []Val) {
+func (s *Slice[Val]) Append(val Val) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
-	s.data = data
+	s.data = append(s.data, val)
 }
 
-func GetSlice[Val, Ret any](s *Slice[Val], fn func(data []Val) Ret) Ret {
-	s.lock.RLock()
-	defer s.lock.RUnlock()
+func (s *Slice[Val]) Delete(val Val) {
+	s.lock.Lock()
+	defer s.lock.Unlock()
 
-	return fn(s.data)
-}
-
-func GetSliceErr[Val, Ret any](s *Slice[Val], fn func(data []Val) (Ret, error)) (Ret, error) {
-	s.lock.RLock()
-	defer s.lock.RUnlock()
-
-	return fn(s.data)
+	s.data = xslices.Filter(s.data, func(v Val) bool {
+		return v != val
+	})
 }

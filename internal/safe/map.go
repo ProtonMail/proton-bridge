@@ -3,18 +3,26 @@ package safe
 import (
 	"sync"
 
-	"golang.org/x/exp/maps"
+	"github.com/bradenaw/juniper/xslices"
+	"golang.org/x/exp/slices"
 )
 
 type Map[Key comparable, Val any] struct {
-	data map[Key]Val
-	lock sync.RWMutex
+	data  map[Key]Val
+	order []Key
+	sort  func(a, b Key, data map[Key]Val) bool
+	lock  sync.RWMutex
 }
 
-func NewMap[Key comparable, Val any](from map[Key]Val) *Map[Key, Val] {
-	m := &Map[Key, Val]{
+func NewMap[Key comparable, Val any](sort func(a, b Key, data map[Key]Val) bool) *Map[Key, Val] {
+	return &Map[Key, Val]{
 		data: make(map[Key]Val),
+		sort: sort,
 	}
+}
+
+func NewMapFrom[Key comparable, Val any](from map[Key]Val, sort func(a, b Key, data map[Key]Val) bool) *Map[Key, Val] {
+	m := NewMap(sort)
 
 	for key, val := range from {
 		m.Set(key, val)
@@ -23,12 +31,36 @@ func NewMap[Key comparable, Val any](from map[Key]Val) *Map[Key, Val] {
 	return m
 }
 
-func (m *Map[Key, Val]) Has(key Key) bool {
+func (m *Map[Key, Val]) Index(idx int, fn func(Key, Val)) bool {
 	m.lock.RLock()
 	defer m.lock.RUnlock()
 
-	_, ok := m.data[key]
-	return ok
+	if idx < 0 || idx >= len(m.order) {
+		return false
+	}
+
+	fn(m.order[idx], m.data[m.order[idx]])
+
+	return true
+}
+
+func (m *Map[Key, Val]) Has(key Key) bool {
+	return m.HasFunc(func(k Key, v Val) bool {
+		return k == key
+	})
+}
+
+func (m *Map[Key, Val]) HasFunc(fn func(key Key, val Val) bool) bool {
+	m.lock.RLock()
+	defer m.lock.RUnlock()
+
+	for key, val := range m.data {
+		if fn(key, val) {
+			return true
+		}
+	}
+
+	return false
 }
 
 func (m *Map[Key, Val]) Get(key Key, fn func(Val)) bool {
@@ -46,15 +78,45 @@ func (m *Map[Key, Val]) Get(key Key, fn func(Val)) bool {
 }
 
 func (m *Map[Key, Val]) GetErr(key Key, fn func(Val) error) (bool, error) {
-	m.lock.RLock()
-	defer m.lock.RUnlock()
+	var err error
+
+	ok := m.Get(key, func(val Val) {
+		err = fn(val)
+	})
+
+	return ok, err
+}
+
+func (m *Map[Key, Val]) GetDelete(key Key, fn func(Val)) bool {
+	m.lock.Lock()
+	defer m.lock.Unlock()
 
 	val, ok := m.data[key]
 	if !ok {
-		return false, nil
+		return false
 	}
 
-	return true, fn(val)
+	fn(val)
+
+	delete(m.data, key)
+
+	if idx := xslices.Index(m.order, key); idx >= 0 {
+		m.order = append(m.order[:idx], m.order[idx+1:]...)
+	} else {
+		panic("order and data out of sync")
+	}
+
+	return true
+}
+
+func (m *Map[Key, Val]) GetDeleteErr(key Key, fn func(Val) error) (bool, error) {
+	var err error
+
+	ok := m.GetDelete(key, func(val Val) {
+		err = fn(val)
+	})
+
+	return ok, err
 }
 
 func (m *Map[Key, Val]) Set(key Key, val Val) {
@@ -62,84 +124,140 @@ func (m *Map[Key, Val]) Set(key Key, val Val) {
 	defer m.lock.Unlock()
 
 	m.data[key] = val
+
+	m.order = append(m.order, key)
+
+	if m.sort != nil {
+		slices.SortFunc(m.order, func(a, b Key) bool {
+			return m.sort(a, b, m.data)
+		})
+	}
 }
 
-func (m *Map[Key, Val]) Delete(key Key) {
+func (m *Map[Key, Val]) SetFrom(key Key, other Key) {
 	m.lock.Lock()
 	defer m.lock.Unlock()
 
-	delete(m.data, key)
+	m.data[key] = m.data[other]
+
+	m.order = append(m.order, key)
+
+	if m.sort != nil {
+		slices.SortFunc(m.order, func(a, b Key) bool {
+			return m.sort(a, b, m.data)
+		})
+	}
 }
 
 func (m *Map[Key, Val]) Iter(fn func(key Key, val Val)) {
 	m.lock.RLock()
 	defer m.lock.RUnlock()
 
-	for key, val := range m.data {
-		fn(key, val)
+	for _, key := range m.order {
+		fn(key, m.data[key])
 	}
 }
 
-func (m *Map[Key, Val]) Keys(fn func(keys []Key)) {
-	m.lock.RLock()
-	defer m.lock.RUnlock()
+func (m *Map[Key, Val]) IterKeys(fn func(Key)) {
+	m.Iter(func(key Key, _ Val) {
+		fn(key)
+	})
+}
 
-	fn(maps.Keys(m.data))
+func (m *Map[Key, Val]) IterKeysErr(fn func(Key) error) error {
+	var err error
+
+	m.IterKeys(func(key Key) {
+		if err != nil {
+			return
+		}
+
+		err = fn(key)
+	})
+
+	return err
+}
+
+func (m *Map[Key, Val]) IterValues(fn func(Val)) {
+	m.Iter(func(_ Key, val Val) {
+		fn(val)
+	})
+}
+
+func (m *Map[Key, Val]) IterValuesErr(fn func(Val) error) error {
+	var err error
+
+	m.IterValues(func(val Val) {
+		if err != nil {
+			return
+		}
+
+		err = fn(val)
+	})
+
+	return err
 }
 
 func (m *Map[Key, Val]) Values(fn func(vals []Val)) {
 	m.lock.RLock()
 	defer m.lock.RUnlock()
 
-	fn(maps.Values(m.data))
+	vals := make([]Val, len(m.order))
+
+	for i, key := range m.order {
+		vals[i] = m.data[key]
+	}
+
+	fn(vals)
 }
 
-func GetMap[Key comparable, Val, Ret any](m *Map[Key, Val], key Key, fn func(Val) Ret, fallback func() Ret) Ret {
+func (m *Map[Key, Val]) ValuesErr(fn func(vals []Val) error) error {
+	var err error
+
+	m.Values(func(vals []Val) {
+		err = fn(vals)
+	})
+
+	return err
+}
+
+func (m *Map[Key, Val]) MapErr(fn func(map[Key]Val) error) error {
 	m.lock.RLock()
 	defer m.lock.RUnlock()
 
-	val, ok := m.data[key]
-	if !ok {
-		return fallback()
-	}
-
-	return fn(val)
+	return fn(m.data)
 }
 
-func GetMapErr[Key comparable, Val, Ret any](m *Map[Key, Val], key Key, fn func(Val) (Ret, error), fallback func() (Ret, error)) (Ret, error) {
-	m.lock.RLock()
-	defer m.lock.RUnlock()
+func MapGetRet[Key comparable, Val, Ret any](m *Map[Key, Val], key Key, fn func(Val) Ret) (Ret, bool) {
+	var ret Ret
 
-	val, ok := m.data[key]
-	if !ok {
-		return fallback()
-	}
+	ok := m.Get(key, func(val Val) {
+		ret = fn(val)
+	})
 
-	return fn(val)
+	return ret, ok
 }
 
-func FindMap[Key comparable, Val, Ret any](m *Map[Key, Val], cmp func(Val) bool, fn func(Val) Ret, fallback func() Ret) Ret {
-	m.lock.RLock()
-	defer m.lock.RUnlock()
+func MapValuesRet[Key comparable, Val, Ret any](m *Map[Key, Val], fn func([]Val) Ret) Ret {
+	var ret Ret
 
-	for _, val := range m.data {
-		if cmp(val) {
-			return fn(val)
-		}
-	}
+	m.Values(func(vals []Val) {
+		ret = fn(vals)
+	})
 
-	return fallback()
+	return ret
 }
 
-func FindMapErr[Key comparable, Val, Ret any](m *Map[Key, Val], cmp func(Val) bool, fn func(Val) (Ret, error), fallback func() (Ret, error)) (Ret, error) {
-	m.lock.RLock()
-	defer m.lock.RUnlock()
+func MapValuesRetErr[Key comparable, Val, Ret any](m *Map[Key, Val], fn func([]Val) (Ret, error)) (Ret, error) {
+	var ret Ret
 
-	for _, val := range m.data {
-		if cmp(val) {
-			return fn(val)
-		}
-	}
+	err := m.ValuesErr(func(vals []Val) error {
+		var err error
 
-	return fallback()
+		ret, err = fn(vals)
+
+		return err
+	})
+
+	return ret, err
 }

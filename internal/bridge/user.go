@@ -6,6 +6,7 @@ import (
 
 	"github.com/ProtonMail/gluon/imap"
 	"github.com/ProtonMail/proton-bridge/v2/internal/events"
+	"github.com/ProtonMail/proton-bridge/v2/internal/safe"
 	"github.com/ProtonMail/proton-bridge/v2/internal/try"
 	"github.com/ProtonMail/proton-bridge/v2/internal/user"
 	"github.com/ProtonMail/proton-bridge/v2/internal/vault"
@@ -53,23 +54,26 @@ func (bridge *Bridge) GetUserInfo(userID string) (UserInfo, error) {
 		return UserInfo{}, err
 	}
 
-	user, ok := bridge.users[userID]
-	if !ok {
-		return getUserInfo(vaultUser.UserID(), vaultUser.Username(), vaultUser.AddressMode()), nil
+	if info, ok := safe.MapGetRet(bridge.users, userID, func(user *user.User) UserInfo {
+		return getConnUserInfo(user)
+	}); ok {
+		return info, nil
 	}
 
-	return getConnUserInfo(user), nil
+	return getUserInfo(vaultUser.UserID(), vaultUser.Username(), vaultUser.AddressMode()), nil
 }
 
 // QueryUserInfo queries the user info by username or address.
 func (bridge *Bridge) QueryUserInfo(query string) (UserInfo, error) {
-	for userID, user := range bridge.users {
-		if user.Match(query) {
-			return bridge.GetUserInfo(userID)
+	return safe.MapValuesRetErr(bridge.users, func(users []*user.User) (UserInfo, error) {
+		for _, user := range users {
+			if user.Match(query) {
+				return getConnUserInfo(user), nil
+			}
 		}
-	}
 
-	return UserInfo{}, ErrNoSuchUser
+		return UserInfo{}, ErrNoSuchUser
+	})
 }
 
 // LoginAuth begins the login process. It returns an authorized client that might need 2FA.
@@ -79,7 +83,7 @@ func (bridge *Bridge) LoginAuth(ctx context.Context, username string, password [
 		return nil, liteapi.Auth{}, fmt.Errorf("failed to create new API client: %w", err)
 	}
 
-	if _, ok := bridge.users[auth.UserID]; ok {
+	if bridge.users.Has(auth.UserID) {
 		if err := client.AuthDelete(ctx); err != nil {
 			logrus.WithError(err).Warn("Failed to delete auth")
 		}
@@ -187,33 +191,36 @@ func (bridge *Bridge) DeleteUser(ctx context.Context, userID string) error {
 
 // SetAddressMode sets the address mode for the given user.
 func (bridge *Bridge) SetAddressMode(ctx context.Context, userID string, mode vault.AddressMode) error {
-	user, ok := bridge.users[userID]
-	if !ok {
-		return ErrNoSuchUser
-	}
-
-	if user.GetAddressMode() == mode {
-		return fmt.Errorf("address mode is already %q", mode)
-	}
-
-	for _, gluonID := range user.GetGluonIDs() {
-		if err := bridge.imapServer.RemoveUser(ctx, gluonID, true); err != nil {
-			return fmt.Errorf("failed to remove user from IMAP server: %w", err)
+	if ok, err := bridge.users.GetErr(userID, func(user *user.User) error {
+		if user.GetAddressMode() == mode {
+			return fmt.Errorf("address mode is already %q", mode)
 		}
-	}
 
-	if err := user.SetAddressMode(ctx, mode); err != nil {
+		for _, gluonID := range user.GetGluonIDs() {
+			if err := bridge.imapServer.RemoveUser(ctx, gluonID, true); err != nil {
+				return fmt.Errorf("failed to remove user from IMAP server: %w", err)
+			}
+		}
+
+		if err := user.SetAddressMode(ctx, mode); err != nil {
+			return fmt.Errorf("failed to set address mode: %w", err)
+		}
+
+		if err := bridge.addIMAPUser(ctx, user); err != nil {
+			return fmt.Errorf("failed to add IMAP user: %w", err)
+		}
+
+		bridge.publish(events.AddressModeChanged{
+			UserID:      userID,
+			AddressMode: mode,
+		})
+
+		return nil
+	}); !ok {
+		return ErrNoSuchUser
+	} else if err != nil {
 		return fmt.Errorf("failed to set address mode: %w", err)
 	}
-
-	if err := bridge.addIMAPUser(ctx, user); err != nil {
-		return fmt.Errorf("failed to add IMAP user: %w", err)
-	}
-
-	bridge.publish(events.AddressModeChanged{
-		UserID:      userID,
-		AddressMode: mode,
-	})
 
 	return nil
 }
@@ -241,10 +248,30 @@ func (bridge *Bridge) loginUser(ctx context.Context, client *liteapi.Client, aut
 	return apiUser.ID, nil
 }
 
-// loadUsers is a loop that, when polled, attempts to load authorized users from the vault.
+// loadLoop is a loop that, when polled, attempts to load authorized users from the vault.
+func (bridge *Bridge) loadLoop() {
+	for {
+		bridge.loadWG.GoTry(func(ok bool) {
+			if ok {
+				if err := bridge.loadUsers(); err != nil {
+					logrus.WithError(err).Error("Failed to load users")
+				}
+			}
+		})
+
+		select {
+		case <-bridge.stopCh:
+			return
+
+		case <-bridge.loadCh:
+			// ...
+		}
+	}
+}
+
 func (bridge *Bridge) loadUsers() error {
-	return bridge.vault.ForUser(func(user *vault.User) error {
-		if _, ok := bridge.users[user.UserID()]; ok {
+	if err := bridge.vault.ForUser(func(user *vault.User) error {
+		if bridge.users.Has(user.UserID()) {
 			return nil
 		}
 
@@ -271,7 +298,13 @@ func (bridge *Bridge) loadUsers() error {
 		})
 
 		return nil
-	})
+	}); err != nil {
+		return fmt.Errorf("failed to iterate over users: %w", err)
+	}
+
+	bridge.publish(events.AllUsersLoaded{})
+
+	return nil
 }
 
 // loadUser loads an existing user from the vault.
@@ -387,7 +420,7 @@ func (bridge *Bridge) addNewUser(
 		return nil, err
 	}
 
-	bridge.users[apiUser.ID] = user
+	bridge.users.Set(apiUser.ID, user)
 
 	return user, nil
 }
@@ -417,7 +450,7 @@ func (bridge *Bridge) addExistingUser(
 		return nil, err
 	}
 
-	bridge.users[apiUser.ID] = user
+	bridge.users.Set(apiUser.ID, user)
 
 	return user, nil
 }
@@ -451,37 +484,38 @@ func (bridge *Bridge) addIMAPUser(ctx context.Context, user *user.User) error {
 
 // logoutUser logs the given user out from bridge.
 func (bridge *Bridge) logoutUser(ctx context.Context, userID string) error {
-	user, ok := bridge.users[userID]
-	if !ok {
-		return ErrNoSuchUser
-	}
-
-	if err := bridge.smtpBackend.removeUser(user); err != nil {
-		logrus.WithError(err).Error("Failed to remove user from SMTP backend")
-	}
-
-	for _, gluonID := range user.GetGluonIDs() {
-		if err := bridge.imapServer.RemoveUser(ctx, gluonID, false); err != nil {
-			logrus.WithError(err).Error("Failed to remove IMAP user")
+	if ok, err := bridge.users.GetDeleteErr(userID, func(user *user.User) error {
+		if err := bridge.smtpBackend.removeUser(user); err != nil {
+			logrus.WithError(err).Error("Failed to remove user from SMTP backend")
 		}
-	}
 
-	if err := user.Logout(ctx); err != nil {
-		logrus.WithError(err).Error("Failed to logout user")
-	}
+		for _, gluonID := range user.GetGluonIDs() {
+			if err := bridge.imapServer.RemoveUser(ctx, gluonID, false); err != nil {
+				logrus.WithError(err).Error("Failed to remove IMAP user")
+			}
+		}
 
-	if err := user.Close(); err != nil {
-		logrus.WithError(err).Error("Failed to close user")
-	}
+		if err := user.Logout(ctx); err != nil {
+			logrus.WithError(err).Error("Failed to logout user")
+		}
 
-	delete(bridge.users, userID)
+		if err := user.Close(); err != nil {
+			logrus.WithError(err).Error("Failed to close user")
+		}
+
+		return nil
+	}); !ok {
+		return ErrNoSuchUser
+	} else if err != nil {
+		return fmt.Errorf("failed to delete user: %w", err)
+	}
 
 	return nil
 }
 
 // deleteUser deletes the given user from bridge.
 func (bridge *Bridge) deleteUser(ctx context.Context, userID string) {
-	if user, ok := bridge.users[userID]; ok {
+	if ok := bridge.users.GetDelete(userID, func(user *user.User) {
 		if err := bridge.smtpBackend.removeUser(user); err != nil {
 			logrus.WithError(err).Error("Failed to remove user from SMTP backend")
 		}
@@ -499,13 +533,13 @@ func (bridge *Bridge) deleteUser(ctx context.Context, userID string) {
 		if err := user.Close(); err != nil {
 			logrus.WithError(err).Error("Failed to close user")
 		}
+	}); !ok {
+		logrus.Debug("The bridge user was not connected")
 	}
 
 	if err := bridge.vault.DeleteUser(userID); err != nil {
 		logrus.WithError(err).Error("Failed to delete user from vault")
 	}
-
-	delete(bridge.users, userID)
 }
 
 // getUserInfo returns information about a disconnected user.

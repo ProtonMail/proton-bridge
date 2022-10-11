@@ -2,13 +2,13 @@ package user
 
 import (
 	"context"
-	"crypto/subtle"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/ProtonMail/gluon/imap"
-	"github.com/bradenaw/juniper/xslices"
+	"github.com/ProtonMail/gluon/queue"
+	"github.com/ProtonMail/proton-bridge/v2/internal/safe"
+	"github.com/ProtonMail/proton-bridge/v2/internal/vault"
 	"gitlab.protontech.ch/go/liteapi"
 	"golang.org/x/exp/slices"
 )
@@ -25,27 +25,18 @@ const (
 )
 
 type imapConnector struct {
-	client   *liteapi.Client
-	updateCh <-chan imap.Update
+	*User
 
-	emails   []string
-	password []byte
+	addrID string
 
 	flags, permFlags, attrs imap.FlagSet
 }
 
-func newIMAPConnector(
-	client *liteapi.Client,
-	updateCh <-chan imap.Update,
-	password []byte,
-	emails ...string,
-) *imapConnector {
+func newIMAPConnector(user *User, addrID string) *imapConnector {
 	return &imapConnector{
-		client:   client,
-		updateCh: updateCh,
+		User: user,
 
-		emails:   emails,
-		password: password,
+		addrID: addrID,
 
 		flags:     defaultFlags,
 		permFlags: defaultPermanentFlags,
@@ -55,13 +46,16 @@ func newIMAPConnector(
 
 // Authorize returns whether the given username/password combination are valid for this connector.
 func (conn *imapConnector) Authorize(username string, password []byte) bool {
-	if subtle.ConstantTimeCompare(conn.password, password) != 1 {
+	addrID, err := conn.checkAuth(username, password)
+	if err != nil {
 		return false
 	}
 
-	return xslices.IndexFunc(conn.emails, func(address string) bool {
-		return strings.EqualFold(address, username)
-	}) >= 0
+	if conn.vault.AddressMode() == vault.SplitMode && addrID != conn.addrID {
+		return false
+	}
+
+	return true
 }
 
 // GetLabel returns information about the label with the given ID.
@@ -246,7 +240,14 @@ func (conn *imapConnector) MarkMessagesFlagged(ctx context.Context, messageIDs [
 // GetUpdates returns a stream of updates that the gluon server should apply.
 // It is recommended that the returned channel is buffered with at least constants.ChannelBufferCount.
 func (conn *imapConnector) GetUpdates() <-chan imap.Update {
-	return conn.updateCh
+	updateCh, ok := safe.MapGetRet(conn.updateCh, conn.addrID, func(updateCh *queue.QueuedChannel[imap.Update]) <-chan imap.Update {
+		return updateCh.GetChannel()
+	})
+	if !ok {
+		panic(fmt.Sprintf("update channel for %q not found", conn.addrID))
+	}
+
+	return updateCh
 }
 
 // GetUIDValidity returns the default UID validity for this user.

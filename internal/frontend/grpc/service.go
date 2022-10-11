@@ -64,6 +64,7 @@ type Service struct { // nolint:structcheck
 	panicHandler   *crash.Handler
 	restarter      *restarter.Restarter
 	bridge         *bridge.Bridge
+	eventCh        <-chan events.Event
 	newVersionInfo updater.VersionInfo
 
 	authClient *liteapi.Client
@@ -84,6 +85,7 @@ func NewService(
 	restarter *restarter.Restarter,
 	locations *locations.Locations,
 	bridge *bridge.Bridge,
+	eventCh <-chan events.Event,
 	showOnStartup bool,
 ) (*Service, error) {
 	tlsConfig, certPEM, err := newTLSConfig()
@@ -115,6 +117,7 @@ func NewService(
 		panicHandler: panicHandler,
 		restarter:    restarter,
 		bridge:       bridge,
+		eventCh:      eventCh,
 
 		log:                logrus.WithField("pkg", "grpc"),
 		initializing:       sync.WaitGroup{},
@@ -200,9 +203,6 @@ func (s *Service) WaitUntilFrontendIsReady() {
 }
 
 func (s *Service) watchEvents() {
-	eventCh, done := s.bridge.GetEvents()
-	defer done()
-
 	// TODO: Better error events.
 	for _, err := range s.bridge.GetErrors() {
 		switch {
@@ -220,7 +220,7 @@ func (s *Service) watchEvents() {
 		}
 	}
 
-	for event := range eventCh {
+	for event := range s.eventCh {
 		switch event := event.(type) {
 		case events.ConnStatusUp:
 			_ = s.SendEvent(NewInternetStatusEvent(true))
@@ -241,6 +241,9 @@ func (s *Service) watchEvents() {
 			_ = s.SendEvent(NewMailAddressChangeLogoutEvent(event.Email))
 
 		case events.UserChanged:
+			_ = s.SendEvent(NewUserChangedEvent(event.UserID))
+
+		case events.UserLoaded:
 			_ = s.SendEvent(NewUserChangedEvent(event.UserID))
 
 		case events.UserLoggedIn:

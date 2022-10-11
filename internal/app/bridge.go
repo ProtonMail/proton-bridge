@@ -12,6 +12,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/v2/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/v2/internal/constants"
 	"github.com/ProtonMail/proton-bridge/v2/internal/dialer"
+	"github.com/ProtonMail/proton-bridge/v2/internal/events"
 	"github.com/ProtonMail/proton-bridge/v2/internal/locations"
 	"github.com/ProtonMail/proton-bridge/v2/internal/sentry"
 	"github.com/ProtonMail/proton-bridge/v2/internal/updater"
@@ -32,7 +33,7 @@ func withBridge(
 	reporter *sentry.Reporter,
 	vault *vault.Vault,
 	cookieJar http.CookieJar,
-	fn func(*bridge.Bridge) error,
+	fn func(*bridge.Bridge, <-chan events.Event) error,
 ) error {
 	// Get the current bridge version.
 	version, err := semver.NewVersion(constants.Version)
@@ -64,7 +65,7 @@ func withBridge(
 	}
 
 	// Create a new bridge.
-	bridge, err := bridge.New(
+	bridge, eventCh, err := bridge.New(
 		// The app stuff.
 		locations,
 		vault,
@@ -96,7 +97,7 @@ func withBridge(
 		}
 	}()
 
-	return fn(bridge)
+	return fn(bridge, eventCh)
 }
 
 func newAutostarter() (*autostart.App, error) {

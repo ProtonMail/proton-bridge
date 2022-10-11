@@ -103,6 +103,10 @@ type SyncStatus struct {
 	LastMessageID string
 }
 
+func (status SyncStatus) IsComplete() bool {
+	return status.HasLabels && status.HasMessages
+}
+
 func newDefaultUser(userID, username, authUID, authRef string, keyPass []byte) UserData {
 	return UserData{
 		UserID:   userID,

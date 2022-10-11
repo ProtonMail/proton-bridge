@@ -13,37 +13,57 @@ func NewValue[T any](data T) *Value[T] {
 	}
 }
 
-func (s *Value[T]) Get(fn func(data T)) {
+func (s *Value[T]) Load(fn func(data T)) {
 	s.lock.RLock()
 	defer s.lock.RUnlock()
 
 	fn(s.data)
 }
 
-func (s *Value[T]) GetErr(fn func(data T) error) error {
-	s.lock.RLock()
-	defer s.lock.RUnlock()
+func (s *Value[T]) LoadErr(fn func(data T) error) error {
+	var err error
 
-	return fn(s.data)
+	s.Load(func(data T) {
+		err = fn(data)
+	})
+
+	return err
 }
 
-func (s *Value[T]) Set(data T) {
+func (s *Value[T]) Save(data T) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
 	s.data = data
 }
 
-func GetType[T, Ret any](s *Value[T], fn func(data T) Ret) Ret {
-	s.lock.RLock()
-	defer s.lock.RUnlock()
+func (s *Value[T]) Mod(fn func(data *T)) {
+	s.lock.Lock()
+	defer s.lock.Unlock()
 
-	return fn(s.data)
+	fn(&s.data)
 }
 
-func GetTypeErr[T, Ret any](s *Value[T], fn func(data T) (Ret, error)) (Ret, error) {
-	s.lock.RLock()
-	defer s.lock.RUnlock()
+func LoadRet[T, Ret any](s *Value[T], fn func(data T) Ret) Ret {
+	var ret Ret
 
-	return fn(s.data)
+	s.Load(func(data T) {
+		ret = fn(data)
+	})
+
+	return ret
+}
+
+func LoadRetErr[T, Ret any](s *Value[T], fn func(data T) (Ret, error)) (Ret, error) {
+	var ret Ret
+
+	err := s.LoadErr(func(data T) error {
+		var err error
+
+		ret, err = fn(data)
+
+		return err
+	})
+
+	return ret, err
 }

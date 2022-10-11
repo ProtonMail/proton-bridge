@@ -1,13 +1,10 @@
 package bridge
 
 import (
-	"crypto/subtle"
-	"strings"
 	"sync"
 
 	"github.com/ProtonMail/proton-bridge/v2/internal/user"
 	"github.com/emersion/go-smtp"
-	"golang.org/x/exp/slices"
 )
 
 type smtpBackend struct {
@@ -26,13 +23,12 @@ func (backend *smtpBackend) Login(state *smtp.ConnectionState, email, password s
 	defer backend.usersLock.RUnlock()
 
 	for _, user := range backend.users {
-		if subtle.ConstantTimeCompare(user.BridgePass(), []byte(password)) != 1 {
+		session, err := user.NewSMTPSession(email, []byte(password))
+		if err != nil {
 			continue
 		}
 
-		if email := strings.ToLower(email); slices.Contains(user.Emails(), email) {
-			return user.NewSMTPSession(email)
-		}
+		return session, nil
 	}
 
 	return nil, ErrNoSuchUser

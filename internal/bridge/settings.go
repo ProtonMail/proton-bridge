@@ -6,6 +6,7 @@ import (
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/ProtonMail/proton-bridge/v2/internal/updater"
+	"github.com/ProtonMail/proton-bridge/v2/internal/user"
 	"github.com/ProtonMail/proton-bridge/v2/internal/vault"
 )
 
@@ -119,10 +120,10 @@ func (bridge *Bridge) SetGluonDir(ctx context.Context, newGluonDir string) error
 
 	bridge.imapServer = imapServer
 
-	for _, user := range bridge.users {
-		if err := bridge.addIMAPUser(ctx, user); err != nil {
-			return fmt.Errorf("failed to add IMAP user: %w", err)
-		}
+	if err := bridge.users.IterValuesErr(func(user *user.User) error {
+		return bridge.addIMAPUser(ctx, user)
+	}); err != nil {
+		return fmt.Errorf("failed to add users to new IMAP server: %w", err)
 	}
 
 	if err := bridge.serveIMAP(); err != nil {

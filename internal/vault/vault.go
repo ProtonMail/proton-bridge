@@ -10,15 +10,18 @@ import (
 	"math/rand"
 	"os"
 	"path/filepath"
+	"sync"
 
 	"github.com/ProtonMail/proton-bridge/v2/internal/certs"
 	"github.com/bradenaw/juniper/xslices"
 )
 
+// Vault is an encrypted data vault that stores bridge and user data.
 type Vault struct {
 	path string
 	enc  []byte
 	gcm  cipher.AEAD
+	lock sync.RWMutex
 }
 
 // New constructs a new encrypted data vault at the given filepath using the given encryption key.
@@ -150,6 +153,9 @@ func newVault(path, gluonDir string, gcm cipher.AEAD) (*Vault, bool, error) {
 }
 
 func (vault *Vault) get() Data {
+	vault.lock.RLock()
+	defer vault.lock.RUnlock()
+
 	dec, err := decrypt(vault.gcm, vault.enc)
 	if err != nil {
 		panic(err)
@@ -165,20 +171,28 @@ func (vault *Vault) get() Data {
 }
 
 func (vault *Vault) mod(fn func(data *Data)) error {
-	data := vault.get()
+	vault.lock.Lock()
+	defer vault.lock.Unlock()
 
-	fn(&data)
-
-	return vault.set(data)
-}
-
-func (vault *Vault) set(data Data) error {
-	dec, err := json.Marshal(data)
+	dec, err := decrypt(vault.gcm, vault.enc)
 	if err != nil {
 		return err
 	}
 
-	enc, err := encrypt(vault.gcm, dec)
+	var data Data
+
+	if err := json.Unmarshal(dec, &data); err != nil {
+		return err
+	}
+
+	fn(&data)
+
+	mod, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+
+	enc, err := encrypt(vault.gcm, mod)
 	if err != nil {
 		return err
 	}

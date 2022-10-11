@@ -2,6 +2,7 @@ package try
 
 import (
 	"fmt"
+	"sync"
 
 	"github.com/sirupsen/logrus"
 )
@@ -46,4 +47,32 @@ func catch(handlers ...func() error) {
 			logrus.WithError(err).Error("Failed to handle error")
 		}
 	}
+}
+
+type Group struct {
+	mu sync.Mutex
+}
+
+func (wg *Group) GoTry(fn func(bool)) {
+	if wg.mu.TryLock() {
+		go func() {
+			defer wg.mu.Unlock()
+			fn(true)
+		}()
+	} else {
+		go fn(false)
+	}
+}
+
+func (wg *Group) Lock() {
+	wg.mu.Lock()
+}
+
+func (wg *Group) Unlock() {
+	wg.mu.Unlock()
+}
+
+func (wg *Group) Wait() {
+	wg.mu.Lock()
+	defer wg.mu.Unlock()
 }

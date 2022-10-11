@@ -38,7 +38,7 @@ type frontendCLI struct {
 }
 
 // New returns a new CLI frontend configured with the given options.
-func New(bridge *bridge.Bridge) *frontendCLI {
+func New(bridge *bridge.Bridge, eventCh <-chan events.Event) *frontendCLI {
 	fe := &frontendCLI{
 		Shell:  ishell.New(),
 		bridge: bridge,
@@ -253,15 +253,12 @@ func New(bridge *bridge.Bridge) *frontendCLI {
 		Completer: fe.completeUsernames,
 	})
 
-	go fe.watchEvents()
+	go fe.watchEvents(eventCh)
 
 	return fe
 }
 
-func (f *frontendCLI) watchEvents() {
-	eventCh, done := f.bridge.GetEvents()
-	defer done()
-
+func (f *frontendCLI) watchEvents(eventCh <-chan events.Event) {
 	// TODO: Better error events.
 	for _, err := range f.bridge.GetErrors() {
 		switch {

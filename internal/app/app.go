@@ -10,6 +10,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/v2/internal/constants"
 	"github.com/ProtonMail/proton-bridge/v2/internal/cookies"
 	"github.com/ProtonMail/proton-bridge/v2/internal/crash"
+	"github.com/ProtonMail/proton-bridge/v2/internal/events"
 	"github.com/ProtonMail/proton-bridge/v2/internal/focus"
 	bridgeCLI "github.com/ProtonMail/proton-bridge/v2/internal/frontend/cli"
 	"github.com/ProtonMail/proton-bridge/v2/internal/frontend/grpc"
@@ -23,6 +24,7 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
+// Visible flags
 const (
 	flagCPUProfile      = "cpu-prof"
 	flagCPUProfileShort = "p"
@@ -40,8 +42,10 @@ const (
 
 	flagLogIMAP = "log-imap"
 	flagLogSMTP = "log-smtp"
+)
 
-	// Hidden flags
+// Hidden flags
+const (
 	flagLauncher = "launcher"
 	flagNoWindow = "no-window"
 )
@@ -137,7 +141,7 @@ func run(c *cli.Context) error {
 						// Load the cookies from the vault.
 						return withCookieJar(vault, func(cookieJar http.CookieJar) error {
 							// Create a new bridge instance.
-							return withBridge(c, locations, identifier, reporter, vault, cookieJar, func(b *bridge.Bridge) error {
+							return withBridge(c, locations, identifier, reporter, vault, cookieJar, func(b *bridge.Bridge, eventCh <-chan events.Event) error {
 								if insecure {
 									logrus.Warn("The vault key could not be retrieved; the vault will not be encrypted")
 									b.PushError(bridge.ErrVaultInsecure)
@@ -150,13 +154,13 @@ func run(c *cli.Context) error {
 
 								switch {
 								case c.Bool(flagCLI):
-									return bridgeCLI.New(b).Loop()
+									return bridgeCLI.New(b, eventCh).Loop()
 
 								case c.Bool(flagNonInteractive):
 									select {}
 
 								default:
-									service, err := grpc.NewService(crashHandler, restarter, locations, b, !c.Bool(flagNoWindow))
+									service, err := grpc.NewService(crashHandler, restarter, locations, b, eventCh, !c.Bool(flagNoWindow))
 									if err != nil {
 										return fmt.Errorf("could not create service: %w", err)
 									}

@@ -136,7 +136,7 @@ func TestBridge_UserAgent(t *testing.T) {
 
 func TestBridge_Cookies(t *testing.T) {
 	withTLSEnv(t, func(ctx context.Context, s *server.Server, netCtl *liteapi.NetCtl, locator bridge.Locator, vaultKey []byte) {
-		sessionIDs := safe.NewSet[string]()
+		sessionIDs := safe.NewValue([]string{})
 
 		// Save any session IDs we use.
 		s.AddCallWatcher(func(call server.Call) {
@@ -145,7 +145,9 @@ func TestBridge_Cookies(t *testing.T) {
 				return
 			}
 
-			sessionIDs.Insert(cookie.Value)
+			sessionIDs.Mod(func(sessionIDs *[]string) {
+				*sessionIDs = append(*sessionIDs, cookie.Value)
+			})
 		})
 
 		// Start bridge and add a user so that API assigns us a session ID via cookie.
@@ -160,8 +162,8 @@ func TestBridge_Cookies(t *testing.T) {
 		})
 
 		// We should have used just one session ID.
-		sessionIDs.Values(func(sessionIDs []string) {
-			require.Len(t, sessionIDs, 1)
+		sessionIDs.Load(func(sessionIDs []string) {
+			require.Len(t, xslices.Unique(sessionIDs), 1)
 		})
 	})
 }
@@ -405,7 +407,7 @@ func withBridge(
 	defer func() { require.NoError(t, cookieJar.PersistCookies()) }()
 
 	// Create a new bridge.
-	bridge, err := bridge.New(
+	bridge, eventCh, err := bridge.New(
 		// The app stuff.
 		locator,
 		vault,
@@ -428,11 +430,25 @@ func withBridge(
 	)
 	require.NoError(t, err)
 
+	// Wait for bridge to finish loading users.
+	waitForEvent(t, eventCh, events.AllUsersLoaded{})
+
 	// Close the bridge when done.
 	defer func() { require.NoError(t, bridge.Close(ctx)) }()
 
 	// Use the bridge.
 	tests(bridge, mocks)
+}
+
+func waitForEvent[T any](t *testing.T, eventCh <-chan events.Event, wantEvent T) {
+	t.Helper()
+
+	for event := range eventCh {
+		switch event.(type) {
+		case T:
+			return
+		}
+	}
 }
 
 // must is a helper function that panics on error.

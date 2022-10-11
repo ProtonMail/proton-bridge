@@ -8,7 +8,6 @@ import (
 	"github.com/ProtonMail/gluon/queue"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/ProtonMail/proton-bridge/v2/internal/events"
-	"github.com/ProtonMail/proton-bridge/v2/internal/safe"
 	"github.com/ProtonMail/proton-bridge/v2/internal/vault"
 	"github.com/bradenaw/juniper/xslices"
 	"gitlab.protontech.ch/go/liteapi"
@@ -24,12 +23,6 @@ func (user *User) handleAPIEvent(ctx context.Context, event liteapi.Event) error
 
 	if len(event.Addresses) > 0 {
 		if err := user.handleAddressEvents(ctx, event.Addresses); err != nil {
-			return err
-		}
-	}
-
-	if event.MailSettings != nil {
-		if err := user.handleMailSettingsEvent(ctx, *event.MailSettings); err != nil {
 			return err
 		}
 	}
@@ -51,14 +44,7 @@ func (user *User) handleAPIEvent(ctx context.Context, event liteapi.Event) error
 
 // handleUserEvent handles the given user event.
 func (user *User) handleUserEvent(ctx context.Context, userEvent liteapi.User) error {
-	userKR, err := userEvent.Keys.Unlock(user.vault.KeyPass(), nil)
-	if err != nil {
-		return err
-	}
-
-	user.apiUser.Set(userEvent)
-
-	user.userKR.Set(userKR)
+	user.apiUser.Save(userEvent)
 
 	user.eventCh.Enqueue(events.UserChanged{
 		UserID: user.ID(),
@@ -93,21 +79,17 @@ func (user *User) handleAddressEvents(ctx context.Context, addressEvents []litea
 }
 
 func (user *User) handleCreateAddressEvent(ctx context.Context, event liteapi.AddressEvent) error {
-	addrKR, err := safe.GetTypeErr(user.userKR, func(userKR *crypto.KeyRing) (*crypto.KeyRing, error) {
-		return event.Address.Keys.Unlock(user.vault.KeyPass(), userKR)
-	})
-	if err != nil {
-		return fmt.Errorf("failed to unlock address keys: %w", err)
+	user.apiAddrs.Set(event.Address.ID, event.Address)
+
+	switch user.vault.AddressMode() {
+	case vault.CombinedMode:
+		user.apiAddrs.Index(0, func(addrID string, _ liteapi.Address) {
+			user.updateCh.SetFrom(event.Address.ID, addrID)
+		})
+
+	case vault.SplitMode:
+		user.updateCh.Set(event.Address.ID, queue.NewQueuedChannel[imap.Update](0, 0))
 	}
-
-	apiAddrs, err := user.client.GetAddresses(ctx)
-	if err != nil {
-		return fmt.Errorf("failed to get addresses: %w", err)
-	}
-
-	user.apiAddrs.Set(apiAddrs)
-
-	user.addrKRs.Set(event.Address.ID, addrKR)
 
 	user.eventCh.Enqueue(events.UserAddressCreated{
 		UserID:    user.ID(),
@@ -116,9 +98,11 @@ func (user *User) handleCreateAddressEvent(ctx context.Context, event liteapi.Ad
 	})
 
 	if user.vault.AddressMode() == vault.SplitMode {
-		user.updateCh[event.Address.ID] = queue.NewQueuedChannel[imap.Update](0, 0)
-
-		if err := syncLabels(ctx, user.client, user.updateCh[event.Address.ID]); err != nil {
+		if ok, err := user.updateCh.GetErr(event.Address.ID, func(updateCh *queue.QueuedChannel[imap.Update]) error {
+			return syncLabels(ctx, user.client, updateCh)
+		}); !ok {
+			return fmt.Errorf("no such address %q", event.Address.ID)
+		} else if err != nil {
 			return fmt.Errorf("failed to sync labels to new address: %w", err)
 		}
 	}
@@ -127,21 +111,7 @@ func (user *User) handleCreateAddressEvent(ctx context.Context, event liteapi.Ad
 }
 
 func (user *User) handleUpdateAddressEvent(ctx context.Context, event liteapi.AddressEvent) error {
-	addrKR, err := safe.GetTypeErr(user.userKR, func(userKR *crypto.KeyRing) (*crypto.KeyRing, error) {
-		return event.Address.Keys.Unlock(user.vault.KeyPass(), userKR)
-	})
-	if err != nil {
-		return fmt.Errorf("failed to unlock address keys: %w", err)
-	}
-
-	apiAddrs, err := user.client.GetAddresses(ctx)
-	if err != nil {
-		return fmt.Errorf("failed to get addresses: %w", err)
-	}
-
-	user.apiAddrs.Set(apiAddrs)
-
-	user.addrKRs.Set(event.Address.ID, addrKR)
+	user.apiAddrs.Set(event.Address.ID, event.Address)
 
 	user.eventCh.Enqueue(events.UserAddressUpdated{
 		UserID:    user.ID(),
@@ -153,25 +123,20 @@ func (user *User) handleUpdateAddressEvent(ctx context.Context, event liteapi.Ad
 }
 
 func (user *User) handleDeleteAddressEvent(ctx context.Context, event liteapi.AddressEvent) error {
-	email, err := safe.GetSliceErr(user.apiAddrs, func(apiAddrs []liteapi.Address) (string, error) {
-		return getAddrEmail(apiAddrs, event.ID)
-	})
-	if err != nil {
-		return fmt.Errorf("failed to get address email: %w", err)
+	var email string
+
+	if ok := user.apiAddrs.GetDelete(event.ID, func(apiAddr liteapi.Address) {
+		email = apiAddr.Email
+	}); !ok {
+		return fmt.Errorf("no such address %q", event.ID)
 	}
 
-	apiAddrs, err := user.client.GetAddresses(ctx)
-	if err != nil {
-		return fmt.Errorf("failed to get addresses: %w", err)
-	}
-
-	user.apiAddrs.Set(apiAddrs)
-
-	user.addrKRs.Delete(event.ID)
-
-	if len(user.updateCh) > 1 {
-		user.updateCh[event.ID].Close()
-		delete(user.updateCh, event.ID)
+	if ok := user.updateCh.GetDelete(event.ID, func(updateCh *queue.QueuedChannel[imap.Update]) {
+		if user.vault.AddressMode() == vault.SplitMode {
+			updateCh.Close()
+		}
+	}); !ok {
+		return fmt.Errorf("no such address %q", event.ID)
 	}
 
 	user.eventCh.Enqueue(events.UserAddressDeleted{
@@ -179,13 +144,6 @@ func (user *User) handleDeleteAddressEvent(ctx context.Context, event liteapi.Ad
 		AddressID: event.ID,
 		Email:     email,
 	})
-
-	return nil
-}
-
-// handleMailSettingsEvent handles the given mail settings event.
-func (user *User) handleMailSettingsEvent(ctx context.Context, mailSettingsEvent liteapi.MailSettings) error {
-	user.settings.Set(mailSettingsEvent)
 
 	return nil
 }
@@ -215,25 +173,25 @@ func (user *User) handleLabelEvents(ctx context.Context, labelEvents []liteapi.L
 }
 
 func (user *User) handleCreateLabelEvent(ctx context.Context, event liteapi.LabelEvent) error {
-	for _, updateCh := range user.updateCh {
+	user.updateCh.IterValues(func(updateCh *queue.QueuedChannel[imap.Update]) {
 		updateCh.Enqueue(newMailboxCreatedUpdate(imap.LabelID(event.ID), getMailboxName(event.Label)))
-	}
+	})
 
 	return nil
 }
 
 func (user *User) handleUpdateLabelEvent(ctx context.Context, event liteapi.LabelEvent) error {
-	for _, updateCh := range user.updateCh {
+	user.updateCh.IterValues(func(updateCh *queue.QueuedChannel[imap.Update]) {
 		updateCh.Enqueue(imap.NewMailboxUpdated(imap.LabelID(event.ID), getMailboxName(event.Label)))
-	}
+	})
 
 	return nil
 }
 
 func (user *User) handleDeleteLabelEvent(ctx context.Context, event liteapi.LabelEvent) error {
-	for _, updateCh := range user.updateCh {
+	user.updateCh.IterValues(func(updateCh *queue.QueuedChannel[imap.Update]) {
 		updateCh.Enqueue(imap.NewMailboxDeleted(imap.LabelID(event.ID)))
-	}
+	})
 
 	return nil
 }
@@ -269,29 +227,18 @@ func (user *User) handleCreateMessageEvent(ctx context.Context, event liteapi.Me
 		return fmt.Errorf("failed to get full message: %w", err)
 	}
 
-	buildRes, err := safe.GetMapErr(
-		user.addrKRs,
-		full.AddressID,
-		func(addrKR *crypto.KeyRing) (*buildRes, error) {
-			return buildRFC822(ctx, full, addrKR)
-		},
-		func() (*buildRes, error) {
-			return nil, fmt.Errorf("address keyring not found")
-		},
-	)
-	if err != nil {
-		return fmt.Errorf("failed to build RFC822: %w", err)
-	}
+	return user.withAddrKR(event.Message.AddressID, func(addrKR *crypto.KeyRing) error {
+		buildRes, err := buildRFC822(ctx, full, addrKR)
+		if err != nil {
+			return fmt.Errorf("failed to build RFC822 message: %w", err)
+		}
 
-	if len(user.updateCh) > 1 {
-		user.updateCh[buildRes.addressID].Enqueue(imap.NewMessagesCreated(buildRes.update))
-	} else {
-		user.apiAddrs.Get(func(apiAddrs []liteapi.Address) {
-			user.updateCh[apiAddrs[0].ID].Enqueue(imap.NewMessagesCreated(buildRes.update))
+		user.updateCh.Get(full.AddressID, func(updateCh *queue.QueuedChannel[imap.Update]) {
+			updateCh.Enqueue(imap.NewMessagesCreated(buildRes.update))
 		})
-	}
 
-	return nil
+		return nil
+	})
 }
 
 func (user *User) handleUpdateMessageEvent(ctx context.Context, event liteapi.MessageEvent) error {
@@ -302,13 +249,9 @@ func (user *User) handleUpdateMessageEvent(ctx context.Context, event liteapi.Me
 		event.Message.Starred(),
 	)
 
-	if len(user.updateCh) > 1 {
-		user.updateCh[event.Message.AddressID].Enqueue(update)
-	} else {
-		user.apiAddrs.Get(func(apiAddrs []liteapi.Address) {
-			user.updateCh[apiAddrs[0].ID].Enqueue(update)
-		})
-	}
+	user.updateCh.Get(event.Message.AddressID, func(updateCh *queue.QueuedChannel[imap.Update]) {
+		updateCh.Enqueue(update)
+	})
 
 	return nil
 }
