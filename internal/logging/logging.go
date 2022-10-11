@@ -97,7 +97,7 @@ func setLevel(level string) error {
 
 	// The hook to print panic, fatal and error to stderr is always
 	// added. We want to avoid log duplicates by replacing all hooks.
-	if logrus.GetLevel() == logrus.DebugLevel || logrus.GetLevel() == logrus.TraceLevel {
+	if logrus.GetLevel() == logrus.TraceLevel {
 		_ = logrus.StandardLogger().ReplaceHooks(logrus.LevelHooks{})
 		logrus.SetOutput(os.Stderr)
 	}
