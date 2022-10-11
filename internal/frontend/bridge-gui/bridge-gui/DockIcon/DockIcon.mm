@@ -15,8 +15,14 @@
 // You should have received a copy of the GNU General Public License
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
-
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wavailability"
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+#pragma clang diagnostic ignored "-Wnullability-completeness"
+#pragma clang diagnostic ignored "-Wdeprecated-anon-enum-enum-conversion"
 #include <Cocoa/Cocoa.h>
+#pragma clang diagnostic pop
+
 #include "DockIcon.h"
 
 
