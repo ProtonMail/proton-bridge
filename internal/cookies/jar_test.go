@@ -21,6 +21,7 @@ import (
 	"errors"
 	"io/fs"
 	"net/http"
+	"net/http/cookiejar"
 	"net/http/httptest"
 	"os"
 	"path/filepath"
@@ -138,10 +139,13 @@ type testCookie struct {
 }
 
 func getClientWithJar(t *testing.T, persister Persister) (*http.Client, *Jar) {
-	jar, err := NewCookieJar(persister)
+	jar, err := cookiejar.New(nil)
 	require.NoError(t, err)
 
-	return &http.Client{Jar: jar}, jar
+	wrapper, err := NewCookieJar(jar, persister)
+	require.NoError(t, err)
+
+	return &http.Client{Jar: wrapper}, wrapper
 }
 
 func getTestServer(t *testing.T, wantCookies []testCookie) *httptest.Server {

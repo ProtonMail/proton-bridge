@@ -14,7 +14,6 @@ import (
 	"github.com/ProtonMail/gluon"
 	"github.com/ProtonMail/gluon/watcher"
 	"github.com/ProtonMail/proton-bridge/v2/internal/constants"
-	"github.com/ProtonMail/proton-bridge/v2/internal/cookies"
 	"github.com/ProtonMail/proton-bridge/v2/internal/events"
 	"github.com/ProtonMail/proton-bridge/v2/internal/focus"
 	"github.com/ProtonMail/proton-bridge/v2/internal/user"
@@ -35,7 +34,6 @@ type Bridge struct {
 
 	// api manages user API clients.
 	api        *liteapi.Manager
-	cookieJar  *cookies.Jar
 	proxyCtl   ProxyController
 	identifier Identifier
 
@@ -82,24 +80,22 @@ type Bridge struct {
 
 // New creates a new bridge.
 func New(
-	apiURL string, // the URL of the API to use
 	locator Locator, // the locator to provide paths to store data
 	vault *vault.Vault, // the bridge's encrypted data store
+	autostarter Autostarter, // the autostarter to manage autostart settings
+	updater Updater, // the updater to fetch and install updates
+	curVersion *semver.Version, // the current version of the bridge
+
+	apiURL string, // the URL of the API to use
+	cookieJar http.CookieJar, // the cookie jar to use
 	identifier Identifier, // the identifier to keep track of the user agent
 	tlsReporter TLSReporter, // the TLS reporter to report TLS errors
 	roundTripper http.RoundTripper, // the round tripper to use for API requests
 	proxyCtl ProxyController, // the DoH controller
-	autostarter Autostarter, // the autostarter to manage autostart settings
-	updater Updater, // the updater to fetch and install updates
-	curVersion *semver.Version, // the current version of the bridge
+
 	logIMAPClient, logIMAPServer bool, // whether to log IMAP client/server activity
 	logSMTP bool, // whether to log SMTP activity
 ) (*Bridge, error) {
-	cookieJar, err := cookies.NewCookieJar(vault)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create cookie jar: %w", err)
-	}
-
 	api := liteapi.New(
 		liteapi.WithHostURL(apiURL),
 		liteapi.WithAppVersion(constants.AppVersion),
@@ -133,19 +129,20 @@ func New(
 	}
 
 	bridge := newBridge(
+		locator,
 		vault,
+		autostarter,
+		updater,
+		curVersion,
+
 		api,
-		cookieJar,
-		proxyCtl,
 		identifier,
+		proxyCtl,
+
 		tlsConfig,
 		imapServer,
 		smtpBackend,
-		updater,
-		curVersion,
 		focusService,
-		autostarter,
-		locator,
 		logIMAPClient,
 		logIMAPServer,
 		logSMTP,
@@ -159,19 +156,20 @@ func New(
 }
 
 func newBridge(
+	locator Locator,
 	vault *vault.Vault,
+	autostarter Autostarter,
+	updater Updater,
+	curVersion *semver.Version,
+
 	api *liteapi.Manager,
-	cookieJar *cookies.Jar,
-	proxyCtl ProxyController,
 	identifier Identifier,
+	proxyCtl ProxyController,
+
 	tlsConfig *tls.Config,
 	imapServer *gluon.Server,
 	smtpBackend *smtpBackend,
-	updater Updater,
-	curVersion *semver.Version,
 	focusService *focus.Service,
-	autostarter Autostarter,
-	locator Locator,
 	logIMAPClient, logIMAPServer, logSMTP bool,
 ) *Bridge {
 	return &Bridge{
@@ -179,7 +177,6 @@ func newBridge(
 		users: make(map[string]*user.User),
 
 		api:        api,
-		cookieJar:  cookieJar,
 		proxyCtl:   proxyCtl,
 		identifier: identifier,
 
@@ -306,11 +303,6 @@ func (bridge *Bridge) Close(ctx context.Context) error {
 		if err := user.Close(); err != nil {
 			logrus.WithError(err).Error("Failed to close user")
 		}
-	}
-
-	// Persist the cookies.
-	if err := bridge.cookieJar.PersistCookies(); err != nil {
-		logrus.WithError(err).Error("Failed to persist cookies")
 	}
 
 	// Close the focus service.

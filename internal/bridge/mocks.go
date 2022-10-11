@@ -1,6 +1,8 @@
 package bridge
 
 import (
+	"net/http"
+	"net/url"
 	"os"
 	"testing"
 
@@ -39,6 +41,24 @@ func NewMocks(tb testing.TB, version, minAuto *semver.Version) *Mocks {
 
 func (mocks *Mocks) Close() {
 	close(mocks.TLSIssueCh)
+}
+
+type TestCookieJar struct {
+	cookies map[string][]*http.Cookie
+}
+
+func NewTestCookieJar() *TestCookieJar {
+	return &TestCookieJar{
+		cookies: make(map[string][]*http.Cookie),
+	}
+}
+
+func (j *TestCookieJar) SetCookies(u *url.URL, cookies []*http.Cookie) {
+	j.cookies[u.Host] = cookies
+}
+
+func (j *TestCookieJar) Cookies(u *url.URL) []*http.Cookie {
+	return j.cookies[u.Host]
 }
 
 type TestLocationsProvider struct {

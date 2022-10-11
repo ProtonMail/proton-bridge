@@ -4,8 +4,10 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	"net/http/cookiejar"
 
 	"github.com/ProtonMail/proton-bridge/v2/internal/bridge"
+	"github.com/ProtonMail/proton-bridge/v2/internal/cookies"
 	"github.com/ProtonMail/proton-bridge/v2/internal/events"
 	"github.com/ProtonMail/proton-bridge/v2/internal/useragent"
 	"github.com/ProtonMail/proton-bridge/v2/internal/vault"
@@ -36,18 +38,31 @@ func (t *testCtx) startBridge() error {
 		return fmt.Errorf("vault is corrupt")
 	}
 
+	jar, err := cookiejar.New(nil)
+	if err != nil {
+		return err
+	}
+
+	persister, err := cookies.NewCookieJar(jar, vault)
+	if err != nil {
+		return err
+	}
+
 	// Create the bridge.
 	bridge, err := bridge.New(
-		t.api.GetHostURL(),
 		t.locator,
 		vault,
+		t.mocks.Autostarter,
+		t.mocks.Updater,
+		t.version,
+
+		t.api.GetHostURL(),
+		persister,
 		useragent.New(),
 		t.mocks.TLSReporter,
 		liteapi.NewDialer(t.netCtl, &tls.Config{InsecureSkipVerify: true}).GetRoundTripper(),
 		t.mocks.ProxyCtl,
-		t.mocks.Autostarter,
-		t.mocks.Updater,
-		t.version,
+
 		false,
 		false,
 		false,

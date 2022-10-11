@@ -22,7 +22,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"net/http/cookiejar"
 	"net/url"
 	"sync"
 	"time"
@@ -38,18 +37,14 @@ type Persister interface {
 // Jar implements http.CookieJar by wrapping the standard library's cookiejar.Jar.
 // The jar uses a pantry to load cookies at startup and save cookies when set.
 type Jar struct {
-	jar       *cookiejar.Jar
+	jar http.CookieJar
+
 	persister Persister
 	cookies   cookiesByHost
-	locker    sync.Locker
+	locker    sync.RWMutex
 }
 
-func NewCookieJar(persister Persister) (*Jar, error) {
-	jar, err := cookiejar.New(nil)
-	if err != nil {
-		return nil, err
-	}
-
+func NewCookieJar(jar http.CookieJar, persister Persister) (*Jar, error) {
 	cookiesByHost, err := loadCookies(persister)
 	if err != nil {
 		return nil, err
@@ -65,10 +60,10 @@ func NewCookieJar(persister Persister) (*Jar, error) {
 	}
 
 	return &Jar{
-		jar:       jar,
+		jar: jar,
+
 		persister: persister,
 		cookies:   cookiesByHost,
-		locker:    &sync.Mutex{},
 	}, nil
 }
 
@@ -88,16 +83,16 @@ func (j *Jar) SetCookies(u *url.URL, cookies []*http.Cookie) {
 }
 
 func (j *Jar) Cookies(u *url.URL) []*http.Cookie {
-	j.locker.Lock()
-	defer j.locker.Unlock()
+	j.locker.RLock()
+	defer j.locker.RUnlock()
 
 	return j.jar.Cookies(u)
 }
 
 // PersistCookies persists the cookies to disk.
 func (j *Jar) PersistCookies() error {
-	j.locker.Lock()
-	defer j.locker.Unlock()
+	j.locker.RLock()
+	defer j.locker.RUnlock()
 
 	rawCookies, err := json.Marshal(j.cookies)
 	if err != nil {

@@ -12,6 +12,7 @@ import (
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/ProtonMail/proton-bridge/v2/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/v2/internal/certs"
+	"github.com/ProtonMail/proton-bridge/v2/internal/cookies"
 	"github.com/ProtonMail/proton-bridge/v2/internal/events"
 	"github.com/ProtonMail/proton-bridge/v2/internal/focus"
 	"github.com/ProtonMail/proton-bridge/v2/internal/locations"
@@ -128,7 +129,7 @@ func TestBridge_UserAgent(t *testing.T) {
 			require.NoError(t, err)
 
 			// Assert that the user agent was sent to the API.
-			require.Contains(t, calls[len(calls)-1].Header.Get("User-Agent"), bridge.GetCurrentUserAgent())
+			require.Contains(t, calls[len(calls)-1].RequestHeader.Get("User-Agent"), bridge.GetCurrentUserAgent())
 		})
 	})
 }
@@ -137,9 +138,9 @@ func TestBridge_Cookies(t *testing.T) {
 	withTLSEnv(t, func(ctx context.Context, s *server.Server, netCtl *liteapi.NetCtl, locator bridge.Locator, vaultKey []byte) {
 		sessionIDs := safe.NewSet[string]()
 
-		// Save any session IDs the API returns.
+		// Save any session IDs we use.
 		s.AddCallWatcher(func(call server.Call) {
-			cookie, err := (&http.Request{Header: call.Header}).Cookie("Session-Id")
+			cookie, err := (&http.Request{Header: call.RequestHeader}).Cookie("Session-Id")
 			if err != nil {
 				return
 			}
@@ -398,18 +399,29 @@ func withBridge(
 	require.NoError(t, vault.SetIMAPPort(0))
 	require.NoError(t, vault.SetSMTPPort(0))
 
+	// Create a new cookie jar.
+	cookieJar, err := cookies.NewCookieJar(bridge.NewTestCookieJar(), vault)
+	require.NoError(t, err)
+	defer func() { require.NoError(t, cookieJar.PersistCookies()) }()
+
 	// Create a new bridge.
 	bridge, err := bridge.New(
-		apiURL,
+		// The app stuff.
 		locator,
 		vault,
+		mocks.Autostarter,
+		mocks.Updater,
+		v2_3_0,
+
+		// The API stuff.
+		apiURL,
+		cookieJar,
 		useragent.New(),
 		mocks.TLSReporter,
 		liteapi.NewDialer(netCtl, &tls.Config{InsecureSkipVerify: true}).GetRoundTripper(),
 		mocks.ProxyCtl,
-		mocks.Autostarter,
-		mocks.Updater,
-		v2_3_0,
+
+		// The logging stuff.
 		false,
 		false,
 		false,

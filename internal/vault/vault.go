@@ -15,11 +15,6 @@ import (
 	"github.com/bradenaw/juniper/xslices"
 )
 
-var (
-	ErrInsecure = errors.New("the vault is insecure")
-	ErrCorrupt  = errors.New("the vault is corrupt")
-)
-
 type Vault struct {
 	path string
 	enc  []byte
@@ -120,6 +115,10 @@ func (vault *Vault) DeleteUser(userID string) error {
 
 		data.Users = append(data.Users[:idx], data.Users[idx+1:]...)
 	})
+}
+
+func (vault *Vault) Close() error {
+	return nil
 }
 
 func newVault(path, gluonDir string, gcm cipher.AEAD) (*Vault, bool, error) {

@@ -61,7 +61,7 @@ func (s *scenario) theHeaderInTheRequestToHasSetTo(method, path, key, value stri
 		return err
 	}
 
-	if haveKey := call.Header.Get(key); haveKey != value {
+	if haveKey := call.RequestHeader.Get(key); haveKey != value {
 		return fmt.Errorf("have header %q, want %q", haveKey, value)
 	}
 
@@ -76,7 +76,7 @@ func (s *scenario) theBodyInTheRequestToIs(method, path string, value *godog.Doc
 
 	var body, want map[string]any
 
-	if err := json.Unmarshal(call.Body, &body); err != nil {
+	if err := json.Unmarshal(call.RequestBody, &body); err != nil {
 		return err
 	}
 

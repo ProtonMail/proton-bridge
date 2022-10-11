@@ -24,7 +24,6 @@ import (
 	"github.com/ProtonMail/proton-bridge/v2/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/v2/internal/constants"
 	"github.com/ProtonMail/proton-bridge/v2/internal/events"
-	"github.com/ProtonMail/proton-bridge/v2/internal/vault"
 
 	"github.com/abiosoft/ishell"
 	"github.com/sirupsen/logrus"
@@ -266,10 +265,10 @@ func (f *frontendCLI) watchEvents() {
 	// TODO: Better error events.
 	for _, err := range f.bridge.GetErrors() {
 		switch {
-		case errors.Is(err, vault.ErrCorrupt):
+		case errors.Is(err, bridge.ErrVaultCorrupt):
 			f.notifyCredentialsError()
 
-		case errors.Is(err, vault.ErrInsecure):
+		case errors.Is(err, bridge.ErrVaultInsecure):
 			f.notifyCredentialsError()
 
 		case errors.Is(err, bridge.ErrServeIMAP):
