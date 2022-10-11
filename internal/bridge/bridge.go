@@ -72,20 +72,27 @@ type Bridge struct {
 
 	// stopCh is used to stop ongoing goroutines when the bridge is closed.
 	stopCh chan struct{}
+
+	logIMAPClientCommands bool
+	logIMAPServerCommands bool
+	logSMTPCommands       bool
 }
 
 // New creates a new bridge.
 func New(
-	apiURL string, // the URL of the API to use
-	locator Locator, // the locator to provide paths to store data
-	vault *vault.Vault, // the bridge's encrypted data store
-	identifier Identifier, // the identifier to keep track of the user agent
-	tlsReporter TLSReporter, // the TLS reporter to report TLS errors
+	apiURL string,                  // the URL of the API to use
+	locator Locator,                // the locator to provide paths to store data
+	vault *vault.Vault,             // the bridge's encrypted data store
+	identifier Identifier,          // the identifier to keep track of the user agent
+	tlsReporter TLSReporter,        // the TLS reporter to report TLS errors
 	roundTripper http.RoundTripper, // the round tripper to use for API requests
-	proxyCtl ProxyController, // the DoH controller
-	autostarter Autostarter, // the autostarter to manage autostart settings
-	updater Updater, // the updater to fetch and install updates
-	curVersion *semver.Version, // the current version of the bridge
+	proxyCtl ProxyController,       // the DoH controller
+	autostarter Autostarter,        // the autostarter to manage autostart settings
+	updater Updater,                // the updater to fetch and install updates
+	curVersion *semver.Version,     // the current version of the bridge
+	logIMAPClientCommands bool,
+	logIMAPServerCommands bool,
+	logSMTPCommands bool,
 ) (*Bridge, error) {
 	if vault.GetProxyAllowed() {
 		proxyCtl.AllowProxy()
@@ -116,7 +123,7 @@ func New(
 		return nil, fmt.Errorf("failed to get Gluon directory: %w", err)
 	}
 
-	imapServer, err := newIMAPServer(gluonDir, curVersion, tlsConfig)
+	imapServer, err := newIMAPServer(gluonDir, curVersion, tlsConfig, logIMAPClientCommands, logIMAPServerCommands)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create IMAP server: %w", err)
 	}
@@ -126,7 +133,7 @@ func New(
 		return nil, fmt.Errorf("failed to create SMTP backend: %w", err)
 	}
 
-	smtpServer, err := newSMTPServer(smtpBackend, tlsConfig)
+	smtpServer, err := newSMTPServer(smtpBackend, tlsConfig, logSMTPCommands)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create SMTP server: %w", err)
 	}
@@ -159,6 +166,10 @@ func New(
 		locator:      locator,
 
 		stopCh: make(chan struct{}),
+
+		logIMAPClientCommands: logIMAPClientCommands,
+		logIMAPServerCommands: logIMAPServerCommands,
+		logSMTPCommands:       logSMTPCommands,
 	}
 
 	api.AddStatusObserver(func(status liteapi.Status) {

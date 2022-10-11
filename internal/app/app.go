@@ -32,6 +32,9 @@ const (
 
 	flagNoWindow       = "no-window"
 	flagNonInteractive = "non-interactive"
+
+	flagLogIMAP = "log-imap"
+	flagLogSMTP = "log-smtp"
 )
 
 const (
@@ -68,6 +71,14 @@ func New() *cli.App {
 			Name:   flagNoWindow,
 			Usage:  "Don't show window after start",
 			Hidden: true,
+		},
+		&cli.StringFlag{
+			Name:  flagLogIMAP,
+			Usage: "Enable logging of IMAP communications (all|client|server) (may contain decrypted data!)",
+		},
+		&cli.BoolFlag{
+			Name:  flagLogSMTP,
+			Usage: "Enable logging of SMTP communications (may contain decrypted data!)",
 		},
 	}
 
@@ -124,7 +135,7 @@ func run(c *cli.Context) error {
 	}
 
 	// Create the bridge.
-	bridge, err := newBridge(locations, identifier)
+	bridge, err := newBridge(c, locations, identifier)
 	if err != nil {
 		return fmt.Errorf("could not create bridge: %w", err)
 	}

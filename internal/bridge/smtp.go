@@ -3,6 +3,7 @@ package bridge
 import (
 	"crypto/tls"
 	"fmt"
+	"github.com/ProtonMail/proton-bridge/v2/internal/logging"
 	"net"
 	"strconv"
 
@@ -48,7 +49,7 @@ func (bridge *Bridge) restartSMTP() error {
 		return err
 	}
 
-	smtpServer, err := newSMTPServer(bridge.smtpBackend, bridge.tlsConfig)
+	smtpServer, err := newSMTPServer(bridge.smtpBackend, bridge.tlsConfig, bridge.logSMTPCommands)
 	if err != nil {
 		return err
 	}
@@ -68,13 +69,22 @@ func (bridge *Bridge) closeSMTP() error {
 	return nil
 }
 
-func newSMTPServer(smtpBackend *smtpBackend, tlsConfig *tls.Config) (*smtp.Server, error) {
+func newSMTPServer(smtpBackend *smtpBackend, tlsConfig *tls.Config, shouldLog bool) (*smtp.Server, error) {
 	smtpServer := smtp.NewServer(smtpBackend)
 
 	smtpServer.TLSConfig = tlsConfig
 	smtpServer.Domain = constants.Host
 	smtpServer.AllowInsecureAuth = true
 	smtpServer.MaxLineLength = 1 << 16
+	smtpServer.ErrorLog = logging.NewSMTPLogger()
+
+	if shouldLog {
+		log := logrus.WithField("protocol", "SMTP")
+		log.Warning("================================================")
+		log.Warning("THIS LOG WILL CONTAIN **DECRYPTED** MESSAGE DATA")
+		log.Warning("================================================")
+		smtpServer.Debug = logging.NewSMTPDebugLogger()
+	}
 
 	smtpServer.EnableAuth(sasl.Login, func(conn *smtp.Conn) sasl.Server {
 		return sasl.NewLoginServer(func(address, password string) error {

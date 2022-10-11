@@ -48,6 +48,9 @@ func (t *testCtx) startBridge() error {
 		t.mocks.Autostarter,
 		t.mocks.Updater,
 		t.version,
+		false,
+		false,
+		false,
 	)
 	if err != nil {
 		return err

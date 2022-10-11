@@ -426,6 +426,9 @@ func withBridge(
 		mocks.Autostarter,
 		mocks.Updater,
 		v2_3_0,
+		false,
+		false,
+		false,
 	)
 	require.NoError(t, err)
 

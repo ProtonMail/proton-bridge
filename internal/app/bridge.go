@@ -3,6 +3,7 @@ package app
 import (
 	"encoding/base64"
 	"fmt"
+	"github.com/urfave/cli/v2"
 	"os"
 	"runtime"
 
@@ -25,7 +26,7 @@ import (
 
 const vaultSecretName = "bridge-vault-key"
 
-func newBridge(locations *locations.Locations, identifier *useragent.UserAgent) (*bridge.Bridge, error) {
+func newBridge(c *cli.Context, locations *locations.Locations, identifier *useragent.UserAgent) (*bridge.Bridge, error) {
 	// Create the underlying dialer used by the bridge.
 	// It only connects to trusted servers and reports any untrusted servers it finds.
 	pinningDialer := dialer.NewPinningTLSDialer(
@@ -92,6 +93,9 @@ func newBridge(locations *locations.Locations, identifier *useragent.UserAgent) 
 		autostarter,
 		updater,
 		version,
+		c.String(flagLogIMAP) == "client" || c.String(flagLogIMAP) == "all",
+		c.String(flagLogIMAP) == "server" || c.String(flagLogIMAP) == "all",
+		c.Bool(flagLogSMTP),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("could not create bridge: %w", err)

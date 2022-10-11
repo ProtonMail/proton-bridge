@@ -5,6 +5,8 @@ import (
 	"crypto/tls"
 	"errors"
 	"fmt"
+	"github.com/ProtonMail/proton-bridge/v2/internal/logging"
+	"io"
 	"io/fs"
 	"net"
 	"os"
@@ -111,7 +113,29 @@ func getGluonDir(encVault *vault.Vault) (string, error) {
 	return encVault.GetGluonDir(), nil
 }
 
-func newIMAPServer(gluonDir string, version *semver.Version, tlsConfig *tls.Config) (*gluon.Server, error) {
+func newIMAPServer(gluonDir string, version *semver.Version, tlsConfig *tls.Config, logIMAPCommandsClient, logImapCommandsServer bool) (*gluon.Server, error) {
+	var imapClientLog io.Writer
+	var imapServerLog io.Writer
+
+	if logIMAPCommandsClient || logImapCommandsServer {
+		log := logrus.WithField("protocol", "IMAP")
+		log.Warning("================================================")
+		log.Warning("THIS LOG WILL CONTAIN **DECRYPTED** MESSAGE DATA")
+		log.Warning("================================================")
+	}
+
+	if logIMAPCommandsClient {
+		imapClientLog = logging.NewIMAPLogger()
+	} else {
+		imapClientLog = io.Discard
+	}
+
+	if logImapCommandsServer {
+		imapServerLog = logging.NewIMAPLogger()
+	} else {
+		imapClientLog = io.Discard
+	}
+
 	imapServer, err := gluon.New(
 		gluon.WithTLS(tlsConfig),
 		gluon.WithDataDir(gluonDir),
@@ -124,8 +148,8 @@ func newIMAPServer(gluonDir string, version *semver.Version, tlsConfig *tls.Conf
 			"TODO",
 		),
 		gluon.WithLogger(
-			logrus.StandardLogger().WriterLevel(logrus.TraceLevel),
-			logrus.StandardLogger().WriterLevel(logrus.TraceLevel),
+			imapClientLog,
+			imapServerLog,
 		),
 	)
 	if err != nil {

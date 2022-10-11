@@ -112,7 +112,7 @@ func (bridge *Bridge) SetGluonDir(ctx context.Context, newGluonDir string) error
 		return fmt.Errorf("failed to set new gluon dir: %w", err)
 	}
 
-	imapServer, err := newIMAPServer(bridge.vault.GetGluonDir(), bridge.curVersion, bridge.tlsConfig)
+	imapServer, err := newIMAPServer(bridge.vault.GetGluonDir(), bridge.curVersion, bridge.tlsConfig, bridge.logIMAPClientCommands, bridge.logIMAPServerCommands)
 	if err != nil {
 		return fmt.Errorf("failed to create new IMAP server: %w", err)
 	}
