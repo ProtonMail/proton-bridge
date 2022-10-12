@@ -43,7 +43,7 @@ var (
 	KeyChainName = "bridge"
 
 	// Version of the build.
-	Version = "2.3.0+git"
+	Version = "2.4.0+git"
 
 	// AppVersion is the full rendered version of the app (to be used in request headers).
 	AppVersion = getAPIOS() + cases.Title(language.Und).String(ConfigName) + "_" + Version
