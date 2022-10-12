@@ -12,7 +12,7 @@ var (
 
 	ErrNoSuchUser          = errors.New("no such user")
 	ErrUserAlreadyExists   = errors.New("user already exists")
-	ErrUserAlreadyLoggedIn = errors.New("user already logged in")
+	ErrUserAlreadyLoggedIn = errors.New("the user is already logged in")
 	ErrNotImplemented      = errors.New("not implemented")
 
 	ErrSizeTooLarge = errors.New("file is too big")

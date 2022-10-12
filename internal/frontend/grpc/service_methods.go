@@ -20,15 +20,18 @@ package grpc
 import (
 	"context"
 	"encoding/base64"
+	"errors"
 	"runtime"
 
 	"github.com/Masterminds/semver/v3"
+	"github.com/ProtonMail/proton-bridge/v2/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/v2/internal/constants"
 	"github.com/ProtonMail/proton-bridge/v2/internal/frontend/theme"
 	"github.com/ProtonMail/proton-bridge/v2/internal/updater"
 	"github.com/ProtonMail/proton-bridge/v2/pkg/keychain"
 	"github.com/ProtonMail/proton-bridge/v2/pkg/ports"
 	"github.com/sirupsen/logrus"
+	"gitlab.protontech.ch/go/liteapi"
 	"golang.org/x/exp/maps"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -364,33 +367,125 @@ func (s *Service) Login(ctx context.Context, login *LoginRequest) (*emptypb.Empt
 			return
 		}
 
-		// TODO: Handle different error types!
-		// - bad credentials
-		// - bad proton plan
-		// - user already exists
-		userID, err := s.bridge.LoginFull(context.Background(), login.Username, password, nil, nil)
+		client, auth, err := s.bridge.LoginAuth(context.Background(), login.Username, password)
 		if err != nil {
-			s.log.WithError(err).Error("Cannot login user")
-			_ = s.SendEvent(NewLoginError(LoginErrorType_USERNAME_PASSWORD_ERROR, "Cannot login user"))
+			defer s.loginClean()
+
+			switch {
+			case errors.Is(err, bridge.ErrUserAlreadyLoggedIn):
+				_ = s.SendEvent(NewLoginAlreadyLoggedInEvent(auth.UserID))
+
+			case errors.Is(err, liteapi.ErrIncorrectLoginCredentials):
+				_ = s.SendEvent(NewLoginError(LoginErrorType_USERNAME_PASSWORD_ERROR, ""))
+
+			case errors.Is(err, liteapi.ErrPaidPlanRequired):
+				_ = s.SendEvent(NewLoginError(LoginErrorType_FREE_USER, ""))
+
+			default:
+				_ = s.SendEvent(NewLoginError(LoginErrorType_USERNAME_PASSWORD_ERROR, err.Error()))
+			}
+
 			return
 		}
 
-		_ = s.SendEvent(NewLoginFinishedEvent(userID))
+		s.password = password
+		s.authClient = client
+		s.auth = auth
+
+		switch {
+		case auth.TwoFA.Enabled == liteapi.TOTPEnabled:
+			_ = s.SendEvent(NewLoginTfaRequestedEvent(login.Username))
+
+		case auth.PasswordMode == liteapi.TwoPasswordMode:
+			_ = s.SendEvent(NewLoginTwoPasswordsRequestedEvent())
+
+		default:
+			s.finishLogin()
+		}
 	}()
 
 	return &emptypb.Empty{}, nil
 }
 
-func (s *Service) Login2FA(_ context.Context, login *LoginRequest) (*emptypb.Empty, error) {
-	panic("TODO")
+func (s *Service) Login2FA(ctx context.Context, login *LoginRequest) (*emptypb.Empty, error) {
+	s.log.WithField("username", login.Username).Debug("Login2FA")
+
+	go func() {
+		defer s.panicHandler.HandlePanic()
+
+		if s.auth.UID == "" || s.authClient == nil {
+			s.log.Errorf("Login 2FA: authethication incomplete %p %p", s.auth.UID, s.authClient)
+			_ = s.SendEvent(NewLoginError(LoginErrorType_TFA_ABORT, "Missing authentication, try again."))
+			s.loginClean()
+			return
+		}
+
+		twoFA, err := base64Decode(login.Password)
+		if err != nil {
+			s.log.WithError(err).Error("Cannot decode 2fa code")
+			_ = s.SendEvent(NewLoginError(LoginErrorType_USERNAME_PASSWORD_ERROR, "Cannot decode 2fa code"))
+			s.loginClean()
+			return
+		}
+
+		if err := s.authClient.Auth2FA(context.Background(), liteapi.Auth2FAReq{TwoFactorCode: string(twoFA)}); err != nil {
+			switch {
+			case errors.Is(err, liteapi.ErrBad2FACode):
+				s.log.Warn("Login 2FA: retry 2fa")
+				_ = s.SendEvent(NewLoginError(LoginErrorType_TFA_ERROR, ""))
+
+			default:
+				s.log.WithError(err).Warn("Login 2FA: failed")
+				_ = s.SendEvent(NewLoginError(LoginErrorType_TFA_ABORT, err.Error()))
+				s.loginClean()
+			}
+
+			return
+		}
+
+		if s.auth.PasswordMode == liteapi.TwoPasswordMode {
+			_ = s.SendEvent(NewLoginTwoPasswordsRequestedEvent())
+			return
+		}
+
+		s.finishLogin()
+	}()
+
+	return &emptypb.Empty{}, nil
 }
 
-func (s *Service) Login2Passwords(_ context.Context, login *LoginRequest) (*emptypb.Empty, error) {
-	panic("TODO")
+func (s *Service) Login2Passwords(ctx context.Context, login *LoginRequest) (*emptypb.Empty, error) {
+	s.log.WithField("username", login.Username).Debug("Login2Passwords")
+
+	go func() {
+		defer s.panicHandler.HandlePanic()
+
+		password, err := base64Decode(login.Password)
+		if err != nil {
+			s.log.WithError(err).Error("Cannot decode mbox password")
+			_ = s.SendEvent(NewLoginError(LoginErrorType_USERNAME_PASSWORD_ERROR, "Cannot decode mbox password"))
+			s.loginClean()
+			return
+		}
+
+		s.password = password
+
+		s.finishLogin()
+	}()
+
+	return &emptypb.Empty{}, nil
 }
 
-func (s *Service) LoginAbort(_ context.Context, loginAbort *LoginAbortRequest) (*emptypb.Empty, error) {
-	panic("TODO")
+func (s *Service) LoginAbort(ctx context.Context, loginAbort *LoginAbortRequest) (*emptypb.Empty, error) {
+	s.log.WithField("username", loginAbort.Username).Debug("LoginAbort")
+
+	go func() {
+		defer s.panicHandler.HandlePanic()
+
+		s.loginAbort()
+	}()
+
+	return &emptypb.Empty{}, nil
 }
 
 /*

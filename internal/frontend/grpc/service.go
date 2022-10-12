@@ -37,6 +37,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/v2/pkg/restarter"
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
+	"gitlab.protontech.ch/go/liteapi"
 	"google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials"
@@ -64,6 +65,10 @@ type Service struct { // nolint:structcheck
 	restarter      *restarter.Restarter
 	bridge         *bridge.Bridge
 	newVersionInfo updater.VersionInfo
+
+	authClient *liteapi.Client
+	auth       liteapi.Auth
+	password   []byte
 
 	log                *logrus.Entry
 	initializing       sync.WaitGroup
@@ -261,6 +266,45 @@ func (s *Service) watchEvents() {
 			panic("TODO")
 		}
 	}
+}
+
+func (s *Service) loginAbort() {
+	s.loginClean()
+}
+
+func (s *Service) loginClean() {
+	s.auth = liteapi.Auth{}
+	s.authClient = nil
+	for i := range s.password {
+		s.password[i] = '\x00'
+	}
+	s.password = s.password[0:0]
+}
+
+func (s *Service) finishLogin() {
+	defer s.loginClean()
+
+	if len(s.password) == 0 || s.auth.UID == "" || s.authClient == nil {
+		s.log.
+			WithField("hasPass", len(s.password) != 0).
+			WithField("hasAuth", s.auth.UID != "").
+			WithField("hasClient", s.authClient != nil).
+			Error("Finish login: authentication incomplete")
+
+		_ = s.SendEvent(NewLoginError(LoginErrorType_TWO_PASSWORDS_ABORT, "Missing authentication, try again."))
+		return
+	}
+
+	userID, err := s.bridge.LoginUser(context.Background(), s.authClient, s.auth, s.password)
+	if err != nil {
+		s.log.WithError(err).Errorf("Finish login failed")
+		_ = s.SendEvent(NewLoginError(LoginErrorType_TWO_PASSWORDS_ABORT, err.Error()))
+		return
+	}
+
+	s.log.WithField("userID", userID).Debug("Login finished")
+
+	_ = s.SendEvent(NewLoginFinishedEvent(userID))
 }
 
 func (s *Service) triggerReset() {
