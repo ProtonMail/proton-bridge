@@ -43,6 +43,9 @@ SettingsTab::SettingsTab(QWidget *parent)
     connect(ui_.buttonInternetOn, &QPushButton::clicked, []() { app().grpc().sendEvent(newInternetStatusEvent(true)); });
     connect(ui_.buttonInternetOff, &QPushButton::clicked, []() { app().grpc().sendEvent(newInternetStatusEvent(false)); });
     connect(ui_.buttonShowMainWindow, &QPushButton::clicked, []() { app().grpc().sendEvent(newShowMainWindowEvent()); });
+    connect(ui_.buttonAPICertIssue, &QPushButton::clicked, []() {app().grpc().sendEvent(newApiCertIssueEvent()); });
+    connect(ui_.buttonNoActiveKeyForRecipient, &QPushButton::clicked, [&]() {app().grpc().sendEvent(
+        newNoActiveKeyForRecipientEvent(ui_.editNoActiveKeyForRecipient->text())); });
     connect(ui_.checkNextCacheChangeWillSucceed, &QCheckBox::toggled, this, &SettingsTab::updateGUIState);
     this->resetUI();
     this->updateGUIState();

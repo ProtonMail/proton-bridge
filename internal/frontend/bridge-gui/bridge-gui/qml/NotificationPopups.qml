@@ -128,4 +128,14 @@ Item {
         colorScheme: root.colorScheme
         notification: root.notifications.rebuildKeychain
     }
+
+    NotificationDialog {
+        colorScheme: root.colorScheme
+        notification: root.notifications.apiCertIssue
+    }
+
+    NotificationDialog {
+        colorScheme: root.colorScheme
+        notification: root.notifications.noActiveKeyForRecipient
+    }
 }

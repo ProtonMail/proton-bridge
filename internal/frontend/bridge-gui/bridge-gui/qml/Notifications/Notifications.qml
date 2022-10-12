@@ -77,7 +77,9 @@ QtObject {
         root.deleteAccount,
         root.noKeychain,
         root.rebuildKeychain,
-        root.addressChanged
+        root.addressChanged,
+        root.apiCertIssue,
+        root.noActiveKeyForRecipient
     ]
 
     // Connection
@@ -1047,6 +1049,65 @@ QtObject {
 
                 onTriggered: {
                     root.addressChanged.active = false
+                }
+            }
+        ]
+    }
+
+    property Notification apiCertIssue: Notification {
+        title: qsTr("Unable to establish a \nsecure connection to \nProton servers")
+        description: qsTr("Bridge cannot verify the authenticity of Proton servers on your current network due to a TLS certificate error. " +
+            "Start Bridge again after ensuring your connection is secure and/or connecting to a VPN. Learn more about TLS pinning " +
+            "<a href=\"https://proton.me/blog/tls-ssl-certificate#Extra-security-precautions-taken-by-ProtonMail\">here</a>.")
+
+        brief: title
+        icon: "./icons/ic-exclamation-circle-filled.svg"
+        type: Notification.NotificationType.Danger
+        group: Notifications.Group.Dialogs | Notifications.Group.Connection
+
+        Connections {
+            target: Backend
+
+            function onApiCertIssue() {
+                root.apiCertIssue.active = true
+            }
+        }
+
+        action: [
+            Action {
+                text: qsTr("Quit Bridge")
+
+                onTriggered: {
+                    root.apiCertIssue.active = false;
+                    Backend.quit()
+                }
+            }
+        ]
+    }
+
+    property Notification noActiveKeyForRecipient: Notification {
+        title: qsTr("Unable to send \nencrypted message")
+        description: "#PlaceholderText#"
+        icon: "./icons/ic-exclamation-circle-filled.svg"
+        type: Notification.NotificationType.Danger
+        group: Notifications.Group.Dialogs | Notifications.Group.Connection
+
+        Connections {
+            target: Backend
+
+            function onNoActiveKeyForRecipient(email) {
+                root.noActiveKeyForRecipient.description = qsTr("There are no active keys to encrypt your message to %1. "+
+                    "Please update the setting for this contact.").arg(email)
+                root.noActiveKeyForRecipient.active = true
+            }
+        }
+
+        action: [
+            Action {
+                text: qsTr("OK")
+
+                onTriggered: {
+                    root.noActiveKeyForRecipient.active = false
                 }
             }
         ]

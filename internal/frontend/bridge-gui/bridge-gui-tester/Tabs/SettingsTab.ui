@@ -704,19 +704,6 @@
              </widget>
             </item>
             <item>
-             <spacer name="horizontalSpacer_2">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>0</width>
-                <height>10</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-            <item>
              <widget class="QPushButton" name="buttonInternetOn">
               <property name="text">
                <string>Internet On</string>
@@ -724,22 +711,34 @@
              </widget>
             </item>
             <item>
-             <spacer name="horizontalSpacer_4">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>0</width>
-                <height>10</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-            <item>
              <widget class="QPushButton" name="buttonShowMainWindow">
               <property name="text">
                <string>Show Main Window</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="buttonAPICertIssue">
+              <property name="text">
+               <string>API cert. Issue</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_12">
+            <item>
+             <widget class="QPushButton" name="buttonNoActiveKeyForRecipient">
+              <property name="text">
+               <string>No Active Key For Recipient</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="editNoActiveKeyForRecipient">
+              <property name="text">
+               <string>dummy.user@proton.me</string>
               </property>
              </widget>
             </item>

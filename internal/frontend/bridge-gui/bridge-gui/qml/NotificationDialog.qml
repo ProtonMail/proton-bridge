@@ -68,6 +68,7 @@ Dialog {
 
         Label {
             Layout.alignment: Qt.AlignHCenter
+            horizontalAlignment: Text.AlignHCenter
             Layout.bottomMargin: 8
             colorScheme: root.colorScheme
             text: root.notification.title
