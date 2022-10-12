@@ -23,6 +23,7 @@ variables:
   GOMAXPROCS: $(( ${CI_TAG_CPU} / 2 ))
 
 before_script:
+  - apt update && apt-get -y install libsecret-1-dev
   - git config --global url.https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_SERVER_HOST}.insteadOf https://${CI_SERVER_HOST}
 
 stages:
