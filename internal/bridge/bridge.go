@@ -124,7 +124,7 @@ func New(
 		return nil, nil, fmt.Errorf("failed to create IMAP server: %w", err)
 	}
 
-	focusService, err := focus.NewService()
+	focusService, err := focus.NewService(curVersion)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to create focus service: %w", err)
 	}

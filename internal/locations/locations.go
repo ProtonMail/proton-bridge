@@ -51,7 +51,12 @@ func New(provider Provider, configName string) *Locations {
 	}
 }
 
-// GetGuiLockFile returns the path to the lock file (e.g. ~/.cache/<company>/<app>/<app>.lock).
+// GetLockFile returns the path to the bridge lock file (e.g. ~/.cache/<company>/<app>/<app>.lock).
+func (l *Locations) GetLockFile() string {
+	return filepath.Join(l.userCache, l.configName+".lock")
+}
+
+// GetGuiLockFile returns the path to the GUI lock file (e.g. ~/.cache/<company>/<app>/<app>.lock).
 func (l *Locations) GetGuiLockFile() string {
 	return filepath.Join(l.userCache, l.configGuiName+".lock")
 }

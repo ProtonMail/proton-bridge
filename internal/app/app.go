@@ -6,14 +6,13 @@ import (
 	"net/http/cookiejar"
 	"path/filepath"
 
+	"github.com/Masterminds/semver/v3"
 	"github.com/ProtonMail/proton-bridge/v2/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/v2/internal/constants"
 	"github.com/ProtonMail/proton-bridge/v2/internal/cookies"
 	"github.com/ProtonMail/proton-bridge/v2/internal/crash"
 	"github.com/ProtonMail/proton-bridge/v2/internal/events"
 	"github.com/ProtonMail/proton-bridge/v2/internal/focus"
-	bridgeCLI "github.com/ProtonMail/proton-bridge/v2/internal/frontend/cli"
-	"github.com/ProtonMail/proton-bridge/v2/internal/frontend/grpc"
 	"github.com/ProtonMail/proton-bridge/v2/internal/locations"
 	"github.com/ProtonMail/proton-bridge/v2/internal/sentry"
 	"github.com/ProtonMail/proton-bridge/v2/internal/useragent"
@@ -112,9 +111,10 @@ func New() *cli.App {
 }
 
 func run(c *cli.Context) error {
-	// If there's another instance already running, try to raise it and exit.
-	if raised := focus.TryRaise(); raised {
-		return nil
+	// Get the current bridge version.
+	version, err := semver.NewVersion(constants.Version)
+	if err != nil {
+		return fmt.Errorf("could not create version: %w", err)
 	}
 
 	// Create a user agent that will be used for all requests.
@@ -131,42 +131,30 @@ func run(c *cli.Context) error {
 			return withCrashHandler(restarter, reporter, func(crashHandler *crash.Handler) error {
 				// Load the locations where we store our files.
 				return withLocations(func(locations *locations.Locations) error {
-					// Initialize the logging.
-					if err := initLogging(c, locations, crashHandler); err != nil {
-						return fmt.Errorf("could not initialize logging: %w", err)
-					}
+					// Initialize logging.
+					return withLogging(c, crashHandler, locations, func() error {
+						// Ensure we are the only instance running.
+						return withSingleInstance(locations, version, func() error {
+							// Unlock the encrypted vault.
+							return withVault(locations, func(vault *vault.Vault, insecure, corrupt bool) error {
+								// Load the cookies from the vault.
+								return withCookieJar(vault, func(cookieJar http.CookieJar) error {
+									// Create a new bridge instance.
+									return withBridge(c, locations, version, identifier, reporter, vault, cookieJar, func(b *bridge.Bridge, eventCh <-chan events.Event) error {
+										if insecure {
+											logrus.Warn("The vault key could not be retrieved; the vault will not be encrypted")
+											b.PushError(bridge.ErrVaultInsecure)
+										}
 
-					// Unlock the encrypted vault.
-					return withVault(locations, func(vault *vault.Vault, insecure, corrupt bool) error {
-						// Load the cookies from the vault.
-						return withCookieJar(vault, func(cookieJar http.CookieJar) error {
-							// Create a new bridge instance.
-							return withBridge(c, locations, identifier, reporter, vault, cookieJar, func(b *bridge.Bridge, eventCh <-chan events.Event) error {
-								if insecure {
-									logrus.Warn("The vault key could not be retrieved; the vault will not be encrypted")
-									b.PushError(bridge.ErrVaultInsecure)
-								}
+										if corrupt {
+											logrus.Warn("The vault is corrupt and has been wiped")
+											b.PushError(bridge.ErrVaultCorrupt)
+										}
 
-								if corrupt {
-									logrus.Warn("The vault is corrupt and has been wiped")
-									b.PushError(bridge.ErrVaultCorrupt)
-								}
-
-								switch {
-								case c.Bool(flagCLI):
-									return bridgeCLI.New(b, eventCh).Loop()
-
-								case c.Bool(flagNonInteractive):
-									select {}
-
-								default:
-									service, err := grpc.NewService(crashHandler, restarter, locations, b, eventCh, !c.Bool(flagNoWindow))
-									if err != nil {
-										return fmt.Errorf("could not create service: %w", err)
-									}
-
-									return service.Loop()
-								}
+										// Run the frontend.
+										return runFrontend(c, crashHandler, restarter, locations, b, eventCh)
+									})
+								})
 							})
 						})
 					})
@@ -176,6 +164,38 @@ func run(c *cli.Context) error {
 	})
 }
 
+// If there's another instance already running, try to raise it and exit.
+func withSingleInstance(locations *locations.Locations, version *semver.Version, fn func() error) error {
+	lock, err := checkSingleInstance(locations.GetLockFile(), version)
+	if err != nil {
+		if ok := focus.TryRaise(); !ok {
+			return fmt.Errorf("another instance is already running but it could not be raised")
+		}
+
+		return nil
+	}
+
+	defer func() {
+		if err := lock.Close(); err != nil {
+			logrus.WithError(err).Error("Failed to close lock file")
+		}
+	}()
+
+	return fn()
+}
+
+// Initialize our logging system.
+func withLogging(c *cli.Context, crashHandler *crash.Handler, locations *locations.Locations, fn func() error) error {
+	if err := initLogging(c, locations, crashHandler); err != nil {
+		return fmt.Errorf("could not initialize logging: %w", err)
+	}
+
+	// TODO: Add teardown actions (clean the log directory?)
+
+	return fn()
+}
+
+// Provide access to locations where we store our files.
 func withLocations(fn func(*locations.Locations) error) error {
 	// Create a locations provider to determine where to store our files.
 	provider, err := locations.NewDefaultProvider(filepath.Join(constants.VendorName, constants.ConfigName))
@@ -186,18 +206,15 @@ func withLocations(fn func(*locations.Locations) error) error {
 	// Create a new locations object that will be used to provide paths to store files.
 	locations := locations.New(provider, constants.ConfigName)
 
-	// TODO: Add teardown actions (removing the lock file, etc.)
-
 	return fn(locations)
 }
 
+// Start profiling if requested.
 func withProfiler(c *cli.Context, fn func() error) error {
-	// Start CPU profile if requested.
 	if c.Bool(flagCPUProfile) {
 		defer profile.Start(profile.CPUProfile, profile.ProfilePath(".")).Stop()
 	}
 
-	// Start memory profile if requested.
 	if c.Bool(flagMemProfile) {
 		defer profile.Start(profile.MemProfile, profile.MemProfileAllocs, profile.ProfilePath(".")).Stop()
 	}
@@ -205,6 +222,7 @@ func withProfiler(c *cli.Context, fn func() error) error {
 	return fn()
 }
 
+// Restart the app if necessary.
 func withRestarter(fn func(*restarter.Restarter) error) error {
 	restarter := restarter.New()
 	defer restarter.Restart()
@@ -212,6 +230,7 @@ func withRestarter(fn func(*restarter.Restarter) error) error {
 	return fn(restarter)
 }
 
+// Handle crashes if they occur.
 func withCrashHandler(restarter *restarter.Restarter, reporter *sentry.Reporter, fn func(*crash.Handler) error) error {
 	crashHandler := crash.NewHandler(crash.ShowErrorNotification(constants.FullAppName))
 	defer crashHandler.HandlePanic()
@@ -228,6 +247,7 @@ func withCrashHandler(restarter *restarter.Restarter, reporter *sentry.Reporter,
 	return fn(crashHandler)
 }
 
+// Use a custom cookie jar to persist values across runs.
 func withCookieJar(vault *vault.Vault, fn func(http.CookieJar) error) error {
 	// Create the underlying cookie jar.
 	jar, err := cookiejar.New(nil)

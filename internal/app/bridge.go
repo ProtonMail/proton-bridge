@@ -29,18 +29,13 @@ const vaultSecretName = "bridge-vault-key"
 func withBridge(
 	c *cli.Context,
 	locations *locations.Locations,
+	version *semver.Version,
 	identifier *useragent.UserAgent,
 	reporter *sentry.Reporter,
 	vault *vault.Vault,
 	cookieJar http.CookieJar,
 	fn func(*bridge.Bridge, <-chan events.Event) error,
 ) error {
-	// Get the current bridge version.
-	version, err := semver.NewVersion(constants.Version)
-	if err != nil {
-		return fmt.Errorf("could not create version: %w", err)
-	}
-
 	// Create the underlying dialer used by the bridge.
 	// It only connects to trusted servers and reports any untrusted servers it finds.
 	pinningDialer := dialer.NewPinningTLSDialer(

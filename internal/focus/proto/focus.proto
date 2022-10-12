@@ -28,4 +28,11 @@ package proto;
 //**********************************************************************************************************************≠––
 service Focus {
   rpc Raise(google.protobuf.Empty) returns (google.protobuf.Empty);
+  rpc Version(google.protobuf.Empty) returns (VersionResponse);
+}
+
+//**********************************************************************************************************************
+
+message VersionResponse {
+  string version = 1;
 }

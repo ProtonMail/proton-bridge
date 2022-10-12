@@ -341,6 +341,9 @@ func (f *frontendCLI) watchEvents(eventCh <-chan events.Event) {
 
 		case events.TLSIssue:
 			f.notifyCertIssue()
+
+		case events.Raise:
+			f.Printf("Hello!")
 		}
 	}
 
