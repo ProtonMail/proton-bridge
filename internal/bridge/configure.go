@@ -6,6 +6,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/v2/internal/clientconfig"
 	"github.com/ProtonMail/proton-bridge/v2/internal/constants"
 	"github.com/ProtonMail/proton-bridge/v2/internal/useragent"
+	"github.com/ProtonMail/proton-bridge/v2/internal/vault"
 )
 
 func (bridge *Bridge) ConfigureAppleMail(userID, address string) error {
@@ -14,9 +15,16 @@ func (bridge *Bridge) ConfigureAppleMail(userID, address string) error {
 		return ErrNoSuchUser
 	}
 
-	// TODO: Handle split mode!
 	if address == "" {
 		address = user.Emails()[0]
+	}
+
+	username := address
+	addresses := address
+
+	if user.GetAddressMode() == vault.CombinedMode {
+		username = user.Emails()[0]
+		addresses = strings.Join(user.Emails(), ",")
 	}
 
 	// If configuring apple mail for Catalina or newer, users should use SSL.
@@ -32,8 +40,8 @@ func (bridge *Bridge) ConfigureAppleMail(userID, address string) error {
 		bridge.vault.GetSMTPPort(),
 		bridge.vault.GetIMAPSSL(),
 		bridge.vault.GetSMTPSSL(),
-		address,
-		strings.Join(user.Emails(), ","),
+		username,
+		addresses,
 		user.BridgePass(),
 	)
 }
