@@ -72,50 +72,33 @@ func (bridge *Bridge) QueryUserInfo(query string) (UserInfo, error) {
 	return UserInfo{}, ErrNoSuchUser
 }
 
-// LoginUser authorizes a new bridge user with the given username and password.
-// If necessary, a TOTP and mailbox password are requested via the callbacks.
-func (bridge *Bridge) LoginUser(
-	ctx context.Context,
-	username string,
-	password []byte,
-	getTOTP func() (string, error),
-	getKeyPass func() ([]byte, error),
-) (string, error) {
+// LoginAuth begins the login process. It returns an authorized client that might need 2FA.
+func (bridge *Bridge) LoginAuth(ctx context.Context, username string, password []byte) (*liteapi.Client, liteapi.Auth, error) {
 	client, auth, err := bridge.api.NewClientWithLogin(ctx, username, password)
 	if err != nil {
-		return "", fmt.Errorf("failed to create new API client: %w", err)
+		return nil, liteapi.Auth{}, fmt.Errorf("failed to create new API client: %w", err)
 	}
 
+	if _, ok := bridge.users[auth.UserID]; ok {
+		if err := client.AuthDelete(ctx); err != nil {
+			logrus.WithError(err).Warn("Failed to delete auth")
+		}
+
+		return nil, liteapi.Auth{}, ErrUserAlreadyLoggedIn
+	}
+
+	return client, auth, nil
+}
+
+// LoginUser finishes the user login process using the client and auth received from LoginAuth.
+func (bridge *Bridge) LoginUser(
+	ctx context.Context,
+	client *liteapi.Client,
+	auth liteapi.Auth,
+	keyPass []byte,
+) (string, error) {
 	userID, err := try.CatchVal(
 		func() (string, error) {
-			if _, ok := bridge.users[auth.UserID]; ok {
-				return "", ErrUserAlreadyLoggedIn
-			}
-
-			if auth.TwoFA.Enabled == liteapi.TOTPEnabled {
-				totp, err := getTOTP()
-				if err != nil {
-					return "", fmt.Errorf("failed to get TOTP: %w", err)
-				}
-
-				if err := client.Auth2FA(ctx, liteapi.Auth2FAReq{TwoFactorCode: totp}); err != nil {
-					return "", fmt.Errorf("failed to authorize 2FA: %w", err)
-				}
-			}
-
-			var keyPass []byte
-
-			if auth.PasswordMode == liteapi.TwoPasswordMode {
-				userKeyPass, err := getKeyPass()
-				if err != nil {
-					return "", fmt.Errorf("failed to get key password: %w", err)
-				}
-
-				keyPass = userKeyPass
-			} else {
-				keyPass = password
-			}
-
 			return bridge.loginUser(ctx, client, auth.UID, auth.RefreshToken, keyPass)
 		},
 		func() error {
@@ -135,6 +118,47 @@ func (bridge *Bridge) LoginUser(
 	})
 
 	return userID, nil
+}
+
+// LoginUser authorizes a new bridge user with the given username and password.
+// If necessary, a TOTP and mailbox password are requested via the callbacks.
+func (bridge *Bridge) LoginFull(
+	ctx context.Context,
+	username string,
+	password []byte,
+	getTOTP func() (string, error),
+	getKeyPass func() ([]byte, error),
+) (string, error) {
+	client, auth, err := bridge.LoginAuth(ctx, username, password)
+	if err != nil {
+		return "", fmt.Errorf("failed to begin login process: %w", err)
+	}
+
+	if auth.TwoFA.Enabled == liteapi.TOTPEnabled {
+		totp, err := getTOTP()
+		if err != nil {
+			return "", fmt.Errorf("failed to get TOTP: %w", err)
+		}
+
+		if err := client.Auth2FA(ctx, liteapi.Auth2FAReq{TwoFactorCode: totp}); err != nil {
+			return "", fmt.Errorf("failed to authorize 2FA: %w", err)
+		}
+	}
+
+	var keyPass []byte
+
+	if auth.PasswordMode == liteapi.TwoPasswordMode {
+		userKeyPass, err := getKeyPass()
+		if err != nil {
+			return "", fmt.Errorf("failed to get key password: %w", err)
+		}
+
+		keyPass = userKeyPass
+	} else {
+		keyPass = password
+	}
+
+	return bridge.LoginUser(ctx, client, auth, keyPass)
 }
 
 // LogoutUser logs out the given user.

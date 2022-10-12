@@ -48,7 +48,7 @@ func TestBridge_Sync(t *testing.T) {
 			syncCh, done := chToType[events.Event, events.SyncFinished](bridge.GetEvents(events.SyncFinished{}))
 			defer done()
 
-			userID, err := bridge.LoginUser(ctx, "imap", password, nil, nil)
+			userID, err := bridge.LoginFull(ctx, "imap", password, nil, nil)
 			require.NoError(t, err)
 
 			require.Equal(t, userID, (<-syncCh).UserID)
@@ -83,7 +83,7 @@ func TestBridge_Sync(t *testing.T) {
 			syncCh, done := chToType[events.Event, events.SyncFailed](bridge.GetEvents(events.SyncFailed{}))
 			defer done()
 
-			userID, err := bridge.LoginUser(ctx, "imap", password, nil, nil)
+			userID, err := bridge.LoginFull(ctx, "imap", password, nil, nil)
 			require.NoError(t, err)
 
 			require.Equal(t, userID, (<-syncCh).UserID)

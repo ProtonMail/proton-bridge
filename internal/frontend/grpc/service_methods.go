@@ -368,7 +368,7 @@ func (s *Service) Login(ctx context.Context, login *LoginRequest) (*emptypb.Empt
 		// - bad credentials
 		// - bad proton plan
 		// - user already exists
-		userID, err := s.bridge.LoginUser(context.Background(), login.Username, password, nil, nil)
+		userID, err := s.bridge.LoginFull(context.Background(), login.Username, password, nil, nil)
 		if err != nil {
 			s.log.WithError(err).Error("Cannot login user")
 			_ = s.SendEvent(NewLoginError(LoginErrorType_USERNAME_PASSWORD_ERROR, "Cannot login user"))

@@ -31,7 +31,7 @@ func TestBridge_Login(t *testing.T) {
 	withTLSEnv(t, func(ctx context.Context, s *server.Server, netCtl *liteapi.NetCtl, locator bridge.Locator, storeKey []byte) {
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
 			// Login the user.
-			userID, err := bridge.LoginUser(ctx, username, password, nil, nil)
+			userID, err := bridge.LoginFull(ctx, username, password, nil, nil)
 			require.NoError(t, err)
 
 			// The user is now connected.
@@ -45,7 +45,7 @@ func TestBridge_LoginLogoutLogin(t *testing.T) {
 	withTLSEnv(t, func(ctx context.Context, s *server.Server, netCtl *liteapi.NetCtl, locator bridge.Locator, storeKey []byte) {
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
 			// Login the user.
-			userID := must(bridge.LoginUser(ctx, username, password, nil, nil))
+			userID := must(bridge.LoginFull(ctx, username, password, nil, nil))
 
 			// The user is now connected.
 			require.Equal(t, []string{userID}, bridge.GetUserIDs())
@@ -59,7 +59,7 @@ func TestBridge_LoginLogoutLogin(t *testing.T) {
 			require.Empty(t, getConnectedUserIDs(t, bridge))
 
 			// Login the user again.
-			newUserID := must(bridge.LoginUser(ctx, username, password, nil, nil))
+			newUserID := must(bridge.LoginFull(ctx, username, password, nil, nil))
 			require.Equal(t, userID, newUserID)
 
 			// The user is connected again.
@@ -73,7 +73,7 @@ func TestBridge_LoginDeleteLogin(t *testing.T) {
 	withTLSEnv(t, func(ctx context.Context, s *server.Server, netCtl *liteapi.NetCtl, locator bridge.Locator, storeKey []byte) {
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
 			// Login the user.
-			userID := must(bridge.LoginUser(ctx, username, password, nil, nil))
+			userID := must(bridge.LoginFull(ctx, username, password, nil, nil))
 
 			// The user is now connected.
 			require.Equal(t, []string{userID}, bridge.GetUserIDs())
@@ -87,7 +87,7 @@ func TestBridge_LoginDeleteLogin(t *testing.T) {
 			require.Empty(t, getConnectedUserIDs(t, bridge))
 
 			// Login the user again.
-			newUserID := must(bridge.LoginUser(ctx, username, password, nil, nil))
+			newUserID := must(bridge.LoginFull(ctx, username, password, nil, nil))
 			require.Equal(t, userID, newUserID)
 
 			// The user is connected again.
@@ -101,7 +101,7 @@ func TestBridge_LoginDeauthLogin(t *testing.T) {
 	withTLSEnv(t, func(ctx context.Context, s *server.Server, netCtl *liteapi.NetCtl, locator bridge.Locator, storeKey []byte) {
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
 			// Login the user.
-			userID := must(bridge.LoginUser(ctx, username, password, nil, nil))
+			userID := must(bridge.LoginFull(ctx, username, password, nil, nil))
 
 			// Get a channel to receive the deauth event.
 			eventCh, done := bridge.GetEvents(events.UserDeauth{})
@@ -119,7 +119,7 @@ func TestBridge_LoginDeauthLogin(t *testing.T) {
 			require.IsType(t, events.UserDeauth{}, <-eventCh)
 
 			// Login the user after the disconnection.
-			newUserID := must(bridge.LoginUser(ctx, username, password, nil, nil))
+			newUserID := must(bridge.LoginFull(ctx, username, password, nil, nil))
 			require.Equal(t, userID, newUserID)
 
 			// The user is connected again.
@@ -137,7 +137,7 @@ func TestBridge_LoginExpireLogin(t *testing.T) {
 
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
 			// Login the user. Its auth will only be valid for a short time.
-			userID := must(bridge.LoginUser(ctx, username, password, nil, nil))
+			userID := must(bridge.LoginFull(ctx, username, password, nil, nil))
 
 			// Wait until the auth expires.
 			time.Sleep(authLife)
@@ -154,7 +154,7 @@ func TestBridge_FailToLoad(t *testing.T) {
 
 		// Login the user.
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
-			userID = must(bridge.LoginUser(ctx, username, password, nil, nil))
+			userID = must(bridge.LoginFull(ctx, username, password, nil, nil))
 		})
 
 		// Deauth the user while bridge is stopped.
@@ -174,7 +174,7 @@ func TestBridge_LoadWithoutInternet(t *testing.T) {
 
 		// Login the user.
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
-			userID = must(bridge.LoginUser(ctx, username, password, nil, nil))
+			userID = must(bridge.LoginFull(ctx, username, password, nil, nil))
 		})
 
 		// Simulate loss of internet connection.
@@ -204,7 +204,7 @@ func TestBridge_LoginRestart(t *testing.T) {
 		var userID string
 
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
-			userID = must(bridge.LoginUser(ctx, username, password, nil, nil))
+			userID = must(bridge.LoginFull(ctx, username, password, nil, nil))
 		})
 
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
@@ -220,7 +220,7 @@ func TestBridge_LoginLogoutRestart(t *testing.T) {
 
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
 			// Login the user.
-			userID = must(bridge.LoginUser(ctx, username, password, nil, nil))
+			userID = must(bridge.LoginFull(ctx, username, password, nil, nil))
 
 			// Logout the user.
 			require.NoError(t, bridge.LogoutUser(ctx, userID))
@@ -240,7 +240,7 @@ func TestBridge_LoginDeleteRestart(t *testing.T) {
 
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
 			// Login the user.
-			userID = must(bridge.LoginUser(ctx, username, password, nil, nil))
+			userID = must(bridge.LoginFull(ctx, username, password, nil, nil))
 
 			// Delete the user.
 			require.NoError(t, bridge.DeleteUser(ctx, userID))
@@ -264,7 +264,7 @@ func TestBridge_FailLoginRecover(t *testing.T) {
 
 		// Log the user in and record how much data was read.
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
-			userID := must(bridge.LoginUser(ctx, username, password, nil, nil))
+			userID := must(bridge.LoginFull(ctx, username, password, nil, nil))
 			require.NoError(t, bridge.LogoutUser(ctx, userID))
 		})
 
@@ -273,7 +273,7 @@ func TestBridge_FailLoginRecover(t *testing.T) {
 
 		// We should fail to log the user in because we can't fully read its data.
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
-			require.Error(t, getErr(bridge.LoginUser(ctx, username, password, nil, nil)))
+			require.Error(t, getErr(bridge.LoginFull(ctx, username, password, nil, nil)))
 
 			// There should be no users.
 			require.Empty(t, bridge.GetUserIDs())
@@ -284,7 +284,7 @@ func TestBridge_FailLoginRecover(t *testing.T) {
 func TestBridge_FailLoadRecover(t *testing.T) {
 	withTLSEnv(t, func(ctx context.Context, s *server.Server, netCtl *liteapi.NetCtl, locator bridge.Locator, storeKey []byte) {
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
-			must(bridge.LoginUser(ctx, username, password, nil, nil))
+			must(bridge.LoginFull(ctx, username, password, nil, nil))
 		})
 
 		var read uint64
@@ -318,7 +318,7 @@ func TestBridge_BridgePass(t *testing.T) {
 
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
 			// Login the user.
-			userID = must(bridge.LoginUser(ctx, username, password, nil, nil))
+			userID = must(bridge.LoginFull(ctx, username, password, nil, nil))
 
 			// Retrieve the bridge pass.
 			pass = must(bridge.GetUserInfo(userID)).BridgePass
@@ -327,7 +327,7 @@ func TestBridge_BridgePass(t *testing.T) {
 			require.NoError(t, bridge.LogoutUser(ctx, userID))
 
 			// Log the user back in.
-			must(bridge.LoginUser(ctx, username, password, nil, nil))
+			must(bridge.LoginFull(ctx, username, password, nil, nil))
 
 			// The bridge pass should be the same.
 			require.Equal(t, pass, pass)
@@ -348,7 +348,7 @@ func TestBridge_AddressMode(t *testing.T) {
 	withTLSEnv(t, func(ctx context.Context, s *server.Server, netCtl *liteapi.NetCtl, locator bridge.Locator, storeKey []byte) {
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
 			// Login the user.
-			userID, err := bridge.LoginUser(ctx, username, password, nil, nil)
+			userID, err := bridge.LoginFull(ctx, username, password, nil, nil)
 			require.NoError(t, err)
 
 			// Get the user's info.

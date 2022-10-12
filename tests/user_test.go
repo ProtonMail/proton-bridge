@@ -156,7 +156,7 @@ func (s *scenario) theAddressOfAccountHasMessagesInMailbox(address, username str
 }
 
 func (s *scenario) userLogsInWithUsernameAndPassword(username, password string) error {
-	userID, err := s.t.bridge.LoginUser(context.Background(), username, []byte(password), nil, nil)
+	userID, err := s.t.bridge.LoginFull(context.Background(), username, []byte(password), nil, nil)
 	if err != nil {
 		s.t.pushError(err)
 	} else {

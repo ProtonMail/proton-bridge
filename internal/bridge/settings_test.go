@@ -15,7 +15,7 @@ func TestBridge_Settings_GluonDir(t *testing.T) {
 	withTLSEnv(t, func(ctx context.Context, s *server.Server, netCtl *liteapi.NetCtl, locator bridge.Locator, storeKey []byte) {
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
 			// Create a user.
-			_, err := bridge.LoginUser(context.Background(), username, password, nil, nil)
+			_, err := bridge.LoginFull(context.Background(), username, password, nil, nil)
 			require.NoError(t, err)
 
 			// Create a new location for the Gluon data.

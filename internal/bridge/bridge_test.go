@@ -55,7 +55,7 @@ func TestBridge_ConnStatus(t *testing.T) {
 			netCtl.Disable()
 
 			// Trigger some operation that will fail due to the network disconnect.
-			_, err := bridge.LoginUser(context.Background(), username, password, nil, nil)
+			_, err := bridge.LoginFull(context.Background(), username, password, nil, nil)
 			require.Error(t, err)
 
 			// Wait for the event.
@@ -65,7 +65,7 @@ func TestBridge_ConnStatus(t *testing.T) {
 			netCtl.Enable()
 
 			// Trigger some operation that will succeed due to the network reconnect.
-			userID, err := bridge.LoginUser(context.Background(), username, password, nil, nil)
+			userID, err := bridge.LoginFull(context.Background(), username, password, nil, nil)
 			require.NoError(t, err)
 			require.NotEmpty(t, userID)
 
@@ -125,7 +125,7 @@ func TestBridge_UserAgent(t *testing.T) {
 			require.Contains(t, bridge.GetCurrentUserAgent(), "platform")
 
 			// Login the user.
-			_, err := bridge.LoginUser(context.Background(), username, password, nil, nil)
+			_, err := bridge.LoginFull(context.Background(), username, password, nil, nil)
 			require.NoError(t, err)
 
 			// Assert that the user agent was sent to the API.
@@ -150,7 +150,7 @@ func TestBridge_Cookies(t *testing.T) {
 
 		// Start bridge and add a user so that API assigns us a session ID via cookie.
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, vaultKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
-			_, err := bridge.LoginUser(context.Background(), username, password, nil, nil)
+			_, err := bridge.LoginFull(context.Background(), username, password, nil, nil)
 			require.NoError(t, err)
 		})
 
@@ -273,7 +273,7 @@ func TestBridge_ForceUpdate(t *testing.T) {
 			s.SetMinAppVersion(v2_4_0)
 
 			// Try to login the user. It will fail because the bridge is too old.
-			_, err := bridge.LoginUser(context.Background(), username, password, nil, nil)
+			_, err := bridge.LoginFull(context.Background(), username, password, nil, nil)
 			require.Error(t, err)
 
 			// We should get an update required event.
@@ -288,7 +288,7 @@ func TestBridge_BadVaultKey(t *testing.T) {
 
 		// Login a user.
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, vaultKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
-			newUserID, err := bridge.LoginUser(context.Background(), username, password, nil, nil)
+			newUserID, err := bridge.LoginFull(context.Background(), username, password, nil, nil)
 			require.NoError(t, err)
 
 			userID = newUserID
@@ -316,7 +316,7 @@ func TestBridge_MissingGluonDir(t *testing.T) {
 		var gluonDir string
 
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, vaultKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
-			_, err := bridge.LoginUser(context.Background(), username, password, nil, nil)
+			_, err := bridge.LoginFull(context.Background(), username, password, nil, nil)
 			require.NoError(t, err)
 
 			// Move the gluon dir.
