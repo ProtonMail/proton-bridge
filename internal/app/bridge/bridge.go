@@ -44,9 +44,9 @@ const (
 	flagLogSMTP        = "log-smtp"
 	flagNonInteractive = "noninteractive"
 
-	// Memory cache was estimated by empirical usage in the past, and it was set to 100MB.
+	// Memory cache was estimated by empirical usage in past and it was set to 100MB.
 	// NOTE: This value must not be less than maximal size of one email (~30MB).
-	inMemoryCacheLimit = 100 * (1 << 20)
+	inMemoryCacheLimnit = 100 * (1 << 20)
 )
 
 func New(base *base.Base) *cli.App {
@@ -63,7 +63,7 @@ func New(base *base.Base) *cli.App {
 		},
 		&cli.BoolFlag{
 			Name:  flagNonInteractive,
-			Usage: "Start Bridge entirely non-interactively",
+			Usage: "Start Bridge entirely noninteractively",
 		},
 	}...)
 
@@ -71,17 +71,6 @@ func New(base *base.Base) *cli.App {
 }
 
 func main(b *base.Base, c *cli.Context) error { //nolint:funlen
-	frontendType := getFrontendTypeFromCLIParams(c)
-	f := frontend.New(
-		frontendType,
-		!c.Bool(base.FlagNoWindow),
-		b.CrashHandler,
-		b.Listener,
-		b.Updater,
-		b,
-		b.Locations,
-	)
-
 	cache, cacheErr := loadMessageCache(b)
 	if cacheErr != nil {
 		logrus.WithError(cacheErr).Error("Could not load local cache.")
@@ -152,9 +141,27 @@ func main(b *base.Base, c *cli.Context) error { //nolint:funlen
 	// We want cookies to be saved to disk so they are loaded the next time.
 	b.AddTeardownAction(b.CookieJar.PersistCookies)
 
-	if frontendType == frontend.NonInteractive {
-		return <-(make(chan error))
+	var frontendMode string
+
+	switch {
+	case c.Bool(base.FlagCLI):
+		frontendMode = "cli"
+	case c.Bool(flagNonInteractive):
+		return <-(make(chan error)) // Block forever.
+	default:
+		frontendMode = "grpc"
 	}
+
+	f := frontend.New(
+		frontendMode,
+		!c.Bool(base.FlagNoWindow),
+		b.CrashHandler,
+		b.Listener,
+		b.Updater,
+		bridge,
+		b,
+		b.Locations,
+	)
 
 	// Watch for updates routine
 	go func() {
@@ -166,18 +173,7 @@ func main(b *base.Base, c *cli.Context) error { //nolint:funlen
 		}
 	}()
 
-	return f.Loop(bridge)
-}
-
-func getFrontendTypeFromCLIParams(c *cli.Context) frontend.Type {
-	switch {
-	case c.Bool(base.FlagCLI):
-		return frontend.CLI
-	case c.Bool(flagNonInteractive):
-		return frontend.NonInteractive
-	default:
-		return frontend.GRPC
-	}
+	return f.Loop()
 }
 
 func checkAndHandleUpdate(u types.Updater, f frontend.Frontend, autoUpdate bool) {
@@ -230,7 +226,7 @@ func checkAndHandleUpdate(u types.Updater, f frontend.Frontend, autoUpdate bool)
 // local cache is enabled but unavailable (in-memory cache will be returned nevertheless).
 func loadMessageCache(b *base.Base) (cache.Cache, error) {
 	if !b.Settings.GetBool(settings.CacheEnabledKey) {
-		return cache.NewInMemoryCache(inMemoryCacheLimit), nil
+		return cache.NewInMemoryCache(inMemoryCacheLimnit), nil
 	}
 
 	var compressor cache.Compressor
@@ -250,12 +246,12 @@ func loadMessageCache(b *base.Base) (cache.Cache, error) {
 		path = customPath
 	} else {
 		path = b.Cache.GetDefaultMessageCacheDir()
-		// Store path so it will always persist if default location
+		// Store path so it will allways persist if default location
 		// will be changed in new version.
 		b.Settings.Set(settings.CacheLocationKey, path)
 	}
 
-	// To prevent memory peaks we set maximal write concurrency for store
+	// To prevent memory peaks we set maximal write concurency for store
 	// build jobs.
 	store.SetBuildAndCacheJobLimit(b.Settings.GetInt(settings.CacheConcurrencyWrite))
 
@@ -266,7 +262,7 @@ func loadMessageCache(b *base.Base) (cache.Cache, error) {
 		ConcurrentWrite: b.Settings.GetInt(settings.CacheConcurrencyWrite),
 	})
 	if err != nil {
-		return cache.NewInMemoryCache(inMemoryCacheLimit), err
+		return cache.NewInMemoryCache(inMemoryCacheLimnit), err
 	}
 
 	return messageCache, nil

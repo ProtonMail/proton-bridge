@@ -92,6 +92,7 @@ func NewService(
 	panicHandler types.PanicHandler,
 	eventListener listener.Listener,
 	updater types.Updater,
+	bridge types.Bridger,
 	restarter types.Restarter,
 	locations *locations.Locations,
 ) *Service {
@@ -100,6 +101,7 @@ func NewService(
 		panicHandler:              panicHandler,
 		eventListener:             eventListener,
 		updater:                   updater,
+		bridge:                    bridge,
 		restarter:                 restarter,
 		showOnStartup:             showOnStartup,
 
@@ -115,16 +117,6 @@ func NewService(
 	// set to 1
 	s.initializing.Add(1)
 
-	go func() {
-		defer s.panicHandler.HandlePanic()
-		s.watchEvents()
-	}()
-
-	return &s
-}
-
-func (s *Service) startGRPCServer() {
-	s.log.Info("Starting gRPC server")
 	tlsConfig, pemCert, err := s.generateTLSConfig()
 	if err != nil {
 		s.log.WithError(err).Panic("Could not generate gRPC TLS config")
@@ -132,13 +124,14 @@ func (s *Service) startGRPCServer() {
 
 	s.pemCert = string(pemCert)
 
+	s.initAutostart()
 	s.grpcServer = grpc.NewServer(
 		grpc.Creds(credentials.NewTLS(tlsConfig)),
 		grpc.UnaryInterceptor(s.validateUnaryServerToken),
 		grpc.StreamInterceptor(s.validateStreamServerToken),
 	)
 
-	RegisterBridgeServer(s.grpcServer, s)
+	RegisterBridgeServer(s.grpcServer, &s)
 
 	s.listener, err = net.Listen("tcp", "127.0.0.1:0") // Port 0 means that the port is randomly picked by the system.
 	if err != nil {
@@ -151,7 +144,9 @@ func (s *Service) startGRPCServer() {
 		s.log.WithField("path", path).Info("Successfully saved gRPC service config file")
 	}
 
-	s.log.Info("gRPC server listening at ", s.listener.Addr())
+	s.log.Info("gRPC server listening on ", s.listener.Addr())
+
+	return &s
 }
 
 func (s *Service) initAutostart() {
@@ -171,24 +166,23 @@ func (s *Service) initAutostart() {
 	})
 }
 
-func (s *Service) Loop(b types.Bridger) error {
-	s.bridge = b
-	s.initAutostart()
-	s.startGRPCServer()
-
+func (s *Service) Loop() error {
 	defer func() {
 		s.bridge.SetBool(settings.FirstStartGUIKey, false)
 	}()
 
-	if s.bridge.HasError(bridge.ErrLocalCacheUnavailable) {
-		_ = s.SendEvent(NewCacheErrorEvent(CacheErrorType_CACHE_UNAVAILABLE_ERROR))
-	}
+	go func() {
+		defer s.panicHandler.HandlePanic()
+		s.watchEvents()
+	}()
 
-	err := s.grpcServer.Serve(s.listener)
-	if err != nil {
-		s.log.WithError(err).Error("error serving RPC")
+	s.log.Info("Starting gRPC server")
+
+	if err := s.grpcServer.Serve(s.listener); err != nil {
+		s.log.WithError(err).Error("Error serving gRPC")
 		return err
 	}
+
 	return nil
 }
 
@@ -219,6 +213,10 @@ func (s *Service) WaitUntilFrontendIsReady() {
 }
 
 func (s *Service) watchEvents() { // nolint:funlen
+	if s.bridge.HasError(bridge.ErrLocalCacheUnavailable) {
+		_ = s.SendEvent(NewCacheErrorEvent(CacheErrorType_CACHE_UNAVAILABLE_ERROR))
+	}
+
 	errorCh := s.eventListener.ProvideChannel(events.ErrorEvent)
 	credentialsErrorCh := s.eventListener.ProvideChannel(events.CredentialsErrorEvent)
 	noActiveKeyForRecipientCh := s.eventListener.ProvideChannel(events.NoActiveKeyForRecipientEvent)
@@ -270,10 +268,6 @@ func (s *Service) watchEvents() { // nolint:funlen
 		case address := <-addressChangedLogoutCh:
 			_ = s.SendEvent(NewMailAddressChangeLogoutEvent(address))
 		case userID := <-logoutCh:
-			if s.bridge == nil {
-				logrus.Error("Received a logout event but bridge is not yet instantiated.")
-				break
-			}
 			user, err := s.bridge.GetUserInfo(userID)
 			if err != nil {
 				return
