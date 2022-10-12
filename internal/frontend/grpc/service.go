@@ -238,6 +238,15 @@ func (s *Service) watchEvents() {
 		case events.UserChanged:
 			_ = s.SendEvent(NewUserChangedEvent(event.UserID))
 
+		case events.UserLoggedIn:
+			_ = s.SendEvent(NewUserChangedEvent(event.UserID))
+
+		case events.UserLoggedOut:
+			_ = s.SendEvent(NewUserChangedEvent(event.UserID))
+
+		case events.UserDeleted:
+			_ = s.SendEvent(NewUserChangedEvent(event.UserID))
+
 		case events.UserDeauth:
 			if user, err := s.bridge.GetUserInfo(event.UserID); err != nil {
 				s.log.WithError(err).Error("Failed to get user info")
