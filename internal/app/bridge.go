@@ -34,11 +34,17 @@ func withBridge(
 	cookieJar http.CookieJar,
 	fn func(*bridge.Bridge) error,
 ) error {
+	// Get the current bridge version.
+	version, err := semver.NewVersion(constants.Version)
+	if err != nil {
+		return fmt.Errorf("could not create version: %w", err)
+	}
+
 	// Create the underlying dialer used by the bridge.
 	// It only connects to trusted servers and reports any untrusted servers it finds.
 	pinningDialer := dialer.NewPinningTLSDialer(
 		dialer.NewBasicTLSDialer(constants.APIHost),
-		dialer.NewTLSReporter(constants.APIHost, constants.AppVersion, identifier, dialer.TrustedAPIPins),
+		dialer.NewTLSReporter(constants.APIHost, constants.AppVersion(version.Original()), identifier, dialer.TrustedAPIPins),
 		dialer.NewTLSPinChecker(dialer.TrustedAPIPins),
 	)
 
@@ -55,12 +61,6 @@ func withBridge(
 	updater, err := newUpdater(locations)
 	if err != nil {
 		return fmt.Errorf("could not create updater: %w", err)
-	}
-
-	// Get the current bridge version.
-	version, err := semver.NewVersion(constants.Version)
-	if err != nil {
-		return fmt.Errorf("could not create version: %w", err)
 	}
 
 	// Create a new bridge.

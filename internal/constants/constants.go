@@ -45,9 +45,6 @@ var (
 	// Version of the build.
 	Version = "2.4.1+git"
 
-	// AppVersion is the full rendered version of the app (to be used in request headers).
-	AppVersion = getAPIOS() + cases.Title(language.Und).String(ConfigName) + "_" + Version
-
 	// Revision is current hash of the build.
 	Revision = ""
 
@@ -66,6 +63,11 @@ var (
 	// The host name of the bridge server.
 	Host = "127.0.0.1"
 )
+
+// AppVersion returns the full rendered version of the app (to be used in request headers).
+func AppVersion(version string) string {
+	return getAPIOS() + cases.Title(language.Und).String(ConfigName) + "_" + version
+}
 
 func getAPIOS() string {
 	switch runtime.GOOS {

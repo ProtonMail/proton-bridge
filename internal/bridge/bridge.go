@@ -98,7 +98,7 @@ func New(
 ) (*Bridge, error) {
 	api := liteapi.New(
 		liteapi.WithHostURL(apiURL),
-		liteapi.WithAppVersion(constants.AppVersion),
+		liteapi.WithAppVersion(constants.AppVersion(curVersion.Original())),
 		liteapi.WithCookieJar(cookieJar),
 		liteapi.WithTransport(roundTripper),
 	)
