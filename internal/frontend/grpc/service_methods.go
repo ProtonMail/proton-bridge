@@ -356,8 +356,8 @@ func (s *Service) Login(ctx context.Context, login *LoginRequest) (*emptypb.Empt
 
 	go func() {
 		defer s.panicHandler.HandlePanic()
-		var password []byte
-		_, err := base64.StdEncoding.Decode(password, login.Password)
+
+		password, err := base64Decode(login.Password)
 		if err != nil {
 			s.log.WithError(err).Error("Cannot decode password")
 			_ = s.SendEvent(NewLoginError(LoginErrorType_USERNAME_PASSWORD_ERROR, "Cannot decode password"))
@@ -592,4 +592,15 @@ func (s *Service) CurrentKeychain(ctx context.Context, _ *emptypb.Empty) (*wrapp
 	}
 
 	return wrapperspb.String(helper), nil
+}
+
+func base64Decode(in []byte) ([]byte, error) {
+	out := make([]byte, base64.StdEncoding.DecodedLen(len(in)))
+
+	n, err := base64.StdEncoding.Decode(out, in)
+	if err != nil {
+		return nil, err
+	}
+
+	return out[:n], nil
 }

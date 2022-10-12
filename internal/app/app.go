@@ -36,11 +36,14 @@ const (
 	flagCLI      = "cli"
 	flagCLIShort = "c"
 
-	flagNoWindow       = "no-window"
 	flagNonInteractive = "non-interactive"
 
 	flagLogIMAP = "log-imap"
 	flagLogSMTP = "log-smtp"
+
+	// Hidden flags
+	flagLauncher = "launcher"
+	flagNoWindow = "no-window"
 )
 
 const (
@@ -74,9 +77,8 @@ func New() *cli.App {
 			Usage:   "Use command line interface",
 		},
 		&cli.BoolFlag{
-			Name:   flagNoWindow,
-			Usage:  "Don't show window after start",
-			Hidden: true,
+			Name:  flagNonInteractive,
+			Usage: "Run the app in non-interactive mode",
 		},
 		&cli.StringFlag{
 			Name:  flagLogIMAP,
@@ -85,6 +87,18 @@ func New() *cli.App {
 		&cli.BoolFlag{
 			Name:  flagLogSMTP,
 			Usage: "Enable logging of SMTP communications (may contain decrypted data!)",
+		},
+
+		// Hidden flags
+		&cli.BoolFlag{
+			Name:   flagNoWindow,
+			Usage:  "Don't show window after start",
+			Hidden: true,
+		},
+		&cli.BoolFlag{
+			Name:   flagLauncher,
+			Usage:  "The launcher used to start the app",
+			Hidden: true,
 		},
 	}
 
