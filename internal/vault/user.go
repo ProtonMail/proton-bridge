@@ -147,3 +147,8 @@ func (user *User) Clear() error {
 		data.KeyPass = nil
 	})
 }
+
+// Close closes the user. This allows it to be removed from the vault.
+func (user *User) Close() error {
+	return user.vault.detachUser(user.userID)
+}

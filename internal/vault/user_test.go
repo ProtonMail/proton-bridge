@@ -80,7 +80,11 @@ func TestUser_Delete(t *testing.T) {
 	// The user should be listed in the store.
 	require.ElementsMatch(t, []string{"userID"}, s.GetUserIDs())
 
-	// Clear the user's auth information.
+	// Try to delete the user; it should fail because it is still in use.
+	require.Error(t, s.DeleteUser("userID"))
+
+	// Close the user; it should now be deletable.
+	require.NoError(t, user.Close())
 	require.NoError(t, s.DeleteUser("userID"))
 
 	// The store should have no users again.
@@ -120,6 +124,56 @@ func TestUser_SyncStatus(t *testing.T) {
 	require.False(t, user.SyncStatus().HasLabels)
 	require.False(t, user.SyncStatus().HasMessages)
 	require.Empty(t, user.SyncStatus().LastMessageID)
+}
+
+func TestUser_ForEach(t *testing.T) {
+	// Create a new test vault.
+	s := newVault(t)
+
+	// Create some new users.
+	user1, err := s.AddUser("userID1", "username1", "authUID1", "authRef1", []byte("keyPass1"))
+	require.NoError(t, err)
+	user2, err := s.AddUser("userID2", "username2", "authUID2", "authRef2", []byte("keyPass2"))
+	require.NoError(t, err)
+
+	// Iterate through the users.
+	s.ForUser(func(user *vault.User) error {
+		switch user.UserID() {
+		case "userID1":
+			require.Equal(t, "username1", user.Username())
+			require.Equal(t, "authUID1", user.AuthUID())
+			require.Equal(t, "authRef1", user.AuthRef())
+			require.Equal(t, "keyPass1", string(user.KeyPass()))
+
+		case "userID2":
+			require.Equal(t, "username2", user.Username())
+			require.Equal(t, "authUID2", user.AuthUID())
+			require.Equal(t, "authRef2", user.AuthRef())
+			require.Equal(t, "keyPass2", string(user.KeyPass()))
+
+		default:
+			t.Fatalf("unexpected user %q", user.UserID())
+		}
+
+		return nil
+	})
+
+	// Try to delete the first user; it should fail because it is still in use.
+	require.Error(t, s.DeleteUser("userID1"))
+
+	// Close the first user; it should now be deletable.
+	require.NoError(t, user1.Close())
+	require.NoError(t, s.DeleteUser("userID1"))
+
+	// Try to delete the second user; it should fail because it is still in use.
+	require.Error(t, s.DeleteUser("userID2"))
+
+	// Close the second user; it should now be deletable.
+	require.NoError(t, user2.Close())
+	require.NoError(t, s.DeleteUser("userID2"))
+
+	// The store should have no users again.
+	require.Empty(t, s.GetUserIDs())
 }
 
 /*

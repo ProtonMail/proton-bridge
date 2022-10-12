@@ -27,6 +27,7 @@ import (
 	"sort"
 
 	"github.com/ProtonMail/proton-bridge/v2/internal/logging"
+	"github.com/ProtonMail/proton-bridge/v2/internal/vault"
 	"gitlab.protontech.ch/go/liteapi"
 )
 
@@ -41,12 +42,11 @@ func (bridge *Bridge) ReportBug(ctx context.Context, osType, osVersion, descript
 	if info, err := bridge.QueryUserInfo(username); err == nil {
 		account = info.Username
 	} else if userIDs := bridge.GetUserIDs(); len(userIDs) > 0 {
-		user, err := bridge.vault.GetUser(userIDs[0])
-		if err != nil {
+		if err := bridge.vault.GetUser(userIDs[0], func(user *vault.User) {
+			account = user.Username()
+		}); err != nil {
 			return err
 		}
-
-		account = user.Username()
 	}
 
 	var atts []liteapi.ReportBugAttachment

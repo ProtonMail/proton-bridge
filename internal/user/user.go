@@ -341,7 +341,9 @@ func (user *User) Close() error {
 	user.waitSync()
 
 	// Close the user's API client.
-	user.client.Close()
+	if err := user.client.Close(); err != nil {
+		logrus.WithError(err).Error("Failed to close API client")
+	}
 
 	// Close the user's update channels.
 	user.updateCh.Values(func(updateCh []*queue.QueuedChannel[imap.Update]) {
@@ -352,6 +354,11 @@ func (user *User) Close() error {
 
 	// Close the user's notify channel.
 	user.eventCh.Close()
+
+	// Close the user's vault.
+	if err := user.vault.Close(); err != nil {
+		logrus.WithError(err).Error("Failed to close vault")
+	}
 
 	return nil
 }

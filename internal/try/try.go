@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/bradenaw/juniper/xerrors"
 	"github.com/sirupsen/logrus"
 )
 
@@ -23,7 +24,7 @@ func CatchVal[T any](try func() (T, error), handlers ...func() error) (res T, er
 	defer func() {
 		if r := recover(); r != nil {
 			catch(handlers...)
-			err = fmt.Errorf("panic: %v", r)
+			err = xerrors.WithStack(fmt.Errorf("panic: %v", r))
 		}
 	}()
 
@@ -38,13 +39,13 @@ func CatchVal[T any](try func() (T, error), handlers ...func() error) (res T, er
 func catch(handlers ...func() error) {
 	defer func() {
 		if r := recover(); r != nil {
-			logrus.WithField("panic", r).Error("Panic in catch")
+			logrus.WithError(xerrors.WithStack(fmt.Errorf("panic: %v", r))).Error("Catch handler panicked")
 		}
 	}()
 
 	for _, handler := range handlers {
 		if err := handler(); err != nil {
-			logrus.WithError(err).Error("Failed to handle error")
+			logrus.WithError(xerrors.WithStack(err)).Error("Catch handler failed")
 		}
 	}
 }

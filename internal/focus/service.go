@@ -8,6 +8,7 @@ import (
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/ProtonMail/proton-bridge/v2/internal/focus/proto"
+	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
@@ -22,34 +23,31 @@ var Port = 1042 // nolint:gochecknoglobals
 type Service struct {
 	proto.UnimplementedFocusServer
 
-	server   *grpc.Server
-	listener net.Listener
-	raiseCh  chan struct{}
-	version  *semver.Version
+	server  *grpc.Server
+	raiseCh chan struct{}
+	version *semver.Version
 }
 
 // NewService creates a new focus service.
 // It listens on the local host and port 1042 (by default).
 func NewService(version *semver.Version) (*Service, error) {
-	listener, err := net.Listen("tcp", net.JoinHostPort(Host, fmt.Sprint(Port)))
-	if err != nil {
-		return nil, fmt.Errorf("failed to listen: %w", err)
-	}
-
 	service := &Service{
-		server:   grpc.NewServer(),
-		listener: listener,
-		raiseCh:  make(chan struct{}, 1),
-		version:  version,
+		server:  grpc.NewServer(),
+		raiseCh: make(chan struct{}, 1),
+		version: version,
 	}
 
 	proto.RegisterFocusServer(service.server, service)
 
-	go func() {
-		if err := service.server.Serve(listener); err != nil {
-			fmt.Printf("failed to serve: %v", err)
-		}
-	}()
+	if listener, err := net.Listen("tcp", net.JoinHostPort(Host, fmt.Sprint(Port))); err != nil {
+		logrus.WithError(err).Warn("Failed to start focus service")
+	} else {
+		go func() {
+			if err := service.server.Serve(listener); err != nil {
+				fmt.Printf("failed to serve: %v", err)
+			}
+		}()
+	}
 
 	return service, nil
 }

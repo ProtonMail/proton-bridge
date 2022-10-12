@@ -13,7 +13,6 @@ import (
 	"github.com/go-resty/resty/v2"
 	"github.com/sirupsen/logrus"
 	"gitlab.protontech.ch/go/liteapi"
-	"golang.org/x/exp/slices"
 )
 
 type UserInfo struct {
@@ -49,18 +48,21 @@ func (bridge *Bridge) GetUserIDs() []string {
 
 // GetUserInfo returns info about the given user.
 func (bridge *Bridge) GetUserInfo(userID string) (UserInfo, error) {
-	vaultUser, err := bridge.vault.GetUser(userID)
-	if err != nil {
-		return UserInfo{}, err
-	}
-
 	if info, ok := safe.MapGetRet(bridge.users, userID, func(user *user.User) UserInfo {
 		return getConnUserInfo(user)
 	}); ok {
 		return info, nil
 	}
 
-	return getUserInfo(vaultUser.UserID(), vaultUser.Username(), vaultUser.AddressMode()), nil
+	var info UserInfo
+
+	if err := bridge.vault.GetUser(userID, func(user *vault.User) {
+		info = getUserInfo(user.UserID(), user.Username(), user.AddressMode())
+	}); err != nil {
+		return UserInfo{}, fmt.Errorf("failed to get user info: %w", err)
+	}
+
+	return info, nil
 }
 
 // QueryUserInfo queries the user info by username or address.
@@ -108,10 +110,6 @@ func (bridge *Bridge) LoginUser(
 		func() error {
 			return client.AuthDelete(ctx)
 		},
-		func() error {
-			bridge.deleteUser(ctx, auth.UserID)
-			return nil
-		},
 	)
 	if err != nil {
 		return "", fmt.Errorf("failed to login user: %w", err)
@@ -126,6 +124,7 @@ func (bridge *Bridge) LoginUser(
 
 // LoginUser authorizes a new bridge user with the given username and password.
 // If necessary, a TOTP and mailbox password are requested via the callbacks.
+// This is equivalent to doing LoginAuth and LoginUser separately.
 func (bridge *Bridge) LoginFull(
 	ctx context.Context,
 	username string,
@@ -252,10 +251,12 @@ func (bridge *Bridge) loginUser(ctx context.Context, client *liteapi.Client, aut
 func (bridge *Bridge) loadLoop() {
 	for {
 		bridge.loadWG.GoTry(func(ok bool) {
-			if ok {
-				if err := bridge.loadUsers(); err != nil {
-					logrus.WithError(err).Error("Failed to load users")
-				}
+			if !ok {
+				return
+			}
+
+			if err := bridge.loadUsers(); err != nil {
+				logrus.WithError(err).Error("Failed to load users")
 			}
 		})
 
@@ -269,6 +270,7 @@ func (bridge *Bridge) loadLoop() {
 	}
 }
 
+// loadUsers tries to load each user in the vault that isn't already loaded.
 func (bridge *Bridge) loadUsers() error {
 	if err := bridge.vault.ForUser(func(user *vault.User) error {
 		if bridge.users.Has(user.UserID()) {
@@ -317,7 +319,7 @@ func (bridge *Bridge) loadUser(user *vault.User) error {
 		return fmt.Errorf("failed to create API client: %w", err)
 	}
 
-	if err := try.Catch(
+	return try.Catch(
 		func() error {
 			apiUser, err := client.GetUser(ctx)
 			if err != nil {
@@ -329,14 +331,7 @@ func (bridge *Bridge) loadUser(user *vault.User) error {
 		func() error {
 			return client.AuthDelete(ctx)
 		},
-		func() error {
-			return bridge.logoutUser(ctx, user.UserID())
-		},
-	); err != nil {
-		return fmt.Errorf("failed to load user: %w", err)
-	}
-
-	return nil
+	)
 }
 
 // addUser adds a new user with an already salted mailbox password.
@@ -347,23 +342,45 @@ func (bridge *Bridge) addUser(
 	authUID, authRef string,
 	saltedKeyPass []byte,
 ) error {
-	var user *user.User
-
-	if slices.Contains(bridge.vault.GetUserIDs(), apiUser.ID) {
-		existingUser, err := bridge.addExistingUser(ctx, client, apiUser, authUID, authRef, saltedKeyPass)
-		if err != nil {
-			return fmt.Errorf("failed to add existing user: %w", err)
-		}
-
-		user = existingUser
-	} else {
-		newUser, err := bridge.addNewUser(ctx, client, apiUser, authUID, authRef, saltedKeyPass)
-		if err != nil {
-			return fmt.Errorf("failed to add new user: %w", err)
-		}
-
-		user = newUser
+	vaultUser, isNew, err := bridge.newVaultUser(client, apiUser, authUID, authRef, saltedKeyPass)
+	if err != nil {
+		return fmt.Errorf("failed to add vault user: %w", err)
 	}
+
+	if err := bridge.addUserWithVault(ctx, client, apiUser, vaultUser); err != nil {
+		if err := vaultUser.Clear(); err != nil {
+			logrus.WithError(err).Error("Failed to clear vault user")
+		}
+
+		if err := vaultUser.Close(); err != nil {
+			logrus.WithError(err).Error("Failed to close vault user")
+		}
+
+		if isNew {
+			if err := bridge.vault.DeleteUser(apiUser.ID); err != nil {
+				logrus.WithError(err).Error("Failed to delete vault user")
+			}
+		}
+
+		return fmt.Errorf("failed to add user with vault: %w", err)
+	}
+
+	return nil
+}
+
+// addUserWithVault adds a new user to bridge with the given vault.
+func (bridge *Bridge) addUserWithVault(
+	ctx context.Context,
+	client *liteapi.Client,
+	apiUser liteapi.User,
+	vaultUser *vault.User,
+) error {
+	user, err := user.New(ctx, vaultUser, client, apiUser)
+	if err != nil {
+		return fmt.Errorf("failed to create user: %w", err)
+	}
+
+	bridge.users.Set(apiUser.ID, user)
 
 	// Connect the user's address(es) to gluon.
 	if err := bridge.addIMAPUser(ctx, user); err != nil {
@@ -403,56 +420,37 @@ func (bridge *Bridge) addUser(
 	return nil
 }
 
-func (bridge *Bridge) addNewUser(
-	ctx context.Context,
+// newVaultUser creates a new vault user from the given auth information.
+// If one already exists in the vault, its data will be updated.
+func (bridge *Bridge) newVaultUser(
 	client *liteapi.Client,
 	apiUser liteapi.User,
 	authUID, authRef string,
 	saltedKeyPass []byte,
-) (*user.User, error) {
-	vaultUser, err := bridge.vault.AddUser(apiUser.ID, apiUser.Name, authUID, authRef, saltedKeyPass)
+) (*vault.User, bool, error) {
+	if !bridge.vault.HasUser(apiUser.ID) {
+		user, err := bridge.vault.AddUser(apiUser.ID, apiUser.Name, authUID, authRef, saltedKeyPass)
+		if err != nil {
+			return nil, false, fmt.Errorf("failed to add user to vault: %w", err)
+		}
+
+		return user, true, nil
+	}
+
+	user, err := bridge.vault.NewUser(apiUser.ID)
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 
-	user, err := user.New(ctx, vaultUser, client, apiUser)
-	if err != nil {
-		return nil, err
+	if err := user.SetAuth(authUID, authRef); err != nil {
+		return nil, false, err
 	}
 
-	bridge.users.Set(apiUser.ID, user)
-
-	return user, nil
-}
-
-func (bridge *Bridge) addExistingUser(
-	ctx context.Context,
-	client *liteapi.Client,
-	apiUser liteapi.User,
-	authUID, authRef string,
-	saltedKeyPass []byte,
-) (*user.User, error) {
-	vaultUser, err := bridge.vault.GetUser(apiUser.ID)
-	if err != nil {
-		return nil, err
+	if err := user.SetKeyPass(saltedKeyPass); err != nil {
+		return nil, false, err
 	}
 
-	if err := vaultUser.SetAuth(authUID, authRef); err != nil {
-		return nil, err
-	}
-
-	if err := vaultUser.SetKeyPass(saltedKeyPass); err != nil {
-		return nil, err
-	}
-
-	user, err := user.New(ctx, vaultUser, client, apiUser)
-	if err != nil {
-		return nil, err
-	}
-
-	bridge.users.Set(apiUser.ID, user)
-
-	return user, nil
+	return user, false, nil
 }
 
 // addIMAPUser connects the given user to gluon.
