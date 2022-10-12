@@ -298,7 +298,7 @@ RUN_FLAGS?=-m -l=${LOG} --log-imap=${LOG_IMAP} ${LOG_SMTP}
 run: run-nogui-cli
 
 run-qt: ${EXE_TARGET}
-	PROTONMAIL_ENV=dev ./$< ${RUN_FLAGS} 2>&1 | tee last.log
+	PROTONMAIL_ENV=dev ./${DEPLOY_DIR}/${TARGET_OS}/${BRIDGE_GUI_EXE} ${RUN_FLAGS} 2>&1 | tee last.log
 run-qt-cli: ${EXE_TARGET}
 	PROTONMAIL_ENV=dev ./$< ${RUN_FLAGS} -c
 
