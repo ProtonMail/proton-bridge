@@ -100,7 +100,7 @@ func New() *cli.App {
 			Usage:  "Don't show window after start",
 			Hidden: true,
 		},
-		&cli.BoolFlag{
+		&cli.StringFlag{
 			Name:   flagLauncher,
 			Usage:  "The launcher used to start the app",
 			Hidden: true,
