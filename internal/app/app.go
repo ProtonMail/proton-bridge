@@ -6,6 +6,7 @@ import (
 	"net/http/cookiejar"
 	"os"
 	"path/filepath"
+	"runtime"
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/ProtonMail/proton-bridge/v2/internal/bridge"
@@ -204,7 +205,14 @@ func withLogging(c *cli.Context, crashHandler *crash.Handler, locations *locatio
 		return fmt.Errorf("could not initialize logging: %w", err)
 	}
 
-	// TODO: Add teardown actions (clean the log directory?)
+	logrus.
+		WithField("appName", constants.FullAppName).
+		WithField("version", constants.Version).
+		WithField("revision", constants.Revision).
+		WithField("build", constants.BuildTime).
+		WithField("runtime", runtime.GOOS).
+		WithField("args", os.Args).
+		Info("Run app")
 
 	return fn()
 }
