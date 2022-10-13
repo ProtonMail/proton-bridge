@@ -332,27 +332,21 @@ func (s *Service) ReportBug(ctx context.Context, report *ReportBugRequest) (*emp
 	return &emptypb.Empty{}, nil
 }
 
-/*
 func (s *Service) ForceLauncher(ctx context.Context, launcher *wrapperspb.StringValue) (*emptypb.Empty, error) {
 	s.log.WithField("launcher", launcher.Value).Debug("ForceLauncher")
 
-	go func() {
-		defer s.panicHandler.HandlePanic()
-		s.restarter.ForceLauncher(launcher.Value)
-	}()
+	s.restarter.Override(launcher.Value)
+
 	return &emptypb.Empty{}, nil
 }
 
 func (s *Service) SetMainExecutable(ctx context.Context, exe *wrapperspb.StringValue) (*emptypb.Empty, error) {
 	s.log.WithField("executable", exe.Value).Debug("SetMainExecutable")
 
-	go func() {
-		defer s.panicHandler.HandlePanic()
-		s.restarter.SetMainExecutable(exe.Value)
-	}()
+	s.restarter.AddFlags("--wait", exe.Value)
+
 	return &emptypb.Empty{}, nil
 }
-*/
 
 func (s *Service) Login(ctx context.Context, login *LoginRequest) (*emptypb.Empty, error) {
 	s.log.WithField("username", login.Username).Debug("Login")

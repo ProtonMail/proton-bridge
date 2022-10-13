@@ -5,36 +5,36 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/bradenaw/juniper/xslices"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/sys/execabs"
 )
 
-const (
-	BridgeCrashCount = "BRIDGE_CRASH_COUNT"
-	BridgeLauncher   = "BRIDGE_LAUNCHER"
-)
+const BridgeCrashCount = "BRIDGE_CRASH_COUNT"
 
 type Restarter struct {
 	restart bool
 	crash   bool
-	exe     string
+
+	exe   string
+	flags []string
 }
 
-func New() *Restarter {
-	var exe string
-
-	if osExe, err := os.Executable(); err == nil {
-		exe = osExe
-	} else {
-		logrus.WithError(err).Error("Failed to get executable path, the app will not be able to restart")
-	}
-
+func New(exe string) *Restarter {
 	return &Restarter{exe: exe}
 }
 
 func (restarter *Restarter) Set(restart, crash bool) {
 	restarter.restart = restart
 	restarter.crash = crash
+}
+
+func (restarter *Restarter) Override(exe string) {
+	restarter.exe = exe
+}
+
+func (restarter *Restarter) AddFlags(flags ...string) {
+	restarter.flags = append(restarter.flags, flags...)
 }
 
 func (restarter *Restarter) Restart() {
@@ -49,12 +49,12 @@ func (restarter *Restarter) Restart() {
 	env := getEnvMap()
 
 	if restarter.crash {
-		env[BridgeCrashCount] = increment(env[BridgeLauncher])
+		env[BridgeCrashCount] = increment(env[BridgeCrashCount])
 	} else {
 		delete(env, BridgeCrashCount)
 	}
 
-	cmd := execabs.Command(restarter.exe, os.Args[1:]...)
+	cmd := execabs.Command(restarter.exe, xslices.Join(os.Args[1:], restarter.flags)...)
 
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout

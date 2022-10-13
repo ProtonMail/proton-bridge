@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/cookiejar"
+	"os"
 	"path/filepath"
 
 	"github.com/Masterminds/semver/v3"
@@ -123,10 +124,23 @@ func run(c *cli.Context) error {
 	// Create a new Sentry client that will be used to report crashes etc.
 	reporter := sentry.NewReporter(constants.FullAppName, constants.Version, identifier)
 
+	// Determine the exe that should be used to restart/autostart the app.
+	// By default, this is the launcher, if used. Otherwise, we try to get
+	// the current exe, and fall back to os.Args[0] if that fails.
+	var exe string
+
+	if launcher := c.String(flagLauncher); launcher != "" {
+		exe = launcher
+	} else if executable, err := os.Executable(); err == nil {
+		exe = executable
+	} else {
+		exe = os.Args[0]
+	}
+
 	// Run with profiling if requested.
 	return withProfiler(c, func() error {
 		// Restart the app if requested.
-		return withRestarter(func(restarter *restarter.Restarter) error {
+		return withRestarter(exe, func(restarter *restarter.Restarter) error {
 			// Handle crashes with various actions.
 			return withCrashHandler(restarter, reporter, func(crashHandler *crash.Handler) error {
 				// Load the locations where we store our files.
@@ -140,7 +154,7 @@ func run(c *cli.Context) error {
 								// Load the cookies from the vault.
 								return withCookieJar(vault, func(cookieJar http.CookieJar) error {
 									// Create a new bridge instance.
-									return withBridge(c, locations, version, identifier, reporter, vault, cookieJar, func(b *bridge.Bridge, eventCh <-chan events.Event) error {
+									return withBridge(c, exe, locations, version, identifier, reporter, vault, cookieJar, func(b *bridge.Bridge, eventCh <-chan events.Event) error {
 										if insecure {
 											logrus.Warn("The vault key could not be retrieved; the vault will not be encrypted")
 											b.PushError(bridge.ErrVaultInsecure)
@@ -223,8 +237,8 @@ func withProfiler(c *cli.Context, fn func() error) error {
 }
 
 // Restart the app if necessary.
-func withRestarter(fn func(*restarter.Restarter) error) error {
-	restarter := restarter.New()
+func withRestarter(exe string, fn func(*restarter.Restarter) error) error {
+	restarter := restarter.New(exe)
 	defer restarter.Restart()
 
 	return fn(restarter)

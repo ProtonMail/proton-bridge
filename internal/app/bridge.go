@@ -3,7 +3,6 @@ package app
 import (
 	"fmt"
 	"net/http"
-	"os"
 	"runtime"
 
 	"github.com/Masterminds/semver/v3"
@@ -28,6 +27,7 @@ const vaultSecretName = "bridge-vault-key"
 // withBridge creates creates and tears down the bridge.
 func withBridge(
 	c *cli.Context,
+	exe string,
 	locations *locations.Locations,
 	version *semver.Version,
 	identifier *useragent.UserAgent,
@@ -48,7 +48,7 @@ func withBridge(
 	proxyDialer := dialer.NewProxyTLSDialer(pinningDialer, constants.APIHost)
 
 	// Create the autostarter.
-	autostarter, err := newAutostarter()
+	autostarter, err := newAutostarter(exe)
 	if err != nil {
 		return fmt.Errorf("could not create autostarter: %w", err)
 	}
@@ -95,12 +95,7 @@ func withBridge(
 	return fn(bridge, eventCh)
 }
 
-func newAutostarter() (*autostart.App, error) {
-	exe, err := os.Executable()
-	if err != nil {
-		return nil, err
-	}
-
+func newAutostarter(exe string) (*autostart.App, error) {
 	return &autostart.App{
 		Name:        constants.FullAppName,
 		DisplayName: constants.FullAppName,
