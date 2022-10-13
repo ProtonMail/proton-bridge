@@ -280,33 +280,20 @@ gofiles: ./internal/bridge/credits.go
 LOG?=debug
 LOG_IMAP?=client # client/server/all, or empty to turn it off
 LOG_SMTP?=--log-smtp # empty to turn it off
-RUN_FLAGS?=-m -l=${LOG} --log-imap=${LOG_IMAP} ${LOG_SMTP}
+RUN_FLAGS?=-l=${LOG} --log-imap=${LOG_IMAP} ${LOG_SMTP}
 
-run: run-nogui-cli
+run: run-qt
 
-run-qt: ${EXE_TARGET}
-	PROTONMAIL_ENV=dev ./${DEPLOY_DIR}/${TARGET_OS}/${BRIDGE_GUI_EXE} ${RUN_FLAGS} 2>&1 | tee last.log
-
-run-qt-cli: ${EXE_TARGET}
-	PROTONMAIL_ENV=dev ./$< ${RUN_FLAGS} -c
-
-run-nogui: clean-vendor gofiles
-	PROTONMAIL_ENV=dev go run ${BUILD_FLAGS} cmd/${TARGET_CMD}/main.go ${RUN_FLAGS} | tee last.log
-run-nogui-cli: clean-vendor gofiles
-	PROTONMAIL_ENV=dev go run ${BUILD_FLAGS} cmd/${TARGET_CMD}/main.go ${RUN_FLAGS} -c
-
-run-debug:
-	PROTONMAIL_ENV=dev dlv debug --build-flags "${BUILD_FLAGS}" cmd/${TARGET_CMD}/main.go -- ${RUN_FLAGS} --noninteractive
-
-run-qml-preview:
-	find internal/frontend/qml/ -iname '*qmlc' | xargs rm -f
-	bridge_preview internal/frontend/qml/Bridge_test.qml
+run-cli: run-nogui
 
 
-clean-frontend-qt:
-	$(MAKE) -C internal/frontend -f Makefile.local clean
+run-qt: build-gui
+	PROTONMAIL_ENV=dev ./${DEPLOY_DIR}/${TARGET_OS}/${LAUNCHER_EXE} ${RUN_FLAGS}
 
-clean-vendor: clean-frontend-qt clean-frontend-qt-common
+run-nogui: build-nogui clean-vendor gofiles
+	PROTONMAIL_ENV=dev ./${DEPLOY_DIR}/${TARGET_OS}/${LAUNCHER_EXE} ${RUN_FLAGS} -c
+
+clean-vendor:
 	rm -rf ./vendor
 
 clean-gui:
