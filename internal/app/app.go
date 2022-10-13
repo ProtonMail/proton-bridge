@@ -16,6 +16,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/v2/internal/events"
 	"github.com/ProtonMail/proton-bridge/v2/internal/focus"
 	"github.com/ProtonMail/proton-bridge/v2/internal/locations"
+	"github.com/ProtonMail/proton-bridge/v2/internal/logging"
 	"github.com/ProtonMail/proton-bridge/v2/internal/sentry"
 	"github.com/ProtonMail/proton-bridge/v2/internal/useragent"
 	"github.com/ProtonMail/proton-bridge/v2/internal/vault"
@@ -201,9 +202,19 @@ func withSingleInstance(locations *locations.Locations, version *semver.Version,
 
 // Initialize our logging system.
 func withLogging(c *cli.Context, crashHandler *crash.Handler, locations *locations.Locations, fn func() error) error {
-	if err := initLogging(c, locations, crashHandler); err != nil {
+	// Get a place to keep our logs.
+	logsPath, err := locations.ProvideLogsPath()
+	if err != nil {
+		return fmt.Errorf("could not provide logs path: %w", err)
+	}
+
+	// Initialize logging.
+	if err := logging.Init(logsPath, c.String(flagLogLevel)); err != nil {
 		return fmt.Errorf("could not initialize logging: %w", err)
 	}
+
+	// Ensure we dump a stack trace if we crash.
+	crashHandler.AddRecoveryAction(logging.DumpStackTrace(logsPath))
 
 	logrus.
 		WithField("appName", constants.FullAppName).
