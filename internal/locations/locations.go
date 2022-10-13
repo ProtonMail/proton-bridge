@@ -232,5 +232,6 @@ func (l *Locations) Clean() error {
 		l.GetGuiLockFile(),
 		l.getLogsPath(),
 		l.getUpdatesPath(),
+		l.getGluonPath(),
 	).Do()
 }

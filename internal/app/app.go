@@ -219,6 +219,7 @@ func withLocations(fn func(*locations.Locations) error) error {
 
 	// Create a new locations object that will be used to provide paths to store files.
 	locations := locations.New(provider, constants.ConfigName)
+	defer locations.Clean()
 
 	return fn(locations)
 }
