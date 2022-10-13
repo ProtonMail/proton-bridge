@@ -375,7 +375,7 @@ func (user *User) checkAuth(email string, password []byte) (string, error) {
 
 	return safe.MapValuesRetErr(user.apiAddrs, func(apiAddrs []liteapi.Address) (string, error) {
 		for _, addr := range apiAddrs {
-			if strings.EqualFold(addr.Email, strings.ToLower(email)) {
+			if strings.EqualFold(addr.Email, email) {
 				return addr.ID, nil
 			}
 		}
