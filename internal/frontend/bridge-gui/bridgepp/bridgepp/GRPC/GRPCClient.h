@@ -124,6 +124,8 @@ public:
     grpc::Status changePorts(int portIMAP, int portSMTP); ///< Performs the 'changePorts' gRPC call.
     grpc::Status isDoHEnabled(bool &outEnabled); ///< Performs the 'isDoHEnabled' gRPC call.
     grpc::Status setIsDoHEnabled(bool enabled); ///< Performs the 'setIsDoHEnabled' gRPC call.
+    grpc::Status useSSLForIMAP(bool &outUseSSL); ///< Performs the 'useSSLForSMTP' gRPC call
+    grpc::Status setUseSSLForIMAP(bool useSSL); ///< Performs the 'currentEmailClient' gRPC call.
 
 signals:
     void portIssueIMAP();

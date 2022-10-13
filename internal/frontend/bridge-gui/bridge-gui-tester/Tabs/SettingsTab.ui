@@ -259,6 +259,13 @@
               </property>
              </widget>
             </item>
+            <item>
+             <widget class="QCheckBox" name="checkUseSSLForIMAP">
+              <property name="text">
+               <string>Use SSL For IMAP</string>
+              </property>
+             </widget>
+            </item>
            </layout>
           </item>
           <item>

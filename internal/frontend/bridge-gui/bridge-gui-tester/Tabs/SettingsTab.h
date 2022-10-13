@@ -59,6 +59,7 @@ public: // member functions.
     qint32 imapPort(); ///< Get the value of the IMAP port spin.
     qint32 smtpPort(); ///< Get the value of the SMTP port spin.
     bool useSSLForSMTP() const; ///< Get the value for the 'Use SSL for SMTP' check box.
+    bool useSSLForIMAP() const; ///< Get the value for the 'Use SSL for IMAP' check box.
     bool isDoHEnabled() const; ///< Get the value for the 'DoH Enabled' check box.
     bool isPortFree() const; ///< Get the value for the "Is Port Free" check box.
     bool isCacheOnDiskEnabled() const; ///< get the value for the 'Cache On Disk Enabled' check box.
@@ -79,6 +80,7 @@ public: // slots
         bool includeLogs); ///< Set the content of the bug report box.
     void changePorts(qint32 imapPort, qint32 smtpPort); ///< Change the IMAP and SMTP ports.
     void setUseSSLForSMTP(bool use); ///< Set the value for the 'Use SSL for SMTP' check box.
+    void setUseSSLForIMAP(bool use); ///< Set the value for the 'Use SSL for IMAP' check box.
     void setIsDoHEnabled(bool enabled); ///< Set the value for the 'DoH Enabled' check box.
     void changeLocalCache(bool enabled, QString const &path); ///< Set the value for the 'Cache On Disk Enabled' check box.
     void setIsAutomaticUpdateOn(bool on); ///< Set the value for the 'Automatic Update' check box.

@@ -122,6 +122,10 @@ func NewMailSettingsUseSslForSmtpFinishedEvent() *StreamEvent { //nolint:revive,
 	return mailSettingsEvent(&MailSettingsEvent{Event: &MailSettingsEvent_UseSslForSmtpFinished{UseSslForSmtpFinished: &UseSslForSmtpFinishedEvent{}}})
 }
 
+func NewMailSettingsUseSslForImapFinishedEvent() *StreamEvent { //nolint:revive,stylecheck
+	return mailSettingsEvent(&MailSettingsEvent{Event: &MailSettingsEvent_UseSslForImapFinished{UseSslForImapFinished: &UseSslForImapFinishedEvent{}}})
+}
+
 func NewMailSettingsChangePortFinishedEvent() *StreamEvent {
 	return mailSettingsEvent(&MailSettingsEvent{Event: &MailSettingsEvent_ChangePortsFinished{ChangePortsFinished: &ChangePortsFinishedEvent{}}})
 }

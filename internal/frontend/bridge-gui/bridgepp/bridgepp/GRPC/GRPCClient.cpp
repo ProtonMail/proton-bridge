@@ -412,6 +412,26 @@ grpc::Status GRPCClient::setIsDoHEnabled(bool enabled)
 
 
 //****************************************************************************************************************************************************
+/// \param[out] outUseSSL The value for the property.
+/// \return The status for the gRPC call.
+//****************************************************************************************************************************************************
+grpc::Status GRPCClient::useSSLForIMAP(bool &outUseSSL)
+{
+    return this->logGRPCCallStatus(this->getBool(&Bridge::Stub::UseSslForImap, outUseSSL), __FUNCTION__);
+}
+
+
+//****************************************************************************************************************************************************
+/// \param[in] useSSL The new value for the property.
+/// \return The status for the gRPC call.
+//****************************************************************************************************************************************************
+grpc::Status GRPCClient::setUseSSLForIMAP(bool useSSL)
+{
+    return this->logGRPCCallStatus(this->setBool(&Bridge::Stub::SetUseSslForImap, useSSL), __FUNCTION__);
+}
+
+
+//****************************************************************************************************************************************************
 /// \return The status for the gRPC call.
 //****************************************************************************************************************************************************
 grpc::Status GRPCClient::quit()
@@ -1342,6 +1362,10 @@ void GRPCClient::processMailSettingsEvent(MailSettingsEvent const &event)
 
     case MailSettingsEvent::kUseSslForSmtpFinished:
         this->logTrace("MailSettings event received: UseSslForSmtpFinished.");
+        emit toggleUseSSLFinished();
+        break;
+    case MailSettingsEvent::kUseSslForImapFinished:
+        this->logTrace("MailSettings event received: UseSslForImapFinished.");
         emit toggleUseSSLFinished();
         break;
     case MailSettingsEvent::kChangePortsFinished:

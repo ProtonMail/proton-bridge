@@ -80,6 +80,8 @@ service Bridge {
   rpc IsDoHEnabled(google.protobuf.Empty) returns (google.protobuf.BoolValue);
   rpc SetUseSslForSmtp(google.protobuf.BoolValue) returns (google.protobuf.Empty);
   rpc UseSslForSmtp(google.protobuf.Empty) returns (google.protobuf.BoolValue);
+  rpc SetUseSslForImap(google.protobuf.BoolValue) returns (google.protobuf.Empty);
+  rpc UseSslForImap(google.protobuf.Empty) returns (google.protobuf.BoolValue);
   rpc Hostname(google.protobuf.Empty) returns (google.protobuf.StringValue);
   rpc ImapPort(google.protobuf.Empty) returns (google.protobuf.Int32Value);
   rpc SmtpPort(google.protobuf.Empty) returns (google.protobuf.Int32Value);
@@ -377,6 +379,7 @@ message MailSettingsEvent {
     MailSettingsErrorEvent error = 1;
     UseSslForSmtpFinishedEvent useSslForSmtpFinished = 2;
     ChangePortsFinishedEvent changePortsFinished = 3;
+    UseSslForImapFinishedEvent useSslForImapFinished = 4;
   }
 }
 
@@ -390,6 +393,8 @@ message MailSettingsErrorEvent {
 }
 
 message UseSslForSmtpFinishedEvent {}
+
+message UseSslForImapFinishedEvent {}
 
 message ChangePortsFinishedEvent {}
 

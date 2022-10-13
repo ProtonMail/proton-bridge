@@ -199,6 +199,9 @@ extern UpdateSilentRestartNeededDefaultTypeInternal _UpdateSilentRestartNeeded_d
 class UpdateVersionChanged;
 struct UpdateVersionChangedDefaultTypeInternal;
 extern UpdateVersionChangedDefaultTypeInternal _UpdateVersionChanged_default_instance_;
+class UseSslForImapFinishedEvent;
+struct UseSslForImapFinishedEventDefaultTypeInternal;
+extern UseSslForImapFinishedEventDefaultTypeInternal _UseSslForImapFinishedEvent_default_instance_;
 class UseSslForSmtpFinishedEvent;
 struct UseSslForSmtpFinishedEventDefaultTypeInternal;
 extern UseSslForSmtpFinishedEventDefaultTypeInternal _UseSslForSmtpFinishedEvent_default_instance_;
@@ -272,6 +275,7 @@ template<> ::grpc::UpdateManualReadyEvent* Arena::CreateMaybeMessage<::grpc::Upd
 template<> ::grpc::UpdateManualRestartNeededEvent* Arena::CreateMaybeMessage<::grpc::UpdateManualRestartNeededEvent>(Arena*);
 template<> ::grpc::UpdateSilentRestartNeeded* Arena::CreateMaybeMessage<::grpc::UpdateSilentRestartNeeded>(Arena*);
 template<> ::grpc::UpdateVersionChanged* Arena::CreateMaybeMessage<::grpc::UpdateVersionChanged>(Arena*);
+template<> ::grpc::UseSslForImapFinishedEvent* Arena::CreateMaybeMessage<::grpc::UseSslForImapFinishedEvent>(Arena*);
 template<> ::grpc::UseSslForSmtpFinishedEvent* Arena::CreateMaybeMessage<::grpc::UseSslForSmtpFinishedEvent>(Arena*);
 template<> ::grpc::User* Arena::CreateMaybeMessage<::grpc::User>(Arena*);
 template<> ::grpc::UserChangedEvent* Arena::CreateMaybeMessage<::grpc::UserChangedEvent>(Arena*);
@@ -7117,6 +7121,7 @@ class MailSettingsEvent final :
     kError = 1,
     kUseSslForSmtpFinished = 2,
     kChangePortsFinished = 3,
+    kUseSslForImapFinished = 4,
     EVENT_NOT_SET = 0,
   };
 
@@ -7201,6 +7206,7 @@ class MailSettingsEvent final :
     kErrorFieldNumber = 1,
     kUseSslForSmtpFinishedFieldNumber = 2,
     kChangePortsFinishedFieldNumber = 3,
+    kUseSslForImapFinishedFieldNumber = 4,
   };
   // .grpc.MailSettingsErrorEvent error = 1;
   bool has_error() const;
@@ -7256,6 +7262,24 @@ class MailSettingsEvent final :
       ::grpc::ChangePortsFinishedEvent* changeportsfinished);
   ::grpc::ChangePortsFinishedEvent* unsafe_arena_release_changeportsfinished();
 
+  // .grpc.UseSslForImapFinishedEvent useSslForImapFinished = 4;
+  bool has_usesslforimapfinished() const;
+  private:
+  bool _internal_has_usesslforimapfinished() const;
+  public:
+  void clear_usesslforimapfinished();
+  const ::grpc::UseSslForImapFinishedEvent& usesslforimapfinished() const;
+  PROTOBUF_NODISCARD ::grpc::UseSslForImapFinishedEvent* release_usesslforimapfinished();
+  ::grpc::UseSslForImapFinishedEvent* mutable_usesslforimapfinished();
+  void set_allocated_usesslforimapfinished(::grpc::UseSslForImapFinishedEvent* usesslforimapfinished);
+  private:
+  const ::grpc::UseSslForImapFinishedEvent& _internal_usesslforimapfinished() const;
+  ::grpc::UseSslForImapFinishedEvent* _internal_mutable_usesslforimapfinished();
+  public:
+  void unsafe_arena_set_allocated_usesslforimapfinished(
+      ::grpc::UseSslForImapFinishedEvent* usesslforimapfinished);
+  ::grpc::UseSslForImapFinishedEvent* unsafe_arena_release_usesslforimapfinished();
+
   void clear_event();
   EventCase event_case() const;
   // @@protoc_insertion_point(class_scope:grpc.MailSettingsEvent)
@@ -7264,6 +7288,7 @@ class MailSettingsEvent final :
   void set_has_error();
   void set_has_usesslforsmtpfinished();
   void set_has_changeportsfinished();
+  void set_has_usesslforimapfinished();
 
   inline bool has_event() const;
   inline void clear_has_event();
@@ -7278,6 +7303,7 @@ class MailSettingsEvent final :
       ::grpc::MailSettingsErrorEvent* error_;
       ::grpc::UseSslForSmtpFinishedEvent* usesslforsmtpfinished_;
       ::grpc::ChangePortsFinishedEvent* changeportsfinished_;
+      ::grpc::UseSslForImapFinishedEvent* usesslforimapfinished_;
     } event_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
     uint32_t _oneof_case_[1];
@@ -7554,6 +7580,124 @@ class UseSslForSmtpFinishedEvent final :
 };
 // -------------------------------------------------------------------
 
+class UseSslForImapFinishedEvent final :
+    public ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase /* @@protoc_insertion_point(class_definition:grpc.UseSslForImapFinishedEvent) */ {
+ public:
+  inline UseSslForImapFinishedEvent() : UseSslForImapFinishedEvent(nullptr) {}
+  explicit PROTOBUF_CONSTEXPR UseSslForImapFinishedEvent(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  UseSslForImapFinishedEvent(const UseSslForImapFinishedEvent& from);
+  UseSslForImapFinishedEvent(UseSslForImapFinishedEvent&& from) noexcept
+    : UseSslForImapFinishedEvent() {
+    *this = ::std::move(from);
+  }
+
+  inline UseSslForImapFinishedEvent& operator=(const UseSslForImapFinishedEvent& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline UseSslForImapFinishedEvent& operator=(UseSslForImapFinishedEvent&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const UseSslForImapFinishedEvent& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const UseSslForImapFinishedEvent* internal_default_instance() {
+    return reinterpret_cast<const UseSslForImapFinishedEvent*>(
+               &_UseSslForImapFinishedEvent_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    43;
+
+  friend void swap(UseSslForImapFinishedEvent& a, UseSslForImapFinishedEvent& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(UseSslForImapFinishedEvent* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(UseSslForImapFinishedEvent* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  UseSslForImapFinishedEvent* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<UseSslForImapFinishedEvent>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase::CopyFrom;
+  inline void CopyFrom(const UseSslForImapFinishedEvent& from) {
+    ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase::CopyImpl(*this, from);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase::MergeFrom;
+  void MergeFrom(const UseSslForImapFinishedEvent& from) {
+    ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase::MergeImpl(*this, from);
+  }
+  public:
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "grpc.UseSslForImapFinishedEvent";
+  }
+  protected:
+  explicit UseSslForImapFinishedEvent(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // @@protoc_insertion_point(class_scope:grpc.UseSslForImapFinishedEvent)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+  };
+  friend struct ::TableStruct_bridge_2eproto;
+};
+// -------------------------------------------------------------------
+
 class ChangePortsFinishedEvent final :
     public ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase /* @@protoc_insertion_point(class_definition:grpc.ChangePortsFinishedEvent) */ {
  public:
@@ -7601,7 +7745,7 @@ class ChangePortsFinishedEvent final :
                &_ChangePortsFinishedEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    43;
+    44;
 
   friend void swap(ChangePortsFinishedEvent& a, ChangePortsFinishedEvent& b) {
     a.Swap(&b);
@@ -7727,7 +7871,7 @@ class KeychainEvent final :
                &_KeychainEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    44;
+    45;
 
   friend void swap(KeychainEvent& a, KeychainEvent& b) {
     a.Swap(&b);
@@ -7937,7 +8081,7 @@ class ChangeKeychainFinishedEvent final :
                &_ChangeKeychainFinishedEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    45;
+    46;
 
   friend void swap(ChangeKeychainFinishedEvent& a, ChangeKeychainFinishedEvent& b) {
     a.Swap(&b);
@@ -8055,7 +8199,7 @@ class HasNoKeychainEvent final :
                &_HasNoKeychainEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    46;
+    47;
 
   friend void swap(HasNoKeychainEvent& a, HasNoKeychainEvent& b) {
     a.Swap(&b);
@@ -8173,7 +8317,7 @@ class RebuildKeychainEvent final :
                &_RebuildKeychainEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    47;
+    48;
 
   friend void swap(RebuildKeychainEvent& a, RebuildKeychainEvent& b) {
     a.Swap(&b);
@@ -8300,7 +8444,7 @@ class MailEvent final :
                &_MailEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    48;
+    49;
 
   friend void swap(MailEvent& a, MailEvent& b) {
     a.Swap(&b);
@@ -8532,7 +8676,7 @@ class NoActiveKeyForRecipientEvent final :
                &_NoActiveKeyForRecipientEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    49;
+    50;
 
   friend void swap(NoActiveKeyForRecipientEvent& a, NoActiveKeyForRecipientEvent& b) {
     a.Swap(&b);
@@ -8685,7 +8829,7 @@ class AddressChangedEvent final :
                &_AddressChangedEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    50;
+    51;
 
   friend void swap(AddressChangedEvent& a, AddressChangedEvent& b) {
     a.Swap(&b);
@@ -8838,7 +8982,7 @@ class AddressChangedLogoutEvent final :
                &_AddressChangedLogoutEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    51;
+    52;
 
   friend void swap(AddressChangedLogoutEvent& a, AddressChangedLogoutEvent& b) {
     a.Swap(&b);
@@ -8990,7 +9134,7 @@ class ApiCertIssueEvent final :
                &_ApiCertIssueEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    52;
+    53;
 
   friend void swap(ApiCertIssueEvent& a, ApiCertIssueEvent& b) {
     a.Swap(&b);
@@ -9116,7 +9260,7 @@ class UserEvent final :
                &_UserEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    53;
+    54;
 
   friend void swap(UserEvent& a, UserEvent& b) {
     a.Swap(&b);
@@ -9327,7 +9471,7 @@ class ToggleSplitModeFinishedEvent final :
                &_ToggleSplitModeFinishedEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    54;
+    55;
 
   friend void swap(ToggleSplitModeFinishedEvent& a, ToggleSplitModeFinishedEvent& b) {
     a.Swap(&b);
@@ -9480,7 +9624,7 @@ class UserDisconnectedEvent final :
                &_UserDisconnectedEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    55;
+    56;
 
   friend void swap(UserDisconnectedEvent& a, UserDisconnectedEvent& b) {
     a.Swap(&b);
@@ -9633,7 +9777,7 @@ class UserChangedEvent final :
                &_UserChangedEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    56;
+    57;
 
   friend void swap(UserChangedEvent& a, UserChangedEvent& b) {
     a.Swap(&b);
@@ -14282,6 +14426,80 @@ inline ::grpc::ChangePortsFinishedEvent* MailSettingsEvent::mutable_changeportsf
   return _msg;
 }
 
+// .grpc.UseSslForImapFinishedEvent useSslForImapFinished = 4;
+inline bool MailSettingsEvent::_internal_has_usesslforimapfinished() const {
+  return event_case() == kUseSslForImapFinished;
+}
+inline bool MailSettingsEvent::has_usesslforimapfinished() const {
+  return _internal_has_usesslforimapfinished();
+}
+inline void MailSettingsEvent::set_has_usesslforimapfinished() {
+  _impl_._oneof_case_[0] = kUseSslForImapFinished;
+}
+inline void MailSettingsEvent::clear_usesslforimapfinished() {
+  if (_internal_has_usesslforimapfinished()) {
+    if (GetArenaForAllocation() == nullptr) {
+      delete _impl_.event_.usesslforimapfinished_;
+    }
+    clear_has_event();
+  }
+}
+inline ::grpc::UseSslForImapFinishedEvent* MailSettingsEvent::release_usesslforimapfinished() {
+  // @@protoc_insertion_point(field_release:grpc.MailSettingsEvent.useSslForImapFinished)
+  if (_internal_has_usesslforimapfinished()) {
+    clear_has_event();
+    ::grpc::UseSslForImapFinishedEvent* temp = _impl_.event_.usesslforimapfinished_;
+    if (GetArenaForAllocation() != nullptr) {
+      temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+    }
+    _impl_.event_.usesslforimapfinished_ = nullptr;
+    return temp;
+  } else {
+    return nullptr;
+  }
+}
+inline const ::grpc::UseSslForImapFinishedEvent& MailSettingsEvent::_internal_usesslforimapfinished() const {
+  return _internal_has_usesslforimapfinished()
+      ? *_impl_.event_.usesslforimapfinished_
+      : reinterpret_cast< ::grpc::UseSslForImapFinishedEvent&>(::grpc::_UseSslForImapFinishedEvent_default_instance_);
+}
+inline const ::grpc::UseSslForImapFinishedEvent& MailSettingsEvent::usesslforimapfinished() const {
+  // @@protoc_insertion_point(field_get:grpc.MailSettingsEvent.useSslForImapFinished)
+  return _internal_usesslforimapfinished();
+}
+inline ::grpc::UseSslForImapFinishedEvent* MailSettingsEvent::unsafe_arena_release_usesslforimapfinished() {
+  // @@protoc_insertion_point(field_unsafe_arena_release:grpc.MailSettingsEvent.useSslForImapFinished)
+  if (_internal_has_usesslforimapfinished()) {
+    clear_has_event();
+    ::grpc::UseSslForImapFinishedEvent* temp = _impl_.event_.usesslforimapfinished_;
+    _impl_.event_.usesslforimapfinished_ = nullptr;
+    return temp;
+  } else {
+    return nullptr;
+  }
+}
+inline void MailSettingsEvent::unsafe_arena_set_allocated_usesslforimapfinished(::grpc::UseSslForImapFinishedEvent* usesslforimapfinished) {
+  clear_event();
+  if (usesslforimapfinished) {
+    set_has_usesslforimapfinished();
+    _impl_.event_.usesslforimapfinished_ = usesslforimapfinished;
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:grpc.MailSettingsEvent.useSslForImapFinished)
+}
+inline ::grpc::UseSslForImapFinishedEvent* MailSettingsEvent::_internal_mutable_usesslforimapfinished() {
+  if (!_internal_has_usesslforimapfinished()) {
+    clear_event();
+    set_has_usesslforimapfinished();
+    _impl_.event_.usesslforimapfinished_ = CreateMaybeMessage< ::grpc::UseSslForImapFinishedEvent >(GetArenaForAllocation());
+  }
+  return _impl_.event_.usesslforimapfinished_;
+}
+inline ::grpc::UseSslForImapFinishedEvent* MailSettingsEvent::mutable_usesslforimapfinished() {
+  ::grpc::UseSslForImapFinishedEvent* _msg = _internal_mutable_usesslforimapfinished();
+  // @@protoc_insertion_point(field_mutable:grpc.MailSettingsEvent.useSslForImapFinished)
+  return _msg;
+}
+
 inline bool MailSettingsEvent::has_event() const {
   return event_case() != EVENT_NOT_SET;
 }
@@ -14318,6 +14536,10 @@ inline void MailSettingsErrorEvent::set_type(::grpc::MailSettingsErrorType value
 // -------------------------------------------------------------------
 
 // UseSslForSmtpFinishedEvent
+
+// -------------------------------------------------------------------
+
+// UseSslForImapFinishedEvent
 
 // -------------------------------------------------------------------
 
@@ -15445,6 +15667,8 @@ inline void UserChangedEvent::set_allocated_userid(std::string* userid) {
 #ifdef __GNUC__
   #pragma GCC diagnostic pop
 #endif  // __GNUC__
+// -------------------------------------------------------------------
+
 // -------------------------------------------------------------------
 
 // -------------------------------------------------------------------

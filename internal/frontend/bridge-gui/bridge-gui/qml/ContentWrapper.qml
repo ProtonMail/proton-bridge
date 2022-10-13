@@ -365,6 +365,14 @@ Item {
                     }
                 }
 
+                IMAPSettings { // 9
+                    colorScheme: root.colorScheme
+
+                    onBack: {
+                        rightContent.showGeneralSettings()
+                    }
+                }
+
                 function showAccount(index) {
                     if (index !== undefined && index >= 0){
                         accounts.currentIndex = index
@@ -380,6 +388,7 @@ Item {
                 function showLocalCacheSettings () { rightContent.currentIndex = 6 }
                 function showHelpView           () { rightContent.currentIndex = 7 }
                 function showBugReport          () { rightContent.currentIndex = 8 }
+                function showIMAPSettings       () { rightContent.currentIndex = 9 }
 
                 Connections {
                     target: Backend

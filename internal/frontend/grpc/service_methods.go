@@ -601,6 +601,27 @@ func (s *Service) UseSslForSmtp(ctx context.Context, _ *emptypb.Empty) (*wrapper
 	return wrapperspb.Bool(s.bridge.GetSMTPSSL()), nil
 }
 
+func (s *Service) SetUseSslForImap(ctx context.Context, useSsl *wrapperspb.BoolValue) (*emptypb.Empty, error) { //nolint:revive,stylecheck
+	s.log.WithField("useSsl", useSsl.Value).Debug("SetUseSslForImap")
+
+	if s.bridge.GetIMAPSSL() == useSsl.Value {
+		return &emptypb.Empty{}, nil
+	}
+
+	if err := s.bridge.SetIMAPSSL(useSsl.Value); err != nil {
+		s.log.WithError(err).Error("Failed to set IMAP SSL")
+		return nil, status.Errorf(codes.Internal, "failed to set IMAP SSL: %v", err)
+	}
+
+	return &emptypb.Empty{}, s.SendEvent(NewMailSettingsUseSslForImapFinishedEvent())
+}
+
+func (s *Service) UseSslForImap(ctx context.Context, _ *emptypb.Empty) (*wrapperspb.BoolValue, error) { //nolint:revive,stylecheck
+	s.log.Debug("UseSslForImap")
+
+	return wrapperspb.Bool(s.bridge.GetIMAPSSL()), nil
+}
+
 func (s *Service) Hostname(ctx context.Context, _ *emptypb.Empty) (*wrapperspb.StringValue, error) {
 	s.log.Debug("Hostname")
 

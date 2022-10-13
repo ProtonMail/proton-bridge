@@ -231,7 +231,7 @@ Item {
                             port:       Backend.portIMAP.toString()
                             username:   configuration.currentAddress
                             password:   root.user ? root.user.password : ""
-                            security:   "STARTTLS"
+                            security : Backend.useSSLforIMAP ? "SSL" : "STARTTLS"
                         }
 
                         Configuration {

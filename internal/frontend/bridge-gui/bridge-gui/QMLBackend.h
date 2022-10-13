@@ -68,6 +68,7 @@ public: // Qt/QML properties. Note that the NOTIFY-er signal is required even fo
     Q_PROPERTY(QString colorSchemeName READ colorSchemeName NOTIFY colorSchemeNameChanged)                                                            //    _ string      `property:"colorSchemeName"`
     Q_PROPERTY(QUrl diskCachePath READ diskCachePath NOTIFY diskCachePathChanged)                                                                     //    _ core.QUrl   `property:"diskCachePath"`
     Q_PROPERTY(bool useSSLforSMTP READ useSSLForSMTP NOTIFY useSSLforSMTPChanged)                                                                     //    _ bool        `property:"useSSLforSMTP"`
+    Q_PROPERTY(bool useSSLforIMAP READ useSSLForIMAP NOTIFY useSSLforIMAPChanged)                                                                     //    _ bool        `property:"useSSLforIMAP"`
     Q_PROPERTY(int portIMAP READ portIMAP NOTIFY portIMAPChanged)                                                                                     //    _ int         `property:"portIMAP"`
     Q_PROPERTY(int portSMTP READ portSMTP NOTIFY portSMTPChanged)                                                                                     //    _ int         `property:"portSMTP"`
     Q_PROPERTY(bool isDoHEnabled READ isDoHEnabled NOTIFY isDoHEnabledChanged)                                                                        //    _ bool        `property:"isDoHEnabled"`
@@ -99,6 +100,7 @@ public: // Qt/QML properties. Note that the NOTIFY-er signal is required even fo
     QString colorSchemeName() const { QString name; app().grpc().colorSchemeName(name); return name; }
     QUrl diskCachePath() const { QUrl path; app().grpc().diskCachePath(path); return path; }
     bool useSSLForSMTP() const{ bool useSSL; app().grpc().useSSLForSMTP(useSSL); return useSSL; }
+    bool useSSLForIMAP() const{ bool useSSL; app().grpc().useSSLForIMAP(useSSL); return useSSL; }
     int portIMAP() const { int port; app().grpc().portIMAP(port); return port; }
     int portSMTP() const { int port; app().grpc().portSMTP(port); return port; }
     bool isDoHEnabled() const { bool isEnabled; app().grpc().isDoHEnabled(isEnabled); return isEnabled;}
@@ -116,6 +118,7 @@ signals: // Signal used by the Qt property system. Many of them are unused but r
     void goosChanged(QString const &value);
     void diskCachePathChanged(QUrl const &url);
     void useSSLforSMTPChanged(bool value);
+    void useSSLforIMAPChanged(bool value);
     void isAutomaticUpdateOnChanged(bool value);
     void isBetaEnabledChanged(bool value);
     void isAllMailVisibleChanged(bool value);
@@ -149,6 +152,7 @@ public slots: // slot for signals received from QML -> To be forwarded to Bridge
     void login2Password(QString const& username, QString const& password) { app().grpc().login2Passwords(username, password);}                        //    _ func(username, password string)                                     `slot:"login2Password"`
     void loginAbort(QString const& username){ app().grpc().loginAbort(username);}                                                                     //    _ func(username string)                                               `slot:"loginAbort"`
     void toggleUseSSLforSMTP(bool makeItActive);                                                                                                      //    _ func(makeItActive bool)                                             `slot:"toggleUseSSLforSMTP"`
+    void toggleUseSSLforIMAP(bool makeItActive);                                                                                                      //    _ func(makeItActive bool)                                             `slot:"toggleUseSSLforIMAP"`
     void changePorts(int imapPort, int smtpPort);                                                                                                     //    _ func(imapPort, smtpPort int)                                        `slot:"changePorts"`
     void toggleDoH(bool active);                                                                                                                      //    _ func(makeItActive bool)                                             `slot:"toggleDoH"`
     void toggleAutomaticUpdate(bool makeItActive);                                                                                                    //    _ func(makeItActive bool)                                             `slot:"toggleAutomaticUpdate"`

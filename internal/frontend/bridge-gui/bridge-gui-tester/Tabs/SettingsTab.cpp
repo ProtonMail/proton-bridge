@@ -349,6 +349,14 @@ bool SettingsTab::useSSLForSMTP() const
     return ui_.checkUseSSLForSMTP->isChecked();
 }
 
+//****************************************************************************************************************************************************
+/// \return The state of the 'Use SSL for SMTP' check box.
+//****************************************************************************************************************************************************
+bool SettingsTab::useSSLForIMAP() const
+{
+    return ui_.checkUseSSLForIMAP->isChecked();
+}
+
 
 //****************************************************************************************************************************************************
 /// \param[in] use The state of the 'Use SSL for SMTP' check box.
@@ -356,6 +364,14 @@ bool SettingsTab::useSSLForSMTP() const
 void SettingsTab::setUseSSLForSMTP(bool use)
 {
     ui_.checkUseSSLForSMTP->setChecked(use);
+}
+
+//****************************************************************************************************************************************************
+/// \param[in] use The state of the 'Use SSL for SMTP' check box.
+//****************************************************************************************************************************************************
+void SettingsTab::setUseSSLForIMAP(bool use)
+{
+    ui_.checkUseSSLForIMAP->setChecked(use);
 }
 
 

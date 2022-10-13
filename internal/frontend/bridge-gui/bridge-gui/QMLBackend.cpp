@@ -306,6 +306,16 @@ void QMLBackend::toggleUseSSLforSMTP(bool makeItActive)
     app().grpc().setUseSSLForSMTP(makeItActive);
 }
 
+//****************************************************************************************************************************************************
+/// \param[in] makeItActive Should SSL for IMAP be enabled.
+//****************************************************************************************************************************************************
+void QMLBackend::toggleUseSSLforIMAP(bool makeItActive)
+{
+    // if call succeed, app will restart. No need to emit a value change signal, because it will trigger a read-back via gRPC that will fail.
+    emit hideMainWindow();
+    app().grpc().setUseSSLForIMAP(makeItActive);
+}
+
 
 //****************************************************************************************************************************************************
 /// \param[in] imapPort The IMAP port.
