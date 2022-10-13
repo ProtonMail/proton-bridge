@@ -28,11 +28,12 @@ BUILD_FLAGS_GUI:=-tags='${BUILD_TAGS} build_qt'
 GO_LDFLAGS:=$(addprefix -X github.com/ProtonMail/proton-bridge/v2/internal/constants., Version=${APP_VERSION} Revision=${REVISION} BuildTime=${BUILD_TIME})
 GO_LDFLAGS+=-X "github.com/ProtonMail/proton-bridge/v2/internal/constants.FullAppName=${APP_FULL_NAME}"
 ifneq "${BUILD_LDFLAGS}" ""
-    GO_LDFLAGS+=${BUILD_LDFLAGS}
+	GO_LDFLAGS+=${BUILD_LDFLAGS}
 endif
 GO_LDFLAGS_LAUNCHER:=${GO_LDFLAGS}
 ifeq "${TARGET_OS}" "windows"
-    GO_LDFLAGS_LAUNCHER+=-H=windowsgui
+	GO_LDFLAGS+=-H=windowsgui
+	GO_LDFLAGS_LAUNCHER+=-H=windowsgui
 endif
 
 BUILD_FLAGS+=-ldflags '${GO_LDFLAGS}'
@@ -40,21 +41,19 @@ BUILD_FLAGS_GUI+=-ldflags "${GO_LDFLAGS}"
 BUILD_FLAGS_LAUNCHER+=-ldflags '${GO_LDFLAGS_LAUNCHER}'
 
 DEPLOY_DIR:=cmd/${TARGET_CMD}/deploy
-BUILD_PATH:=cmd/${TARGET_CMD}
 DIRNAME:=$(shell basename ${CURDIR})
 
 LAUNCHER_EXE:=proton-bridge
 BRIDGE_EXE=bridge
 BRIDGE_GUI_EXE_NAME=bridge-gui
 BRIDGE_GUI_EXE=${BRIDGE_GUI_EXE_NAME}
-LAUNCHER_PATH:=./cmd/launcher/
+LAUNCHER_PATH:=cmd/launcher
 
 ifeq "${TARGET_OS}" "windows"
-    BRIDGE_EXE:=${BRIDGE_EXE}.exe
-    BRIDGE_GUI_EXE:=${BRIDGE_GUI_EXE}.exe
-    LAUNCHER_EXE:=${LAUNCHER_EXE}.exe
-    RESOURCE_FILE:=resource.syso
-    RESOURCE_FILE_LAUNCHER:=resource_launcher.syso
+	BRIDGE_EXE:=${BRIDGE_EXE}.exe
+	BRIDGE_GUI_EXE:=${BRIDGE_GUI_EXE}.exe
+	LAUNCHER_EXE:=${LAUNCHER_EXE}.exe
+	RESOURCE_FILE:=resource.syso
 endif
 ifeq "${TARGET_OS}" "darwin"
 	BRIDGE_EXE_NAME:=${BRIDGE_EXE}
@@ -70,9 +69,9 @@ EXE_GUI_TARGET:=${DEPLOY_DIR}/${TARGET_OS}/${BRIDGE_GUI_EXE}
 TGZ_TARGET:=bridge_${TARGET_OS}_${REVISION}.tgz
 
 ifdef QT_API
-    VENDOR_TARGET:=prepare-vendor update-qt-docs
+	VENDOR_TARGET:=prepare-vendor update-qt-docs
 else
-    VENDOR_TARGET=update-vendor
+	VENDOR_TARGET=update-vendor
 endif
 
 build: build-gui
@@ -81,7 +80,7 @@ build-gui: ${TGZ_TARGET}
 
 build-nogui: ${EXE_NAME}
 
-go-build=go build $(1) -o $(2) $(3)/main.go
+go-build=go build $(1) -o $(2) $(3)
 go-build-finalize=${go-build}
 ifeq "${GOOS}-$(shell uname -m)" "darwin-arm64"
 	go-build-finalize= \
@@ -89,18 +88,19 @@ ifeq "${GOOS}-$(shell uname -m)" "darwin-arm64"
 		CGO_ENABLED=1 GOARCH=amd64 $(call go-build,$(1),$(2)_amd,$(3)) && \
 		lipo -create -output $(2) $(2)_arm $(2)_amd && rm -f $(2)_arm $(2)_amd
 endif
+
 ifeq "${GOOS}" "windows"
 	go-build-finalize= \
-		mv ${RESOURCE_FILE} $(3)/ && \
+		powershell Copy-Item ${ROOT_DIR}/${RESOURCE_FILE} ${4}  && \
 		$(call go-build,$(1),$(2),$(3)) && \
-		rm -f $(3)/${RESOURCE_FILE}
+		powershell Remove-Item ${4} -Force
 endif
 
-${EXE_NAME}: gofiles ${RESOURCE_FILE}
-	$(call go-build-finalize,${BUILD_FLAGS},"${EXE_NAME}","${BUILD_PATH}")
+${EXE_NAME}: gofiles  ${RESOURCE_FILE}
+	$(call go-build-finalize,${BUILD_FLAGS},"${LAUNCHER_EXE}","./cmd/${TARGET_CMD}/","${ROOT_DIR}/cmd/${TARGET_CMD}/${RESOURCE_FILE}")
 
-build-launcher: ${RESOURCE_FILE_LAUNCHER}
-	$(call go-build-finalize,${BUILD_FLAGS_LAUNCHER},"${LAUNCHER_EXE}","${LAUNCHER_PATH}")
+build-launcher: ${RESOURCE_FILE}
+	$(call go-build-finalize,${BUILD_FLAGS_LAUNCHER},"${LAUNCHER_EXE}","${ROOT_DIR}/${LAUNCHER_PATH}/","${ROOT_DIR}/${LAUNCHER_PATH}/${RESOURCE_FILE}")
 
 versioner:
 	go build ${BUILD_FLAGS} -o versioner utils/versioner/main.go
@@ -117,7 +117,7 @@ ${DEPLOY_DIR}/linux: ${EXE_TARGET} build-launcher
 	cp -pf ./LICENSE ${DEPLOY_DIR}/linux/
 	cp -pf ./Changelog.md ${DEPLOY_DIR}/linux/
 	cp -pf ./dist/${EXE_NAME}.desktop ${DEPLOY_DIR}/linux/
-	cp -pf ${LAUNCHER_EXE} ${DEPLOY_DIR}/linux/
+	mv ${LAUNCHER_EXE} ${DEPLOY_DIR}/linux/
 
 ${DEPLOY_DIR}/darwin: ${EXE_TARGET} build-launcher
 	mv ${EXE_GUI_TARGET} ${EXE_TARGET_DARWIN}
@@ -128,15 +128,15 @@ ${DEPLOY_DIR}/darwin: ${EXE_TARGET} build-launcher
 	rm -rf "${DARWINAPP_CONTENTS}/Frameworks/QtWebEngine.framework"
 	rm -rf "${DARWINAPP_CONTENTS}/Frameworks/QtWebView.framework"
 	rm -rf "${DARWINAPP_CONTENTS}/Frameworks/QtWebEngineCore.framework"
-	cp ${LAUNCHER_EXE}  ${DARWINAPP_CONTENTS}/MacOS/${LAUNCHER_EXE}
+	mv ${LAUNCHER_EXE}  ${DARWINAPP_CONTENTS}/MacOS/${LAUNCHER_EXE}
 	./utils/remove_non_relative_links_darwin.sh "${EXE_TARGET_DARWIN}/${EXE_BINARY_DARWIN}"
 
 ${DEPLOY_DIR}/windows: ${EXE_TARGET} build-launcher
 	cp ./dist/${SRC_ICO} ${DEPLOY_DIR}/windows/logo.ico
 	cp LICENSE ${DEPLOY_DIR}/windows/LICENSE.txt
-	cp ${LAUNCHER_EXE} ${DEPLOY_DIR}/windows/$(notdir ${LAUNCHER_EXE})
+	mv ${LAUNCHER_EXE} ${DEPLOY_DIR}/windows/$(notdir ${LAUNCHER_EXE})
 	# plugins are installed in a plugins folder while needs to be near the exe
-	mv ${DEPLOY_DIR}/windows/plugins/* ${DEPLOY_DIR}/windows/.
+	cp -rf ${DEPLOY_DIR}/windows/plugins/* ${DEPLOY_DIR}/windows/.
 	rm -rf ${DEPLOY_DIR}/windows/plugins
 
 ${EXE_TARGET}: check-build-essentials ${EXE_NAME}
@@ -149,31 +149,18 @@ ${EXE_TARGET}: check-build-essentials ${EXE_NAME}
 		BRIDGE_GUI_BUILD_CONFIG=Release \
 		BRIDGE_INSTALL_PATH=${ROOT_DIR}/${DEPLOY_DIR}/${GOOS} \
 		./build.sh install
-	mv "${ROOT_DIR}/${EXE_NAME}" "$(ROOT_DIR)/${EXE_TARGET}"
+	mv "${ROOT_DIR}/${LAUNCHER_EXE}" "$(ROOT_DIR)/${EXE_TARGET}"
 
 WINDRES_YEAR:=$(shell date +%Y)
 APP_VERSION_COMMA:=$(shell echo "${APP_VERSION}" | sed -e 's/[^0-9,.]*//g' -e 's/\./,/g')
-resource.syso: ./dist/info.rc ./dist/${SRC_ICO} .FORCE
+${RESOURCE_FILE}: ./dist/info.rc ./dist/${SRC_ICO} .FORCE
 	rm -f ./*.syso
 	windres --target=pe-x86-64 \
 		-I ./internal/frontend/share/ \
 		-D ICO_FILE=${SRC_ICO} \
-		-D EXE_NAME="${BRIDGE_GUI_EXE}" \
+		-D EXE_NAME="${EXE_NAME}" \
 		-D FILE_VERSION="${APP_VERSION}" \
-		-D ORIGINAL_FILE_NAME="${BRIDGE_GUI_EXE}" \
-		-D PRODUCT_VERSION="${APP_VERSION}" \
-		-D FILE_VERSION_COMMA=${APP_VERSION_COMMA} \
-		-D YEAR=${WINDRES_YEAR} \
-		-o ./${RESOURCE_FILE} $<
-
-resource_launcher.syso: ./dist/info.rc ./dist/${SRC_ICO} .FORCE
-	rm -f ./*.syso
-	windres --target=pe-x86-64 \
-		-I ./internal/frontend/share/ \
-		-D ICO_FILE=${SRC_ICO} \
-		-D EXE_NAME="${LAUNCHER_EXE}" \
-		-D FILE_VERSION="${APP_VERSION}" \
-		-D ORIGINAL_FILE_NAME="${LAUNCHER_EXE}" \
+		-D ORIGINAL_FILE_NAME="${EXE}" \
 		-D PRODUCT_VERSION="${APP_VERSION}" \
 		-D FILE_VERSION_COMMA=${APP_VERSION_COMMA} \
 		-D YEAR=${WINDRES_YEAR} \
@@ -299,6 +286,7 @@ run: run-nogui-cli
 
 run-qt: ${EXE_TARGET}
 	PROTONMAIL_ENV=dev ./${DEPLOY_DIR}/${TARGET_OS}/${BRIDGE_GUI_EXE} ${RUN_FLAGS} 2>&1 | tee last.log
+
 run-qt-cli: ${EXE_TARGET}
 	PROTONMAIL_ENV=dev ./$< ${RUN_FLAGS} -c
 
@@ -337,7 +325,7 @@ clean: clean-vendor clean-gui clean-vcpkg
 	rm -rf cmd/Desktop-Bridge/deploy
 	rm -rf cmd/Import-Export/deploy
 	rm -f build last.log mem.pprof main.go
-	rm -f ${RESOURCE_FILE}
+	rm -f ./*.syso
 	rm -f release-notes/bridge.html
 	rm -f release-notes/import-export.html
 
