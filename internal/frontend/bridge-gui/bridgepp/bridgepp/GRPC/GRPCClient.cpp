@@ -123,8 +123,7 @@ bool GRPCClient::connectToServer(GRPCConfig const &config, QString &outError)
         int i = 0;
         while (true)
         {
-            if (log_)
-                log_->debug(QString("Connection to gRPC server at %1. attempt #%2").arg(address).arg(++i));
+            this->logDebug(QString("Connection to gRPC server at %1. attempt #%2").arg(address).arg(++i));
 
             if (channel_->WaitForConnected(gpr_time_add(gpr_now(GPR_CLOCK_REALTIME), gpr_time_from_millis(grpcConnectionRetryDelayMs, GPR_TIMESPAN))))
                 break; // connection established.
@@ -136,13 +135,13 @@ bool GRPCClient::connectToServer(GRPCConfig const &config, QString &outError)
         if (channel_->GetState(true) != GRPC_CHANNEL_READY)
             throw Exception("connection check failed.");
 
-        if (log_)
-            log_->debug("Successfully connected to gRPC server.");
+        this->logDebug("Successfully connected to gRPC server.");
 
         QString const clientToken = QUuid::createUuid().toString();
         QString clientConfigPath = createClientConfigFile(clientToken);
         if (clientConfigPath.isEmpty())
             throw Exception("gRPC client config could not be saved.");
+        this->logDebug(QString("Client config file was saved to '%1'").arg(QDir::toNativeSeparators(clientConfigPath)));
 
         QString returnedClientToken;
         grpc::Status status = this->checkTokens(QDir::toNativeSeparators(clientConfigPath), returnedClientToken);
@@ -874,8 +873,7 @@ grpc::Status GRPCClient::runEventStreamReader()
             this->processUserEvent(event.user());
             break;
         default:
-            if (log_)
-                log_->debug(QString("Unknown stream event type: %1").arg(event.event_case()));
+            this->logDebug(QString("Unknown stream event type: %1").arg(event.event_case()));
         }
     }
 
@@ -898,12 +896,31 @@ grpc::Status GRPCClient::stopEventStreamReader()
 
 
 //****************************************************************************************************************************************************
+/// \param[in] level The level of the event.
+/// \param[in] message The event message.
+//****************************************************************************************************************************************************
+void GRPCClient::log(Log::Level level, QString const &message)
+{
+    if (log_)
+        log_->addEntry(level, message);
+}
+
+
+//****************************************************************************************************************************************************
 /// \param[in] message The event message.
 //****************************************************************************************************************************************************
 void GRPCClient::logTrace(QString const &message)
 {
-    if (log_)
-        log_->trace(message);
+    this->log(Log::Level::Trace, message);
+}
+
+
+//****************************************************************************************************************************************************
+/// \param[in] message The event message.
+//****************************************************************************************************************************************************
+void GRPCClient::logDebug(QString const &message)
+{
+    this->log(Log::Level::Debug, message);
 }
 
 
@@ -912,8 +929,7 @@ void GRPCClient::logTrace(QString const &message)
 //****************************************************************************************************************************************************
 void GRPCClient::logError(QString const &message)
 {
-    if (log_)
-        log_->error(message);
+    this->log(Log::Level::Error, message);
 }
 
 

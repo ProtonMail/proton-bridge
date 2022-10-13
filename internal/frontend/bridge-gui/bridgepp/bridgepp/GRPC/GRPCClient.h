@@ -207,8 +207,10 @@ public:
     grpc::Status stopEventStreamReader(); ///< Stop the event stream.
 
 private:
-    void logTrace(QString const &message); ///< Log an event.
-    void logError(QString const &message); ///< Log an event.
+    void log(Log::Level level, QString const & message); ///< Log an event.
+    void logTrace(QString const &message); ///< Log a trace event.
+    void logDebug(QString const &message); ///< Log a debug event.
+    void logError(QString const &message); ///< Log an error event.
     grpc::Status logGRPCCallStatus(grpc::Status const &status, QString const &callName, QList<grpc::StatusCode> allowedErrors = {}); ///< Log the status of a gRPC code.
     grpc::Status simpleMethod(SimpleMethod method); ///< perform a gRPC call to a bool setter.
     grpc::Status setBool(BoolSetter setter, bool value); ///< perform a gRPC call to a bool setter.

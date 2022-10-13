@@ -47,11 +47,17 @@ func (s *Service) CheckTokens(ctx context.Context, clientConfigPath *wrapperspb.
 		return nil, err
 	}
 
+	path := clientConfigPath.Value
+	logEntry := s.log.WithField("path", path)
+
 	var clientConfig config
-	if err := clientConfig.load(clientConfigPath.Value); err != nil {
-		s.log.WithError(err).Error("could not read gRPC client config file")
+	if err := clientConfig.load(path); err != nil {
+		logEntry.WithError(err).Error("Could not read gRPC client config file")
+
 		return nil, err
 	}
+
+	logEntry.Info("gRPC client config file was successfully loaded")
 
 	return &wrapperspb.StringValue{Value: clientConfig.Token}, nil
 }

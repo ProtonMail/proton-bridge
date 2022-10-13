@@ -124,7 +124,7 @@ func NewService(
 func (s *Service) startGRPCServer() {
 	tlsConfig, pemCert, err := s.generateTLSConfig()
 	if err != nil {
-		s.log.WithError(err).Panic("could not generate gRPC TLS config")
+		s.log.WithError(err).Panic("Could not generate gRPC TLS config")
 	}
 
 	s.pemCert = string(pemCert)
@@ -135,11 +135,13 @@ func (s *Service) startGRPCServer() {
 
 	s.listener, err = net.Listen("tcp", "127.0.0.1:0") // Port 0 means that the port is randomly picked by the system.
 	if err != nil {
-		s.log.WithError(err).Panic("could not create gRPC listener")
+		s.log.WithError(err).Panic("Could not create gRPC listener")
 	}
 
-	if err := s.saveGRPCServerConfigFile(); err != nil {
-		s.log.WithError(err).Panic("could not write gRPC service configuration file")
+	if path, err := s.saveGRPCServerConfigFile(); err != nil {
+		s.log.WithError(err).WithField("path", path).Panic("Could not write gRPC service config file")
+	} else {
+		s.log.WithField("path", path).Debug("Successfully saved gRPC service config file")
 	}
 
 	s.log.Info("gRPC server listening at ", s.listener.Addr())
@@ -435,10 +437,10 @@ func (s *Service) generateTLSConfig() (tlsConfig *cryptotls.Config, pemCert []by
 	return tlsConfig, pemCert, nil
 }
 
-func (s *Service) saveGRPCServerConfigFile() error {
+func (s *Service) saveGRPCServerConfigFile() (string, error) {
 	address, ok := s.listener.Addr().(*net.TCPAddr)
 	if !ok {
-		return fmt.Errorf("could not retrieve gRPC service listener address")
+		return "", fmt.Errorf("could not retrieve gRPC service listener address")
 	}
 
 	sc := config{
@@ -449,8 +451,10 @@ func (s *Service) saveGRPCServerConfigFile() error {
 
 	settingsPath, err := s.locations.ProvideSettingsPath()
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	return sc.save(filepath.Join(settingsPath, serverConfigFileName))
+	configPath := filepath.Join(settingsPath, serverConfigFileName)
+
+	return configPath, sc.save(configPath)
 }

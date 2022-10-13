@@ -268,10 +268,12 @@ int main(int argc, char *argv[])
             launchBridge(args);
         }
 
-        app().backend().init(GRPCClient::waitAndRetrieveServiceConfig(attach ? 0 : grpcServiceConfigWaitDelayMs));
 
+        log.debug(QString("Server configuration file will be loaded from '%1'").arg(QDir::toNativeSeparators(grpcServerConfigPath())));
+        app().backend().init(GRPCClient::waitAndRetrieveServiceConfig(attach ? 0 : grpcServiceConfigWaitDelayMs));
         if (!attach)
             GRPCClient::removeServiceConfigFile();
+        log.debug("Backend was successfully initialized.");
 
         QQmlApplicationEngine engine;
         std::unique_ptr<QQmlComponent> rootComponent(createRootQmlComponent(engine));
