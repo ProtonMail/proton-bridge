@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/Masterminds/semver/v3"
+	"github.com/ProtonMail/gluon/queue"
 	"github.com/ProtonMail/proton-bridge/v2/internal/events"
 	"github.com/ProtonMail/proton-bridge/v2/internal/vault"
 )
@@ -249,9 +250,9 @@ func (s *scenario) bridgeSendsAForcedUpdateEvent() error {
 	})
 }
 
-func try[T any](inCh <-chan T, wait time.Duration, fn func(T) error) error {
+func try[T any](inCh *queue.QueuedChannel[T], wait time.Duration, fn func(T) error) error {
 	select {
-	case event := <-inCh:
+	case event := <-inCh.GetChannel():
 		return fn(event)
 
 	case <-time.After(wait):
@@ -259,6 +260,6 @@ func try[T any](inCh <-chan T, wait time.Duration, fn func(T) error) error {
 	}
 }
 
-func get[T any](inCh <-chan T, fn func(T) error) error {
-	return fn(<-inCh)
+func get[T any](inCh *queue.QueuedChannel[T], fn func(T) error) error {
+	return fn(<-inCh.GetChannel())
 }

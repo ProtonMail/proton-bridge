@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http/cookiejar"
 
+	"github.com/ProtonMail/gluon/queue"
 	"github.com/ProtonMail/proton-bridge/v2/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/v2/internal/cookies"
 	"github.com/ProtonMail/proton-bridge/v2/internal/events"
@@ -52,12 +53,14 @@ func (t *testCtx) startBridge() error {
 
 	// Create the bridge.
 	bridge, eventCh, err := bridge.New(
+		// App stuff
 		t.locator,
 		vault,
 		t.mocks.Autostarter,
 		t.mocks.Updater,
 		t.version,
 
+		// API stuff
 		t.api.GetHostURL(),
 		persister,
 		useragent.New(),
@@ -65,6 +68,7 @@ func (t *testCtx) startBridge() error {
 		liteapi.NewDialer(t.netCtl, &tls.Config{InsecureSkipVerify: true}).GetRoundTripper(),
 		t.mocks.ProxyCtl,
 
+		// Logging stuff
 		false,
 		false,
 		false,
@@ -73,24 +77,63 @@ func (t *testCtx) startBridge() error {
 		return err
 	}
 
+	// Create the event channels for use in the test.
+	t.loginCh = queue.NewQueuedChannel[events.UserLoggedIn](0, 0)
+	t.logoutCh = queue.NewQueuedChannel[events.UserLoggedOut](0, 0)
+	t.loadedCh = queue.NewQueuedChannel[events.AllUsersLoaded](0, 0)
+	t.deletedCh = queue.NewQueuedChannel[events.UserDeleted](0, 0)
+	t.deauthCh = queue.NewQueuedChannel[events.UserDeauth](0, 0)
+	t.addrCreatedCh = queue.NewQueuedChannel[events.UserAddressCreated](0, 0)
+	t.addrDeletedCh = queue.NewQueuedChannel[events.UserAddressDeleted](0, 0)
+	t.syncStartedCh = queue.NewQueuedChannel[events.SyncStarted](0, 0)
+	t.syncFinishedCh = queue.NewQueuedChannel[events.SyncFinished](0, 0)
+	t.forcedUpdateCh = queue.NewQueuedChannel[events.UpdateForced](0, 0)
+	t.connStatusCh = queue.NewQueuedChannel[events.Event](0, 0)
+	t.updateCh = queue.NewQueuedChannel[events.Event](0, 0)
+
+	// Push the updates to the appropriate channels.
+	go func() {
+		for event := range eventCh {
+			switch event := event.(type) {
+			case events.UserLoggedIn:
+				t.loginCh.Enqueue(event)
+			case events.UserLoggedOut:
+				t.logoutCh.Enqueue(event)
+			case events.AllUsersLoaded:
+				t.loadedCh.Enqueue(event)
+			case events.UserDeleted:
+				t.deletedCh.Enqueue(event)
+			case events.UserDeauth:
+				t.deauthCh.Enqueue(event)
+			case events.UserAddressCreated:
+				t.addrCreatedCh.Enqueue(event)
+			case events.UserAddressDeleted:
+				t.addrDeletedCh.Enqueue(event)
+			case events.SyncStarted:
+				t.syncStartedCh.Enqueue(event)
+			case events.SyncFinished:
+				t.syncFinishedCh.Enqueue(event)
+			case events.ConnStatusUp:
+				t.connStatusCh.Enqueue(event)
+			case events.ConnStatusDown:
+				t.connStatusCh.Enqueue(event)
+			case events.UpdateAvailable:
+				t.updateCh.Enqueue(event)
+			case events.UpdateNotAvailable:
+				t.updateCh.Enqueue(event)
+			case events.UpdateInstalled:
+				t.updateCh.Enqueue(event)
+			case events.UpdateForced:
+				t.forcedUpdateCh.Enqueue(event)
+			}
+		}
+	}()
+
 	// Wait for the users to be loaded.
-	waitForEvent(eventCh, events.AllUsersLoaded{})
+	<-t.loadedCh.GetChannel()
 
-	// Save the bridge t.
+	// Save the bridge to the context.
 	t.bridge = bridge
-
-	// Connect the event channels.
-	t.loginCh = chToType[events.Event, events.UserLoggedIn](bridge.GetEvents(events.UserLoggedIn{}))
-	t.logoutCh = chToType[events.Event, events.UserLoggedOut](bridge.GetEvents(events.UserLoggedOut{}))
-	t.deletedCh = chToType[events.Event, events.UserDeleted](bridge.GetEvents(events.UserDeleted{}))
-	t.deauthCh = chToType[events.Event, events.UserDeauth](bridge.GetEvents(events.UserDeauth{}))
-	t.addrCreatedCh = chToType[events.Event, events.UserAddressCreated](bridge.GetEvents(events.UserAddressCreated{}))
-	t.addrDeletedCh = chToType[events.Event, events.UserAddressDeleted](bridge.GetEvents(events.UserAddressDeleted{}))
-	t.syncStartedCh = chToType[events.Event, events.SyncStarted](bridge.GetEvents(events.SyncStarted{}))
-	t.syncFinishedCh = chToType[events.Event, events.SyncFinished](bridge.GetEvents(events.SyncFinished{}))
-	t.forcedUpdateCh = chToType[events.Event, events.UpdateForced](bridge.GetEvents(events.UpdateForced{}))
-	t.connStatusCh, _ = bridge.GetEvents(events.ConnStatusUp{}, events.ConnStatusDown{})
-	t.updateCh, _ = bridge.GetEvents(events.UpdateAvailable{}, events.UpdateNotAvailable{}, events.UpdateInstalled{}, events.UpdateForced{})
 
 	return nil
 }
@@ -103,13 +146,4 @@ func (t *testCtx) stopBridge() error {
 	t.bridge = nil
 
 	return nil
-}
-
-func waitForEvent[T any](eventCh <-chan events.Event, wantEvent T) {
-	for event := range eventCh {
-		switch event.(type) {
-		case T:
-			return
-		}
-	}
 }

@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/Masterminds/semver/v3"
+	"github.com/ProtonMail/gluon/queue"
 	"github.com/ProtonMail/proton-bridge/v2/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/v2/internal/events"
 	"github.com/ProtonMail/proton-bridge/v2/internal/locations"
@@ -34,17 +35,18 @@ type testCtx struct {
 	bridge *bridge.Bridge
 
 	// These channels hold events of various types coming from bridge.
-	loginCh        <-chan events.UserLoggedIn
-	logoutCh       <-chan events.UserLoggedOut
-	deletedCh      <-chan events.UserDeleted
-	deauthCh       <-chan events.UserDeauth
-	addrCreatedCh  <-chan events.UserAddressCreated
-	addrDeletedCh  <-chan events.UserAddressDeleted
-	syncStartedCh  <-chan events.SyncStarted
-	syncFinishedCh <-chan events.SyncFinished
-	forcedUpdateCh <-chan events.UpdateForced
-	connStatusCh   <-chan events.Event
-	updateCh       <-chan events.Event
+	loginCh        *queue.QueuedChannel[events.UserLoggedIn]
+	logoutCh       *queue.QueuedChannel[events.UserLoggedOut]
+	loadedCh       *queue.QueuedChannel[events.AllUsersLoaded]
+	deletedCh      *queue.QueuedChannel[events.UserDeleted]
+	deauthCh       *queue.QueuedChannel[events.UserDeauth]
+	addrCreatedCh  *queue.QueuedChannel[events.UserAddressCreated]
+	addrDeletedCh  *queue.QueuedChannel[events.UserAddressDeleted]
+	syncStartedCh  *queue.QueuedChannel[events.SyncStarted]
+	syncFinishedCh *queue.QueuedChannel[events.SyncFinished]
+	forcedUpdateCh *queue.QueuedChannel[events.UpdateForced]
+	connStatusCh   *queue.QueuedChannel[events.Event]
+	updateCh       *queue.QueuedChannel[events.Event]
 
 	// These maps hold expected userIDByName, their primary addresses and bridge passwords.
 	userIDByName       map[string]string
