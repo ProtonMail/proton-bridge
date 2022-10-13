@@ -151,6 +151,15 @@ func (vault *Vault) DeleteUser(userID string) error {
 }
 
 func (vault *Vault) Close() error {
+	vault.refLock.Lock()
+	defer vault.refLock.Unlock()
+
+	if len(vault.ref) > 0 {
+		return errors.New("vault is still in use")
+	}
+
+	vault.gcm = nil
+
 	return nil
 }
 

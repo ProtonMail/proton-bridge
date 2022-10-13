@@ -9,6 +9,7 @@ type Locator interface {
 	ProvideLogsPath() (string, error)
 	GetLicenseFilePath() string
 	GetDependencyLicensesLink() string
+	Clear() error
 }
 
 type Identifier interface {

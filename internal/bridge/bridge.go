@@ -283,10 +283,6 @@ func (bridge *Bridge) GetEvents(ofType ...events.Event) (<-chan events.Event, fu
 	return newWatcher.GetChannel(), func() { bridge.remWatcher(newWatcher) }
 }
 
-func (bridge *Bridge) FactoryReset(ctx context.Context) error {
-	panic("TODO")
-}
-
 func (bridge *Bridge) PushError(err error) {
 	bridge.errors = append(bridge.errors, err)
 }

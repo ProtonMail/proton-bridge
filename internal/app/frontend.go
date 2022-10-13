@@ -23,7 +23,7 @@ func runFrontend(
 ) error {
 	switch {
 	case c.Bool(flagCLI):
-		return bridgeCLI.New(bridge, eventCh).Loop()
+		return bridgeCLI.New(bridge, restarter, eventCh).Loop()
 
 	case c.Bool(flagNonInteractive):
 		select {}

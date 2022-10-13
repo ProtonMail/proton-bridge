@@ -27,6 +27,7 @@ import (
 	"net"
 	"path/filepath"
 	"sync"
+	"time"
 
 	"github.com/ProtonMail/proton-bridge/v2/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/v2/internal/certs"
@@ -298,6 +299,9 @@ func (s *Service) finishLogin() {
 		return
 	}
 
+	eventCh, done := s.bridge.GetEvents(events.UserLoggedIn{})
+	defer done()
+
 	userID, err := s.bridge.LoginUser(context.Background(), s.authClient, s.auth, s.password)
 	if err != nil {
 		s.log.WithError(err).Errorf("Finish login failed")
@@ -305,18 +309,34 @@ func (s *Service) finishLogin() {
 		return
 	}
 
+	s.waitForUserChangeDone(eventCh, userID)
+
 	s.log.WithField("userID", userID).Debug("Login finished")
 
 	_ = s.SendEvent(NewLoginFinishedEvent(userID))
+}
+
+func (s *Service) waitForUserChangeDone(eventCh <-chan events.Event, userID string) {
+	for {
+		select {
+		case event := <-eventCh:
+			if login, ok := event.(events.UserLoggedIn); ok && login.UserID == userID {
+				return
+			}
+
+		case <-time.After(2 * time.Second):
+			s.log.WithField("ID", userID).Warning("Login finished but user not added within 2 seconds")
+			return
+		}
+	}
 }
 
 func (s *Service) triggerReset() {
 	defer func() {
 		_ = s.SendEvent(NewResetFinishedEvent())
 	}()
-	if err := s.bridge.FactoryReset(context.Background()); err != nil {
-		s.log.WithError(err).Error("Failed to reset")
-	}
+
+	s.bridge.FactoryReset(context.Background())
 }
 
 func newTLSConfig() (*tls.Config, []byte, error) {

@@ -8,6 +8,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/v2/internal/updater"
 	"github.com/ProtonMail/proton-bridge/v2/internal/user"
 	"github.com/ProtonMail/proton-bridge/v2/internal/vault"
+	"github.com/sirupsen/logrus"
 )
 
 func (bridge *Bridge) GetKeychainApp() (string, error) {
@@ -237,4 +238,20 @@ func (bridge *Bridge) GetColorScheme() string {
 
 func (bridge *Bridge) SetColorScheme(colorScheme string) error {
 	return bridge.vault.SetColorScheme(colorScheme)
+}
+
+func (bridge *Bridge) FactoryReset(ctx context.Context) {
+	// First delete all users.
+	for _, userID := range bridge.GetUserIDs() {
+		if bridge.users.Has(userID) {
+			if err := bridge.DeleteUser(ctx, userID); err != nil {
+				logrus.WithError(err).Errorf("Failed to delete user %s", userID)
+			}
+		}
+	}
+
+	// Then delete all files.
+	if err := bridge.locator.Clear(); err != nil {
+		logrus.WithError(err).Error("Failed to clear data paths")
+	}
 }

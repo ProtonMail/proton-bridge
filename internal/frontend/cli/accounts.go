@@ -240,6 +240,10 @@ func (f *frontendCLI) deleteEverything(c *ishell.Context) {
 	f.bridge.FactoryReset(context.Background())
 
 	c.Println("Everything cleared")
+
+	f.restarter.Set(true, false)
+
+	f.Stop()
 }
 
 func (f *frontendCLI) changeMode(c *ishell.Context) {

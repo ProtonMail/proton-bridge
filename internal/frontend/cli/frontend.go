@@ -24,6 +24,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/v2/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/v2/internal/constants"
 	"github.com/ProtonMail/proton-bridge/v2/internal/events"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/restarter"
 
 	"github.com/abiosoft/ishell"
 	"github.com/sirupsen/logrus"
@@ -34,14 +35,16 @@ var log = logrus.WithField("pkg", "frontend/cli") //nolint:gochecknoglobals
 type frontendCLI struct {
 	*ishell.Shell
 
-	bridge *bridge.Bridge
+	bridge    *bridge.Bridge
+	restarter *restarter.Restarter
 }
 
 // New returns a new CLI frontend configured with the given options.
-func New(bridge *bridge.Bridge, eventCh <-chan events.Event) *frontendCLI {
+func New(bridge *bridge.Bridge, restarter *restarter.Restarter, eventCh <-chan events.Event) *frontendCLI {
 	fe := &frontendCLI{
-		Shell:  ishell.New(),
-		bridge: bridge,
+		Shell:     ishell.New(),
+		bridge:    bridge,
+		restarter: restarter,
 	}
 
 	// Clear commands.
