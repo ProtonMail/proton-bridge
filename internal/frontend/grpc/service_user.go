@@ -32,10 +32,6 @@ import (
 func (s *Service) GetUserList(ctx context.Context, _ *emptypb.Empty) (*UserListResponse, error) {
 	s.log.Debug("GetUserList")
 
-	if err := s.validateServerToken(ctx); err != nil {
-		return nil, err
-	}
-
 	userIDs := s.bridge.GetUserIDs()
 	userList := make([]*User, len(userIDs))
 
@@ -59,10 +55,6 @@ func (s *Service) GetUserList(ctx context.Context, _ *emptypb.Empty) (*UserListR
 func (s *Service) GetUser(ctx context.Context, userID *wrapperspb.StringValue) (*User, error) {
 	s.log.WithField("userID", userID).Debug("GetUser")
 
-	if err := s.validateServerToken(ctx); err != nil {
-		return nil, err
-	}
-
 	user, err := s.bridge.GetUserInfo(userID.Value)
 	if err != nil {
 		return nil, status.Errorf(codes.NotFound, "user not found %v", userID.Value)
@@ -73,10 +65,6 @@ func (s *Service) GetUser(ctx context.Context, userID *wrapperspb.StringValue) (
 
 func (s *Service) SetUserSplitMode(ctx context.Context, splitMode *UserSplitModeRequest) (*emptypb.Empty, error) {
 	s.log.WithField("UserID", splitMode.UserID).WithField("Active", splitMode.Active).Debug("SetUserSplitMode")
-
-	if err := s.validateServerToken(ctx); err != nil {
-		return nil, err
-	}
 
 	user, err := s.bridge.GetUserInfo(splitMode.UserID)
 	if err != nil {
@@ -106,10 +94,6 @@ func (s *Service) SetUserSplitMode(ctx context.Context, splitMode *UserSplitMode
 func (s *Service) LogoutUser(ctx context.Context, userID *wrapperspb.StringValue) (*emptypb.Empty, error) {
 	s.log.WithField("UserID", userID.Value).Debug("LogoutUser")
 
-	if err := s.validateServerToken(ctx); err != nil {
-		return nil, err
-	}
-
 	if _, err := s.bridge.GetUserInfo(userID.Value); err != nil {
 		return nil, status.Errorf(codes.NotFound, "user not found %v", userID.Value)
 	}
@@ -128,10 +112,6 @@ func (s *Service) LogoutUser(ctx context.Context, userID *wrapperspb.StringValue
 func (s *Service) RemoveUser(ctx context.Context, userID *wrapperspb.StringValue) (*emptypb.Empty, error) {
 	s.log.WithField("UserID", userID.Value).Debug("RemoveUser")
 
-	if err := s.validateServerToken(ctx); err != nil {
-		return nil, err
-	}
-
 	go func() {
 		defer s.panicHandler.HandlePanic()
 
@@ -146,10 +126,6 @@ func (s *Service) RemoveUser(ctx context.Context, userID *wrapperspb.StringValue
 
 func (s *Service) ConfigureUserAppleMail(ctx context.Context, request *ConfigureAppleMailRequest) (*emptypb.Empty, error) {
 	s.log.WithField("UserID", request.UserID).WithField("Address", request.Address).Debug("ConfigureUserAppleMail")
-
-	if err := s.validateServerToken(ctx); err != nil {
-		return nil, err
-	}
 
 	restart, err := s.bridge.ConfigureAppleMail(request.UserID, request.Address)
 	if err != nil {

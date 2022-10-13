@@ -29,10 +29,6 @@ import (
 func (s *Service) RunEventStream(request *EventStreamRequest, server Bridge_RunEventStreamServer) error {
 	s.log.Debug("Starting Event stream")
 
-	if err := s.validateServerToken(server.Context()); err != nil {
-		return err
-	}
-
 	if s.eventStreamCh != nil {
 		return status.Errorf(codes.AlreadyExists, "the service is already streaming") // TO-DO GODT-1667 decide if we want to kill the existing stream.
 	}
@@ -80,10 +76,6 @@ func (s *Service) RunEventStream(request *EventStreamRequest, server Bridge_RunE
 
 // StopEventStream stops the event stream.
 func (s *Service) StopEventStream(ctx context.Context, _ *emptypb.Empty) (*emptypb.Empty, error) {
-	if err := s.validateServerToken(ctx); err != nil {
-		return nil, err
-	}
-
 	if s.eventStreamCh == nil {
 		return nil, status.Errorf(codes.NotFound, "The service is not streaming")
 	}

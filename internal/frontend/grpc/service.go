@@ -44,8 +44,10 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/metadata"
+	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
@@ -129,7 +131,11 @@ func (s *Service) startGRPCServer() {
 
 	s.pemCert = string(pemCert)
 
-	s.grpcServer = grpc.NewServer(grpc.Creds(credentials.NewTLS(tlsConfig)))
+	s.grpcServer = grpc.NewServer(
+		grpc.Creds(credentials.NewTLS(tlsConfig)),
+		grpc.UnaryInterceptor(s.validateUnaryServerToken),
+		grpc.StreamInterceptor(s.validateStreamServerToken),
+	)
 
 	RegisterBridgeServer(s.grpcServer, s)
 
@@ -457,4 +463,58 @@ func (s *Service) saveGRPCServerConfigFile() (string, error) {
 	configPath := filepath.Join(settingsPath, serverConfigFileName)
 
 	return configPath, sc.save(configPath)
+}
+
+// validateServerToken verify that the server token provided by the client is valid.
+func (s *Service) validateServerToken(ctx context.Context) error {
+	values, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		return status.Error(codes.Unauthenticated, "missing server token")
+	}
+
+	token := values.Get(serverTokenMetadataKey)
+	if len(token) == 0 {
+		return status.Error(codes.Unauthenticated, "missing server token")
+	}
+
+	if len(token) > 1 {
+		return status.Error(codes.Unauthenticated, "more than one server token was provided")
+	}
+
+	if token[0] != s.token {
+		return status.Error(codes.Unauthenticated, "invalid server token")
+	}
+
+	return nil
+}
+
+// validateUnaryServerToken check the server token for every unary gRPC call.
+func (s *Service) validateUnaryServerToken(
+	ctx context.Context,
+	req interface{},
+	info *grpc.UnaryServerInfo,
+	handler grpc.UnaryHandler,
+) (resp interface{}, err error) {
+	if err := s.validateServerToken(ctx); err != nil {
+		return nil, err
+	}
+
+	return handler(ctx, req)
+}
+
+// validateStreamServerToken check the server token for every gRPC stream request.
+func (s *Service) validateStreamServerToken(
+	_ interface{},
+	ss grpc.ServerStream,
+	info *grpc.StreamServerInfo,
+	_ grpc.StreamHandler,
+) error {
+	logEntry := s.log.WithField("FullMethod", info.FullMethod)
+
+	if err := s.validateServerToken(ss.Context()); err != nil {
+		logEntry.WithError(err).Error("Stream validator failed")
+		return err
+	}
+
+	return nil
 }
