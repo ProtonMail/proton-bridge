@@ -8,6 +8,14 @@ Feature: A user can authenticate an IMAP client
     When user "user@pm.me" connects IMAP client "1"
     Then IMAP client "1" can authenticate
 
+  Scenario: IMAP client can authenticate successfully with different case
+    When user "user@pm.me" connects IMAP client "1"
+    Then IMAP client "1" can authenticate with address "USER@PM.ME"
+
+  Scenario: IMAP client can authenticate successfully
+    When user "user@pm.me" connects IMAP client "1"
+    Then IMAP client "1" can authenticate
+
   Scenario: IMAP client cannot authenticate with bad username
     When user "user@pm.me" connects IMAP client "1"
     Then IMAP client "1" cannot authenticate with incorrect username

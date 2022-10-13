@@ -45,6 +45,12 @@ func (s *scenario) imapClientCanAuthenticate(clientID string) error {
 	return client.Login(s.t.getUserAddrs(userID)[0], s.t.getUserBridgePass(userID))
 }
 
+func (s *scenario) imapClientCanAuthenticateWithAddress(clientID string, address string) error {
+	userID, client := s.t.getIMAPClient(clientID)
+
+	return client.Login(address, s.t.getUserBridgePass(userID))
+}
+
 func (s *scenario) imapClientCannotAuthenticate(clientID string) error {
 	userID, client := s.t.getIMAPClient(clientID)
 
