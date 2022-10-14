@@ -78,7 +78,7 @@ build: build-gui
 
 build-gui: ${TGZ_TARGET}
 
-build-nogui: ${EXE_NAME}
+build-nogui: ${EXE_NAME} build-launcher
 
 go-build=go build $(1) -o $(2) $(3)
 go-build-finalize=${go-build}
@@ -98,6 +98,7 @@ endif
 
 ${EXE_NAME}: gofiles  ${RESOURCE_FILE}
 	$(call go-build-finalize,${BUILD_FLAGS},"${LAUNCHER_EXE}","./cmd/${TARGET_CMD}/","${ROOT_DIR}/cmd/${TARGET_CMD}/${RESOURCE_FILE}")
+	mv ${LAUNCHER_EXE} ${BRIDGE_EXE}
 
 build-launcher: ${RESOURCE_FILE}
 	$(call go-build-finalize,${BUILD_FLAGS_LAUNCHER},"${LAUNCHER_EXE}","${ROOT_DIR}/${LAUNCHER_PATH}/","${ROOT_DIR}/${LAUNCHER_PATH}/${RESOURCE_FILE}")
@@ -149,7 +150,7 @@ ${EXE_TARGET}: check-build-essentials ${EXE_NAME}
 		BRIDGE_GUI_BUILD_CONFIG=Release \
 		BRIDGE_INSTALL_PATH=${ROOT_DIR}/${DEPLOY_DIR}/${GOOS} \
 		./build.sh install
-	mv "${ROOT_DIR}/${LAUNCHER_EXE}" "$(ROOT_DIR)/${EXE_TARGET}"
+	mv "${ROOT_DIR}/${BRIDGE_EXE}" "$(ROOT_DIR)/${EXE_TARGET}"
 
 WINDRES_YEAR:=$(shell date +%Y)
 APP_VERSION_COMMA:=$(shell echo "${APP_VERSION}" | sed -e 's/[^0-9,.]*//g' -e 's/\./,/g')
@@ -286,12 +287,11 @@ run: run-qt
 
 run-cli: run-nogui
 
-
 run-qt: build-gui
 	PROTONMAIL_ENV=dev ./${DEPLOY_DIR}/${TARGET_OS}/${LAUNCHER_EXE} ${RUN_FLAGS}
 
 run-nogui: build-nogui clean-vendor gofiles
-	PROTONMAIL_ENV=dev ./${DEPLOY_DIR}/${TARGET_OS}/${LAUNCHER_EXE} ${RUN_FLAGS} -c
+	PROTONMAIL_ENV=dev ./${LAUNCHER_EXE} ${RUN_FLAGS} -c
 
 clean-vendor:
 	rm -rf ./vendor
