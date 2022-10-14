@@ -504,10 +504,10 @@ func (s *Service) validateUnaryServerToken(
 
 // validateStreamServerToken check the server token for every gRPC stream request.
 func (s *Service) validateStreamServerToken(
-	_ interface{},
+	srv interface{},
 	ss grpc.ServerStream,
 	info *grpc.StreamServerInfo,
-	_ grpc.StreamHandler,
+	handler grpc.StreamHandler,
 ) error {
 	logEntry := s.log.WithField("FullMethod", info.FullMethod)
 
@@ -516,5 +516,5 @@ func (s *Service) validateStreamServerToken(
 		return err
 	}
 
-	return nil
+	return handler(srv, ss)
 }
