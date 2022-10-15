@@ -40,10 +40,10 @@ import (
 )
 
 const (
-	flagLogIMAP        = "log-imap"
-	flagLogSMTP        = "log-smtp"
-	flagNonInteractive = "noninteractive"
-
+	flagLogIMAP             = "log-imap"
+	flagLogSMTP             = "log-smtp"
+	flagNonInteractive      = "noninteractive"
+	flagNonInteractiveShort = "n"
 	// Memory cache was estimated by empirical usage in the past, and it was set to 100MB.
 	// NOTE: This value must not be less than maximal size of one email (~30MB).
 	inMemoryCacheLimit = 100 * (1 << 20)
@@ -62,8 +62,9 @@ func New(base *base.Base) *cli.App {
 			Usage: "Enable logging of SMTP communications (may contain decrypted data!)",
 		},
 		&cli.BoolFlag{
-			Name:  flagNonInteractive,
-			Usage: "Start Bridge entirely non-interactively",
+			Name:    flagNonInteractive,
+			Aliases: []string{flagNonInteractiveShort},
+			Usage:   "Start Bridge entirely non-interactively",
 		},
 	}...)
 
@@ -72,6 +73,11 @@ func New(base *base.Base) *cli.App {
 
 func main(b *base.Base, c *cli.Context) error { //nolint:funlen
 	frontendType := getFrontendTypeFromCLIParams(c)
+	if frontendType == frontend.Unknown {
+		_ = cli.ShowAppHelp(c)
+		return errors.New("no frontend was specified. Use --grpc, --cli or --noninteractive")
+	}
+
 	f := frontend.New(
 		frontendType,
 		!c.Bool(base.FlagNoWindow),
@@ -171,12 +177,14 @@ func main(b *base.Base, c *cli.Context) error { //nolint:funlen
 
 func getFrontendTypeFromCLIParams(c *cli.Context) frontend.Type {
 	switch {
+	case c.Bool(base.FlagGRPC):
+		return frontend.GRPC
 	case c.Bool(base.FlagCLI):
 		return frontend.CLI
 	case c.Bool(flagNonInteractive):
 		return frontend.NonInteractive
 	default:
-		return frontend.GRPC
+		return frontend.Unknown
 	}
 }
 

@@ -25,6 +25,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/v2/internal/locations"
 	"github.com/ProtonMail/proton-bridge/v2/internal/updater"
 	"github.com/ProtonMail/proton-bridge/v2/pkg/listener"
+	"github.com/sirupsen/logrus"
 )
 
 // Type describes the available types of frontend.
@@ -34,6 +35,7 @@ const (
 	CLI Type = iota
 	GRPC
 	NonInteractive
+	Unknown
 )
 
 type Frontend interface {
@@ -45,7 +47,7 @@ type Frontend interface {
 	WaitUntilFrontendIsReady()
 }
 
-// New returns initialized frontend based on `frontendType`, which can be `CLI` or `GRPC`.
+// New returns initialized frontend based on `frontendType`, which can be `CLI` or `GRPC`. Non-interactive will return a nil frontend.
 func New(
 	frontendType Type,
 	showWindowOnStart bool,
@@ -75,9 +77,13 @@ func New(
 		)
 
 	case NonInteractive:
+		return nil
+
+	case Unknown:
 		fallthrough
 
 	default:
-		return nil
+		logrus.Panicf("Unexpected frontend value %v", frontendType)
+		return nil // return statement is required by compiler, although the above call will panic.
 	}
 }
