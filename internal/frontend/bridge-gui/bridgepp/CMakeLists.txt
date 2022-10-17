@@ -40,10 +40,7 @@ endif()
 #****************************************************************************************************************************************************
 # Qt
 #****************************************************************************************************************************************************
-if (NOT DEFINED ENV{QT6DIR})
-    message(FATAL_ERROR "QT6DIR needs to be defined and point to the root of your Qt 6 folder (e.g. /Users/MyName/Qt/6.3.1/clang_64).")
-endif ()
-set(CMAKE_PREFIX_PATH $ENV{QT6DIR} ${CMAKE_PREFIX_PATH})
+include(../FindQt.cmake)
 find_package(Qt6 COMPONENTS Core REQUIRED)
 qt_standard_project_setup()
 

@@ -39,9 +39,9 @@ macro( AppendVCPKGLib LIB_NAME)
     AppendLib("${LIB_NAME}" "${VCPKG_ROOT}/installed/x64-windows/bin")
 endmacro()
 
-cmake_path(CONVERT $ENV{QT6DIR} TO_CMAKE_PATH_LIST QT6DIR)
+cmake_path(CONVERT "${QT_DIR}/bin" TO_CMAKE_PATH_LIST QT_DIR_LIB)
 macro( AppendQt6Lib LIB_NAME)
-    AppendLib("${LIB_NAME}" "${QT6DIR}/bin")
+    AppendLib("${LIB_NAME}" "${QT_DIR_LIB}")
 endmacro()
 
 # Force plugins to be installed near the exe.
@@ -67,9 +67,9 @@ AppendQt6Lib("Qt6QuickDialogs2Utils.dll")
 install(FILES ${DEPLOY_LIBS} DESTINATION "${CMAKE_INSTALL_PREFIX}")
 
 # QML PlugIns
-install(DIRECTORY ${QT6DIR}/qml/Qt/labs/platform DESTINATION "${CMAKE_INSTALL_PREFIX}/Qt/labs/")
-install(DIRECTORY ${QT6DIR}/qml/QtQml DESTINATION "${CMAKE_INSTALL_PREFIX}")
-install(DIRECTORY ${QT6DIR}/qml/QtQuick DESTINATION "${CMAKE_INSTALL_PREFIX}")
+install(DIRECTORY ${QT_DIR}/qml/Qt/labs/platform DESTINATION "${CMAKE_INSTALL_PREFIX}/Qt/labs/")
+install(DIRECTORY ${QT_DIR}/qml/QtQml DESTINATION "${CMAKE_INSTALL_PREFIX}")
+install(DIRECTORY ${QT_DIR}/qml/QtQuick DESTINATION "${CMAKE_INSTALL_PREFIX}")
 
 # Runtime system libs
 set(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP TRUE)

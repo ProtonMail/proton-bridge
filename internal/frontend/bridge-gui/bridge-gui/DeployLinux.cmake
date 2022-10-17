@@ -22,7 +22,7 @@ cmake_minimum_required(VERSION 3.22)
 #*****************************************************************************************************************************************************
 
 set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_BINDIR}" "${CMAKE_INSTALL_LIBDIR}" "." "../lib")
-install(DIRECTORY "$ENV{QT6DIR}/qml" "$ENV{QT6DIR}/plugins"
+install(DIRECTORY "${QT_DIR}/qml" "${QT_DIR}/plugins"
         DESTINATION "${CMAKE_INSTALL_PREFIX}")
 
 macro( AppendLib LIB_NAME HINT_PATH)
@@ -40,7 +40,7 @@ macro( AppendLib LIB_NAME HINT_PATH)
 endmacro()
 
 macro( AppendQt6Lib LIB_NAME)
-    AppendLib("${LIB_NAME}" "$ENV{QT6DIR}/lib/")
+    AppendLib("${LIB_NAME}" "${QT_DIR}/lib/")
 endmacro()
 
 #Qt6

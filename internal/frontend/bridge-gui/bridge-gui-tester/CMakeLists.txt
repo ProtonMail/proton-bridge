@@ -43,13 +43,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 #*****************************************************************************************************************************************************
 # Qt
 #*****************************************************************************************************************************************************
-
-
-if (NOT DEFINED ENV{QT6DIR})
-    message(FATAL_ERROR "QT6DIR needs to be defined and point to the root of your Qt 6 folder (e.g. /Users/MyName/Qt/6.3.1/clang_64).")
-endif()
-
-set(CMAKE_PREFIX_PATH $ENV{QT6DIR} ${CMAKE_PREFIX_PATH})
+include(../FindQt.cmake)
 find_package(Qt6 COMPONENTS Core Gui Widgets Qml REQUIRED)
 qt_standard_project_setup()
 message(STATUS "Using Qt ${Qt6_VERSION}")

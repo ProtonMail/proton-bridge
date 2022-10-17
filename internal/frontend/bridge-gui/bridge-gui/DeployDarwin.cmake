@@ -24,26 +24,26 @@ cmake_minimum_required(VERSION 3.22)
 install(SCRIPT ${deploy_script})
 
 # QML
-install(DIRECTORY "$ENV{QT6DIR}/qml/Qt"
+install(DIRECTORY "${QT_DIR}/qml/Qt"
         DESTINATION "${CMAKE_INSTALL_PREFIX}/bridge-gui.app/Contents/MacOS")
-install(DIRECTORY "$ENV{QT6DIR}/qml/QtQml"
+install(DIRECTORY "${QT_DIR}/qml/QtQml"
         DESTINATION "${CMAKE_INSTALL_PREFIX}/bridge-gui.app/Contents/MacOS")
-install(DIRECTORY "$ENV{QT6DIR}/qml/QtQuick"
+install(DIRECTORY "${QT_DIR}/qml/QtQuick"
         DESTINATION "${CMAKE_INSTALL_PREFIX}/bridge-gui.app/Contents/MacOS")
 # FRAMEWORKS
-install(DIRECTORY "$ENV{QT6DIR}/lib/QtQmlWorkerScript.framework"
+install(DIRECTORY "${QT_DIR}/lib/QtQmlWorkerScript.framework"
         DESTINATION "${CMAKE_INSTALL_PREFIX}/bridge-gui.app/Contents/Frameworks")
-install(DIRECTORY "$ENV{QT6DIR}/lib/QtQuickControls2Impl.framework"
+install(DIRECTORY "${QT_DIR}/lib/QtQuickControls2Impl.framework"
         DESTINATION "${CMAKE_INSTALL_PREFIX}/bridge-gui.app/Contents/Frameworks")
-install(DIRECTORY "$ENV{QT6DIR}/lib/QtQuickLayouts.framework"
+install(DIRECTORY "${QT_DIR}/lib/QtQuickLayouts.framework"
         DESTINATION "${CMAKE_INSTALL_PREFIX}/bridge-gui.app/Contents/Frameworks")
-install(DIRECTORY "$ENV{QT6DIR}/lib/QtQuickDialogs2.framework"
+install(DIRECTORY "${QT_DIR}/lib/QtQuickDialogs2.framework"
         DESTINATION "${CMAKE_INSTALL_PREFIX}/bridge-gui.app/Contents/Frameworks")
-install(DIRECTORY "$ENV{QT6DIR}/lib/QtQuickDialogs2QuickImpl.framework"
+install(DIRECTORY "${QT_DIR}/lib/QtQuickDialogs2QuickImpl.framework"
         DESTINATION "${CMAKE_INSTALL_PREFIX}/bridge-gui.app/Contents/Frameworks")
-install(DIRECTORY "$ENV{QT6DIR}/lib/QtQuickDialogs2Utils.framework"
+install(DIRECTORY "${QT_DIR}/lib/QtQuickDialogs2Utils.framework"
         DESTINATION "${CMAKE_INSTALL_PREFIX}/bridge-gui.app/Contents/Frameworks")
 # PLUGINS
-install(FILES "$ENV{QT6DIR}/plugins/imageformats/libqsvg.dylib"
+install(FILES "${QT_DIR}/plugins/imageformats/libqsvg.dylib"
         DESTINATION "${CMAKE_INSTALL_PREFIX}/bridge-gui.app/Contents/PlugIns/imageformats")
 

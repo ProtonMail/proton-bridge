@@ -197,7 +197,7 @@ check-has-go:
 
 
 check_is_installed=if ! which $(1) > /dev/null; then echo "Please install $(1)"; exit 1; fi
-check-build-essentials: check-qt-dir
+check-build-essentials:
 	@$(call check_is_installed,zip)
 	@$(call check_is_installed,unzip)
 	@$(call check_is_installed,tar)
@@ -206,9 +206,6 @@ ifneq "${GOOS}" "windows"
 	@$(call check_is_installed,cmake)
 	@$(call check_is_installed,ninja)
 endif
-
-check-qt-dir:
-	@if ! ls "${QT6DIR}/bin/qt.conf" > /dev/null; then echo "Please set QT6DIR"; exit 1; fi
 
 add-license:
 	./utils/missing_license.sh add
