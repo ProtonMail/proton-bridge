@@ -24,21 +24,6 @@ background.
 
 More details [on the public website](https://protonmail.com/bridge).
 
-## Description Import-Export app
-Proton Mail Import-Export app for importing and exporting messages.
-
-To transfer messages, firstly log in using your Proton Mail credentials.
-For import, expand your account, and pick the address to which to import
-messages from IMAP server or local EML or MBOX files. For export, pick
-the whole account or only a specific address. Then, in both cases,
-configure transfer rules (match source and target mailboxes, set time
-range limits and so on) and hit start. Once the transfer is complete,
-check the results.
-
-More details [on the public website](https://protonmail.com/import-export).
-
-The Import-Export app is developed in separate branch `master-ie`.
-
 ## Launchers
 Launchers are binaries used to run the Proton Mail Bridge or Import-Export apps.
 

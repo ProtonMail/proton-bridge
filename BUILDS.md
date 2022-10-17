@@ -1,13 +1,12 @@
-# Building Proton Mail Bridge and Import-Export app
+# Building Proton Mail Bridge
 
 ## Prerequisites
-* 64-bit AMD OS:
+* 64-bit OS:
     - the go-rfc5322 module cannot currently be compiled for 32-bit OSes
-    - the Apple M1 builds are not supported yet due to dependencies
-* Go 1.13
+* Go 1.18
 * Bash with basic build utils: make, gcc, sed, find, grep, ...
-* For Windows it is recommended to use MinGW 64bit shell from [MSYS2](https://www.msys2.org/)
-* GCC (linux, windows) or Xcode (macOS)
+  - For Windows it is recommended to use MinGW 64bit shell from [MSYS2](https://www.msys2.org/)
+* GCC (linux), msvc (windows) or Xcode (macOS)
 * Windres (windows)
 * libglvnd and libsecret development files (linux)
 
@@ -16,16 +15,11 @@ To enable the sending of crash reports using Sentry please set the
 Otherwise, the sending of crash reports will be disabled.
 
 ## Build
-In order to build Bridge or Import-Export app with Qt interface we are using
-[Qt Go Binding](https://github.com/therecipe/qt).  The dependencies and
-installation of this tool is part of `make build` target.  If you have issues
-with installation of therecipe/qt we recommend to follow [this
-wiki](https://github.com/therecipe/qt/wiki/Installation-on-Linux)
+In order to build Bridge app with Qt interface we are using
+[Qt 6.3](https://doc.qt.io/qt-6/gettingstarted.html).
 
-Please note that `$(go env GOPATH)/bin` must be in your `PATH` to ensure
-binaries installed by `therecipe/qt` (such as `qtdeploy`) are found. Also,
-before you start build **on Windows**, please unset the `MSYSTEM` variable
-
+Please note that qmake path must be in your `PATH` to ensure Qt to be found.
+Also, before you start build **on Windows**, please unset the `MSYSTEM` variable
 
 ```bash
 export MSYSTEM=
@@ -54,24 +48,12 @@ make build-nogui
 * Bridge always has the option (whether built with Qt or without) to use a CLI interface by starting it with the argument `-c`
 * NOTE: You still need to setup supported keychain on your system
 
-### Build Import-Export
-* in project root run
-
-```bash
-make build-ie
-```
-
-* The result will be stored in `./cmd/Import-Export/deploy/${GOOS}/`
-    * for `linux`, the binary will have the name of the project directory (e.g `proton-bridge`)
-    * for `windows`, the binary will have the file extension `.exe` (e.g `proton-bridge.exe`)
-    * for `darwin`, the application will be created with name of the project directory (e.g `proton-bridge.app`)
-
-### Launchers
+## Launchers
 Launchers are only included in official distributions and provide the public
 key used to verify signed app binaries, allowing the automatic update feature.
 See README for more information.
 
-### Tags
+## Tags
 Note that repository contains both Bridge and Import-Export apps and they are
 not released together. Therefore, each app has own tag prefix. Bridge tags
 starts with `br-` and Import-Export tags starts with `ie-`. Both tags continue
