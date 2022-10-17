@@ -215,8 +215,8 @@ func collectAttachments(p *parser.Parser) ([]*pmapi.Attachment, []io.Reader, err
 }
 
 // buildBodies collects all text/html and text/plain parts and returns two bodies,
-//  - a rich text body (in which html is allowed), and
-//  - a plaintext body (in which html is converted to plaintext).
+//   - a rich text body (in which html is allowed), and
+//   - a plaintext body (in which html is converted to plaintext).
 //
 // text/html parts are converted to plaintext in order to build the plaintext body,
 // unless there is already a plaintext part provided via multipart/alternative,

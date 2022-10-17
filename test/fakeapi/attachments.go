@@ -23,7 +23,6 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/textproto"
 
 	"github.com/ProtonMail/proton-bridge/v2/pkg/pmapi"
@@ -32,8 +31,8 @@ import (
 // dataPacketOutlineLightInstagram48png is data packet with encrypted data and
 // session key
 //
-//  gpg: encrypted with 2048-bit RSA key, ID 70B8CA23079F2167, created 2019-09-23
-//     "james-test@protonmail.blue <james-test@protonmail.blue>"
+//	gpg: encrypted with 2048-bit RSA key, ID 70B8CA23079F2167, created 2019-09-23
+//	   "james-test@protonmail.blue <james-test@protonmail.blue>"
 //
 // If you need to rebuild you can dump KeyPacket string from `CreateAttachment`
 // function when called during message sending test.
@@ -63,14 +62,14 @@ func (api *FakePMAPI) GetAttachment(_ context.Context, attachmentID string) (io.
 		return nil, err
 	}
 	r := bytes.NewReader(b)
-	return ioutil.NopCloser(r), nil
+	return io.NopCloser(r), nil
 }
 
 func (api *FakePMAPI) CreateAttachment(_ context.Context, attachment *pmapi.Attachment, data io.Reader, signature io.Reader) (*pmapi.Attachment, error) {
 	if err := api.checkAndRecordCall(POST, "/mail/v4/attachments", nil); err != nil {
 		return nil, err
 	}
-	bytes, err := ioutil.ReadAll(data)
+	bytes, err := io.ReadAll(data)
 	if err != nil {
 		return nil, err
 	}

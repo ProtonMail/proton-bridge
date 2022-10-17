@@ -18,8 +18,8 @@
 package context
 
 import (
-	"io/ioutil"
 	"math/rand"
+	"os"
 
 	"github.com/ProtonMail/proton-bridge/v2/internal/config/settings"
 )
@@ -32,7 +32,7 @@ type fakeSettings struct {
 // newFakeSettings creates a temporary folder for files.
 // It's expected the test calls `ClearData` before finish to remove it from the file system.
 func newFakeSettings() *fakeSettings {
-	dir, err := ioutil.TempDir("", "test-settings")
+	dir, err := os.MkdirTemp("", "test-settings")
 	if err != nil {
 		panic(err)
 	}

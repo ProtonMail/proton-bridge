@@ -27,7 +27,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/mail"
 	"net/url"
@@ -133,10 +132,10 @@ const (
 type LabelsOperation int
 
 const (
-	KeepLabels    LabelsOperation = iota // Do nothing.
-	ReplaceLabels                        // Replace current labels with new ones.
-	AddLabels                            // Add new labels to current ones.
-	RemoveLabels                         // Remove specified labels from current ones.
+	KeepLabels    LabelsOperation = iota // KeepLabels Do nothing.
+	ReplaceLabels                        // ReplaceLabels Replace current labels with new ones.
+	AddLabels                            // AddLabels Add new labels to current ones.
+	RemoveLabels                         // RemoveLabels Remove specified labels from current ones.
 )
 
 // Due to API limitations, we shouldn't make requests with more than 100 message IDs at a time.
@@ -309,7 +308,7 @@ func (m *Message) ExtractSignatures(kr *crypto.KeyRing) ([]Signature, error) {
 		return nil, err
 	}
 
-	if _, err := ioutil.ReadAll(msg.UnverifiedBody); err != nil {
+	if _, err := io.ReadAll(msg.UnverifiedBody); err != nil {
 		return nil, err
 	}
 

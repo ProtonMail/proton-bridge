@@ -18,7 +18,7 @@
 // Package api provides HTTP API of the Bridge.
 //
 // API endpoints:
-//  * /focus, see focusHandler
+//   - /focus, see focusHandler
 package api
 
 import (

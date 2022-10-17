@@ -18,7 +18,7 @@
 package pmapi
 
 import (
-	"io/ioutil"
+	"os"
 	"strings"
 
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
@@ -65,7 +65,7 @@ func init() {
 }
 
 func readTestFile(name string, trimNewlines bool) string { //nolint:unparam
-	data, err := ioutil.ReadFile("testdata/" + name)
+	data, err := os.ReadFile("testdata/" + name)
 	if err != nil {
 		panic(err)
 	}

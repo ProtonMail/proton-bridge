@@ -18,7 +18,7 @@
 package liveapi
 
 import (
-	"io/ioutil"
+	"io"
 	"net/http"
 
 	"github.com/pkg/errors"
@@ -49,7 +49,7 @@ func (t *fakeTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 			return nil, errors.Wrap(err, "failed to get body")
 		}
 		if bodyReader != nil {
-			body, err = ioutil.ReadAll(bodyReader)
+			body, err = io.ReadAll(bodyReader)
 			if err != nil {
 				return nil, errors.Wrap(err, "failed to read body")
 			}

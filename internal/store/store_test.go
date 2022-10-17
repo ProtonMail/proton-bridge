@@ -20,7 +20,6 @@ package store
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -162,7 +161,7 @@ func initMocks(tb testing.TB) (*mocksForStore, func()) {
 	mocks.panicHandler.EXPECT().HandlePanic().AnyTimes()
 
 	var err error
-	mocks.tmpDir, err = ioutil.TempDir("", "store-test")
+	mocks.tmpDir, err = os.MkdirTemp("", "store-test")
 	require.NoError(tb, err)
 
 	cacheFile := filepath.Join(mocks.tmpDir, "cache.json")

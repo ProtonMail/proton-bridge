@@ -20,7 +20,7 @@ package pmapi
 import (
 	"bytes"
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strconv"
 	"time"
@@ -139,6 +139,6 @@ func (r tlsReport) sendReport(cfg Config, uri string) {
 		logrus.WithField("status", http.StatusOK).Error("StatusCode was not OK")
 	}
 
-	_, _ = ioutil.ReadAll(res.Body)
+	_, _ = io.ReadAll(res.Body)
 	_ = res.Body.Close()
 }

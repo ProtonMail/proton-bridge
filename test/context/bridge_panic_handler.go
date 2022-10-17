@@ -19,7 +19,7 @@ package context
 
 import (
 	"bytes"
-	"io/ioutil"
+	"io"
 	"runtime/pprof"
 )
 
@@ -41,7 +41,7 @@ func (ph *panicHandler) HandlePanic() {
 
 		r := bytes.NewBufferString("")
 		_ = pprof.Lookup("goroutine").WriteTo(r, 2)
-		b, err := ioutil.ReadAll(r)
+		b, err := io.ReadAll(r)
 		ph.t.Errorf("pprof details: %s %s", err, b)
 
 		ph.t.FailNow()

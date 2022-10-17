@@ -21,7 +21,6 @@ import (
 	"crypto/sha1"
 	"encoding/hex"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -37,7 +36,7 @@ const (
 // tempFileWithContent() creates a temporary file in folderPath containing the string content.
 // Returns the path of the created file.
 func tempFileWithContent(folderPath, content string) (string, error) {
-	file, err := ioutil.TempFile(folderPath, "")
+	file, err := os.CreateTemp(folderPath, "")
 	if err != nil {
 		return "", err
 	}
@@ -49,7 +48,7 @@ func tempFileWithContent(folderPath, content string) (string, error) {
 // itemCountInFolder() counts the number of items (files, folders, etc) in a folder.
 // Returns -1 if an error occurred.
 func itemCountInFolder(path string) int {
-	files, err := ioutil.ReadDir(path)
+	files, err := os.ReadDir(path)
 	if err != nil {
 		return -1
 	}
@@ -83,13 +82,13 @@ func filesAreIdentical(path1, path2 string) bool {
 func TestCache_IsFolderEmpty(t *testing.T) {
 	_, err := isFolderEmpty("")
 	r.Error(t, err)
-	tempDirPath, err := ioutil.TempDir("", "")
+	tempDirPath, err := os.MkdirTemp("", "")
 	defer func() { r.NoError(t, os.Remove(tempDirPath)) }()
 	r.NoError(t, err)
 	result, err := isFolderEmpty(tempDirPath)
 	r.NoError(t, err)
 	r.True(t, result)
-	tempFile, err := ioutil.TempFile(tempDirPath, "")
+	tempFile, err := os.CreateTemp(tempDirPath, "")
 	r.NoError(t, err)
 	defer func() { r.NoError(t, os.Remove(tempFile.Name())) }()
 	r.NoError(t, tempFile.Close())
@@ -101,10 +100,10 @@ func TestCache_IsFolderEmpty(t *testing.T) {
 }
 
 func TestCache_CheckFolderIsSuitableDestinationForCache(t *testing.T) {
-	tempDirPath, err := ioutil.TempDir("", "")
+	tempDirPath, err := os.MkdirTemp("", "")
 	defer func() { _ = os.Remove(tempDirPath) }() // cleanup in case we fail before removing it.
 	r.NoError(t, err)
-	tempFile, err := ioutil.TempFile(tempDirPath, "")
+	tempFile, err := os.CreateTemp(tempDirPath, "")
 	r.NoError(t, err)
 	defer func() { _ = os.Remove(tempFile.Name()) }() // cleanup in case we fail before removing it.
 	r.NoError(t, tempFile.Close())
@@ -122,10 +121,10 @@ func TestCache_CopyFolder(t *testing.T) {
 	// |-srcSubDir/
 	//    |-file2
 
-	srcDir, err := ioutil.TempDir("", "")
+	srcDir, err := os.MkdirTemp("", "")
 	defer func() { r.NoError(t, os.RemoveAll(srcDir)) }()
 	r.NoError(t, err)
-	srcSubDir, err := ioutil.TempDir(srcDir, "")
+	srcSubDir, err := os.MkdirTemp(srcDir, "")
 	r.NoError(t, err)
 	subDirName := filepath.Base(srcSubDir)
 	file1, err := tempFileWithContent(srcDir, str1)
@@ -162,7 +161,7 @@ func TestCache_CopyFolder(t *testing.T) {
 }
 
 func TestCache_IsSubfolderOf(t *testing.T) {
-	dir, err := ioutil.TempDir("", "")
+	dir, err := os.MkdirTemp("", "")
 	defer func() { r.NoError(t, os.Remove(dir)) }()
 	r.NoError(t, err)
 	r.True(t, isSubfolderOf(dir, dir))

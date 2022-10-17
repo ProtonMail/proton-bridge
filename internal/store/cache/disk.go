@@ -23,7 +23,6 @@ import (
 	"crypto/rand"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"sync"
@@ -64,7 +63,7 @@ func NewOnDiskCache(path string, cmp Compressor, opts Options) (Cache, error) {
 		return nil, err
 	}
 
-	file, err := ioutil.TempFile(path, "tmp")
+	file, err := os.CreateTemp(path, "tmp")
 	defer func() {
 		file.Close()           //nolint:errcheck,gosec
 		os.Remove(file.Name()) //nolint:errcheck,gosec
@@ -210,7 +209,7 @@ func (c *onDiskCache) readFile(path string) ([]byte, error) {
 	// Wait before reading in case the file is currently being written.
 	c.pending.wait(path)
 
-	return ioutil.ReadFile(filepath.Clean(path))
+	return os.ReadFile(filepath.Clean(path))
 }
 
 func (c *onDiskCache) writeFile(path string, b []byte) error {
@@ -235,7 +234,7 @@ func (c *onDiskCache) writeFile(path string, b []byte) error {
 	defer c.update()
 
 	// NOTE(GODT-1158): What happens when this fails? Should be fixed eventually.
-	return ioutil.WriteFile(filepath.Clean(path), b, 0o600)
+	return os.WriteFile(filepath.Clean(path), b, 0o600)
 }
 
 func (c *onDiskCache) hasSpace(size int) bool {

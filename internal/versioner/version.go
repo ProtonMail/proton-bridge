@@ -21,7 +21,6 @@ import (
 	"bytes"
 	"encoding/base64"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -65,12 +64,12 @@ func (v *Version) SemVer() *semver.Version {
 
 // VerifyFiles verifies all files in the version directory.
 func (v *Version) VerifyFiles(kr *crypto.KeyRing) error {
-	fileBytes, err := ioutil.ReadFile(filepath.Join(v.path, sumFile)) //nolint:gosec
+	fileBytes, err := os.ReadFile(filepath.Join(v.path, sumFile)) //nolint:gosec
 	if err != nil {
 		return err
 	}
 
-	sigBytes, err := ioutil.ReadFile(filepath.Join(v.path, sumFile+".sig")) //nolint:gosec
+	sigBytes, err := os.ReadFile(filepath.Join(v.path, sumFile+".sig")) //nolint:gosec
 	if err != nil {
 		return err
 	}

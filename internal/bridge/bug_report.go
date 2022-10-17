@@ -23,7 +23,6 @@ import (
 	"context"
 	"errors"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"sort"
@@ -33,7 +32,7 @@ import (
 )
 
 const (
-	MaxAttachmentSize       = 7 * 1024 * 1024 // 7 MB total limit
+	MaxAttachmentSize       = 7 * 1024 * 1024 // MaxAttachmentSize 7 MB total limit
 	MaxCompressedFilesCount = 6
 )
 
@@ -106,7 +105,7 @@ func (b *Bridge) getMatchingLogs(filenameMatchFunc func(string) bool) (filenames
 		return nil, err
 	}
 
-	files, err := ioutil.ReadDir(logsPath)
+	files, err := os.ReadDir(logsPath)
 	if err != nil {
 		return nil, err
 	}

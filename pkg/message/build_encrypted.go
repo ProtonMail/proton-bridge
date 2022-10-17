@@ -21,7 +21,6 @@ import (
 	"bytes"
 	"encoding/base64"
 	"io"
-	"io/ioutil"
 	"mime"
 	"mime/multipart"
 	"net/http"
@@ -83,7 +82,7 @@ func BuildEncrypted(m *pmapi.Message, readers []io.Reader, kr *crypto.KeyRing) (
 			return nil, err
 		}
 
-		data, err := ioutil.ReadAll(r)
+		data, err := io.ReadAll(r)
 		if err != nil {
 			return nil, err
 		}

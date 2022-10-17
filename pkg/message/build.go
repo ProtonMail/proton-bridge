@@ -20,7 +20,6 @@ package message
 import (
 	"context"
 	"io"
-	"io/ioutil"
 	"sync"
 
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
@@ -52,8 +51,8 @@ type Fetcher interface {
 }
 
 // NewBuilder creates a new builder which manages the given number of fetch/attach/build workers.
-//  - fetchWorkers: the number of workers which fetch messages from API
-//  - attachWorkers: the number of workers which fetch attachments from API.
+//   - fetchWorkers: the number of workers which fetch messages from API
+//   - attachWorkers: the number of workers which fetch attachments from API.
 //
 // The returned builder is ready to handle jobs -- see (*Builder).NewJob for more information.
 //
@@ -167,7 +166,7 @@ func newAttacherWorkFunc() pool.WorkFunc {
 				return nil, err
 			}
 
-			b, err := ioutil.ReadAll(rc)
+			b, err := io.ReadAll(rc)
 			if err != nil {
 				return nil, err
 			}
@@ -209,7 +208,7 @@ func newFetcherWorkFunc(attachmentPool *pool.Pool) pool.WorkFunc {
 				return nil, err
 			}
 
-			b, err := ioutil.ReadAll(rc)
+			b, err := io.ReadAll(rc)
 			if err != nil {
 				_ = rc.Close()
 				return nil, err

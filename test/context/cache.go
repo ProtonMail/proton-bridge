@@ -18,7 +18,7 @@
 package context
 
 import (
-	"io/ioutil"
+	"os"
 	"path/filepath"
 )
 
@@ -29,7 +29,7 @@ type fakeCache struct {
 // newFakeCache creates a temporary folder for files.
 // It's expected the test calls `ClearData` before finish to remove it from the file system.
 func newFakeCache() *fakeCache {
-	dir, err := ioutil.TempDir("", "test-cache")
+	dir, err := os.MkdirTemp("", "test-cache")
 	if err != nil {
 		panic(err)
 	}

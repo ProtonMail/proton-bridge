@@ -22,7 +22,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"io"
-	"io/ioutil"
 
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/pkg/errors"
@@ -231,7 +230,7 @@ func encryptAttachment(kr *crypto.KeyRing, data io.Reader, filename string) (enc
 		return nil, err
 	}
 
-	dataBytes, err := ioutil.ReadAll(data)
+	dataBytes, err := io.ReadAll(data)
 	if err != nil {
 		return
 	}
@@ -253,7 +252,7 @@ func decryptAttachment(kr *crypto.KeyRing, keyPackets []byte, data io.Reader) (d
 	if kr == nil {
 		return nil, ErrNoKeyringAvailable
 	}
-	dataBytes, err := ioutil.ReadAll(data)
+	dataBytes, err := io.ReadAll(data)
 	if err != nil {
 		return
 	}
@@ -269,7 +268,7 @@ func signAttachment(encrypter *crypto.KeyRing, data io.Reader) (signature io.Rea
 	if encrypter == nil {
 		return nil, ErrNoKeyringAvailable
 	}
-	dataBytes, err := ioutil.ReadAll(data)
+	dataBytes, err := io.ReadAll(data)
 	if err != nil {
 		return
 	}

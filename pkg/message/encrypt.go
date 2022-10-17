@@ -21,7 +21,6 @@ import (
 	"bytes"
 	"encoding/base64"
 	"io"
-	"io/ioutil"
 	"mime"
 	"mime/quotedprintable"
 	"strings"
@@ -33,7 +32,7 @@ import (
 )
 
 func EncryptRFC822(kr *crypto.KeyRing, r io.Reader) ([]byte, error) {
-	b, err := ioutil.ReadAll(r)
+	b, err := io.ReadAll(r)
 	if err != nil {
 		return nil, err
 	}
@@ -118,7 +117,7 @@ func writeEncryptedPart(kr *crypto.KeyRing, header *textproto.Header, r io.Reade
 }
 
 func writeEncryptedTextPart(w io.Writer, r io.Reader, kr *crypto.KeyRing) error {
-	dec, err := ioutil.ReadAll(r)
+	dec, err := io.ReadAll(r)
 	if err != nil {
 		return err
 	}
@@ -146,7 +145,7 @@ func writeEncryptedTextPart(w io.Writer, r io.Reader, kr *crypto.KeyRing) error 
 }
 
 func writeEncryptedAttachmentPart(w io.Writer, r io.Reader, kr *crypto.KeyRing) error {
-	dec, err := ioutil.ReadAll(r)
+	dec, err := io.ReadAll(r)
 	if err != nil {
 		return err
 	}

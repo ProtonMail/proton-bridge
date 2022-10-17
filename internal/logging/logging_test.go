@@ -18,7 +18,7 @@
 package logging
 
 import (
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -27,14 +27,14 @@ import (
 
 // TestClearLogs tests that cearLogs removes only bridge old log files keeping last three of them.
 func TestClearLogs(t *testing.T) {
-	dir, err := ioutil.TempDir("", "clear-logs-test")
+	dir, err := os.MkdirTemp("", "clear-logs-test")
 	require.NoError(t, err)
 
-	require.NoError(t, ioutil.WriteFile(filepath.Join(dir, "other.log"), []byte("Hello"), 0o755))
-	require.NoError(t, ioutil.WriteFile(filepath.Join(dir, "v1_10.log"), []byte("Hello"), 0o755))
-	require.NoError(t, ioutil.WriteFile(filepath.Join(dir, "v1_11.log"), []byte("Hello"), 0o755))
-	require.NoError(t, ioutil.WriteFile(filepath.Join(dir, "v2_12.log"), []byte("Hello"), 0o755))
-	require.NoError(t, ioutil.WriteFile(filepath.Join(dir, "v2_13.log"), []byte("Hello"), 0o755))
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "other.log"), []byte("Hello"), 0o755))
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "v1_10.log"), []byte("Hello"), 0o755))
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "v1_11.log"), []byte("Hello"), 0o755))
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "v2_12.log"), []byte("Hello"), 0o755))
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "v2_13.log"), []byte("Hello"), 0o755))
 
 	require.NoError(t, clearLogs(dir, 3, 0))
 	checkFileNames(t, dir, []string{
@@ -51,7 +51,7 @@ func checkFileNames(t *testing.T, dir string, expectedFileNames []string) {
 }
 
 func getFileNames(t *testing.T, dir string) []string {
-	files, err := ioutil.ReadDir(dir)
+	files, err := os.ReadDir(dir)
 	require.NoError(t, err)
 
 	fileNames := []string{}

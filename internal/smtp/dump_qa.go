@@ -22,7 +22,6 @@ package smtp
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"time"
@@ -48,7 +47,7 @@ func dumpMessageData(b []byte, subject string) {
 		subject = subject[:16]
 	}
 
-	if err := ioutil.WriteFile(
+	if err := os.WriteFile(
 		filepath.Join(path, fmt.Sprintf("%v-%v.eml", subject, time.Now().Unix())),
 		b,
 		0o600,

@@ -29,7 +29,7 @@ import (
 
 const (
 	MaxImportMessageRequestLength = 10
-	MaxImportMessageRequestSize   = 25 * 1024 * 1024 // 25 MB total limit
+	MaxImportMessageRequestSize   = 25 * 1024 * 1024 // MaxImportMessageRequestSize 25 MB total limit
 )
 
 type ImportMsgReq struct {

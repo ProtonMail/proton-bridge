@@ -20,7 +20,7 @@ package message
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"runtime"
 	"sort"
@@ -93,7 +93,7 @@ func TestParseBodyStructurePGP(t *testing.T) {
 		"2":       "application/pgp-signature; name=\"OpenPGP_signature.asc\"",
 	}
 
-	b, err := ioutil.ReadFile("testdata/enc-body-structure.eml")
+	b, err := os.ReadFile("testdata/enc-body-structure.eml")
 	require.NoError(t, err)
 
 	bs, err := NewBodyStructure(bytes.NewReader(b))

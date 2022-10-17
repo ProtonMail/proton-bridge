@@ -19,7 +19,6 @@ package parser
 
 import (
 	"io"
-	"io/ioutil"
 
 	"github.com/emersion/go-message"
 	"github.com/sirupsen/logrus"
@@ -129,7 +128,7 @@ func (p *Parser) parseEntity(e *message.Entity) error {
 }
 
 func (p *Parser) parsePart(e *message.Entity) (err error) {
-	bytes, err := ioutil.ReadAll(e.Body)
+	bytes, err := io.ReadAll(e.Body)
 	if err != nil {
 		return
 	}

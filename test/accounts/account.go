@@ -19,7 +19,6 @@ package accounts
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"sort"
@@ -90,7 +89,7 @@ func (a *TestAccount) initKeys() {
 func readTestFile(fileName string) []byte {
 	testDataFolder := os.Getenv("TEST_DATA")
 	path := filepath.Join(testDataFolder, fileName)
-	data, err := ioutil.ReadFile(path) //nolint:gosec
+	data, err := os.ReadFile(path) //nolint:gosec
 	if err != nil {
 		panic(err)
 	}

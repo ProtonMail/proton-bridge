@@ -64,7 +64,7 @@ func (pc *persistentClient) AuthDelete(_ context.Context) error {
 
 // AuthSalt returns cached string. Otherwise after some time there is an error:
 //
-//     Access token does not have sufficient scope
+//	Access token does not have sufficient scope
 //
 // while all other routes works normally. Need to confirm with Aron that this
 // is expected behaviour.

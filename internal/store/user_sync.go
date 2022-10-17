@@ -111,13 +111,13 @@ func (store *Store) isSynced(countsOnAPI []*pmapi.MessagesCount) (bool, error) {
 // All Mail mailbox contains all messages, so we download all meta data needed
 // to generate any address/mailbox IMAP UIDs.
 // Sync state can be in three states:
-//  * Nothing in database. For example when user logs in for the first time.
-//    `triggerSync` will start full sync.
-//  * Database has syncIDRangesKey and syncIDsToBeDeletedKey keys with data.
-//    Sync is in progress or was interrupted. In later case when, `triggerSync`
-//    will continue where it left off.
-//  * Database has only syncStateKey with time when database was last synced.
-//    `triggerSync` will reset it and start full sync again.
+//   - Nothing in database. For example when user logs in for the first time.
+//     `triggerSync` will start full sync.
+//   - Database has syncIDRangesKey and syncIDsToBeDeletedKey keys with data.
+//     Sync is in progress or was interrupted. In later case when, `triggerSync`
+//     will continue where it left off.
+//   - Database has only syncStateKey with time when database was last synced.
+//     `triggerSync` will reset it and start full sync again.
 func (store *Store) triggerSync() {
 	syncState := store.loadSyncState()
 

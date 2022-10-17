@@ -18,9 +18,9 @@
 package cookies
 
 import (
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 	"time"
 
@@ -170,7 +170,7 @@ func getTestServer(t *testing.T, wantCookies []testCookie) *httptest.Server {
 
 // newFakeSettings creates a temporary folder for files.
 func newFakeSettings() *settings.Settings {
-	dir, err := ioutil.TempDir("", "test-settings")
+	dir, err := os.MkdirTemp("", "test-settings")
 	if err != nil {
 		panic(err)
 	}

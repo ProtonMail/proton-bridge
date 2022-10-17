@@ -18,7 +18,6 @@
 package versioner
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -29,7 +28,7 @@ import (
 )
 
 func TestListVersions(t *testing.T) {
-	updates, err := ioutil.TempDir("", "updates")
+	updates, err := os.MkdirTemp("", "updates")
 	require.NoError(t, err)
 
 	v := newTestVersioner(t, "myCoolApp", updates, "2.3.4-beta", "2.3.4", "2.3.5", "2.4.0")

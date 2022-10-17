@@ -54,10 +54,10 @@ type Event struct {
 type EventAction int
 
 const (
-	EventDelete      EventAction = iota // Item has been deleted.
-	EventCreate                         // Item has been created.
-	EventUpdate                         // Item has been updated.
-	EventUpdateFlags                    // For messages: flags have been updated.
+	EventDelete      EventAction = iota // EventDelete Item has been deleted.
+	EventCreate                         // EventCreate Item has been created.
+	EventUpdate                         // EventUpdate Item has been updated.
+	EventUpdateFlags                    // EventUpdateFlags For messages: flags have been updated.
 )
 
 // Flags for event refresh.

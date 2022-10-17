@@ -18,7 +18,6 @@
 package files
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -93,7 +92,7 @@ func TestRemoveWithExceptions(t *testing.T) {
 }
 
 func newTestDir(t *testing.T, subdirs ...string) string {
-	dir, err := ioutil.TempDir("", "test-files-dir")
+	dir, err := os.MkdirTemp("", "test-files-dir")
 	require.NoError(t, err)
 
 	for _, target := range subdirs {

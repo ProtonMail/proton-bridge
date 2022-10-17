@@ -19,7 +19,7 @@ package message
 
 import (
 	"bytes"
-	"io/ioutil"
+	"os"
 	"testing"
 
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
@@ -27,7 +27,7 @@ import (
 )
 
 func TestEncryptRFC822(t *testing.T) {
-	literal, err := ioutil.ReadFile("testdata/text_plain_latin1.eml")
+	literal, err := os.ReadFile("testdata/text_plain_latin1.eml")
 	require.NoError(t, err)
 
 	key, err := crypto.GenerateKey("name", "email", "rsa", 2048)
@@ -46,7 +46,7 @@ func TestEncryptRFC822(t *testing.T) {
 }
 
 func TestEncryptRFC822Multipart(t *testing.T) {
-	literal, err := ioutil.ReadFile("testdata/multipart_alternative_nested.eml")
+	literal, err := os.ReadFile("testdata/multipart_alternative_nested.eml")
 	require.NoError(t, err)
 
 	key, err := crypto.GenerateKey("name", "email", "rsa", 2048)

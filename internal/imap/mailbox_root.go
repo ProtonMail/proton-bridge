@@ -30,11 +30,11 @@ import (
 // The purpose of this mailbox is to see "Folders" and "Labels"
 // at the root of the mailbox tree, e.g.:
 //
-// 		Folders 					<< this
-//			Folders/Family
+//	Folders 					<< this
+//		Folders/Family
 //
-//		Labels						<< this
-//			Labels/Security
+//	Labels						<< this
+//		Labels/Security
 //
 // This mailbox cannot be modified or read in any way.
 type imapRootMailbox struct {

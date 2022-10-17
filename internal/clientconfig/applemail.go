@@ -18,7 +18,6 @@
 package clientconfig
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -89,7 +88,7 @@ func prepareMobileConfig(
 }
 
 func saveConfigTemporarily(mc *mobileconfig.Config) (fname string, err error) {
-	dir, err := ioutil.TempDir("", "protonmail-autoconfig")
+	dir, err := os.MkdirTemp("", "protonmail-autoconfig")
 	if err != nil {
 		return
 	}

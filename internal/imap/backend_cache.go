@@ -31,15 +31,16 @@ const (
 
 // addToCache adds item to existing item list.
 // Starting from following structure:
-//   {
-//		"username": {"label": "item1;item2"}
-//   }
+//
+//	  {
+//			"username": {"label": "item1;item2"}
+//	  }
 //
 // After calling addToCache("username", "label", "newItem") we get:
-//   {
-//		"username": {"label": "item1;item2;newItem"}
-//   }
 //
+//	  {
+//			"username": {"label": "item1;item2;newItem"}
+//	  }
 func (ib *imapBackend) addToCache(userID, label, toAdd string) {
 	list := ib.getCacheList(userID, label)
 

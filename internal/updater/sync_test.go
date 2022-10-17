@@ -18,7 +18,6 @@
 package updater
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -104,10 +103,10 @@ func checkThatFilesAreSame(r *require.Assertions, src, dst string) {
 
 			r.Equal(srcLnk, dstLnk)
 		} else {
-			srcContent, err := ioutil.ReadFile(srcPath)
+			srcContent, err := os.ReadFile(srcPath)
 			r.NoError(err)
 
-			dstContent, err := ioutil.ReadFile(dstPath)
+			dstContent, err := os.ReadFile(dstPath)
 			r.NoError(err)
 
 			r.Equal(srcContent, dstContent)
@@ -155,7 +154,7 @@ func createTestFolder(dirPath, dirType string) error {
 	path := filepath.Join(dirPath, "testpath")
 	switch dirType {
 	case FileType:
-		err = ioutil.WriteFile(path, []byte("This is a test"), 0o640)
+		err = os.WriteFile(path, []byte("This is a test"), 0o640)
 		if err != nil {
 			return err
 		}
@@ -172,7 +171,7 @@ func createTestFolder(dirPath, dirType string) error {
 			return err
 		}
 
-		err = ioutil.WriteFile(filepath.Join(path, "another_file"), []byte("This is a test"), 0o640)
+		err = os.WriteFile(filepath.Join(path, "another_file"), []byte("This is a test"), 0o640)
 		if err != nil {
 			return err
 		}

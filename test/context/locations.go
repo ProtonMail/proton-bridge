@@ -18,7 +18,6 @@
 package context
 
 import (
-	"io/ioutil"
 	"os"
 )
 
@@ -27,7 +26,7 @@ type fakeLocations struct {
 }
 
 func newFakeLocations() *fakeLocations {
-	dir, err := ioutil.TempDir("", "test-cache")
+	dir, err := os.MkdirTemp("", "test-cache")
 	if err != nil {
 		panic(err)
 	}

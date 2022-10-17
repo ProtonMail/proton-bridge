@@ -20,7 +20,7 @@ package pmapi
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -68,7 +68,7 @@ func TestClient_BugReportWithAttachment(t *testing.T) {
 
 		attReader, err := req.MultipartForm.File["log"][0].Open()
 		r.NoError(t, err)
-		_, err = ioutil.ReadAll(attReader)
+		_, err = io.ReadAll(attReader)
 		r.NoError(t, err)
 
 		w.Header().Set("Content-Type", "application/json")

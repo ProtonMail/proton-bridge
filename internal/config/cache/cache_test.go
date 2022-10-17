@@ -18,7 +18,6 @@
 package cache
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -28,7 +27,7 @@ import (
 )
 
 func TestRemoveOldVersions(t *testing.T) {
-	dir, err := ioutil.TempDir("", "test-cache")
+	dir, err := os.MkdirTemp("", "test-cache")
 	require.NoError(t, err)
 
 	cache, err := New(dir, "c4")

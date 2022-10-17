@@ -21,7 +21,7 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/mail"
 	"strings"
 	"time"
@@ -55,7 +55,7 @@ func (im *imapMailbox) createMessage(imapFlags []string, date time.Time, r imap.
 	im.user.appendExpungeLock.Lock()
 	defer im.user.appendExpungeLock.Unlock()
 
-	body, err := ioutil.ReadAll(r)
+	body, err := io.ReadAll(r)
 	if err != nil {
 		return err
 	}

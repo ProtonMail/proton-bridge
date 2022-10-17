@@ -21,7 +21,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"strconv"
 	"sync"
@@ -79,7 +78,7 @@ func (p *keyValueStore) save() error {
 		return err
 	}
 
-	return ioutil.WriteFile(p.path, b, 0o600)
+	return os.WriteFile(p.path, b, 0o600)
 }
 
 func (p *keyValueStore) setDefault(key Key, value string) {

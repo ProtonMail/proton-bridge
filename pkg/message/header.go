@@ -21,7 +21,6 @@ import (
 	"bufio"
 	"bytes"
 	"io"
-	"io/ioutil"
 	"unicode"
 
 	"github.com/emersion/go-message/textproto"
@@ -141,7 +140,7 @@ func splitHeaderBody(b []byte) ([]byte, []byte, error) {
 		}
 	}
 
-	body, err := ioutil.ReadAll(br)
+	body, err := io.ReadAll(br)
 	if err != nil && !errors.Is(err, io.EOF) {
 		return nil, nil, err
 	}

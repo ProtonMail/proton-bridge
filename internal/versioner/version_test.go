@@ -19,7 +19,6 @@ package versioner
 
 import (
 	"crypto/rand"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -33,7 +32,7 @@ import (
 )
 
 func TestVerifyFiles(t *testing.T) {
-	tempDir, err := ioutil.TempDir("", "verify-test")
+	tempDir, err := os.MkdirTemp("", "verify-test")
 	require.NoError(t, err)
 
 	version := &Version{
@@ -53,7 +52,7 @@ func TestVerifyFiles(t *testing.T) {
 }
 
 func TestVerifyWithBadFile(t *testing.T) {
-	tempDir, err := ioutil.TempDir("", "verify-test")
+	tempDir, err := os.MkdirTemp("", "verify-test")
 	require.NoError(t, err)
 
 	version := &Version{
@@ -76,7 +75,7 @@ func TestVerifyWithBadFile(t *testing.T) {
 }
 
 func TestVerifyWithBadSubFile(t *testing.T) {
-	tempDir, err := ioutil.TempDir("", "verify-test")
+	tempDir, err := os.MkdirTemp("", "verify-test")
 	require.NoError(t, err)
 
 	version := &Version{
@@ -136,10 +135,10 @@ func makeFile(t *testing.T, path string) {
 }
 
 func signFile(t *testing.T, path string, kr *crypto.KeyRing) {
-	file, err := ioutil.ReadFile(path)
+	file, err := os.ReadFile(path)
 	require.NoError(t, err)
 
 	sig, err := kr.SignDetached(crypto.NewPlainMessage(file))
 	require.NoError(t, err)
-	require.NoError(t, ioutil.WriteFile(path+".sig", sig.GetBinary(), 0o700))
+	require.NoError(t, os.WriteFile(path+".sig", sig.GetBinary(), 0o700))
 }

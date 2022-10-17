@@ -19,7 +19,7 @@ package versioner
 
 import (
 	"errors"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"sort"
 
@@ -43,7 +43,7 @@ func New(root string) *Versioner {
 
 // ListVersions returns a collection of all available version numbers, sorted from newest to oldest.
 func (v *Versioner) ListVersions() (Versions, error) {
-	dirs, err := ioutil.ReadDir(v.root)
+	dirs, err := os.ReadDir(v.root)
 	if err != nil {
 		return nil, err
 	}

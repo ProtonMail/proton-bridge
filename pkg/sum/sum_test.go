@@ -18,7 +18,7 @@
 package sum
 
 import (
-	"io/ioutil"
+	"io"
 	"os"
 	"path/filepath"
 	"testing"
@@ -27,7 +27,7 @@ import (
 )
 
 func TestRecursiveSum(t *testing.T) {
-	tempDir, err := ioutil.TempDir("", "verify-test")
+	tempDir, err := os.MkdirTemp("", "verify-test")
 	require.NoError(t, err)
 
 	createFiles(t, tempDir,
@@ -97,7 +97,7 @@ func modifyFile(t *testing.T, path string, data []byte) []byte {
 	r, err := os.Open(path)
 	require.NoError(t, err)
 
-	b, err := ioutil.ReadAll(r)
+	b, err := io.ReadAll(r)
 	require.NoError(t, err)
 	require.NoError(t, r.Close())
 

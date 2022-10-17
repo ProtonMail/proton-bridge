@@ -13,6 +13,8 @@ issues:
     - should have comment (\([^)]+\) )?or be unexported
     # For now we are missing a lot of comments.
     - at least one file in a package should have a package comment
+    # Package comments.
+    - "package-comments: should have a package comment"
 
   exclude-rules:
     - path: _test\.go
@@ -106,4 +108,3 @@ linters:
     # - testpackage       # linter that makes you use a separate _test package [fast: true, auto-fix: false]
     # - thelper           # thelper detects golang test helpers without t.Helper() call and checks the consistency of test helpers [fast: false, auto-fix: false]
     # - wrapcheck         # Checks that errors returned from external packages are wrapped [fast: false, auto-fix: false]
-

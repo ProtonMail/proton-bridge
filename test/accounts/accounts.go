@@ -19,7 +19,7 @@ package accounts
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"os"
 
 	"github.com/ProtonMail/proton-bridge/v2/pkg/pmapi"
 	"github.com/pkg/errors"
@@ -37,7 +37,7 @@ type TestAccounts struct {
 }
 
 func Load(path string) (*TestAccounts, error) {
-	data, err := ioutil.ReadFile(path) //nolint:gosec
+	data, err := os.ReadFile(path) //nolint:gosec
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to load JSON")
 	}

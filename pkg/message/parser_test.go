@@ -20,7 +20,6 @@ package message
 import (
 	"image/png"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -603,7 +602,7 @@ func getFileReader(filename string) io.Reader {
 }
 
 func readerToString(r io.Reader) string {
-	b, err := ioutil.ReadAll(r)
+	b, err := io.ReadAll(r)
 	if err != nil {
 		panic(err)
 	}

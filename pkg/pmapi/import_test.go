@@ -22,7 +22,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"math/rand"
 	"mime/multipart"
 	"net/http"
@@ -76,7 +75,7 @@ func TestClient_Import(t *testing.T) { //nolint:funlen
 		r.Equal(t, "form-data", contentDisp)
 		r.Equal(t, "0", params["name"])
 
-		b, err := ioutil.ReadAll(p)
+		b, err := io.ReadAll(p)
 		r.NoError(t, err)
 		r.Equal(t, string(testImportReqs[0].Message), string(b))
 

@@ -18,7 +18,6 @@
 package locations
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -118,10 +117,10 @@ func TestCleanRemovesUnexpectedFilesAndFolders(t *testing.T) {
 }
 
 func newFakeAppDirs(t *testing.T) *fakeAppDirs {
-	configDir, err := ioutil.TempDir("", "test-locations-config")
+	configDir, err := os.MkdirTemp("", "test-locations-config")
 	require.NoError(t, err)
 
-	cacheDir, err := ioutil.TempDir("", "test-locations-cache")
+	cacheDir, err := os.MkdirTemp("", "test-locations-cache")
 	require.NoError(t, err)
 
 	return &fakeAppDirs{

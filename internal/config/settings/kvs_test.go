@@ -18,7 +18,6 @@
 package settings
 
 import (
-	"io/ioutil"
 	"os"
 	"testing"
 
@@ -38,7 +37,7 @@ func TestLoadBadKeyValueStore(t *testing.T) {
 	path, clean := newTmpFile(r)
 	defer clean()
 
-	r.NoError(ioutil.WriteFile(path, []byte("{\"key\":\"MISSING_QUOTES"), 0o700))
+	r.NoError(os.WriteFile(path, []byte("{\"key\":\"MISSING_QUOTES"), 0o700))
 	pref := newKeyValueStore(path)
 	r.Equal("", pref.Get("key"))
 }
@@ -115,7 +114,7 @@ func TestKeyValueStoreSetBool(t *testing.T) {
 }
 
 func newTmpFile(r *require.Assertions) (path string, clean func()) {
-	tmpfile, err := ioutil.TempFile("", "pref.*.json")
+	tmpfile, err := os.CreateTemp("", "pref.*.json")
 	r.NoError(err)
 	defer r.NoError(tmpfile.Close())
 
@@ -131,12 +130,12 @@ func newTestEmptyKeyValueStore(r *require.Assertions) (*keyValueStore, func()) {
 
 func newTestKeyValueStore(r *require.Assertions) (*keyValueStore, func()) {
 	path, clean := newTmpFile(r)
-	r.NoError(ioutil.WriteFile(path, []byte("{\"str\":\"value\",\"int\":\"42\",\"bool\":\"true\",\"falseBool\":\"t\"}"), 0o700))
+	r.NoError(os.WriteFile(path, []byte("{\"str\":\"value\",\"int\":\"42\",\"bool\":\"true\",\"falseBool\":\"t\"}"), 0o700))
 	return newKeyValueStore(path), clean
 }
 
 func checkSavedKeyValueStore(r *require.Assertions, path, expected string) {
-	data, err := ioutil.ReadFile(path)
+	data, err := os.ReadFile(path)
 	r.NoError(err)
 	r.Equal(expected, string(data))
 }

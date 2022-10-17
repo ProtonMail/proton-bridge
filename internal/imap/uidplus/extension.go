@@ -18,8 +18,8 @@
 // Package uidplus DOES NOT implement full RFC4315!
 //
 // Excluded parts are:
-// * Response `UIDNOTSTICKY`: All mailboxes of Bridge support stable
-//   UIDVALIDITY so it would never return this response
+//   - Response `UIDNOTSTICKY`: All mailboxes of Bridge support stable
+//     UIDVALIDITY so it would never return this response
 //
 // Otherwise the standard RFC4315 is followed.
 package uidplus
@@ -48,9 +48,10 @@ const (
 // ranges or out of the bound ranges are possible.
 //
 // NOTE: potential issue with response length
-// * the user selects large number of messages to be copied and the
-//   response line will be long,
-// * list of UIDs which high values
+//   - the user selects large number of messages to be copied and the
+//     response line will be long,
+//   - list of UIDs which high values
+//
 // which can create long response line. We didn't find a maximum length of one
 // IMAP response line or maximum length of IMAP "response code" with parameters.
 type OrderedSeq []uint32

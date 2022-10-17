@@ -18,7 +18,7 @@
 package pmapi
 
 import (
-	"io/ioutil"
+	"io"
 
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"golang.org/x/net/context"
@@ -56,7 +56,7 @@ func (m *manager) fetchFile(url string) ([]byte, error) {
 		return nil, err
 	}
 
-	b, err := ioutil.ReadAll(res.RawBody())
+	b, err := io.ReadAll(res.RawBody())
 	if err != nil {
 		return nil, err
 	}

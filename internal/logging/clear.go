@@ -18,7 +18,6 @@
 package logging
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"sort"
@@ -27,7 +26,7 @@ import (
 )
 
 func clearLogs(logDir string, maxLogs int, maxCrashes int) error {
-	files, err := ioutil.ReadDir(logDir)
+	files, err := os.ReadDir(logDir)
 	if err != nil {
 		return err
 	}

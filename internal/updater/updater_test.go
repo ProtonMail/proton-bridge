@@ -21,7 +21,7 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
-	"io/ioutil"
+	"os"
 	"sync"
 	"testing"
 	"time"
@@ -314,7 +314,7 @@ type fakeSettings struct {
 
 // newFakeSettings creates a temporary folder for files.
 func newFakeSettings(rollout float64, earlyAccess bool) *fakeSettings {
-	dir, err := ioutil.TempDir("", "test-settings")
+	dir, err := os.MkdirTemp("", "test-settings")
 	if err != nil {
 		panic(err)
 	}

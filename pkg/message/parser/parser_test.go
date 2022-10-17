@@ -19,7 +19,6 @@ package parser
 
 import (
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -44,7 +43,7 @@ func getFileReader(filename string) io.ReadCloser {
 }
 
 func getFileAsString(filename string) string {
-	b, err := ioutil.ReadAll(getFileReader(filename))
+	b, err := io.ReadAll(getFileReader(filename))
 	if err != nil {
 		panic(err)
 	}

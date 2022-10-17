@@ -20,7 +20,6 @@ package updater
 import (
 	"compress/gzip"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -43,7 +42,7 @@ func (i *InstallerDarwin) InstallUpdate(_ *semver.Version, r io.Reader) error {
 	}
 	defer func() { _ = gr.Close() }()
 
-	tempDir, err := ioutil.TempDir("", "proton-update-source")
+	tempDir, err := os.MkdirTemp("", "proton-update-source")
 	if err != nil {
 		return errors.Wrap(err, "failed to get temporary update directory")
 	}

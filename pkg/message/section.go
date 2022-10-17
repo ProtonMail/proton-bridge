@@ -21,7 +21,6 @@ import (
 	"bufio"
 	"bytes"
 	"io"
-	"io/ioutil"
 	"net/textproto"
 	"strconv"
 	"strings"
@@ -166,7 +165,7 @@ func (bs *BodyStructure) parseAllChildSections(r io.Reader, currentPath []int, s
 		}
 	} else {
 		// Count length.
-		_, _ = bodyReader.WriteTo(ioutil.Discard)
+		_, _ = bodyReader.WriteTo(io.Discard)
 	}
 
 	// Clear all buffers.

@@ -19,7 +19,6 @@ package users
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"runtime"
 	"runtime/debug"
@@ -166,7 +165,7 @@ func initMocks(t *testing.T) mocks {
 		mockCtrl = gomock.NewController(t)
 	}
 
-	cacheFile, err := ioutil.TempFile("", "bridge-store-cache-*.db")
+	cacheFile, err := os.CreateTemp("", "bridge-store-cache-*.db")
 	r.NoError(t, err, "could not get temporary file for store cache")
 	r.NoError(t, cacheFile.Close())
 
@@ -193,7 +192,7 @@ func initMocks(t *testing.T) mocks {
 	m.storeMaker.EXPECT().New(gomock.Any()).DoAndReturn(func(user store.BridgeUser) (*store.Store, error) {
 		var sentryReporter *sentry.Reporter // Sentry reporter is not used under unit tests.
 
-		dbFile, err := ioutil.TempFile(t.TempDir(), "bridge-store-db-*.db")
+		dbFile, err := os.CreateTemp(t.TempDir(), "bridge-store-db-*.db")
 		r.NoError(t, err, "could not get temporary file for store db")
 		r.NoError(t, dbFile.Close())
 

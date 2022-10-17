@@ -21,7 +21,7 @@
 package versioner
 
 import (
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -33,7 +33,7 @@ import (
 // RemoveOldVersions is a noop on darwin; we don't test it there.
 
 func TestRemoveOldVersions(t *testing.T) {
-	updates, err := ioutil.TempDir(t.TempDir(), "updates")
+	updates, err := os.MkdirTemp(t.TempDir(), "updates")
 	require.NoError(t, err)
 
 	v := newTestVersioner(t, "myCoolApp", updates, "2.3.4-beta", "2.3.4", "2.3.5", "2.4.0")

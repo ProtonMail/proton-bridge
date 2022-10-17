@@ -24,7 +24,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"mime/multipart"
 	"net/http"
 	"net/textproto"
@@ -114,7 +113,7 @@ func TestClient_CreateAttachment(t *testing.T) {
 		r.NoError(err)
 		defer r.NoError(dataFile.Close())
 
-		b, err := ioutil.ReadAll(dataFile)
+		b, err := io.ReadAll(dataFile)
 		r.NoError(err)
 		r.Equal(testAttachmentCleartext, string(b))
 
@@ -146,7 +145,7 @@ func TestClient_GetAttachment(t *testing.T) {
 	defer att.Close() //nolint:errcheck
 
 	// In reality, r contains encrypted data
-	b, err := ioutil.ReadAll(att)
+	b, err := io.ReadAll(att)
 	r.NoError(err)
 
 	r.Equal(testAttachmentCleartext, string(b))
@@ -181,7 +180,7 @@ func TestAttachmentEncrypt(t *testing.T) {
 func decryptAndCheck(r *require.Assertions, data io.Reader) {
 	// First separate KeyPacket from encrypted data. In our case keypacket
 	// has 271 bytes.
-	raw, err := ioutil.ReadAll(data)
+	raw, err := io.ReadAll(data)
 	r.NoError(err)
 	rawKeyPacket := raw[:271]
 	rawDataPacket := raw[271:]
@@ -195,7 +194,7 @@ func decryptAndCheck(r *require.Assertions, data io.Reader) {
 	decryptedReader, err := haveAttachment.Decrypt(bytes.NewBuffer(rawDataPacket), testPrivateKeyRing)
 	r.NoError(err)
 
-	b, err := ioutil.ReadAll(decryptedReader)
+	b, err := io.ReadAll(decryptedReader)
 	r.NoError(err)
 
 	r.Equal(testAttachmentCleartext, string(b))

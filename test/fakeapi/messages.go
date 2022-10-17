@@ -41,13 +41,13 @@ func (api *FakePMAPI) GetMessage(_ context.Context, apiID string) (*pmapi.Messag
 }
 
 // ListMessages does not implement following filters:
-//  * Sort (it sorts by ID only), but Desc works
-//  * Keyword
-//  * To
-//  * Subject
-//  * ID
-//  * Attachments
-//  * AutoWildcard
+//   - Sort (it sorts by ID only), but Desc works
+//   - Keyword
+//   - To
+//   - Subject
+//   - ID
+//   - Attachments
+//   - AutoWildcard
 func (api *FakePMAPI) ListMessages(_ context.Context, filter *pmapi.MessagesFilter) ([]*pmapi.Message, int, error) {
 	if err := api.checkAndRecordCall(GET, "/mail/v4/messages", filter); err != nil {
 		return nil, 0, err

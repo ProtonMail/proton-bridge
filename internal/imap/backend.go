@@ -24,10 +24,11 @@
 // When IMAP clients request message literals (or parts thereof), we sometimes need to build RFC822 message literals.
 // To do this, we pass build jobs to the message builder, which internally manages its own parallelism.
 // Summary:
-//  - each IMAP fetch request is handled in parallel,
-//  - within each IMAP fetch request, individual items are handled by a pool of `fetchWorkers` workers,
-//  - within each worker, build jobs are posted to the message builder,
-//  - the message builder handles build jobs using its own, independent worker pool,
+//   - each IMAP fetch request is handled in parallel,
+//   - within each IMAP fetch request, individual items are handled by a pool of `fetchWorkers` workers,
+//   - within each worker, build jobs are posted to the message builder,
+//   - the message builder handles build jobs using its own, independent worker pool,
+//
 // The builder will handle jobs in parallel up to its own internal limit. This prevents it from overwhelming API.
 package imap
 

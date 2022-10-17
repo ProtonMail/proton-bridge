@@ -20,7 +20,6 @@ package users
 import (
 	"errors"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -30,7 +29,7 @@ import (
 // isFolderEmpty checks whether a folder is empty.
 // path must point to an existing folder.
 func isFolderEmpty(path string) (bool, error) {
-	files, err := ioutil.ReadDir(path)
+	files, err := os.ReadDir(path)
 	if err != nil {
 		return true, err
 	}
@@ -90,13 +89,13 @@ func copyFolder(srcPath, dstPath string) error {
 	if err = os.MkdirAll(dstPath, 0o700); err != nil {
 		return err
 	}
-	files, err := ioutil.ReadDir(srcPath)
+	files, err := os.ReadDir(srcPath)
 	if err != nil {
 		return err
 	}
 	// copy only regular files and folders
 	for _, fileInfo := range files {
-		mode := fileInfo.Mode()
+		mode := fileInfo.Type()
 		if mode&os.ModeSymlink != 0 {
 			continue // we skip symbolic links to avoid potential endless recursion
 		}
@@ -227,7 +226,7 @@ func (u *Users) MigrateCache(srcPath, dstPath string) error {
 
 	// GODT-1381 Edge case: read-only source migration: prevent re-naming
 	// (read-only is conserved). Do copy instead.
-	tmp, err := ioutil.TempFile(srcPath, "tmp")
+	tmp, err := os.CreateTemp(srcPath, "tmp")
 	if err == nil {
 		// Removal of tmp file cannot be deferred, as we are going to try to move the containing folder.
 		if err = tmp.Close(); err == nil {

@@ -20,7 +20,6 @@ package logging
 import (
 	"bytes"
 	"io"
-	"io/ioutil"
 	"os"
 	"testing"
 
@@ -77,7 +76,7 @@ func TestRotator(t *testing.T) {
 }
 
 func BenchmarkRotateRAMFile(b *testing.B) {
-	dir, err := ioutil.TempDir("", "rotate-benchmark")
+	dir, err := os.MkdirTemp("", "rotate-benchmark")
 	require.NoError(b, err)
 	defer os.RemoveAll(dir) //nolint:errcheck
 
@@ -88,7 +87,7 @@ func BenchmarkRotateDiskFile(b *testing.B) {
 	cache, err := os.UserCacheDir()
 	require.NoError(b, err)
 
-	dir, err := ioutil.TempDir(cache, "rotate-benchmark")
+	dir, err := os.MkdirTemp(cache, "rotate-benchmark")
 	require.NoError(b, err)
 	defer os.RemoveAll(dir) //nolint:errcheck
 
@@ -113,7 +112,7 @@ func getTestFile(b *testing.B, dir string, length int) func() (io.WriteCloser, e
 		b.StopTimer()
 		defer b.StartTimer()
 
-		f, err := ioutil.TempFile(dir, "log")
+		f, err := os.CreateTemp(dir, "log")
 		if err != nil {
 			return nil, err
 		}

@@ -21,7 +21,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"io"
-	"io/ioutil"
 	"net/mail"
 	"net/textproto"
 	"strings"
@@ -126,7 +125,7 @@ func encryptDraft(kr *crypto.KeyRing, message *pmapi.Message, attachments []*dra
 
 	for _, att := range attachments {
 		attachment := att.attachment
-		attachmentBody, err := ioutil.ReadAll(att.reader)
+		attachmentBody, err := io.ReadAll(att.reader)
 		if err != nil {
 			return errors.Wrap(err, "failed to read attachment")
 		}
@@ -158,7 +157,7 @@ func (store *Store) checkDraftTotalSize(message *pmapi.Message, attachments []*d
 
 	var attSize int64
 	for _, att := range attachments {
-		b, err := ioutil.ReadAll(att.encReader)
+		b, err := io.ReadAll(att.encReader)
 		if err != nil {
 			return false, err
 		}

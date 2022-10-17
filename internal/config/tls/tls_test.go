@@ -18,7 +18,7 @@
 package tls
 
 import (
-	"io/ioutil"
+	"os"
 	"testing"
 	"time"
 
@@ -26,7 +26,7 @@ import (
 )
 
 func TestGetOldConfig(t *testing.T) {
-	dir, err := ioutil.TempDir("", "test-tls")
+	dir, err := os.MkdirTemp("", "test-tls")
 	require.NoError(t, err)
 
 	// Create new tls object.
@@ -49,7 +49,7 @@ func TestGetOldConfig(t *testing.T) {
 }
 
 func TestGetValidConfig(t *testing.T) {
-	dir, err := ioutil.TempDir("", "test-tls")
+	dir, err := os.MkdirTemp("", "test-tls")
 	require.NoError(t, err)
 
 	// Create new tls object.
