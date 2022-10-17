@@ -14,6 +14,7 @@ check-godog:
 	@which godog || $(MAKE) install-godog
 install-godog: check-go
 	go install github.com/cucumber/godog/cmd/godog@v0.12.5
+	go install github.com/cucumber/godog/cmd/godog@upd-go1.18
 
 test: test-bridge
 test-bridge: FEATURES ?= features
