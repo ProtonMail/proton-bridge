@@ -20,6 +20,9 @@ package user
 import (
 	"context"
 	"fmt"
+	"github.com/ProtonMail/gopenpgp/v2/crypto"
+	"github.com/google/uuid"
+	"github.com/sirupsen/logrus"
 	"time"
 
 	"github.com/ProtonMail/gluon/imap"
@@ -206,11 +209,56 @@ func (conn *imapConnector) CreateMessage(
 	ctx context.Context,
 	labelID imap.LabelID,
 	literal []byte,
-	parsedMessage *imap.ParsedMessage,
 	flags imap.FlagSet,
 	date time.Time,
-) (imap.Message, error) {
-	return imap.Message{}, ErrNotImplemented
+) (imap.Message, []byte, error) {
+
+	var msgFlags liteapi.MessageFlag
+
+	switch labelID {
+	case liteapi.SentLabel:
+		msgFlags |= liteapi.MessageFlagSent
+
+	default:
+		msgFlags |= liteapi.MessageFlagReceived
+	}
+
+	var importResult liteapi.ImportRes
+	if err := conn.withAddrKR(conn.addrID, func(ring *crypto.KeyRing) error {
+		requestName := uuid.NewString()
+
+		importReq := []liteapi.ImportReq{{
+			Name: requestName,
+			Metadata: liteapi.ImportMetadata{
+				AddressID: conn.addrID,
+				LabelIDs:  []string{string(labelID)},
+				Flags:     msgFlags,
+			},
+			Message: literal,
+		}}
+
+		r, err := conn.client.ImportMessages(ctx, ring, importReq)
+		if err != nil {
+			return err
+		}
+
+		importResult = r[requestName]
+
+		return nil
+	}); err != nil {
+		return imap.Message{}, nil, err
+	}
+
+	if importResult.Code != liteapi.SuccessCode {
+		logrus.Errorf("Failed to import message: %v", importResult.Message)
+		return imap.Message{}, nil, fmt.Errorf("failed to create message: %08x", importResult.Code)
+	}
+
+	return imap.Message{
+		ID:    imap.MessageID(importResult.MessageID),
+		Flags: flags,
+		Date:  date,
+	}, literal, nil
 }
 
 // LabelMessages labels the given messages with the given label ID.

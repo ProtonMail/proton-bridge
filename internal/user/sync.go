@@ -21,6 +21,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"runtime"
 	"strings"
 	"time"
 
@@ -163,7 +164,7 @@ func syncMessages(
 
 	// Fetch and build each message.
 	buildCh := stream.Map(
-		client.GetFullMessages(ctx, messageIDs...),
+		client.GetFullMessages(ctx, runtime.NumCPU(), runtime.NumCPU(), messageIDs...),
 		func(ctx context.Context, full liteapi.FullMessage) (*buildRes, error) {
 			return buildRFC822(ctx, full, addrKRs[full.AddressID])
 		},
