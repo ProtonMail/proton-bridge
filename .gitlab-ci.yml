@@ -153,6 +153,7 @@ dependency-updates:
     - mkdir -p .cache/bin
     - export PATH=$(pwd)/.cache/bin:$PATH
     - export GOPATH="$CI_PROJECT_DIR/.cache"
+    - export PATH=$PATH:$QT6DIR/bin
   script:
     - make build
     - git diff && git diff-index --quiet HEAD
