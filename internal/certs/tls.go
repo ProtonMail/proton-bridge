@@ -61,8 +61,8 @@ func NewTLSTemplate() (*x509.Certificate, error) {
 	}, nil
 }
 
-// GenerateTLSCert generates a new TLS certificate and returns it as PEM.
-var GenerateCert = func(template *x509.Certificate) ([]byte, []byte, error) {
+// GenerateCert generates a new TLS certificate and returns it as PEM.
+var GenerateCert = func(template *x509.Certificate) ([]byte, []byte, error) { //nolint:gochecknoglobals
 	priv, err := rsa.GenerateKey(rand.Reader, 2048)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "failed to generate private key")

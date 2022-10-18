@@ -40,7 +40,7 @@ type frontendCLI struct {
 }
 
 // New returns a new CLI frontend configured with the given options.
-func New(bridge *bridge.Bridge, restarter *restarter.Restarter, eventCh <-chan events.Event) *frontendCLI {
+func New(bridge *bridge.Bridge, restarter *restarter.Restarter, eventCh <-chan events.Event) *frontendCLI { //nolint:funlen,revive
 	fe := &frontendCLI{
 		Shell:     ishell.New(),
 		bridge:    bridge,
@@ -261,8 +261,8 @@ func New(bridge *bridge.Bridge, restarter *restarter.Restarter, eventCh <-chan e
 	return fe
 }
 
-func (f *frontendCLI) watchEvents(eventCh <-chan events.Event) {
-	// TODO: Better error events.
+func (f *frontendCLI) watchEvents(eventCh <-chan events.Event) { // nolint:funlen
+	// GODT-1949: Better error events.
 	for _, err := range f.bridge.GetErrors() {
 		switch {
 		case errors.Is(err, bridge.ErrVaultCorrupt):

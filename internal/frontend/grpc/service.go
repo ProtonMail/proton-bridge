@@ -203,8 +203,8 @@ func (s *Service) WaitUntilFrontendIsReady() {
 	s.initializing.Wait()
 }
 
-func (s *Service) watchEvents() {
-	// TODO: Better error events.
+func (s *Service) watchEvents() { //nolint:funlen
+	// GODT-1949 Better error events.
 	for _, err := range s.bridge.GetErrors() {
 		switch {
 		case errors.Is(err, bridge.ErrVaultCorrupt):
@@ -358,6 +358,7 @@ func newTLSConfig() (*tls.Config, []byte, error) {
 	return &tls.Config{
 		Certificates: []tls.Certificate{cert},
 		ClientAuth:   tls.NoClientCert,
+		MinVersion:   tls.VersionTLS12,
 	}, certPEM, nil
 }
 

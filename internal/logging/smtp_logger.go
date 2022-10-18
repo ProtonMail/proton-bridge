@@ -38,7 +38,7 @@ func (s *SMTPErrorLogger) Println(args ...interface{}) {
 	s.l.Errorln(args...)
 }
 
-// SMTPDebugLogger implements the writer interface for debug SMTP logs
+// SMTPDebugLogger implements the writer interface for debug SMTP logs.
 type SMTPDebugLogger struct {
 	l *logrus.Entry
 }

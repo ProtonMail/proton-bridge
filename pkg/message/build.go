@@ -489,7 +489,7 @@ func getTextPartHeader(hdr message.Header, body []byte, mimeType rfc822.MIMEType
 }
 
 func getAttachmentPartHeader(att liteapi.Attachment) message.Header {
-	hdr := toMessageHeader(liteapi.Headers(att.Headers))
+	hdr := toMessageHeader(att.Headers)
 
 	// All attachments have a content type.
 	hdr.SetContentType(string(att.MIMEType), map[string]string{"name": mime.QEncoding.Encode("utf-8", att.Name)})

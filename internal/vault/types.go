@@ -73,7 +73,7 @@ func newDefaultSettings(gluonDir string) Settings {
 		SMTPSSL:  false,
 
 		UpdateChannel: updater.DefaultUpdateChannel,
-		UpdateRollout: rand.Float64(),
+		UpdateRollout: rand.Float64(), //nolint:gosec
 
 		ColorScheme:  "",
 		ProxyAllowed: true,

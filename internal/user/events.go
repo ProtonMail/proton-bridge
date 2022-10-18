@@ -27,6 +27,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/v2/internal/events"
 	"github.com/ProtonMail/proton-bridge/v2/internal/vault"
 	"github.com/bradenaw/juniper/xslices"
+	"github.com/sirupsen/logrus"
 	"gitlab.protontech.ch/go/liteapi"
 )
 
@@ -60,7 +61,7 @@ func (user *User) handleAPIEvent(ctx context.Context, event liteapi.Event) error
 }
 
 // handleUserEvent handles the given user event.
-func (user *User) handleUserEvent(ctx context.Context, userEvent liteapi.User) error {
+func (user *User) handleUserEvent(_ context.Context, userEvent liteapi.User) error {
 	user.apiUser.Save(userEvent)
 
 	user.eventCh.Enqueue(events.UserChanged{
@@ -71,7 +72,7 @@ func (user *User) handleUserEvent(ctx context.Context, userEvent liteapi.User) e
 }
 
 // handleAddressEvents handles the given address events.
-// TODO: If split address mode, need to signal back to bridge to update the addresses!
+// GODT-1945: If split address mode, need to signal back to bridge to update the addresses.
 func (user *User) handleAddressEvents(ctx context.Context, addressEvents []liteapi.AddressEvent) error {
 	for _, event := range addressEvents {
 		switch event.Action {
@@ -89,6 +90,9 @@ func (user *User) handleAddressEvents(ctx context.Context, addressEvents []litea
 			if err := user.handleDeleteAddressEvent(ctx, event); err != nil {
 				return fmt.Errorf("failed to delete address: %w", err)
 			}
+
+		case liteapi.EventUpdateFlags:
+			logrus.Warn("Not implemented yet.")
 		}
 	}
 
@@ -127,7 +131,7 @@ func (user *User) handleCreateAddressEvent(ctx context.Context, event liteapi.Ad
 	return nil
 }
 
-func (user *User) handleUpdateAddressEvent(ctx context.Context, event liteapi.AddressEvent) error {
+func (user *User) handleUpdateAddressEvent(_ context.Context, event liteapi.AddressEvent) error { //nolint:unparam
 	user.apiAddrs.Set(event.Address.ID, event.Address)
 
 	user.eventCh.Enqueue(events.UserAddressUpdated{
@@ -139,7 +143,7 @@ func (user *User) handleUpdateAddressEvent(ctx context.Context, event liteapi.Ad
 	return nil
 }
 
-func (user *User) handleDeleteAddressEvent(ctx context.Context, event liteapi.AddressEvent) error {
+func (user *User) handleDeleteAddressEvent(_ context.Context, event liteapi.AddressEvent) error {
 	var email string
 
 	if ok := user.apiAddrs.GetDelete(event.ID, func(apiAddr liteapi.Address) {
@@ -189,7 +193,7 @@ func (user *User) handleLabelEvents(ctx context.Context, labelEvents []liteapi.L
 	return nil
 }
 
-func (user *User) handleCreateLabelEvent(ctx context.Context, event liteapi.LabelEvent) error {
+func (user *User) handleCreateLabelEvent(_ context.Context, event liteapi.LabelEvent) error { //nolint:unparam
 	user.updateCh.IterValues(func(updateCh *queue.QueuedChannel[imap.Update]) {
 		updateCh.Enqueue(newMailboxCreatedUpdate(imap.LabelID(event.ID), getMailboxName(event.Label)))
 	})
@@ -197,7 +201,7 @@ func (user *User) handleCreateLabelEvent(ctx context.Context, event liteapi.Labe
 	return nil
 }
 
-func (user *User) handleUpdateLabelEvent(ctx context.Context, event liteapi.LabelEvent) error {
+func (user *User) handleUpdateLabelEvent(_ context.Context, event liteapi.LabelEvent) error { //nolint:unparam
 	user.updateCh.IterValues(func(updateCh *queue.QueuedChannel[imap.Update]) {
 		updateCh.Enqueue(imap.NewMailboxUpdated(imap.LabelID(event.ID), getMailboxName(event.Label)))
 	})
@@ -205,7 +209,7 @@ func (user *User) handleUpdateLabelEvent(ctx context.Context, event liteapi.Labe
 	return nil
 }
 
-func (user *User) handleDeleteLabelEvent(ctx context.Context, event liteapi.LabelEvent) error {
+func (user *User) handleDeleteLabelEvent(_ context.Context, event liteapi.LabelEvent) error { //nolint:unparam
 	user.updateCh.IterValues(func(updateCh *queue.QueuedChannel[imap.Update]) {
 		updateCh.Enqueue(imap.NewMailboxDeleted(imap.LabelID(event.ID)))
 	})
@@ -258,7 +262,7 @@ func (user *User) handleCreateMessageEvent(ctx context.Context, event liteapi.Me
 	})
 }
 
-func (user *User) handleUpdateMessageEvent(ctx context.Context, event liteapi.MessageEvent) error {
+func (user *User) handleUpdateMessageEvent(_ context.Context, event liteapi.MessageEvent) error { //nolint:unparam
 	update := imap.NewMessageLabelsUpdated(
 		imap.MessageID(event.ID),
 		mapTo[string, imap.LabelID](xslices.Filter(event.Message.LabelIDs, wantLabelID)),
@@ -283,6 +287,10 @@ func getMailboxName(label liteapi.Label) []string {
 	case liteapi.LabelTypeLabel:
 		name = append([]string{labelPrefix}, label.Path...)
 
+	case liteapi.LabelTypeContactGroup:
+		fallthrough
+	case liteapi.LabelTypeSystem:
+		fallthrough
 	default:
 		name = label.Path
 	}

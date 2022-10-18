@@ -154,7 +154,7 @@ func TestUser_ForEach(t *testing.T) {
 	require.NoError(t, err)
 
 	// Iterate through the users.
-	s.ForUser(func(user *vault.User) error {
+	err = s.ForUser(func(user *vault.User) error {
 		switch user.UserID() {
 		case "userID1":
 			require.Equal(t, "username1", user.Username())
@@ -174,6 +174,8 @@ func TestUser_ForEach(t *testing.T) {
 
 		return nil
 	})
+
+	require.NoError(t, err)
 
 	// Try to delete the first user; it should fail because it is still in use.
 	require.Error(t, s.DeleteUser("userID1"))

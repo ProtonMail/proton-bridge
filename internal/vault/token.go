@@ -23,7 +23,7 @@ import (
 
 // RandomToken is a function that returns a random token.
 // By default, we use crypto.RandomToken to generate tokens.
-var RandomToken = crypto.RandomToken
+var RandomToken = crypto.RandomToken // nolint:gochecknoglobals
 
 func newRandomToken(size int) []byte {
 	token, err := RandomToken(size)

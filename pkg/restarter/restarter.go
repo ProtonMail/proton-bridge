@@ -71,7 +71,7 @@ func (restarter *Restarter) Restart() {
 		delete(env, BridgeCrashCount)
 	}
 
-	cmd := execabs.Command(restarter.exe, xslices.Join(os.Args[1:], restarter.flags)...)
+	cmd := execabs.Command(restarter.exe, xslices.Join(os.Args[1:], restarter.flags)...) //nolint:gosec
 
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout

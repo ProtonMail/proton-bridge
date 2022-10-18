@@ -51,7 +51,7 @@ type smtpSession struct {
 	// from is the current sending address (taken from the return path).
 	from string
 
-	// fromAddrID is the ID of the curent sending address (taken from the return path).
+	// fromAddrID is the ID of the current sending address (taken from the return path).
 	fromAddrID string
 
 	// to holds all to for the current message.
@@ -72,7 +72,7 @@ func newSMTPSession(user *User, email string) (*smtpSession, error) {
 	})
 }
 
-// Discard currently processed message.
+// Reset Discard currently processed message.
 func (session *smtpSession) Reset() {
 	logrus.Info("SMTP session reset")
 
@@ -82,7 +82,7 @@ func (session *smtpSession) Reset() {
 	session.to = nil
 }
 
-// Free all resources associated with session.
+// Logout Free all resources associated with session.
 func (session *smtpSession) Logout() error {
 	defer session.Reset()
 
@@ -91,7 +91,7 @@ func (session *smtpSession) Logout() error {
 	return nil
 }
 
-// Set return path for currently processed message.
+// Mail Set return path for currently processed message.
 func (session *smtpSession) Mail(from string, opts smtp.MailOptions) error {
 	logrus.Info("SMTP session mail")
 
@@ -127,7 +127,7 @@ func (session *smtpSession) Mail(from string, opts smtp.MailOptions) error {
 	})
 }
 
-// Add recipient for currently processed message.
+// Rcpt Add recipient for currently processed message.
 func (session *smtpSession) Rcpt(to string) error {
 	logrus.Info("SMTP session rcpt")
 
@@ -142,8 +142,8 @@ func (session *smtpSession) Rcpt(to string) error {
 	return nil
 }
 
-// Set currently processed message contents and send it.
-func (session *smtpSession) Data(r io.Reader) error {
+// Data Set currently processed message contents and send it.
+func (session *smtpSession) Data(r io.Reader) error { //nolint:funlen
 	logrus.Info("SMTP session data")
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -234,7 +234,7 @@ func (session *smtpSession) Data(r io.Reader) error {
 }
 
 // sendWithKey sends the message with the given address key.
-func sendWithKey(
+func sendWithKey( //nolint:funlen
 	ctx context.Context,
 	client *liteapi.Client,
 	authAddrID string,
@@ -260,6 +260,14 @@ func sendWithKey(
 
 	case rfc822.TextPlain:
 		decBody = string(message.PlainBody)
+	case rfc822.MultipartRelated:
+		fallthrough
+	case rfc822.MultipartMixed:
+		fallthrough
+	case rfc822.MessageRFC822:
+		fallthrough
+	default:
+		break
 	}
 
 	encBody, err := addrKR.Encrypt(crypto.NewPlainMessageFromString(decBody), nil)
@@ -311,7 +319,7 @@ func sendWithKey(
 	return res, nil
 }
 
-func getParentID(
+func getParentID( //nolint:funlen
 	ctx context.Context,
 	client *liteapi.Client,
 	authAddrID string,
@@ -402,7 +410,7 @@ func createDraft(
 		return strings.EqualFold(email, sanitizeEmail(template.Sender.Address))
 	}); idx < 0 {
 		return liteapi.Message{}, fmt.Errorf("address %q is not owned by user", template.Sender.Address)
-	} else {
+	} else { //nolint:revive
 		template.Sender.Address = constructEmail(template.Sender.Address, emails[idx])
 	}
 

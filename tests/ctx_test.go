@@ -241,17 +241,3 @@ func (t *testCtx) close(ctx context.Context) error {
 
 	return nil
 }
-
-func chToType[In, Out any](inCh <-chan In, done any) <-chan Out {
-	outCh := make(chan Out)
-
-	go func() {
-		defer close(outCh)
-
-		for in := range inCh {
-			outCh <- any(in).(Out)
-		}
-	}()
-
-	return outCh
-}

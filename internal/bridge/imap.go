@@ -120,7 +120,6 @@ func getGluonDir(encVault *vault.Vault) (string, error) {
 		return "", fmt.Errorf("failed to check if gluon dir is empty: %w", err)
 	}
 
-	// TODO: Handle case that the gluon directory is missing and we can't create it!
 	if !exists {
 		if err := os.MkdirAll(encVault.GetGluonDir(), 0700); err != nil {
 			return "", fmt.Errorf("failed to create gluon dir: %w", err)

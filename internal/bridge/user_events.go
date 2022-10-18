@@ -79,7 +79,7 @@ func (bridge *Bridge) handleUserAddressCreated(ctx context.Context, user *user.U
 	return nil
 }
 
-// TODO: Handle addresses that have been disabled!
+// GODT-1948: Handle addresses that have been disabled!
 func (bridge *Bridge) handleUserAddressUpdated(_ context.Context, user *user.User, _ events.UserAddressUpdated) error {
 	switch user.GetAddressMode() {
 	case vault.CombinedMode:

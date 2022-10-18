@@ -96,7 +96,7 @@ func TestUser_Deauth(t *testing.T) {
 	})
 }
 
-func withAPI(t *testing.T, ctx context.Context, fn func(context.Context, *server.Server, *liteapi.Manager)) {
+func withAPI(_ *testing.T, ctx context.Context, fn func(context.Context, *server.Server, *liteapi.Manager)) { //nolint:revive
 	server := server.New()
 	defer server.Close()
 
@@ -104,10 +104,10 @@ func withAPI(t *testing.T, ctx context.Context, fn func(context.Context, *server
 }
 
 func withAccount(t *testing.T, s *server.Server, username, password string, emails []string, fn func(string, []string)) {
-	var addrIDs []string
-
 	userID, addrID, err := s.CreateUser(username, emails[0], []byte(password))
 	require.NoError(t, err)
+
+	addrIDs := make([]string, 0, len(emails))
 
 	addrIDs = append(addrIDs, addrID)
 
@@ -121,7 +121,7 @@ func withAccount(t *testing.T, s *server.Server, username, password string, emai
 	fn(userID, addrIDs)
 }
 
-func withUser(t *testing.T, ctx context.Context, s *server.Server, m *liteapi.Manager, username, password string, fn func(*user.User)) {
+func withUser(t *testing.T, ctx context.Context, _ *server.Server, m *liteapi.Manager, username, password string, fn func(*user.User)) { //nolint:revive
 	client, apiAuth, err := m.NewClientWithLogin(ctx, username, []byte(password))
 	require.NoError(t, err)
 	defer func() { require.NoError(t, client.Close()) }()

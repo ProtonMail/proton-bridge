@@ -29,13 +29,13 @@ type smtpBackend struct {
 	usersLock sync.RWMutex
 }
 
-func newSMTPBackend() (*smtpBackend, error) {
+func newSMTPBackend() *smtpBackend {
 	return &smtpBackend{
 		users: make(map[string]*user.User),
-	}, nil
+	}
 }
 
-func (backend *smtpBackend) Login(state *smtp.ConnectionState, email, password string) (smtp.Session, error) {
+func (backend *smtpBackend) Login(_ *smtp.ConnectionState, email, password string) (smtp.Session, error) {
 	backend.usersLock.RLock()
 	defer backend.usersLock.RUnlock()
 

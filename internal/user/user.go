@@ -38,8 +38,8 @@ import (
 )
 
 var (
-	EventPeriod = 20 * time.Second // nolint:gochecknoglobals
-	EventJitter = 20 * time.Second // nolint:gochecknoglobals
+	EventPeriod = 20 * time.Second // nolint:gochecknoglobals,revive
+	EventJitter = 20 * time.Second // nolint:gochecknoglobals,revive
 )
 
 type User struct {
@@ -55,7 +55,7 @@ type User struct {
 	syncLock   try.Group
 }
 
-func New(ctx context.Context, encVault *vault.User, client *liteapi.Client, apiUser liteapi.User) (*User, error) {
+func New(ctx context.Context, encVault *vault.User, client *liteapi.Client, apiUser liteapi.User) (*User, error) { //nolint:funlen
 	// Get the user's API addresses.
 	apiAddrs, err := client.GetAddresses(ctx)
 	if err != nil {
@@ -125,7 +125,7 @@ func New(ctx context.Context, encVault *vault.User, client *liteapi.Client, apiU
 		})
 	})
 
-	// TODO: Don't start the event loop until the initial sync has finished!
+	// GODT-1946 - Don't start the event loop until the initial sync has finished.
 	eventCh := user.client.NewEventStream(EventPeriod, EventJitter, user.vault.EventID())
 
 	// If we haven't synced yet, do it first.
@@ -276,7 +276,7 @@ func (user *User) MaxSpace() int {
 	})
 }
 
-// GetEventCh returns a channel which notifies of events happening to the user (such as deauth, address change)
+// GetEventCh returns a channel which notifies of events happening to the user (such as deauth, address change).
 func (user *User) GetEventCh() <-chan events.Event {
 	return user.eventCh.GetChannel()
 }
@@ -464,7 +464,7 @@ func (user *User) startSync() <-chan error {
 }
 
 // AbortSync aborts any ongoing sync.
-// TODO: Should probably be done automatically when one of the user's IMAP connectors is closed.
+// GODT-1947: Should probably be done automatically when one of the user's IMAP connectors is closed.
 func (user *User) stopSync() {
 	select {
 	case user.syncStopCh <- struct{}{}:

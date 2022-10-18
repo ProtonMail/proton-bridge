@@ -32,11 +32,13 @@ type Keychain struct {
 func GetHelper(vaultDir string) (string, error) {
 	var keychain Keychain
 
-	if _, err := os.Stat(filepath.Join(vaultDir, "keychain.json")); errors.Is(err, fs.ErrNotExist) {
+	filePath := filepath.Clean(filepath.Join(vaultDir, "keychain.json"))
+
+	if _, err := os.Stat(filePath); errors.Is(err, fs.ErrNotExist) {
 		return "", nil
 	}
 
-	b, err := os.ReadFile(filepath.Join(vaultDir, "keychain.json"))
+	b, err := os.ReadFile(filePath)
 	if err != nil {
 		return "", err
 	}
@@ -54,5 +56,7 @@ func SetHelper(vaultDir, helper string) error {
 		return err
 	}
 
-	return os.WriteFile(filepath.Join(vaultDir, "keychain.json"), b, 0o600)
+	filePath := filepath.Clean(filepath.Join(vaultDir, "keychain.json"))
+
+	return os.WriteFile(filePath, b, 0o600)
 }

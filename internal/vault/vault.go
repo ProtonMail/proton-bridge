@@ -20,12 +20,12 @@ package vault
 import (
 	"crypto/aes"
 	"crypto/cipher"
+	"crypto/rand"
 	"crypto/sha256"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io/fs"
-	"math/rand"
 	"os"
 	"path/filepath"
 	"sync"
@@ -184,7 +184,7 @@ func (vault *Vault) attachUser(userID string) *User {
 	vault.refLock.Lock()
 	defer vault.refLock.Unlock()
 
-	vault.ref[userID] += 1
+	vault.ref[userID]++
 
 	return &User{
 		vault:  vault,
@@ -200,7 +200,7 @@ func (vault *Vault) detachUser(userID string) error {
 		return fmt.Errorf("user %s is not attached", userID)
 	}
 
-	vault.ref[userID] -= 1
+	vault.ref[userID]--
 
 	if vault.ref[userID] == 0 {
 		delete(vault.ref, userID)
@@ -216,7 +216,7 @@ func newVault(path, gluonDir string, gcm cipher.AEAD) (*Vault, bool, error) {
 		}
 	}
 
-	enc, err := os.ReadFile(path)
+	enc, err := os.ReadFile(filepath.Clean(path))
 	if err != nil {
 		return nil, false, err
 	}

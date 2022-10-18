@@ -150,9 +150,7 @@ func (s *scenario) imapClientSeesTheFollowingMailboxInfo(clientID string, table 
 		return err
 	}
 
-	haveMailboxes := xslices.Map(status, func(status *imap.MailboxStatus) Mailbox {
-		return newMailboxFromIMAP(status)
-	})
+	haveMailboxes := xslices.Map(status, newMailboxFromIMAP)
 
 	wantMailboxes, err := unmarshalTable[Mailbox](table)
 	if err != nil {
@@ -182,9 +180,7 @@ func (s *scenario) imapClientSeesTheFollowingMailboxInfoForMailbox(clientID, mai
 		return status.Name == mailbox
 	})
 
-	haveMailboxes := xslices.Map(status, func(info *imap.MailboxStatus) Mailbox {
-		return newMailboxFromIMAP(info)
-	})
+	haveMailboxes := xslices.Map(status, newMailboxFromIMAP)
 
 	wantMailboxes, err := unmarshalTable[Mailbox](table)
 	if err != nil {
@@ -197,10 +193,7 @@ func (s *scenario) imapClientSeesTheFollowingMailboxInfoForMailbox(clientID, mai
 func (s *scenario) imapClientSeesTheFollowingMailboxes(clientID string, table *godog.Table) error {
 	_, client := s.t.getIMAPClient(clientID)
 
-	mailboxes, err := clientList(client)
-	if err != nil {
-		return err
-	}
+	mailboxes := clientList(client)
 
 	have := xslices.Map(mailboxes, func(info *imap.MailboxInfo) string {
 		return info.Name
@@ -220,10 +213,7 @@ func (s *scenario) imapClientSeesTheFollowingMailboxes(clientID string, table *g
 func (s *scenario) imapClientSeesMailbox(clientID, mailbox string) error {
 	_, client := s.t.getIMAPClient(clientID)
 
-	mailboxes, err := clientList(client)
-	if err != nil {
-		return err
-	}
+	mailboxes := clientList(client)
 
 	if !slices.Contains(xslices.Map(mailboxes, func(info *imap.MailboxInfo) string { return info.Name }), mailbox) {
 		return fmt.Errorf("expected %v to contain %v but it doesn't", mailboxes, mailbox)
@@ -235,10 +225,7 @@ func (s *scenario) imapClientSeesMailbox(clientID, mailbox string) error {
 func (s *scenario) imapClientDoesNotSeeMailbox(clientID, mailbox string) error {
 	_, client := s.t.getIMAPClient(clientID)
 
-	mailboxes, err := clientList(client)
-	if err != nil {
-		return err
-	}
+	mailboxes := clientList(client)
 
 	if slices.Contains(xslices.Map(mailboxes, func(info *imap.MailboxInfo) string { return info.Name }), mailbox) {
 		return fmt.Errorf("expected %v to not contain %v but it does", mailboxes, mailbox)
@@ -250,10 +237,7 @@ func (s *scenario) imapClientDoesNotSeeMailbox(clientID, mailbox string) error {
 func (s *scenario) imapClientCountsMailboxesUnder(clientID string, count int, parent string) error {
 	_, client := s.t.getIMAPClient(clientID)
 
-	mailboxes, err := clientList(client)
-	if err != nil {
-		return err
-	}
+	mailboxes := clientList(client)
 
 	mailboxes = xslices.Filter(mailboxes, func(info *imap.MailboxInfo) bool {
 		return strings.HasPrefix(info.Name, parent) && info.Name != parent
@@ -304,9 +288,7 @@ func (s *scenario) imapClientSeesTheFollowingMessagesInMailbox(clientID, mailbox
 		return err
 	}
 
-	haveMessages := xslices.Map(fetch, func(msg *imap.Message) Message {
-		return newMessageFromIMAP(msg)
-	})
+	haveMessages := xslices.Map(fetch, newMessageFromIMAP)
 
 	wantMessages, err := unmarshalTable[Message](table)
 	if err != nil {
@@ -405,7 +387,7 @@ func (s *scenario) imapClientExpunges(clientID string) error {
 	return client.Expunge(nil)
 }
 
-func clientList(client *client.Client) ([]*imap.MailboxInfo, error) {
+func clientList(client *client.Client) []*imap.MailboxInfo {
 	resCh := make(chan *imap.MailboxInfo)
 
 	go func() {
@@ -414,16 +396,13 @@ func clientList(client *client.Client) ([]*imap.MailboxInfo, error) {
 		}
 	}()
 
-	return iterator.Collect(iterator.Chan(resCh)), nil
+	return iterator.Collect(iterator.Chan(resCh))
 }
 
 func clientStatus(client *client.Client) ([]*imap.MailboxStatus, error) {
-	var status []*imap.MailboxStatus
+	list := clientList(client)
 
-	list, err := clientList(client)
-	if err != nil {
-		return nil, err
-	}
+	status := make([]*imap.MailboxStatus, 0, len(list))
 
 	for _, info := range list {
 		res, err := client.Status(info.Name, []imap.StatusItem{imap.StatusMessages, imap.StatusRecent, imap.StatusUidNext, imap.StatusUidValidity, imap.StatusUnseen})
@@ -502,7 +481,7 @@ func clientCopy(client *client.Client, from, to string, uid ...uint32) error {
 	return client.UidCopy(seqset, to)
 }
 
-func clientStore(client *client.Client, from, to int, item imap.StoreItem, flags ...string) ([]*imap.Message, error) {
+func clientStore(client *client.Client, from, to int, item imap.StoreItem, flags ...string) ([]*imap.Message, error) { //nolint:unparam
 	resCh := make(chan *imap.Message)
 
 	go func() {

@@ -70,14 +70,19 @@ func (f *frontendCLI) showAccountInfo(c *ishell.Context) {
 }
 
 func (f *frontendCLI) showAccountAddressInfo(user bridge.UserInfo, address string) {
-	imapSecurity := "STARTTLS"
+	const (
+		StartTLS = "STARTTLS"
+		SSL      = "SSL"
+	)
+
+	imapSecurity := StartTLS
 	if f.bridge.GetIMAPSSL() {
-		imapSecurity = "SSL"
+		imapSecurity = SSL
 	}
 
-	smtpSecurity := "STARTTLS"
+	smtpSecurity := StartTLS
 	if f.bridge.GetSMTPSSL() {
-		smtpSecurity = "SSL"
+		smtpSecurity = SSL
 	}
 
 	f.Println(bold("Configuration for " + address))

@@ -20,15 +20,15 @@ package user
 import (
 	"context"
 	"fmt"
-	"github.com/ProtonMail/gopenpgp/v2/crypto"
-	"github.com/google/uuid"
-	"github.com/sirupsen/logrus"
 	"time"
 
 	"github.com/ProtonMail/gluon/imap"
 	"github.com/ProtonMail/gluon/queue"
+	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/ProtonMail/proton-bridge/v2/internal/safe"
 	"github.com/ProtonMail/proton-bridge/v2/internal/vault"
+	"github.com/google/uuid"
+	"github.com/sirupsen/logrus"
 	"gitlab.protontech.ch/go/liteapi"
 	"golang.org/x/exp/slices"
 )
@@ -94,6 +94,10 @@ func (conn *imapConnector) GetLabel(ctx context.Context, labelID imap.LabelID) (
 	case liteapi.LabelTypeFolder:
 		name = []string{folderPrefix, label.Name}
 
+	case liteapi.LabelTypeContactGroup:
+		fallthrough
+	case liteapi.LabelTypeSystem:
+		fallthrough
 	default:
 		name = []string{label.Name}
 	}
@@ -163,6 +167,9 @@ func (conn *imapConnector) UpdateLabel(ctx context.Context, labelID imap.LabelID
 
 	case liteapi.LabelTypeSystem:
 		return fmt.Errorf("cannot rename system label %q", label.Name)
+
+	case liteapi.LabelTypeContactGroup:
+		return fmt.Errorf("cannot rename contact group label %q", label.Name)
 	}
 
 	if _, err := conn.client.UpdateLabel(ctx, label.ID, liteapi.UpdateLabelReq{
@@ -212,7 +219,6 @@ func (conn *imapConnector) CreateMessage(
 	flags imap.FlagSet,
 	date time.Time,
 ) (imap.Message, []byte, error) {
-
 	var msgFlags liteapi.MessageFlag
 
 	switch labelID {
@@ -288,18 +294,18 @@ func (conn *imapConnector) MoveMessages(ctx context.Context, messageIDs []imap.M
 func (conn *imapConnector) MarkMessagesSeen(ctx context.Context, messageIDs []imap.MessageID, seen bool) error {
 	if seen {
 		return conn.client.MarkMessagesRead(ctx, mapTo[imap.MessageID, string](messageIDs)...)
-	} else {
-		return conn.client.MarkMessagesUnread(ctx, mapTo[imap.MessageID, string](messageIDs)...)
 	}
+
+	return conn.client.MarkMessagesUnread(ctx, mapTo[imap.MessageID, string](messageIDs)...)
 }
 
 // MarkMessagesFlagged sets the flagged value of the given messages.
 func (conn *imapConnector) MarkMessagesFlagged(ctx context.Context, messageIDs []imap.MessageID, flagged bool) error {
 	if flagged {
 		return conn.client.LabelMessages(ctx, mapTo[imap.MessageID, string](messageIDs), liteapi.StarredLabel)
-	} else {
-		return conn.client.UnlabelMessages(ctx, mapTo[imap.MessageID, string](messageIDs), liteapi.StarredLabel)
 	}
+
+	return conn.client.UnlabelMessages(ctx, mapTo[imap.MessageID, string](messageIDs), liteapi.StarredLabel)
 }
 
 // GetUpdates returns a stream of updates that the gluon server should apply.

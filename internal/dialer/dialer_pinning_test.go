@@ -36,7 +36,7 @@ func getRootURL() string {
 func TestTLSPinValid(t *testing.T) {
 	called, _, _, _, cm := createClientWithPinningDialer(getRootURL())
 
-	_, _, _ = cm.NewClientWithLogin(context.Background(), "username", []byte("password"))
+	_, _, _ = cm.NewClientWithLogin(context.Background(), "username", []byte("password")) //nolint:dogsled
 
 	checkTLSIssueHandler(t, 0, called)
 }
@@ -47,7 +47,7 @@ func TestTLSPinBackup(t *testing.T) {
 	checker.trustedPins[1] = checker.trustedPins[0]
 	checker.trustedPins[0] = ""
 
-	_, _, _ = cm.NewClientWithLogin(context.Background(), "username", []byte("password"))
+	_, _, _ = cm.NewClientWithLogin(context.Background(), "username", []byte("password")) //nolint:dogsled
 
 	checkTLSIssueHandler(t, 0, called)
 }
@@ -58,7 +58,7 @@ func TestTLSPinInvalid(t *testing.T) {
 
 	called, _, _, _, cm := createClientWithPinningDialer(s.GetHostURL())
 
-	_, _, _ = cm.NewClientWithLogin(context.Background(), "username", []byte("password"))
+	_, _, _ = cm.NewClientWithLogin(context.Background(), "username", []byte("password")) //nolint:dogsled
 
 	checkTLSIssueHandler(t, 1, called)
 }
@@ -73,8 +73,8 @@ func TestTLSPinNoMatch(t *testing.T) {
 		checker.trustedPins[i] = "testing"
 	}
 
-	_, _, _ = cm.NewClientWithLogin(context.Background(), "username", []byte("password"))
-	_, _, _ = cm.NewClientWithLogin(context.Background(), "username", []byte("password"))
+	_, _, _ = cm.NewClientWithLogin(context.Background(), "username", []byte("password")) //nolint:dogsled
+	_, _, _ = cm.NewClientWithLogin(context.Background(), "username", []byte("password")) //nolint:dogsled
 
 	// Check that it will be reported only once per session, but notified every time.
 	r.Equal(t, 1, len(reporter.sentReports))
@@ -84,7 +84,7 @@ func TestTLSPinNoMatch(t *testing.T) {
 func TestTLSSignedCertWrongPublicKey(t *testing.T) {
 	skipIfProxyIsSet(t)
 
-	_, dialer, _, _, _ := createClientWithPinningDialer("")
+	_, dialer, _, _, _ := createClientWithPinningDialer("") //nolint:dogsled
 	_, err := dialer.DialTLSContext(context.Background(), "tcp", "rsa4096.badssl.com:443")
 	r.Error(t, err, "expected dial to fail because of wrong public key")
 }

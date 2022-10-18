@@ -85,7 +85,7 @@ func Parse(r io.Reader) (m Message, err error) {
 	return parse(p)
 }
 
-// Parse parses an RFC822 message using an existing parser.
+// ParseWithParser parses an RFC822 message using an existing parser.
 func ParseWithParser(p *parser.Parser) (m Message, err error) {
 	defer func() {
 		if r := recover(); r != nil {

@@ -24,6 +24,17 @@ issues:
         - gochecknoglobals
         - gochecknoinits
         - gosec
+        - goconst
+        - dogsled
+    - path: test
+      linters:
+        - dupl
+        - funlen
+        - gochecknoglobals
+        - gochecknoinits
+        - gosec
+        - goconst
+        - dogsled
 
 linters-settings:
   godox:

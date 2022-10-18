@@ -75,7 +75,7 @@ func formatAsAddress(rawURL string) string {
 	return net.JoinHostPort(host, port)
 }
 
-// DialTLS dials the given network/address. If it fails, it retries using a proxy.
+// DialTLSContext dials the given network/address. If it fails, it retries using a proxy.
 func (d *ProxyTLSDialer) DialTLSContext(ctx context.Context, network, address string) (net.Conn, error) {
 	if address == d.directAddress {
 		address = d.proxyAddress

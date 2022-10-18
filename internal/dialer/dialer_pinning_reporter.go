@@ -51,7 +51,7 @@ func NewTLSReporter(hostURL, appVersion string, userAgent *useragent.UserAgent, 
 	}
 }
 
-// reportCertIssue reports a TLS key mismatch.
+// ReportCertIssue reports a TLS key mismatch.
 func (r *TLSReporter) ReportCertIssue(remoteURI, host, port string, connState tls.ConnectionState) {
 	var certChain []string
 

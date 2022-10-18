@@ -52,7 +52,7 @@ func withVault(locations *locations.Locations, fn func(*vault.Vault, bool, bool)
 		}
 	}
 
-	// TODO: Add teardown actions (e.g. to close the vault).
+	// GODT-1950: Add teardown actions (e.g. to close the vault).
 
 	return fn(encVault, insecure, corrupt)
 }

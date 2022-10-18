@@ -68,6 +68,17 @@ func newContactSettings(settings liteapi.ContactSettings) *contactSettings {
 
 		case liteapi.PGPInlineScheme:
 			metadata.Scheme = pgpInline
+
+		case liteapi.InternalScheme:
+			fallthrough
+		case liteapi.EncryptedOutsideScheme:
+			fallthrough
+		case liteapi.ClearScheme:
+			fallthrough
+		case liteapi.ClearMIMEScheme:
+			fallthrough
+		default:
+			break
 		}
 	}
 
@@ -253,7 +264,7 @@ func (b *sendPrefsBuilder) build() (p liteapi.SendPreferences) {
 		p.EncryptionScheme = liteapi.ClearScheme
 	}
 
-	return
+	return p
 }
 
 // setPGPSettings returns a SendPreferences with the following possible values:

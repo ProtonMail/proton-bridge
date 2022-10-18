@@ -43,7 +43,7 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-// Visible flags
+// Visible flags.
 const (
 	flagCPUProfile      = "cpu-prof"
 	flagCPUProfileShort = "p"
@@ -63,7 +63,7 @@ const (
 	flagLogSMTP = "log-smtp"
 )
 
-// Hidden flags
+// Hidden flags.
 const (
 	flagLauncher = "launcher"
 	flagNoWindow = "no-window"
@@ -130,7 +130,7 @@ func New() *cli.App {
 	return app
 }
 
-func run(c *cli.Context) error {
+func run(c *cli.Context) error { //nolint:funlen
 	// Get the current bridge version.
 	version, err := semver.NewVersion(constants.Version)
 	if err != nil {
@@ -255,7 +255,11 @@ func withLocations(fn func(*locations.Locations) error) error {
 
 	// Create a new locations object that will be used to provide paths to store files.
 	locations := locations.New(provider, constants.ConfigName)
-	defer locations.Clean()
+	defer func() {
+		if err := locations.Clean(); err != nil {
+			logrus.WithError(err).Error("Failed to clean locations")
+		}
+	}()
 
 	return fn(locations)
 }

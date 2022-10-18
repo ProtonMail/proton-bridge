@@ -166,7 +166,7 @@ func matchMailboxes(have, want []Mailbox) error {
 	return nil
 }
 
-func eventually(condition func() error, waitFor, tick time.Duration) error {
+func eventually(condition func() error, waitFor, tick time.Duration) error { //nolint:unparam
 	ch := make(chan error, 1)
 
 	timer := time.NewTimer(waitFor)
@@ -200,7 +200,7 @@ func unmarshalTable[T any](table *messages.PickleTable) ([]T, error) {
 		return nil, fmt.Errorf("empty table")
 	}
 
-	var res []T
+	res := make([]T, 0, len(table.Rows))
 
 	for _, row := range table.Rows[1:] {
 		var v T
@@ -227,7 +227,7 @@ func unmarshalRow(header, row *messages.PickleTableRow, v any) error {
 				continue
 			}
 
-			switch field.Type.Kind() {
+			switch field.Type.Kind() { //nolint:exhaustive
 			case reflect.String:
 				reflect.ValueOf(v).Elem().Field(idx).SetString(cell)
 

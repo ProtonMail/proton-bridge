@@ -19,7 +19,7 @@ package logging
 
 import "github.com/sirupsen/logrus"
 
-// IMAPLogger implements the writer interface for Gluon IMAP logs
+// IMAPLogger implements the writer interface for Gluon IMAP logs.
 type IMAPLogger struct {
 	l *logrus.Entry
 }

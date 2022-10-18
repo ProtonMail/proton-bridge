@@ -35,7 +35,7 @@ func mapTo[From, To any](from []From) []To {
 	for _, from := range from {
 		val, ok := reflect.ValueOf(from).Convert(reflect.TypeOf(to).Elem()).Interface().(To)
 		if !ok {
-			panic(fmt.Sprintf("cannot convert %T to %T", from, *new(To)))
+			panic(fmt.Sprintf("cannot convert %T to %T", from, *new(To))) //nolint:gocritic
 		}
 
 		to = append(to, val)

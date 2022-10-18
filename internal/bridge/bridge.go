@@ -97,7 +97,7 @@ type Bridge struct {
 }
 
 // New creates a new bridge.
-func New(
+func New( //nolint:funlen
 	locator Locator, // the locator to provide paths to store data
 	vault *vault.Vault, // the bridge's encrypted data store
 	autostarter Autostarter, // the autostarter to manage autostart settings
@@ -131,10 +131,7 @@ func New(
 		return nil, nil, fmt.Errorf("failed to get Gluon directory: %w", err)
 	}
 
-	smtpBackend, err := newSMTPBackend()
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to create SMTP backend: %w", err)
-	}
+	smtpBackend := newSMTPBackend()
 
 	imapServer, err := newIMAPServer(gluonDir, curVersion, tlsConfig, logIMAPClient, logIMAPServer)
 	if err != nil {
@@ -416,9 +413,9 @@ func loadTLSConfig(vault *vault.Vault) (*tls.Config, error) {
 		return nil, err
 	}
 
-	// TODO: Do we have to set MinVersion to tls.VersionTLS12?
 	return &tls.Config{
 		Certificates: []tls.Certificate{cert},
+		MinVersion:   tls.VersionTLS12,
 	}, nil
 }
 

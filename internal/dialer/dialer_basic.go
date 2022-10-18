@@ -64,14 +64,14 @@ func NewBasicTLSDialer(hostURL string) *BasicTLSDialer {
 	}
 }
 
-// DialTLS returns a connection to the given address using the given network.
+// DialTLSContext returns a connection to the given address using the given network.
 func (d *BasicTLSDialer) DialTLSContext(ctx context.Context, network, address string) (conn net.Conn, err error) {
 	return (&tls.Dialer{
 		NetDialer: &net.Dialer{
 			Timeout: 30 * time.Second,
 		},
 		Config: &tls.Config{
-			InsecureSkipVerify: address != d.hostURL,
+			InsecureSkipVerify: address != d.hostURL, //nolint:gosec
 		},
 	}).DialContext(ctx, network, address)
 }

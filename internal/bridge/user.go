@@ -65,9 +65,7 @@ func (bridge *Bridge) GetUserIDs() []string {
 
 // GetUserInfo returns info about the given user.
 func (bridge *Bridge) GetUserInfo(userID string) (UserInfo, error) {
-	if info, ok := safe.MapGetRet(bridge.users, userID, func(user *user.User) UserInfo {
-		return getConnUserInfo(user)
-	}); ok {
+	if info, ok := safe.MapGetRet(bridge.users, userID, getConnUserInfo); ok {
 		return info, nil
 	}
 
@@ -139,7 +137,7 @@ func (bridge *Bridge) LoginUser(
 	return userID, nil
 }
 
-// LoginUser authorizes a new bridge user with the given username and password.
+// LoginFull authorizes a new bridge user with the given username and password.
 // If necessary, a TOTP and mailbox password are requested via the callbacks.
 // This is equivalent to doing LoginAuth and LoginUser separately.
 func (bridge *Bridge) LoginFull(
@@ -282,7 +280,6 @@ func (bridge *Bridge) loadLoop() {
 			return
 
 		case <-bridge.loadCh:
-			// ...
 		}
 	}
 }
@@ -440,7 +437,7 @@ func (bridge *Bridge) addUserWithVault(
 // newVaultUser creates a new vault user from the given auth information.
 // If one already exists in the vault, its data will be updated.
 func (bridge *Bridge) newVaultUser(
-	client *liteapi.Client,
+	_ *liteapi.Client,
 	apiUser liteapi.User,
 	authUID, authRef string,
 	saltedKeyPass []byte,

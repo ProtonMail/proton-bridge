@@ -83,7 +83,7 @@ func NewPinningTLSDialer(dialer TLSDialer, reporter Reporter, pinChecker PinChec
 	}
 }
 
-// DialTLS dials the given network/address, returning an error if the certificates don't match the trusted pins.
+// DialTLSContext dials the given network/address, returning an error if the certificates don't match the trusted pins.
 func (p *PinningTLSDialer) DialTLSContext(ctx context.Context, network, address string) (net.Conn, error) {
 	conn, err := p.dialer.DialTLSContext(ctx, network, address)
 	if err != nil {

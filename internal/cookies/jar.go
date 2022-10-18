@@ -115,7 +115,7 @@ func loadCookies(persister Persister) (cookiesByHost, error) {
 
 	var cookiesByHost cookiesByHost
 
-	if err := json.Unmarshal([]byte(rawCookies), &cookiesByHost); err != nil {
+	if err := json.Unmarshal(rawCookies, &cookiesByHost); err != nil {
 		return nil, err
 	}
 

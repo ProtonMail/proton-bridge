@@ -137,7 +137,7 @@ func syncLabels(ctx context.Context, client *liteapi.Client, updateCh ...*queue.
 	return nil
 }
 
-func syncMessages(
+func syncMessages( //nolint:funlen
 	ctx context.Context,
 	userID string,
 	client *liteapi.Client,

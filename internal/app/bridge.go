@@ -42,13 +42,13 @@ import (
 const vaultSecretName = "bridge-vault-key"
 
 // withBridge creates creates and tears down the bridge.
-func withBridge(
+func withBridge( //nolint:funlen
 	c *cli.Context,
 	exe string,
 	locations *locations.Locations,
 	version *semver.Version,
 	identifier *useragent.UserAgent,
-	reporter *sentry.Reporter,
+	_ *sentry.Reporter,
 	vault *vault.Vault,
 	cookieJar http.CookieJar,
 	fn func(*bridge.Bridge, <-chan events.Event) error,
@@ -65,10 +65,7 @@ func withBridge(
 	proxyDialer := dialer.NewProxyTLSDialer(pinningDialer, constants.APIHost)
 
 	// Create the autostarter.
-	autostarter, err := newAutostarter(exe)
-	if err != nil {
-		return fmt.Errorf("could not create autostarter: %w", err)
-	}
+	autostarter := newAutostarter(exe)
 
 	// Create the update installer.
 	updater, err := newUpdater(locations)
@@ -112,12 +109,12 @@ func withBridge(
 	return fn(bridge, eventCh)
 }
 
-func newAutostarter(exe string) (*autostart.App, error) {
+func newAutostarter(exe string) *autostart.App {
 	return &autostart.App{
 		Name:        constants.FullAppName,
 		DisplayName: constants.FullAppName,
 		Exec:        []string{exe, "--" + flagNoWindow},
-	}, nil
+	}
 }
 
 func newUpdater(locations *locations.Locations) (*updater.Updater, error) {

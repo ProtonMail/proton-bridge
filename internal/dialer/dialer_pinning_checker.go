@@ -40,7 +40,7 @@ func NewTLSPinChecker(trustedPins []string) *TLSPinChecker {
 	}
 }
 
-// checkCertificate returns whether the connection presents a known TLS certificate.
+// CheckCertificate returns whether the connection presents a known TLS certificate.
 func (p *TLSPinChecker) CheckCertificate(conn net.Conn) error {
 	tlsConn, ok := conn.(*tls.Conn)
 	if !ok {

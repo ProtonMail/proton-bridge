@@ -461,7 +461,7 @@ func waitForEvent[T any](t *testing.T, eventCh <-chan events.Event, wantEvent T)
 	t.Helper()
 
 	for event := range eventCh {
-		switch event.(type) {
+		switch event.(type) { // nolint:gocritic
 		case T:
 			return
 		}

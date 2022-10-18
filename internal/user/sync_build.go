@@ -47,7 +47,7 @@ func defaultJobOpts() message.JobOptions {
 	}
 }
 
-func buildRFC822(ctx context.Context, full liteapi.FullMessage, addrKR *crypto.KeyRing) (*buildRes, error) {
+func buildRFC822(_ context.Context, full liteapi.FullMessage, addrKR *crypto.KeyRing) (*buildRes, error) {
 	literal, err := message.BuildRFC822(addrKR, full.Message, full.AttData, defaultJobOpts())
 	if err != nil {
 		return nil, fmt.Errorf("failed to build message %s: %w", full.ID, err)
