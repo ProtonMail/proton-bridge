@@ -24,11 +24,12 @@ import (
 
 	"github.com/ProtonMail/gluon/imap"
 	"github.com/ProtonMail/gluon/queue"
+	"github.com/ProtonMail/gluon/rfc822"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/ProtonMail/proton-bridge/v2/internal/safe"
 	"github.com/ProtonMail/proton-bridge/v2/internal/vault"
-	"github.com/google/uuid"
-	"github.com/sirupsen/logrus"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/message"
+	"github.com/bradenaw/juniper/stream"
 	"gitlab.protontech.ch/go/liteapi"
 	"golang.org/x/exp/slices"
 )
@@ -214,67 +215,90 @@ func (conn *imapConnector) GetMessage(ctx context.Context, messageID imap.Messag
 // CreateMessage creates a new message on the remote.
 func (conn *imapConnector) CreateMessage(
 	ctx context.Context,
-	labelID imap.MailboxID,
+	mailboxID imap.MailboxID,
 	literal []byte,
 	flags imap.FlagSet,
 	date time.Time,
-) (imap.Message, []byte, error) {
+) (imap.Message, []byte, error) { // nolint:funlen
 	var msgFlags liteapi.MessageFlag
 
-	switch labelID {
-	case liteapi.SentLabel:
-		msgFlags |= liteapi.MessageFlagSent
+	if mailboxID != liteapi.DraftsLabel {
+		header, _ := rfc822.Split(literal)
 
-	default:
-		msgFlags |= liteapi.MessageFlagReceived
+		parsed, err := rfc822.NewHeader(header)
+		if err != nil {
+			return imap.Message{}, nil, err
+		}
+
+		if parsed.Has("Received") {
+			msgFlags |= liteapi.MessageFlagReceived
+		} else {
+			msgFlags |= liteapi.MessageFlagSent
+		}
 	}
 
-	var importResult liteapi.ImportRes
-	if err := conn.withAddrKR(conn.addrID, func(ring *crypto.KeyRing) error {
-		requestName := uuid.NewString()
+	var labelIDs []imap.MailboxID
 
-		importReq := []liteapi.ImportReq{{
-			Name: requestName,
+	if flags.Contains(imap.FlagFlagged) {
+		labelIDs = append(labelIDs, liteapi.StarredLabel)
+	}
+
+	if flags.Contains(imap.FlagAnswered) {
+		msgFlags |= liteapi.MessageFlagReplied
+	}
+
+	var (
+		messageID string
+		imported  []byte
+	)
+
+	if err := conn.withAddrKR(conn.addrID, func(addrKR *crypto.KeyRing) error {
+		res, err := stream.Collect(ctx, conn.client.ImportMessages(ctx, addrKR, 1, 1, []liteapi.ImportReq{{
 			Metadata: liteapi.ImportMetadata{
 				AddressID: conn.addrID,
-				LabelIDs:  []string{string(labelID)},
+				LabelIDs:  mapTo[imap.MailboxID, string](append(labelIDs, mailboxID)),
+				Unread:    !liteapi.Bool(flags.Contains(imap.FlagSeen)),
 				Flags:     msgFlags,
 			},
 			Message: literal,
-		}}
-
-		r, err := conn.client.ImportMessages(ctx, ring, importReq)
+		}}...))
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to import message: %w", err)
 		}
 
-		importResult = r[requestName]
+		full, err := conn.client.GetFullMessage(ctx, res[0].MessageID)
+		if err != nil {
+			return fmt.Errorf("failed to fetch imported message: %w", err)
+		}
+
+		b, err := message.BuildRFC822(addrKR, full.Message, full.AttData, defaultJobOpts())
+		if err != nil {
+			return fmt.Errorf("failed to build message: %w", err)
+		}
+
+		messageID = full.ID
+		imported = b
 
 		return nil
 	}); err != nil {
 		return imap.Message{}, nil, err
 	}
 
-	if importResult.Code != liteapi.SuccessCode {
-		logrus.Errorf("Failed to import message: %v", importResult.Message)
-		return imap.Message{}, nil, fmt.Errorf("failed to create message: %08x", importResult.Code)
-	}
-
 	return imap.Message{
-		ID:    imap.MessageID(importResult.MessageID),
+		ID:    imap.MessageID(messageID),
 		Flags: flags,
 		Date:  date,
-	}, literal, nil
+	}, imported, nil
 }
 
 // AddMessagesToMailbox labels the given messages with the given label ID.
-func (conn *imapConnector) AddMessagesToMailbox(ctx context.Context, messageIDs []imap.MessageID, labelID imap.MailboxID) error {
-	return conn.client.LabelMessages(ctx, mapTo[imap.MessageID, string](messageIDs), string(labelID))
+func (conn *imapConnector) AddMessagesToMailbox(ctx context.Context, messageIDs []imap.MessageID, mailboxID imap.MailboxID) error {
+	return conn.client.LabelMessages(ctx, mapTo[imap.MessageID, string](messageIDs), string(mailboxID))
 }
 
 // RemoveMessagesFromMailbox unlabels the given messages with the given label ID.
-func (conn *imapConnector) RemoveMessagesFromMailbox(ctx context.Context, messageIDs []imap.MessageID, labelID imap.MailboxID) error {
-	return conn.client.UnlabelMessages(ctx, mapTo[imap.MessageID, string](messageIDs), string(labelID))
+func (conn *imapConnector) RemoveMessagesFromMailbox(ctx context.Context, messageIDs []imap.MessageID, mailboxID imap.MailboxID) error {
+	return conn.client.UnlabelMessages(ctx, mapTo[imap.MessageID, string](messageIDs), string(mailboxID))
 }
 
 // MoveMessages removes the given messages from one label and adds them to the other label.

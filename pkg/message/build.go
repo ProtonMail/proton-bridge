@@ -234,7 +234,7 @@ func buildPGPRFC822(kr *crypto.KeyRing, msg liteapi.Message, opts JobOptions) ([
 
 	hdr := getMessageHeader(msg, opts)
 
-	sigs, err := msg.ExtractSignatures(kr)
+	sigs, err := liteapi.ExtractSignatures(kr, msg.Body)
 	if err != nil {
 		log.WithError(err).WithField("id", msg.ID).Warn("Extract signature failed")
 	}

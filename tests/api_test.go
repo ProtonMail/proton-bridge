@@ -37,10 +37,6 @@ type API interface {
 	GetLabels(userID string) ([]liteapi.Label, error)
 	CreateLabel(userID, name string, labelType liteapi.LabelType) (string, error)
 
-	CreateMessage(userID, addrID string, literal []byte, flags liteapi.MessageFlag, unread, starred bool) (string, error)
-	LabelMessage(userID, messageID, labelID string) error
-	UnlabelMessage(userID, messageID, labelID string) error
-
 	Close()
 }
 

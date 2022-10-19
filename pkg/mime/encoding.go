@@ -25,12 +25,21 @@ import (
 	"strings"
 	"unicode/utf8"
 
+	"github.com/ProtonMail/gluon/rfc822"
+	"github.com/emersion/go-message"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+	"gitlab.protontech.ch/go/liteapi"
 	"golang.org/x/net/html/charset"
 	"golang.org/x/text/encoding"
 	"golang.org/x/text/encoding/htmlindex"
 )
+
+func init() {
+	rfc822.ParseMediaType = ParseMediaType
+	liteapi.CharsetReader = CharsetReader
+	message.CharsetReader = CharsetReader
+}
 
 func CharsetReader(charset string, input io.Reader) (io.Reader, error) {
 	dec, err := SelectDecoder(charset)

@@ -19,7 +19,10 @@ package tests
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/bradenaw/juniper/iterator"
 	"github.com/bradenaw/juniper/xslices"
@@ -380,6 +383,23 @@ func (s *scenario) imapClientExpunges(clientID string) error {
 	return client.Expunge(nil)
 }
 
+func (s *scenario) imapClientAppendsTheFollowingMessageToMailbox(clientID string, mailbox string, docString *godog.DocString) error {
+	_, client := s.t.getIMAPClient(clientID)
+
+	return clientAppend(client, mailbox, docString.Content)
+}
+
+func (s *scenario) imapClientAppendsToMailbox(clientID string, file, mailbox string) error {
+	_, client := s.t.getIMAPClient(clientID)
+
+	b, err := os.ReadFile(filepath.Join("testdata", file))
+	if err != nil {
+		return err
+	}
+
+	return clientAppend(client, mailbox, string(b))
+}
+
 func clientList(client *client.Client) []*imap.MailboxInfo {
 	resCh := make(chan *imap.MailboxInfo)
 
@@ -489,4 +509,8 @@ func clientStore(client *client.Client, from, to int, item imap.StoreItem, flags
 	}()
 
 	return iterator.Collect(iterator.Chan(resCh)), nil
+}
+
+func clientAppend(client *client.Client, mailbox string, literal string) error {
+	return client.Append(mailbox, []string{}, time.Now(), strings.NewReader(literal))
 }
