@@ -41,6 +41,9 @@ import (
 
 const vaultSecretName = "bridge-vault-key"
 
+// deleteOldGoIMAPFiles Set with `-ldflags -X app.deleteOldGoIMAPFiles=true` to enable cleanup of old imap cache data.
+var deleteOldGoIMAPFiles bool //nolint:gochecknoglobals
+
 // withBridge creates creates and tears down the bridge.
 func withBridge( //nolint:funlen
 	c *cli.Context,
@@ -60,6 +63,13 @@ func withBridge( //nolint:funlen
 		dialer.NewTLSReporter(constants.APIHost, constants.AppVersion(version.Original()), identifier, dialer.TrustedAPIPins),
 		dialer.NewTLSPinChecker(dialer.TrustedAPIPins),
 	)
+
+	// Delete old go-imap cache files
+	if deleteOldGoIMAPFiles {
+		if err := locations.CleanGoIMAPCache(); err != nil {
+			logrus.WithError(err).Error("Failed to remove old go-imap cache")
+		}
+	}
 
 	// Create a proxy dialer which switches to a proxy if the request fails.
 	proxyDialer := dialer.NewProxyTLSDialer(pinningDialer, constants.APIHost)

@@ -193,6 +193,10 @@ func (l *Locations) getLogsPath() string {
 	return filepath.Join(l.userCache, "logs")
 }
 
+func (l *Locations) getGoIMAPCachePath() string {
+	return filepath.Join(l.userConfig, "cache")
+}
+
 func (l *Locations) getUpdatesPath() string {
 	// In order to properly update Bridge 1.6.X and higher we need to
 	// change the launcher first. Since this is not part of automatic
@@ -234,4 +238,9 @@ func (l *Locations) Clean() error {
 		l.getUpdatesPath(),
 		l.getGluonPath(),
 	).Do()
+}
+
+// CleanGoIMAPCache removes all cache data from the go-imap implementation.
+func (l *Locations) CleanGoIMAPCache() error {
+	return files.Remove(l.getGoIMAPCachePath()).Do()
 }

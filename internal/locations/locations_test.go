@@ -108,6 +108,29 @@ func TestCleanRemovesUnexpectedFilesAndFolders(t *testing.T) {
 	assert.NoFileExists(t, filepath.Join(l.userCache, "dir3", "dir4", "unexpected5.txt"))
 }
 
+func TestRemoveOldGoIMAPCacheFolders(t *testing.T) {
+	l := newTestLocations(t)
+
+	createFilesInDir(t,
+		l.getGoIMAPCachePath(),
+		"foo",
+		"bar",
+	)
+
+	require.FileExists(t, filepath.Join(l.getGoIMAPCachePath(), "foo"))
+	require.FileExists(t, filepath.Join(l.getGoIMAPCachePath(), "bar"))
+
+	assert.NoError(t, l.CleanGoIMAPCache())
+
+	assert.DirExists(t, l.getSettingsPath())
+	assert.DirExists(t, l.getLogsPath())
+	assert.DirExists(t, l.getUpdatesPath())
+
+	assert.NoFileExists(t, filepath.Join(l.getGoIMAPCachePath(), "foo"))
+	assert.NoFileExists(t, filepath.Join(l.getGoIMAPCachePath(), "bar"))
+	assert.NoDirExists(t, l.getGoIMAPCachePath())
+}
+
 func newFakeAppDirs(t *testing.T) *fakeAppDirs {
 	return &fakeAppDirs{
 		configDir: t.TempDir(),
