@@ -30,7 +30,7 @@ QtObject {
     // https://doc.qt.io/qt-5/qtqml-documents-definetypes.html#inline-components
 
     // component ColorScheme: QtObject {
-    //    property color primay_norm
+    //    property color primary_norm
     //    ...
     // }
 
@@ -40,7 +40,7 @@ QtObject {
         prominent: lightProminentStyle
 
         // Primary
-        primay_norm: "#6D4AFF"
+        primary_norm: "#6D4AFF"
 
         // Interaction-norm
         interaction_norm: "#6D4AFF"
@@ -115,7 +115,7 @@ QtObject {
         prominent: this
 
         // Primary
-        primay_norm: "#8A6EFF"
+        primary_norm: "#8A6EFF"
 
         // Interaction-norm
         interaction_norm: "#6D4AFF"
@@ -190,7 +190,7 @@ QtObject {
         prominent: darkProminentStyle
 
         // Primary
-        primay_norm: "#8A6EFF"
+        primary_norm: "#8A6EFF"
 
         // Interaction-norm
         interaction_norm: "#6D4AFF"
@@ -265,7 +265,7 @@ QtObject {
         prominent: this
 
         // Primary
-        primay_norm: "#8A6EFF"
+        primary_norm: "#8A6EFF"
 
         // Interaction-norm
         interaction_norm: "#6D4AFF"
