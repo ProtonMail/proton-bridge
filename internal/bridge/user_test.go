@@ -306,6 +306,10 @@ func TestBridge_FailLoginRecover(t *testing.T) {
 		// We should now be able to log the user in.
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
 			require.NoError(t, getErr(bridge.LoginFull(ctx, username, password, nil, nil)))
+
+			// The user should be there, now connected.
+			require.Equal(t, []string{userID}, bridge.GetUserIDs())
+			require.Equal(t, []string{userID}, getConnectedUserIDs(t, bridge))
 		})
 	})
 }
@@ -396,6 +400,20 @@ func TestBridge_AddressMode(t *testing.T) {
 
 			// The user is in split mode.
 			require.Equal(t, vault.SplitMode, info.AddressMode)
+		})
+	})
+}
+
+func TestBridge_LoginLogoutRepeated(t *testing.T) {
+	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *liteapi.NetCtl, locator bridge.Locator, storeKey []byte) {
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+			for i := 0; i < 10; i++ {
+				// Log the user in.
+				userID := must(bridge.LoginFull(ctx, username, password, nil, nil))
+
+				// Log the user out.
+				require.NoError(t, bridge.LogoutUser(ctx, userID))
+			}
 		})
 	})
 }

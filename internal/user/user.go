@@ -46,6 +46,7 @@ type User struct {
 	vault   *vault.User
 	client  *liteapi.Client
 	eventCh *queue.QueuedChannel[events.Event]
+	stopCh  chan struct{}
 
 	apiUser  *safe.Value[liteapi.User]
 	apiAddrs *safe.Map[string, liteapi.Address]
@@ -101,6 +102,7 @@ func New(ctx context.Context, encVault *vault.User, client *liteapi.Client, apiU
 		vault:   encVault,
 		client:  client,
 		eventCh: queue.NewQueuedChannel[events.Event](0, 0),
+		stopCh:  make(chan struct{}),
 
 		apiUser:  safe.NewValue(apiUser),
 		apiAddrs: safe.NewMapFrom(groupBy(apiAddrs, func(addr liteapi.Address) string { return addr.ID }), sortAddr),
@@ -336,8 +338,13 @@ func (user *User) OnStatusDown() {
 }
 
 // Logout logs the user out from the API.
-// If withVault is true, the user's vault is also cleared.
 func (user *User) Logout(ctx context.Context) error {
+	// Cancel ongoing syncs.
+	user.stopSync()
+
+	// Wait for ongoing syncs to stop.
+	user.waitSync()
+
 	if err := user.client.AuthDelete(ctx); err != nil {
 		return fmt.Errorf("failed to delete auth: %w", err)
 	}
@@ -351,6 +358,9 @@ func (user *User) Logout(ctx context.Context) error {
 
 // Close closes ongoing connections and cleans up resources.
 func (user *User) Close() error {
+	// Close any ongoing operations.
+	close(user.stopCh)
+
 	// Cancel ongoing syncs.
 	user.stopSync()
 
@@ -410,8 +420,11 @@ func (user *User) streamEvents(eventCh <-chan liteapi.Event) <-chan error {
 	go func() {
 		defer close(errCh)
 
+		ctx, cancel := contextWithStopCh(context.Background(), user.stopCh)
+		defer cancel()
+
 		for event := range eventCh {
-			if err := user.handleAPIEvent(context.Background(), event); err != nil {
+			if err := user.handleAPIEvent(ctx, event); err != nil {
 				errCh <- fmt.Errorf("failed to handle API event: %w", err)
 			} else if err := user.vault.SetEventID(event.EventID); err != nil {
 				errCh <- fmt.Errorf("failed to update event ID: %w", err)
@@ -439,7 +452,7 @@ func (user *User) startSync() <-chan error {
 			return
 		}
 
-		ctx, cancel := contextWithStopCh(context.Background(), user.syncStopCh)
+		ctx, cancel := contextWithStopCh(context.Background(), user.stopCh, user.syncStopCh)
 		defer cancel()
 
 		user.eventCh.Enqueue(events.SyncStarted{

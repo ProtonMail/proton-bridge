@@ -58,6 +58,8 @@ func (user *User) sync(ctx context.Context) error {
 			if err := user.vault.SetHasLabels(true); err != nil {
 				return fmt.Errorf("failed to set has labels: %w", err)
 			}
+
+			logrus.Info("Synced labels")
 		} else {
 			logrus.Info("Labels are already synced, skipping")
 		}
@@ -74,6 +76,8 @@ func (user *User) sync(ctx context.Context) error {
 			if err := user.vault.SetHasMessages(true); err != nil {
 				return fmt.Errorf("failed to set has messages: %w", err)
 			}
+
+			logrus.Info("Synced messages")
 		} else {
 			logrus.Info("Messages are already synced, skipping")
 		}

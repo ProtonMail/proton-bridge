@@ -104,18 +104,22 @@ func getAddrEmail(apiAddrs []liteapi.Address, addrID string) (string, error) {
 }
 
 // contextWithStopCh returns a new context that is cancelled when the stop channel is closed or a value is sent to it.
-func contextWithStopCh(ctx context.Context, stopCh <-chan struct{}) (context.Context, context.CancelFunc) {
+func contextWithStopCh(ctx context.Context, stopCh ...<-chan struct{}) (context.Context, context.CancelFunc) {
 	ctx, cancel := context.WithCancel(ctx)
 
-	go func() {
-		select {
-		case <-stopCh:
-			cancel()
+	for _, stopCh := range stopCh {
+		stopCh := stopCh
 
-		case <-ctx.Done():
-			// ...
-		}
-	}()
+		go func() {
+			select {
+			case <-stopCh:
+				cancel()
+
+			case <-ctx.Done():
+				// ...
+			}
+		}()
+	}
 
 	return ctx, cancel
 }
