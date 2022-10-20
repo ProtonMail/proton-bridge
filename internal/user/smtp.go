@@ -18,6 +18,7 @@
 package user
 
 import (
+	"bytes"
 	"context"
 	"encoding/base64"
 	"fmt"
@@ -26,6 +27,7 @@ import (
 	"net/url"
 	"runtime"
 	"strings"
+	"time"
 
 	"github.com/ProtonMail/gluon/rfc822"
 	"github.com/ProtonMail/go-rfc5322"
@@ -43,8 +45,24 @@ func (user *User) sendMail(authID string, emails []string, from string, to []str
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
+	// Read the message to send.
+	b, err := io.ReadAll(r)
+	if err != nil {
+		return fmt.Errorf("failed to read message: %w", err)
+	}
+
+	// Check if we already tried to send this message recently.
+	hash, ok, err := user.sendHash.tryInsertWait(ctx, b, time.Now().Add(90*time.Second))
+	if err != nil {
+		return fmt.Errorf("failed to check send hash: %w", err)
+	} else if !ok {
+		user.log.Warn("A duplicate message was already sent recently, skipping")
+		return nil
+	}
+	defer user.sendHash.removeOnFail(hash)
+
 	// Create a new message parser from the reader.
-	parser, err := parser.New(r)
+	parser, err := parser.New(bytes.NewReader(b))
 	if err != nil {
 		return fmt.Errorf("failed to create parser: %w", err)
 	}
@@ -103,7 +121,8 @@ func (user *User) sendMail(authID string, emails []string, from string, to []str
 			return fmt.Errorf("failed to send message: %w", err)
 		}
 
-		user.log.WithField("messageID", sent.ID).Info("Message sent")
+		// If the message was successfully sent, we can update the message ID in the record.
+		user.sendHash.addMessageID(hash, sent.ID)
 
 		return nil
 	})

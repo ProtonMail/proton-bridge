@@ -55,6 +55,7 @@ type User struct {
 	apiUser  *safe.Value[liteapi.User]
 	apiAddrs *safe.Map[string, liteapi.Address]
 	updateCh *safe.Map[string, *queue.QueuedChannel[imap.Update]]
+	sendHash *sendRecorder
 
 	tasks     *xsync.Group
 	abortable async.Abortable
@@ -126,6 +127,7 @@ func New(
 		apiUser:  safe.NewValue(apiUser),
 		apiAddrs: safe.NewMapFrom(groupBy(apiAddrs, func(addr liteapi.Address) string { return addr.ID }), sortAddr),
 		updateCh: safe.NewMapFrom(updateCh, nil),
+		sendHash: newSendRecorder(sendHashExpiry),
 
 		tasks: xsync.NewGroup(context.Background()),
 

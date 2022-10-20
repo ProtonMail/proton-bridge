@@ -36,6 +36,7 @@ type Message struct {
 	Subject     string `bdd:"subject"`
 	Body        string `bdd:"body"`
 	Attachments string `bdd:"attachments"`
+	MessageID   string `bdd:"message-id"`
 
 	From string `bdd:"from"`
 	To   string `bdd:"to"`
@@ -96,6 +97,7 @@ func newMessageFromIMAP(msg *imap.Message) Message {
 		Subject:     msg.Envelope.Subject,
 		Body:        body,
 		Attachments: strings.Join(xslices.Map(m.Attachments, func(att message.Attachment) string { return att.Name }), ", "),
+		MessageID:   msg.Envelope.MessageId,
 		Unread:      !slices.Contains(msg.Flags, imap.SeenFlag),
 	}
 
