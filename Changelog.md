@@ -3,7 +3,7 @@
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 
-## [Bridge 2.4.2] Osney
+## [Bridge 2.4.3] Osney
 
 ## Changed
 * Other: implemented tokens in bridge-gui-tester.
@@ -22,21 +22,27 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-1917: gRPC service should use random port.
 * GODT-1924: gRPC identity validation with tokens.
 * GODT-1344: Notifications for ApiCertError and NoActiveKeyForRecipient.
+* GODT-1941: Update documentation.
+* Other: Update golangci-lint to v1.50.0.
+* GODT-1936: check gRPC server token via interceptors.
+
+
 
 ## Fixed
 * GUI issues:
     * GODT-1894: Fixed typo in alreadyLoggedIn event error message.
-    * GODT-1479: Fix hover on “Open Bridge” in status window.
+    * GODT-1479: Fix hover on “Open Bridge” in status window on macOS.
     * GODT-1899: Status window menu now closes when window is dismissed.
     * GODT-1851: Port field error label now wraps.
     * GODT-1566: GUI shows error notifications for IMAP/SMTP port errors on startup.
     * GODT-1926: Clear port error messages when cancelling the dialog.
     * Other: Fixed cocoa related warnings in bridge-gui on macOS.
-
 * Build issues:
     * GODT-1675: Add resrource file to both launcher and bridge-go.
     * Other: Add WlShellIntegration lib for rpm package.
     * GODT-1935: Fix resource file generation for both Launcher and Bridge.
+    * GODT-1942: Use `qmake` to find the `QT6DIR`.
+    * Provide launcher for make run-cli target.
 * GODT-1931: Fixed bridge crash when checking for update while offline.
 
 ## [Bridge 2.4.0] Osney
