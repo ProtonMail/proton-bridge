@@ -233,9 +233,9 @@ func (conn *imapConnector) CreateMessage(
 		}
 
 		if parsed.Has("Received") {
-			msgFlags |= liteapi.MessageFlagReceived
+			msgFlags = msgFlags.Add(liteapi.MessageFlagReceived)
 		} else {
-			msgFlags |= liteapi.MessageFlagSent
+			msgFlags = msgFlags.Add(liteapi.MessageFlagSent)
 		}
 	}
 
@@ -246,7 +246,7 @@ func (conn *imapConnector) CreateMessage(
 	}
 
 	if flags.Contains(imap.FlagAnswered) {
-		msgFlags |= liteapi.MessageFlagReplied
+		msgFlags = msgFlags.Add(liteapi.MessageFlagReplied)
 	}
 
 	var (

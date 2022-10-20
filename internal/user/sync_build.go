@@ -81,6 +81,10 @@ func newMessageCreatedUpdate(message liteapi.MessageMetadata, literal []byte) (*
 		flags = flags.Add(imap.FlagFlagged)
 	}
 
+	if slices.Contains(message.LabelIDs, liteapi.DraftsLabel) {
+		flags = flags.Add(imap.FlagDraft)
+	}
+
 	imapMessage := imap.Message{
 		ID:    imap.MessageID(message.ID),
 		Flags: flags,
