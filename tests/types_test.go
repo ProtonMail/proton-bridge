@@ -166,19 +166,19 @@ func matchMailboxes(have, want []Mailbox) error {
 	return nil
 }
 
-func eventually(condition func() error, waitFor, tick time.Duration) error { //nolint:unparam
+func eventually(condition func() error) error {
 	ch := make(chan error, 1)
 
-	timer := time.NewTimer(waitFor)
+	timer := time.NewTimer(10 * time.Second)
 	defer timer.Stop()
 
-	ticker := time.NewTicker(tick)
+	ticker := time.NewTicker(100 * time.Millisecond)
 	defer ticker.Stop()
 
 	for tick := ticker.C; ; {
 		select {
 		case <-timer.C:
-			return fmt.Errorf("timed out after %v", waitFor)
+			return fmt.Errorf("timed out")
 
 		case <-tick:
 			tick = nil

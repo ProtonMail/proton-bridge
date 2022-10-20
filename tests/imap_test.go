@@ -20,7 +20,6 @@ package tests
 import (
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/bradenaw/juniper/iterator"
 	"github.com/bradenaw/juniper/xslices"
@@ -161,11 +160,9 @@ func (s *scenario) imapClientSeesTheFollowingMailboxInfo(clientID string, table 
 }
 
 func (s *scenario) imapClientEventuallySeesTheFollowingMailboxInfo(clientID string, table *godog.Table) error {
-	return eventually(
-		func() error { return s.imapClientSeesTheFollowingMailboxInfo(clientID, table) },
-		5*time.Second,
-		100*time.Millisecond,
-	)
+	return eventually(func() error {
+		return s.imapClientSeesTheFollowingMailboxInfo(clientID, table)
+	})
 }
 
 func (s *scenario) imapClientSeesTheFollowingMailboxInfoForMailbox(clientID, mailbox string, table *godog.Table) error {
@@ -299,11 +296,9 @@ func (s *scenario) imapClientSeesTheFollowingMessagesInMailbox(clientID, mailbox
 }
 
 func (s *scenario) imapClientEventuallySeesTheFollowingMessagesInMailbox(clientID, mailbox string, table *godog.Table) error {
-	return eventually(
-		func() error { return s.imapClientSeesTheFollowingMessagesInMailbox(clientID, mailbox, table) },
-		5*time.Second,
-		500*time.Millisecond,
-	)
+	return eventually(func() error {
+		return s.imapClientSeesTheFollowingMessagesInMailbox(clientID, mailbox, table)
+	})
 }
 
 func (s *scenario) imapClientSeesMessagesInMailbox(clientID string, count int, mailbox string) error {
@@ -322,11 +317,9 @@ func (s *scenario) imapClientSeesMessagesInMailbox(clientID string, count int, m
 }
 
 func (s *scenario) imapClientEventuallySeesMessagesInMailbox(clientID string, count int, mailbox string) error {
-	return eventually(
-		func() error { return s.imapClientSeesMessagesInMailbox(clientID, count, mailbox) },
-		5*time.Second,
-		500*time.Millisecond,
-	)
+	return eventually(func() error {
+		return s.imapClientSeesMessagesInMailbox(clientID, count, mailbox)
+	})
 }
 
 func (s *scenario) imapClientMarksMessageAsDeleted(clientID string, seq int) error {

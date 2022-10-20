@@ -21,7 +21,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"time"
 
 	"github.com/cucumber/godog"
 	"github.com/google/uuid"
@@ -222,11 +221,9 @@ func (s *scenario) userIsListedAndConnected(username string) error {
 }
 
 func (s *scenario) userIsEventuallyListedAndConnected(username string) error {
-	return eventually(
-		func() error { return s.userIsListedAndConnected(username) },
-		5*time.Second,
-		100*time.Millisecond,
-	)
+	return eventually(func() error {
+		return s.userIsListedAndConnected(username)
+	})
 }
 
 func (s *scenario) userIsListedButNotConnected(username string) error {
