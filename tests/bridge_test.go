@@ -267,6 +267,14 @@ func (s *scenario) bridgeSendsAForcedUpdateEvent() error {
 	})
 }
 
+func (s *scenario) bridgeHidesAllMail() error {
+	return s.t.bridge.SetShowAllMail(false)
+}
+
+func (s *scenario) bridgeShowsAllMail() error {
+	return s.t.bridge.SetShowAllMail(true)
+}
+
 func try[T any](inCh *queue.QueuedChannel[T], wait time.Duration, fn func(T) error) error {
 	select {
 	case event := <-inCh.GetChannel():

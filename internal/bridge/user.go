@@ -389,7 +389,7 @@ func (bridge *Bridge) addUserWithVault(
 	apiUser liteapi.User,
 	vaultUser *vault.User,
 ) error {
-	user, err := user.New(ctx, vaultUser, client, apiUser)
+	user, err := user.New(ctx, vaultUser, client, apiUser, bridge.GetShowAllMail())
 	if err != nil {
 		return fmt.Errorf("failed to create user: %w", err)
 	}

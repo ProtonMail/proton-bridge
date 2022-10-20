@@ -22,6 +22,7 @@ import (
 	"crypto/subtle"
 	"fmt"
 	"strings"
+	"sync/atomic"
 	"time"
 
 	"github.com/ProtonMail/gluon/connector"
@@ -54,9 +55,11 @@ type User struct {
 
 	syncStopCh chan struct{}
 	syncLock   try.Group
+
+	showAllMail int32
 }
 
-func New(ctx context.Context, encVault *vault.User, client *liteapi.Client, apiUser liteapi.User) (*User, error) { //nolint:funlen
+func New(ctx context.Context, encVault *vault.User, client *liteapi.Client, apiUser liteapi.User, showAllMail bool) (*User, error) { //nolint:funlen
 	// Get the user's API addresses.
 	apiAddrs, err := client.GetAddresses(ctx)
 	if err != nil {
@@ -110,6 +113,8 @@ func New(ctx context.Context, encVault *vault.User, client *liteapi.Client, apiU
 
 		syncStopCh: make(chan struct{}),
 	}
+
+	user.SetShowAllMail(showAllMail)
 
 	// When we receive an auth object, we update it in the vault.
 	// This will be used to authorize the user on the next run.
@@ -388,6 +393,20 @@ func (user *User) Close() error {
 	}
 
 	return nil
+}
+
+func (user *User) SetShowAllMail(show bool) {
+	var value int32
+	if show {
+		value = 1
+	} else {
+		value = 0
+	}
+	atomic.StoreInt32(&user.showAllMail, value)
+}
+
+func (user *User) GetShowAllMail() bool {
+	return atomic.LoadInt32(&user.showAllMail) == 1
 }
 
 func (user *User) checkAuth(email string, password []byte) (string, error) {

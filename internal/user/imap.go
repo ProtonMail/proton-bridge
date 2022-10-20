@@ -336,6 +336,10 @@ func (conn *imapConnector) Close(ctx context.Context) error {
 	return nil
 }
 
-func (conn *imapConnector) IsMailboxVisible(_ context.Context, _ imap.MailboxID) bool {
+func (conn *imapConnector) IsMailboxVisible(_ context.Context, id imap.MailboxID) bool {
+	if !conn.GetShowAllMail() && id == liteapi.AllMailLabel {
+		return false
+	}
+
 	return true
 }

@@ -122,6 +122,8 @@ func TestFeatures(testingT *testing.T) {
 			ctx.Step(`^bridge sends an update installed event for version "([^"]*)"$`, s.bridgeSendsAnUpdateInstalledEventForVersion)
 			ctx.Step(`^bridge sends an update not available event$`, s.bridgeSendsAnUpdateNotAvailableEvent)
 			ctx.Step(`^bridge sends a forced update event$`, s.bridgeSendsAForcedUpdateEvent)
+			ctx.Step(`^bridge hides all mail$`, s.bridgeHidesAllMail)
+			ctx.Step(`^bridge shows all mail$`, s.bridgeShowsAllMail)
 
 			// ==== USER ====
 			ctx.Step(`^the user logs in with username "([^"]*)" and password "([^"]*)"$`, s.userLogsInWithUsernameAndPassword)

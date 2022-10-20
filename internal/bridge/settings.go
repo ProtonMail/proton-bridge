@@ -170,7 +170,11 @@ func (bridge *Bridge) GetShowAllMail() bool {
 }
 
 func (bridge *Bridge) SetShowAllMail(show bool) error {
-	panic("TODO")
+	bridge.users.IterValues(func(user *user.User) {
+		user.SetShowAllMail(show)
+	})
+
+	return bridge.vault.SetShowAllMail(show)
 }
 
 func (bridge *Bridge) GetAutostart() bool {

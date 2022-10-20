@@ -142,7 +142,7 @@ func withUser(t *testing.T, ctx context.Context, _ *server.Server, m *liteapi.Ma
 	vaultUser, err := vault.AddUser(apiUser.ID, username, apiAuth.UID, apiAuth.RefreshToken, saltedKeyPass)
 	require.NoError(t, err)
 
-	user, err := user.New(ctx, vaultUser, client, apiUser)
+	user, err := user.New(ctx, vaultUser, client, apiUser, true)
 	require.NoError(t, err)
 	defer func() { require.NoError(t, user.Close()) }()
 
