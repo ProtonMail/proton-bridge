@@ -38,7 +38,7 @@ func TestBridge_Sync(t *testing.T) {
 
 	numMsg := 1 << 8
 
-	withEnv(t, s, func(ctx context.Context, netCtl *liteapi.NetCtl, locator bridge.Locator, storeKey []byte) {
+	withEnvServer(t, s, func(ctx context.Context, netCtl *liteapi.NetCtl, locator bridge.Locator, storeKey []byte) {
 		userID, addrID, err := s.CreateUser("imap", "imap@pm.me", password)
 		require.NoError(t, err)
 

@@ -63,7 +63,7 @@ func (user *User) sync(ctx context.Context) error {
 		}
 
 		if !user.vault.SyncStatus().HasMessages {
-			logrus.Info("Syncing labels")
+			logrus.Info("Syncing messages")
 
 			if err := user.updateCh.MapErr(func(updateCh map[string]*queue.QueuedChannel[imap.Update]) error {
 				return syncMessages(ctx, user.ID(), user.client, user.vault, addrKRs, updateCh, user.eventCh)

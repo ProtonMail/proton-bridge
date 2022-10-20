@@ -62,7 +62,7 @@ func init() {
 }
 
 func TestBridge_ConnStatus(t *testing.T) {
-	withTLSEnv(t, func(ctx context.Context, s *server.Server, netCtl *liteapi.NetCtl, locator bridge.Locator, vaultKey []byte) {
+	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *liteapi.NetCtl, locator bridge.Locator, vaultKey []byte) {
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, vaultKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
 			// Get a stream of connection status events.
 			eventCh, done := bridge.GetEvents(events.ConnStatusUp{}, events.ConnStatusDown{})
@@ -93,7 +93,7 @@ func TestBridge_ConnStatus(t *testing.T) {
 }
 
 func TestBridge_TLSIssue(t *testing.T) {
-	withTLSEnv(t, func(ctx context.Context, s *server.Server, netCtl *liteapi.NetCtl, locator bridge.Locator, vaultKey []byte) {
+	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *liteapi.NetCtl, locator bridge.Locator, vaultKey []byte) {
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, vaultKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
 			// Get a stream of TLS issue events.
 			tlsEventCh, done := bridge.GetEvents(events.TLSIssue{})
@@ -111,7 +111,7 @@ func TestBridge_TLSIssue(t *testing.T) {
 }
 
 func TestBridge_Focus(t *testing.T) {
-	withTLSEnv(t, func(ctx context.Context, s *server.Server, netCtl *liteapi.NetCtl, locator bridge.Locator, vaultKey []byte) {
+	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *liteapi.NetCtl, locator bridge.Locator, vaultKey []byte) {
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, vaultKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
 			// Get a stream of TLS issue events.
 			raiseCh, done := bridge.GetEvents(events.Raise{})
@@ -127,7 +127,7 @@ func TestBridge_Focus(t *testing.T) {
 }
 
 func TestBridge_UserAgent(t *testing.T) {
-	withTLSEnv(t, func(ctx context.Context, s *server.Server, netCtl *liteapi.NetCtl, locator bridge.Locator, vaultKey []byte) {
+	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *liteapi.NetCtl, locator bridge.Locator, vaultKey []byte) {
 		var calls []server.Call
 
 		s.AddCallWatcher(func(call server.Call) {
@@ -152,7 +152,7 @@ func TestBridge_UserAgent(t *testing.T) {
 }
 
 func TestBridge_Cookies(t *testing.T) {
-	withTLSEnv(t, func(ctx context.Context, s *server.Server, netCtl *liteapi.NetCtl, locator bridge.Locator, vaultKey []byte) {
+	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *liteapi.NetCtl, locator bridge.Locator, vaultKey []byte) {
 		sessionIDs := safe.NewValue([]string{})
 
 		// Save any session IDs we use.
@@ -186,7 +186,7 @@ func TestBridge_Cookies(t *testing.T) {
 }
 
 func TestBridge_CheckUpdate(t *testing.T) {
-	withTLSEnv(t, func(ctx context.Context, s *server.Server, netCtl *liteapi.NetCtl, locator bridge.Locator, vaultKey []byte) {
+	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *liteapi.NetCtl, locator bridge.Locator, vaultKey []byte) {
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, vaultKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
 			// Disable autoupdate for this test.
 			require.NoError(t, bridge.SetAutoUpdate(false))
@@ -225,7 +225,7 @@ func TestBridge_CheckUpdate(t *testing.T) {
 }
 
 func TestBridge_AutoUpdate(t *testing.T) {
-	withTLSEnv(t, func(ctx context.Context, s *server.Server, netCtl *liteapi.NetCtl, locator bridge.Locator, vaultKey []byte) {
+	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *liteapi.NetCtl, locator bridge.Locator, vaultKey []byte) {
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, vaultKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
 			// Enable autoupdate for this test.
 			require.NoError(t, bridge.SetAutoUpdate(true))
@@ -253,7 +253,7 @@ func TestBridge_AutoUpdate(t *testing.T) {
 }
 
 func TestBridge_ManualUpdate(t *testing.T) {
-	withTLSEnv(t, func(ctx context.Context, s *server.Server, netCtl *liteapi.NetCtl, locator bridge.Locator, vaultKey []byte) {
+	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *liteapi.NetCtl, locator bridge.Locator, vaultKey []byte) {
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, vaultKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
 			// Disable autoupdate for this test.
 			require.NoError(t, bridge.SetAutoUpdate(false))
@@ -282,7 +282,7 @@ func TestBridge_ManualUpdate(t *testing.T) {
 }
 
 func TestBridge_ForceUpdate(t *testing.T) {
-	withTLSEnv(t, func(ctx context.Context, s *server.Server, netCtl *liteapi.NetCtl, locator bridge.Locator, vaultKey []byte) {
+	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *liteapi.NetCtl, locator bridge.Locator, vaultKey []byte) {
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, vaultKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
 			// Get a stream of update events.
 			updateCh, done := bridge.GetEvents(events.UpdateForced{})
@@ -302,7 +302,7 @@ func TestBridge_ForceUpdate(t *testing.T) {
 }
 
 func TestBridge_BadVaultKey(t *testing.T) {
-	withTLSEnv(t, func(ctx context.Context, s *server.Server, netCtl *liteapi.NetCtl, locator bridge.Locator, vaultKey []byte) {
+	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *liteapi.NetCtl, locator bridge.Locator, vaultKey []byte) {
 		var userID string
 
 		// Login a user.
@@ -331,7 +331,7 @@ func TestBridge_BadVaultKey(t *testing.T) {
 }
 
 func TestBridge_MissingGluonDir(t *testing.T) {
-	withTLSEnv(t, func(ctx context.Context, s *server.Server, netCtl *liteapi.NetCtl, locator bridge.Locator, vaultKey []byte) {
+	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *liteapi.NetCtl, locator bridge.Locator, vaultKey []byte) {
 		var gluonDir string
 
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, vaultKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
@@ -355,18 +355,18 @@ func TestBridge_MissingGluonDir(t *testing.T) {
 	})
 }
 
-// withTLSEnv creates the full test environment and runs the tests.
-func withTLSEnv(t *testing.T, tests func(context.Context, *server.Server, *liteapi.NetCtl, bridge.Locator, []byte)) {
+// withEnv creates the full test environment and runs the tests.
+func withEnv(t *testing.T, tests func(context.Context, *server.Server, *liteapi.NetCtl, bridge.Locator, []byte)) {
 	server := server.NewTLS()
 	defer server.Close()
 
-	withEnv(t, server, func(ctx context.Context, netCtl *liteapi.NetCtl, locator bridge.Locator, vaultKey []byte) {
+	withEnvServer(t, server, func(ctx context.Context, netCtl *liteapi.NetCtl, locator bridge.Locator, vaultKey []byte) {
 		tests(ctx, server, netCtl, locator, vaultKey)
 	})
 }
 
-// withEnv creates the full test environment and runs the tests.
-func withEnv(t *testing.T, server *server.Server, tests func(context.Context, *liteapi.NetCtl, bridge.Locator, []byte)) {
+// withEnvServer creates the full test environment and runs the tests.
+func withEnvServer(t *testing.T, server *server.Server, tests func(context.Context, *liteapi.NetCtl, bridge.Locator, []byte)) {
 	// Add test user.
 	_, _, err := server.CreateUser(username, username+"@pm.me", password)
 	require.NoError(t, err)
