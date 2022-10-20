@@ -43,10 +43,23 @@ Window {
     signal showSignIn(string username)
     signal quit()
 
+    MouseArea {
+        id: mouseArea
+        anchors.fill: parent
+        hoverEnabled: true
+    }
+
+    function enableHoverOnOpenBridgeButton() {
+        openBridgeButton.hoverEnabled = true
+        mouseArea.positionChanged.disconnect(enableHoverOnOpenBridgeButton)
+    }
+
     onVisibleChanged: {
-        if (visible) { // GODT-1479 restore the hover-able status that may have been disabled when clicking on the 'Open Bridge' button.
-            openBridgeButton.hoverEnabled = true
+        if (visible) { // GODT-1479 To avoid a visual glitch where the 'Open bridge button' would appear hovered when the status windows opens,
+            // we've disabled hover on it when it was last closed. Re-enabling hover here will not work on all platforms. so we temporarily connect
+            // mouse move event over the window's mouseArea to a function that will re-enable hover on the open bridge button.
             openBridgeButton.focus = false
+            mouseArea.positionChanged.connect(enableHoverOnOpenBridgeButton)
         } else {
             menu.close()
         }
