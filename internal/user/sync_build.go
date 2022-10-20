@@ -90,7 +90,7 @@ func newMessageCreatedUpdate(message liteapi.MessageMetadata, literal []byte) (*
 	return &imap.MessageCreated{
 		Message:       imapMessage,
 		Literal:       literal,
-		LabelIDs:      mapTo[string, imap.LabelID](xslices.Filter(message.LabelIDs, wantLabelID)),
+		MailboxIDs:    mapTo[string, imap.MailboxID](xslices.Filter(message.LabelIDs, wantLabelID)),
 		ParsedMessage: parsedMessage,
 	}, nil
 }

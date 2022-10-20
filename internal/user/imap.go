@@ -78,8 +78,8 @@ func (conn *imapConnector) Authorize(username string, password []byte) bool {
 	return true
 }
 
-// GetLabel returns information about the label with the given ID.
-func (conn *imapConnector) GetLabel(ctx context.Context, labelID imap.LabelID) (imap.Mailbox, error) {
+// GetMailbox returns information about the label with the given ID.
+func (conn *imapConnector) GetMailbox(ctx context.Context, labelID imap.MailboxID) (imap.Mailbox, error) {
 	label, err := conn.client.GetLabel(ctx, string(labelID), liteapi.LabelTypeLabel, liteapi.LabelTypeFolder)
 	if err != nil {
 		return imap.Mailbox{}, err
@@ -103,7 +103,7 @@ func (conn *imapConnector) GetLabel(ctx context.Context, labelID imap.LabelID) (
 	}
 
 	return imap.Mailbox{
-		ID:             imap.LabelID(label.ID),
+		ID:             imap.MailboxID(label.ID),
 		Name:           name,
 		Flags:          conn.flags,
 		PermanentFlags: conn.permFlags,
@@ -111,8 +111,8 @@ func (conn *imapConnector) GetLabel(ctx context.Context, labelID imap.LabelID) (
 	}, nil
 }
 
-// CreateLabel creates a label with the given name.
-func (conn *imapConnector) CreateLabel(ctx context.Context, name []string) (imap.Mailbox, error) {
+// CreateMailbox creates a label with the given name.
+func (conn *imapConnector) CreateMailbox(ctx context.Context, name []string) (imap.Mailbox, error) {
 	if len(name) != 2 {
 		panic("subfolders are unsupported")
 	}
@@ -135,7 +135,7 @@ func (conn *imapConnector) CreateLabel(ctx context.Context, name []string) (imap
 	}
 
 	return imap.Mailbox{
-		ID:             imap.LabelID(label.ID),
+		ID:             imap.MailboxID(label.ID),
 		Name:           name,
 		Flags:          conn.flags,
 		PermanentFlags: conn.permFlags,
@@ -143,8 +143,8 @@ func (conn *imapConnector) CreateLabel(ctx context.Context, name []string) (imap
 	}, nil
 }
 
-// UpdateLabel sets the name of the label with the given ID.
-func (conn *imapConnector) UpdateLabel(ctx context.Context, labelID imap.LabelID, newName []string) error {
+// UpdateMailboxName sets the name of the label with the given ID.
+func (conn *imapConnector) UpdateMailboxName(ctx context.Context, labelID imap.MailboxID, newName []string) error {
 	if len(newName) != 2 {
 		panic("subfolders are unsupported")
 	}
@@ -182,13 +182,13 @@ func (conn *imapConnector) UpdateLabel(ctx context.Context, labelID imap.LabelID
 	return nil
 }
 
-// DeleteLabel deletes the label with the given ID.
-func (conn *imapConnector) DeleteLabel(ctx context.Context, labelID imap.LabelID) error {
+// DeleteMailbox deletes the label with the given ID.
+func (conn *imapConnector) DeleteMailbox(ctx context.Context, labelID imap.MailboxID) error {
 	return conn.client.DeleteLabel(ctx, string(labelID))
 }
 
 // GetMessage returns the message with the given ID.
-func (conn *imapConnector) GetMessage(ctx context.Context, messageID imap.MessageID) (imap.Message, []imap.LabelID, error) {
+func (conn *imapConnector) GetMessage(ctx context.Context, messageID imap.MessageID) (imap.Message, []imap.MailboxID, error) {
 	message, err := conn.client.GetMessage(ctx, string(messageID))
 	if err != nil {
 		return imap.Message{}, nil, err
@@ -208,13 +208,13 @@ func (conn *imapConnector) GetMessage(ctx context.Context, messageID imap.Messag
 		ID:    imap.MessageID(message.ID),
 		Flags: flags,
 		Date:  time.Unix(message.Time, 0),
-	}, mapTo[string, imap.LabelID](message.LabelIDs), nil
+	}, mapTo[string, imap.MailboxID](message.LabelIDs), nil
 }
 
 // CreateMessage creates a new message on the remote.
 func (conn *imapConnector) CreateMessage(
 	ctx context.Context,
-	labelID imap.LabelID,
+	labelID imap.MailboxID,
 	literal []byte,
 	flags imap.FlagSet,
 	date time.Time,
@@ -267,18 +267,18 @@ func (conn *imapConnector) CreateMessage(
 	}, literal, nil
 }
 
-// LabelMessages labels the given messages with the given label ID.
-func (conn *imapConnector) LabelMessages(ctx context.Context, messageIDs []imap.MessageID, labelID imap.LabelID) error {
+// AddMessagesToMailbox labels the given messages with the given label ID.
+func (conn *imapConnector) AddMessagesToMailbox(ctx context.Context, messageIDs []imap.MessageID, labelID imap.MailboxID) error {
 	return conn.client.LabelMessages(ctx, mapTo[imap.MessageID, string](messageIDs), string(labelID))
 }
 
-// UnlabelMessages unlabels the given messages with the given label ID.
-func (conn *imapConnector) UnlabelMessages(ctx context.Context, messageIDs []imap.MessageID, labelID imap.LabelID) error {
+// RemoveMessagesFromMailbox unlabels the given messages with the given label ID.
+func (conn *imapConnector) RemoveMessagesFromMailbox(ctx context.Context, messageIDs []imap.MessageID, labelID imap.MailboxID) error {
 	return conn.client.UnlabelMessages(ctx, mapTo[imap.MessageID, string](messageIDs), string(labelID))
 }
 
 // MoveMessages removes the given messages from one label and adds them to the other label.
-func (conn *imapConnector) MoveMessages(ctx context.Context, messageIDs []imap.MessageID, labelFromID imap.LabelID, labelToID imap.LabelID) error {
+func (conn *imapConnector) MoveMessages(ctx context.Context, messageIDs []imap.MessageID, labelFromID imap.MailboxID, labelToID imap.MailboxID) error {
 	if err := conn.client.LabelMessages(ctx, mapTo[imap.MessageID, string](messageIDs), string(labelToID)); err != nil {
 		return fmt.Errorf("labeling messages: %w", err)
 	}
@@ -334,4 +334,8 @@ func (conn *imapConnector) SetUIDValidity(uidValidity imap.UID) error {
 // Close the connector will no longer be used and all resources should be closed/released.
 func (conn *imapConnector) Close(ctx context.Context) error {
 	return nil
+}
+
+func (conn *imapConnector) IsMailboxVisible(_ context.Context, _ imap.MailboxID) bool {
+	return true
 }

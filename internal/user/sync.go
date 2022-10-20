@@ -91,7 +91,7 @@ func syncLabels(ctx context.Context, client *liteapi.Client, updateCh ...*queue.
 
 	for _, label := range xslices.Filter(system, func(label liteapi.Label) bool { return wantLabelID(label.ID) }) {
 		for _, updateCh := range updateCh {
-			updateCh.Enqueue(newSystemMailboxCreatedUpdate(imap.LabelID(label.ID), label.Name))
+			updateCh.Enqueue(newSystemMailboxCreatedUpdate(imap.MailboxID(label.ID), label.Name))
 		}
 	}
 
@@ -110,7 +110,7 @@ func syncLabels(ctx context.Context, client *liteapi.Client, updateCh ...*queue.
 
 	for _, folder := range folders {
 		for _, updateCh := range updateCh {
-			updateCh.Enqueue(newMailboxCreatedUpdate(imap.LabelID(folder.ID), getMailboxName(folder)))
+			updateCh.Enqueue(newMailboxCreatedUpdate(imap.MailboxID(folder.ID), getMailboxName(folder)))
 		}
 	}
 
@@ -122,7 +122,7 @@ func syncLabels(ctx context.Context, client *liteapi.Client, updateCh ...*queue.
 
 	for _, label := range labels {
 		for _, updateCh := range updateCh {
-			updateCh.Enqueue(newMailboxCreatedUpdate(imap.LabelID(label.ID), getMailboxName(label)))
+			updateCh.Enqueue(newMailboxCreatedUpdate(imap.MailboxID(label.ID), getMailboxName(label)))
 		}
 	}
 
@@ -205,7 +205,7 @@ func syncMessages( //nolint:funlen
 	})
 }
 
-func newSystemMailboxCreatedUpdate(labelID imap.LabelID, labelName string) *imap.MailboxCreated {
+func newSystemMailboxCreatedUpdate(labelID imap.MailboxID, labelName string) *imap.MailboxCreated {
 	if strings.EqualFold(labelName, imap.Inbox) {
 		labelName = imap.Inbox
 	}
@@ -221,7 +221,7 @@ func newSystemMailboxCreatedUpdate(labelID imap.LabelID, labelName string) *imap
 
 func newPlaceHolderMailboxCreatedUpdate(labelName string) *imap.MailboxCreated {
 	return imap.NewMailboxCreated(imap.Mailbox{
-		ID:             imap.LabelID(uuid.NewString()),
+		ID:             imap.MailboxID(uuid.NewString()),
 		Name:           []string{labelName},
 		Flags:          defaultFlags,
 		PermanentFlags: defaultPermanentFlags,
@@ -229,7 +229,7 @@ func newPlaceHolderMailboxCreatedUpdate(labelName string) *imap.MailboxCreated {
 	})
 }
 
-func newMailboxCreatedUpdate(labelID imap.LabelID, labelName []string) *imap.MailboxCreated {
+func newMailboxCreatedUpdate(labelID imap.MailboxID, labelName []string) *imap.MailboxCreated {
 	return imap.NewMailboxCreated(imap.Mailbox{
 		ID:             labelID,
 		Name:           labelName,
