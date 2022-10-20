@@ -65,11 +65,13 @@ func (s *scenario) internetIsTurnedOn() error {
 }
 
 func (s *scenario) theUserAgentIs(userAgent string) error {
-	if haveUserAgent := s.t.bridge.GetCurrentUserAgent(); haveUserAgent != userAgent {
-		return fmt.Errorf("have user agent %q, want %q", haveUserAgent, userAgent)
-	}
+	return eventually(func() error {
+		if haveUserAgent := s.t.bridge.GetCurrentUserAgent(); haveUserAgent != userAgent {
+			return fmt.Errorf("have user agent %q, want %q", haveUserAgent, userAgent)
+		}
 
-	return nil
+		return nil
+	})
 }
 
 func (s *scenario) theHeaderInTheRequestToHasSetTo(method, path, key, value string) error {
