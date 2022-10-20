@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Proton Mail Bridge.  If not, see <https://www.gnu.org/licenses/>.
 
-package user_test
+package user
 
 import (
 	"context"
@@ -24,7 +24,6 @@ import (
 
 	"github.com/ProtonMail/proton-bridge/v2/internal/certs"
 	"github.com/ProtonMail/proton-bridge/v2/internal/events"
-	"github.com/ProtonMail/proton-bridge/v2/internal/user"
 	"github.com/ProtonMail/proton-bridge/v2/internal/vault"
 	"github.com/ProtonMail/proton-bridge/v2/tests"
 	"github.com/stretchr/testify/require"
@@ -34,8 +33,8 @@ import (
 )
 
 func init() {
-	user.EventPeriod = 100 * time.Millisecond
-	user.EventJitter = 0
+	EventPeriod = 100 * time.Millisecond
+	EventJitter = 0
 	backend.GenerateKey = tests.FastGenerateKey
 	certs.GenerateCert = tests.FastGenerateCert
 }
@@ -43,7 +42,7 @@ func init() {
 func TestUser_Data(t *testing.T) {
 	withAPI(t, context.Background(), func(ctx context.Context, s *server.Server, m *liteapi.Manager) {
 		withAccount(t, s, "username", "password", []string{"email@pm.me", "alias@pm.me"}, func(userID string, addrIDs []string) {
-			withUser(t, ctx, s, m, "username", "password", func(user *user.User) {
+			withUser(t, ctx, s, m, "username", "password", func(user *User) {
 				// User's ID should be correct.
 				require.Equal(t, userID, user.ID())
 
@@ -66,7 +65,7 @@ func TestUser_Data(t *testing.T) {
 func TestUser_Sync(t *testing.T) {
 	withAPI(t, context.Background(), func(ctx context.Context, s *server.Server, m *liteapi.Manager) {
 		withAccount(t, s, "username", "password", []string{"email@pm.me"}, func(userID string, addrIDs []string) {
-			withUser(t, ctx, s, m, "username", "password", func(user *user.User) {
+			withUser(t, ctx, s, m, "username", "password", func(user *User) {
 				// User starts a sync at startup.
 				require.IsType(t, events.SyncStarted{}, <-user.GetEventCh())
 
@@ -83,7 +82,7 @@ func TestUser_Sync(t *testing.T) {
 func TestUser_Deauth(t *testing.T) {
 	withAPI(t, context.Background(), func(ctx context.Context, s *server.Server, m *liteapi.Manager) {
 		withAccount(t, s, "username", "password", []string{"email@pm.me"}, func(userID string, addrIDs []string) {
-			withUser(t, ctx, s, m, "username", "password", func(user *user.User) {
+			withUser(t, ctx, s, m, "username", "password", func(user *User) {
 				eventCh := user.GetEventCh()
 
 				// Revoke the user's auth token.
@@ -96,7 +95,7 @@ func TestUser_Deauth(t *testing.T) {
 	})
 }
 
-func withAPI(_ *testing.T, ctx context.Context, fn func(context.Context, *server.Server, *liteapi.Manager)) { //nolint:revive
+func withAPI(_ testing.TB, ctx context.Context, fn func(context.Context, *server.Server, *liteapi.Manager)) { //nolint:revive
 	server := server.New()
 	defer server.Close()
 
@@ -106,9 +105,9 @@ func withAPI(_ *testing.T, ctx context.Context, fn func(context.Context, *server
 	))
 }
 
-func withAccount(t *testing.T, s *server.Server, username, password string, emails []string, fn func(string, []string)) {
+func withAccount(tb testing.TB, s *server.Server, username, password string, emails []string, fn func(string, []string)) { //nolint:unparam
 	userID, addrID, err := s.CreateUser(username, emails[0], []byte(password))
-	require.NoError(t, err)
+	require.NoError(tb, err)
 
 	addrIDs := make([]string, 0, len(emails))
 
@@ -116,7 +115,7 @@ func withAccount(t *testing.T, s *server.Server, username, password string, emai
 
 	for _, email := range emails[1:] {
 		addrID, err := s.CreateAddress(userID, email, []byte(password))
-		require.NoError(t, err)
+		require.NoError(tb, err)
 
 		addrIDs = append(addrIDs, addrID)
 	}
@@ -124,33 +123,33 @@ func withAccount(t *testing.T, s *server.Server, username, password string, emai
 	fn(userID, addrIDs)
 }
 
-func withUser(t *testing.T, ctx context.Context, _ *server.Server, m *liteapi.Manager, username, password string, fn func(*user.User)) { //nolint:revive
+func withUser(tb testing.TB, ctx context.Context, _ *server.Server, m *liteapi.Manager, username, password string, fn func(*User)) { //nolint:unparam,revive
 	client, apiAuth, err := m.NewClientWithLogin(ctx, username, []byte(password))
-	require.NoError(t, err)
-	defer func() { require.NoError(t, client.Close()) }()
+	require.NoError(tb, err)
+	defer func() { require.NoError(tb, client.Close()) }()
 
 	apiUser, err := client.GetUser(ctx)
-	require.NoError(t, err)
+	require.NoError(tb, err)
 
 	salts, err := client.GetSalts(ctx)
-	require.NoError(t, err)
+	require.NoError(tb, err)
 
 	saltedKeyPass, err := salts.SaltForKey([]byte(password), apiUser.Keys.Primary().ID)
-	require.NoError(t, err)
+	require.NoError(tb, err)
 
-	vault, corrupt, err := vault.New(t.TempDir(), t.TempDir(), []byte("my secret key"))
-	require.NoError(t, err)
-	require.False(t, corrupt)
+	vault, corrupt, err := vault.New(tb.TempDir(), tb.TempDir(), []byte("my secret key"))
+	require.NoError(tb, err)
+	require.False(tb, corrupt)
 
 	vaultUser, err := vault.AddUser(apiUser.ID, username, apiAuth.UID, apiAuth.RefreshToken, saltedKeyPass)
-	require.NoError(t, err)
+	require.NoError(tb, err)
 
-	user, err := user.New(ctx, vaultUser, client, apiUser, true)
-	require.NoError(t, err)
-	defer func() { require.NoError(t, user.Close()) }()
+	user, err := New(ctx, vaultUser, client, apiUser, true)
+	require.NoError(tb, err)
+	defer func() { require.NoError(tb, user.Close()) }()
 
 	imapConn, err := user.NewIMAPConnectors()
-	require.NoError(t, err)
+	require.NoError(tb, err)
 
 	go func() {
 		for _, imapConn := range imapConn {

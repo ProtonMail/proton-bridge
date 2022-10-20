@@ -163,72 +163,70 @@ func (session *smtpSession) Data(r io.Reader) error { //nolint:funlen
 	}
 
 	return session.apiAddrs.ValuesErr(func(apiAddrs []liteapi.Address) error {
-		return session.withAddrKR(session.fromAddrID, func(addrKR *crypto.KeyRing) error {
-			return session.withUserKR(func(userKR *crypto.KeyRing) error {
-				// Use the first key for encrypting the message.
-				addrKR, err := addrKR.FirstKey()
+		return session.withAddrKR(session.fromAddrID, func(userKR, addrKR *crypto.KeyRing) error {
+			// Use the first key for encrypting the message.
+			addrKR, err := addrKR.FirstKey()
+			if err != nil {
+				return fmt.Errorf("failed to get first key: %w", err)
+			}
+
+			// If the message contains a sender, use it instead of the one from the return path.
+			if sender, ok := getMessageSender(parser); ok {
+				session.from = sender
+			}
+
+			// Load the user's mail settings.
+			settings, err := session.client.GetMailSettings(ctx)
+			if err != nil {
+				return fmt.Errorf("failed to get mail settings: %w", err)
+			}
+
+			// If we have to attach the public key, do it now.
+			if settings.AttachPublicKey == liteapi.AttachPublicKeyEnabled {
+				key, err := addrKR.GetKey(0)
 				if err != nil {
-					return fmt.Errorf("failed to get first key: %w", err)
+					return fmt.Errorf("failed to get sending key: %w", err)
 				}
 
-				// If the message contains a sender, use it instead of the one from the return path.
-				if sender, ok := getMessageSender(parser); ok {
-					session.from = sender
-				}
-
-				// Load the user's mail settings.
-				settings, err := session.client.GetMailSettings(ctx)
+				pubKey, err := key.GetArmoredPublicKey()
 				if err != nil {
-					return fmt.Errorf("failed to get mail settings: %w", err)
+					return fmt.Errorf("failed to get public key: %w", err)
 				}
 
-				// If we have to attach the public key, do it now.
-				if settings.AttachPublicKey == liteapi.AttachPublicKeyEnabled {
-					key, err := addrKR.GetKey(0)
-					if err != nil {
-						return fmt.Errorf("failed to get sending key: %w", err)
-					}
+				parser.AttachPublicKey(pubKey, fmt.Sprintf("publickey - %v - %v", addrKR.GetIdentities()[0].Name, key.GetFingerprint()[:8]))
+			}
 
-					pubKey, err := key.GetArmoredPublicKey()
-					if err != nil {
-						return fmt.Errorf("failed to get public key: %w", err)
-					}
+			// Parse the message we want to send (after we have attached the public key).
+			message, err := message.ParseWithParser(parser)
+			if err != nil {
+				return fmt.Errorf("failed to parse message: %w", err)
+			}
 
-					parser.AttachPublicKey(pubKey, fmt.Sprintf("publickey - %v - %v", addrKR.GetIdentities()[0].Name, key.GetFingerprint()[:8]))
-				}
-
-				// Parse the message we want to send (after we have attached the public key).
-				message, err := message.ParseWithParser(parser)
-				if err != nil {
-					return fmt.Errorf("failed to parse message: %w", err)
-				}
-
-				// Collect all the user's emails so we can match them to the outgoing message.
-				emails := xslices.Map(apiAddrs, func(addr liteapi.Address) string {
-					return addr.Email
-				})
-
-				sent, err := sendWithKey(
-					ctx,
-					session.client,
-					session.authID,
-					session.vault.AddressMode(),
-					settings,
-					userKR,
-					addrKR,
-					emails,
-					session.from,
-					session.to,
-					message,
-				)
-				if err != nil {
-					return fmt.Errorf("failed to send message: %w", err)
-				}
-
-				logrus.WithField("messageID", sent.ID).Info("Message sent")
-
-				return nil
+			// Collect all the user's emails so we can match them to the outgoing message.
+			emails := xslices.Map(apiAddrs, func(addr liteapi.Address) string {
+				return addr.Email
 			})
+
+			sent, err := sendWithKey(
+				ctx,
+				session.client,
+				session.authID,
+				session.vault.AddressMode(),
+				settings,
+				userKR,
+				addrKR,
+				emails,
+				session.from,
+				session.to,
+				message,
+			)
+			if err != nil {
+				return fmt.Errorf("failed to send message: %w", err)
+			}
+
+			logrus.WithField("messageID", sent.ID).Info("Message sent")
+
+			return nil
 		})
 	})
 }

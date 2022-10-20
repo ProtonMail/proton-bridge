@@ -43,7 +43,7 @@ const (
 )
 
 func (user *User) sync(ctx context.Context) error {
-	return user.withAddrKRs(func(addrKRs map[string]*crypto.KeyRing) error {
+	return user.withAddrKRs(func(_ *crypto.KeyRing, addrKRs map[string]*crypto.KeyRing) error {
 		logrus.Info("Beginning sync")
 
 		if !user.vault.SyncStatus().HasLabels {

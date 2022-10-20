@@ -248,7 +248,7 @@ func (user *User) handleCreateMessageEvent(ctx context.Context, event liteapi.Me
 		return fmt.Errorf("failed to get full message: %w", err)
 	}
 
-	return user.withAddrKR(event.Message.AddressID, func(addrKR *crypto.KeyRing) error {
+	return user.withAddrKR(event.Message.AddressID, func(_, addrKR *crypto.KeyRing) error {
 		buildRes, err := buildRFC822(ctx, full, addrKR)
 		if err != nil {
 			return fmt.Errorf("failed to build RFC822 message: %w", err)

@@ -254,7 +254,7 @@ func (conn *imapConnector) CreateMessage(
 		imported  []byte
 	)
 
-	if err := conn.withAddrKR(conn.addrID, func(addrKR *crypto.KeyRing) error {
+	if err := conn.withAddrKR(conn.addrID, func(_, addrKR *crypto.KeyRing) error {
 		res, err := stream.Collect(ctx, conn.client.ImportMessages(ctx, addrKR, 1, 1, []liteapi.ImportReq{{
 			Metadata: liteapi.ImportMetadata{
 				AddressID: conn.addrID,
