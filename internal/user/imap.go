@@ -213,13 +213,15 @@ func (conn *imapConnector) GetMessage(ctx context.Context, messageID imap.Messag
 }
 
 // CreateMessage creates a new message on the remote.
+//
+// nolint:funlen
 func (conn *imapConnector) CreateMessage(
 	ctx context.Context,
 	mailboxID imap.MailboxID,
 	literal []byte,
 	flags imap.FlagSet,
 	date time.Time,
-) (imap.Message, []byte, error) { // nolint:funlen
+) (imap.Message, []byte, error) {
 	var msgFlags liteapi.MessageFlag
 
 	if mailboxID != liteapi.DraftsLabel {

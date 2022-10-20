@@ -68,9 +68,7 @@ func (msg Message) Build() []byte {
 		b = append(b, "Subject: "+msg.Subject+"\r\n"...)
 	}
 
-	if msg.Body != "" {
-		b = append(b, "\r\n"+msg.Body+"\r\n"...)
-	}
+	b = append(b, "\r\n"+msg.Body+"\r\n"...)
 
 	return b
 }

@@ -19,7 +19,6 @@ package tests
 
 import (
 	"github.com/Masterminds/semver/v3"
-	"gitlab.protontech.ch/go/liteapi"
 	"gitlab.protontech.ch/go/liteapi/server"
 )
 
@@ -30,12 +29,10 @@ type API interface {
 	AddCallWatcher(func(server.Call), ...string)
 
 	CreateUser(username, address string, password []byte) (string, string, error)
-	CreateAddress(userID, address string, password []byte) (string, error)
-	RemoveAddress(userID, addrID string) error
 	RevokeUser(userID string) error
 
-	GetLabels(userID string) ([]liteapi.Label, error)
-	CreateLabel(userID, name string, labelType liteapi.LabelType) (string, error)
+	CreateAddress(userID, address string, password []byte) (string, error)
+	RemoveAddress(userID, addrID string) error
 
 	Close()
 }
@@ -46,6 +43,6 @@ type fakeAPI struct {
 
 func newFakeAPI() *fakeAPI {
 	return &fakeAPI{
-		Server: server.NewTLS(),
+		Server: server.New(),
 	}
 }

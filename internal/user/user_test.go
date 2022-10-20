@@ -100,7 +100,10 @@ func withAPI(_ *testing.T, ctx context.Context, fn func(context.Context, *server
 	server := server.New()
 	defer server.Close()
 
-	fn(ctx, server, liteapi.New(liteapi.WithHostURL(server.GetHostURL())))
+	fn(ctx, server, liteapi.New(
+		liteapi.WithHostURL(server.GetHostURL()),
+		liteapi.WithTransport(liteapi.InsecureTransport()),
+	))
 }
 
 func withAccount(t *testing.T, s *server.Server, username, password string, emails []string, fn func(string, []string)) {

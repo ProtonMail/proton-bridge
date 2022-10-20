@@ -125,6 +125,16 @@ func (t *testCtx) beforeStep() {
 	t.errors = append(t.errors, nil)
 }
 
+func (t *testCtx) getName(wantUserID string) string {
+	for name, userID := range t.userIDByName {
+		if userID == wantUserID {
+			return name
+		}
+	}
+
+	panic(fmt.Sprintf("unknown user ID %q", wantUserID))
+}
+
 func (t *testCtx) getUserID(username string) string {
 	return t.userIDByName[username]
 }
@@ -174,20 +184,33 @@ func (t *testCtx) setUserBridgePass(userID string, pass []byte) {
 }
 
 func (t *testCtx) getMBoxID(userID string, name string) string {
-	labels, err := t.api.GetLabels(userID)
-	if err != nil {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	var labelID string
+
+	if err := t.withClient(ctx, t.getName(userID), func(ctx context.Context, client *liteapi.Client) error {
+		labels, err := client.GetLabels(ctx, liteapi.LabelTypeLabel, liteapi.LabelTypeFolder, liteapi.LabelTypeSystem)
+		if err != nil {
+			panic(err)
+		}
+
+		idx := xslices.IndexFunc(labels, func(label liteapi.Label) bool {
+			return label.Name == name
+		})
+
+		if idx < 0 {
+			panic(fmt.Errorf("label %q not found", name))
+		}
+
+		labelID = labels[idx].ID
+
+		return nil
+	}); err != nil {
 		panic(err)
 	}
 
-	idx := xslices.IndexFunc(labels, func(label liteapi.Label) bool {
-		return label.Name == name
-	})
-
-	if idx < 0 {
-		panic(fmt.Errorf("label %q not found", name))
-	}
-
-	return labels[idx].ID
+	return labelID
 }
 
 func (t *testCtx) getLastCall(method, path string) (server.Call, error) {

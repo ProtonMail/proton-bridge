@@ -53,7 +53,7 @@ func TestTLSPinBackup(t *testing.T) {
 }
 
 func TestTLSPinInvalid(t *testing.T) {
-	s := server.NewTLS()
+	s := server.New()
 	defer s.Close()
 
 	called, _, _, _, cm := createClientWithPinningDialer(s.GetHostURL())

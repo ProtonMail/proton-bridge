@@ -22,10 +22,13 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	"github.com/ProtonMail/proton-bridge/v2/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/v2/internal/events"
+	"github.com/bradenaw/juniper/iterator"
+	"github.com/bradenaw/juniper/stream"
 	"github.com/emersion/go-imap/client"
 	"github.com/stretchr/testify/require"
 	"gitlab.protontech.ch/go/liteapi"
@@ -48,11 +51,44 @@ func TestBridge_Sync(t *testing.T) {
 		literal, err := os.ReadFile(filepath.Join("testdata", "text-plain.eml"))
 		require.NoError(t, err)
 
-		for i := 0; i < numMsg; i++ {
-			messageID, err := s.CreateMessage(userID, addrID, literal, liteapi.MessageFlagReceived, false, false)
-			require.NoError(t, err)
-			require.NoError(t, s.LabelMessage(userID, messageID, labelID))
-		}
+		c, _, err := liteapi.New(
+			liteapi.WithHostURL(s.GetHostURL()),
+			liteapi.WithTransport(liteapi.InsecureTransport()),
+		).NewClientWithLogin(ctx, "imap", password)
+		require.NoError(t, err)
+
+		user, err := c.GetUser(ctx)
+		require.NoError(t, err)
+
+		addr, err := c.GetAddresses(ctx)
+		require.NoError(t, err)
+		require.Equal(t, addrID, addr[0].ID)
+
+		salt, err := c.GetSalts(ctx)
+		require.NoError(t, err)
+
+		keyPass, err := salt.SaltForKey(password, user.Keys.Primary().ID)
+		require.NoError(t, err)
+
+		_, addrKRs, err := liteapi.Unlock(user, addr, keyPass)
+		require.NoError(t, err)
+
+		require.NoError(t, getErr(stream.Collect(ctx, c.ImportMessages(
+			ctx,
+			addrKRs[addr[0].ID],
+			runtime.NumCPU(),
+			runtime.NumCPU(),
+			iterator.Collect(iterator.Map(iterator.Counter(numMsg), func(i int) liteapi.ImportReq {
+				return liteapi.ImportReq{
+					Metadata: liteapi.ImportMetadata{
+						AddressID: addr[0].ID,
+						LabelIDs:  []string{labelID},
+						Flags:     liteapi.MessageFlagReceived,
+					},
+					Message: literal,
+				}
+			}))...,
+		))))
 
 		var read uint64
 

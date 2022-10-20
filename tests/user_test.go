@@ -22,6 +22,8 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/bradenaw/juniper/iterator"
+	"github.com/bradenaw/juniper/xslices"
 	"github.com/cucumber/godog"
 	"github.com/google/uuid"
 	"gitlab.protontech.ch/go/liteapi"
@@ -74,26 +76,45 @@ func (s *scenario) theAccountNoLongerHasAdditionalAddress(username, address stri
 }
 
 func (s *scenario) theAccountHasCustomFolders(username string, count int) error {
-	for idx := 0; idx < count; idx++ {
-		if _, err := s.t.api.CreateLabel(s.t.getUserID(username), uuid.NewString(), liteapi.LabelTypeFolder); err != nil {
-			return err
-		}
-	}
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
-	return nil
+	return s.t.withClient(ctx, username, func(ctx context.Context, client *liteapi.Client) error {
+		for idx := 0; idx < count; idx++ {
+			if _, err := client.CreateLabel(ctx, liteapi.CreateLabelReq{
+				Name: uuid.NewString(),
+				Type: liteapi.LabelTypeFolder,
+			}); err != nil {
+				return err
+			}
+		}
+
+		return nil
+	})
 }
 
 func (s *scenario) theAccountHasCustomLabels(username string, count int) error {
-	for idx := 0; idx < count; idx++ {
-		if _, err := s.t.api.CreateLabel(s.t.getUserID(username), uuid.NewString(), liteapi.LabelTypeLabel); err != nil {
-			return err
-		}
-	}
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
-	return nil
+	return s.t.withClient(ctx, username, func(ctx context.Context, client *liteapi.Client) error {
+		for idx := 0; idx < count; idx++ {
+			if _, err := client.CreateLabel(ctx, liteapi.CreateLabelReq{
+				Name: uuid.NewString(),
+				Type: liteapi.LabelTypeLabel,
+			}); err != nil {
+				return err
+			}
+		}
+
+		return nil
+	})
 }
 
 func (s *scenario) theAccountHasTheFollowingCustomMailboxes(username string, table *godog.Table) error {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	type CustomMailbox struct {
 		Name string `bdd:"name"`
 		Type string `bdd:"type"`
@@ -104,26 +125,34 @@ func (s *scenario) theAccountHasTheFollowingCustomMailboxes(username string, tab
 		return err
 	}
 
-	for _, wantMailbox := range wantMailboxes {
-		var labelType liteapi.LabelType
+	return s.t.withClient(ctx, username, func(ctx context.Context, client *liteapi.Client) error {
+		for _, wantMailbox := range wantMailboxes {
+			var labelType liteapi.LabelType
 
-		switch wantMailbox.Type {
-		case "folder":
-			labelType = liteapi.LabelTypeFolder
+			switch wantMailbox.Type {
+			case "folder":
+				labelType = liteapi.LabelTypeFolder
 
-		case "label":
-			labelType = liteapi.LabelTypeLabel
+			case "label":
+				labelType = liteapi.LabelTypeLabel
+			}
+
+			if _, err := client.CreateLabel(ctx, liteapi.CreateLabelReq{
+				Name: wantMailbox.Name,
+				Type: labelType,
+			}); err != nil {
+				return err
+			}
 		}
 
-		if _, err := s.t.api.CreateLabel(s.t.getUserID(username), wantMailbox.Name, labelType); err != nil {
-			return err
-		}
-	}
-
-	return nil
+		return nil
+	})
 }
 
 func (s *scenario) theAddressOfAccountHasTheFollowingMessagesInMailbox(address, username, mailbox string, table *godog.Table) error {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	userID := s.t.getUserID(username)
 	addrID := s.t.getUserAddrID(userID, address)
 	mboxID := s.t.getMBoxID(userID, mailbox)
@@ -133,42 +162,42 @@ func (s *scenario) theAddressOfAccountHasTheFollowingMessagesInMailbox(address, 
 		return err
 	}
 
-	for _, wantMessage := range wantMessages {
-		messageID, err := s.t.api.CreateMessage(userID, addrID, wantMessage.Build(), liteapi.MessageFlagReceived, wantMessage.Unread, false)
-		if err != nil {
-			return err
+	return s.t.createMessages(ctx, username, addrID, xslices.Map(wantMessages, func(message Message) liteapi.ImportReq {
+		return liteapi.ImportReq{
+			Metadata: liteapi.ImportMetadata{
+				AddressID: addrID,
+				LabelIDs:  []string{mboxID},
+				Unread:    liteapi.Bool(message.Unread),
+				Flags:     liteapi.MessageFlagReceived,
+			},
+			Message: message.Build(),
 		}
-
-		if err := s.t.api.LabelMessage(userID, messageID, mboxID); err != nil {
-			return err
-		}
-	}
-
-	return nil
+	}))
 }
 
 func (s *scenario) theAddressOfAccountHasMessagesInMailbox(address, username string, count int, mailbox string) error {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	userID := s.t.getUserID(username)
 	addrID := s.t.getUserAddrID(userID, address)
 	mboxID := s.t.getMBoxID(userID, mailbox)
 
-	for idx := 0; idx < count; idx++ {
-		messageID, err := s.t.api.CreateMessage(userID, addrID, Message{
-			Subject: fmt.Sprintf("%d", idx),
-			To:      fmt.Sprintf("%d@pm.me", idx),
-			From:    fmt.Sprintf("%d@pm.me", idx),
-			Body:    fmt.Sprintf("body %d", idx),
-		}.Build(), liteapi.MessageFlagReceived, idx%2 == 0, false)
-		if err != nil {
-			return err
+	return s.t.createMessages(ctx, username, addrID, iterator.Collect(iterator.Map(iterator.Counter(count), func(idx int) liteapi.ImportReq {
+		return liteapi.ImportReq{
+			Metadata: liteapi.ImportMetadata{
+				AddressID: addrID,
+				LabelIDs:  []string{mboxID},
+				Flags:     liteapi.MessageFlagReceived,
+			},
+			Message: Message{
+				Subject: fmt.Sprintf("%d", idx),
+				To:      fmt.Sprintf("%d@pm.me", idx),
+				From:    fmt.Sprintf("%d@pm.me", idx),
+				Body:    fmt.Sprintf("body %d", idx),
+			}.Build(),
 		}
-
-		if err := s.t.api.LabelMessage(userID, messageID, mboxID); err != nil {
-			return err
-		}
-	}
-
-	return nil
+	})))
 }
 
 func (s *scenario) userLogsInWithUsernameAndPassword(username, password string) error {

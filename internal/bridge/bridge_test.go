@@ -357,7 +357,7 @@ func TestBridge_MissingGluonDir(t *testing.T) {
 
 // withEnv creates the full test environment and runs the tests.
 func withEnv(t *testing.T, tests func(context.Context, *server.Server, *liteapi.NetCtl, bridge.Locator, []byte)) {
-	server := server.NewTLS()
+	server := server.New()
 	defer server.Close()
 
 	withEnvServer(t, server, func(ctx context.Context, netCtl *liteapi.NetCtl, locator bridge.Locator, vaultKey []byte) {

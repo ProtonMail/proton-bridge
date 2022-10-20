@@ -26,7 +26,6 @@ import (
 	"unicode/utf8"
 
 	"github.com/ProtonMail/gluon/rfc822"
-	"github.com/emersion/go-message"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"gitlab.protontech.ch/go/liteapi"
@@ -38,7 +37,6 @@ import (
 func init() {
 	rfc822.ParseMediaType = ParseMediaType
 	liteapi.CharsetReader = CharsetReader
-	message.CharsetReader = CharsetReader
 }
 
 func CharsetReader(charset string, input io.Reader) (io.Reader, error) {
