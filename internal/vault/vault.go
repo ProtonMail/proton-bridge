@@ -22,7 +22,6 @@ import (
 	"crypto/cipher"
 	"crypto/rand"
 	"crypto/sha256"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io/fs"
@@ -32,6 +31,7 @@ import (
 
 	"github.com/ProtonMail/proton-bridge/v2/internal/certs"
 	"github.com/bradenaw/juniper/xslices"
+	"github.com/vmihailenco/msgpack/v5"
 )
 
 // Vault is an encrypted data vault that stores bridge and user data.
@@ -253,7 +253,7 @@ func (vault *Vault) get() Data {
 
 	var data Data
 
-	if err := json.Unmarshal(dec, &data); err != nil {
+	if err := msgpack.Unmarshal(dec, &data); err != nil {
 		panic(err)
 	}
 
@@ -271,13 +271,13 @@ func (vault *Vault) mod(fn func(data *Data)) error {
 
 	var data Data
 
-	if err := json.Unmarshal(dec, &data); err != nil {
+	if err := msgpack.Unmarshal(dec, &data); err != nil {
 		return err
 	}
 
 	fn(&data)
 
-	mod, err := json.Marshal(data)
+	mod, err := msgpack.Marshal(data)
 	if err != nil {
 		return err
 	}
@@ -314,7 +314,7 @@ func initVault(path, gluonDir string, gcm cipher.AEAD) ([]byte, error) {
 		return nil, err
 	}
 
-	dec, err := json.Marshal(Data{
+	dec, err := msgpack.Marshal(Data{
 		Settings: newDefaultSettings(gluonDir),
 
 		Certs: Certs{

@@ -38,6 +38,7 @@ require (
 	github.com/sirupsen/logrus v1.9.0
 	github.com/stretchr/testify v1.8.0
 	github.com/urfave/cli/v2 v2.20.3
+	github.com/vmihailenco/msgpack/v5 v5.3.5
 	gitlab.protontech.ch/go/liteapi v0.36.1
 	go.uber.org/goleak v1.2.0
 	golang.org/x/exp v0.0.0-20221023144134-a1e5550cf13e
@@ -105,6 +106,7 @@ require (
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/ssor/bom v0.0.0-20170718123548-6386211fdfcf // indirect
 	github.com/ugorji/go/codec v1.2.7 // indirect
+	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
 	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 // indirect
 	github.com/zclconf/go-cty v1.11.0 // indirect
 	golang.org/x/crypto v0.1.0 // indirect

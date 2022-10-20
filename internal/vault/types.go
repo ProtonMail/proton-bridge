@@ -20,7 +20,6 @@ package vault
 import (
 	"math/rand"
 
-	"github.com/Masterminds/semver/v3"
 	"github.com/ProtonMail/gluon/imap"
 	"github.com/ProtonMail/proton-bridge/v2/internal/updater"
 )
@@ -58,7 +57,7 @@ type Settings struct {
 	Autostart    bool
 	AutoUpdate   bool
 
-	LastVersion   *semver.Version
+	LastVersion   string
 	FirstStart    bool
 	FirstStartGUI bool
 }
@@ -81,7 +80,7 @@ func newDefaultSettings(gluonDir string) Settings {
 		Autostart:    false,
 		AutoUpdate:   true,
 
-		LastVersion:   semver.MustParse("0.0.0"),
+		LastVersion:   "0.0.0",
 		FirstStart:    true,
 		FirstStartGUI: true,
 	}

@@ -168,13 +168,13 @@ func (vault *Vault) SetAutoUpdate(autoUpdate bool) error {
 
 // GetLastVersion returns the last version of the bridge that was run.
 func (vault *Vault) GetLastVersion() *semver.Version {
-	return vault.get().Settings.LastVersion
+	return semver.MustParse(vault.get().Settings.LastVersion)
 }
 
 // SetLastVersion sets the last version of the bridge that was run.
 func (vault *Vault) SetLastVersion(version *semver.Version) error {
 	return vault.mod(func(data *Data) {
-		data.Settings.LastVersion = version
+		data.Settings.LastVersion = version.String()
 	})
 }
 
