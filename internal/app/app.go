@@ -183,20 +183,27 @@ func run(c *cli.Context) error { //nolint:funlen
 								// Load the cookies from the vault.
 								return withCookieJar(vault, func(cookieJar http.CookieJar) error {
 									// Create a new bridge instance.
-									return withBridge(c, exe, locations, version, identifier, reporter, vault, cookieJar, func(b *bridge.Bridge, eventCh <-chan events.Event) error {
-										if insecure {
-											logrus.Warn("The vault key could not be retrieved; the vault will not be encrypted")
-											b.PushError(bridge.ErrVaultInsecure)
-										}
+									return withBridge(
+										c, exe, locations, version,
+										identifier, crashHandler, reporter,
+										vault, cookieJar, func(
+											b *bridge.Bridge, eventCh <-chan events.Event) error {
+											if insecure {
+												logrus.Warn("The vault key could not be retrieved; the vault will not be encrypted")
+												b.PushError(bridge.ErrVaultInsecure)
+											}
 
-										if corrupt {
-											logrus.Warn("The vault is corrupt and has been wiped")
-											b.PushError(bridge.ErrVaultCorrupt)
-										}
+											if corrupt {
+												logrus.Warn("The vault is corrupt and has been wiped")
+												b.PushError(bridge.ErrVaultCorrupt)
+											}
 
-										// Run the frontend.
-										return runFrontend(c, crashHandler, restarter, locations, b, eventCh)
-									})
+											// Run the frontend.
+											return runFrontend(c, crashHandler, restarter,
+												locations, b, eventCh,
+											)
+										},
+									)
 								})
 							})
 						})

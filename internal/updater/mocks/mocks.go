@@ -88,3 +88,17 @@ func (mr *MockInstallerMockRecorder) InstallUpdate(arg0, arg1 interface{}) *gomo
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InstallUpdate", reflect.TypeOf((*MockInstaller)(nil).InstallUpdate), arg0, arg1)
 }
+
+// IsAlreadyInstalled mocks base method.
+func (m *MockInstaller) IsAlreadyInstalled(arg0 *semver.Version) bool {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "IsAlreadyInstalled", arg0)
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// IsAlreadyInstalled indicates an expected call of IsAlreadyInstalled.
+func (mr *MockInstallerMockRecorder) IsAlreadyInstalled(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsAlreadyInstalled", reflect.TypeOf((*MockInstaller)(nil).IsAlreadyInstalled), arg0)
+}

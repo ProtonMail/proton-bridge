@@ -27,6 +27,7 @@ import (
 	"github.com/Masterminds/semver/v3"
 	"github.com/ProtonMail/proton-bridge/v2/internal/events"
 	"github.com/ProtonMail/proton-bridge/v2/internal/vault"
+	"github.com/golang/mock/gomock"
 )
 
 func (s *scenario) bridgeStarts() error {
@@ -260,6 +261,16 @@ func (s *scenario) bridgeSendsAForcedUpdateEvent() error {
 		return errors.New("expected update forced event, got none")
 	}
 
+	return nil
+}
+
+func (s *scenario) bridgeReportsMessage(message string) error {
+	s.t.reporter.removeMatchingRecords(
+		gomock.Eq(false),
+		gomock.Eq(message),
+		gomock.Any(),
+		1,
+	)
 	return nil
 }
 

@@ -32,6 +32,7 @@ import (
 	"github.com/emersion/go-imap/client"
 	"github.com/emersion/go-sasl"
 	"github.com/emersion/go-smtp"
+	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
 	"gitlab.protontech.ch/go/liteapi"
 	"gitlab.protontech.ch/go/liteapi/server"
@@ -43,6 +44,8 @@ func TestBridge_Send(t *testing.T) {
 		require.NoError(t, err)
 
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+			mocks.Reporter.EXPECT().ReportMessageWithContext(gomock.Any(), gomock.Any()).AnyTimes()
+
 			senderUserID, err := bridge.LoginFull(ctx, username, password, nil, nil)
 			require.NoError(t, err)
 

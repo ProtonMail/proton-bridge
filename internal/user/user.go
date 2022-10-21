@@ -30,6 +30,7 @@ import (
 	"github.com/ProtonMail/gluon/connector"
 	"github.com/ProtonMail/gluon/imap"
 	"github.com/ProtonMail/gluon/queue"
+	gluonReporter "github.com/ProtonMail/gluon/reporter"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/ProtonMail/proton-bridge/v2/internal/async"
 	"github.com/ProtonMail/proton-bridge/v2/internal/events"
@@ -38,7 +39,6 @@ import (
 	"github.com/ProtonMail/proton-bridge/v2/pkg/message"
 	"github.com/ProtonMail/proton-bridge/v2/pkg/message/parser"
 	"github.com/bradenaw/juniper/xslices"
-	"github.com/bradenaw/juniper/xsync"
 	"github.com/go-resty/resty/v2"
 	"github.com/sirupsen/logrus"
 	"gitlab.protontech.ch/go/liteapi"
@@ -71,7 +71,9 @@ type User struct {
 	updateCh     map[string]*queue.QueuedChannel[imap.Update]
 	updateChLock safe.RWMutex
 
-	tasks     *xsync.Group
+	reporter gluonReporter.Reporter
+
+	tasks     *async.Group
 	abortable async.Abortable
 	goSync    func()
 	goPoll    func()
@@ -89,6 +91,8 @@ func New(
 	encVault *vault.User,
 	client *liteapi.Client,
 	apiUser liteapi.User,
+	crashHandler async.PanicHandler,
+	reporter gluonReporter.Reporter,
 	syncWorkers, syncBuffer int,
 	showAllMail bool,
 ) (*User, error) { //nolint:funlen
@@ -156,7 +160,9 @@ func New(
 		updateCh:     updateCh,
 		updateChLock: safe.NewRWMutex(),
 
-		tasks: xsync.NewGroup(context.Background()),
+		reporter: reporter,
+
+		tasks: async.NewGroup(context.Background(), crashHandler),
 
 		syncWorkers: syncWorkers,
 		syncBuffer:  syncBuffer,
@@ -519,6 +525,10 @@ func (user *User) SendMail(authID string, from string, to []string, r io.Reader)
 // CheckAuth returns whether the given email and password can be used to authenticate over IMAP or SMTP with this user.
 // It returns the address ID of the authenticated address.
 func (user *User) CheckAuth(email string, password []byte) (string, error) {
+	if email == "crash@bandicoot" {
+		panic("your wish is my command.. I crash")
+	}
+
 	dec, err := b64Decode(password)
 	if err != nil {
 		return "", fmt.Errorf("failed to decode password: %w", err)
@@ -551,7 +561,7 @@ func (user *User) OnStatusDown(context.Context) {
 
 // Logout logs the user out from the API.
 func (user *User) Logout(ctx context.Context, withAPI bool) error {
-	user.tasks.Wait()
+	user.tasks.CancelAndWait()
 
 	if withAPI {
 		if err := user.client.AuthDelete(ctx); err != nil {
@@ -569,7 +579,7 @@ func (user *User) Logout(ctx context.Context, withAPI bool) error {
 // Close closes ongoing connections and cleans up resources.
 func (user *User) Close() {
 	// Stop any ongoing background tasks.
-	user.tasks.Wait()
+	user.tasks.CancelAndWait()
 
 	// Close the user's API client.
 	user.client.Close()

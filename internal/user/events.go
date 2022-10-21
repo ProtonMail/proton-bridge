@@ -36,7 +36,7 @@ import (
 // handleAPIEvent handles the given liteapi.Event.
 func (user *User) handleAPIEvent(ctx context.Context, event liteapi.Event) error {
 	if event.Refresh&liteapi.RefreshMail != 0 {
-		return user.handleRefreshEvent(ctx)
+		return user.handleRefreshEvent(ctx, event.Refresh, event.EventID)
 	}
 
 	if event.User != nil {
@@ -66,8 +66,23 @@ func (user *User) handleAPIEvent(ctx context.Context, event liteapi.Event) error
 	return nil
 }
 
-func (user *User) handleRefreshEvent(ctx context.Context) error {
-	user.log.Info("Handling refresh event")
+func (user *User) handleRefreshEvent(ctx context.Context, refresh liteapi.RefreshFlag, eventID string) error {
+	l := user.log.WithFields(logrus.Fields{
+		"eventID": eventID,
+		"refresh": refresh,
+	})
+
+	l.Info("Handling refresh event")
+
+	context := map[string]interface{}{
+		"EventLoop": map[string]interface{}{
+			"EventID": eventID,
+			"Refresh": refresh,
+		},
+	}
+	if sentryErr := user.reporter.ReportMessageWithContext("Warning: refresh occurred", context); sentryErr != nil {
+		l.WithError(sentryErr).Error("Failed to report refresh to sentry")
+	}
 
 	// Cancel and restart ongoing syncs.
 	user.abortable.Abort()

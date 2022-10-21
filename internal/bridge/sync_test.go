@@ -32,6 +32,7 @@ import (
 	"github.com/bradenaw/juniper/iterator"
 	"github.com/bradenaw/juniper/stream"
 	"github.com/emersion/go-imap/client"
+	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
 	"gitlab.protontech.ch/go/liteapi"
 	"gitlab.protontech.ch/go/liteapi/server"
@@ -69,6 +70,8 @@ func TestBridge_Sync(t *testing.T) {
 
 		// If we then connect an IMAP client, it should see all the messages.
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+			mocks.Reporter.EXPECT().ReportMessageWithContext(gomock.Any(), gomock.Any()).AnyTimes()
+
 			info, err := bridge.GetUserInfo(userID)
 			require.NoError(t, err)
 			require.True(t, info.Connected)
@@ -93,6 +96,8 @@ func TestBridge_Sync(t *testing.T) {
 
 		// Login the user; its sync should fail.
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+			mocks.Reporter.EXPECT().ReportMessageWithContext(gomock.Any(), gomock.Any()).AnyTimes()
+
 			{
 				syncCh, done := chToType[events.Event, events.SyncFailed](bridge.GetEvents(events.SyncFailed{}))
 				defer done()

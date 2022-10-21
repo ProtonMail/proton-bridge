@@ -29,12 +29,12 @@ import (
 	"github.com/Masterminds/semver/v3"
 	"github.com/ProtonMail/gluon"
 	imapEvents "github.com/ProtonMail/gluon/events"
+	"github.com/ProtonMail/gluon/reporter"
 	"github.com/ProtonMail/proton-bridge/v2/internal/async"
 	"github.com/ProtonMail/proton-bridge/v2/internal/constants"
 	"github.com/ProtonMail/proton-bridge/v2/internal/logging"
 	"github.com/ProtonMail/proton-bridge/v2/internal/user"
 	"github.com/ProtonMail/proton-bridge/v2/internal/vault"
-	"github.com/bradenaw/juniper/xsync"
 	"github.com/sirupsen/logrus"
 )
 
@@ -194,9 +194,10 @@ func newIMAPServer(
 	gluonDir string,
 	version *semver.Version,
 	tlsConfig *tls.Config,
+	reporter reporter.Reporter,
 	logClient, logServer bool,
 	eventCh chan<- imapEvents.Event,
-	tasks *xsync.Group,
+	tasks *async.Group,
 ) (*gluon.Server, error) {
 	logrus.WithFields(logrus.Fields{
 		"gluonDir":  gluonDir,
@@ -233,6 +234,7 @@ func newIMAPServer(
 		gluon.WithDataDir(gluonDir),
 		gluon.WithLogger(imapClientLog, imapServerLog),
 		getGluonVersionInfo(version),
+		gluon.WithReporter(reporter),
 	)
 	if err != nil {
 		return nil, err

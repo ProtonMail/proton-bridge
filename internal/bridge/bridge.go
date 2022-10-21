@@ -30,6 +30,7 @@ import (
 	"github.com/Masterminds/semver/v3"
 	"github.com/ProtonMail/gluon"
 	imapEvents "github.com/ProtonMail/gluon/events"
+	"github.com/ProtonMail/gluon/reporter"
 	"github.com/ProtonMail/gluon/watcher"
 	"github.com/ProtonMail/proton-bridge/v2/internal/async"
 	"github.com/ProtonMail/proton-bridge/v2/internal/constants"
@@ -39,7 +40,6 @@ import (
 	"github.com/ProtonMail/proton-bridge/v2/internal/user"
 	"github.com/ProtonMail/proton-bridge/v2/internal/vault"
 	"github.com/bradenaw/juniper/xslices"
-	"github.com/bradenaw/juniper/xsync"
 	"github.com/emersion/go-smtp"
 	"github.com/go-resty/resty/v2"
 	"github.com/sirupsen/logrus"
@@ -90,6 +90,12 @@ type Bridge struct {
 	// locator is the bridge's locator.
 	locator Locator
 
+	// crashHandler
+	crashHandler async.PanicHandler
+
+	// reporter
+	reporter reporter.Reporter
+
 	// watchers holds all registered event watchers.
 	watchers     []*watcher.Watcher[events.Event]
 	watchersLock sync.RWMutex
@@ -103,7 +109,7 @@ type Bridge struct {
 	logSMTP       bool
 
 	// tasks manages the bridge's goroutines.
-	tasks *xsync.Group
+	tasks *async.Group
 
 	// goLoad triggers a load of disconnected users from the vault.
 	goLoad func()
@@ -126,6 +132,8 @@ func New( //nolint:funlen
 	tlsReporter TLSReporter, // the TLS reporter to report TLS errors
 	roundTripper http.RoundTripper, // the round tripper to use for API requests
 	proxyCtl ProxyController, // the DoH controller
+	crashHandler async.PanicHandler,
+	reporter reporter.Reporter,
 
 	logIMAPClient, logIMAPServer bool, // whether to log IMAP client/server activity
 	logSMTP bool, // whether to log SMTP activity
@@ -141,7 +149,7 @@ func New( //nolint:funlen
 	)
 
 	// tasks holds all the bridge's background tasks.
-	tasks := xsync.NewGroup(context.Background())
+	tasks := async.NewGroup(context.Background(), crashHandler)
 
 	// imapEventCh forwards IMAP events from gluon instances to the bridge for processing.
 	imapEventCh := make(chan imapEvents.Event)
@@ -156,6 +164,8 @@ func New( //nolint:funlen
 		autostarter,
 		updater,
 		curVersion,
+		crashHandler,
+		reporter,
 
 		api,
 		identifier,
@@ -189,7 +199,7 @@ func New( //nolint:funlen
 
 // nolint:funlen
 func newBridge(
-	tasks *xsync.Group,
+	tasks *async.Group,
 	imapEventCh chan imapEvents.Event,
 
 	locator Locator,
@@ -197,6 +207,8 @@ func newBridge(
 	autostarter Autostarter,
 	updater Updater,
 	curVersion *semver.Version,
+	crashHandler async.PanicHandler,
+	reporter reporter.Reporter,
 
 	api *liteapi.Manager,
 	identifier Identifier,
@@ -218,6 +230,7 @@ func newBridge(
 		gluonDir,
 		curVersion,
 		tlsConfig,
+		reporter,
 		logIMAPClient,
 		logIMAPServer,
 		imapEventCh,
@@ -252,6 +265,9 @@ func newBridge(
 		curVersion:     curVersion,
 		newVersion:     curVersion,
 		newVersionLock: safe.NewRWMutex(),
+
+		crashHandler: crashHandler,
+		reporter:     reporter,
 
 		focusService: focusService,
 		autostarter:  autostarter,
@@ -410,7 +426,7 @@ func (bridge *Bridge) Close(ctx context.Context) {
 	}, bridge.usersLock)
 
 	// Stop all ongoing tasks.
-	bridge.tasks.Wait()
+	bridge.tasks.CancelAndWait()
 
 	// Close the focus service.
 	bridge.focusService.Close()

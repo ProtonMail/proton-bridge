@@ -23,10 +23,12 @@ import (
 	"time"
 
 	"github.com/ProtonMail/gluon/connector"
+	"github.com/ProtonMail/proton-bridge/v2/internal/bridge/mocks"
 	"github.com/ProtonMail/proton-bridge/v2/internal/certs"
 	"github.com/ProtonMail/proton-bridge/v2/internal/events"
 	"github.com/ProtonMail/proton-bridge/v2/internal/vault"
 	"github.com/ProtonMail/proton-bridge/v2/tests"
+	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
 	"gitlab.protontech.ch/go/liteapi"
 	"gitlab.protontech.ch/go/liteapi/server"
@@ -139,16 +141,26 @@ func TestUser_Deauth(t *testing.T) {
 }
 
 func TestUser_Refresh(t *testing.T) {
+	ctl := gomock.NewController(t)
+	mockReporter := mocks.NewMockReporter(ctl)
+
 	withAPI(t, context.Background(), func(ctx context.Context, s *server.Server, m *liteapi.Manager) {
 		withAccount(t, s, "username", "password", []string{"email@pm.me"}, func(userID string, addrIDs []string) {
 			withUser(t, ctx, s, m, "username", "password", func(user *User) {
+				user.reporter = mockReporter
+
+				mockReporter.EXPECT().ReportMessageWithContext(
+					gomock.Eq("Warning: refresh occurred"),
+					mocks.NewRefreshContextMatcher(liteapi.RefreshAll),
+				).Return(nil)
+
 				// Get the event channel.
 				eventCh := user.GetEventCh()
 
-				// Revoke the user's auth token.
+				// Send refresh event
 				require.NoError(t, s.RefreshUser(user.ID(), liteapi.RefreshAll))
 
-				// The user should eventually be logged out.
+				// The user should eventually re-synced.
 				require.Eventually(t, func() bool { _, ok := (<-eventCh).(events.UserRefreshed); return ok }, 5*time.Second, 100*time.Millisecond)
 			})
 		})
@@ -203,7 +215,7 @@ func withUser(tb testing.TB, ctx context.Context, _ *server.Server, m *liteapi.M
 	vaultUser, err := vault.AddUser(apiUser.ID, username, apiAuth.UID, apiAuth.RefreshToken, saltedKeyPass)
 	require.NoError(tb, err)
 
-	user, err := New(ctx, vaultUser, client, apiUser, vault.SyncWorkers(), vault.SyncBuffer(), true)
+	user, err := New(ctx, vaultUser, client, apiUser, nil, nil, vault.SyncWorkers(), vault.SyncBuffer(), true)
 	require.NoError(tb, err)
 	defer user.Close()
 

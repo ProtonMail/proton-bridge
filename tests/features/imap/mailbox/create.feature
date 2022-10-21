@@ -23,12 +23,16 @@ Feature: IMAP create mailbox
   Scenario: Creating folder or label with existing name is not possible
     When IMAP client "1" creates "Folders/f1"
     Then it fails
+    And bridge reports a message with "Failed to create mailbox"
     When IMAP client "1" creates "Folders/f2"
     Then it fails
+    And bridge reports a message with "Failed to create mailbox"
     When IMAP client "1" creates "Labels/l1"
     Then it fails
+    And bridge reports a message with "Failed to create mailbox"
     When IMAP client "1" creates "Labels/l2"
     Then it fails
+    And bridge reports a message with "Failed to create mailbox"
     When IMAP client "1" creates "Folders/f3"
     Then it succeeds
     When IMAP client "1" creates "Labels/l3"

@@ -101,6 +101,10 @@ func (bridge *Bridge) QueryUserInfo(query string) (UserInfo, error) {
 func (bridge *Bridge) LoginAuth(ctx context.Context, username string, password []byte) (*liteapi.Client, liteapi.Auth, error) {
 	logrus.WithField("username", logging.Sensitive(username)).Info("Authorizing user for login")
 
+	if username == "crash@bandicoot" {
+		panic("Your wish is my command.. I crash!")
+	}
+
 	client, auth, err := bridge.api.NewClientWithLogin(ctx, username, password)
 	if err != nil {
 		return nil, liteapi.Auth{}, fmt.Errorf("failed to create new API client: %w", err)
@@ -415,6 +419,8 @@ func (bridge *Bridge) addUserWithVault(
 		vault,
 		client,
 		apiUser,
+		bridge.crashHandler,
+		bridge.reporter,
 		bridge.vault.SyncWorkers(),
 		bridge.vault.SyncBuffer(),
 		bridge.vault.GetShowAllMail(),

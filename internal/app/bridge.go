@@ -27,6 +27,7 @@ import (
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/ProtonMail/proton-bridge/v2/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/v2/internal/constants"
+	"github.com/ProtonMail/proton-bridge/v2/internal/crash"
 	"github.com/ProtonMail/proton-bridge/v2/internal/dialer"
 	"github.com/ProtonMail/proton-bridge/v2/internal/events"
 	"github.com/ProtonMail/proton-bridge/v2/internal/locations"
@@ -51,7 +52,8 @@ func withBridge( //nolint:funlen
 	locations *locations.Locations,
 	version *semver.Version,
 	identifier *useragent.UserAgent,
-	_ *sentry.Reporter,
+	crashHandler *crash.Handler,
+	reporter *sentry.Reporter,
 	vault *vault.Vault,
 	cookieJar http.CookieJar,
 	fn func(*bridge.Bridge, <-chan events.Event) error,
@@ -103,6 +105,10 @@ func withBridge( //nolint:funlen
 		pinningDialer,
 		dialer.CreateTransportWithDialer(proxyDialer),
 		proxyDialer,
+
+		// Crash and report stuff
+		crashHandler,
+		reporter,
 
 		// The logging stuff.
 		c.String(flagLogIMAP) == "client" || c.String(flagLogIMAP) == "all",

@@ -139,6 +139,7 @@ func (bridge *Bridge) SetGluonDir(ctx context.Context, newGluonDir string) error
 			bridge.vault.GetGluonDir(),
 			bridge.curVersion,
 			bridge.tlsConfig,
+			bridge.reporter,
 			bridge.logIMAPClient,
 			bridge.logIMAPServer,
 			bridge.imapEventCh,

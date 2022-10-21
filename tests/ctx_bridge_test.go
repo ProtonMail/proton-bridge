@@ -159,6 +159,8 @@ func (t *testCtx) initBridge() (<-chan events.Event, error) {
 		t.mocks.TLSReporter,
 		liteapi.NewDialer(t.netCtl, &tls.Config{InsecureSkipVerify: true}).GetRoundTripper(),
 		t.mocks.ProxyCtl,
+		t.mocks.CrashHandler,
+		t.reporter,
 
 		// Logging stuff
 		logIMAP,

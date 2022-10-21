@@ -21,6 +21,9 @@ type Mocks struct {
 
 	Updater     *TestUpdater
 	Autostarter *mocks.MockAutostarter
+
+	CrashHandler *mocks.MockPanicHandler
+	Reporter     *mocks.MockReporter
 }
 
 func NewMocks(tb testing.TB, version, minAuto *semver.Version) *Mocks {
@@ -33,10 +36,16 @@ func NewMocks(tb testing.TB, version, minAuto *semver.Version) *Mocks {
 
 		Updater:     NewTestUpdater(version, minAuto),
 		Autostarter: mocks.NewMockAutostarter(ctl),
+
+		CrashHandler: mocks.NewMockPanicHandler(ctl),
+		Reporter:     mocks.NewMockReporter(ctl),
 	}
 
 	// When getting the TLS issue channel, we want to return the test channel.
 	mocks.TLSReporter.EXPECT().GetTLSIssueCh().Return(mocks.TLSIssueCh).AnyTimes()
+
+	// This is called at he end of any go-routine:
+	mocks.CrashHandler.EXPECT().HandlePanic().AnyTimes()
 
 	return mocks
 }

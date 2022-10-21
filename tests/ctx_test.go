@@ -32,6 +32,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/v2/internal/locations"
 	"github.com/bradenaw/juniper/xslices"
 	"github.com/emersion/go-imap/client"
+	"github.com/golang/mock/gomock"
 	"github.com/sirupsen/logrus"
 	"gitlab.protontech.ch/go/liteapi"
 	"gitlab.protontech.ch/go/liteapi/server"
@@ -51,6 +52,7 @@ type testCtx struct {
 	version  *semver.Version
 	mocks    *bridge.Mocks
 	events   *eventCollector
+	reporter *reportRecorder
 
 	// bridge holds the bridge app under test.
 	bridge *bridge.Bridge
@@ -105,6 +107,7 @@ func newTestCtx(tb testing.TB) *testCtx {
 		version:  defaultVersion,
 		mocks:    bridge.NewMocks(tb, defaultVersion, defaultVersion),
 		events:   newEventCollector(),
+		reporter: newReportRecorder(tb),
 
 		userIDByName:       make(map[string]string),
 		userAddrByEmail:    make(map[string]map[string]string),
@@ -324,4 +327,16 @@ func (t *testCtx) close(ctx context.Context) {
 	t.api.Close()
 
 	t.events.close()
+
+	t.reporter.close()
+
+	// Closed connection can happen in the end of scenario
+	t.reporter.removeMatchingRecords(
+		gomock.Eq(false),
+		gomock.Eq("Failed to parse imap command"),
+		gomock.Any(), // mocks.NewClosedConnectionMatcher(),
+		0,
+	)
+
+	t.reporter.assertEmpty()
 }

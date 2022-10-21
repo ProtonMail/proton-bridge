@@ -28,6 +28,7 @@ import (
 )
 
 const BridgeCrashCount = "BRIDGE_CRASH_COUNT"
+const MaxCrashRestarts = 10
 
 type Restarter struct {
 	restart bool
@@ -72,14 +73,29 @@ func (restarter *Restarter) Restart() {
 	}
 
 	cmd := execabs.Command(restarter.exe, xslices.Join(os.Args[1:], restarter.flags)...) //nolint:gosec
+	l := logrus.WithFields(logrus.Fields{
+		"exe":        restarter.exe,
+		"crashCount": env[BridgeCrashCount],
+		"args":       cmd.Args,
+	})
+
+	if nCrash, err := strconv.Atoi(env[BridgeCrashCount]); err != nil {
+		l.WithError(err).Error("Crash count is not integer, ignoring")
+		return
+	} else if nCrash >= MaxCrashRestarts {
+		l.Error("Crash count is too high, ignoring")
+		return
+	}
 
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Env = getEnvList(env)
 
+	l.Warn("Restarting")
+
 	if err := run(cmd); err != nil {
-		logrus.WithError(err).Error("Failed to restart")
+		l.WithError(err).Error("Failed to restart")
 	}
 }
 

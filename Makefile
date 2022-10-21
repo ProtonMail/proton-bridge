@@ -245,7 +245,10 @@ coverage: test
 	go tool cover -html=/tmp/coverage.out -o=coverage.html
 
 mocks:
-	mockgen --package mocks github.com/ProtonMail/proton-bridge/v2/internal/bridge TLSReporter,ProxyController,Autostarter > internal/bridge/mocks/mocks.go
+	mockgen --package mocks github.com/ProtonMail/proton-bridge/v2/internal/bridge TLSReporter,ProxyController,Autostarter > tmp
+	mv tmp internal/bridge/mocks/mocks.go
+	mockgen --package mocks github.com/ProtonMail/proton-bridge/v2/internal/async PanicHandler > internal/bridge/mocks/async_mocks.go
+	mockgen --package mocks github.com/ProtonMail/gluon/reporter Reporter > internal/bridge/mocks/gluon_mocks.go
 	mockgen --package mocks github.com/ProtonMail/proton-bridge/v2/internal/updater Downloader,Installer > internal/updater/mocks/mocks.go
 
 lint: gofiles lint-golang lint-license lint-dependencies lint-changelog
@@ -311,6 +314,9 @@ endif
 
 run-nogui: build-nogui clean-vendor gofiles
 	PROTONMAIL_ENV=dev ./${LAUNCHER_EXE} ${RUN_FLAGS} -c
+
+run-debug:
+	dlv debug ./cmd/Desktop-Bridge/main.go -- -l=debug
 
 clean-vendor:
 	rm -rf ./vendor

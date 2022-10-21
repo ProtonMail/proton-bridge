@@ -125,6 +125,7 @@ func TestFeatures(testingT *testing.T) {
 			ctx.Step(`^bridge sends an update installed event for version "([^"]*)"$`, s.bridgeSendsAnUpdateInstalledEventForVersion)
 			ctx.Step(`^bridge sends an update not available event$`, s.bridgeSendsAnUpdateNotAvailableEvent)
 			ctx.Step(`^bridge sends a forced update event$`, s.bridgeSendsAForcedUpdateEvent)
+			ctx.Step(`^bridge reports a message with "([^"]*)"$`, s.bridgeReportsMessage)
 
 			// ==== FRONTEND ====
 			ctx.Step(`^frontend sees that bridge is version "([^"]*)"$`, s.frontendSeesThatBridgeIsVersion)

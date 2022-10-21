@@ -484,6 +484,8 @@ func withBridge(
 		mocks.TLSReporter,
 		liteapi.NewDialer(netCtl, &tls.Config{InsecureSkipVerify: true}).GetRoundTripper(),
 		mocks.ProxyCtl,
+		mocks.CrashHandler,
+		mocks.Reporter,
 
 		// The logging stuff.
 		false,
