@@ -93,6 +93,8 @@ type Bridge struct {
 
 	// stopCh is used to stop ongoing goroutines when the bridge is closed.
 	stopCh chan struct{}
+
+	closeEventChFn func()
 }
 
 // New creates a new bridge.
@@ -165,7 +167,9 @@ func New( //nolint:funlen
 	)
 
 	// Get an event channel for all events (individual events can be subscribed to later).
-	eventCh, _ := bridge.GetEvents()
+	eventCh, closeFn := bridge.GetEvents()
+
+	bridge.closeEventChFn = closeFn
 
 	if err := bridge.init(tlsReporter); err != nil {
 		return nil, nil, fmt.Errorf("failed to initialize bridge: %w", err)
@@ -303,6 +307,14 @@ func (bridge *Bridge) GetErrors() []error {
 }
 
 func (bridge *Bridge) Close(ctx context.Context) error {
+	defer func() {
+		if bridge.closeEventChFn != nil {
+			bridge.closeEventChFn()
+		}
+
+		bridge.closeEventChFn = nil
+	}()
+
 	// Stop ongoing operations such as connectivity checks.
 	close(bridge.stopCh)
 
@@ -356,6 +368,7 @@ func (bridge *Bridge) addWatcher(ofType ...events.Event) *watcher.Watcher[events
 }
 
 func (bridge *Bridge) remWatcher(oldWatcher *watcher.Watcher[events.Event]) {
+	oldWatcher.Close()
 	bridge.watchers.Delete(oldWatcher)
 }
 

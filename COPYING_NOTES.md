@@ -57,6 +57,7 @@ Proton Mail Bridge includes the following 3rd party software:
 * [testify](https://github.com/stretchr/testify) available under [license](https://github.com/stretchr/testify/blob/master/LICENSE) 
 * [cli](https://github.com/urfave/cli/v2) available under [license](https://github.com/urfave/cli/v2/blob/master/LICENSE) 
 * [liteapi](https://gitlab.protontech.ch/go/liteapi)
+* [goleak](https://go.uber.org/goleak)
 * [exp](https://golang.org/x/exp) available under [license](https://cs.opensource.google/go/x/exp/+/master:LICENSE) 
 * [net](https://golang.org/x/net) available under [license](https://cs.opensource.google/go/x/net/+/master:LICENSE) 
 * [sys](https://golang.org/x/sys) available under [license](https://cs.opensource.google/go/x/sys/+/master:LICENSE) 

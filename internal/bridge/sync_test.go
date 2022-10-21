@@ -25,6 +25,8 @@ import (
 	"runtime"
 	"testing"
 
+	"go.uber.org/goleak"
+
 	"github.com/ProtonMail/proton-bridge/v2/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/v2/internal/events"
 	"github.com/bradenaw/juniper/iterator"
@@ -36,6 +38,8 @@ import (
 )
 
 func TestBridge_Sync(t *testing.T) {
+	defer goleak.VerifyNone(t, goleak.IgnoreCurrent())
+
 	s := server.New()
 	defer s.Close()
 
@@ -56,6 +60,7 @@ func TestBridge_Sync(t *testing.T) {
 			liteapi.WithTransport(liteapi.InsecureTransport()),
 		).NewClientWithLogin(ctx, "imap", password)
 		require.NoError(t, err)
+		defer c.Close()
 
 		user, err := c.GetUser(ctx)
 		require.NoError(t, err)

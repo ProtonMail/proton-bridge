@@ -161,6 +161,18 @@ func (t *testCtx) stopBridge() error {
 	}
 
 	t.bridge = nil
+	t.loginCh.CloseAndDiscardQueued()
+	t.logoutCh.CloseAndDiscardQueued()
+	t.loadedCh.CloseAndDiscardQueued()
+	t.deletedCh.CloseAndDiscardQueued()
+	t.deauthCh.CloseAndDiscardQueued()
+	t.addrCreatedCh.CloseAndDiscardQueued()
+	t.addrDeletedCh.CloseAndDiscardQueued()
+	t.syncStartedCh.CloseAndDiscardQueued()
+	t.syncFinishedCh.CloseAndDiscardQueued()
+	t.forcedUpdateCh.CloseAndDiscardQueued()
+	t.connStatusCh.CloseAndDiscardQueued()
+	t.updateCh.CloseAndDiscardQueued()
 
 	return nil
 }

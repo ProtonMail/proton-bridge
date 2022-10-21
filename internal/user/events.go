@@ -154,7 +154,7 @@ func (user *User) handleDeleteAddressEvent(_ context.Context, event liteapi.Addr
 
 	if ok := user.updateCh.GetDelete(event.ID, func(updateCh *queue.QueuedChannel[imap.Update]) {
 		if user.vault.AddressMode() == vault.SplitMode {
-			updateCh.Close()
+			updateCh.CloseAndDiscardQueued()
 		}
 	}); !ok {
 		return fmt.Errorf("no such address %q", event.ID)

@@ -394,6 +394,9 @@ func (bridge *Bridge) addUserWithVault(
 		return fmt.Errorf("failed to create user: %w", err)
 	}
 
+	if bridge.users.Has(apiUser.ID) {
+		panic("double add")
+	}
 	bridge.users.Set(apiUser.ID, user)
 
 	// Connect the user's address(es) to gluon.

@@ -23,6 +23,7 @@ import (
 	"fmt"
 	"io"
 	"strings"
+	"sync"
 	"sync/atomic"
 	"time"
 
@@ -55,6 +56,7 @@ type User struct {
 
 	syncStopCh chan struct{}
 	syncLock   try.Group
+	syncWG     sync.WaitGroup
 
 	showAllMail int32
 }
@@ -135,10 +137,13 @@ func New(ctx context.Context, encVault *vault.User, client *liteapi.Client, apiU
 	// GODT-1946 - Don't start the event loop until the initial sync has finished.
 	eventCh := user.client.NewEventStream(EventPeriod, EventJitter, user.vault.EventID())
 
+	user.syncWG.Add(1)
 	// If we haven't synced yet, do it first.
 	// If it fails, we don't start the event loop.
 	// Otherwise, begin processing API events, logging any errors that occur.
 	go func() {
+		defer user.syncWG.Done()
+
 		if err := <-user.startSync(); err != nil {
 			return
 		}
@@ -200,7 +205,7 @@ func (user *User) SetAddressMode(ctx context.Context, mode vault.AddressMode) er
 
 	user.updateCh.Values(func(updateCh []*queue.QueuedChannel[imap.Update]) {
 		for _, updateCh := range xslices.Unique(updateCh) {
-			updateCh.Close()
+			updateCh.CloseAndDiscardQueued()
 		}
 	})
 
@@ -393,6 +398,8 @@ func (user *User) Logout(ctx context.Context) error {
 
 // Close closes ongoing connections and cleans up resources.
 func (user *User) Close() error {
+	defer user.syncWG.Wait()
+
 	// Close any ongoing operations.
 	close(user.stopCh)
 
@@ -405,12 +412,12 @@ func (user *User) Close() error {
 	// Close the user's update channels.
 	user.updateCh.Values(func(updateCh []*queue.QueuedChannel[imap.Update]) {
 		for _, updateCh := range xslices.Unique(updateCh) {
-			updateCh.Close()
+			updateCh.CloseAndDiscardQueued()
 		}
 	})
 
 	// Close the user's notify channel.
-	user.eventCh.Close()
+	user.eventCh.CloseAndDiscardQueued()
 
 	// Close the user's vault.
 	if err := user.vault.Close(); err != nil {
@@ -462,15 +469,15 @@ func (user *User) streamEvents(eventCh <-chan liteapi.Event) <-chan error {
 
 // startSync begins a startSync for the user.
 func (user *User) startSync() <-chan error {
-	if user.vault.SyncStatus().IsComplete() {
-		logrus.Debug("Already synced, skipping")
-		return nil
-	}
-
 	errCh := make(chan error)
 
 	user.syncLock.GoTry(func(ok bool) {
 		defer close(errCh)
+
+		if user.vault.SyncStatus().IsComplete() {
+			logrus.Debug("Already synced, skipping")
+			return
+		}
 
 		if !ok {
 			logrus.Debug("Sync already in progress, skipping")
