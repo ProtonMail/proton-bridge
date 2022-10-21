@@ -126,7 +126,7 @@ func withAccount(tb testing.TB, s *server.Server, username, password string, ema
 func withUser(tb testing.TB, ctx context.Context, _ *server.Server, m *liteapi.Manager, username, password string, fn func(*User)) { //nolint:unparam,revive
 	client, apiAuth, err := m.NewClientWithLogin(ctx, username, []byte(password))
 	require.NoError(tb, err)
-	defer func() { require.NoError(tb, client.Close()) }()
+	defer client.Close()
 
 	apiUser, err := client.GetUser(ctx)
 	require.NoError(tb, err)

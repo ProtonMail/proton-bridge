@@ -373,9 +373,7 @@ func (user *User) Close() error {
 	user.waitSync()
 
 	// Close the user's API client.
-	if err := user.client.Close(); err != nil {
-		logrus.WithError(err).Error("Failed to close API client")
-	}
+	user.client.Close()
 
 	// Close the user's update channels.
 	user.updateCh.Values(func(updateCh []*queue.QueuedChannel[imap.Update]) {

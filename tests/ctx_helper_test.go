@@ -19,6 +19,7 @@ package tests
 
 import (
 	"context"
+	"fmt"
 	"runtime"
 
 	"github.com/bradenaw/juniper/stream"
@@ -34,15 +35,17 @@ func (t *testCtx) withClient(ctx context.Context, username string, fn func(conte
 		return err
 	}
 
+	defer c.Close()
+
 	if err := fn(ctx, c); err != nil {
-		return err
+		return fmt.Errorf("failed to execute with client: %w", err)
 	}
 
 	if err := c.AuthDelete(ctx); err != nil {
-		return err
+		return fmt.Errorf("failed to delete auth: %w", err)
 	}
 
-	return c.Close()
+	return nil
 }
 
 func (t *testCtx) createMessages(ctx context.Context, username, addrID string, req []liteapi.ImportReq) error {
