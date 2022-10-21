@@ -18,69 +18,82 @@
 package bridge
 
 import (
-	"sync"
+	"fmt"
+	"io"
 
 	"github.com/ProtonMail/proton-bridge/v2/internal/user"
 	"github.com/emersion/go-smtp"
 )
 
 type smtpBackend struct {
-	users     map[string]*user.User
-	usersLock sync.RWMutex
+	bridge *Bridge
 }
 
-func newSMTPBackend() *smtpBackend {
-	return &smtpBackend{
-		users: make(map[string]*user.User),
-	}
+type smtpSession struct {
+	bridge *Bridge
+
+	userID string
+	authID string
+
+	from string
+	to   []string
 }
 
-func (backend *smtpBackend) Login(_ *smtp.ConnectionState, email, password string) (smtp.Session, error) {
-	backend.usersLock.RLock()
-	defer backend.usersLock.RUnlock()
+func (be *smtpBackend) NewSession(_ *smtp.Conn) (smtp.Session, error) {
+	return &smtpSession{
+		bridge: be.bridge,
+	}, nil
+}
 
-	for _, user := range backend.users {
-		session, err := user.NewSMTPSession(email, []byte(password))
-		if err != nil {
-			continue
+func (s *smtpSession) AuthPlain(username, password string) error {
+	return s.bridge.users.ValuesErr(func(users []*user.User) error {
+		for _, user := range users {
+			addrID, err := user.CheckAuth(username, []byte(password))
+			if err != nil {
+				continue
+			}
+
+			s.userID = user.ID()
+			s.authID = addrID
+
+			return nil
 		}
 
-		return session, nil
-	}
-
-	return nil, ErrNoSuchUser
+		return fmt.Errorf("invalid username or password")
+	})
 }
 
-func (backend *smtpBackend) AnonymousLogin(state *smtp.ConnectionState) (smtp.Session, error) {
-	return nil, ErrNotImplemented
+func (s *smtpSession) Reset() {
+	s.from = ""
+	s.to = nil
 }
 
-// addUser adds the given user to the backend.
-// It returns an error if a user with the same ID already exists.
-func (backend *smtpBackend) addUser(newUser *user.User) error {
-	backend.usersLock.Lock()
-	defer backend.usersLock.Unlock()
+func (s *smtpSession) Logout() error {
+	s.Reset()
+	return nil
+}
 
-	if _, ok := backend.users[newUser.ID()]; ok {
-		return ErrUserAlreadyExists
+func (s *smtpSession) Mail(from string, opts *smtp.MailOptions) error {
+	s.from = from
+	return nil
+}
+
+func (s *smtpSession) Rcpt(to string) error {
+	if len(to) > 0 {
+		s.to = append(s.to, to)
 	}
-
-	backend.users[newUser.ID()] = newUser
 
 	return nil
 }
 
-// removeUser removes the given user from the backend.
-// It returns an error if the user doesn't exist.
-func (backend *smtpBackend) removeUser(user *user.User) error {
-	backend.usersLock.Lock()
-	defer backend.usersLock.Unlock()
-
-	if _, ok := backend.users[user.ID()]; !ok {
-		return ErrNoSuchUser
+func (s *smtpSession) Data(r io.Reader) error {
+	if ok, err := s.bridge.users.GetErr(s.userID, func(user *user.User) error {
+		return user.SendMail(s.authID, s.from, s.to, r)
+	}); !ok {
+		return fmt.Errorf("no such user %q", s.userID)
+	} else if err != nil {
+		return fmt.Errorf("failed to send mail: %w", err)
 	}
-
-	delete(backend.users, user.ID())
 
 	return nil
 }

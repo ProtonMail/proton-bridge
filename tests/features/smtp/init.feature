@@ -39,13 +39,23 @@ Feature: SMTP initiation
     Then it fails with error "Missing RCPT TO command"
 
   Scenario: Send with empty FROM
-    When SMTP client "1" sends MAIL FROM "<>"
-    Then it fails with error "invalid return path"
+    When SMTP client "1" sends the following message from "<>" to "bridgetest@protonmail.com":
+      """
+      To: Internal Bridge <bridgetest@protonmail.com>
+
+      this should fail
+      """
+    Then it fails
 
   Scenario: Send with empty TO
     When SMTP client "1" sends MAIL FROM "<user@pm.me>"
     Then it succeeds
     When SMTP client "1" sends RCPT TO "<>"
+    Then it succeeds
+    When SMTP client "1" sends DATA:
+      """
+      Subject: test
+      """
     Then it fails with error "invalid recipient"
 
   Scenario: Allow BODY parameter of MAIL FROM command
@@ -53,5 +63,10 @@ Feature: SMTP initiation
     Then it succeeds
 
   Scenario: FROM not owned by user
-    When SMTP client "1" sends MAIL FROM "<user@pm.test>"
-    Then it fails with error "invalid return path"
+    When SMTP client "1" sends the following message from "other@pm.me" to "bridgetest@protonmail.com":
+      """
+      From: Bridge Test <user@pm.me>
+      To: Internal Bridge <bridgetest@protonmail.com>
+
+      this should fail
+      """

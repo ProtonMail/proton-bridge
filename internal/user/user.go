@@ -21,6 +21,7 @@ import (
 	"context"
 	"crypto/subtle"
 	"fmt"
+	"io"
 	"strings"
 	"sync/atomic"
 	"time"
@@ -33,7 +34,6 @@ import (
 	"github.com/ProtonMail/proton-bridge/v2/internal/try"
 	"github.com/ProtonMail/proton-bridge/v2/internal/vault"
 	"github.com/bradenaw/juniper/xslices"
-	"github.com/emersion/go-smtp"
 	"github.com/sirupsen/logrus"
 	"gitlab.protontech.ch/go/liteapi"
 )
@@ -315,13 +315,46 @@ func (user *User) NewIMAPConnectors() (map[string]connector.Connector, error) {
 	return imapConn, nil
 }
 
-// NewSMTPSession returns an SMTP session for the user.
-func (user *User) NewSMTPSession(email string, password []byte) (smtp.Session, error) {
-	if _, err := user.checkAuth(email, password); err != nil {
-		return nil, err
+// SendMail sends an email from the given address to the given recipients.
+func (user *User) SendMail(authID string, from string, to []string, r io.Reader) error {
+	if len(to) == 0 {
+		return ErrInvalidRecipient
 	}
 
-	return newSMTPSession(user, email)
+	return user.apiAddrs.ValuesErr(func(apiAddrs []liteapi.Address) error {
+		if _, err := getAddrID(apiAddrs, from); err != nil {
+			return ErrInvalidReturnPath
+		}
+
+		emails := xslices.Map(apiAddrs, func(addr liteapi.Address) string {
+			return addr.Email
+		})
+
+		return user.sendMail(authID, emails, from, to, r)
+	})
+}
+
+// CheckAuth returns whether the given email and password can be used to authenticate over IMAP or SMTP with this user.
+// It returns the address ID of the authenticated address.
+func (user *User) CheckAuth(email string, password []byte) (string, error) {
+	dec, err := hexDecode(password)
+	if err != nil {
+		return "", fmt.Errorf("failed to decode password: %w", err)
+	}
+
+	if subtle.ConstantTimeCompare(user.vault.BridgePass(), dec) != 1 {
+		return "", fmt.Errorf("invalid password")
+	}
+
+	return safe.MapValuesRetErr(user.apiAddrs, func(apiAddrs []liteapi.Address) (string, error) {
+		for _, addr := range apiAddrs {
+			if strings.EqualFold(addr.Email, email) {
+				return addr.ID, nil
+			}
+		}
+
+		return "", fmt.Errorf("invalid email")
+	})
 }
 
 // OnStatusUp is called when the connection goes up.
@@ -347,9 +380,6 @@ func (user *User) Logout(ctx context.Context) error {
 	// Cancel ongoing syncs.
 	user.stopSync()
 
-	// Wait for ongoing syncs to stop.
-	user.waitSync()
-
 	if err := user.client.AuthDelete(ctx); err != nil {
 		return fmt.Errorf("failed to delete auth: %w", err)
 	}
@@ -368,9 +398,6 @@ func (user *User) Close() error {
 
 	// Cancel ongoing syncs.
 	user.stopSync()
-
-	// Wait for ongoing syncs to stop.
-	user.waitSync()
 
 	// Close the user's API client.
 	user.client.Close()
@@ -395,37 +422,18 @@ func (user *User) Close() error {
 
 func (user *User) SetShowAllMail(show bool) {
 	var value int32
+
 	if show {
 		value = 1
 	} else {
 		value = 0
 	}
+
 	atomic.StoreInt32(&user.showAllMail, value)
 }
 
 func (user *User) GetShowAllMail() bool {
 	return atomic.LoadInt32(&user.showAllMail) == 1
-}
-
-func (user *User) checkAuth(email string, password []byte) (string, error) {
-	dec, err := hexDecode(password)
-	if err != nil {
-		return "", fmt.Errorf("failed to decode password: %w", err)
-	}
-
-	if subtle.ConstantTimeCompare(user.vault.BridgePass(), dec) != 1 {
-		return "", fmt.Errorf("invalid password")
-	}
-
-	return safe.MapValuesRetErr(user.apiAddrs, func(apiAddrs []liteapi.Address) (string, error) {
-		for _, addr := range apiAddrs {
-			if strings.EqualFold(addr.Email, email) {
-				return addr.ID, nil
-			}
-		}
-
-		return "", fmt.Errorf("invalid email")
-	})
 }
 
 // streamEvents begins streaming API events for the user.
@@ -496,6 +504,8 @@ func (user *User) startSync() <-chan error {
 // AbortSync aborts any ongoing sync.
 // GODT-1947: Should probably be done automatically when one of the user's IMAP connectors is closed.
 func (user *User) stopSync() {
+	defer user.syncLock.Wait()
+
 	select {
 	case user.syncStopCh <- struct{}{}:
 		logrus.Debug("Sent sync abort signal")
@@ -513,9 +523,4 @@ func (user *User) lockSync() {
 // unlockSync allows a new sync to start.
 func (user *User) unlockSync() {
 	user.syncLock.Unlock()
-}
-
-// waitSync waits for any ongoing sync to finish.
-func (user *User) waitSync() {
-	user.syncLock.Wait()
 }

@@ -64,8 +64,7 @@ type Bridge struct {
 	imapListener net.Listener
 
 	// smtpServer is the bridge's SMTP server.
-	smtpServer  *smtp.Server
-	smtpBackend *smtpBackend
+	smtpServer *smtp.Server
 
 	// updater is the bridge's updater.
 	updater       Updater
@@ -131,8 +130,6 @@ func New( //nolint:funlen
 		return nil, nil, fmt.Errorf("failed to get Gluon directory: %w", err)
 	}
 
-	smtpBackend := newSMTPBackend()
-
 	imapServer, err := newIMAPServer(gluonDir, curVersion, tlsConfig, logIMAPClient, logIMAPServer)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to create IMAP server: %w", err)
@@ -159,7 +156,6 @@ func New( //nolint:funlen
 		// Service stuff
 		tlsConfig,
 		imapServer,
-		smtpBackend,
 		focusService,
 
 		// Logging stuff
@@ -191,11 +187,10 @@ func newBridge(
 
 	tlsConfig *tls.Config,
 	imapServer *gluon.Server,
-	smtpBackend *smtpBackend,
 	focusService *focus.Service,
 	logIMAPClient, logIMAPServer, logSMTP bool,
 ) *Bridge {
-	return &Bridge{
+	bridge := &Bridge{
 		vault: vault,
 
 		users:  safe.NewMap[string, *user.User](nil),
@@ -205,10 +200,8 @@ func newBridge(
 		proxyCtl:   proxyCtl,
 		identifier: identifier,
 
-		tlsConfig:   tlsConfig,
-		imapServer:  imapServer,
-		smtpServer:  newSMTPServer(smtpBackend, tlsConfig, logSMTP),
-		smtpBackend: smtpBackend,
+		tlsConfig:  tlsConfig,
+		imapServer: imapServer,
 
 		updater:       updater,
 		curVersion:    curVersion,
@@ -226,6 +219,10 @@ func newBridge(
 
 		stopCh: make(chan struct{}),
 	}
+
+	bridge.smtpServer = newSMTPServer(&smtpBackend{bridge}, tlsConfig, logSMTP)
+
+	return bridge
 }
 
 func (bridge *Bridge) init(tlsReporter TLSReporter) error {

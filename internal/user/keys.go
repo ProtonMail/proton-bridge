@@ -56,6 +56,33 @@ func (user *User) withAddrKR(addrID string, fn func(*crypto.KeyRing, *crypto.Key
 	})
 }
 
+func (user *User) withAddrKRByEmail(email string, fn func(*crypto.KeyRing, *crypto.KeyRing) error) error {
+	return user.apiAddrs.ValuesErr(func(apiAddrs []liteapi.Address) error {
+		addrID, err := getAddrID(apiAddrs, email)
+		if err != nil {
+			return fmt.Errorf("failed to get address ID: %w", err)
+		}
+
+		return user.withUserKR(func(userKR *crypto.KeyRing) error {
+			if ok, err := user.apiAddrs.GetErr(addrID, func(apiAddr liteapi.Address) error {
+				addrKR, err := apiAddr.Keys.Unlock(user.vault.KeyPass(), userKR)
+				if err != nil {
+					return fmt.Errorf("failed to unlock address keys: %w", err)
+				}
+				defer userKR.ClearPrivateParams()
+
+				return fn(userKR, addrKR)
+			}); !ok {
+				return fmt.Errorf("no such address %q", addrID)
+			} else if err != nil {
+				return err
+			}
+
+			return nil
+		})
+	})
+}
+
 func (user *User) withAddrKRs(fn func(*crypto.KeyRing, map[string]*crypto.KeyRing) error) error {
 	return user.withUserKR(func(userKR *crypto.KeyRing) error {
 		return user.apiAddrs.ValuesErr(func(apiAddrs []liteapi.Address) error {

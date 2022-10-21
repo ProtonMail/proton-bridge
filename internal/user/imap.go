@@ -67,7 +67,7 @@ func newIMAPConnector(user *User, addrID string) *imapConnector {
 
 // Authorize returns whether the given username/password combination are valid for this connector.
 func (conn *imapConnector) Authorize(username string, password []byte) bool {
-	addrID, err := conn.checkAuth(username, password)
+	addrID, err := conn.CheckAuth(username, password)
 	if err != nil {
 		return false
 	}

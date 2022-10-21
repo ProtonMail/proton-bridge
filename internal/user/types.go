@@ -22,6 +22,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"reflect"
+	"strings"
 
 	"gitlab.protontech.ch/go/liteapi"
 )
@@ -84,23 +85,12 @@ func hexDecode(b []byte) ([]byte, error) {
 // getAddrID returns the address ID for the given email address.
 func getAddrID(apiAddrs []liteapi.Address, email string) (string, error) {
 	for _, addr := range apiAddrs {
-		if addr.Email == email {
+		if strings.EqualFold(addr.Email, sanitizeEmail(email)) {
 			return addr.ID, nil
 		}
 	}
 
 	return "", fmt.Errorf("address %s not found", email)
-}
-
-// getAddrEmail returns the email address of the given address ID.
-func getAddrEmail(apiAddrs []liteapi.Address, addrID string) (string, error) {
-	for _, addr := range apiAddrs {
-		if addr.ID == addrID {
-			return addr.Email, nil
-		}
-	}
-
-	return "", fmt.Errorf("address %s not found", addrID)
 }
 
 // contextWithStopCh returns a new context that is cancelled when the stop channel is closed or a value is sent to it.

@@ -30,204 +30,83 @@ import (
 	"github.com/ProtonMail/gluon/rfc822"
 	"github.com/ProtonMail/go-rfc5322"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
-	"github.com/ProtonMail/proton-bridge/v2/internal/safe"
 	"github.com/ProtonMail/proton-bridge/v2/internal/vault"
 	"github.com/ProtonMail/proton-bridge/v2/pkg/message"
 	"github.com/ProtonMail/proton-bridge/v2/pkg/message/parser"
 	"github.com/bradenaw/juniper/parallel"
 	"github.com/bradenaw/juniper/xslices"
-	"github.com/emersion/go-smtp"
 	"github.com/sirupsen/logrus"
 	"gitlab.protontech.ch/go/liteapi"
 	"golang.org/x/exp/slices"
 )
 
-type smtpSession struct {
-	*User
-
-	// authID holds the ID of the address that the SMTP client authenticated with to send the message.
-	authID string
-
-	// from is the current sending address (taken from the return path).
-	from string
-
-	// fromAddrID is the ID of the current sending address (taken from the return path).
-	fromAddrID string
-
-	// to holds all to for the current message.
-	to []string
-}
-
-func newSMTPSession(user *User, email string) (*smtpSession, error) {
-	return safe.MapValuesRetErr(user.apiAddrs, func(apiAddrs []liteapi.Address) (*smtpSession, error) {
-		authID, err := getAddrID(apiAddrs, email)
-		if err != nil {
-			return nil, fmt.Errorf("failed to get address ID: %w", err)
-		}
-
-		return &smtpSession{
-			User:   user,
-			authID: authID,
-		}, nil
-	})
-}
-
-// Reset Discard currently processed message.
-func (session *smtpSession) Reset() {
-	logrus.Info("SMTP session reset")
-
-	// Clear the from and to fields.
-	session.from = ""
-	session.fromAddrID = ""
-	session.to = nil
-}
-
-// Logout Free all resources associated with session.
-func (session *smtpSession) Logout() error {
-	defer session.Reset()
-
-	logrus.Info("SMTP session logout")
-
-	return nil
-}
-
-// Mail Set return path for currently processed message.
-func (session *smtpSession) Mail(from string, opts smtp.MailOptions) error {
-	logrus.Info("SMTP session mail")
-
-	return session.apiAddrs.ValuesErr(func(apiAddrs []liteapi.Address) error {
-		switch {
-		case opts.RequireTLS:
-			return ErrNotImplemented
-
-		case opts.UTF8:
-			return ErrNotImplemented
-
-		case opts.Auth != nil:
-			email, err := getAddrEmail(apiAddrs, session.authID)
-			if err != nil {
-				return fmt.Errorf("invalid auth address: %w", err)
-			}
-
-			if *opts.Auth != "" && *opts.Auth != email {
-				return ErrNotImplemented
-			}
-		}
-
-		addrID, err := getAddrID(apiAddrs, sanitizeEmail(from))
-		if err != nil {
-			return fmt.Errorf("invalid return path: %w", err)
-		}
-
-		session.from = from
-
-		session.fromAddrID = addrID
-
-		return nil
-	})
-}
-
-// Rcpt Add recipient for currently processed message.
-func (session *smtpSession) Rcpt(to string) error {
-	logrus.Info("SMTP session rcpt")
-
-	if to == "" {
-		return ErrInvalidRecipient
-	}
-
-	if !slices.Contains(session.to, to) {
-		session.to = append(session.to, to)
-	}
-
-	return nil
-}
-
-// Data Set currently processed message contents and send it.
-func (session *smtpSession) Data(r io.Reader) error { //nolint:funlen
-	logrus.Info("SMTP session data")
-
+func (user *User) sendMail(authID string, emails []string, from string, to []string, r io.Reader) error { //nolint:funlen
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	switch {
-	case session.from == "":
-		return ErrInvalidReturnPath
-
-	case len(session.to) == 0:
-		return ErrInvalidRecipient
-	}
-
+	// Create a new message parser from the reader.
 	parser, err := parser.New(r)
 	if err != nil {
 		return fmt.Errorf("failed to create parser: %w", err)
 	}
 
-	return session.apiAddrs.ValuesErr(func(apiAddrs []liteapi.Address) error {
-		return session.withAddrKR(session.fromAddrID, func(userKR, addrKR *crypto.KeyRing) error {
-			// Use the first key for encrypting the message.
-			addrKR, err := addrKR.FirstKey()
+	// If the message contains a sender, use it instead of the one from the return path.
+	if sender, ok := getMessageSender(parser); ok {
+		from = sender
+	}
+
+	// Load the user's mail settings.
+	settings, err := user.client.GetMailSettings(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to get mail settings: %w", err)
+	}
+
+	return user.withAddrKRByEmail(from, func(userKR, addrKR *crypto.KeyRing) error {
+		// Use the first key for encrypting the message.
+		addrKR, err := addrKR.FirstKey()
+		if err != nil {
+			return fmt.Errorf("failed to get first key: %w", err)
+		}
+
+		// If we have to attach the public key, do it now.
+		if settings.AttachPublicKey == liteapi.AttachPublicKeyEnabled {
+			key, err := addrKR.GetKey(0)
 			if err != nil {
-				return fmt.Errorf("failed to get first key: %w", err)
+				return fmt.Errorf("failed to get sending key: %w", err)
 			}
 
-			// If the message contains a sender, use it instead of the one from the return path.
-			if sender, ok := getMessageSender(parser); ok {
-				session.from = sender
-			}
-
-			// Load the user's mail settings.
-			settings, err := session.client.GetMailSettings(ctx)
+			pubKey, err := key.GetArmoredPublicKey()
 			if err != nil {
-				return fmt.Errorf("failed to get mail settings: %w", err)
+				return fmt.Errorf("failed to get public key: %w", err)
 			}
 
-			// If we have to attach the public key, do it now.
-			if settings.AttachPublicKey == liteapi.AttachPublicKeyEnabled {
-				key, err := addrKR.GetKey(0)
-				if err != nil {
-					return fmt.Errorf("failed to get sending key: %w", err)
-				}
+			parser.AttachPublicKey(pubKey, fmt.Sprintf("publickey - %v - %v", addrKR.GetIdentities()[0].Name, key.GetFingerprint()[:8]))
+		}
 
-				pubKey, err := key.GetArmoredPublicKey()
-				if err != nil {
-					return fmt.Errorf("failed to get public key: %w", err)
-				}
+		// Parse the message we want to send (after we have attached the public key).
+		message, err := message.ParseWithParser(parser)
+		if err != nil {
+			return fmt.Errorf("failed to parse message: %w", err)
+		}
 
-				parser.AttachPublicKey(pubKey, fmt.Sprintf("publickey - %v - %v", addrKR.GetIdentities()[0].Name, key.GetFingerprint()[:8]))
-			}
+		// Send the message using the correct key.
+		sent, err := sendWithKey(
+			ctx,
+			user.client,
+			authID,
+			user.vault.AddressMode(),
+			settings,
+			userKR, addrKR,
+			emails, from, to,
+			message,
+		)
+		if err != nil {
+			return fmt.Errorf("failed to send message: %w", err)
+		}
 
-			// Parse the message we want to send (after we have attached the public key).
-			message, err := message.ParseWithParser(parser)
-			if err != nil {
-				return fmt.Errorf("failed to parse message: %w", err)
-			}
+		logrus.WithField("messageID", sent.ID).Info("Message sent")
 
-			// Collect all the user's emails so we can match them to the outgoing message.
-			emails := xslices.Map(apiAddrs, func(addr liteapi.Address) string {
-				return addr.Email
-			})
-
-			sent, err := sendWithKey(
-				ctx,
-				session.client,
-				session.authID,
-				session.vault.AddressMode(),
-				settings,
-				userKR,
-				addrKR,
-				emails,
-				session.from,
-				session.to,
-				message,
-			)
-			if err != nil {
-				return fmt.Errorf("failed to send message: %w", err)
-			}
-
-			logrus.WithField("messageID", sent.ID).Info("Message sent")
-
-			return nil
-		})
+		return nil
 	})
 }
 
@@ -252,20 +131,15 @@ func sendWithKey( //nolint:funlen
 
 	var decBody string
 
-	switch message.MIMEType {
+	switch message.MIMEType { //nolint:exhaustive
 	case rfc822.TextHTML:
 		decBody = string(message.RichBody)
 
 	case rfc822.TextPlain:
 		decBody = string(message.PlainBody)
-	case rfc822.MultipartRelated:
-		fallthrough
-	case rfc822.MultipartMixed:
-		fallthrough
-	case rfc822.MessageRFC822:
-		fallthrough
+
 	default:
-		break
+		return liteapi.Message{}, fmt.Errorf("unsupported MIME type: %v", message.MIMEType)
 	}
 
 	encBody, err := addrKR.Encrypt(crypto.NewPlainMessageFromString(decBody), nil)

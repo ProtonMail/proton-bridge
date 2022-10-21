@@ -26,7 +26,6 @@ import (
 	"github.com/ProtonMail/proton-bridge/v2/internal/logging"
 
 	"github.com/ProtonMail/proton-bridge/v2/internal/constants"
-	"github.com/emersion/go-sasl"
 	"github.com/emersion/go-smtp"
 	"github.com/sirupsen/logrus"
 )
@@ -67,7 +66,7 @@ func (bridge *Bridge) restartSMTP() error {
 		return err
 	}
 
-	bridge.smtpServer = newSMTPServer(bridge.smtpBackend, bridge.tlsConfig, bridge.logSMTP)
+	bridge.smtpServer = newSMTPServer(&smtpBackend{bridge}, bridge.tlsConfig, bridge.logSMTP)
 
 	return bridge.serveSMTP()
 }
@@ -98,19 +97,6 @@ func newSMTPServer(smtpBackend *smtpBackend, tlsConfig *tls.Config, shouldLog bo
 		log.Warning("================================================")
 		smtpServer.Debug = logging.NewSMTPDebugLogger()
 	}
-
-	smtpServer.EnableAuth(sasl.Login, func(conn *smtp.Conn) sasl.Server {
-		return sasl.NewLoginServer(func(address, password string) error {
-			user, err := conn.Server().Backend.Login(nil, address, password)
-			if err != nil {
-				return err
-			}
-
-			conn.SetSession(user)
-
-			return nil
-		})
-	})
 
 	return smtpServer
 }

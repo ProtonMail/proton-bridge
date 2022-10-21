@@ -401,11 +401,6 @@ func (bridge *Bridge) addUserWithVault(
 		return fmt.Errorf("failed to add IMAP user: %w", err)
 	}
 
-	// Connect the user's address(es) to the SMTP server.
-	if err := bridge.smtpBackend.addUser(user); err != nil {
-		return fmt.Errorf("failed to add user to SMTP backend: %w", err)
-	}
-
 	// Handle events coming from the user before forwarding them to the bridge.
 	// For example, if the user's addresses change, we need to update them in gluon.
 	go func() {
@@ -497,10 +492,6 @@ func (bridge *Bridge) addIMAPUser(ctx context.Context, user *user.User) error {
 // logoutUser logs the given user out from bridge.
 func (bridge *Bridge) logoutUser(ctx context.Context, userID string) error {
 	if ok, err := bridge.users.GetDeleteErr(userID, func(user *user.User) error {
-		if err := bridge.smtpBackend.removeUser(user); err != nil {
-			logrus.WithError(err).Error("Failed to remove user from SMTP backend")
-		}
-
 		for _, gluonID := range user.GetGluonIDs() {
 			if err := bridge.imapServer.RemoveUser(ctx, gluonID, false); err != nil {
 				logrus.WithError(err).Error("Failed to remove IMAP user")
@@ -528,10 +519,6 @@ func (bridge *Bridge) logoutUser(ctx context.Context, userID string) error {
 // deleteUser deletes the given user from bridge.
 func (bridge *Bridge) deleteUser(ctx context.Context, userID string) {
 	if ok := bridge.users.GetDelete(userID, func(user *user.User) {
-		if err := bridge.smtpBackend.removeUser(user); err != nil {
-			logrus.WithError(err).Error("Failed to remove user from SMTP backend")
-		}
-
 		for _, gluonID := range user.GetGluonIDs() {
 			if err := bridge.imapServer.RemoveUser(ctx, gluonID, true); err != nil {
 				logrus.WithError(err).Error("Failed to remove IMAP user")
