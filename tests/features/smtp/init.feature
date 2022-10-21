@@ -70,3 +70,4 @@ Feature: SMTP initiation
 
       this should fail
       """
+    Then it fails
