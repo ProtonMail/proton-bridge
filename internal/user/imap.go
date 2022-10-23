@@ -87,30 +87,7 @@ func (conn *imapConnector) GetMailbox(ctx context.Context, mailboxID imap.Mailbo
 		return imap.Mailbox{}, err
 	}
 
-	var name []string
-
-	switch label.Type {
-	case liteapi.LabelTypeLabel:
-		name = []string{labelPrefix, label.Name}
-
-	case liteapi.LabelTypeFolder:
-		name = []string{folderPrefix, label.Name}
-
-	case liteapi.LabelTypeContactGroup:
-		fallthrough
-	case liteapi.LabelTypeSystem:
-		fallthrough
-	default:
-		name = []string{label.Name}
-	}
-
-	return imap.Mailbox{
-		ID:             imap.MailboxID(label.ID),
-		Name:           name,
-		Flags:          conn.flags,
-		PermanentFlags: conn.permFlags,
-		Attributes:     conn.attrs,
-	}, nil
+	return toIMAPMailbox(label, conn.flags, conn.permFlags, conn.attrs), nil
 }
 
 // CreateMailbox creates a label with the given name.
@@ -136,13 +113,7 @@ func (conn *imapConnector) CreateMailbox(ctx context.Context, name []string) (im
 		return imap.Mailbox{}, err
 	}
 
-	return imap.Mailbox{
-		ID:             imap.MailboxID(label.ID),
-		Name:           name,
-		Flags:          conn.flags,
-		PermanentFlags: conn.permFlags,
-		Attributes:     conn.attrs,
-	}, nil
+	return toIMAPMailbox(label, conn.flags, conn.permFlags, conn.attrs), nil
 }
 
 // UpdateMailboxName sets the name of the label with the given ID.
@@ -196,21 +167,7 @@ func (conn *imapConnector) GetMessage(ctx context.Context, messageID imap.Messag
 		return imap.Message{}, nil, err
 	}
 
-	flags := imap.NewFlagSet()
-
-	if !message.Unread {
-		flags = flags.Add(imap.FlagSeen)
-	}
-
-	if slices.Contains(message.LabelIDs, liteapi.StarredLabel) {
-		flags = flags.Add(imap.FlagFlagged)
-	}
-
-	return imap.Message{
-		ID:    imap.MessageID(message.ID),
-		Flags: flags,
-		Date:  time.Unix(message.Time, 0),
-	}, mapTo[string, imap.MailboxID](message.LabelIDs), nil
+	return toIMAPMessage(message.MessageMetadata), mapTo[string, imap.MailboxID](message.LabelIDs), nil
 }
 
 // CreateMessage creates a new message on the remote.
@@ -223,75 +180,44 @@ func (conn *imapConnector) CreateMessage(
 	flags imap.FlagSet,
 	date time.Time,
 ) (imap.Message, []byte, error) {
-	var msgFlags liteapi.MessageFlag
+	// Check if we already tried to send this message recently.
+	if messageID, ok, err := conn.sendHash.hasEntryWait(ctx, literal, time.Now().Add(90*time.Second)); err != nil {
+		return imap.Message{}, nil, fmt.Errorf("failed to check send hash: %w", err)
+	} else if ok {
+		message, err := conn.client.GetMessage(ctx, messageID)
+		if err != nil {
+			return imap.Message{}, nil, fmt.Errorf("failed to fetch message: %w", err)
+		}
+
+		return toIMAPMessage(message.MessageMetadata), nil, nil
+	}
+
+	wantLabelIDs := []string{string(mailboxID)}
+
+	if flags.Contains(imap.FlagFlagged) {
+		wantLabelIDs = append(wantLabelIDs, liteapi.StarredLabel)
+	}
+
+	var wantFlags liteapi.MessageFlag
 
 	if mailboxID != liteapi.DraftsLabel {
-		header, _ := rfc822.Split(literal)
-
-		parsed, err := rfc822.NewHeader(header)
+		header, err := rfc822.Parse(literal).ParseHeader()
 		if err != nil {
 			return imap.Message{}, nil, err
 		}
 
-		if parsed.Has("Received") {
-			msgFlags = msgFlags.Add(liteapi.MessageFlagReceived)
+		if header.Has("Received") {
+			wantFlags = wantFlags.Add(liteapi.MessageFlagReceived)
 		} else {
-			msgFlags = msgFlags.Add(liteapi.MessageFlagSent)
+			wantFlags = wantFlags.Add(liteapi.MessageFlagSent)
 		}
-	}
-
-	var labelIDs []imap.MailboxID
-
-	if flags.Contains(imap.FlagFlagged) {
-		labelIDs = append(labelIDs, liteapi.StarredLabel)
 	}
 
 	if flags.Contains(imap.FlagAnswered) {
-		msgFlags = msgFlags.Add(liteapi.MessageFlagReplied)
+		wantFlags = wantFlags.Add(liteapi.MessageFlagReplied)
 	}
 
-	var (
-		messageID string
-		imported  []byte
-	)
-
-	if err := conn.withAddrKR(conn.addrID, func(_, addrKR *crypto.KeyRing) error {
-		res, err := stream.Collect(ctx, conn.client.ImportMessages(ctx, addrKR, 1, 1, []liteapi.ImportReq{{
-			Metadata: liteapi.ImportMetadata{
-				AddressID: conn.addrID,
-				LabelIDs:  mapTo[imap.MailboxID, string](append(labelIDs, mailboxID)),
-				Unread:    !liteapi.Bool(flags.Contains(imap.FlagSeen)),
-				Flags:     msgFlags,
-			},
-			Message: literal,
-		}}...))
-		if err != nil {
-			return fmt.Errorf("failed to import message: %w", err)
-		}
-
-		full, err := conn.client.GetFullMessage(ctx, res[0].MessageID)
-		if err != nil {
-			return fmt.Errorf("failed to fetch imported message: %w", err)
-		}
-
-		b, err := message.BuildRFC822(addrKR, full.Message, full.AttData, defaultJobOpts())
-		if err != nil {
-			return fmt.Errorf("failed to build message: %w", err)
-		}
-
-		messageID = full.ID
-		imported = b
-
-		return nil
-	}); err != nil {
-		return imap.Message{}, nil, err
-	}
-
-	return imap.Message{
-		ID:    imap.MessageID(messageID),
-		Flags: flags,
-		Date:  date,
-	}, imported, nil
+	return conn.importMessage(ctx, literal, wantLabelIDs, wantFlags, !flags.Contains(imap.FlagSeen))
 }
 
 // AddMessagesToMailbox labels the given messages with the given label ID.
@@ -366,4 +292,83 @@ func (conn *imapConnector) Close(ctx context.Context) error {
 // IsMailboxVisible returns whether this mailbox should be visible over IMAP.
 func (conn *imapConnector) IsMailboxVisible(_ context.Context, mailboxID imap.MailboxID) bool {
 	return atomic.LoadUint32(&conn.showAllMail) != 0 || mailboxID != liteapi.AllMailLabel
+}
+
+func (conn *imapConnector) importMessage(
+	ctx context.Context,
+	literal []byte,
+	labelIDs []string,
+	flags liteapi.MessageFlag,
+	unread bool,
+) (imap.Message, []byte, error) {
+	var full liteapi.FullMessage
+
+	if err := conn.withAddrKR(conn.addrID, func(_, addrKR *crypto.KeyRing) error {
+		res, err := stream.Collect(ctx, conn.client.ImportMessages(ctx, addrKR, 1, 1, []liteapi.ImportReq{{
+			Metadata: liteapi.ImportMetadata{
+				AddressID: conn.addrID,
+				LabelIDs:  labelIDs,
+				Unread:    liteapi.Bool(unread),
+				Flags:     flags,
+			},
+			Message: literal,
+		}}...))
+		if err != nil {
+			return fmt.Errorf("failed to import message: %w", err)
+		}
+
+		if full, err = conn.client.GetFullMessage(ctx, res[0].MessageID); err != nil {
+			return fmt.Errorf("failed to fetch message: %w", err)
+		}
+
+		if literal, err = message.BuildRFC822(addrKR, full.Message, full.AttData, defaultJobOpts()); err != nil {
+			return fmt.Errorf("failed to build message: %w", err)
+		}
+
+		return nil
+	}); err != nil {
+		return imap.Message{}, nil, err
+	}
+
+	return toIMAPMessage(full.MessageMetadata), literal, nil
+}
+
+func toIMAPMessage(message liteapi.MessageMetadata) imap.Message {
+	flags := imap.NewFlagSet()
+
+	if !message.Unread {
+		flags = flags.Add(imap.FlagSeen)
+	}
+
+	if slices.Contains(message.LabelIDs, liteapi.StarredLabel) {
+		flags = flags.Add(imap.FlagFlagged)
+	}
+
+	if slices.Contains(message.LabelIDs, liteapi.DraftsLabel) {
+		flags = flags.Add(imap.FlagDraft)
+	}
+
+	return imap.Message{
+		ID:    imap.MessageID(message.ID),
+		Flags: flags,
+		Date:  time.Unix(message.Time, 0),
+	}
+}
+
+func toIMAPMailbox(label liteapi.Label, flags, permFlags, attrs imap.FlagSet) imap.Mailbox {
+	var name []string
+
+	if label.Type == liteapi.LabelTypeLabel {
+		name = append(name, labelPrefix)
+	} else if label.Type == liteapi.LabelTypeFolder {
+		name = append(name, folderPrefix)
+	}
+
+	return imap.Mailbox{
+		ID:             imap.MailboxID(label.ID),
+		Name:           append(name, label.Name),
+		Flags:          flags,
+		PermanentFlags: permFlags,
+		Attributes:     attrs,
+	}
 }

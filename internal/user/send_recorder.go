@@ -1,3 +1,20 @@
+// Copyright (c) 2022 Proton AG
+//
+// This file is part of Proton Mail Bridge.
+//
+// Proton Mail Bridge is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Proton Mail Bridge is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Proton Mail Bridge.  If not, see <https://www.gnu.org/licenses/>.
+
 package user
 
 import (
@@ -14,7 +31,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-const sendHashExpiry = 5 * time.Minute
+const sendEntryExpiry = 30 * time.Minute
 
 type sendRecorder struct {
 	hasher func([]byte) (string, error)
@@ -164,8 +181,8 @@ func (h *sendRecorder) wait(ctx context.Context, hash string, deadline time.Time
 	ctx, cancel := context.WithDeadline(ctx, deadline)
 	defer cancel()
 
-	waitCh, err := h.getWaitCh(hash)
-	if err != nil {
+	waitCh, ok := h.getWaitCh(hash)
+	if !ok {
 		return "", false, nil
 	}
 
@@ -187,24 +204,26 @@ func (h *sendRecorder) wait(ctx context.Context, hash string, deadline time.Time
 	return "", false, nil
 }
 
-func (h *sendRecorder) getWaitCh(hash string) (<-chan struct{}, error) {
+func (h *sendRecorder) getWaitCh(hash string) (<-chan struct{}, bool) {
 	h.entriesLock.Lock()
 	defer h.entriesLock.Unlock()
 
 	if entry, ok := h.entries[hash]; ok {
-		return entry.waitCh, nil
+		return entry.waitCh, true
 	}
 
-	return nil, fmt.Errorf("no entry with hash %s", hash)
+	return nil, false
 }
 
 // getMessageHash returns the hash of the given message.
 // This takes into account:
-// - the Subject header
-// - the From/To/Cc/Bcc headers
-// - the Content-Type header of each (leaf) part
-// - the Content-Disposition header of each (leaf) part
-// - the (decoded) body of each part
+// - the Subject header,
+// - the From/To/Cc/Bcc headers,
+// - the Content-Type header of each (leaf) part,
+// - the Content-Disposition header of each (leaf) part,
+// - the (decoded) body of each part.
+//
+// nolint:funlen
 func getMessageHash(b []byte) (string, error) {
 	section := rfc822.Parse(b)
 

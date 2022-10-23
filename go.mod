@@ -40,7 +40,7 @@ require (
 	github.com/urfave/cli/v2 v2.20.3
 	gitlab.protontech.ch/go/liteapi v0.36.0
 	go.uber.org/goleak v1.2.0
-	golang.org/x/exp v0.0.0-20220921164117-439092de6870
+	golang.org/x/exp v0.0.0-20221023144134-a1e5550cf13e
 	golang.org/x/net v0.1.0
 	golang.org/x/sys v0.1.0
 	golang.org/x/text v0.4.0

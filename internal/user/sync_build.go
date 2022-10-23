@@ -19,14 +19,12 @@ package user
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/ProtonMail/gluon/imap"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/ProtonMail/proton-bridge/v2/pkg/message"
 	"github.com/bradenaw/juniper/xslices"
 	"gitlab.protontech.ch/go/liteapi"
-	"golang.org/x/exp/slices"
 )
 
 type buildRes struct {
@@ -70,28 +68,8 @@ func newMessageCreatedUpdate(message liteapi.MessageMetadata, literal []byte) (*
 		return nil, err
 	}
 
-	flags := imap.NewFlagSet()
-
-	if !message.Unread {
-		flags = flags.Add(imap.FlagSeen)
-	}
-
-	if slices.Contains(message.LabelIDs, liteapi.StarredLabel) {
-		flags = flags.Add(imap.FlagFlagged)
-	}
-
-	if slices.Contains(message.LabelIDs, liteapi.DraftsLabel) {
-		flags = flags.Add(imap.FlagDraft)
-	}
-
-	imapMessage := imap.Message{
-		ID:    imap.MessageID(message.ID),
-		Flags: flags,
-		Date:  time.Unix(message.Time, 0),
-	}
-
 	return &imap.MessageCreated{
-		Message:       imapMessage,
+		Message:       toIMAPMessage(message),
 		Literal:       literal,
 		MailboxIDs:    mapTo[string, imap.MailboxID](xslices.Filter(message.LabelIDs, wantLabelID)),
 		ParsedMessage: parsedMessage,
