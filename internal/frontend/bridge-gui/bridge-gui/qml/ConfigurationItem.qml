@@ -53,6 +53,8 @@ Item {
                     selectByMouse: true
                     selectByKeyboard: true
                     selectionColor: root.colorScheme.text_weak
+                    wrapMode: Text.WrapAnywhere
+                    Layout.fillWidth: true
                 }
             }
 
