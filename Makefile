@@ -255,7 +255,7 @@ lint-golang:
 	golangci-lint run ./...
 
 gobinsec: gobinsec-cache.yml build
-	gobinsec -wait -cache -config utils/gobinsec_conf.yml ${EXE_TARGET}
+	gobinsec -wait -cache -config utils/gobinsec_conf.yml ${EXE_TARGET} ${DEPLOY_DIR}/${TARGET_OS}/${LAUNCHER_EXE}
 
 gobinsec-cache.yml:
 	./utils/gobinsec_update.sh
