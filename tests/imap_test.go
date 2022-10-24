@@ -389,6 +389,23 @@ func (s *scenario) imapClientAppendsTheFollowingMessageToMailbox(clientID string
 	return clientAppend(client, mailbox, docString.Content)
 }
 
+func (s *scenario) imapClientAppendsTheFollowingMessagesToMailbox(clientID string, mailbox string, table *godog.Table) error {
+	_, client := s.t.getIMAPClient(clientID)
+
+	messages, err := unmarshalTable[Message](table)
+	if err != nil {
+		return err
+	}
+
+	for _, message := range messages {
+		if err := clientAppend(client, mailbox, string(message.Build())); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func (s *scenario) imapClientAppendsToMailbox(clientID string, file, mailbox string) error {
 	_, client := s.t.getIMAPClient(clientID)
 
