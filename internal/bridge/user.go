@@ -505,9 +505,7 @@ func (bridge *Bridge) logoutUser(ctx context.Context, userID string) error {
 			logrus.WithError(err).Error("Failed to logout user")
 		}
 
-		if err := user.Close(); err != nil {
-			logrus.WithError(err).Error("Failed to close user")
-		}
+		user.Close()
 
 		return nil
 	}); !ok {
@@ -532,9 +530,7 @@ func (bridge *Bridge) deleteUser(ctx context.Context, userID string) {
 			logrus.WithError(err).Error("Failed to logout user")
 		}
 
-		if err := user.Close(); err != nil {
-			logrus.WithError(err).Error("Failed to close user")
-		}
+		user.Close()
 	}); !ok {
 		logrus.Debug("The bridge user was not connected")
 	}

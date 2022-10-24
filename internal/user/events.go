@@ -27,7 +27,6 @@ import (
 	"github.com/ProtonMail/proton-bridge/v2/internal/events"
 	"github.com/ProtonMail/proton-bridge/v2/internal/vault"
 	"github.com/bradenaw/juniper/xslices"
-	"github.com/sirupsen/logrus"
 	"gitlab.protontech.ch/go/liteapi"
 )
 
@@ -92,7 +91,7 @@ func (user *User) handleAddressEvents(ctx context.Context, addressEvents []litea
 			}
 
 		case liteapi.EventUpdateFlags:
-			logrus.Warn("Not implemented yet.")
+			user.log.Warn("Not implemented yet.")
 		}
 	}
 
@@ -100,7 +99,9 @@ func (user *User) handleAddressEvents(ctx context.Context, addressEvents []litea
 }
 
 func (user *User) handleCreateAddressEvent(ctx context.Context, event liteapi.AddressEvent) error {
-	user.apiAddrs.Set(event.Address.ID, event.Address)
+	if had := user.apiAddrs.Set(event.Address.ID, event.Address); had {
+		return fmt.Errorf("address %q already exists", event.Address.ID)
+	}
 
 	switch user.vault.AddressMode() {
 	case vault.CombinedMode:
@@ -132,7 +133,9 @@ func (user *User) handleCreateAddressEvent(ctx context.Context, event liteapi.Ad
 }
 
 func (user *User) handleUpdateAddressEvent(_ context.Context, event liteapi.AddressEvent) error { //nolint:unparam
-	user.apiAddrs.Set(event.Address.ID, event.Address)
+	if had := user.apiAddrs.Set(event.Address.ID, event.Address); !had {
+		return fmt.Errorf("address %q does not exist", event.Address.ID)
+	}
 
 	user.eventCh.Enqueue(events.UserAddressUpdated{
 		UserID:    user.ID(),
@@ -219,9 +222,6 @@ func (user *User) handleDeleteLabelEvent(_ context.Context, event liteapi.LabelE
 
 // handleMessageEvents handles the given message events.
 func (user *User) handleMessageEvents(ctx context.Context, messageEvents []liteapi.MessageEvent) error {
-	ctx, cancel := context.WithCancel(ctx)
-	defer cancel()
-
 	for _, event := range messageEvents {
 		switch event.Action {
 		case liteapi.EventCreate:
@@ -249,7 +249,7 @@ func (user *User) handleCreateMessageEvent(ctx context.Context, event liteapi.Me
 	}
 
 	return user.withAddrKR(event.Message.AddressID, func(_, addrKR *crypto.KeyRing) error {
-		buildRes, err := buildRFC822(ctx, full, addrKR)
+		buildRes, err := buildRFC822(full, addrKR)
 		if err != nil {
 			return fmt.Errorf("failed to build RFC822 message: %w", err)
 		}

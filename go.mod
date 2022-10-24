@@ -5,7 +5,7 @@ go 1.18
 require (
 	github.com/0xAX/notificator v0.0.0-20220220101646-ee9b8921e557
 	github.com/Masterminds/semver/v3 v3.1.1
-	github.com/ProtonMail/gluon v0.13.1-0.20221021093632-0b277a6d0226
+	github.com/ProtonMail/gluon v0.13.1-0.20221023130957-9bcdfe15b0fb
 	github.com/ProtonMail/go-autostart v0.0.0-20210130080809-00ed301c8e9a
 	github.com/ProtonMail/go-rfc5322 v0.11.0
 	github.com/ProtonMail/gopenpgp/v2 v2.4.10
@@ -37,14 +37,14 @@ require (
 	github.com/pkg/profile v1.6.0
 	github.com/sirupsen/logrus v1.9.0
 	github.com/stretchr/testify v1.8.0
-	github.com/urfave/cli/v2 v2.16.3
-	gitlab.protontech.ch/go/liteapi v0.35.0
+	github.com/urfave/cli/v2 v2.20.3
+	gitlab.protontech.ch/go/liteapi v0.35.1-0.20221024102125-605f4712c351
 	go.uber.org/goleak v1.2.0
 	golang.org/x/exp v0.0.0-20220921164117-439092de6870
 	golang.org/x/net v0.1.0
 	golang.org/x/sys v0.1.0
 	golang.org/x/text v0.4.0
-	google.golang.org/grpc v1.49.0
+	google.golang.org/grpc v1.50.1
 	google.golang.org/protobuf v1.28.1
 	howett.net/plist v1.0.0
 )

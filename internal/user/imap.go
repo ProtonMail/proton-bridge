@@ -20,6 +20,7 @@ package user
 import (
 	"context"
 	"fmt"
+	"sync/atomic"
 	"time"
 
 	"github.com/ProtonMail/gluon/imap"
@@ -79,9 +80,9 @@ func (conn *imapConnector) Authorize(username string, password []byte) bool {
 	return true
 }
 
-// GetMailbox returns information about the label with the given ID.
-func (conn *imapConnector) GetMailbox(ctx context.Context, labelID imap.MailboxID) (imap.Mailbox, error) {
-	label, err := conn.client.GetLabel(ctx, string(labelID), liteapi.LabelTypeLabel, liteapi.LabelTypeFolder)
+// GetMailbox returns information about the mailbox with the given ID.
+func (conn *imapConnector) GetMailbox(ctx context.Context, mailboxID imap.MailboxID) (imap.Mailbox, error) {
+	label, err := conn.client.GetLabel(ctx, string(mailboxID), liteapi.LabelTypeLabel, liteapi.LabelTypeFolder)
 	if err != nil {
 		return imap.Mailbox{}, err
 	}
@@ -362,10 +363,7 @@ func (conn *imapConnector) Close(ctx context.Context) error {
 	return nil
 }
 
-func (conn *imapConnector) IsMailboxVisible(_ context.Context, id imap.MailboxID) bool {
-	if !conn.GetShowAllMail() && id == liteapi.AllMailLabel {
-		return false
-	}
-
-	return true
+// IsMailboxVisible returns whether this mailbox should be visible over IMAP.
+func (conn *imapConnector) IsMailboxVisible(_ context.Context, mailboxID imap.MailboxID) bool {
+	return atomic.LoadUint32(&conn.showAllMail) != 0 || mailboxID != liteapi.AllMailLabel
 }

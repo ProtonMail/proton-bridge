@@ -33,7 +33,6 @@ import (
 	"github.com/bradenaw/juniper/stream"
 	"github.com/bradenaw/juniper/xslices"
 	"github.com/google/uuid"
-	"github.com/sirupsen/logrus"
 	"gitlab.protontech.ch/go/liteapi"
 )
 
@@ -42,12 +41,40 @@ const (
 	maxBatchSize  = 1 << 8
 )
 
+// doSync begins syncing the users data.
+// It sends a SyncStarted event and then either SyncFinished or SyncFailed
+// depending on whether the sync was successful.
+func (user *User) doSync(ctx context.Context) error {
+	user.log.Debug("Beginning user sync")
+
+	user.eventCh.Enqueue(events.SyncStarted{
+		UserID: user.ID(),
+	})
+
+	if err := user.sync(ctx); err != nil {
+		user.log.WithError(err).Debug("Failed to sync user")
+
+		user.eventCh.Enqueue(events.SyncFailed{
+			UserID: user.ID(),
+			Err:    err,
+		})
+
+		return fmt.Errorf("failed to sync: %w", err)
+	}
+
+	user.log.Debug("Finished user sync")
+
+	user.eventCh.Enqueue(events.SyncFinished{
+		UserID: user.ID(),
+	})
+
+	return nil
+}
+
 func (user *User) sync(ctx context.Context) error {
 	return user.withAddrKRs(func(_ *crypto.KeyRing, addrKRs map[string]*crypto.KeyRing) error {
-		logrus.Info("Beginning sync")
-
 		if !user.vault.SyncStatus().HasLabels {
-			logrus.Info("Syncing labels")
+			user.log.Debug("Syncing labels")
 
 			if err := user.updateCh.ValuesErr(func(updateCh []*queue.QueuedChannel[imap.Update]) error {
 				return syncLabels(ctx, user.client, xslices.Unique(updateCh)...)
@@ -59,13 +86,13 @@ func (user *User) sync(ctx context.Context) error {
 				return fmt.Errorf("failed to set has labels: %w", err)
 			}
 
-			logrus.Info("Synced labels")
+			user.log.Debug("Synced labels")
 		} else {
-			logrus.Info("Labels are already synced, skipping")
+			user.log.Debug("Labels are already synced, skipping")
 		}
 
 		if !user.vault.SyncStatus().HasMessages {
-			logrus.Info("Syncing messages")
+			user.log.Debug("Syncing messages")
 
 			if err := user.updateCh.MapErr(func(updateCh map[string]*queue.QueuedChannel[imap.Update]) error {
 				return syncMessages(ctx, user.ID(), user.client, user.vault, addrKRs, updateCh, user.eventCh)
@@ -77,9 +104,9 @@ func (user *User) sync(ctx context.Context) error {
 				return fmt.Errorf("failed to set has messages: %w", err)
 			}
 
-			logrus.Info("Synced messages")
+			user.log.Debug("Synced messages")
 		} else {
-			logrus.Info("Messages are already synced, skipping")
+			user.log.Debug("Messages are already synced, skipping")
 		}
 
 		return nil
@@ -169,11 +196,10 @@ func syncMessages( //nolint:funlen
 	// Fetch and build each message.
 	buildCh := stream.Map(
 		client.GetFullMessages(ctx, runtime.NumCPU(), runtime.NumCPU(), messageIDs...),
-		func(ctx context.Context, full liteapi.FullMessage) (*buildRes, error) {
-			return buildRFC822(ctx, full, addrKRs[full.AddressID])
+		func(_ context.Context, full liteapi.FullMessage) (*buildRes, error) {
+			return buildRFC822(full, addrKRs[full.AddressID])
 		},
 	)
-	defer buildCh.Close()
 
 	// Create the flushers, one per update channel.
 	flushers := make(map[string]*flusher)
@@ -254,6 +280,8 @@ func wantLabelID(labelID string) bool {
 }
 
 func forEach[T any](ctx context.Context, streamer stream.Stream[T], fn func(T) error) error {
+	defer streamer.Close()
+
 	for {
 		res, err := streamer.Next(ctx)
 		if errors.Is(err, stream.End) {

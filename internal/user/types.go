@@ -18,7 +18,6 @@
 package user
 
 import (
-	"context"
 	"encoding/hex"
 	"fmt"
 	"reflect"
@@ -91,23 +90,4 @@ func getAddrID(apiAddrs []liteapi.Address, email string) (string, error) {
 	}
 
 	return "", fmt.Errorf("address %s not found", email)
-}
-
-// contextWithStopCh returns a new context that is cancelled when the stop channel is closed or a value is sent to it.
-func contextWithStopCh(ctx context.Context, channels ...<-chan struct{}) (context.Context, context.CancelFunc) {
-	ctx, cancel := context.WithCancel(ctx)
-
-	for _, stopCh := range channels {
-		go func(ch <-chan struct{}) {
-			select {
-			case <-ch:
-				cancel()
-
-			case <-ctx.Done():
-				// ...
-			}
-		}(stopCh)
-	}
-
-	return ctx, cancel
 }

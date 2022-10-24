@@ -332,11 +332,9 @@ func (bridge *Bridge) Close(ctx context.Context) error {
 	}
 
 	// Close all users.
-	if err := bridge.users.IterValuesErr(func(user *user.User) error {
-		return user.Close()
-	}); err != nil {
-		logrus.WithError(err).Error("Failed to close users")
-	}
+	bridge.users.IterValues(func(user *user.User) {
+		user.Close()
+	})
 
 	// Close the focus service.
 	bridge.focusService.Close()

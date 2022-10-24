@@ -35,7 +35,6 @@ import (
 	"github.com/ProtonMail/proton-bridge/v2/pkg/message/parser"
 	"github.com/bradenaw/juniper/parallel"
 	"github.com/bradenaw/juniper/xslices"
-	"github.com/sirupsen/logrus"
 	"gitlab.protontech.ch/go/liteapi"
 	"golang.org/x/exp/slices"
 )
@@ -104,7 +103,7 @@ func (user *User) sendMail(authID string, emails []string, from string, to []str
 			return fmt.Errorf("failed to send message: %w", err)
 		}
 
-		logrus.WithField("messageID", sent.ID).Info("Message sent")
+		user.log.WithField("messageID", sent.ID).Info("Message sent")
 
 		return nil
 	})

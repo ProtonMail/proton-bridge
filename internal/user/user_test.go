@@ -22,6 +22,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/ProtonMail/gluon/connector"
 	"github.com/ProtonMail/proton-bridge/v2/internal/certs"
 	"github.com/ProtonMail/proton-bridge/v2/internal/events"
 	"github.com/ProtonMail/proton-bridge/v2/internal/vault"
@@ -30,6 +31,7 @@ import (
 	"gitlab.protontech.ch/go/liteapi"
 	"gitlab.protontech.ch/go/liteapi/server"
 	"gitlab.protontech.ch/go/liteapi/server/backend"
+	"go.uber.org/goleak"
 )
 
 func init() {
@@ -39,7 +41,11 @@ func init() {
 	certs.GenerateCert = tests.FastGenerateCert
 }
 
-func TestUser_Data(t *testing.T) {
+func TestMain(m *testing.M) {
+	goleak.VerifyTestMain(m, goleak.IgnoreCurrent())
+}
+
+func TestUser_Info(t *testing.T) {
 	withAPI(t, context.Background(), func(ctx context.Context, s *server.Server, m *liteapi.Manager) {
 		withAccount(t, s, "username", "password", []string{"email@pm.me", "alias@pm.me"}, func(userID string, addrIDs []string) {
 			withUser(t, ctx, s, m, "username", "password", func(user *User) {
@@ -66,6 +72,9 @@ func TestUser_Sync(t *testing.T) {
 	withAPI(t, context.Background(), func(ctx context.Context, s *server.Server, m *liteapi.Manager) {
 		withAccount(t, s, "username", "password", []string{"email@pm.me"}, func(userID string, addrIDs []string) {
 			withUser(t, ctx, s, m, "username", "password", func(user *User) {
+				// Process the IMAP updates as if we were gluon.
+				handleUpdates(t, user)
+
 				// User starts a sync at startup.
 				require.IsType(t, events.SyncStarted{}, <-user.GetEventCh())
 
@@ -73,6 +82,36 @@ func TestUser_Sync(t *testing.T) {
 				require.IsType(t, events.SyncProgress{}, <-user.GetEventCh())
 
 				// User finishes a sync at startup.
+				require.IsType(t, events.SyncFinished{}, <-user.GetEventCh())
+			})
+		})
+	})
+}
+
+func TestUser_AddressMode(t *testing.T) {
+	withAPI(t, context.Background(), func(ctx context.Context, s *server.Server, m *liteapi.Manager) {
+		withAccount(t, s, "username", "password", []string{"email@pm.me", "alias@pm.me"}, func(userID string, addrIDs []string) {
+			withUser(t, ctx, s, m, "username", "password", func(user *User) {
+				// Process the IMAP updates as if we were gluon.
+				handleUpdates(t, user)
+
+				// User finishes syncing at startup.
+				require.IsType(t, events.SyncStarted{}, <-user.GetEventCh())
+				require.IsType(t, events.SyncProgress{}, <-user.GetEventCh())
+				require.IsType(t, events.SyncFinished{}, <-user.GetEventCh())
+
+				// By default, user should be in combined mode.
+				require.Equal(t, vault.CombinedMode, user.GetAddressMode())
+
+				// User should be able to switch to split mode.
+				require.NoError(t, user.SetAddressMode(ctx, vault.SplitMode))
+
+				// Process the IMAP updates as if we were gluon.
+				handleUpdates(t, user)
+
+				// User finishes syncing after switching to split mode.
+				require.IsType(t, events.SyncStarted{}, <-user.GetEventCh())
+				require.IsType(t, events.SyncProgress{}, <-user.GetEventCh())
 				require.IsType(t, events.SyncFinished{}, <-user.GetEventCh())
 			})
 		})
@@ -126,7 +165,6 @@ func withAccount(tb testing.TB, s *server.Server, username, password string, ema
 func withUser(tb testing.TB, ctx context.Context, _ *server.Server, m *liteapi.Manager, username, password string, fn func(*User)) { //nolint:unparam,revive
 	client, apiAuth, err := m.NewClientWithLogin(ctx, username, []byte(password))
 	require.NoError(tb, err)
-	defer client.Close()
 
 	apiUser, err := client.GetUser(ctx)
 	require.NoError(tb, err)
@@ -146,18 +184,20 @@ func withUser(tb testing.TB, ctx context.Context, _ *server.Server, m *liteapi.M
 
 	user, err := New(ctx, vaultUser, client, apiUser, true)
 	require.NoError(tb, err)
-	defer func() { require.NoError(tb, user.Close()) }()
+	defer user.Close()
 
+	fn(user)
+}
+
+func handleUpdates(t *testing.T, user *User) {
 	imapConn, err := user.NewIMAPConnectors()
-	require.NoError(tb, err)
+	require.NoError(t, err)
 
-	go func() {
-		for _, imapConn := range imapConn {
+	for _, imapConn := range imapConn {
+		go func(imapConn connector.Connector) {
 			for update := range imapConn.GetUpdates() {
 				update.Done()
 			}
-		}
-	}()
-
-	fn(user)
+		}(imapConn)
+	}
 }

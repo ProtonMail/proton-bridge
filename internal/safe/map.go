@@ -136,34 +136,58 @@ func (m *Map[Key, Val]) GetDeleteErr(key Key, fn func(Val) error) (bool, error) 
 	return ok, err
 }
 
-func (m *Map[Key, Val]) Set(key Key, val Val) {
+func (m *Map[Key, Val]) Set(key Key, val Val) bool {
 	m.lock.Lock()
 	defer m.lock.Unlock()
+
+	var had bool
+
+	if _, ok := m.data[key]; ok {
+		had = true
+	}
 
 	m.data[key] = val
 
-	m.order = append(m.order, key)
+	if idx := xslices.Index(m.order, key); idx >= 0 {
+		m.order[idx] = key
+	} else {
+		m.order = append(m.order, key)
+	}
 
 	if m.sort != nil {
 		slices.SortFunc(m.order, func(a, b Key) bool {
 			return m.sort(a, b, m.data)
 		})
 	}
+
+	return had
 }
 
-func (m *Map[Key, Val]) SetFrom(key Key, other Key) {
+func (m *Map[Key, Val]) SetFrom(key Key, other Key) bool {
 	m.lock.Lock()
 	defer m.lock.Unlock()
 
+	var had bool
+
+	if _, ok := m.data[key]; ok {
+		had = true
+	}
+
 	m.data[key] = m.data[other]
 
-	m.order = append(m.order, key)
+	if idx := xslices.Index(m.order, key); idx >= 0 {
+		m.order[idx] = key
+	} else {
+		m.order = append(m.order, key)
+	}
 
 	if m.sort != nil {
 		slices.SortFunc(m.order, func(a, b Key) bool {
 			return m.sort(a, b, m.data)
 		})
 	}
+
+	return had
 }
 
 func (m *Map[Key, Val]) Iter(fn func(key Key, val Val)) {
