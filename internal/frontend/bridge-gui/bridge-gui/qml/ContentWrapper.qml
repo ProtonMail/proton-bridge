@@ -359,6 +359,10 @@ Item {
                     onBack: {
                         rightContent.showHelpView()
                     }
+
+                    onBugReportWasSent: {
+                        rightContent.showAccount()
+                    }
                 }
 
                 function showAccount(index) {

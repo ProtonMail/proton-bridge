@@ -28,6 +28,8 @@ SettingsView {
 
     property var selectedAddress
 
+    signal bugReportWasSent()
+
     Label {
         text: qsTr("Report a problem")
         colorScheme: root.colorScheme
@@ -61,7 +63,7 @@ SettingsView {
         }
 
         onTextChanged: {
-            // Rise max length error imidiatly while typing
+            // Rise max length error immediately while typing
             if (description.text.length > description._maxLength) {
                 validate()
             }
@@ -164,6 +166,7 @@ SettingsView {
         Connections {
             target: Backend
             function onReportBugFinished() { sendButton.loading = false }
+            function onBugReportSendSuccess() { root.bugReportWasSent() }
         }
     }
 
