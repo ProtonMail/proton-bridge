@@ -254,6 +254,13 @@ lint-golang:
 	$(info linting with GOMAXPROCS=${GOMAXPROCS})
 	golangci-lint run ./...
 
+gobinsec: gobinsec-cache.yml build
+	gobinsec -wait -cache -config utils/gobinsec_conf.yml ${EXE_TARGET}
+
+gobinsec-cache.yml:
+	./utils/gobinsec_update.sh
+	cp ./utils/gobinsec_update/gobinsec-cache-valid.yml ./gobinsec-cache.yml
+
 updates: install-go-mod-outdated
 	# Uncomment the "-ci" to fail the job if something can be updated.
 	go list -u -m -json all | go-mod-outdated -update -direct #-ci

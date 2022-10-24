@@ -1,4 +1,4 @@
-##!/bin/bash
+#!/bin/bash
 
 # Copyright (c) 2022 Proton AG
 #
