@@ -87,6 +87,7 @@ func TestFeatures(testingT *testing.T) {
 			ctx.Step(`^the user agent is "([^"]*)"$`, s.theUserAgentIs)
 			ctx.Step(`^the header in the "([^"]*)" request to "([^"]*)" has "([^"]*)" set to "([^"]*)"$`, s.theHeaderInTheRequestToHasSetTo)
 			ctx.Step(`^the body in the "([^"]*)" request to "([^"]*)" is:$`, s.theBodyInTheRequestToIs)
+			ctx.Step(`^the API requires bridge version at least "([^"]*)"$`, s.theAPIRequiresBridgeVersion)
 
 			// ==== SETUP ====
 			ctx.Step(`^there exists an account with username "([^"]*)" and password "([^"]*)"$`, s.thereExistsAnAccountWithUsernameAndPassword)
@@ -103,7 +104,6 @@ func TestFeatures(testingT *testing.T) {
 			ctx.Step(`^bridge restarts$`, s.bridgeRestarts)
 			ctx.Step(`^bridge stops$`, s.bridgeStops)
 			ctx.Step(`^bridge is version "([^"]*)" and the latest available version is "([^"]*)" reachable from "([^"]*)"$`, s.bridgeVersionIsAndTheLatestAvailableVersionIsReachableFrom)
-			ctx.Step(`^the API requires bridge version at least "([^"]*)"$`, s.theAPIRequiresBridgeVersion)
 			ctx.Step(`^the user has disabled automatic updates$`, s.theUserHasDisabledAutomaticUpdates)
 			ctx.Step(`^the user changes the IMAP port to (\d+)$`, s.theUserChangesTheIMAPPortTo)
 			ctx.Step(`^the user changes the SMTP port to (\d+)$`, s.theUserChangesTheSMTPPortTo)
@@ -111,6 +111,8 @@ func TestFeatures(testingT *testing.T) {
 			ctx.Step(`^the user changes the gluon path$`, s.theUserChangesTheGluonPath)
 			ctx.Step(`^the user deletes the gluon files$`, s.theUserDeletesTheGluonFiles)
 			ctx.Step(`^the user reports a bug$`, s.theUserReportsABug)
+			ctx.Step(`^the user hides All Mail$`, s.theUserHidesAllMail)
+			ctx.Step(`^the user shows All Mail$`, s.theUserShowsAllMail)
 			ctx.Step(`^bridge sends a connection up event$`, s.bridgeSendsAConnectionUpEvent)
 			ctx.Step(`^bridge sends a connection down event$`, s.bridgeSendsAConnectionDownEvent)
 			ctx.Step(`^bridge sends a deauth event for user "([^"]*)"$`, s.bridgeSendsADeauthEventForUser)
@@ -122,8 +124,6 @@ func TestFeatures(testingT *testing.T) {
 			ctx.Step(`^bridge sends an update installed event for version "([^"]*)"$`, s.bridgeSendsAnUpdateInstalledEventForVersion)
 			ctx.Step(`^bridge sends an update not available event$`, s.bridgeSendsAnUpdateNotAvailableEvent)
 			ctx.Step(`^bridge sends a forced update event$`, s.bridgeSendsAForcedUpdateEvent)
-			ctx.Step(`^bridge hides all mail$`, s.bridgeHidesAllMail)
-			ctx.Step(`^bridge shows all mail$`, s.bridgeShowsAllMail)
 
 			// ==== USER ====
 			ctx.Step(`^the user logs in with username "([^"]*)" and password "([^"]*)"$`, s.userLogsInWithUsernameAndPassword)

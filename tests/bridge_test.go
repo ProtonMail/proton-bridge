@@ -263,10 +263,10 @@ func (s *scenario) bridgeSendsAForcedUpdateEvent() error {
 	return nil
 }
 
-func (s *scenario) bridgeHidesAllMail() error {
+func (s *scenario) theUserHidesAllMail() error {
 	return s.t.bridge.SetShowAllMail(false)
 }
 
-func (s *scenario) bridgeShowsAllMail() error {
+func (s *scenario) theUserShowsAllMail() error {
 	return s.t.bridge.SetShowAllMail(true)
 }

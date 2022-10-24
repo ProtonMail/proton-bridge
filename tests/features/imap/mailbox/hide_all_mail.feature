@@ -19,7 +19,7 @@ Feature: IMAP Hide All Mail
       | All Mail      |
       | Folders       |
       | Labels        |
-    When bridge hides all mail
+    When the user hides All Mail
     Then IMAP client "1" sees the following mailbox info:
       | name          |
       | INBOX         |
@@ -31,7 +31,7 @@ Feature: IMAP Hide All Mail
       | Trash         |
       | Folders       |
       | Labels        |
-    When bridge shows all mail
+    When the user shows All Mail
     Then IMAP client "1" sees the following mailbox info:
       | name          |
       | INBOX         |
