@@ -254,6 +254,14 @@ func getMessageHash(b []byte) (string, error) {
 		return "", err
 	}
 
+	if _, err := h.Write([]byte(header.Get("Reply-To"))); err != nil {
+		return "", err
+	}
+
+	if _, err := h.Write([]byte(header.Get("In-Reply-To"))); err != nil {
+		return "", err
+	}
+
 	if err := section.Walk(func(section *rfc822.Section) error {
 		children, err := section.Children()
 		if err != nil {
