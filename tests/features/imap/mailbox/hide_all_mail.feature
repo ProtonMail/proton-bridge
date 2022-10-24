@@ -8,39 +8,39 @@ Feature: IMAP Hide All Mail
 
   Scenario: Hide All Mail Mailbox
     Given IMAP client "1" sees the following mailbox info:
-      | name          | total | unread |
-      | INBOX         | 0     | 0      |
-      | Drafts        | 0     | 0      |
-      | Sent          | 0     | 0      |
-      | Starred       | 0     | 0      |
-      | Archive       | 0     | 0      |
-      | Spam          | 0     | 0      |
-      | Trash         | 0     | 0      |
-      | All Mail      | 0     | 0      |
-      | Folders       | 0     | 0      |
-      | Labels        | 0     | 0      |
+      | name          |
+      | INBOX         |
+      | Drafts        |
+      | Sent          |
+      | Starred       |
+      | Archive       |
+      | Spam          |
+      | Trash         |
+      | All Mail      |
+      | Folders       |
+      | Labels        |
     When bridge hides all mail
     Then IMAP client "1" sees the following mailbox info:
-      | name          | total | unread |
-      | INBOX         | 0     | 0      |
-      | Drafts        | 0     | 0      |
-      | Sent          | 0     | 0      |
-      | Starred       | 0     | 0      |
-      | Archive       | 0     | 0      |
-      | Spam          | 0     | 0      |
-      | Trash         | 0     | 0      |
-      | Folders       | 0     | 0      |
-      | Labels        | 0     | 0      |
+      | name          |
+      | INBOX         |
+      | Drafts        |
+      | Sent          |
+      | Starred       |
+      | Archive       |
+      | Spam          |
+      | Trash         |
+      | Folders       |
+      | Labels        |
     When bridge shows all mail
     Then IMAP client "1" sees the following mailbox info:
-      | name          | total | unread |
-      | INBOX         | 0     | 0      |
-      | Drafts        | 0     | 0      |
-      | Sent          | 0     | 0      |
-      | Starred       | 0     | 0      |
-      | Archive       | 0     | 0      |
-      | Spam          | 0     | 0      |
-      | Trash         | 0     | 0      |
-      | All Mail      | 0     | 0      |
-      | Folders       | 0     | 0      |
-      | Labels        | 0     | 0      |
+      | name          |
+      | INBOX         |
+      | Drafts        |
+      | Sent          |
+      | Starred       |
+      | Archive       |
+      | Spam          |
+      | Trash         |
+      | All Mail      |
+      | Folders       |
+      | Labels        |

@@ -154,7 +154,6 @@ func TestFeatures(testingT *testing.T) {
 			ctx.Step(`^IMAP client "([^"]*)" sees the following mailbox info:$`, s.imapClientSeesTheFollowingMailboxInfo)
 			ctx.Step(`^IMAP client "([^"]*)" eventually sees the following mailbox info:$`, s.imapClientEventuallySeesTheFollowingMailboxInfo)
 			ctx.Step(`^IMAP client "([^"]*)" sees the following mailbox info for "([^"]*)":$`, s.imapClientSeesTheFollowingMailboxInfoForMailbox)
-			ctx.Step(`^IMAP client "([^"]*)" sees the following mailboxes:$`, s.imapClientSeesTheFollowingMailboxes)
 			ctx.Step(`^IMAP client "([^"]*)" sees "([^"]*)"$`, s.imapClientSeesMailbox)
 			ctx.Step(`^IMAP client "([^"]*)" does not see "([^"]*)"$`, s.imapClientDoesNotSeeMailbox)
 			ctx.Step(`^IMAP client "([^"]*)" counts (\d+) mailboxes under "([^"]*)"$`, s.imapClientCountsMailboxesUnder)

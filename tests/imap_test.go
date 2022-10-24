@@ -27,12 +27,9 @@ import (
 	"github.com/bradenaw/juniper/iterator"
 	"github.com/bradenaw/juniper/xslices"
 	"github.com/cucumber/godog"
-	"github.com/cucumber/messages-go/v16"
 	"github.com/emersion/go-imap"
 	id "github.com/emersion/go-imap-id"
 	"github.com/emersion/go-imap/client"
-	"github.com/google/go-cmp/cmp"
-	"github.com/google/go-cmp/cmp/cmpopts"
 	"golang.org/x/exp/slices"
 )
 
@@ -188,26 +185,6 @@ func (s *scenario) imapClientSeesTheFollowingMailboxInfoForMailbox(clientID, mai
 	}
 
 	return matchMailboxes(haveMailboxes, wantMailboxes)
-}
-
-func (s *scenario) imapClientSeesTheFollowingMailboxes(clientID string, table *godog.Table) error {
-	_, client := s.t.getIMAPClient(clientID)
-
-	mailboxes := clientList(client)
-
-	have := xslices.Map(mailboxes, func(info *imap.MailboxInfo) string {
-		return info.Name
-	})
-
-	want := xslices.Map(table.Rows[1:], func(row *messages.PickleTableRow) string {
-		return row.Cells[0].Value
-	})
-
-	if !cmp.Equal(want, have, cmpopts.SortSlices(func(a, b string) bool { return a < b })) {
-		return fmt.Errorf("want %v, have %v", want, have)
-	}
-
-	return nil
 }
 
 func (s *scenario) imapClientSeesMailbox(clientID, mailbox string) error {

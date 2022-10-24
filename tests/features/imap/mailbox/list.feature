@@ -10,19 +10,19 @@ Feature: IMAP list mailboxes
     And user "user@pm.me" finishes syncing
     And user "user@pm.me" connects and authenticates IMAP client "1"
     Then IMAP client "1" sees the following mailbox info:
-      | name          | total | unread |
-      | INBOX         | 0     | 0      |
-      | Drafts        | 0     | 0      |
-      | Sent          | 0     | 0      |
-      | Starred       | 0     | 0      |
-      | Archive       | 0     | 0      |
-      | Spam          | 0     | 0      |
-      | Trash         | 0     | 0      |
-      | All Mail      | 0     | 0      |
-      | Folders       | 0     | 0      |
-      | Folders/mbox1 | 0     | 0      |
-      | Labels        | 0     | 0      |
-      | Labels/mbox2  | 0     | 0      |
+      | name          |
+      | INBOX         |
+      | Drafts        |
+      | Sent          |
+      | Starred       |
+      | Archive       |
+      | Spam          |
+      | Trash         |
+      | All Mail      |
+      | Folders       |
+      | Folders/mbox1 |
+      | Labels        |
+      | Labels/mbox2  |
 
   Scenario: List multiple times in parallel without crash
     Given there exists an account with username "user@pm.me" and password "password"
