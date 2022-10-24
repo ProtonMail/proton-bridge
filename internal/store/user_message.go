@@ -245,7 +245,7 @@ func (store *Store) createOrUpdateMessageEvent(msg *pmapi.Message) error {
 func (store *Store) createOrUpdateMessagesEvent(msgs []*pmapi.Message) error { //nolint:funlen
 	store.log.WithField("msgs", msgs).Trace("Creating or updating messages in the store")
 
-	// Strip non meta first to reduce memory (no need to keep all old msg ID data during update).
+	// Strip non-meta first to reduce memory (no need to keep all old msg ID data during update).
 	err := store.db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket(metadataBucket)
 		for _, msg := range msgs {
@@ -321,7 +321,7 @@ func clearNonMetadata(onlyMeta *pmapi.Message) {
 	onlyMeta.Attachments = nil
 }
 
-// txUpdateMetadataFromDB changes the the onlyMeta data.
+// txUpdateMetadataFromDB changes the onlyMeta data.
 // If there is stored message in metaBucket the size, header and MIMEType are
 // not changed if already set. To change these:
 // * size must be updated by Message.SetSize

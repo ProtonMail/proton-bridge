@@ -153,7 +153,7 @@ func (q *sendRecorder) deleteExpiredKeys() {
 	for key, value := range q.hashes {
 		// It's hard to find a good expiration time.
 		// On the one hand, a user could set up some cron job sending the same message over and over again (heartbeat).
-		// On the the other, a user could put the device into sleep mode while sending.
+		// On the other, a user could put the device into sleep mode while sending.
 		// Changing the expiration time will always make one of the edge cases worse.
 		// But both edge cases are something we don't care much about. Important thing is we don't send the same message many times.
 		if time.Since(value.time) > 30*time.Minute {
