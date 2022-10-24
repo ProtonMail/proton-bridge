@@ -25,7 +25,6 @@ import (
 	"time"
 
 	"github.com/Masterminds/semver/v3"
-	"github.com/ProtonMail/gluon/queue"
 	"github.com/ProtonMail/proton-bridge/v2/internal/events"
 	"github.com/ProtonMail/proton-bridge/v2/internal/vault"
 )
@@ -125,146 +124,143 @@ func (s *scenario) theUserReportsABug() error {
 }
 
 func (s *scenario) bridgeSendsAConnectionUpEvent() error {
-	return try(s.t.connStatusCh, 5*time.Second, func(event events.Event) error {
-		if event, ok := event.(events.ConnStatusUp); !ok {
-			return fmt.Errorf("expected connection up event, got %T", event)
-		}
+	if event := s.t.events.await(events.ConnStatusUp{}, 5*time.Second); event == nil {
+		return errors.New("expected connection up event, got none")
+	}
 
-		return nil
-	})
+	return nil
 }
 
 func (s *scenario) bridgeSendsAConnectionDownEvent() error {
-	return try(s.t.connStatusCh, 5*time.Second, func(event events.Event) error {
-		if event, ok := event.(events.ConnStatusDown); !ok {
-			return fmt.Errorf("expected connection down event, got %T", event)
-		}
+	if event := s.t.events.await(events.ConnStatusDown{}, 5*time.Second); event == nil {
+		return errors.New("expected connection down event, got none")
+	}
 
-		return nil
-	})
+	return nil
 }
 
 func (s *scenario) bridgeSendsADeauthEventForUser(username string) error {
-	return try(s.t.deauthCh, 5*time.Second, func(event events.UserDeauth) error {
-		if wantUserID := s.t.getUserID(username); wantUserID != event.UserID {
-			return fmt.Errorf("expected deauth event for user with ID %s, got %s", wantUserID, event.UserID)
-		}
+	event, ok := awaitType(s.t.events, events.UserDeauth{}, 5*time.Second)
+	if !ok {
+		return errors.New("expected deauth event, got none")
+	}
 
-		return nil
-	})
+	if wantUserID := s.t.getUserID(username); event.UserID != wantUserID {
+		return fmt.Errorf("expected deauth event for user %s, got %s", wantUserID, event.UserID)
+	}
+
+	return nil
 }
 
 func (s *scenario) bridgeSendsAnAddressCreatedEventForUser(username string) error {
-	return try(s.t.addrCreatedCh, 60*time.Second, func(event events.UserAddressCreated) error {
-		if wantUserID := s.t.getUserID(username); wantUserID != event.UserID {
-			return fmt.Errorf("expected user address created event for user with ID %s, got %s", wantUserID, event.UserID)
-		}
+	event, ok := awaitType(s.t.events, events.UserAddressCreated{}, 5*time.Second)
+	if !ok {
+		return errors.New("expected address created event, got none")
+	}
 
-		return nil
-	})
+	if wantUserID := s.t.getUserID(username); event.UserID != wantUserID {
+		return fmt.Errorf("expected address created event for user %s, got %s", wantUserID, event.UserID)
+	}
+
+	return nil
 }
 
 func (s *scenario) bridgeSendsAnAddressDeletedEventForUser(username string) error {
-	return try(s.t.addrDeletedCh, 60*time.Second, func(event events.UserAddressDeleted) error {
-		if wantUserID := s.t.getUserID(username); wantUserID != event.UserID {
-			return fmt.Errorf("expected user address deleted event for user with ID %s, got %s", wantUserID, event.UserID)
-		}
+	event, ok := awaitType(s.t.events, events.UserAddressDeleted{}, 5*time.Second)
+	if !ok {
+		return errors.New("expected address deleted event, got none")
+	}
 
-		return nil
-	})
+	if wantUserID := s.t.getUserID(username); event.UserID != wantUserID {
+		return fmt.Errorf("expected address deleted event for user %s, got %s", wantUserID, event.UserID)
+	}
+
+	return nil
 }
 
 func (s *scenario) bridgeSendsSyncStartedAndFinishedEventsForUser(username string) error {
-	if err := get(s.t.syncStartedCh, func(event events.SyncStarted) error {
-		if wantUserID := s.t.getUserID(username); wantUserID != event.UserID {
-			return fmt.Errorf("expected sync started event for user with ID %s, got %s", wantUserID, event.UserID)
-		}
-
-		return nil
-	}); err != nil {
-		return fmt.Errorf("failed to get sync started event: %w", err)
+	startEvent, ok := awaitType(s.t.events, events.SyncStarted{}, 5*time.Second)
+	if !ok {
+		return errors.New("expected sync started event, got none")
 	}
 
-	if err := get(s.t.syncFinishedCh, func(event events.SyncFinished) error {
-		if wantUserID := s.t.getUserID(username); wantUserID != event.UserID {
-			return fmt.Errorf("expected sync finished event for user with ID %s, got %s", wantUserID, event.UserID)
-		}
+	if wantUserID := s.t.getUserID(username); startEvent.UserID != wantUserID {
+		return fmt.Errorf("expected sync started event for user %s, got %s", wantUserID, startEvent.UserID)
+	}
 
-		return nil
-	}); err != nil {
-		return fmt.Errorf("failed to get sync finished event: %w", err)
+	finishEvent, ok := awaitType(s.t.events, events.SyncFinished{}, 5*time.Second)
+	if !ok {
+		return errors.New("expected sync finished event, got none")
+	}
+
+	if wantUserID := s.t.getUserID(username); finishEvent.UserID != wantUserID {
+		return fmt.Errorf("expected sync finished event for user %s, got %s", wantUserID, finishEvent.UserID)
 	}
 
 	return nil
 }
 
 func (s *scenario) bridgeSendsAnUpdateNotAvailableEvent() error {
-	return try(s.t.updateCh, 5*time.Second, func(event events.Event) error {
-		if event, ok := event.(events.UpdateNotAvailable); !ok {
-			return fmt.Errorf("expected update not available event, got %T", event)
-		}
+	if event := s.t.events.await(events.UpdateNotAvailable{}, 5*time.Second); event == nil {
+		return errors.New("expected update not available event, got none")
+	}
 
-		return nil
-	})
+	return nil
 }
 
 func (s *scenario) bridgeSendsAnUpdateAvailableEventForVersion(version string) error {
-	return try(s.t.updateCh, 5*time.Second, func(event events.Event) error {
-		updateEvent, ok := event.(events.UpdateAvailable)
-		if !ok {
-			return fmt.Errorf("expected update available event, got %T", event)
-		}
+	event, ok := awaitType(s.t.events, events.UpdateAvailable{}, 5*time.Second)
+	if !ok {
+		return errors.New("expected update available event, got none")
+	}
 
-		if !updateEvent.CanInstall {
-			return errors.New("expected update event to be installable")
-		}
+	if !event.CanInstall {
+		return errors.New("expected update event to be installable")
+	}
 
-		if !updateEvent.Version.Version.Equal(semver.MustParse(version)) {
-			return fmt.Errorf("expected update event for version %s, got %s", version, updateEvent.Version.Version)
-		}
+	if !event.Version.Version.Equal(semver.MustParse(version)) {
+		return fmt.Errorf("expected update event for version %s, got %s", version, event.Version.Version)
+	}
 
-		return nil
-	})
+	return nil
 }
 
 func (s *scenario) bridgeSendsAManualUpdateEventForVersion(version string) error {
-	return try(s.t.updateCh, 5*time.Second, func(event events.Event) error {
-		updateEvent, ok := event.(events.UpdateAvailable)
-		if !ok {
-			return fmt.Errorf("expected manual update event, got %T", event)
-		}
+	event, ok := awaitType(s.t.events, events.UpdateAvailable{}, 5*time.Second)
+	if !ok {
+		return errors.New("expected update available event, got none")
+	}
 
-		if updateEvent.CanInstall {
-			return errors.New("expected update event to not be installable")
-		}
+	if event.CanInstall {
+		return errors.New("expected update event to not be installable")
+	}
 
-		if !updateEvent.Version.Version.Equal(semver.MustParse(version)) {
-			return fmt.Errorf("expected update event for version %s, got %s", version, updateEvent.Version.Version)
-		}
+	if !event.Version.Version.Equal(semver.MustParse(version)) {
+		return fmt.Errorf("expected update event for version %s, got %s", version, event.Version.Version)
+	}
 
-		return nil
-	})
+	return nil
 }
 
 func (s *scenario) bridgeSendsAnUpdateInstalledEventForVersion(version string) error {
-	return try(s.t.updateCh, 5*time.Second, func(event events.Event) error {
-		updateEvent, ok := event.(events.UpdateInstalled)
-		if !ok {
-			return fmt.Errorf("expected update installed event, got %T", event)
-		}
+	event, ok := awaitType(s.t.events, events.UpdateInstalled{}, 5*time.Second)
+	if !ok {
+		return errors.New("expected update installed event, got none")
+	}
 
-		if !updateEvent.Version.Version.Equal(semver.MustParse(version)) {
-			return fmt.Errorf("expected update event for version %s, got %s", version, updateEvent.Version.Version)
-		}
+	if !event.Version.Version.Equal(semver.MustParse(version)) {
+		return fmt.Errorf("expected update installed event for version %s, got %s", version, event.Version.Version)
+	}
 
-		return nil
-	})
+	return nil
 }
 
 func (s *scenario) bridgeSendsAForcedUpdateEvent() error {
-	return try(s.t.forcedUpdateCh, 5*time.Second, func(event events.UpdateForced) error {
-		return nil
-	})
+	if event := s.t.events.await(events.UpdateForced{}, 5*time.Second); event == nil {
+		return errors.New("expected update forced event, got none")
+	}
+
+	return nil
 }
 
 func (s *scenario) bridgeHidesAllMail() error {
@@ -273,18 +269,4 @@ func (s *scenario) bridgeHidesAllMail() error {
 
 func (s *scenario) bridgeShowsAllMail() error {
 	return s.t.bridge.SetShowAllMail(true)
-}
-
-func try[T any](inCh *queue.QueuedChannel[T], wait time.Duration, fn func(T) error) error {
-	select {
-	case event := <-inCh.GetChannel():
-		return fn(event)
-
-	case <-time.After(wait):
-		return errors.New("timeout waiting for event")
-	}
-}
-
-func get[T any](inCh *queue.QueuedChannel[T], fn func(T) error) error {
-	return fn(<-inCh.GetChannel())
 }
