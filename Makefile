@@ -218,10 +218,16 @@ change-copyright-year:
 	./utils/missing_license.sh change-year
 
 test: gofiles
-	go test -v -coverprofile=/tmp/coverage.out -run=${TESTRUN} ./internal/... ./pkg/...
+	go test -v -p=1 -count=1 -coverprofile=/tmp/coverage.out -run=${TESTRUN} ./internal/... ./pkg/...
+
+test-race: gofiles
+	go test -v -p=1 -count=1 -race -failfast -run=${TESTRUN} ./internal/... ./pkg/...
 
 test-integration: gofiles
-	go test -v github.com/ProtonMail/proton-bridge/v2/tests
+	go test -v -p=1 -count=1 github.com/ProtonMail/proton-bridge/v2/tests
+
+test-integration-race: gofiles
+	go test -v -p=1 -count=1 -race -failfast github.com/ProtonMail/proton-bridge/v2/tests
 
 bench:
 	go test -run '^$$' -bench=. -memprofile bench_mem.pprof -cpuprofile bench_cpu.pprof ./internal/store

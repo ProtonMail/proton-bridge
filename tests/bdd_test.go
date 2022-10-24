@@ -29,6 +29,7 @@ import (
 	"github.com/cucumber/godog"
 	"github.com/stretchr/testify/require"
 	"gitlab.protontech.ch/go/liteapi/server/backend"
+	"go.uber.org/goleak"
 )
 
 func init() {
@@ -55,6 +56,10 @@ func (s *scenario) reset(tb testing.TB) {
 
 func (s *scenario) close(tb testing.TB) {
 	require.NoError(tb, s.t.close(context.Background()))
+}
+
+func TestMain(m *testing.M) {
+	goleak.VerifyTestMain(m, goleak.IgnoreCurrent())
 }
 
 func TestFeatures(testingT *testing.T) {
