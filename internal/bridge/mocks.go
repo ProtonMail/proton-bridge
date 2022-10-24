@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"sync"
 	"testing"
 
 	"github.com/Masterminds/semver/v3"
@@ -92,6 +93,7 @@ func (provider *TestLocationsProvider) UserCache() string {
 
 type TestUpdater struct {
 	latest updater.VersionInfo
+	lock   sync.RWMutex
 }
 
 func NewTestUpdater(version, minAuto *semver.Version) *TestUpdater {
@@ -106,6 +108,9 @@ func NewTestUpdater(version, minAuto *semver.Version) *TestUpdater {
 }
 
 func (testUpdater *TestUpdater) SetLatestVersion(version, minAuto *semver.Version) {
+	testUpdater.lock.Lock()
+	defer testUpdater.lock.Unlock()
+
 	testUpdater.latest = updater.VersionInfo{
 		Version: version,
 		MinAuto: minAuto,
@@ -115,6 +120,9 @@ func (testUpdater *TestUpdater) SetLatestVersion(version, minAuto *semver.Versio
 }
 
 func (testUpdater *TestUpdater) GetVersionInfo(downloader updater.Downloader, channel updater.Channel) (updater.VersionInfo, error) {
+	testUpdater.lock.RLock()
+	defer testUpdater.lock.RUnlock()
+
 	return testUpdater.latest, nil
 }
 
