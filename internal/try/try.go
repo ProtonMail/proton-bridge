@@ -62,7 +62,7 @@ func catch(handlers ...func() error) {
 
 	for _, handler := range handlers {
 		if err := handler(); err != nil {
-			logrus.WithError(xerrors.WithStack(err)).Error("Catch handler failed")
+			logrus.WithError(err).Error("Catch handler failed")
 		}
 	}
 }
