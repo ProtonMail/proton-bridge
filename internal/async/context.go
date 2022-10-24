@@ -51,3 +51,32 @@ func (a *Abortable) newCancelCtx(ctx context.Context) context.Context {
 
 	return ctx
 }
+
+// RangeContext iterates over the given channel until the context is canceled or the
+// channel is closed.
+func RangeContext[T any](ctx context.Context, ch <-chan T, fn func(T)) {
+	for {
+		select {
+		case v, ok := <-ch:
+			if !ok {
+				return
+			}
+
+			fn(v)
+
+		case <-ctx.Done():
+			return
+		}
+	}
+}
+
+// ForwardContext forwards all values from the src channel to the dst channel until the
+// context is canceled or the src channel is closed.
+func ForwardContext[T any](ctx context.Context, dst chan<- T, src <-chan T) {
+	RangeContext(ctx, src, func(v T) {
+		select {
+		case dst <- v:
+		case <-ctx.Done():
+		}
+	})
+}

@@ -23,9 +23,8 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"sync/atomic"
 	"testing"
-
-	"go.uber.org/goleak"
 
 	"github.com/ProtonMail/proton-bridge/v2/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/v2/internal/events"
@@ -38,78 +37,33 @@ import (
 )
 
 func TestBridge_Sync(t *testing.T) {
-	defer goleak.VerifyNone(t, goleak.IgnoreCurrent())
-
-	s := server.New()
-	defer s.Close()
-
 	numMsg := 1 << 8
 
-	withEnvServer(t, s, func(ctx context.Context, netCtl *liteapi.NetCtl, locator bridge.Locator, storeKey []byte) {
+	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *liteapi.NetCtl, locator bridge.Locator, storeKey []byte) {
 		userID, addrID, err := s.CreateUser("imap", "imap@pm.me", password)
 		require.NoError(t, err)
 
 		labelID, err := s.CreateLabel(userID, "folder", liteapi.LabelTypeFolder)
 		require.NoError(t, err)
 
-		literal, err := os.ReadFile(filepath.Join("testdata", "text-plain.eml"))
-		require.NoError(t, err)
-
-		c, _, err := liteapi.New(
-			liteapi.WithHostURL(s.GetHostURL()),
-			liteapi.WithTransport(liteapi.InsecureTransport()),
-		).NewClientWithLogin(ctx, "imap", password)
-		require.NoError(t, err)
-		defer c.Close()
-
-		user, err := c.GetUser(ctx)
-		require.NoError(t, err)
-
-		addr, err := c.GetAddresses(ctx)
-		require.NoError(t, err)
-		require.Equal(t, addrID, addr[0].ID)
-
-		salt, err := c.GetSalts(ctx)
-		require.NoError(t, err)
-
-		keyPass, err := salt.SaltForKey(password, user.Keys.Primary().ID)
-		require.NoError(t, err)
-
-		_, addrKRs, err := liteapi.Unlock(user, addr, keyPass)
-		require.NoError(t, err)
-
-		require.NoError(t, getErr(stream.Collect(ctx, c.ImportMessages(
-			ctx,
-			addrKRs[addr[0].ID],
-			runtime.NumCPU(),
-			runtime.NumCPU(),
-			iterator.Collect(iterator.Map(iterator.Counter(numMsg), func(i int) liteapi.ImportReq {
-				return liteapi.ImportReq{
-					Metadata: liteapi.ImportMetadata{
-						AddressID: addr[0].ID,
-						LabelIDs:  []string{labelID},
-						Flags:     liteapi.MessageFlagReceived,
-					},
-					Message: literal,
-				}
-			}))...,
-		))))
-
-		var read uint64
-
-		netCtl.OnRead(func(b []byte) {
-			read += uint64(len(b))
+		withClient(ctx, t, s, "imap", password, func(ctx context.Context, c *liteapi.Client) {
+			createMessages(ctx, t, c, addrID, labelID, numMsg)
 		})
+
+		var total uint64
 
 		// The initial user should be fully synced.
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
 			syncCh, done := chToType[events.Event, events.SyncFinished](bridge.GetEvents(events.SyncFinished{}))
 			defer done()
 
-			userID, err := bridge.LoginFull(ctx, "imap", password, nil, nil)
-			require.NoError(t, err)
+			// Count how many bytes it takes to fully sync the user.
+			total = countBytesRead(netCtl, func() {
+				userID, err := bridge.LoginFull(ctx, "imap", password, nil, nil)
+				require.NoError(t, err)
 
-			require.Equal(t, userID, (<-syncCh).UserID)
+				require.Equal(t, userID, (<-syncCh).UserID)
+			})
 		})
 
 		// If we then connect an IMAP client, it should see all the messages.
@@ -134,7 +88,7 @@ func TestBridge_Sync(t *testing.T) {
 		})
 
 		// Pretend we can only sync 2/3 of the original messages.
-		netCtl.SetReadLimit(2 * read / 3)
+		netCtl.SetReadLimit(2 * total / 3)
 
 		// Login the user; its sync should fail.
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
@@ -184,7 +138,69 @@ func TestBridge_Sync(t *testing.T) {
 				require.Equal(t, uint32(numMsg), status.Messages)
 			}
 		})
+	}, server.WithTLS(false))
+}
+
+func withClient(ctx context.Context, t *testing.T, s *server.Server, username string, password []byte, fn func(context.Context, *liteapi.Client)) {
+	m := liteapi.New(
+		liteapi.WithHostURL(s.GetHostURL()),
+		liteapi.WithTransport(liteapi.InsecureTransport()),
+	)
+
+	c, _, err := m.NewClientWithLogin(ctx, username, password)
+	require.NoError(t, err)
+	defer c.Close()
+
+	fn(ctx, c)
+}
+
+func createMessages(ctx context.Context, t *testing.T, c *liteapi.Client, addrID, labelID string, count int) {
+	literal, err := os.ReadFile(filepath.Join("testdata", "text-plain.eml"))
+	require.NoError(t, err)
+
+	user, err := c.GetUser(ctx)
+	require.NoError(t, err)
+
+	addr, err := c.GetAddresses(ctx)
+	require.NoError(t, err)
+
+	salt, err := c.GetSalts(ctx)
+	require.NoError(t, err)
+
+	keyPass, err := salt.SaltForKey(password, user.Keys.Primary().ID)
+	require.NoError(t, err)
+
+	_, addrKRs, err := liteapi.Unlock(user, addr, keyPass)
+	require.NoError(t, err)
+
+	require.NoError(t, getErr(stream.Collect(ctx, c.ImportMessages(
+		ctx,
+		addrKRs[addrID],
+		runtime.NumCPU(),
+		runtime.NumCPU(),
+		iterator.Collect(iterator.Map(iterator.Counter(count), func(i int) liteapi.ImportReq {
+			return liteapi.ImportReq{
+				Metadata: liteapi.ImportMetadata{
+					AddressID: addrID,
+					LabelIDs:  []string{labelID},
+					Flags:     liteapi.MessageFlagReceived,
+				},
+				Message: literal,
+			}
+		}))...,
+	))))
+}
+
+func countBytesRead(ctl *liteapi.NetCtl, fn func()) uint64 {
+	var read uint64
+
+	ctl.OnRead(func(b []byte) {
+		atomic.AddUint64(&read, uint64(len(b)))
 	})
+
+	fn()
+
+	return read
 }
 
 func chToType[In, Out any](inCh <-chan In, done func()) (<-chan Out, func()) {

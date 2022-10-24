@@ -24,17 +24,16 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
-	"net"
 	"os"
-	"strconv"
-
-	"github.com/ProtonMail/proton-bridge/v2/internal/logging"
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/ProtonMail/gluon"
 	imapEvents "github.com/ProtonMail/gluon/events"
+	"github.com/ProtonMail/proton-bridge/v2/internal/async"
 	"github.com/ProtonMail/proton-bridge/v2/internal/constants"
+	"github.com/ProtonMail/proton-bridge/v2/internal/logging"
 	"github.com/ProtonMail/proton-bridge/v2/internal/vault"
+	"github.com/bradenaw/juniper/xsync"
 	"github.com/sirupsen/logrus"
 )
 
@@ -55,34 +54,16 @@ func (bridge *Bridge) serveIMAP() error {
 		return fmt.Errorf("failed to serve IMAP: %w", err)
 	}
 
-	_, port, err := net.SplitHostPort(imapListener.Addr().String())
-	if err != nil {
-		return fmt.Errorf("failed to get IMAP listener address: %w", err)
+	if err := bridge.vault.SetIMAPPort(getPort(imapListener.Addr())); err != nil {
+		return fmt.Errorf("failed to set IMAP port: %w", err)
 	}
-
-	portInt, err := strconv.Atoi(port)
-	if err != nil {
-		return fmt.Errorf("failed to convert IMAP listener port to int: %w", err)
-	}
-
-	if portInt != bridge.vault.GetIMAPPort() {
-		if err := bridge.vault.SetIMAPPort(portInt); err != nil {
-			return fmt.Errorf("failed to update IMAP port in vault: %w", err)
-		}
-	}
-
-	go func() {
-		for err := range bridge.imapServer.GetErrorCh() {
-			logrus.WithError(err).Error("IMAP server error")
-		}
-	}()
 
 	return nil
 }
 
 func (bridge *Bridge) restartIMAP() error {
 	if err := bridge.imapListener.Close(); err != nil {
-		logrus.WithError(err).Warn("Failed to close IMAP listener")
+		return fmt.Errorf("failed to close IMAP listener: %w", err)
 	}
 
 	return bridge.serveIMAP()
@@ -103,11 +84,9 @@ func (bridge *Bridge) closeIMAP(ctx context.Context) error {
 func (bridge *Bridge) handleIMAPEvent(event imapEvents.Event) {
 	switch event := event.(type) {
 	case imapEvents.SessionAdded:
-		if bridge.identifier.HasClient() {
-			return
+		if !bridge.identifier.HasClient() {
+			bridge.identifier.SetClient(defaultClientName, defaultClientVersion)
 		}
-
-		bridge.identifier.SetClient(defaultClientName, defaultClientVersion)
 
 	case imapEvents.IMAPID:
 		bridge.identifier.SetClient(event.IMAPID.Name, event.IMAPID.Version)
@@ -137,11 +116,14 @@ func getGluonDir(encVault *vault.Vault) (string, error) {
 	return encVault.GetGluonDir(), nil
 }
 
+// nolint:funlen
 func newIMAPServer(
 	gluonDir string,
 	version *semver.Version,
 	tlsConfig *tls.Config,
 	logClient, logServer bool,
+	eventCh chan<- imapEvents.Event,
+	tasks *xsync.Group,
 ) (*gluon.Server, error) {
 	if logClient || logServer {
 		log := logrus.WithField("protocol", "IMAP")
@@ -185,6 +167,16 @@ func newIMAPServer(
 	if err != nil {
 		return nil, err
 	}
+
+	tasks.Once(func(ctx context.Context) {
+		async.ForwardContext(ctx, eventCh, imapServer.AddWatcher())
+	})
+
+	tasks.Once(func(ctx context.Context) {
+		async.RangeContext(ctx, imapServer.GetErrorCh(), func(err error) {
+			logrus.WithError(err).Error("IMAP server error")
+		})
+	})
 
 	return imapServer, nil
 }

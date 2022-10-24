@@ -44,6 +44,7 @@ import (
 	"gitlab.protontech.ch/go/liteapi"
 	"gitlab.protontech.ch/go/liteapi/server"
 	"gitlab.protontech.ch/go/liteapi/server/backend"
+	"go.uber.org/goleak"
 )
 
 var (
@@ -53,6 +54,10 @@ var (
 	v2_3_0 = semver.MustParse("2.3.0")
 	v2_4_0 = semver.MustParse("2.4.0")
 )
+
+func TestMain(m *testing.M) {
+	goleak.VerifyTestMain(m, goleak.IgnoreCurrent())
+}
 
 func init() {
 	user.EventPeriod = 100 * time.Millisecond
@@ -356,17 +361,10 @@ func TestBridge_MissingGluonDir(t *testing.T) {
 }
 
 // withEnv creates the full test environment and runs the tests.
-func withEnv(t *testing.T, tests func(context.Context, *server.Server, *liteapi.NetCtl, bridge.Locator, []byte)) {
-	server := server.New()
+func withEnv(t *testing.T, tests func(context.Context, *server.Server, *liteapi.NetCtl, bridge.Locator, []byte), opts ...server.Option) {
+	server := server.New(opts...)
 	defer server.Close()
 
-	withEnvServer(t, server, func(ctx context.Context, netCtl *liteapi.NetCtl, locator bridge.Locator, vaultKey []byte) {
-		tests(ctx, server, netCtl, locator, vaultKey)
-	})
-}
-
-// withEnvServer creates the full test environment and runs the tests.
-func withEnvServer(t *testing.T, server *server.Server, tests func(context.Context, *liteapi.NetCtl, bridge.Locator, []byte)) {
 	// Add test user.
 	_, _, err := server.CreateUser(username, username+"@pm.me", password)
 	require.NoError(t, err)
@@ -386,7 +384,7 @@ func withEnvServer(t *testing.T, server *server.Server, tests func(context.Conte
 	locations := locations.New(bridge.NewTestLocationsProvider(t.TempDir()), "config-name")
 
 	// Run the tests.
-	tests(ctx, netCtl, locations, vaultKey)
+	tests(ctx, server, netCtl, locations, vaultKey)
 }
 
 // withBridge creates a new bridge which points to the given API URL and uses the given keychain, and closes it when done.
@@ -413,10 +411,6 @@ func withBridge(
 	// Create the vault.
 	vault, _, err := vault.New(vaultDir, t.TempDir(), vaultKey)
 	require.NoError(t, err)
-
-	// Let the IMAP and SMTP servers choose random available ports for this test.
-	require.NoError(t, vault.SetIMAPPort(0))
-	require.NoError(t, vault.SetSMTPPort(0))
 
 	// Create a new cookie jar.
 	cookieJar, err := cookies.NewCookieJar(bridge.NewTestCookieJar(), vault)
@@ -446,9 +440,14 @@ func withBridge(
 		false,
 	)
 	require.NoError(t, err)
+	require.Empty(t, bridge.GetErrors())
 
 	// Wait for bridge to finish loading users.
 	waitForEvent(t, eventCh, events.AllUsersLoaded{})
+
+	// Set random IMAP and SMTP ports for the tests.
+	require.NoError(t, bridge.SetIMAPPort(0))
+	require.NoError(t, bridge.SetSMTPPort(0))
 
 	// Close the bridge when done.
 	defer func() { require.NoError(t, bridge.Close(ctx)) }()

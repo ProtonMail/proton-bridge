@@ -20,6 +20,7 @@ package bridge
 import (
 	"context"
 	"fmt"
+	"net"
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/ProtonMail/proton-bridge/v2/internal/updater"
@@ -131,7 +132,15 @@ func (bridge *Bridge) SetGluonDir(ctx context.Context, newGluonDir string) error
 		return fmt.Errorf("failed to set new gluon dir: %w", err)
 	}
 
-	imapServer, err := newIMAPServer(bridge.vault.GetGluonDir(), bridge.curVersion, bridge.tlsConfig, bridge.logIMAPClient, bridge.logIMAPServer)
+	imapServer, err := newIMAPServer(
+		bridge.vault.GetGluonDir(),
+		bridge.curVersion,
+		bridge.tlsConfig,
+		bridge.logIMAPClient,
+		bridge.logIMAPServer,
+		bridge.imapEventCh,
+		bridge.tasks,
+	)
 	if err != nil {
 		return fmt.Errorf("failed to create new IMAP server: %w", err)
 	}
@@ -210,7 +219,7 @@ func (bridge *Bridge) SetAutoUpdate(autoUpdate bool) error {
 		return err
 	}
 
-	bridge.updateCheckCh <- struct{}{}
+	bridge.goUpdate()
 
 	return nil
 }
@@ -228,7 +237,7 @@ func (bridge *Bridge) SetUpdateChannel(channel updater.Channel) error {
 		return err
 	}
 
-	bridge.updateCheckCh <- struct{}{}
+	bridge.goUpdate()
 
 	return nil
 }
@@ -274,5 +283,18 @@ func (bridge *Bridge) FactoryReset(ctx context.Context) {
 	// Then delete all files.
 	if err := bridge.locator.Clear(); err != nil {
 		logrus.WithError(err).Error("Failed to clear data paths")
+	}
+}
+
+func getPort(addr net.Addr) int {
+	switch addr := addr.(type) {
+	case *net.TCPAddr:
+		return addr.Port
+
+	case *net.UDPAddr:
+		return addr.Port
+
+	default:
+		return 0
 	}
 }

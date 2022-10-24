@@ -22,6 +22,7 @@ import (
 	"fmt"
 
 	"github.com/ProtonMail/gluon/imap"
+	"github.com/ProtonMail/proton-bridge/v2/internal/async"
 	"github.com/ProtonMail/proton-bridge/v2/internal/events"
 	"github.com/ProtonMail/proton-bridge/v2/internal/safe"
 	"github.com/ProtonMail/proton-bridge/v2/internal/try"
@@ -255,82 +256,41 @@ func (bridge *Bridge) loginUser(ctx context.Context, client *liteapi.Client, aut
 		return "", fmt.Errorf("failed to salt key password: %w", err)
 	}
 
-	if err := bridge.addUser(ctx, client, apiUser, authUID, authRef, saltedKeyPass); err != nil {
+	if err := bridge.addUser(ctx, client, apiUser, authUID, authRef, saltedKeyPass, true); err != nil {
 		return "", fmt.Errorf("failed to add bridge user: %w", err)
 	}
 
 	return apiUser.ID, nil
 }
 
-// loadLoop is a loop that, when polled, attempts to load authorized users from the vault.
-func (bridge *Bridge) loadLoop() {
-	for {
-		bridge.loadWG.GoTry(func(ok bool) {
-			if !ok {
-				return
-			}
-
-			if err := bridge.loadUsers(); err != nil {
-				logrus.WithError(err).Error("Failed to load users")
-			}
-		})
-
-		select {
-		case <-bridge.stopCh:
-			return
-
-		case <-bridge.loadCh:
-		}
-	}
-}
-
 // loadUsers tries to load each user in the vault that isn't already loaded.
-func (bridge *Bridge) loadUsers() error {
-	if err := bridge.vault.ForUser(func(user *vault.User) error {
-		if bridge.users.Has(user.UserID()) {
+func (bridge *Bridge) loadUsers(ctx context.Context) error {
+	return bridge.vault.ForUser(func(user *vault.User) error {
+		if bridge.users.Has(user.UserID()) || user.AuthUID() == "" {
 			return nil
 		}
 
-		if user.AuthUID() == "" {
-			return nil
+		if err := bridge.loadUser(ctx, user); err != nil {
+			logrus.WithError(err).Error("Failed to load connected user")
+		} else {
+			bridge.publish(events.UserLoaded{
+				UserID: user.UserID(),
+			})
 		}
-
-		if err := bridge.loadUser(user); err != nil {
-			if _, ok := err.(*resty.ResponseError); ok {
-				logrus.WithError(err).Error("Failed to load connected user, clearing its secrets from vault")
-
-				if err := user.Clear(); err != nil {
-					logrus.WithError(err).Error("Failed to clear user")
-				}
-			} else {
-				logrus.WithError(err).Error("Failed to load connected user")
-			}
-
-			return nil
-		}
-
-		bridge.publish(events.UserLoaded{
-			UserID: user.UserID(),
-		})
 
 		return nil
-	}); err != nil {
-		return fmt.Errorf("failed to iterate over users: %w", err)
-	}
-
-	bridge.publish(events.AllUsersLoaded{})
-
-	return nil
+	})
 }
 
 // loadUser loads an existing user from the vault.
-func (bridge *Bridge) loadUser(user *vault.User) error {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
+func (bridge *Bridge) loadUser(ctx context.Context, user *vault.User) error {
 	client, auth, err := bridge.api.NewClientWithRefresh(ctx, user.AuthUID(), user.AuthRef())
 	if err != nil {
 		return fmt.Errorf("failed to create API client: %w", err)
+	}
+
+	if err := user.SetAuth(auth.UID, auth.RefreshToken); err != nil {
+		return fmt.Errorf("failed to set auth: %w", err)
 	}
 
 	return try.Catch(
@@ -340,10 +300,11 @@ func (bridge *Bridge) loadUser(user *vault.User) error {
 				return fmt.Errorf("failed to get user: %w", err)
 			}
 
-			return bridge.addUser(ctx, client, apiUser, auth.UID, auth.RefreshToken, user.KeyPass())
-		},
-		func() error {
-			return client.AuthDelete(ctx)
+			if err := bridge.addUser(ctx, client, apiUser, auth.UID, auth.RefreshToken, user.KeyPass(), false); err != nil {
+				return fmt.Errorf("failed to add user: %w", err)
+			}
+
+			return nil
 		},
 	)
 }
@@ -355,15 +316,22 @@ func (bridge *Bridge) addUser(
 	apiUser liteapi.User,
 	authUID, authRef string,
 	saltedKeyPass []byte,
+	isLogin bool,
 ) error {
-	vaultUser, isNew, err := bridge.newVaultUser(client, apiUser, authUID, authRef, saltedKeyPass)
+	vaultUser, isNew, err := bridge.newVaultUser(apiUser, authUID, authRef, saltedKeyPass)
 	if err != nil {
 		return fmt.Errorf("failed to add vault user: %w", err)
 	}
 
 	if err := bridge.addUserWithVault(ctx, client, apiUser, vaultUser); err != nil {
-		if err := vaultUser.Clear(); err != nil {
-			logrus.WithError(err).Error("Failed to clear vault user")
+		if _, ok := err.(*resty.ResponseError); ok || isLogin {
+			logrus.WithError(err).Error("Failed to add user, clearing its secrets from vault")
+
+			if err := vaultUser.Clear(); err != nil {
+				logrus.WithError(err).Error("Failed to clear user secrets")
+			}
+		} else {
+			logrus.WithError(err).Error("Failed to add user")
 		}
 
 		if err := vaultUser.Close(); err != nil {
@@ -371,6 +339,8 @@ func (bridge *Bridge) addUser(
 		}
 
 		if isNew {
+			logrus.Warn("Deleting newly added vault user")
+
 			if err := bridge.vault.DeleteUser(apiUser.ID); err != nil {
 				logrus.WithError(err).Error("Failed to delete vault user")
 			}
@@ -394,10 +364,9 @@ func (bridge *Bridge) addUserWithVault(
 		return fmt.Errorf("failed to create user: %w", err)
 	}
 
-	if bridge.users.Has(apiUser.ID) {
+	if had := bridge.users.Set(apiUser.ID, user); had {
 		panic("double add")
 	}
-	bridge.users.Set(apiUser.ID, user)
 
 	// Connect the user's address(es) to gluon.
 	if err := bridge.addIMAPUser(ctx, user); err != nil {
@@ -406,18 +375,15 @@ func (bridge *Bridge) addUserWithVault(
 
 	// Handle events coming from the user before forwarding them to the bridge.
 	// For example, if the user's addresses change, we need to update them in gluon.
-	go func() {
-		ctx, cancel := context.WithCancel(context.Background())
-		defer cancel()
-
-		for event := range user.GetEventCh() {
+	bridge.tasks.Once(func(ctx context.Context) {
+		async.RangeContext(ctx, user.GetEventCh(), func(event events.Event) {
 			if err := bridge.handleUserEvent(ctx, user, event); err != nil {
 				logrus.WithError(err).Error("Failed to handle user event")
 			} else {
 				bridge.publish(event)
 			}
-		}
-	}()
+		})
+	})
 
 	// Gluon will set the IMAP ID in the context, if known, before making requests on behalf of this user.
 	// As such, if we find this ID in the context, we should use it to update our user agent.
@@ -435,7 +401,6 @@ func (bridge *Bridge) addUserWithVault(
 // newVaultUser creates a new vault user from the given auth information.
 // If one already exists in the vault, its data will be updated.
 func (bridge *Bridge) newVaultUser(
-	_ *liteapi.Client,
 	apiUser liteapi.User,
 	authUID, authRef string,
 	saltedKeyPass []byte,
@@ -494,7 +459,7 @@ func (bridge *Bridge) addIMAPUser(ctx context.Context, user *user.User) error {
 
 // logoutUser logs the given user out from bridge.
 func (bridge *Bridge) logoutUser(ctx context.Context, userID string) error {
-	if ok, err := bridge.users.GetDeleteErr(userID, func(user *user.User) error {
+	if ok := bridge.users.GetDelete(userID, func(user *user.User) {
 		for _, gluonID := range user.GetGluonIDs() {
 			if err := bridge.imapServer.RemoveUser(ctx, gluonID, false); err != nil {
 				logrus.WithError(err).Error("Failed to remove IMAP user")
@@ -506,12 +471,8 @@ func (bridge *Bridge) logoutUser(ctx context.Context, userID string) error {
 		}
 
 		user.Close()
-
-		return nil
 	}); !ok {
 		return ErrNoSuchUser
-	} else if err != nil {
-		return fmt.Errorf("failed to delete user: %w", err)
 	}
 
 	return nil

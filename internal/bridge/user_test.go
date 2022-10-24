@@ -19,6 +19,7 @@ package bridge_test
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
@@ -272,75 +273,105 @@ func TestBridge_LoginDeleteRestart(t *testing.T) {
 }
 
 func TestBridge_FailLoginRecover(t *testing.T) {
-	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *liteapi.NetCtl, locator bridge.Locator, storeKey []byte) {
-		var read uint64
+	for i := uint64(1); i < 10; i++ {
+		t.Run(fmt.Sprintf("read %v%% of the data", 100*i/10), func(t *testing.T) {
+			withEnv(t, func(ctx context.Context, s *server.Server, netCtl *liteapi.NetCtl, locator bridge.Locator, storeKey []byte) {
+				var userID string
 
-		netCtl.OnRead(func(b []byte) {
-			read += uint64(len(b))
+				// Log the user in, wait for it to sync, then log it out.
+				// (We don't want to count message sync data in the test.)
+				withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+					syncCh, done := chToType[events.Event, events.SyncFinished](bridge.GetEvents(events.SyncFinished{}))
+					defer done()
+
+					userID = must(bridge.LoginFull(ctx, username, password, nil, nil))
+					require.Equal(t, userID, (<-syncCh).UserID)
+					require.NoError(t, bridge.LogoutUser(ctx, userID))
+				})
+
+				var total uint64
+
+				// Now that the user is synced, we can measure exactly how much data is needed during login.
+				withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+					total = countBytesRead(netCtl, func() {
+						must(bridge.LoginFull(ctx, username, password, nil, nil))
+					})
+
+					require.NoError(t, bridge.LogoutUser(ctx, userID))
+				})
+
+				// Now simulate failing to login.
+				withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+					// Simulate a partial read.
+					netCtl.SetReadLimit(i * total / 10)
+
+					// We should fail to log the user in because we can't fully read its data.
+					require.Error(t, getErr(bridge.LoginFull(ctx, username, password, nil, nil)))
+
+					// The user should still be there (but disconnected).
+					require.Equal(t, []string{userID}, bridge.GetUserIDs())
+					require.Empty(t, getConnectedUserIDs(t, bridge))
+				})
+
+				// Simulate the network recovering.
+				netCtl.SetReadLimit(0)
+
+				// We should now be able to log the user in.
+				withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+					require.NoError(t, getErr(bridge.LoginFull(ctx, username, password, nil, nil)))
+
+					// The user should be there, now connected.
+					require.Equal(t, []string{userID}, bridge.GetUserIDs())
+					require.Equal(t, []string{userID}, getConnectedUserIDs(t, bridge))
+				})
+			})
 		})
-
-		var userID string
-
-		// Log the user in and record how much data was read.
-		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
-			userID = must(bridge.LoginFull(ctx, username, password, nil, nil))
-			require.NoError(t, bridge.LogoutUser(ctx, userID))
-		})
-
-		// Now simulate failing to login.
-		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
-			// Simulate a partial read.
-			netCtl.SetReadLimit(3 * read / 4)
-
-			// We should fail to log the user in because we can't fully read its data.
-			require.Error(t, getErr(bridge.LoginFull(ctx, username, password, nil, nil)))
-
-			// The user should still be there (but disconnected).
-			require.Equal(t, []string{userID}, bridge.GetUserIDs())
-			require.Empty(t, getConnectedUserIDs(t, bridge))
-		})
-
-		// Simulate the network recovering.
-		netCtl.SetReadLimit(0)
-
-		// We should now be able to log the user in.
-		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
-			require.NoError(t, getErr(bridge.LoginFull(ctx, username, password, nil, nil)))
-
-			// The user should be there, now connected.
-			require.Equal(t, []string{userID}, bridge.GetUserIDs())
-			require.Equal(t, []string{userID}, getConnectedUserIDs(t, bridge))
-		})
-	})
+	}
 }
 
 func TestBridge_FailLoadRecover(t *testing.T) {
-	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *liteapi.NetCtl, locator bridge.Locator, storeKey []byte) {
-		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
-			must(bridge.LoginFull(ctx, username, password, nil, nil))
+	for i := uint64(1); i < 10; i++ {
+		t.Run(fmt.Sprintf("read %v%% of the data", 100*i/10), func(t *testing.T) {
+			withEnv(t, func(ctx context.Context, s *server.Server, netCtl *liteapi.NetCtl, locator bridge.Locator, storeKey []byte) {
+				var userID string
+
+				// Log the user in and wait for it to sync.
+				// (We don't want to count message sync data in the test.)
+				withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+					syncCh, done := chToType[events.Event, events.SyncFinished](bridge.GetEvents(events.SyncFinished{}))
+					defer done()
+
+					userID = must(bridge.LoginFull(ctx, username, password, nil, nil))
+					require.Equal(t, userID, (<-syncCh).UserID)
+				})
+
+				// See how much data it takes to load the user at startup.
+				total := countBytesRead(netCtl, func() {
+					withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+						// ...
+					})
+				})
+
+				// Simulate a partial read.
+				netCtl.SetReadLimit(i * total / 10)
+
+				// We should fail to load the user; it should be listed but disconnected.
+				withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+					require.Equal(t, []string{userID}, bridge.GetUserIDs())
+					require.Empty(t, getConnectedUserIDs(t, bridge))
+				})
+
+				// Simulate the network recovering.
+				netCtl.SetReadLimit(0)
+
+				// We should now be able to load the user.
+				withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+					require.Equal(t, []string{userID}, bridge.GetUserIDs())
+					require.Equal(t, []string{userID}, getConnectedUserIDs(t, bridge))
+				})
+			})
 		})
-
-		var read uint64
-
-		netCtl.OnRead(func(b []byte) {
-			read += uint64(len(b))
-		})
-
-		// Start bridge and record how much data was read.
-		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
-			// ...
-		})
-
-		// Simulate a partial read.
-		netCtl.SetReadLimit(read / 2)
-
-		// We should fail to load the user; it should be disconnected.
-		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
-			userIDs := bridge.GetUserIDs()
-
-			require.False(t, must(bridge.GetUserInfo(userIDs[0])).Connected)
-		})
-	})
+	}
 }
 
 func TestBridge_BridgePass(t *testing.T) {

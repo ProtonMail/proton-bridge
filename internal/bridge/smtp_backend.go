@@ -21,16 +21,17 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/ProtonMail/proton-bridge/v2/internal/safe"
 	"github.com/ProtonMail/proton-bridge/v2/internal/user"
 	"github.com/emersion/go-smtp"
 )
 
 type smtpBackend struct {
-	bridge *Bridge
+	users *safe.Map[string, *user.User]
 }
 
 type smtpSession struct {
-	bridge *Bridge
+	users *safe.Map[string, *user.User]
 
 	userID string
 	authID string
@@ -41,12 +42,12 @@ type smtpSession struct {
 
 func (be *smtpBackend) NewSession(_ *smtp.Conn) (smtp.Session, error) {
 	return &smtpSession{
-		bridge: be.bridge,
+		users: be.users,
 	}, nil
 }
 
 func (s *smtpSession) AuthPlain(username, password string) error {
-	return s.bridge.users.ValuesErr(func(users []*user.User) error {
+	return s.users.ValuesErr(func(users []*user.User) error {
 		for _, user := range users {
 			addrID, err := user.CheckAuth(username, []byte(password))
 			if err != nil {
@@ -87,7 +88,7 @@ func (s *smtpSession) Rcpt(to string) error {
 }
 
 func (s *smtpSession) Data(r io.Reader) error {
-	if ok, err := s.bridge.users.GetErr(s.userID, func(user *user.User) error {
+	if ok, err := s.users.GetErr(s.userID, func(user *user.User) error {
 		return user.SendMail(s.authID, s.from, s.to, r)
 	}); !ok {
 		return fmt.Errorf("no such user %q", s.userID)
