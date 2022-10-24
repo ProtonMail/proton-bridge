@@ -77,9 +77,11 @@ func formatAsAddress(rawURL string) string {
 
 // DialTLSContext dials the given network/address. If it fails, it retries using a proxy.
 func (d *ProxyTLSDialer) DialTLSContext(ctx context.Context, network, address string) (net.Conn, error) {
+	d.locker.RLock()
 	if address == d.directAddress {
 		address = d.proxyAddress
 	}
+	d.locker.RUnlock()
 
 	conn, err := d.dialer.DialTLSContext(ctx, network, address)
 	if err == nil || !d.allowProxy {
@@ -89,6 +91,9 @@ func (d *ProxyTLSDialer) DialTLSContext(ctx context.Context, network, address st
 	if err := d.switchToReachableServer(); err != nil {
 		return nil, err
 	}
+
+	d.locker.RLock()
+	defer d.locker.RUnlock()
 
 	return d.dialer.DialTLSContext(ctx, network, d.proxyAddress)
 }

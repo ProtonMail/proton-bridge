@@ -197,10 +197,16 @@ func TestProxyDialer_UseProxy_RevertAfterTime(t *testing.T) {
 	provider.dohLookup = func(ctx context.Context, q, p string) ([]string, error) { return []string{trustedProxy.URL}, nil }
 	err := d.switchToReachableServer()
 	require.NoError(t, err)
+
+	d.locker.Lock()
 	require.Equal(t, formatAsAddress(trustedProxy.URL), d.proxyAddress)
+	d.locker.Unlock()
 
 	time.Sleep(2 * time.Second)
+
+	d.locker.Lock()
 	require.Equal(t, ":443", d.proxyAddress)
+	d.locker.Unlock()
 }
 
 func TestProxyDialer_UseProxy_RevertIfProxyStopsWorkingAndOriginalAPIIsReachable(t *testing.T) {
