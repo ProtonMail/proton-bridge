@@ -21,10 +21,13 @@ import (
 	"fmt"
 	"regexp"
 	"runtime"
+	"sync"
 )
 
 type UserAgent struct {
 	client, platform string
+
+	lock sync.RWMutex
 }
 
 func New() *UserAgent {
@@ -35,18 +38,30 @@ func New() *UserAgent {
 }
 
 func (ua *UserAgent) SetClient(name, version string) {
+	ua.lock.Lock()
+	defer ua.lock.Unlock()
+
 	ua.client = fmt.Sprintf("%v/%v", name, regexp.MustCompile(`(.*) \((.*)\)`).ReplaceAllString(version, "$1-$2"))
 }
 
 func (ua *UserAgent) HasClient() bool {
+	ua.lock.RLock()
+	defer ua.lock.RUnlock()
+
 	return ua.client != ""
 }
 
 func (ua *UserAgent) SetPlatform(platform string) {
+	ua.lock.Lock()
+	defer ua.lock.Unlock()
+
 	ua.platform = platform
 }
 
 func (ua *UserAgent) GetUserAgent() string {
+	ua.lock.RLock()
+	defer ua.lock.RUnlock()
+
 	var client string
 
 	if ua.client != "" {
