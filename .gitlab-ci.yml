@@ -40,6 +40,7 @@ test:
   stage: test
   script:
     - make test
+    - make test-race
   tags:
     - medium
 
@@ -47,6 +48,7 @@ test-integration:
   stage: test
   script:
     - make test-integration
+    - make test-integration-race
   tags:
     - large
 
