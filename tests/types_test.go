@@ -160,7 +160,7 @@ func matchMailboxes(have, want []Mailbox) error {
 	})
 
 	if !IsSub(want, have) {
-		return fmt.Errorf("missing messages: %v", want)
+		return fmt.Errorf("missing mailboxes: %v", want)
 	}
 
 	return nil

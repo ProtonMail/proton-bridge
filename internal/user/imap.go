@@ -31,6 +31,8 @@ import (
 	"github.com/ProtonMail/proton-bridge/v2/internal/vault"
 	"github.com/ProtonMail/proton-bridge/v2/pkg/message"
 	"github.com/bradenaw/juniper/stream"
+	"github.com/bradenaw/juniper/xslices"
+	"github.com/google/go-cmp/cmp"
 	"gitlab.protontech.ch/go/liteapi"
 	"golang.org/x/exp/slices"
 )
@@ -82,7 +84,7 @@ func (conn *imapConnector) Authorize(username string, password []byte) bool {
 
 // GetMailbox returns information about the mailbox with the given ID.
 func (conn *imapConnector) GetMailbox(ctx context.Context, mailboxID imap.MailboxID) (imap.Mailbox, error) {
-	label, err := conn.client.GetLabel(ctx, string(mailboxID), liteapi.LabelTypeLabel, liteapi.LabelTypeFolder)
+	label, err := conn.client.GetLabel(ctx, string(mailboxID), liteapi.LabelTypeLabel, liteapi.LabelTypeFolder, liteapi.LabelTypeSystem)
 	if err != nil {
 		return imap.Mailbox{}, err
 	}
@@ -92,22 +94,64 @@ func (conn *imapConnector) GetMailbox(ctx context.Context, mailboxID imap.Mailbo
 
 // CreateMailbox creates a label with the given name.
 func (conn *imapConnector) CreateMailbox(ctx context.Context, name []string) (imap.Mailbox, error) {
-	if len(name) != 2 {
-		panic("subfolders are unsupported")
+	if len(name) < 2 {
+		return imap.Mailbox{}, fmt.Errorf("invalid mailbox name %q", name)
 	}
 
-	var labelType liteapi.LabelType
+	switch name[0] {
+	case folderPrefix:
+		return conn.createFolder(ctx, name[1:])
 
-	if name[0] == folderPrefix {
-		labelType = liteapi.LabelTypeFolder
-	} else {
-		labelType = liteapi.LabelTypeLabel
+	case labelPrefix:
+		return conn.createLabel(ctx, name[1:])
+
+	default:
+		return imap.Mailbox{}, fmt.Errorf("invalid mailbox name %q", name)
+	}
+}
+
+func (conn *imapConnector) createLabel(ctx context.Context, name []string) (imap.Mailbox, error) {
+	if len(name) != 1 {
+		return imap.Mailbox{}, fmt.Errorf("a label cannot have children")
 	}
 
 	label, err := conn.client.CreateLabel(ctx, liteapi.CreateLabelReq{
-		Name:  name[1:][0],
+		Name:  name[0],
 		Color: "#f66",
-		Type:  labelType,
+		Type:  liteapi.LabelTypeLabel,
+	})
+	if err != nil {
+		return imap.Mailbox{}, err
+	}
+
+	return toIMAPMailbox(label, conn.flags, conn.permFlags, conn.attrs), nil
+}
+
+func (conn *imapConnector) createFolder(ctx context.Context, name []string) (imap.Mailbox, error) {
+	var parentID string
+
+	if len(name) > 1 {
+		folders, err := conn.client.GetLabels(ctx, liteapi.LabelTypeFolder)
+		if err != nil {
+			return imap.Mailbox{}, err
+		}
+
+		idx := xslices.IndexFunc(folders, func(folder liteapi.Label) bool {
+			return cmp.Equal(folder.Path, name[:len(name)-1])
+		})
+
+		if idx < 0 {
+			return imap.Mailbox{}, fmt.Errorf("parent folder %q does not exist", name[:len(name)-1])
+		}
+
+		parentID = folders[idx].ID
+	}
+
+	label, err := conn.client.CreateLabel(ctx, liteapi.CreateLabelReq{
+		Name:     name[len(name)-1],
+		Color:    "#f66",
+		Type:     liteapi.LabelTypeFolder,
+		ParentID: parentID,
 	})
 	if err != nil {
 		return imap.Mailbox{}, err
@@ -117,37 +161,72 @@ func (conn *imapConnector) CreateMailbox(ctx context.Context, name []string) (im
 }
 
 // UpdateMailboxName sets the name of the label with the given ID.
-func (conn *imapConnector) UpdateMailboxName(ctx context.Context, labelID imap.MailboxID, newName []string) error {
-	if len(newName) != 2 {
-		panic("subfolders are unsupported")
+func (conn *imapConnector) UpdateMailboxName(ctx context.Context, labelID imap.MailboxID, name []string) error {
+	if len(name) < 2 {
+		return fmt.Errorf("invalid mailbox name %q", name)
 	}
 
-	label, err := conn.client.GetLabel(ctx, string(labelID), liteapi.LabelTypeLabel, liteapi.LabelTypeFolder)
+	switch name[0] {
+	case folderPrefix:
+		return conn.updateFolder(ctx, labelID, name[1:])
+
+	case labelPrefix:
+		return conn.updateLabel(ctx, labelID, name[1:])
+
+	default:
+		return fmt.Errorf("invalid mailbox name %q", name)
+	}
+}
+
+func (conn *imapConnector) updateLabel(ctx context.Context, labelID imap.MailboxID, name []string) error {
+	if len(name) != 1 {
+		return fmt.Errorf("a label cannot have children")
+	}
+
+	label, err := conn.client.GetLabel(ctx, string(labelID), liteapi.LabelTypeLabel)
 	if err != nil {
 		return err
 	}
 
-	switch label.Type {
-	case liteapi.LabelTypeFolder:
-		if newName[0] != folderPrefix {
-			return fmt.Errorf("cannot rename folder to label")
-		}
-
-	case liteapi.LabelTypeLabel:
-		if newName[0] != labelPrefix {
-			return fmt.Errorf("cannot rename label to folder")
-		}
-
-	case liteapi.LabelTypeSystem:
-		return fmt.Errorf("cannot rename system label %q", label.Name)
-
-	case liteapi.LabelTypeContactGroup:
-		return fmt.Errorf("cannot rename contact group label %q", label.Name)
+	if _, err := conn.client.UpdateLabel(ctx, label.ID, liteapi.UpdateLabelReq{
+		Name:  name[0],
+		Color: label.Color,
+	}); err != nil {
+		return err
 	}
 
-	if _, err := conn.client.UpdateLabel(ctx, label.ID, liteapi.UpdateLabelReq{
-		Name:  newName[1:][0],
-		Color: label.Color,
+	return nil
+}
+
+func (conn *imapConnector) updateFolder(ctx context.Context, labelID imap.MailboxID, name []string) error {
+	var parentID string
+
+	if len(name) > 1 {
+		folders, err := conn.client.GetLabels(ctx, liteapi.LabelTypeFolder)
+		if err != nil {
+			return err
+		}
+
+		idx := xslices.IndexFunc(folders, func(folder liteapi.Label) bool {
+			return cmp.Equal(folder.Path, name[:len(name)-1])
+		})
+
+		if idx < 0 {
+			return fmt.Errorf("parent folder %q does not exist", name[:len(name)-1])
+		}
+
+		parentID = folders[idx].ID
+	}
+
+	label, err := conn.client.GetLabel(ctx, string(labelID), liteapi.LabelTypeFolder)
+	if err != nil {
+		return err
+	}
+
+	if _, err := conn.client.UpdateLabel(ctx, string(labelID), liteapi.UpdateLabelReq{
+		Name:     name[len(name)-1],
+		Color:    label.Color,
+		ParentID: parentID,
 	}); err != nil {
 		return err
 	}
@@ -171,8 +250,6 @@ func (conn *imapConnector) GetMessage(ctx context.Context, messageID imap.Messag
 }
 
 // CreateMessage creates a new message on the remote.
-//
-// nolint:funlen
 func (conn *imapConnector) CreateMessage(
 	ctx context.Context,
 	mailboxID imap.MailboxID,
@@ -362,17 +439,15 @@ func toIMAPMessage(message liteapi.MessageMetadata) imap.Message {
 }
 
 func toIMAPMailbox(label liteapi.Label, flags, permFlags, attrs imap.FlagSet) imap.Mailbox {
-	var name []string
-
 	if label.Type == liteapi.LabelTypeLabel {
-		name = append(name, labelPrefix)
+		label.Path = append([]string{labelPrefix}, label.Path...)
 	} else if label.Type == liteapi.LabelTypeFolder {
-		name = append(name, folderPrefix)
+		label.Path = append([]string{folderPrefix}, label.Path...)
 	}
 
 	return imap.Mailbox{
 		ID:             imap.MailboxID(label.ID),
-		Name:           append(name, label.Name),
+		Name:           label.Path,
 		Flags:          flags,
 		PermanentFlags: permFlags,
 		Attributes:     attrs,
