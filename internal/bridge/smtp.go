@@ -67,8 +67,10 @@ func (bridge *Bridge) restartSMTP() error {
 // after we've already closed the server. However, go-smtp has a bug; it blocks on the listener
 // even after the server has been closed. So we close the listener ourselves to unblock it.
 func (bridge *Bridge) closeSMTP() error {
-	if err := bridge.smtpListener.Close(); err != nil {
-		return fmt.Errorf("failed to close SMTP listener: %w", err)
+	if bridge.smtpListener != nil {
+		if err := bridge.smtpListener.Close(); err != nil {
+			return fmt.Errorf("failed to close SMTP listener: %w", err)
+		}
 	}
 
 	if err := bridge.smtpServer.Close(); err != nil {

@@ -74,8 +74,10 @@ func (bridge *Bridge) closeIMAP(ctx context.Context) error {
 		return fmt.Errorf("failed to close IMAP server: %w", err)
 	}
 
-	if err := bridge.imapListener.Close(); err != nil {
-		return fmt.Errorf("failed to close IMAP listener: %w", err)
+	if bridge.imapListener != nil {
+		if err := bridge.imapListener.Close(); err != nil {
+			return fmt.Errorf("failed to close IMAP listener: %w", err)
+		}
 	}
 
 	return nil
