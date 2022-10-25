@@ -325,10 +325,10 @@ func TestGetMessageHash(t *testing.T) {
 			wantEqual: false,
 		},
 		{
-                    name: "different date and message ID should still match",
-                    lit1: []byte("To: a@b.c\r\nDate: Fri, 13 Aug 1982\r\nMessage-Id: 1@b.c\r\n\r\nHello"),
-                    lit2: []byte("To: a@b.c\r\nDate: Sat, 14 Aug 1982\r\nMessage-Id: 2@b.c\r\n\r\nHello"),
-                    wantEqual: true,
+			name:      "different date and message ID should still match",
+			lit1:      []byte("To: a@b.c\r\nDate: Fri, 13 Aug 1982\r\nMessage-Id: 1@b.c\r\n\r\nHello"),
+			lit2:      []byte("To: a@b.c\r\nDate: Sat, 14 Aug 1982\r\nMessage-Id: 2@b.c\r\n\r\nHello"),
+			wantEqual: true,
 		},
 	}
 
