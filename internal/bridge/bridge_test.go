@@ -22,6 +22,7 @@ import (
 	"crypto/tls"
 	"net/http"
 	"os"
+	"sync"
 	"testing"
 	"time"
 
@@ -133,9 +134,15 @@ func TestBridge_Focus(t *testing.T) {
 
 func TestBridge_UserAgent(t *testing.T) {
 	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *liteapi.NetCtl, locator bridge.Locator, vaultKey []byte) {
-		var calls []server.Call
+		var (
+			calls []server.Call
+			lock  sync.Mutex
+		)
 
 		s.AddCallWatcher(func(call server.Call) {
+			lock.Lock()
+			defer lock.Unlock()
+
 			calls = append(calls, call)
 		})
 
@@ -149,6 +156,9 @@ func TestBridge_UserAgent(t *testing.T) {
 			// Login the user.
 			_, err := bridge.LoginFull(context.Background(), username, password, nil, nil)
 			require.NoError(t, err)
+
+			lock.Lock()
+			defer lock.Unlock()
 
 			// Assert that the user agent was sent to the API.
 			require.Contains(t, calls[len(calls)-1].RequestHeader.Get("User-Agent"), bridge.GetCurrentUserAgent())
