@@ -238,23 +238,21 @@ func (user *User) SetAddressMode(ctx context.Context, mode vault.AddressMode) er
 		}
 	})
 
-	updateCh := make(map[string]*queue.QueuedChannel[imap.Update])
+	user.updateCh.Clear()
 
 	switch mode {
 	case vault.CombinedMode:
 		primaryUpdateCh := queue.NewQueuedChannel[imap.Update](0, 0)
 
 		user.apiAddrs.IterKeys(func(addrID string) {
-			updateCh[addrID] = primaryUpdateCh
+			user.updateCh.Set(addrID, primaryUpdateCh)
 		})
 
 	case vault.SplitMode:
 		user.apiAddrs.IterKeys(func(addrID string) {
-			updateCh[addrID] = queue.NewQueuedChannel[imap.Update](0, 0)
+			user.updateCh.Set(addrID, queue.NewQueuedChannel[imap.Update](0, 0))
 		})
 	}
-
-	user.updateCh = safe.NewMapFrom(updateCh, nil)
 
 	if err := user.vault.SetAddressMode(mode); err != nil {
 		return fmt.Errorf("failed to set address mode: %w", err)

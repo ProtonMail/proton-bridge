@@ -262,6 +262,14 @@ func (m *Map[Key, Val]) ValuesErr(fn func(vals []Val) error) error {
 	return err
 }
 
+func (m *Map[Key, Val]) Clear() {
+	m.lock.Lock()
+	defer m.lock.Unlock()
+
+	m.data = make(map[Key]Val)
+	m.order = nil
+}
+
 func (m *Map[Key, Val]) MapErr(fn func(map[Key]Val) error) error {
 	m.lock.RLock()
 	defer m.lock.RUnlock()
