@@ -38,7 +38,7 @@ require (
 	github.com/sirupsen/logrus v1.9.0
 	github.com/stretchr/testify v1.8.0
 	github.com/urfave/cli/v2 v2.20.3
-	gitlab.protontech.ch/go/liteapi v0.36.0
+	gitlab.protontech.ch/go/liteapi v0.36.1
 	go.uber.org/goleak v1.2.0
 	golang.org/x/exp v0.0.0-20221023144134-a1e5550cf13e
 	golang.org/x/net v0.1.0
