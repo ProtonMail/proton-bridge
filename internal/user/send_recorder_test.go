@@ -349,7 +349,7 @@ func TestGetMessageHash(t *testing.T) {
 	}
 }
 
-func testTryInsert(h *sendRecorder, literal string, deadline time.Time) (string, bool, error) {
+func testTryInsert(h *sendRecorder, literal string, deadline time.Time) (string, bool, error) { //nolint:unparam
 	hash, err := getMessageHash([]byte(literal))
 	if err != nil {
 		return "", false, err
@@ -363,7 +363,7 @@ func testTryInsert(h *sendRecorder, literal string, deadline time.Time) (string,
 	return hash, ok, nil
 }
 
-func testHasEntry(h *sendRecorder, literal string, deadline time.Time) (string, bool, error) {
+func testHasEntry(h *sendRecorder, literal string, deadline time.Time) (string, bool, error) { //nolint:unparam
 	hash, err := getMessageHash([]byte(literal))
 	if err != nil {
 		return "", false, err
