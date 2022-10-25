@@ -58,7 +58,7 @@ func (user *User) sendMail(authID string, emails []string, from string, to []str
 	}
 
 	// Check if we already tried to send this message recently.
-	if ok, err := user.sendHash.tryInsertWait(ctx, hash, time.Now().Add(90*time.Second)); err != nil {
+	if ok, err := user.sendHash.tryInsertWait(ctx, hash, to, time.Now().Add(90*time.Second)); err != nil {
 		return fmt.Errorf("failed to check send hash: %w", err)
 	} else if !ok {
 		user.log.Warn("A duplicate message was already sent recently, skipping")

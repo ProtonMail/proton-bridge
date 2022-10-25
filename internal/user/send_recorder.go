@@ -29,6 +29,7 @@ import (
 
 	"github.com/ProtonMail/gluon/rfc822"
 	"github.com/sirupsen/logrus"
+	"golang.org/x/exp/slices"
 )
 
 const sendEntryExpiry = 30 * time.Minute
@@ -49,6 +50,7 @@ func newSendRecorder(expiry time.Duration) *sendRecorder {
 
 type sendEntry struct {
 	msgID  string
+	toList []string
 	exp    time.Time
 	waitCh chan struct{}
 }
@@ -56,9 +58,14 @@ type sendEntry struct {
 // tryInsertWait tries to insert the given message into the send recorder.
 // If an entry already exists but it was not sent yet, it waits.
 // It returns whether an entry could be inserted and an error if it times out while waiting.
-func (h *sendRecorder) tryInsertWait(ctx context.Context, hash string, deadline time.Time) (bool, error) {
+func (h *sendRecorder) tryInsertWait(
+	ctx context.Context,
+	hash string,
+	toList []string,
+	deadline time.Time,
+) (bool, error) {
 	// If we successfully inserted the hash, we can return true.
-	if h.tryInsert(hash) {
+	if h.tryInsert(hash, toList) {
 		return true, nil
 	}
 
@@ -70,7 +77,7 @@ func (h *sendRecorder) tryInsertWait(ctx context.Context, hash string, deadline 
 
 	// If the message failed to send, try to insert it again.
 	if !wasSent {
-		return h.tryInsertWait(ctx, hash, deadline)
+		return h.tryInsertWait(ctx, hash, toList, deadline)
 	}
 
 	return false, nil
@@ -98,7 +105,7 @@ func (h *sendRecorder) hasEntryWait(ctx context.Context, hash string, deadline t
 	return h.hasEntryWait(ctx, hash, deadline)
 }
 
-func (h *sendRecorder) tryInsert(hash string) bool {
+func (h *sendRecorder) tryInsert(hash string, toList []string) bool {
 	h.entriesLock.Lock()
 	defer h.entriesLock.Unlock()
 
@@ -108,12 +115,13 @@ func (h *sendRecorder) tryInsert(hash string) bool {
 		}
 	}
 
-	if _, ok := h.entries[hash]; ok {
+	if _, ok := h.entries[hash]; ok && matchToList(h.entries[hash].toList, toList) {
 		return false
 	}
 
 	h.entries[hash] = &sendEntry{
 		exp:    time.Now().Add(h.expiry),
+		toList: toList,
 		waitCh: make(chan struct{}),
 	}
 
@@ -206,7 +214,7 @@ func (h *sendRecorder) getWaitCh(hash string) (<-chan struct{}, bool) {
 // getMessageHash returns the hash of the given message.
 // This takes into account:
 // - the Subject header,
-// - the From/To/Cc/Bcc headers,
+// - the From/To/Cc headers,
 // - the Content-Type header of each (leaf) part,
 // - the Content-Disposition header of each (leaf) part,
 // - the (decoded) body of each part.
@@ -235,10 +243,6 @@ func getMessageHash(b []byte) (string, error) {
 	}
 
 	if _, err := h.Write([]byte(header.Get("Cc"))); err != nil {
-		return "", err
-	}
-
-	if _, err := h.Write([]byte(header.Get("Bcc"))); err != nil {
 		return "", err
 	}
 
@@ -286,4 +290,24 @@ func getMessageHash(b []byte) (string, error) {
 	}
 
 	return base64.StdEncoding.EncodeToString(h.Sum(nil)), nil
+}
+
+func matchToList(a, b []string) bool {
+	if len(a) != len(b) {
+		return false
+	}
+
+	for i := range a {
+		if !slices.Contains(b, a[i]) {
+			return false
+		}
+	}
+
+	for i := range b {
+		if !slices.Contains(a, b[i]) {
+			return false
+		}
+	}
+
+	return true
 }
