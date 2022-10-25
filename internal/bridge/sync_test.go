@@ -43,7 +43,7 @@ func TestBridge_Sync(t *testing.T) {
 		userID, addrID, err := s.CreateUser("imap", "imap@pm.me", password)
 		require.NoError(t, err)
 
-		labelID, err := s.CreateLabel(userID, "folder", liteapi.LabelTypeFolder)
+		labelID, err := s.CreateLabel(userID, "folder", "", liteapi.LabelTypeFolder)
 		require.NoError(t, err)
 
 		withClient(ctx, t, s, "imap", password, func(ctx context.Context, c *liteapi.Client) {
