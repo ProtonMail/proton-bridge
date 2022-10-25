@@ -80,7 +80,7 @@ func (user *User) handleAddressEvents(ctx context.Context, addressEvents []litea
 				return fmt.Errorf("failed to handle create address event: %w", err)
 			}
 
-		case liteapi.EventUpdate:
+		case liteapi.EventUpdate, liteapi.EventUpdateFlags:
 			if err := user.handleUpdateAddressEvent(ctx, event); err != nil {
 				return fmt.Errorf("failed to handle update address event: %w", err)
 			}
@@ -89,9 +89,6 @@ func (user *User) handleAddressEvents(ctx context.Context, addressEvents []litea
 			if err := user.handleDeleteAddressEvent(ctx, event); err != nil {
 				return fmt.Errorf("failed to delete address: %w", err)
 			}
-
-		case liteapi.EventUpdateFlags:
-			user.log.Warn("Not implemented yet.")
 		}
 	}
 
