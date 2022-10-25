@@ -97,7 +97,7 @@ func (t *testCtx) startBridge() error {
 	t.events.collectFrom(eventCh)
 
 	// Wait for the users to be loaded.
-	t.events.await(events.AllUsersLoaded{}, 10*time.Second)
+	t.events.await(events.AllUsersLoaded{}, 30*time.Second)
 
 	// Save the bridge to the context.
 	t.bridge = bridge

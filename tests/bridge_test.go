@@ -124,7 +124,7 @@ func (s *scenario) theUserReportsABug() error {
 }
 
 func (s *scenario) bridgeSendsAConnectionUpEvent() error {
-	if event := s.t.events.await(events.ConnStatusUp{}, 5*time.Second); event == nil {
+	if event := s.t.events.await(events.ConnStatusUp{}, 30*time.Second); event == nil {
 		return errors.New("expected connection up event, got none")
 	}
 
@@ -132,7 +132,7 @@ func (s *scenario) bridgeSendsAConnectionUpEvent() error {
 }
 
 func (s *scenario) bridgeSendsAConnectionDownEvent() error {
-	if event := s.t.events.await(events.ConnStatusDown{}, 5*time.Second); event == nil {
+	if event := s.t.events.await(events.ConnStatusDown{}, 30*time.Second); event == nil {
 		return errors.New("expected connection down event, got none")
 	}
 
@@ -140,7 +140,7 @@ func (s *scenario) bridgeSendsAConnectionDownEvent() error {
 }
 
 func (s *scenario) bridgeSendsADeauthEventForUser(username string) error {
-	event, ok := awaitType(s.t.events, events.UserDeauth{}, 5*time.Second)
+	event, ok := awaitType(s.t.events, events.UserDeauth{}, 30*time.Second)
 	if !ok {
 		return errors.New("expected deauth event, got none")
 	}
@@ -153,7 +153,7 @@ func (s *scenario) bridgeSendsADeauthEventForUser(username string) error {
 }
 
 func (s *scenario) bridgeSendsAnAddressCreatedEventForUser(username string) error {
-	event, ok := awaitType(s.t.events, events.UserAddressCreated{}, 5*time.Second)
+	event, ok := awaitType(s.t.events, events.UserAddressCreated{}, 30*time.Second)
 	if !ok {
 		return errors.New("expected address created event, got none")
 	}
@@ -166,7 +166,7 @@ func (s *scenario) bridgeSendsAnAddressCreatedEventForUser(username string) erro
 }
 
 func (s *scenario) bridgeSendsAnAddressDeletedEventForUser(username string) error {
-	event, ok := awaitType(s.t.events, events.UserAddressDeleted{}, 5*time.Second)
+	event, ok := awaitType(s.t.events, events.UserAddressDeleted{}, 30*time.Second)
 	if !ok {
 		return errors.New("expected address deleted event, got none")
 	}
@@ -179,7 +179,7 @@ func (s *scenario) bridgeSendsAnAddressDeletedEventForUser(username string) erro
 }
 
 func (s *scenario) bridgeSendsSyncStartedAndFinishedEventsForUser(username string) error {
-	startEvent, ok := awaitType(s.t.events, events.SyncStarted{}, 5*time.Second)
+	startEvent, ok := awaitType(s.t.events, events.SyncStarted{}, 30*time.Second)
 	if !ok {
 		return errors.New("expected sync started event, got none")
 	}
@@ -188,7 +188,7 @@ func (s *scenario) bridgeSendsSyncStartedAndFinishedEventsForUser(username strin
 		return fmt.Errorf("expected sync started event for user %s, got %s", wantUserID, startEvent.UserID)
 	}
 
-	finishEvent, ok := awaitType(s.t.events, events.SyncFinished{}, 5*time.Second)
+	finishEvent, ok := awaitType(s.t.events, events.SyncFinished{}, 30*time.Second)
 	if !ok {
 		return errors.New("expected sync finished event, got none")
 	}
@@ -201,7 +201,7 @@ func (s *scenario) bridgeSendsSyncStartedAndFinishedEventsForUser(username strin
 }
 
 func (s *scenario) bridgeSendsAnUpdateNotAvailableEvent() error {
-	if event := s.t.events.await(events.UpdateNotAvailable{}, 5*time.Second); event == nil {
+	if event := s.t.events.await(events.UpdateNotAvailable{}, 30*time.Second); event == nil {
 		return errors.New("expected update not available event, got none")
 	}
 
@@ -209,7 +209,7 @@ func (s *scenario) bridgeSendsAnUpdateNotAvailableEvent() error {
 }
 
 func (s *scenario) bridgeSendsAnUpdateAvailableEventForVersion(version string) error {
-	event, ok := awaitType(s.t.events, events.UpdateAvailable{}, 5*time.Second)
+	event, ok := awaitType(s.t.events, events.UpdateAvailable{}, 30*time.Second)
 	if !ok {
 		return errors.New("expected update available event, got none")
 	}
@@ -226,7 +226,7 @@ func (s *scenario) bridgeSendsAnUpdateAvailableEventForVersion(version string) e
 }
 
 func (s *scenario) bridgeSendsAManualUpdateEventForVersion(version string) error {
-	event, ok := awaitType(s.t.events, events.UpdateAvailable{}, 5*time.Second)
+	event, ok := awaitType(s.t.events, events.UpdateAvailable{}, 30*time.Second)
 	if !ok {
 		return errors.New("expected update available event, got none")
 	}
@@ -243,7 +243,7 @@ func (s *scenario) bridgeSendsAManualUpdateEventForVersion(version string) error
 }
 
 func (s *scenario) bridgeSendsAnUpdateInstalledEventForVersion(version string) error {
-	event, ok := awaitType(s.t.events, events.UpdateInstalled{}, 5*time.Second)
+	event, ok := awaitType(s.t.events, events.UpdateInstalled{}, 30*time.Second)
 	if !ok {
 		return errors.New("expected update installed event, got none")
 	}
@@ -256,7 +256,7 @@ func (s *scenario) bridgeSendsAnUpdateInstalledEventForVersion(version string) e
 }
 
 func (s *scenario) bridgeSendsAForcedUpdateEvent() error {
-	if event := s.t.events.await(events.UpdateForced{}, 5*time.Second); event == nil {
+	if event := s.t.events.await(events.UpdateForced{}, 30*time.Second); event == nil {
 		return errors.New("expected update forced event, got none")
 	}
 
