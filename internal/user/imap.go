@@ -180,8 +180,14 @@ func (conn *imapConnector) CreateMessage(
 	flags imap.FlagSet,
 	date time.Time,
 ) (imap.Message, []byte, error) {
+	// Compute the hash of the message (to match it against SMTP messages).
+	hash, err := getMessageHash(literal)
+	if err != nil {
+		return imap.Message{}, nil, err
+	}
+
 	// Check if we already tried to send this message recently.
-	if messageID, ok, err := conn.sendHash.hasEntryWait(ctx, literal, time.Now().Add(90*time.Second)); err != nil {
+	if messageID, ok, err := conn.sendHash.hasEntryWait(ctx, hash, time.Now().Add(90*time.Second)); err != nil {
 		return imap.Message{}, nil, fmt.Errorf("failed to check send hash: %w", err)
 	} else if ok {
 		message, err := conn.client.GetMessage(ctx, messageID)

@@ -34,7 +34,6 @@ import (
 const sendEntryExpiry = 30 * time.Minute
 
 type sendRecorder struct {
-	hasher func([]byte) (string, error)
 	expiry time.Duration
 
 	entries     map[string]*sendEntry
@@ -43,7 +42,6 @@ type sendRecorder struct {
 
 func newSendRecorder(expiry time.Duration) *sendRecorder {
 	return &sendRecorder{
-		hasher:  getMessageHash,
 		expiry:  expiry,
 		entries: make(map[string]*sendEntry),
 	}
@@ -58,40 +56,30 @@ type sendEntry struct {
 // tryInsertWait tries to insert the given message into the send recorder.
 // If an entry already exists but it was not sent yet, it waits.
 // It returns whether an entry could be inserted and an error if it times out while waiting.
-func (h *sendRecorder) tryInsertWait(ctx context.Context, b []byte, deadline time.Time) (string, bool, error) {
-	hash, err := h.hasher(b)
-	if err != nil {
-		return "", false, fmt.Errorf("failed to hash message: %w", err)
-	}
-
+func (h *sendRecorder) tryInsertWait(ctx context.Context, hash string, deadline time.Time) (bool, error) {
 	// If we successfully inserted the hash, we can return true.
 	if h.tryInsert(hash) {
-		return hash, true, nil
+		return true, nil
 	}
 
 	// A message with this hash is already being sent; wait for it.
 	_, wasSent, err := h.wait(ctx, hash, deadline)
 	if err != nil {
-		return "", false, fmt.Errorf("failed to wait for message to be sent: %w", err)
+		return false, fmt.Errorf("failed to wait for message to be sent: %w", err)
 	}
 
 	// If the message failed to send, try to insert it again.
 	if !wasSent {
-		return h.tryInsertWait(ctx, b, deadline)
+		return h.tryInsertWait(ctx, hash, deadline)
 	}
 
-	return hash, false, nil
+	return false, nil
 }
 
 // hasEntryWait returns whether the given message already exists in the send recorder.
 // If it does, it waits for its ID to be known, then returns it and true.
 // If no entry exists, or it times out while waiting for its ID to be known, it returns false.
-func (h *sendRecorder) hasEntryWait(ctx context.Context, b []byte, deadline time.Time) (string, bool, error) {
-	hash, err := h.hasher(b)
-	if err != nil {
-		return "", false, fmt.Errorf("failed to hash message: %w", err)
-	}
-
+func (h *sendRecorder) hasEntryWait(ctx context.Context, hash string, deadline time.Time) (string, bool, error) {
 	if !h.hasEntry(hash) {
 		return "", false, nil
 	}
@@ -107,7 +95,7 @@ func (h *sendRecorder) hasEntryWait(ctx context.Context, b []byte, deadline time
 		return messageID, true, nil
 	}
 
-	return h.hasEntryWait(ctx, b, deadline)
+	return h.hasEntryWait(ctx, hash, deadline)
 }
 
 func (h *sendRecorder) tryInsert(hash string) bool {

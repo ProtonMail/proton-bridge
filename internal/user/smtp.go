@@ -51,14 +51,21 @@ func (user *User) sendMail(authID string, emails []string, from string, to []str
 		return fmt.Errorf("failed to read message: %w", err)
 	}
 
-	// Check if we already tried to send this message recently.
-	hash, ok, err := user.sendHash.tryInsertWait(ctx, b, time.Now().Add(90*time.Second))
+	// Compute the hash of the message (to match it against SMTP messages).
+	hash, err := getMessageHash(b)
 	if err != nil {
+		return err
+	}
+
+	// Check if we already tried to send this message recently.
+	if ok, err := user.sendHash.tryInsertWait(ctx, hash, time.Now().Add(90*time.Second)); err != nil {
 		return fmt.Errorf("failed to check send hash: %w", err)
 	} else if !ok {
 		user.log.Warn("A duplicate message was already sent recently, skipping")
 		return nil
 	}
+
+	// If we fail to send this message, we should remove the hash from the send recorder.
 	defer user.sendHash.removeOnFail(hash)
 
 	// Create a new message parser from the reader.
