@@ -34,7 +34,6 @@ import (
 	"github.com/ProtonMail/proton-bridge/v2/internal/events"
 	"github.com/ProtonMail/proton-bridge/v2/internal/focus"
 	"github.com/ProtonMail/proton-bridge/v2/internal/locations"
-	"github.com/ProtonMail/proton-bridge/v2/internal/safe"
 	"github.com/ProtonMail/proton-bridge/v2/internal/updater"
 	"github.com/ProtonMail/proton-bridge/v2/internal/user"
 	"github.com/ProtonMail/proton-bridge/v2/internal/useragent"
@@ -168,7 +167,10 @@ func TestBridge_UserAgent(t *testing.T) {
 
 func TestBridge_Cookies(t *testing.T) {
 	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *liteapi.NetCtl, locator bridge.Locator, vaultKey []byte) {
-		sessionIDs := safe.NewValue([]string{})
+		var (
+			sessionIDs     []string
+			sessionIDsLock sync.RWMutex
+		)
 
 		// Save any session IDs we use.
 		s.AddCallWatcher(func(call server.Call) {
@@ -177,9 +179,10 @@ func TestBridge_Cookies(t *testing.T) {
 				return
 			}
 
-			sessionIDs.Mod(func(sessionIDs *[]string) {
-				*sessionIDs = append(*sessionIDs, cookie.Value)
-			})
+			sessionIDsLock.Lock()
+			defer sessionIDsLock.Unlock()
+
+			sessionIDs = append(sessionIDs, cookie.Value)
 		})
 
 		// Start bridge and add a user so that API assigns us a session ID via cookie.
@@ -194,9 +197,10 @@ func TestBridge_Cookies(t *testing.T) {
 		})
 
 		// We should have used just one session ID.
-		sessionIDs.Load(func(sessionIDs []string) {
-			require.Len(t, xslices.Unique(sessionIDs), 1)
-		})
+		sessionIDsLock.Lock()
+		defer sessionIDsLock.Unlock()
+
+		require.Len(t, xslices.Unique(sessionIDs), 1)
 	})
 }
 
