@@ -17,51 +17,26 @@
 
 package events
 
-import "github.com/ProtonMail/proton-bridge/v2/internal/vault"
-
-type AllUsersLoaded struct {
+type UserLabelCreated struct {
 	eventBase
+
+	UserID  string
+	LabelID string
+	Name    string
 }
 
-type UserLoaded struct {
+type UserLabelUpdated struct {
 	eventBase
 
-	UserID string
+	UserID  string
+	LabelID string
+	Name    string
 }
 
-type UserLoggedIn struct {
+type UserLabelDeleted struct {
 	eventBase
 
-	UserID string
-}
-
-type UserLoggedOut struct {
-	eventBase
-
-	UserID string
-}
-
-type UserDeauth struct {
-	eventBase
-
-	UserID string
-}
-
-type UserDeleted struct {
-	eventBase
-
-	UserID string
-}
-
-type UserChanged struct {
-	eventBase
-
-	UserID string
-}
-
-type AddressModeChanged struct {
-	eventBase
-
-	UserID      string
-	AddressMode vault.AddressMode
+	UserID  string
+	LabelID string
+	Name    string
 }

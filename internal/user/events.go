@@ -119,12 +119,6 @@ func (user *User) handleCreateAddressEvent(ctx context.Context, event liteapi.Ad
 			user.updateCh.Set(event.Address.ID, queue.NewQueuedChannel[imap.Update](0, 0))
 		}
 
-		user.eventCh.Enqueue(events.UserAddressCreated{
-			UserID:    user.ID(),
-			AddressID: event.Address.ID,
-			Email:     event.Address.Email,
-		})
-
 		if user.vault.AddressMode() == vault.SplitMode {
 			if ok, err := user.updateCh.GetErr(event.Address.ID, func(updateCh *queue.QueuedChannel[imap.Update]) error {
 				return syncLabels(ctx, user.client, updateCh)
@@ -135,14 +129,20 @@ func (user *User) handleCreateAddressEvent(ctx context.Context, event liteapi.Ad
 			}
 		}
 
+		user.eventCh.Enqueue(events.UserAddressCreated{
+			UserID:    user.ID(),
+			AddressID: event.Address.ID,
+			Email:     event.Address.Email,
+		})
+
 		return nil
 	}, &user.apiAddrsLock)
 }
 
 func (user *User) handleUpdateAddressEvent(_ context.Context, event liteapi.AddressEvent) error { //nolint:unparam
 	return safe.LockRet(func() error {
-		if _, ok := user.apiAddrs[event.Address.ID]; ok {
-			return fmt.Errorf("address %q already exists", event.ID)
+		if _, ok := user.apiAddrs[event.Address.ID]; !ok {
+			return fmt.Errorf("address %q does not exist", event.Address.ID)
 		}
 
 		user.apiAddrs[event.Address.ID] = event.Address
@@ -207,33 +207,70 @@ func (user *User) handleLabelEvents(ctx context.Context, labelEvents []liteapi.L
 }
 
 func (user *User) handleCreateLabelEvent(_ context.Context, event liteapi.LabelEvent) error { //nolint:unparam
-	user.apiLabels.Set(event.Label.ID, event.Label)
+	return safe.LockRet(func() error {
+		if _, ok := user.apiLabels[event.Label.ID]; ok {
+			return fmt.Errorf("label %q already exists", event.ID)
+		}
 
-	user.updateCh.IterValues(func(updateCh *queue.QueuedChannel[imap.Update]) {
-		updateCh.Enqueue(newMailboxCreatedUpdate(imap.MailboxID(event.ID), getMailboxName(event.Label)))
-	})
+		user.apiLabels[event.Label.ID] = event.Label
 
-	return nil
+		user.updateCh.IterValues(func(updateCh *queue.QueuedChannel[imap.Update]) {
+			updateCh.Enqueue(newMailboxCreatedUpdate(imap.MailboxID(event.ID), getMailboxName(event.Label)))
+		})
+
+		user.eventCh.Enqueue(events.UserLabelCreated{
+			UserID:  user.ID(),
+			LabelID: event.Label.ID,
+			Name:    event.Label.Name,
+		})
+
+		return nil
+	}, &user.apiLabelsLock)
 }
 
 func (user *User) handleUpdateLabelEvent(_ context.Context, event liteapi.LabelEvent) error { //nolint:unparam
-	user.apiLabels.Set(event.Label.ID, event.Label)
+	return safe.LockRet(func() error {
+		if _, ok := user.apiLabels[event.Label.ID]; !ok {
+			return fmt.Errorf("label %q does not exist", event.ID)
+		}
 
-	user.updateCh.IterValues(func(updateCh *queue.QueuedChannel[imap.Update]) {
-		updateCh.Enqueue(imap.NewMailboxUpdated(imap.MailboxID(event.ID), getMailboxName(event.Label)))
-	})
+		user.apiLabels[event.Label.ID] = event.Label
 
-	return nil
+		user.updateCh.IterValues(func(updateCh *queue.QueuedChannel[imap.Update]) {
+			updateCh.Enqueue(imap.NewMailboxUpdated(imap.MailboxID(event.ID), getMailboxName(event.Label)))
+		})
+
+		user.eventCh.Enqueue(events.UserLabelUpdated{
+			UserID:  user.ID(),
+			LabelID: event.Label.ID,
+			Name:    event.Label.Name,
+		})
+
+		return nil
+	}, &user.apiLabelsLock)
 }
 
 func (user *User) handleDeleteLabelEvent(_ context.Context, event liteapi.LabelEvent) error { //nolint:unparam
-	user.apiLabels.Delete(event.Label.ID)
+	return safe.LockRet(func() error {
+		label, ok := user.apiLabels[event.ID]
+		if !ok {
+			return fmt.Errorf("label %q does not exist", event.ID)
+		}
 
-	user.updateCh.IterValues(func(updateCh *queue.QueuedChannel[imap.Update]) {
-		updateCh.Enqueue(imap.NewMailboxDeleted(imap.MailboxID(event.ID)))
-	})
+		delete(user.apiLabels, event.ID)
 
-	return nil
+		user.updateCh.IterValues(func(updateCh *queue.QueuedChannel[imap.Update]) {
+			updateCh.Enqueue(imap.NewMailboxDeleted(imap.MailboxID(event.ID)))
+		})
+
+		user.eventCh.Enqueue(events.UserLabelDeleted{
+			UserID:  user.ID(),
+			LabelID: event.ID,
+			Name:    label.Name,
+		})
+
+		return nil
+	}, &user.apiLabelsLock)
 }
 
 // handleMessageEvents handles the given message events.

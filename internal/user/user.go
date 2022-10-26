@@ -59,9 +59,11 @@ type User struct {
 	apiAddrs     map[string]liteapi.Address
 	apiAddrsLock sync.RWMutex
 
-	apiLabels *safe.Map[string, liteapi.Label]
-	updateCh  *safe.Map[string, *queue.QueuedChannel[imap.Update]]
-	sendHash  *sendRecorder
+	apiLabels     map[string]liteapi.Label
+	apiLabelsLock sync.RWMutex
+
+	updateCh *safe.Map[string, *queue.QueuedChannel[imap.Update]]
+	sendHash *sendRecorder
 
 	tasks     *xsync.Group
 	abortable async.Abortable
@@ -138,7 +140,7 @@ func New(
 
 		apiUser:   apiUser,
 		apiAddrs:  groupBy(apiAddrs, func(addr liteapi.Address) string { return addr.ID }),
-		apiLabels: safe.NewMapFrom(groupBy(apiLabels, func(label liteapi.Label) string { return label.ID }), nil),
+		apiLabels: groupBy(apiLabels, func(label liteapi.Label) string { return label.ID }),
 		updateCh:  safe.NewMapFrom(updateCh, nil),
 		sendHash:  newSendRecorder(sendEntryExpiry),
 

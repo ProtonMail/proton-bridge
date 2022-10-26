@@ -31,7 +31,6 @@ import (
 	"github.com/ProtonMail/proton-bridge/v2/internal/vault"
 	"github.com/ProtonMail/proton-bridge/v2/pkg/message"
 	"github.com/bradenaw/juniper/stream"
-	"github.com/google/go-cmp/cmp"
 	"gitlab.protontech.ch/go/liteapi"
 	"golang.org/x/exp/slices"
 )
@@ -83,14 +82,14 @@ func (conn *imapConnector) Authorize(username string, password []byte) bool {
 
 // GetMailbox returns information about the mailbox with the given ID.
 func (conn *imapConnector) GetMailbox(ctx context.Context, mailboxID imap.MailboxID) (imap.Mailbox, error) {
-	mailbox, ok := safe.MapGetRet(conn.apiLabels, string(mailboxID), func(label liteapi.Label) imap.Mailbox {
-		return toIMAPMailbox(label, conn.flags, conn.permFlags, conn.attrs)
-	})
-	if !ok {
-		return imap.Mailbox{}, fmt.Errorf("no such mailbox: %s", mailboxID)
-	}
+	return safe.RLockRetErr(func() (imap.Mailbox, error) {
+		mailbox, ok := conn.apiLabels[string(mailboxID)]
+		if !ok {
+			return imap.Mailbox{}, fmt.Errorf("no such mailbox: %s", mailboxID)
+		}
 
-	return mailbox, nil
+		return toIMAPMailbox(mailbox, conn.flags, conn.permFlags, conn.attrs), nil
+	}, &conn.apiLabelsLock)
 }
 
 // CreateMailbox creates a label with the given name.
@@ -129,29 +128,37 @@ func (conn *imapConnector) createLabel(ctx context.Context, name []string) (imap
 }
 
 func (conn *imapConnector) createFolder(ctx context.Context, name []string) (imap.Mailbox, error) {
-	var parentID string
+	return safe.RLockRetErr(func() (imap.Mailbox, error) {
+		var parentID string
 
-	if len(name) > 1 {
-		if ok := conn.apiLabels.GetFunc(func(label liteapi.Label) bool {
-			return cmp.Equal(label.Path, name[:len(name)-1])
-		}, func(label liteapi.Label) {
-			parentID = label.ID
-		}); !ok {
-			return imap.Mailbox{}, fmt.Errorf("parent folder %q does not exist", name[:len(name)-1])
+		if len(name) > 1 {
+			for _, label := range conn.apiLabels {
+				if !slices.Equal(label.Path, name[:len(name)-1]) {
+					continue
+				}
+
+				parentID = label.ID
+
+				break
+			}
+
+			if parentID == "" {
+				return imap.Mailbox{}, fmt.Errorf("parent folder %q does not exist", name[:len(name)-1])
+			}
 		}
-	}
 
-	label, err := conn.client.CreateLabel(ctx, liteapi.CreateLabelReq{
-		Name:     name[len(name)-1],
-		Color:    "#f66",
-		Type:     liteapi.LabelTypeFolder,
-		ParentID: parentID,
-	})
-	if err != nil {
-		return imap.Mailbox{}, err
-	}
+		label, err := conn.client.CreateLabel(ctx, liteapi.CreateLabelReq{
+			Name:     name[len(name)-1],
+			Color:    "#f66",
+			Type:     liteapi.LabelTypeFolder,
+			ParentID: parentID,
+		})
+		if err != nil {
+			return imap.Mailbox{}, err
+		}
 
-	return toIMAPMailbox(label, conn.flags, conn.permFlags, conn.attrs), nil
+		return toIMAPMailbox(label, conn.flags, conn.permFlags, conn.attrs), nil
+	}, &conn.apiLabelsLock)
 }
 
 // UpdateMailboxName sets the name of the label with the given ID.
@@ -193,32 +200,40 @@ func (conn *imapConnector) updateLabel(ctx context.Context, labelID imap.Mailbox
 }
 
 func (conn *imapConnector) updateFolder(ctx context.Context, labelID imap.MailboxID, name []string) error {
-	var parentID string
+	return safe.RLockRet(func() error {
+		var parentID string
 
-	if len(name) > 1 {
-		if ok := conn.apiLabels.GetFunc(func(label liteapi.Label) bool {
-			return cmp.Equal(label.Path, name[:len(name)-1])
-		}, func(label liteapi.Label) {
-			parentID = label.ID
-		}); !ok {
-			return fmt.Errorf("parent folder %q does not exist", name[:len(name)-1])
+		if len(name) > 1 {
+			for _, label := range conn.apiLabels {
+				if !slices.Equal(label.Path, name[:len(name)-1]) {
+					continue
+				}
+
+				parentID = label.ID
+
+				break
+			}
+
+			if parentID == "" {
+				return fmt.Errorf("parent folder %q does not exist", name[:len(name)-1])
+			}
 		}
-	}
 
-	label, err := conn.client.GetLabel(ctx, string(labelID), liteapi.LabelTypeFolder)
-	if err != nil {
-		return err
-	}
+		label, err := conn.client.GetLabel(ctx, string(labelID), liteapi.LabelTypeFolder)
+		if err != nil {
+			return err
+		}
 
-	if _, err := conn.client.UpdateLabel(ctx, string(labelID), liteapi.UpdateLabelReq{
-		Name:     name[len(name)-1],
-		Color:    label.Color,
-		ParentID: parentID,
-	}); err != nil {
-		return err
-	}
+		if _, err := conn.client.UpdateLabel(ctx, string(labelID), liteapi.UpdateLabelReq{
+			Name:     name[len(name)-1],
+			Color:    label.Color,
+			ParentID: parentID,
+		}); err != nil {
+			return err
+		}
 
-	return nil
+		return nil
+	}, &conn.apiLabelsLock)
 }
 
 // DeleteMailbox deletes the label with the given ID.
