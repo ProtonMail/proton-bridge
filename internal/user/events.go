@@ -194,6 +194,8 @@ func (user *User) handleLabelEvents(ctx context.Context, labelEvents []liteapi.L
 }
 
 func (user *User) handleCreateLabelEvent(_ context.Context, event liteapi.LabelEvent) error { //nolint:unparam
+	user.apiLabels.Set(event.Label.ID, event.Label)
+
 	user.updateCh.IterValues(func(updateCh *queue.QueuedChannel[imap.Update]) {
 		updateCh.Enqueue(newMailboxCreatedUpdate(imap.MailboxID(event.ID), getMailboxName(event.Label)))
 	})
@@ -202,6 +204,8 @@ func (user *User) handleCreateLabelEvent(_ context.Context, event liteapi.LabelE
 }
 
 func (user *User) handleUpdateLabelEvent(_ context.Context, event liteapi.LabelEvent) error { //nolint:unparam
+	user.apiLabels.Set(event.Label.ID, event.Label)
+
 	user.updateCh.IterValues(func(updateCh *queue.QueuedChannel[imap.Update]) {
 		updateCh.Enqueue(imap.NewMailboxUpdated(imap.MailboxID(event.ID), getMailboxName(event.Label)))
 	})
@@ -210,6 +214,8 @@ func (user *User) handleUpdateLabelEvent(_ context.Context, event liteapi.LabelE
 }
 
 func (user *User) handleDeleteLabelEvent(_ context.Context, event liteapi.LabelEvent) error { //nolint:unparam
+	user.apiLabels.Delete(event.Label.ID)
+
 	user.updateCh.IterValues(func(updateCh *queue.QueuedChannel[imap.Update]) {
 		updateCh.Enqueue(imap.NewMailboxDeleted(imap.MailboxID(event.ID)))
 	})

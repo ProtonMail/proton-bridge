@@ -136,6 +136,24 @@ func (m *Map[Key, Val]) GetDeleteErr(key Key, fn func(Val) error) (bool, error) 
 	return ok, err
 }
 
+func (m *Map[Key, Val]) GetFunc(where func(Val) bool, fn func(Val)) bool {
+	m.lock.RLock()
+	defer m.lock.RUnlock()
+
+	for _, key := range m.order {
+		if where(m.data[key]) {
+			fn(m.data[key])
+			return true
+		}
+	}
+
+	return false
+}
+
+func (m *Map[Key, Val]) Delete(key Key) bool {
+	return m.GetDelete(key, func(val Val) {})
+}
+
 func (m *Map[Key, Val]) Set(key Key, val Val) bool {
 	m.lock.Lock()
 	defer m.lock.Unlock()
@@ -285,6 +303,20 @@ func MapGetRet[Key comparable, Val, Ret any](m *Map[Key, Val], key Key, fn func(
 	})
 
 	return ret, ok
+}
+
+func MapGetRetErr[Key comparable, Val, Ret any](m *Map[Key, Val], key Key, fn func(Val) (Ret, error)) (Ret, bool, error) {
+	var ret Ret
+
+	ok, err := m.GetErr(key, func(val Val) error {
+		var err error
+
+		ret, err = fn(val)
+
+		return err
+	})
+
+	return ret, ok, err
 }
 
 func MapValuesRet[Key comparable, Val, Ret any](m *Map[Key, Val], fn func([]Val) Ret) Ret {

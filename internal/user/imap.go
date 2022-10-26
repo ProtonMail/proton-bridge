@@ -31,7 +31,6 @@ import (
 	"github.com/ProtonMail/proton-bridge/v2/internal/vault"
 	"github.com/ProtonMail/proton-bridge/v2/pkg/message"
 	"github.com/bradenaw/juniper/stream"
-	"github.com/bradenaw/juniper/xslices"
 	"github.com/google/go-cmp/cmp"
 	"gitlab.protontech.ch/go/liteapi"
 	"golang.org/x/exp/slices"
@@ -84,12 +83,14 @@ func (conn *imapConnector) Authorize(username string, password []byte) bool {
 
 // GetMailbox returns information about the mailbox with the given ID.
 func (conn *imapConnector) GetMailbox(ctx context.Context, mailboxID imap.MailboxID) (imap.Mailbox, error) {
-	label, err := conn.client.GetLabel(ctx, string(mailboxID), liteapi.LabelTypeLabel, liteapi.LabelTypeFolder, liteapi.LabelTypeSystem)
-	if err != nil {
-		return imap.Mailbox{}, err
+	mailbox, ok := safe.MapGetRet(conn.apiLabels, string(mailboxID), func(label liteapi.Label) imap.Mailbox {
+		return toIMAPMailbox(label, conn.flags, conn.permFlags, conn.attrs)
+	})
+	if !ok {
+		return imap.Mailbox{}, fmt.Errorf("no such mailbox: %s", mailboxID)
 	}
 
-	return toIMAPMailbox(label, conn.flags, conn.permFlags, conn.attrs), nil
+	return mailbox, nil
 }
 
 // CreateMailbox creates a label with the given name.
@@ -131,20 +132,13 @@ func (conn *imapConnector) createFolder(ctx context.Context, name []string) (ima
 	var parentID string
 
 	if len(name) > 1 {
-		folders, err := conn.client.GetLabels(ctx, liteapi.LabelTypeFolder)
-		if err != nil {
-			return imap.Mailbox{}, err
-		}
-
-		idx := xslices.IndexFunc(folders, func(folder liteapi.Label) bool {
-			return cmp.Equal(folder.Path, name[:len(name)-1])
-		})
-
-		if idx < 0 {
+		if ok := conn.apiLabels.GetFunc(func(label liteapi.Label) bool {
+			return cmp.Equal(label.Path, name[:len(name)-1])
+		}, func(label liteapi.Label) {
+			parentID = label.ID
+		}); !ok {
 			return imap.Mailbox{}, fmt.Errorf("parent folder %q does not exist", name[:len(name)-1])
 		}
-
-		parentID = folders[idx].ID
 	}
 
 	label, err := conn.client.CreateLabel(ctx, liteapi.CreateLabelReq{
@@ -202,20 +196,13 @@ func (conn *imapConnector) updateFolder(ctx context.Context, labelID imap.Mailbo
 	var parentID string
 
 	if len(name) > 1 {
-		folders, err := conn.client.GetLabels(ctx, liteapi.LabelTypeFolder)
-		if err != nil {
-			return err
-		}
-
-		idx := xslices.IndexFunc(folders, func(folder liteapi.Label) bool {
-			return cmp.Equal(folder.Path, name[:len(name)-1])
-		})
-
-		if idx < 0 {
+		if ok := conn.apiLabels.GetFunc(func(label liteapi.Label) bool {
+			return cmp.Equal(label.Path, name[:len(name)-1])
+		}, func(label liteapi.Label) {
+			parentID = label.ID
+		}); !ok {
 			return fmt.Errorf("parent folder %q does not exist", name[:len(name)-1])
 		}
-
-		parentID = folders[idx].ID
 	}
 
 	label, err := conn.client.GetLabel(ctx, string(labelID), liteapi.LabelTypeFolder)

@@ -52,10 +52,11 @@ type User struct {
 	client  *liteapi.Client
 	eventCh *queue.QueuedChannel[events.Event]
 
-	apiUser  *safe.Value[liteapi.User]
-	apiAddrs *safe.Map[string, liteapi.Address]
-	updateCh *safe.Map[string, *queue.QueuedChannel[imap.Update]]
-	sendHash *sendRecorder
+	apiUser   *safe.Value[liteapi.User]
+	apiAddrs  *safe.Map[string, liteapi.Address]
+	apiLabels *safe.Map[string, liteapi.Label]
+	updateCh  *safe.Map[string, *queue.QueuedChannel[imap.Update]]
+	sendHash  *sendRecorder
 
 	tasks     *xsync.Group
 	abortable async.Abortable
@@ -85,6 +86,12 @@ func New(
 	// Check we can unlock the keyrings.
 	if _, _, err := liteapi.Unlock(apiUser, apiAddrs, encVault.KeyPass()); err != nil {
 		return nil, fmt.Errorf("failed to unlock user: %w", err)
+	}
+
+	// Get the user's API labels.
+	apiLabels, err := client.GetLabels(ctx, liteapi.LabelTypeSystem, liteapi.LabelTypeFolder, liteapi.LabelTypeLabel)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get labels: %w", err)
 	}
 
 	// Get the latest event ID.
@@ -124,10 +131,11 @@ func New(
 		client:  client,
 		eventCh: queue.NewQueuedChannel[events.Event](0, 0),
 
-		apiUser:  safe.NewValue(apiUser),
-		apiAddrs: safe.NewMapFrom(groupBy(apiAddrs, func(addr liteapi.Address) string { return addr.ID }), sortAddr),
-		updateCh: safe.NewMapFrom(updateCh, nil),
-		sendHash: newSendRecorder(sendEntryExpiry),
+		apiUser:   safe.NewValue(apiUser),
+		apiAddrs:  safe.NewMapFrom(groupBy(apiAddrs, func(addr liteapi.Address) string { return addr.ID }), sortAddr),
+		apiLabels: safe.NewMapFrom(groupBy(apiLabels, func(label liteapi.Label) string { return label.ID }), nil),
+		updateCh:  safe.NewMapFrom(updateCh, nil),
+		sendHash:  newSendRecorder(sendEntryExpiry),
 
 		tasks: xsync.NewGroup(context.Background()),
 
@@ -154,13 +162,13 @@ func New(
 	// When we receive an API event, we attempt to handle it.
 	// If successful, we update the event ID in the vault.
 	goStream := user.tasks.Trigger(func(ctx context.Context) {
-		for event := range user.client.NewEventStream(ctx, EventPeriod, EventJitter, user.vault.EventID()) {
+		async.RangeContext(ctx, user.client.NewEventStream(ctx, EventPeriod, EventJitter, user.vault.EventID()), func(event liteapi.Event) {
 			if err := user.handleAPIEvent(ctx, event); err != nil {
 				user.log.WithError(err).Error("Failed to handle API event")
 			} else if err := user.vault.SetEventID(event.EventID); err != nil {
 				user.log.WithError(err).Error("Failed to update event ID in vault")
 			}
-		}
+		})
 	})
 
 	// We only ever want to start one event streamer.
