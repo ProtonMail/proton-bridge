@@ -23,9 +23,11 @@ import (
 	"net"
 
 	"github.com/Masterminds/semver/v3"
+	"github.com/ProtonMail/proton-bridge/v2/internal/constants"
 	"github.com/ProtonMail/proton-bridge/v2/internal/updater"
 	"github.com/ProtonMail/proton-bridge/v2/internal/user"
 	"github.com/ProtonMail/proton-bridge/v2/internal/vault"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/keychain"
 	"github.com/sirupsen/logrus"
 )
 
@@ -283,6 +285,18 @@ func (bridge *Bridge) FactoryReset(ctx context.Context) {
 	// Then delete all files.
 	if err := bridge.locator.Clear(); err != nil {
 		logrus.WithError(err).Error("Failed to clear data paths")
+	}
+
+	// Lastly clear the keychain.
+	vaultDir, err := bridge.locator.ProvideSettingsPath()
+	if err != nil {
+		logrus.WithError(err).Error("Failed to get vault dir")
+	} else if helper, err := vault.GetHelper(vaultDir); err != nil {
+		logrus.WithError(err).Error("Failed to get keychain helper")
+	} else if keychain, err := keychain.NewKeychain(helper, constants.KeyChainName); err != nil {
+		logrus.WithError(err).Error("Failed to get keychain")
+	} else if err := keychain.Clear(); err != nil {
+		logrus.WithError(err).Error("Failed to clear keychain")
 	}
 }
 

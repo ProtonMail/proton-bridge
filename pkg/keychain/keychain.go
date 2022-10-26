@@ -125,6 +125,21 @@ func (kc *Keychain) Delete(userID string) error {
 	return kc.helper.Delete(kc.secretURL(userID))
 }
 
+func (kc *Keychain) Clear() error {
+	entries, err := kc.List()
+	if err != nil {
+		return err
+	}
+
+	for _, entry := range entries {
+		if err := kc.Delete(entry); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 // Get returns the username and secret for the given userID.
 func (kc *Keychain) Get(userID string) (string, string, error) {
 	kc.locker.Lock()
