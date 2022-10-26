@@ -22,6 +22,7 @@ import (
 	"fmt"
 
 	"github.com/ProtonMail/proton-bridge/v2/internal/events"
+	"github.com/ProtonMail/proton-bridge/v2/internal/safe"
 	"github.com/ProtonMail/proton-bridge/v2/internal/user"
 	"github.com/ProtonMail/proton-bridge/v2/internal/vault"
 )
@@ -44,9 +45,11 @@ func (bridge *Bridge) handleUserEvent(ctx context.Context, user *user.User, even
 		}
 
 	case events.UserDeauth:
-		if err := bridge.logoutUser(context.Background(), event.UserID); err != nil {
-			return fmt.Errorf("failed to logout user: %w", err)
-		}
+		safe.Lock(func() {
+			defer delete(bridge.users, user.ID())
+
+			bridge.logoutUser(ctx, user, false)
+		}, &bridge.usersLock)
 	}
 
 	return nil

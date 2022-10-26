@@ -402,11 +402,13 @@ func (user *User) OnStatusDown() {
 }
 
 // Logout logs the user out from the API.
-func (user *User) Logout(ctx context.Context) error {
+func (user *User) Logout(ctx context.Context, withAPI bool) error {
 	user.tasks.Wait()
 
-	if err := user.client.AuthDelete(ctx); err != nil {
-		return fmt.Errorf("failed to delete auth: %w", err)
+	if withAPI {
+		if err := user.client.AuthDelete(ctx); err != nil {
+			return fmt.Errorf("failed to delete auth: %w", err)
+		}
 	}
 
 	if err := user.vault.Clear(); err != nil {

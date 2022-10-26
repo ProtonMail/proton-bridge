@@ -24,8 +24,8 @@ import (
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/ProtonMail/proton-bridge/v2/internal/constants"
+	"github.com/ProtonMail/proton-bridge/v2/internal/safe"
 	"github.com/ProtonMail/proton-bridge/v2/internal/updater"
-	"github.com/ProtonMail/proton-bridge/v2/internal/user"
 	"github.com/ProtonMail/proton-bridge/v2/internal/vault"
 	"github.com/ProtonMail/proton-bridge/v2/pkg/keychain"
 	"github.com/sirupsen/logrus"
@@ -118,48 +118,50 @@ func (bridge *Bridge) GetGluonDir() string {
 }
 
 func (bridge *Bridge) SetGluonDir(ctx context.Context, newGluonDir string) error {
-	if newGluonDir == bridge.GetGluonDir() {
-		return fmt.Errorf("new gluon dir is the same as the old one")
-	}
+	return safe.RLockRet(func() error {
+		if newGluonDir == bridge.GetGluonDir() {
+			return fmt.Errorf("new gluon dir is the same as the old one")
+		}
 
-	if err := bridge.closeIMAP(context.Background()); err != nil {
-		return fmt.Errorf("failed to close IMAP: %w", err)
-	}
+		if err := bridge.closeIMAP(context.Background()); err != nil {
+			return fmt.Errorf("failed to close IMAP: %w", err)
+		}
 
-	if err := moveDir(bridge.GetGluonDir(), newGluonDir); err != nil {
-		return fmt.Errorf("failed to move gluon dir: %w", err)
-	}
+		if err := moveDir(bridge.GetGluonDir(), newGluonDir); err != nil {
+			return fmt.Errorf("failed to move gluon dir: %w", err)
+		}
 
-	if err := bridge.vault.SetGluonDir(newGluonDir); err != nil {
-		return fmt.Errorf("failed to set new gluon dir: %w", err)
-	}
+		if err := bridge.vault.SetGluonDir(newGluonDir); err != nil {
+			return fmt.Errorf("failed to set new gluon dir: %w", err)
+		}
 
-	imapServer, err := newIMAPServer(
-		bridge.vault.GetGluonDir(),
-		bridge.curVersion,
-		bridge.tlsConfig,
-		bridge.logIMAPClient,
-		bridge.logIMAPServer,
-		bridge.imapEventCh,
-		bridge.tasks,
-	)
-	if err != nil {
-		return fmt.Errorf("failed to create new IMAP server: %w", err)
-	}
+		imapServer, err := newIMAPServer(
+			bridge.vault.GetGluonDir(),
+			bridge.curVersion,
+			bridge.tlsConfig,
+			bridge.logIMAPClient,
+			bridge.logIMAPServer,
+			bridge.imapEventCh,
+			bridge.tasks,
+		)
+		if err != nil {
+			return fmt.Errorf("failed to create new IMAP server: %w", err)
+		}
 
-	bridge.imapServer = imapServer
+		bridge.imapServer = imapServer
 
-	if err := bridge.users.IterValuesErr(func(user *user.User) error {
-		return bridge.addIMAPUser(ctx, user)
-	}); err != nil {
-		return fmt.Errorf("failed to add users to new IMAP server: %w", err)
-	}
+		for _, user := range bridge.users {
+			if err := bridge.addIMAPUser(ctx, user); err != nil {
+				return fmt.Errorf("failed to add users to new IMAP server: %w", err)
+			}
+		}
 
-	if err := bridge.serveIMAP(); err != nil {
-		return fmt.Errorf("failed to serve IMAP: %w", err)
-	}
+		if err := bridge.serveIMAP(); err != nil {
+			return fmt.Errorf("failed to serve IMAP: %w", err)
+		}
 
-	return nil
+		return nil
+	}, &bridge.usersLock)
 }
 
 func (bridge *Bridge) GetProxyAllowed() bool {
@@ -181,11 +183,13 @@ func (bridge *Bridge) GetShowAllMail() bool {
 }
 
 func (bridge *Bridge) SetShowAllMail(show bool) error {
-	bridge.users.IterValues(func(user *user.User) {
-		user.SetShowAllMail(show)
-	})
+	return safe.RLockRet(func() error {
+		for _, user := range bridge.users {
+			user.SetShowAllMail(show)
+		}
 
-	return bridge.vault.SetShowAllMail(show)
+		return bridge.vault.SetShowAllMail(show)
+	}, &bridge.usersLock)
 }
 
 func (bridge *Bridge) GetAutostart() bool {
@@ -273,14 +277,18 @@ func (bridge *Bridge) SetColorScheme(colorScheme string) error {
 }
 
 func (bridge *Bridge) FactoryReset(ctx context.Context) {
-	// First delete all users.
-	for _, userID := range bridge.GetUserIDs() {
-		if bridge.users.Has(userID) {
-			if err := bridge.DeleteUser(ctx, userID); err != nil {
-				logrus.WithError(err).Errorf("Failed to delete user %s", userID)
+	// Delete all the users.
+	safe.Lock(func() {
+		for _, user := range bridge.users {
+			bridge.logoutUser(ctx, user, true)
+		}
+
+		for _, user := range bridge.vault.GetUserIDs() {
+			if err := bridge.vault.DeleteUser(user); err != nil {
+				logrus.WithError(err).Error("failed to delete vault user")
 			}
 		}
-	}
+	}, &bridge.usersLock)
 
 	// Then delete all files.
 	if err := bridge.locator.Clear(); err != nil {

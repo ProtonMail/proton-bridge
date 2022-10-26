@@ -32,6 +32,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/v2/internal/async"
 	"github.com/ProtonMail/proton-bridge/v2/internal/constants"
 	"github.com/ProtonMail/proton-bridge/v2/internal/logging"
+	"github.com/ProtonMail/proton-bridge/v2/internal/user"
 	"github.com/ProtonMail/proton-bridge/v2/internal/vault"
 	"github.com/bradenaw/juniper/xsync"
 	"github.com/sirupsen/logrus"
@@ -77,6 +78,44 @@ func (bridge *Bridge) closeIMAP(ctx context.Context) error {
 	if bridge.imapListener != nil {
 		if err := bridge.imapListener.Close(); err != nil {
 			return fmt.Errorf("failed to close IMAP listener: %w", err)
+		}
+	}
+
+	return nil
+}
+
+// addIMAPUser connects the given user to gluon.
+func (bridge *Bridge) addIMAPUser(ctx context.Context, user *user.User) error {
+	imapConn, err := user.NewIMAPConnectors()
+	if err != nil {
+		return fmt.Errorf("failed to create IMAP connectors: %w", err)
+	}
+
+	for addrID, imapConn := range imapConn {
+		if gluonID, ok := user.GetGluonID(addrID); ok {
+			if err := bridge.imapServer.LoadUser(ctx, imapConn, gluonID, user.GluonKey()); err != nil {
+				return fmt.Errorf("failed to load IMAP user: %w", err)
+			}
+		} else {
+			gluonID, err := bridge.imapServer.AddUser(ctx, imapConn, user.GluonKey())
+			if err != nil {
+				return fmt.Errorf("failed to add IMAP user: %w", err)
+			}
+
+			if err := user.SetGluonID(addrID, gluonID); err != nil {
+				return fmt.Errorf("failed to set IMAP user ID: %w", err)
+			}
+		}
+	}
+
+	return nil
+}
+
+// removeIMAPUser disconnects the given user from gluon, optionally also removing its files.
+func (bridge *Bridge) removeIMAPUser(ctx context.Context, user *user.User, withFiles bool) error {
+	for _, gluonID := range user.GetGluonIDs() {
+		if err := bridge.imapServer.RemoveUser(ctx, gluonID, withFiles); err != nil {
+			return fmt.Errorf("failed to remove IMAP user: %w", err)
 		}
 	}
 

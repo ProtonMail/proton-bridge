@@ -147,6 +147,46 @@ func TestBridge_LoginDeauthLogin(t *testing.T) {
 	})
 }
 
+func TestBridge_LoginDeauthRestartLogin(t *testing.T) {
+	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *liteapi.NetCtl, locator bridge.Locator, storeKey []byte) {
+		var userID string
+
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+			// Login the user.
+			userID = must(bridge.LoginFull(ctx, username, password, nil, nil))
+
+			// Get a channel to receive the deauth event.
+			eventCh, done := bridge.GetEvents(events.UserDeauth{})
+			defer done()
+
+			// Deauth the user.
+			require.NoError(t, s.RevokeUser(userID))
+
+			// The user is eventually disconnected.
+			require.Eventually(t, func() bool {
+				return len(getConnectedUserIDs(t, bridge)) == 0
+			}, 10*time.Second, time.Second)
+
+			// We should get a deauth event.
+			require.IsType(t, events.UserDeauth{}, <-eventCh)
+		})
+
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+			// The user should be disconnected at startup.
+			require.Equal(t, []string{userID}, bridge.GetUserIDs())
+			require.Empty(t, getConnectedUserIDs(t, bridge))
+
+			// Login the user after the disconnection.
+			newUserID := must(bridge.LoginFull(ctx, username, password, nil, nil))
+			require.Equal(t, userID, newUserID)
+
+			// The user is connected again.
+			require.Equal(t, []string{userID}, bridge.GetUserIDs())
+			require.Equal(t, []string{userID}, getConnectedUserIDs(t, bridge))
+		})
+	})
+}
+
 func TestBridge_LoginExpireLogin(t *testing.T) {
 	const authLife = 2 * time.Second
 
@@ -445,6 +485,82 @@ func TestBridge_LoginLogoutRepeated(t *testing.T) {
 				// Log the user out.
 				require.NoError(t, bridge.LogoutUser(ctx, userID))
 			}
+		})
+	})
+}
+
+func TestBridge_LogoutOffline(t *testing.T) {
+	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *liteapi.NetCtl, locator bridge.Locator, storeKey []byte) {
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+			// Login the user.
+			userID, err := bridge.LoginFull(ctx, username, password, nil, nil)
+			require.NoError(t, err)
+
+			// The user is now connected.
+			require.Equal(t, []string{userID}, bridge.GetUserIDs())
+			require.Equal(t, []string{userID}, getConnectedUserIDs(t, bridge))
+
+			// Go offline.
+			netCtl.Disable()
+
+			// We can still log the user out.
+			require.NoError(t, bridge.LogoutUser(ctx, userID))
+
+			// The user is now disconnected.
+			require.Equal(t, []string{userID}, bridge.GetUserIDs())
+			require.Empty(t, getConnectedUserIDs(t, bridge))
+		})
+	})
+}
+
+func TestBridge_DeleteDisconnected(t *testing.T) {
+	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *liteapi.NetCtl, locator bridge.Locator, storeKey []byte) {
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+			// Login the user.
+			userID, err := bridge.LoginFull(ctx, username, password, nil, nil)
+			require.NoError(t, err)
+
+			// The user is now connected.
+			require.Equal(t, []string{userID}, bridge.GetUserIDs())
+			require.Equal(t, []string{userID}, getConnectedUserIDs(t, bridge))
+
+			// Logout the user.
+			require.NoError(t, bridge.LogoutUser(ctx, userID))
+
+			// The user is now disconnected.
+			require.Equal(t, []string{userID}, bridge.GetUserIDs())
+			require.Empty(t, getConnectedUserIDs(t, bridge))
+
+			// Delete the user.
+			require.NoError(t, bridge.DeleteUser(ctx, userID))
+
+			// The user is now deleted.
+			require.Empty(t, bridge.GetUserIDs())
+			require.Empty(t, getConnectedUserIDs(t, bridge))
+		})
+	})
+}
+
+func TestBridge_DeleteOffline(t *testing.T) {
+	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *liteapi.NetCtl, locator bridge.Locator, storeKey []byte) {
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+			// Login the user.
+			userID, err := bridge.LoginFull(ctx, username, password, nil, nil)
+			require.NoError(t, err)
+
+			// The user is now connected.
+			require.Equal(t, []string{userID}, bridge.GetUserIDs())
+			require.Equal(t, []string{userID}, getConnectedUserIDs(t, bridge))
+
+			// Go offline.
+			netCtl.Disable()
+
+			// We can still log the user out.
+			require.NoError(t, bridge.DeleteUser(ctx, userID))
+
+			// The user is now gone.
+			require.Empty(t, bridge.GetUserIDs())
+			require.Empty(t, getConnectedUserIDs(t, bridge))
 		})
 	})
 }

@@ -22,16 +22,15 @@ import (
 	"io"
 
 	"github.com/ProtonMail/proton-bridge/v2/internal/safe"
-	"github.com/ProtonMail/proton-bridge/v2/internal/user"
 	"github.com/emersion/go-smtp"
 )
 
 type smtpBackend struct {
-	users *safe.Map[string, *user.User]
+	*Bridge
 }
 
 type smtpSession struct {
-	users *safe.Map[string, *user.User]
+	*Bridge
 
 	userID string
 	authID string
@@ -40,15 +39,13 @@ type smtpSession struct {
 	to   []string
 }
 
-func (be *smtpBackend) NewSession(_ *smtp.Conn) (smtp.Session, error) {
-	return &smtpSession{
-		users: be.users,
-	}, nil
+func (be *smtpBackend) NewSession(*smtp.Conn) (smtp.Session, error) {
+	return &smtpSession{Bridge: be.Bridge}, nil
 }
 
 func (s *smtpSession) AuthPlain(username, password string) error {
-	return s.users.ValuesErr(func(users []*user.User) error {
-		for _, user := range users {
+	return safe.RLockRet(func() error {
+		for _, user := range s.users {
 			addrID, err := user.CheckAuth(username, []byte(password))
 			if err != nil {
 				continue
@@ -61,7 +58,7 @@ func (s *smtpSession) AuthPlain(username, password string) error {
 		}
 
 		return fmt.Errorf("invalid username or password")
-	})
+	}, &s.usersLock)
 }
 
 func (s *smtpSession) Reset() {
@@ -88,13 +85,12 @@ func (s *smtpSession) Rcpt(to string) error {
 }
 
 func (s *smtpSession) Data(r io.Reader) error {
-	if ok, err := s.users.GetErr(s.userID, func(user *user.User) error {
-		return user.SendMail(s.authID, s.from, s.to, r)
-	}); !ok {
-		return fmt.Errorf("no such user %q", s.userID)
-	} else if err != nil {
-		return fmt.Errorf("failed to send mail: %w", err)
-	}
+	return safe.RLockRet(func() error {
+		user, ok := s.users[s.userID]
+		if !ok {
+			return ErrNoSuchUser
+		}
 
-	return nil
+		return user.SendMail(s.authID, s.from, s.to, r)
+	}, &s.usersLock)
 }

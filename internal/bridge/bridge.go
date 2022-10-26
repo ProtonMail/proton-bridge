@@ -51,8 +51,8 @@ type Bridge struct {
 	vault *vault.Vault
 
 	// users holds authorized users.
-	users  *safe.Map[string, *user.User]
-	goLoad func()
+	users     map[string]*user.User
+	usersLock sync.RWMutex
 
 	// api manages user API clients.
 	api        *liteapi.Manager
@@ -73,7 +73,6 @@ type Bridge struct {
 
 	// updater is the bridge's updater.
 	updater    Updater
-	goUpdate   func()
 	curVersion *semver.Version
 
 	// focusService is used to raise the bridge window when needed.
@@ -99,6 +98,12 @@ type Bridge struct {
 
 	// tasks manages the bridge's goroutines.
 	tasks *xsync.Group
+
+	// goLoad triggers a load of disconnected users from the vault.
+	goLoad func()
+
+	// goUpdate triggers a check/install of updates.
+	goUpdate func()
 }
 
 // New creates a new bridge.
@@ -133,12 +138,8 @@ func New( //nolint:funlen
 	// imapEventCh forwards IMAP events from gluon instances to the bridge for processing.
 	imapEventCh := make(chan imapEvents.Event)
 
-	// users holds all the bridge's users.
-	users := safe.NewMap[string, *user.User](nil)
-
 	// bridge is the bridge.
 	bridge, err := newBridge(
-		users,
 		tasks,
 		imapEventCh,
 
@@ -180,7 +181,6 @@ func New( //nolint:funlen
 
 // nolint:funlen
 func newBridge(
-	users *safe.Map[string, *user.User],
 	tasks *xsync.Group,
 	imapEventCh chan imapEvents.Event,
 
@@ -224,9 +224,9 @@ func newBridge(
 		return nil, fmt.Errorf("failed to create focus service: %w", err)
 	}
 
-	return &Bridge{
+	bridge := &Bridge{
 		vault: vault,
-		users: users,
+		users: make(map[string]*user.User),
 
 		api:        api,
 		proxyCtl:   proxyCtl,
@@ -235,7 +235,6 @@ func newBridge(
 		tlsConfig:   tlsConfig,
 		imapServer:  imapServer,
 		imapEventCh: imapEventCh,
-		smtpServer:  newSMTPServer(users, tlsConfig, logSMTP),
 
 		updater:    updater,
 		curVersion: curVersion,
@@ -249,7 +248,11 @@ func newBridge(
 		logSMTP:       logSMTP,
 
 		tasks: tasks,
-	}, nil
+	}
+
+	bridge.smtpServer = newSMTPServer(bridge, tlsConfig, logSMTP)
+
+	return bridge, nil
 }
 
 // nolint:funlen
@@ -265,10 +268,10 @@ func (bridge *Bridge) init(tlsReporter TLSReporter) error {
 	bridge.api.AddStatusObserver(func(status liteapi.Status) {
 		switch {
 		case status == liteapi.StatusUp:
-			bridge.onStatusUp()
+			go bridge.onStatusUp()
 
 		case status == liteapi.StatusDown:
-			bridge.onStatusDown()
+			go bridge.onStatusDown()
 		}
 	})
 
@@ -356,9 +359,11 @@ func (bridge *Bridge) Close(ctx context.Context) error {
 	}
 
 	// Close all users.
-	bridge.users.IterValues(func(user *user.User) {
-		user.Close()
-	})
+	safe.RLock(func() {
+		for _, user := range bridge.users {
+			user.Close()
+		}
+	}, &bridge.usersLock)
 
 	// Stop all ongoing tasks.
 	bridge.tasks.Wait()
@@ -426,19 +431,23 @@ func (bridge *Bridge) remWatcher(watcher *watcher.Watcher[events.Event]) {
 func (bridge *Bridge) onStatusUp() {
 	bridge.publish(events.ConnStatusUp{})
 
-	bridge.goLoad()
+	safe.RLock(func() {
+		for _, user := range bridge.users {
+			user.OnStatusUp()
+		}
+	}, &bridge.usersLock)
 
-	bridge.users.IterValues(func(user *user.User) {
-		go user.OnStatusUp()
-	})
+	bridge.goLoad()
 }
 
 func (bridge *Bridge) onStatusDown() {
 	bridge.publish(events.ConnStatusDown{})
 
-	bridge.users.IterValues(func(user *user.User) {
-		go user.OnStatusDown()
-	})
+	safe.RLock(func() {
+		for _, user := range bridge.users {
+			user.OnStatusDown()
+		}
+	}, &bridge.usersLock)
 
 	bridge.tasks.Once(func(ctx context.Context) {
 		backoff := time.Second

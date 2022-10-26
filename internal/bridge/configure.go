@@ -18,18 +18,24 @@
 package bridge
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/ProtonMail/proton-bridge/v2/internal/clientconfig"
 	"github.com/ProtonMail/proton-bridge/v2/internal/constants"
-	"github.com/ProtonMail/proton-bridge/v2/internal/user"
+	"github.com/ProtonMail/proton-bridge/v2/internal/safe"
 	"github.com/ProtonMail/proton-bridge/v2/internal/useragent"
 	"github.com/ProtonMail/proton-bridge/v2/internal/vault"
 )
 
+// ConfigureAppleMail configures apple mail for the given userID and address.
+// If configuring apple mail for Catalina or newer, it ensures Bridge is using SSL.
 func (bridge *Bridge) ConfigureAppleMail(userID, address string) error {
-	if ok, err := bridge.users.GetErr(userID, func(user *user.User) error {
+	return safe.RLockRet(func() error {
+		user, ok := bridge.users[userID]
+		if !ok {
+			return ErrNoSuchUser
+		}
+
 		if address == "" {
 			address = user.Emails()[0]
 		}
@@ -42,7 +48,6 @@ func (bridge *Bridge) ConfigureAppleMail(userID, address string) error {
 			addresses = strings.Join(user.Emails(), ",")
 		}
 
-		// If configuring apple mail for Catalina or newer, users should use SSL.
 		if useragent.IsCatalinaOrNewer() && !bridge.vault.GetSMTPSSL() {
 			if err := bridge.SetSMTPSSL(true); err != nil {
 				return err
@@ -59,11 +64,5 @@ func (bridge *Bridge) ConfigureAppleMail(userID, address string) error {
 			addresses,
 			user.BridgePass(),
 		)
-	}); !ok {
-		return ErrNoSuchUser
-	} else if err != nil {
-		return fmt.Errorf("failed to configure apple mail: %w", err)
-	}
-
-	return nil
+	}, &bridge.usersLock)
 }

@@ -23,8 +23,6 @@ import (
 	"fmt"
 
 	"github.com/ProtonMail/proton-bridge/v2/internal/logging"
-	"github.com/ProtonMail/proton-bridge/v2/internal/safe"
-	"github.com/ProtonMail/proton-bridge/v2/internal/user"
 
 	"github.com/ProtonMail/proton-bridge/v2/internal/constants"
 	"github.com/emersion/go-smtp"
@@ -57,7 +55,7 @@ func (bridge *Bridge) restartSMTP() error {
 		return fmt.Errorf("failed to close SMTP: %w", err)
 	}
 
-	bridge.smtpServer = newSMTPServer(bridge.users, bridge.tlsConfig, bridge.logSMTP)
+	bridge.smtpServer = newSMTPServer(bridge, bridge.tlsConfig, bridge.logSMTP)
 
 	return bridge.serveSMTP()
 }
@@ -80,8 +78,8 @@ func (bridge *Bridge) closeSMTP() error {
 	return nil
 }
 
-func newSMTPServer(users *safe.Map[string, *user.User], tlsConfig *tls.Config, shouldLog bool) *smtp.Server {
-	smtpServer := smtp.NewServer(&smtpBackend{users})
+func newSMTPServer(bridge *Bridge, tlsConfig *tls.Config, shouldLog bool) *smtp.Server {
+	smtpServer := smtp.NewServer(&smtpBackend{Bridge: bridge})
 
 	smtpServer.TLSConfig = tlsConfig
 	smtpServer.Domain = constants.Host
@@ -94,6 +92,7 @@ func newSMTPServer(users *safe.Map[string, *user.User], tlsConfig *tls.Config, s
 		log.Warning("================================================")
 		log.Warning("THIS LOG WILL CONTAIN **DECRYPTED** MESSAGE DATA")
 		log.Warning("================================================")
+
 		smtpServer.Debug = logging.NewSMTPDebugLogger()
 	}
 
