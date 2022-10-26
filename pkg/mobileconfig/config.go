@@ -46,7 +46,7 @@ type IMAP struct {
 	TLS      bool
 
 	Username string
-	Password []byte
+	Password string
 }
 
 type SMTP struct {
@@ -57,7 +57,7 @@ type SMTP struct {
 	// Leave Username blank to do not use SMTP authentication.
 	Username string
 	// Leave Password blank to use IMAP credentials.
-	Password []byte
+	Password string
 }
 
 func (c *Config) WriteOut(w io.Writer) error {

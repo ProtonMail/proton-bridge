@@ -78,13 +78,14 @@ func prepareMobileConfig(
 			Port:     imapPort,
 			TLS:      imapSSL,
 			Username: username,
-			Password: password,
+			Password: string(password),
 		},
 		SMTP: &mobileconfig.SMTP{
 			Hostname: hostname,
 			Port:     smtpPort,
 			TLS:      smtpSSL,
 			Username: username,
+			Password: string(password),
 		},
 	}
 }
