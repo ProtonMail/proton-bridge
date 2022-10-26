@@ -35,6 +35,7 @@ import (
 	"github.com/bradenaw/juniper/xslices"
 	"github.com/google/uuid"
 	"gitlab.protontech.ch/go/liteapi"
+	"golang.org/x/exp/maps"
 )
 
 const (
@@ -78,9 +79,7 @@ func (user *User) sync(ctx context.Context) error {
 			if !user.vault.SyncStatus().HasLabels {
 				user.log.Debug("Syncing labels")
 
-				if err := user.updateCh.ValuesErr(func(updateCh []*queue.QueuedChannel[imap.Update]) error {
-					return syncLabels(ctx, user.client, xslices.Unique(updateCh)...)
-				}); err != nil {
+				if err := syncLabels(ctx, user.client, xslices.Unique(maps.Values(user.updateCh))...); err != nil {
 					return fmt.Errorf("failed to sync labels: %w", err)
 				}
 
@@ -96,9 +95,7 @@ func (user *User) sync(ctx context.Context) error {
 			if !user.vault.SyncStatus().HasMessages {
 				user.log.Debug("Syncing messages")
 
-				if err := user.updateCh.MapErr(func(updateCh map[string]*queue.QueuedChannel[imap.Update]) error {
-					return syncMessages(ctx, user.ID(), user.client, user.vault, addrKRs, updateCh, user.eventCh)
-				}); err != nil {
+				if err := syncMessages(ctx, user.ID(), user.client, user.vault, addrKRs, user.updateCh, user.eventCh); err != nil {
 					return fmt.Errorf("failed to sync messages: %w", err)
 				}
 
@@ -113,7 +110,7 @@ func (user *User) sync(ctx context.Context) error {
 
 			return nil
 		})
-	}, &user.apiUserLock, &user.apiAddrsLock)
+	}, &user.apiUserLock, &user.apiAddrsLock, &user.updateChLock)
 }
 
 func syncLabels(ctx context.Context, client *liteapi.Client, updateCh ...*queue.QueuedChannel[imap.Update]) error {

@@ -24,7 +24,6 @@ import (
 	"time"
 
 	"github.com/ProtonMail/gluon/imap"
-	"github.com/ProtonMail/gluon/queue"
 	"github.com/ProtonMail/gluon/rfc822"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/ProtonMail/proton-bridge/v2/internal/safe"
@@ -349,14 +348,9 @@ func (conn *imapConnector) MarkMessagesFlagged(ctx context.Context, messageIDs [
 // GetUpdates returns a stream of updates that the gluon server should apply.
 // It is recommended that the returned channel is buffered with at least constants.ChannelBufferCount.
 func (conn *imapConnector) GetUpdates() <-chan imap.Update {
-	updateCh, ok := safe.MapGetRet(conn.updateCh, conn.addrID, func(updateCh *queue.QueuedChannel[imap.Update]) <-chan imap.Update {
-		return updateCh.GetChannel()
-	})
-	if !ok {
-		panic(fmt.Sprintf("update channel for %q not found", conn.addrID))
-	}
-
-	return updateCh
+	return safe.RLockRet(func() <-chan imap.Update {
+		return conn.updateCh[conn.addrID].GetChannel()
+	}, &conn.updateChLock)
 }
 
 // GetUIDValidity returns the default UID validity for this user.
@@ -413,7 +407,7 @@ func (conn *imapConnector) importMessage(
 
 			return nil
 		})
-	}); err != nil {
+	}, &conn.apiUserLock, &conn.apiAddrsLock); err != nil {
 		return imap.Message{}, nil, err
 	}
 

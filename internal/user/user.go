@@ -18,6 +18,7 @@
 package user
 
 import (
+	"bytes"
 	"context"
 	"crypto/subtle"
 	"fmt"
@@ -30,10 +31,13 @@ import (
 	"github.com/ProtonMail/gluon/connector"
 	"github.com/ProtonMail/gluon/imap"
 	"github.com/ProtonMail/gluon/queue"
+	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/ProtonMail/proton-bridge/v2/internal/async"
 	"github.com/ProtonMail/proton-bridge/v2/internal/events"
 	"github.com/ProtonMail/proton-bridge/v2/internal/safe"
 	"github.com/ProtonMail/proton-bridge/v2/internal/vault"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/message"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/message/parser"
 	"github.com/bradenaw/juniper/xslices"
 	"github.com/bradenaw/juniper/xsync"
 	"github.com/sirupsen/logrus"
@@ -49,9 +53,10 @@ var (
 type User struct {
 	log *logrus.Entry
 
-	vault   *vault.User
-	client  *liteapi.Client
-	eventCh *queue.QueuedChannel[events.Event]
+	vault    *vault.User
+	client   *liteapi.Client
+	eventCh  *queue.QueuedChannel[events.Event]
+	sendHash *sendRecorder
 
 	apiUser     liteapi.User
 	apiUserLock sync.RWMutex
@@ -62,8 +67,8 @@ type User struct {
 	apiLabels     map[string]liteapi.Label
 	apiLabelsLock sync.RWMutex
 
-	updateCh *safe.Map[string, *queue.QueuedChannel[imap.Update]]
-	sendHash *sendRecorder
+	updateCh     map[string]*queue.QueuedChannel[imap.Update]
+	updateChLock sync.RWMutex
 
 	tasks     *xsync.Group
 	abortable async.Abortable
@@ -134,15 +139,15 @@ func New(
 	user := &User{
 		log: logrus.WithField("userID", apiUser.ID),
 
-		vault:   encVault,
-		client:  client,
-		eventCh: queue.NewQueuedChannel[events.Event](0, 0),
+		vault:    encVault,
+		client:   client,
+		eventCh:  queue.NewQueuedChannel[events.Event](0, 0),
+		sendHash: newSendRecorder(sendEntryExpiry),
 
 		apiUser:   apiUser,
 		apiAddrs:  groupBy(apiAddrs, func(addr liteapi.Address) string { return addr.ID }),
 		apiLabels: groupBy(apiLabels, func(label liteapi.Label) string { return label.ID }),
-		updateCh:  safe.NewMapFrom(updateCh, nil),
-		sendHash:  newSendRecorder(sendEntryExpiry),
+		updateCh:  updateCh,
 
 		tasks: xsync.NewGroup(context.Background()),
 
@@ -251,26 +256,24 @@ func (user *User) SetAddressMode(ctx context.Context, mode vault.AddressMode) er
 	user.abortable.Abort()
 	defer user.goSync()
 
-	return safe.RLockRet(func() error {
-		user.updateCh.Values(func(updateCh []*queue.QueuedChannel[imap.Update]) {
-			for _, updateCh := range xslices.Unique(updateCh) {
-				updateCh.CloseAndDiscardQueued()
-			}
-		})
+	return safe.LockRet(func() error {
+		for _, updateCh := range xslices.Unique(maps.Values(user.updateCh)) {
+			updateCh.CloseAndDiscardQueued()
+		}
 
-		user.updateCh.Clear()
+		user.updateCh = make(map[string]*queue.QueuedChannel[imap.Update])
 
 		switch mode {
 		case vault.CombinedMode:
 			primaryUpdateCh := queue.NewQueuedChannel[imap.Update](0, 0)
 
 			for addrID := range user.apiAddrs {
-				user.updateCh.Set(addrID, primaryUpdateCh)
+				user.updateCh[addrID] = primaryUpdateCh
 			}
 
 		case vault.SplitMode:
 			for addrID := range user.apiAddrs {
-				user.updateCh.Set(addrID, queue.NewQueuedChannel[imap.Update](0, 0))
+				user.updateCh[addrID] = queue.NewQueuedChannel[imap.Update](0, 0)
 			}
 		}
 
@@ -283,7 +286,7 @@ func (user *User) SetAddressMode(ctx context.Context, mode vault.AddressMode) er
 		}
 
 		return nil
-	}, &user.apiAddrsLock)
+	}, &user.apiAddrsLock, &user.updateChLock)
 }
 
 // GetGluonIDs returns the users gluon IDs.
@@ -368,7 +371,12 @@ func (user *User) NewIMAPConnectors() (map[string]connector.Connector, error) {
 }
 
 // SendMail sends an email from the given address to the given recipients.
+//
+// nolint:funlen
 func (user *User) SendMail(authID string, from string, to []string, r io.Reader) error {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	if len(to) == 0 {
 		return ErrInvalidRecipient
 	}
@@ -382,8 +390,100 @@ func (user *User) SendMail(authID string, from string, to []string, r io.Reader)
 			return addr.Email
 		})
 
-		return user.sendMail(authID, emails, from, to, r)
-	}, &user.apiAddrsLock)
+		// Read the message to send.
+		b, err := io.ReadAll(r)
+		if err != nil {
+			return fmt.Errorf("failed to read message: %w", err)
+		}
+
+		// Compute the hash of the message (to match it against SMTP messages).
+		hash, err := getMessageHash(b)
+		if err != nil {
+			return err
+		}
+
+		// Check if we already tried to send this message recently.
+		if ok, err := user.sendHash.tryInsertWait(ctx, hash, to, time.Now().Add(90*time.Second)); err != nil {
+			return fmt.Errorf("failed to check send hash: %w", err)
+		} else if !ok {
+			user.log.Warn("A duplicate message was already sent recently, skipping")
+			return nil
+		}
+
+		// If we fail to send this message, we should remove the hash from the send recorder.
+		defer user.sendHash.removeOnFail(hash)
+
+		// Create a new message parser from the reader.
+		parser, err := parser.New(bytes.NewReader(b))
+		if err != nil {
+			return fmt.Errorf("failed to create parser: %w", err)
+		}
+
+		// If the message contains a sender, use it instead of the one from the return path.
+		if sender, ok := getMessageSender(parser); ok {
+			from = sender
+		}
+
+		// Load the user's mail settings.
+		settings, err := user.client.GetMailSettings(ctx)
+		if err != nil {
+			return fmt.Errorf("failed to get mail settings: %w", err)
+		}
+
+		addrID, err := getAddrID(user.apiAddrs, from)
+		if err != nil {
+			return err
+		}
+
+		return withAddrKR(user.apiUser, user.apiAddrs[addrID], user.vault.KeyPass(), func(userKR, addrKR *crypto.KeyRing) error {
+			// Use the first key for encrypting the message.
+			addrKR, err := addrKR.FirstKey()
+			if err != nil {
+				return fmt.Errorf("failed to get first key: %w", err)
+			}
+
+			// If we have to attach the public key, do it now.
+			if settings.AttachPublicKey == liteapi.AttachPublicKeyEnabled {
+				key, err := addrKR.GetKey(0)
+				if err != nil {
+					return fmt.Errorf("failed to get sending key: %w", err)
+				}
+
+				pubKey, err := key.GetArmoredPublicKey()
+				if err != nil {
+					return fmt.Errorf("failed to get public key: %w", err)
+				}
+
+				parser.AttachPublicKey(pubKey, fmt.Sprintf("publickey - %v - %v", addrKR.GetIdentities()[0].Name, key.GetFingerprint()[:8]))
+			}
+
+			// Parse the message we want to send (after we have attached the public key).
+			message, err := message.ParseWithParser(parser)
+			if err != nil {
+				return fmt.Errorf("failed to parse message: %w", err)
+			}
+
+			// Send the message using the correct key.
+			sent, err := sendWithKey(
+				ctx,
+				user.client,
+				authID,
+				user.vault.AddressMode(),
+				settings,
+				userKR, addrKR,
+				emails, from, to,
+				message,
+			)
+			if err != nil {
+				return fmt.Errorf("failed to send message: %w", err)
+			}
+
+			// If the message was successfully sent, we can update the message ID in the record.
+			user.sendHash.addMessageID(hash, sent.ID)
+
+			return nil
+		})
+	}, &user.apiUserLock, &user.apiAddrsLock)
 }
 
 // CheckAuth returns whether the given email and password can be used to authenticate over IMAP or SMTP with this user.
@@ -445,11 +545,11 @@ func (user *User) Close() {
 	user.client.Close()
 
 	// Close the user's update channels.
-	user.updateCh.Values(func(updateCh []*queue.QueuedChannel[imap.Update]) {
-		for _, updateCh := range xslices.Unique(updateCh) {
+	safe.RLock(func() {
+		for _, updateCh := range xslices.Unique(maps.Values(user.updateCh)) {
 			updateCh.CloseAndDiscardQueued()
 		}
-	})
+	}, &user.updateChLock)
 
 	// Close the user's notify channel.
 	user.eventCh.CloseAndDiscardQueued()
