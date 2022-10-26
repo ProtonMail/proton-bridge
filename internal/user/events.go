@@ -70,7 +70,7 @@ func (user *User) handleUserEvent(_ context.Context, userEvent liteapi.User) err
 		})
 
 		return nil
-	}, &user.apiUserLock)
+	}, user.apiUserLock)
 }
 
 // handleAddressEvents handles the given address events.
@@ -132,7 +132,7 @@ func (user *User) handleCreateAddressEvent(ctx context.Context, event liteapi.Ad
 		})
 
 		return nil
-	}, &user.apiAddrsLock, &user.updateChLock)
+	}, user.apiAddrsLock, user.updateChLock)
 }
 
 func (user *User) handleUpdateAddressEvent(_ context.Context, event liteapi.AddressEvent) error { //nolint:unparam
@@ -150,7 +150,7 @@ func (user *User) handleUpdateAddressEvent(_ context.Context, event liteapi.Addr
 		})
 
 		return nil
-	}, &user.apiAddrsLock)
+	}, user.apiAddrsLock)
 }
 
 func (user *User) handleDeleteAddressEvent(_ context.Context, event liteapi.AddressEvent) error {
@@ -174,7 +174,7 @@ func (user *User) handleDeleteAddressEvent(_ context.Context, event liteapi.Addr
 		})
 
 		return nil
-	}, &user.apiAddrsLock, &user.updateChLock)
+	}, user.apiAddrsLock, user.updateChLock)
 }
 
 // handleLabelEvents handles the given label events.
@@ -220,7 +220,7 @@ func (user *User) handleCreateLabelEvent(_ context.Context, event liteapi.LabelE
 		})
 
 		return nil
-	}, &user.apiLabelsLock, &user.updateChLock)
+	}, user.apiLabelsLock, user.updateChLock)
 }
 
 func (user *User) handleUpdateLabelEvent(_ context.Context, event liteapi.LabelEvent) error { //nolint:unparam
@@ -242,7 +242,7 @@ func (user *User) handleUpdateLabelEvent(_ context.Context, event liteapi.LabelE
 		})
 
 		return nil
-	}, &user.apiLabelsLock, &user.updateChLock)
+	}, user.apiLabelsLock, user.updateChLock)
 }
 
 func (user *User) handleDeleteLabelEvent(_ context.Context, event liteapi.LabelEvent) error { //nolint:unparam
@@ -265,7 +265,7 @@ func (user *User) handleDeleteLabelEvent(_ context.Context, event liteapi.LabelE
 		})
 
 		return nil
-	}, &user.apiLabelsLock, &user.updateChLock)
+	}, user.apiLabelsLock, user.updateChLock)
 }
 
 // handleMessageEvents handles the given message events.
@@ -307,7 +307,7 @@ func (user *User) handleCreateMessageEvent(ctx context.Context, event liteapi.Me
 
 			return nil
 		})
-	}, &user.apiUserLock, &user.apiAddrsLock, &user.updateChLock)
+	}, user.apiUserLock, user.apiAddrsLock, user.updateChLock)
 }
 
 func (user *User) handleUpdateMessageEvent(_ context.Context, event liteapi.MessageEvent) error { //nolint:unparam
@@ -322,7 +322,7 @@ func (user *User) handleUpdateMessageEvent(_ context.Context, event liteapi.Mess
 		user.updateCh[event.Message.AddressID].Enqueue(update)
 
 		return nil
-	}, &user.updateChLock)
+	}, user.updateChLock)
 }
 
 func getMailboxName(label liteapi.Label) []string {

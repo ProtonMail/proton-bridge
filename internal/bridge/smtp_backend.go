@@ -58,7 +58,7 @@ func (s *smtpSession) AuthPlain(username, password string) error {
 		}
 
 		return fmt.Errorf("invalid username or password")
-	}, &s.usersLock)
+	}, s.usersLock)
 }
 
 func (s *smtpSession) Reset() {
@@ -92,5 +92,5 @@ func (s *smtpSession) Data(r io.Reader) error {
 		}
 
 		return user.SendMail(s.authID, s.from, s.to, r)
-	}, &s.usersLock)
+	}, s.usersLock)
 }

@@ -110,7 +110,7 @@ func (user *User) sync(ctx context.Context) error {
 
 			return nil
 		})
-	}, &user.apiUserLock, &user.apiAddrsLock, &user.updateChLock)
+	}, user.apiUserLock, user.apiAddrsLock, user.updateChLock)
 }
 
 func syncLabels(ctx context.Context, client *liteapi.Client, updateCh ...*queue.QueuedChannel[imap.Update]) error {

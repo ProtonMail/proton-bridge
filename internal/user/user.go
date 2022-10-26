@@ -59,16 +59,16 @@ type User struct {
 	sendHash *sendRecorder
 
 	apiUser     liteapi.User
-	apiUserLock sync.RWMutex
+	apiUserLock safe.RWMutex
 
 	apiAddrs     map[string]liteapi.Address
-	apiAddrsLock sync.RWMutex
+	apiAddrsLock safe.RWMutex
 
 	apiLabels     map[string]liteapi.Label
-	apiLabelsLock sync.RWMutex
+	apiLabelsLock safe.RWMutex
 
 	updateCh     map[string]*queue.QueuedChannel[imap.Update]
-	updateChLock sync.RWMutex
+	updateChLock safe.RWMutex
 
 	tasks     *xsync.Group
 	abortable async.Abortable
@@ -144,10 +144,17 @@ func New(
 		eventCh:  queue.NewQueuedChannel[events.Event](0, 0),
 		sendHash: newSendRecorder(sendEntryExpiry),
 
-		apiUser:   apiUser,
-		apiAddrs:  groupBy(apiAddrs, func(addr liteapi.Address) string { return addr.ID }),
-		apiLabels: groupBy(apiLabels, func(label liteapi.Label) string { return label.ID }),
-		updateCh:  updateCh,
+		apiUser:     apiUser,
+		apiUserLock: safe.NewRWMutex(),
+
+		apiAddrs:     groupBy(apiAddrs, func(addr liteapi.Address) string { return addr.ID }),
+		apiAddrsLock: safe.NewRWMutex(),
+
+		apiLabels:     groupBy(apiLabels, func(label liteapi.Label) string { return label.ID }),
+		apiLabelsLock: safe.NewRWMutex(),
+
+		updateCh:     updateCh,
+		updateChLock: safe.NewRWMutex(),
 
 		tasks: xsync.NewGroup(context.Background()),
 
@@ -210,14 +217,14 @@ func New(
 func (user *User) ID() string {
 	return safe.RLockRet(func() string {
 		return user.apiUser.ID
-	}, &user.apiUserLock)
+	}, user.apiUserLock)
 }
 
 // Name returns the user's username.
 func (user *User) Name() string {
 	return safe.RLockRet(func() string {
 		return user.apiUser.Name
-	}, &user.apiUserLock)
+	}, user.apiUserLock)
 }
 
 // Match matches the given query against the user's username and email addresses.
@@ -234,7 +241,7 @@ func (user *User) Match(query string) bool {
 		}
 
 		return false
-	}, &user.apiUserLock, &user.apiAddrsLock)
+	}, user.apiUserLock, user.apiAddrsLock)
 }
 
 // Emails returns all the user's email addresses via the callback.
@@ -243,7 +250,7 @@ func (user *User) Emails() []string {
 		return xslices.Map(maps.Values(user.apiAddrs), func(addr liteapi.Address) string {
 			return addr.Email
 		})
-	}, &user.apiAddrsLock)
+	}, user.apiAddrsLock)
 }
 
 // GetAddressMode returns the user's current address mode.
@@ -286,7 +293,7 @@ func (user *User) SetAddressMode(ctx context.Context, mode vault.AddressMode) er
 		}
 
 		return nil
-	}, &user.apiAddrsLock, &user.updateChLock)
+	}, user.apiAddrsLock, user.updateChLock)
 }
 
 // GetGluonIDs returns the users gluon IDs.
@@ -323,14 +330,14 @@ func (user *User) BridgePass() []byte {
 func (user *User) UsedSpace() int {
 	return safe.RLockRet(func() int {
 		return user.apiUser.UsedSpace
-	}, &user.apiUserLock)
+	}, user.apiUserLock)
 }
 
 // MaxSpace returns the amount of space the user can use on the API.
 func (user *User) MaxSpace() int {
 	return safe.RLockRet(func() int {
 		return user.apiUser.MaxSpace
-	}, &user.apiUserLock)
+	}, user.apiUserLock)
 }
 
 // GetEventCh returns a channel which notifies of events happening to the user (such as deauth, address change).
@@ -367,7 +374,7 @@ func (user *User) NewIMAPConnectors() (map[string]connector.Connector, error) {
 		}
 
 		return imapConn, nil
-	}, &user.apiAddrsLock)
+	}, user.apiAddrsLock)
 }
 
 // SendMail sends an email from the given address to the given recipients.
@@ -483,7 +490,7 @@ func (user *User) SendMail(authID string, from string, to []string, r io.Reader)
 
 			return nil
 		})
-	}, &user.apiUserLock, &user.apiAddrsLock)
+	}, user.apiUserLock, user.apiAddrsLock)
 }
 
 // CheckAuth returns whether the given email and password can be used to authenticate over IMAP or SMTP with this user.
@@ -506,7 +513,7 @@ func (user *User) CheckAuth(email string, password []byte) (string, error) {
 		}
 
 		return "", fmt.Errorf("invalid email")
-	}, &user.apiAddrsLock)
+	}, user.apiAddrsLock)
 }
 
 // OnStatusUp is called when the connection goes up.
@@ -549,7 +556,7 @@ func (user *User) Close() {
 		for _, updateCh := range xslices.Unique(maps.Values(user.updateCh)) {
 			updateCh.CloseAndDiscardQueued()
 		}
-	}, &user.updateChLock)
+	}, user.updateChLock)
 
 	// Close the user's notify channel.
 	user.eventCh.CloseAndDiscardQueued()

@@ -64,5 +64,5 @@ func (bridge *Bridge) ConfigureAppleMail(userID, address string) error {
 			addresses,
 			user.BridgePass(),
 		)
-	}, &bridge.usersLock)
+	}, bridge.usersLock)
 }

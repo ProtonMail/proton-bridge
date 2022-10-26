@@ -49,7 +49,7 @@ func (bridge *Bridge) handleUserEvent(ctx context.Context, user *user.User, even
 			defer delete(bridge.users, user.ID())
 
 			bridge.logoutUser(ctx, user, false)
-		}, &bridge.usersLock)
+		}, bridge.usersLock)
 	}
 
 	return nil

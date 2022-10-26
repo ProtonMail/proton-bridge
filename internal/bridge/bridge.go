@@ -52,7 +52,7 @@ type Bridge struct {
 
 	// users holds authorized users.
 	users     map[string]*user.User
-	usersLock sync.RWMutex
+	usersLock safe.RWMutex
 
 	// api manages user API clients.
 	api        *liteapi.Manager
@@ -226,7 +226,9 @@ func newBridge(
 
 	bridge := &Bridge{
 		vault: vault,
-		users: make(map[string]*user.User),
+
+		users:     make(map[string]*user.User),
+		usersLock: safe.NewRWMutex(),
 
 		api:        api,
 		proxyCtl:   proxyCtl,
@@ -363,7 +365,7 @@ func (bridge *Bridge) Close(ctx context.Context) {
 		for _, user := range bridge.users {
 			user.Close()
 		}
-	}, &bridge.usersLock)
+	}, bridge.usersLock)
 
 	// Stop all ongoing tasks.
 	bridge.tasks.Wait()
@@ -433,7 +435,7 @@ func (bridge *Bridge) onStatusUp() {
 		for _, user := range bridge.users {
 			user.OnStatusUp()
 		}
-	}, &bridge.usersLock)
+	}, bridge.usersLock)
 
 	bridge.goLoad()
 }
@@ -445,7 +447,7 @@ func (bridge *Bridge) onStatusDown() {
 		for _, user := range bridge.users {
 			user.OnStatusDown()
 		}
-	}, &bridge.usersLock)
+	}, bridge.usersLock)
 
 	bridge.tasks.Once(func(ctx context.Context) {
 		backoff := time.Second

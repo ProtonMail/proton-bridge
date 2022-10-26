@@ -88,7 +88,7 @@ func (conn *imapConnector) GetMailbox(ctx context.Context, mailboxID imap.Mailbo
 		}
 
 		return toIMAPMailbox(mailbox, conn.flags, conn.permFlags, conn.attrs), nil
-	}, &conn.apiLabelsLock)
+	}, conn.apiLabelsLock)
 }
 
 // CreateMailbox creates a label with the given name.
@@ -157,7 +157,7 @@ func (conn *imapConnector) createFolder(ctx context.Context, name []string) (ima
 		}
 
 		return toIMAPMailbox(label, conn.flags, conn.permFlags, conn.attrs), nil
-	}, &conn.apiLabelsLock)
+	}, conn.apiLabelsLock)
 }
 
 // UpdateMailboxName sets the name of the label with the given ID.
@@ -232,7 +232,7 @@ func (conn *imapConnector) updateFolder(ctx context.Context, labelID imap.Mailbo
 		}
 
 		return nil
-	}, &conn.apiLabelsLock)
+	}, conn.apiLabelsLock)
 }
 
 // DeleteMailbox deletes the label with the given ID.
@@ -350,7 +350,7 @@ func (conn *imapConnector) MarkMessagesFlagged(ctx context.Context, messageIDs [
 func (conn *imapConnector) GetUpdates() <-chan imap.Update {
 	return safe.RLockRet(func() <-chan imap.Update {
 		return conn.updateCh[conn.addrID].GetChannel()
-	}, &conn.updateChLock)
+	}, conn.updateChLock)
 }
 
 // GetUIDValidity returns the default UID validity for this user.
@@ -407,7 +407,7 @@ func (conn *imapConnector) importMessage(
 
 			return nil
 		})
-	}, &conn.apiUserLock, &conn.apiAddrsLock); err != nil {
+	}, conn.apiUserLock, conn.apiAddrsLock); err != nil {
 		return imap.Message{}, nil, err
 	}
 

@@ -80,7 +80,7 @@ func (bridge *Bridge) GetUserInfo(userID string) (UserInfo, error) {
 		}
 
 		return info, nil
-	}, &bridge.usersLock)
+	}, bridge.usersLock)
 }
 
 // QueryUserInfo queries the user info by username or address.
@@ -93,7 +93,7 @@ func (bridge *Bridge) QueryUserInfo(query string) (UserInfo, error) {
 		}
 
 		return UserInfo{}, ErrNoSuchUser
-	}, &bridge.usersLock)
+	}, bridge.usersLock)
 }
 
 // LoginAuth begins the login process. It returns an authorized client that might need 2FA.
@@ -105,7 +105,7 @@ func (bridge *Bridge) LoginAuth(ctx context.Context, username string, password [
 
 	if ok := safe.RLockRet(func() bool {
 		return mapHas(bridge.users, auth.UID)
-	}, &bridge.usersLock); ok {
+	}, bridge.usersLock); ok {
 		if err := client.AuthDelete(ctx); err != nil {
 			logrus.WithError(err).Warn("Failed to delete auth")
 		}
@@ -201,7 +201,7 @@ func (bridge *Bridge) LogoutUser(ctx context.Context, userID string) error {
 		})
 
 		return nil
-	}, &bridge.usersLock)
+	}, bridge.usersLock)
 }
 
 // DeleteUser deletes the given user.
@@ -225,7 +225,7 @@ func (bridge *Bridge) DeleteUser(ctx context.Context, userID string) error {
 		})
 
 		return nil
-	}, &bridge.usersLock)
+	}, bridge.usersLock)
 }
 
 // SetAddressMode sets the address mode for the given user.
@@ -260,7 +260,7 @@ func (bridge *Bridge) SetAddressMode(ctx context.Context, userID string, mode va
 		})
 
 		return nil
-	}, &bridge.usersLock)
+	}, bridge.usersLock)
 }
 
 func (bridge *Bridge) loginUser(ctx context.Context, client *liteapi.Client, authUID, authRef string, keyPass []byte) (string, error) {
@@ -295,7 +295,7 @@ func (bridge *Bridge) loadUsers(ctx context.Context) error {
 
 		if safe.RLockRet(func() bool {
 			return mapHas(bridge.users, user.UserID())
-		}, &bridge.usersLock) {
+		}, bridge.usersLock) {
 			return nil
 		}
 
@@ -419,7 +419,7 @@ func (bridge *Bridge) addUserWithVault(
 	// Finally, save the user in the bridge.
 	safe.Lock(func() {
 		bridge.users[apiUser.ID] = user
-	}, &bridge.usersLock)
+	}, bridge.usersLock)
 
 	return nil
 }

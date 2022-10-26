@@ -161,7 +161,7 @@ func (bridge *Bridge) SetGluonDir(ctx context.Context, newGluonDir string) error
 		}
 
 		return nil
-	}, &bridge.usersLock)
+	}, bridge.usersLock)
 }
 
 func (bridge *Bridge) GetProxyAllowed() bool {
@@ -189,7 +189,7 @@ func (bridge *Bridge) SetShowAllMail(show bool) error {
 		}
 
 		return bridge.vault.SetShowAllMail(show)
-	}, &bridge.usersLock)
+	}, bridge.usersLock)
 }
 
 func (bridge *Bridge) GetAutostart() bool {
@@ -288,7 +288,7 @@ func (bridge *Bridge) FactoryReset(ctx context.Context) {
 				logrus.WithError(err).Error("failed to delete vault user")
 			}
 		}
-	}, &bridge.usersLock)
+	}, bridge.usersLock)
 
 	// Then delete all files.
 	if err := bridge.locator.Clear(); err != nil {
