@@ -347,7 +347,7 @@ func (bridge *Bridge) GetErrors() []error {
 	return bridge.errors
 }
 
-func (bridge *Bridge) Close(ctx context.Context) error {
+func (bridge *Bridge) Close(ctx context.Context) {
 	// Close the IMAP server.
 	if err := bridge.closeIMAP(ctx); err != nil {
 		logrus.WithError(err).Error("Failed to close IMAP server")
@@ -385,8 +385,6 @@ func (bridge *Bridge) Close(ctx context.Context) error {
 	if err := bridge.vault.SetLastVersion(bridge.curVersion); err != nil {
 		logrus.WithError(err).Error("Failed to save last version")
 	}
-
-	return nil
 }
 
 func (bridge *Bridge) publish(event events.Event) {

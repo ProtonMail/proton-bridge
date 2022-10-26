@@ -109,12 +109,8 @@ func withBridge( //nolint:funlen
 		return fmt.Errorf("could not create bridge: %w", err)
 	}
 
-	// Close the bridge when we exit.
-	defer func() {
-		if err := bridge.Close(c.Context); err != nil {
-			logrus.WithError(err).Error("Failed to close bridge")
-		}
-	}()
+	// Ensure we close bridge when we exit.
+	defer bridge.Close(c.Context)
 
 	return fn(bridge, eventCh)
 }

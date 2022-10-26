@@ -261,9 +261,7 @@ func (t *testCtx) close(ctx context.Context) error {
 	}
 
 	if t.bridge != nil {
-		if err := t.bridge.Close(ctx); err != nil {
-			return err
-		}
+		t.bridge.Close(ctx)
 	}
 
 	t.api.Close()

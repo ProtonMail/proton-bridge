@@ -460,7 +460,7 @@ func withBridge(
 	require.NoError(t, bridge.SetSMTPPort(0))
 
 	// Close the bridge when done.
-	defer func() { require.NoError(t, bridge.Close(ctx)) }()
+	defer bridge.Close(ctx)
 
 	// Use the bridge.
 	tests(bridge, mocks)

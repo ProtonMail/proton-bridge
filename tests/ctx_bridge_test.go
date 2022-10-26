@@ -106,9 +106,11 @@ func (t *testCtx) startBridge() error {
 }
 
 func (t *testCtx) stopBridge() error {
-	if err := t.bridge.Close(context.Background()); err != nil {
-		return err
+	if t.bridge == nil {
+		return fmt.Errorf("bridge is not running")
 	}
+
+	t.bridge.Close(context.Background())
 
 	t.bridge = nil
 
