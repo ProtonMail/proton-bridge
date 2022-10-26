@@ -99,7 +99,7 @@ func (user *User) handleAddressEvents(ctx context.Context, addressEvents []litea
 }
 
 func (user *User) handleCreateAddressEvent(ctx context.Context, event liteapi.AddressEvent) error {
-	return safe.LockRet(func() error {
+	if err := safe.LockRet(func() error {
 		if _, ok := user.apiAddrs[event.Address.ID]; ok {
 			return fmt.Errorf("address %q already exists", event.ID)
 		}
@@ -119,17 +119,23 @@ func (user *User) handleCreateAddressEvent(ctx context.Context, event liteapi.Ad
 			user.updateCh[event.Address.ID] = queue.NewQueuedChannel[imap.Update](0, 0)
 		}
 
+		return nil
+	}, user.apiAddrsLock, user.updateChLock); err != nil {
+		return fmt.Errorf("failed to handle create address event: %w", err)
+	}
+
+	user.eventCh.Enqueue(events.UserAddressCreated{
+		UserID:    user.ID(),
+		AddressID: event.Address.ID,
+		Email:     event.Address.Email,
+	})
+
+	return safe.RLockRet(func() error {
 		if user.vault.AddressMode() == vault.SplitMode {
 			if err := syncLabels(ctx, user.client, user.updateCh[event.Address.ID]); err != nil {
 				return fmt.Errorf("failed to sync labels to new address: %w", err)
 			}
 		}
-
-		user.eventCh.Enqueue(events.UserAddressCreated{
-			UserID:    user.ID(),
-			AddressID: event.Address.ID,
-			Email:     event.Address.Email,
-		})
 
 		return nil
 	}, user.apiAddrsLock, user.updateChLock)
