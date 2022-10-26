@@ -30,20 +30,11 @@ const VendorName = "protonmail"
 
 //nolint:gochecknoglobals
 var (
-	// Full app name (to show to the user).
+	// FullAppName is the full app name (to show to the user).
 	FullAppName = ""
 
-	// ConfigName determines the name of the location where bridge stores config files.
-	ConfigName = "bridge"
-
-	// UpdateName is the name of the product appearing in the update URL.
-	UpdateName = "bridge"
-
-	// KeyChainName is the name of the entry in the OS keychain.
-	KeyChainName = "bridge"
-
 	// Version of the build.
-	Version = "2.4.1+git"
+	Version = ""
 
 	// Revision is current hash of the build.
 	Revision = ""
@@ -56,6 +47,20 @@ var (
 
 	// DSNSentry client keys to be able to report crashes to Sentry.
 	DSNSentry = ""
+)
+
+const (
+	// AppName is the name of the product appearing in the request headers.
+	AppName = "bridge"
+
+	// UpdateName is the name of the product appearing in the update URL.
+	UpdateName = "bridge"
+
+	// ConfigName determines the name of the location where bridge stores config/cache files.
+	ConfigName = "bridge-v3"
+
+	// KeyChainName is the name of the entry in the OS keychain.
+	KeyChainName = "bridge-v3"
 
 	// Host is the hostname of the bridge server.
 	Host = "127.0.0.1"
@@ -63,7 +68,7 @@ var (
 
 // AppVersion returns the full rendered version of the app (to be used in request headers).
 func AppVersion(version string) string {
-	return getAPIOS() + cases.Title(language.Und).String(ConfigName) + "_" + version
+	return getAPIOS() + cases.Title(language.Und).String(AppName) + "_" + version
 }
 
 func getAPIOS() string {

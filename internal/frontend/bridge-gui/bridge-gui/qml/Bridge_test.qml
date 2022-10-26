@@ -766,7 +766,7 @@ Window {
 
 
     property bool   isDiskCacheEnabled: true
-    // Qt.resolvedUrl("file:///C:/Users/user/AppData/Roaming/protonmail/bridge/cache/c11/messages")
+    // Qt.resolvedUrl("file:///C:/Users/user/AppData/Roaming/protonmail/bridge-v3/cache/c11/messages")
     property url diskCachePath: StandardPaths.standardLocations(StandardPaths.HomeLocation)[0]
     signal cacheUnavailable()
     signal cacheCantMove()

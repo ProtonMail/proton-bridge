@@ -28,7 +28,7 @@ namespace bridgepp
 namespace {
 
 
-QString const configFolder = "protonmail/bridge";
+QString const configFolder = "protonmail/bridge-v3";
 QMutex rngMutex; ///< the mutex to use when accessing the rng.
 
 QStringList const firstNames {
