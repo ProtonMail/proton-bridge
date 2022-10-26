@@ -163,13 +163,13 @@ func run(c *cli.Context) error { //nolint:funlen
 			// Handle crashes with various actions.
 			return withCrashHandler(restarter, reporter, func(crashHandler *crash.Handler) error {
 				// Load the locations where we store our files.
-				return withLocations(func(locations *locations.Locations) error {
+				return WithLocations(func(locations *locations.Locations) error {
 					// Initialize logging.
 					return withLogging(c, crashHandler, locations, func() error {
 						// Ensure we are the only instance running.
 						return withSingleInstance(locations, version, func() error {
 							// Unlock the encrypted vault.
-							return withVault(locations, func(vault *vault.Vault, insecure, corrupt bool) error {
+							return WithVault(locations, func(vault *vault.Vault, insecure, corrupt bool) error {
 								// Load the cookies from the vault.
 								return withCookieJar(vault, func(cookieJar http.CookieJar) error {
 									// Create a new bridge instance.
@@ -245,8 +245,8 @@ func withLogging(c *cli.Context, crashHandler *crash.Handler, locations *locatio
 	return fn()
 }
 
-// Provide access to locations where we store our files.
-func withLocations(fn func(*locations.Locations) error) error {
+// WithLocations provides access to locations where we store our files.
+func WithLocations(fn func(*locations.Locations) error) error {
 	// Create a locations provider to determine where to store our files.
 	provider, err := locations.NewDefaultProvider(filepath.Join(constants.VendorName, constants.ConfigName))
 	if err != nil {

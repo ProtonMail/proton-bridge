@@ -30,7 +30,7 @@ import (
 	"golang.org/x/exp/slices"
 )
 
-func withVault(locations *locations.Locations, fn func(*vault.Vault, bool, bool) error) error {
+func WithVault(locations *locations.Locations, fn func(*vault.Vault, bool, bool) error) error {
 	// Create the encVault.
 	encVault, insecure, corrupt, err := newVault(locations)
 	if err != nil {
