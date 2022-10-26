@@ -52,7 +52,9 @@ type User struct {
 	client  *liteapi.Client
 	eventCh *queue.QueuedChannel[events.Event]
 
-	apiUser   *safe.Value[liteapi.User]
+	apiUser     liteapi.User
+	apiUserLock sync.RWMutex
+
 	apiAddrs  *safe.Map[string, liteapi.Address]
 	apiLabels *safe.Map[string, liteapi.Label]
 	updateCh  *safe.Map[string, *queue.QueuedChannel[imap.Update]]
@@ -131,7 +133,7 @@ func New(
 		client:  client,
 		eventCh: queue.NewQueuedChannel[events.Event](0, 0),
 
-		apiUser:   safe.NewValue(apiUser),
+		apiUser:   apiUser,
 		apiAddrs:  safe.NewMapFrom(groupBy(apiAddrs, func(addr liteapi.Address) string { return addr.ID }), sortAddr),
 		apiLabels: safe.NewMapFrom(groupBy(apiLabels, func(label liteapi.Label) string { return label.ID }), nil),
 		updateCh:  safe.NewMapFrom(updateCh, nil),
@@ -196,29 +198,29 @@ func New(
 
 // ID returns the user's ID.
 func (user *User) ID() string {
-	return safe.LoadRet(user.apiUser, func(apiUser liteapi.User) string {
-		return apiUser.ID
-	})
+	return safe.RLockRet(func() string {
+		return user.apiUser.ID
+	}, &user.apiUserLock)
 }
 
 // Name returns the user's username.
 func (user *User) Name() string {
-	return safe.LoadRet(user.apiUser, func(apiUser liteapi.User) string {
-		return apiUser.Name
-	})
+	return safe.RLockRet(func() string {
+		return user.apiUser.Name
+	}, &user.apiUserLock)
 }
 
 // Match matches the given query against the user's username and email addresses.
 func (user *User) Match(query string) bool {
-	return safe.LoadRet(user.apiUser, func(apiUser liteapi.User) bool {
-		if query == apiUser.Name {
+	return safe.RLockRet(func() bool {
+		if query == user.apiUser.Name {
 			return true
 		}
 
 		return user.apiAddrs.HasFunc(func(_ string, addr liteapi.Address) bool {
 			return addr.Email == query
 		})
-	})
+	}, &user.apiUserLock)
 }
 
 // Emails returns all the user's email addresses via the callback.
@@ -305,16 +307,16 @@ func (user *User) BridgePass() []byte {
 
 // UsedSpace returns the total space used by the user on the API.
 func (user *User) UsedSpace() int {
-	return safe.LoadRet(user.apiUser, func(apiUser liteapi.User) int {
-		return apiUser.UsedSpace
-	})
+	return safe.RLockRet(func() int {
+		return user.apiUser.UsedSpace
+	}, &user.apiUserLock)
 }
 
 // MaxSpace returns the amount of space the user can use on the API.
 func (user *User) MaxSpace() int {
-	return safe.LoadRet(user.apiUser, func(apiUser liteapi.User) int {
-		return apiUser.MaxSpace
-	})
+	return safe.RLockRet(func() int {
+		return user.apiUser.MaxSpace
+	}, &user.apiUserLock)
 }
 
 // GetEventCh returns a channel which notifies of events happening to the user (such as deauth, address change).

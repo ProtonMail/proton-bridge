@@ -25,6 +25,7 @@ import (
 	"github.com/ProtonMail/gluon/queue"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/ProtonMail/proton-bridge/v2/internal/events"
+	"github.com/ProtonMail/proton-bridge/v2/internal/safe"
 	"github.com/ProtonMail/proton-bridge/v2/internal/vault"
 	"github.com/bradenaw/juniper/xslices"
 	"gitlab.protontech.ch/go/liteapi"
@@ -61,13 +62,15 @@ func (user *User) handleAPIEvent(ctx context.Context, event liteapi.Event) error
 
 // handleUserEvent handles the given user event.
 func (user *User) handleUserEvent(_ context.Context, userEvent liteapi.User) error {
-	user.apiUser.Save(userEvent)
+	return safe.LockRet(func() error {
+		user.apiUser = userEvent
 
-	user.eventCh.Enqueue(events.UserChanged{
-		UserID: user.ID(),
-	})
+		user.eventCh.Enqueue(events.UserChanged{
+			UserID: user.ID(),
+		})
 
-	return nil
+		return nil
+	}, &user.apiUserLock)
 }
 
 // handleAddressEvents handles the given address events.

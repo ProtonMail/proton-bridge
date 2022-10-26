@@ -21,19 +21,20 @@ import (
 	"fmt"
 
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
+	"github.com/ProtonMail/proton-bridge/v2/internal/safe"
 	"gitlab.protontech.ch/go/liteapi"
 )
 
 func (user *User) withUserKR(fn func(*crypto.KeyRing) error) error {
-	return user.apiUser.LoadErr(func(apiUser liteapi.User) error {
-		userKR, err := apiUser.Keys.Unlock(user.vault.KeyPass(), nil)
+	return safe.RLockRet(func() error {
+		userKR, err := user.apiUser.Keys.Unlock(user.vault.KeyPass(), nil)
 		if err != nil {
 			return fmt.Errorf("failed to unlock user keys: %w", err)
 		}
 		defer userKR.ClearPrivateParams()
 
 		return fn(userKR)
-	})
+	}, &user.apiUserLock)
 }
 
 func (user *User) withAddrKR(addrID string, fn func(*crypto.KeyRing, *crypto.KeyRing) error) error {
