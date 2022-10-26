@@ -32,6 +32,7 @@ import (
 	"github.com/ProtonMail/gluon/rfc822"
 	"github.com/ProtonMail/go-rfc5322"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
+	"github.com/ProtonMail/proton-bridge/v2/internal/safe"
 	"github.com/ProtonMail/proton-bridge/v2/internal/vault"
 	"github.com/ProtonMail/proton-bridge/v2/pkg/message"
 	"github.com/ProtonMail/proton-bridge/v2/pkg/message/parser"
@@ -85,54 +86,61 @@ func (user *User) sendMail(authID string, emails []string, from string, to []str
 		return fmt.Errorf("failed to get mail settings: %w", err)
 	}
 
-	return user.withAddrKRByEmail(from, func(userKR, addrKR *crypto.KeyRing) error {
-		// Use the first key for encrypting the message.
-		addrKR, err := addrKR.FirstKey()
+	return safe.LockRet(func() error {
+		addrID, err := getAddrID(user.apiAddrs, from)
 		if err != nil {
-			return fmt.Errorf("failed to get first key: %w", err)
+			return err
 		}
 
-		// If we have to attach the public key, do it now.
-		if settings.AttachPublicKey == liteapi.AttachPublicKeyEnabled {
-			key, err := addrKR.GetKey(0)
+		return withAddrKR(user.apiUser, user.apiAddrs[addrID], user.vault.KeyPass(), func(userKR, addrKR *crypto.KeyRing) error {
+			// Use the first key for encrypting the message.
+			addrKR, err := addrKR.FirstKey()
 			if err != nil {
-				return fmt.Errorf("failed to get sending key: %w", err)
+				return fmt.Errorf("failed to get first key: %w", err)
 			}
 
-			pubKey, err := key.GetArmoredPublicKey()
-			if err != nil {
-				return fmt.Errorf("failed to get public key: %w", err)
+			// If we have to attach the public key, do it now.
+			if settings.AttachPublicKey == liteapi.AttachPublicKeyEnabled {
+				key, err := addrKR.GetKey(0)
+				if err != nil {
+					return fmt.Errorf("failed to get sending key: %w", err)
+				}
+
+				pubKey, err := key.GetArmoredPublicKey()
+				if err != nil {
+					return fmt.Errorf("failed to get public key: %w", err)
+				}
+
+				parser.AttachPublicKey(pubKey, fmt.Sprintf("publickey - %v - %v", addrKR.GetIdentities()[0].Name, key.GetFingerprint()[:8]))
 			}
 
-			parser.AttachPublicKey(pubKey, fmt.Sprintf("publickey - %v - %v", addrKR.GetIdentities()[0].Name, key.GetFingerprint()[:8]))
-		}
+			// Parse the message we want to send (after we have attached the public key).
+			message, err := message.ParseWithParser(parser)
+			if err != nil {
+				return fmt.Errorf("failed to parse message: %w", err)
+			}
 
-		// Parse the message we want to send (after we have attached the public key).
-		message, err := message.ParseWithParser(parser)
-		if err != nil {
-			return fmt.Errorf("failed to parse message: %w", err)
-		}
+			// Send the message using the correct key.
+			sent, err := sendWithKey(
+				ctx,
+				user.client,
+				authID,
+				user.vault.AddressMode(),
+				settings,
+				userKR, addrKR,
+				emails, from, to,
+				message,
+			)
+			if err != nil {
+				return fmt.Errorf("failed to send message: %w", err)
+			}
 
-		// Send the message using the correct key.
-		sent, err := sendWithKey(
-			ctx,
-			user.client,
-			authID,
-			user.vault.AddressMode(),
-			settings,
-			userKR, addrKR,
-			emails, from, to,
-			message,
-		)
-		if err != nil {
-			return fmt.Errorf("failed to send message: %w", err)
-		}
+			// If the message was successfully sent, we can update the message ID in the record.
+			user.sendHash.addMessageID(hash, sent.ID)
 
-		// If the message was successfully sent, we can update the message ID in the record.
-		user.sendHash.addMessageID(hash, sent.ID)
-
-		return nil
-	})
+			return nil
+		})
+	}, &user.apiUserLock, &user.apiAddrsLock)
 }
 
 // sendWithKey sends the message with the given address key.

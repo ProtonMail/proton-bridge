@@ -24,6 +24,8 @@ import (
 	"strings"
 
 	"gitlab.protontech.ch/go/liteapi"
+	"golang.org/x/exp/maps"
+	"golang.org/x/exp/slices"
 )
 
 // mapTo converts the slice to the given type.
@@ -82,7 +84,7 @@ func hexDecode(b []byte) ([]byte, error) {
 }
 
 // getAddrID returns the address ID for the given email address.
-func getAddrID(apiAddrs []liteapi.Address, email string) (string, error) {
+func getAddrID(apiAddrs map[string]liteapi.Address, email string) (string, error) {
 	for _, addr := range apiAddrs {
 		if strings.EqualFold(addr.Email, sanitizeEmail(email)) {
 			return addr.ID, nil
@@ -90,4 +92,28 @@ func getAddrID(apiAddrs []liteapi.Address, email string) (string, error) {
 	}
 
 	return "", fmt.Errorf("address %s not found", email)
+}
+
+// getAddrIdx returns the address with the given index.
+func getAddrIdx(apiAddrs map[string]liteapi.Address, idx int) (liteapi.Address, error) {
+	sorted := sortSlice(maps.Values(apiAddrs), func(a, b liteapi.Address) bool {
+		return a.Order < b.Order
+	})
+
+	if idx < 0 || idx >= len(sorted) {
+		return liteapi.Address{}, fmt.Errorf("address index %d out of range", idx)
+	}
+
+	return sorted[idx], nil
+}
+
+// sortSlice returns the given slice sorted by the given comparator.
+func sortSlice[Item any](items []Item, less func(Item, Item) bool) []Item {
+	sorted := make([]Item, len(items))
+
+	copy(sorted, items)
+
+	slices.SortFunc(sorted, less)
+
+	return sorted
 }

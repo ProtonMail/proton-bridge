@@ -27,24 +27,6 @@ import (
 	"gitlab.protontech.ch/go/liteapi/server"
 )
 
-func BenchmarkUserKeyRing(b *testing.B) {
-	b.StopTimer()
-
-	withAPI(b, context.Background(), func(ctx context.Context, s *server.Server, m *liteapi.Manager) {
-		withAccount(b, s, "username", "password", []string{"email@pm.me"}, func(userID string, addrIDs []string) {
-			withUser(b, ctx, s, m, "username", "password", func(user *User) {
-				b.StartTimer()
-
-				for i := 0; i < b.N; i++ {
-					require.NoError(b, user.withUserKR(func(userKR *crypto.KeyRing) error {
-						return nil
-					}))
-				}
-			})
-		})
-	})
-}
-
 func BenchmarkAddrKeyRing(b *testing.B) {
 	b.StopTimer()
 
@@ -54,7 +36,7 @@ func BenchmarkAddrKeyRing(b *testing.B) {
 				b.StartTimer()
 
 				for i := 0; i < b.N; i++ {
-					require.NoError(b, user.withAddrKR(addrIDs[0], func(userKR, addrKR *crypto.KeyRing) error {
+					require.NoError(b, withAddrKRs(user.apiUser, user.apiAddrs, user.vault.KeyPass(), func(_ *crypto.KeyRing, addrKRs map[string]*crypto.KeyRing) error {
 						return nil
 					}))
 				}

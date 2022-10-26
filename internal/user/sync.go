@@ -29,6 +29,7 @@ import (
 	"github.com/ProtonMail/gluon/queue"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/ProtonMail/proton-bridge/v2/internal/events"
+	"github.com/ProtonMail/proton-bridge/v2/internal/safe"
 	"github.com/ProtonMail/proton-bridge/v2/internal/vault"
 	"github.com/bradenaw/juniper/stream"
 	"github.com/bradenaw/juniper/xslices"
@@ -72,45 +73,47 @@ func (user *User) doSync(ctx context.Context) error {
 }
 
 func (user *User) sync(ctx context.Context) error {
-	return user.withAddrKRs(func(_ *crypto.KeyRing, addrKRs map[string]*crypto.KeyRing) error {
-		if !user.vault.SyncStatus().HasLabels {
-			user.log.Debug("Syncing labels")
+	return safe.RLockRet(func() error {
+		return withAddrKRs(user.apiUser, user.apiAddrs, user.vault.KeyPass(), func(_ *crypto.KeyRing, addrKRs map[string]*crypto.KeyRing) error {
+			if !user.vault.SyncStatus().HasLabels {
+				user.log.Debug("Syncing labels")
 
-			if err := user.updateCh.ValuesErr(func(updateCh []*queue.QueuedChannel[imap.Update]) error {
-				return syncLabels(ctx, user.client, xslices.Unique(updateCh)...)
-			}); err != nil {
-				return fmt.Errorf("failed to sync labels: %w", err)
+				if err := user.updateCh.ValuesErr(func(updateCh []*queue.QueuedChannel[imap.Update]) error {
+					return syncLabels(ctx, user.client, xslices.Unique(updateCh)...)
+				}); err != nil {
+					return fmt.Errorf("failed to sync labels: %w", err)
+				}
+
+				if err := user.vault.SetHasLabels(true); err != nil {
+					return fmt.Errorf("failed to set has labels: %w", err)
+				}
+
+				user.log.Debug("Synced labels")
+			} else {
+				user.log.Debug("Labels are already synced, skipping")
 			}
 
-			if err := user.vault.SetHasLabels(true); err != nil {
-				return fmt.Errorf("failed to set has labels: %w", err)
+			if !user.vault.SyncStatus().HasMessages {
+				user.log.Debug("Syncing messages")
+
+				if err := user.updateCh.MapErr(func(updateCh map[string]*queue.QueuedChannel[imap.Update]) error {
+					return syncMessages(ctx, user.ID(), user.client, user.vault, addrKRs, updateCh, user.eventCh)
+				}); err != nil {
+					return fmt.Errorf("failed to sync messages: %w", err)
+				}
+
+				if err := user.vault.SetHasMessages(true); err != nil {
+					return fmt.Errorf("failed to set has messages: %w", err)
+				}
+
+				user.log.Debug("Synced messages")
+			} else {
+				user.log.Debug("Messages are already synced, skipping")
 			}
 
-			user.log.Debug("Synced labels")
-		} else {
-			user.log.Debug("Labels are already synced, skipping")
-		}
-
-		if !user.vault.SyncStatus().HasMessages {
-			user.log.Debug("Syncing messages")
-
-			if err := user.updateCh.MapErr(func(updateCh map[string]*queue.QueuedChannel[imap.Update]) error {
-				return syncMessages(ctx, user.ID(), user.client, user.vault, addrKRs, updateCh, user.eventCh)
-			}); err != nil {
-				return fmt.Errorf("failed to sync messages: %w", err)
-			}
-
-			if err := user.vault.SetHasMessages(true); err != nil {
-				return fmt.Errorf("failed to set has messages: %w", err)
-			}
-
-			user.log.Debug("Synced messages")
-		} else {
-			user.log.Debug("Messages are already synced, skipping")
-		}
-
-		return nil
-	})
+			return nil
+		})
+	}, &user.apiUserLock, &user.apiAddrsLock)
 }
 
 func syncLabels(ctx context.Context, client *liteapi.Client, updateCh ...*queue.QueuedChannel[imap.Update]) error {

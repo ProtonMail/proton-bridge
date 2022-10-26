@@ -373,29 +373,31 @@ func (conn *imapConnector) importMessage(
 ) (imap.Message, []byte, error) {
 	var full liteapi.FullMessage
 
-	if err := conn.withAddrKR(conn.addrID, func(_, addrKR *crypto.KeyRing) error {
-		res, err := stream.Collect(ctx, conn.client.ImportMessages(ctx, addrKR, 1, 1, []liteapi.ImportReq{{
-			Metadata: liteapi.ImportMetadata{
-				AddressID: conn.addrID,
-				LabelIDs:  labelIDs,
-				Unread:    liteapi.Bool(unread),
-				Flags:     flags,
-			},
-			Message: literal,
-		}}...))
-		if err != nil {
-			return fmt.Errorf("failed to import message: %w", err)
-		}
+	if err := safe.RLockRet(func() error {
+		return withAddrKR(conn.apiUser, conn.apiAddrs[conn.addrID], conn.vault.KeyPass(), func(_, addrKR *crypto.KeyRing) error {
+			res, err := stream.Collect(ctx, conn.client.ImportMessages(ctx, addrKR, 1, 1, []liteapi.ImportReq{{
+				Metadata: liteapi.ImportMetadata{
+					AddressID: conn.addrID,
+					LabelIDs:  labelIDs,
+					Unread:    liteapi.Bool(unread),
+					Flags:     flags,
+				},
+				Message: literal,
+			}}...))
+			if err != nil {
+				return fmt.Errorf("failed to import message: %w", err)
+			}
 
-		if full, err = conn.client.GetFullMessage(ctx, res[0].MessageID); err != nil {
-			return fmt.Errorf("failed to fetch message: %w", err)
-		}
+			if full, err = conn.client.GetFullMessage(ctx, res[0].MessageID); err != nil {
+				return fmt.Errorf("failed to fetch message: %w", err)
+			}
 
-		if literal, err = message.BuildRFC822(addrKR, full.Message, full.AttData, defaultJobOpts()); err != nil {
-			return fmt.Errorf("failed to build message: %w", err)
-		}
+			if literal, err = message.BuildRFC822(addrKR, full.Message, full.AttData, defaultJobOpts()); err != nil {
+				return fmt.Errorf("failed to build message: %w", err)
+			}
 
-		return nil
+			return nil
+		})
 	}); err != nil {
 		return imap.Message{}, nil, err
 	}

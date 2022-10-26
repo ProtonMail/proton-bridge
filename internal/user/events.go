@@ -99,77 +99,87 @@ func (user *User) handleAddressEvents(ctx context.Context, addressEvents []litea
 }
 
 func (user *User) handleCreateAddressEvent(ctx context.Context, event liteapi.AddressEvent) error {
-	if had := user.apiAddrs.Set(event.Address.ID, event.Address); had {
-		return fmt.Errorf("address %q already exists", event.Address.ID)
-	}
+	return safe.LockRet(func() error {
+		if _, ok := user.apiAddrs[event.Address.ID]; ok {
+			return fmt.Errorf("address %q already exists", event.ID)
+		}
 
-	switch user.vault.AddressMode() {
-	case vault.CombinedMode:
-		user.apiAddrs.Index(0, func(addrID string, _ liteapi.Address) {
-			user.updateCh.SetFrom(event.Address.ID, addrID)
+		user.apiAddrs[event.Address.ID] = event.Address
+
+		switch user.vault.AddressMode() {
+		case vault.CombinedMode:
+			primAddr, err := getAddrIdx(user.apiAddrs, 0)
+			if err != nil {
+				return fmt.Errorf("failed to get primary address: %w", err)
+			}
+
+			user.updateCh.SetFrom(event.Address.ID, primAddr.ID)
+
+		case vault.SplitMode:
+			user.updateCh.Set(event.Address.ID, queue.NewQueuedChannel[imap.Update](0, 0))
+		}
+
+		user.eventCh.Enqueue(events.UserAddressCreated{
+			UserID:    user.ID(),
+			AddressID: event.Address.ID,
+			Email:     event.Address.Email,
 		})
 
-	case vault.SplitMode:
-		user.updateCh.Set(event.Address.ID, queue.NewQueuedChannel[imap.Update](0, 0))
-	}
-
-	user.eventCh.Enqueue(events.UserAddressCreated{
-		UserID:    user.ID(),
-		AddressID: event.Address.ID,
-		Email:     event.Address.Email,
-	})
-
-	if user.vault.AddressMode() == vault.SplitMode {
-		if ok, err := user.updateCh.GetErr(event.Address.ID, func(updateCh *queue.QueuedChannel[imap.Update]) error {
-			return syncLabels(ctx, user.client, updateCh)
-		}); !ok {
-			return fmt.Errorf("no such address %q", event.Address.ID)
-		} else if err != nil {
-			return fmt.Errorf("failed to sync labels to new address: %w", err)
+		if user.vault.AddressMode() == vault.SplitMode {
+			if ok, err := user.updateCh.GetErr(event.Address.ID, func(updateCh *queue.QueuedChannel[imap.Update]) error {
+				return syncLabels(ctx, user.client, updateCh)
+			}); !ok {
+				return fmt.Errorf("no such address %q", event.Address.ID)
+			} else if err != nil {
+				return fmt.Errorf("failed to sync labels to new address: %w", err)
+			}
 		}
-	}
 
-	return nil
+		return nil
+	}, &user.apiAddrsLock)
 }
 
 func (user *User) handleUpdateAddressEvent(_ context.Context, event liteapi.AddressEvent) error { //nolint:unparam
-	if had := user.apiAddrs.Set(event.Address.ID, event.Address); !had {
-		return fmt.Errorf("address %q does not exist", event.Address.ID)
-	}
+	return safe.LockRet(func() error {
+		if _, ok := user.apiAddrs[event.Address.ID]; ok {
+			return fmt.Errorf("address %q already exists", event.ID)
+		}
 
-	user.eventCh.Enqueue(events.UserAddressUpdated{
-		UserID:    user.ID(),
-		AddressID: event.Address.ID,
-		Email:     event.Address.Email,
+		user.apiAddrs[event.Address.ID] = event.Address
+
+		user.eventCh.Enqueue(events.UserAddressUpdated{
+			UserID:    user.ID(),
+			AddressID: event.Address.ID,
+			Email:     event.Address.Email,
+		})
+
+		return nil
 	})
-
-	return nil
 }
 
 func (user *User) handleDeleteAddressEvent(_ context.Context, event liteapi.AddressEvent) error {
-	var email string
-
-	if ok := user.apiAddrs.GetDelete(event.ID, func(apiAddr liteapi.Address) {
-		email = apiAddr.Email
-	}); !ok {
-		return fmt.Errorf("no such address %q", event.ID)
-	}
-
-	if ok := user.updateCh.GetDelete(event.ID, func(updateCh *queue.QueuedChannel[imap.Update]) {
-		if user.vault.AddressMode() == vault.SplitMode {
-			updateCh.CloseAndDiscardQueued()
+	return safe.LockRet(func() error {
+		addr, ok := user.apiAddrs[event.ID]
+		if !ok {
+			return fmt.Errorf("address %q does not exist", event.ID)
 		}
-	}); !ok {
-		return fmt.Errorf("no such address %q", event.ID)
-	}
 
-	user.eventCh.Enqueue(events.UserAddressDeleted{
-		UserID:    user.ID(),
-		AddressID: event.ID,
-		Email:     email,
+		if ok := user.updateCh.GetDelete(event.ID, func(updateCh *queue.QueuedChannel[imap.Update]) {
+			if user.vault.AddressMode() == vault.SplitMode {
+				updateCh.CloseAndDiscardQueued()
+			}
+		}); !ok {
+			return fmt.Errorf("no such address %q", event.ID)
+		}
+
+		user.eventCh.Enqueue(events.UserAddressDeleted{
+			UserID:    user.ID(),
+			AddressID: event.ID,
+			Email:     addr.Email,
+		})
+
+		return nil
 	})
-
-	return nil
 }
 
 // handleLabelEvents handles the given label events.
@@ -254,18 +264,20 @@ func (user *User) handleCreateMessageEvent(ctx context.Context, event liteapi.Me
 		return fmt.Errorf("failed to get full message: %w", err)
 	}
 
-	return user.withAddrKR(event.Message.AddressID, func(_, addrKR *crypto.KeyRing) error {
-		buildRes, err := buildRFC822(full, addrKR)
-		if err != nil {
-			return fmt.Errorf("failed to build RFC822 message: %w", err)
-		}
+	return safe.RLockRet(func() error {
+		return withAddrKR(user.apiUser, user.apiAddrs[event.Message.AddressID], user.vault.KeyPass(), func(_, addrKR *crypto.KeyRing) error {
+			buildRes, err := buildRFC822(full, addrKR)
+			if err != nil {
+				return fmt.Errorf("failed to build RFC822 message: %w", err)
+			}
 
-		user.updateCh.Get(full.AddressID, func(updateCh *queue.QueuedChannel[imap.Update]) {
-			updateCh.Enqueue(imap.NewMessagesCreated(buildRes.update))
+			user.updateCh.Get(full.AddressID, func(updateCh *queue.QueuedChannel[imap.Update]) {
+				updateCh.Enqueue(imap.NewMessagesCreated(buildRes.update))
+			})
+
+			return nil
 		})
-
-		return nil
-	})
+	}, &user.apiUserLock, &user.apiAddrsLock)
 }
 
 func (user *User) handleUpdateMessageEvent(_ context.Context, event liteapi.MessageEvent) error { //nolint:unparam
