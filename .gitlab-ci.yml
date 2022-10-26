@@ -40,6 +40,13 @@ test:
   stage: test
   script:
     - make test
+  tags:
+    - medium
+
+test-race:
+  stage: test
+  allow_failure: true
+  script:
     - make test-race
   tags:
     - medium
@@ -48,6 +55,13 @@ test-integration:
   stage: test
   script:
     - make test-integration
+  tags:
+    - large
+
+test-integration-race:
+  stage: test
+  allow_failure: true
+  script:
     - make test-integration-race
   tags:
     - large
