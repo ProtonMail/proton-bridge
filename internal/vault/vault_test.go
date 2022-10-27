@@ -18,13 +18,15 @@
 package vault_test
 
 import (
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/ProtonMail/proton-bridge/v2/internal/vault"
 	"github.com/stretchr/testify/require"
 )
 
-func TestVaultCorrupt(t *testing.T) {
+func TestVault_Corrupt(t *testing.T) {
 	vaultDir, gluonDir := t.TempDir(), t.TempDir()
 
 	{
@@ -41,6 +43,35 @@ func TestVaultCorrupt(t *testing.T) {
 
 	{
 		_, corrupt, err := vault.New(vaultDir, gluonDir, []byte("bad key"))
+		require.NoError(t, err)
+		require.True(t, corrupt)
+	}
+}
+
+func TestVault_Corrupt_JunkData(t *testing.T) {
+	vaultDir, gluonDir := t.TempDir(), t.TempDir()
+
+	{
+		_, corrupt, err := vault.New(vaultDir, gluonDir, []byte("my secret key"))
+		require.NoError(t, err)
+		require.False(t, corrupt)
+	}
+
+	{
+		_, corrupt, err := vault.New(vaultDir, gluonDir, []byte("my secret key"))
+		require.NoError(t, err)
+		require.False(t, corrupt)
+	}
+
+	{
+		f, err := os.OpenFile(filepath.Join(vaultDir, "vault.enc"), os.O_WRONLY, 0o600)
+		require.NoError(t, err)
+		defer f.Close() //nolint:errcheck
+
+		_, err = f.Write([]byte("junk data"))
+		require.NoError(t, err)
+
+		_, corrupt, err := vault.New(vaultDir, gluonDir, []byte("my secret key"))
 		require.NoError(t, err)
 		require.True(t, corrupt)
 	}

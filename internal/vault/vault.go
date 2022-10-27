@@ -223,9 +223,13 @@ func newVault(path, gluonDir string, gcm cipher.AEAD) (*Vault, bool, error) {
 
 	var corrupt bool
 
-	if _, err := decrypt(gcm, enc); err != nil {
+	if dec, err := decrypt(gcm, enc); err != nil {
 		corrupt = true
+	} else if err := msgpack.Unmarshal(dec, new(Data)); err != nil {
+		corrupt = true
+	}
 
+	if corrupt {
 		newEnc, err := initVault(path, gluonDir, gcm)
 		if err != nil {
 			return nil, false, err
