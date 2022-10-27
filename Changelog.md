@@ -2,10 +2,25 @@
 
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
+## [Bridge 2.4.4] Osney
+
+### Changed
+* GODT-1751: Switch from protonmail.com to proton.me domain.
+
+### Fixed
+* Other: Fix make run-cli for Darwin.
+* GODT-1645: Fix CI pipeline.
+* GODT-1938: Account details box values wrap.
+* Other: Also install vcpkg ARM64 on Intel mac hosts.
+* Other: Fix minor typo.
+* GODT-1939: removed vertical overshoot when scrolling.
+* GODT-1479: fix 'Open Bridge' button still hovered when status windows opens for Windows.
+* GODT-1519: Move back to account view after sending bug report.
+* Other: fix QML error with Qt 6.4 and a typo.
 
 ## [Bridge 2.4.3] Osney
 
-## Changed
+### Changed
 * Other: implemented tokens in bridge-gui-tester.
 * GODT-1853:
     * Upgrade dependencies (including x/crypto).
@@ -28,7 +43,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 
 
-## Fixed
+### Fixed
 * GUI issues:
     * GODT-1894: Fixed typo in alreadyLoggedIn event error message.
     * GODT-1479: Fix hover on “Open Bridge” in status window on macOS.
