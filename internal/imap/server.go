@@ -89,7 +89,7 @@ func newGoIMAPServer(tls *tls.Config, backend backend.Backend, address string, u
 	serverID := imapid.ID{
 		imapid.FieldName:       "Proton Mail Bridge",
 		imapid.FieldVendor:     "Proton AG",
-		imapid.FieldSupportURL: "https://protonmail.com/support",
+		imapid.FieldSupportURL: "https://proton.me/support/mail",
 	}
 
 	server.EnableAuth(sasl.Login, func(conn imapserver.Conn) sasl.Server {

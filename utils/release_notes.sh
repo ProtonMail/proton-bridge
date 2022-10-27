@@ -19,7 +19,7 @@
 
 
 # Generate HTML release notes
-# hosted at https://protonmail.com/download/{ie,bridge}/{stable,early}_releases.html
+# hosted at https://proton.me/download/{ie,bridge}/{stable,early}_releases.html
 INFILE=$1
 OUTFILE=${INFILE//.md/.html}
 

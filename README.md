@@ -22,7 +22,7 @@ to start Bridge on startup is enabled by default.
 When the main window is closed, Bridge will continue to run in the
 background.
 
-More details [on the public website](https://protonmail.com/bridge).
+More details [on the public website](https://proton.me/mail/bridge).
 
 ## Launchers
 Launchers are binaries used to run the Proton Mail Bridge or Import-Export apps.

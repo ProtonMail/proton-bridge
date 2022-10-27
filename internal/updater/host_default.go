@@ -20,4 +20,4 @@
 
 package updater
 
-const Host = "https://protonmail.com/download"
+const Host = "https://proton.me/download"

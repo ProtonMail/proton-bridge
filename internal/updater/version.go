@@ -38,7 +38,7 @@ type VersionInfo struct {
 	// Installers are the locations of installer files (for manual installation).
 	Installers []string
 
-	// LandingPage is the address of the app landing page on protonmail.com.
+	// LandingPage is the address of the app landing page on proton.me
 	LandingPage string
 
 	// ReleaseNotesPage is the address of the page containing the release notes.
@@ -54,26 +54,26 @@ type VersionInfo struct {
 //	{
 //	  "stable": {
 //	    "Version": "2.3.4",
-//	    "Package": "https://protonmail.com/.../bridge_2.3.4_linux.tgz",
+//	    "Package": "https://proton.me/.../bridge_2.3.4_linux.tgz",
 //	    "Installers": [
-//	      "https://protonmail.com/.../something.deb",
-//	      "https://protonmail.com/.../something.rpm",
-//	      "https://protonmail.com/.../PKGBUILD"
+//	      "https://proton.me/.../something.deb",
+//	      "https://proton.me/.../something.rpm",
+//	      "https://proton.me/.../PKGBUILD"
 //	    ],
-//	    "LandingPage": "https://protonmail.com/bridge",
-//	    "ReleaseNotesPage": "https://protonmail.com/.../release_notes.html",
+//	    "LandingPage": "https://proton.me/mail/bridge#download",
+//	    "ReleaseNotesPage": "https://proton.me/download/{ie,bridge}/{stable,early}_releases.html",
 //	    "RolloutProportion": 0.5
 //	  },
 //	  "early": {
 //	    "Version": "2.4.0",
-//	    "Package": "https://protonmail.com/.../bridge_2.4.0_linux.tgz",
+//	    "Package": "https://proton.me/.../bridge_2.4.0_linux.tgz",
 //	    "Installers": [
-//	      "https://protonmail.com/.../something.deb",
-//	      "https://protonmail.com/.../something.rpm",
-//	      "https://protonmail.com/.../PKGBUILD"
+//	      "https://proton.me/.../something.deb",
+//	      "https://proton.me/.../something.rpm",
+//	      "https://proton.me/.../PKGBUILD"
 //	    ],
-//	    "LandingPage": "https://protonmail.com/bridge",
-//	    "ReleaseNotesPage": "https://protonmail.com/.../release_notes.html",
+//	    "LandingPage": "https://proton.me/mail/bridge#download",
+//	    "ReleaseNotesPage": "https://proton.me/download/{ie,bridge}/{stable,early}_releases.html",
 //	    "RolloutProportion": 0.5
 //	  },
 //	  "...": {
@@ -84,8 +84,8 @@ type VersionMap map[string]VersionInfo
 
 // getVersionFileURL returns the URL of the version file.
 // For example:
-//   - https://protonmail.com/download/bridge/version_linux.json
-//   - https://protonmail.com/download/ie/version_linux.json
+//   - https://proton.me/download/bridge/version_linux.json
+//   - https://proton.me/download/ie/version_linux.json
 func (u *Updater) getVersionFileURL() string {
 	return fmt.Sprintf("%v/%v/version_%v.json", Host, u.updateURLName, u.platform)
 }
