@@ -289,7 +289,9 @@ func (user *User) handleMessageEvents(ctx context.Context, messageEvents []litea
 			}
 
 		case liteapi.EventDelete:
-			return ErrNotImplemented
+			if err := user.handleDeleteMessageEvent(ctx, event); err != nil {
+				return fmt.Errorf("failed to handle delete message event: %w", err)
+			}
 		}
 	}
 
@@ -326,6 +328,20 @@ func (user *User) handleUpdateMessageEvent(_ context.Context, event liteapi.Mess
 		)
 
 		user.updateCh[event.Message.AddressID].Enqueue(update)
+
+		return nil
+	}, user.updateChLock)
+}
+
+func (user *User) handleDeleteMessageEvent(_ context.Context, event liteapi.MessageEvent) error { //nolint:unparam
+	return safe.RLockRet(func() error {
+		for _, updateCh := range user.updateCh {
+			update := imap.NewMessagesDeleted(
+				imap.MessageID(event.ID),
+			)
+
+			updateCh.Enqueue(update)
+		}
 
 		return nil
 	}, user.updateChLock)

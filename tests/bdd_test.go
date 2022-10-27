@@ -165,6 +165,7 @@ func TestFeatures(testingT *testing.T) {
 			ctx.Step(`^IMAP client "([^"]*)" sees (\d+) messages in "([^"]*)"$`, s.imapClientSeesMessagesInMailbox)
 			ctx.Step(`^IMAP client "([^"]*)" eventually sees (\d+) messages in "([^"]*)"$`, s.imapClientEventuallySeesMessagesInMailbox)
 			ctx.Step(`^IMAP client "([^"]*)" marks message (\d+) as deleted$`, s.imapClientMarksMessageAsDeleted)
+			ctx.Step(`^IMAP client "([^"]*)" marks the message with subject "([^"]*)" as deleted$`, s.imapClientMarksTheMessageWithSubjectAsDeleted)
 			ctx.Step(`^IMAP client "([^"]*)" marks message (\d+) as not deleted$`, s.imapClientMarksMessageAsNotDeleted)
 			ctx.Step(`^IMAP client "([^"]*)" marks all messages as deleted$`, s.imapClientMarksAllMessagesAsDeleted)
 			ctx.Step(`^IMAP client "([^"]*)" sees that message (\d+) has the flag "([^"]*)"$`, s.imapClientSeesThatMessageHasTheFlag)

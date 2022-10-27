@@ -284,13 +284,13 @@ func (s *scenario) imapClientEventuallySeesTheFollowingMessagesInMailbox(clientI
 func (s *scenario) imapClientSeesMessagesInMailbox(clientID string, count int, mailbox string) error {
 	_, client := s.t.getIMAPClient(clientID)
 
-	fetch, err := clientFetch(client, mailbox)
+	status, err := client.Status(mailbox, []imap.StatusItem{imap.StatusMessages})
 	if err != nil {
 		return err
 	}
 
-	if len(fetch) != count {
-		return fmt.Errorf("expected mailbox %v to be empty, got %v", mailbox, fetch)
+	if int(status.Messages) != count {
+		return fmt.Errorf("expected mailbox %v to have %v items, got %v", mailbox, count, status.Messages)
 	}
 
 	return nil
@@ -305,8 +305,22 @@ func (s *scenario) imapClientEventuallySeesMessagesInMailbox(clientID string, co
 func (s *scenario) imapClientMarksMessageAsDeleted(clientID string, seq int) error {
 	_, client := s.t.getIMAPClient(clientID)
 
-	_, err := clientStore(client, seq, seq, imap.FormatFlagsOp(imap.AddFlags, true), imap.DeletedFlag)
+	if _, err := clientStore(client, seq, seq, false, imap.FormatFlagsOp(imap.AddFlags, true), imap.DeletedFlag); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *scenario) imapClientMarksTheMessageWithSubjectAsDeleted(clientID, subject string) error {
+	_, client := s.t.getIMAPClient(clientID)
+
+	uid, err := clientGetUIDBySubject(client, client.Mailbox().Name, subject)
 	if err != nil {
+		return err
+	}
+
+	if _, err := clientStore(client, int(uid), int(uid), true, imap.FormatFlagsOp(imap.AddFlags, true), imap.DeletedFlag); err != nil {
 		return err
 	}
 
@@ -316,7 +330,7 @@ func (s *scenario) imapClientMarksMessageAsDeleted(clientID string, seq int) err
 func (s *scenario) imapClientMarksMessageAsNotDeleted(clientID string, seq int) error {
 	_, client := s.t.getIMAPClient(clientID)
 
-	_, err := clientStore(client, seq, seq, imap.FormatFlagsOp(imap.RemoveFlags, true), imap.DeletedFlag)
+	_, err := clientStore(client, seq, seq, false, imap.FormatFlagsOp(imap.RemoveFlags, true), imap.DeletedFlag)
 	if err != nil {
 		return err
 	}
@@ -327,7 +341,7 @@ func (s *scenario) imapClientMarksMessageAsNotDeleted(clientID string, seq int) 
 func (s *scenario) imapClientMarksAllMessagesAsDeleted(clientID string) error {
 	_, client := s.t.getIMAPClient(clientID)
 
-	_, err := clientStore(client, 1, int(client.Mailbox().Messages), imap.FormatFlagsOp(imap.AddFlags, true), imap.DeletedFlag)
+	_, err := clientStore(client, 1, int(client.Mailbox().Messages), false, imap.FormatFlagsOp(imap.AddFlags, true), imap.DeletedFlag)
 	if err != nil {
 		return err
 	}
@@ -488,11 +502,19 @@ func clientCopy(client *client.Client, from, to string, uid ...uint32) error {
 	return client.UidCopy(seqset, to)
 }
 
-func clientStore(client *client.Client, from, to int, item imap.StoreItem, flags ...string) ([]*imap.Message, error) { //nolint:unparam
+func clientStore(client *client.Client, from, to int, isUID bool, item imap.StoreItem, flags ...string) ([]*imap.Message, error) { //nolint:unparam
 	resCh := make(chan *imap.Message)
 
 	go func() {
-		if err := client.Store(
+		var storeFunc func(seqset *imap.SeqSet, item imap.StoreItem, value interface{}, ch chan *imap.Message) error
+
+		if isUID {
+			storeFunc = client.UidStore
+		} else {
+			storeFunc = client.Store
+		}
+
+		if err := storeFunc(
 			&imap.SeqSet{Set: []imap.Seq{{Start: uint32(from), Stop: uint32(to)}}},
 			item,
 			xslices.Map(flags, func(flag string) interface{} { return flag }),

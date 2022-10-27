@@ -311,7 +311,34 @@ func (conn *imapConnector) AddMessagesToMailbox(ctx context.Context, messageIDs 
 
 // RemoveMessagesFromMailbox unlabels the given messages with the given label ID.
 func (conn *imapConnector) RemoveMessagesFromMailbox(ctx context.Context, messageIDs []imap.MessageID, mailboxID imap.MailboxID) error {
-	return conn.client.UnlabelMessages(ctx, mapTo[imap.MessageID, string](messageIDs), string(mailboxID))
+	if err := conn.client.UnlabelMessages(ctx, mapTo[imap.MessageID, string](messageIDs), string(mailboxID)); err != nil {
+		return err
+	}
+
+	if mailboxID == liteapi.SpamLabel || mailboxID == liteapi.TrashLabel {
+		// check if messages are only in Trash and AllMail before they are permanently deleted.
+		var messagesToDelete []string
+
+		// GODT-1993 - Update to more efficient method.
+		for _, messageID := range messageIDs {
+			m, err := conn.client.GetMessage(ctx, string(messageID))
+			if err != nil {
+				return fmt.Errorf("failed to get message info")
+			}
+
+			if len(m.LabelIDs) == 1 && m.LabelIDs[0] == liteapi.AllMailLabel {
+				messagesToDelete = append(messagesToDelete, m.ID)
+			}
+		}
+
+		if len(messagesToDelete) == 0 {
+			return nil
+		}
+
+		return conn.client.DeleteMessage(ctx, messagesToDelete...)
+	}
+
+	return nil
 }
 
 // MoveMessages removes the given messages from one label and adds them to the other label.
