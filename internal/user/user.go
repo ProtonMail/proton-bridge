@@ -74,6 +74,8 @@ type User struct {
 	abortable async.Abortable
 	goSync    func()
 
+	syncWorkers int
+	syncBuffer  int
 	showAllMail uint32
 }
 
@@ -85,6 +87,7 @@ func New(
 	encVault *vault.User,
 	client *liteapi.Client,
 	apiUser liteapi.User,
+	syncWorkers, syncBuffer int,
 	showAllMail bool,
 ) (*User, error) { //nolint:funlen
 	logrus.WithField("userID", apiUser.ID).Debug("Creating new user")
@@ -158,6 +161,8 @@ func New(
 
 		tasks: xsync.NewGroup(context.Background()),
 
+		syncWorkers: syncWorkers,
+		syncBuffer:  syncBuffer,
 		showAllMail: b32(showAllMail),
 	}
 

@@ -21,7 +21,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"runtime"
 	"strings"
 	"time"
 
@@ -95,7 +94,17 @@ func (user *User) sync(ctx context.Context) error {
 			if !user.vault.SyncStatus().HasMessages {
 				user.log.Debug("Syncing messages")
 
-				if err := syncMessages(ctx, user.ID(), user.client, user.vault, addrKRs, user.updateCh, user.eventCh); err != nil {
+				if err := syncMessages(
+					ctx,
+					user.ID(),
+					user.client,
+					user.vault,
+					addrKRs,
+					user.updateCh,
+					user.eventCh,
+					user.syncWorkers,
+					user.syncBuffer,
+				); err != nil {
 					return fmt.Errorf("failed to sync messages: %w", err)
 				}
 
@@ -176,6 +185,7 @@ func syncMessages( //nolint:funlen
 	addrKRs map[string]*crypto.KeyRing,
 	updateCh map[string]*queue.QueuedChannel[imap.Update],
 	eventCh *queue.QueuedChannel[events.Event],
+	syncWorkers, syncBuffer int,
 ) error {
 	// Determine which messages to sync.
 	metadata, err := client.GetAllMessageMetadata(ctx, nil)
@@ -195,7 +205,7 @@ func syncMessages( //nolint:funlen
 
 	// Fetch and build each message.
 	buildCh := stream.Map(
-		client.GetFullMessages(ctx, runtime.NumCPU(), runtime.NumCPU(), messageIDs...),
+		client.GetFullMessages(ctx, syncWorkers, syncBuffer, messageIDs...),
 		func(_ context.Context, full liteapi.FullMessage) (*buildRes, error) {
 			return buildRFC822(full, addrKRs[full.AddressID])
 		},

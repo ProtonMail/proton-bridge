@@ -19,6 +19,7 @@ package vault
 
 import (
 	"math/rand"
+	"runtime"
 
 	"github.com/ProtonMail/gluon/imap"
 	"github.com/ProtonMail/proton-bridge/v2/internal/updater"
@@ -60,6 +61,9 @@ type Settings struct {
 	LastVersion   string
 	FirstStart    bool
 	FirstStartGUI bool
+
+	SyncWorkers int
+	SyncBuffer  int
 }
 
 func newDefaultSettings(gluonDir string) Settings {
@@ -83,6 +87,9 @@ func newDefaultSettings(gluonDir string) Settings {
 		LastVersion:   "0.0.0",
 		FirstStart:    true,
 		FirstStartGUI: true,
+
+		SyncWorkers: runtime.NumCPU(),
+		SyncBuffer:  runtime.NumCPU(),
 	}
 }
 

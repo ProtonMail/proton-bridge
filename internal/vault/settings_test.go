@@ -18,6 +18,7 @@
 package vault_test
 
 import (
+	"runtime"
 	"testing"
 
 	"github.com/Masterminds/semver/v3"
@@ -215,4 +216,12 @@ func TestVault_Settings_FirstStartGUI(t *testing.T) {
 
 	// Check the new first start value.
 	require.Equal(t, false, s.GetFirstStartGUI())
+}
+
+func TestVault_Settings_SyncWorkers(t *testing.T) {
+	// create a new test vault.
+	s := newVault(t)
+
+	require.Equal(t, runtime.NumCPU(), s.SyncWorkers())
+	require.Equal(t, runtime.NumCPU(), s.SyncBuffer())
 }

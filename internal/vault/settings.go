@@ -201,3 +201,13 @@ func (vault *Vault) SetFirstStartGUI(firstStartGUI bool) error {
 		data.Settings.FirstStartGUI = firstStartGUI
 	})
 }
+
+// SyncWorkers returns the number of workers to use for syncing.
+func (vault *Vault) SyncWorkers() int {
+	return vault.get().Settings.SyncWorkers
+}
+
+// SyncBuffer returns the number of buffer workers to use for syncing.
+func (vault *Vault) SyncBuffer() int {
+	return vault.get().Settings.SyncBuffer
+}
