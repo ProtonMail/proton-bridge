@@ -97,22 +97,16 @@ func NewUpdateVersionChangedEvent() *StreamEvent {
 	return updateEvent(&UpdateEvent{Event: &UpdateEvent_VersionChanged{VersionChanged: &UpdateVersionChanged{}}})
 }
 
-func NewCacheErrorEvent(err CacheErrorType) *StreamEvent {
-	return cacheEvent(&CacheEvent{Event: &CacheEvent_Error{Error: &CacheErrorEvent{Type: err}}})
+func NewDiskCacheErrorEvent(err DiskCacheErrorType) *StreamEvent {
+	return cacheEvent(&DiskCacheEvent{Event: &DiskCacheEvent_Error{Error: &DiskCacheErrorEvent{Type: err}}})
 }
 
-func NewCacheLocationChangeSuccessEvent() *StreamEvent {
-	return cacheEvent(&CacheEvent{Event: &CacheEvent_LocationChangedSuccess{LocationChangedSuccess: &CacheLocationChangeSuccessEvent{}}})
+func NewDiskCachePathChangedEvent(path string) *StreamEvent {
+	return cacheEvent(&DiskCacheEvent{Event: &DiskCacheEvent_PathChanged{PathChanged: &DiskCachePathChangedEvent{Path: path}}})
 }
 
-func NewCacheChangeLocalCacheFinishedEvent(willRestart bool) *StreamEvent {
-	return cacheEvent(&CacheEvent{Event: &CacheEvent_ChangeLocalCacheFinished{
-		ChangeLocalCacheFinished: &ChangeLocalCacheFinishedEvent{WillRestart: willRestart},
-	}})
-}
-
-func NewDiskCachePathChanged(path string) *StreamEvent {
-	return cacheEvent(&CacheEvent{Event: &CacheEvent_DiskCachePathChanged{DiskCachePathChanged: &DiskCachePathChanged{Path: path}}})
+func NewDiskCachePathChangeFinishedEvent() *StreamEvent {
+	return cacheEvent(&DiskCacheEvent{Event: &DiskCacheEvent_PathChangeFinished{PathChangeFinished: &DiskCachePathChangeFinishedEvent{}}})
 }
 
 func NewMailSettingsErrorEvent(err MailSettingsErrorType) *StreamEvent {
@@ -185,7 +179,7 @@ func updateEvent(event *UpdateEvent) *StreamEvent {
 	return &StreamEvent{Event: &StreamEvent_Update{Update: event}}
 }
 
-func cacheEvent(event *CacheEvent) *StreamEvent {
+func cacheEvent(event *DiskCacheEvent) *StreamEvent {
 	return &StreamEvent{Event: &StreamEvent_Cache{Cache: event}}
 }
 

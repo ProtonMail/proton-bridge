@@ -59,7 +59,7 @@ static const char* Bridge_method_names[] = {
   "/grpc.Bridge/SetIsAutomaticUpdateOn",
   "/grpc.Bridge/IsAutomaticUpdateOn",
   "/grpc.Bridge/DiskCachePath",
-  "/grpc.Bridge/ChangeLocalCache",
+  "/grpc.Bridge/SetDiskCachePath",
   "/grpc.Bridge/SetIsDoHEnabled",
   "/grpc.Bridge/IsDoHEnabled",
   "/grpc.Bridge/SetUseSslForSmtp",
@@ -128,7 +128,7 @@ Bridge::Stub::Stub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, co
   , rpcmethod_SetIsAutomaticUpdateOn_(Bridge_method_names[34], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   , rpcmethod_IsAutomaticUpdateOn_(Bridge_method_names[35], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   , rpcmethod_DiskCachePath_(Bridge_method_names[36], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_ChangeLocalCache_(Bridge_method_names[37], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_SetDiskCachePath_(Bridge_method_names[37], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   , rpcmethod_SetIsDoHEnabled_(Bridge_method_names[38], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   , rpcmethod_IsDoHEnabled_(Bridge_method_names[39], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   , rpcmethod_SetUseSslForSmtp_(Bridge_method_names[40], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
@@ -1004,25 +1004,25 @@ void Bridge::Stub::async::DiskCachePath(::grpc::ClientContext* context, const ::
   return result;
 }
 
-::grpc::Status Bridge::Stub::ChangeLocalCache(::grpc::ClientContext* context, const ::grpc::ChangeLocalCacheRequest& request, ::google::protobuf::Empty* response) {
-  return ::grpc::internal::BlockingUnaryCall< ::grpc::ChangeLocalCacheRequest, ::google::protobuf::Empty, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_ChangeLocalCache_, context, request, response);
+::grpc::Status Bridge::Stub::SetDiskCachePath(::grpc::ClientContext* context, const ::google::protobuf::StringValue& request, ::google::protobuf::Empty* response) {
+  return ::grpc::internal::BlockingUnaryCall< ::google::protobuf::StringValue, ::google::protobuf::Empty, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_SetDiskCachePath_, context, request, response);
 }
 
-void Bridge::Stub::async::ChangeLocalCache(::grpc::ClientContext* context, const ::grpc::ChangeLocalCacheRequest* request, ::google::protobuf::Empty* response, std::function<void(::grpc::Status)> f) {
-  ::grpc::internal::CallbackUnaryCall< ::grpc::ChangeLocalCacheRequest, ::google::protobuf::Empty, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_ChangeLocalCache_, context, request, response, std::move(f));
+void Bridge::Stub::async::SetDiskCachePath(::grpc::ClientContext* context, const ::google::protobuf::StringValue* request, ::google::protobuf::Empty* response, std::function<void(::grpc::Status)> f) {
+  ::grpc::internal::CallbackUnaryCall< ::google::protobuf::StringValue, ::google::protobuf::Empty, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_SetDiskCachePath_, context, request, response, std::move(f));
 }
 
-void Bridge::Stub::async::ChangeLocalCache(::grpc::ClientContext* context, const ::grpc::ChangeLocalCacheRequest* request, ::google::protobuf::Empty* response, ::grpc::ClientUnaryReactor* reactor) {
-  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_ChangeLocalCache_, context, request, response, reactor);
+void Bridge::Stub::async::SetDiskCachePath(::grpc::ClientContext* context, const ::google::protobuf::StringValue* request, ::google::protobuf::Empty* response, ::grpc::ClientUnaryReactor* reactor) {
+  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_SetDiskCachePath_, context, request, response, reactor);
 }
 
-::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>* Bridge::Stub::PrepareAsyncChangeLocalCacheRaw(::grpc::ClientContext* context, const ::grpc::ChangeLocalCacheRequest& request, ::grpc::CompletionQueue* cq) {
-  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::google::protobuf::Empty, ::grpc::ChangeLocalCacheRequest, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_ChangeLocalCache_, context, request);
+::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>* Bridge::Stub::PrepareAsyncSetDiskCachePathRaw(::grpc::ClientContext* context, const ::google::protobuf::StringValue& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::google::protobuf::Empty, ::google::protobuf::StringValue, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_SetDiskCachePath_, context, request);
 }
 
-::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>* Bridge::Stub::AsyncChangeLocalCacheRaw(::grpc::ClientContext* context, const ::grpc::ChangeLocalCacheRequest& request, ::grpc::CompletionQueue* cq) {
+::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>* Bridge::Stub::AsyncSetDiskCachePathRaw(::grpc::ClientContext* context, const ::google::protobuf::StringValue& request, ::grpc::CompletionQueue* cq) {
   auto* result =
-    this->PrepareAsyncChangeLocalCacheRaw(context, request, cq);
+    this->PrepareAsyncSetDiskCachePathRaw(context, request, cq);
   result->StartCall();
   return result;
 }
@@ -1900,12 +1900,12 @@ Bridge::Service::Service() {
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       Bridge_method_names[37],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
-      new ::grpc::internal::RpcMethodHandler< Bridge::Service, ::grpc::ChangeLocalCacheRequest, ::google::protobuf::Empty, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+      new ::grpc::internal::RpcMethodHandler< Bridge::Service, ::google::protobuf::StringValue, ::google::protobuf::Empty, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
           [](Bridge::Service* service,
              ::grpc::ServerContext* ctx,
-             const ::grpc::ChangeLocalCacheRequest* req,
+             const ::google::protobuf::StringValue* req,
              ::google::protobuf::Empty* resp) {
-               return service->ChangeLocalCache(ctx, req, resp);
+               return service->SetDiskCachePath(ctx, req, resp);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       Bridge_method_names[38],
@@ -2391,7 +2391,7 @@ Bridge::Service::~Service() {
   return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
 }
 
-::grpc::Status Bridge::Service::ChangeLocalCache(::grpc::ServerContext* context, const ::grpc::ChangeLocalCacheRequest* request, ::google::protobuf::Empty* response) {
+::grpc::Status Bridge::Service::SetDiskCachePath(::grpc::ServerContext* context, const ::google::protobuf::StringValue* request, ::google::protobuf::Empty* response) {
   (void) context;
   (void) request;
   (void) response;

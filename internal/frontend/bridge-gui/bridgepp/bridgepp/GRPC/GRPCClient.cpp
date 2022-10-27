@@ -606,6 +606,16 @@ grpc::Status GRPCClient::diskCachePath(QUrl &outPath)
 
 
 //****************************************************************************************************************************************************
+/// \param[out] path The value for the property.
+/// \return The status for the gRPC call.
+//****************************************************************************************************************************************************
+grpc::Status GRPCClient::setDiskCachePath(QUrl const &path)
+{
+    return this->logGRPCCallStatus(this->setString(&Bridge::Stub::SetDiskCachePath, path.toLocalFile()), __FUNCTION__);
+}
+
+
+//****************************************************************************************************************************************************
 /// \param[in] username The username.
 /// \param[in] password The password.
 /// \return the status for the gRPC call.
@@ -1290,23 +1300,23 @@ void GRPCClient::processUpdateEvent(UpdateEvent const &event)
 //****************************************************************************************************************************************************
 /// \param[in] event The event.
 //****************************************************************************************************************************************************
-void GRPCClient::processCacheEvent(CacheEvent const &event)
+void GRPCClient::processCacheEvent(DiskCacheEvent const &event)
 {
     switch (event.event_case())
     {
-    case CacheEvent::kError:
+    case DiskCacheEvent::kError:
     {
         switch (event.error().type())
         {
-        case CACHE_UNAVAILABLE_ERROR:
-            this->logError("Cache error received: cacheUnavailable.");
-            emit cacheUnavailable();
+        case DISK_CACHE_UNAVAILABLE_ERROR:
+            this->logError("Cache error received: diskCacheUnavailable.");
+            emit diskCacheUnavailable();
             break;
-        case CACHE_CANT_MOVE_ERROR:
-            this->logError("Cache error received: cacheCantMove.");
-            emit cacheCantMove();
+        case CANT_MOVE_DISK_CACHE_ERROR:
+            this->logError("Cache error received: cantMoveDiskCache.");
+            emit cantMoveDiskCache();
             break;
-        case DISK_FULL:
+        case DISK_FULL_ERROR:
             this->logError("Cache error received: diskFull.");
             emit diskFull();
             break;
@@ -1317,20 +1327,16 @@ void GRPCClient::processCacheEvent(CacheEvent const &event)
         break;
     }
 
-    case CacheEvent::kLocationChangedSuccess:
-        this->logTrace("Cache event received: LocationChangedSuccess.");
-        emit cacheLocationChangeSuccess();
-        break;
-
-    case CacheEvent::kChangeLocalCacheFinished:
-        emit changeLocalCacheFinished(event.changelocalcachefinished().willrestart());
-        this->logTrace("Cache event received: ChangeLocalCacheFinished.");
-        break;
-
-    case CacheEvent::kDiskCachePathChanged:
+    case DiskCacheEvent::kPathChanged:
         this->logTrace("Cache event received: DiskCachePathChanged.");
-        emit diskCachePathChanged(QUrl::fromLocalFile(QString::fromStdString(event.diskcachepathchanged().path())));
+        emit diskCachePathChanged(QUrl::fromLocalFile(QString::fromStdString(event.pathchanged().path())));
         break;
+
+    case DiskCacheEvent::kPathChangeFinished:
+        this->logTrace("Cache event received: diskCachePathChangeFinished.");
+        emit diskCachePathChangeFinished();
+        break;
+
 
     default:
         this->logError("Unknown Cache event received.");

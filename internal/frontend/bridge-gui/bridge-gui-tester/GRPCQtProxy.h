@@ -50,7 +50,7 @@ public: // member functions.
     void changePorts(qint32 imapPort, qint32 smtpPort); ///< Forwards a ChangePorts call via a Qt signal.
     void setUseSSLForSMTP(bool use); ///< Forwards a SetUseSSLForSMTP call via a Qt signal.
     void setIsDoHEnabled(bool enabled); ///< Forwards a setIsDoHEnabled call via a Qt signal.
-    void changeLocalCache(bool enabled, QString const &path); ///< Forwards a ChangeLocalPath call via a Qt signal.
+    void setDiskCachePath(QString const &path); ///< Forwards a setDiskCachePath call via a Qt signal.
     void setIsAutomaticUpdateOn(bool on); ///< Forwards a SetIsAutomaticUpdateOn call via a Qt signal.
     void setUserSplitMode(QString const &userID, bool makeItActive); ///< Forwards a setUserSplitMode call via a Qt signal.
     void logoutUser(QString const &userID); ///< Forwards a logoutUser call via a Qt signal.
@@ -70,7 +70,7 @@ signals:
     void changePortsReceived(qint32 imapPort, qint32 smtpPort); ///< Signal for the ChangePorts gRPC call.
     void setUseSSLForSMTPReceived(bool use); ///< Signal for the SetUseSSLForSMTP gRPC call.
     void setIsDoHEnabledReceived(bool enabled); ///< Signal for the SetIsDoHEnabled gRPC call.
-    void changeLocalCacheReceived(bool enabled, QString const &path); ///< Signal for the ChangeLocalPath gRPC call.
+    void setDiskCachePathReceived(QString const &path); ///< Signal for the setDiskCachePath gRPC call.
     void setIsAutomaticUpdateOnReceived(bool on); ///< Signal for the SetIsAutomaticUpdateOn gRPC call.
     void setUserSplitModeReceived(QString const &userID, bool makeItActive); ///< Signal for the SetUserSplitModeReceived gRPC call.
     void logoutUserReceived(QString const &userID); ///< Signal for the LogoutUserReceived gRPC call.

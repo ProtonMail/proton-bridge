@@ -104,12 +104,11 @@ void QMLBackend::connectGrpcEvents()
     connect(client, &GRPCClient::showMainWindow, this, &QMLBackend::showMainWindow);
 
     // cache events
-    connect(client, &GRPCClient::diskCachePathChanged, this, &QMLBackend::diskCachePathChanged);
-    connect(client, &GRPCClient::cacheUnavailable, this, &QMLBackend::cacheUnavailable);                                                                                            //    _ func()                  `signal:"cacheUnavailable"`
-    connect(client, &GRPCClient::cacheCantMove, this, &QMLBackend::cacheCantMove);
+    connect(client, &GRPCClient::diskCacheUnavailable, this, &QMLBackend::diskCacheUnavailable);                                                                                            //    _ func()                  `signal:"cacheUnavailable"`
+    connect(client, &GRPCClient::cantMoveDiskCache, this, &QMLBackend::cantMoveDiskCache);
     connect(client, &GRPCClient::diskFull, this, &QMLBackend::diskFull);
-    connect(client, &GRPCClient::cacheLocationChangeSuccess, this, &QMLBackend::cacheLocationChangeSuccess);
-    connect(client, &GRPCClient::changeLocalCacheFinished, this, &QMLBackend::onChangeLocalCacheFinished);
+    connect(client, &GRPCClient::diskCachePathChanged, this, &QMLBackend::diskCachePathChanged);
+    connect(client, &GRPCClient::diskCachePathChangeFinished, this, &QMLBackend::diskCachePathChangeFinished);
 
     // login events
     connect(client, &GRPCClient::loginUsernamePasswordError, this, &QMLBackend::loginUsernamePasswordError);
@@ -220,6 +219,24 @@ bool QMLBackend::isPortFree(int port)
 
 
 //****************************************************************************************************************************************************
+/// \return true the native local file path of the given URL.
+//****************************************************************************************************************************************************
+QString QMLBackend::nativePath(QUrl const &url)
+{
+    return QDir::toNativeSeparators(url.toLocalFile());
+}
+
+
+//****************************************************************************************************************************************************
+/// \return true iff the two URL point to the same local file or folder.
+//****************************************************************************************************************************************************
+bool QMLBackend::areSameFileOrFolder(QUrl const &lhs, QUrl const &rhs)
+{
+    return QFileInfo(lhs.toLocalFile()) == QFileInfo(rhs.toLocalFile());
+}
+
+
+//****************************************************************************************************************************************************
 //
 //****************************************************************************************************************************************************
 void QMLBackend::guiReady()
@@ -295,6 +312,13 @@ void QMLBackend::changeColorScheme(QString const &scheme)
     emit colorSchemeNameChanged(this->colorSchemeName());
 }
 
+//****************************************************************************************************************************************************
+/// \param[in] path The path of the disk cache.
+//****************************************************************************************************************************************************
+void QMLBackend::setDiskCachePath(QUrl const &path) const
+{
+    app().grpc().setDiskCachePath(path);
+}
 
 //****************************************************************************************************************************************************
 /// \param[in] makeItActive Should SSL for SMTP be enabled.
@@ -403,15 +427,4 @@ void QMLBackend::onVersionChanged()
 {
     emit releaseNotesLinkChanged(releaseNotesLink());
     emit landingPageLinkChanged(landingPageLink());
-}
-
-
-//****************************************************************************************************************************************************
-///
-//****************************************************************************************************************************************************
-void QMLBackend::onChangeLocalCacheFinished(bool willRestart)
-{
-    if (willRestart)
-        emit hideMainWindow();
-    emit changeLocalCacheFinished();
 }

@@ -76,7 +76,7 @@ bridgepp::SPStreamEvent wrapUpdateEvent(grpc::UpdateEvent *updateEvent)
 /// \param[in] cacheEvent The cache event.
 /// \return The stream event.
 //****************************************************************************************************************************************************
-bridgepp::SPStreamEvent wrapCacheEvent(grpc::CacheEvent *cacheEvent)
+bridgepp::SPStreamEvent wrapCacheEvent(grpc::DiskCacheEvent *cacheEvent)
 {
     auto event = newStreamEvent();
     event->set_allocated_cache(cacheEvent);
@@ -385,36 +385,12 @@ SPStreamEvent newUpdateCheckFinished()
 /// \param[in] errorType The error type.
 /// \return The event.
 //****************************************************************************************************************************************************
-SPStreamEvent newCacheErrorEvent(grpc::CacheErrorType errorType)
+SPStreamEvent newDiskCacheErrorEvent(grpc::DiskCacheErrorType errorType)
 {
-    auto event = new grpc::CacheErrorEvent;
+    auto event = new grpc::DiskCacheErrorEvent;
     event->set_type(errorType);
-    auto cacheEvent = new grpc::CacheEvent;
+    auto cacheEvent = new grpc::DiskCacheEvent;
     cacheEvent->set_allocated_error(event);
-    return wrapCacheEvent(cacheEvent);
-}
-
-
-//****************************************************************************************************************************************************
-/// \return The event.
-//****************************************************************************************************************************************************
-SPStreamEvent newCacheLocationChangeSuccessEvent()
-{
-    auto event = new grpc::CacheLocationChangeSuccessEvent;
-    auto cacheEvent = new grpc::CacheEvent;
-    cacheEvent->set_allocated_locationchangedsuccess(event);
-    return wrapCacheEvent(cacheEvent);
-}
-
-
-//****************************************************************************************************************************************************
-/// \return The event.
-//****************************************************************************************************************************************************
-SPStreamEvent newChangeLocalCacheFinishedEvent()
-{
-    auto event = new grpc::ChangeLocalCacheFinishedEvent;
-    auto cacheEvent = new grpc::CacheEvent;
-    cacheEvent->set_allocated_changelocalcachefinished(event);
     return wrapCacheEvent(cacheEvent);
 }
 
@@ -423,12 +399,24 @@ SPStreamEvent newChangeLocalCacheFinishedEvent()
 /// \param[in] path The path of the cache.
 /// \return The event.
 //****************************************************************************************************************************************************
-SPStreamEvent newDiskCachePathChanged(QString const &path)
+SPStreamEvent newDiskCachePathChangedEvent(QString const &path)
 {
-    auto event = new grpc::DiskCachePathChanged;
+    auto event = new grpc::DiskCachePathChangedEvent;
     event->set_path(path.toStdString());
-    auto cacheEvent = new grpc::CacheEvent;
-    cacheEvent->set_allocated_diskcachepathchanged(event);
+    auto cacheEvent = new grpc::DiskCacheEvent;
+    cacheEvent->set_allocated_pathchanged(event);
+    return wrapCacheEvent(cacheEvent);
+}
+
+
+//****************************************************************************************************************************************************
+/// \return The event.
+//****************************************************************************************************************************************************
+SPStreamEvent newDiskCachePathChangeFinishedEvent()
+{
+    auto event = new grpc::DiskCachePathChangeFinishedEvent;
+    auto cacheEvent = new grpc::DiskCacheEvent;
+    cacheEvent->set_allocated_pathchangefinished(event);
     return wrapCacheEvent(cacheEvent);
 }
 

@@ -76,9 +76,8 @@ public: // member functions.
     grpc::Status InstallUpdate(::grpc::ServerContext *, ::google::protobuf::Empty const*, ::google::protobuf::Empty *) override;
     grpc::Status SetIsAutomaticUpdateOn(::grpc::ServerContext *, ::google::protobuf::BoolValue const *request, ::google::protobuf::Empty *) override;
     grpc::Status IsAutomaticUpdateOn(::grpc::ServerContext *, ::google::protobuf::Empty const*, ::google::protobuf::BoolValue *response) override;
-    grpc::Status IsCacheOnDiskEnabled(::grpc::ServerContext *, ::google::protobuf::Empty const*, ::google::protobuf::BoolValue *response) override;
     grpc::Status DiskCachePath(::grpc::ServerContext *, ::google::protobuf::Empty const*, ::google::protobuf::StringValue *response) override;
-    grpc::Status ChangeLocalCache(::grpc::ServerContext *, ::grpc::ChangeLocalCacheRequest const *request, ::google::protobuf::Empty *) override;
+    grpc::Status SetDiskCachePath(::grpc::ServerContext *, ::google::protobuf::StringValue const*, ::google::protobuf::Empty *r) override;
     grpc::Status SetIsDoHEnabled(::grpc::ServerContext *, ::google::protobuf::BoolValue const *request, ::google::protobuf::Empty *) override;
     grpc::Status IsDoHEnabled(::grpc::ServerContext *, ::google::protobuf::Empty const*, ::google::protobuf::BoolValue *response) override;
     grpc::Status SetUseSslForSmtp(::grpc::ServerContext *, ::google::protobuf::BoolValue const *request, ::google::protobuf::Empty *) override;

@@ -44,6 +44,10 @@ SettingsTab::SettingsTab(QWidget *parent)
     connect(ui_.buttonInternetOff, &QPushButton::clicked, []() { app().grpc().sendEvent(newInternetStatusEvent(false)); });
     connect(ui_.buttonShowMainWindow, &QPushButton::clicked, []() { app().grpc().sendEvent(newShowMainWindowEvent()); });
     connect(ui_.buttonAPICertIssue, &QPushButton::clicked, []() {app().grpc().sendEvent(newApiCertIssueEvent()); });
+    connect(ui_.buttonDiskCacheUnavailable, &QPushButton::clicked,[]() {app().grpc().sendEvent(
+        newDiskCacheErrorEvent(grpc::DiskCacheErrorType::DISK_CACHE_UNAVAILABLE_ERROR)); });
+    connect(ui_.buttonDiskFull, &QPushButton::clicked,[]() {app().grpc().sendEvent(
+        newDiskCacheErrorEvent(grpc::DiskCacheErrorType::DISK_FULL_ERROR)); });
     connect(ui_.buttonNoActiveKeyForRecipient, &QPushButton::clicked, [&]() {app().grpc().sendEvent(
         newNoActiveKeyForRecipientEvent(ui_.editNoActiveKeyForRecipient->text())); });
     connect(ui_.checkNextCacheChangeWillSucceed, &QCheckBox::toggled, this, &SettingsTab::updateGUIState);
@@ -403,21 +407,10 @@ bool SettingsTab::isPortFree() const
 
 
 //****************************************************************************************************************************************************
-/// \return true iff cache on disk is enabled.
-//****************************************************************************************************************************************************
-bool SettingsTab::isCacheOnDiskEnabled() const
-{
-    return ui_.checkCacheOnDiskEnabled->isChecked();
-}
-
-
-//****************************************************************************************************************************************************
-/// \param[in] enabled Is the cache on disk enabled?
 /// \param[in] path The path of the local cache.
 //****************************************************************************************************************************************************
-void SettingsTab::changeLocalCache(bool enabled, QString const &path)
+void SettingsTab::setDiskCachePath(const QString &path)
 {
-    ui_.checkCacheOnDiskEnabled->setChecked(enabled);
     ui_.editDiskCachePath->setText(path);
 }
 
@@ -523,7 +516,6 @@ void SettingsTab::resetUI()
     ui_.checkDoHEnabled->setChecked(true);
     ui_.checkIsPortFree->setChecked(true);
 
-    ui_.checkCacheOnDiskEnabled->setChecked(true);
     QString const cacheDir = QDir(tmpDir).absoluteFilePath("cache");
     QDir().mkpath(cacheDir);
     ui_.editDiskCachePath->setText(QDir::toNativeSeparators(cacheDir));

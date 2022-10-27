@@ -62,13 +62,12 @@ public: // member functions.
     bool useSSLForIMAP() const; ///< Get the value for the 'Use SSL for IMAP' check box.
     bool isDoHEnabled() const; ///< Get the value for the 'DoH Enabled' check box.
     bool isPortFree() const; ///< Get the value for the "Is Port Free" check box.
-    bool isCacheOnDiskEnabled() const; ///< get the value for the 'Cache On Disk Enabled' check box.
     QString diskCachePath() const; ///< Get the value for the 'Disk Cache Path' edit.
     bool nextCacheChangeWillSucceed() const; ///< Get the value for the 'Next Cache Change will succeed' edit.
     qint32 cacheError() const; ///< Return the index of the selected cache error.
     bool isAutomaticUpdateOn() const; ///<Get the value for the 'Automatic Update' check box.
 
-public: // slots
+public slots:
     void updateGUIState(); ///< Update the GUI state.
     void setIsStreaming(bool isStreaming); ///< Set the isStreamingEvents value.
     void setClientPlatform(QString const &clientPlatform); ///< Set the client platform.
@@ -82,7 +81,7 @@ public: // slots
     void setUseSSLForSMTP(bool use); ///< Set the value for the 'Use SSL for SMTP' check box.
     void setUseSSLForIMAP(bool use); ///< Set the value for the 'Use SSL for IMAP' check box.
     void setIsDoHEnabled(bool enabled); ///< Set the value for the 'DoH Enabled' check box.
-    void changeLocalCache(bool enabled, QString const &path); ///< Set the value for the 'Cache On Disk Enabled' check box.
+    void setDiskCachePath(QString const &path); ///< Set the value for the 'Cache On Disk Enabled' check box.
     void setIsAutomaticUpdateOn(bool on); ///< Set the value for the 'Automatic Update' check box.
 
 private: // member functions.

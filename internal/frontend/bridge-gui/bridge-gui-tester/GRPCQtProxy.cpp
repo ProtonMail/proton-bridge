@@ -47,7 +47,7 @@ void GRPCQtProxy::connectSignals()
     connect(this, &GRPCQtProxy::changePortsReceived, &settingsTab, &SettingsTab::changePorts);
     connect(this, &GRPCQtProxy::setUseSSLForSMTPReceived, &settingsTab, &SettingsTab::setUseSSLForSMTP);
     connect(this, &GRPCQtProxy::setIsDoHEnabledReceived, &settingsTab, &SettingsTab::setIsDoHEnabled);
-    connect(this, &GRPCQtProxy::changeLocalCacheReceived, &settingsTab, &SettingsTab::changeLocalCache);
+    connect(this, &GRPCQtProxy::setDiskCachePathReceived, &settingsTab, &SettingsTab::setDiskCachePath);
     connect(this, &GRPCQtProxy::setIsAutomaticUpdateOnReceived, &settingsTab, &SettingsTab::setIsAutomaticUpdateOn);
     connect(this, &GRPCQtProxy::setUserSplitModeReceived, &usersTab, &UsersTab::setUserSplitMode);
     connect(this, &GRPCQtProxy::removeUserReceived, &usersTab, &UsersTab::removeUser);
@@ -164,12 +164,11 @@ void GRPCQtProxy::setIsDoHEnabled(bool enabled)
 
 
 //****************************************************************************************************************************************************
-/// \param[in] enabled is cache on disk enabled?
-/// \param[in] path The path for the cache on disk.
+/// \param[in] path The disk cache path.
 //****************************************************************************************************************************************************
-void GRPCQtProxy::changeLocalCache(bool enabled, QString const &path)
+void GRPCQtProxy::setDiskCachePath(QString const &path)
 {
-    emit changeLocalCacheReceived(enabled, path);
+    emit setDiskCachePathReceived(path);
 }
 
 

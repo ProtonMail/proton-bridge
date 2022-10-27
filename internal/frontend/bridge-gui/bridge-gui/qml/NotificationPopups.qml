@@ -96,16 +96,6 @@ Item {
 
     NotificationDialog {
         colorScheme: root.colorScheme
-        notification: root.notifications.disableLocalCache
-    }
-
-    NotificationDialog {
-        colorScheme: root.colorScheme
-        notification: root.notifications.enableLocalCache
-    }
-
-    NotificationDialog {
-        colorScheme: root.colorScheme
         notification: root.notifications.resetBridge
     }
 

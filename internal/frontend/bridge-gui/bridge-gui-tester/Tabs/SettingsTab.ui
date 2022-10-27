@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1066</width>
+    <width>1127</width>
     <height>808</height>
    </rect>
   </property>
@@ -211,7 +211,7 @@
            </layout>
           </item>
           <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_7" stretch="0,0,0,0,1">
+           <layout class="QHBoxLayout" name="horizontalLayout_7" stretch="0,0,0,0,1,0">
             <item>
              <widget class="QLabel" name="labelMAP">
               <property name="text">
@@ -355,13 +355,6 @@
           <string>Cache</string>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_7">
-          <item>
-           <widget class="QCheckBox" name="checkCacheOnDiskEnabled">
-            <property name="text">
-             <string>Cache On Disk Enabled</string>
-            </property>
-           </widget>
-          </item>
           <item>
            <layout class="QHBoxLayout" name="horizontalLayout_10">
             <item>
@@ -734,6 +727,37 @@
            </layout>
           </item>
           <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_13">
+            <item>
+             <widget class="QPushButton" name="buttonDiskCacheUnavailable">
+              <property name="text">
+               <string>Disk Cache Unavailable</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="buttonDiskFull">
+              <property name="text">
+               <string>Disk Full</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="horizontalSpacer_2">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>1</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+           </layout>
+          </item>
+          <item>
            <layout class="QHBoxLayout" name="horizontalLayout_12">
             <item>
              <widget class="QPushButton" name="buttonNoActiveKeyForRecipient">
@@ -796,12 +820,12 @@
              <widget class="QComboBox" name="comboCacheError">
               <item>
                <property name="text">
-                <string>Cache Unavailable</string>
+                <string>Disk Cache Unavailable</string>
                </property>
               </item>
               <item>
                <property name="text">
-                <string>Can't Move Cache</string>
+                <string>Can't Move Disk Cache</string>
                </property>
               </item>
               <item>
@@ -851,7 +875,6 @@
   <tabstop>editReleaseNotesLink</tabstop>
   <tabstop>editDependencyLicenseLink</tabstop>
   <tabstop>editLandingPageLink</tabstop>
-  <tabstop>checkCacheOnDiskEnabled</tabstop>
   <tabstop>editDiskCachePath</tabstop>
   <tabstop>editOSType</tabstop>
   <tabstop>editOSVersion</tabstop>

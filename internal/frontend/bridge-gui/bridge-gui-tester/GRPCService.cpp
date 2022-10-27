@@ -573,19 +573,6 @@ Status GRPCService::IsAutomaticUpdateOn(ServerContext *, Empty const *, BoolValu
     return Status::OK;
 }
 
-
-//****************************************************************************************************************************************************
-/// \param[in] response The response.
-/// \return The status for the call
-//****************************************************************************************************************************************************
-Status GRPCService::IsCacheOnDiskEnabled(ServerContext *, Empty const *, BoolValue *response)
-{
-    app().log().debug(__FUNCTION__);
-    response->set_value(app().mainWindow().settingsTab().isCacheOnDiskEnabled());
-    return Status::OK;
-}
-
-
 //****************************************************************************************************************************************************
 /// \param[in] response The response.
 /// \return The status for the call
@@ -599,23 +586,25 @@ Status GRPCService::DiskCachePath(ServerContext *, Empty const *, StringValue *r
 
 
 //****************************************************************************************************************************************************
-/// \param[in] request The request.
+/// \param[in] path The path.
 /// \return The status for the call.
 //****************************************************************************************************************************************************
-Status GRPCService::ChangeLocalCache(ServerContext *, ChangeLocalCacheRequest const *request, Empty *)
+Status GRPCService::SetDiskCachePath(ServerContext *, StringValue const *path, Empty *)
 {
     app().log().debug(__FUNCTION__);
+
     SettingsTab &tab = app().mainWindow().settingsTab();
-    QString const path = QString::fromStdString(request->diskcachepath());
+    QString const qPath = QString::fromStdString(path->value());
 
     // we mimic the behaviour of Bridge
     if (!tab.nextCacheChangeWillSucceed())
-        qtProxy_.sendDelayedEvent(newCacheErrorEvent(grpc::CacheErrorType(tab.cacheError())));
+        qtProxy_.sendDelayedEvent(newDiskCacheErrorEvent(grpc::DiskCacheErrorType(tab.cacheError())));
     else
-        qtProxy_.sendDelayedEvent(newCacheLocationChangeSuccessEvent());
-    qtProxy_.sendDelayedEvent(newDiskCachePathChanged(path));
-    qtProxy_.sendDelayedEvent(newIsCacheOnDiskEnabledChanged(request->enablediskcache()));
-    qtProxy_.sendDelayedEvent(newChangeLocalCacheFinishedEvent());
+    {
+        qtProxy_.setDiskCachePath(qPath);
+        qtProxy_.sendDelayedEvent(newDiskCachePathChangedEvent(qPath));
+    }
+    qtProxy_.sendDelayedEvent(newDiskCachePathChangeFinishedEvent());
 
     return Status::OK;
 }

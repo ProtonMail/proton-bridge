@@ -48,6 +48,8 @@ public: // member functions.
     // invokable methods can be called from QML. They generally return a value, which slots cannot do.
     Q_INVOKABLE static QPoint getCursorPos();                                                                                                         //   _ func() *core.QPoint             `slot:"getCursorPos"`
     Q_INVOKABLE static bool isPortFree(int port);                                                                                                     //   _ func(port int) bool             `slot:"isPortFree"`
+    Q_INVOKABLE static QString nativePath(QUrl const &url);
+    Q_INVOKABLE static bool areSameFileOrFolder(QUrl const &lhs, QUrl const &rhs);
 
 public: // Qt/QML properties. Note that the NOTIFY-er signal is required even for read-only properties (QML warning otherwise)
     Q_PROPERTY(bool showOnStartup READ showOnStartup NOTIFY showOnStartupChanged)                                                                     //    _ bool        `property:showOnStartup`
@@ -112,7 +114,7 @@ public: // Qt/QML properties. Note that the NOTIFY-er signal is required even fo
     bool dockIconVisible() const { return getDockIconVisibleState(); };
     void setDockIconVisible(bool visible) { setDockIconVisibleState(visible); emit dockIconVisibleChanged(visible); }
 
-signals: // Signal used by the Qt property system. Many of them are unused but required to avoir warning from the QML engine.
+signals: // Signal used by the Qt property system. Many of them are unused but required to avoid warning from the QML engine.
     void showSplashScreenChanged(bool value);
     void showOnStartupChanged(bool value);
     void goosChanged(QString const &value);
@@ -147,6 +149,7 @@ public slots: // slot for signals received from QML -> To be forwarded to Bridge
     void toggleBeta(bool active);                                                                                                                     //    _ func(makeItActive bool)                                             `slot:"toggleBeta"`
     void changeIsAllMailVisible(bool isVisible);                                                                                                      //    _ func(isVisible bool)                                                `slot:"changeIsAllMailVisible"`
     void changeColorScheme(QString const &scheme);                                                                                                    //    _ func(string)                                                        `slot:"changeColorScheme"`
+    void setDiskCachePath(QUrl const& path) const;
     void login(QString const& username, QString const& password) { app().grpc().login(username, password);}                                           //    _ func(username, password string)                                     `slot:"login"`
     void login2FA(QString const& username, QString const& code) { app().grpc().login2FA(username, code);}                                             //    _ func(username, code string)                                         `slot:"login2FA"`
     void login2Password(QString const& username, QString const& password) { app().grpc().login2Passwords(username, password);}                        //    _ func(username, password string)                                     `slot:"login2Password"`
@@ -169,15 +172,13 @@ public slots: // slot for signals received from QML -> To be forwarded to Bridge
         app().grpc().reportBug(description, address, emailClient, includeLogs); }                                                                     //    _ func(description, address, emailClient string, includeLogs bool)    `slot:"reportBug"`
     void onResetFinished();                                                                                                                           //    _ func()                                                              `slot:"onResetFinished"`
     void onVersionChanged();                                                                                                                          //    _ func()                                                              `slot:"onVersionChanged"`
-    void onChangeLocalCacheFinished(bool willRestart);
 
 signals: // Signals received from the Go backend, to be forwarded to QML
     void toggleAutostartFinished();                                                                                                                   //    _ func()                  `signal:"toggleAutostartFinished"`
-    void cacheUnavailable();                                                                                                                          //    _ func()                  `signal:"cacheUnavailable"`
-    void cacheCantMove();                                                                                                                             //    _ func()                  `signal:"cacheCantMove"`
-    void cacheLocationChangeSuccess();                                                                                                                //    _ func()                  `signal:"cacheLocationChangeSuccess"`
+    void diskCacheUnavailable();                                                                                                                      //    _ func()                  `signal:"cacheUnavailable"`
+    void cantMoveDiskCache();                                                                                                                         //    _ func()                  `signal:"cacheCantMove"`
+    void diskCachePathChangeFinished();                                                                                                                //    _ func()                  `signal:"cacheLocationChangeSuccess"`
     void diskFull();                                                                                                                                  //    _ func()                  `signal:"diskFull"`
-    void changeLocalCacheFinished();                                                                                                                  //    _ func()                  `signal:"changeLocalCacheFinished"`
     void loginUsernamePasswordError(QString const &errorMsg);                                                                                         //    _ func(errorMsg string)   `signal:"loginUsernamePasswordError"`
     void loginFreeUserError();                                                                                                                        //    _ func()                  `signal:"loginFreeUserError"`
     void loginConnectionError(QString const &errorMsg);                                                                                               //    _ func(errorMsg string)   `signal:"loginConnectionError"`

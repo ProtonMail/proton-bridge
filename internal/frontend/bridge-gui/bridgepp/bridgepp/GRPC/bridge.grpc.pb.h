@@ -320,12 +320,12 @@ class Bridge final {
     std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::StringValue>> PrepareAsyncDiskCachePath(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::StringValue>>(PrepareAsyncDiskCachePathRaw(context, request, cq));
     }
-    virtual ::grpc::Status ChangeLocalCache(::grpc::ClientContext* context, const ::grpc::ChangeLocalCacheRequest& request, ::google::protobuf::Empty* response) = 0;
-    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>> AsyncChangeLocalCache(::grpc::ClientContext* context, const ::grpc::ChangeLocalCacheRequest& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>>(AsyncChangeLocalCacheRaw(context, request, cq));
+    virtual ::grpc::Status SetDiskCachePath(::grpc::ClientContext* context, const ::google::protobuf::StringValue& request, ::google::protobuf::Empty* response) = 0;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>> AsyncSetDiskCachePath(::grpc::ClientContext* context, const ::google::protobuf::StringValue& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>>(AsyncSetDiskCachePathRaw(context, request, cq));
     }
-    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>> PrepareAsyncChangeLocalCache(::grpc::ClientContext* context, const ::grpc::ChangeLocalCacheRequest& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>>(PrepareAsyncChangeLocalCacheRaw(context, request, cq));
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>> PrepareAsyncSetDiskCachePath(::grpc::ClientContext* context, const ::google::protobuf::StringValue& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>>(PrepareAsyncSetDiskCachePathRaw(context, request, cq));
     }
     // mail
     virtual ::grpc::Status SetIsDoHEnabled(::grpc::ClientContext* context, const ::google::protobuf::BoolValue& request, ::google::protobuf::Empty* response) = 0;
@@ -570,8 +570,8 @@ class Bridge final {
       // cache
       virtual void DiskCachePath(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::google::protobuf::StringValue* response, std::function<void(::grpc::Status)>) = 0;
       virtual void DiskCachePath(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::google::protobuf::StringValue* response, ::grpc::ClientUnaryReactor* reactor) = 0;
-      virtual void ChangeLocalCache(::grpc::ClientContext* context, const ::grpc::ChangeLocalCacheRequest* request, ::google::protobuf::Empty* response, std::function<void(::grpc::Status)>) = 0;
-      virtual void ChangeLocalCache(::grpc::ClientContext* context, const ::grpc::ChangeLocalCacheRequest* request, ::google::protobuf::Empty* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      virtual void SetDiskCachePath(::grpc::ClientContext* context, const ::google::protobuf::StringValue* request, ::google::protobuf::Empty* response, std::function<void(::grpc::Status)>) = 0;
+      virtual void SetDiskCachePath(::grpc::ClientContext* context, const ::google::protobuf::StringValue* request, ::google::protobuf::Empty* response, ::grpc::ClientUnaryReactor* reactor) = 0;
       // mail
       virtual void SetIsDoHEnabled(::grpc::ClientContext* context, const ::google::protobuf::BoolValue* request, ::google::protobuf::Empty* response, std::function<void(::grpc::Status)>) = 0;
       virtual void SetIsDoHEnabled(::grpc::ClientContext* context, const ::google::protobuf::BoolValue* request, ::google::protobuf::Empty* response, ::grpc::ClientUnaryReactor* reactor) = 0;
@@ -699,8 +699,8 @@ class Bridge final {
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::BoolValue>* PrepareAsyncIsAutomaticUpdateOnRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::StringValue>* AsyncDiskCachePathRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::StringValue>* PrepareAsyncDiskCachePathRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) = 0;
-    virtual ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>* AsyncChangeLocalCacheRaw(::grpc::ClientContext* context, const ::grpc::ChangeLocalCacheRequest& request, ::grpc::CompletionQueue* cq) = 0;
-    virtual ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>* PrepareAsyncChangeLocalCacheRaw(::grpc::ClientContext* context, const ::grpc::ChangeLocalCacheRequest& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>* AsyncSetDiskCachePathRaw(::grpc::ClientContext* context, const ::google::protobuf::StringValue& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>* PrepareAsyncSetDiskCachePathRaw(::grpc::ClientContext* context, const ::google::protobuf::StringValue& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>* AsyncSetIsDoHEnabledRaw(::grpc::ClientContext* context, const ::google::protobuf::BoolValue& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>* PrepareAsyncSetIsDoHEnabledRaw(::grpc::ClientContext* context, const ::google::protobuf::BoolValue& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::BoolValue>* AsyncIsDoHEnabledRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) = 0;
@@ -1009,12 +1009,12 @@ class Bridge final {
     std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::google::protobuf::StringValue>> PrepareAsyncDiskCachePath(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::google::protobuf::StringValue>>(PrepareAsyncDiskCachePathRaw(context, request, cq));
     }
-    ::grpc::Status ChangeLocalCache(::grpc::ClientContext* context, const ::grpc::ChangeLocalCacheRequest& request, ::google::protobuf::Empty* response) override;
-    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>> AsyncChangeLocalCache(::grpc::ClientContext* context, const ::grpc::ChangeLocalCacheRequest& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>>(AsyncChangeLocalCacheRaw(context, request, cq));
+    ::grpc::Status SetDiskCachePath(::grpc::ClientContext* context, const ::google::protobuf::StringValue& request, ::google::protobuf::Empty* response) override;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>> AsyncSetDiskCachePath(::grpc::ClientContext* context, const ::google::protobuf::StringValue& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>>(AsyncSetDiskCachePathRaw(context, request, cq));
     }
-    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>> PrepareAsyncChangeLocalCache(::grpc::ClientContext* context, const ::grpc::ChangeLocalCacheRequest& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>>(PrepareAsyncChangeLocalCacheRaw(context, request, cq));
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>> PrepareAsyncSetDiskCachePath(::grpc::ClientContext* context, const ::google::protobuf::StringValue& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>>(PrepareAsyncSetDiskCachePathRaw(context, request, cq));
     }
     ::grpc::Status SetIsDoHEnabled(::grpc::ClientContext* context, const ::google::protobuf::BoolValue& request, ::google::protobuf::Empty* response) override;
     std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>> AsyncSetIsDoHEnabled(::grpc::ClientContext* context, const ::google::protobuf::BoolValue& request, ::grpc::CompletionQueue* cq) {
@@ -1249,8 +1249,8 @@ class Bridge final {
       void IsAutomaticUpdateOn(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::google::protobuf::BoolValue* response, ::grpc::ClientUnaryReactor* reactor) override;
       void DiskCachePath(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::google::protobuf::StringValue* response, std::function<void(::grpc::Status)>) override;
       void DiskCachePath(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::google::protobuf::StringValue* response, ::grpc::ClientUnaryReactor* reactor) override;
-      void ChangeLocalCache(::grpc::ClientContext* context, const ::grpc::ChangeLocalCacheRequest* request, ::google::protobuf::Empty* response, std::function<void(::grpc::Status)>) override;
-      void ChangeLocalCache(::grpc::ClientContext* context, const ::grpc::ChangeLocalCacheRequest* request, ::google::protobuf::Empty* response, ::grpc::ClientUnaryReactor* reactor) override;
+      void SetDiskCachePath(::grpc::ClientContext* context, const ::google::protobuf::StringValue* request, ::google::protobuf::Empty* response, std::function<void(::grpc::Status)>) override;
+      void SetDiskCachePath(::grpc::ClientContext* context, const ::google::protobuf::StringValue* request, ::google::protobuf::Empty* response, ::grpc::ClientUnaryReactor* reactor) override;
       void SetIsDoHEnabled(::grpc::ClientContext* context, const ::google::protobuf::BoolValue* request, ::google::protobuf::Empty* response, std::function<void(::grpc::Status)>) override;
       void SetIsDoHEnabled(::grpc::ClientContext* context, const ::google::protobuf::BoolValue* request, ::google::protobuf::Empty* response, ::grpc::ClientUnaryReactor* reactor) override;
       void IsDoHEnabled(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::google::protobuf::BoolValue* response, std::function<void(::grpc::Status)>) override;
@@ -1379,8 +1379,8 @@ class Bridge final {
     ::grpc::ClientAsyncResponseReader< ::google::protobuf::BoolValue>* PrepareAsyncIsAutomaticUpdateOnRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::google::protobuf::StringValue>* AsyncDiskCachePathRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::google::protobuf::StringValue>* PrepareAsyncDiskCachePathRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) override;
-    ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>* AsyncChangeLocalCacheRaw(::grpc::ClientContext* context, const ::grpc::ChangeLocalCacheRequest& request, ::grpc::CompletionQueue* cq) override;
-    ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>* PrepareAsyncChangeLocalCacheRaw(::grpc::ClientContext* context, const ::grpc::ChangeLocalCacheRequest& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>* AsyncSetDiskCachePathRaw(::grpc::ClientContext* context, const ::google::protobuf::StringValue& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>* PrepareAsyncSetDiskCachePathRaw(::grpc::ClientContext* context, const ::google::protobuf::StringValue& request, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>* AsyncSetIsDoHEnabledRaw(::grpc::ClientContext* context, const ::google::protobuf::BoolValue& request, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>* PrepareAsyncSetIsDoHEnabledRaw(::grpc::ClientContext* context, const ::google::protobuf::BoolValue& request, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::google::protobuf::BoolValue>* AsyncIsDoHEnabledRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) override;
@@ -1463,7 +1463,7 @@ class Bridge final {
     const ::grpc::internal::RpcMethod rpcmethod_SetIsAutomaticUpdateOn_;
     const ::grpc::internal::RpcMethod rpcmethod_IsAutomaticUpdateOn_;
     const ::grpc::internal::RpcMethod rpcmethod_DiskCachePath_;
-    const ::grpc::internal::RpcMethod rpcmethod_ChangeLocalCache_;
+    const ::grpc::internal::RpcMethod rpcmethod_SetDiskCachePath_;
     const ::grpc::internal::RpcMethod rpcmethod_SetIsDoHEnabled_;
     const ::grpc::internal::RpcMethod rpcmethod_IsDoHEnabled_;
     const ::grpc::internal::RpcMethod rpcmethod_SetUseSslForSmtp_;
@@ -1535,7 +1535,7 @@ class Bridge final {
     virtual ::grpc::Status IsAutomaticUpdateOn(::grpc::ServerContext* context, const ::google::protobuf::Empty* request, ::google::protobuf::BoolValue* response);
     // cache
     virtual ::grpc::Status DiskCachePath(::grpc::ServerContext* context, const ::google::protobuf::Empty* request, ::google::protobuf::StringValue* response);
-    virtual ::grpc::Status ChangeLocalCache(::grpc::ServerContext* context, const ::grpc::ChangeLocalCacheRequest* request, ::google::protobuf::Empty* response);
+    virtual ::grpc::Status SetDiskCachePath(::grpc::ServerContext* context, const ::google::protobuf::StringValue* request, ::google::protobuf::Empty* response);
     // mail
     virtual ::grpc::Status SetIsDoHEnabled(::grpc::ServerContext* context, const ::google::protobuf::BoolValue* request, ::google::protobuf::Empty* response);
     virtual ::grpc::Status IsDoHEnabled(::grpc::ServerContext* context, const ::google::protobuf::Empty* request, ::google::protobuf::BoolValue* response);
@@ -2305,22 +2305,22 @@ class Bridge final {
     }
   };
   template <class BaseClass>
-  class WithAsyncMethod_ChangeLocalCache : public BaseClass {
+  class WithAsyncMethod_SetDiskCachePath : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithAsyncMethod_ChangeLocalCache() {
+    WithAsyncMethod_SetDiskCachePath() {
       ::grpc::Service::MarkMethodAsync(37);
     }
-    ~WithAsyncMethod_ChangeLocalCache() override {
+    ~WithAsyncMethod_SetDiskCachePath() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status ChangeLocalCache(::grpc::ServerContext* /*context*/, const ::grpc::ChangeLocalCacheRequest* /*request*/, ::google::protobuf::Empty* /*response*/) override {
+    ::grpc::Status SetDiskCachePath(::grpc::ServerContext* /*context*/, const ::google::protobuf::StringValue* /*request*/, ::google::protobuf::Empty* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    void RequestChangeLocalCache(::grpc::ServerContext* context, ::grpc::ChangeLocalCacheRequest* request, ::grpc::ServerAsyncResponseWriter< ::google::protobuf::Empty>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+    void RequestSetDiskCachePath(::grpc::ServerContext* context, ::google::protobuf::StringValue* request, ::grpc::ServerAsyncResponseWriter< ::google::protobuf::Empty>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
       ::grpc::Service::RequestAsyncUnary(37, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
@@ -2764,7 +2764,7 @@ class Bridge final {
       ::grpc::Service::RequestAsyncUnary(59, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
-  typedef WithAsyncMethod_CheckTokens<WithAsyncMethod_AddLogEntry<WithAsyncMethod_GuiReady<WithAsyncMethod_Quit<WithAsyncMethod_Restart<WithAsyncMethod_ShowOnStartup<WithAsyncMethod_ShowSplashScreen<WithAsyncMethod_IsFirstGuiStart<WithAsyncMethod_SetIsAutostartOn<WithAsyncMethod_IsAutostartOn<WithAsyncMethod_SetIsBetaEnabled<WithAsyncMethod_IsBetaEnabled<WithAsyncMethod_SetIsAllMailVisible<WithAsyncMethod_IsAllMailVisible<WithAsyncMethod_GoOs<WithAsyncMethod_TriggerReset<WithAsyncMethod_Version<WithAsyncMethod_LogsPath<WithAsyncMethod_LicensePath<WithAsyncMethod_ReleaseNotesPageLink<WithAsyncMethod_DependencyLicensesLink<WithAsyncMethod_LandingPageLink<WithAsyncMethod_SetColorSchemeName<WithAsyncMethod_ColorSchemeName<WithAsyncMethod_CurrentEmailClient<WithAsyncMethod_ReportBug<WithAsyncMethod_ForceLauncher<WithAsyncMethod_SetMainExecutable<WithAsyncMethod_Login<WithAsyncMethod_Login2FA<WithAsyncMethod_Login2Passwords<WithAsyncMethod_LoginAbort<WithAsyncMethod_CheckUpdate<WithAsyncMethod_InstallUpdate<WithAsyncMethod_SetIsAutomaticUpdateOn<WithAsyncMethod_IsAutomaticUpdateOn<WithAsyncMethod_DiskCachePath<WithAsyncMethod_ChangeLocalCache<WithAsyncMethod_SetIsDoHEnabled<WithAsyncMethod_IsDoHEnabled<WithAsyncMethod_SetUseSslForSmtp<WithAsyncMethod_UseSslForSmtp<WithAsyncMethod_SetUseSslForImap<WithAsyncMethod_UseSslForImap<WithAsyncMethod_Hostname<WithAsyncMethod_ImapPort<WithAsyncMethod_SmtpPort<WithAsyncMethod_ChangePorts<WithAsyncMethod_IsPortFree<WithAsyncMethod_AvailableKeychains<WithAsyncMethod_SetCurrentKeychain<WithAsyncMethod_CurrentKeychain<WithAsyncMethod_GetUserList<WithAsyncMethod_GetUser<WithAsyncMethod_SetUserSplitMode<WithAsyncMethod_LogoutUser<WithAsyncMethod_RemoveUser<WithAsyncMethod_ConfigureUserAppleMail<WithAsyncMethod_RunEventStream<WithAsyncMethod_StopEventStream<Service > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > AsyncService;
+  typedef WithAsyncMethod_CheckTokens<WithAsyncMethod_AddLogEntry<WithAsyncMethod_GuiReady<WithAsyncMethod_Quit<WithAsyncMethod_Restart<WithAsyncMethod_ShowOnStartup<WithAsyncMethod_ShowSplashScreen<WithAsyncMethod_IsFirstGuiStart<WithAsyncMethod_SetIsAutostartOn<WithAsyncMethod_IsAutostartOn<WithAsyncMethod_SetIsBetaEnabled<WithAsyncMethod_IsBetaEnabled<WithAsyncMethod_SetIsAllMailVisible<WithAsyncMethod_IsAllMailVisible<WithAsyncMethod_GoOs<WithAsyncMethod_TriggerReset<WithAsyncMethod_Version<WithAsyncMethod_LogsPath<WithAsyncMethod_LicensePath<WithAsyncMethod_ReleaseNotesPageLink<WithAsyncMethod_DependencyLicensesLink<WithAsyncMethod_LandingPageLink<WithAsyncMethod_SetColorSchemeName<WithAsyncMethod_ColorSchemeName<WithAsyncMethod_CurrentEmailClient<WithAsyncMethod_ReportBug<WithAsyncMethod_ForceLauncher<WithAsyncMethod_SetMainExecutable<WithAsyncMethod_Login<WithAsyncMethod_Login2FA<WithAsyncMethod_Login2Passwords<WithAsyncMethod_LoginAbort<WithAsyncMethod_CheckUpdate<WithAsyncMethod_InstallUpdate<WithAsyncMethod_SetIsAutomaticUpdateOn<WithAsyncMethod_IsAutomaticUpdateOn<WithAsyncMethod_DiskCachePath<WithAsyncMethod_SetDiskCachePath<WithAsyncMethod_SetIsDoHEnabled<WithAsyncMethod_IsDoHEnabled<WithAsyncMethod_SetUseSslForSmtp<WithAsyncMethod_UseSslForSmtp<WithAsyncMethod_SetUseSslForImap<WithAsyncMethod_UseSslForImap<WithAsyncMethod_Hostname<WithAsyncMethod_ImapPort<WithAsyncMethod_SmtpPort<WithAsyncMethod_ChangePorts<WithAsyncMethod_IsPortFree<WithAsyncMethod_AvailableKeychains<WithAsyncMethod_SetCurrentKeychain<WithAsyncMethod_CurrentKeychain<WithAsyncMethod_GetUserList<WithAsyncMethod_GetUser<WithAsyncMethod_SetUserSplitMode<WithAsyncMethod_LogoutUser<WithAsyncMethod_RemoveUser<WithAsyncMethod_ConfigureUserAppleMail<WithAsyncMethod_RunEventStream<WithAsyncMethod_StopEventStream<Service > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > AsyncService;
   template <class BaseClass>
   class WithCallbackMethod_CheckTokens : public BaseClass {
    private:
@@ -3765,31 +3765,31 @@ class Bridge final {
       ::grpc::CallbackServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::google::protobuf::StringValue* /*response*/)  { return nullptr; }
   };
   template <class BaseClass>
-  class WithCallbackMethod_ChangeLocalCache : public BaseClass {
+  class WithCallbackMethod_SetDiskCachePath : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithCallbackMethod_ChangeLocalCache() {
+    WithCallbackMethod_SetDiskCachePath() {
       ::grpc::Service::MarkMethodCallback(37,
-          new ::grpc::internal::CallbackUnaryHandler< ::grpc::ChangeLocalCacheRequest, ::google::protobuf::Empty>(
+          new ::grpc::internal::CallbackUnaryHandler< ::google::protobuf::StringValue, ::google::protobuf::Empty>(
             [this](
-                   ::grpc::CallbackServerContext* context, const ::grpc::ChangeLocalCacheRequest* request, ::google::protobuf::Empty* response) { return this->ChangeLocalCache(context, request, response); }));}
-    void SetMessageAllocatorFor_ChangeLocalCache(
-        ::grpc::MessageAllocator< ::grpc::ChangeLocalCacheRequest, ::google::protobuf::Empty>* allocator) {
+                   ::grpc::CallbackServerContext* context, const ::google::protobuf::StringValue* request, ::google::protobuf::Empty* response) { return this->SetDiskCachePath(context, request, response); }));}
+    void SetMessageAllocatorFor_SetDiskCachePath(
+        ::grpc::MessageAllocator< ::google::protobuf::StringValue, ::google::protobuf::Empty>* allocator) {
       ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(37);
-      static_cast<::grpc::internal::CallbackUnaryHandler< ::grpc::ChangeLocalCacheRequest, ::google::protobuf::Empty>*>(handler)
+      static_cast<::grpc::internal::CallbackUnaryHandler< ::google::protobuf::StringValue, ::google::protobuf::Empty>*>(handler)
               ->SetMessageAllocator(allocator);
     }
-    ~WithCallbackMethod_ChangeLocalCache() override {
+    ~WithCallbackMethod_SetDiskCachePath() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status ChangeLocalCache(::grpc::ServerContext* /*context*/, const ::grpc::ChangeLocalCacheRequest* /*request*/, ::google::protobuf::Empty* /*response*/) override {
+    ::grpc::Status SetDiskCachePath(::grpc::ServerContext* /*context*/, const ::google::protobuf::StringValue* /*request*/, ::google::protobuf::Empty* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    virtual ::grpc::ServerUnaryReactor* ChangeLocalCache(
-      ::grpc::CallbackServerContext* /*context*/, const ::grpc::ChangeLocalCacheRequest* /*request*/, ::google::protobuf::Empty* /*response*/)  { return nullptr; }
+    virtual ::grpc::ServerUnaryReactor* SetDiskCachePath(
+      ::grpc::CallbackServerContext* /*context*/, const ::google::protobuf::StringValue* /*request*/, ::google::protobuf::Empty* /*response*/)  { return nullptr; }
   };
   template <class BaseClass>
   class WithCallbackMethod_SetIsDoHEnabled : public BaseClass {
@@ -4380,7 +4380,7 @@ class Bridge final {
     virtual ::grpc::ServerUnaryReactor* StopEventStream(
       ::grpc::CallbackServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::google::protobuf::Empty* /*response*/)  { return nullptr; }
   };
-  typedef WithCallbackMethod_CheckTokens<WithCallbackMethod_AddLogEntry<WithCallbackMethod_GuiReady<WithCallbackMethod_Quit<WithCallbackMethod_Restart<WithCallbackMethod_ShowOnStartup<WithCallbackMethod_ShowSplashScreen<WithCallbackMethod_IsFirstGuiStart<WithCallbackMethod_SetIsAutostartOn<WithCallbackMethod_IsAutostartOn<WithCallbackMethod_SetIsBetaEnabled<WithCallbackMethod_IsBetaEnabled<WithCallbackMethod_SetIsAllMailVisible<WithCallbackMethod_IsAllMailVisible<WithCallbackMethod_GoOs<WithCallbackMethod_TriggerReset<WithCallbackMethod_Version<WithCallbackMethod_LogsPath<WithCallbackMethod_LicensePath<WithCallbackMethod_ReleaseNotesPageLink<WithCallbackMethod_DependencyLicensesLink<WithCallbackMethod_LandingPageLink<WithCallbackMethod_SetColorSchemeName<WithCallbackMethod_ColorSchemeName<WithCallbackMethod_CurrentEmailClient<WithCallbackMethod_ReportBug<WithCallbackMethod_ForceLauncher<WithCallbackMethod_SetMainExecutable<WithCallbackMethod_Login<WithCallbackMethod_Login2FA<WithCallbackMethod_Login2Passwords<WithCallbackMethod_LoginAbort<WithCallbackMethod_CheckUpdate<WithCallbackMethod_InstallUpdate<WithCallbackMethod_SetIsAutomaticUpdateOn<WithCallbackMethod_IsAutomaticUpdateOn<WithCallbackMethod_DiskCachePath<WithCallbackMethod_ChangeLocalCache<WithCallbackMethod_SetIsDoHEnabled<WithCallbackMethod_IsDoHEnabled<WithCallbackMethod_SetUseSslForSmtp<WithCallbackMethod_UseSslForSmtp<WithCallbackMethod_SetUseSslForImap<WithCallbackMethod_UseSslForImap<WithCallbackMethod_Hostname<WithCallbackMethod_ImapPort<WithCallbackMethod_SmtpPort<WithCallbackMethod_ChangePorts<WithCallbackMethod_IsPortFree<WithCallbackMethod_AvailableKeychains<WithCallbackMethod_SetCurrentKeychain<WithCallbackMethod_CurrentKeychain<WithCallbackMethod_GetUserList<WithCallbackMethod_GetUser<WithCallbackMethod_SetUserSplitMode<WithCallbackMethod_LogoutUser<WithCallbackMethod_RemoveUser<WithCallbackMethod_ConfigureUserAppleMail<WithCallbackMethod_RunEventStream<WithCallbackMethod_StopEventStream<Service > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > CallbackService;
+  typedef WithCallbackMethod_CheckTokens<WithCallbackMethod_AddLogEntry<WithCallbackMethod_GuiReady<WithCallbackMethod_Quit<WithCallbackMethod_Restart<WithCallbackMethod_ShowOnStartup<WithCallbackMethod_ShowSplashScreen<WithCallbackMethod_IsFirstGuiStart<WithCallbackMethod_SetIsAutostartOn<WithCallbackMethod_IsAutostartOn<WithCallbackMethod_SetIsBetaEnabled<WithCallbackMethod_IsBetaEnabled<WithCallbackMethod_SetIsAllMailVisible<WithCallbackMethod_IsAllMailVisible<WithCallbackMethod_GoOs<WithCallbackMethod_TriggerReset<WithCallbackMethod_Version<WithCallbackMethod_LogsPath<WithCallbackMethod_LicensePath<WithCallbackMethod_ReleaseNotesPageLink<WithCallbackMethod_DependencyLicensesLink<WithCallbackMethod_LandingPageLink<WithCallbackMethod_SetColorSchemeName<WithCallbackMethod_ColorSchemeName<WithCallbackMethod_CurrentEmailClient<WithCallbackMethod_ReportBug<WithCallbackMethod_ForceLauncher<WithCallbackMethod_SetMainExecutable<WithCallbackMethod_Login<WithCallbackMethod_Login2FA<WithCallbackMethod_Login2Passwords<WithCallbackMethod_LoginAbort<WithCallbackMethod_CheckUpdate<WithCallbackMethod_InstallUpdate<WithCallbackMethod_SetIsAutomaticUpdateOn<WithCallbackMethod_IsAutomaticUpdateOn<WithCallbackMethod_DiskCachePath<WithCallbackMethod_SetDiskCachePath<WithCallbackMethod_SetIsDoHEnabled<WithCallbackMethod_IsDoHEnabled<WithCallbackMethod_SetUseSslForSmtp<WithCallbackMethod_UseSslForSmtp<WithCallbackMethod_SetUseSslForImap<WithCallbackMethod_UseSslForImap<WithCallbackMethod_Hostname<WithCallbackMethod_ImapPort<WithCallbackMethod_SmtpPort<WithCallbackMethod_ChangePorts<WithCallbackMethod_IsPortFree<WithCallbackMethod_AvailableKeychains<WithCallbackMethod_SetCurrentKeychain<WithCallbackMethod_CurrentKeychain<WithCallbackMethod_GetUserList<WithCallbackMethod_GetUser<WithCallbackMethod_SetUserSplitMode<WithCallbackMethod_LogoutUser<WithCallbackMethod_RemoveUser<WithCallbackMethod_ConfigureUserAppleMail<WithCallbackMethod_RunEventStream<WithCallbackMethod_StopEventStream<Service > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > CallbackService;
   typedef CallbackService ExperimentalCallbackService;
   template <class BaseClass>
   class WithGenericMethod_CheckTokens : public BaseClass {
@@ -5012,18 +5012,18 @@ class Bridge final {
     }
   };
   template <class BaseClass>
-  class WithGenericMethod_ChangeLocalCache : public BaseClass {
+  class WithGenericMethod_SetDiskCachePath : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithGenericMethod_ChangeLocalCache() {
+    WithGenericMethod_SetDiskCachePath() {
       ::grpc::Service::MarkMethodGeneric(37);
     }
-    ~WithGenericMethod_ChangeLocalCache() override {
+    ~WithGenericMethod_SetDiskCachePath() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status ChangeLocalCache(::grpc::ServerContext* /*context*/, const ::grpc::ChangeLocalCacheRequest* /*request*/, ::google::protobuf::Empty* /*response*/) override {
+    ::grpc::Status SetDiskCachePath(::grpc::ServerContext* /*context*/, const ::google::protobuf::StringValue* /*request*/, ::google::protobuf::Empty* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
@@ -6143,22 +6143,22 @@ class Bridge final {
     }
   };
   template <class BaseClass>
-  class WithRawMethod_ChangeLocalCache : public BaseClass {
+  class WithRawMethod_SetDiskCachePath : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithRawMethod_ChangeLocalCache() {
+    WithRawMethod_SetDiskCachePath() {
       ::grpc::Service::MarkMethodRaw(37);
     }
-    ~WithRawMethod_ChangeLocalCache() override {
+    ~WithRawMethod_SetDiskCachePath() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status ChangeLocalCache(::grpc::ServerContext* /*context*/, const ::grpc::ChangeLocalCacheRequest* /*request*/, ::google::protobuf::Empty* /*response*/) override {
+    ::grpc::Status SetDiskCachePath(::grpc::ServerContext* /*context*/, const ::google::protobuf::StringValue* /*request*/, ::google::protobuf::Empty* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    void RequestChangeLocalCache(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+    void RequestSetDiskCachePath(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
       ::grpc::Service::RequestAsyncUnary(37, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
@@ -7417,25 +7417,25 @@ class Bridge final {
       ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
   };
   template <class BaseClass>
-  class WithRawCallbackMethod_ChangeLocalCache : public BaseClass {
+  class WithRawCallbackMethod_SetDiskCachePath : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithRawCallbackMethod_ChangeLocalCache() {
+    WithRawCallbackMethod_SetDiskCachePath() {
       ::grpc::Service::MarkMethodRawCallback(37,
           new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
-                   ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->ChangeLocalCache(context, request, response); }));
+                   ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->SetDiskCachePath(context, request, response); }));
     }
-    ~WithRawCallbackMethod_ChangeLocalCache() override {
+    ~WithRawCallbackMethod_SetDiskCachePath() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status ChangeLocalCache(::grpc::ServerContext* /*context*/, const ::grpc::ChangeLocalCacheRequest* /*request*/, ::google::protobuf::Empty* /*response*/) override {
+    ::grpc::Status SetDiskCachePath(::grpc::ServerContext* /*context*/, const ::google::protobuf::StringValue* /*request*/, ::google::protobuf::Empty* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    virtual ::grpc::ServerUnaryReactor* ChangeLocalCache(
+    virtual ::grpc::ServerUnaryReactor* SetDiskCachePath(
       ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
   };
   template <class BaseClass>
@@ -8922,31 +8922,31 @@ class Bridge final {
     virtual ::grpc::Status StreamedDiskCachePath(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::google::protobuf::Empty,::google::protobuf::StringValue>* server_unary_streamer) = 0;
   };
   template <class BaseClass>
-  class WithStreamedUnaryMethod_ChangeLocalCache : public BaseClass {
+  class WithStreamedUnaryMethod_SetDiskCachePath : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithStreamedUnaryMethod_ChangeLocalCache() {
+    WithStreamedUnaryMethod_SetDiskCachePath() {
       ::grpc::Service::MarkMethodStreamed(37,
         new ::grpc::internal::StreamedUnaryHandler<
-          ::grpc::ChangeLocalCacheRequest, ::google::protobuf::Empty>(
+          ::google::protobuf::StringValue, ::google::protobuf::Empty>(
             [this](::grpc::ServerContext* context,
                    ::grpc::ServerUnaryStreamer<
-                     ::grpc::ChangeLocalCacheRequest, ::google::protobuf::Empty>* streamer) {
-                       return this->StreamedChangeLocalCache(context,
+                     ::google::protobuf::StringValue, ::google::protobuf::Empty>* streamer) {
+                       return this->StreamedSetDiskCachePath(context,
                          streamer);
                   }));
     }
-    ~WithStreamedUnaryMethod_ChangeLocalCache() override {
+    ~WithStreamedUnaryMethod_SetDiskCachePath() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable regular version of this method
-    ::grpc::Status ChangeLocalCache(::grpc::ServerContext* /*context*/, const ::grpc::ChangeLocalCacheRequest* /*request*/, ::google::protobuf::Empty* /*response*/) override {
+    ::grpc::Status SetDiskCachePath(::grpc::ServerContext* /*context*/, const ::google::protobuf::StringValue* /*request*/, ::google::protobuf::Empty* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     // replace default version of method with streamed unary
-    virtual ::grpc::Status StreamedChangeLocalCache(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::grpc::ChangeLocalCacheRequest,::google::protobuf::Empty>* server_unary_streamer) = 0;
+    virtual ::grpc::Status StreamedSetDiskCachePath(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::google::protobuf::StringValue,::google::protobuf::Empty>* server_unary_streamer) = 0;
   };
   template <class BaseClass>
   class WithStreamedUnaryMethod_SetIsDoHEnabled : public BaseClass {
@@ -9515,7 +9515,7 @@ class Bridge final {
     // replace default version of method with streamed unary
     virtual ::grpc::Status StreamedStopEventStream(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::google::protobuf::Empty,::google::protobuf::Empty>* server_unary_streamer) = 0;
   };
-  typedef WithStreamedUnaryMethod_CheckTokens<WithStreamedUnaryMethod_AddLogEntry<WithStreamedUnaryMethod_GuiReady<WithStreamedUnaryMethod_Quit<WithStreamedUnaryMethod_Restart<WithStreamedUnaryMethod_ShowOnStartup<WithStreamedUnaryMethod_ShowSplashScreen<WithStreamedUnaryMethod_IsFirstGuiStart<WithStreamedUnaryMethod_SetIsAutostartOn<WithStreamedUnaryMethod_IsAutostartOn<WithStreamedUnaryMethod_SetIsBetaEnabled<WithStreamedUnaryMethod_IsBetaEnabled<WithStreamedUnaryMethod_SetIsAllMailVisible<WithStreamedUnaryMethod_IsAllMailVisible<WithStreamedUnaryMethod_GoOs<WithStreamedUnaryMethod_TriggerReset<WithStreamedUnaryMethod_Version<WithStreamedUnaryMethod_LogsPath<WithStreamedUnaryMethod_LicensePath<WithStreamedUnaryMethod_ReleaseNotesPageLink<WithStreamedUnaryMethod_DependencyLicensesLink<WithStreamedUnaryMethod_LandingPageLink<WithStreamedUnaryMethod_SetColorSchemeName<WithStreamedUnaryMethod_ColorSchemeName<WithStreamedUnaryMethod_CurrentEmailClient<WithStreamedUnaryMethod_ReportBug<WithStreamedUnaryMethod_ForceLauncher<WithStreamedUnaryMethod_SetMainExecutable<WithStreamedUnaryMethod_Login<WithStreamedUnaryMethod_Login2FA<WithStreamedUnaryMethod_Login2Passwords<WithStreamedUnaryMethod_LoginAbort<WithStreamedUnaryMethod_CheckUpdate<WithStreamedUnaryMethod_InstallUpdate<WithStreamedUnaryMethod_SetIsAutomaticUpdateOn<WithStreamedUnaryMethod_IsAutomaticUpdateOn<WithStreamedUnaryMethod_DiskCachePath<WithStreamedUnaryMethod_ChangeLocalCache<WithStreamedUnaryMethod_SetIsDoHEnabled<WithStreamedUnaryMethod_IsDoHEnabled<WithStreamedUnaryMethod_SetUseSslForSmtp<WithStreamedUnaryMethod_UseSslForSmtp<WithStreamedUnaryMethod_SetUseSslForImap<WithStreamedUnaryMethod_UseSslForImap<WithStreamedUnaryMethod_Hostname<WithStreamedUnaryMethod_ImapPort<WithStreamedUnaryMethod_SmtpPort<WithStreamedUnaryMethod_ChangePorts<WithStreamedUnaryMethod_IsPortFree<WithStreamedUnaryMethod_AvailableKeychains<WithStreamedUnaryMethod_SetCurrentKeychain<WithStreamedUnaryMethod_CurrentKeychain<WithStreamedUnaryMethod_GetUserList<WithStreamedUnaryMethod_GetUser<WithStreamedUnaryMethod_SetUserSplitMode<WithStreamedUnaryMethod_LogoutUser<WithStreamedUnaryMethod_RemoveUser<WithStreamedUnaryMethod_ConfigureUserAppleMail<WithStreamedUnaryMethod_StopEventStream<Service > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > StreamedUnaryService;
+  typedef WithStreamedUnaryMethod_CheckTokens<WithStreamedUnaryMethod_AddLogEntry<WithStreamedUnaryMethod_GuiReady<WithStreamedUnaryMethod_Quit<WithStreamedUnaryMethod_Restart<WithStreamedUnaryMethod_ShowOnStartup<WithStreamedUnaryMethod_ShowSplashScreen<WithStreamedUnaryMethod_IsFirstGuiStart<WithStreamedUnaryMethod_SetIsAutostartOn<WithStreamedUnaryMethod_IsAutostartOn<WithStreamedUnaryMethod_SetIsBetaEnabled<WithStreamedUnaryMethod_IsBetaEnabled<WithStreamedUnaryMethod_SetIsAllMailVisible<WithStreamedUnaryMethod_IsAllMailVisible<WithStreamedUnaryMethod_GoOs<WithStreamedUnaryMethod_TriggerReset<WithStreamedUnaryMethod_Version<WithStreamedUnaryMethod_LogsPath<WithStreamedUnaryMethod_LicensePath<WithStreamedUnaryMethod_ReleaseNotesPageLink<WithStreamedUnaryMethod_DependencyLicensesLink<WithStreamedUnaryMethod_LandingPageLink<WithStreamedUnaryMethod_SetColorSchemeName<WithStreamedUnaryMethod_ColorSchemeName<WithStreamedUnaryMethod_CurrentEmailClient<WithStreamedUnaryMethod_ReportBug<WithStreamedUnaryMethod_ForceLauncher<WithStreamedUnaryMethod_SetMainExecutable<WithStreamedUnaryMethod_Login<WithStreamedUnaryMethod_Login2FA<WithStreamedUnaryMethod_Login2Passwords<WithStreamedUnaryMethod_LoginAbort<WithStreamedUnaryMethod_CheckUpdate<WithStreamedUnaryMethod_InstallUpdate<WithStreamedUnaryMethod_SetIsAutomaticUpdateOn<WithStreamedUnaryMethod_IsAutomaticUpdateOn<WithStreamedUnaryMethod_DiskCachePath<WithStreamedUnaryMethod_SetDiskCachePath<WithStreamedUnaryMethod_SetIsDoHEnabled<WithStreamedUnaryMethod_IsDoHEnabled<WithStreamedUnaryMethod_SetUseSslForSmtp<WithStreamedUnaryMethod_UseSslForSmtp<WithStreamedUnaryMethod_SetUseSslForImap<WithStreamedUnaryMethod_UseSslForImap<WithStreamedUnaryMethod_Hostname<WithStreamedUnaryMethod_ImapPort<WithStreamedUnaryMethod_SmtpPort<WithStreamedUnaryMethod_ChangePorts<WithStreamedUnaryMethod_IsPortFree<WithStreamedUnaryMethod_AvailableKeychains<WithStreamedUnaryMethod_SetCurrentKeychain<WithStreamedUnaryMethod_CurrentKeychain<WithStreamedUnaryMethod_GetUserList<WithStreamedUnaryMethod_GetUser<WithStreamedUnaryMethod_SetUserSplitMode<WithStreamedUnaryMethod_LogoutUser<WithStreamedUnaryMethod_RemoveUser<WithStreamedUnaryMethod_ConfigureUserAppleMail<WithStreamedUnaryMethod_StopEventStream<Service > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > StreamedUnaryService;
   template <class BaseClass>
   class WithSplitStreamingMethod_RunEventStream : public BaseClass {
    private:
@@ -9544,7 +9544,7 @@ class Bridge final {
     virtual ::grpc::Status StreamedRunEventStream(::grpc::ServerContext* context, ::grpc::ServerSplitStreamer< ::grpc::EventStreamRequest,::grpc::StreamEvent>* server_split_streamer) = 0;
   };
   typedef WithSplitStreamingMethod_RunEventStream<Service > SplitStreamedService;
-  typedef WithStreamedUnaryMethod_CheckTokens<WithStreamedUnaryMethod_AddLogEntry<WithStreamedUnaryMethod_GuiReady<WithStreamedUnaryMethod_Quit<WithStreamedUnaryMethod_Restart<WithStreamedUnaryMethod_ShowOnStartup<WithStreamedUnaryMethod_ShowSplashScreen<WithStreamedUnaryMethod_IsFirstGuiStart<WithStreamedUnaryMethod_SetIsAutostartOn<WithStreamedUnaryMethod_IsAutostartOn<WithStreamedUnaryMethod_SetIsBetaEnabled<WithStreamedUnaryMethod_IsBetaEnabled<WithStreamedUnaryMethod_SetIsAllMailVisible<WithStreamedUnaryMethod_IsAllMailVisible<WithStreamedUnaryMethod_GoOs<WithStreamedUnaryMethod_TriggerReset<WithStreamedUnaryMethod_Version<WithStreamedUnaryMethod_LogsPath<WithStreamedUnaryMethod_LicensePath<WithStreamedUnaryMethod_ReleaseNotesPageLink<WithStreamedUnaryMethod_DependencyLicensesLink<WithStreamedUnaryMethod_LandingPageLink<WithStreamedUnaryMethod_SetColorSchemeName<WithStreamedUnaryMethod_ColorSchemeName<WithStreamedUnaryMethod_CurrentEmailClient<WithStreamedUnaryMethod_ReportBug<WithStreamedUnaryMethod_ForceLauncher<WithStreamedUnaryMethod_SetMainExecutable<WithStreamedUnaryMethod_Login<WithStreamedUnaryMethod_Login2FA<WithStreamedUnaryMethod_Login2Passwords<WithStreamedUnaryMethod_LoginAbort<WithStreamedUnaryMethod_CheckUpdate<WithStreamedUnaryMethod_InstallUpdate<WithStreamedUnaryMethod_SetIsAutomaticUpdateOn<WithStreamedUnaryMethod_IsAutomaticUpdateOn<WithStreamedUnaryMethod_DiskCachePath<WithStreamedUnaryMethod_ChangeLocalCache<WithStreamedUnaryMethod_SetIsDoHEnabled<WithStreamedUnaryMethod_IsDoHEnabled<WithStreamedUnaryMethod_SetUseSslForSmtp<WithStreamedUnaryMethod_UseSslForSmtp<WithStreamedUnaryMethod_SetUseSslForImap<WithStreamedUnaryMethod_UseSslForImap<WithStreamedUnaryMethod_Hostname<WithStreamedUnaryMethod_ImapPort<WithStreamedUnaryMethod_SmtpPort<WithStreamedUnaryMethod_ChangePorts<WithStreamedUnaryMethod_IsPortFree<WithStreamedUnaryMethod_AvailableKeychains<WithStreamedUnaryMethod_SetCurrentKeychain<WithStreamedUnaryMethod_CurrentKeychain<WithStreamedUnaryMethod_GetUserList<WithStreamedUnaryMethod_GetUser<WithStreamedUnaryMethod_SetUserSplitMode<WithStreamedUnaryMethod_LogoutUser<WithStreamedUnaryMethod_RemoveUser<WithStreamedUnaryMethod_ConfigureUserAppleMail<WithSplitStreamingMethod_RunEventStream<WithStreamedUnaryMethod_StopEventStream<Service > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > StreamedService;
+  typedef WithStreamedUnaryMethod_CheckTokens<WithStreamedUnaryMethod_AddLogEntry<WithStreamedUnaryMethod_GuiReady<WithStreamedUnaryMethod_Quit<WithStreamedUnaryMethod_Restart<WithStreamedUnaryMethod_ShowOnStartup<WithStreamedUnaryMethod_ShowSplashScreen<WithStreamedUnaryMethod_IsFirstGuiStart<WithStreamedUnaryMethod_SetIsAutostartOn<WithStreamedUnaryMethod_IsAutostartOn<WithStreamedUnaryMethod_SetIsBetaEnabled<WithStreamedUnaryMethod_IsBetaEnabled<WithStreamedUnaryMethod_SetIsAllMailVisible<WithStreamedUnaryMethod_IsAllMailVisible<WithStreamedUnaryMethod_GoOs<WithStreamedUnaryMethod_TriggerReset<WithStreamedUnaryMethod_Version<WithStreamedUnaryMethod_LogsPath<WithStreamedUnaryMethod_LicensePath<WithStreamedUnaryMethod_ReleaseNotesPageLink<WithStreamedUnaryMethod_DependencyLicensesLink<WithStreamedUnaryMethod_LandingPageLink<WithStreamedUnaryMethod_SetColorSchemeName<WithStreamedUnaryMethod_ColorSchemeName<WithStreamedUnaryMethod_CurrentEmailClient<WithStreamedUnaryMethod_ReportBug<WithStreamedUnaryMethod_ForceLauncher<WithStreamedUnaryMethod_SetMainExecutable<WithStreamedUnaryMethod_Login<WithStreamedUnaryMethod_Login2FA<WithStreamedUnaryMethod_Login2Passwords<WithStreamedUnaryMethod_LoginAbort<WithStreamedUnaryMethod_CheckUpdate<WithStreamedUnaryMethod_InstallUpdate<WithStreamedUnaryMethod_SetIsAutomaticUpdateOn<WithStreamedUnaryMethod_IsAutomaticUpdateOn<WithStreamedUnaryMethod_DiskCachePath<WithStreamedUnaryMethod_SetDiskCachePath<WithStreamedUnaryMethod_SetIsDoHEnabled<WithStreamedUnaryMethod_IsDoHEnabled<WithStreamedUnaryMethod_SetUseSslForSmtp<WithStreamedUnaryMethod_UseSslForSmtp<WithStreamedUnaryMethod_SetUseSslForImap<WithStreamedUnaryMethod_UseSslForImap<WithStreamedUnaryMethod_Hostname<WithStreamedUnaryMethod_ImapPort<WithStreamedUnaryMethod_SmtpPort<WithStreamedUnaryMethod_ChangePorts<WithStreamedUnaryMethod_IsPortFree<WithStreamedUnaryMethod_AvailableKeychains<WithStreamedUnaryMethod_SetCurrentKeychain<WithStreamedUnaryMethod_CurrentKeychain<WithStreamedUnaryMethod_GetUserList<WithStreamedUnaryMethod_GetUser<WithStreamedUnaryMethod_SetUserSplitMode<WithStreamedUnaryMethod_LogoutUser<WithStreamedUnaryMethod_RemoveUser<WithStreamedUnaryMethod_ConfigureUserAppleMail<WithSplitStreamingMethod_RunEventStream<WithStreamedUnaryMethod_StopEventStream<Service > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > StreamedService;
 };
 
 }  // namespace grpc

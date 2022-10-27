@@ -105,15 +105,14 @@ signals: // app related signals
     // cache related calls
 public:
     grpc::Status diskCachePath(QUrl &outPath); ///< Performs the 'diskCachePath' call.
-signals:
-    void isCacheOnDiskEnabledChanged(bool enabled);
-    void diskCachePathChanged(QUrl const &outPath);
-    void cacheUnavailable();                                                                                            //    _ func()                  `signal:"cacheUnavailable"`
-    void cacheCantMove();                                                                                               //    _ func()                  `signal:"cacheCantMove"`
-    void cacheLocationChangeSuccess();                                                                                  //    _ func()                  `signal:"cacheLocationChangeSuccess"`
-    void diskFull();                                                                                                    //    _ func()                  `signal:"diskFull"`
-    void changeLocalCacheFinished(bool willRestart);                                                                                    //    _ func()                  `signal:"changeLocalCacheFinished"`
+    grpc::Status setDiskCachePath(QUrl const &path); ///< Performs the 'setDiskCachePath' call
 
+signals:
+    void diskCacheUnavailable();
+    void cantMoveDiskCache();
+    void diskFull();
+    void diskCachePathChanged(QUrl const &path);
+    void diskCachePathChangeFinished();
 
     // mail settings related calls
 public:
@@ -183,7 +182,6 @@ signals:
     void userDisconnected(QString const &username);
     void userChanged(QString const &userID);
 
-
 public: // keychain related calls
     grpc::Status availableKeychains(QStringList &outKeychains);
     grpc::Status currentKeychain(QString &outKeychain);
@@ -229,7 +227,7 @@ private:
     void processAppEvent(grpc::AppEvent const &event); ///< Process an 'App' event.
     void processLoginEvent(grpc::LoginEvent const &event); ///< Process a 'Login' event.
     void processUpdateEvent(grpc::UpdateEvent const &event); ///< Process an 'Update' event.
-    void processCacheEvent(grpc::CacheEvent const &event); ///< Process a 'Cache' event.
+    void processCacheEvent(grpc::DiskCacheEvent const &event); ///< Process a 'Cache' event.
     void processMailSettingsEvent(grpc::MailSettingsEvent const &event); ///< Process a 'MailSettings' event.
     void processKeychainEvent(grpc::KeychainEvent const &event); ///< Process a 'Keychain' event.
     void processMailEvent(grpc::MailEvent const &event); ///< Process a 'Mail' event.

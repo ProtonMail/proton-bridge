@@ -73,7 +73,7 @@ service Bridge {
 
   // cache
   rpc DiskCachePath(google.protobuf.Empty) returns (google.protobuf.StringValue);
-  rpc ChangeLocalCache(ChangeLocalCacheRequest) returns (google.protobuf.Empty);
+  rpc SetDiskCachePath(google.protobuf.StringValue) returns (google.protobuf.Empty);
 
   // mail
   rpc SetIsDoHEnabled(google.protobuf.BoolValue) returns (google.protobuf.Empty);
@@ -158,13 +158,6 @@ message LoginAbortRequest {
 }
 
 //**********************************************************
-// Cache on disk related message
-//**********************************************************
-message ChangeLocalCacheRequest {
-  string diskCachePath = 2;
-}
-
-//**********************************************************
 // Port related message
 //**********************************************************
 message ChangePortsRequest {
@@ -222,7 +215,7 @@ message StreamEvent {
     AppEvent app = 1;
     LoginEvent login = 2;
     UpdateEvent update = 3;
-    CacheEvent cache = 4;
+    DiskCacheEvent cache = 4;
     MailSettingsEvent mailSettings = 5;
     KeychainEvent keychain = 6;
     MailEvent mail = 7;
@@ -338,37 +331,34 @@ message UpdateCheckFinished {}
 
 message UpdateVersionChanged {}
 
+
 //**********************************************************
 // Cache on disk related events
 //**********************************************************
-message CacheEvent {
+message DiskCacheEvent {
   oneof event {
-    CacheErrorEvent error = 1;
-    CacheLocationChangeSuccessEvent locationChangedSuccess = 2;
-    ChangeLocalCacheFinishedEvent changeLocalCacheFinished = 3;
-    DiskCachePathChanged diskCachePathChanged = 5;
+    DiskCacheErrorEvent error = 1;
+    DiskCachePathChangedEvent pathChanged = 2;
+    DiskCachePathChangeFinishedEvent pathChangeFinished  = 3;
   }
 }
 
-enum CacheErrorType {
-  CACHE_UNAVAILABLE_ERROR = 0;
-  CACHE_CANT_MOVE_ERROR = 1;
-  DISK_FULL = 2;
+enum DiskCacheErrorType {
+  DISK_CACHE_UNAVAILABLE_ERROR = 0;
+  CANT_MOVE_DISK_CACHE_ERROR = 1;
+  DISK_FULL_ERROR = 2;
 };
 
-message CacheErrorEvent {
-  CacheErrorType type = 1;
+message DiskCacheErrorEvent {
+  DiskCacheErrorType type = 1;
 }
 
-message CacheLocationChangeSuccessEvent {};
-
-message ChangeLocalCacheFinishedEvent {
-  bool willRestart = 1;
-};
-
-message DiskCachePathChanged {
+message DiskCachePathChangedEvent {
   string path = 1;
 }
+
+message DiskCachePathChangeFinishedEvent {}
+
 
 
 //**********************************************************

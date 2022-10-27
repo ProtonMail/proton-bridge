@@ -55,7 +55,7 @@ QtObject {
 
         Connections {
             target: Backend
-            function onCacheUnavailable() {
+            function onDiskCacheUnavailable() {
                 mainWindow.showAndRise()
             }
             function onColorSchemeNameChanged(scheme) { root.setColorScheme() }

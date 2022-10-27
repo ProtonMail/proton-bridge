@@ -29,8 +29,12 @@ SettingsView {
     fillHeight: false
 
     property var notifications
-    property bool _diskCacheEnabled: true
-    property url _diskCachePath: pathDialog.shortcuts.home
+    property url diskCachePath: pathDialog.shortcuts.home
+
+    function refresh() {
+        diskCacheSetting.description = Backend.nativePath(root.diskCachePath)
+        submitButton.enabled = !Backend.areSameFileOrFolder(Backend.diskCachePath, root.diskCachePath)
+    }
 
     Label {
         colorScheme: root.colorScheme
@@ -49,26 +53,12 @@ SettingsView {
     }
 
     SettingsItem {
-        colorScheme: root.colorScheme
-        text: qsTr("Enable local cache")
-        description: qsTr("Recommended for optimal performance.")
-        type: SettingsItem.Toggle
-        checked: root._diskCacheEnabled
-        onClicked: root._diskCacheEnabled = !root._diskCacheEnabled
-
-        Layout.fillWidth: true
-    }
-
-    SettingsItem {
+        id: diskCacheSetting
         colorScheme: root.colorScheme
         text: qsTr("Current cache location")
         actionText: qsTr("Change location")
-        description: Backend.goos === "windows" ?
-                         root._diskCachePath.toString().replace("file:///", "").replace(new RegExp("/", 'g'), "\\") + "\\" :
-                         root._diskCachePath.toString().replace("file://", "") + "/"
         descriptionWrap: Text.WrapAnywhere
         type: SettingsItem.Button
-        enabled: root._diskCacheEnabled
         onClicked: {
             pathDialog.open()
         }
@@ -78,8 +68,11 @@ SettingsView {
         FolderDialog {
             id: pathDialog
             title: qsTr("Select cache location")
-            currentFolder: root._diskCachePath
-            onAccepted: root._diskCachePath = pathDialog.selectedFolder
+            currentFolder: root.diskCachePath
+            onAccepted: {
+                root.diskCachePath = pathDialog.selectedFolder
+                root.refresh()
+            }
        }
     }
 
@@ -89,11 +82,7 @@ SettingsView {
         Button {
             id: submitButton
             colorScheme: root.colorScheme
-            text: qsTr("Save and restart")
-            enabled: (
-                Backend.diskCachePath != root._diskCachePath ||
-                Backend.isDiskCacheEnabled != root._diskCacheEnabled
-            )
+            text: qsTr("Save")
             onClicked: {
                 root.submit()
             }
@@ -109,7 +98,7 @@ SettingsView {
         Connections {
             target: Backend
 
-            function onChangeLocalCacheFinished() {
+            function onDiskCachePathChangeFinished() {
                 submitButton.loading = false
                 root.setDefaultValues()
             }
@@ -120,25 +109,14 @@ SettingsView {
         root.setDefaultValues()
     }
 
-    function submit(){
-        if (!root._diskCacheEnabled && Backend.isDiskCacheEnabled) {
-            root.notifications.askDisableLocalCache()
-            return
-        }
-
-        if (root._diskCacheEnabled && !Backend.isDiskCacheEnabled) {
-            root.notifications.askEnableLocalCache(root._diskCachePath)
-            return
-        }
-
-        // Not asking, only changing path
+    function submit() {
         submitButton.loading = true
-        Backend.changeLocalCache(Backend.isDiskCacheEnabled, root._diskCachePath)
+        Backend.setDiskCachePath(root.diskCachePath)
     }
 
     function setDefaultValues(){
-        root._diskCacheEnabled = Backend.isDiskCacheEnabled
-        root._diskCachePath = Backend.diskCachePath
+        root.diskCachePath = Backend.diskCachePath
+        root.refresh();
     }
 
     onVisibleChanged: {

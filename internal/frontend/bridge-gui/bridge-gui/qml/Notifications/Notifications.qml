@@ -29,8 +29,6 @@ QtObject {
 
     signal askEnableBeta()
     signal askEnableSplitMode(var user)
-    signal askDisableLocalCache()
-    signal askEnableLocalCache(var path)
     signal askResetBridge()
     signal askChangeAllMailVisibility(var isVisibleNow)
     signal askDeleteAccount(var user)
@@ -70,8 +68,6 @@ QtObject {
         root.diskFull,
         root.cacheLocationChangeSuccess,
         root.enableSplitMode,
-        root.disableLocalCache,
-        root.enableLocalCache,
         root.resetBridge,
         root.changeAllMailVisibility,
         root.deleteAccount,
@@ -558,7 +554,7 @@ QtObject {
 
         Connections {
             target: Backend
-            function onCacheUnavailable() {
+            function onDiskCacheUnavailable() {
                 root.cacheUnavailable.active = true
             }
         }
@@ -591,7 +587,7 @@ QtObject {
 
         Connections {
             target: Backend
-            function onCacheCantMove() {
+            function onCantMoveDiskCache() {
                 root.cacheCantMove.active = true
             }
         }
@@ -622,8 +618,8 @@ QtObject {
 
         Connections {
             target: Backend
-            function onCacheLocationChangeSuccess() {
-                console.log("notify location changed succesfully")
+            function onDiskCachePathChanged() {
+                console.log("notify location changed successfully")
                 root.cacheLocationChangeSuccess.active = true
             }
         }
@@ -731,99 +727,6 @@ QtObject {
                     enableSplitMode_enable.loading = true
                     enableSplitMode_cancel.enabled = false
                     root.enableSplitMode.user.toggleSplitMode(true)
-                }
-            }
-        ]
-    }
-
-    property Notification disableLocalCache: Notification {
-        title: qsTr("Disable local cache?")
-        brief: title
-        description: qsTr("This action will clear your local cache, including locally stored messages. Bridge will restart.")
-        icon: "/qml/icons/ic-question-circle.svg"
-        type: Notification.NotificationType.Warning
-        group: Notifications.Group.Configuration | Notifications.Group.Dialogs
-
-        Connections {
-            target: root
-            function onAskDisableLocalCache() {
-                root.disableLocalCache.active = true
-            }
-        }
-
-        Connections {
-            target: Backend
-            function onChangeLocalCacheFinished() {
-                root.disableLocalCache.active = false
-
-                disableLocalCache_disable.loading = false
-                disableLocalCache_cancel.enabled = true
-            }
-        }
-
-        action: [
-            Action {
-                id: disableLocalCache_cancel
-                text: qsTr("Cancel")
-                onTriggered: {
-                    root.disableLocalCache.active = false
-                }
-            },
-            Action {
-                id: disableLocalCache_disable
-                text: qsTr("Disable and restart")
-                onTriggered: {
-                    disableLocalCache_disable.loading = true
-                    disableLocalCache_cancel.enabled = false
-                    Backend.changeLocalCache(false, Backend.diskCachePath)
-                }
-            }
-        ]
-    }
-
-    property Notification enableLocalCache: Notification {
-        title: qsTr("Enable local cache")
-        brief: title
-        description: qsTr("Bridge will restart.")
-        icon: "/qml/icons/ic-question-circle.svg"
-        type: Notification.NotificationType.Warning
-        group: Notifications.Group.Configuration | Notifications.Group.Dialogs
-
-        property url path
-
-        Connections {
-            target: root
-            function onAskEnableLocalCache(path) {
-                root.enableLocalCache.active = true
-                root.enableLocalCache.path = path
-            }
-        }
-
-        Connections {
-            target: Backend
-            function onChangeLocalCacheFinished() {
-                root.enableLocalCache.active = false
-
-                enableLocalCache_enable.loading = false
-                enableLocalCache_cancel.enabled = true
-            }
-        }
-
-        action: [
-            Action {
-                id: enableLocalCache_enable
-                text: qsTr("Enable and restart")
-                onTriggered: {
-                    enableLocalCache_enable.loading = true
-                    enableLocalCache_cancel.enabled = false
-                    Backend.changeLocalCache(true, root.enableLocalCache.path)
-                }
-            },
-            Action {
-                id: enableLocalCache_cancel
-                text: qsTr("Cancel")
-                onTriggered: {
-                    root.enableLocalCache.active = false
                 }
             }
         ]

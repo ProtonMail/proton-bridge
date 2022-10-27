@@ -249,7 +249,7 @@ func (s *Service) LicensePath(ctx context.Context, _ *emptypb.Empty) (*wrappersp
 	return wrapperspb.String(s.bridge.GetLicenseFilePath()), nil
 }
 
-func (s *Service) DependencyLicensesLink(ctx context.Context, _ *emptypb.Empty) (*wrapperspb.StringValue, error) {
+func (s *Service) DependencyLicensesLink(_ context.Context, _ *emptypb.Empty) (*wrapperspb.StringValue, error) {
 	return wrapperspb.String(s.bridge.GetDependencyLicensesLink()), nil
 }
 
@@ -257,7 +257,7 @@ func (s *Service) ReleaseNotesPageLink(ctx context.Context, _ *emptypb.Empty) (*
 	return wrapperspb.String(s.newVersionInfo.ReleaseNotesPage), nil
 }
 
-func (s *Service) LandingPageLink(ctx context.Context, _ *emptypb.Empty) (*wrapperspb.StringValue, error) {
+func (s *Service) LandingPageLink(_ context.Context, _ *emptypb.Empty) (*wrapperspb.StringValue, error) {
 	return wrapperspb.String(s.newVersionInfo.LandingPage), nil
 }
 
@@ -535,30 +535,30 @@ func (s *Service) DiskCachePath(ctx context.Context, _ *emptypb.Empty) (*wrapper
 	return wrapperspb.String(s.bridge.GetGluonDir()), nil
 }
 
-func (s *Service) ChangeLocalCache(ctx context.Context, change *ChangeLocalCacheRequest) (*emptypb.Empty, error) {
-	s.log.WithField("diskCachePath", change.DiskCachePath).Debug("DiskCachePath")
+func (s *Service) SetDiskCachePath(ctx context.Context, newPath *wrapperspb.StringValue) (*emptypb.Empty, error) {
+	s.log.WithField("path", newPath.Value).Debug("setDiskCachePath")
 
-	defer func() {
-		_ = s.SendEvent(NewCacheChangeLocalCacheFinishedEvent(false))
-	}()
+	go func() {
+		defer func() {
+			_ = s.SendEvent(NewDiskCachePathChangeFinishedEvent())
+		}()
 
-	path := change.DiskCachePath
-	//goland:noinspection GoBoolExpressions
-	if (runtime.GOOS == "windows") && (path[0] == '/') {
-		path = path[1:]
-	}
-
-	if path != s.bridge.GetGluonDir() {
-		if err := s.bridge.SetGluonDir(ctx, path); err != nil {
-			s.log.WithError(err).Error("The local cache location could not be changed.")
-			_ = s.SendEvent(NewCacheErrorEvent(CacheErrorType_CACHE_CANT_MOVE_ERROR))
-			return &emptypb.Empty{}, nil
+		path := newPath.Value
+		//goland:noinspection GoBoolExpressions
+		if (runtime.GOOS == "windows") && (path[0] == '/') {
+			path = path[1:]
 		}
 
-		_ = s.SendEvent(NewDiskCachePathChanged(s.bridge.GetGluonDir()))
-	}
+		if path != s.bridge.GetGluonDir() {
+			if err := s.bridge.SetGluonDir(context.Background(), path); err != nil {
+				s.log.WithError(err).Error("The local cache location could not be changed.")
+				_ = s.SendEvent(NewDiskCacheErrorEvent(DiskCacheErrorType_CANT_MOVE_DISK_CACHE_ERROR))
+				return
+			}
 
-	_ = s.SendEvent(NewCacheLocationChangeSuccessEvent())
+			_ = s.SendEvent(NewDiskCachePathChangedEvent(s.bridge.GetGluonDir()))
+		}
+	}()
 
 	return &emptypb.Empty{}, nil
 }

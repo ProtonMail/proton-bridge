@@ -54,10 +54,9 @@ SPStreamEvent newUpdateIsLatestVersion(); ///< Create a new UpdateIsLatestVersio
 SPStreamEvent newUpdateCheckFinished(); ///< Create a new UpdateCheckFinished event.
 
 // Cache on disk related events
-SPStreamEvent newCacheErrorEvent(grpc::CacheErrorType errorType); ///< Create a new CacheErrorEvent event.
-SPStreamEvent newCacheLocationChangeSuccessEvent(); ///< Create a new CacheLocationChangeSuccessEvent event.
-SPStreamEvent newChangeLocalCacheFinishedEvent(); ///< Create a new ChangeLocalCacheFinishedEvent event.
-SPStreamEvent newDiskCachePathChanged(QString const &path); ///< Create a new DiskCachePathChanged event.
+SPStreamEvent newDiskCacheErrorEvent(grpc::DiskCacheErrorType errorType); ///< Create a new DiskCacheErrorEvent event.
+SPStreamEvent newDiskCachePathChangedEvent(QString const &path); ///< Create a new DiskCachePathChanged event.
+SPStreamEvent newDiskCachePathChangeFinishedEvent(); ///< Create a new DiskCachePathChangeFinishedEvent event.
 
 // Mail settings related events
 SPStreamEvent newMailSettingsErrorEvent(grpc::MailSettingsErrorType errorType); ///< Create a new MailSettingsErrorEvent event.

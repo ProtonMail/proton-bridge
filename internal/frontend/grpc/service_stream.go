@@ -75,7 +75,7 @@ func (s *Service) RunEventStream(request *EventStreamRequest, server Bridge_RunE
 }
 
 // StopEventStream stops the event stream.
-func (s *Service) StopEventStream(ctx context.Context, _ *emptypb.Empty) (*emptypb.Empty, error) {
+func (s *Service) StopEventStream(_ context.Context, _ *emptypb.Empty) (*emptypb.Empty, error) {
 	if s.eventStreamCh == nil {
 		return nil, status.Errorf(codes.NotFound, "The service is not streaming")
 	}
@@ -127,10 +127,10 @@ func (s *Service) StartEventTest() error { //nolint:funlen
 		NewUpdateCheckFinishedEvent(),
 
 		// cache
-		NewCacheErrorEvent(CacheErrorType_CACHE_UNAVAILABLE_ERROR),
-		NewCacheLocationChangeSuccessEvent(),
-		NewCacheChangeLocalCacheFinishedEvent(true),
-		NewDiskCachePathChanged("/dummy/path"),
+
+		NewDiskCacheErrorEvent(DiskCacheErrorType_CANT_MOVE_DISK_CACHE_ERROR),
+		NewDiskCachePathChangedEvent("/dummy/path/"),
+		NewDiskCachePathChangeFinishedEvent(),
 
 		// mail settings
 		NewMailSettingsErrorEvent(MailSettingsErrorType_IMAP_PORT_ISSUE),
