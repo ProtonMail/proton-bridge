@@ -59,3 +59,21 @@ Feature: Bridge can fully sync an account
       | Folders/two  | 2     | 1      |
       | Labels       | 0     | 0      |
       | Labels/three | 0     | 0      |
+
+  Scenario: If an address has no keys, the account is still synced
+    Given the account "user@pm.me" has additional address "alias@pm.me"
+    And the account "user@pm.me" has the following custom mailboxes:
+      | name      | type   |
+      | encrypted | folder |
+    And the address "alias@pm.me" of account "user@pm.me" has the following messages in "encrypted":
+      | from    | to      | subject |
+      | a@pm.me | a@pm.me | no key  |
+      | b@pm.me | b@pm.me | no key  |
+    And the address "alias@pm.me" of account "user@pm.me" has no keys
+    When the user logs in with username "user@pm.me" and password "password"
+    And user "user@pm.me" finishes syncing
+    When user "user@pm.me" connects and authenticates IMAP client "1"
+    Then IMAP client "1" eventually sees the following messages in "Folders/encrypted":
+      | from    | to      | subject | mime-type           |
+      | a@pm.me | a@pm.me | no key  | multipart/encrypted |
+      | b@pm.me | b@pm.me | no key  | multipart/encrypted |

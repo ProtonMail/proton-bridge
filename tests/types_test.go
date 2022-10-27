@@ -18,7 +18,9 @@
 package tests
 
 import (
+	"bytes"
 	"fmt"
+	"io"
 	"reflect"
 	"strconv"
 	"strings"
@@ -35,6 +37,7 @@ import (
 type Message struct {
 	Subject     string `bdd:"subject"`
 	Body        string `bdd:"body"`
+	MIMEType    string `bdd:"mime-type"`
 	Attachments string `bdd:"attachments"`
 	MessageID   string `bdd:"message-id"`
 
@@ -80,7 +83,17 @@ func newMessageFromIMAP(msg *imap.Message) Message {
 		panic(err)
 	}
 
-	m, err := message.Parse(msg.GetBody(section))
+	literal, err := io.ReadAll(msg.GetBody(section))
+	if err != nil {
+		panic(err)
+	}
+
+	mimeType, _, err := rfc822.Parse(literal).ContentType()
+	if err != nil {
+		panic(err)
+	}
+
+	m, err := message.Parse(bytes.NewReader(literal))
 	if err != nil {
 		panic(err)
 	}
@@ -96,6 +109,7 @@ func newMessageFromIMAP(msg *imap.Message) Message {
 	message := Message{
 		Subject:     msg.Envelope.Subject,
 		Body:        body,
+		MIMEType:    string(mimeType),
 		Attachments: strings.Join(xslices.Map(m.Attachments, func(att message.Attachment) string { return att.Name }), ", "),
 		MessageID:   msg.Envelope.MessageId,
 		Unread:      !slices.Contains(msg.Flags, imap.SeenFlag),
@@ -169,7 +183,7 @@ func matchMailboxes(have, want []Mailbox) error {
 func eventually(condition func() error) error {
 	ch := make(chan error, 1)
 
-	timer := time.NewTimer(10 * time.Second)
+	timer := time.NewTimer(30 * time.Second)
 	defer timer.Stop()
 
 	ticker := time.NewTicker(100 * time.Millisecond)

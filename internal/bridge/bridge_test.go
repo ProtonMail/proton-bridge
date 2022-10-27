@@ -374,6 +374,39 @@ func TestBridge_MissingGluonDir(t *testing.T) {
 	})
 }
 
+func TestBridge_AddressWithoutKeys(t *testing.T) {
+	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *liteapi.NetCtl, locator bridge.Locator, vaultKey []byte) {
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, vaultKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+			// Create a user which will have an address without keys.
+			userID, _, err := s.CreateUser("nokeys", "nokeys@pm.me", []byte("password"))
+			require.NoError(t, err)
+
+			// Create an additional address for the user; it will not have keys.
+			aliasAddrID, err := s.CreateAddress(userID, "alias@pm.me", []byte("password"))
+			require.NoError(t, err)
+
+			// Get the address key IDs.
+			aliasKeyIDs, err := s.GetAddressKeyIDs(userID, aliasAddrID)
+			require.NoError(t, err)
+			require.Len(t, aliasKeyIDs, 1)
+
+			// Remove the address keys.
+			require.NoError(t, s.RemoveAddressKey(userID, aliasAddrID, aliasKeyIDs[0]))
+
+			// Watch for sync finished event.
+			syncCh, done := chToType[events.Event, events.SyncFinished](bridge.GetEvents(events.SyncFinished{}))
+			defer done()
+
+			// We should be able to log the user in.
+			require.NoError(t, getErr(bridge.LoginFull(context.Background(), "nokeys", []byte("password"), nil, nil)))
+			require.NoError(t, err)
+
+			// The sync should eventually finish for the user without keys.
+			require.Equal(t, userID, (<-syncCh).UserID)
+		})
+	})
+}
+
 // withEnv creates the full test environment and runs the tests.
 func withEnv(t *testing.T, tests func(context.Context, *server.Server, *liteapi.NetCtl, bridge.Locator, []byte), opts ...server.Option) {
 	server := server.New(opts...)

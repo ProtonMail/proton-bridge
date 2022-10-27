@@ -21,6 +21,7 @@ import (
 	"fmt"
 
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
+	"github.com/sirupsen/logrus"
 	"gitlab.protontech.ch/go/liteapi"
 )
 
@@ -55,6 +56,10 @@ func withAddrKRs(apiUser liteapi.User, apiAddr map[string]liteapi.Address, keyPa
 			return fmt.Errorf("failed to unlock address keys: %w", err)
 		}
 		defer addrKR.ClearPrivateParams()
+
+		if addrKR.CountDecryptionEntities() == 0 {
+			logrus.WithField("addressID", addrID).Warn("Address keyring has no decryption entities")
+		}
 
 		addrKRs[addrID] = addrKR
 	}

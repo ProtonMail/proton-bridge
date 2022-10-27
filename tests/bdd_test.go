@@ -97,6 +97,7 @@ func TestFeatures(testingT *testing.T) {
 			ctx.Step(`^the account "([^"]*)" has the following custom mailboxes:$`, s.theAccountHasTheFollowingCustomMailboxes)
 			ctx.Step(`^the address "([^"]*)" of account "([^"]*)" has the following messages in "([^"]*)":$`, s.theAddressOfAccountHasTheFollowingMessagesInMailbox)
 			ctx.Step(`^the address "([^"]*)" of account "([^"]*)" has (\d+) messages in "([^"]*)"$`, s.theAddressOfAccountHasMessagesInMailbox)
+			ctx.Step(`^the address "([^"]*)" of account "([^"]*)" has no keys$`, s.theAddressOfAccountHasNoKeys)
 
 			// ==== BRIDGE ====
 			ctx.Step(`^bridge starts$`, s.bridgeStarts)

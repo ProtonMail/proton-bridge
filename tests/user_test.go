@@ -200,6 +200,24 @@ func (s *scenario) theAddressOfAccountHasMessagesInMailbox(address, username str
 	})))
 }
 
+func (s *scenario) theAddressOfAccountHasNoKeys(address, username string) error {
+	userID := s.t.getUserID(username)
+	addrID := s.t.getUserAddrID(userID, address)
+
+	keyIDs, err := s.t.api.GetAddressKeyIDs(userID, addrID)
+	if err != nil {
+		return err
+	}
+
+	for _, keyID := range keyIDs {
+		if err := s.t.api.RemoveAddressKey(userID, addrID, keyID); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func (s *scenario) userLogsInWithUsernameAndPassword(username, password string) error {
 	userID, err := s.t.bridge.LoginFull(context.Background(), username, []byte(password), nil, nil)
 	if err != nil {

@@ -33,6 +33,8 @@ type API interface {
 
 	CreateAddress(userID, address string, password []byte) (string, error)
 	RemoveAddress(userID, addrID string) error
+	GetAddressKeyIDs(userID, addrID string) ([]string, error)
+	RemoveAddressKey(userID, addrID, keyID string) error
 
 	Close()
 }
