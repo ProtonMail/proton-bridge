@@ -80,6 +80,9 @@ build: build-gui
 build-gui: ${TGZ_TARGET}
 
 build-nogui: ${EXE_NAME} build-launcher
+ifeq "${TARGET_OS}" "darwin"
+	mv ${BRIDGE_EXE} ${BRIDGE_EXE_NAME}
+endif
 
 go-build=go build $(1) -o $(2) $(3)
 go-build-finalize=${go-build}
@@ -320,6 +323,7 @@ clean: clean-vendor clean-gui clean-vcpkg
 	rm -f ./*.syso
 	rm -f release-notes/bridge.html
 	rm -f release-notes/import-export.html
+	rm -f ${LAUNCHER_EXE} ${BRIDGE_EXE} ${BRIDGE_EXE_NAME}
 
 
 .PHONY: generate
