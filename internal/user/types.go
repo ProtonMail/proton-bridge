@@ -58,11 +58,6 @@ func groupBy[Key comparable, Value any](items []Value, key func(Value) Key) map[
 	return groups
 }
 
-// sortAddr returns whether the first address should be sorted before the second.
-func sortAddr(addrIDA, addrIDB string, apiAddrs map[string]liteapi.Address) bool {
-	return apiAddrs[addrIDA].Order < apiAddrs[addrIDB].Order
-}
-
 // hexEncode returns the hexadecimal encoding of the given byte slice.
 func hexEncode(b []byte) []byte {
 	enc := make([]byte, hex.EncodedLen(len(b)))

@@ -247,7 +247,7 @@ func (t *testCtx) getLastError() error {
 	return nil
 }
 
-func (t *testCtx) close(ctx context.Context) error {
+func (t *testCtx) close(ctx context.Context) {
 	for _, client := range t.imapClients {
 		if err := client.client.Logout(); err != nil {
 			logrus.WithError(err).Error("Failed to logout IMAP client")
@@ -267,8 +267,6 @@ func (t *testCtx) close(ctx context.Context) error {
 	t.api.Close()
 
 	t.events.close()
-
-	return nil
 }
 
 type eventCollector struct {

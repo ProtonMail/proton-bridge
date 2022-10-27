@@ -27,7 +27,6 @@ import (
 	"github.com/ProtonMail/proton-bridge/v2/internal/certs"
 	"github.com/ProtonMail/proton-bridge/v2/internal/user"
 	"github.com/cucumber/godog"
-	"github.com/stretchr/testify/require"
 	"gitlab.protontech.ch/go/liteapi/server/backend"
 )
 
@@ -53,8 +52,8 @@ func (s *scenario) reset(tb testing.TB) {
 	s.t = newTestCtx(tb)
 }
 
-func (s *scenario) close(tb testing.TB) {
-	require.NoError(tb, s.t.close(context.Background()))
+func (s *scenario) close(_ testing.TB) {
+	s.t.close(context.Background())
 }
 
 func TestFeatures(testingT *testing.T) {

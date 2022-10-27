@@ -24,7 +24,7 @@ import (
 	"golang.org/x/exp/slices"
 )
 
-var nextMutexID uint64
+var nextMutexID uint64 // nolint:gochecknoglobals
 
 // Mutex is a mutex that can be locked and unlocked.
 type Mutex interface {
