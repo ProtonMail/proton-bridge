@@ -57,10 +57,7 @@ var (
 	// DSNSentry client keys to be able to report crashes to Sentry.
 	DSNSentry = ""
 
-	// APIHost is our API address.
-	APIHost = "https://api.protonmail.ch"
-
-	// The host name of the bridge server.
+	// Host is the hostname of the bridge server.
 	Host = "127.0.0.1"
 )
 
