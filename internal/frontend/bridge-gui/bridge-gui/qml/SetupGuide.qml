@@ -42,7 +42,7 @@ Item {
         property string name : "Apple Mail"
         property string iconSource : "/qml/icons/ic-apple-mail.svg"
         property bool haveAutoSetup: true
-        property string link: "https://protonmail.com/bridge/applemail"
+        property string link: "https://proton.me/support/protonmail-bridge-clients-apple-mail"
 
         Component.onCompleted : {
             if (Backend.goos == "darwin") {
@@ -50,13 +50,13 @@ Item {
                     "name"          : "Apple Mail",
                     "iconSource"    : "/qml/icons/ic-apple-mail.svg",
                     "haveAutoSetup" : true,
-                    "link"          : "https://protonmail.com/bridge/applemail"
+                    "link"          : "https://proton.me/support/protonmail-bridge-clients-apple-mail"
                 })
                 append({
                     "name"          : "Microsoft Outlook",
                     "iconSource"    : "/qml/icons/ic-microsoft-outlook.svg",
                     "haveAutoSetup" : false,
-                    "link"          : "https://protonmail.com/bridge/outlook2019-mac"
+                    "link"          : "https://proton.me/support/protonmail-bridge-clients-macos-outlook-2019"
                 })
             }
             if (Backend.goos == "windows") {
@@ -64,7 +64,7 @@ Item {
                     "name"          : "Microsoft Outlook",
                     "iconSource"    : "/qml/icons/ic-microsoft-outlook.svg",
                     "haveAutoSetup" : false,
-                    "link"          : "https://protonmail.com/bridge/outlook2019"
+                    "link"          : "https://proton.me/support/protonmail-bridge-clients-windows-outlook-2019"
                 })
             }
 
@@ -72,14 +72,14 @@ Item {
                 "name"          : "Mozilla Thunderbird",
                 "iconSource"    : "/qml/icons/ic-mozilla-thunderbird.svg",
                 "haveAutoSetup" : false,
-                "link"          : "https://protonmail.com/bridge/thunderbird"
+                "link"          : "https://proton.me/support/protonmail-bridge-clients-windows-thunderbird"
             })
 
             append({
                 "name"          : "Other",
                 "iconSource"    : "/qml/icons/ic-other-mail-clients.svg",
                 "haveAutoSetup" : false,
-                "link"          : "https://protonmail.com/bridge/clients"
+                "link"          : "https://proton.me/support/protonmail-bridge-configure-client"
             })
 
         }

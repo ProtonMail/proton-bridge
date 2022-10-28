@@ -289,7 +289,7 @@ QtObject {
 
     property Notification updateForceError: Notification {
         title: qsTr("Bridge coudn’t update")
-        description: qsTr("You must update manually. Go to: https:/protonmail.com/bridge/download")
+        description: qsTr("You must update manually. Go to: https://proton.me/mail/bridge#download")
         brief: title
         icon: "./icons/ic-exclamation-circle-filled.svg"
         type: Notification.NotificationType.Danger
@@ -997,7 +997,7 @@ QtObject {
         type: Notification.NotificationType.Danger
         group: Notifications.Group.Dialogs | Notifications.Group.Configuration
 
-        property var supportLink: "https://protonmail.com/support/knowledge-base/macos-keychain-corrupted"
+        property var supportLink: "https://proton.me/support/mail"
 
 
         Connections {

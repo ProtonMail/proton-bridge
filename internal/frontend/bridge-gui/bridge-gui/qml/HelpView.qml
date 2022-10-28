@@ -41,7 +41,7 @@ SettingsView {
         actionIcon: "/qml/icons/ic-external-link.svg"
         description: qsTr("Get help setting up your client with our instructions and FAQs.")
         type: SettingsItem.PrimaryButton
-        onClicked: {Qt.openUrlExternally("https://protonmail.com/support/categories/bridge/")}
+        onClicked: {Qt.openUrlExternally("https://proton.me/support/mail")}
 
         Layout.fillWidth: true
     }

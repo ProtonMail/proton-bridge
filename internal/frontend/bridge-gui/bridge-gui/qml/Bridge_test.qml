@@ -852,9 +852,9 @@ Window {
     property string version: "2.0.X-BridePreview"
     property url logsPath: StandardPaths.standardLocations(StandardPaths.HomeLocation)[0]
     property url licensePath: StandardPaths.standardLocations(StandardPaths.HomeLocation)[0]
-    property url releaseNotesLink: Qt.resolvedUrl("https://protonmail.com/download/bridge/early_releases.html")
+    property url releaseNotesLink: Qt.resolvedUrl("https://proton.me/download/bridge/early_releases.html")
     property url dependencyLicensesLink: Qt.resolvedUrl("https://github.com/ProtonMail/proton-bridge/v2/blob/master/COPYING_NOTES.md#dependencies")
-    property url landingPageLink: Qt.resolvedUrl("https://protonmail.com/bridge")
+    property url landingPageLink: Qt.resolvedUrl("https://proton.me/mail/bridge#download")
 
     property string colorSchemeName: "light"
     function changeColorScheme(newScheme){

@@ -288,7 +288,7 @@ FocusScope {
             Label {
                 colorScheme: root.colorScheme
                 textFormat: Text.StyledText
-                text: link("https://protonmail.com/signup", qsTr("Create or upgrade your account"))
+                text: link("https://proton.me/mail/pricing", qsTr("Create or upgrade your account"))
                 Layout.alignment: Qt.AlignHCenter
                 Layout.topMargin: 24
                 type: Label.LabelType.Body
