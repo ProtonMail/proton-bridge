@@ -27,16 +27,16 @@ func TestMoveDir(t *testing.T) {
 	from, to := t.TempDir(), t.TempDir()
 
 	// Create some files in from.
-	if err := os.WriteFile(filepath.Join(from, "a"), []byte("a"), 0600); err != nil {
+	if err := os.WriteFile(filepath.Join(from, "a"), []byte("a"), 0o600); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(from, "b"), []byte("b"), 0600); err != nil {
+	if err := os.WriteFile(filepath.Join(from, "b"), []byte("b"), 0o600); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.Mkdir(filepath.Join(from, "c"), 0700); err != nil {
+	if err := os.Mkdir(filepath.Join(from, "c"), 0o700); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(from, "c", "d"), []byte("d"), 0600); err != nil {
+	if err := os.WriteFile(filepath.Join(from, "c", "d"), []byte("d"), 0o600); err != nil {
 		t.Fatal(err)
 	}
 

@@ -114,6 +114,7 @@ func NewCacheChangeLocalCacheFinishedEvent(willRestart bool) *StreamEvent {
 func NewDiskCachePathChanged(path string) *StreamEvent {
 	return cacheEvent(&CacheEvent{Event: &CacheEvent_DiskCachePathChanged{DiskCachePathChanged: &DiskCachePathChanged{Path: path}}})
 }
+
 func NewMailSettingsErrorEvent(err MailSettingsErrorType) *StreamEvent {
 	return mailSettingsEvent(&MailSettingsEvent{Event: &MailSettingsEvent_Error{Error: &MailSettingsErrorEvent{Type: err}}})
 }

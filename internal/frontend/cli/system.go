@@ -212,12 +212,12 @@ func (f *frontendCLI) exportTLSCerts(c *ishell.Context) {
 	if location := f.readStringInAttempts("Enter a path to which to export the TLS certificate used for IMAP and SMTP", c.ReadLine, f.isCacheLocationUsable); location != "" {
 		cert, key := f.bridge.GetBridgeTLSCert()
 
-		if err := os.WriteFile(filepath.Join(location, "cert.pem"), cert, 0600); err != nil {
+		if err := os.WriteFile(filepath.Join(location, "cert.pem"), cert, 0o600); err != nil {
 			f.printAndLogError(err)
 			return
 		}
 
-		if err := os.WriteFile(filepath.Join(location, "key.pem"), key, 0600); err != nil {
+		if err := os.WriteFile(filepath.Join(location, "key.pem"), key, 0o600); err != nil {
 			f.printAndLogError(err)
 			return
 		}

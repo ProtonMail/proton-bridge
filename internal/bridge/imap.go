@@ -141,7 +141,7 @@ func getGluonDir(encVault *vault.Vault) (string, error) {
 	}
 
 	if !exists {
-		if err := os.MkdirAll(encVault.GetGluonDir(), 0700); err != nil {
+		if err := os.MkdirAll(encVault.GetGluonDir(), 0o700); err != nil {
 			return "", fmt.Errorf("failed to create gluon dir: %w", err)
 		}
 	}

@@ -185,7 +185,7 @@ func newTestPersister(tb testing.TB) *testPersister {
 	path := filepath.Join(tb.TempDir(), "cookies.json")
 
 	if _, err := os.Stat(path); errors.Is(err, fs.ErrNotExist) {
-		if err := os.WriteFile(path, []byte{}, 0600); err != nil {
+		if err := os.WriteFile(path, []byte{}, 0o600); err != nil {
 			panic(err)
 		}
 	}
@@ -198,5 +198,5 @@ func (p *testPersister) GetCookies() ([]byte, error) {
 }
 
 func (p *testPersister) SetCookies(rawCookies []byte) error {
-	return os.WriteFile(p.path, rawCookies, 0600)
+	return os.WriteFile(p.path, rawCookies, 0o600)
 }

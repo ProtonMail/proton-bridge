@@ -30,7 +30,7 @@ func moveDir(from, to string) error {
 
 	for _, entry := range entries {
 		if entry.IsDir() {
-			if err := os.Mkdir(filepath.Join(to, entry.Name()), 0700); err != nil {
+			if err := os.Mkdir(filepath.Join(to, entry.Name()), 0o700); err != nil {
 				return err
 			}
 
@@ -52,7 +52,7 @@ func moveDir(from, to string) error {
 }
 
 func move(from, to string) error {
-	if err := os.MkdirAll(filepath.Dir(to), 0700); err != nil {
+	if err := os.MkdirAll(filepath.Dir(to), 0o700); err != nil {
 		return err
 	}
 
@@ -68,7 +68,7 @@ func move(from, to string) error {
 	}
 	defer func() { _ = f.Close() }()
 
-	if err := os.Chmod(to, 0600); err != nil {
+	if err := os.Chmod(to, 0o600); err != nil {
 		return err
 	}
 
