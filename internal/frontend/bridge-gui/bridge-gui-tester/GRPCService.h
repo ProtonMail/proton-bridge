@@ -82,6 +82,8 @@ public: // member functions.
     grpc::Status IsDoHEnabled(::grpc::ServerContext *, ::google::protobuf::Empty const*, ::google::protobuf::BoolValue *response) override;
     grpc::Status SetUseSslForSmtp(::grpc::ServerContext *, ::google::protobuf::BoolValue const *request, ::google::protobuf::Empty *) override;
     grpc::Status UseSslForSmtp(::grpc::ServerContext *, ::google::protobuf::Empty const*, ::google::protobuf::BoolValue *response) override;
+    grpc::Status SetUseSslForImap(::grpc::ServerContext *, ::google::protobuf::BoolValue const *request, ::google::protobuf::Empty *) override;
+    grpc::Status UseSslForImap(::grpc::ServerContext *, ::google::protobuf::Empty const*, ::google::protobuf::BoolValue *response) override;
     grpc::Status Hostname(::grpc::ServerContext *, ::google::protobuf::Empty const*, ::google::protobuf::StringValue *response) override;
     grpc::Status ImapPort(::grpc::ServerContext *, ::google::protobuf::Empty const*, ::google::protobuf::Int32Value *response) override;
     grpc::Status SmtpPort(::grpc::ServerContext *, ::google::protobuf::Empty const*, ::google::protobuf::Int32Value *response) override;

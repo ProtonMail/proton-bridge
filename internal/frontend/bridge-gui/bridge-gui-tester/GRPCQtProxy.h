@@ -48,6 +48,7 @@ public: // member functions.
     void setIsStreaming(bool isStreaming); ///< Forward a isStreaming internal messages via a Qt signal.
     void setClientPlatform(QString const &clientPlatform); ///< Forward s setClientPlatform call via a Qt signal.
     void changePorts(qint32 imapPort, qint32 smtpPort); ///< Forwards a ChangePorts call via a Qt signal.
+    void setUseSSLForIMAP(bool use); ///< Forwards a SetUseSSLForIMAP call via a Qt signal.
     void setUseSSLForSMTP(bool use); ///< Forwards a SetUseSSLForSMTP call via a Qt signal.
     void setIsDoHEnabled(bool enabled); ///< Forwards a setIsDoHEnabled call via a Qt signal.
     void setDiskCachePath(QString const &path); ///< Forwards a setDiskCachePath call via a Qt signal.
@@ -68,6 +69,7 @@ signals:
     void setIsStreamingReceived(bool isStreaming); ///< Signal for the IsStreaming internal message.
     void setClientPlatformReceived(QString const &clientPlatform); ///< Signal for the SetClientPlatform gRPC call.
     void changePortsReceived(qint32 imapPort, qint32 smtpPort); ///< Signal for the ChangePorts gRPC call.
+    void setUseSSLForIMAPReceived(bool use); ///< Signal for the SetUseSSLForIMAP gRPC call.
     void setUseSSLForSMTPReceived(bool use); ///< Signal for the SetUseSSLForSMTP gRPC call.
     void setIsDoHEnabledReceived(bool enabled); ///< Signal for the SetIsDoHEnabled gRPC call.
     void setDiskCachePathReceived(QString const &path); ///< Signal for the setDiskCachePath gRPC call.

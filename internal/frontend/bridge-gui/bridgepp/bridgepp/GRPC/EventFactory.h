@@ -60,6 +60,7 @@ SPStreamEvent newDiskCachePathChangeFinishedEvent(); ///< Create a new DiskCache
 
 // Mail settings related events
 SPStreamEvent newMailSettingsErrorEvent(grpc::MailSettingsErrorType errorType); ///< Create a new MailSettingsErrorEvent event.
+SPStreamEvent newUseSslForImapFinishedEvent(); ///< Create a new UseSslForImapFinishedEvent event.
 SPStreamEvent newUseSslForSmtpFinishedEvent(); ///< Create a new UseSslForSmtpFinishedEvent event.
 SPStreamEvent newChangePortsFinishedEvent(); ///< Create a new ChangePortsFinishedEvent event.
 

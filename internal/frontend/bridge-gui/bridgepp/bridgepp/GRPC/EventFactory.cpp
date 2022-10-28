@@ -438,6 +438,18 @@ SPStreamEvent newMailSettingsErrorEvent(grpc::MailSettingsErrorType errorType)
 //****************************************************************************************************************************************************
 /// \return The event.
 //****************************************************************************************************************************************************
+SPStreamEvent newUseSslForImapFinishedEvent()
+{
+    auto event = new grpc::UseSslForImapFinishedEvent;
+    auto mailSettingsEvent = new grpc::MailSettingsEvent;
+    mailSettingsEvent->set_allocated_usesslforimapfinished(event);
+    return wrapMailSettingsEvent(mailSettingsEvent);
+}
+
+
+//****************************************************************************************************************************************************
+/// \return The event.
+//****************************************************************************************************************************************************
 SPStreamEvent newUseSslForSmtpFinishedEvent()
 {
     auto event = new grpc::UseSslForSmtpFinishedEvent;

@@ -45,6 +45,7 @@ void GRPCQtProxy::connectSignals()
     connect(this, &GRPCQtProxy::setIsStreamingReceived, &settingsTab, &SettingsTab::setIsStreaming);
     connect(this, &GRPCQtProxy::setClientPlatformReceived, &settingsTab, &SettingsTab::setClientPlatform);
     connect(this, &GRPCQtProxy::changePortsReceived, &settingsTab, &SettingsTab::changePorts);
+    connect(this, &GRPCQtProxy::setUseSSLForIMAPReceived, &settingsTab, &SettingsTab::setUseSSLForIMAP);
     connect(this, &GRPCQtProxy::setUseSSLForSMTPReceived, &settingsTab, &SettingsTab::setUseSSLForSMTP);
     connect(this, &GRPCQtProxy::setIsDoHEnabledReceived, &settingsTab, &SettingsTab::setIsDoHEnabled);
     connect(this, &GRPCQtProxy::setDiskCachePathReceived, &settingsTab, &SettingsTab::setDiskCachePath);
@@ -142,6 +143,15 @@ void GRPCQtProxy::setClientPlatform(QString const &clientPlatform)
 void GRPCQtProxy::changePorts(qint32 imapPort, qint32 smtpPort)
 {
     emit changePortsReceived(imapPort, smtpPort);
+}
+
+
+//****************************************************************************************************************************************************
+/// \param[in] use Should SMTP use SSL?
+//****************************************************************************************************************************************************
+void GRPCQtProxy::setUseSSLForIMAP(bool use)
+{
+    emit setUseSSLForIMAPReceived(use);
 }
 
 

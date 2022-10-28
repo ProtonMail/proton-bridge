@@ -638,6 +638,31 @@ Status GRPCService::IsDoHEnabled(ServerContext *, Empty const *, BoolValue *resp
 /// \param[in] request The request.
 /// \return The status for the call.
 //****************************************************************************************************************************************************
+Status GRPCService::SetUseSslForImap(ServerContext *, BoolValue const *request, Empty *)
+{
+    app().log().debug(__FUNCTION__);
+    qtProxy_.setUseSSLForIMAP(request->value());
+    qtProxy_.sendDelayedEvent(newUseSslForImapFinishedEvent());
+    return Status::OK;
+}
+
+
+//****************************************************************************************************************************************************
+/// \param[out] response The response.
+/// \return The status for the call.
+//****************************************************************************************************************************************************
+Status GRPCService::UseSslForImap(ServerContext *, Empty const *, BoolValue *response)
+{
+    app().log().debug(__FUNCTION__);
+    response->set_value(app().mainWindow().settingsTab().useSSLForIMAP());
+    return Status::OK;
+}
+
+
+//****************************************************************************************************************************************************
+/// \param[in] request The request.
+/// \return The status for the call.
+//****************************************************************************************************************************************************
 Status GRPCService::SetUseSslForSmtp(ServerContext *, BoolValue const *request, Empty *)
 {
     app().log().debug(__FUNCTION__);
@@ -922,7 +947,5 @@ bool GRPCService::sendEvent(SPStreamEvent const &event)
         eventQueue_.push_back(event);
     return isStreaming_;
 }
-
-
 
 
