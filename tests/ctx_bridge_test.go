@@ -22,7 +22,10 @@ import (
 	"crypto/tls"
 	"fmt"
 	"net/http/cookiejar"
+	"os"
 	"time"
+
+	"github.com/sirupsen/logrus"
 
 	"github.com/ProtonMail/proton-bridge/v2/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/v2/internal/cookies"
@@ -68,6 +71,13 @@ func (t *testCtx) startBridge() error {
 		return err
 	}
 
+	var logIMAP bool
+
+	if len(os.Getenv("FEATURE_TEST_LOG_IMAP")) != 0 {
+		logrus.SetLevel(logrus.TraceLevel)
+		logIMAP = true
+	}
+
 	// Create the bridge.
 	bridge, eventCh, err := bridge.New(
 		// App stuff
@@ -86,8 +96,8 @@ func (t *testCtx) startBridge() error {
 		t.mocks.ProxyCtl,
 
 		// Logging stuff
-		false,
-		false,
+		logIMAP,
+		logIMAP,
 		false,
 	)
 	if err != nil {
