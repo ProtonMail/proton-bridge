@@ -267,7 +267,7 @@ func (s *Service) watchEvents() { //nolint:funlen
 			_ = s.SendEvent(NewMailApiCertIssue())
 
 		case events.UpdateForced:
-			panic("TODO")
+			_ = s.SendEvent(NewUpdateForceEvent(s.newVersionInfo.Version.String()))
 		}
 	}
 }
