@@ -522,12 +522,12 @@ func (user *User) CheckAuth(email string, password []byte) (string, error) {
 }
 
 // OnStatusUp is called when the connection goes up.
-func (user *User) OnStatusUp() {
+func (user *User) OnStatusUp(context.Context) {
 	user.goSync()
 }
 
 // OnStatusDown is called when the connection goes down.
-func (user *User) OnStatusDown() {
+func (user *User) OnStatusDown(context.Context) {
 	user.abortable.Abort()
 }
 

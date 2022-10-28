@@ -271,10 +271,12 @@ func (bridge *Bridge) init(tlsReporter TLSReporter) error {
 	bridge.api.AddStatusObserver(func(status liteapi.Status) {
 		switch {
 		case status == liteapi.StatusUp:
-			go bridge.onStatusUp()
+			bridge.publish(events.ConnStatusUp{})
+			bridge.tasks.Once(bridge.onStatusUp)
 
 		case status == liteapi.StatusDown:
-			go bridge.onStatusDown()
+			bridge.publish(events.ConnStatusDown{})
+			bridge.tasks.Once(bridge.onStatusDown)
 		}
 	})
 
@@ -429,48 +431,36 @@ func (bridge *Bridge) remWatcher(watcher *watcher.Watcher[events.Event]) {
 	watcher.Close()
 }
 
-func (bridge *Bridge) onStatusUp() {
-	bridge.publish(events.ConnStatusUp{})
-
+func (bridge *Bridge) onStatusUp(ctx context.Context) {
 	safe.RLock(func() {
 		for _, user := range bridge.users {
-			user.OnStatusUp()
+			user.OnStatusUp(ctx)
 		}
 	}, bridge.usersLock)
 
 	bridge.goLoad()
 }
 
-func (bridge *Bridge) onStatusDown() {
-	bridge.publish(events.ConnStatusDown{})
-
+func (bridge *Bridge) onStatusDown(ctx context.Context) {
 	safe.RLock(func() {
 		for _, user := range bridge.users {
-			user.OnStatusDown()
+			user.OnStatusDown(ctx)
 		}
 	}, bridge.usersLock)
 
-	bridge.tasks.Once(func(ctx context.Context) {
-		backoff := time.Second
+	for backoff := time.Second; ; backoff = min(backoff*2, 30*time.Second) {
+		select {
+		case <-ctx.Done():
+			return
 
-		for {
-			select {
-			case <-ctx.Done():
+		case <-time.After(backoff):
+			if err := bridge.api.Ping(ctx); err != nil {
+				logrus.WithError(err).Debug("Failed to ping API, will retry")
+			} else {
 				return
-
-			case <-time.After(backoff):
-				if err := bridge.api.Ping(ctx); err != nil {
-					logrus.WithError(err).Debug("Failed to ping API, will retry")
-				} else {
-					return
-				}
-			}
-
-			if backoff < 30*time.Second {
-				backoff *= 2
 			}
 		}
-	})
+	}
 }
 
 func loadTLSConfig(vault *vault.Vault) (*tls.Config, error) {
@@ -501,4 +491,12 @@ func newListener(port int, useTLS bool, tlsConfig *tls.Config) (net.Listener, er
 	}
 
 	return netListener, nil
+}
+
+func min(a, b time.Duration) time.Duration {
+	if a < b {
+		return a
+	}
+
+	return b
 }
