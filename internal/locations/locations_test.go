@@ -27,11 +27,15 @@ import (
 )
 
 type fakeAppDirs struct {
-	configDir, cacheDir string
+	configDir, dataDir, cacheDir string
 }
 
 func (dirs *fakeAppDirs) UserConfig() string {
 	return dirs.configDir
+}
+
+func (dirs *fakeAppDirs) UserData() string {
+	return dirs.dataDir
 }
 
 func (dirs *fakeAppDirs) UserCache() string {
@@ -134,6 +138,7 @@ func TestRemoveOldGoIMAPCacheFolders(t *testing.T) {
 func newFakeAppDirs(t *testing.T) *fakeAppDirs {
 	return &fakeAppDirs{
 		configDir: t.TempDir(),
+		dataDir:   t.TempDir(),
 		cacheDir:  t.TempDir(),
 	}
 }

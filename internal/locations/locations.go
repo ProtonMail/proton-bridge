@@ -36,16 +36,26 @@ import (
 // - updates: ~/.config/protonmail/<app>/updates
 // - lockfile: ~/.cache/protonmail/<app>/<app>.lock .
 type Locations struct {
-	userConfig, userCache string
-	configName            string
-	configGuiName         string
+	// userConfig is the path to the user config directory, for storing persistent config data.
+	userConfig string
+
+	// userData is the path to the user data directory, for storing persistent data.
+	userData string
+
+	// userCache is the path to the user cache directory, for storing non-essential data.
+	userCache string
+
+	configName    string
+	configGuiName string
 }
 
 // New returns a new locations object.
 func New(provider Provider, configName string) *Locations {
 	return &Locations{
-		userConfig:    provider.UserConfig(),
-		userCache:     provider.UserCache(),
+		userConfig: provider.UserConfig(),
+		userData:   provider.UserData(),
+		userCache:  provider.UserCache(),
+
 		configName:    configName,
 		configGuiName: configName + "-gui",
 	}
@@ -178,7 +188,7 @@ func (l *Locations) GetOldUpdatesPath() string {
 }
 
 func (l *Locations) getGluonPath() string {
-	return filepath.Join(l.userCache, "gluon")
+	return filepath.Join(l.userData, "gluon")
 }
 
 func (l *Locations) getGUICertPath() string {
@@ -190,7 +200,7 @@ func (l *Locations) getSettingsPath() string {
 }
 
 func (l *Locations) getLogsPath() string {
-	return filepath.Join(l.userCache, "logs")
+	return filepath.Join(l.userData, "logs")
 }
 
 func (l *Locations) getGoIMAPCachePath() string {
@@ -215,6 +225,7 @@ func (l *Locations) getUpdatesPath() string {
 func (l *Locations) Clear() error {
 	return files.Remove(
 		l.userConfig,
+		l.userData,
 		l.userCache,
 	).Except(
 		l.GetGuiLockFile(),
@@ -232,7 +243,10 @@ func (l *Locations) ClearUpdates() error {
 // Clean removes any unexpected files from the app cache folder
 // while leaving files in the standard locations untouched.
 func (l *Locations) Clean() error {
-	return files.Remove(l.userCache).Except(
+	return files.Remove(
+		l.userCache,
+		l.userData,
+	).Except(
 		l.GetGuiLockFile(),
 		l.getLogsPath(),
 		l.getUpdatesPath(),

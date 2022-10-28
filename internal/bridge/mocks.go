@@ -63,11 +63,16 @@ func (j *TestCookieJar) Cookies(u *url.URL) []*http.Cookie {
 }
 
 type TestLocationsProvider struct {
-	config, cache string
+	config, data, cache string
 }
 
 func NewTestLocationsProvider(dir string) *TestLocationsProvider {
 	config, err := os.MkdirTemp(dir, "config")
+	if err != nil {
+		panic(err)
+	}
+
+	data, err := os.MkdirTemp(dir, "data")
 	if err != nil {
 		panic(err)
 	}
@@ -79,12 +84,17 @@ func NewTestLocationsProvider(dir string) *TestLocationsProvider {
 
 	return &TestLocationsProvider{
 		config: config,
+		data:   data,
 		cache:  cache,
 	}
 }
 
 func (provider *TestLocationsProvider) UserConfig() string {
 	return provider.config
+}
+
+func (provider *TestLocationsProvider) UserData() string {
+	return provider.data
 }
 
 func (provider *TestLocationsProvider) UserCache() string {

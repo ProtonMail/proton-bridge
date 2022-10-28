@@ -18,23 +18,31 @@
 package locations
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
+	"runtime"
 )
 
 // Provider provides standard locations.
 type Provider interface {
 	UserConfig() string
+	UserData() string
 	UserCache() string
 }
 
 // DefaultProvider is a locations provider using the system-default storage locations.
 type DefaultProvider struct {
-	config, cache string
+	config, data, cache string
 }
 
 func NewDefaultProvider(name string) (*DefaultProvider, error) {
 	config, err := os.UserConfigDir()
+	if err != nil {
+		return nil, err
+	}
+
+	data, err := userDataDir()
 	if err != nil {
 		return nil, err
 	}
@@ -46,14 +54,44 @@ func NewDefaultProvider(name string) (*DefaultProvider, error) {
 
 	return &DefaultProvider{
 		config: filepath.Join(config, name),
+		data:   filepath.Join(data, name),
 		cache:  filepath.Join(cache, name),
 	}, nil
 }
 
+// UserConfig returns a directory that can be used to store user-specific configuration.
+// $XDG_CONFIG_HOME/protonmail is used on Unix systems; similar on others.
 func (p *DefaultProvider) UserConfig() string {
 	return p.config
 }
 
+// UserData returns a directory that can be used to store user-specific data.
+// $XDG_DATA_HOME/protonmail is used on Unix systems; similar on others.
+func (p *DefaultProvider) UserData() string {
+	return p.data
+}
+
+// UserCache returns a directory that can be used to store user-specific non-essential data.
+// $XDG_CACHE_HOME/protonmail is used on Unix systems; similar on others.
 func (p *DefaultProvider) UserCache() string {
 	return p.cache
+}
+
+// userDataDir returns a directory that can be used to store user-specific data.
+// This is necessary because os.UserDataDir() is not implemented by the Go standard library, sadly.
+// On non-linux systems, it is the same as os.UserConfigDir().
+func userDataDir() (string, error) {
+	if runtime.GOOS != "linux" {
+		return os.UserConfigDir()
+	}
+
+	if dir := os.Getenv("XDG_DATA_HOME"); dir != "" {
+		return dir, nil
+	}
+
+	if dir := os.Getenv("HOME"); dir != "" {
+		return filepath.Join(dir, ".local", "share"), nil
+	}
+
+	return "", errors.New("neither $XDG_DATA_HOME nor $HOME are defined")
 }
