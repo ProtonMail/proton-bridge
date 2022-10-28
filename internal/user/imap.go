@@ -355,12 +355,21 @@ func (conn *imapConnector) GetUpdates() <-chan imap.Update {
 
 // GetUIDValidity returns the default UID validity for this user.
 func (conn *imapConnector) GetUIDValidity() imap.UID {
+	if validity, ok := conn.vault.GetUIDValidity(conn.addrID); ok {
+		return validity
+	}
+
+	// Initialize to 1.
+	if err := conn.vault.SetUIDValidity(conn.addrID, imap.UID(1)); err != nil {
+		conn.log.WithError(err).Error("Failed to set UID validity")
+	}
+
 	return imap.UID(1)
 }
 
 // SetUIDValidity sets the default UID validity for this user.
-func (conn *imapConnector) SetUIDValidity(uidValidity imap.UID) error {
-	return nil
+func (conn *imapConnector) SetUIDValidity(validity imap.UID) error {
+	return conn.vault.SetUIDValidity(conn.addrID, validity)
 }
 
 // Close the connector will no longer be used and all resources should be closed/released.
