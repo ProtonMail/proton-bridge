@@ -34,7 +34,7 @@ var (
 	FullAppName = ""
 
 	// Version of the build.
-	Version = ""
+	Version = "0.0.0"
 
 	// Revision is current hash of the build.
 	Revision = ""

@@ -27,6 +27,7 @@ import (
 	"testing"
 
 	"github.com/ProtonMail/proton-bridge/v2/internal/bridge"
+	"github.com/ProtonMail/proton-bridge/v2/internal/constants"
 	"github.com/ProtonMail/proton-bridge/v2/internal/events"
 	"github.com/bradenaw/juniper/iterator"
 	"github.com/bradenaw/juniper/stream"
@@ -72,7 +73,7 @@ func TestBridge_Sync(t *testing.T) {
 			require.NoError(t, err)
 			require.True(t, info.Connected)
 
-			client, err := client.Dial(fmt.Sprintf(":%v", bridge.GetIMAPPort()))
+			client, err := client.Dial(fmt.Sprintf("%v:%v", constants.Host, bridge.GetIMAPPort()))
 			require.NoError(t, err)
 			require.NoError(t, client.Login("imap@pm.me", string(info.BridgePass)))
 			defer func() { _ = client.Logout() }()
@@ -105,7 +106,7 @@ func TestBridge_Sync(t *testing.T) {
 				require.NoError(t, err)
 				require.True(t, info.Connected)
 
-				client, err := client.Dial(fmt.Sprintf(":%v", bridge.GetIMAPPort()))
+				client, err := client.Dial(fmt.Sprintf("%v:%v", constants.Host, bridge.GetIMAPPort()))
 				require.NoError(t, err)
 				require.NoError(t, client.Login("imap@pm.me", string(info.BridgePass)))
 				defer func() { _ = client.Logout() }()
@@ -128,7 +129,7 @@ func TestBridge_Sync(t *testing.T) {
 				require.NoError(t, err)
 				require.True(t, info.Connected)
 
-				client, err := client.Dial(fmt.Sprintf(":%v", bridge.GetIMAPPort()))
+				client, err := client.Dial(fmt.Sprintf("%v:%v", constants.Host, bridge.GetIMAPPort()))
 				require.NoError(t, err)
 				require.NoError(t, client.Login("imap@pm.me", string(info.BridgePass)))
 				defer func() { _ = client.Logout() }()

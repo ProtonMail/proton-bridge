@@ -52,11 +52,25 @@ func NewDefaultProvider(name string) (*DefaultProvider, error) {
 		return nil, err
 	}
 
-	return &DefaultProvider{
+	provider := &DefaultProvider{
 		config: filepath.Join(config, name),
 		data:   filepath.Join(data, name),
 		cache:  filepath.Join(cache, name),
-	}, nil
+	}
+
+	if err := os.MkdirAll(provider.config, 0o700); err != nil {
+		return nil, err
+	}
+
+	if err := os.MkdirAll(provider.data, 0o700); err != nil {
+		return nil, err
+	}
+
+	if err := os.MkdirAll(provider.cache, 0o700); err != nil {
+		return nil, err
+	}
+
+	return provider, nil
 }
 
 // UserConfig returns a directory that can be used to store user-specific configuration.
