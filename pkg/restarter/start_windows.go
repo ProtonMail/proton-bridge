@@ -15,6 +15,9 @@
 // You should have received a copy of the GNU General Public License
 // along with Proton Mail Bridge.  If not, see <https://www.gnu.org/licenses/>.
 
+//go:build windows
+// +build windows
+
 package restarter
 
 import "os/exec"
