@@ -48,6 +48,7 @@ type Message struct {
 	PlainBody   Body
 	Attachments []Attachment
 	MIMEType    rfc822.MIMEType
+	IsReply     bool
 
 	Subject  string
 	Sender   *mail.Address
@@ -58,6 +59,7 @@ type Message struct {
 
 	References []string
 	ExternalID string
+	InReplyTo  string
 }
 
 type Attachment struct {
@@ -490,6 +492,9 @@ func parseMessageHeader(h message.Header) (Message, error) { //nolint:funlen
 
 		case "message-id":
 			m.ExternalID = regexp.MustCompile("<(.*)>").ReplaceAllString(fields.Value(), "$1")
+
+		case "in-reply-to":
+			m.InReplyTo = regexp.MustCompile("<(.*)>").ReplaceAllString(fields.Value(), "$1")
 
 		case "references":
 			m.References = append(m.References, xslices.Map(strings.Fields(fields.Value()), func(ref string) string {

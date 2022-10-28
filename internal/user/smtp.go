@@ -80,7 +80,7 @@ func sendWithKey( //nolint:funlen
 		return liteapi.Message{}, fmt.Errorf("failed to get armored message body: %w", err)
 	}
 
-	draft, err := createDraft(ctx, client, emails, from, to, parentID, liteapi.DraftTemplate{
+	draft, err := createDraft(ctx, client, emails, from, to, parentID, message.InReplyTo, liteapi.DraftTemplate{
 		Subject:  message.Subject,
 		Body:     armBody,
 		MIMEType: message.MIMEType,
@@ -196,6 +196,7 @@ func createDraft(
 	from string,
 	to []string,
 	parentID string,
+	replyToID string,
 	template liteapi.DraftTemplate,
 ) (liteapi.Message, error) {
 	// Check sender: set the sender if it's missing.
@@ -228,9 +229,18 @@ func createDraft(
 		}
 	}
 
+	var action liteapi.CreateDraftAction
+
+	if len(replyToID) > 0 {
+		action = liteapi.ReplyAction
+	} else {
+		action = liteapi.ForwardAction
+	}
+
 	return client.CreateDraft(ctx, liteapi.CreateDraftReq{
 		Message:  template,
 		ParentID: parentID,
+		Action:   action,
 	})
 }
 
