@@ -86,7 +86,11 @@ func (d *ProxyTLSDialer) DialTLSContext(ctx context.Context, network, address st
 	conn, err := d.dialer.DialTLSContext(ctx, network, address)
 	if err == nil || !d.allowProxy {
 		return conn, err
+	} else if errors.Is(err, context.Canceled) {
+		return nil, err
 	}
+
+	logrus.WithError(err).Debug("DialTLS failed, trying proxy")
 
 	if err := d.switchToReachableServer(); err != nil {
 		return nil, err
