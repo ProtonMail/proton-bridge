@@ -56,6 +56,13 @@ func withBridge( //nolint:funlen
 	cookieJar http.CookieJar,
 	fn func(*bridge.Bridge, <-chan events.Event) error,
 ) error {
+	// Delete old go-imap cache files
+	if deleteOldGoIMAPFiles {
+		if err := locations.CleanGoIMAPCache(); err != nil {
+			logrus.WithError(err).Error("Failed to remove old go-imap cache")
+		}
+	}
+
 	// Create the underlying dialer used by the bridge.
 	// It only connects to trusted servers and reports any untrusted servers it finds.
 	pinningDialer := dialer.NewPinningTLSDialer(
@@ -63,13 +70,6 @@ func withBridge( //nolint:funlen
 		dialer.NewTLSReporter(constants.APIHost, constants.AppVersion(version.Original()), identifier, dialer.TrustedAPIPins),
 		dialer.NewTLSPinChecker(dialer.TrustedAPIPins),
 	)
-
-	// Delete old go-imap cache files
-	if deleteOldGoIMAPFiles {
-		if err := locations.CleanGoIMAPCache(); err != nil {
-			logrus.WithError(err).Error("Failed to remove old go-imap cache")
-		}
-	}
 
 	// Create a proxy dialer which switches to a proxy if the request fails.
 	proxyDialer := dialer.NewProxyTLSDialer(pinningDialer, constants.APIHost)

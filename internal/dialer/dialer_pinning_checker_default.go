@@ -15,29 +15,34 @@
 // You should have received a copy of the GNU General Public License
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
+//go:build !build_qa
+
 package dialer
 
 import (
-	"crypto/x509"
+	"crypto/tls"
 	"errors"
-	"fmt"
-
-	"github.com/ProtonMail/proton-bridge/v2/pkg/algo"
+	"net"
 )
 
-// ErrTLSMismatch indicates that no TLS fingerprint match could be found.
-var ErrTLSMismatch = errors.New("no TLS fingerprint match found")
-
-type TLSPinChecker struct {
-	trustedPins []string
-}
-
-func NewTLSPinChecker(trustedPins []string) *TLSPinChecker {
-	return &TLSPinChecker{
-		trustedPins: trustedPins,
+// CheckCertificate returns whether the connection presents a known TLS certificate.
+func (p *TLSPinChecker) CheckCertificate(conn net.Conn) error {
+	tlsConn, ok := conn.(*tls.Conn)
+	if !ok {
+		return errors.New("connection is not a TLS connection")
 	}
-}
 
-func certFingerprint(cert *x509.Certificate) string {
-	return fmt.Sprintf(`pin-sha256=%q`, algo.HashBase64SHA256(string(cert.RawSubjectPublicKeyInfo)))
+	connState := tlsConn.ConnectionState()
+
+	for _, peerCert := range connState.PeerCertificates {
+		fingerprint := certFingerprint(peerCert)
+
+		for _, pin := range p.trustedPins {
+			if pin == fingerprint {
+				return nil
+			}
+		}
+	}
+
+	return ErrTLSMismatch
 }
