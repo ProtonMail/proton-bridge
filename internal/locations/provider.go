@@ -96,7 +96,7 @@ func (p *DefaultProvider) UserCache() string {
 // On non-linux systems, it is the same as os.UserConfigDir().
 func userDataDir() (string, error) {
 	if runtime.GOOS != "linux" {
-		return os.UserConfigDir()
+		return os.UserCacheDir()
 	}
 
 	if dir := os.Getenv("XDG_DATA_HOME"); dir != "" {
