@@ -27,6 +27,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/v2/internal/locations"
 	"github.com/ProtonMail/proton-bridge/v2/internal/vault"
 	"github.com/ProtonMail/proton-bridge/v2/pkg/keychain"
+	"github.com/sirupsen/logrus"
 	"golang.org/x/exp/slices"
 )
 
@@ -46,10 +47,6 @@ func WithVault(locations *locations.Locations, fn func(*vault.Vault, bool, bool)
 		if err := encVault.SetCertsInstalled(true); err != nil {
 			return fmt.Errorf("failed to set certs installed: %w", err)
 		}
-
-		if err := encVault.SetCertsInstalled(true); err != nil {
-			return fmt.Errorf("could not set certs installed: %w", err)
-		}
 	}
 
 	// GODT-1950: Add teardown actions (e.g. to close the vault).
@@ -58,14 +55,17 @@ func WithVault(locations *locations.Locations, fn func(*vault.Vault, bool, bool)
 }
 
 func newVault(locations *locations.Locations) (*vault.Vault, bool, bool, error) {
-	var insecure bool
-
 	vaultDir, err := locations.ProvideSettingsPath()
 	if err != nil {
 		return nil, false, false, fmt.Errorf("could not get vault dir: %w", err)
 	}
 
-	var vaultKey []byte
+	logrus.WithField("vaultDir", vaultDir).Debug("Loading vault from directory")
+
+	var (
+		vaultKey []byte
+		insecure bool
+	)
 
 	if key, err := getVaultKey(vaultDir); err != nil {
 		insecure = true
