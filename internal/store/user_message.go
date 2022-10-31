@@ -1,19 +1,19 @@
-// Copyright (c) 2021 Proton Technologies AG
+// Copyright (c) 2022 Proton AG
 //
-// This file is part of ProtonMail Bridge.
+// This file is part of Proton Mail Bridge.
 //
-// ProtonMail Bridge is free software: you can redistribute it and/or modify
+// Proton Mail Bridge is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// ProtonMail Bridge is distributed in the hope that it will be useful,
+// Proton Mail Bridge is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
+// along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 package store
 
@@ -21,14 +21,13 @@ import (
 	"bytes"
 	"encoding/json"
 	"io"
-	"io/ioutil"
 	"net/mail"
 	"net/textproto"
 	"strings"
 
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
-	"github.com/ProtonMail/proton-bridge/internal/store/cache"
-	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
+	"github.com/ProtonMail/proton-bridge/v2/internal/store/cache"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/pmapi"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	bolt "go.etcd.io/bbolt"
@@ -43,7 +42,8 @@ func (store *Store) CreateDraft(
 	attachmentReaders []io.Reader,
 	attachedPublicKey,
 	attachedPublicKeyName string,
-	parentID string) (*pmapi.Message, []*pmapi.Attachment, error) {
+	parentID string,
+) (*pmapi.Message, []*pmapi.Attachment, error) {
 	attachments := store.prepareDraftAttachments(message, attachmentReaders, attachedPublicKey, attachedPublicKeyName)
 
 	if err := encryptDraft(kr, message, attachments); err != nil {
@@ -90,7 +90,8 @@ func (store *Store) prepareDraftAttachments(
 	message *pmapi.Message,
 	attachmentReaders []io.Reader,
 	attachedPublicKey,
-	attachedPublicKeyName string) []*draftAttachment {
+	attachedPublicKeyName string,
+) []*draftAttachment {
 	attachments := []*draftAttachment{}
 	for idx, attachment := range message.Attachments {
 		attachments = append(attachments, &draftAttachment{
@@ -124,7 +125,7 @@ func encryptDraft(kr *crypto.KeyRing, message *pmapi.Message, attachments []*dra
 
 	for _, att := range attachments {
 		attachment := att.attachment
-		attachmentBody, err := ioutil.ReadAll(att.reader)
+		attachmentBody, err := io.ReadAll(att.reader)
 		if err != nil {
 			return errors.Wrap(err, "failed to read attachment")
 		}
@@ -156,7 +157,7 @@ func (store *Store) checkDraftTotalSize(message *pmapi.Message, attachments []*d
 
 	var attSize int64
 	for _, att := range attachments {
-		b, err := ioutil.ReadAll(att.encReader)
+		b, err := io.ReadAll(att.encReader)
 		if err != nil {
 			return false, err
 		}
@@ -241,7 +242,7 @@ func (store *Store) createOrUpdateMessageEvent(msg *pmapi.Message) error {
 // createOrUpdateMessagesEvent tries to create or update messages in database.
 // This function is optimised for insertion of many messages at once.
 // It calls createLabelsIfMissing if needed.
-func (store *Store) createOrUpdateMessagesEvent(msgs []*pmapi.Message) error { //nolint[funlen]
+func (store *Store) createOrUpdateMessagesEvent(msgs []*pmapi.Message) error { //nolint:funlen
 	store.log.WithField("msgs", msgs).Trace("Creating or updating messages in the store")
 
 	// Strip non meta first to reduce memory (no need to keep all old msg ID data during update).

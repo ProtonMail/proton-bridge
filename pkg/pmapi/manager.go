@@ -1,19 +1,19 @@
-// Copyright (c) 2021 Proton Technologies AG
+// Copyright (c) 2022 Proton AG
 //
-// This file is part of ProtonMail Bridge.
+// This file is part of Proton Mail Bridge.
 //
-// ProtonMail Bridge is free software: you can redistribute it and/or modify
+// Proton Mail Bridge is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// ProtonMail Bridge is distributed in the hope that it will be useful,
+// Proton Mail Bridge is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
+// along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 package pmapi
 
@@ -23,6 +23,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/getsentry/sentry-go"
 	"github.com/go-resty/resty/v2"
 )
 
@@ -32,11 +33,13 @@ type manager struct {
 
 	isDown              bool
 	locker              sync.Locker
+	refreshingAuth      sync.Locker
 	connectionObservers []ConnectionObserver
 	proxyDialer         *ProxyTLSDialer
 
-	pingMutex *sync.RWMutex
-	isPinging bool
+	pingMutex           *sync.RWMutex
+	isPinging           bool
+	setSentryUserIDOnce sync.Once
 }
 
 func New(cfg Config) Manager {
@@ -45,18 +48,20 @@ func New(cfg Config) Manager {
 
 func newManager(cfg Config) *manager {
 	m := &manager{
-		cfg:       cfg,
-		rc:        resty.New().EnableTrace(),
-		locker:    &sync.Mutex{},
-		pingMutex: &sync.RWMutex{},
-		isPinging: false,
+		cfg:                 cfg,
+		rc:                  resty.New().EnableTrace(),
+		locker:              &sync.Mutex{},
+		refreshingAuth:      &sync.Mutex{},
+		pingMutex:           &sync.RWMutex{},
+		isPinging:           false,
+		setSentryUserIDOnce: sync.Once{},
 	}
 
 	proxyDialer, transport := newProxyDialerAndTransport(cfg)
 	m.proxyDialer = proxyDialer
 	m.rc.SetTransport(transport)
 
-	m.rc.SetHostURL(cfg.HostURL)
+	m.rc.SetBaseURL(cfg.HostURL)
 	m.rc.OnBeforeRequest(m.setHeaderValues)
 
 	// Any HTTP status code higher than 399 with JSON inside (and proper header)
@@ -72,12 +77,15 @@ func newManager(cfg Config) *manager {
 
 	// Configure retry mechanism.
 	//
-	// SetRetryCount(30): The most probable value of Retry-After is 1s (max
-	// 10s). Retrying up to 30 times will most probably cause a delay of
-	// 30s. The worst case scenario is 5min which is OK for background
-	// requests. We shuold use context to control a foreground requests
-	// which should be finish or fail sooner.
-	m.rc.SetRetryCount(30)
+	// SetRetryCount(5): The most probable value of Retry-After from our
+	// API is 1s (max 10s). Retrying up to 5 times will on average cause a
+	// delay of 40s.
+	//
+	// NOTE: Increasing to values larger than 10 causing significant delay.
+	// The resty is increasing the delay between retries up to 1 minute
+	// (SetRetryMaxWaitTime) so for 10 retries the cumulative delay can be
+	// up to 5min.
+	m.rc.SetRetryCount(5)
 	m.rc.SetRetryMaxWaitTime(time.Minute)
 	m.rc.SetRetryAfter(catchRetryAfter)
 	m.rc.AddRetryCondition(m.shouldRetry)
@@ -154,4 +162,12 @@ func (m *manager) handleRequestFailure(req *resty.Request, err error) {
 	}
 
 	go m.pingUntilSuccess()
+}
+
+func (m *manager) setSentryUserID(userID string) {
+	m.setSentryUserIDOnce.Do(func() {
+		sentry.ConfigureScope(func(scope *sentry.Scope) {
+			scope.SetTag("UserID", userID)
+		})
+	})
 }

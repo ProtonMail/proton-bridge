@@ -1,19 +1,19 @@
-// Copyright (c) 2021 Proton Technologies AG
+// Copyright (c) 2022 Proton AG
 //
-// This file is part of ProtonMail Bridge.
+// This file is part of Proton Mail Bridge.
 //
-// ProtonMail Bridge is free software: you can redistribute it and/or modify
+// Proton Mail Bridge is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// ProtonMail Bridge is distributed in the hope that it will be useful,
+// Proton Mail Bridge is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
+// along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 package message
 
@@ -21,7 +21,6 @@ import (
 	"bytes"
 	"encoding/base64"
 	"io"
-	"io/ioutil"
 	"mime"
 	"mime/multipart"
 	"net/http"
@@ -29,14 +28,14 @@ import (
 	"strings"
 
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
-	pmmime "github.com/ProtonMail/proton-bridge/pkg/mime"
-	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
+	pmmime "github.com/ProtonMail/proton-bridge/v2/pkg/mime"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/pmapi"
 	"github.com/emersion/go-message"
 	"github.com/emersion/go-textwrapper"
 )
 
 // BuildEncrypted is used for importing encrypted message.
-func BuildEncrypted(m *pmapi.Message, readers []io.Reader, kr *crypto.KeyRing) ([]byte, error) { //nolint[funlen]
+func BuildEncrypted(m *pmapi.Message, readers []io.Reader, kr *crypto.KeyRing) ([]byte, error) { //nolint:funlen
 	b := &bytes.Buffer{}
 	boundary := newBoundary(m.ID).gen()
 
@@ -83,7 +82,7 @@ func BuildEncrypted(m *pmapi.Message, readers []io.Reader, kr *crypto.KeyRing) (
 			return nil, err
 		}
 
-		data, err := ioutil.ReadAll(r)
+		data, err := io.ReadAll(r)
 		if err != nil {
 			return nil, err
 		}
@@ -136,7 +135,7 @@ func getAttachmentHeader(att *pmapi.Attachment, buildForIMAP bool) textproto.MIM
 	}
 
 	encodedName := pmmime.EncodeHeader(att.Name)
-	disposition := "attachment" //nolint[goconst]
+	disposition := "attachment" //nolint:goconst
 	if strings.Contains(att.Header.Get("Content-Disposition"), pmapi.DispositionInline) {
 		disposition = pmapi.DispositionInline
 	}

@@ -3,6 +3,7 @@ run:
   timeout: 10m
   skip-dirs:
     - pkg/mime
+    - extern
 
 issues:
   exclude-use-default: false
@@ -12,6 +13,8 @@ issues:
     - should have comment (\([^)]+\) )?or be unexported
     # For now we are missing a lot of comments.
     - at least one file in a package should have a package comment
+    # Package comments.
+    - "package-comments: should have a package comment"
 
   exclude-rules:
     - path: _test\.go
@@ -56,7 +59,6 @@ linters:
     - godox             # Tool for detection of FIXME, TODO and other comment keywords [fast: true, auto-fix: false]
     - gofmt             # Gofmt checks whether code was gofmt-ed. By default this tool runs with -s option to check for code simplification [fast: true, auto-fix: true]
     - goimports         # Goimports does everything that gofmt does. Additionally it checks unused imports [fast: true, auto-fix: true]
-    - golint            # Golint differs from gofmt. Gofmt reformats Go source code, whereas golint prints out style mistakes [fast: true, auto-fix: false]
     - gosec             # Inspects source code for security problems [fast: true, auto-fix: false]
     - misspell          # Finds commonly misspelled English words in comments [fast: true, auto-fix: true]
     - nakedret          # Finds naked returns in functions greater than a specified function length [fast: true, auto-fix: false]
@@ -106,4 +108,3 @@ linters:
     # - testpackage       # linter that makes you use a separate _test package [fast: true, auto-fix: false]
     # - thelper           # thelper detects golang test helpers without t.Helper() call and checks the consistency of test helpers [fast: false, auto-fix: false]
     # - wrapcheck         # Checks that errors returned from external packages are wrapped [fast: false, auto-fix: false]
-

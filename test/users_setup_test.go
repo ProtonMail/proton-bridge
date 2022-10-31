@@ -1,19 +1,19 @@
-// Copyright (c) 2021 Proton Technologies AG
+// Copyright (c) 2022 Proton AG
 //
-// This file is part of ProtonMail Bridge.Bridge.
+// This file is part of Proton Mail Bridge.Bridge.
 //
-// ProtonMail Bridge is free software: you can redistribute it and/or modify
+// Proton Mail Bridge is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// ProtonMail Bridge is distributed in the hope that it will be useful,
+// Proton Mail Bridge is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
+// along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 package tests
 
@@ -33,6 +33,7 @@ func UsersSetupFeatureContext(s *godog.ScenarioContext) {
 	s.Step(`^there is database file for "([^"]*)"$`, thereIsDatabaseFileForUser)
 	s.Step(`^there is no database file for "([^"]*)"$`, thereIsNoDatabaseFileForUser)
 	s.Step(`^there is "([^"]*)" in "([^"]*)" address mode$`, thereIsUserWithAddressMode)
+	s.Step(`^credentials? (?:are|is) locked$`, credentialsAreLocked)
 }
 
 func thereIsUser(bddUserID string) error {
@@ -77,19 +78,19 @@ func thereIsDisconnectedUser(bddUserID string) error {
 	}
 	err := ctx.GetPMAPIController().AddUser(account)
 	if err != nil {
-		return internalError(err, "adding user %s", account.Username())
+		return internalError(err, "adding user %q", account.Username())
 	}
 	err = ctx.LoginUser(account.Username(), account.Password(), account.MailboxPassword())
 	if err != nil {
-		return internalError(err, "logging user %s in", account.Username())
+		return internalError(err, "logging user %q in", account.Username())
 	}
 	user, err := ctx.GetUser(account.Username())
 	if err != nil {
-		return internalError(err, "getting user %s", account.Username())
+		return internalError(err, "getting user %q", account.Username())
 	}
 	err = user.Logout()
 	if err != nil {
-		return internalError(err, "disconnecting user %s", account.Username())
+		return internalError(err, "disconnecting user %q", account.Username())
 	}
 
 	// We need to wait till event loop is stopped because when it's stopped
@@ -123,7 +124,7 @@ func thereIsNoDatabaseFileForUser(bddUserID string) error {
 	}
 	filePath := ctx.GetDatabaseFilePath(account.UserID())
 	if _, err := os.Stat(filePath); err != nil {
-		return nil //nolint[nilerr] Error means the file is not there or not accessible so test passed
+		return nil //nolint:nilerr // Error means the file is not there or not accessible so test passed
 	}
 	return internalError(os.Remove(filePath), "removing database file of %s", account.Username())
 }
@@ -148,5 +149,10 @@ func thereIsUserWithAddressMode(bddUserID, wantAddressMode string) error {
 		}
 	}
 	ctx.EventuallySyncIsFinishedForUsername(user.Username())
+	return nil
+}
+
+func credentialsAreLocked() error {
+	ctx.CredentialsFailsOnWrite(true)
 	return nil
 }

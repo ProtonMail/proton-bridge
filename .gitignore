@@ -5,11 +5,13 @@
 # Editor files
 .*.sw?
 *~
+.idea
 
 # Test files
 godog.test
 debug.test
 coverage.html
+gobinsec-cache*.yml
 
 # Run files
 mem.pprof
@@ -29,3 +31,12 @@ vendor-cache
 /hasher
 cmd/Desktop-Bridge/deploy
 cmd/Import-Export/deploy
+proton-bridge
+cmd/Desktop-Bridge/*.exe
+cmd/launcher/*.exe
+
+# Jetbrains (CLion, Golang) cmake build dirs
+cmake-build-*/
+
+# Doxygen doc files
+_doc/

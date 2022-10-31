@@ -1,19 +1,19 @@
-// Copyright (c) 2021 Proton Technologies AG
+// Copyright (c) 2022 Proton AG
 //
-// This file is part of ProtonMail Bridge.
+// This file is part of Proton Mail Bridge.
 //
-// ProtonMail Bridge is free software: you can redistribute it and/or modify
+// Proton Mail Bridge is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// ProtonMail Bridge is distributed in the hope that it will be useful,
+// Proton Mail Bridge is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
+// along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 package store
 
@@ -24,10 +24,9 @@ import (
 	"strings"
 	"testing"
 
-	pkgMsg "github.com/ProtonMail/proton-bridge/pkg/message"
-	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
+	pkgMsg "github.com/ProtonMail/proton-bridge/v2/pkg/message"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/pmapi"
 	"github.com/golang/mock/gomock"
-	a "github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	bolt "go.etcd.io/bbolt"
 )
@@ -72,6 +71,7 @@ func TestGetMessageFromDB(t *testing.T) {
 }
 
 func TestCreateOrUpdateMessageMetadata(t *testing.T) {
+	r := require.New(t)
 	m, clear := initMocks(t)
 	defer clear()
 
@@ -79,33 +79,37 @@ func TestCreateOrUpdateMessageMetadata(t *testing.T) {
 	insertMessage(t, m, "msg1", "Test message 1", addrID1, false, []string{pmapi.AllMailLabel})
 
 	metadata, err := m.store.getMessageFromDB("msg1")
-	require.Nil(t, err)
+	r.NoError(err)
 
 	msg := &Message{msg: metadata, store: m.store, storeMailbox: nil}
 
 	// Check non-meta and calculated data are cleared/empty.
-	a.Equal(t, "", metadata.Body)
-	a.Equal(t, []*pmapi.Attachment(nil), metadata.Attachments)
-	a.Equal(t, "", metadata.MIMEType)
-	a.Equal(t, make(mail.Header), metadata.Header)
+	r.Equal("", metadata.Body)
+	r.Equal([]*pmapi.Attachment(nil), metadata.Attachments)
+	r.Equal("", metadata.MIMEType)
+	r.Equal(make(mail.Header), metadata.Header)
 
 	wantHeader, wantSize := putBodystructureAndSizeToDB(m, "msg1")
 
 	// Check cached data.
-	require.Nil(t, err)
-	a.Equal(t, wantHeader, msg.GetMIMEHeader())
+	haveHeader, err := msg.GetMIMEHeader()
+	r.NoError(err)
+	r.Equal(wantHeader, haveHeader)
+
 	haveSize, err := msg.GetRFC822Size()
-	require.Nil(t, err)
-	a.Equal(t, wantSize, haveSize)
+	r.NoError(err)
+	r.Equal(wantSize, haveSize)
 
 	// Check cached data are not overridden by reinsert.
 	insertMessage(t, m, "msg1", "Test message 1", addrID1, false, []string{pmapi.AllMailLabel})
 
-	require.Nil(t, err)
-	a.Equal(t, wantHeader, msg.GetMIMEHeader())
+	haveHeader, err = msg.GetMIMEHeader()
+	r.NoError(err)
+	r.Equal(wantHeader, haveHeader)
+
 	haveSize, err = msg.GetRFC822Size()
-	require.Nil(t, err)
-	a.Equal(t, wantSize, haveSize)
+	r.NoError(err)
+	r.Equal(wantSize, haveSize)
 }
 
 func TestDeleteMessage(t *testing.T) {
@@ -122,7 +126,7 @@ func TestDeleteMessage(t *testing.T) {
 	checkMailboxMessageIDs(t, m, pmapi.AllMailLabel, []wantID{{"msg2", 2}})
 }
 
-func insertMessage(t *testing.T, m *mocksForStore, id, subject, sender string, unread bool, labelIDs []string) { //nolint[unparam]
+func insertMessage(t *testing.T, m *mocksForStore, id, subject, sender string, unread bool, labelIDs []string) { //nolint:unparam
 	require.Nil(t, m.store.createOrUpdateMessageEvent(getTestMessage(id, subject, sender, unread, labelIDs)))
 }
 

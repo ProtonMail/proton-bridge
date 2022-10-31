@@ -1,19 +1,19 @@
-// Copyright (c) 2021 Proton Technologies AG
+// Copyright (c) 2022 Proton AG
 //
-// This file is part of ProtonMail Bridge.
+// This file is part of Proton Mail Bridge.
 //
-// ProtonMail Bridge is free software: you can redistribute it and/or modify
+// Proton Mail Bridge is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// ProtonMail Bridge is distributed in the hope that it will be useful,
+// Proton Mail Bridge is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
+// along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 package pmapi
 
@@ -29,7 +29,7 @@ import (
 
 const (
 	MaxImportMessageRequestLength = 10
-	MaxImportMessageRequestSize   = 25 * 1024 * 1024 // 25 MB total limit
+	MaxImportMessageRequestSize   = 25 * 1024 * 1024 // MaxImportMessageRequestSize 25 MB total limit
 )
 
 type ImportMsgReq struct {
@@ -90,7 +90,14 @@ type ImportMsgRes struct {
 
 // Import imports messages to the user's account.
 func (c *client) Import(ctx context.Context, reqs ImportMsgReqs) ([]*ImportMsgRes, error) {
+	if len(reqs) == 0 {
+		return nil, errors.New("missing import requests")
+	}
+
 	if len(reqs) > MaxImportMessageRequestLength {
+		log.
+			WithField("count", len(reqs)).
+			Warn("Importing too many messages at once.")
 		return nil, errors.New("request is too long")
 	}
 
@@ -98,6 +105,10 @@ func (c *client) Import(ctx context.Context, reqs ImportMsgReqs) ([]*ImportMsgRe
 	for _, req := range reqs {
 		remainingSize -= len(req.Message)
 		if remainingSize < 0 {
+			log.
+				WithField("count", len(reqs)).
+				WithField("size", MaxImportMessageRequestLength-remainingSize).
+				Warn("Importing too big message(s)")
 			return nil, errors.New("request size is too big")
 		}
 	}

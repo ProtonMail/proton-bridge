@@ -1,19 +1,19 @@
-// Copyright (c) 2021 Proton Technologies AG
+// Copyright (c) 2022 Proton AG
 //
-// This file is part of ProtonMail Bridge.
+// This file is part of Proton Mail Bridge.
 //
-// ProtonMail Bridge is free software: you can redistribute it and/or modify
+// Proton Mail Bridge is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// ProtonMail Bridge is distributed in the hope that it will be useful,
+// Proton Mail Bridge is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
+// along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 // Package locations implements a type that provides cross-platform access to
 // standard filesystem locations, including config, cache and log directories.
@@ -24,7 +24,7 @@ import (
 	"path/filepath"
 	"runtime"
 
-	"github.com/ProtonMail/proton-bridge/pkg/files"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/files"
 	"github.com/sirupsen/logrus"
 )
 
@@ -38,20 +38,27 @@ import (
 type Locations struct {
 	userConfig, userCache string
 	configName            string
+	configGuiName         string
 }
 
 // New returns a new locations object.
 func New(provider Provider, configName string) *Locations {
 	return &Locations{
-		userConfig: provider.UserConfig(),
-		userCache:  provider.UserCache(),
-		configName: configName,
+		userConfig:    provider.UserConfig(),
+		userCache:     provider.UserCache(),
+		configName:    configName,
+		configGuiName: configName + "-gui",
 	}
 }
 
 // GetLockFile returns the path to the lock file (e.g. ~/.cache/<company>/<app>/<app>.lock).
 func (l *Locations) GetLockFile() string {
 	return filepath.Join(l.userCache, l.configName+".lock")
+}
+
+// GetGuiLockFile returns the path to the lock file (e.g. ~/.cache/<company>/<app>/<app>.lock).
+func (l *Locations) GetGuiLockFile() string {
+	return filepath.Join(l.userCache, l.configGuiName+".lock")
 }
 
 // GetLicenseFilePath returns path to liense file.
@@ -80,13 +87,17 @@ func (l *Locations) getLicenseFilePath() string {
 		}
 		// Arch distributions.
 		return "/usr/share/licenses/protonmail-" + l.configName + "/LICENSE"
-	case "darwin": //nolint[goconst]
+	case "darwin": //nolint:goconst
 		path := filepath.Join(filepath.Dir(os.Args[0]), "..", "Resources", "LICENSE")
 		if _, err := os.Stat(path); err == nil {
 			return path
 		}
 
-		return "/Applications/ProtonMail Bridge.app/Contents/Resources/LICENSE"
+		// This should not happen, macOS should be handled by relative
+		// location to the binary above. This is just fallback which may
+		// or may not work, depends where user installed the app and how
+		// user started the app.
+		return "/Applications/Proton Mail Bridge.app/Contents/Resources/LICENSE"
 	case "windows":
 		path := filepath.Join(filepath.Dir(os.Args[0]), "LICENSE.txt")
 		if _, err := os.Stat(path); err == nil {
@@ -96,15 +107,20 @@ func (l *Locations) getLicenseFilePath() string {
 		// location to the binary above. This is just fallback which may
 		// or may not work, depends where user installed the app and how
 		// user started the app.
-		return filepath.FromSlash("C:/Program Files/Proton Technologies AG/ProtonMail Bridge/LICENSE.txt")
+		return filepath.FromSlash("C:/Program Files/Proton/Proton Mail Bridge/LICENSE.txt")
 	}
 	return ""
+}
+
+// GetDependencyLicensesLink returns link to page listing dependencies.
+func (l *Locations) GetDependencyLicensesLink() string {
+	return "https://github.com/ProtonMail/proton-bridge/blob/master/COPYING_NOTES.md#dependencies"
 }
 
 // ProvideSettingsPath returns a location for user settings (e.g. ~/.config/<company>/<app>).
 // It creates it if it doesn't already exist.
 func (l *Locations) ProvideSettingsPath() (string, error) {
-	if err := os.MkdirAll(l.getSettingsPath(), 0700); err != nil {
+	if err := os.MkdirAll(l.getSettingsPath(), 0o700); err != nil {
 		return "", err
 	}
 
@@ -114,7 +130,7 @@ func (l *Locations) ProvideSettingsPath() (string, error) {
 // ProvideLogsPath returns a location for user logs (e.g. ~/.cache/<company>/<app>/logs).
 // It creates it if it doesn't already exist.
 func (l *Locations) ProvideLogsPath() (string, error) {
-	if err := os.MkdirAll(l.getLogsPath(), 0700); err != nil {
+	if err := os.MkdirAll(l.getLogsPath(), 0o700); err != nil {
 		return "", err
 	}
 
@@ -124,7 +140,7 @@ func (l *Locations) ProvideLogsPath() (string, error) {
 // ProvideCachePath returns a location for user cache dirs (e.g. ~/.config/<company>/<app>/cache).
 // It creates it if it doesn't already exist.
 func (l *Locations) ProvideCachePath() (string, error) {
-	if err := os.MkdirAll(l.getCachePath(), 0700); err != nil {
+	if err := os.MkdirAll(l.getCachePath(), 0o700); err != nil {
 		return "", err
 	}
 
@@ -139,7 +155,7 @@ func (l *Locations) GetOldCachePath() string {
 // ProvideUpdatesPath returns a location for update files (e.g. ~/.cache/<company>/<app>/updates).
 // It creates it if it doesn't already exist.
 func (l *Locations) ProvideUpdatesPath() (string, error) {
-	if err := os.MkdirAll(l.getUpdatesPath(), 0700); err != nil {
+	if err := os.MkdirAll(l.getUpdatesPath(), 0o700); err != nil {
 		return "", err
 	}
 
@@ -201,6 +217,7 @@ func (l *Locations) Clear() error {
 		l.userCache,
 	).Except(
 		l.GetLockFile(),
+		l.GetGuiLockFile(),
 		l.getUpdatesPath(),
 	).Do()
 }
@@ -217,6 +234,7 @@ func (l *Locations) ClearUpdates() error {
 func (l *Locations) Clean() error {
 	return files.Remove(l.userCache).Except(
 		l.GetLockFile(),
+		l.GetGuiLockFile(),
 		l.getLogsPath(),
 		l.getCachePath(),
 		l.getUpdatesPath(),

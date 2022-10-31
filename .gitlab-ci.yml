@@ -1,17 +1,34 @@
-image: gitlab.protontech.ch:4567/go/bridge-internal:latest
+# Copyright (c) 2022 Proton Technologies AG
+#
+# This file is part of ProtonMail Bridge.
+#
+# ProtonMail Bridge is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# ProtonMail Bridge is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
+
+---
+image: gitlab.protontech.ch:4567/go/bridge-internal:go18
 
 before_script:
   - eval $(ssh-agent -s)
   - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add - > /dev/null
-
   - mkdir -p .cache/bin
   - export PATH=$(pwd)/.cache/bin:$PATH
   - export GOPATH="$CI_PROJECT_DIR/.cache"
-
   - make install-dev-dependencies
+  - git checkout .
 
 cache:
-  key: go-mod
+  key: go18-mod
   paths:
     - .cache
   policy: pull
@@ -20,7 +37,33 @@ stages:
   - cache
   - test
   - build
+  - check
   - mirror
+
+
+.rules-branch-and-MR-always:
+  rules:
+    - if: $CI_COMMIT_BRANCH ||  $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: always
+      allow_failure: false
+    - when: never
+
+.rules-branch-and-MR-manual:
+  rules:
+    - if: $CI_COMMIT_BRANCH ||  $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: manual
+      allow_failure: true
+    - when: never
+
+.rules-branch-manual-MR-always:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: always
+      allow_failure: false
+    - if: $CI_COMMIT_BRANCH
+      when: manual
+      allow_failure: true
+    - when: never
 
 # Stage: CACHE
 
@@ -28,12 +71,12 @@ stages:
 # all other following jobs which only pull the cache.
 cache-push:
   stage: cache
-  only:
-    - branches
+  extends:
+    - .rules-branch-and-MR-always
   script:
     - echo ""
   cache:
-    key: go-mod
+    key: go18-mod
     paths:
       - .cache
 
@@ -41,17 +84,21 @@ cache-push:
 
 lint:
   stage: test
-  only:
-    - branches
+  extends:
+    - .rules-branch-and-MR-always
+  before_script:
+    - mkdir -p .cache/bin
+    - export PATH=$(pwd)/.cache/bin:$PATH
+    - export GOPATH="$CI_PROJECT_DIR/.cache"
   script:
     - env GOMAXPROCS=$(( ${CI_TAG_CPU} / 2 )) make lint
   tags:
     - medium
 
-test:
+test-linux:
   stage: test
-  only:
-    - branches
+  extends:
+    - .rules-branch-manual-MR-always
   script:
     - apt-get -y install pass gnupg rng-tools
     # First have enough of entropy (cat /proc/sys/kernel/random/entropy_avail).
@@ -65,10 +112,19 @@ test:
   tags:
     - medium
 
+test-windows:
+  extends:
+    - .build-windows-base
+    - .rules-branch-and-MR-always
+  stage: test
+  needs: []
+  script:
+    - make test
+
 test-integration:
   stage: test
-  only:
-    - branches
+  extends:
+    - .rules-branch-manual-MR-always
   script:
     - VERBOSITY=debug make -C test test
   tags:
@@ -81,29 +137,23 @@ dependency-updates:
 
 # Stage: BUILD
 
-build-qml:
-  tags:
-    - small
-  only:
-    - branches
-  stage: build
-  artifacts:
-    name: "bridge-qml-$CI_COMMIT_SHORT_SHA"
-    expire_in: 1 day
-    paths:
-      - bridge_qml.tgz
-  script:
-    - cd internal/frontend/qml
-    - tar -cvzf ../../../bridge_qml.tgz ./*
-
 .build-base:
   stage: build
-  only:
-    - manual
+  needs: ["lint"]
+  rules:
+    # GODT-1833: use `=~ /qa/` after mac and windows runners are fixed
+    - if: $CI_JOB_NAME =~ /build-linux-qa/  && $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: always
+      allow_failure: false
+    - if: $CI_COMMIT_BRANCH || $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: manual
+      allow_failure: true
+    - when: never
   before_script:
     - mkdir -p .cache/bin
     - export PATH=$(pwd)/.cache/bin:$PATH
     - export GOPATH="$CI_PROJECT_DIR/.cache"
+    - export PATH=$PATH:$QT6DIR/bin
   script:
     - make build
     - git diff && git diff-index --quiet HEAD
@@ -112,33 +162,36 @@ build-qml:
     # regardless of the expiry time. Introduced in GitLab 13.0 behind a
     # disabled feature flag, and made the default behavior in GitLab 13.4.
     expire_in: 1 day
+    when: always
+    paths:
+      - bridge_*.tgz
   tags:
     - large
 
 build-linux:
   extends: .build-base
+  image: gitlab.protontech.ch:4567/go/bridge-internal:qt6
+  variables:
+    VCPKG_DEFAULT_BINARY_CACHE: ${CI_PROJECT_DIR}/.cache
+  cache:
+    key: linux-vcpkg
+    paths:
+      - .cache
+    when: 'always'
   artifacts:
     name: "bridge-linux-$CI_COMMIT_SHORT_SHA"
-    paths:
-      - bridge_*.tgz
 
 build-linux-qa:
-  extends: .build-base
-  only:
-    - web
-    - branches
-  script:
-    - BUILD_TAGS="build_qa" make build
+  extends: build-linux
+  variables:
+    BUILD_TAGS: "build_qa"
   artifacts:
     name: "bridge-linux-qa-$CI_COMMIT_SHORT_SHA"
-    paths:
-      - bridge_*.tgz
+
 
 .build-darwin-base:
   extends: .build-base
   before_script:
-    - eval $(ssh-agent -s)
-    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add - > /dev/null
     - export PATH=/usr/local/bin:$PATH
     - export PATH=/usr/local/opt/git/bin:$PATH
     - export PATH=/usr/local/opt/make/libexec/gnubin:$PATH
@@ -147,6 +200,10 @@ build-linux-qa:
     - export GOPATH=~/go
     - export PATH=$GOPATH/bin:$PATH
     - export CGO_CPPFLAGS='-Wno-error -Wno-nullability-completeness -Wno-expansion-to-defined -Wno-builtin-requires-header'
+  script:
+    - go version
+    - make build
+    - git diff && git diff-index --quiet HEAD
   cache: {}
   tags:
     - macOS
@@ -155,20 +212,71 @@ build-darwin:
   extends: .build-darwin-base
   artifacts:
     name: "bridge-darwin-$CI_COMMIT_SHORT_SHA"
-    paths:
-      - bridge_*.tgz
 
 build-darwin-qa:
   extends: .build-darwin-base
-  only:
-    - web
-    - branches
-  script:
-    - BUILD_TAGS="build_qa" make build
+  variables:
+    BUILD_TAGS: "build_qa"
   artifacts:
     name: "bridge-darwin-qa-$CI_COMMIT_SHORT_SHA"
+
+
+.build-windows-base:
+  extends: .build-base
+  before_script:
+    - export GOROOT=/c/Go1.18/
+    - export PATH=$GOROOT/bin:$PATH
+    - export GOARCH=amd64
+    - export GOPATH=~/go18
+    - export GO111MODULE=on
+    - export PATH="${GOPATH}/bin:${PATH}"
+    - export MSYSTEM=
+    - export QT6DIR=/c/grrrQt/6.3.1/msvc2019_64
+    - export PATH=$PATH:${QT6DIR}/bin
+    - export PATH="/c/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin:$PATH"
+  script:
+    - make build
+    - git diff && git diff-index --quiet HEAD
+  tags:
+    - windows-bridge
+
+build-windows:
+  extends: .build-windows-base
+  artifacts:
+    name: "bridge-windows-$CI_COMMIT_SHORT_SHA"
+
+build-windows-qa:
+  extends: .build-windows-base
+  variables:
+    BUILD_TAGS: "build_qa"
+  artifacts:
+    name: "bridge-windows-qa-$CI_COMMIT_SHORT_SHA"
+
+# Stage: CHECK
+
+check-gobinsec:
+  stage: check
+  needs: ["build-linux-qa"]
+  extends:
+    - .rules-branch-manual-MR-always
+  cache:
+    key: gobinsec-cache-v3
     paths:
-      - bridge_*.tgz
+      - ./gobinsec-cache-valid.yml
+    policy: pull-push
+  before_script:
+    - mkdir build
+    - tar -xzf bridge_linux_*.tgz -C build
+    - "[ ! -f ./gobinsec-cache-valid.yml ] && wget bridgeteam.protontech.ch/bridgeteam/gobinsec-cache-valid.yml"
+    - mv ./gobinsec-cache-valid.yml ./utils/gobinsec_update/gobinsec-cache-valid.yml
+  script:
+    - ./utils/gobinsec_update.sh
+    - cp ./utils/gobinsec_update/gobinsec-cache-valid.yml ./gobinsec-cache.yml
+    - cat ./gobinsec-cache.yml
+    - gobinsec -wait -cache -config utils/gobinsec_conf.yml build/bridge
+    - cp ./gobinsec-cache.yml ./gobinsec-cache-valid.yml   # Only update cache file if gobinsec succeeds
+
+
 
 # Stage: MIRROR
 

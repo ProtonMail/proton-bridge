@@ -1,25 +1,25 @@
-// Copyright (c) 2021 Proton Technologies AG
+// Copyright (c) 2022 Proton AG
 //
-// This file is part of ProtonMail Bridge.
+// This file is part of Proton Mail Bridge.
 //
-// ProtonMail Bridge is free software: you can redistribute it and/or modify
+// Proton Mail Bridge is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// ProtonMail Bridge is distributed in the hope that it will be useful,
+// Proton Mail Bridge is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
+// along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 // Package uidplus DOES NOT implement full RFC4315!
 //
 // Excluded parts are:
-// * Response `UIDNOTSTICKY`: All mailboxes of Bridge support stable
-//   UIDVALIDITY so it would never return this response
+//   - Response `UIDNOTSTICKY`: All mailboxes of Bridge support stable
+//     UIDVALIDITY so it would never return this response
 //
 // Otherwise the standard RFC4315 is followed.
 package uidplus
@@ -30,7 +30,6 @@ import (
 
 	"github.com/emersion/go-imap"
 	"github.com/emersion/go-imap/server"
-	"github.com/sirupsen/logrus"
 )
 
 // Capability extension identifier.
@@ -43,17 +42,16 @@ const (
 	appendSucess = "APPEND completed"
 )
 
-var log = logrus.WithField("pkg", "imap/uidplus") //nolint[gochecknoglobals]
-
 // OrderedSeq to remember Seq in order they are added.
 // We didn't find any restriction in RFC that server must respond with ranges
 // so we decided to always do explicit list. This makes sure that no dynamic
 // ranges or out of the bound ranges are possible.
 //
 // NOTE: potential issue with response length
-// * the user selects large number of messages to be copied and the
-//   response line will be long,
-// * list of UIDs which high values
+//   - the user selects large number of messages to be copied and the
+//     response line will be long,
+//   - list of UIDs which high values
+//
 // which can create long response line. We didn't find a maximum length of one
 // IMAP response line or maximum length of IMAP "response code" with parameters.
 type OrderedSeq []uint32
@@ -155,7 +153,7 @@ func (e *UIDExpunge) Handle(conn server.Conn) error {
 	return mailbox.Expunge()
 }
 
-func (e *UIDExpunge) UidHandle(conn server.Conn) error { //nolint[golint]
+func (e *UIDExpunge) UidHandle(conn server.Conn) error { //nolint:revive,stylecheck
 	if e.SeqSet == nil {
 		return errors.New("missing sequence set")
 	}

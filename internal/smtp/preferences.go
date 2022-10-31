@@ -1,25 +1,25 @@
-// Copyright (c) 2021 Proton Technologies AG
+// Copyright (c) 2022 Proton AG
 //
-// This file is part of ProtonMail Bridge.
+// This file is part of Proton Mail Bridge.
 //
-// ProtonMail Bridge is free software: you can redistribute it and/or modify
+// Proton Mail Bridge is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// ProtonMail Bridge is distributed in the hope that it will be useful,
+// Proton Mail Bridge is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
+// along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 package smtp
 
 import (
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
-	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/pmapi"
 	"github.com/pkg/errors"
 )
 
@@ -163,17 +163,18 @@ func (b *sendPreferencesBuilder) withPublicKey(v *crypto.KeyRing) {
 // preferences. Notice that the composer allows to select a sign preference,
 // an email format preference and an encrypt-to-outside preference. The
 // object we extract has the following possible value types:
-// {
-//     encrypt: true | false,
-//     sign: true | false,
-//     pgpScheme: 	1 (ProtonMail custom scheme)
-//								| 2 (Protonmail scheme for encrypted-to-outside email)
-// 								| 4 (no cryptographic scheme)
-// 								| 8 (PGP/INLINE)
-//								| 16 (PGP/MIME),
-//     mimeType: 'text/html' | 'text/plain' | 'multipart/mixed',
-//     publicKey: OpenPGPKey | undefined/null
-// }.
+//
+//	{
+//	    encrypt: true | false,
+//	    sign: true | false,
+//	    pgpScheme: 	1 (protonmail custom scheme)
+//									| 2 (Protonmail scheme for encrypted-to-outside email)
+//									| 4 (no cryptographic scheme)
+//									| 8 (PGP/INLINE)
+//									| 16 (PGP/MIME),
+//	    mimeType: 'text/html' | 'text/plain' | 'multipart/mixed',
+//	    publicKey: OpenPGPKey | undefined/null
+//	}.
 func (b *sendPreferencesBuilder) build() (p SendPreferences) {
 	p.Encrypt = b.shouldEncrypt()
 	p.Sign = b.shouldSign()
@@ -207,13 +208,13 @@ func (b *sendPreferencesBuilder) build() (p SendPreferences) {
 
 // setPGPSettings returns a SendPreferences with the following possible values:
 //
-// {
-//    encrypt:   true 			 | false 	        | undefined/null/'',
-//    sign:      true 			 | false          | undefined/null/'',
-//    pgpScheme: 'pgp-mime'  | 'pgp-inline'   | undefined/null/'',
-//    mimeType:  'text/html' | 'text/plain'   | undefined/null/'',
-//    publicKey: OpenPGPKey  | undefined/null
-// }
+//	{
+//	   encrypt:   true 			 | false 	        | undefined/null/'',
+//	   sign:      true 			 | false          | undefined/null/'',
+//	   pgpScheme: 'pgp-mime'  | 'pgp-inline'   | undefined/null/'',
+//	   mimeType:  'text/html' | 'text/plain'   | undefined/null/'',
+//	   publicKey: OpenPGPKey  | undefined/null
+//	}
 //
 // These settings are simply a reflection of the vCard content plus the public
 // key info retrieved from the API via the GET KEYS route.
@@ -285,17 +286,17 @@ func (b *sendPreferencesBuilder) setInternalPGPSettings(
 // pickSendingKey tries to determine which key to use to encrypt outgoing mail.
 // It returns a keyring containing the chosen key or an error.
 //
-// 1. If there are pinned keys in the vCard, those should be given preference
-//    (assuming the fingerprint matches one of the keys served by the API).
-// 2. If there are pinned keys in the vCard but no matching keys were served
-//    by the API, we use one of the API keys but first show a modal to the
-//    user to ask them to confirm that they trust the API key.
-//    (Use case: user doesn't trust server, pins the only keys they trust to
-//    the contact, rogue server sends unknown keys, user should have option
-//    to say they don't recognise these keys and abort the mail send.)
-// 3. If there are no pinned keys, then the client should encrypt with the
-//    first valid key served by the API (in principle the server already
-//    validates the keys and the first one provided should be valid).
+//  1. If there are pinned keys in the vCard, those should be given preference
+//     (assuming the fingerprint matches one of the keys served by the API).
+//  2. If there are pinned keys in the vCard but no matching keys were served
+//     by the API, we use one of the API keys but first show a modal to the
+//     user to ask them to confirm that they trust the API key.
+//     (Use case: user doesn't trust server, pins the only keys they trust to
+//     the contact, rogue server sends unknown keys, user should have option
+//     to say they don't recognise these keys and abort the mail send.)
+//  3. If there are no pinned keys, then the client should encrypt with the
+//     first valid key served by the API (in principle the server already
+//     validates the keys and the first one provided should be valid).
 func pickSendingKey(vCardData *ContactMetadata, rawAPIKeys []pmapi.PublicKey) (kr *crypto.KeyRing, err error) {
 	contactKeys := make([]*crypto.Key, len(vCardData.Keys))
 	apiKeys := make([]*crypto.Key, len(rawAPIKeys))
@@ -457,13 +458,13 @@ func (b *sendPreferencesBuilder) setExternalPGPSettingsWithoutWKDKeys(
 // determined thus far using using the (global) user mail settings.
 // The object we extract has the following possible value types:
 //
-// {
-//     encrypt: true | false,
-//     sign: true | false,
-//     pgpScheme: 'pgp-mime' | 'pgp-inline',
-//     mimeType: 'text/html' | 'text/plain',
-//     publicKey: OpenPGPKey | undefined/null
-// }
+//	{
+//	    encrypt: true | false,
+//	    sign: true | false,
+//	    pgpScheme: 'pgp-mime' | 'pgp-inline',
+//	    mimeType: 'text/html' | 'text/plain',
+//	    publicKey: OpenPGPKey | undefined/null
+//	}
 //
 // The public key can still be undefined as we do not need it if the outgoing
 // email is not encrypted.

@@ -1,19 +1,19 @@
-// Copyright (c) 2021 Proton Technologies AG
+// Copyright (c) 2022 Proton AG
 //
-// This file is part of ProtonMail Bridge.
+// This file is part of Proton Mail Bridge.
 //
-// ProtonMail Bridge is free software: you can redistribute it and/or modify
+// Proton Mail Bridge is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// ProtonMail Bridge is distributed in the hope that it will be useful,
+// Proton Mail Bridge is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
+// along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 package cli
 
@@ -23,14 +23,12 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/ProtonMail/proton-bridge/internal/config/settings"
-	"github.com/ProtonMail/proton-bridge/pkg/ports"
+	"github.com/ProtonMail/proton-bridge/v2/internal/config/settings"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/ports"
 	"github.com/abiosoft/ishell"
 )
 
-var (
-	currentPort = "" //nolint[gochecknoglobals]
-)
+var currentPort = "" //nolint:gochecknoglobals
 
 func (f *frontendCLI) restart(c *ishell.Context) {
 	if f.yesNoQuestion("Are you sure you want to restart the Bridge") {
@@ -41,7 +39,7 @@ func (f *frontendCLI) restart(c *ishell.Context) {
 }
 
 func (f *frontendCLI) printLogDir(c *ishell.Context) {
-	if path, err := f.locations.ProvideLogsPath(); err != nil {
+	if path, err := f.bridge.ProvideLogsPath(); err != nil {
 		f.Println("Failed to determine location of log files")
 	} else {
 		f.Println("Log files are stored in\n\n ", path)
@@ -77,7 +75,7 @@ func (f *frontendCLI) changeSMTPSecurity(c *ishell.Context) {
 	f.ShowPrompt(false)
 	defer f.ShowPrompt(true)
 
-	isSSL := f.settings.GetBool(settings.SMTPSSLKey)
+	isSSL := f.bridge.GetBool(settings.SMTPSSLKey)
 	newSecurity := "SSL"
 	if isSSL {
 		newSecurity = "STARTTLS"
@@ -86,7 +84,7 @@ func (f *frontendCLI) changeSMTPSecurity(c *ishell.Context) {
 	msg := fmt.Sprintf("Are you sure you want to change SMTP setting to %q and restart the Bridge", newSecurity)
 
 	if f.yesNoQuestion(msg) {
-		f.settings.SetBool(settings.SMTPSSLKey, !isSSL)
+		f.bridge.SetBool(settings.SMTPSSLKey, !isSSL)
 		f.Println("Restarting Bridge...")
 		f.restarter.SetToRestart()
 		f.Stop()
@@ -97,14 +95,14 @@ func (f *frontendCLI) changePort(c *ishell.Context) {
 	f.ShowPrompt(false)
 	defer f.ShowPrompt(true)
 
-	currentPort = f.settings.Get(settings.IMAPPortKey)
+	currentPort = f.bridge.Get(settings.IMAPPortKey)
 	newIMAPPort := f.readStringInAttempts("Set IMAP port (current "+currentPort+")", c.ReadLine, f.isPortFree)
 	if newIMAPPort == "" {
 		newIMAPPort = currentPort
 	}
 	imapPortChanged := newIMAPPort != currentPort
 
-	currentPort = f.settings.Get(settings.SMTPPortKey)
+	currentPort = f.bridge.Get(settings.SMTPPortKey)
 	newSMTPPort := f.readStringInAttempts("Set SMTP port (current "+currentPort+")", c.ReadLine, f.isPortFree)
 	if newSMTPPort == "" {
 		newSMTPPort = currentPort
@@ -118,8 +116,8 @@ func (f *frontendCLI) changePort(c *ishell.Context) {
 
 	if imapPortChanged || smtpPortChanged {
 		f.Println("Saving values IMAP:", newIMAPPort, "SMTP:", newSMTPPort)
-		f.settings.Set(settings.IMAPPortKey, newIMAPPort)
-		f.settings.Set(settings.SMTPPortKey, newSMTPPort)
+		f.bridge.Set(settings.IMAPPortKey, newIMAPPort)
+		f.bridge.Set(settings.SMTPPortKey, newSMTPPort)
 		f.Println("Restarting Bridge...")
 		f.restarter.SetToRestart()
 		f.Stop()
@@ -154,8 +152,34 @@ func (f *frontendCLI) disallowProxy(c *ishell.Context) {
 	}
 }
 
+func (f *frontendCLI) hideAllMail(c *ishell.Context) {
+	if !f.bridge.IsAllMailVisible() {
+		f.Println("All Mail folder is not listed in your local client.")
+		return
+	}
+
+	f.Println("All Mail folder is listed in your client right now.")
+
+	if f.yesNoQuestion("Do you want to hide All Mail folder") {
+		f.bridge.SetIsAllMailVisible(false)
+	}
+}
+
+func (f *frontendCLI) showAllMail(c *ishell.Context) {
+	if f.bridge.IsAllMailVisible() {
+		f.Println("All Mail folder is listed in your local client.")
+		return
+	}
+
+	f.Println("All Mail folder is not listed in your client right now.")
+
+	if f.yesNoQuestion("Do you want to show All Mail folder") {
+		f.bridge.SetIsAllMailVisible(true)
+	}
+}
+
 func (f *frontendCLI) enableCacheOnDisk(c *ishell.Context) {
-	if f.settings.GetBool(settings.CacheEnabledKey) {
+	if f.bridge.GetBool(settings.CacheEnabledKey) {
 		f.Println("The local cache is already enabled.")
 		return
 	}
@@ -172,7 +196,7 @@ func (f *frontendCLI) enableCacheOnDisk(c *ishell.Context) {
 }
 
 func (f *frontendCLI) disableCacheOnDisk(c *ishell.Context) {
-	if !f.settings.GetBool(settings.CacheEnabledKey) {
+	if !f.bridge.GetBool(settings.CacheEnabledKey) {
 		f.Println("The local cache is already disabled.")
 		return
 	}
@@ -189,17 +213,17 @@ func (f *frontendCLI) disableCacheOnDisk(c *ishell.Context) {
 }
 
 func (f *frontendCLI) setCacheOnDiskLocation(c *ishell.Context) {
-	if !f.settings.GetBool(settings.CacheEnabledKey) {
+	if !f.bridge.GetBool(settings.CacheEnabledKey) {
 		f.Println("The local cache must be enabled.")
 		return
 	}
 
-	if location := f.settings.Get(settings.CacheLocationKey); location != "" {
+	if location := f.bridge.Get(settings.CacheLocationKey); location != "" {
 		f.Println("The current local cache location is:", location)
 	}
 
 	if location := f.readStringInAttempts("Enter a new location for the cache", c.ReadLine, f.isCacheLocationUsable); location != "" {
-		if err := f.bridge.MigrateCache(f.settings.Get(settings.CacheLocationKey), location); err != nil {
+		if err := f.bridge.MigrateCache(f.bridge.Get(settings.CacheLocationKey), location); err != nil {
 			f.Println("The local cache location could not be changed.")
 			return
 		}

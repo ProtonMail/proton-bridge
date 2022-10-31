@@ -1,19 +1,19 @@
-// Copyright (c) 2021 Proton Technologies AG
+// Copyright (c) 2022 Proton AG
 //
-// This file is part of ProtonMail Bridge.
+// This file is part of Proton Mail Bridge.
 //
-// ProtonMail Bridge is free software: you can redistribute it and/or modify
+// Proton Mail Bridge is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// ProtonMail Bridge is distributed in the hope that it will be useful,
+// Proton Mail Bridge is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
+// along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 package store
 
@@ -23,15 +23,17 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/pmapi"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	bolt "go.etcd.io/bbolt"
 )
 
-const syncFinishTimeKey = "sync_state" // The original key was sync_state and we want to keep compatibility.
-const syncIDRangesKey = "id_ranges"
-const syncIDsToBeDeletedKey = "ids_to_be_deleted"
+const (
+	syncFinishTimeKey     = "sync_state" // The original key was sync_state and we want to keep compatibility.
+	syncIDRangesKey       = "id_ranges"
+	syncIDsToBeDeletedKey = "ids_to_be_deleted"
+)
 
 // updateCountsFromServer will download and set the counts.
 func (store *Store) updateCountsFromServer() error {
@@ -109,13 +111,13 @@ func (store *Store) isSynced(countsOnAPI []*pmapi.MessagesCount) (bool, error) {
 // All Mail mailbox contains all messages, so we download all meta data needed
 // to generate any address/mailbox IMAP UIDs.
 // Sync state can be in three states:
-//  * Nothing in database. For example when user logs in for the first time.
-//    `triggerSync` will start full sync.
-//  * Database has syncIDRangesKey and syncIDsToBeDeletedKey keys with data.
-//    Sync is in progress or was interrupted. In later case when, `triggerSync`
-//    will continue where it left off.
-//  * Database has only syncStateKey with time when database was last synced.
-//    `triggerSync` will reset it and start full sync again.
+//   - Nothing in database. For example when user logs in for the first time.
+//     `triggerSync` will start full sync.
+//   - Database has syncIDRangesKey and syncIDsToBeDeletedKey keys with data.
+//     Sync is in progress or was interrupted. In later case when, `triggerSync`
+//     will continue where it left off.
+//   - Database has only syncStateKey with time when database was last synced.
+//     `triggerSync` will reset it and start full sync again.
 func (store *Store) triggerSync() {
 	syncState := store.loadSyncState()
 
@@ -204,7 +206,6 @@ func (store *Store) loadSyncState() *syncState {
 
 		return
 	})
-
 	if err != nil {
 		store.log.WithError(err).Error("Failed to load sync state")
 	}

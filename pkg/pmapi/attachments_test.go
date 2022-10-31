@@ -1,19 +1,19 @@
-// Copyright (c) 2021 Proton Technologies AG
+// Copyright (c) 2022 Proton AG
 //
-// This file is part of ProtonMail Bridge.
+// This file is part of Proton Mail Bridge.
 //
-// ProtonMail Bridge is free software: you can redistribute it and/or modify
+// Proton Mail Bridge is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// ProtonMail Bridge is distributed in the hope that it will be useful,
+// Proton Mail Bridge is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
+// along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 package pmapi
 
@@ -24,14 +24,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"mime/multipart"
 	"net/http"
 	"net/textproto"
 	"strings"
 	"testing"
 
-	pmmime "github.com/ProtonMail/proton-bridge/pkg/mime"
+	pmmime "github.com/ProtonMail/proton-bridge/v2/pkg/mime"
 
 	"github.com/stretchr/testify/require"
 )
@@ -114,7 +113,7 @@ func TestClient_CreateAttachment(t *testing.T) {
 		r.NoError(err)
 		defer r.NoError(dataFile.Close())
 
-		b, err := ioutil.ReadAll(dataFile)
+		b, err := io.ReadAll(dataFile)
 		r.NoError(err)
 		r.Equal(testAttachmentCleartext, string(b))
 
@@ -143,10 +142,10 @@ func TestClient_GetAttachment(t *testing.T) {
 
 	att, err := c.GetAttachment(context.Background(), testAttachment.ID)
 	r.NoError(err)
-	defer att.Close() //nolint[errcheck]
+	defer att.Close() //nolint:errcheck
 
 	// In reality, r contains encrypted data
-	b, err := ioutil.ReadAll(att)
+	b, err := io.ReadAll(att)
 	r.NoError(err)
 
 	r.Equal(testAttachmentCleartext, string(b))
@@ -181,7 +180,7 @@ func TestAttachmentEncrypt(t *testing.T) {
 func decryptAndCheck(r *require.Assertions, data io.Reader) {
 	// First separate KeyPacket from encrypted data. In our case keypacket
 	// has 271 bytes.
-	raw, err := ioutil.ReadAll(data)
+	raw, err := io.ReadAll(data)
 	r.NoError(err)
 	rawKeyPacket := raw[:271]
 	rawDataPacket := raw[271:]
@@ -195,7 +194,7 @@ func decryptAndCheck(r *require.Assertions, data io.Reader) {
 	decryptedReader, err := haveAttachment.Decrypt(bytes.NewBuffer(rawDataPacket), testPrivateKeyRing)
 	r.NoError(err)
 
-	b, err := ioutil.ReadAll(decryptedReader)
+	b, err := io.ReadAll(decryptedReader)
 	r.NoError(err)
 
 	r.Equal(testAttachmentCleartext, string(b))

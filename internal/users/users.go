@@ -1,19 +1,19 @@
-// Copyright (c) 2021 Proton Technologies AG
+// Copyright (c) 2022 Proton AG
 //
-// This file is part of ProtonMail Bridge.
+// This file is part of Proton Mail Bridge.
 //
-// ProtonMail Bridge is free software: you can redistribute it and/or modify
+// Proton Mail Bridge is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// ProtonMail Bridge is distributed in the hope that it will be useful,
+// Proton Mail Bridge is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
+// along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 // Package users provides core business logic providing API over credentials store and PM API.
 package users
@@ -24,19 +24,22 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ProtonMail/proton-bridge/internal/events"
-	"github.com/ProtonMail/proton-bridge/internal/metrics"
-	"github.com/ProtonMail/proton-bridge/internal/users/credentials"
-	"github.com/ProtonMail/proton-bridge/pkg/listener"
-	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
+	"github.com/ProtonMail/proton-bridge/v2/internal/events"
+	"github.com/ProtonMail/proton-bridge/v2/internal/metrics"
+	"github.com/ProtonMail/proton-bridge/v2/internal/users/credentials"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/keychain"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/listener"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/pmapi"
+	"github.com/bradenaw/juniper/xslices"
 	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
 	logrus "github.com/sirupsen/logrus"
+	"golang.org/x/exp/slices"
 )
 
 var (
-	log                   = logrus.WithField("pkg", "users") //nolint[gochecknoglobals]
-	isApplicationOutdated = false                            //nolint[gochecknoglobals]
+	log                   = logrus.WithField("pkg", "users") //nolint:gochecknoglobals
+	isApplicationOutdated = false                            //nolint:gochecknoglobals
 
 	// ErrWrongMailboxPassword is returned when login password is OK but
 	// not the mailbox one.
@@ -101,14 +104,17 @@ func New(
 
 func (u *Users) watchEvents() {
 	upgradeCh := u.events.ProvideChannel(events.UpgradeApplicationEvent)
-	internetOnCh := u.events.ProvideChannel(events.InternetOnEvent)
+	internetConnChangedCh := u.events.ProvideChannel(events.InternetConnChangedEvent)
 
 	for {
 		select {
 		case <-upgradeCh:
 			isApplicationOutdated = true
 			u.closeAllConnections()
-		case <-internetOnCh:
+		case stat := <-internetConnChangedCh:
+			if stat != events.InternetOn {
+				continue
+			}
 			for _, user := range u.users {
 				if user.store == nil {
 					if err := user.loadStore(); err != nil {
@@ -130,6 +136,7 @@ func (u *Users) loadUsersFromCredentialsStore() error {
 
 	userIDs, err := u.credStorer.List()
 	if err != nil {
+		notifyKeychainRepair(u.events, err)
 		return err
 	}
 
@@ -178,14 +185,17 @@ func (u *Users) loadConnectedUser(ctx context.Context, user *User, creds *creden
 			return connectErr
 		}
 
-		if logoutErr := user.logout(); logoutErr != nil {
-			logrus.WithError(logoutErr).Warn("Could not logout user")
+		if pmapi.IsFailedAuth(connectErr) {
+			if logoutErr := user.logout(); logoutErr != nil {
+				logrus.WithError(logoutErr).Warn("Could not logout user")
+			}
 		}
 		return errors.Wrap(err, "could not refresh token")
 	}
 
 	// Update the user's credentials with the latest auth used to connect this user.
 	if creds, err = u.credStorer.UpdateToken(creds.UserID, auth.UID, auth.RefreshToken); err != nil {
+		notifyKeychainRepair(u.events, err)
 		return errors.Wrap(err, "could not create get user's refresh token")
 	}
 
@@ -207,10 +217,10 @@ func (u *Users) Login(username string, password []byte) (authClient pmapi.Client
 }
 
 // FinishLogin finishes the login procedure and adds the user into the credentials store.
-func (u *Users) FinishLogin(client pmapi.Client, auth *pmapi.Auth, password []byte) (user *User, err error) { //nolint[funlen]
+func (u *Users) FinishLogin(client pmapi.Client, auth *pmapi.Auth, password []byte) (userID string, err error) { //nolint:funlen
 	apiUser, passphrase, err := getAPIUser(context.Background(), client, password)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	if user, ok := u.hasUser(apiUser.ID); ok {
@@ -219,37 +229,39 @@ func (u *Users) FinishLogin(client pmapi.Client, auth *pmapi.Auth, password []by
 				logrus.WithError(err).Warn("Failed to delete new auth session")
 			}
 
-			return user, ErrUserAlreadyConnected
+			return user.ID(), ErrUserAlreadyConnected
 		}
 
 		// Update the user's credentials with the latest auth used to connect this user.
 		if _, err := u.credStorer.UpdateToken(auth.UserID, auth.UID, auth.RefreshToken); err != nil {
-			return nil, errors.Wrap(err, "failed to load user credentials")
+			notifyKeychainRepair(u.events, err)
+			return "", errors.Wrap(err, "failed to load user credentials")
 		}
 
 		// Update the password in case the user changed it.
 		creds, err := u.credStorer.UpdatePassword(apiUser.ID, passphrase)
 		if err != nil {
-			return nil, errors.Wrap(err, "failed to update password of user in credentials store")
+			notifyKeychainRepair(u.events, err)
+			return "", errors.Wrap(err, "failed to update password of user in credentials store")
 		}
 
 		// will go and unlock cache if not already done
 		if err := user.connect(client, creds); err != nil {
-			return nil, errors.Wrap(err, "failed to reconnect existing user")
+			return "", errors.Wrap(err, "failed to reconnect existing user")
 		}
 
 		u.events.Emit(events.UserRefreshEvent, apiUser.ID)
 
-		return user, nil
+		return user.ID(), nil
 	}
 
 	if err := u.addNewUser(client, apiUser, auth, passphrase); err != nil {
-		return nil, errors.Wrap(err, "failed to add new user")
+		return "", errors.Wrap(err, "failed to add new user")
 	}
 
 	u.events.Emit(events.UserRefreshEvent, apiUser.ID)
 
-	return u.GetUser(apiUser.ID)
+	return apiUser.ID, nil
 }
 
 // addNewUser adds a new user.
@@ -258,6 +270,7 @@ func (u *Users) addNewUser(client pmapi.Client, apiUser *pmapi.User, auth *pmapi
 	defer u.lock.Unlock()
 
 	if _, err := u.credStorer.Add(apiUser.ID, apiUser.Name, auth.UID, auth.RefreshToken, passphrase, client.Addresses().ActiveEmails()); err != nil {
+		notifyKeychainRepair(u.events, err)
 		return errors.Wrap(err, "failed to add user credentials to credentials store")
 	}
 
@@ -311,6 +324,16 @@ func (u *Users) GetUsers() []*User {
 	return u.users
 }
 
+// GetUserIDs returns IDs of all added users into keychain (even logged out users).
+func (u *Users) GetUserIDs() []string {
+	u.lock.RLock()
+	defer u.lock.RUnlock()
+
+	return xslices.Map(u.users, func(user *User) string {
+		return user.ID()
+	})
+}
+
 // GetUser returns a user by `query` which is compared to users' ID, username or any attached e-mail address.
 func (u *Users) GetUser(query string) (*User, error) {
 	u.crashBandicoot(query)
@@ -332,6 +355,44 @@ func (u *Users) GetUser(query string) (*User, error) {
 	return nil, errors.New("user " + query + " not found")
 }
 
+// GetUserInfo returns user about the user with the given ID.
+func (u *Users) GetUserInfo(userID string) (UserInfo, error) {
+	u.lock.RLock()
+	defer u.lock.RUnlock()
+
+	idx := slices.IndexFunc(u.users, func(user *User) bool {
+		return user.userID == userID
+	})
+	if idx < 0 {
+		return UserInfo{}, errors.New("no such user")
+	}
+
+	user := u.users[idx]
+
+	var mode AddressMode
+
+	if user.IsCombinedAddressMode() {
+		mode = CombinedMode
+	} else {
+		mode = SplitMode
+	}
+
+	return UserInfo{
+		ID:       userID,
+		Username: user.Username(),
+		Password: user.GetBridgePassword(),
+
+		Addresses: user.GetAddresses(),
+		Primary:   slices.Index(user.GetAddresses(), user.GetPrimaryAddress()),
+
+		UsedBytes:  user.UsedBytes(),
+		TotalBytes: user.TotalBytes(),
+
+		Connected: user.IsConnected(),
+		Mode:      mode,
+	}, nil
+}
+
 // ClearData closes all connections (to release db files and so on) and clears all data.
 func (u *Users) ClearData() error {
 	var result error
@@ -351,6 +412,42 @@ func (u *Users) ClearData() error {
 	}
 
 	return result
+}
+
+func (u *Users) LogoutUser(userID string) error {
+	u.lock.RLock()
+	defer u.lock.RUnlock()
+
+	idx := slices.IndexFunc(u.users, func(user *User) bool {
+		return user.userID == userID
+	})
+	if idx < 0 {
+		return errors.New("no such user")
+	}
+
+	return u.users[idx].Logout()
+}
+
+func (u *Users) SetAddressMode(userID string, mode AddressMode) error {
+	u.lock.RLock()
+	defer u.lock.RUnlock()
+
+	idx := slices.IndexFunc(u.users, func(user *User) bool {
+		return user.userID == userID
+	})
+	if idx < 0 {
+		return errors.New("no such user")
+	}
+
+	if mode == CombinedMode && u.users[idx].IsCombinedAddressMode() {
+		return nil
+	}
+
+	if mode == SplitMode && !u.users[idx].IsCombinedAddressMode() {
+		return nil
+	}
+
+	return u.users[idx].SwitchAddressMode()
 }
 
 // DeleteUser deletes user completely; it logs user out from the API, stops any
@@ -382,6 +479,7 @@ func (u *Users) DeleteUser(userID string, clearStore bool) error {
 			}
 
 			if err := u.credStorer.Delete(userID); err != nil {
+				notifyKeychainRepair(u.events, err)
 				log.WithError(err).Error("Cannot remove user")
 				return err
 			}
@@ -439,5 +537,11 @@ func (u *Users) hasUser(id string) (user *User, ok bool) {
 func (u *Users) crashBandicoot(username string) {
 	if username == "crash@bandicoot" {
 		panic("Your wish is my command… I crash!")
+	}
+}
+
+func notifyKeychainRepair(l listener.Listener, err error) {
+	if err == keychain.ErrMacKeychainRebuild {
+		l.Emit(events.CredentialsErrorEvent, err.Error())
 	}
 }

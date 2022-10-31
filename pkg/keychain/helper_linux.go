@@ -1,62 +1,73 @@
-// Copyright (c) 2021 Proton Technologies AG
+// Copyright (c) 2022 Proton AG
 //
-// This file is part of ProtonMail Bridge.
+// This file is part of Proton Mail Bridge.
 //
-// ProtonMail Bridge is free software: you can redistribute it and/or modify
+// Proton Mail Bridge is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// ProtonMail Bridge is distributed in the hope that it will be useful,
+// Proton Mail Bridge is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
+// along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 package keychain
 
 import (
-	"os/exec"
 	"reflect"
 
 	"github.com/docker/docker-credential-helpers/credentials"
 	"github.com/docker/docker-credential-helpers/pass"
 	"github.com/docker/docker-credential-helpers/secretservice"
 	"github.com/sirupsen/logrus"
+	"golang.org/x/sys/execabs"
 )
 
 const (
-	Pass         = "pass-app"
-	GnomeKeyring = "gnome-keyring"
+	Pass              = "pass-app"
+	SecretService     = "secret-service"
+	SecretServiceDBus = "secret-service-dbus"
 )
 
-func init() { // nolint[noinit]
+func init() { //nolint:gochecknoinits
 	Helpers = make(map[string]helperConstructor)
 
-	if _, err := exec.LookPath("pass"); err == nil {
+	if isUsable(newDBusHelper("")) {
+		Helpers[SecretServiceDBus] = newDBusHelper
+	}
+
+	if _, err := execabs.LookPath("gnome-keyring"); err == nil && isUsable(newSecretServiceHelper("")) {
+		Helpers[SecretService] = newSecretServiceHelper
+	}
+
+	if _, err := execabs.LookPath("pass"); err == nil && isUsable(newPassHelper("")) {
 		Helpers[Pass] = newPassHelper
 	}
 
-	if _, err := exec.LookPath("gnome-keyring"); err == nil {
-		Helpers[GnomeKeyring] = newGnomeKeyringHelper
-	}
+	defaultHelper = SecretServiceDBus
 
 	// If Pass is available, use it by default.
-	// Otherwise, if GnomeKeyring is available, use it by default.
-	if _, ok := Helpers[Pass]; ok && isUsable(newPassHelper("")) {
+	// Otherwise, if SecretService is available, use it by default.
+	if _, ok := Helpers[Pass]; ok {
 		defaultHelper = Pass
-	} else if _, ok := Helpers[GnomeKeyring]; ok && isUsable(newGnomeKeyringHelper("")) {
-		defaultHelper = GnomeKeyring
+	} else if _, ok := Helpers[SecretService]; ok {
+		defaultHelper = SecretService
 	}
+}
+
+func newDBusHelper(string) (credentials.Helper, error) {
+	return &SecretServiceDBusHelper{}, nil
 }
 
 func newPassHelper(string) (credentials.Helper, error) {
 	return &pass.Pass{}, nil
 }
 
-func newGnomeKeyringHelper(string) (credentials.Helper, error) {
+func newSecretServiceHelper(string) (credentials.Helper, error) {
 	return &secretservice.Secretservice{}, nil
 }
 

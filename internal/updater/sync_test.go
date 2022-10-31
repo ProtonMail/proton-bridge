@@ -1,26 +1,24 @@
-// Copyright (c) 2021 Proton Technologies AG
+// Copyright (c) 2022 Proton AG
 //
-// This file is part of ProtonMail Bridge.
+// This file is part of Proton Mail Bridge.
 //
-// ProtonMail Bridge is free software: you can redistribute it and/or modify
+// Proton Mail Bridge is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// ProtonMail Bridge is distributed in the hope that it will be useful,
+// Proton Mail Bridge is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
+// along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 package updater
 
 import (
-	"io/ioutil"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"testing"
 
@@ -39,77 +37,103 @@ const (
 func TestSyncFolder(t *testing.T) {
 	for _, srcType := range []string{EmptyType, FileType, SymlinkType, DirType} {
 		for _, dstType := range []string{EmptyType, FileType, SymlinkType, DirType} {
-			require.NoError(t, checkCopyWorks(srcType, dstType))
+			checkCopyWorks(t, srcType, dstType)
 			logrus.Warn("OK: from ", srcType, " to ", dstType)
 		}
 	}
 }
 
-func checkCopyWorks(srcType, dstType string) error {
+func checkCopyWorks(tb testing.TB, srcType, dstType string) {
+	r := require.New(tb)
 	dirName := "from_" + srcType + "_to_" + dstType
 	AppCacheDir := "/tmp"
 	srcDir := filepath.Join(AppCacheDir, "sync_src", dirName)
 	destDir := filepath.Join(AppCacheDir, "sync_dst", dirName)
 
 	// clear before
-	logrus.Info("remove all ", srcDir)
-	err := os.RemoveAll(srcDir)
-	if err != nil {
-		return err
-	}
-
-	logrus.Info("remove all ", destDir)
-	err = os.RemoveAll(destDir)
-	if err != nil {
-		return err
-	}
+	r.NoError(os.RemoveAll(srcDir))
+	r.NoError(os.RemoveAll(destDir))
 
 	// create
-	err = createTestFolder(srcDir, srcType)
-	if err != nil {
-		return err
-	}
-
-	err = createTestFolder(destDir, dstType)
-	if err != nil {
-		return err
-	}
+	r.NoError(createTestFolder(srcDir, srcType))
+	r.NoError(createTestFolder(destDir, dstType))
 
 	// copy
-	logrus.Info("Sync from ", srcDir, " to ", destDir)
-	err = syncFolders(destDir, srcDir)
-	if err != nil {
-		return err
-	}
+	r.NoError(syncFolders(destDir, srcDir))
 
 	// Check
-	logrus.Info("check ", srcDir, " and ", destDir)
-	err = checkThatFilesAreSame(srcDir, destDir)
-	if err != nil {
-		return err
-	}
+	checkThatFilesAreSame(r, srcDir, destDir)
 
 	// clear after
-	logrus.Info("remove all ", srcDir)
-	err = os.RemoveAll(srcDir)
-	if err != nil {
-		return err
-	}
-
-	logrus.Info("remove all ", destDir)
-	err = os.RemoveAll(destDir)
-	if err != nil {
-		return err
-	}
-
-	return err
+	r.NoError(os.RemoveAll(srcDir))
+	r.NoError(os.RemoveAll(destDir))
 }
 
-func checkThatFilesAreSame(src, dst string) error {
-	cmd := exec.Command("diff", "-qr", src, dst) //nolint[gosec]
-	cmd.Stderr = logrus.StandardLogger().WriterLevel(logrus.ErrorLevel)
-	cmd.Stdout = logrus.StandardLogger().WriterLevel(logrus.InfoLevel)
-	return cmd.Run()
+func checkThatFilesAreSame(r *require.Assertions, src, dst string) {
+	srcFiles, srcDirs, err := walkDir(src)
+	r.NoError(err)
+
+	dstFiles, dstDirs, err := walkDir(dst)
+	r.NoError(err)
+
+	r.ElementsMatch(srcFiles, dstFiles)
+	r.ElementsMatch(srcDirs, dstDirs)
+
+	for _, relPath := range srcFiles {
+		srcPath := filepath.Join(src, relPath)
+		r.FileExists(srcPath)
+
+		dstPath := filepath.Join(dst, relPath)
+		r.FileExists(dstPath)
+
+		srcInfo, err := os.Lstat(srcPath)
+		r.NoError(err)
+
+		dstInfo, err := os.Lstat(dstPath)
+		r.NoError(err)
+
+		r.Equal(srcInfo.Mode(), dstInfo.Mode())
+
+		if srcInfo.Mode()&os.ModeSymlink == os.ModeSymlink {
+			srcLnk, err := os.Readlink(srcPath)
+			r.NoError(err)
+
+			dstLnk, err := os.Readlink(dstPath)
+			r.NoError(err)
+
+			r.Equal(srcLnk, dstLnk)
+		} else {
+			srcContent, err := os.ReadFile(srcPath)
+			r.NoError(err)
+
+			dstContent, err := os.ReadFile(dstPath)
+			r.NoError(err)
+
+			r.Equal(srcContent, dstContent)
+		}
+	}
+}
+
+func walkDir(dir string) (files, dirs []string, err error) {
+	err = filepath.Walk(dir, func(path string, info os.FileInfo, errWalk error) error {
+		if errWalk != nil {
+			return errWalk
+		}
+
+		relPath, errRel := filepath.Rel(dir, path)
+		if errRel != nil {
+			return errRel
+		}
+
+		if info.IsDir() {
+			dirs = append(dirs, relPath)
+		} else {
+			files = append(files, relPath)
+		}
+
+		return nil
+	})
+	return
 }
 
 func createTestFolder(dirPath, dirType string) error {
@@ -130,7 +154,7 @@ func createTestFolder(dirPath, dirType string) error {
 	path := filepath.Join(dirPath, "testpath")
 	switch dirType {
 	case FileType:
-		err = ioutil.WriteFile(path, []byte("This is a test"), 0640)
+		err = os.WriteFile(path, []byte("This is a test"), 0o640)
 		if err != nil {
 			return err
 		}
@@ -142,12 +166,12 @@ func createTestFolder(dirPath, dirType string) error {
 		}
 
 	case DirType:
-		err = os.MkdirAll(path, 0750)
+		err = os.MkdirAll(path, 0o750)
 		if err != nil {
 			return err
 		}
 
-		err = ioutil.WriteFile(filepath.Join(path, "another_file"), []byte("This is a test"), 0640)
+		err = os.WriteFile(filepath.Join(path, "another_file"), []byte("This is a test"), 0o640)
 		if err != nil {
 			return err
 		}

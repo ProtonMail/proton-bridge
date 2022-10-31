@@ -1,41 +1,39 @@
-// Copyright (c) 2021 Proton Technologies AG
+// Copyright (c) 2022 Proton AG
 //
-// This file is part of ProtonMail Bridge.
+// This file is part of Proton Mail Bridge.
 //
-// ProtonMail Bridge is free software: you can redistribute it and/or modify
+// Proton Mail Bridge is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// ProtonMail Bridge is distributed in the hope that it will be useful,
+// Proton Mail Bridge is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
+// along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 // Package bridge implements the bridge CLI application.
 package bridge
 
 import (
-	"crypto/tls"
 	"time"
 
-	"github.com/ProtonMail/proton-bridge/internal/api"
-	"github.com/ProtonMail/proton-bridge/internal/app/base"
-	pkgBridge "github.com/ProtonMail/proton-bridge/internal/bridge"
-	"github.com/ProtonMail/proton-bridge/internal/config/settings"
-	pkgTLS "github.com/ProtonMail/proton-bridge/internal/config/tls"
-	"github.com/ProtonMail/proton-bridge/internal/constants"
-	"github.com/ProtonMail/proton-bridge/internal/frontend"
-	"github.com/ProtonMail/proton-bridge/internal/frontend/types"
-	"github.com/ProtonMail/proton-bridge/internal/imap"
-	"github.com/ProtonMail/proton-bridge/internal/smtp"
-	"github.com/ProtonMail/proton-bridge/internal/store"
-	"github.com/ProtonMail/proton-bridge/internal/store/cache"
-	"github.com/ProtonMail/proton-bridge/internal/updater"
-	"github.com/ProtonMail/proton-bridge/pkg/message"
+	"github.com/ProtonMail/proton-bridge/v2/internal/api"
+	"github.com/ProtonMail/proton-bridge/v2/internal/app/base"
+	pkgBridge "github.com/ProtonMail/proton-bridge/v2/internal/bridge"
+	"github.com/ProtonMail/proton-bridge/v2/internal/config/settings"
+	"github.com/ProtonMail/proton-bridge/v2/internal/constants"
+	"github.com/ProtonMail/proton-bridge/v2/internal/frontend"
+	"github.com/ProtonMail/proton-bridge/v2/internal/frontend/types"
+	"github.com/ProtonMail/proton-bridge/v2/internal/imap"
+	"github.com/ProtonMail/proton-bridge/v2/internal/smtp"
+	"github.com/ProtonMail/proton-bridge/v2/internal/store"
+	"github.com/ProtonMail/proton-bridge/v2/internal/store/cache"
+	"github.com/ProtonMail/proton-bridge/v2/internal/updater"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/message"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
@@ -46,34 +44,43 @@ const (
 	flagLogSMTP        = "log-smtp"
 	flagNonInteractive = "noninteractive"
 
-	// Memory cache was estimated by empirical usage in past and it was set to 100MB.
+	// Memory cache was estimated by empirical usage in the past, and it was set to 100MB.
 	// NOTE: This value must not be less than maximal size of one email (~30MB).
-	inMemoryCacheLimnit = 100 * (1 << 20)
+	inMemoryCacheLimit = 100 * (1 << 20)
 )
 
 func New(base *base.Base) *cli.App {
-	app := base.NewApp(mailLoop)
+	app := base.NewApp(main)
 
 	app.Flags = append(app.Flags, []cli.Flag{
 		&cli.StringFlag{
 			Name:  flagLogIMAP,
-			Usage: "Enable logging of IMAP communications (all|client|server) (may contain decrypted data!)"},
+			Usage: "Enable logging of IMAP communications (all|client|server) (may contain decrypted data!)",
+		},
 		&cli.BoolFlag{
 			Name:  flagLogSMTP,
-			Usage: "Enable logging of SMTP communications (may contain decrypted data!)"},
+			Usage: "Enable logging of SMTP communications (may contain decrypted data!)",
+		},
 		&cli.BoolFlag{
 			Name:  flagNonInteractive,
-			Usage: "Start Bridge entirely noninteractively"},
+			Usage: "Start Bridge entirely non-interactively",
+		},
 	}...)
 
 	return app
 }
 
-func mailLoop(b *base.Base, c *cli.Context) error { // nolint[funlen]
-	tlsConfig, err := loadTLSConfig(b)
-	if err != nil {
-		return err
-	}
+func main(b *base.Base, c *cli.Context) error { //nolint:funlen
+	frontendType := getFrontendTypeFromCLIParams(c)
+	f := frontend.New(
+		frontendType,
+		!c.Bool(base.FlagNoWindow),
+		b.CrashHandler,
+		b.Listener,
+		b.Updater,
+		b,
+		b.Locations,
+	)
 
 	cache, cacheErr := loadMessageCache(b)
 	if cacheErr != nil {
@@ -92,6 +99,8 @@ func mailLoop(b *base.Base, c *cli.Context) error { // nolint[funlen]
 		b.SentryReporter,
 		b.CrashHandler,
 		b.Listener,
+		b.TLS,
+		b.UserAgent,
 		cache,
 		builder,
 		b.CM,
@@ -102,6 +111,11 @@ func mailLoop(b *base.Base, c *cli.Context) error { // nolint[funlen]
 	)
 	imapBackend := imap.NewIMAPBackend(b.CrashHandler, b.Listener, b.Cache, b.Settings, bridge)
 	smtpBackend := smtp.NewSMTPBackend(b.CrashHandler, b.Listener, b.Settings, bridge)
+
+	tlsConfig, err := bridge.GetTLSConfig()
+	if err != nil {
+		return err
+	}
 
 	if cacheErr != nil {
 		bridge.AddError(pkgBridge.ErrLocalCacheUnavailable)
@@ -138,33 +152,9 @@ func mailLoop(b *base.Base, c *cli.Context) error { // nolint[funlen]
 	// We want cookies to be saved to disk so they are loaded the next time.
 	b.AddTeardownAction(b.CookieJar.PersistCookies)
 
-	var frontendMode string
-
-	switch {
-	case c.Bool(base.FlagCLI):
-		frontendMode = "cli"
-	case c.Bool(flagNonInteractive):
-		return <-(make(chan error)) // Block forever.
-	default:
-		frontendMode = "qt"
+	if frontendType == frontend.NonInteractive {
+		return <-(make(chan error))
 	}
-
-	f := frontend.New(
-		constants.Version,
-		constants.BuildVersion,
-		b.Name,
-		frontendMode,
-		!c.Bool(base.FlagNoWindow),
-		b.CrashHandler,
-		b.Locations,
-		b.Settings,
-		b.Listener,
-		b.Updater,
-		b.UserAgent,
-		bridge,
-		smtpBackend,
-		b,
-	)
 
 	// Watch for updates routine
 	go func() {
@@ -176,45 +166,18 @@ func mailLoop(b *base.Base, c *cli.Context) error { // nolint[funlen]
 		}
 	}()
 
-	return f.Loop()
+	return f.Loop(bridge)
 }
 
-func loadTLSConfig(b *base.Base) (*tls.Config, error) {
-	if !b.TLS.HasCerts() {
-		if err := generateTLSCerts(b); err != nil {
-			return nil, err
-		}
+func getFrontendTypeFromCLIParams(c *cli.Context) frontend.Type {
+	switch {
+	case c.Bool(base.FlagCLI):
+		return frontend.CLI
+	case c.Bool(flagNonInteractive):
+		return frontend.NonInteractive
+	default:
+		return frontend.GRPC
 	}
-
-	tlsConfig, err := b.TLS.GetConfig()
-	if err == nil {
-		return tlsConfig, nil
-	}
-
-	logrus.WithError(err).Error("Failed to load TLS config, regenerating certificates")
-
-	if err := generateTLSCerts(b); err != nil {
-		return nil, err
-	}
-
-	return b.TLS.GetConfig()
-}
-
-func generateTLSCerts(b *base.Base) error {
-	template, err := pkgTLS.NewTLSTemplate()
-	if err != nil {
-		return errors.Wrap(err, "failed to generate TLS template")
-	}
-
-	if err := b.TLS.GenerateCerts(template); err != nil {
-		return errors.Wrap(err, "failed to generate TLS certs")
-	}
-
-	if err := b.TLS.InstallCerts(); err != nil {
-		return errors.Wrap(err, "failed to install TLS certs")
-	}
-
-	return nil
 }
 
 func checkAndHandleUpdate(u types.Updater, f frontend.Frontend, autoUpdate bool) {
@@ -267,7 +230,7 @@ func checkAndHandleUpdate(u types.Updater, f frontend.Frontend, autoUpdate bool)
 // local cache is enabled but unavailable (in-memory cache will be returned nevertheless).
 func loadMessageCache(b *base.Base) (cache.Cache, error) {
 	if !b.Settings.GetBool(settings.CacheEnabledKey) {
-		return cache.NewInMemoryCache(inMemoryCacheLimnit), nil
+		return cache.NewInMemoryCache(inMemoryCacheLimit), nil
 	}
 
 	var compressor cache.Compressor
@@ -287,12 +250,12 @@ func loadMessageCache(b *base.Base) (cache.Cache, error) {
 		path = customPath
 	} else {
 		path = b.Cache.GetDefaultMessageCacheDir()
-		// Store path so it will allways persist if default location
+		// Store path so it will always persist if default location
 		// will be changed in new version.
 		b.Settings.Set(settings.CacheLocationKey, path)
 	}
 
-	// To prevent memory peaks we set maximal write concurency for store
+	// To prevent memory peaks we set maximal write concurrency for store
 	// build jobs.
 	store.SetBuildAndCacheJobLimit(b.Settings.GetInt(settings.CacheConcurrencyWrite))
 
@@ -302,9 +265,8 @@ func loadMessageCache(b *base.Base) (cache.Cache, error) {
 		ConcurrentRead:  b.Settings.GetInt(settings.CacheConcurrencyRead),
 		ConcurrentWrite: b.Settings.GetInt(settings.CacheConcurrencyWrite),
 	})
-
 	if err != nil {
-		return cache.NewInMemoryCache(inMemoryCacheLimnit), err
+		return cache.NewInMemoryCache(inMemoryCacheLimit), err
 	}
 
 	return messageCache, nil

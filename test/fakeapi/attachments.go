@@ -1,19 +1,19 @@
-// Copyright (c) 2021 Proton Technologies AG
+// Copyright (c) 2022 Proton AG
 //
-// This file is part of ProtonMail Bridge.Bridge.
+// This file is part of Proton Mail Bridge.Bridge.
 //
-// ProtonMail Bridge is free software: you can redistribute it and/or modify
+// Proton Mail Bridge is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// ProtonMail Bridge is distributed in the hope that it will be useful,
+// Proton Mail Bridge is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
+// along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 package fakeapi
 
@@ -23,17 +23,16 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/textproto"
 
-	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/pmapi"
 )
 
 // dataPacketOutlineLightInstagram48png is data packet with encrypted data and
 // session key
 //
-//  gpg: encrypted with 2048-bit RSA key, ID 70B8CA23079F2167, created 2019-09-23
-//     "james-test@protonmail.blue <james-test@protonmail.blue>"
+//	gpg: encrypted with 2048-bit RSA key, ID 70B8CA23079F2167, created 2019-09-23
+//	   "james-test@protonmail.blue <james-test@protonmail.blue>"
 //
 // If you need to rebuild you can dump KeyPacket string from `CreateAttachment`
 // function when called during message sending test.
@@ -63,14 +62,14 @@ func (api *FakePMAPI) GetAttachment(_ context.Context, attachmentID string) (io.
 		return nil, err
 	}
 	r := bytes.NewReader(b)
-	return ioutil.NopCloser(r), nil
+	return io.NopCloser(r), nil
 }
 
 func (api *FakePMAPI) CreateAttachment(_ context.Context, attachment *pmapi.Attachment, data io.Reader, signature io.Reader) (*pmapi.Attachment, error) {
 	if err := api.checkAndRecordCall(POST, "/mail/v4/attachments", nil); err != nil {
 		return nil, err
 	}
-	bytes, err := ioutil.ReadAll(data)
+	bytes, err := io.ReadAll(data)
 	if err != nil {
 		return nil, err
 	}

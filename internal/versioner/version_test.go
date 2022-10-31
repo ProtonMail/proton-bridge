@@ -1,39 +1,38 @@
-// Copyright (c) 2021 Proton Technologies AG
+// Copyright (c) 2022 Proton AG
 //
-// This file is part of ProtonMail Bridge.
+// This file is part of Proton Mail Bridge.
 //
-// ProtonMail Bridge is free software: you can redistribute it and/or modify
+// Proton Mail Bridge is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// ProtonMail Bridge is distributed in the hope that it will be useful,
+// Proton Mail Bridge is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
+// along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 package versioner
 
 import (
 	"crypto/rand"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
-	"github.com/ProtonMail/proton-bridge/pkg/sum"
-	tests "github.com/ProtonMail/proton-bridge/test"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/sum"
+	tests "github.com/ProtonMail/proton-bridge/v2/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestVerifyFiles(t *testing.T) {
-	tempDir, err := ioutil.TempDir("", "verify-test")
+	tempDir, err := os.MkdirTemp("", "verify-test")
 	require.NoError(t, err)
 
 	version := &Version{
@@ -53,7 +52,7 @@ func TestVerifyFiles(t *testing.T) {
 }
 
 func TestVerifyWithBadFile(t *testing.T) {
-	tempDir, err := ioutil.TempDir("", "verify-test")
+	tempDir, err := os.MkdirTemp("", "verify-test")
 	require.NoError(t, err)
 
 	version := &Version{
@@ -76,7 +75,7 @@ func TestVerifyWithBadFile(t *testing.T) {
 }
 
 func TestVerifyWithBadSubFile(t *testing.T) {
-	tempDir, err := ioutil.TempDir("", "verify-test")
+	tempDir, err := os.MkdirTemp("", "verify-test")
 	require.NoError(t, err)
 
 	version := &Version{
@@ -120,7 +119,7 @@ func createSignedFiles(t *testing.T, root string, paths ...string) *crypto.KeyRi
 }
 
 func makeFile(t *testing.T, path string) {
-	require.NoError(t, os.MkdirAll(filepath.Dir(path), 0700))
+	require.NoError(t, os.MkdirAll(filepath.Dir(path), 0o700))
 
 	f, err := os.Create(path)
 	require.NoError(t, err)
@@ -136,10 +135,10 @@ func makeFile(t *testing.T, path string) {
 }
 
 func signFile(t *testing.T, path string, kr *crypto.KeyRing) {
-	file, err := ioutil.ReadFile(path)
+	file, err := os.ReadFile(path)
 	require.NoError(t, err)
 
 	sig, err := kr.SignDetached(crypto.NewPlainMessage(file))
 	require.NoError(t, err)
-	require.NoError(t, ioutil.WriteFile(path+".sig", sig.GetBinary(), 0700))
+	require.NoError(t, os.WriteFile(path+".sig", sig.GetBinary(), 0o700))
 }

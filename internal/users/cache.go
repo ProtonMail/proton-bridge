@@ -1,26 +1,25 @@
-// Copyright (c) 2021 Proton Technologies AG
+// Copyright (c) 2022 Proton AG
 //
-// This file is part of ProtonMail Bridge.
+// This file is part of Proton Mail Bridge.
 //
-// ProtonMail Bridge is free software: you can redistribute it and/or modify
+// Proton Mail Bridge is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// ProtonMail Bridge is distributed in the hope that it will be useful,
+// Proton Mail Bridge is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
+// along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 package users
 
 import (
 	"errors"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -30,7 +29,7 @@ import (
 // isFolderEmpty checks whether a folder is empty.
 // path must point to an existing folder.
 func isFolderEmpty(path string) (bool, error) {
-	files, err := ioutil.ReadDir(path)
+	files, err := os.ReadDir(path)
 	if err != nil {
 		return true, err
 	}
@@ -41,7 +40,7 @@ func isFolderEmpty(path string) (bool, error) {
 // if it is suitable (non existing, or empty and deletable) the folder is deleted.
 func checkFolderIsSuitableDestinationForCache(path string) error {
 	// Ensure the parent directory exists.
-	if err := os.MkdirAll(filepath.Dir(path), 0700); err != nil {
+	if err := os.MkdirAll(filepath.Dir(path), 0o700); err != nil {
 		return err
 	}
 
@@ -87,16 +86,16 @@ func copyFolder(srcPath, dstPath string) error {
 		return errors.New("source is not an existing folder")
 	}
 
-	if err = os.MkdirAll(dstPath, 0700); err != nil {
+	if err = os.MkdirAll(dstPath, 0o700); err != nil {
 		return err
 	}
-	files, err := ioutil.ReadDir(srcPath)
+	files, err := os.ReadDir(srcPath)
 	if err != nil {
 		return err
 	}
 	// copy only regular files and folders
 	for _, fileInfo := range files {
-		mode := fileInfo.Mode()
+		mode := fileInfo.Type()
 		if mode&os.ModeSymlink != 0 {
 			continue // we skip symbolic links to avoid potential endless recursion
 		}
@@ -170,7 +169,7 @@ func copyFile(srcPath, dstPath string) error {
 		err = src.Close()
 	}()
 
-	dst, err := os.OpenFile(filepath.Clean(dstPath), os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
+	dst, err := os.OpenFile(filepath.Clean(dstPath), os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0o600)
 	if err != nil {
 		return err
 	}
@@ -227,16 +226,19 @@ func (u *Users) MigrateCache(srcPath, dstPath string) error {
 
 	// GODT-1381 Edge case: read-only source migration: prevent re-naming
 	// (read-only is conserved). Do copy instead.
-	tmp, err := ioutil.TempFile(srcPath, "tmp")
+	tmp, err := os.CreateTemp(srcPath, "tmp")
 	if err == nil {
-		defer os.Remove(tmp.Name()) //nolint[errcheck]
-
-		if err := os.Rename(srcPath, dstPath); err == nil {
-			return nil
+		// Removal of tmp file cannot be deferred, as we are going to try to move the containing folder.
+		if err = tmp.Close(); err == nil {
+			if err = os.Remove(tmp.Name()); err == nil {
+				if err = os.Rename(srcPath, dstPath); err == nil {
+					return nil
+				}
+			}
 		}
-	} else {
-		logrus.WithError(err).Warn("Cannot write to source: do copy to new destination instead of rename")
 	}
+
+	logrus.WithError(err).Warn("Cannot write to source: do copy to new destination instead of rename")
 
 	// Rename failed let's try an actual copy/delete
 	if err = copyFolder(srcPath, dstPath); err != nil {

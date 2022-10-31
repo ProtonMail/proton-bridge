@@ -1,19 +1,19 @@
-// Copyright (c) 2021 Proton Technologies AG
+// Copyright (c) 2022 Proton AG
 //
-// This file is part of ProtonMail Bridge.
+// This file is part of Proton Mail Bridge.
 //
-// ProtonMail Bridge is free software: you can redistribute it and/or modify
+// Proton Mail Bridge is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// ProtonMail Bridge is distributed in the hope that it will be useful,
+// Proton Mail Bridge is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
+// along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 package imap
 
@@ -31,15 +31,16 @@ const (
 
 // addToCache adds item to existing item list.
 // Starting from following structure:
-//   {
-//		"username": {"label": "item1;item2"}
-//   }
+//
+//	  {
+//			"username": {"label": "item1;item2"}
+//	  }
 //
 // After calling addToCache("username", "label", "newItem") we get:
-//   {
-//		"username": {"label": "item1;item2;newItem"}
-//   }
 //
+//	  {
+//			"username": {"label": "item1;item2;newItem"}
+//	  }
 func (ib *imapBackend) addToCache(userID, label, toAdd string) {
 	list := ib.getCacheList(userID, label)
 
@@ -115,7 +116,7 @@ func (ib *imapBackend) loadIMAPCache() error {
 	if err != nil {
 		return err
 	}
-	defer f.Close() //nolint[errcheck]
+	defer f.Close() //nolint:errcheck,gosec
 
 	return json.NewDecoder(f).Decode(&ib.imapCache)
 }
@@ -132,7 +133,7 @@ func (ib *imapBackend) saveIMAPCache() error {
 	if err != nil {
 		return err
 	}
-	defer f.Close() //nolint[errcheck]
+	defer f.Close() //nolint:errcheck,gosec
 
 	return json.NewEncoder(f).Encode(ib.imapCache)
 }

@@ -1,21 +1,22 @@
-// Copyright (c) 2021 Proton Technologies AG
+// Copyright (c) 2022 Proton AG
 //
-// This file is part of ProtonMail Bridge.
+// This file is part of Proton Mail Bridge.
 //
-// ProtonMail Bridge is free software: you can redistribute it and/or modify
+// Proton Mail Bridge is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// ProtonMail Bridge is distributed in the hope that it will be useful,
+// Proton Mail Bridge is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
+// along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
-// NOTE: Comments in this file refer to a specification in a document called "ProtonMail Encryption logic". It will be referred to via abbreviation PMEL.
+// NOTE: Comments in this file refer to a specification in a document called
+// "Proton Mail Encryption logic". It will be referred to via abbreviation PMEL.
 
 package smtp
 
@@ -25,20 +26,17 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io"
-	"mime"
 	"net/mail"
 	"strings"
 	"time"
 
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
-	"github.com/ProtonMail/proton-bridge/internal/events"
-	"github.com/ProtonMail/proton-bridge/pkg/listener"
-	pkgMsg "github.com/ProtonMail/proton-bridge/pkg/message"
-	"github.com/ProtonMail/proton-bridge/pkg/message/parser"
-	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/listener"
+	pkgMsg "github.com/ProtonMail/proton-bridge/v2/pkg/message"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/message/parser"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/pmapi"
 	goSMTPBackend "github.com/emersion/go-smtp"
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 )
 
 type smtpUser struct {
@@ -211,7 +209,7 @@ func (su *smtpUser) Data(r io.Reader) error {
 }
 
 // Send sends an email from the given address to the given addresses with the given body.
-func (su *smtpUser) Send(returnPath string, to []string, messageReader io.Reader) (err error) { //nolint[funlen]
+func (su *smtpUser) Send(returnPath string, to []string, messageReader io.Reader) (err error) { //nolint:funlen,gocyclo
 	// Called from go-smtp in goroutines - we need to handle panics for each function.
 	defer su.panicHandler.HandlePanic()
 
@@ -312,16 +310,16 @@ func (su *smtpUser) Send(returnPath string, to []string, messageReader io.Reader
 
 	startTime := time.Now()
 	for isSending && time.Since(startTime) < 90*time.Second {
-		log.Debug("Message is still in send queue, waiting for a bit")
+		log.Warn("Message is still in send queue, waiting for a bit")
 		time.Sleep(15 * time.Second)
 		isSending, wasSent = su.backend.sendRecorder.isSendingOrSent(su.client(), sendRecorderMessageHash)
 	}
 	if isSending {
-		log.Debug("Message is still in send queue, returning error to prevent client from adding it to the sent folder prematurely")
+		log.Warn("Message is still in send queue, returning error to prevent client from adding it to the sent folder prematurely")
 		return errors.New("original message is still being sent")
 	}
 	if wasSent {
-		log.Debug("Message was already sent")
+		log.Warn("Message was already sent")
 		return nil
 	}
 
@@ -360,7 +358,6 @@ func (su *smtpUser) Send(returnPath string, to []string, messageReader io.Reader
 	}
 
 	req := pmapi.NewSendMessageReq(kr, mimeBody, plainBody, richBody, attkeys)
-	containsUnencryptedRecipients := false
 
 	for _, recipient := range message.Recipients() {
 		email := recipient.Address
@@ -369,9 +366,6 @@ func (su *smtpUser) Send(returnPath string, to []string, messageReader io.Reader
 		}
 
 		sendPreferences, err := su.getSendPreferences(email, message.MIMEType, mailSettings)
-		if !sendPreferences.Encrypt {
-			containsUnencryptedRecipients = true
-		}
 		if err != nil {
 			return err
 		}
@@ -385,20 +379,6 @@ func (su *smtpUser) Send(returnPath string, to []string, messageReader io.Reader
 
 		if err := req.AddRecipient(email, sendPreferences.Scheme, sendPreferences.PublicKey, signature, sendPreferences.MIMEType, sendPreferences.Encrypt); err != nil {
 			return errors.Wrap(err, "failed to add recipient")
-		}
-	}
-
-	if containsUnencryptedRecipients {
-		dec := new(mime.WordDecoder)
-		subject, err := dec.DecodeHeader(message.Header.Get("Subject"))
-		if err != nil {
-			return errors.New("error decoding subject message " + message.Header.Get("Subject"))
-		}
-		if !su.continueSendingUnencryptedMail(subject) {
-			if err := su.client().DeleteMessages(context.TODO(), []string{message.ID}); err != nil {
-				log.WithError(err).Warn("Failed to delete canceled messages")
-			}
-			return errors.New("sending was canceled by user")
 		}
 	}
 
@@ -508,27 +488,6 @@ func (su *smtpUser) handleSenderAndRecipients(m *pmapi.Message, returnPathAddr *
 	}
 
 	return nil
-}
-
-func (su *smtpUser) continueSendingUnencryptedMail(subject string) bool {
-	if !su.backend.shouldReportOutgoingNoEnc() {
-		return true
-	}
-
-	// GUI should always respond in 10 seconds, but let's have safety timeout
-	// in case GUI will not respond properly. If GUI didn't respond, we cannot
-	// be sure if user even saw the notice: better to not send the e-mail.
-	req := su.backend.confirmer.NewRequest(15 * time.Second)
-
-	su.eventListener.Emit(events.OutgoingNoEncEvent, req.ID()+":"+subject)
-
-	res, err := req.Result()
-	if err != nil {
-		logrus.WithError(err).Error("Failed to determine whether to send unencrypted, assuming no")
-		return false
-	}
-
-	return res
 }
 
 // Logout is called when this User will no longer be used.

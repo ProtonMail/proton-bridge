@@ -1,19 +1,19 @@
-// Copyright (c) 2021 Proton Technologies AG
+// Copyright (c) 2022 Proton AG
 //
-// This file is part of ProtonMail Bridge.
+// This file is part of Proton Mail Bridge.
 //
-// ProtonMail Bridge is free software: you can redistribute it and/or modify
+// Proton Mail Bridge is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// ProtonMail Bridge is distributed in the hope that it will be useful,
+// Proton Mail Bridge is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
+// along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 package keychain
 
@@ -24,13 +24,14 @@ import (
 
 	"github.com/docker/docker-credential-helpers/credentials"
 	"github.com/keybase/go-keychain"
+	"github.com/sirupsen/logrus"
 )
 
 const (
 	MacOSKeychain = "macos-keychain"
 )
 
-func init() { // nolint[noinit]
+func init() { //nolint:gochecknoinits
 	Helpers = make(map[string]helperConstructor)
 
 	// MacOS always provides a keychain.
@@ -38,6 +39,16 @@ func init() { // nolint[noinit]
 
 	// Use MacOSKeychain by default.
 	defaultHelper = MacOSKeychain
+}
+
+func parseError(original error) error {
+	if original == nil {
+		return nil
+	}
+	if strings.Contains(original.Error(), "25293") {
+		return ErrMacKeychainRebuild
+	}
+	return original
 }
 
 func newMacOSHelper(url string) (credentials.Helper, error) {
@@ -76,7 +87,7 @@ func (h *macOSHelper) Add(creds *credentials.Credentials) error {
 
 	query := newQuery(hostURL, userID)
 	query.SetData([]byte(creds.Secret))
-	return keychain.AddItem(query)
+	return parseError(keychain.AddItem(query))
 }
 
 func (h *macOSHelper) Delete(secretURL string) error {
@@ -87,7 +98,7 @@ func (h *macOSHelper) Delete(secretURL string) error {
 
 	query := newQuery(hostURL, userID)
 
-	return keychain.DeleteItem(query)
+	return parseError(keychain.DeleteItem(query))
 }
 
 func (h *macOSHelper) Get(secretURL string) (string, string, error) {
@@ -96,13 +107,16 @@ func (h *macOSHelper) Get(secretURL string) (string, string, error) {
 		return "", "", err
 	}
 
+	l := logrus.WithField("pkg", "keychain/darwin").WithField("h.url", h.url).WithField("userID", userID)
+
 	query := newQuery(hostURL, userID)
 	query.SetMatchLimit(keychain.MatchLimitOne)
 	query.SetReturnData(true)
 
 	results, err := keychain.QueryItem(query)
 	if err != nil {
-		return "", "", err
+		l.WithError(err).Error("Querry item failed")
+		return "", "", parseError(err)
 	}
 
 	if len(results) == 0 {
@@ -119,9 +133,12 @@ func (h *macOSHelper) Get(secretURL string) (string, string, error) {
 func (h *macOSHelper) List() (map[string]string, error) {
 	userIDByURL := make(map[string]string)
 
+	l := logrus.WithField("pkg", "keychain/darwin").WithField("h.url", h.url)
+
 	userIDs, err := keychain.GetGenericPasswordAccounts(h.url)
 	if err != nil {
-		return nil, err
+		l.WithError(err).Warn("Get generic password accounts failed")
+		return nil, parseError(err)
 	}
 
 	for _, userID := range userIDs {

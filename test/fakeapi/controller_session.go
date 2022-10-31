@@ -1,19 +1,19 @@
-// Copyright (c) 2021 Proton Technologies AG
+// Copyright (c) 2022 Proton AG
 //
-// This file is part of ProtonMail Bridge.Bridge.
+// This file is part of Proton Mail Bridge.Bridge.
 //
-// ProtonMail Bridge is free software: you can redistribute it and/or modify
+// Proton Mail Bridge is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// ProtonMail Bridge is distributed in the hope that it will be useful,
+// Proton Mail Bridge is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
+// along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 package fakeapi
 
@@ -21,7 +21,7 @@ import (
 	"bytes"
 	"errors"
 
-	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/pmapi"
 )
 
 type fakeSession struct {
@@ -30,7 +30,7 @@ type fakeSession struct {
 	hasFullScope  bool
 }
 
-var errWrongNameOrPassword = errors.New("Incorrect login credentials. Please try again") //nolint[stylecheck]
+var errWrongNameOrPassword = errors.New("Incorrect login credentials. Please try again") //nolint:stylecheck
 
 func (ctl *Controller) checkAccessToken(uid, acc string) bool {
 	session, ok := ctl.sessionsByUID[uid]
@@ -74,12 +74,12 @@ func (ctl *Controller) createSession(username string, hasFullScope bool) *fakeSe
 
 func (ctl *Controller) refreshSessionIfAuthorized(uid, ref string) (*fakeSession, error) {
 	session, ok := ctl.sessionsByUID[uid]
-	if !ok {
-		return nil, pmapi.ErrUnauthorized
+	if !ok || session.uid != uid {
+		return nil, pmapi.ErrAuthFailed{OriginalError: errors.New("bad uid")}
 	}
 
 	if ref != session.ref {
-		return nil, pmapi.ErrUnauthorized
+		return nil, pmapi.ErrAuthFailed{OriginalError: errors.New("bad refresh token")}
 	}
 
 	session.ref = ctl.tokenGenerator.next("ref")

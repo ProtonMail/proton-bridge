@@ -1,19 +1,19 @@
-// Copyright (c) 2021 Proton Technologies AG
+// Copyright (c) 2022 Proton AG
 //
-// This file is part of ProtonMail Bridge.
+// This file is part of Proton Mail Bridge.
 //
-// ProtonMail Bridge is free software: you can redistribute it and/or modify
+// Proton Mail Bridge is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// ProtonMail Bridge is distributed in the hope that it will be useful,
+// Proton Mail Bridge is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
+// along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 package imap
 
@@ -21,15 +21,15 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/mail"
 	"strings"
 	"time"
 
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
-	"github.com/ProtonMail/proton-bridge/internal/imap/uidplus"
-	"github.com/ProtonMail/proton-bridge/pkg/message"
-	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
+	"github.com/ProtonMail/proton-bridge/v2/internal/imap/uidplus"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/message"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/pmapi"
 	"github.com/emersion/go-imap"
 	"github.com/emersion/go-message/textproto"
 	"github.com/pkg/errors"
@@ -47,7 +47,7 @@ func (im *imapMailbox) CreateMessage(flags []string, date time.Time, body imap.L
 	}, "APPEND", flags, date)
 }
 
-func (im *imapMailbox) createMessage(imapFlags []string, date time.Time, r imap.Literal) error { //nolint[funlen]
+func (im *imapMailbox) createMessage(imapFlags []string, date time.Time, r imap.Literal) error { //nolint:funlen
 	// Called from go-imap in goroutines - we need to handle panics for each function.
 	defer im.panicHandler.HandlePanic()
 
@@ -55,7 +55,7 @@ func (im *imapMailbox) createMessage(imapFlags []string, date time.Time, r imap.
 	im.user.appendExpungeLock.Lock()
 	defer im.user.appendExpungeLock.Unlock()
 
-	body, err := ioutil.ReadAll(r)
+	body, err := io.ReadAll(r)
 	if err != nil {
 		return err
 	}
@@ -156,7 +156,7 @@ func findMailboxForAddress(address storeAddressProvider, labelID string) (storeM
 		address.AddressString())
 }
 
-func (im *imapMailbox) labelExistingMessage(msg storeMessageProvider) error { //nolint[funlen]
+func (im *imapMailbox) labelExistingMessage(msg storeMessageProvider) error { //nolint:funlen
 	im.log.Info("Labelling existing message")
 
 	// IMAP clients can move message to local folder (setting \Deleted flag)
@@ -177,7 +177,7 @@ func (im *imapMailbox) labelExistingMessage(msg storeMessageProvider) error { //
 	// If the message is moved from any folder, the moment when expunge happens on source we will move message trash unless we move it to archive.
 	// If the message is already in Archive we should not call API at all.
 	// Otherwise the message is already in All mail, Return OK.
-	var storeMBox = im.storeMailbox
+	storeMBox := im.storeMailbox
 	if pmapi.AllMailLabel == storeMBox.LabelID() {
 		if msg.Message().HasLabelID(pmapi.ArchiveLabel) {
 			return uidplus.AppendResponse(storeMBox.UIDValidity(), storeMBox.GetUIDList([]string{msg.ID()}))
@@ -196,8 +196,8 @@ func (im *imapMailbox) labelExistingMessage(msg storeMessageProvider) error { //
 	return uidplus.AppendResponse(im.storeMailbox.UIDValidity(), im.storeMailbox.GetUIDList([]string{msg.ID()}))
 }
 
-func (im *imapMailbox) importMessage(kr *crypto.KeyRing, hdr textproto.Header, body []byte, imapFlags []string, date time.Time) error { //nolint[funlen]
-	im.log.Info("Importing external message")
+func (im *imapMailbox) importMessage(kr *crypto.KeyRing, hdr textproto.Header, body []byte, imapFlags []string, date time.Time) error { //nolint:funlen
+	im.log.WithField("size", len(body)).Info("Importing external message")
 
 	var (
 		seen     bool
@@ -238,7 +238,7 @@ func (im *imapMailbox) importMessage(kr *crypto.KeyRing, hdr textproto.Header, b
 		return err
 	}
 
-	var targetMailbox = im.storeMailbox
+	targetMailbox := im.storeMailbox
 	if targetMailbox.LabelID() == pmapi.AllMailLabel {
 		// Importing mail in directly into All Mail is not allowed. Instead we redirect the import to Archive
 		// The mail will automatically appear in All mail. The appends response still reports that the mail was
@@ -251,6 +251,7 @@ func (im *imapMailbox) importMessage(kr *crypto.KeyRing, hdr textproto.Header, b
 
 	messageID, err := targetMailbox.ImportMessage(enc, seen, labelIDs, flags, time)
 	if err != nil {
+		log.WithField("enc.size", len(enc)).Error("Import failed")
 		return err
 	}
 

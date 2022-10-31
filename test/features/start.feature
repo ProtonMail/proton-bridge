@@ -79,3 +79,12 @@ Feature: Start bridge
     And "user" does not have loaded store
     And "user" does not have running event loop
     And "user" has zero space
+
+  Scenario: Start with connected user, database file and internet connection, but no write access to credentials
+    Given there is user "user" which just logged in
+    And credentials are locked
+    And there is database file for "user"
+    When bridge starts
+    Then "user" is connected
+    When IMAP client authenticates "user"
+    Then IMAP response is "NO"

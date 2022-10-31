@@ -1,3 +1,44 @@
+## v1.8.12
+- 2021-12-06
+
+### New
+
+- Bridge to only be checking and trying to unclock active keys, both user and address
+
+### Fixed
+
+- Updated bbold to v1.3.6 - including Unix fixes
+- Ensure 'delete' on 'All Mail' is not allowed
+- Fixed behaviour for 'append' of external messages to Archive
+- Fixed behaviour for 'append' of internal messages to All Mail 
+- Ensure 'move' to All Mail returns an error
+- Fixed behaviour for moving/removing message to/from Spam
+
+
+## v1.8.10
+- 2021-10-13
+
+### Fixed
+
+- Updated crypto-libraries to gopenpgp v2.2.2 and go-srp v0.0.1
+- Ensuring proper handling of updates when the user downloads the newest version manually
+- Better handling of an error for importing too large messages via Bridge
+- Ensuring message packages are fully built when the list of recipients includes internal addresses (for the users using active domain with Microsoft exchange)
+- Fixed Uninstalling on Windows to properly clear updates
+- Improvements to reusing connections - performance
+
+
+## v1.8.9
+- 2021-09-01
+
+### Fixed
+
+- Fixed an issues with incorrect handling of 401 server error leading to random Bridge logouts
+- Changed encoding of message/rfc822 - to better handle sending of the .msg files
+- Fixed crash within RFC822 builder for invalid or empty headers
+- Fixed crash within RFC822 builder for header with key length > 76 chars
+
+
 ## v1.8.7
 - 2021-06-24
 

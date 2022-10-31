@@ -1,7 +1,7 @@
 .PHONY: check-go check-godog install-godog test test-bridge test-live test-live-bridge test-stage test-debug test-live-debug bench
 
 export GO111MODULE=on
-export BRIDGE_VERSION:=2.0.1+integrationtests
+export BRIDGE_VERSION:=2.4.3+integrationtests
 export VERBOSITY?=fatal
 export TEST_DATA=testdata
 
@@ -13,7 +13,7 @@ check-go:
 check-godog:
 	@which godog || $(MAKE) install-godog
 install-godog: check-go
-	go get github.com/cucumber/godog/cmd/godog@v0.12.1
+	go install github.com/cucumber/godog/cmd/godog@v0.12.5
 
 test: test-bridge
 test-bridge: FEATURES ?= features

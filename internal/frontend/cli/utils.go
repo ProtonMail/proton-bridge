@@ -1,26 +1,26 @@
-// Copyright (c) 2021 Proton Technologies AG
+// Copyright (c) 2022 Proton AG
 //
-// This file is part of ProtonMail Bridge.
+// This file is part of Proton Mail Bridge.
 //
-// ProtonMail Bridge is free software: you can redistribute it and/or modify
+// Proton Mail Bridge is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// ProtonMail Bridge is distributed in the hope that it will be useful,
+// Proton Mail Bridge is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
+// along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 package cli
 
 import (
 	"strings"
 
-	pmapi "github.com/ProtonMail/proton-bridge/pkg/pmapi"
+	pmapi "github.com/ProtonMail/proton-bridge/v2/pkg/pmapi"
 	"github.com/fatih/color"
 )
 
@@ -28,9 +28,7 @@ const (
 	maxInputRepeat = 2
 )
 
-var (
-	bold = color.New(color.Bold).SprintFunc() //nolint[gochecknoglobals]
-)
+var bold = color.New(color.Bold).SprintFunc() //nolint:gochecknoglobals
 
 func isNotEmpty(val string) bool {
 	return val != ""
@@ -101,10 +99,10 @@ func (f *frontendCLI) notifyNeedUpgrade() {
 	f.Println("Please download and install the newest version of application from", version.LandingPage)
 }
 
-func (f *frontendCLI) notifyCredentialsError() { // nolint[unused]
+func (f *frontendCLI) notifyCredentialsError() {
 	// Print in 80-column width.
-	f.Println("ProtonMail Bridge is not able to detect a supported password manager")
-	f.Println("(pass, gnome-keyring). Please install and set up a supported password manager")
+	f.Println("Proton Mail Bridge is not able to detect a supported password manager")
+	f.Println("(secret-service or pass). Please install and set up a supported password manager")
 	f.Println("and restart the application.")
 }
 
@@ -114,15 +112,15 @@ func (f *frontendCLI) notifyCertIssue() {
 be insecure.
 
 Description:
-ProtonMail Bridge was not able to establish a secure connection to Proton
+Proton Mail Bridge was not able to establish a secure connection to Proton
 servers due to a TLS certificate error. This means your connection may
 potentially be insecure and susceptible to monitoring by third parties.
 
 Recommendation:
-* If you trust your network operator, you can continue to use ProtonMail
+* If you trust your network operator, you can continue to use Proton Mail
   as usual.
-* If you don't trust your network operator, reconnect to ProtonMail over a VPN
+* If you don't trust your network operator, reconnect to Proton Mail over a VPN
   (such as ProtonVPN) which encrypts your Internet connection, or use
-  a different network to access ProtonMail.
+  a different network to access Proton Mail.
 `)
 }

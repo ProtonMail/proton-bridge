@@ -1,19 +1,19 @@
-// Copyright (c) 2021 Proton Technologies AG
+// Copyright (c) 2022 Proton AG
 //
-// This file is part of ProtonMail Bridge.Bridge.
+// This file is part of Proton Mail Bridge.Bridge.
 //
-// ProtonMail Bridge is free software: you can redistribute it and/or modify
+// Proton Mail Bridge is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// ProtonMail Bridge is distributed in the hope that it will be useful,
+// Proton Mail Bridge is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
+// along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 package tests
 
@@ -28,6 +28,7 @@ func IMAPActionsMailboxFeatureContext(s *godog.ScenarioContext) {
 	s.Step(`^IMAP client renames mailbox "([^"]*)" to "([^"]*)"$`, imapClientRenamesMailboxTo)
 	s.Step(`^IMAP client deletes mailbox "([^"]*)"$`, imapClientDeletesMailbox)
 	s.Step(`^IMAP client lists mailboxes$`, imapClientListsMailboxes)
+	s.Step(`^IMAP client "([^"]*)" lists mailboxes$`, imapClientNamedListsMailboxes)
 	s.Step(`^IMAP client selects "([^"]*)"$`, imapClientSelects)
 	s.Step(`^IMAP client gets info of "([^"]*)"$`, imapClientGetsInfoOf)
 	s.Step(`^IMAP client "([^"]*)" gets info of "([^"]*)"$`, imapClientNamedGetsInfoOf)
@@ -63,8 +64,12 @@ func imapClientDeletesMailbox(mailboxName string) error {
 }
 
 func imapClientListsMailboxes() error {
-	res := ctx.GetIMAPClient("imap").ListMailboxes()
-	ctx.SetIMAPLastResponse("imap", res)
+	return imapClientNamedListsMailboxes("imap")
+}
+
+func imapClientNamedListsMailboxes(clientName string) error {
+	res := ctx.GetIMAPClient(clientName).ListMailboxes()
+	ctx.SetIMAPLastResponse(clientName, res)
 	return nil
 }
 

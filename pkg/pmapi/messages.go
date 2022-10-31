@@ -1,19 +1,19 @@
-// Copyright (c) 2021 Proton Technologies AG
+// Copyright (c) 2022 Proton AG
 //
-// This file is part of ProtonMail Bridge.
+// This file is part of Proton Mail Bridge.
 //
-// ProtonMail Bridge is free software: you can redistribute it and/or modify
+// Proton Mail Bridge is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// ProtonMail Bridge is distributed in the hope that it will be useful,
+// Proton Mail Bridge is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
+// along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 package pmapi
 
@@ -27,7 +27,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/mail"
 	"net/url"
@@ -36,11 +35,11 @@ import (
 	"strings"
 
 	"github.com/ProtonMail/go-crypto/openpgp"
+	"github.com/ProtonMail/go-crypto/openpgp/armor"
+	"github.com/ProtonMail/go-crypto/openpgp/packet"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/go-resty/resty/v2"
 	"github.com/sirupsen/logrus"
-	"golang.org/x/crypto/openpgp/armor"
-	"golang.org/x/crypto/openpgp/packet"
 )
 
 // Header types.
@@ -133,10 +132,10 @@ const (
 type LabelsOperation int
 
 const (
-	KeepLabels    LabelsOperation = iota // Do nothing.
-	ReplaceLabels                        // Replace current labels with new ones.
-	AddLabels                            // Add new labels to current ones.
-	RemoveLabels                         // Remove specified labels from current ones.
+	KeepLabels    LabelsOperation = iota // KeepLabels Do nothing.
+	ReplaceLabels                        // ReplaceLabels Replace current labels with new ones.
+	AddLabels                            // AddLabels Add new labels to current ones.
+	RemoveLabels                         // RemoveLabels Remove specified labels from current ones.
 )
 
 // Due to API limitations, we shouldn't make requests with more than 100 message IDs at a time.
@@ -150,7 +149,7 @@ const InternalIDDomain = `protonmail.internalid`
 
 // RxInternalReferenceFormat is compiled regexp which describes the match for
 // a message ID used in reference headers.
-var RxInternalReferenceFormat = regexp.MustCompile(`(?U)<(.+)@` + regexp.QuoteMeta(InternalIDDomain) + `>`) //nolint[gochecknoglobals]
+var RxInternalReferenceFormat = regexp.MustCompile(`(?U)<(.+)@` + regexp.QuoteMeta(InternalIDDomain) + `>`) //nolint:gochecknoglobals
 
 // Message structure.
 type Message struct {
@@ -309,7 +308,7 @@ func (m *Message) ExtractSignatures(kr *crypto.KeyRing) ([]Signature, error) {
 		return nil, err
 	}
 
-	if _, err := ioutil.ReadAll(msg.UnverifiedBody); err != nil {
+	if _, err := io.ReadAll(msg.UnverifiedBody); err != nil {
 		return nil, err
 	}
 
@@ -460,7 +459,7 @@ type MessagesFilter struct {
 	AutoWildcard   *bool
 }
 
-func (filter *MessagesFilter) urlValues() url.Values { // nolint[funlen]
+func (filter *MessagesFilter) urlValues() url.Values { //nolint:funlen
 	v := url.Values{}
 
 	if filter.Page != 0 {

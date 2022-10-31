@@ -1,26 +1,25 @@
-// Copyright (c) 2021 Proton Technologies AG
+// Copyright (c) 2022 Proton AG
 //
-// This file is part of ProtonMail Bridge.
+// This file is part of Proton Mail Bridge.
 //
-// ProtonMail Bridge is free software: you can redistribute it and/or modify
+// Proton Mail Bridge is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// ProtonMail Bridge is distributed in the hope that it will be useful,
+// Proton Mail Bridge is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
+// along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 package store
 
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -28,12 +27,12 @@ import (
 	"time"
 
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
-	"github.com/ProtonMail/proton-bridge/internal/store/cache"
-	storemocks "github.com/ProtonMail/proton-bridge/internal/store/mocks"
-	"github.com/ProtonMail/proton-bridge/pkg/message"
-	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
-	pmapimocks "github.com/ProtonMail/proton-bridge/pkg/pmapi/mocks"
-	tests "github.com/ProtonMail/proton-bridge/test"
+	"github.com/ProtonMail/proton-bridge/v2/internal/store/cache"
+	storemocks "github.com/ProtonMail/proton-bridge/v2/internal/store/mocks"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/message"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/pmapi"
+	pmapimocks "github.com/ProtonMail/proton-bridge/v2/pkg/pmapi/mocks"
+	tests "github.com/ProtonMail/proton-bridge/v2/test"
 	"github.com/golang/mock/gomock"
 
 	"github.com/stretchr/testify/require"
@@ -162,7 +161,7 @@ func initMocks(tb testing.TB) (*mocksForStore, func()) {
 	mocks.panicHandler.EXPECT().HandlePanic().AnyTimes()
 
 	var err error
-	mocks.tmpDir, err = ioutil.TempDir("", "store-test")
+	mocks.tmpDir, err = os.MkdirTemp("", "store-test")
 	require.NoError(tb, err)
 
 	cacheFile := filepath.Join(mocks.tmpDir, "cache.json")
@@ -180,14 +179,15 @@ func initMocks(tb testing.TB) (*mocksForStore, func()) {
 	}
 }
 
-func (mocks *mocksForStore) newStoreNoEvents(t *testing.T, combinedMode bool, msgs ...*pmapi.Message) { //nolint[unparam]
+func (mocks *mocksForStore) newStoreNoEvents(t *testing.T, combinedMode bool, msgs ...*pmapi.Message) { //nolint:unparam
 	mocks.user.EXPECT().ID().Return("userID").AnyTimes()
 	mocks.user.EXPECT().IsConnected().Return(true)
 	mocks.user.EXPECT().IsCombinedAddressMode().Return(combinedMode)
 
 	mocks.user.EXPECT().GetClient().AnyTimes().Return(mocks.client)
 
-	mocks.client.EXPECT().GetUserKeyRing().Return(tests.MakeKeyRing(t), nil).AnyTimes()
+	testUserKeyring := tests.MakeKeyRing(t)
+	mocks.client.EXPECT().GetUserKeyRing().Return(testUserKeyring, nil).AnyTimes()
 	mocks.client.EXPECT().Addresses().Return(pmapi.AddressList{
 		{ID: addrID1, Email: addr1, Type: pmapi.OriginalAddress, Receive: true},
 		{ID: addrID2, Email: addr2, Type: pmapi.AliasAddress, Receive: true},
@@ -224,6 +224,8 @@ func (mocks *mocksForStore) newStoreNoEvents(t *testing.T, combinedMode bool, ms
 		mocks.cache,
 	)
 	require.NoError(mocks.tb, err)
+
+	require.NoError(mocks.tb, mocks.store.UnlockCache(testUserKeyring))
 
 	// We want to wait until first sync has finished.
 	// Checking that event after sync was reuested is not the best way to

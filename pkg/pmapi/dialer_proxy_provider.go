@@ -1,19 +1,19 @@
-// Copyright (c) 2021 Proton Technologies AG
+// Copyright (c) 2022 Proton AG
 //
-// This file is part of ProtonMail Bridge.
+// This file is part of Proton Mail Bridge.
 //
-// ProtonMail Bridge is free software: you can redistribute it and/or modify
+// Proton Mail Bridge is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// ProtonMail Bridge is distributed in the hope that it will be useful,
+// Proton Mail Bridge is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
+// along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 package pmapi
 
@@ -36,11 +36,16 @@ const (
 	proxyDoHTimeout          = 20 * time.Second
 	proxyCanReachTimeout     = 20 * time.Second
 	proxyQuery               = "dMFYGSLTQOJXXI33ONVQWS3BOMNUA.protonpro.xyz"
+
+	Quad9Provider     = "https://dns11.quad9.net/dns-query"
+	Quad9PortProvider = "https://dns11.quad9.net:5053/dns-query"
+	GoogleProvider    = "https://dns.google/dns-query"
 )
 
-var dohProviders = []string{ //nolint[gochecknoglobals]
-	"https://dns11.quad9.net/dns-query",
-	"https://dns.google/dns-query",
+var dohProviders = []string{ //nolint:gochecknoglobals
+	Quad9Provider,
+	Quad9PortProvider,
+	GoogleProvider,
 }
 
 // proxyProvider manages known proxies.
@@ -63,7 +68,7 @@ type proxyProvider struct {
 
 // newProxyProvider creates a new proxyProvider that queries the given DoH providers
 // to retrieve DNS records for the given query string.
-func newProxyProvider(cfg Config, providers []string, query string) (p *proxyProvider) { // nolint[unparam]
+func newProxyProvider(cfg Config, providers []string, query string) (p *proxyProvider) { //nolint:unparam
 	p = &proxyProvider{
 		cfg:                 cfg,
 		providers:           providers,
@@ -173,7 +178,7 @@ func (p *proxyProvider) canReach(url string) bool {
 	dialer := NewPinningTLSDialer(p.cfg, NewBasicTLSDialer(p.cfg))
 
 	pinger := resty.New().
-		SetHostURL(url).
+		SetBaseURL(url).
 		SetTimeout(p.canReachTimeout).
 		SetTransport(CreateTransportWithDialer(dialer))
 

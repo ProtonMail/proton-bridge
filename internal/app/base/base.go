@@ -1,29 +1,30 @@
-// Copyright (c) 2021 Proton Technologies AG
+// Copyright (c) 2022 Proton AG
 //
-// This file is part of ProtonMail Bridge.
+// This file is part of Proton Mail Bridge.
 //
-// ProtonMail Bridge is free software: you can redistribute it and/or modify
+// Proton Mail Bridge is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// ProtonMail Bridge is distributed in the hope that it will be useful,
+// Proton Mail Bridge is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
+// along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 // Package base implements a common application base currently shared by bridge and IE.
 // The base includes the following:
-//  - access to standard filesystem locations like config, cache, logging dirs
-//  - an extensible crash handler
-//  - versioned cache directory
-//  - persistent settings
-//  - event listener
-//  - credentials store
-//  - pmapi Manager
+//   - access to standard filesystem locations like config, cache, logging dirs
+//   - an extensible crash handler
+//   - versioned cache directory
+//   - persistent settings
+//   - event listener
+//   - credentials store
+//   - pmapi Manager
+//
 // In addition, the base initialises logging and reacts to command line arguments
 // which control the log verbosity and enable cpu/memory profiling.
 package base
@@ -39,25 +40,24 @@ import (
 	"github.com/Masterminds/semver/v3"
 	"github.com/ProtonMail/go-autostart"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
-	"github.com/ProtonMail/proton-bridge/internal/api"
-	"github.com/ProtonMail/proton-bridge/internal/config/cache"
-	"github.com/ProtonMail/proton-bridge/internal/config/settings"
-	"github.com/ProtonMail/proton-bridge/internal/config/tls"
-	"github.com/ProtonMail/proton-bridge/internal/config/useragent"
-	"github.com/ProtonMail/proton-bridge/internal/constants"
-	"github.com/ProtonMail/proton-bridge/internal/cookies"
-	"github.com/ProtonMail/proton-bridge/internal/crash"
-	"github.com/ProtonMail/proton-bridge/internal/events"
-	"github.com/ProtonMail/proton-bridge/internal/locations"
-	"github.com/ProtonMail/proton-bridge/internal/logging"
-	"github.com/ProtonMail/proton-bridge/internal/sentry"
-	"github.com/ProtonMail/proton-bridge/internal/updater"
-	"github.com/ProtonMail/proton-bridge/internal/users/credentials"
-	"github.com/ProtonMail/proton-bridge/internal/versioner"
-	"github.com/ProtonMail/proton-bridge/pkg/keychain"
-	"github.com/ProtonMail/proton-bridge/pkg/listener"
-	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
-	"github.com/allan-simon/go-singleinstance"
+	"github.com/ProtonMail/proton-bridge/v2/internal/api"
+	"github.com/ProtonMail/proton-bridge/v2/internal/config/cache"
+	"github.com/ProtonMail/proton-bridge/v2/internal/config/settings"
+	"github.com/ProtonMail/proton-bridge/v2/internal/config/tls"
+	"github.com/ProtonMail/proton-bridge/v2/internal/config/useragent"
+	"github.com/ProtonMail/proton-bridge/v2/internal/constants"
+	"github.com/ProtonMail/proton-bridge/v2/internal/cookies"
+	"github.com/ProtonMail/proton-bridge/v2/internal/crash"
+	"github.com/ProtonMail/proton-bridge/v2/internal/events"
+	"github.com/ProtonMail/proton-bridge/v2/internal/locations"
+	"github.com/ProtonMail/proton-bridge/v2/internal/logging"
+	"github.com/ProtonMail/proton-bridge/v2/internal/sentry"
+	"github.com/ProtonMail/proton-bridge/v2/internal/updater"
+	"github.com/ProtonMail/proton-bridge/v2/internal/users/credentials"
+	"github.com/ProtonMail/proton-bridge/v2/internal/versioner"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/keychain"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/listener"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/pmapi"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
 )
@@ -94,15 +94,17 @@ type Base struct {
 	TLS            *tls.TLS
 	Autostart      *autostart.App
 
-	Name    string // the app's name
-	usage   string // the app's usage description
-	command string // the command used to launch the app (either the exe path or the launcher path)
-	restart bool   // whether the app is currently set to restart
+	Name           string // the app's name
+	usage          string // the app's usage description
+	command        string // the command used to launch the app (either the exe path or the launcher path)
+	restart        bool   // whether the app is currently set to restart
+	launcher       string // launcher to be used if not set in args
+	mainExecutable string // mainExecutable  the main executable process.
 
 	teardown []func() error // actions to perform when app is exiting
 }
 
-func New( // nolint[funlen]
+func New( //nolint:funlen
 	appName,
 	appUsage,
 	configName,
@@ -153,10 +155,14 @@ func New( // nolint[funlen]
 	}
 	settingsObj := settings.New(settingsPath)
 
-	lock, err := singleinstance.CreateLockFile(locations.GetLockFile())
+	lock, err := checkSingleInstance(locations.GetLockFile(), settingsObj)
 	if err != nil {
-		logrus.Warnf("%v is already running", appName)
+		logrus.WithError(err).Warnf("%v is already running", appName)
 		return nil, api.CheckOtherInstanceAndFocus(settingsObj.GetInt(settings.APIPortKey))
+	}
+
+	if err := migrateRebranding(settingsObj, keychainName); err != nil {
+		logrus.WithError(err).Warn("Rebranding migration failed")
 	}
 
 	cachePath, err := locations.ProvideCachePath()
@@ -189,9 +195,11 @@ func New( // nolint[funlen]
 
 	cm := pmapi.New(cfg)
 
+	sentryReporter.SetClientFromManager(cm)
+
 	cm.AddConnectionObserver(pmapi.NewConnectionObserver(
-		func() { listener.Emit(events.InternetOffEvent, "") },
-		func() { listener.Emit(events.InternetOnEvent, "") },
+		func() { listener.Emit(events.InternetConnChangedEvent, events.InternetOff) },
+		func() { listener.Emit(events.InternetConnChangedEvent, events.InternetOn) },
 	))
 
 	jar, err := cookies.NewCookieJar(settingsObj)
@@ -234,7 +242,7 @@ func New( // nolint[funlen]
 	}
 
 	autostart := &autostart.App{
-		Name:        appName,
+		Name:        startupNameForRebranding(appName),
 		DisplayName: appName,
 		Exec:        []string{exe, "--" + FlagNoWindow},
 	}
@@ -262,6 +270,9 @@ func New( // nolint[funlen]
 		// By default, the command is the app's executable.
 		// This can be changed at runtime by using the "--launcher" flag.
 		command: exe,
+		// By default, the command is the app's executable.
+		// This can be changed at runtime by summoning the SetMainExecutable gRPC call.
+		mainExecutable: exe,
 	}, nil
 }
 
@@ -317,12 +328,22 @@ func (b *Base) SetToRestart() {
 	b.restart = true
 }
 
+func (b *Base) ForceLauncher(launcher string) {
+	b.launcher = launcher
+	b.setupLauncher(launcher)
+}
+
+func (b *Base) SetMainExecutable(exe string) {
+	logrus.Info("Main Executable set to ", exe)
+	b.mainExecutable = exe
+}
+
 // AddTeardownAction adds an action to perform during app teardown.
 func (b *Base) AddTeardownAction(fn func() error) {
 	b.teardown = append(b.teardown, fn)
 }
 
-func (b *Base) wrapMainLoop(appMainLoop func(*Base, *cli.Context) error) cli.ActionFunc { // nolint[funlen]
+func (b *Base) wrapMainLoop(appMainLoop func(*Base, *cli.Context) error) cli.ActionFunc { //nolint:funlen
 	return func(c *cli.Context) error {
 		defer b.CrashHandler.HandlePanic()
 		defer func() { _ = b.Lock.Close() }()
@@ -330,10 +351,7 @@ func (b *Base) wrapMainLoop(appMainLoop func(*Base, *cli.Context) error) cli.Act
 		// If launcher was used to start the app, use that for restart
 		// and autostart.
 		if launcher := c.String(FlagLauncher); launcher != "" {
-			b.command = launcher
-			// Bridge supports no-window option which we should use
-			// for autostart.
-			b.Autostart.Exec = []string{launcher, "--" + FlagNoWindow}
+			b.setupLauncher(launcher)
 		}
 
 		if c.Bool(flagCPUProfile) {
@@ -358,10 +376,13 @@ func (b *Base) wrapMainLoop(appMainLoop func(*Base, *cli.Context) error) cli.Act
 			Info("Run app")
 
 		b.CrashHandler.AddRecoveryAction(func(interface{}) error {
+			sentry.Flush(2 * time.Second)
+
 			if c.Int(flagRestart) > maxAllowedRestarts {
 				logrus.
 					WithField("restart", c.Int("restart")).
 					Warn("Not restarting, already restarted too many times")
+				os.Exit(1)
 
 				return nil
 			}
@@ -393,4 +414,11 @@ func (b *Base) doTeardown() error {
 	}
 
 	return nil
+}
+
+func (b *Base) setupLauncher(launcher string) {
+	b.command = launcher
+	// Bridge supports no-window option which we should use
+	// for autostart.
+	b.Autostart.Exec = []string{launcher, "--" + FlagNoWindow}
 }

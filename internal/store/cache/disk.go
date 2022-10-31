@@ -1,19 +1,19 @@
-// Copyright (c) 2021 Proton Technologies AG
+// Copyright (c) 2022 Proton AG
 //
-// This file is part of ProtonMail Bridge.
+// This file is part of Proton Mail Bridge.
 //
-// ProtonMail Bridge is free software: you can redistribute it and/or modify
+// Proton Mail Bridge is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// ProtonMail Bridge is distributed in the hope that it will be useful,
+// Proton Mail Bridge is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
+// along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 package cache
 
@@ -21,19 +21,21 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
-	"crypto/sha256"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"sync"
 
-	"github.com/ProtonMail/proton-bridge/pkg/semaphore"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/algo"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/semaphore"
 	"github.com/ricochet2200/go-disk-usage/du"
 )
 
-var ErrLowSpace = errors.New("not enough free space left on device")
+var (
+	ErrMsgCorrupted = errors.New("ecrypted file was corrupted")
+	ErrLowSpace     = errors.New("not enough free space left on device")
+)
 
 // IsOnDiskCache will return true if Cache is type of onDiskCache.
 func IsOnDiskCache(c Cache) bool {
@@ -57,15 +59,21 @@ type onDiskCache struct {
 }
 
 func NewOnDiskCache(path string, cmp Compressor, opts Options) (Cache, error) {
-	if err := os.MkdirAll(path, 0700); err != nil {
+	if err := os.MkdirAll(path, 0o700); err != nil {
 		return nil, err
 	}
 
-	file, err := ioutil.TempFile(path, "tmp")
+	file, err := os.CreateTemp(path, "tmp")
+	defer func() {
+		file.Close()           //nolint:errcheck,gosec
+		os.Remove(file.Name()) //nolint:errcheck,gosec
+	}()
 	if err != nil {
+		return nil, fmt.Errorf("cannot open test write target: %w", err)
+	}
+	if _, err := file.Write([]byte("test-write")); err != nil {
 		return nil, fmt.Errorf("cannot write to target: %w", err)
 	}
-	os.Remove(file.Name()) //nolint[errcheck]
 
 	usage := du.NewDiskUsage(path)
 
@@ -86,14 +94,12 @@ func NewOnDiskCache(path string, cmp Compressor, opts Options) (Cache, error) {
 	}, nil
 }
 
+func (c *onDiskCache) Lock(userID string) {
+	delete(c.gcm, userID)
+}
+
 func (c *onDiskCache) Unlock(userID string, passphrase []byte) error {
-	hash := sha256.New()
-
-	if _, err := hash.Write(passphrase); err != nil {
-		return err
-	}
-
-	aes, err := aes.NewCipher(hash.Sum(nil))
+	aes, err := aes.NewCipher(algo.Hash256(passphrase))
 	if err != nil {
 		return err
 	}
@@ -103,7 +109,7 @@ func (c *onDiskCache) Unlock(userID string, passphrase []byte) error {
 		return err
 	}
 
-	if err := os.MkdirAll(c.getUserPath(userID), 0700); err != nil {
+	if err := os.MkdirAll(c.getUserPath(userID), 0o700); err != nil {
 		return err
 	}
 
@@ -135,17 +141,29 @@ func (c *onDiskCache) Has(userID, messageID string) bool {
 		return false
 
 	default:
+		// Cannot decide whether the message is cached or not.
+		// Potential recover needs to be don in caller function.
 		panic(err)
 	}
 }
 
 func (c *onDiskCache) Get(userID, messageID string) ([]byte, error) {
+	gcm, ok := c.gcm[userID]
+	if !ok || gcm == nil {
+		return nil, ErrCacheNeedsUnlock
+	}
+
 	enc, err := c.readFile(c.getMessagePath(userID, messageID))
 	if err != nil {
 		return nil, err
 	}
 
-	cmp, err := c.gcm[userID].Open(nil, enc[:c.gcm[userID].NonceSize()], enc[c.gcm[userID].NonceSize():], nil)
+	// Data stored in file must larger than NonceSize.
+	if len(enc) <= gcm.NonceSize() {
+		return nil, ErrMsgCorrupted
+	}
+
+	cmp, err := gcm.Open(nil, enc[:gcm.NonceSize()], enc[gcm.NonceSize():], nil)
 	if err != nil {
 		return nil, err
 	}
@@ -154,7 +172,11 @@ func (c *onDiskCache) Get(userID, messageID string) ([]byte, error) {
 }
 
 func (c *onDiskCache) Set(userID, messageID string, literal []byte) error {
-	nonce := make([]byte, c.gcm[userID].NonceSize())
+	gcm, ok := c.gcm[userID]
+	if !ok {
+		return ErrCacheNeedsUnlock
+	}
+	nonce := make([]byte, gcm.NonceSize())
 
 	if _, err := rand.Read(nonce); err != nil {
 		return err
@@ -165,12 +187,13 @@ func (c *onDiskCache) Set(userID, messageID string, literal []byte) error {
 		return err
 	}
 
-	// NOTE(GODT-1158): How to properly handle low space? Don't return error, that's bad. Instead send event?
+	// NOTE(GODT-1158, GODT-1488): Need to properly handle low space. Don't
+	// return error, that's bad. Send event and clean least used message.
 	if !c.hasSpace(len(cmp)) {
 		return nil
 	}
 
-	return c.writeFile(c.getMessagePath(userID, messageID), c.gcm[userID].Seal(nonce, nonce, cmp, nil))
+	return c.writeFile(c.getMessagePath(userID, messageID), gcm.Seal(nonce, nonce, cmp, nil))
 }
 
 func (c *onDiskCache) Rem(userID, messageID string) error {
@@ -186,7 +209,7 @@ func (c *onDiskCache) readFile(path string) ([]byte, error) {
 	// Wait before reading in case the file is currently being written.
 	c.pending.wait(path)
 
-	return ioutil.ReadFile(filepath.Clean(path))
+	return os.ReadFile(filepath.Clean(path))
 }
 
 func (c *onDiskCache) writeFile(path string, b []byte) error {
@@ -211,7 +234,7 @@ func (c *onDiskCache) writeFile(path string, b []byte) error {
 	defer c.update()
 
 	// NOTE(GODT-1158): What happens when this fails? Should be fixed eventually.
-	return ioutil.WriteFile(filepath.Clean(path), b, 0600)
+	return os.WriteFile(filepath.Clean(path), b, 0o600)
 }
 
 func (c *onDiskCache) hasSpace(size int) bool {
@@ -249,9 +272,9 @@ func (c *onDiskCache) update() {
 }
 
 func (c *onDiskCache) getUserPath(userID string) string {
-	return filepath.Join(c.path, getHash(userID))
+	return filepath.Join(c.path, algo.HashHexSHA256(userID))
 }
 
 func (c *onDiskCache) getMessagePath(userID, messageID string) string {
-	return filepath.Join(c.getUserPath(userID), getHash(messageID))
+	return filepath.Join(c.getUserPath(userID), algo.HashHexSHA256(messageID))
 }

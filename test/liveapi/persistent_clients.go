@@ -1,19 +1,19 @@
-// Copyright (c) 2021 Proton Technologies AG
+// Copyright (c) 2022 Proton AG
 //
-// This file is part of ProtonMail Bridge.Bridge.
+// This file is part of Proton Mail Bridge.Bridge.
 //
-// ProtonMail Bridge is free software: you can redistribute it and/or modify
+// Proton Mail Bridge is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// ProtonMail Bridge is distributed in the hope that it will be useful,
+// Proton Mail Bridge is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
+// along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 package liveapi
 
@@ -24,8 +24,8 @@ import (
 	"sync"
 
 	"github.com/ProtonMail/go-srp"
-	"github.com/ProtonMail/proton-bridge/internal/constants"
-	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
+	"github.com/ProtonMail/proton-bridge/v2/internal/constants"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/pmapi"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )
@@ -48,7 +48,8 @@ var persistentClients = struct {
 	byName     map[string]clientAuthGetter
 	saltByName map[string]string
 
-	eventsPaused sync.WaitGroup
+	eventsPaused         sync.WaitGroup
+	skipDeletedMessageID map[string]struct{}
 }{}
 
 type persistentClient struct {
@@ -63,7 +64,7 @@ func (pc *persistentClient) AuthDelete(_ context.Context) error {
 
 // AuthSalt returns cached string. Otherwise after some time there is an error:
 //
-//     Access token does not have sufficient scope
+//	Access token does not have sufficient scope
 //
 // while all other routes works normally. Need to confirm with Aron that this
 // is expected behaviour.
@@ -79,7 +80,40 @@ func (pc *persistentClient) GetEvent(ctx context.Context, eventID string) (*pmap
 	if !ok {
 		return nil, errors.New("cannot convert to normal client")
 	}
-	return normalClient.GetEvent(ctx, eventID)
+
+	event, err := normalClient.GetEvent(ctx, eventID)
+	if err != nil {
+		return event, err
+	}
+
+	return skipDeletedMessageIDs(event), nil
+}
+
+func addMessageIDToSkipEventOnceDeleted(msgID string) {
+	if persistentClients.skipDeletedMessageID == nil {
+		persistentClients.skipDeletedMessageID = map[string]struct{}{}
+	}
+	persistentClients.skipDeletedMessageID[msgID] = struct{}{}
+}
+
+func skipDeletedMessageIDs(event *pmapi.Event) *pmapi.Event {
+	if len(event.Messages) == 0 {
+		return event
+	}
+
+	n := 0
+	for i, m := range event.Messages {
+		if _, ok := persistentClients.skipDeletedMessageID[m.ID]; ok && m.Action == pmapi.EventDelete {
+			delete(persistentClients.skipDeletedMessageID, m.ID)
+			continue
+		}
+
+		event.Messages[i] = m
+		n++
+	}
+	event.Messages = event.Messages[:n]
+
+	return event
 }
 
 func SetupPersistentClients() {

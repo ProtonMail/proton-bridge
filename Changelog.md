@@ -1,6 +1,193 @@
-# ProtonMail Bridge and Import-Export app Changelog
+# Proton Mail Bridge and Import-Export app Changelog
 
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
+
+
+## [Bridge 2.4.3] Osney
+
+## Changed
+* Other: implemented tokens in bridge-gui-tester.
+* GODT-1853:
+    * Upgrade dependencies (including x/crypto).
+    * Ignore for CVE-2021-33194 false positive + add several try to gobinsec.
+* GODT-1853: Improve pipeline:
+    * Update gobinsec cache.
+    * Test-windows branch manual, MR always.
+    * Build needs test-linux and lint to start and keep vcpkg cache on linux.
+    * Builds manuall except linux-qa.
+* GODT-1893: Bridge-gui sends bridge's log to stdout, stderr.
+* GODT-1932: Frontend is instantiated before bridge.
+* GODT-1929: Changed gRPC wait timeout.
+* Other: gRPC TLS server is generated for every session.
+* GODT-1917: gRPC service should use random port.
+* GODT-1924: gRPC identity validation with tokens.
+* GODT-1344: Notifications for ApiCertError and NoActiveKeyForRecipient.
+* GODT-1941: Update documentation.
+* Other: Update golangci-lint to v1.50.0.
+* GODT-1936: check gRPC server token via interceptors.
+
+
+
+## Fixed
+* GUI issues:
+    * GODT-1894: Fixed typo in alreadyLoggedIn event error message.
+    * GODT-1479: Fix hover on “Open Bridge” in status window on macOS.
+    * GODT-1899: Status window menu now closes when window is dismissed.
+    * GODT-1851: Port field error label now wraps.
+    * GODT-1566: GUI shows error notifications for IMAP/SMTP port errors on startup.
+    * GODT-1926: Clear port error messages when cancelling the dialog.
+    * Other: Fixed cocoa related warnings in bridge-gui on macOS.
+* Build issues:
+    * GODT-1675: Add resrource file to both launcher and bridge-go.
+    * Other: Add WlShellIntegration lib for rpm package.
+    * GODT-1935: Fix resource file generation for both Launcher and Bridge.
+    * GODT-1942: Use `qmake` to find the `QT6DIR`.
+    * Provide launcher for make run-cli target.
+* GODT-1931: Fixed bridge crash when checking for update while offline.
+
+## [Bridge 2.4.0] Osney
+
+### Added
+* GODT-1551: Upgrade to Qt 6:
+    * Change the app architecture.
+    * Drop therecipe/qt dependency.
+    * Update to go1.18.
+    * Update to Qt 6.3.2.
+* GODT-1170 GODT-1675: Native Mac M1 release.
+
+
+## [Bridge 2.3.0] Nihonbashi
+
+### Added
+* GODT-1739: Opt-out All Mail visibility in settings file.
+    * GODT-1794: CLI wording.
+    * GODT-1794: Add confirmation dialog and change wording.
+    * GODT-1741: GUI and CLI settings to change visibility of All Mail folder.
+    * GODT-1740: Opt-out All Mail visibility in settings file.
+
+### Changed
+* GODT-1737: Improve logging during import.
+* GODT-1754: Add logs for unilateral updates and SEARCH.
+
+### Fixed
+* GODT-1840: Use Safe map for mailboxID cache.
+* GODT-1795: Fix automatic installation of profile for AppleMail on macOS Ventura beta (qt 5).
+* GODT-1833: Fix gobinsec cache.
+* GODT-1799: Fix dependency link.
+* Other: Update SSL certificate fingerprint for test.
+
+
+## [Bridge 2.2.2] Millau
+
+### Added
+* Introduced gobinsec cache.
+
+### Fixed
+* GODT-1743: Terminate running bridge if has old version.
+* GODT-1743: Quit bridge when opening manual install.
+
+
+## [Bridge 2.2.1] Millau
+
+### Added
+* GODT-1550: Add gobinsec check after CI build.
+* GODT-1686: Add Label/Folder filtering to pmapi.
+
+### Changed
+* Rebranding:
+    * GODT-1475: Change systray icons.
+    * GODT-1565: Update Bridge application icons.
+    * GODT-1564: Update welcome illustration.
+* GODT-1626: Update gopenpgp v2.4.7.
+* GODT-1627: Update go-srvp to v0.0.5.
+* GODT-1523: Reduce unnecessary shell executions. Inspired by @kortschak.
+* Other: Add v2 to module name.
+* GODT-1562: Update test fingerpring.
+
+### Fixed
+* GODT-1659: Convert charset only for `text/*` MIME types.
+* GODT-1640: Renew test keys.
+
+
+## [Bridge 2.2.0] Millau
+
+### Added
+* Rebranding:
+    * GODT-1508: Splash screen for rebranding.
+    * GODT-1542: Update login screen for rebranding.
+    * GODT-1260: Renaming.
+    * GODT-1502: Rebranding: color and radius.
+* GODT-1549: Add notification when address list changes.
+* GODT-1560: Dependecy licenses update and link.
+
+### Changed
+* GODT-1543: Using one buffered event for off and on connection.
+* GODT-1550: Update dependencies.
+* GODT-1545 GODT-1521: Change wording and enable release notes link.
+
+### Fixed
+* GODT-1534: Reset address when leaving split mode.
+
+
+## [Bridge 2.1.3] London
+
+### Added
+GODT-1525: Add keybase/go-keychain/secretservice as new keychain helper.
+
+### Changed
+GODT-1527: Change bug report description.
+
+### Fixed
+GODT-1537: Manual in-app update mechanism.
+
+
+## [Bridge 2.1.2] London
+
+### Added
+* GODT-1522: Rebuild macOS keychain notification.
+* GODT-1437 Add new proxy provider (Quad9 with port).
+* GODT-1516: Return notification on missing keychain.
+
+### Changed
+* GODT-1451: Do not check for gnome keyring to allow other implementations of secret-service API. Thanks to @remgodow.
+* GODT-1516 GODT-1451: KeepassXC is crashing on start. We need to block it until it's fixed.
+
+### Fixed
+* GODT-1524: Logout issues with macOS.
+* GODT-1503 GODT-1492: Improve email validation and username in bug report.
+* GODT-1507: Enable autostart after Qt setup.
+* GODT-1515: Do not crash when bridge users got disconnected.
+
+
+## [Bridge 2.1.1] London
+
+### Added
+* GODT-1376: Add first userID to sentry scope.
+* GODT-1375: Add host architecture to sentry reports.
+* GODT-1364: Add windows CI machine for tests, and build.
+
+### Fixed
+* GODT-1499: Remove message from DB once it is not on server any more.
+
+
+## [Bridge 2.1.0] London
+
+### Fixed
+* GODT-1482: Comment or mitigate panics, unlock cache when needed.
+* GODT-1481: Always turn off non-encrypted recipient report.
+
+### Changed
+* GODT-1494: Update GopenPGP to 2.4.1.
+* GODT-1490: Update go sentry and openpgp.
+* GODT-1474: Optimising live integration tests.
+* GODT-1483: Correct scope in sentry report.
+* GODT-1477: Change CoD wording.
+
+### Added
+* GODT-1478: Add GUI settings for keychain selection.
+* Other: Change copyright year.
+* GODT-1329: Dark mode, with autodetect.
+
 
 ## [Bridge 2.0.1] Kwai
 
@@ -10,7 +197,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 ## [Bridge 2.0.0] Kwai
 
-## Added
+### Added
 * GODT-22: New GUI style and improved UX:
     * GODT-1168 GODT-1169 Qml artifacts for preview.
     * GODT-1177: Remove Import-Export from repo.
@@ -81,7 +268,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
     * GODT-1158: Store full messages bodies on disk.
 * GODT-1433 Adding first integration test for drafts.
 
-## Changed
+### Changed
 * GODT-1438: Turn off SW OpenGL on windows and add debug info about graphic renderer.
 * GODT-1425: Factory reset enables launch on startup.
 * GODT-1433 Message.Type is deprecated, use Flags instead.

@@ -1,19 +1,19 @@
-// Copyright (c) 2021 Proton Technologies AG
+// Copyright (c) 2022 Proton AG
 //
-// This file is part of ProtonMail Bridge.Bridge.
+// This file is part of Proton Mail Bridge.Bridge.
 //
-// ProtonMail Bridge is free software: you can redistribute it and/or modify
+// Proton Mail Bridge is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// ProtonMail Bridge is distributed in the hope that it will be useful,
+// Proton Mail Bridge is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
+// along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 package tests
 
@@ -33,7 +33,7 @@ func IMAPChecksFeatureContext(s *godog.ScenarioContext) {
 	s.Step(`^IMAP response to "([^"]*)" contains "([^"]*)"$`, imapResponseNamedContains)
 	s.Step(`^IMAP response has (\d+) message(?:s)?$`, imapResponseHasNumberOfMessages)
 	s.Step(`^IMAP response to "([^"]*)" has (\d+) message(?:s)?$`, imapResponseNamedHasNumberOfMessages)
-	s.Step(`^IMAP response does not contain "([^"]*)"$`, imapResponseDoesNotContain)
+	s.Step(`^IMAP response does(?: not|n't) contain "([^"]*)"$`, imapResponseDoesNotContain)
 	s.Step(`^IMAP response to "([^"]*)" does not contain "([^"]*)"$`, imapResponseNamedDoesNotContain)
 	s.Step(`^IMAP client receives update marking message seq "([^"]*)" as read within (\d+) seconds$`, imapClientReceivesUpdateMarkingMessageSeqAsReadWithin)
 	s.Step(`^IMAP client "([^"]*)" receives update marking message seq "([^"]*)" as read within (\d+) seconds$`, imapClientNamedReceivesUpdateMarkingMessageSeqAsReadWithin)

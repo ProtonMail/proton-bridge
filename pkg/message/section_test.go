@@ -1,26 +1,26 @@
-// Copyright (c) 2021 Proton Technologies AG
+// Copyright (c) 2022 Proton AG
 //
-// This file is part of ProtonMail Bridge.
+// This file is part of Proton Mail Bridge.
 //
-// ProtonMail Bridge is free software: you can redistribute it and/or modify
+// Proton Mail Bridge is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// ProtonMail Bridge is distributed in the hope that it will be useful,
+// Proton Mail Bridge is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
+// along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 package message
 
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"runtime"
 	"sort"
@@ -30,7 +30,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-var enableDebug = false // nolint[global]
+var enableDebug = false //nolint:global
 
 func debug(msg string, v ...interface{}) {
 	if !enableDebug {
@@ -93,7 +93,7 @@ func TestParseBodyStructurePGP(t *testing.T) {
 		"2":       "application/pgp-signature; name=\"OpenPGP_signature.asc\"",
 	}
 
-	b, err := ioutil.ReadFile("testdata/enc-body-structure.eml")
+	b, err := os.ReadFile("testdata/enc-body-structure.eml")
 	require.NoError(t, err)
 
 	bs, err := NewBodyStructure(bytes.NewReader(b))
@@ -341,7 +341,8 @@ var testPaths = []struct {
 	path                          []int
 	expectedSection, expectedBody string
 }{
-	{[]int{},
+	{
+		[]int{},
 		sampleMail,
 		`main summary
 
@@ -434,7 +435,8 @@ Content-Type: text/html
 `,
 	},
 
-	{[]int{1},
+	{
+		[]int{1},
 		`Content-Type: text/plain
 
 1. main message
@@ -446,7 +448,8 @@ Content-Type: text/html
 
 `,
 	},
-	{[]int{3},
+	{
+		[]int{3},
 		`Subject: Inside mail 3
 From: Mary Smith <mary@example.net>
 To: John Doe <jdoe@machine.example>
@@ -488,7 +491,8 @@ Content-Transfer-Encoding: base64
 
 `,
 	},
-	{[]int{3, 1},
+	{
+		[]int{3, 1},
 		`Content-Type: text/plain
 
 3.1 message text
@@ -498,7 +502,8 @@ Content-Transfer-Encoding: base64
 
 `,
 	},
-	{[]int{3, 2},
+	{
+		[]int{3, 2},
 		`Content-Type: application/octet-stream
 Content-Disposition: attachment; filename="msg_3_signature.sig"
 Content-Transfer-Encoding: base64
@@ -510,7 +515,8 @@ Content-Transfer-Encoding: base64
 
 `,
 	},
-	{[]int{4, 2, 2, 1},
+	{
+		[]int{4, 2, 2, 1},
 		`Content-Type: text/plain
 
 4.2.2.1 plain text
@@ -520,7 +526,8 @@ Content-Transfer-Encoding: base64
 
 `,
 	},
-	{[]int{4, 2, 2, 2},
+	{
+		[]int{4, 2, 2, 2},
 		`Content-Type: text/html
 
 <h1>4.2.2.2 html text</h1>

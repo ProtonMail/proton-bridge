@@ -1,26 +1,24 @@
-// Copyright (c) 2021 Proton Technologies AG
+// Copyright (c) 2022 Proton AG
 //
-// This file is part of ProtonMail Bridge.
+// This file is part of Proton Mail Bridge.
 //
-// ProtonMail Bridge is free software: you can redistribute it and/or modify
+// Proton Mail Bridge is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// ProtonMail Bridge is distributed in the hope that it will be useful,
+// Proton Mail Bridge is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
+// along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 package pmapi
 
 import (
 	"context"
-
-	"github.com/pkg/errors"
 )
 
 // Unlock unlocks all the user and address keys using the given passphrase, creating user and address keyrings.
@@ -34,26 +32,26 @@ func (c *client) Unlock(ctx context.Context, passphrase []byte) (err error) {
 
 // unlock unlocks the user's keys but without locking the keyring lock first.
 // Should only be used internally by methods that first lock the lock.
-func (c *client) unlock(ctx context.Context, passphrase []byte) (err error) {
-	if _, err = c.CurrentUser(ctx); err != nil {
-		return
+func (c *client) unlock(ctx context.Context, passphrase []byte) error {
+	if _, err := c.CurrentUser(ctx); err != nil {
+		return err
 	}
 
 	if c.userKeyRing == nil {
-		if err = c.unlockUser(passphrase); err != nil {
-			return errors.Wrap(err, "failed to unlock user")
+		if err := c.unlockUser(passphrase); err != nil {
+			return ErrUnlockFailed{err}
 		}
 	}
 
 	for _, address := range c.addresses {
 		if c.addrKeyRing[address.ID] == nil {
-			if err = c.unlockAddress(passphrase, address); err != nil {
-				return errors.Wrap(err, "failed to unlock address")
+			if err := c.unlockAddress(passphrase, address); err != nil {
+				return ErrUnlockFailed{err}
 			}
 		}
 	}
 
-	return
+	return nil
 }
 
 func (c *client) ReloadKeys(ctx context.Context, passphrase []byte) (err error) {

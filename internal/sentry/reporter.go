@@ -1,37 +1,39 @@
-// Copyright (c) 2021 Proton Technologies AG
+// Copyright (c) 2022 Proton AG
 //
-// This file is part of ProtonMail Bridge.
+// This file is part of Proton Mail Bridge.
 //
-// ProtonMail Bridge is free software: you can redistribute it and/or modify
+// Proton Mail Bridge is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// ProtonMail Bridge is distributed in the hope that it will be useful,
+// Proton Mail Bridge is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
+// along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 package sentry
 
 import (
 	"errors"
 	"fmt"
+	"log"
 	"os"
 	"runtime"
 	"time"
 
-	"github.com/ProtonMail/proton-bridge/internal/constants"
+	"github.com/ProtonMail/proton-bridge/v2/internal/constants"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/pmapi"
 	"github.com/getsentry/sentry-go"
 	"github.com/sirupsen/logrus"
 )
 
-var skippedFunctions = []string{} //nolint[gochecknoglobals]
+var skippedFunctions = []string{} //nolint:gochecknoglobals
 
-func init() { // nolint[noinit]
+func init() { //nolint:gochecknoinits
 	if err := sentry.Init(sentry.ClientOptions{
 		Dsn:        constants.DSNSentry,
 		Release:    constants.Revision,
@@ -42,13 +44,20 @@ func init() { // nolint[noinit]
 
 	sentry.ConfigureScope(func(scope *sentry.Scope) {
 		scope.SetFingerprint([]string{"{{ default }}"})
+		scope.SetTag("UserID", "not-defined")
 	})
+
+	sentry.Logger = log.New(
+		logrus.WithField("pkg", "sentry-go").WriterLevel(logrus.WarnLevel),
+		"", 0,
+	)
 }
 
 type Reporter struct {
 	appName    string
 	appVersion string
 	userAgent  fmt.Stringer
+	hostArch   string
 }
 
 // NewReporter creates new sentry reporter with appName and appVersion to report.
@@ -57,21 +66,26 @@ func NewReporter(appName, appVersion string, userAgent fmt.Stringer) *Reporter {
 		appName:    appName,
 		appVersion: appVersion,
 		userAgent:  userAgent,
+		hostArch:   getHostAarch(),
 	}
 }
 
 func (r *Reporter) ReportException(i interface{}) error {
+	SkipDuringUnwind()
 	return r.ReportExceptionWithContext(i, make(map[string]interface{}))
 }
 
 func (r *Reporter) ReportMessage(msg string) error {
+	SkipDuringUnwind()
 	return r.ReportMessageWithContext(msg, make(map[string]interface{}))
 }
 
 func (r *Reporter) ReportExceptionWithContext(i interface{}, context map[string]interface{}) error {
-	err := fmt.Errorf("recover: %v", i)
+	SkipDuringUnwind()
 
+	err := fmt.Errorf("recover: %v", i)
 	return r.scopedReport(context, func() {
+		SkipDuringUnwind()
 		if eventID := sentry.CaptureException(err); eventID != nil {
 			logrus.WithError(err).
 				WithField("reportID", *eventID).
@@ -81,7 +95,9 @@ func (r *Reporter) ReportExceptionWithContext(i interface{}, context map[string]
 }
 
 func (r *Reporter) ReportMessageWithContext(msg string, context map[string]interface{}) error {
+	SkipDuringUnwind()
 	return r.scopedReport(context, func() {
+		SkipDuringUnwind()
 		if eventID := sentry.CaptureMessage(msg); eventID != nil {
 			logrus.WithField("message", msg).
 				WithField("reportID", *eventID).
@@ -103,7 +119,7 @@ func (r *Reporter) scopedReport(context map[string]interface{}, doReport func())
 		"Client":    r.appName,
 		"Version":   r.appVersion,
 		"UserAgent": r.userAgent.String(),
-		"UserID":    "",
+		"HostArch":  r.hostArch,
 	}
 
 	sentry.WithScope(func(scope *sentry.Scope) {
@@ -168,4 +184,11 @@ func isFunctionFilteredOut(function string) bool {
 		}
 	}
 	return false
+}
+
+func Flush(maxWaiTime time.Duration) {
+	sentry.Flush(maxWaiTime)
+}
+
+func (r *Reporter) SetClientFromManager(cm pmapi.Manager) {
 }

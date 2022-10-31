@@ -1,19 +1,19 @@
-// Copyright (c) 2021 Proton Technologies AG
+// Copyright (c) 2022 Proton AG
 //
-// This file is part of ProtonMail Bridge.Bridge.
+// This file is part of Proton Mail Bridge.Bridge.
 //
-// ProtonMail Bridge is free software: you can redistribute it and/or modify
+// Proton Mail Bridge is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// ProtonMail Bridge is distributed in the hope that it will be useful,
+// Proton Mail Bridge is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
+// along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 package fakeapi
 
@@ -22,7 +22,7 @@ import (
 	"fmt"
 
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
-	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/pmapi"
 	"github.com/sirupsen/logrus"
 )
 
@@ -120,7 +120,7 @@ func (api *FakePMAPI) checkAndRecordCall(method method, path string, request int
 	}
 
 	if path != "/auth/2fa" && !api.controller.checkScope(api.uid) {
-		return errors.New("Access token does not have sufficient scope") //nolint[stylecheck]
+		return errors.New("Access token does not have sufficient scope") //nolint:stylecheck
 	}
 
 	return nil
@@ -133,12 +133,30 @@ func (api *FakePMAPI) authRefresh() error {
 
 	session, err := api.controller.refreshSessionIfAuthorized(api.uid, api.ref)
 	if err != nil {
+		if pmapi.IsFailedAuth(err) {
+			go api.handleAuth(nil)
+		}
 		return err
 	}
 
 	api.ref = session.ref
 	api.acc = session.acc
+
+	go api.handleAuth(&pmapi.AuthRefresh{
+		UID:          api.uid,
+		AccessToken:  api.acc,
+		RefreshToken: api.ref,
+		ExpiresIn:    7200,
+		Scopes:       []string{"full", "self", "user", "mail"},
+	})
+
 	return nil
+}
+
+func (api *FakePMAPI) handleAuth(auth *pmapi.AuthRefresh) {
+	for _, handle := range api.authHandlers {
+		handle(auth)
+	}
 }
 
 func (api *FakePMAPI) setUser(username string) error {

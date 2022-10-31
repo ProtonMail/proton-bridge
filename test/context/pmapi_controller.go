@@ -1,31 +1,31 @@
-// Copyright (c) 2021 Proton Technologies AG
+// Copyright (c) 2022 Proton AG
 //
-// This file is part of ProtonMail Bridge.Bridge.
+// This file is part of Proton Mail Bridge.Bridge.
 //
-// ProtonMail Bridge is free software: you can redistribute it and/or modify
+// Proton Mail Bridge is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// ProtonMail Bridge is distributed in the hope that it will be useful,
+// Proton Mail Bridge is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
+// along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 package context
 
 import (
 	"os"
 
-	"github.com/ProtonMail/proton-bridge/internal/events"
-	"github.com/ProtonMail/proton-bridge/pkg/listener"
-	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
-	"github.com/ProtonMail/proton-bridge/test/accounts"
-	"github.com/ProtonMail/proton-bridge/test/fakeapi"
-	"github.com/ProtonMail/proton-bridge/test/liveapi"
+	"github.com/ProtonMail/proton-bridge/v2/internal/events"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/listener"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/pmapi"
+	"github.com/ProtonMail/proton-bridge/v2/test/accounts"
+	"github.com/ProtonMail/proton-bridge/v2/test/fakeapi"
+	"github.com/ProtonMail/proton-bridge/v2/test/liveapi"
 )
 
 type PMAPIController interface {
@@ -43,8 +43,10 @@ type PMAPIController interface {
 	WasCalled(method, path string, expectedRequest []byte) bool
 	WasCalledRegex(methodRegex, pathRegex string, expectedRequest []byte) (bool, error)
 	GetCalls(method, path string) [][]byte
-	LockEvents()
-	UnlockEvents()
+	LockEvents(username string)
+	UnlockEvents(username string)
+	RemoveUserMessageWithoutEvent(username, messageID string) error
+	RevokeSession(username string) error
 }
 
 func newPMAPIController(listener listener.Listener) (PMAPIController, pmapi.Manager) {
@@ -66,7 +68,7 @@ func newPMAPIController(listener listener.Listener) (PMAPIController, pmapi.Mana
 
 func addConnectionObserver(cm pmapi.Manager, listener listener.Listener) {
 	cm.AddConnectionObserver(pmapi.NewConnectionObserver(
-		func() { listener.Emit(events.InternetOffEvent, "") },
-		func() { listener.Emit(events.InternetOnEvent, "") },
+		func() { listener.Emit(events.InternetConnChangedEvent, events.InternetOff) },
+		func() { listener.Emit(events.InternetConnChangedEvent, events.InternetOn) },
 	))
 }

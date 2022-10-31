@@ -1,19 +1,19 @@
-// Copyright (c) 2021 Proton Technologies AG
+// Copyright (c) 2022 Proton AG
 //
-// This file is part of ProtonMail Bridge.
+// This file is part of Proton Mail Bridge.
 //
-// ProtonMail Bridge is free software: you can redistribute it and/or modify
+// Proton Mail Bridge is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// ProtonMail Bridge is distributed in the hope that it will be useful,
+// Proton Mail Bridge is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
+// along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 // Package bridge provides core functionality of Bridge app.
 package bridge
@@ -26,21 +26,23 @@ import (
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/ProtonMail/go-autostart"
-	"github.com/ProtonMail/proton-bridge/internal/config/settings"
-	"github.com/ProtonMail/proton-bridge/internal/constants"
-	"github.com/ProtonMail/proton-bridge/internal/metrics"
-	"github.com/ProtonMail/proton-bridge/internal/sentry"
-	"github.com/ProtonMail/proton-bridge/internal/store/cache"
-	"github.com/ProtonMail/proton-bridge/internal/updater"
-	"github.com/ProtonMail/proton-bridge/internal/users"
-	"github.com/ProtonMail/proton-bridge/pkg/message"
-	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
+	"github.com/ProtonMail/proton-bridge/v2/internal/config/settings"
+	"github.com/ProtonMail/proton-bridge/v2/internal/config/tls"
+	"github.com/ProtonMail/proton-bridge/v2/internal/config/useragent"
+	"github.com/ProtonMail/proton-bridge/v2/internal/constants"
+	"github.com/ProtonMail/proton-bridge/v2/internal/metrics"
+	"github.com/ProtonMail/proton-bridge/v2/internal/sentry"
+	"github.com/ProtonMail/proton-bridge/v2/internal/store/cache"
+	"github.com/ProtonMail/proton-bridge/v2/internal/updater"
+	"github.com/ProtonMail/proton-bridge/v2/internal/users"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/message"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/pmapi"
 
-	"github.com/ProtonMail/proton-bridge/pkg/listener"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/listener"
 	logrus "github.com/sirupsen/logrus"
 )
 
-var log = logrus.WithField("pkg", "bridge") //nolint[gochecknoglobals]
+var log = logrus.WithField("pkg", "bridge") //nolint:gochecknoglobals
 
 var ErrLocalCacheUnavailable = errors.New("local cache is unavailable")
 
@@ -52,22 +54,27 @@ type Bridge struct {
 	clientManager pmapi.Manager
 	updater       Updater
 	versioner     Versioner
+	tls           *tls.TLS
+	userAgent     *useragent.UserAgent
 	cacheProvider CacheProvider
 	autostart     *autostart.App
 	// Bridge's global errors list.
 	errors []error
 
-	isFirstStart bool
-	lastVersion  string
+	isAllMailVisible bool
+	isFirstStart     bool
+	lastVersion      string
 }
 
-func New(
+func New( //nolint:funlen
 	locations Locator,
 	cacheProvider CacheProvider,
 	setting SettingsProvider,
 	sentryReporter *sentry.Reporter,
 	panicHandler users.PanicHandler,
 	eventListener listener.Listener,
+	tls *tls.TLS,
+	userAgent *useragent.UserAgent,
 	cache cache.Cache,
 	builder *message.Builder,
 	clientManager pmapi.Manager,
@@ -92,25 +99,24 @@ func New(
 	)
 
 	b := &Bridge{
-		Users:         u,
-		locations:     locations,
-		settings:      setting,
-		clientManager: clientManager,
-		updater:       updater,
-		versioner:     versioner,
-		cacheProvider: cacheProvider,
-		autostart:     autostart,
-		isFirstStart:  false,
+		Users:            u,
+		locations:        locations,
+		settings:         setting,
+		clientManager:    clientManager,
+		updater:          updater,
+		versioner:        versioner,
+		tls:              tls,
+		userAgent:        userAgent,
+		cacheProvider:    cacheProvider,
+		autostart:        autostart,
+		isFirstStart:     false,
+		isAllMailVisible: setting.GetBool(settings.IsAllMailVisible),
 	}
 
 	if setting.GetBool(settings.FirstStartKey) {
 		b.isFirstStart = true
 		if err := b.SendMetric(metrics.New(metrics.Setup, metrics.FirstStart, metrics.Label(constants.Version))); err != nil {
 			logrus.WithError(err).Error("Failed to send metric")
-		}
-
-		if err := b.EnableAutostart(); err != nil {
-			log.WithError(err).Error("Failed to enable autostart")
 		}
 		setting.SetBool(settings.FirstStartKey, false)
 	}
@@ -305,4 +311,15 @@ func (b *Bridge) GetLastVersion() string {
 // factory reset.
 func (b *Bridge) IsFirstStart() bool {
 	return b.isFirstStart
+}
+
+// IsAllMailVisible can be called extensively by IMAP. Therefore, it is better
+// to cache the value instead of reading from settings file.
+func (b *Bridge) IsAllMailVisible() bool {
+	return b.isAllMailVisible
+}
+
+func (b *Bridge) SetIsAllMailVisible(isVisible bool) {
+	b.settings.SetBool(settings.IsAllMailVisible, isVisible)
+	b.isAllMailVisible = isVisible
 }

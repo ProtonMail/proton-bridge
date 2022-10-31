@@ -1,19 +1,19 @@
-// Copyright (c) 2021 Proton Technologies AG
+// Copyright (c) 2022 Proton AG
 //
-// This file is part of ProtonMail Bridge.Bridge.
+// This file is part of Proton Mail Bridge.Bridge.
 //
-// ProtonMail Bridge is free software: you can redistribute it and/or modify
+// Proton Mail Bridge is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// ProtonMail Bridge is distributed in the hope that it will be useful,
+// Proton Mail Bridge is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
+// along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 package mocks
 
@@ -23,8 +23,9 @@ import (
 	"net"
 	"strings"
 	"sync"
+	"time"
 
-	"github.com/ProtonMail/proton-bridge/pkg/message"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/message"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -100,7 +101,7 @@ func (c *IMAPClient) ListMailboxes() *IMAPResponse {
 }
 
 func (c *IMAPClient) Select(mailboxName string) *IMAPResponse {
-	return c.SendCommand(fmt.Sprintf("SELECT \"%s\"", mailboxName)) //nolint[gosec]
+	return c.SendCommand(fmt.Sprintf("SELECT \"%s\"", mailboxName)) //nolint:gosec
 }
 
 func (c *IMAPClient) CreateMailbox(mailboxName string) *IMAPResponse {
@@ -108,7 +109,7 @@ func (c *IMAPClient) CreateMailbox(mailboxName string) *IMAPResponse {
 }
 
 func (c *IMAPClient) DeleteMailbox(mailboxName string) *IMAPResponse {
-	return c.SendCommand(fmt.Sprintf("DELETE \"%s\"", mailboxName)) //nolint[gosec]
+	return c.SendCommand(fmt.Sprintf("DELETE \"%s\"", mailboxName)) //nolint:gosec
 }
 
 func (c *IMAPClient) RenameMailbox(mailboxName, newMailboxName string) *IMAPResponse {
@@ -176,6 +177,7 @@ func (c *IMAPClient) AppendBody(mailboxName, subject, from, to, body string) *IM
 	msg := fmt.Sprintf("Subject: %s\r\n", subject)
 	msg += fmt.Sprintf("From: %s\r\n", from)
 	msg += fmt.Sprintf("To: %s\r\n", to)
+	msg += fmt.Sprintf("Message-Id: <%d@imapbridge.com>\r\n", time.Now().Unix())
 	if mailboxName != "Sent" {
 		msg += "Received: by 2002:0:0:0:0:0:0:0 with SMTP id 0123456789abcdef; Wed, 30 Dec 2020 01:23:45 0000\r\n"
 	}

@@ -1,19 +1,19 @@
-// Copyright (c) 2021 Proton Technologies AG
+// Copyright (c) 2022 Proton AG
 //
-// This file is part of ProtonMail Bridge.
+// This file is part of Proton Mail Bridge.
 //
-// ProtonMail Bridge is free software: you can redistribute it and/or modify
+// Proton Mail Bridge is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// ProtonMail Bridge is distributed in the hope that it will be useful,
+// Proton Mail Bridge is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
+// along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 package smtp
 
@@ -21,14 +21,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ProtonMail/proton-bridge/internal/bridge"
-	"github.com/ProtonMail/proton-bridge/internal/config/settings"
-	"github.com/ProtonMail/proton-bridge/internal/users"
-	"github.com/ProtonMail/proton-bridge/pkg/confirmer"
-	"github.com/ProtonMail/proton-bridge/pkg/listener"
+	"github.com/ProtonMail/proton-bridge/v2/internal/bridge"
+	"github.com/ProtonMail/proton-bridge/v2/internal/config/settings"
+	"github.com/ProtonMail/proton-bridge/v2/internal/users"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/listener"
 	goSMTPBackend "github.com/emersion/go-smtp"
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 )
 
 type panicHandler interface {
@@ -36,7 +34,7 @@ type panicHandler interface {
 }
 
 type settingsProvider interface {
-	GetBool(string) bool
+	GetBool(settings.Key) bool
 }
 
 type smtpBackend struct {
@@ -44,7 +42,6 @@ type smtpBackend struct {
 	eventListener listener.Listener
 	settings      settingsProvider
 	bridge        bridger
-	confirmer     *confirmer.Confirmer
 	sendRecorder  *sendRecorder
 }
 
@@ -54,7 +51,7 @@ func NewSMTPBackend(
 	eventListener listener.Listener,
 	settings settingsProvider,
 	bridge *bridge.Bridge,
-) *smtpBackend { //nolint[golint]
+) *smtpBackend { //nolint:revive
 	return newSMTPBackend(panicHandler, eventListener, settings, newBridgeWrap(bridge))
 }
 
@@ -69,7 +66,6 @@ func newSMTPBackend(
 		eventListener: eventListener,
 		settings:      settings,
 		bridge:        bridge,
-		confirmer:     confirmer.New(),
 		sendRecorder:  newSendRecorder(),
 	}
 }
@@ -115,14 +111,4 @@ func (sb *smtpBackend) AnonymousLogin(_ *goSMTPBackend.ConnectionState) (goSMTPB
 	defer sb.panicHandler.HandlePanic()
 
 	return nil, errors.New("anonymous login not supported")
-}
-
-func (sb *smtpBackend) shouldReportOutgoingNoEnc() bool {
-	return sb.settings.GetBool(settings.ReportOutgoingNoEncKey)
-}
-
-func (sb *smtpBackend) ConfirmNoEncryption(messageID string, shouldSend bool) {
-	if err := sb.confirmer.SetResult(messageID, shouldSend); err != nil {
-		logrus.WithError(err).Error("Failed to set confirmation value")
-	}
 }

@@ -1,19 +1,19 @@
-// Copyright (c) 2021 Proton Technologies AG
+// Copyright (c) 2022 Proton AG
 //
-// This file is part of ProtonMail Bridge.
+// This file is part of Proton Mail Bridge.
 //
-// ProtonMail Bridge is free software: you can redistribute it and/or modify
+// Proton Mail Bridge is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// ProtonMail Bridge is distributed in the hope that it will be useful,
+// Proton Mail Bridge is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
+// along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 package message
 
@@ -28,9 +28,9 @@ import (
 	"strings"
 
 	"github.com/ProtonMail/go-rfc5322"
-	"github.com/ProtonMail/proton-bridge/pkg/message/parser"
-	pmmime "github.com/ProtonMail/proton-bridge/pkg/mime"
-	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/message/parser"
+	pmmime "github.com/ProtonMail/proton-bridge/v2/pkg/mime"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/pmapi"
 	"github.com/emersion/go-message"
 	"github.com/jaytaylor/html2text"
 	"github.com/pkg/errors"
@@ -155,14 +155,6 @@ func convertForeignEncodings(p *parser.Parser) error {
 		RegisterContentTypeHandler("text/.*", func(p *parser.Part) error {
 			return p.ConvertToUTF8()
 		}).
-		RegisterDefaultHandler(func(p *parser.Part) error {
-			// multipart/alternative, for example, can contain extra charset.
-			if _, params, _ := p.ContentType(); params != nil && params["charset"] != "" {
-				return p.ConvertToUTF8()
-			}
-
-			return nil
-		}).
 		Walk()
 }
 
@@ -223,8 +215,8 @@ func collectAttachments(p *parser.Parser) ([]*pmapi.Attachment, []io.Reader, err
 }
 
 // buildBodies collects all text/html and text/plain parts and returns two bodies,
-//  - a rich text body (in which html is allowed), and
-//  - a plaintext body (in which html is converted to plaintext).
+//   - a rich text body (in which html is allowed), and
+//   - a plaintext body (in which html is converted to plaintext).
 //
 // text/html parts are converted to plaintext in order to build the plaintext body,
 // unless there is already a plaintext part provided via multipart/alternative,
@@ -303,7 +295,7 @@ func collectBodyParts(p *parser.Parser, preferredContentType string) (parser.Par
 		return nil, err
 	}
 
-	return res.(parser.Parts), nil
+	return res.(parser.Parts), nil //nolint:forcetypeassert
 }
 
 func collectChildParts(p *parser.Part, visit parser.Visit) ([]parser.Parts, error) {
@@ -315,7 +307,7 @@ func collectChildParts(p *parser.Part, visit parser.Visit) ([]parser.Parts, erro
 			return nil, err
 		}
 
-		childParts = append(childParts, res.(parser.Parts))
+		childParts = append(childParts, res.(parser.Parts)) //nolint:forcetypeassert
 	}
 
 	return childParts, nil
@@ -421,7 +413,7 @@ func AttachPublicKey(p *parser.Parser, key, keyName string) {
 	})
 }
 
-func parseMessageHeader(m *pmapi.Message, h message.Header) error { // nolint[funlen]
+func parseMessageHeader(m *pmapi.Message, h message.Header) error { //nolint:funlen
 	mimeHeader, err := toMailHeader(h)
 	if err != nil {
 		return err

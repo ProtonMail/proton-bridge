@@ -1,19 +1,19 @@
-// Copyright (c) 2021 Proton Technologies AG
+// Copyright (c) 2022 Proton AG
 //
-// This file is part of ProtonMail Bridge.
+// This file is part of Proton Mail Bridge.
 //
-// ProtonMail Bridge is free software: you can redistribute it and/or modify
+// Proton Mail Bridge is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// ProtonMail Bridge is distributed in the hope that it will be useful,
+// Proton Mail Bridge is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
+// along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 package store
 
@@ -21,7 +21,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/pmapi"
 	"github.com/pkg/errors"
 )
 
@@ -59,7 +59,7 @@ func (store *Store) createMailbox(name string) error {
 		Name:      name,
 		Color:     color,
 		Exclusive: pmapi.Boolean(exclusive),
-		Type:      pmapi.LabelTypeMailbox,
+		Type:      pmapi.LabelTypeMailBox,
 	})
 	return err
 }
@@ -188,7 +188,7 @@ func (store *Store) createOrUpdateMailboxEvent(label *pmapi.Label) error {
 	store.lock.Lock()
 	defer store.lock.Unlock()
 
-	if label.Type != pmapi.LabelTypeMailbox {
+	if label.Type != pmapi.LabelTypeMailBox {
 		return nil
 	}
 

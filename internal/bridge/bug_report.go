@@ -1,19 +1,19 @@
-// Copyright (c) 2021 Proton Technologies AG
+// Copyright (c) 2022 Proton AG
 //
-// This file is part of ProtonMail Bridge.
+// This file is part of Proton Mail Bridge.
 //
-// ProtonMail Bridge is free software: you can redistribute it and/or modify
+// Proton Mail Bridge is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// ProtonMail Bridge is distributed in the hope that it will be useful,
+// Proton Mail Bridge is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
+// along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 package bridge
 
@@ -23,22 +23,29 @@ import (
 	"context"
 	"errors"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"sort"
 
-	"github.com/ProtonMail/proton-bridge/internal/logging"
-	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
+	"github.com/ProtonMail/proton-bridge/v2/internal/logging"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/pmapi"
 )
 
-const MaxAttachmentSize = 7 * 1024 * 1024 // 7 MB total limit
-const MaxCompressedFilesCount = 6
+const (
+	MaxAttachmentSize       = 7 * 1024 * 1024 // MaxAttachmentSize 7 MB total limit
+	MaxCompressedFilesCount = 6
+)
 
 var ErrSizeTooLarge = errors.New("file is too big")
 
 // ReportBug reports a new bug from the user.
 func (b *Bridge) ReportBug(osType, osVersion, description, accountName, address, emailClient string, attachLogs bool) error {
+	if user, err := b.GetUser(address); err == nil {
+		accountName = user.Username()
+	} else if users := b.GetUsers(); len(users) > 0 {
+		accountName = users[0].Username()
+	}
+
 	report := pmapi.ReportBugReq{
 		OS:          osType,
 		OSVersion:   osVersion,
@@ -98,7 +105,7 @@ func (b *Bridge) getMatchingLogs(filenameMatchFunc func(string) bool) (filenames
 		return nil, err
 	}
 
-	files, err := ioutil.ReadDir(logsPath)
+	files, err := os.ReadDir(logsPath)
 	if err != nil {
 		return nil, err
 	}
@@ -147,7 +154,7 @@ func zipFiles(filenames []string) (io.Reader, error) {
 	buf := NewLimitedBuffer(MaxAttachmentSize)
 
 	w := zip.NewWriter(buf)
-	defer w.Close() //nolint[errcheck]
+	defer w.Close() //nolint:errcheck
 
 	for _, file := range filenames {
 		err := addFileToZip(file, w)
@@ -168,7 +175,7 @@ func addFileToZip(filename string, writer *zip.Writer) error {
 	if err != nil {
 		return err
 	}
-	defer fileReader.Close() //nolint[errcheck]
+	defer fileReader.Close() //nolint:errcheck,gosec
 
 	fileInfo, err := fileReader.Stat()
 	if err != nil {

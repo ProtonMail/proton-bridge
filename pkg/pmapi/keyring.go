@@ -1,19 +1,19 @@
-// Copyright (c) 2021 Proton Technologies AG
+// Copyright (c) 2022 Proton AG
 //
-// This file is part of ProtonMail Bridge.
+// This file is part of Proton Mail Bridge.
 //
-// ProtonMail Bridge is free software: you can redistribute it and/or modify
+// Proton Mail Bridge is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// ProtonMail Bridge is distributed in the hope that it will be useful,
+// Proton Mail Bridge is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
+// along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 package pmapi
 
@@ -22,7 +22,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"io"
-	"io/ioutil"
 
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/pkg/errors"
@@ -231,7 +230,7 @@ func encryptAttachment(kr *crypto.KeyRing, data io.Reader, filename string) (enc
 		return nil, err
 	}
 
-	dataBytes, err := ioutil.ReadAll(data)
+	dataBytes, err := io.ReadAll(data)
 	if err != nil {
 		return
 	}
@@ -244,7 +243,7 @@ func encryptAttachment(kr *crypto.KeyRing, data io.Reader, filename string) (enc
 		return
 	}
 
-	packets := append(pgpSplitMessage.KeyPacket, pgpSplitMessage.DataPacket...)
+	packets := append(pgpSplitMessage.KeyPacket, pgpSplitMessage.DataPacket...) //nolint:gocritic
 
 	return bytes.NewReader(packets), nil
 }
@@ -253,7 +252,7 @@ func decryptAttachment(kr *crypto.KeyRing, keyPackets []byte, data io.Reader) (d
 	if kr == nil {
 		return nil, ErrNoKeyringAvailable
 	}
-	dataBytes, err := ioutil.ReadAll(data)
+	dataBytes, err := io.ReadAll(data)
 	if err != nil {
 		return
 	}
@@ -269,7 +268,7 @@ func signAttachment(encrypter *crypto.KeyRing, data io.Reader) (signature io.Rea
 	if encrypter == nil {
 		return nil, ErrNoKeyringAvailable
 	}
-	dataBytes, err := ioutil.ReadAll(data)
+	dataBytes, err := io.ReadAll(data)
 	if err != nil {
 		return
 	}
@@ -320,7 +319,7 @@ func encryptSymmDecryptKey(
 		return
 	}
 
-	pgpSplitMessage, err := pgpMessage.SeparateKeyAndData(len(textToEncrypt), 0)
+	pgpSplitMessage, err := pgpMessage.SplitMessage()
 	if err != nil {
 		return
 	}

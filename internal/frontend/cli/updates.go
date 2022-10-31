@@ -1,28 +1,28 @@
-// Copyright (c) 2021 Proton Technologies AG
+// Copyright (c) 2022 Proton AG
 //
-// This file is part of ProtonMail Bridge.
+// This file is part of Proton Mail Bridge.
 //
-// ProtonMail Bridge is free software: you can redistribute it and/or modify
+// Proton Mail Bridge is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// ProtonMail Bridge is distributed in the hope that it will be useful,
+// Proton Mail Bridge is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
+// along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 package cli
 
 import (
 	"strings"
 
-	"github.com/ProtonMail/proton-bridge/internal/bridge"
-	"github.com/ProtonMail/proton-bridge/internal/config/settings"
-	"github.com/ProtonMail/proton-bridge/internal/updater"
+	"github.com/ProtonMail/proton-bridge/v2/internal/bridge"
+	"github.com/ProtonMail/proton-bridge/v2/internal/config/settings"
+	"github.com/ProtonMail/proton-bridge/v2/internal/updater"
 	"github.com/abiosoft/ishell"
 )
 
@@ -47,7 +47,7 @@ func (f *frontendCLI) printCredits(c *ishell.Context) {
 }
 
 func (f *frontendCLI) enableAutoUpdates(c *ishell.Context) {
-	if f.settings.GetBool(settings.AutoUpdateKey) {
+	if f.bridge.GetBool(settings.AutoUpdateKey) {
 		f.Println("Bridge is already set to automatically install updates.")
 		return
 	}
@@ -55,12 +55,12 @@ func (f *frontendCLI) enableAutoUpdates(c *ishell.Context) {
 	f.Println("Bridge is currently set to NOT automatically install updates.")
 
 	if f.yesNoQuestion("Are you sure you want to allow bridge to do this") {
-		f.settings.SetBool(settings.AutoUpdateKey, true)
+		f.bridge.SetBool(settings.AutoUpdateKey, true)
 	}
 }
 
 func (f *frontendCLI) disableAutoUpdates(c *ishell.Context) {
-	if !f.settings.GetBool(settings.AutoUpdateKey) {
+	if !f.bridge.GetBool(settings.AutoUpdateKey) {
 		f.Println("Bridge is already set to NOT automatically install updates.")
 		return
 	}
@@ -68,7 +68,7 @@ func (f *frontendCLI) disableAutoUpdates(c *ishell.Context) {
 	f.Println("Bridge is currently set to automatically install updates.")
 
 	if f.yesNoQuestion("Are you sure you want to stop bridge from doing this") {
-		f.settings.SetBool(settings.AutoUpdateKey, false)
+		f.bridge.SetBool(settings.AutoUpdateKey, false)
 	}
 }
 

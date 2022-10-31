@@ -1,3 +1,63 @@
+## v2.0.1
+- 2021-12-15
+
+### New
+
+New Bridge GUI
+
+* Added a Status View in addition to the Main Bridge Window
+* Added storage information per signed in account
+* Refactor of sign in flows
+- Refactor of  Helps and Settings section
+- Refactor of  bug reports
+- Refactor of Bridge update flows for beta and stable channeles
+- Introduced Reset Bridge feature - to clear all the local preferences and settings
+- Introduce local cache configuration
+
+New local cache
+
+* Refactor of message.BodyStructure
+* Refactor of local store
+* Allow to store full encrypted message bodies on dysk
+
+### Fixed
+- Blurry system icons with multiple monitor setup
+
+
+## v1.8.12
+- 2021-11-30
+
+### New
+
+- Bridge to only be checking and trying to unclock active keys, both user and address
+
+
+## v1.8.11
+- 2021-11-18
+
+### Fixed
+
+- Updated bbold to v1.3.6 - including Unix fixes
+- Ensured 'delete' on 'All Mail' is not allowed
+- Fixed behaviour for 'append' of external messages to Archive
+- Fixed behaviour for 'append' of internal messages to All Mail 
+- Ensure 'move' to All Mail returns an error
+- Fixed behaviour for moving/removing message to/from Spam
+
+
+## v1.8.10
+- 2021-10-01
+
+### Fixed
+
+- Updated crypto-libraries to gopenpgp v2.2.2 and go-srp v0.0.1
+- Ensuring proper handling of updates when the user downloads the newest version manually
+- Better handling of an error for importing too large messages via Bridge
+- Ensuring message packages are fully built when the list of recipients includes internal addresses (for the users using active domain with Microsoft exchange)
+- Fixed Uninstalling on Windows to properly clear updates
+- Improvements to reusing connections - performance
+
+
 ## v1.8.9
 - 2021-09-01
 

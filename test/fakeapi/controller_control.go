@@ -1,19 +1,19 @@
-// Copyright (c) 2021 Proton Technologies AG
+// Copyright (c) 2022 Proton AG
 //
-// This file is part of ProtonMail Bridge.Bridge.
+// This file is part of Proton Mail Bridge.Bridge.
 //
-// ProtonMail Bridge is free software: you can redistribute it and/or modify
+// Proton Mail Bridge is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// ProtonMail Bridge is distributed in the hope that it will be useful,
+// Proton Mail Bridge is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
+// along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 package fakeapi
 
@@ -24,11 +24,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
-	"github.com/ProtonMail/proton-bridge/test/accounts"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/pmapi"
+	"github.com/ProtonMail/proton-bridge/v2/test/accounts"
 )
 
-var systemLabelNameToID = map[string]string{ //nolint[gochecknoglobals]
+var systemLabelNameToID = map[string]string{ //nolint:gochecknoglobals
 	"INBOX":    pmapi.InboxLabel,
 	"Trash":    pmapi.TrashLabel,
 	"Spam":     pmapi.SpamLabel,
@@ -80,8 +80,10 @@ func (ctl *Controller) AddUserLabel(username string, label *pmapi.Label) error {
 		ctl.labelsByUsername[username] = []*pmapi.Label{}
 	}
 
+	userLabels := ctl.labelsByUsername[username]
+
 	labelName := getLabelNameWithoutPrefix(label.Name)
-	for _, existingLabel := range ctl.labelsByUsername[username] {
+	for _, existingLabel := range userLabels {
 		if existingLabel.Name == labelName {
 			return fmt.Errorf("folder or label %s already exists", label.Name)
 		}
@@ -97,7 +99,9 @@ func (ctl *Controller) AddUserLabel(username string, label *pmapi.Label) error {
 	if label.Path == "" {
 		label.Path = label.Name
 	}
-	ctl.labelsByUsername[username] = append(ctl.labelsByUsername[username], label)
+	userLabels = append(userLabels, label)
+
+	ctl.labelsByUsername[username] = userLabels
 	ctl.resetUsers()
 	return nil
 }
@@ -230,7 +234,30 @@ func (ctl *Controller) GetAuthClient(username string) pmapi.Client {
 }
 
 // LockEvents doesn't needs to be implemented for fakeAPI.
-func (ctl *Controller) LockEvents() {}
+func (ctl *Controller) LockEvents(string) {}
 
 // UnlockEvents doesn't needs to be implemented for fakeAPI.
-func (ctl *Controller) UnlockEvents() {}
+func (ctl *Controller) UnlockEvents(string) {}
+
+func (ctl *Controller) RemoveUserMessageWithoutEvent(username string, messageID string) error {
+	msgs, ok := ctl.messagesByUsername[username]
+	if !ok {
+		return nil
+	}
+
+	for i, message := range msgs {
+		if message.ID == messageID {
+			ctl.messagesByUsername[username] = append(msgs[:i], msgs[i+1:]...)
+			return nil
+		}
+	}
+
+	return errors.New("message not found")
+}
+
+func (ctl *Controller) RevokeSession(username string) error {
+	for _, session := range ctl.sessionsByUID {
+		session.uid = "revoked"
+	}
+	return nil
+}

@@ -1,19 +1,19 @@
-// Copyright (c) 2021 Proton Technologies AG
+// Copyright (c) 2022 Proton AG
 //
-// This file is part of ProtonMail Bridge.Bridge.
+// This file is part of Proton Mail Bridge.Bridge.
 //
-// ProtonMail Bridge is free software: you can redistribute it and/or modify
+// Proton Mail Bridge is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// ProtonMail Bridge is distributed in the hope that it will be useful,
+// Proton Mail Bridge is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
+// along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 // Package context allows integration tests to be written in a fluent, english-like way.
 package context
@@ -21,13 +21,14 @@ package context
 import (
 	"sync"
 
-	"github.com/ProtonMail/proton-bridge/internal/bridge"
-	"github.com/ProtonMail/proton-bridge/internal/config/useragent"
-	"github.com/ProtonMail/proton-bridge/internal/users"
-	"github.com/ProtonMail/proton-bridge/pkg/listener"
-	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
-	"github.com/ProtonMail/proton-bridge/test/accounts"
-	"github.com/ProtonMail/proton-bridge/test/mocks"
+	"github.com/ProtonMail/proton-bridge/v2/internal/bridge"
+	"github.com/ProtonMail/proton-bridge/v2/internal/config/tls"
+	"github.com/ProtonMail/proton-bridge/v2/internal/config/useragent"
+	"github.com/ProtonMail/proton-bridge/v2/internal/users"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/listener"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/pmapi"
+	"github.com/ProtonMail/proton-bridge/v2/test/accounts"
+	"github.com/ProtonMail/proton-bridge/v2/test/mocks"
 	"github.com/sirupsen/logrus"
 )
 
@@ -43,6 +44,7 @@ type TestContext struct {
 	cache        *fakeCache
 	locations    *fakeLocations
 	settings     *fakeSettings
+	tls          *tls.TLS
 	listener     listener.Listener
 	userAgent    *useragent.UserAgent
 	testAccounts *accounts.TestAccounts
@@ -89,11 +91,15 @@ func New() *TestContext {
 	listener := listener.New()
 	pmapiController, clientManager := newPMAPIController(listener)
 
+	locations := newFakeLocations()
+	settingsPath, _ := locations.ProvideSettingsPath()
+
 	ctx := &TestContext{
 		t:                     &bddT{},
 		cache:                 newFakeCache(),
-		locations:             newFakeLocations(),
+		locations:             locations,
 		settings:              newFakeSettings(),
+		tls:                   tls.New(settingsPath),
 		listener:              listener,
 		userAgent:             useragent.New(),
 		pmapiController:       pmapiController,
@@ -107,8 +113,11 @@ func New() *TestContext {
 		smtpLastResponses:     make(map[string]*mocks.SMTPResponse),
 		smtpResponseLocker:    &sync.Mutex{},
 		bddMessageIDsToAPIIDs: make(map[string]string),
-		logger:                logrus.StandardLogger(),
+		logger:                logrus.StandardLogger().WithField("ctx", "scenario"),
 	}
+
+	ctx.logger.Info("New context")
+	ctx.addCleanup(func() { ctx.logger.Info("Context end") }, "End of context")
 
 	// Ensure that the config is cleaned up after the test is over.
 	ctx.addCleanupChecked(ctx.locations.Clear, "Cleaning bridge config data")
@@ -144,7 +153,7 @@ func (ctx *TestContext) GetUserAgent() string {
 }
 
 // GetTestingT returns testing.T compatible struct.
-func (ctx *TestContext) GetTestingT() *bddT { //nolint[golint]
+func (ctx *TestContext) GetTestingT() *bddT { //nolint:revive
 	return ctx.t
 }
 
@@ -163,5 +172,15 @@ func (ctx *TestContext) GetLastError() error {
 	return ctx.lastError
 }
 
-func (ctx *TestContext) MessagePreparationStarted()  { ctx.pmapiController.LockEvents() }
-func (ctx *TestContext) MessagePreparationFinished() { ctx.pmapiController.UnlockEvents() }
+func (ctx *TestContext) MessagePreparationStarted(username string) {
+	ctx.pmapiController.LockEvents(username)
+}
+
+func (ctx *TestContext) MessagePreparationFinished(username string) {
+	ctx.pmapiController.UnlockEvents(username)
+}
+
+func (ctx *TestContext) CredentialsFailsOnWrite(shouldFail bool) {
+	ctx.credStore.(*fakeCredStore).failOnWrite = shouldFail                                              //nolint:forcetypeassert
+	ctx.addCleanup(func() { ctx.credStore.(*fakeCredStore).failOnWrite = false }, "credentials-cleanup") //nolint:forcetypeassert
+}

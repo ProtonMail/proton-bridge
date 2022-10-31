@@ -1,19 +1,19 @@
-// Copyright (c) 2021 Proton Technologies AG
+// Copyright (c) 2022 Proton AG
 //
-// This file is part of ProtonMail Bridge.
+// This file is part of Proton Mail Bridge.
 //
-// ProtonMail Bridge is free software: you can redistribute it and/or modify
+// Proton Mail Bridge is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// ProtonMail Bridge is distributed in the hope that it will be useful,
+// Proton Mail Bridge is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
+// along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 package message
 
@@ -21,19 +21,18 @@ import (
 	"bytes"
 	"encoding/base64"
 	"io"
-	"io/ioutil"
 	"mime"
 	"mime/quotedprintable"
 	"strings"
 
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
-	pmmime "github.com/ProtonMail/proton-bridge/pkg/mime"
+	pmmime "github.com/ProtonMail/proton-bridge/v2/pkg/mime"
 	"github.com/emersion/go-message/textproto"
 	"github.com/pkg/errors"
 )
 
 func EncryptRFC822(kr *crypto.KeyRing, r io.Reader) ([]byte, error) {
-	b, err := ioutil.ReadAll(r)
+	b, err := io.ReadAll(r)
 	if err != nil {
 		return nil, err
 	}
@@ -118,7 +117,7 @@ func writeEncryptedPart(kr *crypto.KeyRing, header *textproto.Header, r io.Reade
 }
 
 func writeEncryptedTextPart(w io.Writer, r io.Reader, kr *crypto.KeyRing) error {
-	dec, err := ioutil.ReadAll(r)
+	dec, err := io.ReadAll(r)
 	if err != nil {
 		return err
 	}
@@ -146,7 +145,7 @@ func writeEncryptedTextPart(w io.Writer, r io.Reader, kr *crypto.KeyRing) error 
 }
 
 func writeEncryptedAttachmentPart(w io.Writer, r io.Reader, kr *crypto.KeyRing) error {
-	dec, err := ioutil.ReadAll(r)
+	dec, err := io.ReadAll(r)
 	if err != nil {
 		return err
 	}

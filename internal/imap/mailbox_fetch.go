@@ -1,26 +1,26 @@
-// Copyright (c) 2021 Proton Technologies AG
+// Copyright (c) 2022 Proton AG
 //
-// This file is part of ProtonMail Bridge.
+// This file is part of Proton Mail Bridge.
 //
-// ProtonMail Bridge is free software: you can redistribute it and/or modify
+// Proton Mail Bridge is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// ProtonMail Bridge is distributed in the hope that it will be useful,
+// Proton Mail Bridge is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
+// along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 package imap
 
 import (
 	"bytes"
 
-	"github.com/ProtonMail/proton-bridge/pkg/message"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/message"
 	"github.com/emersion/go-imap"
 	"github.com/pkg/errors"
 )
@@ -40,9 +40,9 @@ func (im *imapMailbox) getMessage(storeMessage storeMessageProvider, items []ima
 	for _, item := range items {
 		switch item {
 		case imap.FetchEnvelope:
-			// No need to check IsFullHeaderCached here. API header
-			// contain enough information to build the envelope.
-			msg.Envelope = message.GetEnvelope(m, storeMessage.GetMIMEHeader())
+			// No need to retrieve full header here. API header
+			// contains enough information to build the envelope.
+			msg.Envelope = message.GetEnvelope(m, storeMessage.GetMIMEHeaderFast())
 		case imap.FetchBody, imap.FetchBodyStructure:
 			structure, err := im.getBodyStructure(storeMessage)
 			if err != nil {
@@ -87,7 +87,7 @@ func (im *imapMailbox) getLiteralForSection(itemSection imap.FetchItem, msg *ima
 	section, err := imap.ParseBodySectionName(itemSection)
 	if err != nil {
 		log.WithError(err).Warn("Failed to parse body section name; part will be skipped")
-		return nil //nolint[nilerr] ignore error
+		return nil //nolint:nilerr ignore error
 	}
 
 	var literal imap.Literal
@@ -158,7 +158,10 @@ func (im *imapMailbox) getMessageBodySection(storeMessage storeMessageProvider, 
 
 	isMainHeaderRequested := len(section.Path) == 0 && section.Specifier == imap.HeaderSpecifier
 	if isMainHeaderRequested && storeMessage.IsFullHeaderCached() {
-		header = storeMessage.GetHeader()
+		var err error
+		if header, err = storeMessage.GetHeader(); err != nil {
+			return nil, err
+		}
 	} else {
 		structure, bodyReader, err := im.getBodyAndStructure(storeMessage)
 		if err != nil {

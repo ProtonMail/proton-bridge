@@ -1,26 +1,27 @@
-// Copyright (c) 2021 Proton Technologies AG
+// Copyright (c) 2022 Proton AG
 //
-// This file is part of ProtonMail Bridge.Bridge.
+// This file is part of Proton Mail Bridge.Bridge.
 //
-// ProtonMail Bridge is free software: you can redistribute it and/or modify
+// Proton Mail Bridge is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// ProtonMail Bridge is distributed in the hope that it will be useful,
+// Proton Mail Bridge is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
+// along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 package context
 
 import (
 	"strings"
 
-	"github.com/ProtonMail/proton-bridge/internal/users/credentials"
+	"github.com/ProtonMail/proton-bridge/v2/internal/users/credentials"
+	"github.com/pkg/errors"
 )
 
 // bridgePassword is password to be used for IMAP or SMTP under tests.
@@ -28,11 +29,13 @@ const bridgePassword = "bridgepassword"
 
 type fakeCredStore struct {
 	credentials map[string]*credentials.Credentials
+
+	failOnWrite bool
 }
 
 // newFakeCredStore returns a fake credentials store (optionally configured with the given credentials).
 func newFakeCredStore(initCreds ...*credentials.Credentials) (c *fakeCredStore) {
-	c = &fakeCredStore{credentials: map[string]*credentials.Credentials{}}
+	c = &fakeCredStore{credentials: map[string]*credentials.Credentials{}, failOnWrite: false}
 	for _, creds := range initCreds {
 		if creds == nil {
 			continue
@@ -52,6 +55,9 @@ func (c *fakeCredStore) List() (userIDs []string, err error) {
 }
 
 func (c *fakeCredStore) Add(userID, userName, uid, ref string, mailboxPassword []byte, emails []string) (*credentials.Credentials, error) {
+	if c.failOnWrite {
+		return nil, errors.New("An invalid attempt to change the owner of an item. (-25244)")
+	}
 	bridgePassword := bridgePassword
 	if c, ok := c.credentials[userID]; ok {
 		bridgePassword = c.BridgePassword
@@ -73,14 +79,23 @@ func (c *fakeCredStore) Get(userID string) (*credentials.Credentials, error) {
 }
 
 func (c *fakeCredStore) SwitchAddressMode(userID string) (*credentials.Credentials, error) {
+	if c.failOnWrite {
+		return nil, errors.New("An invalid attempt to change the owner of an item. (-25244)")
+	}
 	return c.credentials[userID], nil
 }
 
 func (c *fakeCredStore) UpdateEmails(userID string, emails []string) (*credentials.Credentials, error) {
+	if c.failOnWrite {
+		return nil, errors.New("An invalid attempt to change the owner of an item. (-25244)")
+	}
 	return c.credentials[userID], nil
 }
 
 func (c *fakeCredStore) UpdatePassword(userID string, password []byte) (*credentials.Credentials, error) {
+	if c.failOnWrite {
+		return nil, errors.New("An invalid attempt to change the owner of an item. (-25244)")
+	}
 	creds, err := c.Get(userID)
 	if err != nil {
 		return nil, err
@@ -90,6 +105,9 @@ func (c *fakeCredStore) UpdatePassword(userID string, password []byte) (*credent
 }
 
 func (c *fakeCredStore) UpdateToken(userID, uid, ref string) (*credentials.Credentials, error) {
+	if c.failOnWrite {
+		return nil, errors.New("An invalid attempt to change the owner of an item. (-25244)")
+	}
 	creds, err := c.Get(userID)
 	if err != nil {
 		return nil, err
@@ -99,12 +117,18 @@ func (c *fakeCredStore) UpdateToken(userID, uid, ref string) (*credentials.Crede
 }
 
 func (c *fakeCredStore) Logout(userID string) (*credentials.Credentials, error) {
+	if c.failOnWrite {
+		return nil, errors.New("An invalid attempt to change the owner of an item. (-25244)")
+	}
 	c.credentials[userID].APIToken = ""
 	c.credentials[userID].MailboxPassword = []byte{}
 	return c.credentials[userID], nil
 }
 
 func (c *fakeCredStore) Delete(userID string) error {
+	if c.failOnWrite {
+		return errors.New("An invalid attempt to change the owner of an item. (-25244)")
+	}
 	delete(c.credentials, userID)
 	return nil
 }

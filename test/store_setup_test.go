@@ -1,19 +1,19 @@
-// Copyright (c) 2021 Proton Technologies AG
+// Copyright (c) 2022 Proton AG
 //
-// This file is part of ProtonMail Bridge.Bridge.
+// This file is part of Proton Mail Bridge.Bridge.
 //
-// ProtonMail Bridge is free software: you can redistribute it and/or modify
+// Proton Mail Bridge is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// ProtonMail Bridge is distributed in the hope that it will be useful,
+// Proton Mail Bridge is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
+// along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 package tests
 
@@ -25,7 +25,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ProtonMail/proton-bridge/pkg/pmapi"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/pmapi"
 	"github.com/cucumber/godog"
 )
 
@@ -37,6 +37,8 @@ func StoreSetupFeatureContext(s *godog.ScenarioContext) {
 	s.Step(`^there are (\d+) messages in mailbox(?:es)? "([^"]*)" for "([^"]*)"$`, thereAreSomeMessagesInMailboxesForUser)
 	s.Step(`^there are messages for "([^"]*)" as follows$`, thereAreSomeMessagesForUserAsFollows)
 	s.Step(`^there are (\d+) messages in mailbox(?:es)? "([^"]*)" for address "([^"]*)" of "([^"]*)"$`, thereAreSomeMessagesInMailboxesForAddressOfUser)
+	s.Step(`^wait for Sphinx to create duplication indices$`, waitForSphinx)
+	s.Step(`^message(?:s)? "([^"]*)" (?:was|were) deleted forever without event processed for "([^"]*)"$`, messageWasDeletedWithoutEvent)
 }
 
 func thereIsUserWithMailboxes(bddUserID string, mailboxes *godog.Table) error {
@@ -55,7 +57,7 @@ func thereIsUserWithMailbox(bddUserID, mailboxName string) error {
 	}
 	err := ctx.GetPMAPIController().AddUserLabel(account.Username(), &pmapi.Label{
 		Name: mailboxName,
-		Type: pmapi.LabelTypeMailbox,
+		Type: pmapi.LabelTypeMailBox,
 	})
 	if err != nil {
 		return internalError(err, "adding label %s for %s", mailboxName, account.Username())
@@ -75,17 +77,17 @@ func thereAreMessagesInMailboxesForUser(mailboxNames, bddUserID string, messages
 }
 
 func thereAreMessagesInMailboxesForAddressOfUser(mailboxNames, bddAddressID, bddUserID string, messages *godog.Table) error {
-	// It is needed to prevent event processing before syncing these message
-	// otherwise the seqID and UID will be in reverse order. The
-	// synchronization add newest message first, the eventloop adds the oldest
-	// message first.
-	ctx.MessagePreparationStarted()
-	defer ctx.MessagePreparationFinished()
-
 	account := ctx.GetTestAccountWithAddress(bddUserID, bddAddressID)
 	if account == nil {
 		return godog.ErrPending
 	}
+
+	// It is needed to prevent event processing before syncing these message
+	// otherwise the seqID and UID will be in reverse order. The
+	// synchronization add newest message first, the eventloop adds the oldest
+	// message first.
+	ctx.MessagePreparationStarted(account.Username())
+	defer ctx.MessagePreparationFinished(account.Username())
 
 	labelIDs, err := ctx.GetPMAPIController().GetLabelIDs(account.Username(), strings.Split(mailboxNames, ","))
 	if err != nil {
@@ -100,9 +102,10 @@ func thereAreMessagesInMailboxesForAddressOfUser(mailboxNames, bddAddressID, bdd
 	for i := len(messages.Rows) - 1; i > 0; i-- {
 		row := messages.Rows[i]
 		message := &pmapi.Message{
-			MIMEType:  pmapi.ContentTypePlainText,
-			LabelIDs:  labelIDs,
-			AddressID: account.AddressID(),
+			MIMEType:   pmapi.ContentTypePlainText,
+			LabelIDs:   labelIDs,
+			AddressID:  account.AddressID(),
+			ExternalID: fmt.Sprintf("%d@integration.setup.test", time.Now().Unix()),
 		}
 		header := make(textproto.MIMEHeader)
 
@@ -191,7 +194,7 @@ func processMessageTableCell(column, cellValue, username string, message *pmapi.
 	case "read":
 		var unread pmapi.Boolean
 
-		if cellValue == "true" { //nolint[goconst]
+		if cellValue == "true" { //nolint:goconst
 			unread = false
 		} else {
 			unread = true
@@ -202,7 +205,7 @@ func processMessageTableCell(column, cellValue, username string, message *pmapi.
 		if cellValue == "true" {
 			message.LabelIDs = append(message.LabelIDs, "10")
 		}
-	case "time": //nolint[goconst] It is more easy to read like this
+	case "time": //nolint:goconst It is more easy to read like this
 		date, err := time.Parse(timeFormat, cellValue)
 		if err != nil {
 			return internalError(err, "parsing time")
@@ -275,17 +278,17 @@ func processMailboxStructureDataTable(structure *godog.Table, callback func(stri
 }
 
 func thereAreSomeMessagesInMailboxesForAddressOfUser(numberOfMessages int, mailboxNames, bddAddressID, bddUserID string) error {
-	// It is needed to prevent event processing before syncing these message
-	// otherwise the seqID and UID will be in reverse order. The
-	// synchronization add newest message first, the eventloop adds the oldest
-	// message first.
-	ctx.MessagePreparationStarted()
-	defer ctx.MessagePreparationFinished()
-
 	account := ctx.GetTestAccountWithAddress(bddUserID, bddAddressID)
 	if account == nil {
 		return godog.ErrPending
 	}
+
+	// It is needed to prevent event processing before syncing these message
+	// otherwise the seqID and UID will be in reverse order. The
+	// synchronization add newest message first, the eventloop adds the oldest
+	// message first.
+	ctx.MessagePreparationStarted(account.Username())
+	defer ctx.MessagePreparationFinished(account.Username())
 
 	for i := 1; i <= numberOfMessages; i++ {
 		labelIDs, err := ctx.GetPMAPIController().GetLabelIDs(account.Username(), strings.Split(mailboxNames, ","))
@@ -293,12 +296,13 @@ func thereAreSomeMessagesInMailboxesForAddressOfUser(numberOfMessages int, mailb
 			return internalError(err, "getting labels %s for %s", mailboxNames, account.Username())
 		}
 		lastMessageID, err := ctx.GetPMAPIController().AddUserMessage(account.Username(), &pmapi.Message{
-			MIMEType:  "text/plain",
-			LabelIDs:  labelIDs,
-			AddressID: account.AddressID(),
-			Subject:   fmt.Sprintf("Test message #%d", i),
-			Sender:    &mail.Address{Address: "anyone@example.com"},
-			ToList:    []*mail.Address{{Address: account.Address()}},
+			MIMEType:   "text/plain",
+			LabelIDs:   labelIDs,
+			AddressID:  account.AddressID(),
+			Subject:    fmt.Sprintf("Test message #%d", i),
+			Sender:     &mail.Address{Address: "anyone@example.com"},
+			ToList:     []*mail.Address{{Address: account.Address()}},
+			ExternalID: fmt.Sprintf("%d@integration.setup.test", time.Now().Unix()),
 		})
 		if err != nil {
 			return internalError(err, "adding message")
@@ -310,4 +314,22 @@ func thereAreSomeMessagesInMailboxesForAddressOfUser(numberOfMessages int, mailb
 		ctx.PairMessageID(account.Username(), bddMessageID, lastMessageID)
 	}
 	return internalError(ctx.WaitForSync(account.Username()), "waiting for sync")
+}
+
+func waitForSphinx() error {
+	time.Sleep(15 * time.Second)
+	return nil
+}
+
+func messageWasDeletedWithoutEvent(bddMessageID, bddUserID string) error {
+	account := ctx.GetTestAccount(bddUserID)
+	if account == nil {
+		return godog.ErrPending
+	}
+	apiID, err := ctx.GetAPIMessageID(account.Username(), bddMessageID)
+	if err != nil {
+		return internalError(err, "getting BDD message ID %s", bddMessageID)
+	}
+
+	return ctx.GetPMAPIController().RemoveUserMessageWithoutEvent(account.Username(), apiID)
 }
