@@ -18,7 +18,6 @@
 package user
 
 import (
-	"encoding/base64"
 	"fmt"
 
 	"github.com/ProtonMail/gluon/rfc822"
@@ -62,23 +61,15 @@ func newContactSettings(settings liteapi.ContactSettings) *contactSettings {
 	}
 
 	if settings.Scheme != nil {
-		switch *settings.Scheme {
+		switch *settings.Scheme { // nolint:exhaustive
 		case liteapi.PGPMIMEScheme:
 			metadata.Scheme = pgpMIME
 
 		case liteapi.PGPInlineScheme:
 			metadata.Scheme = pgpInline
 
-		case liteapi.InternalScheme:
-			fallthrough
-		case liteapi.EncryptedOutsideScheme:
-			fallthrough
-		case liteapi.ClearScheme:
-			fallthrough
-		case liteapi.ClearMIMEScheme:
-			fallthrough
 		default:
-			break
+			panic("unknown scheme")
 		}
 	}
 
@@ -89,7 +80,7 @@ func newContactSettings(settings liteapi.ContactSettings) *contactSettings {
 				panic(err)
 			}
 
-			metadata.Keys = append(metadata.Keys, base64.StdEncoding.EncodeToString(b))
+			metadata.Keys = append(metadata.Keys, string(b))
 		}
 	}
 
