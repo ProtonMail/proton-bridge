@@ -268,6 +268,8 @@ func (conn *imapConnector) CreateMessage(
 	if messageID, ok, err := conn.sendHash.hasEntryWait(ctx, hash, time.Now().Add(90*time.Second)); err != nil {
 		return imap.Message{}, nil, fmt.Errorf("failed to check send hash: %w", err)
 	} else if ok {
+		conn.log.WithField("messageID", messageID).Debug("Message already sent")
+
 		message, err := conn.client.GetMessage(ctx, messageID)
 		if err != nil {
 			return imap.Message{}, nil, fmt.Errorf("failed to fetch message: %w", err)

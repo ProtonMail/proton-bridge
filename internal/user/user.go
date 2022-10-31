@@ -24,7 +24,6 @@ import (
 	"fmt"
 	"io"
 	"strings"
-	"sync"
 	"sync/atomic"
 	"time"
 
@@ -73,6 +72,7 @@ type User struct {
 	tasks     *xsync.Group
 	abortable async.Abortable
 	goSync    func()
+	goPoll    func()
 
 	syncWorkers int
 	syncBuffer  int
@@ -183,23 +183,40 @@ func New(
 	})
 
 	// Stream events from the API, logging any errors that occur.
+	// This does nothing until the sync has been marked as complete.
 	// When we receive an API event, we attempt to handle it.
 	// If successful, we update the event ID in the vault.
-	goStream := user.tasks.Trigger(func(ctx context.Context) {
-		async.RangeContext(ctx, user.client.NewEventStream(ctx, EventPeriod, EventJitter, user.vault.EventID()), func(event liteapi.Event) {
-			if err := user.handleAPIEvent(ctx, event); err != nil {
-				user.log.WithError(err).Error("Failed to handle API event")
-			} else if err := user.vault.SetEventID(event.EventID); err != nil {
-				user.log.WithError(err).Error("Failed to update event ID in vault")
-			}
-		})
+	user.goPoll = user.tasks.PeriodicOrTrigger(EventPeriod, EventJitter, func(ctx context.Context) {
+		if !user.vault.SyncStatus().IsComplete() {
+			user.log.Debug("Sync is incomplete, skipping event stream")
+			return
+		}
+
+		event, err := user.client.GetEvent(ctx, user.vault.EventID())
+		if err != nil {
+			user.log.WithError(err).Error("Failed to get event")
+			return
+		}
+
+		if event.EventID == user.vault.EventID() {
+			user.log.Debug("No new events")
+			return
+		}
+
+		if err := user.handleAPIEvent(ctx, event); err != nil {
+			user.log.WithError(err).Error("Failed to handle API event")
+			return
+		}
+
+		if err := user.vault.SetEventID(event.EventID); err != nil {
+			user.log.WithError(err).Error("Failed to update event ID in vault")
+			return
+		}
+
+		user.log.WithField("eventID", event.EventID).Debug("Updated event ID")
 	})
 
-	// We only ever want to start one event streamer.
-	var once sync.Once
-
 	// When triggered, attempt to sync the user.
-	// If successful, we start the event streamer if we haven't already.
 	user.goSync = user.tasks.Trigger(func(ctx context.Context) {
 		user.abortable.Do(ctx, func(ctx context.Context) {
 			if !user.vault.SyncStatus().IsComplete() {
@@ -207,12 +224,10 @@ func New(
 					return
 				}
 			}
-
-			once.Do(goStream)
 		})
 	})
 
-	// Trigger an initial sync (if necessary) and start the event stream.
+	// Trigger an initial sync (if necessary).
 	user.goSync()
 
 	return user, nil
@@ -386,6 +401,8 @@ func (user *User) NewIMAPConnectors() (map[string]connector.Connector, error) {
 //
 // nolint:funlen
 func (user *User) SendMail(authID string, from string, to []string, r io.Reader) error {
+	defer user.goPoll()
+
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
