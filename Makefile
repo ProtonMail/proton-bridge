@@ -34,8 +34,9 @@ ifneq "${BUILD_LDFLAGS}" ""
 endif
 GO_LDFLAGS_LAUNCHER:=${GO_LDFLAGS}
 ifeq "${TARGET_OS}" "windows"
-	GO_LDFLAGS+=-H=windowsgui
-	GO_LDFLAGS_LAUNCHER+=-H=windowsgui
+	#Temporarily disable this so we can inspect trace logs from the bridge for debugging
+	#GO_LDFLAGS+=-H=windowsgui
+	#GO_LDFLAGS_LAUNCHER+=-H=windowsgui
 endif
 
 BUILD_FLAGS+=-ldflags '${GO_LDFLAGS}'
