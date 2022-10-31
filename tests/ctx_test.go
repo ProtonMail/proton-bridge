@@ -216,6 +216,41 @@ func (t *testCtx) getMBoxID(userID string, name string) string {
 	return labelID
 }
 
+// getDraftID will return the API ID of draft message with draftIndex, where
+// draftIndex is similar to sequential ID i.e. 1 represents the first message
+// of draft folder sorted by API creation time.
+func (t *testCtx) getDraftID(username string, draftIndex int) string {
+	if draftIndex < 1 {
+		panic(fmt.Sprintf("draft index suppose to be non-zero positive integer, but have %d", draftIndex))
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	var draftID string
+
+	if err := t.withClient(ctx, username, func(ctx context.Context, client *liteapi.Client) error {
+		messages, err := client.GetMessageMetadata(
+			ctx, liteapi.MessageFilter{LabelID: liteapi.DraftsLabel},
+		)
+		if err != nil {
+			panic(err)
+		}
+
+		if len(messages) < draftIndex {
+			panic("draft index too high")
+		}
+
+		draftID = messages[draftIndex-1].ID
+
+		return nil
+	}); err != nil {
+		panic(err)
+	}
+
+	return draftID
+}
+
 func (t *testCtx) getLastCall(method, pathExp string) (server.Call, error) {
 	t.callsLock.RLock()
 	defer t.callsLock.RUnlock()

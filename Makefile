@@ -230,6 +230,9 @@ test-race: gofiles
 test-integration: gofiles
 	go test -v -timeout=10m -p=1 -count=1 github.com/ProtonMail/proton-bridge/v2/tests
 
+test-integration-debug: gofiles
+	dlv test github.com/ProtonMail/proton-bridge/v2/tests -- -test.v -test.timeout=10m -test.parallel=1 -test.count=1
+
 test-integration-race: gofiles
 	go test -v -timeout=60m -p=1 -count=1 -race -failfast github.com/ProtonMail/proton-bridge/v2/tests
 

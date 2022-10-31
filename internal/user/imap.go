@@ -275,6 +275,8 @@ func (conn *imapConnector) CreateMessage(
 
 	var wantFlags liteapi.MessageFlag
 
+	unread := !flags.Contains(imap.FlagSeen)
+
 	if mailboxID != liteapi.DraftsLabel {
 		header, err := rfc822.Parse(literal).ParseHeader()
 		if err != nil {
@@ -294,13 +296,15 @@ func (conn *imapConnector) CreateMessage(
 		default:
 			wantFlags = wantFlags.Add(liteapi.MessageFlagSent)
 		}
+	} else {
+		unread = false
 	}
 
 	if flags.Contains(imap.FlagAnswered) {
 		wantFlags = wantFlags.Add(liteapi.MessageFlagReplied)
 	}
 
-	return conn.importMessage(ctx, literal, wantLabelIDs, wantFlags, !flags.Contains(imap.FlagSeen))
+	return conn.importMessage(ctx, literal, wantLabelIDs, wantFlags, unread)
 }
 
 // AddMessagesToMailbox labels the given messages with the given label ID.
@@ -318,7 +322,7 @@ func (conn *imapConnector) RemoveMessagesFromMailbox(ctx context.Context, messag
 		return err
 	}
 
-	if mailboxID == liteapi.SpamLabel || mailboxID == liteapi.TrashLabel {
+	if mailboxID == liteapi.SpamLabel || mailboxID == liteapi.TrashLabel || mailboxID == liteapi.DraftsLabel {
 		var metadata []liteapi.MessageMetadata
 
 		// There's currently no limit on how many IDs we can filter on,
@@ -331,9 +335,18 @@ func (conn *imapConnector) RemoveMessagesFromMailbox(ctx context.Context, messag
 				return err
 			}
 
-			m = xslices.Filter(m, func(m liteapi.MessageMetadata) bool {
-				return len(m.LabelIDs) == 1 && m.LabelIDs[0] == liteapi.AllMailLabel
-			})
+			if mailboxID == liteapi.DraftsLabel {
+				// Also have to check for all drafts label.
+				m = xslices.Filter(m, func(m liteapi.MessageMetadata) bool {
+					return len(m.LabelIDs) == 2 &&
+						((m.LabelIDs[0] == liteapi.AllMailLabel && m.LabelIDs[1] == liteapi.AllDraftsLabel) ||
+							(m.LabelIDs[1] == liteapi.AllMailLabel && m.LabelIDs[0] == liteapi.AllDraftsLabel))
+				})
+			} else {
+				m = xslices.Filter(m, func(m liteapi.MessageMetadata) bool {
+					return len(m.LabelIDs) == 1 && m.LabelIDs[0] == liteapi.AllMailLabel
+				})
+			}
 
 			metadata = append(metadata, m...)
 		}

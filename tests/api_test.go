@@ -19,6 +19,7 @@ package tests
 
 import (
 	"github.com/Masterminds/semver/v3"
+	"gitlab.protontech.ch/go/liteapi"
 	"gitlab.protontech.ch/go/liteapi/server"
 )
 
@@ -35,6 +36,8 @@ type API interface {
 	RemoveAddress(userID, addrID string) error
 	GetAddressKeyIDs(userID, addrID string) ([]string, error)
 	RemoveAddressKey(userID, addrID, keyID string) error
+
+	UpdateDraft(userID, draftID string, changes liteapi.DraftTemplate) error
 
 	Close()
 }

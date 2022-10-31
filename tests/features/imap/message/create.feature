@@ -24,10 +24,10 @@ Feature: IMAP create messages
       | from       | to                 | subject | body |
       | user@pm.me | john.doe@email.com | foo     | bar  |
     Then it succeeds
-    And IMAP client "1" sees the following messages in "Drafts":
+    And IMAP client "1" eventually sees the following messages in "Drafts":
       | from       | to                 | subject | body |
       | user@pm.me | john.doe@email.com | foo     | bar  |
-    And IMAP client "1" sees the following messages in "All Mail":
+    And IMAP client "1" eventually sees the following messages in "All Mail":
       | from       | to                 | subject | body |
       | user@pm.me | john.doe@email.com | foo     | bar  |
 

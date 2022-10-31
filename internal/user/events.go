@@ -35,6 +35,10 @@ import (
 
 // handleAPIEvent handles the given liteapi.Event.
 func (user *User) handleAPIEvent(ctx context.Context, event liteapi.Event) error {
+	ctx = logging.WithLogrusField(ctx, "eventID", event.EventID)
+
+	logging.LogFromContext(ctx).Info("Handling event")
+
 	if event.User != nil {
 		if err := user.handleUserEvent(ctx, *event.User); err != nil {
 			return err
@@ -308,19 +312,44 @@ func (user *User) handleDeleteLabelEvent(_ context.Context, event liteapi.LabelE
 // handleMessageEvents handles the given message events.
 func (user *User) handleMessageEvents(ctx context.Context, messageEvents []liteapi.MessageEvent) error {
 	for _, event := range messageEvents {
+		ctx = logging.WithLogrusField(ctx, "messageID", event.ID)
+
 		switch event.Action {
 		case liteapi.EventCreate:
-			if err := user.handleCreateMessageEvent(ctx, event); err != nil {
+			if err := user.handleCreateMessageEvent(
+				logging.WithLogrusField(ctx, "action", "create message"),
+				event,
+			); err != nil {
 				return fmt.Errorf("failed to handle create message event: %w", err)
 			}
 
 		case liteapi.EventUpdate, liteapi.EventUpdateFlags:
-			if err := user.handleUpdateMessageEvent(ctx, event); err != nil {
+			// GODT-2028 - Use better events here. It should be possible to have 3 separate events that refrain to
+			// whether the flags, labels or read only data (header+body) has been changed. This requires fixing liteapi
+			// first so that it correctly reports those cases.
+			// Issue regular update to handle mailboxes and flag changes.
+			if err := user.handleUpdateMessageEvent(
+				logging.WithLogrusField(ctx, "action", "update message"),
+				event,
+			); err != nil {
 				return fmt.Errorf("failed to handle update message event: %w", err)
 			}
 
+			// Only issue body updates if the message is a draft.
+			if event.Message.IsDraft() {
+				if err := user.handleUpdateDraftEvent(
+					logging.WithLogrusField(ctx, "action", "update draft"),
+					event,
+				); err != nil {
+					return fmt.Errorf("failed to handle update draft event: %w", err)
+				}
+			}
+
 		case liteapi.EventDelete:
-			if err := user.handleDeleteMessageEvent(ctx, event); err != nil {
+			if err := user.handleDeleteMessageEvent(
+				logging.WithLogrusField(ctx, "action", "delete message"),
+				event,
+			); err != nil {
 				return fmt.Errorf("failed to handle delete message event: %w", err)
 			}
 		}
@@ -354,7 +383,7 @@ func (user *User) handleCreateMessageEvent(ctx context.Context, event liteapi.Me
 	}, user.apiUserLock, user.apiAddrsLock, user.updateChLock)
 }
 
-func (user *User) handleUpdateMessageEvent(_ context.Context, event liteapi.MessageEvent) error { //nolint:unparam
+func (user *User) handleUpdateMessageEvent(ctx context.Context, event liteapi.MessageEvent) error { //nolint:unparam
 	return safe.RLockRet(func() error {
 		user.log.WithFields(logrus.Fields{
 			"messageID": event.ID,
@@ -374,7 +403,7 @@ func (user *User) handleUpdateMessageEvent(_ context.Context, event liteapi.Mess
 	}, user.updateChLock)
 }
 
-func (user *User) handleDeleteMessageEvent(_ context.Context, event liteapi.MessageEvent) error { //nolint:unparam
+func (user *User) handleDeleteMessageEvent(ctx context.Context, event liteapi.MessageEvent) error { //nolint:unparam
 	return safe.RLockRet(func() error {
 		user.log.WithField("messageID", event.ID).Info("Handling message deleted event")
 
@@ -388,6 +417,27 @@ func (user *User) handleDeleteMessageEvent(_ context.Context, event liteapi.Mess
 
 		return nil
 	}, user.updateChLock)
+}
+
+func (user *User) handleUpdateDraftEvent(ctx context.Context, event liteapi.MessageEvent) error { //nolint:unparam
+	return safe.RLockRet(func() error {
+		full, err := user.client.GetFullMessage(ctx, event.Message.ID)
+		if err != nil {
+			return fmt.Errorf("failed to get full draft: %w", err)
+		}
+
+		return withAddrKR(user.apiUser, user.apiAddrs[event.Message.AddressID], user.vault.KeyPass(), func(_, addrKR *crypto.KeyRing) error {
+			buildRes, err := buildRFC822(full, addrKR)
+			if err != nil {
+				return fmt.Errorf("failed to build RFC822 draft: %w", err)
+			}
+
+			update := imap.NewMessageUpdated(buildRes.update.Message, buildRes.update.Literal, buildRes.update.MailboxIDs, buildRes.update.ParsedMessage)
+
+			user.updateCh[full.AddressID].Enqueue(update)
+			return nil
+		})
+	}, user.apiUserLock, user.apiAddrsLock, user.updateChLock)
 }
 
 func getMailboxName(label liteapi.Label) []string {

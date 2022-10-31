@@ -21,7 +21,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/mail"
 
+	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/bradenaw/juniper/iterator"
 	"github.com/bradenaw/juniper/xslices"
 	"github.com/cucumber/godog"
@@ -216,6 +218,50 @@ func (s *scenario) theAddressOfAccountHasNoKeys(address, username string) error 
 	}
 
 	return nil
+}
+
+// accountDraftChanged changes the draft attributes, where draftIndex is
+// similar to sequential ID i.e. 1 represents the first message of draft folder
+// sorted by API creation time.
+func (s *scenario) addressDraftChanged(draftIndex int, address, username string, table *godog.Table) error {
+	wantMessages, err := unmarshalTable[Message](table)
+	if err != nil {
+		return err
+	}
+
+	if len(wantMessages) != 1 {
+		return fmt.Errorf("expected to have one row in table but got %d instead", len(wantMessages))
+	}
+
+	draftID := s.t.getDraftID(username, draftIndex)
+
+	encBody := []byte{}
+
+	if wantMessages[0].Body != "" {
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+
+		if err := s.t.withClient(ctx, username, func(ctx context.Context, c *liteapi.Client) error {
+			return s.t.withAddrKR(ctx, c, username, s.t.getUserAddrID(s.t.getUserID(username), address),
+				func(ctx context.Context, addrKR *crypto.KeyRing) error {
+					var err error
+					encBody, err = liteapi.EncryptRFC822(addrKR, wantMessages[0].Build())
+					return err
+				})
+		}); err != nil {
+			return err
+		}
+	}
+
+	changes := liteapi.DraftTemplate{
+		Subject: wantMessages[0].Subject,
+		Body:    string(encBody),
+	}
+	if wantMessages[0].To != "" {
+		changes.ToList = []*mail.Address{{Address: wantMessages[0].To}}
+	}
+
+	return s.t.api.UpdateDraft(s.t.getUserID(username), draftID, changes)
 }
 
 func (s *scenario) userLogsInWithUsernameAndPassword(username, password string) error {

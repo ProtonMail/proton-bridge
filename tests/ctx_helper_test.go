@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"runtime"
 
+	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/bradenaw/juniper/stream"
 	"gitlab.protontech.ch/go/liteapi"
 )
@@ -48,43 +49,54 @@ func (t *testCtx) withClient(ctx context.Context, username string, fn func(conte
 	return nil
 }
 
+func (t *testCtx) withAddrKR(
+	ctx context.Context,
+	c *liteapi.Client,
+	username, addrID string,
+	fn func(context.Context, *crypto.KeyRing) error,
+) error {
+	user, err := c.GetUser(ctx)
+	if err != nil {
+		return err
+	}
+
+	addr, err := c.GetAddresses(ctx)
+	if err != nil {
+		return err
+	}
+
+	salt, err := c.GetSalts(ctx)
+	if err != nil {
+		return err
+	}
+
+	keyPass, err := salt.SaltForKey([]byte(t.getUserPass(t.getUserID(username))), user.Keys.Primary().ID)
+	if err != nil {
+		return err
+	}
+
+	_, addrKRs, err := liteapi.Unlock(user, addr, keyPass)
+	if err != nil {
+		return err
+	}
+
+	return fn(ctx, addrKRs[addrID])
+}
+
 func (t *testCtx) createMessages(ctx context.Context, username, addrID string, req []liteapi.ImportReq) error {
 	return t.withClient(ctx, username, func(ctx context.Context, c *liteapi.Client) error {
-		user, err := c.GetUser(ctx)
-		if err != nil {
-			return err
-		}
+		return t.withAddrKR(ctx, c, username, addrID, func(ctx context.Context, addrKR *crypto.KeyRing) error {
+			if _, err := stream.Collect(ctx, c.ImportMessages(
+				ctx,
+				addrKR,
+				runtime.NumCPU(),
+				runtime.NumCPU(),
+				req...,
+			)); err != nil {
+				return err
+			}
 
-		addr, err := c.GetAddresses(ctx)
-		if err != nil {
-			return err
-		}
-
-		salt, err := c.GetSalts(ctx)
-		if err != nil {
-			return err
-		}
-
-		keyPass, err := salt.SaltForKey([]byte(t.getUserPass(t.getUserID(username))), user.Keys.Primary().ID)
-		if err != nil {
-			return err
-		}
-
-		_, addrKRs, err := liteapi.Unlock(user, addr, keyPass)
-		if err != nil {
-			return err
-		}
-
-		if _, err := stream.Collect(ctx, c.ImportMessages(
-			ctx,
-			addrKRs[addrID],
-			runtime.NumCPU(),
-			runtime.NumCPU(),
-			req...,
-		)); err != nil {
-			return err
-		}
-
-		return nil
+			return nil
+		})
 	})
 }

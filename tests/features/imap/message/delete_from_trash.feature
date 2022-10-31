@@ -7,7 +7,7 @@ Feature: IMAP remove messages from Trash
       | label | label  |
 
   Scenario Outline: Message in Trash or Spam and some other label is not permanently deleted
-    And the address "user@pm.me" of account "user@pm.me" has the following messages in "<mailbox>":
+    Given the address "user@pm.me" of account "user@pm.me" has the following messages in "<mailbox>":
       | from              | to           | subject | body  |
       | john.doe@mail.com | user@pm.me   | foo     | hello |
       | jane.doe@mail.com | name@pm.me   | bar     | world |
@@ -35,7 +35,7 @@ Feature: IMAP remove messages from Trash
       | Trash   |
 
   Scenario Outline: Message in Trash or Spam only is permanently deleted
-    And the address "user@pm.me" of account "user@pm.me" has the following messages in "<mailbox>":
+    Given the address "user@pm.me" of account "user@pm.me" has the following messages in "<mailbox>":
       | from              | to           | subject | body  |
       | john.doe@mail.com | user@pm.me   | foo     | hello |
       | jane.doe@mail.com | name@pm.me   | bar     | world |

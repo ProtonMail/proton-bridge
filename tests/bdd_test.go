@@ -19,6 +19,7 @@ package tests
 
 import (
 	"context"
+	"os"
 	"runtime"
 	"strings"
 	"testing"
@@ -57,6 +58,11 @@ func (s *scenario) close(_ testing.TB) {
 }
 
 func TestFeatures(testingT *testing.T) {
+	paths := []string{"features"}
+	if features := os.Getenv("FEATURES"); features != "" {
+		paths = strings.Split(features, " ")
+	}
+
 	suite := godog.TestSuite{
 		ScenarioInitializer: func(ctx *godog.ScenarioContext) {
 			var s scenario
@@ -98,6 +104,7 @@ func TestFeatures(testingT *testing.T) {
 			ctx.Step(`^the address "([^"]*)" of account "([^"]*)" has the following messages in "([^"]*)":$`, s.theAddressOfAccountHasTheFollowingMessagesInMailbox)
 			ctx.Step(`^the address "([^"]*)" of account "([^"]*)" has (\d+) messages in "([^"]*)"$`, s.theAddressOfAccountHasMessagesInMailbox)
 			ctx.Step(`^the address "([^"]*)" of account "([^"]*)" has no keys$`, s.theAddressOfAccountHasNoKeys)
+			ctx.Step(`^the following fields where changed in draft (\d+) for address "([^"]*)" of account "([^"]*)":$`, s.addressDraftChanged)
 
 			// ==== BRIDGE ====
 			ctx.Step(`^bridge starts$`, s.bridgeStarts)
@@ -191,7 +198,7 @@ func TestFeatures(testingT *testing.T) {
 		},
 		Options: &godog.Options{
 			Format:   "pretty",
-			Paths:    []string{"features"},
+			Paths:    paths,
 			TestingT: testingT,
 		},
 	}

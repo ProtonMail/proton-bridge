@@ -18,6 +18,7 @@
 package logging
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"os"
@@ -146,4 +147,27 @@ func MatchLogName(name string) bool {
 
 func MatchGUILogName(name string) bool {
 	return regexp.MustCompile(`^gui_v.*\.log$`).MatchString(name)
+}
+
+type logKey string
+
+const logrusFields = logKey("logrus")
+
+func WithLogrusField(ctx context.Context, key string, value interface{}) context.Context {
+	fields, ok := ctx.Value(logrusFields).(logrus.Fields)
+	if !ok || fields == nil {
+		fields = logrus.Fields{}
+	}
+
+	fields[key] = value
+	return context.WithValue(ctx, logrusFields, fields)
+}
+
+func LogFromContext(ctx context.Context) *logrus.Entry {
+	fields, ok := ctx.Value(logrusFields).(logrus.Fields)
+	if !ok || fields == nil {
+		return logrus.WithField("ctx", "empty")
+	}
+
+	return logrus.WithFields(fields)
 }
