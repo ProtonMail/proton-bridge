@@ -2,6 +2,8 @@
 
 Bridge uses an encrypted vault to store persistent data. This is a tool for reading and writing this vault.
 
+It can be built with `make vault-editor` in the bridge source code root directory.
+
 Example usage:
 ```bash
 $ ./vault-editor read
