@@ -31,6 +31,7 @@ import (
 	"github.com/Masterminds/semver/v3"
 	"github.com/ProtonMail/proton-bridge/v2/internal/focus"
 	"github.com/allan-simon/go-singleinstance"
+	"github.com/sirupsen/logrus"
 	"golang.org/x/sys/unix"
 )
 
@@ -42,8 +43,11 @@ import (
 // it will kill old and continue with this new bridge (i.e. no error returned).
 func checkSingleInstance(lockFilePath string, curVersion *semver.Version) (*os.File, error) {
 	if lock, err := singleinstance.CreateLockFile(lockFilePath); err == nil {
+		logrus.WithField("path", lockFilePath).Debug("Created lock file; no other instance is running")
 		return lock, nil
 	}
+
+	logrus.Debug("Failed to create lock file; another instance is running")
 
 	// We couldn't create the lock file, so another instance is probably running.
 	// Check if it's an older version of the app.

@@ -21,7 +21,6 @@ import (
 	"context"
 	"fmt"
 	"net"
-	"time"
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/ProtonMail/proton-bridge/v2/internal/focus/proto"
@@ -34,65 +33,66 @@ import (
 // TryRaise tries to raise the application by dialing the focus service.
 // It returns true if the service is running and the application was told to raise.
 func TryRaise() bool {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-	defer cancel()
+	var raised bool
 
-	cc, err := grpc.DialContext(
-		ctx,
-		net.JoinHostPort(Host, fmt.Sprint(Port)),
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
-	)
-	if err != nil {
-		return false
-	}
-
-	defer func() {
-		if err := cc.Close(); err != nil {
-			logrus.WithError(err).Warn("Failed to close focus connection")
+	if err := withClientConn(context.Background(), func(ctx context.Context, client proto.FocusClient) error {
+		if _, err := client.Raise(ctx, &emptypb.Empty{}); err != nil {
+			return fmt.Errorf("failed to call client.Raise: %w", err)
 		}
-	}()
 
-	if _, err := proto.NewFocusClient(cc).Raise(ctx, &emptypb.Empty{}); err != nil {
+		raised = true
+
+		return nil
+	}); err != nil {
+		logrus.WithError(err).Debug("Failed to raise application")
 		return false
 	}
 
-	if err := cc.Close(); err != nil {
-		return false
-	}
-
-	return true
+	return raised
 }
 
-// TryVersion tries to raise the application by dialing the focus service.
-// It returns true if the service is running and the application was told to raise.
+// TryVersion tries to determine the version of the running application instance.
+// It returns the version and true if the version could be determined.
 func TryVersion() (*semver.Version, bool) {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-	defer cancel()
+	var version *semver.Version
 
-	cc, err := grpc.DialContext(
-		ctx,
-		net.JoinHostPort(Host, fmt.Sprint(Port)),
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
-	)
-	if err != nil {
-		return nil, false
-	}
-
-	defer func() {
-		if err := cc.Close(); err != nil {
-			logrus.WithError(err).Warn("Failed to close focus connection")
+	if err := withClientConn(context.Background(), func(ctx context.Context, client proto.FocusClient) error {
+		raw, err := client.Version(ctx, &emptypb.Empty{})
+		if err != nil {
+			return fmt.Errorf("failed to call client.Version: %w", err)
 		}
-	}()
 
-	raw, err := proto.NewFocusClient(cc).Version(ctx, &emptypb.Empty{})
-	if err != nil {
-		return nil, false
-	}
+		parsed, err := semver.NewVersion(raw.GetVersion())
+		if err != nil {
+			return fmt.Errorf("failed to parse version: %w", err)
+		}
 
-	version, err := semver.NewVersion(raw.GetVersion())
-	if err != nil {
+		version = parsed
+
+		return nil
+	}); err != nil {
+		logrus.WithError(err).Debug("Failed to determine version of running instance")
 		return nil, false
 	}
 
 	return version, true
+}
+
+func withClientConn(ctx context.Context, fn func(context.Context, proto.FocusClient) error) error {
+	cc, err := grpc.DialContext(
+		ctx,
+		net.JoinHostPort(Host, fmt.Sprint(Port)),
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+	)
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		if err := cc.Close(); err != nil {
+			logrus.WithError(err).Warn("Failed to close focus connection")
+		}
+	}()
+
+	return fn(ctx, proto.NewFocusClient(cc))
 }
