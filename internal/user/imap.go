@@ -30,6 +30,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/v2/internal/vault"
 	"github.com/ProtonMail/proton-bridge/v2/pkg/message"
 	"github.com/bradenaw/juniper/stream"
+	"github.com/bradenaw/juniper/xslices"
 	"gitlab.protontech.ch/go/liteapi"
 	"golang.org/x/exp/slices"
 )
@@ -308,26 +309,30 @@ func (conn *imapConnector) RemoveMessagesFromMailbox(ctx context.Context, messag
 	}
 
 	if mailboxID == liteapi.SpamLabel || mailboxID == liteapi.TrashLabel {
-		// check if messages are only in Trash and AllMail before they are permanently deleted.
-		var messagesToDelete []string
+		var metadata []liteapi.MessageMetadata
 
-		// GODT-1993 - Update to more efficient method.
-		for _, messageID := range messageIDs {
-			m, err := conn.client.GetMessage(ctx, string(messageID))
+		// There's currently no limit on how many IDs we can filter on,
+		// but to be nice to API, let's chunk it by 150.
+		for _, messageIDs := range xslices.Chunk(messageIDs, 150) {
+			m, err := conn.client.GetMessageMetadata(ctx, liteapi.MessageFilter{
+				ID: mapTo[imap.MessageID, string](messageIDs),
+			})
 			if err != nil {
-				return fmt.Errorf("failed to get message info")
+				return err
 			}
 
-			if len(m.LabelIDs) == 1 && m.LabelIDs[0] == liteapi.AllMailLabel {
-				messagesToDelete = append(messagesToDelete, m.ID)
-			}
+			m = xslices.Filter(m, func(m liteapi.MessageMetadata) bool {
+				return len(m.LabelIDs) == 1 && m.LabelIDs[0] == liteapi.AllMailLabel
+			})
+
+			metadata = append(metadata, m...)
 		}
 
-		if len(messagesToDelete) == 0 {
-			return nil
+		if err := conn.client.DeleteMessage(ctx, xslices.Map(metadata, func(m liteapi.MessageMetadata) string {
+			return m.ID
+		})...); err != nil {
+			return err
 		}
-
-		return conn.client.DeleteMessage(ctx, messagesToDelete...)
 	}
 
 	return nil

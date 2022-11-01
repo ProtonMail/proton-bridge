@@ -22,7 +22,6 @@ import (
 	"encoding/base64"
 	"fmt"
 	"net/mail"
-	"net/url"
 	"runtime"
 	"strings"
 
@@ -143,15 +142,16 @@ func getParentID( //nolint:funlen
 
 	// Try to find a parent ID in the internal references.
 	for _, internal := range internal {
-		filter := url.Values{
-			"ID": {internal},
-		}
+		var addrID string
 
 		if addrMode == vault.SplitMode {
-			filter["AddressID"] = []string{authAddrID}
+			addrID = authAddrID
 		}
 
-		metadata, err := client.GetMessageMetadata(ctx, filter)
+		metadata, err := client.GetMessageMetadata(ctx, liteapi.MessageFilter{
+			ID:        []string{internal},
+			AddressID: addrID,
+		})
 		if err != nil {
 			return "", fmt.Errorf("failed to get message metadata: %w", err)
 		}
@@ -168,15 +168,16 @@ func getParentID( //nolint:funlen
 	// If no parent was found, try to find it in the last external reference.
 	// There can be multiple messages with the same external ID; in this case, we don't pick any parent.
 	if parentID == "" && len(external) > 0 {
-		filter := url.Values{
-			"ExternalID": {external[len(external)-1]},
-		}
+		var addrID string
 
 		if addrMode == vault.SplitMode {
-			filter["AddressID"] = []string{authAddrID}
+			addrID = authAddrID
 		}
 
-		metadata, err := client.GetMessageMetadata(ctx, filter)
+		metadata, err := client.GetMessageMetadata(ctx, liteapi.MessageFilter{
+			ExternalID: external[len(external)-1],
+			AddressID:  addrID,
+		})
 		if err != nil {
 			return "", fmt.Errorf("failed to get message metadata: %w", err)
 		}
