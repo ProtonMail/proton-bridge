@@ -188,19 +188,9 @@ func syncMessages( //nolint:funlen
 	syncWorkers, syncBuffer int,
 ) error {
 	// Determine which messages to sync.
-	metadata, err := client.GetAllMessageMetadata(ctx, nil)
+	messageIDs, err := client.GetMessageIDs(ctx, vault.SyncStatus().LastMessageID)
 	if err != nil {
-		return fmt.Errorf("get all message metadata: %w", err)
-	}
-
-	// Get the message IDs to sync.
-	messageIDs := xslices.Map(metadata, func(metadata liteapi.MessageMetadata) string {
-		return metadata.ID
-	})
-
-	// If possible, begin syncing from one beyond the last synced message.
-	if idx := xslices.Index(messageIDs, vault.SyncStatus().LastMessageID); idx >= 0 {
-		messageIDs = messageIDs[idx+1:]
+		return fmt.Errorf("failed to get message IDs to sync: %w", err)
 	}
 
 	// Fetch and build each message.

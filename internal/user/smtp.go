@@ -151,7 +151,7 @@ func getParentID( //nolint:funlen
 			filter["AddressID"] = []string{authAddrID}
 		}
 
-		metadata, err := client.GetAllMessageMetadata(ctx, filter)
+		metadata, err := client.GetMessageMetadata(ctx, filter)
 		if err != nil {
 			return "", fmt.Errorf("failed to get message metadata: %w", err)
 		}
@@ -176,7 +176,7 @@ func getParentID( //nolint:funlen
 			filter["AddressID"] = []string{authAddrID}
 		}
 
-		metadata, err := client.GetAllMessageMetadata(ctx, filter)
+		metadata, err := client.GetMessageMetadata(ctx, filter)
 		if err != nil {
 			return "", fmt.Errorf("failed to get message metadata: %w", err)
 		}
