@@ -201,9 +201,13 @@ func run(c *cli.Context) error { //nolint:funlen
 func withSingleInstance(locations *locations.Locations, version *semver.Version, fn func() error) error {
 	lock, err := checkSingleInstance(locations.GetLockFile(), version)
 	if err != nil {
+		logrus.Info("Another instance is already running; raising it")
+
 		if ok := focus.TryRaise(); !ok {
 			return fmt.Errorf("another instance is already running but it could not be raised")
 		}
+
+		logrus.Info("The other instance has been raised")
 
 		return nil
 	}

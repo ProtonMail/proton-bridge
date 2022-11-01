@@ -42,6 +42,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"gitlab.protontech.ch/go/liteapi"
 	"golang.org/x/exp/maps"
+	"golang.org/x/exp/slices"
 )
 
 var (
@@ -264,10 +265,17 @@ func (user *User) Match(query string) bool {
 	}, user.apiUserLock, user.apiAddrsLock)
 }
 
-// Emails returns all the user's email addresses via the callback.
+// Emails returns all the user's email addresses.
+// It returns them in sorted order; the user's primary address is first.
 func (user *User) Emails() []string {
 	return safe.RLockRet(func() []string {
-		return xslices.Map(maps.Values(user.apiAddrs), func(addr liteapi.Address) string {
+		addresses := maps.Values(user.apiAddrs)
+
+		slices.SortFunc(addresses, func(a, b liteapi.Address) bool {
+			return a.Order < b.Order
+		})
+
+		return xslices.Map(addresses, func(addr liteapi.Address) string {
 			return addr.Email
 		})
 	}, user.apiAddrsLock)
