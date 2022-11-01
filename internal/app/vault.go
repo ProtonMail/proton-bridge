@@ -32,14 +32,23 @@ import (
 )
 
 func WithVault(locations *locations.Locations, fn func(*vault.Vault, bool, bool) error) error {
+	logrus.Debug("Creating vault")
+
 	// Create the encVault.
 	encVault, insecure, corrupt, err := newVault(locations)
 	if err != nil {
 		return fmt.Errorf("could not create vault: %w", err)
 	}
 
+	logrus.WithFields(logrus.Fields{
+		"insecure": insecure,
+		"corrupt":  corrupt,
+	}).Debug("Vault created")
+
 	// Install the certificates if needed.
 	if installed := encVault.GetCertsInstalled(); !installed {
+		logrus.Debug("Installing certificates")
+
 		if err := certs.NewInstaller().InstallCert(encVault.GetBridgeTLSCert()); err != nil {
 			return fmt.Errorf("failed to install certs: %w", err)
 		}
@@ -47,6 +56,8 @@ func WithVault(locations *locations.Locations, fn func(*vault.Vault, bool, bool)
 		if err := encVault.SetCertsInstalled(true); err != nil {
 			return fmt.Errorf("failed to set certs installed: %w", err)
 		}
+
+		logrus.Debug("Certificates successfully installed")
 	}
 
 	// GODT-1950: Add teardown actions (e.g. to close the vault).

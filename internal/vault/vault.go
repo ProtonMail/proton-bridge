@@ -31,6 +31,7 @@ import (
 
 	"github.com/ProtonMail/proton-bridge/v2/internal/certs"
 	"github.com/bradenaw/juniper/xslices"
+	"github.com/sirupsen/logrus"
 	"github.com/vmihailenco/msgpack/v5"
 )
 
@@ -184,6 +185,8 @@ func (vault *Vault) attachUser(userID string) *User {
 	vault.refLock.Lock()
 	defer vault.refLock.Unlock()
 
+	logrus.WithField("userID", userID).Trace("Attaching vault user")
+
 	vault.ref[userID]++
 
 	return &User{
@@ -195,6 +198,8 @@ func (vault *Vault) attachUser(userID string) *User {
 func (vault *Vault) detachUser(userID string) error {
 	vault.refLock.Lock()
 	defer vault.refLock.Unlock()
+
+	logrus.WithField("userID", userID).Trace("Detaching vault user")
 
 	if _, ok := vault.ref[userID]; !ok {
 		return fmt.Errorf("user %s is not attached", userID)

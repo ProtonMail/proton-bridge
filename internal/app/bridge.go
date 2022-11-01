@@ -56,8 +56,12 @@ func withBridge( //nolint:funlen
 	cookieJar http.CookieJar,
 	fn func(*bridge.Bridge, <-chan events.Event) error,
 ) error {
+	logrus.Debug("Creating bridge")
+
 	// Delete old go-imap cache files
 	if deleteOldGoIMAPFiles {
+		logrus.Debug("Deleting old go-imap cache files")
+
 		if err := locations.CleanGoIMAPCache(); err != nil {
 			logrus.WithError(err).Error("Failed to remove old go-imap cache")
 		}
@@ -116,6 +120,8 @@ func withBridge( //nolint:funlen
 }
 
 func newAutostarter(exe string) *autostart.App {
+	logrus.Debug("Creating autostarter")
+
 	return &autostart.App{
 		Name:        constants.FullAppName,
 		DisplayName: constants.FullAppName,
@@ -128,6 +134,8 @@ func newUpdater(locations *locations.Locations) (*updater.Updater, error) {
 	if err != nil {
 		return nil, fmt.Errorf("could not provide updates path: %w", err)
 	}
+
+	logrus.WithField("updates", updatesDir).Debug("Creating updater")
 
 	key, err := crypto.NewKeyFromArmored(updater.DefaultPublicKey)
 	if err != nil {

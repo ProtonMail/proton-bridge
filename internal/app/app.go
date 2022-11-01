@@ -199,6 +199,8 @@ func run(c *cli.Context) error { //nolint:funlen
 
 // If there's another instance already running, try to raise it and exit.
 func withSingleInstance(locations *locations.Locations, version *semver.Version, fn func() error) error {
+	logrus.Debug("Checking for other instances")
+
 	lock, err := checkSingleInstance(locations.GetLockFile(), version)
 	if err != nil {
 		logrus.Info("Another instance is already running; raising it")
@@ -229,6 +231,8 @@ func withLogging(c *cli.Context, crashHandler *crash.Handler, locations *locatio
 		return fmt.Errorf("could not provide logs path: %w", err)
 	}
 
+	logrus.WithField("path", logsPath).Debug("Initializing logging")
+
 	// Initialize logging.
 	if err := logging.Init(logsPath, c.String(flagLogLevel)); err != nil {
 		return fmt.Errorf("could not initialize logging: %w", err)
@@ -251,6 +255,8 @@ func withLogging(c *cli.Context, crashHandler *crash.Handler, locations *locatio
 
 // WithLocations provides access to locations where we store our files.
 func WithLocations(fn func(*locations.Locations) error) error {
+	logrus.Debug("Creating locations")
+
 	// Create a locations provider to determine where to store our files.
 	provider, err := locations.NewDefaultProvider(filepath.Join(constants.VendorName, constants.ConfigName))
 	if err != nil {
@@ -271,10 +277,12 @@ func WithLocations(fn func(*locations.Locations) error) error {
 // Start profiling if requested.
 func withProfiler(c *cli.Context, fn func() error) error {
 	if c.Bool(flagCPUProfile) {
+		logrus.Debug("Running with CPU profiling")
 		defer profile.Start(profile.CPUProfile, profile.ProfilePath(".")).Stop()
 	}
 
 	if c.Bool(flagMemProfile) {
+		logrus.Debug("Running with memory profiling")
 		defer profile.Start(profile.MemProfile, profile.MemProfileAllocs, profile.ProfilePath(".")).Stop()
 	}
 
@@ -283,6 +291,8 @@ func withProfiler(c *cli.Context, fn func() error) error {
 
 // Restart the app if necessary.
 func withRestarter(exe string, fn func(*restarter.Restarter) error) error {
+	logrus.Debug("Creating restarter")
+
 	restarter := restarter.New(exe)
 	defer restarter.Restart()
 
@@ -291,6 +301,8 @@ func withRestarter(exe string, fn func(*restarter.Restarter) error) error {
 
 // Handle crashes if they occur.
 func withCrashHandler(restarter *restarter.Restarter, reporter *sentry.Reporter, fn func(*crash.Handler) error) error {
+	logrus.Debug("Creating crash handler")
+
 	crashHandler := crash.NewHandler(crash.ShowErrorNotification(constants.FullAppName))
 	defer crashHandler.HandlePanic()
 
@@ -301,13 +313,15 @@ func withCrashHandler(restarter *restarter.Restarter, reporter *sentry.Reporter,
 	crashHandler.AddRecoveryAction(crash.ShowErrorNotification(constants.FullAppName))
 
 	// On crash, restart the app.
-	crashHandler.AddRecoveryAction(func(r any) error { restarter.Set(true, true); return nil })
+	crashHandler.AddRecoveryAction(func(any) error { restarter.Set(true, true); return nil })
 
 	return fn(crashHandler)
 }
 
 // Use a custom cookie jar to persist values across runs.
 func withCookieJar(vault *vault.Vault, fn func(http.CookieJar) error) error {
+	logrus.Debug("Creating cookie jar")
+
 	// Create the underlying cookie jar.
 	jar, err := cookiejar.New(nil)
 	if err != nil {
@@ -322,6 +336,8 @@ func withCookieJar(vault *vault.Vault, fn func(http.CookieJar) error) error {
 
 	// Persist the cookies to the vault when we close.
 	defer func() {
+		logrus.Debug("Persisting cookies")
+
 		if err := persister.PersistCookies(); err != nil {
 			logrus.WithError(err).Error("Failed to persist cookies")
 		}
