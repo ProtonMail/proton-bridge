@@ -27,7 +27,6 @@ import (
 
 	"github.com/ProtonMail/proton-bridge/v2/internal/constants"
 	"github.com/sirupsen/logrus"
-	"github.com/sirupsen/logrus/hooks/writer"
 )
 
 const (
@@ -45,22 +44,50 @@ const (
 	MaxLogs = 3
 )
 
+type coloredStdOutHook struct {
+	formatter logrus.Formatter
+}
+
+func newColoredStdOutHook() *coloredStdOutHook {
+	return &coloredStdOutHook{
+		formatter: &logrus.TextFormatter{
+			ForceColors:     true,
+			FullTimestamp:   true,
+			TimestampFormat: time.StampMilli,
+		},
+	}
+}
+
+func (cs *coloredStdOutHook) Levels() []logrus.Level {
+	return []logrus.Level{
+		logrus.PanicLevel,
+		logrus.FatalLevel,
+		logrus.ErrorLevel,
+		logrus.WarnLevel,
+	}
+}
+
+func (cs *coloredStdOutHook) Fire(entry *logrus.Entry) error {
+	bytes, err := cs.formatter.Format(entry)
+	if err != nil {
+		return err
+	}
+
+	if _, err := os.Stdout.Write(bytes); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func Init(logsPath, level string) error {
 	logrus.SetFormatter(&logrus.TextFormatter{
-		ForceColors:     true,
+		DisableColors:   true,
 		FullTimestamp:   true,
 		TimestampFormat: time.StampMilli,
 	})
 
-	logrus.AddHook(&writer.Hook{
-		Writer: os.Stderr,
-		LogLevels: []logrus.Level{
-			logrus.PanicLevel,
-			logrus.FatalLevel,
-			logrus.ErrorLevel,
-			logrus.WarnLevel,
-		},
-	})
+	logrus.AddHook(newColoredStdOutHook())
 
 	rotator, err := NewRotator(MaxLogSize, func() (io.WriteCloser, error) {
 		// Leaving MaxLogs-1 since new log file will be opened right away.
@@ -100,6 +127,10 @@ func setLevel(level string) error {
 	if logrus.GetLevel() == logrus.TraceLevel {
 		_ = logrus.StandardLogger().ReplaceHooks(logrus.LevelHooks{})
 		logrus.SetOutput(os.Stderr)
+		logrus.SetFormatter(&logrus.TextFormatter{
+			FullTimestamp:   true,
+			TimestampFormat: time.StampMilli,
+		})
 	}
 
 	return nil
