@@ -21,9 +21,6 @@ package constants
 import (
 	"fmt"
 	"runtime"
-
-	"golang.org/x/text/cases"
-	"golang.org/x/text/language"
 )
 
 const VendorName = "protonmail"
@@ -68,21 +65,22 @@ const (
 
 // AppVersion returns the full rendered version of the app (to be used in request headers).
 func AppVersion(version string) string {
-	return getAPIOS() + cases.Title(language.Und).String(AppName) + "_" + version
+	return fmt.Sprintf("%v-%v@%v", getAPIOS(), AppName, version)
 }
 
+// nolint:goconst
 func getAPIOS() string {
 	switch runtime.GOOS {
 	case "darwin":
-		return "macOS"
+		return "macos"
 
 	case "linux":
-		return "Linux"
+		return "linux"
 
 	case "windows":
-		return "Windows"
+		return "windows"
 
 	default:
-		return "Linux"
+		return "linux"
 	}
 }
