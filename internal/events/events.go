@@ -17,7 +17,11 @@
 
 package events
 
+import "fmt"
+
 type Event interface {
+	fmt.Stringer
+
 	_isEvent()
 }
 

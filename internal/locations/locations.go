@@ -177,16 +177,6 @@ func (l *Locations) ProvideUpdatesPath() (string, error) {
 	return l.getUpdatesPath(), nil
 }
 
-// GetUpdatesPath returns a new location for update files used for migration scripts only.
-func (l *Locations) GetUpdatesPath() string {
-	return l.getUpdatesPath()
-}
-
-// GetOldUpdatesPath returns a former location for update files used for migration scripts only.
-func (l *Locations) GetOldUpdatesPath() string {
-	return filepath.Join(l.userCache, "updates")
-}
-
 func (l *Locations) getGluonPath() string {
 	return filepath.Join(l.userData, "gluon")
 }
@@ -208,17 +198,7 @@ func (l *Locations) getGoIMAPCachePath() string {
 }
 
 func (l *Locations) getUpdatesPath() string {
-	// In order to properly update Bridge 1.6.X and higher we need to
-	// change the launcher first. Since this is not part of automatic
-	// updates the migration must wait until manual update. Until that
-	// we need to keep old path.
-	if l.configName == "bridge" {
-		return l.GetOldUpdatesPath()
-	}
-
-	// Users might use tools to regularly clear caches, which would mean always
-	// removing updates, therefore Bridge updates have to be somewhere else.
-	return filepath.Join(l.userConfig, "updates")
+	return filepath.Join(l.userData, "updates")
 }
 
 // Clear removes everything except the lock and update files.

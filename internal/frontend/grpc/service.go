@@ -34,6 +34,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/v2/internal/crash"
 	"github.com/ProtonMail/proton-bridge/v2/internal/events"
 	"github.com/ProtonMail/proton-bridge/v2/internal/locations"
+	"github.com/ProtonMail/proton-bridge/v2/internal/safe"
 	"github.com/ProtonMail/proton-bridge/v2/internal/updater"
 	"github.com/ProtonMail/proton-bridge/v2/pkg/restarter"
 	"github.com/google/uuid"
@@ -63,11 +64,16 @@ type Service struct { // nolint:structcheck
 	eventQueue         []*StreamEvent
 	eventQueueMutex    sync.Mutex
 
-	panicHandler   *crash.Handler
-	restarter      *restarter.Restarter
-	bridge         *bridge.Bridge
-	eventCh        <-chan events.Event
-	newVersionInfo updater.VersionInfo
+	panicHandler *crash.Handler
+	restarter    *restarter.Restarter
+	bridge       *bridge.Bridge
+	eventCh      <-chan events.Event
+
+	latest     updater.VersionInfo
+	latestLock safe.RWMutex
+
+	target     updater.VersionInfo
+	targetLock safe.RWMutex
 
 	authClient *liteapi.Client
 	auth       liteapi.Auth
@@ -82,6 +88,8 @@ type Service struct { // nolint:structcheck
 }
 
 // NewService returns a new instance of the service.
+//
+// nolint:funlen
 func NewService(
 	panicHandler *crash.Handler,
 	restarter *restarter.Restarter,
@@ -120,6 +128,12 @@ func NewService(
 		restarter:    restarter,
 		bridge:       bridge,
 		eventCh:      eventCh,
+
+		latest:     updater.VersionInfo{},
+		latestLock: safe.NewRWMutex(),
+
+		target:     updater.VersionInfo{},
+		targetLock: safe.NewRWMutex(),
 
 		log:                logrus.WithField("pkg", "grpc"),
 		initializing:       sync.WaitGroup{},
@@ -178,33 +192,12 @@ func (s *Service) Loop() error {
 	return nil
 }
 
-func (s *Service) NotifyManualUpdate(version updater.VersionInfo, canInstall bool) {
-	if canInstall {
-		_ = s.SendEvent(NewUpdateManualReadyEvent(version.Version.String()))
-	} else {
-		_ = s.SendEvent(NewUpdateErrorEvent(UpdateErrorType_UPDATE_MANUAL_ERROR))
-	}
-}
-
-func (s *Service) SetVersion(update updater.VersionInfo) {
-	s.newVersionInfo = update
-	_ = s.SendEvent(NewUpdateVersionChangedEvent())
-}
-
-func (s *Service) NotifySilentUpdateInstalled() {
-	_ = s.SendEvent(NewUpdateSilentRestartNeededEvent())
-}
-
-func (s *Service) NotifySilentUpdateError(err error) {
-	s.log.WithError(err).Error("In app update failed, asking for manual.")
-	_ = s.SendEvent(NewUpdateErrorEvent(UpdateErrorType_UPDATE_SILENT_ERROR))
-}
-
 func (s *Service) WaitUntilFrontendIsReady() {
 	s.initializing.Wait()
 }
 
-func (s *Service) watchEvents() { //nolint:funlen
+// nolint:funlen,gocyclo
+func (s *Service) watchEvents() {
 	// GODT-1949 Better error events.
 	for _, err := range s.bridge.GetErrors() {
 		switch {
@@ -270,11 +263,43 @@ func (s *Service) watchEvents() { //nolint:funlen
 				_ = s.SendEvent(NewUserDisconnectedEvent(user.Username))
 			}
 
-		case events.TLSIssue:
-			_ = s.SendEvent(NewMailApiCertIssue())
+		case events.UpdateLatest:
+			safe.RLock(func() {
+				s.latest = event.Version
+			}, s.latestLock)
+
+		case events.UpdateAvailable:
+			switch {
+			case !event.Compatible:
+				_ = s.SendEvent(NewUpdateErrorEvent(UpdateErrorType_UPDATE_MANUAL_ERROR))
+
+			case !event.Silent:
+				safe.RLock(func() {
+					s.target = event.Version
+				}, s.targetLock)
+
+				_ = s.SendEvent(NewUpdateManualReadyEvent(event.Version.Version.String()))
+			}
+
+		case events.UpdateInstalled:
+			if event.Silent {
+				_ = s.SendEvent(NewUpdateSilentRestartNeededEvent())
+			} else {
+				_ = s.SendEvent(NewUpdateManualRestartNeededEvent())
+			}
+
+		case events.UpdateFailed:
+			if event.Silent {
+				_ = s.SendEvent(NewUpdateErrorEvent(UpdateErrorType_UPDATE_SILENT_ERROR))
+			} else {
+				_ = s.SendEvent(NewUpdateErrorEvent(UpdateErrorType_UPDATE_MANUAL_ERROR))
+			}
 
 		case events.UpdateForced:
-			_ = s.SendEvent(NewUpdateForceEvent(s.newVersionInfo.Version.String()))
+			_ = s.SendEvent(NewUpdateForceEvent(event.Version.Version.String()))
+
+		case events.TLSIssue:
+			_ = s.SendEvent(NewMailApiCertIssue())
 		}
 	}
 }

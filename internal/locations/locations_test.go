@@ -47,7 +47,6 @@ func TestClearRemovesEverythingExceptLockAndUpdateFiles(t *testing.T) {
 
 	assert.NoError(t, l.Clear())
 
-	assert.DirExists(t, l.getSettingsPath())
 	assert.NoFileExists(t, filepath.Join(l.getSettingsPath(), "prefs.json"))
 	assert.NoDirExists(t, l.getLogsPath())
 	assert.DirExists(t, l.getUpdatesPath())

@@ -74,6 +74,7 @@ type Bridge struct {
 	// updater is the bridge's updater.
 	updater    Updater
 	curVersion *semver.Version
+	installCh  chan installJob
 
 	// focusService is used to raise the bridge window when needed.
 	focusService *focus.Service
@@ -241,6 +242,7 @@ func newBridge(
 
 		updater:    updater,
 		curVersion: curVersion,
+		installCh:  make(chan installJob, 1),
 
 		focusService: focusService,
 		autostarter:  autostarter,
@@ -340,17 +342,24 @@ func (bridge *Bridge) init(tlsReporter TLSReporter) error {
 	defer bridge.goLoad()
 
 	// Check for updates when triggered.
-	bridge.goUpdate = bridge.tasks.PeriodicOrTrigger(constants.UpdateCheckInterval, 0, func(context.Context) {
+	bridge.goUpdate = bridge.tasks.PeriodicOrTrigger(constants.UpdateCheckInterval, 0, func(ctx context.Context) {
 		logrus.Info("Checking for updates")
 
-		version, err := bridge.updater.GetVersionInfo(bridge.api, bridge.vault.GetUpdateChannel())
+		version, err := bridge.updater.GetVersionInfo(ctx, bridge.api, bridge.vault.GetUpdateChannel())
 		if err != nil {
-			logrus.WithError(err).Error("Failed to get version info")
-		} else if err := bridge.handleUpdate(version); err != nil {
-			logrus.WithError(err).Error("Failed to handle update")
+			logrus.WithError(err).Error("Failed to check for updates")
+		} else {
+			bridge.handleUpdate(version)
 		}
 	})
 	defer bridge.goUpdate()
+
+	// Install updates when available.
+	bridge.tasks.Once(func(ctx context.Context) {
+		async.RangeContext(ctx, bridge.installCh, func(job installJob) {
+			bridge.installUpdate(ctx, job)
+		})
+	})
 
 	return nil
 }

@@ -214,7 +214,7 @@ func (s *scenario) bridgeSendsAnUpdateAvailableEventForVersion(version string) e
 		return errors.New("expected update available event, got none")
 	}
 
-	if !event.CanInstall {
+	if !event.Compatible {
 		return errors.New("expected update event to be installable")
 	}
 
@@ -231,7 +231,7 @@ func (s *scenario) bridgeSendsAManualUpdateEventForVersion(version string) error
 		return errors.New("expected update available event, got none")
 	}
 
-	if event.CanInstall {
+	if event.Compatible {
 		return errors.New("expected update event to not be installable")
 	}
 

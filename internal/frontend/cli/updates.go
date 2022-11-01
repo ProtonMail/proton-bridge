@@ -18,12 +18,24 @@
 package cli
 
 import (
+	"github.com/ProtonMail/proton-bridge/v2/internal/events"
 	"github.com/ProtonMail/proton-bridge/v2/internal/updater"
 	"github.com/abiosoft/ishell"
 )
 
 func (f *frontendCLI) checkUpdates(c *ishell.Context) {
+	updateCh, done := f.bridge.GetEvents(events.UpdateAvailable{}, events.UpdateNotAvailable{})
+	defer done()
+
 	f.bridge.CheckForUpdates()
+
+	switch (<-updateCh).(type) {
+	case events.UpdateAvailable:
+		// ... this is handled by the main event loop
+
+	case events.UpdateNotAvailable:
+		f.Println("Bridge is already up to date.")
+	}
 }
 
 func (f *frontendCLI) enableAutoUpdates(c *ishell.Context) {

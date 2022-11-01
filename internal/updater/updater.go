@@ -58,9 +58,9 @@ func NewUpdater(installer Installer, verifier *crypto.KeyRing, product, platform
 	}
 }
 
-func (u *Updater) GetVersionInfo(downloader Downloader, channel Channel) (VersionInfo, error) {
+func (u *Updater) GetVersionInfo(ctx context.Context, downloader Downloader, channel Channel) (VersionInfo, error) {
 	b, err := downloader.DownloadAndVerify(
-		context.Background(),
+		ctx,
 		u.verifier,
 		u.getVersionFileURL(),
 		u.getVersionFileURL()+".sig",
@@ -83,9 +83,9 @@ func (u *Updater) GetVersionInfo(downloader Downloader, channel Channel) (Versio
 	return version, nil
 }
 
-func (u *Updater) InstallUpdate(downloader Downloader, update VersionInfo) error {
+func (u *Updater) InstallUpdate(ctx context.Context, downloader Downloader, update VersionInfo) error {
 	b, err := downloader.DownloadAndVerify(
-		context.Background(),
+		ctx,
 		u.verifier,
 		update.Package,
 		update.Package+".sig",

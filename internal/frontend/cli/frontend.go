@@ -337,7 +337,17 @@ func (f *frontendCLI) watchEvents(eventCh <-chan events.Event) { // nolint:funle
 			)
 
 		case events.UpdateAvailable:
-			f.Printf("An update is available (version %v)\n", event.Version.Version)
+			if !event.Compatible {
+				f.Printf("A new version (%v) is available but it cannot be installed automatically.\n", event.Version.Version)
+			} else if !event.Silent {
+				f.Printf("A new version (%v) is available.\n", event.Version.Version)
+			}
+
+		case events.UpdateInstalled:
+			f.Printf("A new version (%v) was installed.\n", event.Version.Version)
+
+		case events.UpdateFailed:
+			f.Printf("A new version (%v) failed to be installed (%v).\n", event.Version.Version, event.Error)
 
 		case events.UpdateForced:
 			f.notifyNeedUpgrade()

@@ -237,7 +237,8 @@ func TestBridge_CheckUpdate(t *testing.T) {
 					MinAuto:           v2_3_0,
 					RolloutProportion: 1.0,
 				},
-				CanInstall: true,
+				Silent:     false,
+				Compatible: true,
 			}, <-updateCh)
 		})
 	})
@@ -259,13 +260,14 @@ func TestBridge_AutoUpdate(t *testing.T) {
 			// Check for updates.
 			bridge.CheckForUpdates()
 
-			// We should receive an event indicating that the update was installed.
+			// We should receive an event indicating that the update was silently installed.
 			require.Equal(t, events.UpdateInstalled{
 				Version: updater.VersionInfo{
 					Version:           v2_4_0,
 					MinAuto:           v2_3_0,
 					RolloutProportion: 1.0,
 				},
+				Silent: true,
 			}, <-updateCh)
 		})
 	})
@@ -294,7 +296,8 @@ func TestBridge_ManualUpdate(t *testing.T) {
 					MinAuto:           v2_4_0,
 					RolloutProportion: 1.0,
 				},
-				CanInstall: false,
+				Silent:     false,
+				Compatible: false,
 			}, <-updateCh)
 		})
 	})

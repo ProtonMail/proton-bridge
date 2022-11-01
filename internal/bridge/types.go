@@ -18,6 +18,8 @@
 package bridge
 
 import (
+	"context"
+
 	"github.com/ProtonMail/proton-bridge/v2/internal/updater"
 )
 
@@ -51,6 +53,6 @@ type Autostarter interface {
 }
 
 type Updater interface {
-	GetVersionInfo(downloader updater.Downloader, channel updater.Channel) (updater.VersionInfo, error)
-	InstallUpdate(downloader updater.Downloader, update updater.VersionInfo) error
+	GetVersionInfo(context.Context, updater.Downloader, updater.Channel) (updater.VersionInfo, error)
+	InstallUpdate(context.Context, updater.Downloader, updater.VersionInfo) error
 }

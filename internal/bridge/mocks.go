@@ -1,6 +1,7 @@
 package bridge
 
 import (
+	"context"
 	"net/http"
 	"net/url"
 	"os"
@@ -129,13 +130,13 @@ func (testUpdater *TestUpdater) SetLatestVersion(version, minAuto *semver.Versio
 	}
 }
 
-func (testUpdater *TestUpdater) GetVersionInfo(downloader updater.Downloader, channel updater.Channel) (updater.VersionInfo, error) {
+func (testUpdater *TestUpdater) GetVersionInfo(ctx context.Context, downloader updater.Downloader, channel updater.Channel) (updater.VersionInfo, error) {
 	testUpdater.lock.RLock()
 	defer testUpdater.lock.RUnlock()
 
 	return testUpdater.latest, nil
 }
 
-func (testUpdater *TestUpdater) InstallUpdate(downloader updater.Downloader, update updater.VersionInfo) error {
+func (testUpdater *TestUpdater) InstallUpdate(ctx context.Context, downloader updater.Downloader, update updater.VersionInfo) error {
 	return nil
 }

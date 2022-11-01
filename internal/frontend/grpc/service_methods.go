@@ -26,7 +26,9 @@ import (
 	"github.com/Masterminds/semver/v3"
 	"github.com/ProtonMail/proton-bridge/v2/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/v2/internal/constants"
+	"github.com/ProtonMail/proton-bridge/v2/internal/events"
 	"github.com/ProtonMail/proton-bridge/v2/internal/frontend/theme"
+	"github.com/ProtonMail/proton-bridge/v2/internal/safe"
 	"github.com/ProtonMail/proton-bridge/v2/internal/updater"
 	"github.com/ProtonMail/proton-bridge/v2/pkg/keychain"
 	"github.com/ProtonMail/proton-bridge/v2/pkg/ports"
@@ -257,11 +259,17 @@ func (s *Service) DependencyLicensesLink(_ context.Context, _ *emptypb.Empty) (*
 }
 
 func (s *Service) ReleaseNotesPageLink(ctx context.Context, _ *emptypb.Empty) (*wrapperspb.StringValue, error) {
-	return wrapperspb.String(s.newVersionInfo.ReleaseNotesPage), nil
+	s.latestLock.RLock()
+	defer s.latestLock.RUnlock()
+
+	return wrapperspb.String(s.latest.ReleaseNotesPage), nil
 }
 
 func (s *Service) LandingPageLink(_ context.Context, _ *emptypb.Empty) (*wrapperspb.StringValue, error) {
-	return wrapperspb.String(s.newVersionInfo.LandingPage), nil
+	s.latestLock.RLock()
+	defer s.latestLock.RUnlock()
+
+	return wrapperspb.String(s.latest.LandingPage), nil
 }
 
 func (s *Service) SetColorSchemeName(ctx context.Context, name *wrapperspb.StringValue) (*emptypb.Empty, error) {
@@ -486,15 +494,28 @@ func (s *Service) LoginAbort(ctx context.Context, loginAbort *LoginAbortRequest)
 	return &emptypb.Empty{}, nil
 }
 
-/*
 func (s *Service) CheckUpdate(context.Context, *emptypb.Empty) (*emptypb.Empty, error) {
 	s.log.Debug("CheckUpdate")
 
 	go func() {
 		defer s.panicHandler.HandlePanic()
 
-		s.checkUpdateAndNotify(true)
+		updateCh, done := s.bridge.GetEvents(events.UpdateAvailable{}, events.UpdateNotAvailable{})
+		defer done()
+
+		s.bridge.CheckForUpdates()
+
+		switch (<-updateCh).(type) {
+		case events.UpdateAvailable:
+			// ... this is handled by the main event loop
+
+		case events.UpdateNotAvailable:
+			_ = s.SendEvent(NewUpdateIsLatestVersionEvent())
+		}
+
+		_ = s.SendEvent(NewUpdateCheckFinishedEvent())
 	}()
+
 	return &emptypb.Empty{}, nil
 }
 
@@ -504,18 +525,18 @@ func (s *Service) InstallUpdate(ctx context.Context, _ *emptypb.Empty) (*emptypb
 	go func() {
 		defer s.panicHandler.HandlePanic()
 
-		s.installUpdate()
+		safe.RLock(func() {
+			s.bridge.InstallUpdate(s.latest)
+		}, s.targetLock)
 	}()
 
 	return &emptypb.Empty{}, nil
 }
-*/
 
 func (s *Service) SetIsAutomaticUpdateOn(ctx context.Context, isOn *wrapperspb.BoolValue) (*emptypb.Empty, error) {
 	s.log.WithField("isOn", isOn.Value).Debug("SetIsAutomaticUpdateOn")
 
-	currentlyOn := s.bridge.GetAutoUpdate()
-	if currentlyOn == isOn.Value {
+	if currentlyOn := s.bridge.GetAutoUpdate(); currentlyOn == isOn.Value {
 		return &emptypb.Empty{}, nil
 	}
 
@@ -548,6 +569,7 @@ func (s *Service) SetDiskCachePath(ctx context.Context, newPath *wrapperspb.Stri
 		}()
 
 		path := newPath.Value
+
 		//goland:noinspection GoBoolExpressions
 		if (runtime.GOOS == "windows") && (path[0] == '/') {
 			path = path[1:]

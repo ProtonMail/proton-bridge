@@ -18,43 +18,123 @@
 package bridge
 
 import (
+	"context"
+
 	"github.com/ProtonMail/proton-bridge/v2/internal/events"
 	"github.com/ProtonMail/proton-bridge/v2/internal/updater"
+	"github.com/sirupsen/logrus"
 )
 
 func (bridge *Bridge) CheckForUpdates() {
 	bridge.goUpdate()
 }
 
-func (bridge *Bridge) handleUpdate(version updater.VersionInfo) error {
+func (bridge *Bridge) InstallUpdate(version updater.VersionInfo) {
+	log := logrus.WithFields(logrus.Fields{
+		"version": version.Version,
+		"current": bridge.curVersion,
+		"channel": bridge.vault.GetUpdateChannel(),
+	})
+
+	select {
+	case bridge.installCh <- installJob{version: version, silent: false}:
+		log.Info("The update will be installed manually")
+
+	default:
+		log.Info("An update is already being installed")
+	}
+}
+
+func (bridge *Bridge) handleUpdate(version updater.VersionInfo) {
+	log := logrus.WithFields(logrus.Fields{
+		"version": version.Version,
+		"current": bridge.curVersion,
+		"channel": bridge.vault.GetUpdateChannel(),
+	})
+
+	bridge.publish(events.UpdateLatest{
+		Version: version,
+	})
+
 	switch {
 	case !version.Version.GreaterThan(bridge.curVersion):
+		log.Debug("No update available")
+
 		bridge.publish(events.UpdateNotAvailable{})
 
 	case version.RolloutProportion < bridge.vault.GetUpdateRollout():
+		log.Info("An update is available but has not been rolled out yet")
+
 		bridge.publish(events.UpdateNotAvailable{})
 
 	case bridge.curVersion.LessThan(version.MinAuto):
+		log.Info("An update is available but is incompatible with this version")
+
 		bridge.publish(events.UpdateAvailable{
 			Version:    version,
-			CanInstall: false,
+			Compatible: false,
+			Silent:     false,
 		})
 
 	case !bridge.vault.GetAutoUpdate():
+		log.Info("An update is available but auto-update is disabled")
+
 		bridge.publish(events.UpdateAvailable{
 			Version:    version,
-			CanInstall: true,
+			Compatible: true,
+			Silent:     false,
 		})
 
 	default:
-		if err := bridge.updater.InstallUpdate(bridge.api, version); err != nil {
-			return err
+		log.Info("An update is available")
+
+		bridge.publish(events.UpdateAvailable{
+			Version:    version,
+			Compatible: true,
+			Silent:     true,
+		})
+
+		select {
+		case bridge.installCh <- installJob{version: version, silent: true}:
+			log.Info("The update will be installed silently")
+
+		default:
+			log.Info("An update is already being installed")
 		}
+	}
+}
+
+type installJob struct {
+	version updater.VersionInfo
+	silent  bool
+}
+
+func (bridge *Bridge) installUpdate(ctx context.Context, job installJob) {
+	log := logrus.WithFields(logrus.Fields{
+		"version": job.version.Version,
+		"current": bridge.curVersion,
+		"channel": bridge.vault.GetUpdateChannel(),
+	})
+
+	bridge.publish(events.UpdateInstalling{
+		Version: job.version,
+		Silent:  job.silent,
+	})
+
+	if err := bridge.updater.InstallUpdate(ctx, bridge.api, job.version); err != nil {
+		log.Error("The update could not be installed")
+
+		bridge.publish(events.UpdateFailed{
+			Version: job.version,
+			Silent:  job.silent,
+			Error:   err,
+		})
+	} else {
+		log.Info("The update was installed successfully")
 
 		bridge.publish(events.UpdateInstalled{
-			Version: version,
+			Version: job.version,
+			Silent:  job.silent,
 		})
 	}
-
-	return nil
 }
