@@ -79,20 +79,10 @@ func (conn *imapConnector) Authorize(username string, password []byte) bool {
 	return true
 }
 
-// GetMailbox returns information about the mailbox with the given ID.
-func (conn *imapConnector) GetMailbox(ctx context.Context, mailboxID imap.MailboxID) (imap.Mailbox, error) {
-	return safe.RLockRetErr(func() (imap.Mailbox, error) {
-		mailbox, ok := conn.apiLabels[string(mailboxID)]
-		if !ok {
-			return imap.Mailbox{}, fmt.Errorf("no such mailbox: %s", mailboxID)
-		}
-
-		return toIMAPMailbox(mailbox, conn.flags, conn.permFlags, conn.attrs), nil
-	}, conn.apiLabelsLock)
-}
-
 // CreateMailbox creates a label with the given name.
 func (conn *imapConnector) CreateMailbox(ctx context.Context, name []string) (imap.Mailbox, error) {
+	defer conn.goPoll()
+
 	if len(name) < 2 {
 		return imap.Mailbox{}, fmt.Errorf("invalid mailbox name %q", name)
 	}
@@ -162,6 +152,8 @@ func (conn *imapConnector) createFolder(ctx context.Context, name []string) (ima
 
 // UpdateMailboxName sets the name of the label with the given ID.
 func (conn *imapConnector) UpdateMailboxName(ctx context.Context, labelID imap.MailboxID, name []string) error {
+	defer conn.goPoll()
+
 	if len(name) < 2 {
 		return fmt.Errorf("invalid mailbox name %q", name)
 	}
@@ -237,17 +229,9 @@ func (conn *imapConnector) updateFolder(ctx context.Context, labelID imap.Mailbo
 
 // DeleteMailbox deletes the label with the given ID.
 func (conn *imapConnector) DeleteMailbox(ctx context.Context, labelID imap.MailboxID) error {
+	defer conn.goPoll()
+
 	return conn.client.DeleteLabel(ctx, string(labelID))
-}
-
-// GetMessage returns the message with the given ID.
-func (conn *imapConnector) GetMessage(ctx context.Context, messageID imap.MessageID) (imap.Message, []imap.MailboxID, error) {
-	message, err := conn.client.GetMessage(ctx, string(messageID))
-	if err != nil {
-		return imap.Message{}, nil, err
-	}
-
-	return toIMAPMessage(message.MessageMetadata), mapTo[string, imap.MailboxID](message.LabelIDs), nil
 }
 
 // CreateMessage creates a new message on the remote.
@@ -258,6 +242,8 @@ func (conn *imapConnector) CreateMessage(
 	flags imap.FlagSet,
 	date time.Time,
 ) (imap.Message, []byte, error) {
+	defer conn.goPoll()
+
 	// Compute the hash of the message (to match it against SMTP messages).
 	hash, err := getMessageHash(literal)
 	if err != nil {
@@ -308,11 +294,15 @@ func (conn *imapConnector) CreateMessage(
 
 // AddMessagesToMailbox labels the given messages with the given label ID.
 func (conn *imapConnector) AddMessagesToMailbox(ctx context.Context, messageIDs []imap.MessageID, mailboxID imap.MailboxID) error {
+	defer conn.goPoll()
+
 	return conn.client.LabelMessages(ctx, mapTo[imap.MessageID, string](messageIDs), string(mailboxID))
 }
 
 // RemoveMessagesFromMailbox unlabels the given messages with the given label ID.
 func (conn *imapConnector) RemoveMessagesFromMailbox(ctx context.Context, messageIDs []imap.MessageID, mailboxID imap.MailboxID) error {
+	defer conn.goPoll()
+
 	if err := conn.client.UnlabelMessages(ctx, mapTo[imap.MessageID, string](messageIDs), string(mailboxID)); err != nil {
 		return err
 	}
@@ -345,6 +335,8 @@ func (conn *imapConnector) RemoveMessagesFromMailbox(ctx context.Context, messag
 
 // MoveMessages removes the given messages from one label and adds them to the other label.
 func (conn *imapConnector) MoveMessages(ctx context.Context, messageIDs []imap.MessageID, labelFromID imap.MailboxID, labelToID imap.MailboxID) error {
+	defer conn.goPoll()
+
 	if err := conn.client.LabelMessages(ctx, mapTo[imap.MessageID, string](messageIDs), string(labelToID)); err != nil {
 		return fmt.Errorf("labeling messages: %w", err)
 	}
@@ -358,6 +350,8 @@ func (conn *imapConnector) MoveMessages(ctx context.Context, messageIDs []imap.M
 
 // MarkMessagesSeen sets the seen value of the given messages.
 func (conn *imapConnector) MarkMessagesSeen(ctx context.Context, messageIDs []imap.MessageID, seen bool) error {
+	defer conn.goPoll()
+
 	if seen {
 		return conn.client.MarkMessagesRead(ctx, mapTo[imap.MessageID, string](messageIDs)...)
 	}
@@ -367,6 +361,8 @@ func (conn *imapConnector) MarkMessagesSeen(ctx context.Context, messageIDs []im
 
 // MarkMessagesFlagged sets the flagged value of the given messages.
 func (conn *imapConnector) MarkMessagesFlagged(ctx context.Context, messageIDs []imap.MessageID, flagged bool) error {
+	defer conn.goPoll()
+
 	if flagged {
 		return conn.client.LabelMessages(ctx, mapTo[imap.MessageID, string](messageIDs), liteapi.StarredLabel)
 	}
@@ -401,14 +397,14 @@ func (conn *imapConnector) SetUIDValidity(validity imap.UID) error {
 	return conn.vault.SetUIDValidity(conn.addrID, validity)
 }
 
-// Close the connector will no longer be used and all resources should be closed/released.
-func (conn *imapConnector) Close(ctx context.Context) error {
-	return nil
-}
-
 // IsMailboxVisible returns whether this mailbox should be visible over IMAP.
 func (conn *imapConnector) IsMailboxVisible(_ context.Context, mailboxID imap.MailboxID) bool {
 	return atomic.LoadUint32(&conn.showAllMail) != 0 || mailboxID != liteapi.AllMailLabel
+}
+
+// Close the connector will no longer be used and all resources should be closed/released.
+func (conn *imapConnector) Close(ctx context.Context) error {
+	return nil
 }
 
 func (conn *imapConnector) importMessage(
