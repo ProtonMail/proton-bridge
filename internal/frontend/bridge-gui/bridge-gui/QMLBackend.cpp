@@ -43,7 +43,9 @@ void QMLBackend::init(GRPCConfig const &serviceConfig)
 {
     users_ = new UserList(this);
 
-    app().grpc().setLog(&app().log());
+    Log& log = app().log();
+    log.info(QString("Connecting to gRPC service"));
+    app().grpc().setLog(&log);
     this->connectGrpcEvents();
 
     QString error;

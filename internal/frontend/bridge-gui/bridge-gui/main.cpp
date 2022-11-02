@@ -80,6 +80,7 @@ Log &initLog()
 {
     Log &log = app().log();
     log.registerAsQtMessageHandler();
+    log.setEchoInConsole(true);
     return log;
 }
 
@@ -258,7 +259,6 @@ int main(int argc, char *argv[])
         // In attached mode, we do not intercept stderr and stdout of bridge, as we did not launch it ourselves, so we output the log to the console.
         // When not in attached mode, log entries are forwarded to bridge, which output it on stdout/stderr. bridge-gui's process monitor intercept
         // these outputs and output them on the command-line.
-        log.setEchoInConsole(attach);
         log.setLevel(logLevel);
 
         if (!attach)
@@ -268,12 +268,16 @@ int main(int argc, char *argv[])
             launchBridge(args);
         }
 
-
-        log.debug(QString("Server configuration file will be loaded from '%1'").arg(QDir::toNativeSeparators(grpcServerConfigPath())));
+        log.info(QString("Retrieving gRPC service configuration from '%1'").arg(QDir::toNativeSeparators(grpcServerConfigPath())));
         app().backend().init(GRPCClient::waitAndRetrieveServiceConfig(attach ? 0 : grpcServiceConfigWaitDelayMs));
         if (!attach)
             GRPCClient::removeServiceConfigFile();
-        log.debug("Backend was successfully initialized.");
+
+        // gRPC communication is established. From now on, log events will be sent to bridge via gRPC. bridge will write these to file,
+        // and will output then on console if appropriate. If we are not running in attached mode we intercept bridge stdout & stderr and
+        // display it in our own output and error, so we only continue to log directly to console if we are running in attached mode.
+        log.setEchoInConsole(attach);
+        log.info("Backend was successfully initialized.");
 
         QQmlApplicationEngine engine;
         std::unique_ptr<QQmlComponent> rootComponent(createRootQmlComponent(engine));

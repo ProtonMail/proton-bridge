@@ -125,6 +125,7 @@ func NewService(
 }
 
 func (s *Service) startGRPCServer() {
+	s.log.Info("Starting gRPC server")
 	tlsConfig, pemCert, err := s.generateTLSConfig()
 	if err != nil {
 		s.log.WithError(err).Panic("Could not generate gRPC TLS config")
@@ -148,7 +149,7 @@ func (s *Service) startGRPCServer() {
 	if path, err := s.saveGRPCServerConfigFile(); err != nil {
 		s.log.WithError(err).WithField("path", path).Panic("Could not write gRPC service config file")
 	} else {
-		s.log.WithField("path", path).Debug("Successfully saved gRPC service config file")
+		s.log.WithField("path", path).Info("Successfully saved gRPC service config file")
 	}
 
 	s.log.Info("gRPC server listening at ", s.listener.Addr())
