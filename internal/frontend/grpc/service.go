@@ -244,7 +244,10 @@ func (s *Service) watchEvents() { //nolint:funlen
 		case events.UserChanged:
 			_ = s.SendEvent(NewUserChangedEvent(event.UserID))
 
-		case events.UserLoaded:
+		case events.UserLoadSuccess:
+			_ = s.SendEvent(NewUserChangedEvent(event.UserID))
+
+		case events.UserLoadFail:
 			_ = s.SendEvent(NewUserChangedEvent(event.UserID))
 
 		case events.UserLoggedIn:

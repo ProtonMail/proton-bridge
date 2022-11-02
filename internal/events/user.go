@@ -23,7 +23,19 @@ type AllUsersLoaded struct {
 	eventBase
 }
 
-type UserLoaded struct {
+type UserLoading struct {
+	eventBase
+
+	UserID string
+}
+
+type UserLoadSuccess struct {
+	eventBase
+
+	UserID string
+}
+
+type UserLoadFail struct {
 	eventBase
 
 	UserID string

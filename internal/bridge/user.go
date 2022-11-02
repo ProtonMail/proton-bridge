@@ -311,18 +311,26 @@ func (bridge *Bridge) loadUsers(ctx context.Context) error {
 			return nil
 		}
 
-		logrus.WithField("userID", user.UserID()).Debug("Loading user")
-
-		if safe.RLockRet(func() bool {
-			return mapHas(bridge.users, user.UserID())
-		}, bridge.usersLock) {
+		if safe.RLockRet(func() bool { return mapHas(bridge.users, user.UserID()) }, bridge.usersLock) {
 			return nil
 		}
 
+		logrus.WithField("userID", user.UserID()).Debug("Loading connected user")
+
+		bridge.publish(events.UserLoading{
+			UserID: user.UserID(),
+		})
+
 		if err := bridge.loadUser(ctx, user); err != nil {
 			logrus.WithError(err).Error("Failed to load connected user")
+
+			bridge.publish(events.UserLoadFail{
+				UserID: user.UserID(),
+			})
 		} else {
-			bridge.publish(events.UserLoaded{
+			logrus.WithField("userID", user.UserID()).Debug("Loaded user")
+
+			bridge.publish(events.UserLoadSuccess{
 				UserID: user.UserID(),
 			})
 		}
