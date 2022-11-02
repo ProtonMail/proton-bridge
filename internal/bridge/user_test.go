@@ -491,10 +491,11 @@ func TestBridge_LoginLogoutRepeated(t *testing.T) {
 
 func TestBridge_LogoutOffline(t *testing.T) {
 	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *liteapi.NetCtl, locator bridge.Locator, storeKey []byte) {
+		var userID string
+
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
 			// Login the user.
-			userID, err := bridge.LoginFull(ctx, username, password, nil, nil)
-			require.NoError(t, err)
+			userID = must(bridge.LoginFull(ctx, username, password, nil, nil))
 
 			// The user is now connected.
 			require.Equal(t, []string{userID}, bridge.GetUserIDs())
@@ -507,6 +508,15 @@ func TestBridge_LogoutOffline(t *testing.T) {
 			require.NoError(t, bridge.LogoutUser(ctx, userID))
 
 			// The user is now disconnected.
+			require.Equal(t, []string{userID}, bridge.GetUserIDs())
+			require.Empty(t, getConnectedUserIDs(t, bridge))
+		})
+
+		// Go back online.
+		netCtl.Enable()
+
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+			// The user is still disconnected.
 			require.Equal(t, []string{userID}, bridge.GetUserIDs())
 			require.Empty(t, getConnectedUserIDs(t, bridge))
 		})

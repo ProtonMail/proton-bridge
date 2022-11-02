@@ -562,7 +562,7 @@ func (user *User) Logout(ctx context.Context, withAPI bool) error {
 
 	if withAPI {
 		if err := user.client.AuthDelete(ctx); err != nil {
-			return fmt.Errorf("failed to delete auth: %w", err)
+			user.log.WithError(err).Warn("Failed to delete auth")
 		}
 	}
 
