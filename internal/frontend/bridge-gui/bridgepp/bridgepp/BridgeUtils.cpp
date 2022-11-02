@@ -84,11 +84,12 @@ QString userConfigDir()
     dir += "/Library/Application Support";
 #else
     dir = qgetenv ("XDG_CONFIG_HOME");
-        if (dir.isEmpty())
+    if (dir.isEmpty()) {
             dir = qgetenv ("HOME");
         if (dir.isEmpty())
             throw Exception("neither $XDG_CONFIG_HOME nor $HOME are defined");
         dir += "/.config";
+}
 #endif
     QString const folder = QDir(dir).absoluteFilePath(configFolder);
     QDir().mkpath(folder);
@@ -115,11 +116,12 @@ QString userCacheDir()
     dir += "/Library/Caches";
 #else
     dir = qgetenv ("XDG_CACHE_HOME");
-        if (dir.isEmpty())
+    if (dir.isEmpty())  {
             dir = qgetenv ("HOME");
         if (dir.isEmpty())
             throw Exception("neither XDG_CACHE_HOME nor $HOME are defined");
         dir += "/.cache";
+}
 #endif
 
     QString const folder = QDir(dir).absoluteFilePath(configFolder);
