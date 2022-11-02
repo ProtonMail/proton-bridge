@@ -63,6 +63,8 @@ public: // member functions.
     Level level() const; ///< Get the log level.
     void setEchoInConsole(bool value); ///< Set if the log entries should be echoed in STDOUT/STDERR.
     bool echoInConsole() const; ///< Check if the log entries should be echoed in STDOUT/STDERR.
+    bool startWritingToFile(QString const& path, QString *outError = nullptr); ///< Start writing the log to file. Concerns only future entries.
+    void stopWritingToFile();
     void registerAsQtMessageHandler(); ///< Install the Qt message handler.
 
 public slots:
@@ -83,7 +85,7 @@ private: // data members
     mutable QMutex mutex_; ///< The mutex.
     Level level_ { defaultLevel }; ///< The log level
     bool echoInConsole_ { false }; ///< Set if the log messages should be sent to STDOUT/STDERR.
-
+    std::unique_ptr<QFile> file_; ///< The file to write the log to.
     QTextStream stdout_; ///< The stdout stream.
     QTextStream stderr_; ///< The stderr stream.
 };

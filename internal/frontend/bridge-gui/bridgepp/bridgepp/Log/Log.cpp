@@ -17,6 +17,7 @@
 
 
 #include "Log.h"
+#include "../Exception/Exception.h"
 
 
 namespace bridgepp
@@ -205,6 +206,35 @@ bool Log::echoInConsole() const
 
 
 //****************************************************************************************************************************************************
+/// \param[in] path The path of the file to write to.
+/// \param[out] outError if an error occurs and this pointer in not null, on exit it contains a description of the error.
+/// \return true if and only if the operation was successful.
+//****************************************************************************************************************************************************
+bool Log::startWritingToFile(QString const &path, QString *outError)
+{
+    QMutexLocker locker(&mutex_);
+    file_ = std::make_unique<QFile>(path);
+    if (file_->open(QIODevice::WriteOnly | QIODevice::Text))
+        return true;
+
+    if (outError)
+        *outError = QString("Could not open log file '%1' for writing.");
+    file_.reset();
+    return false;
+}
+
+
+//****************************************************************************************************************************************************
+///
+//****************************************************************************************************************************************************
+void Log::stopWritingToFile()
+{
+    QMutexLocker locker(&mutex_);
+    file_.reset();
+}
+
+
+//****************************************************************************************************************************************************
 /// \param[in] message The message.
 //****************************************************************************************************************************************************
 void Log::panic(QString const &message)
@@ -278,11 +308,21 @@ void Log::addEntry(Log::Level level, QString const &message)
         return;
     emit entryAdded(level, message);
 
+    if (!(echoInConsole_ || file_))
+        return;
+
+    QString const entryStr = logEntryToString(level, message) + "\n";
     if (echoInConsole_)
     {
         QTextStream &stream = (qint32(level) <= (qint32(Level::Warn))) ? stderr_ : stdout_;
-        stream << logEntryToString(level, message) << "\n";
+        stream << entryStr;
         stream.flush();
+    }
+
+    if (file_)
+    {
+        file_->write(entryStr.toLocal8Bit());
+        file_->flush();
     }
 }
 

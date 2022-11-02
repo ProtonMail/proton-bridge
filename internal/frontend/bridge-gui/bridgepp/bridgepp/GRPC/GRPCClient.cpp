@@ -123,7 +123,7 @@ bool GRPCClient::connectToServer(GRPCConfig const &config, QString &outError)
         int i = 0;
         while (true)
         {
-            this->logDebug(QString("Connection to gRPC server at %1. attempt #%2").arg(address).arg(++i));
+            this->logInfo(QString("Connection to gRPC server at %1. attempt #%2").arg(address).arg(++i));
 
             if (channel_->WaitForConnected(gpr_time_add(gpr_now(GPR_CLOCK_REALTIME), gpr_time_from_millis(grpcConnectionRetryDelayMs, GPR_TIMESPAN))))
                 break; // connection established.
@@ -135,13 +135,13 @@ bool GRPCClient::connectToServer(GRPCConfig const &config, QString &outError)
         if (channel_->GetState(true) != GRPC_CHANNEL_READY)
             throw Exception("connection check failed.");
 
-        this->logDebug("Successfully connected to gRPC server.");
+        this->logInfo("Successfully connected to gRPC server.");
 
         QString const clientToken = QUuid::createUuid().toString();
         QString clientConfigPath = createClientConfigFile(clientToken);
         if (clientConfigPath.isEmpty())
             throw Exception("gRPC client config could not be saved.");
-        this->logDebug(QString("Client config file was saved to '%1'").arg(QDir::toNativeSeparators(clientConfigPath)));
+        this->logInfo(QString("Client config file was saved to '%1'").arg(QDir::toNativeSeparators(clientConfigPath)));
 
         QString returnedClientToken;
         grpc::Status status = this->checkTokens(QDir::toNativeSeparators(clientConfigPath), returnedClientToken);
@@ -153,7 +153,7 @@ bool GRPCClient::connectToServer(GRPCConfig const &config, QString &outError)
         if (!status.ok())
             throw Exception(QString::fromStdString(status.error_message()));
 
-        log_->debug("gRPC token was validated");
+        log_->info("gRPC token was validated");
 
         return true;
     }
@@ -930,6 +930,15 @@ void GRPCClient::logDebug(QString const &message)
 void GRPCClient::logError(QString const &message)
 {
     this->log(Log::Level::Error, message);
+}
+
+
+//****************************************************************************************************************************************************
+/// \param[in] message The event message.
+//****************************************************************************************************************************************************
+void GRPCClient::logInfo(QString const &message)
+{
+    this->log(Log::Level::Info, message);
 }
 
 

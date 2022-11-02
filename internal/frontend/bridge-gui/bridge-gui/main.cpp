@@ -81,6 +81,17 @@ Log &initLog()
     Log &log = app().log();
     log.registerAsQtMessageHandler();
     log.setEchoInConsole(true);
+
+    // remove old gui log files
+    QDir const logsDir(userLogsDir());
+    for (QFileInfo const fileInfo: logsDir.entryInfoList({ "gui_v*.log" }, QDir::Filter::Files)) // entryInfolist apparently only support wildcards, not regex.
+        QFile(fileInfo.absoluteFilePath()).remove();
+
+    // create new GUI log file
+    QString error;
+    if (!log.startWritingToFile(logsDir.absoluteFilePath(QString("gui_v%1_%2.log").arg(PROJECT_VER).arg(QDateTime::currentSecsSinceEpoch())), &error))
+        log.error(error);
+
     return log;
 }
 
@@ -278,6 +289,7 @@ int main(int argc, char *argv[])
         // display it in our own output and error, so we only continue to log directly to console if we are running in attached mode.
         log.setEchoInConsole(attach);
         log.info("Backend was successfully initialized.");
+        log.stopWritingToFile();
 
         QQmlApplicationEngine engine;
         std::unique_ptr<QQmlComponent> rootComponent(createRootQmlComponent(engine));

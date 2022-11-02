@@ -211,6 +211,8 @@ private:
     void logTrace(QString const &message); ///< Log a trace event.
     void logDebug(QString const &message); ///< Log a debug event.
     void logError(QString const &message); ///< Log an error event.
+    void logInfo(QString const &message); ///< Log an info event.
+
     grpc::Status logGRPCCallStatus(grpc::Status const &status, QString const &callName, QList<grpc::StatusCode> allowedErrors = {}); ///< Log the status of a gRPC code.
     grpc::Status simpleMethod(SimpleMethod method); ///< perform a gRPC call to a bool setter.
     grpc::Status setBool(BoolSetter setter, bool value); ///< perform a gRPC call to a bool setter.
