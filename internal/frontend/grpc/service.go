@@ -59,12 +59,13 @@ const (
 // Service is the RPC service struct.
 type Service struct { // nolint:structcheck
 	UnimplementedBridgeServer
-	grpcServer        *grpc.Server //  the gGRPC server
-	listener          net.Listener
-	eventStreamCh     chan *StreamEvent
-	eventStreamDoneCh chan struct{}
-	eventQueue        []*StreamEvent
-	eventQueueMutex   sync.Mutex
+	grpcServer         *grpc.Server //  the gGRPC server
+	listener           net.Listener
+	eventStreamCh      chan *StreamEvent
+	eventStreamChMutex sync.RWMutex
+	eventStreamDoneCh  chan struct{}
+	eventQueue         []*StreamEvent
+	eventQueueMutex    sync.Mutex
 
 	panicHandler       types.PanicHandler
 	eventListener      listener.Listener

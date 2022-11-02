@@ -95,12 +95,15 @@ func (s *Service) GuiReady(ctx context.Context, _ *emptypb.Empty) (*emptypb.Empt
 // Quit implement the Quit gRPC service call.
 func (s *Service) Quit(ctx context.Context, empty *emptypb.Empty) (*emptypb.Empty, error) {
 	s.log.Debug("Quit")
+	return &emptypb.Empty{}, s.quit()
+}
 
+func (s *Service) quit() error {
 	// Windows is notably slow at Quitting. We do it in a goroutine to speed things up a bit.
 	go func() {
 		var err error
-		if s.eventStreamCh != nil {
-			if _, err = s.StopEventStream(ctx, empty); err != nil {
+		if s.isStreamingEvents() {
+			if err = s.stopEventStream(); err != nil {
 				s.log.WithError(err).Error("Quit failed.")
 			}
 		}
@@ -109,7 +112,7 @@ func (s *Service) Quit(ctx context.Context, empty *emptypb.Empty) (*emptypb.Empt
 		s.grpcServer.GracefulStop()
 	}()
 
-	return &emptypb.Empty{}, nil
+	return nil
 }
 
 // Restart implement the Restart gRPC service call.
