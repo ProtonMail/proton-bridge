@@ -351,7 +351,7 @@ func (user *User) GluonKey() []byte {
 
 // BridgePass returns the user's bridge password, used for authentication over SMTP and IMAP.
 func (user *User) BridgePass() []byte {
-	return hexEncode(user.vault.BridgePass())
+	return b64Encode(user.vault.BridgePass())
 }
 
 // UsedSpace returns the total space used by the user on the API.
@@ -526,7 +526,7 @@ func (user *User) SendMail(authID string, from string, to []string, r io.Reader)
 // CheckAuth returns whether the given email and password can be used to authenticate over IMAP or SMTP with this user.
 // It returns the address ID of the authenticated address.
 func (user *User) CheckAuth(email string, password []byte) (string, error) {
-	dec, err := hexDecode(password)
+	dec, err := b64Decode(password)
 	if err != nil {
 		return "", fmt.Errorf("failed to decode password: %w", err)
 	}

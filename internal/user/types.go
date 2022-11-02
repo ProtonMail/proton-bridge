@@ -18,7 +18,7 @@
 package user
 
 import (
-	"encoding/hex"
+	"encoding/base64"
 	"fmt"
 	"reflect"
 	"strings"
@@ -58,24 +58,25 @@ func groupBy[Key comparable, Value any](items []Value, key func(Value) Key) map[
 	return groups
 }
 
-// hexEncode returns the hexadecimal encoding of the given byte slice.
-func hexEncode(b []byte) []byte {
-	enc := make([]byte, hex.EncodedLen(len(b)))
+// b64Encode returns the base64 encoding of the given byte slice.
+func b64Encode(b []byte) []byte {
+	enc := make([]byte, base64.RawURLEncoding.EncodedLen(len(b)))
 
-	hex.Encode(enc, b)
+	base64.RawURLEncoding.Encode(enc, b)
 
 	return enc
 }
 
-// hexDecode returns the bytes represented by the hexadecimal encoding of the given byte slice.
-func hexDecode(b []byte) ([]byte, error) {
-	dec := make([]byte, hex.DecodedLen(len(b)))
+// b64Decode returns the bytes represented by the base64 encoding of the given byte slice.
+func b64Decode(b []byte) ([]byte, error) {
+	dec := make([]byte, base64.RawURLEncoding.DecodedLen(len(b)))
 
-	if _, err := hex.Decode(dec, b); err != nil {
+	n, err := base64.RawURLEncoding.Decode(dec, b)
+	if err != nil {
 		return nil, err
 	}
 
-	return dec, nil
+	return dec[:n], nil
 }
 
 // getAddrID returns the address ID for the given email address.
