@@ -18,6 +18,8 @@
 package vault
 
 import (
+	"fmt"
+
 	"github.com/ProtonMail/gluon/imap"
 )
 
@@ -47,6 +49,22 @@ func (user *User) SetGluonID(addrID, gluonID string) error {
 	return user.vault.modUser(user.userID, func(data *UserData) {
 		data.GluonIDs[addrID] = gluonID
 	})
+}
+
+func (user *User) RemoveGluonID(addrID, gluonID string) error {
+	var err error
+
+	if modErr := user.vault.modUser(user.userID, func(data *UserData) {
+		if data.GluonIDs[addrID] != gluonID {
+			err = fmt.Errorf("gluon ID mismatch: %s != %s", data.GluonIDs[addrID], gluonID)
+		} else {
+			delete(data.GluonIDs, addrID)
+		}
+	}); modErr != nil {
+		return modErr
+	}
+
+	return err
 }
 
 func (user *User) GetUIDValidity(addrID string) (imap.UID, bool) {

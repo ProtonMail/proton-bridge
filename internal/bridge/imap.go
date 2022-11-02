@@ -113,9 +113,15 @@ func (bridge *Bridge) addIMAPUser(ctx context.Context, user *user.User) error {
 
 // removeIMAPUser disconnects the given user from gluon, optionally also removing its files.
 func (bridge *Bridge) removeIMAPUser(ctx context.Context, user *user.User, withFiles bool) error {
-	for _, gluonID := range user.GetGluonIDs() {
+	for addrID, gluonID := range user.GetGluonIDs() {
 		if err := bridge.imapServer.RemoveUser(ctx, gluonID, withFiles); err != nil {
 			return fmt.Errorf("failed to remove IMAP user: %w", err)
+		}
+
+		if withFiles {
+			if err := user.RemoveGluonID(addrID, gluonID); err != nil {
+				return fmt.Errorf("failed to remove IMAP user ID: %w", err)
+			}
 		}
 	}
 

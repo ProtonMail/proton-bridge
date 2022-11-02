@@ -462,15 +462,26 @@ func TestBridge_AddressMode(t *testing.T) {
 			// The user is in combined mode by default.
 			require.Equal(t, vault.CombinedMode, info.AddressMode)
 
-			// Put the user in split mode.
-			require.NoError(t, bridge.SetAddressMode(ctx, userID, vault.SplitMode))
+			// Repeatedly switch between address modes.
+			for i := 1; i <= 10; i++ {
+				var target vault.AddressMode
 
-			// Get the user's info.
-			info, err = bridge.GetUserInfo(userID)
-			require.NoError(t, err)
+				if i%2 == 0 {
+					target = vault.CombinedMode
+				} else {
+					target = vault.SplitMode
+				}
 
-			// The user is in split mode.
-			require.Equal(t, vault.SplitMode, info.AddressMode)
+				// Put the user in the target mode.
+				require.NoError(t, bridge.SetAddressMode(ctx, userID, target))
+
+				// Get the user's info.
+				info, err = bridge.GetUserInfo(userID)
+				require.NoError(t, err)
+
+				// The user is in the target mode.
+				require.Equal(t, target, info.AddressMode)
+			}
 		})
 	})
 }

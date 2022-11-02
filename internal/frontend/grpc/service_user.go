@@ -21,7 +21,6 @@ import (
 	"context"
 
 	"github.com/ProtonMail/proton-bridge/v2/internal/vault"
-	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -76,15 +75,21 @@ func (s *Service) SetUserSplitMode(ctx context.Context, splitMode *UserSplitMode
 
 		var targetMode vault.AddressMode
 
-		if splitMode.Active && user.AddressMode == vault.CombinedMode {
+		if splitMode.Active {
 			targetMode = vault.SplitMode
-		} else if !splitMode.Active && user.AddressMode == vault.SplitMode {
+		} else {
 			targetMode = vault.CombinedMode
 		}
 
-		if err := s.bridge.SetAddressMode(context.Background(), user.UserID, targetMode); err != nil {
-			logrus.WithError(err).Error("Failed to set address mode")
+		if user.AddressMode == targetMode {
+			return
 		}
+
+		if err := s.bridge.SetAddressMode(context.Background(), user.UserID, targetMode); err != nil {
+			s.log.WithError(err).Error("Failed to set address mode")
+		}
+
+		s.log.WithField("userID", user.UserID).WithField("mode", targetMode).Info("Address mode changed")
 	}()
 
 	return &emptypb.Empty{}, nil
@@ -101,7 +106,7 @@ func (s *Service) LogoutUser(ctx context.Context, userID *wrapperspb.StringValue
 		defer s.panicHandler.HandlePanic()
 
 		if err := s.bridge.LogoutUser(context.Background(), userID.Value); err != nil {
-			logrus.WithError(err).Error("Failed to log user out")
+			s.log.WithError(err).Error("Failed to log user out")
 		}
 	}()
 

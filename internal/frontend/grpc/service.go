@@ -259,6 +259,9 @@ func (s *Service) watchEvents() { //nolint:funlen
 		case events.UserDeleted:
 			_ = s.SendEvent(NewUserChangedEvent(event.UserID))
 
+		case events.AddressModeChanged:
+			_ = s.SendEvent(NewUserChangedEvent(event.UserID))
+
 		case events.UserDeauth:
 			if user, err := s.bridge.GetUserInfo(event.UserID); err != nil {
 				s.log.WithError(err).Error("Failed to get user info")

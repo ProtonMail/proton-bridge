@@ -344,6 +344,11 @@ func (user *User) SetGluonID(addrID, gluonID string) error {
 	return user.vault.SetGluonID(addrID, gluonID)
 }
 
+// RemoveGluonID removes the gluon ID for the given address.
+func (user *User) RemoveGluonID(addrID, gluonID string) error {
+	return user.vault.RemoveGluonID(addrID, gluonID)
+}
+
 // GluonKey returns the user's gluon key from the vault.
 func (user *User) GluonKey() []byte {
 	return user.vault.GluonKey()

@@ -93,6 +93,10 @@ func (bridge *Bridge) handleUserAddressDeleted(ctx context.Context, user *user.U
 		if err := bridge.imapServer.RemoveUser(ctx, gluonID, true); err != nil {
 			return fmt.Errorf("failed to remove user from IMAP server: %w", err)
 		}
+
+		if err := user.RemoveGluonID(event.AddressID, gluonID); err != nil {
+			return fmt.Errorf("failed to remove gluon ID for address: %w", err)
+		}
 	}
 
 	return nil
