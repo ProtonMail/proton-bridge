@@ -236,6 +236,8 @@ func (conn *imapConnector) DeleteMailbox(ctx context.Context, labelID imap.Mailb
 }
 
 // CreateMessage creates a new message on the remote.
+//
+// nolint:funlen
 func (conn *imapConnector) CreateMessage(
 	ctx context.Context,
 	mailboxID imap.MailboxID,
@@ -279,9 +281,17 @@ func (conn *imapConnector) CreateMessage(
 			return imap.Message{}, nil, err
 		}
 
-		if header.Has("Received") {
+		switch {
+		case mailboxID == liteapi.InboxLabel:
 			wantFlags = wantFlags.Add(liteapi.MessageFlagReceived)
-		} else {
+
+		case mailboxID == liteapi.SentLabel:
+			wantFlags = wantFlags.Add(liteapi.MessageFlagSent)
+
+		case header.Has("Received"):
+			wantFlags = wantFlags.Add(liteapi.MessageFlagReceived)
+
+		default:
 			wantFlags = wantFlags.Add(liteapi.MessageFlagSent)
 		}
 	}

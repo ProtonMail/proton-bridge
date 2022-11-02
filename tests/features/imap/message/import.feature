@@ -74,13 +74,28 @@ Feature: IMAP import messages
       Hello
       """
     Then it succeeds
+    And IMAP client "1" eventually sees the following messages in "Sent":
+      | from            | to                 | subject | body  |
+      | foo@example.com | bridgetest@pm.test | Hello   | Hello |
+    And IMAP client "1" sees 0 messages in "Inbox"
+
+  Scenario: Import non-received message to Inbox
+    When IMAP client "1" appends the following message to "Inbox":
+      """
+      From: Foo <foo@example.com>
+      To: Bridge Test <bridgetest@pm.test>
+      Subject: Hello
+
+      Hello
+      """
+    Then it succeeds
     And IMAP client "1" eventually sees the following messages in "INBOX":
       | from            | to                 | subject | body  |
       | foo@example.com | bridgetest@pm.test | Hello   | Hello |
     And IMAP client "1" sees 0 messages in "Sent"
 
-  Scenario: Import non-received message to Inbox
-    When IMAP client "1" appends the following message to "Inbox":
+  Scenario: Import non-received message to Sent
+    When IMAP client "1" appends the following message to "Sent":
       """
       From: Foo <foo@example.com>
       To: Bridge Test <bridgetest@pm.test>

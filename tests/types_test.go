@@ -144,7 +144,7 @@ func matchMessages(have, want []Message) error {
 	})
 
 	if !IsSub(ToAny(have), ToAny(want)) {
-		return fmt.Errorf("missing messages: %v", want)
+		return fmt.Errorf("missing messages: have %+v, want %+v", have, want)
 	}
 
 	return nil

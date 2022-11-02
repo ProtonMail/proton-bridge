@@ -15,6 +15,9 @@ Feature: IMAP create messages
     And IMAP client "1" sees the following messages in "INBOX":
       | from               | to         | subject | body |
       | john.doe@email.com | user@pm.me | foo     | bar  |
+    And IMAP client "1" sees the following messages in "All Mail":
+      | from               | to         | subject | body |
+      | john.doe@email.com | user@pm.me | foo     | bar  |
 
   Scenario: Creates draft
     When IMAP client "1" appends the following messages to "Drafts":
@@ -22,6 +25,9 @@ Feature: IMAP create messages
       | user@pm.me | john.doe@email.com | foo     | bar  |
     Then it succeeds
     And IMAP client "1" sees the following messages in "Drafts":
+      | from       | to                 | subject | body |
+      | user@pm.me | john.doe@email.com | foo     | bar  |
+    And IMAP client "1" sees the following messages in "All Mail":
       | from       | to                 | subject | body |
       | user@pm.me | john.doe@email.com | foo     | bar  |
 
@@ -33,6 +39,9 @@ Feature: IMAP create messages
     And IMAP client "1" sees the following messages in "Sent":
       | from       | to                 | subject | body |
       | user@pm.me | john.doe@email.com | foo     | bar  |
+    And IMAP client "1" sees the following messages in "All Mail":
+      | from       | to                 | subject | body |
+      | user@pm.me | john.doe@email.com | foo     | bar  |
 
   Scenario: Creates message sent from user's secondary address
     When IMAP client "1" appends the following messages to "Sent":
@@ -40,6 +49,9 @@ Feature: IMAP create messages
       | alias@pm.me | john.doe@email.com | foo     | bar  |
     Then it succeeds
     And IMAP client "1" sees the following messages in "Sent":
+      | from        | to                 | subject | body |
+      | alias@pm.me | john.doe@email.com | foo     | bar  |
+    And IMAP client "1" sees the following messages in "All Mail":
       | from        | to                 | subject | body |
       | alias@pm.me | john.doe@email.com | foo     | bar  |
 
@@ -51,6 +63,9 @@ Feature: IMAP create messages
     And IMAP client "1" sees the following messages in "INBOX":
       | from               | to              | subject | body |
       | john.doe@email.com | john.doe2@pm.me | foo     | bar  |
+    And IMAP client "1" sees the following messages in "All Mail":
+      | from               | to              | subject | body |
+      | john.doe@email.com | john.doe2@pm.me | foo     | bar  |
 
   Scenario: Imports an unrelated message to sent
     When IMAP client "1" appends the following messages to "Sent":
@@ -58,5 +73,8 @@ Feature: IMAP create messages
       | john.doe@email.com | john.doe2@pm.me | foo     | bar  |
     Then it succeeds
     And IMAP client "1" sees the following messages in "Sent":
+      | from               | to              | subject | body |
+      | john.doe@email.com | john.doe2@pm.me | foo     | bar  |
+    And IMAP client "1" sees the following messages in "All Mail":
       | from               | to              | subject | body |
       | john.doe@email.com | john.doe2@pm.me | foo     | bar  |
