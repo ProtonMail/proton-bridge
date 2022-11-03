@@ -269,6 +269,8 @@ func (bridge *Bridge) init(tlsReporter TLSReporter) error {
 
 	// Handle connection up/down events.
 	bridge.api.AddStatusObserver(func(status liteapi.Status) {
+		logrus.Info("API status changed: ", status)
+
 		switch {
 		case status == liteapi.StatusUp:
 			bridge.publish(events.ConnStatusUp{})
@@ -282,6 +284,7 @@ func (bridge *Bridge) init(tlsReporter TLSReporter) error {
 
 	// If any call returns a bad version code, we need to update.
 	bridge.api.AddErrorHandler(liteapi.AppVersionBadCode, func() {
+		logrus.Warn("App version is bad")
 		bridge.publish(events.UpdateForced{})
 	})
 
@@ -291,9 +294,19 @@ func (bridge *Bridge) init(tlsReporter TLSReporter) error {
 		return nil
 	})
 
+	// Log all manager API requests (client requests are logged separately).
+	bridge.api.AddPostRequestHook(func(_ *resty.Client, r *resty.Response) error {
+		if _, ok := liteapi.ClientIDFromContext(r.Request.Context()); !ok {
+			logrus.Infof("[MANAGER] %v: %v %v", r.Status(), r.Request.Method, r.Request.URL)
+		}
+
+		return nil
+	})
+
 	// Publish a TLS issue event if a TLS issue is encountered.
 	bridge.tasks.Once(func(ctx context.Context) {
 		async.RangeContext(ctx, tlsReporter.GetTLSIssueCh(), func(struct{}) {
+			logrus.Warn("TLS issue encountered")
 			bridge.publish(events.TLSIssue{})
 		})
 	})
@@ -301,6 +314,7 @@ func (bridge *Bridge) init(tlsReporter TLSReporter) error {
 	// Publish a raise event if the focus service is called.
 	bridge.tasks.Once(func(ctx context.Context) {
 		async.RangeContext(ctx, bridge.focusService.GetRaiseCh(), func(struct{}) {
+			logrus.Info("Focus service requested raise")
 			bridge.publish(events.Raise{})
 		})
 	})
@@ -308,12 +322,15 @@ func (bridge *Bridge) init(tlsReporter TLSReporter) error {
 	// Handle any IMAP events that are forwarded to the bridge from gluon.
 	bridge.tasks.Once(func(ctx context.Context) {
 		async.RangeContext(ctx, bridge.imapEventCh, func(event imapEvents.Event) {
+			logrus.WithField("event", fmt.Sprintf("%T", event)).Debug("Received IMAP event")
 			bridge.handleIMAPEvent(event)
 		})
 	})
 
 	// Attempt to lazy load users when triggered.
 	bridge.goLoad = bridge.tasks.Trigger(func(ctx context.Context) {
+		logrus.Info("Loading users")
+
 		if err := bridge.loadUsers(ctx); err != nil {
 			logrus.WithError(err).Error("Failed to load users")
 		} else {
@@ -323,7 +340,9 @@ func (bridge *Bridge) init(tlsReporter TLSReporter) error {
 	defer bridge.goLoad()
 
 	// Check for updates when triggered.
-	bridge.goUpdate = bridge.tasks.PeriodicOrTrigger(constants.UpdateCheckInterval, 0, func(ctx context.Context) {
+	bridge.goUpdate = bridge.tasks.PeriodicOrTrigger(constants.UpdateCheckInterval, 0, func(context.Context) {
+		logrus.Info("Checking for updates")
+
 		version, err := bridge.updater.GetVersionInfo(bridge.api, bridge.vault.GetUpdateChannel())
 		if err != nil {
 			logrus.WithError(err).Error("Failed to get version info")
@@ -353,6 +372,8 @@ func (bridge *Bridge) GetErrors() []error {
 }
 
 func (bridge *Bridge) Close(ctx context.Context) {
+	logrus.Info("Closing bridge")
+
 	// Close the IMAP server.
 	if err := bridge.closeIMAP(ctx); err != nil {
 		logrus.WithError(err).Error("Failed to close IMAP server")
@@ -396,6 +417,8 @@ func (bridge *Bridge) publish(event events.Event) {
 	bridge.watchersLock.RLock()
 	defer bridge.watchersLock.RUnlock()
 
+	logrus.WithField("event", event).Debug("Publishing event")
+
 	for _, watcher := range bridge.watchers {
 		if watcher.IsWatching(event) {
 			if ok := watcher.Send(event); !ok {
@@ -432,6 +455,8 @@ func (bridge *Bridge) remWatcher(watcher *watcher.Watcher[events.Event]) {
 }
 
 func (bridge *Bridge) onStatusUp(ctx context.Context) {
+	logrus.Info("Handling API status up")
+
 	safe.RLock(func() {
 		for _, user := range bridge.users {
 			user.OnStatusUp(ctx)
@@ -442,6 +467,8 @@ func (bridge *Bridge) onStatusUp(ctx context.Context) {
 }
 
 func (bridge *Bridge) onStatusDown(ctx context.Context) {
+	logrus.Info("Handling API status down")
+
 	safe.RLock(func() {
 		for _, user := range bridge.users {
 			user.OnStatusDown(ctx)
@@ -455,7 +482,7 @@ func (bridge *Bridge) onStatusDown(ctx context.Context) {
 
 		case <-time.After(backoff):
 			if err := bridge.api.Ping(ctx); err != nil {
-				logrus.WithError(err).Debug("Failed to ping API, will retry")
+				logrus.WithError(err).Warn("Failed to ping API, will retry")
 			} else {
 				return
 			}

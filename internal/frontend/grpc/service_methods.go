@@ -368,17 +368,20 @@ func (s *Service) Login(ctx context.Context, login *LoginRequest) (*emptypb.Empt
 		if err != nil {
 			defer s.loginClean()
 
-			switch {
-			case errors.Is(err, bridge.ErrUserAlreadyLoggedIn):
+			if errors.Is(err, bridge.ErrUserAlreadyLoggedIn) {
 				_ = s.SendEvent(NewLoginAlreadyLoggedInEvent(auth.UserID))
+			} else if apiErr := new(liteapi.Error); errors.As(err, &apiErr) {
+				switch apiErr.Code { // nolint:exhaustive
+				case liteapi.PasswordWrong:
+					_ = s.SendEvent(NewLoginError(LoginErrorType_USERNAME_PASSWORD_ERROR, ""))
 
-			case errors.Is(err, liteapi.ErrIncorrectLoginCredentials):
-				_ = s.SendEvent(NewLoginError(LoginErrorType_USERNAME_PASSWORD_ERROR, ""))
+				case liteapi.PaidPlanRequired:
+					_ = s.SendEvent(NewLoginError(LoginErrorType_FREE_USER, ""))
 
-			case errors.Is(err, liteapi.ErrPaidPlanRequired):
-				_ = s.SendEvent(NewLoginError(LoginErrorType_FREE_USER, ""))
-
-			default:
+				default:
+					_ = s.SendEvent(NewLoginError(LoginErrorType_USERNAME_PASSWORD_ERROR, err.Error()))
+				}
+			} else {
 				_ = s.SendEvent(NewLoginError(LoginErrorType_USERNAME_PASSWORD_ERROR, err.Error()))
 			}
 
@@ -426,12 +429,10 @@ func (s *Service) Login2FA(ctx context.Context, login *LoginRequest) (*emptypb.E
 		}
 
 		if err := s.authClient.Auth2FA(context.Background(), liteapi.Auth2FAReq{TwoFactorCode: string(twoFA)}); err != nil {
-			switch {
-			case errors.Is(err, liteapi.ErrBad2FACode):
+			if apiErr := new(liteapi.Error); errors.As(err, &apiErr) && apiErr.Code == liteapi.PasswordWrong {
 				s.log.Warn("Login 2FA: retry 2fa")
 				_ = s.SendEvent(NewLoginError(LoginErrorType_TFA_ERROR, ""))
-
-			default:
+			} else {
 				s.log.WithError(err).Warn("Login 2FA: failed")
 				_ = s.SendEvent(NewLoginError(LoginErrorType_TFA_ABORT, err.Error()))
 				s.loginClean()

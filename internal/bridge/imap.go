@@ -44,6 +44,8 @@ const (
 )
 
 func (bridge *Bridge) serveIMAP() error {
+	logrus.Info("Starting IMAP server")
+
 	imapListener, err := newListener(bridge.vault.GetIMAPPort(), bridge.vault.GetIMAPSSL(), bridge.tlsConfig)
 	if err != nil {
 		return fmt.Errorf("failed to create IMAP listener: %w", err)
@@ -63,6 +65,8 @@ func (bridge *Bridge) serveIMAP() error {
 }
 
 func (bridge *Bridge) restartIMAP() error {
+	logrus.Info("Restarting IMAP server")
+
 	if err := bridge.imapListener.Close(); err != nil {
 		return fmt.Errorf("failed to close IMAP listener: %w", err)
 	}
@@ -71,6 +75,8 @@ func (bridge *Bridge) restartIMAP() error {
 }
 
 func (bridge *Bridge) closeIMAP(ctx context.Context) error {
+	logrus.Info("Closing IMAP server")
+
 	if err := bridge.imapServer.Close(ctx); err != nil {
 		return fmt.Errorf("failed to close IMAP server: %w", err)
 	}
@@ -86,6 +92,8 @@ func (bridge *Bridge) closeIMAP(ctx context.Context) error {
 
 // addIMAPUser connects the given user to gluon.
 func (bridge *Bridge) addIMAPUser(ctx context.Context, user *user.User) error {
+	logrus.WithField("userID", user.ID()).Info("Adding IMAP user")
+
 	imapConn, err := user.NewIMAPConnectors()
 	if err != nil {
 		return fmt.Errorf("failed to create IMAP connectors: %w", err)
@@ -172,6 +180,13 @@ func newIMAPServer(
 	eventCh chan<- imapEvents.Event,
 	tasks *xsync.Group,
 ) (*gluon.Server, error) {
+	logrus.WithFields(logrus.Fields{
+		"gluonDir":  gluonDir,
+		"version":   version,
+		"logClient": logClient,
+		"logServer": logServer,
+	}).Info("Creating IMAP server")
+
 	if logClient || logServer {
 		log := logrus.WithField("protocol", "IMAP")
 		log.Warning("================================================")

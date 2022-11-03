@@ -30,6 +30,8 @@ import (
 )
 
 func (bridge *Bridge) serveSMTP() error {
+	logrus.Info("Starting SMTP server")
+
 	smtpListener, err := newListener(bridge.vault.GetSMTPPort(), bridge.vault.GetSMTPSSL(), bridge.tlsConfig)
 	if err != nil {
 		return fmt.Errorf("failed to create SMTP listener: %w", err)
@@ -37,9 +39,9 @@ func (bridge *Bridge) serveSMTP() error {
 
 	bridge.smtpListener = smtpListener
 
-	bridge.tasks.Once(func(ctx context.Context) {
+	bridge.tasks.Once(func(context.Context) {
 		if err := bridge.smtpServer.Serve(smtpListener); err != nil {
-			logrus.WithError(err).Debug("SMTP server stopped")
+			logrus.WithError(err).Info("SMTP server stopped")
 		}
 	})
 
@@ -51,6 +53,8 @@ func (bridge *Bridge) serveSMTP() error {
 }
 
 func (bridge *Bridge) restartSMTP() error {
+	logrus.Info("Restarting SMTP server")
+
 	if err := bridge.closeSMTP(); err != nil {
 		return fmt.Errorf("failed to close SMTP: %w", err)
 	}
@@ -65,6 +69,8 @@ func (bridge *Bridge) restartSMTP() error {
 // after we've already closed the server. However, go-smtp has a bug; it blocks on the listener
 // even after the server has been closed. So we close the listener ourselves to unblock it.
 func (bridge *Bridge) closeSMTP() error {
+	logrus.Info("Closing SMTP server")
+
 	if bridge.smtpListener != nil {
 		if err := bridge.smtpListener.Close(); err != nil {
 			return fmt.Errorf("failed to close SMTP listener: %w", err)
@@ -72,13 +78,15 @@ func (bridge *Bridge) closeSMTP() error {
 	}
 
 	if err := bridge.smtpServer.Close(); err != nil {
-		logrus.WithError(err).Debug("Failed to close SMTP server")
+		logrus.WithError(err).Debug("Failed to close SMTP server (expected -- we close the listener ourselves)")
 	}
 
 	return nil
 }
 
-func newSMTPServer(bridge *Bridge, tlsConfig *tls.Config, shouldLog bool) *smtp.Server {
+func newSMTPServer(bridge *Bridge, tlsConfig *tls.Config, logSMTP bool) *smtp.Server {
+	logrus.WithField("logSMTP", logSMTP).Info("Creating SMTP server")
+
 	smtpServer := smtp.NewServer(&smtpBackend{Bridge: bridge})
 
 	smtpServer.TLSConfig = tlsConfig
@@ -87,7 +95,7 @@ func newSMTPServer(bridge *Bridge, tlsConfig *tls.Config, shouldLog bool) *smtp.
 	smtpServer.MaxLineLength = 1 << 16
 	smtpServer.ErrorLog = logging.NewSMTPLogger()
 
-	if shouldLog {
+	if logSMTP {
 		log := logrus.WithField("protocol", "SMTP")
 		log.Warning("================================================")
 		log.Warning("THIS LOG WILL CONTAIN **DECRYPTED** MESSAGE DATA")

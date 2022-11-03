@@ -39,6 +39,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/v2/pkg/message/parser"
 	"github.com/bradenaw/juniper/xslices"
 	"github.com/bradenaw/juniper/xsync"
+	"github.com/go-resty/resty/v2"
 	"github.com/sirupsen/logrus"
 	"gitlab.protontech.ch/go/liteapi"
 	"golang.org/x/exp/maps"
@@ -91,7 +92,7 @@ func New(
 	syncWorkers, syncBuffer int,
 	showAllMail bool,
 ) (*User, error) { //nolint:funlen
-	logrus.WithField("userID", apiUser.ID).Debug("Creating new user")
+	logrus.WithField("userID", apiUser.ID).Info("Creating new user")
 
 	// Get the user's API addresses.
 	apiAddrs, err := client.GetAddresses(ctx)
@@ -183,6 +184,12 @@ func New(
 		})
 	})
 
+	// Log all requests made by the user.
+	user.client.AddPostRequestHook(func(_ *resty.Client, r *resty.Response) error {
+		user.log.Infof("%v: %v %v", r.Status(), r.Request.Method, r.Request.URL)
+		return nil
+	})
+
 	// Stream events from the API, logging any errors that occur.
 	// This does nothing until the sync has been marked as complete.
 	// When we receive an API event, we attempt to handle it.
@@ -204,6 +211,8 @@ func New(
 			return
 		}
 
+		user.log.WithField("event", event).Info("Received event")
+
 		if err := user.handleAPIEvent(ctx, event); err != nil {
 			user.log.WithError(err).Error("Failed to handle API event")
 			return
@@ -219,11 +228,15 @@ func New(
 
 	// When triggered, attempt to sync the user.
 	user.goSync = user.tasks.Trigger(func(ctx context.Context) {
+		user.log.Debug("Sync triggered")
+
 		user.abortable.Do(ctx, func(ctx context.Context) {
 			if !user.vault.SyncStatus().IsComplete() {
 				if err := user.doSync(ctx); err != nil {
 					return
 				}
+			} else {
+				user.log.Debug("Sync is already complete, skipping")
 			}
 		})
 	})

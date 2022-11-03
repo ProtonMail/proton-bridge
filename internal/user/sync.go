@@ -46,24 +46,26 @@ const (
 // It sends a SyncStarted event and then either SyncFinished or SyncFailed
 // depending on whether the sync was successful.
 func (user *User) doSync(ctx context.Context) error {
-	user.log.Debug("Beginning user sync")
+	start := time.Now()
+
+	user.log.WithField("start", start).Info("Beginning user sync")
 
 	user.eventCh.Enqueue(events.SyncStarted{
 		UserID: user.ID(),
 	})
 
 	if err := user.sync(ctx); err != nil {
-		user.log.WithError(err).Debug("Failed to sync user")
+		user.log.WithError(err).Warn("Failed to sync user")
 
 		user.eventCh.Enqueue(events.SyncFailed{
 			UserID: user.ID(),
-			Err:    err,
+			Error:  err,
 		})
 
 		return fmt.Errorf("failed to sync: %w", err)
 	}
 
-	user.log.Debug("Finished user sync")
+	user.log.WithField("duration", time.Since(start)).Info("Finished user sync")
 
 	user.eventCh.Enqueue(events.SyncFinished{
 		UserID: user.ID(),
@@ -76,7 +78,7 @@ func (user *User) sync(ctx context.Context) error {
 	return safe.RLockRet(func() error {
 		return withAddrKRs(user.apiUser, user.apiAddrs, user.vault.KeyPass(), func(_ *crypto.KeyRing, addrKRs map[string]*crypto.KeyRing) error {
 			if !user.vault.SyncStatus().HasLabels {
-				user.log.Debug("Syncing labels")
+				user.log.Info("Syncing labels")
 
 				if err := syncLabels(ctx, user.client, xslices.Unique(maps.Values(user.updateCh))...); err != nil {
 					return fmt.Errorf("failed to sync labels: %w", err)
@@ -86,13 +88,13 @@ func (user *User) sync(ctx context.Context) error {
 					return fmt.Errorf("failed to set has labels: %w", err)
 				}
 
-				user.log.Debug("Synced labels")
+				user.log.Info("Synced labels")
 			} else {
-				user.log.Debug("Labels are already synced, skipping")
+				user.log.Info("Labels are already synced, skipping")
 			}
 
 			if !user.vault.SyncStatus().HasMessages {
-				user.log.Debug("Syncing messages")
+				user.log.Info("Syncing messages")
 
 				if err := syncMessages(
 					ctx,
@@ -112,9 +114,9 @@ func (user *User) sync(ctx context.Context) error {
 					return fmt.Errorf("failed to set has messages: %w", err)
 				}
 
-				user.log.Debug("Synced messages")
+				user.log.Info("Synced messages")
 			} else {
-				user.log.Debug("Messages are already synced, skipping")
+				user.log.Info("Messages are already synced, skipping")
 			}
 
 			return nil

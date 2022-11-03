@@ -21,10 +21,22 @@ type TLSIssue struct {
 	eventBase
 }
 
+func (event TLSIssue) String() string {
+	return "TLSIssue"
+}
+
 type ConnStatusUp struct {
 	eventBase
 }
 
+func (event ConnStatusUp) String() string {
+	return "ConnStatusUp"
+}
+
 type ConnStatusDown struct {
 	eventBase
+}
+
+func (event ConnStatusDown) String() string {
+	return "ConnStatusDown"
 }

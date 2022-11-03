@@ -19,13 +19,12 @@ package bridge
 
 import (
 	"context"
-	"crypto/sha256"
-	"encoding/hex"
 	"fmt"
 
 	"github.com/ProtonMail/gluon/imap"
 	"github.com/ProtonMail/proton-bridge/v2/internal/async"
 	"github.com/ProtonMail/proton-bridge/v2/internal/events"
+	"github.com/ProtonMail/proton-bridge/v2/internal/logging"
 	"github.com/ProtonMail/proton-bridge/v2/internal/safe"
 	"github.com/ProtonMail/proton-bridge/v2/internal/try"
 	"github.com/ProtonMail/proton-bridge/v2/internal/user"
@@ -100,7 +99,7 @@ func (bridge *Bridge) QueryUserInfo(query string) (UserInfo, error) {
 
 // LoginAuth begins the login process. It returns an authorized client that might need 2FA.
 func (bridge *Bridge) LoginAuth(ctx context.Context, username string, password []byte) (*liteapi.Client, liteapi.Auth, error) {
-	logrus.WithField("username", hash(username)).Debug("Authorizing user for login")
+	logrus.WithField("username", logging.Sensitive(username)).Info("Authorizing user for login")
 
 	client, auth, err := bridge.api.NewClientWithLogin(ctx, username, password)
 	if err != nil {
@@ -127,7 +126,7 @@ func (bridge *Bridge) LoginUser(
 	auth liteapi.Auth,
 	keyPass []byte,
 ) (string, error) {
-	logrus.WithField("userID", auth.UserID).Debug("Logging in authorized user")
+	logrus.WithField("userID", auth.UserID).Info("Logging in authorized user")
 
 	userID, err := try.CatchVal(
 		func() (string, error) {
@@ -158,7 +157,7 @@ func (bridge *Bridge) LoginFull(
 	getTOTP func() (string, error),
 	getKeyPass func() ([]byte, error),
 ) (string, error) {
-	logrus.WithField("username", hash(username)).Debug("Performing full user login")
+	logrus.WithField("username", logging.Sensitive(username)).Info("Performing full user login")
 
 	client, auth, err := bridge.LoginAuth(ctx, username, password)
 	if err != nil {
@@ -166,7 +165,7 @@ func (bridge *Bridge) LoginFull(
 	}
 
 	if auth.TwoFA.Enabled == liteapi.TOTPEnabled {
-		logrus.WithField("userID", auth.UserID).Debug("Requesting TOTP")
+		logrus.WithField("userID", auth.UserID).Info("Requesting TOTP")
 
 		totp, err := getTOTP()
 		if err != nil {
@@ -181,7 +180,7 @@ func (bridge *Bridge) LoginFull(
 	var keyPass []byte
 
 	if auth.PasswordMode == liteapi.TwoPasswordMode {
-		logrus.WithField("userID", auth.UserID).Debug("Requesting mailbox password")
+		logrus.WithField("userID", auth.UserID).Info("Requesting mailbox password")
 
 		userKeyPass, err := getKeyPass()
 		if err != nil {
@@ -198,7 +197,7 @@ func (bridge *Bridge) LoginFull(
 
 // LogoutUser logs out the given user.
 func (bridge *Bridge) LogoutUser(ctx context.Context, userID string) error {
-	logrus.WithField("userID", userID).Debug("Logging out user")
+	logrus.WithField("userID", userID).Info("Logging out user")
 
 	return safe.LockRet(func() error {
 		user, ok := bridge.users[userID]
@@ -220,7 +219,7 @@ func (bridge *Bridge) LogoutUser(ctx context.Context, userID string) error {
 
 // DeleteUser deletes the given user.
 func (bridge *Bridge) DeleteUser(ctx context.Context, userID string) error {
-	logrus.WithField("userID", userID).Debug("Deleting user")
+	logrus.WithField("userID", userID).Info("Deleting user")
 
 	return safe.LockRet(func() error {
 		if !bridge.vault.HasUser(userID) {
@@ -246,7 +245,7 @@ func (bridge *Bridge) DeleteUser(ctx context.Context, userID string) error {
 
 // SetAddressMode sets the address mode for the given user.
 func (bridge *Bridge) SetAddressMode(ctx context.Context, userID string, mode vault.AddressMode) error {
-	logrus.WithField("userID", userID).WithField("mode", mode).Debug("Setting address mode")
+	logrus.WithField("userID", userID).WithField("mode", mode).Info("Setting address mode")
 
 	return safe.RLockRet(func() error {
 		user, ok := bridge.users[userID]
@@ -319,7 +318,7 @@ func (bridge *Bridge) loadUsers(ctx context.Context) error {
 			return nil
 		}
 
-		logrus.WithField("userID", user.UserID()).Debug("Loading connected user")
+		logrus.WithField("userID", user.UserID()).Info("Loading connected user")
 
 		bridge.publish(events.UserLoading{
 			UserID: user.UserID(),
@@ -330,9 +329,10 @@ func (bridge *Bridge) loadUsers(ctx context.Context) error {
 
 			bridge.publish(events.UserLoadFail{
 				UserID: user.UserID(),
+				Error:  err,
 			})
 		} else {
-			logrus.WithField("userID", user.UserID()).Debug("Loaded user")
+			logrus.WithField("userID", user.UserID()).Info("Successfully loaded user")
 
 			bridge.publish(events.UserLoadSuccess{
 				UserID: user.UserID(),
@@ -414,11 +414,11 @@ func (bridge *Bridge) addUserWithVault(
 	ctx context.Context,
 	client *liteapi.Client,
 	apiUser liteapi.User,
-	vaultUser *vault.User,
+	vault *vault.User,
 ) error {
 	user, err := user.New(
 		ctx,
-		vaultUser,
+		vault,
 		client,
 		apiUser,
 		bridge.vault.SyncWorkers(),
@@ -438,6 +438,11 @@ func (bridge *Bridge) addUserWithVault(
 	// For example, if the user's addresses change, we need to update them in gluon.
 	bridge.tasks.Once(func(ctx context.Context) {
 		async.RangeContext(ctx, user.GetEventCh(), func(event events.Event) {
+			logrus.WithFields(logrus.Fields{
+				"userID": apiUser.ID,
+				"event":  event,
+			}).Debug("Received user event")
+
 			if err := bridge.handleUserEvent(ctx, user, event); err != nil {
 				logrus.WithError(err).Error("Failed to handle user event")
 			} else {
@@ -448,8 +453,8 @@ func (bridge *Bridge) addUserWithVault(
 
 	// Gluon will set the IMAP ID in the context, if known, before making requests on behalf of this user.
 	// As such, if we find this ID in the context, we should use it to update our user agent.
-	client.AddPreRequestHook(func(ctx context.Context, req *resty.Request) error {
-		if imapID, ok := imap.GetIMAPIDFromContext(ctx); ok {
+	client.AddPreRequestHook(func(_ *resty.Client, r *resty.Request) error {
+		if imapID, ok := imap.GetIMAPIDFromContext(r.Context()); ok {
 			bridge.identifier.SetClient(imapID.Name, imapID.Version)
 		}
 
@@ -535,14 +540,4 @@ func getConnUserInfo(user *user.User) UserInfo {
 func mapHas[Key comparable, Val any](m map[Key]Val, key Key) bool {
 	_, ok := m[key]
 	return ok
-}
-
-func hash(s string) string {
-	h := sha256.New()
-
-	if _, err := h.Write([]byte(s)); err != nil {
-		panic(err)
-	}
-
-	return hex.EncodeToString(h.Sum(nil))
 }

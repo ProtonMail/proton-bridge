@@ -25,9 +25,11 @@ import (
 	"github.com/ProtonMail/gluon/queue"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/ProtonMail/proton-bridge/v2/internal/events"
+	"github.com/ProtonMail/proton-bridge/v2/internal/logging"
 	"github.com/ProtonMail/proton-bridge/v2/internal/safe"
 	"github.com/ProtonMail/proton-bridge/v2/internal/vault"
 	"github.com/bradenaw/juniper/xslices"
+	"github.com/sirupsen/logrus"
 	"gitlab.protontech.ch/go/liteapi"
 )
 
@@ -63,6 +65,11 @@ func (user *User) handleAPIEvent(ctx context.Context, event liteapi.Event) error
 // handleUserEvent handles the given user event.
 func (user *User) handleUserEvent(_ context.Context, userEvent liteapi.User) error {
 	return safe.LockRet(func() error {
+		user.log.WithFields(logrus.Fields{
+			"userID":   userEvent.ID,
+			"username": logging.Sensitive(userEvent.Name),
+		}).Info("Handling user event")
+
 		user.apiUser = userEvent
 
 		user.eventCh.Enqueue(events.UserChanged{
@@ -100,6 +107,11 @@ func (user *User) handleAddressEvents(ctx context.Context, addressEvents []litea
 
 func (user *User) handleCreateAddressEvent(ctx context.Context, event liteapi.AddressEvent) error {
 	if err := safe.LockRet(func() error {
+		user.log.WithFields(logrus.Fields{
+			"addressID": event.ID,
+			"email":     logging.Sensitive(event.Address.Email),
+		}).Info("Handling address created event")
+
 		if _, ok := user.apiAddrs[event.Address.ID]; ok {
 			return fmt.Errorf("address %q already exists", event.ID)
 		}
@@ -143,6 +155,11 @@ func (user *User) handleCreateAddressEvent(ctx context.Context, event liteapi.Ad
 
 func (user *User) handleUpdateAddressEvent(_ context.Context, event liteapi.AddressEvent) error { //nolint:unparam
 	return safe.LockRet(func() error {
+		user.log.WithFields(logrus.Fields{
+			"addressID": event.ID,
+			"email":     logging.Sensitive(event.Address.Email),
+		}).Info("Handling address updated event")
+
 		if _, ok := user.apiAddrs[event.Address.ID]; !ok {
 			return fmt.Errorf("address %q does not exist", event.Address.ID)
 		}
@@ -161,6 +178,8 @@ func (user *User) handleUpdateAddressEvent(_ context.Context, event liteapi.Addr
 
 func (user *User) handleDeleteAddressEvent(_ context.Context, event liteapi.AddressEvent) error {
 	return safe.LockRet(func() error {
+		user.log.WithField("addressID", event.ID).Info("Handling address deleted event")
+
 		addr, ok := user.apiAddrs[event.ID]
 		if !ok {
 			return fmt.Errorf("address %q does not exist", event.ID)
@@ -209,6 +228,11 @@ func (user *User) handleLabelEvents(ctx context.Context, labelEvents []liteapi.L
 
 func (user *User) handleCreateLabelEvent(_ context.Context, event liteapi.LabelEvent) error { //nolint:unparam
 	return safe.LockRet(func() error {
+		user.log.WithFields(logrus.Fields{
+			"labelID": event.ID,
+			"name":    logging.Sensitive(event.Label.Name),
+		}).Info("Handling label created event")
+
 		if _, ok := user.apiLabels[event.Label.ID]; ok {
 			return fmt.Errorf("label %q already exists", event.ID)
 		}
@@ -231,6 +255,11 @@ func (user *User) handleCreateLabelEvent(_ context.Context, event liteapi.LabelE
 
 func (user *User) handleUpdateLabelEvent(_ context.Context, event liteapi.LabelEvent) error { //nolint:unparam
 	return safe.LockRet(func() error {
+		user.log.WithFields(logrus.Fields{
+			"labelID": event.ID,
+			"name":    logging.Sensitive(event.Label.Name),
+		}).Info("Handling label updated event")
+
 		if _, ok := user.apiLabels[event.Label.ID]; !ok {
 			return fmt.Errorf("label %q does not exist", event.ID)
 		}
@@ -253,6 +282,8 @@ func (user *User) handleUpdateLabelEvent(_ context.Context, event liteapi.LabelE
 
 func (user *User) handleDeleteLabelEvent(_ context.Context, event liteapi.LabelEvent) error { //nolint:unparam
 	return safe.LockRet(func() error {
+		user.log.WithField("labelID", event.ID).Info("Handling label deleted event")
+
 		label, ok := user.apiLabels[event.ID]
 		if !ok {
 			return fmt.Errorf("label %q does not exist", event.ID)
@@ -305,6 +336,11 @@ func (user *User) handleCreateMessageEvent(ctx context.Context, event liteapi.Me
 	}
 
 	return safe.RLockRet(func() error {
+		user.log.WithFields(logrus.Fields{
+			"messageID": event.ID,
+			"subject":   logging.Sensitive(event.Message.Subject),
+		}).Info("Handling message created event")
+
 		return withAddrKR(user.apiUser, user.apiAddrs[event.Message.AddressID], user.vault.KeyPass(), func(_, addrKR *crypto.KeyRing) error {
 			buildRes, err := buildRFC822(full, addrKR)
 			if err != nil {
@@ -320,6 +356,11 @@ func (user *User) handleCreateMessageEvent(ctx context.Context, event liteapi.Me
 
 func (user *User) handleUpdateMessageEvent(_ context.Context, event liteapi.MessageEvent) error { //nolint:unparam
 	return safe.RLockRet(func() error {
+		user.log.WithFields(logrus.Fields{
+			"messageID": event.ID,
+			"subject":   logging.Sensitive(event.Message.Subject),
+		}).Info("Handling message updated event")
+
 		update := imap.NewMessageMailboxesUpdated(
 			imap.MessageID(event.ID),
 			mapTo[string, imap.MailboxID](xslices.Filter(event.Message.LabelIDs, wantLabelID)),
@@ -335,6 +376,8 @@ func (user *User) handleUpdateMessageEvent(_ context.Context, event liteapi.Mess
 
 func (user *User) handleDeleteMessageEvent(_ context.Context, event liteapi.MessageEvent) error { //nolint:unparam
 	return safe.RLockRet(func() error {
+		user.log.WithField("messageID", event.ID).Info("Handling message deleted event")
+
 		for _, updateCh := range user.updateCh {
 			update := imap.NewMessagesDeleted(
 				imap.MessageID(event.ID),

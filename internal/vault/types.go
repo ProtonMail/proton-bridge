@@ -120,6 +120,19 @@ const (
 	SplitMode
 )
 
+func (mode AddressMode) String() string {
+	switch mode {
+	case CombinedMode:
+		return "combined"
+
+	case SplitMode:
+		return "split"
+
+	default:
+		return "unknown"
+	}
+}
+
 type SyncStatus struct {
 	HasLabels     bool
 	HasMessages   bool

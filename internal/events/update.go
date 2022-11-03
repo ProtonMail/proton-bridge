@@ -17,7 +17,11 @@
 
 package events
 
-import "github.com/ProtonMail/proton-bridge/v2/internal/updater"
+import (
+	"fmt"
+
+	"github.com/ProtonMail/proton-bridge/v2/internal/updater"
+)
 
 type UpdateAvailable struct {
 	eventBase
@@ -27,8 +31,16 @@ type UpdateAvailable struct {
 	CanInstall bool
 }
 
+func (event UpdateAvailable) String() string {
+	return fmt.Sprintf("UpdateAvailable: Version %s, CanInstall %t", event.Version.Version, event.CanInstall)
+}
+
 type UpdateNotAvailable struct {
 	eventBase
+}
+
+func (event UpdateNotAvailable) String() string {
+	return "UpdateNotAvailable"
 }
 
 type UpdateInstalled struct {
@@ -37,6 +49,14 @@ type UpdateInstalled struct {
 	Version updater.VersionInfo
 }
 
+func (event UpdateInstalled) String() string {
+	return fmt.Sprintf("UpdateInstalled: Version %s", event.Version.Version)
+}
+
 type UpdateForced struct {
 	eventBase
+}
+
+func (event UpdateForced) String() string {
+	return "UpdateForced"
 }

@@ -17,12 +17,22 @@
 
 package events
 
+import (
+	"fmt"
+
+	"github.com/ProtonMail/proton-bridge/v2/internal/logging"
+)
+
 type UserAddressCreated struct {
 	eventBase
 
 	UserID    string
 	AddressID string
 	Email     string
+}
+
+func (event UserAddressCreated) String() string {
+	return fmt.Sprintf("UserAddressCreated: UserID: %s, AddressID: %s, Email: %s", event.UserID, event.AddressID, logging.Sensitive(event.Email))
 }
 
 type UserAddressUpdated struct {
@@ -33,10 +43,18 @@ type UserAddressUpdated struct {
 	Email     string
 }
 
+func (event UserAddressUpdated) String() string {
+	return fmt.Sprintf("UserAddressUpdated: UserID: %s, AddressID: %s, Email: %s", event.UserID, event.AddressID, logging.Sensitive(event.Email))
+}
+
 type UserAddressDeleted struct {
 	eventBase
 
 	UserID    string
 	AddressID string
 	Email     string
+}
+
+func (event UserAddressDeleted) String() string {
+	return fmt.Sprintf("UserAddressDeleted: UserID: %s, AddressID: %s, Email: %s", event.UserID, event.AddressID, logging.Sensitive(event.Email))
 }

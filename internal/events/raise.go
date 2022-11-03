@@ -20,3 +20,7 @@ package events
 type Raise struct {
 	eventBase
 }
+
+func (event Raise) String() string {
+	return "Raise"
+}

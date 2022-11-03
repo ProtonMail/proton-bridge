@@ -17,12 +17,19 @@
 
 package events
 
-import "time"
+import (
+	"fmt"
+	"time"
+)
 
 type SyncStarted struct {
 	eventBase
 
 	UserID string
+}
+
+func (event SyncStarted) String() string {
+	return fmt.Sprintf("SyncStarted: UserID: %s", event.UserID)
 }
 
 type SyncProgress struct {
@@ -34,15 +41,33 @@ type SyncProgress struct {
 	Remaining time.Duration
 }
 
+func (event SyncProgress) String() string {
+	return fmt.Sprintf(
+		"SyncProgress: UserID: %s, Progress: %f, Elapsed: %0.1fs, Remaining: %0.1fs",
+		event.UserID,
+		event.Progress,
+		event.Elapsed.Seconds(),
+		event.Remaining.Seconds(),
+	)
+}
+
 type SyncFinished struct {
 	eventBase
 
 	UserID string
 }
 
+func (event SyncFinished) String() string {
+	return fmt.Sprintf("SyncFinished: UserID: %s", event.UserID)
+}
+
 type SyncFailed struct {
 	eventBase
 
 	UserID string
-	Err    error
+	Error  error
+}
+
+func (event SyncFailed) String() string {
+	return fmt.Sprintf("SyncFailed: UserID: %s, Err: %s", event.UserID, event.Error)
 }

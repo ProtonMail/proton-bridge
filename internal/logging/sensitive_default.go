@@ -13,18 +13,28 @@
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with Proton Mail Bridge.  If not, see <https://www.gnu.org/licenses/>.
+// along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
-package events
+//go:build !sensitive
 
-import "fmt"
+package logging
 
-type Error struct {
-	eventBase
+import (
+	"crypto/sha256"
+	"encoding/hex"
+	"fmt"
+)
 
-	Error error
+func Sensitive(s string) string {
+	return fmt.Sprintf("******** (%s)", hash(s))
 }
 
-func (event Error) String() string {
-	return fmt.Sprintf("Error: %s", event.Error)
+func hash(s string) string {
+	h := sha256.New()
+
+	if _, err := h.Write([]byte(s)); err != nil {
+		panic(err)
+	}
+
+	return hex.EncodeToString(h.Sum(nil))[0:8]
 }

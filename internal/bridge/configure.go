@@ -22,14 +22,21 @@ import (
 
 	"github.com/ProtonMail/proton-bridge/v2/internal/clientconfig"
 	"github.com/ProtonMail/proton-bridge/v2/internal/constants"
+	"github.com/ProtonMail/proton-bridge/v2/internal/logging"
 	"github.com/ProtonMail/proton-bridge/v2/internal/safe"
 	"github.com/ProtonMail/proton-bridge/v2/internal/useragent"
 	"github.com/ProtonMail/proton-bridge/v2/internal/vault"
+	"github.com/sirupsen/logrus"
 )
 
 // ConfigureAppleMail configures apple mail for the given userID and address.
 // If configuring apple mail for Catalina or newer, it ensures Bridge is using SSL.
 func (bridge *Bridge) ConfigureAppleMail(userID, address string) error {
+	logrus.WithFields(logrus.Fields{
+		"userID":  userID,
+		"address": logging.Sensitive(address),
+	}).Info("Configuring Apple Mail")
+
 	return safe.RLockRet(func() error {
 		user, ok := bridge.users[userID]
 		if !ok {

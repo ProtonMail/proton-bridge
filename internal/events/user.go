@@ -17,10 +17,18 @@
 
 package events
 
-import "github.com/ProtonMail/proton-bridge/v2/internal/vault"
+import (
+	"fmt"
+
+	"github.com/ProtonMail/proton-bridge/v2/internal/vault"
+)
 
 type AllUsersLoaded struct {
 	eventBase
+}
+
+func (event AllUsersLoaded) String() string {
+	return "AllUsersLoaded"
 }
 
 type UserLoading struct {
@@ -29,16 +37,29 @@ type UserLoading struct {
 	UserID string
 }
 
+func (event UserLoading) String() string {
+	return fmt.Sprintf("UserLoading: UserID: %s", event.UserID)
+}
+
 type UserLoadSuccess struct {
 	eventBase
 
 	UserID string
 }
 
+func (event UserLoadSuccess) String() string {
+	return fmt.Sprintf("UserLoadSuccess: UserID: %s", event.UserID)
+}
+
 type UserLoadFail struct {
 	eventBase
 
 	UserID string
+	Error  error
+}
+
+func (event UserLoadFail) String() string {
+	return fmt.Sprintf("UserLoadFail: UserID: %s, Error: %s", event.UserID, event.Error)
 }
 
 type UserLoggedIn struct {
@@ -47,10 +68,18 @@ type UserLoggedIn struct {
 	UserID string
 }
 
+func (event UserLoggedIn) String() string {
+	return fmt.Sprintf("UserLoggedIn: UserID: %s", event.UserID)
+}
+
 type UserLoggedOut struct {
 	eventBase
 
 	UserID string
+}
+
+func (event UserLoggedOut) String() string {
+	return fmt.Sprintf("UserLoggedOut: UserID: %s", event.UserID)
 }
 
 type UserDeauth struct {
@@ -59,10 +88,18 @@ type UserDeauth struct {
 	UserID string
 }
 
+func (event UserDeauth) String() string {
+	return fmt.Sprintf("UserDeauth: UserID: %s", event.UserID)
+}
+
 type UserDeleted struct {
 	eventBase
 
 	UserID string
+}
+
+func (event UserDeleted) String() string {
+	return fmt.Sprintf("UserDeleted: UserID: %s", event.UserID)
 }
 
 type UserChanged struct {
@@ -71,9 +108,18 @@ type UserChanged struct {
 	UserID string
 }
 
+func (event UserChanged) String() string {
+	return fmt.Sprintf("UserChanged: UserID: %s", event.UserID)
+}
+
 type AddressModeChanged struct {
 	eventBase
 
-	UserID      string
+	UserID string
+
 	AddressMode vault.AddressMode
+}
+
+func (event AddressModeChanged) String() string {
+	return fmt.Sprintf("AddressModeChanged: UserID: %s, AddressMode: %s", event.UserID, event.AddressMode)
 }

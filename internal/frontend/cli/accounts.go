@@ -40,11 +40,7 @@ func (f *frontendCLI) listAccounts(c *ishell.Context) {
 		if user.Connected {
 			connected = "connected"
 		}
-		mode := "split"
-		if user.AddressMode == vault.CombinedMode {
-			mode = "combined"
-		}
-		f.Printf(spacing, idx, user.Username, connected, mode)
+		f.Printf(spacing, idx, user.Username, connected, user.AddressMode)
 	}
 	f.Println()
 }
@@ -265,16 +261,7 @@ func (f *frontendCLI) changeMode(c *ishell.Context) {
 		targetMode = vault.CombinedMode
 	}
 
-	var targetModeName string
-
-	switch targetMode {
-	case vault.CombinedMode:
-		targetModeName = "combined"
-	case vault.SplitMode:
-		targetModeName = "split"
-	}
-
-	if !f.yesNoQuestion("Are you sure you want to change the mode for account " + bold(user.Username) + " to " + bold(targetModeName)) {
+	if !f.yesNoQuestion("Are you sure you want to change the mode for account " + bold(user.Username) + " to " + bold(targetMode.String())) {
 		return
 	}
 
@@ -282,7 +269,7 @@ func (f *frontendCLI) changeMode(c *ishell.Context) {
 		f.printAndLogError("Cannot switch address mode:", err)
 	}
 
-	f.Printf("Address mode for account %s changed to %s\n", user.Username, targetModeName)
+	f.Printf("Address mode for account %s changed to %s\n", user.Username, targetMode)
 }
 
 func (f *frontendCLI) configureAppleMail(c *ishell.Context) {
