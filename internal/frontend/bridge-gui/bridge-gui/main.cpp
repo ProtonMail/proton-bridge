@@ -92,6 +92,14 @@ Log &initLog()
     if (!log.startWritingToFile(logsDir.absoluteFilePath(QString("gui_v%1_%2.log").arg(PROJECT_VER).arg(QDateTime::currentSecsSinceEpoch())), &error))
         log.error(error);
 
+    log.info("bridge-gui starting");
+    QString const qtCompileTimeVersion = QT_VERSION_STR;
+    QString const qtRuntimeVersion = qVersion();
+    QString msg = QString("Using Qt %1").arg(qtRuntimeVersion);
+    if (qtRuntimeVersion != qtCompileTimeVersion)
+        msg += QString(" (compiled against %1)").arg(qtCompileTimeVersion);
+    log.info(msg);
+
     return log;
 }
 
