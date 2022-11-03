@@ -2,6 +2,17 @@
 
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
+## [Bridge 2.4.5] Osney
+
+### Changed
+* GODT-2015: Bridge-gui logs to file until gRPC connection is established.
+* GODT-2016: Added more logging of gRPC events at info level.
+* GODT-2013: CLI flag for frontend is required.
+
+### Fixed
+* GODT-2020: Fix xdg_{home,cache}_home variables.
+* GODT-2014: Bridge quit if gRPC client ends stream.
+
 ## [Bridge 2.4.4] Osney
 
 ### Changed
