@@ -50,6 +50,16 @@ func (v Versions) Swap(i, j int) {
 	v[i], v[j] = v[j], v[i]
 }
 
+func (v Versions) HasVersion(want *semver.Version) bool {
+	for i := range v {
+		if v[i].version.Equal(want) {
+			return true
+		}
+	}
+
+	return false
+}
+
 func (v *Version) String() string {
 	return fmt.Sprintf("%v", v.version)
 }
@@ -101,13 +111,7 @@ func (v *Version) VerifyFiles(kr *crypto.KeyRing) error {
 // GetExecutable returns the full path to the executable of the given version.
 // It returns an error if the executable is missing or does not have executable permissions set.
 func (v *Version) GetExecutable(name string) (string, error) {
-	exe := filepath.Join(v.path, getExeName(name))
-
-	if !fileExists(exe) || !fileIsExecutable(exe) {
-		return "", ErrNoExecutable
-	}
-
-	return exe, nil
+	return getExecutableInDirectory(name, v.path)
 }
 
 // Remove removes this version directory.

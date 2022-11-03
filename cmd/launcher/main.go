@@ -56,6 +56,7 @@ const (
 func main() { //nolint:funlen
 	logrus.SetLevel(logrus.DebugLevel)
 	l := logrus.WithField("launcher_version", constants.Version)
+
 	reporter := sentry.NewReporter(appName, constants.Version, useragent.New())
 
 	crashHandler := crash.NewHandler(reporter.ReportException)
@@ -75,7 +76,7 @@ func main() { //nolint:funlen
 	crashHandler.AddRecoveryAction(logging.DumpStackTrace(logsPath))
 
 	if err := logging.Init(logsPath, os.Getenv("VERBOSITY")); err != nil {
-		logrus.WithError(err).Fatal("Failed to setup logging")
+		l.WithError(err).Fatal("Failed to setup logging")
 	}
 
 	updatesPath, err := locations.ProvideUpdatesPath()
@@ -240,7 +241,7 @@ func getPathToUpdatedExecutable(
 		}
 
 		// Skip versions that are less or equal to launcher version.
-		if currentVersion != nil && !version.SemVer().GreaterThan(currentVersion) {
+		if currentVersion != nil && !versioner.IsNewerIgnorePrerelease(version.SemVer(), currentVersion) {
 			continue
 		}
 

@@ -19,10 +19,12 @@ package bridge
 
 import (
 	"context"
+	"errors"
 
 	"github.com/ProtonMail/proton-bridge/v2/internal/events"
 	"github.com/ProtonMail/proton-bridge/v2/internal/safe"
 	"github.com/ProtonMail/proton-bridge/v2/internal/updater"
+	"github.com/ProtonMail/proton-bridge/v2/internal/versioner"
 	"github.com/sirupsen/logrus"
 )
 
@@ -58,7 +60,7 @@ func (bridge *Bridge) handleUpdate(version updater.VersionInfo) {
 	})
 
 	switch {
-	case !version.Version.GreaterThan(bridge.curVersion):
+	case !versioner.IsNewerIgnorePrerelease(version.Version, bridge.curVersion):
 		log.Debug("No update available")
 
 		bridge.publish(events.UpdateNotAvailable{})
@@ -68,7 +70,7 @@ func (bridge *Bridge) handleUpdate(version updater.VersionInfo) {
 
 		bridge.publish(events.UpdateNotAvailable{})
 
-	case bridge.curVersion.LessThan(version.MinAuto):
+	case versioner.IsNewerIgnorePrerelease(version.MinAuto, bridge.curVersion):
 		log.Info("An update is available but is incompatible with this version")
 
 		bridge.publish(events.UpdateAvailable{
@@ -88,7 +90,7 @@ func (bridge *Bridge) handleUpdate(version updater.VersionInfo) {
 
 	default:
 		safe.RLock(func() {
-			if version.Version.GreaterThan(bridge.newVersion) {
+			if versioner.IsNewerIgnorePrerelease(version.Version, bridge.newVersion) {
 				log.Info("An update is available")
 
 				select {
@@ -127,15 +129,21 @@ func (bridge *Bridge) installUpdate(ctx context.Context, job installJob) {
 			Silent:  job.silent,
 		})
 
-		if err := bridge.updater.InstallUpdate(ctx, bridge.api, job.version); err != nil {
-			log.Error("The update could not be installed")
+		err := bridge.updater.InstallUpdate(ctx, bridge.api, job.version)
+
+		switch {
+		case errors.Is(err, updater.ErrUpdateAlreadyInstalled):
+			log.Info("The update was already installed")
+
+		case err != nil:
+			log.WithError(err).Error("The update could not be installed")
 
 			bridge.publish(events.UpdateFailed{
 				Version: job.version,
 				Silent:  job.silent,
 				Error:   err,
 			})
-		} else {
+		default:
 			log.Info("The update was installed successfully")
 
 			bridge.publish(events.UpdateInstalled{

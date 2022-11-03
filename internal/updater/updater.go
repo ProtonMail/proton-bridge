@@ -30,8 +30,9 @@ import (
 )
 
 var (
-	ErrDownloadVerify = errors.New("failed to download or verify the update")
-	ErrInstall        = errors.New("failed to install the update")
+	ErrDownloadVerify         = errors.New("failed to download or verify the update")
+	ErrInstall                = errors.New("failed to install the update")
+	ErrUpdateAlreadyInstalled = errors.New("update is already installed")
 )
 
 type Downloader interface {
@@ -39,6 +40,7 @@ type Downloader interface {
 }
 
 type Installer interface {
+	IsAlreadyInstalled(*semver.Version) bool
 	InstallUpdate(*semver.Version, io.Reader) error
 }
 
@@ -84,6 +86,10 @@ func (u *Updater) GetVersionInfo(ctx context.Context, downloader Downloader, cha
 }
 
 func (u *Updater) InstallUpdate(ctx context.Context, downloader Downloader, update VersionInfo) error {
+	if u.installer.IsAlreadyInstalled(update.Version) {
+		return ErrUpdateAlreadyInstalled
+	}
+
 	b, err := downloader.DownloadAndVerify(
 		ctx,
 		u.verifier,

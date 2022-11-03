@@ -72,6 +72,10 @@ func (v *Versioner) ListVersions() (Versions, error) {
 // GetExecutableInDirectory returns the full path to the executable in the given directory, if present.
 // It returns an error if the executable is missing or does not have executable permissions set.
 func (v *Versioner) GetExecutableInDirectory(name, directory string) (string, error) {
+	return getExecutableInDirectory(name, directory)
+}
+
+func getExecutableInDirectory(name, directory string) (string, error) {
 	exe := filepath.Join(directory, getExeName(name))
 
 	if !fileExists(exe) || !fileIsExecutable(exe) {
@@ -79,4 +83,11 @@ func (v *Versioner) GetExecutableInDirectory(name, directory string) (string, er
 	}
 
 	return exe, nil
+}
+
+func IsNewerIgnorePrerelease(a, b *semver.Version) bool {
+	aN, _ := a.SetPrerelease("")
+	bN, _ := b.SetPrerelease("")
+
+	return aN.GreaterThan(&bN)
 }
