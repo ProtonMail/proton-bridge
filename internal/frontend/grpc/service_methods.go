@@ -48,7 +48,7 @@ func (s *Service) CheckTokens(ctx context.Context, clientConfigPath *wrapperspb.
 	path := clientConfigPath.Value
 	logEntry := s.log.WithField("path", path)
 
-	var clientConfig config
+	var clientConfig Config
 	if err := clientConfig.load(path); err != nil {
 		logEntry.WithError(err).Error("Could not read gRPC client config file")
 
@@ -234,7 +234,7 @@ func (s *Service) TriggerReset(ctx context.Context, _ *emptypb.Empty) (*emptypb.
 func (s *Service) Version(ctx context.Context, _ *emptypb.Empty) (*wrapperspb.StringValue, error) {
 	s.log.Debug("Version")
 
-	return wrapperspb.String(constants.Version), nil
+	return wrapperspb.String(s.bridge.GetCurrentVersion().Original()), nil
 }
 
 func (s *Service) LogsPath(ctx context.Context, _ *emptypb.Empty) (*wrapperspb.StringValue, error) {

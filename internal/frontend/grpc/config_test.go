@@ -32,7 +32,7 @@ const (
 )
 
 func TestConfig(t *testing.T) {
-	conf1 := config{
+	conf1 := Config{
 		Port:  dummyPort,
 		Cert:  dummyCert,
 		Token: dummyToken,
@@ -43,7 +43,7 @@ func TestConfig(t *testing.T) {
 	tempFilePath := filepath.Join(tempDir, tempFileName)
 	require.NoError(t, conf1.save(tempFilePath))
 
-	conf2 := config{}
+	conf2 := Config{}
 	require.NoError(t, conf2.load(tempFilePath))
 	require.Equal(t, conf1, conf2)
 

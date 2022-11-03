@@ -20,62 +20,127 @@ package tests
 import (
 	"context"
 	"crypto/tls"
+	"crypto/x509"
+	"encoding/json"
 	"fmt"
 	"net/http/cookiejar"
 	"os"
+	"path/filepath"
+	"runtime"
 	"time"
 
-	"github.com/sirupsen/logrus"
-
+	"github.com/ProtonMail/gluon/queue"
 	"github.com/ProtonMail/proton-bridge/v2/internal/bridge"
+	"github.com/ProtonMail/proton-bridge/v2/internal/constants"
 	"github.com/ProtonMail/proton-bridge/v2/internal/cookies"
 	"github.com/ProtonMail/proton-bridge/v2/internal/events"
+	frontend "github.com/ProtonMail/proton-bridge/v2/internal/frontend/grpc"
 	"github.com/ProtonMail/proton-bridge/v2/internal/useragent"
 	"github.com/ProtonMail/proton-bridge/v2/internal/vault"
+	"github.com/sirupsen/logrus"
 	"gitlab.protontech.ch/go/liteapi"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/metadata"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 func (t *testCtx) startBridge() error {
+	logrus.Info("Starting bridge")
+
+	eventCh, err := t.initBridge()
+	if err != nil {
+		return fmt.Errorf("could not create bridge: %w", err)
+	}
+
+	logrus.Info("Starting frontend service")
+
+	if err := t.initFrontendService(eventCh); err != nil {
+		return fmt.Errorf("could not create frontend service: %w", err)
+	}
+
+	logrus.Info("Starting frontend client")
+
+	if err := t.initFrontendClient(); err != nil {
+		return fmt.Errorf("could not create frontend client: %w", err)
+	}
+
+	t.events.await(events.AllUsersLoaded{}, 30*time.Second)
+
+	return nil
+}
+
+func (t *testCtx) stopBridge() error {
+	if err := t.closeFrontendService(context.Background()); err != nil {
+		return fmt.Errorf("could not close frontend: %w", err)
+	}
+
+	if err := t.closeFrontendClient(); err != nil {
+		return fmt.Errorf("could not close frontend client: %w", err)
+	}
+
+	if err := t.closeBridge(context.Background()); err != nil {
+		return fmt.Errorf("could not close bridge: %w", err)
+	}
+
+	return nil
+}
+
+func (t *testCtx) initBridge() (<-chan events.Event, error) {
+	if t.bridge != nil {
+		return nil, fmt.Errorf("bridge is already started")
+	}
+
 	// Bridge will enable the proxy by default at startup.
 	t.mocks.ProxyCtl.EXPECT().AllowProxy()
 
 	// Get the path to the vault.
 	vaultDir, err := t.locator.ProvideSettingsPath()
 	if err != nil {
-		return err
+		return nil, fmt.Errorf("could not get vault dir: %w", err)
 	}
 
 	// Get the default gluon path.
 	gluonDir, err := t.locator.ProvideGluonPath()
 	if err != nil {
-		return err
+		return nil, fmt.Errorf("could not get gluon dir: %w", err)
 	}
 
 	// Create the vault.
 	vault, corrupt, err := vault.New(vaultDir, gluonDir, t.storeKey)
 	if err != nil {
-		return err
+		return nil, fmt.Errorf("could not create vault: %w", err)
 	} else if corrupt {
-		return fmt.Errorf("vault is corrupt")
+		return nil, fmt.Errorf("vault is corrupt")
 	}
 
 	// Create the underlying cookie jar.
 	jar, err := cookiejar.New(nil)
 	if err != nil {
-		return err
+		return nil, fmt.Errorf("could not create cookie jar: %w", err)
 	}
 
 	// Create the persisting cookie jar.
 	persister, err := cookies.NewCookieJar(jar, vault)
 	if err != nil {
-		return err
+		return nil, fmt.Errorf("could not create cookie persister: %w", err)
 	}
 
-	var logIMAP bool
+	var (
+		logIMAP bool
+		logSMTP bool
+	)
 
 	if len(os.Getenv("FEATURE_TEST_LOG_IMAP")) != 0 {
-		logrus.SetLevel(logrus.TraceLevel)
 		logIMAP = true
+	}
+
+	if len(os.Getenv("FEATURE_TEST_LOG_SMTP")) != 0 {
+		logSMTP = true
+	}
+
+	if logIMAP || logSMTP {
+		logrus.SetLevel(logrus.TraceLevel)
 	}
 
 	// Create the bridge.
@@ -98,31 +163,178 @@ func (t *testCtx) startBridge() error {
 		// Logging stuff
 		logIMAP,
 		logIMAP,
-		false,
+		logSMTP,
 	)
 	if err != nil {
-		return err
+		return nil, fmt.Errorf("could not create bridge: %w", err)
 	}
 
-	t.events.collectFrom(eventCh)
-
-	// Wait for the users to be loaded.
-	t.events.await(events.AllUsersLoaded{}, 30*time.Second)
-
-	// Save the bridge to the context.
 	t.bridge = bridge
 
-	return nil
+	return t.events.collectFrom(eventCh), nil
 }
 
-func (t *testCtx) stopBridge() error {
+func (t *testCtx) closeBridge(ctx context.Context) error {
 	if t.bridge == nil {
-		return fmt.Errorf("bridge is not running")
+		return fmt.Errorf("bridge is not started")
 	}
 
-	t.bridge.Close(context.Background())
-
-	t.bridge = nil
+	t.bridge.Close(ctx)
 
 	return nil
 }
+
+func (t *testCtx) initFrontendService(eventCh <-chan events.Event) error {
+	if t.service != nil {
+		return fmt.Errorf("frontend service is already started")
+	}
+
+	// When starting the frontend, we might enable autostart on bridge if it isn't already.
+	t.mocks.Autostarter.EXPECT().Enable().AnyTimes()
+
+	service, err := frontend.NewService(
+		new(mockCrashHandler),
+		new(mockRestarter),
+		t.locator,
+		t.bridge,
+		eventCh,
+		true,
+	)
+	if err != nil {
+		return fmt.Errorf("could not create service: %w", err)
+	}
+
+	logrus.Info("Frontend service started")
+
+	t.service = service
+
+	t.serviceWG.Add(1)
+
+	go func() {
+		defer t.serviceWG.Done()
+
+		if err := service.Loop(); err != nil {
+			panic(err)
+		}
+	}()
+
+	return nil
+}
+
+func (t *testCtx) closeFrontendService(ctx context.Context) error {
+	if t.service == nil {
+		return fmt.Errorf("frontend service is not started")
+	}
+
+	if _, err := t.client.Quit(ctx, &emptypb.Empty{}); err != nil {
+		return fmt.Errorf("could not quit frontend: %w", err)
+	}
+
+	t.serviceWG.Wait()
+
+	logrus.Info("Frontend service stopped")
+
+	t.service = nil
+
+	return nil
+}
+
+func (t *testCtx) initFrontendClient() error {
+	if t.client != nil {
+		return fmt.Errorf("frontend client is already started")
+	}
+
+	settings, err := t.locator.ProvideSettingsPath()
+	if err != nil {
+		return fmt.Errorf("could not get settings path: %w", err)
+	}
+
+	b, err := os.ReadFile(filepath.Join(settings, "grpcServerConfig.json"))
+	if err != nil {
+		return fmt.Errorf("could not read grpcServerConfig.json: %w", err)
+	}
+
+	var cfg frontend.Config
+
+	if err := json.Unmarshal(b, &cfg); err != nil {
+		return fmt.Errorf("could not unmarshal grpcServerConfig.json: %w", err)
+	}
+
+	cp := x509.NewCertPool()
+
+	if !cp.AppendCertsFromPEM([]byte(cfg.Cert)) {
+		return fmt.Errorf("failed to append certificates to pool")
+	}
+
+	conn, err := grpc.DialContext(
+		context.Background(),
+		fmt.Sprintf("%v:%d", constants.Host, cfg.Port),
+		grpc.WithTransportCredentials(credentials.NewTLS(&tls.Config{RootCAs: cp})),
+		grpc.WithUnaryInterceptor(func(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
+			return invoker(metadata.AppendToOutgoingContext(ctx, "server-token", cfg.Token), method, req, reply, cc, opts...)
+		}),
+	)
+	if err != nil {
+		return fmt.Errorf("could not dial grpc server: %w", err)
+	}
+
+	client := frontend.NewBridgeClient(conn)
+
+	stream, err := client.RunEventStream(context.Background(), &frontend.EventStreamRequest{ClientPlatform: runtime.GOOS})
+	if err != nil {
+		return fmt.Errorf("could not start event stream: %w", err)
+	}
+
+	eventCh := queue.NewQueuedChannel[*frontend.StreamEvent](0, 0)
+
+	go func() {
+		defer eventCh.CloseAndDiscardQueued()
+
+		for {
+			event, err := stream.Recv()
+			if err != nil {
+				return
+			}
+
+			eventCh.Enqueue(event)
+		}
+	}()
+
+	logrus.Info("Frontend client started")
+
+	t.client = client
+	t.clientConn = conn
+	t.clientEventCh = eventCh
+
+	return nil
+}
+
+func (t *testCtx) closeFrontendClient() error {
+	if t.client == nil {
+		return fmt.Errorf("frontend client is not started")
+	}
+
+	if err := t.clientConn.Close(); err != nil {
+		return fmt.Errorf("could not close frontend client connection: %w", err)
+	}
+
+	logrus.Info("Frontend client stopped")
+
+	t.client = nil
+	t.clientConn = nil
+	t.clientEventCh = nil
+
+	return nil
+}
+
+type mockCrashHandler struct{}
+
+func (m *mockCrashHandler) HandlePanic() {}
+
+type mockRestarter struct{}
+
+func (m *mockRestarter) Set(restart, crash bool) {}
+
+func (m *mockRestarter) AddFlags(flags ...string) {}
+
+func (m *mockRestarter) Override(exe string) {}

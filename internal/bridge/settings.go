@@ -248,6 +248,10 @@ func (bridge *Bridge) SetUpdateChannel(channel updater.Channel) error {
 	return nil
 }
 
+func (bridge *Bridge) GetCurrentVersion() *semver.Version {
+	return bridge.curVersion
+}
+
 func (bridge *Bridge) GetLastVersion() *semver.Version {
 	return bridge.vault.GetLastVersion()
 }

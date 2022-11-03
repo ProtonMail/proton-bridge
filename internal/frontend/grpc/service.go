@@ -31,12 +31,9 @@ import (
 
 	"github.com/ProtonMail/proton-bridge/v2/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/v2/internal/certs"
-	"github.com/ProtonMail/proton-bridge/v2/internal/crash"
 	"github.com/ProtonMail/proton-bridge/v2/internal/events"
-	"github.com/ProtonMail/proton-bridge/v2/internal/locations"
 	"github.com/ProtonMail/proton-bridge/v2/internal/safe"
 	"github.com/ProtonMail/proton-bridge/v2/internal/updater"
-	"github.com/ProtonMail/proton-bridge/v2/pkg/restarter"
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 	"gitlab.protontech.ch/go/liteapi"
@@ -64,8 +61,8 @@ type Service struct { // nolint:structcheck
 	eventQueue         []*StreamEvent
 	eventQueueMutex    sync.Mutex
 
-	panicHandler *crash.Handler
-	restarter    *restarter.Restarter
+	panicHandler CrashHandler
+	restarter    Restarter
 	bridge       *bridge.Bridge
 	eventCh      <-chan events.Event
 
@@ -91,9 +88,9 @@ type Service struct { // nolint:structcheck
 //
 // nolint:funlen
 func NewService(
-	panicHandler *crash.Handler,
-	restarter *restarter.Restarter,
-	locations *locations.Locations,
+	panicHandler CrashHandler,
+	restarter Restarter,
+	locations Locator,
 	bridge *bridge.Bridge,
 	eventCh <-chan events.Event,
 	showOnStartup bool,
@@ -394,13 +391,13 @@ func newTLSConfig() (*tls.Config, []byte, error) {
 	}, certPEM, nil
 }
 
-func saveGRPCServerConfigFile(locations *locations.Locations, listener net.Listener, token string, certPEM []byte) (string, error) {
+func saveGRPCServerConfigFile(locations Locator, listener net.Listener, token string, certPEM []byte) (string, error) {
 	address, ok := listener.Addr().(*net.TCPAddr)
 	if !ok {
 		return "", fmt.Errorf("could not retrieve gRPC service listener address")
 	}
 
-	sc := config{
+	sc := Config{
 		Port:  address.Port,
 		Cert:  string(certPEM),
 		Token: token,

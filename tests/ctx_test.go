@@ -21,16 +21,14 @@ import (
 	"context"
 	"fmt"
 	"net/smtp"
-	"reflect"
 	"regexp"
 	"sync"
 	"testing"
-	"time"
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/ProtonMail/gluon/queue"
 	"github.com/ProtonMail/proton-bridge/v2/internal/bridge"
-	"github.com/ProtonMail/proton-bridge/v2/internal/events"
+	frontend "github.com/ProtonMail/proton-bridge/v2/internal/frontend/grpc"
 	"github.com/ProtonMail/proton-bridge/v2/internal/locations"
 	"github.com/bradenaw/juniper/xslices"
 	"github.com/emersion/go-imap/client"
@@ -38,6 +36,7 @@ import (
 	"gitlab.protontech.ch/go/liteapi"
 	"gitlab.protontech.ch/go/liteapi/server"
 	"golang.org/x/exp/maps"
+	"google.golang.org/grpc"
 )
 
 var defaultVersion = semver.MustParse("1.0.0")
@@ -55,6 +54,15 @@ type testCtx struct {
 
 	// bridge holds the bridge app under test.
 	bridge *bridge.Bridge
+
+	// service holds the gRPC frontend service under test.
+	service   *frontend.Service
+	serviceWG sync.WaitGroup
+
+	// client holds the gRPC frontend client under test.
+	client        frontend.BridgeClient
+	clientConn    *grpc.ClientConn
+	clientEventCh *queue.QueuedChannel[*frontend.StreamEvent]
 
 	// These maps hold expected userIDByName, their primary addresses and bridge passwords.
 	userIDByName       map[string]string
@@ -295,85 +303,25 @@ func (t *testCtx) close(ctx context.Context) {
 		}
 	}
 
+	if t.service != nil {
+		if err := t.closeFrontendService(ctx); err != nil {
+			logrus.WithError(err).Error("Failed to close frontend service")
+		}
+	}
+
+	if t.client != nil {
+		if err := t.closeFrontendClient(); err != nil {
+			logrus.WithError(err).Error("Failed to close frontend client")
+		}
+	}
+
 	if t.bridge != nil {
-		t.bridge.Close(ctx)
+		if err := t.closeBridge(ctx); err != nil {
+			logrus.WithError(err).Error("Failed to close bridge")
+		}
 	}
 
 	t.api.Close()
 
 	t.events.close()
-}
-
-type eventCollector struct {
-	events map[reflect.Type]*queue.QueuedChannel[events.Event]
-	lock   sync.RWMutex
-	wg     sync.WaitGroup
-}
-
-func newEventCollector() *eventCollector {
-	return &eventCollector{
-		events: make(map[reflect.Type]*queue.QueuedChannel[events.Event]),
-	}
-}
-
-func (c *eventCollector) collectFrom(eventCh <-chan events.Event) {
-	c.wg.Add(1)
-
-	go func() {
-		defer c.wg.Done()
-
-		for event := range eventCh {
-			c.push(event)
-		}
-	}()
-}
-
-func awaitType[T events.Event](c *eventCollector, ofType T, timeout time.Duration) (T, bool) {
-	if event := c.await(ofType, timeout); event == nil {
-		return *new(T), false //nolint:gocritic
-	} else if event, ok := event.(T); !ok {
-		panic(fmt.Errorf("unexpected event type %T", event))
-	} else {
-		return event, true
-	}
-}
-
-func (c *eventCollector) await(ofType events.Event, timeout time.Duration) events.Event {
-	select {
-	case event := <-c.getEventCh(ofType):
-		return event
-
-	case <-time.After(timeout):
-		return nil
-	}
-}
-
-func (c *eventCollector) push(event events.Event) {
-	c.lock.Lock()
-	defer c.lock.Unlock()
-
-	if _, ok := c.events[reflect.TypeOf(event)]; !ok {
-		c.events[reflect.TypeOf(event)] = queue.NewQueuedChannel[events.Event](0, 0)
-	}
-
-	c.events[reflect.TypeOf(event)].Enqueue(event)
-}
-
-func (c *eventCollector) getEventCh(ofType events.Event) <-chan events.Event {
-	c.lock.Lock()
-	defer c.lock.Unlock()
-
-	if _, ok := c.events[reflect.TypeOf(ofType)]; !ok {
-		c.events[reflect.TypeOf(ofType)] = queue.NewQueuedChannel[events.Event](0, 0)
-	}
-
-	return c.events[reflect.TypeOf(ofType)].GetChannel()
-}
-
-func (c *eventCollector) close() {
-	c.wg.Wait()
-
-	for _, eventCh := range c.events {
-		eventCh.CloseAndDiscardQueued()
-	}
 }

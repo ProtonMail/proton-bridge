@@ -132,6 +132,9 @@ func TestFeatures(testingT *testing.T) {
 			ctx.Step(`^bridge sends an update not available event$`, s.bridgeSendsAnUpdateNotAvailableEvent)
 			ctx.Step(`^bridge sends a forced update event$`, s.bridgeSendsAForcedUpdateEvent)
 
+			// ==== FRONTEND ====
+			ctx.Step(`^frontend sees that bridge is version "([^"]*)"$`, s.frontendSeesThatBridgeIsVersion)
+
 			// ==== USER ====
 			ctx.Step(`^the user logs in with username "([^"]*)" and password "([^"]*)"$`, s.userLogsInWithUsernameAndPassword)
 			ctx.Step(`^user "([^"]*)" logs out$`, s.userLogsOut)
