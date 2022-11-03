@@ -15,6 +15,9 @@ issues:
     - at least one file in a package should have a package comment
     # Package comments.
     - "package-comments: should have a package comment"
+    # Migration uses underscores to make versions clearer.
+    - "var-naming: don't use underscores in Go names"
+    - "ST1003: should not use underscores in Go names"
 
   exclude-rules:
     - path: _test\.go

@@ -20,7 +20,6 @@ package vault
 import (
 	"crypto/aes"
 	"crypto/cipher"
-	"crypto/rand"
 	"crypto/sha256"
 	"errors"
 	"fmt"
@@ -29,10 +28,8 @@ import (
 	"path/filepath"
 	"sync"
 
-	"github.com/ProtonMail/proton-bridge/v2/internal/certs"
 	"github.com/bradenaw/juniper/xslices"
 	"github.com/sirupsen/logrus"
-	"github.com/vmihailenco/msgpack/v5"
 )
 
 // Vault is an encrypted data vault that stores bridge and user data.
@@ -228,9 +225,7 @@ func newVault(path, gluonDir string, gcm cipher.AEAD) (*Vault, bool, error) {
 
 	var corrupt bool
 
-	if dec, err := decrypt(gcm, enc); err != nil {
-		corrupt = true
-	} else if err := msgpack.Unmarshal(dec, new(Data)); err != nil {
+	if err := unmarshalFile(gcm, enc, new(Data)); err != nil {
 		corrupt = true
 	}
 
@@ -255,14 +250,9 @@ func (vault *Vault) get() Data {
 	vault.encLock.RLock()
 	defer vault.encLock.RUnlock()
 
-	dec, err := decrypt(vault.gcm, vault.enc)
-	if err != nil {
-		panic(err)
-	}
-
 	var data Data
 
-	if err := msgpack.Unmarshal(dec, &data); err != nil {
+	if err := unmarshalFile(vault.gcm, vault.enc, &data); err != nil {
 		panic(err)
 	}
 
@@ -273,25 +263,15 @@ func (vault *Vault) mod(fn func(data *Data)) error {
 	vault.encLock.Lock()
 	defer vault.encLock.Unlock()
 
-	dec, err := decrypt(vault.gcm, vault.enc)
-	if err != nil {
-		return err
-	}
-
 	var data Data
 
-	if err := msgpack.Unmarshal(dec, &data); err != nil {
+	if err := unmarshalFile(vault.gcm, vault.enc, &data); err != nil {
 		return err
 	}
 
 	fn(&data)
 
-	mod, err := msgpack.Marshal(data)
-	if err != nil {
-		return err
-	}
-
-	enc, err := encrypt(vault.gcm, mod)
+	enc, err := marshalFile(vault.gcm, data)
 	if err != nil {
 		return err
 	}
@@ -318,23 +298,7 @@ func (vault *Vault) modUser(userID string, fn func(userData *UserData)) error {
 }
 
 func initVault(path, gluonDir string, gcm cipher.AEAD) ([]byte, error) {
-	bridgeCert, err := newTLSCert()
-	if err != nil {
-		return nil, err
-	}
-
-	dec, err := msgpack.Marshal(Data{
-		Settings: newDefaultSettings(gluonDir),
-
-		Certs: Certs{
-			Bridge: bridgeCert,
-		},
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	enc, err := encrypt(gcm, dec)
+	enc, err := marshalFile(gcm, newDefaultData(gluonDir))
 	if err != nil {
 		return nil, err
 	}
@@ -344,35 +308,4 @@ func initVault(path, gluonDir string, gcm cipher.AEAD) ([]byte, error) {
 	}
 
 	return enc, nil
-}
-
-func decrypt(gcm cipher.AEAD, enc []byte) ([]byte, error) {
-	return gcm.Open(nil, enc[:gcm.NonceSize()], enc[gcm.NonceSize():], nil)
-}
-
-func encrypt(gcm cipher.AEAD, data []byte) ([]byte, error) {
-	nonce := make([]byte, gcm.NonceSize())
-
-	if _, err := rand.Read(nonce); err != nil {
-		return nil, err
-	}
-
-	return gcm.Seal(nonce, nonce, data, nil), nil
-}
-
-func newTLSCert() (Cert, error) {
-	template, err := certs.NewTLSTemplate()
-	if err != nil {
-		return Cert{}, err
-	}
-
-	certPEM, keyPEM, err := certs.GenerateCert(template)
-	if err != nil {
-		return Cert{}, err
-	}
-
-	return Cert{
-		Cert: certPEM,
-		Key:  keyPEM,
-	}, nil
 }
