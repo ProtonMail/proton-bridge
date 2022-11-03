@@ -69,13 +69,12 @@ const (
 	flagMemProfileShort = "m"
 	flagLogLevel        = "log-level"
 	flagLogLevelShort   = "l"
-	FlagGRPC            = "grpc" // FlagGRPC starts the gRPC frontend
-	FlagGRPCShort       = "g"
-	FlagCLI             = "cli" // FlagCLI indicate to start with command line interface.
-	flagCLIShort        = "c"
-	flagRestart         = "restart"
-	FlagLauncher        = "launcher"
-	FlagNoWindow        = "no-window"
+	// FlagCLI indicate to start with command line interface.
+	FlagCLI      = "cli"
+	flagCLIShort = "c"
+	flagRestart  = "restart"
+	FlagLauncher = "launcher"
+	FlagNoWindow = "no-window"
 )
 
 type Base struct {
@@ -299,11 +298,6 @@ func (b *Base) NewApp(mainLoop func(*Base, *cli.Context) error) *cli.App {
 			Name:    flagLogLevel,
 			Aliases: []string{flagLogLevelShort},
 			Usage:   "Set the log level (one of panic, fatal, error, warn, info, debug)",
-		},
-		&cli.BoolFlag{
-			Name:    FlagGRPC,
-			Aliases: []string{FlagGRPCShort},
-			Usage:   "Start the gRPC service",
 		},
 		&cli.BoolFlag{
 			Name:    FlagCLI,
