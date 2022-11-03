@@ -8,7 +8,7 @@ BEGIN
     BEGIN
         BLOCK "040904b0"
         BEGIN
-            VALUE "Comments", "The Bridge is an application that runs on your computer in the background and seamlessly encrypts and decrypts your mail as it enters and leaves your computer."
+            VALUE "Comments", "Proton Mail Bridge is a desktop application that runs in the background, encrypting and decrypting messages as they enter and leave your computer."
             VALUE "CompanyName", "${BRIDGE_VENDOR}"
             VALUE "FileDescription", "${BRIDGE_APP_FULL_NAME}"
             VALUE "FileVersion", "${BRIDGE_APP_VERSION_COMMA}"
