@@ -30,7 +30,7 @@ namespace
 Log *qtHandlerLog { nullptr }; ///< The log instance handling qt logs.
 QMutex qtHandlerMutex; ///< A mutex used to access qtHandlerLog.
 
-// Mapping of log levels to string. Maybe used to lookup using both side a a key, so a list of pair is more convenient that a map.
+// Mapping of log levels to string. Maybe used to lookup using both side a key, so a list of pair is more convenient that a map.
 QList<QPair<Log::Level, QString>> const logLevelStrings {
     { Log::Level::Panic, "panic", },
     { Log::Level::Fatal, "fatal", },
@@ -96,15 +96,15 @@ void qtMessageHandler(QtMsgType type, QMessageLogContext const &, QString const 
 
 
 //****************************************************************************************************************************************************
-/// \brief return a string representing the log entry
+/// \brief return a string representing the log entry, in a format similar to the one used by logrus.
 ///
 /// \param[in] level The log entry level.
 /// \param[in] message The log entry message.
 /// \return The string for the log entry
 //****************************************************************************************************************************************************
-QString Log::logEntryToString(Log::Level level, QString const &message)
+QString Log::logEntryToString(Log::Level level, QDateTime const &dateTime, QString const &message)
 {
-    return QString("[%1] %2").arg(levelToString(level).toUpper(), message);
+    return QString("%1[%2] %3").arg(levelToString(level).left(4).toUpper(), dateTime.toString("MMM dd HH:mm:ss.zzz"), message);
 }
 
 
@@ -303,15 +303,17 @@ void Log::trace(QString const &message)
 //****************************************************************************************************************************************************
 void Log::addEntry(Log::Level level, QString const &message)
 {
+    QDateTime const dateTime = QDateTime::currentDateTime();
     QMutexLocker locker(&mutex_);
     if (qint32(level) > qint32(level_))
         return;
+
     emit entryAdded(level, message);
 
     if (!(echoInConsole_ || file_))
         return;
 
-    QString const entryStr = logEntryToString(level, message) + "\n";
+    QString const entryStr = logEntryToString(level, dateTime, message) + "\n";
     if (echoInConsole_)
     {
         QTextStream &stream = (qint32(level) <= (qint32(Level::Warn))) ? stderr_ : stdout_;

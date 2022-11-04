@@ -44,7 +44,7 @@ public: // data types.
     };
 
 public: // static member functions.
-    static QString logEntryToString(Log::Level level, QString const &message); ///< Return a string describing a log entry.
+    static QString logEntryToString(Log::Level level, QDateTime const &dateTime, QString const &message); ///< Return a string describing a log entry.
     static QString levelToString(Log::Level level); ///< return the string for a level.
     static bool stringToLevel(QString const &str, Log::Level& outLevel); ///< parse a level from a string.
 
