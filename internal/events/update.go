@@ -106,10 +106,8 @@ func (event UpdateFailed) String() string {
 // UpdateForced is published when the bridge version is too old and must be updated.
 type UpdateForced struct {
 	eventBase
-
-	Version updater.VersionInfo
 }
 
 func (event UpdateForced) String() string {
-	return fmt.Sprintf("UpdateForced: Version %s", event.Version.Version)
+	return fmt.Sprintf("UpdateForced")
 }

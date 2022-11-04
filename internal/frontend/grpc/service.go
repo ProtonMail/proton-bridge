@@ -293,7 +293,17 @@ func (s *Service) watchEvents() {
 			}
 
 		case events.UpdateForced:
-			_ = s.SendEvent(NewUpdateForceEvent(event.Version.Version.String()))
+			var latest string
+
+			if s.latest.Version != nil {
+				latest = s.latest.Version.String()
+			} else if version, ok := s.checkLatestVersion(); ok {
+				latest = version.Version.String()
+			} else {
+				latest = "unknown"
+			}
+
+			_ = s.SendEvent(NewUpdateForceEvent(latest))
 
 		case events.TLSIssue:
 			_ = s.SendEvent(NewMailApiCertIssue())
@@ -366,6 +376,25 @@ func (s *Service) triggerReset() {
 	}()
 
 	s.bridge.FactoryReset(context.Background())
+}
+
+func (s *Service) checkLatestVersion() (updater.VersionInfo, bool) {
+	updateCh, done := s.bridge.GetEvents(events.UpdateLatest{})
+	defer done()
+
+	s.bridge.CheckForUpdates()
+
+	select {
+	case event := <-updateCh:
+		if latest, ok := event.(events.UpdateLatest); ok {
+			return latest.Version, true
+		}
+
+	case <-time.After(5 * time.Second):
+		// ...
+	}
+
+	return updater.VersionInfo{}, false
 }
 
 func newTLSConfig() (*tls.Config, []byte, error) {
