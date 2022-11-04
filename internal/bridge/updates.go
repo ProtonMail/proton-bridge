@@ -21,6 +21,7 @@ import (
 	"context"
 
 	"github.com/ProtonMail/proton-bridge/v2/internal/events"
+	"github.com/ProtonMail/proton-bridge/v2/internal/safe"
 	"github.com/ProtonMail/proton-bridge/v2/internal/updater"
 	"github.com/sirupsen/logrus"
 )
@@ -86,21 +87,19 @@ func (bridge *Bridge) handleUpdate(version updater.VersionInfo) {
 		})
 
 	default:
-		log.Info("An update is available")
+		safe.RLock(func() {
+			if version.Version.GreaterThan(bridge.newVersion) {
+				log.Info("An update is available")
 
-		bridge.publish(events.UpdateAvailable{
-			Version:    version,
-			Compatible: true,
-			Silent:     true,
-		})
+				select {
+				case bridge.installCh <- installJob{version: version, silent: true}:
+					log.Info("The update will be installed silently")
 
-		select {
-		case bridge.installCh <- installJob{version: version, silent: true}:
-			log.Info("The update will be installed silently")
-
-		default:
-			log.Info("An update is already being installed")
-		}
+				default:
+					log.Info("An update is already being installed")
+				}
+			}
+		}, bridge.newVersionLock)
 	}
 }
 
@@ -110,31 +109,41 @@ type installJob struct {
 }
 
 func (bridge *Bridge) installUpdate(ctx context.Context, job installJob) {
-	log := logrus.WithFields(logrus.Fields{
-		"version": job.version.Version,
-		"current": bridge.curVersion,
-		"channel": bridge.vault.GetUpdateChannel(),
-	})
-
-	bridge.publish(events.UpdateInstalling{
-		Version: job.version,
-		Silent:  job.silent,
-	})
-
-	if err := bridge.updater.InstallUpdate(ctx, bridge.api, job.version); err != nil {
-		log.Error("The update could not be installed")
-
-		bridge.publish(events.UpdateFailed{
-			Version: job.version,
-			Silent:  job.silent,
-			Error:   err,
+	safe.Lock(func() {
+		log := logrus.WithFields(logrus.Fields{
+			"version": job.version.Version,
+			"current": bridge.curVersion,
+			"channel": bridge.vault.GetUpdateChannel(),
 		})
-	} else {
-		log.Info("The update was installed successfully")
 
-		bridge.publish(events.UpdateInstalled{
+		bridge.publish(events.UpdateAvailable{
+			Version:    job.version,
+			Compatible: true,
+			Silent:     job.silent,
+		})
+
+		bridge.publish(events.UpdateInstalling{
 			Version: job.version,
 			Silent:  job.silent,
 		})
-	}
+
+		if err := bridge.updater.InstallUpdate(ctx, bridge.api, job.version); err != nil {
+			log.Error("The update could not be installed")
+
+			bridge.publish(events.UpdateFailed{
+				Version: job.version,
+				Silent:  job.silent,
+				Error:   err,
+			})
+		} else {
+			log.Info("The update was installed successfully")
+
+			bridge.publish(events.UpdateInstalled{
+				Version: job.version,
+				Silent:  job.silent,
+			})
+
+			bridge.newVersion = job.version.Version
+		}
+	}, bridge.newVersionLock)
 }

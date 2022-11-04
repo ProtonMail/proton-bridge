@@ -109,5 +109,5 @@ type UpdateForced struct {
 }
 
 func (event UpdateForced) String() string {
-	return fmt.Sprintf("UpdateForced")
+	return "UpdateForced"
 }

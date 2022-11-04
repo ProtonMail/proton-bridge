@@ -72,9 +72,14 @@ type Bridge struct {
 	smtpListener net.Listener
 
 	// updater is the bridge's updater.
-	updater    Updater
-	curVersion *semver.Version
-	installCh  chan installJob
+	updater   Updater
+	installCh chan installJob
+
+	// curVersion is the current version of the bridge,
+	// newVersion is the version that was installed by the updater.
+	curVersion     *semver.Version
+	newVersion     *semver.Version
+	newVersionLock safe.RWMutex
 
 	// focusService is used to raise the bridge window when needed.
 	focusService *focus.Service
@@ -240,9 +245,12 @@ func newBridge(
 		imapServer:  imapServer,
 		imapEventCh: imapEventCh,
 
-		updater:    updater,
-		curVersion: curVersion,
-		installCh:  make(chan installJob, 1),
+		updater:   updater,
+		installCh: make(chan installJob),
+
+		curVersion:     curVersion,
+		newVersion:     curVersion,
+		newVersionLock: safe.NewRWMutex(),
 
 		focusService: focusService,
 		autostarter:  autostarter,
