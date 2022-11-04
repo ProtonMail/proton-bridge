@@ -586,6 +586,29 @@ func TestBridge_DeleteOffline(t *testing.T) {
 	})
 }
 
+func TestBridge_UserInfo_Alias(t *testing.T) {
+	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *liteapi.NetCtl, locator bridge.Locator, vaultKey []byte) {
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, vaultKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+			// Create a new user.
+			userID, _, err := s.CreateUser("primary", "primary@pm.me", []byte("password"))
+			require.NoError(t, err)
+
+			// Give the new user an alias.
+			require.NoError(t, getErr(s.CreateAddress(userID, "alias@pm.me", []byte("password"))))
+
+			// Login the user.
+			require.NoError(t, getErr(bridge.LoginFull(ctx, "primary", []byte("password"), nil, nil)))
+
+			// Get user info.
+			info, err := bridge.GetUserInfo(userID)
+			require.NoError(t, err)
+
+			// The user should have two addresses, the primary should be first.
+			require.Equal(t, []string{"primary@pm.me", "alias@pm.me"}, info.Addresses)
+		})
+	})
+}
+
 // getErr returns the error that was passed to it.
 func getErr[T any](val T, err error) error {
 	return err
