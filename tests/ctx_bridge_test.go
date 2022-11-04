@@ -181,6 +181,8 @@ func (t *testCtx) closeBridge(ctx context.Context) error {
 
 	t.bridge.Close(ctx)
 
+	t.bridge = nil
+
 	return nil
 }
 

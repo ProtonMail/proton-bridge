@@ -23,27 +23,10 @@ import (
 	"runtime"
 	"strings"
 	"testing"
-	"time"
 
-	"github.com/ProtonMail/proton-bridge/v2/internal/certs"
-	"github.com/ProtonMail/proton-bridge/v2/internal/user"
 	"github.com/cucumber/godog"
-	"gitlab.protontech.ch/go/liteapi/server/backend"
+	"github.com/sirupsen/logrus"
 )
-
-func init() {
-	// Use the fast key generation for tests.
-	backend.GenerateKey = FastGenerateKey
-
-	// Use the fast cert generation for tests.
-	certs.GenerateCert = FastGenerateCert
-
-	// Set the event period to 100 milliseconds for more responsive tests.
-	user.EventPeriod = 100 * time.Millisecond
-
-	// Don't use jitter during tests.
-	user.EventJitter = 0
-}
 
 type scenario struct {
 	t *testCtx
@@ -78,8 +61,19 @@ func TestFeatures(testingT *testing.T) {
 			})
 
 			ctx.StepContext().Before(func(ctx context.Context, st *godog.Step) (context.Context, error) {
-				s.t.beforeStep()
+				// Replace [GOOS] with the current OS.
+				// Note: should add a generic replacement function on the test context to handle more cases!
 				st.Text = strings.ReplaceAll(st.Text, "[GOOS]", runtime.GOOS)
+
+				logrus.Debugf("Running step: %s", st.Text)
+
+				s.t.beforeStep()
+
+				return ctx, nil
+			})
+
+			ctx.StepContext().After(func(ctx context.Context, st *godog.Step, status godog.StepResultStatus, err error) (context.Context, error) {
+				logrus.Debugf("Finished step (%v): %s", status, st.Text)
 				return ctx, nil
 			})
 
