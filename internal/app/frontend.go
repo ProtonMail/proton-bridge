@@ -27,6 +27,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/v2/internal/frontend/grpc"
 	"github.com/ProtonMail/proton-bridge/v2/internal/locations"
 	"github.com/ProtonMail/proton-bridge/v2/pkg/restarter"
+	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
 )
 
@@ -45,12 +46,19 @@ func runFrontend(
 	case c.Bool(flagNonInteractive):
 		select {}
 
-	default:
+	case c.Bool(flagGRPC):
 		service, err := grpc.NewService(crashHandler, restarter, locations, bridge, eventCh, !c.Bool(flagNoWindow))
 		if err != nil {
 			return fmt.Errorf("could not create service: %w", err)
 		}
 
 		return service.Loop()
+
+	default:
+		if err := cli.ShowAppHelp(c); err != nil {
+			logrus.WithError(err).Error("Failed to show app help")
+		}
+
+		return fmt.Errorf("no frontend specified, use --cli, --grpc or --noninteractive")
 	}
 }

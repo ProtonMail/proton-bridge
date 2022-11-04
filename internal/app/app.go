@@ -54,10 +54,14 @@ const (
 	flagLogLevel      = "log-level"
 	flagLogLevelShort = "l"
 
+	flagGRPC      = "grpc"
+	flagGRPCShort = "g"
+
 	flagCLI      = "cli"
 	flagCLIShort = "c"
 
-	flagNonInteractive = "non-interactive"
+	flagNonInteractive      = "noninteractive"
+	flagNonInteractiveShort = "n"
 
 	flagLogIMAP = "log-imap"
 	flagLogSMTP = "log-smtp"
@@ -95,13 +99,19 @@ func New() *cli.App {
 			Usage:   "Set the log level (one of panic, fatal, error, warn, info, debug)",
 		},
 		&cli.BoolFlag{
-			Name:    flagCLI,
-			Aliases: []string{flagCLIShort},
-			Usage:   "Use command line interface",
+			Name:    flagGRPC,
+			Aliases: []string{flagGRPCShort},
+			Usage:   "Start the gRPC service",
 		},
 		&cli.BoolFlag{
-			Name:  flagNonInteractive,
-			Usage: "Run the app in non-interactive mode",
+			Name:    flagCLI,
+			Aliases: []string{flagCLIShort},
+			Usage:   "Start the command line interface",
+		},
+		&cli.BoolFlag{
+			Name:    flagNonInteractive,
+			Aliases: []string{flagNonInteractiveShort},
+			Usage:   "Start the app in non-interactive mode",
 		},
 		&cli.StringFlag{
 			Name:  flagLogIMAP,
