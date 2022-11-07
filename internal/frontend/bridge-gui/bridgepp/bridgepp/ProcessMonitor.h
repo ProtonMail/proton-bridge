@@ -36,7 +36,7 @@ Q_OBJECT
 public: // static member functions
     struct MonitorStatus
     {
-        bool running = false;
+        bool ended = false;
         int returnCode = 0;
         qint64 pid = 0;
     };
@@ -49,15 +49,21 @@ public: // member functions.
     ProcessMonitor &operator=(ProcessMonitor const &) = delete; ///< Disabled assignment operator.
     ProcessMonitor &operator=(ProcessMonitor &&) = delete; ///< Disabled move assignment operator.
     void run() override; ///< Run the worker.
-    MonitorStatus const &getStatus();
+    MonitorStatus const getStatus(); ///< Retrieve the current status of the process.
 
 signals:
     void processExited(int code); ///< Slot for the exiting of the process.
 
+private: // member functions
+    void forwardProcessOutput(QProcess &p); ///< Forward the standard output and error from the process to this application standard output and error.
+
 private: // data members
+    QMutex statusMutex_; ///< The status mutex.
     QString const exePath_; ///< The path to the executable.
     QStringList args_; ///< arguments to be passed to the brigde.
     MonitorStatus status_; ///< Status of the monitoring.
+    QTextStream out_; ///< The standard output stream.
+    QTextStream err_; ///< The standard error stream.
 };
 
 

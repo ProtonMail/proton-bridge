@@ -33,6 +33,8 @@ ProcessMonitor::ProcessMonitor(QString const &exePath, QStringList const &args, 
     : Worker(parent)
     , exePath_(exePath)
     , args_(args)
+    , out_(stdout)
+    , err_(stderr)
 {
     QFileInfo fileInfo(exePath);
     if (!fileInfo.exists())
@@ -45,39 +47,55 @@ ProcessMonitor::ProcessMonitor(QString const &exePath, QStringList const &args, 
 //****************************************************************************************************************************************************
 //
 //****************************************************************************************************************************************************
+void ProcessMonitor::forwardProcessOutput(QProcess &p) {
+    QByteArray array = p.readAllStandardError();
+    if (!array.isEmpty())
+    {
+        err_ << array;
+        err_.flush();
+    }
+
+    array = p.readAllStandardOutput();
+    if (!array.isEmpty())
+    {
+        out_ << array;
+        out_.flush();
+    }
+}
+
+
+//****************************************************************************************************************************************************
+//
+//****************************************************************************************************************************************************
 void ProcessMonitor::run()
 {
     try
     {
+        {
+            QMutexLocker locker(&statusMutex_);
+            status_.ended = false;
+            status_.pid = -1;
+        }
+
         emit started();
 
         QProcess p;
         p.start(exePath_, args_);
         p.waitForStarted();
 
-        status_.running = true;
-        status_.pid = p.processId();
-
-        QTextStream out(stdout), err(stderr);
-        QByteArray array;
-        while (!p.waitForFinished(100))
         {
-            array = p.readAllStandardError();
-            if (!array.isEmpty())
-            {
-                err << array;
-                err.flush();
-            }
-
-            array = p.readAllStandardOutput();
-            if (!array.isEmpty())
-            {
-                out << array;
-                out.flush();
-            }
+            QMutexLocker locker(&statusMutex_);
+            status_.pid = p.processId();
         }
 
-        status_.running = false;
+        while (!p.waitForFinished(100))
+        {
+            this->forwardProcessOutput(p);
+        }
+        this->forwardProcessOutput(p);
+
+        QMutexLocker locker(&statusMutex_);
+        status_.ended = true;
         status_.returnCode = p.exitCode();
 
         emit processExited(status_.returnCode);
@@ -93,8 +111,9 @@ void ProcessMonitor::run()
 //****************************************************************************************************************************************************
 /// \return status of the monitored process
 //****************************************************************************************************************************************************
-const ProcessMonitor::MonitorStatus &ProcessMonitor::getStatus()
+const ProcessMonitor::MonitorStatus ProcessMonitor::getStatus()
 {
+    QMutexLocker locker(&statusMutex_);
     return status_;
 }
 

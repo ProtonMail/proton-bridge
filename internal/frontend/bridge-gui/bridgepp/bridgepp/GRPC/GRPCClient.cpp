@@ -19,6 +19,7 @@
 #include "GRPCClient.h"
 #include "GRPCUtils.h"
 #include "../Exception/Exception.h"
+#include "../ProcessMonitor.h"
 
 
 using namespace google::protobuf;
@@ -56,9 +57,10 @@ void GRPCClient::removeServiceConfigFile()
 
 //****************************************************************************************************************************************************
 /// \param[in] timeoutMs The timeout in milliseconds
+/// \param[in] serverProcess An optional server process to monitor. If the process it, no need and retry, as connexion cannot be established. Ignored if null.
 /// \return The service config.
 //****************************************************************************************************************************************************
-GRPCConfig GRPCClient::waitAndRetrieveServiceConfig(qint64 timeoutMs)
+GRPCConfig GRPCClient::waitAndRetrieveServiceConfig(qint64 timeoutMs, ProcessMonitor *serverProcess)
 {
     QString const path = grpcServerConfigPath();
     QFile file(path);
@@ -68,6 +70,9 @@ GRPCConfig GRPCClient::waitAndRetrieveServiceConfig(qint64 timeoutMs)
     bool found = false;
     while (true)
     {
+        if (serverProcess && serverProcess->getStatus().ended)
+            throw Exception("Bridge application exited before providing a gRPC service configuration file.");
+
         if (file.exists())
         {
             found = true;
@@ -100,9 +105,10 @@ void GRPCClient::setLog(Log *log)
 
 //****************************************************************************************************************************************************
 /// \param[out] outError If the function returns false, this variable contains a description of the error.
+/// \param[in] serverProcess An optional server process to monitor. If the process it, no need and retry, as connexion cannot be established. Ignored if null.
 /// \return true iff the connection was successful.
 //****************************************************************************************************************************************************
-bool GRPCClient::connectToServer(GRPCConfig const &config, QString &outError)
+bool GRPCClient::connectToServer(GRPCConfig const &config, ProcessMonitor *serverProcess, QString &outError)
 {
     try
     {
@@ -123,6 +129,9 @@ bool GRPCClient::connectToServer(GRPCConfig const &config, QString &outError)
         int i = 0;
         while (true)
         {
+            if (serverProcess && serverProcess->getStatus().ended)
+                throw Exception("Bridge application ended before gRPC connexion could be established.");
+
             this->logInfo(QString("Connection to gRPC server at %1. attempt #%2").arg(address).arg(++i));
 
             if (channel_->WaitForConnected(gpr_time_add(gpr_now(GPR_CLOCK_REALTIME), gpr_time_from_millis(grpcConnectionRetryDelayMs, GPR_TIMESPAN))))

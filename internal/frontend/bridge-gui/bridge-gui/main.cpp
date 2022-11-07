@@ -288,7 +288,7 @@ int main(int argc, char *argv[])
         }
 
         log.info(QString("Retrieving gRPC service configuration from '%1'").arg(QDir::toNativeSeparators(grpcServerConfigPath())));
-        app().backend().init(GRPCClient::waitAndRetrieveServiceConfig(attach ? 0 : grpcServiceConfigWaitDelayMs));
+        app().backend().init(GRPCClient::waitAndRetrieveServiceConfig(attach ? 0 : grpcServiceConfigWaitDelayMs, app().bridgeMonitor()));
         if (!attach)
             GRPCClient::removeServiceConfigFile();
 
@@ -312,7 +312,7 @@ int main(int argc, char *argv[])
         if (bridgeMonitor)
         {
             const ProcessMonitor::MonitorStatus& status = bridgeMonitor->getStatus();
-            if (!status.running && !attach)
+            if (status.ended && !attach)
             {
                 // ProcessMonitor already stopped meaning we are attached to an orphan Bridge.
                 // Restart the full process to be sure there is no more bridge orphans

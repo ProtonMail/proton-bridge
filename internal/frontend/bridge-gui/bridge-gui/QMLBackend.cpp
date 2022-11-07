@@ -49,7 +49,7 @@ void QMLBackend::init(GRPCConfig const &serviceConfig)
     this->connectGrpcEvents();
 
     QString error;
-    if (app().grpc().connectToServer(serviceConfig, error))
+    if (app().grpc().connectToServer(serviceConfig, app().bridgeMonitor(), error))
         app().log().info("Connected to backend via gRPC service.");
     else
         throw Exception(QString("Cannot connectToServer to go backend via gRPC: %1").arg(error));
