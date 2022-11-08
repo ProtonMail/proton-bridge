@@ -491,10 +491,18 @@ func toIMAPMessage(message liteapi.MessageMetadata) imap.Message {
 		flags = flags.Add(imap.FlagDraft)
 	}
 
+	var date time.Time
+
+	if message.Time > 0 {
+		date = time.Unix(message.Time, 0)
+	} else {
+		date = time.Now()
+	}
+
 	return imap.Message{
 		ID:    imap.MessageID(message.ID),
 		Flags: flags,
-		Date:  time.Unix(message.Time, 0),
+		Date:  date,
 	}
 }
 
