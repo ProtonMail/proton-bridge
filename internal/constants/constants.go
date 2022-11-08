@@ -63,11 +63,6 @@ const (
 	Host = "127.0.0.1"
 )
 
-// AppVersion returns the full rendered version of the app (to be used in request headers).
-func AppVersion(version string) string {
-	return fmt.Sprintf("%v-%v@%v", getAPIOS(), AppName, version)
-}
-
 // nolint:goconst
 func getAPIOS() string {
 	switch runtime.GOOS {
