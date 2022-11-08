@@ -241,7 +241,7 @@ func getPathToUpdatedExecutable(
 		}
 
 		// Skip versions that are less or equal to launcher version.
-		if currentVersion != nil && !versioner.IsNewerIgnorePrerelease(version.SemVer(), currentVersion) {
+		if currentVersion != nil && !version.SemVer().GreaterThan(currentVersion) {
 			continue
 		}
 

@@ -84,10 +84,3 @@ func getExecutableInDirectory(name, directory string) (string, error) {
 
 	return exe, nil
 }
-
-func IsNewerIgnorePrerelease(a, b *semver.Version) bool {
-	aN, _ := a.SetPrerelease("")
-	bN, _ := b.SetPrerelease("")
-
-	return aN.GreaterThan(&bN)
-}

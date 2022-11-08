@@ -27,21 +27,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestIsNewerIgnorePrelease(t *testing.T) {
-	// older
-	assert.False(t, IsNewerIgnorePrerelease(semver.MustParse("2.5.0"), semver.MustParse("2.5.1")))
-	assert.False(t, IsNewerIgnorePrerelease(semver.MustParse("2.5.0"), semver.MustParse("2.5.0")))
-	assert.False(t, IsNewerIgnorePrerelease(semver.MustParse("2.5.0"), semver.MustParse("2.5.0+qa")))
-	assert.False(t, IsNewerIgnorePrerelease(semver.MustParse("2.5.0"), semver.MustParse("2.5.0-dev")))
-	assert.False(t, IsNewerIgnorePrerelease(semver.MustParse("2.5.0"), semver.MustParse("2.5.0-dev+qa")))
-	assert.False(t, IsNewerIgnorePrerelease(semver.MustParse("2.5.0+qa"), semver.MustParse("2.5.0-dev")))
-	assert.False(t, IsNewerIgnorePrerelease(semver.MustParse("2.5.0-dev"), semver.MustParse("2.5.0+qa")))
-
-	// not older
-	assert.True(t, IsNewerIgnorePrerelease(semver.MustParse("2.5.0"), semver.MustParse("2.4.9-dev+qa")))
-	assert.True(t, IsNewerIgnorePrerelease(semver.MustParse("2.5.0-dev+qa"), semver.MustParse("2.4.9")))
-}
-
 func TestListVersions(t *testing.T) {
 	dir := t.TempDir()
 

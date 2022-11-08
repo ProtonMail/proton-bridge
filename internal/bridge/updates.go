@@ -24,7 +24,6 @@ import (
 	"github.com/ProtonMail/proton-bridge/v2/internal/events"
 	"github.com/ProtonMail/proton-bridge/v2/internal/safe"
 	"github.com/ProtonMail/proton-bridge/v2/internal/updater"
-	"github.com/ProtonMail/proton-bridge/v2/internal/versioner"
 	"github.com/sirupsen/logrus"
 )
 
@@ -60,7 +59,7 @@ func (bridge *Bridge) handleUpdate(version updater.VersionInfo) {
 	})
 
 	switch {
-	case !versioner.IsNewerIgnorePrerelease(version.Version, bridge.curVersion):
+	case !version.Version.GreaterThan(bridge.curVersion):
 		log.Debug("No update available")
 
 		bridge.publish(events.UpdateNotAvailable{})
@@ -70,7 +69,7 @@ func (bridge *Bridge) handleUpdate(version updater.VersionInfo) {
 
 		bridge.publish(events.UpdateNotAvailable{})
 
-	case versioner.IsNewerIgnorePrerelease(version.MinAuto, bridge.curVersion):
+	case bridge.curVersion.LessThan(version.MinAuto):
 		log.Info("An update is available but is incompatible with this version")
 
 		bridge.publish(events.UpdateAvailable{
@@ -90,7 +89,7 @@ func (bridge *Bridge) handleUpdate(version updater.VersionInfo) {
 
 	default:
 		safe.RLock(func() {
-			if versioner.IsNewerIgnorePrerelease(version.Version, bridge.newVersion) {
+			if version.Version.GreaterThan(bridge.newVersion) {
 				log.Info("An update is available")
 
 				select {
