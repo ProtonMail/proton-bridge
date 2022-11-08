@@ -101,3 +101,7 @@ func getLogName(version, revision string) string {
 func MatchLogName(name string) bool {
 	return regexp.MustCompile(`^v.*\.log$`).MatchString(name)
 }
+
+func MatchGUILogName(name string) bool {
+	return regexp.MustCompile(`^gui_v.*\.log$`).MatchString(name)
+}

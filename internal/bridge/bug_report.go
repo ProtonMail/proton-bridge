@@ -39,7 +39,7 @@ const (
 var ErrSizeTooLarge = errors.New("file is too big")
 
 // ReportBug reports a new bug from the user.
-func (b *Bridge) ReportBug(osType, osVersion, description, accountName, address, emailClient string, attachLogs bool) error {
+func (b *Bridge) ReportBug(osType, osVersion, description, accountName, address, emailClient string, attachLogs bool) error { //nolint:funlen
 	if user, err := b.GetUser(address); err == nil {
 		accountName = user.Username()
 	} else if users := b.GetUsers(); len(users) > 0 {
@@ -65,6 +65,16 @@ func (b *Bridge) ReportBug(osType, osVersion, description, accountName, address,
 		if err != nil {
 			log.WithError(err).Error("Can't get log files list")
 		}
+
+		guiLogs, err := b.getMatchingLogs(
+			func(filename string) bool {
+				return logging.MatchGUILogName(filename) && !logging.MatchStackTraceName(filename)
+			},
+		)
+		if err != nil {
+			log.WithError(err).Error("Can't get GUI log files list")
+		}
+
 		crashes, err := b.getMatchingLogs(
 			func(filename string) bool {
 				return logging.MatchLogName(filename) && logging.MatchStackTraceName(filename)
@@ -78,6 +88,10 @@ func (b *Bridge) ReportBug(osType, osVersion, description, accountName, address,
 
 		matchFiles = append(matchFiles, logs[max(0, len(logs)-(MaxCompressedFilesCount/2)):]...)
 		matchFiles = append(matchFiles, crashes[max(0, len(crashes)-(MaxCompressedFilesCount/2)):]...)
+		if len(guiLogs) > 0 {
+			// bridge-gui is keeping only one log file and it's small (~ 1kb), so we include it regardless of file count
+			matchFiles = append(matchFiles, guiLogs[len(guiLogs)-1])
+		}
 
 		archive, err := zipFiles(matchFiles)
 		if err != nil {
