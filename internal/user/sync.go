@@ -242,12 +242,37 @@ func newSystemMailboxCreatedUpdate(labelID imap.MailboxID, labelName string) *im
 		labelName = imap.Inbox
 	}
 
+	attrs := imap.NewFlagSet(imap.AttrNoInferiors)
+
+	switch labelID {
+	case liteapi.TrashLabel:
+		attrs = attrs.Add(imap.AttrTrash)
+
+	case liteapi.SpamLabel:
+		attrs = attrs.Add(imap.AttrJunk)
+
+	case liteapi.AllMailLabel:
+		attrs = attrs.Add(imap.AttrAll)
+
+	case liteapi.ArchiveLabel:
+		attrs = attrs.Add(imap.AttrArchive)
+
+	case liteapi.SentLabel:
+		attrs = attrs.Add(imap.AttrSent)
+
+	case liteapi.DraftsLabel:
+		attrs = attrs.Add(imap.AttrDrafts)
+
+	case liteapi.StarredLabel:
+		attrs = attrs.Add(imap.AttrFlagged)
+	}
+
 	return imap.NewMailboxCreated(imap.Mailbox{
 		ID:             labelID,
 		Name:           []string{labelName},
 		Flags:          defaultFlags,
 		PermanentFlags: defaultPermanentFlags,
-		Attributes:     imap.NewFlagSet(imap.AttrNoInferiors),
+		Attributes:     attrs,
 	})
 }
 
