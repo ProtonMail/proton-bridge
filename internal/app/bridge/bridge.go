@@ -86,6 +86,7 @@ func main(b *base.Base, c *cli.Context) error { //nolint:funlen
 		b.Updater,
 		b,
 		b.Locations,
+		c.Int(base.FlagParentPID),
 	)
 
 	cache, cacheErr := loadMessageCache(b)

@@ -56,6 +56,7 @@ func New(
 	updater types.Updater,
 	restarter types.Restarter,
 	locations *locations.Locations,
+	parentPID int,
 ) Frontend {
 	switch frontendType {
 	case GRPC:
@@ -66,6 +67,7 @@ func New(
 			updater,
 			restarter,
 			locations,
+			parentPID,
 		)
 
 	case CLI:
