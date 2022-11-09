@@ -335,18 +335,14 @@ func (conn *imapConnector) RemoveMessagesFromMailbox(ctx context.Context, messag
 				return err
 			}
 
-			if mailboxID == liteapi.DraftsLabel {
-				// Also have to check for all drafts label.
-				m = xslices.Filter(m, func(m liteapi.MessageMetadata) bool {
-					return len(m.LabelIDs) == 2 &&
-						((m.LabelIDs[0] == liteapi.AllMailLabel && m.LabelIDs[1] == liteapi.AllDraftsLabel) ||
-							(m.LabelIDs[1] == liteapi.AllMailLabel && m.LabelIDs[0] == liteapi.AllDraftsLabel))
+			// If a message is not preset in any other label other than AllMail, AllDrafts and AllSent, it can be
+			// permanently deleted.
+			m = xslices.Filter(m, func(m liteapi.MessageMetadata) bool {
+				labelsThatMatter := xslices.Filter(m.LabelIDs, func(id string) bool {
+					return id != liteapi.AllDraftsLabel && id != liteapi.AllMailLabel && id != liteapi.AllSentLabel
 				})
-			} else {
-				m = xslices.Filter(m, func(m liteapi.MessageMetadata) bool {
-					return len(m.LabelIDs) == 1 && m.LabelIDs[0] == liteapi.AllMailLabel
-				})
-			}
+				return len(labelsThatMatter) == 0
+			})
 
 			metadata = append(metadata, m...)
 		}
