@@ -16,7 +16,7 @@
 # along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
 
 ---
-image: golang:1.18
+image: harbor.protontech.ch/docker.io/library/golang:1.18
 
 variables:
   GOPRIVATE: gitlab.protontech.ch
