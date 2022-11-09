@@ -20,11 +20,14 @@
 
 package constants
 
-import "fmt"
+import (
+	"fmt"
+	"github.com/Masterminds/semver/v3"
+)
 
 // AppVersion returns the full rendered version of the app (to be used in request headers).
 func AppVersion(version string) string {
-	ver, _ := semver.MustParse(version).SetPrerelase("dev")
+	ver, _ := semver.MustParse(version).SetPrerelease("dev")
 
 	return fmt.Sprintf("%v-%v@%v", getAPIOS(), AppName, ver.String())
 }
