@@ -296,7 +296,11 @@ run: run-qt
 run-cli: run-nogui
 
 run-qt: build-gui
+ifeq "${TARGET_OS}" "darwin"
+	PROTONMAIL_ENV=dev ${DARWINAPP_CONTENTS}/MacOS/${LAUNCHER_EXE}  ${RUN_FLAGS}
+else
 	PROTONMAIL_ENV=dev ./${DEPLOY_DIR}/${TARGET_OS}/${LAUNCHER_EXE} ${RUN_FLAGS}
+endif
 
 run-nogui: build-nogui clean-vendor gofiles
 	PROTONMAIL_ENV=dev ./${LAUNCHER_EXE} ${RUN_FLAGS} -c
