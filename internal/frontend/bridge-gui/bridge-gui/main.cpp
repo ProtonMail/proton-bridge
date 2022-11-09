@@ -32,17 +32,31 @@ using namespace bridgepp;
 namespace
 {
 
-    /// \brief The file extension for the bridge executable file.
+/// \brief The file extension for the bridge executable file.
 #ifdef Q_OS_WIN32
     QString const exeSuffix = ".exe";
 #else
     QString const exeSuffix;
 #endif
 
-    QString const bridgeLock = "bridge-gui.lock"; ///< file name used for the lock file.
-    QString const exeName = "bridge" + exeSuffix; ///< The bridge executable file name.*
-    qint64 const grpcServiceConfigWaitDelayMs = 180000; ///< The wait delay for the gRPC config file in milliseconds.
+QString const bridgeLock = "bridge-gui.lock"; ///< file name used for the lock file.
+QString const exeName = "bridge" + exeSuffix; ///< The bridge executable file name.*
+qint64 const grpcServiceConfigWaitDelayMs = 180000; ///< The wait delay for the gRPC config file in milliseconds.
+
+
+//****************************************************************************************************************************************************
+/// According to Qt doc, one per application is OK, but its use should be restricted to a
+/// single thread.
+/// \return The network access manager for the application.
+//****************************************************************************************************************************************************
+QNetworkAccessManager& networkManager()
+{
+    static QNetworkAccessManager nam;
+    return nam;
 }
+
+
+} // anonymous namespace
 
 
 //****************************************************************************************************************************************************
@@ -187,18 +201,41 @@ QUrl getApiUrl()
 
 
 //****************************************************************************************************************************************************
+/// \return The URL for the focus endpoint of the bridge API URL.
+//****************************************************************************************************************************************************
+QUrl getFocusUrl()
+{
+    QUrl url = getApiUrl();
+    url.setPath("/focus");
+    return url;
+}
+
+
+//****************************************************************************************************************************************************
+/// \return true if an instance of bridge is already running.
+//****************************************************************************************************************************************************
+bool isBridgeRunning()
+{
+    QTimer timer;
+    timer.setSingleShot(true);
+
+    QNetworkReply *rep = networkManager().get(QNetworkRequest(getFocusUrl()));
+    QEventLoop loop;
+    bool timedOut = false;
+    QObject::connect(&timer, &QTimer::timeout, [&]() { timedOut = true; loop.quit(); });
+    QObject::connect(rep, &QNetworkReply::finished, &loop, &QEventLoop::quit);
+    timer.start(1000); // we time out after 1 second and consider no other instance is running.
+    loop.exec();
+    return ((!timedOut) && (rep->error() == QNetworkReply::NetworkError::NoError));
+}
+
+
+//****************************************************************************************************************************************************
 /// \brief Use api to bring focus on existing bridge instance.
 //****************************************************************************************************************************************************
 void focusOtherInstance()
 {
-    QNetworkAccessManager *manager;
-    QNetworkRequest request;
-    manager = new QNetworkAccessManager();
-    QUrl url = getApiUrl();
-    url.setPath("/focus");
-    request.setUrl(url);
-    QNetworkReply* rep = manager->get(request);
-
+    QNetworkReply *rep = networkManager().get(QNetworkRequest(getFocusUrl()));
     QEventLoop loop;
     QObject::connect(rep, &QNetworkReply::finished, &loop, &QEventLoop::quit);
     loop.exec();
@@ -219,8 +256,6 @@ void launchBridge(QStringList const &args)
         throw Exception("Could not locate the bridge executable path");
     else
         app().log().debug(QString("Bridge executable path: %1").arg(QDir::toNativeSeparators(bridgeExePath)));
-
-
 
     qint64 const pid = qApp->applicationPid();
     QStringList const  params =  QStringList { "--grpc", "--parent-pid", QString::number(pid) } + args ;
@@ -272,8 +307,8 @@ int main(int argc, char *argv[])
         {
             focusOtherInstance();
             return EXIT_FAILURE;
-
         }
+
         QStringList args;
         QString launcher;
         bool attach = false;
@@ -287,6 +322,9 @@ int main(int argc, char *argv[])
 
         if (!attach)
         {
+            if (isBridgeRunning())
+                throw Exception("An orphan instance of bridge is already running. Please terminate it and relaunch the application.");
+
             // before launching bridge, we remove any trailing service config file, because we need to make sure we get a newly generated one.
             GRPCClient::removeServiceConfigFile();
             launchBridge(args);
