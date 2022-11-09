@@ -284,7 +284,7 @@ func (bridge *Bridge) FactoryReset(ctx context.Context) {
 	// Delete all the users.
 	safe.Lock(func() {
 		for _, user := range bridge.users {
-			bridge.logoutUser(ctx, user, true)
+			bridge.logoutUser(ctx, user, true, true)
 		}
 
 		for _, user := range bridge.vault.GetUserIDs() {

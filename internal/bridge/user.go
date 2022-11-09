@@ -207,7 +207,7 @@ func (bridge *Bridge) LogoutUser(ctx context.Context, userID string) error {
 
 		defer delete(bridge.users, user.ID())
 
-		bridge.logoutUser(ctx, user, true)
+		bridge.logoutUser(ctx, user, true, false)
 
 		bridge.publish(events.UserLoggedOut{
 			UserID: userID,
@@ -228,7 +228,7 @@ func (bridge *Bridge) DeleteUser(ctx context.Context, userID string) error {
 
 		if user, ok := bridge.users[userID]; ok {
 			defer delete(bridge.users, user.ID())
-			bridge.logoutUser(ctx, user, true)
+			bridge.logoutUser(ctx, user, true, true)
 		}
 
 		if err := bridge.vault.DeleteUser(userID); err != nil {
@@ -502,8 +502,8 @@ func (bridge *Bridge) newVaultUser(
 }
 
 // logout logs out the given user, optionally logging them out from the API too.
-func (bridge *Bridge) logoutUser(ctx context.Context, user *user.User, withAPI bool) {
-	if err := bridge.removeIMAPUser(ctx, user, false); err != nil {
+func (bridge *Bridge) logoutUser(ctx context.Context, user *user.User, withAPI, withData bool) {
+	if err := bridge.removeIMAPUser(ctx, user, withData); err != nil {
 		logrus.WithError(err).Error("Failed to remove IMAP user")
 	}
 

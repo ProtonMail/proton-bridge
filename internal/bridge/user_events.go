@@ -47,8 +47,7 @@ func (bridge *Bridge) handleUserEvent(ctx context.Context, user *user.User, even
 	case events.UserDeauth:
 		safe.Lock(func() {
 			defer delete(bridge.users, user.ID())
-
-			bridge.logoutUser(ctx, user, false)
+			bridge.logoutUser(ctx, user, false, false)
 		}, bridge.usersLock)
 	}
 
