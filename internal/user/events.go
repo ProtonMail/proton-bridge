@@ -35,10 +35,6 @@ import (
 
 // handleAPIEvent handles the given liteapi.Event.
 func (user *User) handleAPIEvent(ctx context.Context, event liteapi.Event) error {
-	ctx = logging.WithLogrusField(ctx, "eventID", event.EventID)
-
-	logging.LogFromContext(ctx).Info("Handling event")
-
 	if event.User != nil {
 		if err := user.handleUserEvent(ctx, *event.User); err != nil {
 			return err
@@ -77,7 +73,7 @@ func (user *User) handleUserEvent(_ context.Context, userEvent liteapi.User) err
 		user.apiUser = userEvent
 
 		user.eventCh.Enqueue(events.UserChanged{
-			UserID: user.ID(),
+			UserID: user.apiUser.ID,
 		})
 
 		return nil
@@ -135,17 +131,18 @@ func (user *User) handleCreateAddressEvent(ctx context.Context, event liteapi.Ad
 			user.updateCh[event.Address.ID] = queue.NewQueuedChannel[imap.Update](0, 0)
 		}
 
+		user.eventCh.Enqueue(events.UserAddressCreated{
+			UserID:    user.apiUser.ID,
+			AddressID: event.Address.ID,
+			Email:     event.Address.Email,
+		})
+
 		return nil
 	}, user.apiAddrsLock, user.updateChLock); err != nil {
 		return fmt.Errorf("failed to handle create address event: %w", err)
 	}
 
-	user.eventCh.Enqueue(events.UserAddressCreated{
-		UserID:    user.ID(),
-		AddressID: event.Address.ID,
-		Email:     event.Address.Email,
-	})
-
+	// Perform the sync in an RLock.
 	return safe.RLockRet(func() error {
 		if user.vault.AddressMode() == vault.SplitMode {
 			if err := syncLabels(ctx, user.client, user.updateCh[event.Address.ID]); err != nil {
@@ -171,7 +168,7 @@ func (user *User) handleUpdateAddressEvent(_ context.Context, event liteapi.Addr
 		user.apiAddrs[event.Address.ID] = event.Address
 
 		user.eventCh.Enqueue(events.UserAddressUpdated{
-			UserID:    user.ID(),
+			UserID:    user.apiUser.ID,
 			AddressID: event.Address.ID,
 			Email:     event.Address.Email,
 		})
@@ -197,7 +194,7 @@ func (user *User) handleDeleteAddressEvent(_ context.Context, event liteapi.Addr
 		delete(user.apiAddrs, event.ID)
 
 		user.eventCh.Enqueue(events.UserAddressDeleted{
-			UserID:    user.ID(),
+			UserID:    user.apiUser.ID,
 			AddressID: event.ID,
 			Email:     addr.Email,
 		})
@@ -248,7 +245,7 @@ func (user *User) handleCreateLabelEvent(_ context.Context, event liteapi.LabelE
 		}
 
 		user.eventCh.Enqueue(events.UserLabelCreated{
-			UserID:  user.ID(),
+			UserID:  user.apiUser.ID,
 			LabelID: event.Label.ID,
 			Name:    event.Label.Name,
 		})
@@ -275,7 +272,7 @@ func (user *User) handleUpdateLabelEvent(_ context.Context, event liteapi.LabelE
 		}
 
 		user.eventCh.Enqueue(events.UserLabelUpdated{
-			UserID:  user.ID(),
+			UserID:  user.apiUser.ID,
 			LabelID: event.Label.ID,
 			Name:    event.Label.Name,
 		})
@@ -300,7 +297,7 @@ func (user *User) handleDeleteLabelEvent(_ context.Context, event liteapi.LabelE
 		}
 
 		user.eventCh.Enqueue(events.UserLabelDeleted{
-			UserID:  user.ID(),
+			UserID:  user.apiUser.ID,
 			LabelID: event.ID,
 			Name:    label.Name,
 		})
@@ -421,6 +418,11 @@ func (user *User) handleDeleteMessageEvent(ctx context.Context, event liteapi.Me
 
 func (user *User) handleUpdateDraftEvent(ctx context.Context, event liteapi.MessageEvent) error { //nolint:unparam
 	return safe.RLockRet(func() error {
+		user.log.WithFields(logrus.Fields{
+			"messageID": event.ID,
+			"subject":   logging.Sensitive(event.Message.Subject),
+		}).Info("Handling draft updated event")
+
 		full, err := user.client.GetFullMessage(ctx, event.Message.ID)
 		if err != nil {
 			return fmt.Errorf("failed to get full draft: %w", err)

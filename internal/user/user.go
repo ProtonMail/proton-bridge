@@ -223,7 +223,7 @@ func New(
 			return
 		}
 
-		user.log.WithField("eventID", event.EventID).Debug("Updated event ID")
+		user.log.WithField("eventID", event.EventID).Debug("Updated event ID in vault")
 	})
 
 	// When triggered, attempt to sync the user.
