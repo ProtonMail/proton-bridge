@@ -92,19 +92,26 @@ func (bridge *Bridge) closeIMAP(ctx context.Context) error {
 
 // addIMAPUser connects the given user to gluon.
 func (bridge *Bridge) addIMAPUser(ctx context.Context, user *user.User) error {
-	logrus.WithField("userID", user.ID()).Info("Adding IMAP user")
-
 	imapConn, err := user.NewIMAPConnectors()
 	if err != nil {
 		return fmt.Errorf("failed to create IMAP connectors: %w", err)
 	}
 
 	for addrID, imapConn := range imapConn {
+		log := logrus.WithFields(logrus.Fields{
+			"userID": user.ID(),
+			"addrID": addrID,
+		})
+
 		if gluonID, ok := user.GetGluonID(addrID); ok {
+			log.WithField("gluonID", gluonID).Info("Loading existing IMAP user")
+
 			if err := bridge.imapServer.LoadUser(ctx, imapConn, gluonID, user.GluonKey()); err != nil {
 				return fmt.Errorf("failed to load IMAP user: %w", err)
 			}
 		} else {
+			log.Info("Creating new IMAP user")
+
 			gluonID, err := bridge.imapServer.AddUser(ctx, imapConn, user.GluonKey())
 			if err != nil {
 				return fmt.Errorf("failed to add IMAP user: %w", err)
@@ -113,6 +120,8 @@ func (bridge *Bridge) addIMAPUser(ctx context.Context, user *user.User) error {
 			if err := user.SetGluonID(addrID, gluonID); err != nil {
 				return fmt.Errorf("failed to set IMAP user ID: %w", err)
 			}
+
+			log.WithField("gluonID", gluonID).Info("Created new IMAP user")
 		}
 	}
 
@@ -138,6 +147,15 @@ func (bridge *Bridge) removeIMAPUser(ctx context.Context, user *user.User, withF
 
 func (bridge *Bridge) handleIMAPEvent(event imapEvents.Event) {
 	switch event := event.(type) {
+	case imapEvents.UserAdded:
+		for labelID, count := range event.Counts {
+			logrus.WithFields(logrus.Fields{
+				"gluonID": event.UserID,
+				"labelID": labelID,
+				"count":   count,
+			}).Info("Received mailbox message count")
+		}
+
 	case imapEvents.SessionAdded:
 		if !bridge.identifier.HasClient() {
 			bridge.identifier.SetClient(defaultClientName, defaultClientVersion)
@@ -213,18 +231,8 @@ func newIMAPServer(
 	imapServer, err := gluon.New(
 		gluon.WithTLS(tlsConfig),
 		gluon.WithDataDir(gluonDir),
-		gluon.WithVersionInfo(
-			int(version.Major()),
-			int(version.Minor()),
-			int(version.Patch()),
-			constants.FullAppName,
-			"TODO",
-			"TODO",
-		),
-		gluon.WithLogger(
-			imapClientLog,
-			imapServerLog,
-		),
+		gluon.WithLogger(imapClientLog, imapServerLog),
+		getGluonVersionInfo(version),
 	)
 	if err != nil {
 		return nil, err
@@ -241,6 +249,17 @@ func newIMAPServer(
 	})
 
 	return imapServer, nil
+}
+
+func getGluonVersionInfo(version *semver.Version) gluon.Option {
+	return gluon.WithVersionInfo(
+		int(version.Major()),
+		int(version.Minor()),
+		int(version.Patch()),
+		constants.FullAppName,
+		"TODO",
+		"TODO",
+	)
 }
 
 // isEmpty returns whether the given directory is empty.
