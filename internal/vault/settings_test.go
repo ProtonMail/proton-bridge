@@ -224,4 +224,5 @@ func TestVault_Settings_SyncWorkers(t *testing.T) {
 
 	require.Equal(t, runtime.NumCPU(), s.SyncWorkers())
 	require.Equal(t, runtime.NumCPU(), s.SyncBuffer())
+	require.Equal(t, runtime.NumCPU(), s.SyncAttPool())
 }

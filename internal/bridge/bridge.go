@@ -136,6 +136,7 @@ func New( //nolint:funlen
 		liteapi.WithAppVersion(constants.AppVersion(curVersion.Original())),
 		liteapi.WithCookieJar(cookieJar),
 		liteapi.WithTransport(roundTripper),
+		liteapi.WithAttPoolSize(vault.SyncAttPool()),
 		liteapi.WithLogger(logrus.StandardLogger()),
 	)
 

@@ -211,3 +211,8 @@ func (vault *Vault) SyncWorkers() int {
 func (vault *Vault) SyncBuffer() int {
 	return vault.get().Settings.SyncBuffer
 }
+
+// SyncAttPool returns the size of the attachment pool.
+func (vault *Vault) SyncAttPool() int {
+	return vault.get().Settings.SyncAttPool
+}

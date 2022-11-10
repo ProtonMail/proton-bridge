@@ -47,6 +47,7 @@ type Settings struct {
 
 	SyncWorkers int
 	SyncBuffer  int
+	SyncAttPool int
 }
 
 func newDefaultSettings(gluonDir string) Settings {
@@ -73,5 +74,6 @@ func newDefaultSettings(gluonDir string) Settings {
 
 		SyncWorkers: runtime.NumCPU(),
 		SyncBuffer:  runtime.NumCPU(),
+		SyncAttPool: runtime.NumCPU(),
 	}
 }
