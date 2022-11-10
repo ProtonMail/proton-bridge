@@ -44,11 +44,13 @@ func (bridge *Bridge) handleUserEvent(ctx context.Context, user *user.User, even
 			return fmt.Errorf("failed to handle user address deleted event: %w", err)
 		}
 
+	case events.UserRefreshed:
+		if err := bridge.handleUserRefreshed(ctx, user); err != nil {
+			return fmt.Errorf("failed to handle user refreshed event: %w", err)
+		}
+
 	case events.UserDeauth:
-		safe.Lock(func() {
-			defer delete(bridge.users, user.ID())
-			bridge.logoutUser(ctx, user, false, false)
-		}, bridge.usersLock)
+		bridge.handleUserDeauth(ctx, user)
 	}
 
 	return nil
@@ -99,4 +101,25 @@ func (bridge *Bridge) handleUserAddressDeleted(ctx context.Context, user *user.U
 	}
 
 	return nil
+}
+
+func (bridge *Bridge) handleUserRefreshed(ctx context.Context, user *user.User) error {
+	return safe.RLockRet(func() error {
+		if err := bridge.removeIMAPUser(ctx, user, true); err != nil {
+			return fmt.Errorf("failed to remove IMAP user: %w", err)
+		}
+
+		if err := bridge.addIMAPUser(ctx, user); err != nil {
+			return fmt.Errorf("failed to add IMAP user: %w", err)
+		}
+
+		return nil
+	}, bridge.usersLock)
+}
+
+func (bridge *Bridge) handleUserDeauth(ctx context.Context, user *user.User) {
+	safe.Lock(func() {
+		defer delete(bridge.users, user.ID())
+		bridge.logoutUser(ctx, user, false, false)
+	}, bridge.usersLock)
 }

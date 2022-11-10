@@ -100,11 +100,6 @@ func New(
 		return nil, fmt.Errorf("failed to get addresses: %w", err)
 	}
 
-	// Check we can unlock the keyrings.
-	if _, _, err := liteapi.Unlock(apiUser, apiAddrs, encVault.KeyPass()); err != nil {
-		return nil, fmt.Errorf("failed to unlock user: %w", err)
-	}
-
 	// Get the user's API labels.
 	apiLabels, err := client.GetLabels(ctx, liteapi.LabelTypeSystem, liteapi.LabelTypeFolder, liteapi.LabelTypeLabel)
 	if err != nil {
@@ -231,12 +226,10 @@ func New(
 		user.log.Debug("Sync triggered")
 
 		user.abortable.Do(ctx, func(ctx context.Context) {
-			if !user.vault.SyncStatus().IsComplete() {
-				if err := user.doSync(ctx); err != nil {
-					return
-				}
-			} else {
+			if user.vault.SyncStatus().IsComplete() {
 				user.log.Debug("Sync is already complete, skipping")
+			} else if err := user.doSync(ctx); err != nil {
+				user.log.WithError(err).Error("Failed to sync")
 			}
 		})
 	})
@@ -300,30 +293,12 @@ func (user *User) GetAddressMode() vault.AddressMode {
 }
 
 // SetAddressMode sets the user's address mode.
-func (user *User) SetAddressMode(ctx context.Context, mode vault.AddressMode) error {
+func (user *User) SetAddressMode(_ context.Context, mode vault.AddressMode) error {
 	user.abortable.Abort()
 	defer user.goSync()
 
 	return safe.LockRet(func() error {
-		for _, updateCh := range xslices.Unique(maps.Values(user.updateCh)) {
-			updateCh.CloseAndDiscardQueued()
-		}
-
-		user.updateCh = make(map[string]*queue.QueuedChannel[imap.Update])
-
-		switch mode {
-		case vault.CombinedMode:
-			primaryUpdateCh := queue.NewQueuedChannel[imap.Update](0, 0)
-
-			for addrID := range user.apiAddrs {
-				user.updateCh[addrID] = primaryUpdateCh
-			}
-
-		case vault.SplitMode:
-			for addrID := range user.apiAddrs {
-				user.updateCh[addrID] = queue.NewQueuedChannel[imap.Update](0, 0)
-			}
-		}
+		user.initUpdateCh(mode)
 
 		if err := user.vault.SetAddressMode(mode); err != nil {
 			return fmt.Errorf("failed to set address mode: %w", err)
@@ -618,6 +593,30 @@ func (user *User) Close() {
 // SetShowAllMail sets whether to show the All Mail mailbox.
 func (user *User) SetShowAllMail(show bool) {
 	atomic.StoreUint32(&user.showAllMail, b32(show))
+}
+
+// initUpdateCh initializes the user's update channels in the given address mode.
+// It is assumed that user.apiAddrs and user.updateCh are already locked.
+func (user *User) initUpdateCh(mode vault.AddressMode) {
+	for _, updateCh := range xslices.Unique(maps.Values(user.updateCh)) {
+		updateCh.CloseAndDiscardQueued()
+	}
+
+	user.updateCh = make(map[string]*queue.QueuedChannel[imap.Update])
+
+	switch mode {
+	case vault.CombinedMode:
+		primaryUpdateCh := queue.NewQueuedChannel[imap.Update](0, 0)
+
+		for addrID := range user.apiAddrs {
+			user.updateCh[addrID] = primaryUpdateCh
+		}
+
+	case vault.SplitMode:
+		for addrID := range user.apiAddrs {
+			user.updateCh[addrID] = queue.NewQueuedChannel[imap.Update](0, 0)
+		}
+	}
 }
 
 // b32 returns a uint32 0 or 1 representing b.

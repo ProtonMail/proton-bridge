@@ -609,6 +609,34 @@ func TestBridge_UserInfo_Alias(t *testing.T) {
 	})
 }
 
+func TestBridge_User_Refresh(t *testing.T) {
+	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *liteapi.NetCtl, locator bridge.Locator, vaultKey []byte) {
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, vaultKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+			// Get a channel of sync started events.
+			syncStartCh, done := chToType[events.Event, events.SyncStarted](bridge.GetEvents(events.SyncStarted{}))
+			defer done()
+
+			// Get a channel of sync finished events.
+			syncFinishCh, done := chToType[events.Event, events.SyncFinished](bridge.GetEvents(events.SyncFinished{}))
+			defer done()
+
+			// Log the user in.
+			userID := must(bridge.LoginFull(ctx, username, password, nil, nil))
+
+			// The sync should start and finish.
+			require.Equal(t, userID, (<-syncStartCh).UserID)
+			require.Equal(t, userID, (<-syncFinishCh).UserID)
+
+			// Trigger a refresh.
+			require.NoError(t, s.RefreshUser(userID, liteapi.RefreshAll))
+
+			// The sync should start and finish again.
+			require.Equal(t, userID, (<-syncStartCh).UserID)
+			require.Equal(t, userID, (<-syncFinishCh).UserID)
+		})
+	})
+}
+
 // getErr returns the error that was passed to it.
 func getErr[T any](val T, err error) error {
 	return err

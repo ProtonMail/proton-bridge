@@ -20,6 +20,7 @@ package bridge_test
 import (
 	"context"
 	"crypto/tls"
+	"fmt"
 	"net/http"
 	"os"
 	"sync"
@@ -535,4 +536,23 @@ func getConnectedUserIDs(t *testing.T, bridge *bridge.Bridge) []string {
 
 		return info.Connected
 	})
+}
+
+func chToType[In, Out any](inCh <-chan In, done func()) (<-chan Out, func()) {
+	outCh := make(chan Out)
+
+	go func() {
+		defer close(outCh)
+
+		for in := range inCh {
+			out, ok := any(in).(Out)
+			if !ok {
+				panic(fmt.Sprintf("unexpected type %T", in))
+			}
+
+			outCh <- out
+		}
+	}()
+
+	return outCh, done
 }

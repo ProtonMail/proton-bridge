@@ -112,6 +112,16 @@ func (event UserChanged) String() string {
 	return fmt.Sprintf("UserChanged: UserID: %s", event.UserID)
 }
 
+type UserRefreshed struct {
+	eventBase
+
+	UserID string
+}
+
+func (event UserRefreshed) String() string {
+	return fmt.Sprintf("UserRefreshed: UserID: %s", event.UserID)
+}
+
 type AddressModeChanged struct {
 	eventBase
 

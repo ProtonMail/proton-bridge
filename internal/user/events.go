@@ -35,6 +35,10 @@ import (
 
 // handleAPIEvent handles the given liteapi.Event.
 func (user *User) handleAPIEvent(ctx context.Context, event liteapi.Event) error {
+	if event.Refresh&liteapi.RefreshMail != 0 {
+		return user.handleRefreshEvent(ctx)
+	}
+
 	if event.User != nil {
 		if err := user.handleUserEvent(ctx, *event.User); err != nil {
 			return err
@@ -60,6 +64,54 @@ func (user *User) handleAPIEvent(ctx context.Context, event liteapi.Event) error
 	}
 
 	return nil
+}
+
+func (user *User) handleRefreshEvent(ctx context.Context) error {
+	user.log.Info("Handling refresh event")
+
+	// Cancel and restart ongoing syncs.
+	user.abortable.Abort()
+	defer user.goSync()
+
+	return safe.LockRet(func() error {
+		// Fetch latest user info.
+		apiUser, err := user.client.GetUser(ctx)
+		if err != nil {
+			return fmt.Errorf("failed to get user: %w", err)
+		}
+
+		// Fetch latest address info.
+		apiAddrs, err := user.client.GetAddresses(ctx)
+		if err != nil {
+			return fmt.Errorf("failed to get addresses: %w", err)
+		}
+
+		// Fetch latest label info.
+		apiLabels, err := user.client.GetLabels(ctx, liteapi.LabelTypeSystem, liteapi.LabelTypeFolder, liteapi.LabelTypeLabel)
+		if err != nil {
+			return fmt.Errorf("failed to get labels: %w", err)
+		}
+
+		// Update the API info in the user.
+		user.apiUser = apiUser
+		user.apiAddrs = groupBy(apiAddrs, func(addr liteapi.Address) string { return addr.ID })
+		user.apiLabels = groupBy(apiLabels, func(label liteapi.Label) string { return label.ID })
+
+		// Reinitialize the update channels.
+		user.initUpdateCh(user.vault.AddressMode())
+
+		// Clear sync status; we want to sync everything again.
+		if err := user.vault.ClearSyncStatus(); err != nil {
+			return fmt.Errorf("failed to clear sync status: %w", err)
+		}
+
+		// The user was refreshed.
+		user.eventCh.Enqueue(events.UserRefreshed{
+			UserID: user.apiUser.ID,
+		})
+
+		return nil
+	}, user.apiUserLock, user.apiAddrsLock, user.apiLabelsLock, user.updateChLock)
 }
 
 // handleUserEvent handles the given user event.

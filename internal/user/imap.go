@@ -23,6 +23,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/ProtonMail/gluon/connector"
 	"github.com/ProtonMail/gluon/imap"
 	"github.com/ProtonMail/gluon/rfc822"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
@@ -34,6 +35,9 @@ import (
 	"gitlab.protontech.ch/go/liteapi"
 	"golang.org/x/exp/slices"
 )
+
+// Verify that *imapConnector implements connector.Connector.
+var _ connector.Connector = (*imapConnector)(nil)
 
 var (
 	defaultFlags          = imap.NewFlagSet(imap.FlagSeen, imap.FlagFlagged, imap.FlagDeleted) // nolint:gochecknoglobals

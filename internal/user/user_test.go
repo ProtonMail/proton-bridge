@@ -138,6 +138,23 @@ func TestUser_Deauth(t *testing.T) {
 	})
 }
 
+func TestUser_Refresh(t *testing.T) {
+	withAPI(t, context.Background(), func(ctx context.Context, s *server.Server, m *liteapi.Manager) {
+		withAccount(t, s, "username", "password", []string{"email@pm.me"}, func(userID string, addrIDs []string) {
+			withUser(t, ctx, s, m, "username", "password", func(user *User) {
+				// Get the event channel.
+				eventCh := user.GetEventCh()
+
+				// Revoke the user's auth token.
+				require.NoError(t, s.RefreshUser(user.ID(), liteapi.RefreshAll))
+
+				// The user should eventually be logged out.
+				require.Eventually(t, func() bool { _, ok := (<-eventCh).(events.UserRefreshed); return ok }, 5*time.Second, 100*time.Millisecond)
+			})
+		})
+	})
+}
+
 func withAPI(_ testing.TB, ctx context.Context, fn func(context.Context, *server.Server, *liteapi.Manager)) { //nolint:revive
 	server := server.New()
 	defer server.Close()

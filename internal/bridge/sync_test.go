@@ -203,22 +203,3 @@ func countBytesRead(ctl *liteapi.NetCtl, fn func()) uint64 {
 
 	return read
 }
-
-func chToType[In, Out any](inCh <-chan In, done func()) (<-chan Out, func()) {
-	outCh := make(chan Out)
-
-	go func() {
-		defer close(outCh)
-
-		for in := range inCh {
-			out, ok := any(in).(Out)
-			if !ok {
-				panic(fmt.Sprintf("unexpected type %T", in))
-			}
-
-			outCh <- out
-		}
-	}()
-
-	return outCh, done
-}

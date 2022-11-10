@@ -257,14 +257,8 @@ func (bridge *Bridge) SetAddressMode(ctx context.Context, userID string, mode va
 			return fmt.Errorf("address mode is already %q", mode)
 		}
 
-		for addrID, gluonID := range user.GetGluonIDs() {
-			if err := bridge.imapServer.RemoveUser(ctx, gluonID, true); err != nil {
-				return fmt.Errorf("failed to remove user from IMAP server: %w", err)
-			}
-
-			if err := user.RemoveGluonID(addrID, gluonID); err != nil {
-				return fmt.Errorf("failed to remove gluon ID from user: %w", err)
-			}
+		if err := bridge.removeIMAPUser(ctx, user, true); err != nil {
+			return fmt.Errorf("failed to remove IMAP user: %w", err)
 		}
 
 		if err := user.SetAddressMode(ctx, mode); err != nil {
