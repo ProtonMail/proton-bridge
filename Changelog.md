@@ -2,6 +2,21 @@
 
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
+## [Bridge 2.4.6] Osney
+
+### Changed
+* GODT-2019: When signing out and a single user is connecte* we do not go back to the welcome screen.
+* GODT-2071: Bridge-gui report error if an orphan bridge is detected.
+* GODT-2046: Bridge-gui log is included in optional archive sent with bug reports.
+* GODT-2039: Bridge monitors bridge-gui via its PID.
+* GODT-2038: Interrupt gRPC initialisation of bridge process terminates.
+* Other: Added timestamp to bridge-gui logs.
+* GODT-2035: Bridge-gui log includes Qt version info.
+* GODT-2031: Updated bridge description.
+
+### Fixed
+* Other: Fix make run-qt target for Darwin.
+
 ## [Bridge 2.4.5] Osney
 
 ### Changed
