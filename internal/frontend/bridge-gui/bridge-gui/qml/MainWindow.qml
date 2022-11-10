@@ -98,7 +98,7 @@ ApplicationWindow {
 
         property bool _showSetup: false
         currentIndex: {
-            // show welcome when there are no users or only one non-logged-in user is present
+            // show welcome when there are no users
             if (Backend.users.count === 0) {
                 return 1
             }
@@ -112,7 +112,8 @@ ApplicationWindow {
             }
 
             if (Backend.users.count === 1 && u.loggedIn === false) {
-                return 1
+                showSignIn(u.username)
+                return 0
             }
 
             if (contentLayout._showSetup) {
