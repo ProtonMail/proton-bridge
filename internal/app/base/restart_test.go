@@ -61,3 +61,22 @@ func TestVersionLessThan(t *testing.T) {
 	r.False(current.LessThan(current))
 	r.False(newer.LessThan(current))
 }
+
+func TestRemoveFlagWithValue(t *testing.T) {
+	tests := []struct {
+		argList  []string
+		flag     string
+		expected []string
+	}{
+		{[]string{}, "b", nil},
+		{[]string{"-a", "-b=value", "-c"}, "b", []string{"-a", "-c"}},
+		{[]string{"-a", "--b=value", "-c"}, "b", []string{"-a", "-c"}},
+		{[]string{"-a", "-b", "value", "-c"}, "b", []string{"-a", "-c"}},
+		{[]string{"-a", "--b", "value", "-c"}, "b", []string{"-a", "-c"}},
+		{[]string{"-a", "-B=value", "-c"}, "b", []string{"-a", "-B=value", "-c"}},
+	}
+
+	for _, tt := range tests {
+		require.Equal(t, removeFlagWithValue(tt.argList, tt.flag), tt.expected)
+	}
+}
