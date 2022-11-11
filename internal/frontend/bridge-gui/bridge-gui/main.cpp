@@ -219,14 +219,14 @@ bool isBridgeRunning()
     QTimer timer;
     timer.setSingleShot(true);
 
-    QNetworkReply *rep = networkManager().get(QNetworkRequest(getFocusUrl()));
+    std::unique_ptr<QNetworkReply> reply(networkManager().get(QNetworkRequest(getFocusUrl())));
     QEventLoop loop;
     bool timedOut = false;
     QObject::connect(&timer, &QTimer::timeout, [&]() { timedOut = true; loop.quit(); });
-    QObject::connect(rep, &QNetworkReply::finished, &loop, &QEventLoop::quit);
+    QObject::connect(reply.get(), &QNetworkReply::finished, &loop, &QEventLoop::quit);
     timer.start(1000); // we time out after 1 second and consider no other instance is running.
     loop.exec();
-    return ((!timedOut) && (rep->error() == QNetworkReply::NetworkError::NoError));
+    return ((!timedOut) && (reply->error() == QNetworkReply::NetworkError::NoError));
 }
 
 
@@ -235,9 +235,9 @@ bool isBridgeRunning()
 //****************************************************************************************************************************************************
 void focusOtherInstance()
 {
-    QNetworkReply *rep = networkManager().get(QNetworkRequest(getFocusUrl()));
+    std::unique_ptr<QNetworkReply> reply(networkManager().get(QNetworkRequest(getFocusUrl())));
     QEventLoop loop;
-    QObject::connect(rep, &QNetworkReply::finished, &loop, &QEventLoop::quit);
+    QObject::connect(reply.get(), &QNetworkReply::finished, &loop, &QEventLoop::quit);
     loop.exec();
 }
 
