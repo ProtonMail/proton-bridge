@@ -145,13 +145,13 @@ func (user *User) handleCreateAddressEvent(ctx context.Context, event liteapi.Ad
 	// Perform the sync in an RLock.
 	return safe.RLockRet(func() error {
 		if user.vault.AddressMode() == vault.SplitMode {
-			if err := syncLabels(ctx, user.client, user.updateCh[event.Address.ID]); err != nil {
+			if err := syncLabels(ctx, user.apiLabels, user.updateCh[event.Address.ID]); err != nil {
 				return fmt.Errorf("failed to sync labels to new address: %w", err)
 			}
 		}
 
 		return nil
-	}, user.apiAddrsLock, user.updateChLock)
+	}, user.apiAddrsLock, user.apiLabelsLock, user.updateChLock)
 }
 
 func (user *User) handleUpdateAddressEvent(_ context.Context, event liteapi.AddressEvent) error { //nolint:unparam

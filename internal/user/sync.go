@@ -80,7 +80,7 @@ func (user *User) sync(ctx context.Context) error {
 			if !user.vault.SyncStatus().HasLabels {
 				user.log.Info("Syncing labels")
 
-				if err := syncLabels(ctx, user.client, xslices.Unique(maps.Values(user.updateCh))...); err != nil {
+				if err := syncLabels(ctx, user.apiLabels, xslices.Unique(maps.Values(user.updateCh))...); err != nil {
 					return fmt.Errorf("failed to sync labels: %w", err)
 				}
 
@@ -121,50 +121,35 @@ func (user *User) sync(ctx context.Context) error {
 
 			return nil
 		})
-	}, user.apiUserLock, user.apiAddrsLock, user.updateChLock)
+	}, user.apiUserLock, user.apiAddrsLock, user.apiLabelsLock, user.updateChLock)
 }
 
-func syncLabels(ctx context.Context, client *liteapi.Client, updateCh ...*queue.QueuedChannel[imap.Update]) error {
-	// Sync the system folders.
-	system, err := client.GetLabels(ctx, liteapi.LabelTypeSystem)
-	if err != nil {
-		return fmt.Errorf("failed to get system labels: %w", err)
-	}
-
-	for _, label := range xslices.Filter(system, func(label liteapi.Label) bool { return wantLabelID(label.ID) }) {
-		for _, updateCh := range updateCh {
-			updateCh.Enqueue(newSystemMailboxCreatedUpdate(imap.MailboxID(label.ID), label.Name))
-		}
-	}
-
-	// Create Folders/Labels mailboxes with a random ID and with the \Noselect attribute.
+// nolint:exhaustive
+func syncLabels(ctx context.Context, apiLabels map[string]liteapi.Label, updateCh ...*queue.QueuedChannel[imap.Update]) error {
+	// Create placeholder Folders/Labels mailboxes with a random ID and with the \Noselect attribute.
 	for _, prefix := range []string{folderPrefix, labelPrefix} {
 		for _, updateCh := range updateCh {
 			updateCh.Enqueue(newPlaceHolderMailboxCreatedUpdate(prefix))
 		}
 	}
 
-	// Sync the API folders.
-	folders, err := client.GetLabels(ctx, liteapi.LabelTypeFolder)
-	if err != nil {
-		return fmt.Errorf("failed to get folders: %w", err)
-	}
+	// Sync the user's labels.
+	for labelID, label := range apiLabels {
+		switch label.Type {
+		case liteapi.LabelTypeSystem:
+			if wantLabelID(labelID) {
+				for _, updateCh := range updateCh {
+					updateCh.Enqueue(newSystemMailboxCreatedUpdate(imap.MailboxID(label.ID), label.Name))
+				}
+			}
 
-	for _, folder := range folders {
-		for _, updateCh := range updateCh {
-			updateCh.Enqueue(newMailboxCreatedUpdate(imap.MailboxID(folder.ID), getMailboxName(folder)))
-		}
-	}
+		case liteapi.LabelTypeFolder, liteapi.LabelTypeLabel:
+			for _, updateCh := range updateCh {
+				updateCh.Enqueue(newMailboxCreatedUpdate(imap.MailboxID(labelID), getMailboxName(label)))
+			}
 
-	// Sync the API labels.
-	labels, err := client.GetLabels(ctx, liteapi.LabelTypeLabel)
-	if err != nil {
-		return fmt.Errorf("failed to get labels: %w", err)
-	}
-
-	for _, label := range labels {
-		for _, updateCh := range updateCh {
-			updateCh.Enqueue(newMailboxCreatedUpdate(imap.MailboxID(label.ID), getMailboxName(label)))
+		default:
+			return fmt.Errorf("unknown label type: %d", label.Type)
 		}
 	}
 

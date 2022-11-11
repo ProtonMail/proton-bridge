@@ -47,7 +47,7 @@ func TestMain(m *testing.M) {
 
 func TestUser_Info(t *testing.T) {
 	withAPI(t, context.Background(), func(ctx context.Context, s *server.Server, m *liteapi.Manager) {
-		withAccount(t, s, "username", "password", []string{"email@pm.me", "alias@pm.me"}, func(userID string, addrIDs []string) {
+		withAccount(t, s, "username", "password", []string{"email@pm.me", "alias@pm.me"}, func(userID string, _ []string) {
 			withUser(t, ctx, s, m, "username", "password", func(user *User) {
 				// User's ID should be correct.
 				require.Equal(t, userID, user.ID())
@@ -70,11 +70,8 @@ func TestUser_Info(t *testing.T) {
 
 func TestUser_Sync(t *testing.T) {
 	withAPI(t, context.Background(), func(ctx context.Context, s *server.Server, m *liteapi.Manager) {
-		withAccount(t, s, "username", "password", []string{"email@pm.me"}, func(userID string, addrIDs []string) {
+		withAccount(t, s, "username", "password", []string{"email@pm.me"}, func(string, []string) {
 			withUser(t, ctx, s, m, "username", "password", func(user *User) {
-				// Process the IMAP updates as if we were gluon.
-				handleUpdates(t, user)
-
 				// User starts a sync at startup.
 				require.IsType(t, events.SyncStarted{}, <-user.GetEventCh())
 
@@ -90,11 +87,8 @@ func TestUser_Sync(t *testing.T) {
 
 func TestUser_AddressMode(t *testing.T) {
 	withAPI(t, context.Background(), func(ctx context.Context, s *server.Server, m *liteapi.Manager) {
-		withAccount(t, s, "username", "password", []string{"email@pm.me", "alias@pm.me"}, func(userID string, addrIDs []string) {
+		withAccount(t, s, "username", "password", []string{"email@pm.me", "alias@pm.me"}, func(string, []string) {
 			withUser(t, ctx, s, m, "username", "password", func(user *User) {
-				// Process the IMAP updates as if we were gluon.
-				handleUpdates(t, user)
-
 				// User finishes syncing at startup.
 				require.IsType(t, events.SyncStarted{}, <-user.GetEventCh())
 				require.IsType(t, events.SyncProgress{}, <-user.GetEventCh())
@@ -106,8 +100,18 @@ func TestUser_AddressMode(t *testing.T) {
 				// User should be able to switch to split mode.
 				require.NoError(t, user.SetAddressMode(ctx, vault.SplitMode))
 
-				// Process the IMAP updates as if we were gluon.
-				handleUpdates(t, user)
+				// Create a new set of IMAP connectors (after switching to split mode).
+				imapConn, err := user.NewIMAPConnectors()
+				require.NoError(t, err)
+
+				// Process updates from the new set of IMAP connectors.
+				for _, imapConn := range imapConn {
+					go func(imapConn connector.Connector) {
+						for update := range imapConn.GetUpdates() {
+							update.Done()
+						}
+					}(imapConn)
+				}
 
 				// User finishes syncing after switching to split mode.
 				require.IsType(t, events.SyncStarted{}, <-user.GetEventCh())
@@ -120,7 +124,7 @@ func TestUser_AddressMode(t *testing.T) {
 
 func TestUser_Deauth(t *testing.T) {
 	withAPI(t, context.Background(), func(ctx context.Context, s *server.Server, m *liteapi.Manager) {
-		withAccount(t, s, "username", "password", []string{"email@pm.me"}, func(userID string, addrIDs []string) {
+		withAccount(t, s, "username", "password", []string{"email@pm.me"}, func(string, []string) {
 			withUser(t, ctx, s, m, "username", "password", func(user *User) {
 				eventCh := user.GetEventCh()
 
@@ -128,7 +132,7 @@ func TestUser_Deauth(t *testing.T) {
 				require.NoError(t, s.RevokeUser(user.ID()))
 
 				// The user should eventually be logged out.
-				require.Eventually(t, func() bool { _, ok := (<-eventCh).(events.UserDeauth); return ok }, 5*time.Second, 100*time.Millisecond)
+				require.Eventually(t, func() bool { _, ok := (<-eventCh).(events.UserDeauth); return ok }, 500*time.Second, 100*time.Millisecond)
 			})
 		})
 	})
@@ -186,12 +190,8 @@ func withUser(tb testing.TB, ctx context.Context, _ *server.Server, m *liteapi.M
 	require.NoError(tb, err)
 	defer user.Close()
 
-	fn(user)
-}
-
-func handleUpdates(t *testing.T, user *User) {
 	imapConn, err := user.NewIMAPConnectors()
-	require.NoError(t, err)
+	require.NoError(tb, err)
 
 	for _, imapConn := range imapConn {
 		go func(imapConn connector.Connector) {
@@ -200,4 +200,6 @@ func handleUpdates(t *testing.T, user *User) {
 			}
 		}(imapConn)
 	}
+
+	fn(user)
 }
