@@ -2,6 +2,12 @@
 
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
+## [Bridge 2.4.7] Osney
+
+### Fixed
+* GODT-2078: Launcher inception.
+* GODT-2039: fix --parent-pid flag is removed from command-line when restarting the application.
+
 ## [Bridge 2.4.6] Osney
 
 ### Changed
