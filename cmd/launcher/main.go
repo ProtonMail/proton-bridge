@@ -55,6 +55,8 @@ const (
 )
 
 func main() { //nolint:funlen
+	logrus.SetLevel(logrus.DebugLevel)
+	l := logrus.WithField("launcher_version", constants.Version)
 	reporter := sentry.NewReporter(appName, constants.Version, useragent.New())
 
 	crashHandler := crash.NewHandler(reporter.ReportException)
@@ -62,57 +64,68 @@ func main() { //nolint:funlen
 
 	locationsProvider, err := locations.NewDefaultProvider(filepath.Join(constants.VendorName, configName))
 	if err != nil {
-		logrus.WithError(err).Fatal("Failed to get locations provider")
+		l.WithError(err).Fatal("Failed to get locations provider")
 	}
 
 	locations := locations.New(locationsProvider, configName)
 
 	logsPath, err := locations.ProvideLogsPath()
 	if err != nil {
-		logrus.WithError(err).Fatal("Failed to get logs path")
+		l.WithError(err).Fatal("Failed to get logs path")
 	}
 	crashHandler.AddRecoveryAction(logging.DumpStackTrace(logsPath))
 
 	if err := logging.Init(logsPath); err != nil {
-		logrus.WithError(err).Fatal("Failed to setup logging")
+		l.WithError(err).Fatal("Failed to setup logging")
 	}
 
 	logging.SetLevel(os.Getenv("VERBOSITY"))
 
 	updatesPath, err := locations.ProvideUpdatesPath()
 	if err != nil {
-		logrus.WithError(err).Fatal("Failed to get updates path")
+		l.WithError(err).Fatal("Failed to get updates path")
 	}
 
 	key, err := crypto.NewKeyFromArmored(updater.DefaultPublicKey)
 	if err != nil {
-		logrus.WithError(err).Fatal("Failed to create new verification key")
+		l.WithError(err).Fatal("Failed to create new verification key")
 	}
 
 	kr, err := crypto.NewKeyRing(key)
 	if err != nil {
-		logrus.WithError(err).Fatal("Failed to create new verification keyring")
+		l.WithError(err).Fatal("Failed to create new verification keyring")
 	}
 
 	versioner := versioner.New(updatesPath)
-
-	exeToLaunch := guiName
-	args := os.Args[1:]
-	if inCLIMode(args) {
-		exeToLaunch = exeName
-	}
-
-	exe, err := getPathToUpdatedExecutable(exeToLaunch, versioner, kr, reporter)
-	if err != nil {
-		if exe, err = getFallbackExecutable(exeToLaunch, versioner); err != nil {
-			logrus.WithError(err).Fatal("Failed to find any launchable executable")
-		}
-	}
 
 	launcher, err := os.Executable()
 	if err != nil {
 		logrus.WithError(err).Fatal("Failed to determine path to launcher")
 	}
+
+	l = l.WithField("launcher_path", launcher)
+
+	args := os.Args[1:]
+
+	exe, err := getPathToUpdatedExecutable(filepath.Base(launcher), versioner, kr, reporter)
+	if err != nil {
+		exeToLaunch := guiName
+		if inCLIMode(args) {
+			exeToLaunch = exeName
+		}
+
+		l = l.WithField("exe_to_launch", exeToLaunch)
+		l.WithError(err).Info("No more updates found, looking up bridge executable")
+
+		path, err := versioner.GetExecutableInDirectory(exeToLaunch, filepath.Dir(launcher))
+		if err != nil {
+			l.WithError(err).Fatal("No executable in launcher directory")
+		}
+
+		exe = path
+	}
+
+	l = l.WithField("exe_path", exe)
 
 	args, wait, mainExe := findAndStripWait(args)
 	if wait {
@@ -134,7 +147,7 @@ func main() { //nolint:funlen
 	}
 
 	if err != nil {
-		logrus.WithError(err).Fatal("Failed to launch")
+		l.WithError(err).Fatal("Failed to launch")
 	}
 }
 
@@ -193,11 +206,11 @@ func findAndStripWait(args []string) ([]string, bool, string) {
 
 func getPathToUpdatedExecutable(
 	name string,
-	versioner *versioner.Versioner,
+	ver *versioner.Versioner,
 	kr *crypto.KeyRing,
 	reporter *sentry.Reporter,
 ) (string, error) {
-	versions, err := versioner.ListVersions()
+	versions, err := ver.ListVersions()
 	if err != nil {
 		return "", errors.Wrap(err, "failed to list available versions")
 	}
@@ -208,7 +221,11 @@ func getPathToUpdatedExecutable(
 	}
 
 	for _, version := range versions {
-		vlog := logrus.WithField("version", version)
+		vlog := logrus.WithFields(logrus.Fields{
+			"version":       constants.Version,
+			"check_version": version,
+			"name":          name,
+		})
 
 		if err := version.VerifyFiles(kr); err != nil {
 			vlog.WithError(err).Error("Files failed verification and will be removed")
@@ -239,17 +256,6 @@ func getPathToUpdatedExecutable(
 	}
 
 	return "", errors.New("no available newer versions")
-}
-
-func getFallbackExecutable(name string, versioner *versioner.Versioner) (string, error) {
-	logrus.Info("Searching for fallback executable")
-
-	launcher, err := os.Executable()
-	if err != nil {
-		return "", errors.Wrap(err, "failed to determine path to launcher")
-	}
-
-	return versioner.GetExecutableInDirectory(name, filepath.Dir(launcher))
 }
 
 // waitForProcessToFinish waits until the process with the given path is finished.

@@ -17,6 +17,12 @@
 
 package versioner
 
+import "strings"
+
 func getExeName(name string) string {
+	if strings.HasSuffix(name, ".exe") {
+		return name
+	}
+
 	return name + ".exe"
 }
