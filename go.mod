@@ -20,7 +20,8 @@ require (
 	github.com/emersion/go-imap v1.2.1-0.20220429085312-746087b7a317
 	github.com/emersion/go-imap-id v0.0.0-20190926060100-f94a56b9ecde
 	github.com/emersion/go-message v0.16.0
-	github.com/emersion/go-smtp v0.15.1-0.20221018181223-201c9ab124e4
+	github.com/emersion/go-sasl v0.0.0-20220912192320-0145f2c60ead
+	github.com/emersion/go-smtp v0.15.1-0.20221021114529-49b17434419d
 	github.com/fatih/color v1.13.0
 	github.com/getsentry/sentry-go v0.13.0
 	github.com/go-resty/resty/v2 v2.7.0
@@ -70,7 +71,6 @@ require (
 	github.com/danieljoos/wincred v1.1.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/elastic/go-windows v1.0.1 // indirect
-	github.com/emersion/go-sasl v0.0.0-20220912192320-0145f2c60ead // indirect
 	github.com/emersion/go-textwrapper v0.0.0-20200911093747-65d896831594 // indirect
 	github.com/emersion/go-vcard v0.0.0-20220507122617-d4056df0ec4a // indirect
 	github.com/flynn-archive/go-shlex v0.0.0-20150515145356-3f9db97f8568 // indirect
