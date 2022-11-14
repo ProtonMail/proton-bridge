@@ -178,6 +178,7 @@ func TestFeatures(testingT *testing.T) {
 			ctx.Step(`^IMAP client "([^"]*)" appends the following message to "([^"]*)":$`, s.imapClientAppendsTheFollowingMessageToMailbox)
 			ctx.Step(`^IMAP client "([^"]*)" appends the following messages to "([^"]*)":$`, s.imapClientAppendsTheFollowingMessagesToMailbox)
 			ctx.Step(`^IMAP client "([^"]*)" appends "([^"]*)" to "([^"]*)"$`, s.imapClientAppendsToMailbox)
+			ctx.Step(`^IMAP clients "([^"]*)" and "([^"]*)" move message seq "([^"]*)" of "([^"]*)" to "([^"]*)" by ([^"]*) ([^"]*) ([^"]*)`, s.imapClientsMoveMessageSeqOfUserFromToByOrderedOperations)
 
 			// ==== SMTP ====
 			ctx.Step(`^user "([^"]*)" connects SMTP client "([^"]*)"$`, s.userConnectsSMTPClient)

@@ -18,9 +18,12 @@
 package tests
 
 import (
+	"bytes"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
@@ -408,6 +411,77 @@ func (s *scenario) imapClientAppendsToMailbox(clientID string, file, mailbox str
 	return clientAppend(client, mailbox, string(b))
 }
 
+func (s *scenario) imapClientsMoveMessageSeqOfUserFromToByOrderedOperations(sourceIMAPClient, targetIMAPClient, messageSeq, bddUserID, targetMailboxName, op1, op2, op3 string) error {
+	// call NOOP to prevent unilateral updates in following FETCH
+	_, sourceClient := s.t.getIMAPClient(sourceIMAPClient)
+	_, targetClient := s.t.getIMAPClient(targetIMAPClient)
+
+	sequenceID, err := strconv.Atoi(messageSeq)
+	if err != nil {
+		return err
+	}
+
+	if err := sourceClient.Noop(); err != nil {
+		return err
+	}
+
+	if err := targetClient.Noop(); err != nil {
+		return err
+	}
+
+	// get the original message
+	messages, err := clientFetchSequence(sourceClient, messageSeq)
+	if err != nil {
+		return err
+	}
+
+	if len(messages) != 1 {
+		return fmt.Errorf("more than one message in sequence set")
+	}
+
+	bodySection, err := imap.ParseBodySectionName("BODY[]")
+	if err != nil {
+		return err
+	}
+
+	literal, err := io.ReadAll(messages[0].GetBody(bodySection))
+	if err != nil {
+		return err
+	}
+
+	var targetErr error
+	var storeErr error
+	var expungeErr error
+
+	for _, op := range []string{op1, op2, op3} {
+		switch op {
+		case "APPEND":
+
+			flags := messages[0].Flags
+			if index := xslices.Index(flags, imap.RecentFlag); index >= 0 {
+				flags = xslices.Remove(flags, index, 1)
+			}
+
+			targetErr = targetClient.Append(targetMailboxName, flags, time.Now(), bytes.NewReader(literal))
+		case "DELETE":
+			if _, err := clientStore(sourceClient, sequenceID, sequenceID, false, imap.FormatFlagsOp(imap.AddFlags, true), imap.DeletedFlag); err != nil {
+				storeErr = err
+			}
+		case "EXPUNGE":
+			expungeErr = sourceClient.Expunge(nil)
+		default:
+			return fmt.Errorf("unknown IMAP operation " + op)
+		}
+		time.Sleep(100 * time.Millisecond)
+	}
+
+	if targetErr != nil || storeErr != nil || expungeErr != nil {
+		return fmt.Errorf("one or more operations failed: append=%v store=%v expunge=%v", targetErr, storeErr, expungeErr)
+	}
+
+	return nil
+}
+
 func clientList(client *client.Client) []*imap.MailboxInfo {
 	resCh := make(chan *imap.MailboxInfo)
 
@@ -467,6 +541,27 @@ func clientFetch(client *client.Client, mailbox string) ([]*imap.Message, error)
 	go func() {
 		if err := client.Fetch(
 			&imap.SeqSet{Set: []imap.Seq{{Start: 1, Stop: status.Messages}}},
+			[]imap.FetchItem{imap.FetchFlags, imap.FetchEnvelope, imap.FetchUid, "BODY.PEEK[]"},
+			resCh,
+		); err != nil {
+			panic(err)
+		}
+	}()
+
+	return iterator.Collect(iterator.Chan(resCh)), nil
+}
+
+func clientFetchSequence(client *client.Client, sequenceSet string) ([]*imap.Message, error) {
+	seqSet, err := imap.ParseSeqSet(sequenceSet)
+	if err != nil {
+		return nil, err
+	}
+
+	resCh := make(chan *imap.Message)
+
+	go func() {
+		if err := client.Fetch(
+			seqSet,
 			[]imap.FetchItem{imap.FetchFlags, imap.FetchEnvelope, imap.FetchUid, "BODY.PEEK[]"},
 			resCh,
 		); err != nil {
