@@ -2,6 +2,11 @@
 
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
+## [Bridge 2.4.8] Osney
+
+### Fixed
+* GODT-2071: Fix --no-window flag that was broken on Windows.
+
 ## [Bridge 2.4.7] Osney
 
 ### Fixed
