@@ -166,6 +166,8 @@ func run(c *cli.Context) error { //nolint:funlen
 		exe = os.Args[0]
 	}
 
+	migrationErr := migrateOldVersions()
+
 	// Run with profiling if requested.
 	return withProfiler(c, func() error {
 		// Restart the app if requested.
@@ -176,6 +178,9 @@ func run(c *cli.Context) error { //nolint:funlen
 				return WithLocations(func(locations *locations.Locations) error {
 					// Initialize logging.
 					return withLogging(c, crashHandler, locations, func() error {
+						if migrationErr != nil {
+							logrus.WithError(migrationErr).Error("Migration failed")
+						}
 						// Ensure we are the only instance running.
 						return withSingleInstance(locations, version, func() error {
 							// Unlock the encrypted vault.

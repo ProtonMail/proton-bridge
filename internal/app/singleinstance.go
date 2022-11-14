@@ -15,24 +15,17 @@
 // You should have received a copy of the GNU General Public License
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
-//go:build !windows
-// +build !windows
-
 package app
 
 import (
 	"fmt"
 	"os"
-	"path/filepath"
-	"strconv"
-	"strings"
 	"time"
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/ProtonMail/proton-bridge/v2/internal/focus"
 	"github.com/allan-simon/go-singleinstance"
 	"github.com/sirupsen/logrus"
-	"golang.org/x/sys/unix"
 )
 
 // checkSingleInstance checks if another instance of the application is already running.
@@ -66,7 +59,7 @@ func checkSingleInstance(lockFilePath string, curVersion *semver.Version) (*os.F
 		return nil, err
 	}
 
-	if err := unix.Kill(pid, unix.SIGTERM); err != nil {
+	if err := killPID(pid); err != nil {
 		return nil, err
 	}
 
@@ -75,39 +68,3 @@ func checkSingleInstance(lockFilePath string, curVersion *semver.Version) (*os.F
 
 	return singleinstance.CreateLockFile(lockFilePath)
 }
-
-func getPID(lockFilePath string) (int, error) {
-	file, err := os.Open(filepath.Clean(lockFilePath))
-	if err != nil {
-		return 0, err
-	}
-	defer func() { _ = file.Close() }()
-
-	rawPID := make([]byte, 10) // PID is probably up to 7 digits long, 10 should be enough
-	n, err := file.Read(rawPID)
-	if err != nil {
-		return 0, err
-	}
-
-	return strconv.Atoi(strings.TrimSpace(string(rawPID[:n])))
-}
-
-/*
-func runningVersionIsOlder() error {
-	currentVer, err := semver.StrictNewVersion(constants.Version)
-	if err != nil {
-		return err
-	}
-
-	runningVer, err := semver.StrictNewVersion(settingsObj.Get(settings.LastVersionKey))
-	if err != nil {
-		return err
-	}
-
-	if !runningVer.LessThan(currentVer) {
-		return errors.New("running version is not older")
-	}
-
-	return nil
-}
-*/
