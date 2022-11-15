@@ -259,7 +259,7 @@ FocusScope {
             Button {
                 colorScheme: root.colorScheme
                 id: signInButton
-                text: qsTr("Sign in")
+                text: loading ? qsTr("Signing in") : qsTr("Sign in")
 
                 Layout.fillWidth: true
                 Layout.topMargin: 24
