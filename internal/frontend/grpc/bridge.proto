@@ -173,13 +173,19 @@ message AvailableKeychainsResponse {
 }
 
 //**********************************************************
-// Cache on disk related messages
+// user related messages
 //**********************************************************
+enum UserState {
+  SIGNED_OUT = 0;
+  LOCKED = 1;
+  CONNECTED = 2;
+}
+
 message User {
   string id = 1;
   string username = 2;
   string avatarText = 3;
-  bool loggedIn = 4;
+  UserState state = 4;
   bool splitMode = 5;
   bool setupGuideSeen = 6;
   int64 usedBytes = 7;

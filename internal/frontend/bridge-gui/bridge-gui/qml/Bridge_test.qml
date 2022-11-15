@@ -68,7 +68,7 @@ Window {
         if (showSetupGuide) {
             var newUserObject = root.userComponent.createObject(root)
             newUserObject.username = "LerooooyJenkins@protonmail.com"
-            newUserObject.loggedIn = true
+            newUserObject.state = EUserState.Connected
             newUserObject.setupGuideSeen = false
             root.users.append( { object: newUserObject } )
         }
@@ -266,7 +266,7 @@ Window {
         if (hasUserOnStart) {
             var newUserObject = root.userComponent.createObject(root)
             newUserObject.username = "LerooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooyJenkins@protonmail.com"
-            newUserObject.loggedIn = true
+            newUserObject.loggedIn = EUserState.Connected
             newUserObject.setupGuideSeen = true
             root.users.append( { object: newUserObject } )
         }

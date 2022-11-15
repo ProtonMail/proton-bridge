@@ -226,7 +226,7 @@ Window {
                             Layout.bottomMargin: 12
 
                             colorScheme: root.colorScheme
-                            visible: viewItem.user ? !viewItem.user.loggedIn : false
+                            visible: viewItem.user ? (viewItem.user.state === EUserState.SignedOut) : false
                             text: qsTr("Sign in")
                             onClicked: {
                                 root.showSignIn(viewItem.username)

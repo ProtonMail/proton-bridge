@@ -34,6 +34,14 @@ import (
 	"gitlab.protontech.ch/go/liteapi"
 )
 
+type UserState int
+
+const (
+	SignedOut UserState = iota
+	Locked
+	Connected
+)
+
 type UserInfo struct {
 	// UserID is the user's API ID.
 	UserID string
@@ -41,8 +49,8 @@ type UserInfo struct {
 	// Username is the user's API username.
 	Username string
 
-	// Connected is true if the user is logged in (has API auth).
-	Connected bool
+	// Signed Out is true if the user is signed out (no AuthUID, user will need to provide credentials to log in again)
+	State UserState
 
 	// Addresses holds the user's email addresses. The first address is the primary address.
 	Addresses []string
@@ -75,7 +83,11 @@ func (bridge *Bridge) GetUserInfo(userID string) (UserInfo, error) {
 		var info UserInfo
 
 		if err := bridge.vault.GetUser(userID, func(user *vault.User) {
-			info = getUserInfo(user.UserID(), user.Username(), user.AddressMode())
+			state := Locked
+			if len(user.AuthUID()) == 0 {
+				state = SignedOut
+			}
+			info = getUserInfo(user.UserID(), user.Username(), state, user.AddressMode())
 		}); err != nil {
 			return UserInfo{}, fmt.Errorf("failed to get user info: %w", err)
 		}
@@ -515,8 +527,9 @@ func (bridge *Bridge) logoutUser(ctx context.Context, user *user.User, withAPI, 
 }
 
 // getUserInfo returns information about a disconnected user.
-func getUserInfo(userID, username string, addressMode vault.AddressMode) UserInfo {
+func getUserInfo(userID, username string, state UserState, addressMode vault.AddressMode) UserInfo {
 	return UserInfo{
+		State:       state,
 		UserID:      userID,
 		Username:    username,
 		AddressMode: addressMode,
@@ -526,7 +539,7 @@ func getUserInfo(userID, username string, addressMode vault.AddressMode) UserInf
 // getConnUserInfo returns information about a connected user.
 func getConnUserInfo(user *user.User) UserInfo {
 	return UserInfo{
-		Connected:   true,
+		State:       Connected,
 		UserID:      user.ID(),
 		Username:    user.Name(),
 		Addresses:   user.Emails(),

@@ -69,14 +69,14 @@ func TestBridge_Sync(t *testing.T) {
 		})
 
 		// If we then connect an IMAP client, it should see all the messages.
-		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(b *bridge.Bridge, mocks *bridge.Mocks) {
 			mocks.Reporter.EXPECT().ReportMessageWithContext(gomock.Any(), gomock.Any()).AnyTimes()
 
-			info, err := bridge.GetUserInfo(userID)
+			info, err := b.GetUserInfo(userID)
 			require.NoError(t, err)
-			require.True(t, info.Connected)
+			require.True(t, info.State == bridge.Connected)
 
-			client, err := client.Dial(fmt.Sprintf("%v:%v", constants.Host, bridge.GetIMAPPort()))
+			client, err := client.Dial(fmt.Sprintf("%v:%v", constants.Host, b.GetIMAPPort()))
 			require.NoError(t, err)
 			require.NoError(t, client.Login("imap@pm.me", string(info.BridgePass)))
 			defer func() { _ = client.Logout() }()
@@ -95,23 +95,23 @@ func TestBridge_Sync(t *testing.T) {
 		netCtl.SetReadLimit(2 * total / 3)
 
 		// Login the user; its sync should fail.
-		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(b *bridge.Bridge, mocks *bridge.Mocks) {
 			mocks.Reporter.EXPECT().ReportMessageWithContext(gomock.Any(), gomock.Any()).AnyTimes()
 
 			{
-				syncCh, done := chToType[events.Event, events.SyncFailed](bridge.GetEvents(events.SyncFailed{}))
+				syncCh, done := chToType[events.Event, events.SyncFailed](b.GetEvents(events.SyncFailed{}))
 				defer done()
 
-				userID, err := bridge.LoginFull(ctx, "imap", password, nil, nil)
+				userID, err := b.LoginFull(ctx, "imap", password, nil, nil)
 				require.NoError(t, err)
 
 				require.Equal(t, userID, (<-syncCh).UserID)
 
-				info, err := bridge.GetUserInfo(userID)
+				info, err := b.GetUserInfo(userID)
 				require.NoError(t, err)
-				require.True(t, info.Connected)
+				require.True(t, info.State == bridge.Connected)
 
-				client, err := client.Dial(fmt.Sprintf("%v:%v", constants.Host, bridge.GetIMAPPort()))
+				client, err := client.Dial(fmt.Sprintf("%v:%v", constants.Host, b.GetIMAPPort()))
 				require.NoError(t, err)
 				require.NoError(t, client.Login("imap@pm.me", string(info.BridgePass)))
 				defer func() { _ = client.Logout() }()
@@ -125,16 +125,16 @@ func TestBridge_Sync(t *testing.T) {
 			netCtl.SetReadLimit(0)
 
 			{
-				syncCh, done := chToType[events.Event, events.SyncFinished](bridge.GetEvents(events.SyncFinished{}))
+				syncCh, done := chToType[events.Event, events.SyncFinished](b.GetEvents(events.SyncFinished{}))
 				defer done()
 
 				require.Equal(t, userID, (<-syncCh).UserID)
 
-				info, err := bridge.GetUserInfo(userID)
+				info, err := b.GetUserInfo(userID)
 				require.NoError(t, err)
-				require.True(t, info.Connected)
+				require.True(t, info.State == bridge.Connected)
 
-				client, err := client.Dial(fmt.Sprintf("%v:%v", constants.Host, bridge.GetIMAPPort()))
+				client, err := client.Dial(fmt.Sprintf("%v:%v", constants.Host, b.GetIMAPPort()))
 				require.NoError(t, err)
 				require.NoError(t, client.Login("imap@pm.me", string(info.BridgePass)))
 				defer func() { _ = client.Logout() }()

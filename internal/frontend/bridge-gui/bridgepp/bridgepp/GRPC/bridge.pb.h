@@ -308,6 +308,32 @@ inline bool LogLevel_Parse(
   return ::PROTOBUF_NAMESPACE_ID::internal::ParseNamedEnum<LogLevel>(
     LogLevel_descriptor(), name, value);
 }
+enum UserState : int {
+  SIGNED_OUT = 0,
+  LOCKED = 1,
+  CONNECTED = 2,
+  UserState_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::min(),
+  UserState_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::max()
+};
+bool UserState_IsValid(int value);
+constexpr UserState UserState_MIN = SIGNED_OUT;
+constexpr UserState UserState_MAX = CONNECTED;
+constexpr int UserState_ARRAYSIZE = UserState_MAX + 1;
+
+const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* UserState_descriptor();
+template<typename T>
+inline const std::string& UserState_Name(T enum_t_value) {
+  static_assert(::std::is_same<T, UserState>::value ||
+    ::std::is_integral<T>::value,
+    "Incorrect type passed to function UserState_Name.");
+  return ::PROTOBUF_NAMESPACE_ID::internal::NameOfEnum(
+    UserState_descriptor(), enum_t_value);
+}
+inline bool UserState_Parse(
+    ::PROTOBUF_NAMESPACE_ID::ConstStringParam name, UserState* value) {
+  return ::PROTOBUF_NAMESPACE_ID::internal::ParseNamedEnum<UserState>(
+    UserState_descriptor(), name, value);
+}
 enum LoginErrorType : int {
   USERNAME_PASSWORD_ERROR = 0,
   FREE_USER = 1,
@@ -1595,11 +1621,11 @@ class User final :
     kUsernameFieldNumber = 2,
     kAvatarTextFieldNumber = 3,
     kPasswordFieldNumber = 9,
-    kUsedBytesFieldNumber = 7,
-    kTotalBytesFieldNumber = 8,
-    kLoggedInFieldNumber = 4,
+    kStateFieldNumber = 4,
     kSplitModeFieldNumber = 5,
     kSetupGuideSeenFieldNumber = 6,
+    kUsedBytesFieldNumber = 7,
+    kTotalBytesFieldNumber = 8,
   };
   // repeated string addresses = 10;
   int addresses_size() const;
@@ -1681,31 +1707,13 @@ class User final :
   std::string* _internal_mutable_password();
   public:
 
-  // int64 usedBytes = 7;
-  void clear_usedbytes();
-  int64_t usedbytes() const;
-  void set_usedbytes(int64_t value);
+  // .grpc.UserState state = 4;
+  void clear_state();
+  ::grpc::UserState state() const;
+  void set_state(::grpc::UserState value);
   private:
-  int64_t _internal_usedbytes() const;
-  void _internal_set_usedbytes(int64_t value);
-  public:
-
-  // int64 totalBytes = 8;
-  void clear_totalbytes();
-  int64_t totalbytes() const;
-  void set_totalbytes(int64_t value);
-  private:
-  int64_t _internal_totalbytes() const;
-  void _internal_set_totalbytes(int64_t value);
-  public:
-
-  // bool loggedIn = 4;
-  void clear_loggedin();
-  bool loggedin() const;
-  void set_loggedin(bool value);
-  private:
-  bool _internal_loggedin() const;
-  void _internal_set_loggedin(bool value);
+  ::grpc::UserState _internal_state() const;
+  void _internal_set_state(::grpc::UserState value);
   public:
 
   // bool splitMode = 5;
@@ -1726,6 +1734,24 @@ class User final :
   void _internal_set_setupguideseen(bool value);
   public:
 
+  // int64 usedBytes = 7;
+  void clear_usedbytes();
+  int64_t usedbytes() const;
+  void set_usedbytes(int64_t value);
+  private:
+  int64_t _internal_usedbytes() const;
+  void _internal_set_usedbytes(int64_t value);
+  public:
+
+  // int64 totalBytes = 8;
+  void clear_totalbytes();
+  int64_t totalbytes() const;
+  void set_totalbytes(int64_t value);
+  private:
+  int64_t _internal_totalbytes() const;
+  void _internal_set_totalbytes(int64_t value);
+  public:
+
   // @@protoc_insertion_point(class_scope:grpc.User)
  private:
   class _Internal;
@@ -1739,11 +1765,11 @@ class User final :
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr username_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr avatartext_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr password_;
-    int64_t usedbytes_;
-    int64_t totalbytes_;
-    bool loggedin_;
+    int state_;
     bool splitmode_;
     bool setupguideseen_;
+    int64_t usedbytes_;
+    int64_t totalbytes_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
   union { Impl_ _impl_; };
@@ -10389,24 +10415,24 @@ inline void User::set_allocated_avatartext(std::string* avatartext) {
   // @@protoc_insertion_point(field_set_allocated:grpc.User.avatarText)
 }
 
-// bool loggedIn = 4;
-inline void User::clear_loggedin() {
-  _impl_.loggedin_ = false;
+// .grpc.UserState state = 4;
+inline void User::clear_state() {
+  _impl_.state_ = 0;
 }
-inline bool User::_internal_loggedin() const {
-  return _impl_.loggedin_;
+inline ::grpc::UserState User::_internal_state() const {
+  return static_cast< ::grpc::UserState >(_impl_.state_);
 }
-inline bool User::loggedin() const {
-  // @@protoc_insertion_point(field_get:grpc.User.loggedIn)
-  return _internal_loggedin();
+inline ::grpc::UserState User::state() const {
+  // @@protoc_insertion_point(field_get:grpc.User.state)
+  return _internal_state();
 }
-inline void User::_internal_set_loggedin(bool value) {
+inline void User::_internal_set_state(::grpc::UserState value) {
   
-  _impl_.loggedin_ = value;
+  _impl_.state_ = value;
 }
-inline void User::set_loggedin(bool value) {
-  _internal_set_loggedin(value);
-  // @@protoc_insertion_point(field_set:grpc.User.loggedIn)
+inline void User::set_state(::grpc::UserState value) {
+  _internal_set_state(value);
+  // @@protoc_insertion_point(field_set:grpc.User.state)
 }
 
 // bool splitMode = 5;
@@ -15305,6 +15331,11 @@ template <> struct is_proto_enum< ::grpc::LogLevel> : ::std::true_type {};
 template <>
 inline const EnumDescriptor* GetEnumDescriptor< ::grpc::LogLevel>() {
   return ::grpc::LogLevel_descriptor();
+}
+template <> struct is_proto_enum< ::grpc::UserState> : ::std::true_type {};
+template <>
+inline const EnumDescriptor* GetEnumDescriptor< ::grpc::UserState>() {
+  return ::grpc::UserState_descriptor();
 }
 template <> struct is_proto_enum< ::grpc::LoginErrorType> : ::std::true_type {};
 template <>

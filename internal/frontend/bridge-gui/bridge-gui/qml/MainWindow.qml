@@ -55,7 +55,7 @@ ApplicationWindow {
             // considering that users are added one-by-one
             var user = Backend.users.get(first)
 
-            if (!user.loggedIn) {
+            if (user.state === EUserState.SignedOut) {
                 return
             }
 
@@ -111,7 +111,7 @@ ApplicationWindow {
                 return 1
             }
 
-            if (Backend.users.count === 1 && u.loggedIn === false) {
+            if ((Backend.users.count === 1) && (u.state === EUserState.SignedOut)) {
                 showSignIn(u.username)
                 return 0
             }

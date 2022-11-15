@@ -276,7 +276,7 @@ QtObject {
         }
 
         if (u) {
-            if (c === 1 && u.loggedIn === false) {
+            if (c === 1 && (u.state === EUserState.SignedOut)) {
                 mainWindow.showAndRise()
             }
         }

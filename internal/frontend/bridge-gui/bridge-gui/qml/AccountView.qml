@@ -87,7 +87,7 @@ Item {
                                 colorScheme: root.colorScheme
                                 user: root.user
                                 type: AccountDelegate.LargeView
-                                enabled: root.user ? root.user.loggedIn : false
+                                enabled: root.user ? (root.user.state === EUserState.Connected) : false
                             }
 
                             Button {
@@ -95,7 +95,7 @@ Item {
                                 colorScheme: root.colorScheme
                                 text: qsTr("Sign out")
                                 secondary: true
-                                visible: root.user ? root.user.loggedIn : false
+                                visible: root.user ? (root.user.state === EUserState.Connected) : false
                                 onClicked: {
                                     if (!root.user) return
                                     root.user.logout()
@@ -107,7 +107,7 @@ Item {
                                 colorScheme: root.colorScheme
                                 text: qsTr("Sign in")
                                 secondary: true
-                                visible: root.user ? !root.user.loggedIn : false
+                                visible: root.user ? (root.user.state === EUserState.SignedOut) : false
                                 onClicked: {
                                     if (!root.user) return
                                     root.showSignIn()
@@ -123,6 +123,7 @@ Item {
                                     if (!root.user) return
                                     root.notifications.askDeleteAccount(root.user)
                                 }
+                                visible: root.user ? root.user.state !== EUserState.Locked : false
                             }
                         }
 
@@ -138,7 +139,7 @@ Item {
                             actionText: qsTr("Configure")
                             description: qsTr("Using the mailbox details below (re)configure your client.")
                             type: SettingsItem.Button
-                            enabled: root.user ? root.user.loggedIn : false
+                            enabled: root.user ? root.user.state === EUserState.Connected : false
                             visible: root.user ? !root.user.splitMode || root.user.addresses.length==1 : false
                             showSeparator: splitMode.visible
                             onClicked: {
@@ -157,7 +158,7 @@ Item {
                             type: SettingsItem.Toggle
                             checked: root.user ? root.user.splitMode : false
                             visible: root.user ? root.user.addresses.length > 1 : false
-                            enabled: root.user ? root.user.loggedIn : false
+                            enabled: root.user ? (root.user.state === EUserState.Connected) : false
                             showSeparator: addressSelector.visible
                             onClicked: {
                                 if (!splitMode.checked){
@@ -173,7 +174,7 @@ Item {
 
                         RowLayout {
                             Layout.fillWidth: true
-                            enabled: root.user ? root.user.loggedIn : false
+                            enabled: root.user ? (root.user.state === EUserState.Connected) : false
                             visible: root.user ? root.user.splitMode : false
 
                             ComboBox {
@@ -214,7 +215,7 @@ Item {
                         anchors.bottomMargin: root._spacing
 
                         spacing: root._spacing
-                        visible: root.user ? root.user.loggedIn : false
+                        visible: root.user ? (root.user.state === EUserState.Connected) : false
 
                         property string currentAddress: addressSelector.displayText
 

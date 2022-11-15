@@ -192,6 +192,46 @@ Log::Level logLevelFromGRPC(grpc::LogLevel level)
 
 
 //****************************************************************************************************************************************************
+/// \param[in] state The user state.
+/// \return The  gRPC user state.
+//****************************************************************************************************************************************************
+grpc::UserState userStateToGRPC(UserState state)
+{
+    switch (state)
+    {
+    case UserState::SignedOut:
+        return grpc::UserState::SIGNED_OUT;
+    case UserState::Locked:
+        return grpc::UserState::LOCKED;
+    case UserState::Connected:
+        return grpc::UserState::CONNECTED;
+    default:
+        throw Exception(QString("unknown gRPC user state %1.").arg(qint32(state)));
+    }
+}
+
+
+//****************************************************************************************************************************************************
+/// \param[in] state The gRPC user state
+/// \return the user state
+//****************************************************************************************************************************************************
+UserState userStateFromGRPC(grpc::UserState state)
+{
+    switch (state)
+    {
+    case grpc::UserState::SIGNED_OUT:
+        return UserState::SignedOut;
+    case grpc::UserState::LOCKED:
+        return UserState::Locked;
+    case grpc::UserState::CONNECTED:
+        return UserState ::Connected;
+    default:
+        throw Exception(QString("unknown gRPC user state %1.").arg(qint32(state)));
+    }
+}
+
+
+//****************************************************************************************************************************************************
 /// \param[in] grpcUser The gRPC user.
 /// \return user The user.
 //****************************************************************************************************************************************************
@@ -207,7 +247,7 @@ SPUser userFromGRPC(grpc::User const &grpcUser)
         addresses.append(QString::fromStdString(grpcUser.addresses(j)));
     user->setAddresses(addresses);
     user->setAvatarText(QString::fromStdString(grpcUser.avatartext()));
-    user->setLoggedIn(grpcUser.loggedin());
+    user->setState(userStateFromGRPC(grpcUser.state()));
     user->setSplitMode(grpcUser.splitmode());
     user->setSetupGuideSeen(grpcUser.setupguideseen());
     user->setUsedBytes(float(grpcUser.usedbytes()));
@@ -230,7 +270,7 @@ void userToGRPC(User const &user, grpc::User &outGRPCUser)
     for (QString const& address: user.addresses())
         outGRPCUser.add_addresses(address.toStdString());
     outGRPCUser.set_avatartext(user.avatarText().toStdString());
-    outGRPCUser.set_loggedin(user.loggedIn());
+    outGRPCUser.set_state(userStateToGRPC(user.state()));
     outGRPCUser.set_splitmode(user.splitMode());
     outGRPCUser.set_setupguideseen(user.setupGuideSeen());
     outGRPCUser.set_usedbytes(qint64(user.usedBytes()));

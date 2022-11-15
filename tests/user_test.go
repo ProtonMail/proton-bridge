@@ -24,6 +24,7 @@ import (
 	"net/mail"
 
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
+	"github.com/ProtonMail/proton-bridge/v2/internal/bridge"
 	"github.com/bradenaw/juniper/iterator"
 	"github.com/bradenaw/juniper/xslices"
 	"github.com/cucumber/godog"
@@ -306,7 +307,7 @@ func (s *scenario) userIsListedAndConnected(username string) error {
 		return errors.New("user not listed")
 	}
 
-	if !user.Connected {
+	if user.State != bridge.Connected {
 		return errors.New("user not connected")
 	}
 
@@ -329,7 +330,7 @@ func (s *scenario) userIsListedButNotConnected(username string) error {
 		return errors.New("user not listed")
 	}
 
-	if user.Connected {
+	if user.State == bridge.Connected {
 		return errors.New("user connected")
 	}
 

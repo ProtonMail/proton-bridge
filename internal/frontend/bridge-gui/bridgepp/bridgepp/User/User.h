@@ -24,6 +24,36 @@ namespace bridgepp
 {
 
 
+//****************************************************************************************************************************************************
+/// A wrapper QObject class around a C++ enum. The purpose of this is to be able to use this enum in both Qt and QML code.
+/// See https://qml.guide/enums-in-qt-qml/ for details (we used Q_OBJECT instead of Q_GADGET as in the reference document avoid a QML warning
+/// complaining about the case of the data type).
+//****************************************************************************************************************************************************
+class EUserState: public QObject
+{
+Q_OBJECT
+public:
+    enum  State
+    {
+        SignedOut = 0,
+        Locked = 1,
+        Connected = 2
+    };
+
+    Q_ENUM(State)
+
+    EUserState() = delete; ///< Default constructor.
+    EUserState(EUserState const&) = delete; ///< Disabled copy-constructor.
+    EUserState(EUserState&&) = delete; ///< Disabled assignment copy-constructor.
+    ~EUserState() = default; ///< Destructor.
+    EUserState& operator=(EUserState const&) = delete; ///< Disabled assignment operator.
+    EUserState& operator=(EUserState&&) = delete; ///< Disabled move assignment operator.
+};
+
+
+typedef EUserState::State UserState;
+
+
 typedef std::shared_ptr<class User> SPUser; ///< Type definition for shared pointer to user.
 
 
@@ -32,6 +62,7 @@ typedef std::shared_ptr<class User> SPUser; ///< Type definition for shared poin
 //****************************************************************************************************************************************************
 class User : public QObject
 {
+
 Q_OBJECT
 public: // static member function
     static SPUser newUser(QObject *parent); ///< Create a new user
@@ -58,14 +89,13 @@ signals: // signal used to forward QML event received in the above slots
     void removeUser(QString const &userID);
     void configureAppleMailForUser(QString const &userID, QString const &address);
 
-
 public:
     Q_PROPERTY(QString id READ id WRITE setID NOTIFY idChanged)                                                 //    _ string ID
     Q_PROPERTY(QString username READ username WRITE setUsername NOTIFY usernameChanged)                         //    _ string   `property:"username"`
     Q_PROPERTY(QString password READ password WRITE setPassword NOTIFY passwordChanged)                         //    _ string   `property:"password"`
     Q_PROPERTY(QStringList addresses READ addresses WRITE setAddresses NOTIFY addressesChanged)                 //    _ []string `property:"addresses"`
     Q_PROPERTY(QString avatarText READ avatarText WRITE setAvatarText NOTIFY avatarTextChanged)                 //    _ string   `property:"avatarText"`
-    Q_PROPERTY(bool loggedIn READ loggedIn WRITE setLoggedIn NOTIFY loggedInChanged)                            //    _ bool     `property:"loggedIn"`
+    Q_PROPERTY(UserState state READ state WRITE setState NOTIFY stateChanged)
     Q_PROPERTY(bool splitMode READ splitMode WRITE setSplitMode NOTIFY splitModeChanged)                        //    _ bool     `property:"splitMode"`
     Q_PROPERTY(bool setupGuideSeen READ setupGuideSeen WRITE setSetupGuideSeen NOTIFY setupGuideSeenChanged)    //    _ bool     `property:"setupGuideSeen"`
     Q_PROPERTY(float usedBytes READ usedBytes WRITE setUsedBytes NOTIFY usedBytesChanged)                       //    _ float32  `property:"usedBytes"`
@@ -81,8 +111,8 @@ public:
     void setAddresses(QStringList const &addresses);
     QString avatarText() const;
     void setAvatarText(QString const &avatarText);
-    bool loggedIn() const;
-    void setLoggedIn(bool loggedIn);
+    UserState state() const;
+    void setState(UserState state);
     bool splitMode() const;
     void setSplitMode(bool splitMode);
     bool setupGuideSeen() const;
@@ -100,11 +130,11 @@ signals:
     void addressesChanged(QStringList const &);
     void avatarTextChanged(QString const &avatarText);
     void loggedInChanged(bool loggedIn);
+    void stateChanged(UserState state);
     void splitModeChanged(bool splitMode);
     void setupGuideSeenChanged(bool seen);
     void usedBytesChanged(float byteCount);
     void totalBytesChanged(float byteCount);
-
     void toggleSplitModeFinished();
 
 private: // member functions.
@@ -116,7 +146,7 @@ private: // data members.
     QString password_; ///< The IMAP password of the user.
     QStringList addresses_; ///< The email address list of the user.
     QString avatarText_; ///< The avatar text (i.e. initials of the user)
-    bool loggedIn_ { true }; ///< Is the user logged in.
+    UserState state_ { UserState::SignedOut }; ///< The state of the user
     bool splitMode_ { false }; ///< Is split mode active.
     bool setupGuideSeen_ { false }; ///< Has the setup guide been seen.
     float usedBytes_ { 0.0f }; ///< The storage used by the user.

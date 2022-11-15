@@ -52,7 +52,7 @@ void User::update(User const &user)
     this->setPassword(user.password());
     this->setAddresses(user.addresses());
     this->setAvatarText(user.avatarText());
-    this->setLoggedIn(user.loggedIn());
+    this->setState(user.state());
     this->setSplitMode(user.splitMode());
     this->setSetupGuideSeen(user.setupGuideSeen());
     this->setUsedBytes(user.usedBytes());
@@ -217,24 +217,24 @@ void User::setAvatarText(QString const &avatarText)
 
 
 //****************************************************************************************************************************************************
-/// \return The login status.
+/// \return The user state.
 //****************************************************************************************************************************************************
-bool User::loggedIn() const
+UserState User::state() const
 {
-    return loggedIn_;
+    return state_;
 }
 
 
 //****************************************************************************************************************************************************
-/// \param[in] loggedIn The login status.
+/// \param[in] state The user state.
 //****************************************************************************************************************************************************
-void User::setLoggedIn(bool loggedIn)
+void User::setState(UserState state)
 {
-    if (loggedIn == loggedIn_)
+    if (state_ == state)
         return;
 
-    loggedIn_ = loggedIn;
-    emit loggedInChanged(loggedIn_);
+    state_ = state;
+    emit stateChanged(state);
 }
 
 

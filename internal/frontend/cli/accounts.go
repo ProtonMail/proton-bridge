@@ -28,7 +28,7 @@ import (
 	"gitlab.protontech.ch/go/liteapi"
 )
 
-func (f *frontendCLI) listAccounts(c *ishell.Context) {
+func (f *frontendCLI) listAccounts(_ *ishell.Context) {
 	spacing := "%-2d: %-20s (%-15s, %-15s)\n"
 	f.Printf(bold(strings.ReplaceAll(spacing, "d", "s")), "#", "account", "status", "address mode")
 	for idx, userID := range f.bridge.GetUserIDs() {
@@ -36,11 +36,20 @@ func (f *frontendCLI) listAccounts(c *ishell.Context) {
 		if err != nil {
 			panic(err)
 		}
-		connected := "disconnected"
-		if user.Connected {
-			connected = "connected"
+
+		var state string
+		switch user.State {
+		case bridge.SignedOut:
+			state = "signed out"
+		case bridge.Locked:
+			state = "locked"
+		case bridge.Connected:
+			state = "connected"
+		default:
+			panic("Unknown user state")
 		}
-		f.Printf(spacing, idx, user.Username, connected, user.AddressMode)
+
+		f.Printf(spacing, idx, user.Username, state, user.AddressMode)
 	}
 	f.Println()
 }
@@ -51,9 +60,15 @@ func (f *frontendCLI) showAccountInfo(c *ishell.Context) {
 		return
 	}
 
-	if !user.Connected {
+	switch user.State {
+	case bridge.SignedOut:
 		f.Printf("Please login to %s to get email client configuration.\n", bold(user.Username))
 		return
+	case bridge.Locked:
+		f.Printf("User %s is currently locked. Please wait and try again.\n", bold(user.Username))
+		return
+	case bridge.Connected:
+	default:
 	}
 
 	if user.AddressMode == vault.CombinedMode {

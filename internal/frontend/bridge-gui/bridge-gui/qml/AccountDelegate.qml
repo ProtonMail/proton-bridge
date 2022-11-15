@@ -136,7 +136,20 @@ Item {
                 spacing: 0
                 Label {
                     colorScheme: root.colorScheme
-                    text: root.user && root.user.loggedIn ? root.usedSpace : qsTr("Signed out")
+                    text: {
+                        if (!root.user)
+                            return qsTr("Signed out")
+                        switch (root.user.state) {
+                        case EUserState.SignedOut:
+                        default:
+                            return qsTr("Signed out")
+                        case EUserState.Locked:
+                            return qsTr("Connecting...")
+                        case EUserState.Connected:
+                            return root.usedSpace
+                        }
+                    }
+
                     color: root.usedSpaceColor
                     type: {
                         switch (root.type) {
@@ -148,7 +161,7 @@ Item {
 
                 Label {
                     colorScheme: root.colorScheme
-                    text: root.user && root.user.loggedIn ? " / " + root.totalSpace : ""
+                    text: root.user && root.user.state == EUserState.Connected ? " / " + root.totalSpace : ""
                     color: root.colorScheme.text_weak
                     type: {
                         switch (root.type) {
@@ -172,7 +185,7 @@ Item {
                     id: storage_bar_filled
                     radius: ProtonStyle.storage_bar_radius
                     color: root.usedSpaceColor
-                    visible: root.user ? parent.visible && root.user.loggedIn : false
+                    visible: root.user ? parent.visible && (root.user.state == EUserState.Connected) : false
                     anchors {
                         top    : parent.top
                         bottom : parent.bottom

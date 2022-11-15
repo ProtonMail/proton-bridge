@@ -529,14 +529,14 @@ func must[T any](val T, err error) T {
 	return val
 }
 
-func getConnectedUserIDs(t *testing.T, bridge *bridge.Bridge) []string {
+func getConnectedUserIDs(t *testing.T, b *bridge.Bridge) []string {
 	t.Helper()
 
-	return xslices.Filter(bridge.GetUserIDs(), func(userID string) bool {
-		info, err := bridge.GetUserInfo(userID)
+	return xslices.Filter(b.GetUserIDs(), func(userID string) bool {
+		info, err := b.GetUserInfo(userID)
 		require.NoError(t, err)
 
-		return info.Connected
+		return info.State == bridge.Connected
 	})
 }
 

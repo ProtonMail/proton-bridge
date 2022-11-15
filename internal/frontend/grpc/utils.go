@@ -64,13 +64,26 @@ func grpcUserFromInfo(user bridge.UserInfo) *User {
 		Id:             user.UserID,
 		Username:       user.Username,
 		AvatarText:     getInitials(user.Username),
-		LoggedIn:       user.Connected,
+		State:          userStateToGrpc(user.State),
 		SplitMode:      user.AddressMode == vault.SplitMode,
 		SetupGuideSeen: true, // users listed have already seen the setup guide.
 		UsedBytes:      int64(user.UsedSpace),
 		TotalBytes:     int64(user.MaxSpace),
 		Password:       user.BridgePass,
 		Addresses:      user.Addresses,
+	}
+}
+
+func userStateToGrpc(state bridge.UserState) UserState {
+	switch state {
+	case bridge.SignedOut:
+		return UserState_SIGNED_OUT
+	case bridge.Locked:
+		return UserState_LOCKED
+	case bridge.Connected:
+		return UserState_CONNECTED
+	default:
+		panic("Unknown user state")
 	}
 }
 

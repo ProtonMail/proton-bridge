@@ -185,7 +185,7 @@ Item {
                                 var user = Backend.users.get(index)
                                 accounts.currentIndex = index
                                 if (!user) return
-                                if (user.loggedIn) {
+                                if (user.state !== EUserState.SignedOut) {
                                     rightContent.showAccount()
                                 } else {
                                     signIn.username = user.username

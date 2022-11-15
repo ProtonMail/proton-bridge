@@ -128,7 +128,8 @@ QQmlComponent *createRootQmlComponent(QQmlApplicationEngine &engine)
     qmlRegisterSingletonInstance("Proton", 1, 0, "Backend", &app().backend());
     qmlRegisterType<UserList>("Proton", 1, 0, "UserList");
     qmlRegisterType<bridgepp::User>("Proton", 1, 0, "User");
-
+    qRegisterMetaType<UserState>("UserState");
+    qmlRegisterUncreatableType<EUserState>("Proton", 1, 0, "EUserState", "Enum type is not creatable");
     auto rootComponent = new QQmlComponent(&engine, &engine);
 
     engine.addImportPath(qrcQmlDir);
