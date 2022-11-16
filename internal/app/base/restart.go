@@ -20,7 +20,6 @@ package base
 import (
 	"os"
 	"strconv"
-	"strings"
 
 	"github.com/sirupsen/logrus"
 	"golang.org/x/sys/execabs"
@@ -38,8 +37,6 @@ func (b *Base) restartApp(crash bool) error {
 	} else {
 		args = os.Args[1:]
 	}
-
-	args = removeFlagWithValue(args, FlagParentPID)
 
 	if b.launcher != "" {
 		args = forceLauncherFlag(args, b.launcher)
@@ -86,30 +83,6 @@ func incrementRestartFlag(args []string) []string {
 	}
 
 	return res
-}
-
-// removeFlagWithValue removes a flag that requires a value from a list of command line parameters.
-// The flag can be of the following form `-flag value`, `--flag value`, `-flag=value` or `--flags=value`.
-func removeFlagWithValue(argList []string, flag string) []string {
-	var result []string
-
-	for i := 0; i < len(argList); i++ {
-		arg := argList[i]
-		// "detect the parameter form "-flag value" or "--paramName value"
-		if (arg == "-"+flag) || (arg == "--"+flag) {
-			i++
-			continue
-		}
-
-		//  "detect the form "--flag=value" or "--flag=value"
-		if strings.HasPrefix(arg, "-"+flag+"=") || (strings.HasPrefix(arg, "--"+flag+"=")) {
-			continue
-		}
-
-		result = append(result, arg)
-	}
-
-	return result
 }
 
 // forceLauncherFlag  replace or add the launcher args with the one set in the app.

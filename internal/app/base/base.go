@@ -76,7 +76,6 @@ const (
 	flagRestart         = "restart"
 	FlagLauncher        = "launcher"
 	FlagNoWindow        = "no-window"
-	FlagParentPID       = "parent-pid"
 )
 
 type Base struct {
@@ -324,12 +323,6 @@ func (b *Base) NewApp(mainLoop func(*Base, *cli.Context) error) *cli.App {
 			Name:   FlagLauncher,
 			Usage:  "The launcher to use to restart the application",
 			Hidden: true,
-		},
-		&cli.IntFlag{
-			Name:   FlagParentPID,
-			Usage:  "The PID of the process that started the application. Ignored if frontend is not gRPC",
-			Hidden: true,
-			Value:  -1,
 		},
 	}
 

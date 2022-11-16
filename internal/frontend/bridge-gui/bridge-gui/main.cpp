@@ -257,10 +257,7 @@ void launchBridge(QStringList const &args)
     else
         app().log().debug(QString("Bridge executable path: %1").arg(QDir::toNativeSeparators(bridgeExePath)));
 
-    qint64 const pid = qApp->applicationPid();
-    QStringList const  params =  QStringList { "--grpc", "--parent-pid", QString::number(pid) } + args ;
-    app().log().info(QString("Launching bridge process with command \"%1\" %2").arg(bridgeExePath, params.join(" ")));
-    overseer = std::make_unique<Overseer>(new ProcessMonitor(bridgeExePath, params , nullptr), nullptr);
+    overseer = std::make_unique<Overseer>(new ProcessMonitor(bridgeExePath, QStringList("--grpc") + args, nullptr), nullptr);
     overseer->startWorker(true);
 }
 

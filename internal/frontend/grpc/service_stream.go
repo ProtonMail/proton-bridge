@@ -71,9 +71,8 @@ func (s *Service) RunEventStream(request *EventStreamRequest, server Bridge_RunE
 				return err
 			}
 		case <-server.Context().Done():
-			s.log.Info("Client closed the stream, initiating shutdown")
-			s.quit()
-			return nil
+			s.log.Debug("Client closed the stream, exiting")
+			return s.quit()
 		}
 	}
 }
