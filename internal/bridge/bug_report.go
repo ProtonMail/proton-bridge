@@ -36,7 +36,7 @@ const (
 	MaxCompressedFilesCount = 6
 )
 
-func (bridge *Bridge) ReportBug(ctx context.Context, osType, osVersion, description, username, email, client string, attachLogs bool) error {
+func (bridge *Bridge) ReportBug(ctx context.Context, osType, osVersion, description, username, email, client string, attachLogs bool) error { //nolint:funlen
 	var account string
 
 	if info, err := bridge.QueryUserInfo(username); err == nil {
@@ -59,15 +59,15 @@ func (bridge *Bridge) ReportBug(ctx context.Context, osType, osVersion, descript
 			return err
 		}
 
-		guiLogs, err := getMatchingLogs(bridge.locator, func(filename string) bool {
-			return logging.MatchGUILogName(filename) && !logging.MatchStackTraceName(filename)
+		crashes, err := getMatchingLogs(bridge.locator, func(filename string) bool {
+			return logging.MatchLogName(filename) && logging.MatchStackTraceName(filename)
 		})
 		if err != nil {
 			return err
 		}
 
-		crashes, err := getMatchingLogs(bridge.locator, func(filename string) bool {
-			return logging.MatchLogName(filename) && logging.MatchStackTraceName(filename)
+		guiLogs, err := getMatchingLogs(bridge.locator, func(filename string) bool {
+			return logging.MatchGUILogName(filename) && !logging.MatchStackTraceName(filename)
 		})
 		if err != nil {
 			return err

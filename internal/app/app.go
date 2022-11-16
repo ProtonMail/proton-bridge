@@ -69,15 +69,16 @@ const (
 
 // Hidden flags.
 const (
-	flagLauncher = "launcher"
-	flagNoWindow = "no-window"
+	flagLauncher  = "launcher"
+	flagNoWindow  = "no-window"
+	flagParentPID = "parent-pid"
 )
 
 const (
 	appUsage = "Proton Mail IMAP and SMTP Bridge"
 )
 
-func New() *cli.App {
+func New() *cli.App { //nolint:funlen
 	app := cli.NewApp()
 
 	app.Name = constants.FullAppName
@@ -131,6 +132,11 @@ func New() *cli.App {
 		&cli.StringFlag{
 			Name:   flagLauncher,
 			Usage:  "The launcher used to start the app",
+			Hidden: true,
+		},
+		&cli.IntFlag{
+			Name:   flagParentPID,
+			Usage:  "Process ID of the parent",
 			Hidden: true,
 		},
 	}
@@ -203,9 +209,14 @@ func run(c *cli.Context) error { //nolint:funlen
 												b.PushError(bridge.ErrVaultCorrupt)
 											}
 
+											parentPID := -1
+											if pid := c.Int(flagParentPID); pid != 0 {
+												parentPID = pid
+											}
+
 											// Run the frontend.
 											return runFrontend(c, crashHandler, restarter,
-												locations, b, eventCh,
+												locations, b, eventCh, parentPID,
 											)
 										},
 									)

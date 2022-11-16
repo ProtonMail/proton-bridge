@@ -34,6 +34,9 @@ import (
 	"github.com/ProtonMail/proton-bridge/v2/internal/events"
 	"github.com/ProtonMail/proton-bridge/v2/internal/safe"
 	"github.com/ProtonMail/proton-bridge/v2/internal/updater"
+	"github.com/bradenaw/juniper/xslices"
+	"github.com/elastic/go-sysinfo"
+	sysinfotypes "github.com/elastic/go-sysinfo/types"
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 	"gitlab.protontech.ch/go/liteapi"
@@ -80,8 +83,9 @@ type Service struct { // nolint:structcheck
 	initializing       sync.WaitGroup
 	initializationDone sync.Once
 	firstTimeAutostart sync.Once
-
-	showOnStartup bool
+	parentPID          int
+	parentPIDDoneCh    chan struct{}
+	showOnStartup      bool
 }
 
 // NewService returns a new instance of the service.
@@ -94,6 +98,7 @@ func NewService(
 	bridge *bridge.Bridge,
 	eventCh <-chan events.Event,
 	showOnStartup bool,
+	parentPID int,
 ) (*Service, error) {
 	tlsConfig, certPEM, err := newTLSConfig()
 	if err != nil {
@@ -137,7 +142,9 @@ func NewService(
 		initializationDone: sync.Once{},
 		firstTimeAutostart: sync.Once{},
 
-		showOnStartup: showOnStartup,
+		parentPID:       parentPID,
+		parentPIDDoneCh: make(chan struct{}),
+		showOnStartup:   showOnStartup,
 	}
 
 	// Initializing.Done is only called sync.Once. Please keep the increment set to 1
@@ -170,6 +177,12 @@ func (s *Service) initAutostart() {
 }
 
 func (s *Service) Loop() error {
+	if s.parentPID < 0 {
+		s.log.Info("Not monitoring parent PID")
+	} else {
+		go s.monitorParentPID()
+	}
+
 	defer func() {
 		_ = s.bridge.SetFirstStartGUI(false)
 	}()
@@ -484,5 +497,43 @@ func newStreamTokenValidator(wantToken string) grpc.StreamServerInterceptor {
 		}
 
 		return handler(srv, stream)
+	}
+}
+
+// monitorParentPID check at regular intervals that the parent process is still alive, and if not shuts down the server
+// and the applications.
+func (s *Service) monitorParentPID() {
+	s.log.Infof("Starting to monitor parent PID %v", s.parentPID)
+	ticker := time.NewTicker(5 * time.Second)
+
+	for {
+		select {
+		case <-ticker.C:
+			if s.parentPID < 0 {
+				continue
+			}
+
+			processes, err := sysinfo.Processes() // sysinfo.Process(pid) does not seem to work on Windows.
+			if err != nil {
+				s.log.Debug("Could not retrieve process list")
+				continue
+			}
+
+			if !xslices.Any(processes, func(p sysinfotypes.Process) bool { return p != nil && p.PID() == s.parentPID }) {
+				s.log.Info("Parent process does not exist anymore. Initiating shutdown")
+				// quit will write to the parentPIDDoneCh, so we launch a goroutine.
+				go func() {
+					if err := s.quit(); err != nil {
+						logrus.WithError(err).Error("Error on quit")
+					}
+				}()
+			} else {
+				s.log.Tracef("Parent process %v is still alive", s.parentPID)
+			}
+
+		case <-s.parentPIDDoneCh:
+			s.log.Infof("Stopping process monitoring for PID %v", s.parentPID)
+			return
+		}
 	}
 }

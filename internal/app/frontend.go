@@ -38,6 +38,7 @@ func runFrontend(
 	locations *locations.Locations,
 	bridge *bridge.Bridge,
 	eventCh <-chan events.Event,
+	parentPID int,
 ) error {
 	switch {
 	case c.Bool(flagCLI):
@@ -47,7 +48,7 @@ func runFrontend(
 		select {}
 
 	case c.Bool(flagGRPC):
-		service, err := grpc.NewService(crashHandler, restarter, locations, bridge, eventCh, !c.Bool(flagNoWindow))
+		service, err := grpc.NewService(crashHandler, restarter, locations, bridge, eventCh, !c.Bool(flagNoWindow), parentPID)
 		if err != nil {
 			return fmt.Errorf("could not create service: %w", err)
 		}

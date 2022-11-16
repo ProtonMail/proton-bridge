@@ -203,6 +203,7 @@ func (t *testCtx) initFrontendService(eventCh <-chan events.Event) error {
 		t.bridge,
 		eventCh,
 		true,
+		-1,
 	)
 	if err != nil {
 		return fmt.Errorf("could not create service: %w", err)

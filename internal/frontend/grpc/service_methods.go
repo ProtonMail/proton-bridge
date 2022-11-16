@@ -104,6 +104,10 @@ func (s *Service) Quit(ctx context.Context, empty *emptypb.Empty) (*emptypb.Empt
 func (s *Service) quit() error {
 	// Windows is notably slow at Quitting. We do it in a goroutine to speed things up a bit.
 	go func() {
+		if s.parentPID >= 0 {
+			s.parentPIDDoneCh <- struct{}{}
+		}
+
 		var err error
 		if s.isStreamingEvents() {
 			if err = s.stopEventStream(); err != nil {

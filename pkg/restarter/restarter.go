@@ -72,7 +72,7 @@ func (restarter *Restarter) Restart() {
 		delete(env, BridgeCrashCount)
 	}
 
-	cmd := execabs.Command(restarter.exe, xslices.Join(os.Args[1:], restarter.flags)...) //nolint:gosec
+	cmd := execabs.Command(restarter.exe, xslices.Join(removeFlagWithValue(os.Args[1:], "parent-pid"), restarter.flags)...) //nolint:gosec
 	l := logrus.WithFields(logrus.Fields{
 		"exe":        restarter.exe,
 		"crashCount": env[BridgeCrashCount],
@@ -129,4 +129,28 @@ func increment(value string) string {
 	}
 
 	return strconv.Itoa(valueInt + 1)
+}
+
+// removeFlagWithValue removes a flag that requires a value from a list of command line parameters.
+// The flag can be of the following form `-flag value`, `--flag value`, `-flag=value` or `--flags=value`.
+func removeFlagWithValue(argList []string, flag string) []string {
+	var result []string
+
+	for i := 0; i < len(argList); i++ {
+		arg := argList[i]
+		// "detect the parameter form "-flag value" or "--paramName value"
+		if (arg == "-"+flag) || (arg == "--"+flag) {
+			i++
+			continue
+		}
+
+		//  "detect the form "--flag=value" or "--flag=value"
+		if strings.HasPrefix(arg, "-"+flag+"=") || (strings.HasPrefix(arg, "--"+flag+"=")) {
+			continue
+		}
+
+		result = append(result, arg)
+	}
+
+	return result
 }
