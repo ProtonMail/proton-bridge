@@ -203,6 +203,7 @@ SPUser randomUser()
     user->setAddresses(QStringList() << (username + "@proton.me") << (username + "@protonmail.com") );
     user->setPassword(QUuid().createUuid().toString(QUuid::StringFormat::WithoutBraces).left(20));
     user->setAvatarText(firstName.left(1) + lastName.left(1));
+    user->setState(UserState::Connected);
     user->setSplitMode(false);
     user->setSetupGuideSeen(true);
     qint64 const totalBytes = (500 + randN(2501)) * 1000000;

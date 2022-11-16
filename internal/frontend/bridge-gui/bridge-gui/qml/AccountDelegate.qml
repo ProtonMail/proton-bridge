@@ -144,9 +144,25 @@ Item {
                         default:
                             return qsTr("Signed out")
                         case EUserState.Locked:
-                            return qsTr("Connecting...")
+                            return qsTr("Connecting") + dotsTimer.dots
                         case EUserState.Connected:
                             return root.usedSpace
+                        }
+                    }
+
+                    Timer { // dots animation while connecting. 1 sec cycle, roughly similar to the webmail loading page.
+                        id:dotsTimer
+                        property string dots: ""
+                        interval: 250;
+                        repeat: true;
+                        running: (root.user.state === EUserState.Locked)
+                        onTriggered: {
+                            dots = dots + "."
+                            if (dots.length > 3)
+                                dots = ""
+                        }
+                        onRunningChanged: {
+                            dots = ""
                         }
                     }
 

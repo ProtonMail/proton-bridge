@@ -33,7 +33,7 @@ class EUserState: public QObject
 {
 Q_OBJECT
 public:
-    enum  State
+    enum class State
     {
         SignedOut = 0,
         Locked = 1,
