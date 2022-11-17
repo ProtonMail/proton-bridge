@@ -527,8 +527,6 @@ func (s *Service) monitorParentPID() {
 						logrus.WithError(err).Error("Error on quit")
 					}
 				}()
-			} else {
-				s.log.Tracef("Parent process %v is still alive", s.parentPID)
 			}
 
 		case <-s.parentPIDDoneCh:
