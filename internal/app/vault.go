@@ -20,6 +20,7 @@ package app
 import (
 	"encoding/base64"
 	"fmt"
+	"path"
 
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/ProtonMail/proton-bridge/v2/internal/certs"
@@ -80,6 +81,9 @@ func newVault(locations *locations.Locations) (*vault.Vault, bool, bool, error) 
 
 	if key, err := getVaultKey(vaultDir); err != nil {
 		insecure = true
+
+		// We store the insecure vault in a separate directory
+		vaultDir = path.Join(vaultDir, "insecure")
 	} else {
 		vaultKey = key
 	}
