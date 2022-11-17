@@ -139,14 +139,7 @@ func New( //nolint:funlen
 	logSMTP bool, // whether to log SMTP activity
 ) (*Bridge, <-chan events.Event, error) {
 	// api is the user's API manager.
-	api := liteapi.New(
-		liteapi.WithHostURL(apiURL),
-		liteapi.WithAppVersion(constants.AppVersion(curVersion.Original())),
-		liteapi.WithCookieJar(cookieJar),
-		liteapi.WithTransport(roundTripper),
-		liteapi.WithAttPoolSize(vault.SyncAttPool()),
-		liteapi.WithLogger(logrus.StandardLogger()),
-	)
+	api := liteapi.New(newAPIOptions(apiURL, curVersion, cookieJar, roundTripper, vault.SyncAttPool())...)
 
 	// tasks holds all the bridge's background tasks.
 	tasks := async.NewGroup(context.Background(), crashHandler)
