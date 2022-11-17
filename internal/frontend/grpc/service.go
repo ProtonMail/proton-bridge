@@ -277,6 +277,7 @@ func (s *Service) watchEvents() {
 			safe.RLock(func() {
 				s.latest = event.Version
 			}, s.latestLock)
+			_ = s.SendEvent(NewUpdateVersionChangedEvent())
 
 		case events.UpdateAvailable:
 			switch {
