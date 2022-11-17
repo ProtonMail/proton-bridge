@@ -74,14 +74,13 @@ func (user *User) handleRefreshEvent(ctx context.Context, refresh liteapi.Refres
 
 	l.Info("Handling refresh event")
 
-	context := map[string]interface{}{
+	if err := user.reporter.ReportMessageWithContext("Warning: refresh occurred", map[string]interface{}{
 		"EventLoop": map[string]interface{}{
 			"EventID": eventID,
 			"Refresh": refresh,
 		},
-	}
-	if sentryErr := user.reporter.ReportMessageWithContext("Warning: refresh occurred", context); sentryErr != nil {
-		l.WithError(sentryErr).Error("Failed to report refresh to sentry")
+	}); err != nil {
+		l.WithError(err).Error("Failed to report refresh to sentry")
 	}
 
 	// Cancel and restart ongoing syncs.

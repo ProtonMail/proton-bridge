@@ -110,36 +110,7 @@ func New(
 		return nil, fmt.Errorf("failed to get labels: %w", err)
 	}
 
-	// Get the latest event ID.
-	if encVault.EventID() == "" {
-		eventID, err := client.GetLatestEventID(ctx)
-		if err != nil {
-			return nil, fmt.Errorf("failed to get latest event ID: %w", err)
-		}
-
-		if err := encVault.SetEventID(eventID); err != nil {
-			return nil, fmt.Errorf("failed to set event ID: %w", err)
-		}
-	}
-
-	// Create update channels for each of the user's addresses.
-	// In combined mode, the addresses all share the same update channel.
-	updateCh := make(map[string]*queue.QueuedChannel[imap.Update])
-
-	switch encVault.AddressMode() {
-	case vault.CombinedMode:
-		primaryUpdateCh := queue.NewQueuedChannel[imap.Update](0, 0)
-
-		for _, addr := range apiAddrs {
-			updateCh[addr.ID] = primaryUpdateCh
-		}
-
-	case vault.SplitMode:
-		for _, addr := range apiAddrs {
-			updateCh[addr.ID] = queue.NewQueuedChannel[imap.Update](0, 0)
-		}
-	}
-
+	// Create the user object.
 	user := &User{
 		log: logrus.WithField("userID", apiUser.ID),
 
@@ -157,7 +128,7 @@ func New(
 		apiLabels:     groupBy(apiLabels, func(label liteapi.Label) string { return label.ID }),
 		apiLabelsLock: safe.NewRWMutex(),
 
-		updateCh:     updateCh,
+		updateCh:     make(map[string]*queue.QueuedChannel[imap.Update]),
 		updateChLock: safe.NewRWMutex(),
 
 		reporter: reporter,
@@ -168,6 +139,9 @@ func New(
 		syncBuffer:  syncBuffer,
 		showAllMail: b32(showAllMail),
 	}
+
+	// Initialize the user's update channels for its current address mode.
+	user.initUpdateCh(encVault.AddressMode())
 
 	// When we receive an auth object, we update it in the vault.
 	// This will be used to authorize the user on the next run.
@@ -196,35 +170,13 @@ func New(
 	// When we receive an API event, we attempt to handle it.
 	// If successful, we update the event ID in the vault.
 	user.goPoll = user.tasks.PeriodicOrTrigger(EventPeriod, EventJitter, func(ctx context.Context) {
+		user.log.Debug("Event poll triggered")
+
 		if !user.vault.SyncStatus().IsComplete() {
-			user.log.Debug("Sync is incomplete, skipping event stream")
-			return
+			user.log.Debug("Sync is incomplete, skipping event poll")
+		} else if err := user.doEventPoll(ctx); err != nil {
+			user.log.WithError(err).Error("Failed to poll events")
 		}
-
-		event, err := user.client.GetEvent(ctx, user.vault.EventID())
-		if err != nil {
-			user.log.WithError(err).Error("Failed to get event")
-			return
-		}
-
-		if event.EventID == user.vault.EventID() {
-			user.log.Debug("No new events")
-			return
-		}
-
-		user.log.WithField("event", event).Info("Received event")
-
-		if err := user.handleAPIEvent(ctx, event); err != nil {
-			user.log.WithError(err).Error("Failed to handle API event")
-			return
-		}
-
-		if err := user.vault.SetEventID(event.EventID); err != nil {
-			user.log.WithError(err).Error("Failed to update event ID in vault")
-			return
-		}
-
-		user.log.WithField("eventID", event.EventID).Debug("Updated event ID in vault")
 	})
 
 	// When triggered, attempt to sync the user.
@@ -627,6 +579,37 @@ func (user *User) initUpdateCh(mode vault.AddressMode) {
 			user.updateCh[addrID] = queue.NewQueuedChannel[imap.Update](0, 0)
 		}
 	}
+}
+
+// doEventPoll is called whenever API events should be polled.
+func (user *User) doEventPoll(ctx context.Context) error {
+	event, err := user.client.GetEvent(ctx, user.vault.EventID())
+	if err != nil {
+		return fmt.Errorf("failed to get event: %w", err)
+	}
+
+	if event.EventID != user.vault.EventID() {
+		user.log.WithFields(logrus.Fields{
+			"old": user.vault.EventID(),
+			"new": event,
+		}).Info("Received new API event")
+
+		if err := user.handleAPIEvent(ctx, event); err != nil {
+			return fmt.Errorf("failed to handle event: %w", err)
+		}
+
+		user.log.WithField("event", event).Debug("Handled API event")
+
+		if err := user.vault.SetEventID(event.EventID); err != nil {
+			return fmt.Errorf("failed to update event ID: %w", err)
+		}
+
+		user.log.WithField("eventID", event.EventID).Debug("Updated event ID in vault")
+	} else {
+		user.log.Debug("No new API events")
+	}
+
+	return nil
 }
 
 // b32 returns a uint32 0 or 1 representing b.

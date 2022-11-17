@@ -128,13 +128,15 @@ func TestUser_Deauth(t *testing.T) {
 	withAPI(t, context.Background(), func(ctx context.Context, s *server.Server, m *liteapi.Manager) {
 		withAccount(t, s, "username", "password", []string{"email@pm.me"}, func(string, []string) {
 			withUser(t, ctx, s, m, "username", "password", func(user *User) {
-				eventCh := user.GetEventCh()
+				require.IsType(t, events.SyncStarted{}, <-user.GetEventCh())
+				require.IsType(t, events.SyncProgress{}, <-user.GetEventCh())
+				require.IsType(t, events.SyncFinished{}, <-user.GetEventCh())
 
 				// Revoke the user's auth token.
 				require.NoError(t, s.RevokeUser(user.ID()))
 
 				// The user should eventually be logged out.
-				require.Eventually(t, func() bool { _, ok := (<-eventCh).(events.UserDeauth); return ok }, 500*time.Second, 100*time.Millisecond)
+				require.Eventually(t, func() bool { _, ok := (<-user.GetEventCh()).(events.UserDeauth); return ok }, 500*time.Second, 100*time.Millisecond)
 			})
 		})
 	})
@@ -145,8 +147,12 @@ func TestUser_Refresh(t *testing.T) {
 	mockReporter := mocks.NewMockReporter(ctl)
 
 	withAPI(t, context.Background(), func(ctx context.Context, s *server.Server, m *liteapi.Manager) {
-		withAccount(t, s, "username", "password", []string{"email@pm.me"}, func(userID string, addrIDs []string) {
+		withAccount(t, s, "username", "password", []string{"email@pm.me"}, func(string, []string) {
 			withUser(t, ctx, s, m, "username", "password", func(user *User) {
+				require.IsType(t, events.SyncStarted{}, <-user.GetEventCh())
+				require.IsType(t, events.SyncProgress{}, <-user.GetEventCh())
+				require.IsType(t, events.SyncFinished{}, <-user.GetEventCh())
+
 				user.reporter = mockReporter
 
 				mockReporter.EXPECT().ReportMessageWithContext(
@@ -154,14 +160,11 @@ func TestUser_Refresh(t *testing.T) {
 					mocks.NewRefreshContextMatcher(liteapi.RefreshAll),
 				).Return(nil)
 
-				// Get the event channel.
-				eventCh := user.GetEventCh()
-
 				// Send refresh event
 				require.NoError(t, s.RefreshUser(user.ID(), liteapi.RefreshAll))
 
-				// The user should eventually re-synced.
-				require.Eventually(t, func() bool { _, ok := (<-eventCh).(events.UserRefreshed); return ok }, 5*time.Second, 100*time.Millisecond)
+				// The user should eventually be re-synced.
+				require.Eventually(t, func() bool { _, ok := (<-user.GetEventCh()).(events.UserRefreshed); return ok }, 5*time.Second, 100*time.Millisecond)
 			})
 		})
 	})

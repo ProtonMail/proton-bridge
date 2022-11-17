@@ -43,9 +43,21 @@ const (
 )
 
 // doSync begins syncing the users data.
+// It first ensures the latest event ID is known; if not, it fetches it.
 // It sends a SyncStarted event and then either SyncFinished or SyncFailed
 // depending on whether the sync was successful.
 func (user *User) doSync(ctx context.Context) error {
+	if user.vault.EventID() == "" {
+		eventID, err := user.client.GetLatestEventID(ctx)
+		if err != nil {
+			return fmt.Errorf("failed to get latest event ID: %w", err)
+		}
+
+		if err := user.vault.SetEventID(eventID); err != nil {
+			return fmt.Errorf("failed to set latest event ID: %w", err)
+		}
+	}
+
 	start := time.Now()
 
 	user.log.WithField("start", start).Info("Beginning user sync")

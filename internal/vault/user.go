@@ -159,6 +159,7 @@ func (user *User) SetLastMessageID(messageID string) error {
 func (user *User) ClearSyncStatus() error {
 	return user.vault.modUser(user.userID, func(data *UserData) {
 		data.SyncStatus = SyncStatus{}
+		data.EventID = ""
 	})
 }
 
