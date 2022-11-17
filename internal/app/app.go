@@ -138,6 +138,7 @@ func New() *cli.App { //nolint:funlen
 			Name:   flagParentPID,
 			Usage:  "Process ID of the parent",
 			Hidden: true,
+			Value:  -1,
 		},
 	}
 
@@ -184,9 +185,11 @@ func run(c *cli.Context) error { //nolint:funlen
 				return WithLocations(func(locations *locations.Locations) error {
 					// Initialize logging.
 					return withLogging(c, crashHandler, locations, func() error {
+						// If there was an error during migration, log it now.
 						if migrationErr != nil {
-							logrus.WithError(migrationErr).Error("Migration failed")
+							logrus.WithError(migrationErr).Error("Failed to migrate old app data")
 						}
+
 						// Ensure we are the only instance running.
 						return withSingleInstance(locations, version, func() error {
 							// Unlock the encrypted vault.
@@ -194,32 +197,20 @@ func run(c *cli.Context) error { //nolint:funlen
 								// Load the cookies from the vault.
 								return withCookieJar(vault, func(cookieJar http.CookieJar) error {
 									// Create a new bridge instance.
-									return withBridge(
-										c, exe, locations, version,
-										identifier, crashHandler, reporter,
-										vault, cookieJar, func(
-											b *bridge.Bridge, eventCh <-chan events.Event) error {
-											if insecure {
-												logrus.Warn("The vault key could not be retrieved; the vault will not be encrypted")
-												b.PushError(bridge.ErrVaultInsecure)
-											}
+									return withBridge(c, exe, locations, version, identifier, crashHandler, reporter, vault, cookieJar, func(b *bridge.Bridge, eventCh <-chan events.Event) error {
+										if insecure {
+											logrus.Warn("The vault key could not be retrieved; the vault will not be encrypted")
+											b.PushError(bridge.ErrVaultInsecure)
+										}
 
-											if corrupt {
-												logrus.Warn("The vault is corrupt and has been wiped")
-												b.PushError(bridge.ErrVaultCorrupt)
-											}
+										if corrupt {
+											logrus.Warn("The vault is corrupt and has been wiped")
+											b.PushError(bridge.ErrVaultCorrupt)
+										}
 
-											parentPID := -1
-											if pid := c.Int(flagParentPID); pid != 0 {
-												parentPID = pid
-											}
-
-											// Run the frontend.
-											return runFrontend(c, crashHandler, restarter,
-												locations, b, eventCh, parentPID,
-											)
-										},
-									)
+										// Run the frontend.
+										return runFrontend(c, crashHandler, restarter, locations, b, eventCh, c.Int(flagParentPID))
+									})
 								})
 							})
 						})
