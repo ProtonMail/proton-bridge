@@ -18,24 +18,143 @@
 package user
 
 import (
+	"bytes"
 	"context"
 	"encoding/base64"
 	"fmt"
+	"io"
 	"net/mail"
 	"runtime"
 	"strings"
+	"time"
 
 	"github.com/ProtonMail/gluon/rfc822"
 	"github.com/ProtonMail/go-rfc5322"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
+	"github.com/ProtonMail/proton-bridge/v2/internal/logging"
+	"github.com/ProtonMail/proton-bridge/v2/internal/safe"
 	"github.com/ProtonMail/proton-bridge/v2/internal/vault"
 	"github.com/ProtonMail/proton-bridge/v2/pkg/message"
 	"github.com/ProtonMail/proton-bridge/v2/pkg/message/parser"
 	"github.com/bradenaw/juniper/parallel"
 	"github.com/bradenaw/juniper/xslices"
+	"github.com/sirupsen/logrus"
 	"gitlab.protontech.ch/go/liteapi"
+	"golang.org/x/exp/maps"
 	"golang.org/x/exp/slices"
 )
+
+// sendMail sends an email from the given address to the given recipients.
+//
+// nolint:funlen
+func (user *User) sendMail(authID string, from string, to []string, r io.Reader) error {
+	return safe.RLockRet(func() error {
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+
+		if _, err := getAddrID(user.apiAddrs, from); err != nil {
+			return ErrInvalidReturnPath
+		}
+
+		emails := xslices.Map(maps.Values(user.apiAddrs), func(addr liteapi.Address) string {
+			return addr.Email
+		})
+
+		// Read the message to send.
+		b, err := io.ReadAll(r)
+		if err != nil {
+			return fmt.Errorf("failed to read message: %w", err)
+		}
+
+		// Compute the hash of the message (to match it against SMTP messages).
+		hash, err := getMessageHash(b)
+		if err != nil {
+			return err
+		}
+
+		// Check if we already tried to send this message recently.
+		if ok, err := user.sendHash.tryInsertWait(ctx, hash, to, time.Now().Add(90*time.Second)); err != nil {
+			return fmt.Errorf("failed to check send hash: %w", err)
+		} else if !ok {
+			user.log.Warn("A duplicate message was already sent recently, skipping")
+			return nil
+		}
+
+		// If we fail to send this message, we should remove the hash from the send recorder.
+		defer user.sendHash.removeOnFail(hash)
+
+		// Create a new message parser from the reader.
+		parser, err := parser.New(bytes.NewReader(b))
+		if err != nil {
+			return fmt.Errorf("failed to create parser: %w", err)
+		}
+
+		// If the message contains a sender, use it instead of the one from the return path.
+		if sender, ok := getMessageSender(parser); ok {
+			from = sender
+		}
+
+		// Load the user's mail settings.
+		settings, err := user.client.GetMailSettings(ctx)
+		if err != nil {
+			return fmt.Errorf("failed to get mail settings: %w", err)
+		}
+
+		addrID, err := getAddrID(user.apiAddrs, from)
+		if err != nil {
+			return err
+		}
+
+		return withAddrKR(user.apiUser, user.apiAddrs[addrID], user.vault.KeyPass(), func(userKR, addrKR *crypto.KeyRing) error {
+			// Use the first key for encrypting the message.
+			addrKR, err := addrKR.FirstKey()
+			if err != nil {
+				return fmt.Errorf("failed to get first key: %w", err)
+			}
+
+			// If we have to attach the public key, do it now.
+			if settings.AttachPublicKey == liteapi.AttachPublicKeyEnabled {
+				key, err := addrKR.GetKey(0)
+				if err != nil {
+					return fmt.Errorf("failed to get sending key: %w", err)
+				}
+
+				pubKey, err := key.GetArmoredPublicKey()
+				if err != nil {
+					return fmt.Errorf("failed to get public key: %w", err)
+				}
+
+				parser.AttachPublicKey(pubKey, fmt.Sprintf("publickey - %v - %v", addrKR.GetIdentities()[0].Name, key.GetFingerprint()[:8]))
+			}
+
+			// Parse the message we want to send (after we have attached the public key).
+			message, err := message.ParseWithParser(parser)
+			if err != nil {
+				return fmt.Errorf("failed to parse message: %w", err)
+			}
+
+			// Send the message using the correct key.
+			sent, err := sendWithKey(
+				ctx,
+				user.client,
+				authID,
+				user.vault.AddressMode(),
+				settings,
+				userKR, addrKR,
+				emails, from, to,
+				message,
+			)
+			if err != nil {
+				return fmt.Errorf("failed to send message: %w", err)
+			}
+
+			// If the message was successfully sent, we can update the message ID in the record.
+			user.sendHash.addMessageID(hash, sent.ID)
+
+			return nil
+		})
+	}, user.apiUserLock, user.apiAddrsLock)
+}
 
 // sendWithKey sends the message with the given address key.
 func sendWithKey( //nolint:funlen
@@ -259,15 +378,12 @@ func createAttachments(
 	}
 
 	keys, err := parallel.MapContext(ctx, runtime.NumCPU(), attachments, func(ctx context.Context, att message.Attachment) (attKey, error) {
-		sig, err := addrKR.SignDetached(crypto.NewPlainMessage(att.Data))
-		if err != nil {
-			return attKey{}, fmt.Errorf("failed to sign attachment: %w", err)
-		}
-
-		encData, err := addrKR.EncryptAttachment(crypto.NewPlainMessage(att.Data), att.Name)
-		if err != nil {
-			return attKey{}, fmt.Errorf("failed to encrypt attachment: %w", err)
-		}
+		logrus.WithFields(logrus.Fields{
+			"name":        logging.Sensitive(att.Name),
+			"contentID":   att.ContentID,
+			"disposition": att.Disposition,
+			"mime-type":   att.MIMEType,
+		}).Debug("Uploading attachment")
 
 		// Some clients use inline disposition but don't set a content ID. Our API doesn't support this.
 		// We could generate our own content ID, but for simplicity, we just set the disposition to attachment.
@@ -275,15 +391,13 @@ func createAttachments(
 			att.Disposition = string(liteapi.AttachmentDisposition)
 		}
 
-		attachment, err := client.UploadAttachment(ctx, liteapi.CreateAttachmentReq{
+		attachment, err := client.UploadAttachment(ctx, addrKR, liteapi.CreateAttachmentReq{
 			Filename:    att.Name,
 			MessageID:   draftID,
 			MIMEType:    rfc822.MIMEType(att.MIMEType),
 			Disposition: liteapi.Disposition(att.Disposition),
 			ContentID:   att.ContentID,
-			KeyPackets:  encData.KeyPacket,
-			DataPacket:  encData.DataPacket,
-			Signature:   sig.GetBinary(),
+			Body:        att.Data,
 		})
 		if err != nil {
 			return attKey{}, fmt.Errorf("failed to upload attachment: %w", err)
