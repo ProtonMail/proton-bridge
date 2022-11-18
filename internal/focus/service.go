@@ -89,6 +89,10 @@ func (service *Service) GetRaiseCh() <-chan struct{} {
 
 // Close closes the service.
 func (service *Service) Close() {
-	service.server.Stop()
-	close(service.raiseCh)
+	go func() {
+		// we do this in a goroutine, as on Windows, the gRPC shutdown may take minutes if something tries to
+		// interact with it in an invalid way (e.g. HTTP GET request from a Qt QNetworkManager instance).
+		service.server.Stop()
+		close(service.raiseCh)
+	}()
 }

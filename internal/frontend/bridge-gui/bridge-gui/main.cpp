@@ -20,9 +20,10 @@
 #include "CommandLine.h"
 #include "QMLBackend.h"
 #include "Version.h"
-#include <bridgepp/Log/Log.h>
 #include <bridgepp/BridgeUtils.h>
 #include <bridgepp/Exception/Exception.h>
+#include <bridgepp/FocusGRPC/FocusGRPCClient.h>
+#include <bridgepp/Log/Log.h>
 #include <bridgepp/ProcessMonitor.h>
 
 
@@ -42,18 +43,6 @@ namespace
 QString const bridgeLock = "bridge-gui.lock"; ///< file name used for the lock file.
 QString const exeName = "bridge" + exeSuffix; ///< The bridge executable file name.*
 qint64 const grpcServiceConfigWaitDelayMs = 180000; ///< The wait delay for the gRPC config file in milliseconds.
-
-
-//****************************************************************************************************************************************************
-/// According to Qt doc, one per application is OK, but its use should be restricted to a
-/// single thread.
-/// \return The network access manager for the application.
-//****************************************************************************************************************************************************
-QNetworkAccessManager& networkManager()
-{
-    static QNetworkAccessManager nam;
-    return nam;
-}
 
 
 } // anonymous namespace
@@ -217,17 +206,8 @@ QUrl getFocusUrl()
 //****************************************************************************************************************************************************
 bool isBridgeRunning()
 {
-    QTimer timer;
-    timer.setSingleShot(true);
-
-    std::unique_ptr<QNetworkReply> reply(networkManager().get(QNetworkRequest(getFocusUrl())));
-    QEventLoop loop;
-    bool timedOut = false;
-    QObject::connect(&timer, &QTimer::timeout, [&]() { timedOut = true; loop.quit(); });
-    QObject::connect(reply.get(), &QNetworkReply::finished, &loop, &QEventLoop::quit);
-    timer.start(1000); // we time out after 1 second and consider no other instance is running.
-    loop.exec();
-    return ((!timedOut) && (reply->error() == QNetworkReply::NetworkError::NoError));
+    FocusGRPCClient client;
+    return client.connectToServer(500); // we time out after 1 second and consider no other instance is running;
 }
 
 
@@ -236,10 +216,19 @@ bool isBridgeRunning()
 //****************************************************************************************************************************************************
 void focusOtherInstance()
 {
-    std::unique_ptr<QNetworkReply> reply(networkManager().get(QNetworkRequest(getFocusUrl())));
-    QEventLoop loop;
-    QObject::connect(reply.get(), &QNetworkReply::finished, &loop, &QEventLoop::quit);
-    loop.exec();
+    try
+    {
+        FocusGRPCClient client;
+        QString error;
+        if (!client.connectToServer(5000, &error))
+            throw Exception(QString("Could not connect to bridge focus service for a raise call: %1").arg(error));
+        if (!client.raise().ok())
+            throw Exception(QString("The raise call to the bridge focus service failed."));
+    }
+    catch (Exception const& e)
+    {
+        app().log().error(e.qwhat());
+    }
 }
 
 

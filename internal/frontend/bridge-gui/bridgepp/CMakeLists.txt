@@ -66,6 +66,10 @@ else ()
     message(STATUS "grpc_cpp_plugin found at ${GRPC_CPP_PLUGIN}")
 endif ()
 
+
+#*****************************************************************************************************************************************************
+# Bridge gRPC service source code generation
+#*****************************************************************************************************************************************************
 set(PROTO_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../grpc")
 set(PROTO_FILE "${PROTO_DIR}/bridge.proto")
 set(GRPC_OUT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/bridgepp/GRPC")
@@ -73,11 +77,6 @@ set(PROTO_CPP_FILE "${GRPC_OUT_DIR}/bridge.pb.cc")
 set(PROTO_H_FILE "${GRPC_OUT_DIR}/bridge.pb.h")
 set(GRPC_CPP_FILE "${GRPC_OUT_DIR}/bridge.grpc.pb.cc")
 set(GRPC_H_FILE "${GRPC_OUT_DIR}/bridge.grpc.pb.h")
-
-
-#*****************************************************************************************************************************************************
-# Source files and output
-#*****************************************************************************************************************************************************
 
 add_custom_command(
     OUTPUT
@@ -95,8 +94,44 @@ add_custom_command(
     ${PROTO_FILE}
     DEPENDS
     ${PROTO_FILE}
-    COMMENT "Generating gPRC/Protobuf C++ code"
-    )
+    COMMENT "Generating Bridge gPRC/Protobuf C++ code"
+)
+
+
+#*****************************************************************************************************************************************************
+# Focus gRPC service source code generation
+#*****************************************************************************************************************************************************
+set(FOCUS_PROTO_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../../focus/proto")
+set(FOCUS_PROTO_FILE "${FOCUS_PROTO_DIR}/focus.proto")
+set(FOCUS_GRPC_OUT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/bridgepp/FocusGRPC")
+set(FOCUS_PROTO_CPP_FILE "${FOCUS_GRPC_OUT_DIR}/focus.pb.cc")
+set(FOCUS_PROTO_H_FILE "${FOCUS_GRPC_OUT_DIR}/focus.pb.h")
+set(FOCUS_GRPC_CPP_FILE "${FOCUS_GRPC_OUT_DIR}/focus.grpc.pb.cc")
+set(FOCUS_GRPC_H_FILE "${FOCUS_GRPC_OUT_DIR}/focus.grpc.pb.h")
+
+add_custom_command(
+    OUTPUT
+    ${FOCUS_PROTO_CPP_FILE}
+    ${FOCUS_PROTO_H_FILE}
+    ${FOCUS_GRPC_CPP_FILE}
+    ${FOCUS_GRPC_H_FILE}
+    COMMAND
+    ${PROTOC_EXE}
+    ARGS
+    --proto_path=${FOCUS_PROTO_DIR}
+    --plugin=protoc-gen-grpc="${GRPC_CPP_PLUGIN}"
+    --cpp_out=${FOCUS_GRPC_OUT_DIR}
+    --grpc_out=${FOCUS_GRPC_OUT_DIR}
+    ${FOCUS_PROTO_FILE}
+    DEPENDS
+    ${FOCUS_PROTO_FILE}
+    COMMENT "Generating focus gPRC/Protobuf Focus service C++ code"
+)
+
+
+#*****************************************************************************************************************************************************
+# Source files and output
+#*****************************************************************************************************************************************************
 
 
 add_library(bridgepp
@@ -107,6 +142,8 @@ add_library(bridgepp
     bridgepp/GRPC/GRPCConfig.cpp bridgepp/GRPC/GRPCConfig.h
     bridgepp/GRPC/GRPCUtils.cpp bridgepp/GRPC/GRPCUtils.h
     ${PROTO_CPP_FILE} ${PROTO_H_FILE} ${GRPC_CPP_FILE} ${GRPC_H_FILE}
+    ${FOCUS_PROTO_CPP_FILE} ${FOCUS_PROTO_H_FILE} ${FOCUS_GRPC_CPP_FILE} ${FOCUS_GRPC_H_FILE}
+    bridgepp/FocusGRPC/FocusGRPCClient.cpp bridgepp/FocusGRPC/FocusGRPCClient.h
     bridgepp/Log/Log.h bridgepp/Log/Log.cpp
     bridgepp/ProcessMonitor.cpp bridgepp/ProcessMonitor.h
     bridgepp/User/User.cpp bridgepp/User/User.h

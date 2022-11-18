@@ -21,7 +21,7 @@ import "google/protobuf/empty.proto";
 
 option go_package = "github.com/ProtonMail/proton-bridge/v2/internal/focus/proto";
 
-package proto; 
+package focus; // ignored by Go, used as namespace name in C++.
 
 //**********************************************************************************************************************
 //  Service Declaration
