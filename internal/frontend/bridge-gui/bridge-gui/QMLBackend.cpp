@@ -271,7 +271,6 @@ void QMLBackend::quit()
 void QMLBackend::restart()
 {
     app().grpc().restart();
-    app().grpc().quit();
 }
 
 

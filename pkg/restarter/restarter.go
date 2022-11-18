@@ -69,7 +69,7 @@ func (restarter *Restarter) Restart() {
 	if restarter.crash {
 		env[BridgeCrashCount] = increment(env[BridgeCrashCount])
 	} else {
-		delete(env, BridgeCrashCount)
+		env[BridgeCrashCount] = "0"
 	}
 
 	cmd := execabs.Command(restarter.exe, xslices.Join(removeFlagWithValue(os.Args[1:], "parent-pid"), restarter.flags)...) //nolint:gosec
