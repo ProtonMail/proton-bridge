@@ -31,10 +31,11 @@ import (
 // Locations provides cross-platform access to standard locations.
 // On linux:
 // - settings: ~/.config/protonmail/<app>
-// - logs: ~/.cache/protonmail/<app>/logs
-// - cache: ~/.config/protonmail/<app>/cache
-// - updates: ~/.config/protonmail/<app>/updates
-// - lockfile: ~/.cache/protonmail/<app>/<app>.lock .
+// - gluon     ~/.local/share/protonmail/<app>/gluon
+// - logs:     ~/.local/share/protonmail/<app>/logs
+// - updates:  ~/.local/share/protonmail/<app>/updates
+// - locks:    ~/.cache/protonmail/<app>/*.lock
+// Other OSes are similar.
 type Locations struct {
 	// userConfig is the path to the user config directory, for storing persistent config data.
 	userConfig string
@@ -147,7 +148,7 @@ func (l *Locations) ProvideGluonPath() (string, error) {
 	return l.getGluonPath(), nil
 }
 
-// ProvideLogsPath returns a location for user logs (e.g. ~/.cache/<company>/<app>/logs).
+// ProvideLogsPath returns a location for user logs (e.g. ~/.local/share/<company>/<app>/logs).
 // It creates it if it doesn't already exist.
 func (l *Locations) ProvideLogsPath() (string, error) {
 	if err := os.MkdirAll(l.getLogsPath(), 0o700); err != nil {
@@ -167,7 +168,7 @@ func (l *Locations) ProvideGUICertPath() (string, error) {
 	return l.getGUICertPath(), nil
 }
 
-// ProvideUpdatesPath returns a location for update files (e.g. ~/.cache/<company>/<app>/updates).
+// ProvideUpdatesPath returns a location for update files (e.g. ~/.local/share/<company>/<app>/updates).
 // It creates it if it doesn't already exist.
 func (l *Locations) ProvideUpdatesPath() (string, error) {
 	if err := os.MkdirAll(l.getUpdatesPath(), 0o700); err != nil {
