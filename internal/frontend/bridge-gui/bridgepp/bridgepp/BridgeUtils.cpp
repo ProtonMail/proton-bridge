@@ -100,7 +100,7 @@ QString userConfigDir()
 
 
 //****************************************************************************************************************************************************
-/// \return user configuration directory used by bridge (based on Golang OS/File's UserCacheDir).
+/// \return user cache directory used by bridge (based on Golang OS/File's UserCacheDir).
 //****************************************************************************************************************************************************
 QString userCacheDir()
 {
@@ -121,7 +121,7 @@ QString userCacheDir()
     {
         dir = qgetenv ("HOME");
         if (dir.isEmpty())
-            throw Exception("neither XDG_CACHE_HOME nor $HOME are defined");
+            throw Exception("neither $XDG_CACHE_HOME nor $HOME are defined");
         dir += "/.cache";
     }
 #endif
@@ -132,13 +132,38 @@ QString userCacheDir()
     return folder;
 }
 
+//****************************************************************************************************************************************************
+/// \return user data directory used by bridge (based on Golang OS/File's UserDataDir).
+//****************************************************************************************************************************************************
+QString userDataDir()
+{
+    QString dir;
+
+#ifdef Q_OS_LINUX
+    dir = qgetenv ("XDG_DATA_HOME");
+    if (dir.isEmpty())
+    {
+        dir = qgetenv ("HOME");
+        if (dir.isEmpty())
+            throw Exception("neither $XDG_DATA_HOME nor $HOME are defined");
+        dir += "/.local/share";
+    }
+#else
+    dir = userCacheDir()
+#endif
+
+    QString const folder = QDir(dir).absoluteFilePath(configFolder);
+    QDir().mkpath(folder);
+
+    return folder;
+}
 
 //****************************************************************************************************************************************************
 /// \return user logs directory used by bridge.
 //****************************************************************************************************************************************************
 QString userLogsDir()
 {
-    QString const path = QDir(userCacheDir()).absoluteFilePath("logs");
+    QString const path = QDir(userDataDir()).absoluteFilePath("logs");
     QDir().mkpath(path);
     return path;
 }
