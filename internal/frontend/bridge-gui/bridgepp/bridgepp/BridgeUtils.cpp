@@ -149,7 +149,7 @@ QString userDataDir()
         dir += "/.local/share";
     }
 #else
-    dir = userCacheDir()
+    dir = userCacheDir();
 #endif
 
     QString const folder = QDir(dir).absoluteFilePath(configFolder);
