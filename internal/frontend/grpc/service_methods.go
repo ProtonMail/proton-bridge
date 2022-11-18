@@ -530,7 +530,7 @@ func (s *Service) InstallUpdate(ctx context.Context, _ *emptypb.Empty) (*emptypb
 		defer s.panicHandler.HandlePanic()
 
 		safe.RLock(func() {
-			s.bridge.InstallUpdate(s.latest)
+			s.bridge.InstallUpdate(s.target)
 		}, s.targetLock)
 	}()
 
