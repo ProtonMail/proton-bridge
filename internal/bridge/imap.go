@@ -167,7 +167,15 @@ func (bridge *Bridge) handleIMAPEvent(event imapEvents.Event) {
 		}
 
 	case imapEvents.IMAPID:
-		bridge.identifier.SetClient(event.IMAPID.Name, event.IMAPID.Version)
+		logrus.WithFields(logrus.Fields{
+			"sessionID": event.SessionID,
+			"name":      event.IMAPID.Name,
+			"version":   event.IMAPID.Version,
+		}).Info("Received IMAP ID")
+
+		if event.IMAPID.Name != "" && event.IMAPID.Version != "" {
+			bridge.identifier.SetClient(event.IMAPID.Name, event.IMAPID.Version)
+		}
 	}
 }
 
