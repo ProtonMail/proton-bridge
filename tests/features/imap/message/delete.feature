@@ -32,8 +32,9 @@ Feature: IMAP remove messages from mailbox
     When IMAP client "1" expunges
     Then IMAP client "1" sees 2 messages in "Folders/mbox"
 
-  Scenario: Not possible to delete from All Mail and expunge does nothing
-    When IMAP client "1" selects "All Mail"
-    And IMAP client "1" marks message 2 as deleted
-    And IMAP client "1" expunges
-    Then IMAP client "1" eventually sees 10 messages in "All Mail"
+# TODO(GODT-1989): Re-enable!
+# Scenario: Not possible to delete from All Mail and expunge does nothing
+#   When IMAP client "1" selects "All Mail"
+#   And IMAP client "1" marks message 2 as deleted
+#   And IMAP client "1" expunges
+#   Then IMAP client "1" eventually sees 10 messages in "All Mail"
