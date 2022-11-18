@@ -245,6 +245,7 @@ func createDraft(
 	})
 }
 
+// nolint:funlen
 func createAttachments(
 	ctx context.Context,
 	client *liteapi.Client,
@@ -266,6 +267,12 @@ func createAttachments(
 		encData, err := addrKR.EncryptAttachment(crypto.NewPlainMessage(att.Data), att.Name)
 		if err != nil {
 			return attKey{}, fmt.Errorf("failed to encrypt attachment: %w", err)
+		}
+
+		// Some clients use inline disposition but don't set a content ID. Our API doesn't support this.
+		// We could generate our own content ID, but for simplicity, we just set the disposition to attachment.
+		if att.Disposition == string(liteapi.InlineDisposition) && att.ContentID == "" {
+			att.Disposition = string(liteapi.AttachmentDisposition)
 		}
 
 		attachment, err := client.UploadAttachment(ctx, liteapi.CreateAttachmentReq{
