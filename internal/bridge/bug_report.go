@@ -26,6 +26,7 @@ import (
 	"path/filepath"
 	"sort"
 
+	"github.com/ProtonMail/proton-bridge/v2/internal/constants"
 	"github.com/ProtonMail/proton-bridge/v2/internal/logging"
 	"github.com/ProtonMail/proton-bridge/v2/internal/vault"
 	"gitlab.protontech.ch/go/liteapi"
@@ -75,10 +76,14 @@ func (bridge *Bridge) ReportBug(ctx context.Context, osType, osVersion, descript
 
 		var matchFiles []string
 
+		// Include bridge logs, up to a maximum amount.
 		matchFiles = append(matchFiles, logs[max(0, len(logs)-(MaxCompressedFilesCount/2)):]...)
+
+		// Include crash logs, up to a maximum amount.
 		matchFiles = append(matchFiles, crashes[max(0, len(crashes)-(MaxCompressedFilesCount/2)):]...)
+
+		// bridge-gui keeps just one small (~ 1kb) log file; we always include it.
 		if len(guiLogs) > 0 {
-			// bridge-gui is keeping only one log file and it's small (~ 1kb), so we include it regardless of file count
 			matchFiles = append(matchFiles, guiLogs[len(guiLogs)-1])
 		}
 
@@ -101,12 +106,18 @@ func (bridge *Bridge) ReportBug(ctx context.Context, osType, osVersion, descript
 	}
 
 	return bridge.api.ReportBug(ctx, liteapi.ReportBugReq{
-		OS:          osType,
-		OSVersion:   osVersion,
+		OS:        osType,
+		OSVersion: osVersion,
+
+		Title:       "[Bridge] Bug",
 		Description: description,
-		Client:      client,
-		Username:    account,
-		Email:       email,
+
+		Client:        client,
+		ClientType:    liteapi.ClientTypeEmail,
+		ClientVersion: constants.AppVersion(bridge.curVersion.Original()),
+
+		Username: account,
+		Email:    email,
 	}, atts...)
 }
 
