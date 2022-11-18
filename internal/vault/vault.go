@@ -128,16 +128,24 @@ func (vault *Vault) ForUser(fn func(*User) error) error {
 // AddUser creates a new user in the vault with the given ID and username.
 // A bridge password and gluon key are generated using the package's token generator.
 func (vault *Vault) AddUser(userID, username, authUID, authRef string, keyPass []byte) (*User, error) {
-	if idx := xslices.IndexFunc(vault.get().Users, func(user UserData) bool {
-		return user.UserID == userID
-	}); idx >= 0 {
-		return nil, errors.New("user already exists")
-	}
+	logrus.WithField("userID", userID).Info("Adding vault user")
+
+	var exists bool
 
 	if err := vault.mod(func(data *Data) {
-		data.Users = append(data.Users, newDefaultUser(userID, username, authUID, authRef, keyPass))
+		if idx := xslices.IndexFunc(data.Users, func(user UserData) bool {
+			return user.UserID == userID
+		}); idx >= 0 {
+			exists = true
+		} else {
+			data.Users = append(data.Users, newDefaultUser(userID, username, authUID, authRef, keyPass))
+		}
 	}); err != nil {
 		return nil, err
+	}
+
+	if exists {
+		return nil, errors.New("user already exists")
 	}
 
 	return vault.NewUser(userID)
@@ -147,6 +155,8 @@ func (vault *Vault) AddUser(userID, username, authUID, authRef string, keyPass [
 func (vault *Vault) DeleteUser(userID string) error {
 	vault.refLock.Lock()
 	defer vault.refLock.Unlock()
+
+	logrus.WithField("userID", userID).Info("Deleting vault user")
 
 	if _, ok := vault.ref[userID]; ok {
 		return fmt.Errorf("user %s is currently in use", userID)

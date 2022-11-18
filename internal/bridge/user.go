@@ -515,6 +515,12 @@ func (bridge *Bridge) newVaultUser(
 
 // logout logs out the given user, optionally logging them out from the API too.
 func (bridge *Bridge) logoutUser(ctx context.Context, user *user.User, withAPI, withData bool) {
+	logrus.WithFields(logrus.Fields{
+		"userID":   user.ID(),
+		"withAPI":  withAPI,
+		"withData": withData,
+	}).Debug("Logging out user")
+
 	if err := bridge.removeIMAPUser(ctx, user, withData); err != nil {
 		logrus.WithError(err).Error("Failed to remove IMAP user")
 	}

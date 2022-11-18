@@ -34,6 +34,7 @@ import (
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/ProtonMail/proton-bridge/v2/internal/async"
 	"github.com/ProtonMail/proton-bridge/v2/internal/events"
+	"github.com/ProtonMail/proton-bridge/v2/internal/logging"
 	"github.com/ProtonMail/proton-bridge/v2/internal/safe"
 	"github.com/ProtonMail/proton-bridge/v2/internal/vault"
 	"github.com/ProtonMail/proton-bridge/v2/pkg/message"
@@ -252,6 +253,8 @@ func (user *User) GetAddressMode() vault.AddressMode {
 
 // SetAddressMode sets the user's address mode.
 func (user *User) SetAddressMode(_ context.Context, mode vault.AddressMode) error {
+	user.log.WithField("mode", mode).Info("Setting address mode")
+
 	user.abortable.Abort()
 	defer user.goSync()
 
@@ -268,6 +271,13 @@ func (user *User) SetAddressMode(_ context.Context, mode vault.AddressMode) erro
 
 		return nil
 	}, user.apiAddrsLock, user.updateChLock)
+}
+
+// SetShowAllMail sets whether to show the All Mail mailbox.
+func (user *User) SetShowAllMail(show bool) {
+	user.log.WithField("show", show).Info("Setting show all mail")
+
+	atomic.StoreUint32(&user.showAllMail, b32(show))
 }
 
 // GetGluonIDs returns the users gluon IDs.
@@ -287,11 +297,21 @@ func (user *User) GetGluonID(addrID string) (string, bool) {
 
 // SetGluonID sets the gluon ID for the given address.
 func (user *User) SetGluonID(addrID, gluonID string) error {
+	user.log.WithFields(logrus.Fields{
+		"addrID":  addrID,
+		"gluonID": gluonID,
+	}).Info("Setting gluon ID")
+
 	return user.vault.SetGluonID(addrID, gluonID)
 }
 
 // RemoveGluonID removes the gluon ID for the given address.
 func (user *User) RemoveGluonID(addrID, gluonID string) error {
+	user.log.WithFields(logrus.Fields{
+		"addrID":  addrID,
+		"gluonID": gluonID,
+	}).Info("Removing gluon ID")
+
 	return user.vault.RemoveGluonID(addrID, gluonID)
 }
 
@@ -477,6 +497,8 @@ func (user *User) SendMail(authID string, from string, to []string, r io.Reader)
 // CheckAuth returns whether the given email and password can be used to authenticate over IMAP or SMTP with this user.
 // It returns the address ID of the authenticated address.
 func (user *User) CheckAuth(email string, password []byte) (string, error) {
+	user.log.WithField("email", logging.Sensitive(email)).Debug("Checking authentication")
+
 	if email == "crash@bandicoot" {
 		panic("your wish is my command.. I crash")
 	}
@@ -503,23 +525,35 @@ func (user *User) CheckAuth(email string, password []byte) (string, error) {
 
 // OnStatusUp is called when the connection goes up.
 func (user *User) OnStatusUp(context.Context) {
+	user.log.Info("Connection is up")
+
 	user.goSync()
 }
 
 // OnStatusDown is called when the connection goes down.
 func (user *User) OnStatusDown(context.Context) {
+	user.log.Info("Connection is down")
+
 	user.abortable.Abort()
 }
 
 // Logout logs the user out from the API.
 func (user *User) Logout(ctx context.Context, withAPI bool) error {
+	user.log.WithField("withAPI", withAPI).Info("Logging out user")
+
+	user.log.Debug("Canceling ongoing tasks")
+
 	user.tasks.CancelAndWait()
 
 	if withAPI {
+		user.log.Debug("Logging out from API")
+
 		if err := user.client.AuthDelete(ctx); err != nil {
 			user.log.WithError(err).Warn("Failed to delete auth")
 		}
 	}
+
+	user.log.Debug("Clearing vault secrets")
 
 	if err := user.vault.Clear(); err != nil {
 		return fmt.Errorf("failed to clear vault: %w", err)
@@ -530,6 +564,8 @@ func (user *User) Logout(ctx context.Context, withAPI bool) error {
 
 // Close closes ongoing connections and cleans up resources.
 func (user *User) Close() {
+	user.log.Info("Closing user")
+
 	// Stop any ongoing background tasks.
 	user.tasks.CancelAndWait()
 
@@ -550,11 +586,6 @@ func (user *User) Close() {
 	if err := user.vault.Close(); err != nil {
 		user.log.WithError(err).Error("Failed to close vault")
 	}
-}
-
-// SetShowAllMail sets whether to show the All Mail mailbox.
-func (user *User) SetShowAllMail(show bool) {
-	atomic.StoreUint32(&user.showAllMail, b32(show))
 }
 
 // initUpdateCh initializes the user's update channels in the given address mode.
