@@ -18,11 +18,19 @@
 package tests
 
 import (
+	"os"
 	"testing"
 
+	"github.com/sirupsen/logrus"
 	"go.uber.org/goleak"
 )
 
 func TestMain(m *testing.M) {
+	if level := os.Getenv("FEATURE_TEST_LOG_LEVEL"); level != "" {
+		if parsed, err := logrus.ParseLevel(level); err == nil {
+			logrus.SetLevel(parsed)
+		}
+	}
+
 	goleak.VerifyTestMain(m, goleak.IgnoreCurrent())
 }
