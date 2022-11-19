@@ -20,6 +20,7 @@ package bridge
 import (
 	"context"
 	"fmt"
+	"runtime"
 
 	"github.com/ProtonMail/gluon/imap"
 	"github.com/ProtonMail/proton-bridge/v2/internal/async"
@@ -319,7 +320,7 @@ func (bridge *Bridge) loginUser(ctx context.Context, client *liteapi.Client, aut
 
 // loadUsers tries to load each user in the vault that isn't already loaded.
 func (bridge *Bridge) loadUsers(ctx context.Context) error {
-	return bridge.vault.ForUser(func(user *vault.User) error {
+	return bridge.vault.ForUser(runtime.NumCPU(), func(user *vault.User) error {
 		if user.AuthUID() == "" {
 			return nil
 		}

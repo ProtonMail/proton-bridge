@@ -18,6 +18,7 @@
 package vault
 
 import (
+	"context"
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/sha256"
@@ -28,6 +29,7 @@ import (
 	"path/filepath"
 	"sync"
 
+	"github.com/bradenaw/juniper/parallel"
 	"github.com/bradenaw/juniper/xslices"
 	"github.com/sirupsen/logrus"
 )
@@ -109,20 +111,18 @@ func (vault *Vault) NewUser(userID string) (*User, error) {
 }
 
 // ForUser executes a callback for each user in the vault.
-func (vault *Vault) ForUser(fn func(*User) error) error {
-	for _, userID := range vault.GetUserIDs() {
-		user, err := vault.NewUser(userID)
+func (vault *Vault) ForUser(parallelism int, fn func(*User) error) error {
+	userIDs := vault.GetUserIDs()
+
+	return parallel.DoContext(context.Background(), parallelism, len(userIDs), func(_ context.Context, idx int) error {
+		user, err := vault.NewUser(userIDs[idx])
 		if err != nil {
 			return err
 		}
 		defer func() { _ = user.Close() }()
 
-		if err := fn(user); err != nil {
-			return err
-		}
-	}
-
-	return nil
+		return fn(user)
+	})
 }
 
 // AddUser creates a new user in the vault with the given ID and username.

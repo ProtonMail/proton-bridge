@@ -25,6 +25,7 @@ import (
 	"io"
 	"io/fs"
 	"os"
+	"runtime"
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/ProtonMail/gluon"
@@ -192,7 +193,7 @@ func getGluonDir(encVault *vault.Vault) (string, error) {
 	}
 
 	if empty {
-		if err := encVault.ForUser(func(user *vault.User) error {
+		if err := encVault.ForUser(runtime.NumCPU(), func(user *vault.User) error {
 			return user.ClearSyncStatus()
 		}); err != nil {
 			return "", fmt.Errorf("failed to reset user sync status: %w", err)

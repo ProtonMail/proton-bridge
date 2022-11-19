@@ -19,6 +19,7 @@ package vault_test
 
 import (
 	"bytes"
+	"runtime"
 	"testing"
 
 	"github.com/ProtonMail/proton-bridge/v2/internal/vault"
@@ -49,7 +50,7 @@ func BenchmarkVault(b *testing.B) {
 
 	// Time how quickly we can iterate through the users and get their key pass and bridge pass.
 	for i := 0; i < b.N; i++ {
-		require.NoError(b, s.ForUser(func(user *vault.User) error {
+		require.NoError(b, s.ForUser(runtime.NumCPU(), func(user *vault.User) error {
 			require.NotEmpty(b, user.KeyPass())
 			require.NotEmpty(b, user.BridgePass())
 			return nil
