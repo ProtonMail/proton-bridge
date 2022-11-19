@@ -508,8 +508,10 @@ func (bridge *Bridge) onStatusDown(ctx context.Context) {
 			return
 
 		case <-time.After(backoff):
+			logrus.Info("Pinging API")
+
 			if err := bridge.api.Ping(ctx); err != nil {
-				logrus.WithError(err).Warn("Failed to ping API, will retry")
+				logrus.WithError(err).Warn("Ping failed, API is still unreachable")
 			} else {
 				return
 			}
