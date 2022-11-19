@@ -516,12 +516,26 @@ func (user *User) doEventPoll(ctx context.Context) error {
 			"new": event,
 		}).Info("Received new API event")
 
+		// Handle the event.
 		if err := user.handleAPIEvent(ctx, event); err != nil {
 			return fmt.Errorf("failed to handle event: %w", err)
 		}
 
 		user.log.WithField("event", event).Debug("Handled API event")
 
+		// Wait for all events to be applied.
+		safe.RLock(func() {
+			for _, updateCh := range user.updateCh {
+				update := imap.NewNoop()
+				defer update.WaitContext(ctx)
+
+				updateCh.Enqueue(update)
+			}
+		}, user.updateChLock)
+
+		user.log.WithField("event", event).Debug("All events applied to gluon")
+
+		// Update the event ID in the vault.
 		if err := user.vault.SetEventID(event.EventID); err != nil {
 			return fmt.Errorf("failed to update event ID: %w", err)
 		}

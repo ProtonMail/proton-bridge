@@ -334,7 +334,10 @@ func (user *User) handleUpdateLabelEvent(_ context.Context, event liteapi.LabelE
 		user.apiLabels[event.Label.ID] = event.Label
 
 		for _, updateCh := range user.updateCh {
-			updateCh.Enqueue(imap.NewMailboxUpdated(imap.MailboxID(event.ID), getMailboxName(event.Label)))
+			updateCh.Enqueue(imap.NewMailboxUpdated(
+				imap.MailboxID(event.ID),
+				getMailboxName(event.Label),
+			))
 		}
 
 		user.eventCh.Enqueue(events.UserLabelUpdated{
@@ -453,14 +456,12 @@ func (user *User) handleUpdateMessageEvent(ctx context.Context, event liteapi.Me
 			"subject":   logging.Sensitive(event.Message.Subject),
 		}).Info("Handling message updated event")
 
-		update := imap.NewMessageMailboxesUpdated(
+		user.updateCh[event.Message.AddressID].Enqueue(imap.NewMessageMailboxesUpdated(
 			imap.MessageID(event.ID),
 			mapTo[string, imap.MailboxID](xslices.Filter(event.Message.LabelIDs, wantLabelID)),
 			event.Message.Seen(),
 			event.Message.Starred(),
-		)
-
-		user.updateCh[event.Message.AddressID].Enqueue(update)
+		))
 
 		return nil
 	}, user.updateChLock)
@@ -471,11 +472,7 @@ func (user *User) handleDeleteMessageEvent(ctx context.Context, event liteapi.Me
 		user.log.WithField("messageID", event.ID).Info("Handling message deleted event")
 
 		for _, updateCh := range user.updateCh {
-			update := imap.NewMessagesDeleted(
-				imap.MessageID(event.ID),
-			)
-
-			updateCh.Enqueue(update)
+			updateCh.Enqueue(imap.NewMessagesDeleted(imap.MessageID(event.ID)))
 		}
 
 		return nil
@@ -500,9 +497,13 @@ func (user *User) handleUpdateDraftEvent(ctx context.Context, event liteapi.Mess
 				return fmt.Errorf("failed to build RFC822 draft: %w", err)
 			}
 
-			update := imap.NewMessageUpdated(buildRes.update.Message, buildRes.update.Literal, buildRes.update.MailboxIDs, buildRes.update.ParsedMessage)
+			user.updateCh[full.AddressID].Enqueue(imap.NewMessageUpdated(
+				buildRes.update.Message,
+				buildRes.update.Literal,
+				buildRes.update.MailboxIDs,
+				buildRes.update.ParsedMessage,
+			))
 
-			user.updateCh[full.AddressID].Enqueue(update)
 			return nil
 		})
 	}, user.apiUserLock, user.apiAddrsLock, user.updateChLock)
