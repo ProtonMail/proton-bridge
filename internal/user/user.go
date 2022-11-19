@@ -72,8 +72,9 @@ type User struct {
 
 	tasks     *async.Group
 	abortable async.Abortable
+	pollCh    chan chan struct{}
+	goPoll    func(bool)
 	goSync    func()
-	goPoll    func()
 
 	syncWorkers int
 	syncBuffer  int
@@ -130,7 +131,8 @@ func New(
 
 		reporter: reporter,
 
-		tasks: async.NewGroup(context.Background(), crashHandler),
+		tasks:  async.NewGroup(context.Background(), crashHandler),
+		pollCh: make(chan chan struct{}),
 
 		syncWorkers: syncWorkers,
 		syncBuffer:  syncBuffer,
@@ -166,15 +168,48 @@ func New(
 	// This does nothing until the sync has been marked as complete.
 	// When we receive an API event, we attempt to handle it.
 	// If successful, we update the event ID in the vault.
-	user.goPoll = user.tasks.PeriodicOrTrigger(EventPeriod, EventJitter, func(ctx context.Context) {
-		user.log.Debug("Event poll triggered")
+	user.tasks.Once(func(ctx context.Context) {
+		ticker := liteapi.NewTicker(EventPeriod, EventJitter)
+		defer ticker.Stop()
 
-		if !user.vault.SyncStatus().IsComplete() {
-			user.log.Debug("Sync is incomplete, skipping event poll")
-		} else if err := user.doEventPoll(ctx); err != nil {
-			user.log.WithError(err).Error("Failed to poll events")
+		for {
+			var doneCh chan struct{}
+
+			select {
+			case <-ctx.Done():
+				return
+
+			case doneCh = <-user.pollCh:
+				// ...
+
+			case <-ticker.C:
+				// ...
+			}
+
+			user.log.Debug("Event poll triggered")
+
+			if !user.vault.SyncStatus().IsComplete() {
+				user.log.Debug("Sync is incomplete, skipping event poll")
+			} else if err := user.doEventPoll(ctx); err != nil {
+				user.log.WithError(err).Error("Failed to poll events")
+			}
+
+			if doneCh != nil {
+				close(doneCh)
+			}
 		}
 	})
+
+	// When triggered, poll the API for events, optionally blocking until the poll is complete.
+	user.goPoll = func(wait bool) {
+		doneCh := make(chan struct{})
+
+		go func() { user.pollCh <- doneCh }()
+
+		if wait {
+			<-doneCh
+		}
+	}
 
 	// When triggered, attempt to sync the user.
 	user.goSync = user.tasks.Trigger(func(ctx context.Context) {
@@ -376,7 +411,7 @@ func (user *User) NewIMAPConnectors() (map[string]connector.Connector, error) {
 //
 // nolint:funlen
 func (user *User) SendMail(authID string, from string, to []string, r io.Reader) error {
-	defer user.goPoll()
+	defer user.goPoll(true)
 
 	if len(to) == 0 {
 		return ErrInvalidRecipient
