@@ -504,17 +504,24 @@ func (s *Service) CheckUpdate(context.Context, *emptypb.Empty) (*emptypb.Empty, 
 	go func() {
 		defer s.panicHandler.HandlePanic()
 
-		updateCh, done := s.bridge.GetEvents(events.UpdateAvailable{}, events.UpdateNotAvailable{})
+		updateCh, done := s.bridge.GetEvents(
+			events.UpdateAvailable{},
+			events.UpdateNotAvailable{},
+			events.UpdateCheckFailed{},
+		)
 		defer done()
 
 		s.bridge.CheckForUpdates()
 
 		switch (<-updateCh).(type) {
+		case events.UpdateNotAvailable:
+			_ = s.SendEvent(NewUpdateIsLatestVersionEvent())
+
 		case events.UpdateAvailable:
 			// ... this is handled by the main event loop
 
-		case events.UpdateNotAvailable:
-			_ = s.SendEvent(NewUpdateIsLatestVersionEvent())
+		case events.UpdateCheckFailed:
+			// ... maybe show an error? but do nothing for now
 		}
 
 		_ = s.SendEvent(NewUpdateCheckFinishedEvent())

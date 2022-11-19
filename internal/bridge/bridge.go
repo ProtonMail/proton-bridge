@@ -365,7 +365,7 @@ func (bridge *Bridge) init(tlsReporter TLSReporter) error {
 
 		version, err := bridge.updater.GetVersionInfo(ctx, bridge.api, bridge.vault.GetUpdateChannel())
 		if err != nil {
-			logrus.WithError(err).Error("Failed to check for updates")
+			bridge.publish(events.UpdateCheckFailed{Error: err})
 		} else {
 			bridge.handleUpdate(version)
 		}

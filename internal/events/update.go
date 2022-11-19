@@ -111,3 +111,14 @@ type UpdateForced struct {
 func (event UpdateForced) String() string {
 	return "UpdateForced"
 }
+
+// UpdateCheckFailed is published when the update check fails.
+type UpdateCheckFailed struct {
+	eventBase
+
+	Error error
+}
+
+func (event UpdateCheckFailed) String() string {
+	return fmt.Sprintf("UpdateCheckFailed: Error: %s", event.Error)
+}
