@@ -38,8 +38,8 @@ import (
 )
 
 const (
-	maxUpdateSize = 1 << 25
-	maxBatchSize  = 1 << 6
+	maxUpdateSize = 1 << 27 // 128 MiB
+	maxBatchSize  = 1 << 7  // 128
 )
 
 // doSync begins syncing the users data.
