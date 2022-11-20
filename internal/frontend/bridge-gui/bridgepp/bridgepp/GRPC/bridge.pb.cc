@@ -81,20 +81,22 @@ struct LoginAbortRequestDefaultTypeInternal {
   };
 };
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 LoginAbortRequestDefaultTypeInternal _LoginAbortRequest_default_instance_;
-PROTOBUF_CONSTEXPR ChangePortsRequest::ChangePortsRequest(
+PROTOBUF_CONSTEXPR ImapSmtpSettings::ImapSmtpSettings(
     ::_pbi::ConstantInitialized): _impl_{
     /*decltype(_impl_.imapport_)*/0
   , /*decltype(_impl_.smtpport_)*/0
+  , /*decltype(_impl_.usesslforimap_)*/false
+  , /*decltype(_impl_.usesslforsmtp_)*/false
   , /*decltype(_impl_._cached_size_)*/{}} {}
-struct ChangePortsRequestDefaultTypeInternal {
-  PROTOBUF_CONSTEXPR ChangePortsRequestDefaultTypeInternal()
+struct ImapSmtpSettingsDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR ImapSmtpSettingsDefaultTypeInternal()
       : _instance(::_pbi::ConstantInitialized{}) {}
-  ~ChangePortsRequestDefaultTypeInternal() {}
+  ~ImapSmtpSettingsDefaultTypeInternal() {}
   union {
-    ChangePortsRequest _instance;
+    ImapSmtpSettings _instance;
   };
 };
-PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 ChangePortsRequestDefaultTypeInternal _ChangePortsRequest_default_instance_;
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 ImapSmtpSettingsDefaultTypeInternal _ImapSmtpSettings_default_instance_;
 PROTOBUF_CONSTEXPR AvailableKeychainsResponse::AvailableKeychainsResponse(
     ::_pbi::ConstantInitialized): _impl_{
     /*decltype(_impl_.keychains_)*/{}
@@ -515,66 +517,57 @@ struct DiskCachePathChangeFinishedEventDefaultTypeInternal {
   };
 };
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 DiskCachePathChangeFinishedEventDefaultTypeInternal _DiskCachePathChangeFinishedEvent_default_instance_;
-PROTOBUF_CONSTEXPR MailSettingsEvent::MailSettingsEvent(
+PROTOBUF_CONSTEXPR MailServerSettingsEvent::MailServerSettingsEvent(
     ::_pbi::ConstantInitialized): _impl_{
     /*decltype(_impl_.event_)*/{}
   , /*decltype(_impl_._cached_size_)*/{}
   , /*decltype(_impl_._oneof_case_)*/{}} {}
-struct MailSettingsEventDefaultTypeInternal {
-  PROTOBUF_CONSTEXPR MailSettingsEventDefaultTypeInternal()
+struct MailServerSettingsEventDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR MailServerSettingsEventDefaultTypeInternal()
       : _instance(::_pbi::ConstantInitialized{}) {}
-  ~MailSettingsEventDefaultTypeInternal() {}
+  ~MailServerSettingsEventDefaultTypeInternal() {}
   union {
-    MailSettingsEvent _instance;
+    MailServerSettingsEvent _instance;
   };
 };
-PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 MailSettingsEventDefaultTypeInternal _MailSettingsEvent_default_instance_;
-PROTOBUF_CONSTEXPR MailSettingsErrorEvent::MailSettingsErrorEvent(
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 MailServerSettingsEventDefaultTypeInternal _MailServerSettingsEvent_default_instance_;
+PROTOBUF_CONSTEXPR MailServerSettingsErrorEvent::MailServerSettingsErrorEvent(
     ::_pbi::ConstantInitialized): _impl_{
     /*decltype(_impl_.type_)*/0
   , /*decltype(_impl_._cached_size_)*/{}} {}
-struct MailSettingsErrorEventDefaultTypeInternal {
-  PROTOBUF_CONSTEXPR MailSettingsErrorEventDefaultTypeInternal()
+struct MailServerSettingsErrorEventDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR MailServerSettingsErrorEventDefaultTypeInternal()
       : _instance(::_pbi::ConstantInitialized{}) {}
-  ~MailSettingsErrorEventDefaultTypeInternal() {}
+  ~MailServerSettingsErrorEventDefaultTypeInternal() {}
   union {
-    MailSettingsErrorEvent _instance;
+    MailServerSettingsErrorEvent _instance;
   };
 };
-PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 MailSettingsErrorEventDefaultTypeInternal _MailSettingsErrorEvent_default_instance_;
-PROTOBUF_CONSTEXPR UseSslForSmtpFinishedEvent::UseSslForSmtpFinishedEvent(
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 MailServerSettingsErrorEventDefaultTypeInternal _MailServerSettingsErrorEvent_default_instance_;
+PROTOBUF_CONSTEXPR MailServerSettingsChangedEvent::MailServerSettingsChangedEvent(
+    ::_pbi::ConstantInitialized): _impl_{
+    /*decltype(_impl_.settings_)*/nullptr
+  , /*decltype(_impl_._cached_size_)*/{}} {}
+struct MailServerSettingsChangedEventDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR MailServerSettingsChangedEventDefaultTypeInternal()
+      : _instance(::_pbi::ConstantInitialized{}) {}
+  ~MailServerSettingsChangedEventDefaultTypeInternal() {}
+  union {
+    MailServerSettingsChangedEvent _instance;
+  };
+};
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 MailServerSettingsChangedEventDefaultTypeInternal _MailServerSettingsChangedEvent_default_instance_;
+PROTOBUF_CONSTEXPR ChangeMailServerSettingsFinishedEvent::ChangeMailServerSettingsFinishedEvent(
     ::_pbi::ConstantInitialized) {}
-struct UseSslForSmtpFinishedEventDefaultTypeInternal {
-  PROTOBUF_CONSTEXPR UseSslForSmtpFinishedEventDefaultTypeInternal()
+struct ChangeMailServerSettingsFinishedEventDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR ChangeMailServerSettingsFinishedEventDefaultTypeInternal()
       : _instance(::_pbi::ConstantInitialized{}) {}
-  ~UseSslForSmtpFinishedEventDefaultTypeInternal() {}
+  ~ChangeMailServerSettingsFinishedEventDefaultTypeInternal() {}
   union {
-    UseSslForSmtpFinishedEvent _instance;
+    ChangeMailServerSettingsFinishedEvent _instance;
   };
 };
-PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 UseSslForSmtpFinishedEventDefaultTypeInternal _UseSslForSmtpFinishedEvent_default_instance_;
-PROTOBUF_CONSTEXPR UseSslForImapFinishedEvent::UseSslForImapFinishedEvent(
-    ::_pbi::ConstantInitialized) {}
-struct UseSslForImapFinishedEventDefaultTypeInternal {
-  PROTOBUF_CONSTEXPR UseSslForImapFinishedEventDefaultTypeInternal()
-      : _instance(::_pbi::ConstantInitialized{}) {}
-  ~UseSslForImapFinishedEventDefaultTypeInternal() {}
-  union {
-    UseSslForImapFinishedEvent _instance;
-  };
-};
-PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 UseSslForImapFinishedEventDefaultTypeInternal _UseSslForImapFinishedEvent_default_instance_;
-PROTOBUF_CONSTEXPR ChangePortsFinishedEvent::ChangePortsFinishedEvent(
-    ::_pbi::ConstantInitialized) {}
-struct ChangePortsFinishedEventDefaultTypeInternal {
-  PROTOBUF_CONSTEXPR ChangePortsFinishedEventDefaultTypeInternal()
-      : _instance(::_pbi::ConstantInitialized{}) {}
-  ~ChangePortsFinishedEventDefaultTypeInternal() {}
-  union {
-    ChangePortsFinishedEvent _instance;
-  };
-};
-PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 ChangePortsFinishedEventDefaultTypeInternal _ChangePortsFinishedEvent_default_instance_;
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 ChangeMailServerSettingsFinishedEventDefaultTypeInternal _ChangeMailServerSettingsFinishedEvent_default_instance_;
 PROTOBUF_CONSTEXPR KeychainEvent::KeychainEvent(
     ::_pbi::ConstantInitialized): _impl_{
     /*decltype(_impl_.event_)*/{}
@@ -740,7 +733,7 @@ struct UserChangedEventDefaultTypeInternal {
 };
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 UserChangedEventDefaultTypeInternal _UserChangedEvent_default_instance_;
 }  // namespace grpc
-static ::_pb::Metadata file_level_metadata_bridge_2eproto[56];
+static ::_pb::Metadata file_level_metadata_bridge_2eproto[55];
 static const ::_pb::EnumDescriptor* file_level_enum_descriptors_bridge_2eproto[6];
 static constexpr ::_pb::ServiceDescriptor const** file_level_service_descriptors_bridge_2eproto = nullptr;
 
@@ -782,13 +775,15 @@ const uint32_t TableStruct_bridge_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(p
   ~0u,  // no _inlined_string_donated_
   PROTOBUF_FIELD_OFFSET(::grpc::LoginAbortRequest, _impl_.username_),
   ~0u,  // no _has_bits_
-  PROTOBUF_FIELD_OFFSET(::grpc::ChangePortsRequest, _internal_metadata_),
+  PROTOBUF_FIELD_OFFSET(::grpc::ImapSmtpSettings, _internal_metadata_),
   ~0u,  // no _extensions_
   ~0u,  // no _oneof_case_
   ~0u,  // no _weak_field_map_
   ~0u,  // no _inlined_string_donated_
-  PROTOBUF_FIELD_OFFSET(::grpc::ChangePortsRequest, _impl_.imapport_),
-  PROTOBUF_FIELD_OFFSET(::grpc::ChangePortsRequest, _impl_.smtpport_),
+  PROTOBUF_FIELD_OFFSET(::grpc::ImapSmtpSettings, _impl_.imapport_),
+  PROTOBUF_FIELD_OFFSET(::grpc::ImapSmtpSettings, _impl_.smtpport_),
+  PROTOBUF_FIELD_OFFSET(::grpc::ImapSmtpSettings, _impl_.usesslforimap_),
+  PROTOBUF_FIELD_OFFSET(::grpc::ImapSmtpSettings, _impl_.usesslforsmtp_),
   ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::grpc::AvailableKeychainsResponse, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -1051,37 +1046,31 @@ const uint32_t TableStruct_bridge_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(p
   ~0u,  // no _weak_field_map_
   ~0u,  // no _inlined_string_donated_
   ~0u,  // no _has_bits_
-  PROTOBUF_FIELD_OFFSET(::grpc::MailSettingsEvent, _internal_metadata_),
+  PROTOBUF_FIELD_OFFSET(::grpc::MailServerSettingsEvent, _internal_metadata_),
   ~0u,  // no _extensions_
-  PROTOBUF_FIELD_OFFSET(::grpc::MailSettingsEvent, _impl_._oneof_case_[0]),
+  PROTOBUF_FIELD_OFFSET(::grpc::MailServerSettingsEvent, _impl_._oneof_case_[0]),
   ~0u,  // no _weak_field_map_
   ~0u,  // no _inlined_string_donated_
   ::_pbi::kInvalidFieldOffsetTag,
   ::_pbi::kInvalidFieldOffsetTag,
   ::_pbi::kInvalidFieldOffsetTag,
-  ::_pbi::kInvalidFieldOffsetTag,
-  PROTOBUF_FIELD_OFFSET(::grpc::MailSettingsEvent, _impl_.event_),
+  PROTOBUF_FIELD_OFFSET(::grpc::MailServerSettingsEvent, _impl_.event_),
   ~0u,  // no _has_bits_
-  PROTOBUF_FIELD_OFFSET(::grpc::MailSettingsErrorEvent, _internal_metadata_),
-  ~0u,  // no _extensions_
-  ~0u,  // no _oneof_case_
-  ~0u,  // no _weak_field_map_
-  ~0u,  // no _inlined_string_donated_
-  PROTOBUF_FIELD_OFFSET(::grpc::MailSettingsErrorEvent, _impl_.type_),
-  ~0u,  // no _has_bits_
-  PROTOBUF_FIELD_OFFSET(::grpc::UseSslForSmtpFinishedEvent, _internal_metadata_),
+  PROTOBUF_FIELD_OFFSET(::grpc::MailServerSettingsErrorEvent, _internal_metadata_),
   ~0u,  // no _extensions_
   ~0u,  // no _oneof_case_
   ~0u,  // no _weak_field_map_
   ~0u,  // no _inlined_string_donated_
+  PROTOBUF_FIELD_OFFSET(::grpc::MailServerSettingsErrorEvent, _impl_.type_),
   ~0u,  // no _has_bits_
-  PROTOBUF_FIELD_OFFSET(::grpc::UseSslForImapFinishedEvent, _internal_metadata_),
+  PROTOBUF_FIELD_OFFSET(::grpc::MailServerSettingsChangedEvent, _internal_metadata_),
   ~0u,  // no _extensions_
   ~0u,  // no _oneof_case_
   ~0u,  // no _weak_field_map_
   ~0u,  // no _inlined_string_donated_
+  PROTOBUF_FIELD_OFFSET(::grpc::MailServerSettingsChangedEvent, _impl_.settings_),
   ~0u,  // no _has_bits_
-  PROTOBUF_FIELD_OFFSET(::grpc::ChangePortsFinishedEvent, _internal_metadata_),
+  PROTOBUF_FIELD_OFFSET(::grpc::ChangeMailServerSettingsFinishedEvent, _internal_metadata_),
   ~0u,  // no _extensions_
   ~0u,  // no _oneof_case_
   ~0u,  // no _weak_field_map_
@@ -1189,58 +1178,57 @@ static const ::_pbi::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protode
   { 9, -1, -1, sizeof(::grpc::ReportBugRequest)},
   { 21, -1, -1, sizeof(::grpc::LoginRequest)},
   { 29, -1, -1, sizeof(::grpc::LoginAbortRequest)},
-  { 36, -1, -1, sizeof(::grpc::ChangePortsRequest)},
-  { 44, -1, -1, sizeof(::grpc::AvailableKeychainsResponse)},
-  { 51, -1, -1, sizeof(::grpc::User)},
-  { 67, -1, -1, sizeof(::grpc::UserSplitModeRequest)},
-  { 75, -1, -1, sizeof(::grpc::UserListResponse)},
-  { 82, -1, -1, sizeof(::grpc::ConfigureAppleMailRequest)},
-  { 90, -1, -1, sizeof(::grpc::EventStreamRequest)},
-  { 97, -1, -1, sizeof(::grpc::StreamEvent)},
-  { 112, -1, -1, sizeof(::grpc::AppEvent)},
-  { 126, -1, -1, sizeof(::grpc::InternetStatusEvent)},
-  { 133, -1, -1, sizeof(::grpc::ToggleAutostartFinishedEvent)},
-  { 139, -1, -1, sizeof(::grpc::ResetFinishedEvent)},
-  { 145, -1, -1, sizeof(::grpc::ReportBugFinishedEvent)},
-  { 151, -1, -1, sizeof(::grpc::ReportBugSuccessEvent)},
-  { 157, -1, -1, sizeof(::grpc::ReportBugErrorEvent)},
-  { 163, -1, -1, sizeof(::grpc::ShowMainWindowEvent)},
-  { 169, -1, -1, sizeof(::grpc::LoginEvent)},
-  { 181, -1, -1, sizeof(::grpc::LoginErrorEvent)},
-  { 189, -1, -1, sizeof(::grpc::LoginTfaRequestedEvent)},
-  { 196, -1, -1, sizeof(::grpc::LoginTwoPasswordsRequestedEvent)},
-  { 202, -1, -1, sizeof(::grpc::LoginFinishedEvent)},
-  { 209, -1, -1, sizeof(::grpc::UpdateEvent)},
-  { 224, -1, -1, sizeof(::grpc::UpdateErrorEvent)},
-  { 231, -1, -1, sizeof(::grpc::UpdateManualReadyEvent)},
-  { 238, -1, -1, sizeof(::grpc::UpdateManualRestartNeededEvent)},
-  { 244, -1, -1, sizeof(::grpc::UpdateForceEvent)},
-  { 251, -1, -1, sizeof(::grpc::UpdateSilentRestartNeeded)},
-  { 257, -1, -1, sizeof(::grpc::UpdateIsLatestVersion)},
-  { 263, -1, -1, sizeof(::grpc::UpdateCheckFinished)},
-  { 269, -1, -1, sizeof(::grpc::UpdateVersionChanged)},
-  { 275, -1, -1, sizeof(::grpc::DiskCacheEvent)},
-  { 285, -1, -1, sizeof(::grpc::DiskCacheErrorEvent)},
-  { 292, -1, -1, sizeof(::grpc::DiskCachePathChangedEvent)},
-  { 299, -1, -1, sizeof(::grpc::DiskCachePathChangeFinishedEvent)},
-  { 305, -1, -1, sizeof(::grpc::MailSettingsEvent)},
-  { 316, -1, -1, sizeof(::grpc::MailSettingsErrorEvent)},
-  { 323, -1, -1, sizeof(::grpc::UseSslForSmtpFinishedEvent)},
-  { 329, -1, -1, sizeof(::grpc::UseSslForImapFinishedEvent)},
-  { 335, -1, -1, sizeof(::grpc::ChangePortsFinishedEvent)},
-  { 341, -1, -1, sizeof(::grpc::KeychainEvent)},
-  { 351, -1, -1, sizeof(::grpc::ChangeKeychainFinishedEvent)},
-  { 357, -1, -1, sizeof(::grpc::HasNoKeychainEvent)},
-  { 363, -1, -1, sizeof(::grpc::RebuildKeychainEvent)},
-  { 369, -1, -1, sizeof(::grpc::MailEvent)},
-  { 380, -1, -1, sizeof(::grpc::NoActiveKeyForRecipientEvent)},
-  { 387, -1, -1, sizeof(::grpc::AddressChangedEvent)},
-  { 394, -1, -1, sizeof(::grpc::AddressChangedLogoutEvent)},
-  { 401, -1, -1, sizeof(::grpc::ApiCertIssueEvent)},
-  { 407, -1, -1, sizeof(::grpc::UserEvent)},
-  { 417, -1, -1, sizeof(::grpc::ToggleSplitModeFinishedEvent)},
-  { 424, -1, -1, sizeof(::grpc::UserDisconnectedEvent)},
-  { 431, -1, -1, sizeof(::grpc::UserChangedEvent)},
+  { 36, -1, -1, sizeof(::grpc::ImapSmtpSettings)},
+  { 46, -1, -1, sizeof(::grpc::AvailableKeychainsResponse)},
+  { 53, -1, -1, sizeof(::grpc::User)},
+  { 69, -1, -1, sizeof(::grpc::UserSplitModeRequest)},
+  { 77, -1, -1, sizeof(::grpc::UserListResponse)},
+  { 84, -1, -1, sizeof(::grpc::ConfigureAppleMailRequest)},
+  { 92, -1, -1, sizeof(::grpc::EventStreamRequest)},
+  { 99, -1, -1, sizeof(::grpc::StreamEvent)},
+  { 114, -1, -1, sizeof(::grpc::AppEvent)},
+  { 128, -1, -1, sizeof(::grpc::InternetStatusEvent)},
+  { 135, -1, -1, sizeof(::grpc::ToggleAutostartFinishedEvent)},
+  { 141, -1, -1, sizeof(::grpc::ResetFinishedEvent)},
+  { 147, -1, -1, sizeof(::grpc::ReportBugFinishedEvent)},
+  { 153, -1, -1, sizeof(::grpc::ReportBugSuccessEvent)},
+  { 159, -1, -1, sizeof(::grpc::ReportBugErrorEvent)},
+  { 165, -1, -1, sizeof(::grpc::ShowMainWindowEvent)},
+  { 171, -1, -1, sizeof(::grpc::LoginEvent)},
+  { 183, -1, -1, sizeof(::grpc::LoginErrorEvent)},
+  { 191, -1, -1, sizeof(::grpc::LoginTfaRequestedEvent)},
+  { 198, -1, -1, sizeof(::grpc::LoginTwoPasswordsRequestedEvent)},
+  { 204, -1, -1, sizeof(::grpc::LoginFinishedEvent)},
+  { 211, -1, -1, sizeof(::grpc::UpdateEvent)},
+  { 226, -1, -1, sizeof(::grpc::UpdateErrorEvent)},
+  { 233, -1, -1, sizeof(::grpc::UpdateManualReadyEvent)},
+  { 240, -1, -1, sizeof(::grpc::UpdateManualRestartNeededEvent)},
+  { 246, -1, -1, sizeof(::grpc::UpdateForceEvent)},
+  { 253, -1, -1, sizeof(::grpc::UpdateSilentRestartNeeded)},
+  { 259, -1, -1, sizeof(::grpc::UpdateIsLatestVersion)},
+  { 265, -1, -1, sizeof(::grpc::UpdateCheckFinished)},
+  { 271, -1, -1, sizeof(::grpc::UpdateVersionChanged)},
+  { 277, -1, -1, sizeof(::grpc::DiskCacheEvent)},
+  { 287, -1, -1, sizeof(::grpc::DiskCacheErrorEvent)},
+  { 294, -1, -1, sizeof(::grpc::DiskCachePathChangedEvent)},
+  { 301, -1, -1, sizeof(::grpc::DiskCachePathChangeFinishedEvent)},
+  { 307, -1, -1, sizeof(::grpc::MailServerSettingsEvent)},
+  { 317, -1, -1, sizeof(::grpc::MailServerSettingsErrorEvent)},
+  { 324, -1, -1, sizeof(::grpc::MailServerSettingsChangedEvent)},
+  { 331, -1, -1, sizeof(::grpc::ChangeMailServerSettingsFinishedEvent)},
+  { 337, -1, -1, sizeof(::grpc::KeychainEvent)},
+  { 347, -1, -1, sizeof(::grpc::ChangeKeychainFinishedEvent)},
+  { 353, -1, -1, sizeof(::grpc::HasNoKeychainEvent)},
+  { 359, -1, -1, sizeof(::grpc::RebuildKeychainEvent)},
+  { 365, -1, -1, sizeof(::grpc::MailEvent)},
+  { 376, -1, -1, sizeof(::grpc::NoActiveKeyForRecipientEvent)},
+  { 383, -1, -1, sizeof(::grpc::AddressChangedEvent)},
+  { 390, -1, -1, sizeof(::grpc::AddressChangedLogoutEvent)},
+  { 397, -1, -1, sizeof(::grpc::ApiCertIssueEvent)},
+  { 403, -1, -1, sizeof(::grpc::UserEvent)},
+  { 413, -1, -1, sizeof(::grpc::ToggleSplitModeFinishedEvent)},
+  { 420, -1, -1, sizeof(::grpc::UserDisconnectedEvent)},
+  { 427, -1, -1, sizeof(::grpc::UserChangedEvent)},
 };
 
 static const ::_pb::Message* const file_default_instances[] = {
@@ -1248,7 +1236,7 @@ static const ::_pb::Message* const file_default_instances[] = {
   &::grpc::_ReportBugRequest_default_instance_._instance,
   &::grpc::_LoginRequest_default_instance_._instance,
   &::grpc::_LoginAbortRequest_default_instance_._instance,
-  &::grpc::_ChangePortsRequest_default_instance_._instance,
+  &::grpc::_ImapSmtpSettings_default_instance_._instance,
   &::grpc::_AvailableKeychainsResponse_default_instance_._instance,
   &::grpc::_User_default_instance_._instance,
   &::grpc::_UserSplitModeRequest_default_instance_._instance,
@@ -1282,11 +1270,10 @@ static const ::_pb::Message* const file_default_instances[] = {
   &::grpc::_DiskCacheErrorEvent_default_instance_._instance,
   &::grpc::_DiskCachePathChangedEvent_default_instance_._instance,
   &::grpc::_DiskCachePathChangeFinishedEvent_default_instance_._instance,
-  &::grpc::_MailSettingsEvent_default_instance_._instance,
-  &::grpc::_MailSettingsErrorEvent_default_instance_._instance,
-  &::grpc::_UseSslForSmtpFinishedEvent_default_instance_._instance,
-  &::grpc::_UseSslForImapFinishedEvent_default_instance_._instance,
-  &::grpc::_ChangePortsFinishedEvent_default_instance_._instance,
+  &::grpc::_MailServerSettingsEvent_default_instance_._instance,
+  &::grpc::_MailServerSettingsErrorEvent_default_instance_._instance,
+  &::grpc::_MailServerSettingsChangedEvent_default_instance_._instance,
+  &::grpc::_ChangeMailServerSettingsFinishedEvent_default_instance_._instance,
   &::grpc::_KeychainEvent_default_instance_._instance,
   &::grpc::_ChangeKeychainFinishedEvent_default_instance_._instance,
   &::grpc::_HasNoKeychainEvent_default_instance_._instance,
@@ -1312,239 +1299,237 @@ const char descriptor_table_protodef_bridge_2eproto[] PROTOBUF_SECTION_VARIABLE(
   "\003 \001(\t\022\017\n\007address\030\004 \001(\t\022\023\n\013emailClient\030\005 "
   "\001(\t\022\023\n\013includeLogs\030\006 \001(\010\"2\n\014LoginRequest"
   "\022\020\n\010username\030\001 \001(\t\022\020\n\010password\030\002 \001(\014\"%\n\021"
-  "LoginAbortRequest\022\020\n\010username\030\001 \001(\t\"8\n\022C"
-  "hangePortsRequest\022\020\n\010imapPort\030\001 \001(\005\022\020\n\010s"
-  "mtpPort\030\002 \001(\005\"/\n\032AvailableKeychainsRespo"
-  "nse\022\021\n\tkeychains\030\001 \003(\t\"\317\001\n\004User\022\n\n\002id\030\001 "
-  "\001(\t\022\020\n\010username\030\002 \001(\t\022\022\n\navatarText\030\003 \001("
-  "\t\022\036\n\005state\030\004 \001(\0162\017.grpc.UserState\022\021\n\tspl"
-  "itMode\030\005 \001(\010\022\026\n\016setupGuideSeen\030\006 \001(\010\022\021\n\t"
-  "usedBytes\030\007 \001(\003\022\022\n\ntotalBytes\030\010 \001(\003\022\020\n\010p"
-  "assword\030\t \001(\014\022\021\n\taddresses\030\n \003(\t\"6\n\024User"
-  "SplitModeRequest\022\016\n\006userID\030\001 \001(\t\022\016\n\006acti"
-  "ve\030\002 \001(\010\"-\n\020UserListResponse\022\031\n\005users\030\001 "
-  "\003(\0132\n.grpc.User\"<\n\031ConfigureAppleMailReq"
-  "uest\022\016\n\006userID\030\001 \001(\t\022\017\n\007address\030\002 \001(\t\",\n"
-  "\022EventStreamRequest\022\026\n\016ClientPlatform\030\001 "
-  "\001(\t\"\300\002\n\013StreamEvent\022\035\n\003app\030\001 \001(\0132\016.grpc."
-  "AppEventH\000\022!\n\005login\030\002 \001(\0132\020.grpc.LoginEv"
-  "entH\000\022#\n\006update\030\003 \001(\0132\021.grpc.UpdateEvent"
-  "H\000\022%\n\005cache\030\004 \001(\0132\024.grpc.DiskCacheEventH"
-  "\000\022/\n\014mailSettings\030\005 \001(\0132\027.grpc.MailSetti"
-  "ngsEventH\000\022\'\n\010keychain\030\006 \001(\0132\023.grpc.Keyc"
-  "hainEventH\000\022\037\n\004mail\030\007 \001(\0132\017.grpc.MailEve"
-  "ntH\000\022\037\n\004user\030\010 \001(\0132\017.grpc.UserEventH\000B\007\n"
-  "\005event\"\240\003\n\010AppEvent\0223\n\016internetStatus\030\001 "
-  "\001(\0132\031.grpc.InternetStatusEventH\000\022E\n\027togg"
-  "leAutostartFinished\030\002 \001(\0132\".grpc.ToggleA"
-  "utostartFinishedEventH\000\0221\n\rresetFinished"
-  "\030\003 \001(\0132\030.grpc.ResetFinishedEventH\000\0229\n\021re"
-  "portBugFinished\030\004 \001(\0132\034.grpc.ReportBugFi"
-  "nishedEventH\000\0227\n\020reportBugSuccess\030\005 \001(\0132"
-  "\033.grpc.ReportBugSuccessEventH\000\0223\n\016report"
-  "BugError\030\006 \001(\0132\031.grpc.ReportBugErrorEven"
-  "tH\000\0223\n\016showMainWindow\030\007 \001(\0132\031.grpc.ShowM"
-  "ainWindowEventH\000B\007\n\005event\"(\n\023InternetSta"
-  "tusEvent\022\021\n\tconnected\030\001 \001(\010\"\036\n\034ToggleAut"
-  "ostartFinishedEvent\"\024\n\022ResetFinishedEven"
-  "t\"\030\n\026ReportBugFinishedEvent\"\027\n\025ReportBug"
-  "SuccessEvent\"\025\n\023ReportBugErrorEvent\"\025\n\023S"
-  "howMainWindowEvent\"\235\002\n\nLoginEvent\022&\n\005err"
-  "or\030\001 \001(\0132\025.grpc.LoginErrorEventH\000\0224\n\014tfa"
-  "Requested\030\002 \001(\0132\034.grpc.LoginTfaRequested"
-  "EventH\000\022E\n\024twoPasswordRequested\030\003 \001(\0132%."
-  "grpc.LoginTwoPasswordsRequestedEventH\000\022,"
-  "\n\010finished\030\004 \001(\0132\030.grpc.LoginFinishedEve"
-  "ntH\000\0223\n\017alreadyLoggedIn\030\005 \001(\0132\030.grpc.Log"
-  "inFinishedEventH\000B\007\n\005event\"F\n\017LoginError"
-  "Event\022\"\n\004type\030\001 \001(\0162\024.grpc.LoginErrorTyp"
-  "e\022\017\n\007message\030\002 \001(\t\"*\n\026LoginTfaRequestedE"
-  "vent\022\020\n\010username\030\001 \001(\t\"!\n\037LoginTwoPasswo"
-  "rdsRequestedEvent\"$\n\022LoginFinishedEvent\022"
-  "\016\n\006userID\030\001 \001(\t\"\304\003\n\013UpdateEvent\022\'\n\005error"
-  "\030\001 \001(\0132\026.grpc.UpdateErrorEventH\000\0223\n\013manu"
-  "alReady\030\002 \001(\0132\034.grpc.UpdateManualReadyEv"
-  "entH\000\022C\n\023manualRestartNeeded\030\003 \001(\0132$.grp"
-  "c.UpdateManualRestartNeededEventH\000\022\'\n\005fo"
-  "rce\030\004 \001(\0132\026.grpc.UpdateForceEventH\000\022>\n\023s"
-  "ilentRestartNeeded\030\005 \001(\0132\037.grpc.UpdateSi"
-  "lentRestartNeededH\000\0226\n\017isLatestVersion\030\006"
-  " \001(\0132\033.grpc.UpdateIsLatestVersionH\000\0222\n\rc"
-  "heckFinished\030\007 \001(\0132\031.grpc.UpdateCheckFin"
-  "ishedH\000\0224\n\016versionChanged\030\010 \001(\0132\032.grpc.U"
-  "pdateVersionChangedH\000B\007\n\005event\"7\n\020Update"
-  "ErrorEvent\022#\n\004type\030\001 \001(\0162\025.grpc.UpdateEr"
-  "rorType\")\n\026UpdateManualReadyEvent\022\017\n\007ver"
-  "sion\030\001 \001(\t\" \n\036UpdateManualRestartNeededE"
-  "vent\"#\n\020UpdateForceEvent\022\017\n\007version\030\001 \001("
-  "\t\"\033\n\031UpdateSilentRestartNeeded\"\027\n\025Update"
-  "IsLatestVersion\"\025\n\023UpdateCheckFinished\"\026"
-  "\n\024UpdateVersionChanged\"\303\001\n\016DiskCacheEven"
-  "t\022*\n\005error\030\001 \001(\0132\031.grpc.DiskCacheErrorEv"
-  "entH\000\0226\n\013pathChanged\030\002 \001(\0132\037.grpc.DiskCa"
-  "chePathChangedEventH\000\022D\n\022pathChangeFinis"
-  "hed\030\003 \001(\0132&.grpc.DiskCachePathChangeFini"
-  "shedEventH\000B\007\n\005event\"=\n\023DiskCacheErrorEv"
-  "ent\022&\n\004type\030\001 \001(\0162\030.grpc.DiskCacheErrorT"
-  "ype\")\n\031DiskCachePathChangedEvent\022\014\n\004path"
-  "\030\001 \001(\t\"\"\n DiskCachePathChangeFinishedEve"
-  "nt\"\220\002\n\021MailSettingsEvent\022-\n\005error\030\001 \001(\0132"
-  "\034.grpc.MailSettingsErrorEventH\000\022A\n\025useSs"
-  "lForSmtpFinished\030\002 \001(\0132 .grpc.UseSslForS"
-  "mtpFinishedEventH\000\022=\n\023changePortsFinishe"
-  "d\030\003 \001(\0132\036.grpc.ChangePortsFinishedEventH"
-  "\000\022A\n\025useSslForImapFinished\030\004 \001(\0132 .grpc."
-  "UseSslForImapFinishedEventH\000B\007\n\005event\"C\n"
-  "\026MailSettingsErrorEvent\022)\n\004type\030\001 \001(\0162\033."
-  "grpc.MailSettingsErrorType\"\034\n\032UseSslForS"
-  "mtpFinishedEvent\"\034\n\032UseSslForImapFinishe"
-  "dEvent\"\032\n\030ChangePortsFinishedEvent\"\307\001\n\rK"
-  "eychainEvent\022C\n\026changeKeychainFinished\030\001"
-  " \001(\0132!.grpc.ChangeKeychainFinishedEventH"
-  "\000\0221\n\rhasNoKeychain\030\002 \001(\0132\030.grpc.HasNoKey"
-  "chainEventH\000\0225\n\017rebuildKeychain\030\003 \001(\0132\032."
-  "grpc.RebuildKeychainEventH\000B\007\n\005event\"\035\n\033"
-  "ChangeKeychainFinishedEvent\"\024\n\022HasNoKeyc"
-  "hainEvent\"\026\n\024RebuildKeychainEvent\"\207\002\n\tMa"
-  "ilEvent\022J\n\034noActiveKeyForRecipientEvent\030"
-  "\001 \001(\0132\".grpc.NoActiveKeyForRecipientEven"
-  "tH\000\0223\n\016addressChanged\030\002 \001(\0132\031.grpc.Addre"
-  "ssChangedEventH\000\022\?\n\024addressChangedLogout"
-  "\030\003 \001(\0132\037.grpc.AddressChangedLogoutEventH"
-  "\000\022/\n\014apiCertIssue\030\006 \001(\0132\027.grpc.ApiCertIs"
-  "sueEventH\000B\007\n\005event\"-\n\034NoActiveKeyForRec"
-  "ipientEvent\022\r\n\005email\030\001 \001(\t\"&\n\023AddressCha"
-  "ngedEvent\022\017\n\007address\030\001 \001(\t\",\n\031AddressCha"
-  "ngedLogoutEvent\022\017\n\007address\030\001 \001(\t\"\023\n\021ApiC"
-  "ertIssueEvent\"\303\001\n\tUserEvent\022E\n\027toggleSpl"
-  "itModeFinished\030\001 \001(\0132\".grpc.ToggleSplitM"
-  "odeFinishedEventH\000\0227\n\020userDisconnected\030\002"
-  " \001(\0132\033.grpc.UserDisconnectedEventH\000\022-\n\013u"
-  "serChanged\030\003 \001(\0132\026.grpc.UserChangedEvent"
-  "H\000B\007\n\005event\".\n\034ToggleSplitModeFinishedEv"
-  "ent\022\016\n\006userID\030\001 \001(\t\")\n\025UserDisconnectedE"
-  "vent\022\020\n\010username\030\001 \001(\t\"\"\n\020UserChangedEve"
-  "nt\022\016\n\006userID\030\001 \001(\t*q\n\010LogLevel\022\r\n\tLOG_PA"
-  "NIC\020\000\022\r\n\tLOG_FATAL\020\001\022\r\n\tLOG_ERROR\020\002\022\014\n\010L"
-  "OG_WARN\020\003\022\014\n\010LOG_INFO\020\004\022\r\n\tLOG_DEBUG\020\005\022\r"
-  "\n\tLOG_TRACE\020\006*6\n\tUserState\022\016\n\nSIGNED_OUT"
-  "\020\000\022\n\n\006LOCKED\020\001\022\r\n\tCONNECTED\020\002*\242\001\n\016LoginE"
-  "rrorType\022\033\n\027USERNAME_PASSWORD_ERROR\020\000\022\r\n"
-  "\tFREE_USER\020\001\022\024\n\020CONNECTION_ERROR\020\002\022\r\n\tTF"
-  "A_ERROR\020\003\022\r\n\tTFA_ABORT\020\004\022\027\n\023TWO_PASSWORD"
-  "S_ERROR\020\005\022\027\n\023TWO_PASSWORDS_ABORT\020\006*[\n\017Up"
-  "dateErrorType\022\027\n\023UPDATE_MANUAL_ERROR\020\000\022\026"
-  "\n\022UPDATE_FORCE_ERROR\020\001\022\027\n\023UPDATE_SILENT_"
-  "ERROR\020\002*k\n\022DiskCacheErrorType\022 \n\034DISK_CA"
-  "CHE_UNAVAILABLE_ERROR\020\000\022\036\n\032CANT_MOVE_DIS"
-  "K_CACHE_ERROR\020\001\022\023\n\017DISK_FULL_ERROR\020\002*A\n\025"
-  "MailSettingsErrorType\022\023\n\017IMAP_PORT_ISSUE"
-  "\020\000\022\023\n\017SMTP_PORT_ISSUE\020\0012\247 \n\006Bridge\022I\n\013Ch"
-  "eckTokens\022\034.google.protobuf.StringValue\032"
-  "\034.google.protobuf.StringValue\022\?\n\013AddLogE"
-  "ntry\022\030.grpc.AddLogEntryRequest\032\026.google."
-  "protobuf.Empty\022:\n\010GuiReady\022\026.google.prot"
-  "obuf.Empty\032\026.google.protobuf.Empty\0226\n\004Qu"
-  "it\022\026.google.protobuf.Empty\032\026.google.prot"
-  "obuf.Empty\0229\n\007Restart\022\026.google.protobuf."
-  "Empty\032\026.google.protobuf.Empty\022C\n\rShowOnS"
-  "tartup\022\026.google.protobuf.Empty\032\032.google."
-  "protobuf.BoolValue\022F\n\020ShowSplashScreen\022\026"
-  ".google.protobuf.Empty\032\032.google.protobuf"
-  ".BoolValue\022E\n\017IsFirstGuiStart\022\026.google.p"
-  "rotobuf.Empty\032\032.google.protobuf.BoolValu"
-  "e\022F\n\020SetIsAutostartOn\022\032.google.protobuf."
-  "BoolValue\032\026.google.protobuf.Empty\022C\n\rIsA"
-  "utostartOn\022\026.google.protobuf.Empty\032\032.goo"
-  "gle.protobuf.BoolValue\022F\n\020SetIsBetaEnabl"
-  "ed\022\032.google.protobuf.BoolValue\032\026.google."
-  "protobuf.Empty\022C\n\rIsBetaEnabled\022\026.google"
+  "LoginAbortRequest\022\020\n\010username\030\001 \001(\t\"d\n\020I"
+  "mapSmtpSettings\022\020\n\010imapPort\030\001 \001(\005\022\020\n\010smt"
+  "pPort\030\002 \001(\005\022\025\n\ruseSSLForImap\030\003 \001(\010\022\025\n\rus"
+  "eSSLForSmtp\030\004 \001(\010\"/\n\032AvailableKeychainsR"
+  "esponse\022\021\n\tkeychains\030\001 \003(\t\"\317\001\n\004User\022\n\n\002i"
+  "d\030\001 \001(\t\022\020\n\010username\030\002 \001(\t\022\022\n\navatarText\030"
+  "\003 \001(\t\022\036\n\005state\030\004 \001(\0162\017.grpc.UserState\022\021\n"
+  "\tsplitMode\030\005 \001(\010\022\026\n\016setupGuideSeen\030\006 \001(\010"
+  "\022\021\n\tusedBytes\030\007 \001(\003\022\022\n\ntotalBytes\030\010 \001(\003\022"
+  "\020\n\010password\030\t \001(\014\022\021\n\taddresses\030\n \003(\t\"6\n\024"
+  "UserSplitModeRequest\022\016\n\006userID\030\001 \001(\t\022\016\n\006"
+  "active\030\002 \001(\010\"-\n\020UserListResponse\022\031\n\005user"
+  "s\030\001 \003(\0132\n.grpc.User\"<\n\031ConfigureAppleMai"
+  "lRequest\022\016\n\006userID\030\001 \001(\t\022\017\n\007address\030\002 \001("
+  "\t\",\n\022EventStreamRequest\022\026\n\016ClientPlatfor"
+  "m\030\001 \001(\t\"\314\002\n\013StreamEvent\022\035\n\003app\030\001 \001(\0132\016.g"
+  "rpc.AppEventH\000\022!\n\005login\030\002 \001(\0132\020.grpc.Log"
+  "inEventH\000\022#\n\006update\030\003 \001(\0132\021.grpc.UpdateE"
+  "ventH\000\022%\n\005cache\030\004 \001(\0132\024.grpc.DiskCacheEv"
+  "entH\000\022;\n\022mailServerSettings\030\005 \001(\0132\035.grpc"
+  ".MailServerSettingsEventH\000\022\'\n\010keychain\030\006"
+  " \001(\0132\023.grpc.KeychainEventH\000\022\037\n\004mail\030\007 \001("
+  "\0132\017.grpc.MailEventH\000\022\037\n\004user\030\010 \001(\0132\017.grp"
+  "c.UserEventH\000B\007\n\005event\"\240\003\n\010AppEvent\0223\n\016i"
+  "nternetStatus\030\001 \001(\0132\031.grpc.InternetStatu"
+  "sEventH\000\022E\n\027toggleAutostartFinished\030\002 \001("
+  "\0132\".grpc.ToggleAutostartFinishedEventH\000\022"
+  "1\n\rresetFinished\030\003 \001(\0132\030.grpc.ResetFinis"
+  "hedEventH\000\0229\n\021reportBugFinished\030\004 \001(\0132\034."
+  "grpc.ReportBugFinishedEventH\000\0227\n\020reportB"
+  "ugSuccess\030\005 \001(\0132\033.grpc.ReportBugSuccessE"
+  "ventH\000\0223\n\016reportBugError\030\006 \001(\0132\031.grpc.Re"
+  "portBugErrorEventH\000\0223\n\016showMainWindow\030\007 "
+  "\001(\0132\031.grpc.ShowMainWindowEventH\000B\007\n\005even"
+  "t\"(\n\023InternetStatusEvent\022\021\n\tconnected\030\001 "
+  "\001(\010\"\036\n\034ToggleAutostartFinishedEvent\"\024\n\022R"
+  "esetFinishedEvent\"\030\n\026ReportBugFinishedEv"
+  "ent\"\027\n\025ReportBugSuccessEvent\"\025\n\023ReportBu"
+  "gErrorEvent\"\025\n\023ShowMainWindowEvent\"\235\002\n\nL"
+  "oginEvent\022&\n\005error\030\001 \001(\0132\025.grpc.LoginErr"
+  "orEventH\000\0224\n\014tfaRequested\030\002 \001(\0132\034.grpc.L"
+  "oginTfaRequestedEventH\000\022E\n\024twoPasswordRe"
+  "quested\030\003 \001(\0132%.grpc.LoginTwoPasswordsRe"
+  "questedEventH\000\022,\n\010finished\030\004 \001(\0132\030.grpc."
+  "LoginFinishedEventH\000\0223\n\017alreadyLoggedIn\030"
+  "\005 \001(\0132\030.grpc.LoginFinishedEventH\000B\007\n\005eve"
+  "nt\"F\n\017LoginErrorEvent\022\"\n\004type\030\001 \001(\0162\024.gr"
+  "pc.LoginErrorType\022\017\n\007message\030\002 \001(\t\"*\n\026Lo"
+  "ginTfaRequestedEvent\022\020\n\010username\030\001 \001(\t\"!"
+  "\n\037LoginTwoPasswordsRequestedEvent\"$\n\022Log"
+  "inFinishedEvent\022\016\n\006userID\030\001 \001(\t\"\304\003\n\013Upda"
+  "teEvent\022\'\n\005error\030\001 \001(\0132\026.grpc.UpdateErro"
+  "rEventH\000\0223\n\013manualReady\030\002 \001(\0132\034.grpc.Upd"
+  "ateManualReadyEventH\000\022C\n\023manualRestartNe"
+  "eded\030\003 \001(\0132$.grpc.UpdateManualRestartNee"
+  "dedEventH\000\022\'\n\005force\030\004 \001(\0132\026.grpc.UpdateF"
+  "orceEventH\000\022>\n\023silentRestartNeeded\030\005 \001(\013"
+  "2\037.grpc.UpdateSilentRestartNeededH\000\0226\n\017i"
+  "sLatestVersion\030\006 \001(\0132\033.grpc.UpdateIsLate"
+  "stVersionH\000\0222\n\rcheckFinished\030\007 \001(\0132\031.grp"
+  "c.UpdateCheckFinishedH\000\0224\n\016versionChange"
+  "d\030\010 \001(\0132\032.grpc.UpdateVersionChangedH\000B\007\n"
+  "\005event\"7\n\020UpdateErrorEvent\022#\n\004type\030\001 \001(\016"
+  "2\025.grpc.UpdateErrorType\")\n\026UpdateManualR"
+  "eadyEvent\022\017\n\007version\030\001 \001(\t\" \n\036UpdateManu"
+  "alRestartNeededEvent\"#\n\020UpdateForceEvent"
+  "\022\017\n\007version\030\001 \001(\t\"\033\n\031UpdateSilentRestart"
+  "Needed\"\027\n\025UpdateIsLatestVersion\"\025\n\023Updat"
+  "eCheckFinished\"\026\n\024UpdateVersionChanged\"\303"
+  "\001\n\016DiskCacheEvent\022*\n\005error\030\001 \001(\0132\031.grpc."
+  "DiskCacheErrorEventH\000\0226\n\013pathChanged\030\002 \001"
+  "(\0132\037.grpc.DiskCachePathChangedEventH\000\022D\n"
+  "\022pathChangeFinished\030\003 \001(\0132&.grpc.DiskCac"
+  "hePathChangeFinishedEventH\000B\007\n\005event\"=\n\023"
+  "DiskCacheErrorEvent\022&\n\004type\030\001 \001(\0162\030.grpc"
+  ".DiskCacheErrorType\")\n\031DiskCachePathChan"
+  "gedEvent\022\014\n\004path\030\001 \001(\t\"\"\n DiskCachePathC"
+  "hangeFinishedEvent\"\373\001\n\027MailServerSetting"
+  "sEvent\0223\n\005error\030\001 \001(\0132\".grpc.MailServerS"
+  "ettingsErrorEventH\000\022I\n\031mailServerSetting"
+  "sChanged\030\002 \001(\0132$.grpc.MailServerSettings"
+  "ChangedEventH\000\022W\n changeMailServerSettin"
+  "gsFinished\030\003 \001(\0132+.grpc.ChangeMailServer"
+  "SettingsFinishedEventH\000B\007\n\005event\"O\n\034Mail"
+  "ServerSettingsErrorEvent\022/\n\004type\030\001 \001(\0162!"
+  ".grpc.MailServerSettingsErrorType\"J\n\036Mai"
+  "lServerSettingsChangedEvent\022(\n\010settings\030"
+  "\001 \001(\0132\026.grpc.ImapSmtpSettings\"\'\n%ChangeM"
+  "ailServerSettingsFinishedEvent\"\307\001\n\rKeych"
+  "ainEvent\022C\n\026changeKeychainFinished\030\001 \001(\013"
+  "2!.grpc.ChangeKeychainFinishedEventH\000\0221\n"
+  "\rhasNoKeychain\030\002 \001(\0132\030.grpc.HasNoKeychai"
+  "nEventH\000\0225\n\017rebuildKeychain\030\003 \001(\0132\032.grpc"
+  ".RebuildKeychainEventH\000B\007\n\005event\"\035\n\033Chan"
+  "geKeychainFinishedEvent\"\024\n\022HasNoKeychain"
+  "Event\"\026\n\024RebuildKeychainEvent\"\207\002\n\tMailEv"
+  "ent\022J\n\034noActiveKeyForRecipientEvent\030\001 \001("
+  "\0132\".grpc.NoActiveKeyForRecipientEventH\000\022"
+  "3\n\016addressChanged\030\002 \001(\0132\031.grpc.AddressCh"
+  "angedEventH\000\022\?\n\024addressChangedLogout\030\003 \001"
+  "(\0132\037.grpc.AddressChangedLogoutEventH\000\022/\n"
+  "\014apiCertIssue\030\006 \001(\0132\027.grpc.ApiCertIssueE"
+  "ventH\000B\007\n\005event\"-\n\034NoActiveKeyForRecipie"
+  "ntEvent\022\r\n\005email\030\001 \001(\t\"&\n\023AddressChanged"
+  "Event\022\017\n\007address\030\001 \001(\t\",\n\031AddressChanged"
+  "LogoutEvent\022\017\n\007address\030\001 \001(\t\"\023\n\021ApiCertI"
+  "ssueEvent\"\303\001\n\tUserEvent\022E\n\027toggleSplitMo"
+  "deFinished\030\001 \001(\0132\".grpc.ToggleSplitModeF"
+  "inishedEventH\000\0227\n\020userDisconnected\030\002 \001(\013"
+  "2\033.grpc.UserDisconnectedEventH\000\022-\n\013userC"
+  "hanged\030\003 \001(\0132\026.grpc.UserChangedEventH\000B\007"
+  "\n\005event\".\n\034ToggleSplitModeFinishedEvent\022"
+  "\016\n\006userID\030\001 \001(\t\")\n\025UserDisconnectedEvent"
+  "\022\020\n\010username\030\001 \001(\t\"\"\n\020UserChangedEvent\022\016"
+  "\n\006userID\030\001 \001(\t*q\n\010LogLevel\022\r\n\tLOG_PANIC\020"
+  "\000\022\r\n\tLOG_FATAL\020\001\022\r\n\tLOG_ERROR\020\002\022\014\n\010LOG_W"
+  "ARN\020\003\022\014\n\010LOG_INFO\020\004\022\r\n\tLOG_DEBUG\020\005\022\r\n\tLO"
+  "G_TRACE\020\006*6\n\tUserState\022\016\n\nSIGNED_OUT\020\000\022\n"
+  "\n\006LOCKED\020\001\022\r\n\tCONNECTED\020\002*\242\001\n\016LoginError"
+  "Type\022\033\n\027USERNAME_PASSWORD_ERROR\020\000\022\r\n\tFRE"
+  "E_USER\020\001\022\024\n\020CONNECTION_ERROR\020\002\022\r\n\tTFA_ER"
+  "ROR\020\003\022\r\n\tTFA_ABORT\020\004\022\027\n\023TWO_PASSWORDS_ER"
+  "ROR\020\005\022\027\n\023TWO_PASSWORDS_ABORT\020\006*[\n\017Update"
+  "ErrorType\022\027\n\023UPDATE_MANUAL_ERROR\020\000\022\026\n\022UP"
+  "DATE_FORCE_ERROR\020\001\022\027\n\023UPDATE_SILENT_ERRO"
+  "R\020\002*k\n\022DiskCacheErrorType\022 \n\034DISK_CACHE_"
+  "UNAVAILABLE_ERROR\020\000\022\036\n\032CANT_MOVE_DISK_CA"
+  "CHE_ERROR\020\001\022\023\n\017DISK_FULL_ERROR\020\002*\335\001\n\033Mai"
+  "lServerSettingsErrorType\022\033\n\027IMAP_PORT_ST"
+  "ARTUP_ERROR\020\000\022\033\n\027SMTP_PORT_STARTUP_ERROR"
+  "\020\001\022\032\n\026IMAP_PORT_CHANGE_ERROR\020\002\022\032\n\026SMTP_P"
+  "ORT_CHANGE_ERROR\020\003\022%\n!IMAP_CONNECTION_MO"
+  "DE_CHANGE_ERROR\020\004\022%\n!SMTP_CONNECTION_MOD"
+  "E_CHANGE_ERROR\020\0052\331\035\n\006Bridge\022I\n\013CheckToke"
+  "ns\022\034.google.protobuf.StringValue\032\034.googl"
+  "e.protobuf.StringValue\022\?\n\013AddLogEntry\022\030."
+  "grpc.AddLogEntryRequest\032\026.google.protobu"
+  "f.Empty\022:\n\010GuiReady\022\026.google.protobuf.Em"
+  "pty\032\026.google.protobuf.Empty\0226\n\004Quit\022\026.go"
+  "ogle.protobuf.Empty\032\026.google.protobuf.Em"
+  "pty\0229\n\007Restart\022\026.google.protobuf.Empty\032\026"
+  ".google.protobuf.Empty\022C\n\rShowOnStartup\022"
+  "\026.google.protobuf.Empty\032\032.google.protobu"
+  "f.BoolValue\022F\n\020ShowSplashScreen\022\026.google"
   ".protobuf.Empty\032\032.google.protobuf.BoolVa"
-  "lue\022I\n\023SetIsAllMailVisible\022\032.google.prot"
-  "obuf.BoolValue\032\026.google.protobuf.Empty\022F"
-  "\n\020IsAllMailVisible\022\026.google.protobuf.Emp"
-  "ty\032\032.google.protobuf.BoolValue\022<\n\004GoOs\022\026"
-  ".google.protobuf.Empty\032\034.google.protobuf"
-  ".StringValue\022>\n\014TriggerReset\022\026.google.pr"
-  "otobuf.Empty\032\026.google.protobuf.Empty\022\?\n\007"
-  "Version\022\026.google.protobuf.Empty\032\034.google"
-  ".protobuf.StringValue\022@\n\010LogsPath\022\026.goog"
-  "le.protobuf.Empty\032\034.google.protobuf.Stri"
-  "ngValue\022C\n\013LicensePath\022\026.google.protobuf"
-  ".Empty\032\034.google.protobuf.StringValue\022L\n\024"
-  "ReleaseNotesPageLink\022\026.google.protobuf.E"
-  "mpty\032\034.google.protobuf.StringValue\022N\n\026De"
-  "pendencyLicensesLink\022\026.google.protobuf.E"
-  "mpty\032\034.google.protobuf.StringValue\022G\n\017La"
-  "ndingPageLink\022\026.google.protobuf.Empty\032\034."
-  "google.protobuf.StringValue\022J\n\022SetColorS"
-  "chemeName\022\034.google.protobuf.StringValue\032"
-  "\026.google.protobuf.Empty\022G\n\017ColorSchemeNa"
-  "me\022\026.google.protobuf.Empty\032\034.google.prot"
-  "obuf.StringValue\022J\n\022CurrentEmailClient\022\026"
-  ".google.protobuf.Empty\032\034.google.protobuf"
-  ".StringValue\022;\n\tReportBug\022\026.grpc.ReportB"
-  "ugRequest\032\026.google.protobuf.Empty\022E\n\rFor"
-  "ceLauncher\022\034.google.protobuf.StringValue"
-  "\032\026.google.protobuf.Empty\022I\n\021SetMainExecu"
-  "table\022\034.google.protobuf.StringValue\032\026.go"
-  "ogle.protobuf.Empty\0223\n\005Login\022\022.grpc.Logi"
-  "nRequest\032\026.google.protobuf.Empty\0226\n\010Logi"
-  "n2FA\022\022.grpc.LoginRequest\032\026.google.protob"
-  "uf.Empty\022=\n\017Login2Passwords\022\022.grpc.Login"
-  "Request\032\026.google.protobuf.Empty\022=\n\nLogin"
-  "Abort\022\027.grpc.LoginAbortRequest\032\026.google."
-  "protobuf.Empty\022=\n\013CheckUpdate\022\026.google.p"
-  "rotobuf.Empty\032\026.google.protobuf.Empty\022\?\n"
-  "\rInstallUpdate\022\026.google.protobuf.Empty\032\026"
-  ".google.protobuf.Empty\022L\n\026SetIsAutomatic"
-  "UpdateOn\022\032.google.protobuf.BoolValue\032\026.g"
-  "oogle.protobuf.Empty\022I\n\023IsAutomaticUpdat"
-  "eOn\022\026.google.protobuf.Empty\032\032.google.pro"
-  "tobuf.BoolValue\022E\n\rDiskCachePath\022\026.googl"
-  "e.protobuf.Empty\032\034.google.protobuf.Strin"
-  "gValue\022H\n\020SetDiskCachePath\022\034.google.prot"
-  "obuf.StringValue\032\026.google.protobuf.Empty"
-  "\022E\n\017SetIsDoHEnabled\022\032.google.protobuf.Bo"
-  "olValue\032\026.google.protobuf.Empty\022B\n\014IsDoH"
-  "Enabled\022\026.google.protobuf.Empty\032\032.google"
-  ".protobuf.BoolValue\022F\n\020SetUseSslForSmtp\022"
-  "\032.google.protobuf.BoolValue\032\026.google.pro"
-  "tobuf.Empty\022C\n\rUseSslForSmtp\022\026.google.pr"
-  "otobuf.Empty\032\032.google.protobuf.BoolValue"
-  "\022F\n\020SetUseSslForImap\022\032.google.protobuf.B"
-  "oolValue\032\026.google.protobuf.Empty\022C\n\rUseS"
-  "slForImap\022\026.google.protobuf.Empty\032\032.goog"
-  "le.protobuf.BoolValue\022@\n\010Hostname\022\026.goog"
-  "le.protobuf.Empty\032\034.google.protobuf.Stri"
-  "ngValue\022\?\n\010ImapPort\022\026.google.protobuf.Em"
-  "pty\032\033.google.protobuf.Int32Value\022\?\n\010Smtp"
-  "Port\022\026.google.protobuf.Empty\032\033.google.pr"
-  "otobuf.Int32Value\022\?\n\013ChangePorts\022\030.grpc."
-  "ChangePortsRequest\032\026.google.protobuf.Emp"
-  "ty\022E\n\nIsPortFree\022\033.google.protobuf.Int32"
-  "Value\032\032.google.protobuf.BoolValue\022N\n\022Ava"
-  "ilableKeychains\022\026.google.protobuf.Empty\032"
-  " .grpc.AvailableKeychainsResponse\022J\n\022Set"
-  "CurrentKeychain\022\034.google.protobuf.String"
-  "Value\032\026.google.protobuf.Empty\022G\n\017Current"
-  "Keychain\022\026.google.protobuf.Empty\032\034.googl"
-  "e.protobuf.StringValue\022=\n\013GetUserList\022\026."
-  "google.protobuf.Empty\032\026.grpc.UserListRes"
-  "ponse\0223\n\007GetUser\022\034.google.protobuf.Strin"
-  "gValue\032\n.grpc.User\022F\n\020SetUserSplitMode\022\032"
-  ".grpc.UserSplitModeRequest\032\026.google.prot"
-  "obuf.Empty\022B\n\nLogoutUser\022\034.google.protob"
-  "uf.StringValue\032\026.google.protobuf.Empty\022B"
-  "\n\nRemoveUser\022\034.google.protobuf.StringVal"
-  "ue\032\026.google.protobuf.Empty\022Q\n\026ConfigureU"
-  "serAppleMail\022\037.grpc.ConfigureAppleMailRe"
-  "quest\032\026.google.protobuf.Empty\022\?\n\016RunEven"
-  "tStream\022\030.grpc.EventStreamRequest\032\021.grpc"
-  ".StreamEvent0\001\022A\n\017StopEventStream\022\026.goog"
-  "le.protobuf.Empty\032\026.google.protobuf.Empt"
-  "yB6Z4github.com/ProtonMail/proton-bridge"
-  "/v2/internal/grpcb\006proto3"
+  "lue\022E\n\017IsFirstGuiStart\022\026.google.protobuf"
+  ".Empty\032\032.google.protobuf.BoolValue\022F\n\020Se"
+  "tIsAutostartOn\022\032.google.protobuf.BoolVal"
+  "ue\032\026.google.protobuf.Empty\022C\n\rIsAutostar"
+  "tOn\022\026.google.protobuf.Empty\032\032.google.pro"
+  "tobuf.BoolValue\022F\n\020SetIsBetaEnabled\022\032.go"
+  "ogle.protobuf.BoolValue\032\026.google.protobu"
+  "f.Empty\022C\n\rIsBetaEnabled\022\026.google.protob"
+  "uf.Empty\032\032.google.protobuf.BoolValue\022I\n\023"
+  "SetIsAllMailVisible\022\032.google.protobuf.Bo"
+  "olValue\032\026.google.protobuf.Empty\022F\n\020IsAll"
+  "MailVisible\022\026.google.protobuf.Empty\032\032.go"
+  "ogle.protobuf.BoolValue\022<\n\004GoOs\022\026.google"
+  ".protobuf.Empty\032\034.google.protobuf.String"
+  "Value\022>\n\014TriggerReset\022\026.google.protobuf."
+  "Empty\032\026.google.protobuf.Empty\022\?\n\007Version"
+  "\022\026.google.protobuf.Empty\032\034.google.protob"
+  "uf.StringValue\022@\n\010LogsPath\022\026.google.prot"
+  "obuf.Empty\032\034.google.protobuf.StringValue"
+  "\022C\n\013LicensePath\022\026.google.protobuf.Empty\032"
+  "\034.google.protobuf.StringValue\022L\n\024Release"
+  "NotesPageLink\022\026.google.protobuf.Empty\032\034."
+  "google.protobuf.StringValue\022N\n\026Dependenc"
+  "yLicensesLink\022\026.google.protobuf.Empty\032\034."
+  "google.protobuf.StringValue\022G\n\017LandingPa"
+  "geLink\022\026.google.protobuf.Empty\032\034.google."
+  "protobuf.StringValue\022J\n\022SetColorSchemeNa"
+  "me\022\034.google.protobuf.StringValue\032\026.googl"
+  "e.protobuf.Empty\022G\n\017ColorSchemeName\022\026.go"
+  "ogle.protobuf.Empty\032\034.google.protobuf.St"
+  "ringValue\022J\n\022CurrentEmailClient\022\026.google"
+  ".protobuf.Empty\032\034.google.protobuf.String"
+  "Value\022;\n\tReportBug\022\026.grpc.ReportBugReque"
+  "st\032\026.google.protobuf.Empty\022E\n\rForceLaunc"
+  "her\022\034.google.protobuf.StringValue\032\026.goog"
+  "le.protobuf.Empty\022I\n\021SetMainExecutable\022\034"
+  ".google.protobuf.StringValue\032\026.google.pr"
+  "otobuf.Empty\0223\n\005Login\022\022.grpc.LoginReques"
+  "t\032\026.google.protobuf.Empty\0226\n\010Login2FA\022\022."
+  "grpc.LoginRequest\032\026.google.protobuf.Empt"
+  "y\022=\n\017Login2Passwords\022\022.grpc.LoginRequest"
+  "\032\026.google.protobuf.Empty\022=\n\nLoginAbort\022\027"
+  ".grpc.LoginAbortRequest\032\026.google.protobu"
+  "f.Empty\022=\n\013CheckUpdate\022\026.google.protobuf"
+  ".Empty\032\026.google.protobuf.Empty\022\?\n\rInstal"
+  "lUpdate\022\026.google.protobuf.Empty\032\026.google"
+  ".protobuf.Empty\022L\n\026SetIsAutomaticUpdateO"
+  "n\022\032.google.protobuf.BoolValue\032\026.google.p"
+  "rotobuf.Empty\022I\n\023IsAutomaticUpdateOn\022\026.g"
+  "oogle.protobuf.Empty\032\032.google.protobuf.B"
+  "oolValue\022E\n\rDiskCachePath\022\026.google.proto"
+  "buf.Empty\032\034.google.protobuf.StringValue\022"
+  "H\n\020SetDiskCachePath\022\034.google.protobuf.St"
+  "ringValue\032\026.google.protobuf.Empty\022E\n\017Set"
+  "IsDoHEnabled\022\032.google.protobuf.BoolValue"
+  "\032\026.google.protobuf.Empty\022B\n\014IsDoHEnabled"
+  "\022\026.google.protobuf.Empty\032\032.google.protob"
+  "uf.BoolValue\022D\n\022MailServerSettings\022\026.goo"
+  "gle.protobuf.Empty\032\026.grpc.ImapSmtpSettin"
+  "gs\022G\n\025SetMailServerSettings\022\026.grpc.ImapS"
+  "mtpSettings\032\026.google.protobuf.Empty\022@\n\010H"
+  "ostname\022\026.google.protobuf.Empty\032\034.google"
+  ".protobuf.StringValue\022E\n\nIsPortFree\022\033.go"
+  "ogle.protobuf.Int32Value\032\032.google.protob"
+  "uf.BoolValue\022N\n\022AvailableKeychains\022\026.goo"
+  "gle.protobuf.Empty\032 .grpc.AvailableKeych"
+  "ainsResponse\022J\n\022SetCurrentKeychain\022\034.goo"
+  "gle.protobuf.StringValue\032\026.google.protob"
+  "uf.Empty\022G\n\017CurrentKeychain\022\026.google.pro"
+  "tobuf.Empty\032\034.google.protobuf.StringValu"
+  "e\022=\n\013GetUserList\022\026.google.protobuf.Empty"
+  "\032\026.grpc.UserListResponse\0223\n\007GetUser\022\034.go"
+  "ogle.protobuf.StringValue\032\n.grpc.User\022F\n"
+  "\020SetUserSplitMode\022\032.grpc.UserSplitModeRe"
+  "quest\032\026.google.protobuf.Empty\022B\n\nLogoutU"
+  "ser\022\034.google.protobuf.StringValue\032\026.goog"
+  "le.protobuf.Empty\022B\n\nRemoveUser\022\034.google"
+  ".protobuf.StringValue\032\026.google.protobuf."
+  "Empty\022Q\n\026ConfigureUserAppleMail\022\037.grpc.C"
+  "onfigureAppleMailRequest\032\026.google.protob"
+  "uf.Empty\022\?\n\016RunEventStream\022\030.grpc.EventS"
+  "treamRequest\032\021.grpc.StreamEvent0\001\022A\n\017Sto"
+  "pEventStream\022\026.google.protobuf.Empty\032\026.g"
+  "oogle.protobuf.EmptyB6Z4github.com/Proto"
+  "nMail/proton-bridge/v2/internal/grpcb\006pr"
+  "oto3"
   ;
 static const ::_pbi::DescriptorTable* const descriptor_table_bridge_2eproto_deps[2] = {
   &::descriptor_table_google_2fprotobuf_2fempty_2eproto,
@@ -1552,9 +1537,9 @@ static const ::_pbi::DescriptorTable* const descriptor_table_bridge_2eproto_deps
 };
 static ::_pbi::once_flag descriptor_table_bridge_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_bridge_2eproto = {
-    false, false, 9665, descriptor_table_protodef_bridge_2eproto,
+    false, false, 9564, descriptor_table_protodef_bridge_2eproto,
     "bridge.proto",
-    &descriptor_table_bridge_2eproto_once, descriptor_table_bridge_2eproto_deps, 2, 56,
+    &descriptor_table_bridge_2eproto_once, descriptor_table_bridge_2eproto_deps, 2, 55,
     schemas, file_default_instances, TableStruct_bridge_2eproto::offsets,
     file_level_metadata_bridge_2eproto, file_level_enum_descriptors_bridge_2eproto,
     file_level_service_descriptors_bridge_2eproto,
@@ -1649,14 +1634,18 @@ bool DiskCacheErrorType_IsValid(int value) {
   }
 }
 
-const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* MailSettingsErrorType_descriptor() {
+const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* MailServerSettingsErrorType_descriptor() {
   ::PROTOBUF_NAMESPACE_ID::internal::AssignDescriptors(&descriptor_table_bridge_2eproto);
   return file_level_enum_descriptors_bridge_2eproto[5];
 }
-bool MailSettingsErrorType_IsValid(int value) {
+bool MailServerSettingsErrorType_IsValid(int value) {
   switch (value) {
     case 0:
     case 1:
+    case 2:
+    case 3:
+    case 4:
+    case 5:
       return true;
     default:
       return false;
@@ -2830,44 +2819,48 @@ void LoginAbortRequest::InternalSwap(LoginAbortRequest* other) {
 
 // ===================================================================
 
-class ChangePortsRequest::_Internal {
+class ImapSmtpSettings::_Internal {
  public:
 };
 
-ChangePortsRequest::ChangePortsRequest(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+ImapSmtpSettings::ImapSmtpSettings(::PROTOBUF_NAMESPACE_ID::Arena* arena,
                          bool is_message_owned)
   : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
   SharedCtor(arena, is_message_owned);
-  // @@protoc_insertion_point(arena_constructor:grpc.ChangePortsRequest)
+  // @@protoc_insertion_point(arena_constructor:grpc.ImapSmtpSettings)
 }
-ChangePortsRequest::ChangePortsRequest(const ChangePortsRequest& from)
+ImapSmtpSettings::ImapSmtpSettings(const ImapSmtpSettings& from)
   : ::PROTOBUF_NAMESPACE_ID::Message() {
-  ChangePortsRequest* const _this = this; (void)_this;
+  ImapSmtpSettings* const _this = this; (void)_this;
   new (&_impl_) Impl_{
       decltype(_impl_.imapport_){}
     , decltype(_impl_.smtpport_){}
+    , decltype(_impl_.usesslforimap_){}
+    , decltype(_impl_.usesslforsmtp_){}
     , /*decltype(_impl_._cached_size_)*/{}};
 
   _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
   ::memcpy(&_impl_.imapport_, &from._impl_.imapport_,
-    static_cast<size_t>(reinterpret_cast<char*>(&_impl_.smtpport_) -
-    reinterpret_cast<char*>(&_impl_.imapport_)) + sizeof(_impl_.smtpport_));
-  // @@protoc_insertion_point(copy_constructor:grpc.ChangePortsRequest)
+    static_cast<size_t>(reinterpret_cast<char*>(&_impl_.usesslforsmtp_) -
+    reinterpret_cast<char*>(&_impl_.imapport_)) + sizeof(_impl_.usesslforsmtp_));
+  // @@protoc_insertion_point(copy_constructor:grpc.ImapSmtpSettings)
 }
 
-inline void ChangePortsRequest::SharedCtor(
+inline void ImapSmtpSettings::SharedCtor(
     ::_pb::Arena* arena, bool is_message_owned) {
   (void)arena;
   (void)is_message_owned;
   new (&_impl_) Impl_{
       decltype(_impl_.imapport_){0}
     , decltype(_impl_.smtpport_){0}
+    , decltype(_impl_.usesslforimap_){false}
+    , decltype(_impl_.usesslforsmtp_){false}
     , /*decltype(_impl_._cached_size_)*/{}
   };
 }
 
-ChangePortsRequest::~ChangePortsRequest() {
-  // @@protoc_insertion_point(destructor:grpc.ChangePortsRequest)
+ImapSmtpSettings::~ImapSmtpSettings() {
+  // @@protoc_insertion_point(destructor:grpc.ImapSmtpSettings)
   if (auto *arena = _internal_metadata_.DeleteReturnArena<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>()) {
   (void)arena;
     return;
@@ -2875,27 +2868,27 @@ ChangePortsRequest::~ChangePortsRequest() {
   SharedDtor();
 }
 
-inline void ChangePortsRequest::SharedDtor() {
+inline void ImapSmtpSettings::SharedDtor() {
   GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
 }
 
-void ChangePortsRequest::SetCachedSize(int size) const {
+void ImapSmtpSettings::SetCachedSize(int size) const {
   _impl_._cached_size_.Set(size);
 }
 
-void ChangePortsRequest::Clear() {
-// @@protoc_insertion_point(message_clear_start:grpc.ChangePortsRequest)
+void ImapSmtpSettings::Clear() {
+// @@protoc_insertion_point(message_clear_start:grpc.ImapSmtpSettings)
   uint32_t cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
   ::memset(&_impl_.imapport_, 0, static_cast<size_t>(
-      reinterpret_cast<char*>(&_impl_.smtpport_) -
-      reinterpret_cast<char*>(&_impl_.imapport_)) + sizeof(_impl_.smtpport_));
+      reinterpret_cast<char*>(&_impl_.usesslforsmtp_) -
+      reinterpret_cast<char*>(&_impl_.imapport_)) + sizeof(_impl_.usesslforsmtp_));
   _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
 }
 
-const char* ChangePortsRequest::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
+const char* ImapSmtpSettings::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
 #define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
   while (!ctx->Done(&ptr)) {
     uint32_t tag;
@@ -2913,6 +2906,22 @@ const char* ChangePortsRequest::_InternalParse(const char* ptr, ::_pbi::ParseCon
       case 2:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 16)) {
           _impl_.smtpport_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // bool useSSLForImap = 3;
+      case 3:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 24)) {
+          _impl_.usesslforimap_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // bool useSSLForSmtp = 4;
+      case 4:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 32)) {
+          _impl_.usesslforsmtp_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
           CHK_(ptr);
         } else
           goto handle_unusual;
@@ -2940,9 +2949,9 @@ failure:
 #undef CHK_
 }
 
-uint8_t* ChangePortsRequest::_InternalSerialize(
+uint8_t* ImapSmtpSettings::_InternalSerialize(
     uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
-  // @@protoc_insertion_point(serialize_to_array_start:grpc.ChangePortsRequest)
+  // @@protoc_insertion_point(serialize_to_array_start:grpc.ImapSmtpSettings)
   uint32_t cached_has_bits = 0;
   (void) cached_has_bits;
 
@@ -2958,16 +2967,28 @@ uint8_t* ChangePortsRequest::_InternalSerialize(
     target = ::_pbi::WireFormatLite::WriteInt32ToArray(2, this->_internal_smtpport(), target);
   }
 
+  // bool useSSLForImap = 3;
+  if (this->_internal_usesslforimap() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteBoolToArray(3, this->_internal_usesslforimap(), target);
+  }
+
+  // bool useSSLForSmtp = 4;
+  if (this->_internal_usesslforsmtp() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteBoolToArray(4, this->_internal_usesslforsmtp(), target);
+  }
+
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
     target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
         _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
   }
-  // @@protoc_insertion_point(serialize_to_array_end:grpc.ChangePortsRequest)
+  // @@protoc_insertion_point(serialize_to_array_end:grpc.ImapSmtpSettings)
   return target;
 }
 
-size_t ChangePortsRequest::ByteSizeLong() const {
-// @@protoc_insertion_point(message_byte_size_start:grpc.ChangePortsRequest)
+size_t ImapSmtpSettings::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:grpc.ImapSmtpSettings)
   size_t total_size = 0;
 
   uint32_t cached_has_bits = 0;
@@ -2984,20 +3005,30 @@ size_t ChangePortsRequest::ByteSizeLong() const {
     total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_smtpport());
   }
 
+  // bool useSSLForImap = 3;
+  if (this->_internal_usesslforimap() != 0) {
+    total_size += 1 + 1;
+  }
+
+  // bool useSSLForSmtp = 4;
+  if (this->_internal_usesslforsmtp() != 0) {
+    total_size += 1 + 1;
+  }
+
   return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
 }
 
-const ::PROTOBUF_NAMESPACE_ID::Message::ClassData ChangePortsRequest::_class_data_ = {
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData ImapSmtpSettings::_class_data_ = {
     ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSourceCheck,
-    ChangePortsRequest::MergeImpl
+    ImapSmtpSettings::MergeImpl
 };
-const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*ChangePortsRequest::GetClassData() const { return &_class_data_; }
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*ImapSmtpSettings::GetClassData() const { return &_class_data_; }
 
 
-void ChangePortsRequest::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
-  auto* const _this = static_cast<ChangePortsRequest*>(&to_msg);
-  auto& from = static_cast<const ChangePortsRequest&>(from_msg);
-  // @@protoc_insertion_point(class_specific_merge_from_start:grpc.ChangePortsRequest)
+void ImapSmtpSettings::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
+  auto* const _this = static_cast<ImapSmtpSettings*>(&to_msg);
+  auto& from = static_cast<const ImapSmtpSettings&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:grpc.ImapSmtpSettings)
   GOOGLE_DCHECK_NE(&from, _this);
   uint32_t cached_has_bits = 0;
   (void) cached_has_bits;
@@ -3008,32 +3039,38 @@ void ChangePortsRequest::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, con
   if (from._internal_smtpport() != 0) {
     _this->_internal_set_smtpport(from._internal_smtpport());
   }
+  if (from._internal_usesslforimap() != 0) {
+    _this->_internal_set_usesslforimap(from._internal_usesslforimap());
+  }
+  if (from._internal_usesslforsmtp() != 0) {
+    _this->_internal_set_usesslforsmtp(from._internal_usesslforsmtp());
+  }
   _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
 }
 
-void ChangePortsRequest::CopyFrom(const ChangePortsRequest& from) {
-// @@protoc_insertion_point(class_specific_copy_from_start:grpc.ChangePortsRequest)
+void ImapSmtpSettings::CopyFrom(const ImapSmtpSettings& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:grpc.ImapSmtpSettings)
   if (&from == this) return;
   Clear();
   MergeFrom(from);
 }
 
-bool ChangePortsRequest::IsInitialized() const {
+bool ImapSmtpSettings::IsInitialized() const {
   return true;
 }
 
-void ChangePortsRequest::InternalSwap(ChangePortsRequest* other) {
+void ImapSmtpSettings::InternalSwap(ImapSmtpSettings* other) {
   using std::swap;
   _internal_metadata_.InternalSwap(&other->_internal_metadata_);
   ::PROTOBUF_NAMESPACE_ID::internal::memswap<
-      PROTOBUF_FIELD_OFFSET(ChangePortsRequest, _impl_.smtpport_)
-      + sizeof(ChangePortsRequest::_impl_.smtpport_)
-      - PROTOBUF_FIELD_OFFSET(ChangePortsRequest, _impl_.imapport_)>(
+      PROTOBUF_FIELD_OFFSET(ImapSmtpSettings, _impl_.usesslforsmtp_)
+      + sizeof(ImapSmtpSettings::_impl_.usesslforsmtp_)
+      - PROTOBUF_FIELD_OFFSET(ImapSmtpSettings, _impl_.imapport_)>(
           reinterpret_cast<char*>(&_impl_.imapport_),
           reinterpret_cast<char*>(&other->_impl_.imapport_));
 }
 
-::PROTOBUF_NAMESPACE_ID::Metadata ChangePortsRequest::GetMetadata() const {
+::PROTOBUF_NAMESPACE_ID::Metadata ImapSmtpSettings::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_bridge_2eproto_getter, &descriptor_table_bridge_2eproto_once,
       file_level_metadata_bridge_2eproto[4]);
@@ -4630,7 +4667,7 @@ class StreamEvent::_Internal {
   static const ::grpc::LoginEvent& login(const StreamEvent* msg);
   static const ::grpc::UpdateEvent& update(const StreamEvent* msg);
   static const ::grpc::DiskCacheEvent& cache(const StreamEvent* msg);
-  static const ::grpc::MailSettingsEvent& mailsettings(const StreamEvent* msg);
+  static const ::grpc::MailServerSettingsEvent& mailserversettings(const StreamEvent* msg);
   static const ::grpc::KeychainEvent& keychain(const StreamEvent* msg);
   static const ::grpc::MailEvent& mail(const StreamEvent* msg);
   static const ::grpc::UserEvent& user(const StreamEvent* msg);
@@ -4652,9 +4689,9 @@ const ::grpc::DiskCacheEvent&
 StreamEvent::_Internal::cache(const StreamEvent* msg) {
   return *msg->_impl_.event_.cache_;
 }
-const ::grpc::MailSettingsEvent&
-StreamEvent::_Internal::mailsettings(const StreamEvent* msg) {
-  return *msg->_impl_.event_.mailsettings_;
+const ::grpc::MailServerSettingsEvent&
+StreamEvent::_Internal::mailserversettings(const StreamEvent* msg) {
+  return *msg->_impl_.event_.mailserversettings_;
 }
 const ::grpc::KeychainEvent&
 StreamEvent::_Internal::keychain(const StreamEvent* msg) {
@@ -4728,20 +4765,20 @@ void StreamEvent::set_allocated_cache(::grpc::DiskCacheEvent* cache) {
   }
   // @@protoc_insertion_point(field_set_allocated:grpc.StreamEvent.cache)
 }
-void StreamEvent::set_allocated_mailsettings(::grpc::MailSettingsEvent* mailsettings) {
+void StreamEvent::set_allocated_mailserversettings(::grpc::MailServerSettingsEvent* mailserversettings) {
   ::PROTOBUF_NAMESPACE_ID::Arena* message_arena = GetArenaForAllocation();
   clear_event();
-  if (mailsettings) {
+  if (mailserversettings) {
     ::PROTOBUF_NAMESPACE_ID::Arena* submessage_arena =
-      ::PROTOBUF_NAMESPACE_ID::Arena::InternalGetOwningArena(mailsettings);
+      ::PROTOBUF_NAMESPACE_ID::Arena::InternalGetOwningArena(mailserversettings);
     if (message_arena != submessage_arena) {
-      mailsettings = ::PROTOBUF_NAMESPACE_ID::internal::GetOwnedMessage(
-          message_arena, mailsettings, submessage_arena);
+      mailserversettings = ::PROTOBUF_NAMESPACE_ID::internal::GetOwnedMessage(
+          message_arena, mailserversettings, submessage_arena);
     }
-    set_has_mailsettings();
-    _impl_.event_.mailsettings_ = mailsettings;
+    set_has_mailserversettings();
+    _impl_.event_.mailserversettings_ = mailserversettings;
   }
-  // @@protoc_insertion_point(field_set_allocated:grpc.StreamEvent.mailSettings)
+  // @@protoc_insertion_point(field_set_allocated:grpc.StreamEvent.mailServerSettings)
 }
 void StreamEvent::set_allocated_keychain(::grpc::KeychainEvent* keychain) {
   ::PROTOBUF_NAMESPACE_ID::Arena* message_arena = GetArenaForAllocation();
@@ -4825,9 +4862,9 @@ StreamEvent::StreamEvent(const StreamEvent& from)
           from._internal_cache());
       break;
     }
-    case kMailSettings: {
-      _this->_internal_mutable_mailsettings()->::grpc::MailSettingsEvent::MergeFrom(
-          from._internal_mailsettings());
+    case kMailServerSettings: {
+      _this->_internal_mutable_mailserversettings()->::grpc::MailServerSettingsEvent::MergeFrom(
+          from._internal_mailserversettings());
       break;
     }
     case kKeychain: {
@@ -4911,9 +4948,9 @@ void StreamEvent::clear_event() {
       }
       break;
     }
-    case kMailSettings: {
+    case kMailServerSettings: {
       if (GetArenaForAllocation() == nullptr) {
-        delete _impl_.event_.mailsettings_;
+        delete _impl_.event_.mailserversettings_;
       }
       break;
     }
@@ -4991,10 +5028,10 @@ const char* StreamEvent::_InternalParse(const char* ptr, ::_pbi::ParseContext* c
         } else
           goto handle_unusual;
         continue;
-      // .grpc.MailSettingsEvent mailSettings = 5;
+      // .grpc.MailServerSettingsEvent mailServerSettings = 5;
       case 5:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 42)) {
-          ptr = ctx->ParseMessage(_internal_mutable_mailsettings(), ptr);
+          ptr = ctx->ParseMessage(_internal_mutable_mailserversettings(), ptr);
           CHK_(ptr);
         } else
           goto handle_unusual;
@@ -5080,11 +5117,11 @@ uint8_t* StreamEvent::_InternalSerialize(
         _Internal::cache(this).GetCachedSize(), target, stream);
   }
 
-  // .grpc.MailSettingsEvent mailSettings = 5;
-  if (_internal_has_mailsettings()) {
+  // .grpc.MailServerSettingsEvent mailServerSettings = 5;
+  if (_internal_has_mailserversettings()) {
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
-      InternalWriteMessage(5, _Internal::mailsettings(this),
-        _Internal::mailsettings(this).GetCachedSize(), target, stream);
+      InternalWriteMessage(5, _Internal::mailserversettings(this),
+        _Internal::mailserversettings(this).GetCachedSize(), target, stream);
   }
 
   // .grpc.KeychainEvent keychain = 6;
@@ -5153,11 +5190,11 @@ size_t StreamEvent::ByteSizeLong() const {
           *_impl_.event_.cache_);
       break;
     }
-    // .grpc.MailSettingsEvent mailSettings = 5;
-    case kMailSettings: {
+    // .grpc.MailServerSettingsEvent mailServerSettings = 5;
+    case kMailServerSettings: {
       total_size += 1 +
         ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(
-          *_impl_.event_.mailsettings_);
+          *_impl_.event_.mailserversettings_);
       break;
     }
     // .grpc.KeychainEvent keychain = 6;
@@ -5224,9 +5261,9 @@ void StreamEvent::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PR
           from._internal_cache());
       break;
     }
-    case kMailSettings: {
-      _this->_internal_mutable_mailsettings()->::grpc::MailSettingsEvent::MergeFrom(
-          from._internal_mailsettings());
+    case kMailServerSettings: {
+      _this->_internal_mutable_mailserversettings()->::grpc::MailServerSettingsEvent::MergeFrom(
+          from._internal_mailserversettings());
       break;
     }
     case kKeychain: {
@@ -9675,31 +9712,26 @@ const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*DiskCachePathChangeFinishedEve
 
 // ===================================================================
 
-class MailSettingsEvent::_Internal {
+class MailServerSettingsEvent::_Internal {
  public:
-  static const ::grpc::MailSettingsErrorEvent& error(const MailSettingsEvent* msg);
-  static const ::grpc::UseSslForSmtpFinishedEvent& usesslforsmtpfinished(const MailSettingsEvent* msg);
-  static const ::grpc::ChangePortsFinishedEvent& changeportsfinished(const MailSettingsEvent* msg);
-  static const ::grpc::UseSslForImapFinishedEvent& usesslforimapfinished(const MailSettingsEvent* msg);
+  static const ::grpc::MailServerSettingsErrorEvent& error(const MailServerSettingsEvent* msg);
+  static const ::grpc::MailServerSettingsChangedEvent& mailserversettingschanged(const MailServerSettingsEvent* msg);
+  static const ::grpc::ChangeMailServerSettingsFinishedEvent& changemailserversettingsfinished(const MailServerSettingsEvent* msg);
 };
 
-const ::grpc::MailSettingsErrorEvent&
-MailSettingsEvent::_Internal::error(const MailSettingsEvent* msg) {
+const ::grpc::MailServerSettingsErrorEvent&
+MailServerSettingsEvent::_Internal::error(const MailServerSettingsEvent* msg) {
   return *msg->_impl_.event_.error_;
 }
-const ::grpc::UseSslForSmtpFinishedEvent&
-MailSettingsEvent::_Internal::usesslforsmtpfinished(const MailSettingsEvent* msg) {
-  return *msg->_impl_.event_.usesslforsmtpfinished_;
+const ::grpc::MailServerSettingsChangedEvent&
+MailServerSettingsEvent::_Internal::mailserversettingschanged(const MailServerSettingsEvent* msg) {
+  return *msg->_impl_.event_.mailserversettingschanged_;
 }
-const ::grpc::ChangePortsFinishedEvent&
-MailSettingsEvent::_Internal::changeportsfinished(const MailSettingsEvent* msg) {
-  return *msg->_impl_.event_.changeportsfinished_;
+const ::grpc::ChangeMailServerSettingsFinishedEvent&
+MailServerSettingsEvent::_Internal::changemailserversettingsfinished(const MailServerSettingsEvent* msg) {
+  return *msg->_impl_.event_.changemailserversettingsfinished_;
 }
-const ::grpc::UseSslForImapFinishedEvent&
-MailSettingsEvent::_Internal::usesslforimapfinished(const MailSettingsEvent* msg) {
-  return *msg->_impl_.event_.usesslforimapfinished_;
-}
-void MailSettingsEvent::set_allocated_error(::grpc::MailSettingsErrorEvent* error) {
+void MailServerSettingsEvent::set_allocated_error(::grpc::MailServerSettingsErrorEvent* error) {
   ::PROTOBUF_NAMESPACE_ID::Arena* message_arena = GetArenaForAllocation();
   clear_event();
   if (error) {
@@ -9712,62 +9744,47 @@ void MailSettingsEvent::set_allocated_error(::grpc::MailSettingsErrorEvent* erro
     set_has_error();
     _impl_.event_.error_ = error;
   }
-  // @@protoc_insertion_point(field_set_allocated:grpc.MailSettingsEvent.error)
+  // @@protoc_insertion_point(field_set_allocated:grpc.MailServerSettingsEvent.error)
 }
-void MailSettingsEvent::set_allocated_usesslforsmtpfinished(::grpc::UseSslForSmtpFinishedEvent* usesslforsmtpfinished) {
+void MailServerSettingsEvent::set_allocated_mailserversettingschanged(::grpc::MailServerSettingsChangedEvent* mailserversettingschanged) {
   ::PROTOBUF_NAMESPACE_ID::Arena* message_arena = GetArenaForAllocation();
   clear_event();
-  if (usesslforsmtpfinished) {
+  if (mailserversettingschanged) {
     ::PROTOBUF_NAMESPACE_ID::Arena* submessage_arena =
-      ::PROTOBUF_NAMESPACE_ID::Arena::InternalGetOwningArena(usesslforsmtpfinished);
+      ::PROTOBUF_NAMESPACE_ID::Arena::InternalGetOwningArena(mailserversettingschanged);
     if (message_arena != submessage_arena) {
-      usesslforsmtpfinished = ::PROTOBUF_NAMESPACE_ID::internal::GetOwnedMessage(
-          message_arena, usesslforsmtpfinished, submessage_arena);
+      mailserversettingschanged = ::PROTOBUF_NAMESPACE_ID::internal::GetOwnedMessage(
+          message_arena, mailserversettingschanged, submessage_arena);
     }
-    set_has_usesslforsmtpfinished();
-    _impl_.event_.usesslforsmtpfinished_ = usesslforsmtpfinished;
+    set_has_mailserversettingschanged();
+    _impl_.event_.mailserversettingschanged_ = mailserversettingschanged;
   }
-  // @@protoc_insertion_point(field_set_allocated:grpc.MailSettingsEvent.useSslForSmtpFinished)
+  // @@protoc_insertion_point(field_set_allocated:grpc.MailServerSettingsEvent.mailServerSettingsChanged)
 }
-void MailSettingsEvent::set_allocated_changeportsfinished(::grpc::ChangePortsFinishedEvent* changeportsfinished) {
+void MailServerSettingsEvent::set_allocated_changemailserversettingsfinished(::grpc::ChangeMailServerSettingsFinishedEvent* changemailserversettingsfinished) {
   ::PROTOBUF_NAMESPACE_ID::Arena* message_arena = GetArenaForAllocation();
   clear_event();
-  if (changeportsfinished) {
+  if (changemailserversettingsfinished) {
     ::PROTOBUF_NAMESPACE_ID::Arena* submessage_arena =
-      ::PROTOBUF_NAMESPACE_ID::Arena::InternalGetOwningArena(changeportsfinished);
+      ::PROTOBUF_NAMESPACE_ID::Arena::InternalGetOwningArena(changemailserversettingsfinished);
     if (message_arena != submessage_arena) {
-      changeportsfinished = ::PROTOBUF_NAMESPACE_ID::internal::GetOwnedMessage(
-          message_arena, changeportsfinished, submessage_arena);
+      changemailserversettingsfinished = ::PROTOBUF_NAMESPACE_ID::internal::GetOwnedMessage(
+          message_arena, changemailserversettingsfinished, submessage_arena);
     }
-    set_has_changeportsfinished();
-    _impl_.event_.changeportsfinished_ = changeportsfinished;
+    set_has_changemailserversettingsfinished();
+    _impl_.event_.changemailserversettingsfinished_ = changemailserversettingsfinished;
   }
-  // @@protoc_insertion_point(field_set_allocated:grpc.MailSettingsEvent.changePortsFinished)
+  // @@protoc_insertion_point(field_set_allocated:grpc.MailServerSettingsEvent.changeMailServerSettingsFinished)
 }
-void MailSettingsEvent::set_allocated_usesslforimapfinished(::grpc::UseSslForImapFinishedEvent* usesslforimapfinished) {
-  ::PROTOBUF_NAMESPACE_ID::Arena* message_arena = GetArenaForAllocation();
-  clear_event();
-  if (usesslforimapfinished) {
-    ::PROTOBUF_NAMESPACE_ID::Arena* submessage_arena =
-      ::PROTOBUF_NAMESPACE_ID::Arena::InternalGetOwningArena(usesslforimapfinished);
-    if (message_arena != submessage_arena) {
-      usesslforimapfinished = ::PROTOBUF_NAMESPACE_ID::internal::GetOwnedMessage(
-          message_arena, usesslforimapfinished, submessage_arena);
-    }
-    set_has_usesslforimapfinished();
-    _impl_.event_.usesslforimapfinished_ = usesslforimapfinished;
-  }
-  // @@protoc_insertion_point(field_set_allocated:grpc.MailSettingsEvent.useSslForImapFinished)
-}
-MailSettingsEvent::MailSettingsEvent(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+MailServerSettingsEvent::MailServerSettingsEvent(::PROTOBUF_NAMESPACE_ID::Arena* arena,
                          bool is_message_owned)
   : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
   SharedCtor(arena, is_message_owned);
-  // @@protoc_insertion_point(arena_constructor:grpc.MailSettingsEvent)
+  // @@protoc_insertion_point(arena_constructor:grpc.MailServerSettingsEvent)
 }
-MailSettingsEvent::MailSettingsEvent(const MailSettingsEvent& from)
+MailServerSettingsEvent::MailServerSettingsEvent(const MailServerSettingsEvent& from)
   : ::PROTOBUF_NAMESPACE_ID::Message() {
-  MailSettingsEvent* const _this = this; (void)_this;
+  MailServerSettingsEvent* const _this = this; (void)_this;
   new (&_impl_) Impl_{
       decltype(_impl_.event_){}
     , /*decltype(_impl_._cached_size_)*/{}
@@ -9777,33 +9794,28 @@ MailSettingsEvent::MailSettingsEvent(const MailSettingsEvent& from)
   clear_has_event();
   switch (from.event_case()) {
     case kError: {
-      _this->_internal_mutable_error()->::grpc::MailSettingsErrorEvent::MergeFrom(
+      _this->_internal_mutable_error()->::grpc::MailServerSettingsErrorEvent::MergeFrom(
           from._internal_error());
       break;
     }
-    case kUseSslForSmtpFinished: {
-      _this->_internal_mutable_usesslforsmtpfinished()->::grpc::UseSslForSmtpFinishedEvent::MergeFrom(
-          from._internal_usesslforsmtpfinished());
+    case kMailServerSettingsChanged: {
+      _this->_internal_mutable_mailserversettingschanged()->::grpc::MailServerSettingsChangedEvent::MergeFrom(
+          from._internal_mailserversettingschanged());
       break;
     }
-    case kChangePortsFinished: {
-      _this->_internal_mutable_changeportsfinished()->::grpc::ChangePortsFinishedEvent::MergeFrom(
-          from._internal_changeportsfinished());
-      break;
-    }
-    case kUseSslForImapFinished: {
-      _this->_internal_mutable_usesslforimapfinished()->::grpc::UseSslForImapFinishedEvent::MergeFrom(
-          from._internal_usesslforimapfinished());
+    case kChangeMailServerSettingsFinished: {
+      _this->_internal_mutable_changemailserversettingsfinished()->::grpc::ChangeMailServerSettingsFinishedEvent::MergeFrom(
+          from._internal_changemailserversettingsfinished());
       break;
     }
     case EVENT_NOT_SET: {
       break;
     }
   }
-  // @@protoc_insertion_point(copy_constructor:grpc.MailSettingsEvent)
+  // @@protoc_insertion_point(copy_constructor:grpc.MailServerSettingsEvent)
 }
 
-inline void MailSettingsEvent::SharedCtor(
+inline void MailServerSettingsEvent::SharedCtor(
     ::_pb::Arena* arena, bool is_message_owned) {
   (void)arena;
   (void)is_message_owned;
@@ -9815,8 +9827,8 @@ inline void MailSettingsEvent::SharedCtor(
   clear_has_event();
 }
 
-MailSettingsEvent::~MailSettingsEvent() {
-  // @@protoc_insertion_point(destructor:grpc.MailSettingsEvent)
+MailServerSettingsEvent::~MailServerSettingsEvent() {
+  // @@protoc_insertion_point(destructor:grpc.MailServerSettingsEvent)
   if (auto *arena = _internal_metadata_.DeleteReturnArena<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>()) {
   (void)arena;
     return;
@@ -9824,19 +9836,19 @@ MailSettingsEvent::~MailSettingsEvent() {
   SharedDtor();
 }
 
-inline void MailSettingsEvent::SharedDtor() {
+inline void MailServerSettingsEvent::SharedDtor() {
   GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
   if (has_event()) {
     clear_event();
   }
 }
 
-void MailSettingsEvent::SetCachedSize(int size) const {
+void MailServerSettingsEvent::SetCachedSize(int size) const {
   _impl_._cached_size_.Set(size);
 }
 
-void MailSettingsEvent::clear_event() {
-// @@protoc_insertion_point(one_of_clear_start:grpc.MailSettingsEvent)
+void MailServerSettingsEvent::clear_event() {
+// @@protoc_insertion_point(one_of_clear_start:grpc.MailServerSettingsEvent)
   switch (event_case()) {
     case kError: {
       if (GetArenaForAllocation() == nullptr) {
@@ -9844,21 +9856,15 @@ void MailSettingsEvent::clear_event() {
       }
       break;
     }
-    case kUseSslForSmtpFinished: {
+    case kMailServerSettingsChanged: {
       if (GetArenaForAllocation() == nullptr) {
-        delete _impl_.event_.usesslforsmtpfinished_;
+        delete _impl_.event_.mailserversettingschanged_;
       }
       break;
     }
-    case kChangePortsFinished: {
+    case kChangeMailServerSettingsFinished: {
       if (GetArenaForAllocation() == nullptr) {
-        delete _impl_.event_.changeportsfinished_;
-      }
-      break;
-    }
-    case kUseSslForImapFinished: {
-      if (GetArenaForAllocation() == nullptr) {
-        delete _impl_.event_.usesslforimapfinished_;
+        delete _impl_.event_.changemailserversettingsfinished_;
       }
       break;
     }
@@ -9870,8 +9876,8 @@ void MailSettingsEvent::clear_event() {
 }
 
 
-void MailSettingsEvent::Clear() {
-// @@protoc_insertion_point(message_clear_start:grpc.MailSettingsEvent)
+void MailServerSettingsEvent::Clear() {
+// @@protoc_insertion_point(message_clear_start:grpc.MailServerSettingsEvent)
   uint32_t cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
@@ -9880,13 +9886,13 @@ void MailSettingsEvent::Clear() {
   _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
 }
 
-const char* MailSettingsEvent::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
+const char* MailServerSettingsEvent::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
 #define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
   while (!ctx->Done(&ptr)) {
     uint32_t tag;
     ptr = ::_pbi::ReadTag(ptr, &tag);
     switch (tag >> 3) {
-      // .grpc.MailSettingsErrorEvent error = 1;
+      // .grpc.MailServerSettingsErrorEvent error = 1;
       case 1:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 10)) {
           ptr = ctx->ParseMessage(_internal_mutable_error(), ptr);
@@ -9894,26 +9900,18 @@ const char* MailSettingsEvent::_InternalParse(const char* ptr, ::_pbi::ParseCont
         } else
           goto handle_unusual;
         continue;
-      // .grpc.UseSslForSmtpFinishedEvent useSslForSmtpFinished = 2;
+      // .grpc.MailServerSettingsChangedEvent mailServerSettingsChanged = 2;
       case 2:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 18)) {
-          ptr = ctx->ParseMessage(_internal_mutable_usesslforsmtpfinished(), ptr);
+          ptr = ctx->ParseMessage(_internal_mutable_mailserversettingschanged(), ptr);
           CHK_(ptr);
         } else
           goto handle_unusual;
         continue;
-      // .grpc.ChangePortsFinishedEvent changePortsFinished = 3;
+      // .grpc.ChangeMailServerSettingsFinishedEvent changeMailServerSettingsFinished = 3;
       case 3:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 26)) {
-          ptr = ctx->ParseMessage(_internal_mutable_changeportsfinished(), ptr);
-          CHK_(ptr);
-        } else
-          goto handle_unusual;
-        continue;
-      // .grpc.UseSslForImapFinishedEvent useSslForImapFinished = 4;
-      case 4:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 34)) {
-          ptr = ctx->ParseMessage(_internal_mutable_usesslforimapfinished(), ptr);
+          ptr = ctx->ParseMessage(_internal_mutable_changemailserversettingsfinished(), ptr);
           CHK_(ptr);
         } else
           goto handle_unusual;
@@ -9941,50 +9939,43 @@ failure:
 #undef CHK_
 }
 
-uint8_t* MailSettingsEvent::_InternalSerialize(
+uint8_t* MailServerSettingsEvent::_InternalSerialize(
     uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
-  // @@protoc_insertion_point(serialize_to_array_start:grpc.MailSettingsEvent)
+  // @@protoc_insertion_point(serialize_to_array_start:grpc.MailServerSettingsEvent)
   uint32_t cached_has_bits = 0;
   (void) cached_has_bits;
 
-  // .grpc.MailSettingsErrorEvent error = 1;
+  // .grpc.MailServerSettingsErrorEvent error = 1;
   if (_internal_has_error()) {
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
       InternalWriteMessage(1, _Internal::error(this),
         _Internal::error(this).GetCachedSize(), target, stream);
   }
 
-  // .grpc.UseSslForSmtpFinishedEvent useSslForSmtpFinished = 2;
-  if (_internal_has_usesslforsmtpfinished()) {
+  // .grpc.MailServerSettingsChangedEvent mailServerSettingsChanged = 2;
+  if (_internal_has_mailserversettingschanged()) {
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
-      InternalWriteMessage(2, _Internal::usesslforsmtpfinished(this),
-        _Internal::usesslforsmtpfinished(this).GetCachedSize(), target, stream);
+      InternalWriteMessage(2, _Internal::mailserversettingschanged(this),
+        _Internal::mailserversettingschanged(this).GetCachedSize(), target, stream);
   }
 
-  // .grpc.ChangePortsFinishedEvent changePortsFinished = 3;
-  if (_internal_has_changeportsfinished()) {
+  // .grpc.ChangeMailServerSettingsFinishedEvent changeMailServerSettingsFinished = 3;
+  if (_internal_has_changemailserversettingsfinished()) {
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
-      InternalWriteMessage(3, _Internal::changeportsfinished(this),
-        _Internal::changeportsfinished(this).GetCachedSize(), target, stream);
-  }
-
-  // .grpc.UseSslForImapFinishedEvent useSslForImapFinished = 4;
-  if (_internal_has_usesslforimapfinished()) {
-    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
-      InternalWriteMessage(4, _Internal::usesslforimapfinished(this),
-        _Internal::usesslforimapfinished(this).GetCachedSize(), target, stream);
+      InternalWriteMessage(3, _Internal::changemailserversettingsfinished(this),
+        _Internal::changemailserversettingsfinished(this).GetCachedSize(), target, stream);
   }
 
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
     target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
         _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
   }
-  // @@protoc_insertion_point(serialize_to_array_end:grpc.MailSettingsEvent)
+  // @@protoc_insertion_point(serialize_to_array_end:grpc.MailServerSettingsEvent)
   return target;
 }
 
-size_t MailSettingsEvent::ByteSizeLong() const {
-// @@protoc_insertion_point(message_byte_size_start:grpc.MailSettingsEvent)
+size_t MailServerSettingsEvent::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:grpc.MailServerSettingsEvent)
   size_t total_size = 0;
 
   uint32_t cached_has_bits = 0;
@@ -9992,32 +9983,25 @@ size_t MailSettingsEvent::ByteSizeLong() const {
   (void) cached_has_bits;
 
   switch (event_case()) {
-    // .grpc.MailSettingsErrorEvent error = 1;
+    // .grpc.MailServerSettingsErrorEvent error = 1;
     case kError: {
       total_size += 1 +
         ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(
           *_impl_.event_.error_);
       break;
     }
-    // .grpc.UseSslForSmtpFinishedEvent useSslForSmtpFinished = 2;
-    case kUseSslForSmtpFinished: {
+    // .grpc.MailServerSettingsChangedEvent mailServerSettingsChanged = 2;
+    case kMailServerSettingsChanged: {
       total_size += 1 +
         ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(
-          *_impl_.event_.usesslforsmtpfinished_);
+          *_impl_.event_.mailserversettingschanged_);
       break;
     }
-    // .grpc.ChangePortsFinishedEvent changePortsFinished = 3;
-    case kChangePortsFinished: {
+    // .grpc.ChangeMailServerSettingsFinishedEvent changeMailServerSettingsFinished = 3;
+    case kChangeMailServerSettingsFinished: {
       total_size += 1 +
         ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(
-          *_impl_.event_.changeportsfinished_);
-      break;
-    }
-    // .grpc.UseSslForImapFinishedEvent useSslForImapFinished = 4;
-    case kUseSslForImapFinished: {
-      total_size += 1 +
-        ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(
-          *_impl_.event_.usesslforimapfinished_);
+          *_impl_.event_.changemailserversettingsfinished_);
       break;
     }
     case EVENT_NOT_SET: {
@@ -10027,40 +10011,35 @@ size_t MailSettingsEvent::ByteSizeLong() const {
   return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
 }
 
-const ::PROTOBUF_NAMESPACE_ID::Message::ClassData MailSettingsEvent::_class_data_ = {
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData MailServerSettingsEvent::_class_data_ = {
     ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSourceCheck,
-    MailSettingsEvent::MergeImpl
+    MailServerSettingsEvent::MergeImpl
 };
-const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*MailSettingsEvent::GetClassData() const { return &_class_data_; }
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*MailServerSettingsEvent::GetClassData() const { return &_class_data_; }
 
 
-void MailSettingsEvent::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
-  auto* const _this = static_cast<MailSettingsEvent*>(&to_msg);
-  auto& from = static_cast<const MailSettingsEvent&>(from_msg);
-  // @@protoc_insertion_point(class_specific_merge_from_start:grpc.MailSettingsEvent)
+void MailServerSettingsEvent::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
+  auto* const _this = static_cast<MailServerSettingsEvent*>(&to_msg);
+  auto& from = static_cast<const MailServerSettingsEvent&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:grpc.MailServerSettingsEvent)
   GOOGLE_DCHECK_NE(&from, _this);
   uint32_t cached_has_bits = 0;
   (void) cached_has_bits;
 
   switch (from.event_case()) {
     case kError: {
-      _this->_internal_mutable_error()->::grpc::MailSettingsErrorEvent::MergeFrom(
+      _this->_internal_mutable_error()->::grpc::MailServerSettingsErrorEvent::MergeFrom(
           from._internal_error());
       break;
     }
-    case kUseSslForSmtpFinished: {
-      _this->_internal_mutable_usesslforsmtpfinished()->::grpc::UseSslForSmtpFinishedEvent::MergeFrom(
-          from._internal_usesslforsmtpfinished());
+    case kMailServerSettingsChanged: {
+      _this->_internal_mutable_mailserversettingschanged()->::grpc::MailServerSettingsChangedEvent::MergeFrom(
+          from._internal_mailserversettingschanged());
       break;
     }
-    case kChangePortsFinished: {
-      _this->_internal_mutable_changeportsfinished()->::grpc::ChangePortsFinishedEvent::MergeFrom(
-          from._internal_changeportsfinished());
-      break;
-    }
-    case kUseSslForImapFinished: {
-      _this->_internal_mutable_usesslforimapfinished()->::grpc::UseSslForImapFinishedEvent::MergeFrom(
-          from._internal_usesslforimapfinished());
+    case kChangeMailServerSettingsFinished: {
+      _this->_internal_mutable_changemailserversettingsfinished()->::grpc::ChangeMailServerSettingsFinishedEvent::MergeFrom(
+          from._internal_changemailserversettingsfinished());
       break;
     }
     case EVENT_NOT_SET: {
@@ -10070,25 +10049,25 @@ void MailSettingsEvent::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, cons
   _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
 }
 
-void MailSettingsEvent::CopyFrom(const MailSettingsEvent& from) {
-// @@protoc_insertion_point(class_specific_copy_from_start:grpc.MailSettingsEvent)
+void MailServerSettingsEvent::CopyFrom(const MailServerSettingsEvent& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:grpc.MailServerSettingsEvent)
   if (&from == this) return;
   Clear();
   MergeFrom(from);
 }
 
-bool MailSettingsEvent::IsInitialized() const {
+bool MailServerSettingsEvent::IsInitialized() const {
   return true;
 }
 
-void MailSettingsEvent::InternalSwap(MailSettingsEvent* other) {
+void MailServerSettingsEvent::InternalSwap(MailServerSettingsEvent* other) {
   using std::swap;
   _internal_metadata_.InternalSwap(&other->_internal_metadata_);
   swap(_impl_.event_, other->_impl_.event_);
   swap(_impl_._oneof_case_[0], other->_impl_._oneof_case_[0]);
 }
 
-::PROTOBUF_NAMESPACE_ID::Metadata MailSettingsEvent::GetMetadata() const {
+::PROTOBUF_NAMESPACE_ID::Metadata MailServerSettingsEvent::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_bridge_2eproto_getter, &descriptor_table_bridge_2eproto_once,
       file_level_metadata_bridge_2eproto[38]);
@@ -10096,29 +10075,29 @@ void MailSettingsEvent::InternalSwap(MailSettingsEvent* other) {
 
 // ===================================================================
 
-class MailSettingsErrorEvent::_Internal {
+class MailServerSettingsErrorEvent::_Internal {
  public:
 };
 
-MailSettingsErrorEvent::MailSettingsErrorEvent(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+MailServerSettingsErrorEvent::MailServerSettingsErrorEvent(::PROTOBUF_NAMESPACE_ID::Arena* arena,
                          bool is_message_owned)
   : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
   SharedCtor(arena, is_message_owned);
-  // @@protoc_insertion_point(arena_constructor:grpc.MailSettingsErrorEvent)
+  // @@protoc_insertion_point(arena_constructor:grpc.MailServerSettingsErrorEvent)
 }
-MailSettingsErrorEvent::MailSettingsErrorEvent(const MailSettingsErrorEvent& from)
+MailServerSettingsErrorEvent::MailServerSettingsErrorEvent(const MailServerSettingsErrorEvent& from)
   : ::PROTOBUF_NAMESPACE_ID::Message() {
-  MailSettingsErrorEvent* const _this = this; (void)_this;
+  MailServerSettingsErrorEvent* const _this = this; (void)_this;
   new (&_impl_) Impl_{
       decltype(_impl_.type_){}
     , /*decltype(_impl_._cached_size_)*/{}};
 
   _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
   _this->_impl_.type_ = from._impl_.type_;
-  // @@protoc_insertion_point(copy_constructor:grpc.MailSettingsErrorEvent)
+  // @@protoc_insertion_point(copy_constructor:grpc.MailServerSettingsErrorEvent)
 }
 
-inline void MailSettingsErrorEvent::SharedCtor(
+inline void MailServerSettingsErrorEvent::SharedCtor(
     ::_pb::Arena* arena, bool is_message_owned) {
   (void)arena;
   (void)is_message_owned;
@@ -10128,8 +10107,8 @@ inline void MailSettingsErrorEvent::SharedCtor(
   };
 }
 
-MailSettingsErrorEvent::~MailSettingsErrorEvent() {
-  // @@protoc_insertion_point(destructor:grpc.MailSettingsErrorEvent)
+MailServerSettingsErrorEvent::~MailServerSettingsErrorEvent() {
+  // @@protoc_insertion_point(destructor:grpc.MailServerSettingsErrorEvent)
   if (auto *arena = _internal_metadata_.DeleteReturnArena<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>()) {
   (void)arena;
     return;
@@ -10137,16 +10116,16 @@ MailSettingsErrorEvent::~MailSettingsErrorEvent() {
   SharedDtor();
 }
 
-inline void MailSettingsErrorEvent::SharedDtor() {
+inline void MailServerSettingsErrorEvent::SharedDtor() {
   GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
 }
 
-void MailSettingsErrorEvent::SetCachedSize(int size) const {
+void MailServerSettingsErrorEvent::SetCachedSize(int size) const {
   _impl_._cached_size_.Set(size);
 }
 
-void MailSettingsErrorEvent::Clear() {
-// @@protoc_insertion_point(message_clear_start:grpc.MailSettingsErrorEvent)
+void MailServerSettingsErrorEvent::Clear() {
+// @@protoc_insertion_point(message_clear_start:grpc.MailServerSettingsErrorEvent)
   uint32_t cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
@@ -10155,18 +10134,18 @@ void MailSettingsErrorEvent::Clear() {
   _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
 }
 
-const char* MailSettingsErrorEvent::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
+const char* MailServerSettingsErrorEvent::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
 #define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
   while (!ctx->Done(&ptr)) {
     uint32_t tag;
     ptr = ::_pbi::ReadTag(ptr, &tag);
     switch (tag >> 3) {
-      // .grpc.MailSettingsErrorType type = 1;
+      // .grpc.MailServerSettingsErrorType type = 1;
       case 1:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 8)) {
           uint64_t val = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
           CHK_(ptr);
-          _internal_set_type(static_cast<::grpc::MailSettingsErrorType>(val));
+          _internal_set_type(static_cast<::grpc::MailServerSettingsErrorType>(val));
         } else
           goto handle_unusual;
         continue;
@@ -10193,13 +10172,13 @@ failure:
 #undef CHK_
 }
 
-uint8_t* MailSettingsErrorEvent::_InternalSerialize(
+uint8_t* MailServerSettingsErrorEvent::_InternalSerialize(
     uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
-  // @@protoc_insertion_point(serialize_to_array_start:grpc.MailSettingsErrorEvent)
+  // @@protoc_insertion_point(serialize_to_array_start:grpc.MailServerSettingsErrorEvent)
   uint32_t cached_has_bits = 0;
   (void) cached_has_bits;
 
-  // .grpc.MailSettingsErrorType type = 1;
+  // .grpc.MailServerSettingsErrorType type = 1;
   if (this->_internal_type() != 0) {
     target = stream->EnsureSpace(target);
     target = ::_pbi::WireFormatLite::WriteEnumToArray(
@@ -10210,19 +10189,19 @@ uint8_t* MailSettingsErrorEvent::_InternalSerialize(
     target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
         _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
   }
-  // @@protoc_insertion_point(serialize_to_array_end:grpc.MailSettingsErrorEvent)
+  // @@protoc_insertion_point(serialize_to_array_end:grpc.MailServerSettingsErrorEvent)
   return target;
 }
 
-size_t MailSettingsErrorEvent::ByteSizeLong() const {
-// @@protoc_insertion_point(message_byte_size_start:grpc.MailSettingsErrorEvent)
+size_t MailServerSettingsErrorEvent::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:grpc.MailServerSettingsErrorEvent)
   size_t total_size = 0;
 
   uint32_t cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  // .grpc.MailSettingsErrorType type = 1;
+  // .grpc.MailServerSettingsErrorType type = 1;
   if (this->_internal_type() != 0) {
     total_size += 1 +
       ::_pbi::WireFormatLite::EnumSize(this->_internal_type());
@@ -10231,17 +10210,17 @@ size_t MailSettingsErrorEvent::ByteSizeLong() const {
   return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
 }
 
-const ::PROTOBUF_NAMESPACE_ID::Message::ClassData MailSettingsErrorEvent::_class_data_ = {
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData MailServerSettingsErrorEvent::_class_data_ = {
     ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSourceCheck,
-    MailSettingsErrorEvent::MergeImpl
+    MailServerSettingsErrorEvent::MergeImpl
 };
-const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*MailSettingsErrorEvent::GetClassData() const { return &_class_data_; }
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*MailServerSettingsErrorEvent::GetClassData() const { return &_class_data_; }
 
 
-void MailSettingsErrorEvent::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
-  auto* const _this = static_cast<MailSettingsErrorEvent*>(&to_msg);
-  auto& from = static_cast<const MailSettingsErrorEvent&>(from_msg);
-  // @@protoc_insertion_point(class_specific_merge_from_start:grpc.MailSettingsErrorEvent)
+void MailServerSettingsErrorEvent::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
+  auto* const _this = static_cast<MailServerSettingsErrorEvent*>(&to_msg);
+  auto& from = static_cast<const MailServerSettingsErrorEvent&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:grpc.MailServerSettingsErrorEvent)
   GOOGLE_DCHECK_NE(&from, _this);
   uint32_t cached_has_bits = 0;
   (void) cached_has_bits;
@@ -10252,24 +10231,24 @@ void MailSettingsErrorEvent::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg,
   _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
 }
 
-void MailSettingsErrorEvent::CopyFrom(const MailSettingsErrorEvent& from) {
-// @@protoc_insertion_point(class_specific_copy_from_start:grpc.MailSettingsErrorEvent)
+void MailServerSettingsErrorEvent::CopyFrom(const MailServerSettingsErrorEvent& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:grpc.MailServerSettingsErrorEvent)
   if (&from == this) return;
   Clear();
   MergeFrom(from);
 }
 
-bool MailSettingsErrorEvent::IsInitialized() const {
+bool MailServerSettingsErrorEvent::IsInitialized() const {
   return true;
 }
 
-void MailSettingsErrorEvent::InternalSwap(MailSettingsErrorEvent* other) {
+void MailServerSettingsErrorEvent::InternalSwap(MailServerSettingsErrorEvent* other) {
   using std::swap;
   _internal_metadata_.InternalSwap(&other->_internal_metadata_);
   swap(_impl_.type_, other->_impl_.type_);
 }
 
-::PROTOBUF_NAMESPACE_ID::Metadata MailSettingsErrorEvent::GetMetadata() const {
+::PROTOBUF_NAMESPACE_ID::Metadata MailServerSettingsErrorEvent::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_bridge_2eproto_getter, &descriptor_table_bridge_2eproto_once,
       file_level_metadata_bridge_2eproto[39]);
@@ -10277,39 +10256,192 @@ void MailSettingsErrorEvent::InternalSwap(MailSettingsErrorEvent* other) {
 
 // ===================================================================
 
-class UseSslForSmtpFinishedEvent::_Internal {
+class MailServerSettingsChangedEvent::_Internal {
  public:
+  static const ::grpc::ImapSmtpSettings& settings(const MailServerSettingsChangedEvent* msg);
 };
 
-UseSslForSmtpFinishedEvent::UseSslForSmtpFinishedEvent(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+const ::grpc::ImapSmtpSettings&
+MailServerSettingsChangedEvent::_Internal::settings(const MailServerSettingsChangedEvent* msg) {
+  return *msg->_impl_.settings_;
+}
+MailServerSettingsChangedEvent::MailServerSettingsChangedEvent(::PROTOBUF_NAMESPACE_ID::Arena* arena,
                          bool is_message_owned)
-  : ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase(arena, is_message_owned) {
-  // @@protoc_insertion_point(arena_constructor:grpc.UseSslForSmtpFinishedEvent)
+  : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
+  SharedCtor(arena, is_message_owned);
+  // @@protoc_insertion_point(arena_constructor:grpc.MailServerSettingsChangedEvent)
 }
-UseSslForSmtpFinishedEvent::UseSslForSmtpFinishedEvent(const UseSslForSmtpFinishedEvent& from)
-  : ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase() {
-  UseSslForSmtpFinishedEvent* const _this = this; (void)_this;
+MailServerSettingsChangedEvent::MailServerSettingsChangedEvent(const MailServerSettingsChangedEvent& from)
+  : ::PROTOBUF_NAMESPACE_ID::Message() {
+  MailServerSettingsChangedEvent* const _this = this; (void)_this;
+  new (&_impl_) Impl_{
+      decltype(_impl_.settings_){nullptr}
+    , /*decltype(_impl_._cached_size_)*/{}};
+
   _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
-  // @@protoc_insertion_point(copy_constructor:grpc.UseSslForSmtpFinishedEvent)
+  if (from._internal_has_settings()) {
+    _this->_impl_.settings_ = new ::grpc::ImapSmtpSettings(*from._impl_.settings_);
+  }
+  // @@protoc_insertion_point(copy_constructor:grpc.MailServerSettingsChangedEvent)
 }
 
+inline void MailServerSettingsChangedEvent::SharedCtor(
+    ::_pb::Arena* arena, bool is_message_owned) {
+  (void)arena;
+  (void)is_message_owned;
+  new (&_impl_) Impl_{
+      decltype(_impl_.settings_){nullptr}
+    , /*decltype(_impl_._cached_size_)*/{}
+  };
+}
 
+MailServerSettingsChangedEvent::~MailServerSettingsChangedEvent() {
+  // @@protoc_insertion_point(destructor:grpc.MailServerSettingsChangedEvent)
+  if (auto *arena = _internal_metadata_.DeleteReturnArena<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>()) {
+  (void)arena;
+    return;
+  }
+  SharedDtor();
+}
 
+inline void MailServerSettingsChangedEvent::SharedDtor() {
+  GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
+  if (this != internal_default_instance()) delete _impl_.settings_;
+}
 
+void MailServerSettingsChangedEvent::SetCachedSize(int size) const {
+  _impl_._cached_size_.Set(size);
+}
 
-const ::PROTOBUF_NAMESPACE_ID::Message::ClassData UseSslForSmtpFinishedEvent::_class_data_ = {
-    ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase::CopyImpl,
-    ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase::MergeImpl,
+void MailServerSettingsChangedEvent::Clear() {
+// @@protoc_insertion_point(message_clear_start:grpc.MailServerSettingsChangedEvent)
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  if (GetArenaForAllocation() == nullptr && _impl_.settings_ != nullptr) {
+    delete _impl_.settings_;
+  }
+  _impl_.settings_ = nullptr;
+  _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
+}
+
+const char* MailServerSettingsChangedEvent::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
+#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
+  while (!ctx->Done(&ptr)) {
+    uint32_t tag;
+    ptr = ::_pbi::ReadTag(ptr, &tag);
+    switch (tag >> 3) {
+      // .grpc.ImapSmtpSettings settings = 1;
+      case 1:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 10)) {
+          ptr = ctx->ParseMessage(_internal_mutable_settings(), ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      default:
+        goto handle_unusual;
+    }  // switch
+  handle_unusual:
+    if ((tag == 0) || ((tag & 7) == 4)) {
+      CHK_(ptr);
+      ctx->SetLastTag(tag);
+      goto message_done;
+    }
+    ptr = UnknownFieldParse(
+        tag,
+        _internal_metadata_.mutable_unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(),
+        ptr, ctx);
+    CHK_(ptr != nullptr);
+  }  // while
+message_done:
+  return ptr;
+failure:
+  ptr = nullptr;
+  goto message_done;
+#undef CHK_
+}
+
+uint8_t* MailServerSettingsChangedEvent::_InternalSerialize(
+    uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
+  // @@protoc_insertion_point(serialize_to_array_start:grpc.MailServerSettingsChangedEvent)
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // .grpc.ImapSmtpSettings settings = 1;
+  if (this->_internal_has_settings()) {
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
+      InternalWriteMessage(1, _Internal::settings(this),
+        _Internal::settings(this).GetCachedSize(), target, stream);
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:grpc.MailServerSettingsChangedEvent)
+  return target;
+}
+
+size_t MailServerSettingsChangedEvent::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:grpc.MailServerSettingsChangedEvent)
+  size_t total_size = 0;
+
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  // .grpc.ImapSmtpSettings settings = 1;
+  if (this->_internal_has_settings()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(
+        *_impl_.settings_);
+  }
+
+  return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
+}
+
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData MailServerSettingsChangedEvent::_class_data_ = {
+    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSourceCheck,
+    MailServerSettingsChangedEvent::MergeImpl
 };
-const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*UseSslForSmtpFinishedEvent::GetClassData() const { return &_class_data_; }
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*MailServerSettingsChangedEvent::GetClassData() const { return &_class_data_; }
 
 
+void MailServerSettingsChangedEvent::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
+  auto* const _this = static_cast<MailServerSettingsChangedEvent*>(&to_msg);
+  auto& from = static_cast<const MailServerSettingsChangedEvent&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:grpc.MailServerSettingsChangedEvent)
+  GOOGLE_DCHECK_NE(&from, _this);
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
 
+  if (from._internal_has_settings()) {
+    _this->_internal_mutable_settings()->::grpc::ImapSmtpSettings::MergeFrom(
+        from._internal_settings());
+  }
+  _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+}
 
+void MailServerSettingsChangedEvent::CopyFrom(const MailServerSettingsChangedEvent& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:grpc.MailServerSettingsChangedEvent)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
 
+bool MailServerSettingsChangedEvent::IsInitialized() const {
+  return true;
+}
 
+void MailServerSettingsChangedEvent::InternalSwap(MailServerSettingsChangedEvent* other) {
+  using std::swap;
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  swap(_impl_.settings_, other->_impl_.settings_);
+}
 
-::PROTOBUF_NAMESPACE_ID::Metadata UseSslForSmtpFinishedEvent::GetMetadata() const {
+::PROTOBUF_NAMESPACE_ID::Metadata MailServerSettingsChangedEvent::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_bridge_2eproto_getter, &descriptor_table_bridge_2eproto_once,
       file_level_metadata_bridge_2eproto[40]);
@@ -10317,31 +10449,31 @@ const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*UseSslForSmtpFinishedEvent::Ge
 
 // ===================================================================
 
-class UseSslForImapFinishedEvent::_Internal {
+class ChangeMailServerSettingsFinishedEvent::_Internal {
  public:
 };
 
-UseSslForImapFinishedEvent::UseSslForImapFinishedEvent(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+ChangeMailServerSettingsFinishedEvent::ChangeMailServerSettingsFinishedEvent(::PROTOBUF_NAMESPACE_ID::Arena* arena,
                          bool is_message_owned)
   : ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase(arena, is_message_owned) {
-  // @@protoc_insertion_point(arena_constructor:grpc.UseSslForImapFinishedEvent)
+  // @@protoc_insertion_point(arena_constructor:grpc.ChangeMailServerSettingsFinishedEvent)
 }
-UseSslForImapFinishedEvent::UseSslForImapFinishedEvent(const UseSslForImapFinishedEvent& from)
+ChangeMailServerSettingsFinishedEvent::ChangeMailServerSettingsFinishedEvent(const ChangeMailServerSettingsFinishedEvent& from)
   : ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase() {
-  UseSslForImapFinishedEvent* const _this = this; (void)_this;
+  ChangeMailServerSettingsFinishedEvent* const _this = this; (void)_this;
   _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
-  // @@protoc_insertion_point(copy_constructor:grpc.UseSslForImapFinishedEvent)
+  // @@protoc_insertion_point(copy_constructor:grpc.ChangeMailServerSettingsFinishedEvent)
 }
 
 
 
 
 
-const ::PROTOBUF_NAMESPACE_ID::Message::ClassData UseSslForImapFinishedEvent::_class_data_ = {
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData ChangeMailServerSettingsFinishedEvent::_class_data_ = {
     ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase::CopyImpl,
     ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase::MergeImpl,
 };
-const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*UseSslForImapFinishedEvent::GetClassData() const { return &_class_data_; }
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*ChangeMailServerSettingsFinishedEvent::GetClassData() const { return &_class_data_; }
 
 
 
@@ -10349,50 +10481,10 @@ const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*UseSslForImapFinishedEvent::Ge
 
 
 
-::PROTOBUF_NAMESPACE_ID::Metadata UseSslForImapFinishedEvent::GetMetadata() const {
+::PROTOBUF_NAMESPACE_ID::Metadata ChangeMailServerSettingsFinishedEvent::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_bridge_2eproto_getter, &descriptor_table_bridge_2eproto_once,
       file_level_metadata_bridge_2eproto[41]);
-}
-
-// ===================================================================
-
-class ChangePortsFinishedEvent::_Internal {
- public:
-};
-
-ChangePortsFinishedEvent::ChangePortsFinishedEvent(::PROTOBUF_NAMESPACE_ID::Arena* arena,
-                         bool is_message_owned)
-  : ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase(arena, is_message_owned) {
-  // @@protoc_insertion_point(arena_constructor:grpc.ChangePortsFinishedEvent)
-}
-ChangePortsFinishedEvent::ChangePortsFinishedEvent(const ChangePortsFinishedEvent& from)
-  : ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase() {
-  ChangePortsFinishedEvent* const _this = this; (void)_this;
-  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
-  // @@protoc_insertion_point(copy_constructor:grpc.ChangePortsFinishedEvent)
-}
-
-
-
-
-
-const ::PROTOBUF_NAMESPACE_ID::Message::ClassData ChangePortsFinishedEvent::_class_data_ = {
-    ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase::CopyImpl,
-    ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase::MergeImpl,
-};
-const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*ChangePortsFinishedEvent::GetClassData() const { return &_class_data_; }
-
-
-
-
-
-
-
-::PROTOBUF_NAMESPACE_ID::Metadata ChangePortsFinishedEvent::GetMetadata() const {
-  return ::_pbi::AssignDescriptors(
-      &descriptor_table_bridge_2eproto_getter, &descriptor_table_bridge_2eproto_once,
-      file_level_metadata_bridge_2eproto[42]);
 }
 
 // ===================================================================
@@ -10755,7 +10847,7 @@ void KeychainEvent::InternalSwap(KeychainEvent* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata KeychainEvent::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_bridge_2eproto_getter, &descriptor_table_bridge_2eproto_once,
-      file_level_metadata_bridge_2eproto[43]);
+      file_level_metadata_bridge_2eproto[42]);
 }
 
 // ===================================================================
@@ -10795,7 +10887,7 @@ const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*ChangeKeychainFinishedEvent::G
 ::PROTOBUF_NAMESPACE_ID::Metadata ChangeKeychainFinishedEvent::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_bridge_2eproto_getter, &descriptor_table_bridge_2eproto_once,
-      file_level_metadata_bridge_2eproto[44]);
+      file_level_metadata_bridge_2eproto[43]);
 }
 
 // ===================================================================
@@ -10835,7 +10927,7 @@ const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*HasNoKeychainEvent::GetClassDa
 ::PROTOBUF_NAMESPACE_ID::Metadata HasNoKeychainEvent::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_bridge_2eproto_getter, &descriptor_table_bridge_2eproto_once,
-      file_level_metadata_bridge_2eproto[45]);
+      file_level_metadata_bridge_2eproto[44]);
 }
 
 // ===================================================================
@@ -10875,7 +10967,7 @@ const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*RebuildKeychainEvent::GetClass
 ::PROTOBUF_NAMESPACE_ID::Metadata RebuildKeychainEvent::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_bridge_2eproto_getter, &descriptor_table_bridge_2eproto_once,
-      file_level_metadata_bridge_2eproto[46]);
+      file_level_metadata_bridge_2eproto[45]);
 }
 
 // ===================================================================
@@ -11296,7 +11388,7 @@ void MailEvent::InternalSwap(MailEvent* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata MailEvent::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_bridge_2eproto_getter, &descriptor_table_bridge_2eproto_once,
-      file_level_metadata_bridge_2eproto[47]);
+      file_level_metadata_bridge_2eproto[46]);
 }
 
 // ===================================================================
@@ -11499,7 +11591,7 @@ void NoActiveKeyForRecipientEvent::InternalSwap(NoActiveKeyForRecipientEvent* ot
 ::PROTOBUF_NAMESPACE_ID::Metadata NoActiveKeyForRecipientEvent::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_bridge_2eproto_getter, &descriptor_table_bridge_2eproto_once,
-      file_level_metadata_bridge_2eproto[48]);
+      file_level_metadata_bridge_2eproto[47]);
 }
 
 // ===================================================================
@@ -11702,7 +11794,7 @@ void AddressChangedEvent::InternalSwap(AddressChangedEvent* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata AddressChangedEvent::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_bridge_2eproto_getter, &descriptor_table_bridge_2eproto_once,
-      file_level_metadata_bridge_2eproto[49]);
+      file_level_metadata_bridge_2eproto[48]);
 }
 
 // ===================================================================
@@ -11905,7 +11997,7 @@ void AddressChangedLogoutEvent::InternalSwap(AddressChangedLogoutEvent* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata AddressChangedLogoutEvent::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_bridge_2eproto_getter, &descriptor_table_bridge_2eproto_once,
-      file_level_metadata_bridge_2eproto[50]);
+      file_level_metadata_bridge_2eproto[49]);
 }
 
 // ===================================================================
@@ -11945,7 +12037,7 @@ const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*ApiCertIssueEvent::GetClassDat
 ::PROTOBUF_NAMESPACE_ID::Metadata ApiCertIssueEvent::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_bridge_2eproto_getter, &descriptor_table_bridge_2eproto_once,
-      file_level_metadata_bridge_2eproto[51]);
+      file_level_metadata_bridge_2eproto[50]);
 }
 
 // ===================================================================
@@ -12308,7 +12400,7 @@ void UserEvent::InternalSwap(UserEvent* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata UserEvent::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_bridge_2eproto_getter, &descriptor_table_bridge_2eproto_once,
-      file_level_metadata_bridge_2eproto[52]);
+      file_level_metadata_bridge_2eproto[51]);
 }
 
 // ===================================================================
@@ -12511,7 +12603,7 @@ void ToggleSplitModeFinishedEvent::InternalSwap(ToggleSplitModeFinishedEvent* ot
 ::PROTOBUF_NAMESPACE_ID::Metadata ToggleSplitModeFinishedEvent::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_bridge_2eproto_getter, &descriptor_table_bridge_2eproto_once,
-      file_level_metadata_bridge_2eproto[53]);
+      file_level_metadata_bridge_2eproto[52]);
 }
 
 // ===================================================================
@@ -12714,7 +12806,7 @@ void UserDisconnectedEvent::InternalSwap(UserDisconnectedEvent* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata UserDisconnectedEvent::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_bridge_2eproto_getter, &descriptor_table_bridge_2eproto_once,
-      file_level_metadata_bridge_2eproto[54]);
+      file_level_metadata_bridge_2eproto[53]);
 }
 
 // ===================================================================
@@ -12917,7 +13009,7 @@ void UserChangedEvent::InternalSwap(UserChangedEvent* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata UserChangedEvent::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_bridge_2eproto_getter, &descriptor_table_bridge_2eproto_once,
-      file_level_metadata_bridge_2eproto[55]);
+      file_level_metadata_bridge_2eproto[54]);
 }
 
 // @@protoc_insertion_point(namespace_scope)
@@ -12939,9 +13031,9 @@ template<> PROTOBUF_NOINLINE ::grpc::LoginAbortRequest*
 Arena::CreateMaybeMessage< ::grpc::LoginAbortRequest >(Arena* arena) {
   return Arena::CreateMessageInternal< ::grpc::LoginAbortRequest >(arena);
 }
-template<> PROTOBUF_NOINLINE ::grpc::ChangePortsRequest*
-Arena::CreateMaybeMessage< ::grpc::ChangePortsRequest >(Arena* arena) {
-  return Arena::CreateMessageInternal< ::grpc::ChangePortsRequest >(arena);
+template<> PROTOBUF_NOINLINE ::grpc::ImapSmtpSettings*
+Arena::CreateMaybeMessage< ::grpc::ImapSmtpSettings >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::grpc::ImapSmtpSettings >(arena);
 }
 template<> PROTOBUF_NOINLINE ::grpc::AvailableKeychainsResponse*
 Arena::CreateMaybeMessage< ::grpc::AvailableKeychainsResponse >(Arena* arena) {
@@ -13075,25 +13167,21 @@ template<> PROTOBUF_NOINLINE ::grpc::DiskCachePathChangeFinishedEvent*
 Arena::CreateMaybeMessage< ::grpc::DiskCachePathChangeFinishedEvent >(Arena* arena) {
   return Arena::CreateMessageInternal< ::grpc::DiskCachePathChangeFinishedEvent >(arena);
 }
-template<> PROTOBUF_NOINLINE ::grpc::MailSettingsEvent*
-Arena::CreateMaybeMessage< ::grpc::MailSettingsEvent >(Arena* arena) {
-  return Arena::CreateMessageInternal< ::grpc::MailSettingsEvent >(arena);
+template<> PROTOBUF_NOINLINE ::grpc::MailServerSettingsEvent*
+Arena::CreateMaybeMessage< ::grpc::MailServerSettingsEvent >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::grpc::MailServerSettingsEvent >(arena);
 }
-template<> PROTOBUF_NOINLINE ::grpc::MailSettingsErrorEvent*
-Arena::CreateMaybeMessage< ::grpc::MailSettingsErrorEvent >(Arena* arena) {
-  return Arena::CreateMessageInternal< ::grpc::MailSettingsErrorEvent >(arena);
+template<> PROTOBUF_NOINLINE ::grpc::MailServerSettingsErrorEvent*
+Arena::CreateMaybeMessage< ::grpc::MailServerSettingsErrorEvent >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::grpc::MailServerSettingsErrorEvent >(arena);
 }
-template<> PROTOBUF_NOINLINE ::grpc::UseSslForSmtpFinishedEvent*
-Arena::CreateMaybeMessage< ::grpc::UseSslForSmtpFinishedEvent >(Arena* arena) {
-  return Arena::CreateMessageInternal< ::grpc::UseSslForSmtpFinishedEvent >(arena);
+template<> PROTOBUF_NOINLINE ::grpc::MailServerSettingsChangedEvent*
+Arena::CreateMaybeMessage< ::grpc::MailServerSettingsChangedEvent >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::grpc::MailServerSettingsChangedEvent >(arena);
 }
-template<> PROTOBUF_NOINLINE ::grpc::UseSslForImapFinishedEvent*
-Arena::CreateMaybeMessage< ::grpc::UseSslForImapFinishedEvent >(Arena* arena) {
-  return Arena::CreateMessageInternal< ::grpc::UseSslForImapFinishedEvent >(arena);
-}
-template<> PROTOBUF_NOINLINE ::grpc::ChangePortsFinishedEvent*
-Arena::CreateMaybeMessage< ::grpc::ChangePortsFinishedEvent >(Arena* arena) {
-  return Arena::CreateMessageInternal< ::grpc::ChangePortsFinishedEvent >(arena);
+template<> PROTOBUF_NOINLINE ::grpc::ChangeMailServerSettingsFinishedEvent*
+Arena::CreateMaybeMessage< ::grpc::ChangeMailServerSettingsFinishedEvent >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::grpc::ChangeMailServerSettingsFinishedEvent >(arena);
 }
 template<> PROTOBUF_NOINLINE ::grpc::KeychainEvent*
 Arena::CreateMaybeMessage< ::grpc::KeychainEvent >(Arena* arena) {

@@ -46,8 +46,12 @@ QtObject {
 
     property var all: [
         root.noInternet,
-        root.portIssueIMAP,
-        root.portIssueSMTP,
+        root.imapPortStartupError,
+        root.smtpPortStartupError,
+        root.imapPortChangeError,
+        root.smtpPortChangeError,
+        root.imapConnectionModeChangeError,
+        root.smtpConnectionModeChangeError,
         root.updateManualReady,
         root.updateManualRestartNeeded,
         root.updateManualError,
@@ -98,8 +102,8 @@ QtObject {
         }
     }
 
-    property Notification portIssueIMAP: Notification {
-        description: qsTr("The IMAP server could not be started. Please check or change the IMAP port and restart the application.")
+    property Notification imapPortStartupError: Notification {
+        description: qsTr("The IMAP server could not be started. Please check or change the IMAP port.")
         brief: qsTr("IMAP port error")
         icon: "./icons/ic-alert.svg"
         type: Notification.NotificationType.Danger
@@ -108,14 +112,14 @@ QtObject {
         Connections {
             target: Backend
 
-            function onPortIssueIMAP() {
-                root.portIssueIMAP.active = true
+            function onImapPortStartupError() {
+                root.imapPortStartupError.active = true
             }
         }
     }
 
-    property Notification portIssueSMTP: Notification {
-        description: qsTr("The SMTP server could not be started. Please check or change the SMTP port and restart the application.")
+    property Notification smtpPortStartupError: Notification {
+        description: qsTr("The SMTP server could not be started. Please check or change the SMTP port.")
         brief: qsTr("SMTP port error")
         icon: "./icons/ic-alert.svg"
         type: Notification.NotificationType.Danger
@@ -124,8 +128,88 @@ QtObject {
         Connections {
             target: Backend
 
-            function onPortIssueSMTP() {
-                root.portIssueSMTP.active = true
+            function onSmtpPortStartupError() {
+                root.smtpPortStartupError.active = true
+            }
+        }
+    }
+
+    property Notification imapPortChangeError: Notification {
+        description: qsTr("The IMAP port could not be changed.")
+        brief: qsTr("IMAP port change error")
+        icon: "./icons/ic-alert.svg"
+        type: Notification.NotificationType.Danger
+        group: Notifications.Group.Connection
+
+        Connections {
+            target: Backend
+
+            function onImapPortChangeError() {
+                root.imapPortChangeError.active = true
+            }
+        }
+    }
+
+    property Notification smtpPortChangeError: Notification {
+        description: qsTr("The SMTP port could not be changed.")
+        brief: qsTr("SMTP port change error")
+        icon: "./icons/ic-alert.svg"
+        type: Notification.NotificationType.Danger
+        group: Notifications.Group.Connection
+
+        Connections {
+            target: Backend
+
+            function onSmtpPortChangeError() {
+                root.smtpPortChangeError.active = true
+            }
+        }
+    }
+
+    property Notification imapConnectionModeChangeError: Notification {
+        description: qsTr("The IMAP connection mode could not be changed.")
+        brief: qsTr("IMAP Connection mode change error")
+        icon: "./icons/ic-alert.svg"
+        type: Notification.NotificationType.Danger
+        group: Notifications.Group.Connection
+
+        Connections {
+            target: Backend
+
+            function onImapConnectionModeChangeError() {
+                root.imapConnectionModeChangeError.active = true
+            }
+        }
+
+        action: Action {
+            text: qsTr("OK")
+
+            onTriggered: {
+                root.imapConnectionModeChangeError.active= false
+            }
+        }
+    }
+
+    property Notification smtpConnectionModeChangeError: Notification {
+        description: qsTr("The SMTP connection mode could not be changed.")
+        brief: qsTr("SMTP Connection mode change error")
+        icon: "./icons/ic-alert.svg"
+        type: Notification.NotificationType.Danger
+        group: Notifications.Group.Connection
+
+        Connections {
+            target: Backend
+
+            function onSmtpConnectionModeChangeError() {
+                root.smtpConnectionModeChangeError.active = true
+            }
+        }
+
+        action: Action {
+            text: qsTr("OK")
+
+            onTriggered: {
+                root.smtpConnectionModeChangeError.active= false
             }
         }
     }

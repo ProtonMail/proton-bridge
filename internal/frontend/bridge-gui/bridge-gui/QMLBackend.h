@@ -69,10 +69,10 @@ public: // Qt/QML properties. Note that the NOTIFY-er signal is required even fo
     Q_PROPERTY(bool isAllMailVisible READ isAllMailVisible NOTIFY isAllMailVisibleChanged)                                                            //    _ bool        `property:"isAllMailVisible"`
     Q_PROPERTY(QString colorSchemeName READ colorSchemeName NOTIFY colorSchemeNameChanged)                                                            //    _ string      `property:"colorSchemeName"`
     Q_PROPERTY(QUrl diskCachePath READ diskCachePath NOTIFY diskCachePathChanged)                                                                     //    _ core.QUrl   `property:"diskCachePath"`
-    Q_PROPERTY(bool useSSLforSMTP READ useSSLForSMTP NOTIFY useSSLforSMTPChanged)                                                                     //    _ bool        `property:"useSSLforSMTP"`
-    Q_PROPERTY(bool useSSLforIMAP READ useSSLForIMAP NOTIFY useSSLforIMAPChanged)                                                                     //    _ bool        `property:"useSSLforIMAP"`
-    Q_PROPERTY(int portIMAP READ portIMAP NOTIFY portIMAPChanged)                                                                                     //    _ int         `property:"portIMAP"`
-    Q_PROPERTY(int portSMTP READ portSMTP NOTIFY portSMTPChanged)                                                                                     //    _ int         `property:"portSMTP"`
+    Q_PROPERTY(bool useSSLForIMAP READ useSSLForIMAP WRITE setUseSSLForIMAP NOTIFY useSSLForIMAPChanged)                                              //    _ bool        `property:"useSSLForSMTP"`
+    Q_PROPERTY(bool useSSLForSMTP READ useSSLForSMTP WRITE setUseSSLForSMTP NOTIFY useSSLForSMTPChanged)                                              //    _ bool        `property:"useSSLForSMTP"`
+    Q_PROPERTY(int imapPort READ imapPort WRITE setIMAPPort NOTIFY imapPortChanged)
+    Q_PROPERTY(int smtpPort READ smtpPort WRITE setSMTPPort NOTIFY smtpPortChanged)
     Q_PROPERTY(bool isDoHEnabled READ isDoHEnabled NOTIFY isDoHEnabledChanged)                                                                        //    _ bool        `property:"isDoHEnabled"`
     Q_PROPERTY(bool isFirstGUIStart READ isFirstGUIStart)                                                                                             //    _ bool        `property:"isFirstGUIStart"`
     Q_PROPERTY(bool isAutomaticUpdateOn READ isAutomaticUpdateOn NOTIFY isAutomaticUpdateOnChanged)                                                   //    _ bool        `property:"isAutomaticUpdateOn"`
@@ -101,10 +101,14 @@ public: // Qt/QML properties. Note that the NOTIFY-er signal is required even fo
     bool isAllMailVisible() const { bool v; app().grpc().isAllMailVisible(v); return v; }
     QString colorSchemeName() const { QString name; app().grpc().colorSchemeName(name); return name; }
     QUrl diskCachePath() const { QUrl path; app().grpc().diskCachePath(path); return path; }
-    bool useSSLForSMTP() const{ bool useSSL; app().grpc().useSSLForSMTP(useSSL); return useSSL; }
-    bool useSSLForIMAP() const{ bool useSSL; app().grpc().useSSLForIMAP(useSSL); return useSSL; }
-    int portIMAP() const { int port; app().grpc().portIMAP(port); return port; }
-    int portSMTP() const { int port; app().grpc().portSMTP(port); return port; }
+    bool useSSLForIMAP() const;
+    void setUseSSLForIMAP(bool value);
+    bool useSSLForSMTP() const;
+    void setUseSSLForSMTP(bool value);
+    int imapPort() const;
+    void setIMAPPort(int port);
+    int smtpPort() const;
+    void setSMTPPort(int port);
     bool isDoHEnabled() const { bool isEnabled; app().grpc().isDoHEnabled(isEnabled); return isEnabled;}
     bool isFirstGUIStart() const { bool v; app().grpc().isFirstGUIStart(v); return v; };
     bool isAutomaticUpdateOn() const { bool isOn = false; app().grpc().isAutomaticUpdateOn(isOn); return isOn; }
@@ -119,8 +123,10 @@ signals: // Signal used by the Qt property system. Many of them are unused but r
     void showOnStartupChanged(bool value);
     void goosChanged(QString const &value);
     void diskCachePathChanged(QUrl const &url);
-    void useSSLforSMTPChanged(bool value);
-    void useSSLforIMAPChanged(bool value);
+    void imapPortChanged(int port);
+    void smtpPortChanged(int port);
+    void useSSLForSMTPChanged(bool value);
+    void useSSLForIMAPChanged(bool value);
     void isAutomaticUpdateOnChanged(bool value);
     void isBetaEnabledChanged(bool value);
     void isAllMailVisibleChanged(bool value);
@@ -139,8 +145,6 @@ signals: // Signal used by the Qt property system. Many of them are unused but r
     void availableKeychainChanged(QStringList const &keychains);
     void hostnameChanged(QString const &hostname);
     void isAutostartOnChanged(bool value);
-    void portIMAPChanged(int port);
-    void portSMTPChanged(int port);
     void usersChanged(UserList* users);
     void dockIconVisibleChanged(bool value);
 
@@ -154,9 +158,6 @@ public slots: // slot for signals received from QML -> To be forwarded to Bridge
     void login2FA(QString const& username, QString const& code) { app().grpc().login2FA(username, code);}                                             //    _ func(username, code string)                                         `slot:"login2FA"`
     void login2Password(QString const& username, QString const& password) { app().grpc().login2Passwords(username, password);}                        //    _ func(username, password string)                                     `slot:"login2Password"`
     void loginAbort(QString const& username){ app().grpc().loginAbort(username);}                                                                     //    _ func(username string)                                               `slot:"loginAbort"`
-    void toggleUseSSLforSMTP(bool makeItActive);                                                                                                      //    _ func(makeItActive bool)                                             `slot:"toggleUseSSLforSMTP"`
-    void toggleUseSSLforIMAP(bool makeItActive);                                                                                                      //    _ func(makeItActive bool)                                             `slot:"toggleUseSSLforIMAP"`
-    void changePorts(int imapPort, int smtpPort);                                                                                                     //    _ func(imapPort, smtpPort int)                                        `slot:"changePorts"`
     void toggleDoH(bool active);                                                                                                                      //    _ func(makeItActive bool)                                             `slot:"toggleDoH"`
     void toggleAutomaticUpdate(bool makeItActive);                                                                                                    //    _ func(makeItActive bool)                                             `slot:"toggleAutomaticUpdate"`
     void updateCurrentMailClient() { emit currentEmailClientChanged(currentEmailClient()); }                                                          //    _ func() `slot:"updateCurrentMailClient"`
@@ -172,6 +173,10 @@ public slots: // slot for signals received from QML -> To be forwarded to Bridge
         app().grpc().reportBug(description, address, emailClient, includeLogs); }                                                                     //    _ func(description, address, emailClient string, includeLogs bool)    `slot:"reportBug"`
     void onResetFinished();                                                                                                                           //    _ func()                                                              `slot:"onResetFinished"`
     void onVersionChanged();                                                                                                                          //    _ func()                                                              `slot:"onVersionChanged"`
+    void setMailServerSettings(int imapPort, int smtpPort, bool useSSLForIMAP, bool useSSLForSMTP); ///< Forwards to connection mode change request from QML to gRPC
+
+public slots: // slot for signals received from gRPC that need transformation instead of simple forwarding
+    void onMailServerSettingsChanged(int imapPort, int smtpPort, bool useSSLForIMAP, bool useSSLForSMTP); ///< Slot for the ConnectionModeChanged gRPC event.
 
 signals: // Signals received from the Go backend, to be forwarded to QML
     void toggleAutostartFinished();                                                                                                                   //    _ func()                  `signal:"toggleAutostartFinished"`
@@ -199,10 +204,13 @@ signals: // Signals received from the Go backend, to be forwarded to QML
     void updateSilentError();                                                                                                                         //    _ func()                  `signal:"updateSilentError"`
     void updateIsLatestVersion();                                                                                                                     //    _ func()                  `signal:"updateIsLatestVersion"`
     void checkUpdatesFinished();                                                                                                                      //    _ func()                  `signal:"checkUpdatesFinished"`
-    void toggleUseSSLFinished();                                                                                                                      //    _ func()                  `signal:"toggleUseSSLFinished"`
-    void changePortFinished();                                                                                                                        //    _ func()                  `signal:"changePortFinished"`
-    void portIssueIMAP();                                                                                                                             //    _ func()                  `signal:"portIssueIMAP"`
-    void portIssueSMTP();                                                                                                                             //    _ func()                  `signal:"portIssueSMTP"`
+    void imapPortStartupError();
+    void smtpPortStartupError();
+    void imapPortChangeError();
+    void smtpPortChangeError();
+    void imapConnectionModeChangeError();
+    void smtpConnectionModeChangeError();
+    void changeMailServerSettingsFinished();
     void changeKeychainFinished();                                                                                                                    //    _ func()                  `signal:"changeKeychainFinished"`
     void notifyHasNoKeychain();                                                                                                                       //    _ func()                  `signal:"notifyHasNoKeychain"`
     void notifyRebuildKeychain();                                                                                                                     //    _ func()                  `signal:"notifyRebuildKeychain"`
@@ -231,6 +239,10 @@ private: // data members
     QString goos_; ///< The cached version of the GOOS variable.
     QUrl logsPath_; ///< The logs path. Retrieved from bridge on startup.
     QUrl licensePath_; ///< The license path. Retrieved from bridge on startup.
+    int imapPort_ { 0 }; ///< The cached value for the IMAP port.
+    int smtpPort_ { 0 }; ///< The cached value for the SMTP port.
+    bool useSSLForIMAP_ { false }; ///< The cached value for useSSLForIMAP.
+    bool useSSLForSMTP_ { false }; ///< The cached value for useSSLForSMTP.
 
     friend class AppController;
 };

@@ -109,20 +109,28 @@ func NewDiskCachePathChangeFinishedEvent() *StreamEvent {
 	return cacheEvent(&DiskCacheEvent{Event: &DiskCacheEvent_PathChangeFinished{PathChangeFinished: &DiskCachePathChangeFinishedEvent{}}})
 }
 
-func NewMailSettingsErrorEvent(err MailSettingsErrorType) *StreamEvent {
-	return mailSettingsEvent(&MailSettingsEvent{Event: &MailSettingsEvent_Error{Error: &MailSettingsErrorEvent{Type: err}}})
+func NewMailServerSettingsErrorEvent(err MailServerSettingsErrorType) *StreamEvent {
+	return mailServerSettingsEvent(&MailServerSettingsEvent{
+		Event: &MailServerSettingsEvent_Error{
+			Error: &MailServerSettingsErrorEvent{Type: err},
+		},
+	})
 }
 
-func NewMailSettingsUseSslForSmtpFinishedEvent() *StreamEvent { //nolint:revive,stylecheck
-	return mailSettingsEvent(&MailSettingsEvent{Event: &MailSettingsEvent_UseSslForSmtpFinished{UseSslForSmtpFinished: &UseSslForSmtpFinishedEvent{}}})
+func NewMailServerSettingsChangedEvent(settings *ImapSmtpSettings) *StreamEvent {
+	return mailServerSettingsEvent(&MailServerSettingsEvent{
+		Event: &MailServerSettingsEvent_MailServerSettingsChanged{
+			MailServerSettingsChanged: &MailServerSettingsChangedEvent{Settings: settings},
+		},
+	})
 }
 
-func NewMailSettingsUseSslForImapFinishedEvent() *StreamEvent { //nolint:revive,stylecheck
-	return mailSettingsEvent(&MailSettingsEvent{Event: &MailSettingsEvent_UseSslForImapFinished{UseSslForImapFinished: &UseSslForImapFinishedEvent{}}})
-}
-
-func NewMailSettingsChangePortFinishedEvent() *StreamEvent {
-	return mailSettingsEvent(&MailSettingsEvent{Event: &MailSettingsEvent_ChangePortsFinished{ChangePortsFinished: &ChangePortsFinishedEvent{}}})
+func NewChangeMailServerSettingsFinishedEvent() *StreamEvent {
+	return mailServerSettingsEvent(&MailServerSettingsEvent{
+		Event: &MailServerSettingsEvent_ChangeMailServerSettingsFinished{
+			ChangeMailServerSettingsFinished: &ChangeMailServerSettingsFinishedEvent{},
+		},
+	})
 }
 
 func NewKeychainChangeKeychainFinishedEvent() *StreamEvent {
@@ -183,8 +191,8 @@ func cacheEvent(event *DiskCacheEvent) *StreamEvent {
 	return &StreamEvent{Event: &StreamEvent_Cache{Cache: event}}
 }
 
-func mailSettingsEvent(event *MailSettingsEvent) *StreamEvent {
-	return &StreamEvent{Event: &StreamEvent_MailSettings{MailSettings: event}}
+func mailServerSettingsEvent(event *MailServerSettingsEvent) *StreamEvent {
+	return &StreamEvent{Event: &StreamEvent_MailServerSettings{MailServerSettings: event}}
 }
 
 func keychainEvent(event *KeychainEvent) *StreamEvent {

@@ -37,6 +37,7 @@ import (
 	"golang.org/x/exp/maps"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/runtime/protoimpl"
 	"google.golang.org/protobuf/types/known/emptypb"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 )
@@ -617,80 +618,72 @@ func (s *Service) IsDoHEnabled(ctx context.Context, _ *emptypb.Empty) (*wrappers
 	return wrapperspb.Bool(s.bridge.GetProxyAllowed()), nil
 }
 
-func (s *Service) SetUseSslForSmtp(ctx context.Context, useSsl *wrapperspb.BoolValue) (*emptypb.Empty, error) { //nolint:revive,stylecheck
-	s.log.WithField("useSsl", useSsl.Value).Debug("SetUseSslForSmtp")
+func (s *Service) MailServerSettings(_ context.Context, _ *emptypb.Empty) (*ImapSmtpSettings, error) {
+	s.log.Debug("ConnectionMode")
 
-	if s.bridge.GetSMTPSSL() == useSsl.Value {
-		return &emptypb.Empty{}, nil
-	}
-
-	if err := s.bridge.SetSMTPSSL(useSsl.Value); err != nil {
-		s.log.WithError(err).Error("Failed to set SMTP SSL")
-		return nil, status.Errorf(codes.Internal, "failed to set SMTP SSL: %v", err)
-	}
-
-	return &emptypb.Empty{}, s.SendEvent(NewMailSettingsUseSslForSmtpFinishedEvent())
+	return &ImapSmtpSettings{
+		state:         protoimpl.MessageState{},
+		sizeCache:     0,
+		unknownFields: nil,
+		ImapPort:      int32(s.bridge.GetIMAPPort()),
+		SmtpPort:      int32(s.bridge.GetSMTPPort()),
+		UseSSLForImap: s.bridge.GetIMAPSSL(),
+		UseSSLForSmtp: s.bridge.GetSMTPSSL(),
+	}, nil
 }
 
-func (s *Service) UseSslForSmtp(ctx context.Context, _ *emptypb.Empty) (*wrapperspb.BoolValue, error) { //nolint:revive,stylecheck
-	s.log.Debug("UseSslForSmtp")
+func (s *Service) SetMailServerSettings(_ context.Context, settings *ImapSmtpSettings) (*emptypb.Empty, error) {
+	s.log.
+		WithField("ImapPort", settings.ImapPort).
+		WithField("SmtpPort", settings.SmtpPort).
+		WithField("UseSSUseSSLForIMAP", settings.UseSSLForImap).
+		WithField("UseSSLForSMTP", settings.UseSSLForSmtp).
+		Debug("SetConnectionMode")
 
-	return wrapperspb.Bool(s.bridge.GetSMTPSSL()), nil
-}
+	defer func() { _ = s.SendEvent(NewChangeMailServerSettingsFinishedEvent()) }()
 
-func (s *Service) SetUseSslForImap(ctx context.Context, useSsl *wrapperspb.BoolValue) (*emptypb.Empty, error) { //nolint:revive,stylecheck
-	s.log.WithField("useSsl", useSsl.Value).Debug("SetUseSslForImap")
-
-	if s.bridge.GetIMAPSSL() == useSsl.Value {
-		return &emptypb.Empty{}, nil
+	if s.bridge.GetIMAPSSL() != settings.UseSSLForImap {
+		if err := s.bridge.SetIMAPSSL(settings.UseSSLForImap); err != nil {
+			s.log.WithError(err).Error("Failed to set IMAP SSL")
+			_ = s.SendEvent(NewMailServerSettingsErrorEvent(MailServerSettingsErrorType_IMAP_CONNECTION_MODE_CHANGE_ERROR))
+		}
 	}
 
-	if err := s.bridge.SetIMAPSSL(useSsl.Value); err != nil {
-		s.log.WithError(err).Error("Failed to set IMAP SSL")
-		return nil, status.Errorf(codes.Internal, "failed to set IMAP SSL: %v", err)
+	if s.bridge.GetSMTPSSL() != settings.UseSSLForSmtp {
+		if err := s.bridge.SetSMTPSSL(settings.UseSSLForSmtp); err != nil {
+			s.log.WithError(err).Error("Failed to set SMTP SSL")
+			_ = s.SendEvent(NewMailServerSettingsErrorEvent(MailServerSettingsErrorType_SMTP_CONNECTION_MODE_CHANGE_ERROR))
+		}
 	}
 
-	return &emptypb.Empty{}, s.SendEvent(NewMailSettingsUseSslForImapFinishedEvent())
-}
+	if s.bridge.GetIMAPPort() != int(settings.ImapPort) {
+		if err := s.bridge.SetIMAPPort(int(settings.ImapPort)); err != nil {
+			s.log.WithError(err).Error("Failed to set IMAP port")
+			_ = s.SendEvent(NewMailServerSettingsErrorEvent(MailServerSettingsErrorType_IMAP_PORT_CHANGE_ERROR))
+		}
+	}
 
-func (s *Service) UseSslForImap(ctx context.Context, _ *emptypb.Empty) (*wrapperspb.BoolValue, error) { //nolint:revive,stylecheck
-	s.log.Debug("UseSslForImap")
+	if s.bridge.GetSMTPPort() != int(settings.SmtpPort) {
+		if err := s.bridge.SetSMTPPort(int(settings.SmtpPort)); err != nil {
+			s.log.WithError(err).Error("Failed to set SMTP port")
+			_ = s.SendEvent(NewMailServerSettingsErrorEvent(MailServerSettingsErrorType_SMTP_PORT_CHANGE_ERROR))
+		}
+	}
 
-	return wrapperspb.Bool(s.bridge.GetIMAPSSL()), nil
+	_ = s.SendEvent(NewMailServerSettingsChangedEvent(&ImapSmtpSettings{
+		ImapPort:      int32(s.bridge.GetIMAPPort()),
+		SmtpPort:      int32(s.bridge.GetSMTPPort()),
+		UseSSLForImap: s.bridge.GetIMAPSSL(),
+		UseSSLForSmtp: s.bridge.GetSMTPSSL(),
+	}))
+
+	return &emptypb.Empty{}, nil
 }
 
 func (s *Service) Hostname(ctx context.Context, _ *emptypb.Empty) (*wrapperspb.StringValue, error) {
 	s.log.Debug("Hostname")
 
 	return wrapperspb.String(constants.Host), nil
-}
-
-func (s *Service) ImapPort(ctx context.Context, _ *emptypb.Empty) (*wrapperspb.Int32Value, error) {
-	s.log.Debug("ImapPort")
-
-	return wrapperspb.Int32(int32(s.bridge.GetIMAPPort())), nil
-}
-
-func (s *Service) SmtpPort(ctx context.Context, _ *emptypb.Empty) (*wrapperspb.Int32Value, error) { //nolint:revive,stylecheck
-	s.log.Debug("SmtpPort")
-
-	return wrapperspb.Int32(int32(s.bridge.GetSMTPPort())), nil
-}
-
-func (s *Service) ChangePorts(ctx context.Context, ports *ChangePortsRequest) (*emptypb.Empty, error) {
-	s.log.WithField("imapPort", ports.ImapPort).WithField("smtpPort", ports.SmtpPort).Debug("ChangePorts")
-
-	if err := s.bridge.SetIMAPPort(int(ports.ImapPort)); err != nil {
-		s.log.WithError(err).Error("Failed to set IMAP port")
-		return nil, status.Errorf(codes.Internal, "failed to set IMAP port: %v", err)
-	}
-
-	if err := s.bridge.SetSMTPPort(int(ports.SmtpPort)); err != nil {
-		s.log.WithError(err).Error("Failed to set SMTP port")
-		return nil, status.Errorf(codes.Internal, "failed to set SMTP port: %v", err)
-	}
-
-	return &emptypb.Empty{}, s.SendEvent(NewMailSettingsChangePortFinishedEvent())
 }
 
 func (s *Service) IsPortFree(ctx context.Context, port *wrapperspb.Int32Value) (*wrapperspb.BoolValue, error) {

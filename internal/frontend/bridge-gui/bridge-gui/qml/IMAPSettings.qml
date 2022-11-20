@@ -36,7 +36,7 @@ SettingsView {
 
     Label {
         colorScheme: root.colorScheme
-        text: qsTr("Changes require reconfiguration of email client. Bridge will automatically restart.")
+        text: qsTr("Changes require reconfiguration of email client.")
         type: Label.Body
         color: root.colorScheme.text_weak
         Layout.fillWidth: true
@@ -80,13 +80,13 @@ SettingsView {
         Button {
             id: submitButton
             colorScheme: root.colorScheme
-            text: qsTr("Save and restart")
+            text: qsTr("Save")
             onClicked: {
                 submitButton.loading = true
                 root.submit()
             }
 
-            enabled: sslButton.checked !== Backend.useSSLforIMAP
+            enabled: sslButton.checked !== Backend.useSSLForIMAP
         }
 
         Button {
@@ -99,20 +99,21 @@ SettingsView {
         Connections {
             target: Backend
 
-            function onToggleUseSSLFinished() {
+            function onChangeMailServerSettingsFinished() {
                 submitButton.loading = false
+                root.back()
             }
         }
     }
 
     function submit(){
         submitButton.loading = true
-        Backend.toggleUseSSLforIMAP(sslButton.checked)
+        Backend.setMailServerSettings(Backend.imapPort, Backend.smtpPort, sslButton.checked, Backend.useSSLForSMTP)
     }
 
     function setDefaultValues(){
-        sslButton.checked = Backend.useSSLforIMAP
-        starttlsButton.checked = !Backend.useSSLforIMAP
+        sslButton.checked = Backend.useSSLForIMAP
+        starttlsButton.checked = !Backend.useSSLForIMAP
     }
 
     onVisibleChanged: {

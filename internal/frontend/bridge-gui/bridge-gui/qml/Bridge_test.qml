@@ -696,7 +696,7 @@ Window {
                     }
                     RowLayout {
                         Label {colorScheme: root.colorScheme; text: "SMTP using SSL:"}
-                        Toggle {colorScheme: root.colorScheme; checked: root.useSSLforSMTP; onClicked: root.useSSLforSMTP = !root.useSSLforSMTP}
+                        Toggle {colorScheme: root.colorScheme; checked: root.useSSLForSMTP; onClicked: root.useSSLForSMTP = !root.useSSLForSMTP}
                     }
                     RowLayout {
                         Label {colorScheme: root.colorScheme; text: "Local cache:"}
@@ -822,9 +822,9 @@ Window {
     }
 
 
-    property bool useSSLforSMTP: false
-    function toggleUseSSLforSMTP(makeItActive){
-        console.debug("-> SMTP SSL", makeItActive, root.useSSLforSMTP)
+    property bool useSSLForSMTP: false
+    function toggleUseSSLForSMTP(makeItActive){
+        console.debug("-> SMTP SSL", makeItActive, root.useSSLForSMTP)
     }
     signal toggleUseSSLFinished()
 
@@ -841,8 +841,8 @@ Window {
         return true
     }
     signal changePortFinished()
-    signal portIssueIMAP()
-    signal portIssueSMTP()
+    signal imapPortStartupError()
+    signal smtpPortStartupError()
 
     function triggerReset() {
         console.debug("-> trigger reset")

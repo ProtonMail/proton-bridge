@@ -342,33 +342,19 @@ class Bridge final {
     std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::BoolValue>> PrepareAsyncIsDoHEnabled(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::BoolValue>>(PrepareAsyncIsDoHEnabledRaw(context, request, cq));
     }
-    virtual ::grpc::Status SetUseSslForSmtp(::grpc::ClientContext* context, const ::google::protobuf::BoolValue& request, ::google::protobuf::Empty* response) = 0;
-    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>> AsyncSetUseSslForSmtp(::grpc::ClientContext* context, const ::google::protobuf::BoolValue& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>>(AsyncSetUseSslForSmtpRaw(context, request, cq));
+    virtual ::grpc::Status MailServerSettings(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::ImapSmtpSettings* response) = 0;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::grpc::ImapSmtpSettings>> AsyncMailServerSettings(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::grpc::ImapSmtpSettings>>(AsyncMailServerSettingsRaw(context, request, cq));
     }
-    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>> PrepareAsyncSetUseSslForSmtp(::grpc::ClientContext* context, const ::google::protobuf::BoolValue& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>>(PrepareAsyncSetUseSslForSmtpRaw(context, request, cq));
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::grpc::ImapSmtpSettings>> PrepareAsyncMailServerSettings(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::grpc::ImapSmtpSettings>>(PrepareAsyncMailServerSettingsRaw(context, request, cq));
     }
-    virtual ::grpc::Status UseSslForSmtp(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::google::protobuf::BoolValue* response) = 0;
-    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::BoolValue>> AsyncUseSslForSmtp(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::BoolValue>>(AsyncUseSslForSmtpRaw(context, request, cq));
+    virtual ::grpc::Status SetMailServerSettings(::grpc::ClientContext* context, const ::grpc::ImapSmtpSettings& request, ::google::protobuf::Empty* response) = 0;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>> AsyncSetMailServerSettings(::grpc::ClientContext* context, const ::grpc::ImapSmtpSettings& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>>(AsyncSetMailServerSettingsRaw(context, request, cq));
     }
-    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::BoolValue>> PrepareAsyncUseSslForSmtp(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::BoolValue>>(PrepareAsyncUseSslForSmtpRaw(context, request, cq));
-    }
-    virtual ::grpc::Status SetUseSslForImap(::grpc::ClientContext* context, const ::google::protobuf::BoolValue& request, ::google::protobuf::Empty* response) = 0;
-    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>> AsyncSetUseSslForImap(::grpc::ClientContext* context, const ::google::protobuf::BoolValue& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>>(AsyncSetUseSslForImapRaw(context, request, cq));
-    }
-    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>> PrepareAsyncSetUseSslForImap(::grpc::ClientContext* context, const ::google::protobuf::BoolValue& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>>(PrepareAsyncSetUseSslForImapRaw(context, request, cq));
-    }
-    virtual ::grpc::Status UseSslForImap(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::google::protobuf::BoolValue* response) = 0;
-    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::BoolValue>> AsyncUseSslForImap(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::BoolValue>>(AsyncUseSslForImapRaw(context, request, cq));
-    }
-    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::BoolValue>> PrepareAsyncUseSslForImap(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::BoolValue>>(PrepareAsyncUseSslForImapRaw(context, request, cq));
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>> PrepareAsyncSetMailServerSettings(::grpc::ClientContext* context, const ::grpc::ImapSmtpSettings& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>>(PrepareAsyncSetMailServerSettingsRaw(context, request, cq));
     }
     virtual ::grpc::Status Hostname(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::google::protobuf::StringValue* response) = 0;
     std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::StringValue>> AsyncHostname(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) {
@@ -376,27 +362,6 @@ class Bridge final {
     }
     std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::StringValue>> PrepareAsyncHostname(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::StringValue>>(PrepareAsyncHostnameRaw(context, request, cq));
-    }
-    virtual ::grpc::Status ImapPort(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::google::protobuf::Int32Value* response) = 0;
-    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Int32Value>> AsyncImapPort(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Int32Value>>(AsyncImapPortRaw(context, request, cq));
-    }
-    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Int32Value>> PrepareAsyncImapPort(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Int32Value>>(PrepareAsyncImapPortRaw(context, request, cq));
-    }
-    virtual ::grpc::Status SmtpPort(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::google::protobuf::Int32Value* response) = 0;
-    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Int32Value>> AsyncSmtpPort(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Int32Value>>(AsyncSmtpPortRaw(context, request, cq));
-    }
-    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Int32Value>> PrepareAsyncSmtpPort(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Int32Value>>(PrepareAsyncSmtpPortRaw(context, request, cq));
-    }
-    virtual ::grpc::Status ChangePorts(::grpc::ClientContext* context, const ::grpc::ChangePortsRequest& request, ::google::protobuf::Empty* response) = 0;
-    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>> AsyncChangePorts(::grpc::ClientContext* context, const ::grpc::ChangePortsRequest& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>>(AsyncChangePortsRaw(context, request, cq));
-    }
-    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>> PrepareAsyncChangePorts(::grpc::ClientContext* context, const ::grpc::ChangePortsRequest& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>>(PrepareAsyncChangePortsRaw(context, request, cq));
     }
     virtual ::grpc::Status IsPortFree(::grpc::ClientContext* context, const ::google::protobuf::Int32Value& request, ::google::protobuf::BoolValue* response) = 0;
     std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::BoolValue>> AsyncIsPortFree(::grpc::ClientContext* context, const ::google::protobuf::Int32Value& request, ::grpc::CompletionQueue* cq) {
@@ -577,22 +542,12 @@ class Bridge final {
       virtual void SetIsDoHEnabled(::grpc::ClientContext* context, const ::google::protobuf::BoolValue* request, ::google::protobuf::Empty* response, ::grpc::ClientUnaryReactor* reactor) = 0;
       virtual void IsDoHEnabled(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::google::protobuf::BoolValue* response, std::function<void(::grpc::Status)>) = 0;
       virtual void IsDoHEnabled(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::google::protobuf::BoolValue* response, ::grpc::ClientUnaryReactor* reactor) = 0;
-      virtual void SetUseSslForSmtp(::grpc::ClientContext* context, const ::google::protobuf::BoolValue* request, ::google::protobuf::Empty* response, std::function<void(::grpc::Status)>) = 0;
-      virtual void SetUseSslForSmtp(::grpc::ClientContext* context, const ::google::protobuf::BoolValue* request, ::google::protobuf::Empty* response, ::grpc::ClientUnaryReactor* reactor) = 0;
-      virtual void UseSslForSmtp(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::google::protobuf::BoolValue* response, std::function<void(::grpc::Status)>) = 0;
-      virtual void UseSslForSmtp(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::google::protobuf::BoolValue* response, ::grpc::ClientUnaryReactor* reactor) = 0;
-      virtual void SetUseSslForImap(::grpc::ClientContext* context, const ::google::protobuf::BoolValue* request, ::google::protobuf::Empty* response, std::function<void(::grpc::Status)>) = 0;
-      virtual void SetUseSslForImap(::grpc::ClientContext* context, const ::google::protobuf::BoolValue* request, ::google::protobuf::Empty* response, ::grpc::ClientUnaryReactor* reactor) = 0;
-      virtual void UseSslForImap(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::google::protobuf::BoolValue* response, std::function<void(::grpc::Status)>) = 0;
-      virtual void UseSslForImap(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::google::protobuf::BoolValue* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      virtual void MailServerSettings(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::grpc::ImapSmtpSettings* response, std::function<void(::grpc::Status)>) = 0;
+      virtual void MailServerSettings(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::grpc::ImapSmtpSettings* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      virtual void SetMailServerSettings(::grpc::ClientContext* context, const ::grpc::ImapSmtpSettings* request, ::google::protobuf::Empty* response, std::function<void(::grpc::Status)>) = 0;
+      virtual void SetMailServerSettings(::grpc::ClientContext* context, const ::grpc::ImapSmtpSettings* request, ::google::protobuf::Empty* response, ::grpc::ClientUnaryReactor* reactor) = 0;
       virtual void Hostname(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::google::protobuf::StringValue* response, std::function<void(::grpc::Status)>) = 0;
       virtual void Hostname(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::google::protobuf::StringValue* response, ::grpc::ClientUnaryReactor* reactor) = 0;
-      virtual void ImapPort(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::google::protobuf::Int32Value* response, std::function<void(::grpc::Status)>) = 0;
-      virtual void ImapPort(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::google::protobuf::Int32Value* response, ::grpc::ClientUnaryReactor* reactor) = 0;
-      virtual void SmtpPort(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::google::protobuf::Int32Value* response, std::function<void(::grpc::Status)>) = 0;
-      virtual void SmtpPort(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::google::protobuf::Int32Value* response, ::grpc::ClientUnaryReactor* reactor) = 0;
-      virtual void ChangePorts(::grpc::ClientContext* context, const ::grpc::ChangePortsRequest* request, ::google::protobuf::Empty* response, std::function<void(::grpc::Status)>) = 0;
-      virtual void ChangePorts(::grpc::ClientContext* context, const ::grpc::ChangePortsRequest* request, ::google::protobuf::Empty* response, ::grpc::ClientUnaryReactor* reactor) = 0;
       virtual void IsPortFree(::grpc::ClientContext* context, const ::google::protobuf::Int32Value* request, ::google::protobuf::BoolValue* response, std::function<void(::grpc::Status)>) = 0;
       virtual void IsPortFree(::grpc::ClientContext* context, const ::google::protobuf::Int32Value* request, ::google::protobuf::BoolValue* response, ::grpc::ClientUnaryReactor* reactor) = 0;
       // keychain
@@ -705,22 +660,12 @@ class Bridge final {
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>* PrepareAsyncSetIsDoHEnabledRaw(::grpc::ClientContext* context, const ::google::protobuf::BoolValue& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::BoolValue>* AsyncIsDoHEnabledRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::BoolValue>* PrepareAsyncIsDoHEnabledRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) = 0;
-    virtual ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>* AsyncSetUseSslForSmtpRaw(::grpc::ClientContext* context, const ::google::protobuf::BoolValue& request, ::grpc::CompletionQueue* cq) = 0;
-    virtual ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>* PrepareAsyncSetUseSslForSmtpRaw(::grpc::ClientContext* context, const ::google::protobuf::BoolValue& request, ::grpc::CompletionQueue* cq) = 0;
-    virtual ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::BoolValue>* AsyncUseSslForSmtpRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) = 0;
-    virtual ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::BoolValue>* PrepareAsyncUseSslForSmtpRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) = 0;
-    virtual ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>* AsyncSetUseSslForImapRaw(::grpc::ClientContext* context, const ::google::protobuf::BoolValue& request, ::grpc::CompletionQueue* cq) = 0;
-    virtual ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>* PrepareAsyncSetUseSslForImapRaw(::grpc::ClientContext* context, const ::google::protobuf::BoolValue& request, ::grpc::CompletionQueue* cq) = 0;
-    virtual ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::BoolValue>* AsyncUseSslForImapRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) = 0;
-    virtual ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::BoolValue>* PrepareAsyncUseSslForImapRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::grpc::ImapSmtpSettings>* AsyncMailServerSettingsRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::grpc::ImapSmtpSettings>* PrepareAsyncMailServerSettingsRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>* AsyncSetMailServerSettingsRaw(::grpc::ClientContext* context, const ::grpc::ImapSmtpSettings& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>* PrepareAsyncSetMailServerSettingsRaw(::grpc::ClientContext* context, const ::grpc::ImapSmtpSettings& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::StringValue>* AsyncHostnameRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::StringValue>* PrepareAsyncHostnameRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) = 0;
-    virtual ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Int32Value>* AsyncImapPortRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) = 0;
-    virtual ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Int32Value>* PrepareAsyncImapPortRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) = 0;
-    virtual ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Int32Value>* AsyncSmtpPortRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) = 0;
-    virtual ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Int32Value>* PrepareAsyncSmtpPortRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) = 0;
-    virtual ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>* AsyncChangePortsRaw(::grpc::ClientContext* context, const ::grpc::ChangePortsRequest& request, ::grpc::CompletionQueue* cq) = 0;
-    virtual ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>* PrepareAsyncChangePortsRaw(::grpc::ClientContext* context, const ::grpc::ChangePortsRequest& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::BoolValue>* AsyncIsPortFreeRaw(::grpc::ClientContext* context, const ::google::protobuf::Int32Value& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::BoolValue>* PrepareAsyncIsPortFreeRaw(::grpc::ClientContext* context, const ::google::protobuf::Int32Value& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::grpc::AvailableKeychainsResponse>* AsyncAvailableKeychainsRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) = 0;
@@ -1030,33 +975,19 @@ class Bridge final {
     std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::google::protobuf::BoolValue>> PrepareAsyncIsDoHEnabled(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::google::protobuf::BoolValue>>(PrepareAsyncIsDoHEnabledRaw(context, request, cq));
     }
-    ::grpc::Status SetUseSslForSmtp(::grpc::ClientContext* context, const ::google::protobuf::BoolValue& request, ::google::protobuf::Empty* response) override;
-    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>> AsyncSetUseSslForSmtp(::grpc::ClientContext* context, const ::google::protobuf::BoolValue& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>>(AsyncSetUseSslForSmtpRaw(context, request, cq));
+    ::grpc::Status MailServerSettings(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::ImapSmtpSettings* response) override;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::grpc::ImapSmtpSettings>> AsyncMailServerSettings(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::grpc::ImapSmtpSettings>>(AsyncMailServerSettingsRaw(context, request, cq));
     }
-    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>> PrepareAsyncSetUseSslForSmtp(::grpc::ClientContext* context, const ::google::protobuf::BoolValue& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>>(PrepareAsyncSetUseSslForSmtpRaw(context, request, cq));
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::grpc::ImapSmtpSettings>> PrepareAsyncMailServerSettings(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::grpc::ImapSmtpSettings>>(PrepareAsyncMailServerSettingsRaw(context, request, cq));
     }
-    ::grpc::Status UseSslForSmtp(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::google::protobuf::BoolValue* response) override;
-    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::google::protobuf::BoolValue>> AsyncUseSslForSmtp(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::google::protobuf::BoolValue>>(AsyncUseSslForSmtpRaw(context, request, cq));
+    ::grpc::Status SetMailServerSettings(::grpc::ClientContext* context, const ::grpc::ImapSmtpSettings& request, ::google::protobuf::Empty* response) override;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>> AsyncSetMailServerSettings(::grpc::ClientContext* context, const ::grpc::ImapSmtpSettings& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>>(AsyncSetMailServerSettingsRaw(context, request, cq));
     }
-    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::google::protobuf::BoolValue>> PrepareAsyncUseSslForSmtp(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::google::protobuf::BoolValue>>(PrepareAsyncUseSslForSmtpRaw(context, request, cq));
-    }
-    ::grpc::Status SetUseSslForImap(::grpc::ClientContext* context, const ::google::protobuf::BoolValue& request, ::google::protobuf::Empty* response) override;
-    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>> AsyncSetUseSslForImap(::grpc::ClientContext* context, const ::google::protobuf::BoolValue& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>>(AsyncSetUseSslForImapRaw(context, request, cq));
-    }
-    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>> PrepareAsyncSetUseSslForImap(::grpc::ClientContext* context, const ::google::protobuf::BoolValue& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>>(PrepareAsyncSetUseSslForImapRaw(context, request, cq));
-    }
-    ::grpc::Status UseSslForImap(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::google::protobuf::BoolValue* response) override;
-    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::google::protobuf::BoolValue>> AsyncUseSslForImap(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::google::protobuf::BoolValue>>(AsyncUseSslForImapRaw(context, request, cq));
-    }
-    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::google::protobuf::BoolValue>> PrepareAsyncUseSslForImap(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::google::protobuf::BoolValue>>(PrepareAsyncUseSslForImapRaw(context, request, cq));
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>> PrepareAsyncSetMailServerSettings(::grpc::ClientContext* context, const ::grpc::ImapSmtpSettings& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>>(PrepareAsyncSetMailServerSettingsRaw(context, request, cq));
     }
     ::grpc::Status Hostname(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::google::protobuf::StringValue* response) override;
     std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::google::protobuf::StringValue>> AsyncHostname(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) {
@@ -1064,27 +995,6 @@ class Bridge final {
     }
     std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::google::protobuf::StringValue>> PrepareAsyncHostname(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::google::protobuf::StringValue>>(PrepareAsyncHostnameRaw(context, request, cq));
-    }
-    ::grpc::Status ImapPort(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::google::protobuf::Int32Value* response) override;
-    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::google::protobuf::Int32Value>> AsyncImapPort(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::google::protobuf::Int32Value>>(AsyncImapPortRaw(context, request, cq));
-    }
-    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::google::protobuf::Int32Value>> PrepareAsyncImapPort(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::google::protobuf::Int32Value>>(PrepareAsyncImapPortRaw(context, request, cq));
-    }
-    ::grpc::Status SmtpPort(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::google::protobuf::Int32Value* response) override;
-    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::google::protobuf::Int32Value>> AsyncSmtpPort(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::google::protobuf::Int32Value>>(AsyncSmtpPortRaw(context, request, cq));
-    }
-    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::google::protobuf::Int32Value>> PrepareAsyncSmtpPort(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::google::protobuf::Int32Value>>(PrepareAsyncSmtpPortRaw(context, request, cq));
-    }
-    ::grpc::Status ChangePorts(::grpc::ClientContext* context, const ::grpc::ChangePortsRequest& request, ::google::protobuf::Empty* response) override;
-    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>> AsyncChangePorts(::grpc::ClientContext* context, const ::grpc::ChangePortsRequest& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>>(AsyncChangePortsRaw(context, request, cq));
-    }
-    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>> PrepareAsyncChangePorts(::grpc::ClientContext* context, const ::grpc::ChangePortsRequest& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>>(PrepareAsyncChangePortsRaw(context, request, cq));
     }
     ::grpc::Status IsPortFree(::grpc::ClientContext* context, const ::google::protobuf::Int32Value& request, ::google::protobuf::BoolValue* response) override;
     std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::google::protobuf::BoolValue>> AsyncIsPortFree(::grpc::ClientContext* context, const ::google::protobuf::Int32Value& request, ::grpc::CompletionQueue* cq) {
@@ -1255,22 +1165,12 @@ class Bridge final {
       void SetIsDoHEnabled(::grpc::ClientContext* context, const ::google::protobuf::BoolValue* request, ::google::protobuf::Empty* response, ::grpc::ClientUnaryReactor* reactor) override;
       void IsDoHEnabled(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::google::protobuf::BoolValue* response, std::function<void(::grpc::Status)>) override;
       void IsDoHEnabled(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::google::protobuf::BoolValue* response, ::grpc::ClientUnaryReactor* reactor) override;
-      void SetUseSslForSmtp(::grpc::ClientContext* context, const ::google::protobuf::BoolValue* request, ::google::protobuf::Empty* response, std::function<void(::grpc::Status)>) override;
-      void SetUseSslForSmtp(::grpc::ClientContext* context, const ::google::protobuf::BoolValue* request, ::google::protobuf::Empty* response, ::grpc::ClientUnaryReactor* reactor) override;
-      void UseSslForSmtp(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::google::protobuf::BoolValue* response, std::function<void(::grpc::Status)>) override;
-      void UseSslForSmtp(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::google::protobuf::BoolValue* response, ::grpc::ClientUnaryReactor* reactor) override;
-      void SetUseSslForImap(::grpc::ClientContext* context, const ::google::protobuf::BoolValue* request, ::google::protobuf::Empty* response, std::function<void(::grpc::Status)>) override;
-      void SetUseSslForImap(::grpc::ClientContext* context, const ::google::protobuf::BoolValue* request, ::google::protobuf::Empty* response, ::grpc::ClientUnaryReactor* reactor) override;
-      void UseSslForImap(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::google::protobuf::BoolValue* response, std::function<void(::grpc::Status)>) override;
-      void UseSslForImap(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::google::protobuf::BoolValue* response, ::grpc::ClientUnaryReactor* reactor) override;
+      void MailServerSettings(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::grpc::ImapSmtpSettings* response, std::function<void(::grpc::Status)>) override;
+      void MailServerSettings(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::grpc::ImapSmtpSettings* response, ::grpc::ClientUnaryReactor* reactor) override;
+      void SetMailServerSettings(::grpc::ClientContext* context, const ::grpc::ImapSmtpSettings* request, ::google::protobuf::Empty* response, std::function<void(::grpc::Status)>) override;
+      void SetMailServerSettings(::grpc::ClientContext* context, const ::grpc::ImapSmtpSettings* request, ::google::protobuf::Empty* response, ::grpc::ClientUnaryReactor* reactor) override;
       void Hostname(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::google::protobuf::StringValue* response, std::function<void(::grpc::Status)>) override;
       void Hostname(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::google::protobuf::StringValue* response, ::grpc::ClientUnaryReactor* reactor) override;
-      void ImapPort(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::google::protobuf::Int32Value* response, std::function<void(::grpc::Status)>) override;
-      void ImapPort(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::google::protobuf::Int32Value* response, ::grpc::ClientUnaryReactor* reactor) override;
-      void SmtpPort(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::google::protobuf::Int32Value* response, std::function<void(::grpc::Status)>) override;
-      void SmtpPort(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::google::protobuf::Int32Value* response, ::grpc::ClientUnaryReactor* reactor) override;
-      void ChangePorts(::grpc::ClientContext* context, const ::grpc::ChangePortsRequest* request, ::google::protobuf::Empty* response, std::function<void(::grpc::Status)>) override;
-      void ChangePorts(::grpc::ClientContext* context, const ::grpc::ChangePortsRequest* request, ::google::protobuf::Empty* response, ::grpc::ClientUnaryReactor* reactor) override;
       void IsPortFree(::grpc::ClientContext* context, const ::google::protobuf::Int32Value* request, ::google::protobuf::BoolValue* response, std::function<void(::grpc::Status)>) override;
       void IsPortFree(::grpc::ClientContext* context, const ::google::protobuf::Int32Value* request, ::google::protobuf::BoolValue* response, ::grpc::ClientUnaryReactor* reactor) override;
       void AvailableKeychains(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::grpc::AvailableKeychainsResponse* response, std::function<void(::grpc::Status)>) override;
@@ -1385,22 +1285,12 @@ class Bridge final {
     ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>* PrepareAsyncSetIsDoHEnabledRaw(::grpc::ClientContext* context, const ::google::protobuf::BoolValue& request, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::google::protobuf::BoolValue>* AsyncIsDoHEnabledRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::google::protobuf::BoolValue>* PrepareAsyncIsDoHEnabledRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) override;
-    ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>* AsyncSetUseSslForSmtpRaw(::grpc::ClientContext* context, const ::google::protobuf::BoolValue& request, ::grpc::CompletionQueue* cq) override;
-    ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>* PrepareAsyncSetUseSslForSmtpRaw(::grpc::ClientContext* context, const ::google::protobuf::BoolValue& request, ::grpc::CompletionQueue* cq) override;
-    ::grpc::ClientAsyncResponseReader< ::google::protobuf::BoolValue>* AsyncUseSslForSmtpRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) override;
-    ::grpc::ClientAsyncResponseReader< ::google::protobuf::BoolValue>* PrepareAsyncUseSslForSmtpRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) override;
-    ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>* AsyncSetUseSslForImapRaw(::grpc::ClientContext* context, const ::google::protobuf::BoolValue& request, ::grpc::CompletionQueue* cq) override;
-    ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>* PrepareAsyncSetUseSslForImapRaw(::grpc::ClientContext* context, const ::google::protobuf::BoolValue& request, ::grpc::CompletionQueue* cq) override;
-    ::grpc::ClientAsyncResponseReader< ::google::protobuf::BoolValue>* AsyncUseSslForImapRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) override;
-    ::grpc::ClientAsyncResponseReader< ::google::protobuf::BoolValue>* PrepareAsyncUseSslForImapRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::grpc::ImapSmtpSettings>* AsyncMailServerSettingsRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::grpc::ImapSmtpSettings>* PrepareAsyncMailServerSettingsRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>* AsyncSetMailServerSettingsRaw(::grpc::ClientContext* context, const ::grpc::ImapSmtpSettings& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>* PrepareAsyncSetMailServerSettingsRaw(::grpc::ClientContext* context, const ::grpc::ImapSmtpSettings& request, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::google::protobuf::StringValue>* AsyncHostnameRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::google::protobuf::StringValue>* PrepareAsyncHostnameRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) override;
-    ::grpc::ClientAsyncResponseReader< ::google::protobuf::Int32Value>* AsyncImapPortRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) override;
-    ::grpc::ClientAsyncResponseReader< ::google::protobuf::Int32Value>* PrepareAsyncImapPortRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) override;
-    ::grpc::ClientAsyncResponseReader< ::google::protobuf::Int32Value>* AsyncSmtpPortRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) override;
-    ::grpc::ClientAsyncResponseReader< ::google::protobuf::Int32Value>* PrepareAsyncSmtpPortRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) override;
-    ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>* AsyncChangePortsRaw(::grpc::ClientContext* context, const ::grpc::ChangePortsRequest& request, ::grpc::CompletionQueue* cq) override;
-    ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>* PrepareAsyncChangePortsRaw(::grpc::ClientContext* context, const ::grpc::ChangePortsRequest& request, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::google::protobuf::BoolValue>* AsyncIsPortFreeRaw(::grpc::ClientContext* context, const ::google::protobuf::Int32Value& request, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::google::protobuf::BoolValue>* PrepareAsyncIsPortFreeRaw(::grpc::ClientContext* context, const ::google::protobuf::Int32Value& request, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::grpc::AvailableKeychainsResponse>* AsyncAvailableKeychainsRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) override;
@@ -1466,14 +1356,9 @@ class Bridge final {
     const ::grpc::internal::RpcMethod rpcmethod_SetDiskCachePath_;
     const ::grpc::internal::RpcMethod rpcmethod_SetIsDoHEnabled_;
     const ::grpc::internal::RpcMethod rpcmethod_IsDoHEnabled_;
-    const ::grpc::internal::RpcMethod rpcmethod_SetUseSslForSmtp_;
-    const ::grpc::internal::RpcMethod rpcmethod_UseSslForSmtp_;
-    const ::grpc::internal::RpcMethod rpcmethod_SetUseSslForImap_;
-    const ::grpc::internal::RpcMethod rpcmethod_UseSslForImap_;
+    const ::grpc::internal::RpcMethod rpcmethod_MailServerSettings_;
+    const ::grpc::internal::RpcMethod rpcmethod_SetMailServerSettings_;
     const ::grpc::internal::RpcMethod rpcmethod_Hostname_;
-    const ::grpc::internal::RpcMethod rpcmethod_ImapPort_;
-    const ::grpc::internal::RpcMethod rpcmethod_SmtpPort_;
-    const ::grpc::internal::RpcMethod rpcmethod_ChangePorts_;
     const ::grpc::internal::RpcMethod rpcmethod_IsPortFree_;
     const ::grpc::internal::RpcMethod rpcmethod_AvailableKeychains_;
     const ::grpc::internal::RpcMethod rpcmethod_SetCurrentKeychain_;
@@ -1539,14 +1424,9 @@ class Bridge final {
     // mail
     virtual ::grpc::Status SetIsDoHEnabled(::grpc::ServerContext* context, const ::google::protobuf::BoolValue* request, ::google::protobuf::Empty* response);
     virtual ::grpc::Status IsDoHEnabled(::grpc::ServerContext* context, const ::google::protobuf::Empty* request, ::google::protobuf::BoolValue* response);
-    virtual ::grpc::Status SetUseSslForSmtp(::grpc::ServerContext* context, const ::google::protobuf::BoolValue* request, ::google::protobuf::Empty* response);
-    virtual ::grpc::Status UseSslForSmtp(::grpc::ServerContext* context, const ::google::protobuf::Empty* request, ::google::protobuf::BoolValue* response);
-    virtual ::grpc::Status SetUseSslForImap(::grpc::ServerContext* context, const ::google::protobuf::BoolValue* request, ::google::protobuf::Empty* response);
-    virtual ::grpc::Status UseSslForImap(::grpc::ServerContext* context, const ::google::protobuf::Empty* request, ::google::protobuf::BoolValue* response);
+    virtual ::grpc::Status MailServerSettings(::grpc::ServerContext* context, const ::google::protobuf::Empty* request, ::grpc::ImapSmtpSettings* response);
+    virtual ::grpc::Status SetMailServerSettings(::grpc::ServerContext* context, const ::grpc::ImapSmtpSettings* request, ::google::protobuf::Empty* response);
     virtual ::grpc::Status Hostname(::grpc::ServerContext* context, const ::google::protobuf::Empty* request, ::google::protobuf::StringValue* response);
-    virtual ::grpc::Status ImapPort(::grpc::ServerContext* context, const ::google::protobuf::Empty* request, ::google::protobuf::Int32Value* response);
-    virtual ::grpc::Status SmtpPort(::grpc::ServerContext* context, const ::google::protobuf::Empty* request, ::google::protobuf::Int32Value* response);
-    virtual ::grpc::Status ChangePorts(::grpc::ServerContext* context, const ::grpc::ChangePortsRequest* request, ::google::protobuf::Empty* response);
     virtual ::grpc::Status IsPortFree(::grpc::ServerContext* context, const ::google::protobuf::Int32Value* request, ::google::protobuf::BoolValue* response);
     // keychain
     virtual ::grpc::Status AvailableKeychains(::grpc::ServerContext* context, const ::google::protobuf::Empty* request, ::grpc::AvailableKeychainsResponse* response);
@@ -2365,83 +2245,43 @@ class Bridge final {
     }
   };
   template <class BaseClass>
-  class WithAsyncMethod_SetUseSslForSmtp : public BaseClass {
+  class WithAsyncMethod_MailServerSettings : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithAsyncMethod_SetUseSslForSmtp() {
+    WithAsyncMethod_MailServerSettings() {
       ::grpc::Service::MarkMethodAsync(40);
     }
-    ~WithAsyncMethod_SetUseSslForSmtp() override {
+    ~WithAsyncMethod_MailServerSettings() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status SetUseSslForSmtp(::grpc::ServerContext* /*context*/, const ::google::protobuf::BoolValue* /*request*/, ::google::protobuf::Empty* /*response*/) override {
+    ::grpc::Status MailServerSettings(::grpc::ServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::grpc::ImapSmtpSettings* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    void RequestSetUseSslForSmtp(::grpc::ServerContext* context, ::google::protobuf::BoolValue* request, ::grpc::ServerAsyncResponseWriter< ::google::protobuf::Empty>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+    void RequestMailServerSettings(::grpc::ServerContext* context, ::google::protobuf::Empty* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ImapSmtpSettings>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
       ::grpc::Service::RequestAsyncUnary(40, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
-  class WithAsyncMethod_UseSslForSmtp : public BaseClass {
+  class WithAsyncMethod_SetMailServerSettings : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithAsyncMethod_UseSslForSmtp() {
+    WithAsyncMethod_SetMailServerSettings() {
       ::grpc::Service::MarkMethodAsync(41);
     }
-    ~WithAsyncMethod_UseSslForSmtp() override {
+    ~WithAsyncMethod_SetMailServerSettings() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status UseSslForSmtp(::grpc::ServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::google::protobuf::BoolValue* /*response*/) override {
+    ::grpc::Status SetMailServerSettings(::grpc::ServerContext* /*context*/, const ::grpc::ImapSmtpSettings* /*request*/, ::google::protobuf::Empty* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    void RequestUseSslForSmtp(::grpc::ServerContext* context, ::google::protobuf::Empty* request, ::grpc::ServerAsyncResponseWriter< ::google::protobuf::BoolValue>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+    void RequestSetMailServerSettings(::grpc::ServerContext* context, ::grpc::ImapSmtpSettings* request, ::grpc::ServerAsyncResponseWriter< ::google::protobuf::Empty>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
       ::grpc::Service::RequestAsyncUnary(41, context, request, response, new_call_cq, notification_cq, tag);
-    }
-  };
-  template <class BaseClass>
-  class WithAsyncMethod_SetUseSslForImap : public BaseClass {
-   private:
-    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
-   public:
-    WithAsyncMethod_SetUseSslForImap() {
-      ::grpc::Service::MarkMethodAsync(42);
-    }
-    ~WithAsyncMethod_SetUseSslForImap() override {
-      BaseClassMustBeDerivedFromService(this);
-    }
-    // disable synchronous version of this method
-    ::grpc::Status SetUseSslForImap(::grpc::ServerContext* /*context*/, const ::google::protobuf::BoolValue* /*request*/, ::google::protobuf::Empty* /*response*/) override {
-      abort();
-      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
-    }
-    void RequestSetUseSslForImap(::grpc::ServerContext* context, ::google::protobuf::BoolValue* request, ::grpc::ServerAsyncResponseWriter< ::google::protobuf::Empty>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(42, context, request, response, new_call_cq, notification_cq, tag);
-    }
-  };
-  template <class BaseClass>
-  class WithAsyncMethod_UseSslForImap : public BaseClass {
-   private:
-    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
-   public:
-    WithAsyncMethod_UseSslForImap() {
-      ::grpc::Service::MarkMethodAsync(43);
-    }
-    ~WithAsyncMethod_UseSslForImap() override {
-      BaseClassMustBeDerivedFromService(this);
-    }
-    // disable synchronous version of this method
-    ::grpc::Status UseSslForImap(::grpc::ServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::google::protobuf::BoolValue* /*response*/) override {
-      abort();
-      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
-    }
-    void RequestUseSslForImap(::grpc::ServerContext* context, ::google::protobuf::Empty* request, ::grpc::ServerAsyncResponseWriter< ::google::protobuf::BoolValue>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(43, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -2450,7 +2290,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithAsyncMethod_Hostname() {
-      ::grpc::Service::MarkMethodAsync(44);
+      ::grpc::Service::MarkMethodAsync(42);
     }
     ~WithAsyncMethod_Hostname() override {
       BaseClassMustBeDerivedFromService(this);
@@ -2461,67 +2301,7 @@ class Bridge final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestHostname(::grpc::ServerContext* context, ::google::protobuf::Empty* request, ::grpc::ServerAsyncResponseWriter< ::google::protobuf::StringValue>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(44, context, request, response, new_call_cq, notification_cq, tag);
-    }
-  };
-  template <class BaseClass>
-  class WithAsyncMethod_ImapPort : public BaseClass {
-   private:
-    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
-   public:
-    WithAsyncMethod_ImapPort() {
-      ::grpc::Service::MarkMethodAsync(45);
-    }
-    ~WithAsyncMethod_ImapPort() override {
-      BaseClassMustBeDerivedFromService(this);
-    }
-    // disable synchronous version of this method
-    ::grpc::Status ImapPort(::grpc::ServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::google::protobuf::Int32Value* /*response*/) override {
-      abort();
-      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
-    }
-    void RequestImapPort(::grpc::ServerContext* context, ::google::protobuf::Empty* request, ::grpc::ServerAsyncResponseWriter< ::google::protobuf::Int32Value>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(45, context, request, response, new_call_cq, notification_cq, tag);
-    }
-  };
-  template <class BaseClass>
-  class WithAsyncMethod_SmtpPort : public BaseClass {
-   private:
-    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
-   public:
-    WithAsyncMethod_SmtpPort() {
-      ::grpc::Service::MarkMethodAsync(46);
-    }
-    ~WithAsyncMethod_SmtpPort() override {
-      BaseClassMustBeDerivedFromService(this);
-    }
-    // disable synchronous version of this method
-    ::grpc::Status SmtpPort(::grpc::ServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::google::protobuf::Int32Value* /*response*/) override {
-      abort();
-      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
-    }
-    void RequestSmtpPort(::grpc::ServerContext* context, ::google::protobuf::Empty* request, ::grpc::ServerAsyncResponseWriter< ::google::protobuf::Int32Value>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(46, context, request, response, new_call_cq, notification_cq, tag);
-    }
-  };
-  template <class BaseClass>
-  class WithAsyncMethod_ChangePorts : public BaseClass {
-   private:
-    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
-   public:
-    WithAsyncMethod_ChangePorts() {
-      ::grpc::Service::MarkMethodAsync(47);
-    }
-    ~WithAsyncMethod_ChangePorts() override {
-      BaseClassMustBeDerivedFromService(this);
-    }
-    // disable synchronous version of this method
-    ::grpc::Status ChangePorts(::grpc::ServerContext* /*context*/, const ::grpc::ChangePortsRequest* /*request*/, ::google::protobuf::Empty* /*response*/) override {
-      abort();
-      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
-    }
-    void RequestChangePorts(::grpc::ServerContext* context, ::grpc::ChangePortsRequest* request, ::grpc::ServerAsyncResponseWriter< ::google::protobuf::Empty>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(47, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(42, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -2530,7 +2310,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithAsyncMethod_IsPortFree() {
-      ::grpc::Service::MarkMethodAsync(48);
+      ::grpc::Service::MarkMethodAsync(43);
     }
     ~WithAsyncMethod_IsPortFree() override {
       BaseClassMustBeDerivedFromService(this);
@@ -2541,7 +2321,7 @@ class Bridge final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestIsPortFree(::grpc::ServerContext* context, ::google::protobuf::Int32Value* request, ::grpc::ServerAsyncResponseWriter< ::google::protobuf::BoolValue>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(48, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(43, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -2550,7 +2330,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithAsyncMethod_AvailableKeychains() {
-      ::grpc::Service::MarkMethodAsync(49);
+      ::grpc::Service::MarkMethodAsync(44);
     }
     ~WithAsyncMethod_AvailableKeychains() override {
       BaseClassMustBeDerivedFromService(this);
@@ -2561,7 +2341,7 @@ class Bridge final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestAvailableKeychains(::grpc::ServerContext* context, ::google::protobuf::Empty* request, ::grpc::ServerAsyncResponseWriter< ::grpc::AvailableKeychainsResponse>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(49, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(44, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -2570,7 +2350,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithAsyncMethod_SetCurrentKeychain() {
-      ::grpc::Service::MarkMethodAsync(50);
+      ::grpc::Service::MarkMethodAsync(45);
     }
     ~WithAsyncMethod_SetCurrentKeychain() override {
       BaseClassMustBeDerivedFromService(this);
@@ -2581,7 +2361,7 @@ class Bridge final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestSetCurrentKeychain(::grpc::ServerContext* context, ::google::protobuf::StringValue* request, ::grpc::ServerAsyncResponseWriter< ::google::protobuf::Empty>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(50, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(45, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -2590,7 +2370,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithAsyncMethod_CurrentKeychain() {
-      ::grpc::Service::MarkMethodAsync(51);
+      ::grpc::Service::MarkMethodAsync(46);
     }
     ~WithAsyncMethod_CurrentKeychain() override {
       BaseClassMustBeDerivedFromService(this);
@@ -2601,7 +2381,7 @@ class Bridge final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestCurrentKeychain(::grpc::ServerContext* context, ::google::protobuf::Empty* request, ::grpc::ServerAsyncResponseWriter< ::google::protobuf::StringValue>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(51, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(46, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -2610,7 +2390,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithAsyncMethod_GetUserList() {
-      ::grpc::Service::MarkMethodAsync(52);
+      ::grpc::Service::MarkMethodAsync(47);
     }
     ~WithAsyncMethod_GetUserList() override {
       BaseClassMustBeDerivedFromService(this);
@@ -2621,7 +2401,7 @@ class Bridge final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestGetUserList(::grpc::ServerContext* context, ::google::protobuf::Empty* request, ::grpc::ServerAsyncResponseWriter< ::grpc::UserListResponse>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(52, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(47, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -2630,7 +2410,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithAsyncMethod_GetUser() {
-      ::grpc::Service::MarkMethodAsync(53);
+      ::grpc::Service::MarkMethodAsync(48);
     }
     ~WithAsyncMethod_GetUser() override {
       BaseClassMustBeDerivedFromService(this);
@@ -2641,7 +2421,7 @@ class Bridge final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestGetUser(::grpc::ServerContext* context, ::google::protobuf::StringValue* request, ::grpc::ServerAsyncResponseWriter< ::grpc::User>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(53, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(48, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -2650,7 +2430,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithAsyncMethod_SetUserSplitMode() {
-      ::grpc::Service::MarkMethodAsync(54);
+      ::grpc::Service::MarkMethodAsync(49);
     }
     ~WithAsyncMethod_SetUserSplitMode() override {
       BaseClassMustBeDerivedFromService(this);
@@ -2661,7 +2441,7 @@ class Bridge final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestSetUserSplitMode(::grpc::ServerContext* context, ::grpc::UserSplitModeRequest* request, ::grpc::ServerAsyncResponseWriter< ::google::protobuf::Empty>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(54, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(49, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -2670,7 +2450,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithAsyncMethod_LogoutUser() {
-      ::grpc::Service::MarkMethodAsync(55);
+      ::grpc::Service::MarkMethodAsync(50);
     }
     ~WithAsyncMethod_LogoutUser() override {
       BaseClassMustBeDerivedFromService(this);
@@ -2681,7 +2461,7 @@ class Bridge final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestLogoutUser(::grpc::ServerContext* context, ::google::protobuf::StringValue* request, ::grpc::ServerAsyncResponseWriter< ::google::protobuf::Empty>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(55, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(50, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -2690,7 +2470,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithAsyncMethod_RemoveUser() {
-      ::grpc::Service::MarkMethodAsync(56);
+      ::grpc::Service::MarkMethodAsync(51);
     }
     ~WithAsyncMethod_RemoveUser() override {
       BaseClassMustBeDerivedFromService(this);
@@ -2701,7 +2481,7 @@ class Bridge final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestRemoveUser(::grpc::ServerContext* context, ::google::protobuf::StringValue* request, ::grpc::ServerAsyncResponseWriter< ::google::protobuf::Empty>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(56, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(51, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -2710,7 +2490,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithAsyncMethod_ConfigureUserAppleMail() {
-      ::grpc::Service::MarkMethodAsync(57);
+      ::grpc::Service::MarkMethodAsync(52);
     }
     ~WithAsyncMethod_ConfigureUserAppleMail() override {
       BaseClassMustBeDerivedFromService(this);
@@ -2721,7 +2501,7 @@ class Bridge final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestConfigureUserAppleMail(::grpc::ServerContext* context, ::grpc::ConfigureAppleMailRequest* request, ::grpc::ServerAsyncResponseWriter< ::google::protobuf::Empty>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(57, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(52, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -2730,7 +2510,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithAsyncMethod_RunEventStream() {
-      ::grpc::Service::MarkMethodAsync(58);
+      ::grpc::Service::MarkMethodAsync(53);
     }
     ~WithAsyncMethod_RunEventStream() override {
       BaseClassMustBeDerivedFromService(this);
@@ -2741,7 +2521,7 @@ class Bridge final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestRunEventStream(::grpc::ServerContext* context, ::grpc::EventStreamRequest* request, ::grpc::ServerAsyncWriter< ::grpc::StreamEvent>* writer, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncServerStreaming(58, context, request, writer, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncServerStreaming(53, context, request, writer, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -2750,7 +2530,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithAsyncMethod_StopEventStream() {
-      ::grpc::Service::MarkMethodAsync(59);
+      ::grpc::Service::MarkMethodAsync(54);
     }
     ~WithAsyncMethod_StopEventStream() override {
       BaseClassMustBeDerivedFromService(this);
@@ -2761,10 +2541,10 @@ class Bridge final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestStopEventStream(::grpc::ServerContext* context, ::google::protobuf::Empty* request, ::grpc::ServerAsyncResponseWriter< ::google::protobuf::Empty>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(59, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(54, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
-  typedef WithAsyncMethod_CheckTokens<WithAsyncMethod_AddLogEntry<WithAsyncMethod_GuiReady<WithAsyncMethod_Quit<WithAsyncMethod_Restart<WithAsyncMethod_ShowOnStartup<WithAsyncMethod_ShowSplashScreen<WithAsyncMethod_IsFirstGuiStart<WithAsyncMethod_SetIsAutostartOn<WithAsyncMethod_IsAutostartOn<WithAsyncMethod_SetIsBetaEnabled<WithAsyncMethod_IsBetaEnabled<WithAsyncMethod_SetIsAllMailVisible<WithAsyncMethod_IsAllMailVisible<WithAsyncMethod_GoOs<WithAsyncMethod_TriggerReset<WithAsyncMethod_Version<WithAsyncMethod_LogsPath<WithAsyncMethod_LicensePath<WithAsyncMethod_ReleaseNotesPageLink<WithAsyncMethod_DependencyLicensesLink<WithAsyncMethod_LandingPageLink<WithAsyncMethod_SetColorSchemeName<WithAsyncMethod_ColorSchemeName<WithAsyncMethod_CurrentEmailClient<WithAsyncMethod_ReportBug<WithAsyncMethod_ForceLauncher<WithAsyncMethod_SetMainExecutable<WithAsyncMethod_Login<WithAsyncMethod_Login2FA<WithAsyncMethod_Login2Passwords<WithAsyncMethod_LoginAbort<WithAsyncMethod_CheckUpdate<WithAsyncMethod_InstallUpdate<WithAsyncMethod_SetIsAutomaticUpdateOn<WithAsyncMethod_IsAutomaticUpdateOn<WithAsyncMethod_DiskCachePath<WithAsyncMethod_SetDiskCachePath<WithAsyncMethod_SetIsDoHEnabled<WithAsyncMethod_IsDoHEnabled<WithAsyncMethod_SetUseSslForSmtp<WithAsyncMethod_UseSslForSmtp<WithAsyncMethod_SetUseSslForImap<WithAsyncMethod_UseSslForImap<WithAsyncMethod_Hostname<WithAsyncMethod_ImapPort<WithAsyncMethod_SmtpPort<WithAsyncMethod_ChangePorts<WithAsyncMethod_IsPortFree<WithAsyncMethod_AvailableKeychains<WithAsyncMethod_SetCurrentKeychain<WithAsyncMethod_CurrentKeychain<WithAsyncMethod_GetUserList<WithAsyncMethod_GetUser<WithAsyncMethod_SetUserSplitMode<WithAsyncMethod_LogoutUser<WithAsyncMethod_RemoveUser<WithAsyncMethod_ConfigureUserAppleMail<WithAsyncMethod_RunEventStream<WithAsyncMethod_StopEventStream<Service > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > AsyncService;
+  typedef WithAsyncMethod_CheckTokens<WithAsyncMethod_AddLogEntry<WithAsyncMethod_GuiReady<WithAsyncMethod_Quit<WithAsyncMethod_Restart<WithAsyncMethod_ShowOnStartup<WithAsyncMethod_ShowSplashScreen<WithAsyncMethod_IsFirstGuiStart<WithAsyncMethod_SetIsAutostartOn<WithAsyncMethod_IsAutostartOn<WithAsyncMethod_SetIsBetaEnabled<WithAsyncMethod_IsBetaEnabled<WithAsyncMethod_SetIsAllMailVisible<WithAsyncMethod_IsAllMailVisible<WithAsyncMethod_GoOs<WithAsyncMethod_TriggerReset<WithAsyncMethod_Version<WithAsyncMethod_LogsPath<WithAsyncMethod_LicensePath<WithAsyncMethod_ReleaseNotesPageLink<WithAsyncMethod_DependencyLicensesLink<WithAsyncMethod_LandingPageLink<WithAsyncMethod_SetColorSchemeName<WithAsyncMethod_ColorSchemeName<WithAsyncMethod_CurrentEmailClient<WithAsyncMethod_ReportBug<WithAsyncMethod_ForceLauncher<WithAsyncMethod_SetMainExecutable<WithAsyncMethod_Login<WithAsyncMethod_Login2FA<WithAsyncMethod_Login2Passwords<WithAsyncMethod_LoginAbort<WithAsyncMethod_CheckUpdate<WithAsyncMethod_InstallUpdate<WithAsyncMethod_SetIsAutomaticUpdateOn<WithAsyncMethod_IsAutomaticUpdateOn<WithAsyncMethod_DiskCachePath<WithAsyncMethod_SetDiskCachePath<WithAsyncMethod_SetIsDoHEnabled<WithAsyncMethod_IsDoHEnabled<WithAsyncMethod_MailServerSettings<WithAsyncMethod_SetMailServerSettings<WithAsyncMethod_Hostname<WithAsyncMethod_IsPortFree<WithAsyncMethod_AvailableKeychains<WithAsyncMethod_SetCurrentKeychain<WithAsyncMethod_CurrentKeychain<WithAsyncMethod_GetUserList<WithAsyncMethod_GetUser<WithAsyncMethod_SetUserSplitMode<WithAsyncMethod_LogoutUser<WithAsyncMethod_RemoveUser<WithAsyncMethod_ConfigureUserAppleMail<WithAsyncMethod_RunEventStream<WithAsyncMethod_StopEventStream<Service > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > AsyncService;
   template <class BaseClass>
   class WithCallbackMethod_CheckTokens : public BaseClass {
    private:
@@ -3846,112 +3626,58 @@ class Bridge final {
       ::grpc::CallbackServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::google::protobuf::BoolValue* /*response*/)  { return nullptr; }
   };
   template <class BaseClass>
-  class WithCallbackMethod_SetUseSslForSmtp : public BaseClass {
+  class WithCallbackMethod_MailServerSettings : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithCallbackMethod_SetUseSslForSmtp() {
+    WithCallbackMethod_MailServerSettings() {
       ::grpc::Service::MarkMethodCallback(40,
-          new ::grpc::internal::CallbackUnaryHandler< ::google::protobuf::BoolValue, ::google::protobuf::Empty>(
+          new ::grpc::internal::CallbackUnaryHandler< ::google::protobuf::Empty, ::grpc::ImapSmtpSettings>(
             [this](
-                   ::grpc::CallbackServerContext* context, const ::google::protobuf::BoolValue* request, ::google::protobuf::Empty* response) { return this->SetUseSslForSmtp(context, request, response); }));}
-    void SetMessageAllocatorFor_SetUseSslForSmtp(
-        ::grpc::MessageAllocator< ::google::protobuf::BoolValue, ::google::protobuf::Empty>* allocator) {
+                   ::grpc::CallbackServerContext* context, const ::google::protobuf::Empty* request, ::grpc::ImapSmtpSettings* response) { return this->MailServerSettings(context, request, response); }));}
+    void SetMessageAllocatorFor_MailServerSettings(
+        ::grpc::MessageAllocator< ::google::protobuf::Empty, ::grpc::ImapSmtpSettings>* allocator) {
       ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(40);
-      static_cast<::grpc::internal::CallbackUnaryHandler< ::google::protobuf::BoolValue, ::google::protobuf::Empty>*>(handler)
+      static_cast<::grpc::internal::CallbackUnaryHandler< ::google::protobuf::Empty, ::grpc::ImapSmtpSettings>*>(handler)
               ->SetMessageAllocator(allocator);
     }
-    ~WithCallbackMethod_SetUseSslForSmtp() override {
+    ~WithCallbackMethod_MailServerSettings() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status SetUseSslForSmtp(::grpc::ServerContext* /*context*/, const ::google::protobuf::BoolValue* /*request*/, ::google::protobuf::Empty* /*response*/) override {
+    ::grpc::Status MailServerSettings(::grpc::ServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::grpc::ImapSmtpSettings* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    virtual ::grpc::ServerUnaryReactor* SetUseSslForSmtp(
-      ::grpc::CallbackServerContext* /*context*/, const ::google::protobuf::BoolValue* /*request*/, ::google::protobuf::Empty* /*response*/)  { return nullptr; }
+    virtual ::grpc::ServerUnaryReactor* MailServerSettings(
+      ::grpc::CallbackServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::grpc::ImapSmtpSettings* /*response*/)  { return nullptr; }
   };
   template <class BaseClass>
-  class WithCallbackMethod_UseSslForSmtp : public BaseClass {
+  class WithCallbackMethod_SetMailServerSettings : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithCallbackMethod_UseSslForSmtp() {
+    WithCallbackMethod_SetMailServerSettings() {
       ::grpc::Service::MarkMethodCallback(41,
-          new ::grpc::internal::CallbackUnaryHandler< ::google::protobuf::Empty, ::google::protobuf::BoolValue>(
+          new ::grpc::internal::CallbackUnaryHandler< ::grpc::ImapSmtpSettings, ::google::protobuf::Empty>(
             [this](
-                   ::grpc::CallbackServerContext* context, const ::google::protobuf::Empty* request, ::google::protobuf::BoolValue* response) { return this->UseSslForSmtp(context, request, response); }));}
-    void SetMessageAllocatorFor_UseSslForSmtp(
-        ::grpc::MessageAllocator< ::google::protobuf::Empty, ::google::protobuf::BoolValue>* allocator) {
+                   ::grpc::CallbackServerContext* context, const ::grpc::ImapSmtpSettings* request, ::google::protobuf::Empty* response) { return this->SetMailServerSettings(context, request, response); }));}
+    void SetMessageAllocatorFor_SetMailServerSettings(
+        ::grpc::MessageAllocator< ::grpc::ImapSmtpSettings, ::google::protobuf::Empty>* allocator) {
       ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(41);
-      static_cast<::grpc::internal::CallbackUnaryHandler< ::google::protobuf::Empty, ::google::protobuf::BoolValue>*>(handler)
+      static_cast<::grpc::internal::CallbackUnaryHandler< ::grpc::ImapSmtpSettings, ::google::protobuf::Empty>*>(handler)
               ->SetMessageAllocator(allocator);
     }
-    ~WithCallbackMethod_UseSslForSmtp() override {
+    ~WithCallbackMethod_SetMailServerSettings() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status UseSslForSmtp(::grpc::ServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::google::protobuf::BoolValue* /*response*/) override {
+    ::grpc::Status SetMailServerSettings(::grpc::ServerContext* /*context*/, const ::grpc::ImapSmtpSettings* /*request*/, ::google::protobuf::Empty* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    virtual ::grpc::ServerUnaryReactor* UseSslForSmtp(
-      ::grpc::CallbackServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::google::protobuf::BoolValue* /*response*/)  { return nullptr; }
-  };
-  template <class BaseClass>
-  class WithCallbackMethod_SetUseSslForImap : public BaseClass {
-   private:
-    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
-   public:
-    WithCallbackMethod_SetUseSslForImap() {
-      ::grpc::Service::MarkMethodCallback(42,
-          new ::grpc::internal::CallbackUnaryHandler< ::google::protobuf::BoolValue, ::google::protobuf::Empty>(
-            [this](
-                   ::grpc::CallbackServerContext* context, const ::google::protobuf::BoolValue* request, ::google::protobuf::Empty* response) { return this->SetUseSslForImap(context, request, response); }));}
-    void SetMessageAllocatorFor_SetUseSslForImap(
-        ::grpc::MessageAllocator< ::google::protobuf::BoolValue, ::google::protobuf::Empty>* allocator) {
-      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(42);
-      static_cast<::grpc::internal::CallbackUnaryHandler< ::google::protobuf::BoolValue, ::google::protobuf::Empty>*>(handler)
-              ->SetMessageAllocator(allocator);
-    }
-    ~WithCallbackMethod_SetUseSslForImap() override {
-      BaseClassMustBeDerivedFromService(this);
-    }
-    // disable synchronous version of this method
-    ::grpc::Status SetUseSslForImap(::grpc::ServerContext* /*context*/, const ::google::protobuf::BoolValue* /*request*/, ::google::protobuf::Empty* /*response*/) override {
-      abort();
-      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
-    }
-    virtual ::grpc::ServerUnaryReactor* SetUseSslForImap(
-      ::grpc::CallbackServerContext* /*context*/, const ::google::protobuf::BoolValue* /*request*/, ::google::protobuf::Empty* /*response*/)  { return nullptr; }
-  };
-  template <class BaseClass>
-  class WithCallbackMethod_UseSslForImap : public BaseClass {
-   private:
-    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
-   public:
-    WithCallbackMethod_UseSslForImap() {
-      ::grpc::Service::MarkMethodCallback(43,
-          new ::grpc::internal::CallbackUnaryHandler< ::google::protobuf::Empty, ::google::protobuf::BoolValue>(
-            [this](
-                   ::grpc::CallbackServerContext* context, const ::google::protobuf::Empty* request, ::google::protobuf::BoolValue* response) { return this->UseSslForImap(context, request, response); }));}
-    void SetMessageAllocatorFor_UseSslForImap(
-        ::grpc::MessageAllocator< ::google::protobuf::Empty, ::google::protobuf::BoolValue>* allocator) {
-      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(43);
-      static_cast<::grpc::internal::CallbackUnaryHandler< ::google::protobuf::Empty, ::google::protobuf::BoolValue>*>(handler)
-              ->SetMessageAllocator(allocator);
-    }
-    ~WithCallbackMethod_UseSslForImap() override {
-      BaseClassMustBeDerivedFromService(this);
-    }
-    // disable synchronous version of this method
-    ::grpc::Status UseSslForImap(::grpc::ServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::google::protobuf::BoolValue* /*response*/) override {
-      abort();
-      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
-    }
-    virtual ::grpc::ServerUnaryReactor* UseSslForImap(
-      ::grpc::CallbackServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::google::protobuf::BoolValue* /*response*/)  { return nullptr; }
+    virtual ::grpc::ServerUnaryReactor* SetMailServerSettings(
+      ::grpc::CallbackServerContext* /*context*/, const ::grpc::ImapSmtpSettings* /*request*/, ::google::protobuf::Empty* /*response*/)  { return nullptr; }
   };
   template <class BaseClass>
   class WithCallbackMethod_Hostname : public BaseClass {
@@ -3959,13 +3685,13 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithCallbackMethod_Hostname() {
-      ::grpc::Service::MarkMethodCallback(44,
+      ::grpc::Service::MarkMethodCallback(42,
           new ::grpc::internal::CallbackUnaryHandler< ::google::protobuf::Empty, ::google::protobuf::StringValue>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::google::protobuf::Empty* request, ::google::protobuf::StringValue* response) { return this->Hostname(context, request, response); }));}
     void SetMessageAllocatorFor_Hostname(
         ::grpc::MessageAllocator< ::google::protobuf::Empty, ::google::protobuf::StringValue>* allocator) {
-      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(44);
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(42);
       static_cast<::grpc::internal::CallbackUnaryHandler< ::google::protobuf::Empty, ::google::protobuf::StringValue>*>(handler)
               ->SetMessageAllocator(allocator);
     }
@@ -3981,99 +3707,18 @@ class Bridge final {
       ::grpc::CallbackServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::google::protobuf::StringValue* /*response*/)  { return nullptr; }
   };
   template <class BaseClass>
-  class WithCallbackMethod_ImapPort : public BaseClass {
-   private:
-    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
-   public:
-    WithCallbackMethod_ImapPort() {
-      ::grpc::Service::MarkMethodCallback(45,
-          new ::grpc::internal::CallbackUnaryHandler< ::google::protobuf::Empty, ::google::protobuf::Int32Value>(
-            [this](
-                   ::grpc::CallbackServerContext* context, const ::google::protobuf::Empty* request, ::google::protobuf::Int32Value* response) { return this->ImapPort(context, request, response); }));}
-    void SetMessageAllocatorFor_ImapPort(
-        ::grpc::MessageAllocator< ::google::protobuf::Empty, ::google::protobuf::Int32Value>* allocator) {
-      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(45);
-      static_cast<::grpc::internal::CallbackUnaryHandler< ::google::protobuf::Empty, ::google::protobuf::Int32Value>*>(handler)
-              ->SetMessageAllocator(allocator);
-    }
-    ~WithCallbackMethod_ImapPort() override {
-      BaseClassMustBeDerivedFromService(this);
-    }
-    // disable synchronous version of this method
-    ::grpc::Status ImapPort(::grpc::ServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::google::protobuf::Int32Value* /*response*/) override {
-      abort();
-      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
-    }
-    virtual ::grpc::ServerUnaryReactor* ImapPort(
-      ::grpc::CallbackServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::google::protobuf::Int32Value* /*response*/)  { return nullptr; }
-  };
-  template <class BaseClass>
-  class WithCallbackMethod_SmtpPort : public BaseClass {
-   private:
-    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
-   public:
-    WithCallbackMethod_SmtpPort() {
-      ::grpc::Service::MarkMethodCallback(46,
-          new ::grpc::internal::CallbackUnaryHandler< ::google::protobuf::Empty, ::google::protobuf::Int32Value>(
-            [this](
-                   ::grpc::CallbackServerContext* context, const ::google::protobuf::Empty* request, ::google::protobuf::Int32Value* response) { return this->SmtpPort(context, request, response); }));}
-    void SetMessageAllocatorFor_SmtpPort(
-        ::grpc::MessageAllocator< ::google::protobuf::Empty, ::google::protobuf::Int32Value>* allocator) {
-      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(46);
-      static_cast<::grpc::internal::CallbackUnaryHandler< ::google::protobuf::Empty, ::google::protobuf::Int32Value>*>(handler)
-              ->SetMessageAllocator(allocator);
-    }
-    ~WithCallbackMethod_SmtpPort() override {
-      BaseClassMustBeDerivedFromService(this);
-    }
-    // disable synchronous version of this method
-    ::grpc::Status SmtpPort(::grpc::ServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::google::protobuf::Int32Value* /*response*/) override {
-      abort();
-      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
-    }
-    virtual ::grpc::ServerUnaryReactor* SmtpPort(
-      ::grpc::CallbackServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::google::protobuf::Int32Value* /*response*/)  { return nullptr; }
-  };
-  template <class BaseClass>
-  class WithCallbackMethod_ChangePorts : public BaseClass {
-   private:
-    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
-   public:
-    WithCallbackMethod_ChangePorts() {
-      ::grpc::Service::MarkMethodCallback(47,
-          new ::grpc::internal::CallbackUnaryHandler< ::grpc::ChangePortsRequest, ::google::protobuf::Empty>(
-            [this](
-                   ::grpc::CallbackServerContext* context, const ::grpc::ChangePortsRequest* request, ::google::protobuf::Empty* response) { return this->ChangePorts(context, request, response); }));}
-    void SetMessageAllocatorFor_ChangePorts(
-        ::grpc::MessageAllocator< ::grpc::ChangePortsRequest, ::google::protobuf::Empty>* allocator) {
-      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(47);
-      static_cast<::grpc::internal::CallbackUnaryHandler< ::grpc::ChangePortsRequest, ::google::protobuf::Empty>*>(handler)
-              ->SetMessageAllocator(allocator);
-    }
-    ~WithCallbackMethod_ChangePorts() override {
-      BaseClassMustBeDerivedFromService(this);
-    }
-    // disable synchronous version of this method
-    ::grpc::Status ChangePorts(::grpc::ServerContext* /*context*/, const ::grpc::ChangePortsRequest* /*request*/, ::google::protobuf::Empty* /*response*/) override {
-      abort();
-      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
-    }
-    virtual ::grpc::ServerUnaryReactor* ChangePorts(
-      ::grpc::CallbackServerContext* /*context*/, const ::grpc::ChangePortsRequest* /*request*/, ::google::protobuf::Empty* /*response*/)  { return nullptr; }
-  };
-  template <class BaseClass>
   class WithCallbackMethod_IsPortFree : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithCallbackMethod_IsPortFree() {
-      ::grpc::Service::MarkMethodCallback(48,
+      ::grpc::Service::MarkMethodCallback(43,
           new ::grpc::internal::CallbackUnaryHandler< ::google::protobuf::Int32Value, ::google::protobuf::BoolValue>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::google::protobuf::Int32Value* request, ::google::protobuf::BoolValue* response) { return this->IsPortFree(context, request, response); }));}
     void SetMessageAllocatorFor_IsPortFree(
         ::grpc::MessageAllocator< ::google::protobuf::Int32Value, ::google::protobuf::BoolValue>* allocator) {
-      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(48);
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(43);
       static_cast<::grpc::internal::CallbackUnaryHandler< ::google::protobuf::Int32Value, ::google::protobuf::BoolValue>*>(handler)
               ->SetMessageAllocator(allocator);
     }
@@ -4094,13 +3739,13 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithCallbackMethod_AvailableKeychains() {
-      ::grpc::Service::MarkMethodCallback(49,
+      ::grpc::Service::MarkMethodCallback(44,
           new ::grpc::internal::CallbackUnaryHandler< ::google::protobuf::Empty, ::grpc::AvailableKeychainsResponse>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::google::protobuf::Empty* request, ::grpc::AvailableKeychainsResponse* response) { return this->AvailableKeychains(context, request, response); }));}
     void SetMessageAllocatorFor_AvailableKeychains(
         ::grpc::MessageAllocator< ::google::protobuf::Empty, ::grpc::AvailableKeychainsResponse>* allocator) {
-      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(49);
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(44);
       static_cast<::grpc::internal::CallbackUnaryHandler< ::google::protobuf::Empty, ::grpc::AvailableKeychainsResponse>*>(handler)
               ->SetMessageAllocator(allocator);
     }
@@ -4121,13 +3766,13 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithCallbackMethod_SetCurrentKeychain() {
-      ::grpc::Service::MarkMethodCallback(50,
+      ::grpc::Service::MarkMethodCallback(45,
           new ::grpc::internal::CallbackUnaryHandler< ::google::protobuf::StringValue, ::google::protobuf::Empty>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::google::protobuf::StringValue* request, ::google::protobuf::Empty* response) { return this->SetCurrentKeychain(context, request, response); }));}
     void SetMessageAllocatorFor_SetCurrentKeychain(
         ::grpc::MessageAllocator< ::google::protobuf::StringValue, ::google::protobuf::Empty>* allocator) {
-      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(50);
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(45);
       static_cast<::grpc::internal::CallbackUnaryHandler< ::google::protobuf::StringValue, ::google::protobuf::Empty>*>(handler)
               ->SetMessageAllocator(allocator);
     }
@@ -4148,13 +3793,13 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithCallbackMethod_CurrentKeychain() {
-      ::grpc::Service::MarkMethodCallback(51,
+      ::grpc::Service::MarkMethodCallback(46,
           new ::grpc::internal::CallbackUnaryHandler< ::google::protobuf::Empty, ::google::protobuf::StringValue>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::google::protobuf::Empty* request, ::google::protobuf::StringValue* response) { return this->CurrentKeychain(context, request, response); }));}
     void SetMessageAllocatorFor_CurrentKeychain(
         ::grpc::MessageAllocator< ::google::protobuf::Empty, ::google::protobuf::StringValue>* allocator) {
-      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(51);
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(46);
       static_cast<::grpc::internal::CallbackUnaryHandler< ::google::protobuf::Empty, ::google::protobuf::StringValue>*>(handler)
               ->SetMessageAllocator(allocator);
     }
@@ -4175,13 +3820,13 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithCallbackMethod_GetUserList() {
-      ::grpc::Service::MarkMethodCallback(52,
+      ::grpc::Service::MarkMethodCallback(47,
           new ::grpc::internal::CallbackUnaryHandler< ::google::protobuf::Empty, ::grpc::UserListResponse>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::google::protobuf::Empty* request, ::grpc::UserListResponse* response) { return this->GetUserList(context, request, response); }));}
     void SetMessageAllocatorFor_GetUserList(
         ::grpc::MessageAllocator< ::google::protobuf::Empty, ::grpc::UserListResponse>* allocator) {
-      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(52);
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(47);
       static_cast<::grpc::internal::CallbackUnaryHandler< ::google::protobuf::Empty, ::grpc::UserListResponse>*>(handler)
               ->SetMessageAllocator(allocator);
     }
@@ -4202,13 +3847,13 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithCallbackMethod_GetUser() {
-      ::grpc::Service::MarkMethodCallback(53,
+      ::grpc::Service::MarkMethodCallback(48,
           new ::grpc::internal::CallbackUnaryHandler< ::google::protobuf::StringValue, ::grpc::User>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::google::protobuf::StringValue* request, ::grpc::User* response) { return this->GetUser(context, request, response); }));}
     void SetMessageAllocatorFor_GetUser(
         ::grpc::MessageAllocator< ::google::protobuf::StringValue, ::grpc::User>* allocator) {
-      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(53);
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(48);
       static_cast<::grpc::internal::CallbackUnaryHandler< ::google::protobuf::StringValue, ::grpc::User>*>(handler)
               ->SetMessageAllocator(allocator);
     }
@@ -4229,13 +3874,13 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithCallbackMethod_SetUserSplitMode() {
-      ::grpc::Service::MarkMethodCallback(54,
+      ::grpc::Service::MarkMethodCallback(49,
           new ::grpc::internal::CallbackUnaryHandler< ::grpc::UserSplitModeRequest, ::google::protobuf::Empty>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::grpc::UserSplitModeRequest* request, ::google::protobuf::Empty* response) { return this->SetUserSplitMode(context, request, response); }));}
     void SetMessageAllocatorFor_SetUserSplitMode(
         ::grpc::MessageAllocator< ::grpc::UserSplitModeRequest, ::google::protobuf::Empty>* allocator) {
-      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(54);
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(49);
       static_cast<::grpc::internal::CallbackUnaryHandler< ::grpc::UserSplitModeRequest, ::google::protobuf::Empty>*>(handler)
               ->SetMessageAllocator(allocator);
     }
@@ -4256,13 +3901,13 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithCallbackMethod_LogoutUser() {
-      ::grpc::Service::MarkMethodCallback(55,
+      ::grpc::Service::MarkMethodCallback(50,
           new ::grpc::internal::CallbackUnaryHandler< ::google::protobuf::StringValue, ::google::protobuf::Empty>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::google::protobuf::StringValue* request, ::google::protobuf::Empty* response) { return this->LogoutUser(context, request, response); }));}
     void SetMessageAllocatorFor_LogoutUser(
         ::grpc::MessageAllocator< ::google::protobuf::StringValue, ::google::protobuf::Empty>* allocator) {
-      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(55);
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(50);
       static_cast<::grpc::internal::CallbackUnaryHandler< ::google::protobuf::StringValue, ::google::protobuf::Empty>*>(handler)
               ->SetMessageAllocator(allocator);
     }
@@ -4283,13 +3928,13 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithCallbackMethod_RemoveUser() {
-      ::grpc::Service::MarkMethodCallback(56,
+      ::grpc::Service::MarkMethodCallback(51,
           new ::grpc::internal::CallbackUnaryHandler< ::google::protobuf::StringValue, ::google::protobuf::Empty>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::google::protobuf::StringValue* request, ::google::protobuf::Empty* response) { return this->RemoveUser(context, request, response); }));}
     void SetMessageAllocatorFor_RemoveUser(
         ::grpc::MessageAllocator< ::google::protobuf::StringValue, ::google::protobuf::Empty>* allocator) {
-      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(56);
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(51);
       static_cast<::grpc::internal::CallbackUnaryHandler< ::google::protobuf::StringValue, ::google::protobuf::Empty>*>(handler)
               ->SetMessageAllocator(allocator);
     }
@@ -4310,13 +3955,13 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithCallbackMethod_ConfigureUserAppleMail() {
-      ::grpc::Service::MarkMethodCallback(57,
+      ::grpc::Service::MarkMethodCallback(52,
           new ::grpc::internal::CallbackUnaryHandler< ::grpc::ConfigureAppleMailRequest, ::google::protobuf::Empty>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::grpc::ConfigureAppleMailRequest* request, ::google::protobuf::Empty* response) { return this->ConfigureUserAppleMail(context, request, response); }));}
     void SetMessageAllocatorFor_ConfigureUserAppleMail(
         ::grpc::MessageAllocator< ::grpc::ConfigureAppleMailRequest, ::google::protobuf::Empty>* allocator) {
-      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(57);
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(52);
       static_cast<::grpc::internal::CallbackUnaryHandler< ::grpc::ConfigureAppleMailRequest, ::google::protobuf::Empty>*>(handler)
               ->SetMessageAllocator(allocator);
     }
@@ -4337,7 +3982,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithCallbackMethod_RunEventStream() {
-      ::grpc::Service::MarkMethodCallback(58,
+      ::grpc::Service::MarkMethodCallback(53,
           new ::grpc::internal::CallbackServerStreamingHandler< ::grpc::EventStreamRequest, ::grpc::StreamEvent>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::grpc::EventStreamRequest* request) { return this->RunEventStream(context, request); }));
@@ -4359,13 +4004,13 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithCallbackMethod_StopEventStream() {
-      ::grpc::Service::MarkMethodCallback(59,
+      ::grpc::Service::MarkMethodCallback(54,
           new ::grpc::internal::CallbackUnaryHandler< ::google::protobuf::Empty, ::google::protobuf::Empty>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::google::protobuf::Empty* request, ::google::protobuf::Empty* response) { return this->StopEventStream(context, request, response); }));}
     void SetMessageAllocatorFor_StopEventStream(
         ::grpc::MessageAllocator< ::google::protobuf::Empty, ::google::protobuf::Empty>* allocator) {
-      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(59);
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(54);
       static_cast<::grpc::internal::CallbackUnaryHandler< ::google::protobuf::Empty, ::google::protobuf::Empty>*>(handler)
               ->SetMessageAllocator(allocator);
     }
@@ -4380,7 +4025,7 @@ class Bridge final {
     virtual ::grpc::ServerUnaryReactor* StopEventStream(
       ::grpc::CallbackServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::google::protobuf::Empty* /*response*/)  { return nullptr; }
   };
-  typedef WithCallbackMethod_CheckTokens<WithCallbackMethod_AddLogEntry<WithCallbackMethod_GuiReady<WithCallbackMethod_Quit<WithCallbackMethod_Restart<WithCallbackMethod_ShowOnStartup<WithCallbackMethod_ShowSplashScreen<WithCallbackMethod_IsFirstGuiStart<WithCallbackMethod_SetIsAutostartOn<WithCallbackMethod_IsAutostartOn<WithCallbackMethod_SetIsBetaEnabled<WithCallbackMethod_IsBetaEnabled<WithCallbackMethod_SetIsAllMailVisible<WithCallbackMethod_IsAllMailVisible<WithCallbackMethod_GoOs<WithCallbackMethod_TriggerReset<WithCallbackMethod_Version<WithCallbackMethod_LogsPath<WithCallbackMethod_LicensePath<WithCallbackMethod_ReleaseNotesPageLink<WithCallbackMethod_DependencyLicensesLink<WithCallbackMethod_LandingPageLink<WithCallbackMethod_SetColorSchemeName<WithCallbackMethod_ColorSchemeName<WithCallbackMethod_CurrentEmailClient<WithCallbackMethod_ReportBug<WithCallbackMethod_ForceLauncher<WithCallbackMethod_SetMainExecutable<WithCallbackMethod_Login<WithCallbackMethod_Login2FA<WithCallbackMethod_Login2Passwords<WithCallbackMethod_LoginAbort<WithCallbackMethod_CheckUpdate<WithCallbackMethod_InstallUpdate<WithCallbackMethod_SetIsAutomaticUpdateOn<WithCallbackMethod_IsAutomaticUpdateOn<WithCallbackMethod_DiskCachePath<WithCallbackMethod_SetDiskCachePath<WithCallbackMethod_SetIsDoHEnabled<WithCallbackMethod_IsDoHEnabled<WithCallbackMethod_SetUseSslForSmtp<WithCallbackMethod_UseSslForSmtp<WithCallbackMethod_SetUseSslForImap<WithCallbackMethod_UseSslForImap<WithCallbackMethod_Hostname<WithCallbackMethod_ImapPort<WithCallbackMethod_SmtpPort<WithCallbackMethod_ChangePorts<WithCallbackMethod_IsPortFree<WithCallbackMethod_AvailableKeychains<WithCallbackMethod_SetCurrentKeychain<WithCallbackMethod_CurrentKeychain<WithCallbackMethod_GetUserList<WithCallbackMethod_GetUser<WithCallbackMethod_SetUserSplitMode<WithCallbackMethod_LogoutUser<WithCallbackMethod_RemoveUser<WithCallbackMethod_ConfigureUserAppleMail<WithCallbackMethod_RunEventStream<WithCallbackMethod_StopEventStream<Service > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > CallbackService;
+  typedef WithCallbackMethod_CheckTokens<WithCallbackMethod_AddLogEntry<WithCallbackMethod_GuiReady<WithCallbackMethod_Quit<WithCallbackMethod_Restart<WithCallbackMethod_ShowOnStartup<WithCallbackMethod_ShowSplashScreen<WithCallbackMethod_IsFirstGuiStart<WithCallbackMethod_SetIsAutostartOn<WithCallbackMethod_IsAutostartOn<WithCallbackMethod_SetIsBetaEnabled<WithCallbackMethod_IsBetaEnabled<WithCallbackMethod_SetIsAllMailVisible<WithCallbackMethod_IsAllMailVisible<WithCallbackMethod_GoOs<WithCallbackMethod_TriggerReset<WithCallbackMethod_Version<WithCallbackMethod_LogsPath<WithCallbackMethod_LicensePath<WithCallbackMethod_ReleaseNotesPageLink<WithCallbackMethod_DependencyLicensesLink<WithCallbackMethod_LandingPageLink<WithCallbackMethod_SetColorSchemeName<WithCallbackMethod_ColorSchemeName<WithCallbackMethod_CurrentEmailClient<WithCallbackMethod_ReportBug<WithCallbackMethod_ForceLauncher<WithCallbackMethod_SetMainExecutable<WithCallbackMethod_Login<WithCallbackMethod_Login2FA<WithCallbackMethod_Login2Passwords<WithCallbackMethod_LoginAbort<WithCallbackMethod_CheckUpdate<WithCallbackMethod_InstallUpdate<WithCallbackMethod_SetIsAutomaticUpdateOn<WithCallbackMethod_IsAutomaticUpdateOn<WithCallbackMethod_DiskCachePath<WithCallbackMethod_SetDiskCachePath<WithCallbackMethod_SetIsDoHEnabled<WithCallbackMethod_IsDoHEnabled<WithCallbackMethod_MailServerSettings<WithCallbackMethod_SetMailServerSettings<WithCallbackMethod_Hostname<WithCallbackMethod_IsPortFree<WithCallbackMethod_AvailableKeychains<WithCallbackMethod_SetCurrentKeychain<WithCallbackMethod_CurrentKeychain<WithCallbackMethod_GetUserList<WithCallbackMethod_GetUser<WithCallbackMethod_SetUserSplitMode<WithCallbackMethod_LogoutUser<WithCallbackMethod_RemoveUser<WithCallbackMethod_ConfigureUserAppleMail<WithCallbackMethod_RunEventStream<WithCallbackMethod_StopEventStream<Service > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > CallbackService;
   typedef CallbackService ExperimentalCallbackService;
   template <class BaseClass>
   class WithGenericMethod_CheckTokens : public BaseClass {
@@ -5063,69 +4708,35 @@ class Bridge final {
     }
   };
   template <class BaseClass>
-  class WithGenericMethod_SetUseSslForSmtp : public BaseClass {
+  class WithGenericMethod_MailServerSettings : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithGenericMethod_SetUseSslForSmtp() {
+    WithGenericMethod_MailServerSettings() {
       ::grpc::Service::MarkMethodGeneric(40);
     }
-    ~WithGenericMethod_SetUseSslForSmtp() override {
+    ~WithGenericMethod_MailServerSettings() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status SetUseSslForSmtp(::grpc::ServerContext* /*context*/, const ::google::protobuf::BoolValue* /*request*/, ::google::protobuf::Empty* /*response*/) override {
+    ::grpc::Status MailServerSettings(::grpc::ServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::grpc::ImapSmtpSettings* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
   };
   template <class BaseClass>
-  class WithGenericMethod_UseSslForSmtp : public BaseClass {
+  class WithGenericMethod_SetMailServerSettings : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithGenericMethod_UseSslForSmtp() {
+    WithGenericMethod_SetMailServerSettings() {
       ::grpc::Service::MarkMethodGeneric(41);
     }
-    ~WithGenericMethod_UseSslForSmtp() override {
+    ~WithGenericMethod_SetMailServerSettings() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status UseSslForSmtp(::grpc::ServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::google::protobuf::BoolValue* /*response*/) override {
-      abort();
-      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
-    }
-  };
-  template <class BaseClass>
-  class WithGenericMethod_SetUseSslForImap : public BaseClass {
-   private:
-    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
-   public:
-    WithGenericMethod_SetUseSslForImap() {
-      ::grpc::Service::MarkMethodGeneric(42);
-    }
-    ~WithGenericMethod_SetUseSslForImap() override {
-      BaseClassMustBeDerivedFromService(this);
-    }
-    // disable synchronous version of this method
-    ::grpc::Status SetUseSslForImap(::grpc::ServerContext* /*context*/, const ::google::protobuf::BoolValue* /*request*/, ::google::protobuf::Empty* /*response*/) override {
-      abort();
-      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
-    }
-  };
-  template <class BaseClass>
-  class WithGenericMethod_UseSslForImap : public BaseClass {
-   private:
-    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
-   public:
-    WithGenericMethod_UseSslForImap() {
-      ::grpc::Service::MarkMethodGeneric(43);
-    }
-    ~WithGenericMethod_UseSslForImap() override {
-      BaseClassMustBeDerivedFromService(this);
-    }
-    // disable synchronous version of this method
-    ::grpc::Status UseSslForImap(::grpc::ServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::google::protobuf::BoolValue* /*response*/) override {
+    ::grpc::Status SetMailServerSettings(::grpc::ServerContext* /*context*/, const ::grpc::ImapSmtpSettings* /*request*/, ::google::protobuf::Empty* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
@@ -5136,7 +4747,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithGenericMethod_Hostname() {
-      ::grpc::Service::MarkMethodGeneric(44);
+      ::grpc::Service::MarkMethodGeneric(42);
     }
     ~WithGenericMethod_Hostname() override {
       BaseClassMustBeDerivedFromService(this);
@@ -5148,63 +4759,12 @@ class Bridge final {
     }
   };
   template <class BaseClass>
-  class WithGenericMethod_ImapPort : public BaseClass {
-   private:
-    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
-   public:
-    WithGenericMethod_ImapPort() {
-      ::grpc::Service::MarkMethodGeneric(45);
-    }
-    ~WithGenericMethod_ImapPort() override {
-      BaseClassMustBeDerivedFromService(this);
-    }
-    // disable synchronous version of this method
-    ::grpc::Status ImapPort(::grpc::ServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::google::protobuf::Int32Value* /*response*/) override {
-      abort();
-      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
-    }
-  };
-  template <class BaseClass>
-  class WithGenericMethod_SmtpPort : public BaseClass {
-   private:
-    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
-   public:
-    WithGenericMethod_SmtpPort() {
-      ::grpc::Service::MarkMethodGeneric(46);
-    }
-    ~WithGenericMethod_SmtpPort() override {
-      BaseClassMustBeDerivedFromService(this);
-    }
-    // disable synchronous version of this method
-    ::grpc::Status SmtpPort(::grpc::ServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::google::protobuf::Int32Value* /*response*/) override {
-      abort();
-      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
-    }
-  };
-  template <class BaseClass>
-  class WithGenericMethod_ChangePorts : public BaseClass {
-   private:
-    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
-   public:
-    WithGenericMethod_ChangePorts() {
-      ::grpc::Service::MarkMethodGeneric(47);
-    }
-    ~WithGenericMethod_ChangePorts() override {
-      BaseClassMustBeDerivedFromService(this);
-    }
-    // disable synchronous version of this method
-    ::grpc::Status ChangePorts(::grpc::ServerContext* /*context*/, const ::grpc::ChangePortsRequest* /*request*/, ::google::protobuf::Empty* /*response*/) override {
-      abort();
-      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
-    }
-  };
-  template <class BaseClass>
   class WithGenericMethod_IsPortFree : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithGenericMethod_IsPortFree() {
-      ::grpc::Service::MarkMethodGeneric(48);
+      ::grpc::Service::MarkMethodGeneric(43);
     }
     ~WithGenericMethod_IsPortFree() override {
       BaseClassMustBeDerivedFromService(this);
@@ -5221,7 +4781,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithGenericMethod_AvailableKeychains() {
-      ::grpc::Service::MarkMethodGeneric(49);
+      ::grpc::Service::MarkMethodGeneric(44);
     }
     ~WithGenericMethod_AvailableKeychains() override {
       BaseClassMustBeDerivedFromService(this);
@@ -5238,7 +4798,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithGenericMethod_SetCurrentKeychain() {
-      ::grpc::Service::MarkMethodGeneric(50);
+      ::grpc::Service::MarkMethodGeneric(45);
     }
     ~WithGenericMethod_SetCurrentKeychain() override {
       BaseClassMustBeDerivedFromService(this);
@@ -5255,7 +4815,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithGenericMethod_CurrentKeychain() {
-      ::grpc::Service::MarkMethodGeneric(51);
+      ::grpc::Service::MarkMethodGeneric(46);
     }
     ~WithGenericMethod_CurrentKeychain() override {
       BaseClassMustBeDerivedFromService(this);
@@ -5272,7 +4832,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithGenericMethod_GetUserList() {
-      ::grpc::Service::MarkMethodGeneric(52);
+      ::grpc::Service::MarkMethodGeneric(47);
     }
     ~WithGenericMethod_GetUserList() override {
       BaseClassMustBeDerivedFromService(this);
@@ -5289,7 +4849,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithGenericMethod_GetUser() {
-      ::grpc::Service::MarkMethodGeneric(53);
+      ::grpc::Service::MarkMethodGeneric(48);
     }
     ~WithGenericMethod_GetUser() override {
       BaseClassMustBeDerivedFromService(this);
@@ -5306,7 +4866,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithGenericMethod_SetUserSplitMode() {
-      ::grpc::Service::MarkMethodGeneric(54);
+      ::grpc::Service::MarkMethodGeneric(49);
     }
     ~WithGenericMethod_SetUserSplitMode() override {
       BaseClassMustBeDerivedFromService(this);
@@ -5323,7 +4883,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithGenericMethod_LogoutUser() {
-      ::grpc::Service::MarkMethodGeneric(55);
+      ::grpc::Service::MarkMethodGeneric(50);
     }
     ~WithGenericMethod_LogoutUser() override {
       BaseClassMustBeDerivedFromService(this);
@@ -5340,7 +4900,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithGenericMethod_RemoveUser() {
-      ::grpc::Service::MarkMethodGeneric(56);
+      ::grpc::Service::MarkMethodGeneric(51);
     }
     ~WithGenericMethod_RemoveUser() override {
       BaseClassMustBeDerivedFromService(this);
@@ -5357,7 +4917,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithGenericMethod_ConfigureUserAppleMail() {
-      ::grpc::Service::MarkMethodGeneric(57);
+      ::grpc::Service::MarkMethodGeneric(52);
     }
     ~WithGenericMethod_ConfigureUserAppleMail() override {
       BaseClassMustBeDerivedFromService(this);
@@ -5374,7 +4934,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithGenericMethod_RunEventStream() {
-      ::grpc::Service::MarkMethodGeneric(58);
+      ::grpc::Service::MarkMethodGeneric(53);
     }
     ~WithGenericMethod_RunEventStream() override {
       BaseClassMustBeDerivedFromService(this);
@@ -5391,7 +4951,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithGenericMethod_StopEventStream() {
-      ::grpc::Service::MarkMethodGeneric(59);
+      ::grpc::Service::MarkMethodGeneric(54);
     }
     ~WithGenericMethod_StopEventStream() override {
       BaseClassMustBeDerivedFromService(this);
@@ -6203,83 +5763,43 @@ class Bridge final {
     }
   };
   template <class BaseClass>
-  class WithRawMethod_SetUseSslForSmtp : public BaseClass {
+  class WithRawMethod_MailServerSettings : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithRawMethod_SetUseSslForSmtp() {
+    WithRawMethod_MailServerSettings() {
       ::grpc::Service::MarkMethodRaw(40);
     }
-    ~WithRawMethod_SetUseSslForSmtp() override {
+    ~WithRawMethod_MailServerSettings() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status SetUseSslForSmtp(::grpc::ServerContext* /*context*/, const ::google::protobuf::BoolValue* /*request*/, ::google::protobuf::Empty* /*response*/) override {
+    ::grpc::Status MailServerSettings(::grpc::ServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::grpc::ImapSmtpSettings* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    void RequestSetUseSslForSmtp(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+    void RequestMailServerSettings(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
       ::grpc::Service::RequestAsyncUnary(40, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
-  class WithRawMethod_UseSslForSmtp : public BaseClass {
+  class WithRawMethod_SetMailServerSettings : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithRawMethod_UseSslForSmtp() {
+    WithRawMethod_SetMailServerSettings() {
       ::grpc::Service::MarkMethodRaw(41);
     }
-    ~WithRawMethod_UseSslForSmtp() override {
+    ~WithRawMethod_SetMailServerSettings() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status UseSslForSmtp(::grpc::ServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::google::protobuf::BoolValue* /*response*/) override {
+    ::grpc::Status SetMailServerSettings(::grpc::ServerContext* /*context*/, const ::grpc::ImapSmtpSettings* /*request*/, ::google::protobuf::Empty* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    void RequestUseSslForSmtp(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+    void RequestSetMailServerSettings(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
       ::grpc::Service::RequestAsyncUnary(41, context, request, response, new_call_cq, notification_cq, tag);
-    }
-  };
-  template <class BaseClass>
-  class WithRawMethod_SetUseSslForImap : public BaseClass {
-   private:
-    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
-   public:
-    WithRawMethod_SetUseSslForImap() {
-      ::grpc::Service::MarkMethodRaw(42);
-    }
-    ~WithRawMethod_SetUseSslForImap() override {
-      BaseClassMustBeDerivedFromService(this);
-    }
-    // disable synchronous version of this method
-    ::grpc::Status SetUseSslForImap(::grpc::ServerContext* /*context*/, const ::google::protobuf::BoolValue* /*request*/, ::google::protobuf::Empty* /*response*/) override {
-      abort();
-      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
-    }
-    void RequestSetUseSslForImap(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(42, context, request, response, new_call_cq, notification_cq, tag);
-    }
-  };
-  template <class BaseClass>
-  class WithRawMethod_UseSslForImap : public BaseClass {
-   private:
-    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
-   public:
-    WithRawMethod_UseSslForImap() {
-      ::grpc::Service::MarkMethodRaw(43);
-    }
-    ~WithRawMethod_UseSslForImap() override {
-      BaseClassMustBeDerivedFromService(this);
-    }
-    // disable synchronous version of this method
-    ::grpc::Status UseSslForImap(::grpc::ServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::google::protobuf::BoolValue* /*response*/) override {
-      abort();
-      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
-    }
-    void RequestUseSslForImap(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(43, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -6288,7 +5808,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawMethod_Hostname() {
-      ::grpc::Service::MarkMethodRaw(44);
+      ::grpc::Service::MarkMethodRaw(42);
     }
     ~WithRawMethod_Hostname() override {
       BaseClassMustBeDerivedFromService(this);
@@ -6299,67 +5819,7 @@ class Bridge final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestHostname(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(44, context, request, response, new_call_cq, notification_cq, tag);
-    }
-  };
-  template <class BaseClass>
-  class WithRawMethod_ImapPort : public BaseClass {
-   private:
-    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
-   public:
-    WithRawMethod_ImapPort() {
-      ::grpc::Service::MarkMethodRaw(45);
-    }
-    ~WithRawMethod_ImapPort() override {
-      BaseClassMustBeDerivedFromService(this);
-    }
-    // disable synchronous version of this method
-    ::grpc::Status ImapPort(::grpc::ServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::google::protobuf::Int32Value* /*response*/) override {
-      abort();
-      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
-    }
-    void RequestImapPort(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(45, context, request, response, new_call_cq, notification_cq, tag);
-    }
-  };
-  template <class BaseClass>
-  class WithRawMethod_SmtpPort : public BaseClass {
-   private:
-    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
-   public:
-    WithRawMethod_SmtpPort() {
-      ::grpc::Service::MarkMethodRaw(46);
-    }
-    ~WithRawMethod_SmtpPort() override {
-      BaseClassMustBeDerivedFromService(this);
-    }
-    // disable synchronous version of this method
-    ::grpc::Status SmtpPort(::grpc::ServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::google::protobuf::Int32Value* /*response*/) override {
-      abort();
-      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
-    }
-    void RequestSmtpPort(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(46, context, request, response, new_call_cq, notification_cq, tag);
-    }
-  };
-  template <class BaseClass>
-  class WithRawMethod_ChangePorts : public BaseClass {
-   private:
-    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
-   public:
-    WithRawMethod_ChangePorts() {
-      ::grpc::Service::MarkMethodRaw(47);
-    }
-    ~WithRawMethod_ChangePorts() override {
-      BaseClassMustBeDerivedFromService(this);
-    }
-    // disable synchronous version of this method
-    ::grpc::Status ChangePorts(::grpc::ServerContext* /*context*/, const ::grpc::ChangePortsRequest* /*request*/, ::google::protobuf::Empty* /*response*/) override {
-      abort();
-      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
-    }
-    void RequestChangePorts(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(47, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(42, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -6368,7 +5828,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawMethod_IsPortFree() {
-      ::grpc::Service::MarkMethodRaw(48);
+      ::grpc::Service::MarkMethodRaw(43);
     }
     ~WithRawMethod_IsPortFree() override {
       BaseClassMustBeDerivedFromService(this);
@@ -6379,7 +5839,7 @@ class Bridge final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestIsPortFree(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(48, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(43, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -6388,7 +5848,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawMethod_AvailableKeychains() {
-      ::grpc::Service::MarkMethodRaw(49);
+      ::grpc::Service::MarkMethodRaw(44);
     }
     ~WithRawMethod_AvailableKeychains() override {
       BaseClassMustBeDerivedFromService(this);
@@ -6399,7 +5859,7 @@ class Bridge final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestAvailableKeychains(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(49, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(44, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -6408,7 +5868,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawMethod_SetCurrentKeychain() {
-      ::grpc::Service::MarkMethodRaw(50);
+      ::grpc::Service::MarkMethodRaw(45);
     }
     ~WithRawMethod_SetCurrentKeychain() override {
       BaseClassMustBeDerivedFromService(this);
@@ -6419,7 +5879,7 @@ class Bridge final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestSetCurrentKeychain(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(50, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(45, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -6428,7 +5888,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawMethod_CurrentKeychain() {
-      ::grpc::Service::MarkMethodRaw(51);
+      ::grpc::Service::MarkMethodRaw(46);
     }
     ~WithRawMethod_CurrentKeychain() override {
       BaseClassMustBeDerivedFromService(this);
@@ -6439,7 +5899,7 @@ class Bridge final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestCurrentKeychain(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(51, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(46, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -6448,7 +5908,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawMethod_GetUserList() {
-      ::grpc::Service::MarkMethodRaw(52);
+      ::grpc::Service::MarkMethodRaw(47);
     }
     ~WithRawMethod_GetUserList() override {
       BaseClassMustBeDerivedFromService(this);
@@ -6459,7 +5919,7 @@ class Bridge final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestGetUserList(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(52, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(47, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -6468,7 +5928,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawMethod_GetUser() {
-      ::grpc::Service::MarkMethodRaw(53);
+      ::grpc::Service::MarkMethodRaw(48);
     }
     ~WithRawMethod_GetUser() override {
       BaseClassMustBeDerivedFromService(this);
@@ -6479,7 +5939,7 @@ class Bridge final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestGetUser(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(53, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(48, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -6488,7 +5948,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawMethod_SetUserSplitMode() {
-      ::grpc::Service::MarkMethodRaw(54);
+      ::grpc::Service::MarkMethodRaw(49);
     }
     ~WithRawMethod_SetUserSplitMode() override {
       BaseClassMustBeDerivedFromService(this);
@@ -6499,7 +5959,7 @@ class Bridge final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestSetUserSplitMode(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(54, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(49, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -6508,7 +5968,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawMethod_LogoutUser() {
-      ::grpc::Service::MarkMethodRaw(55);
+      ::grpc::Service::MarkMethodRaw(50);
     }
     ~WithRawMethod_LogoutUser() override {
       BaseClassMustBeDerivedFromService(this);
@@ -6519,7 +5979,7 @@ class Bridge final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestLogoutUser(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(55, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(50, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -6528,7 +5988,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawMethod_RemoveUser() {
-      ::grpc::Service::MarkMethodRaw(56);
+      ::grpc::Service::MarkMethodRaw(51);
     }
     ~WithRawMethod_RemoveUser() override {
       BaseClassMustBeDerivedFromService(this);
@@ -6539,7 +5999,7 @@ class Bridge final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestRemoveUser(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(56, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(51, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -6548,7 +6008,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawMethod_ConfigureUserAppleMail() {
-      ::grpc::Service::MarkMethodRaw(57);
+      ::grpc::Service::MarkMethodRaw(52);
     }
     ~WithRawMethod_ConfigureUserAppleMail() override {
       BaseClassMustBeDerivedFromService(this);
@@ -6559,7 +6019,7 @@ class Bridge final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestConfigureUserAppleMail(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(57, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(52, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -6568,7 +6028,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawMethod_RunEventStream() {
-      ::grpc::Service::MarkMethodRaw(58);
+      ::grpc::Service::MarkMethodRaw(53);
     }
     ~WithRawMethod_RunEventStream() override {
       BaseClassMustBeDerivedFromService(this);
@@ -6579,7 +6039,7 @@ class Bridge final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestRunEventStream(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncWriter< ::grpc::ByteBuffer>* writer, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncServerStreaming(58, context, request, writer, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncServerStreaming(53, context, request, writer, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -6588,7 +6048,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawMethod_StopEventStream() {
-      ::grpc::Service::MarkMethodRaw(59);
+      ::grpc::Service::MarkMethodRaw(54);
     }
     ~WithRawMethod_StopEventStream() override {
       BaseClassMustBeDerivedFromService(this);
@@ -6599,7 +6059,7 @@ class Bridge final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestStopEventStream(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(59, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(54, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -7483,91 +6943,47 @@ class Bridge final {
       ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
   };
   template <class BaseClass>
-  class WithRawCallbackMethod_SetUseSslForSmtp : public BaseClass {
+  class WithRawCallbackMethod_MailServerSettings : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithRawCallbackMethod_SetUseSslForSmtp() {
+    WithRawCallbackMethod_MailServerSettings() {
       ::grpc::Service::MarkMethodRawCallback(40,
           new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
-                   ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->SetUseSslForSmtp(context, request, response); }));
+                   ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->MailServerSettings(context, request, response); }));
     }
-    ~WithRawCallbackMethod_SetUseSslForSmtp() override {
+    ~WithRawCallbackMethod_MailServerSettings() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status SetUseSslForSmtp(::grpc::ServerContext* /*context*/, const ::google::protobuf::BoolValue* /*request*/, ::google::protobuf::Empty* /*response*/) override {
+    ::grpc::Status MailServerSettings(::grpc::ServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::grpc::ImapSmtpSettings* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    virtual ::grpc::ServerUnaryReactor* SetUseSslForSmtp(
+    virtual ::grpc::ServerUnaryReactor* MailServerSettings(
       ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
   };
   template <class BaseClass>
-  class WithRawCallbackMethod_UseSslForSmtp : public BaseClass {
+  class WithRawCallbackMethod_SetMailServerSettings : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithRawCallbackMethod_UseSslForSmtp() {
+    WithRawCallbackMethod_SetMailServerSettings() {
       ::grpc::Service::MarkMethodRawCallback(41,
           new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
-                   ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->UseSslForSmtp(context, request, response); }));
+                   ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->SetMailServerSettings(context, request, response); }));
     }
-    ~WithRawCallbackMethod_UseSslForSmtp() override {
+    ~WithRawCallbackMethod_SetMailServerSettings() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status UseSslForSmtp(::grpc::ServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::google::protobuf::BoolValue* /*response*/) override {
+    ::grpc::Status SetMailServerSettings(::grpc::ServerContext* /*context*/, const ::grpc::ImapSmtpSettings* /*request*/, ::google::protobuf::Empty* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    virtual ::grpc::ServerUnaryReactor* UseSslForSmtp(
-      ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
-  };
-  template <class BaseClass>
-  class WithRawCallbackMethod_SetUseSslForImap : public BaseClass {
-   private:
-    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
-   public:
-    WithRawCallbackMethod_SetUseSslForImap() {
-      ::grpc::Service::MarkMethodRawCallback(42,
-          new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
-            [this](
-                   ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->SetUseSslForImap(context, request, response); }));
-    }
-    ~WithRawCallbackMethod_SetUseSslForImap() override {
-      BaseClassMustBeDerivedFromService(this);
-    }
-    // disable synchronous version of this method
-    ::grpc::Status SetUseSslForImap(::grpc::ServerContext* /*context*/, const ::google::protobuf::BoolValue* /*request*/, ::google::protobuf::Empty* /*response*/) override {
-      abort();
-      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
-    }
-    virtual ::grpc::ServerUnaryReactor* SetUseSslForImap(
-      ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
-  };
-  template <class BaseClass>
-  class WithRawCallbackMethod_UseSslForImap : public BaseClass {
-   private:
-    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
-   public:
-    WithRawCallbackMethod_UseSslForImap() {
-      ::grpc::Service::MarkMethodRawCallback(43,
-          new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
-            [this](
-                   ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->UseSslForImap(context, request, response); }));
-    }
-    ~WithRawCallbackMethod_UseSslForImap() override {
-      BaseClassMustBeDerivedFromService(this);
-    }
-    // disable synchronous version of this method
-    ::grpc::Status UseSslForImap(::grpc::ServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::google::protobuf::BoolValue* /*response*/) override {
-      abort();
-      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
-    }
-    virtual ::grpc::ServerUnaryReactor* UseSslForImap(
+    virtual ::grpc::ServerUnaryReactor* SetMailServerSettings(
       ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
   };
   template <class BaseClass>
@@ -7576,7 +6992,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawCallbackMethod_Hostname() {
-      ::grpc::Service::MarkMethodRawCallback(44,
+      ::grpc::Service::MarkMethodRawCallback(42,
           new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->Hostname(context, request, response); }));
@@ -7593,78 +7009,12 @@ class Bridge final {
       ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
   };
   template <class BaseClass>
-  class WithRawCallbackMethod_ImapPort : public BaseClass {
-   private:
-    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
-   public:
-    WithRawCallbackMethod_ImapPort() {
-      ::grpc::Service::MarkMethodRawCallback(45,
-          new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
-            [this](
-                   ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->ImapPort(context, request, response); }));
-    }
-    ~WithRawCallbackMethod_ImapPort() override {
-      BaseClassMustBeDerivedFromService(this);
-    }
-    // disable synchronous version of this method
-    ::grpc::Status ImapPort(::grpc::ServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::google::protobuf::Int32Value* /*response*/) override {
-      abort();
-      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
-    }
-    virtual ::grpc::ServerUnaryReactor* ImapPort(
-      ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
-  };
-  template <class BaseClass>
-  class WithRawCallbackMethod_SmtpPort : public BaseClass {
-   private:
-    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
-   public:
-    WithRawCallbackMethod_SmtpPort() {
-      ::grpc::Service::MarkMethodRawCallback(46,
-          new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
-            [this](
-                   ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->SmtpPort(context, request, response); }));
-    }
-    ~WithRawCallbackMethod_SmtpPort() override {
-      BaseClassMustBeDerivedFromService(this);
-    }
-    // disable synchronous version of this method
-    ::grpc::Status SmtpPort(::grpc::ServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::google::protobuf::Int32Value* /*response*/) override {
-      abort();
-      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
-    }
-    virtual ::grpc::ServerUnaryReactor* SmtpPort(
-      ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
-  };
-  template <class BaseClass>
-  class WithRawCallbackMethod_ChangePorts : public BaseClass {
-   private:
-    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
-   public:
-    WithRawCallbackMethod_ChangePorts() {
-      ::grpc::Service::MarkMethodRawCallback(47,
-          new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
-            [this](
-                   ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->ChangePorts(context, request, response); }));
-    }
-    ~WithRawCallbackMethod_ChangePorts() override {
-      BaseClassMustBeDerivedFromService(this);
-    }
-    // disable synchronous version of this method
-    ::grpc::Status ChangePorts(::grpc::ServerContext* /*context*/, const ::grpc::ChangePortsRequest* /*request*/, ::google::protobuf::Empty* /*response*/) override {
-      abort();
-      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
-    }
-    virtual ::grpc::ServerUnaryReactor* ChangePorts(
-      ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
-  };
-  template <class BaseClass>
   class WithRawCallbackMethod_IsPortFree : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawCallbackMethod_IsPortFree() {
-      ::grpc::Service::MarkMethodRawCallback(48,
+      ::grpc::Service::MarkMethodRawCallback(43,
           new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->IsPortFree(context, request, response); }));
@@ -7686,7 +7036,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawCallbackMethod_AvailableKeychains() {
-      ::grpc::Service::MarkMethodRawCallback(49,
+      ::grpc::Service::MarkMethodRawCallback(44,
           new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->AvailableKeychains(context, request, response); }));
@@ -7708,7 +7058,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawCallbackMethod_SetCurrentKeychain() {
-      ::grpc::Service::MarkMethodRawCallback(50,
+      ::grpc::Service::MarkMethodRawCallback(45,
           new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->SetCurrentKeychain(context, request, response); }));
@@ -7730,7 +7080,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawCallbackMethod_CurrentKeychain() {
-      ::grpc::Service::MarkMethodRawCallback(51,
+      ::grpc::Service::MarkMethodRawCallback(46,
           new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->CurrentKeychain(context, request, response); }));
@@ -7752,7 +7102,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawCallbackMethod_GetUserList() {
-      ::grpc::Service::MarkMethodRawCallback(52,
+      ::grpc::Service::MarkMethodRawCallback(47,
           new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->GetUserList(context, request, response); }));
@@ -7774,7 +7124,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawCallbackMethod_GetUser() {
-      ::grpc::Service::MarkMethodRawCallback(53,
+      ::grpc::Service::MarkMethodRawCallback(48,
           new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->GetUser(context, request, response); }));
@@ -7796,7 +7146,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawCallbackMethod_SetUserSplitMode() {
-      ::grpc::Service::MarkMethodRawCallback(54,
+      ::grpc::Service::MarkMethodRawCallback(49,
           new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->SetUserSplitMode(context, request, response); }));
@@ -7818,7 +7168,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawCallbackMethod_LogoutUser() {
-      ::grpc::Service::MarkMethodRawCallback(55,
+      ::grpc::Service::MarkMethodRawCallback(50,
           new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->LogoutUser(context, request, response); }));
@@ -7840,7 +7190,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawCallbackMethod_RemoveUser() {
-      ::grpc::Service::MarkMethodRawCallback(56,
+      ::grpc::Service::MarkMethodRawCallback(51,
           new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->RemoveUser(context, request, response); }));
@@ -7862,7 +7212,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawCallbackMethod_ConfigureUserAppleMail() {
-      ::grpc::Service::MarkMethodRawCallback(57,
+      ::grpc::Service::MarkMethodRawCallback(52,
           new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->ConfigureUserAppleMail(context, request, response); }));
@@ -7884,7 +7234,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawCallbackMethod_RunEventStream() {
-      ::grpc::Service::MarkMethodRawCallback(58,
+      ::grpc::Service::MarkMethodRawCallback(53,
           new ::grpc::internal::CallbackServerStreamingHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
                    ::grpc::CallbackServerContext* context, const::grpc::ByteBuffer* request) { return this->RunEventStream(context, request); }));
@@ -7906,7 +7256,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawCallbackMethod_StopEventStream() {
-      ::grpc::Service::MarkMethodRawCallback(59,
+      ::grpc::Service::MarkMethodRawCallback(54,
           new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->StopEventStream(context, request, response); }));
@@ -9003,112 +8353,58 @@ class Bridge final {
     virtual ::grpc::Status StreamedIsDoHEnabled(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::google::protobuf::Empty,::google::protobuf::BoolValue>* server_unary_streamer) = 0;
   };
   template <class BaseClass>
-  class WithStreamedUnaryMethod_SetUseSslForSmtp : public BaseClass {
+  class WithStreamedUnaryMethod_MailServerSettings : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithStreamedUnaryMethod_SetUseSslForSmtp() {
+    WithStreamedUnaryMethod_MailServerSettings() {
       ::grpc::Service::MarkMethodStreamed(40,
         new ::grpc::internal::StreamedUnaryHandler<
-          ::google::protobuf::BoolValue, ::google::protobuf::Empty>(
+          ::google::protobuf::Empty, ::grpc::ImapSmtpSettings>(
             [this](::grpc::ServerContext* context,
                    ::grpc::ServerUnaryStreamer<
-                     ::google::protobuf::BoolValue, ::google::protobuf::Empty>* streamer) {
-                       return this->StreamedSetUseSslForSmtp(context,
+                     ::google::protobuf::Empty, ::grpc::ImapSmtpSettings>* streamer) {
+                       return this->StreamedMailServerSettings(context,
                          streamer);
                   }));
     }
-    ~WithStreamedUnaryMethod_SetUseSslForSmtp() override {
+    ~WithStreamedUnaryMethod_MailServerSettings() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable regular version of this method
-    ::grpc::Status SetUseSslForSmtp(::grpc::ServerContext* /*context*/, const ::google::protobuf::BoolValue* /*request*/, ::google::protobuf::Empty* /*response*/) override {
+    ::grpc::Status MailServerSettings(::grpc::ServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::grpc::ImapSmtpSettings* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     // replace default version of method with streamed unary
-    virtual ::grpc::Status StreamedSetUseSslForSmtp(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::google::protobuf::BoolValue,::google::protobuf::Empty>* server_unary_streamer) = 0;
+    virtual ::grpc::Status StreamedMailServerSettings(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::google::protobuf::Empty,::grpc::ImapSmtpSettings>* server_unary_streamer) = 0;
   };
   template <class BaseClass>
-  class WithStreamedUnaryMethod_UseSslForSmtp : public BaseClass {
+  class WithStreamedUnaryMethod_SetMailServerSettings : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithStreamedUnaryMethod_UseSslForSmtp() {
+    WithStreamedUnaryMethod_SetMailServerSettings() {
       ::grpc::Service::MarkMethodStreamed(41,
         new ::grpc::internal::StreamedUnaryHandler<
-          ::google::protobuf::Empty, ::google::protobuf::BoolValue>(
+          ::grpc::ImapSmtpSettings, ::google::protobuf::Empty>(
             [this](::grpc::ServerContext* context,
                    ::grpc::ServerUnaryStreamer<
-                     ::google::protobuf::Empty, ::google::protobuf::BoolValue>* streamer) {
-                       return this->StreamedUseSslForSmtp(context,
+                     ::grpc::ImapSmtpSettings, ::google::protobuf::Empty>* streamer) {
+                       return this->StreamedSetMailServerSettings(context,
                          streamer);
                   }));
     }
-    ~WithStreamedUnaryMethod_UseSslForSmtp() override {
+    ~WithStreamedUnaryMethod_SetMailServerSettings() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable regular version of this method
-    ::grpc::Status UseSslForSmtp(::grpc::ServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::google::protobuf::BoolValue* /*response*/) override {
+    ::grpc::Status SetMailServerSettings(::grpc::ServerContext* /*context*/, const ::grpc::ImapSmtpSettings* /*request*/, ::google::protobuf::Empty* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     // replace default version of method with streamed unary
-    virtual ::grpc::Status StreamedUseSslForSmtp(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::google::protobuf::Empty,::google::protobuf::BoolValue>* server_unary_streamer) = 0;
-  };
-  template <class BaseClass>
-  class WithStreamedUnaryMethod_SetUseSslForImap : public BaseClass {
-   private:
-    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
-   public:
-    WithStreamedUnaryMethod_SetUseSslForImap() {
-      ::grpc::Service::MarkMethodStreamed(42,
-        new ::grpc::internal::StreamedUnaryHandler<
-          ::google::protobuf::BoolValue, ::google::protobuf::Empty>(
-            [this](::grpc::ServerContext* context,
-                   ::grpc::ServerUnaryStreamer<
-                     ::google::protobuf::BoolValue, ::google::protobuf::Empty>* streamer) {
-                       return this->StreamedSetUseSslForImap(context,
-                         streamer);
-                  }));
-    }
-    ~WithStreamedUnaryMethod_SetUseSslForImap() override {
-      BaseClassMustBeDerivedFromService(this);
-    }
-    // disable regular version of this method
-    ::grpc::Status SetUseSslForImap(::grpc::ServerContext* /*context*/, const ::google::protobuf::BoolValue* /*request*/, ::google::protobuf::Empty* /*response*/) override {
-      abort();
-      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
-    }
-    // replace default version of method with streamed unary
-    virtual ::grpc::Status StreamedSetUseSslForImap(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::google::protobuf::BoolValue,::google::protobuf::Empty>* server_unary_streamer) = 0;
-  };
-  template <class BaseClass>
-  class WithStreamedUnaryMethod_UseSslForImap : public BaseClass {
-   private:
-    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
-   public:
-    WithStreamedUnaryMethod_UseSslForImap() {
-      ::grpc::Service::MarkMethodStreamed(43,
-        new ::grpc::internal::StreamedUnaryHandler<
-          ::google::protobuf::Empty, ::google::protobuf::BoolValue>(
-            [this](::grpc::ServerContext* context,
-                   ::grpc::ServerUnaryStreamer<
-                     ::google::protobuf::Empty, ::google::protobuf::BoolValue>* streamer) {
-                       return this->StreamedUseSslForImap(context,
-                         streamer);
-                  }));
-    }
-    ~WithStreamedUnaryMethod_UseSslForImap() override {
-      BaseClassMustBeDerivedFromService(this);
-    }
-    // disable regular version of this method
-    ::grpc::Status UseSslForImap(::grpc::ServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::google::protobuf::BoolValue* /*response*/) override {
-      abort();
-      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
-    }
-    // replace default version of method with streamed unary
-    virtual ::grpc::Status StreamedUseSslForImap(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::google::protobuf::Empty,::google::protobuf::BoolValue>* server_unary_streamer) = 0;
+    virtual ::grpc::Status StreamedSetMailServerSettings(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::grpc::ImapSmtpSettings,::google::protobuf::Empty>* server_unary_streamer) = 0;
   };
   template <class BaseClass>
   class WithStreamedUnaryMethod_Hostname : public BaseClass {
@@ -9116,7 +8412,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithStreamedUnaryMethod_Hostname() {
-      ::grpc::Service::MarkMethodStreamed(44,
+      ::grpc::Service::MarkMethodStreamed(42,
         new ::grpc::internal::StreamedUnaryHandler<
           ::google::protobuf::Empty, ::google::protobuf::StringValue>(
             [this](::grpc::ServerContext* context,
@@ -9138,93 +8434,12 @@ class Bridge final {
     virtual ::grpc::Status StreamedHostname(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::google::protobuf::Empty,::google::protobuf::StringValue>* server_unary_streamer) = 0;
   };
   template <class BaseClass>
-  class WithStreamedUnaryMethod_ImapPort : public BaseClass {
-   private:
-    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
-   public:
-    WithStreamedUnaryMethod_ImapPort() {
-      ::grpc::Service::MarkMethodStreamed(45,
-        new ::grpc::internal::StreamedUnaryHandler<
-          ::google::protobuf::Empty, ::google::protobuf::Int32Value>(
-            [this](::grpc::ServerContext* context,
-                   ::grpc::ServerUnaryStreamer<
-                     ::google::protobuf::Empty, ::google::protobuf::Int32Value>* streamer) {
-                       return this->StreamedImapPort(context,
-                         streamer);
-                  }));
-    }
-    ~WithStreamedUnaryMethod_ImapPort() override {
-      BaseClassMustBeDerivedFromService(this);
-    }
-    // disable regular version of this method
-    ::grpc::Status ImapPort(::grpc::ServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::google::protobuf::Int32Value* /*response*/) override {
-      abort();
-      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
-    }
-    // replace default version of method with streamed unary
-    virtual ::grpc::Status StreamedImapPort(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::google::protobuf::Empty,::google::protobuf::Int32Value>* server_unary_streamer) = 0;
-  };
-  template <class BaseClass>
-  class WithStreamedUnaryMethod_SmtpPort : public BaseClass {
-   private:
-    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
-   public:
-    WithStreamedUnaryMethod_SmtpPort() {
-      ::grpc::Service::MarkMethodStreamed(46,
-        new ::grpc::internal::StreamedUnaryHandler<
-          ::google::protobuf::Empty, ::google::protobuf::Int32Value>(
-            [this](::grpc::ServerContext* context,
-                   ::grpc::ServerUnaryStreamer<
-                     ::google::protobuf::Empty, ::google::protobuf::Int32Value>* streamer) {
-                       return this->StreamedSmtpPort(context,
-                         streamer);
-                  }));
-    }
-    ~WithStreamedUnaryMethod_SmtpPort() override {
-      BaseClassMustBeDerivedFromService(this);
-    }
-    // disable regular version of this method
-    ::grpc::Status SmtpPort(::grpc::ServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::google::protobuf::Int32Value* /*response*/) override {
-      abort();
-      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
-    }
-    // replace default version of method with streamed unary
-    virtual ::grpc::Status StreamedSmtpPort(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::google::protobuf::Empty,::google::protobuf::Int32Value>* server_unary_streamer) = 0;
-  };
-  template <class BaseClass>
-  class WithStreamedUnaryMethod_ChangePorts : public BaseClass {
-   private:
-    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
-   public:
-    WithStreamedUnaryMethod_ChangePorts() {
-      ::grpc::Service::MarkMethodStreamed(47,
-        new ::grpc::internal::StreamedUnaryHandler<
-          ::grpc::ChangePortsRequest, ::google::protobuf::Empty>(
-            [this](::grpc::ServerContext* context,
-                   ::grpc::ServerUnaryStreamer<
-                     ::grpc::ChangePortsRequest, ::google::protobuf::Empty>* streamer) {
-                       return this->StreamedChangePorts(context,
-                         streamer);
-                  }));
-    }
-    ~WithStreamedUnaryMethod_ChangePorts() override {
-      BaseClassMustBeDerivedFromService(this);
-    }
-    // disable regular version of this method
-    ::grpc::Status ChangePorts(::grpc::ServerContext* /*context*/, const ::grpc::ChangePortsRequest* /*request*/, ::google::protobuf::Empty* /*response*/) override {
-      abort();
-      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
-    }
-    // replace default version of method with streamed unary
-    virtual ::grpc::Status StreamedChangePorts(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::grpc::ChangePortsRequest,::google::protobuf::Empty>* server_unary_streamer) = 0;
-  };
-  template <class BaseClass>
   class WithStreamedUnaryMethod_IsPortFree : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithStreamedUnaryMethod_IsPortFree() {
-      ::grpc::Service::MarkMethodStreamed(48,
+      ::grpc::Service::MarkMethodStreamed(43,
         new ::grpc::internal::StreamedUnaryHandler<
           ::google::protobuf::Int32Value, ::google::protobuf::BoolValue>(
             [this](::grpc::ServerContext* context,
@@ -9251,7 +8466,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithStreamedUnaryMethod_AvailableKeychains() {
-      ::grpc::Service::MarkMethodStreamed(49,
+      ::grpc::Service::MarkMethodStreamed(44,
         new ::grpc::internal::StreamedUnaryHandler<
           ::google::protobuf::Empty, ::grpc::AvailableKeychainsResponse>(
             [this](::grpc::ServerContext* context,
@@ -9278,7 +8493,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithStreamedUnaryMethod_SetCurrentKeychain() {
-      ::grpc::Service::MarkMethodStreamed(50,
+      ::grpc::Service::MarkMethodStreamed(45,
         new ::grpc::internal::StreamedUnaryHandler<
           ::google::protobuf::StringValue, ::google::protobuf::Empty>(
             [this](::grpc::ServerContext* context,
@@ -9305,7 +8520,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithStreamedUnaryMethod_CurrentKeychain() {
-      ::grpc::Service::MarkMethodStreamed(51,
+      ::grpc::Service::MarkMethodStreamed(46,
         new ::grpc::internal::StreamedUnaryHandler<
           ::google::protobuf::Empty, ::google::protobuf::StringValue>(
             [this](::grpc::ServerContext* context,
@@ -9332,7 +8547,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithStreamedUnaryMethod_GetUserList() {
-      ::grpc::Service::MarkMethodStreamed(52,
+      ::grpc::Service::MarkMethodStreamed(47,
         new ::grpc::internal::StreamedUnaryHandler<
           ::google::protobuf::Empty, ::grpc::UserListResponse>(
             [this](::grpc::ServerContext* context,
@@ -9359,7 +8574,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithStreamedUnaryMethod_GetUser() {
-      ::grpc::Service::MarkMethodStreamed(53,
+      ::grpc::Service::MarkMethodStreamed(48,
         new ::grpc::internal::StreamedUnaryHandler<
           ::google::protobuf::StringValue, ::grpc::User>(
             [this](::grpc::ServerContext* context,
@@ -9386,7 +8601,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithStreamedUnaryMethod_SetUserSplitMode() {
-      ::grpc::Service::MarkMethodStreamed(54,
+      ::grpc::Service::MarkMethodStreamed(49,
         new ::grpc::internal::StreamedUnaryHandler<
           ::grpc::UserSplitModeRequest, ::google::protobuf::Empty>(
             [this](::grpc::ServerContext* context,
@@ -9413,7 +8628,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithStreamedUnaryMethod_LogoutUser() {
-      ::grpc::Service::MarkMethodStreamed(55,
+      ::grpc::Service::MarkMethodStreamed(50,
         new ::grpc::internal::StreamedUnaryHandler<
           ::google::protobuf::StringValue, ::google::protobuf::Empty>(
             [this](::grpc::ServerContext* context,
@@ -9440,7 +8655,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithStreamedUnaryMethod_RemoveUser() {
-      ::grpc::Service::MarkMethodStreamed(56,
+      ::grpc::Service::MarkMethodStreamed(51,
         new ::grpc::internal::StreamedUnaryHandler<
           ::google::protobuf::StringValue, ::google::protobuf::Empty>(
             [this](::grpc::ServerContext* context,
@@ -9467,7 +8682,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithStreamedUnaryMethod_ConfigureUserAppleMail() {
-      ::grpc::Service::MarkMethodStreamed(57,
+      ::grpc::Service::MarkMethodStreamed(52,
         new ::grpc::internal::StreamedUnaryHandler<
           ::grpc::ConfigureAppleMailRequest, ::google::protobuf::Empty>(
             [this](::grpc::ServerContext* context,
@@ -9494,7 +8709,7 @@ class Bridge final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithStreamedUnaryMethod_StopEventStream() {
-      ::grpc::Service::MarkMethodStreamed(59,
+      ::grpc::Service::MarkMethodStreamed(54,
         new ::grpc::internal::StreamedUnaryHandler<
           ::google::protobuf::Empty, ::google::protobuf::Empty>(
             [this](::grpc::ServerContext* context,
@@ -9515,14 +8730,14 @@ class Bridge final {
     // replace default version of method with streamed unary
     virtual ::grpc::Status StreamedStopEventStream(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::google::protobuf::Empty,::google::protobuf::Empty>* server_unary_streamer) = 0;
   };
-  typedef WithStreamedUnaryMethod_CheckTokens<WithStreamedUnaryMethod_AddLogEntry<WithStreamedUnaryMethod_GuiReady<WithStreamedUnaryMethod_Quit<WithStreamedUnaryMethod_Restart<WithStreamedUnaryMethod_ShowOnStartup<WithStreamedUnaryMethod_ShowSplashScreen<WithStreamedUnaryMethod_IsFirstGuiStart<WithStreamedUnaryMethod_SetIsAutostartOn<WithStreamedUnaryMethod_IsAutostartOn<WithStreamedUnaryMethod_SetIsBetaEnabled<WithStreamedUnaryMethod_IsBetaEnabled<WithStreamedUnaryMethod_SetIsAllMailVisible<WithStreamedUnaryMethod_IsAllMailVisible<WithStreamedUnaryMethod_GoOs<WithStreamedUnaryMethod_TriggerReset<WithStreamedUnaryMethod_Version<WithStreamedUnaryMethod_LogsPath<WithStreamedUnaryMethod_LicensePath<WithStreamedUnaryMethod_ReleaseNotesPageLink<WithStreamedUnaryMethod_DependencyLicensesLink<WithStreamedUnaryMethod_LandingPageLink<WithStreamedUnaryMethod_SetColorSchemeName<WithStreamedUnaryMethod_ColorSchemeName<WithStreamedUnaryMethod_CurrentEmailClient<WithStreamedUnaryMethod_ReportBug<WithStreamedUnaryMethod_ForceLauncher<WithStreamedUnaryMethod_SetMainExecutable<WithStreamedUnaryMethod_Login<WithStreamedUnaryMethod_Login2FA<WithStreamedUnaryMethod_Login2Passwords<WithStreamedUnaryMethod_LoginAbort<WithStreamedUnaryMethod_CheckUpdate<WithStreamedUnaryMethod_InstallUpdate<WithStreamedUnaryMethod_SetIsAutomaticUpdateOn<WithStreamedUnaryMethod_IsAutomaticUpdateOn<WithStreamedUnaryMethod_DiskCachePath<WithStreamedUnaryMethod_SetDiskCachePath<WithStreamedUnaryMethod_SetIsDoHEnabled<WithStreamedUnaryMethod_IsDoHEnabled<WithStreamedUnaryMethod_SetUseSslForSmtp<WithStreamedUnaryMethod_UseSslForSmtp<WithStreamedUnaryMethod_SetUseSslForImap<WithStreamedUnaryMethod_UseSslForImap<WithStreamedUnaryMethod_Hostname<WithStreamedUnaryMethod_ImapPort<WithStreamedUnaryMethod_SmtpPort<WithStreamedUnaryMethod_ChangePorts<WithStreamedUnaryMethod_IsPortFree<WithStreamedUnaryMethod_AvailableKeychains<WithStreamedUnaryMethod_SetCurrentKeychain<WithStreamedUnaryMethod_CurrentKeychain<WithStreamedUnaryMethod_GetUserList<WithStreamedUnaryMethod_GetUser<WithStreamedUnaryMethod_SetUserSplitMode<WithStreamedUnaryMethod_LogoutUser<WithStreamedUnaryMethod_RemoveUser<WithStreamedUnaryMethod_ConfigureUserAppleMail<WithStreamedUnaryMethod_StopEventStream<Service > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > StreamedUnaryService;
+  typedef WithStreamedUnaryMethod_CheckTokens<WithStreamedUnaryMethod_AddLogEntry<WithStreamedUnaryMethod_GuiReady<WithStreamedUnaryMethod_Quit<WithStreamedUnaryMethod_Restart<WithStreamedUnaryMethod_ShowOnStartup<WithStreamedUnaryMethod_ShowSplashScreen<WithStreamedUnaryMethod_IsFirstGuiStart<WithStreamedUnaryMethod_SetIsAutostartOn<WithStreamedUnaryMethod_IsAutostartOn<WithStreamedUnaryMethod_SetIsBetaEnabled<WithStreamedUnaryMethod_IsBetaEnabled<WithStreamedUnaryMethod_SetIsAllMailVisible<WithStreamedUnaryMethod_IsAllMailVisible<WithStreamedUnaryMethod_GoOs<WithStreamedUnaryMethod_TriggerReset<WithStreamedUnaryMethod_Version<WithStreamedUnaryMethod_LogsPath<WithStreamedUnaryMethod_LicensePath<WithStreamedUnaryMethod_ReleaseNotesPageLink<WithStreamedUnaryMethod_DependencyLicensesLink<WithStreamedUnaryMethod_LandingPageLink<WithStreamedUnaryMethod_SetColorSchemeName<WithStreamedUnaryMethod_ColorSchemeName<WithStreamedUnaryMethod_CurrentEmailClient<WithStreamedUnaryMethod_ReportBug<WithStreamedUnaryMethod_ForceLauncher<WithStreamedUnaryMethod_SetMainExecutable<WithStreamedUnaryMethod_Login<WithStreamedUnaryMethod_Login2FA<WithStreamedUnaryMethod_Login2Passwords<WithStreamedUnaryMethod_LoginAbort<WithStreamedUnaryMethod_CheckUpdate<WithStreamedUnaryMethod_InstallUpdate<WithStreamedUnaryMethod_SetIsAutomaticUpdateOn<WithStreamedUnaryMethod_IsAutomaticUpdateOn<WithStreamedUnaryMethod_DiskCachePath<WithStreamedUnaryMethod_SetDiskCachePath<WithStreamedUnaryMethod_SetIsDoHEnabled<WithStreamedUnaryMethod_IsDoHEnabled<WithStreamedUnaryMethod_MailServerSettings<WithStreamedUnaryMethod_SetMailServerSettings<WithStreamedUnaryMethod_Hostname<WithStreamedUnaryMethod_IsPortFree<WithStreamedUnaryMethod_AvailableKeychains<WithStreamedUnaryMethod_SetCurrentKeychain<WithStreamedUnaryMethod_CurrentKeychain<WithStreamedUnaryMethod_GetUserList<WithStreamedUnaryMethod_GetUser<WithStreamedUnaryMethod_SetUserSplitMode<WithStreamedUnaryMethod_LogoutUser<WithStreamedUnaryMethod_RemoveUser<WithStreamedUnaryMethod_ConfigureUserAppleMail<WithStreamedUnaryMethod_StopEventStream<Service > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > StreamedUnaryService;
   template <class BaseClass>
   class WithSplitStreamingMethod_RunEventStream : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithSplitStreamingMethod_RunEventStream() {
-      ::grpc::Service::MarkMethodStreamed(58,
+      ::grpc::Service::MarkMethodStreamed(53,
         new ::grpc::internal::SplitServerStreamingHandler<
           ::grpc::EventStreamRequest, ::grpc::StreamEvent>(
             [this](::grpc::ServerContext* context,
@@ -9544,7 +8759,7 @@ class Bridge final {
     virtual ::grpc::Status StreamedRunEventStream(::grpc::ServerContext* context, ::grpc::ServerSplitStreamer< ::grpc::EventStreamRequest,::grpc::StreamEvent>* server_split_streamer) = 0;
   };
   typedef WithSplitStreamingMethod_RunEventStream<Service > SplitStreamedService;
-  typedef WithStreamedUnaryMethod_CheckTokens<WithStreamedUnaryMethod_AddLogEntry<WithStreamedUnaryMethod_GuiReady<WithStreamedUnaryMethod_Quit<WithStreamedUnaryMethod_Restart<WithStreamedUnaryMethod_ShowOnStartup<WithStreamedUnaryMethod_ShowSplashScreen<WithStreamedUnaryMethod_IsFirstGuiStart<WithStreamedUnaryMethod_SetIsAutostartOn<WithStreamedUnaryMethod_IsAutostartOn<WithStreamedUnaryMethod_SetIsBetaEnabled<WithStreamedUnaryMethod_IsBetaEnabled<WithStreamedUnaryMethod_SetIsAllMailVisible<WithStreamedUnaryMethod_IsAllMailVisible<WithStreamedUnaryMethod_GoOs<WithStreamedUnaryMethod_TriggerReset<WithStreamedUnaryMethod_Version<WithStreamedUnaryMethod_LogsPath<WithStreamedUnaryMethod_LicensePath<WithStreamedUnaryMethod_ReleaseNotesPageLink<WithStreamedUnaryMethod_DependencyLicensesLink<WithStreamedUnaryMethod_LandingPageLink<WithStreamedUnaryMethod_SetColorSchemeName<WithStreamedUnaryMethod_ColorSchemeName<WithStreamedUnaryMethod_CurrentEmailClient<WithStreamedUnaryMethod_ReportBug<WithStreamedUnaryMethod_ForceLauncher<WithStreamedUnaryMethod_SetMainExecutable<WithStreamedUnaryMethod_Login<WithStreamedUnaryMethod_Login2FA<WithStreamedUnaryMethod_Login2Passwords<WithStreamedUnaryMethod_LoginAbort<WithStreamedUnaryMethod_CheckUpdate<WithStreamedUnaryMethod_InstallUpdate<WithStreamedUnaryMethod_SetIsAutomaticUpdateOn<WithStreamedUnaryMethod_IsAutomaticUpdateOn<WithStreamedUnaryMethod_DiskCachePath<WithStreamedUnaryMethod_SetDiskCachePath<WithStreamedUnaryMethod_SetIsDoHEnabled<WithStreamedUnaryMethod_IsDoHEnabled<WithStreamedUnaryMethod_SetUseSslForSmtp<WithStreamedUnaryMethod_UseSslForSmtp<WithStreamedUnaryMethod_SetUseSslForImap<WithStreamedUnaryMethod_UseSslForImap<WithStreamedUnaryMethod_Hostname<WithStreamedUnaryMethod_ImapPort<WithStreamedUnaryMethod_SmtpPort<WithStreamedUnaryMethod_ChangePorts<WithStreamedUnaryMethod_IsPortFree<WithStreamedUnaryMethod_AvailableKeychains<WithStreamedUnaryMethod_SetCurrentKeychain<WithStreamedUnaryMethod_CurrentKeychain<WithStreamedUnaryMethod_GetUserList<WithStreamedUnaryMethod_GetUser<WithStreamedUnaryMethod_SetUserSplitMode<WithStreamedUnaryMethod_LogoutUser<WithStreamedUnaryMethod_RemoveUser<WithStreamedUnaryMethod_ConfigureUserAppleMail<WithSplitStreamingMethod_RunEventStream<WithStreamedUnaryMethod_StopEventStream<Service > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > StreamedService;
+  typedef WithStreamedUnaryMethod_CheckTokens<WithStreamedUnaryMethod_AddLogEntry<WithStreamedUnaryMethod_GuiReady<WithStreamedUnaryMethod_Quit<WithStreamedUnaryMethod_Restart<WithStreamedUnaryMethod_ShowOnStartup<WithStreamedUnaryMethod_ShowSplashScreen<WithStreamedUnaryMethod_IsFirstGuiStart<WithStreamedUnaryMethod_SetIsAutostartOn<WithStreamedUnaryMethod_IsAutostartOn<WithStreamedUnaryMethod_SetIsBetaEnabled<WithStreamedUnaryMethod_IsBetaEnabled<WithStreamedUnaryMethod_SetIsAllMailVisible<WithStreamedUnaryMethod_IsAllMailVisible<WithStreamedUnaryMethod_GoOs<WithStreamedUnaryMethod_TriggerReset<WithStreamedUnaryMethod_Version<WithStreamedUnaryMethod_LogsPath<WithStreamedUnaryMethod_LicensePath<WithStreamedUnaryMethod_ReleaseNotesPageLink<WithStreamedUnaryMethod_DependencyLicensesLink<WithStreamedUnaryMethod_LandingPageLink<WithStreamedUnaryMethod_SetColorSchemeName<WithStreamedUnaryMethod_ColorSchemeName<WithStreamedUnaryMethod_CurrentEmailClient<WithStreamedUnaryMethod_ReportBug<WithStreamedUnaryMethod_ForceLauncher<WithStreamedUnaryMethod_SetMainExecutable<WithStreamedUnaryMethod_Login<WithStreamedUnaryMethod_Login2FA<WithStreamedUnaryMethod_Login2Passwords<WithStreamedUnaryMethod_LoginAbort<WithStreamedUnaryMethod_CheckUpdate<WithStreamedUnaryMethod_InstallUpdate<WithStreamedUnaryMethod_SetIsAutomaticUpdateOn<WithStreamedUnaryMethod_IsAutomaticUpdateOn<WithStreamedUnaryMethod_DiskCachePath<WithStreamedUnaryMethod_SetDiskCachePath<WithStreamedUnaryMethod_SetIsDoHEnabled<WithStreamedUnaryMethod_IsDoHEnabled<WithStreamedUnaryMethod_MailServerSettings<WithStreamedUnaryMethod_SetMailServerSettings<WithStreamedUnaryMethod_Hostname<WithStreamedUnaryMethod_IsPortFree<WithStreamedUnaryMethod_AvailableKeychains<WithStreamedUnaryMethod_SetCurrentKeychain<WithStreamedUnaryMethod_CurrentKeychain<WithStreamedUnaryMethod_GetUserList<WithStreamedUnaryMethod_GetUser<WithStreamedUnaryMethod_SetUserSplitMode<WithStreamedUnaryMethod_LogoutUser<WithStreamedUnaryMethod_RemoveUser<WithStreamedUnaryMethod_ConfigureUserAppleMail<WithSplitStreamingMethod_RunEventStream<WithStreamedUnaryMethod_StopEventStream<Service > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > StreamedService;
 };
 
 }  // namespace grpc

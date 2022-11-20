@@ -229,20 +229,20 @@ Item {
                             colorScheme: root.colorScheme
                             title: qsTr("IMAP")
                             hostname:   Backend.hostname
-                            port:       Backend.portIMAP.toString()
+                            port:       Backend.imapPort.toString()
                             username:   configuration.currentAddress
                             password:   root.user ? root.user.password : ""
-                            security : Backend.useSSLforIMAP ? "SSL" : "STARTTLS"
+                            security : Backend.useSSLForIMAP ? "SSL" : "STARTTLS"
                         }
 
                         Configuration {
                             colorScheme: root.colorScheme
                             title: qsTr("SMTP")
                             hostname : Backend.hostname
-                            port     : Backend.portSMTP.toString()
+                            port     : Backend.smtpPort.toString()
                             username : configuration.currentAddress
                             password : root.user ? root.user.password : ""
-                            security : Backend.useSSLforSMTP ? "SSL" : "STARTTLS"
+                            security : Backend.useSSLForSMTP ? "SSL" : "STARTTLS"
                         }
                     }
                 }

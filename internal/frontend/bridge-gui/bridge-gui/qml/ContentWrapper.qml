@@ -315,7 +315,7 @@ Item {
 
                 PortSettings { // 4
                     colorScheme: root.colorScheme
-
+                    notifications: root.notifications
                     onBack: {
                         rightContent.showGeneralSettings()
                     }

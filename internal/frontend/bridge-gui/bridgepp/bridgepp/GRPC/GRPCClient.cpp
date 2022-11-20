@@ -338,56 +338,39 @@ grpc::Status GRPCClient::reportBug(QString const &description, QString const &ad
 
 
 //****************************************************************************************************************************************************
-/// \param[out] outUseSSL The value for the property.
+/// \param[out] outIMAPPort The IMAP port.
+/// \param[out] outSMTPPort The SMTP port.
+/// \param[out] outUseSSLForIMAP The IMAP connection mode.
+/// \param[out] outUseSSLForSMTP The SMTP connection mode.
 /// \return The status for the gRPC call.
 //****************************************************************************************************************************************************
-grpc::Status GRPCClient::useSSLForSMTP(bool &outUseSSL)
+grpc::Status GRPCClient::mailServerSettings(qint32 &outIMAPPort, qint32 &outSMTPPort, bool &outUseSSLForIMAP, bool &outUseSSLForSMTP)
 {
-    return this->logGRPCCallStatus(this->getBool(&Bridge::Stub::UseSslForSmtp, outUseSSL), __FUNCTION__);
+    ImapSmtpSettings settings;
+    Status status = this->logGRPCCallStatus(stub_->MailServerSettings(this->clientContext().get(), empty, &settings), __FUNCTION__);
+    if (status.ok()) {
+        outIMAPPort = settings.imapport();
+        outSMTPPort = settings.smtpport();
+        outUseSSLForIMAP = settings.usesslforimap();
+        outUseSSLForSMTP = settings.usesslforsmtp();
+    }
+    return status;
 }
 
 
 //****************************************************************************************************************************************************
-/// \param[in] useSSL The new value for the property.
+/// \param[in] useSSLForIMAP The IMAP connection mode.
+/// \param[in] useSSLForSMTP The SMTP connection mode.
 /// \return The status for the gRPC call.
 //****************************************************************************************************************************************************
-grpc::Status GRPCClient::setUseSSLForSMTP(bool useSSL)
+grpc::Status GRPCClient::setMailServerSettings(qint32 imapPort, qint32 smtpPort, bool useSSLForIMAP, bool useSSLForSMTP)
 {
-    return this->logGRPCCallStatus(this->setBool(&Bridge::Stub::SetUseSslForSmtp, useSSL), __FUNCTION__);
-}
-
-
-//****************************************************************************************************************************************************
-/// \param[out] outPort The port.
-/// \return The status for the gRPC call.
-//****************************************************************************************************************************************************
-grpc::Status GRPCClient::portIMAP(int &outPort)
-{
-    return this->logGRPCCallStatus(this->getInt32(&Bridge::Stub::ImapPort, outPort), __FUNCTION__);
-}
-
-
-//****************************************************************************************************************************************************
-/// \param[out] outPort The port.
-/// \return The status for the gRPC call.
-//****************************************************************************************************************************************************
-grpc::Status GRPCClient::portSMTP(int &outPort)
-{
-    return this->logGRPCCallStatus(this->getInt32(&Bridge::Stub::SmtpPort, outPort), __FUNCTION__);
-}
-
-
-//****************************************************************************************************************************************************
-/// \param[in] portIMAP The IMAP port.
-/// \param[in] portSMTP The SMTP port.
-/// \return The status for the gRPC call.
-//****************************************************************************************************************************************************
-grpc::Status GRPCClient::changePorts(int portIMAP, int portSMTP)
-{
-    ChangePortsRequest request;
-    request.set_imapport(portIMAP);
-    request.set_smtpport(portSMTP);
-    return this->logGRPCCallStatus(stub_->ChangePorts(this->clientContext().get(), request, &empty), __FUNCTION__);
+    ImapSmtpSettings settings;
+    settings.set_imapport(imapPort);
+    settings.set_smtpport(smtpPort);
+    settings.set_usesslforimap(useSSLForIMAP);
+    settings.set_usesslforsmtp(useSSLForSMTP);
+    return this->logGRPCCallStatus(stub_->SetMailServerSettings(this->clientContext().get(), settings, &empty), __FUNCTION__);
 }
 
 
@@ -408,26 +391,6 @@ grpc::Status GRPCClient::isDoHEnabled(bool &outEnabled)
 grpc::Status GRPCClient::setIsDoHEnabled(bool enabled)
 {
     return this->logGRPCCallStatus(this->setBool(&Bridge::Stub::SetIsDoHEnabled, enabled), __FUNCTION__);
-}
-
-
-//****************************************************************************************************************************************************
-/// \param[out] outUseSSL The value for the property.
-/// \return The status for the gRPC call.
-//****************************************************************************************************************************************************
-grpc::Status GRPCClient::useSSLForIMAP(bool &outUseSSL)
-{
-    return this->logGRPCCallStatus(this->getBool(&Bridge::Stub::UseSslForImap, outUseSSL), __FUNCTION__);
-}
-
-
-//****************************************************************************************************************************************************
-/// \param[in] useSSL The new value for the property.
-/// \return The status for the gRPC call.
-//****************************************************************************************************************************************************
-grpc::Status GRPCClient::setUseSSLForIMAP(bool useSSL)
-{
-    return this->logGRPCCallStatus(this->setBool(&Bridge::Stub::SetUseSslForImap, useSSL), __FUNCTION__);
 }
 
 
@@ -875,8 +838,8 @@ grpc::Status GRPCClient::runEventStreamReader()
         case grpc::StreamEvent::kCache:
             this->processCacheEvent(event.cache());
             break;
-        case grpc::StreamEvent::kMailSettings:
-            this->processMailSettingsEvent(event.mailsettings());
+        case grpc::StreamEvent::kMailServerSettings:
+            this->processMailServerSettingsEvent(event.mailserversettings());
             break;
         case grpc::StreamEvent::kKeychain:
             this->processKeychainEvent(event.keychain());
@@ -1347,39 +1310,50 @@ void GRPCClient::processCacheEvent(DiskCacheEvent const &event)
 //****************************************************************************************************************************************************
 /// \param[in] event The event.
 //****************************************************************************************************************************************************
-void GRPCClient::processMailSettingsEvent(MailSettingsEvent const &event)
+void GRPCClient::processMailServerSettingsEvent(MailServerSettingsEvent const &event)
 {
     switch (event.event_case())
     {
-    case MailSettingsEvent::kError:
-        this->logTrace("MailSettings event received: Error.");
+    case MailServerSettingsEvent::kError:
+        this->logTrace(QString("MailServerSettings event received: Error %1").arg(qint32(event.error().type())));
         switch (event.error().type())
         {
-        case IMAP_PORT_ISSUE:
-            emit portIssueIMAP();
-            break;
-        case SMTP_PORT_ISSUE:
-            emit portIssueSMTP();
-            break;
+        case grpc::IMAP_PORT_STARTUP_ERROR:
+            emit imapPortStartupError();
+            return;
+        case grpc::SMTP_PORT_STARTUP_ERROR:
+            emit smtpPortStartupError();
+            return;
+        case IMAP_PORT_CHANGE_ERROR:
+            emit imapPortChangeError();
+            return;
+        case SMTP_PORT_CHANGE_ERROR:
+            emit smtpPortChangeError();
+            return;
+        case IMAP_CONNECTION_MODE_CHANGE_ERROR:
+            emit imapConnectionModeChangeError();
+            return;
+        case SMTP_CONNECTION_MODE_CHANGE_ERROR:
+            emit smtpConnectionModeChangeError();
+            return;
         default:
             this->logError("Unknown mail settings error event received.");
-            break;
+            return;
         }
-
-    case MailSettingsEvent::kUseSslForSmtpFinished:
-        this->logTrace("MailSettings event received: UseSslForSmtpFinished.");
-        emit toggleUseSSLFinished();
-        break;
-    case MailSettingsEvent::kUseSslForImapFinished:
-        this->logTrace("MailSettings event received: UseSslForImapFinished.");
-        emit toggleUseSSLFinished();
-        break;
-    case MailSettingsEvent::kChangePortsFinished:
-        this->logTrace("MailSettings event received: ChangePortsFinished.");
-        emit changePortFinished();
-        break;
+    case MailServerSettingsEvent::kMailServerSettingsChanged:
+    {
+        this->logTrace("MailServerSettings event received: MailServerSettingsChanged.");
+        ImapSmtpSettings const settings = event.mailserversettingschanged().settings();
+        emit mailServerSettingsChanged(settings.imapport(), settings.smtpport(), settings.usesslforimap(), settings.usesslforsmtp());
+        return;
+    }
+    case MailServerSettingsEvent::kChangeMailServerSettingsFinished:
+        this->logTrace("MailServerSettings event received: ChangeMailServerSettingsFinished.");
+        emit changeMailServerSettingsFinished();
+        return;
     default:
-        this->logError("Unknown MailSettings event received.");
+        this->logError("Unknown MailServerSettings event received.");
+        return;
     }
 }
 

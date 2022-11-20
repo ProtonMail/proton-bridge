@@ -78,14 +78,9 @@ service Bridge {
   // mail
   rpc SetIsDoHEnabled(google.protobuf.BoolValue) returns (google.protobuf.Empty);
   rpc IsDoHEnabled(google.protobuf.Empty) returns (google.protobuf.BoolValue);
-  rpc SetUseSslForSmtp(google.protobuf.BoolValue) returns (google.protobuf.Empty);
-  rpc UseSslForSmtp(google.protobuf.Empty) returns (google.protobuf.BoolValue);
-  rpc SetUseSslForImap(google.protobuf.BoolValue) returns (google.protobuf.Empty);
-  rpc UseSslForImap(google.protobuf.Empty) returns (google.protobuf.BoolValue);
+  rpc MailServerSettings(google.protobuf.Empty) returns (ImapSmtpSettings);
+  rpc SetMailServerSettings(ImapSmtpSettings) returns (google.protobuf.Empty);
   rpc Hostname(google.protobuf.Empty) returns (google.protobuf.StringValue);
-  rpc ImapPort(google.protobuf.Empty) returns (google.protobuf.Int32Value);
-  rpc SmtpPort(google.protobuf.Empty) returns (google.protobuf.Int32Value);
-  rpc ChangePorts(ChangePortsRequest) returns (google.protobuf.Empty);
   rpc IsPortFree(google.protobuf.Int32Value) returns (google.protobuf.BoolValue);
 
   // keychain
@@ -158,11 +153,13 @@ message LoginAbortRequest {
 }
 
 //**********************************************************
-// Port related message
+// IMAP/SMTP Mail Server settings
 //**********************************************************
-message ChangePortsRequest {
+message ImapSmtpSettings {
   int32 imapPort = 1;
   int32 smtpPort = 2;
+  bool useSSLForImap = 3;
+  bool useSSLForSmtp = 4;
 }
 
 //**********************************************************
@@ -222,7 +219,7 @@ message StreamEvent {
     LoginEvent login = 2;
     UpdateEvent update = 3;
     DiskCacheEvent cache = 4;
-    MailSettingsEvent mailSettings = 5;
+    MailServerSettingsEvent mailServerSettings = 5;
     KeychainEvent keychain = 6;
     MailEvent mail = 7;
     UserEvent user = 8;
@@ -368,31 +365,28 @@ message DiskCachePathChangeFinishedEvent {}
 
 
 //**********************************************************
-// Mail settings related events
+// Mail server settings related events
 //**********************************************************
-message MailSettingsEvent {
+message MailServerSettingsEvent {
   oneof event {
-    MailSettingsErrorEvent error = 1;
-    UseSslForSmtpFinishedEvent useSslForSmtpFinished = 2;
-    ChangePortsFinishedEvent changePortsFinished = 3;
-    UseSslForImapFinishedEvent useSslForImapFinished = 4;
+    MailServerSettingsErrorEvent error = 1;
+    MailServerSettingsChangedEvent mailServerSettingsChanged = 2;
+    ChangeMailServerSettingsFinishedEvent changeMailServerSettingsFinished = 3;
   }
 }
 
-enum MailSettingsErrorType {
-  IMAP_PORT_ISSUE = 0;
-  SMTP_PORT_ISSUE = 1;
+enum MailServerSettingsErrorType {
+  IMAP_PORT_STARTUP_ERROR = 0;
+  SMTP_PORT_STARTUP_ERROR = 1;
+  IMAP_PORT_CHANGE_ERROR = 2;
+  SMTP_PORT_CHANGE_ERROR = 3;
+  IMAP_CONNECTION_MODE_CHANGE_ERROR = 4;
+  SMTP_CONNECTION_MODE_CHANGE_ERROR = 5;
 }
 
-message MailSettingsErrorEvent {
-  MailSettingsErrorType type = 1;
-}
-
-message UseSslForSmtpFinishedEvent {}
-
-message UseSslForImapFinishedEvent {}
-
-message ChangePortsFinishedEvent {}
+message MailServerSettingsErrorEvent {  MailServerSettingsErrorType type = 1; }
+message MailServerSettingsChangedEvent { ImapSmtpSettings settings = 1; }
+message ChangeMailServerSettingsFinishedEvent {}
 
 //**********************************************************
 // keychain related events

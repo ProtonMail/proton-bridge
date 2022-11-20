@@ -145,9 +145,19 @@ func (s *Service) StartEventTest() error { //nolint:funlen
 		NewDiskCachePathChangeFinishedEvent(),
 
 		// mail settings
-		NewMailSettingsErrorEvent(MailSettingsErrorType_IMAP_PORT_ISSUE),
-		NewMailSettingsUseSslForSmtpFinishedEvent(),
-		NewMailSettingsChangePortFinishedEvent(),
+		NewMailServerSettingsErrorEvent(MailServerSettingsErrorType_IMAP_PORT_STARTUP_ERROR),
+		NewMailServerSettingsErrorEvent(MailServerSettingsErrorType_SMTP_PORT_STARTUP_ERROR),
+		NewMailServerSettingsErrorEvent(MailServerSettingsErrorType_IMAP_PORT_CHANGE_ERROR),
+		NewMailServerSettingsErrorEvent(MailServerSettingsErrorType_SMTP_PORT_CHANGE_ERROR),
+		NewMailServerSettingsErrorEvent(MailServerSettingsErrorType_IMAP_CONNECTION_MODE_CHANGE_ERROR),
+		NewMailServerSettingsErrorEvent(MailServerSettingsErrorType_SMTP_CONNECTION_MODE_CHANGE_ERROR),
+		NewMailServerSettingsChangedEvent(&ImapSmtpSettings{
+			ImapPort:      1143,
+			SmtpPort:      1025,
+			UseSSLForImap: false,
+			UseSSLForSmtp: false,
+		}),
+		NewChangeMailServerSettingsFinishedEvent(),
 
 		// keychain
 		NewKeychainChangeKeychainFinishedEvent(),

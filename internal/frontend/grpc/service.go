@@ -218,10 +218,10 @@ func (s *Service) watchEvents() {
 			_ = s.SendEvent(NewKeychainHasNoKeychainEvent())
 
 		case errors.Is(err, bridge.ErrServeIMAP):
-			_ = s.SendEvent(NewMailSettingsErrorEvent(MailSettingsErrorType_IMAP_PORT_ISSUE))
+			_ = s.SendEvent(NewMailServerSettingsErrorEvent(MailServerSettingsErrorType_IMAP_PORT_STARTUP_ERROR))
 
 		case errors.Is(err, bridge.ErrServeSMTP):
-			_ = s.SendEvent(NewMailSettingsErrorEvent(MailSettingsErrorType_SMTP_PORT_ISSUE))
+			_ = s.SendEvent(NewMailServerSettingsErrorEvent(MailServerSettingsErrorType_SMTP_PORT_STARTUP_ERROR))
 		}
 	}
 

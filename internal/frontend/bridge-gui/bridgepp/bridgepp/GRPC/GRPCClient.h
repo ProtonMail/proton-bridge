@@ -116,21 +116,20 @@ signals:
 
     // mail settings related calls
 public:
-    grpc::Status useSSLForSMTP(bool &outUseSSL); ///< Performs the 'useSSLForSMTP' gRPC call
-    grpc::Status setUseSSLForSMTP(bool useSSL); ///< Performs the 'currentEmailClient' gRPC call.
-    grpc::Status portIMAP(int &outPort); ///< Performs the 'portImap' gRPC call.
-    grpc::Status portSMTP(int &outPort); ///< Performs the 'portImap' gRPC call.
-    grpc::Status changePorts(int portIMAP, int portSMTP); ///< Performs the 'changePorts' gRPC call.
+    grpc::Status mailServerSettings(qint32 &outIMAPPort, qint32 &outSMTPPort, bool &outUseSSLForIMAP, bool &outUseSSLForSMTP); ///< Performs the 'MailServerSettings' gRPC call.
+    grpc::Status setMailServerSettings(qint32 imapPort, qint32 smtpPort, bool useSSLForIMAP, bool useSSLForSMTP); ///< Performs the 'SetMailServerSettings' gRPC call.
     grpc::Status isDoHEnabled(bool &outEnabled); ///< Performs the 'isDoHEnabled' gRPC call.
     grpc::Status setIsDoHEnabled(bool enabled); ///< Performs the 'setIsDoHEnabled' gRPC call.
-    grpc::Status useSSLForIMAP(bool &outUseSSL); ///< Performs the 'useSSLForSMTP' gRPC call
-    grpc::Status setUseSSLForIMAP(bool useSSL); ///< Performs the 'currentEmailClient' gRPC call.
 
 signals:
-    void portIssueIMAP();
-    void portIssueSMTP();
-    void toggleUseSSLFinished();
-    void changePortFinished();
+    void imapPortStartupError();
+    void smtpPortStartupError();
+    void imapPortChangeError();
+    void smtpPortChangeError();
+    void imapConnectionModeChangeError();
+    void smtpConnectionModeChangeError();
+    void mailServerSettingsChanged(qint32 imapPort, qint32 smtpPort, bool useSSLForIMAP, bool useSSLForSMTP);
+    void changeMailServerSettingsFinished();
 
 public: // login related calls
     grpc::Status login(QString const &username, QString const &password); ///< Performs the 'login' call.
@@ -228,7 +227,7 @@ private:
     void processLoginEvent(grpc::LoginEvent const &event); ///< Process a 'Login' event.
     void processUpdateEvent(grpc::UpdateEvent const &event); ///< Process an 'Update' event.
     void processCacheEvent(grpc::DiskCacheEvent const &event); ///< Process a 'Cache' event.
-    void processMailSettingsEvent(grpc::MailSettingsEvent const &event); ///< Process a 'MailSettings' event.
+    void processMailServerSettingsEvent(grpc::MailServerSettingsEvent const &event); ///< Process a 'MailSettings' event.
     void processKeychainEvent(grpc::KeychainEvent const &event); ///< Process a 'Keychain' event.
     void processMailEvent(grpc::MailEvent const &event); ///< Process a 'Mail' event.
     void processUserEvent(grpc::UserEvent const &event); ///< Process a 'User' event.

@@ -68,8 +68,10 @@ func (bridge *Bridge) serveIMAP() error {
 func (bridge *Bridge) restartIMAP() error {
 	logrus.Info("Restarting IMAP server")
 
-	if err := bridge.imapListener.Close(); err != nil {
-		return fmt.Errorf("failed to close IMAP listener: %w", err)
+	if bridge.imapListener != nil {
+		if err := bridge.imapListener.Close(); err != nil {
+			return fmt.Errorf("failed to close IMAP listener: %w", err)
+		}
 	}
 
 	return bridge.serveIMAP()

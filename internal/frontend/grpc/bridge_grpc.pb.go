@@ -69,14 +69,9 @@ type BridgeClient interface {
 	// mail
 	SetIsDoHEnabled(ctx context.Context, in *wrapperspb.BoolValue, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	IsDoHEnabled(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*wrapperspb.BoolValue, error)
-	SetUseSslForSmtp(ctx context.Context, in *wrapperspb.BoolValue, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	UseSslForSmtp(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*wrapperspb.BoolValue, error)
-	SetUseSslForImap(ctx context.Context, in *wrapperspb.BoolValue, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	UseSslForImap(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*wrapperspb.BoolValue, error)
+	MailServerSettings(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ImapSmtpSettings, error)
+	SetMailServerSettings(ctx context.Context, in *ImapSmtpSettings, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	Hostname(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*wrapperspb.StringValue, error)
-	ImapPort(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*wrapperspb.Int32Value, error)
-	SmtpPort(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*wrapperspb.Int32Value, error)
-	ChangePorts(ctx context.Context, in *ChangePortsRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	IsPortFree(ctx context.Context, in *wrapperspb.Int32Value, opts ...grpc.CallOption) (*wrapperspb.BoolValue, error)
 	// keychain
 	AvailableKeychains(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*AvailableKeychainsResponse, error)
@@ -462,36 +457,18 @@ func (c *bridgeClient) IsDoHEnabled(ctx context.Context, in *emptypb.Empty, opts
 	return out, nil
 }
 
-func (c *bridgeClient) SetUseSslForSmtp(ctx context.Context, in *wrapperspb.BoolValue, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+func (c *bridgeClient) MailServerSettings(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ImapSmtpSettings, error) {
+	out := new(ImapSmtpSettings)
+	err := c.cc.Invoke(ctx, "/grpc.Bridge/MailServerSettings", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *bridgeClient) SetMailServerSettings(ctx context.Context, in *ImapSmtpSettings, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	out := new(emptypb.Empty)
-	err := c.cc.Invoke(ctx, "/grpc.Bridge/SetUseSslForSmtp", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *bridgeClient) UseSslForSmtp(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*wrapperspb.BoolValue, error) {
-	out := new(wrapperspb.BoolValue)
-	err := c.cc.Invoke(ctx, "/grpc.Bridge/UseSslForSmtp", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *bridgeClient) SetUseSslForImap(ctx context.Context, in *wrapperspb.BoolValue, opts ...grpc.CallOption) (*emptypb.Empty, error) {
-	out := new(emptypb.Empty)
-	err := c.cc.Invoke(ctx, "/grpc.Bridge/SetUseSslForImap", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *bridgeClient) UseSslForImap(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*wrapperspb.BoolValue, error) {
-	out := new(wrapperspb.BoolValue)
-	err := c.cc.Invoke(ctx, "/grpc.Bridge/UseSslForImap", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/grpc.Bridge/SetMailServerSettings", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -501,33 +478,6 @@ func (c *bridgeClient) UseSslForImap(ctx context.Context, in *emptypb.Empty, opt
 func (c *bridgeClient) Hostname(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*wrapperspb.StringValue, error) {
 	out := new(wrapperspb.StringValue)
 	err := c.cc.Invoke(ctx, "/grpc.Bridge/Hostname", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *bridgeClient) ImapPort(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*wrapperspb.Int32Value, error) {
-	out := new(wrapperspb.Int32Value)
-	err := c.cc.Invoke(ctx, "/grpc.Bridge/ImapPort", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *bridgeClient) SmtpPort(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*wrapperspb.Int32Value, error) {
-	out := new(wrapperspb.Int32Value)
-	err := c.cc.Invoke(ctx, "/grpc.Bridge/SmtpPort", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *bridgeClient) ChangePorts(ctx context.Context, in *ChangePortsRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
-	out := new(emptypb.Empty)
-	err := c.cc.Invoke(ctx, "/grpc.Bridge/ChangePorts", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -714,14 +664,9 @@ type BridgeServer interface {
 	// mail
 	SetIsDoHEnabled(context.Context, *wrapperspb.BoolValue) (*emptypb.Empty, error)
 	IsDoHEnabled(context.Context, *emptypb.Empty) (*wrapperspb.BoolValue, error)
-	SetUseSslForSmtp(context.Context, *wrapperspb.BoolValue) (*emptypb.Empty, error)
-	UseSslForSmtp(context.Context, *emptypb.Empty) (*wrapperspb.BoolValue, error)
-	SetUseSslForImap(context.Context, *wrapperspb.BoolValue) (*emptypb.Empty, error)
-	UseSslForImap(context.Context, *emptypb.Empty) (*wrapperspb.BoolValue, error)
+	MailServerSettings(context.Context, *emptypb.Empty) (*ImapSmtpSettings, error)
+	SetMailServerSettings(context.Context, *ImapSmtpSettings) (*emptypb.Empty, error)
 	Hostname(context.Context, *emptypb.Empty) (*wrapperspb.StringValue, error)
-	ImapPort(context.Context, *emptypb.Empty) (*wrapperspb.Int32Value, error)
-	SmtpPort(context.Context, *emptypb.Empty) (*wrapperspb.Int32Value, error)
-	ChangePorts(context.Context, *ChangePortsRequest) (*emptypb.Empty, error)
 	IsPortFree(context.Context, *wrapperspb.Int32Value) (*wrapperspb.BoolValue, error)
 	// keychain
 	AvailableKeychains(context.Context, *emptypb.Empty) (*AvailableKeychainsResponse, error)
@@ -864,29 +809,14 @@ func (UnimplementedBridgeServer) SetIsDoHEnabled(context.Context, *wrapperspb.Bo
 func (UnimplementedBridgeServer) IsDoHEnabled(context.Context, *emptypb.Empty) (*wrapperspb.BoolValue, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method IsDoHEnabled not implemented")
 }
-func (UnimplementedBridgeServer) SetUseSslForSmtp(context.Context, *wrapperspb.BoolValue) (*emptypb.Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SetUseSslForSmtp not implemented")
+func (UnimplementedBridgeServer) MailServerSettings(context.Context, *emptypb.Empty) (*ImapSmtpSettings, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method MailServerSettings not implemented")
 }
-func (UnimplementedBridgeServer) UseSslForSmtp(context.Context, *emptypb.Empty) (*wrapperspb.BoolValue, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method UseSslForSmtp not implemented")
-}
-func (UnimplementedBridgeServer) SetUseSslForImap(context.Context, *wrapperspb.BoolValue) (*emptypb.Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SetUseSslForImap not implemented")
-}
-func (UnimplementedBridgeServer) UseSslForImap(context.Context, *emptypb.Empty) (*wrapperspb.BoolValue, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method UseSslForImap not implemented")
+func (UnimplementedBridgeServer) SetMailServerSettings(context.Context, *ImapSmtpSettings) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetMailServerSettings not implemented")
 }
 func (UnimplementedBridgeServer) Hostname(context.Context, *emptypb.Empty) (*wrapperspb.StringValue, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Hostname not implemented")
-}
-func (UnimplementedBridgeServer) ImapPort(context.Context, *emptypb.Empty) (*wrapperspb.Int32Value, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ImapPort not implemented")
-}
-func (UnimplementedBridgeServer) SmtpPort(context.Context, *emptypb.Empty) (*wrapperspb.Int32Value, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SmtpPort not implemented")
-}
-func (UnimplementedBridgeServer) ChangePorts(context.Context, *ChangePortsRequest) (*emptypb.Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ChangePorts not implemented")
 }
 func (UnimplementedBridgeServer) IsPortFree(context.Context, *wrapperspb.Int32Value) (*wrapperspb.BoolValue, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method IsPortFree not implemented")
@@ -1657,74 +1587,38 @@ func _Bridge_IsDoHEnabled_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Bridge_SetUseSslForSmtp_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(wrapperspb.BoolValue)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BridgeServer).SetUseSslForSmtp(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/grpc.Bridge/SetUseSslForSmtp",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BridgeServer).SetUseSslForSmtp(ctx, req.(*wrapperspb.BoolValue))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Bridge_UseSslForSmtp_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _Bridge_MailServerSettings_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(emptypb.Empty)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(BridgeServer).UseSslForSmtp(ctx, in)
+		return srv.(BridgeServer).MailServerSettings(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/grpc.Bridge/UseSslForSmtp",
+		FullMethod: "/grpc.Bridge/MailServerSettings",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BridgeServer).UseSslForSmtp(ctx, req.(*emptypb.Empty))
+		return srv.(BridgeServer).MailServerSettings(ctx, req.(*emptypb.Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Bridge_SetUseSslForImap_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(wrapperspb.BoolValue)
+func _Bridge_SetMailServerSettings_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ImapSmtpSettings)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(BridgeServer).SetUseSslForImap(ctx, in)
+		return srv.(BridgeServer).SetMailServerSettings(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/grpc.Bridge/SetUseSslForImap",
+		FullMethod: "/grpc.Bridge/SetMailServerSettings",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BridgeServer).SetUseSslForImap(ctx, req.(*wrapperspb.BoolValue))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Bridge_UseSslForImap_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(emptypb.Empty)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BridgeServer).UseSslForImap(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/grpc.Bridge/UseSslForImap",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BridgeServer).UseSslForImap(ctx, req.(*emptypb.Empty))
+		return srv.(BridgeServer).SetMailServerSettings(ctx, req.(*ImapSmtpSettings))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1743,60 +1637,6 @@ func _Bridge_Hostname_Handler(srv interface{}, ctx context.Context, dec func(int
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(BridgeServer).Hostname(ctx, req.(*emptypb.Empty))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Bridge_ImapPort_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(emptypb.Empty)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BridgeServer).ImapPort(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/grpc.Bridge/ImapPort",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BridgeServer).ImapPort(ctx, req.(*emptypb.Empty))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Bridge_SmtpPort_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(emptypb.Empty)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BridgeServer).SmtpPort(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/grpc.Bridge/SmtpPort",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BridgeServer).SmtpPort(ctx, req.(*emptypb.Empty))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Bridge_ChangePorts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ChangePortsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BridgeServer).ChangePorts(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/grpc.Bridge/ChangePorts",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BridgeServer).ChangePorts(ctx, req.(*ChangePortsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -2188,36 +2028,16 @@ var Bridge_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Bridge_IsDoHEnabled_Handler,
 		},
 		{
-			MethodName: "SetUseSslForSmtp",
-			Handler:    _Bridge_SetUseSslForSmtp_Handler,
+			MethodName: "MailServerSettings",
+			Handler:    _Bridge_MailServerSettings_Handler,
 		},
 		{
-			MethodName: "UseSslForSmtp",
-			Handler:    _Bridge_UseSslForSmtp_Handler,
-		},
-		{
-			MethodName: "SetUseSslForImap",
-			Handler:    _Bridge_SetUseSslForImap_Handler,
-		},
-		{
-			MethodName: "UseSslForImap",
-			Handler:    _Bridge_UseSslForImap_Handler,
+			MethodName: "SetMailServerSettings",
+			Handler:    _Bridge_SetMailServerSettings_Handler,
 		},
 		{
 			MethodName: "Hostname",
 			Handler:    _Bridge_Hostname_Handler,
-		},
-		{
-			MethodName: "ImapPort",
-			Handler:    _Bridge_ImapPort_Handler,
-		},
-		{
-			MethodName: "SmtpPort",
-			Handler:    _Bridge_SmtpPort_Handler,
-		},
-		{
-			MethodName: "ChangePorts",
-			Handler:    _Bridge_ChangePorts_Handler,
 		},
 		{
 			MethodName: "IsPortFree",

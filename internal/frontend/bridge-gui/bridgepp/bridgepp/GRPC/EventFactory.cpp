@@ -88,10 +88,10 @@ bridgepp::SPStreamEvent wrapCacheEvent(grpc::DiskCacheEvent *cacheEvent)
 /// \param[in] mailSettingsEvent The mail settings event.
 /// \return The stream event.
 //****************************************************************************************************************************************************
-bridgepp::SPStreamEvent wrapMailSettingsEvent(grpc::MailSettingsEvent *mailSettingsEvent)
+bridgepp::SPStreamEvent wrapMailServerSettingsEvent(grpc::MailServerSettingsEvent *mailServerSettingsEvent)
 {
     auto event = newStreamEvent();
-    event->set_allocated_mailsettings(mailSettingsEvent);
+    event->set_allocated_mailserversettings(mailServerSettingsEvent);
     return event;
 }
 
@@ -420,54 +420,45 @@ SPStreamEvent newDiskCachePathChangeFinishedEvent()
     return wrapCacheEvent(cacheEvent);
 }
 
+SPStreamEvent newChangeMailServerSettingsFinished(); ///< Create a new ChangeMailServerSettingsFinished event.
 
 //****************************************************************************************************************************************************
 /// \param[in] errorType The error type.
 /// \return The event.
 //****************************************************************************************************************************************************
-SPStreamEvent newMailSettingsErrorEvent(grpc::MailSettingsErrorType errorType)
+SPStreamEvent newMailServerSettingsErrorEvent(grpc::MailServerSettingsErrorType errorType)
 {
-    auto event = new grpc::MailSettingsErrorEvent;
+    auto event = new grpc::MailServerSettingsErrorEvent;
     event->set_type(errorType);
-    auto mailSettingsEvent = new grpc::MailSettingsEvent;
-    mailSettingsEvent->set_allocated_error(event);
-    return wrapMailSettingsEvent(mailSettingsEvent);
+    auto mailServerSettingsEvent = new grpc::MailServerSettingsEvent;
+    mailServerSettingsEvent->set_allocated_error(event);
+    return wrapMailServerSettingsEvent(mailServerSettingsEvent);
+}
+
+
+//****************************************************************************************************************************************************
+/// \param[in] settings The settings.
+/// \return The event.
+//****************************************************************************************************************************************************
+SPStreamEvent newMailServerSettingsChanged(grpc::ImapSmtpSettings *settings)
+{
+    auto event = new grpc::MailServerSettingsChangedEvent;
+    event->set_allocated_settings(settings);
+    auto mailServerSettingsEvent = new grpc::MailServerSettingsEvent;
+    mailServerSettingsEvent->set_allocated_mailserversettingschanged(event);
+    return wrapMailServerSettingsEvent(mailServerSettingsEvent);
 }
 
 
 //****************************************************************************************************************************************************
 /// \return The event.
 //****************************************************************************************************************************************************
-SPStreamEvent newUseSslForImapFinishedEvent()
+SPStreamEvent newChangeMailServerSettingsFinished()
 {
-    auto event = new grpc::UseSslForImapFinishedEvent;
-    auto mailSettingsEvent = new grpc::MailSettingsEvent;
-    mailSettingsEvent->set_allocated_usesslforimapfinished(event);
-    return wrapMailSettingsEvent(mailSettingsEvent);
-}
-
-
-//****************************************************************************************************************************************************
-/// \return The event.
-//****************************************************************************************************************************************************
-SPStreamEvent newUseSslForSmtpFinishedEvent()
-{
-    auto event = new grpc::UseSslForSmtpFinishedEvent;
-    auto mailSettingsEvent = new grpc::MailSettingsEvent;
-    mailSettingsEvent->set_allocated_usesslforsmtpfinished(event);
-    return wrapMailSettingsEvent(mailSettingsEvent);
-}
-
-
-//****************************************************************************************************************************************************
-/// \return The event.
-//****************************************************************************************************************************************************
-SPStreamEvent newChangePortsFinishedEvent()
-{
-    auto event = new grpc::ChangePortsFinishedEvent;
-    auto mailSettingsEvent = new grpc::MailSettingsEvent;
-    mailSettingsEvent->set_allocated_changeportsfinished(event);
-    return wrapMailSettingsEvent(mailSettingsEvent);
+    auto event = new grpc::ChangeMailServerSettingsFinishedEvent;
+    auto mailServerSettingsEvent = new grpc::MailServerSettingsEvent;
+    mailServerSettingsEvent->set_allocated_changemailserversettingsfinished(event);
+    return wrapMailServerSettingsEvent(mailServerSettingsEvent);
 }
 
 

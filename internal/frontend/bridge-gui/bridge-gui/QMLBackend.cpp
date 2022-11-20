@@ -71,7 +71,13 @@ void QMLBackend::init(GRPCConfig const &serviceConfig)
     app().grpc().goos(goos_);
     app().grpc().logsPath(logsPath_);
     app().grpc().licensePath(licensePath_);
-
+    bool sslForIMAP = false, sslForSMTP = false;
+    int imapPort = 0, smtpPort = 0;
+    app().grpc().mailServerSettings(imapPort, smtpPort, sslForIMAP, sslForSMTP);
+    this->setIMAPPort(imapPort);
+    this->setSMTPPort(smtpPort);
+    this->setUseSSLForIMAP(sslForIMAP);
+    this->setUseSSLForSMTP(sslForSMTP);
     this->retrieveUserList();
 }
 
@@ -140,10 +146,14 @@ void QMLBackend::connectGrpcEvents()
     connect(client, &GRPCClient::updateVersionChanged, this, &QMLBackend::onVersionChanged);
 
     // mail settings events
-    connect(client, &GRPCClient::portIssueIMAP, this, &QMLBackend::portIssueIMAP);
-    connect(client, &GRPCClient::portIssueSMTP, this, &QMLBackend::portIssueSMTP);
-    connect(client, &GRPCClient::toggleUseSSLFinished, this, &QMLBackend::toggleUseSSLFinished);
-    connect(client, &GRPCClient::changePortFinished, this, &QMLBackend::changePortFinished);
+    connect(client, &GRPCClient::imapPortStartupError, this, &QMLBackend::imapPortStartupError);
+    connect(client, &GRPCClient::smtpPortStartupError, this, &QMLBackend::smtpPortStartupError);
+    connect(client, &GRPCClient::imapPortChangeError, this, &QMLBackend::imapPortChangeError);
+    connect(client, &GRPCClient::smtpPortChangeError, this, &QMLBackend::smtpPortChangeError);
+    connect(client, &GRPCClient::imapConnectionModeChangeError, this, &QMLBackend::imapConnectionModeChangeError);
+    connect(client, &GRPCClient::smtpConnectionModeChangeError, this, &QMLBackend::smtpConnectionModeChangeError);
+    connect(client, &GRPCClient::mailServerSettingsChanged, this, &QMLBackend::onMailServerSettingsChanged);
+    connect(client, &GRPCClient::changeMailServerSettingsFinished, this, &QMLBackend::changeMailServerSettingsFinished);
 
     // keychain events
     connect(client, &GRPCClient::changeKeychainFinished, this, &QMLBackend::changeKeychainFinished);
@@ -320,36 +330,113 @@ void QMLBackend::setDiskCachePath(QUrl const &path) const
     app().grpc().setDiskCachePath(path);
 }
 
-//****************************************************************************************************************************************************
-/// \param[in] makeItActive Should SSL for SMTP be enabled.
-//****************************************************************************************************************************************************
-void QMLBackend::toggleUseSSLforSMTP(bool makeItActive)
-{
-    // if call succeed, app will restart. No need to emit a value change signal, because it will trigger a read-back via gRPC that will fail.
-    emit hideMainWindow();
-    app().grpc().setUseSSLForSMTP(makeItActive);
-}
 
 //****************************************************************************************************************************************************
-/// \param[in] makeItActive Should SSL for IMAP be enabled.
+/// \return The IMAP port.
 //****************************************************************************************************************************************************
-void QMLBackend::toggleUseSSLforIMAP(bool makeItActive)
+int QMLBackend::imapPort() const
 {
-    // if call succeed, app will restart. No need to emit a value change signal, because it will trigger a read-back via gRPC that will fail.
-    emit hideMainWindow();
-    app().grpc().setUseSSLForIMAP(makeItActive);
+    return imapPort_;
+}
+
+
+//****************************************************************************************************************************************************
+/// \param[in] port The IMAP port.
+//****************************************************************************************************************************************************
+void QMLBackend::setIMAPPort(int port)
+{
+    if (port == imapPort_)
+        return;
+    imapPort_ = port;
+    emit imapPortChanged(port);
+}
+
+
+//****************************************************************************************************************************************************
+/// \return The SMTP port.
+//****************************************************************************************************************************************************
+int QMLBackend::smtpPort() const
+{
+    return smtpPort_;
+}
+
+
+//****************************************************************************************************************************************************
+/// \param[in] port The SMTP port.
+//****************************************************************************************************************************************************
+void QMLBackend::setSMTPPort(int port)
+{
+    if (port == smtpPort_)
+        return;
+    smtpPort_ = port;
+    emit smtpPortChanged(port);
+}
+
+
+//****************************************************************************************************************************************************
+/// \return The value for the 'Use SSL for IMAP' property.
+//****************************************************************************************************************************************************
+bool QMLBackend::useSSLForIMAP() const
+{
+    return useSSLForIMAP_;
+}
+
+
+//****************************************************************************************************************************************************
+/// \param[in] value The value for the 'Use SSL for IMAP' property.
+//****************************************************************************************************************************************************
+void QMLBackend::setUseSSLForIMAP(bool value)
+{
+    if (value == useSSLForIMAP_)
+        return;
+    useSSLForIMAP_ = value;
+    emit useSSLForIMAPChanged(value);
+}
+
+
+//****************************************************************************************************************************************************
+/// \return The value for the 'Use SSL for SMTP' property.
+//****************************************************************************************************************************************************
+bool QMLBackend::useSSLForSMTP() const
+{
+    return useSSLForSMTP_;
+}
+
+
+//****************************************************************************************************************************************************
+/// \param[in] value The value for the 'Use SSL for SMTP' property.
+//****************************************************************************************************************************************************
+void QMLBackend::setUseSSLForSMTP(bool value)
+{
+    if (value == useSSLForSMTP_)
+        return;
+    useSSLForSMTP_ = value;
+    emit useSSLForSMTPChanged(value);
 }
 
 
 //****************************************************************************************************************************************************
 /// \param[in] imapPort The IMAP port.
 /// \param[in] smtpPort The SMTP port.
+/// \param[in] useSSLForIMAP The value for the 'Use SSL for IMAP' property
+/// \param[in] useSSLForSMTP The value for the 'Use SSL for SMTP' property
 //****************************************************************************************************************************************************
-void QMLBackend::changePorts(int imapPort, int smtpPort)
+void QMLBackend::setMailServerSettings(int imapPort, int smtpPort, bool useSSLForIMAP, bool useSSLForSMTP)
 {
-    // if call succeed, app will restart. No need to emit a value change signal, because it will trigger a read-back via gRPC that will fail.
-    emit hideMainWindow();
-    app().grpc().changePorts(imapPort, smtpPort);
+    app().grpc().setMailServerSettings(imapPort, smtpPort, useSSLForIMAP, useSSLForSMTP);
+}
+
+
+//****************************************************************************************************************************************************
+/// \param[in] useSSLForIMAP The value for the 'Use SSL for IMAP' property
+/// \param[in] useSSLForSMTP The value for the 'Use SSL for SMTP' property
+//****************************************************************************************************************************************************
+void QMLBackend::onMailServerSettingsChanged(int imapPort, int smtpPort, bool useSSLForIMAP, bool useSSLForSMTP)
+{
+    this->setIMAPPort(imapPort);
+    this->setSMTPPort(smtpPort);
+    this->setUseSSLForIMAP(useSSLForIMAP);
+    this->setUseSSLForSMTP(useSSLForSMTP);
 }
 
 
