@@ -275,7 +275,8 @@ func waitForProcessToFinish(exePath string) {
 		if xslices.Any(processes, func(process types.Process) bool {
 			info, err := process.Info()
 			if err != nil {
-				logrus.WithError(err).Error("Could not retrieve process info")
+				logrus.WithError(err).Trace("Could not retrieve process info")
+				return false
 			}
 
 			return sameFile(exeInfo, info.Exe)
@@ -293,6 +294,7 @@ func sameFile(info os.FileInfo, path string) bool {
 	pathInfo, err := os.Stat(path)
 	if err != nil {
 		logrus.WithError(err).WithField("file", path).Error("Could not retrieve file info")
+		return false
 	}
 
 	return os.SameFile(pathInfo, info)
