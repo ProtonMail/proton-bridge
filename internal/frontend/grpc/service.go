@@ -270,7 +270,11 @@ func (s *Service) watchEvents() {
 			if user, err := s.bridge.GetUserInfo(event.UserID); err != nil {
 				s.log.WithError(err).Error("Failed to get user info")
 			} else {
+				// The GUI doesn't care about this event... not sure why we still emit it.
 				_ = s.SendEvent(NewUserDisconnectedEvent(user.Username))
+
+				// This is the event the GUI cares about.
+				_ = s.SendEvent(NewUserChangedEvent(user.UserID))
 			}
 
 		case events.UpdateLatest:
