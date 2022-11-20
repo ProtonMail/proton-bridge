@@ -67,13 +67,16 @@ func (user *User) RemoveGluonID(addrID, gluonID string) error {
 	return err
 }
 
-func (user *User) GetUIDValidity(addrID string) (imap.UID, bool) {
-	validity, ok := user.vault.getUser(user.userID).UIDValidity[addrID]
-	if !ok {
-		return imap.UID(0), false
+func (user *User) GetUIDValidity(addrID string) imap.UID {
+	if validity, ok := user.vault.getUser(user.userID).UIDValidity[addrID]; ok {
+		return validity
 	}
 
-	return validity, true
+	if err := user.SetUIDValidity(addrID, 1); err != nil {
+		panic(err)
+	}
+
+	return user.GetUIDValidity(addrID)
 }
 
 func (user *User) SetUIDValidity(addrID string, validity imap.UID) error {
@@ -159,7 +162,12 @@ func (user *User) SetLastMessageID(messageID string) error {
 func (user *User) ClearSyncStatus() error {
 	return user.vault.modUser(user.userID, func(data *UserData) {
 		data.SyncStatus = SyncStatus{}
+
 		data.EventID = ""
+
+		for addrID := range data.UIDValidity {
+			data.UIDValidity[addrID]++
+		}
 	})
 }
 
