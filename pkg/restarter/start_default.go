@@ -20,8 +20,16 @@
 
 package restarter
 
-import "os/exec"
+import (
+	"os/exec"
+	"syscall"
+)
 
 func run(cmd *exec.Cmd) error {
+	// Provide a new Group ID to the new process to ensure the child is detached even if parent crash before ending.
+	cmd.SysProcAttr = &syscall.SysProcAttr{
+		Setpgid: true,
+		Pgid:    0,
+	}
 	return cmd.Start()
 }
