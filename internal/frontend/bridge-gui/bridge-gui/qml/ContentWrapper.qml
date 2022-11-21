@@ -321,7 +321,7 @@ Item {
                     }
                 }
 
-                SMTPSettings { // 5
+                ConnectionModeSettings { // 5
                     colorScheme: root.colorScheme
 
                     onBack: {
@@ -365,14 +365,6 @@ Item {
                     }
                 }
 
-                IMAPSettings { // 9
-                    colorScheme: root.colorScheme
-
-                    onBack: {
-                        rightContent.showGeneralSettings()
-                    }
-                }
-
                 function showAccount(index) {
                     if (index !== undefined && index >= 0){
                         accounts.currentIndex = index
@@ -380,15 +372,14 @@ Item {
                     rightContent.currentIndex = 0
                 }
 
-                function showSignIn             () { rightContent.currentIndex = 1; signIn.focus = true }
-                function showGeneralSettings    () { rightContent.currentIndex = 2 }
-                function showKeychainSettings   () { rightContent.currentIndex = 3 }
-                function showPortSettings       () { rightContent.currentIndex = 4 }
-                function showSMTPSettings       () { rightContent.currentIndex = 5 }
-                function showLocalCacheSettings () { rightContent.currentIndex = 6 }
-                function showHelpView           () { rightContent.currentIndex = 7 }
-                function showBugReport          () { rightContent.currentIndex = 8 }
-                function showIMAPSettings       () { rightContent.currentIndex = 9 }
+                function showSignIn                () { rightContent.currentIndex = 1; signIn.focus = true }
+                function showGeneralSettings       () { rightContent.currentIndex = 2 }
+                function showKeychainSettings      () { rightContent.currentIndex = 3 }
+                function showPortSettings          () { rightContent.currentIndex = 4 }
+                function showConnectionModeSettings() { rightContent.currentIndex = 5 }
+                function showLocalCacheSettings    () { rightContent.currentIndex = 6 }
+                function showHelpView              () { rightContent.currentIndex = 7 }
+                function showBugReport             () { rightContent.currentIndex = 8 }
 
                 Connections {
                     target: Backend

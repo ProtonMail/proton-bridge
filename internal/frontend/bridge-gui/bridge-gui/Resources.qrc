@@ -99,8 +99,7 @@
         <file>qml/SettingsView.qml</file>
         <file>qml/SetupGuide.qml</file>
         <file>qml/SignIn.qml</file>
-        <file>qml/SMTPSettings.qml</file>
-        <file>qml/IMAPSettings.qml</file>
+        <file>qml/ConnectionModeSettings.qml</file>
         <file>qml/SplashScreen.qml</file>
         <file>qml/Status.qml</file>
         <file>qml/StatusWindow.qml</file>

@@ -186,24 +186,11 @@ SettingsView {
         id: imap
         visible: root._isAdvancedShown
         colorScheme: root.colorScheme
-        text: qsTr("IMAP connection mode")
+        text: qsTr("Connection mode")
         actionText: qsTr("Change")
-        description: qsTr("Change the protocol Bridge and your client use to connect.")
+        description: qsTr("Change the protocol Bridge and the email client use to connect for IMAP and SMTP.")
         type: SettingsItem.Button
-        onClicked: root.parent.showIMAPSettings()
-
-        Layout.fillWidth: true
-    }
-
-    SettingsItem {
-        id: smtp
-        visible: root._isAdvancedShown
-        colorScheme: root.colorScheme
-        text: qsTr("SMTP connection mode")
-        actionText: qsTr("Change")
-        description: qsTr("Change the protocol Bridge and your client use to connect.")
-        type: SettingsItem.Button
-        onClicked: root.parent.showSMTPSettings()
+        onClicked: root.parent.showConnectionModeSettings()
 
         Layout.fillWidth: true
     }

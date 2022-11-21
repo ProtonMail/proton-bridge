@@ -29,14 +29,14 @@ SettingsView {
 
     Label {
         colorScheme: root.colorScheme
-        text: qsTr("IMAP connection mode")
+        text: qsTr("Connection mode")
         type: Label.Heading
         Layout.fillWidth: true
     }
 
     Label {
         colorScheme: root.colorScheme
-        text: qsTr("Changes require reconfiguration of email client.")
+        text: qsTr("Change the protocol Bridge and the email client use to connect for IMAP and SMTP.")
         type: Label.Body
         color: root.colorScheme.text_weak
         Layout.fillWidth: true
@@ -46,24 +46,55 @@ SettingsView {
     ColumnLayout {
         spacing: 16
 
-        ButtonGroup{ id: protocolSelection }
+        ButtonGroup{ id: imapProtocolSelection }
 
         Label {
             colorScheme: root.colorScheme
-            text: qsTr("IMAP connection security")
+            text: qsTr("IMAP connection")
         }
 
         RadioButton {
-            id: sslButton
+            id: imapSSLButton
             colorScheme: root.colorScheme
-            ButtonGroup.group: protocolSelection
+            ButtonGroup.group: imapProtocolSelection
             text: qsTr("SSL")
         }
 
         RadioButton {
-            id: starttlsButton
+            id: imapSTARTTLSButton
             colorScheme: root.colorScheme
-            ButtonGroup.group: protocolSelection
+            ButtonGroup.group: imapProtocolSelection
+            text: qsTr("STARTTLS")
+        }
+    }
+
+    Rectangle {
+        Layout.fillWidth: true
+        height: 1
+        color: root.colorScheme.border_weak
+    }
+
+    ColumnLayout {
+        spacing: 16
+
+        ButtonGroup{ id: smtpProtocolSelection }
+
+        Label {
+            colorScheme: root.colorScheme
+            text: qsTr("SMTP connection")
+        }
+
+        RadioButton {
+            id: smtpSSLButton
+            colorScheme: root.colorScheme
+            ButtonGroup.group: smtpProtocolSelection
+            text: qsTr("SSL")
+        }
+
+        RadioButton {
+            id: smtpSTARTTLSButton
+            colorScheme: root.colorScheme
+            ButtonGroup.group: smtpProtocolSelection
             text: qsTr("STARTTLS")
         }
     }
@@ -86,7 +117,7 @@ SettingsView {
                 root.submit()
             }
 
-            enabled: sslButton.checked !== Backend.useSSLForIMAP
+            enabled: (imapSSLButton.checked !== Backend.useSSLForIMAP) || (smtpSSLButton.checked !== Backend.useSSLForSMTP)
         }
 
         Button {
@@ -108,12 +139,14 @@ SettingsView {
 
     function submit(){
         submitButton.loading = true
-        Backend.setMailServerSettings(Backend.imapPort, Backend.smtpPort, sslButton.checked, Backend.useSSLForSMTP)
+        Backend.setMailServerSettings(Backend.imapPort, Backend.smtpPort, imapSSLButton.checked, smtpSSLButton.checked)
     }
 
     function setDefaultValues(){
-        sslButton.checked = Backend.useSSLForIMAP
-        starttlsButton.checked = !Backend.useSSLForIMAP
+        imapSSLButton.checked = Backend.useSSLForIMAP
+        imapSTARTTLSButton.checked = !Backend.useSSLForIMAP
+        smtpSSLButton.checked = Backend.useSSLForSMTP
+        smtpSTARTTLSButton.checked = !Backend.useSSLForSMTP
     }
 
     onVisibleChanged: {
