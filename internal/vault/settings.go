@@ -207,12 +207,33 @@ func (vault *Vault) SyncWorkers() int {
 	return vault.get().Settings.SyncWorkers
 }
 
+// SetSyncWorkers sets the number of workers to use for syncing.
+func (vault *Vault) SetSyncWorkers(workers int) error {
+	return vault.mod(func(data *Data) {
+		data.Settings.SyncWorkers = workers
+	})
+}
+
 // SyncBuffer returns the number of buffer workers to use for syncing.
 func (vault *Vault) SyncBuffer() int {
 	return vault.get().Settings.SyncBuffer
 }
 
+// SetSyncBuffer sets the number of buffer workers to use for syncing.
+func (vault *Vault) SetSyncBuffer(buffer int) error {
+	return vault.mod(func(data *Data) {
+		data.Settings.SyncBuffer = buffer
+	})
+}
+
 // SyncAttPool returns the size of the attachment pool.
 func (vault *Vault) SyncAttPool() int {
 	return vault.get().Settings.SyncAttPool
+}
+
+// SetSyncAttPool sets the size of the attachment pool.
+func (vault *Vault) SetSyncAttPool(pool int) error {
+	return vault.mod(func(data *Data) {
+		data.Settings.SyncAttPool = pool
+	})
 }

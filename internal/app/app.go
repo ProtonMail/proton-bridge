@@ -194,6 +194,10 @@ func run(c *cli.Context) error { //nolint:funlen
 						return withSingleInstance(locations, version, func() error {
 							// Unlock the encrypted vault.
 							return WithVault(locations, func(vault *vault.Vault, insecure, corrupt bool) error {
+								if err := migrateOldSettings(vault); err != nil {
+									logrus.WithError(err).Error("Failed to migrate old settings")
+								}
+
 								// Load the cookies from the vault.
 								return withCookieJar(vault, func(cookieJar http.CookieJar) error {
 									// Create a new bridge instance.

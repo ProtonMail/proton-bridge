@@ -18,17 +18,139 @@
 package app
 
 import (
+	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/Masterminds/semver/v3"
+	"github.com/ProtonMail/proton-bridge/v2/internal/updater"
+	"github.com/ProtonMail/proton-bridge/v2/internal/vault"
 	"github.com/allan-simon/go-singleinstance"
 	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )
+
+// nolint:gosec
+func migrateOldSettings(vault *vault.Vault) error {
+	configDir, err := os.UserConfigDir()
+	if err != nil {
+		return fmt.Errorf("failed to get user config dir: %w", err)
+	}
+
+	b, err := os.ReadFile(filepath.Join(configDir, "protonmail", "bridge", "prefs.json"))
+	if err != nil {
+		return fmt.Errorf("failed to read old prefs file: %w", err)
+	}
+
+	return migratePrefsToVault(vault, b)
+}
+
+// nolint:funlen
+func migratePrefsToVault(vault *vault.Vault, b []byte) error {
+	var prefs struct {
+		IMAPPort int  `json:"user_port_imap,,string"`
+		SMTPPort int  `json:"user_port_smtp,,string"`
+		SMTPSSL  bool `json:"user_ssl_smtp,,string"`
+
+		AutoUpdate    bool            `json:"autoupdate,,string"`
+		UpdateChannel updater.Channel `json:"update_channel"`
+		UpdateRollout float64         `json:"rollout,,string"`
+
+		FirstStart    bool            `json:"first_time_start,,string"`
+		FirstStartGUI bool            `json:"first_time_start_gui,,string"`
+		ColorScheme   string          `json:"color_scheme"`
+		LastVersion   *semver.Version `json:"last_used_version"`
+		Autostart     bool            `json:"autostart,,string"`
+
+		AllowProxy        bool `json:"allow_proxy,,string"`
+		FetchWorkers      int  `json:"fetch_workers,,string"`
+		AttachmentWorkers int  `json:"attachment_workers,,string"`
+		ShowAllMail       bool `json:"is_all_mail_visible,,string"`
+
+		Cookies string `json:"cookies"`
+	}
+
+	if err := json.Unmarshal(b, &prefs); err != nil {
+		return fmt.Errorf("failed to unmarshal old prefs file: %w", err)
+	}
+
+	var errs error
+
+	if err := vault.SetIMAPPort(prefs.IMAPPort); err != nil {
+		errs = multierror.Append(errs, fmt.Errorf("failed to migrate IMAP port: %w", err))
+	}
+
+	if err := vault.SetSMTPPort(prefs.SMTPPort); err != nil {
+		errs = multierror.Append(errs, fmt.Errorf("failed to migrate SMTP port: %w", err))
+	}
+
+	if err := vault.SetSMTPSSL(prefs.SMTPSSL); err != nil {
+		errs = multierror.Append(errs, fmt.Errorf("failed to migrate SMTP SSL: %w", err))
+	}
+
+	if err := vault.SetAutoUpdate(prefs.AutoUpdate); err != nil {
+		errs = multierror.Append(errs, fmt.Errorf("failed to migrate auto update: %w", err))
+	}
+
+	if err := vault.SetUpdateChannel(prefs.UpdateChannel); err != nil {
+		errs = multierror.Append(errs, fmt.Errorf("failed to migrate update channel: %w", err))
+	}
+
+	if err := vault.SetUpdateRollout(prefs.UpdateRollout); err != nil {
+		errs = multierror.Append(errs, fmt.Errorf("failed to migrate rollout: %w", err))
+	}
+
+	if err := vault.SetFirstStart(prefs.FirstStart); err != nil {
+		errs = multierror.Append(errs, fmt.Errorf("failed to migrate first start: %w", err))
+	}
+
+	if err := vault.SetFirstStartGUI(prefs.FirstStartGUI); err != nil {
+		errs = multierror.Append(errs, fmt.Errorf("failed to migrate first start GUI: %w", err))
+	}
+
+	if err := vault.SetColorScheme(prefs.ColorScheme); err != nil {
+		errs = multierror.Append(errs, fmt.Errorf("failed to migrate color scheme: %w", err))
+	}
+
+	if err := vault.SetLastVersion(prefs.LastVersion); err != nil {
+		errs = multierror.Append(errs, fmt.Errorf("failed to migrate last version: %w", err))
+	}
+
+	if err := vault.SetAutostart(prefs.Autostart); err != nil {
+		errs = multierror.Append(errs, fmt.Errorf("failed to migrate autostart: %w", err))
+	}
+
+	if err := vault.SetProxyAllowed(prefs.AllowProxy); err != nil {
+		errs = multierror.Append(errs, fmt.Errorf("failed to migrate allow proxy: %w", err))
+	}
+
+	if err := vault.SetShowAllMail(prefs.ShowAllMail); err != nil {
+		errs = multierror.Append(errs, fmt.Errorf("failed to migrate show all mail: %w", err))
+	}
+
+	if err := vault.SetSyncWorkers(prefs.FetchWorkers); err != nil {
+		errs = multierror.Append(errs, fmt.Errorf("failed to migrate sync workers: %w", err))
+	}
+
+	if err := vault.SetSyncBuffer(prefs.FetchWorkers); err != nil {
+		errs = multierror.Append(errs, fmt.Errorf("failed to migrate sync buffer: %w", err))
+	}
+
+	if err := vault.SetSyncAttPool(prefs.AttachmentWorkers); err != nil {
+		errs = multierror.Append(errs, fmt.Errorf("failed to migrate sync attachment pool: %w", err))
+	}
+
+	if err := vault.SetCookies([]byte(prefs.Cookies)); err != nil {
+		errs = multierror.Append(errs, fmt.Errorf("failed to migrate cookies: %w", err))
+	}
+
+	return errs
+}
 
 func migrateOldVersions() (allErrors error) {
 	cacheDir, cacheError := os.UserCacheDir()
