@@ -40,7 +40,7 @@ require (
 	github.com/stretchr/testify v1.8.0
 	github.com/urfave/cli/v2 v2.20.3
 	github.com/vmihailenco/msgpack/v5 v5.3.5
-	gitlab.protontech.ch/go/liteapi v0.43.1
+	gitlab.protontech.ch/go/liteapi v0.43.2
 	go.uber.org/goleak v1.2.0
 	golang.org/x/exp v0.0.0-20221023144134-a1e5550cf13e
 	golang.org/x/net v0.1.0

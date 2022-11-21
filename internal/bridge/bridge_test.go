@@ -380,6 +380,12 @@ func TestBridge_MissingGluonDir(t *testing.T) {
 
 func TestBridge_AddressWithoutKeys(t *testing.T) {
 	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *liteapi.NetCtl, locator bridge.Locator, vaultKey []byte) {
+		m := liteapi.New(
+			liteapi.WithHostURL(s.GetHostURL()),
+			liteapi.WithTransport(liteapi.InsecureTransport()),
+		)
+		defer m.Close()
+
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, vaultKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
 			// Create a user which will have an address without keys.
 			userID, _, err := s.CreateUser("nokeys", "nokeys@pm.me", []byte("password"))
@@ -389,13 +395,17 @@ func TestBridge_AddressWithoutKeys(t *testing.T) {
 			aliasAddrID, err := s.CreateAddress(userID, "alias@pm.me", []byte("password"))
 			require.NoError(t, err)
 
-			// Get the address key IDs.
-			aliasKeyIDs, err := s.GetAddressKeyIDs(userID, aliasAddrID)
+			// Create an API client so we can remove the address keys.
+			c, _, err := m.NewClientWithLogin(ctx, "nokeys", []byte("password"))
 			require.NoError(t, err)
-			require.Len(t, aliasKeyIDs, 1)
+			defer c.Close()
+
+			// Get the alias address.
+			aliasAddr, err := c.GetAddress(ctx, aliasAddrID)
+			require.NoError(t, err)
 
 			// Remove the address keys.
-			require.NoError(t, s.RemoveAddressKey(userID, aliasAddrID, aliasKeyIDs[0]))
+			require.NoError(t, s.RemoveAddressKey(userID, aliasAddrID, aliasAddr.Keys[0].ID))
 
 			// Watch for sync finished event.
 			syncCh, done := chToType[events.Event, events.SyncFinished](bridge.GetEvents(events.SyncFinished{}))

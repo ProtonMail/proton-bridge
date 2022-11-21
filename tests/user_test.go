@@ -207,18 +207,20 @@ func (s *scenario) theAddressOfAccountHasNoKeys(address, username string) error 
 	userID := s.t.getUserID(username)
 	addrID := s.t.getUserAddrID(userID, address)
 
-	keyIDs, err := s.t.api.GetAddressKeyIDs(userID, addrID)
-	if err != nil {
-		return err
-	}
-
-	for _, keyID := range keyIDs {
-		if err := s.t.api.RemoveAddressKey(userID, addrID, keyID); err != nil {
+	return s.t.withClient(context.Background(), username, func(ctx context.Context, client *liteapi.Client) error {
+		address, err := client.GetAddress(ctx, addrID)
+		if err != nil {
 			return err
 		}
-	}
 
-	return nil
+		for _, key := range address.Keys {
+			if err := s.t.api.RemoveAddressKey(userID, addrID, key.ID); err != nil {
+				return err
+			}
+		}
+
+		return nil
+	})
 }
 
 // accountDraftChanged changes the draft attributes, where draftIndex is
