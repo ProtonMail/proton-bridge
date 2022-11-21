@@ -46,41 +46,41 @@ public: // member functions.
     bool waitForEventStreamReaderToFinish(qint32 timeoutMs); ///< Wait for the event stream reader to finish.
 
     // invokable methods can be called from QML. They generally return a value, which slots cannot do.
-    Q_INVOKABLE static QPoint getCursorPos();                                                                                                         //   _ func() *core.QPoint             `slot:"getCursorPos"`
-    Q_INVOKABLE static bool isPortFree(int port);                                                                                                     //   _ func(port int) bool             `slot:"isPortFree"`
+    Q_INVOKABLE static QPoint getCursorPos();
+    Q_INVOKABLE static bool isPortFree(int port);
     Q_INVOKABLE static QString nativePath(QUrl const &url);
     Q_INVOKABLE static bool areSameFileOrFolder(QUrl const &lhs, QUrl const &rhs);
 
 public: // Qt/QML properties. Note that the NOTIFY-er signal is required even for read-only properties (QML warning otherwise)
-    Q_PROPERTY(bool showOnStartup READ showOnStartup NOTIFY showOnStartupChanged)                                                                     //    _ bool        `property:showOnStartup`
-    Q_PROPERTY(bool showSplashScreen READ showSplashScreen WRITE setShowSplashScreen NOTIFY showSplashScreenChanged)                                  //    _ bool        `property:showSplashScreen`
-    Q_PROPERTY(QString goos READ goos NOTIFY goosChanged)                                                                                             //    _ string      `property:"goos"`
-    Q_PROPERTY(QUrl logsPath READ logsPath NOTIFY logsPathChanged)                                                                                    //    _ core.QUrl   `property:"logsPath"`
-    Q_PROPERTY(QUrl licensePath READ licensePath NOTIFY licensePathChanged)                                                                           //    _ core.QUrl   `property:"licensePath"`
-    Q_PROPERTY(QUrl releaseNotesLink READ releaseNotesLink NOTIFY releaseNotesLinkChanged)                                                            //    _ core.QUrl   `property:"releaseNotesLink"`
-    Q_PROPERTY(QUrl dependencyLicensesLink READ dependencyLicensesLink NOTIFY dependencyLicensesLinkChanged)                                          //    _ core.QUrl   `property:"dependencyLicensesLink"`
-    Q_PROPERTY(QUrl landingPageLink READ landingPageLink NOTIFY landingPageLinkChanged)                                                               //    _ core.QUrl   `property:"landingPageLink"`
-    Q_PROPERTY(QString appname READ appname NOTIFY appnameChanged)                                                                                    //    _ string      `property:"version"`
-    Q_PROPERTY(QString vendor READ vendor NOTIFY vendorChanged)                                                                                       //    _ string      `property:"version"`
-    Q_PROPERTY(QString version READ version NOTIFY versionChanged)                                                                                    //    _ string      `property:"version"`
-    Q_PROPERTY(QString hostname READ hostname NOTIFY hostnameChanged)                                                                                 //    _ string      `property:"hostname"`
-    Q_PROPERTY(bool isAutostartOn READ isAutostartOn NOTIFY isAutostartOnChanged)                                                                     //    _ bool        `property:"isAutostartOn"`
-    Q_PROPERTY(bool isBetaEnabled READ isBetaEnabled NOTIFY isBetaEnabledChanged)                                                                     //    _ bool        `property:"isBetaEnabled"`
-    Q_PROPERTY(bool isAllMailVisible READ isAllMailVisible NOTIFY isAllMailVisibleChanged)                                                            //    _ bool        `property:"isAllMailVisible"`
-    Q_PROPERTY(QString colorSchemeName READ colorSchemeName NOTIFY colorSchemeNameChanged)                                                            //    _ string      `property:"colorSchemeName"`
-    Q_PROPERTY(QUrl diskCachePath READ diskCachePath NOTIFY diskCachePathChanged)                                                                     //    _ core.QUrl   `property:"diskCachePath"`
-    Q_PROPERTY(bool useSSLForIMAP READ useSSLForIMAP WRITE setUseSSLForIMAP NOTIFY useSSLForIMAPChanged)                                              //    _ bool        `property:"useSSLForSMTP"`
-    Q_PROPERTY(bool useSSLForSMTP READ useSSLForSMTP WRITE setUseSSLForSMTP NOTIFY useSSLForSMTPChanged)                                              //    _ bool        `property:"useSSLForSMTP"`
+    Q_PROPERTY(bool showOnStartup READ showOnStartup NOTIFY showOnStartupChanged)
+    Q_PROPERTY(bool showSplashScreen READ showSplashScreen WRITE setShowSplashScreen NOTIFY showSplashScreenChanged)
+    Q_PROPERTY(QString goos READ goos NOTIFY goosChanged)
+    Q_PROPERTY(QUrl logsPath READ logsPath NOTIFY logsPathChanged)
+    Q_PROPERTY(QUrl licensePath READ licensePath NOTIFY licensePathChanged)
+    Q_PROPERTY(QUrl releaseNotesLink READ releaseNotesLink NOTIFY releaseNotesLinkChanged)
+    Q_PROPERTY(QUrl dependencyLicensesLink READ dependencyLicensesLink NOTIFY dependencyLicensesLinkChanged)
+    Q_PROPERTY(QUrl landingPageLink READ landingPageLink NOTIFY landingPageLinkChanged)
+    Q_PROPERTY(QString appname READ appname NOTIFY appnameChanged)
+    Q_PROPERTY(QString vendor READ vendor NOTIFY vendorChanged)
+    Q_PROPERTY(QString version READ version NOTIFY versionChanged)
+    Q_PROPERTY(QString hostname READ hostname NOTIFY hostnameChanged)
+    Q_PROPERTY(bool isAutostartOn READ isAutostartOn NOTIFY isAutostartOnChanged)
+    Q_PROPERTY(bool isBetaEnabled READ isBetaEnabled NOTIFY isBetaEnabledChanged)
+    Q_PROPERTY(bool isAllMailVisible READ isAllMailVisible NOTIFY isAllMailVisibleChanged)
+    Q_PROPERTY(QString colorSchemeName READ colorSchemeName NOTIFY colorSchemeNameChanged)
+    Q_PROPERTY(QUrl diskCachePath READ diskCachePath NOTIFY diskCachePathChanged)
+    Q_PROPERTY(bool useSSLForIMAP READ useSSLForIMAP WRITE setUseSSLForIMAP NOTIFY useSSLForIMAPChanged)
+    Q_PROPERTY(bool useSSLForSMTP READ useSSLForSMTP WRITE setUseSSLForSMTP NOTIFY useSSLForSMTPChanged)
     Q_PROPERTY(int imapPort READ imapPort WRITE setIMAPPort NOTIFY imapPortChanged)
     Q_PROPERTY(int smtpPort READ smtpPort WRITE setSMTPPort NOTIFY smtpPortChanged)
-    Q_PROPERTY(bool isDoHEnabled READ isDoHEnabled NOTIFY isDoHEnabledChanged)                                                                        //    _ bool        `property:"isDoHEnabled"`
-    Q_PROPERTY(bool isFirstGUIStart READ isFirstGUIStart)                                                                                             //    _ bool        `property:"isFirstGUIStart"`
-    Q_PROPERTY(bool isAutomaticUpdateOn READ isAutomaticUpdateOn NOTIFY isAutomaticUpdateOnChanged)                                                   //    _ bool        `property:"isAutomaticUpdateOn"`
-    Q_PROPERTY(QString currentEmailClient READ currentEmailClient NOTIFY currentEmailClientChanged)                                                   //    _ string      `property:"currentEmailClient"`
-    Q_PROPERTY(QStringList availableKeychain READ availableKeychain NOTIFY availableKeychainChanged)                                                  //    _ []string    `property:"availableKeychain"`
-    Q_PROPERTY(QString currentKeychain READ currentKeychain NOTIFY currentKeychainChanged)                                                            //    _ string      `property:"currentKeychain"`
+    Q_PROPERTY(bool isDoHEnabled READ isDoHEnabled NOTIFY isDoHEnabledChanged)
+    Q_PROPERTY(bool isFirstGUIStart READ isFirstGUIStart)
+    Q_PROPERTY(bool isAutomaticUpdateOn READ isAutomaticUpdateOn NOTIFY isAutomaticUpdateOnChanged)
+    Q_PROPERTY(QString currentEmailClient READ currentEmailClient NOTIFY currentEmailClientChanged)
+    Q_PROPERTY(QStringList availableKeychain READ availableKeychain NOTIFY availableKeychainChanged)
+    Q_PROPERTY(QString currentKeychain READ currentKeychain NOTIFY currentKeychainChanged)
     Q_PROPERTY(UserList* users MEMBER users_ NOTIFY usersChanged)
-    Q_PROPERTY(bool dockIconVisible READ dockIconVisible WRITE setDockIconVisible NOTIFY dockIconVisibleChanged)                                      //    _ bool        `property:dockIconVisible`
+    Q_PROPERTY(bool dockIconVisible READ dockIconVisible WRITE setDockIconVisible NOTIFY dockIconVisibleChanged)
 
     // Qt Property system setters & getters.
     bool showOnStartup() const { bool v = false; app().grpc().showOnStartup(v); return v; };
@@ -149,61 +149,61 @@ signals: // Signal used by the Qt property system. Many of them are unused but r
     void dockIconVisibleChanged(bool value);
 
 public slots: // slot for signals received from QML -> To be forwarded to Bridge via RPC Client calls.
-    void toggleAutostart(bool active);                                                                                                                //    _ func(makeItActive bool)                                             `slot:"toggleAutostart"`
-    void toggleBeta(bool active);                                                                                                                     //    _ func(makeItActive bool)                                             `slot:"toggleBeta"`
-    void changeIsAllMailVisible(bool isVisible);                                                                                                      //    _ func(isVisible bool)                                                `slot:"changeIsAllMailVisible"`
-    void changeColorScheme(QString const &scheme);                                                                                                    //    _ func(string)                                                        `slot:"changeColorScheme"`
+    void toggleAutostart(bool active);
+    void toggleBeta(bool active);
+    void changeIsAllMailVisible(bool isVisible);
+    void changeColorScheme(QString const &scheme);
     void setDiskCachePath(QUrl const& path) const;
-    void login(QString const& username, QString const& password) { app().grpc().login(username, password);}                                           //    _ func(username, password string)                                     `slot:"login"`
-    void login2FA(QString const& username, QString const& code) { app().grpc().login2FA(username, code);}                                             //    _ func(username, code string)                                         `slot:"login2FA"`
-    void login2Password(QString const& username, QString const& password) { app().grpc().login2Passwords(username, password);}                        //    _ func(username, password string)                                     `slot:"login2Password"`
-    void loginAbort(QString const& username){ app().grpc().loginAbort(username);}                                                                     //    _ func(username string)                                               `slot:"loginAbort"`
-    void toggleDoH(bool active);                                                                                                                      //    _ func(makeItActive bool)                                             `slot:"toggleDoH"`
-    void toggleAutomaticUpdate(bool makeItActive);                                                                                                    //    _ func(makeItActive bool)                                             `slot:"toggleAutomaticUpdate"`
-    void updateCurrentMailClient() { emit currentEmailClientChanged(currentEmailClient()); }                                                          //    _ func() `slot:"updateCurrentMailClient"`
-    void changeKeychain(QString const &keychain);                                                                                                     //    _ func(keychain string)                                               `slot:"changeKeychain"`
-    void guiReady();                                                                                                                                  //    _ func()                                                              `slot:"guiReady"`
-    void quit();                                                                                                                                      //    _ func()                                                              `slot:"quit"`
-    void restart();                                                                                                                                   //    _ func()                                                              `slot:"restart"`
-    void forceLauncher(QString launcher);                                                                                                             //    _ func()                                                              `slot:"forceLauncher"`
-    void checkUpdates();                                                                                                                              //    _ func()                                                              `slot:"checkUpdates"`
-    void installUpdate();                                                                                                                             //    _ func()                                                              `slot:"installUpdate"`
-    void triggerReset();                                                                                                                              //    _ func()                                                              `slot:"triggerReset"`
+    void login(QString const& username, QString const& password) { app().grpc().login(username, password);}
+    void login2FA(QString const& username, QString const& code) { app().grpc().login2FA(username, code);}
+    void login2Password(QString const& username, QString const& password) { app().grpc().login2Passwords(username, password);}
+    void loginAbort(QString const& username){ app().grpc().loginAbort(username);}
+    void toggleDoH(bool active);
+    void toggleAutomaticUpdate(bool makeItActive);
+    void updateCurrentMailClient() { emit currentEmailClientChanged(currentEmailClient()); }
+    void changeKeychain(QString const &keychain);
+    void guiReady();
+    void quit();
+    void restart();
+    void forceLauncher(QString launcher);
+    void checkUpdates();
+    void installUpdate();
+    void triggerReset();
     void reportBug(QString const &description, QString const& address, QString const &emailClient, bool includeLogs) {
-        app().grpc().reportBug(description, address, emailClient, includeLogs); }                                                                     //    _ func(description, address, emailClient string, includeLogs bool)    `slot:"reportBug"`
-    void onResetFinished();                                                                                                                           //    _ func()                                                              `slot:"onResetFinished"`
-    void onVersionChanged();                                                                                                                          //    _ func()                                                              `slot:"onVersionChanged"`
-    void setMailServerSettings(int imapPort, int smtpPort, bool useSSLForIMAP, bool useSSLForSMTP); ///< Forwards to connection mode change request from QML to gRPC
+        app().grpc().reportBug(description, address, emailClient, includeLogs); }
+    void onResetFinished();
+    void onVersionChanged();
+    void setMailServerSettings(int imapPort, int smtpPort, bool useSSLForIMAP, bool useSSLForSMTP); ///< Forwards a connection mode change request from QML to gRPC
 
 public slots: // slot for signals received from gRPC that need transformation instead of simple forwarding
     void onMailServerSettingsChanged(int imapPort, int smtpPort, bool useSSLForIMAP, bool useSSLForSMTP); ///< Slot for the ConnectionModeChanged gRPC event.
 
 signals: // Signals received from the Go backend, to be forwarded to QML
-    void toggleAutostartFinished();                                                                                                                   //    _ func()                  `signal:"toggleAutostartFinished"`
-    void diskCacheUnavailable();                                                                                                                      //    _ func()                  `signal:"cacheUnavailable"`
-    void cantMoveDiskCache();                                                                                                                         //    _ func()                  `signal:"cacheCantMove"`
-    void diskCachePathChangeFinished();                                                                                                                //    _ func()                  `signal:"cacheLocationChangeSuccess"`
-    void diskFull();                                                                                                                                  //    _ func()                  `signal:"diskFull"`
-    void loginUsernamePasswordError(QString const &errorMsg);                                                                                         //    _ func(errorMsg string)   `signal:"loginUsernamePasswordError"`
-    void loginFreeUserError();                                                                                                                        //    _ func()                  `signal:"loginFreeUserError"`
-    void loginConnectionError(QString const &errorMsg);                                                                                               //    _ func(errorMsg string)   `signal:"loginConnectionError"`
-    void login2FARequested(QString const &username);                                                                                                  //    _ func(username string)   `signal:"login2FARequested"`
-    void login2FAError(QString const& errorMsg);                                                                                                      //    _ func(errorMsg string)   `signal:"login2FAError"`
-    void login2FAErrorAbort(QString const& errorMsg);                                                                                                 //    _ func(errorMsg string)   `signal:"login2FAErrorAbort"`
-    void login2PasswordRequested();                                                                                                                   //    _ func()                  `signal:"login2PasswordRequested"`
-    void login2PasswordError(QString const& errorMsg);                                                                                                //    _ func(errorMsg string)   `signal:"login2PasswordError"`
-    void login2PasswordErrorAbort(QString const& errorMsg);                                                                                           //    _ func(errorMsg string)   `signal:"login2PasswordErrorAbort"`
-    void loginFinished(int index);                                                                                                                    //    _ func(index int)         `signal:"loginFinished"`
-    void loginAlreadyLoggedIn(int index);                                                                                                             //    _ func(index int)         `signal:"loginAlreadyLoggedIn"`
-    void updateManualReady(QString const& version);                                                                                                   //    _ func(version string)    `signal:"updateManualReady"`
-    void updateManualRestartNeeded();                                                                                                                 //    _ func()                  `signal:"updateManualRestartNeeded"`
-    void updateManualError();                                                                                                                         //    _ func()                  `signal:"updateManualError"`
-    void updateForce(QString const& version);                                                                                                         //    _ func(version string)    `signal:"updateForce"`
-    void updateForceError();                                                                                                                          //    _ func()                  `signal:"updateForceError"`
-    void updateSilentRestartNeeded();                                                                                                                 //    _ func()                  `signal:"updateSilentRestartNeeded"`
-    void updateSilentError();                                                                                                                         //    _ func()                  `signal:"updateSilentError"`
-    void updateIsLatestVersion();                                                                                                                     //    _ func()                  `signal:"updateIsLatestVersion"`
-    void checkUpdatesFinished();                                                                                                                      //    _ func()                  `signal:"checkUpdatesFinished"`
+    void toggleAutostartFinished();
+    void diskCacheUnavailable();
+    void cantMoveDiskCache();
+    void diskCachePathChangeFinished();
+    void diskFull();
+    void loginUsernamePasswordError(QString const &errorMsg);
+    void loginFreeUserError();
+    void loginConnectionError(QString const &errorMsg);
+    void login2FARequested(QString const &username);
+    void login2FAError(QString const& errorMsg);
+    void login2FAErrorAbort(QString const& errorMsg);
+    void login2PasswordRequested();
+    void login2PasswordError(QString const& errorMsg);
+    void login2PasswordErrorAbort(QString const& errorMsg);
+    void loginFinished(int index);
+    void loginAlreadyLoggedIn(int index);
+    void updateManualReady(QString const& version);
+    void updateManualRestartNeeded();
+    void updateManualError();
+    void updateForce(QString const& version);
+    void updateForceError();
+    void updateSilentRestartNeeded();
+    void updateSilentError();
+    void updateIsLatestVersion();
+    void checkUpdatesFinished();
     void imapPortStartupError();
     void smtpPortStartupError();
     void imapPortChangeError();
@@ -211,21 +211,21 @@ signals: // Signals received from the Go backend, to be forwarded to QML
     void imapConnectionModeChangeError();
     void smtpConnectionModeChangeError();
     void changeMailServerSettingsFinished();
-    void changeKeychainFinished();                                                                                                                    //    _ func()                  `signal:"changeKeychainFinished"`
-    void notifyHasNoKeychain();                                                                                                                       //    _ func()                  `signal:"notifyHasNoKeychain"`
-    void notifyRebuildKeychain();                                                                                                                     //    _ func()                  `signal:"notifyRebuildKeychain"`
-    void noActiveKeyForRecipient(QString const& email);                                                                                               //    _ func(email string)      `signal:noActiveKeyForRecipient`
-    void addressChanged(QString const& address);                                                                                                      //    _ func(address string)    `signal:addressChanged`
-    void addressChangedLogout(QString const& address);                                                                                                //    _ func(address string)    `signal:addressChangedLogout`
-    void apiCertIssue();                                                                                                                              //    _ func()                  `signal:apiCertIssue`
-    void userDisconnected(QString const& username);                                                                                                   //    _ func(username string)   `signal:userDisconnected`
-    void internetOff();                                                                                                                               //    _ func()                  `signal:"internetOff"`
-    void internetOn();                                                                                                                                //    _ func()                  `signal:"internetOn"`
-    void resetFinished();                                                                                                                             //    _ func()                  `signal:"resetFinished"`
-    void reportBugFinished();                                                                                                                         //    _ func()                  `signal:"reportBugFinished"`
-    void bugReportSendSuccess();                                                                                                                      //    _ func()                  `signal:"bugReportSendSuccess"`
-    void bugReportSendError();                                                                                                                        //    _ func()                  `signal:"bugReportSendError"`
-    void showMainWindow();                                                                                                                            //    _ func()                  `signal:showMainWindow`
+    void changeKeychainFinished();
+    void notifyHasNoKeychain();
+    void notifyRebuildKeychain();
+    void noActiveKeyForRecipient(QString const& email);
+    void addressChanged(QString const& address);
+    void addressChangedLogout(QString const& address);
+    void apiCertIssue();
+    void userDisconnected(QString const& username);
+    void internetOff();
+    void internetOn();
+    void resetFinished();
+    void reportBugFinished();
+    void bugReportSendSuccess();
+    void bugReportSendError();
+    void showMainWindow();
     void hideMainWindow();
 
 private: // member functions

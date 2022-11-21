@@ -60,7 +60,7 @@ private: // member functions
 private: // data members
     QMutex statusMutex_; ///< The status mutex.
     QString const exePath_; ///< The path to the executable.
-    QStringList args_; ///< arguments to be passed to the brigde.
+    QStringList args_; ///< arguments to be passed to Bridge.
     MonitorStatus status_; ///< Status of the monitoring.
     QTextStream out_; ///< The standard output stream.
     QTextStream err_; ///< The standard error stream.

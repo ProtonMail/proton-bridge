@@ -110,7 +110,7 @@ void QMLBackend::connectGrpcEvents()
     connect(client, &GRPCClient::showMainWindow, this, &QMLBackend::showMainWindow);
 
     // cache events
-    connect(client, &GRPCClient::diskCacheUnavailable, this, &QMLBackend::diskCacheUnavailable);                                                                                            //    _ func()                  `signal:"cacheUnavailable"`
+    connect(client, &GRPCClient::diskCacheUnavailable, this, &QMLBackend::diskCacheUnavailable);
     connect(client, &GRPCClient::cantMoveDiskCache, this, &QMLBackend::cantMoveDiskCache);
     connect(client, &GRPCClient::diskFull, this, &QMLBackend::diskFull);
     connect(client, &GRPCClient::diskCachePathChanged, this, &QMLBackend::diskCachePathChanged);

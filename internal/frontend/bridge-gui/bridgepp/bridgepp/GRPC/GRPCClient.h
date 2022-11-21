@@ -138,17 +138,17 @@ public: // login related calls
     grpc::Status loginAbort(QString const &username); ///< Performs the 'loginAbort' call.
 
 signals:
-    void loginUsernamePasswordError(QString const &errMsg);                                                             //    _ func(errorMsg string)   `signal:"loginUsernamePasswordError"`
-    void loginFreeUserError();                                                                                          //    _ func()                  `signal:"loginFreeUserError"`
-    void loginConnectionError(QString const &errMsg);                                                                   //    _ func(errorMsg string)   `signal:"loginConnectionError"`
-    void login2FARequested(QString const &userName);                                                                    //    _ func(username string)   `signal:"login2FARequested"`
-    void login2FAError(QString const &errMsg);                                                                          //    _ func(errorMsg string)   `signal:"login2FAError"`
-    void login2FAErrorAbort(QString const &errMsg);                                                                     //    _ func(errorMsg string)   `signal:"login2FAErrorAbort"`
-    void login2PasswordRequested();                                                                                     //    _ func()                  `signal:"login2PasswordRequested"`
-    void login2PasswordError(QString const &errMsg);                                                                    //    _ func(errorMsg string)   `signal:"login2PasswordError"`
-    void login2PasswordErrorAbort(QString const &errMsg);                                                               //    _ func(errorMsg string)   `signal:"login2PasswordErrorAbort"`
-    void loginFinished(QString const &userID);                                                                         //    _ func(index int)         `signal:"loginFinished"`
-    void loginAlreadyLoggedIn(QString const &userID);                                                                  //    _ func(index int)         `signal:"loginAlreadyLoggedIn"`
+    void loginUsernamePasswordError(QString const &errMsg);
+    void loginFreeUserError();
+    void loginConnectionError(QString const &errMsg);
+    void login2FARequested(QString const &userName);
+    void login2FAError(QString const &errMsg);
+    void login2FAErrorAbort(QString const &errMsg);
+    void login2PasswordRequested();
+    void login2PasswordError(QString const &errMsg);
+    void login2PasswordErrorAbort(QString const &errMsg);
+    void loginFinished(QString const &userID);
+    void loginAlreadyLoggedIn(QString const &userID);
 
 public: // Update related calls
     grpc::Status checkUpdate();
@@ -193,9 +193,9 @@ signals:
     void certIsReady();
 
 signals: // mail related events
-    void noActiveKeyForRecipient(QString const &email);                                                                 //    _ func(email string)      `signal:noActiveKeyForRecipient`
-    void addressChanged(QString const &address);                                                                        //    _ func(address string)    `signal:addressChanged`
-    void addressChangedLogout(QString const &address);                                                                  //    _ func(address string)    `signal:addressChangedLogout`
+    void noActiveKeyForRecipient(QString const &email);
+    void addressChanged(QString const &address);
+    void addressChangedLogout(QString const &address);
     void apiCertIssue();
 
 public:

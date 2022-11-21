@@ -77,10 +77,10 @@ public: // member functions.
 
 public slots:
     // slots for QML generated calls
-    void toggleSplitMode(bool makeItActive);            //    _ func(makeItActive bool) `slot:"toggleSplitMode"`
-    void logout();                                      //    _ func()                  `slot:"logout"`
-    void remove();                                      //    _ func()                  `slot:"remove"`
-    void configureAppleMail(QString const &address);    //    _ func(address string)    `slot:"configureAppleMail"`
+    void toggleSplitMode(bool makeItActive);
+    void logout();
+    void remove();
+    void configureAppleMail(QString const &address);
     void emitToggleSplitModeFinished();                 // slot for external signals
 
 signals: // signal used to forward QML event received in the above slots
@@ -90,16 +90,16 @@ signals: // signal used to forward QML event received in the above slots
     void configureAppleMailForUser(QString const &userID, QString const &address);
 
 public:
-    Q_PROPERTY(QString id READ id WRITE setID NOTIFY idChanged)                                                 //    _ string ID
-    Q_PROPERTY(QString username READ username WRITE setUsername NOTIFY usernameChanged)                         //    _ string   `property:"username"`
-    Q_PROPERTY(QString password READ password WRITE setPassword NOTIFY passwordChanged)                         //    _ string   `property:"password"`
-    Q_PROPERTY(QStringList addresses READ addresses WRITE setAddresses NOTIFY addressesChanged)                 //    _ []string `property:"addresses"`
-    Q_PROPERTY(QString avatarText READ avatarText WRITE setAvatarText NOTIFY avatarTextChanged)                 //    _ string   `property:"avatarText"`
+    Q_PROPERTY(QString id READ id WRITE setID NOTIFY idChanged)
+    Q_PROPERTY(QString username READ username WRITE setUsername NOTIFY usernameChanged)
+    Q_PROPERTY(QString password READ password WRITE setPassword NOTIFY passwordChanged)
+    Q_PROPERTY(QStringList addresses READ addresses WRITE setAddresses NOTIFY addressesChanged)
+    Q_PROPERTY(QString avatarText READ avatarText WRITE setAvatarText NOTIFY avatarTextChanged)
     Q_PROPERTY(UserState state READ state WRITE setState NOTIFY stateChanged)
-    Q_PROPERTY(bool splitMode READ splitMode WRITE setSplitMode NOTIFY splitModeChanged)                        //    _ bool     `property:"splitMode"`
-    Q_PROPERTY(bool setupGuideSeen READ setupGuideSeen WRITE setSetupGuideSeen NOTIFY setupGuideSeenChanged)    //    _ bool     `property:"setupGuideSeen"`
-    Q_PROPERTY(float usedBytes READ usedBytes WRITE setUsedBytes NOTIFY usedBytesChanged)                       //    _ float32  `property:"usedBytes"`
-    Q_PROPERTY(float totalBytes READ totalBytes WRITE setTotalBytes NOTIFY totalBytesChanged)                   //    _ float32  `property:"totalBytes"`
+    Q_PROPERTY(bool splitMode READ splitMode WRITE setSplitMode NOTIFY splitModeChanged)
+    Q_PROPERTY(bool setupGuideSeen READ setupGuideSeen WRITE setSetupGuideSeen NOTIFY setupGuideSeenChanged)
+    Q_PROPERTY(float usedBytes READ usedBytes WRITE setUsedBytes NOTIFY usedBytesChanged)
+    Q_PROPERTY(float totalBytes READ totalBytes WRITE setTotalBytes NOTIFY totalBytesChanged)
 
     QString id() const;
     void setID(QString const &id);
