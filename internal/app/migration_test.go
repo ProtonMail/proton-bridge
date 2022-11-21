@@ -30,7 +30,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestMigrateOldVaultFromJSON(t *testing.T) {
+func TestMigratePrefsToVault(t *testing.T) {
 	// Create a new vault.
 	vault, corrupt, err := vault.New(t.TempDir(), t.TempDir(), []byte("my secret key"))
 	require.NoError(t, err)

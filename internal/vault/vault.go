@@ -175,6 +175,16 @@ func (vault *Vault) DeleteUser(userID string) error {
 	})
 }
 
+func (vault *Vault) Migrated() bool {
+	return vault.get().Migrated
+}
+
+func (vault *Vault) SetMigrated() error {
+	return vault.mod(func(data *Data) {
+		data.Migrated = true
+	})
+}
+
 func (vault *Vault) Close() error {
 	vault.refLock.Lock()
 	defer vault.refLock.Unlock()

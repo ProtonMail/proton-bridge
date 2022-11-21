@@ -27,8 +27,11 @@ import (
 	"time"
 
 	"github.com/Masterminds/semver/v3"
+	"github.com/ProtonMail/proton-bridge/v2/internal/legacy/credentials"
+	"github.com/ProtonMail/proton-bridge/v2/internal/locations"
 	"github.com/ProtonMail/proton-bridge/v2/internal/updater"
 	"github.com/ProtonMail/proton-bridge/v2/internal/vault"
+	"github.com/ProtonMail/proton-bridge/v2/pkg/keychain"
 	"github.com/allan-simon/go-singleinstance"
 	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
@@ -36,7 +39,9 @@ import (
 )
 
 // nolint:gosec
-func migrateOldSettings(vault *vault.Vault) error {
+func migrateKeychainHelper(locations *locations.Locations) error {
+	logrus.Info("Migrating keychain helper")
+
 	configDir, err := os.UserConfigDir()
 	if err != nil {
 		return fmt.Errorf("failed to get user config dir: %w", err)
@@ -47,7 +52,88 @@ func migrateOldSettings(vault *vault.Vault) error {
 		return fmt.Errorf("failed to read old prefs file: %w", err)
 	}
 
-	return migratePrefsToVault(vault, b)
+	var prefs struct {
+		Helper string `json:"preferred_keychain"`
+	}
+
+	if err := json.Unmarshal(b, &prefs); err != nil {
+		return fmt.Errorf("failed to unmarshal old prefs file: %w", err)
+	}
+
+	settings, err := locations.ProvideSettingsPath()
+	if err != nil {
+		return fmt.Errorf("failed to get settings path: %w", err)
+	}
+
+	return vault.SetHelper(settings, prefs.Helper)
+}
+
+// nolint:gosec
+func migrateOldSettings(v *vault.Vault) error {
+	logrus.Info("Migrating settings")
+
+	configDir, err := os.UserConfigDir()
+	if err != nil {
+		return fmt.Errorf("failed to get user config dir: %w", err)
+	}
+
+	b, err := os.ReadFile(filepath.Join(configDir, "protonmail", "bridge", "prefs.json"))
+	if err != nil {
+		return fmt.Errorf("failed to read old prefs file: %w", err)
+	}
+
+	return migratePrefsToVault(v, b)
+}
+
+func migrateOldAccounts(locations *locations.Locations, v *vault.Vault) error {
+	logrus.Info("Migrating accounts")
+
+	settings, err := locations.ProvideSettingsPath()
+	if err != nil {
+		return fmt.Errorf("failed to get settings path: %w", err)
+	}
+
+	helper, err := vault.GetHelper(settings)
+	if err != nil {
+		return fmt.Errorf("failed to get helper: %w", err)
+	}
+
+	keychain, err := keychain.NewKeychain(helper, "bridge")
+	if err != nil {
+		return fmt.Errorf("failed to create keychain: %w", err)
+	}
+
+	store := credentials.NewStore(keychain)
+
+	users, err := store.List()
+	if err != nil {
+		return fmt.Errorf("failed to create credentials store: %w", err)
+	}
+
+	for _, userID := range users {
+		logrus.WithField("userID", userID).Info("Migrating account")
+
+		creds, err := store.Get(userID)
+		if err != nil {
+			return fmt.Errorf("failed to get user: %w", err)
+		}
+
+		authUID, authRef, err := creds.SplitAPIToken()
+		if err != nil {
+			return fmt.Errorf("failed to split api token: %w", err)
+		}
+
+		user, err := v.AddUser(creds.UserID, creds.EmailList()[0], authUID, authRef, creds.MailboxPassword)
+		if err != nil {
+			return fmt.Errorf("failed to add user: %w", err)
+		}
+
+		if err := user.Close(); err != nil {
+			return fmt.Errorf("failed to close user: %w", err)
+		}
+	}
+
+	return nil
 }
 
 // nolint:funlen

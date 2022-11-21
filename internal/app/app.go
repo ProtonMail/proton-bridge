@@ -183,6 +183,11 @@ func run(c *cli.Context) error { //nolint:funlen
 			return withCrashHandler(restarter, reporter, func(crashHandler *crash.Handler) error {
 				// Load the locations where we store our files.
 				return WithLocations(func(locations *locations.Locations) error {
+					// Migrate the keychain helper.
+					if err := migrateKeychainHelper(locations); err != nil {
+						logrus.WithError(err).Error("Failed to migrate keychain helper")
+					}
+
 					// Initialize logging.
 					return withLogging(c, crashHandler, locations, func() error {
 						// If there was an error during migration, log it now.
@@ -194,8 +199,21 @@ func run(c *cli.Context) error { //nolint:funlen
 						return withSingleInstance(locations, version, func() error {
 							// Unlock the encrypted vault.
 							return WithVault(locations, func(vault *vault.Vault, insecure, corrupt bool) error {
-								if err := migrateOldSettings(vault); err != nil {
-									logrus.WithError(err).Error("Failed to migrate old settings")
+								if !vault.Migrated() {
+									// Migrate old settings into the vault.
+									if err := migrateOldSettings(vault); err != nil {
+										logrus.WithError(err).Error("Failed to migrate old settings")
+									}
+
+									// Migrate old accounts into the vault.
+									if err := migrateOldAccounts(locations, vault); err != nil {
+										logrus.WithError(err).Error("Failed to migrate old accounts")
+									}
+
+									// The vault has been migrated.
+									if err := vault.SetMigrated(); err != nil {
+										logrus.WithError(err).Error("Failed to mark vault as migrated")
+									}
 								}
 
 								// Load the cookies from the vault.

@@ -22,6 +22,7 @@ type Data struct {
 	Users    []UserData
 	Cookies  []byte
 	Certs    Certs
+	Migrated bool
 }
 
 func newDefaultData(gluonDir string) Data {
