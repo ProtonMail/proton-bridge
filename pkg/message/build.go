@@ -45,7 +45,7 @@ var (
 // InternalIDDomain is used as a placeholder for reference/message ID headers to improve compatibility with various clients.
 const InternalIDDomain = `protonmail.internalid`
 
-func BuildRFC822(kr *crypto.KeyRing, msg liteapi.Message, attData map[string][]byte, opts JobOptions) ([]byte, error) {
+func BuildRFC822(kr *crypto.KeyRing, msg liteapi.Message, attData [][]byte, opts JobOptions) ([]byte, error) {
 	switch {
 	case len(msg.Attachments) > 0:
 		return buildMultipartRFC822(kr, msg, attData, opts)
@@ -91,7 +91,7 @@ func buildSimpleRFC822(kr *crypto.KeyRing, msg liteapi.Message, opts JobOptions)
 func buildMultipartRFC822(
 	kr *crypto.KeyRing,
 	msg liteapi.Message,
-	attData map[string][]byte,
+	attData [][]byte,
 	opts JobOptions,
 ) ([]byte, error) {
 	boundary := newBoundary(msg.ID)
@@ -114,13 +114,13 @@ func buildMultipartRFC822(
 		attachData [][]byte
 	)
 
-	for _, att := range msg.Attachments {
+	for index, att := range msg.Attachments {
 		if att.Disposition == liteapi.InlineDisposition {
 			inlineAtts = append(inlineAtts, att)
-			inlineData = append(inlineData, attData[att.ID])
+			inlineData = append(inlineData, attData[index])
 		} else {
 			attachAtts = append(attachAtts, att)
-			attachData = append(attachData, attData[att.ID])
+			attachData = append(attachData, attData[index])
 		}
 	}
 

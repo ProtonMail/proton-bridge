@@ -631,7 +631,7 @@ func TestBuildHTMLMessageWithAttachment(t *testing.T) {
 	msg := newTestMessage(t, kr, "messageID", "addressID", "text/html", "<html><body>body</body></html>", time.Now())
 	att := addTestAttachment(t, kr, &msg, "attachID", "file.png", "image/png", "attachment", "attachment")
 
-	res, err := BuildRFC822(kr, msg, map[string][]byte{"attachID": att}, JobOptions{})
+	res, err := BuildRFC822(kr, msg, [][]byte{att}, JobOptions{})
 	require.NoError(t, err)
 
 	section(t, res, 1).
@@ -655,7 +655,7 @@ func TestBuildHTMLMessageWithRFC822Attachment(t *testing.T) {
 	msg := newTestMessage(t, kr, "messageID", "addressID", "text/html", "<html><body>body</body></html>", time.Now())
 	att := addTestAttachment(t, kr, &msg, "attachID", "file.eml", "message/rfc822", "attachment", "... message/rfc822 ...")
 
-	res, err := BuildRFC822(kr, msg, map[string][]byte{"attachID": att}, JobOptions{})
+	res, err := BuildRFC822(kr, msg, [][]byte{att}, JobOptions{})
 	require.NoError(t, err)
 
 	section(t, res, 1).
@@ -679,7 +679,7 @@ func TestBuildHTMLMessageWithInlineAttachment(t *testing.T) {
 	msg := newTestMessage(t, kr, "messageID", "addressID", "text/html", "<html><body>body</body></html>", time.Now())
 	inl := addTestAttachment(t, kr, &msg, "inlineID", "file.png", "image/png", "inline", "inline")
 
-	res, err := BuildRFC822(kr, msg, map[string][]byte{"inlineID": inl}, JobOptions{})
+	res, err := BuildRFC822(kr, msg, [][]byte{inl}, JobOptions{})
 	require.NoError(t, err)
 
 	section(t, res, 1).
@@ -709,11 +709,11 @@ func TestBuildHTMLMessageWithComplexAttachments(t *testing.T) {
 	att0 := addTestAttachment(t, kr, &msg, "attachID0", "attach0.png", "image/png", "attachment", "attach0")
 	att1 := addTestAttachment(t, kr, &msg, "attachID1", "attach1.png", "image/png", "attachment", "attach1")
 
-	res, err := BuildRFC822(kr, msg, map[string][]byte{
-		"inlineID0": inl0,
-		"inlineID1": inl1,
-		"attachID0": att0,
-		"attachID1": att1,
+	res, err := BuildRFC822(kr, msg, [][]byte{
+		inl0,
+		inl1,
+		att0,
+		att1,
 	}, JobOptions{})
 	require.NoError(t, err)
 
@@ -762,7 +762,7 @@ func TestBuildAttachmentWithExoticFilename(t *testing.T) {
 	msg := newTestMessage(t, kr, "messageID", "addressID", "text/html", "<html><body>body</body></html>", time.Now())
 	att := addTestAttachment(t, kr, &msg, "attachID", `I řeally šhould leařn czech.png`, "image/png", "attachment", "attachment")
 
-	res, err := BuildRFC822(kr, msg, map[string][]byte{"attachID": att}, JobOptions{})
+	res, err := BuildRFC822(kr, msg, [][]byte{att}, JobOptions{})
 	require.NoError(t, err)
 
 	// The "name" and "filename" params should actually be RFC2047-encoded because they aren't 7-bit clean.
@@ -784,7 +784,7 @@ func TestBuildAttachmentWithLongFilename(t *testing.T) {
 	msg := newTestMessage(t, kr, "messageID", "addressID", "text/html", "<html><body>body</body></html>", time.Now())
 	att := addTestAttachment(t, kr, &msg, "attachID", veryLongName, "image/png", "attachment", "attachment")
 
-	res, err := BuildRFC822(kr, msg, map[string][]byte{"attachID": att}, JobOptions{})
+	res, err := BuildRFC822(kr, msg, [][]byte{att}, JobOptions{})
 	require.NoError(t, err)
 
 	// NOTE: hasMaxLineLength is too high! Long filenames should be linewrapped using multipart filenames.
@@ -969,10 +969,10 @@ func TestBuildMessageIsDeterministic(t *testing.T) {
 	inl := addTestAttachment(t, kr, &msg, "inlineID", "file.png", "image/png", "inline", "inline")
 	att := addTestAttachment(t, kr, &msg, "attachID", "attach.png", "image/png", "attachment", "attachment")
 
-	res1, err := BuildRFC822(kr, msg, map[string][]byte{"inlineID": inl, "attachID": att}, JobOptions{})
+	res1, err := BuildRFC822(kr, msg, [][]byte{inl, att}, JobOptions{})
 	require.NoError(t, err)
 
-	res2, err := BuildRFC822(kr, msg, map[string][]byte{"inlineID": inl, "attachID": att}, JobOptions{})
+	res2, err := BuildRFC822(kr, msg, [][]byte{inl, att}, JobOptions{})
 	require.NoError(t, err)
 
 	assert.Equal(t, res1, res2)
@@ -1001,7 +1001,7 @@ func TestBuildUndecryptableAttachment(t *testing.T) {
 	// Use a different keyring for encrypting the attachment; it won't be decryptable.
 	att := addTestAttachment(t, utils.MakeKeyRing(t), &msg, "attachID", "file.png", "image/png", "attachment", "attachment")
 
-	_, err := BuildRFC822(kr, msg, map[string][]byte{"attachID": att}, JobOptions{})
+	_, err := BuildRFC822(kr, msg, [][]byte{att}, JobOptions{})
 	require.ErrorIs(t, err, ErrDecryptionFailed)
 }
 
@@ -1102,7 +1102,7 @@ func TestBuildCustomMessagePlainWithAttachment(t *testing.T) {
 	att := addTestAttachment(t, foreignKR, &msg, "attachID", "file.png", "image/png", "attachment", "attachment")
 
 	// Tell the job to ignore decryption errors; a custom message will be returned instead of an error.
-	res, err := BuildRFC822(kr, msg, map[string][]byte{"attachID": att}, JobOptions{IgnoreDecryptionErrors: true})
+	res, err := BuildRFC822(kr, msg, [][]byte{att}, JobOptions{IgnoreDecryptionErrors: true})
 	require.NoError(t, err)
 
 	section(t, res).
@@ -1135,7 +1135,7 @@ func TestBuildCustomMessageHTMLWithAttachment(t *testing.T) {
 	att := addTestAttachment(t, foreignKR, &msg, "attachID", "file.png", "image/png", "attachment", "attachment")
 
 	// Tell the job to ignore decryption errors; a custom message will be returned instead of an error.
-	res, err := BuildRFC822(kr, msg, map[string][]byte{"attachID": att}, JobOptions{IgnoreDecryptionErrors: true})
+	res, err := BuildRFC822(kr, msg, [][]byte{att}, JobOptions{IgnoreDecryptionErrors: true})
 	require.NoError(t, err)
 
 	section(t, res).
@@ -1170,7 +1170,7 @@ func TestBuildCustomMessageOnlyBodyIsUndecryptable(t *testing.T) {
 	att := addTestAttachment(t, kr, &msg, "attachID", "file.png", "image/png", "attachment", "attachment")
 
 	// Tell the job to ignore decryption errors; a custom message will be returned instead of an error.
-	res, err := BuildRFC822(kr, msg, map[string][]byte{"attachID": att}, JobOptions{IgnoreDecryptionErrors: true})
+	res, err := BuildRFC822(kr, msg, [][]byte{att}, JobOptions{IgnoreDecryptionErrors: true})
 	require.NoError(t, err)
 
 	section(t, res).
@@ -1203,7 +1203,7 @@ func TestBuildCustomMessageOnlyAttachmentIsUndecryptable(t *testing.T) {
 	att := addTestAttachment(t, foreignKR, &msg, "attachID", "file.png", "image/png", "attachment", "attachment")
 
 	// Tell the job to ignore decryption errors; a custom message will be returned instead of an error.
-	res, err := BuildRFC822(kr, msg, map[string][]byte{"attachID": att}, JobOptions{IgnoreDecryptionErrors: true})
+	res, err := BuildRFC822(kr, msg, [][]byte{att}, JobOptions{IgnoreDecryptionErrors: true})
 	require.NoError(t, err)
 
 	section(t, res).
