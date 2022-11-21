@@ -40,7 +40,7 @@ namespace
     QString const exeSuffix;
 #endif
 
-QString const bridgeLock = "bridge-gui.lock"; ///< file name used for the lock file.
+QString const bridgeLock = "bridge-v3-gui.lock"; ///< file name used for the lock file.
 QString const exeName = "bridge" + exeSuffix; ///< The bridge executable file name.*
 qint64 const grpcServiceConfigWaitDelayMs = 180000; ///< The wait delay for the gRPC config file in milliseconds.
 
