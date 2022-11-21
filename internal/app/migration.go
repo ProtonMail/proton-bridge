@@ -20,6 +20,7 @@ package app
 import (
 	"encoding/json"
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -48,7 +49,9 @@ func migrateKeychainHelper(locations *locations.Locations) error {
 	}
 
 	b, err := os.ReadFile(filepath.Join(configDir, "protonmail", "bridge", "prefs.json"))
-	if err != nil {
+	if errors.Is(err, fs.ErrNotExist) {
+		return nil
+	} else if err != nil {
 		return fmt.Errorf("failed to read old prefs file: %w", err)
 	}
 
@@ -78,7 +81,9 @@ func migrateOldSettings(v *vault.Vault) error {
 	}
 
 	b, err := os.ReadFile(filepath.Join(configDir, "protonmail", "bridge", "prefs.json"))
-	if err != nil {
+	if errors.Is(err, fs.ErrNotExist) {
+		return nil
+	} else if err != nil {
 		return fmt.Errorf("failed to read old prefs file: %w", err)
 	}
 
