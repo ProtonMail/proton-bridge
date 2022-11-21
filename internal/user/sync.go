@@ -113,6 +113,7 @@ func (user *User) sync(ctx context.Context) error {
 					user.ID(),
 					user.client,
 					user.vault,
+					user.apiLabels,
 					addrKRs,
 					user.updateCh,
 					user.eventCh,
@@ -147,12 +148,14 @@ func syncLabels(ctx context.Context, apiLabels map[string]liteapi.Label, updateC
 
 	// Sync the user's labels.
 	for labelID, label := range apiLabels {
+		if !wantLabel(label) {
+			continue
+		}
+
 		switch label.Type {
 		case liteapi.LabelTypeSystem:
-			if wantLabelID(labelID) {
-				for _, updateCh := range updateCh {
-					updateCh.Enqueue(newSystemMailboxCreatedUpdate(imap.MailboxID(label.ID), label.Name))
-				}
+			for _, updateCh := range updateCh {
+				updateCh.Enqueue(newSystemMailboxCreatedUpdate(imap.MailboxID(label.ID), label.Name))
 			}
 
 		case liteapi.LabelTypeFolder, liteapi.LabelTypeLabel:
@@ -181,6 +184,7 @@ func syncMessages( //nolint:funlen
 	userID string,
 	client *liteapi.Client,
 	vault *vault.User,
+	apiLabels map[string]liteapi.Label,
 	addrKRs map[string]*crypto.KeyRing,
 	updateCh map[string]*queue.QueuedChannel[imap.Update],
 	eventCh *queue.QueuedChannel[events.Event],
@@ -196,7 +200,7 @@ func syncMessages( //nolint:funlen
 	buildCh := stream.Map(
 		client.GetFullMessages(ctx, syncWorkers, syncBuffer, messageIDs...),
 		func(_ context.Context, full liteapi.FullMessage) (*buildRes, error) {
-			return buildRFC822(full, addrKRs[full.AddressID])
+			return buildRFC822(apiLabels, full, addrKRs[full.AddressID])
 		},
 	)
 
@@ -293,14 +297,46 @@ func newMailboxCreatedUpdate(labelID imap.MailboxID, labelName []string) *imap.M
 	})
 }
 
-func wantLabelID(labelID string) bool {
-	switch labelID {
-	case liteapi.AllDraftsLabel, liteapi.AllSentLabel, liteapi.OutboxLabel:
-		return false
-
-	default:
+func wantLabel(label liteapi.Label) bool {
+	if label.Type != liteapi.LabelTypeSystem {
 		return true
 	}
+
+	// nolint:exhaustive
+	switch label.ID {
+	case liteapi.InboxLabel:
+		return true
+
+	case liteapi.TrashLabel:
+		return true
+
+	case liteapi.SpamLabel:
+		return true
+
+	case liteapi.AllMailLabel:
+		return true
+
+	case liteapi.ArchiveLabel:
+		return true
+
+	case liteapi.SentLabel:
+		return true
+
+	case liteapi.DraftsLabel:
+		return true
+
+	case liteapi.StarredLabel:
+		return true
+
+	default:
+		return false
+	}
+}
+
+func wantLabels(apiLabels map[string]liteapi.Label, labelIDs []string) []string {
+	return xslices.Filter(labelIDs, func(labelID string) bool {
+		return wantLabel(apiLabels[labelID])
+	})
 }
 
 func forEach[T any](ctx context.Context, streamer stream.Stream[T], fn func(T) error) error {

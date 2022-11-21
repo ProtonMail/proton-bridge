@@ -23,7 +23,6 @@ import (
 	"github.com/ProtonMail/gluon/imap"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/ProtonMail/proton-bridge/v2/pkg/message"
-	"github.com/bradenaw/juniper/xslices"
 	"gitlab.protontech.ch/go/liteapi"
 )
 
@@ -44,13 +43,13 @@ func defaultJobOpts() message.JobOptions {
 	}
 }
 
-func buildRFC822(full liteapi.FullMessage, addrKR *crypto.KeyRing) (*buildRes, error) {
+func buildRFC822(apiLabels map[string]liteapi.Label, full liteapi.FullMessage, addrKR *crypto.KeyRing) (*buildRes, error) {
 	literal, err := message.BuildRFC822(addrKR, full.Message, full.AttData, defaultJobOpts())
 	if err != nil {
 		return nil, fmt.Errorf("failed to build message %s: %w", full.ID, err)
 	}
 
-	update, err := newMessageCreatedUpdate(full.MessageMetadata, literal)
+	update, err := newMessageCreatedUpdate(apiLabels, full.MessageMetadata, literal)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create IMAP update for message %s: %w", full.ID, err)
 	}
@@ -62,7 +61,11 @@ func buildRFC822(full liteapi.FullMessage, addrKR *crypto.KeyRing) (*buildRes, e
 	}, nil
 }
 
-func newMessageCreatedUpdate(message liteapi.MessageMetadata, literal []byte) (*imap.MessageCreated, error) {
+func newMessageCreatedUpdate(
+	apiLabels map[string]liteapi.Label,
+	message liteapi.MessageMetadata,
+	literal []byte,
+) (*imap.MessageCreated, error) {
 	parsedMessage, err := imap.NewParsedMessage(literal)
 	if err != nil {
 		return nil, err
@@ -71,7 +74,7 @@ func newMessageCreatedUpdate(message liteapi.MessageMetadata, literal []byte) (*
 	return &imap.MessageCreated{
 		Message:       toIMAPMessage(message),
 		Literal:       literal,
-		MailboxIDs:    mapTo[string, imap.MailboxID](xslices.Filter(message.LabelIDs, wantLabelID)),
+		MailboxIDs:    mapTo[string, imap.MailboxID](wantLabels(apiLabels, message.LabelIDs)),
 		ParsedMessage: parsedMessage,
 	}, nil
 }

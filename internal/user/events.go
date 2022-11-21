@@ -28,7 +28,6 @@ import (
 	"github.com/ProtonMail/proton-bridge/v2/internal/logging"
 	"github.com/ProtonMail/proton-bridge/v2/internal/safe"
 	"github.com/ProtonMail/proton-bridge/v2/internal/vault"
-	"github.com/bradenaw/juniper/xslices"
 	"github.com/sirupsen/logrus"
 	"gitlab.protontech.ch/go/liteapi"
 )
@@ -437,7 +436,7 @@ func (user *User) handleCreateMessageEvent(ctx context.Context, event liteapi.Me
 		}).Info("Handling message created event")
 
 		return withAddrKR(user.apiUser, user.apiAddrs[event.Message.AddressID], user.vault.KeyPass(), func(_, addrKR *crypto.KeyRing) error {
-			buildRes, err := buildRFC822(full, addrKR)
+			buildRes, err := buildRFC822(user.apiLabels, full, addrKR)
 			if err != nil {
 				return fmt.Errorf("failed to build RFC822 message: %w", err)
 			}
@@ -446,7 +445,7 @@ func (user *User) handleCreateMessageEvent(ctx context.Context, event liteapi.Me
 
 			return nil
 		})
-	}, user.apiUserLock, user.apiAddrsLock, user.updateChLock)
+	}, user.apiUserLock, user.apiAddrsLock, user.apiLabelsLock, user.updateChLock)
 }
 
 func (user *User) handleUpdateMessageEvent(ctx context.Context, event liteapi.MessageEvent) error { //nolint:unparam
@@ -458,13 +457,13 @@ func (user *User) handleUpdateMessageEvent(ctx context.Context, event liteapi.Me
 
 		user.updateCh[event.Message.AddressID].Enqueue(imap.NewMessageMailboxesUpdated(
 			imap.MessageID(event.ID),
-			mapTo[string, imap.MailboxID](xslices.Filter(event.Message.LabelIDs, wantLabelID)),
+			mapTo[string, imap.MailboxID](wantLabels(user.apiLabels, event.Message.LabelIDs)),
 			event.Message.Seen(),
 			event.Message.Starred(),
 		))
 
 		return nil
-	}, user.updateChLock)
+	}, user.apiLabelsLock, user.updateChLock)
 }
 
 func (user *User) handleDeleteMessageEvent(ctx context.Context, event liteapi.MessageEvent) error { //nolint:unparam
@@ -492,7 +491,7 @@ func (user *User) handleUpdateDraftEvent(ctx context.Context, event liteapi.Mess
 		}
 
 		return withAddrKR(user.apiUser, user.apiAddrs[event.Message.AddressID], user.vault.KeyPass(), func(_, addrKR *crypto.KeyRing) error {
-			buildRes, err := buildRFC822(full, addrKR)
+			buildRes, err := buildRFC822(user.apiLabels, full, addrKR)
 			if err != nil {
 				return fmt.Errorf("failed to build RFC822 draft: %w", err)
 			}
@@ -506,7 +505,7 @@ func (user *User) handleUpdateDraftEvent(ctx context.Context, event liteapi.Mess
 
 			return nil
 		})
-	}, user.apiUserLock, user.apiAddrsLock, user.updateChLock)
+	}, user.apiUserLock, user.apiAddrsLock, user.apiLabelsLock, user.updateChLock)
 }
 
 func getMailboxName(label liteapi.Label) []string {
