@@ -72,9 +72,10 @@ type User struct {
 
 	tasks     *async.Group
 	abortable async.Abortable
-	pollCh    chan chan struct{}
-	goPoll    func(bool)
 	goSync    func()
+
+	pollAPIEventsCh chan chan struct{}
+	goPollAPIEvents func(wait bool)
 
 	syncWorkers int
 	syncBuffer  int
@@ -131,8 +132,8 @@ func New(
 
 		reporter: reporter,
 
-		tasks:  async.NewGroup(context.Background(), crashHandler),
-		pollCh: make(chan chan struct{}),
+		tasks:           async.NewGroup(context.Background(), crashHandler),
+		pollAPIEventsCh: make(chan chan struct{}),
 
 		syncWorkers: syncWorkers,
 		syncBuffer:  syncBuffer,
@@ -179,7 +180,7 @@ func New(
 			case <-ctx.Done():
 				return
 
-			case doneCh = <-user.pollCh:
+			case doneCh = <-user.pollAPIEventsCh:
 				// ...
 
 			case <-ticker.C:
@@ -201,10 +202,10 @@ func New(
 	})
 
 	// When triggered, poll the API for events, optionally blocking until the poll is complete.
-	user.goPoll = func(wait bool) {
+	user.goPollAPIEvents = func(wait bool) {
 		doneCh := make(chan struct{})
 
-		go func() { user.pollCh <- doneCh }()
+		go func() { user.pollAPIEventsCh <- doneCh }()
 
 		if wait {
 			<-doneCh
@@ -411,7 +412,7 @@ func (user *User) NewIMAPConnectors() (map[string]connector.Connector, error) {
 //
 // nolint:funlen
 func (user *User) SendMail(authID string, from string, to []string, r io.Reader) error {
-	defer user.goPoll(true)
+	defer user.goPollAPIEvents(true)
 
 	if len(to) == 0 {
 		return ErrInvalidRecipient
