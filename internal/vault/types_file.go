@@ -30,28 +30,25 @@ type File struct {
 	Data    []byte
 }
 
-func unmarshalFile[T any](gcm cipher.AEAD, enc []byte, data *T) error {
-	dec, err := gcm.Open(nil, enc[:gcm.NonceSize()], enc[gcm.NonceSize():], nil)
+func unmarshalFile[T any](gcm cipher.AEAD, b []byte, data *T) error {
+	var f File
+
+	if err := msgpack.Unmarshal(b, &f); err != nil {
+		return err
+	}
+
+	dec, err := gcm.Open(nil, f.Data[:gcm.NonceSize()], f.Data[gcm.NonceSize():], nil)
 	if err != nil {
 		return err
 	}
 
-	var f File
-
-	if err := msgpack.Unmarshal(dec, &f); err != nil {
-		return err
-	}
-
 	for v := f.Version; v < Current; v++ {
-		b, err := upgrade(v, f.Data)
-		if err != nil {
+		if dec, err = upgrade(v, dec); err != nil {
 			return err
 		}
-
-		f.Data = b
 	}
 
-	if err := msgpack.Unmarshal(f.Data, data); err != nil {
+	if err := msgpack.Unmarshal(dec, data); err != nil {
 		return err
 	}
 
@@ -59,12 +56,7 @@ func unmarshalFile[T any](gcm cipher.AEAD, enc []byte, data *T) error {
 }
 
 func marshalFile[T any](gcm cipher.AEAD, t T) ([]byte, error) {
-	b, err := msgpack.Marshal(t)
-	if err != nil {
-		return nil, err
-	}
-
-	dec, err := msgpack.Marshal(File{Version: Current, Data: b})
+	dec, err := msgpack.Marshal(t)
 	if err != nil {
 		return nil, err
 	}
@@ -74,5 +66,8 @@ func marshalFile[T any](gcm cipher.AEAD, t T) ([]byte, error) {
 		return nil, err
 	}
 
-	return gcm.Seal(nonce, nonce, dec, nil), nil
+	return msgpack.Marshal(File{
+		Version: Current,
+		Data:    gcm.Seal(nonce, nonce, dec, nil),
+	})
 }

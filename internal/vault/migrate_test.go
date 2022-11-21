@@ -83,14 +83,17 @@ func newLegacyVault[T any](t *testing.T, key []byte, version Version, data T) []
 	gcm, err := cipher.NewGCM(aes)
 	require.NoError(t, err)
 
-	b, err := msgpack.Marshal(data)
-	require.NoError(t, err)
-
-	dec, err := msgpack.Marshal(File{Version: version, Data: b})
-	require.NoError(t, err)
-
 	nonce, err := crypto.RandomToken(gcm.NonceSize())
 	require.NoError(t, err)
 
-	return gcm.Seal(nonce, nonce, dec, nil)
+	dec, err := msgpack.Marshal(data)
+	require.NoError(t, err)
+
+	res, err := msgpack.Marshal(File{
+		Version: version,
+		Data:    gcm.Seal(nonce, nonce, dec, nil),
+	})
+	require.NoError(t, err)
+
+	return res
 }
