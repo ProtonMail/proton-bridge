@@ -212,7 +212,7 @@ func (s *Service) watchEvents() {
 	for _, err := range s.bridge.GetErrors() {
 		switch {
 		case errors.Is(err, bridge.ErrVaultCorrupt):
-			_ = s.SendEvent(NewKeychainHasNoKeychainEvent())
+			// _ = s.SendEvent(NewKeychainHasNoKeychainEvent())
 
 		case errors.Is(err, bridge.ErrVaultInsecure):
 			_ = s.SendEvent(NewKeychainHasNoKeychainEvent())
