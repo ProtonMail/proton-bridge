@@ -25,12 +25,14 @@ import (
 	"io"
 	"io/fs"
 	"os"
+	"path/filepath"
 	"runtime"
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/ProtonMail/gluon"
 	imapEvents "github.com/ProtonMail/gluon/events"
 	"github.com/ProtonMail/gluon/reporter"
+	"github.com/ProtonMail/gluon/store"
 	"github.com/ProtonMail/proton-bridge/v2/internal/async"
 	"github.com/ProtonMail/proton-bridge/v2/internal/constants"
 	"github.com/ProtonMail/proton-bridge/v2/internal/logging"
@@ -248,6 +250,7 @@ func newIMAPServer(
 	imapServer, err := gluon.New(
 		gluon.WithTLS(tlsConfig),
 		gluon.WithDataDir(gluonDir),
+		gluon.WithStoreBuilder(new(storeBuilder)),
 		gluon.WithLogger(imapClientLog, imapServerLog),
 		getGluonVersionInfo(version),
 		gluon.WithReporter(reporter),
@@ -297,4 +300,18 @@ func isEmpty(dir string) (bool, bool, error) {
 	}
 
 	return len(entries) == 0, true, nil
+}
+
+type storeBuilder struct{}
+
+func (*storeBuilder) New(path, userID string, passphrase []byte) (store.Store, error) {
+	return store.NewOnDiskStore(
+		filepath.Join(path, userID),
+		passphrase,
+		store.WithCompressor(new(store.GZipCompressor)),
+	)
+}
+
+func (*storeBuilder) Delete(path, userID string) error {
+	return os.RemoveAll(filepath.Join(path, userID))
 }
