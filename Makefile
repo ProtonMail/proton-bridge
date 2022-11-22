@@ -34,9 +34,8 @@ ifneq "${BUILD_LDFLAGS}" ""
 endif
 GO_LDFLAGS_LAUNCHER:=${GO_LDFLAGS}
 ifeq "${TARGET_OS}" "windows"
-	#Temporarily disable this so we can inspect trace logs from the bridge for debugging
-	#GO_LDFLAGS+=-H=windowsgui
-	#GO_LDFLAGS_LAUNCHER+=-H=windowsgui
+	#GO_LDFLAGS+=-H=windowsgui # Disabled so we can inspect trace logs from the bridge for debugging.
+	GO_LDFLAGS_LAUNCHER+=-H=windowsgui # Having this flag prevent a temporary cmd.exe window from popping when starting the application on Windows 11.
 endif
 
 BUILD_FLAGS+=-ldflags '${GO_LDFLAGS}'
