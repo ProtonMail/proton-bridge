@@ -31,7 +31,7 @@ import (
 )
 
 func getRootURL() string {
-	return "https://api.protonmail.ch"
+	return "https://mail-api.proton.me"
 }
 
 func TestTLSPinValid(t *testing.T) {

@@ -22,7 +22,7 @@ package constants
 import "os"
 
 // APIHost is our API address.
-var APIHost = "https://api.protonmail.ch"
+var APIHost = "https://mail-api.proton.me"
 
 func init() {
 	if apiHost := os.Getenv("BRIDGE_HOST_URL"); apiHost != "" {
