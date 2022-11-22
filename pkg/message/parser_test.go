@@ -587,7 +587,22 @@ func TestParseMessageReferences(t *testing.T) {
 	m, err := Parse(f)
 	require.NoError(t, err)
 
-	assert.Len(t, m.References, 2)
+	assert.ElementsMatch(t, m.References, []string{
+		`PMZV4VZMRM@something.com`,
+		`OEUOEUEOUOUOU770B9QNZWFVGM@protonmail.ch`,
+	})
+}
+
+func TestParseMessageReferencesComma(t *testing.T) {
+	f := getFileReader("references-comma.eml")
+
+	m, err := Parse(f)
+	require.NoError(t, err)
+
+	assert.ElementsMatch(t, m.References, []string{
+		`PMZV4VZMRM@something.com`,
+		`OEUOEUEOUOUOU770B9QNZWFVGM@protonmail.ch`,
+	})
 }
 
 func TestParsePanic(t *testing.T) {

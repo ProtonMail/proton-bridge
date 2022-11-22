@@ -30,7 +30,6 @@ import (
 	"github.com/ProtonMail/go-rfc5322"
 	"github.com/ProtonMail/proton-bridge/v2/pkg/message/parser"
 	pmmime "github.com/ProtonMail/proton-bridge/v2/pkg/mime"
-	"github.com/bradenaw/juniper/xslices"
 	"github.com/emersion/go-message"
 	"github.com/jaytaylor/html2text"
 	"github.com/pkg/errors"
@@ -497,9 +496,11 @@ func parseMessageHeader(h message.Header) (Message, error) { //nolint:funlen
 			m.InReplyTo = regexp.MustCompile("<(.*)>").ReplaceAllString(fields.Value(), "$1")
 
 		case "references":
-			m.References = append(m.References, xslices.Map(strings.Fields(fields.Value()), func(ref string) string {
-				return strings.Trim(ref, "<>")
-			})...)
+			for _, ref := range strings.Fields(fields.Value()) {
+				for _, ref := range strings.Split(ref, ",") {
+					m.References = append(m.References, strings.Trim(ref, "<>"))
+				}
+			}
 		}
 	}
 

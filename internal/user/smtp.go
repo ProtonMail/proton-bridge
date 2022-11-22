@@ -163,8 +163,7 @@ func sendWithKey( //nolint:funlen
 	authAddrID string,
 	addrMode vault.AddressMode,
 	settings liteapi.MailSettings,
-	userKR *crypto.KeyRing,
-	addrKR *crypto.KeyRing,
+	userKR, addrKR *crypto.KeyRing,
 	emails []string,
 	from string,
 	to []string,
@@ -177,7 +176,8 @@ func sendWithKey( //nolint:funlen
 
 	var decBody string
 
-	switch message.MIMEType { //nolint:exhaustive
+	// nolint:exhaustive
+	switch message.MIMEType {
 	case rfc822.TextHTML:
 		decBody = string(message.RichBody)
 
