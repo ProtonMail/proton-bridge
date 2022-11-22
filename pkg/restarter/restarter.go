@@ -92,12 +92,7 @@ func (restarter *Restarter) Restart() {
 		return
 	}
 
-	cmd.Stdin = os.Stdin
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
 	cmd.Env = getEnvList(env)
-
-	l.Warn("Restarting")
 
 	if err := run(cmd); err != nil {
 		l.WithError(err).Error("Failed to restart")

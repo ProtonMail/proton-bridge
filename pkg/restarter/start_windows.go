@@ -30,5 +30,8 @@ func run(cmd *exec.Cmd) error {
 	cmd.SysProcAttr = &syscall.SysProcAttr{
 		CreationFlags: syscall.CREATE_NEW_PROCESS_GROUP,
 	}
+
+	logrus.WithField("cmd", cmd).Info("Starting new process")
+
 	return cmd.Start()
 }

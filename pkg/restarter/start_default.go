@@ -23,6 +23,8 @@ package restarter
 import (
 	"os/exec"
 	"syscall"
+
+	"github.com/sirupsen/logrus"
 )
 
 func run(cmd *exec.Cmd) error {
@@ -31,5 +33,8 @@ func run(cmd *exec.Cmd) error {
 		Setpgid: true,
 		Pgid:    0,
 	}
+
+	logrus.WithField("cmd", cmd).Info("Starting new process")
+
 	return cmd.Start()
 }
