@@ -38,8 +38,12 @@ func runFrontend(
 	locations *locations.Locations,
 	bridge *bridge.Bridge,
 	eventCh <-chan events.Event,
+	quitCh <-chan struct{},
 	parentPID int,
 ) error {
+	logrus.Debug("Running frontend")
+	defer logrus.Debug("Frontend stopped")
+
 	switch {
 	case c.Bool(flagCLI):
 		return bridgeCLI.New(bridge, restarter, eventCh).Loop()
@@ -48,7 +52,7 @@ func runFrontend(
 		select {}
 
 	case c.Bool(flagGRPC):
-		service, err := grpc.NewService(crashHandler, restarter, locations, bridge, eventCh, !c.Bool(flagNoWindow), parentPID)
+		service, err := grpc.NewService(crashHandler, restarter, locations, bridge, eventCh, quitCh, !c.Bool(flagNoWindow), parentPID)
 		if err != nil {
 			return fmt.Errorf("could not create service: %w", err)
 		}

@@ -68,6 +68,7 @@ type Service struct { // nolint:structcheck
 	restarter    Restarter
 	bridge       *bridge.Bridge
 	eventCh      <-chan events.Event
+	quitCh       <-chan struct{}
 
 	latest     updater.VersionInfo
 	latestLock safe.RWMutex
@@ -97,6 +98,7 @@ func NewService(
 	locations Locator,
 	bridge *bridge.Bridge,
 	eventCh <-chan events.Event,
+	quitCh <-chan struct{},
 	showOnStartup bool,
 	parentPID int,
 ) (*Service, error) {
@@ -130,6 +132,7 @@ func NewService(
 		restarter:    restarter,
 		bridge:       bridge,
 		eventCh:      eventCh,
+		quitCh:       quitCh,
 
 		latest:     updater.VersionInfo{},
 		latestLock: safe.NewRWMutex(),
@@ -193,6 +196,15 @@ func (s *Service) Loop() error {
 	}()
 
 	s.log.Info("Starting gRPC server")
+
+	go func() {
+		<-s.quitCh
+
+		s.log.Info("Stopping gRPC server")
+		defer s.log.Info("Stopped gRPC server")
+
+		s.grpcServer.Stop()
+	}()
 
 	if err := s.grpcServer.Serve(s.listener); err != nil {
 		s.log.WithError(err).Error("Failed to serve gRPC")

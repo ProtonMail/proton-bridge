@@ -59,6 +59,7 @@ func withBridge( //nolint:funlen
 	fn func(*bridge.Bridge, <-chan events.Event) error,
 ) error {
 	logrus.Debug("Creating bridge")
+	defer logrus.Debug("Bridge stopped")
 
 	// Delete old go-imap cache files
 	if deleteOldGoIMAPFiles {

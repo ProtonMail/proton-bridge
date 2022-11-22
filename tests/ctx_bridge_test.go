@@ -202,6 +202,7 @@ func (t *testCtx) initFrontendService(eventCh <-chan events.Event) error {
 		t.locator,
 		t.bridge,
 		eventCh,
+		make(chan struct{}),
 		true,
 		-1,
 	)

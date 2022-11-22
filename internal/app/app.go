@@ -180,7 +180,7 @@ func run(c *cli.Context) error { //nolint:funlen
 		// Restart the app if requested.
 		return withRestarter(exe, func(restarter *restarter.Restarter) error {
 			// Handle crashes with various actions.
-			return withCrashHandler(restarter, reporter, func(crashHandler *crash.Handler) error {
+			return withCrashHandler(restarter, reporter, func(crashHandler *crash.Handler, quitCh <-chan struct{}) error {
 				// Load the locations where we store our files.
 				return WithLocations(func(locations *locations.Locations) error {
 					// Migrate the keychain helper.
@@ -231,7 +231,7 @@ func run(c *cli.Context) error { //nolint:funlen
 										}
 
 										// Run the frontend.
-										return runFrontend(c, crashHandler, restarter, locations, b, eventCh, c.Int(flagParentPID))
+										return runFrontend(c, crashHandler, restarter, locations, b, eventCh, quitCh, c.Int(flagParentPID))
 									})
 								})
 							})
@@ -246,6 +246,7 @@ func run(c *cli.Context) error { //nolint:funlen
 // If there's another instance already running, try to raise it and exit.
 func withSingleInstance(locations *locations.Locations, version *semver.Version, fn func() error) error {
 	logrus.Debug("Checking for other instances")
+	defer logrus.Debug("Single instance stopped")
 
 	lock, err := checkSingleInstance(locations.GetLockFile(), version)
 	if err != nil {
@@ -271,13 +272,16 @@ func withSingleInstance(locations *locations.Locations, version *semver.Version,
 
 // Initialize our logging system.
 func withLogging(c *cli.Context, crashHandler *crash.Handler, locations *locations.Locations, fn func() error) error {
+	logrus.Debug("Initializing logging")
+	defer logrus.Debug("Logging stopped")
+
 	// Get a place to keep our logs.
 	logsPath, err := locations.ProvideLogsPath()
 	if err != nil {
 		return fmt.Errorf("could not provide logs path: %w", err)
 	}
 
-	logrus.WithField("path", logsPath).Debug("Initializing logging")
+	logrus.WithField("path", logsPath).Debug("Received logs path")
 
 	// Initialize logging.
 	if err := logging.Init(logsPath, c.String(flagLogLevel)); err != nil {
@@ -302,6 +306,7 @@ func withLogging(c *cli.Context, crashHandler *crash.Handler, locations *locatio
 // WithLocations provides access to locations where we store our files.
 func WithLocations(fn func(*locations.Locations) error) error {
 	logrus.Debug("Creating locations")
+	defer logrus.Debug("Locations stopped")
 
 	// Create a locations provider to determine where to store our files.
 	provider, err := locations.NewDefaultProvider(filepath.Join(constants.VendorName, constants.ConfigName))
@@ -322,6 +327,8 @@ func WithLocations(fn func(*locations.Locations) error) error {
 
 // Start profiling if requested.
 func withProfiler(c *cli.Context, fn func() error) error {
+	defer logrus.Debug("Profiler stopped")
+
 	if c.Bool(flagCPUProfile) {
 		logrus.Debug("Running with CPU profiling")
 		defer profile.Start(profile.CPUProfile, profile.ProfilePath(".")).Stop()
@@ -338,6 +345,7 @@ func withProfiler(c *cli.Context, fn func() error) error {
 // Restart the app if necessary.
 func withRestarter(exe string, fn func(*restarter.Restarter) error) error {
 	logrus.Debug("Creating restarter")
+	defer logrus.Debug("Restarter stopped")
 
 	restarter := restarter.New(exe)
 	defer restarter.Restart()
@@ -346,8 +354,9 @@ func withRestarter(exe string, fn func(*restarter.Restarter) error) error {
 }
 
 // Handle crashes if they occur.
-func withCrashHandler(restarter *restarter.Restarter, reporter *sentry.Reporter, fn func(*crash.Handler) error) error {
+func withCrashHandler(restarter *restarter.Restarter, reporter *sentry.Reporter, fn func(*crash.Handler, <-chan struct{}) error) error {
 	logrus.Debug("Creating crash handler")
+	defer logrus.Debug("Crash handler stopped")
 
 	crashHandler := crash.NewHandler(crash.ShowErrorNotification(constants.FullAppName))
 	defer crashHandler.HandlePanic()
@@ -361,12 +370,19 @@ func withCrashHandler(restarter *restarter.Restarter, reporter *sentry.Reporter,
 	// On crash, restart the app.
 	crashHandler.AddRecoveryAction(func(any) error { restarter.Set(true, true); return nil })
 
-	return fn(crashHandler)
+	// quitCh is closed when the app is quitting.
+	quitCh := make(chan struct{})
+
+	// On crash, quit the app.
+	crashHandler.AddRecoveryAction(func(any) error { close(quitCh); return nil })
+
+	return fn(crashHandler, quitCh)
 }
 
 // Use a custom cookie jar to persist values across runs.
 func withCookieJar(vault *vault.Vault, fn func(http.CookieJar) error) error {
 	logrus.Debug("Creating cookie jar")
+	defer logrus.Debug("Cookie jar stopped")
 
 	// Create the underlying cookie jar.
 	jar, err := cookiejar.New(nil)

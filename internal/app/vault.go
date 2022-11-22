@@ -34,6 +34,7 @@ import (
 
 func WithVault(locations *locations.Locations, fn func(*vault.Vault, bool, bool) error) error {
 	logrus.Debug("Creating vault")
+	defer logrus.Debug("Vault stopped")
 
 	// Create the encVault.
 	encVault, insecure, corrupt, err := newVault(locations)
