@@ -179,7 +179,8 @@ func syncLabels(ctx context.Context, apiLabels map[string]liteapi.Label, updateC
 	return nil
 }
 
-func syncMessages( //nolint:funlen
+// nolint:funlen
+func syncMessages(
 	ctx context.Context,
 	userID string,
 	client *liteapi.Client,
@@ -199,12 +200,15 @@ func syncMessages( //nolint:funlen
 		return fmt.Errorf("failed to get message IDs to sync: %w", err)
 	}
 
+	// Track the amount of time to process all the messages.
 	syncStartTime := time.Now()
-	defer func() {
-		syncFinishTime := time.Now()
-		logrus.Infof("Message sync completed in %v", syncFinishTime.Sub(syncStartTime))
-	}()
-	logrus.Infof("Starting message sync with syncWorkers=%v (numCpu=%v) for %v messages", syncWorkers, runtime.NumCPU(), len(messageIDs))
+	defer func() { logrus.WithField("duration", time.Since(syncStartTime)).Info("Message sync completed") }()
+
+	logrus.WithFields(logrus.Fields{
+		"messages": len(messageIDs),
+		"workers":  syncWorkers,
+		"numCPU":   runtime.NumCPU(),
+	}).Info("Starting message sync")
 
 	// Create the flushers, one per update channel.
 	flushers := make(map[string]*flusher, len(updateCh))
