@@ -137,10 +137,10 @@ QString userCacheDir()
 //****************************************************************************************************************************************************
 QString userDataDir()
 {
-    QString dir;
+    QString folder;
 
 #ifdef Q_OS_LINUX
-    dir = qgetenv ("XDG_DATA_HOME");
+    QString dir = qgetenv ("XDG_DATA_HOME");
     if (dir.isEmpty())
     {
         dir = qgetenv ("HOME");
@@ -148,12 +148,11 @@ QString userDataDir()
             throw Exception("neither $XDG_DATA_HOME nor $HOME are defined");
         dir += "/.local/share";
     }
-#else
-    dir = userCacheDir();
-#endif
-
-    QString const folder = QDir(dir).absoluteFilePath(configFolder);
+    folder = QDir(dir).absoluteFilePath(configFolder);
     QDir().mkpath(folder);
+#else
+    folder = userCacheDir();
+#endif
 
     return folder;
 }
