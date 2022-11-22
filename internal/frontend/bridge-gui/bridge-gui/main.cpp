@@ -72,7 +72,16 @@ void initQtApplication()
     QGuiApplication::setOrganizationName(PROJECT_VENDOR);
     QGuiApplication::setOrganizationDomain("proton.ch");
     QGuiApplication::setQuitOnLastWindowClosed(false);
+#ifdef Q_OS_MACOS
+    // on macOS, the app icon as it appears in the dock and file system is defined by in the app bundle plist, not here.
+    // We still use this copy (lock icon in white rectangle), so that devs that use the bridge-gui exe directly get a decent looking icon in the dock.
+    // Qt does not support the native .icns format, so we use a PNG file.
+    QGuiApplication::setWindowIcon(QIcon(":bridgeMacOS.svg"));
+#else
+    // On non macOS platform, this icon (without the white rectangle background, is used in the OS decoration elements (title bar, task bar, etc...)
+    // It's not use as the executable icon.
     QGuiApplication::setWindowIcon(QIcon(":bridge.svg"));
+#endif // #ifdef Q_OS_MACOS
 }
 
 
@@ -113,7 +122,6 @@ Log &initLog()
 QQmlComponent *createRootQmlComponent(QQmlApplicationEngine &engine)
 {
     QString const qrcQmlDir = "qrc:/qml";
-
     qmlRegisterSingletonInstance("Proton", 1, 0, "Backend", &app().backend());
     qmlRegisterType<UserList>("Proton", 1, 0, "UserList");
     qmlRegisterType<bridgepp::User>("Proton", 1, 0, "User");
@@ -302,8 +310,12 @@ int main(int argc, char *argv[])
         QStringList args;
         QString launcher;
         bool attach = false;
+        bool noWindow;
         Log::Level logLevel = Log::defaultLevel;
-        parseCommandLineArguments(argc, argv, args, launcher, attach, logLevel);
+        parseCommandLineArguments(argc, argv, args, launcher, attach, logLevel, noWindow);
+#ifdef Q_OS_MACOS
+        setDockIconVisibleState(!noWindow);
+#endif
 
         // In attached mode, we do not intercept stderr and stdout of bridge, as we did not launch it ourselves, so we output the log to the console.
         // When not in attached mode, log entries are forwarded to bridge, which output it on stdout/stderr. bridge-gui's process monitor intercept

@@ -67,6 +67,7 @@
         <file>qml/icons/systray-mono-warn.png</file>
         <file>qml/icons/systray.svg</file>
         <file alias="bridge.svg">../../../../dist/bridge.svg</file>
+        <file alias="bridgeMacOS.svg">../../../../dist/bridgeMacOS.svg</file>
         <file>qml/KeychainSettings.qml</file>
         <file>qml/LocalCacheSettings.qml</file>
         <file>qml/MainWindow.qml</file>

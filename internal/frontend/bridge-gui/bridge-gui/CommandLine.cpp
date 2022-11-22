@@ -28,6 +28,7 @@ namespace
 
 
 QString const launcherFlag = "--launcher"; ///< launcher flag parameter used for bridge.
+QString const noWindowFlag = "--no-window"; ///< The no-window command-line flag.
 
 
 //****************************************************************************************************************************************************
@@ -89,9 +90,12 @@ Log::Level parseLogLevel(int argc, char *argv[])
 /// \param[out] launcher launcher used in argument, forced to self application if not specify.
 /// \param[out] outAttach The value for the 'attach' command-line parameter.
 /// \param[out] outLogLevel The parsed log level. If not found, the default log level is returned.
+/// \param[out] outNoWindow True if the '--no-window' flag was found on the command-line.
 //****************************************************************************************************************************************************
-void parseCommandLineArguments(int argc, char *argv[], QStringList& args, QString& launcher, bool &outAttach, Log::Level& outLogLevel) {
+void parseCommandLineArguments(int argc, char *argv[], QStringList& args, QString& launcher, bool &outAttach, Log::Level& outLogLevel,
+    bool &outNoWindow) {
     bool flagFound = false;
+    outNoWindow = false;
     launcher = QString::fromLocal8Bit(argv[0]);
     // for unknown reasons, on Windows QCoreApplication::arguments() frequently returns an empty list, which is incorrect, so we rebuild the argument
     // list from the original argc and argv values.
@@ -99,6 +103,10 @@ void parseCommandLineArguments(int argc, char *argv[], QStringList& args, QStrin
         QString const &arg = QString::fromLocal8Bit(argv[i]);
         // we can't use QCommandLineParser here since it will fail on unknown options.
         // Arguments may contain some bridge flags.
+
+        if (arg == noWindowFlag)
+            outNoWindow = true;
+
         if (arg == launcherFlag)
         {
             args.append(arg);

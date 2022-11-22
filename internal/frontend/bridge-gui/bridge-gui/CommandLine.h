@@ -23,7 +23,8 @@
 #include <bridgepp/Log/Log.h>
 
 
-void parseCommandLineArguments(int argc, char *argv[], QStringList& args, QString& launcher, bool &outAttach, bridgepp::Log::Level& outLogLevel); ///< Parse the command-line arguments
+void parseCommandLineArguments(int argc, char *argv[], QStringList& args, QString& launcher, bool &outAttach, bridgepp::Log::Level& outLogLevel,
+    bool &outNoWindow); ///< Parse the command-line arguments
 
 
 #endif //BRIDGE_GUI_COMMAND_LINE_H
