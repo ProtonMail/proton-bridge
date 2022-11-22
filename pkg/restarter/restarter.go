@@ -72,7 +72,12 @@ func (restarter *Restarter) Restart() {
 		env[BridgeCrashCount] = "0"
 	}
 
-	cmd := execabs.Command(restarter.exe, xslices.Join(removeFlagWithValue(os.Args[1:], "parent-pid"), restarter.flags)...) //nolint:gosec
+	//nolint:gosec
+	cmd := execabs.Command(
+		restarter.exe,
+		xslices.Join(removeFlagWithValue(os.Args[1:], "parent-pid"), restarter.flags)...,
+	)
+
 	l := logrus.WithFields(logrus.Fields{
 		"exe":        restarter.exe,
 		"crashCount": env[BridgeCrashCount],
