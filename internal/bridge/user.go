@@ -442,7 +442,6 @@ func (bridge *Bridge) addUserWithVault(
 		bridge.crashHandler,
 		bridge.reporter,
 		bridge.vault.SyncWorkers(),
-		bridge.vault.SyncBuffer(),
 		bridge.vault.GetShowAllMail(),
 	)
 	if err != nil {

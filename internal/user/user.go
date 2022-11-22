@@ -78,7 +78,6 @@ type User struct {
 	goPollAPIEvents func(wait bool)
 
 	syncWorkers int
-	syncBuffer  int
 	showAllMail uint32
 }
 
@@ -92,7 +91,7 @@ func New(
 	apiUser liteapi.User,
 	crashHandler async.PanicHandler,
 	reporter gluonReporter.Reporter,
-	syncWorkers, syncBuffer int,
+	syncWorkers int,
 	showAllMail bool,
 ) (*User, error) { //nolint:funlen
 	logrus.WithField("userID", apiUser.ID).Info("Creating new user")
@@ -136,7 +135,6 @@ func New(
 		pollAPIEventsCh: make(chan chan struct{}),
 
 		syncWorkers: syncWorkers,
-		syncBuffer:  syncBuffer,
 		showAllMail: b32(showAllMail),
 	}
 

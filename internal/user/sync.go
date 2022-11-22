@@ -117,7 +117,6 @@ func (user *User) sync(ctx context.Context) error {
 					user.updateCh,
 					user.eventCh,
 					user.syncWorkers,
-					user.syncBuffer,
 				); err != nil {
 					return fmt.Errorf("failed to sync messages: %w", err)
 				}
@@ -187,7 +186,7 @@ func syncMessages( //nolint:funlen
 	addrKRs map[string]*crypto.KeyRing,
 	updateCh map[string]*queue.QueuedChannel[imap.Update],
 	eventCh *queue.QueuedChannel[events.Event],
-	syncWorkers, _ int,
+	syncWorkers int,
 ) error {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()

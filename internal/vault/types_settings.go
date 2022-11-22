@@ -46,7 +46,6 @@ type Settings struct {
 	FirstStartGUI bool
 
 	SyncWorkers int
-	SyncBuffer  int
 	SyncAttPool int
 }
 
@@ -73,7 +72,6 @@ func newDefaultSettings(gluonDir string) Settings {
 		FirstStartGUI: true,
 
 		SyncWorkers: runtime.NumCPU(),
-		SyncBuffer:  runtime.NumCPU(),
 		SyncAttPool: runtime.NumCPU(),
 	}
 }
