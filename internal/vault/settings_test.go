@@ -18,7 +18,6 @@
 package vault_test
 
 import (
-	"runtime"
 	"testing"
 
 	"github.com/Masterminds/semver/v3"
@@ -222,6 +221,7 @@ func TestVault_Settings_SyncWorkers(t *testing.T) {
 	// create a new test vault.
 	s := newVault(t)
 
-	require.Equal(t, runtime.NumCPU(), s.SyncWorkers())
-	require.Equal(t, runtime.NumCPU(), s.SyncAttPool())
+	syncWorkers := vault.GetDefaultSyncWorkerCount()
+	require.Equal(t, syncWorkers, s.SyncWorkers())
+	require.Equal(t, syncWorkers, s.SyncAttPool())
 }

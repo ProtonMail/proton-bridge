@@ -20,6 +20,7 @@ package user
 import (
 	"context"
 	"fmt"
+	"runtime"
 	"strings"
 	"time"
 
@@ -32,6 +33,7 @@ import (
 	"github.com/bradenaw/juniper/parallel"
 	"github.com/bradenaw/juniper/xslices"
 	"github.com/google/uuid"
+	"github.com/sirupsen/logrus"
 	"gitlab.protontech.ch/go/liteapi"
 	"golang.org/x/exp/maps"
 )
@@ -197,6 +199,13 @@ func syncMessages( //nolint:funlen
 		return fmt.Errorf("failed to get message IDs to sync: %w", err)
 	}
 
+	syncStartTime := time.Now()
+	defer func() {
+		syncFinishTime := time.Now()
+		logrus.Infof("Message sync completed in %v", syncFinishTime.Sub(syncStartTime))
+	}()
+	logrus.Infof("Starting message sync with syncWorkers=%v (numCpu=%v) for %v messages", syncWorkers, runtime.NumCPU(), len(messageIDs))
+
 	// Create the flushers, one per update channel.
 	flushers := make(map[string]*flusher, len(updateCh))
 
@@ -223,7 +232,7 @@ func syncMessages( //nolint:funlen
 	// Allow up to 4 batched wait requests.
 	flushUpdateCh := make(chan flushUpdate, 4)
 
-	errorCh := make(chan error, syncWorkers*2)
+	errorCh := make(chan error, syncWorkers)
 
 	// Goroutine in charge of downloading and building messages in maxBatchSize batches.
 	go func() {
@@ -236,7 +245,7 @@ func syncMessages( //nolint:funlen
 				return
 			}
 
-			result, err := parallel.MapContext(ctx, int(float32(syncWorkers)*1.5), batch, func(ctx context.Context, id string) (*buildRes, error) {
+			result, err := parallel.MapContext(ctx, syncWorkers, batch, func(ctx context.Context, id string) (*buildRes, error) {
 				msg, err := client.GetFullMessage(ctx, id)
 				if err != nil {
 					return nil, err

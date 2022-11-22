@@ -49,7 +49,21 @@ type Settings struct {
 	SyncAttPool int
 }
 
+func GetDefaultSyncWorkerCount() int {
+	const minSyncWorkers = 16
+
+	syncWorkers := runtime.NumCPU() * 2
+
+	if syncWorkers < minSyncWorkers {
+		syncWorkers = minSyncWorkers
+	}
+
+	return syncWorkers
+}
+
 func newDefaultSettings(gluonDir string) Settings {
+	syncWorkers := GetDefaultSyncWorkerCount()
+
 	return Settings{
 		GluonDir: gluonDir,
 
@@ -71,7 +85,7 @@ func newDefaultSettings(gluonDir string) Settings {
 		FirstStart:    true,
 		FirstStartGUI: true,
 
-		SyncWorkers: runtime.NumCPU(),
-		SyncAttPool: runtime.NumCPU(),
+		SyncWorkers: syncWorkers,
+		SyncAttPool: syncWorkers,
 	}
 }
