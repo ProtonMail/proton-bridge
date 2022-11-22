@@ -23,6 +23,8 @@ package restarter
 import (
 	"os/exec"
 	"syscall"
+
+	"github.com/sirupsen/logrus"
 )
 
 func run(cmd *exec.Cmd) error {
