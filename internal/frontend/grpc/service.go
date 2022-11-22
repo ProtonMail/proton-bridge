@@ -197,13 +197,20 @@ func (s *Service) Loop() error {
 
 	s.log.Info("Starting gRPC server")
 
+	doneCh := make(chan struct{})
+	defer close(doneCh)
+
 	go func() {
-		<-s.quitCh
+		select {
+		case <-s.quitCh:
+			s.log.Info("Stopping gRPC server")
+			defer s.log.Info("Stopped gRPC server")
 
-		s.log.Info("Stopping gRPC server")
-		defer s.log.Info("Stopped gRPC server")
+			s.grpcServer.Stop()
 
-		s.grpcServer.Stop()
+		case <-doneCh:
+			// ...
+		}
 	}()
 
 	if err := s.grpcServer.Serve(s.listener); err != nil {
@@ -279,14 +286,12 @@ func (s *Service) watchEvents() {
 			_ = s.SendEvent(NewUserChangedEvent(event.UserID))
 
 		case events.UserDeauth:
-			if user, err := s.bridge.GetUserInfo(event.UserID); err != nil {
-				s.log.WithError(err).Error("Failed to get user info")
-			} else {
-				// The GUI doesn't care about this event... not sure why we still emit it.
-				_ = s.SendEvent(NewUserDisconnectedEvent(user.Username))
+			// This is the event the GUI cares about.
+			_ = s.SendEvent(NewUserChangedEvent(event.UserID))
 
-				// This is the event the GUI cares about.
-				_ = s.SendEvent(NewUserChangedEvent(user.UserID))
+			// The GUI doesn't care about this event... not sure why we still emit it.
+			if user, err := s.bridge.GetUserInfo(event.UserID); err == nil {
+				_ = s.SendEvent(NewUserDisconnectedEvent(user.Username))
 			}
 
 		case events.UpdateLatest:
