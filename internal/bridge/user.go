@@ -312,6 +312,12 @@ func (bridge *Bridge) loginUser(ctx context.Context, client *liteapi.Client, aut
 		return "", fmt.Errorf("failed to salt key password: %w", err)
 	}
 
+	if userKR, err := apiUser.Keys.Unlock(saltedKeyPass, nil); err != nil {
+		return "", fmt.Errorf("failed to unlock user keys: %w", err)
+	} else if userKR.CountDecryptionEntities() == 0 {
+		return "", fmt.Errorf("failed to unlock user keys")
+	}
+
 	if err := bridge.addUser(ctx, client, apiUser, authUID, authRef, saltedKeyPass, true); err != nil {
 		return "", fmt.Errorf("failed to add bridge user: %w", err)
 	}
