@@ -20,9 +20,9 @@ package tests
 import (
 	"time"
 
+	"github.com/ProtonMail/go-proton-api/server/backend"
 	"github.com/ProtonMail/proton-bridge/v2/internal/certs"
 	"github.com/ProtonMail/proton-bridge/v2/internal/user"
-	"gitlab.protontech.ch/go/liteapi/server/backend"
 )
 
 func init() {

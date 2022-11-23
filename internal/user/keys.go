@@ -20,12 +20,12 @@ package user
 import (
 	"fmt"
 
+	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/sirupsen/logrus"
-	"gitlab.protontech.ch/go/liteapi"
 )
 
-func withAddrKR(apiUser liteapi.User, apiAddr liteapi.Address, keyPass []byte, fn func(userKR, addrKR *crypto.KeyRing) error) error {
+func withAddrKR(apiUser proton.User, apiAddr proton.Address, keyPass []byte, fn func(userKR, addrKR *crypto.KeyRing) error) error {
 	userKR, err := apiUser.Keys.Unlock(keyPass, nil)
 	if err != nil {
 		return fmt.Errorf("failed to unlock user keys: %w", err)
@@ -41,7 +41,7 @@ func withAddrKR(apiUser liteapi.User, apiAddr liteapi.Address, keyPass []byte, f
 	return fn(userKR, addrKR)
 }
 
-func withAddrKRs(apiUser liteapi.User, apiAddr map[string]liteapi.Address, keyPass []byte, fn func(*crypto.KeyRing, map[string]*crypto.KeyRing) error) error {
+func withAddrKRs(apiUser proton.User, apiAddr map[string]proton.Address, keyPass []byte, fn func(*crypto.KeyRing, map[string]*crypto.KeyRing) error) error {
 	userKR, err := apiUser.Keys.Unlock(keyPass, nil)
 	if err != nil {
 		return fmt.Errorf("failed to unlock user keys: %w", err)

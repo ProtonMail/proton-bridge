@@ -24,6 +24,7 @@ import (
 	"runtime"
 
 	"github.com/ProtonMail/gluon/imap"
+	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/proton-bridge/v2/internal/async"
 	"github.com/ProtonMail/proton-bridge/v2/internal/events"
 	"github.com/ProtonMail/proton-bridge/v2/internal/logging"
@@ -33,7 +34,6 @@ import (
 	"github.com/ProtonMail/proton-bridge/v2/internal/vault"
 	"github.com/go-resty/resty/v2"
 	"github.com/sirupsen/logrus"
-	"gitlab.protontech.ch/go/liteapi"
 )
 
 type UserState int
@@ -112,7 +112,7 @@ func (bridge *Bridge) QueryUserInfo(query string) (UserInfo, error) {
 }
 
 // LoginAuth begins the login process. It returns an authorized client that might need 2FA.
-func (bridge *Bridge) LoginAuth(ctx context.Context, username string, password []byte) (*liteapi.Client, liteapi.Auth, error) {
+func (bridge *Bridge) LoginAuth(ctx context.Context, username string, password []byte) (*proton.Client, proton.Auth, error) {
 	logrus.WithField("username", logging.Sensitive(username)).Info("Authorizing user for login")
 
 	if username == "crash@bandicoot" {
@@ -121,7 +121,7 @@ func (bridge *Bridge) LoginAuth(ctx context.Context, username string, password [
 
 	client, auth, err := bridge.api.NewClientWithLogin(ctx, username, password)
 	if err != nil {
-		return nil, liteapi.Auth{}, fmt.Errorf("failed to create new API client: %w", err)
+		return nil, proton.Auth{}, fmt.Errorf("failed to create new API client: %w", err)
 	}
 
 	if ok := safe.RLockRet(func() bool { return mapHas(bridge.users, auth.UID) }, bridge.usersLock); ok {
@@ -131,7 +131,7 @@ func (bridge *Bridge) LoginAuth(ctx context.Context, username string, password [
 			logrus.WithError(err).Warn("Failed to delete auth")
 		}
 
-		return nil, liteapi.Auth{}, ErrUserAlreadyLoggedIn
+		return nil, proton.Auth{}, ErrUserAlreadyLoggedIn
 	}
 
 	return client, auth, nil
@@ -140,8 +140,8 @@ func (bridge *Bridge) LoginAuth(ctx context.Context, username string, password [
 // LoginUser finishes the user login process using the client and auth received from LoginAuth.
 func (bridge *Bridge) LoginUser(
 	ctx context.Context,
-	client *liteapi.Client,
-	auth liteapi.Auth,
+	client *proton.Client,
+	auth proton.Auth,
 	keyPass []byte,
 ) (string, error) {
 	logrus.WithField("userID", auth.UserID).Info("Logging in authorized user")
@@ -182,7 +182,7 @@ func (bridge *Bridge) LoginFull(
 		return "", fmt.Errorf("failed to begin login process: %w", err)
 	}
 
-	if auth.TwoFA.Enabled == liteapi.TOTPEnabled {
+	if auth.TwoFA.Enabled == proton.TOTPEnabled {
 		logrus.WithField("userID", auth.UserID).Info("Requesting TOTP")
 
 		totp, err := getTOTP()
@@ -190,14 +190,14 @@ func (bridge *Bridge) LoginFull(
 			return "", fmt.Errorf("failed to get TOTP: %w", err)
 		}
 
-		if err := client.Auth2FA(ctx, liteapi.Auth2FAReq{TwoFactorCode: totp}); err != nil {
+		if err := client.Auth2FA(ctx, proton.Auth2FAReq{TwoFactorCode: totp}); err != nil {
 			return "", fmt.Errorf("failed to authorize 2FA: %w", err)
 		}
 	}
 
 	var keyPass []byte
 
-	if auth.PasswordMode == liteapi.TwoPasswordMode {
+	if auth.PasswordMode == proton.TwoPasswordMode {
 		logrus.WithField("userID", auth.UserID).Info("Requesting mailbox password")
 
 		userKeyPass, err := getKeyPass()
@@ -296,7 +296,7 @@ func (bridge *Bridge) SetAddressMode(ctx context.Context, userID string, mode va
 	}, bridge.usersLock)
 }
 
-func (bridge *Bridge) loginUser(ctx context.Context, client *liteapi.Client, authUID, authRef string, keyPass []byte) (string, error) {
+func (bridge *Bridge) loginUser(ctx context.Context, client *proton.Client, authUID, authRef string, keyPass []byte) (string, error) {
 	apiUser, err := client.GetUser(ctx)
 	if err != nil {
 		return "", fmt.Errorf("failed to get API user: %w", err)
@@ -365,7 +365,7 @@ func (bridge *Bridge) loadUsers(ctx context.Context) error {
 func (bridge *Bridge) loadUser(ctx context.Context, user *vault.User) error {
 	client, auth, err := bridge.api.NewClientWithRefresh(ctx, user.AuthUID(), user.AuthRef())
 	if err != nil {
-		if apiErr := new(liteapi.Error); errors.As(err, &apiErr) && (apiErr.Code == liteapi.AuthRefreshTokenInvalid) {
+		if apiErr := new(proton.Error); errors.As(err, &apiErr) && (apiErr.Code == proton.AuthRefreshTokenInvalid) {
 			// The session cannot be refreshed, we sign out the user by clearing his auth secrets.
 			if err := user.Clear(); err != nil {
 				logrus.WithError(err).Warn("Failed to clear user secrets")
@@ -393,8 +393,8 @@ func (bridge *Bridge) loadUser(ctx context.Context, user *vault.User) error {
 // addUser adds a new user with an already salted mailbox password.
 func (bridge *Bridge) addUser(
 	ctx context.Context,
-	client *liteapi.Client,
-	apiUser liteapi.User,
+	client *proton.Client,
+	apiUser proton.User,
 	authUID, authRef string,
 	saltedKeyPass []byte,
 	isLogin bool,
@@ -436,8 +436,8 @@ func (bridge *Bridge) addUser(
 // addUserWithVault adds a new user to bridge with the given vault.
 func (bridge *Bridge) addUserWithVault(
 	ctx context.Context,
-	client *liteapi.Client,
-	apiUser liteapi.User,
+	client *proton.Client,
+	apiUser proton.User,
 	vault *vault.User,
 ) error {
 	user, err := user.New(
@@ -497,7 +497,7 @@ func (bridge *Bridge) addUserWithVault(
 // newVaultUser creates a new vault user from the given auth information.
 // If one already exists in the vault, its data will be updated.
 func (bridge *Bridge) newVaultUser(
-	apiUser liteapi.User,
+	apiUser proton.User,
 	authUID, authRef string,
 	saltedKeyPass []byte,
 ) (*vault.User, bool, error) {

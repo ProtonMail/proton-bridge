@@ -24,6 +24,7 @@ import (
 	"runtime"
 
 	"github.com/Masterminds/semver/v3"
+	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/proton-bridge/v2/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/v2/internal/constants"
 	"github.com/ProtonMail/proton-bridge/v2/internal/events"
@@ -33,7 +34,6 @@ import (
 	"github.com/ProtonMail/proton-bridge/v2/pkg/keychain"
 	"github.com/ProtonMail/proton-bridge/v2/pkg/ports"
 	"github.com/sirupsen/logrus"
-	"gitlab.protontech.ch/go/liteapi"
 	"golang.org/x/exp/maps"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -383,12 +383,12 @@ func (s *Service) Login(ctx context.Context, login *LoginRequest) (*emptypb.Empt
 
 			if errors.Is(err, bridge.ErrUserAlreadyLoggedIn) {
 				_ = s.SendEvent(NewLoginAlreadyLoggedInEvent(auth.UserID))
-			} else if apiErr := new(liteapi.Error); errors.As(err, &apiErr) {
+			} else if apiErr := new(proton.Error); errors.As(err, &apiErr) {
 				switch apiErr.Code { // nolint:exhaustive
-				case liteapi.PasswordWrong:
+				case proton.PasswordWrong:
 					_ = s.SendEvent(NewLoginError(LoginErrorType_USERNAME_PASSWORD_ERROR, ""))
 
-				case liteapi.PaidPlanRequired:
+				case proton.PaidPlanRequired:
 					_ = s.SendEvent(NewLoginError(LoginErrorType_FREE_USER, ""))
 
 				default:
@@ -406,10 +406,10 @@ func (s *Service) Login(ctx context.Context, login *LoginRequest) (*emptypb.Empt
 		s.auth = auth
 
 		switch {
-		case auth.TwoFA.Enabled == liteapi.TOTPEnabled:
+		case auth.TwoFA.Enabled == proton.TOTPEnabled:
 			_ = s.SendEvent(NewLoginTfaRequestedEvent(login.Username))
 
-		case auth.PasswordMode == liteapi.TwoPasswordMode:
+		case auth.PasswordMode == proton.TwoPasswordMode:
 			_ = s.SendEvent(NewLoginTwoPasswordsRequestedEvent())
 
 		default:
@@ -441,8 +441,8 @@ func (s *Service) Login2FA(ctx context.Context, login *LoginRequest) (*emptypb.E
 			return
 		}
 
-		if err := s.authClient.Auth2FA(context.Background(), liteapi.Auth2FAReq{TwoFactorCode: string(twoFA)}); err != nil {
-			if apiErr := new(liteapi.Error); errors.As(err, &apiErr) && apiErr.Code == liteapi.PasswordWrong {
+		if err := s.authClient.Auth2FA(context.Background(), proton.Auth2FAReq{TwoFactorCode: string(twoFA)}); err != nil {
+			if apiErr := new(proton.Error); errors.As(err, &apiErr) && apiErr.Code == proton.PasswordWrong {
 				s.log.Warn("Login 2FA: retry 2fa")
 				_ = s.SendEvent(NewLoginError(LoginErrorType_TFA_ERROR, ""))
 			} else {
@@ -454,7 +454,7 @@ func (s *Service) Login2FA(ctx context.Context, login *LoginRequest) (*emptypb.E
 			return
 		}
 
-		if s.auth.PasswordMode == liteapi.TwoPasswordMode {
+		if s.auth.PasswordMode == proton.TwoPasswordMode {
 			_ = s.SendEvent(NewLoginTwoPasswordsRequestedEvent())
 			return
 		}

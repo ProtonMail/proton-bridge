@@ -26,13 +26,13 @@ import (
 	"github.com/ProtonMail/gluon/connector"
 	"github.com/ProtonMail/gluon/imap"
 	"github.com/ProtonMail/gluon/rfc822"
+	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/ProtonMail/proton-bridge/v2/internal/safe"
 	"github.com/ProtonMail/proton-bridge/v2/internal/vault"
 	"github.com/ProtonMail/proton-bridge/v2/pkg/message"
 	"github.com/bradenaw/juniper/stream"
 	"github.com/bradenaw/juniper/xslices"
-	"gitlab.protontech.ch/go/liteapi"
 	"golang.org/x/exp/slices"
 )
 
@@ -109,10 +109,10 @@ func (conn *imapConnector) createLabel(ctx context.Context, name []string) (imap
 		return imap.Mailbox{}, fmt.Errorf("a label cannot have children")
 	}
 
-	label, err := conn.client.CreateLabel(ctx, liteapi.CreateLabelReq{
+	label, err := conn.client.CreateLabel(ctx, proton.CreateLabelReq{
 		Name:  name[0],
 		Color: "#f66",
-		Type:  liteapi.LabelTypeLabel,
+		Type:  proton.LabelTypeLabel,
 	})
 	if err != nil {
 		return imap.Mailbox{}, err
@@ -141,10 +141,10 @@ func (conn *imapConnector) createFolder(ctx context.Context, name []string) (ima
 			}
 		}
 
-		label, err := conn.client.CreateLabel(ctx, liteapi.CreateLabelReq{
+		label, err := conn.client.CreateLabel(ctx, proton.CreateLabelReq{
 			Name:     name[len(name)-1],
 			Color:    "#f66",
-			Type:     liteapi.LabelTypeFolder,
+			Type:     proton.LabelTypeFolder,
 			ParentID: parentID,
 		})
 		if err != nil {
@@ -180,12 +180,12 @@ func (conn *imapConnector) updateLabel(ctx context.Context, labelID imap.Mailbox
 		return fmt.Errorf("a label cannot have children")
 	}
 
-	label, err := conn.client.GetLabel(ctx, string(labelID), liteapi.LabelTypeLabel)
+	label, err := conn.client.GetLabel(ctx, string(labelID), proton.LabelTypeLabel)
 	if err != nil {
 		return err
 	}
 
-	if _, err := conn.client.UpdateLabel(ctx, label.ID, liteapi.UpdateLabelReq{
+	if _, err := conn.client.UpdateLabel(ctx, label.ID, proton.UpdateLabelReq{
 		Name:  name[0],
 		Color: label.Color,
 	}); err != nil {
@@ -215,12 +215,12 @@ func (conn *imapConnector) updateFolder(ctx context.Context, labelID imap.Mailbo
 			}
 		}
 
-		label, err := conn.client.GetLabel(ctx, string(labelID), liteapi.LabelTypeFolder)
+		label, err := conn.client.GetLabel(ctx, string(labelID), proton.LabelTypeFolder)
 		if err != nil {
 			return err
 		}
 
-		if _, err := conn.client.UpdateLabel(ctx, string(labelID), liteapi.UpdateLabelReq{
+		if _, err := conn.client.UpdateLabel(ctx, string(labelID), proton.UpdateLabelReq{
 			Name:     name[len(name)-1],
 			Color:    label.Color,
 			ParentID: parentID,
@@ -274,38 +274,38 @@ func (conn *imapConnector) CreateMessage(
 	wantLabelIDs := []string{string(mailboxID)}
 
 	if flags.Contains(imap.FlagFlagged) {
-		wantLabelIDs = append(wantLabelIDs, liteapi.StarredLabel)
+		wantLabelIDs = append(wantLabelIDs, proton.StarredLabel)
 	}
 
-	var wantFlags liteapi.MessageFlag
+	var wantFlags proton.MessageFlag
 
 	unread := !flags.Contains(imap.FlagSeen)
 
-	if mailboxID != liteapi.DraftsLabel {
+	if mailboxID != proton.DraftsLabel {
 		header, err := rfc822.Parse(literal).ParseHeader()
 		if err != nil {
 			return imap.Message{}, nil, err
 		}
 
 		switch {
-		case mailboxID == liteapi.InboxLabel:
-			wantFlags = wantFlags.Add(liteapi.MessageFlagReceived)
+		case mailboxID == proton.InboxLabel:
+			wantFlags = wantFlags.Add(proton.MessageFlagReceived)
 
-		case mailboxID == liteapi.SentLabel:
-			wantFlags = wantFlags.Add(liteapi.MessageFlagSent)
+		case mailboxID == proton.SentLabel:
+			wantFlags = wantFlags.Add(proton.MessageFlagSent)
 
 		case header.Has("Received"):
-			wantFlags = wantFlags.Add(liteapi.MessageFlagReceived)
+			wantFlags = wantFlags.Add(proton.MessageFlagReceived)
 
 		default:
-			wantFlags = wantFlags.Add(liteapi.MessageFlagSent)
+			wantFlags = wantFlags.Add(proton.MessageFlagSent)
 		}
 	} else {
 		unread = false
 	}
 
 	if flags.Contains(imap.FlagAnswered) {
-		wantFlags = wantFlags.Add(liteapi.MessageFlagReplied)
+		wantFlags = wantFlags.Add(proton.MessageFlagReplied)
 	}
 
 	return conn.importMessage(ctx, literal, wantLabelIDs, wantFlags, unread)
@@ -326,13 +326,13 @@ func (conn *imapConnector) RemoveMessagesFromMailbox(ctx context.Context, messag
 		return err
 	}
 
-	if mailboxID == liteapi.SpamLabel || mailboxID == liteapi.TrashLabel || mailboxID == liteapi.DraftsLabel {
-		var metadata []liteapi.MessageMetadata
+	if mailboxID == proton.SpamLabel || mailboxID == proton.TrashLabel || mailboxID == proton.DraftsLabel {
+		var metadata []proton.MessageMetadata
 
 		// There's currently no limit on how many IDs we can filter on,
 		// but to be nice to API, let's chunk it by 150.
 		for _, messageIDs := range xslices.Chunk(messageIDs, 150) {
-			m, err := conn.client.GetMessageMetadata(ctx, liteapi.MessageFilter{
+			m, err := conn.client.GetMessageMetadata(ctx, proton.MessageFilter{
 				ID: mapTo[imap.MessageID, string](messageIDs),
 			})
 			if err != nil {
@@ -341,9 +341,9 @@ func (conn *imapConnector) RemoveMessagesFromMailbox(ctx context.Context, messag
 
 			// If a message is not preset in any other label other than AllMail, AllDrafts and AllSent, it can be
 			// permanently deleted.
-			m = xslices.Filter(m, func(m liteapi.MessageMetadata) bool {
+			m = xslices.Filter(m, func(m proton.MessageMetadata) bool {
 				labelsThatMatter := xslices.Filter(m.LabelIDs, func(id string) bool {
-					return id != liteapi.AllDraftsLabel && id != liteapi.AllMailLabel && id != liteapi.AllSentLabel
+					return id != proton.AllDraftsLabel && id != proton.AllMailLabel && id != proton.AllSentLabel
 				})
 				return len(labelsThatMatter) == 0
 			})
@@ -351,7 +351,7 @@ func (conn *imapConnector) RemoveMessagesFromMailbox(ctx context.Context, messag
 			metadata = append(metadata, m...)
 		}
 
-		if err := conn.client.DeleteMessage(ctx, xslices.Map(metadata, func(m liteapi.MessageMetadata) string {
+		if err := conn.client.DeleteMessage(ctx, xslices.Map(metadata, func(m proton.MessageMetadata) string {
 			return m.ID
 		})...); err != nil {
 			return err
@@ -392,10 +392,10 @@ func (conn *imapConnector) MarkMessagesFlagged(ctx context.Context, messageIDs [
 	defer conn.goPollAPIEvents(false)
 
 	if flagged {
-		return conn.client.LabelMessages(ctx, mapTo[imap.MessageID, string](messageIDs), liteapi.StarredLabel)
+		return conn.client.LabelMessages(ctx, mapTo[imap.MessageID, string](messageIDs), proton.StarredLabel)
 	}
 
-	return conn.client.UnlabelMessages(ctx, mapTo[imap.MessageID, string](messageIDs), liteapi.StarredLabel)
+	return conn.client.UnlabelMessages(ctx, mapTo[imap.MessageID, string](messageIDs), proton.StarredLabel)
 }
 
 // GetUpdates returns a stream of updates that the gluon server should apply.
@@ -418,7 +418,7 @@ func (conn *imapConnector) SetUIDValidity(validity imap.UID) error {
 
 // IsMailboxVisible returns whether this mailbox should be visible over IMAP.
 func (conn *imapConnector) IsMailboxVisible(_ context.Context, mailboxID imap.MailboxID) bool {
-	return atomic.LoadUint32(&conn.showAllMail) != 0 || mailboxID != liteapi.AllMailLabel
+	return atomic.LoadUint32(&conn.showAllMail) != 0 || mailboxID != proton.AllMailLabel
 }
 
 // Close the connector will no longer be used and all resources should be closed/released.
@@ -430,18 +430,18 @@ func (conn *imapConnector) importMessage(
 	ctx context.Context,
 	literal []byte,
 	labelIDs []string,
-	flags liteapi.MessageFlag,
+	flags proton.MessageFlag,
 	unread bool,
 ) (imap.Message, []byte, error) {
-	var full liteapi.FullMessage
+	var full proton.FullMessage
 
 	if err := safe.RLockRet(func() error {
 		return withAddrKR(conn.apiUser, conn.apiAddrs[conn.addrID], conn.vault.KeyPass(), func(_, addrKR *crypto.KeyRing) error {
-			res, err := stream.Collect(ctx, conn.client.ImportMessages(ctx, addrKR, 1, 1, []liteapi.ImportReq{{
-				Metadata: liteapi.ImportMetadata{
+			res, err := stream.Collect(ctx, conn.client.ImportMessages(ctx, addrKR, 1, 1, []proton.ImportReq{{
+				Metadata: proton.ImportMetadata{
 					AddressID: conn.addrID,
 					LabelIDs:  labelIDs,
-					Unread:    liteapi.Bool(unread),
+					Unread:    proton.Bool(unread),
 					Flags:     flags,
 				},
 				Message: literal,
@@ -467,18 +467,18 @@ func (conn *imapConnector) importMessage(
 	return toIMAPMessage(full.MessageMetadata), literal, nil
 }
 
-func toIMAPMessage(message liteapi.MessageMetadata) imap.Message {
+func toIMAPMessage(message proton.MessageMetadata) imap.Message {
 	flags := imap.NewFlagSet()
 
 	if !message.Unread {
 		flags = flags.Add(imap.FlagSeen)
 	}
 
-	if slices.Contains(message.LabelIDs, liteapi.StarredLabel) {
+	if slices.Contains(message.LabelIDs, proton.StarredLabel) {
 		flags = flags.Add(imap.FlagFlagged)
 	}
 
-	if slices.Contains(message.LabelIDs, liteapi.DraftsLabel) {
+	if slices.Contains(message.LabelIDs, proton.DraftsLabel) {
 		flags = flags.Add(imap.FlagDraft)
 	}
 
@@ -497,10 +497,10 @@ func toIMAPMessage(message liteapi.MessageMetadata) imap.Message {
 	}
 }
 
-func toIMAPMailbox(label liteapi.Label, flags, permFlags, attrs imap.FlagSet) imap.Mailbox {
-	if label.Type == liteapi.LabelTypeLabel {
+func toIMAPMailbox(label proton.Label, flags, permFlags, attrs imap.FlagSet) imap.Mailbox {
+	if label.Type == proton.LabelTypeLabel {
 		label.Path = append([]string{labelPrefix}, label.Path...)
-	} else if label.Type == liteapi.LabelTypeFolder {
+	} else if label.Type == proton.LabelTypeFolder {
 		label.Path = append([]string{folderPrefix}, label.Path...)
 	}
 

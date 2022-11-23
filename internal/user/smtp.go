@@ -29,6 +29,7 @@ import (
 	"time"
 
 	"github.com/ProtonMail/gluon/rfc822"
+	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/go-rfc5322"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/ProtonMail/proton-bridge/v2/internal/logging"
@@ -39,7 +40,6 @@ import (
 	"github.com/bradenaw/juniper/parallel"
 	"github.com/bradenaw/juniper/xslices"
 	"github.com/sirupsen/logrus"
-	"gitlab.protontech.ch/go/liteapi"
 	"golang.org/x/exp/maps"
 	"golang.org/x/exp/slices"
 )
@@ -56,7 +56,7 @@ func (user *User) sendMail(authID string, from string, to []string, r io.Reader)
 			return ErrInvalidReturnPath
 		}
 
-		emails := xslices.Map(maps.Values(user.apiAddrs), func(addr liteapi.Address) string {
+		emails := xslices.Map(maps.Values(user.apiAddrs), func(addr proton.Address) string {
 			return addr.Email
 		})
 
@@ -113,7 +113,7 @@ func (user *User) sendMail(authID string, from string, to []string, r io.Reader)
 			}
 
 			// If we have to attach the public key, do it now.
-			if settings.AttachPublicKey == liteapi.AttachPublicKeyEnabled {
+			if settings.AttachPublicKey == proton.AttachPublicKeyEnabled {
 				key, err := addrKR.GetKey(0)
 				if err != nil {
 					return fmt.Errorf("failed to get sending key: %w", err)
@@ -159,19 +159,19 @@ func (user *User) sendMail(authID string, from string, to []string, r io.Reader)
 // sendWithKey sends the message with the given address key.
 func sendWithKey( //nolint:funlen
 	ctx context.Context,
-	client *liteapi.Client,
+	client *proton.Client,
 	authAddrID string,
 	addrMode vault.AddressMode,
-	settings liteapi.MailSettings,
+	settings proton.MailSettings,
 	userKR, addrKR *crypto.KeyRing,
 	emails []string,
 	from string,
 	to []string,
 	message message.Message,
-) (liteapi.Message, error) {
+) (proton.Message, error) {
 	parentID, err := getParentID(ctx, client, authAddrID, addrMode, message.References)
 	if err != nil {
-		return liteapi.Message{}, fmt.Errorf("failed to get parent ID: %w", err)
+		return proton.Message{}, fmt.Errorf("failed to get parent ID: %w", err)
 	}
 
 	var decBody string
@@ -185,20 +185,20 @@ func sendWithKey( //nolint:funlen
 		decBody = string(message.PlainBody)
 
 	default:
-		return liteapi.Message{}, fmt.Errorf("unsupported MIME type: %v", message.MIMEType)
+		return proton.Message{}, fmt.Errorf("unsupported MIME type: %v", message.MIMEType)
 	}
 
 	encBody, err := addrKR.Encrypt(crypto.NewPlainMessageFromString(decBody), nil)
 	if err != nil {
-		return liteapi.Message{}, fmt.Errorf("failed to encrypt message body: %w", err)
+		return proton.Message{}, fmt.Errorf("failed to encrypt message body: %w", err)
 	}
 
 	armBody, err := encBody.GetArmored()
 	if err != nil {
-		return liteapi.Message{}, fmt.Errorf("failed to get armored message body: %w", err)
+		return proton.Message{}, fmt.Errorf("failed to get armored message body: %w", err)
 	}
 
-	draft, err := createDraft(ctx, client, emails, from, to, parentID, message.InReplyTo, liteapi.DraftTemplate{
+	draft, err := createDraft(ctx, client, emails, from, to, parentID, message.InReplyTo, proton.DraftTemplate{
 		Subject:  message.Subject,
 		Body:     armBody,
 		MIMEType: message.MIMEType,
@@ -211,27 +211,27 @@ func sendWithKey( //nolint:funlen
 		ExternalID: message.ExternalID,
 	})
 	if err != nil {
-		return liteapi.Message{}, fmt.Errorf("failed to create attachments: %w", err)
+		return proton.Message{}, fmt.Errorf("failed to create attachments: %w", err)
 	}
 
 	attKeys, err := createAttachments(ctx, client, addrKR, draft.ID, message.Attachments)
 	if err != nil {
-		return liteapi.Message{}, fmt.Errorf("failed to create attachments: %w", err)
+		return proton.Message{}, fmt.Errorf("failed to create attachments: %w", err)
 	}
 
 	recipients, err := getRecipients(ctx, client, userKR, settings, draft)
 	if err != nil {
-		return liteapi.Message{}, fmt.Errorf("failed to get recipients: %w", err)
+		return proton.Message{}, fmt.Errorf("failed to get recipients: %w", err)
 	}
 
 	req, err := createSendReq(addrKR, message.MIMEBody, message.RichBody, message.PlainBody, recipients, attKeys)
 	if err != nil {
-		return liteapi.Message{}, fmt.Errorf("failed to create packages: %w", err)
+		return proton.Message{}, fmt.Errorf("failed to create packages: %w", err)
 	}
 
 	res, err := client.SendDraft(ctx, draft.ID, req)
 	if err != nil {
-		return liteapi.Message{}, fmt.Errorf("failed to send draft: %w", err)
+		return proton.Message{}, fmt.Errorf("failed to send draft: %w", err)
 	}
 
 	return res, nil
@@ -239,7 +239,7 @@ func sendWithKey( //nolint:funlen
 
 func getParentID( //nolint:funlen
 	ctx context.Context,
-	client *liteapi.Client,
+	client *proton.Client,
 	authAddrID string,
 	addrMode vault.AddressMode,
 	references []string,
@@ -267,7 +267,7 @@ func getParentID( //nolint:funlen
 			addrID = authAddrID
 		}
 
-		metadata, err := client.GetMessageMetadata(ctx, liteapi.MessageFilter{
+		metadata, err := client.GetMessageMetadata(ctx, proton.MessageFilter{
 			ID:        []string{internal},
 			AddressID: addrID,
 		})
@@ -293,7 +293,7 @@ func getParentID( //nolint:funlen
 			addrID = authAddrID
 		}
 
-		metadata, err := client.GetMessageMetadata(ctx, liteapi.MessageFilter{
+		metadata, err := client.GetMessageMetadata(ctx, proton.MessageFilter{
 			ExternalID: external[len(external)-1],
 			AddressID:  addrID,
 		})
@@ -311,14 +311,14 @@ func getParentID( //nolint:funlen
 
 func createDraft(
 	ctx context.Context,
-	client *liteapi.Client,
+	client *proton.Client,
 	emails []string,
 	from string,
 	to []string,
 	parentID string,
 	replyToID string,
-	template liteapi.DraftTemplate,
-) (liteapi.Message, error) {
+	template proton.DraftTemplate,
+) (proton.Message, error) {
 	// Check sender: set the sender if it's missing.
 	if template.Sender == nil {
 		template.Sender = &mail.Address{Address: from}
@@ -330,7 +330,7 @@ func createDraft(
 	if idx := xslices.IndexFunc(emails, func(email string) bool {
 		return strings.EqualFold(email, sanitizeEmail(template.Sender.Address))
 	}); idx < 0 {
-		return liteapi.Message{}, fmt.Errorf("address %q is not owned by user", template.Sender.Address)
+		return proton.Message{}, fmt.Errorf("address %q is not owned by user", template.Sender.Address)
 	} else { //nolint:revive
 		template.Sender.Address = constructEmail(template.Sender.Address, emails[idx])
 	}
@@ -349,15 +349,15 @@ func createDraft(
 		}
 	}
 
-	var action liteapi.CreateDraftAction
+	var action proton.CreateDraftAction
 
 	if len(replyToID) > 0 {
-		action = liteapi.ReplyAction
+		action = proton.ReplyAction
 	} else {
-		action = liteapi.ForwardAction
+		action = proton.ForwardAction
 	}
 
-	return client.CreateDraft(ctx, liteapi.CreateDraftReq{
+	return client.CreateDraft(ctx, proton.CreateDraftReq{
 		Message:  template,
 		ParentID: parentID,
 		Action:   action,
@@ -367,7 +367,7 @@ func createDraft(
 // nolint:funlen
 func createAttachments(
 	ctx context.Context,
-	client *liteapi.Client,
+	client *proton.Client,
 	addrKR *crypto.KeyRing,
 	draftID string,
 	attachments []message.Attachment,
@@ -387,15 +387,15 @@ func createAttachments(
 
 		// Some clients use inline disposition but don't set a content ID. Our API doesn't support this.
 		// We could generate our own content ID, but for simplicity, we just set the disposition to attachment.
-		if att.Disposition == string(liteapi.InlineDisposition) && att.ContentID == "" {
-			att.Disposition = string(liteapi.AttachmentDisposition)
+		if att.Disposition == string(proton.InlineDisposition) && att.ContentID == "" {
+			att.Disposition = string(proton.AttachmentDisposition)
 		}
 
-		attachment, err := client.UploadAttachment(ctx, addrKR, liteapi.CreateAttachmentReq{
+		attachment, err := client.UploadAttachment(ctx, addrKR, proton.CreateAttachmentReq{
 			Filename:    att.Name,
 			MessageID:   draftID,
 			MIMEType:    rfc822.MIMEType(att.MIMEType),
-			Disposition: liteapi.Disposition(att.Disposition),
+			Disposition: proton.Disposition(att.Disposition),
 			ContentID:   att.ContentID,
 			Body:        att.Data,
 		})
@@ -430,27 +430,27 @@ func createAttachments(
 
 func getRecipients(
 	ctx context.Context,
-	client *liteapi.Client,
+	client *proton.Client,
 	userKR *crypto.KeyRing,
-	settings liteapi.MailSettings,
-	draft liteapi.Message,
+	settings proton.MailSettings,
+	draft proton.Message,
 ) (recipients, error) {
 	addresses := xslices.Map(xslices.Join(draft.ToList, draft.CCList, draft.BCCList), func(addr *mail.Address) string {
 		return addr.Address
 	})
 
-	prefs, err := parallel.MapContext(ctx, runtime.NumCPU(), addresses, func(ctx context.Context, recipient string) (liteapi.SendPreferences, error) {
+	prefs, err := parallel.MapContext(ctx, runtime.NumCPU(), addresses, func(ctx context.Context, recipient string) (proton.SendPreferences, error) {
 		pubKeys, recType, err := client.GetPublicKeys(ctx, recipient)
 		if err != nil {
-			return liteapi.SendPreferences{}, fmt.Errorf("failed to get public keys: %w", err)
+			return proton.SendPreferences{}, fmt.Errorf("failed to get public keys: %w", err)
 		}
 
 		contactSettings, err := getContactSettings(ctx, client, userKR, recipient)
 		if err != nil {
-			return liteapi.SendPreferences{}, fmt.Errorf("failed to get contact settings: %w", err)
+			return proton.SendPreferences{}, fmt.Errorf("failed to get contact settings: %w", err)
 		}
 
-		return buildSendPrefs(contactSettings, settings, pubKeys, draft.MIMEType, recType == liteapi.RecipientTypeInternal)
+		return buildSendPrefs(contactSettings, settings, pubKeys, draft.MIMEType, recType == proton.RecipientTypeInternal)
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to get send preferences: %w", err)
@@ -467,26 +467,26 @@ func getRecipients(
 
 func getContactSettings(
 	ctx context.Context,
-	client *liteapi.Client,
+	client *proton.Client,
 	userKR *crypto.KeyRing,
 	recipient string,
-) (liteapi.ContactSettings, error) {
+) (proton.ContactSettings, error) {
 	contacts, err := client.GetAllContactEmails(ctx, recipient)
 	if err != nil {
-		return liteapi.ContactSettings{}, fmt.Errorf("failed to get contact data: %w", err)
+		return proton.ContactSettings{}, fmt.Errorf("failed to get contact data: %w", err)
 	}
 
-	idx := xslices.IndexFunc(contacts, func(contact liteapi.ContactEmail) bool {
+	idx := xslices.IndexFunc(contacts, func(contact proton.ContactEmail) bool {
 		return contact.Email == recipient
 	})
 
 	if idx < 0 {
-		return liteapi.ContactSettings{}, nil
+		return proton.ContactSettings{}, nil
 	}
 
 	contact, err := client.GetContact(ctx, contacts[idx].ContactID)
 	if err != nil {
-		return liteapi.ContactSettings{}, fmt.Errorf("failed to get contact: %w", err)
+		return proton.ContactSettings{}, fmt.Errorf("failed to get contact: %w", err)
 	}
 
 	return contact.GetSettings(userKR, recipient)

@@ -19,10 +19,10 @@ package user
 
 import (
 	"github.com/ProtonMail/gluon/rfc822"
+	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/ProtonMail/proton-bridge/v2/pkg/message"
 	"github.com/bradenaw/juniper/xslices"
-	"gitlab.protontech.ch/go/liteapi"
 	"golang.org/x/exp/maps"
 	"golang.org/x/exp/slices"
 )
@@ -33,25 +33,25 @@ func createSendReq(
 	richBody, plainBody message.Body,
 	recipients recipients,
 	attKeys map[string]*crypto.SessionKey,
-) (liteapi.SendDraftReq, error) {
-	var req liteapi.SendDraftReq
+) (proton.SendDraftReq, error) {
+	var req proton.SendDraftReq
 
-	if recs := recipients.scheme(liteapi.PGPMIMEScheme, liteapi.ClearMIMEScheme); len(recs) > 0 {
+	if recs := recipients.scheme(proton.PGPMIMEScheme, proton.ClearMIMEScheme); len(recs) > 0 {
 		if err := req.AddMIMEPackage(kr, string(mimeBody), recs); err != nil {
-			return liteapi.SendDraftReq{}, err
+			return proton.SendDraftReq{}, err
 		}
 	}
 
-	if recs := recipients.scheme(liteapi.InternalScheme, liteapi.ClearScheme, liteapi.PGPInlineScheme); len(recs) > 0 {
+	if recs := recipients.scheme(proton.InternalScheme, proton.ClearScheme, proton.PGPInlineScheme); len(recs) > 0 {
 		if recs := recs.content(rfc822.TextHTML); len(recs) > 0 {
 			if err := req.AddTextPackage(kr, string(richBody), rfc822.TextHTML, recs, attKeys); err != nil {
-				return liteapi.SendDraftReq{}, err
+				return proton.SendDraftReq{}, err
 			}
 		}
 
 		if recs := recs.content(rfc822.TextPlain); len(recs) > 0 {
 			if err := req.AddTextPackage(kr, string(plainBody), rfc822.TextPlain, recs, attKeys); err != nil {
-				return liteapi.SendDraftReq{}, err
+				return proton.SendDraftReq{}, err
 			}
 		}
 	}
@@ -59,9 +59,9 @@ func createSendReq(
 	return req, nil
 }
 
-type recipients map[string]liteapi.SendPreferences
+type recipients map[string]proton.SendPreferences
 
-func (r recipients) scheme(scheme ...liteapi.EncryptionScheme) recipients {
+func (r recipients) scheme(scheme ...proton.EncryptionScheme) recipients {
 	res := make(recipients)
 
 	for _, addr := range xslices.Filter(maps.Keys(r), func(addr string) bool {

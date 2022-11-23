@@ -21,9 +21,9 @@ import (
 	"net/http"
 
 	"github.com/Masterminds/semver/v3"
+	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/proton-bridge/v2/internal/constants"
 	"github.com/sirupsen/logrus"
-	"gitlab.protontech.ch/go/liteapi"
 )
 
 // defaultAPIOptions returns a set of default API options for the given parameters.
@@ -33,13 +33,13 @@ func defaultAPIOptions(
 	cookieJar http.CookieJar,
 	transport http.RoundTripper,
 	poolSize int,
-) []liteapi.Option {
-	return []liteapi.Option{
-		liteapi.WithHostURL(apiURL),
-		liteapi.WithAppVersion(constants.AppVersion(version.Original())),
-		liteapi.WithCookieJar(cookieJar),
-		liteapi.WithTransport(transport),
-		liteapi.WithAttPoolSize(poolSize),
-		liteapi.WithLogger(logrus.StandardLogger()),
+) []proton.Option {
+	return []proton.Option{
+		proton.WithHostURL(apiURL),
+		proton.WithAppVersion(constants.AppVersion(version.Original())),
+		proton.WithCookieJar(cookieJar),
+		proton.WithTransport(transport),
+		proton.WithAttPoolSize(poolSize),
+		proton.WithLogger(logrus.StandardLogger()),
 	}
 }

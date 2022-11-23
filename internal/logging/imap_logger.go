@@ -20,8 +20,7 @@ package logging
 import "github.com/sirupsen/logrus"
 
 // IMAPLogger implements the writer interface for Gluon IMAP logs.
-type IMAPLogger struct {
-}
+type IMAPLogger struct{}
 
 func NewIMAPLogger() *IMAPLogger {
 	return &IMAPLogger{}

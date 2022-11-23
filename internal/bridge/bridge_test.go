@@ -28,6 +28,9 @@ import (
 	"time"
 
 	"github.com/Masterminds/semver/v3"
+	"github.com/ProtonMail/go-proton-api"
+	"github.com/ProtonMail/go-proton-api/server"
+	"github.com/ProtonMail/go-proton-api/server/backend"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/ProtonMail/proton-bridge/v2/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/v2/internal/certs"
@@ -42,9 +45,6 @@ import (
 	"github.com/ProtonMail/proton-bridge/v2/tests"
 	"github.com/bradenaw/juniper/xslices"
 	"github.com/stretchr/testify/require"
-	"gitlab.protontech.ch/go/liteapi"
-	"gitlab.protontech.ch/go/liteapi/server"
-	"gitlab.protontech.ch/go/liteapi/server/backend"
 	"go.uber.org/goleak"
 )
 
@@ -68,7 +68,7 @@ func init() {
 }
 
 func TestBridge_ConnStatus(t *testing.T) {
-	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *liteapi.NetCtl, locator bridge.Locator, vaultKey []byte) {
+	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, vaultKey []byte) {
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, vaultKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
 			// Get a stream of connection status events.
 			eventCh, done := bridge.GetEvents(events.ConnStatusUp{}, events.ConnStatusDown{})
@@ -99,7 +99,7 @@ func TestBridge_ConnStatus(t *testing.T) {
 }
 
 func TestBridge_TLSIssue(t *testing.T) {
-	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *liteapi.NetCtl, locator bridge.Locator, vaultKey []byte) {
+	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, vaultKey []byte) {
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, vaultKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
 			// Get a stream of TLS issue events.
 			tlsEventCh, done := bridge.GetEvents(events.TLSIssue{})
@@ -117,7 +117,7 @@ func TestBridge_TLSIssue(t *testing.T) {
 }
 
 func TestBridge_Focus(t *testing.T) {
-	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *liteapi.NetCtl, locator bridge.Locator, vaultKey []byte) {
+	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, vaultKey []byte) {
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, vaultKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
 			// Get a stream of TLS issue events.
 			raiseCh, done := bridge.GetEvents(events.Raise{})
@@ -133,7 +133,7 @@ func TestBridge_Focus(t *testing.T) {
 }
 
 func TestBridge_UserAgent(t *testing.T) {
-	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *liteapi.NetCtl, locator bridge.Locator, vaultKey []byte) {
+	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, vaultKey []byte) {
 		var (
 			calls []server.Call
 			lock  sync.Mutex
@@ -167,7 +167,7 @@ func TestBridge_UserAgent(t *testing.T) {
 }
 
 func TestBridge_Cookies(t *testing.T) {
-	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *liteapi.NetCtl, locator bridge.Locator, vaultKey []byte) {
+	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, vaultKey []byte) {
 		var (
 			sessionIDs     []string
 			sessionIDsLock sync.RWMutex
@@ -206,7 +206,7 @@ func TestBridge_Cookies(t *testing.T) {
 }
 
 func TestBridge_CheckUpdate(t *testing.T) {
-	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *liteapi.NetCtl, locator bridge.Locator, vaultKey []byte) {
+	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, vaultKey []byte) {
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, vaultKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
 			// Disable autoupdate for this test.
 			require.NoError(t, bridge.SetAutoUpdate(false))
@@ -246,7 +246,7 @@ func TestBridge_CheckUpdate(t *testing.T) {
 }
 
 func TestBridge_AutoUpdate(t *testing.T) {
-	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *liteapi.NetCtl, locator bridge.Locator, vaultKey []byte) {
+	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, vaultKey []byte) {
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, vaultKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
 			// Enable autoupdate for this test.
 			require.NoError(t, bridge.SetAutoUpdate(true))
@@ -275,7 +275,7 @@ func TestBridge_AutoUpdate(t *testing.T) {
 }
 
 func TestBridge_ManualUpdate(t *testing.T) {
-	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *liteapi.NetCtl, locator bridge.Locator, vaultKey []byte) {
+	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, vaultKey []byte) {
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, vaultKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
 			// Disable autoupdate for this test.
 			require.NoError(t, bridge.SetAutoUpdate(false))
@@ -305,7 +305,7 @@ func TestBridge_ManualUpdate(t *testing.T) {
 }
 
 func TestBridge_ForceUpdate(t *testing.T) {
-	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *liteapi.NetCtl, locator bridge.Locator, vaultKey []byte) {
+	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, vaultKey []byte) {
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, vaultKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
 			// Get a stream of update events.
 			updateCh, done := bridge.GetEvents(events.UpdateForced{})
@@ -325,7 +325,7 @@ func TestBridge_ForceUpdate(t *testing.T) {
 }
 
 func TestBridge_BadVaultKey(t *testing.T) {
-	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *liteapi.NetCtl, locator bridge.Locator, vaultKey []byte) {
+	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, vaultKey []byte) {
 		var userID string
 
 		// Login a user.
@@ -354,7 +354,7 @@ func TestBridge_BadVaultKey(t *testing.T) {
 }
 
 func TestBridge_MissingGluonDir(t *testing.T) {
-	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *liteapi.NetCtl, locator bridge.Locator, vaultKey []byte) {
+	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, vaultKey []byte) {
 		var gluonDir string
 
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, vaultKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
@@ -379,10 +379,10 @@ func TestBridge_MissingGluonDir(t *testing.T) {
 }
 
 func TestBridge_AddressWithoutKeys(t *testing.T) {
-	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *liteapi.NetCtl, locator bridge.Locator, vaultKey []byte) {
-		m := liteapi.New(
-			liteapi.WithHostURL(s.GetHostURL()),
-			liteapi.WithTransport(liteapi.InsecureTransport()),
+	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, vaultKey []byte) {
+		m := proton.New(
+			proton.WithHostURL(s.GetHostURL()),
+			proton.WithTransport(proton.InsecureTransport()),
 		)
 		defer m.Close()
 
@@ -422,7 +422,7 @@ func TestBridge_AddressWithoutKeys(t *testing.T) {
 }
 
 // withEnv creates the full test environment and runs the tests.
-func withEnv(t *testing.T, tests func(context.Context, *server.Server, *liteapi.NetCtl, bridge.Locator, []byte), opts ...server.Option) {
+func withEnv(t *testing.T, tests func(context.Context, *server.Server, *proton.NetCtl, bridge.Locator, []byte), opts ...server.Option) {
 	server := server.New(opts...)
 	defer server.Close()
 
@@ -439,7 +439,7 @@ func withEnv(t *testing.T, tests func(context.Context, *server.Server, *liteapi.
 	defer cancel()
 
 	// Create a net controller so we can simulate network connectivity issues.
-	netCtl := liteapi.NewNetCtl()
+	netCtl := proton.NewNetCtl()
 
 	// Create a locations object to provide temporary locations for bridge data during the test.
 	locations := locations.New(bridge.NewTestLocationsProvider(t.TempDir()), "config-name")
@@ -453,7 +453,7 @@ func withBridge(
 	ctx context.Context,
 	t *testing.T,
 	apiURL string,
-	netCtl *liteapi.NetCtl,
+	netCtl *proton.NetCtl,
 	locator bridge.Locator,
 	vaultKey []byte,
 	tests func(*bridge.Bridge, *bridge.Mocks),
@@ -492,7 +492,7 @@ func withBridge(
 		cookieJar,
 		useragent.New(),
 		mocks.TLSReporter,
-		liteapi.NewDialer(netCtl, &tls.Config{InsecureSkipVerify: true}).GetRoundTripper(),
+		proton.NewDialer(netCtl, &tls.Config{InsecureSkipVerify: true}).GetRoundTripper(),
 		mocks.ProxyCtl,
 		mocks.CrashHandler,
 		mocks.Reporter,

@@ -26,6 +26,8 @@ import (
 	"sync/atomic"
 	"testing"
 
+	"github.com/ProtonMail/go-proton-api"
+	"github.com/ProtonMail/go-proton-api/server"
 	"github.com/ProtonMail/proton-bridge/v2/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/v2/internal/constants"
 	"github.com/ProtonMail/proton-bridge/v2/internal/events"
@@ -33,21 +35,19 @@ import (
 	"github.com/bradenaw/juniper/stream"
 	"github.com/emersion/go-imap/client"
 	"github.com/stretchr/testify/require"
-	"gitlab.protontech.ch/go/liteapi"
-	"gitlab.protontech.ch/go/liteapi/server"
 )
 
 func TestBridge_Sync(t *testing.T) {
 	numMsg := 1 << 8
 
-	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *liteapi.NetCtl, locator bridge.Locator, storeKey []byte) {
+	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, storeKey []byte) {
 		userID, addrID, err := s.CreateUser("imap", "imap@pm.me", password)
 		require.NoError(t, err)
 
-		labelID, err := s.CreateLabel(userID, "folder", "", liteapi.LabelTypeFolder)
+		labelID, err := s.CreateLabel(userID, "folder", "", proton.LabelTypeFolder)
 		require.NoError(t, err)
 
-		withClient(ctx, t, s, "imap", password, func(ctx context.Context, c *liteapi.Client) {
+		withClient(ctx, t, s, "imap", password, func(ctx context.Context, c *proton.Client) {
 			createMessages(ctx, t, c, addrID, labelID, numMsg)
 		})
 
@@ -142,10 +142,10 @@ func TestBridge_Sync(t *testing.T) {
 	}, server.WithTLS(false))
 }
 
-func withClient(ctx context.Context, t *testing.T, s *server.Server, username string, password []byte, fn func(context.Context, *liteapi.Client)) {
-	m := liteapi.New(
-		liteapi.WithHostURL(s.GetHostURL()),
-		liteapi.WithTransport(liteapi.InsecureTransport()),
+func withClient(ctx context.Context, t *testing.T, s *server.Server, username string, password []byte, fn func(context.Context, *proton.Client)) {
+	m := proton.New(
+		proton.WithHostURL(s.GetHostURL()),
+		proton.WithTransport(proton.InsecureTransport()),
 	)
 
 	c, _, err := m.NewClientWithLogin(ctx, username, password)
@@ -155,7 +155,7 @@ func withClient(ctx context.Context, t *testing.T, s *server.Server, username st
 	fn(ctx, c)
 }
 
-func createMessages(ctx context.Context, t *testing.T, c *liteapi.Client, addrID, labelID string, count int) {
+func createMessages(ctx context.Context, t *testing.T, c *proton.Client, addrID, labelID string, count int) {
 	literal, err := os.ReadFile(filepath.Join("testdata", "text-plain.eml"))
 	require.NoError(t, err)
 
@@ -171,7 +171,7 @@ func createMessages(ctx context.Context, t *testing.T, c *liteapi.Client, addrID
 	keyPass, err := salt.SaltForKey(password, user.Keys.Primary().ID)
 	require.NoError(t, err)
 
-	_, addrKRs, err := liteapi.Unlock(user, addr, keyPass)
+	_, addrKRs, err := proton.Unlock(user, addr, keyPass)
 	require.NoError(t, err)
 
 	require.NoError(t, getErr(stream.Collect(ctx, c.ImportMessages(
@@ -179,12 +179,12 @@ func createMessages(ctx context.Context, t *testing.T, c *liteapi.Client, addrID
 		addrKRs[addrID],
 		runtime.NumCPU(),
 		runtime.NumCPU(),
-		iterator.Collect(iterator.Map(iterator.Counter(count), func(i int) liteapi.ImportReq {
-			return liteapi.ImportReq{
-				Metadata: liteapi.ImportMetadata{
+		iterator.Collect(iterator.Map(iterator.Counter(count), func(i int) proton.ImportReq {
+			return proton.ImportReq{
+				Metadata: proton.ImportMetadata{
 					AddressID: addrID,
 					LabelIDs:  []string{labelID},
-					Flags:     liteapi.MessageFlagReceived,
+					Flags:     proton.MessageFlagReceived,
 				},
 				Message: literal,
 			}
@@ -192,7 +192,7 @@ func createMessages(ctx context.Context, t *testing.T, c *liteapi.Client, addrID
 	))))
 }
 
-func countBytesRead(ctl *liteapi.NetCtl, fn func()) uint64 {
+func countBytesRead(ctl *proton.NetCtl, fn func()) uint64 {
 	var read uint64
 
 	ctl.OnRead(func(b []byte) {

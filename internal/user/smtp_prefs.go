@@ -21,9 +21,9 @@ import (
 	"fmt"
 
 	"github.com/ProtonMail/gluon/rfc822"
+	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/pkg/errors"
-	"gitlab.protontech.ch/go/liteapi"
 )
 
 const (
@@ -44,7 +44,7 @@ type contactSettings struct {
 
 // newContactSettings converts the API settings into our local settings.
 // This is due to the legacy send preferences code.
-func newContactSettings(settings liteapi.ContactSettings) *contactSettings {
+func newContactSettings(settings proton.ContactSettings) *contactSettings {
 	metadata := &contactSettings{}
 
 	if settings.MIMEType != nil {
@@ -62,10 +62,10 @@ func newContactSettings(settings liteapi.ContactSettings) *contactSettings {
 
 	if settings.Scheme != nil {
 		switch *settings.Scheme { // nolint:exhaustive
-		case liteapi.PGPMIMEScheme:
+		case proton.PGPMIMEScheme:
 			metadata.Scheme = pgpMIME
 
-		case liteapi.PGPInlineScheme:
+		case proton.PGPInlineScheme:
 			metadata.Scheme = pgpInline
 
 		default:
@@ -88,16 +88,16 @@ func newContactSettings(settings liteapi.ContactSettings) *contactSettings {
 }
 
 func buildSendPrefs(
-	contactSettings liteapi.ContactSettings,
-	mailSettings liteapi.MailSettings,
-	pubKeys []liteapi.PublicKey,
+	contactSettings proton.ContactSettings,
+	mailSettings proton.MailSettings,
+	pubKeys []proton.PublicKey,
 	mimeType rfc822.MIMEType,
 	isInternal bool,
-) (liteapi.SendPreferences, error) {
+) (proton.SendPreferences, error) {
 	builder := &sendPrefsBuilder{}
 
 	if err := builder.setPGPSettings(newContactSettings(contactSettings), pubKeys, isInternal); err != nil {
-		return liteapi.SendPreferences{}, fmt.Errorf("failed to set PGP settings: %w", err)
+		return proton.SendPreferences{}, fmt.Errorf("failed to set PGP settings: %w", err)
 	}
 
 	builder.setEncryptionPreferences(mailSettings)
@@ -222,37 +222,37 @@ func (b *sendPrefsBuilder) withPublicKey(v *crypto.KeyRing) {
 //	    mimeType: 'text/html' | 'text/plain' | 'multipart/mixed',
 //	    publicKey: OpenPGPKey | undefined/null
 //	}.
-func (b *sendPrefsBuilder) build() (p liteapi.SendPreferences) {
+func (b *sendPrefsBuilder) build() (p proton.SendPreferences) {
 	p.Encrypt = b.shouldEncrypt()
 	p.MIMEType = b.getMIMEType()
 	p.PubKey = b.publicKey
 
 	if b.shouldSign() {
-		p.SignatureType = liteapi.DetachedSignature
+		p.SignatureType = proton.DetachedSignature
 	} else {
-		p.SignatureType = liteapi.NoSignature
+		p.SignatureType = proton.NoSignature
 	}
 
 	switch {
 	case b.isInternal():
-		p.EncryptionScheme = liteapi.InternalScheme
+		p.EncryptionScheme = proton.InternalScheme
 
 	case b.shouldSign() && b.shouldEncrypt():
 		if b.getScheme() == pgpInline {
-			p.EncryptionScheme = liteapi.PGPInlineScheme
+			p.EncryptionScheme = proton.PGPInlineScheme
 		} else {
-			p.EncryptionScheme = liteapi.PGPMIMEScheme
+			p.EncryptionScheme = proton.PGPMIMEScheme
 		}
 
 	case b.shouldSign() && !b.shouldEncrypt():
 		if b.getScheme() == pgpInline {
-			p.EncryptionScheme = liteapi.ClearScheme
+			p.EncryptionScheme = proton.ClearScheme
 		} else {
-			p.EncryptionScheme = liteapi.ClearMIMEScheme
+			p.EncryptionScheme = proton.ClearMIMEScheme
 		}
 
 	default:
-		p.EncryptionScheme = liteapi.ClearScheme
+		p.EncryptionScheme = proton.ClearScheme
 	}
 
 	return p
@@ -272,7 +272,7 @@ func (b *sendPrefsBuilder) build() (p liteapi.SendPreferences) {
 // key info retrieved from the API via the GET KEYS route.
 func (b *sendPrefsBuilder) setPGPSettings(
 	vCardData *contactSettings,
-	apiKeys []liteapi.PublicKey,
+	apiKeys []proton.PublicKey,
 	isInternal bool,
 ) (err error) {
 	// If there is no contact metadata, we can just use a default constructed one.
@@ -304,7 +304,7 @@ func (b *sendPrefsBuilder) setPGPSettings(
 // registered with proton.
 func (b *sendPrefsBuilder) setInternalPGPSettings(
 	vCardData *contactSettings,
-	apiKeys []liteapi.PublicKey,
+	apiKeys []proton.PublicKey,
 ) (err error) {
 	// We're guaranteed to get at least one valid (i.e. not expired, revoked or
 	// marked as verification-only) public key from the server.
@@ -349,7 +349,7 @@ func (b *sendPrefsBuilder) setInternalPGPSettings(
 //  3. If there are no pinned keys, then the client should encrypt with the
 //     first valid key served by the API (in principle the server already
 //     validates the keys and the first one provided should be valid).
-func pickSendingKey(vCardData *contactSettings, rawAPIKeys []liteapi.PublicKey) (kr *crypto.KeyRing, err error) {
+func pickSendingKey(vCardData *contactSettings, rawAPIKeys []proton.PublicKey) (kr *crypto.KeyRing, err error) {
 	contactKeys := make([]*crypto.Key, len(vCardData.Keys))
 	apiKeys := make([]*crypto.Key, len(rawAPIKeys))
 
@@ -415,7 +415,7 @@ func matchFingerprints(a, b []*crypto.Key) (res []*crypto.Key) {
 
 func (b *sendPrefsBuilder) setExternalPGPSettingsWithWKDKeys(
 	vCardData *contactSettings,
-	apiKeys []liteapi.PublicKey,
+	apiKeys []proton.PublicKey,
 ) (err error) {
 	// We're guaranteed to get at least one valid (i.e. not expired, revoked or
 	// marked as verification-only) public key from the server.
@@ -520,7 +520,7 @@ func (b *sendPrefsBuilder) setExternalPGPSettingsWithoutWKDKeys(
 //
 // The public key can still be undefined as we do not need it if the outgoing
 // email is not encrypted.
-func (b *sendPrefsBuilder) setEncryptionPreferences(mailSettings liteapi.MailSettings) {
+func (b *sendPrefsBuilder) setEncryptionPreferences(mailSettings proton.MailSettings) {
 	// For internal addresses or external ones with WKD keys, this flag should
 	// always be true. For external ones, an undefined flag defaults to false.
 	b.withEncryptDefault(false)
@@ -541,11 +541,11 @@ func (b *sendPrefsBuilder) setEncryptionPreferences(mailSettings liteapi.MailSet
 	// If undefined, default to the user mail setting "Default PGP scheme".
 	// Otherwise keep the defined value.
 	switch mailSettings.PGPScheme {
-	case liteapi.PGPInlineScheme:
+	case proton.PGPInlineScheme:
 		b.withSchemeDefault(pgpInline)
-	case liteapi.PGPMIMEScheme:
+	case proton.PGPMIMEScheme:
 		b.withSchemeDefault(pgpMIME)
-	case liteapi.ClearMIMEScheme, liteapi.ClearScheme, liteapi.EncryptedOutsideScheme, liteapi.InternalScheme:
+	case proton.ClearMIMEScheme, proton.ClearScheme, proton.EncryptedOutsideScheme, proton.InternalScheme:
 		// nothing to set
 	}
 

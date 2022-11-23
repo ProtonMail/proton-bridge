@@ -24,7 +24,7 @@ import (
 	"os"
 
 	"github.com/Masterminds/semver/v3"
-	"gitlab.protontech.ch/go/liteapi"
+	"github.com/ProtonMail/go-proton-api"
 )
 
 // newAPIOptions returns a set of API options for the given parameters.
@@ -34,19 +34,19 @@ func newAPIOptions(
 	cookieJar http.CookieJar,
 	transport http.RoundTripper,
 	poolSize int,
-) []liteapi.Option {
+) []proton.Option {
 	opt := defaultAPIOptions(apiURL, version, cookieJar, transport, poolSize)
 
 	if host := os.Getenv("BRIDGE_API_HOST"); host != "" {
-		opt = append(opt, liteapi.WithHostURL(host))
+		opt = append(opt, proton.WithHostURL(host))
 	}
 
 	if debug := os.Getenv("BRIDGE_API_DEBUG"); debug != "" {
-		opt = append(opt, liteapi.WithDebug(true))
+		opt = append(opt, proton.WithDebug(true))
 	}
 
 	if skipVerify := os.Getenv("BRIDGE_API_SKIP_VERIFY"); skipVerify != "" {
-		opt = append(opt, liteapi.WithSkipVerifyProofs())
+		opt = append(opt, proton.WithSkipVerifyProofs())
 	}
 
 	return opt

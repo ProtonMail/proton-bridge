@@ -27,6 +27,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/ProtonMail/gluon/rfc822"
+	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/go-rfc5322"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/ProtonMail/proton-bridge/v2/pkg/algo"
@@ -34,7 +35,6 @@ import (
 	"github.com/emersion/go-message"
 	"github.com/emersion/go-message/textproto"
 	"github.com/pkg/errors"
-	"gitlab.protontech.ch/go/liteapi"
 )
 
 var (
@@ -45,7 +45,7 @@ var (
 // InternalIDDomain is used as a placeholder for reference/message ID headers to improve compatibility with various clients.
 const InternalIDDomain = `protonmail.internalid`
 
-func BuildRFC822(kr *crypto.KeyRing, msg liteapi.Message, attData [][]byte, opts JobOptions) ([]byte, error) {
+func BuildRFC822(kr *crypto.KeyRing, msg proton.Message, attData [][]byte, opts JobOptions) ([]byte, error) {
 	switch {
 	case len(msg.Attachments) > 0:
 		return buildMultipartRFC822(kr, msg, attData, opts)
@@ -58,7 +58,7 @@ func BuildRFC822(kr *crypto.KeyRing, msg liteapi.Message, attData [][]byte, opts
 	}
 }
 
-func buildSimpleRFC822(kr *crypto.KeyRing, msg liteapi.Message, opts JobOptions) ([]byte, error) {
+func buildSimpleRFC822(kr *crypto.KeyRing, msg proton.Message, opts JobOptions) ([]byte, error) {
 	dec, err := msg.Decrypt(kr)
 	if err != nil {
 		if !opts.IgnoreDecryptionErrors {
@@ -90,7 +90,7 @@ func buildSimpleRFC822(kr *crypto.KeyRing, msg liteapi.Message, opts JobOptions)
 
 func buildMultipartRFC822(
 	kr *crypto.KeyRing,
-	msg liteapi.Message,
+	msg proton.Message,
 	attData [][]byte,
 	opts JobOptions,
 ) ([]byte, error) {
@@ -108,14 +108,14 @@ func buildMultipartRFC822(
 	}
 
 	var (
-		inlineAtts []liteapi.Attachment
+		inlineAtts []proton.Attachment
 		inlineData [][]byte
-		attachAtts []liteapi.Attachment
+		attachAtts []proton.Attachment
 		attachData [][]byte
 	)
 
 	for index, att := range msg.Attachments {
-		if att.Disposition == liteapi.InlineDisposition {
+		if att.Disposition == proton.InlineDisposition {
 			inlineAtts = append(inlineAtts, att)
 			inlineData = append(inlineData, attData[index])
 		} else {
@@ -148,7 +148,7 @@ func buildMultipartRFC822(
 func writeTextPart(
 	w *message.Writer,
 	kr *crypto.KeyRing,
-	msg liteapi.Message,
+	msg proton.Message,
 	opts JobOptions,
 ) error {
 	dec, err := msg.Decrypt(kr)
@@ -166,7 +166,7 @@ func writeTextPart(
 func writeAttachmentPart(
 	w *message.Writer,
 	kr *crypto.KeyRing,
-	att liteapi.Attachment,
+	att proton.Attachment,
 	attData []byte,
 	opts JobOptions,
 ) error {
@@ -198,8 +198,8 @@ func writeRelatedParts(
 	w *message.Writer,
 	kr *crypto.KeyRing,
 	boundary *boundary,
-	msg liteapi.Message,
-	atts []liteapi.Attachment,
+	msg proton.Message,
+	atts []proton.Attachment,
 	attData [][]byte,
 	opts JobOptions,
 ) error {
@@ -222,7 +222,7 @@ func writeRelatedParts(
 	})
 }
 
-func buildPGPRFC822(kr *crypto.KeyRing, msg liteapi.Message, opts JobOptions) ([]byte, error) {
+func buildPGPRFC822(kr *crypto.KeyRing, msg proton.Message, opts JobOptions) ([]byte, error) {
 	dec, err := msg.Decrypt(kr)
 	if err != nil {
 		if !opts.IgnoreDecryptionErrors {
@@ -234,7 +234,7 @@ func buildPGPRFC822(kr *crypto.KeyRing, msg liteapi.Message, opts JobOptions) ([
 
 	hdr := getMessageHeader(msg, opts)
 
-	sigs, err := liteapi.ExtractSignatures(kr, msg.Body)
+	sigs, err := proton.ExtractSignatures(kr, msg.Body)
 	if err != nil {
 		log.WithError(err).WithField("id", msg.ID).Warn("Extract signature failed")
 	}
@@ -246,7 +246,7 @@ func buildPGPRFC822(kr *crypto.KeyRing, msg liteapi.Message, opts JobOptions) ([
 	return writeMultipartEncryptedRFC822(hdr, dec)
 }
 
-func buildPGPMIMEFallbackRFC822(msg liteapi.Message, opts JobOptions) ([]byte, error) {
+func buildPGPMIMEFallbackRFC822(msg proton.Message, opts JobOptions) ([]byte, error) {
 	hdr := getMessageHeader(msg, opts)
 
 	hdr.SetContentType("multipart/encrypted", map[string]string{
@@ -287,7 +287,7 @@ func buildPGPMIMEFallbackRFC822(msg liteapi.Message, opts JobOptions) ([]byte, e
 	return buf.Bytes(), nil
 }
 
-func writeMultipartSignedRFC822(header message.Header, body []byte, sig liteapi.Signature) ([]byte, error) { //nolint:funlen
+func writeMultipartSignedRFC822(header message.Header, body []byte, sig proton.Signature) ([]byte, error) { //nolint:funlen
 	buf := new(bytes.Buffer)
 
 	boundary := newBoundary("").gen()
@@ -378,7 +378,7 @@ func writeMultipartEncryptedRFC822(header message.Header, body []byte) ([]byte, 
 	return buf.Bytes(), nil
 }
 
-func getMessageHeader(msg liteapi.Message, opts JobOptions) message.Header { //nolint:funlen
+func getMessageHeader(msg proton.Message, opts JobOptions) message.Header { //nolint:funlen
 	hdr := toMessageHeader(msg.ParsedHeaders)
 
 	// SetText will RFC2047-encode.
@@ -461,7 +461,7 @@ func SanitizeMessageDate(msgTime int64) time.Time {
 
 // setMessageIDIfNeeded sets Message-Id from ExternalID or ID if it's not
 // already set.
-func setMessageIDIfNeeded(msg liteapi.Message, hdr *message.Header) {
+func setMessageIDIfNeeded(msg proton.Message, hdr *message.Header) {
 	if hdr.Get("Message-Id") == "" {
 		if msg.ExternalID != "" {
 			hdr.Set("Message-Id", "<"+msg.ExternalID+">")
@@ -486,7 +486,7 @@ func getTextPartHeader(hdr message.Header, body []byte, mimeType rfc822.MIMEType
 	return hdr
 }
 
-func getAttachmentPartHeader(att liteapi.Attachment) message.Header {
+func getAttachmentPartHeader(att proton.Attachment) message.Header {
 	hdr := toMessageHeader(att.Headers)
 
 	// All attachments have a content type.
@@ -505,7 +505,7 @@ func getAttachmentPartHeader(att liteapi.Attachment) message.Header {
 	return hdr
 }
 
-func toMessageHeader(hdr liteapi.Headers) message.Header {
+func toMessageHeader(hdr proton.Headers) message.Header {
 	var res message.Header
 
 	for key, val := range hdr {

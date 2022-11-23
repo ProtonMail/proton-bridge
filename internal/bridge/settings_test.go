@@ -22,14 +22,14 @@ import (
 	"os"
 	"testing"
 
+	"github.com/ProtonMail/go-proton-api"
+	"github.com/ProtonMail/go-proton-api/server"
 	"github.com/ProtonMail/proton-bridge/v2/internal/bridge"
 	"github.com/stretchr/testify/require"
-	"gitlab.protontech.ch/go/liteapi"
-	"gitlab.protontech.ch/go/liteapi/server"
 )
 
 func TestBridge_Settings_GluonDir(t *testing.T) {
-	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *liteapi.NetCtl, locator bridge.Locator, storeKey []byte) {
+	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, storeKey []byte) {
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
 			// Create a user.
 			_, err := bridge.LoginFull(context.Background(), username, password, nil, nil)
@@ -52,7 +52,7 @@ func TestBridge_Settings_GluonDir(t *testing.T) {
 }
 
 func TestBridge_Settings_IMAPPort(t *testing.T) {
-	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *liteapi.NetCtl, locator bridge.Locator, storeKey []byte) {
+	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, storeKey []byte) {
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
 			curPort := bridge.GetIMAPPort()
 
@@ -69,7 +69,7 @@ func TestBridge_Settings_IMAPPort(t *testing.T) {
 }
 
 func TestBridge_Settings_IMAPSSL(t *testing.T) {
-	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *liteapi.NetCtl, locator bridge.Locator, storeKey []byte) {
+	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, storeKey []byte) {
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
 			// By default, IMAP SSL is disabled.
 			require.False(t, bridge.GetIMAPSSL())
@@ -84,7 +84,7 @@ func TestBridge_Settings_IMAPSSL(t *testing.T) {
 }
 
 func TestBridge_Settings_SMTPPort(t *testing.T) {
-	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *liteapi.NetCtl, locator bridge.Locator, storeKey []byte) {
+	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, storeKey []byte) {
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
 			curPort := bridge.GetSMTPPort()
 
@@ -101,7 +101,7 @@ func TestBridge_Settings_SMTPPort(t *testing.T) {
 }
 
 func TestBridge_Settings_SMTPSSL(t *testing.T) {
-	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *liteapi.NetCtl, locator bridge.Locator, storeKey []byte) {
+	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, storeKey []byte) {
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
 			// By default, SMTP SSL is disabled.
 			require.False(t, bridge.GetSMTPSSL())
@@ -116,7 +116,7 @@ func TestBridge_Settings_SMTPSSL(t *testing.T) {
 }
 
 func TestBridge_Settings_Proxy(t *testing.T) {
-	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *liteapi.NetCtl, locator bridge.Locator, storeKey []byte) {
+	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, storeKey []byte) {
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
 			// By default, proxy is allowed.
 			require.True(t, bridge.GetProxyAllowed())
@@ -132,7 +132,7 @@ func TestBridge_Settings_Proxy(t *testing.T) {
 }
 
 func TestBridge_Settings_Autostart(t *testing.T) {
-	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *liteapi.NetCtl, locator bridge.Locator, storeKey []byte) {
+	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, storeKey []byte) {
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
 			// By default, autostart is disabled.
 			require.False(t, bridge.GetAutostart())
@@ -148,7 +148,7 @@ func TestBridge_Settings_Autostart(t *testing.T) {
 }
 
 func TestBridge_Settings_FirstStart(t *testing.T) {
-	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *liteapi.NetCtl, locator bridge.Locator, storeKey []byte) {
+	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, storeKey []byte) {
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
 			// By default, first start is true.
 			require.True(t, bridge.GetFirstStart())
@@ -163,7 +163,7 @@ func TestBridge_Settings_FirstStart(t *testing.T) {
 }
 
 func TestBridge_Settings_FirstStartGUI(t *testing.T) {
-	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *liteapi.NetCtl, locator bridge.Locator, storeKey []byte) {
+	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, storeKey []byte) {
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
 			// By default, first start is true.
 			require.True(t, bridge.GetFirstStartGUI())

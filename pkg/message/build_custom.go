@@ -21,16 +21,16 @@ import (
 	"fmt"
 	"mime"
 
+	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/gopenpgp/v2/constants"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/emersion/go-message"
-	"gitlab.protontech.ch/go/liteapi"
 )
 
 // writeCustomTextPart writes an armored-PGP text part for a message body that couldn't be decrypted.
 func writeCustomTextPart(
 	w *message.Writer,
-	msg liteapi.Message,
+	msg proton.Message,
 	decError error,
 ) error {
 	enc, err := crypto.NewPGPMessageFromArmored(msg.Body)
@@ -65,7 +65,7 @@ func writeCustomTextPart(
 // writeCustomAttachmentPart writes an armored-PGP data part for an attachment that couldn't be decrypted.
 func writeCustomAttachmentPart(
 	w *message.Writer,
-	att liteapi.Attachment,
+	att proton.Attachment,
 	msg *crypto.PGPMessage,
 	decError error,
 ) error {

@@ -49,7 +49,7 @@ func TestMigrate(t *testing.T) {
 	})
 
 	// Write the vault to disk.
-	require.NoError(t, os.WriteFile(filepath.Join(dir, "vault.enc"), b, 0600))
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "vault.enc"), b, 0o600))
 
 	// Migrate the vault.
 	s, corrupt, err := New(dir, "default-gluon-dir", []byte("my secret key"))

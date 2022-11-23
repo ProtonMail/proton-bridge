@@ -23,13 +23,13 @@ import (
 	"fmt"
 	"net/mail"
 
+	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/ProtonMail/proton-bridge/v2/internal/bridge"
 	"github.com/bradenaw/juniper/iterator"
 	"github.com/bradenaw/juniper/xslices"
 	"github.com/cucumber/godog"
 	"github.com/google/uuid"
-	"gitlab.protontech.ch/go/liteapi"
 	"golang.org/x/exp/slices"
 )
 
@@ -82,11 +82,11 @@ func (s *scenario) theAccountHasCustomFolders(username string, count int) error 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	return s.t.withClient(ctx, username, func(ctx context.Context, client *liteapi.Client) error {
+	return s.t.withClient(ctx, username, func(ctx context.Context, client *proton.Client) error {
 		for idx := 0; idx < count; idx++ {
-			if _, err := client.CreateLabel(ctx, liteapi.CreateLabelReq{
+			if _, err := client.CreateLabel(ctx, proton.CreateLabelReq{
 				Name: uuid.NewString(),
-				Type: liteapi.LabelTypeFolder,
+				Type: proton.LabelTypeFolder,
 			}); err != nil {
 				return err
 			}
@@ -100,11 +100,11 @@ func (s *scenario) theAccountHasCustomLabels(username string, count int) error {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	return s.t.withClient(ctx, username, func(ctx context.Context, client *liteapi.Client) error {
+	return s.t.withClient(ctx, username, func(ctx context.Context, client *proton.Client) error {
 		for idx := 0; idx < count; idx++ {
-			if _, err := client.CreateLabel(ctx, liteapi.CreateLabelReq{
+			if _, err := client.CreateLabel(ctx, proton.CreateLabelReq{
 				Name: uuid.NewString(),
-				Type: liteapi.LabelTypeLabel,
+				Type: proton.LabelTypeLabel,
 			}); err != nil {
 				return err
 			}
@@ -128,19 +128,19 @@ func (s *scenario) theAccountHasTheFollowingCustomMailboxes(username string, tab
 		return err
 	}
 
-	return s.t.withClient(ctx, username, func(ctx context.Context, client *liteapi.Client) error {
+	return s.t.withClient(ctx, username, func(ctx context.Context, client *proton.Client) error {
 		for _, wantMailbox := range wantMailboxes {
-			var labelType liteapi.LabelType
+			var labelType proton.LabelType
 
 			switch wantMailbox.Type {
 			case "folder":
-				labelType = liteapi.LabelTypeFolder
+				labelType = proton.LabelTypeFolder
 
 			case "label":
-				labelType = liteapi.LabelTypeLabel
+				labelType = proton.LabelTypeLabel
 			}
 
-			if _, err := client.CreateLabel(ctx, liteapi.CreateLabelReq{
+			if _, err := client.CreateLabel(ctx, proton.CreateLabelReq{
 				Name: wantMailbox.Name,
 				Type: labelType,
 			}); err != nil {
@@ -165,13 +165,13 @@ func (s *scenario) theAddressOfAccountHasTheFollowingMessagesInMailbox(address, 
 		return err
 	}
 
-	return s.t.createMessages(ctx, username, addrID, xslices.Map(wantMessages, func(message Message) liteapi.ImportReq {
-		return liteapi.ImportReq{
-			Metadata: liteapi.ImportMetadata{
+	return s.t.createMessages(ctx, username, addrID, xslices.Map(wantMessages, func(message Message) proton.ImportReq {
+		return proton.ImportReq{
+			Metadata: proton.ImportMetadata{
 				AddressID: addrID,
 				LabelIDs:  []string{mboxID},
-				Unread:    liteapi.Bool(message.Unread),
-				Flags:     liteapi.MessageFlagReceived,
+				Unread:    proton.Bool(message.Unread),
+				Flags:     proton.MessageFlagReceived,
 			},
 			Message: message.Build(),
 		}
@@ -186,12 +186,12 @@ func (s *scenario) theAddressOfAccountHasMessagesInMailbox(address, username str
 	addrID := s.t.getUserAddrID(userID, address)
 	mboxID := s.t.getMBoxID(userID, mailbox)
 
-	return s.t.createMessages(ctx, username, addrID, iterator.Collect(iterator.Map(iterator.Counter(count), func(idx int) liteapi.ImportReq {
-		return liteapi.ImportReq{
-			Metadata: liteapi.ImportMetadata{
+	return s.t.createMessages(ctx, username, addrID, iterator.Collect(iterator.Map(iterator.Counter(count), func(idx int) proton.ImportReq {
+		return proton.ImportReq{
+			Metadata: proton.ImportMetadata{
 				AddressID: addrID,
 				LabelIDs:  []string{mboxID},
-				Flags:     liteapi.MessageFlagReceived,
+				Flags:     proton.MessageFlagReceived,
 			},
 			Message: Message{
 				Subject: fmt.Sprintf("%d", idx),
@@ -207,7 +207,7 @@ func (s *scenario) theAddressOfAccountHasNoKeys(address, username string) error 
 	userID := s.t.getUserID(username)
 	addrID := s.t.getUserAddrID(userID, address)
 
-	return s.t.withClient(context.Background(), username, func(ctx context.Context, client *liteapi.Client) error {
+	return s.t.withClient(context.Background(), username, func(ctx context.Context, client *proton.Client) error {
 		address, err := client.GetAddress(ctx, addrID)
 		if err != nil {
 			return err
@@ -244,11 +244,11 @@ func (s *scenario) addressDraftChanged(draftIndex int, address, username string,
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 
-		if err := s.t.withClient(ctx, username, func(ctx context.Context, c *liteapi.Client) error {
+		if err := s.t.withClient(ctx, username, func(ctx context.Context, c *proton.Client) error {
 			return s.t.withAddrKR(ctx, c, username, s.t.getUserAddrID(s.t.getUserID(username), address),
 				func(ctx context.Context, addrKR *crypto.KeyRing) error {
 					var err error
-					encBody, err = liteapi.EncryptRFC822(addrKR, wantMessages[0].Build())
+					encBody, err = proton.EncryptRFC822(addrKR, wantMessages[0].Build())
 					return err
 				})
 		}); err != nil {
@@ -256,7 +256,7 @@ func (s *scenario) addressDraftChanged(draftIndex int, address, username string,
 		}
 	}
 
-	changes := liteapi.DraftTemplate{
+	changes := proton.DraftTemplate{
 		Subject: wantMessages[0].Subject,
 		Body:    string(encBody),
 	}

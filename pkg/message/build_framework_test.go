@@ -26,10 +26,10 @@ import (
 	"time"
 
 	"github.com/ProtonMail/gluon/rfc822"
+	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/ProtonMail/proton-bridge/v2/pkg/message/parser"
 	"github.com/stretchr/testify/require"
-	"gitlab.protontech.ch/go/liteapi"
 	"golang.org/x/text/encoding/htmlindex"
 )
 
@@ -38,7 +38,7 @@ func newTestMessage(
 	kr *crypto.KeyRing,
 	messageID, addressID, mimeType, body string, //nolint:unparam
 	date time.Time,
-) liteapi.Message {
+) proton.Message {
 	enc, err := kr.Encrypt(crypto.NewPlainMessageFromString(body), kr)
 	require.NoError(t, err)
 
@@ -48,14 +48,14 @@ func newTestMessage(
 	return newRawTestMessage(messageID, addressID, mimeType, arm, date)
 }
 
-func newRawTestMessage(messageID, addressID, mimeType, body string, date time.Time) liteapi.Message {
-	return liteapi.Message{
-		MessageMetadata: liteapi.MessageMetadata{
+func newRawTestMessage(messageID, addressID, mimeType, body string, date time.Time) proton.Message {
+	return proton.Message{
+		MessageMetadata: proton.MessageMetadata{
 			ID:        messageID,
 			AddressID: addressID,
 			Time:      date.Unix(),
 		},
-		ParsedHeaders: liteapi.Headers{
+		ParsedHeaders: proton.Headers{
 			"Content-Type": {mimeType},
 			"Date":         {date.In(time.UTC).Format(time.RFC1123Z)},
 		},
@@ -67,22 +67,22 @@ func newRawTestMessage(messageID, addressID, mimeType, body string, date time.Ti
 func addTestAttachment(
 	t *testing.T,
 	kr *crypto.KeyRing,
-	msg *liteapi.Message,
+	msg *proton.Message,
 	attachmentID, name, mimeType, disposition, data string,
 ) []byte {
 	enc, err := kr.EncryptAttachment(crypto.NewPlainMessageFromString(data), attachmentID+".bin")
 	require.NoError(t, err)
 
-	msg.Attachments = append(msg.Attachments, liteapi.Attachment{
+	msg.Attachments = append(msg.Attachments, proton.Attachment{
 		ID:       attachmentID,
 		Name:     name,
 		MIMEType: rfc822.MIMEType(mimeType),
-		Headers: liteapi.Headers{
+		Headers: proton.Headers{
 			"Content-Type":              {mimeType},
 			"Content-Disposition":       {disposition},
 			"Content-Transfer-Encoding": {"base64"},
 		},
-		Disposition: liteapi.Disposition(disposition),
+		Disposition: proton.Disposition(disposition),
 		KeyPackets:  base64.StdEncoding.EncodeToString(enc.GetBinaryKeyPacket()),
 	})
 

@@ -19,8 +19,8 @@ package tests
 
 import (
 	"github.com/Masterminds/semver/v3"
-	"gitlab.protontech.ch/go/liteapi"
-	"gitlab.protontech.ch/go/liteapi/server"
+	"github.com/ProtonMail/go-proton-api"
+	"github.com/ProtonMail/go-proton-api/server"
 )
 
 type API interface {
@@ -36,7 +36,7 @@ type API interface {
 	RemoveAddress(userID, addrID string) error
 	RemoveAddressKey(userID, addrID, keyID string) error
 
-	UpdateDraft(userID, draftID string, changes liteapi.DraftTemplate) error
+	UpdateDraft(userID, draftID string, changes proton.DraftTemplate) error
 
 	Close()
 }

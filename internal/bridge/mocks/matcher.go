@@ -20,14 +20,14 @@ package mocks
 import (
 	"strings"
 
-	"gitlab.protontech.ch/go/liteapi"
+	"github.com/ProtonMail/go-proton-api"
 )
 
 type refreshContextMatcher struct {
-	wantRefresh liteapi.RefreshFlag
+	wantRefresh proton.RefreshFlag
 }
 
-func NewRefreshContextMatcher(refreshFlag liteapi.RefreshFlag) *refreshContextMatcher { //nolint:revive
+func NewRefreshContextMatcher(refreshFlag proton.RefreshFlag) *refreshContextMatcher { //nolint:revive
 	return &refreshContextMatcher{wantRefresh: refreshFlag}
 }
 
@@ -66,7 +66,7 @@ func (m *refreshContextMatcher) Matches(x interface{}) bool {
 		return false
 	}
 
-	refresh, ok := vRefresh.(liteapi.RefreshFlag)
+	refresh, ok := vRefresh.(proton.RefreshFlag)
 	if !ok {
 		return false
 	}
@@ -75,11 +75,10 @@ func (m *refreshContextMatcher) Matches(x interface{}) bool {
 }
 
 func (m *refreshContextMatcher) String() string {
-	return `map[string]interface which contains "Refresh" field with value liteapi.RefreshAll`
+	return `map[string]interface which contains "Refresh" field with value proton.RefreshAll`
 }
 
-type closedConnectionMatcher struct {
-}
+type closedConnectionMatcher struct{}
 
 func NewClosedConnectionMatcher() *closedConnectionMatcher { //nolint:revive
 	return &closedConnectionMatcher{}

@@ -26,10 +26,10 @@ import (
 	"path/filepath"
 	"sort"
 
+	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/proton-bridge/v2/internal/constants"
 	"github.com/ProtonMail/proton-bridge/v2/internal/logging"
 	"github.com/ProtonMail/proton-bridge/v2/internal/vault"
-	"gitlab.protontech.ch/go/liteapi"
 )
 
 const (
@@ -50,7 +50,7 @@ func (bridge *Bridge) ReportBug(ctx context.Context, osType, osVersion, descript
 		}
 	}
 
-	var atts []liteapi.ReportBugAttachment
+	var atts []proton.ReportBugAttachment
 
 	if attachLogs {
 		logs, err := getMatchingLogs(bridge.locator, func(filename string) bool {
@@ -97,7 +97,7 @@ func (bridge *Bridge) ReportBug(ctx context.Context, osType, osVersion, descript
 			return err
 		}
 
-		atts = append(atts, liteapi.ReportBugAttachment{
+		atts = append(atts, proton.ReportBugAttachment{
 			Name:     "logs.zip",
 			Filename: "logs.zip",
 			MIMEType: "application/zip",
@@ -105,7 +105,7 @@ func (bridge *Bridge) ReportBug(ctx context.Context, osType, osVersion, descript
 		})
 	}
 
-	return bridge.api.ReportBug(ctx, liteapi.ReportBugReq{
+	return bridge.api.ReportBug(ctx, proton.ReportBugReq{
 		OS:        osType,
 		OSVersion: osVersion,
 
@@ -113,7 +113,7 @@ func (bridge *Bridge) ReportBug(ctx context.Context, osType, osVersion, descript
 		Description: description,
 
 		Client:        client,
-		ClientType:    liteapi.ClientTypeEmail,
+		ClientType:    proton.ClientTypeEmail,
 		ClientVersion: constants.AppVersion(bridge.curVersion.Original()),
 
 		Username: account,

@@ -30,6 +30,7 @@ import (
 	"github.com/ProtonMail/gluon/imap"
 	"github.com/ProtonMail/gluon/queue"
 	gluonReporter "github.com/ProtonMail/gluon/reporter"
+	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/proton-bridge/v2/internal/async"
 	"github.com/ProtonMail/proton-bridge/v2/internal/events"
 	"github.com/ProtonMail/proton-bridge/v2/internal/logging"
@@ -38,7 +39,6 @@ import (
 	"github.com/bradenaw/juniper/xslices"
 	"github.com/go-resty/resty/v2"
 	"github.com/sirupsen/logrus"
-	"gitlab.protontech.ch/go/liteapi"
 	"golang.org/x/exp/maps"
 	"golang.org/x/exp/slices"
 )
@@ -56,17 +56,17 @@ type User struct {
 	log *logrus.Entry
 
 	vault    *vault.User
-	client   *liteapi.Client
+	client   *proton.Client
 	eventCh  *queue.QueuedChannel[events.Event]
 	sendHash *sendRecorder
 
-	apiUser     liteapi.User
+	apiUser     proton.User
 	apiUserLock safe.RWMutex
 
-	apiAddrs     map[string]liteapi.Address
+	apiAddrs     map[string]proton.Address
 	apiAddrsLock safe.RWMutex
 
-	apiLabels     map[string]liteapi.Label
+	apiLabels     map[string]proton.Label
 	apiLabelsLock safe.RWMutex
 
 	updateCh     map[string]*queue.QueuedChannel[imap.Update]
@@ -91,8 +91,8 @@ type User struct {
 func New(
 	ctx context.Context,
 	encVault *vault.User,
-	client *liteapi.Client,
-	apiUser liteapi.User,
+	client *proton.Client,
+	apiUser proton.User,
 	crashHandler async.PanicHandler,
 	reporter gluonReporter.Reporter,
 	syncWorkers int,
@@ -107,7 +107,7 @@ func New(
 	}
 
 	// Get the user's API labels.
-	apiLabels, err := client.GetLabels(ctx, liteapi.LabelTypeSystem, liteapi.LabelTypeFolder, liteapi.LabelTypeLabel)
+	apiLabels, err := client.GetLabels(ctx, proton.LabelTypeSystem, proton.LabelTypeFolder, proton.LabelTypeLabel)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get labels: %w", err)
 	}
@@ -124,10 +124,10 @@ func New(
 		apiUser:     apiUser,
 		apiUserLock: safe.NewRWMutex(),
 
-		apiAddrs:     groupBy(apiAddrs, func(addr liteapi.Address) string { return addr.ID }),
+		apiAddrs:     groupBy(apiAddrs, func(addr proton.Address) string { return addr.ID }),
 		apiAddrsLock: safe.NewRWMutex(),
 
-		apiLabels:     groupBy(apiLabels, func(label liteapi.Label) string { return label.ID }),
+		apiLabels:     groupBy(apiLabels, func(label proton.Label) string { return label.ID }),
 		apiLabelsLock: safe.NewRWMutex(),
 
 		updateCh:     make(map[string]*queue.QueuedChannel[imap.Update]),
@@ -147,7 +147,7 @@ func New(
 
 	// When we receive an auth object, we update it in the vault.
 	// This will be used to authorize the user on the next run.
-	user.client.AddAuthHandler(func(auth liteapi.Auth) {
+	user.client.AddAuthHandler(func(auth proton.Auth) {
 		if err := user.vault.SetAuth(auth.UID, auth.RefreshToken); err != nil {
 			user.log.WithError(err).Error("Failed to update auth in vault")
 		}
@@ -172,7 +172,7 @@ func New(
 	// When we receive an API event, we attempt to handle it.
 	// If successful, we update the event ID in the vault.
 	user.tasks.Once(func(ctx context.Context) {
-		ticker := liteapi.NewTicker(EventPeriod, EventJitter)
+		ticker := proton.NewTicker(EventPeriod, EventJitter)
 		defer ticker.Stop()
 
 		for {
@@ -271,11 +271,11 @@ func (user *User) Emails() []string {
 	return safe.RLockRet(func() []string {
 		addresses := maps.Values(user.apiAddrs)
 
-		slices.SortFunc(addresses, func(a, b liteapi.Address) bool {
+		slices.SortFunc(addresses, func(a, b proton.Address) bool {
 			return a.Order < b.Order
 		})
 
-		return xslices.Map(addresses, func(addr liteapi.Address) string {
+		return xslices.Map(addresses, func(addr proton.Address) string {
 			return addr.Email
 		})
 	}, user.apiAddrsLock)

@@ -23,11 +23,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/ProtonMail/go-proton-api"
+	"github.com/ProtonMail/go-proton-api/server"
 	"github.com/ProtonMail/proton-bridge/v2/internal/useragent"
 	a "github.com/stretchr/testify/assert"
 	r "github.com/stretchr/testify/require"
-	"gitlab.protontech.ch/go/liteapi"
-	"gitlab.protontech.ch/go/liteapi/server"
 )
 
 func getRootURL() string {
@@ -110,7 +110,7 @@ func TestTLSSelfSignedCertTrustedPublicKey(t *testing.T) {
 	r.NoError(t, err, "expected dial to succeed because public key is known despite cert being self-signed")
 }
 
-func createClientWithPinningDialer(hostURL string) (*atomicUint64, *PinningTLSDialer, *TLSReporter, *TLSPinChecker, *liteapi.Manager) {
+func createClientWithPinningDialer(hostURL string) (*atomicUint64, *PinningTLSDialer, *TLSReporter, *TLSPinChecker, *proton.Manager) {
 	called := &atomicUint64{}
 
 	reporter := NewTLSReporter(hostURL, "appVersion", useragent.New(), TrustedAPIPins)
@@ -123,9 +123,9 @@ func createClientWithPinningDialer(hostURL string) (*atomicUint64, *PinningTLSDi
 		}
 	}()
 
-	return called, dialer, reporter, checker, liteapi.New(
-		liteapi.WithHostURL(hostURL),
-		liteapi.WithTransport(CreateTransportWithDialer(dialer)),
+	return called, dialer, reporter, checker, proton.New(
+		proton.WithHostURL(hostURL),
+		proton.WithTransport(CreateTransportWithDialer(dialer)),
 	)
 }
 

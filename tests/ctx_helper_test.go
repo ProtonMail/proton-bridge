@@ -25,19 +25,19 @@ import (
 	"testing"
 
 	"github.com/ProtonMail/gluon/reporter"
+	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/bradenaw/juniper/stream"
 	"github.com/bradenaw/juniper/xslices"
 	"github.com/golang/mock/gomock"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
-	"gitlab.protontech.ch/go/liteapi"
 )
 
-func (t *testCtx) withClient(ctx context.Context, username string, fn func(context.Context, *liteapi.Client) error) error {
-	c, _, err := liteapi.New(
-		liteapi.WithHostURL(t.api.GetHostURL()),
-		liteapi.WithTransport(liteapi.InsecureTransport()),
+func (t *testCtx) withClient(ctx context.Context, username string, fn func(context.Context, *proton.Client) error) error {
+	c, _, err := proton.New(
+		proton.WithHostURL(t.api.GetHostURL()),
+		proton.WithTransport(proton.InsecureTransport()),
 	).NewClientWithLogin(ctx, username, []byte(t.getUserPass(t.getUserID(username))))
 	if err != nil {
 		return err
@@ -58,7 +58,7 @@ func (t *testCtx) withClient(ctx context.Context, username string, fn func(conte
 
 func (t *testCtx) withAddrKR(
 	ctx context.Context,
-	c *liteapi.Client,
+	c *proton.Client,
 	username, addrID string,
 	fn func(context.Context, *crypto.KeyRing) error,
 ) error {
@@ -82,7 +82,7 @@ func (t *testCtx) withAddrKR(
 		return err
 	}
 
-	_, addrKRs, err := liteapi.Unlock(user, addr, keyPass)
+	_, addrKRs, err := proton.Unlock(user, addr, keyPass)
 	if err != nil {
 		return err
 	}
@@ -90,8 +90,8 @@ func (t *testCtx) withAddrKR(
 	return fn(ctx, addrKRs[addrID])
 }
 
-func (t *testCtx) createMessages(ctx context.Context, username, addrID string, req []liteapi.ImportReq) error {
-	return t.withClient(ctx, username, func(ctx context.Context, c *liteapi.Client) error {
+func (t *testCtx) createMessages(ctx context.Context, username, addrID string, req []proton.ImportReq) error {
+	return t.withClient(ctx, username, func(ctx context.Context, c *proton.Client) error {
 		return t.withAddrKR(ctx, c, username, addrID, func(ctx context.Context, addrKR *crypto.KeyRing) error {
 			if _, err := stream.Collect(ctx, c.ImportMessages(
 				ctx,

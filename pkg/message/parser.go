@@ -27,6 +27,7 @@ import (
 	"strings"
 
 	"github.com/ProtonMail/gluon/rfc822"
+	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/go-rfc5322"
 	"github.com/ProtonMail/proton-bridge/v2/pkg/message/parser"
 	pmmime "github.com/ProtonMail/proton-bridge/v2/pkg/mime"
@@ -34,7 +35,6 @@ import (
 	"github.com/jaytaylor/html2text"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	"gitlab.protontech.ch/go/liteapi"
 )
 
 type MIMEBody string
@@ -559,7 +559,7 @@ func parseAttachment(h message.Header, body []byte) (Attachment, error) {
 			return Attachment{}, err
 		}
 
-		if disp == string(liteapi.InlineDisposition) {
+		if disp == string(proton.InlineDisposition) {
 			att.ContentID = strings.Trim(h.Get("Content-Id"), " <>")
 		}
 	} else if h.Has("Content-Id") {

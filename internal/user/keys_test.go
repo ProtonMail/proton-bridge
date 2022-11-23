@@ -21,16 +21,16 @@ import (
 	"context"
 	"testing"
 
+	"github.com/ProtonMail/go-proton-api"
+	"github.com/ProtonMail/go-proton-api/server"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/stretchr/testify/require"
-	"gitlab.protontech.ch/go/liteapi"
-	"gitlab.protontech.ch/go/liteapi/server"
 )
 
 func BenchmarkAddrKeyRing(b *testing.B) {
 	b.StopTimer()
 
-	withAPI(b, context.Background(), func(ctx context.Context, s *server.Server, m *liteapi.Manager) {
+	withAPI(b, context.Background(), func(ctx context.Context, s *server.Server, m *proton.Manager) {
 		withAccount(b, s, "username", "password", []string{"email@pm.me"}, func(userID string, addrIDs []string) {
 			withUser(b, ctx, s, m, "username", "password", func(user *User) {
 				b.StartTimer()

@@ -23,7 +23,7 @@ import (
 	"net/http"
 
 	"github.com/Masterminds/semver/v3"
-	"gitlab.protontech.ch/go/liteapi"
+	"github.com/ProtonMail/go-proton-api"
 )
 
 // newAPIOptions returns a set of API options for the given parameters.
@@ -33,6 +33,6 @@ func newAPIOptions(
 	cookieJar http.CookieJar,
 	transport http.RoundTripper,
 	poolSize int,
-) []liteapi.Option {
+) []proton.Option {
 	return defaultAPIOptions(apiURL, version, cookieJar, transport, poolSize)
 }

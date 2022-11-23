@@ -26,6 +26,7 @@ import (
 
 	"github.com/ProtonMail/gluon/imap"
 	"github.com/ProtonMail/gluon/queue"
+	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/ProtonMail/proton-bridge/v2/internal/events"
 	"github.com/ProtonMail/proton-bridge/v2/internal/safe"
@@ -34,7 +35,6 @@ import (
 	"github.com/bradenaw/juniper/xslices"
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
-	"gitlab.protontech.ch/go/liteapi"
 	"golang.org/x/exp/maps"
 )
 
@@ -138,7 +138,7 @@ func (user *User) sync(ctx context.Context) error {
 }
 
 // nolint:exhaustive
-func syncLabels(ctx context.Context, apiLabels map[string]liteapi.Label, updateCh ...*queue.QueuedChannel[imap.Update]) error {
+func syncLabels(ctx context.Context, apiLabels map[string]proton.Label, updateCh ...*queue.QueuedChannel[imap.Update]) error {
 	// Create placeholder Folders/Labels mailboxes with a random ID and with the \Noselect attribute.
 	for _, prefix := range []string{folderPrefix, labelPrefix} {
 		for _, updateCh := range updateCh {
@@ -153,12 +153,12 @@ func syncLabels(ctx context.Context, apiLabels map[string]liteapi.Label, updateC
 		}
 
 		switch label.Type {
-		case liteapi.LabelTypeSystem:
+		case proton.LabelTypeSystem:
 			for _, updateCh := range updateCh {
 				updateCh.Enqueue(newSystemMailboxCreatedUpdate(imap.MailboxID(label.ID), label.Name))
 			}
 
-		case liteapi.LabelTypeFolder, liteapi.LabelTypeLabel:
+		case proton.LabelTypeFolder, proton.LabelTypeLabel:
 			for _, updateCh := range updateCh {
 				updateCh.Enqueue(newMailboxCreatedUpdate(imap.MailboxID(labelID), getMailboxName(label)))
 			}
@@ -183,9 +183,9 @@ func syncLabels(ctx context.Context, apiLabels map[string]liteapi.Label, updateC
 func syncMessages(
 	ctx context.Context,
 	userID string,
-	client *liteapi.Client,
+	client *proton.Client,
 	vault *vault.User,
-	apiLabels map[string]liteapi.Label,
+	apiLabels map[string]proton.Label,
 	addrKRs map[string]*crypto.KeyRing,
 	updateCh map[string]*queue.QueuedChannel[imap.Update],
 	eventCh *queue.QueuedChannel[events.Event],
@@ -261,7 +261,6 @@ func syncMessages(
 
 				return buildRFC822(apiLabels, msg, addrKRs[msg.AddressID])
 			})
-
 			if err != nil {
 				errorCh <- err
 				return
@@ -328,25 +327,25 @@ func newSystemMailboxCreatedUpdate(labelID imap.MailboxID, labelName string) *im
 	attrs := imap.NewFlagSet(imap.AttrNoInferiors)
 
 	switch labelID {
-	case liteapi.TrashLabel:
+	case proton.TrashLabel:
 		attrs = attrs.Add(imap.AttrTrash)
 
-	case liteapi.SpamLabel:
+	case proton.SpamLabel:
 		attrs = attrs.Add(imap.AttrJunk)
 
-	case liteapi.AllMailLabel:
+	case proton.AllMailLabel:
 		attrs = attrs.Add(imap.AttrAll)
 
-	case liteapi.ArchiveLabel:
+	case proton.ArchiveLabel:
 		attrs = attrs.Add(imap.AttrArchive)
 
-	case liteapi.SentLabel:
+	case proton.SentLabel:
 		attrs = attrs.Add(imap.AttrSent)
 
-	case liteapi.DraftsLabel:
+	case proton.DraftsLabel:
 		attrs = attrs.Add(imap.AttrDrafts)
 
-	case liteapi.StarredLabel:
+	case proton.StarredLabel:
 		attrs = attrs.Add(imap.AttrFlagged)
 	}
 
@@ -379,35 +378,35 @@ func newMailboxCreatedUpdate(labelID imap.MailboxID, labelName []string) *imap.M
 	})
 }
 
-func wantLabel(label liteapi.Label) bool {
-	if label.Type != liteapi.LabelTypeSystem {
+func wantLabel(label proton.Label) bool {
+	if label.Type != proton.LabelTypeSystem {
 		return true
 	}
 
 	// nolint:exhaustive
 	switch label.ID {
-	case liteapi.InboxLabel:
+	case proton.InboxLabel:
 		return true
 
-	case liteapi.TrashLabel:
+	case proton.TrashLabel:
 		return true
 
-	case liteapi.SpamLabel:
+	case proton.SpamLabel:
 		return true
 
-	case liteapi.AllMailLabel:
+	case proton.AllMailLabel:
 		return true
 
-	case liteapi.ArchiveLabel:
+	case proton.ArchiveLabel:
 		return true
 
-	case liteapi.SentLabel:
+	case proton.SentLabel:
 		return true
 
-	case liteapi.DraftsLabel:
+	case proton.DraftsLabel:
 		return true
 
-	case liteapi.StarredLabel:
+	case proton.StarredLabel:
 		return true
 
 	default:
@@ -415,7 +414,7 @@ func wantLabel(label liteapi.Label) bool {
 	}
 }
 
-func wantLabels(apiLabels map[string]liteapi.Label, labelIDs []string) []string {
+func wantLabels(apiLabels map[string]proton.Label, labelIDs []string) []string {
 	return xslices.Filter(labelIDs, func(labelID string) bool {
 		return wantLabel(apiLabels[labelID])
 	})

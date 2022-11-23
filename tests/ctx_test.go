@@ -27,6 +27,8 @@ import (
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/ProtonMail/gluon/queue"
+	"github.com/ProtonMail/go-proton-api"
+	"github.com/ProtonMail/go-proton-api/server"
 	"github.com/ProtonMail/proton-bridge/v2/internal/bridge"
 	frontend "github.com/ProtonMail/proton-bridge/v2/internal/frontend/grpc"
 	"github.com/ProtonMail/proton-bridge/v2/internal/locations"
@@ -34,8 +36,6 @@ import (
 	"github.com/emersion/go-imap/client"
 	"github.com/golang/mock/gomock"
 	"github.com/sirupsen/logrus"
-	"gitlab.protontech.ch/go/liteapi"
-	"gitlab.protontech.ch/go/liteapi/server"
 	"golang.org/x/exp/maps"
 	"google.golang.org/grpc"
 )
@@ -46,7 +46,7 @@ type testCtx struct {
 	// These are the objects supporting the test.
 	dir      string
 	api      API
-	netCtl   *liteapi.NetCtl
+	netCtl   *proton.NetCtl
 	locator  *locations.Locations
 	storeKey []byte
 	version  *semver.Version
@@ -101,7 +101,7 @@ func newTestCtx(tb testing.TB) *testCtx {
 	t := &testCtx{
 		dir:      dir,
 		api:      newFakeAPI(),
-		netCtl:   liteapi.NewNetCtl(),
+		netCtl:   proton.NewNetCtl(),
 		locator:  locations.New(bridge.NewTestLocationsProvider(dir), "config-name"),
 		storeKey: []byte("super-secret-store-key"),
 		version:  defaultVersion,
@@ -203,13 +203,13 @@ func (t *testCtx) getMBoxID(userID string, name string) string {
 
 	var labelID string
 
-	if err := t.withClient(ctx, t.getName(userID), func(ctx context.Context, client *liteapi.Client) error {
-		labels, err := client.GetLabels(ctx, liteapi.LabelTypeLabel, liteapi.LabelTypeFolder, liteapi.LabelTypeSystem)
+	if err := t.withClient(ctx, t.getName(userID), func(ctx context.Context, client *proton.Client) error {
+		labels, err := client.GetLabels(ctx, proton.LabelTypeLabel, proton.LabelTypeFolder, proton.LabelTypeSystem)
 		if err != nil {
 			panic(err)
 		}
 
-		idx := xslices.IndexFunc(labels, func(label liteapi.Label) bool {
+		idx := xslices.IndexFunc(labels, func(label proton.Label) bool {
 			return label.Name == name
 		})
 
@@ -240,9 +240,9 @@ func (t *testCtx) getDraftID(username string, draftIndex int) string {
 
 	var draftID string
 
-	if err := t.withClient(ctx, username, func(ctx context.Context, client *liteapi.Client) error {
+	if err := t.withClient(ctx, username, func(ctx context.Context, client *proton.Client) error {
 		messages, err := client.GetMessageMetadata(
-			ctx, liteapi.MessageFilter{LabelID: liteapi.DraftsLabel},
+			ctx, proton.MessageFilter{LabelID: proton.DraftsLabel},
 		)
 		if err != nil {
 			panic(err)

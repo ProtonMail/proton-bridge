@@ -21,10 +21,10 @@ import (
 	"testing"
 
 	"github.com/ProtonMail/gluon/rfc822"
+	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gitlab.protontech.ch/go/liteapi"
 )
 
 func TestPreferencesBuilder(t *testing.T) {
@@ -35,14 +35,14 @@ func TestPreferencesBuilder(t *testing.T) {
 		name string
 
 		contactMeta      *contactSettings
-		receivedKeys     []liteapi.PublicKey
+		receivedKeys     []proton.PublicKey
 		isInternal       bool
-		mailSettings     liteapi.MailSettings
+		mailSettings     proton.MailSettings
 		composerMIMEType string
 
 		wantEncrypt   bool
-		wantSign      liteapi.SignatureType
-		wantScheme    liteapi.EncryptionScheme
+		wantSign      proton.SignatureType
+		wantScheme    proton.EncryptionScheme
 		wantMIMEType  rfc822.MIMEType
 		wantPublicKey string
 	}{
@@ -50,13 +50,13 @@ func TestPreferencesBuilder(t *testing.T) {
 			name: "internal",
 
 			contactMeta:  &contactSettings{},
-			receivedKeys: []liteapi.PublicKey{{PublicKey: testPublicKey}},
+			receivedKeys: []proton.PublicKey{{PublicKey: testPublicKey}},
 			isInternal:   true,
-			mailSettings: liteapi.MailSettings{PGPScheme: liteapi.PGPMIMEScheme, DraftMIMEType: "text/html"},
+			mailSettings: proton.MailSettings{PGPScheme: proton.PGPMIMEScheme, DraftMIMEType: "text/html"},
 
 			wantEncrypt:   true,
-			wantSign:      liteapi.DetachedSignature,
-			wantScheme:    liteapi.InternalScheme,
+			wantSign:      proton.DetachedSignature,
+			wantScheme:    proton.InternalScheme,
 			wantMIMEType:  "text/html",
 			wantPublicKey: testPublicKey,
 		},
@@ -65,13 +65,13 @@ func TestPreferencesBuilder(t *testing.T) {
 			name: "internal with contact-specific email format",
 
 			contactMeta:  &contactSettings{MIMEType: "text/plain"},
-			receivedKeys: []liteapi.PublicKey{{PublicKey: testPublicKey}},
+			receivedKeys: []proton.PublicKey{{PublicKey: testPublicKey}},
 			isInternal:   true,
-			mailSettings: liteapi.MailSettings{PGPScheme: liteapi.PGPMIMEScheme, DraftMIMEType: "text/html"},
+			mailSettings: proton.MailSettings{PGPScheme: proton.PGPMIMEScheme, DraftMIMEType: "text/html"},
 
 			wantEncrypt:   true,
-			wantSign:      liteapi.DetachedSignature,
-			wantScheme:    liteapi.InternalScheme,
+			wantSign:      proton.DetachedSignature,
+			wantScheme:    proton.InternalScheme,
 			wantMIMEType:  "text/plain",
 			wantPublicKey: testPublicKey,
 		},
@@ -80,13 +80,13 @@ func TestPreferencesBuilder(t *testing.T) {
 			name: "internal with pinned contact public key",
 
 			contactMeta:  &contactSettings{Keys: []string{testContactKey}},
-			receivedKeys: []liteapi.PublicKey{{PublicKey: testPublicKey}},
+			receivedKeys: []proton.PublicKey{{PublicKey: testPublicKey}},
 			isInternal:   true,
-			mailSettings: liteapi.MailSettings{PGPScheme: liteapi.PGPMIMEScheme, DraftMIMEType: "text/html"},
+			mailSettings: proton.MailSettings{PGPScheme: proton.PGPMIMEScheme, DraftMIMEType: "text/html"},
 
 			wantEncrypt:   true,
-			wantSign:      liteapi.DetachedSignature,
-			wantScheme:    liteapi.InternalScheme,
+			wantSign:      proton.DetachedSignature,
+			wantScheme:    proton.InternalScheme,
 			wantMIMEType:  "text/html",
 			wantPublicKey: testPublicKey,
 		},
@@ -96,13 +96,13 @@ func TestPreferencesBuilder(t *testing.T) {
 			name: "internal with conflicting contact public key",
 
 			contactMeta:  &contactSettings{Keys: []string{testOtherContactKey}},
-			receivedKeys: []liteapi.PublicKey{{PublicKey: testPublicKey}},
+			receivedKeys: []proton.PublicKey{{PublicKey: testPublicKey}},
 			isInternal:   true,
-			mailSettings: liteapi.MailSettings{PGPScheme: liteapi.PGPMIMEScheme, DraftMIMEType: "text/html"},
+			mailSettings: proton.MailSettings{PGPScheme: proton.PGPMIMEScheme, DraftMIMEType: "text/html"},
 
 			wantEncrypt:   true,
-			wantSign:      liteapi.DetachedSignature,
-			wantScheme:    liteapi.InternalScheme,
+			wantSign:      proton.DetachedSignature,
+			wantScheme:    proton.InternalScheme,
 			wantMIMEType:  "text/html",
 			wantPublicKey: testPublicKey,
 		},
@@ -111,13 +111,13 @@ func TestPreferencesBuilder(t *testing.T) {
 			name: "wkd-external",
 
 			contactMeta:  &contactSettings{},
-			receivedKeys: []liteapi.PublicKey{{PublicKey: testPublicKey}},
+			receivedKeys: []proton.PublicKey{{PublicKey: testPublicKey}},
 			isInternal:   false,
-			mailSettings: liteapi.MailSettings{PGPScheme: liteapi.PGPMIMEScheme, DraftMIMEType: "text/html"},
+			mailSettings: proton.MailSettings{PGPScheme: proton.PGPMIMEScheme, DraftMIMEType: "text/html"},
 
 			wantEncrypt:   true,
-			wantSign:      liteapi.DetachedSignature,
-			wantScheme:    liteapi.PGPMIMEScheme,
+			wantSign:      proton.DetachedSignature,
+			wantScheme:    proton.PGPMIMEScheme,
 			wantMIMEType:  "multipart/mixed",
 			wantPublicKey: testPublicKey,
 		},
@@ -126,13 +126,13 @@ func TestPreferencesBuilder(t *testing.T) {
 			name: "wkd-external with contact-specific email format",
 
 			contactMeta:  &contactSettings{MIMEType: "text/plain"},
-			receivedKeys: []liteapi.PublicKey{{PublicKey: testPublicKey}},
+			receivedKeys: []proton.PublicKey{{PublicKey: testPublicKey}},
 			isInternal:   false,
-			mailSettings: liteapi.MailSettings{PGPScheme: liteapi.PGPMIMEScheme, DraftMIMEType: "text/html"},
+			mailSettings: proton.MailSettings{PGPScheme: proton.PGPMIMEScheme, DraftMIMEType: "text/html"},
 
 			wantEncrypt:   true,
-			wantSign:      liteapi.DetachedSignature,
-			wantScheme:    liteapi.PGPMIMEScheme,
+			wantSign:      proton.DetachedSignature,
+			wantScheme:    proton.PGPMIMEScheme,
 			wantMIMEType:  "multipart/mixed",
 			wantPublicKey: testPublicKey,
 		},
@@ -141,13 +141,13 @@ func TestPreferencesBuilder(t *testing.T) {
 			name: "wkd-external with global pgp-inline scheme",
 
 			contactMeta:  &contactSettings{},
-			receivedKeys: []liteapi.PublicKey{{PublicKey: testPublicKey}},
+			receivedKeys: []proton.PublicKey{{PublicKey: testPublicKey}},
 			isInternal:   false,
-			mailSettings: liteapi.MailSettings{PGPScheme: liteapi.PGPInlineScheme, DraftMIMEType: "text/html"},
+			mailSettings: proton.MailSettings{PGPScheme: proton.PGPInlineScheme, DraftMIMEType: "text/html"},
 
 			wantEncrypt:   true,
-			wantSign:      liteapi.DetachedSignature,
-			wantScheme:    liteapi.PGPInlineScheme,
+			wantSign:      proton.DetachedSignature,
+			wantScheme:    proton.PGPInlineScheme,
 			wantMIMEType:  "text/plain",
 			wantPublicKey: testPublicKey,
 		},
@@ -156,13 +156,13 @@ func TestPreferencesBuilder(t *testing.T) {
 			name: "wkd-external with contact-specific pgp-inline scheme overriding global pgp-mime setting",
 
 			contactMeta:  &contactSettings{Scheme: pgpInline},
-			receivedKeys: []liteapi.PublicKey{{PublicKey: testPublicKey}},
+			receivedKeys: []proton.PublicKey{{PublicKey: testPublicKey}},
 			isInternal:   false,
-			mailSettings: liteapi.MailSettings{PGPScheme: liteapi.PGPMIMEScheme, DraftMIMEType: "text/html"},
+			mailSettings: proton.MailSettings{PGPScheme: proton.PGPMIMEScheme, DraftMIMEType: "text/html"},
 
 			wantEncrypt:   true,
-			wantSign:      liteapi.DetachedSignature,
-			wantScheme:    liteapi.PGPInlineScheme,
+			wantSign:      proton.DetachedSignature,
+			wantScheme:    proton.PGPInlineScheme,
 			wantMIMEType:  "text/plain",
 			wantPublicKey: testPublicKey,
 		},
@@ -171,13 +171,13 @@ func TestPreferencesBuilder(t *testing.T) {
 			name: "wkd-external with contact-specific pgp-mime scheme overriding global pgp-inline setting",
 
 			contactMeta:  &contactSettings{Scheme: pgpMIME},
-			receivedKeys: []liteapi.PublicKey{{PublicKey: testPublicKey}},
+			receivedKeys: []proton.PublicKey{{PublicKey: testPublicKey}},
 			isInternal:   false,
-			mailSettings: liteapi.MailSettings{PGPScheme: liteapi.PGPInlineScheme, DraftMIMEType: "text/html"},
+			mailSettings: proton.MailSettings{PGPScheme: proton.PGPInlineScheme, DraftMIMEType: "text/html"},
 
 			wantEncrypt:   true,
-			wantSign:      liteapi.DetachedSignature,
-			wantScheme:    liteapi.PGPMIMEScheme,
+			wantSign:      proton.DetachedSignature,
+			wantScheme:    proton.PGPMIMEScheme,
 			wantMIMEType:  "multipart/mixed",
 			wantPublicKey: testPublicKey,
 		},
@@ -186,13 +186,13 @@ func TestPreferencesBuilder(t *testing.T) {
 			name: "wkd-external with additional pinned contact public key",
 
 			contactMeta:  &contactSettings{Keys: []string{testContactKey}},
-			receivedKeys: []liteapi.PublicKey{{PublicKey: testPublicKey}},
+			receivedKeys: []proton.PublicKey{{PublicKey: testPublicKey}},
 			isInternal:   false,
-			mailSettings: liteapi.MailSettings{PGPScheme: liteapi.PGPMIMEScheme, DraftMIMEType: "text/html"},
+			mailSettings: proton.MailSettings{PGPScheme: proton.PGPMIMEScheme, DraftMIMEType: "text/html"},
 
 			wantEncrypt:   true,
-			wantSign:      liteapi.DetachedSignature,
-			wantScheme:    liteapi.PGPMIMEScheme,
+			wantSign:      proton.DetachedSignature,
+			wantScheme:    proton.PGPMIMEScheme,
 			wantMIMEType:  "multipart/mixed",
 			wantPublicKey: testPublicKey,
 		},
@@ -202,13 +202,13 @@ func TestPreferencesBuilder(t *testing.T) {
 			name: "wkd-external with additional conflicting contact public key",
 
 			contactMeta:  &contactSettings{Keys: []string{testOtherContactKey}},
-			receivedKeys: []liteapi.PublicKey{{PublicKey: testPublicKey}},
+			receivedKeys: []proton.PublicKey{{PublicKey: testPublicKey}},
 			isInternal:   false,
-			mailSettings: liteapi.MailSettings{PGPScheme: liteapi.PGPMIMEScheme, DraftMIMEType: "text/html"},
+			mailSettings: proton.MailSettings{PGPScheme: proton.PGPMIMEScheme, DraftMIMEType: "text/html"},
 
 			wantEncrypt:   true,
-			wantSign:      liteapi.DetachedSignature,
-			wantScheme:    liteapi.PGPMIMEScheme,
+			wantSign:      proton.DetachedSignature,
+			wantScheme:    proton.PGPMIMEScheme,
 			wantMIMEType:  "multipart/mixed",
 			wantPublicKey: testPublicKey,
 		},
@@ -217,13 +217,13 @@ func TestPreferencesBuilder(t *testing.T) {
 			name: "external",
 
 			contactMeta:  &contactSettings{},
-			receivedKeys: []liteapi.PublicKey{},
+			receivedKeys: []proton.PublicKey{},
 			isInternal:   false,
-			mailSettings: liteapi.MailSettings{PGPScheme: liteapi.PGPMIMEScheme, DraftMIMEType: "text/html"},
+			mailSettings: proton.MailSettings{PGPScheme: proton.PGPMIMEScheme, DraftMIMEType: "text/html"},
 
 			wantEncrypt:  false,
-			wantSign:     liteapi.NoSignature,
-			wantScheme:   liteapi.ClearScheme,
+			wantSign:     proton.NoSignature,
+			wantScheme:   proton.ClearScheme,
 			wantMIMEType: "text/html",
 		},
 
@@ -231,13 +231,13 @@ func TestPreferencesBuilder(t *testing.T) {
 			name: "external with contact-specific email format",
 
 			contactMeta:  &contactSettings{MIMEType: "text/plain"},
-			receivedKeys: []liteapi.PublicKey{},
+			receivedKeys: []proton.PublicKey{},
 			isInternal:   false,
-			mailSettings: liteapi.MailSettings{PGPScheme: liteapi.PGPMIMEScheme, DraftMIMEType: "text/html"},
+			mailSettings: proton.MailSettings{PGPScheme: proton.PGPMIMEScheme, DraftMIMEType: "text/html"},
 
 			wantEncrypt:  false,
-			wantSign:     liteapi.NoSignature,
-			wantScheme:   liteapi.ClearScheme,
+			wantSign:     proton.NoSignature,
+			wantScheme:   proton.ClearScheme,
 			wantMIMEType: "text/plain",
 		},
 
@@ -245,13 +245,13 @@ func TestPreferencesBuilder(t *testing.T) {
 			name: "external with sign enabled",
 
 			contactMeta:  &contactSettings{Sign: true, SignIsSet: true},
-			receivedKeys: []liteapi.PublicKey{},
+			receivedKeys: []proton.PublicKey{},
 			isInternal:   false,
-			mailSettings: liteapi.MailSettings{PGPScheme: liteapi.PGPMIMEScheme, DraftMIMEType: "text/html"},
+			mailSettings: proton.MailSettings{PGPScheme: proton.PGPMIMEScheme, DraftMIMEType: "text/html"},
 
 			wantEncrypt:  false,
-			wantSign:     liteapi.DetachedSignature,
-			wantScheme:   liteapi.ClearMIMEScheme,
+			wantSign:     proton.DetachedSignature,
+			wantScheme:   proton.ClearMIMEScheme,
 			wantMIMEType: "multipart/mixed",
 		},
 
@@ -259,13 +259,13 @@ func TestPreferencesBuilder(t *testing.T) {
 			name: "external with contact sign enabled and plain text",
 
 			contactMeta:  &contactSettings{MIMEType: "text/plain", Scheme: pgpInline, Sign: true, SignIsSet: true},
-			receivedKeys: []liteapi.PublicKey{},
+			receivedKeys: []proton.PublicKey{},
 			isInternal:   false,
-			mailSettings: liteapi.MailSettings{PGPScheme: liteapi.PGPMIMEScheme, DraftMIMEType: "text/html"},
+			mailSettings: proton.MailSettings{PGPScheme: proton.PGPMIMEScheme, DraftMIMEType: "text/html"},
 
 			wantEncrypt:  false,
-			wantSign:     liteapi.DetachedSignature,
-			wantScheme:   liteapi.ClearScheme,
+			wantSign:     proton.DetachedSignature,
+			wantScheme:   proton.ClearScheme,
 			wantMIMEType: "text/plain",
 		},
 
@@ -273,13 +273,13 @@ func TestPreferencesBuilder(t *testing.T) {
 			name: "external with sign enabled, sending plaintext, should still send as ClearMIME",
 
 			contactMeta:  &contactSettings{Sign: true, SignIsSet: true},
-			receivedKeys: []liteapi.PublicKey{},
+			receivedKeys: []proton.PublicKey{},
 			isInternal:   false,
-			mailSettings: liteapi.MailSettings{PGPScheme: liteapi.PGPMIMEScheme, DraftMIMEType: "text/plain"},
+			mailSettings: proton.MailSettings{PGPScheme: proton.PGPMIMEScheme, DraftMIMEType: "text/plain"},
 
 			wantEncrypt:  false,
-			wantSign:     liteapi.DetachedSignature,
-			wantScheme:   liteapi.ClearMIMEScheme,
+			wantSign:     proton.DetachedSignature,
+			wantScheme:   proton.ClearMIMEScheme,
 			wantMIMEType: "multipart/mixed",
 		},
 
@@ -287,13 +287,13 @@ func TestPreferencesBuilder(t *testing.T) {
 			name: "external with pinned contact public key but no intention to encrypt/sign",
 
 			contactMeta:  &contactSettings{Keys: []string{testContactKey}},
-			receivedKeys: []liteapi.PublicKey{},
+			receivedKeys: []proton.PublicKey{},
 			isInternal:   false,
-			mailSettings: liteapi.MailSettings{PGPScheme: liteapi.PGPMIMEScheme, DraftMIMEType: "text/html"},
+			mailSettings: proton.MailSettings{PGPScheme: proton.PGPMIMEScheme, DraftMIMEType: "text/html"},
 
 			wantEncrypt:   false,
-			wantSign:      liteapi.NoSignature,
-			wantScheme:    liteapi.ClearScheme,
+			wantSign:      proton.NoSignature,
+			wantScheme:    proton.ClearScheme,
 			wantMIMEType:  "text/html",
 			wantPublicKey: testPublicKey,
 		},
@@ -302,13 +302,13 @@ func TestPreferencesBuilder(t *testing.T) {
 			name: "external with pinned contact public key, encrypted and signed",
 
 			contactMeta:  &contactSettings{Keys: []string{testContactKey}, Encrypt: true, Sign: true, SignIsSet: true},
-			receivedKeys: []liteapi.PublicKey{},
+			receivedKeys: []proton.PublicKey{},
 			isInternal:   false,
-			mailSettings: liteapi.MailSettings{PGPScheme: liteapi.PGPMIMEScheme, DraftMIMEType: "text/html"},
+			mailSettings: proton.MailSettings{PGPScheme: proton.PGPMIMEScheme, DraftMIMEType: "text/html"},
 
 			wantEncrypt:   true,
-			wantSign:      liteapi.DetachedSignature,
-			wantScheme:    liteapi.PGPMIMEScheme,
+			wantSign:      proton.DetachedSignature,
+			wantScheme:    proton.PGPMIMEScheme,
 			wantMIMEType:  "multipart/mixed",
 			wantPublicKey: testPublicKey,
 		},
@@ -317,13 +317,13 @@ func TestPreferencesBuilder(t *testing.T) {
 			name: "external with pinned contact public key, encrypted and signed using contact-specific pgp-inline",
 
 			contactMeta:  &contactSettings{Keys: []string{testContactKey}, Encrypt: true, Sign: true, Scheme: pgpInline, SignIsSet: true},
-			receivedKeys: []liteapi.PublicKey{},
+			receivedKeys: []proton.PublicKey{},
 			isInternal:   false,
-			mailSettings: liteapi.MailSettings{PGPScheme: liteapi.PGPMIMEScheme, DraftMIMEType: "text/html"},
+			mailSettings: proton.MailSettings{PGPScheme: proton.PGPMIMEScheme, DraftMIMEType: "text/html"},
 
 			wantEncrypt:   true,
-			wantSign:      liteapi.DetachedSignature,
-			wantScheme:    liteapi.PGPInlineScheme,
+			wantSign:      proton.DetachedSignature,
+			wantScheme:    proton.PGPInlineScheme,
 			wantMIMEType:  "text/plain",
 			wantPublicKey: testPublicKey,
 		},
@@ -332,13 +332,13 @@ func TestPreferencesBuilder(t *testing.T) {
 			name: "external with pinned contact public key, encrypted and signed using global pgp-inline",
 
 			contactMeta:  &contactSettings{Keys: []string{testContactKey}, Encrypt: true, Sign: true, SignIsSet: true},
-			receivedKeys: []liteapi.PublicKey{},
+			receivedKeys: []proton.PublicKey{},
 			isInternal:   false,
-			mailSettings: liteapi.MailSettings{PGPScheme: liteapi.PGPInlineScheme, DraftMIMEType: "text/html"},
+			mailSettings: proton.MailSettings{PGPScheme: proton.PGPInlineScheme, DraftMIMEType: "text/html"},
 
 			wantEncrypt:   true,
-			wantSign:      liteapi.DetachedSignature,
-			wantScheme:    liteapi.PGPInlineScheme,
+			wantSign:      proton.DetachedSignature,
+			wantScheme:    proton.PGPInlineScheme,
 			wantMIMEType:  "text/plain",
 			wantPublicKey: testPublicKey,
 		},

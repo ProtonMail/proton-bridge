@@ -32,6 +32,7 @@ import (
 	imapEvents "github.com/ProtonMail/gluon/events"
 	"github.com/ProtonMail/gluon/reporter"
 	"github.com/ProtonMail/gluon/watcher"
+	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/proton-bridge/v2/internal/async"
 	"github.com/ProtonMail/proton-bridge/v2/internal/constants"
 	"github.com/ProtonMail/proton-bridge/v2/internal/events"
@@ -43,7 +44,6 @@ import (
 	"github.com/emersion/go-smtp"
 	"github.com/go-resty/resty/v2"
 	"github.com/sirupsen/logrus"
-	"gitlab.protontech.ch/go/liteapi"
 )
 
 type Bridge struct {
@@ -55,7 +55,7 @@ type Bridge struct {
 	usersLock safe.RWMutex
 
 	// api manages user API clients.
-	api        *liteapi.Manager
+	api        *proton.Manager
 	proxyCtl   ProxyController
 	identifier Identifier
 
@@ -139,7 +139,7 @@ func New( //nolint:funlen
 	logSMTP bool, // whether to log SMTP activity
 ) (*Bridge, <-chan events.Event, error) {
 	// api is the user's API manager.
-	api := liteapi.New(newAPIOptions(apiURL, curVersion, cookieJar, roundTripper, vault.SyncAttPool())...)
+	api := proton.New(newAPIOptions(apiURL, curVersion, cookieJar, roundTripper, vault.SyncAttPool())...)
 
 	// tasks holds all the bridge's background tasks.
 	tasks := async.NewGroup(context.Background(), crashHandler)
@@ -203,7 +203,7 @@ func newBridge(
 	crashHandler async.PanicHandler,
 	reporter reporter.Reporter,
 
-	api *liteapi.Manager,
+	api *proton.Manager,
 	identifier Identifier,
 	proxyCtl ProxyController,
 
@@ -288,22 +288,22 @@ func (bridge *Bridge) init(tlsReporter TLSReporter) error {
 	}
 
 	// Handle connection up/down events.
-	bridge.api.AddStatusObserver(func(status liteapi.Status) {
+	bridge.api.AddStatusObserver(func(status proton.Status) {
 		logrus.Info("API status changed: ", status)
 
 		switch {
-		case status == liteapi.StatusUp:
+		case status == proton.StatusUp:
 			bridge.publish(events.ConnStatusUp{})
 			bridge.tasks.Once(bridge.onStatusUp)
 
-		case status == liteapi.StatusDown:
+		case status == proton.StatusDown:
 			bridge.publish(events.ConnStatusDown{})
 			bridge.tasks.Once(bridge.onStatusDown)
 		}
 	})
 
 	// If any call returns a bad version code, we need to update.
-	bridge.api.AddErrorHandler(liteapi.AppVersionBadCode, func() {
+	bridge.api.AddErrorHandler(proton.AppVersionBadCode, func() {
 		logrus.Warn("App version is bad")
 		bridge.publish(events.UpdateForced{})
 	})
@@ -316,7 +316,7 @@ func (bridge *Bridge) init(tlsReporter TLSReporter) error {
 
 	// Log all manager API requests (client requests are logged separately).
 	bridge.api.AddPostRequestHook(func(_ *resty.Client, r *resty.Response) error {
-		if _, ok := liteapi.ClientIDFromContext(r.Request.Context()); !ok {
+		if _, ok := proton.ClientIDFromContext(r.Request.Context()); !ok {
 			logrus.Infof("[MANAGER] %v: %v %v", r.Status(), r.Request.Method, r.Request.URL)
 		}
 

@@ -22,6 +22,7 @@ package constants
 
 import (
 	"fmt"
+
 	"github.com/Masterminds/semver/v3"
 )
 

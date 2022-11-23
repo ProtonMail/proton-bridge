@@ -21,11 +21,11 @@ import (
 	"context"
 	"strings"
 
+	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/proton-bridge/v2/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/v2/internal/constants"
 	"github.com/ProtonMail/proton-bridge/v2/internal/vault"
 	"github.com/abiosoft/ishell"
-	"gitlab.protontech.ch/go/liteapi"
 )
 
 func (f *frontendCLI) listAccounts(_ *ishell.Context) {
@@ -149,14 +149,14 @@ func (f *frontendCLI) loginAccount(c *ishell.Context) { //nolint:funlen
 		return
 	}
 
-	if auth.TwoFA.Enabled == liteapi.TOTPEnabled {
+	if auth.TwoFA.Enabled == proton.TOTPEnabled {
 		code := f.readStringInAttempts("Two factor code", c.ReadLine, isNotEmpty)
 		if code == "" {
 			f.printAndLogError("Cannot login: need two factor code")
 			return
 		}
 
-		if err := client.Auth2FA(context.Background(), liteapi.Auth2FAReq{TwoFactorCode: code}); err != nil {
+		if err := client.Auth2FA(context.Background(), proton.Auth2FAReq{TwoFactorCode: code}); err != nil {
 			f.printAndLogError("Cannot login: ", err)
 			return
 		}
@@ -164,7 +164,7 @@ func (f *frontendCLI) loginAccount(c *ishell.Context) { //nolint:funlen
 
 	var keyPass []byte
 
-	if auth.PasswordMode == liteapi.TwoPasswordMode {
+	if auth.PasswordMode == proton.TwoPasswordMode {
 		keyPass = []byte(f.readStringInAttempts("Mailbox password", c.ReadPassword, isNotEmpty))
 		if len(keyPass) == 0 {
 			f.printAndLogError("Cannot login: need mailbox password")

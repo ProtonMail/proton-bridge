@@ -23,18 +23,18 @@ import (
 
 	"github.com/ProtonMail/gluon/imap"
 	"github.com/ProtonMail/gluon/queue"
+	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/ProtonMail/proton-bridge/v2/internal/events"
 	"github.com/ProtonMail/proton-bridge/v2/internal/logging"
 	"github.com/ProtonMail/proton-bridge/v2/internal/safe"
 	"github.com/ProtonMail/proton-bridge/v2/internal/vault"
 	"github.com/sirupsen/logrus"
-	"gitlab.protontech.ch/go/liteapi"
 )
 
-// handleAPIEvent handles the given liteapi.Event.
-func (user *User) handleAPIEvent(ctx context.Context, event liteapi.Event) error {
-	if event.Refresh&liteapi.RefreshMail != 0 {
+// handleAPIEvent handles the given proton.Event.
+func (user *User) handleAPIEvent(ctx context.Context, event proton.Event) error {
+	if event.Refresh&proton.RefreshMail != 0 {
 		return user.handleRefreshEvent(ctx, event.Refresh, event.EventID)
 	}
 
@@ -65,7 +65,7 @@ func (user *User) handleAPIEvent(ctx context.Context, event liteapi.Event) error
 	return nil
 }
 
-func (user *User) handleRefreshEvent(ctx context.Context, refresh liteapi.RefreshFlag, eventID string) error {
+func (user *User) handleRefreshEvent(ctx context.Context, refresh proton.RefreshFlag, eventID string) error {
 	l := user.log.WithFields(logrus.Fields{
 		"eventID": eventID,
 		"refresh": refresh,
@@ -100,15 +100,15 @@ func (user *User) handleRefreshEvent(ctx context.Context, refresh liteapi.Refres
 		}
 
 		// Fetch latest label info.
-		apiLabels, err := user.client.GetLabels(ctx, liteapi.LabelTypeSystem, liteapi.LabelTypeFolder, liteapi.LabelTypeLabel)
+		apiLabels, err := user.client.GetLabels(ctx, proton.LabelTypeSystem, proton.LabelTypeFolder, proton.LabelTypeLabel)
 		if err != nil {
 			return fmt.Errorf("failed to get labels: %w", err)
 		}
 
 		// Update the API info in the user.
 		user.apiUser = apiUser
-		user.apiAddrs = groupBy(apiAddrs, func(addr liteapi.Address) string { return addr.ID })
-		user.apiLabels = groupBy(apiLabels, func(label liteapi.Label) string { return label.ID })
+		user.apiAddrs = groupBy(apiAddrs, func(addr proton.Address) string { return addr.ID })
+		user.apiLabels = groupBy(apiLabels, func(label proton.Label) string { return label.ID })
 
 		// Reinitialize the update channels.
 		user.initUpdateCh(user.vault.AddressMode())
@@ -128,7 +128,7 @@ func (user *User) handleRefreshEvent(ctx context.Context, refresh liteapi.Refres
 }
 
 // handleUserEvent handles the given user event.
-func (user *User) handleUserEvent(_ context.Context, userEvent liteapi.User) error {
+func (user *User) handleUserEvent(_ context.Context, userEvent proton.User) error {
 	return safe.LockRet(func() error {
 		user.log.WithFields(logrus.Fields{
 			"userID":   userEvent.ID,
@@ -147,20 +147,20 @@ func (user *User) handleUserEvent(_ context.Context, userEvent liteapi.User) err
 
 // handleAddressEvents handles the given address events.
 // GODT-1945: If split address mode, need to signal back to bridge to update the addresses.
-func (user *User) handleAddressEvents(ctx context.Context, addressEvents []liteapi.AddressEvent) error {
+func (user *User) handleAddressEvents(ctx context.Context, addressEvents []proton.AddressEvent) error {
 	for _, event := range addressEvents {
 		switch event.Action {
-		case liteapi.EventCreate:
+		case proton.EventCreate:
 			if err := user.handleCreateAddressEvent(ctx, event); err != nil {
 				return fmt.Errorf("failed to handle create address event: %w", err)
 			}
 
-		case liteapi.EventUpdate, liteapi.EventUpdateFlags:
+		case proton.EventUpdate, proton.EventUpdateFlags:
 			if err := user.handleUpdateAddressEvent(ctx, event); err != nil {
 				return fmt.Errorf("failed to handle update address event: %w", err)
 			}
 
-		case liteapi.EventDelete:
+		case proton.EventDelete:
 			if err := user.handleDeleteAddressEvent(ctx, event); err != nil {
 				return fmt.Errorf("failed to delete address: %w", err)
 			}
@@ -170,7 +170,7 @@ func (user *User) handleAddressEvents(ctx context.Context, addressEvents []litea
 	return nil
 }
 
-func (user *User) handleCreateAddressEvent(ctx context.Context, event liteapi.AddressEvent) error {
+func (user *User) handleCreateAddressEvent(ctx context.Context, event proton.AddressEvent) error {
 	if err := safe.LockRet(func() error {
 		user.log.WithFields(logrus.Fields{
 			"addressID": event.ID,
@@ -219,7 +219,7 @@ func (user *User) handleCreateAddressEvent(ctx context.Context, event liteapi.Ad
 	}, user.apiAddrsLock, user.apiLabelsLock, user.updateChLock)
 }
 
-func (user *User) handleUpdateAddressEvent(_ context.Context, event liteapi.AddressEvent) error { //nolint:unparam
+func (user *User) handleUpdateAddressEvent(_ context.Context, event proton.AddressEvent) error { //nolint:unparam
 	return safe.LockRet(func() error {
 		user.log.WithFields(logrus.Fields{
 			"addressID": event.ID,
@@ -242,7 +242,7 @@ func (user *User) handleUpdateAddressEvent(_ context.Context, event liteapi.Addr
 	}, user.apiAddrsLock)
 }
 
-func (user *User) handleDeleteAddressEvent(_ context.Context, event liteapi.AddressEvent) error {
+func (user *User) handleDeleteAddressEvent(_ context.Context, event proton.AddressEvent) error {
 	return safe.LockRet(func() error {
 		user.log.WithField("addressID", event.ID).Info("Handling address deleted event")
 
@@ -269,20 +269,20 @@ func (user *User) handleDeleteAddressEvent(_ context.Context, event liteapi.Addr
 }
 
 // handleLabelEvents handles the given label events.
-func (user *User) handleLabelEvents(ctx context.Context, labelEvents []liteapi.LabelEvent) error {
+func (user *User) handleLabelEvents(ctx context.Context, labelEvents []proton.LabelEvent) error {
 	for _, event := range labelEvents {
 		switch event.Action {
-		case liteapi.EventCreate:
+		case proton.EventCreate:
 			if err := user.handleCreateLabelEvent(ctx, event); err != nil {
 				return fmt.Errorf("failed to handle create label event: %w", err)
 			}
 
-		case liteapi.EventUpdate, liteapi.EventUpdateFlags:
+		case proton.EventUpdate, proton.EventUpdateFlags:
 			if err := user.handleUpdateLabelEvent(ctx, event); err != nil {
 				return fmt.Errorf("failed to handle update label event: %w", err)
 			}
 
-		case liteapi.EventDelete:
+		case proton.EventDelete:
 			if err := user.handleDeleteLabelEvent(ctx, event); err != nil {
 				return fmt.Errorf("failed to handle delete label event: %w", err)
 			}
@@ -292,7 +292,7 @@ func (user *User) handleLabelEvents(ctx context.Context, labelEvents []liteapi.L
 	return nil
 }
 
-func (user *User) handleCreateLabelEvent(_ context.Context, event liteapi.LabelEvent) error { //nolint:unparam
+func (user *User) handleCreateLabelEvent(_ context.Context, event proton.LabelEvent) error { //nolint:unparam
 	return safe.LockRet(func() error {
 		user.log.WithFields(logrus.Fields{
 			"labelID": event.ID,
@@ -319,7 +319,7 @@ func (user *User) handleCreateLabelEvent(_ context.Context, event liteapi.LabelE
 	}, user.apiLabelsLock, user.updateChLock)
 }
 
-func (user *User) handleUpdateLabelEvent(_ context.Context, event liteapi.LabelEvent) error { //nolint:unparam
+func (user *User) handleUpdateLabelEvent(_ context.Context, event proton.LabelEvent) error { //nolint:unparam
 	return safe.LockRet(func() error {
 		user.log.WithFields(logrus.Fields{
 			"labelID": event.ID,
@@ -349,7 +349,7 @@ func (user *User) handleUpdateLabelEvent(_ context.Context, event liteapi.LabelE
 	}, user.apiLabelsLock, user.updateChLock)
 }
 
-func (user *User) handleDeleteLabelEvent(_ context.Context, event liteapi.LabelEvent) error { //nolint:unparam
+func (user *User) handleDeleteLabelEvent(_ context.Context, event proton.LabelEvent) error { //nolint:unparam
 	return safe.LockRet(func() error {
 		user.log.WithField("labelID", event.ID).Info("Handling label deleted event")
 
@@ -375,12 +375,12 @@ func (user *User) handleDeleteLabelEvent(_ context.Context, event liteapi.LabelE
 }
 
 // handleMessageEvents handles the given message events.
-func (user *User) handleMessageEvents(ctx context.Context, messageEvents []liteapi.MessageEvent) error {
+func (user *User) handleMessageEvents(ctx context.Context, messageEvents []proton.MessageEvent) error {
 	for _, event := range messageEvents {
 		ctx = logging.WithLogrusField(ctx, "messageID", event.ID)
 
 		switch event.Action {
-		case liteapi.EventCreate:
+		case proton.EventCreate:
 			if err := user.handleCreateMessageEvent(
 				logging.WithLogrusField(ctx, "action", "create message"),
 				event,
@@ -388,9 +388,9 @@ func (user *User) handleMessageEvents(ctx context.Context, messageEvents []litea
 				return fmt.Errorf("failed to handle create message event: %w", err)
 			}
 
-		case liteapi.EventUpdate, liteapi.EventUpdateFlags:
+		case proton.EventUpdate, proton.EventUpdateFlags:
 			// GODT-2028 - Use better events here. It should be possible to have 3 separate events that refrain to
-			// whether the flags, labels or read only data (header+body) has been changed. This requires fixing liteapi
+			// whether the flags, labels or read only data (header+body) has been changed. This requires fixing proton
 			// first so that it correctly reports those cases.
 			// Issue regular update to handle mailboxes and flag changes.
 			if err := user.handleUpdateMessageEvent(
@@ -410,7 +410,7 @@ func (user *User) handleMessageEvents(ctx context.Context, messageEvents []litea
 				}
 			}
 
-		case liteapi.EventDelete:
+		case proton.EventDelete:
 			if err := user.handleDeleteMessageEvent(
 				logging.WithLogrusField(ctx, "action", "delete message"),
 				event,
@@ -423,7 +423,7 @@ func (user *User) handleMessageEvents(ctx context.Context, messageEvents []litea
 	return nil
 }
 
-func (user *User) handleCreateMessageEvent(ctx context.Context, event liteapi.MessageEvent) error {
+func (user *User) handleCreateMessageEvent(ctx context.Context, event proton.MessageEvent) error {
 	full, err := user.client.GetFullMessage(ctx, event.Message.ID)
 	if err != nil {
 		return fmt.Errorf("failed to get full message: %w", err)
@@ -448,7 +448,7 @@ func (user *User) handleCreateMessageEvent(ctx context.Context, event liteapi.Me
 	}, user.apiUserLock, user.apiAddrsLock, user.apiLabelsLock, user.updateChLock)
 }
 
-func (user *User) handleUpdateMessageEvent(ctx context.Context, event liteapi.MessageEvent) error { //nolint:unparam
+func (user *User) handleUpdateMessageEvent(ctx context.Context, event proton.MessageEvent) error { //nolint:unparam
 	return safe.RLockRet(func() error {
 		user.log.WithFields(logrus.Fields{
 			"messageID": event.ID,
@@ -466,7 +466,7 @@ func (user *User) handleUpdateMessageEvent(ctx context.Context, event liteapi.Me
 	}, user.apiLabelsLock, user.updateChLock)
 }
 
-func (user *User) handleDeleteMessageEvent(ctx context.Context, event liteapi.MessageEvent) error { //nolint:unparam
+func (user *User) handleDeleteMessageEvent(ctx context.Context, event proton.MessageEvent) error { //nolint:unparam
 	return safe.RLockRet(func() error {
 		user.log.WithField("messageID", event.ID).Info("Handling message deleted event")
 
@@ -478,7 +478,7 @@ func (user *User) handleDeleteMessageEvent(ctx context.Context, event liteapi.Me
 	}, user.updateChLock)
 }
 
-func (user *User) handleUpdateDraftEvent(ctx context.Context, event liteapi.MessageEvent) error { //nolint:unparam
+func (user *User) handleUpdateDraftEvent(ctx context.Context, event proton.MessageEvent) error { //nolint:unparam
 	return safe.RLockRet(func() error {
 		user.log.WithFields(logrus.Fields{
 			"messageID": event.ID,
@@ -508,19 +508,19 @@ func (user *User) handleUpdateDraftEvent(ctx context.Context, event liteapi.Mess
 	}, user.apiUserLock, user.apiAddrsLock, user.apiLabelsLock, user.updateChLock)
 }
 
-func getMailboxName(label liteapi.Label) []string {
+func getMailboxName(label proton.Label) []string {
 	var name []string
 
 	switch label.Type {
-	case liteapi.LabelTypeFolder:
+	case proton.LabelTypeFolder:
 		name = append([]string{folderPrefix}, label.Path...)
 
-	case liteapi.LabelTypeLabel:
+	case proton.LabelTypeLabel:
 		name = append([]string{labelPrefix}, label.Path...)
 
-	case liteapi.LabelTypeContactGroup:
+	case proton.LabelTypeContactGroup:
 		fallthrough
-	case liteapi.LabelTypeSystem:
+	case proton.LabelTypeSystem:
 		fallthrough
 	default:
 		name = label.Path

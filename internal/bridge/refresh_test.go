@@ -22,6 +22,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/ProtonMail/go-proton-api"
+	"github.com/ProtonMail/go-proton-api/server"
 	"github.com/ProtonMail/proton-bridge/v2/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/v2/internal/constants"
 	"github.com/ProtonMail/proton-bridge/v2/internal/events"
@@ -29,12 +31,10 @@ import (
 	"github.com/emersion/go-imap/client"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
-	"gitlab.protontech.ch/go/liteapi"
-	"gitlab.protontech.ch/go/liteapi/server"
 )
 
 func TestBridge_Refresh(t *testing.T) {
-	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *liteapi.NetCtl, locator bridge.Locator, storeKey []byte) {
+	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, storeKey []byte) {
 		userID, _, err := s.CreateUser("imap", "imap@pm.me", password)
 		require.NoError(t, err)
 
@@ -43,7 +43,7 @@ func TestBridge_Refresh(t *testing.T) {
 		}))
 
 		for _, name := range names {
-			must(s.CreateLabel(userID, name, "", liteapi.LabelTypeFolder))
+			must(s.CreateLabel(userID, name, "", proton.LabelTypeFolder))
 		}
 
 		// The initial user should be fully synced.
@@ -78,7 +78,7 @@ func TestBridge_Refresh(t *testing.T) {
 		})
 
 		// Refresh the user; this will force a resync.
-		require.NoError(t, s.RefreshUser(userID, liteapi.RefreshAll))
+		require.NoError(t, s.RefreshUser(userID, proton.RefreshAll))
 
 		// If we then connect an IMAP client, it should see all the labels with UID validity of 1.
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(b *bridge.Bridge, mocks *bridge.Mocks) {

@@ -29,6 +29,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/proton-bridge/v2/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/v2/internal/certs"
 	"github.com/ProtonMail/proton-bridge/v2/internal/events"
@@ -39,7 +40,6 @@ import (
 	sysinfotypes "github.com/elastic/go-sysinfo/types"
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
-	"gitlab.protontech.ch/go/liteapi"
 	"google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials"
@@ -76,8 +76,8 @@ type Service struct { // nolint:structcheck
 	target     updater.VersionInfo
 	targetLock safe.RWMutex
 
-	authClient *liteapi.Client
-	auth       liteapi.Auth
+	authClient *proton.Client
+	auth       proton.Auth
 	password   []byte
 
 	log                *logrus.Entry
@@ -352,7 +352,7 @@ func (s *Service) loginAbort() {
 }
 
 func (s *Service) loginClean() {
-	s.auth = liteapi.Auth{}
+	s.auth = proton.Auth{}
 	s.authClient = nil
 	for i := range s.password {
 		s.password[i] = '\x00'

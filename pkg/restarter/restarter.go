@@ -27,8 +27,10 @@ import (
 	"golang.org/x/sys/execabs"
 )
 
-const BridgeCrashCount = "BRIDGE_CRASH_COUNT"
-const MaxCrashRestarts = 10
+const (
+	BridgeCrashCount = "BRIDGE_CRASH_COUNT"
+	MaxCrashRestarts = 10
+)
 
 type Restarter struct {
 	restart bool

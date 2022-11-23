@@ -24,12 +24,13 @@
 package grpc
 
 import (
+	reflect "reflect"
+	sync "sync"
+
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
 	wrapperspb "google.golang.org/protobuf/types/known/wrapperspb"
-	reflect "reflect"
-	sync "sync"
 )
 
 const (
@@ -39,9 +40,9 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-//**********************************************************
+// **********************************************************
 // Log related message
-//**********************************************************
+// **********************************************************
 // Note: the enum values are prefixed with 'LOG_' to avoid a clash in C++ on Windows with the ERROR macro defined in wingdi.h
 type LogLevel int32
 
@@ -104,9 +105,9 @@ func (LogLevel) EnumDescriptor() ([]byte, []int) {
 	return file_bridge_proto_rawDescGZIP(), []int{0}
 }
 
-//**********************************************************
+// **********************************************************
 // user related messages
-//**********************************************************
+// **********************************************************
 type UserState int32
 
 const (
@@ -436,9 +437,11 @@ func (x *AddLogEntryRequest) GetMessage() string {
 	return ""
 }
 
-//**********************************************************
-//  Bug reporting related messages.
-//**********************************************************
+// **********************************************************
+//
+//	Bug reporting related messages.
+//
+// **********************************************************
 type ReportBugRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -628,9 +631,9 @@ func (x *LoginAbortRequest) GetUsername() string {
 	return ""
 }
 
-//**********************************************************
+// **********************************************************
 // IMAP/SMTP Mail Server settings
-//**********************************************************
+// **********************************************************
 type ImapSmtpSettings struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -702,9 +705,9 @@ func (x *ImapSmtpSettings) GetUseSSLForSmtp() bool {
 	return false
 }
 
-//**********************************************************
+// **********************************************************
 // Keychain related message
-//**********************************************************
+// **********************************************************
 type AvailableKeychainsResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -1239,9 +1242,9 @@ func (*StreamEvent_Mail) isStreamEvent_Event() {}
 
 func (*StreamEvent_User) isStreamEvent_Event() {}
 
-//**********************************************************
+// **********************************************************
 // App related events
-//**********************************************************
+// **********************************************************
 type AppEvent struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -1667,9 +1670,9 @@ func (*ShowMainWindowEvent) Descriptor() ([]byte, []int) {
 	return file_bridge_proto_rawDescGZIP(), []int{19}
 }
 
-//**********************************************************
+// **********************************************************
 // Login related events
-//**********************************************************
+// **********************************************************
 type LoginEvent struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -1979,9 +1982,9 @@ func (x *LoginFinishedEvent) GetUserID() string {
 	return ""
 }
 
-//**********************************************************
+// **********************************************************
 // Update related events
-//**********************************************************
+// **********************************************************
 type UpdateEvent struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -2477,9 +2480,9 @@ func (*UpdateVersionChanged) Descriptor() ([]byte, []int) {
 	return file_bridge_proto_rawDescGZIP(), []int{33}
 }
 
-//**********************************************************
+// **********************************************************
 // Cache on disk related events
-//**********************************************************
+// **********************************************************
 type DiskCacheEvent struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -2706,9 +2709,9 @@ func (*DiskCachePathChangeFinishedEvent) Descriptor() ([]byte, []int) {
 	return file_bridge_proto_rawDescGZIP(), []int{37}
 }
 
-//**********************************************************
+// **********************************************************
 // Mail server settings related events
-//**********************************************************
+// **********************************************************
 type MailServerSettingsEvent struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -2935,9 +2938,9 @@ func (*ChangeMailServerSettingsFinishedEvent) Descriptor() ([]byte, []int) {
 	return file_bridge_proto_rawDescGZIP(), []int{41}
 }
 
-//**********************************************************
+// **********************************************************
 // keychain related events
-//**********************************************************
+// **********************************************************
 type KeychainEvent struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -3146,9 +3149,9 @@ func (*RebuildKeychainEvent) Descriptor() ([]byte, []int) {
 	return file_bridge_proto_rawDescGZIP(), []int{45}
 }
 
-//**********************************************************
+// **********************************************************
 // Mail related events
-//**********************************************************
+// **********************************************************
 type MailEvent struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache

@@ -23,6 +23,9 @@ import (
 	"time"
 
 	"github.com/ProtonMail/gluon/connector"
+	"github.com/ProtonMail/go-proton-api"
+	"github.com/ProtonMail/go-proton-api/server"
+	"github.com/ProtonMail/go-proton-api/server/backend"
 	"github.com/ProtonMail/proton-bridge/v2/internal/bridge/mocks"
 	"github.com/ProtonMail/proton-bridge/v2/internal/certs"
 	"github.com/ProtonMail/proton-bridge/v2/internal/events"
@@ -30,9 +33,6 @@ import (
 	"github.com/ProtonMail/proton-bridge/v2/tests"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
-	"gitlab.protontech.ch/go/liteapi"
-	"gitlab.protontech.ch/go/liteapi/server"
-	"gitlab.protontech.ch/go/liteapi/server/backend"
 	"go.uber.org/goleak"
 )
 
@@ -48,7 +48,7 @@ func TestMain(m *testing.M) {
 }
 
 func TestUser_Info(t *testing.T) {
-	withAPI(t, context.Background(), func(ctx context.Context, s *server.Server, m *liteapi.Manager) {
+	withAPI(t, context.Background(), func(ctx context.Context, s *server.Server, m *proton.Manager) {
 		withAccount(t, s, "username", "password", []string{"email@pm.me", "alias@pm.me"}, func(userID string, _ []string) {
 			withUser(t, ctx, s, m, "username", "password", func(user *User) {
 				// User's ID should be correct.
@@ -71,7 +71,7 @@ func TestUser_Info(t *testing.T) {
 }
 
 func TestUser_Sync(t *testing.T) {
-	withAPI(t, context.Background(), func(ctx context.Context, s *server.Server, m *liteapi.Manager) {
+	withAPI(t, context.Background(), func(ctx context.Context, s *server.Server, m *proton.Manager) {
 		withAccount(t, s, "username", "password", []string{"email@pm.me"}, func(string, []string) {
 			withUser(t, ctx, s, m, "username", "password", func(user *User) {
 				// User starts a sync at startup.
@@ -88,7 +88,7 @@ func TestUser_Sync(t *testing.T) {
 }
 
 func TestUser_AddressMode(t *testing.T) {
-	withAPI(t, context.Background(), func(ctx context.Context, s *server.Server, m *liteapi.Manager) {
+	withAPI(t, context.Background(), func(ctx context.Context, s *server.Server, m *proton.Manager) {
 		withAccount(t, s, "username", "password", []string{"email@pm.me", "alias@pm.me"}, func(string, []string) {
 			withUser(t, ctx, s, m, "username", "password", func(user *User) {
 				// User finishes syncing at startup.
@@ -125,7 +125,7 @@ func TestUser_AddressMode(t *testing.T) {
 }
 
 func TestUser_Deauth(t *testing.T) {
-	withAPI(t, context.Background(), func(ctx context.Context, s *server.Server, m *liteapi.Manager) {
+	withAPI(t, context.Background(), func(ctx context.Context, s *server.Server, m *proton.Manager) {
 		withAccount(t, s, "username", "password", []string{"email@pm.me"}, func(string, []string) {
 			withUser(t, ctx, s, m, "username", "password", func(user *User) {
 				require.IsType(t, events.SyncStarted{}, <-user.GetEventCh())
@@ -146,7 +146,7 @@ func TestUser_Refresh(t *testing.T) {
 	ctl := gomock.NewController(t)
 	mockReporter := mocks.NewMockReporter(ctl)
 
-	withAPI(t, context.Background(), func(ctx context.Context, s *server.Server, m *liteapi.Manager) {
+	withAPI(t, context.Background(), func(ctx context.Context, s *server.Server, m *proton.Manager) {
 		withAccount(t, s, "username", "password", []string{"email@pm.me"}, func(string, []string) {
 			withUser(t, ctx, s, m, "username", "password", func(user *User) {
 				require.IsType(t, events.SyncStarted{}, <-user.GetEventCh())
@@ -157,11 +157,11 @@ func TestUser_Refresh(t *testing.T) {
 
 				mockReporter.EXPECT().ReportMessageWithContext(
 					gomock.Eq("Warning: refresh occurred"),
-					mocks.NewRefreshContextMatcher(liteapi.RefreshAll),
+					mocks.NewRefreshContextMatcher(proton.RefreshAll),
 				).Return(nil)
 
 				// Send refresh event
-				require.NoError(t, s.RefreshUser(user.ID(), liteapi.RefreshAll))
+				require.NoError(t, s.RefreshUser(user.ID(), proton.RefreshAll))
 
 				// The user should eventually be re-synced.
 				require.Eventually(t, func() bool { _, ok := (<-user.GetEventCh()).(events.UserRefreshed); return ok }, 5*time.Second, 100*time.Millisecond)
@@ -170,13 +170,13 @@ func TestUser_Refresh(t *testing.T) {
 	})
 }
 
-func withAPI(_ testing.TB, ctx context.Context, fn func(context.Context, *server.Server, *liteapi.Manager)) { //nolint:revive
+func withAPI(_ testing.TB, ctx context.Context, fn func(context.Context, *server.Server, *proton.Manager)) { //nolint:revive
 	server := server.New()
 	defer server.Close()
 
-	fn(ctx, server, liteapi.New(
-		liteapi.WithHostURL(server.GetHostURL()),
-		liteapi.WithTransport(liteapi.InsecureTransport()),
+	fn(ctx, server, proton.New(
+		proton.WithHostURL(server.GetHostURL()),
+		proton.WithTransport(proton.InsecureTransport()),
 	))
 }
 
@@ -198,7 +198,7 @@ func withAccount(tb testing.TB, s *server.Server, username, password string, ema
 	fn(userID, addrIDs)
 }
 
-func withUser(tb testing.TB, ctx context.Context, _ *server.Server, m *liteapi.Manager, username, password string, fn func(*User)) { //nolint:unparam,revive
+func withUser(tb testing.TB, ctx context.Context, _ *server.Server, m *proton.Manager, username, password string, fn func(*User)) { //nolint:unparam,revive
 	client, apiAuth, err := m.NewClientWithLogin(ctx, username, []byte(password))
 	require.NoError(tb, err)
 

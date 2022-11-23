@@ -21,9 +21,9 @@ import (
 	"fmt"
 
 	"github.com/ProtonMail/gluon/imap"
+	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/ProtonMail/proton-bridge/v2/pkg/message"
-	"gitlab.protontech.ch/go/liteapi"
 )
 
 type buildRes struct {
@@ -43,7 +43,7 @@ func defaultJobOpts() message.JobOptions {
 	}
 }
 
-func buildRFC822(apiLabels map[string]liteapi.Label, full liteapi.FullMessage, addrKR *crypto.KeyRing) (*buildRes, error) {
+func buildRFC822(apiLabels map[string]proton.Label, full proton.FullMessage, addrKR *crypto.KeyRing) (*buildRes, error) {
 	literal, err := message.BuildRFC822(addrKR, full.Message, full.AttData, defaultJobOpts())
 	if err != nil {
 		return nil, fmt.Errorf("failed to build message %s: %w", full.ID, err)
@@ -62,8 +62,8 @@ func buildRFC822(apiLabels map[string]liteapi.Label, full liteapi.FullMessage, a
 }
 
 func newMessageCreatedUpdate(
-	apiLabels map[string]liteapi.Label,
-	message liteapi.MessageMetadata,
+	apiLabels map[string]proton.Label,
+	message proton.MessageMetadata,
 	literal []byte,
 ) (*imap.MessageCreated, error) {
 	parsedMessage, err := imap.NewParsedMessage(literal)
