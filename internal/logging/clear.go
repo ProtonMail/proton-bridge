@@ -18,67 +18,52 @@
 package logging
 
 import (
+	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
-	"sort"
 
+	"github.com/bradenaw/juniper/xslices"
 	"github.com/sirupsen/logrus"
+	"golang.org/x/exp/slices"
 )
 
 func clearLogs(logDir string, maxLogs int, maxCrashes int) error {
 	files, err := os.ReadDir(logDir)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to read log directory: %w", err)
 	}
 
-	var logsWithPrefix []string
-	var crashesWithPrefix []string
+	names := xslices.Map(files, func(file fs.DirEntry) string {
+		return file.Name()
+	})
 
-	for _, file := range files {
-		if MatchLogName(file.Name()) {
-			if MatchStackTraceName(file.Name()) {
-				crashesWithPrefix = append(crashesWithPrefix, file.Name())
-			} else {
-				logsWithPrefix = append(logsWithPrefix, file.Name())
-			}
-		} else {
-			// Older versions of Bridge stored logs in subfolders for each version.
-			// That also has to be cleared and the functionality can be removed after some time.
-			if file.IsDir() {
-				if err := clearLogs(filepath.Join(logDir, file.Name()), maxLogs, maxCrashes); err != nil {
-					return err
-				}
-			} else {
-				removeLog(logDir, file.Name())
-			}
-		}
-	}
+	// Remove old logs.
+	removeOldLogs(logDir, xslices.Filter(names, func(name string) bool {
+		return MatchLogName(name) && !MatchStackTraceName(name)
+	}), maxLogs)
 
-	removeOldLogs(logDir, logsWithPrefix, maxLogs)
-	removeOldLogs(logDir, crashesWithPrefix, maxCrashes)
+	// Remove old stack traces.
+	removeOldLogs(logDir, xslices.Filter(names, func(name string) bool {
+		return MatchLogName(name) && MatchStackTraceName(name)
+	}), maxCrashes)
 
 	return nil
 }
 
-func removeOldLogs(logDir string, filenames []string, maxLogs int) {
-	count := len(filenames)
-	if count <= maxLogs {
+func removeOldLogs(dir string, names []string, max int) {
+	if count := len(names); count <= max {
 		return
 	}
 
-	sort.Strings(filenames) // Sorted by timestamp: oldest first.
-	for _, filename := range filenames[:count-maxLogs] {
-		removeLog(logDir, filename)
-	}
-}
+	// Sort by timestamp, oldest first.
+	slices.SortFunc(names, func(a, b string) bool {
+		return getLogTime(a) < getLogTime(b)
+	})
 
-func removeLog(logDir, filename string) {
-	// We need to be sure to delete only log files.
-	// Directory with logs can also contain other files.
-	if !MatchLogName(filename) {
-		return
-	}
-	if err := os.Remove(filepath.Join(logDir, filename)); err != nil {
-		logrus.WithError(err).Error("Failed to remove", filepath.Join(logDir, filename))
+	for _, path := range xslices.Map(names[:len(names)-max], func(name string) string { return filepath.Join(dir, name) }) {
+		if err := os.Remove(path); err != nil {
+			logrus.WithError(err).WithField("path", path).Warn("Failed to remove old log file")
+		}
 	}
 }

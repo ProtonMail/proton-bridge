@@ -24,6 +24,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"time"
 
 	"github.com/ProtonMail/proton-bridge/v3/internal/constants"
@@ -139,6 +140,17 @@ func setLevel(level string) error {
 
 func getLogName(version, revision string) string {
 	return fmt.Sprintf("v%v_%v_%v.log", version, revision, time.Now().Unix())
+}
+
+func getLogTime(name string) int {
+	re := regexp.MustCompile(`^v.*_.*_(?P<timestamp>\d+).log$`)
+
+	timestamp, err := strconv.Atoi(re.FindStringSubmatch(name)[re.SubexpIndex("timestamp")])
+	if err != nil {
+		return 0
+	}
+
+	return timestamp
 }
 
 func MatchLogName(name string) bool {

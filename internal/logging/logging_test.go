@@ -29,24 +29,39 @@ import (
 func TestClearLogs(t *testing.T) {
 	dir := t.TempDir()
 
+	// Create some old log files.
 	require.NoError(t, os.WriteFile(filepath.Join(dir, "other.log"), []byte("Hello"), 0o755))
-	require.NoError(t, os.WriteFile(filepath.Join(dir, "v1_10.log"), []byte("Hello"), 0o755))
-	require.NoError(t, os.WriteFile(filepath.Join(dir, "v1_11.log"), []byte("Hello"), 0o755))
-	require.NoError(t, os.WriteFile(filepath.Join(dir, "v2_12.log"), []byte("Hello"), 0o755))
-	require.NoError(t, os.WriteFile(filepath.Join(dir, "v2_13.log"), []byte("Hello"), 0o755))
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "v2.4.7_debe87f2f5_0000000001.log"), []byte("Hello"), 0o755))
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "v2.4.8_debe87f2f5_0000000002.log"), []byte("Hello"), 0o755))
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "v2.4.9_debe87f2f5_0000000003.log"), []byte("Hello"), 0o755))
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "v2.5.0_debe87f2f5_0000000004.log"), []byte("Hello"), 0o755))
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "v2.5.1_debe87f2f5_0000000005.log"), []byte("Hello"), 0o755))
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "v2.5.2_debe87f2f5_0000000006.log"), []byte("Hello"), 0o755))
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "v2.5.3_debe87f2f5_0000000007.log"), []byte("Hello"), 0o755))
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "v2.5.4_debe87f2f5_0000000008.log"), []byte("Hello"), 0o755))
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "v2.5.5_debe87f2f5_0000000009.log"), []byte("Hello"), 0o755))
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "v2.5.6_debe87f2f5_0000000010.log"), []byte("Hello"), 0o755))
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "v2.5.7_debe87f2f5_0000000011.log"), []byte("Hello"), 0o755))
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "v2.5.8_debe87f2f5_0000000012.log"), []byte("Hello"), 0o755))
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "v2.5.12_debe87f2f5_0000000013.log"), []byte("Hello"), 0o755))
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "v2.5.9_debe87f2f5_0000000014.log"), []byte("Hello"), 0o755))
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "v2.5.10_debe87f2f5_0000000015.log"), []byte("Hello"), 0o755))
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "v2.5.11_debe87f2f5_0000000016.log"), []byte("Hello"), 0o755))
 
+	// Clear the logs.
 	require.NoError(t, clearLogs(dir, 3, 0))
+
+	// We should only clear matching files, and keep the 3 most recent ones.
 	checkFileNames(t, dir, []string{
 		"other.log",
-		"v1_11.log",
-		"v2_12.log",
-		"v2_13.log",
+		"v2.5.9_debe87f2f5_0000000014.log",
+		"v2.5.10_debe87f2f5_0000000015.log",
+		"v2.5.11_debe87f2f5_0000000016.log",
 	})
 }
 
 func checkFileNames(t *testing.T, dir string, expectedFileNames []string) {
-	fileNames := getFileNames(t, dir)
-	require.Equal(t, expectedFileNames, fileNames)
+	require.ElementsMatch(t, expectedFileNames, getFileNames(t, dir))
 }
 
 func getFileNames(t *testing.T, dir string) []string {
