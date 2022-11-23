@@ -48,6 +48,10 @@ var (
 	EventJitter = 20 * time.Second // nolint:gochecknoglobals,revive
 )
 
+const (
+	SyncRetryCooldown = 20 * time.Second
+)
+
 type User struct {
 	log *logrus.Entry
 
@@ -218,7 +222,8 @@ func New(
 			if user.vault.SyncStatus().IsComplete() {
 				user.log.Debug("Sync is already complete, skipping")
 			} else if err := user.doSync(ctx); err != nil {
-				user.log.WithError(err).Error("Failed to sync")
+				user.log.WithError(err).Error("Failed to sync, will retry later")
+				time.AfterFunc(SyncRetryCooldown, user.goSync)
 			}
 		})
 	})
