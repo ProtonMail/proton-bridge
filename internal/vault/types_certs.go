@@ -17,7 +17,7 @@
 
 package vault
 
-import "github.com/ProtonMail/proton-bridge/v2/internal/certs"
+import "github.com/ProtonMail/proton-bridge/v3/internal/certs"
 
 type Certs struct {
 	Bridge    Cert

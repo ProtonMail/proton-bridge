@@ -21,7 +21,7 @@ import (
 	"crypto/x509"
 
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
-	"github.com/ProtonMail/proton-bridge/v2/internal/certs"
+	"github.com/ProtonMail/proton-bridge/v3/internal/certs"
 )
 
 var (

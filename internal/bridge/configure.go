@@ -20,12 +20,12 @@ package bridge
 import (
 	"strings"
 
-	"github.com/ProtonMail/proton-bridge/v2/internal/clientconfig"
-	"github.com/ProtonMail/proton-bridge/v2/internal/constants"
-	"github.com/ProtonMail/proton-bridge/v2/internal/logging"
-	"github.com/ProtonMail/proton-bridge/v2/internal/safe"
-	"github.com/ProtonMail/proton-bridge/v2/internal/useragent"
-	"github.com/ProtonMail/proton-bridge/v2/internal/vault"
+	"github.com/ProtonMail/proton-bridge/v3/internal/clientconfig"
+	"github.com/ProtonMail/proton-bridge/v3/internal/constants"
+	"github.com/ProtonMail/proton-bridge/v3/internal/logging"
+	"github.com/ProtonMail/proton-bridge/v3/internal/safe"
+	"github.com/ProtonMail/proton-bridge/v3/internal/useragent"
+	"github.com/ProtonMail/proton-bridge/v3/internal/vault"
 	"github.com/sirupsen/logrus"
 )
 

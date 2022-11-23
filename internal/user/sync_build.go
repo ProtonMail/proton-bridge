@@ -23,7 +23,7 @@ import (
 	"github.com/ProtonMail/gluon/imap"
 	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
-	"github.com/ProtonMail/proton-bridge/v2/pkg/message"
+	"github.com/ProtonMail/proton-bridge/v3/pkg/message"
 )
 
 type buildRes struct {

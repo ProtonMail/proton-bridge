@@ -25,8 +25,8 @@ import (
 	"time"
 
 	"github.com/Masterminds/semver/v3"
-	"github.com/ProtonMail/proton-bridge/v2/internal/events"
-	"github.com/ProtonMail/proton-bridge/v2/internal/vault"
+	"github.com/ProtonMail/proton-bridge/v3/internal/events"
+	"github.com/ProtonMail/proton-bridge/v3/internal/vault"
 	"github.com/golang/mock/gomock"
 )
 

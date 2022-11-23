@@ -24,7 +24,7 @@ import (
 	"path/filepath"
 	"runtime"
 
-	"github.com/ProtonMail/proton-bridge/v2/pkg/files"
+	"github.com/ProtonMail/proton-bridge/v3/pkg/files"
 	"github.com/sirupsen/logrus"
 )
 

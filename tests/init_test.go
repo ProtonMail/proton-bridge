@@ -21,8 +21,8 @@ import (
 	"time"
 
 	"github.com/ProtonMail/go-proton-api/server/backend"
-	"github.com/ProtonMail/proton-bridge/v2/internal/certs"
-	"github.com/ProtonMail/proton-bridge/v2/internal/user"
+	"github.com/ProtonMail/proton-bridge/v3/internal/certs"
+	"github.com/ProtonMail/proton-bridge/v3/internal/user"
 )
 
 func init() {

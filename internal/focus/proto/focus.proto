@@ -19,7 +19,7 @@ syntax = "proto3";
 
 import "google/protobuf/empty.proto";
 
-option go_package = "github.com/ProtonMail/proton-bridge/v2/internal/focus/proto";
+option go_package = "github.com/ProtonMail/proton-bridge/v3/internal/focus/proto";
 
 package focus; // ignored by Go, used as namespace name in C++.
 

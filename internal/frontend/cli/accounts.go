@@ -22,9 +22,9 @@ import (
 	"strings"
 
 	"github.com/ProtonMail/go-proton-api"
-	"github.com/ProtonMail/proton-bridge/v2/internal/bridge"
-	"github.com/ProtonMail/proton-bridge/v2/internal/constants"
-	"github.com/ProtonMail/proton-bridge/v2/internal/vault"
+	"github.com/ProtonMail/proton-bridge/v3/internal/bridge"
+	"github.com/ProtonMail/proton-bridge/v3/internal/constants"
+	"github.com/ProtonMail/proton-bridge/v3/internal/vault"
 	"github.com/abiosoft/ishell"
 )
 

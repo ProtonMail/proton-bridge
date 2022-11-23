@@ -23,7 +23,7 @@ import (
 	"mime"
 	"unicode/utf8"
 
-	pmmime "github.com/ProtonMail/proton-bridge/v2/pkg/mime"
+	pmmime "github.com/ProtonMail/proton-bridge/v3/pkg/mime"
 	"github.com/PuerkitoBio/goquery"
 	"github.com/emersion/go-message"
 	"github.com/sirupsen/logrus"

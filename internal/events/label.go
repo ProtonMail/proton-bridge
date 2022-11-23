@@ -20,7 +20,7 @@ package events
 import (
 	"fmt"
 
-	"github.com/ProtonMail/proton-bridge/v2/internal/logging"
+	"github.com/ProtonMail/proton-bridge/v3/internal/logging"
 )
 
 type UserLabelCreated struct {

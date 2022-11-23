@@ -18,8 +18,8 @@
 package cli
 
 import (
-	"github.com/ProtonMail/proton-bridge/v2/internal/events"
-	"github.com/ProtonMail/proton-bridge/v2/internal/updater"
+	"github.com/ProtonMail/proton-bridge/v3/internal/events"
+	"github.com/ProtonMail/proton-bridge/v3/internal/updater"
 	"github.com/abiosoft/ishell"
 )
 

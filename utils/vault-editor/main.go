@@ -24,9 +24,9 @@ import (
 	"io"
 	"os"
 
-	"github.com/ProtonMail/proton-bridge/v2/internal/app"
-	"github.com/ProtonMail/proton-bridge/v2/internal/locations"
-	"github.com/ProtonMail/proton-bridge/v2/internal/vault"
+	"github.com/ProtonMail/proton-bridge/v3/internal/app"
+	"github.com/ProtonMail/proton-bridge/v3/internal/locations"
+	"github.com/ProtonMail/proton-bridge/v3/internal/vault"
 	"github.com/urfave/cli/v2"
 )
 

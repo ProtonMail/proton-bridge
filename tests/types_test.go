@@ -27,7 +27,7 @@ import (
 	"time"
 
 	"github.com/ProtonMail/gluon/rfc822"
-	"github.com/ProtonMail/proton-bridge/v2/pkg/message"
+	"github.com/ProtonMail/proton-bridge/v3/pkg/message"
 	"github.com/bradenaw/juniper/xslices"
 	"github.com/cucumber/messages-go/v16"
 	"github.com/emersion/go-imap"

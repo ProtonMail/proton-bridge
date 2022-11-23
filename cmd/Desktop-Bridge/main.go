@@ -21,7 +21,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/ProtonMail/proton-bridge/v2/internal/app"
+	"github.com/ProtonMail/proton-bridge/v3/internal/app"
 	"github.com/bradenaw/juniper/xslices"
 	"github.com/sirupsen/logrus"
 )

@@ -20,7 +20,7 @@ package events
 import (
 	"fmt"
 
-	"github.com/ProtonMail/proton-bridge/v2/internal/updater"
+	"github.com/ProtonMail/proton-bridge/v3/internal/updater"
 )
 
 // UpdateLatest is published when the latest version of bridge is known.

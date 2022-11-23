@@ -11,7 +11,7 @@ ROOT_DIR:=$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 .PHONY: build build-gui build-nogui build-launcher versioner hasher
 
 # Keep version hardcoded so app build works also without Git repository.
-BRIDGE_APP_VERSION?=2.5.14+git
+BRIDGE_APP_VERSION?=3.0.0+git
 APP_VERSION:=${BRIDGE_APP_VERSION}
 APP_FULL_NAME:=Proton Mail Bridge
 APP_VENDOR:=Proton AG
@@ -26,8 +26,8 @@ MACOS_MIN_VERSION=11.0
 BUILD_FLAGS:=-tags='${BUILD_TAGS}'
 BUILD_FLAGS_LAUNCHER:=${BUILD_FLAGS}
 BUILD_FLAGS_GUI:=-tags='${BUILD_TAGS} build_qt'
-GO_LDFLAGS:=$(addprefix -X github.com/ProtonMail/proton-bridge/v2/internal/constants., Version=${APP_VERSION} Revision=${REVISION} BuildTime=${BUILD_TIME})
-GO_LDFLAGS+=-X "github.com/ProtonMail/proton-bridge/v2/internal/constants.FullAppName=${APP_FULL_NAME}"
+GO_LDFLAGS:=$(addprefix -X github.com/ProtonMail/proton-bridge/v3/internal/constants., Version=${APP_VERSION} Revision=${REVISION} BuildTime=${BUILD_TIME})
+GO_LDFLAGS+=-X "github.com/ProtonMail/proton-bridge/v3/internal/constants.FullAppName=${APP_FULL_NAME}"
 
 ifneq "${BUILD_LDFLAGS}" ""
 	GO_LDFLAGS+=${BUILD_LDFLAGS}
@@ -227,13 +227,13 @@ test-race: gofiles
 	go test -v -timeout=30m -p=1 -count=1 -race -failfast -run=${TESTRUN} ./internal/... ./pkg/...
 
 test-integration: gofiles
-	go test -v -timeout=10m -p=1 -count=1 github.com/ProtonMail/proton-bridge/v2/tests
+	go test -v -timeout=10m -p=1 -count=1 github.com/ProtonMail/proton-bridge/v3/tests
 
 test-integration-debug: gofiles
-	dlv test github.com/ProtonMail/proton-bridge/v2/tests -- -test.v -test.timeout=10m -test.parallel=1 -test.count=1
+	dlv test github.com/ProtonMail/proton-bridge/v3/tests -- -test.v -test.timeout=10m -test.parallel=1 -test.count=1
 
 test-integration-race: gofiles
-	go test -v -timeout=60m -p=1 -count=1 -race -failfast github.com/ProtonMail/proton-bridge/v2/tests
+	go test -v -timeout=60m -p=1 -count=1 -race -failfast github.com/ProtonMail/proton-bridge/v3/tests
 
 bench:
 	go test -run '^$$' -bench=. -memprofile bench_mem.pprof -cpuprofile bench_cpu.pprof ./internal/store
@@ -244,11 +244,11 @@ coverage: test
 	go tool cover -html=/tmp/coverage.out -o=coverage.html
 
 mocks:
-	mockgen --package mocks github.com/ProtonMail/proton-bridge/v2/internal/bridge TLSReporter,ProxyController,Autostarter > tmp
+	mockgen --package mocks github.com/ProtonMail/proton-bridge/v3/internal/bridge TLSReporter,ProxyController,Autostarter > tmp
 	mv tmp internal/bridge/mocks/mocks.go
-	mockgen --package mocks github.com/ProtonMail/proton-bridge/v2/internal/async PanicHandler > internal/bridge/mocks/async_mocks.go
+	mockgen --package mocks github.com/ProtonMail/proton-bridge/v3/internal/async PanicHandler > internal/bridge/mocks/async_mocks.go
 	mockgen --package mocks github.com/ProtonMail/gluon/reporter Reporter > internal/bridge/mocks/gluon_mocks.go
-	mockgen --package mocks github.com/ProtonMail/proton-bridge/v2/internal/updater Downloader,Installer > internal/updater/mocks/mocks.go
+	mockgen --package mocks github.com/ProtonMail/proton-bridge/v3/internal/updater Downloader,Installer > internal/updater/mocks/mocks.go
 
 lint: gofiles lint-golang lint-license lint-dependencies lint-changelog
 

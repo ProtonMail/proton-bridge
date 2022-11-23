@@ -21,7 +21,7 @@ import (
 	"fmt"
 	"net/smtp"
 
-	"github.com/ProtonMail/proton-bridge/v2/internal/constants"
+	"github.com/ProtonMail/proton-bridge/v3/internal/constants"
 )
 
 func (t *testCtx) newSMTPClient(userID, clientID string) error {

@@ -22,7 +22,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/ProtonMail/proton-bridge/v2/pkg/algo"
+	"github.com/ProtonMail/proton-bridge/v3/pkg/algo"
 )
 
 // ErrTLSMismatch indicates that no TLS fingerprint match could be found.

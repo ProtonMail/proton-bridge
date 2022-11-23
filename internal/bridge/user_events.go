@@ -21,10 +21,10 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/ProtonMail/proton-bridge/v2/internal/events"
-	"github.com/ProtonMail/proton-bridge/v2/internal/safe"
-	"github.com/ProtonMail/proton-bridge/v2/internal/user"
-	"github.com/ProtonMail/proton-bridge/v2/internal/vault"
+	"github.com/ProtonMail/proton-bridge/v3/internal/events"
+	"github.com/ProtonMail/proton-bridge/v3/internal/safe"
+	"github.com/ProtonMail/proton-bridge/v3/internal/user"
+	"github.com/ProtonMail/proton-bridge/v3/internal/vault"
 )
 
 func (bridge *Bridge) handleUserEvent(ctx context.Context, user *user.User, event events.Event) error {

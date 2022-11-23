@@ -23,7 +23,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ProtonMail/proton-bridge/v2/internal/useragent"
+	"github.com/ProtonMail/proton-bridge/v3/internal/useragent"
 	r "github.com/stretchr/testify/require"
 )
 

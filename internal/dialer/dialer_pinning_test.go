@@ -25,7 +25,7 @@ import (
 
 	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/go-proton-api/server"
-	"github.com/ProtonMail/proton-bridge/v2/internal/useragent"
+	"github.com/ProtonMail/proton-bridge/v3/internal/useragent"
 	a "github.com/stretchr/testify/assert"
 	r "github.com/stretchr/testify/require"
 )

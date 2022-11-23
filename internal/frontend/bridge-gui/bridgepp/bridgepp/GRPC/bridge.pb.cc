@@ -1528,7 +1528,7 @@ const char descriptor_table_protodef_bridge_2eproto[] PROTOBUF_SECTION_VARIABLE(
   "treamRequest\032\021.grpc.StreamEvent0\001\022A\n\017Sto"
   "pEventStream\022\026.google.protobuf.Empty\032\026.g"
   "oogle.protobuf.EmptyB6Z4github.com/Proto"
-  "nMail/proton-bridge/v2/internal/grpcb\006pr"
+  "nMail/proton-bridge/v3/internal/grpcb\006pr"
   "oto3"
   ;
 static const ::_pbi::DescriptorTable* const descriptor_table_bridge_2eproto_deps[2] = {

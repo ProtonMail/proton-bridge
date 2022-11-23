@@ -23,7 +23,7 @@ import (
 	"net"
 
 	"github.com/Masterminds/semver/v3"
-	"github.com/ProtonMail/proton-bridge/v2/internal/focus/proto"
+	"github.com/ProtonMail/proton-bridge/v3/internal/focus/proto"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"

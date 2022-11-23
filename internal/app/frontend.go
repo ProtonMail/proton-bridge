@@ -20,13 +20,13 @@ package app
 import (
 	"fmt"
 
-	"github.com/ProtonMail/proton-bridge/v2/internal/bridge"
-	"github.com/ProtonMail/proton-bridge/v2/internal/crash"
-	"github.com/ProtonMail/proton-bridge/v2/internal/events"
-	bridgeCLI "github.com/ProtonMail/proton-bridge/v2/internal/frontend/cli"
-	"github.com/ProtonMail/proton-bridge/v2/internal/frontend/grpc"
-	"github.com/ProtonMail/proton-bridge/v2/internal/locations"
-	"github.com/ProtonMail/proton-bridge/v2/pkg/restarter"
+	"github.com/ProtonMail/proton-bridge/v3/internal/bridge"
+	"github.com/ProtonMail/proton-bridge/v3/internal/crash"
+	"github.com/ProtonMail/proton-bridge/v3/internal/events"
+	bridgeCLI "github.com/ProtonMail/proton-bridge/v3/internal/frontend/cli"
+	"github.com/ProtonMail/proton-bridge/v3/internal/frontend/grpc"
+	"github.com/ProtonMail/proton-bridge/v3/internal/locations"
+	"github.com/ProtonMail/proton-bridge/v3/pkg/restarter"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
 )

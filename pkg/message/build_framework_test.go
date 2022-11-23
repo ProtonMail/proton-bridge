@@ -28,7 +28,7 @@ import (
 	"github.com/ProtonMail/gluon/rfc822"
 	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
-	"github.com/ProtonMail/proton-bridge/v2/pkg/message/parser"
+	"github.com/ProtonMail/proton-bridge/v3/pkg/message/parser"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/text/encoding/htmlindex"
 )

@@ -21,7 +21,7 @@ import (
 	"math/rand"
 	"runtime"
 
-	"github.com/ProtonMail/proton-bridge/v2/internal/updater"
+	"github.com/ProtonMail/proton-bridge/v3/internal/updater"
 )
 
 type Settings struct {

@@ -25,7 +25,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/ProtonMail/proton-bridge/v2/pkg/message/parser"
+	"github.com/ProtonMail/proton-bridge/v3/pkg/message/parser"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/text/encoding/charmap"

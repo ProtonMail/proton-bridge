@@ -63,7 +63,7 @@ const char descriptor_table_protodef_focus_2eproto[] PROTOBUF_SECTION_VARIABLE(p
   "f.Empty\032\026.google.protobuf.Empty\0229\n\007Versi"
   "on\022\026.google.protobuf.Empty\032\026.focus.Versi"
   "onResponseB=Z;github.com/ProtonMail/prot"
-  "on-bridge/v2/internal/focus/protob\006proto"
+  "on-bridge/v3/internal/focus/protob\006proto"
   "3"
   ;
 static const ::_pbi::DescriptorTable* const descriptor_table_focus_2eproto_deps[1] = {

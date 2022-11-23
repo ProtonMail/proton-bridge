@@ -20,7 +20,7 @@ package tests
 import (
 	"fmt"
 
-	"github.com/ProtonMail/proton-bridge/v2/internal/constants"
+	"github.com/ProtonMail/proton-bridge/v3/internal/constants"
 	"github.com/emersion/go-imap/client"
 )
 

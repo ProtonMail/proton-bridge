@@ -25,10 +25,10 @@ import (
 
 	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/go-proton-api/server"
-	"github.com/ProtonMail/proton-bridge/v2/internal/bridge"
-	mocksPkg "github.com/ProtonMail/proton-bridge/v2/internal/bridge/mocks"
-	"github.com/ProtonMail/proton-bridge/v2/internal/events"
-	"github.com/ProtonMail/proton-bridge/v2/internal/vault"
+	"github.com/ProtonMail/proton-bridge/v3/internal/bridge"
+	mocksPkg "github.com/ProtonMail/proton-bridge/v3/internal/bridge/mocks"
+	"github.com/ProtonMail/proton-bridge/v3/internal/events"
+	"github.com/ProtonMail/proton-bridge/v3/internal/vault"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
 )

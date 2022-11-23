@@ -24,7 +24,7 @@ import (
 	"encoding/pem"
 	"time"
 
-	"github.com/ProtonMail/proton-bridge/v2/internal/useragent"
+	"github.com/ProtonMail/proton-bridge/v3/internal/useragent"
 	"github.com/google/go-cmp/cmp"
 	"github.com/sirupsen/logrus"
 )

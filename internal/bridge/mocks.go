@@ -9,8 +9,8 @@ import (
 	"testing"
 
 	"github.com/Masterminds/semver/v3"
-	"github.com/ProtonMail/proton-bridge/v2/internal/bridge/mocks"
-	"github.com/ProtonMail/proton-bridge/v2/internal/updater"
+	"github.com/ProtonMail/proton-bridge/v3/internal/bridge/mocks"
+	"github.com/ProtonMail/proton-bridge/v3/internal/updater"
 	"github.com/golang/mock/gomock"
 )
 

@@ -21,7 +21,7 @@ import (
 	"time"
 
 	"github.com/ProtonMail/gluon/queue"
-	"github.com/ProtonMail/proton-bridge/v2/internal/events"
+	"github.com/ProtonMail/proton-bridge/v3/internal/events"
 )
 
 type reporter struct {

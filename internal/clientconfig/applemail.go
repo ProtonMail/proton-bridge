@@ -23,8 +23,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/ProtonMail/proton-bridge/v2/internal/useragent"
-	"github.com/ProtonMail/proton-bridge/v2/pkg/mobileconfig"
+	"github.com/ProtonMail/proton-bridge/v3/internal/useragent"
+	"github.com/ProtonMail/proton-bridge/v3/pkg/mobileconfig"
 	"golang.org/x/sys/execabs"
 )
 

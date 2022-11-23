@@ -23,7 +23,7 @@ import (
 	"time"
 
 	"github.com/Masterminds/semver/v3"
-	"github.com/ProtonMail/proton-bridge/v2/internal/focus"
+	"github.com/ProtonMail/proton-bridge/v3/internal/focus"
 	"github.com/allan-simon/go-singleinstance"
 	"github.com/sirupsen/logrus"
 )

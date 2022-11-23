@@ -21,7 +21,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/ProtonMail/proton-bridge/v2/internal/safe"
+	"github.com/ProtonMail/proton-bridge/v3/internal/safe"
 	"github.com/emersion/go-smtp"
 )
 

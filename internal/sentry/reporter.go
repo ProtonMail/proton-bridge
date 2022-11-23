@@ -25,7 +25,7 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/ProtonMail/proton-bridge/v2/internal/constants"
+	"github.com/ProtonMail/proton-bridge/v3/internal/constants"
 	"github.com/getsentry/sentry-go"
 	"github.com/sirupsen/logrus"
 )
