@@ -26,6 +26,7 @@ import (
 	"time"
 
 	"github.com/ProtonMail/proton-bridge/v3/internal/constants"
+	"github.com/ProtonMail/proton-bridge/v3/pkg/restarter"
 	"github.com/getsentry/sentry-go"
 	"github.com/sirupsen/logrus"
 )
@@ -33,10 +34,14 @@ import (
 var skippedFunctions = []string{} //nolint:gochecknoglobals
 
 func init() { //nolint:gochecknoinits
+	sentrySyncTransport := sentry.NewHTTPSyncTransport()
+	sentrySyncTransport.Timeout = time.Second * 3
+
 	if err := sentry.Init(sentry.ClientOptions{
 		Dsn:        constants.DSNSentry,
 		Release:    constants.Revision,
 		BeforeSend: EnhanceSentryEvent,
+		Transport:  sentrySyncTransport,
 	}); err != nil {
 		logrus.WithError(err).Error("Failed to initialize sentry options")
 	}
@@ -75,7 +80,10 @@ func NewReporter(appName, appVersion string, identifier Identifier) *Reporter {
 
 func (r *Reporter) ReportException(i interface{}) error {
 	SkipDuringUnwind()
-	return r.ReportExceptionWithContext(i, make(map[string]interface{}))
+	return r.ReportExceptionWithContext(i, map[string]interface{}{
+		"build": constants.BuildTime,
+		"crash": os.Getenv(restarter.BridgeCrashCount),
+	})
 }
 
 func (r *Reporter) ReportMessage(msg string) error {
@@ -128,7 +136,11 @@ func (r *Reporter) scopedReport(context map[string]interface{}, doReport func())
 	sentry.WithScope(func(scope *sentry.Scope) {
 		SkipDuringUnwind()
 		scope.SetTags(tags)
-		scope.SetContexts(context)
+		if len(context) != 0 {
+			scope.SetContexts(
+				map[string]map[string]interface{}{"bridge": context},
+			)
+		}
 		doReport()
 	})
 
