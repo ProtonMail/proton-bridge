@@ -195,9 +195,17 @@ func syncMessages(
 	defer cancel()
 
 	// Determine which messages to sync.
-	messageIDs, err := client.GetMessageIDs(ctx, vault.SyncStatus().LastMessageID)
+	messageIDs, err := client.GetMessageIDs(ctx, "")
 	if err != nil {
 		return fmt.Errorf("failed to get message IDs to sync: %w", err)
+	}
+
+	// Reverse the order of the message IDs so that the newest messages are synced first.
+	xslices.Reverse(messageIDs)
+
+	// If we have a message ID that we've already synced, then we can skip all messages before it.
+	if idx := xslices.Index(messageIDs, vault.SyncStatus().LastMessageID); idx >= 0 {
+		messageIDs = messageIDs[idx+1:]
 	}
 
 	// Track the amount of time to process all the messages.
@@ -297,7 +305,7 @@ func syncMessages(
 			}
 
 			flushUpdateCh <- flushUpdate{
-				messageID: batch[len(batch)-1].messageID,
+				messageID: batch[0].messageID,
 				noOps:     noopUpdates,
 				batchLen:  len(batch),
 			}
