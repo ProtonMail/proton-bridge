@@ -2,6 +2,93 @@
 
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
+## [Bridge 3.0.1] Perth Narrows
+
+### Changed
+* GODT-2151: Sync backwards to please product people.
+
+### Fixed
+* GODT-2149: Sort logs by timestamp when clearing.
+* GODT-2137: Set sentry sync transport.
+
+## [Bridge 3.0.0] Perth Narrows
+
+### Changed
+* Other(chore): Bump major version to v3.
+* Other: Switch from liteapi to go-proton-api.
+* GODT-2085: Ensure minimum sync worker count.
+* Other: Switch to mail-api.proton.me.
+* GODT-2120: Encrypt gluon store with gzip.
+* GODT-1910: Use a single view for IMAP & SMTP SSL options.
+* GODT-1846: Remove restart cues* implement restart-less behaviour. 
+* GODT-1975: Migrate keychain secrets.
+* GODT-1976: Migrate app settings from prefs.json.
+* GODT-2100: Load users in parallel at startup.
+* GODT-2108: Implement C++ Focus gRPC service client in bridge-gui.
+* GODT-2091: Animated "Connecting..." label.
+* GODT-2003: Introduces 3 phases user state (SignedOut/Locked/Connected).
+* GODT-2056: Kill old bridge from v2 lock file.
+* GODT-2086: Changing the wording for signing in.
+* GODT-2070: Implement SASL login for SMTP.
+* Other: Use liteapi instead of pmapi.
+* GODT-1609: Store password as byte array.
+* GODT-1650: Gluon integration.
+* GODT-1779: Remove go-imap.
+
+### Fixed
+* Other: Retry sync after cooldown if it fails.
+* GODT-2142: Also permit split by comma in References header.
+* GODT-2085: Use time.Since* structured logging.
+* GODT-2139: Validate key pass during login.
+* GODT-2111: Fix restart.
+* GODT-2085: Revise sync algorithm.
+* GODT-2134: Fix dock icon on macOS when launched with '--no-window'.
+* GODT-2131: If refresh token is revoked* user gets signed out.
+* GODT-2119: Only show supported label IDs to clients.
+* GODT-2002: Wait for API events to be applied after send.
+* GODT-2105: Ensure ClientVersion is set in bug report request.
+* GODT-2107: Update user list after session revoke.
+* GODT-2040: Bump UID validity when clearing sync status.
+* GODT-2045: Timeouts should be considered network issues.
+* GODT-2122: Handle check for updates failure.
+* GODT-2033: Only set user agent from IMAP ID if not empty.
+* GODT-2110: Force attachment disposition if content ID is missing.
+* GODT-2081: If keychain cannot be loaded do not wipe Vault and use a temp one.
+* GODT-2103: Trigger the version changed event.
+* GODT-2047: Clear last event ID when clearing sync status.
+* GODT-2109: Removed log message "Parent process XXX is still alive".
+* GODT-1913: Pass reporter to gluon* limit restarts* add crash handlers.
+* GODT-2037: Handle and log API refresh event.
+* GODT-2029: Handle deadlock when reordering user addresses.
+* GODT-2021: Remove gluon data when deleting user.
+* GODT-2030: Rework deletion check on expunge.
+* GODT-1977: Fix launcher for v2 to v3 updates.
+* GODT-2048: Add missing special use attributes.
+* GODT-2034: Basic vault migration ability (proof of concept).
+* GODT-1978: Auto-updates from v2 to v3.
+* GODT-1954: Draft message support.
+* GODT-2022: Fix change between address modes.
+* GODT-1993: Use more efficient filtering for message deletion.
+* GODT-2004: Ensure log files don't have color formatting.
+* GODT-2011: Use new app version format.
+* GODT-2010: Add better logging for app focus feature.
+* GODT-2008: Ensure user's addresses are returned in sorted order.
+* GODT-2002: Poll after SMTP send.
+* GODT-1982: Updated gRPC and GUI for disk cache.
+* GODT-1984: Handle permanent message deletion.
+* GODT-1916: Use XDG_DATA_HOME to store persistent data on linux.
+* GODT-1974: Store everything in v3 path.
+* GODT-1986: Handle case where an address has no decryption entities.
+* GODT-1777: Message de-duplication in SMTP and IMAP.
+* GODT-1940: Fix message encryption.
+* GODT-1742: Implement hide All Mail.
+* GODT-1813: Cleanup old go-imap cache files.
+* GODT-1650: Implement Connector.CreateMessage.
+* GODT-1901: Allow to set IMAP SSL from UI.
+* GODT-1816: Connect Gluon Logs to bridge Logs.
+* GODT-1657: Stable sync.
+* GODT-1815: Gluon User management error.
+
 ## [Bridge 2.4.8] Osney
 
 ### Fixed
