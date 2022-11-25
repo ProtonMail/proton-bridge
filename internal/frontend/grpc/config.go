@@ -24,9 +24,10 @@ import (
 
 // Config is a structure containing the service configuration data that are exchanged by the gRPC server and client.
 type Config struct {
-	Port  int    `json:"port"`
-	Cert  string `json:"cert"`
-	Token string `json:"token"`
+	Port           int    `json:"port"`
+	Cert           string `json:"cert"`
+	Token          string `json:"token"`
+	FileSocketPath string `json:"fileSocketPath"`
 }
 
 // save saves a gRPC service configuration to file.

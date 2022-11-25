@@ -18,6 +18,7 @@
 
 #include "GRPCClient.h"
 #include "GRPCUtils.h"
+#include "../BridgeUtils.h"
 #include "../Exception/Exception.h"
 #include "../ProcessMonitor.h"
 
@@ -39,7 +40,15 @@ qint64 const grpcConnectionWaitTimeoutMs = 60000; ///< Timeout for the connectio
 qint64 const grpcConnectionRetryDelayMs = 10000; ///< Retry delay for the gRPC connection in milliseconds.
 
 
+//****************************************************************************************************************************************************
+/// return true if gRPC connection should use file socket instead of TCP socket.
+//****************************************************************************************************************************************************
+bool useFileSocket() {
+    return !onWindows();
 }
+
+
+} // anonymous namespace
 
 
 //****************************************************************************************************************************************************
@@ -113,11 +122,20 @@ bool GRPCClient::connectToServer(GRPCConfig const &config, ProcessMonitor *serve
     try
     {
         serverToken_ = config.token.toStdString();
+        QString address;
+        grpc::ChannelArguments chanArgs;
+        if (useFileSocket())
+        {
+            address = QString("unix://" + config.fileSocketPath);
+            chanArgs.SetSslTargetNameOverride("127.0.0.1"); // for file socket, we skip name verification to avoid a confusion localhost/127.0.0.1
+        } else {
+            address = QString("127.0.0.1:%1").arg(config.port);
+        }
+
         SslCredentialsOptions opts;
         opts.pem_root_certs += config.cert.toStdString();
 
-        QString const address = QString("127.0.0.1:%1").arg(config.port);
-        channel_ = CreateChannel(address.toStdString(), grpc::SslCredentials(opts));
+        channel_ = CreateCustomChannel(address.toStdString(), grpc::SslCredentials(opts),chanArgs);
         if (!channel_)
             throw Exception("Channel creation failed.");
 
@@ -157,7 +175,6 @@ bool GRPCClient::connectToServer(GRPCConfig const &config, ProcessMonitor *serve
         QFile(clientConfigPath).remove();
         if (clientToken != returnedClientToken)
             throw Exception("gRPC server returned an invalid token");
-
 
         if (!status.ok())
             throw Exception(QString::fromStdString(status.error_message()));

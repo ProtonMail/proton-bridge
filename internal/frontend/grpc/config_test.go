@@ -29,13 +29,15 @@ const (
 	dummyCert    = "A dummy cert"
 	dummyToken   = "A dummy token"
 	tempFileName = "test.json"
+	socketPath   = "/a/socket/file/path"
 )
 
 func TestConfig(t *testing.T) {
 	conf1 := Config{
-		Port:  dummyPort,
-		Cert:  dummyCert,
-		Token: dummyToken,
+		Port:           dummyPort,
+		Cert:           dummyCert,
+		Token:          dummyToken,
+		FileSocketPath: socketPath,
 	}
 
 	// Read-back test

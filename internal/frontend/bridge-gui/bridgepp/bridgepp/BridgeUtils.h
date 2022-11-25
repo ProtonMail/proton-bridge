@@ -27,6 +27,16 @@ namespace bridgepp
 {
 
 
+//****************************************************************************************************************************************************
+/// \brief Enumeration for the operating system.
+//****************************************************************************************************************************************************
+enum class OS {
+    Linux = 0, ///< The Linux OS.
+    MacOS = 1, ///< The macOS OS.
+    Windows = 2, ///< The Windows OS.
+};
+
+
 QString userConfigDir(); ///< Get the path of the user configuration folder.
 QString userCacheDir(); ///< Get the path of the user cache folder.
 QString userLogsDir(); ///< Get the path of the user logs folder.
@@ -35,6 +45,10 @@ qint64 randN(qint64 n); ///< return a random integer in the half open range  [0,
 QString randomFirstName(); ///< Get a random first name from a pre-determined list.
 QString randomLastName(); ///< Get a random first name from a pre-determined list.
 SPUser randomUser(); ///< Get a random user.
+OS os(); ///< Return the operating system.
+bool onLinux(); ///< Check if the OS is Linux.
+bool onMacOS(); ///< Check if the OS is macOS.
+bool onWindows(); ///< Check if the OS in Windows.
 
 
 } // namespace

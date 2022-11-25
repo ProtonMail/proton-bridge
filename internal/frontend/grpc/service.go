@@ -24,8 +24,11 @@ import (
 	"crypto/tls"
 	"errors"
 	"fmt"
+	"io/fs"
 	"net"
+	"os"
 	"path/filepath"
+	"runtime"
 	"sync"
 	"time"
 
@@ -107,14 +110,38 @@ func NewService(
 		logrus.WithError(err).Panic("Could not generate gRPC TLS config")
 	}
 
-	listener, err := net.Listen("tcp", "127.0.0.1:0") // Port should be provided by the OS.
-	if err != nil {
-		logrus.WithError(err).Panic("Could not create gRPC listener")
+	config := Config{
+		Cert:  string(certPEM),
+		Token: uuid.NewString(),
 	}
 
-	token := uuid.NewString()
+	var listener net.Listener
+	if useFileSocket() {
+		var err error
+		if config.FileSocketPath, err = computeFileSocketPath(); err != nil {
+			logrus.WithError(err).WithError(err).Panic("Could not create gRPC file socket")
+		}
 
-	if path, err := saveGRPCServerConfigFile(locations, listener, token, certPEM); err != nil {
+		listener, err = net.Listen("unix", config.FileSocketPath)
+		if err != nil {
+			logrus.WithError(err).Panic("Could not create gRPC file socket listener")
+		}
+	} else {
+		var err error
+		listener, err = net.Listen("tcp", "127.0.0.1:0") // Port should be provided by the OS.
+		if err != nil {
+			logrus.WithError(err).Panic("Could not create gRPC listener")
+		}
+
+		// retrieve the port assigned by the system, so that we can put it in the config file.
+		address, ok := listener.Addr().(*net.TCPAddr)
+		if !ok {
+			return nil, fmt.Errorf("could not retrieve gRPC service listener address")
+		}
+		config.Port = address.Port
+	}
+
+	if path, err := saveGRPCServerConfigFile(locations, &config); err != nil {
 		logrus.WithError(err).WithField("path", path).Panic("Could not write gRPC service config file")
 	} else {
 		logrus.WithField("path", path).Info("Successfully saved gRPC service config file")
@@ -123,8 +150,8 @@ func NewService(
 	s := &Service{
 		grpcServer: grpc.NewServer(
 			grpc.Creds(credentials.NewTLS(tlsConfig)),
-			grpc.UnaryInterceptor(newUnaryTokenValidator(token)),
-			grpc.StreamInterceptor(newStreamTokenValidator(token)),
+			grpc.UnaryInterceptor(newUnaryTokenValidator(config.Token)),
+			grpc.StreamInterceptor(newStreamTokenValidator(config.Token)),
 		),
 		listener: listener,
 
@@ -195,7 +222,7 @@ func (s *Service) Loop() error {
 		s.watchEvents()
 	}()
 
-	s.log.Info("Starting gRPC server")
+	s.log.WithField("useFileSocket", useFileSocket()).Info("Starting gRPC server")
 
 	doneCh := make(chan struct{})
 	defer close(doneCh)
@@ -456,18 +483,7 @@ func newTLSConfig() (*tls.Config, []byte, error) {
 	}, certPEM, nil
 }
 
-func saveGRPCServerConfigFile(locations Locator, listener net.Listener, token string, certPEM []byte) (string, error) {
-	address, ok := listener.Addr().(*net.TCPAddr)
-	if !ok {
-		return "", fmt.Errorf("could not retrieve gRPC service listener address")
-	}
-
-	sc := Config{
-		Port:  address.Port,
-		Cert:  string(certPEM),
-		Token: token,
-	}
-
+func saveGRPCServerConfigFile(locations Locator, config *Config) (string, error) {
 	settingsPath, err := locations.ProvideSettingsPath()
 	if err != nil {
 		return "", err
@@ -475,7 +491,7 @@ func saveGRPCServerConfigFile(locations Locator, listener net.Listener, token st
 
 	configPath := filepath.Join(settingsPath, serverConfigFileName)
 
-	return configPath, sc.save(configPath)
+	return configPath, config.save(configPath)
 }
 
 // validateServerToken verify that the server token provided by the client is valid.
@@ -557,4 +573,23 @@ func (s *Service) monitorParentPID() {
 			return
 		}
 	}
+}
+
+// computeFileSocketPath Return an available path for a socket file in the temp folder.
+func computeFileSocketPath() (string, error) {
+	tempPath := os.TempDir()
+	for i := 0; i < 1000; i++ {
+		path := filepath.Join(tempPath, fmt.Sprintf("bridge_%v.sock", uuid.NewString()))
+		if _, err := os.Stat(path); errors.Is(err, fs.ErrNotExist) {
+			return path, nil
+		}
+	}
+
+	return "", errors.New("unable to find a suitable file socket in user config folder")
+}
+
+// useFileSocket return true iff file socket should be used for the gRPC service.
+func useFileSocket() bool {
+	//goland:noinspection GoBoolExpressions
+	return runtime.GOOS != "windows"
 }

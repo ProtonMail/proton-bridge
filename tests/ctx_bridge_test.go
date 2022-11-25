@@ -272,10 +272,17 @@ func (t *testCtx) initFrontendClient() error {
 		return fmt.Errorf("failed to append certificates to pool")
 	}
 
+	var target string
+	if len(cfg.FileSocketPath) != 0 {
+		target = "unix://" + cfg.FileSocketPath
+	} else {
+		target = fmt.Sprintf("%v:%d", constants.Host, cfg.Port)
+	}
+
 	conn, err := grpc.DialContext(
 		context.Background(),
-		fmt.Sprintf("%v:%d", constants.Host, cfg.Port),
-		grpc.WithTransportCredentials(credentials.NewTLS(&tls.Config{RootCAs: cp})),
+		target,
+		grpc.WithTransportCredentials(credentials.NewTLS(&tls.Config{RootCAs: cp, ServerName: "127.0.0.1"})),
 		grpc.WithUnaryInterceptor(func(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
 			return invoker(metadata.AppendToOutgoingContext(ctx, "server-token", cfg.Token), method, req, reply, cc, opts...)
 		}),

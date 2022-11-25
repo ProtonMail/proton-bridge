@@ -117,7 +117,7 @@ func (s *Service) quit() error {
 		}
 
 		// The following call is launched as a goroutine, as it will wait for current calls to end, including this one.
-		s.grpcServer.GracefulStop()
+		s.grpcServer.GracefulStop() // gRPC does clean up and remove the file socket if used.
 	}()
 
 	return nil

@@ -31,6 +31,7 @@ Exception const couldNotSaveException("The service configuration file could not 
 QString const keyPort = "port"; ///< The JSON key for the port.
 QString const keyCert = "cert"; ///< The JSON key for the TLS certificate.
 QString const keyToken = "token"; ///< The JSON key for the identification token.
+QString const keyFileSocketPath = "fileSocketPath"; ///< The JSON key for the file socket path.
 
 
 //****************************************************************************************************************************************************
@@ -88,6 +89,7 @@ bool GRPCConfig::load(QString const &path, QString *outError)
         port = jsonIntValue(object, keyPort);
         cert = jsonStringValue(object, keyCert);
         token = jsonStringValue(object, keyToken);
+        fileSocketPath = jsonStringValue(object, keyFileSocketPath);
 
         return true;
     }
@@ -113,6 +115,7 @@ bool GRPCConfig::save(QString const &path, QString *outError)
         object.insert(keyPort, port);
         object.insert(keyCert, cert);
         object.insert(keyToken, token);
+        object.insert(keyFileSocketPath, fileSocketPath);
 
         QFile file(path);
         if (!file.open(QIODevice::WriteOnly | QIODevice::Text))

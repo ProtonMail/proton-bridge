@@ -29,6 +29,7 @@ public: // data members
     qint32 port; ///< The port.
     QString cert; ///< The server TLS certificate.
     QString token; ///< The identification token.
+    QString fileSocketPath; ///< The path of the file socket.
 
     bool load(QString const &path, QString *outError = nullptr); ///< Load the service config from file
     bool save(QString const &path, QString *outError = nullptr); ///< Save the service config to file
