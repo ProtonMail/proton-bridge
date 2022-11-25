@@ -105,9 +105,10 @@ void parseCommandLineArguments(int argc, char *argv[], QStringList& args, QStrin
         // Arguments may contain some bridge flags.
 
         if (arg == noWindowFlag)
+        {
             outNoWindow = true;
-
-        if (arg == launcherFlag)
+        }
+        else if (arg == launcherFlag)
         {
             args.append(arg);
             launcher = QString::fromLocal8Bit(argv[++i]);
