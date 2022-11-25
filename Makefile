@@ -293,7 +293,7 @@ gofiles: ./internal/bridge/credits.go
 	cd ./utils/ && ./credits.sh bridge
 
 ## Run and debug
-.PHONY: run run-qt run-qt-cli run-nogui run-nogui-cli run-debug run-qml-preview clean-vendor clean-frontend-qt clean-frontend-qt-common clean
+.PHONY: run run-qt run-qt-cli run-nogui run-cli run-noninteractive run-debug run-qml-preview clean-vendor clean-frontend-qt clean-frontend-qt-common clean
 
 LOG?=debug
 LOG_IMAP?=client # client/server/all, or empty to turn it off
@@ -303,6 +303,9 @@ RUN_FLAGS?=-l=${LOG} --log-imap=${LOG_IMAP} ${LOG_SMTP}
 run: run-qt
 
 run-cli: run-nogui
+
+run-noninteractive: build-nogui clean-vendor gofiles
+	PROTONMAIL_ENV=dev ./${LAUNCHER_EXE} ${RUN_FLAGS} -n
 
 run-qt: build-gui
 ifeq "${TARGET_OS}" "darwin"

@@ -47,10 +47,12 @@ const (
 	exeName = "bridge"
 	guiName = "bridge-gui"
 
-	FlagCLI      = "--cli"
-	FlagCLIShort = "-c"
-	FlagLauncher = "--launcher"
-	FlagWait     = "--wait"
+	FlagCLI                 = "cli"
+	FlagCLIShort            = "c"
+	FlagNonInteractive      = "noninteractive"
+	FlagNonInteractiveShort = "n"
+	FlagLauncher            = "--launcher"
+	FlagWait                = "--wait"
 )
 
 func main() { //nolint:funlen
@@ -160,14 +162,19 @@ func appendLauncherPath(path string, args []string) []string {
 	return args
 }
 
-// inCLIMode detect if CLI mode is asked.
-func inCLIMode(args []string) bool {
-	return sliceContains(args, FlagCLI) || sliceContains(args, FlagCLIShort)
-}
-
 // sliceContains checks if a value is present in a list.
 func sliceContains[T comparable](list []T, s T) bool {
 	return xslices.Any(list, func(arg T) bool { return arg == s })
+}
+
+// inCLIMode detect if CLI mode is asked.
+func inCLIMode(args []string) bool {
+	return hasFlag(args, FlagCLI) || hasFlag(args, FlagCLIShort) || hasFlag(args, FlagNonInteractive) || hasFlag(args, FlagNonInteractiveShort)
+}
+
+// hasFlag checks if a flag is present in a list.
+func hasFlag(args []string, flag string) bool {
+	return xslices.Any(args, func(arg string) bool { return (arg == "-"+flag) || (arg == "--"+flag) })
 }
 
 // findAndStrip check if a value is present in s list and remove all occurrences of the value from this list.
