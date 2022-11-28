@@ -119,7 +119,6 @@ func (bridge *Bridge) handleUserRefreshed(ctx context.Context, user *user.User) 
 
 func (bridge *Bridge) handleUserDeauth(ctx context.Context, user *user.User) {
 	safe.Lock(func() {
-		defer delete(bridge.users, user.ID())
 		bridge.logoutUser(ctx, user, false, false)
 	}, bridge.usersLock)
 }

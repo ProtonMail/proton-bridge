@@ -223,8 +223,6 @@ func (bridge *Bridge) LogoutUser(ctx context.Context, userID string) error {
 			return ErrNoSuchUser
 		}
 
-		defer delete(bridge.users, user.ID())
-
 		bridge.logoutUser(ctx, user, true, false)
 
 		bridge.publish(events.UserLoggedOut{
@@ -245,7 +243,6 @@ func (bridge *Bridge) DeleteUser(ctx context.Context, userID string) error {
 		}
 
 		if user, ok := bridge.users[userID]; ok {
-			defer delete(bridge.users, user.ID())
 			bridge.logoutUser(ctx, user, true, true)
 		}
 
@@ -528,6 +525,8 @@ func (bridge *Bridge) newVaultUser(
 
 // logout logs out the given user, optionally logging them out from the API too.
 func (bridge *Bridge) logoutUser(ctx context.Context, user *user.User, withAPI, withData bool) {
+	defer delete(bridge.users, user.ID())
+
 	logrus.WithFields(logrus.Fields{
 		"userID":   user.ID(),
 		"withAPI":  withAPI,

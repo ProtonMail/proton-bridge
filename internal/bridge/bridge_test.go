@@ -421,6 +421,27 @@ func TestBridge_AddressWithoutKeys(t *testing.T) {
 	})
 }
 
+func TestBridge_FactoryReset(t *testing.T) {
+	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, vaultKey []byte) {
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, vaultKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+			// Login the user.
+			userID, err := bridge.LoginFull(ctx, username, password, nil, nil)
+			require.NoError(t, err)
+
+			// The user is now connected.
+			require.Equal(t, []string{userID}, bridge.GetUserIDs())
+			require.Equal(t, []string{userID}, getConnectedUserIDs(t, bridge))
+
+			// Perform a factory reset.
+			bridge.FactoryReset(ctx)
+
+			// The user is gone.
+			require.Equal(t, []string{}, bridge.GetUserIDs())
+			require.Equal(t, []string{}, getConnectedUserIDs(t, bridge))
+		})
+	})
+}
+
 // withEnv creates the full test environment and runs the tests.
 func withEnv(t *testing.T, tests func(context.Context, *server.Server, *proton.NetCtl, bridge.Locator, []byte), opts ...server.Option) {
 	server := server.New(opts...)
