@@ -131,9 +131,16 @@ func (s *Service) RemoveUser(ctx context.Context, userID *wrapperspb.StringValue
 func (s *Service) ConfigureUserAppleMail(ctx context.Context, request *ConfigureAppleMailRequest) (*emptypb.Empty, error) {
 	s.log.WithField("UserID", request.UserID).WithField("Address", request.Address).Debug("ConfigureUserAppleMail")
 
+	sslWasEnabled := s.bridge.GetSMTPSSL()
+
 	if err := s.bridge.ConfigureAppleMail(request.UserID, request.Address); err != nil {
 		s.log.WithField("userID", request.UserID).Error("Cannot configure AppleMail for user")
 		return nil, status.Error(codes.Internal, "Apple Mail config failed")
+	}
+
+	if s.bridge.GetSMTPSSL() != sslWasEnabled {
+		// we've changed SMTP SSL settings. This will happen if SSL was off and macOS >= Catalina. We must inform gRPC clients.
+		_ = s.SendEvent(NewMailServerSettingsChangedEvent(s.getMailServerSettings()))
 	}
 
 	return &emptypb.Empty{}, nil

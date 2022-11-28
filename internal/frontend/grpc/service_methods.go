@@ -670,12 +670,7 @@ func (s *Service) SetMailServerSettings(_ context.Context, settings *ImapSmtpSet
 		}
 	}
 
-	_ = s.SendEvent(NewMailServerSettingsChangedEvent(&ImapSmtpSettings{
-		ImapPort:      int32(s.bridge.GetIMAPPort()),
-		SmtpPort:      int32(s.bridge.GetSMTPPort()),
-		UseSSLForImap: s.bridge.GetIMAPSSL(),
-		UseSSLForSmtp: s.bridge.GetSMTPSSL(),
-	}))
+	_ = s.SendEvent(NewMailServerSettingsChangedEvent(s.getMailServerSettings()))
 
 	return &emptypb.Empty{}, nil
 }
@@ -743,4 +738,13 @@ func base64Decode(in []byte) ([]byte, error) {
 	}
 
 	return out[:n], nil
+}
+
+func (s *Service) getMailServerSettings() *ImapSmtpSettings {
+	return &ImapSmtpSettings{
+		ImapPort:      int32(s.bridge.GetIMAPPort()),
+		SmtpPort:      int32(s.bridge.GetSMTPPort()),
+		UseSSLForImap: s.bridge.GetIMAPSSL(),
+		UseSSLForSmtp: s.bridge.GetSMTPSSL(),
+	}
 }
