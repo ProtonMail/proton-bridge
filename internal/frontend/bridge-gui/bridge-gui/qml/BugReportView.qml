@@ -150,7 +150,7 @@ SettingsView {
         id: sendButton
         text: qsTr("Send")
         colorScheme: root.colorScheme
-
+        enabled: !loading
         onClicked: {
             description.validate()
             address.validate()

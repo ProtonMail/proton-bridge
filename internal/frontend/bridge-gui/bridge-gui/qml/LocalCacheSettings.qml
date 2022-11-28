@@ -33,7 +33,7 @@ SettingsView {
 
     function refresh() {
         diskCacheSetting.description = Backend.nativePath(root.diskCachePath)
-        submitButton.enabled = !Backend.areSameFileOrFolder(Backend.diskCachePath, root.diskCachePath)
+        submitButton.enabled = (!submitButton.loading) && !Backend.areSameFileOrFolder(Backend.diskCachePath, root.diskCachePath)
     }
 
     Label {

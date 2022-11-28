@@ -117,7 +117,7 @@ SettingsView {
                 root.submit()
             }
 
-            enabled: (imapSSLButton.checked !== Backend.useSSLForIMAP) || (smtpSSLButton.checked !== Backend.useSSLForSMTP)
+            enabled: (!loading) && ((imapSSLButton.checked !== Backend.useSSLForIMAP) || (smtpSSLButton.checked !== Backend.useSSLForSMTP))
         }
 
         Button {

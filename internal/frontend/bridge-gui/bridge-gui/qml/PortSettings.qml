@@ -84,7 +84,7 @@ SettingsView {
             id: submitButton
             colorScheme: root.colorScheme
             text: qsTr("Save")
-            enabled: root._valuesChanged
+            enabled: (!loading) && root._valuesChanged
             onClicked: {
                 // removing error here because we may have set it manually (port occupied)
                 imapField.error = false
