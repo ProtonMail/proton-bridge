@@ -605,6 +605,26 @@ func TestParseMessageReferencesComma(t *testing.T) {
 	})
 }
 
+func TestParseIcsAttachment(t *testing.T) {
+	f := getFileReader("ics_attachment.eml")
+
+	m, err := Parse(f)
+	require.NoError(t, err)
+
+	assert.Equal(t, `"Sender" <sender@pm.me>`, m.Sender.String())
+	assert.Equal(t, `"Receiver" <receiver@pm.me>`, m.ToList[0].String())
+
+	assert.Equal(t, "body", string(m.RichBody))
+	assert.Equal(t, "body", string(m.PlainBody))
+
+	require.Len(t, m.Attachments, 1)
+	assert.Equal(t, m.Attachments[0].MIMEType, "text/calendar")
+	assert.Equal(t, m.Attachments[0].Name, "invite.ics")
+	assert.Equal(t, m.Attachments[0].ContentID, "")
+	assert.Equal(t, m.Attachments[0].Disposition, "attachment")
+	assert.Equal(t, string(m.Attachments[0].Data), "This is an ics calendar invite")
+}
+
 func TestParsePanic(t *testing.T) {
 	var err error
 	require.NotPanics(t, func() {
