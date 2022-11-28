@@ -69,12 +69,12 @@ ${VCPKG_BOOTSTRAP} -disableMetrics
 check_exit "Failed to bootstrap vcpkg."
 
 if [[ "$OSTYPE" == "darwin"* ]]; then
-    ${VCPKG_EXE} install grpc:arm64-osx-min-11-0 --overlay-triplets=vcpkg/triplets --clean-after-build
+    ${VCPKG_EXE} install sentry-native:arm64-osx-min-11-0 grpc:arm64-osx-min-11-0 --overlay-triplets=vcpkg/triplets --clean-after-build
     check_exit "Failed installing gRPC for macOS / Apple Silicon"
-    ${VCPKG_EXE} install grpc:x64-osx-min-11-0 --overlay-triplets=vcpkg/triplets --clean-after-build
+    ${VCPKG_EXE} install sentry-native:x64-osx-min-11-0 grpc:x64-osx-min-11-0 --overlay-triplets=vcpkg/triplets --clean-after-build
     check_exit "Failed installing gRPC for macOS / Intel x64"
 elif [[ "$OSTYPE" == "linux"* ]]; then
-    ${VCPKG_EXE} install grpc:x64-linux --clean-after-build
+    ${VCPKG_EXE} install sentry-native:x64-linux grpc:x64-linux --clean-after-build
     check_exit "Failed installing gRPC for Linux / Intel x64"
 else
     echo "For Windows, use the build.ps1 Powershell script."

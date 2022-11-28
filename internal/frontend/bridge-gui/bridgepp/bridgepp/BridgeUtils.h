@@ -40,6 +40,7 @@ enum class OS {
 QString userConfigDir(); ///< Get the path of the user configuration folder.
 QString userCacheDir(); ///< Get the path of the user cache folder.
 QString userLogsDir(); ///< Get the path of the user logs folder.
+QString sentryCacheDir(); ///< Get the path of the sentry cache folder.
 QString goos(); ///< return the value of Go's  GOOS for the current platform ("darwin", "linux" and "windows"  are supported).
 qint64 randN(qint64 n); ///< return a random integer in the half open range  [0,n)
 QString randomFirstName(); ///< Get a random first name from a pre-determined list.

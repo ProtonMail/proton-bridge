@@ -80,6 +80,26 @@ qt_standard_project_setup()
 set(CMAKE_AUTORCC ON)
 message(STATUS "Using Qt ${Qt6_VERSION}")
 
+#*****************************************************************************************************************************************************
+# Sentry Native
+#*****************************************************************************************************************************************************
+find_package(sentry CONFIG REQUIRED)
+
+set(DSN_SENTRY "https://ea31dfe8574849108fb8ba044fec3620@api.protonmail.ch/core/v4/reports/sentry/7")
+set(SENTRY_CONFIG_GENERATED_FILE_DIR ${CMAKE_CURRENT_BINARY_DIR}/sentry-generated)
+set(SENTRY_CONFIG_FILE ${SENTRY_CONFIG_GENERATED_FILE_DIR}/project_sentry_config.h)
+file(GENERATE OUTPUT ${SENTRY_CONFIG_FILE} CONTENT
+    "// AUTO GENERATED FILE, DO NOT MODIFY\n#pragma once\nconst char* SentryDNS=\"${DSN_SENTRY}\";\nconst char* SentryProductID=\"bridge-mail@${BRIDGE_APP_VERSION}\";\n"
+)
+
+if (APPLE)
+    #TODO: Find a better way to extract this information
+    install(PROGRAMS "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/tools/sentry-native/crashpad_handler" DESTINATION "${CMAKE_INSTALL_PREFIX}/bridge-gui.app/Contents/MacOS/")
+endif()
+
+if (WIN32)
+    install(PROGRAMS "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/tools/sentry-native/crashpad_handler.exe" DESTINATION "${CMAKE_INSTALL_PREFIX}")
+endif()
 
 #*****************************************************************************************************************************************************
 # Source files and output
@@ -111,6 +131,7 @@ add_executable(bridge-gui
     Version.h
     QMLBackend.cpp QMLBackend.h
     UserList.cpp UserList.h
+    SentryUtils.cpp SentryUtils.h
     ${DOCK_ICON_SRC_FILE} DockIcon/DockIcon.h
     )
 
@@ -127,13 +148,14 @@ if (WIN32) # on Windows, we add a (non-Qt) resource file that contains the appli
 endif()
 
 target_precompile_headers(bridge-gui PRIVATE Pch.h)
-target_include_directories(bridge-gui PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(bridge-gui PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${SENTRY_CONFIG_GENERATED_FILE_DIR})
 target_link_libraries(bridge-gui
     Qt6::Widgets
     Qt6::Core
     Qt6::Quick
     Qt6::Qml
     Qt6::QuickControls2
+    sentry::sentry
     bridgepp
     )
 

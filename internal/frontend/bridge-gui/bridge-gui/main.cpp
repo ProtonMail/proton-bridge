@@ -19,12 +19,16 @@
 #include "Pch.h"
 #include "CommandLine.h"
 #include "QMLBackend.h"
+#include "SentryUtils.h"
 #include "Version.h"
 #include <bridgepp/BridgeUtils.h>
 #include <bridgepp/Exception/Exception.h>
 #include <bridgepp/FocusGRPC/FocusGRPCClient.h>
 #include <bridgepp/Log/Log.h>
 #include <bridgepp/ProcessMonitor.h>
+#include <sentry.h>
+#include <project_sentry_config.h>
+
 
 
 using namespace bridgepp;
@@ -236,6 +240,7 @@ void focusOtherInstance()
     catch (Exception const& e)
     {
         app().log().error(e.qwhat());
+        reportSentryException(SENTRY_LEVEL_ERROR, "Exception occurred during focusOtherInstance()", "Exception", e.what());
     }
 }
 
@@ -288,6 +293,25 @@ void closeBridgeApp()
 //****************************************************************************************************************************************************
 int main(int argc, char *argv[])
 {
+    // Init sentry.
+    sentry_options_t* options = sentry_options_new();
+    sentry_options_set_dsn(options, SentryDNS);
+    {
+        const QString sentryCachePath = sentryCacheDir();
+        sentry_options_set_database_path(options, sentryCachePath.toStdString().c_str());
+    }
+    sentry_options_set_release(options, SentryProductID);
+    // Enable this for debugging sentry.
+    // sentry_options_set_debug(options, 1);
+    if (sentry_init(options) != 0) {
+        std::cerr << "Failed to initialize sentry" << std::endl;
+    }
+
+    reportSentryException(SENTRY_LEVEL_ERROR, "Exception occurred during main", "Exception-Type", "mac os message");
+
+
+    auto sentryClose = qScopeGuard([]{sentry_close();});
+
     // The application instance is needed to display system message boxes. As we may have to do it in the exception handler,
     // application instance is create outside the try/catch clause.
     if (QSysInfo::productType() != "windows")
@@ -403,6 +427,7 @@ int main(int argc, char *argv[])
     }
     catch (Exception const &e)
     {
+        reportSentryException(SENTRY_LEVEL_ERROR, "Exception occurred during main", "Exception", e.what());
         QMessageBox::critical(nullptr, "Error", e.qwhat());
         QTextStream(stderr) << e.qwhat() << "\n";
         return EXIT_FAILURE;

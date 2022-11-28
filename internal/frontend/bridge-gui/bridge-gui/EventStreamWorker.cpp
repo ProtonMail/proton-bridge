@@ -17,6 +17,7 @@
 
 
 #include "EventStreamWorker.h"
+#include "SentryUtils.h"
 #include <bridgepp/GRPC/GRPCClient.h>
 #include <bridgepp/Exception/Exception.h>
 #include <bridgepp/Log/Log.h>
@@ -54,6 +55,7 @@ void EventStreamReader::run()
     }
     catch (Exception const &e)
     {
+        reportSentryException(SENTRY_LEVEL_ERROR, "Error during event stream read", "Exception", e.what());
         emit error(e.qwhat());
     }
 }
