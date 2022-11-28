@@ -385,6 +385,11 @@ func createAttachments(
 			"mime-type":   att.MIMEType,
 		}).Debug("Uploading attachment")
 
+		// Some client might have leave empty the content disposition or use unsupported values.
+		if att.Disposition != string(proton.InlineDisposition) && att.Disposition != string(proton.AttachmentDisposition) {
+			att.Disposition = string(proton.AttachmentDisposition)
+		}
+
 		// Some clients use inline disposition but don't set a content ID. Our API doesn't support this.
 		// We could generate our own content ID, but for simplicity, we just set the disposition to attachment.
 		if att.Disposition == string(proton.InlineDisposition) && att.ContentID == "" {
