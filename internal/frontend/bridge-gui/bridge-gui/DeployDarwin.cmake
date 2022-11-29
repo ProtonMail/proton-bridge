@@ -46,4 +46,7 @@ install(DIRECTORY "${QT_DIR}/lib/QtQuickDialogs2Utils.framework"
 # PLUGINS
 install(FILES "${QT_DIR}/plugins/imageformats/libqsvg.dylib"
         DESTINATION "${CMAKE_INSTALL_PREFIX}/bridge-gui.app/Contents/PlugIns/imageformats")
+# crash handler utils
+install(PROGRAMS "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/tools/sentry-native/crashpad_handler"
+DESTINATION "${CMAKE_INSTALL_PREFIX}/bridge-gui.app/Contents/MacOS/")
 

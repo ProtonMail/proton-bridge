@@ -92,14 +92,7 @@ file(GENERATE OUTPUT ${SENTRY_CONFIG_FILE} CONTENT
     "// AUTO GENERATED FILE, DO NOT MODIFY\n#pragma once\nconst char* SentryDNS=\"${DSN_SENTRY}\";\nconst char* SentryProductID=\"bridge-mail@${BRIDGE_APP_VERSION}\";\n"
 )
 
-if (APPLE)
-    #TODO: Find a better way to extract this information
-    install(PROGRAMS "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/tools/sentry-native/crashpad_handler" DESTINATION "${CMAKE_INSTALL_PREFIX}/bridge-gui.app/Contents/MacOS/")
-endif()
 
-if (WIN32)
-    install(PROGRAMS "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/tools/sentry-native/crashpad_handler.exe" DESTINATION "${CMAKE_INSTALL_PREFIX}")
-endif()
 
 #*****************************************************************************************************************************************************
 # Source files and output
