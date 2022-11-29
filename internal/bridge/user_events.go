@@ -58,6 +58,10 @@ func (bridge *Bridge) handleUserEvent(ctx context.Context, user *user.User, even
 
 func (bridge *Bridge) handleUserAddressCreated(ctx context.Context, user *user.User, event events.UserAddressCreated) error {
 	if user.GetAddressMode() == vault.SplitMode {
+		if bridge.imapServer == nil {
+			return fmt.Errorf("no imap server instance running")
+		}
+
 		gluonID, err := bridge.imapServer.AddUser(ctx, user.NewIMAPConnector(event.AddressID), user.GluonKey())
 		if err != nil {
 			return fmt.Errorf("failed to add user to IMAP server: %w", err)
@@ -86,6 +90,10 @@ func (bridge *Bridge) handleUserAddressUpdated(_ context.Context, user *user.Use
 
 func (bridge *Bridge) handleUserAddressDeleted(ctx context.Context, user *user.User, event events.UserAddressDeleted) error {
 	if user.GetAddressMode() == vault.SplitMode {
+		if bridge.imapServer == nil {
+			return fmt.Errorf("no imap server instance running")
+		}
+
 		gluonID, ok := user.GetGluonID(event.AddressID)
 		if !ok {
 			return fmt.Errorf("gluon ID not found for address %s", event.AddressID)

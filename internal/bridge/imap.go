@@ -47,6 +47,10 @@ const (
 )
 
 func (bridge *Bridge) serveIMAP() error {
+	if bridge.imapServer == nil {
+		return fmt.Errorf("no imap server instance running")
+	}
+
 	logrus.Info("Starting IMAP server")
 
 	imapListener, err := newListener(bridge.vault.GetIMAPPort(), bridge.vault.GetIMAPSSL(), bridge.tlsConfig)
@@ -82,8 +86,11 @@ func (bridge *Bridge) restartIMAP() error {
 func (bridge *Bridge) closeIMAP(ctx context.Context) error {
 	logrus.Info("Closing IMAP server")
 
-	if err := bridge.imapServer.Close(ctx); err != nil {
-		return fmt.Errorf("failed to close IMAP server: %w", err)
+	if bridge.imapServer != nil {
+		if err := bridge.imapServer.Close(ctx); err != nil {
+			return fmt.Errorf("failed to close IMAP server: %w", err)
+		}
+		bridge.imapServer = nil
 	}
 
 	if bridge.imapListener != nil {
@@ -97,6 +104,10 @@ func (bridge *Bridge) closeIMAP(ctx context.Context) error {
 
 // addIMAPUser connects the given user to gluon.
 func (bridge *Bridge) addIMAPUser(ctx context.Context, user *user.User) error {
+	if bridge.imapServer == nil {
+		return fmt.Errorf("no imap server instance running")
+	}
+
 	imapConn, err := user.NewIMAPConnectors()
 	if err != nil {
 		return fmt.Errorf("failed to create IMAP connectors: %w", err)
@@ -135,6 +146,9 @@ func (bridge *Bridge) addIMAPUser(ctx context.Context, user *user.User) error {
 
 // removeIMAPUser disconnects the given user from gluon, optionally also removing its files.
 func (bridge *Bridge) removeIMAPUser(ctx context.Context, user *user.User, withData bool) error {
+	if bridge.imapServer == nil {
+		return fmt.Errorf("no imap server instance running")
+	}
 	logrus.WithFields(logrus.Fields{
 		"userID":   user.ID(),
 		"withData": withData,
