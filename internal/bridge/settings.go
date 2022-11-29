@@ -287,13 +287,15 @@ func (bridge *Bridge) FactoryReset(ctx context.Context) {
 		for _, user := range bridge.users {
 			bridge.logoutUser(ctx, user, true, true)
 		}
-
-		for _, user := range bridge.vault.GetUserIDs() {
-			if err := bridge.vault.DeleteUser(user); err != nil {
-				logrus.WithError(err).Error("failed to delete vault user")
-			}
-		}
 	}, bridge.usersLock)
+
+	// Wipe the vault.
+	gluonDir, err := bridge.locator.ProvideGluonPath()
+	if err != nil {
+		logrus.WithError(err).Error("Failed to provide gluon dir")
+	} else if err := bridge.vault.Reset(gluonDir); err != nil {
+		logrus.WithError(err).Error("Failed to reset vault")
+	}
 
 	// Then delete all files.
 	if err := bridge.locator.Clear(); err != nil {

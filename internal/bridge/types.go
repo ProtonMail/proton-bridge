@@ -26,6 +26,7 @@ import (
 type Locator interface {
 	ProvideSettingsPath() (string, error)
 	ProvideLogsPath() (string, error)
+	ProvideGluonPath() (string, error)
 	GetLicenseFilePath() string
 	GetDependencyLicensesLink() string
 	Clear() error

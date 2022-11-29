@@ -77,6 +77,25 @@ func TestVault_Corrupt_JunkData(t *testing.T) {
 	}
 }
 
+func TestVault_Reset(t *testing.T) {
+	s := newVault(t)
+
+	// Write some data.
+	require.NoError(t, s.SetIMAPPort(1234))
+	require.NoError(t, s.SetSMTPPort(5678))
+
+	// The data was written.
+	require.Equal(t, 1234, s.GetIMAPPort())
+	require.Equal(t, 5678, s.GetSMTPPort())
+
+	// Reset.
+	require.NoError(t, s.Reset(s.GetGluonDir()))
+
+	// The data is gone.
+	require.Equal(t, 1143, s.GetIMAPPort())
+	require.Equal(t, 1025, s.GetSMTPPort())
+}
+
 func newVault(t *testing.T) *vault.Vault {
 	t.Helper()
 

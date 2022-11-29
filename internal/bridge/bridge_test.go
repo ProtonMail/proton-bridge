@@ -423,14 +423,26 @@ func TestBridge_AddressWithoutKeys(t *testing.T) {
 
 func TestBridge_FactoryReset(t *testing.T) {
 	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, vaultKey []byte) {
-		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, vaultKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, vaultKey, func(bridge *bridge.Bridge, _ *bridge.Mocks) {
+			// The settings should be their default values.
+			require.True(t, bridge.GetAutoUpdate())
+			require.Equal(t, updater.StableChannel, bridge.GetUpdateChannel())
+
 			// Login the user.
 			userID, err := bridge.LoginFull(ctx, username, password, nil, nil)
 			require.NoError(t, err)
 
+			// Change some settings.
+			require.NoError(t, bridge.SetAutoUpdate(false))
+			require.NoError(t, bridge.SetUpdateChannel(updater.EarlyChannel))
+
 			// The user is now connected.
 			require.Equal(t, []string{userID}, bridge.GetUserIDs())
 			require.Equal(t, []string{userID}, getConnectedUserIDs(t, bridge))
+
+			// The settings should be changed.
+			require.False(t, bridge.GetAutoUpdate())
+			require.Equal(t, updater.EarlyChannel, bridge.GetUpdateChannel())
 
 			// Perform a factory reset.
 			bridge.FactoryReset(ctx)
@@ -438,6 +450,12 @@ func TestBridge_FactoryReset(t *testing.T) {
 			// The user is gone.
 			require.Equal(t, []string{}, bridge.GetUserIDs())
 			require.Equal(t, []string{}, getConnectedUserIDs(t, bridge))
+		})
+
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, vaultKey, func(bridge *bridge.Bridge, _ *bridge.Mocks) {
+			// The settings should be reset.
+			require.True(t, bridge.GetAutoUpdate())
+			require.Equal(t, updater.StableChannel, bridge.GetUpdateChannel())
 		})
 	})
 }

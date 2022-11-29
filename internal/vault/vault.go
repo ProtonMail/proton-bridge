@@ -185,6 +185,12 @@ func (vault *Vault) SetMigrated() error {
 	})
 }
 
+func (vault *Vault) Reset(gluonDir string) error {
+	return vault.mod(func(data *Data) {
+		*data = newDefaultData(gluonDir)
+	})
+}
+
 func (vault *Vault) Close() error {
 	vault.refLock.Lock()
 	defer vault.refLock.Unlock()
