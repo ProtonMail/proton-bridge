@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>521</width>
-    <height>432</height>
+    <width>654</width>
+    <height>544</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -23,17 +23,13 @@
        </property>
       </widget>
      </item>
-     <item row="2" column="0">
-      <widget class="QLabel" name="labelPassword">
-       <property name="text">
-        <string>Password</string>
-       </property>
-      </widget>
+     <item row="2" column="1">
+      <widget class="QLineEdit" name="editPassword"/>
      </item>
-     <item row="1" column="0">
-      <widget class="QLabel" name="labelUsername">
-       <property name="text">
-        <string>Account Name</string>
+     <item row="0" column="1">
+      <widget class="QLineEdit" name="editUserID">
+       <property name="readOnly">
+        <bool>true</bool>
        </property>
       </widget>
      </item>
@@ -44,42 +40,8 @@
        </property>
       </widget>
      </item>
-     <item row="5" column="0">
-      <widget class="QLabel" name="labelUsedBytes">
-       <property name="text">
-        <string>Used Bytes</string>
-       </property>
-      </widget>
-     </item>
-     <item row="9" column="0" colspan="2">
-      <widget class="QCheckBox" name="checkSetupGuideSeen">
-       <property name="text">
-        <string>Setup Guide Seen</string>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="1">
-      <widget class="QLineEdit" name="editPassword"/>
-     </item>
-     <item row="6" column="0">
-      <widget class="QLabel" name="labelTotalBytes">
-       <property name="text">
-        <string>Total Bytes</string>
-       </property>
-      </widget>
-     </item>
      <item row="4" column="1">
       <widget class="QLineEdit" name="editAvatarText"/>
-     </item>
-     <item row="3" column="0">
-      <widget class="QLabel" name="labelAddresses">
-       <property name="text">
-        <string>Adresses</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
-       </property>
-      </widget>
      </item>
      <item row="3" column="1">
       <widget class="QPlainTextEdit" name="editAddresses">
@@ -113,22 +75,51 @@
        </property>
       </widget>
      </item>
-     <item row="0" column="1">
-      <widget class="QLineEdit" name="editUserID">
-       <property name="readOnly">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item row="7" column="0" colspan="2">
-      <widget class="QCheckBox" name="checkLoggedIn">
+     <item row="5" column="0">
+      <widget class="QLabel" name="labelUsedBytes">
        <property name="text">
-        <string>Logged in</string>
+        <string>Used Bytes</string>
        </property>
       </widget>
      </item>
-     <item row="1" column="1">
-      <widget class="QLineEdit" name="editUsername"/>
+     <item row="7" column="1">
+      <layout class="QHBoxLayout" name="horizontalLayout_3">
+       <item>
+        <widget class="QComboBox" name="comboState">
+         <property name="sizeAdjustPolicy">
+          <enum>QComboBox::AdjustToContents</enum>
+         </property>
+         <item>
+          <property name="text">
+           <string>Signed Out</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Locked</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Connected</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+       <item>
+        <spacer name="horizontalSpacer_2">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>1</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
      </item>
      <item row="6" column="1">
       <widget class="QDoubleSpinBox" name="spinTotalBytes">
@@ -140,6 +131,54 @@
        </property>
        <property name="maximum">
         <double>1000000000000000.000000000000000</double>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="0">
+      <widget class="QLabel" name="labelAddresses">
+       <property name="text">
+        <string>Adresses</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="0">
+      <widget class="QLabel" name="labelPassword">
+       <property name="text">
+        <string>Password</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0">
+      <widget class="QLabel" name="labelUsername">
+       <property name="text">
+        <string>Account Name</string>
+       </property>
+      </widget>
+     </item>
+     <item row="6" column="0">
+      <widget class="QLabel" name="labelTotalBytes">
+       <property name="text">
+        <string>Total Bytes</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="QLineEdit" name="editUsername"/>
+     </item>
+     <item row="9" column="0" colspan="2">
+      <widget class="QCheckBox" name="checkSetupGuideSeen">
+       <property name="text">
+        <string>Setup Guide Seen</string>
+       </property>
+      </widget>
+     </item>
+     <item row="7" column="0">
+      <widget class="QLabel" name="labelTotalBytes_2">
+       <property name="text">
+        <string>State</string>
        </property>
       </widget>
      </item>
@@ -209,7 +248,6 @@
   <tabstop>editAvatarText</tabstop>
   <tabstop>spinUsedBytes</tabstop>
   <tabstop>spinTotalBytes</tabstop>
-  <tabstop>checkLoggedIn</tabstop>
   <tabstop>checkSplitMode</tabstop>
   <tabstop>checkSetupGuideSeen</tabstop>
   <tabstop>buttonOK</tabstop>

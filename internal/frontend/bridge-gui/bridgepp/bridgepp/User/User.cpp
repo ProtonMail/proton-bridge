@@ -326,4 +326,19 @@ void User::setTotalBytes(float totalBytes)
 }
 
 
+//****************************************************************************************************************************************************
+/// \param[in] state The user state.
+/// \return A string describing the state.
+//****************************************************************************************************************************************************
+QString User::stateToString(UserState state)
+{
+    switch (state) {
+    case UserState::SignedOut: return "Signed out";
+    case UserState::Locked: return "Locked";
+    case UserState::Connected: return "Connected";
+    default: return "Unknown";
+    }
+}
+
+
 } // namespace bridgepp

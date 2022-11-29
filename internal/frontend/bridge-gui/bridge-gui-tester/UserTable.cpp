@@ -46,7 +46,7 @@ int UserTable::rowCount(QModelIndex const &) const
 //****************************************************************************************************************************************************
 int UserTable::columnCount(QModelIndex const &) const
 {
-    return 3;
+    return 4;
 }
 
 
@@ -72,6 +72,8 @@ QVariant UserTable::data(QModelIndex const &index, int role) const
     case 1:
         return user->property("addresses").toStringList().join(" ");
     case 2:
+        return User::stateToString(user->state());
+    case 3:
         return user->property("id");
     default:
         return QVariant();
@@ -99,6 +101,8 @@ QVariant UserTable::headerData(int section, Qt::Orientation orientation, int rol
     case 1:
         return "Addresses";
     case 2:
+        return "State";
+    case 3:
         return "UserID";
     default:
         return QString();

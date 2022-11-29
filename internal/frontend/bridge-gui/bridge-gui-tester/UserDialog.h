@@ -37,6 +37,10 @@ public: // member functions.
     UserDialog &operator=(UserDialog const &) = delete; ///< Disabled assignment operator.
     UserDialog &operator=(UserDialog &&) = delete; ///< Disabled move assignment operator.
 
+private: // member functions
+    bridgepp::UserState state(); ///< Get the user state selected in the dialog.
+    void setState(bridgepp::UserState state); ///< Set the user state selected in the dialog
+
 private slots:
     void onOK(); ///< Slot for the OK button.
 

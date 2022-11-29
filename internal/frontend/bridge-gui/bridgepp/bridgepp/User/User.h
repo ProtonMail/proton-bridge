@@ -66,6 +66,7 @@ class User : public QObject
 Q_OBJECT
 public: // static member function
     static SPUser newUser(QObject *parent); ///< Create a new user
+    static QString stateToString(UserState state); ///< Return a string describing a user state.
 
 public: // member functions.
     User(User const &) = delete; ///< Disabled copy-constructor.

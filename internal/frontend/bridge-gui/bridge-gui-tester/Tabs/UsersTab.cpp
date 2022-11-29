@@ -45,7 +45,7 @@ UsersTab::UsersTab(QWidget *parent)
 
     ui_.tableUserList->setColumnWidth(0, 150);
     ui_.tableUserList->setColumnWidth(1, 250);
-    ui_.tableUserList->setColumnWidth(2, 350);
+    ui_.tableUserList->setColumnWidth(2, 150);
 
     connect(ui_.buttonNewUser, &QPushButton::clicked, this, &UsersTab::onAddUserButton);
     connect(ui_.buttonEditUser, &QPushButton::clicked, this, &UsersTab::onEditUserButton);
