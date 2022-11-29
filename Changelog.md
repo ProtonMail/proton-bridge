@@ -9,6 +9,9 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-2153: Use file socket for bridge gRPC on linux & macOS.
 * GODT-2150: Do not forward --no-window flag.
 * GODT-2154: Allow noninteractive mode from launcher.
+* Other: update gui tester to support latest changes in gRPC implementation.
+* Other: GUI Tester supports the 3 states of user (Signed out/Locked/Connected).
+* Other: Bump gluon version to drop non-UTF-8 commands
 
 ### Fixed
 * Other: Wipe vault properly on factory reset.
@@ -19,7 +22,10 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-1910: Fix save button state not being updated after being clicked once.
 * GODT-2159: Improve 429 retry.
 * GODT-1989: Handle Move with Append and Expunge.
-
+* Other: setMailServerSettings is async as it should.
+* Other: include sentry dll for Windows deploy.
+* Other: Ensure context is string in sentry reports
+* GODT-2160: Ensure we can safely move cache file
 
 ## [Bridge 3.0.1] Perth Narrows
 
