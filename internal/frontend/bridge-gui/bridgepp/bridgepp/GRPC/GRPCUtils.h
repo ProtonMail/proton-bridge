@@ -46,6 +46,8 @@ grpc::UserState userStateToGRPC(UserState state); ///< Convert a bridgepp::UserS
 UserState userStateFromGRPC(grpc::UserState state);  ///< Convert a grpc::UserState to a bridgepp::UserState.
 void userToGRPC(User const &user, grpc::User &outGRPCUser); ///< Convert a bridgepp::User to a grpc::User.
 SPUser userFromGRPC(grpc::User const &grpcUser); ///< Create a bridgepp::User from a grpc::User.
+bool useFileSocketForGRPC(); ///< Check whether the Bridge gRPC service should use file sockets instead of TCP sockets.
+QString getAvailableFileSocketPath(); ///< Return the path of a new available socket, or a null string if none could be found.
 
 
 }

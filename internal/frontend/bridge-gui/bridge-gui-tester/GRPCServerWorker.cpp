@@ -62,7 +62,17 @@ void GRPCServerWorker::run()
         credentials->SetAuthMetadataProcessor(processor_); // gRPC interceptors are still experimental in C++, so we use AuthMetadataProcessor
         ServerBuilder builder;
         int port = 0; // Port will not be known until ServerBuilder::BuildAndStart() is called
-        builder.AddListeningPort("127.0.0.1:0", credentials, &port);
+        bool const useFileSocket = useFileSocketForGRPC();
+        if (useFileSocket) {
+            QString const fileSocketPath = getAvailableFileSocketPath();
+            if (fileSocketPath.isEmpty())
+                throw Exception("Could not get an available file socket.");
+            builder.AddListeningPort(QString("unix://%1").arg(fileSocketPath).toStdString(), credentials);
+            config.fileSocketPath = fileSocketPath;
+        } else {
+            builder.AddListeningPort("127.0.0.1:0", credentials, &port);
+        }
+
         builder.RegisterService(&app().grpc());
         server_ = builder.BuildAndStart();
 

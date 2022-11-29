@@ -80,14 +80,9 @@ public: // member functions.
     grpc::Status SetDiskCachePath(::grpc::ServerContext *, ::google::protobuf::StringValue const*, ::google::protobuf::Empty *r) override;
     grpc::Status SetIsDoHEnabled(::grpc::ServerContext *, ::google::protobuf::BoolValue const *request, ::google::protobuf::Empty *) override;
     grpc::Status IsDoHEnabled(::grpc::ServerContext *, ::google::protobuf::Empty const*, ::google::protobuf::BoolValue *response) override;
-    grpc::Status SetUseSslForSmtp(::grpc::ServerContext *, ::google::protobuf::BoolValue const *request, ::google::protobuf::Empty *) override;
-    grpc::Status UseSslForSmtp(::grpc::ServerContext *, ::google::protobuf::Empty const*, ::google::protobuf::BoolValue *response) override;
-    grpc::Status SetUseSslForImap(::grpc::ServerContext *, ::google::protobuf::BoolValue const *request, ::google::protobuf::Empty *) override;
-    grpc::Status UseSslForImap(::grpc::ServerContext *, ::google::protobuf::Empty const*, ::google::protobuf::BoolValue *response) override;
+    grpc::Status SetMailServerSettings(::grpc::ServerContext *context, ::grpc::ImapSmtpSettings const *request, ::google::protobuf::Empty *response) override;
+    grpc::Status MailServerSettings(::grpc::ServerContext *context, ::google::protobuf::Empty const *request, ::grpc::ImapSmtpSettings *response) override;
     grpc::Status Hostname(::grpc::ServerContext *, ::google::protobuf::Empty const*, ::google::protobuf::StringValue *response) override;
-    grpc::Status ImapPort(::grpc::ServerContext *, ::google::protobuf::Empty const*, ::google::protobuf::Int32Value *response) override;
-    grpc::Status SmtpPort(::grpc::ServerContext *, ::google::protobuf::Empty const*, ::google::protobuf::Int32Value *response) override;
-    grpc::Status ChangePorts(::grpc::ServerContext *, ::grpc::ChangePortsRequest const *request, ::google::protobuf::Empty *) override;
     grpc::Status IsPortFree(::grpc::ServerContext *, ::google::protobuf::Int32Value const *request, ::google::protobuf::BoolValue *response) override;
     grpc::Status AvailableKeychains(::grpc::ServerContext *, ::google::protobuf::Empty const*, ::grpc::AvailableKeychainsResponse *response) override;
     grpc::Status SetCurrentKeychain(::grpc::ServerContext *, ::google::protobuf::StringValue const *request, ::google::protobuf::Empty *) override;

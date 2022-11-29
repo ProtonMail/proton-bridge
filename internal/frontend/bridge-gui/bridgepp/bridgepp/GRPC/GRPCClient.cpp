@@ -40,14 +40,6 @@ qint64 const grpcConnectionWaitTimeoutMs = 60000; ///< Timeout for the connectio
 qint64 const grpcConnectionRetryDelayMs = 10000; ///< Retry delay for the gRPC connection in milliseconds.
 
 
-//****************************************************************************************************************************************************
-/// return true if gRPC connection should use file socket instead of TCP socket.
-//****************************************************************************************************************************************************
-bool useFileSocket() {
-    return !onWindows();
-}
-
-
 } // anonymous namespace
 
 
@@ -124,7 +116,7 @@ bool GRPCClient::connectToServer(GRPCConfig const &config, ProcessMonitor *serve
         serverToken_ = config.token.toStdString();
         QString address;
         grpc::ChannelArguments chanArgs;
-        if (useFileSocket())
+        if (useFileSocketForGRPC())
         {
             address = QString("unix://" + config.fileSocketPath);
             chanArgs.SetSslTargetNameOverride("127.0.0.1"); // for file socket, we skip name verification to avoid a confusion localhost/127.0.0.1

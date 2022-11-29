@@ -635,51 +635,31 @@ Status GRPCService::IsDoHEnabled(ServerContext *, Empty const *, BoolValue *resp
 
 
 //****************************************************************************************************************************************************
-/// \param[in] request The request.
+/// \param[in] settings The IMAP/SMTP settings.
 /// \return The status for the call.
 //****************************************************************************************************************************************************
-Status GRPCService::SetUseSslForImap(ServerContext *, BoolValue const *request, Empty *)
+Status GRPCService::SetMailServerSettings(::grpc::ServerContext *context, ImapSmtpSettings const *settings, Empty *)
 {
     app().log().debug(__FUNCTION__);
-    qtProxy_.setUseSSLForIMAP(request->value());
-    qtProxy_.sendDelayedEvent(newUseSslForImapFinishedEvent());
+    qtProxy_.setMailServerSettings(settings->imapport(), settings->smtpport(), settings->usesslforimap(), settings->usesslforsmtp());
+    qtProxy_.sendDelayedEvent(newMailServerSettingsChanged(*settings));
+    qtProxy_.sendDelayedEvent(newChangeMailServerSettingsFinished());
     return Status::OK;
 }
 
 
 //****************************************************************************************************************************************************
-/// \param[out] response The response.
+/// \param[out] outSettings The settings
 /// \return The status for the call.
 //****************************************************************************************************************************************************
-Status GRPCService::UseSslForImap(ServerContext *, Empty const *, BoolValue *response)
+Status GRPCService::MailServerSettings(::grpc::ServerContext *, Empty const *, ImapSmtpSettings *outSettings)
 {
     app().log().debug(__FUNCTION__);
-    response->set_value(app().mainWindow().settingsTab().useSSLForIMAP());
-    return Status::OK;
-}
-
-
-//****************************************************************************************************************************************************
-/// \param[in] request The request.
-/// \return The status for the call.
-//****************************************************************************************************************************************************
-Status GRPCService::SetUseSslForSmtp(ServerContext *, BoolValue const *request, Empty *)
-{
-    app().log().debug(__FUNCTION__);
-    qtProxy_.setUseSSLForSMTP(request->value());
-    qtProxy_.sendDelayedEvent(newUseSslForSmtpFinishedEvent());
-    return Status::OK;
-}
-
-
-//****************************************************************************************************************************************************
-/// \param[out] response The response.
-/// \return The status for the call.
-//****************************************************************************************************************************************************
-Status GRPCService::UseSslForSmtp(ServerContext *, Empty const *, BoolValue *response)
-{
-    app().log().debug(__FUNCTION__);
-    response->set_value(app().mainWindow().settingsTab().useSSLForSMTP());
+    SettingsTab& tab = app().mainWindow().settingsTab();
+    outSettings->set_imapport(tab.imapPort());
+    outSettings->set_smtpport(tab.smtpPort());
+    outSettings->set_usesslforimap(tab.useSSLForIMAP());
+    outSettings->set_usesslforimap(tab.useSSLForSMTP());
     return Status::OK;
 }
 
@@ -692,43 +672,6 @@ Status GRPCService::Hostname(ServerContext *, Empty const *, StringValue *respon
 {
     app().log().debug(__FUNCTION__);
     response->set_value(app().mainWindow().settingsTab().hostname().toStdString());
-    return Status::OK;
-}
-
-
-//****************************************************************************************************************************************************
-/// \param[out] response The response.
-/// \return The status for the call.
-//****************************************************************************************************************************************************
-Status GRPCService::ImapPort(ServerContext *, Empty const *, Int32Value *response)
-{
-    app().log().debug(__FUNCTION__);
-    response->set_value(app().mainWindow().settingsTab().imapPort());
-    return Status::OK;
-}
-
-
-//****************************************************************************************************************************************************
-/// \param[out] response The response.
-/// \return The status for the call.
-//****************************************************************************************************************************************************
-Status GRPCService::SmtpPort(ServerContext *, Empty const *, Int32Value *response)
-{
-    app().log().debug(__FUNCTION__);
-    response->set_value(app().mainWindow().settingsTab().smtpPort());
-    return Status::OK;
-}
-
-
-//****************************************************************************************************************************************************
-/// \param[in] request The request.
-/// \return The status for the call.
-//****************************************************************************************************************************************************
-Status GRPCService::ChangePorts(ServerContext *, ChangePortsRequest const *request, Empty *)
-{
-    app().log().debug(__FUNCTION__);
-    qtProxy_.changePorts(request->imapport(), request->smtpport());
-    qtProxy_.sendDelayedEvent(newChangePortsFinishedEvent());
     return Status::OK;
 }
 
@@ -947,5 +890,3 @@ bool GRPCService::sendEvent(SPStreamEvent const &event)
         eventQueue_.push_back(event);
     return isStreaming_;
 }
-
-

@@ -77,9 +77,7 @@ public slots:
     void setColorSchemeName(QString const &name); ///< Set the value for the 'Use Dark Theme' check box.
     void setBugReport(QString const &osType, QString const &osVersion, QString const &emailClient, QString const &address, QString const &description,
         bool includeLogs); ///< Set the content of the bug report box.
-    void changePorts(qint32 imapPort, qint32 smtpPort); ///< Change the IMAP and SMTP ports.
-    void setUseSSLForSMTP(bool use); ///< Set the value for the 'Use SSL for SMTP' check box.
-    void setUseSSLForIMAP(bool use); ///< Set the value for the 'Use SSL for IMAP' check box.
+    void setMailServerSettings(qint32 imapPort, qint32 smtpPort, bool useSSLForIMAP, bool useSSLForSMTP); ///< Change the mail server settings.
     void setIsDoHEnabled(bool enabled); ///< Set the value for the 'DoH Enabled' check box.
     void setDiskCachePath(QString const &path); ///< Set the value for the 'Cache On Disk Enabled' check box.
     void setIsAutomaticUpdateOn(bool on); ///< Set the value for the 'Automatic Update' check box.

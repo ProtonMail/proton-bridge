@@ -295,7 +295,7 @@ void UsersTab::logoutUser(QString const &userID)
         app().log().error(QString("%1 failed. unknown user %1").arg(__FUNCTION__, userID));
         return;
     }
-    user->setLoggedIn(false);
+    user->setState(UserState::SignedOut);
     users_.touch(index);
     app().mainWindow().sendDelayedEvent(newUserChangedEvent(userID));
 }

@@ -38,7 +38,7 @@ void addEntryToLogEdit(bridgepp::Log::Level level, const QString &message, QPlai
     QString log = logEdit.toPlainText().trimmed();
     if (!log.isEmpty())
         log += "\n";
-    logEdit.setPlainText(log + Log::logEntryToString(level, message));
+    logEdit.setPlainText(log + Log::logEntryToString(level, QDateTime::currentDateTime(), message));
 }
 
 

@@ -44,9 +44,7 @@ void GRPCQtProxy::connectSignals()
     connect(this, &GRPCQtProxy::reportBugReceived, &settingsTab, &SettingsTab::setBugReport);
     connect(this, &GRPCQtProxy::setIsStreamingReceived, &settingsTab, &SettingsTab::setIsStreaming);
     connect(this, &GRPCQtProxy::setClientPlatformReceived, &settingsTab, &SettingsTab::setClientPlatform);
-    connect(this, &GRPCQtProxy::changePortsReceived, &settingsTab, &SettingsTab::changePorts);
-    connect(this, &GRPCQtProxy::setUseSSLForIMAPReceived, &settingsTab, &SettingsTab::setUseSSLForIMAP);
-    connect(this, &GRPCQtProxy::setUseSSLForSMTPReceived, &settingsTab, &SettingsTab::setUseSSLForSMTP);
+    connect(this, &GRPCQtProxy::setMailServerSettingsReceived, &settingsTab, &SettingsTab::setMailServerSettings);
     connect(this, &GRPCQtProxy::setIsDoHEnabledReceived, &settingsTab, &SettingsTab::setIsDoHEnabled);
     connect(this, &GRPCQtProxy::setDiskCachePathReceived, &settingsTab, &SettingsTab::setDiskCachePath);
     connect(this, &GRPCQtProxy::setIsAutomaticUpdateOnReceived, &settingsTab, &SettingsTab::setIsAutomaticUpdateOn);
@@ -137,30 +135,14 @@ void GRPCQtProxy::setClientPlatform(QString const &clientPlatform)
 
 
 //****************************************************************************************************************************************************
-/// \param[in] imapPort The IMAP port
-/// \param[in] smtpPort The SMTP port
+/// \param[in] imapPort The IMAP port.
+/// \param[in] smtpPort The SMTP port.
+/// \param[in] useSSLForIMAP The IMAP connexion mode.
+/// \param[in] useSSLForSMTP The IMAP connexion mode.
 //****************************************************************************************************************************************************
-void GRPCQtProxy::changePorts(qint32 imapPort, qint32 smtpPort)
+void GRPCQtProxy::setMailServerSettings(qint32 imapPort, qint32 smtpPort, bool useSSLForIMAP, bool userSSLForSMTP)
 {
-    emit changePortsReceived(imapPort, smtpPort);
-}
-
-
-//****************************************************************************************************************************************************
-/// \param[in] use Should SMTP use SSL?
-//****************************************************************************************************************************************************
-void GRPCQtProxy::setUseSSLForIMAP(bool use)
-{
-    emit setUseSSLForIMAPReceived(use);
-}
-
-
-//****************************************************************************************************************************************************
-/// \param[in] use Should SMTP use SSL?
-//****************************************************************************************************************************************************
-void GRPCQtProxy::setUseSSLForSMTP(bool use)
-{
-    emit setUseSSLForSMTPReceived(use);
+    emit setMailServerSettingsReceived(imapPort, smtpPort, useSSLForIMAP, userSSLForSMTP);
 }
 
 

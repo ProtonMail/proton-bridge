@@ -69,6 +69,14 @@ QString serverKeyFilename()
 }
 
 
+} // anonymous namespace
+
+
+//****************************************************************************************************************************************************
+/// return true if gRPC connection should use file socket instead of TCP socket.
+//****************************************************************************************************************************************************
+bool useFileSocketForGRPC() {
+    return !onWindows();
 }
 
 
@@ -275,6 +283,24 @@ void userToGRPC(User const &user, grpc::User &outGRPCUser)
     outGRPCUser.set_setupguideseen(user.setupGuideSeen());
     outGRPCUser.set_usedbytes(qint64(user.usedBytes()));
     outGRPCUser.set_totalbytes(qint64(user.totalBytes()));
+}
+
+
+//****************************************************************************************************************************************************
+/// \return The path to a file that can be used for a gRPC file socket.
+/// \return A null string if no path could be found.
+//****************************************************************************************************************************************************
+QString getAvailableFileSocketPath()
+{
+    QDir const tempDir(QStandardPaths::writableLocation(QStandardPaths::TempLocation));
+    for (qint32 i = 0; i < 10000; i++) {
+        QString const path = tempDir.absoluteFilePath(QString("bridge_%1.sock").arg(qint32(i), 4, 10, QChar('0')));
+        QFile f(path);
+        if ((!f.exists()) || f.remove())
+            return path;
+    }
+
+    return QString();
 }
 
 

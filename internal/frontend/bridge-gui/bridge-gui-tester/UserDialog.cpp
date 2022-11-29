@@ -19,6 +19,9 @@
 #include "UserDialog.h"
 
 
+using namespace bridgepp;
+
+
 //****************************************************************************************************************************************************
 /// \param[in] user The user.
 /// \param[in] parent The parent widget of the dialog.
@@ -37,7 +40,7 @@ UserDialog::UserDialog(bridgepp::SPUser &user, QWidget *parent)
     ui_.editPassword->setText(user->password());
     ui_.editAddresses->setPlainText(user->addresses().join("\n"));
     ui_.editAvatarText->setText(user_->avatarText());
-    ui_.checkLoggedIn->setChecked(user_->loggedIn());
+    ui_.checkLoggedIn->setChecked(user_->state() == UserState::Connected);
     ui_.checkSplitMode->setChecked(user_->splitMode());
     ui_.checkSetupGuideSeen->setChecked(user_->setupGuideSeen());
     ui_.spinUsedBytes->setValue(user->usedBytes());
@@ -55,7 +58,7 @@ void UserDialog::onOK()
     user_->setPassword(ui_.editPassword->text());
     user_->setAddresses(ui_.editAddresses->toPlainText().split(QRegularExpression(R"(\s+)"), Qt::SkipEmptyParts));
     user_->setAvatarText(ui_.editAvatarText->text());
-    user_->setLoggedIn(ui_.checkLoggedIn->isChecked());
+    user_->setState(ui_.checkLoggedIn->isChecked() ? UserState::Connected: UserState::SignedOut);
     user_->setSplitMode(ui_.checkSplitMode->isChecked());
     user_->setSetupGuideSeen(ui_.checkSetupGuideSeen->isChecked());
     user_->setUsedBytes(float(ui_.spinUsedBytes->value()));

@@ -420,8 +420,6 @@ SPStreamEvent newDiskCachePathChangeFinishedEvent()
     return wrapCacheEvent(cacheEvent);
 }
 
-SPStreamEvent newChangeMailServerSettingsFinished(); ///< Create a new ChangeMailServerSettingsFinished event.
-
 //****************************************************************************************************************************************************
 /// \param[in] errorType The error type.
 /// \return The event.
@@ -440,10 +438,10 @@ SPStreamEvent newMailServerSettingsErrorEvent(grpc::MailServerSettingsErrorType 
 /// \param[in] settings The settings.
 /// \return The event.
 //****************************************************************************************************************************************************
-SPStreamEvent newMailServerSettingsChanged(grpc::ImapSmtpSettings *settings)
+SPStreamEvent newMailServerSettingsChanged(grpc::ImapSmtpSettings const &settings)
 {
     auto event = new grpc::MailServerSettingsChangedEvent;
-    event->set_allocated_settings(settings);
+    event->set_allocated_settings(new grpc::ImapSmtpSettings(settings));
     auto mailServerSettingsEvent = new grpc::MailServerSettingsEvent;
     mailServerSettingsEvent->set_allocated_mailserversettingschanged(event);
     return wrapMailServerSettingsEvent(mailServerSettingsEvent);

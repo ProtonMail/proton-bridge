@@ -337,13 +337,16 @@ qint32 SettingsTab::smtpPort()
 //****************************************************************************************************************************************************
 /// \param[in] imapPort The IMAP port.
 /// \param[in] smtpPort The SMTP port.
+/// \param[in] useSSLForIMAP The IMAP connexion mode.
+/// \param[in] useSSLForSMTP The IMAP connexion mode.
 //****************************************************************************************************************************************************
-void SettingsTab::changePorts(qint32 imapPort, qint32 smtpPort)
+void SettingsTab::setMailServerSettings(qint32 imapPort, qint32 smtpPort, bool useSSLForIMAP, bool useSSLForSMTP)
 {
     ui_.spinPortIMAP->setValue(imapPort);
     ui_.spinPortSMTP->setValue(smtpPort);
+    ui_.checkUseSSLForIMAP->setChecked(useSSLForIMAP);
+    ui_.checkUseSSLForSMTP->setChecked(useSSLForSMTP);
 }
-
 
 //****************************************************************************************************************************************************
 /// \return The state of the 'Use SSL for SMTP' check box.
@@ -359,23 +362,6 @@ bool SettingsTab::useSSLForSMTP() const
 bool SettingsTab::useSSLForIMAP() const
 {
     return ui_.checkUseSSLForIMAP->isChecked();
-}
-
-
-//****************************************************************************************************************************************************
-/// \param[in] use The state of the 'Use SSL for SMTP' check box.
-//****************************************************************************************************************************************************
-void SettingsTab::setUseSSLForSMTP(bool use)
-{
-    ui_.checkUseSSLForSMTP->setChecked(use);
-}
-
-//****************************************************************************************************************************************************
-/// \param[in] use The state of the 'Use SSL for SMTP' check box.
-//****************************************************************************************************************************************************
-void SettingsTab::setUseSSLForIMAP(bool use)
-{
-    ui_.checkUseSSLForIMAP->setChecked(use);
 }
 
 
@@ -524,4 +510,3 @@ void SettingsTab::resetUI()
 
     ui_.checkAutomaticUpdate->setChecked(true);
 }
-
