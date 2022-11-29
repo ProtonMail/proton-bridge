@@ -45,7 +45,6 @@ import (
 	"github.com/ProtonMail/proton-bridge/v3/tests"
 	"github.com/bradenaw/juniper/xslices"
 	"github.com/stretchr/testify/require"
-	"go.uber.org/goleak"
 )
 
 var (
@@ -55,10 +54,6 @@ var (
 	v2_3_0 = semver.MustParse("2.3.0")
 	v2_4_0 = semver.MustParse("2.4.0")
 )
-
-func TestMain(m *testing.M) {
-	goleak.VerifyTestMain(m, goleak.IgnoreCurrent())
-}
 
 func init() {
 	user.EventPeriod = 100 * time.Millisecond
@@ -561,9 +556,9 @@ func withBridge(
 		mocks.Reporter,
 
 		// The logging stuff.
-		false,
-		false,
-		false,
+		os.Getenv("BRIDGE_LOG_IMAP_CLIENT") == "1",
+		os.Getenv("BRIDGE_LOG_IMAP_SERVER") == "1",
+		os.Getenv("BRIDGE_LOG_SMTP") == "1",
 	)
 	require.NoError(t, err)
 	require.Empty(t, bridge.GetErrors())

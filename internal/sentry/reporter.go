@@ -138,7 +138,7 @@ func (r *Reporter) scopedReport(context map[string]interface{}, doReport func())
 		scope.SetTags(tags)
 		if len(context) != 0 {
 			scope.SetContexts(
-				map[string]map[string]interface{}{"bridge": context},
+				map[string]sentry.Context{"bridge": contextToString(context)},
 			)
 		}
 		doReport()
@@ -203,4 +203,14 @@ func isFunctionFilteredOut(function string) bool {
 
 func Flush(maxWaiTime time.Duration) {
 	sentry.Flush(maxWaiTime)
+}
+
+func contextToString(context sentry.Context) sentry.Context {
+	res := make(sentry.Context)
+
+	for k, v := range context {
+		res[k] = fmt.Sprintf("%v", v)
+	}
+
+	return res
 }
