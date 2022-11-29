@@ -23,6 +23,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"runtime"
 	"sync"
 	"testing"
 	"time"
@@ -455,11 +456,24 @@ func TestBridge_FactoryReset(t *testing.T) {
 	})
 }
 
-/* // This test will be enabled in a followup patch
+func TestBridge_ChangeCacheDirectoryFailsBetweenDifferentVolumes(t *testing.T) {
+	if runtime.GOOS != "windows" {
+		t.Skip("Test only necessary on windows")
+	}
+	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, vaultKey []byte) {
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, vaultKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+			// Change directory
+			err := bridge.SetGluonDir(ctx, "XX:\\")
+			require.Error(t, err)
+		})
+	})
+}
+
 func TestBridge_ChangeCacheDirectory(t *testing.T) {
 	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, vaultKey []byte) {
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, vaultKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
 			newCacheDir := t.TempDir()
+			currentCacheDir := bridge.GetGluonDir()
 
 			// Login the user.
 			userID, err := bridge.LoginFull(ctx, username, password, nil, nil)
@@ -470,14 +484,16 @@ func TestBridge_ChangeCacheDirectory(t *testing.T) {
 			require.Equal(t, []string{userID}, getConnectedUserIDs(t, bridge))
 
 			// Change directory
-			_ = bridge.SetGluonDir(ctx, newCacheDir)
+			err = bridge.SetGluonDir(ctx, newCacheDir)
+			require.NoError(t, err)
 
-			// The user is still there
-			//require.Equal(t, []string{userID}, bridge.GetUserIDs())
-			//require.Equal(t, []string{userID}, getConnectedUserIDs(t, bridge))
+			_, err = os.ReadDir(currentCacheDir)
+			require.True(t, os.IsNotExist(err))
+
+			require.Equal(t, newCacheDir, bridge.GetGluonDir())
 		})
 	})
-} */
+}
 
 // withEnv creates the full test environment and runs the tests.
 func withEnv(t *testing.T, tests func(context.Context, *server.Server, *proton.NetCtl, bridge.Locator, []byte), opts ...server.Option) {

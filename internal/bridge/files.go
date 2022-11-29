@@ -42,7 +42,7 @@ func moveDir(from, to string) error {
 				return err
 			}
 		} else {
-			if err := move(filepath.Join(from, entry.Name()), filepath.Join(to, entry.Name())); err != nil {
+			if err := moveFile(filepath.Join(from, entry.Name()), filepath.Join(to, entry.Name())); err != nil {
 				return err
 			}
 		}
@@ -51,32 +51,12 @@ func moveDir(from, to string) error {
 	return os.Remove(from)
 }
 
-func move(from, to string) error {
+func moveFile(from, to string) error {
 	if err := os.MkdirAll(filepath.Dir(to), 0o700); err != nil {
 		return err
 	}
 
-	f, err := os.Open(from) // nolint:gosec
-	if err != nil {
-		return err
-	}
-	defer func() { _ = f.Close() }()
-
-	c, err := os.Create(to) // nolint:gosec
-	if err != nil {
-		return err
-	}
-	defer func() { _ = f.Close() }()
-
-	if err := os.Chmod(to, 0o600); err != nil {
-		return err
-	}
-
-	if _, err := c.ReadFrom(f); err != nil {
-		return err
-	}
-
-	if err := os.Remove(from); err != nil {
+	if err := os.Rename(from, to); err != nil {
 		return err
 	}
 

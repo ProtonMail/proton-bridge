@@ -21,6 +21,7 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"path/filepath"
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/ProtonMail/proton-bridge/v3/internal/constants"
@@ -119,8 +120,16 @@ func (bridge *Bridge) GetGluonDir() string {
 
 func (bridge *Bridge) SetGluonDir(ctx context.Context, newGluonDir string) error {
 	return safe.RLockRet(func() error {
-		if newGluonDir == bridge.GetGluonDir() {
+		currentGluonDir := bridge.GetGluonDir()
+		if newGluonDir == currentGluonDir {
 			return fmt.Errorf("new gluon dir is the same as the old one")
+		}
+
+		currentVolumeName := filepath.VolumeName(currentGluonDir)
+		newVolumeName := filepath.VolumeName(newGluonDir)
+
+		if currentVolumeName != newVolumeName {
+			return fmt.Errorf("it's currently not possible to move the cache between different volumes")
 		}
 
 		if err := bridge.closeIMAP(context.Background()); err != nil {
