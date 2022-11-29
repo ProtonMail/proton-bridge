@@ -2,6 +2,25 @@
 
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
+## [Bridge 3.0.2] Perth Narrows
+
+### Changed
+* GODT-2157: Add Sentry to Bridge-Gui
+* GODT-2153: Use file socket for bridge gRPC on linux & macOS.
+* GODT-2150: Do not forward --no-window flag.
+* GODT-2154: Allow noninteractive mode from launcher.
+
+### Fixed
+* Other: Wipe vault properly on factory reset.
+* GODT-2160: Prevent double closing of bridge if restart fails.
+* GODT-2041: Crash after factory reset.
+* GODT-2114: Sanitize attachment disposition.
+* GODT-1910: Fix GUI not being notified of SMTP SSL being turned on by ConfigureAppleMail.
+* GODT-1910: Fix save button state not being updated after being clicked once.
+* GODT-2159: Improve 429 retry.
+* GODT-1989: Handle Move with Append and Expunge.
+
+
 ## [Bridge 3.0.1] Perth Narrows
 
 ### Changed
