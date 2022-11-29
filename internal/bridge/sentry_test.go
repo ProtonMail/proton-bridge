@@ -58,7 +58,7 @@ func TestBridge_Report(t *testing.T) {
 
 			// Sending garbage to the IMAP port should cause the bridge to report it.
 			mocks.Reporter.EXPECT().ReportMessageWithContext(
-				gomock.Eq("Failed to parse imap command"),
+				gomock.Eq("Failed to parse IMAP command"),
 				gomock.Any(),
 			).Return(nil)
 
