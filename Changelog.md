@@ -5,7 +5,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 ## [Bridge 3.0.2] Perth Narrows
 
 ### Changed
-* GODT-2157: Add Sentry to Bridge-Gui
+* GODT-2157: Add Sentry to Bridge-Gui.
 * GODT-2153: Use file socket for bridge gRPC on linux & macOS.
 * GODT-2150: Do not forward --no-window flag.
 * GODT-2154: Allow noninteractive mode from launcher.
