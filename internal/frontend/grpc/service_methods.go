@@ -640,37 +640,41 @@ func (s *Service) SetMailServerSettings(_ context.Context, settings *ImapSmtpSet
 		WithField("UseSSLForSMTP", settings.UseSSLForSmtp).
 		Debug("SetConnectionMode")
 
-	defer func() { _ = s.SendEvent(NewChangeMailServerSettingsFinishedEvent()) }()
+	go func() {
+		defer s.panicHandler.HandlePanic()
 
-	if s.bridge.GetIMAPSSL() != settings.UseSSLForImap {
-		if err := s.bridge.SetIMAPSSL(settings.UseSSLForImap); err != nil {
-			s.log.WithError(err).Error("Failed to set IMAP SSL")
-			_ = s.SendEvent(NewMailServerSettingsErrorEvent(MailServerSettingsErrorType_IMAP_CONNECTION_MODE_CHANGE_ERROR))
+		defer func() { _ = s.SendEvent(NewChangeMailServerSettingsFinishedEvent()) }()
+
+		if s.bridge.GetIMAPSSL() != settings.UseSSLForImap {
+			if err := s.bridge.SetIMAPSSL(settings.UseSSLForImap); err != nil {
+				s.log.WithError(err).Error("Failed to set IMAP SSL")
+				_ = s.SendEvent(NewMailServerSettingsErrorEvent(MailServerSettingsErrorType_IMAP_CONNECTION_MODE_CHANGE_ERROR))
+			}
 		}
-	}
 
-	if s.bridge.GetSMTPSSL() != settings.UseSSLForSmtp {
-		if err := s.bridge.SetSMTPSSL(settings.UseSSLForSmtp); err != nil {
-			s.log.WithError(err).Error("Failed to set SMTP SSL")
-			_ = s.SendEvent(NewMailServerSettingsErrorEvent(MailServerSettingsErrorType_SMTP_CONNECTION_MODE_CHANGE_ERROR))
+		if s.bridge.GetSMTPSSL() != settings.UseSSLForSmtp {
+			if err := s.bridge.SetSMTPSSL(settings.UseSSLForSmtp); err != nil {
+				s.log.WithError(err).Error("Failed to set SMTP SSL")
+				_ = s.SendEvent(NewMailServerSettingsErrorEvent(MailServerSettingsErrorType_SMTP_CONNECTION_MODE_CHANGE_ERROR))
+			}
 		}
-	}
 
-	if s.bridge.GetIMAPPort() != int(settings.ImapPort) {
-		if err := s.bridge.SetIMAPPort(int(settings.ImapPort)); err != nil {
-			s.log.WithError(err).Error("Failed to set IMAP port")
-			_ = s.SendEvent(NewMailServerSettingsErrorEvent(MailServerSettingsErrorType_IMAP_PORT_CHANGE_ERROR))
+		if s.bridge.GetIMAPPort() != int(settings.ImapPort) {
+			if err := s.bridge.SetIMAPPort(int(settings.ImapPort)); err != nil {
+				s.log.WithError(err).Error("Failed to set IMAP port")
+				_ = s.SendEvent(NewMailServerSettingsErrorEvent(MailServerSettingsErrorType_IMAP_PORT_CHANGE_ERROR))
+			}
 		}
-	}
 
-	if s.bridge.GetSMTPPort() != int(settings.SmtpPort) {
-		if err := s.bridge.SetSMTPPort(int(settings.SmtpPort)); err != nil {
-			s.log.WithError(err).Error("Failed to set SMTP port")
-			_ = s.SendEvent(NewMailServerSettingsErrorEvent(MailServerSettingsErrorType_SMTP_PORT_CHANGE_ERROR))
+		if s.bridge.GetSMTPPort() != int(settings.SmtpPort) {
+			if err := s.bridge.SetSMTPPort(int(settings.SmtpPort)); err != nil {
+				s.log.WithError(err).Error("Failed to set SMTP port")
+				_ = s.SendEvent(NewMailServerSettingsErrorEvent(MailServerSettingsErrorType_SMTP_PORT_CHANGE_ERROR))
+			}
 		}
-	}
 
-	_ = s.SendEvent(NewMailServerSettingsChangedEvent(s.getMailServerSettings()))
+		_ = s.SendEvent(NewMailServerSettingsChangedEvent(s.getMailServerSettings()))
+	}()
 
 	return &emptypb.Empty{}, nil
 }
