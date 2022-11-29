@@ -307,9 +307,6 @@ int main(int argc, char *argv[])
         std::cerr << "Failed to initialize sentry" << std::endl;
     }
 
-    reportSentryException(SENTRY_LEVEL_ERROR, "Exception occurred during main", "Exception-Type", "mac os message");
-
-
     auto sentryClose = qScopeGuard([]{sentry_close();});
 
     // The application instance is needed to display system message boxes. As we may have to do it in the exception handler,
