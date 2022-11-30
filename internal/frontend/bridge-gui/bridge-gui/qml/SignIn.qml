@@ -260,7 +260,7 @@ FocusScope {
                 colorScheme: root.colorScheme
                 id: signInButton
                 text: loading ? qsTr("Signing in") : qsTr("Sign in")
-
+                enabled: !loading
                 Layout.fillWidth: true
                 Layout.topMargin: 24
 
@@ -278,7 +278,6 @@ FocusScope {
                     usernameTextField.enabled = false
                     passwordTextField.enabled = false
 
-                    enabled = false
                     loading = true
 
                     Backend.login(usernameTextField.text, Qt.btoa(passwordTextField.text))
@@ -357,7 +356,7 @@ FocusScope {
                 colorScheme: root.colorScheme
                 id: twoFAButton
                 text: loading ? qsTr("Authenticating") : qsTr("Authenticate")
-
+                enabled: !loading
                 Layout.fillWidth: true
                 Layout.topMargin: 24
 
@@ -369,10 +368,7 @@ FocusScope {
                     }
 
                     twoFactorPasswordTextField.enabled = false
-
-                    enabled = false
                     loading = true
-
                     Backend.login2FA(usernameTextField.text, Qt.btoa(twoFactorPasswordTextField.text))
                 }
             }
@@ -425,6 +421,7 @@ FocusScope {
                 colorScheme: root.colorScheme
                 id: secondPasswordButton
                 text: loading ? qsTr("Unlocking") : qsTr("Unlock")
+                enabled: !loading
 
                 Layout.fillWidth: true
                 Layout.topMargin: 24
@@ -437,10 +434,7 @@ FocusScope {
                     }
 
                     secondPasswordTextField.enabled = false
-
-                    enabled = false
                     loading = true
-
                     Backend.login2Password(usernameTextField.text, Qt.btoa(secondPasswordTextField.text))
                 }
             }
