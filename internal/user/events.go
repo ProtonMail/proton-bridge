@@ -29,7 +29,9 @@ import (
 	"github.com/ProtonMail/proton-bridge/v3/internal/logging"
 	"github.com/ProtonMail/proton-bridge/v3/internal/safe"
 	"github.com/ProtonMail/proton-bridge/v3/internal/vault"
+	"github.com/bradenaw/juniper/xslices"
 	"github.com/sirupsen/logrus"
+	"golang.org/x/exp/maps"
 )
 
 // handleAPIEvent handles the given proton.Event.
@@ -305,7 +307,7 @@ func (user *User) handleCreateLabelEvent(_ context.Context, event proton.LabelEv
 
 		user.apiLabels[event.Label.ID] = event.Label
 
-		for _, updateCh := range user.updateCh {
+		for _, updateCh := range xslices.Unique(maps.Values(user.updateCh)) {
 			updateCh.Enqueue(newMailboxCreatedUpdate(imap.MailboxID(event.ID), getMailboxName(event.Label)))
 		}
 
@@ -332,7 +334,7 @@ func (user *User) handleUpdateLabelEvent(_ context.Context, event proton.LabelEv
 
 		user.apiLabels[event.Label.ID] = event.Label
 
-		for _, updateCh := range user.updateCh {
+		for _, updateCh := range xslices.Unique(maps.Values(user.updateCh)) {
 			updateCh.Enqueue(imap.NewMailboxUpdated(
 				imap.MailboxID(event.ID),
 				getMailboxName(event.Label),
@@ -360,7 +362,7 @@ func (user *User) handleDeleteLabelEvent(_ context.Context, event proton.LabelEv
 
 		delete(user.apiLabels, event.ID)
 
-		for _, updateCh := range user.updateCh {
+		for _, updateCh := range xslices.Unique(maps.Values(user.updateCh)) {
 			updateCh.Enqueue(imap.NewMailboxDeleted(imap.MailboxID(event.ID)))
 		}
 
@@ -470,7 +472,7 @@ func (user *User) handleDeleteMessageEvent(ctx context.Context, event proton.Mes
 	return safe.RLockRet(func() error {
 		user.log.WithField("messageID", event.ID).Info("Handling message deleted event")
 
-		for _, updateCh := range user.updateCh {
+		for _, updateCh := range xslices.Unique(maps.Values(user.updateCh)) {
 			updateCh.Enqueue(imap.NewMessagesDeleted(imap.MessageID(event.ID)))
 		}
 

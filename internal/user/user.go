@@ -564,7 +564,7 @@ func (user *User) doEventPoll(ctx context.Context) error {
 
 		// Wait for all events to be applied.
 		safe.RLock(func() {
-			for _, updateCh := range user.updateCh {
+			for _, updateCh := range xslices.Unique(maps.Values(user.updateCh)) {
 				update := imap.NewNoop()
 				defer update.WaitContext(ctx)
 
