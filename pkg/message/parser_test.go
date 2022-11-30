@@ -605,6 +605,16 @@ func TestParseMessageReferencesComma(t *testing.T) {
 	})
 }
 
+func TestParseMessageReplyToWithoutReferences(t *testing.T) {
+	f := getFileReader("reply-to_no_references.eml")
+
+	m, err := Parse(f)
+	require.NoError(t, err)
+
+	assert.ElementsMatch(t, m.References, []string{})
+	assert.Equal(t, m.InReplyTo, "OEUOEUEOUOUOU770B9QNZWFVGM@protonmail.ch")
+}
+
 func TestParseIcsAttachment(t *testing.T) {
 	f := getFileReader("ics_attachment.eml")
 
