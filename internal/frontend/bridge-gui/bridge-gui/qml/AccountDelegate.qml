@@ -155,7 +155,7 @@ Item {
                         property string dots: ""
                         interval: 250;
                         repeat: true;
-                        running: (root.user.state === EUserState.Locked)
+                        running: root.user && (root.user.state === EUserState.Locked)
                         onTriggered: {
                             dots = dots + "."
                             if (dots.length > 3)
