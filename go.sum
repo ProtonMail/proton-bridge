@@ -30,6 +30,8 @@ github.com/ProtonMail/docker-credential-helpers v1.1.0 h1:+kvUIpwWcbtP3WFv5sSvkF
 github.com/ProtonMail/docker-credential-helpers v1.1.0/go.mod h1:mK0aBveCxhnQ756AmaTfXMZDeULvheYVhF/MWMErN5g=
 github.com/ProtonMail/gluon v0.14.2-0.20221206104410-725ddb9db68a h1:BwWVZcvvf9Pw353+wZGD3X433kPFT4SjQVnYKD0YBRY=
 github.com/ProtonMail/gluon v0.14.2-0.20221206104410-725ddb9db68a/go.mod h1:z2AxLIiBCT1K+0OBHyaDI7AEaO5qI6/BEC2TE42vs4Q=
+github.com/ProtonMail/gluon v0.14.2-0.20221207071431-0faa318d3c9f h1:73b28jayIkYr1cJPHSHFMGyFgk1h6iJ127kuYX8UaRo=
+github.com/ProtonMail/gluon v0.14.2-0.20221207071431-0faa318d3c9f/go.mod h1:z2AxLIiBCT1K+0OBHyaDI7AEaO5qI6/BEC2TE42vs4Q=
 github.com/ProtonMail/go-autostart v0.0.0-20210130080809-00ed301c8e9a h1:D+aZah+k14Gn6kmL7eKxoo/4Dr/lK3ChBcwce2+SQP4=
 github.com/ProtonMail/go-autostart v0.0.0-20210130080809-00ed301c8e9a/go.mod h1:oTGdE7/DlWIr23G0IKW3OXK9wZ5Hw1GGiaJFccTvZi4=
 github.com/ProtonMail/go-crypto v0.0.0-20210428141323-04723f9f07d7/go.mod h1:z4/9nQmJSSwwds7ejkxaJwO37dru3geImFUdJlaLzQo=

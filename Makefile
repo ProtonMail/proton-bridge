@@ -21,7 +21,8 @@ SRC_SVG:=bridge.svg
 EXE_NAME:=proton-bridge
 REVISION:=$(shell git rev-parse --short=10 HEAD)
 BUILD_TIME:=$(shell date +%FT%T%z)
-MACOS_MIN_VERSION=11.0
+MACOS_MIN_VERSION_ARM64=11.0
+MACOS_MIN_VERSION_AMD64=10.15
 
 BUILD_FLAGS:=-tags='${BUILD_TAGS}'
 BUILD_FLAGS_LAUNCHER:=${BUILD_FLAGS}
@@ -88,8 +89,8 @@ go-build=go build $(1) -o $(2) $(3)
 go-build-finalize=${go-build}
 ifeq "${GOOS}-$(shell uname -m)" "darwin-arm64"
 	go-build-finalize= \
-		MACOSX_DEPLOYMENT_TARGET=${MACOS_MIN_VERSION} CGO_ENABLED=1 CGO_CFLAGS="-mmacosx-version-min=${MACOS_MIN_VERSION}" GOARCH=arm64 $(call go-build,$(1),$(2)_arm,$(3)) && \
-		MACOSX_DEPLOYMENT_TARGET=${MACOS_MIN_VERSION} CGO_ENABLED=1 CGO_CFLAGS="-mmacosx-version-min=${MACOS_MIN_VERSION}" GOARCH=amd64 $(call go-build,$(1),$(2)_amd,$(3)) && \
+		MACOSX_DEPLOYMENT_TARGET=${MACOS_MIN_VERSION_ARM64} CGO_ENABLED=1 CGO_CFLAGS="-mmacosx-version-min=${MACOS_MIN_VERSION_ARM64}" GOARCH=arm64 $(call go-build,$(1),$(2)_arm,$(3)) && \
+		MACOSX_DEPLOYMENT_TARGET=${MACOS_MIN_VERSION_AMD64} CGO_ENABLED=1 CGO_CFLAGS="-mmacosx-version-min=${MACOS_MIN_VERSION_AMD64}" GOARCH=amd64 $(call go-build,$(1),$(2)_amd,$(3)) && \
 		lipo -create -output $(2) $(2)_arm $(2)_amd && rm -f $(2)_arm $(2)_amd
 endif
 
