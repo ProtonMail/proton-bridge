@@ -108,7 +108,7 @@ void parseCommandLineArguments(int argc, char *argv[], QStringList& args, QStrin
         {
             outNoWindow = true;
         }
-        else if (arg == launcherFlag)
+        if (arg == launcherFlag)
         {
             args.append(arg);
             launcher = QString::fromLocal8Bit(argv[++i]);

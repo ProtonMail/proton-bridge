@@ -77,7 +77,7 @@ func (restarter *Restarter) Restart() {
 	//nolint:gosec
 	cmd := execabs.Command(
 		restarter.exe,
-		xslices.Join(removeFlagWithValue(os.Args[1:], "parent-pid"), restarter.flags)...,
+		xslices.Join(removeFlagWithValue(removeFlag(os.Args[1:], "no-window"), "parent-pid"), restarter.flags)...,
 	)
 
 	l := logrus.WithFields(logrus.Fields{
@@ -155,4 +155,8 @@ func removeFlagWithValue(argList []string, flag string) []string {
 	}
 
 	return result
+}
+
+func removeFlag(argList []string, flag string) []string {
+	return xslices.Filter(argList, func(arg string) bool { return (arg != "-"+flag) && (arg != "--"+flag) })
 }

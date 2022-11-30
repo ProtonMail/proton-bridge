@@ -41,3 +41,20 @@ func TestRemoveFlagWithValue(t *testing.T) {
 		require.Equal(t, removeFlagWithValue(tt.argList, tt.flag), tt.expected)
 	}
 }
+
+func TestRemoveFlag(t *testing.T) {
+	tests := []struct {
+		argList  []string
+		flag     string
+		expected []string
+	}{
+		{[]string{}, "b", []string{}},
+		{[]string{"-a", "-b", "-c"}, "b", []string{"-a", "-c"}},
+		{[]string{"-a", "--b", "-b"}, "b", []string{"-a"}},
+		{[]string{"-a", "-c"}, "b", []string{"-a", "-c"}},
+	}
+
+	for _, tt := range tests {
+		require.Equal(t, removeFlag(tt.argList, tt.flag), tt.expected)
+	}
+}
