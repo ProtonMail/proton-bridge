@@ -373,6 +373,48 @@
         </widget>
        </item>
        <item>
+        <widget class="QGroupBox" name="groupCache_2">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="title">
+          <string>TLS Certficates</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_9">
+          <item>
+           <widget class="QLabel" name="labeLastTLSCertsExport">
+            <property name="text">
+             <string>Last Export: Never</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="checkTLSCertExportWillSucceed">
+            <property name="text">
+             <string>TLS certificate export will succeed</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="checkTLSKeyExportWillSucceed">
+            <property name="text">
+             <string>TLS private key export will succeed</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
         <spacer name="verticalSpacer_2">
          <property name="orientation">
           <enum>Qt::Vertical</enum>

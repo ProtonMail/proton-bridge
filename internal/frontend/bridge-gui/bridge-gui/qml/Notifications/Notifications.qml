@@ -1106,7 +1106,7 @@ QtObject {
         description: "#PlaceholderText#"
         icon: "./icons/ic-exclamation-circle-filled.svg"
         type: Notification.NotificationType.Danger
-        group: Notification.Groups.Connection
+        group: Notifications.Group.Dialogs
             Connections {
               target: Backend
                  function onGenericError(title, description) {

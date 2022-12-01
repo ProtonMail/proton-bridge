@@ -42,6 +42,7 @@ void GRPCQtProxy::connectSignals()
     connect(this, &GRPCQtProxy::setIsAllMailVisibleReceived, &settingsTab, &SettingsTab::setIsAllMailVisible);
     connect(this, &GRPCQtProxy::setColorSchemeNameReceived, &settingsTab, &SettingsTab::setColorSchemeName);
     connect(this, &GRPCQtProxy::reportBugReceived, &settingsTab, &SettingsTab::setBugReport);
+    connect(this, &GRPCQtProxy::exportTLSCertificatesReceived, &settingsTab, &SettingsTab::exportTLSCertificates);
     connect(this, &GRPCQtProxy::setIsStreamingReceived, &settingsTab, &SettingsTab::setIsStreaming);
     connect(this, &GRPCQtProxy::setClientPlatformReceived, &settingsTab, &SettingsTab::setClientPlatform);
     connect(this, &GRPCQtProxy::setMailServerSettingsReceived, &settingsTab, &SettingsTab::setMailServerSettings);
@@ -113,6 +114,15 @@ void GRPCQtProxy::reportBug(QString const &osType, QString const &osVersion, QSt
     QString const &description, bool includeLogs)
 {
     emit reportBugReceived(osType, osVersion, emailClient, address, description, includeLogs);
+}
+
+
+//****************************************************************************************************************************************************
+/// \param[in] folderPath The folder path.
+//****************************************************************************************************************************************************
+void GRPCQtProxy::exportTLSCertificates(QString const &folderPath)
+{
+    emit exportTLSCertificatesReceived(folderPath);
 }
 
 

@@ -299,11 +299,40 @@ void SettingsTab::setBugReport(QString const &osType, QString const &osVersion, 
 
 
 //****************************************************************************************************************************************************
+/// \param[in] folderPath The folder path.
+//****************************************************************************************************************************************************
+void SettingsTab::exportTLSCertificates(QString const &folderPath)
+{
+    ui_.labeLastTLSCertsExport->setText(QString("%1 Export to %2")
+        .arg(QDateTime::currentDateTime().toString(Qt::ISODateWithMs))
+        .arg(folderPath));
+}
+
+
+//****************************************************************************************************************************************************
 /// \return The state of the check box.
 //****************************************************************************************************************************************************
 bool SettingsTab::nextBugReportWillSucceed() const
 {
     return ui_.checkNextBugReportWillSucceed->isChecked();
+}
+
+
+//****************************************************************************************************************************************************
+/// \return true if the 'Next TLS key export will succeed' check box is checked
+//****************************************************************************************************************************************************
+bool SettingsTab::nextTLSCertExportWillSucceed() const
+{
+    return ui_.checkTLSCertExportWillSucceed->isChecked();
+}
+
+
+//****************************************************************************************************************************************************
+/// \return true if the 'Next TLS key export will succeed' check box is checked
+//****************************************************************************************************************************************************
+bool SettingsTab::nextTLSKeyExportWillSucceed() const
+{
+    return ui_.checkTLSKeyExportWillSucceed->isChecked();
 }
 
 

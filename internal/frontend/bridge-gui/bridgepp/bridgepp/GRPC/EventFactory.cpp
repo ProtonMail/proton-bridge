@@ -132,6 +132,18 @@ bridgepp::SPStreamEvent wrapUserEvent(grpc::UserEvent *userEvent)
 }
 
 
+//****************************************************************************************************************************************************
+/// \param[in] genericErrorEvent The generic error event.
+/// \return The stream event.
+//****************************************************************************************************************************************************
+bridgepp::SPStreamEvent wrapGenericErrorEvent(grpc::GenericErrorEvent *genericErrorEvent)
+{
+    auto event = newStreamEvent();
+    event->set_allocated_genericerror(genericErrorEvent);
+    return event;
+}
+
+
 } // namespace
 
 //****************************************************************************************************************************************************
@@ -589,6 +601,18 @@ SPStreamEvent newUserChangedEvent(QString const &userID)
     auto userEvent = new grpc::UserEvent;
     userEvent->set_allocated_userchanged(event);
     return wrapUserEvent(userEvent);
+}
+
+
+//****************************************************************************************************************************************************
+/// \param[in] errorCode The error errorCode.
+/// \return The event.
+//****************************************************************************************************************************************************
+SPStreamEvent newGenericErrorEvent(grpc::ErrorCode errorCode)
+{
+    auto event = new grpc::GenericErrorEvent;
+    event->set_code(errorCode);
+    return wrapGenericErrorEvent(event);
 }
 
 

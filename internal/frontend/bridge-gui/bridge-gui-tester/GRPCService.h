@@ -66,6 +66,7 @@ public: // member functions.
     grpc::Status ColorSchemeName(::grpc::ServerContext *, ::google::protobuf::Empty const*, ::google::protobuf::StringValue *response) override;
     grpc::Status CurrentEmailClient(::grpc::ServerContext *, ::google::protobuf::Empty const*, ::google::protobuf::StringValue *response) override;
     grpc::Status ReportBug(::grpc::ServerContext *, ::grpc::ReportBugRequest const *request, ::google::protobuf::Empty *) override;
+    grpc::Status ExportTLSCertificates(::grpc::ServerContext *context, ::google::protobuf::StringValue const *request, ::google::protobuf::Empty *response) override;
     grpc::Status ForceLauncher(::grpc::ServerContext *, ::google::protobuf::StringValue const *request, ::google::protobuf::Empty *) override;
     grpc::Status SetMainExecutable(::grpc::ServerContext *, ::google::protobuf::StringValue const *request, ::google::protobuf::Empty *) override;
     grpc::Status Login(::grpc::ServerContext *, ::grpc::LoginRequest const *request, ::google::protobuf::Empty *) override;

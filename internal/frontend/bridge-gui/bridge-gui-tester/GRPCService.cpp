@@ -405,6 +405,21 @@ Status GRPCService::ReportBug(ServerContext *, ReportBugRequest const *request, 
 
 
 //****************************************************************************************************************************************************
+/// \param[in] request The request
+//****************************************************************************************************************************************************
+Status GRPCService::ExportTLSCertificates(ServerContext *, StringValue const *request, Empty *response)
+{
+    SettingsTab &tab = app().mainWindow().settingsTab();
+    if (!tab.nextTLSCertExportWillSucceed())
+        qtProxy_.sendDelayedEvent(newGenericErrorEvent(grpc::TLS_CERT_EXPORT_ERROR));
+    if (!tab.nextTLSKeyExportWillSucceed())
+        qtProxy_.sendDelayedEvent(newGenericErrorEvent(grpc::TLS_KEY_EXPORT_ERROR));
+    qtProxy_.exportTLSCertificates(QString::fromStdString(request->value()));
+    return Status::OK;
+}
+
+
+//****************************************************************************************************************************************************
 /// \param[in] request The request.
 /// \return The status for the call.
 //****************************************************************************************************************************************************
