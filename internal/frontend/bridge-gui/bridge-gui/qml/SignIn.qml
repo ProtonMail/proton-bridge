@@ -208,6 +208,7 @@ FocusScope {
                 focus: true
                 Layout.fillWidth: true
                 Layout.topMargin: 24
+                validateOnEditingFinished: false
 
                 onTextChanged: {
                     // remove "invalid username / password error"
@@ -232,10 +233,10 @@ FocusScope {
                 colorScheme: root.colorScheme
                 id: passwordTextField
                 label: qsTr("Password")
-
                 Layout.fillWidth: true
                 Layout.topMargin: 8
                 echoMode: TextInput.Password
+                validateOnEditingFinished: false
 
                 onTextChanged: {
                     // remove "invalid username / password error"
@@ -335,7 +336,7 @@ FocusScope {
                 id: twoFactorPasswordTextField
                 label: qsTr("Two-factor code")
                 assistiveText: qsTr("Enter the 6-digit code")
-
+                validateOnEditingFinished: false
                 Layout.fillWidth: true
                 Layout.topMargin: 32
 
@@ -400,10 +401,10 @@ FocusScope {
                 colorScheme: root.colorScheme
                 id: secondPasswordTextField
                 label: qsTr("Mailbox password")
-
                 Layout.fillWidth: true
                 Layout.topMargin: 8 + implicitHeight + 24 + subTitle.implicitHeight
                 echoMode: TextInput.Password
+                validateOnEditingFinished: false
 
                 validator: function(str) {
                     if (str.length === 0) {
