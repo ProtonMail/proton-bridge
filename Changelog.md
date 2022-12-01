@@ -2,6 +2,11 @@
 
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
+## [Bridge 3.0.3] Perth Narrows
+
+### Fixed
+* GPA v0.1.4: fix token expiration mechanism.
+
 ## [Bridge 3.0.2] Perth Narrows
 
 ### Changed
