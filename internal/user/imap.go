@@ -18,6 +18,7 @@
 package user
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"sync/atomic"
@@ -31,6 +32,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/v3/internal/safe"
 	"github.com/ProtonMail/proton-bridge/v3/internal/vault"
 	"github.com/ProtonMail/proton-bridge/v3/pkg/message"
+	"github.com/ProtonMail/proton-bridge/v3/pkg/message/parser"
 	"github.com/bradenaw/juniper/stream"
 	"github.com/bradenaw/juniper/xslices"
 	"golang.org/x/exp/slices"
@@ -437,20 +439,37 @@ func (conn *imapConnector) importMessage(
 
 	if err := safe.RLockRet(func() error {
 		return withAddrKR(conn.apiUser, conn.apiAddrs[conn.addrID], conn.vault.KeyPass(), func(_, addrKR *crypto.KeyRing) error {
-			res, err := stream.Collect(ctx, conn.client.ImportMessages(ctx, addrKR, 1, 1, []proton.ImportReq{{
-				Metadata: proton.ImportMetadata{
-					AddressID: conn.addrID,
-					LabelIDs:  labelIDs,
-					Unread:    proton.Bool(unread),
-					Flags:     flags,
-				},
-				Message: literal,
-			}}...))
-			if err != nil {
-				return fmt.Errorf("failed to import message: %w", err)
+			messageID := ""
+
+			if slices.Contains(labelIDs, proton.DraftsLabel) {
+				msg, err := conn.createDraft(ctx, literal, addrKR)
+				if err != nil {
+					return fmt.Errorf("failed to create draft: %w", err)
+				}
+
+				// apply labels
+
+				messageID = msg.ID
+			} else {
+				res, err := stream.Collect(ctx, conn.client.ImportMessages(ctx, addrKR, 1, 1, []proton.ImportReq{{
+					Metadata: proton.ImportMetadata{
+						AddressID: conn.addrID,
+						LabelIDs:  labelIDs,
+						Unread:    proton.Bool(unread),
+						Flags:     flags,
+					},
+					Message: literal,
+				}}...))
+				if err != nil {
+					return fmt.Errorf("failed to import message: %w", err)
+				}
+
+				messageID = res[0].MessageID
 			}
 
-			if full, err = conn.client.GetFullMessage(ctx, res[0].MessageID); err != nil {
+			var err error
+
+			if full, err = conn.client.GetFullMessage(ctx, messageID); err != nil {
 				return fmt.Errorf("failed to fetch message: %w", err)
 			}
 
@@ -495,6 +514,73 @@ func toIMAPMessage(message proton.MessageMetadata) imap.Message {
 		Flags: flags,
 		Date:  date,
 	}
+}
+
+func (conn *imapConnector) createDraft(ctx context.Context, literal []byte, addrKR *crypto.KeyRing) (proton.Message, error) {
+	// Create a new message parser from the reader.
+	parser, err := parser.New(bytes.NewReader(literal))
+	if err != nil {
+		return proton.Message{}, fmt.Errorf("failed to create parser: %w", err)
+	}
+
+	message, err := message.ParseWithParser(parser)
+	if err != nil {
+		return proton.Message{}, fmt.Errorf("failed to parse message: %w", err)
+	}
+
+	decBody := string(message.PlainBody)
+	if message.RichBody != "" {
+		decBody = string(message.RichBody)
+	}
+
+	encBody, err := addrKR.Encrypt(crypto.NewPlainMessageFromString(decBody), nil)
+	if err != nil {
+		return proton.Message{}, fmt.Errorf("failed to encrypt message body: %w", err)
+	}
+
+	armBody, err := encBody.GetArmored()
+	if err != nil {
+		return proton.Message{}, fmt.Errorf("failed to get armored message body: %w", err)
+	}
+
+	draft, err := conn.client.CreateDraft(ctx, proton.CreateDraftReq{
+		Message: proton.DraftTemplate{
+			Subject:  message.Subject,
+			Body:     armBody,
+			MIMEType: message.MIMEType,
+
+			Sender:  message.Sender,
+			ToList:  message.ToList,
+			CCList:  message.CCList,
+			BCCList: message.BCCList,
+
+			ExternalID: message.ExternalID,
+		},
+	})
+
+	if err != nil {
+		return proton.Message{}, fmt.Errorf("failed to create draft: %w", err)
+	}
+
+	for _, att := range message.Attachments {
+		disposition := proton.AttachmentDisposition
+		if att.Disposition == "inline" && att.ContentID != "" {
+			disposition = proton.InlineDisposition
+		}
+
+		if _, err := conn.client.UploadAttachment(ctx, addrKR, proton.CreateAttachmentReq{
+			MessageID:   draft.ID,
+			Filename:    att.Name,
+			MIMEType:    rfc822.MIMEType(att.MIMEType),
+			Disposition: disposition,
+			ContentID:   att.ContentID,
+			Body:        att.Data,
+		}); err != nil {
+			return proton.Message{}, fmt.Errorf("failed to add attachment to draft: %w", err)
+		}
+	}
+
+	return draft, nil
 }
 
 func toIMAPMailbox(label proton.Label, flags, permFlags, attrs imap.FlagSet) imap.Mailbox {
