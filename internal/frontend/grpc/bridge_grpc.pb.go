@@ -8,7 +8,6 @@ package grpc
 
 import (
 	context "context"
-
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -52,6 +51,7 @@ type BridgeClient interface {
 	ColorSchemeName(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*wrapperspb.StringValue, error)
 	CurrentEmailClient(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*wrapperspb.StringValue, error)
 	ReportBug(ctx context.Context, in *ReportBugRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	ExportTLSCertificates(ctx context.Context, in *wrapperspb.StringValue, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	ForceLauncher(ctx context.Context, in *wrapperspb.StringValue, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	SetMainExecutable(ctx context.Context, in *wrapperspb.StringValue, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	// login
@@ -326,6 +326,15 @@ func (c *bridgeClient) CurrentEmailClient(ctx context.Context, in *emptypb.Empty
 func (c *bridgeClient) ReportBug(ctx context.Context, in *ReportBugRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	out := new(emptypb.Empty)
 	err := c.cc.Invoke(ctx, "/grpc.Bridge/ReportBug", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *bridgeClient) ExportTLSCertificates(ctx context.Context, in *wrapperspb.StringValue, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/grpc.Bridge/ExportTLSCertificates", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -647,6 +656,7 @@ type BridgeServer interface {
 	ColorSchemeName(context.Context, *emptypb.Empty) (*wrapperspb.StringValue, error)
 	CurrentEmailClient(context.Context, *emptypb.Empty) (*wrapperspb.StringValue, error)
 	ReportBug(context.Context, *ReportBugRequest) (*emptypb.Empty, error)
+	ExportTLSCertificates(context.Context, *wrapperspb.StringValue) (*emptypb.Empty, error)
 	ForceLauncher(context.Context, *wrapperspb.StringValue) (*emptypb.Empty, error)
 	SetMainExecutable(context.Context, *wrapperspb.StringValue) (*emptypb.Empty, error)
 	// login
@@ -767,6 +777,9 @@ func (UnimplementedBridgeServer) CurrentEmailClient(context.Context, *emptypb.Em
 }
 func (UnimplementedBridgeServer) ReportBug(context.Context, *ReportBugRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ReportBug not implemented")
+}
+func (UnimplementedBridgeServer) ExportTLSCertificates(context.Context, *wrapperspb.StringValue) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ExportTLSCertificates not implemented")
 }
 func (UnimplementedBridgeServer) ForceLauncher(context.Context, *wrapperspb.StringValue) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ForceLauncher not implemented")
@@ -1332,6 +1345,24 @@ func _Bridge_ReportBug_Handler(srv interface{}, ctx context.Context, dec func(in
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(BridgeServer).ReportBug(ctx, req.(*ReportBugRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Bridge_ExportTLSCertificates_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(wrapperspb.StringValue)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BridgeServer).ExportTLSCertificates(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/grpc.Bridge/ExportTLSCertificates",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BridgeServer).ExportTLSCertificates(ctx, req.(*wrapperspb.StringValue))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1971,6 +2002,10 @@ var Bridge_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ReportBug",
 			Handler:    _Bridge_ReportBug_Handler,
+		},
+		{
+			MethodName: "ExportTLSCertificates",
+			Handler:    _Bridge_ExportTLSCertificates_Handler,
 		},
 		{
 			MethodName: "ForceLauncher",

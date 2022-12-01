@@ -128,4 +128,9 @@ Item {
         colorScheme: root.colorScheme
         notification: root.notifications.noActiveKeyForRecipient
     }
+
+    NotificationDialog {
+        colorScheme: root.colorScheme
+        notification: root.notifications.genericError
+    }
 }

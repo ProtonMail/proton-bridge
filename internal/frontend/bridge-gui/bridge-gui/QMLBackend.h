@@ -171,12 +171,14 @@ public slots: // slot for signals received from QML -> To be forwarded to Bridge
     void triggerReset();
     void reportBug(QString const &description, QString const& address, QString const &emailClient, bool includeLogs) {
         app().grpc().reportBug(description, address, emailClient, includeLogs); }
+    void exportTLSCertificates();
     void onResetFinished();
     void onVersionChanged();
     void setMailServerSettings(int imapPort, int smtpPort, bool useSSLForIMAP, bool useSSLForSMTP); ///< Forwards a connection mode change request from QML to gRPC
 
 public slots: // slot for signals received from gRPC that need transformation instead of simple forwarding
     void onMailServerSettingsChanged(int imapPort, int smtpPort, bool useSSLForIMAP, bool useSSLForSMTP); ///< Slot for the ConnectionModeChanged gRPC event.
+    void onGenericError(bridgepp::ErrorInfo const& info); ///< Slot for generic errors received from the gRPC service.
 
 signals: // Signals received from the Go backend, to be forwarded to QML
     void toggleAutostartFinished();
@@ -227,6 +229,7 @@ signals: // Signals received from the Go backend, to be forwarded to QML
     void bugReportSendError();
     void showMainWindow();
     void hideMainWindow();
+    void genericError(QString const& title, QString const& description);
 
 private: // member functions
     void retrieveUserList(); ///< Retrieve the list of users via gRPC.

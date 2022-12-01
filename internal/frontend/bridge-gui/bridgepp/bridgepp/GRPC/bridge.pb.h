@@ -91,6 +91,9 @@ extern DiskCachePathChangedEventDefaultTypeInternal _DiskCachePathChangedEvent_d
 class EventStreamRequest;
 struct EventStreamRequestDefaultTypeInternal;
 extern EventStreamRequestDefaultTypeInternal _EventStreamRequest_default_instance_;
+class GenericErrorEvent;
+struct GenericErrorEventDefaultTypeInternal;
+extern GenericErrorEventDefaultTypeInternal _GenericErrorEvent_default_instance_;
 class HasNoKeychainEvent;
 struct HasNoKeychainEventDefaultTypeInternal;
 extern HasNoKeychainEventDefaultTypeInternal _HasNoKeychainEvent_default_instance_;
@@ -230,6 +233,7 @@ template<> ::grpc::DiskCacheEvent* Arena::CreateMaybeMessage<::grpc::DiskCacheEv
 template<> ::grpc::DiskCachePathChangeFinishedEvent* Arena::CreateMaybeMessage<::grpc::DiskCachePathChangeFinishedEvent>(Arena*);
 template<> ::grpc::DiskCachePathChangedEvent* Arena::CreateMaybeMessage<::grpc::DiskCachePathChangedEvent>(Arena*);
 template<> ::grpc::EventStreamRequest* Arena::CreateMaybeMessage<::grpc::EventStreamRequest>(Arena*);
+template<> ::grpc::GenericErrorEvent* Arena::CreateMaybeMessage<::grpc::GenericErrorEvent>(Arena*);
 template<> ::grpc::HasNoKeychainEvent* Arena::CreateMaybeMessage<::grpc::HasNoKeychainEvent>(Arena*);
 template<> ::grpc::ImapSmtpSettings* Arena::CreateMaybeMessage<::grpc::ImapSmtpSettings>(Arena*);
 template<> ::grpc::InternetStatusEvent* Arena::CreateMaybeMessage<::grpc::InternetStatusEvent>(Arena*);
@@ -440,6 +444,32 @@ inline bool MailServerSettingsErrorType_Parse(
     ::PROTOBUF_NAMESPACE_ID::ConstStringParam name, MailServerSettingsErrorType* value) {
   return ::PROTOBUF_NAMESPACE_ID::internal::ParseNamedEnum<MailServerSettingsErrorType>(
     MailServerSettingsErrorType_descriptor(), name, value);
+}
+enum ErrorCode : int {
+  UNKNOWN_ERROR = 0,
+  TLS_CERT_EXPORT_ERROR = 1,
+  TLS_KEY_EXPORT_ERROR = 2,
+  ErrorCode_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::min(),
+  ErrorCode_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::max()
+};
+bool ErrorCode_IsValid(int value);
+constexpr ErrorCode ErrorCode_MIN = UNKNOWN_ERROR;
+constexpr ErrorCode ErrorCode_MAX = TLS_KEY_EXPORT_ERROR;
+constexpr int ErrorCode_ARRAYSIZE = ErrorCode_MAX + 1;
+
+const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* ErrorCode_descriptor();
+template<typename T>
+inline const std::string& ErrorCode_Name(T enum_t_value) {
+  static_assert(::std::is_same<T, ErrorCode>::value ||
+    ::std::is_integral<T>::value,
+    "Incorrect type passed to function ErrorCode_Name.");
+  return ::PROTOBUF_NAMESPACE_ID::internal::NameOfEnum(
+    ErrorCode_descriptor(), enum_t_value);
+}
+inline bool ErrorCode_Parse(
+    ::PROTOBUF_NAMESPACE_ID::ConstStringParam name, ErrorCode* value) {
+  return ::PROTOBUF_NAMESPACE_ID::internal::ParseNamedEnum<ErrorCode>(
+    ErrorCode_descriptor(), name, value);
 }
 // ===================================================================
 
@@ -2494,6 +2524,7 @@ class StreamEvent final :
     kKeychain = 6,
     kMail = 7,
     kUser = 8,
+    kGenericError = 9,
     EVENT_NOT_SET = 0,
   };
 
@@ -2583,6 +2614,7 @@ class StreamEvent final :
     kKeychainFieldNumber = 6,
     kMailFieldNumber = 7,
     kUserFieldNumber = 8,
+    kGenericErrorFieldNumber = 9,
   };
   // .grpc.AppEvent app = 1;
   bool has_app() const;
@@ -2728,6 +2760,24 @@ class StreamEvent final :
       ::grpc::UserEvent* user);
   ::grpc::UserEvent* unsafe_arena_release_user();
 
+  // .grpc.GenericErrorEvent genericError = 9;
+  bool has_genericerror() const;
+  private:
+  bool _internal_has_genericerror() const;
+  public:
+  void clear_genericerror();
+  const ::grpc::GenericErrorEvent& genericerror() const;
+  PROTOBUF_NODISCARD ::grpc::GenericErrorEvent* release_genericerror();
+  ::grpc::GenericErrorEvent* mutable_genericerror();
+  void set_allocated_genericerror(::grpc::GenericErrorEvent* genericerror);
+  private:
+  const ::grpc::GenericErrorEvent& _internal_genericerror() const;
+  ::grpc::GenericErrorEvent* _internal_mutable_genericerror();
+  public:
+  void unsafe_arena_set_allocated_genericerror(
+      ::grpc::GenericErrorEvent* genericerror);
+  ::grpc::GenericErrorEvent* unsafe_arena_release_genericerror();
+
   void clear_event();
   EventCase event_case() const;
   // @@protoc_insertion_point(class_scope:grpc.StreamEvent)
@@ -2741,6 +2791,7 @@ class StreamEvent final :
   void set_has_keychain();
   void set_has_mail();
   void set_has_user();
+  void set_has_genericerror();
 
   inline bool has_event() const;
   inline void clear_has_event();
@@ -2760,6 +2811,7 @@ class StreamEvent final :
       ::grpc::KeychainEvent* keychain_;
       ::grpc::MailEvent* mail_;
       ::grpc::UserEvent* user_;
+      ::grpc::GenericErrorEvent* genericerror_;
     } event_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
     uint32_t _oneof_case_[1];
@@ -9496,6 +9548,154 @@ class UserChangedEvent final :
   union { Impl_ _impl_; };
   friend struct ::TableStruct_bridge_2eproto;
 };
+// -------------------------------------------------------------------
+
+class GenericErrorEvent final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:grpc.GenericErrorEvent) */ {
+ public:
+  inline GenericErrorEvent() : GenericErrorEvent(nullptr) {}
+  ~GenericErrorEvent() override;
+  explicit PROTOBUF_CONSTEXPR GenericErrorEvent(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  GenericErrorEvent(const GenericErrorEvent& from);
+  GenericErrorEvent(GenericErrorEvent&& from) noexcept
+    : GenericErrorEvent() {
+    *this = ::std::move(from);
+  }
+
+  inline GenericErrorEvent& operator=(const GenericErrorEvent& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline GenericErrorEvent& operator=(GenericErrorEvent&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const GenericErrorEvent& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const GenericErrorEvent* internal_default_instance() {
+    return reinterpret_cast<const GenericErrorEvent*>(
+               &_GenericErrorEvent_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    55;
+
+  friend void swap(GenericErrorEvent& a, GenericErrorEvent& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(GenericErrorEvent* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(GenericErrorEvent* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  GenericErrorEvent* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<GenericErrorEvent>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const GenericErrorEvent& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const GenericErrorEvent& from) {
+    GenericErrorEvent::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(GenericErrorEvent* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "grpc.GenericErrorEvent";
+  }
+  protected:
+  explicit GenericErrorEvent(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kCodeFieldNumber = 1,
+  };
+  // .grpc.ErrorCode code = 1;
+  void clear_code();
+  ::grpc::ErrorCode code() const;
+  void set_code(::grpc::ErrorCode value);
+  private:
+  ::grpc::ErrorCode _internal_code() const;
+  void _internal_set_code(::grpc::ErrorCode value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:grpc.GenericErrorEvent)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    int code_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_bridge_2eproto;
+};
 // ===================================================================
 
 
@@ -11470,6 +11670,80 @@ inline ::grpc::UserEvent* StreamEvent::_internal_mutable_user() {
 inline ::grpc::UserEvent* StreamEvent::mutable_user() {
   ::grpc::UserEvent* _msg = _internal_mutable_user();
   // @@protoc_insertion_point(field_mutable:grpc.StreamEvent.user)
+  return _msg;
+}
+
+// .grpc.GenericErrorEvent genericError = 9;
+inline bool StreamEvent::_internal_has_genericerror() const {
+  return event_case() == kGenericError;
+}
+inline bool StreamEvent::has_genericerror() const {
+  return _internal_has_genericerror();
+}
+inline void StreamEvent::set_has_genericerror() {
+  _impl_._oneof_case_[0] = kGenericError;
+}
+inline void StreamEvent::clear_genericerror() {
+  if (_internal_has_genericerror()) {
+    if (GetArenaForAllocation() == nullptr) {
+      delete _impl_.event_.genericerror_;
+    }
+    clear_has_event();
+  }
+}
+inline ::grpc::GenericErrorEvent* StreamEvent::release_genericerror() {
+  // @@protoc_insertion_point(field_release:grpc.StreamEvent.genericError)
+  if (_internal_has_genericerror()) {
+    clear_has_event();
+    ::grpc::GenericErrorEvent* temp = _impl_.event_.genericerror_;
+    if (GetArenaForAllocation() != nullptr) {
+      temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+    }
+    _impl_.event_.genericerror_ = nullptr;
+    return temp;
+  } else {
+    return nullptr;
+  }
+}
+inline const ::grpc::GenericErrorEvent& StreamEvent::_internal_genericerror() const {
+  return _internal_has_genericerror()
+      ? *_impl_.event_.genericerror_
+      : reinterpret_cast< ::grpc::GenericErrorEvent&>(::grpc::_GenericErrorEvent_default_instance_);
+}
+inline const ::grpc::GenericErrorEvent& StreamEvent::genericerror() const {
+  // @@protoc_insertion_point(field_get:grpc.StreamEvent.genericError)
+  return _internal_genericerror();
+}
+inline ::grpc::GenericErrorEvent* StreamEvent::unsafe_arena_release_genericerror() {
+  // @@protoc_insertion_point(field_unsafe_arena_release:grpc.StreamEvent.genericError)
+  if (_internal_has_genericerror()) {
+    clear_has_event();
+    ::grpc::GenericErrorEvent* temp = _impl_.event_.genericerror_;
+    _impl_.event_.genericerror_ = nullptr;
+    return temp;
+  } else {
+    return nullptr;
+  }
+}
+inline void StreamEvent::unsafe_arena_set_allocated_genericerror(::grpc::GenericErrorEvent* genericerror) {
+  clear_event();
+  if (genericerror) {
+    set_has_genericerror();
+    _impl_.event_.genericerror_ = genericerror;
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:grpc.StreamEvent.genericError)
+}
+inline ::grpc::GenericErrorEvent* StreamEvent::_internal_mutable_genericerror() {
+  if (!_internal_has_genericerror()) {
+    clear_event();
+    set_has_genericerror();
+    _impl_.event_.genericerror_ = CreateMaybeMessage< ::grpc::GenericErrorEvent >(GetArenaForAllocation());
+  }
+  return _impl_.event_.genericerror_;
+}
+inline ::grpc::GenericErrorEvent* StreamEvent::mutable_genericerror() {
+  ::grpc::GenericErrorEvent* _msg = _internal_mutable_genericerror();
+  // @@protoc_insertion_point(field_mutable:grpc.StreamEvent.genericError)
   return _msg;
 }
 
@@ -15180,9 +15454,35 @@ inline void UserChangedEvent::set_allocated_userid(std::string* userid) {
   // @@protoc_insertion_point(field_set_allocated:grpc.UserChangedEvent.userID)
 }
 
+// -------------------------------------------------------------------
+
+// GenericErrorEvent
+
+// .grpc.ErrorCode code = 1;
+inline void GenericErrorEvent::clear_code() {
+  _impl_.code_ = 0;
+}
+inline ::grpc::ErrorCode GenericErrorEvent::_internal_code() const {
+  return static_cast< ::grpc::ErrorCode >(_impl_.code_);
+}
+inline ::grpc::ErrorCode GenericErrorEvent::code() const {
+  // @@protoc_insertion_point(field_get:grpc.GenericErrorEvent.code)
+  return _internal_code();
+}
+inline void GenericErrorEvent::_internal_set_code(::grpc::ErrorCode value) {
+  
+  _impl_.code_ = value;
+}
+inline void GenericErrorEvent::set_code(::grpc::ErrorCode value) {
+  _internal_set_code(value);
+  // @@protoc_insertion_point(field_set:grpc.GenericErrorEvent.code)
+}
+
 #ifdef __GNUC__
   #pragma GCC diagnostic pop
 #endif  // __GNUC__
+// -------------------------------------------------------------------
+
 // -------------------------------------------------------------------
 
 // -------------------------------------------------------------------
@@ -15327,6 +15627,11 @@ template <> struct is_proto_enum< ::grpc::MailServerSettingsErrorType> : ::std::
 template <>
 inline const EnumDescriptor* GetEnumDescriptor< ::grpc::MailServerSettingsErrorType>() {
   return ::grpc::MailServerSettingsErrorType_descriptor();
+}
+template <> struct is_proto_enum< ::grpc::ErrorCode> : ::std::true_type {};
+template <>
+inline const EnumDescriptor* GetEnumDescriptor< ::grpc::ErrorCode>() {
+  return ::grpc::ErrorCode_descriptor();
 }
 
 PROTOBUF_NAMESPACE_CLOSE

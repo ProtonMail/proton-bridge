@@ -56,6 +56,7 @@ service Bridge {
   rpc ColorSchemeName(google.protobuf.Empty) returns (google.protobuf.StringValue); // TODO Color scheme should probably entirely be managed by the client.
   rpc CurrentEmailClient(google.protobuf.Empty) returns (google.protobuf.StringValue);
   rpc ReportBug(ReportBugRequest) returns (google.protobuf.Empty);
+  rpc ExportTLSCertificates(google.protobuf.StringValue) returns (google.protobuf.Empty);
   rpc ForceLauncher(google.protobuf.StringValue) returns (google.protobuf.Empty);
   rpc SetMainExecutable(google.protobuf.StringValue) returns (google.protobuf.Empty);
 
@@ -223,6 +224,7 @@ message StreamEvent {
     KeychainEvent keychain = 6;
     MailEvent mail = 7;
     UserEvent user = 8;
+    GenericErrorEvent genericError = 9;
   }
 }
 
@@ -453,3 +455,15 @@ message UserChangedEvent {
   string userID = 1;
 }
 
+//**********************************************************
+// Generic errors
+//**********************************************************
+enum ErrorCode {
+  UNKNOWN_ERROR = 0;
+  TLS_CERT_EXPORT_ERROR = 1;
+  TLS_KEY_EXPORT_ERROR = 2;
+}
+
+message GenericErrorEvent {
+  ErrorCode code = 1;
+}

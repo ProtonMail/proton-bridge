@@ -173,6 +173,10 @@ func NewUserChangedEvent(userID string) *StreamEvent {
 	return userEvent(&UserEvent{Event: &UserEvent_UserChanged{UserChanged: &UserChangedEvent{UserID: userID}}})
 }
 
+func NewGenericErrorEvent(errorCode ErrorCode) *StreamEvent {
+	return genericErrorEvent(&GenericErrorEvent{Code: errorCode})
+}
+
 // Event category factory functions.
 
 func appEvent(appEvent *AppEvent) *StreamEvent {
@@ -205,4 +209,8 @@ func mailEvent(event *MailEvent) *StreamEvent {
 
 func userEvent(event *UserEvent) *StreamEvent {
 	return &StreamEvent{Event: &StreamEvent_User{User: event}}
+}
+
+func genericErrorEvent(event *GenericErrorEvent) *StreamEvent {
+	return &StreamEvent{Event: &StreamEvent_GenericError{GenericError: event}}
 }

@@ -23,6 +23,7 @@
 #include "../User/User.h"
 #include "../Log/Log.h"
 #include "GRPCConfig.h"
+#include "GRPCErrors.h"
 #include "bridge.grpc.pb.h"
 #include "grpc++/grpc++.h"
 
@@ -76,6 +77,7 @@ public: // member functions.
     grpc::Status setColorSchemeName(QString const &name); ///< Performs the "setColorSchemeName' gRPC call.
     grpc::Status currentEmailClient(QString &outName); ///< Performs the 'currentEmailClient' gRPC call.
     grpc::Status reportBug(QString const &description, QString const &address, QString const &emailClient, bool includeLogs); ///< Performs the 'ReportBug' gRPC call.
+    grpc::Status exportTLSCertificates(QString const &folderPath); ///< Performs the 'ExportTLSCertificates' gRPC call.
     grpc::Status quit(); ///< Perform the "Quit" gRPC call.
     grpc::Status restart(); ///< Performs the Restart gRPC call.
     grpc::Status triggerReset(); ///< Performs the triggerReset gRPC call.
@@ -198,6 +200,9 @@ signals: // mail related events
     void addressChangedLogout(QString const &address);
     void apiCertIssue();
 
+signals: // errors events
+    void genericError(ErrorInfo info);
+
 public:
     bool isEventStreamActive() const; ///< Check if the event stream is active.
     grpc::Status runEventStreamReader(); ///< Retrieve and signal the events in the event stream.
@@ -231,6 +236,7 @@ private:
     void processKeychainEvent(grpc::KeychainEvent const &event); ///< Process a 'Keychain' event.
     void processMailEvent(grpc::MailEvent const &event); ///< Process a 'Mail' event.
     void processUserEvent(grpc::UserEvent const &event); ///< Process a 'User' event.
+    void processGenericErrorEvent(grpc::GenericErrorEvent const &event); ///< Process an 'GenericError' event.
     UPClientContext clientContext() const; ///< Returns a client context with the server token set in metadata.
 
 private: // data members.

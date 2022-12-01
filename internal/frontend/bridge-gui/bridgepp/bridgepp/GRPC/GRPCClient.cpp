@@ -18,6 +18,7 @@
 
 #include "GRPCClient.h"
 #include "GRPCUtils.h"
+#include "GRPCErrors.h"
 #include "../BridgeUtils.h"
 #include "../Exception/Exception.h"
 #include "../ProcessMonitor.h"
@@ -343,6 +344,15 @@ grpc::Status GRPCClient::reportBug(QString const &description, QString const &ad
     request.set_emailclient(emailClient.toStdString());
     request.set_includelogs(includeLogs);
     return this->logGRPCCallStatus(stub_->ReportBug(this->clientContext().get(), request, &empty), __FUNCTION__);
+}
+
+
+//****************************************************************************************************************************************************
+/// \param[in] folderPath of the folder where the TLS files should be stored.
+//****************************************************************************************************************************************************
+grpc::Status GRPCClient::exportTLSCertificates(QString const &folderPath)
+{
+    return this->logGRPCCallStatus(this->setString(&Bridge::Stub::ExportTLSCertificates, folderPath), __FUNCTION__);
 }
 
 
@@ -858,6 +868,9 @@ grpc::Status GRPCClient::runEventStreamReader()
             break;
         case grpc::StreamEvent::kUser:
             this->processUserEvent(event.user());
+            break;
+        case grpc::StreamEvent::kGenericError:
+            this->processGenericErrorEvent(event.genericerror());
             break;
         default:
             this->logDebug(QString("Unknown stream event type: %1").arg(event.event_case()));
@@ -1455,6 +1468,17 @@ void GRPCClient::processUserEvent(UserEvent const &event)
     default:
         this->logError("Unknown User event received.");
     }
+}
+
+
+//****************************************************************************************************************************************************
+//
+//****************************************************************************************************************************************************
+void GRPCClient::processGenericErrorEvent(GenericErrorEvent const &event)
+{
+    ErrorCode const code = event.code();
+    this->logTrace(QString("Error event received (code = %1).").arg(qint32(code)));
+    emit genericError(errorInfo(code));
 }
 
 

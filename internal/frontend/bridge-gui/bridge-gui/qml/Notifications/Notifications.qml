@@ -79,7 +79,8 @@ QtObject {
         root.rebuildKeychain,
         root.addressChanged,
         root.apiCertIssue,
-        root.noActiveKeyForRecipient
+        root.noActiveKeyForRecipient,
+        root.genericError
     ]
 
     // Connection
@@ -368,7 +369,7 @@ QtObject {
     }
 
     property Notification updateForceError: Notification {
-        title: qsTr("Bridge coudn’t update")
+        title: qsTr("Bridge couldn't update")
         description: qsTr("You must update manually. Go to: https://proton.me/mail/bridge#download")
         brief: title
         icon: "./icons/ic-exclamation-circle-filled.svg"
@@ -428,7 +429,7 @@ QtObject {
     }
 
     property Notification updateSilentError: Notification {
-        description: qsTr("Bridge couldn’t update")
+        description: qsTr("Bridge couldn't update")
         brief: description
         icon: "./icons/ic-exclamation-circle-filled.svg"
         type: Notification.NotificationType.Warning
@@ -1095,6 +1096,32 @@ QtObject {
 
                 onTriggered: {
                     root.noActiveKeyForRecipient.active = false
+                }
+            }
+        ]
+    }
+
+    property Notification genericError: Notification {
+        title: "#PlaceholderText#"
+        description: "#PlaceholderText#"
+        icon: "./icons/ic-exclamation-circle-filled.svg"
+        type: Notification.NotificationType.Danger
+        group: Notification.Groups.Connection
+            Connections {
+              target: Backend
+                 function onGenericError(title, description) {
+                  root.genericError.title = title
+                  root.genericError.description = description
+                  root.genericError.active = true;
+              }
+            }
+
+        action: [
+            Action {
+                text: qsTr("OK")
+
+                onTriggered: {
+                    root.genericError.active = false
                 }
             }
         ]

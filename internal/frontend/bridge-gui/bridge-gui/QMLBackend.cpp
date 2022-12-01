@@ -166,6 +166,9 @@ void QMLBackend::connectGrpcEvents()
     connect(client, &GRPCClient::addressChangedLogout, this, &QMLBackend::addressChangedLogout);
     connect(client, &GRPCClient::apiCertIssue, this, &QMLBackend::apiCertIssue);
 
+    // generic error events
+    connect(client, &GRPCClient::genericError, this, &QMLBackend::onGenericError);
+
     // user events
     connect(client, &GRPCClient::userDisconnected, this, &QMLBackend::userDisconnected);
     users_->connectGRPCEvents();
@@ -440,6 +443,15 @@ void QMLBackend::onMailServerSettingsChanged(int imapPort, int smtpPort, bool us
 
 
 //****************************************************************************************************************************************************
+//
+//****************************************************************************************************************************************************
+void QMLBackend::onGenericError(ErrorInfo const &info)
+{
+    emit genericError(info.title, info.description);
+}
+
+
+//****************************************************************************************************************************************************
 /// \param[in] active Should DoH be active.
 //****************************************************************************************************************************************************
 void QMLBackend::toggleDoH(bool active)
@@ -513,4 +525,16 @@ void QMLBackend::onVersionChanged()
 {
     emit releaseNotesLinkChanged(releaseNotesLink());
     emit landingPageLinkChanged(landingPageLink());
+}
+
+
+//****************************************************************************************************************************************************
+//
+//****************************************************************************************************************************************************
+void QMLBackend::exportTLSCertificates()
+{
+    QString const folderPath = QFileDialog::getExistingDirectory(nullptr, QObject::tr("Select directory"),
+        QStandardPaths::writableLocation(QStandardPaths::HomeLocation));
+    if (!folderPath.isEmpty())
+        app().grpc().exportTLSCertificates(folderPath);
 }

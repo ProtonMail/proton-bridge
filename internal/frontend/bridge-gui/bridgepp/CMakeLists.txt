@@ -138,6 +138,7 @@ add_library(bridgepp
     bridgepp/BridgeUtils.cpp bridgepp/BridgeUtils.h
     bridgepp/Exception/Exception.h bridgepp/Exception/Exception.cpp
     bridgepp/GRPC/GRPCClient.cpp bridgepp/GRPC/GRPCClient.h
+    bridgepp/GRPC/GRPCErrors.h bridgepp/GRPC/GRPCErrors.cpp
     bridgepp/GRPC/EventFactory.cpp bridgepp/GRPC/EventFactory.h
     bridgepp/GRPC/GRPCConfig.cpp bridgepp/GRPC/GRPCConfig.h
     bridgepp/GRPC/GRPCUtils.cpp bridgepp/GRPC/GRPCUtils.h

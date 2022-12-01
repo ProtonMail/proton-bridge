@@ -209,6 +209,21 @@ SettingsView {
     }
 
     SettingsItem {
+        id: exportTLSCertificates
+        visible: root._isAdvancedShown
+        colorScheme: root.colorScheme
+        text: qsTr("Export TLS certificates")
+        actionText: qsTr("Export")
+        description: qsTr("Export the TLS private key and certificate used by the IMAP and SMTP servers.")
+        type: SettingsItem.Button
+        onClicked: {
+            Backend.exportTLSCertificates()
+        }
+        Layout.fillWidth: true
+
+    }
+
+    SettingsItem {
         id: reset
         visible: root._isAdvancedShown
         colorScheme: root.colorScheme
