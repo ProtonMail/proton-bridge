@@ -516,7 +516,7 @@ func toIMAPMessage(message proton.MessageMetadata) imap.Message {
 	}
 }
 
-func (conn *imapConnector) createDraft(ctx context.Context, literal []byte, addrKR *crypto.KeyRing) (proton.Message, error) {
+func (conn *imapConnector) createDraft(ctx context.Context, literal []byte, addrKR *crypto.KeyRing) (proton.Message, error) { //nolint:funlen
 	// Create a new message parser from the reader.
 	parser, err := parser.New(bytes.NewReader(literal))
 	if err != nil {

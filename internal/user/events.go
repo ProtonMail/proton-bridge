@@ -389,6 +389,18 @@ func (user *User) handleMessageEvents(ctx context.Context, messageEvents []proto
 			}
 
 		case proton.EventUpdate, proton.EventUpdateFlags:
+			// Draft update means to completely remove old message and upload the new data again.
+			if event.Message.IsDraft() {
+				if err := user.handleUpdateDraftEvent(
+					logging.WithLogrusField(ctx, "action", "update draft"),
+					event,
+				); err != nil {
+					return fmt.Errorf("failed to handle update draft event: %w", err)
+				}
+
+				return nil
+			}
+
 			// GODT-2028 - Use better events here. It should be possible to have 3 separate events that refrain to
 			// whether the flags, labels or read only data (header+body) has been changed. This requires fixing proton
 			// first so that it correctly reports those cases.
@@ -398,16 +410,6 @@ func (user *User) handleMessageEvents(ctx context.Context, messageEvents []proto
 				event,
 			); err != nil {
 				return fmt.Errorf("failed to handle update message event: %w", err)
-			}
-
-			// Only issue body updates if the message is a draft.
-			if event.Message.IsDraft() {
-				if err := user.handleUpdateDraftEvent(
-					logging.WithLogrusField(ctx, "action", "update draft"),
-					event,
-				); err != nil {
-					return fmt.Errorf("failed to handle update draft event: %w", err)
-				}
 			}
 
 		case proton.EventDelete:
@@ -485,6 +487,10 @@ func (user *User) handleUpdateDraftEvent(ctx context.Context, event proton.Messa
 			"subject":   logging.Sensitive(event.Message.Subject),
 		}).Info("Handling draft updated event")
 
+		for _, updateCh := range user.updateCh {
+			updateCh.Enqueue(imap.NewMessagesDeleted(imap.MessageID(event.ID)))
+		}
+
 		full, err := user.client.GetFullMessage(ctx, event.Message.ID)
 		if err != nil {
 			return fmt.Errorf("failed to get full draft: %w", err)
@@ -496,12 +502,7 @@ func (user *User) handleUpdateDraftEvent(ctx context.Context, event proton.Messa
 				return fmt.Errorf("failed to build RFC822 draft: %w", err)
 			}
 
-			user.updateCh[full.AddressID].Enqueue(imap.NewMessageUpdated(
-				buildRes.update.Message,
-				buildRes.update.Literal,
-				buildRes.update.MailboxIDs,
-				buildRes.update.ParsedMessage,
-			))
+			user.updateCh[full.AddressID].Enqueue(imap.NewMessagesCreated(buildRes.update))
 
 			return nil
 		})
