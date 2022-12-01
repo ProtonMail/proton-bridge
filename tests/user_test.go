@@ -238,7 +238,7 @@ func (s *scenario) addressDraftChanged(draftIndex int, address, username string,
 
 	draftID := s.t.getDraftID(username, draftIndex)
 
-	encBody := []byte{}
+	encBody := ""
 
 	if wantMessages[0].Body != "" {
 		ctx, cancel := context.WithCancel(context.Background())
@@ -247,8 +247,12 @@ func (s *scenario) addressDraftChanged(draftIndex int, address, username string,
 		if err := s.t.withClient(ctx, username, func(ctx context.Context, c *proton.Client) error {
 			return s.t.withAddrKR(ctx, c, username, s.t.getUserAddrID(s.t.getUserID(username), address),
 				func(ctx context.Context, addrKR *crypto.KeyRing) error {
-					var err error
-					encBody, err = proton.EncryptRFC822(addrKR, wantMessages[0].Build())
+					msg, err := addrKR.Encrypt(crypto.NewPlainMessage([]byte(wantMessages[0].Body)), addrKR)
+					if err != nil {
+						return err
+					}
+
+					encBody, err = msg.GetArmored()
 					return err
 				})
 		}); err != nil {
@@ -258,7 +262,7 @@ func (s *scenario) addressDraftChanged(draftIndex int, address, username string,
 
 	changes := proton.DraftTemplate{
 		Subject: wantMessages[0].Subject,
-		Body:    string(encBody),
+		Body:    encBody,
 	}
 	if wantMessages[0].To != "" {
 		changes.ToList = []*mail.Address{{Address: wantMessages[0].To}}

@@ -21,6 +21,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"net/mail"
 	"sync/atomic"
 	"time"
 
@@ -442,7 +443,7 @@ func (conn *imapConnector) importMessage(
 			messageID := ""
 
 			if slices.Contains(labelIDs, proton.DraftsLabel) {
-				msg, err := conn.createDraft(ctx, literal, addrKR)
+				msg, err := conn.createDraft(ctx, literal, addrKR, conn.apiAddrs[conn.addrID])
 				if err != nil {
 					return fmt.Errorf("failed to create draft: %w", err)
 				}
@@ -516,7 +517,7 @@ func toIMAPMessage(message proton.MessageMetadata) imap.Message {
 	}
 }
 
-func (conn *imapConnector) createDraft(ctx context.Context, literal []byte, addrKR *crypto.KeyRing) (proton.Message, error) { //nolint:funlen
+func (conn *imapConnector) createDraft(ctx context.Context, literal []byte, addrKR *crypto.KeyRing, sender proton.Address) (proton.Message, error) { //nolint:funlen
 	// Create a new message parser from the reader.
 	parser, err := parser.New(bytes.NewReader(literal))
 	if err != nil {
@@ -549,7 +550,7 @@ func (conn *imapConnector) createDraft(ctx context.Context, literal []byte, addr
 			Body:     armBody,
 			MIMEType: message.MIMEType,
 
-			Sender:  message.Sender,
+			Sender:  &mail.Address{Name: sender.DisplayName, Address: sender.Email},
 			ToList:  message.ToList,
 			CCList:  message.CCList,
 			BCCList: message.BCCList,

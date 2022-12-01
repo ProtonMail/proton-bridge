@@ -11,6 +11,10 @@ Feature: IMAP Draft messages
 
       This is a dra
       """
+    Then IMAP client "1" eventually sees the following messages in "Drafts":
+      | body          |
+      | This is a dra |
+    And IMAP client "1" sees 1 messages in "Drafts"
 
   Scenario: Draft edited locally
     When IMAP client "1" marks message 1 as deleted

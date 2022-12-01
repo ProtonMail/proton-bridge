@@ -487,10 +487,6 @@ func (user *User) handleUpdateDraftEvent(ctx context.Context, event proton.Messa
 			"subject":   logging.Sensitive(event.Message.Subject),
 		}).Info("Handling draft updated event")
 
-		for _, updateCh := range user.updateCh {
-			updateCh.Enqueue(imap.NewMessagesDeleted(imap.MessageID(event.ID)))
-		}
-
 		full, err := user.client.GetFullMessage(ctx, event.Message.ID)
 		if err != nil {
 			return fmt.Errorf("failed to get full draft: %w", err)
@@ -502,7 +498,12 @@ func (user *User) handleUpdateDraftEvent(ctx context.Context, event proton.Messa
 				return fmt.Errorf("failed to build RFC822 draft: %w", err)
 			}
 
-			user.updateCh[full.AddressID].Enqueue(imap.NewMessagesCreated(buildRes.update))
+			user.updateCh[full.AddressID].Enqueue(imap.NewMessageUpdated(
+				buildRes.update.Message,
+				buildRes.update.Literal,
+				buildRes.update.MailboxIDs,
+				buildRes.update.ParsedMessage,
+			))
 
 			return nil
 		})
