@@ -377,7 +377,9 @@ func (s *scenario) imapClientSeesThatMessageHasTheFlag(clientID string, seq int,
 func (s *scenario) imapClientExpunges(clientID string) error {
 	_, client := s.t.getIMAPClient(clientID)
 
-	return client.Expunge(nil)
+	s.t.pushError(client.Expunge(nil))
+
+	return nil
 }
 
 func (s *scenario) imapClientAppendsTheFollowingMessageToMailbox(clientID string, mailbox string, docString *godog.DocString) error {

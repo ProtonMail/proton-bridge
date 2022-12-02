@@ -19,6 +19,7 @@ Feature: IMAP Draft messages
   Scenario: Draft edited locally
     When IMAP client "1" marks message 1 as deleted
     And IMAP client "1" expunges
+    And it succeeds
     And IMAP client "1" appends the following message to "Drafts":
       """
       Subject: Basic Draft

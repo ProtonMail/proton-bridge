@@ -16,12 +16,14 @@ Feature: IMAP remove messages from mailbox
     And IMAP client "1" marks message 2 as deleted
     Then IMAP client "1" sees that message 2 has the flag "\Deleted"
     When IMAP client "1" expunges
+    And it succeeds
     Then IMAP client "1" sees 9 messages in "Folders/mbox"
 
   Scenario: Mark all messages as deleted and EXPUNGE
     When IMAP client "1" selects "Folders/mbox"
     And IMAP client "1" marks all messages as deleted
     And IMAP client "1" expunges
+    And it succeeds
     Then IMAP client "1" sees 0 messages in "Folders/mbox"
 
   Scenario: Mark messages as undeleted and EXPUNGE
@@ -30,11 +32,11 @@ Feature: IMAP remove messages from mailbox
     But IMAP client "1" marks message 2 as not deleted
     And IMAP client "1" marks message 3 as not deleted
     When IMAP client "1" expunges
+    And it succeeds
     Then IMAP client "1" sees 2 messages in "Folders/mbox"
 
-# TODO(GODT-1989): Re-enable!
-# Scenario: Not possible to delete from All Mail and expunge does nothing
-#   When IMAP client "1" selects "All Mail"
-#   And IMAP client "1" marks message 2 as deleted
-#   And IMAP client "1" expunges
-#   Then IMAP client "1" eventually sees 10 messages in "All Mail"
+ Scenario: Not possible to delete from All Mail and expunge does nothing
+   When IMAP client "1" selects "All Mail"
+   And IMAP client "1" marks message 2 as deleted
+   And IMAP client "1" expunges
+   Then it fails
