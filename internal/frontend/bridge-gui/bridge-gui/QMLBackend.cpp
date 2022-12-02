@@ -126,12 +126,8 @@ void QMLBackend::connectGrpcEvents()
     connect(client, &GRPCClient::login2PasswordRequested, this, &QMLBackend::login2PasswordRequested);
     connect(client, &GRPCClient::login2PasswordError, this, &QMLBackend::login2PasswordError);
     connect(client, &GRPCClient::login2PasswordErrorAbort, this, &QMLBackend::login2PasswordErrorAbort);
-    connect(client, &GRPCClient::loginFinished, this, [&](QString const &userID) {
-        this->retrieveUserList();
-        qint32 const index = users_->rowOfUserID(userID); emit loginFinished(index); });
-    connect(client, &GRPCClient::loginAlreadyLoggedIn, this, [&](QString const &userID) {
-        this->retrieveUserList();
-        qint32 const index = users_->rowOfUserID(userID); emit loginAlreadyLoggedIn(index); });
+    connect(client, &GRPCClient::loginFinished, this, &QMLBackend::onLoginFinished);
+    connect(client, &GRPCClient::loginAlreadyLoggedIn, this, &QMLBackend::onLoginAlreadyLoggedIn);
 
     // update events
     connect(client, &GRPCClient::updateManualError, this, &QMLBackend::updateManualError);
@@ -428,6 +424,28 @@ void QMLBackend::setMailServerSettings(int imapPort, int smtpPort, bool useSSLFo
     app().grpc().setMailServerSettings(imapPort, smtpPort, useSSLForIMAP, useSSLForSMTP);
 }
 
+
+//****************************************************************************************************************************************************
+/// \param[in] userID the userID.
+/// \param[in] wasSignedOut Was the user signed-out.
+//****************************************************************************************************************************************************
+void QMLBackend::onLoginFinished(QString const &userID, bool wasSignedOut)
+{
+    this->retrieveUserList();
+    qint32 const index = users_->rowOfUserID(userID);
+    emit loginFinished(index, wasSignedOut);
+}
+
+
+//****************************************************************************************************************************************************
+/// \param[in] userID the userID.
+//****************************************************************************************************************************************************
+void QMLBackend::onLoginAlreadyLoggedIn(QString const &userID)
+{
+    this->retrieveUserList();
+    qint32 const index = users_->rowOfUserID(userID);
+    emit loginAlreadyLoggedIn(index);
+}
 
 //****************************************************************************************************************************************************
 /// \param[in] useSSLForIMAP The value for the 'Use SSL for IMAP' property

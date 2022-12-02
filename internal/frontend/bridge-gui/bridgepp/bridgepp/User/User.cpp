@@ -54,7 +54,6 @@ void User::update(User const &user)
     this->setAvatarText(user.avatarText());
     this->setState(user.state());
     this->setSplitMode(user.splitMode());
-    this->setSetupGuideSeen(user.setupGuideSeen());
     this->setUsedBytes(user.usedBytes());
     this->setTotalBytes(user.totalBytes());
 }
@@ -257,28 +256,6 @@ void User::setSplitMode(bool splitMode)
 
     splitMode_ = splitMode;
     emit splitModeChanged(splitMode_);
-}
-
-
-//****************************************************************************************************************************************************
-/// \return The 'Setup Guide Seen' status.
-//****************************************************************************************************************************************************
-bool User::setupGuideSeen() const
-{
-    return setupGuideSeen_;
-}
-
-
-//****************************************************************************************************************************************************
-/// \param[in] setupGuideSeen The 'Setup Guide Seen' status.
-//****************************************************************************************************************************************************
-void User::setSetupGuideSeen(bool setupGuideSeen)
-{
-    if (setupGuideSeen == setupGuideSeen_)
-        return;
-
-    setupGuideSeen_ = setupGuideSeen;
-    emit setupGuideSeenChanged(setupGuideSeen_);
 }
 
 

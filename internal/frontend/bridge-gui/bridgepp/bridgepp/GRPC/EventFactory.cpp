@@ -277,12 +277,14 @@ SPStreamEvent newLoginTwoPasswordsRequestedEvent()
 
 //****************************************************************************************************************************************************
 /// \param[in] userID The userID.
+/// \param[in] wasSignedOut Was the user signed-out.
 /// \return The event.
 //****************************************************************************************************************************************************
-SPStreamEvent newLoginFinishedEvent(QString const &userID)
+SPStreamEvent newLoginFinishedEvent(QString const &userID, bool wasSignedOut)
 {
     auto event = new ::grpc::LoginFinishedEvent;
     event->set_userid(userID.toStdString());
+    event->set_wassignedout(wasSignedOut);
     auto loginEvent = new grpc::LoginEvent;
     loginEvent->set_allocated_finished(event);
     return wrapLoginEvent(loginEvent);

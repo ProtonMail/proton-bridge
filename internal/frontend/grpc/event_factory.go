@@ -57,8 +57,8 @@ func NewLoginTwoPasswordsRequestedEvent() *StreamEvent {
 	return loginEvent(&LoginEvent{Event: &LoginEvent_TwoPasswordRequested{}})
 }
 
-func NewLoginFinishedEvent(userID string) *StreamEvent {
-	return loginEvent(&LoginEvent{Event: &LoginEvent_Finished{Finished: &LoginFinishedEvent{UserID: userID}}})
+func NewLoginFinishedEvent(userID string, wasSignedOut bool) *StreamEvent {
+	return loginEvent(&LoginEvent{Event: &LoginEvent_Finished{Finished: &LoginFinishedEvent{UserID: userID, WasSignedOut: wasSignedOut}}})
 }
 
 func NewLoginAlreadyLoggedInEvent(userID string) *StreamEvent {

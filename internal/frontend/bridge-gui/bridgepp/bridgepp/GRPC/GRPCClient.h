@@ -149,7 +149,7 @@ signals:
     void login2PasswordRequested();
     void login2PasswordError(QString const &errMsg);
     void login2PasswordErrorAbort(QString const &errMsg);
-    void loginFinished(QString const &userID);
+    void loginFinished(QString const &userID, bool wasSignedOut);
     void loginAlreadyLoggedIn(QString const &userID);
 
 public: // Update related calls

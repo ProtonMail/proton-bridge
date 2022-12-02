@@ -61,16 +61,15 @@ func getInitials(fullName string) string {
 // grpcUserFromInfo converts a bridge user to a gRPC user.
 func grpcUserFromInfo(user bridge.UserInfo) *User {
 	return &User{
-		Id:             user.UserID,
-		Username:       user.Username,
-		AvatarText:     getInitials(user.Username),
-		State:          userStateToGrpc(user.State),
-		SplitMode:      user.AddressMode == vault.SplitMode,
-		SetupGuideSeen: true, // users listed have already seen the setup guide.
-		UsedBytes:      int64(user.UsedSpace),
-		TotalBytes:     int64(user.MaxSpace),
-		Password:       user.BridgePass,
-		Addresses:      user.Addresses,
+		Id:         user.UserID,
+		Username:   user.Username,
+		AvatarText: getInitials(user.Username),
+		State:      userStateToGrpc(user.State),
+		SplitMode:  user.AddressMode == vault.SplitMode,
+		UsedBytes:  int64(user.UsedSpace),
+		TotalBytes: int64(user.MaxSpace),
+		Password:   user.BridgePass,
+		Addresses:  user.Addresses,
 	}
 }
 

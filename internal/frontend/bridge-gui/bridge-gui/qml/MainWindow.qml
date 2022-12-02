@@ -86,7 +86,11 @@ ApplicationWindow {
             root.showAndRise()
         }
 
-        function onLoginFinished(index) {
+        function onLoginFinished(index, wasSignedOut) {
+            var user = Backend.users.get(index)
+            if (user && !wasSignedOut) {
+                root.showSetup(user, user.addresses[0])
+            }
             console.debug("Login finished", index)
         }
     }

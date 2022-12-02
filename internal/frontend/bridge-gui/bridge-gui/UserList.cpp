@@ -100,7 +100,6 @@ void UserList::reset(QList<SPUser> const &users)
 //****************************************************************************************************************************************************
 void UserList::appendUser(SPUser const &user)
 {
-    user->setSetupGuideSeen(false);
     int const size = users_.size();
     this->beginInsertRows(QModelIndex(), size, size);
     users_.append(user);

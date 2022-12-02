@@ -390,6 +390,8 @@ func (s *Service) loginClean() {
 func (s *Service) finishLogin() {
 	defer s.loginClean()
 
+	wasSignedOut := s.bridge.HasUser(s.auth.UserID)
+
 	if len(s.password) == 0 || s.auth.UID == "" || s.authClient == nil {
 		s.log.
 			WithField("hasPass", len(s.password) != 0).
@@ -415,7 +417,7 @@ func (s *Service) finishLogin() {
 
 	s.log.WithField("userID", userID).Debug("Login finished")
 
-	_ = s.SendEvent(NewLoginFinishedEvent(userID))
+	_ = s.SendEvent(NewLoginFinishedEvent(userID, wasSignedOut))
 }
 
 func (s *Service) waitForUserChangeDone(eventCh <-chan events.Event, userID string) {

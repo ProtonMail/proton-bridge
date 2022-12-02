@@ -98,7 +98,6 @@ public:
     Q_PROPERTY(QString avatarText READ avatarText WRITE setAvatarText NOTIFY avatarTextChanged)
     Q_PROPERTY(UserState state READ state WRITE setState NOTIFY stateChanged)
     Q_PROPERTY(bool splitMode READ splitMode WRITE setSplitMode NOTIFY splitModeChanged)
-    Q_PROPERTY(bool setupGuideSeen READ setupGuideSeen WRITE setSetupGuideSeen NOTIFY setupGuideSeenChanged)
     Q_PROPERTY(float usedBytes READ usedBytes WRITE setUsedBytes NOTIFY usedBytesChanged)
     Q_PROPERTY(float totalBytes READ totalBytes WRITE setTotalBytes NOTIFY totalBytesChanged)
 
@@ -116,8 +115,6 @@ public:
     void setState(UserState state);
     bool splitMode() const;
     void setSplitMode(bool splitMode);
-    bool setupGuideSeen() const;
-    void setSetupGuideSeen(bool setupGuideSeen);
     float usedBytes() const;
     void setUsedBytes(float usedBytes);
     float totalBytes() const;
@@ -133,7 +130,6 @@ signals:
     void loggedInChanged(bool loggedIn);
     void stateChanged(UserState state);
     void splitModeChanged(bool splitMode);
-    void setupGuideSeenChanged(bool seen);
     void usedBytesChanged(float byteCount);
     void totalBytesChanged(float byteCount);
     void toggleSplitModeFinished();
@@ -149,7 +145,6 @@ private: // data members.
     QString avatarText_; ///< The avatar text (i.e. initials of the user)
     UserState state_ { UserState::SignedOut }; ///< The state of the user
     bool splitMode_ { false }; ///< Is split mode active.
-    bool setupGuideSeen_ { false }; ///< Has the setup guide been seen.
     float usedBytes_ { 0.0f }; ///< The storage used by the user.
     float totalBytes_ { 1.0f }; ///< The storage quota of the user.
 };

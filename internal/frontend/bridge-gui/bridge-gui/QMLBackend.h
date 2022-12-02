@@ -179,6 +179,8 @@ public slots: // slot for signals received from QML -> To be forwarded to Bridge
 public slots: // slot for signals received from gRPC that need transformation instead of simple forwarding
     void onMailServerSettingsChanged(int imapPort, int smtpPort, bool useSSLForIMAP, bool useSSLForSMTP); ///< Slot for the ConnectionModeChanged gRPC event.
     void onGenericError(bridgepp::ErrorInfo const& info); ///< Slot for generic errors received from the gRPC service.
+    void onLoginFinished(QString const &userID, bool wasSignedOut); ///< Slot for LoginFinished gRPC event.
+    void onLoginAlreadyLoggedIn(QString const &userID); ///< Slot for the LoginAlreadyLoggedIn gRPC event.
 
 signals: // Signals received from the Go backend, to be forwarded to QML
     void toggleAutostartFinished();
@@ -195,7 +197,7 @@ signals: // Signals received from the Go backend, to be forwarded to QML
     void login2PasswordRequested();
     void login2PasswordError(QString const& errorMsg);
     void login2PasswordErrorAbort(QString const& errorMsg);
-    void loginFinished(int index);
+    void loginFinished(int index, bool wasSignedOut);
     void loginAlreadyLoggedIn(int index);
     void updateManualReady(QString const& version);
     void updateManualRestartNeeded();

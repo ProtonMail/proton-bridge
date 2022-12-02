@@ -185,11 +185,10 @@ message User {
   string avatarText = 3;
   UserState state = 4;
   bool splitMode = 5;
-  bool setupGuideSeen = 6;
-  int64 usedBytes = 7;
-  int64 totalBytes = 8;
-  bytes password = 9;
-  repeated string addresses = 10;
+  int64 usedBytes = 6;
+  int64 totalBytes = 7;
+  bytes password = 8;
+  repeated string addresses = 9;
 }
 
 message UserSplitModeRequest {
@@ -290,6 +289,7 @@ message LoginTwoPasswordsRequestedEvent {}
 
 message LoginFinishedEvent {
   string userID = 1;
+  bool wasSignedOut = 2;
 }
 
 //**********************************************************

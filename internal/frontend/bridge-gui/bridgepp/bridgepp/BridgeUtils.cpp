@@ -239,7 +239,6 @@ SPUser randomUser()
     user->setAvatarText(firstName.left(1) + lastName.left(1));
     user->setState(UserState::Connected);
     user->setSplitMode(false);
-    user->setSetupGuideSeen(true);
     qint64 const totalBytes = (500 + randN(2501)) * 1000000;
     user->setUsedBytes(float(bridgepp::randN(totalBytes + 1)) * 1.05f); // we maybe slightly over quota
     user->setTotalBytes(float(totalBytes));

@@ -75,6 +75,11 @@ func (bridge *Bridge) GetUserIDs() []string {
 	return bridge.vault.GetUserIDs()
 }
 
+// HasUser returns true iff the given user is known (authorized or not).
+func (bridge *Bridge) HasUser(userID string) bool {
+	return bridge.vault.HasUser(userID)
+}
+
 // GetUserInfo returns info about the given user.
 func (bridge *Bridge) GetUserInfo(userID string) (UserInfo, error) {
 	return safe.RLockRetErr(func() (UserInfo, error) {

@@ -1668,18 +1668,17 @@ class User final :
   // accessors -------------------------------------------------------
 
   enum : int {
-    kAddressesFieldNumber = 10,
+    kAddressesFieldNumber = 9,
     kIdFieldNumber = 1,
     kUsernameFieldNumber = 2,
     kAvatarTextFieldNumber = 3,
-    kPasswordFieldNumber = 9,
+    kPasswordFieldNumber = 8,
     kStateFieldNumber = 4,
     kSplitModeFieldNumber = 5,
-    kSetupGuideSeenFieldNumber = 6,
-    kUsedBytesFieldNumber = 7,
-    kTotalBytesFieldNumber = 8,
+    kUsedBytesFieldNumber = 6,
+    kTotalBytesFieldNumber = 7,
   };
-  // repeated string addresses = 10;
+  // repeated string addresses = 9;
   int addresses_size() const;
   private:
   int _internal_addresses_size() const;
@@ -1745,7 +1744,7 @@ class User final :
   std::string* _internal_mutable_avatartext();
   public:
 
-  // bytes password = 9;
+  // bytes password = 8;
   void clear_password();
   const std::string& password() const;
   template <typename ArgT0 = const std::string&, typename... ArgT>
@@ -1777,16 +1776,7 @@ class User final :
   void _internal_set_splitmode(bool value);
   public:
 
-  // bool setupGuideSeen = 6;
-  void clear_setupguideseen();
-  bool setupguideseen() const;
-  void set_setupguideseen(bool value);
-  private:
-  bool _internal_setupguideseen() const;
-  void _internal_set_setupguideseen(bool value);
-  public:
-
-  // int64 usedBytes = 7;
+  // int64 usedBytes = 6;
   void clear_usedbytes();
   int64_t usedbytes() const;
   void set_usedbytes(int64_t value);
@@ -1795,7 +1785,7 @@ class User final :
   void _internal_set_usedbytes(int64_t value);
   public:
 
-  // int64 totalBytes = 8;
+  // int64 totalBytes = 7;
   void clear_totalbytes();
   int64_t totalbytes() const;
   void set_totalbytes(int64_t value);
@@ -1819,7 +1809,6 @@ class User final :
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr password_;
     int state_;
     bool splitmode_;
-    bool setupguideseen_;
     int64_t usedbytes_;
     int64_t totalbytes_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
@@ -4803,6 +4792,7 @@ class LoginFinishedEvent final :
 
   enum : int {
     kUserIDFieldNumber = 1,
+    kWasSignedOutFieldNumber = 2,
   };
   // string userID = 1;
   void clear_userid();
@@ -4818,6 +4808,15 @@ class LoginFinishedEvent final :
   std::string* _internal_mutable_userid();
   public:
 
+  // bool wasSignedOut = 2;
+  void clear_wassignedout();
+  bool wassignedout() const;
+  void set_wassignedout(bool value);
+  private:
+  bool _internal_wassignedout() const;
+  void _internal_set_wassignedout(bool value);
+  public:
+
   // @@protoc_insertion_point(class_scope:grpc.LoginFinishedEvent)
  private:
   class _Internal;
@@ -4827,6 +4826,7 @@ class LoginFinishedEvent final :
   typedef void DestructorSkippable_;
   struct Impl_ {
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr userid_;
+    bool wassignedout_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
   union { Impl_ _impl_; };
@@ -10616,27 +10616,7 @@ inline void User::set_splitmode(bool value) {
   // @@protoc_insertion_point(field_set:grpc.User.splitMode)
 }
 
-// bool setupGuideSeen = 6;
-inline void User::clear_setupguideseen() {
-  _impl_.setupguideseen_ = false;
-}
-inline bool User::_internal_setupguideseen() const {
-  return _impl_.setupguideseen_;
-}
-inline bool User::setupguideseen() const {
-  // @@protoc_insertion_point(field_get:grpc.User.setupGuideSeen)
-  return _internal_setupguideseen();
-}
-inline void User::_internal_set_setupguideseen(bool value) {
-  
-  _impl_.setupguideseen_ = value;
-}
-inline void User::set_setupguideseen(bool value) {
-  _internal_set_setupguideseen(value);
-  // @@protoc_insertion_point(field_set:grpc.User.setupGuideSeen)
-}
-
-// int64 usedBytes = 7;
+// int64 usedBytes = 6;
 inline void User::clear_usedbytes() {
   _impl_.usedbytes_ = int64_t{0};
 }
@@ -10656,7 +10636,7 @@ inline void User::set_usedbytes(int64_t value) {
   // @@protoc_insertion_point(field_set:grpc.User.usedBytes)
 }
 
-// int64 totalBytes = 8;
+// int64 totalBytes = 7;
 inline void User::clear_totalbytes() {
   _impl_.totalbytes_ = int64_t{0};
 }
@@ -10676,7 +10656,7 @@ inline void User::set_totalbytes(int64_t value) {
   // @@protoc_insertion_point(field_set:grpc.User.totalBytes)
 }
 
-// bytes password = 9;
+// bytes password = 8;
 inline void User::clear_password() {
   _impl_.password_.ClearToEmpty();
 }
@@ -10726,7 +10706,7 @@ inline void User::set_allocated_password(std::string* password) {
   // @@protoc_insertion_point(field_set_allocated:grpc.User.password)
 }
 
-// repeated string addresses = 10;
+// repeated string addresses = 9;
 inline int User::_internal_addresses_size() const {
   return _impl_.addresses_.size();
 }
@@ -12902,6 +12882,26 @@ inline void LoginFinishedEvent::set_allocated_userid(std::string* userid) {
   }
 #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
   // @@protoc_insertion_point(field_set_allocated:grpc.LoginFinishedEvent.userID)
+}
+
+// bool wasSignedOut = 2;
+inline void LoginFinishedEvent::clear_wassignedout() {
+  _impl_.wassignedout_ = false;
+}
+inline bool LoginFinishedEvent::_internal_wassignedout() const {
+  return _impl_.wassignedout_;
+}
+inline bool LoginFinishedEvent::wassignedout() const {
+  // @@protoc_insertion_point(field_get:grpc.LoginFinishedEvent.wasSignedOut)
+  return _internal_wassignedout();
+}
+inline void LoginFinishedEvent::_internal_set_wassignedout(bool value) {
+  
+  _impl_.wassignedout_ = value;
+}
+inline void LoginFinishedEvent::set_wassignedout(bool value) {
+  _internal_set_wassignedout(value);
+  // @@protoc_insertion_point(field_set:grpc.LoginFinishedEvent.wasSignedOut)
 }
 
 // -------------------------------------------------------------------

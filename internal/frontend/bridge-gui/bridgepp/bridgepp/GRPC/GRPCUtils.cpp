@@ -257,7 +257,6 @@ SPUser userFromGRPC(grpc::User const &grpcUser)
     user->setAvatarText(QString::fromStdString(grpcUser.avatartext()));
     user->setState(userStateFromGRPC(grpcUser.state()));
     user->setSplitMode(grpcUser.splitmode());
-    user->setSetupGuideSeen(grpcUser.setupguideseen());
     user->setUsedBytes(float(grpcUser.usedbytes()));
     user->setTotalBytes(float(grpcUser.totalbytes()));
 
@@ -280,7 +279,6 @@ void userToGRPC(User const &user, grpc::User &outGRPCUser)
     outGRPCUser.set_avatartext(user.avatarText().toStdString());
     outGRPCUser.set_state(userStateToGRPC(user.state()));
     outGRPCUser.set_splitmode(user.splitMode());
-    outGRPCUser.set_setupguideseen(user.setupGuideSeen());
     outGRPCUser.set_usedbytes(qint64(user.usedBytes()));
     outGRPCUser.set_totalbytes(qint64(user.totalBytes()));
 }

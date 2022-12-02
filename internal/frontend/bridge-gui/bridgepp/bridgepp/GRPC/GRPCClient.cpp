@@ -1204,9 +1204,12 @@ void GRPCClient::processLoginEvent(LoginEvent const &event)
         emit login2PasswordRequested();
         break;
     case LoginEvent::kFinished:
+    {
         this->logTrace("Login event received: Finished.");
-        emit loginFinished(QString::fromStdString(event.finished().userid()));
+        LoginFinishedEvent const &finished = event.finished();
+        emit loginFinished(QString::fromStdString(finished.userid()), finished.wassignedout());
         break;
+    }
     case LoginEvent::kAlreadyLoggedIn:
         this->logTrace("Login event received: AlreadyLoggedIn.");
         emit loginAlreadyLoggedIn(QString::fromStdString(event.finished().userid()));
