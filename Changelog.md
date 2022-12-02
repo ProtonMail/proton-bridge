@@ -2,6 +2,19 @@
 
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
+## [Bridge 3.0.4] Perth Narrows
+
+### Changed
+* Other: Do not list \Deleted flag for All Mail.
+* Other: Disable perma-delete for expunge on Spam folder.
+
+### Fixed
+* Other: Ensure expunge feature test pushes to error stack.
+* GODT-2170: Use client-side draft update in integration tests.
+* GODT-2170: Improving test server behaviour.
+* GODT-2170: Update draft event means delete old and create new message.
+* GODT-2170: User create draft route: first steps.
+
 ## [Bridge 3.0.3] Perth Narrows
 
 ### Fixed
