@@ -34,7 +34,7 @@ Feature: IMAP Draft messages
     And IMAP client "1" sees 1 messages in "Drafts"
 
   Scenario: Draft edited remotely
-    When the following fields where changed in draft 1 for address "user@pm.me" of account "user@pm.me":
+    When the following fields were changed in draft 1 for address "user@pm.me" of account "user@pm.me":
       | to                | subject     | body                             |
       | someone@proton.me | Basic Draft | This is a draft body, but longer |
     Then IMAP client "1" eventually sees the following messages in "Drafts":

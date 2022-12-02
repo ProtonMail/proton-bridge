@@ -226,7 +226,7 @@ func (s *scenario) theAddressOfAccountHasNoKeys(address, username string) error 
 // accountDraftChanged changes the draft attributes, where draftIndex is
 // similar to sequential ID i.e. 1 represents the first message of draft folder
 // sorted by API creation time.
-func (s *scenario) addressDraftChanged(draftIndex int, address, username string, table *godog.Table) error {
+func (s *scenario) theFollowingFieldsWereChangedInDraftForAddressOfAccount(draftIndex int, address, username string, table *godog.Table) error {
 	wantMessages, err := unmarshalTable[Message](table)
 	if err != nil {
 		return err
@@ -236,39 +236,59 @@ func (s *scenario) addressDraftChanged(draftIndex int, address, username string,
 		return fmt.Errorf("expected to have one row in table but got %d instead", len(wantMessages))
 	}
 
-	draftID := s.t.getDraftID(username, draftIndex)
-
-	encBody := ""
-
-	if wantMessages[0].Body != "" {
-		ctx, cancel := context.WithCancel(context.Background())
-		defer cancel()
-
-		if err := s.t.withClient(ctx, username, func(ctx context.Context, c *proton.Client) error {
-			return s.t.withAddrKR(ctx, c, username, s.t.getUserAddrID(s.t.getUserID(username), address),
-				func(ctx context.Context, addrKR *crypto.KeyRing) error {
-					msg, err := addrKR.Encrypt(crypto.NewPlainMessage([]byte(wantMessages[0].Body)), addrKR)
-					if err != nil {
-						return err
-					}
-
-					encBody, err = msg.GetArmored()
-					return err
-				})
-		}); err != nil {
-			return err
-		}
+	draftID, err := s.t.getDraftID(username, draftIndex)
+	if err != nil {
+		return fmt.Errorf("failed to get draft ID: %w", err)
 	}
 
-	changes := proton.DraftTemplate{
-		Subject: wantMessages[0].Subject,
-		Body:    encBody,
-	}
-	if wantMessages[0].To != "" {
-		changes.ToList = []*mail.Address{{Address: wantMessages[0].To}}
-	}
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
-	return s.t.api.UpdateDraft(s.t.getUserID(username), draftID, changes)
+	return s.t.withClient(ctx, username, func(ctx context.Context, c *proton.Client) error {
+		return s.t.withAddrKR(ctx, c, username, s.t.getUserAddrID(s.t.getUserID(username), address), func(_ context.Context, addrKR *crypto.KeyRing) error {
+			var changes proton.DraftTemplate
+
+			if wantMessages[0].From != "" {
+				return fmt.Errorf("changing from address is not supported")
+			}
+
+			if wantMessages[0].To != "" {
+				changes.ToList = []*mail.Address{{Address: wantMessages[0].To}}
+			}
+
+			if wantMessages[0].CC != "" {
+				changes.CCList = []*mail.Address{{Address: wantMessages[0].CC}}
+			}
+
+			if wantMessages[0].BCC != "" {
+				changes.BCCList = []*mail.Address{{Address: wantMessages[0].BCC}}
+			}
+
+			if wantMessages[0].Subject != "" {
+				changes.Subject = wantMessages[0].Subject
+			}
+
+			if wantMessages[0].Body != "" {
+				enc, err := addrKR.Encrypt(crypto.NewPlainMessageFromString(wantMessages[0].Body), addrKR)
+				if err != nil {
+					return fmt.Errorf("failed to encrypt message body: %w", err)
+				}
+
+				arm, err := enc.GetArmored()
+				if err != nil {
+					return fmt.Errorf("failed to get armored message: %w", err)
+				}
+
+				changes.Body = arm
+			}
+
+			if _, err := c.UpdateDraft(ctx, draftID, proton.UpdateDraftReq{Message: changes}); err != nil {
+				return fmt.Errorf("failed to update draft: %w", err)
+			}
+
+			return nil
+		})
+	})
 }
 
 func (s *scenario) userLogsInWithUsernameAndPassword(username, password string) error {

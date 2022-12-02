@@ -19,7 +19,6 @@ package tests
 
 import (
 	"github.com/Masterminds/semver/v3"
-	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/go-proton-api/server"
 )
 
@@ -35,8 +34,6 @@ type API interface {
 	CreateAddress(userID, address string, password []byte) (string, error)
 	RemoveAddress(userID, addrID string) error
 	RemoveAddressKey(userID, addrID, keyID string) error
-
-	UpdateDraft(userID, draftID string, changes proton.DraftTemplate) error
 
 	Close()
 }

@@ -98,7 +98,7 @@ func TestFeatures(testingT *testing.T) {
 			ctx.Step(`^the address "([^"]*)" of account "([^"]*)" has the following messages in "([^"]*)":$`, s.theAddressOfAccountHasTheFollowingMessagesInMailbox)
 			ctx.Step(`^the address "([^"]*)" of account "([^"]*)" has (\d+) messages in "([^"]*)"$`, s.theAddressOfAccountHasMessagesInMailbox)
 			ctx.Step(`^the address "([^"]*)" of account "([^"]*)" has no keys$`, s.theAddressOfAccountHasNoKeys)
-			ctx.Step(`^the following fields where changed in draft (\d+) for address "([^"]*)" of account "([^"]*)":$`, s.addressDraftChanged)
+			ctx.Step(`^the following fields were changed in draft (\d+) for address "([^"]*)" of account "([^"]*)":$`, s.theFollowingFieldsWereChangedInDraftForAddressOfAccount)
 
 			// ==== BRIDGE ====
 			ctx.Step(`^bridge starts$`, s.bridgeStarts)
