@@ -333,6 +333,8 @@ func newSystemMailboxCreatedUpdate(labelID imap.MailboxID, labelName string) *im
 	}
 
 	attrs := imap.NewFlagSet(imap.AttrNoInferiors)
+	permanentFlags := defaultPermanentFlags
+	flags := defaultFlags
 
 	switch labelID {
 	case proton.TrashLabel:
@@ -343,6 +345,8 @@ func newSystemMailboxCreatedUpdate(labelID imap.MailboxID, labelName string) *im
 
 	case proton.AllMailLabel:
 		attrs = attrs.Add(imap.AttrAll)
+		flags = imap.NewFlagSet(imap.FlagSeen, imap.FlagFlagged)
+		permanentFlags = imap.NewFlagSet(imap.FlagSeen, imap.FlagFlagged)
 
 	case proton.ArchiveLabel:
 		attrs = attrs.Add(imap.AttrArchive)
@@ -360,8 +364,8 @@ func newSystemMailboxCreatedUpdate(labelID imap.MailboxID, labelName string) *im
 	return imap.NewMailboxCreated(imap.Mailbox{
 		ID:             labelID,
 		Name:           []string{labelName},
-		Flags:          defaultFlags,
-		PermanentFlags: defaultPermanentFlags,
+		Flags:          flags,
+		PermanentFlags: permanentFlags,
 		Attributes:     attrs,
 	})
 }
