@@ -326,7 +326,7 @@ func (conn *imapConnector) RemoveMessagesFromMailbox(ctx context.Context, messag
 		return err
 	}
 
-	if mailboxID == proton.SpamLabel || mailboxID == proton.TrashLabel || mailboxID == proton.DraftsLabel {
+	if mailboxID == proton.TrashLabel || mailboxID == proton.DraftsLabel {
 		var metadata []proton.MessageMetadata
 
 		// There's currently no limit on how many IDs we can filter on,
