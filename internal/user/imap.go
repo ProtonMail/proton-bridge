@@ -534,20 +534,10 @@ func (conn *imapConnector) createDraft(ctx context.Context, literal []byte, addr
 		decBody = string(message.RichBody)
 	}
 
-	encBody, err := addrKR.Encrypt(crypto.NewPlainMessageFromString(decBody), nil)
-	if err != nil {
-		return proton.Message{}, fmt.Errorf("failed to encrypt message body: %w", err)
-	}
-
-	armBody, err := encBody.GetArmored()
-	if err != nil {
-		return proton.Message{}, fmt.Errorf("failed to get armored message body: %w", err)
-	}
-
-	draft, err := conn.client.CreateDraft(ctx, proton.CreateDraftReq{
+	draft, err := conn.client.CreateDraft(ctx, addrKR, proton.CreateDraftReq{
 		Message: proton.DraftTemplate{
 			Subject:  message.Subject,
-			Body:     armBody,
+			Body:     decBody,
 			MIMEType: message.MIMEType,
 
 			Sender:  &mail.Address{Name: sender.DisplayName, Address: sender.Email},

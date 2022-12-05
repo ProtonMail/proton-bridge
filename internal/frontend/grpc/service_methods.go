@@ -406,7 +406,7 @@ func (s *Service) Login(ctx context.Context, login *LoginRequest) (*emptypb.Empt
 		s.auth = auth
 
 		switch {
-		case auth.TwoFA.Enabled&proton.TOTPEnabled != 0:
+		case auth.TwoFA.Enabled&proton.HasTOTP != 0:
 			_ = s.SendEvent(NewLoginTfaRequestedEvent(login.Username))
 
 		case auth.PasswordMode == proton.TwoPasswordMode:

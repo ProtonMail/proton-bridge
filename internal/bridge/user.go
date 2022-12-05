@@ -182,7 +182,7 @@ func (bridge *Bridge) LoginFull(
 		return "", fmt.Errorf("failed to begin login process: %w", err)
 	}
 
-	if auth.TwoFA.Enabled&proton.TOTPEnabled != 0 {
+	if auth.TwoFA.Enabled&proton.HasTOTP != 0 {
 		logrus.WithField("userID", auth.UserID).Info("Requesting TOTP")
 
 		totp, err := getTOTP()

@@ -269,20 +269,10 @@ func (s *scenario) theFollowingFieldsWereChangedInDraftForAddressOfAccount(draft
 			}
 
 			if wantMessages[0].Body != "" {
-				enc, err := addrKR.Encrypt(crypto.NewPlainMessageFromString(wantMessages[0].Body), addrKR)
-				if err != nil {
-					return fmt.Errorf("failed to encrypt message body: %w", err)
-				}
-
-				arm, err := enc.GetArmored()
-				if err != nil {
-					return fmt.Errorf("failed to get armored message: %w", err)
-				}
-
-				changes.Body = arm
+				changes.Body = wantMessages[0].Body
 			}
 
-			if _, err := c.UpdateDraft(ctx, draftID, proton.UpdateDraftReq{Message: changes}); err != nil {
+			if _, err := c.UpdateDraft(ctx, draftID, addrKR, proton.UpdateDraftReq{Message: changes}); err != nil {
 				return fmt.Errorf("failed to update draft: %w", err)
 			}
 

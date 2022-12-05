@@ -188,19 +188,9 @@ func sendWithKey( //nolint:funlen
 		return proton.Message{}, fmt.Errorf("unsupported MIME type: %v", message.MIMEType)
 	}
 
-	encBody, err := addrKR.Encrypt(crypto.NewPlainMessageFromString(decBody), nil)
-	if err != nil {
-		return proton.Message{}, fmt.Errorf("failed to encrypt message body: %w", err)
-	}
-
-	armBody, err := encBody.GetArmored()
-	if err != nil {
-		return proton.Message{}, fmt.Errorf("failed to get armored message body: %w", err)
-	}
-
-	draft, err := createDraft(ctx, client, emails, from, to, parentID, message.InReplyTo, proton.DraftTemplate{
+	draft, err := createDraft(ctx, client, addrKR, emails, from, to, parentID, message.InReplyTo, proton.DraftTemplate{
 		Subject:  message.Subject,
-		Body:     armBody,
+		Body:     decBody,
 		MIMEType: message.MIMEType,
 
 		Sender:  message.Sender,
@@ -312,6 +302,7 @@ func getParentID( //nolint:funlen
 func createDraft(
 	ctx context.Context,
 	client *proton.Client,
+	addrKR *crypto.KeyRing,
 	emails []string,
 	from string,
 	to []string,
@@ -357,7 +348,7 @@ func createDraft(
 		action = proton.ForwardAction
 	}
 
-	return client.CreateDraft(ctx, proton.CreateDraftReq{
+	return client.CreateDraft(ctx, addrKR, proton.CreateDraftReq{
 		Message:  template,
 		ParentID: parentID,
 		Action:   action,
