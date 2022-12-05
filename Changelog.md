@@ -2,6 +2,12 @@
 
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
+## [Bridge 3.0.5] Perth Narrows
+
+### Fixed
+* GODT-2178: Bump go-proton-api to fix drafts.
+* GODT-2180: Allow login with FIDO2.
+
 ## [Bridge 3.0.4] Perth Narrows
 
 ### Changed
