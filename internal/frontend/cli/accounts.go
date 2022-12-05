@@ -149,7 +149,7 @@ func (f *frontendCLI) loginAccount(c *ishell.Context) { //nolint:funlen
 		return
 	}
 
-	if auth.TwoFA.Enabled == proton.TOTPEnabled {
+	if auth.TwoFA.Enabled&proton.TOTPEnabled != 0 {
 		code := f.readStringInAttempts("Two factor code", c.ReadLine, isNotEmpty)
 		if code == "" {
 			f.printAndLogError("Cannot login: need two factor code")
