@@ -294,32 +294,32 @@ func syncMessages(
 		}
 	}()
 
-	// Goroutine in charge of converting the messages into updates and building a waitable structure for progress
-	// tracking.
+	// Goroutine which converts the messages into updates and builds a waitable structure for progress tracking.
 	go func() {
 		defer close(flushUpdateCh)
 		for batch := range flushCh {
 			for _, res := range batch {
-				if err := res.update.err(); err != nil {
+				if res.err != nil {
 					if err := vault.AddFailedMessageID(res.messageID); err != nil {
 						logrus.WithError(err).Error("Failed to add failed message ID")
 					}
 
 					if err := sentry.ReportMessageWithContext("Failed to sync message", reporter.Context{
 						"messageID": res.messageID,
-						"error":     err,
+						"error":     res.err,
 					}); err != nil {
 						logrus.WithError(err).Error("Failed to report message sync error")
 					}
 
+					// We could sync a placeholder message here, but for now we skip it entirely.
 					continue
 				} else {
 					if err := vault.RemFailedMessageID(res.messageID); err != nil {
 						logrus.WithError(err).Error("Failed to remove failed message ID")
 					}
-
-					flushers[res.addressID].push(res.update.unwrap())
 				}
+
+				flushers[res.addressID].push(res.update)
 			}
 
 			for _, flusher := range flushers {
