@@ -438,12 +438,12 @@ func (user *User) handleCreateMessageEvent(ctx context.Context, event proton.Mes
 		}).Info("Handling message created event")
 
 		return withAddrKR(user.apiUser, user.apiAddrs[event.Message.AddressID], user.vault.KeyPass(), func(_, addrKR *crypto.KeyRing) error {
-			buildRes, err := buildRFC822(user.apiLabels, full, addrKR)
+			update, err := buildRFC822(user.apiLabels, full, addrKR).update.unpack()
 			if err != nil {
 				return fmt.Errorf("failed to build RFC822 message: %w", err)
 			}
 
-			user.updateCh[full.AddressID].Enqueue(imap.NewMessagesCreated(buildRes.update))
+			user.updateCh[full.AddressID].Enqueue(imap.NewMessagesCreated(update))
 
 			return nil
 		})
@@ -493,16 +493,16 @@ func (user *User) handleUpdateDraftEvent(ctx context.Context, event proton.Messa
 		}
 
 		return withAddrKR(user.apiUser, user.apiAddrs[event.Message.AddressID], user.vault.KeyPass(), func(_, addrKR *crypto.KeyRing) error {
-			buildRes, err := buildRFC822(user.apiLabels, full, addrKR)
+			update, err := buildRFC822(user.apiLabels, full, addrKR).update.unpack()
 			if err != nil {
 				return fmt.Errorf("failed to build RFC822 draft: %w", err)
 			}
 
 			user.updateCh[full.AddressID].Enqueue(imap.NewMessageUpdated(
-				buildRes.update.Message,
-				buildRes.update.Literal,
-				buildRes.update.MailboxIDs,
-				buildRes.update.ParsedMessage,
+				update.Message,
+				update.Literal,
+				update.MailboxIDs,
+				update.ParsedMessage,
 			))
 
 			return nil

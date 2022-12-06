@@ -441,9 +441,9 @@ func (bridge *Bridge) addUserWithVault(
 		ctx,
 		vault,
 		client,
+		bridge.reporter,
 		apiUser,
 		bridge.crashHandler,
-		bridge.reporter,
 		bridge.vault.SyncWorkers(),
 		bridge.vault.GetShowAllMail(),
 	)

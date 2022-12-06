@@ -29,7 +29,7 @@ import (
 	"github.com/ProtonMail/gluon/connector"
 	"github.com/ProtonMail/gluon/imap"
 	"github.com/ProtonMail/gluon/queue"
-	gluonReporter "github.com/ProtonMail/gluon/reporter"
+	"github.com/ProtonMail/gluon/reporter"
 	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/proton-bridge/v3/internal/async"
 	"github.com/ProtonMail/proton-bridge/v3/internal/events"
@@ -57,6 +57,7 @@ type User struct {
 
 	vault    *vault.User
 	client   *proton.Client
+	reporter reporter.Reporter
 	eventCh  *queue.QueuedChannel[events.Event]
 	sendHash *sendRecorder
 
@@ -71,8 +72,6 @@ type User struct {
 
 	updateCh     map[string]*queue.QueuedChannel[imap.Update]
 	updateChLock safe.RWMutex
-
-	reporter gluonReporter.Reporter
 
 	tasks     *async.Group
 	abortable async.Abortable
@@ -92,9 +91,9 @@ func New(
 	ctx context.Context,
 	encVault *vault.User,
 	client *proton.Client,
+	reporter reporter.Reporter,
 	apiUser proton.User,
 	crashHandler async.PanicHandler,
-	reporter gluonReporter.Reporter,
 	syncWorkers int,
 	showAllMail bool,
 ) (*User, error) { //nolint:funlen
@@ -118,6 +117,7 @@ func New(
 
 		vault:    encVault,
 		client:   client,
+		reporter: reporter,
 		eventCh:  queue.NewQueuedChannel[events.Event](0, 0),
 		sendHash: newSendRecorder(sendEntryExpiry),
 
@@ -132,8 +132,6 @@ func New(
 
 		updateCh:     make(map[string]*queue.QueuedChannel[imap.Update]),
 		updateChLock: safe.NewRWMutex(),
-
-		reporter: reporter,
 
 		tasks:           async.NewGroup(context.Background(), crashHandler),
 		pollAPIEventsCh: make(chan chan struct{}),

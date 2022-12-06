@@ -218,7 +218,7 @@ func withUser(tb testing.TB, ctx context.Context, _ *server.Server, m *proton.Ma
 	vaultUser, err := vault.AddUser(apiUser.ID, username, apiAuth.UID, apiAuth.RefreshToken, saltedKeyPass)
 	require.NoError(tb, err)
 
-	user, err := New(ctx, vaultUser, client, apiUser, nil, nil, vault.SyncWorkers(), true)
+	user, err := New(ctx, vaultUser, client, nil, apiUser, nil, vault.SyncWorkers(), true)
 	require.NoError(tb, err)
 	defer user.Close()
 

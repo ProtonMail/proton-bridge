@@ -26,10 +26,39 @@ import (
 	"github.com/ProtonMail/proton-bridge/v3/pkg/message"
 )
 
+type result[T any] struct {
+	v T
+	e error
+}
+
+func resOk[T any](v T) result[T] {
+	return result[T]{v: v}
+}
+
+func resErr[T any](e error) result[T] {
+	return result[T]{e: e}
+}
+
+func (r *result[T]) unwrap() T {
+	if r.e != nil {
+		panic(r.err)
+	}
+
+	return r.v
+}
+
+func (r *result[T]) unpack() (T, error) {
+	return r.v, r.e
+}
+
+func (r *result[T]) err() error {
+	return r.e
+}
+
 type buildRes struct {
 	messageID string
 	addressID string
-	update    *imap.MessageCreated
+	update    result[*imap.MessageCreated]
 }
 
 func defaultJobOpts() message.JobOptions {
@@ -43,22 +72,22 @@ func defaultJobOpts() message.JobOptions {
 	}
 }
 
-func buildRFC822(apiLabels map[string]proton.Label, full proton.FullMessage, addrKR *crypto.KeyRing) (*buildRes, error) {
-	literal, err := message.BuildRFC822(addrKR, full.Message, full.AttData, defaultJobOpts())
-	if err != nil {
-		return nil, fmt.Errorf("failed to build message %s: %w", full.ID, err)
-	}
+func buildRFC822(apiLabels map[string]proton.Label, full proton.FullMessage, addrKR *crypto.KeyRing) *buildRes {
+	var update result[*imap.MessageCreated]
 
-	update, err := newMessageCreatedUpdate(apiLabels, full.MessageMetadata, literal)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create IMAP update for message %s: %w", full.ID, err)
+	if literal, err := message.BuildRFC822(addrKR, full.Message, full.AttData, defaultJobOpts()); err != nil {
+		update = resErr[*imap.MessageCreated](fmt.Errorf("failed to build RFC822 for message %s: %w", full.ID, err))
+	} else if created, err := newMessageCreatedUpdate(apiLabels, full.MessageMetadata, literal); err != nil {
+		update = resErr[*imap.MessageCreated](fmt.Errorf("failed to create IMAP update for message %s: %w", full.ID, err))
+	} else {
+		update = resOk(created)
 	}
 
 	return &buildRes{
 		messageID: full.ID,
 		addressID: full.AddressID,
 		update:    update,
-	}, nil
+	}
 }
 
 func newMessageCreatedUpdate(

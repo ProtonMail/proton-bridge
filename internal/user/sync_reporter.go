@@ -24,7 +24,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/v3/internal/events"
 )
 
-type reporter struct {
+type syncReporter struct {
 	userID  string
 	eventCh *queue.QueuedChannel[events.Event]
 
@@ -36,8 +36,8 @@ type reporter struct {
 	freq time.Duration
 }
 
-func newReporter(userID string, eventCh *queue.QueuedChannel[events.Event], total int, freq time.Duration) *reporter {
-	return &reporter{
+func newSyncReporter(userID string, eventCh *queue.QueuedChannel[events.Event], total int, freq time.Duration) *syncReporter {
+	return &syncReporter{
 		userID:  userID,
 		eventCh: eventCh,
 
@@ -47,7 +47,7 @@ func newReporter(userID string, eventCh *queue.QueuedChannel[events.Event], tota
 	}
 }
 
-func (rep *reporter) add(delta int) {
+func (rep *syncReporter) add(delta int) {
 	rep.count += delta
 
 	if time.Since(rep.last) > rep.freq {
@@ -62,7 +62,7 @@ func (rep *reporter) add(delta int) {
 	}
 }
 
-func (rep *reporter) done() {
+func (rep *syncReporter) done() {
 	rep.eventCh.Enqueue(events.SyncProgress{
 		UserID:    rep.userID,
 		Progress:  1,

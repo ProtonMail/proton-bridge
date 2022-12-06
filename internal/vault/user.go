@@ -21,6 +21,8 @@ import (
 	"fmt"
 
 	"github.com/ProtonMail/gluon/imap"
+	"github.com/bradenaw/juniper/xslices"
+	"golang.org/x/exp/slices"
 )
 
 type User struct {
@@ -155,6 +157,24 @@ func (user *User) SetHasMessages(hasMessages bool) error {
 func (user *User) SetLastMessageID(messageID string) error {
 	return user.vault.modUser(user.userID, func(data *UserData) {
 		data.SyncStatus.LastMessageID = messageID
+	})
+}
+
+// AddFailedMessageID adds a message ID to the list of failed message IDs.
+func (user *User) AddFailedMessageID(messageID string) error {
+	return user.vault.modUser(user.userID, func(data *UserData) {
+		if !slices.Contains(data.SyncStatus.FailedMessageIDs, messageID) {
+			data.SyncStatus.FailedMessageIDs = append(data.SyncStatus.FailedMessageIDs, messageID)
+		}
+	})
+}
+
+// RemFailedMessageID removes a message ID from the list of failed message IDs.
+func (user *User) RemFailedMessageID(messageID string) error {
+	return user.vault.modUser(user.userID, func(data *UserData) {
+		data.SyncStatus.FailedMessageIDs = xslices.Filter(data.SyncStatus.FailedMessageIDs, func(otherID string) bool {
+			return otherID != messageID
+		})
 	})
 }
 
