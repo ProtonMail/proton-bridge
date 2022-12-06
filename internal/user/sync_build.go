@@ -120,7 +120,7 @@ func newFailedMessageLiteral(
 	if tmpl, err := template.New("header").Parse(failedMessageHeaderTemplate); err != nil {
 		panic(err)
 	} else if b, err := tmplExec(tmpl, map[string]any{
-		"Date": date.Format(time.RFC822),
+		"Date": date.In(time.UTC).Format(time.RFC822),
 	}); err != nil {
 		panic(err)
 	} else if _, err := buf.Write(b); err != nil {

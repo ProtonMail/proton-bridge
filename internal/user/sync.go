@@ -304,11 +304,11 @@ func syncMessages(
 						logrus.WithError(err).Error("Failed to add failed message ID")
 					}
 
-					if err := sentry.ReportMessageWithContext("Failed to sync message", reporter.Context{
+					if err := sentry.ReportMessageWithContext("Failed to build message (sync)", reporter.Context{
 						"messageID": res.messageID,
 						"error":     res.err,
 					}); err != nil {
-						logrus.WithError(err).Error("Failed to report message sync error")
+						logrus.WithError(err).Error("Failed to report message build error")
 					}
 
 					// We could sync a placeholder message here, but for now we skip it entirely.

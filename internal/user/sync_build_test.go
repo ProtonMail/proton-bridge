@@ -33,7 +33,7 @@ func TestNewFailedMessageLiteral(t *testing.T) {
 	header, err := rfc822.Parse(literal).ParseHeader()
 	require.NoError(t, err)
 	require.Equal(t, "Message failed to build", header.Get("Subject"))
-	require.Equal(t, "29 Nov 73 22:33 CET", header.Get("Date"))
+	require.Equal(t, "29 Nov 73 21:33 UTC", header.Get("Date"))
 	require.Equal(t, "text/plain", header.Get("Content-Type"))
 	require.Equal(t, "base64", header.Get("Content-Transfer-Encoding"))
 
@@ -43,7 +43,7 @@ func TestNewFailedMessageLiteral(t *testing.T) {
 
 	parsed, err := imap.NewParsedMessage(literal)
 	require.NoError(t, err)
-	require.Equal(t, `("29 Nov 73 22:33 CET" "Message failed to build" NIL NIL NIL NIL NIL NIL NIL NIL)`, parsed.Envelope)
+	require.Equal(t, `("29 Nov 73 21:33 UTC" "Message failed to build" NIL NIL NIL NIL NIL NIL NIL NIL)`, parsed.Envelope)
 	require.Equal(t, `("text" "plain" () NIL NIL "base64" 114 2)`, parsed.Body)
 	require.Equal(t, `("text" "plain" () NIL NIL "base64" 114 2 NIL NIL NIL NIL)`, parsed.Structure)
 }
