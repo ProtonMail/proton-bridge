@@ -2,6 +2,11 @@
 
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
+## [Bridge 3.0.6] Perth Narrows
+
+### Fixed
+* GODT-2187: Skip messages during sync that fail to build/parse.
+
 ## [Bridge 3.0.5] Perth Narrows
 
 ### Fixed
