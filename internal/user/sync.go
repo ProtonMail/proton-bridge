@@ -26,6 +26,7 @@ import (
 
 	"github.com/ProtonMail/gluon/imap"
 	"github.com/ProtonMail/gluon/queue"
+	"github.com/ProtonMail/gluon/reporter"
 	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/ProtonMail/proton-bridge/v3/internal/events"
@@ -36,6 +37,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/exp/maps"
+	"golang.org/x/exp/slices"
 )
 
 const (
@@ -87,6 +89,7 @@ func (user *User) doSync(ctx context.Context) error {
 	return nil
 }
 
+// nolint:funlen
 func (user *User) sync(ctx context.Context) error {
 	return safe.RLockRet(func() error {
 		return withAddrKRs(user.apiUser, user.apiAddrs, user.vault.KeyPass(), func(_ *crypto.KeyRing, addrKRs map[string]*crypto.KeyRing) error {
@@ -109,10 +112,32 @@ func (user *User) sync(ctx context.Context) error {
 			if !user.vault.SyncStatus().HasMessages {
 				user.log.Info("Syncing messages")
 
+				// Determine which messages to sync.
+				messageIDs, err := user.client.GetMessageIDs(ctx, "")
+				if err != nil {
+					return fmt.Errorf("failed to get message IDs to sync: %w", err)
+				}
+
+				// Remove any messages that have already failed to sync.
+				messageIDs = xslices.Filter(messageIDs, func(messageID string) bool {
+					return !slices.Contains(user.vault.SyncStatus().FailedMessageIDs, messageID)
+				})
+
+				// Reverse the order of the message IDs so that the newest messages are synced first.
+				xslices.Reverse(messageIDs)
+
+				// If we have a message ID that we've already synced, then we can skip all messages before it.
+				if idx := xslices.Index(messageIDs, user.vault.SyncStatus().LastMessageID); idx >= 0 {
+					messageIDs = messageIDs[idx+1:]
+				}
+
+				// Sync the messages.
 				if err := syncMessages(
 					ctx,
 					user.ID(),
+					messageIDs,
 					user.client,
+					user.reporter,
 					user.vault,
 					user.apiLabels,
 					addrKRs,
@@ -183,7 +208,9 @@ func syncLabels(ctx context.Context, apiLabels map[string]proton.Label, updateCh
 func syncMessages(
 	ctx context.Context,
 	userID string,
+	messageIDs []string,
 	client *proton.Client,
+	sentry reporter.Reporter,
 	vault *vault.User,
 	apiLabels map[string]proton.Label,
 	addrKRs map[string]*crypto.KeyRing,
@@ -193,20 +220,6 @@ func syncMessages(
 ) error {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
-
-	// Determine which messages to sync.
-	messageIDs, err := client.GetMessageIDs(ctx, "")
-	if err != nil {
-		return fmt.Errorf("failed to get message IDs to sync: %w", err)
-	}
-
-	// Reverse the order of the message IDs so that the newest messages are synced first.
-	xslices.Reverse(messageIDs)
-
-	// If we have a message ID that we've already synced, then we can skip all messages before it.
-	if idx := xslices.Index(messageIDs, vault.SyncStatus().LastMessageID); idx >= 0 {
-		messageIDs = messageIDs[idx+1:]
-	}
 
 	// Track the amount of time to process all the messages.
 	syncStartTime := time.Now()
@@ -222,14 +235,12 @@ func syncMessages(
 	flushers := make(map[string]*flusher, len(updateCh))
 
 	for addrID, updateCh := range updateCh {
-		flusher := newFlusher(updateCh, maxUpdateSize)
-
-		flushers[addrID] = flusher
+		flushers[addrID] = newFlusher(updateCh, maxUpdateSize)
 	}
 
 	// Create a reporter to report sync progress updates.
-	reporter := newReporter(userID, eventCh, len(messageIDs), time.Second)
-	defer reporter.done()
+	syncReporter := newSyncReporter(userID, eventCh, len(messageIDs), time.Second)
+	defer syncReporter.done()
 
 	type flushUpdate struct {
 		messageID string
@@ -267,7 +278,7 @@ func syncMessages(
 					return nil, ctx.Err()
 				}
 
-				return buildRFC822(apiLabels, msg, addrKRs[msg.AddressID])
+				return buildRFC822(apiLabels, msg, addrKRs[msg.AddressID]), nil
 			})
 			if err != nil {
 				errorCh <- err
@@ -283,12 +294,31 @@ func syncMessages(
 		}
 	}()
 
-	// Goroutine in charge of converting the messages into updates and building a waitable structure for progress
-	// tracking.
+	// Goroutine which converts the messages into updates and builds a waitable structure for progress tracking.
 	go func() {
 		defer close(flushUpdateCh)
 		for batch := range flushCh {
 			for _, res := range batch {
+				if res.err != nil {
+					if err := vault.AddFailedMessageID(res.messageID); err != nil {
+						logrus.WithError(err).Error("Failed to add failed message ID")
+					}
+
+					if err := sentry.ReportMessageWithContext("Failed to build message (sync)", reporter.Context{
+						"messageID": res.messageID,
+						"error":     res.err,
+					}); err != nil {
+						logrus.WithError(err).Error("Failed to report message build error")
+					}
+
+					// We could sync a placeholder message here, but for now we skip it entirely.
+					continue
+				} else {
+					if err := vault.RemFailedMessageID(res.messageID); err != nil {
+						logrus.WithError(err).Error("Failed to remove failed message ID")
+					}
+				}
+
 				flushers[res.addressID].push(res.update)
 			}
 
@@ -321,7 +351,7 @@ func syncMessages(
 			return fmt.Errorf("failed to set last synced message ID: %w", err)
 		}
 
-		reporter.add(flushUpdate.batchLen)
+		syncReporter.add(flushUpdate.batchLen)
 	}
 
 	return <-errorCh
@@ -333,6 +363,8 @@ func newSystemMailboxCreatedUpdate(labelID imap.MailboxID, labelName string) *im
 	}
 
 	attrs := imap.NewFlagSet(imap.AttrNoInferiors)
+	permanentFlags := defaultPermanentFlags
+	flags := defaultFlags
 
 	switch labelID {
 	case proton.TrashLabel:
@@ -343,6 +375,8 @@ func newSystemMailboxCreatedUpdate(labelID imap.MailboxID, labelName string) *im
 
 	case proton.AllMailLabel:
 		attrs = attrs.Add(imap.AttrAll)
+		flags = imap.NewFlagSet(imap.FlagSeen, imap.FlagFlagged)
+		permanentFlags = imap.NewFlagSet(imap.FlagSeen, imap.FlagFlagged)
 
 	case proton.ArchiveLabel:
 		attrs = attrs.Add(imap.AttrArchive)
@@ -360,8 +394,8 @@ func newSystemMailboxCreatedUpdate(labelID imap.MailboxID, labelName string) *im
 	return imap.NewMailboxCreated(imap.Mailbox{
 		ID:             labelID,
 		Name:           []string{labelName},
-		Flags:          defaultFlags,
-		PermanentFlags: defaultPermanentFlags,
+		Flags:          flags,
+		PermanentFlags: permanentFlags,
 		Attributes:     attrs,
 	})
 }

@@ -27,6 +27,7 @@ Feature: IMAP create messages
     And IMAP client "1" eventually sees the following messages in "Drafts":
       | from       | to                 | subject | body |
       | user@pm.me | john.doe@email.com | foo     | bar  |
+    # This fails now
     And IMAP client "1" eventually sees the following messages in "All Mail":
       | from       | to                 | subject | body |
       | user@pm.me | john.doe@email.com | foo     | bar  |

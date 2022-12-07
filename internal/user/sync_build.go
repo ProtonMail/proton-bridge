@@ -18,18 +18,22 @@
 package user
 
 import (
-	"fmt"
+	"bytes"
+	"html/template"
+	"time"
 
 	"github.com/ProtonMail/gluon/imap"
 	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/ProtonMail/proton-bridge/v3/pkg/message"
+	"github.com/bradenaw/juniper/xslices"
 )
 
 type buildRes struct {
 	messageID string
 	addressID string
 	update    *imap.MessageCreated
+	err       error
 }
 
 func defaultJobOpts() message.JobOptions {
@@ -43,22 +47,28 @@ func defaultJobOpts() message.JobOptions {
 	}
 }
 
-func buildRFC822(apiLabels map[string]proton.Label, full proton.FullMessage, addrKR *crypto.KeyRing) (*buildRes, error) {
-	literal, err := message.BuildRFC822(addrKR, full.Message, full.AttData, defaultJobOpts())
-	if err != nil {
-		return nil, fmt.Errorf("failed to build message %s: %w", full.ID, err)
-	}
+func buildRFC822(apiLabels map[string]proton.Label, full proton.FullMessage, addrKR *crypto.KeyRing) *buildRes {
+	var (
+		update *imap.MessageCreated
+		err    error
+	)
 
-	update, err := newMessageCreatedUpdate(apiLabels, full.MessageMetadata, literal)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create IMAP update for message %s: %w", full.ID, err)
+	if literal, buildErr := message.BuildRFC822(addrKR, full.Message, full.AttData, defaultJobOpts()); buildErr != nil {
+		update = newMessageCreatedFailedUpdate(apiLabels, full.MessageMetadata, buildErr)
+		err = buildErr
+	} else if created, parseErr := newMessageCreatedUpdate(apiLabels, full.MessageMetadata, literal); parseErr != nil {
+		update = newMessageCreatedFailedUpdate(apiLabels, full.MessageMetadata, parseErr)
+		err = parseErr
+	} else {
+		update = created
 	}
 
 	return &buildRes{
 		messageID: full.ID,
 		addressID: full.AddressID,
 		update:    update,
-	}, nil
+		err:       err,
+	}
 }
 
 func newMessageCreatedUpdate(
@@ -78,3 +88,83 @@ func newMessageCreatedUpdate(
 		ParsedMessage: parsedMessage,
 	}, nil
 }
+
+func newMessageCreatedFailedUpdate(
+	apiLabels map[string]proton.Label,
+	message proton.MessageMetadata,
+	err error,
+) *imap.MessageCreated {
+	literal := newFailedMessageLiteral(message.ID, time.Unix(message.Time, 0), message.Subject, err)
+
+	parsedMessage, err := imap.NewParsedMessage(literal)
+	if err != nil {
+		panic(err)
+	}
+
+	return &imap.MessageCreated{
+		Message:       toIMAPMessage(message),
+		MailboxIDs:    mapTo[string, imap.MailboxID](wantLabels(apiLabels, message.LabelIDs)),
+		Literal:       literal,
+		ParsedMessage: parsedMessage,
+	}
+}
+
+func newFailedMessageLiteral(
+	messageID string,
+	date time.Time,
+	subject string,
+	syncErr error,
+) []byte {
+	var buf bytes.Buffer
+
+	if tmpl, err := template.New("header").Parse(failedMessageHeaderTemplate); err != nil {
+		panic(err)
+	} else if b, err := tmplExec(tmpl, map[string]any{
+		"Date": date.In(time.UTC).Format(time.RFC822),
+	}); err != nil {
+		panic(err)
+	} else if _, err := buf.Write(b); err != nil {
+		panic(err)
+	}
+
+	if tmpl, err := template.New("body").Parse(failedMessageBodyTemplate); err != nil {
+		panic(err)
+	} else if b, err := tmplExec(tmpl, map[string]any{
+		"MessageID": messageID,
+		"Subject":   subject,
+		"Error":     syncErr.Error(),
+	}); err != nil {
+		panic(err)
+	} else if _, err := buf.Write(lineWrap(b64Encode(b))); err != nil {
+		panic(err)
+	}
+
+	return buf.Bytes()
+}
+
+func tmplExec(template *template.Template, data any) ([]byte, error) {
+	var buf bytes.Buffer
+
+	if err := template.Execute(&buf, data); err != nil {
+		return nil, err
+	}
+
+	return buf.Bytes(), nil
+}
+
+func lineWrap(b []byte) []byte {
+	return bytes.Join(xslices.Chunk(b, 76), []byte{'\r', '\n'})
+}
+
+const failedMessageHeaderTemplate = `Date: {{.Date}}
+Subject: Message failed to build
+Content-Type: text/plain
+Content-Transfer-Encoding: base64
+
+`
+
+const failedMessageBodyTemplate = `Failed to build message: 
+Subject:   {{.Subject}}
+Error:     {{.Error}}
+MessageID: {{.MessageID}}
+`

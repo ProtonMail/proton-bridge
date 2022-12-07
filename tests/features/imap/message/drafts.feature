@@ -11,10 +11,15 @@ Feature: IMAP Draft messages
 
       This is a dra
       """
+    Then IMAP client "1" eventually sees the following messages in "Drafts":
+      | body          |
+      | This is a dra |
+    And IMAP client "1" sees 1 messages in "Drafts"
 
   Scenario: Draft edited locally
     When IMAP client "1" marks message 1 as deleted
     And IMAP client "1" expunges
+    And it succeeds
     And IMAP client "1" appends the following message to "Drafts":
       """
       Subject: Basic Draft
@@ -30,7 +35,7 @@ Feature: IMAP Draft messages
     And IMAP client "1" sees 1 messages in "Drafts"
 
   Scenario: Draft edited remotely
-    When the following fields where changed in draft 1 for address "user@pm.me" of account "user@pm.me":
+    When the following fields were changed in draft 1 for address "user@pm.me" of account "user@pm.me":
       | to                | subject     | body                             |
       | someone@proton.me | Basic Draft | This is a draft body, but longer |
     Then IMAP client "1" eventually sees the following messages in "Drafts":

@@ -2,6 +2,35 @@
 
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
+## [Bridge 3.0.6] Perth Narrows
+
+### Fixed
+* GODT-2187: Skip messages during sync that fail to build/parse.
+
+## [Bridge 3.0.5] Perth Narrows
+
+### Fixed
+* GODT-2178: Bump go-proton-api to fix drafts.
+* GODT-2180: Allow login with FIDO2.
+
+## [Bridge 3.0.4] Perth Narrows
+
+### Changed
+* Other: Do not list \Deleted flag for All Mail.
+* Other: Disable perma-delete for expunge on Spam folder.
+
+### Fixed
+* Other: Ensure expunge feature test pushes to error stack.
+* GODT-2170: Use client-side draft update in integration tests.
+* GODT-2170: Improving test server behaviour.
+* GODT-2170: Update draft event means delete old and create new message.
+* GODT-2170: User create draft route: first steps.
+
+## [Bridge 3.0.3] Perth Narrows
+
+### Fixed
+* GPA v0.1.4: fix token expiration mechanism.
+
 ## [Bridge 3.0.2] Perth Narrows
 
 ### Changed

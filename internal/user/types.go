@@ -60,6 +60,15 @@ func groupBy[Key comparable, Value any](items []Value, key func(Value) Key) map[
 
 // b64Encode returns the base64 encoding of the given byte slice.
 func b64Encode(b []byte) []byte {
+	enc := make([]byte, base64.StdEncoding.EncodedLen(len(b)))
+
+	base64.StdEncoding.Encode(enc, b)
+
+	return enc
+}
+
+// b64RawEncode returns the base64 encoding of the given byte slice.
+func b64RawEncode(b []byte) []byte {
 	enc := make([]byte, base64.RawURLEncoding.EncodedLen(len(b)))
 
 	base64.RawURLEncoding.Encode(enc, b)
@@ -67,8 +76,8 @@ func b64Encode(b []byte) []byte {
 	return enc
 }
 
-// b64Decode returns the bytes represented by the base64 encoding of the given byte slice.
-func b64Decode(b []byte) ([]byte, error) {
+// b64RawDecode returns the bytes represented by the base64 encoding of the given byte slice.
+func b64RawDecode(b []byte) ([]byte, error) {
 	dec := make([]byte, base64.RawURLEncoding.DecodedLen(len(b)))
 
 	n, err := base64.RawURLEncoding.Decode(dec, b)

@@ -33,6 +33,7 @@ import (
 	"github.com/emersion/go-imap"
 	id "github.com/emersion/go-imap-id"
 	"github.com/emersion/go-imap/client"
+	"github.com/sirupsen/logrus"
 	"golang.org/x/exp/slices"
 )
 
@@ -280,7 +281,9 @@ func (s *scenario) imapClientSeesTheFollowingMessagesInMailbox(clientID, mailbox
 
 func (s *scenario) imapClientEventuallySeesTheFollowingMessagesInMailbox(clientID, mailbox string, table *godog.Table) error {
 	return eventually(func() error {
-		return s.imapClientSeesTheFollowingMessagesInMailbox(clientID, mailbox, table)
+		err := s.imapClientSeesTheFollowingMessagesInMailbox(clientID, mailbox, table)
+		logrus.WithError(err).Trace("Matching eventually")
+		return err
 	})
 }
 
@@ -374,7 +377,9 @@ func (s *scenario) imapClientSeesThatMessageHasTheFlag(clientID string, seq int,
 func (s *scenario) imapClientExpunges(clientID string) error {
 	_, client := s.t.getIMAPClient(clientID)
 
-	return client.Expunge(nil)
+	s.t.pushError(client.Expunge(nil))
+
+	return nil
 }
 
 func (s *scenario) imapClientAppendsTheFollowingMessageToMailbox(clientID string, mailbox string, docString *godog.DocString) error {

@@ -187,7 +187,7 @@ func (bridge *Bridge) LoginFull(
 		return "", fmt.Errorf("failed to begin login process: %w", err)
 	}
 
-	if auth.TwoFA.Enabled == proton.TOTPEnabled {
+	if auth.TwoFA.Enabled&proton.HasTOTP != 0 {
 		logrus.WithField("userID", auth.UserID).Info("Requesting TOTP")
 
 		totp, err := getTOTP()
@@ -446,9 +446,9 @@ func (bridge *Bridge) addUserWithVault(
 		ctx,
 		vault,
 		client,
+		bridge.reporter,
 		apiUser,
 		bridge.crashHandler,
-		bridge.reporter,
 		bridge.vault.SyncWorkers(),
 		bridge.vault.GetShowAllMail(),
 	)

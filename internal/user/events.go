@@ -23,6 +23,7 @@ import (
 
 	"github.com/ProtonMail/gluon/imap"
 	"github.com/ProtonMail/gluon/queue"
+	"github.com/ProtonMail/gluon/reporter"
 	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/ProtonMail/proton-bridge/v3/internal/events"
@@ -391,6 +392,18 @@ func (user *User) handleMessageEvents(ctx context.Context, messageEvents []proto
 			}
 
 		case proton.EventUpdate, proton.EventUpdateFlags:
+			// Draft update means to completely remove old message and upload the new data again.
+			if event.Message.IsDraft() {
+				if err := user.handleUpdateDraftEvent(
+					logging.WithLogrusField(ctx, "action", "update draft"),
+					event,
+				); err != nil {
+					return fmt.Errorf("failed to handle update draft event: %w", err)
+				}
+
+				return nil
+			}
+
 			// GODT-2028 - Use better events here. It should be possible to have 3 separate events that refrain to
 			// whether the flags, labels or read only data (header+body) has been changed. This requires fixing proton
 			// first so that it correctly reports those cases.
@@ -400,16 +413,6 @@ func (user *User) handleMessageEvents(ctx context.Context, messageEvents []proto
 				event,
 			); err != nil {
 				return fmt.Errorf("failed to handle update message event: %w", err)
-			}
-
-			// Only issue body updates if the message is a draft.
-			if event.Message.IsDraft() {
-				if err := user.handleUpdateDraftEvent(
-					logging.WithLogrusField(ctx, "action", "update draft"),
-					event,
-				); err != nil {
-					return fmt.Errorf("failed to handle update draft event: %w", err)
-				}
 			}
 
 		case proton.EventDelete:
@@ -438,12 +441,30 @@ func (user *User) handleCreateMessageEvent(ctx context.Context, event proton.Mes
 		}).Info("Handling message created event")
 
 		return withAddrKR(user.apiUser, user.apiAddrs[event.Message.AddressID], user.vault.KeyPass(), func(_, addrKR *crypto.KeyRing) error {
-			buildRes, err := buildRFC822(user.apiLabels, full, addrKR)
-			if err != nil {
-				return fmt.Errorf("failed to build RFC822 message: %w", err)
+			res := buildRFC822(user.apiLabels, full, addrKR)
+
+			if res.err != nil {
+				user.log.WithError(err).Error("Failed to build RFC822 message")
+
+				if err := user.vault.AddFailedMessageID(event.ID); err != nil {
+					user.log.WithError(err).Error("Failed to add failed message ID to vault")
+				}
+
+				if err := user.reporter.ReportMessageWithContext("Failed to build message (event create)", reporter.Context{
+					"messageID": res.messageID,
+					"error":     res.err,
+				}); err != nil {
+					user.log.WithError(err).Error("Failed to report message build error")
+				}
+
+				return nil
 			}
 
-			user.updateCh[full.AddressID].Enqueue(imap.NewMessagesCreated(buildRes.update))
+			if err := user.vault.RemFailedMessageID(event.ID); err != nil {
+				user.log.WithError(err).Error("Failed to remove failed message ID from vault")
+			}
+
+			user.updateCh[full.AddressID].Enqueue(imap.NewMessagesCreated(res.update))
 
 			return nil
 		})
@@ -493,16 +514,34 @@ func (user *User) handleUpdateDraftEvent(ctx context.Context, event proton.Messa
 		}
 
 		return withAddrKR(user.apiUser, user.apiAddrs[event.Message.AddressID], user.vault.KeyPass(), func(_, addrKR *crypto.KeyRing) error {
-			buildRes, err := buildRFC822(user.apiLabels, full, addrKR)
-			if err != nil {
-				return fmt.Errorf("failed to build RFC822 draft: %w", err)
+			res := buildRFC822(user.apiLabels, full, addrKR)
+
+			if res.err != nil {
+				logrus.WithError(err).Error("Failed to build RFC822 message")
+
+				if err := user.vault.AddFailedMessageID(event.ID); err != nil {
+					user.log.WithError(err).Error("Failed to add failed message ID to vault")
+				}
+
+				if err := user.reporter.ReportMessageWithContext("Failed to build message (event update)", reporter.Context{
+					"messageID": res.messageID,
+					"error":     res.err,
+				}); err != nil {
+					logrus.WithError(err).Error("Failed to report message build error")
+				}
+
+				return nil
+			}
+
+			if err := user.vault.RemFailedMessageID(event.ID); err != nil {
+				user.log.WithError(err).Error("Failed to remove failed message ID from vault")
 			}
 
 			user.updateCh[full.AddressID].Enqueue(imap.NewMessageUpdated(
-				buildRes.update.Message,
-				buildRes.update.Literal,
-				buildRes.update.MailboxIDs,
-				buildRes.update.ParsedMessage,
+				res.update.Message,
+				res.update.Literal,
+				res.update.MailboxIDs,
+				res.update.ParsedMessage,
 			))
 
 			return nil

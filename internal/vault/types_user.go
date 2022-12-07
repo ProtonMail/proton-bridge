@@ -60,9 +60,10 @@ func (mode AddressMode) String() string {
 }
 
 type SyncStatus struct {
-	HasLabels     bool
-	HasMessages   bool
-	LastMessageID string
+	HasLabels        bool
+	HasMessages      bool
+	LastMessageID    string
+	FailedMessageIDs []string
 }
 
 func (status SyncStatus) IsComplete() bool {
