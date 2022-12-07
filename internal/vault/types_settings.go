@@ -52,7 +52,7 @@ type Settings struct {
 func GetDefaultSyncWorkerCount() int {
 	const minSyncWorkers = 16
 
-	syncWorkers := runtime.NumCPU() * 2
+	syncWorkers := runtime.NumCPU() * 4
 
 	if syncWorkers < minSyncWorkers {
 		syncWorkers = minSyncWorkers
