@@ -20,12 +20,14 @@ package bridge_test
 import (
 	"context"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"runtime"
 	"sync/atomic"
 	"testing"
 
+	"github.com/ProtonMail/gluon/rfc822"
 	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/go-proton-api/server"
 	"github.com/ProtonMail/proton-bridge/v3/internal/bridge"
@@ -33,7 +35,10 @@ import (
 	"github.com/ProtonMail/proton-bridge/v3/internal/events"
 	"github.com/bradenaw/juniper/iterator"
 	"github.com/bradenaw/juniper/stream"
+	"github.com/bradenaw/juniper/xslices"
+	"github.com/emersion/go-imap"
 	"github.com/emersion/go-imap/client"
+	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -48,7 +53,7 @@ func TestBridge_Sync(t *testing.T) {
 		require.NoError(t, err)
 
 		withClient(ctx, t, s, "imap", password, func(ctx context.Context, c *proton.Client) {
-			createMessages(ctx, t, c, addrID, labelID, numMsg)
+			createNumMessages(ctx, t, c, addrID, labelID, numMsg)
 		})
 
 		var total uint64
@@ -142,6 +147,68 @@ func TestBridge_Sync(t *testing.T) {
 	}, server.WithTLS(false))
 }
 
+func TestBridge_Sync_BadMessage(t *testing.T) {
+	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, storeKey []byte) {
+		userID, addrID, err := s.CreateUser("imap", "imap@pm.me", password)
+		require.NoError(t, err)
+
+		labelID, err := s.CreateLabel(userID, "folder", "", proton.LabelTypeFolder)
+		require.NoError(t, err)
+
+		var messageIDs []string
+
+		withClient(ctx, t, s, "imap", password, func(ctx context.Context, c *proton.Client) {
+			messageIDs = createMessages(ctx, t, c, addrID, labelID,
+				[]byte("To: someone@pm.me\r\nSubject: Good message\r\n\r\nHello!"),
+				[]byte("To: someone@pm.me\r\nSubject: Bad message\r\nContent-Type: this is not a valid content type\r\n\r\nHello!"),
+			)
+		})
+
+		// The initial user should be fully synced and should skip the bad message.
+		// We should report the bad message to sentry.
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+			mocks.Reporter.EXPECT().ReportMessageWithContext("Failed to build message (sync)", gomock.Any())
+
+			syncCh, done := chToType[events.Event, events.SyncFinished](bridge.GetEvents(events.SyncFinished{}))
+			defer done()
+
+			userID, err := bridge.LoginFull(ctx, "imap", password, nil, nil)
+			require.NoError(t, err)
+
+			require.Equal(t, userID, (<-syncCh).UserID)
+		})
+
+		// If we then connect an IMAP client, it should see the good message but not the bad one.
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(b *bridge.Bridge, mocks *bridge.Mocks) {
+			info, err := b.GetUserInfo(userID)
+			require.NoError(t, err)
+			require.True(t, info.State == bridge.Connected)
+
+			client, err := client.Dial(fmt.Sprintf("%v:%v", constants.Host, b.GetIMAPPort()))
+			require.NoError(t, err)
+			require.NoError(t, client.Login("imap@pm.me", string(info.BridgePass)))
+			defer func() { _ = client.Logout() }()
+
+			status, err := client.Select(`Folders/folder`, false)
+			require.NoError(t, err)
+			require.Equal(t, uint32(1), status.Messages)
+
+			messages, err := clientFetch(client, `Folders/folder`)
+			require.NoError(t, err)
+			require.Len(t, messages, 1)
+
+			// The bad message should have been skipped.
+			literal, err := io.ReadAll(messages[0].GetBody(must(imap.ParseBodySectionName("BODY[]"))))
+			require.NoError(t, err)
+
+			header, err := rfc822.Parse(literal).ParseHeader()
+			require.NoError(t, err)
+			require.Equal(t, "Good message", header.Get("Subject"))
+			require.Equal(t, messageIDs[0], header.Get("X-Pm-Internal-Id"))
+		})
+	})
+}
+
 func withClient(ctx context.Context, t *testing.T, s *server.Server, username string, password []byte, fn func(context.Context, *proton.Client)) {
 	m := proton.New(
 		proton.WithHostURL(s.GetHostURL()),
@@ -155,10 +222,39 @@ func withClient(ctx context.Context, t *testing.T, s *server.Server, username st
 	fn(ctx, c)
 }
 
-func createMessages(ctx context.Context, t *testing.T, c *proton.Client, addrID, labelID string, count int) {
+func clientFetch(client *client.Client, mailbox string) ([]*imap.Message, error) {
+	status, err := client.Select(mailbox, false)
+	if err != nil {
+		return nil, err
+	}
+
+	if status.Messages == 0 {
+		return nil, nil
+	}
+
+	resCh := make(chan *imap.Message)
+
+	go func() {
+		if err := client.Fetch(
+			&imap.SeqSet{Set: []imap.Seq{{Start: 1, Stop: status.Messages}}},
+			[]imap.FetchItem{imap.FetchFlags, imap.FetchEnvelope, imap.FetchUid, "BODY.PEEK[]"},
+			resCh,
+		); err != nil {
+			panic(err)
+		}
+	}()
+
+	return iterator.Collect(iterator.Chan(resCh)), nil
+}
+
+func createNumMessages(ctx context.Context, t *testing.T, c *proton.Client, addrID, labelID string, count int) []string {
 	literal, err := os.ReadFile(filepath.Join("testdata", "text-plain.eml"))
 	require.NoError(t, err)
 
+	return createMessages(ctx, t, c, addrID, labelID, xslices.Repeat(literal, count)...)
+}
+
+func createMessages(ctx context.Context, t *testing.T, c *proton.Client, addrID, labelID string, messages ...[]byte) []string {
 	user, err := c.GetUser(ctx)
 	require.NoError(t, err)
 
@@ -174,22 +270,27 @@ func createMessages(ctx context.Context, t *testing.T, c *proton.Client, addrID,
 	_, addrKRs, err := proton.Unlock(user, addr, keyPass)
 	require.NoError(t, err)
 
-	require.NoError(t, getErr(stream.Collect(ctx, c.ImportMessages(
+	res, err := stream.Collect(ctx, c.ImportMessages(
 		ctx,
 		addrKRs[addrID],
 		runtime.NumCPU(),
 		runtime.NumCPU(),
-		iterator.Collect(iterator.Map(iterator.Counter(count), func(i int) proton.ImportReq {
+		xslices.Map(messages, func(message []byte) proton.ImportReq {
 			return proton.ImportReq{
 				Metadata: proton.ImportMetadata{
 					AddressID: addrID,
 					LabelIDs:  []string{labelID},
 					Flags:     proton.MessageFlagReceived,
 				},
-				Message: literal,
+				Message: message,
 			}
-		}))...,
-	))))
+		})...,
+	))
+	require.NoError(t, err)
+
+	return xslices.Map(res, func(res proton.ImportRes) string {
+		return res.MessageID
+	})
 }
 
 func countBytesRead(ctl *proton.NetCtl, fn func()) uint64 {
