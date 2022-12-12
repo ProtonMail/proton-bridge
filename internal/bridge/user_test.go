@@ -592,7 +592,7 @@ func TestBridge_UserInfo_Alias(t *testing.T) {
 	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, vaultKey []byte) {
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, vaultKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
 			// Create a new user.
-			userID, _, err := s.CreateUser("primary", "primary@pm.me", []byte("password"))
+			userID, _, err := s.CreateUser("primary", []byte("password"))
 			require.NoError(t, err)
 
 			// Give the new user an alias.
@@ -606,7 +606,7 @@ func TestBridge_UserInfo_Alias(t *testing.T) {
 			require.NoError(t, err)
 
 			// The user should have two addresses, the primary should be first.
-			require.Equal(t, []string{"primary@pm.me", "alias@pm.me"}, info.Addresses)
+			require.Equal(t, []string{"primary@" + s.GetDomain(), "alias@pm.me"}, info.Addresses)
 		})
 	})
 }

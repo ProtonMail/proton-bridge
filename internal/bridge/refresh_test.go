@@ -35,7 +35,7 @@ import (
 
 func TestBridge_Refresh(t *testing.T) {
 	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, storeKey []byte) {
-		userID, _, err := s.CreateUser("imap", "imap@pm.me", password)
+		userID, _, err := s.CreateUser("imap", password)
 		require.NoError(t, err)
 
 		names := iterator.Collect(iterator.Map(iterator.Counter(10), func(i int) string {
@@ -67,7 +67,7 @@ func TestBridge_Refresh(t *testing.T) {
 
 			client, err := client.Dial(fmt.Sprintf("%v:%v", constants.Host, b.GetIMAPPort()))
 			require.NoError(t, err)
-			require.NoError(t, client.Login("imap@pm.me", string(info.BridgePass)))
+			require.NoError(t, client.Login(info.Addresses[0], string(info.BridgePass)))
 			defer func() { _ = client.Logout() }()
 
 			for _, name := range names {
@@ -100,7 +100,7 @@ func TestBridge_Refresh(t *testing.T) {
 
 			client, err := client.Dial(fmt.Sprintf("%v:%v", constants.Host, b.GetIMAPPort()))
 			require.NoError(t, err)
-			require.NoError(t, client.Login("imap@pm.me", string(info.BridgePass)))
+			require.NoError(t, client.Login(info.Addresses[0], string(info.BridgePass)))
 			defer func() { _ = client.Logout() }()
 
 			for _, name := range names {

@@ -46,7 +46,7 @@ func TestBridge_Sync(t *testing.T) {
 	numMsg := 1 << 8
 
 	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, storeKey []byte) {
-		userID, addrID, err := s.CreateUser("imap", "imap@pm.me", password)
+		userID, addrID, err := s.CreateUser("imap", password)
 		require.NoError(t, err)
 
 		labelID, err := s.CreateLabel(userID, "folder", "", proton.LabelTypeFolder)
@@ -59,7 +59,7 @@ func TestBridge_Sync(t *testing.T) {
 		var total uint64
 
 		// The initial user should be fully synced.
-		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, _ *bridge.Mocks) {
 			syncCh, done := chToType[events.Event, events.SyncFinished](bridge.GetEvents(events.SyncFinished{}))
 			defer done()
 
@@ -73,14 +73,14 @@ func TestBridge_Sync(t *testing.T) {
 		})
 
 		// If we then connect an IMAP client, it should see all the messages.
-		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(b *bridge.Bridge, mocks *bridge.Mocks) {
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(b *bridge.Bridge, _ *bridge.Mocks) {
 			info, err := b.GetUserInfo(userID)
 			require.NoError(t, err)
 			require.True(t, info.State == bridge.Connected)
 
 			client, err := client.Dial(fmt.Sprintf("%v:%v", constants.Host, b.GetIMAPPort()))
 			require.NoError(t, err)
-			require.NoError(t, client.Login("imap@pm.me", string(info.BridgePass)))
+			require.NoError(t, client.Login(info.Addresses[0], string(info.BridgePass)))
 			defer func() { _ = client.Logout() }()
 
 			status, err := client.Select(`Folders/folder`, false)
@@ -89,7 +89,7 @@ func TestBridge_Sync(t *testing.T) {
 		})
 
 		// Now let's remove the user and simulate a network error.
-		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, _ *bridge.Mocks) {
 			require.NoError(t, bridge.DeleteUser(ctx, userID))
 		})
 
@@ -97,7 +97,7 @@ func TestBridge_Sync(t *testing.T) {
 		netCtl.SetReadLimit(2 * total / 3)
 
 		// Login the user; its sync should fail.
-		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(b *bridge.Bridge, mocks *bridge.Mocks) {
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(b *bridge.Bridge, _ *bridge.Mocks) {
 			{
 				syncCh, done := chToType[events.Event, events.SyncFailed](b.GetEvents(events.SyncFailed{}))
 				defer done()
@@ -113,7 +113,7 @@ func TestBridge_Sync(t *testing.T) {
 
 				client, err := client.Dial(fmt.Sprintf("%v:%v", constants.Host, b.GetIMAPPort()))
 				require.NoError(t, err)
-				require.NoError(t, client.Login("imap@pm.me", string(info.BridgePass)))
+				require.NoError(t, client.Login(info.Addresses[0], string(info.BridgePass)))
 				defer func() { _ = client.Logout() }()
 
 				status, err := client.Select(`Folders/folder`, false)
@@ -136,7 +136,7 @@ func TestBridge_Sync(t *testing.T) {
 
 				client, err := client.Dial(fmt.Sprintf("%v:%v", constants.Host, b.GetIMAPPort()))
 				require.NoError(t, err)
-				require.NoError(t, client.Login("imap@pm.me", string(info.BridgePass)))
+				require.NoError(t, client.Login(info.Addresses[0], string(info.BridgePass)))
 				defer func() { _ = client.Logout() }()
 
 				status, err := client.Select(`Folders/folder`, false)
@@ -149,7 +149,7 @@ func TestBridge_Sync(t *testing.T) {
 
 func TestBridge_Sync_BadMessage(t *testing.T) {
 	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, storeKey []byte) {
-		userID, addrID, err := s.CreateUser("imap", "imap@pm.me", password)
+		userID, addrID, err := s.CreateUser("imap", password)
 		require.NoError(t, err)
 
 		labelID, err := s.CreateLabel(userID, "folder", "", proton.LabelTypeFolder)
@@ -179,14 +179,14 @@ func TestBridge_Sync_BadMessage(t *testing.T) {
 		})
 
 		// If we then connect an IMAP client, it should see the good message but not the bad one.
-		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(b *bridge.Bridge, mocks *bridge.Mocks) {
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(b *bridge.Bridge, _ *bridge.Mocks) {
 			info, err := b.GetUserInfo(userID)
 			require.NoError(t, err)
 			require.True(t, info.State == bridge.Connected)
 
 			client, err := client.Dial(fmt.Sprintf("%v:%v", constants.Host, b.GetIMAPPort()))
 			require.NoError(t, err)
-			require.NoError(t, client.Login("imap@pm.me", string(info.BridgePass)))
+			require.NoError(t, client.Login(info.Addresses[0], string(info.BridgePass)))
 			defer func() { _ = client.Logout() }()
 
 			status, err := client.Select(`Folders/folder`, false)

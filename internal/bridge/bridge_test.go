@@ -59,7 +59,7 @@ var (
 func init() {
 	user.EventPeriod = 100 * time.Millisecond
 	user.EventJitter = 0
-	backend.GenerateKey = tests.FastGenerateKey
+	backend.GenerateKey = backend.FastGenerateKey
 	certs.GenerateCert = tests.FastGenerateCert
 }
 
@@ -384,7 +384,7 @@ func TestBridge_AddressWithoutKeys(t *testing.T) {
 
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, vaultKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
 			// Create a user which will have an address without keys.
-			userID, _, err := s.CreateUser("nokeys", "nokeys@pm.me", []byte("password"))
+			userID, _, err := s.CreateUser("nokeys", []byte("password"))
 			require.NoError(t, err)
 
 			// Create an additional address for the user; it will not have keys.
@@ -501,7 +501,7 @@ func withEnv(t *testing.T, tests func(context.Context, *server.Server, *proton.N
 	defer server.Close()
 
 	// Add test user.
-	_, _, err := server.CreateUser(username, username+"@pm.me", password)
+	_, _, err := server.CreateUser(username, password)
 	require.NoError(t, err)
 
 	// Generate a random vault key.
@@ -566,7 +566,7 @@ func withBridge(
 		cookieJar,
 		useragent.New(),
 		mocks.TLSReporter,
-		proton.NewDialer(netCtl, &tls.Config{InsecureSkipVerify: true}).GetRoundTripper(),
+		netCtl.NewRoundTripper(&tls.Config{InsecureSkipVerify: true}),
 		mocks.ProxyCtl,
 		mocks.CrashHandler,
 		mocks.Reporter,

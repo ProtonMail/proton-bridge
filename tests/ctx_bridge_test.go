@@ -30,7 +30,6 @@ import (
 	"time"
 
 	"github.com/ProtonMail/gluon/queue"
-	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/proton-bridge/v3/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/v3/internal/constants"
 	"github.com/ProtonMail/proton-bridge/v3/internal/cookies"
@@ -157,7 +156,7 @@ func (t *testCtx) initBridge() (<-chan events.Event, error) {
 		persister,
 		useragent.New(),
 		t.mocks.TLSReporter,
-		proton.NewDialer(t.netCtl, &tls.Config{InsecureSkipVerify: true}).GetRoundTripper(),
+		t.netCtl.NewRoundTripper(&tls.Config{InsecureSkipVerify: true}),
 		t.mocks.ProxyCtl,
 		t.mocks.CrashHandler,
 		t.reporter,

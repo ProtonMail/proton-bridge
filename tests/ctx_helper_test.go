@@ -21,39 +21,54 @@ import (
 	"context"
 	"fmt"
 	"runtime"
-	"sync"
-	"testing"
 
-	"github.com/ProtonMail/gluon/reporter"
 	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/bradenaw/juniper/stream"
-	"github.com/bradenaw/juniper/xslices"
-	"github.com/golang/mock/gomock"
-	"github.com/sirupsen/logrus"
-	"github.com/stretchr/testify/assert"
 )
 
-func (t *testCtx) withClient(ctx context.Context, username string, fn func(context.Context, *proton.Client) error) error {
-	c, _, err := proton.New(
+// withProton executes the given function with a proton manager configured to use the test API.
+func (t *testCtx) withProton(fn func(*proton.Manager) error) error {
+	m := proton.New(
 		proton.WithHostURL(t.api.GetHostURL()),
 		proton.WithTransport(proton.InsecureTransport()),
-	).NewClientWithLogin(ctx, username, []byte(t.getUserPass(t.getUserID(username))))
-	if err != nil {
-		return err
-	}
+	)
+	defer m.Close()
 
-	defer c.Close()
+	return fn(m)
+}
 
-	if err := fn(ctx, c); err != nil {
-		return fmt.Errorf("failed to execute with client: %w", err)
-	}
+// withClient executes the given function with a client that is logged in as the given (known) user.
+func (t *testCtx) withClient(ctx context.Context, username string, fn func(context.Context, *proton.Client) error) error {
+	return t.withClientPass(ctx, username, t.getUserPass(t.getUserID(username)), fn)
+}
 
-	if err := c.AuthDelete(ctx); err != nil {
-		return fmt.Errorf("failed to delete auth: %w", err)
-	}
+// withClient executes the given function with a client that is logged in with the given username and password.
+func (t *testCtx) withClientPass(ctx context.Context, username, password string, fn func(context.Context, *proton.Client) error) error {
+	return t.withProton(func(m *proton.Manager) error {
+		c, _, err := m.NewClientWithLogin(ctx, username, []byte(password))
+		if err != nil {
+			return fmt.Errorf("failed to create client: %w", err)
+		}
+		defer c.Close()
 
-	return nil
+		if err := fn(ctx, c); err != nil {
+			return fmt.Errorf("failed to execute with client: %w", err)
+		}
+
+		if err := c.AuthDelete(ctx); err != nil {
+			return fmt.Errorf("failed to delete auth: %w", err)
+		}
+
+		return nil
+	})
+}
+
+// runQuarkCmd runs the given quark command with the given arguments.
+func (t *testCtx) runQuarkCmd(ctx context.Context, command string, args ...string) error {
+	return t.withProton(func(m *proton.Manager) error {
+		return m.Quark(ctx, command, args...)
+	})
 }
 
 func (t *testCtx) withAddrKR(
@@ -106,124 +121,4 @@ func (t *testCtx) createMessages(ctx context.Context, username, addrID string, r
 			return nil
 		})
 	})
-}
-
-type reportRecord struct {
-	isException bool
-	message     string
-	context     reporter.Context
-}
-
-type reportRecorder struct {
-	assert  *assert.Assertions
-	reports []reportRecord
-
-	lock     sync.Locker
-	isClosed bool
-}
-
-func newReportRecorder(tb testing.TB) *reportRecorder {
-	return &reportRecorder{
-		assert:   assert.New(tb),
-		reports:  []reportRecord{},
-		lock:     &sync.Mutex{},
-		isClosed: false,
-	}
-}
-
-func (r *reportRecorder) add(isException bool, message string, context reporter.Context) {
-	r.lock.Lock()
-	defer r.lock.Unlock()
-
-	l := logrus.WithFields(logrus.Fields{
-		"isException": isException,
-		"message":     message,
-		"context":     context,
-		"pkg":         "test/reportRecorder",
-	})
-
-	if r.isClosed {
-		l.Warn("Reporter closed, report skipped")
-		return
-	}
-
-	r.reports = append(r.reports, reportRecord{
-		isException: isException,
-		message:     message,
-		context:     context,
-	})
-
-	l.Warn("Report recorded")
-}
-
-func (r *reportRecorder) close() {
-	r.lock.Lock()
-	defer r.lock.Unlock()
-
-	r.isClosed = true
-}
-
-func (r *reportRecorder) assertEmpty() {
-	r.assert.Empty(r.reports)
-}
-
-func (r *reportRecorder) removeMatchingRecords(isException, message, context gomock.Matcher, n int) {
-	if n == 0 {
-		n = len(r.reports)
-	}
-
-	r.reports = xslices.Filter(r.reports, func(rec reportRecord) bool {
-		if n <= 0 {
-			return true
-		}
-
-		l := logrus.WithFields(logrus.Fields{
-			"rec": rec,
-		})
-		if !isException.Matches(rec.isException) {
-			l.WithField("matcher", isException).Debug("Not matching")
-			return true
-		}
-
-		if !message.Matches(rec.message) {
-			l.WithField("matcher", message).Debug("Not matching")
-			return true
-		}
-
-		if !context.Matches(rec.context) {
-			l.WithField("matcher", context).Debug("Not matching")
-			return true
-		}
-
-		n--
-
-		return false
-	})
-}
-
-func (r *reportRecorder) ReportException(data any) error {
-	r.add(true, "exception", reporter.Context{"data": data})
-	return nil
-}
-
-func (r *reportRecorder) ReportMessage(message string) error {
-	r.add(false, message, reporter.Context{})
-	return nil
-}
-
-func (r *reportRecorder) ReportMessageWithContext(message string, context reporter.Context) error {
-	r.add(false, message, context)
-	return nil
-}
-
-func (r *reportRecorder) ReportExceptionWithContext(data any, context reporter.Context) error {
-	if context == nil {
-		context = reporter.Context{}
-	}
-
-	context["data"] = data
-
-	r.add(true, "exception", context)
-
-	return nil
 }

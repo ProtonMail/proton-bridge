@@ -34,42 +34,80 @@ import (
 )
 
 func (s *scenario) thereExistsAnAccountWithUsernameAndPassword(username, password string) error {
-	// Create the user.
-	userID, addrID, err := s.t.api.CreateUser(username, username, []byte(password))
-	if err != nil {
+	// Create the user and generate its default address (with keys).
+	if err := s.t.runQuarkCmd(
+		context.Background(),
+		"user:create",
+		"--name", username,
+		"--password", password,
+		"--gen-keys", "RSA2048",
+	); err != nil {
 		return err
 	}
 
-	// Set the ID of this user.
-	s.t.setUserID(username, userID)
+	return s.t.withClientPass(context.Background(), username, password, func(ctx context.Context, c *proton.Client) error {
+		user, err := c.GetUser(ctx)
+		if err != nil {
+			return err
+		}
 
-	// Set the password of this user.
-	s.t.setUserPass(userID, password)
+		addr, err := c.GetAddresses(ctx)
+		if err != nil {
+			return err
+		}
 
-	// Set the address of this user (right now just the same as the username, but let's stay flexible).
-	s.t.setUserAddr(userID, addrID, username)
+		// Set the ID of the user.
+		s.t.setUserID(username, user.ID)
 
-	return nil
+		// Set the password of the user.
+		s.t.setUserPass(user.ID, password)
+
+		// Set the address of the user.
+		s.t.setUserAddr(user.ID, addr[0].ID, addr[0].Email)
+
+		return nil
+	})
 }
 
 func (s *scenario) theAccountHasAdditionalAddress(username, address string) error {
 	userID := s.t.getUserID(username)
 
-	addrID, err := s.t.api.CreateAddress(userID, address, []byte(s.t.getUserPass(userID)))
-	if err != nil {
+	// Create the user's additional address.
+	if err := s.t.runQuarkCmd(
+		context.Background(),
+		"user:create:address",
+		userID,
+		s.t.getUserPass(userID),
+		address,
+		"--gen-keys", "RSA2048",
+	); err != nil {
 		return err
 	}
 
-	s.t.setUserAddr(userID, addrID, address)
+	return s.t.withClient(context.Background(), username, func(ctx context.Context, c *proton.Client) error {
+		addr, err := c.GetAddresses(ctx)
+		if err != nil {
+			return err
+		}
 
-	return nil
+		// Set the new address of the user.
+		s.t.setUserAddr(userID, addr[len(addr)-1].ID, address)
+
+		return nil
+	})
 }
 
 func (s *scenario) theAccountNoLongerHasAdditionalAddress(username, address string) error {
 	userID := s.t.getUserID(username)
 	addrID := s.t.getUserAddrID(userID, address)
 
-	if err := s.t.api.RemoveAddress(userID, addrID); err != nil {
+	if err := s.t.withClient(context.Background(), username, func(ctx context.Context, c *proton.Client) error {
+		if err := c.DisableAddress(ctx, addrID); err != nil {
+			return err
+		}
+
+		return c.DeleteAddress(ctx, addrID)
+	}); err != nil {
 		return err
 	}
 

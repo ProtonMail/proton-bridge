@@ -27,7 +27,7 @@ import (
 
 func init() {
 	// Use the fast key generation for tests.
-	backend.GenerateKey = FastGenerateKey
+	backend.GenerateKey = backend.FastGenerateKey
 
 	// Use the fast cert generation for tests.
 	certs.GenerateCert = FastGenerateCert

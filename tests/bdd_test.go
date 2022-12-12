@@ -41,21 +41,26 @@ func (s *scenario) close(_ testing.TB) {
 }
 
 func TestFeatures(testingT *testing.T) {
-	paths := []string{"features"}
-	if features := os.Getenv("FEATURES"); features != "" {
-		paths = strings.Split(features, " ")
-	}
+	var s scenario
 
 	suite := godog.TestSuite{
-		ScenarioInitializer: func(ctx *godog.ScenarioContext) {
-			var s scenario
+		TestSuiteInitializer: func(ctx *godog.TestSuiteContext) {
+			ctx.BeforeSuite(func() {
+				// Global setup.
+			})
 
-			ctx.Before(func(ctx context.Context, sc *godog.Scenario) (context.Context, error) {
+			ctx.AfterSuite(func() {
+				// Global teardown.
+			})
+		},
+
+		ScenarioInitializer: func(ctx *godog.ScenarioContext) {
+			ctx.Before(func(ctx context.Context, _ *godog.Scenario) (context.Context, error) {
 				s.reset(testingT)
 				return ctx, nil
 			})
 
-			ctx.After(func(ctx context.Context, sc *godog.Scenario, err error) (context.Context, error) {
+			ctx.After(func(ctx context.Context, _ *godog.Scenario, _ error) (context.Context, error) {
 				s.close(testingT)
 				return ctx, nil
 			})
@@ -72,7 +77,7 @@ func TestFeatures(testingT *testing.T) {
 				return ctx, nil
 			})
 
-			ctx.StepContext().After(func(ctx context.Context, st *godog.Step, status godog.StepResultStatus, err error) (context.Context, error) {
+			ctx.StepContext().After(func(ctx context.Context, st *godog.Step, status godog.StepResultStatus, _ error) (context.Context, error) {
 				logrus.Debugf("Finished step (%v): %s", status, st.Text)
 				return ctx, nil
 			})
@@ -197,7 +202,7 @@ func TestFeatures(testingT *testing.T) {
 		},
 		Options: &godog.Options{
 			Format:   "pretty",
-			Paths:    paths,
+			Paths:    getFeaturePaths(),
 			TestingT: testingT,
 		},
 	}
@@ -205,4 +210,16 @@ func TestFeatures(testingT *testing.T) {
 	if suite.Run() != 0 {
 		testingT.Fatal("non-zero status returned, failed to run feature tests")
 	}
+}
+
+func getFeaturePaths() []string {
+	var paths []string
+
+	if features := os.Getenv("FEATURES"); features != "" {
+		paths = strings.Split(features, " ")
+	} else {
+		paths = []string{"features"}
+	}
+
+	return paths
 }

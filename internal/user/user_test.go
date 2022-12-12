@@ -39,7 +39,7 @@ import (
 func init() {
 	EventPeriod = 100 * time.Millisecond
 	EventJitter = 0
-	backend.GenerateKey = tests.FastGenerateKey
+	backend.GenerateKey = backend.FastGenerateKey
 	certs.GenerateCert = tests.FastGenerateCert
 }
 
@@ -49,7 +49,7 @@ func TestMain(m *testing.M) {
 
 func TestUser_Info(t *testing.T) {
 	withAPI(t, context.Background(), func(ctx context.Context, s *server.Server, m *proton.Manager) {
-		withAccount(t, s, "username", "password", []string{"email@pm.me", "alias@pm.me"}, func(userID string, _ []string) {
+		withAccount(t, s, "username", "password", []string{"alias@pm.me"}, func(userID string, _ []string) {
 			withUser(t, ctx, s, m, "username", "password", func(user *User) {
 				// User's ID should be correct.
 				require.Equal(t, userID, user.ID())
@@ -58,7 +58,7 @@ func TestUser_Info(t *testing.T) {
 				require.Equal(t, "username", user.Name())
 
 				// User's email should be correct.
-				require.ElementsMatch(t, []string{"email@pm.me", "alias@pm.me"}, user.Emails())
+				require.ElementsMatch(t, []string{"username@" + s.GetDomain(), "alias@pm.me"}, user.Emails())
 
 				// By default, user should be in combined mode.
 				require.Equal(t, vault.CombinedMode, user.GetAddressMode())
@@ -72,7 +72,7 @@ func TestUser_Info(t *testing.T) {
 
 func TestUser_Sync(t *testing.T) {
 	withAPI(t, context.Background(), func(ctx context.Context, s *server.Server, m *proton.Manager) {
-		withAccount(t, s, "username", "password", []string{"email@pm.me"}, func(string, []string) {
+		withAccount(t, s, "username", "password", []string{}, func(string, []string) {
 			withUser(t, ctx, s, m, "username", "password", func(user *User) {
 				// User starts a sync at startup.
 				require.IsType(t, events.SyncStarted{}, <-user.GetEventCh())
@@ -89,7 +89,7 @@ func TestUser_Sync(t *testing.T) {
 
 func TestUser_AddressMode(t *testing.T) {
 	withAPI(t, context.Background(), func(ctx context.Context, s *server.Server, m *proton.Manager) {
-		withAccount(t, s, "username", "password", []string{"email@pm.me", "alias@pm.me"}, func(string, []string) {
+		withAccount(t, s, "username", "password", []string{}, func(string, []string) {
 			withUser(t, ctx, s, m, "username", "password", func(user *User) {
 				// User finishes syncing at startup.
 				require.IsType(t, events.SyncStarted{}, <-user.GetEventCh())
@@ -126,7 +126,7 @@ func TestUser_AddressMode(t *testing.T) {
 
 func TestUser_Deauth(t *testing.T) {
 	withAPI(t, context.Background(), func(ctx context.Context, s *server.Server, m *proton.Manager) {
-		withAccount(t, s, "username", "password", []string{"email@pm.me"}, func(string, []string) {
+		withAccount(t, s, "username", "password", []string{}, func(string, []string) {
 			withUser(t, ctx, s, m, "username", "password", func(user *User) {
 				require.IsType(t, events.SyncStarted{}, <-user.GetEventCh())
 				require.IsType(t, events.SyncProgress{}, <-user.GetEventCh())
@@ -147,7 +147,7 @@ func TestUser_Refresh(t *testing.T) {
 	mockReporter := mocks.NewMockReporter(ctl)
 
 	withAPI(t, context.Background(), func(ctx context.Context, s *server.Server, m *proton.Manager) {
-		withAccount(t, s, "username", "password", []string{"email@pm.me"}, func(string, []string) {
+		withAccount(t, s, "username", "password", []string{}, func(string, []string) {
 			withUser(t, ctx, s, m, "username", "password", func(user *User) {
 				require.IsType(t, events.SyncStarted{}, <-user.GetEventCh())
 				require.IsType(t, events.SyncProgress{}, <-user.GetEventCh())
@@ -180,15 +180,13 @@ func withAPI(_ testing.TB, ctx context.Context, fn func(context.Context, *server
 	))
 }
 
-func withAccount(tb testing.TB, s *server.Server, username, password string, emails []string, fn func(string, []string)) { //nolint:unparam
-	userID, addrID, err := s.CreateUser(username, emails[0], []byte(password))
+func withAccount(tb testing.TB, s *server.Server, username, password string, aliases []string, fn func(string, []string)) { //nolint:unparam
+	userID, addrID, err := s.CreateUser(username, []byte(password))
 	require.NoError(tb, err)
 
-	addrIDs := make([]string, 0, len(emails))
+	addrIDs := []string{addrID}
 
-	addrIDs = append(addrIDs, addrID)
-
-	for _, email := range emails[1:] {
+	for _, email := range aliases {
 		addrID, err := s.CreateAddress(userID, email, []byte(password))
 		require.NoError(tb, err)
 

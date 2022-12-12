@@ -39,7 +39,7 @@ import (
 
 func TestBridge_Send(t *testing.T) {
 	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, storeKey []byte) {
-		_, _, err := s.CreateUser("recipient", "recipient@pm.me", password)
+		_, _, err := s.CreateUser("recipient", password)
 		require.NoError(t, err)
 
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {

@@ -34,7 +34,6 @@ import (
 	"github.com/ProtonMail/proton-bridge/v3/internal/locations"
 	"github.com/bradenaw/juniper/xslices"
 	"github.com/emersion/go-imap/client"
-	"github.com/golang/mock/gomock"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/exp/maps"
 	"google.golang.org/grpc"
@@ -317,18 +316,7 @@ func (t *testCtx) close(ctx context.Context) {
 	}
 
 	t.api.Close()
-
 	t.events.close()
-
 	t.reporter.close()
-
-	// Closed connection can happen in the end of scenario
-	t.reporter.removeMatchingRecords(
-		gomock.Eq(false),
-		gomock.Eq("Failed to parse imap command"),
-		gomock.Any(), // mocks.NewClosedConnectionMatcher(),
-		0,
-	)
-
 	t.reporter.assertEmpty()
 }
