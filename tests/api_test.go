@@ -29,8 +29,6 @@ type API interface {
 	AddCallWatcher(func(server.Call), ...string)
 
 	CreateUser(username, address string, password []byte) (string, string, error)
-	RevokeUser(userID string) error
-
 	CreateAddress(userID, address string, password []byte) (string, error)
 	RemoveAddress(userID, addrID string) error
 	RemoveAddressKey(userID, addrID, keyID string) error

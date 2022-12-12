@@ -310,7 +310,9 @@ func (s *scenario) userIsDeleted(username string) error {
 }
 
 func (s *scenario) theAuthOfUserIsRevoked(username string) error {
-	return s.t.api.RevokeUser(s.t.getUserID(username))
+	return s.t.withClient(context.Background(), username, func(ctx context.Context, client *proton.Client) error {
+		return client.AuthRevokeAll(ctx)
+	})
 }
 
 func (s *scenario) userIsListedAndConnected(username string) error {
