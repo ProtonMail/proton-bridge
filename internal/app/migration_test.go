@@ -22,9 +22,12 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 
+	"github.com/ProtonMail/proton-bridge/v3/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/v3/internal/cookies"
+	"github.com/ProtonMail/proton-bridge/v3/internal/locations"
 	"github.com/ProtonMail/proton-bridge/v3/internal/updater"
 	"github.com/ProtonMail/proton-bridge/v3/internal/vault"
 	"github.com/stretchr/testify/require"
@@ -78,4 +81,49 @@ func TestMigratePrefsToVault(t *testing.T) {
 
 	// There should be a cookie for the API.
 	require.NotEmpty(t, cookies.Cookies(url))
+}
+
+func TestKeychainMigration(t *testing.T) {
+	// migration needed only for linux
+	if runtime.GOOS != "linux" {
+		return
+	}
+
+	tmpDir := t.TempDir()
+	os.Setenv("XDG_CONFIG_HOME", tmpDir)
+
+	oldCacheDir := filepath.Join(tmpDir, "protonmail", "bridge")
+	require.NoError(t, os.MkdirAll(oldCacheDir, 0o700))
+
+	oldPrefs, err := os.ReadFile(filepath.Join("testdata", "prefs.json"))
+	require.NoError(t, err)
+
+	require.NoError(t, os.WriteFile(
+		filepath.Join(oldCacheDir, "prefs.json"),
+		oldPrefs, 0o600,
+	))
+
+	locations := locations.New(bridge.NewTestLocationsProvider(tmpDir), "config-name")
+
+	settingsFolder, err := locations.ProvideSettingsPath()
+	require.NoError(t, err)
+
+	keychainName, err := vault.GetHelper(settingsFolder)
+	require.NoError(t, err)
+	require.Equal(t, "", keychainName)
+
+	require.NoError(t, migrateKeychainHelper(locations))
+
+	keychainName, err = vault.GetHelper(settingsFolder)
+	require.NoError(t, err)
+	require.Equal(t, "secret-service", keychainName)
+
+	require.NoError(t, vault.SetHelper(settingsFolder, "different"))
+
+	// Calling migration again will not overwrite
+	require.NoError(t, migrateKeychainHelper(locations))
+	keychainName, err = vault.GetHelper(settingsFolder)
+	require.NoError(t, err)
+	require.Equal(t, "different", keychainName)
+
 }

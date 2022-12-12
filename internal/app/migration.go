@@ -43,6 +43,16 @@ import (
 func migrateKeychainHelper(locations *locations.Locations) error {
 	logrus.Info("Migrating keychain helper")
 
+	settings, err := locations.ProvideSettingsPath()
+	if err != nil {
+		return fmt.Errorf("failed to get settings path: %w", err)
+	}
+
+	if keychainName, _ := vault.GetHelper(settings); keychainName != "" {
+		// If uncorupted keychain file is already there do not migrate again.
+		return nil
+	}
+
 	configDir, err := os.UserConfigDir()
 	if err != nil {
 		return fmt.Errorf("failed to get user config dir: %w", err)
@@ -61,11 +71,6 @@ func migrateKeychainHelper(locations *locations.Locations) error {
 
 	if err := json.Unmarshal(b, &prefs); err != nil {
 		return fmt.Errorf("failed to unmarshal old prefs file: %w", err)
-	}
-
-	settings, err := locations.ProvideSettingsPath()
-	if err != nil {
-		return fmt.Errorf("failed to get settings path: %w", err)
 	}
 
 	return vault.SetHelper(settings, prefs.Helper)
