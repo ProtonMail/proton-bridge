@@ -99,9 +99,16 @@ func (user *User) SetAddressMode(mode AddressMode) error {
 	})
 }
 
-// BridgePass returns the user's bridge password (unencoded).
+// BridgePass returns the user's bridge password as raw token bytes (unencoded).
 func (user *User) BridgePass() []byte {
 	return user.vault.getUser(user.userID).BridgePass
+}
+
+// SetBridgePass saves bridge password as raw token bytes (unecoded).
+func (user *User) SetBridgePass(newPass []byte) error {
+	return user.vault.modUser(user.userID, func(data *UserData) {
+		data.BridgePass = newPass
+	})
 }
 
 // AuthUID returns the user's auth UID.

@@ -28,7 +28,7 @@ type UserData struct {
 	GluonKey    []byte
 	GluonIDs    map[string]string
 	UIDValidity map[string]imap.UID
-	BridgePass  []byte
+	BridgePass  []byte // raw token represented as byte slice (needs to be encoded)
 	AddressMode AddressMode
 
 	AuthUID string

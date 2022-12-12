@@ -34,13 +34,11 @@ func getKeychainPrefPath(vaultDir string) string {
 }
 
 func GetHelper(vaultDir string) (string, error) {
-	filePath := getKeychainPrefPath(vaultDir)
-
-	if _, err := os.Stat(filePath); errors.Is(err, fs.ErrNotExist) {
+	if _, err := os.Stat(getKeychainPrefPath(vaultDir)); errors.Is(err, fs.ErrNotExist) {
 		return "", nil
 	}
 
-	b, err := os.ReadFile(filePath)
+	b, err := os.ReadFile(getKeychainPrefPath(vaultDir))
 	if err != nil {
 		return "", err
 	}

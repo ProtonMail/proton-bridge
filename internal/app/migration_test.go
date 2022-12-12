@@ -25,11 +25,16 @@ import (
 	"runtime"
 	"testing"
 
+	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/ProtonMail/proton-bridge/v3/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/v3/internal/cookies"
+	"github.com/ProtonMail/proton-bridge/v3/internal/legacy/credentials"
 	"github.com/ProtonMail/proton-bridge/v3/internal/locations"
 	"github.com/ProtonMail/proton-bridge/v3/internal/updater"
 	"github.com/ProtonMail/proton-bridge/v3/internal/vault"
+	"github.com/ProtonMail/proton-bridge/v3/pkg/algo"
+	"github.com/ProtonMail/proton-bridge/v3/pkg/keychain"
+	dockerCredentials "github.com/docker/docker-credential-helpers/credentials"
 	"github.com/stretchr/testify/require"
 )
 
@@ -84,46 +89,111 @@ func TestMigratePrefsToVault(t *testing.T) {
 }
 
 func TestKeychainMigration(t *testing.T) {
-	// migration needed only for linux
+	// Migration tested only for linux.
 	if runtime.GOOS != "linux" {
 		return
 	}
 
 	tmpDir := t.TempDir()
-	os.Setenv("XDG_CONFIG_HOME", tmpDir)
 
-	oldCacheDir := filepath.Join(tmpDir, "protonmail", "bridge")
-	require.NoError(t, os.MkdirAll(oldCacheDir, 0o700))
+	// Prepare for keychain migration test
+	{
+		require.NoError(t, os.Setenv("XDG_CONFIG_HOME", tmpDir))
+		oldCacheDir := filepath.Join(tmpDir, "protonmail", "bridge")
+		require.NoError(t, os.MkdirAll(oldCacheDir, 0o700))
 
-	oldPrefs, err := os.ReadFile(filepath.Join("testdata", "prefs.json"))
-	require.NoError(t, err)
+		oldPrefs, err := os.ReadFile(filepath.Join("testdata", "prefs.json"))
+		require.NoError(t, err)
 
-	require.NoError(t, os.WriteFile(
-		filepath.Join(oldCacheDir, "prefs.json"),
-		oldPrefs, 0o600,
-	))
+		require.NoError(t, os.WriteFile(
+			filepath.Join(oldCacheDir, "prefs.json"),
+			oldPrefs, 0o600,
+		))
+	}
 
 	locations := locations.New(bridge.NewTestLocationsProvider(tmpDir), "config-name")
-
 	settingsFolder, err := locations.ProvideSettingsPath()
 	require.NoError(t, err)
 
+	// Check that there is nothing yet
 	keychainName, err := vault.GetHelper(settingsFolder)
 	require.NoError(t, err)
 	require.Equal(t, "", keychainName)
 
+	// Check migration
 	require.NoError(t, migrateKeychainHelper(locations))
-
 	keychainName, err = vault.GetHelper(settingsFolder)
 	require.NoError(t, err)
 	require.Equal(t, "secret-service", keychainName)
 
+	// Change the migrated value
 	require.NoError(t, vault.SetHelper(settingsFolder, "different"))
 
-	// Calling migration again will not overwrite
+	// Calling migration again will not overwrite existing prefs
 	require.NoError(t, migrateKeychainHelper(locations))
 	keychainName, err = vault.GetHelper(settingsFolder)
 	require.NoError(t, err)
 	require.Equal(t, "different", keychainName)
+}
 
+func TestUserMigration(t *testing.T) {
+	keychainHelper := keychain.NewTestHelper()
+
+	keychain.Helpers["mock"] = func(string) (dockerCredentials.Helper, error) { return keychainHelper, nil }
+
+	kc, err := keychain.NewKeychain("mock", "bridge")
+	require.NoError(t, err)
+
+	require.NoError(t, kc.Put("brokenID", "broken"))
+	require.NoError(t, kc.Put(
+		"emptyID",
+		(&credentials.Credentials{}).Marshal(),
+	))
+
+	wantUID := "uidtoken"
+	wantRefresh := "refreshtoken"
+
+	wantCredentials := credentials.Credentials{
+		UserID:                "validID",
+		Name:                  "user@pm.me",
+		Emails:                "user@pm.me;alias@pm.me",
+		APIToken:              wantUID + ":" + wantRefresh,
+		MailboxPassword:       []byte("secret"),
+		BridgePassword:        "bElu2Q1Vusy28J3Wf56cIg",
+		Version:               "v2.3.X",
+		Timestamp:             100,
+		IsCombinedAddressMode: true,
+	}
+	require.NoError(t, kc.Put(
+		wantCredentials.UserID,
+		wantCredentials.Marshal(),
+	))
+
+	tmpDir := t.TempDir()
+	locations := locations.New(bridge.NewTestLocationsProvider(tmpDir), "config-name")
+	settingsFolder, err := locations.ProvideSettingsPath()
+	require.NoError(t, err)
+	require.NoError(t, vault.SetHelper(settingsFolder, "mock"))
+
+	token, err := crypto.RandomToken(32)
+	require.NoError(t, err)
+
+	v, corrupt, err := vault.New(settingsFolder, settingsFolder, token)
+	require.NoError(t, err)
+	require.False(t, corrupt)
+
+	require.NoError(t, migrateOldAccounts(locations, v))
+	require.Equal(t, []string{wantCredentials.UserID}, v.GetUserIDs())
+
+	require.NoError(t, v.GetUser(wantCredentials.UserID, func(u *vault.User) {
+		require.Equal(t, wantCredentials.UserID, u.UserID())
+		require.Equal(t, wantUID, u.AuthUID())
+		require.Equal(t, wantRefresh, u.AuthRef())
+		require.Equal(t, wantCredentials.MailboxPassword, u.KeyPass())
+		require.Equal(t,
+			[]byte(wantCredentials.BridgePassword),
+			algo.B64RawEncode(u.BridgePass()),
+		)
+		require.Equal(t, vault.CombinedMode, u.AddressMode())
+	}))
 }

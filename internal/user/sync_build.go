@@ -25,6 +25,7 @@ import (
 	"github.com/ProtonMail/gluon/imap"
 	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
+	"github.com/ProtonMail/proton-bridge/v3/pkg/algo"
 	"github.com/ProtonMail/proton-bridge/v3/pkg/message"
 	"github.com/bradenaw/juniper/xslices"
 )
@@ -135,7 +136,7 @@ func newFailedMessageLiteral(
 		"Error":     syncErr.Error(),
 	}); err != nil {
 		panic(err)
-	} else if _, err := buf.Write(lineWrap(b64Encode(b))); err != nil {
+	} else if _, err := buf.Write(lineWrap(algo.B64Encode(b))); err != nil {
 		panic(err)
 	}
 

@@ -32,6 +32,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/v3/internal/locations"
 	"github.com/ProtonMail/proton-bridge/v3/internal/updater"
 	"github.com/ProtonMail/proton-bridge/v3/internal/vault"
+	"github.com/ProtonMail/proton-bridge/v3/pkg/algo"
 	"github.com/ProtonMail/proton-bridge/v3/pkg/keychain"
 	"github.com/allan-simon/go-singleinstance"
 	"github.com/hashicorp/go-multierror"
@@ -120,26 +121,52 @@ func migrateOldAccounts(locations *locations.Locations, v *vault.Vault) error {
 		return fmt.Errorf("failed to create credentials store: %w", err)
 	}
 
+	var migrationErrors error
+
 	for _, userID := range users {
 		logrus.WithField("userID", userID).Info("Migrating account")
-
-		creds, err := store.Get(userID)
-		if err != nil {
-			return fmt.Errorf("failed to get user: %w", err)
+		if err := migrateOldAccount(userID, store, v); err != nil {
+			migrationErrors = multierror.Append(migrationErrors, err)
 		}
+	}
 
-		authUID, authRef, err := creds.SplitAPIToken()
-		if err != nil {
-			return fmt.Errorf("failed to split api token: %w", err)
-		}
+	return migrationErrors
+}
 
-		user, err := v.AddUser(creds.UserID, creds.EmailList()[0], authUID, authRef, creds.MailboxPassword)
-		if err != nil {
-			return fmt.Errorf("failed to add user: %w", err)
-		}
+func migrateOldAccount(userID string, store *credentials.Store, v *vault.Vault) error {
+	creds, err := store.Get(userID)
+	if err != nil {
+		return fmt.Errorf("failed to get user %q: %w", userID, err)
+	}
 
+	authUID, authRef, err := creds.SplitAPIToken()
+	if err != nil {
+		return fmt.Errorf("failed to split api token for user %q: %w", userID, err)
+	}
+
+	user, err := v.AddUser(creds.UserID, creds.EmailList()[0], authUID, authRef, creds.MailboxPassword)
+	if err != nil {
+		return fmt.Errorf("failed to add user %q: %w", userID, err)
+	}
+
+	defer func() {
 		if err := user.Close(); err != nil {
-			return fmt.Errorf("failed to close user: %w", err)
+			logrus.WithField("userID", userID).WithError(err).Error("Failed to close vault user after migration")
+		}
+	}()
+
+	dec, err := algo.B64RawDecode([]byte(creds.BridgePassword))
+	if err != nil {
+		return fmt.Errorf("failed to decode bridge password for user %q: %w", userID, err)
+	}
+
+	if err := user.SetBridgePass(dec); err != nil {
+		return fmt.Errorf("failed to set bridge password to user %q: %w", userID, err)
+	}
+
+	if !creds.IsCombinedAddressMode {
+		if err := user.SetAddressMode(vault.SplitMode); err != nil {
+			return fmt.Errorf("failed to set split address mode to user %q: %w", userID, err)
 		}
 	}
 
