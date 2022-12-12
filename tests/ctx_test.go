@@ -22,6 +22,8 @@ import (
 	"fmt"
 	"net/smtp"
 	"regexp"
+	"runtime"
+	"strings"
 	"sync"
 	"testing"
 
@@ -33,6 +35,7 @@ import (
 	frontend "github.com/ProtonMail/proton-bridge/v3/internal/frontend/grpc"
 	"github.com/ProtonMail/proton-bridge/v3/internal/locations"
 	"github.com/bradenaw/juniper/xslices"
+	"github.com/cucumber/godog"
 	"github.com/emersion/go-imap/client"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/exp/maps"
@@ -127,7 +130,33 @@ func newTestCtx(tb testing.TB) *testCtx {
 	return t
 }
 
-func (t *testCtx) beforeStep() {
+func (t *testCtx) replace(value string) string {
+	// Replace [GOOS] with the current OS.
+	value = strings.ReplaceAll(value, "[GOOS]", runtime.GOOS)
+
+	// Replace [domain] with the domain of the test server.
+	value = strings.ReplaceAll(value, "[domain]", t.api.GetDomain())
+
+	return value
+}
+
+func (t *testCtx) beforeStep(st *godog.Step) {
+	st.Text = t.replace(st.Text)
+
+	if argument := st.Argument; argument != nil {
+		if table := argument.DataTable; table != nil {
+			for _, row := range table.Rows {
+				for _, cell := range row.Cells {
+					cell.Value = t.replace(cell.Value)
+				}
+			}
+		}
+
+		if doc := argument.DocString; doc != nil {
+			doc.Content = t.replace(doc.Content)
+		}
+	}
+
 	t.callsLock.Lock()
 	defer t.callsLock.Unlock()
 
@@ -136,6 +165,7 @@ func (t *testCtx) beforeStep() {
 
 	t.calls = append(t.calls, nil)
 	t.errors = append(t.errors, nil)
+
 }
 
 func (t *testCtx) getName(wantUserID string) string {

@@ -20,7 +20,6 @@ package tests
 import (
 	"context"
 	"os"
-	"runtime"
 	"strings"
 	"testing"
 
@@ -66,13 +65,9 @@ func TestFeatures(testingT *testing.T) {
 			})
 
 			ctx.StepContext().Before(func(ctx context.Context, st *godog.Step) (context.Context, error) {
-				// Replace [GOOS] with the current OS.
-				// Note: should add a generic replacement function on the test context to handle more cases!
-				st.Text = strings.ReplaceAll(st.Text, "[GOOS]", runtime.GOOS)
-
 				logrus.Debugf("Running step: %s", st.Text)
 
-				s.t.beforeStep()
+				s.t.beforeStep(st)
 
 				return ctx, nil
 			})
@@ -113,7 +108,7 @@ func TestFeatures(testingT *testing.T) {
 			ctx.Step(`^the user has disabled automatic updates$`, s.theUserHasDisabledAutomaticUpdates)
 			ctx.Step(`^the user changes the IMAP port to (\d+)$`, s.theUserChangesTheIMAPPortTo)
 			ctx.Step(`^the user changes the SMTP port to (\d+)$`, s.theUserChangesTheSMTPPortTo)
-			ctx.Step(`^the user sets the address mode of "([^"]*)" to "([^"]*)"$`, s.theUserSetsTheAddressModeOfTo)
+			ctx.Step(`^the user sets the address mode of user "([^"]*)" to "([^"]*)"$`, s.theUserSetsTheAddressModeOfUserTo)
 			ctx.Step(`^the user changes the gluon path$`, s.theUserChangesTheGluonPath)
 			ctx.Step(`^the user deletes the gluon files$`, s.theUserDeletesTheGluonFiles)
 			ctx.Step(`^the user reports a bug$`, s.theUserReportsABug)

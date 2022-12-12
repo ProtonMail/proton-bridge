@@ -65,7 +65,7 @@ func (s *scenario) theUserChangesTheSMTPPortTo(port int) error {
 	return s.t.bridge.SetSMTPPort(port)
 }
 
-func (s *scenario) theUserSetsTheAddressModeOfTo(user, mode string) error {
+func (s *scenario) theUserSetsTheAddressModeOfUserTo(user, mode string) error {
 	switch mode {
 	case "split":
 		return s.t.bridge.SetAddressMode(context.Background(), s.t.getUserID(user), vault.SplitMode)

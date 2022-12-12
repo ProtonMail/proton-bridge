@@ -1,26 +1,26 @@
 Feature: SMTP sending of plain messages
   Background:
-    Given there exists an account with username "user@pm.me" and password "password"
-    And there exists an account with username "bridgetest@protonmail.com" and password "password"
-    And there exists an account with username "bridgetest2@protonmail.com" and password "password"
+    Given there exists an account with username "user" and password "password"
+    And there exists an account with username "bridgetest" and password "password"
+    And there exists an account with username "bridgetest2" and password "password"
     And bridge starts
-    And the user logs in with username "user@pm.me" and password "password"
-    And user "user@pm.me" connects and authenticates SMTP client "1"
+    And the user logs in with username "user" and password "password"
+    And user "user" connects and authenticates SMTP client "1"
 
   Scenario: Only from and to headers to internal account
-    When SMTP client "1" sends the following message from "user@pm.me" to "bridgetest@protonmail.com":
+    When SMTP client "1" sends the following message from "user@[domain]" to "bridgetest@[domain]":
       """
-      From: Bridge Test <user@pm.me>
-      To: Internal Bridge <bridgetest@protonmail.com>
+      From: Bridge Test <user@[domain]>
+      To: Internal Bridge <bridgetest@[domain]>
 
       hello
 
       """
     Then it succeeds
-    When user "user@pm.me" connects and authenticates IMAP client "1"
+    When user "user" connects and authenticates IMAP client "1"
     Then IMAP client "1" eventually sees the following messages in "Sent":
-      | from       | to                        | subject |
-      | user@pm.me | bridgetest@protonmail.com |         |
+      | from          | to                  | subject |
+      | user@[domain] | bridgetest@[domain] |         |
     And the body in the "POST" request to "/mail/v4/messages" is:
       """
       {
@@ -31,7 +31,7 @@ Feature: SMTP sending of plain messages
           },
           "ToList": [
             {
-              "Address": "bridgetest@protonmail.com",
+              "Address": "bridgetest@[domain]",
               "Name": "Internal Bridge"
             }
           ],
@@ -43,19 +43,19 @@ Feature: SMTP sending of plain messages
       """
 
   Scenario: Only from and to headers to external account
-    When SMTP client "1" sends the following message from "user@pm.me" to "pm.bridge.qa@gmail.com":
+    When SMTP client "1" sends the following message from "user@[domain]" to "pm.bridge.qa@gmail.com":
       """
-      From: Bridge Test <user@pm.me>
+      From: Bridge Test <user@[domain]>
       To: External Bridge <pm.bridge.qa@gmail.com>
 
       hello
 
       """
     Then it succeeds
-    When user "user@pm.me" connects and authenticates IMAP client "1"
+    When user "user" connects and authenticates IMAP client "1"
     Then IMAP client "1" eventually sees the following messages in "Sent":
-      | from       | to                     | subject |
-      | user@pm.me | pm.bridge.qa@gmail.com |         |
+      | from          | to                     | subject |
+      | user@[domain] | pm.bridge.qa@gmail.com |         |
     And the body in the "POST" request to "/mail/v4/messages" is:
       """
       {
@@ -78,10 +78,10 @@ Feature: SMTP sending of plain messages
       """
 
   Scenario: Basic message to internal account
-    When SMTP client "1" sends the following message from "user@pm.me" to "bridgetest@protonmail.com":
+    When SMTP client "1" sends the following message from "user@[domain]" to "bridgetest@[domain]":
       """
-      From: Bridge Test <user@pm.me>
-      To: Internal Bridge <bridgetest@protonmail.com>
+      From: Bridge Test <user@[domain]>
+      To: Internal Bridge <bridgetest@[domain]>
       Subject: Plain text internal
       Content-Disposition: inline
       Content-Type: text/plain; charset=utf-8
@@ -90,10 +90,10 @@ Feature: SMTP sending of plain messages
 
       """
     Then it succeeds
-    When user "user@pm.me" connects and authenticates IMAP client "1"
+    When user "user" connects and authenticates IMAP client "1"
     Then IMAP client "1" eventually sees the following messages in "Sent":
-      | from       | to                        | subject             |
-      | user@pm.me | bridgetest@protonmail.com | Plain text internal |
+      | from          | to                  | subject             |
+      | user@[domain] | bridgetest@[domain] | Plain text internal |
     And the body in the "POST" request to "/mail/v4/messages" is:
       """
       {
@@ -104,7 +104,7 @@ Feature: SMTP sending of plain messages
           },
           "ToList": [
             {
-              "Address": "bridgetest@protonmail.com",
+              "Address": "bridgetest@[domain]",
               "Name": "Internal Bridge"
             }
           ],
@@ -116,9 +116,9 @@ Feature: SMTP sending of plain messages
       """
 
   Scenario: Basic message to external account
-    When SMTP client "1" sends the following message from "user@pm.me" to "pm.bridge.qa@gmail.com":
+    When SMTP client "1" sends the following message from "user@[domain]" to "pm.bridge.qa@gmail.com":
       """
-      From: Bridge Test <user@pm.me>
+      From: Bridge Test <user@[domain]>
       To: External Bridge <pm.bridge.qa@gmail.com>
       Subject: Plain text external
       Content-Disposition: inline
@@ -128,10 +128,10 @@ Feature: SMTP sending of plain messages
 
       """
     Then it succeeds
-    When user "user@pm.me" connects and authenticates IMAP client "1"
+    When user "user" connects and authenticates IMAP client "1"
     Then IMAP client "1" eventually sees the following messages in "Sent":
-      | from       | to                     | subject             |
-      | user@pm.me | pm.bridge.qa@gmail.com | Plain text external |
+      | from          | to                     | subject             |
+      | user@[domain] | pm.bridge.qa@gmail.com | Plain text external |
     And the body in the "POST" request to "/mail/v4/messages" is:
       """
       {
@@ -154,9 +154,9 @@ Feature: SMTP sending of plain messages
       """
 
   Scenario: Message without charset is utf8
-    When SMTP client "1" sends the following message from "user@pm.me" to "pm.bridge.qa@gmail.com":
+    When SMTP client "1" sends the following message from "user@[domain]" to "pm.bridge.qa@gmail.com":
       """
-      From: Bridge Test <user@pm.me>
+      From: Bridge Test <user@[domain]>
       To: External Bridge <pm.bridge.qa@gmail.com>
       Subject: Plain text no charset external
       Content-Disposition: inline
@@ -166,10 +166,10 @@ Feature: SMTP sending of plain messages
 
       """
     Then it succeeds
-    When user "user@pm.me" connects and authenticates IMAP client "1"
+    When user "user" connects and authenticates IMAP client "1"
     Then IMAP client "1" eventually sees the following messages in "Sent":
-      | from       | to                     | subject                        |
-      | user@pm.me | pm.bridge.qa@gmail.com | Plain text no charset external |
+      | from          | to                     | subject                        |
+      | user@[domain] | pm.bridge.qa@gmail.com | Plain text no charset external |
     And the body in the "POST" request to "/mail/v4/messages" is:
       """
       {
@@ -192,9 +192,9 @@ Feature: SMTP sending of plain messages
       """
 
   Scenario: Message without charset is base64-encoded latin1
-    When SMTP client "1" sends the following message from "user@pm.me" to "pm.bridge.qa@gmail.com":
+    When SMTP client "1" sends the following message from "user@[domain]" to "pm.bridge.qa@gmail.com":
       """
-      From: Bridge Test <user@pm.me>
+      From: Bridge Test <user@[domain]>
       To: External Bridge <pm.bridge.qa@gmail.com>
       Subject: Plain text no charset external
       Content-Disposition: inline
@@ -207,10 +207,10 @@ Feature: SMTP sending of plain messages
 
       """
     Then it succeeds
-    When user "user@pm.me" connects and authenticates IMAP client "1"
+    When user "user" connects and authenticates IMAP client "1"
     Then IMAP client "1" eventually sees the following messages in "Sent":
-      | from       | to                     | subject                        |
-      | user@pm.me | pm.bridge.qa@gmail.com | Plain text no charset external |
+      | from          | to                     | subject                        |
+      | user@[domain] | pm.bridge.qa@gmail.com | Plain text no charset external |
     And the body in the "POST" request to "/mail/v4/messages" is:
       """
       {
@@ -233,9 +233,9 @@ Feature: SMTP sending of plain messages
       """
 
   Scenario: Message without charset and content is detected as HTML
-    When SMTP client "1" sends the following message from "user@pm.me" to "pm.bridge.qa@gmail.com":
+    When SMTP client "1" sends the following message from "user@[domain]" to "pm.bridge.qa@gmail.com":
       """
-      From: Bridge Test <user@pm.me>
+      From: Bridge Test <user@[domain]>
       To: External Bridge <pm.bridge.qa@gmail.com>
       Subject: Plain, no charset, no content, external
       Content-Disposition: inline
@@ -243,10 +243,10 @@ Feature: SMTP sending of plain messages
 
       """
     Then it succeeds
-    When user "user@pm.me" connects and authenticates IMAP client "1"
+    When user "user" connects and authenticates IMAP client "1"
     Then IMAP client "1" eventually sees the following messages in "Sent":
-      | from       | to                     | subject                                 |
-      | user@pm.me | pm.bridge.qa@gmail.com | Plain, no charset, no content, external |
+      | from          | to                     | subject                                 |
+      | user@[domain] | pm.bridge.qa@gmail.com | Plain, no charset, no content, external |
     And the body in the "POST" request to "/mail/v4/messages" is:
       """
       {
@@ -269,24 +269,24 @@ Feature: SMTP sending of plain messages
       """
 
   Scenario: RCPT does not contain all CC
-    When SMTP client "1" sends MAIL FROM "<user@pm.me>"
-    And SMTP client "1" sends RCPT TO "<bridgetest@protonmail.com>"
+    When SMTP client "1" sends MAIL FROM "<user@[domain]>"
+    And SMTP client "1" sends RCPT TO "<bridgetest@[domain]>"
     And SMTP client "1" sends DATA:
       """
-      From: Bridge Test <user@pm.me>
-      To: Internal Bridge <bridgetest@protonmail.com>
-      CC: Internal Bridge 2 <bridgetest2@protonmail.com>
+      From: Bridge Test <user@[domain]>
+      To: Internal Bridge <bridgetest@[domain]>
+      CC: Internal Bridge 2 <bridgetest2@[domain]>
       Content-Type: text/plain
       Subject: RCPT-CC test
 
       This is CC missing in RCPT test. Have a nice day!
-.
+      .
       """
     Then it succeeds
-    When user "user@pm.me" connects and authenticates IMAP client "1"
+    When user "user" connects and authenticates IMAP client "1"
     Then IMAP client "1" eventually sees the following messages in "Sent":
-      | from       | to                        | cc                         | subject      |
-      | user@pm.me | bridgetest@protonmail.com | bridgetest2@protonmail.com | RCPT-CC test |
+      | from          | to                  | cc                   | subject      |
+      | user@[domain] | bridgetest@[domain] | bridgetest2@[domain] | RCPT-CC test |
     And the body in the "POST" request to "/mail/v4/messages" is:
       """
       {
@@ -297,13 +297,13 @@ Feature: SMTP sending of plain messages
           },
           "ToList": [
             {
-              "Address": "bridgetest@protonmail.com",
+              "Address": "bridgetest@[domain]",
               "Name": "Internal Bridge"
             }
           ],
           "CCList": [
             {
-              "Address": "bridgetest2@protonmail.com",
+              "Address": "bridgetest2@[domain]",
               "Name": "Internal Bridge 2"
             }
           ],
@@ -314,19 +314,19 @@ Feature: SMTP sending of plain messages
     And the body in the "POST" request to "/mail/v4/messages/.*" is:
       """
       {
-        "Packages":[
-            {
-              "Addresses":{
-                  "bridgetest@protonmail.com":{
-                    "Type":1
-                  },
-                  "bridgetest2@protonmail.com":{
-                    "Type":1
-                  }
+        "Packages": [
+          {
+            "Addresses": {
+              "bridgetest@[domain]": {
+                "Type": 1
               },
-              "Type":1,
-              "MIMEType":"text/plain"
-            }
+              "bridgetest2@[domain]": {
+                "Type": 1
+              }
+            },
+            "Type": 1,
+            "MIMEType": "text/plain"
+          }
         ]
       }
       """

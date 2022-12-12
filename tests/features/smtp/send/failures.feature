@@ -1,16 +1,16 @@
 Feature: SMTP wrong messages
   Background:
-    Given there exists an account with username "user@pm.me" and password "password"
-    And there exists an account with username "bridgetest@protonmail.com" and password "password"
+    Given there exists an account with username "user" and password "password"
+    And there exists an account with username "bridgetest" and password "password"
     And bridge starts
-    And the user logs in with username "user@pm.me" and password "password"
-    And user "user@pm.me" connects and authenticates SMTP client "1"
+    And the user logs in with username "user" and password "password"
+    And user "user" connects and authenticates SMTP client "1"
 
   Scenario: Message with attachment and wrong boundaries
-    When SMTP client "1" sends the following message from "user@pm.me" to "bridgetest@protonmail.com":
+    When SMTP client "1" sends the following message from "user@[domain]" to "bridgetest@[domain]":
       """
-      From: Bridge Test <user@pm.me>
-      To: Internal Bridge <bridgetest@protonmail.com>
+      From: Bridge Test <user@[domain]>
+      To: Internal Bridge <bridgetest@[domain]>
       Subject: With attachment (wrong boundaries)
       Content-Type: multipart/related; boundary=bc5bd30245232f31b6c976adcd59bb0069c9b13f986f9e40c2571bb80aa16606
 
@@ -44,10 +44,10 @@ Feature: SMTP wrong messages
     Then it fails
 
   Scenario: Invalid from
-    When SMTP client "1" sends the following message from "bridgetest@pm.test" to "bridgetest@protonmail.com":
+    When SMTP client "1" sends the following message from "bridgetest@pm.test" to "bridgetest@[domain]":
       """
       From: Bridge Test <bridgetest@pm.test>
-      To: Internal Bridge <bridgetest@protonmail.com>
+      To: Internal Bridge <bridgetest@[domain]>
 
       hello
 

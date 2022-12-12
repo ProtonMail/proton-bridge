@@ -1,17 +1,17 @@
 Feature: SMTP sending two messages
   Background:
-    Given there exists an account with username "user@pm.me" and password "password"
-    And there exists an account with username "other@pm.me" and password "other"
+    Given there exists an account with username "user" and password "password"
+    And there exists an account with username "other" and password "other"
     And bridge starts
-    And the user logs in with username "user@pm.me" and password "password"
-    And the user logs in with username "other@pm.me" and password "other"
+    And the user logs in with username "user" and password "password"
+    And the user logs in with username "other" and password "other"
 
   Scenario: Send from one account to the other
-    When user "user@pm.me" connects and authenticates SMTP client "1"
-    And SMTP client "1" sends the following message from "user@pm.me" to "other@pm.me":
+    When user "user" connects and authenticates SMTP client "1"
+    And SMTP client "1" sends the following message from "user@[domain]" to "other@[domain]":
       """
-      From: Bridge Test <user@pm.me>
-      To: Internal Bridge <other@pm.me>
+      From: Bridge Test <user@[domain]>
+      To: Internal Bridge <other@[domain]>
       Subject: One account to the other
 
       hello
@@ -25,12 +25,12 @@ Feature: SMTP sending two messages
           "Subject": "One account to the other",
           "Sender": {
             "Name": "Bridge Test",
-            "Address": "user@pm.me"
+            "Address": "user@[domain]"
           },
           "ToList": [
             {
               "Name": "Internal Bridge",
-              "Address": "other@pm.me"
+              "Address": "other@[domain]"
             }
           ],
           "CCList": [],
@@ -42,30 +42,30 @@ Feature: SMTP sending two messages
     And the body in the "POST" request to "/mail/v4/messages/.*" is:
       """
       {
-        "Packages":[
-            {
-              "Addresses":{
-                  "other@pm.me":{
-                    "Type":1
-                  }
-              },
-              "Type":1,
-              "MIMEType":"text/plain"
-            }
+        "Packages": [
+          {
+            "Addresses": {
+              "other@[domain]": {
+                "Type": 1
+              }
+            },
+            "Type": 1,
+            "MIMEType": "text/plain"
+          }
         ]
       }
       """
-    When user "other@pm.me" connects and authenticates IMAP client "1"
+    When user "other" connects and authenticates IMAP client "1"
     Then IMAP client "1" eventually sees the following messages in "Inbox":
-      | from       | to          | subject                  | body  |
-      | user@pm.me | other@pm.me | One account to the other | hello |
+      | from          | to             | subject                  | body  |
+      | user@[domain] | other@[domain] | One account to the other | hello |
 
   Scenario: Send from one account to the other with attachments
-    When user "user@pm.me" connects and authenticates SMTP client "1"
-    And SMTP client "1" sends the following message from "user@pm.me" to "other@pm.me":
+    When user "user" connects and authenticates SMTP client "1"
+    And SMTP client "1" sends the following message from "user@[domain]" to "other@[domain]":
       """
-      From: Bridge Test <user@pm.me>
-      To: Internal Bridge <other@pm.me>
+      From: Bridge Test <user@[domain]>
+      To: Internal Bridge <other@[domain]>
       Subject: Plain with attachment internal
       Content-Type: multipart/related; boundary=bc5bd30245232f31b6c976adcd59bb0069c9b13f986f9e40c2571bb80aa16606
 
@@ -106,7 +106,7 @@ Feature: SMTP sending two messages
           },
           "ToList": [
             {
-              "Address": "other@pm.me",
+              "Address": "other@[domain]",
               "Name": "Internal Bridge"
             }
           ],
@@ -119,24 +119,24 @@ Feature: SMTP sending two messages
     And the body in the "POST" request to "/mail/v4/messages/.*" is:
       """
       {
-        "Packages":[
-            {
-              "Addresses":{
-                  "other@pm.me":{
-                    "Type":1
-                  }
-              },
-              "Type":1,
-              "MIMEType":"text/plain"
-            }
+        "Packages": [
+          {
+            "Addresses": {
+              "other@[domain]": {
+                "Type": 1
+              }
+            },
+            "Type": 1,
+            "MIMEType": "text/plain"
+          }
         ]
       }
       """
-    When user "user@pm.me" connects and authenticates IMAP client "1"
+    When user "user" connects and authenticates IMAP client "1"
     Then IMAP client "1" eventually sees the following messages in "Sent":
-      | from       | to          | subject                        | body             | attachments                    | unread |
-      | user@pm.me | other@pm.me | Plain with attachment internal | This is the body | outline-light-instagram-48.png | false  |
-    When user "other@pm.me" connects and authenticates IMAP client "2"
+      | from          | to             | subject                        | body             | attachments                    | unread |
+      | user@[domain] | other@[domain] | Plain with attachment internal | This is the body | outline-light-instagram-48.png | false  |
+    When user "other" connects and authenticates IMAP client "2"
     Then IMAP client "2" eventually sees the following messages in "Inbox":
-      | from       | to          | subject                        | body             | attachments                    | unread |
-      | user@pm.me | other@pm.me | Plain with attachment internal | This is the body | outline-light-instagram-48.png | true   |
+      | from          | to             | subject                        | body             | attachments                    | unread |
+      | user@[domain] | other@[domain] | Plain with attachment internal | This is the body | outline-light-instagram-48.png | true   |

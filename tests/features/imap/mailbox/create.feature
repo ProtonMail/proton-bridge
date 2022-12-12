@@ -1,16 +1,16 @@
 Feature: IMAP create mailbox
   Background:
-    Given there exists an account with username "user@pm.me" and password "password"
-    And the account "user@pm.me" has the following custom mailboxes:
+    Given there exists an account with username "user" and password "password"
+    And the account "user" has the following custom mailboxes:
       | name | type   |
       | f1   | folder |
       | f2   | folder |
       | l1   | label  |
       | l2   | label  |
     And bridge starts
-    And the user logs in with username "user@pm.me" and password "password"
-    And user "user@pm.me" finishes syncing
-    And user "user@pm.me" connects and authenticates IMAP client "1"
+    And the user logs in with username "user" and password "password"
+    And user "user" finishes syncing
+    And user "user" connects and authenticates IMAP client "1"
 
   Scenario: Create folder
     When IMAP client "1" creates "Folders/mbox"
@@ -38,23 +38,23 @@ Feature: IMAP create mailbox
     When IMAP client "1" creates "Labels/l3"
     Then it succeeds
     Then IMAP client "1" sees the following mailbox info:
-      | name         |
-      | INBOX        |
-      | Drafts       |
-      | Sent         |
-      | Starred      |
-      | Archive      |
-      | Spam         |
-      | Trash        |
-      | All Mail     |
-      | Folders      |
-      | Folders/f1   |
-      | Folders/f2   |
-      | Folders/f3   |
-      | Labels       |
-      | Labels/l1    |
-      | Labels/l2    |
-      | Labels/l3    |
+      | name       |
+      | INBOX      |
+      | Drafts     |
+      | Sent       |
+      | Starred    |
+      | Archive    |
+      | Spam       |
+      | Trash      |
+      | All Mail   |
+      | Folders    |
+      | Folders/f1 |
+      | Folders/f2 |
+      | Folders/f3 |
+      | Labels     |
+      | Labels/l1  |
+      | Labels/l2  |
+      | Labels/l3  |
 
   Scenario: Creating subfolders is possible and they persist after resync
     When IMAP client "1" creates "Folders/f1/f11"
@@ -85,10 +85,10 @@ Feature: IMAP create mailbox
       | Labels         |
       | Labels/l1      |
       | Labels/l2      |
-    When user "user@pm.me" is deleted
-    And the user logs in with username "user@pm.me" and password "password"
-    And user "user@pm.me" finishes syncing
-    And user "user@pm.me" connects and authenticates IMAP client "2"
+    When user "user" is deleted
+    And the user logs in with username "user" and password "password"
+    And user "user" finishes syncing
+    And user "user" connects and authenticates IMAP client "2"
     Then IMAP client "2" sees the following mailbox info:
       | name           |
       | INBOX          |
@@ -163,10 +163,10 @@ Feature: IMAP create mailbox
       | Labels         |
       | Labels/l1      |
       | Labels/l2      |
-    When user "user@pm.me" is deleted
-    And the user logs in with username "user@pm.me" and password "password"
-    And user "user@pm.me" finishes syncing
-    And user "user@pm.me" connects and authenticates IMAP client "2"
+    When user "user" is deleted
+    And the user logs in with username "user" and password "password"
+    And user "user" finishes syncing
+    And user "user" connects and authenticates IMAP client "2"
     Then IMAP client "2" sees the following mailbox info:
       | name           |
       | INBOX          |

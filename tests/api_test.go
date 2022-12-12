@@ -26,6 +26,7 @@ type API interface {
 	SetMinAppVersion(*semver.Version)
 
 	GetHostURL() string
+	GetDomain() string
 	AddCallWatcher(func(server.Call), ...string)
 	RemoveAddressKey(userID, addrID, keyID string) error
 
