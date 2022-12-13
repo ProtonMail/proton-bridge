@@ -156,8 +156,8 @@ func (t *testCtx) replace(value string) string {
 	})
 
 	// Replace [addr:EMAIL] with a unique address for the email EMAIL.
-	value = regexp.MustCompile(`\[addr:(\w+)\]`).ReplaceAllStringFunc(value, func(match string) string {
-		email := regexp.MustCompile(`\[addr:(\w+)\]`).FindStringSubmatch(match)[1]
+	value = regexp.MustCompile(`\[alias:(\w+)\]`).ReplaceAllStringFunc(value, func(match string) string {
+		email := regexp.MustCompile(`\[alias:(\w+)\]`).FindStringSubmatch(match)[1]
 
 		// Create a new address if it doesn't exist yet.
 		if _, ok := t.addrUUIDByName[email]; !ok {
@@ -176,6 +176,8 @@ func (t *testCtx) replace(value string) string {
 }
 
 func (t *testCtx) beforeStep(st *godog.Step) {
+	logrus.Debugf("Running step: %s", st.Text)
+
 	t.callsLock.Lock()
 	defer t.callsLock.Unlock()
 
@@ -184,6 +186,10 @@ func (t *testCtx) beforeStep(st *godog.Step) {
 
 	t.calls = append(t.calls, nil)
 	t.errors = append(t.errors, nil)
+}
+
+func (t *testCtx) afterStep(st *godog.Step, status godog.StepResultStatus) {
+	logrus.Debugf("Finished step (%v): %s", status, st.Text)
 }
 
 func (t *testCtx) getName(wantUserID string) string {

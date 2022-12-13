@@ -24,22 +24,22 @@ Feature: IMAP Draft messages
       """
       Subject: Basic Draft
       Content-Type: text/plain
-      To: someone@proton.me
+      To: someone@example.com
 
       This is a draft, but longer
       """
     Then it succeeds
     And IMAP client "1" eventually sees the following messages in "Drafts":
-      | to                | subject     | body                        |
-      | someone@proton.me | Basic Draft | This is a draft, but longer |
+      | to                  | subject     | body                        |
+      | someone@example.com | Basic Draft | This is a draft, but longer |
     And IMAP client "1" sees 1 messages in "Drafts"
 
   Scenario: Draft edited remotely
     When the following fields were changed in draft 1 for address "[user:user]@[domain]" of account "[user:user]":
-      | to                | subject     | body                             |
-      | someone@proton.me | Basic Draft | This is a draft body, but longer |
+      | to                  | subject     | body                             |
+      | someone@example.com | Basic Draft | This is a draft body, but longer |
     Then IMAP client "1" eventually sees the following messages in "Drafts":
-      | to                | subject     | body                             |
-      | someone@proton.me | Basic Draft | This is a draft body, but longer |
+      | to                  | subject     | body                             |
+      | someone@example.com | Basic Draft | This is a draft body, but longer |
     And IMAP client "1" sees 1 messages in "Drafts"
 

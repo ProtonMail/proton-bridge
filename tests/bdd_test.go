@@ -24,7 +24,6 @@ import (
 	"testing"
 
 	"github.com/cucumber/godog"
-	"github.com/sirupsen/logrus"
 )
 
 type scenario struct {
@@ -89,13 +88,12 @@ func TestFeatures(testingT *testing.T) {
 			})
 
 			ctx.StepContext().Before(func(ctx context.Context, st *godog.Step) (context.Context, error) {
-				logrus.Debugf("Running step: %s", st.Text)
 				s.t.beforeStep(st)
 				return ctx, nil
 			})
 
 			ctx.StepContext().After(func(ctx context.Context, st *godog.Step, status godog.StepResultStatus, _ error) (context.Context, error) {
-				logrus.Debugf("Finished step (%v): %s", status, st.Text)
+				s.t.afterStep(st, status)
 				return ctx, nil
 			})
 
