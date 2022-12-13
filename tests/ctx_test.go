@@ -37,6 +37,7 @@ import (
 	"github.com/bradenaw/juniper/xslices"
 	"github.com/cucumber/godog"
 	"github.com/emersion/go-imap/client"
+	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/exp/maps"
 	"google.golang.org/grpc"
@@ -69,6 +70,7 @@ type testCtx struct {
 	clientEventCh *queue.QueuedChannel[*frontend.StreamEvent]
 
 	// These maps hold expected userIDByName, their primary addresses and bridge passwords.
+	userUUIDByName     map[string]string
 	userIDByName       map[string]string
 	userAddrByEmail    map[string]map[string]string
 	userPassByID       map[string]string
@@ -111,6 +113,7 @@ func newTestCtx(tb testing.TB) *testCtx {
 		events:   newEventCollector(),
 		reporter: newReportRecorder(tb),
 
+		userUUIDByName:     make(map[string]string),
 		userIDByName:       make(map[string]string),
 		userAddrByEmail:    make(map[string]map[string]string),
 		userPassByID:       make(map[string]string),
@@ -137,26 +140,22 @@ func (t *testCtx) replace(value string) string {
 	// Replace [domain] with the domain of the test server.
 	value = strings.ReplaceAll(value, "[domain]", t.api.GetDomain())
 
+	// Replace [user:NAME] with a unique ID for the user NAME.
+	value = regexp.MustCompile(`\[user:(\w+)\]`).ReplaceAllStringFunc(value, func(match string) string {
+		name := regexp.MustCompile(`\[user:(\w+)\]`).FindStringSubmatch(match)[1]
+
+		// Create a new user if it doesn't exist yet.
+		if _, ok := t.userUUIDByName[name]; !ok {
+			t.userUUIDByName[name] = uuid.NewString()
+		}
+
+		return t.userUUIDByName[name]
+	})
+
 	return value
 }
 
 func (t *testCtx) beforeStep(st *godog.Step) {
-	st.Text = t.replace(st.Text)
-
-	if argument := st.Argument; argument != nil {
-		if table := argument.DataTable; table != nil {
-			for _, row := range table.Rows {
-				for _, cell := range row.Cells {
-					cell.Value = t.replace(cell.Value)
-				}
-			}
-		}
-
-		if doc := argument.DocString; doc != nil {
-			doc.Content = t.replace(doc.Content)
-		}
-	}
-
 	t.callsLock.Lock()
 	defer t.callsLock.Unlock()
 
@@ -165,7 +164,6 @@ func (t *testCtx) beforeStep(st *godog.Step) {
 
 	t.calls = append(t.calls, nil)
 	t.errors = append(t.errors, nil)
-
 }
 
 func (t *testCtx) getName(wantUserID string) string {

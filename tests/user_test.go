@@ -76,10 +76,10 @@ func (s *scenario) theAccountHasAdditionalAddress(username, address string) erro
 	if err := s.t.runQuarkCmd(
 		context.Background(),
 		"user:create:address",
+		"--gen-keys", "RSA2048",
 		userID,
 		s.t.getUserPass(userID),
 		address,
-		"--gen-keys", "RSA2048",
 	); err != nil {
 		return err
 	}

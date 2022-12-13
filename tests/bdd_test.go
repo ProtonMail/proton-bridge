@@ -31,10 +31,33 @@ type scenario struct {
 	t *testCtx
 }
 
+// reset resets the test context for a new scenario.
 func (s *scenario) reset(tb testing.TB) {
 	s.t = newTestCtx(tb)
 }
 
+// replace replaces the placeholders in the scenario with the values from the test context.
+func (s *scenario) replace(sc *godog.Scenario) {
+	for _, step := range sc.Steps {
+		step.Text = s.t.replace(step.Text)
+
+		if arg := step.Argument; arg != nil {
+			if table := arg.DataTable; table != nil {
+				for _, row := range table.Rows {
+					for _, cell := range row.Cells {
+						cell.Value = s.t.replace(cell.Value)
+					}
+				}
+			}
+
+			if doc := arg.DocString; doc != nil {
+				doc.Content = s.t.replace(doc.Content)
+			}
+		}
+	}
+}
+
+// close closes the test context.
 func (s *scenario) close(_ testing.TB) {
 	s.t.close(context.Background())
 }
@@ -54,8 +77,9 @@ func TestFeatures(testingT *testing.T) {
 		},
 
 		ScenarioInitializer: func(ctx *godog.ScenarioContext) {
-			ctx.Before(func(ctx context.Context, _ *godog.Scenario) (context.Context, error) {
+			ctx.Before(func(ctx context.Context, sc *godog.Scenario) (context.Context, error) {
 				s.reset(testingT)
+				s.replace(sc)
 				return ctx, nil
 			})
 
@@ -66,9 +90,7 @@ func TestFeatures(testingT *testing.T) {
 
 			ctx.StepContext().Before(func(ctx context.Context, st *godog.Step) (context.Context, error) {
 				logrus.Debugf("Running step: %s", st.Text)
-
 				s.t.beforeStep(st)
-
 				return ctx, nil
 			})
 
