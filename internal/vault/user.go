@@ -74,7 +74,7 @@ func (user *User) GetUIDValidity(addrID string) imap.UID {
 		return validity
 	}
 
-	if err := user.SetUIDValidity(addrID, 1); err != nil {
+	if err := user.SetUIDValidity(addrID, 1000); err != nil {
 		panic(err)
 	}
 

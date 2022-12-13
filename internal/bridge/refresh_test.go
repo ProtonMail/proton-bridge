@@ -73,7 +73,7 @@ func TestBridge_Refresh(t *testing.T) {
 			for _, name := range names {
 				status, err := client.Select("Folders/"+name, false)
 				require.NoError(t, err)
-				require.Equal(t, uint32(1), status.UidValidity)
+				require.Equal(t, uint32(1000), status.UidValidity)
 			}
 		})
 
@@ -106,7 +106,7 @@ func TestBridge_Refresh(t *testing.T) {
 			for _, name := range names {
 				status, err := client.Select("Folders/"+name, false)
 				require.NoError(t, err)
-				require.Equal(t, uint32(2), status.UidValidity)
+				require.Equal(t, uint32(1001), status.UidValidity)
 			}
 		})
 	})
