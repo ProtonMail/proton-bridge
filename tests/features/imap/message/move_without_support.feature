@@ -1,14 +1,14 @@
 Feature: IMAP move messages by append and delete (without MOVE support, e.g., Outlook)
   Background:
-    Given there exists an account with username "user" and password "password"
-    And the account "user" has the following custom mailboxes:
+    Given there exists an account with username "[user:user]" and password "password"
+    And the account "[user:user]" has the following custom mailboxes:
       | name | type   |
       | mbox | folder |
     And bridge starts
-    And the user logs in with username "user" and password "password"
-    And user "user" finishes syncing
-    And user "user" connects and authenticates IMAP client "source"
-    And user "user" connects and authenticates IMAP client "target"
+    And the user logs in with username "[user:user]" and password "password"
+    And user "[user:user]" finishes syncing
+    And user "[user:user]" connects and authenticates IMAP client "source"
+    And user "[user:user]" connects and authenticates IMAP client "target"
 
   Scenario Outline: Move message from <srcMailbox> to <dstMailbox> by <order>
     When IMAP client "source" appends the following message to "<srcMailbox>":
@@ -33,7 +33,7 @@ Feature: IMAP move messages by append and delete (without MOVE support, e.g., Ou
     Then it succeeds
     And IMAP client "source" selects "<srcMailbox>"
     And IMAP client "target" selects "<dstMailbox>"
-    When IMAP clients "source" and "target" move message seq "2" of "user" to "<dstMailbox>" by <order>
+    When IMAP clients "source" and "target" move message seq "2" of "[user:user]" to "<dstMailbox>" by <order>
     And IMAP client "source" sees 1 messages in "<srcMailbox>"
     And IMAP client "source" sees the following messages in "<srcMailbox>":
       | from           | to             | subject |

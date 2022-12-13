@@ -1,16 +1,16 @@
 Feature: SMTP sending of plain messages
   Background:
-    Given there exists an account with username "user" and password "password"
-    And there exists an account with username "bridgetest" and password "password"
+    Given there exists an account with username "[user:user]" and password "password"
+    And there exists an account with username "[user:to]" and password "password"
     And bridge starts
-    And the user logs in with username "user" and password "password"
-    And user "user" connects and authenticates SMTP client "1"
+    And the user logs in with username "[user:user]" and password "password"
+    And user "[user:user]" connects and authenticates SMTP client "1"
 
   Scenario: HTML message with attachment to internal account
-    When SMTP client "1" sends the following message from "user@[domain]" to "bridgetest@[domain]":
+    When SMTP client "1" sends the following message from "[user:user]@[domain]" to "[user:to]@[domain]":
       """
-      From: Bridge Test <user@[domain]>
-      To: Internal Bridge <bridgetest@[domain]>
+      From: Bridge Test <[user:user]@[domain]>
+      To: Internal Bridge <[user:to]@[domain]>
       Subject: HTML with attachment internal
       Content-Type: multipart/related; boundary=bc5bd30245232f31b6c976adcd59bb0069c9b13f986f9e40c2571bb80aa16606
 
@@ -41,10 +41,10 @@ Feature: SMTP sending of plain messages
 
       """
     Then it succeeds
-    When user "user" connects and authenticates IMAP client "1"
+    When user "[user:user]" connects and authenticates IMAP client "1"
     Then IMAP client "1" eventually sees the following messages in "Sent":
-      | from          | to                  | subject                       |
-      | user@[domain] | bridgetest@[domain] | HTML with attachment internal |
+      | from                 | to                 | subject                       |
+      | [user:user]@[domain] | [user:to]@[domain] | HTML with attachment internal |
     And the body in the "POST" request to "/mail/v4/messages" is:
       """
       {
@@ -55,7 +55,7 @@ Feature: SMTP sending of plain messages
           },
           "ToList": [
             {
-              "Address": "bridgetest@[domain]",
+              "Address": "[user:to]@[domain]",
               "Name": "Internal Bridge"
             }
           ],
@@ -67,9 +67,9 @@ Feature: SMTP sending of plain messages
       """
 
   Scenario: HTML message with attachment to external account
-    When SMTP client "1" sends the following message from "user@[domain]" to "pm.bridge.qa@gmail.com":
+    When SMTP client "1" sends the following message from "[user:user]@[domain]" to "pm.bridge.qa@gmail.com":
       """
-      From: Bridge Test <user@[domain]>
+      From: Bridge Test <[user:user]@[domain]>
       To: External Bridge <pm.bridge.qa@gmail.com>
       Subject: HTML with attachment external PGP
       Content-Type: multipart/mixed; boundary=bc5bd30245232f31b6c976adcd59bb0069c9b13f986f9e40c2571bb80aa16606
@@ -101,10 +101,10 @@ Feature: SMTP sending of plain messages
 
       """
     Then it succeeds
-    When user "user" connects and authenticates IMAP client "1"
+    When user "[user:user]" connects and authenticates IMAP client "1"
     Then IMAP client "1" eventually sees the following messages in "Sent":
-      | from          | to                     | subject                           |
-      | user@[domain] | pm.bridge.qa@gmail.com | HTML with attachment external PGP |
+      | from                 | to                     | subject                           |
+      | [user:user]@[domain] | pm.bridge.qa@gmail.com | HTML with attachment external PGP |
     And the body in the "POST" request to "/mail/v4/messages" is:
       """
       {
@@ -127,9 +127,9 @@ Feature: SMTP sending of plain messages
       """
 
   Scenario: Alternative plain and HTML message with rfc822 attachment
-    When SMTP client "1" sends the following message from "user@[domain]" to "pm.bridge.qa@gmail.com":
+    When SMTP client "1" sends the following message from "[user:user]@[domain]" to "pm.bridge.qa@gmail.com":
       """
-      From: Bridge Test <user@[domain]>
+      From: Bridge Test <[user:user]@[domain]>
       To: External Bridge <pm.bridge.qa@gmail.com>
       Subject: Alternative plain and HTML with rfc822 attachment
       Content-Type: multipart/mixed; boundary=main-parts
@@ -190,10 +190,10 @@ Feature: SMTP sending of plain messages
 
       """
     Then it succeeds
-    When user "user" connects and authenticates IMAP client "1"
+    When user "[user:user]" connects and authenticates IMAP client "1"
     Then IMAP client "1" eventually sees the following messages in "Sent":
-      | from          | to                     | subject                                           |
-      | user@[domain] | pm.bridge.qa@gmail.com | Alternative plain and HTML with rfc822 attachment |
+      | from                 | to                     | subject                                           |
+      | [user:user]@[domain] | pm.bridge.qa@gmail.com | Alternative plain and HTML with rfc822 attachment |
     And the body in the "POST" request to "/mail/v4/messages" is:
       """
       {

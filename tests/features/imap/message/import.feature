@@ -1,16 +1,16 @@
 Feature: IMAP import messages
   Background:
-    Given there exists an account with username "user" and password "password"
+    Given there exists an account with username "[user:user]" and password "password"
     And bridge starts
-    And the user logs in with username "user" and password "password"
-    And user "user" finishes syncing
-    And user "user" connects and authenticates IMAP client "1"
+    And the user logs in with username "[user:user]" and password "password"
+    And user "[user:user]" finishes syncing
+    And user "[user:user]" connects and authenticates IMAP client "1"
 
   Scenario: Basic message import
     When IMAP client "1" appends the following message to "INBOX":
       """
       From: Bridge Test <bridgetest@pm.test>
-      To: Internal Bridge <bridgetest@[domain]>
+      To: Internal Bridge <bridgetest@example.com>
       Received: by 2002:0:0:0:0:0:0:0 with SMTP id 0123456789abcdef; Wed, 30 Dec 2020 01:23:45 0000
       Subject: Basic text/plain message
       Content-Type: text/plain
@@ -19,14 +19,14 @@ Feature: IMAP import messages
       """
     Then it succeeds
     And IMAP client "1" eventually sees the following messages in "INBOX":
-      | from               | to                  | subject                  | body  |
-      | bridgetest@pm.test | bridgetest@[domain] | Basic text/plain message | Hello |
+      | from               | to                     | subject                  | body  |
+      | bridgetest@pm.test | bridgetest@example.com | Basic text/plain message | Hello |
 
   Scenario: Import message with double charset in content type
     When IMAP client "1" appends the following message to "INBOX":
       """
       From: Bridge Test <bridgetest@pm.test>
-      To: Internal Bridge <bridgetest@[domain]>
+      To: Internal Bridge <bridgetest@example.com>
       Subject: Message with double charset in content type
       Content-Type: text/plain; charset=utf-8; charset=utf-8
       Content-Disposition: inline
@@ -36,8 +36,8 @@ Feature: IMAP import messages
       """
     Then it succeeds
     And IMAP client "1" eventually sees the following messages in "INBOX":
-      | from               | to                  | subject                                     | body  |
-      | bridgetest@pm.test | bridgetest@[domain] | Message with double charset in content type | Hello |
+      | from               | to                     | subject                                     | body  |
+      | bridgetest@pm.test | bridgetest@example.com | Message with double charset in content type | Hello |
 
   # The message is imported as UTF-8 and the content type is determined at build time.
   Scenario: Import message as latin1 without content type

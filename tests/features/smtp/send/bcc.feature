@@ -1,28 +1,28 @@
 Feature: SMTP with bcc
   Background:
-    Given there exists an account with username "user" and password "password"
-    Given there exists an account with username "bridgetest" and password "password"
-    Given there exists an account with username "bcc" and password "password"
+    Given there exists an account with username "[user:user]" and password "password"
+    Given there exists an account with username "[user:to]" and password "password"
+    Given there exists an account with username "[user:bcc]" and password "password"
     And bridge starts
-    And the user logs in with username "user" and password "password"
-    And the user logs in with username "bcc" and password "password"
-    And user "user" connects and authenticates SMTP client "1"
+    And the user logs in with username "[user:user]" and password "password"
+    And the user logs in with username "[user:bcc]" and password "password"
+    And user "[user:user]" connects and authenticates SMTP client "1"
 
   Scenario: Send message to address in to and bcc
-    When SMTP client "1" sends the following message from "user@[domain]" to "bridgetest@[domain], bcc@[domain]":
+    When SMTP client "1" sends the following message from "[user:user]@[domain]" to "[user:to]@[domain], [user:bcc]@[domain]":
       """
       Subject: hello
-      From: Bridge Test <user@[domain]>
-      To: Internal Bridge <bridgetest@[domain]>
+      From: Bridge Test <[user:user]@[domain]>
+      To: Internal Bridge <[user:to]@[domain]>
 
       hello
 
       """
     Then it succeeds
-    When user "user" connects and authenticates IMAP client "1"
+    When user "[user:user]" connects and authenticates IMAP client "1"
     Then IMAP client "1" eventually sees the following messages in "Sent":
-      | from          | to                  | bcc          | subject | unread |
-      | user@[domain] | bridgetest@[domain] | bcc@[domain] | hello   | false  |
+      | from                 | to                 | bcc                 | subject | unread |
+      | [user:user]@[domain] | [user:to]@[domain] | [user:bcc]@[domain] | hello   | false  |
     And the body in the "POST" request to "/mail/v4/messages" is:
       """
       {
@@ -30,14 +30,14 @@ Feature: SMTP with bcc
           "Subject": "hello",
           "ToList": [
             {
-              "Address": "bridgetest@[domain]",
+              "Address": "[user:to]@[domain]",
               "Name": "Internal Bridge"
             }
           ],
           "CCList": [],
           "BCCList": [
             {
-              "Address": "bcc@[domain]"
+              "Address": "[user:bcc]@[domain]"
             }
           ]
         }
@@ -46,19 +46,19 @@ Feature: SMTP with bcc
 
 
   Scenario: Send message only to bcc
-    When SMTP client "1" sends the following message from "user@[domain]" to "bcc@[domain]":
+    When SMTP client "1" sends the following message from "[user:user]@[domain]" to "[user:bcc]@[domain]":
       """
       Subject: hello
-      From: Bridge Test <user@[domain]>
+      From: Bridge Test <[user:user]@[domain]>
 
       hello
 
       """
     Then it succeeds
-    When user "user" connects and authenticates IMAP client "1"
+    When user "[user:user]" connects and authenticates IMAP client "1"
     Then IMAP client "1" eventually sees the following messages in "Sent":
-      | from          | to | bcc          | subject |
-      | user@[domain] |    | bcc@[domain] | hello   |
+      | from                 | to | bcc                 | subject |
+      | [user:user]@[domain] |    | [user:bcc]@[domain] | hello   |
     And the body in the "POST" request to "/mail/v4/messages" is:
       """
       {
@@ -68,13 +68,13 @@ Feature: SMTP with bcc
           "CCList": [],
           "BCCList": [
             {
-              "Address": "bcc@[domain]"
+              "Address": "[user:bcc]@[domain]"
             }
           ]
         }
       }
       """
-    When user "bcc" connects and authenticates IMAP client "2"
+    When user "[user:bcc]" connects and authenticates IMAP client "2"
     Then IMAP client "2" eventually sees the following messages in "Inbox":
-      | from          | to | bcc | subject | unread |
-      | user@[domain] |    |     | hello   | true   |
+      | from                 | to | bcc | subject | unread |
+      | [user:user]@[domain] |    |     | hello   | true   |

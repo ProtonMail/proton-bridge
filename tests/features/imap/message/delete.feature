@@ -1,15 +1,15 @@
 Feature: IMAP remove messages from mailbox
   Background:
-    Given there exists an account with username "user" and password "password"
-    And the account "user" has the following custom mailboxes:
+    Given there exists an account with username "[user:user]" and password "password"
+    And the account "[user:user]" has the following custom mailboxes:
       | name  | type   |
       | mbox  | folder |
       | label | label  |
-    And the address "user@[domain]" of account "user" has 10 messages in "mbox"
+    And the address "[user:user]@[domain]" of account "[user:user]" has 10 messages in "mbox"
     And bridge starts
-    And the user logs in with username "user" and password "password"
-    And user "user" finishes syncing
-    And user "user" connects and authenticates IMAP client "1"
+    And the user logs in with username "[user:user]" and password "password"
+    And user "[user:user]" finishes syncing
+    And user "[user:user]" connects and authenticates IMAP client "1"
 
   Scenario: Mark message as deleted and EXPUNGE
     When IMAP client "1" selects "Folders/mbox"

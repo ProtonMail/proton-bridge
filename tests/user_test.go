@@ -123,7 +123,7 @@ func (s *scenario) theAccountHasAdditionalAddressWithoutKeys(username, address s
 	userID := s.t.getUserID(username)
 
 	// Decrypt the user's encrypted ID for use with quark.
-	userDecID, err := s.t.runQuarkCmd(context.Background(), "--decrypt", "encryption:id", userID)
+	userDecID, err := s.t.runQuarkCmd(context.Background(), "encryption:id", "--decrypt", userID)
 	if err != nil {
 		return err
 	}
@@ -178,8 +178,9 @@ func (s *scenario) theAccountHasCustomFolders(username string, count int) error 
 	return s.t.withClient(ctx, username, func(ctx context.Context, client *proton.Client) error {
 		for idx := 0; idx < count; idx++ {
 			if _, err := client.CreateLabel(ctx, proton.CreateLabelReq{
-				Name: uuid.NewString(),
-				Type: proton.LabelTypeFolder,
+				Name:  uuid.NewString(),
+				Type:  proton.LabelTypeFolder,
+				Color: "#f66",
 			}); err != nil {
 				return err
 			}
@@ -196,8 +197,9 @@ func (s *scenario) theAccountHasCustomLabels(username string, count int) error {
 	return s.t.withClient(ctx, username, func(ctx context.Context, client *proton.Client) error {
 		for idx := 0; idx < count; idx++ {
 			if _, err := client.CreateLabel(ctx, proton.CreateLabelReq{
-				Name: uuid.NewString(),
-				Type: proton.LabelTypeLabel,
+				Name:  uuid.NewString(),
+				Type:  proton.LabelTypeLabel,
+				Color: "#f66",
 			}); err != nil {
 				return err
 			}
@@ -234,8 +236,9 @@ func (s *scenario) theAccountHasTheFollowingCustomMailboxes(username string, tab
 			}
 
 			if _, err := client.CreateLabel(ctx, proton.CreateLabelReq{
-				Name: wantMailbox.Name,
-				Type: labelType,
+				Name:  wantMailbox.Name,
+				Type:  labelType,
+				Color: "#f66",
 			}); err != nil {
 				return err
 			}

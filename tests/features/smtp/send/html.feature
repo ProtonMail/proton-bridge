@@ -1,15 +1,15 @@
 Feature: SMTP sending of plain messages
   Background:
-    Given there exists an account with username "user" and password "password"
-    And there exists an account with username "bridgetest" and password "password"
+    Given there exists an account with username "[user:user]" and password "password"
+    And there exists an account with username "[user:to]" and password "password"
     And bridge starts
-    And the user logs in with username "user" and password "password"
-    And user "user" connects and authenticates SMTP client "1"
+    And the user logs in with username "[user:user]" and password "password"
+    And user "[user:user]" connects and authenticates SMTP client "1"
 
   Scenario: HTML message to external account
-    When SMTP client "1" sends the following message from "user@[domain]" to "pm.bridge.qa@gmail.com":
+    When SMTP client "1" sends the following message from "[user:user]@[domain]" to "pm.bridge.qa@gmail.com":
       """
-      From: Bridge Test <user@[domain]>
+      From: Bridge Test <[user:user]@[domain]>
       To: External Bridge <pm.bridge.qa@gmail.com>
       Subject: HTML text external
       Content-Disposition: inline
@@ -21,10 +21,10 @@ Feature: SMTP sending of plain messages
 
       """
     Then it succeeds
-    When user "user" connects and authenticates IMAP client "1"
+    When user "[user:user]" connects and authenticates IMAP client "1"
     Then IMAP client "1" eventually sees the following messages in "Sent":
-      | from          | to                     | subject            |
-      | user@[domain] | pm.bridge.qa@gmail.com | HTML text external |
+      | from                 | to                     | subject            |
+      | [user:user]@[domain] | pm.bridge.qa@gmail.com | HTML text external |
     And the body in the "POST" request to "/mail/v4/messages" is:
       """
       {
@@ -47,9 +47,9 @@ Feature: SMTP sending of plain messages
       """
 
   Scenario: HTML message with inline image to external account
-    When SMTP client "1" sends the following message from "user@[domain]" to "pm.bridge.qa@gmail.com":
+    When SMTP client "1" sends the following message from "[user:user]@[domain]" to "pm.bridge.qa@gmail.com":
       """
-      From: Bridge Test <user@[domain]>
+      From: Bridge Test <[user:user]@[domain]>
       To: External Bridge <pm.bridge.qa@gmail.com>
       Subject: Html Inline External
       Content-Disposition: inline
@@ -97,10 +97,10 @@ Feature: SMTP sending of plain messages
 
       """
     Then it succeeds
-    When user "user" connects and authenticates IMAP client "1"
+    When user "[user:user]" connects and authenticates IMAP client "1"
     Then IMAP client "1" eventually sees the following messages in "Sent":
-      | from          | to                     | subject              |
-      | user@[domain] | pm.bridge.qa@gmail.com | Html Inline External |
+      | from                 | to                     | subject              |
+      | [user:user]@[domain] | pm.bridge.qa@gmail.com | Html Inline External |
     And the body in the "POST" request to "/mail/v4/messages" is:
       """
       {
@@ -123,10 +123,10 @@ Feature: SMTP sending of plain messages
       """
 
   Scenario: HTML message with alternative inline to internal account
-    When SMTP client "1" sends the following message from "user@[domain]" to "bridgetest@[domain]":
+    When SMTP client "1" sends the following message from "[user:user]@[domain]" to "[user:to]@[domain]":
       """
-      From: Bridge Test <user@[domain]>
-      To: Internal Bridge <bridgetest@[domain]>
+      From: Bridge Test <[user:user]@[domain]>
+      To: Internal Bridge <[user:to]@[domain]>
       Subject: Html Inline Alternative Internal
       Content-Disposition: inline
       User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101 Thunderbird/60.5.0
@@ -187,10 +187,10 @@ Feature: SMTP sending of plain messages
 
       """
     Then it succeeds
-    When user "user" connects and authenticates IMAP client "1"
+    When user "[user:user]" connects and authenticates IMAP client "1"
     Then IMAP client "1" eventually sees the following messages in "Sent":
-      | from          | to                  | subject                          |
-      | user@[domain] | bridgetest@[domain] | Html Inline Alternative Internal |
+      | from                 | to                 | subject                          |
+      | [user:user]@[domain] | [user:to]@[domain] | Html Inline Alternative Internal |
     And the body in the "POST" request to "/mail/v4/messages" is:
       """
       {
@@ -201,7 +201,7 @@ Feature: SMTP sending of plain messages
           },
           "ToList": [
             {
-              "Address": "bridgetest@[domain]",
+              "Address": "[user:to]@[domain]",
               "Name": "Internal Bridge"
             }
           ],
@@ -213,9 +213,9 @@ Feature: SMTP sending of plain messages
       """
 
   Scenario: HTML message with alternative inline to external account
-    When SMTP client "1" sends the following message from "user@[domain]" to "pm.bridge.qa@gmail.com":
+    When SMTP client "1" sends the following message from "[user:user]@[domain]" to "pm.bridge.qa@gmail.com":
       """
-      From: Bridge Test <user@[domain]>
+      From: Bridge Test <[user:user]@[domain]>
       To: External Bridge <pm.bridge.qa@gmail.com>
       Subject: Html Inline Alternative External
       Content-Disposition: inline
@@ -277,10 +277,10 @@ Feature: SMTP sending of plain messages
 
       """
     Then it succeeds
-    When user "user" connects and authenticates IMAP client "1"
+    When user "[user:user]" connects and authenticates IMAP client "1"
     Then IMAP client "1" eventually sees the following messages in "Sent":
-      | from          | to                     | subject                          |
-      | user@[domain] | pm.bridge.qa@gmail.com | Html Inline Alternative External |
+      | from                 | to                     | subject                          |
+      | [user:user]@[domain] | pm.bridge.qa@gmail.com | Html Inline Alternative External |
     And the body in the "POST" request to "/mail/v4/messages" is:
       """
       {
@@ -303,9 +303,9 @@ Feature: SMTP sending of plain messages
       """
 
   Scenario: HTML message with extremely long line (greater than default 2000 line limit) to external account
-    When SMTP client "1" sends the following message from "user@[domain]" to "pm.bridge.qa@gmail.com":
+    When SMTP client "1" sends the following message from "[user:user]@[domain]" to "pm.bridge.qa@gmail.com":
       """
-      From: Bridge Test <user@[domain]>
+      From: Bridge Test <[user:user]@[domain]>
       To: External Bridge <pm.bridge.qa@gmail.com>
       Subject: HTML text external
       Content-Disposition: inline
@@ -317,10 +317,10 @@ Feature: SMTP sending of plain messages
 
       """
     Then it succeeds
-    When user "user" connects and authenticates IMAP client "1"
+    When user "[user:user]" connects and authenticates IMAP client "1"
     Then IMAP client "1" eventually sees the following messages in "Sent":
-      | from          | to                     | subject            |
-      | user@[domain] | pm.bridge.qa@gmail.com | HTML text external |
+      | from                 | to                     | subject            |
+      | [user:user]@[domain] | pm.bridge.qa@gmail.com | HTML text external |
     And the body in the "POST" request to "/mail/v4/messages" is:
       """
       {

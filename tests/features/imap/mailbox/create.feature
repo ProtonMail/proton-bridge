@@ -1,16 +1,16 @@
 Feature: IMAP create mailbox
   Background:
-    Given there exists an account with username "user" and password "password"
-    And the account "user" has the following custom mailboxes:
+    Given there exists an account with username "[user:user]" and password "password"
+    And the account "[user:user]" has the following custom mailboxes:
       | name | type   |
       | f1   | folder |
       | f2   | folder |
       | l1   | label  |
       | l2   | label  |
     And bridge starts
-    And the user logs in with username "user" and password "password"
-    And user "user" finishes syncing
-    And user "user" connects and authenticates IMAP client "1"
+    And the user logs in with username "[user:user]" and password "password"
+    And user "[user:user]" finishes syncing
+    And user "[user:user]" connects and authenticates IMAP client "1"
 
   Scenario: Create folder
     When IMAP client "1" creates "Folders/mbox"
@@ -85,10 +85,10 @@ Feature: IMAP create mailbox
       | Labels         |
       | Labels/l1      |
       | Labels/l2      |
-    When user "user" is deleted
-    And the user logs in with username "user" and password "password"
-    And user "user" finishes syncing
-    And user "user" connects and authenticates IMAP client "2"
+    When user "[user:user]" is deleted
+    And the user logs in with username "[user:user]" and password "password"
+    And user "[user:user]" finishes syncing
+    And user "[user:user]" connects and authenticates IMAP client "2"
     Then IMAP client "2" sees the following mailbox info:
       | name           |
       | INBOX          |
@@ -163,10 +163,10 @@ Feature: IMAP create mailbox
       | Labels         |
       | Labels/l1      |
       | Labels/l2      |
-    When user "user" is deleted
-    And the user logs in with username "user" and password "password"
-    And user "user" finishes syncing
-    And user "user" connects and authenticates IMAP client "2"
+    When user "[user:user]" is deleted
+    And the user logs in with username "[user:user]" and password "password"
+    And user "[user:user]" finishes syncing
+    And user "[user:user]" connects and authenticates IMAP client "2"
     Then IMAP client "2" sees the following mailbox info:
       | name           |
       | INBOX          |

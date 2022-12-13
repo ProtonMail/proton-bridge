@@ -21,6 +21,7 @@ import (
 	"context"
 	"fmt"
 	"net/smtp"
+	"net/url"
 	"regexp"
 	"runtime"
 	"strings"
@@ -71,6 +72,7 @@ type testCtx struct {
 
 	// These maps hold expected userIDByName, their primary addresses and bridge passwords.
 	userUUIDByName     map[string]string
+	addrUUIDByName     map[string]string
 	userIDByName       map[string]string
 	userAddrByEmail    map[string]map[string]string
 	userPassByID       map[string]string
@@ -114,6 +116,7 @@ func newTestCtx(tb testing.TB) *testCtx {
 		reporter: newReportRecorder(tb),
 
 		userUUIDByName:     make(map[string]string),
+		addrUUIDByName:     make(map[string]string),
 		userIDByName:       make(map[string]string),
 		userAddrByEmail:    make(map[string]map[string]string),
 		userPassByID:       make(map[string]string),
@@ -150,6 +153,23 @@ func (t *testCtx) replace(value string) string {
 		}
 
 		return t.userUUIDByName[name]
+	})
+
+	// Replace [addr:EMAIL] with a unique address for the email EMAIL.
+	value = regexp.MustCompile(`\[addr:(\w+)\]`).ReplaceAllStringFunc(value, func(match string) string {
+		email := regexp.MustCompile(`\[addr:(\w+)\]`).FindStringSubmatch(match)[1]
+
+		// Create a new address if it doesn't exist yet.
+		if _, ok := t.addrUUIDByName[email]; !ok {
+			t.addrUUIDByName[email] = uuid.NewString()
+		}
+
+		return t.addrUUIDByName[email]
+	})
+
+	// Replace {upper:VALUE} with VALUE in uppercase.
+	value = regexp.MustCompile(`\{toUpper:([^}]+)\}`).ReplaceAllStringFunc(value, func(match string) string {
+		return strings.ToUpper(regexp.MustCompile(`\{toUpper:([^}].+)\}`).FindStringSubmatch(match)[1])
 	})
 
 	return value
@@ -285,8 +305,13 @@ func (t *testCtx) getLastCall(method, pathExp string) (server.Call, error) {
 	t.callsLock.RLock()
 	defer t.callsLock.RUnlock()
 
+	root, err := url.Parse(t.api.GetHostURL())
+	if err != nil {
+		return server.Call{}, err
+	}
+
 	if matches := xslices.Filter(xslices.Join(t.calls...), func(call server.Call) bool {
-		return call.Method == method && regexp.MustCompile("^"+pathExp+"$").MatchString(call.URL.Path)
+		return call.Method == method && regexp.MustCompile("^"+pathExp+"$").MatchString(strings.TrimPrefix(call.URL.Path, root.Path))
 	}); len(matches) > 0 {
 		return matches[len(matches)-1], nil
 	}

@@ -1,17 +1,17 @@
 Feature: SMTP sending two messages
   Background:
-    Given there exists an account with username "user" and password "password"
-    And there exists an account with username "other" and password "other"
+    Given there exists an account with username "[user:user]" and password "password"
+    And there exists an account with username "[user:recp]" and password "password"
     And bridge starts
-    And the user logs in with username "user" and password "password"
-    And the user logs in with username "other" and password "other"
+    And the user logs in with username "[user:user]" and password "password"
+    And the user logs in with username "[user:recp]" and password "password"
 
   Scenario: Send from one account to the other
-    When user "user" connects and authenticates SMTP client "1"
-    And SMTP client "1" sends the following message from "user@[domain]" to "other@[domain]":
+    When user "[user:user]" connects and authenticates SMTP client "1"
+    And SMTP client "1" sends the following message from "[user:user]@[domain]" to "[user:recp]@[domain]":
       """
-      From: Bridge Test <user@[domain]>
-      To: Internal Bridge <other@[domain]>
+      From: Bridge Test <[user:user]@[domain]>
+      To: Internal Bridge <[user:recp]@[domain]>
       Subject: One account to the other
 
       hello
@@ -25,12 +25,12 @@ Feature: SMTP sending two messages
           "Subject": "One account to the other",
           "Sender": {
             "Name": "Bridge Test",
-            "Address": "user@[domain]"
+            "Address": "[user:user]@[domain]"
           },
           "ToList": [
             {
               "Name": "Internal Bridge",
-              "Address": "other@[domain]"
+              "Address": "[user:recp]@[domain]"
             }
           ],
           "CCList": [],
@@ -45,7 +45,7 @@ Feature: SMTP sending two messages
         "Packages": [
           {
             "Addresses": {
-              "other@[domain]": {
+              "[user:recp]@[domain]": {
                 "Type": 1
               }
             },
@@ -55,17 +55,17 @@ Feature: SMTP sending two messages
         ]
       }
       """
-    When user "other" connects and authenticates IMAP client "1"
+    When user "[user:recp]" connects and authenticates IMAP client "1"
     Then IMAP client "1" eventually sees the following messages in "Inbox":
-      | from          | to             | subject                  | body  |
-      | user@[domain] | other@[domain] | One account to the other | hello |
+      | from                 | to                   | subject                  | body  |
+      | [user:user]@[domain] | [user:recp]@[domain] | One account to the other | hello |
 
   Scenario: Send from one account to the other with attachments
-    When user "user" connects and authenticates SMTP client "1"
-    And SMTP client "1" sends the following message from "user@[domain]" to "other@[domain]":
+    When user "[user:user]" connects and authenticates SMTP client "1"
+    And SMTP client "1" sends the following message from "[user:user]@[domain]" to "[user:recp]@[domain]":
       """
-      From: Bridge Test <user@[domain]>
-      To: Internal Bridge <other@[domain]>
+      From: Bridge Test <[user:user]@[domain]>
+      To: Internal Bridge <[user:recp]@[domain]>
       Subject: Plain with attachment internal
       Content-Type: multipart/related; boundary=bc5bd30245232f31b6c976adcd59bb0069c9b13f986f9e40c2571bb80aa16606
 
@@ -106,7 +106,7 @@ Feature: SMTP sending two messages
           },
           "ToList": [
             {
-              "Address": "other@[domain]",
+              "Address": "[user:recp]@[domain]",
               "Name": "Internal Bridge"
             }
           ],
@@ -122,7 +122,7 @@ Feature: SMTP sending two messages
         "Packages": [
           {
             "Addresses": {
-              "other@[domain]": {
+              "[user:recp]@[domain]": {
                 "Type": 1
               }
             },
@@ -132,11 +132,11 @@ Feature: SMTP sending two messages
         ]
       }
       """
-    When user "user" connects and authenticates IMAP client "1"
+    When user "[user:user]" connects and authenticates IMAP client "1"
     Then IMAP client "1" eventually sees the following messages in "Sent":
-      | from          | to             | subject                        | body             | attachments                    | unread |
-      | user@[domain] | other@[domain] | Plain with attachment internal | This is the body | outline-light-instagram-48.png | false  |
-    When user "other" connects and authenticates IMAP client "2"
+      | from                 | to                   | subject                        | body             | attachments                    | unread |
+      | [user:user]@[domain] | [user:recp]@[domain] | Plain with attachment internal | This is the body | outline-light-instagram-48.png | false  |
+    When user "[user:recp]" connects and authenticates IMAP client "2"
     Then IMAP client "2" eventually sees the following messages in "Inbox":
-      | from          | to             | subject                        | body             | attachments                    | unread |
-      | user@[domain] | other@[domain] | Plain with attachment internal | This is the body | outline-light-instagram-48.png | true   |
+      | from                 | to                   | subject                        | body             | attachments                    | unread |
+      | [user:user]@[domain] | [user:recp]@[domain] | Plain with attachment internal | This is the body | outline-light-instagram-48.png | true   |

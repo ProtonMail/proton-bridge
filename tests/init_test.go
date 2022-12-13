@@ -32,8 +32,8 @@ func init() {
 	// Use the fast cert generation for tests.
 	certs.GenerateCert = FastGenerateCert
 
-	// Set the event period to 100 milliseconds for more responsive tests.
-	user.EventPeriod = 100 * time.Millisecond
+	// Set the event period to 1 second for more responsive tests.
+	user.EventPeriod = time.Second
 
 	// Don't use jitter during tests.
 	user.EventJitter = 0
