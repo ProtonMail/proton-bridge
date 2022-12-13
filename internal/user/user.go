@@ -36,6 +36,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/v3/internal/logging"
 	"github.com/ProtonMail/proton-bridge/v3/internal/safe"
 	"github.com/ProtonMail/proton-bridge/v3/internal/vault"
+	"github.com/ProtonMail/proton-bridge/v3/pkg/algo"
 	"github.com/bradenaw/juniper/xslices"
 	"github.com/go-resty/resty/v2"
 	"github.com/sirupsen/logrus"
@@ -355,7 +356,7 @@ func (user *User) GluonKey() []byte {
 
 // BridgePass returns the user's bridge password, used for authentication over SMTP and IMAP.
 func (user *User) BridgePass() []byte {
-	return b64RawEncode(user.vault.BridgePass())
+	return algo.B64RawEncode(user.vault.BridgePass())
 }
 
 // UsedSpace returns the total space used by the user on the API.
@@ -431,7 +432,7 @@ func (user *User) CheckAuth(email string, password []byte) (string, error) {
 		panic("your wish is my command.. I crash")
 	}
 
-	dec, err := b64RawDecode(password)
+	dec, err := algo.B64RawDecode(password)
 	if err != nil {
 		return "", fmt.Errorf("failed to decode password: %w", err)
 	}

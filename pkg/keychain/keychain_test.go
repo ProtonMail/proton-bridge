@@ -21,7 +21,6 @@ import (
 	"encoding/base64"
 	"testing"
 
-	"github.com/docker/docker-credential-helpers/credentials"
 	"github.com/stretchr/testify/require"
 )
 
@@ -33,7 +32,7 @@ var testData = map[string]string{ //nolint:gochecknoglobals
 }
 
 func TestInsertReadRemove(t *testing.T) {
-	keychain := newKeychain(newTestHelper(), hostURL("bridge"))
+	keychain := newKeychain(NewTestHelper(), hostURL("bridge"))
 
 	for id, secret := range testData {
 		expectedList, _ := keychain.List()
@@ -114,36 +113,4 @@ func TestInsertReadRemove(t *testing.T) {
 	for id := range testData {
 		require.NotContains(t, actualList, id)
 	}
-}
-
-type testHelper map[string]*credentials.Credentials
-
-func newTestHelper() testHelper {
-	return make(testHelper)
-}
-
-func (h testHelper) Add(creds *credentials.Credentials) error {
-	h[creds.ServerURL] = creds
-	return nil
-}
-
-func (h testHelper) Delete(url string) error {
-	delete(h, url)
-	return nil
-}
-
-func (h testHelper) Get(url string) (string, string, error) {
-	creds := h[url]
-
-	return creds.Username, creds.Secret, nil
-}
-
-func (h testHelper) List() (map[string]string, error) {
-	list := make(map[string]string)
-
-	for url, creds := range h {
-		list[url] = creds.Username
-	}
-
-	return list, nil
 }

@@ -2,16 +2,27 @@
 
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
+## [Bridge 3.0.7] Perth Narrows
+
+### Fixed
+* Other: Increase default UIDVALIDITY.
+* GODT-2173: fix: Migrate Bridge passwords from v2.X.
+* GODT-2207: Fix encoding of non utf7 mailbox names.
+* Other: Increase worker count (2 -> 4).
+
+
 ## [Bridge 3.0.6] Perth Narrows
 
 ### Fixed
 * GODT-2187: Skip messages during sync that fail to build/parse.
+
 
 ## [Bridge 3.0.5] Perth Narrows
 
 ### Fixed
 * GODT-2178: Bump go-proton-api to fix drafts.
 * GODT-2180: Allow login with FIDO2.
+
 
 ## [Bridge 3.0.4] Perth Narrows
 
@@ -25,6 +36,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-2170: Improving test server behaviour.
 * GODT-2170: Update draft event means delete old and create new message.
 * GODT-2170: User create draft route: first steps.
+
 
 ## [Bridge 3.0.3] Perth Narrows
 
@@ -55,6 +67,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * Other: Include sentry dll for Windows deploy.
 * Other: Ensure context is string in sentry reports.
 * GODT-2160: Ensure we can safely move cache file.
+
 
 ## [Bridge 3.0.1] Perth Narrows
 

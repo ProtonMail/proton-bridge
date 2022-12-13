@@ -18,7 +18,6 @@
 package user
 
 import (
-	"encoding/base64"
 	"fmt"
 	"reflect"
 	"strings"
@@ -56,36 +55,6 @@ func groupBy[Key comparable, Value any](items []Value, key func(Value) Key) map[
 	}
 
 	return groups
-}
-
-// b64Encode returns the base64 encoding of the given byte slice.
-func b64Encode(b []byte) []byte {
-	enc := make([]byte, base64.StdEncoding.EncodedLen(len(b)))
-
-	base64.StdEncoding.Encode(enc, b)
-
-	return enc
-}
-
-// b64RawEncode returns the base64 encoding of the given byte slice.
-func b64RawEncode(b []byte) []byte {
-	enc := make([]byte, base64.RawURLEncoding.EncodedLen(len(b)))
-
-	base64.RawURLEncoding.Encode(enc, b)
-
-	return enc
-}
-
-// b64RawDecode returns the bytes represented by the base64 encoding of the given byte slice.
-func b64RawDecode(b []byte) ([]byte, error) {
-	dec := make([]byte, base64.RawURLEncoding.DecodedLen(len(b)))
-
-	n, err := base64.RawURLEncoding.Decode(dec, b)
-	if err != nil {
-		return nil, err
-	}
-
-	return dec[:n], nil
 }
 
 // getAddrID returns the address ID for the given email address.
