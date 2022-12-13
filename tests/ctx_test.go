@@ -43,7 +43,7 @@ import (
 	"google.golang.org/grpc"
 )
 
-var defaultVersion = semver.MustParse("1.0.0")
+var defaultVersion = semver.MustParse("3.0.6")
 
 type testCtx struct {
 	// These are the objects supporting the test.
@@ -104,7 +104,7 @@ func newTestCtx(tb testing.TB) *testCtx {
 
 	t := &testCtx{
 		dir:      dir,
-		api:      newFakeAPI(),
+		api:      newTestAPI(),
 		netCtl:   proton.NewNetCtl(),
 		locator:  locations.New(bridge.NewTestLocationsProvider(dir), "config-name"),
 		storeKey: []byte("super-secret-store-key"),

@@ -35,7 +35,7 @@ import (
 
 func (s *scenario) thereExistsAnAccountWithUsernameAndPassword(username, password string) error {
 	// Create the user and generate its default address (with keys).
-	if err := s.t.runQuarkCmd(
+	if _, err := s.t.runQuarkCmd(
 		context.Background(),
 		"user:create",
 		"--name", username,
@@ -48,6 +48,22 @@ func (s *scenario) thereExistsAnAccountWithUsernameAndPassword(username, passwor
 	return s.t.withClientPass(context.Background(), username, password, func(ctx context.Context, c *proton.Client) error {
 		user, err := c.GetUser(ctx)
 		if err != nil {
+			return err
+		}
+
+		// Decrypt the user's encrypted ID for use with quark.
+		userDecID, err := s.t.runQuarkCmd(context.Background(), "encryption:id", "--decrypt", user.ID)
+		if err != nil {
+			return err
+		}
+
+		// Upgrade the user to a paid account.
+		if _, err := s.t.runQuarkCmd(
+			context.Background(),
+			"user:create:subscription",
+			"--planID", "plus",
+			string(userDecID),
+		); err != nil {
 			return err
 		}
 
@@ -72,12 +88,51 @@ func (s *scenario) thereExistsAnAccountWithUsernameAndPassword(username, passwor
 func (s *scenario) theAccountHasAdditionalAddress(username, address string) error {
 	userID := s.t.getUserID(username)
 
+	// Decrypt the user's encrypted ID for use with quark.
+	userDecID, err := s.t.runQuarkCmd(context.Background(), "encryption:id", "--decrypt", userID)
+	if err != nil {
+		return err
+	}
+
 	// Create the user's additional address.
-	if err := s.t.runQuarkCmd(
+	if _, err := s.t.runQuarkCmd(
 		context.Background(),
 		"user:create:address",
 		"--gen-keys", "RSA2048",
-		userID,
+		string(userDecID),
+		s.t.getUserPass(userID),
+		address,
+	); err != nil {
+		return err
+	}
+
+	return s.t.withClient(context.Background(), username, func(ctx context.Context, c *proton.Client) error {
+		addr, err := c.GetAddresses(ctx)
+		if err != nil {
+			return err
+		}
+
+		// Set the new address of the user.
+		s.t.setUserAddr(userID, addr[len(addr)-1].ID, address)
+
+		return nil
+	})
+}
+
+func (s *scenario) theAccountHasAdditionalAddressWithoutKeys(username, address string) error {
+	userID := s.t.getUserID(username)
+
+	// Decrypt the user's encrypted ID for use with quark.
+	userDecID, err := s.t.runQuarkCmd(context.Background(), "--decrypt", "encryption:id", userID)
+	if err != nil {
+		return err
+	}
+
+	// Create the user's additional address.
+	if _, err := s.t.runQuarkCmd(
+		context.Background(),
+		"user:create:address",
+		string(userDecID),
 		s.t.getUserPass(userID),
 		address,
 	); err != nil {
@@ -239,26 +294,6 @@ func (s *scenario) theAddressOfAccountHasMessagesInMailbox(address, username str
 			}.Build(),
 		}
 	})))
-}
-
-func (s *scenario) theAddressOfAccountHasNoKeys(address, username string) error {
-	userID := s.t.getUserID(username)
-	addrID := s.t.getUserAddrID(userID, address)
-
-	return s.t.withClient(context.Background(), username, func(ctx context.Context, client *proton.Client) error {
-		address, err := client.GetAddress(ctx, addrID)
-		if err != nil {
-			return err
-		}
-
-		for _, key := range address.Keys {
-			if err := s.t.api.RemoveAddressKey(userID, addrID, key.ID); err != nil {
-				return err
-			}
-		}
-
-		return nil
-	})
 }
 
 // accountDraftChanged changes the draft attributes, where draftIndex is

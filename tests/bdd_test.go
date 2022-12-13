@@ -113,13 +113,13 @@ func TestFeatures(testingT *testing.T) {
 			// ==== SETUP ====
 			ctx.Step(`^there exists an account with username "([^"]*)" and password "([^"]*)"$`, s.thereExistsAnAccountWithUsernameAndPassword)
 			ctx.Step(`^the account "([^"]*)" has additional address "([^"]*)"$`, s.theAccountHasAdditionalAddress)
+			ctx.Step(`^the account "([^"]*)" has additional address "([^"]*)" without keys$`, s.theAccountHasAdditionalAddressWithoutKeys)
 			ctx.Step(`^the account "([^"]*)" no longer has additional address "([^"]*)"$`, s.theAccountNoLongerHasAdditionalAddress)
 			ctx.Step(`^the account "([^"]*)" has (\d+) custom folders$`, s.theAccountHasCustomFolders)
 			ctx.Step(`^the account "([^"]*)" has (\d+) custom labels$`, s.theAccountHasCustomLabels)
 			ctx.Step(`^the account "([^"]*)" has the following custom mailboxes:$`, s.theAccountHasTheFollowingCustomMailboxes)
 			ctx.Step(`^the address "([^"]*)" of account "([^"]*)" has the following messages in "([^"]*)":$`, s.theAddressOfAccountHasTheFollowingMessagesInMailbox)
 			ctx.Step(`^the address "([^"]*)" of account "([^"]*)" has (\d+) messages in "([^"]*)"$`, s.theAddressOfAccountHasMessagesInMailbox)
-			ctx.Step(`^the address "([^"]*)" of account "([^"]*)" has no keys$`, s.theAddressOfAccountHasNoKeys)
 			ctx.Step(`^the following fields were changed in draft (\d+) for address "([^"]*)" of account "([^"]*)":$`, s.theFollowingFieldsWereChangedInDraftForAddressOfAccount)
 
 			// ==== BRIDGE ====

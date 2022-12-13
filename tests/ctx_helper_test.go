@@ -32,6 +32,7 @@ func (t *testCtx) withProton(fn func(*proton.Manager) error) error {
 	m := proton.New(
 		proton.WithHostURL(t.api.GetHostURL()),
 		proton.WithTransport(proton.InsecureTransport()),
+		proton.WithAppVersion(t.api.GetAppVersion()),
 	)
 	defer m.Close()
 
@@ -65,10 +66,23 @@ func (t *testCtx) withClientPass(ctx context.Context, username, password string,
 }
 
 // runQuarkCmd runs the given quark command with the given arguments.
-func (t *testCtx) runQuarkCmd(ctx context.Context, command string, args ...string) error {
-	return t.withProton(func(m *proton.Manager) error {
-		return m.Quark(ctx, command, args...)
-	})
+func (t *testCtx) runQuarkCmd(ctx context.Context, command string, args ...string) ([]byte, error) {
+	var out []byte
+
+	if err := t.withProton(func(m *proton.Manager) error {
+		res, err := m.QuarkRes(ctx, command, args...)
+		if err != nil {
+			return err
+		}
+
+		out = res
+
+		return nil
+	}); err != nil {
+		return nil, err
+	}
+
+	return out, nil
 }
 
 func (t *testCtx) withAddrKR(

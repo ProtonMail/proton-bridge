@@ -18,27 +18,73 @@
 package tests
 
 import (
+	"net/url"
+	"os"
+
 	"github.com/Masterminds/semver/v3"
+	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/go-proton-api/server"
 )
 
 type API interface {
 	SetMinAppVersion(*semver.Version)
+	AddCallWatcher(func(server.Call), ...string)
 
 	GetHostURL() string
 	GetDomain() string
-	AddCallWatcher(func(server.Call), ...string)
-	RemoveAddressKey(userID, addrID, keyID string) error
+	GetAppVersion() string
 
 	Close()
+}
+
+func newTestAPI() API {
+	if hostURL := os.Getenv("FEATURE_TEST_HOST_URL"); hostURL != "" {
+		return newLiveAPI(hostURL)
+	}
+
+	return newFakeAPI()
 }
 
 type fakeAPI struct {
 	*server.Server
 }
 
-func newFakeAPI() *fakeAPI {
+func newFakeAPI() API {
 	return &fakeAPI{
 		Server: server.New(),
 	}
+}
+
+func (api *fakeAPI) GetAppVersion() string {
+	return proton.DefaultAppVersion
+}
+
+type liveAPI struct {
+	*server.Server
+
+	domain string
+}
+
+func newLiveAPI(hostURL string) API {
+	url, err := url.Parse(hostURL)
+	if err != nil {
+		panic(err)
+	}
+
+	return &liveAPI{
+		Server: server.New(server.WithProxyOrigin(hostURL)),
+		domain: url.Hostname(),
+	}
+}
+
+func (api *liveAPI) GetHostURL() string {
+	return api.Server.GetProxyURL()
+}
+
+func (api *liveAPI) GetDomain() string {
+	return api.domain
+}
+
+func (api *liveAPI) GetAppVersion() string {
+	return os.Getenv("FEATURE_TEST_APP_VERSION")
 }
