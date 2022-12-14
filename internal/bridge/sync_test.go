@@ -26,6 +26,7 @@ import (
 	"runtime"
 	"sync/atomic"
 	"testing"
+	"time"
 
 	"github.com/ProtonMail/gluon/rfc822"
 	"github.com/ProtonMail/go-proton-api"
@@ -209,7 +210,134 @@ func TestBridge_Sync_BadMessage(t *testing.T) {
 	})
 }
 
-func withClient(ctx context.Context, t *testing.T, s *server.Server, username string, password []byte, fn func(context.Context, *proton.Client)) {
+func TestBridge_SyncWithOngoingEvents(t *testing.T) {
+	numMsg := 1 << 8
+	messageSplitIndex := numMsg * 2 / 3
+	renmainingMessageCount := numMsg - messageSplitIndex
+
+	messages := make([]string, 0, numMsg)
+
+	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, storeKey []byte) {
+		userID, addrID, err := s.CreateUser("imap", password)
+		require.NoError(t, err)
+
+		labelID, err := s.CreateLabel(userID, "folder", "", proton.LabelTypeFolder)
+		require.NoError(t, err)
+
+		withClient(ctx, t, s, "imap", password, func(ctx context.Context, c *proton.Client) {
+			importResults := createNumMessages(ctx, t, c, addrID, labelID, numMsg)
+			for _, v := range importResults {
+				if len(v) != 0 {
+					messages = append(messages, v)
+				}
+			}
+		})
+
+		var total uint64
+
+		// The initial user should be fully synced.
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+			syncCh, done := chToType[events.Event, events.SyncFinished](bridge.GetEvents(events.SyncFinished{}))
+			defer done()
+
+			// Count how many bytes it takes to fully sync the user.
+			total = countBytesRead(netCtl, func() {
+				userID, err := bridge.LoginFull(ctx, "imap", password, nil, nil)
+				require.NoError(t, err)
+
+				require.Equal(t, userID, (<-syncCh).UserID)
+			})
+		})
+
+		// Now let's remove the user and stop the network at 2/3 of the data.
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+			require.NoError(t, bridge.DeleteUser(ctx, userID))
+		})
+
+		// Pretend we can only sync 2/3 of the original messages.
+		netCtl.SetReadLimit(2 * total / 3)
+
+		// Login the user; its sync should fail.
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(b *bridge.Bridge, mocks *bridge.Mocks) {
+			{
+				syncCh, done := chToType[events.Event, events.SyncFailed](b.GetEvents(events.SyncFailed{}))
+				defer done()
+
+				userID, err := b.LoginFull(ctx, "imap", password, nil, nil)
+				require.NoError(t, err)
+
+				require.Equal(t, userID, (<-syncCh).UserID)
+
+				info, err := b.GetUserInfo(userID)
+				require.NoError(t, err)
+				require.True(t, info.State == bridge.Connected)
+
+				client, err := client.Dial(fmt.Sprintf("%v:%v", constants.Host, b.GetIMAPPort()))
+				require.NoError(t, err)
+				require.NoError(t, client.Login(info.Addresses[0], string(info.BridgePass)))
+				defer func() { _ = client.Logout() }()
+
+				status, err := client.Select(`Folders/folder`, false)
+				require.NoError(t, err)
+				require.Less(t, status.Messages, uint32(numMsg))
+			}
+
+			// Create a new mailbox and move that last 1/3 of the messages into it to simulate user
+			// actions during sync.
+			{
+				newLabelID, err := s.CreateLabel(userID, "folder2", "", proton.LabelTypeFolder)
+				require.NoError(t, err)
+
+				messages := messages[messageSplitIndex:]
+
+				withClient(ctx, t, s, "imap", password, func(ctx context.Context, c *proton.Client) {
+					require.NoError(t, c.UnlabelMessages(ctx, messages, labelID))
+					require.NoError(t, c.LabelMessages(ctx, messages, newLabelID))
+				})
+			}
+
+			// Remove the network limit, allowing the sync to finish.
+			netCtl.SetReadLimit(0)
+
+			{
+				syncCh, done := chToType[events.Event, events.SyncFinished](b.GetEvents(events.SyncFinished{}))
+				defer done()
+
+				require.Equal(t, userID, (<-syncCh).UserID)
+
+				info, err := b.GetUserInfo(userID)
+				require.NoError(t, err)
+				require.True(t, info.State == bridge.Connected)
+
+				client, err := client.Dial(fmt.Sprintf("%v:%v", constants.Host, b.GetIMAPPort()))
+				require.NoError(t, err)
+				require.NoError(t, client.Login(info.Addresses[0], string(info.BridgePass)))
+				defer func() { _ = client.Logout() }()
+
+				status, err := client.Select(`Folders/folder`, false)
+				require.NoError(t, err)
+				// Original folder should have more than 0 messages and less than the total.
+				require.Greater(t, status.Messages, uint32(0))
+				require.Less(t, status.Messages, uint32(numMsg))
+
+				// Check that the new messages arrive in the right location.
+				require.Eventually(t, func() bool {
+					status, err := client.Select(`Folders/folder2`, true)
+					if err != nil {
+						return false
+					}
+					if status.Messages != uint32(renmainingMessageCount) {
+						return false
+					}
+
+					return true
+				}, 10*time.Second, 500*time.Millisecond)
+			}
+		})
+	}, server.WithTLS(false))
+}
+
+func withClient(ctx context.Context, t *testing.T, s *server.Server, username string, password []byte, fn func(context.Context, *proton.Client)) { //nolint:unparam
 	m := proton.New(
 		proton.WithHostURL(s.GetHostURL()),
 		proton.WithTransport(proton.InsecureTransport()),

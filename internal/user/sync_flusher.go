@@ -47,7 +47,7 @@ func (f *flusher) push(update *imap.MessageCreated) {
 
 func (f *flusher) flush() {
 	if len(f.updates) > 0 {
-		f.updateCh.Enqueue(imap.NewMessagesCreated(f.updates...))
+		f.updateCh.Enqueue(imap.NewMessagesCreated(true, f.updates...))
 		f.updates = nil
 		f.curChunkSize = 0
 	}

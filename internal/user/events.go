@@ -464,7 +464,7 @@ func (user *User) handleCreateMessageEvent(ctx context.Context, event proton.Mes
 				user.log.WithError(err).Error("Failed to remove failed message ID from vault")
 			}
 
-			user.updateCh[full.AddressID].Enqueue(imap.NewMessagesCreated(res.update))
+			user.updateCh[full.AddressID].Enqueue(imap.NewMessagesCreated(false, res.update))
 
 			return nil
 		})
