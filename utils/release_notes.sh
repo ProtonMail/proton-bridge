@@ -35,14 +35,16 @@ if ! which pandoc; then
 fi
 
 # Check Pandoc version
-PANDOC_VERSION=`pandoc --version | grep --color=never -m 1 "pandoc"  | sed -nre 's/^[^0-9]*(([0-9]+\.)*[0-9]+).*/\1/p'`
+PANDOC_VERSION=$(pandoc --version | grep --color=never -m 1 "pandoc"  | sed -nre 's/^[^0-9]*(([0-9]+\.)*[0-9]+).*/\1/p')
+printf "PANDOC FOUND ! version : %s\n", "$PANDOC_VERSION"
+
 # self-contained is deprecated since 2.19 in profit of --embed-resource option
 DEPRECATING_VERSION="2.19.0"
 # Build release notes
-if [ "$(printf '%s\n' "$requiredver" "$PANDOC_VERSION" | sort -V | head -n1)" = "$DEPRECATING_VERSION" ]; then
+function ver { printf "%03d%03d%03d%03d" $(echo "$1" | tr '.' ' '); }
+
+if [ $(ver $PANDOC_VERSION) -lt $(ver $DEPRECATING_VERSION) ]; then
     pandoc "$INFILE" -f markdown -t html -s -o "$OUTFILE" -c utils/release_notes.css --self-contained --section-divs --metadata title="Release notes - Proton Mail Bridge - $CHANNEL"
 else
     pandoc "$INFILE" -f markdown -t html -s -o "$OUTFILE" -c utils/release_notes.css --embed-resource --standalone --section-divs --metadata title="Release notes - Proton Mail Bridge - $CHANNEL"
 fi
-
-

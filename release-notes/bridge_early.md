@@ -1,3 +1,69 @@
+## v3.0.12
+- 2023-02-01
+
+### New
+- **Please note: this update might cause one time resync of your local DB.**
+- Improved sending performance.
+- Optimised cache, IMAP database and storage placement.
+- Minor GUI improvements.
+- Optimised unexpected event handling.
+
+### Fixed
+- Outlook does not show sent messages as drafts.
+- Improved 'Reply to' behaviour.
+
+
+## v3.0.10
+- 2023-01-17
+
+### New
+- Program argument to use software rendering.
+- Improved exception handling in GUI.
+
+### Fixed
+- API event processing more robust.
+- Improve the startup process.
+- Fixed sub-folder creation bug.
+
+
+## v3.0.9
+- 2023-01-05
+
+### New
+- Added an option to the GUI to export TLS certificates
+- Increased tolerance of invalid messages
+
+### Fixed
+- Autostart is set only when changed by the user
+- Folders that are created during initial sync are synchronized correctly
+- Improved settings migration from 2.x to 3.x
+- Error reporting improvements on Intel Macs
+- Show the setup guide after the first login
+- User name and password validation messages are shown only when the Sign in button is pressed
+- The Bridge main window is not shown on startup or after a crash
+- Sign in button is not greyed out after the first login
+
+
+## v3.0.8
+- 2022-12-20
+
+### New
+- Impoved error detection when Proton server updates cannot be processed
+
+### Fixed
+- Proton server update processing will not stop after a folder update failure
+
+## v3.0.7
+- 2022-12-19
+
+### New
+- Increase worker count (performance improvement)
+
+### Fixed
+- Bridge password migration from 2.x to 3.x
+- Ensure proper handling of folders and labels with non-US ASCII chars
+
+
 ## v3.0.6
 - 2022-12-12
 
