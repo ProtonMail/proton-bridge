@@ -30,6 +30,7 @@ import (
 	"github.com/Masterminds/semver/v3"
 	"github.com/ProtonMail/proton-bridge/v3/internal/legacy/credentials"
 	"github.com/ProtonMail/proton-bridge/v3/internal/locations"
+	"github.com/ProtonMail/proton-bridge/v3/internal/logging"
 	"github.com/ProtonMail/proton-bridge/v3/internal/updater"
 	"github.com/ProtonMail/proton-bridge/v3/internal/vault"
 	"github.com/ProtonMail/proton-bridge/v3/pkg/algo"
@@ -49,8 +50,8 @@ func migrateKeychainHelper(locations *locations.Locations) error {
 		return fmt.Errorf("failed to get settings path: %w", err)
 	}
 
+	// If keychain helper file is already there do not migrate again.
 	if keychainName, _ := vault.GetHelper(settings); keychainName != "" {
-		// If uncorupted keychain file is already there do not migrate again.
 		return nil
 	}
 
@@ -124,7 +125,6 @@ func migrateOldAccounts(locations *locations.Locations, v *vault.Vault) error {
 	var migrationErrors error
 
 	for _, userID := range users {
-		logrus.WithField("userID", userID).Info("Migrating account")
 		if err := migrateOldAccount(userID, store, v); err != nil {
 			migrationErrors = multierror.Append(migrationErrors, err)
 		}
@@ -134,6 +134,9 @@ func migrateOldAccounts(locations *locations.Locations, v *vault.Vault) error {
 }
 
 func migrateOldAccount(userID string, store *credentials.Store, v *vault.Vault) error {
+	l := logrus.WithField("userID", userID)
+	l.Info("Migrating account")
+
 	creds, err := store.Get(userID)
 	if err != nil {
 		return fmt.Errorf("failed to get user %q: %w", userID, err)
@@ -144,10 +147,13 @@ func migrateOldAccount(userID string, store *credentials.Store, v *vault.Vault) 
 		return fmt.Errorf("failed to split api token for user %q: %w", userID, err)
 	}
 
-	user, err := v.AddUser(creds.UserID, creds.EmailList()[0], authUID, authRef, creds.MailboxPassword)
+	user, err := v.AddUser(creds.UserID, creds.Name, authUID, authRef, creds.MailboxPassword)
 	if err != nil {
 		return fmt.Errorf("failed to add user %q: %w", userID, err)
 	}
+
+	l = l.WithField("username", logging.Sensitive(user.Username()))
+	l.Info("Migrated account with random bridge password")
 
 	defer func() {
 		if err := user.Close(); err != nil {
@@ -161,8 +167,11 @@ func migrateOldAccount(userID string, store *credentials.Store, v *vault.Vault) 
 	}
 
 	if err := user.SetBridgePass(dec); err != nil {
-		return fmt.Errorf("failed to set bridge password to user %q: %w", userID, err)
+		return fmt.Errorf("failed to set bridge password for user %q: %w", userID, err)
 	}
+
+	l = l.WithField("password", logging.Sensitive(string(algo.B64RawEncode(dec))))
+	l.Info("Migrated existing bridge password")
 
 	if !creds.IsCombinedAddressMode {
 		if err := user.SetAddressMode(vault.SplitMode); err != nil {
