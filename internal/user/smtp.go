@@ -66,6 +66,9 @@ func (user *User) sendMail(authID string, from string, to []string, r io.Reader)
 			return fmt.Errorf("failed to read message: %w", err)
 		}
 
+		// If running a QA build, dump to disk.
+		debugDumpToDisk(b)
+
 		// Compute the hash of the message (to match it against SMTP messages).
 		hash, err := getMessageHash(b)
 		if err != nil {
