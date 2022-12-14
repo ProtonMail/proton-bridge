@@ -281,7 +281,7 @@ updates: install-go-mod-outdated
 doc:
 	godoc -http=:6060
 
-release-notes: release-notes/bridge_stable.html release-notes/bridge_early.html
+release-notes: release-notes/bridge_stable.html release-notes/bridge_early.html utils/release_notes.sh
 
 release-notes/%.html: release-notes/%.md
 	./utils/release_notes.sh $^
