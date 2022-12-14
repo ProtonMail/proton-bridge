@@ -129,7 +129,7 @@ func (bridge *Bridge) LoginAuth(ctx context.Context, username string, password [
 		return nil, proton.Auth{}, fmt.Errorf("failed to create new API client: %w", err)
 	}
 
-	if ok := safe.RLockRet(func() bool { return mapHas(bridge.users, auth.UID) }, bridge.usersLock); ok {
+	if ok := safe.RLockRet(func() bool { return mapHas(bridge.users, auth.UserID) }, bridge.usersLock); ok {
 		logrus.WithField("userID", auth.UserID).Warn("User already logged in")
 
 		if err := client.AuthDelete(ctx); err != nil {

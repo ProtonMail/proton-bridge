@@ -61,6 +61,24 @@ func TestBridge_Login(t *testing.T) {
 	})
 }
 
+func TestBridge_LoginTwice(t *testing.T) {
+	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, storeKey []byte) {
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+			// Login the user.
+			userID, err := bridge.LoginFull(ctx, username, password, nil, nil)
+			require.NoError(t, err)
+
+			// The user is now connected.
+			require.Equal(t, []string{userID}, bridge.GetUserIDs())
+			require.Equal(t, []string{userID}, getConnectedUserIDs(t, bridge))
+
+			// Additional login should fail.
+			_, err = bridge.LoginFull(ctx, username, password, nil, nil)
+			require.Error(t, err)
+		})
+	})
+}
+
 func TestBridge_LoginLogoutLogin(t *testing.T) {
 	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, storeKey []byte) {
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
