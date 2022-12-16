@@ -275,12 +275,10 @@ func getMessageHash(b []byte) (string, error) {
 			return err
 		}
 
-		body, err := section.DecodedBody()
-		if err != nil {
-			return err
-		}
-
-		if _, err := h.Write(bytes.TrimSpace(body)); err != nil {
+		body := section.Body()
+		body = bytes.ReplaceAll(body, []byte{'\r'}, nil)
+		body = bytes.TrimSpace(body)
+		if _, err := h.Write(body); err != nil {
 			return err
 		}
 
