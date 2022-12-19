@@ -153,16 +153,31 @@ func (user *User) handleAddressEvents(ctx context.Context, addressEvents []proto
 		switch event.Action {
 		case proton.EventCreate:
 			if err := user.handleCreateAddressEvent(ctx, event); err != nil {
+				if rerr := user.reporter.ReportMessageWithContext("Failed to apply address create event", reporter.Context{
+					"error": err,
+				}); rerr != nil {
+					user.log.WithError(err).Error("Failed to report address create event error")
+				}
 				return fmt.Errorf("failed to handle create address event: %w", err)
 			}
 
 		case proton.EventUpdate, proton.EventUpdateFlags:
 			if err := user.handleUpdateAddressEvent(ctx, event); err != nil {
+				if rerr := user.reporter.ReportMessageWithContext("Failed to apply address update event", reporter.Context{
+					"error": err,
+				}); rerr != nil {
+					user.log.WithError(err).Error("Failed to report address update event error")
+				}
 				return fmt.Errorf("failed to handle update address event: %w", err)
 			}
 
 		case proton.EventDelete:
 			if err := user.handleDeleteAddressEvent(ctx, event); err != nil {
+				if rerr := user.reporter.ReportMessageWithContext("Failed to apply address delete event", reporter.Context{
+					"error": err,
+				}); rerr != nil {
+					user.log.WithError(err).Error("Failed to report address delete event error")
+				}
 				return fmt.Errorf("failed to delete address: %w", err)
 			}
 		}
@@ -370,7 +385,7 @@ func (user *User) handleDeleteLabelEvent(_ context.Context, event proton.LabelEv
 }
 
 // handleMessageEvents handles the given message events.
-func (user *User) handleMessageEvents(ctx context.Context, messageEvents []proton.MessageEvent) error {
+func (user *User) handleMessageEvents(ctx context.Context, messageEvents []proton.MessageEvent) error { //nolint:funlen
 	for _, event := range messageEvents {
 		ctx = logging.WithLogrusField(ctx, "messageID", event.ID)
 
@@ -380,6 +395,11 @@ func (user *User) handleMessageEvents(ctx context.Context, messageEvents []proto
 				logging.WithLogrusField(ctx, "action", "create message"),
 				event,
 			); err != nil {
+				if rerr := user.reporter.ReportMessageWithContext("Failed to apply create message event", reporter.Context{
+					"error": err,
+				}); rerr != nil {
+					user.log.WithError(err).Error("Failed to report create message event error")
+				}
 				return fmt.Errorf("failed to handle create message event: %w", err)
 			}
 
@@ -390,6 +410,11 @@ func (user *User) handleMessageEvents(ctx context.Context, messageEvents []proto
 					logging.WithLogrusField(ctx, "action", "update draft"),
 					event,
 				); err != nil {
+					if rerr := user.reporter.ReportMessageWithContext("Failed to apply update draft message event", reporter.Context{
+						"error": err,
+					}); rerr != nil {
+						user.log.WithError(err).Error("Failed to report update draft message event error")
+					}
 					return fmt.Errorf("failed to handle update draft event: %w", err)
 				}
 
@@ -404,6 +429,11 @@ func (user *User) handleMessageEvents(ctx context.Context, messageEvents []proto
 				logging.WithLogrusField(ctx, "action", "update message"),
 				event,
 			); err != nil {
+				if rerr := user.reporter.ReportMessageWithContext("Failed to apply update message event", reporter.Context{
+					"error": err,
+				}); rerr != nil {
+					user.log.WithError(err).Error("Failed to report update message event error")
+				}
 				return fmt.Errorf("failed to handle update message event: %w", err)
 			}
 
@@ -412,6 +442,11 @@ func (user *User) handleMessageEvents(ctx context.Context, messageEvents []proto
 				logging.WithLogrusField(ctx, "action", "delete message"),
 				event,
 			); err != nil {
+				if rerr := user.reporter.ReportMessageWithContext("Failed to apply delete message event", reporter.Context{
+					"error": err,
+				}); rerr != nil {
+					user.log.WithError(err).Error("Failed to report delete message event error")
+				}
 				return fmt.Errorf("failed to handle delete message event: %w", err)
 			}
 		}
@@ -515,7 +550,7 @@ func (user *User) handleUpdateDraftEvent(ctx context.Context, event proton.Messa
 					user.log.WithError(err).Error("Failed to add failed message ID to vault")
 				}
 
-				if err := user.reporter.ReportMessageWithContext("Failed to build message (event update)", reporter.Context{
+				if err := user.reporter.ReportMessageWithContext("Failed to build draft message (event update)", reporter.Context{
 					"messageID": res.messageID,
 					"error":     res.err,
 				}); err != nil {
