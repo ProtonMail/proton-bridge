@@ -148,7 +148,8 @@ func TestBridge_Sync(t *testing.T) {
 	}, server.WithTLS(false))
 }
 
-func TestBridge_Sync_BadMessage(t *testing.T) {
+// GODT-2215: This test no longer works since it's now possible to import messages into Gluon with bad ContentType header.
+func _TestBridge_Sync_BadMessage(t *testing.T) { //nolint:unused,deadcode
 	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, storeKey []byte) {
 		userID, addrID, err := s.CreateUser("imap", password)
 		require.NoError(t, err)
@@ -161,7 +162,7 @@ func TestBridge_Sync_BadMessage(t *testing.T) {
 		withClient(ctx, t, s, "imap", password, func(ctx context.Context, c *proton.Client) {
 			messageIDs = createMessages(ctx, t, c, addrID, labelID,
 				[]byte("To: someone@pm.me\r\nSubject: Good message\r\n\r\nHello!"),
-				[]byte("To: someone@pm.me\r\nSubject: Bad message\r\nContent-Type: this is not a valid content type\r\n\r\nHello!"),
+				[]byte("To: someone@pm.me\r\nSubject: Bad message\r\nContentType: this is not a valid content type\r\n\r\nHello!"),
 			)
 		})
 
@@ -350,7 +351,7 @@ func withClient(ctx context.Context, t *testing.T, s *server.Server, username st
 	fn(ctx, c)
 }
 
-func clientFetch(client *client.Client, mailbox string) ([]*imap.Message, error) {
+func clientFetch(client *client.Client, mailbox string) ([]*imap.Message, error) { //nolint:unused
 	status, err := client.Select(mailbox, false)
 	if err != nil {
 		return nil, err
