@@ -301,10 +301,8 @@ func (user *User) handleCreateLabelEvent(_ context.Context, event proton.LabelEv
 		}).Info("Handling label created event")
 
 		if _, ok := user.apiLabels[event.Label.ID]; ok {
-			return fmt.Errorf("label %q already exists", event.ID)
+			user.apiLabels[event.Label.ID] = event.Label
 		}
-
-		user.apiLabels[event.Label.ID] = event.Label
 
 		for _, updateCh := range user.updateCh {
 			updateCh.Enqueue(newMailboxCreatedUpdate(imap.MailboxID(event.ID), getMailboxName(event.Label)))
@@ -328,10 +326,8 @@ func (user *User) handleUpdateLabelEvent(_ context.Context, event proton.LabelEv
 		}).Info("Handling label updated event")
 
 		if _, ok := user.apiLabels[event.Label.ID]; !ok {
-			return fmt.Errorf("label %q does not exist", event.ID)
+			user.apiLabels[event.Label.ID] = event.Label
 		}
-
-		user.apiLabels[event.Label.ID] = event.Label
 
 		for _, updateCh := range user.updateCh {
 			updateCh.Enqueue(imap.NewMailboxUpdated(
@@ -356,10 +352,8 @@ func (user *User) handleDeleteLabelEvent(_ context.Context, event proton.LabelEv
 
 		label, ok := user.apiLabels[event.ID]
 		if !ok {
-			return fmt.Errorf("label %q does not exist", event.ID)
+			delete(user.apiLabels, event.ID)
 		}
-
-		delete(user.apiLabels, event.ID)
 
 		for _, updateCh := range user.updateCh {
 			updateCh.Enqueue(imap.NewMailboxDeleted(imap.MailboxID(event.ID)))
