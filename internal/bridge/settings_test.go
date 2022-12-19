@@ -134,10 +134,19 @@ func TestBridge_Settings_Proxy(t *testing.T) {
 func TestBridge_Settings_Autostart(t *testing.T) {
 	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, storeKey []byte) {
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
-			// By default, autostart is disabled.
+			// By default, autostart is enabled.
+			require.True(t, bridge.GetAutostart())
+
+			// Disable autostart.
+			mocks.Autostarter.EXPECT().IsEnabled().Return(true)
+			mocks.Autostarter.EXPECT().Disable().Return(nil)
+			require.NoError(t, bridge.SetAutostart(false))
+
+			// Get the new setting.
 			require.False(t, bridge.GetAutostart())
 
-			// Enable autostart.
+			// Re Enable autostart.
+			mocks.Autostarter.EXPECT().IsEnabled().Return(false)
 			mocks.Autostarter.EXPECT().Enable().Return(nil)
 			require.NoError(t, bridge.SetAutostart(true))
 

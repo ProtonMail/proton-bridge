@@ -194,6 +194,7 @@ func (t *testCtx) initFrontendService(eventCh <-chan events.Event) error {
 
 	// When starting the frontend, we might enable autostart on bridge if it isn't already.
 	t.mocks.Autostarter.EXPECT().Enable().AnyTimes()
+	t.mocks.Autostarter.EXPECT().IsEnabled().AnyTimes()
 
 	service, err := frontend.NewService(
 		new(mockCrashHandler),

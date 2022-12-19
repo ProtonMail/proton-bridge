@@ -78,7 +78,7 @@ func newDefaultSettings(gluonDir string) Settings {
 		ColorScheme:  "",
 		ProxyAllowed: true,
 		ShowAllMail:  true,
-		Autostart:    false,
+		Autostart:    true,
 		AutoUpdate:   true,
 
 		LastVersion:   "0.0.0",

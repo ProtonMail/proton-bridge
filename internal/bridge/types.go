@@ -51,6 +51,7 @@ type TLSReporter interface {
 type Autostarter interface {
 	Enable() error
 	Disable() error
+	IsEnabled() bool
 }
 
 type Updater interface {

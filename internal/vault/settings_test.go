@@ -152,13 +152,13 @@ func TestVault_Settings_Autostart(t *testing.T) {
 	s := newVault(t)
 
 	// Check the default autostart setting.
-	require.Equal(t, false, s.GetAutostart())
+	require.Equal(t, true, s.GetAutostart())
 
 	// Modify the autostart setting.
-	require.NoError(t, s.SetAutostart(true))
+	require.NoError(t, s.SetAutostart(false))
 
 	// Check the new autostart setting.
-	require.Equal(t, true, s.GetAutostart())
+	require.Equal(t, false, s.GetAutostart())
 }
 
 func TestVault_Settings_AutoUpdate(t *testing.T) {

@@ -207,15 +207,24 @@ func (bridge *Bridge) GetAutostart() bool {
 }
 
 func (bridge *Bridge) SetAutostart(autostart bool) error {
-	if err := bridge.vault.SetAutostart(autostart); err != nil {
-		return err
+	if autostart != bridge.vault.GetAutostart() {
+		if err := bridge.vault.SetAutostart(autostart); err != nil {
+			return err
+		}
 	}
 
 	var err error
-
 	if autostart {
+		// do nothing if already enabled
+		if bridge.autostarter.IsEnabled() {
+			return nil
+		}
 		err = bridge.autostarter.Enable()
 	} else {
+		// do nothing if already disabled
+		if !bridge.autostarter.IsEnabled() {
+			return nil
+		}
 		err = bridge.autostarter.Disable()
 	}
 

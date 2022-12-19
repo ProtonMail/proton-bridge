@@ -191,9 +191,6 @@ func NewService(
 	return s, nil
 }
 
-// GODT-1507 Windows: autostart needs to be created after Qt is initialized.
-// GODT-1206: if preferences file says it should be on enable it here.
-// TO-DO GODT-1681 Autostart needs to be properly implement for gRPC approach.
 func (s *Service) initAutostart() {
 	s.firstTimeAutostart.Do(func() {
 		shouldAutostartBeOn := s.bridge.GetAutostart()
