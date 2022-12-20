@@ -16,7 +16,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * Other: Do not decode message body during send record hashing.
 * GODT-2196: Do not generate message updates for unknown labels.
 * Other: Prevent double login.
-* Other: Improve migration logging prefer username over primary address.
+* Other: Improve migration logging prefers username over primary address.
 * Other(test): Prefer native API revoke rather than fake server method.
 * GODT-2190: Unify crashpad_handler for darwin.
 * Other(test): Add test that we skip and report bad messages during sync.
@@ -26,7 +26,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-1556: Add unit test for in-reply-to header without references.
 * GODT-2150: Fixed initial implementation that filtered --no-window in gui instead of bridge.
 * GODT-2167: Bind sign-in buttons availability to loading state.
-* Other: Only send to necessary update channel
+* Other: Only send to necessary update channel.
 * GODT-1804: Add parsing ics attachment test.
 * Other: Fix Warning introduced by connecting check timer.
 
