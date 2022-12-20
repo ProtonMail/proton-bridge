@@ -2,6 +2,35 @@
 
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
+## [Bridge 3.0.9] Perth Narrows
+
+### Changed
+* GODT-2181(test): Refactor integration test setup a bit.
+* Other: Updated GUI tester for new gRPC calls.
+* GODT-1847: Add option to export TLS Certificates in GUI.
+
+### Fixed
+* Other: Fix TOTP login (bump go-proton-api).
+* GODT-2188: Do not fail append with invalid mime-type.
+* GODT-2213: Don't unnecessarily enable/disable autostart.
+* Other: Do not decode message body during send record hashing.
+* GODT-2196: Do not generate message updates for unknown labels.
+* Other: Prevent double login.
+* Other: Improve migration logging prefer username over primary address.
+* Other(test): Prefer native API revoke rather than fake server method.
+* GODT-2190: Unify crashpad_handler for darwin.
+* Other(test): Add test that we skip and report bad messages during sync.
+* Other: Catalina build.
+* GODT-2042: Fix setup guide not always showing on first login.
+* GODT-2152: Sign-in dialog validate email and password only when button is pressed.
+* GODT-1556: Add unit test for in-reply-to header without references.
+* GODT-2150: Fixed initial implementation that filtered --no-window in gui instead of bridge.
+* GODT-2167: Bind sign-in buttons availability to loading state.
+* Other: Only send to necessary update channel
+* GODT-1804: Add parsing ics attachment test.
+* Other: Fix Warning introduced by connecting check timer.
+
+
 ## [Bridge 3.0.8] Perth Narrows
 
 ### Fixed
