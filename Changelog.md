@@ -2,6 +2,13 @@
 
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
+## [Bridge 3.0.8] Perth Narrows
+
+### Fixed
+* Other: Add sentry reports for event processing failures.
+* Other: Do not fail on label events.
+
+
 ## [Bridge 3.0.7] Perth Narrows
 
 ### Fixed
