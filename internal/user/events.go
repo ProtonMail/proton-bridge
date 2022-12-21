@@ -196,7 +196,8 @@ func (user *User) handleCreateAddressEvent(ctx context.Context, event proton.Add
 		}).Info("Handling address created event")
 
 		if _, ok := user.apiAddrs[event.Address.ID]; ok {
-			return fmt.Errorf("address %q already exists", event.ID)
+			user.log.Debugf("Address %q already exists", event.ID)
+			return nil
 		}
 
 		user.apiAddrs[event.Address.ID] = event.Address
@@ -245,7 +246,8 @@ func (user *User) handleUpdateAddressEvent(_ context.Context, event proton.Addre
 		}).Info("Handling address updated event")
 
 		if _, ok := user.apiAddrs[event.Address.ID]; !ok {
-			return fmt.Errorf("address %q does not exist", event.Address.ID)
+			user.log.Debugf("Address %q does not exist", event.Address.ID)
+			return nil
 		}
 
 		user.apiAddrs[event.Address.ID] = event.Address
@@ -266,7 +268,8 @@ func (user *User) handleDeleteAddressEvent(_ context.Context, event proton.Addre
 
 		addr, ok := user.apiAddrs[event.ID]
 		if !ok {
-			return fmt.Errorf("address %q does not exist", event.ID)
+			user.log.Debugf("Address %q does not exist", event.ID)
+			return nil
 		}
 
 		if user.vault.AddressMode() == vault.SplitMode {
