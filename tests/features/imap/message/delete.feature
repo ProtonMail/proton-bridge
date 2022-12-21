@@ -14,6 +14,7 @@ Feature: IMAP remove messages from mailbox
   Scenario: Mark message as deleted and EXPUNGE
     When IMAP client "1" selects "Folders/mbox"
     And IMAP client "1" marks message 2 as deleted
+    And it succeeds
     Then IMAP client "1" sees that message 2 has the flag "\Deleted"
     When IMAP client "1" expunges
     And it succeeds
@@ -29,8 +30,11 @@ Feature: IMAP remove messages from mailbox
   Scenario: Mark messages as undeleted and EXPUNGE
     When IMAP client "1" selects "Folders/mbox"
     And IMAP client "1" marks all messages as deleted
+    And it succeeds
     But IMAP client "1" marks message 2 as not deleted
+    And it succeeds
     And IMAP client "1" marks message 3 as not deleted
+    And it succeeds
     When IMAP client "1" expunges
     And it succeeds
     Then IMAP client "1" sees 2 messages in "Folders/mbox"
@@ -38,5 +42,6 @@ Feature: IMAP remove messages from mailbox
   Scenario: Not possible to delete from All Mail and expunge does nothing
     When IMAP client "1" selects "All Mail"
     And IMAP client "1" marks message 2 as deleted
+    And it succeeds
     And IMAP client "1" expunges
     Then it fails

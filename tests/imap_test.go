@@ -312,7 +312,7 @@ func (s *scenario) imapClientMarksMessageAsDeleted(clientID string, seq int) err
 	_, client := s.t.getIMAPClient(clientID)
 
 	if _, err := clientStore(client, seq, seq, false, imap.FormatFlagsOp(imap.AddFlags, true), imap.DeletedFlag); err != nil {
-		return err
+		s.t.pushError(err)
 	}
 
 	return nil
@@ -327,7 +327,7 @@ func (s *scenario) imapClientMarksTheMessageWithSubjectAsDeleted(clientID, subje
 	}
 
 	if _, err := clientStore(client, int(uid), int(uid), true, imap.FormatFlagsOp(imap.AddFlags, true), imap.DeletedFlag); err != nil {
-		return err
+		s.t.pushError(err)
 	}
 
 	return nil
@@ -338,7 +338,7 @@ func (s *scenario) imapClientMarksMessageAsNotDeleted(clientID string, seq int) 
 
 	_, err := clientStore(client, seq, seq, false, imap.FormatFlagsOp(imap.RemoveFlags, true), imap.DeletedFlag)
 	if err != nil {
-		return err
+		s.t.pushError(err)
 	}
 
 	return nil
@@ -349,7 +349,7 @@ func (s *scenario) imapClientMarksAllMessagesAsDeleted(clientID string) error {
 
 	_, err := clientStore(client, 1, int(client.Mailbox().Messages), false, imap.FormatFlagsOp(imap.AddFlags, true), imap.DeletedFlag)
 	if err != nil {
-		return err
+		s.t.pushError(err)
 	}
 
 	return nil
@@ -385,7 +385,11 @@ func (s *scenario) imapClientExpunges(clientID string) error {
 func (s *scenario) imapClientAppendsTheFollowingMessageToMailbox(clientID string, mailbox string, docString *godog.DocString) error {
 	_, client := s.t.getIMAPClient(clientID)
 
-	return clientAppend(client, mailbox, docString.Content)
+	if err := clientAppend(client, mailbox, docString.Content); err != nil {
+		s.t.pushError(err)
+	}
+
+	return nil
 }
 
 func (s *scenario) imapClientAppendsTheFollowingMessagesToMailbox(clientID string, mailbox string, table *godog.Table) error {
@@ -398,7 +402,7 @@ func (s *scenario) imapClientAppendsTheFollowingMessagesToMailbox(clientID strin
 
 	for _, message := range messages {
 		if err := clientAppend(client, mailbox, string(message.Build())); err != nil {
-			return err
+			s.t.pushError(err)
 		}
 	}
 
@@ -413,7 +417,11 @@ func (s *scenario) imapClientAppendsToMailbox(clientID string, file, mailbox str
 		return err
 	}
 
-	return clientAppend(client, mailbox, string(b))
+	if err := clientAppend(client, mailbox, string(b)); err != nil {
+		s.t.pushError(err)
+	}
+
+	return nil
 }
 
 func (s *scenario) imapClientsMoveMessageSeqOfUserFromToByOrderedOperations(sourceIMAPClient, targetIMAPClient, messageSeq, bddUserID, targetMailboxName, op1, op2, op3 string) error {

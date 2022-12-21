@@ -11,6 +11,7 @@ Feature: IMAP Draft messages
 
       This is a dra
       """
+    And it succeeds
     Then IMAP client "1" eventually sees the following messages in "Drafts":
       | body          |
       | This is a dra |
