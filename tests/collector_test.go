@@ -109,9 +109,12 @@ func (c *eventCollector) getEventCh(ofType events.Event) <-chan events.Event {
 }
 
 func (c *eventCollector) close() {
+	c.lock.Lock()
+	defer c.lock.Unlock()
 	c.wg.Wait()
 
 	for _, eventCh := range c.events {
 		eventCh.CloseAndDiscardQueued()
 	}
+	c.events = nil
 }
