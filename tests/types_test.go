@@ -46,7 +46,8 @@ type Message struct {
 	CC   string `bdd:"cc"`
 	BCC  string `bdd:"bcc"`
 
-	Unread bool `bdd:"unread"`
+	Unread  bool `bdd:"unread"`
+	Deleted bool `bdd:"deleted"`
 }
 
 func (msg Message) Build() []byte {
@@ -113,6 +114,7 @@ func newMessageFromIMAP(msg *imap.Message) Message {
 		Attachments: strings.Join(xslices.Map(m.Attachments, func(att message.Attachment) string { return att.Name }), ", "),
 		MessageID:   msg.Envelope.MessageId,
 		Unread:      !slices.Contains(msg.Flags, imap.SeenFlag),
+		Deleted:     !slices.Contains(msg.Flags, imap.DeletedFlag),
 	}
 
 	if len(msg.Envelope.From) > 0 {

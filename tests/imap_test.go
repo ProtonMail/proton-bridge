@@ -252,13 +252,21 @@ func (s *scenario) imapClientCopiesTheMessageWithSubjectFromTo(clientID, subject
 		return err
 	}
 
-	return clientCopy(client, from, to, uid)
+	if err := clientCopy(client, from, to, uid); err != nil {
+		s.t.pushError(err)
+	}
+
+	return nil
 }
 
 func (s *scenario) imapClientCopiesAllMessagesFromTo(clientID, from, to string) error {
 	_, client := s.t.getIMAPClient(clientID)
 
-	return clientCopy(client, from, to)
+	if err := clientCopy(client, from, to); err != nil {
+		s.t.pushError(err)
+	}
+
+	return nil
 }
 
 func (s *scenario) imapClientSeesTheFollowingMessagesInMailbox(clientID, mailbox string, table *godog.Table) error {
