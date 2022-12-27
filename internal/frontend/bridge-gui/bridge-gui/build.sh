@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Copyright (c) 2022 Proton AG
 #
 # This file is part of Proton Mail Bridge.
