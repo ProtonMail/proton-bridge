@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
-#!/bin/bash
+#!/usr/bin/env bash
 
 $scriptpath = $MyInvocation.MyCommand.Path
 $scriptDir = Split-Path $scriptpath
