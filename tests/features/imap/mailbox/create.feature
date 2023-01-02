@@ -187,3 +187,8 @@ Feature: IMAP create mailbox
       | Labels         |
       | Labels/l1      |
       | Labels/l2      |
+
+  Scenario: Create 2 levels deep Folder
+    When IMAP client "1" creates "Folders/first/second"
+    And it succeeds
+    Then IMAP client "1" sees "Folders/first/second"

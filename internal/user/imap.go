@@ -125,7 +125,7 @@ func (conn *imapConnector) createLabel(ctx context.Context, name []string) (imap
 }
 
 func (conn *imapConnector) createFolder(ctx context.Context, name []string) (imap.Mailbox, error) {
-	return safe.RLockRetErr(func() (imap.Mailbox, error) {
+	return safe.LockRetErr(func() (imap.Mailbox, error) {
 		var parentID string
 
 		if len(name) > 1 {
@@ -153,6 +153,9 @@ func (conn *imapConnector) createFolder(ctx context.Context, name []string) (ima
 		if err != nil {
 			return imap.Mailbox{}, err
 		}
+
+		// Add label to list so subsequent sub folder create requests work correct.
+		conn.apiLabels[label.ID] = label
 
 		return toIMAPMailbox(label, conn.flags, conn.permFlags, conn.attrs), nil
 	}, conn.apiLabelsLock)
