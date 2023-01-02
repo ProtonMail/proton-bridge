@@ -192,3 +192,10 @@ Feature: IMAP create mailbox
     When IMAP client "1" creates "Folders/first/second"
     And it succeeds
     Then IMAP client "1" sees "Folders/first/second"
+
+  Scenario: Creating mailbox without prefix is not possible
+    Given test skips reporter checks
+    When IMAP client "1" creates "mbox"
+    Then it fails
+    When IMAP client "1" creates "All Mail"
+    Then it fails
