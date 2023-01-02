@@ -79,3 +79,21 @@ Feature: IMAP create messages
     And IMAP client "1" sees the following messages in "All Mail":
       | from               | to                 | subject | body |
       | john.doe@email.com | john.doe2@[domain] | foo     | bar  |
+
+  Scenario: Imports a similar (duplicate) message to sent
+    When IMAP client "1" appends the following messages to "Sent":
+      | from               | to                 | subject | body |
+      | john.doe@email.com | john.doe2@[domain] | foo     | bar  |
+    And it succeeds
+    And IMAP client "1" sees the following messages in "Sent":
+      | from               | to                 | subject | body |
+      | john.doe@email.com | john.doe2@[domain] | foo     | bar  |
+    And it succeeds
+    And IMAP client "1" appends the following messages to "Sent":
+      | from               | to                 | subject | body |
+      | john.doe@email.com | john.doe2@[domain] | foo     | bar  |
+    And it succeeds
+    And IMAP client "1" sees the following messages in "Sent":
+      | from               | to                 | subject | body |
+      | john.doe@email.com | john.doe2@[domain] | foo     | bar  |
+      | john.doe@email.com | john.doe2@[domain] | foo     | bar  |
