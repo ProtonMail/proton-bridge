@@ -40,6 +40,7 @@ type Message struct {
 	MIMEType    string `bdd:"mime-type"`
 	Attachments string `bdd:"attachments"`
 	MessageID   string `bdd:"message-id"`
+	Date        string `bdd:"date"`
 
 	From string `bdd:"from"`
 	To   string `bdd:"to"`
@@ -71,6 +72,14 @@ func (msg Message) Build() []byte {
 
 	if msg.Subject != "" {
 		b = append(b, "Subject: "+msg.Subject+"\r\n"...)
+	}
+
+	if msg.Date != "" {
+		date, err := time.Parse(time.RFC822, msg.Date)
+		if err != nil {
+			panic(err)
+		}
+		b = append(b, "Date: "+date.Format(time.RFC822Z)+"\r\n"...)
 	}
 
 	b = append(b, "\r\n"+msg.Body+"\r\n"...)
@@ -114,7 +123,8 @@ func newMessageFromIMAP(msg *imap.Message) Message {
 		Attachments: strings.Join(xslices.Map(m.Attachments, func(att message.Attachment) string { return att.Name }), ", "),
 		MessageID:   msg.Envelope.MessageId,
 		Unread:      !slices.Contains(msg.Flags, imap.SeenFlag),
-		Deleted:     !slices.Contains(msg.Flags, imap.DeletedFlag),
+		Deleted:     slices.Contains(msg.Flags, imap.DeletedFlag),
+		Date:        msg.Envelope.Date.Format(time.RFC822Z),
 	}
 
 	if len(msg.Envelope.From) > 0 {

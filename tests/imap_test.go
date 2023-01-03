@@ -27,6 +27,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/ProtonMail/gluon/rfc822"
 	"github.com/bradenaw/juniper/iterator"
 	"github.com/bradenaw/juniper/xslices"
 	"github.com/cucumber/godog"
@@ -501,6 +502,39 @@ func (s *scenario) imapClientsMoveMessageSeqOfUserFromToByOrderedOperations(sour
 	}
 
 	return nil
+}
+
+func (s *scenario) imapClientSeesHeaderInMessageWithSubject(clientID, headerString, subject, mailbox string) error {
+	_, client := s.t.getIMAPClient(clientID)
+
+	messages, err := clientFetch(client, mailbox)
+	if err != nil {
+		return err
+	}
+
+	section, err := imap.ParseBodySectionName("BODY[]")
+	if err != nil {
+		return err
+	}
+
+	for _, m := range messages {
+		if m.Envelope.Subject == subject {
+			literal, err := io.ReadAll(m.GetBody(section))
+			if err != nil {
+				return err
+			}
+
+			header, _ := rfc822.Split(literal)
+
+			if !bytes.Contains(header, []byte(headerString)) {
+				return fmt.Errorf("message header does not contain '%v'", headerString)
+			}
+
+			return nil
+		}
+	}
+
+	return fmt.Errorf("could not find message with given subject '%v'", subject)
 }
 
 func clientList(client *client.Client) []*imap.MailboxInfo {

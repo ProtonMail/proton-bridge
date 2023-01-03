@@ -364,7 +364,10 @@ func writeMultipartEncryptedRFC822(header message.Header, body []byte) ([]byte, 
 	entFields := bodyHeader.Fields()
 
 	for entFields.Next() {
-		header.Set(entFields.Key(), entFields.Value())
+		// Only set the header field if it is present. Header sanitation will be overridden otherwise.
+		if !header.Has(entFields.Key()) {
+			header.Set(entFields.Key(), entFields.Value())
+		}
 	}
 
 	if err := textproto.WriteHeader(buf, header.Header); err != nil {
