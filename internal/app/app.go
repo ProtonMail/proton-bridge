@@ -69,9 +69,10 @@ const (
 
 // Hidden flags.
 const (
-	flagLauncher  = "launcher"
-	flagNoWindow  = "no-window"
-	flagParentPID = "parent-pid"
+	flagLauncher         = "launcher"
+	flagNoWindow         = "no-window"
+	flagParentPID        = "parent-pid"
+	flagSoftwareRenderer = "software-renderer"
 )
 
 const (
@@ -139,6 +140,12 @@ func New() *cli.App { //nolint:funlen
 			Usage:  "Process ID of the parent",
 			Hidden: true,
 			Value:  -1,
+		},
+		&cli.BoolFlag{
+			Name:   flagSoftwareRenderer, // This flag is ignored by bridge, but should be passed to launcher in case of restart, so it need to be accepted by the CLI parser.
+			Usage:  "GUI is using software renderer",
+			Hidden: true,
+			Value:  false,
 		},
 	}
 

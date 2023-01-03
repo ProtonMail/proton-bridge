@@ -23,8 +23,20 @@
 #include <bridgepp/Log/Log.h>
 
 
-void parseCommandLineArguments(int argc, char *argv[], QStringList& args, QString& launcher, bool &outAttach, bridgepp::Log::Level& outLogLevel,
-    bool &outNoWindow); ///< Parse the command-line arguments
+//****************************************************************************************************************************************************
+/// \brief A struct containing the parsed command line options
+//****************************************************************************************************************************************************
+struct CommandLineOptions {
+    QStringList bridgeArgs; ///< The command-line arguments we will pass to bridge when launching it.
+    QString launcher; ///< The path to the launcher.
+    bool attach { false }; ///< Is the application running in attached mode?
+    bridgepp::Log::Level logLevel { bridgepp::Log::defaultLevel }; ///< The log level
+    bool noWindow { false }; ///< Should the application start without displaying the main window?
+    bool useSoftwareRenderer { false }; ///< Should QML be renderer in software (i.e. without rendering hardware interface).
+};
+
+
+CommandLineOptions parseCommandLine(int argc, char *argv[]); ///< Parse the command-line arguments
 
 
 #endif //BRIDGE_GUI_COMMAND_LINE_H

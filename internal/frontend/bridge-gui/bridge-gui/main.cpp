@@ -294,16 +294,16 @@ void closeBridgeApp()
 int main(int argc, char *argv[])
 {
     // Init sentry.
-    sentry_options_t* options = sentry_options_new();
-    sentry_options_set_dsn(options, SentryDNS);
+    sentry_options_t* sentryOptions = sentry_options_new();
+    sentry_options_set_dsn(sentryOptions, SentryDNS);
     {
         const QString sentryCachePath = sentryCacheDir();
-        sentry_options_set_database_path(options, sentryCachePath.toStdString().c_str());
+        sentry_options_set_database_path(sentryOptions, sentryCachePath.toStdString().c_str());
     }
-    sentry_options_set_release(options, SentryProductID);
+    sentry_options_set_release(sentryOptions, SentryProductID);
     // Enable this for debugging sentry.
-    // sentry_options_set_debug(options, 1);
-    if (sentry_init(options) != 0) {
+    // sentry_options_set_debug(sentryOptions, 1);
+    if (sentry_init(sentryOptions) != 0) {
         std::cerr << "Failed to initialize sentry" << std::endl;
     }
 
@@ -313,6 +313,7 @@ int main(int argc, char *argv[])
     // application instance is create outside the try/catch clause.
     if (QSysInfo::productType() != "windows")
         QCoreApplication::setAttribute(Qt::AA_UseSoftwareOpenGL);
+
     QApplication guiApp(argc, argv);
 
     try
@@ -328,42 +329,44 @@ int main(int argc, char *argv[])
             return EXIT_FAILURE;
         }
 
-        QStringList args;
-        QString launcher;
-        bool attach = false;
-        bool noWindow;
-        Log::Level logLevel = Log::defaultLevel;
-        parseCommandLineArguments(argc, argv, args, launcher, attach, logLevel, noWindow);
+        CommandLineOptions const cliOptions = parseCommandLine(argc, argv);
+
 #ifdef Q_OS_MACOS
-        setDockIconVisibleState(!noWindow);
+        setDockIconVisibleState(!cliOptions.noWindow);
 #endif
 
         // In attached mode, we do not intercept stderr and stdout of bridge, as we did not launch it ourselves, so we output the log to the console.
         // When not in attached mode, log entries are forwarded to bridge, which output it on stdout/stderr. bridge-gui's process monitor intercept
         // these outputs and output them on the command-line.
-        log.setLevel(logLevel);
+        log.setLevel(cliOptions.logLevel);
 
-        if (!attach)
+        if (!cliOptions.attach)
         {
             if (isBridgeRunning())
                 throw Exception("An orphan instance of bridge is already running. Please terminate it and relaunch the application.");
 
             // before launching bridge, we remove any trailing service config file, because we need to make sure we get a newly generated one.
             GRPCClient::removeServiceConfigFile();
-            launchBridge(args);
+            launchBridge(cliOptions.bridgeArgs);
         }
 
         log.info(QString("Retrieving gRPC service configuration from '%1'").arg(QDir::toNativeSeparators(grpcServerConfigPath())));
-        app().backend().init(GRPCClient::waitAndRetrieveServiceConfig(attach ? 0 : grpcServiceConfigWaitDelayMs, app().bridgeMonitor()));
-        if (!attach)
+        app().backend().init(GRPCClient::waitAndRetrieveServiceConfig(cliOptions.attach ? 0 : grpcServiceConfigWaitDelayMs, app().bridgeMonitor()));
+        if (!cliOptions.attach)
             GRPCClient::removeServiceConfigFile();
 
         // gRPC communication is established. From now on, log events will be sent to bridge via gRPC. bridge will write these to file,
         // and will output then on console if appropriate. If we are not running in attached mode we intercept bridge stdout & stderr and
         // display it in our own output and error, so we only continue to log directly to console if we are running in attached mode.
-        log.setEchoInConsole(attach);
+        log.setEchoInConsole(cliOptions.attach);
         log.info("Backend was successfully initialized.");
         log.stopWritingToFile();
+
+        // The following allows to render QML content in software with a 'Rendering Hardware Interface' (OpenGL, Vulkan, Metal, Direct3D...)
+        // Note that it is different from the Qt::AA_UseSoftwareOpenGL attribute we use on some platforms that instruct Qt that we would like
+        // to use a software-only implementation of OpenGL.
+        QQuickWindow::setSceneGraphBackend(cliOptions.useSoftwareRenderer ? "software" : "rhi");
+        log.info(QString("Qt Quick renderer: %1").arg(QQuickWindow::sceneGraphBackend()));
 
         QQmlApplicationEngine engine;
         std::unique_ptr<QQmlComponent> rootComponent(createRootQmlComponent(engine));
@@ -378,12 +381,12 @@ int main(int argc, char *argv[])
         if (bridgeMonitor)
         {
             const ProcessMonitor::MonitorStatus& status = bridgeMonitor->getStatus();
-            if (status.ended && !attach)
+            if (status.ended && !cliOptions.attach)
             {
                 // ProcessMonitor already stopped meaning we are attached to an orphan Bridge.
                 // Restart the full process to be sure there is no more bridge orphans
                 app().log().error("Found orphan bridge, need to restart.");
-                app().backend().forceLauncher(launcher);
+                app().backend().forceLauncher(cliOptions.launcher);
                 app().backend().restart();
                 bridgeExited = true;
                 startError = true;
