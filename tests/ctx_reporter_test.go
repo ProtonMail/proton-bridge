@@ -38,8 +38,9 @@ type reportRecorder struct {
 	assert  *assert.Assertions
 	reports []reportRecord
 
-	lock     sync.Locker
-	isClosed bool
+	lock       sync.Locker
+	isClosed   bool
+	skipAssert bool
 }
 
 func newReportRecorder(tb testing.TB) *reportRecorder {
@@ -49,6 +50,10 @@ func newReportRecorder(tb testing.TB) *reportRecorder {
 		lock:     &sync.Mutex{},
 		isClosed: false,
 	}
+}
+
+func (r *reportRecorder) skipAsserts() {
+	r.skipAssert = true
 }
 
 func (r *reportRecorder) add(isException bool, message string, context reporter.Context) {
@@ -84,7 +89,9 @@ func (r *reportRecorder) close() {
 }
 
 func (r *reportRecorder) assertEmpty() {
-	r.assert.Empty(r.reports)
+	if !r.skipAssert {
+		r.assert.Empty(r.reports)
+	}
 }
 
 func (r *reportRecorder) removeMatchingRecords(isException, message, context gomock.Matcher, n int) {
@@ -145,5 +152,10 @@ func (r *reportRecorder) ReportExceptionWithContext(data any, context reporter.C
 
 	r.add(true, "exception", context)
 
+	return nil
+}
+
+func (s *scenario) skipReporterChecks() error {
+	s.t.reporter.skipAsserts()
 	return nil
 }
