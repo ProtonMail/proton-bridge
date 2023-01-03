@@ -30,7 +30,7 @@ MISSING_FILES=$(find . \
     -not -name "*.pb.h" \
     -not -name "*.pb.cc" \
     -not -name "*_moc.h" \
-    -regextype posix-egrep -regex ".*\.go|.*\.qml|.*\.sh|.*\.py|.*\.cpp|.*\.cc|.*\.h|.*\.hpp|.*\.m" \
+    -regextype posix-egrep -regex ".*\.go|.*\.qml|.*\.sh|.*\.py|.*\.cpp|.*\.cc|.*\.h|.*\.hpp|.*\.m|.*\.h\.in" \
     -exec grep -L "Copyright (c) ${YEAR} Proton AG" {} \;)
 
 for f in ${MISSING_FILES}
