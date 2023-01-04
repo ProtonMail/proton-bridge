@@ -39,6 +39,33 @@ Feature: IMAP import messages
       | from               | to                     | subject                                     | body  |
       | bridgetest@pm.test | bridgetest@example.com | Message with double charset in content type | Hello |
 
+
+  Scenario: Import message with attachment name encoded by RFC 2047 without quoting
+    When IMAP client "1" appends the following message to "INBOX":
+      """
+      From: Bridge Test <bridgetest@pm.test>
+      To: Internal Bridge <bridgetest@protonmail.com>
+      Subject: Message with attachment name encoded by RFC 2047 without quoting
+      Content-type: multipart/mixed; boundary="boundary"
+      Received: by 2002:0:0:0:0:0:0:0 with SMTP id 0123456789abcdef; Wed, 30 Dec 2020 01:23:45 0000
+
+      --boundary
+      Content-Type: text/plain
+
+      Hello
+
+      --boundary
+      Content-Type: application/pdf; name==?US-ASCII?Q?filename?=
+      Content-Disposition: attachment; filename==?US-ASCII?Q?filename?=
+
+      somebytes
+
+      --boundary--
+
+      """
+    Then it succeeds
+
+
   # The message is imported as UTF-8 and the content type is determined at build time.
   Scenario: Import message as latin1 without content type
     When IMAP client "1" appends "text_plain_unknown_latin1.eml" to "INBOX"
