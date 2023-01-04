@@ -90,8 +90,8 @@ func (t *testCtx) initBridge() (<-chan events.Event, error) {
 		return nil, fmt.Errorf("bridge is already started")
 	}
 
-	// Bridge will enable the proxy by default at startup.
-	t.mocks.ProxyCtl.EXPECT().AllowProxy()
+	// Bridge will disable the proxy by default at startup.
+	t.mocks.ProxyCtl.EXPECT().DisallowProxy()
 
 	// Get the path to the vault.
 	vaultDir, err := t.locator.ProvideSettingsPath()

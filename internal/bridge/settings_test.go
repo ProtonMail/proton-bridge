@@ -119,14 +119,14 @@ func TestBridge_Settings_Proxy(t *testing.T) {
 	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, storeKey []byte) {
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
 			// By default, proxy is allowed.
-			require.True(t, bridge.GetProxyAllowed())
+			require.False(t, bridge.GetProxyAllowed())
 
 			// Disallow proxy.
-			mocks.ProxyCtl.EXPECT().DisallowProxy()
-			require.NoError(t, bridge.SetProxyAllowed(false))
+			mocks.ProxyCtl.EXPECT().AllowProxy()
+			require.NoError(t, bridge.SetProxyAllowed(true))
 
 			// Get the new setting.
-			require.False(t, bridge.GetProxyAllowed())
+			require.True(t, bridge.GetProxyAllowed())
 		})
 	})
 }

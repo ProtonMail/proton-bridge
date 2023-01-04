@@ -76,7 +76,7 @@ func newDefaultSettings(gluonDir string) Settings {
 		UpdateRollout: rand.Float64(), //nolint:gosec
 
 		ColorScheme:  "",
-		ProxyAllowed: true,
+		ProxyAllowed: false,
 		ShowAllMail:  true,
 		Autostart:    true,
 		AutoUpdate:   true,

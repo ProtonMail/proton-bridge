@@ -536,8 +536,8 @@ func withBridge(
 	mocks := bridge.NewMocks(t, v2_3_0, v2_3_0)
 	defer mocks.Close()
 
-	// Bridge will enable the proxy by default at startup.
-	mocks.ProxyCtl.EXPECT().AllowProxy()
+	// Bridge will disable the proxy by default at startup.
+	mocks.ProxyCtl.EXPECT().DisallowProxy()
 
 	// Get the path to the vault.
 	vaultDir, err := locator.ProvideSettingsPath()

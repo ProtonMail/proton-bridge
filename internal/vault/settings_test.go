@@ -124,13 +124,13 @@ func TestVault_Settings_ProxyAllowed(t *testing.T) {
 	s := newVault(t)
 
 	// Check the default proxy allowed setting.
-	require.Equal(t, true, s.GetProxyAllowed())
+	require.Equal(t, false, s.GetProxyAllowed())
 
 	// Modify the proxy allowed setting.
-	require.NoError(t, s.SetProxyAllowed(false))
+	require.NoError(t, s.SetProxyAllowed(true))
 
 	// Check the new proxy allowed setting.
-	require.Equal(t, false, s.GetProxyAllowed())
+	require.Equal(t, true, s.GetProxyAllowed())
 }
 
 func TestVault_Settings_ShowAllMail(t *testing.T) {
