@@ -179,11 +179,13 @@ func New( //nolint:funlen
 
 	// Start serving IMAP.
 	if err := bridge.serveIMAP(); err != nil {
+		logrus.WithError(err).Error("IMAP error")
 		bridge.PushError(ErrServeIMAP)
 	}
 
 	// Start serving SMTP.
 	if err := bridge.serveSMTP(); err != nil {
+		logrus.WithError(err).Error("SMTP error")
 		bridge.PushError(ErrServeSMTP)
 	}
 

@@ -47,7 +47,7 @@ func (bridge *Bridge) serveSMTP() error {
 	})
 
 	if err := bridge.vault.SetSMTPPort(getPort(smtpListener.Addr())); err != nil {
-		return fmt.Errorf("failed to set IMAP port: %w", err)
+		return fmt.Errorf("failed to store SMTP port in vault: %w", err)
 	}
 
 	return nil

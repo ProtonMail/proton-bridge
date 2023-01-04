@@ -65,7 +65,7 @@ func (bridge *Bridge) serveIMAP() error {
 	}
 
 	if err := bridge.vault.SetIMAPPort(getPort(imapListener.Addr())); err != nil {
-		return fmt.Errorf("failed to set IMAP port: %w", err)
+		return fmt.Errorf("failed to store IMAP port in vault: %w", err)
 	}
 
 	return nil
