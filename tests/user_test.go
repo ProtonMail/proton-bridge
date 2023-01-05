@@ -22,6 +22,7 @@ import (
 	"errors"
 	"fmt"
 	"net/mail"
+	"strings"
 
 	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
@@ -261,13 +262,22 @@ func (s *scenario) theAddressOfAccountHasTheFollowingMessagesInMailbox(address, 
 		return err
 	}
 
+	var messageFlags proton.MessageFlag
+
+	if !strings.EqualFold(mailbox, "Sent") {
+		messageFlags = proton.MessageFlagReceived
+	} else {
+		messageFlags = proton.MessageFlagSent
+	}
+
 	return s.t.createMessages(ctx, username, addrID, xslices.Map(wantMessages, func(message Message) proton.ImportReq {
 		return proton.ImportReq{
+
 			Metadata: proton.ImportMetadata{
 				AddressID: addrID,
 				LabelIDs:  []string{mboxID},
 				Unread:    proton.Bool(message.Unread),
-				Flags:     proton.MessageFlagReceived,
+				Flags:     messageFlags,
 			},
 			Message: message.Build(),
 		}
