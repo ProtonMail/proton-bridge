@@ -22,6 +22,8 @@
 
 
 void setDockIconVisibleState(bool visible) { Q_UNUSED(visible) }
+
+
 bool getDockIconVisibleState() { return true; }
 
 

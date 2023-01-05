@@ -26,8 +26,7 @@
 //****************************************************************************************************************************************************
 /// \brief The 'General' tab of the main window.
 //****************************************************************************************************************************************************
-class SettingsTab : public QWidget
-{
+class SettingsTab : public QWidget {
 Q_OBJECT
 public: // member functions.
     explicit SettingsTab(QWidget *parent = nullptr); ///< Default constructor.
@@ -79,7 +78,7 @@ public slots:
     void setColorSchemeName(QString const &name); ///< Set the value for the 'Use Dark Theme' check box.
     void setBugReport(QString const &osType, QString const &osVersion, QString const &emailClient, QString const &address, QString const &description,
         bool includeLogs); ///< Set the content of the bug report box.
-    void exportTLSCertificates(QString const& folderPath); ///< Export the TLS certificates.
+    void exportTLSCertificates(QString const &folderPath); ///< Export the TLS certificates.
     void setMailServerSettings(qint32 imapPort, qint32 smtpPort, bool useSSLForIMAP, bool useSSLForSMTP); ///< Change the mail server settings.
     void setIsDoHEnabled(bool enabled); ///< Set the value for the 'DoH Enabled' check box.
     void setDiskCachePath(QString const &path); ///< Set the value for the 'Cache On Disk Enabled' check box.

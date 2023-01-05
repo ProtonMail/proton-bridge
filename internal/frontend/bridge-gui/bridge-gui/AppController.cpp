@@ -30,8 +30,7 @@ using namespace bridgepp;
 //****************************************************************************************************************************************************
 /// \return The AppController instance.
 //****************************************************************************************************************************************************
-AppController &app()
-{
+AppController &app() {
     static AppController app;
     return app;
 }
@@ -43,24 +42,24 @@ AppController &app()
 AppController::AppController()
     : backend_(std::make_unique<QMLBackend>())
     , grpc_(std::make_unique<GRPCClient>())
-    , log_(std::make_unique<Log>())
-{
+    , log_(std::make_unique<Log>()) {
 }
 
 
 //****************************************************************************************************************************************************
 /// \return The bridge worker, which can be null if the application was run in 'attach' mode (-a command-line switch).
 //****************************************************************************************************************************************************
-ProcessMonitor *AppController::bridgeMonitor() const
-{
-    if (!bridgeOverseer_)
+ProcessMonitor *AppController::bridgeMonitor() const {
+    if (!bridgeOverseer_) {
         return nullptr;
+    }
 
     // null bridgeOverseer is OK, it means we run in 'attached' mode (app attached to an already runnning instance of Bridge).
     // but if bridgeOverseer is not null, its attached worker must be a valid ProcessMonitor instance.
-    auto *monitor = dynamic_cast<ProcessMonitor*>(bridgeOverseer_->worker());
-    if (!monitor)
+    auto *monitor = dynamic_cast<ProcessMonitor *>(bridgeOverseer_->worker());
+    if (!monitor) {
         throw Exception("Could not retrieve bridge monitor");
+    }
 
     return monitor;
 }

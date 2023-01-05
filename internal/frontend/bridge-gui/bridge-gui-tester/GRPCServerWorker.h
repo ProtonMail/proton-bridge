@@ -29,8 +29,7 @@
 //**********************************************************************************************************************
 /// \brief gRPC server worker
 //**********************************************************************************************************************
-class GRPCServerWorker : public bridgepp::Worker
-{
+class GRPCServerWorker : public bridgepp::Worker {
 Q_OBJECT
 public: // member functions.
     explicit GRPCServerWorker(QObject *parent); ///< Default constructor.

@@ -28,8 +28,7 @@ using namespace bridgepp;
 //****************************************************************************************************************************************************
 UserDialog::UserDialog(bridgepp::SPUser &user, QWidget *parent)
     : QDialog(parent)
-    , user_(user)
-{
+    , user_(user) {
     ui_.setupUi(this);
 
     connect(ui_.buttonOK, &QPushButton::clicked, this, &UserDialog::onOK);
@@ -51,8 +50,7 @@ UserDialog::UserDialog(bridgepp::SPUser &user, QWidget *parent)
 //****************************************************************************************************************************************************
 //
 //****************************************************************************************************************************************************
-void UserDialog::onOK()
-{
+void UserDialog::onOK() {
     user_->setID(ui_.editUserID->text());
     user_->setUsername(ui_.editUsername->text());
     user_->setPassword(ui_.editPassword->text());
@@ -71,8 +69,7 @@ void UserDialog::onOK()
 //****************************************************************************************************************************************************
 /// \return The user state  that is currently selected in the dialog.
 //****************************************************************************************************************************************************
-UserState UserDialog::state()
-{
+UserState UserDialog::state() {
     return UserState(ui_.comboState->currentIndex());
 }
 
@@ -80,7 +77,6 @@ UserState UserDialog::state()
 //****************************************************************************************************************************************************
 /// \param[in] state The user state to select in the dialog.
 //****************************************************************************************************************************************************
-void UserDialog::setState(UserState state)
-{
+void UserDialog::setState(UserState state) {
     ui_.comboState->setCurrentIndex(qint32(state));
 }

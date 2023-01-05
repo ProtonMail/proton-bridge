@@ -23,11 +23,16 @@
 class QMLBackend;
 
 
-namespace bridgepp
-{
+namespace bridgepp {
 class Log;
+
+
 class Overseer;
+
+
 class GRPCClient;
+
+
 class ProcessMonitor;
 }
 
@@ -35,22 +40,21 @@ class ProcessMonitor;
 //****************************************************************************************************************************************************
 /// \brief App controller class.
 //****************************************************************************************************************************************************
-class AppController: public QObject
-{
-    Q_OBJECT
-    friend AppController& app();
+class AppController : public QObject {
+Q_OBJECT
+    friend AppController &app();
 
 public: // member functions.
-    AppController(AppController const&) = delete; ///< Disabled copy-constructor.
-    AppController(AppController&&) = delete; ///< Disabled assignment copy-constructor.
+    AppController(AppController const &) = delete; ///< Disabled copy-constructor.
+    AppController(AppController &&) = delete; ///< Disabled assignment copy-constructor.
     ~AppController() override = default; ///< Destructor.
-    AppController& operator=(AppController const&) = delete; ///< Disabled assignment operator.
-    AppController& operator=(AppController&&) = delete; ///< Disabled move assignment operator.
-    QMLBackend& backend() { return *backend_; } ///< Return a reference to the backend.
-    bridgepp::GRPCClient& grpc() { return *grpc_; } ///< Return a reference to the GRPC client.
-    bridgepp::Log& log() { return *log_; } ///< Return a reference to the log.
-    std::unique_ptr<bridgepp::Overseer>& bridgeOverseer() { return bridgeOverseer_; }; ///< Returns a reference the bridge overseer
-    bridgepp::ProcessMonitor* bridgeMonitor() const; ///< Return the bridge worker.
+    AppController &operator=(AppController const &) = delete; ///< Disabled assignment operator.
+    AppController &operator=(AppController &&) = delete; ///< Disabled move assignment operator.
+    QMLBackend &backend() { return *backend_; } ///< Return a reference to the backend.
+    bridgepp::GRPCClient &grpc() { return *grpc_; } ///< Return a reference to the GRPC client.
+    bridgepp::Log &log() { return *log_; } ///< Return a reference to the log.
+    std::unique_ptr<bridgepp::Overseer> &bridgeOverseer() { return bridgeOverseer_; }; ///< Returns a reference the bridge overseer
+    bridgepp::ProcessMonitor *bridgeMonitor() const; ///< Return the bridge worker.
 
 private: // member functions
     AppController(); ///< Default constructor.
@@ -63,7 +67,7 @@ private: // data members
 };
 
 
-AppController& app(); ///< Return a reference to the app controller.
+AppController &app(); ///< Return a reference to the app controller.
 
 
 #endif // BRIDGE_GUI_APP_CONTROLLER_H

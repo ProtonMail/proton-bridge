@@ -23,11 +23,11 @@
 #include "ui_UserDialog.h"
 #include <bridgepp/User/User.h>
 
+
 //****************************************************************************************************************************************************
 /// \brief User dialog class.
 //****************************************************************************************************************************************************
-class UserDialog : public QDialog
-{
+class UserDialog : public QDialog {
 Q_OBJECT
 public: // member functions.
     UserDialog(bridgepp::SPUser &user, QWidget *parent); ///< Default constructor.

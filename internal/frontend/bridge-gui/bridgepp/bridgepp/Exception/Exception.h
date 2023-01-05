@@ -23,15 +23,13 @@
 #include <stdexcept>
 
 
-namespace bridgepp
-{
+namespace bridgepp {
 
 
 //****************************************************************************************************************************************************
 /// \brief Exception class.
 //****************************************************************************************************************************************************
-class Exception : public std::exception
-{
+class Exception : public std::exception {
 public: // member functions
     explicit Exception(QString what = QString()) noexcept; ///< Constructor
     Exception(Exception const &ref) noexcept; ///< copy constructor

@@ -31,8 +31,7 @@
 //****************************************************************************************************************************************************
 /// \brief Bridge C++ backend class.
 //****************************************************************************************************************************************************
-class QMLBackend: public QObject
-{
+class QMLBackend : public QObject {
 Q_OBJECT
 
 public: // member functions.
@@ -79,28 +78,109 @@ public: // Qt/QML properties. Note that the NOTIFY-er signal is required even fo
     Q_PROPERTY(QString currentEmailClient READ currentEmailClient NOTIFY currentEmailClientChanged)
     Q_PROPERTY(QStringList availableKeychain READ availableKeychain NOTIFY availableKeychainChanged)
     Q_PROPERTY(QString currentKeychain READ currentKeychain NOTIFY currentKeychainChanged)
-    Q_PROPERTY(UserList* users MEMBER users_ NOTIFY usersChanged)
+    Q_PROPERTY(UserList *users MEMBER users_ NOTIFY usersChanged)
     Q_PROPERTY(bool dockIconVisible READ dockIconVisible WRITE setDockIconVisible NOTIFY dockIconVisibleChanged)
 
+
     // Qt Property system setters & getters.
-    bool showOnStartup() const { bool v = false; app().grpc().showOnStartup(v); return v; };
+    bool showOnStartup() const {
+        bool v = false;
+        app().grpc().showOnStartup(v);
+        return v;
+    };
+
+
     bool showSplashScreen() const { return showSplashScreen_; };
-    void setShowSplashScreen(bool show) { if (show != showSplashScreen_) { showSplashScreen_ = show; emit showSplashScreenChanged(show); } }
+
+
+    void setShowSplashScreen(bool show) { if (show != showSplashScreen_) { showSplashScreen_ = show; emit showSplashScreenChanged(show); }}
+
+
     QString goos() { return goos_; }
+
+
     QUrl logsPath() const { return logsPath_; }
+
+
     QUrl licensePath() const { return licensePath_; }
-    QUrl releaseNotesLink() const { QUrl link; app().grpc().releaseNotesPageLink(link); return link;   }
-    QUrl dependencyLicensesLink() const { QUrl link; app().grpc().dependencyLicensesLink(link); return link; }
-    QUrl landingPageLink() const { QUrl link; app().grpc().landingPageLink(link); return link;  }
+
+
+    QUrl releaseNotesLink() const {
+        QUrl link;
+        app().grpc().releaseNotesPageLink(link);
+        return link;
+    }
+
+
+    QUrl dependencyLicensesLink() const {
+        QUrl link;
+        app().grpc().dependencyLicensesLink(link);
+        return link;
+    }
+
+
+    QUrl landingPageLink() const {
+        QUrl link;
+        app().grpc().landingPageLink(link);
+        return link;
+    }
+
+
     QString appname() const { return QString(PROJECT_FULL_NAME); }
+
+
     QString vendor() const { return QString(PROJECT_VENDOR); }
-    QString version() const { QString version; app().grpc().version(version); return version; }
-    QString hostname() const { QString hostname; app().grpc().hostname(hostname); return hostname; }
-    bool isAutostartOn() const { bool v; app().grpc().isAutostartOn(v); return v; };
-    bool isBetaEnabled() const { bool v; app().grpc().isBetaEnabled(v); return v; }
-    bool isAllMailVisible() const { bool v; app().grpc().isAllMailVisible(v); return v; }
-    QString colorSchemeName() const { QString name; app().grpc().colorSchemeName(name); return name; }
-    QUrl diskCachePath() const { QUrl path; app().grpc().diskCachePath(path); return path; }
+
+
+    QString version() const {
+        QString version;
+        app().grpc().version(version);
+        return version;
+    }
+
+
+    QString hostname() const {
+        QString hostname;
+        app().grpc().hostname(hostname);
+        return hostname;
+    }
+
+
+    bool isAutostartOn() const {
+        bool v;
+        app().grpc().isAutostartOn(v);
+        return v;
+    };
+
+
+    bool isBetaEnabled() const {
+        bool v;
+        app().grpc().isBetaEnabled(v);
+        return v;
+    }
+
+
+    bool isAllMailVisible() const {
+        bool v;
+        app().grpc().isAllMailVisible(v);
+        return v;
+    }
+
+
+    QString colorSchemeName() const {
+        QString name;
+        app().grpc().colorSchemeName(name);
+        return name;
+    }
+
+
+    QUrl diskCachePath() const {
+        QUrl path;
+        app().grpc().diskCachePath(path);
+        return path;
+    }
+
+
     bool useSSLForIMAP() const;
     void setUseSSLForIMAP(bool value);
     bool useSSLForSMTP() const;
@@ -109,14 +189,55 @@ public: // Qt/QML properties. Note that the NOTIFY-er signal is required even fo
     void setIMAPPort(int port);
     int smtpPort() const;
     void setSMTPPort(int port);
-    bool isDoHEnabled() const { bool isEnabled; app().grpc().isDoHEnabled(isEnabled); return isEnabled;}
-    bool isFirstGUIStart() const { bool v; app().grpc().isFirstGUIStart(v); return v; };
-    bool isAutomaticUpdateOn() const { bool isOn = false; app().grpc().isAutomaticUpdateOn(isOn); return isOn; }
-    QString currentEmailClient() { QString client; app().grpc().currentEmailClient(client); return client;}
-    QStringList availableKeychain() const { QStringList keychains; app().grpc().availableKeychains(keychains); return keychains; }
-    QString currentKeychain() const { QString keychain; app().grpc().currentKeychain(keychain); return keychain; }
+
+
+    bool isDoHEnabled() const {
+        bool isEnabled;
+        app().grpc().isDoHEnabled(isEnabled);
+        return isEnabled;
+    }
+
+
+    bool isFirstGUIStart() const {
+        bool v;
+        app().grpc().isFirstGUIStart(v);
+        return v;
+    };
+
+
+    bool isAutomaticUpdateOn() const {
+        bool isOn = false;
+        app().grpc().isAutomaticUpdateOn(isOn);
+        return isOn;
+    }
+
+
+    QString currentEmailClient() {
+        QString client;
+        app().grpc().currentEmailClient(client);
+        return client;
+    }
+
+
+    QStringList availableKeychain() const {
+        QStringList keychains;
+        app().grpc().availableKeychains(keychains);
+        return keychains;
+    }
+
+
+    QString currentKeychain() const {
+        QString keychain;
+        app().grpc().currentKeychain(keychain);
+        return keychain;
+    }
+
+
     bool dockIconVisible() const { return getDockIconVisibleState(); };
+
+
     void setDockIconVisible(bool visible) { setDockIconVisibleState(visible); emit dockIconVisibleChanged(visible); }
+
 
 signals: // Signal used by the Qt property system. Many of them are unused but required to avoid warning from the QML engine.
     void showSplashScreenChanged(bool value);
@@ -145,7 +266,7 @@ signals: // Signal used by the Qt property system. Many of them are unused but r
     void availableKeychainChanged(QStringList const &keychains);
     void hostnameChanged(QString const &hostname);
     void isAutostartOnChanged(bool value);
-    void usersChanged(UserList* users);
+    void usersChanged(UserList *users);
     void dockIconVisibleChanged(bool value);
 
 public slots: // slot for signals received from QML -> To be forwarded to Bridge via RPC Client calls.
@@ -153,14 +274,28 @@ public slots: // slot for signals received from QML -> To be forwarded to Bridge
     void toggleBeta(bool active);
     void changeIsAllMailVisible(bool isVisible);
     void changeColorScheme(QString const &scheme);
-    void setDiskCachePath(QUrl const& path) const;
-    void login(QString const& username, QString const& password) { app().grpc().login(username, password);}
-    void login2FA(QString const& username, QString const& code) { app().grpc().login2FA(username, code);}
-    void login2Password(QString const& username, QString const& password) { app().grpc().login2Passwords(username, password);}
-    void loginAbort(QString const& username){ app().grpc().loginAbort(username);}
+    void setDiskCachePath(QUrl const &path) const;
+
+
+    void login(QString const &username, QString const &password) { app().grpc().login(username, password); }
+
+
+    void login2FA(QString const &username, QString const &code) { app().grpc().login2FA(username, code); }
+
+
+    void login2Password(QString const &username, QString const &password) { app().grpc().login2Passwords(username, password); }
+
+
+    void loginAbort(QString const &username) { app().grpc().loginAbort(username); }
+
+
     void toggleDoH(bool active);
     void toggleAutomaticUpdate(bool makeItActive);
+
+
     void updateCurrentMailClient() { emit currentEmailClientChanged(currentEmailClient()); }
+
+
     void changeKeychain(QString const &keychain);
     void guiReady();
     void quit();
@@ -169,8 +304,13 @@ public slots: // slot for signals received from QML -> To be forwarded to Bridge
     void checkUpdates();
     void installUpdate();
     void triggerReset();
-    void reportBug(QString const &description, QString const& address, QString const &emailClient, bool includeLogs) {
-        app().grpc().reportBug(description, address, emailClient, includeLogs); }
+
+
+    void reportBug(QString const &description, QString const &address, QString const &emailClient, bool includeLogs) {
+        app().grpc().reportBug(description, address, emailClient, includeLogs);
+    }
+
+
     void exportTLSCertificates();
     void onResetFinished();
     void onVersionChanged();
@@ -178,7 +318,7 @@ public slots: // slot for signals received from QML -> To be forwarded to Bridge
 
 public slots: // slot for signals received from gRPC that need transformation instead of simple forwarding
     void onMailServerSettingsChanged(int imapPort, int smtpPort, bool useSSLForIMAP, bool useSSLForSMTP); ///< Slot for the ConnectionModeChanged gRPC event.
-    void onGenericError(bridgepp::ErrorInfo const& info); ///< Slot for generic errors received from the gRPC service.
+    void onGenericError(bridgepp::ErrorInfo const &info); ///< Slot for generic errors received from the gRPC service.
     void onLoginFinished(QString const &userID, bool wasSignedOut); ///< Slot for LoginFinished gRPC event.
     void onLoginAlreadyLoggedIn(QString const &userID); ///< Slot for the LoginAlreadyLoggedIn gRPC event.
 
@@ -192,17 +332,17 @@ signals: // Signals received from the Go backend, to be forwarded to QML
     void loginFreeUserError();
     void loginConnectionError(QString const &errorMsg);
     void login2FARequested(QString const &username);
-    void login2FAError(QString const& errorMsg);
-    void login2FAErrorAbort(QString const& errorMsg);
+    void login2FAError(QString const &errorMsg);
+    void login2FAErrorAbort(QString const &errorMsg);
     void login2PasswordRequested();
-    void login2PasswordError(QString const& errorMsg);
-    void login2PasswordErrorAbort(QString const& errorMsg);
+    void login2PasswordError(QString const &errorMsg);
+    void login2PasswordErrorAbort(QString const &errorMsg);
     void loginFinished(int index, bool wasSignedOut);
     void loginAlreadyLoggedIn(int index);
-    void updateManualReady(QString const& version);
+    void updateManualReady(QString const &version);
     void updateManualRestartNeeded();
     void updateManualError();
-    void updateForce(QString const& version);
+    void updateForce(QString const &version);
     void updateForceError();
     void updateSilentRestartNeeded();
     void updateSilentError();
@@ -218,11 +358,11 @@ signals: // Signals received from the Go backend, to be forwarded to QML
     void changeKeychainFinished();
     void notifyHasNoKeychain();
     void notifyRebuildKeychain();
-    void noActiveKeyForRecipient(QString const& email);
-    void addressChanged(QString const& address);
-    void addressChangedLogout(QString const& address);
+    void noActiveKeyForRecipient(QString const &email);
+    void addressChanged(QString const &address);
+    void addressChangedLogout(QString const &address);
     void apiCertIssue();
-    void userDisconnected(QString const& username);
+    void userDisconnected(QString const &username);
     void internetOff();
     void internetOn();
     void resetFinished();
@@ -231,14 +371,14 @@ signals: // Signals received from the Go backend, to be forwarded to QML
     void bugReportSendError();
     void showMainWindow();
     void hideMainWindow();
-    void genericError(QString const& title, QString const& description);
+    void genericError(QString const &title, QString const &description);
 
 private: // member functions
     void retrieveUserList(); ///< Retrieve the list of users via gRPC.
     void connectGrpcEvents(); ///< Connect gRPC that need to be forwarded to QML via backend signals
 
 private: // data members
-    UserList* users_ { nullptr }; ///< The user list. Owned by backend.
+    UserList *users_ { nullptr }; ///< The user list. Owned by backend.
     std::unique_ptr<bridgepp::Overseer> eventStreamOverseer_; ///< The event stream overseer.
     bool showSplashScreen_ { false }; ///< The cached version of show splash screen. Retrieved on startup from bridge, and potentially modified locally.
     QString goos_; ///< The cached version of the GOOS variable.

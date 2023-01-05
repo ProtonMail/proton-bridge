@@ -19,19 +19,16 @@
 #include "EventFactory.h"
 
 
-namespace bridgepp
-{
+namespace bridgepp {
 
 
-namespace
-{
+namespace {
 
 
 //****************************************************************************************************************************************************
 /// \return a new SPStreamEvent
 //****************************************************************************************************************************************************
-bridgepp::SPStreamEvent newStreamEvent()
-{
+bridgepp::SPStreamEvent newStreamEvent() {
     return std::make_shared<grpc::StreamEvent>();
 }
 
@@ -40,8 +37,7 @@ bridgepp::SPStreamEvent newStreamEvent()
 /// \param[in] appEvent The app event.
 /// \return The stream event.
 //****************************************************************************************************************************************************
-bridgepp::SPStreamEvent wrapAppEvent(grpc::AppEvent *appEvent)
-{
+bridgepp::SPStreamEvent wrapAppEvent(grpc::AppEvent *appEvent) {
     auto event = newStreamEvent();
     event->set_allocated_app(appEvent);
     return event;
@@ -52,8 +48,7 @@ bridgepp::SPStreamEvent wrapAppEvent(grpc::AppEvent *appEvent)
 /// \param[in] loginEvent The login event.
 /// \return The stream event.
 //****************************************************************************************************************************************************
-bridgepp::SPStreamEvent wrapLoginEvent(grpc::LoginEvent *loginEvent)
-{
+bridgepp::SPStreamEvent wrapLoginEvent(grpc::LoginEvent *loginEvent) {
     auto event = newStreamEvent();
     event->set_allocated_login(loginEvent);
     return event;
@@ -64,8 +59,7 @@ bridgepp::SPStreamEvent wrapLoginEvent(grpc::LoginEvent *loginEvent)
 /// \param[in] updateEvent The app event.
 /// \return The stream event.
 //****************************************************************************************************************************************************
-bridgepp::SPStreamEvent wrapUpdateEvent(grpc::UpdateEvent *updateEvent)
-{
+bridgepp::SPStreamEvent wrapUpdateEvent(grpc::UpdateEvent *updateEvent) {
     auto event = newStreamEvent();
     event->set_allocated_update(updateEvent);
     return event;
@@ -76,8 +70,7 @@ bridgepp::SPStreamEvent wrapUpdateEvent(grpc::UpdateEvent *updateEvent)
 /// \param[in] cacheEvent The cache event.
 /// \return The stream event.
 //****************************************************************************************************************************************************
-bridgepp::SPStreamEvent wrapCacheEvent(grpc::DiskCacheEvent *cacheEvent)
-{
+bridgepp::SPStreamEvent wrapCacheEvent(grpc::DiskCacheEvent *cacheEvent) {
     auto event = newStreamEvent();
     event->set_allocated_cache(cacheEvent);
     return event;
@@ -88,8 +81,7 @@ bridgepp::SPStreamEvent wrapCacheEvent(grpc::DiskCacheEvent *cacheEvent)
 /// \param[in] mailSettingsEvent The mail settings event.
 /// \return The stream event.
 //****************************************************************************************************************************************************
-bridgepp::SPStreamEvent wrapMailServerSettingsEvent(grpc::MailServerSettingsEvent *mailServerSettingsEvent)
-{
+bridgepp::SPStreamEvent wrapMailServerSettingsEvent(grpc::MailServerSettingsEvent *mailServerSettingsEvent) {
     auto event = newStreamEvent();
     event->set_allocated_mailserversettings(mailServerSettingsEvent);
     return event;
@@ -100,8 +92,7 @@ bridgepp::SPStreamEvent wrapMailServerSettingsEvent(grpc::MailServerSettingsEven
 /// \param[in] keychainEvent The keychain event.
 /// \return The stream event.
 //****************************************************************************************************************************************************
-bridgepp::SPStreamEvent wrapKeychainEvent(grpc::KeychainEvent *keychainEvent)
-{
+bridgepp::SPStreamEvent wrapKeychainEvent(grpc::KeychainEvent *keychainEvent) {
     auto event = newStreamEvent();
     event->set_allocated_keychain(keychainEvent);
     return event;
@@ -112,8 +103,7 @@ bridgepp::SPStreamEvent wrapKeychainEvent(grpc::KeychainEvent *keychainEvent)
 /// \param[in] mailEvent The mail event.
 /// \return The stream event.
 //****************************************************************************************************************************************************
-bridgepp::SPStreamEvent wrapMailEvent(grpc::MailEvent *mailEvent)
-{
+bridgepp::SPStreamEvent wrapMailEvent(grpc::MailEvent *mailEvent) {
     auto event = newStreamEvent();
     event->set_allocated_mail(mailEvent);
     return event;
@@ -124,8 +114,7 @@ bridgepp::SPStreamEvent wrapMailEvent(grpc::MailEvent *mailEvent)
 /// \param[in] userEvent The user event.
 /// \return The stream event.
 //****************************************************************************************************************************************************
-bridgepp::SPStreamEvent wrapUserEvent(grpc::UserEvent *userEvent)
-{
+bridgepp::SPStreamEvent wrapUserEvent(grpc::UserEvent *userEvent) {
     auto event = newStreamEvent();
     event->set_allocated_user(userEvent);
     return event;
@@ -136,8 +125,7 @@ bridgepp::SPStreamEvent wrapUserEvent(grpc::UserEvent *userEvent)
 /// \param[in] genericErrorEvent The generic error event.
 /// \return The stream event.
 //****************************************************************************************************************************************************
-bridgepp::SPStreamEvent wrapGenericErrorEvent(grpc::GenericErrorEvent *genericErrorEvent)
-{
+bridgepp::SPStreamEvent wrapGenericErrorEvent(grpc::GenericErrorEvent *genericErrorEvent) {
     auto event = newStreamEvent();
     event->set_allocated_genericerror(genericErrorEvent);
     return event;
@@ -150,8 +138,7 @@ bridgepp::SPStreamEvent wrapGenericErrorEvent(grpc::GenericErrorEvent *genericEr
 /// \param[in] connected The internet status.
 /// \return The event.
 //****************************************************************************************************************************************************
-SPStreamEvent newInternetStatusEvent(bool connected)
-{
+SPStreamEvent newInternetStatusEvent(bool connected) {
     auto *internetStatusEvent = new grpc::InternetStatusEvent();
     internetStatusEvent->set_connected(connected);
     auto appEvent = new grpc::AppEvent;
@@ -163,8 +150,7 @@ SPStreamEvent newInternetStatusEvent(bool connected)
 //****************************************************************************************************************************************************
 /// \return The event.
 //****************************************************************************************************************************************************
-SPStreamEvent newToggleAutostartFinishedEvent()
-{
+SPStreamEvent newToggleAutostartFinishedEvent() {
     auto *event = new grpc::ToggleAutostartFinishedEvent;
     auto appEvent = new grpc::AppEvent;
     appEvent->set_allocated_toggleautostartfinished(event);
@@ -175,8 +161,7 @@ SPStreamEvent newToggleAutostartFinishedEvent()
 //****************************************************************************************************************************************************
 /// \return The event.
 //****************************************************************************************************************************************************
-SPStreamEvent newResetFinishedEvent()
-{
+SPStreamEvent newResetFinishedEvent() {
     auto event = new grpc::ResetFinishedEvent;
     auto appEvent = new grpc::AppEvent;
     appEvent->set_allocated_resetfinished(event);
@@ -187,8 +172,7 @@ SPStreamEvent newResetFinishedEvent()
 //****************************************************************************************************************************************************
 /// \return The event.
 //****************************************************************************************************************************************************
-SPStreamEvent newReportBugFinishedEvent()
-{
+SPStreamEvent newReportBugFinishedEvent() {
     auto event = new grpc::ReportBugFinishedEvent;
     auto appEvent = new grpc::AppEvent;
     appEvent->set_allocated_reportbugfinished(event);
@@ -199,8 +183,7 @@ SPStreamEvent newReportBugFinishedEvent()
 //****************************************************************************************************************************************************
 /// \return The event.
 //****************************************************************************************************************************************************
-SPStreamEvent newReportBugSuccessEvent()
-{
+SPStreamEvent newReportBugSuccessEvent() {
     auto event = new grpc::ReportBugSuccessEvent;
     auto appEvent = new grpc::AppEvent;
     appEvent->set_allocated_reportbugsuccess(event);
@@ -211,8 +194,7 @@ SPStreamEvent newReportBugSuccessEvent()
 //****************************************************************************************************************************************************
 /// \return The event.
 //****************************************************************************************************************************************************
-SPStreamEvent newReportBugErrorEvent()
-{
+SPStreamEvent newReportBugErrorEvent() {
     auto event = new grpc::ReportBugErrorEvent;
     auto appEvent = new grpc::AppEvent;
     appEvent->set_allocated_reportbugerror(event);
@@ -223,8 +205,7 @@ SPStreamEvent newReportBugErrorEvent()
 //****************************************************************************************************************************************************
 /// \return The event.
 //****************************************************************************************************************************************************
-SPStreamEvent newShowMainWindowEvent()
-{
+SPStreamEvent newShowMainWindowEvent() {
     auto event = new grpc::ShowMainWindowEvent;
     auto appEvent = new grpc::AppEvent;
     appEvent->set_allocated_showmainwindow(event);
@@ -237,8 +218,7 @@ SPStreamEvent newShowMainWindowEvent()
 /// \param[in] message The message.
 /// \return The event.
 //****************************************************************************************************************************************************
-SPStreamEvent newLoginError(grpc::LoginErrorType error, QString const &message)
-{
+SPStreamEvent newLoginError(grpc::LoginErrorType error, QString const &message) {
     auto event = new ::grpc::LoginErrorEvent;
     event->set_type(error);
     event->set_message(message.toStdString());
@@ -252,8 +232,7 @@ SPStreamEvent newLoginError(grpc::LoginErrorType error, QString const &message)
 /// \param[in] username The username.
 /// \return The event.
 //****************************************************************************************************************************************************
-SPStreamEvent newLoginTfaRequestedEvent(QString const &username)
-{
+SPStreamEvent newLoginTfaRequestedEvent(QString const &username) {
     auto event = new ::grpc::LoginTfaRequestedEvent;
     event->set_username(username.toStdString());
     auto loginEvent = new grpc::LoginEvent;
@@ -266,8 +245,7 @@ SPStreamEvent newLoginTfaRequestedEvent(QString const &username)
 /// \param[in] username The username.
 /// \return The event.
 //****************************************************************************************************************************************************
-SPStreamEvent newLoginTwoPasswordsRequestedEvent()
-{
+SPStreamEvent newLoginTwoPasswordsRequestedEvent() {
     auto event = new ::grpc::LoginTwoPasswordsRequestedEvent;
     auto loginEvent = new grpc::LoginEvent;
     loginEvent->set_allocated_twopasswordrequested(event);
@@ -280,8 +258,7 @@ SPStreamEvent newLoginTwoPasswordsRequestedEvent()
 /// \param[in] wasSignedOut Was the user signed-out.
 /// \return The event.
 //****************************************************************************************************************************************************
-SPStreamEvent newLoginFinishedEvent(QString const &userID, bool wasSignedOut)
-{
+SPStreamEvent newLoginFinishedEvent(QString const &userID, bool wasSignedOut) {
     auto event = new ::grpc::LoginFinishedEvent;
     event->set_userid(userID.toStdString());
     event->set_wassignedout(wasSignedOut);
@@ -295,8 +272,7 @@ SPStreamEvent newLoginFinishedEvent(QString const &userID, bool wasSignedOut)
 /// \param[in] userID The userID.
 /// \return The event.
 //****************************************************************************************************************************************************
-SPStreamEvent newLoginAlreadyLoggedInEvent(QString const &userID)
-{
+SPStreamEvent newLoginAlreadyLoggedInEvent(QString const &userID) {
     auto event = new ::grpc::LoginFinishedEvent;
     event->set_userid(userID.toStdString());
     auto loginEvent = new grpc::LoginEvent;
@@ -309,8 +285,7 @@ SPStreamEvent newLoginAlreadyLoggedInEvent(QString const &userID)
 /// \param[in] errorType The error type.
 /// \return The event.
 //****************************************************************************************************************************************************
-SPStreamEvent newUpdateErrorEvent(grpc::UpdateErrorType errorType)
-{
+SPStreamEvent newUpdateErrorEvent(grpc::UpdateErrorType errorType) {
     auto event = new grpc::UpdateErrorEvent;
     event->set_type(errorType);
     auto updateEvent = new grpc::UpdateEvent;
@@ -323,8 +298,7 @@ SPStreamEvent newUpdateErrorEvent(grpc::UpdateErrorType errorType)
 /// \param[in] version The version.
 /// \return The event.
 //****************************************************************************************************************************************************
-SPStreamEvent newUpdateManualReadyEvent(QString const &version)
-{
+SPStreamEvent newUpdateManualReadyEvent(QString const &version) {
     auto event = new grpc::UpdateManualReadyEvent;
     event->set_version(version.toStdString());
     auto updateEvent = new grpc::UpdateEvent;
@@ -336,8 +310,7 @@ SPStreamEvent newUpdateManualReadyEvent(QString const &version)
 //****************************************************************************************************************************************************
 /// \return the event.
 //****************************************************************************************************************************************************
-SPStreamEvent newUpdateManualRestartNeededEvent()
-{
+SPStreamEvent newUpdateManualRestartNeededEvent() {
     auto event = new grpc::UpdateManualRestartNeededEvent;
     auto updateEvent = new grpc::UpdateEvent;
     updateEvent->set_allocated_manualrestartneeded(event);
@@ -349,8 +322,7 @@ SPStreamEvent newUpdateManualRestartNeededEvent()
 /// \param[in] version The version.
 /// \return The event.
 //****************************************************************************************************************************************************
-SPStreamEvent newUpdateForceEvent(QString const &version)
-{
+SPStreamEvent newUpdateForceEvent(QString const &version) {
     auto event = new grpc::UpdateForceEvent;
     event->set_version(version.toStdString());
     auto updateEvent = new grpc::UpdateEvent;
@@ -362,8 +334,7 @@ SPStreamEvent newUpdateForceEvent(QString const &version)
 //****************************************************************************************************************************************************
 /// \return the event.
 //****************************************************************************************************************************************************
-SPStreamEvent newUpdateSilentRestartNeeded()
-{
+SPStreamEvent newUpdateSilentRestartNeeded() {
     auto event = new grpc::UpdateSilentRestartNeeded;
     auto updateEvent = new grpc::UpdateEvent;
     updateEvent->set_allocated_silentrestartneeded(event);
@@ -374,8 +345,7 @@ SPStreamEvent newUpdateSilentRestartNeeded()
 //****************************************************************************************************************************************************
 /// \return The event.
 //****************************************************************************************************************************************************
-SPStreamEvent newUpdateIsLatestVersion()
-{
+SPStreamEvent newUpdateIsLatestVersion() {
     auto event = new grpc::UpdateIsLatestVersion;
     auto updateEvent = new grpc::UpdateEvent;
     updateEvent->set_allocated_islatestversion(event);
@@ -386,8 +356,7 @@ SPStreamEvent newUpdateIsLatestVersion()
 //****************************************************************************************************************************************************
 /// \return The event.
 //****************************************************************************************************************************************************
-SPStreamEvent newUpdateCheckFinished()
-{
+SPStreamEvent newUpdateCheckFinished() {
     auto event = new grpc::UpdateCheckFinished;
     auto updateEvent = new grpc::UpdateEvent;
     updateEvent->set_allocated_checkfinished(event);
@@ -399,8 +368,7 @@ SPStreamEvent newUpdateCheckFinished()
 /// \param[in] errorType The error type.
 /// \return The event.
 //****************************************************************************************************************************************************
-SPStreamEvent newDiskCacheErrorEvent(grpc::DiskCacheErrorType errorType)
-{
+SPStreamEvent newDiskCacheErrorEvent(grpc::DiskCacheErrorType errorType) {
     auto event = new grpc::DiskCacheErrorEvent;
     event->set_type(errorType);
     auto cacheEvent = new grpc::DiskCacheEvent;
@@ -413,8 +381,7 @@ SPStreamEvent newDiskCacheErrorEvent(grpc::DiskCacheErrorType errorType)
 /// \param[in] path The path of the cache.
 /// \return The event.
 //****************************************************************************************************************************************************
-SPStreamEvent newDiskCachePathChangedEvent(QString const &path)
-{
+SPStreamEvent newDiskCachePathChangedEvent(QString const &path) {
     auto event = new grpc::DiskCachePathChangedEvent;
     event->set_path(path.toStdString());
     auto cacheEvent = new grpc::DiskCacheEvent;
@@ -426,20 +393,19 @@ SPStreamEvent newDiskCachePathChangedEvent(QString const &path)
 //****************************************************************************************************************************************************
 /// \return The event.
 //****************************************************************************************************************************************************
-SPStreamEvent newDiskCachePathChangeFinishedEvent()
-{
+SPStreamEvent newDiskCachePathChangeFinishedEvent() {
     auto event = new grpc::DiskCachePathChangeFinishedEvent;
     auto cacheEvent = new grpc::DiskCacheEvent;
     cacheEvent->set_allocated_pathchangefinished(event);
     return wrapCacheEvent(cacheEvent);
 }
 
+
 //****************************************************************************************************************************************************
 /// \param[in] errorType The error type.
 /// \return The event.
 //****************************************************************************************************************************************************
-SPStreamEvent newMailServerSettingsErrorEvent(grpc::MailServerSettingsErrorType errorType)
-{
+SPStreamEvent newMailServerSettingsErrorEvent(grpc::MailServerSettingsErrorType errorType) {
     auto event = new grpc::MailServerSettingsErrorEvent;
     event->set_type(errorType);
     auto mailServerSettingsEvent = new grpc::MailServerSettingsEvent;
@@ -452,8 +418,7 @@ SPStreamEvent newMailServerSettingsErrorEvent(grpc::MailServerSettingsErrorType 
 /// \param[in] settings The settings.
 /// \return The event.
 //****************************************************************************************************************************************************
-SPStreamEvent newMailServerSettingsChanged(grpc::ImapSmtpSettings const &settings)
-{
+SPStreamEvent newMailServerSettingsChanged(grpc::ImapSmtpSettings const &settings) {
     auto event = new grpc::MailServerSettingsChangedEvent;
     event->set_allocated_settings(new grpc::ImapSmtpSettings(settings));
     auto mailServerSettingsEvent = new grpc::MailServerSettingsEvent;
@@ -465,8 +430,7 @@ SPStreamEvent newMailServerSettingsChanged(grpc::ImapSmtpSettings const &setting
 //****************************************************************************************************************************************************
 /// \return The event.
 //****************************************************************************************************************************************************
-SPStreamEvent newChangeMailServerSettingsFinished()
-{
+SPStreamEvent newChangeMailServerSettingsFinished() {
     auto event = new grpc::ChangeMailServerSettingsFinishedEvent;
     auto mailServerSettingsEvent = new grpc::MailServerSettingsEvent;
     mailServerSettingsEvent->set_allocated_changemailserversettingsfinished(event);
@@ -477,8 +441,7 @@ SPStreamEvent newChangeMailServerSettingsFinished()
 //****************************************************************************************************************************************************
 /// \return The event.
 //****************************************************************************************************************************************************
-SPStreamEvent newChangeKeychainFinishedEvent()
-{
+SPStreamEvent newChangeKeychainFinishedEvent() {
     auto event = new grpc::ChangeKeychainFinishedEvent;
     auto keychainEvent = new grpc::KeychainEvent;
     keychainEvent->set_allocated_changekeychainfinished(event);
@@ -489,8 +452,7 @@ SPStreamEvent newChangeKeychainFinishedEvent()
 //****************************************************************************************************************************************************
 /// \return The event.
 //****************************************************************************************************************************************************
-SPStreamEvent newHasNoKeychainEvent()
-{
+SPStreamEvent newHasNoKeychainEvent() {
     auto event = new grpc::HasNoKeychainEvent;
     auto keychainEvent = new grpc::KeychainEvent;
     keychainEvent->set_allocated_hasnokeychain(event);
@@ -501,8 +463,7 @@ SPStreamEvent newHasNoKeychainEvent()
 //****************************************************************************************************************************************************
 /// \return The event.
 //****************************************************************************************************************************************************
-SPStreamEvent newRebuildKeychainEvent()
-{
+SPStreamEvent newRebuildKeychainEvent() {
     auto event = new grpc::RebuildKeychainEvent;
     auto keychainEvent = new grpc::KeychainEvent;
     keychainEvent->set_allocated_rebuildkeychain(event);
@@ -514,8 +475,7 @@ SPStreamEvent newRebuildKeychainEvent()
 /// \param[in] email The email.
 /// \return The event.
 //****************************************************************************************************************************************************
-SPStreamEvent newNoActiveKeyForRecipientEvent(QString const &email)
-{
+SPStreamEvent newNoActiveKeyForRecipientEvent(QString const &email) {
     auto event = new grpc::NoActiveKeyForRecipientEvent;
     event->set_email(email.toStdString());
     auto mailEvent = new grpc::MailEvent;
@@ -528,8 +488,7 @@ SPStreamEvent newNoActiveKeyForRecipientEvent(QString const &email)
 /// \param[in] address The address.
 /// /// \return The event.
 //****************************************************************************************************************************************************
-SPStreamEvent newAddressChangedEvent(QString const &address)
-{
+SPStreamEvent newAddressChangedEvent(QString const &address) {
     auto event = new grpc::AddressChangedEvent;
     event->set_address(address.toStdString());
     auto mailEvent = new grpc::MailEvent;
@@ -542,8 +501,7 @@ SPStreamEvent newAddressChangedEvent(QString const &address)
 /// \param[in] address The address.
 /// \return The event.
 //****************************************************************************************************************************************************
-SPStreamEvent newAddressChangedLogoutEvent(QString const &address)
-{
+SPStreamEvent newAddressChangedLogoutEvent(QString const &address) {
     auto event = new grpc::AddressChangedLogoutEvent;
     event->set_address(address.toStdString());
     auto mailEvent = new grpc::MailEvent;
@@ -555,8 +513,7 @@ SPStreamEvent newAddressChangedLogoutEvent(QString const &address)
 //****************************************************************************************************************************************************
 /// \return The event.
 //****************************************************************************************************************************************************
-SPStreamEvent newApiCertIssueEvent()
-{
+SPStreamEvent newApiCertIssueEvent() {
     auto event = new grpc::ApiCertIssueEvent;
     auto mailEvent = new grpc::MailEvent;
     mailEvent->set_allocated_apicertissue(event);
@@ -568,8 +525,7 @@ SPStreamEvent newApiCertIssueEvent()
 /// \param[in] userID The userID.
 /// \return The event.
 //****************************************************************************************************************************************************
-SPStreamEvent newToggleSplitModeFinishedEvent(QString const &userID)
-{
+SPStreamEvent newToggleSplitModeFinishedEvent(QString const &userID) {
     auto event = new grpc::ToggleSplitModeFinishedEvent;
     event->set_userid(userID.toStdString());
     auto userEvent = new grpc::UserEvent;
@@ -582,8 +538,7 @@ SPStreamEvent newToggleSplitModeFinishedEvent(QString const &userID)
 /// \param[in] username The username.
 /// /// \return The event.
 //****************************************************************************************************************************************************
-SPStreamEvent newUserDisconnectedEvent(QString const &username)
-{
+SPStreamEvent newUserDisconnectedEvent(QString const &username) {
     auto event = new grpc::UserDisconnectedEvent;
     event->set_username(username.toStdString());
     auto userEvent = new grpc::UserEvent;
@@ -596,8 +551,7 @@ SPStreamEvent newUserDisconnectedEvent(QString const &username)
 /// \param[in] userID The userID.
 /// \return The event.
 //****************************************************************************************************************************************************
-SPStreamEvent newUserChangedEvent(QString const &userID)
-{
+SPStreamEvent newUserChangedEvent(QString const &userID) {
     auto event = new grpc::UserChangedEvent;
     event->set_userid(userID.toStdString());
     auto userEvent = new grpc::UserEvent;
@@ -610,8 +564,7 @@ SPStreamEvent newUserChangedEvent(QString const &userID)
 /// \param[in] errorCode The error errorCode.
 /// \return The event.
 //****************************************************************************************************************************************************
-SPStreamEvent newGenericErrorEvent(grpc::ErrorCode errorCode)
-{
+SPStreamEvent newGenericErrorEvent(grpc::ErrorCode errorCode) {
     auto event = new grpc::GenericErrorEvent;
     event->set_code(errorCode);
     return wrapGenericErrorEvent(event);

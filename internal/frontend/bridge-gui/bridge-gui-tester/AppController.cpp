@@ -30,8 +30,7 @@ using namespace bridgepp;
 //****************************************************************************************************************************************************
 /// \return A reference to the application controller.
 //****************************************************************************************************************************************************
-AppController &app()
-{
+AppController &app() {
     static AppController app;
     return app;
 }
@@ -43,8 +42,7 @@ AppController &app()
 AppController::AppController()
     : log_(std::make_unique<Log>())
     , bridgeGUILog_(std::make_unique<Log>())
-    , grpc_(std::make_unique<GRPCService>())
-{
+    , grpc_(std::make_unique<GRPCService>()) {
 
 }
 
@@ -61,8 +59,7 @@ AppController::~AppController() // NOLINT(modernize-use-equals-default): impleme
 //****************************************************************************************************************************************************
 /// \param[in] mainWindow The main window.
 //****************************************************************************************************************************************************
-void AppController::setMainWindow(MainWindow *mainWindow)
-{
+void AppController::setMainWindow(MainWindow *mainWindow) {
     mainWindow_ = mainWindow;
     grpc_->connectProxySignals();
 }
@@ -71,10 +68,10 @@ void AppController::setMainWindow(MainWindow *mainWindow)
 //****************************************************************************************************************************************************
 /// \return The main window.
 //****************************************************************************************************************************************************
-MainWindow &AppController::mainWindow()
-{
-    if (!mainWindow_)
+MainWindow &AppController::mainWindow() {
+    if (!mainWindow_) {
         throw Exception("mainWindow has not yet been registered.");
+    }
     return *mainWindow_;
 }
 
@@ -82,8 +79,7 @@ MainWindow &AppController::mainWindow()
 //****************************************************************************************************************************************************
 /// \return A reference to the log.
 //****************************************************************************************************************************************************
-bridgepp::Log &AppController::log()
-{
+bridgepp::Log &AppController::log() {
     return *log_;
 }
 
@@ -91,8 +87,7 @@ bridgepp::Log &AppController::log()
 //****************************************************************************************************************************************************
 /// \return A reference to the bridge-gui log.
 //****************************************************************************************************************************************************
-bridgepp::Log &AppController::bridgeGUILog()
-{
+bridgepp::Log &AppController::bridgeGUILog() {
     return *bridgeGUILog_;
 }
 
@@ -100,7 +95,6 @@ bridgepp::Log &AppController::bridgeGUILog()
 //****************************************************************************************************************************************************
 /// \return A reference to the gRPC service.
 //****************************************************************************************************************************************************
-GRPCService &AppController::grpc()
-{
+GRPCService &AppController::grpc() {
     return *grpc_;
 }

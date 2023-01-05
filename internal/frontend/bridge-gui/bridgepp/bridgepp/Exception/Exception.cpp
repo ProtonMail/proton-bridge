@@ -19,8 +19,7 @@
 #include "Exception.h"
 
 
-namespace bridgepp
-{
+namespace bridgepp {
 
 
 //****************************************************************************************************************************************************
@@ -28,36 +27,32 @@ namespace bridgepp
 //****************************************************************************************************************************************************
 Exception::Exception(QString what) noexcept
     : std::exception()
-    , what_(std::move(what))
-{
+    , what_(std::move(what)) {
 }
 
 
 //****************************************************************************************************************************************************
 /// \param[in] ref The Exception to copy from
 //****************************************************************************************************************************************************
-Exception::Exception(Exception const& ref) noexcept
+Exception::Exception(Exception const &ref) noexcept
     : std::exception(ref)
-    , what_(ref.what_)
-{
+    , what_(ref.what_) {
 }
 
 
 //****************************************************************************************************************************************************
 /// \param[in] ref The Exception to copy from
 //****************************************************************************************************************************************************
-Exception::Exception(Exception&& ref) noexcept
+Exception::Exception(Exception &&ref) noexcept
     : std::exception(ref)
-    , what_(ref.what_)
-{
+    , what_(ref.what_) {
 }
 
 
 //****************************************************************************************************************************************************
 /// \return a string describing the exception
 //****************************************************************************************************************************************************
-QString const& Exception::qwhat() const noexcept
-{
+QString const &Exception::qwhat() const noexcept {
     return what_;
 }
 
@@ -65,8 +60,7 @@ QString const& Exception::qwhat() const noexcept
 //****************************************************************************************************************************************************
 /// \return A pointer to the description string of the exception.
 //****************************************************************************************************************************************************
-const char* Exception::what() const noexcept
-{
+const char *Exception::what() const noexcept {
     return what_.toLocal8Bit().constData();
 }
 

@@ -30,18 +30,16 @@
 #include <project_sentry_config.h>
 
 
-
 using namespace bridgepp;
 
 
-namespace
-{
+namespace {
 
 /// \brief The file extension for the bridge executable file.
 #ifdef Q_OS_WIN32
-    QString const exeSuffix = ".exe";
+QString const exeSuffix = ".exe";
 #else
-    QString const exeSuffix;
+QString const exeSuffix;
 #endif
 
 QString const bridgeLock = "bridge-v3-gui.lock"; ///< file name used for the lock file.
@@ -56,20 +54,20 @@ qint64 const grpcServiceConfigWaitDelayMs = 180000; ///< The wait delay for the 
 /// \return The path of the bridge executable.
 /// \return A null string if the executable could not be located.
 //****************************************************************************************************************************************************
-QString locateBridgeExe()
-{
+QString locateBridgeExe() {
     QFileInfo const fileInfo(QDir(QCoreApplication::applicationDirPath()).absoluteFilePath(exeName));
-    return  (fileInfo.exists() && fileInfo.isFile() && fileInfo.isExecutable()) ? fileInfo.absoluteFilePath() : QString();
+    return (fileInfo.exists() && fileInfo.isFile() && fileInfo.isExecutable()) ? fileInfo.absoluteFilePath() : QString();
 }
+
 
 //****************************************************************************************************************************************************
 /// // initialize the Qt application.
 //****************************************************************************************************************************************************
-void initQtApplication()
-{
+void initQtApplication() {
     QString const qsgInfo = QProcessEnvironment::systemEnvironment().value("QSG_INFO");
-    if ((!qsgInfo.isEmpty()) && (qsgInfo != "0"))
+    if ((!qsgInfo.isEmpty()) && (qsgInfo != "0")) {
         QLoggingCategory::setFilterRules("qt.scenegraph.general=true");
+    }
 
     QGuiApplication::setApplicationName(PROJECT_FULL_NAME);
     QGuiApplication::setApplicationVersion(PROJECT_VER);
@@ -92,28 +90,30 @@ void initQtApplication()
 //****************************************************************************************************************************************************
 /// \return A reference to the log.
 //****************************************************************************************************************************************************
-Log &initLog()
-{
+Log &initLog() {
     Log &log = app().log();
     log.registerAsQtMessageHandler();
     log.setEchoInConsole(true);
 
     // remove old gui log files
     QDir const logsDir(userLogsDir());
-    for (QFileInfo const fileInfo: logsDir.entryInfoList({ "gui_v*.log" }, QDir::Filter::Files)) // entryInfolist apparently only support wildcards, not regex.
+    for (QFileInfo const fileInfo: logsDir.entryInfoList({ "gui_v*.log" }, QDir::Filter::Files)) { // entryInfolist apparently only support wildcards, not regex.
         QFile(fileInfo.absoluteFilePath()).remove();
+    }
 
     // create new GUI log file
     QString error;
-    if (!log.startWritingToFile(logsDir.absoluteFilePath(QString("gui_v%1_%2.log").arg(PROJECT_VER).arg(QDateTime::currentSecsSinceEpoch())), &error))
+    if (!log.startWritingToFile(logsDir.absoluteFilePath(QString("gui_v%1_%2.log").arg(PROJECT_VER).arg(QDateTime::currentSecsSinceEpoch())), &error)) {
         log.error(error);
+    }
 
     log.info("bridge-gui starting");
     QString const qtCompileTimeVersion = QT_VERSION_STR;
     QString const qtRuntimeVersion = qVersion();
     QString msg = QString("Using Qt %1").arg(qtRuntimeVersion);
-    if (qtRuntimeVersion != qtCompileTimeVersion)
+    if (qtRuntimeVersion != qtCompileTimeVersion) {
         msg += QString(" (compiled against %1)").arg(qtCompileTimeVersion);
+    }
     log.info(msg);
 
     return log;
@@ -123,8 +123,7 @@ Log &initLog()
 //****************************************************************************************************************************************************
 /// \param[in] engine The QML component.
 //****************************************************************************************************************************************************
-QQmlComponent *createRootQmlComponent(QQmlApplicationEngine &engine)
-{
+QQmlComponent *createRootQmlComponent(QQmlApplicationEngine &engine) {
     QString const qrcQmlDir = "qrc:/qml";
     qmlRegisterSingletonInstance("Proton", 1, 0, "Backend", &app().backend());
     qmlRegisterType<UserList>("Proton", 1, 0, "UserList");
@@ -138,8 +137,7 @@ QQmlComponent *createRootQmlComponent(QQmlApplicationEngine &engine)
     QQuickStyle::setStyle("Proton");
 
     rootComponent->loadUrl(QUrl(qrcQmlDir + "/Bridge.qml"));
-    if (rootComponent->status() != QQmlComponent::Status::Ready)
-    {
+    if (rootComponent->status() != QQmlComponent::Status::Ready) {
         app().log().error(rootComponent->errorString());
         throw Exception("Could not load QML component");
     }
@@ -151,21 +149,18 @@ QQmlComponent *createRootQmlComponent(QQmlApplicationEngine &engine)
 /// \param[in] lock The lock file to be checked.
 /// \return True if the lock can be taken, false otherwise.
 //****************************************************************************************************************************************************
-bool checkSingleInstance(QLockFile &lock)
-{
+bool checkSingleInstance(QLockFile &lock) {
     lock.setStaleLockTime(0);
-    if (!lock.tryLock())
-    {
+    if (!lock.tryLock()) {
         qint64 pid;
         QString hostname, appName, details;
-        if (lock.getLockInfo(&pid, &hostname, &appName))
+        if (lock.getLockInfo(&pid, &hostname, &appName)) {
             details = QString("(PID : %1 - Host : %2 - App : %3)").arg(pid).arg(hostname, appName);
+        }
 
         app().log().error(QString("Instance already exists %1 %2").arg(lock.fileName(), details));
         return false;
-    }
-    else
-    {
+    } else {
         app().log().info(QString("lock file created %1").arg(lock.fileName()));
     }
     return true;
@@ -175,8 +170,7 @@ bool checkSingleInstance(QLockFile &lock)
 //****************************************************************************************************************************************************
 /// \return QUrl to reach the bridge API.
 //****************************************************************************************************************************************************
-QUrl getApiUrl()
-{
+QUrl getApiUrl() {
     QUrl url;
     // use default url.
     url.setScheme("http");
@@ -185,17 +179,17 @@ QUrl getApiUrl()
 
     // override with what can be found in the prefs.json file.
     QFile prefFile(QString("%1/%2").arg(bridgepp::userConfigDir(), "prefs.json"));
-    if (prefFile.exists())
-    {
-        prefFile.open(QIODevice::ReadOnly|QIODevice::Text);
+    if (prefFile.exists()) {
+        prefFile.open(QIODevice::ReadOnly | QIODevice::Text);
         QByteArray data = prefFile.readAll();
         prefFile.close();
         QJsonDocument doc = QJsonDocument::fromJson(data);
         if (!doc.isNull()) {
             QString userPortApi = "user_port_api";
             QJsonObject obj = doc.object();
-            if (!obj.isEmpty() && obj.contains(userPortApi))
+            if (!obj.isEmpty() && obj.contains(userPortApi)) {
                 url.setPort(doc.object()[userPortApi].toString().toInt());
+            }
         }
     }
     return url;
@@ -205,8 +199,7 @@ QUrl getApiUrl()
 //****************************************************************************************************************************************************
 /// \return The URL for the focus endpoint of the bridge API URL.
 //****************************************************************************************************************************************************
-QUrl getFocusUrl()
-{
+QUrl getFocusUrl() {
     QUrl url = getApiUrl();
     url.setPath("/focus");
     return url;
@@ -216,8 +209,7 @@ QUrl getFocusUrl()
 //****************************************************************************************************************************************************
 /// \return true if an instance of bridge is already running.
 //****************************************************************************************************************************************************
-bool isBridgeRunning()
-{
+bool isBridgeRunning() {
     FocusGRPCClient client;
     return client.connectToServer(500); // we time out after 1 second and consider no other instance is running;
 }
@@ -226,19 +218,18 @@ bool isBridgeRunning()
 //****************************************************************************************************************************************************
 /// \brief Use api to bring focus on existing bridge instance.
 //****************************************************************************************************************************************************
-void focusOtherInstance()
-{
-    try
-    {
+void focusOtherInstance() {
+    try {
         FocusGRPCClient client;
         QString error;
-        if (!client.connectToServer(5000, &error))
+        if (!client.connectToServer(5000, &error)) {
             throw Exception(QString("Could not connect to bridge focus service for a raise call: %1").arg(error));
-        if (!client.raise().ok())
+        }
+        if (!client.raise().ok()) {
             throw Exception(QString("The raise call to the bridge focus service failed."));
+        }
     }
-    catch (Exception const& e)
-    {
+    catch (Exception const &e) {
         app().log().error(e.qwhat());
         reportSentryException(SENTRY_LEVEL_ERROR, "Exception occurred during focusOtherInstance()", "Exception", e.what());
     }
@@ -248,22 +239,22 @@ void focusOtherInstance()
 //****************************************************************************************************************************************************
 /// \param [in] args list of arguments to pass to bridge.
 //****************************************************************************************************************************************************
-void launchBridge(QStringList const &args)
-{
-    UPOverseer& overseer = app().bridgeOverseer();
+void launchBridge(QStringList const &args) {
+    UPOverseer &overseer = app().bridgeOverseer();
     overseer.reset();
 
     const QString bridgeExePath = locateBridgeExe();
 
-    if (bridgeExePath.isEmpty())
+    if (bridgeExePath.isEmpty()) {
         throw Exception("Could not locate the bridge executable path");
-    else
+    } else {
         app().log().debug(QString("Bridge executable path: %1").arg(QDir::toNativeSeparators(bridgeExePath)));
+    }
 
     qint64 const pid = qApp->applicationPid();
-    QStringList const  params =  QStringList { "--grpc", "--parent-pid", QString::number(pid) } + args ;
+    QStringList const params = QStringList { "--grpc", "--parent-pid", QString::number(pid) } + args;
     app().log().info(QString("Launching bridge process with command \"%1\" %2").arg(bridgeExePath, params.join(" ")));
-    overseer = std::make_unique<Overseer>(new ProcessMonitor(bridgeExePath, params , nullptr), nullptr);
+    overseer = std::make_unique<Overseer>(new ProcessMonitor(bridgeExePath, params, nullptr), nullptr);
     overseer->startWorker(true);
 }
 
@@ -271,16 +262,15 @@ void launchBridge(QStringList const &args)
 //****************************************************************************************************************************************************
 //
 //****************************************************************************************************************************************************
-void closeBridgeApp()
-{
+void closeBridgeApp() {
     app().grpc().quit(); // this will cause the grpc service and the bridge app to close.
 
-    UPOverseer& overseer = app().bridgeOverseer();
-    if (!overseer) // The app was run in 'attach' mode and attached to an existing instance of Bridge. We're not monitoring it.
+    UPOverseer &overseer = app().bridgeOverseer();
+    if (!overseer) { // The app was run in 'attach' mode and attached to an existing instance of Bridge. We're not monitoring it.
         return;
+    }
 
-    while (!overseer->isFinished())
-    {
+    while (!overseer->isFinished()) {
         QThread::msleep(20);
     }
 }
@@ -291,10 +281,9 @@ void closeBridgeApp()
 /// \param[in] argv The list of command-line arguments.
 /// \return The exit code for the application.
 //****************************************************************************************************************************************************
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
     // Init sentry.
-    sentry_options_t* sentryOptions = sentry_options_new();
+    sentry_options_t *sentryOptions = sentry_options_new();
     sentry_options_set_dsn(sentryOptions, SentryDNS);
     {
         const QString sentryCachePath = sentryCacheDir();
@@ -307,24 +296,23 @@ int main(int argc, char *argv[])
         std::cerr << "Failed to initialize sentry" << std::endl;
     }
 
-    auto sentryClose = qScopeGuard([]{sentry_close();});
+    auto sentryClose = qScopeGuard([] { sentry_close(); });
 
     // The application instance is needed to display system message boxes. As we may have to do it in the exception handler,
     // application instance is create outside the try/catch clause.
-    if (QSysInfo::productType() != "windows")
+    if (QSysInfo::productType() != "windows") {
         QCoreApplication::setAttribute(Qt::AA_UseSoftwareOpenGL);
+    }
 
     QApplication guiApp(argc, argv);
 
-    try
-    {
+    try {
         initQtApplication();
 
         Log &log = initLog();
 
         QLockFile lock(bridgepp::userCacheDir() + "/" + bridgeLock);
-        if (!checkSingleInstance(lock))
-        {
+        if (!checkSingleInstance(lock)) {
             focusOtherInstance();
             return EXIT_FAILURE;
         }
@@ -340,10 +328,10 @@ int main(int argc, char *argv[])
         // these outputs and output them on the command-line.
         log.setLevel(cliOptions.logLevel);
 
-        if (!cliOptions.attach)
-        {
-            if (isBridgeRunning())
+        if (!cliOptions.attach) {
+            if (isBridgeRunning()) {
                 throw Exception("An orphan instance of bridge is already running. Please terminate it and relaunch the application.");
+            }
 
             // before launching bridge, we remove any trailing service config file, because we need to make sure we get a newly generated one.
             GRPCClient::removeServiceConfigFile();
@@ -352,8 +340,9 @@ int main(int argc, char *argv[])
 
         log.info(QString("Retrieving gRPC service configuration from '%1'").arg(QDir::toNativeSeparators(grpcServerConfigPath())));
         app().backend().init(GRPCClient::waitAndRetrieveServiceConfig(cliOptions.attach ? 0 : grpcServiceConfigWaitDelayMs, app().bridgeMonitor()));
-        if (!cliOptions.attach)
+        if (!cliOptions.attach) {
             GRPCClient::removeServiceConfigFile();
+        }
 
         // gRPC communication is established. From now on, log events will be sent to bridge via gRPC. bridge will write these to file,
         // and will output then on console if appropriate. If we are not running in attached mode we intercept bridge stdout & stderr and
@@ -370,19 +359,18 @@ int main(int argc, char *argv[])
 
         QQmlApplicationEngine engine;
         std::unique_ptr<QQmlComponent> rootComponent(createRootQmlComponent(engine));
-        std::unique_ptr<QObject>rootObject(rootComponent->create(engine.rootContext()));
-        if (!rootObject)
+        std::unique_ptr<QObject> rootObject(rootComponent->create(engine.rootContext()));
+        if (!rootObject) {
             throw Exception("Could not create root object.");
+        }
 
         ProcessMonitor *bridgeMonitor = app().bridgeMonitor();
         bool bridgeExited = false;
         bool startError = false;
         QMetaObject::Connection connection;
-        if (bridgeMonitor)
-        {
-            const ProcessMonitor::MonitorStatus& status = bridgeMonitor->getStatus();
-            if (status.ended && !cliOptions.attach)
-            {
+        if (bridgeMonitor) {
+            const ProcessMonitor::MonitorStatus &status = bridgeMonitor->getStatus();
+            if (status.ended && !cliOptions.attach) {
                 // ProcessMonitor already stopped meaning we are attached to an orphan Bridge.
                 // Restart the full process to be sure there is no more bridge orphans
                 app().log().error("Found orphan bridge, need to restart.");
@@ -390,21 +378,18 @@ int main(int argc, char *argv[])
                 app().backend().restart();
                 bridgeExited = true;
                 startError = true;
-            }
-            else
-            {
+            } else {
                 app().log().debug(QString("Monitoring Bridge PID : %1").arg(status.pid));
 
                 connection = QObject::connect(bridgeMonitor, &ProcessMonitor::processExited, [&](int returnCode) {
-                        bridgeExited = true;// clazy:exclude=lambda-in-connect
-                        qGuiApp->exit(returnCode);
-                        });
+                    bridgeExited = true;// clazy:exclude=lambda-in-connect
+                    qGuiApp->exit(returnCode);
+                });
             }
         }
 
         int result = 0;
-        if (!startError)
-        {
+        if (!startError) {
             // we succeeded in launching bridge, so we can be set as mainExecutable.
             app().grpc().setMainExecutable(QString::fromLocal8Bit(argv[0]));
             result = QGuiApplication::exec();
@@ -412,21 +397,22 @@ int main(int argc, char *argv[])
 
         QObject::disconnect(connection);
         app().grpc().stopEventStreamReader();
-        if (!app().backend().waitForEventStreamReaderToFinish(5000))
+        if (!app().backend().waitForEventStreamReaderToFinish(5000)) {
             log.warn("Event stream reader took too long to finish.");
+        }
 
         // We manually delete the QML components to avoid warnings error due to order of deletion of C++ / JS objects and singletons.
         rootObject.reset();
         rootComponent.reset();
 
-        if (!bridgeExited)
+        if (!bridgeExited) {
             closeBridgeApp();
+        }
         // release the lock file
         lock.unlock();
         return result;
     }
-    catch (Exception const &e)
-    {
+    catch (Exception const &e) {
         reportSentryException(SENTRY_LEVEL_ERROR, "Exception occurred during main", "Exception", e.what());
         QMessageBox::critical(nullptr, "Error", e.qwhat());
         QTextStream(stderr) << e.qwhat() << "\n";

@@ -20,8 +20,7 @@
 #include "Exception/Exception.h"
 
 
-namespace bridgepp
-{
+namespace bridgepp {
 
 
 //****************************************************************************************************************************************************
@@ -34,13 +33,14 @@ ProcessMonitor::ProcessMonitor(QString const &exePath, QStringList const &args, 
     , exePath_(exePath)
     , args_(args)
     , out_(stdout)
-    , err_(stderr)
-{
+    , err_(stderr) {
     QFileInfo fileInfo(exePath);
-    if (!fileInfo.exists())
+    if (!fileInfo.exists()) {
         throw Exception(QString("Could not locate %1 executable.").arg(fileInfo.baseName()));
-    if ((!fileInfo.isFile()) || (!fileInfo.isExecutable()))
+    }
+    if ((!fileInfo.isFile()) || (!fileInfo.isExecutable())) {
         throw Exception(QString("Invalid %1 executable").arg(fileInfo.baseName()));
+    }
 }
 
 
@@ -49,15 +49,13 @@ ProcessMonitor::ProcessMonitor(QString const &exePath, QStringList const &args, 
 //****************************************************************************************************************************************************
 void ProcessMonitor::forwardProcessOutput(QProcess &p) {
     QByteArray array = p.readAllStandardError();
-    if (!array.isEmpty())
-    {
+    if (!array.isEmpty()) {
         err_ << array;
         err_.flush();
     }
 
     array = p.readAllStandardOutput();
-    if (!array.isEmpty())
-    {
+    if (!array.isEmpty()) {
         out_ << array;
         out_.flush();
     }
@@ -67,10 +65,8 @@ void ProcessMonitor::forwardProcessOutput(QProcess &p) {
 //****************************************************************************************************************************************************
 //
 //****************************************************************************************************************************************************
-void ProcessMonitor::run()
-{
-    try
-    {
+void ProcessMonitor::run() {
+    try {
         {
             QMutexLocker locker(&statusMutex_);
             status_.ended = false;
@@ -88,8 +84,7 @@ void ProcessMonitor::run()
             status_.pid = p.processId();
         }
 
-        while (!p.waitForFinished(100))
-        {
+        while (!p.waitForFinished(100)) {
             this->forwardProcessOutput(p);
         }
         this->forwardProcessOutput(p);
@@ -101,8 +96,7 @@ void ProcessMonitor::run()
         emit processExited(status_.returnCode);
         emit finished();
     }
-    catch (Exception const &e)
-    {
+    catch (Exception const &e) {
         emit error(e.qwhat());
     }
 }
@@ -111,8 +105,7 @@ void ProcessMonitor::run()
 //****************************************************************************************************************************************************
 /// \return status of the monitored process
 //****************************************************************************************************************************************************
-const ProcessMonitor::MonitorStatus ProcessMonitor::getStatus()
-{
+const ProcessMonitor::MonitorStatus ProcessMonitor::getStatus() {
     QMutexLocker locker(&statusMutex_);
     return status_;
 }

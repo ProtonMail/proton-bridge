@@ -20,8 +20,7 @@
 #define BRIDGE_PP_USER_H
 
 
-namespace bridgepp
-{
+namespace bridgepp {
 
 
 //****************************************************************************************************************************************************
@@ -29,25 +28,25 @@ namespace bridgepp
 /// See https://qml.guide/enums-in-qt-qml/ for details (we used Q_OBJECT instead of Q_GADGET as in the reference document avoid a QML warning
 /// complaining about the case of the data type).
 //****************************************************************************************************************************************************
-class EUserState: public QObject
-{
+class EUserState : public QObject {
 Q_OBJECT
 public:
-    enum class State
-    {
+    enum class State {
         SignedOut = 0,
         Locked = 1,
         Connected = 2
     };
 
+
     Q_ENUM(State)
 
+
     EUserState() = delete; ///< Default constructor.
-    EUserState(EUserState const&) = delete; ///< Disabled copy-constructor.
-    EUserState(EUserState&&) = delete; ///< Disabled assignment copy-constructor.
+    EUserState(EUserState const &) = delete; ///< Disabled copy-constructor.
+    EUserState(EUserState &&) = delete; ///< Disabled assignment copy-constructor.
     ~EUserState() = default; ///< Destructor.
-    EUserState& operator=(EUserState const&) = delete; ///< Disabled assignment operator.
-    EUserState& operator=(EUserState&&) = delete; ///< Disabled move assignment operator.
+    EUserState &operator=(EUserState const &) = delete; ///< Disabled assignment operator.
+    EUserState &operator=(EUserState &&) = delete; ///< Disabled move assignment operator.
 };
 
 
@@ -60,8 +59,7 @@ typedef std::shared_ptr<class User> SPUser; ///< Type definition for shared poin
 //****************************************************************************************************************************************************
 /// \brief User class.
 //****************************************************************************************************************************************************
-class User : public QObject
-{
+class User : public QObject {
 
 Q_OBJECT
 public: // static member function

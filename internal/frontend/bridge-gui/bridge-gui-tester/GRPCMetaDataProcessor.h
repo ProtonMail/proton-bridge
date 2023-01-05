@@ -26,15 +26,14 @@
 //****************************************************************************************************************************************************
 /// \brief Metadata processor class in charge of checking the server token provided by client calls and stream requests.
 //****************************************************************************************************************************************************
-class GRPCMetadataProcessor: public grpc::AuthMetadataProcessor
-{
+class GRPCMetadataProcessor : public grpc::AuthMetadataProcessor {
 public: // member functions.
     GRPCMetadataProcessor(QString const &serverToken); ///< Default constructor.
-    GRPCMetadataProcessor(GRPCMetadataProcessor const&) = delete; ///< Disabled copy-constructor.
-    GRPCMetadataProcessor(GRPCMetadataProcessor&&) = delete; ///< Disabled assignment copy-constructor.
+    GRPCMetadataProcessor(GRPCMetadataProcessor const &) = delete; ///< Disabled copy-constructor.
+    GRPCMetadataProcessor(GRPCMetadataProcessor &&) = delete; ///< Disabled assignment copy-constructor.
     ~GRPCMetadataProcessor() = default; ///< Destructor.
-    GRPCMetadataProcessor& operator=(GRPCMetadataProcessor const&) = delete; ///< Disabled assignment operator.
-    GRPCMetadataProcessor& operator=(GRPCMetadataProcessor&&) = delete; ///< Disabled move assignment operator.
+    GRPCMetadataProcessor &operator=(GRPCMetadataProcessor const &) = delete; ///< Disabled assignment operator.
+    GRPCMetadataProcessor &operator=(GRPCMetadataProcessor &&) = delete; ///< Disabled move assignment operator.
     bool IsBlocking() const override; ///< Is the processor blocking?
     grpc::Status Process(InputMetadata const &auth_metadata, grpc::AuthContext *context, OutputMetadata *consumed_auth_metadata,
         OutputMetadata *response_metadata) override; ///< Process the metadata

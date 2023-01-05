@@ -22,22 +22,19 @@
 #include "../BridgeUtils.h"
 
 
-namespace bridgepp
-{
+namespace bridgepp {
 
 
 std::string const grpcMetadataServerTokenKey = "server-token";
 
 
-namespace
-{
+namespace {
 
 
 //****************************************************************************************************************************************************
 /// \return the gRPC server config file name
 //****************************************************************************************************************************************************
-QString grpcServerConfigFilename()
-{
+QString grpcServerConfigFilename() {
     return "grpcServerConfig.json";
 }
 
@@ -45,8 +42,7 @@ QString grpcServerConfigFilename()
 //****************************************************************************************************************************************************
 /// \return the gRPC client config file name
 //****************************************************************************************************************************************************
-QString grpcClientConfigBaseFilename()
-{
+QString grpcClientConfigBaseFilename() {
     return "grpcClientConfig_%1.json";
 }
 
@@ -54,8 +50,7 @@ QString grpcClientConfigBaseFilename()
 //****************************************************************************************************************************************************
 /// \return The server certificate file name
 //****************************************************************************************************************************************************
-QString serverCertificateFilename()
-{
+QString serverCertificateFilename() {
     return "cert.pem";
 }
 
@@ -63,8 +58,7 @@ QString serverCertificateFilename()
 //****************************************************************************************************************************************************
 //
 //****************************************************************************************************************************************************
-QString serverKeyFilename()
-{
+QString serverKeyFilename() {
     return "key.pem";
 }
 
@@ -83,8 +77,7 @@ bool useFileSocketForGRPC() {
 //****************************************************************************************************************************************************
 /// \return The absolute path of the service config path.
 //****************************************************************************************************************************************************
-QString grpcServerConfigPath()
-{
+QString grpcServerConfigPath() {
     return QDir(userConfigDir()).absoluteFilePath(grpcServerConfigFilename());
 }
 
@@ -92,8 +85,7 @@ QString grpcServerConfigPath()
 //****************************************************************************************************************************************************
 /// \return The absolute path of the service config path.
 //****************************************************************************************************************************************************
-QString grpcClientConfigBasePath()
-{
+QString grpcClientConfigBasePath() {
     return QDir(userConfigDir()).absoluteFilePath(grpcClientConfigBaseFilename());
 }
 
@@ -101,8 +93,7 @@ QString grpcClientConfigBasePath()
 //****************************************************************************************************************************************************
 /// \return The absolute path of the server certificate.
 //****************************************************************************************************************************************************
-QString serverCertificatePath()
-{
+QString serverCertificatePath() {
     return QDir(userConfigDir()).absoluteFilePath(serverCertificateFilename());
 }
 
@@ -110,8 +101,7 @@ QString serverCertificatePath()
 //****************************************************************************************************************************************************
 /// \return The absolute path of the server key.
 //****************************************************************************************************************************************************
-QString serverKeyPath()
-{
+QString serverKeyPath() {
 
     return QDir(userConfigDir()).absoluteFilePath(serverKeyFilename());
 }
@@ -122,19 +112,18 @@ QString serverKeyPath()
 /// \return The path of the created file.
 /// \return A null string if the file could not be saved..
 //****************************************************************************************************************************************************
-QString createClientConfigFile(QString const &token)
-{
+QString createClientConfigFile(QString const &token) {
     QString const basePath = grpcClientConfigBasePath();
     QString path, error;
     for (qint32 i = 0; i < 1000; ++i) // we try a decent amount of times
     {
         path = basePath.arg(i);
-        if (!QFileInfo(path).exists())
-        {
+        if (!QFileInfo(path).exists()) {
             GRPCConfig config;
             config.token = token;
-            if (!config.save(path))
+            if (!config.save(path)) {
                 return QString();
+            }
             return path;
         }
     }
@@ -147,10 +136,8 @@ QString createClientConfigFile(QString const &token)
 /// \param[in] level The Log::Level.
 /// \return The grpc::LogLevel.
 //****************************************************************************************************************************************************
-grpc::LogLevel logLevelToGRPC(Log::Level level)
-{
-    switch (level)
-    {
+grpc::LogLevel logLevelToGRPC(Log::Level level) {
+    switch (level) {
     case Log::Level::Panic:
         return grpc::LogLevel::LOG_PANIC;
     case Log::Level::Fatal:
@@ -175,10 +162,8 @@ grpc::LogLevel logLevelToGRPC(Log::Level level)
 /// \param[in] level The level::LogLevel.
 /// \return The Log::Level.
 //****************************************************************************************************************************************************
-Log::Level logLevelFromGRPC(grpc::LogLevel level)
-{
-    switch (level)
-    {
+Log::Level logLevelFromGRPC(grpc::LogLevel level) {
+    switch (level) {
     case grpc::LOG_PANIC:
         return Log::Level::Panic;
     case grpc::LOG_FATAL:
@@ -203,10 +188,8 @@ Log::Level logLevelFromGRPC(grpc::LogLevel level)
 /// \param[in] state The user state.
 /// \return The  gRPC user state.
 //****************************************************************************************************************************************************
-grpc::UserState userStateToGRPC(UserState state)
-{
-    switch (state)
-    {
+grpc::UserState userStateToGRPC(UserState state) {
+    switch (state) {
     case UserState::SignedOut:
         return grpc::UserState::SIGNED_OUT;
     case UserState::Locked:
@@ -223,16 +206,14 @@ grpc::UserState userStateToGRPC(UserState state)
 /// \param[in] state The gRPC user state
 /// \return the user state
 //****************************************************************************************************************************************************
-UserState userStateFromGRPC(grpc::UserState state)
-{
-    switch (state)
-    {
+UserState userStateFromGRPC(grpc::UserState state) {
+    switch (state) {
     case grpc::UserState::SIGNED_OUT:
         return UserState::SignedOut;
     case grpc::UserState::LOCKED:
         return UserState::Locked;
     case grpc::UserState::CONNECTED:
-        return UserState ::Connected;
+        return UserState::Connected;
     default:
         throw Exception(QString("unknown gRPC user state %1.").arg(qint32(state)));
     }
@@ -243,16 +224,16 @@ UserState userStateFromGRPC(grpc::UserState state)
 /// \param[in] grpcUser The gRPC user.
 /// \return user The user.
 //****************************************************************************************************************************************************
-SPUser userFromGRPC(grpc::User const &grpcUser)
-{
+SPUser userFromGRPC(grpc::User const &grpcUser) {
     SPUser user = User::newUser(nullptr);
 
     user->setID(QString::fromStdString(grpcUser.id()));
     user->setUsername(QString::fromStdString(grpcUser.username()));
     user->setPassword(QString::fromStdString(grpcUser.password()));
     QStringList addresses;
-    for (int j = 0; j < grpcUser.addresses_size(); ++j)
+    for (int j = 0; j < grpcUser.addresses_size(); ++j) {
         addresses.append(QString::fromStdString(grpcUser.addresses(j)));
+    }
     user->setAddresses(addresses);
     user->setAvatarText(QString::fromStdString(grpcUser.avatartext()));
     user->setState(userStateFromGRPC(grpcUser.state()));
@@ -268,14 +249,14 @@ SPUser userFromGRPC(grpc::User const &grpcUser)
 /// \param[in] user the user.
 /// \param[out] outGRPCUser The GRPC user.
 //****************************************************************************************************************************************************
-void userToGRPC(User const &user, grpc::User &outGRPCUser)
-{
+void userToGRPC(User const &user, grpc::User &outGRPCUser) {
     outGRPCUser.set_id(user.id().toStdString());
     outGRPCUser.set_username(user.username().toStdString());
     outGRPCUser.set_password(user.password().toStdString());
     outGRPCUser.clear_addresses();
-    for (QString const& address: user.addresses())
+    for (QString const &address: user.addresses()) {
         outGRPCUser.add_addresses(address.toStdString());
+    }
     outGRPCUser.set_avatartext(user.avatarText().toStdString());
     outGRPCUser.set_state(userStateToGRPC(user.state()));
     outGRPCUser.set_splitmode(user.splitMode());
@@ -288,14 +269,14 @@ void userToGRPC(User const &user, grpc::User &outGRPCUser)
 /// \return The path to a file that can be used for a gRPC file socket.
 /// \return A null string if no path could be found.
 //****************************************************************************************************************************************************
-QString getAvailableFileSocketPath()
-{
+QString getAvailableFileSocketPath() {
     QDir const tempDir(QStandardPaths::writableLocation(QStandardPaths::TempLocation));
     for (qint32 i = 0; i < 10000; i++) {
         QString const path = tempDir.absoluteFilePath(QString("bridge_%1.sock").arg(qint32(i), 4, 10, QChar('0')));
         QFile f(path);
-        if ((!f.exists()) || f.remove())
+        if ((!f.exists()) || f.remove()) {
             return path;
+        }
     }
 
     return QString();

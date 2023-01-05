@@ -23,8 +23,7 @@
 using namespace bridgepp;
 
 
-namespace
-{
+namespace {
 
 
 //****************************************************************************************************************************************************
@@ -32,12 +31,12 @@ namespace
 /// \param[in] message The log message.
 /// \param[in] logEdit The plain text edit widget that displays the log.
 //****************************************************************************************************************************************************
-void addEntryToLogEdit(bridgepp::Log::Level level, const QString &message, QPlainTextEdit &logEdit)
-{
+void addEntryToLogEdit(bridgepp::Log::Level level, const QString &message, QPlainTextEdit &logEdit) {
     /// \todo This may cause performance issue when log grows big. A better alternative should be implemented.
     QString log = logEdit.toPlainText().trimmed();
-    if (!log.isEmpty())
+    if (!log.isEmpty()) {
         log += "\n";
+    }
     logEdit.setPlainText(log + Log::logEntryToString(level, QDateTime::currentDateTime(), message));
 }
 
@@ -49,14 +48,13 @@ void addEntryToLogEdit(bridgepp::Log::Level level, const QString &message, QPlai
 /// \param[in] parent The parent widget of the window.
 //****************************************************************************************************************************************************
 MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent)
-{
+    : QMainWindow(parent) {
     ui_.setupUi(this);
     ui_.tabTop->setCurrentIndex(0);
     ui_.tabBottom->setCurrentIndex(0);
     ui_.splitter->setStretchFactor(0, 0);
     ui_.splitter->setStretchFactor(1, 1);
-    ui_.splitter->setSizes({100, 10000});
+    ui_.splitter->setSizes({ 100, 10000 });
     connect(&app().log(), &Log::entryAdded, this, &MainWindow::addLogEntry);
     connect(&app().bridgeGUILog(), &Log::entryAdded, this, &MainWindow::addBridgeGUILogEntry);
 }
@@ -65,8 +63,7 @@ MainWindow::MainWindow(QWidget *parent)
 //****************************************************************************************************************************************************
 /// \return A reference to the 'General' tab.
 //****************************************************************************************************************************************************
-SettingsTab &MainWindow::settingsTab()
-{
+SettingsTab &MainWindow::settingsTab() {
     return *ui_.settingsTab;
 }
 
@@ -74,8 +71,7 @@ SettingsTab &MainWindow::settingsTab()
 //****************************************************************************************************************************************************
 /// \return A reference to the users tab.
 //****************************************************************************************************************************************************
-UsersTab &MainWindow::usersTab()
-{
+UsersTab &MainWindow::usersTab() {
     return *ui_.usersTab;
 }
 
@@ -84,8 +80,7 @@ UsersTab &MainWindow::usersTab()
 /// \param[in] level The log level.
 /// \param[in] message The log message
 //****************************************************************************************************************************************************
-void MainWindow::addLogEntry(bridgepp::Log::Level level, const QString &message)
-{
+void MainWindow::addLogEntry(bridgepp::Log::Level level, const QString &message) {
     addEntryToLogEdit(level, message, *ui_.editLog);
 }
 
@@ -94,8 +89,7 @@ void MainWindow::addLogEntry(bridgepp::Log::Level level, const QString &message)
 /// \param[in] level The log level.
 /// \param[in] message The log message
 //****************************************************************************************************************************************************
-void MainWindow::addBridgeGUILogEntry(bridgepp::Log::Level level, const QString &message)
-{
+void MainWindow::addBridgeGUILogEntry(bridgepp::Log::Level level, const QString &message) {
     addEntryToLogEdit(level, message, *ui_.editBridgeGUILog);
 }
 
@@ -103,8 +97,7 @@ void MainWindow::addBridgeGUILogEntry(bridgepp::Log::Level level, const QString 
 //****************************************************************************************************************************************************
 /// \param[in] event The event.
 //****************************************************************************************************************************************************
-void MainWindow::sendDelayedEvent(SPStreamEvent const &event)
-{
+void MainWindow::sendDelayedEvent(SPStreamEvent const &event) {
     QTimer::singleShot(this->settingsTab().eventDelayMs(), [event] { app().grpc().sendEvent(event); });
 }
 

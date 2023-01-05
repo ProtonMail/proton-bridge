@@ -24,15 +24,13 @@
 #include "focus.grpc.pb.h"
 
 
-namespace bridgepp
-{
+namespace bridgepp {
 
 
 //**********************************************************************************************************************
 /// \brief Focus GRPC client class
 //**********************************************************************************************************************
-class FocusGRPCClient
-{
+class FocusGRPCClient {
 public: // member functions.
     FocusGRPCClient() = default; ///< Default constructor.
     FocusGRPCClient(FocusGRPCClient const &) = delete; ///< Disabled copy-constructor.

@@ -28,8 +28,7 @@
 #include "grpc++/grpc++.h"
 
 
-namespace bridgepp
-{
+namespace bridgepp {
 
 
 typedef grpc::Status (grpc::Bridge::Stub::*SimpleMethod)(grpc::ClientContext *, const google::protobuf::Empty &, google::protobuf::Empty *);
@@ -46,8 +45,7 @@ typedef std::unique_ptr<grpc::ClientContext> UPClientContext;
 //****************************************************************************************************************************************************
 /// \brief gRPC client class. This class encapsulate the gRPC service, abstracting all data type conversions.
 //****************************************************************************************************************************************************
-class GRPCClient : public QObject
-{
+class GRPCClient : public QObject {
 Q_OBJECT
 public: // static member functions
     static void removeServiceConfigFile(); ///< Delete the service config file.
@@ -209,7 +207,7 @@ public:
     grpc::Status stopEventStreamReader(); ///< Stop the event stream.
 
 private:
-    void log(Log::Level level, QString const & message); ///< Log an event.
+    void log(Log::Level level, QString const &message); ///< Log an event.
     void logTrace(QString const &message); ///< Log a trace event.
     void logDebug(QString const &message); ///< Log a debug event.
     void logError(QString const &message); ///< Log an error event.

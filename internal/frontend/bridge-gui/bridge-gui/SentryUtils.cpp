@@ -17,14 +17,17 @@
 
 #include "SentryUtils.h"
 
-static constexpr const char* LoggerName = "bridge-gui";
 
-void reportSentryEvent(sentry_level_t level, const char* message) {
+static constexpr const char *LoggerName = "bridge-gui";
+
+
+void reportSentryEvent(sentry_level_t level, const char *message) {
     auto event = sentry_value_new_message_event(level, LoggerName, message);
     sentry_capture_event(event);
 }
 
-void reportSentryException(sentry_level_t level, const char* message, const char* exceptionType, const char* exception) {
+
+void reportSentryException(sentry_level_t level, const char *message, const char *exceptionType, const char *exception) {
     auto event = sentry_value_new_message_event(level, LoggerName, message);
     sentry_event_add_exception(event, sentry_value_new_exception(exceptionType, exception));
     sentry_capture_event(event);

@@ -20,20 +20,17 @@
 #define BRIDGE_PP_WORKER_H
 
 
-namespace bridgepp
-{
+namespace bridgepp {
 
 
 //****************************************************************************************************************************************************
 /// \brief Pure virtual class for worker intended to perform a threaded operation.
 //****************************************************************************************************************************************************
-class Worker : public QObject
-{
+class Worker : public QObject {
 Q_OBJECT
 public: // member functions
     explicit Worker(QObject *parent)
-        : QObject(parent)
-    {} ///< Default constructor.
+        : QObject(parent) {} ///< Default constructor.
     Worker(Worker const &) = delete; ///< Disabled copy-constructor.
     Worker(Worker &&) = delete; ///< Disabled assignment copy-constructor.
     ~Worker() override = default; ///< Destructor.

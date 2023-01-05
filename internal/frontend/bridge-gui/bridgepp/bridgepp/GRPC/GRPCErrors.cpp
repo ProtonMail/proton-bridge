@@ -22,12 +22,10 @@
 using namespace grpc;
 
 
-namespace bridgepp
-{
+namespace bridgepp {
 
 
-namespace
-{
+namespace {
 
 
 ErrorInfo const unknownError { UNKNOWN_ERROR, QObject::tr("Unknown error"), QObject::tr("An unknown error occurred.") }; // Unknown error
@@ -36,7 +34,7 @@ ErrorInfo const unknownError { UNKNOWN_ERROR, QObject::tr("Unknown error"), QObj
 QList<ErrorInfo> const errorList {
     unknownError,
     { TLS_CERT_EXPORT_ERROR, QObject::tr("Export error"), QObject::tr("The TLS certificate could not be exported.") },
-    { TLS_KEY_EXPORT_ERROR,  QObject::tr("Export error"), QObject::tr("The TLS private key could not be exported.") },
+    { TLS_KEY_EXPORT_ERROR, QObject::tr("Export error"), QObject::tr("The TLS private key could not be exported.") },
 };
 
 
@@ -46,9 +44,8 @@ QList<ErrorInfo> const errorList {
 //****************************************************************************************************************************************************
 /// \param[in] error
 //****************************************************************************************************************************************************
-ErrorInfo errorInfo(grpc::ErrorCode code)
-{
-    QList<ErrorInfo>::const_iterator it = std::find_if(errorList.begin(), errorList.end(), [code](ErrorInfo info) -> bool { return code == info.code;});
+ErrorInfo errorInfo(grpc::ErrorCode code) {
+    QList<ErrorInfo>::const_iterator it = std::find_if(errorList.begin(), errorList.end(), [code](ErrorInfo info) -> bool { return code == info.code; });
     return errorList.end() == it ? unknownError : *it;
 }
 

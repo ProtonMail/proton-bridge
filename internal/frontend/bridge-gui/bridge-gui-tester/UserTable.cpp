@@ -26,8 +26,7 @@ using namespace bridgepp;
 /// \param[in] parent The parent object of the class
 //****************************************************************************************************************************************************
 UserTable::UserTable(QObject *parent)
-    : QAbstractTableModel(parent)
-{
+    : QAbstractTableModel(parent) {
 
 }
 
@@ -35,8 +34,7 @@ UserTable::UserTable(QObject *parent)
 //****************************************************************************************************************************************************
 /// \return The number of rows in the table.
 //****************************************************************************************************************************************************
-int UserTable::rowCount(QModelIndex const &) const
-{
+int UserTable::rowCount(QModelIndex const &) const {
     return users_.size();
 }
 
@@ -44,8 +42,7 @@ int UserTable::rowCount(QModelIndex const &) const
 //****************************************************************************************************************************************************
 /// \return The number of columns in the table.
 //****************************************************************************************************************************************************
-int UserTable::columnCount(QModelIndex const &) const
-{
+int UserTable::columnCount(QModelIndex const &) const {
     return 4;
 }
 
@@ -55,18 +52,18 @@ int UserTable::columnCount(QModelIndex const &) const
 /// \param[in] role The role to retrieve data for.
 /// \return The data for the role at the given index.
 //****************************************************************************************************************************************************
-QVariant UserTable::data(QModelIndex const &index, int role) const
-{
+QVariant UserTable::data(QModelIndex const &index, int role) const {
     int const row = index.row();
-    if ((row < 0) || (row >= users_.size()) || (Qt::DisplayRole != role))
+    if ((row < 0) || (row >= users_.size()) || (Qt::DisplayRole != role)) {
         return QVariant();
+    }
 
     SPUser const user = users_[row];
-    if (!user)
+    if (!user) {
         return QVariant();
+    }
 
-    switch (index.column())
-    {
+    switch (index.column()) {
     case 0:
         return user->property("username");
     case 1:
@@ -86,16 +83,16 @@ QVariant UserTable::data(QModelIndex const &index, int role) const
 /// \param[in] orientation The orientation.
 /// \param[in] role The role to retrieve data
 //****************************************************************************************************************************************************
-QVariant UserTable::headerData(int section, Qt::Orientation orientation, int role) const
-{
-    if (Qt::DisplayRole != role)
+QVariant UserTable::headerData(int section, Qt::Orientation orientation, int role) const {
+    if (Qt::DisplayRole != role) {
         return QAbstractTableModel::headerData(section, orientation, role);
+    }
 
-    if (Qt::Horizontal != orientation)
+    if (Qt::Horizontal != orientation) {
         return QString();
+    }
 
-    switch (section)
-    {
+    switch (section) {
     case 0:
         return "UserName";
     case 1:
@@ -113,8 +110,7 @@ QVariant UserTable::headerData(int section, Qt::Orientation orientation, int rol
 //****************************************************************************************************************************************************
 /// \param[in] user The user to add.
 //****************************************************************************************************************************************************
-void UserTable::append(SPUser const &user)
-{
+void UserTable::append(SPUser const &user) {
     qint32 const count = users_.size();
     this->beginInsertRows(QModelIndex(), count, count);
     users_.append(user);
@@ -125,8 +121,7 @@ void UserTable::append(SPUser const &user)
 //****************************************************************************************************************************************************
 /// \return The number of users in the table.
 //****************************************************************************************************************************************************
-qint32 UserTable::userCount() const
-{
+qint32 UserTable::userCount() const {
     return users_.count();
 }
 
@@ -136,8 +131,7 @@ qint32 UserTable::userCount() const
 /// \return the user at the given index.
 /// \return null if the index is out of bounds.
 //****************************************************************************************************************************************************
-bridgepp::SPUser UserTable::userAtIndex(qint32 index)
-{
+bridgepp::SPUser UserTable::userAtIndex(qint32 index) {
     return isIndexValid(index) ? users_[index] : nullptr;
 }
 
@@ -146,9 +140,8 @@ bridgepp::SPUser UserTable::userAtIndex(qint32 index)
 /// \return The user with the given userID.
 /// \return A null pointer if the user is not in the list.
 //****************************************************************************************************************************************************
-bridgepp::SPUser UserTable::userWithID(QString const &userID)
-{
-    QList<SPUser>::const_iterator it = std::find_if(users_.constBegin(), users_.constEnd(), [&userID](SPUser const& user) -> bool {
+bridgepp::SPUser UserTable::userWithID(QString const &userID) {
+    QList<SPUser>::const_iterator it = std::find_if(users_.constBegin(), users_.constEnd(), [&userID](SPUser const &user) -> bool {
         return user->id() == userID;
     });
 
@@ -161,9 +154,8 @@ bridgepp::SPUser UserTable::userWithID(QString const &userID)
 /// \return the index of the user.
 /// \return -1 if the user could not be found.
 //****************************************************************************************************************************************************
-qint32 UserTable::indexOfUser(QString const &userID)
-{
-    QList<SPUser>::const_iterator it = std::find_if(users_.constBegin(), users_.constEnd(), [&userID](SPUser const& user) -> bool {
+qint32 UserTable::indexOfUser(QString const &userID) {
+    QList<SPUser>::const_iterator it = std::find_if(users_.constBegin(), users_.constEnd(), [&userID](SPUser const &user) -> bool {
         return user->id() == userID;
     });
 
@@ -174,20 +166,19 @@ qint32 UserTable::indexOfUser(QString const &userID)
 //****************************************************************************************************************************************************
 /// \param[in] index The index of the user in the list.
 //****************************************************************************************************************************************************
-void UserTable::touch(qint32 index)
-{
+void UserTable::touch(qint32 index) {
     if (isIndexValid(index))
-    emit dataChanged(this->index(index, 0), this->index(index, this->columnCount(QModelIndex()) - 1));
+        emit { dataChanged(this->index(index, 0), this->index(index, this->columnCount(QModelIndex()) - 1)); }
 }
 
 
 //****************************************************************************************************************************************************
 /// \param[in] index The index of the user in the list.
 //****************************************************************************************************************************************************
-void UserTable::remove(qint32 index)
-{
-    if (!isIndexValid(index))
+void UserTable::remove(qint32 index) {
+    if (!isIndexValid(index)) {
         return;
+    }
 
     this->beginRemoveRows(QModelIndex(), index, index);
     users_.removeAt(index);
@@ -198,8 +189,7 @@ void UserTable::remove(qint32 index)
 //****************************************************************************************************************************************************
 /// \return true iff the index is valid.
 //****************************************************************************************************************************************************
-bool UserTable::isIndexValid(qint32 index) const
-{
+bool UserTable::isIndexValid(qint32 index) const {
     return (index >= 0) && (index < users_.count());
 }
 
@@ -207,7 +197,6 @@ bool UserTable::isIndexValid(qint32 index) const
 //****************************************************************************************************************************************************
 /// \return The user list.
 //****************************************************************************************************************************************************
-QList<bridgepp::SPUser> UserTable::users() const
-{
+QList<bridgepp::SPUser> UserTable::users() const {
     return users_;
 }

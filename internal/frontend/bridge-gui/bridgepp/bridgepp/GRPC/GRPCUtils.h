@@ -25,8 +25,7 @@
 #include "bridge.grpc.pb.h"
 
 
-namespace bridgepp
-{
+namespace bridgepp {
 
 
 extern std::string const grpcMetadataServerTokenKey; ///< The key for the server token stored in the gRPC calls context metadata.

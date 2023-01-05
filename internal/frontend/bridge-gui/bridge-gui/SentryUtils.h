@@ -18,9 +18,11 @@
 #ifndef BRIDGE_GUI_SENTRYUTILS_H
 #define BRIDGE_GUI_SENTRYUTILS_H
 
+
 #include <sentry.h>
 
-void reportSentryEvent(sentry_level_t level, const char* message);
-void reportSentryException(sentry_level_t level, const char* message, const char* exceptionType, const char* exception);
+
+void reportSentryEvent(sentry_level_t level, const char *message);
+void reportSentryException(sentry_level_t level, const char *message, const char *exceptionType, const char *exception);
 
 #endif //BRIDGE_GUI_SENTRYUTILS_H

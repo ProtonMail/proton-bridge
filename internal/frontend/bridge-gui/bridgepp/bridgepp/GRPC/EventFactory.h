@@ -24,8 +24,7 @@
 #include "GRPCUtils.h"
 
 
-namespace bridgepp
-{
+namespace bridgepp {
 
 
 // App events

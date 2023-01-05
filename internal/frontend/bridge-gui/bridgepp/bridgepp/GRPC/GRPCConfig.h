@@ -23,8 +23,7 @@
 //****************************************************************************************************************************************************
 /// Service configuration class.
 //****************************************************************************************************************************************************
-struct GRPCConfig
-{
+struct GRPCConfig {
 public: // data members
     qint32 port; ///< The port.
     QString cert; ///< The server TLS certificate.
@@ -34,7 +33,6 @@ public: // data members
     bool load(QString const &path, QString *outError = nullptr); ///< Load the service config from file
     bool save(QString const &path, QString *outError = nullptr); ///< Save the service config to file
 };
-
 
 
 #endif //BRIDGE_PP_GRPC_CONFIG_H

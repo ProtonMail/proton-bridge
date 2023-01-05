@@ -23,19 +23,16 @@
 #include "Worker/Worker.h"
 
 
-namespace bridgepp
-{
+namespace bridgepp {
 
 
 //**********************************************************************************************************************
 /// \brief Process launcher and monitor class.
 //**********************************************************************************************************************
-class ProcessMonitor : public Worker
-{
+class ProcessMonitor : public Worker {
 Q_OBJECT
 public: // static member functions
-    struct MonitorStatus
-    {
+    struct MonitorStatus {
         bool ended = false;
         int returnCode = 0;
         qint64 pid = 0;

@@ -32,15 +32,15 @@ using namespace bridgepp;
 //****************************************************************************************************************************************************
 UsersTab::UsersTab(QWidget *parent)
     : QWidget(parent)
-    , users_(nullptr)
-{
+    , users_(nullptr) {
     ui_.setupUi(this);
 
     ui_.tableUserList->setModel(&users_);
 
     QItemSelectionModel *model = ui_.tableUserList->selectionModel();
-    if (!model)
+    if (!model) {
         throw Exception("Could not get user table selection model.");
+    }
     connect(model, &QItemSelectionModel::selectionChanged, this, &UsersTab::onSelectionChanged);
 
     ui_.tableUserList->setColumnWidth(0, 150);
@@ -62,62 +62,65 @@ UsersTab::UsersTab(QWidget *parent)
 //****************************************************************************************************************************************************
 //
 //****************************************************************************************************************************************************
-void UsersTab::onAddUserButton()
-{
+void UsersTab::onAddUserButton() {
     SPUser user = randomUser();
     UserDialog dialog(user, this);
-    if (QDialog::Accepted != dialog.exec())
+    if (QDialog::Accepted != dialog.exec()) {
         return;
+    }
     users_.append(user);
     GRPCService &grpc = app().grpc();
-    if (grpc.isStreaming())
+    if (grpc.isStreaming()) {
         grpc.sendEvent(newLoginFinishedEvent(user->id()));
+    }
 }
 
 
 //****************************************************************************************************************************************************
 //
 //****************************************************************************************************************************************************
-void UsersTab::onEditUserButton()
-{
+void UsersTab::onEditUserButton() {
     int index = selectedIndex();
-    if ((index < 0) || (index >= users_.userCount()))
+    if ((index < 0) || (index >= users_.userCount())) {
         return;
+    }
 
     SPUser user = this->selectedUser();
     UserDialog dialog(user, this);
-    if (QDialog::Accepted != dialog.exec())
+    if (QDialog::Accepted != dialog.exec()) {
         return;
+    }
 
     users_.touch(index);
     GRPCService &grpc = app().grpc();
-    if (grpc.isStreaming())
+    if (grpc.isStreaming()) {
         grpc.sendEvent(newUserChangedEvent(user->id()));
+    }
 }
 
 
 //****************************************************************************************************************************************************
 //
 //****************************************************************************************************************************************************
-void UsersTab::onRemoveUserButton()
-{
+void UsersTab::onRemoveUserButton() {
     int index = selectedIndex();
-    if ((index < 0) || (index >= users_.userCount()))
+    if ((index < 0) || (index >= users_.userCount())) {
         return;
+    }
 
     SPUser const user = users_.userAtIndex(index);
     users_.remove(index);
     GRPCService &grpc = app().grpc();
-    if (grpc.isStreaming())
+    if (grpc.isStreaming()) {
         grpc.sendEvent(newUserChangedEvent(user->id()));
+    }
 }
 
 
 //****************************************************************************************************************************************************
 //
 //****************************************************************************************************************************************************
-void UsersTab::onSelectionChanged(QItemSelection, QItemSelection)
-{
+void UsersTab::onSelectionChanged(QItemSelection, QItemSelection) {
     this->updateGUIState();
 }
 
@@ -125,8 +128,7 @@ void UsersTab::onSelectionChanged(QItemSelection, QItemSelection)
 //****************************************************************************************************************************************************
 //
 //****************************************************************************************************************************************************
-void UsersTab::updateGUIState()
-{
+void UsersTab::updateGUIState() {
     bool const hasSelectedUser = ui_.tableUserList->selectionModel()->hasSelection();
     ui_.buttonEditUser->setEnabled(hasSelectedUser);
     ui_.buttonRemoveUser->setEnabled(hasSelectedUser);
@@ -137,8 +139,7 @@ void UsersTab::updateGUIState()
 //****************************************************************************************************************************************************
 //
 //****************************************************************************************************************************************************
-qint32 UsersTab::selectedIndex() const
-{
+qint32 UsersTab::selectedIndex() const {
     return ui_.tableUserList->selectionModel()->hasSelection() ? ui_.tableUserList->currentIndex().row() : -1;
 }
 
@@ -147,8 +148,7 @@ qint32 UsersTab::selectedIndex() const
 /// \return The selected user.
 /// \return A null pointer if no user is selected.
 //****************************************************************************************************************************************************
-bridgepp::SPUser UsersTab::selectedUser()
-{
+bridgepp::SPUser UsersTab::selectedUser() {
     return users_.userAtIndex(this->selectedIndex());
 }
 
@@ -156,8 +156,7 @@ bridgepp::SPUser UsersTab::selectedUser()
 //****************************************************************************************************************************************************
 /// \return The list of users.
 //****************************************************************************************************************************************************
-UserTable &UsersTab::userTable()
-{
+UserTable &UsersTab::userTable() {
     return users_;
 }
 
@@ -167,8 +166,7 @@ UserTable &UsersTab::userTable()
 /// \return The user with the given userID.
 /// \return A null pointer if the user is not in the list.
 //****************************************************************************************************************************************************
-bridgepp::SPUser UsersTab::userWithID(QString const &userID)
-{
+bridgepp::SPUser UsersTab::userWithID(QString const &userID) {
     return users_.userWithID(userID);
 }
 
@@ -176,8 +174,7 @@ bridgepp::SPUser UsersTab::userWithID(QString const &userID)
 //****************************************************************************************************************************************************
 /// \return true iff the next login attempt should trigger a username/password error.
 //****************************************************************************************************************************************************
-bool UsersTab::nextUserUsernamePasswordError() const
-{
+bool UsersTab::nextUserUsernamePasswordError() const {
     return ui_.checkUsernamePasswordError->isChecked();
 }
 
@@ -185,8 +182,7 @@ bool UsersTab::nextUserUsernamePasswordError() const
 //****************************************************************************************************************************************************
 /// \return true iff the next login attempt should trigger a free user error.
 //****************************************************************************************************************************************************
-bool UsersTab::nextUserFreeUserError() const
-{
+bool UsersTab::nextUserFreeUserError() const {
     return ui_.checkFreeUserError->isChecked();
 }
 
@@ -194,8 +190,7 @@ bool UsersTab::nextUserFreeUserError() const
 //****************************************************************************************************************************************************
 /// \return true iff the next login attempt will require 2FA.
 //****************************************************************************************************************************************************
-bool UsersTab::nextUserTFARequired() const
-{
+bool UsersTab::nextUserTFARequired() const {
     return ui_.checkTFARequired->isChecked();
 }
 
@@ -203,8 +198,7 @@ bool UsersTab::nextUserTFARequired() const
 //****************************************************************************************************************************************************
 /// \return true iff the next login attempt should trigger a 2FA error.
 //****************************************************************************************************************************************************
-bool UsersTab::nextUserTFAError() const
-{
+bool UsersTab::nextUserTFAError() const {
     return ui_.checkTFAError->isChecked();
 }
 
@@ -212,8 +206,7 @@ bool UsersTab::nextUserTFAError() const
 //****************************************************************************************************************************************************
 /// \return true iff the next login attempt should trigger a 2FA error with abort.
 //****************************************************************************************************************************************************
-bool UsersTab::nextUserTFAAbort() const
-{
+bool UsersTab::nextUserTFAAbort() const {
     return ui_.checkTFAAbort->isChecked();
 }
 
@@ -221,8 +214,7 @@ bool UsersTab::nextUserTFAAbort() const
 //****************************************************************************************************************************************************
 /// \return true iff the next login attempt will require a 2nd password.
 //****************************************************************************************************************************************************
-bool UsersTab::nextUserTwoPasswordsRequired() const
-{
+bool UsersTab::nextUserTwoPasswordsRequired() const {
     return ui_.checkTwoPasswordsRequired->isChecked();
 }
 
@@ -230,8 +222,7 @@ bool UsersTab::nextUserTwoPasswordsRequired() const
 //****************************************************************************************************************************************************
 /// \return true iff the next login attempt should trigger a 2nd password error.
 //****************************************************************************************************************************************************
-bool UsersTab::nextUserTwoPasswordsError() const
-{
+bool UsersTab::nextUserTwoPasswordsError() const {
     return ui_.checkTwoPasswordsError->isChecked();
 }
 
@@ -239,8 +230,7 @@ bool UsersTab::nextUserTwoPasswordsError() const
 //****************************************************************************************************************************************************
 /// \return true iff the next login attempt should trigger a 2nd password error with abort.
 //****************************************************************************************************************************************************
-bool UsersTab::nextUserTwoPasswordsAbort() const
-{
+bool UsersTab::nextUserTwoPasswordsAbort() const {
     return ui_.checkTwoPasswordsAbort->isChecked();
 }
 
@@ -248,8 +238,7 @@ bool UsersTab::nextUserTwoPasswordsAbort() const
 //****************************************************************************************************************************************************
 /// \return true iff the next login attempt should trigger a 2nd password error with abort.
 //****************************************************************************************************************************************************
-bool UsersTab::nextUserAlreadyLoggedIn() const
-{
+bool UsersTab::nextUserAlreadyLoggedIn() const {
     return ui_.checkAlreadyLoggedIn->isChecked();
 }
 
@@ -257,8 +246,7 @@ bool UsersTab::nextUserAlreadyLoggedIn() const
 //****************************************************************************************************************************************************
 /// \return the message for the username/password error.
 //****************************************************************************************************************************************************
-QString UsersTab::usernamePasswordErrorMessage() const
-{
+QString UsersTab::usernamePasswordErrorMessage() const {
     return ui_.editUsernamePasswordError->text();
 }
 
@@ -267,12 +255,10 @@ QString UsersTab::usernamePasswordErrorMessage() const
 /// \param[in] userID The userID.
 /// \param[in] makeItActive Should split mode be activated.
 //****************************************************************************************************************************************************
-void UsersTab::setUserSplitMode(QString const &userID, bool makeItActive)
-{
+void UsersTab::setUserSplitMode(QString const &userID, bool makeItActive) {
     qint32 const index = users_.indexOfUser(userID);
     SPUser const user = users_.userAtIndex(index);
-    if (!user)
-    {
+    if (!user) {
         app().log().error(QString("%1 failed. unknown user %1").arg(__FUNCTION__, userID));
         return;
     }
@@ -283,15 +269,14 @@ void UsersTab::setUserSplitMode(QString const &userID, bool makeItActive)
     mainWindow.sendDelayedEvent(newToggleSplitModeFinishedEvent(userID));
 }
 
+
 //****************************************************************************************************************************************************
 /// \param[in] userID The userID.
 //****************************************************************************************************************************************************
-void UsersTab::logoutUser(QString const &userID)
-{
+void UsersTab::logoutUser(QString const &userID) {
     qint32 const index = users_.indexOfUser(userID);
     SPUser const user = users_.userAtIndex(index);
-    if (!user)
-    {
+    if (!user) {
         app().log().error(QString("%1 failed. unknown user %1").arg(__FUNCTION__, userID));
         return;
     }
@@ -304,12 +289,10 @@ void UsersTab::logoutUser(QString const &userID)
 //****************************************************************************************************************************************************
 /// \param[in] userID The userID.
 //****************************************************************************************************************************************************
-void UsersTab::removeUser(QString const &userID)
-{
+void UsersTab::removeUser(QString const &userID) {
     qint32 const index = users_.indexOfUser(userID);
     SPUser const user = users_.userAtIndex(index);
-    if (!user)
-    {
+    if (!user) {
         app().log().error(QString("%1 failed. unknown user %1").arg(__FUNCTION__, userID));
         return;
     }
@@ -322,8 +305,7 @@ void UsersTab::removeUser(QString const &userID)
 /// \param[in] userID The userID.
 /// \param[in] address The address.
 //****************************************************************************************************************************************************
-void UsersTab::configureUserAppleMail(QString const &userID, QString const &address)
-{
+void UsersTab::configureUserAppleMail(QString const &userID, QString const &address) {
     app().log().info(QString("Apple mail configuration was requested for user %1, address %2").arg(userID, address));
 
 }

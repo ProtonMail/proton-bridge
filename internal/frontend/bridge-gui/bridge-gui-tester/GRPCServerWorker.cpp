@@ -32,8 +32,7 @@ using namespace grpc;
 //
 //****************************************************************************************************************************************************
 GRPCServerWorker::GRPCServerWorker(QObject *parent)
-    : Worker(parent)
-{
+    : Worker(parent) {
 
 }
 
@@ -41,19 +40,17 @@ GRPCServerWorker::GRPCServerWorker(QObject *parent)
 //****************************************************************************************************************************************************
 //
 //****************************************************************************************************************************************************
-void GRPCServerWorker::run()
-{
-    try
-    {
+void GRPCServerWorker::run() {
+    try {
         emit started();
 
         SslServerCredentialsOptions::PemKeyCertPair pair;
         pair.private_key = testTLSKey.toStdString();
         pair.cert_chain = testTLSCert.toStdString();
         SslServerCredentialsOptions ssl_opts;
-        ssl_opts.pem_root_certs="";
+        ssl_opts.pem_root_certs = "";
         ssl_opts.pem_key_cert_pairs.push_back(pair);
-        std::shared_ptr<ServerCredentials> credentials  = grpc::SslServerCredentials(ssl_opts);
+        std::shared_ptr<ServerCredentials> credentials = grpc::SslServerCredentials(ssl_opts);
 
         GRPCConfig config;
         config.cert = testTLSCert;
@@ -65,8 +62,9 @@ void GRPCServerWorker::run()
         bool const useFileSocket = useFileSocketForGRPC();
         if (useFileSocket) {
             QString const fileSocketPath = getAvailableFileSocketPath();
-            if (fileSocketPath.isEmpty())
+            if (fileSocketPath.isEmpty()) {
                 throw Exception("Could not get an available file socket.");
+            }
             builder.AddListeningPort(QString("unix://%1").arg(fileSocketPath).toStdString(), credentials);
             config.fileSocketPath = fileSocketPath;
         } else {
@@ -76,23 +74,25 @@ void GRPCServerWorker::run()
         builder.RegisterService(&app().grpc());
         server_ = builder.BuildAndStart();
 
-        if (!server_)
+        if (!server_) {
             throw Exception("Could not create gRPC server.");
+        }
         app().log().debug("gRPC Server started.");
 
         config.port = port;
         QString err;
-        if (!config.save(grpcServerConfigPath(), &err))
+        if (!config.save(grpcServerConfigPath(), &err)) {
             throw Exception(QString("Could not save gRPC server config. %1").arg(err));
+        }
 
         server_->Wait();
         emit finished();
         app().log().debug("gRPC Server exited.");
     }
-    catch (Exception const &e)
-    {
-        if (server_)
+    catch (Exception const &e) {
+        if (server_) {
             server_->Shutdown();
+        }
 
         emit error(e.qwhat());
     }
@@ -102,10 +102,10 @@ void GRPCServerWorker::run()
 //****************************************************************************************************************************************************
 //
 //****************************************************************************************************************************************************
-void GRPCServerWorker::stop()
-{
-    if (server_)
+void GRPCServerWorker::stop() {
+    if (server_) {
         server_->Shutdown();
+    }
 }
 
 

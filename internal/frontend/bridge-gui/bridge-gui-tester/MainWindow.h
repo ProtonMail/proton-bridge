@@ -28,8 +28,7 @@
 //**********************************************************************************************************************
 /// \brief Main window class
 //**********************************************************************************************************************
-class MainWindow : public QMainWindow
-{
+class MainWindow : public QMainWindow {
 Q_OBJECT
 public: // member functions.
     explicit MainWindow(QWidget *parent); ///< Default constructor.
@@ -43,7 +42,7 @@ public: // member functions.
     UsersTab &usersTab(); ///< Returns a reference to the 'Users' tab.
 
 public slots:
-    void sendDelayedEvent(bridgepp::SPStreamEvent const& event); ///< Sends a gRPC event after the delay specified in the UI. The call is non blocking.
+    void sendDelayedEvent(bridgepp::SPStreamEvent const &event); ///< Sends a gRPC event after the delay specified in the UI. The call is non blocking.
 
 private slots:
     void addLogEntry(bridgepp::Log::Level level, QString const &message); ///< Add an entry to the log.

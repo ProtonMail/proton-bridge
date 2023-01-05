@@ -28,8 +28,7 @@
 //****************************************************************************************************************************************************
 /// \brief User list class.
 //****************************************************************************************************************************************************
-class UserList : public QAbstractListModel
-{
+class UserList : public QAbstractListModel {
 Q_OBJECT
 public: // member functions.
     UserList(QObject *parent); ///< Default constructor.
@@ -44,7 +43,7 @@ public: // member functions.
     void removeUserAt(int row); ///< Remove the user at a given row
     void appendUser(bridgepp::SPUser const &user); ///< Add a new user.
     void updateUserAtRow(int row, bridgepp::User const &user); ///< Update the user at given row.
-    bridgepp::SPUser getUserWithID(QString const& userID) const; ///< Retrieve the user with the given ID.
+    bridgepp::SPUser getUserWithID(QString const &userID) const; ///< Retrieve the user with the given ID.
 
     // the userCount property.
     Q_PROPERTY(int count READ count NOTIFY countChanged)

@@ -31,38 +31,38 @@ using namespace bridgepp;
 //
 //****************************************************************************************************************************************************
 QMLBackend::QMLBackend()
-    : QObject()
-{
+    : QObject() {
 }
 
 
 //****************************************************************************************************************************************************
 /// \param[in] serviceConfig
 //****************************************************************************************************************************************************
-void QMLBackend::init(GRPCConfig const &serviceConfig)
-{
+void QMLBackend::init(GRPCConfig const &serviceConfig) {
     users_ = new UserList(this);
 
-    Log& log = app().log();
+    Log &log = app().log();
     log.info(QString("Connecting to gRPC service"));
     app().grpc().setLog(&log);
     this->connectGrpcEvents();
 
     QString error;
-    if (app().grpc().connectToServer(serviceConfig, app().bridgeMonitor(), error))
+    if (app().grpc().connectToServer(serviceConfig, app().bridgeMonitor(), error)) {
         app().log().info("Connected to backend via gRPC service.");
-    else
+    } else {
         throw Exception(QString("Cannot connectToServer to go backend via gRPC: %1").arg(error));
+    }
 
     QString bridgeVer;
     app().grpc().version(bridgeVer);
-    if (bridgeVer != PROJECT_VER)
+    if (bridgeVer != PROJECT_VER) {
         throw Exception(QString("Version Mismatched from Bridge (%1) and Bridge-GUI (%2)").arg(bridgeVer, PROJECT_VER));
+    }
 
     eventStreamOverseer_ = std::make_unique<Overseer>(new EventStreamReader(nullptr), nullptr);
     eventStreamOverseer_->startWorker(true);
 
-    connect(&app().log(), &Log::entryAdded, [&](Log::Level level, QString const& message) {
+    connect(&app().log(), &Log::entryAdded, [&](Log::Level level, QString const &message) {
         app().grpc().addLogEntry(level, "frontend/bridge-gui", message);
     });
 
@@ -87,8 +87,7 @@ void QMLBackend::init(GRPCConfig const &serviceConfig)
 /// never times out.
 /// \return false if and only if the timeout delay was reached.
 //****************************************************************************************************************************************************
-bool QMLBackend::waitForEventStreamReaderToFinish(qint32 timeoutMs)
-{
+bool QMLBackend::waitForEventStreamReaderToFinish(qint32 timeoutMs) {
     return eventStreamOverseer_->wait(timeoutMs);
 }
 
@@ -96,12 +95,11 @@ bool QMLBackend::waitForEventStreamReaderToFinish(qint32 timeoutMs)
 //****************************************************************************************************************************************************
 //
 //****************************************************************************************************************************************************
-void QMLBackend::connectGrpcEvents()
-{
+void QMLBackend::connectGrpcEvents() {
     GRPCClient *client = &app().grpc();
 
     // app events
-    connect(client, &GRPCClient::internetStatus, this, [&](bool isOn) { if (isOn) emit internetOn(); else emit internetOff(); });
+    connect(client, &GRPCClient::internetStatus, this, [&](bool isOn) { if (isOn) { emit internetOn(); } else { emit internetOff(); }});
     connect(client, &GRPCClient::toggleAutostartFinished, this, &QMLBackend::toggleAutostartFinished);
     connect(client, &GRPCClient::resetFinished, this, &QMLBackend::onResetFinished);
     connect(client, &GRPCClient::reportBugFinished, this, &QMLBackend::reportBugFinished);
@@ -174,8 +172,7 @@ void QMLBackend::connectGrpcEvents()
 //****************************************************************************************************************************************************
 //
 //****************************************************************************************************************************************************
-void QMLBackend::retrieveUserList()
-{
+void QMLBackend::retrieveUserList() {
     QList<SPUser> newUsers;
     app().grpc().getUserList(newUsers);
 
@@ -184,23 +181,22 @@ void QMLBackend::retrieveUserList()
     // " When data is transferred from C++ to QML, the ownership of the data always remains with C++. The exception to this rule
     // is when a QObject is returned from an explicit C++ method call: in this case, the QML engine assumes ownership of the object. "
     // This is the case here, so we explicitly indicate that the object is owned by C++.
-    for (SPUser const& user: newUsers)
+    for (SPUser const &user: newUsers) {
 
-    for (qsizetype i = 0; i < newUsers.size(); ++i)
-    {
-        SPUser newUser = newUsers[i];
-        SPUser existingUser = users_->getUserWithID(newUser->id());
-        if (!existingUser)
-        {
-            // The user is new. We indicate to QML that it is managed by the C++ backend.
-            QQmlEngine::setObjectOwnership(user.get(), QQmlEngine::CppOwnership);
-            continue;
+        for (qsizetype i = 0; i < newUsers.size(); ++i) {
+            SPUser newUser = newUsers[i];
+            SPUser existingUser = users_->getUserWithID(newUser->id());
+            if (!existingUser) {
+                // The user is new. We indicate to QML that it is managed by the C++ backend.
+                QQmlEngine::setObjectOwnership(user.get(), QQmlEngine::CppOwnership);
+                continue;
+            }
+
+            // The user is already listed. QML code may have a pointer because of an ongoing process (for instance in the SetupGuide),
+            // As a consequence we do not want to replace this existing user, but we want to update it.
+            existingUser->update(*newUser);
+            newUsers[i] = existingUser;
         }
-
-        // The user is already listed. QML code may have a pointer because of an ongoing process (for instance in the SetupGuide),
-        // As a consequence we do not want to replace this existing user, but we want to update it.
-        existingUser->update(*newUser);
-        newUsers[i] = existingUser;
     }
 
     users_->reset(newUsers);
@@ -210,8 +206,7 @@ void QMLBackend::retrieveUserList()
 //****************************************************************************************************************************************************
 //
 //****************************************************************************************************************************************************
-QPoint QMLBackend::getCursorPos()
-{
+QPoint QMLBackend::getCursorPos() {
     return QCursor::pos();
 }
 
@@ -219,8 +214,7 @@ QPoint QMLBackend::getCursorPos()
 //****************************************************************************************************************************************************
 //
 //****************************************************************************************************************************************************
-bool QMLBackend::isPortFree(int port)
-{
+bool QMLBackend::isPortFree(int port) {
     bool isFree = false;
     app().grpc().isPortFree(port, isFree);
     return isFree;
@@ -230,8 +224,7 @@ bool QMLBackend::isPortFree(int port)
 //****************************************************************************************************************************************************
 /// \return true the native local file path of the given URL.
 //****************************************************************************************************************************************************
-QString QMLBackend::nativePath(QUrl const &url)
-{
+QString QMLBackend::nativePath(QUrl const &url) {
     return QDir::toNativeSeparators(url.toLocalFile());
 }
 
@@ -239,8 +232,7 @@ QString QMLBackend::nativePath(QUrl const &url)
 //****************************************************************************************************************************************************
 /// \return true iff the two URL point to the same local file or folder.
 //****************************************************************************************************************************************************
-bool QMLBackend::areSameFileOrFolder(QUrl const &lhs, QUrl const &rhs)
-{
+bool QMLBackend::areSameFileOrFolder(QUrl const &lhs, QUrl const &rhs) {
     return QFileInfo(lhs.toLocalFile()) == QFileInfo(rhs.toLocalFile());
 }
 
@@ -248,8 +240,7 @@ bool QMLBackend::areSameFileOrFolder(QUrl const &lhs, QUrl const &rhs)
 //****************************************************************************************************************************************************
 //
 //****************************************************************************************************************************************************
-void QMLBackend::guiReady()
-{
+void QMLBackend::guiReady() {
     app().grpc().guiReady();
 }
 
@@ -257,8 +248,7 @@ void QMLBackend::guiReady()
 //****************************************************************************************************************************************************
 //
 //****************************************************************************************************************************************************
-void QMLBackend::quit()
-{
+void QMLBackend::quit() {
     app().grpc().quit();
     qApp->exit(0);
 }
@@ -267,8 +257,7 @@ void QMLBackend::quit()
 //****************************************************************************************************************************************************
 //
 //****************************************************************************************************************************************************
-void QMLBackend::restart()
-{
+void QMLBackend::restart() {
     app().grpc().restart();
 }
 
@@ -276,8 +265,7 @@ void QMLBackend::restart()
 //****************************************************************************************************************************************************
 /// \param[in] launcher The path to the launcher.
 //****************************************************************************************************************************************************
-void QMLBackend::forceLauncher(QString launcher)
-{
+void QMLBackend::forceLauncher(QString launcher) {
     app().grpc().forceLauncher(launcher);
 }
 
@@ -285,8 +273,7 @@ void QMLBackend::forceLauncher(QString launcher)
 //****************************************************************************************************************************************************
 /// \param[in] active Should we activate autostart.
 //****************************************************************************************************************************************************
-void QMLBackend::toggleAutostart(bool active)
-{
+void QMLBackend::toggleAutostart(bool active) {
     app().grpc().setIsAutostartOn(active);
     emit isAutostartOnChanged(this->isAutostartOn());
 }
@@ -295,17 +282,16 @@ void QMLBackend::toggleAutostart(bool active)
 //****************************************************************************************************************************************************
 /// \param[in] active The new state for the beta enabled property.
 //****************************************************************************************************************************************************
-void QMLBackend::toggleBeta(bool active)
-{
+void QMLBackend::toggleBeta(bool active) {
     app().grpc().setIsBetaEnabled(active);
     emit isBetaEnabledChanged(this->isBetaEnabled());
 }
 
+
 //****************************************************************************************************************************************************
 /// \param[in] active The new state for the All Mail visibility property.
 //****************************************************************************************************************************************************
-void QMLBackend::changeIsAllMailVisible(bool isVisible)
-{
+void QMLBackend::changeIsAllMailVisible(bool isVisible) {
     app().grpc().setIsAllMailVisible(isVisible);
     emit isAllMailVisibleChanged(this->isAllMailVisible());
 }
@@ -314,17 +300,16 @@ void QMLBackend::changeIsAllMailVisible(bool isVisible)
 //****************************************************************************************************************************************************
 /// \param[in] scheme the scheme name
 //****************************************************************************************************************************************************
-void QMLBackend::changeColorScheme(QString const &scheme)
-{
+void QMLBackend::changeColorScheme(QString const &scheme) {
     app().grpc().setColorSchemeName(scheme);
     emit colorSchemeNameChanged(this->colorSchemeName());
 }
 
+
 //****************************************************************************************************************************************************
 /// \param[in] path The path of the disk cache.
 //****************************************************************************************************************************************************
-void QMLBackend::setDiskCachePath(QUrl const &path) const
-{
+void QMLBackend::setDiskCachePath(QUrl const &path) const {
     app().grpc().setDiskCachePath(path);
 }
 
@@ -332,8 +317,7 @@ void QMLBackend::setDiskCachePath(QUrl const &path) const
 //****************************************************************************************************************************************************
 /// \return The IMAP port.
 //****************************************************************************************************************************************************
-int QMLBackend::imapPort() const
-{
+int QMLBackend::imapPort() const {
     return imapPort_;
 }
 
@@ -341,10 +325,10 @@ int QMLBackend::imapPort() const
 //****************************************************************************************************************************************************
 /// \param[in] port The IMAP port.
 //****************************************************************************************************************************************************
-void QMLBackend::setIMAPPort(int port)
-{
-    if (port == imapPort_)
+void QMLBackend::setIMAPPort(int port) {
+    if (port == imapPort_) {
         return;
+    }
     imapPort_ = port;
     emit imapPortChanged(port);
 }
@@ -353,8 +337,7 @@ void QMLBackend::setIMAPPort(int port)
 //****************************************************************************************************************************************************
 /// \return The SMTP port.
 //****************************************************************************************************************************************************
-int QMLBackend::smtpPort() const
-{
+int QMLBackend::smtpPort() const {
     return smtpPort_;
 }
 
@@ -362,10 +345,10 @@ int QMLBackend::smtpPort() const
 //****************************************************************************************************************************************************
 /// \param[in] port The SMTP port.
 //****************************************************************************************************************************************************
-void QMLBackend::setSMTPPort(int port)
-{
-    if (port == smtpPort_)
+void QMLBackend::setSMTPPort(int port) {
+    if (port == smtpPort_) {
         return;
+    }
     smtpPort_ = port;
     emit smtpPortChanged(port);
 }
@@ -374,8 +357,7 @@ void QMLBackend::setSMTPPort(int port)
 //****************************************************************************************************************************************************
 /// \return The value for the 'Use SSL for IMAP' property.
 //****************************************************************************************************************************************************
-bool QMLBackend::useSSLForIMAP() const
-{
+bool QMLBackend::useSSLForIMAP() const {
     return useSSLForIMAP_;
 }
 
@@ -383,10 +365,10 @@ bool QMLBackend::useSSLForIMAP() const
 //****************************************************************************************************************************************************
 /// \param[in] value The value for the 'Use SSL for IMAP' property.
 //****************************************************************************************************************************************************
-void QMLBackend::setUseSSLForIMAP(bool value)
-{
-    if (value == useSSLForIMAP_)
+void QMLBackend::setUseSSLForIMAP(bool value) {
+    if (value == useSSLForIMAP_) {
         return;
+    }
     useSSLForIMAP_ = value;
     emit useSSLForIMAPChanged(value);
 }
@@ -395,8 +377,7 @@ void QMLBackend::setUseSSLForIMAP(bool value)
 //****************************************************************************************************************************************************
 /// \return The value for the 'Use SSL for SMTP' property.
 //****************************************************************************************************************************************************
-bool QMLBackend::useSSLForSMTP() const
-{
+bool QMLBackend::useSSLForSMTP() const {
     return useSSLForSMTP_;
 }
 
@@ -404,10 +385,10 @@ bool QMLBackend::useSSLForSMTP() const
 //****************************************************************************************************************************************************
 /// \param[in] value The value for the 'Use SSL for SMTP' property.
 //****************************************************************************************************************************************************
-void QMLBackend::setUseSSLForSMTP(bool value)
-{
-    if (value == useSSLForSMTP_)
+void QMLBackend::setUseSSLForSMTP(bool value) {
+    if (value == useSSLForSMTP_) {
         return;
+    }
     useSSLForSMTP_ = value;
     emit useSSLForSMTPChanged(value);
 }
@@ -419,8 +400,7 @@ void QMLBackend::setUseSSLForSMTP(bool value)
 /// \param[in] useSSLForIMAP The value for the 'Use SSL for IMAP' property
 /// \param[in] useSSLForSMTP The value for the 'Use SSL for SMTP' property
 //****************************************************************************************************************************************************
-void QMLBackend::setMailServerSettings(int imapPort, int smtpPort, bool useSSLForIMAP, bool useSSLForSMTP)
-{
+void QMLBackend::setMailServerSettings(int imapPort, int smtpPort, bool useSSLForIMAP, bool useSSLForSMTP) {
     app().grpc().setMailServerSettings(imapPort, smtpPort, useSSLForIMAP, useSSLForSMTP);
 }
 
@@ -429,8 +409,7 @@ void QMLBackend::setMailServerSettings(int imapPort, int smtpPort, bool useSSLFo
 /// \param[in] userID the userID.
 /// \param[in] wasSignedOut Was the user signed-out.
 //****************************************************************************************************************************************************
-void QMLBackend::onLoginFinished(QString const &userID, bool wasSignedOut)
-{
+void QMLBackend::onLoginFinished(QString const &userID, bool wasSignedOut) {
     this->retrieveUserList();
     qint32 const index = users_->rowOfUserID(userID);
     emit loginFinished(index, wasSignedOut);
@@ -440,19 +419,18 @@ void QMLBackend::onLoginFinished(QString const &userID, bool wasSignedOut)
 //****************************************************************************************************************************************************
 /// \param[in] userID the userID.
 //****************************************************************************************************************************************************
-void QMLBackend::onLoginAlreadyLoggedIn(QString const &userID)
-{
+void QMLBackend::onLoginAlreadyLoggedIn(QString const &userID) {
     this->retrieveUserList();
     qint32 const index = users_->rowOfUserID(userID);
     emit loginAlreadyLoggedIn(index);
 }
 
+
 //****************************************************************************************************************************************************
 /// \param[in] useSSLForIMAP The value for the 'Use SSL for IMAP' property
 /// \param[in] useSSLForSMTP The value for the 'Use SSL for SMTP' property
 //****************************************************************************************************************************************************
-void QMLBackend::onMailServerSettingsChanged(int imapPort, int smtpPort, bool useSSLForIMAP, bool useSSLForSMTP)
-{
+void QMLBackend::onMailServerSettingsChanged(int imapPort, int smtpPort, bool useSSLForIMAP, bool useSSLForSMTP) {
     this->setIMAPPort(imapPort);
     this->setSMTPPort(smtpPort);
     this->setUseSSLForIMAP(useSSLForIMAP);
@@ -463,8 +441,7 @@ void QMLBackend::onMailServerSettingsChanged(int imapPort, int smtpPort, bool us
 //****************************************************************************************************************************************************
 //
 //****************************************************************************************************************************************************
-void QMLBackend::onGenericError(ErrorInfo const &info)
-{
+void QMLBackend::onGenericError(ErrorInfo const &info) {
     emit genericError(info.title, info.description);
 }
 
@@ -472,38 +449,37 @@ void QMLBackend::onGenericError(ErrorInfo const &info)
 //****************************************************************************************************************************************************
 /// \param[in] active Should DoH be active.
 //****************************************************************************************************************************************************
-void QMLBackend::toggleDoH(bool active)
-{
-    if (app().grpc().setIsDoHEnabled(active).ok())
+void QMLBackend::toggleDoH(bool active) {
+    if (app().grpc().setIsDoHEnabled(active).ok()) {
         emit isDoHEnabledChanged(active);
+    }
 }
 
 
 //****************************************************************************************************************************************************
 /// \param[in] keychain The new keychain.
 //****************************************************************************************************************************************************
-void QMLBackend::changeKeychain(QString const &keychain)
-{
-    if (app().grpc().setCurrentKeychain(keychain).ok())
+void QMLBackend::changeKeychain(QString const &keychain) {
+    if (app().grpc().setCurrentKeychain(keychain).ok()) {
         emit currentKeychainChanged(keychain);
+    }
 }
 
 
 //****************************************************************************************************************************************************
 /// \param[in] active Should automatic update be turned on.
 //****************************************************************************************************************************************************
-void QMLBackend::toggleAutomaticUpdate(bool active)
-{
-    if (app().grpc().setIsAutomaticUpdateOn(active).ok())
+void QMLBackend::toggleAutomaticUpdate(bool active) {
+    if (app().grpc().setIsAutomaticUpdateOn(active).ok()) {
         emit isAutomaticUpdateOnChanged(active);
+    }
 }
 
 
 //****************************************************************************************************************************************************
 //
 //****************************************************************************************************************************************************
-void QMLBackend::checkUpdates()
-{
+void QMLBackend::checkUpdates() {
     app().grpc().checkUpdate();
 }
 
@@ -511,8 +487,7 @@ void QMLBackend::checkUpdates()
 //****************************************************************************************************************************************************
 //
 //****************************************************************************************************************************************************
-void QMLBackend::installUpdate()
-{
+void QMLBackend::installUpdate() {
     app().grpc().installUpdate();
 }
 
@@ -520,8 +495,7 @@ void QMLBackend::installUpdate()
 //****************************************************************************************************************************************************
 //
 //****************************************************************************************************************************************************
-void QMLBackend::triggerReset()
-{
+void QMLBackend::triggerReset() {
     app().grpc().triggerReset();
 }
 
@@ -529,8 +503,7 @@ void QMLBackend::triggerReset()
 //****************************************************************************************************************************************************
 //
 //****************************************************************************************************************************************************
-void QMLBackend::onResetFinished()
-{
+void QMLBackend::onResetFinished() {
     emit resetFinished();
     this->restart();
 }
@@ -539,8 +512,7 @@ void QMLBackend::onResetFinished()
 //****************************************************************************************************************************************************
 // onVersionChanged update dynamic link related to version
 //****************************************************************************************************************************************************
-void QMLBackend::onVersionChanged()
-{
+void QMLBackend::onVersionChanged() {
     emit releaseNotesLinkChanged(releaseNotesLink());
     emit landingPageLinkChanged(landingPageLink());
 }
@@ -549,10 +521,10 @@ void QMLBackend::onVersionChanged()
 //****************************************************************************************************************************************************
 //
 //****************************************************************************************************************************************************
-void QMLBackend::exportTLSCertificates()
-{
+void QMLBackend::exportTLSCertificates() {
     QString const folderPath = QFileDialog::getExistingDirectory(nullptr, QObject::tr("Select directory"),
         QStandardPaths::writableLocation(QStandardPaths::HomeLocation));
-    if (!folderPath.isEmpty())
+    if (!folderPath.isEmpty()) {
         app().grpc().exportTLSCertificates(folderPath);
+    }
 }

@@ -26,16 +26,15 @@
 //****************************************************************************************************************************************************
 /// \brief Stream reader class.
 //****************************************************************************************************************************************************
-class EventStreamReader: public bridgepp::Worker
-{
-    Q_OBJECT
+class EventStreamReader : public bridgepp::Worker {
+Q_OBJECT
 public: // member functions
     explicit EventStreamReader(QObject *parent); ///< Default constructor.
-    EventStreamReader(EventStreamReader const&) = delete; ///< Disabled copy-constructor.
-    EventStreamReader(EventStreamReader&&) = delete; ///< Disabled assignment copy-constructor.
+    EventStreamReader(EventStreamReader const &) = delete; ///< Disabled copy-constructor.
+    EventStreamReader(EventStreamReader &&) = delete; ///< Disabled assignment copy-constructor.
     ~EventStreamReader() override = default; ///< Destructor.
-    EventStreamReader& operator=(EventStreamReader const&) = delete; ///< Disabled assignment operator.
-    EventStreamReader& operator=(EventStreamReader&&) = delete; ///< Disabled move assignment operator.
+    EventStreamReader &operator=(EventStreamReader const &) = delete; ///< Disabled assignment operator.
+    EventStreamReader &operator=(EventStreamReader &&) = delete; ///< Disabled move assignment operator.
 
 public slots:
     void run() override; ///< Run the reader.

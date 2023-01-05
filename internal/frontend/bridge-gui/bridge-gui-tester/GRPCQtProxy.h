@@ -26,8 +26,7 @@
 //****************************************************************************************************************************************************
 /// \brief Proxy object used by the gRPC service (which does not inherit QObject) to use the Qt Signal/Slot system.
 //****************************************************************************************************************************************************
-class GRPCQtProxy : public QObject
-{
+class GRPCQtProxy : public QObject {
 Q_OBJECT
 public: // member functions.
     GRPCQtProxy(); ///< Default constructor.

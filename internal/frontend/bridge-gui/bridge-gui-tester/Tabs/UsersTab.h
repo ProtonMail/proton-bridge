@@ -27,8 +27,7 @@
 //****************************************************************************************************************************************************
 /// \brief The 'Users' tab of the main window.
 //****************************************************************************************************************************************************
-class UsersTab : public QWidget
-{
+class UsersTab : public QWidget {
 Q_OBJECT
 public: // member functions.
     explicit UsersTab(QWidget *parent = nullptr); ///< Default constructor.
