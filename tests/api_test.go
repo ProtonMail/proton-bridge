@@ -18,6 +18,8 @@
 package tests
 
 import (
+	"crypto/tls"
+	"net/http"
 	"net/url"
 	"os"
 
@@ -72,7 +74,13 @@ func newLiveAPI(hostURL string) API {
 	}
 
 	return &liveAPI{
-		Server: server.New(server.WithProxyOrigin(hostURL)),
+		Server: server.New(
+			server.WithProxyOrigin(hostURL),
+			server.WithProxyTransport(&http.Transport{
+				TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+				Proxy:           http.ProxyFromEnvironment,
+			}),
+		),
 		domain: url.Hostname(),
 	}
 }
