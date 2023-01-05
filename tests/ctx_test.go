@@ -263,7 +263,19 @@ func (t *testCtx) getMBoxID(userID string, name string) string {
 		}
 
 		idx := xslices.IndexFunc(labels, func(label proton.Label) bool {
-			return label.Name == name
+			var labelName string
+			switch label.Type {
+			case proton.LabelTypeSystem:
+				labelName = label.Name
+			case proton.LabelTypeFolder:
+				labelName = fmt.Sprintf("Folders/%v", label.Name)
+			case proton.LabelTypeLabel:
+				labelName = fmt.Sprintf("Labels/%v", label.Name)
+			case proton.LabelTypeContactGroup:
+				labelName = label.Name
+			}
+
+			return labelName == name
 		})
 
 		if idx < 0 {

@@ -4,7 +4,7 @@ Feature: IMAP get mailbox info
     And the account "[user:user]" has the following custom mailboxes:
       | name | type   |
       | one  | folder |
-    And the address "[user:user]@[domain]" of account "[user:user]" has the following messages in "one":
+    And the address "[user:user]@[domain]" of account "[user:user]" has the following messages in "Folders/one":
       | from          | to            | subject | unread |
       | a@example.com | a@example.com | one     | true   |
       | b@example.com | b@example.com | two     | false  |

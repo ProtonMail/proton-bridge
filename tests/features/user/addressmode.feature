@@ -6,11 +6,11 @@ Feature: Address mode
       | name | type   |
       | one  | folder |
       | two  | folder |
-    And the address "[user:user]@[domain]" of account "[user:user]" has the following messages in "one":
+    And the address "[user:user]@[domain]" of account "[user:user]" has the following messages in "Folders/one":
       | from       | to         | subject | unread |
       | a@[domain] | a@[domain] | one     | true   |
       | b@[domain] | b@[domain] | two     | false  |
-    And the address "[alias:alias]@[domain]" of account "[user:user]" has the following messages in "two":
+    And the address "[alias:alias]@[domain]" of account "[user:user]" has the following messages in "Folders/two":
       | from       | to         | subject | unread |
       | c@[domain] | c@[domain] | three   | true   |
       | d@[domain] | d@[domain] | four    | false  |
