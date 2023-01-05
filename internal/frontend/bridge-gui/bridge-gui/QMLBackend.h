@@ -20,7 +20,7 @@
 #define BRIDGE_GUI_QML_BACKEND_H
 
 
-#include "DockIcon/DockIcon.h"
+#include "MacOS/DockIcon.h"
 #include "Version.h"
 #include "UserList.h"
 #include <bridgepp/GRPC/GRPCClient.h>

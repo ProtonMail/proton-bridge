@@ -30,8 +30,15 @@
 #include <project_sentry_config.h>
 
 
-using namespace bridgepp;
+#ifdef Q_OS_MACOS
 
+
+#include "MacOS/SecondInstance.h"
+
+
+#endif
+
+using namespace bridgepp;
 
 namespace {
 
@@ -320,6 +327,7 @@ int main(int argc, char *argv[]) {
         CommandLineOptions const cliOptions = parseCommandLine(argc, argv);
 
 #ifdef Q_OS_MACOS
+        registerSecondInstanceHandler();
         setDockIconVisibleState(!cliOptions.noWindow);
 #endif
 

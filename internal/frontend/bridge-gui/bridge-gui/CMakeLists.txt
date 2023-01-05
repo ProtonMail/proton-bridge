@@ -105,9 +105,9 @@ if (NOT TARGET bridgepp)
 endif()
 
 if (APPLE)
-    set(DOCK_ICON_SRC_FILE DockIcon/DockIcon.mm)
+    set(DOCK_ICON_SRC_FILE MacOS/DockIcon.mm)
 else()
-    set(DOCK_ICON_SRC_FILE DockIcon/DockIcon.cpp)
+    set(DOCK_ICON_SRC_FILE MacOS/DockIcon.cpp)
 endif()
 
 if(UNIX)
@@ -125,8 +125,14 @@ add_executable(bridge-gui
     QMLBackend.cpp QMLBackend.h
     UserList.cpp UserList.h
     SentryUtils.cpp SentryUtils.h
-    ${DOCK_ICON_SRC_FILE} DockIcon/DockIcon.h
+    ${DOCK_ICON_SRC_FILE} MacOS/DockIcon.h
     )
+
+
+if (APPLE)
+    target_sources(bridge-gui PRIVATE MacOS/SecondInstance.mm MacOS/SecondInstance.h)
+endif(APPLE)
+
 
 if (WIN32) # on Windows, we add a (non-Qt) resource file that contains the application icon and version information.
     string(TIMESTAMP BRIDGE_BUILD_YEAR "%Y")
