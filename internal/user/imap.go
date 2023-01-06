@@ -112,16 +112,20 @@ func (conn *imapConnector) createLabel(ctx context.Context, name []string) (imap
 		return imap.Mailbox{}, fmt.Errorf("a label cannot have children")
 	}
 
-	label, err := conn.client.CreateLabel(ctx, proton.CreateLabelReq{
-		Name:  name[0],
-		Color: "#f66",
-		Type:  proton.LabelTypeLabel,
-	})
-	if err != nil {
-		return imap.Mailbox{}, err
-	}
+	return safe.LockRetErr(func() (imap.Mailbox, error) {
+		label, err := conn.client.CreateLabel(ctx, proton.CreateLabelReq{
+			Name:  name[0],
+			Color: "#f66",
+			Type:  proton.LabelTypeLabel,
+		})
+		if err != nil {
+			return imap.Mailbox{}, err
+		}
 
-	return toIMAPMailbox(label, conn.flags, conn.permFlags, conn.attrs), nil
+		conn.apiLabels[label.ID] = label
+
+		return toIMAPMailbox(label, conn.flags, conn.permFlags, conn.attrs), nil
+	}, conn.apiLabelsLock)
 }
 
 func (conn *imapConnector) createFolder(ctx context.Context, name []string) (imap.Mailbox, error) {
@@ -368,18 +372,42 @@ func (conn *imapConnector) RemoveMessagesFromMailbox(ctx context.Context, messag
 }
 
 // MoveMessages removes the given messages from one label and adds them to the other label.
-func (conn *imapConnector) MoveMessages(ctx context.Context, messageIDs []imap.MessageID, labelFromID imap.MailboxID, labelToID imap.MailboxID) error {
+func (conn *imapConnector) MoveMessages(ctx context.Context, messageIDs []imap.MessageID, labelFromID imap.MailboxID, labelToID imap.MailboxID) (bool, error) {
 	defer conn.goPollAPIEvents(false)
 
+	if (labelFromID == proton.InboxLabel && labelToID == proton.SentLabel) ||
+		(labelFromID == proton.SentLabel && labelToID == proton.InboxLabel) {
+		return false, fmt.Errorf("not allowed")
+	}
+
+	shouldExpungeOldLocation := func() bool {
+		conn.apiLabelsLock.RLock()
+		defer conn.apiLabelsLock.RUnlock()
+
+		var result bool
+
+		if v, ok := conn.apiLabels[string(labelFromID)]; ok && v.Type == proton.LabelTypeLabel {
+			result = result || true
+		}
+
+		if v, ok := conn.apiLabels[string(labelToID)]; ok && v.Type == proton.LabelTypeFolder {
+			result = result || true
+		}
+
+		return result
+	}()
+
 	if err := conn.client.LabelMessages(ctx, mapTo[imap.MessageID, string](messageIDs), string(labelToID)); err != nil {
-		return fmt.Errorf("labeling messages: %w", err)
+		return false, fmt.Errorf("labeling messages: %w", err)
 	}
 
-	if err := conn.client.UnlabelMessages(ctx, mapTo[imap.MessageID, string](messageIDs), string(labelFromID)); err != nil {
-		return fmt.Errorf("unlabeling messages: %w", err)
+	if shouldExpungeOldLocation {
+		if err := conn.client.UnlabelMessages(ctx, mapTo[imap.MessageID, string](messageIDs), string(labelFromID)); err != nil {
+			return false, fmt.Errorf("unlabeling messages: %w", err)
+		}
 	}
 
-	return nil
+	return shouldExpungeOldLocation, nil
 }
 
 // MarkMessagesSeen sets the seen value of the given messages.

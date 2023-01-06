@@ -33,13 +33,13 @@ Feature: IMAP move messages by append and delete (without MOVE support, e.g., Ou
     Then it succeeds
     And IMAP client "source" selects "<srcMailbox>"
     And IMAP client "target" selects "<dstMailbox>"
-    When IMAP clients "source" and "target" move message seq "2" of "[user:user]" to "<dstMailbox>" by <order>
+    When IMAP clients "source" and "target" move message with subject "subj2" of "[user:user]" to "<dstMailbox>" by <order>
     And IMAP client "source" sees 1 messages in "<srcMailbox>"
     And IMAP client "source" sees the following messages in "<srcMailbox>":
       | from           | to             | subject |
       | sndr1@[domain] | rcvr1@[domain] | subj1   |
-    And IMAP client "target" sees 1 messages in "<dstMailbox>"
-    And IMAP client "target" sees the following messages in "<dstMailbox>":
+    And IMAP client "target" eventually sees 1 messages in "<dstMailbox>"
+    And IMAP client "target" eventually sees the following messages in "<dstMailbox>":
       | from           | to             | subject |
       | sndr2@[domain] | rcvr2@[domain] | subj2   |
     Examples:

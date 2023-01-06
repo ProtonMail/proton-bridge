@@ -188,6 +188,8 @@ func TestFeatures(testingT *testing.T) {
 			ctx.Step(`^IMAP client "([^"]*)" selects "([^"]*)"$`, s.imapClientSelectsMailbox)
 			ctx.Step(`^IMAP client "([^"]*)" copies the message with subject "([^"]*)" from "([^"]*)" to "([^"]*)"$`, s.imapClientCopiesTheMessageWithSubjectFromTo)
 			ctx.Step(`^IMAP client "([^"]*)" copies all messages from "([^"]*)" to "([^"]*)"$`, s.imapClientCopiesAllMessagesFromTo)
+			ctx.Step(`^IMAP client "([^"]*)" moves the message with subject "([^"]*)" from "([^"]*)" to "([^"]*)"$`, s.imapClientMovesTheMessageWithSubjectFromTo)
+			ctx.Step(`^IMAP client "([^"]*)" moves all messages from "([^"]*)" to "([^"]*)"$`, s.imapClientMovesAllMessagesFromTo)
 			ctx.Step(`^IMAP client "([^"]*)" sees the following messages in "([^"]*)":$`, s.imapClientSeesTheFollowingMessagesInMailbox)
 			ctx.Step(`^IMAP client "([^"]*)" eventually sees the following messages in "([^"]*)":$`, s.imapClientEventuallySeesTheFollowingMessagesInMailbox)
 			ctx.Step(`^IMAP client "([^"]*)" sees (\d+) messages in "([^"]*)"$`, s.imapClientSeesMessagesInMailbox)
@@ -201,7 +203,7 @@ func TestFeatures(testingT *testing.T) {
 			ctx.Step(`^IMAP client "([^"]*)" appends the following message to "([^"]*)":$`, s.imapClientAppendsTheFollowingMessageToMailbox)
 			ctx.Step(`^IMAP client "([^"]*)" appends the following messages to "([^"]*)":$`, s.imapClientAppendsTheFollowingMessagesToMailbox)
 			ctx.Step(`^IMAP client "([^"]*)" appends "([^"]*)" to "([^"]*)"$`, s.imapClientAppendsToMailbox)
-			ctx.Step(`^IMAP clients "([^"]*)" and "([^"]*)" move message seq "([^"]*)" of "([^"]*)" to "([^"]*)" by ([^"]*) ([^"]*) ([^"]*)`, s.imapClientsMoveMessageSeqOfUserFromToByOrderedOperations)
+			ctx.Step(`^IMAP clients "([^"]*)" and "([^"]*)" move message with subject "([^"]*)" of "([^"]*)" to "([^"]*)" by ([^"]*) ([^"]*) ([^"]*)`, s.imapClientsMoveMessageWithSubjectUserFromToByOrderedOperations)
 			ctx.Step(`^IMAP client "([^"]*)" sees header "([^"]*)" in message with subject "([^"]*)" in "([^"]*)"$`, s.imapClientSeesHeaderInMessageWithSubject)
 
 			// ==== SMTP ====

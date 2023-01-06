@@ -23,7 +23,6 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"time"
 
@@ -288,6 +287,31 @@ func (s *scenario) imapClientSeesTheFollowingMessagesInMailbox(clientID, mailbox
 	return matchMessages(haveMessages, wantMessages)
 }
 
+func (s *scenario) imapClientMovesTheMessageWithSubjectFromTo(clientID, subject, from, to string) error {
+	_, client := s.t.getIMAPClient(clientID)
+
+	uid, err := clientGetUIDBySubject(client, from, subject)
+	if err != nil {
+		return err
+	}
+
+	if err := clientMove(client, from, to, uid); err != nil {
+		s.t.pushError(err)
+	}
+
+	return nil
+}
+
+func (s *scenario) imapClientMovesAllMessagesFromTo(clientID, from, to string) error {
+	_, client := s.t.getIMAPClient(clientID)
+
+	if err := clientMove(client, from, to); err != nil {
+		s.t.pushError(err)
+	}
+
+	return nil
+}
+
 func (s *scenario) imapClientEventuallySeesTheFollowingMessagesInMailbox(clientID, mailbox string, table *godog.Table) error {
 	return eventually(func() error {
 		err := s.imapClientSeesTheFollowingMessagesInMailbox(clientID, mailbox, table)
@@ -433,15 +457,10 @@ func (s *scenario) imapClientAppendsToMailbox(clientID string, file, mailbox str
 	return nil
 }
 
-func (s *scenario) imapClientsMoveMessageSeqOfUserFromToByOrderedOperations(sourceIMAPClient, targetIMAPClient, messageSeq, bddUserID, targetMailboxName, op1, op2, op3 string) error {
+func (s *scenario) imapClientsMoveMessageWithSubjectUserFromToByOrderedOperations(sourceIMAPClient, targetIMAPClient, messageSubject, bddUserID, targetMailboxName, op1, op2, op3 string) error {
 	// call NOOP to prevent unilateral updates in following FETCH
 	_, sourceClient := s.t.getIMAPClient(sourceIMAPClient)
 	_, targetClient := s.t.getIMAPClient(targetIMAPClient)
-
-	sequenceID, err := strconv.Atoi(messageSeq)
-	if err != nil {
-		return err
-	}
 
 	if err := sourceClient.Noop(); err != nil {
 		return err
@@ -451,8 +470,13 @@ func (s *scenario) imapClientsMoveMessageSeqOfUserFromToByOrderedOperations(sour
 		return err
 	}
 
+	uid, err := clientGetUIDBySubject(sourceClient, sourceClient.Mailbox().Name, messageSubject)
+	if err != nil {
+		return err
+	}
+
 	// get the original message
-	messages, err := clientFetchSequence(sourceClient, messageSeq)
+	messages, err := clientFetchSequence(sourceClient, fmt.Sprintf("%v", uid), true)
 	if err != nil {
 		return err
 	}
@@ -486,7 +510,7 @@ func (s *scenario) imapClientsMoveMessageSeqOfUserFromToByOrderedOperations(sour
 
 			targetErr = targetClient.Append(targetMailboxName, flags, time.Now(), bytes.NewReader(literal))
 		case "DELETE":
-			if _, err := clientStore(sourceClient, sequenceID, sequenceID, false, imap.FormatFlagsOp(imap.AddFlags, true), imap.DeletedFlag); err != nil {
+			if _, err := clientStore(sourceClient, int(uid), int(uid), true, imap.FormatFlagsOp(imap.AddFlags, true), imap.DeletedFlag); err != nil {
 				storeErr = err
 			}
 		case "EXPUNGE":
@@ -606,7 +630,7 @@ func clientFetch(client *client.Client, mailbox string) ([]*imap.Message, error)
 	return iterator.Collect(iterator.Chan(resCh)), nil
 }
 
-func clientFetchSequence(client *client.Client, sequenceSet string) ([]*imap.Message, error) {
+func clientFetchSequence(client *client.Client, sequenceSet string, isUID bool) ([]*imap.Message, error) {
 	seqSet, err := imap.ParseSeqSet(sequenceSet)
 	if err != nil {
 		return nil, err
@@ -615,12 +639,22 @@ func clientFetchSequence(client *client.Client, sequenceSet string) ([]*imap.Mes
 	resCh := make(chan *imap.Message)
 
 	go func() {
-		if err := client.Fetch(
-			seqSet,
-			[]imap.FetchItem{imap.FetchFlags, imap.FetchEnvelope, imap.FetchUid, "BODY.PEEK[]"},
-			resCh,
-		); err != nil {
-			panic(err)
+		if isUID {
+			if err := client.UidFetch(
+				seqSet,
+				[]imap.FetchItem{imap.FetchFlags, imap.FetchEnvelope, imap.FetchUid, "BODY.PEEK[]"},
+				resCh,
+			); err != nil {
+				panic(err)
+			}
+		} else {
+			if err := client.Fetch(
+				seqSet,
+				[]imap.FetchItem{imap.FetchFlags, imap.FetchEnvelope, imap.FetchUid, "BODY.PEEK[]"},
+				resCh,
+			); err != nil {
+				panic(err)
+			}
 		}
 	}()
 
@@ -650,6 +684,31 @@ func clientCopy(client *client.Client, from, to string, uid ...uint32) error {
 	}
 
 	return client.UidCopy(seqset, to)
+}
+
+func clientMove(client *client.Client, from, to string, uid ...uint32) error {
+	status, err := client.Select(from, false)
+	if err != nil {
+		return err
+	}
+
+	if status.Messages == 0 {
+		return fmt.Errorf("expected %v to have messages, but it doesn't", from)
+	}
+
+	var seqset *imap.SeqSet
+
+	if len(uid) == 0 {
+		seqset = &imap.SeqSet{Set: []imap.Seq{{Start: 1, Stop: status.Messages}}}
+	} else {
+		seqset = &imap.SeqSet{}
+
+		for _, uid := range uid {
+			seqset.AddNum(uid)
+		}
+	}
+
+	return client.UidMove(seqset, to)
 }
 
 func clientStore(client *client.Client, from, to int, isUID bool, item imap.StoreItem, flags ...string) ([]*imap.Message, error) { //nolint:unparam
