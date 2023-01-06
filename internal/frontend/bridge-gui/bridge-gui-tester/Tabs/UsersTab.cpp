@@ -71,7 +71,7 @@ void UsersTab::onAddUserButton() {
     users_.append(user);
     GRPCService &grpc = app().grpc();
     if (grpc.isStreaming()) {
-        grpc.sendEvent(newLoginFinishedEvent(user->id()));
+        grpc.sendEvent(newLoginFinishedEvent(user->id(), false));
     }
 }
 
@@ -172,6 +172,16 @@ bridgepp::SPUser UsersTab::userWithID(QString const &userID) {
 
 
 //****************************************************************************************************************************************************
+/// \param[in] username The username.
+/// \return The user with the given username.
+/// \return A null pointer if the user is not in the list.
+//****************************************************************************************************************************************************
+bridgepp::SPUser UsersTab::userWithUsername(QString const &username) {
+    return users_.userWithUsername(username);
+}
+
+
+//****************************************************************************************************************************************************
 /// \return true iff the next login attempt should trigger a username/password error.
 //****************************************************************************************************************************************************
 bool UsersTab::nextUserUsernamePasswordError() const {
@@ -232,14 +242,6 @@ bool UsersTab::nextUserTwoPasswordsError() const {
 //****************************************************************************************************************************************************
 bool UsersTab::nextUserTwoPasswordsAbort() const {
     return ui_.checkTwoPasswordsAbort->isChecked();
-}
-
-
-//****************************************************************************************************************************************************
-/// \return true iff the next login attempt should trigger a 2nd password error with abort.
-//****************************************************************************************************************************************************
-bool UsersTab::nextUserAlreadyLoggedIn() const {
-    return ui_.checkAlreadyLoggedIn->isChecked();
 }
 
 

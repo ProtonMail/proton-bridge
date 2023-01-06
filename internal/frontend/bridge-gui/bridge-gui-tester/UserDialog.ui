@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>654</width>
-    <height>544</height>
+    <width>634</width>
+    <height>493</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,54 +16,18 @@
   <layout class="QVBoxLayout" name="verticalLayout" stretch="0,1,0">
    <item>
     <layout class="QGridLayout" name="gridLayout">
-     <item row="4" column="0">
-      <widget class="QLabel" name="labelAvatarText">
+     <item row="5" column="0">
+      <widget class="QLabel" name="labelUsedBytes">
        <property name="text">
-        <string>Avatar Text</string>
+        <string>Used Bytes</string>
        </property>
       </widget>
      </item>
-     <item row="2" column="1">
-      <widget class="QLineEdit" name="editPassword"/>
+     <item row="1" column="1">
+      <widget class="QLineEdit" name="editUsername"/>
      </item>
-     <item row="0" column="1">
-      <widget class="QLineEdit" name="editUserID">
-       <property name="readOnly">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="0">
-      <widget class="QLabel" name="labelUserID">
-       <property name="text">
-        <string>UserID</string>
-       </property>
-      </widget>
-     </item>
-     <item row="4" column="1">
-      <widget class="QLineEdit" name="editAvatarText"/>
-     </item>
-     <item row="3" column="1">
-      <widget class="QPlainTextEdit" name="editAddresses">
-       <property name="minimumSize">
-        <size>
-         <width>0</width>
-         <height>100</height>
-        </size>
-       </property>
-       <property name="baseSize">
-        <size>
-         <width>0</width>
-         <height>150</height>
-        </size>
-       </property>
-       <property name="tabChangesFocus">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item row="5" column="1">
-      <widget class="QDoubleSpinBox" name="spinUsedBytes">
+     <item row="6" column="1">
+      <widget class="QDoubleSpinBox" name="spinTotalBytes">
        <property name="buttonSymbols">
         <enum>QAbstractSpinBox::NoButtons</enum>
        </property>
@@ -75,10 +39,24 @@
        </property>
       </widget>
      </item>
-     <item row="5" column="0">
-      <widget class="QLabel" name="labelUsedBytes">
+     <item row="7" column="0">
+      <widget class="QLabel" name="labelTotalBytes_2">
        <property name="text">
-        <string>Used Bytes</string>
+        <string>State</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="0">
+      <widget class="QLabel" name="labelUserID">
+       <property name="text">
+        <string>UserID</string>
+       </property>
+      </widget>
+     </item>
+     <item row="8" column="0" colspan="2">
+      <widget class="QCheckBox" name="checkSplitMode">
+       <property name="text">
+        <string>Split Mode</string>
        </property>
       </widget>
      </item>
@@ -121,8 +99,15 @@
        </item>
       </layout>
      </item>
-     <item row="6" column="1">
-      <widget class="QDoubleSpinBox" name="spinTotalBytes">
+     <item row="6" column="0">
+      <widget class="QLabel" name="labelTotalBytes">
+       <property name="text">
+        <string>Total Bytes</string>
+       </property>
+      </widget>
+     </item>
+     <item row="5" column="1">
+      <widget class="QDoubleSpinBox" name="spinUsedBytes">
        <property name="buttonSymbols">
         <enum>QAbstractSpinBox::NoButtons</enum>
        </property>
@@ -151,6 +136,38 @@
        </property>
       </widget>
      </item>
+     <item row="2" column="1">
+      <widget class="QLineEdit" name="editPassword"/>
+     </item>
+     <item row="3" column="1">
+      <widget class="QPlainTextEdit" name="editAddresses">
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>100</height>
+        </size>
+       </property>
+       <property name="baseSize">
+        <size>
+         <width>0</width>
+         <height>150</height>
+        </size>
+       </property>
+       <property name="tabChangesFocus">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="1">
+      <widget class="QLineEdit" name="editAvatarText"/>
+     </item>
+     <item row="0" column="1">
+      <widget class="QLineEdit" name="editUserID">
+       <property name="readOnly">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
      <item row="1" column="0">
       <widget class="QLabel" name="labelUsername">
        <property name="text">
@@ -158,34 +175,10 @@
        </property>
       </widget>
      </item>
-     <item row="6" column="0">
-      <widget class="QLabel" name="labelTotalBytes">
+     <item row="4" column="0">
+      <widget class="QLabel" name="labelAvatarText">
        <property name="text">
-        <string>Total Bytes</string>
-       </property>
-      </widget>
-     </item>
-     <item row="1" column="1">
-      <widget class="QLineEdit" name="editUsername"/>
-     </item>
-     <item row="9" column="0" colspan="2">
-      <widget class="QCheckBox" name="checkSetupGuideSeen">
-       <property name="text">
-        <string>Setup Guide Seen</string>
-       </property>
-      </widget>
-     </item>
-     <item row="7" column="0">
-      <widget class="QLabel" name="labelTotalBytes_2">
-       <property name="text">
-        <string>State</string>
-       </property>
-      </widget>
-     </item>
-     <item row="8" column="0" colspan="2">
-      <widget class="QCheckBox" name="checkSplitMode">
-       <property name="text">
-        <string>Split Mode</string>
+        <string>Avatar Text</string>
        </property>
       </widget>
      </item>
@@ -249,7 +242,6 @@
   <tabstop>spinUsedBytes</tabstop>
   <tabstop>spinTotalBytes</tabstop>
   <tabstop>checkSplitMode</tabstop>
-  <tabstop>checkSetupGuideSeen</tabstop>
   <tabstop>buttonOK</tabstop>
   <tabstop>buttonCancel</tabstop>
  </tabstops>

@@ -41,7 +41,6 @@ UserDialog::UserDialog(bridgepp::SPUser &user, QWidget *parent)
     ui_.editAvatarText->setText(user_->avatarText());
     this->setState(user->state());
     ui_.checkSplitMode->setChecked(user_->splitMode());
-    ui_.checkSetupGuideSeen->setChecked(user_->setupGuideSeen());
     ui_.spinUsedBytes->setValue(user->usedBytes());
     ui_.spinTotalBytes->setValue(user->totalBytes());
 }
@@ -58,7 +57,6 @@ void UserDialog::onOK() {
     user_->setAvatarText(ui_.editAvatarText->text());
     user_->setState(this->state());
     user_->setSplitMode(ui_.checkSplitMode->isChecked());
-    user_->setSetupGuideSeen(ui_.checkSetupGuideSeen->isChecked());
     user_->setUsedBytes(float(ui_.spinUsedBytes->value()));
     user_->setTotalBytes(float(ui_.spinTotalBytes->value()));
 

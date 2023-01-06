@@ -412,15 +412,7 @@ Status GRPCService::Login(ServerContext *, LoginRequest const *request, Empty *)
         return Status::OK;
     }
 
-    SPUser const user = randomUser();
-    QString const userID = user->id();
-    user->setUsername(QString::fromStdString(request->username()));
-    usersTab.userTable().append(user);
-
-    if (usersTab.nextUserAlreadyLoggedIn()) {
-        qtProxy_.sendDelayedEvent(newLoginAlreadyLoggedInEvent(userID));
-    }
-    qtProxy_.sendDelayedEvent(newLoginFinishedEvent(userID));
+    this->finishLogin();
     return Status::OK;
 }
 
@@ -445,15 +437,7 @@ Status GRPCService::Login2FA(ServerContext *, LoginRequest const *request, Empty
         return Status::OK;
     }
 
-    SPUser const user = randomUser();
-    QString const userID = user->id();
-    user->setUsername(QString::fromStdString(request->username()));
-    usersTab.userTable().append(user);
-
-    if (usersTab.nextUserAlreadyLoggedIn()) {
-        qtProxy_.sendDelayedEvent(newLoginAlreadyLoggedInEvent(userID));
-    }
-    qtProxy_.sendDelayedEvent(newLoginFinishedEvent(userID));
+    this->finishLogin();
     return Status::OK;
 }
 
@@ -476,15 +460,7 @@ Status GRPCService::Login2Passwords(ServerContext *, LoginRequest const *request
         return Status::OK;
     }
 
-    SPUser const user = randomUser();
-    QString const userID = user->id();
-    user->setUsername(QString::fromStdString(request->username()));
-    usersTab.userTable().append(user);
-
-    if (usersTab.nextUserAlreadyLoggedIn()) {
-        qtProxy_.sendDelayedEvent(newLoginAlreadyLoggedInEvent(userID));
-    }
-    qtProxy_.sendDelayedEvent(newLoginFinishedEvent(userID));
+    this->finishLogin();
     return Status::OK;
 }
 
@@ -841,4 +817,27 @@ bool GRPCService::sendEvent(SPStreamEvent const &event) {
         eventQueue_.push_back(event);
     }
     return isStreaming_;
+}
+
+
+//****************************************************************************************************************************************************
+//
+//****************************************************************************************************************************************************
+void GRPCService::finishLogin() {
+    UsersTab &usersTab = app().mainWindow().usersTab();
+    SPUser user = usersTab.userWithUsername(loginUsername_);
+    bool const alreadyExist = user.get();
+    if (!user) {
+        user = randomUser();
+        user->setUsername(loginUsername_);
+        usersTab.userTable().append(user);
+    } else {
+        if (user->state() == EUserState::State::Connected) {
+            qtProxy_.sendDelayedEvent(newLoginAlreadyLoggedInEvent(user->id()));
+        } else {
+            user->setState(EUserState::State::Connected);
+        }
+    }
+
+    qtProxy_.sendDelayedEvent(newLoginFinishedEvent(user->id(), alreadyExist));
 }

@@ -150,6 +150,20 @@ bridgepp::SPUser UserTable::userWithID(QString const &userID) {
 
 
 //****************************************************************************************************************************************************
+/// \param[in] username The username.
+/// \return The user with the given username.
+/// \return A null pointer if the user is not in the list.
+//****************************************************************************************************************************************************
+bridgepp::SPUser UserTable::userWithUsername(QString const &username) {
+    QList<SPUser>::const_iterator it = std::find_if(users_.constBegin(), users_.constEnd(), [&username](SPUser const &user) -> bool {
+        return user->username() == username;
+    });
+
+    return it == users_.end() ? nullptr : *it;
+}
+
+
+//****************************************************************************************************************************************************
 /// \param[in] userID The userID.
 /// \return the index of the user.
 /// \return -1 if the user could not be found.
@@ -200,3 +214,4 @@ bool UserTable::isIndexValid(qint32 index) const {
 QList<bridgepp::SPUser> UserTable::users() const {
     return users_;
 }
+

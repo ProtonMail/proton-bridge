@@ -98,6 +98,9 @@ public: // member functions.
 
     bool sendEvent(bridgepp::SPStreamEvent const &event); ///< Queue an event for sending through the event stream.
 
+private: // member functions
+    void finishLogin(); ///< finish the login procedure once the credentials have been validated.
+
 private: // data member
     mutable QMutex eventStreamMutex_; ///< Mutex used to access eventQueue_, isStreaming_ and shouldStopStreaming_;
     QList<bridgepp::SPStreamEvent> eventQueue_; ///< The event queue. Acces protected by eventStreamMutex_;

@@ -38,6 +38,7 @@ public: // member functions.
     UsersTab &operator=(UsersTab &&) = delete; ///< Disabled move assignment operator.
     UserTable &userTable(); ///< Returns a reference to the user table.
     bridgepp::SPUser userWithID(QString const &userID); ///< Get the user with the given ID.
+    bridgepp::SPUser userWithUsername(QString const &username); ///< Get the user with the given username.
     bool nextUserUsernamePasswordError() const; ///< Check if next user login should trigger a username/password error.
     bool nextUserFreeUserError() const; ///< Check if next user login should trigger a Free user error.
     bool nextUserTFARequired() const; ///< Check if next user login should requires 2FA.
@@ -46,7 +47,6 @@ public: // member functions.
     bool nextUserTwoPasswordsRequired() const; ///< Check if next user login requires 2nd password
     bool nextUserTwoPasswordsError() const; ///< Check if next user login should trigger 2nd password error.
     bool nextUserTwoPasswordsAbort() const; ///< Check if next user login should trigger 2nd password abort.
-    bool nextUserAlreadyLoggedIn() const; ///< Check if next user login should report user as already logged in.
     QString usernamePasswordErrorMessage() const; ///< Return the username password error message.
 
 public slots:
