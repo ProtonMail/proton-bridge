@@ -59,6 +59,20 @@ func (s *scenario) userConnectsAndAuthenticatesIMAPClientWithAddress(username, c
 	return client.Login(address, s.t.getUserBridgePass(userID))
 }
 
+func (s *scenario) userConnectsAndCanNotAuthenticateIMAPClientWithAddress(username, clientID, address string) error {
+	if err := s.t.newIMAPClient(s.t.getUserID(username), clientID); err != nil {
+		return err
+	}
+
+	userID, client := s.t.getIMAPClient(clientID)
+
+	if err := client.Login(address, s.t.getUserBridgePass(userID)); err == nil {
+		return fmt.Errorf("expected error, got nil")
+	}
+
+	return nil
+}
+
 func (s *scenario) imapClientCanAuthenticate(clientID string) error {
 	userID, client := s.t.getIMAPClient(clientID)
 

@@ -171,6 +171,7 @@ func TestFeatures(testingT *testing.T) {
 			ctx.Step(`^user "([^"]*)" connects IMAP client "([^"]*)" on port (\d+)$`, s.userConnectsIMAPClientOnPort)
 			ctx.Step(`^user "([^"]*)" connects and authenticates IMAP client "([^"]*)"$`, s.userConnectsAndAuthenticatesIMAPClient)
 			ctx.Step(`^user "([^"]*)" connects and authenticates IMAP client "([^"]*)" with address "([^"]*)"$`, s.userConnectsAndAuthenticatesIMAPClientWithAddress)
+			ctx.Step(`^user "([^"]*)" connects and can not authenticate IMAP client "([^"]*)" with address "([^"]*)"$`, s.userConnectsAndCanNotAuthenticateIMAPClientWithAddress)
 			ctx.Step(`^IMAP client "([^"]*)" can authenticate$`, s.imapClientCanAuthenticate)
 			ctx.Step(`^IMAP client "([^"]*)" can authenticate with address "([^"]*)"$`, s.imapClientCanAuthenticateWithAddress)
 			ctx.Step(`^IMAP client "([^"]*)" cannot authenticate$`, s.imapClientCannotAuthenticate)
