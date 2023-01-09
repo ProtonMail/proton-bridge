@@ -443,6 +443,10 @@ func (user *User) CheckAuth(email string, password []byte) (string, error) {
 
 	return safe.RLockRetErr(func() (string, error) {
 		for _, addr := range user.apiAddrs {
+			if addr.Status != proton.AddressStatusEnabled {
+				continue
+			}
+
 			if strings.EqualFold(addr.Email, email) {
 				return addr.ID, nil
 			}
