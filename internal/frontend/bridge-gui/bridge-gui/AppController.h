@@ -56,6 +56,9 @@ public: // member functions.
     std::unique_ptr<bridgepp::Overseer> &bridgeOverseer() { return bridgeOverseer_; }; ///< Returns a reference the bridge overseer
     bridgepp::ProcessMonitor *bridgeMonitor() const; ///< Return the bridge worker.
 
+public slots:
+    void onFatalError(QString const &function, QString const &message); ///< Handle fatal errors.
+
 private: // member functions
     AppController(); ///< Default constructor.
 

@@ -45,10 +45,10 @@ public: // member functions.
     bool waitForEventStreamReaderToFinish(qint32 timeoutMs); ///< Wait for the event stream reader to finish.
 
     // invokable methods can be called from QML. They generally return a value, which slots cannot do.
-    Q_INVOKABLE static QPoint getCursorPos(); ///< Retrieve the cursor position.
-    Q_INVOKABLE static bool isPortFree(int port); ///< Check if a given network port is available.
-    Q_INVOKABLE static QString nativePath(QUrl const &url); ///< Retrieve the native path of a local URL.
-    Q_INVOKABLE static bool areSameFileOrFolder(QUrl const &lhs, QUrl const &rhs); ///< Check if two local URL point to the same file.
+    Q_INVOKABLE QPoint getCursorPos() const; ///< Retrieve the cursor position.
+    Q_INVOKABLE bool isPortFree(int port) const; ///< Check if a given network port is available.
+    Q_INVOKABLE QString nativePath(QUrl const &url) const; ///< Retrieve the native path of a local URL.
+    Q_INVOKABLE bool areSameFileOrFolder(QUrl const &lhs, QUrl const &rhs) const; ///< Check if two local URL point to the same file.
 
 public: // Qt/QML properties. Note that the NOTIFY-er signal is required even for read-only properties (QML warning otherwise)
     Q_PROPERTY(bool showOnStartup READ showOnStartup NOTIFY showOnStartupChanged)
@@ -86,7 +86,7 @@ public: // Qt/QML properties. Note that the NOTIFY-er signal is required even fo
     bool showOnStartup() const; ///< Getter for the 'showOnStartup' property.
     void setShowSplashScreen(bool show);  ///< Setter for the 'showSplashScreen' property.
     bool showSplashScreen() const; ///< Getter for the 'showSplashScreen' property.
-    QString goos(); ///< Getter for the 'GOOS' property.
+    QString goos() const; ///< Getter for the 'GOOS' property.
     QUrl logsPath() const; ///< Getter for the 'logsPath' property.
     QUrl licensePath() const; ///< Getter for the 'licensePath' property.
     QUrl releaseNotesLink() const;///< Getter for the 'releaseNotesLink' property.
@@ -112,7 +112,7 @@ public: // Qt/QML properties. Note that the NOTIFY-er signal is required even fo
     bool isDoHEnabled() const; ///< Getter for the 'isDoHEnabled' property.
     bool isFirstGUIStart() const; ///< Getter for the 'isFirstGUIStart' property.
     bool isAutomaticUpdateOn() const; ///< Getter for the 'isAutomaticUpdateOn' property.
-    QString currentEmailClient(); ///< Getter for the 'currentEmail' property.
+    QString currentEmailClient() const; ///< Getter for the 'currentEmail' property.
     QStringList availableKeychain() const; ///< Getter for the 'availableKeychain' property.
     QString currentKeychain() const; ///< Getter for the 'currentKeychain' property.
     void setDockIconVisible(bool visible); ///< Setter for the 'dockIconVisible' property.
@@ -154,26 +154,26 @@ public slots: // slot for signals received from QML -> To be forwarded to Bridge
     void changeIsAllMailVisible(bool isVisible); ///< Slot for the changing of 'All Mail' visibility.
     void changeColorScheme(QString const &scheme); ///< Slot for the change of the theme.
     void setDiskCachePath(QUrl const &path) const; ///< Slot for the change of the disk cache path.
-    void login(QString const &username, QString const &password); ///< Slot for the login button (initial login).
-    void login2FA(QString const &username, QString const &code); ///< Slot for the login button (2FA login).
-    void login2Password(QString const &username, QString const &password); ///< Slot for the login button (mailbox password login).
-    void loginAbort(QString const &username); ///< Slot for the login abort procedure.
+    void login(QString const &username, QString const &password) const; ///< Slot for the login button (initial login).
+    void login2FA(QString const &username, QString const &code) const; ///< Slot for the login button (2FA login).
+    void login2Password(QString const &username, QString const &password) const; ///< Slot for the login button (mailbox password login).
+    void loginAbort(QString const &username) const; ///< Slot for the login abort procedure.
     void toggleDoH(bool active); ///, Slot for the DoH toggle.
     void toggleAutomaticUpdate(bool makeItActive); ///< Slot for the automatic update toggle
     void updateCurrentMailClient(); ///< Slot for the change of the current mail client.
     void changeKeychain(QString const &keychain); ///< Slot for the change of keychain.
-    void guiReady(); ///< Slot for the GUI ready signal.
-    void quit(); ///< Slot for the quit signal.
-    void restart(); ///< Slot for the restart signal.
-    void forceLauncher(QString launcher); ///< Slot for the change of the launcher.
-    void checkUpdates(); ///< Slot for the update check.
-    void installUpdate(); ///< Slot for the update install.
-    void triggerReset(); ///< Slot for the triggering of reset.
-    void reportBug(QString const &description, QString const &address, QString const &emailClient, bool includeLogs); ///< Slot for the bug report.
-    void exportTLSCertificates(); ///< Slot for the export of the TLS certificates.
+    void guiReady() const; ///< Slot for the GUI ready signal.
+    void quit() const; ///< Slot for the quit signal.
+    void restart() const; ///< Slot for the restart signal.
+    void forceLauncher(QString launcher) const; ///< Slot for the change of the launcher.
+    void checkUpdates() const; ///< Slot for the update check.
+    void installUpdate() const; ///< Slot for the update install.
+    void triggerReset() const; ///< Slot for the triggering of reset.
+    void reportBug(QString const &description, QString const &address, QString const &emailClient, bool includeLogs) const; ///< Slot for the bug report.
+    void exportTLSCertificates() const; ///< Slot for the export of the TLS certificates.
     void onResetFinished(); ///< Slot for the reset finish signal.
     void onVersionChanged(); ///< Slot for the version change signal.
-    void setMailServerSettings(int imapPort, int smtpPort, bool useSSLForIMAP, bool useSSLForSMTP); ///< Forwards a connection mode change request from QML to gRPC
+    void setMailServerSettings(int imapPort, int smtpPort, bool useSSLForIMAP, bool useSSLForSMTP) const; ///< Forwards a connection mode change request from QML to gRPC
 
 public slots: // slot for signals received from gRPC that need transformation instead of simple forwarding
     void onMailServerSettingsChanged(int imapPort, int smtpPort, bool useSSLForIMAP, bool useSSLForSMTP); ///< Slot for the ConnectionModeChanged gRPC event.
@@ -231,6 +231,9 @@ signals: // Signals received from the Go backend, to be forwarded to QML
     void showMainWindow(); ///< Signal for the 'showMainWindow' gRPC stream event.
     void hideMainWindow(); ///< Signal for the 'hideMainWindow' gRPC stream event.
     void genericError(QString const &title, QString const &description); ///< Signal for the 'genericError' gRPC stream event.
+
+    // This signal is emitted when an exception is intercepted is calls triggered by QML. QML engine would intercept the exception otherwise.
+    void fatalError(QString const &function, QString const &message) const; ///< Signal emitted when an fatal error occurs.
 
 private: // member functions
     void retrieveUserList(); ///< Retrieve the list of users via gRPC.

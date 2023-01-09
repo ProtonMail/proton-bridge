@@ -117,6 +117,7 @@ endif(UNIX)
 add_executable(bridge-gui
     Resources.qrc
     AppController.cpp AppController.h
+    BridgeApp.cpp BridgeApp.h
     CommandLine.cpp CommandLine.h
     EventStreamWorker.cpp EventStreamWorker.h
     main.cpp

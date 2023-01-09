@@ -18,10 +18,12 @@
 
 #include "AppController.h"
 #include "QMLBackend.h"
+#include "SentryUtils.h"
 #include <bridgepp/GRPC/GRPCClient.h>
 #include <bridgepp/Exception/Exception.h>
 #include <bridgepp/ProcessMonitor.h>
 #include <bridgepp/Log/Log.h>
+#include <sentry.h>
 
 
 using namespace bridgepp;
@@ -54,7 +56,7 @@ ProcessMonitor *AppController::bridgeMonitor() const {
         return nullptr;
     }
 
-    // null bridgeOverseer is OK, it means we run in 'attached' mode (app attached to an already runnning instance of Bridge).
+    // null bridgeOverseer is OK, it means we run in 'attached' mode (app attached to an already running instance of Bridge).
     // but if bridgeOverseer is not null, its attached worker must be a valid ProcessMonitor instance.
     auto *monitor = dynamic_cast<ProcessMonitor *>(bridgeOverseer_->worker());
     if (!monitor) {
@@ -65,3 +67,14 @@ ProcessMonitor *AppController::bridgeMonitor() const {
 }
 
 
+//****************************************************************************************************************************************************
+/// \param[in] function The function that caught the exception.
+/// \param[in] message The error message.
+//****************************************************************************************************************************************************
+void AppController::onFatalError(QString const &function, QString const &message) {
+    QString const fullMessage = QString("%1(): %2").arg(function, message);
+    reportSentryException(SENTRY_LEVEL_ERROR, "AppController got notified of a fatal error", "Exception", fullMessage.toLocal8Bit());
+    QMessageBox::critical(nullptr, tr("Error"), message);
+    log().fatal(fullMessage);
+    qApp->exit(EXIT_FAILURE);
+}

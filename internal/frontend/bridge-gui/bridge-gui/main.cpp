@@ -17,6 +17,7 @@
 
 
 #include "Pch.h"
+#include "BridgeApp.h"
 #include "CommandLine.h"
 #include "QMLBackend.h"
 #include "SentryUtils.h"
@@ -311,7 +312,7 @@ int main(int argc, char *argv[]) {
         QCoreApplication::setAttribute(Qt::AA_UseSoftwareOpenGL);
     }
 
-    QApplication guiApp(argc, argv);
+    BridgeApp guiApp(argc, argv);
 
     try {
         initQtApplication();

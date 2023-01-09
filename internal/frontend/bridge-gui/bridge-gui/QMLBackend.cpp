@@ -24,6 +24,14 @@
 #include <bridgepp/Worker/Overseer.h>
 
 
+#define HANDLE_EXCEPTION(x) try { x } \
+    catch (Exception const &e) { emit fatalError(__func__, e.qwhat()); } \
+    catch (...)  { emit fatalError(__func__, QString("An unknown exception occurred")); }
+#define HANDLE_EXCEPTION_RETURN_BOOL(x) HANDLE_EXCEPTION(x) return false;
+#define HANDLE_EXCEPTION_RETURN_QSTRING(x) HANDLE_EXCEPTION(x) return QString();
+#define HANDLE_EXCEPTION_RETURN_ZERO(x) HANDLE_EXCEPTION(x) return 0;
+
+
 using namespace bridgepp;
 
 
@@ -39,6 +47,8 @@ QMLBackend::QMLBackend()
 /// \param[in] serviceConfig
 //****************************************************************************************************************************************************
 void QMLBackend::init(GRPCConfig const &serviceConfig) {
+    connect(this, &QMLBackend::fatalError, &app(), &AppController::onFatalError);
+
     users_ = new UserList(this);
 
     Log &log = app().log();
@@ -95,18 +105,23 @@ bool QMLBackend::waitForEventStreamReaderToFinish(qint32 timeoutMs) {
 //****************************************************************************************************************************************************
 /// \return The position of the cursor.
 //****************************************************************************************************************************************************
-QPoint QMLBackend::getCursorPos() {
-    return QCursor::pos();
+QPoint QMLBackend::getCursorPos() const {
+    HANDLE_EXCEPTION(
+        return QCursor::pos();
+    )
+    return QPoint();
 }
 
 
 //****************************************************************************************************************************************************
 /// \return true iff port is available (i.e. not bound).
 //****************************************************************************************************************************************************
-bool QMLBackend::isPortFree(int port) {
-    bool isFree = false;
-    app().grpc().isPortFree(port, isFree);
-    return isFree;
+bool QMLBackend::isPortFree(int port) const {
+    HANDLE_EXCEPTION_RETURN_BOOL(
+        bool isFree = false;
+        app().grpc().isPortFree(port, isFree);
+        return isFree;
+    )
 }
 
 
@@ -114,8 +129,10 @@ bool QMLBackend::isPortFree(int port) {
 /// \param[in] url The local file URL.
 /// \return true the native local file path of the given URL.
 //****************************************************************************************************************************************************
-QString QMLBackend::nativePath(QUrl const &url) {
-    return QDir::toNativeSeparators(url.toLocalFile());
+QString QMLBackend::nativePath(QUrl const &url) const {
+    HANDLE_EXCEPTION_RETURN_QSTRING(
+        return QDir::toNativeSeparators(url.toLocalFile());
+    )
 }
 
 
@@ -124,8 +141,10 @@ QString QMLBackend::nativePath(QUrl const &url) {
 /// \param[in] rhs THe second file.
 /// \return true iff the two URL point to the same local file or folder.
 //****************************************************************************************************************************************************
-bool QMLBackend::areSameFileOrFolder(QUrl const &lhs, QUrl const &rhs) {
-    return QFileInfo(lhs.toLocalFile()) == QFileInfo(rhs.toLocalFile());
+bool QMLBackend::areSameFileOrFolder(QUrl const &lhs, QUrl const &rhs) const {
+    HANDLE_EXCEPTION_RETURN_BOOL(
+        return QFileInfo(lhs.toLocalFile()) == QFileInfo(rhs.toLocalFile());
+    )
 }
 
 
@@ -133,9 +152,11 @@ bool QMLBackend::areSameFileOrFolder(QUrl const &lhs, QUrl const &rhs) {
 /// \return The value for the 'showOnStartup' property.
 //****************************************************************************************************************************************************
 bool QMLBackend::showOnStartup() const {
-    bool v = false;
-    app().grpc().showOnStartup(v);
-    return v;
+    HANDLE_EXCEPTION_RETURN_BOOL(
+        bool v = false;
+        app().grpc().showOnStartup(v);
+        return v;
+    )
 }
 
 
@@ -143,9 +164,12 @@ bool QMLBackend::showOnStartup() const {
 /// \[param[in] show The value for the 'showSplashScreen' property.
 //****************************************************************************************************************************************************
 void QMLBackend::setShowSplashScreen(bool show) {
-    if (show != showSplashScreen_) {
-        showSplashScreen_ = show; emit showSplashScreenChanged(show);
-    }
+    HANDLE_EXCEPTION(
+        if (show != showSplashScreen_) {
+            showSplashScreen_ = show;
+            emit showSplashScreenChanged(show);
+        }
+    )
 }
 
 
@@ -153,15 +177,19 @@ void QMLBackend::setShowSplashScreen(bool show) {
 /// \return The value for the 'showSplashScreen' property.
 //****************************************************************************************************************************************************
 bool QMLBackend::showSplashScreen() const {
-    return showSplashScreen_;
+    HANDLE_EXCEPTION_RETURN_BOOL(
+        return showSplashScreen_;
+    )
 }
 
 
 //****************************************************************************************************************************************************
 /// \return The value for the 'GOOS' property.
 //****************************************************************************************************************************************************
-QString QMLBackend::goos() {
-    return goos_;
+QString QMLBackend::goos() const {
+    HANDLE_EXCEPTION_RETURN_QSTRING(
+        return goos_;
+    )
 }
 
 
@@ -169,7 +197,9 @@ QString QMLBackend::goos() {
 /// \return The value for the 'logsPath' property.
 //****************************************************************************************************************************************************
 QUrl QMLBackend::logsPath() const {
-    return logsPath_;
+    HANDLE_EXCEPTION_RETURN_QSTRING(
+        return logsPath_;
+    )
 }
 
 
@@ -177,7 +207,9 @@ QUrl QMLBackend::logsPath() const {
 /// \return The value for the 'licensePath' property.
 //****************************************************************************************************************************************************
 QUrl QMLBackend::licensePath() const {
-    return licensePath_;
+    HANDLE_EXCEPTION_RETURN_QSTRING(
+        return licensePath_;
+    )
 }
 
 
@@ -185,9 +217,11 @@ QUrl QMLBackend::licensePath() const {
 /// \return The value for the 'releaseNotesLink' property.
 //****************************************************************************************************************************************************
 QUrl QMLBackend::releaseNotesLink() const {
-    QUrl link;
-    app().grpc().releaseNotesPageLink(link);
-    return link;
+    HANDLE_EXCEPTION_RETURN_QSTRING(
+        QUrl link;
+        app().grpc().releaseNotesPageLink(link);
+        return link;
+    )
 }
 
 
@@ -195,9 +229,11 @@ QUrl QMLBackend::releaseNotesLink() const {
 /// \return The value for the 'dependencyLicensesLink' property.
 //****************************************************************************************************************************************************
 QUrl QMLBackend::dependencyLicensesLink() const {
-    QUrl link;
-    app().grpc().dependencyLicensesLink(link);
-    return link;
+    HANDLE_EXCEPTION_RETURN_QSTRING(
+        QUrl link;
+        app().grpc().dependencyLicensesLink(link);
+        return link;
+    )
 }
 
 
@@ -205,9 +241,11 @@ QUrl QMLBackend::dependencyLicensesLink() const {
 /// \return The value for the 'landingPageLink' property.
 //****************************************************************************************************************************************************
 QUrl QMLBackend::landingPageLink() const {
-    QUrl link;
-    app().grpc().landingPageLink(link);
-    return link;
+    HANDLE_EXCEPTION_RETURN_QSTRING(
+        QUrl link;
+        app().grpc().landingPageLink(link);
+        return link;
+    )
 }
 
 
@@ -215,7 +253,9 @@ QUrl QMLBackend::landingPageLink() const {
 /// \return The value for the 'appname' property.
 //****************************************************************************************************************************************************
 QString QMLBackend::appname() const {
-    return QString(PROJECT_FULL_NAME);
+    HANDLE_EXCEPTION_RETURN_QSTRING(
+        return QString(PROJECT_FULL_NAME);
+    )
 }
 
 
@@ -223,7 +263,9 @@ QString QMLBackend::appname() const {
 /// \return The value for the 'vendor' property.
 //****************************************************************************************************************************************************
 QString QMLBackend::vendor() const {
-    return QString(PROJECT_VENDOR);
+    HANDLE_EXCEPTION_RETURN_QSTRING(
+        return QString(PROJECT_VENDOR);
+    )
 }
 
 
@@ -231,9 +273,11 @@ QString QMLBackend::vendor() const {
 /// \return The value for the 'vendor' property.
 //****************************************************************************************************************************************************
 QString QMLBackend::version() const {
-    QString version;
-    app().grpc().version(version);
-    return version;
+    HANDLE_EXCEPTION_RETURN_QSTRING(
+        QString version;
+        app().grpc().version(version);
+        return version;
+    )
 }
 
 
@@ -241,9 +285,11 @@ QString QMLBackend::version() const {
 /// \return The value for the 'hostname' property.
 //****************************************************************************************************************************************************
 QString QMLBackend::hostname() const {
-    QString hostname;
-    app().grpc().hostname(hostname);
-    return hostname;
+    HANDLE_EXCEPTION_RETURN_QSTRING(
+        QString hostname;
+        app().grpc().hostname(hostname);
+        return hostname;
+    )
 }
 
 
@@ -251,9 +297,11 @@ QString QMLBackend::hostname() const {
 /// \return The value for the 'isAutostartOn' property.
 //****************************************************************************************************************************************************
 bool QMLBackend::isAutostartOn() const {
-    bool v;
-    app().grpc().isAutostartOn(v);
-    return v;
+    HANDLE_EXCEPTION_RETURN_BOOL(
+        bool v;
+        app().grpc().isAutostartOn(v);
+        return v;
+    )
 }
 
 
@@ -261,9 +309,11 @@ bool QMLBackend::isAutostartOn() const {
 /// \return The value for the 'isBetaEnabled' property.
 //****************************************************************************************************************************************************
 bool QMLBackend::isBetaEnabled() const {
-    bool v;
-    app().grpc().isBetaEnabled(v);
-    return v;
+    HANDLE_EXCEPTION_RETURN_BOOL(
+        bool v;
+        app().grpc().isBetaEnabled(v);
+        return v;
+    )
 }
 
 
@@ -271,9 +321,11 @@ bool QMLBackend::isBetaEnabled() const {
 /// \return The value for the 'isAllMailVisible' property.
 //****************************************************************************************************************************************************
 bool QMLBackend::isAllMailVisible() const {
-    bool v;
-    app().grpc().isAllMailVisible(v);
-    return v;
+    HANDLE_EXCEPTION_RETURN_BOOL(
+        bool v;
+        app().grpc().isAllMailVisible(v);
+        return v;
+    )
 }
 
 
@@ -281,9 +333,11 @@ bool QMLBackend::isAllMailVisible() const {
 /// \return The value for the 'colorSchemeName' property.
 //****************************************************************************************************************************************************
 QString QMLBackend::colorSchemeName() const {
-    QString name;
-    app().grpc().colorSchemeName(name);
-    return name;
+    HANDLE_EXCEPTION_RETURN_QSTRING(
+        QString name;
+        app().grpc().colorSchemeName(name);
+        return name;
+    )
 }
 
 
@@ -291,9 +345,11 @@ QString QMLBackend::colorSchemeName() const {
 /// \return The value for the 'diskCachePath' property.
 //****************************************************************************************************************************************************
 QUrl QMLBackend::diskCachePath() const {
-    QUrl path;
-    app().grpc().diskCachePath(path);
-    return path;
+    HANDLE_EXCEPTION_RETURN_QSTRING(
+        QUrl path;
+        app().grpc().diskCachePath(path);
+        return path;
+    )
 }
 
 
@@ -301,11 +357,13 @@ QUrl QMLBackend::diskCachePath() const {
 /// \param[in] value The value for the 'UseSSLForIMAP' property.
 //****************************************************************************************************************************************************
 void QMLBackend::setUseSSLForIMAP(bool value) {
-    if (value == useSSLForIMAP_) {
-        return;
-    }
-    useSSLForIMAP_ = value;
-    emit useSSLForIMAPChanged(value);
+    HANDLE_EXCEPTION(
+        if (value == useSSLForIMAP_) {
+            return;
+        }
+        useSSLForIMAP_ = value;
+        emit useSSLForIMAPChanged(value);
+    )
 }
 
 
@@ -313,7 +371,9 @@ void QMLBackend::setUseSSLForIMAP(bool value) {
 /// \return The value for the 'UseSSLForIMAP' property.
 //****************************************************************************************************************************************************
 bool QMLBackend::useSSLForIMAP() const {
-    return useSSLForIMAP_;
+    HANDLE_EXCEPTION_RETURN_BOOL(
+        return useSSLForIMAP_;
+    )
 }
 
 
@@ -321,11 +381,13 @@ bool QMLBackend::useSSLForIMAP() const {
 /// \param[in] value The value for the 'UseSSLForSMTP' property.
 //****************************************************************************************************************************************************
 void QMLBackend::setUseSSLForSMTP(bool value) {
-    if (value == useSSLForSMTP_) {
-        return;
-    }
-    useSSLForSMTP_ = value;
-    emit useSSLForSMTPChanged(value);
+    HANDLE_EXCEPTION(
+        if (value == useSSLForSMTP_) {
+            return;
+        }
+        useSSLForSMTP_ = value;
+        emit useSSLForSMTPChanged(value);
+    )
 }
 
 
@@ -333,7 +395,9 @@ void QMLBackend::setUseSSLForSMTP(bool value) {
 /// \return The value for the 'UseSSLForSMTP' property.
 //****************************************************************************************************************************************************
 bool QMLBackend::useSSLForSMTP() const {
-    return useSSLForSMTP_;
+    HANDLE_EXCEPTION_RETURN_BOOL(
+        return useSSLForSMTP_;
+    )
 }
 
 
@@ -341,11 +405,13 @@ bool QMLBackend::useSSLForSMTP() const {
 /// \param[in] port The value for the 'imapPort' property.
 //****************************************************************************************************************************************************
 void QMLBackend::setIMAPPort(int port) {
-    if (port == imapPort_) {
-        return;
-    }
-    imapPort_ = port;
-    emit imapPortChanged(port);
+    HANDLE_EXCEPTION(
+        if (port == imapPort_) {
+            return;
+        }
+        imapPort_ = port;
+        emit imapPortChanged(port);
+    )
 }
 
 
@@ -353,7 +419,9 @@ void QMLBackend::setIMAPPort(int port) {
 /// \return The value for the 'imapPort' property.
 //****************************************************************************************************************************************************
 int QMLBackend::imapPort() const {
-    return imapPort_;
+    HANDLE_EXCEPTION_RETURN_ZERO(
+        return imapPort_;
+    )
 }
 
 
@@ -361,11 +429,13 @@ int QMLBackend::imapPort() const {
 /// \param[in] port The value for the 'smtpPort' property.
 //****************************************************************************************************************************************************
 void QMLBackend::setSMTPPort(int port) {
-    if (port == smtpPort_) {
-        return;
-    }
-    smtpPort_ = port;
-    emit smtpPortChanged(port);
+    HANDLE_EXCEPTION(
+        if (port == smtpPort_) {
+            return;
+        }
+        smtpPort_ = port;
+        emit smtpPortChanged(port);
+    )
 }
 
 
@@ -373,7 +443,9 @@ void QMLBackend::setSMTPPort(int port) {
 /// \return The value for the 'smtpPort' property.
 //****************************************************************************************************************************************************
 int QMLBackend::smtpPort() const {
-    return smtpPort_;
+    HANDLE_EXCEPTION_RETURN_ZERO(
+        return smtpPort_;
+    )
 }
 
 
@@ -381,9 +453,11 @@ int QMLBackend::smtpPort() const {
 /// \return The value for the 'isDoHEnabled' property.
 //****************************************************************************************************************************************************
 bool QMLBackend::isDoHEnabled() const {
-    bool isEnabled;
-    app().grpc().isDoHEnabled(isEnabled);
-    return isEnabled;
+    HANDLE_EXCEPTION_RETURN_BOOL(
+        bool isEnabled;
+        app().grpc().isDoHEnabled(isEnabled);
+        return isEnabled;
+    )
 }
 
 
@@ -391,9 +465,11 @@ bool QMLBackend::isDoHEnabled() const {
 /// \return The value for the 'isFirstGUIStart' property.
 //****************************************************************************************************************************************************
 bool QMLBackend::isFirstGUIStart() const {
-    bool v;
-    app().grpc().isFirstGUIStart(v);
-    return v;
+    HANDLE_EXCEPTION_RETURN_BOOL(
+        bool v;
+        app().grpc().isFirstGUIStart(v);
+        return v;
+    )
 }
 
 
@@ -401,19 +477,23 @@ bool QMLBackend::isFirstGUIStart() const {
 /// \return The value for the 'isAutomaticUpdateOn' property.
 //****************************************************************************************************************************************************
 bool QMLBackend::isAutomaticUpdateOn() const {
-    bool isOn = false;
-    app().grpc().isAutomaticUpdateOn(isOn);
-    return isOn;
+    HANDLE_EXCEPTION_RETURN_BOOL(
+        bool isOn = false;
+        app().grpc().isAutomaticUpdateOn(isOn);
+        return isOn;
+    )
 }
 
 
 //****************************************************************************************************************************************************
 /// \return The value for the 'currentEmailClient' property.
 //****************************************************************************************************************************************************
-QString QMLBackend::currentEmailClient() {
-    QString client;
-    app().grpc().currentEmailClient(client);
-    return client;
+QString QMLBackend::currentEmailClient() const {
+    HANDLE_EXCEPTION_RETURN_QSTRING(
+        QString client;
+        app().grpc().currentEmailClient(client);
+        return client;
+    )
 }
 
 
@@ -421,9 +501,12 @@ QString QMLBackend::currentEmailClient() {
 /// \return The value for the 'availableKeychain' property.
 //****************************************************************************************************************************************************
 QStringList QMLBackend::availableKeychain() const {
-    QStringList keychains;
-    app().grpc().availableKeychains(keychains);
-    return keychains;
+    HANDLE_EXCEPTION(
+        QStringList keychains;
+        app().grpc().availableKeychains(keychains);
+        return keychains;
+    )
+    return QStringList();
 }
 
 
@@ -431,9 +514,11 @@ QStringList QMLBackend::availableKeychain() const {
 /// \return The value for the 'currentKeychain' property.
 //****************************************************************************************************************************************************
 QString QMLBackend::currentKeychain() const {
-    QString keychain;
-    app().grpc().currentKeychain(keychain);
-    return keychain;
+    HANDLE_EXCEPTION_RETURN_QSTRING(
+        QString keychain;
+        app().grpc().currentKeychain(keychain);
+        return keychain;
+    )
 }
 
 
@@ -441,7 +526,9 @@ QString QMLBackend::currentKeychain() const {
 /// \return The value for the 'dockIconVisible' property.
 //****************************************************************************************************************************************************
 bool QMLBackend::dockIconVisible() const {
-    return getDockIconVisibleState();
+    HANDLE_EXCEPTION_RETURN_BOOL(
+        return getDockIconVisibleState();
+    )
 }
 
 
@@ -449,7 +536,9 @@ bool QMLBackend::dockIconVisible() const {
 /// \[param[in] visible The value for the 'dockIconVisible' property.
 //****************************************************************************************************************************************************
 void QMLBackend::setDockIconVisible(bool visible) {
-    setDockIconVisibleState(visible); emit dockIconVisibleChanged(visible);
+    HANDLE_EXCEPTION(
+        setDockIconVisibleState(visible); emit dockIconVisibleChanged(visible);
+    )
 }
 
 
@@ -457,8 +546,10 @@ void QMLBackend::setDockIconVisible(bool visible) {
 /// \param[in] active Should we activate autostart.
 //****************************************************************************************************************************************************
 void QMLBackend::toggleAutostart(bool active) {
-    app().grpc().setIsAutostartOn(active);
-    emit isAutostartOnChanged(this->isAutostartOn());
+    HANDLE_EXCEPTION(
+        app().grpc().setIsAutostartOn(active);
+        emit isAutostartOnChanged(this->isAutostartOn());
+    )
 }
 
 
@@ -466,8 +557,10 @@ void QMLBackend::toggleAutostart(bool active) {
 /// \param[in] active The new state for the beta enabled property.
 //****************************************************************************************************************************************************
 void QMLBackend::toggleBeta(bool active) {
-    app().grpc().setIsBetaEnabled(active);
-    emit isBetaEnabledChanged(this->isBetaEnabled());
+    HANDLE_EXCEPTION(
+        app().grpc().setIsBetaEnabled(active);
+        emit isBetaEnabledChanged(this->isBetaEnabled());
+    )
 }
 
 
@@ -475,8 +568,10 @@ void QMLBackend::toggleBeta(bool active) {
 /// \param[in] isVisible The new state for the All Mail visibility property.
 //****************************************************************************************************************************************************
 void QMLBackend::changeIsAllMailVisible(bool isVisible) {
-    app().grpc().setIsAllMailVisible(isVisible);
-    emit isAllMailVisibleChanged(this->isAllMailVisible());
+    HANDLE_EXCEPTION(
+        app().grpc().setIsAllMailVisible(isVisible);
+        emit isAllMailVisibleChanged(this->isAllMailVisible());
+    )
 }
 
 
@@ -484,8 +579,10 @@ void QMLBackend::changeIsAllMailVisible(bool isVisible) {
 /// \param[in] scheme the scheme name
 //****************************************************************************************************************************************************
 void QMLBackend::changeColorScheme(QString const &scheme) {
-    app().grpc().setColorSchemeName(scheme);
-    emit colorSchemeNameChanged(this->colorSchemeName());
+    HANDLE_EXCEPTION(
+        app().grpc().setColorSchemeName(scheme);
+        emit colorSchemeNameChanged(this->colorSchemeName());
+    )
 }
 
 
@@ -493,7 +590,9 @@ void QMLBackend::changeColorScheme(QString const &scheme) {
 /// \param[in] path The path of the disk cache.
 //****************************************************************************************************************************************************
 void QMLBackend::setDiskCachePath(QUrl const &path) const {
-    app().grpc().setDiskCachePath(path);
+    HANDLE_EXCEPTION(
+        app().grpc().setDiskCachePath(path);
+    )
 }
 
 
@@ -501,8 +600,13 @@ void QMLBackend::setDiskCachePath(QUrl const &path) const {
 /// \param[in] username The username.
 /// \param[in] password The account password.
 //****************************************************************************************************************************************************
-void QMLBackend::login(QString const &username, QString const &password) {
-    app().grpc().login(username, password);
+void QMLBackend::login(QString const &username, QString const &password) const {
+    HANDLE_EXCEPTION(
+        if (username.compare("coco@bandicoot", Qt::CaseInsensitive) == 0) {
+            throw Exception("User requested bridge-gui to crash by trying to log as coco@bandicoot");
+        }
+        app().grpc().login(username, password);
+    )
 }
 
 
@@ -510,8 +614,10 @@ void QMLBackend::login(QString const &username, QString const &password) {
 /// \param[in] username The username.
 /// \param[in] code The 2FA code.
 //****************************************************************************************************************************************************
-void QMLBackend::login2FA(QString const &username, QString const &code) {
-    app().grpc().login2FA(username, code);
+void QMLBackend::login2FA(QString const &username, QString const &code) const {
+    HANDLE_EXCEPTION(
+        app().grpc().login2FA(username, code);
+    )
 }
 
 
@@ -519,16 +625,20 @@ void QMLBackend::login2FA(QString const &username, QString const &code) {
 /// \param[in] username The username.
 /// \param[in] password The mailbox password.
 //****************************************************************************************************************************************************
-void QMLBackend::login2Password(QString const &username, QString const &password) {
-    app().grpc().login2Passwords(username, password);
+void QMLBackend::login2Password(QString const &username, QString const &password) const {
+    HANDLE_EXCEPTION(
+        app().grpc().login2Passwords(username, password);
+    )
 }
 
 
 //****************************************************************************************************************************************************
 /// \param[in] username The username.
 //****************************************************************************************************************************************************
-void QMLBackend::loginAbort(QString const &username) {
-    app().grpc().loginAbort(username);
+void QMLBackend::loginAbort(QString const &username) const {
+    HANDLE_EXCEPTION(
+        app().grpc().loginAbort(username);
+    )
 }
 
 
@@ -536,9 +646,11 @@ void QMLBackend::loginAbort(QString const &username) {
 /// \param[in] active Should DoH be active.
 //****************************************************************************************************************************************************
 void QMLBackend::toggleDoH(bool active) {
-    if (app().grpc().setIsDoHEnabled(active).ok()) {
-        emit isDoHEnabledChanged(active);
-    }
+    HANDLE_EXCEPTION(
+        if (app().grpc().setIsDoHEnabled(active).ok()) {
+            emit isDoHEnabledChanged(active);
+        }
+    )
 }
 
 
@@ -546,9 +658,11 @@ void QMLBackend::toggleDoH(bool active) {
 /// \param[in] active Should automatic update be turned on.
 //****************************************************************************************************************************************************
 void QMLBackend::toggleAutomaticUpdate(bool active) {
-    if (app().grpc().setIsAutomaticUpdateOn(active).ok()) {
-        emit isAutomaticUpdateOnChanged(active);
-    }
+    HANDLE_EXCEPTION(
+        if (app().grpc().setIsAutomaticUpdateOn(active).ok()) {
+            emit isAutomaticUpdateOnChanged(active);
+        }
+    )
 }
 
 
@@ -556,7 +670,9 @@ void QMLBackend::toggleAutomaticUpdate(bool active) {
 //
 //****************************************************************************************************************************************************
 void QMLBackend::updateCurrentMailClient() {
-    emit currentEmailClientChanged(currentEmailClient());
+    HANDLE_EXCEPTION(
+        emit currentEmailClientChanged(currentEmailClient());
+    )
 }
 
 
@@ -564,66 +680,82 @@ void QMLBackend::updateCurrentMailClient() {
 /// \param[in] keychain The new keychain.
 //****************************************************************************************************************************************************
 void QMLBackend::changeKeychain(QString const &keychain) {
-    if (app().grpc().setCurrentKeychain(keychain).ok()) {
-        emit currentKeychainChanged(keychain);
-    }
+    HANDLE_EXCEPTION(
+        if (app().grpc().setCurrentKeychain(keychain).ok()) {
+            emit currentKeychainChanged(keychain);
+        }
+    )
 }
 
 
 //****************************************************************************************************************************************************
 //
 //****************************************************************************************************************************************************
-void QMLBackend::guiReady() {
-    app().grpc().guiReady();
+void QMLBackend::guiReady() const {
+    HANDLE_EXCEPTION(
+        app().grpc().guiReady();
+    )
 }
 
 
 //****************************************************************************************************************************************************
 //
 //****************************************************************************************************************************************************
-void QMLBackend::quit() {
-    app().grpc().quit();
-    qApp->exit(0);
+void QMLBackend::quit() const {
+    HANDLE_EXCEPTION(
+        app().grpc().quit();
+        qApp->exit(0);
+    )
 }
 
 
 //****************************************************************************************************************************************************
 //
 //****************************************************************************************************************************************************
-void QMLBackend::restart() {
-    app().grpc().restart();
+void QMLBackend::restart() const {
+    HANDLE_EXCEPTION(
+        app().grpc().restart();
+    )
 }
 
 
 //****************************************************************************************************************************************************
 /// \param[in] launcher The path to the launcher.
 //****************************************************************************************************************************************************
-void QMLBackend::forceLauncher(QString launcher) {
-    app().grpc().forceLauncher(launcher);
+void QMLBackend::forceLauncher(QString launcher) const {
+    HANDLE_EXCEPTION(
+        app().grpc().forceLauncher(launcher);
+    )
 }
 
 
 //****************************************************************************************************************************************************
 //
 //****************************************************************************************************************************************************
-void QMLBackend::checkUpdates() {
-    app().grpc().checkUpdate();
+void QMLBackend::checkUpdates() const {
+    HANDLE_EXCEPTION(
+        app().grpc().checkUpdate();
+    )
 }
 
 
 //****************************************************************************************************************************************************
 //
 //****************************************************************************************************************************************************
-void QMLBackend::installUpdate() {
-    app().grpc().installUpdate();
+void QMLBackend::installUpdate() const {
+    HANDLE_EXCEPTION(
+        app().grpc().installUpdate();
+    )
 }
 
 
 //****************************************************************************************************************************************************
 //
 //****************************************************************************************************************************************************
-void QMLBackend::triggerReset() {
-    app().grpc().triggerReset();
+void QMLBackend::triggerReset() const {
+    HANDLE_EXCEPTION(
+        app().grpc().triggerReset();
+    )
 }
 
 
@@ -633,20 +765,24 @@ void QMLBackend::triggerReset() {
 /// \param[in] emailClient The email client.
 /// \param[in] includeLogs Should the logs be included in the report.
 //****************************************************************************************************************************************************
-void QMLBackend::reportBug(QString const &description, QString const &address, QString const &emailClient, bool includeLogs) {
-    app().grpc().reportBug(description, address, emailClient, includeLogs);
+void QMLBackend::reportBug(QString const &description, QString const &address, QString const &emailClient, bool includeLogs) const {
+    HANDLE_EXCEPTION(
+        app().grpc().reportBug(description, address, emailClient, includeLogs);
+    )
 }
 
 
 //****************************************************************************************************************************************************
 //
 //****************************************************************************************************************************************************
-void QMLBackend::exportTLSCertificates() {
-    QString const folderPath = QFileDialog::getExistingDirectory(nullptr, QObject::tr("Select directory"),
-        QStandardPaths::writableLocation(QStandardPaths::HomeLocation));
-    if (!folderPath.isEmpty()) {
-        app().grpc().exportTLSCertificates(folderPath);
-    }
+void QMLBackend::exportTLSCertificates() const {
+    HANDLE_EXCEPTION(
+        QString const folderPath = QFileDialog::getExistingDirectory(nullptr, QObject::tr("Select directory"),
+            QStandardPaths::writableLocation(QStandardPaths::HomeLocation));
+        if (!folderPath.isEmpty()) {
+            app().grpc().exportTLSCertificates(folderPath);
+        }
+    )
 }
 
 
@@ -654,8 +790,10 @@ void QMLBackend::exportTLSCertificates() {
 //
 //****************************************************************************************************************************************************
 void QMLBackend::onResetFinished() {
-    emit resetFinished();
-    this->restart();
+    HANDLE_EXCEPTION(
+        emit resetFinished();
+        this->restart();
+    )
 }
 
 
@@ -663,8 +801,10 @@ void QMLBackend::onResetFinished() {
 // onVersionChanged update dynamic link related to version
 //****************************************************************************************************************************************************
 void QMLBackend::onVersionChanged() {
-    emit releaseNotesLinkChanged(releaseNotesLink());
-    emit landingPageLinkChanged(landingPageLink());
+    HANDLE_EXCEPTION(
+        emit releaseNotesLinkChanged(releaseNotesLink());
+        emit landingPageLinkChanged(landingPageLink());
+    )
 }
 
 
@@ -674,8 +814,10 @@ void QMLBackend::onVersionChanged() {
 /// \param[in] useSSLForIMAP The value for the 'Use SSL for IMAP' property
 /// \param[in] useSSLForSMTP The value for the 'Use SSL for SMTP' property
 //****************************************************************************************************************************************************
-void QMLBackend::setMailServerSettings(int imapPort, int smtpPort, bool useSSLForIMAP, bool useSSLForSMTP) {
-    app().grpc().setMailServerSettings(imapPort, smtpPort, useSSLForIMAP, useSSLForSMTP);
+void QMLBackend::setMailServerSettings(int imapPort, int smtpPort, bool useSSLForIMAP, bool useSSLForSMTP) const {
+    HANDLE_EXCEPTION(
+        app().grpc().setMailServerSettings(imapPort, smtpPort, useSSLForIMAP, useSSLForSMTP);
+    )
 }
 
 
@@ -686,10 +828,12 @@ void QMLBackend::setMailServerSettings(int imapPort, int smtpPort, bool useSSLFo
 /// \param[in] useSSLForSMTP The value for the 'Use SSL for SMTP' property
 //****************************************************************************************************************************************************
 void QMLBackend::onMailServerSettingsChanged(int imapPort, int smtpPort, bool useSSLForIMAP, bool useSSLForSMTP) {
-    this->setIMAPPort(imapPort);
-    this->setSMTPPort(smtpPort);
-    this->setUseSSLForIMAP(useSSLForIMAP);
-    this->setUseSSLForSMTP(useSSLForSMTP);
+    HANDLE_EXCEPTION(
+        this->setIMAPPort(imapPort);
+        this->setSMTPPort(smtpPort);
+        this->setUseSSLForIMAP(useSSLForIMAP);
+        this->setUseSSLForSMTP(useSSLForSMTP);
+    )
 }
 
 
@@ -697,7 +841,9 @@ void QMLBackend::onMailServerSettingsChanged(int imapPort, int smtpPort, bool us
 /// param[in] info The error information.
 //****************************************************************************************************************************************************
 void QMLBackend::onGenericError(ErrorInfo const &info) {
-    emit genericError(info.title, info.description);
+    HANDLE_EXCEPTION(
+        emit genericError(info.title, info.description);
+    )
 }
 
 
@@ -706,9 +852,11 @@ void QMLBackend::onGenericError(ErrorInfo const &info) {
 /// \param[in] wasSignedOut Was the user signed-out.
 //****************************************************************************************************************************************************
 void QMLBackend::onLoginFinished(QString const &userID, bool wasSignedOut) {
-    this->retrieveUserList();
-    qint32 const index = users_->rowOfUserID(userID);
-    emit loginFinished(index, wasSignedOut);
+    HANDLE_EXCEPTION(
+        this->retrieveUserList();
+        qint32 const index = users_->rowOfUserID(userID);
+        emit loginFinished(index, wasSignedOut);
+    )
 }
 
 
@@ -716,9 +864,11 @@ void QMLBackend::onLoginFinished(QString const &userID, bool wasSignedOut) {
 /// \param[in] userID the userID.
 //****************************************************************************************************************************************************
 void QMLBackend::onLoginAlreadyLoggedIn(QString const &userID) {
-    this->retrieveUserList();
-    qint32 const index = users_->rowOfUserID(userID);
-    emit loginAlreadyLoggedIn(index);
+    HANDLE_EXCEPTION(
+        this->retrieveUserList();
+        qint32 const index = users_->rowOfUserID(userID);
+        emit loginAlreadyLoggedIn(index);
+    )
 }
 
 
