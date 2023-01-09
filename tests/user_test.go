@@ -35,89 +35,19 @@ import (
 )
 
 func (s *scenario) thereExistsAnAccountWithUsernameAndPassword(username, password string) error {
-	// Create the user and generate its default address (with keys).
-	if _, err := s.t.runQuarkCmd(
-		context.Background(),
-		"user:create",
-		"--name", username,
-		"--password", password,
-		"--gen-keys", "RSA2048",
-	); err != nil {
-		return err
-	}
+	return s.createUserAccount(username, password, false)
+}
 
-	return s.t.withClientPass(context.Background(), username, password, func(ctx context.Context, c *proton.Client) error {
-		user, err := c.GetUser(ctx)
-		if err != nil {
-			return err
-		}
-
-		// Decrypt the user's encrypted ID for use with quark.
-		userDecID, err := s.t.runQuarkCmd(context.Background(), "encryption:id", "--decrypt", user.ID)
-		if err != nil {
-			return err
-		}
-
-		// Upgrade the user to a paid account.
-		if _, err := s.t.runQuarkCmd(
-			context.Background(),
-			"user:create:subscription",
-			"--planID", "plus",
-			string(userDecID),
-		); err != nil {
-			return err
-		}
-
-		addr, err := c.GetAddresses(ctx)
-		if err != nil {
-			return err
-		}
-
-		// Set the ID of the user.
-		s.t.setUserID(username, user.ID)
-
-		// Set the password of the user.
-		s.t.setUserPass(user.ID, password)
-
-		// Set the address of the user.
-		s.t.setUserAddr(user.ID, addr[0].ID, addr[0].Email)
-
-		return nil
-	})
+func (s *scenario) thereExistsAnAccountWithUsernameAndPasswordWithDisablePrimary(username, password string) error {
+	return s.createUserAccount(username, password, true)
 }
 
 func (s *scenario) theAccountHasAdditionalAddress(username, address string) error {
-	userID := s.t.getUserID(username)
+	return s.addAdditionalAddressToAccount(username, address, false)
+}
 
-	// Decrypt the user's encrypted ID for use with quark.
-	userDecID, err := s.t.runQuarkCmd(context.Background(), "encryption:id", "--decrypt", userID)
-	if err != nil {
-		return err
-	}
-
-	// Create the user's additional address.
-	if _, err := s.t.runQuarkCmd(
-		context.Background(),
-		"user:create:address",
-		"--gen-keys", "RSA2048",
-		string(userDecID),
-		s.t.getUserPass(userID),
-		address,
-	); err != nil {
-		return err
-	}
-
-	return s.t.withClient(context.Background(), username, func(ctx context.Context, c *proton.Client) error {
-		addr, err := c.GetAddresses(ctx)
-		if err != nil {
-			return err
-		}
-
-		// Set the new address of the user.
-		s.t.setUserAddr(userID, addr[len(addr)-1].ID, address)
-
-		return nil
-	})
+func (s *scenario) theAccountHasAdditionalDisabledAddress(username, address string) error {
+	return s.addAdditionalAddressToAccount(username, address, true)
 }
 
 func (s *scenario) theAccountHasAdditionalAddressWithoutKeys(username, address string) error {
@@ -451,4 +381,110 @@ func (s *scenario) userIsNotListed(username string) error {
 
 func (s *scenario) userFinishesSyncing(username string) error {
 	return s.bridgeSendsSyncStartedAndFinishedEventsForUser(username)
+}
+
+func (s *scenario) addAdditionalAddressToAccount(username, address string, disabled bool) error {
+	userID := s.t.getUserID(username)
+
+	// Decrypt the user's encrypted ID for use with quark.
+	userDecID, err := s.t.runQuarkCmd(context.Background(), "encryption:id", "--decrypt", userID)
+	if err != nil {
+		return err
+	}
+
+	args := []string{
+		"--gen-keys", "RSA2048",
+	}
+
+	if disabled {
+		args = append(args, "--status", "1")
+	}
+
+	args = append(args,
+		string(userDecID),
+		s.t.getUserPass(userID),
+		address,
+	)
+
+	// Create the user's additional address.
+	if _, err := s.t.runQuarkCmd(
+		context.Background(),
+		"user:create:address",
+		args...,
+	); err != nil {
+		return err
+	}
+
+	return s.t.withClient(context.Background(), username, func(ctx context.Context, c *proton.Client) error {
+		addr, err := c.GetAddresses(ctx)
+		if err != nil {
+			return err
+		}
+
+		// Set the new address of the user.
+		s.t.setUserAddr(userID, addr[len(addr)-1].ID, address)
+
+		return nil
+	})
+}
+
+func (s *scenario) createUserAccount(username, password string, disabled bool) error {
+	// Create the user and generate its default address (with keys).
+
+	args := []string{
+		"--name", username,
+		"--password", password,
+		"--gen-keys", "RSA2048",
+	}
+
+	if disabled {
+		args = append(args, "--status", "1")
+	}
+
+	if _, err := s.t.runQuarkCmd(
+		context.Background(),
+		"user:create",
+		args...,
+	); err != nil {
+		return err
+	}
+
+	return s.t.withClientPass(context.Background(), username, password, func(ctx context.Context, c *proton.Client) error {
+		user, err := c.GetUser(ctx)
+		if err != nil {
+			return err
+		}
+
+		// Decrypt the user's encrypted ID for use with quark.
+		userDecID, err := s.t.runQuarkCmd(context.Background(), "encryption:id", "--decrypt", user.ID)
+		if err != nil {
+			return err
+		}
+
+		// Upgrade the user to a paid account.
+		if _, err := s.t.runQuarkCmd(
+			context.Background(),
+			"user:create:subscription",
+			"--planID", "plus",
+			string(userDecID),
+		); err != nil {
+			return err
+		}
+
+		addr, err := c.GetAddresses(ctx)
+		if err != nil {
+			return err
+		}
+
+		// Set the ID of the user.
+		s.t.setUserID(username, user.ID)
+
+		// Set the password of the user.
+		s.t.setUserPass(user.ID, password)
+
+		// Set the address of the user.
+		s.t.setUserAddr(user.ID, addr[0].ID, addr[0].Email)
+
+		return nil
+	})
 }

@@ -157,3 +157,11 @@ func (s *scenario) smtpClientSendsTheFollowingMessageFromTo(clientID, from, to s
 
 	return nil
 }
+
+func (s *scenario) smtpClientLogsOut(clientID string) error {
+	_, client := s.t.getSMTPClient(clientID)
+
+	s.t.pushError(client.Quit())
+
+	return nil
+}

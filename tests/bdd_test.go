@@ -110,7 +110,9 @@ func TestFeatures(testingT *testing.T) {
 
 			// ==== SETUP ====
 			ctx.Step(`^there exists an account with username "([^"]*)" and password "([^"]*)"$`, s.thereExistsAnAccountWithUsernameAndPassword)
+			ctx.Step(`^there exists a disabled account with username "([^"]*)" and password "([^"]*)"$`, s.thereExistsAnAccountWithUsernameAndPasswordWithDisablePrimary)
 			ctx.Step(`^the account "([^"]*)" has additional address "([^"]*)"$`, s.theAccountHasAdditionalAddress)
+			ctx.Step(`^the account "([^"]*)" has additional disabled address "([^"]*)"$`, s.theAccountHasAdditionalDisabledAddress)
 			ctx.Step(`^the account "([^"]*)" has additional address "([^"]*)" without keys$`, s.theAccountHasAdditionalAddressWithoutKeys)
 			ctx.Step(`^the account "([^"]*)" no longer has additional address "([^"]*)"$`, s.theAccountNoLongerHasAdditionalAddress)
 			ctx.Step(`^the account "([^"]*)" has (\d+) custom folders$`, s.theAccountHasCustomFolders)
@@ -220,6 +222,7 @@ func TestFeatures(testingT *testing.T) {
 			ctx.Step(`^SMTP client "([^"]*)" sends DATA:$`, s.smtpClientSendsData)
 			ctx.Step(`^SMTP client "([^"]*)" sends RSET$`, s.smtpClientSendsReset)
 			ctx.Step(`^SMTP client "([^"]*)" sends the following message from "([^"]*)" to "([^"]*)":$`, s.smtpClientSendsTheFollowingMessageFromTo)
+			ctx.Step(`^SMTP client "([^"]*)" logs out$`, s.smtpClientLogsOut)
 		},
 		Options: &godog.Options{
 			Format:   "pretty",
