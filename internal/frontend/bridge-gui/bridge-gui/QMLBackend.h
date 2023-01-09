@@ -45,10 +45,10 @@ public: // member functions.
     bool waitForEventStreamReaderToFinish(qint32 timeoutMs); ///< Wait for the event stream reader to finish.
 
     // invokable methods can be called from QML. They generally return a value, which slots cannot do.
-    Q_INVOKABLE static QPoint getCursorPos();
-    Q_INVOKABLE static bool isPortFree(int port);
-    Q_INVOKABLE static QString nativePath(QUrl const &url);
-    Q_INVOKABLE static bool areSameFileOrFolder(QUrl const &lhs, QUrl const &rhs);
+    Q_INVOKABLE static QPoint getCursorPos(); ///< Retrieve the cursor position.
+    Q_INVOKABLE static bool isPortFree(int port); ///< Check if a given network port is available.
+    Q_INVOKABLE static QString nativePath(QUrl const &url); ///< Retrieve the native path of a local URL.
+    Q_INVOKABLE static bool areSameFileOrFolder(QUrl const &lhs, QUrl const &rhs); ///< Check if two local URL point to the same file.
 
 public: // Qt/QML properties. Note that the NOTIFY-er signal is required even for read-only properties (QML warning otherwise)
     Q_PROPERTY(bool showOnStartup READ showOnStartup NOTIFY showOnStartupChanged)
@@ -83,237 +83,96 @@ public: // Qt/QML properties. Note that the NOTIFY-er signal is required even fo
 
 
     // Qt Property system setters & getters.
-    bool showOnStartup() const {
-        bool v = false;
-        app().grpc().showOnStartup(v);
-        return v;
-    };
-
-
-    bool showSplashScreen() const { return showSplashScreen_; };
-
-
-    void setShowSplashScreen(bool show) { if (show != showSplashScreen_) { showSplashScreen_ = show; emit showSplashScreenChanged(show); }}
-
-
-    QString goos() { return goos_; }
-
-
-    QUrl logsPath() const { return logsPath_; }
-
-
-    QUrl licensePath() const { return licensePath_; }
-
-
-    QUrl releaseNotesLink() const {
-        QUrl link;
-        app().grpc().releaseNotesPageLink(link);
-        return link;
-    }
-
-
-    QUrl dependencyLicensesLink() const {
-        QUrl link;
-        app().grpc().dependencyLicensesLink(link);
-        return link;
-    }
-
-
-    QUrl landingPageLink() const {
-        QUrl link;
-        app().grpc().landingPageLink(link);
-        return link;
-    }
-
-
-    QString appname() const { return QString(PROJECT_FULL_NAME); }
-
-
-    QString vendor() const { return QString(PROJECT_VENDOR); }
-
-
-    QString version() const {
-        QString version;
-        app().grpc().version(version);
-        return version;
-    }
-
-
-    QString hostname() const {
-        QString hostname;
-        app().grpc().hostname(hostname);
-        return hostname;
-    }
-
-
-    bool isAutostartOn() const {
-        bool v;
-        app().grpc().isAutostartOn(v);
-        return v;
-    };
-
-
-    bool isBetaEnabled() const {
-        bool v;
-        app().grpc().isBetaEnabled(v);
-        return v;
-    }
-
-
-    bool isAllMailVisible() const {
-        bool v;
-        app().grpc().isAllMailVisible(v);
-        return v;
-    }
-
-
-    QString colorSchemeName() const {
-        QString name;
-        app().grpc().colorSchemeName(name);
-        return name;
-    }
-
-
-    QUrl diskCachePath() const {
-        QUrl path;
-        app().grpc().diskCachePath(path);
-        return path;
-    }
-
-
-    bool useSSLForIMAP() const;
-    void setUseSSLForIMAP(bool value);
-    bool useSSLForSMTP() const;
-    void setUseSSLForSMTP(bool value);
-    int imapPort() const;
-    void setIMAPPort(int port);
-    int smtpPort() const;
-    void setSMTPPort(int port);
-
-
-    bool isDoHEnabled() const {
-        bool isEnabled;
-        app().grpc().isDoHEnabled(isEnabled);
-        return isEnabled;
-    }
-
-
-    bool isFirstGUIStart() const {
-        bool v;
-        app().grpc().isFirstGUIStart(v);
-        return v;
-    };
-
-
-    bool isAutomaticUpdateOn() const {
-        bool isOn = false;
-        app().grpc().isAutomaticUpdateOn(isOn);
-        return isOn;
-    }
-
-
-    QString currentEmailClient() {
-        QString client;
-        app().grpc().currentEmailClient(client);
-        return client;
-    }
-
-
-    QStringList availableKeychain() const {
-        QStringList keychains;
-        app().grpc().availableKeychains(keychains);
-        return keychains;
-    }
-
-
-    QString currentKeychain() const {
-        QString keychain;
-        app().grpc().currentKeychain(keychain);
-        return keychain;
-    }
-
-
-    bool dockIconVisible() const { return getDockIconVisibleState(); };
-
-
-    void setDockIconVisible(bool visible) { setDockIconVisibleState(visible); emit dockIconVisibleChanged(visible); }
-
+    bool showOnStartup() const; ///< Getter for the 'showOnStartup' property.
+    void setShowSplashScreen(bool show);  ///< Setter for the 'showSplashScreen' property.
+    bool showSplashScreen() const; ///< Getter for the 'showSplashScreen' property.
+    QString goos(); ///< Getter for the 'GOOS' property.
+    QUrl logsPath() const; ///< Getter for the 'logsPath' property.
+    QUrl licensePath() const; ///< Getter for the 'licensePath' property.
+    QUrl releaseNotesLink() const;///< Getter for the 'releaseNotesLink' property.
+    QUrl dependencyLicensesLink() const; ///< Getter for the 'dependencyLicenseLink' property.
+    QUrl landingPageLink() const; ///< Getter for the 'landingPageLink' property.
+    QString appname() const; ///< Getter for the 'appname' property.
+    QString vendor() const; ///< Getter for the 'vendor' property.
+    QString version() const; ///< Getter for the 'version' property.
+    QString hostname() const; ///< Getter for the 'hostname' property.
+    bool isAutostartOn() const; ///< Getter for the 'isAutostartOn' property.
+    bool isBetaEnabled() const; ///< Getter for the 'isBetaEnabled' property.
+    bool isAllMailVisible() const; ///< Getter for the 'isAllMailVisible' property.
+    QString colorSchemeName() const; ///< Getter for the 'colorSchemeName' property.
+    QUrl diskCachePath() const; ///< Getter for the 'diskCachePath' property.
+    void setUseSSLForIMAP(bool value); ///< Setter for the 'useSSLForIMAP' property.
+    bool useSSLForIMAP() const; ///< Getter for the 'useSSLForIMAP' property.
+    void setUseSSLForSMTP(bool value); ///< Setter for the 'useSSLForSMTP' property.
+    bool useSSLForSMTP() const; ///< Getter for the 'useSSLForSMTP' property.
+    void setIMAPPort(int port); ///< Setter for the 'imapPort' property.
+    int imapPort() const; ///< Getter for the 'imapPort' property.
+    void setSMTPPort(int port); ///< Setter for the 'smtpPort' property.
+    int smtpPort() const; ///< Getter for the 'smtpPort' property.
+    bool isDoHEnabled() const; ///< Getter for the 'isDoHEnabled' property.
+    bool isFirstGUIStart() const; ///< Getter for the 'isFirstGUIStart' property.
+    bool isAutomaticUpdateOn() const; ///< Getter for the 'isAutomaticUpdateOn' property.
+    QString currentEmailClient(); ///< Getter for the 'currentEmail' property.
+    QStringList availableKeychain() const; ///< Getter for the 'availableKeychain' property.
+    QString currentKeychain() const; ///< Getter for the 'currentKeychain' property.
+    void setDockIconVisible(bool visible); ///< Setter for the 'dockIconVisible' property.
+    bool dockIconVisible() const;; ///< Getter for the 'dockIconVisible' property.
 
 signals: // Signal used by the Qt property system. Many of them are unused but required to avoid warning from the QML engine.
-    void showSplashScreenChanged(bool value);
-    void showOnStartupChanged(bool value);
-    void goosChanged(QString const &value);
-    void diskCachePathChanged(QUrl const &url);
-    void imapPortChanged(int port);
-    void smtpPortChanged(int port);
-    void useSSLForSMTPChanged(bool value);
-    void useSSLForIMAPChanged(bool value);
-    void isAutomaticUpdateOnChanged(bool value);
-    void isBetaEnabledChanged(bool value);
-    void isAllMailVisibleChanged(bool value);
-    void colorSchemeNameChanged(QString const &scheme);
-    void isDoHEnabledChanged(bool value);
-    void logsPathChanged(QUrl const &path);
-    void licensePathChanged(QUrl const &path);
-    void releaseNotesLinkChanged(QUrl const &link);
-    void dependencyLicensesLinkChanged(QUrl const &link);
-    void landingPageLinkChanged(QUrl const &link);
-    void appnameChanged(QString const &appname);
-    void vendorChanged(QString const &vendor);
-    void versionChanged(QString const &version);
-    void currentEmailClientChanged(QString const &email);
-    void currentKeychainChanged(QString const &keychain);
-    void availableKeychainChanged(QStringList const &keychains);
-    void hostnameChanged(QString const &hostname);
-    void isAutostartOnChanged(bool value);
-    void usersChanged(UserList *users);
-    void dockIconVisibleChanged(bool value);
+    void showSplashScreenChanged(bool value); ///<Signal for the change of the 'showSplashScreen' property.
+    void showOnStartupChanged(bool value); ///<Signal for the change of the 'showOnStartup' property.
+    void goosChanged(QString const &value); ///<Signal for the change of the 'GOOS' property.
+    void diskCachePathChanged(QUrl const &url); ///<Signal for the change of the 'diskCachePath' property.
+    void imapPortChanged(int port); ///<Signal for the change of the 'imapPort' property.
+    void smtpPortChanged(int port); ///<Signal for the change of the 'smtpPort' property.
+    void useSSLForSMTPChanged(bool value); ///<Signal for the change of the 'useSSLForSMTP' property.
+    void useSSLForIMAPChanged(bool value); ///<Signal for the change of the 'useSSLForIMAP' property.
+    void isAutomaticUpdateOnChanged(bool value); ///<Signal for the change of the 'isAutomaticUpdateOn' property.
+    void isBetaEnabledChanged(bool value); ///<Signal for the change of the 'isBetaEnabled' property.
+    void isAllMailVisibleChanged(bool value); ///<Signal for the change of the 'isAllMailVisible' property.
+    void colorSchemeNameChanged(QString const &scheme); ///<Signal for the change of the 'colorSchemeName' property.
+    void isDoHEnabledChanged(bool value); ///<Signal for the change of the 'isDoHEnabled' property.
+    void logsPathChanged(QUrl const &path); ///<Signal for the change of the 'logsPath' property.
+    void licensePathChanged(QUrl const &path); ///<Signal for the change of the 'licensePath' property.
+    void releaseNotesLinkChanged(QUrl const &link); ///<Signal for the change of the 'releaseNotesLink' property.
+    void dependencyLicensesLinkChanged(QUrl const &link); ///<Signal for the change of the 'dependencyLicensesLink' property.
+    void landingPageLinkChanged(QUrl const &link); ///<Signal for the change of the 'landingPageLink' property.
+    void appnameChanged(QString const &appname); ///<Signal for the change of the 'appname' property.
+    void vendorChanged(QString const &vendor); ///<Signal for the change of the 'vendor' property.
+    void versionChanged(QString const &version); ///<Signal for the change of the 'version' property.
+    void currentEmailClientChanged(QString const &email); ///<Signal for the change of the 'currentEmailClient' property.
+    void currentKeychainChanged(QString const &keychain); ///<Signal for the change of the 'currentKeychain' property.
+    void availableKeychainChanged(QStringList const &keychains); ///<Signal for the change of the 'availableKeychain' property.
+    void hostnameChanged(QString const &hostname); ///<Signal for the change of the 'hostname' property.
+    void isAutostartOnChanged(bool value); ///<Signal for the change of the 'isAutostartOn' property.
+    void usersChanged(UserList *users); ///<Signal for the change of the 'users' property.
+    void dockIconVisibleChanged(bool value); ///<Signal for the change of the 'dockIconVisible' property.
 
 public slots: // slot for signals received from QML -> To be forwarded to Bridge via RPC Client calls.
-    void toggleAutostart(bool active);
-    void toggleBeta(bool active);
-    void changeIsAllMailVisible(bool isVisible);
-    void changeColorScheme(QString const &scheme);
-    void setDiskCachePath(QUrl const &path) const;
-
-
-    void login(QString const &username, QString const &password) { app().grpc().login(username, password); }
-
-
-    void login2FA(QString const &username, QString const &code) { app().grpc().login2FA(username, code); }
-
-
-    void login2Password(QString const &username, QString const &password) { app().grpc().login2Passwords(username, password); }
-
-
-    void loginAbort(QString const &username) { app().grpc().loginAbort(username); }
-
-
-    void toggleDoH(bool active);
-    void toggleAutomaticUpdate(bool makeItActive);
-
-
-    void updateCurrentMailClient() { emit currentEmailClientChanged(currentEmailClient()); }
-
-
-    void changeKeychain(QString const &keychain);
-    void guiReady();
-    void quit();
-    void restart();
-    void forceLauncher(QString launcher);
-    void checkUpdates();
-    void installUpdate();
-    void triggerReset();
-
-
-    void reportBug(QString const &description, QString const &address, QString const &emailClient, bool includeLogs) {
-        app().grpc().reportBug(description, address, emailClient, includeLogs);
-    }
-
-
-    void exportTLSCertificates();
-    void onResetFinished();
-    void onVersionChanged();
+    void toggleAutostart(bool active); ///< Slot for the autostart toggle.
+    void toggleBeta(bool active); ///< Slot for the beta toggle.
+    void changeIsAllMailVisible(bool isVisible); ///< Slot for the changing of 'All Mail' visibility.
+    void changeColorScheme(QString const &scheme); ///< Slot for the change of the theme.
+    void setDiskCachePath(QUrl const &path) const; ///< Slot for the change of the disk cache path.
+    void login(QString const &username, QString const &password); ///< Slot for the login button (initial login).
+    void login2FA(QString const &username, QString const &code); ///< Slot for the login button (2FA login).
+    void login2Password(QString const &username, QString const &password); ///< Slot for the login button (mailbox password login).
+    void loginAbort(QString const &username); ///< Slot for the login abort procedure.
+    void toggleDoH(bool active); ///, Slot for the DoH toggle.
+    void toggleAutomaticUpdate(bool makeItActive); ///< Slot for the automatic update toggle
+    void updateCurrentMailClient(); ///< Slot for the change of the current mail client.
+    void changeKeychain(QString const &keychain); ///< Slot for the change of keychain.
+    void guiReady(); ///< Slot for the GUI ready signal.
+    void quit(); ///< Slot for the quit signal.
+    void restart(); ///< Slot for the restart signal.
+    void forceLauncher(QString launcher); ///< Slot for the change of the launcher.
+    void checkUpdates(); ///< Slot for the update check.
+    void installUpdate(); ///< Slot for the update install.
+    void triggerReset(); ///< Slot for the triggering of reset.
+    void reportBug(QString const &description, QString const &address, QString const &emailClient, bool includeLogs); ///< Slot for the bug report.
+    void exportTLSCertificates(); ///< Slot for the export of the TLS certificates.
+    void onResetFinished(); ///< Slot for the reset finish signal.
+    void onVersionChanged(); ///< Slot for the version change signal.
     void setMailServerSettings(int imapPort, int smtpPort, bool useSSLForIMAP, bool useSSLForSMTP); ///< Forwards a connection mode change request from QML to gRPC
 
 public slots: // slot for signals received from gRPC that need transformation instead of simple forwarding
@@ -323,55 +182,55 @@ public slots: // slot for signals received from gRPC that need transformation in
     void onLoginAlreadyLoggedIn(QString const &userID); ///< Slot for the LoginAlreadyLoggedIn gRPC event.
 
 signals: // Signals received from the Go backend, to be forwarded to QML
-    void toggleAutostartFinished();
-    void diskCacheUnavailable();
-    void cantMoveDiskCache();
-    void diskCachePathChangeFinished();
-    void diskFull();
-    void loginUsernamePasswordError(QString const &errorMsg);
-    void loginFreeUserError();
-    void loginConnectionError(QString const &errorMsg);
-    void login2FARequested(QString const &username);
-    void login2FAError(QString const &errorMsg);
-    void login2FAErrorAbort(QString const &errorMsg);
-    void login2PasswordRequested();
-    void login2PasswordError(QString const &errorMsg);
-    void login2PasswordErrorAbort(QString const &errorMsg);
-    void loginFinished(int index, bool wasSignedOut);
-    void loginAlreadyLoggedIn(int index);
-    void updateManualReady(QString const &version);
-    void updateManualRestartNeeded();
-    void updateManualError();
-    void updateForce(QString const &version);
-    void updateForceError();
-    void updateSilentRestartNeeded();
-    void updateSilentError();
-    void updateIsLatestVersion();
-    void checkUpdatesFinished();
-    void imapPortStartupError();
-    void smtpPortStartupError();
-    void imapPortChangeError();
-    void smtpPortChangeError();
-    void imapConnectionModeChangeError();
-    void smtpConnectionModeChangeError();
-    void changeMailServerSettingsFinished();
-    void changeKeychainFinished();
-    void notifyHasNoKeychain();
-    void notifyRebuildKeychain();
-    void noActiveKeyForRecipient(QString const &email);
-    void addressChanged(QString const &address);
-    void addressChangedLogout(QString const &address);
-    void apiCertIssue();
-    void userDisconnected(QString const &username);
-    void internetOff();
-    void internetOn();
-    void resetFinished();
-    void reportBugFinished();
-    void bugReportSendSuccess();
-    void bugReportSendError();
-    void showMainWindow();
-    void hideMainWindow();
-    void genericError(QString const &title, QString const &description);
+    void toggleAutostartFinished(); ///< Signal for the 'toggleAutostartFinished' gRPC stream event.
+    void diskCacheUnavailable(); ///< Signal for the 'diskCacheUnavailable' gRPC stream event.
+    void cantMoveDiskCache(); ///< Signal for the 'cantMoveDiskCache' gRPC stream event.
+    void diskCachePathChangeFinished(); ///< Signal for the 'diskCachePathChangeFinished' gRPC stream event.
+    void diskFull(); ///< Signal for the 'diskFull' gRPC stream event.
+    void loginUsernamePasswordError(QString const &errorMsg); ///< Signal for the 'loginUsernamePasswordError' gRPC stream event.
+    void loginFreeUserError(); ///< Signal for the 'loginFreeUserError' gRPC stream event.
+    void loginConnectionError(QString const &errorMsg); ///< Signal for the 'loginConnectionError' gRPC stream event.
+    void login2FARequested(QString const &username); ///< Signal for the 'login2FARequested' gRPC stream event.
+    void login2FAError(QString const &errorMsg); ///< Signal for the 'login2FAError' gRPC stream event.
+    void login2FAErrorAbort(QString const &errorMsg); ///< Signal for the 'login2FAErrorAbort' gRPC stream event.
+    void login2PasswordRequested(); ///< Signal for the 'login2PasswordRequested' gRPC stream event.
+    void login2PasswordError(QString const &errorMsg); ///< Signal for the 'login2PasswordError' gRPC stream event.
+    void login2PasswordErrorAbort(QString const &errorMsg); ///< Signal for the 'login2PasswordErrorAbort' gRPC stream event.
+    void loginFinished(int index, bool wasSignedOut); ///< Signal for the 'loginFinished' gRPC stream event.
+    void loginAlreadyLoggedIn(int index); ///< Signal for the 'loginAlreadyLoggedIn' gRPC stream event.
+    void updateManualReady(QString const &version); ///< Signal for the 'updateManualReady' gRPC stream event.
+    void updateManualRestartNeeded(); ///< Signal for the 'updateManualRestartNeeded' gRPC stream event.
+    void updateManualError(); ///< Signal for the 'updateManualError' gRPC stream event.
+    void updateForce(QString const &version); ///< Signal for the 'updateForce' gRPC stream event.
+    void updateForceError(); ///< Signal for the 'updateForceError' gRPC stream event.
+    void updateSilentRestartNeeded(); ///< Signal for the 'updateSilentRestartNeeded' gRPC stream event.
+    void updateSilentError(); ///< Signal for the 'updateSilentError' gRPC stream event.
+    void updateIsLatestVersion(); ///< Signal for the 'updateIsLatestVersion' gRPC stream event.
+    void checkUpdatesFinished(); ///< Signal for the 'checkUpdatesFinished' gRPC stream event.
+    void imapPortStartupError(); ///< Signal for the 'imapPortStartupError' gRPC stream event.
+    void smtpPortStartupError(); ///< Signal for the 'smtpPortStartupError' gRPC stream event.
+    void imapPortChangeError(); ///< Signal for the 'imapPortChangeError' gRPC stream event.
+    void smtpPortChangeError(); ///< Signal for the 'smtpPortChangeError' gRPC stream event.
+    void imapConnectionModeChangeError(); ///< Signal for the 'imapConnectionModeChangeError' gRPC stream event.
+    void smtpConnectionModeChangeError(); ///< Signal for the 'smtpConnectionModeChangeError' gRPC stream event.
+    void changeMailServerSettingsFinished(); ///< Signal for the 'changeMailServerSettingsFinished' gRPC stream event.
+    void changeKeychainFinished(); ///< Signal for the 'changeKeychainFinished' gRPC stream event.
+    void notifyHasNoKeychain(); ///< Signal for the 'notifyHasNoKeychain' gRPC stream event.
+    void notifyRebuildKeychain(); ///< Signal for the 'notifyRebuildKeychain' gRPC stream event.
+    void noActiveKeyForRecipient(QString const &email); ///< Signal for the 'noActiveKeyForRecipient' gRPC stream event.
+    void addressChanged(QString const &address); ///< Signal for the 'addressChanged' gRPC stream event.
+    void addressChangedLogout(QString const &address); ///< Signal for the 'addressChangedLogout' gRPC stream event.
+    void apiCertIssue(); ///< Signal for the 'apiCertIssue' gRPC stream event.
+    void userDisconnected(QString const &username); ///< Signal for the 'userDisconnected' gRPC stream event.
+    void internetOff(); ///< Signal for the 'internetOff' gRPC stream event.
+    void internetOn(); ///< Signal for the 'internetOn' gRPC stream event.
+    void resetFinished(); ///< Signal for the 'resetFinished' gRPC stream event.
+    void reportBugFinished(); ///< Signal for the 'reportBugFinished' gRPC stream event.
+    void bugReportSendSuccess(); ///< Signal for the 'bugReportSendSuccess' gRPC stream event.
+    void bugReportSendError(); ///< Signal for the 'bugReportSendError' gRPC stream event.
+    void showMainWindow(); ///< Signal for the 'showMainWindow' gRPC stream event.
+    void hideMainWindow(); ///< Signal for the 'hideMainWindow' gRPC stream event.
+    void genericError(QString const &title, QString const &description); ///< Signal for the 'genericError' gRPC stream event.
 
 private: // member functions
     void retrieveUserList(); ///< Retrieve the list of users via gRPC.
