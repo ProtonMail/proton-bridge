@@ -18,6 +18,8 @@
 package bridge
 
 import (
+	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 )
@@ -58,6 +60,78 @@ func moveFile(from, to string) error {
 
 	if err := os.Rename(from, to); err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func copyDir(from, to string) error {
+	entries, err := os.ReadDir(from)
+	if err != nil {
+		return err
+	}
+	if err := createIfNotExists(to, 0o700); err != nil {
+		return err
+	}
+	for _, entry := range entries {
+		sourcePath := filepath.Join(from, entry.Name())
+		destPath := filepath.Join(to, entry.Name())
+
+		if entry.IsDir() {
+			if err := copyDir(sourcePath, destPath); err != nil {
+				return err
+			}
+		} else {
+			if err := copyFile(sourcePath, destPath); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func copyFile(srcFile, dstFile string) error {
+	out, err := os.Create(filepath.Clean(dstFile))
+	defer func(out *os.File) {
+		_ = out.Close()
+	}(out)
+
+	if err != nil {
+		return err
+	}
+
+	in, err := os.Open(filepath.Clean(srcFile))
+	defer func(in *os.File) {
+		_ = in.Close()
+	}(in)
+
+	if err != nil {
+		return err
+	}
+
+	_, err = io.Copy(out, in)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func exists(filePath string) bool {
+	if _, err := os.Stat(filePath); os.IsNotExist(err) {
+		return false
+	}
+
+	return true
+}
+
+func createIfNotExists(dir string, perm os.FileMode) error {
+	if exists(dir) {
+		return nil
+	}
+
+	if err := os.MkdirAll(dir, perm); err != nil {
+		return fmt.Errorf("failed to create directory: '%s', error: '%s'", dir, err.Error())
 	}
 
 	return nil
