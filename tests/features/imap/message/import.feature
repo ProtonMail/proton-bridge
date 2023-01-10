@@ -136,7 +136,7 @@ Feature: IMAP import messages
       | foo@example.com | bridgetest@pm.test | Hello   | Hello |
     And IMAP client "1" sees 0 messages in "Inbox"
 
-  Scenario Outline: Import message without sender
+  Scenario Outline: Import message without sender to <mailbox>
     When IMAP client "1" appends the following message to "<mailbox>":
       """
       To: Lionel Richie <lionel@richie.com>

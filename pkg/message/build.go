@@ -381,6 +381,18 @@ func writeMultipartEncryptedRFC822(header message.Header, body []byte) ([]byte, 
 	return buf.Bytes(), nil
 }
 
+func addressEmpty(address *mail.Address) bool {
+	if address == nil {
+		return true
+	}
+
+	if address.Name == "" && address.Address == "" {
+		return true
+	}
+
+	return false
+}
+
 func getMessageHeader(msg proton.Message, opts JobOptions) message.Header { //nolint:funlen
 	hdr := toMessageHeader(msg.ParsedHeaders)
 
@@ -390,12 +402,14 @@ func getMessageHeader(msg proton.Message, opts JobOptions) message.Header { //no
 	}
 
 	// mail.Address.String() will RFC2047-encode if necessary.
-	if msg.Sender != nil {
+	if !addressEmpty(msg.Sender) {
 		hdr.Set("From", msg.Sender.String())
 	}
 
 	if len(msg.ReplyTos) > 0 {
-		hdr.Set("Reply-To", toAddressList(msg.ReplyTos))
+		if !(len(msg.ReplyTos) == 1 && addressEmpty(msg.ReplyTos[0])) {
+			hdr.Set("Reply-To", toAddressList(msg.ReplyTos))
+		}
 	}
 
 	if len(msg.ToList) > 0 {
