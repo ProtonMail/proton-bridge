@@ -50,7 +50,9 @@ QString const exeSuffix = ".exe";
 QString const exeSuffix;
 #endif
 
-QString const bridgeLock = "bridge-v3-gui.lock"; ///< file name used for the lock file.
+
+QString const bridgeLock = "bridge-v3.lock"; ///< The file name used for the bridge-gui lock file.
+QString const bridgeGUILock = "bridge-v3-gui.lock"; ///< The file name used for the bridge-gui lock file.
 QString const exeName = "bridge" + exeSuffix; ///< The bridge executable file name.*
 qint64 const grpcServiceConfigWaitDelayMs = 180000; ///< The wait delay for the gRPC config file in milliseconds.
 
@@ -205,21 +207,17 @@ QUrl getApiUrl() {
 
 
 //****************************************************************************************************************************************************
-/// \return The URL for the focus endpoint of the bridge API URL.
-//****************************************************************************************************************************************************
-QUrl getFocusUrl() {
-    QUrl url = getApiUrl();
-    url.setPath("/focus");
-    return url;
-}
-
-
-//****************************************************************************************************************************************************
+/// \brief Check if bridge is running.
+///
+/// The check is performed by trying to create a lock file for bridge. Priority is to avoid false positive, so we only return true if the locking
+/// attempt failed because the file is locked. Any other error (PermissionError, UnknownError) do not lead to considering bridge is running.
+/// \note QLockFile removes the lock file in it destructor. So it's removed on function exit if acquired.
+///
 /// \return true if an instance of bridge is already running.
 //****************************************************************************************************************************************************
 bool isBridgeRunning() {
-    FocusGRPCClient client;
-    return client.connectToServer(500); // we time out after 1 second and consider no other instance is running;
+    QLockFile lockFile(QDir(userCacheDir()).absoluteFilePath(bridgeLock));
+    return (!lockFile.tryLock()) && (lockFile.error() == QLockFile::LockFailedError);
 }
 
 
@@ -319,7 +317,7 @@ int main(int argc, char *argv[]) {
 
         Log &log = initLog();
 
-        QLockFile lock(bridgepp::userCacheDir() + "/" + bridgeLock);
+        QLockFile lock(bridgepp::userCacheDir() + "/" + bridgeGUILock);
         if (!checkSingleInstance(lock)) {
             focusOtherInstance();
             return EXIT_FAILURE;
