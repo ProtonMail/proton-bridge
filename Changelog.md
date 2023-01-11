@@ -2,6 +2,34 @@
 
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
+
+## [Bridge 3.0.10] Perth Narrows
+
+### Changed
+* GODT-2205: use lock file in bridge-gui to detect orphan bridge.
+* GODT-2229: Allow changing cache folder to a non-empty folder.
+* GODT-2242: Bump GPA - Don't send any 2fa information if not needed.
+* GODT-2179: added handler for exceptions in QML backend methods.
+* GODT-2181: Match live API behaviour.
+* GODT-2221: Set DOH off by default.
+* GODT-1817: Re-enable all integration tests.
+* Other: C++ Code reformat.
+* GODT-2234: added command-line switch to force Qt to use software rendering for QML.
+* Other: added C/C++ header template file (*.h.in) type to missing_license.sh script.
+* GODT-2236: add log entry when SMTP / IMAP serve method fails.
+* Other: reorganised QMLBackend class code.
+
+### Fixed
+* Other: Flag messages imported into "Sent" mailbox as Sent.
+* Other: Fix testCtx.getMBoxID().
+* Other: Fixed GUI Tester to comply with latest gRPC changes.
+* GODT-2010: add Cocoa app delegate handler for second application instance.
+* Other: Fix double close on event channels.
+* GODT-2233: Fix sub folder creation bug.
+* GODT-2222: Dot not error on unknown Address Events.
+* GODT-2218: Fix invalid UID ranges.
+
+
 ## [Bridge 3.0.9] Perth Narrows
 
 ### Changed
