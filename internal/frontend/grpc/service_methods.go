@@ -591,7 +591,7 @@ func (s *Service) IsAutomaticUpdateOn(ctx context.Context, _ *emptypb.Empty) (*w
 func (s *Service) DiskCachePath(ctx context.Context, _ *emptypb.Empty) (*wrapperspb.StringValue, error) {
 	s.log.Debug("DiskCachePath")
 
-	return wrapperspb.String(s.bridge.GetGluonCacheDir()), nil
+	return wrapperspb.String(s.bridge.GetGluonDir()), nil
 }
 
 func (s *Service) SetDiskCachePath(ctx context.Context, newPath *wrapperspb.StringValue) (*emptypb.Empty, error) {
@@ -609,14 +609,14 @@ func (s *Service) SetDiskCachePath(ctx context.Context, newPath *wrapperspb.Stri
 			path = path[1:]
 		}
 
-		if path != s.bridge.GetGluonCacheDir() {
+		if path != s.bridge.GetGluonDir() {
 			if err := s.bridge.SetGluonDir(context.Background(), path); err != nil {
 				s.log.WithError(err).Error("The local cache location could not be changed.")
 				_ = s.SendEvent(NewDiskCacheErrorEvent(DiskCacheErrorType_CANT_MOVE_DISK_CACHE_ERROR))
 				return
 			}
 
-			_ = s.SendEvent(NewDiskCachePathChangedEvent(s.bridge.GetGluonCacheDir()))
+			_ = s.SendEvent(NewDiskCachePathChangedEvent(s.bridge.GetGluonDir()))
 		}
 	}()
 

@@ -199,13 +199,13 @@ func (bridge *Bridge) handleIMAPEvent(event imapEvents.Event) {
 }
 
 func getGluonDir(encVault *vault.Vault) (string, error) {
-	empty, exists, err := isEmpty(encVault.GetGluonCacheDir())
+	empty, exists, err := isEmpty(encVault.GetGluonDir())
 	if err != nil {
 		return "", fmt.Errorf("failed to check if gluon dir is empty: %w", err)
 	}
 
 	if !exists {
-		if err := os.MkdirAll(encVault.GetGluonCacheDir(), 0o700); err != nil {
+		if err := os.MkdirAll(encVault.GetGluonDir(), 0o700); err != nil {
 			return "", fmt.Errorf("failed to create gluon dir: %w", err)
 		}
 	}
@@ -218,12 +218,12 @@ func getGluonDir(encVault *vault.Vault) (string, error) {
 		}
 	}
 
-	return encVault.GetGluonCacheDir(), nil
+	return encVault.GetGluonDir(), nil
 }
 
 // nolint:funlen
 func newIMAPServer(
-	gluonDir, gluonDBDir string,
+	gluonDir string,
 	version *semver.Version,
 	tlsConfig *tls.Config,
 	reporter reporter.Reporter,
@@ -264,7 +264,6 @@ func newIMAPServer(
 	imapServer, err := gluon.New(
 		gluon.WithTLS(tlsConfig),
 		gluon.WithDataDir(gluonDir),
-		gluon.WithDatabaseDir(gluonDBDir),
 		gluon.WithStoreBuilder(new(storeBuilder)),
 		gluon.WithLogger(imapClientLog, imapServerLog),
 		getGluonVersionInfo(version),

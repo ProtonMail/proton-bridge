@@ -148,17 +148,6 @@ func (l *Locations) ProvideGluonPath() (string, error) {
 	return l.getGluonPath(), nil
 }
 
-// ProvideGluonDatabasePath returns a location for gluon database.
-// It creates it if it doesn't already exist.
-func (l *Locations) ProvideGluonDatabasePath() (string, error) {
-	dbPath := filepath.Join(l.userData, "gluonDB")
-	if err := os.MkdirAll(dbPath, 0o700); err != nil {
-		return "", err
-	}
-
-	return dbPath, nil
-}
-
 // ProvideLogsPath returns a location for user logs (e.g. ~/.local/share/<company>/<app>/logs).
 // It creates it if it doesn't already exist.
 func (l *Locations) ProvideLogsPath() (string, error) {

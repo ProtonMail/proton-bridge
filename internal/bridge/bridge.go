@@ -221,14 +221,8 @@ func newBridge(
 		return nil, fmt.Errorf("failed to get Gluon directory: %w", err)
 	}
 
-	gluonDBDir, err := locator.ProvideGluonDatabasePath()
-	if err != nil {
-		return nil, fmt.Errorf("failed to get Gluon Database directory: %w", err)
-	}
-
 	imapServer, err := newIMAPServer(
 		gluonDir,
-		gluonDBDir,
 		curVersion,
 		tlsConfig,
 		reporter,

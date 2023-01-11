@@ -67,13 +67,13 @@ func TestVault_Settings_GluonDir(t *testing.T) {
 	require.False(t, corrupt)
 
 	// Check the default gluon dir.
-	require.Equal(t, "/path/to/gluon", s.GetGluonCacheDir())
+	require.Equal(t, "/path/to/gluon", s.GetGluonDir())
 
 	// Modify the gluon dir.
 	require.NoError(t, s.SetGluonDir("/tmp/gluon"))
 
 	// Check the new gluon dir.
-	require.Equal(t, "/tmp/gluon", s.GetGluonCacheDir())
+	require.Equal(t, "/tmp/gluon", s.GetGluonDir())
 }
 
 func TestVault_Settings_UpdateChannel(t *testing.T) {

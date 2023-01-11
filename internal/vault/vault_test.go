@@ -89,7 +89,7 @@ func TestVault_Reset(t *testing.T) {
 	require.Equal(t, 5678, s.GetSMTPPort())
 
 	// Reset.
-	require.NoError(t, s.Reset(s.GetGluonCacheDir()))
+	require.NoError(t, s.Reset(s.GetGluonDir()))
 
 	// The data is gone.
 	require.Equal(t, 1143, s.GetIMAPPort())

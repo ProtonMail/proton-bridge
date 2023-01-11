@@ -23,7 +23,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"path/filepath"
+	"runtime"
 	"sync"
 	"testing"
 	"time"
@@ -361,7 +361,7 @@ func TestBridge_MissingGluonDir(t *testing.T) {
 			require.NoError(t, bridge.SetGluonDir(ctx, t.TempDir()))
 
 			// Get the gluon dir.
-			gluonDir = bridge.GetGluonCacheDir()
+			gluonDir = bridge.GetGluonDir()
 		})
 
 		// The user removes the gluon dir while bridge is not running.
@@ -456,11 +456,24 @@ func TestBridge_FactoryReset(t *testing.T) {
 	})
 }
 
+func TestBridge_ChangeCacheDirectoryFailsBetweenDifferentVolumes(t *testing.T) {
+	if runtime.GOOS != "windows" {
+		t.Skip("Test only necessary on windows")
+	}
+	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, vaultKey []byte) {
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, vaultKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+			// Change directory
+			err := bridge.SetGluonDir(ctx, "XX:\\")
+			require.Error(t, err)
+		})
+	})
+}
+
 func TestBridge_ChangeCacheDirectory(t *testing.T) {
 	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, vaultKey []byte) {
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, vaultKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
 			newCacheDir := t.TempDir()
-			currentCacheDir := bridge.GetGluonCacheDir()
+			currentCacheDir := bridge.GetGluonDir()
 
 			// Login the user.
 			userID, err := bridge.LoginFull(ctx, username, password, nil, nil)
@@ -477,7 +490,7 @@ func TestBridge_ChangeCacheDirectory(t *testing.T) {
 			_, err = os.ReadDir(currentCacheDir)
 			require.True(t, os.IsNotExist(err))
 
-			require.Equal(t, filepath.Join(newCacheDir, "gluon"), bridge.GetGluonCacheDir())
+			require.Equal(t, newCacheDir, bridge.GetGluonDir())
 		})
 	})
 }
