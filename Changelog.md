@@ -7,7 +7,6 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 ### Changed
 * GODT-2205: use lock file in bridge-gui to detect orphan bridge.
-* GODT-2229: Allow changing cache folder to a non-empty folder.
 * GODT-2242: Bump GPA - Don't send any 2fa information if not needed.
 * GODT-2179: added handler for exceptions in QML backend methods.
 * GODT-2181: Match live API behaviour.
