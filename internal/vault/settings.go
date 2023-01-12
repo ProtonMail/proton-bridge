@@ -70,8 +70,8 @@ func (vault *Vault) SetSMTPSSL(ssl bool) error {
 	})
 }
 
-// GetGluonDir sets the directory where the gluon should store its data.
-func (vault *Vault) GetGluonDir() string {
+// GetGluonCacheDir sets the directory where the gluon should store its data.
+func (vault *Vault) GetGluonCacheDir() string {
 	return vault.get().Settings.GluonDir
 }
 

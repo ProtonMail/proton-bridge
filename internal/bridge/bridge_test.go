@@ -23,7 +23,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"runtime"
+	"path/filepath"
 	"sync"
 	"testing"
 	"time"
@@ -35,6 +35,7 @@ import (
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/ProtonMail/proton-bridge/v3/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/v3/internal/certs"
+	"github.com/ProtonMail/proton-bridge/v3/internal/constants"
 	"github.com/ProtonMail/proton-bridge/v3/internal/cookies"
 	"github.com/ProtonMail/proton-bridge/v3/internal/events"
 	"github.com/ProtonMail/proton-bridge/v3/internal/focus"
@@ -45,6 +46,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/v3/internal/vault"
 	"github.com/ProtonMail/proton-bridge/v3/tests"
 	"github.com/bradenaw/juniper/xslices"
+	"github.com/emersion/go-imap/client"
 	"github.com/stretchr/testify/require"
 )
 
@@ -349,7 +351,7 @@ func TestBridge_BadVaultKey(t *testing.T) {
 	})
 }
 
-func TestBridge_MissingGluonDir(t *testing.T) {
+func TestBridge_MissingGluonStore(t *testing.T) {
 	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, vaultKey []byte) {
 		var gluonDir string
 
@@ -361,13 +363,36 @@ func TestBridge_MissingGluonDir(t *testing.T) {
 			require.NoError(t, bridge.SetGluonDir(ctx, t.TempDir()))
 
 			// Get the gluon dir.
-			gluonDir = bridge.GetGluonDir()
+			gluonDir = bridge.GetGluonCacheDir()
 		})
 
 		// The user removes the gluon dir while bridge is not running.
 		require.NoError(t, os.RemoveAll(gluonDir))
 
-		// Bridge starts but can't find the gluon dir; there should be no error.
+		// Bridge starts but can't find the gluon store dir; there should be no error.
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, vaultKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+			// ...
+		})
+	})
+}
+
+func TestBridge_MissingGluonDatabase(t *testing.T) {
+	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, vaultKey []byte) {
+		var gluonDir string
+
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, vaultKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+			_, err := bridge.LoginFull(context.Background(), username, password, nil, nil)
+			require.NoError(t, err)
+
+			// Get the gluon dir.
+			gluonDir, err = bridge.GetGluonConfigDir()
+			require.NoError(t, err)
+		})
+
+		// The user removes the gluon dir while bridge is not running.
+		require.NoError(t, os.RemoveAll(gluonDir))
+
+		// Bridge starts but can't find the gluon database dir; there should be no error.
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, vaultKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
 			// ...
 		})
@@ -456,41 +481,80 @@ func TestBridge_FactoryReset(t *testing.T) {
 	})
 }
 
-func TestBridge_ChangeCacheDirectoryFailsBetweenDifferentVolumes(t *testing.T) {
-	if runtime.GOOS != "windows" {
-		t.Skip("Test only necessary on windows")
-	}
+func TestBridge_InitGluonDirectory(t *testing.T) {
 	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, vaultKey []byte) {
-		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, vaultKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
-			// Change directory
-			err := bridge.SetGluonDir(ctx, "XX:\\")
-			require.Error(t, err)
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, vaultKey, func(b *bridge.Bridge, mocks *bridge.Mocks) {
+			configDir, err := b.GetGluonConfigDir()
+			require.NoError(t, err)
+
+			_, err = os.ReadDir(bridge.ApplyGluonCachePathSuffix(b.GetGluonCacheDir()))
+			require.False(t, os.IsNotExist(err))
+
+			_, err = os.ReadDir(bridge.ApplyGluonDBPathSuffix(configDir))
+			require.False(t, os.IsNotExist(err))
 		})
 	})
 }
 
 func TestBridge_ChangeCacheDirectory(t *testing.T) {
 	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, vaultKey []byte) {
-		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, vaultKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+		userID, addrID, err := s.CreateUser("imap", password)
+		require.NoError(t, err)
+
+		labelID, err := s.CreateLabel(userID, "folder", "", proton.LabelTypeFolder)
+		require.NoError(t, err)
+
+		withClient(ctx, t, s, "imap", password, func(ctx context.Context, c *proton.Client) {
+			createNumMessages(ctx, t, c, addrID, labelID, 10)
+		})
+
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, vaultKey, func(b *bridge.Bridge, mocks *bridge.Mocks) {
 			newCacheDir := t.TempDir()
-			currentCacheDir := bridge.GetGluonDir()
+			currentCacheDir := b.GetGluonCacheDir()
+			configDir, err := b.GetGluonConfigDir()
+			require.NoError(t, err)
 
 			// Login the user.
-			userID, err := bridge.LoginFull(ctx, username, password, nil, nil)
+			syncCh, done := chToType[events.Event, events.SyncFinished](b.GetEvents(events.SyncFinished{}))
+			defer done()
+			userID, err := b.LoginFull(ctx, "imap", password, nil, nil)
 			require.NoError(t, err)
+			require.Equal(t, userID, (<-syncCh).UserID)
 
 			// The user is now connected.
-			require.Equal(t, []string{userID}, bridge.GetUserIDs())
-			require.Equal(t, []string{userID}, getConnectedUserIDs(t, bridge))
+			require.Equal(t, []string{userID}, b.GetUserIDs())
+			require.Equal(t, []string{userID}, getConnectedUserIDs(t, b))
 
 			// Change directory
-			err = bridge.SetGluonDir(ctx, newCacheDir)
+			err = b.SetGluonDir(ctx, newCacheDir)
 			require.NoError(t, err)
 
-			_, err = os.ReadDir(currentCacheDir)
+			// Old store should no more exists.
+			_, err = os.ReadDir(bridge.ApplyGluonCachePathSuffix(currentCacheDir))
 			require.True(t, os.IsNotExist(err))
+			// Database should not have changed.
+			_, err = os.ReadDir(bridge.ApplyGluonDBPathSuffix(configDir))
+			require.False(t, os.IsNotExist(err))
 
-			require.Equal(t, newCacheDir, bridge.GetGluonDir())
+			// New path should have Gluon sub-folder.
+			require.Equal(t, filepath.Join(newCacheDir, "gluon"), b.GetGluonCacheDir())
+			// And store should be inside it.
+			_, err = os.ReadDir(bridge.ApplyGluonCachePathSuffix(b.GetGluonCacheDir()))
+			require.False(t, os.IsNotExist(err))
+
+			// We should be able to fetch.
+			info, err := b.GetUserInfo(userID)
+			require.NoError(t, err)
+			require.True(t, info.State == bridge.Connected)
+
+			client, err := client.Dial(fmt.Sprintf("%v:%v", constants.Host, b.GetIMAPPort()))
+			require.NoError(t, err)
+			require.NoError(t, client.Login(info.Addresses[0], string(info.BridgePass)))
+			defer func() { _ = client.Logout() }()
+
+			status, err := client.Select(`Folders/folder`, false)
+			require.NoError(t, err)
+			require.Equal(t, uint32(10), status.Messages)
 		})
 	})
 }

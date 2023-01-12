@@ -196,7 +196,7 @@ func (f *frontendCLI) showAllMail(c *ishell.Context) {
 }
 
 func (f *frontendCLI) setGluonLocation(c *ishell.Context) {
-	if gluonDir := f.bridge.GetGluonDir(); gluonDir != "" {
+	if gluonDir := f.bridge.GetGluonCacheDir(); gluonDir != "" {
 		f.Println("The current message cache location is:", gluonDir)
 	}
 

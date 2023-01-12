@@ -57,7 +57,7 @@ func TestMigrate(t *testing.T) {
 	require.False(t, corrupt)
 
 	// Check the migrated vault.
-	require.Equal(t, "v2.3.x-gluon-dir", s.GetGluonDir())
+	require.Equal(t, "v2.3.x-gluon-dir", s.GetGluonCacheDir())
 	require.Equal(t, 1234, s.GetIMAPPort())
 	require.Equal(t, 5678, s.GetSMTPPort())
 

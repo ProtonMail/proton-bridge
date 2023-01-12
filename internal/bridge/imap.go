@@ -199,13 +199,13 @@ func (bridge *Bridge) handleIMAPEvent(event imapEvents.Event) {
 }
 
 func getGluonDir(encVault *vault.Vault) (string, error) {
-	empty, exists, err := isEmpty(encVault.GetGluonDir())
+	empty, exists, err := isEmpty(encVault.GetGluonCacheDir())
 	if err != nil {
 		return "", fmt.Errorf("failed to check if gluon dir is empty: %w", err)
 	}
 
 	if !exists {
-		if err := os.MkdirAll(encVault.GetGluonDir(), 0o700); err != nil {
+		if err := os.MkdirAll(encVault.GetGluonCacheDir(), 0o700); err != nil {
 			return "", fmt.Errorf("failed to create gluon dir: %w", err)
 		}
 	}
@@ -218,12 +218,20 @@ func getGluonDir(encVault *vault.Vault) (string, error) {
 		}
 	}
 
-	return encVault.GetGluonDir(), nil
+	return encVault.GetGluonCacheDir(), nil
+}
+
+func ApplyGluonCachePathSuffix(basePath string) string {
+	return filepath.Join(basePath, "backend", "store")
+}
+
+func ApplyGluonDBPathSuffix(basePath string) string {
+	return filepath.Join(basePath, "backend", "db")
 }
 
 // nolint:funlen
 func newIMAPServer(
-	gluonDir string,
+	gluonCacheDir, gluonDBDir string,
 	version *semver.Version,
 	tlsConfig *tls.Config,
 	reporter reporter.Reporter,
@@ -231,11 +239,15 @@ func newIMAPServer(
 	eventCh chan<- imapEvents.Event,
 	tasks *async.Group,
 ) (*gluon.Server, error) {
+	gluonCacheDir = ApplyGluonCachePathSuffix(gluonCacheDir)
+	gluonDBDir = ApplyGluonDBPathSuffix(gluonDBDir)
+
 	logrus.WithFields(logrus.Fields{
-		"gluonDir":  gluonDir,
-		"version":   version,
-		"logClient": logClient,
-		"logServer": logServer,
+		"gluonStore": gluonCacheDir,
+		"gluonDB":    gluonDBDir,
+		"version":    version,
+		"logClient":  logClient,
+		"logServer":  logServer,
 	}).Info("Creating IMAP server")
 
 	if logClient || logServer {
@@ -263,7 +275,8 @@ func newIMAPServer(
 
 	imapServer, err := gluon.New(
 		gluon.WithTLS(tlsConfig),
-		gluon.WithDataDir(gluonDir),
+		gluon.WithDataDir(gluonCacheDir),
+		gluon.WithDatabaseDir(gluonDBDir),
 		gluon.WithStoreBuilder(new(storeBuilder)),
 		gluon.WithLogger(imapClientLog, imapServerLog),
 		getGluonVersionInfo(version),

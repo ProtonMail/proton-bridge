@@ -399,6 +399,9 @@ func createMessages(ctx context.Context, t *testing.T, c *proton.Client, addrID,
 	_, addrKRs, err := proton.Unlock(user, addr, keyPass)
 	require.NoError(t, err)
 
+	_, ok := addrKRs[addrID]
+	require.True(t, ok)
+
 	res, err := stream.Collect(ctx, c.ImportMessages(
 		ctx,
 		addrKRs[addrID],

@@ -21,6 +21,7 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"os"
 	"path/filepath"
 
 	"github.com/Masterminds/semver/v3"
@@ -114,38 +115,47 @@ func (bridge *Bridge) SetSMTPSSL(newSSL bool) error {
 	return bridge.restartSMTP()
 }
 
-func (bridge *Bridge) GetGluonDir() string {
-	return bridge.vault.GetGluonDir()
+func (bridge *Bridge) GetGluonCacheDir() string {
+	return bridge.vault.GetGluonCacheDir()
+}
+
+func (bridge *Bridge) GetGluonConfigDir() (string, error) {
+	return bridge.locator.ProvideGluonPath()
 }
 
 func (bridge *Bridge) SetGluonDir(ctx context.Context, newGluonDir string) error {
 	return safe.RLockRet(func() error {
-		currentGluonDir := bridge.GetGluonDir()
+		currentGluonDir := bridge.GetGluonCacheDir()
+		newGluonDir = filepath.Join(newGluonDir, "gluon")
 		if newGluonDir == currentGluonDir {
 			return fmt.Errorf("new gluon dir is the same as the old one")
 		}
 
-		currentVolumeName := filepath.VolumeName(currentGluonDir)
-		newVolumeName := filepath.VolumeName(newGluonDir)
+		if err := bridge.stopEventLoops(); err != nil {
+			return err
+		}
+		defer func() {
+			err := bridge.startEventLoops(ctx)
+			if err != nil {
+				panic(err)
+			}
+		}()
 
-		if currentVolumeName != newVolumeName {
-			return fmt.Errorf("it's currently not possible to move the cache between different volumes")
+		if err := bridge.moveGluonCacheDir(currentGluonDir, newGluonDir); err != nil {
+			logrus.WithError(err).Error("failed to move GluonCacheDir")
+			if err := bridge.vault.SetGluonDir(currentGluonDir); err != nil {
+				panic(err)
+			}
 		}
 
-		if err := bridge.closeIMAP(context.Background()); err != nil {
-			return fmt.Errorf("failed to close IMAP: %w", err)
-		}
-
-		if err := moveDir(bridge.GetGluonDir(), newGluonDir); err != nil {
-			return fmt.Errorf("failed to move gluon dir: %w", err)
-		}
-
-		if err := bridge.vault.SetGluonDir(newGluonDir); err != nil {
-			return fmt.Errorf("failed to set new gluon dir: %w", err)
+		gluonDBDir, err := bridge.GetGluonConfigDir()
+		if err != nil {
+			panic(fmt.Errorf("failed to get Gluon Database directory: %w", err))
 		}
 
 		imapServer, err := newIMAPServer(
-			bridge.vault.GetGluonDir(),
+			bridge.vault.GetGluonCacheDir(),
+			gluonDBDir,
 			bridge.curVersion,
 			bridge.tlsConfig,
 			bridge.reporter,
@@ -155,23 +165,58 @@ func (bridge *Bridge) SetGluonDir(ctx context.Context, newGluonDir string) error
 			bridge.tasks,
 		)
 		if err != nil {
-			return fmt.Errorf("failed to create new IMAP server: %w", err)
+			panic(fmt.Errorf("failed to create new IMAP server: %w", err))
 		}
 
 		bridge.imapServer = imapServer
 
-		for _, user := range bridge.users {
-			if err := bridge.addIMAPUser(ctx, user); err != nil {
-				return fmt.Errorf("failed to add users to new IMAP server: %w", err)
-			}
-		}
-
-		if err := bridge.serveIMAP(); err != nil {
-			return fmt.Errorf("failed to serve IMAP: %w", err)
-		}
-
 		return nil
 	}, bridge.usersLock)
+}
+
+func (bridge *Bridge) moveGluonCacheDir(oldGluonDir, newGluonDir string) error {
+	logrus.Infof("gluon cache moving from %s to %s", oldGluonDir, newGluonDir)
+	oldCacheDir := ApplyGluonCachePathSuffix(oldGluonDir)
+	if err := copyDir(oldCacheDir, ApplyGluonCachePathSuffix(newGluonDir)); err != nil {
+		return fmt.Errorf("failed to copy gluon dir: %w", err)
+	}
+
+	if err := bridge.vault.SetGluonDir(newGluonDir); err != nil {
+		return fmt.Errorf("failed to set new gluon cache dir: %w", err)
+	}
+
+	if err := os.RemoveAll(oldCacheDir); err != nil {
+		logrus.WithError(err).Error("failed to remove old gluon cache dir")
+	}
+	return nil
+}
+
+func (bridge *Bridge) stopEventLoops() error {
+	if err := bridge.closeIMAP(context.Background()); err != nil {
+		return fmt.Errorf("failed to close IMAP: %w", err)
+	}
+
+	if err := bridge.closeSMTP(); err != nil {
+		return fmt.Errorf("failed to close SMTP: %w", err)
+	}
+	return nil
+}
+
+func (bridge *Bridge) startEventLoops(ctx context.Context) error {
+	for _, user := range bridge.users {
+		if err := bridge.addIMAPUser(ctx, user); err != nil {
+			return fmt.Errorf("failed to add users to new IMAP server: %w", err)
+		}
+	}
+
+	if err := bridge.serveIMAP(); err != nil {
+		panic(fmt.Errorf("failed to serve IMAP: %w", err))
+	}
+
+	if err := bridge.serveSMTP(); err != nil {
+		panic(fmt.Errorf("failed to serve SMTP: %w", err))
+	}
+	return nil
 }
 
 func (bridge *Bridge) GetProxyAllowed() bool {
