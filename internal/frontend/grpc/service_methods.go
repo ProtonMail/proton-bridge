@@ -407,7 +407,7 @@ func (s *Service) Login(ctx context.Context, login *LoginRequest) (*emptypb.Empt
 				_ = s.SendEvent(NewLoginAlreadyLoggedInEvent(auth.UserID))
 			} else if apiErr := new(proton.Error); errors.As(err, &apiErr) {
 				switch apiErr.Code { // nolint:exhaustive
-				case proton.PasswordWrong:
+				case proton.PasswordWrong, proton.UsernameInvalid:
 					_ = s.SendEvent(NewLoginError(LoginErrorType_USERNAME_PASSWORD_ERROR, ""))
 
 				case proton.PaidPlanRequired:
