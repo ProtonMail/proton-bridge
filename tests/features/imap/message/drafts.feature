@@ -44,3 +44,10 @@ Feature: IMAP Draft messages
       | someone@example.com | Basic Draft | This is a draft body, but longer |
     And IMAP client "1" sees 1 messages in "Drafts"
 
+  Scenario: Draft moved to trash remotely
+    When draft 1 for address "[user:user]@[domain]" of account "[user:user] was moved to trash
+    Then IMAP client "1" eventually sees the following messages in "Trash":
+      | body          |
+      | This is a dra |
+    And IMAP client "1" sees 0 messages in "Drafts"
+

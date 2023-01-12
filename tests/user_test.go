@@ -297,6 +297,29 @@ func (s *scenario) theFollowingFieldsWereChangedInDraftForAddressOfAccount(draft
 	})
 }
 
+func (s *scenario) drafAtIndexWasMovedToTrashForAddressOfAccount(draftIndex int, address, username string) error {
+	draftID, err := s.t.getDraftID(username, draftIndex)
+	if err != nil {
+		return fmt.Errorf("failed to get draft ID: %w", err)
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	return s.t.withClient(ctx, username, func(ctx context.Context, c *proton.Client) error {
+		return s.t.withAddrKR(ctx, c, username, s.t.getUserAddrID(s.t.getUserID(username), address), func(_ context.Context, addrKR *crypto.KeyRing) error {
+			if err := c.UnlabelMessages(ctx, []string{draftID}, proton.DraftsLabel); err != nil {
+				return fmt.Errorf("failed to unlabel draft")
+			}
+			if err := c.LabelMessages(ctx, []string{draftID}, proton.TrashLabel); err != nil {
+				return fmt.Errorf("failed to label draft to trah")
+			}
+
+			return nil
+		})
+	})
+}
+
 func (s *scenario) userLogsInWithUsernameAndPassword(username, password string) error {
 	userID, err := s.t.bridge.LoginFull(context.Background(), username, []byte(password), nil, nil)
 	if err != nil {

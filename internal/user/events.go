@@ -409,8 +409,9 @@ func (user *User) handleMessageEvents(ctx context.Context, messageEvents []proto
 			}
 
 		case proton.EventUpdate, proton.EventUpdateFlags:
-			// Draft update means to completely remove old message and upload the new data again.
-			if event.Message.IsDraft() {
+			// Draft update means to completely remove old message and upload the new data again, but we should
+			// only do this if the event is of type EventUpdate otherwise label switch operations will not work.
+			if event.Message.IsDraft() && event.Action == proton.EventUpdate {
 				if err := user.handleUpdateDraftEvent(
 					logging.WithLogrusField(ctx, "action", "update draft"),
 					event,

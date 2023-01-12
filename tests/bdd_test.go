@@ -121,6 +121,7 @@ func TestFeatures(testingT *testing.T) {
 			ctx.Step(`^the address "([^"]*)" of account "([^"]*)" has the following messages in "([^"]*)":$`, s.theAddressOfAccountHasTheFollowingMessagesInMailbox)
 			ctx.Step(`^the address "([^"]*)" of account "([^"]*)" has (\d+) messages in "([^"]*)"$`, s.theAddressOfAccountHasMessagesInMailbox)
 			ctx.Step(`^the following fields were changed in draft (\d+) for address "([^"]*)" of account "([^"]*)":$`, s.theFollowingFieldsWereChangedInDraftForAddressOfAccount)
+			ctx.Step(`^draft (\d+) for address "([^"]*)" of account "([^"]*) was moved to trash$`, s.drafAtIndexWasMovedToTrashForAddressOfAccount)
 
 			// === REPORTER ===
 			ctx.Step(`^test skips reporter checks$`, s.skipReporterChecks)
